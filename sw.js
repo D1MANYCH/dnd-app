@@ -1,12 +1,9 @@
 // ============================================================
 // sw.js — Service Worker для офлайн-работы D&D Sheet
-// Кешируем все файлы при первой загрузке,
-// после этого приложение работает без интернета
 // ============================================================
 
 const CACHE_NAME = 'dnd-sheet-v1';
 
-// Все файлы, которые нужно закешировать
 const FILES_TO_CACHE = [
   './',
   './index.html',
@@ -14,11 +11,10 @@ const FILES_TO_CACHE = [
   './data.js',
   './app.js',
   './manifest.json',
-  './icons/icon-192.svg',
-  './icons/icon-512.svg'
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
-// Установка: кешируем все файлы
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -29,7 +25,6 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Активация: удаляем старые кеши
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keyList) => {
@@ -46,16 +41,13 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Запросы: сначала кеш, потом сеть (офлайн-first)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
-        return response; // Есть в кеше — отдаём
+        return response;
       }
-      // Нет в кеше — пробуем сеть
       return fetch(event.request).then((networkResponse) => {
-        // Кешируем новый ответ
         if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -64,7 +56,6 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        // Сети нет и в кеше нет — возвращаем главную страницу
         return caches.match('./index.html');
       });
     })
