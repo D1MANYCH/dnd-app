@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Лист Персонажа D&D 5e</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1a24">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="D&D Sheet">
+</head>
+<body>
+
+<!-- ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА -->
+<div class="status-bar" id="status-bar">
+  <div class="status-left">
+    <div class="status-level">⭐ Ур. <span id="status-level">1</span></div>
+    <div class="status-hp">❤️ <span class="hp-current" id="status-hp-current">10</span><span class="hp-max">/<span id="status-hp-max">10</span></span></div>
+    <div class="status-ac">🛡️ КД <span id="status-ac">10</span></div>
+  </div>
+  <div class="status-right">
+    <div class="status-conditions" id="status-conditions"></div>
+  </div>
+</div>
+
+<header>
+  <h2 class="header-title" id="header-title">🎭 Мой Персонаж D&D 5e</h2>
+</header>
+
+<div class="container">
+
+  <!-- Floating Buttons -->
+  <div class="floating-buttons">
+    <div class="floating-btn floating-btn-rest" onclick="openRestModal()" title="Отдых">🏕️</div>
+    <div class="floating-btn floating-btn-dice" onclick="openDiceModal()" title="Бросить кубик">🎲</div>
+  </div>
+
+  <!-- ======== ЭКРАН: СПИСОК ПЕРСОНАЖЕЙ ======== -->
+  <div id="screen-characters">
+    <div class="card">
+      <h3>📜 Ваши Персонажи</h3>
+      <div id="character-list"></div>
+      <button onclick="createNewCharacter()">+ Новый персонаж</button>
+      <button class="secondary" onclick="exportData()">💾 Скачать копию</button>
+      <button class="secondary" onclick="document.getElementById('import-file').click()">📂 Загрузить копию</button>
+      <button class="secondary" onclick="document.getElementById('spells-import').click()">📥 Импорт заклинаний</button>
+      <button class="secondary" onclick="exportSpells()">📤 Экспорт заклинаний</button>
+      <input type="file" id="import-file" style="display:none" onchange="importData(this)" accept=".json">
+      <input type="file" id="spells-import" style="display:none" onchange="importSpells(this)" accept=".json">
+    </div>
+    <div class="card">
+      <p style="font-size:0.8em; color:var(--text-muted);">💡 Данные сохраняются автоматически. Регулярно скачивайте резервную копию!</p>
+    </div>
+  </div>
+
+  <!-- ======== ЭКРАН: ПЕРСОНАЖ ======== -->
+  <div id="screen-character" class="hidden">
+    <div class="back-btn-container">
+      <button class="back-btn" onclick="showScreen('characters')">← Назад к профилям</button>
+    </div>
+
+    <!-- TAB: ЛИСТ -->
+    <div id="tab-sheet" class="tab-content active">
+
+      <!-- Основная информация -->
+      <div class="card">
+        <div class="row">
+          <div class="col"><label>Имя</label><input type="text" id="char-name" oninput="updateChar()"></div>
+          <div class="col"><label>Уровень</label><input type="number" id="char-level" min="1" max="20" oninput="calcStats()"></div>
+          <div class="col"><label>Опыт</label><input type="number" id="char-exp" value="0" oninput="updateChar()"></div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label>Класс</label>
+            <select id="char-class" onchange="updateChar(); updateSubclassOptions(); recalculateHP(); autoSelectProficiencies(); updateClassFeatures(); calculateAC()">
+              <option value="">Выберите класс</option>
+              <option value="Волшебник">Волшебник</option>
+              <option value="Чародей">Чародей</option>
+              <option value="Колдун">Колдун</option>
+              <option value="Друид">Друид</option>
+              <option value="Жрец">Жрец</option>
+              <option value="Бард">Бард</option>
+              <option value="Паладин">Паладин</option>
+              <option value="Следопыт">Следопыт</option>
+              <option value="Воин">Воин</option>
+              <option value="Монах">Монах</option>
+              <option value="Плут">Плут</option>
+              <option value="Варвар">Варвар</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>Подкласс</label>
+            <select id="char-subclass" onchange="updateChar(); updateClassFeatures()">
+              <option value="">Сначала выберите класс</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label>Раса/Вид</label>
+            <select id="char-race" onchange="updateChar()">
+              <option value="">Выберите расу</option>
+              <option value="Человек">Человек</option>
+              <option value="Эльф">Эльф</option>
+              <option value="Дварф">Дварф</option>
+              <option value="Хоббит">Хоббит</option>
+              <option value="Гном">Гном</option>
+              <option value="Полуорк">Полуорк</option>
+              <option value="Полурослик">Полурослик</option>
+              <option value="Тифлинг">Тифлинг</option>
+              <option value="Драконорожденный">Драконорожденный</option>
+              <option value="Голиаф">Голиаф</option>
+              <option value="Аасимар">Аасимар</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>Предыстория</label>
+            <select id="char-background" onchange="updateChar()">
+              <option value="">Выберите предысторию</option>
+              <option value="Прислужник">Прислужник</option>
+              <option value="Бродяга">Бродяга</option>
+              <option value="Воин">Воин</option>
+              <option value="Мудрец">Мудрец</option>
+              <option value="Благородный">Благородный</option>
+              <option value="Преступник">Преступник</option>
+              <option value="Торговец">Торговец</option>
+              <option value="Отшельник">Отшельник</option>
+              <option value="Герой народа">Герой народа</option>
+              <option value="Чужеземец">Чужеземец</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label>Мировоззрение</label>
+            <select id="char-alignment" onchange="updateChar()">
+              <option value="">Выберите</option>
+              <option value="Законно-доброе">Законно-доброе</option>
+              <option value="Нейтрально-доброе">Нейтрально-доброе</option>
+              <option value="Хаотично-доброе">Хаотично-доброе</option>
+              <option value="Законно-нейтральное">Законно-нейтральное</option>
+              <option value="Истинно-нейтральное">Истинно-нейтральное</option>
+              <option value="Хаотично-нейтральное">Хаотично-нейтральное</option>
+              <option value="Законно-злое">Законно-злое</option>
+              <option value="Нейтрально-злое">Нейтрально-злое</option>
+              <option value="Хаотично-злое">Хаотично-злое</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>Размер</label>
+            <select id="char-size" onchange="updateChar()">
+              <option value="Маленький">Маленький</option>
+              <option value="Средний" selected>Средний</option>
+              <option value="Большой">Большой</option>
+            </select>
+          </div>
+          <div class="col"><label>Скорость</label><input type="text" id="char-speed" value="30 фт" oninput="updateChar()"></div>
+        </div>
+        <div style="text-align: center; margin-top: 10px;">
+          <span class="proficiency-badge">Бонус мастерства: <span id="proficiency-bonus">+2</span></span>
+        </div>
+      </div>
+
+      <!-- Характеристики -->
+      <div class="card">
+        <h3>Характеристики</h3>
+        <div class="row" style="flex-wrap:wrap; justify-content:space-between;">
+          <div class="stat-box" style="width:30%;">
+            <label class="stat-label">СИЛ</label>
+            <div class="stat-mod" id="mod-str">+0</div>
+            <div class="stat-controls">
+              <input type="number" id="val-str" value="10" class="stat-input" oninput="calcStats()">
+              <div class="stat-btn-row">
+                <button class="stat-btn" onclick="adjustStat('str', -1)">−</button>
+                <button class="stat-btn" onclick="adjustStat('str', 1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="stat-box" style="width:30%;">
+            <label class="stat-label">ЛОВ</label>
+            <div class="stat-mod" id="mod-dex">+0</div>
+            <div class="stat-controls">
+              <input type="number" id="val-dex" value="10" class="stat-input" oninput="calcStats()">
+              <div class="stat-btn-row">
+                <button class="stat-btn" onclick="adjustStat('dex', -1)">−</button>
+                <button class="stat-btn" onclick="adjustStat('dex', 1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="stat-box" style="width:30%;">
+            <label class="stat-label">ТЕЛ</label>
+            <div class="stat-mod" id="mod-con">+0</div>
+            <div class="stat-controls">
+              <input type="number" id="val-con" value="10" class="stat-input" oninput="calcStats()">
+              <div class="stat-btn-row">
+                <button class="stat-btn" onclick="adjustStat('con', -1)">−</button>
+                <button class="stat-btn" onclick="adjustStat('con', 1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="stat-box" style="width:30%;">
+            <label class="stat-label">ИНТ</label>
+            <div class="stat-mod" id="mod-int">+0</div>
+            <div class="stat-controls">
+              <input type="number" id="val-int" value="10" class="stat-input" oninput="calcStats()">
+              <div class="stat-btn-row">
+                <button class="stat-btn" onclick="adjustStat('int', -1)">−</button>
+                <button class="stat-btn" onclick="adjustStat('int', 1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="stat-box" style="width:30%;">
+            <label class="stat-label">МУД</label>
+            <div class="stat-mod" id="mod-wis">+0</div>
+            <div class="stat-controls">
+              <input type="number" id="val-wis" value="10" class="stat-input" oninput="calcStats()">
+              <div class="stat-btn-row">
+                <button class="stat-btn" onclick="adjustStat('wis', -1)">−</button>
+                <button class="stat-btn" onclick="adjustStat('wis', 1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="stat-box" style="width:30%;">
+            <label class="stat-label">ХАР</label>
+            <div class="stat-mod" id="mod-cha">+0</div>
+            <div class="stat-controls">
+              <input type="number" id="val-cha" value="10" class="stat-input" oninput="calcStats()">
+              <div class="stat-btn-row">
+                <button class="stat-btn" onclick="adjustStat('cha', -1)">−</button>
+                <button class="stat-btn" onclick="adjustStat('cha', 1)">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Спасброски -->
+      <div class="card">
+        <h3>🛡️ Спасброски</h3>
+        <div class="saves-section">
+          <div class="saves-grid" id="saves-grid"></div>
+        </div>
+      </div>
+
+      <!-- Навыки -->
+      <div class="card">
+        <h3>📚 Навыки</h3>
+        <div id="skills-container"></div>
+        <div class="passive-wisdom">
+          <div>Пассивная внимательность</div>
+          <div class="value" id="passive-perception">10</div>
+        </div>
+      </div>
+
+      <!-- Здоровье и Бой -->
+      <div class="card">
+        <h3>❤️ Здоровье и Бой</h3>
+        <div class="row">
+          <div class="col"><label>КД (AC)</label><input type="number" id="combat-ac" readonly style="color: var(--armor-color); font-weight: bold; cursor: not-allowed;"></div>
+          <div class="col"><label>Инициатива</label><input type="text" id="combat-init" readonly></div>
+          <div class="col"><label>Скорость</label><input type="text" id="combat-speed" value="30 фт" oninput="updateChar()"></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Макс. ХП</label><input type="number" id="hp-max" readonly style="color: var(--success-color); font-weight: bold;"></div>
+          <div class="col"><label>Текущие ХП</label><input type="number" id="hp-current" oninput="updateChar()"></div>
+          <div class="col"><label>Временные ХП</label><input type="number" id="hp-temp" value="0" oninput="updateChar()"></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Кости Хитов</label><input type="text" id="hp-dice" readonly style="color: var(--info-color);"></div>
+          <div class="col"><label>Потрачено костей</label><input type="number" id="hp-dice-spent" value="0" oninput="updateChar()"></div>
+          <div class="col"><label>Доступно костей</label><input type="text" id="hp-dice-available" readonly></div>
+        </div>
+        <button class="info" onclick="openLevelUpModal()">⬆️ Повысить уровень</button>
+
+        <!-- КД Авто-расчёт -->
+        <div class="ac-calc-section">
+          <h4>🛡️ Класс Доспеха (Авто-расчёт)</h4>
+          <div class="ac-display">
+            <div class="ac-value"><span id="ac-total">10</span></div>
+            <div class="ac-formula" id="ac-formula">10 (база)</div>
+          </div>
+          <div class="ac-modifiers" id="ac-modifiers"></div>
+        </div>
+
+        <!-- Классовые умения -->
+        <div class="class-features-section" id="class-features-section" style="display: none;">
+          <h4>⚡ Классовые умения</h4>
+          <div class="features-grid" id="features-grid"></div>
+          <div id="asi-container"></div>
+        </div>
+
+        <!-- Условия -->
+        <div class="conditions-section">
+          <h4>⚠️ Условия и Статусы <span class="conditions-active-count" id="conditions-count">0</span></h4>
+          <div class="conditions-grid" id="conditions-grid"></div>
+        </div>
+
+        <!-- Эффекты -->
+        <div class="effects-section">
+          <h4>✨ Временные Эффекты <span class="conditions-active-count" id="effects-count">0</span></h4>
+          <div class="effects-grid" id="effects-grid"></div>
+        </div>
+      </div>
+
+      <!-- Владения -->
+      <div class="card">
+        <h3>📖 Владения</h3>
+        <div class="proficiencies-section">
+          <h4>🛡️ Доспехи</h4>
+          <div class="proficiency-checkboxes" id="armor-proficiencies">
+            <div class="proficiency-checkbox">
+              <input type="checkbox" id="armor-light" onchange="toggleProficiency('armor', 'light', this); calculateAC()">
+              <label for="armor-light">Лёгкие</label>
+            </div>
+            <div class="proficiency-checkbox">
+              <input type="checkbox" id="armor-medium" onchange="toggleProficiency('armor', 'medium', this); calculateAC()">
+              <label for="armor-medium">Средние</label>
+            </div>
+            <div class="proficiency-checkbox">
+              <input type="checkbox" id="armor-heavy" onchange="toggleProficiency('armor', 'heavy', this); calculateAC()">
+              <label for="armor-heavy">Тяжёлые</label>
+            </div>
+            <div class="proficiency-checkbox">
+              <input type="checkbox" id="armor-shield" onchange="toggleProficiency('armor', 'shield', this); calculateAC()">
+              <label for="armor-shield">Щиты (+2)</label>
+            </div>
+          </div>
+        </div>
+        <div class="proficiencies-section">
+          <h4>⚔️ Оружие</h4>
+          <div class="proficiency-checkboxes" id="weapon-proficiencies">
+            <div class="proficiency-checkbox">
+              <input type="checkbox" id="weapon-simple" onchange="toggleProficiency('weapon', 'simple', this)">
+              <label for="weapon-simple">Простое</label>
+            </div>
+            <div class="proficiency-checkbox">
+              <input type="checkbox" id="weapon-martial" onchange="toggleProficiency('weapon', 'martial', this)">
+              <label for="weapon-martial">Воинское</label>
+            </div>
+          </div>
+        </div>
+        <div class="proficiencies-section">
+          <h4>🔧 Инструменты</h4>
+          <textarea id="tool-proficiencies" placeholder="Воровские инструменты, музыкальные..." oninput="updateChar()"></textarea>
+        </div>
+        <div class="proficiencies-section">
+          <h4>🗣️ Языки</h4>
+          <textarea id="languages" placeholder="Общий, Эльфийский, Дварфский..." oninput="updateChar()"></textarea>
+        </div>
+      </div>
+
+      <!-- Оружие -->
+      <div class="card">
+        <h3>⚔️ Оружие</h3>
+        <button class="success" onclick="openWeaponModal()">+ Добавить оружие</button>
+        <div id="weapons-list"></div>
+      </div>
+
+    </div><!-- /tab-sheet -->
+
+    <!-- TAB: ЗАКЛИНАНИЯ -->
+    <div id="tab-spells" class="tab-content">
+      <div class="card">
+        <h3>Заклинательная характеристика</h3>
+        <div class="spellcasting-stat">
+          <div class="row">
+            <div class="col">
+              <label>Характеристика</label>
+              <select id="spell-stat" onchange="updateChar(); calcSpellStats()">
+                <option value="">Выберите</option>
+                <option value="ИНТ">ИНТ (Интеллект)</option>
+                <option value="МУД">МУД (Мудрость)</option>
+                <option value="ХАР">ХАР (Харизма)</option>
+              </select>
+            </div>
+            <div class="col"><label>СЛ спасброска</label><input type="number" id="spell-dc" readonly></div>
+          </div>
+          <div class="row">
+            <div class="col"><label>Бонус атаки</label><input type="text" id="spell-attack" readonly></div>
+            <div class="col"><label>Модификатор</label><input type="text" id="spell-mod" readonly></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Ячейки заклинаний</h3>
+        <p style="font-size:0.75em; color:var(--text-muted);">💎 Нажмите на ромб, чтобы отметить</p>
+        <div class="spell-slots-visual" id="spell-slots-visual"></div>
+      </div>
+      <div class="card">
+        <h3>Мои заклинания</h3>
+        <button class="success" onclick="openSpellSearch()">🔍 Найти заклинание</button>
+        <button class="info" onclick="openAddSpellForm()">✏️ Добавить своё</button>
+        <div id="my-spells-list"></div>
+      </div>
+    </div><!-- /tab-spells -->
+
+    <!-- TAB: ИНВЕНТАРЬ -->
+    <div id="tab-inventory" class="tab-content">
+      <div class="inventory-weight-summary">
+        <div class="total-weight" id="total-weight">0 фнт</div>
+        <div class="weight-label">Общий вес инвентаря</div>
+        <div class="carry-capacity" id="carry-capacity">Грузоподъёмность: 225 фнт</div>
+        <div class="overweight-warning" id="overweight-warning">⚠️ ПЕРЕГРУЗ! Снизьте вес на <span id="overweight-amount">0</span> фнт</div>
+      </div>
+      <div class="inventory-header">
+        <h4 style="margin-bottom: 15px;">🎒 Рюкзак</h4>
+        <div class="inventory-filters">
+          <button class="active" onclick="filterInventory('all', this)">📋 Все</button>
+          <button onclick="filterInventory('weapon', this)">⚔️ Оружие</button>
+          <button onclick="filterInventory('armor', this)">🛡️ Броня</button>
+          <button onclick="filterInventory('potion', this)">🧪 Зелья</button>
+          <button onclick="filterInventory('scroll', this)">📜 Свитки</button>
+          <button onclick="filterInventory('tool', this)">🔧 Инструменты</button>
+          <button onclick="filterInventory('material', this)">📦 Материалы</button>
+          <button onclick="filterInventory('other', this)">📝 Прочее</button>
+        </div>
+        <button class="info" onclick="openItemModal(null, -1)">+ Добавить предмет</button>
+      </div>
+      <div class="inventory-list" id="inventory-list"></div>
+      <div class="card" style="margin-top: 15px;">
+        <h4>💰 Кошель</h4>
+        <div class="coin-section">
+          <div class="coin-row">
+            <span class="coin-label">ММ</span>
+            <div class="coin-box">
+              <input type="number" id="coin-cp" value="0" class="coin-value" oninput="updateChar()">
+              <div class="coin-controls">
+                <button class="coin-btn" onclick="adjustCoin('cp', -1)">−</button>
+                <button class="coin-btn" onclick="adjustCoin('cp', 1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="coin-row">
+            <span class="coin-label">СМ</span>
+            <div class="coin-box">
+              <input type="number" id="coin-sp" value="0" class="coin-value" oninput="updateChar()">
+              <div class="coin-controls">
+                <button class="coin-btn" onclick="adjustCoin('sp', -1)">−</button>
+                <button class="coin-btn" onclick="adjustCoin('sp', 1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="coin-row">
+            <span class="coin-label">ЭМ</span>
+            <div class="coin-box">
+              <input type="number" id="coin-ep" value="0" class="coin-value" oninput="updateChar()">
+              <div class="coin-controls">
+                <button class="coin-btn" onclick="adjustCoin('ep', -1)">−</button>
+                <button class="coin-btn" onclick="adjustCoin('ep', 1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="coin-row">
+            <span class="coin-label">ЗМ</span>
+            <div class="coin-box">
+              <input type="number" id="coin-gp" value="0" class="coin-value" oninput="updateChar()">
+              <div class="coin-controls">
+                <button class="coin-btn" onclick="adjustCoin('gp', -1)">−</button>
+                <button class="coin-btn" onclick="adjustCoin('gp', 1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="coin-row">
+            <span class="coin-label">ПМ</span>
+            <div class="coin-box">
+              <input type="number" id="coin-pp" value="0" class="coin-value" oninput="updateChar()">
+              <div class="coin-controls">
+                <button class="coin-btn" onclick="adjustCoin('pp', -1)">−</button>
+                <button class="coin-btn" onclick="adjustCoin('pp', 1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="coin-weight" id="coin-weight">Вес монет: 0 фнт</div>
+        </div>
+      </div>
+    </div><!-- /tab-inventory -->
+
+    <!-- TAB: ЗАПИСИ -->
+    <div id="tab-notes" class="tab-content">
+      <div class="card">
+        <h3>👤 Внешность</h3>
+        <textarea id="char-appearance" rows="5" placeholder="Внешность, приметы, манеры..." oninput="updateChar()"></textarea>
+      </div>
+      <div class="card">
+        <h3>📖 Черты и умения</h3>
+        <textarea id="char-features" rows="7" placeholder="Классовые умения, расовые черты..." oninput="updateChar()"></textarea>
+      </div>
+      <div class="card">
+        <h3>📝 Заметки</h3>
+        <textarea id="char-notes" rows="12" placeholder="История, события, NPC, планы..." oninput="updateChar()"></textarea>
+      </div>
+      <div class="card">
+        <h3>🔮 Магические предметы</h3>
+        <textarea id="magic-items" rows="5" placeholder="Настроенные предметы, свойства..." oninput="updateChar()"></textarea>
+      </div>
+    </div><!-- /tab-notes -->
+
+  </div><!-- /screen-character -->
+
+  <!-- ======== МОДАЛЬНЫЕ ОКНА ======== -->
+
+  <!-- Modal: Отдых -->
+  <div id="rest-modal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeRestModal()">&times;</span>
+      <h3>🏕️ Отдых</h3>
+      <div id="rest-main-screen">
+        <div class="rest-options">
+          <button class="rest-option-btn short-rest" onclick="showShortRestInfo()">
+            <span class="icon">☕</span>Короткий отдых<span class="time">1 час</span>
+          </button>
+          <button class="rest-option-btn long-rest" onclick="showLongRestInfo()">
+            <span class="icon">🛏️</span>Долгий отдых<span class="time">8 часов</span>
+          </button>
+        </div>
+        <div class="rest-info">
+          <h4>ℹ️ Выберите тип отдыха</h4>
+          <p style="font-size:0.85em; color:var(--text-muted); margin:0;">Нажмите на кнопку выше чтобы увидеть что восстановится</p>
+        </div>
+      </div>
+      <div id="rest-info-screen" class="hidden">
+        <div class="rest-info">
+          <h4 id="rest-info-title">Короткий отдых</h4>
+          <ul id="rest-info-list"></ul>
+        </div>
+        <div id="hit-dice-section" class="hit-dice-section hidden">
+          <h4>🎲 Потратить кости хитов</h4>
+          <div class="hit-dice-controls">
+            <button class="secondary" onclick="adjustHitDice(-1)">-</button>
+            <input type="number" id="hit-dice-to-spend" value="0" min="0" readonly>
+            <button class="secondary" onclick="adjustHitDice(1)">+</button>
+          </div>
+          <div class="hit-dice-info">
+            Доступно костей: <span id="hit-dice-available-rest">0</span> |
+            Восстановит: <span id="hit-dice-heal">0</span> ХП
+          </div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="secondary" onclick="showRestMain()" style="flex:1;">← Назад</button>
+          <button class="success" id="confirm-rest-btn" onclick="confirmRest()" style="flex:1;">Подтвердить</button>
+        </div>
+      </div>
+      <div id="rest-result-screen" class="hidden">
+        <div class="rest-result">
+          <h3 id="rest-result-title">✅ Отдых завершён!</h3>
+          <div id="rest-result-details"></div>
+        </div>
+        <button class="success modal-close-bottom" onclick="closeRestModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Повышение уровня -->
+  <div id="levelup-modal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeLevelUpModal()">&times;</span>
+      <h3>⬆️ Повышение уровня</h3>
+      <div class="rest-info">
+        <h4>Текущий уровень: <span id="current-level-display">1</span></h4>
+        <p style="font-size:0.85em; color:var(--text-muted);">При повышении уровня вы получите:</p>
+        <ul id="levelup-benefits">
+          <li>Новые ячейки заклинаний</li>
+          <li>Увеличение здоровья</li>
+          <li>Новые классовые умения</li>
+        </ul>
+      </div>
+      <div id="new-features-container" style="margin: 15px 0; max-height: 200px; overflow-y: auto;"></div>
+      <div class="rest-comparison">
+        <div class="before">ХП: <span id="hp-before">10</span></div>
+        <div class="arrow">→</div>
+        <div class="after">ХП: <span id="hp-after">20</span></div>
+      </div>
+      <div class="rest-comparison">
+        <div class="before">Кости: <span id="dice-before">1</span></div>
+        <div class="arrow">→</div>
+        <div class="after">Кости: <span id="dice-after">2</span></div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top: 20px;">
+        <button class="secondary" onclick="closeLevelUpModal()" style="flex:1;">Отмена</button>
+        <button class="success" onclick="confirmLevelUp()" style="flex:1;">Повысить уровень</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Кубики -->
+  <div id="dice-modal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeDiceModal()">&times;</span>
+      <h3>🎲 Бросок кубиков</h3>
+      <div class="dice-result-display normal" id="dice-result-display">
+        <span class="dice-result-big" id="dice-result-big">-</span>
+        <span class="dice-result-info" id="dice-result-info">Нажмите на кубик</span>
+      </div>
+      <div class="dice-grid">
+        <button class="dice-btn d20" onclick="rollDice(20)">🎲 d20</button>
+        <button class="dice-btn" onclick="rollDice(4)">d4</button>
+        <button class="dice-btn" onclick="rollDice(6)">d6</button>
+        <button class="dice-btn" onclick="rollDice(8)">d8</button>
+        <button class="dice-btn" onclick="rollDice(10)">d10</button>
+        <button class="dice-btn" onclick="rollDice(12)">d12</button>
+        <button class="dice-btn" onclick="rollDice(100)">d100</button>
+      </div>
+      <h4>История</h4>
+      <div class="dice-history" id="dice-history"></div>
+      <button class="secondary modal-close-bottom" onclick="closeDiceModal()">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Modal: Поиск заклинаний -->
+  <div id="spell-search-modal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeSpellSearch()">&times;</span>
+      <h3>Поиск заклинаний</h3>
+      <div class="version-toggle">
+        <button class="version-btn active" onclick="setSpellVersion('all')" id="btn-ver-all">Все</button>
+        <button class="version-btn" onclick="setSpellVersion('PH14')" id="btn-ver-ph14">PH14</button>
+        <button class="version-btn" onclick="setSpellVersion('PH24')" id="btn-ver-ph24">PH24</button>
+      </div>
+      <div class="version-toggle">
+        <button class="version-btn active" onclick="setSpellClass('all')" id="btn-class-all">Все</button>
+        <button class="version-btn" onclick="setSpellClass('wizard')" id="btn-class-wizard">Волшебник</button>
+        <button class="version-btn" onclick="setSpellClass('druid')" id="btn-class-druid">Друид</button>
+      </div>
+      <div class="row">
+        <div class="col">
+          <input type="text" id="spell-search-input" placeholder="Поиск..." oninput="renderSpellSearch()">
+        </div>
+        <div class="col" style="flex:0.5;">
+          <select id="spell-search-level" onchange="renderSpellSearch()">
+            <option value="">Все уровни</option>
+            <option value="0">Заговор</option>
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option>
+            <option value="5">5</option><option value="6">6</option>
+            <option value="7">7</option><option value="8">8</option>
+            <option value="9">9</option>
+          </select>
+        </div>
+      </div>
+      <div id="spell-search-results" style="max-height:350px; overflow-y:auto; margin-top:15px;"></div>
+      <button class="secondary modal-close-bottom" onclick="closeSpellSearch()">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Modal: Добавить заклинание -->
+  <div id="add-spell-modal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeAddSpellForm()">&times;</span>
+      <h3>Добавить заклинание</h3>
+      <div class="add-spell-form">
+        <div class="row">
+          <div class="col"><label>Название</label><input type="text" id="new-spell-name"></div>
+          <div class="col" style="flex:0.5;"><label>Уровень</label>
+            <select id="new-spell-level">
+              <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+              <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+              <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Класс</label>
+            <select id="new-spell-class">
+              <option value="wizard">Волшебник</option>
+              <option value="druid">Друид</option>
+              <option value="both">Оба</option>
+            </select>
+          </div>
+          <div class="col"><label>Источник</label>
+            <select id="new-spell-source">
+              <option value="PH14">PH14</option>
+              <option value="PH24">PH24</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Время</label><input type="text" id="new-spell-time" value="1 действие"></div>
+          <div class="col"><label>Дистанция</label><input type="text" id="new-spell-range" value="60 фт"></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Компоненты</label><input type="text" id="new-spell-components" value="V,S"></div>
+          <div class="col"><label>Длительность</label><input type="text" id="new-spell-duration" value="Мгновенно"></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Описание</label><textarea id="new-spell-desc"></textarea></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>На больших уровнях</label><textarea id="new-spell-higher" style="min-height:60px;"></textarea></div>
+        </div>
+        <button class="success" onclick="submitNewSpell()">Сохранить</button>
+        <button class="secondary modal-close-bottom" onclick="closeAddSpellForm()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Предмет -->
+  <div id="item-modal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeItemModal()">&times;</span>
+      <h3 id="item-modal-title">Добавить предмет</h3>
+      <div class="add-spell-form item-form">
+        <input type="hidden" id="item-category">
+        <input type="hidden" id="item-slot-index">
+        <label>Категория *</label>
+        <select id="new-item-category">
+          <option value="weapon">⚔️ Оружие</option>
+          <option value="armor">🛡️ Броня</option>
+          <option value="potion">🧪 Зелье</option>
+          <option value="scroll">📜 Свиток</option>
+          <option value="tool">🔧 Инструмент</option>
+          <option value="material">📦 Материал</option>
+          <option value="other">📝 Прочее</option>
+        </select>
+        <label>Название *</label>
+        <input type="text" id="new-item-name" placeholder="Например: Меч, Зелье лечения...">
+        <label>Количество</label>
+        <input type="number" id="new-item-qty" value="1" min="1">
+        <label>Вес за шт. (фнт)</label>
+        <input type="number" id="new-item-weight" value="0" step="0.1" min="0">
+        <label>Описание</label>
+        <textarea id="new-item-desc" placeholder="Свойства, бонусы, особенности..." style="min-height:80px;"></textarea>
+        <button class="success" onclick="submitItem()">💾 Сохранить</button>
+        <button class="secondary modal-close-bottom" onclick="closeItemModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Просмотр предмета -->
+  <div id="item-view-modal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeItemView()">&times;</span>
+      <h3>Предмет</h3>
+      <div class="item-detail-icon" id="view-item-icon">🎒</div>
+      <div class="item-detail-name" id="view-item-name">Название</div>
+      <div class="item-detail-stats">
+        <div class="item-detail-stat"><div class="label">Количество</div><div class="value" id="view-item-qty">1 шт.</div></div>
+        <div class="item-detail-stat"><div class="label">Вес за шт.</div><div class="value" id="view-item-weight">0 фнт</div></div>
+        <div class="item-detail-stat"><div class="label">Категория</div><div class="value" id="view-item-category">-</div></div>
+        <div class="item-detail-stat"><div class="label">Общий вес</div><div class="value" id="view-item-total-weight">0 фнт</div></div>
+      </div>
+      <div class="item-detail-desc" id="view-item-desc">Описание предмета...</div>
+      <div class="item-detail-actions">
+        <button class="info" onclick="editItemFromView()">✏️ Редактировать</button>
+        <button class="danger" onclick="deleteItemFromView()">🗑️ Удалить</button>
+      </div>
+      <button class="secondary modal-close-bottom" onclick="closeItemView()">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Modal: Оружие -->
+  <div id="weapon-modal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeWeaponModal()">&times;</span>
+      <h3>Добавить оружие</h3>
+      <label style="margin-top:10px; color: var(--text-color);">📜 Выбрать из списка:</label>
+      <div class="weapon-presets" id="weapon-presets-list"></div>
+      <label style="margin-top:15px; color: var(--text-color);">✏️ Или введите вручную:</label>
+      <div class="add-spell-form">
+        <div class="row">
+          <div class="col"><label>Название</label><input type="text" id="new-weapon-name"></div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label>Характеристика</label>
+            <select id="new-weapon-stat">
+              <option value="str">Сила (СИЛ)</option>
+              <option value="dex">Ловкость (ЛОВ)</option>
+            </select>
+          </div>
+          <div class="col"><label>Бонус атаки</label><input type="text" id="new-weapon-bonus" placeholder="+5"></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Урон</label><input type="text" id="new-weapon-damage" placeholder="1к8+3"></div>
+          <div class="col"><label>Тип урона</label><input type="text" id="new-weapon-type" placeholder="Режущий"></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Дальность</label><input type="text" id="new-weapon-range" placeholder="Ближний"></div>
+          <div class="col"><label>Свойства</label><input type="text" id="new-weapon-notes" placeholder="Лёгкое, двуручное..."></div>
+        </div>
+        <button class="success" onclick="submitWeapon()">Сохранить</button>
+        <button class="secondary modal-close-bottom" onclick="closeWeaponModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Нижняя навигация -->
+  <div id="character-tabs" class="tab-nav hidden">
+    <button class="tab-btn active" onclick="switchTab('sheet', this)"><span>📋</span>Лист</button>
+    <button class="tab-btn" onclick="switchTab('spells', this)"><span>✨</span>Заклинания</button>
+    <button class="tab-btn" onclick="switchTab('inventory', this)"><span>🎒</span>Инвентарь</button>
+    <button class="tab-btn" onclick="switchTab('notes', this)"><span>📝</span>Записи</button>
+  </div>
+
+</div><!-- /container -->
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+  // Регистрация Service Worker для PWA
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('sw.js').then(function(reg) {
+        console.log('SW зарегистрирован:', reg.scope);
+      }).catch(function(err) {
+        console.log('SW ошибка:', err);
+      });
+    });
+  }
+</script>
+</body>
+</html>
