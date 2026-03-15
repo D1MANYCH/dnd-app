@@ -570,6 +570,164 @@
 </div>
 </div>
 </div>
+
+<!-- TAB: PARTY -->
+<div id="tab-party" class="tab-content">
+<div class="card">
+<div class="party-section-header">
+<h3>🎭 Мой персонаж</h3>
+</div>
+<div id="my-char-card"></div>
+</div>
+<div class="card">
+<div class="party-section-header">
+<h3>🧑‍🤝‍🧑 Соратники</h3>
+<div class="party-header-btns">
+<button class="party-action-btn" onclick="openAddAllyModal()">+ Добавить</button>
+<button class="party-action-btn secondary" onclick="exportAllies()">↓ Экспорт</button>
+<button class="party-action-btn secondary" onclick="document.getElementById('allies-import').click()">↑ Импорт</button>
+<input type="file" id="allies-import" style="display:none" onchange="importAllies(this)" accept=".json">
+</div>
+</div>
+<div id="allies-list"></div>
+</div>
+<div class="card">
+<div class="party-section-header">
+<h3>🧑 Персонажи <span class="party-section-hint">NPC, квестовые герои</span></h3>
+<div class="party-header-btns">
+<button class="party-action-btn" onclick="openAddNPCModal()">+ Добавить</button>
+<button class="party-action-btn secondary" onclick="exportNPCs()">↓ Экспорт</button>
+<button class="party-action-btn secondary" onclick="document.getElementById('npcs-import').click()">↑ Импорт</button>
+<input type="file" id="npcs-import" style="display:none" onchange="importNPCs(this)" accept=".json">
+</div>
+</div>
+<div id="npcs-list"></div>
+</div>
+<div class="card">
+<div class="party-section-header">
+<h3>👹 Монстры</h3>
+<div class="party-header-btns">
+<button class="party-action-btn" onclick="openAddMonsterModal()">+ Добавить</button>
+<button class="party-action-btn secondary" onclick="exportMonsters()">↓ Экспорт</button>
+<button class="party-action-btn secondary" onclick="document.getElementById('monsters-import').click()">↑ Импорт</button>
+<input type="file" id="monsters-import" style="display:none" onchange="importMonsters(this)" accept=".json">
+</div>
+</div>
+<div id="monsters-list"></div>
+</div>
+<div class="card">
+<button class="battle-start-btn" onclick="switchTab('battle', document.querySelector('[onclick*=battle]'))">⚔️ Перейти к бою</button>
+</div>
+</div>
+
+<div id="tab-battle" class="tab-content">
+<div id="battle-setup-screen">
+<div class="card">
+<div class="battle-setup-header">
+<h3>⚔️ Выбор участников</h3>
+</div>
+<div class="battle-search-wrap">
+<span class="char-search-icon">🔍</span>
+<input type="text" class="char-search-inp" placeholder="Поиск по имени..." oninput="setBattleSearch(this.value)">
+</div>
+<div id="battle-setup-list"></div>
+<button class="battle-start-btn" style="margin-top:12px" onclick="startBattle()">▶ Начать бой</button>
+</div>
+</div>
+<div id="battle-tracker-screen" class="hidden">
+<div class="card">
+<div class="battle-tracker-header">
+<div id="battle-turn-info" class="battle-turn-info">Ход: —</div>
+<button class="battle-end-btn" onclick="endBattle()">✕ Завершить</button>
+</div>
+<div id="battle-tracker-list"></div>
+<div class="battle-nav">
+<button class="battle-nav-btn" onclick="prevTurn()">◀ Назад</button>
+<button class="battle-nav-btn battle-nav-next" onclick="nextTurn()">Следующий ▶</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Modal: Add NPC -->
+<div id="add-npc-modal" class="confirm-modal-overlay">
+<div class="confirm-modal-box party-modal-box">
+<h4>🧑 Добавить персонажа</h4>
+<div class="party-form">
+<label>Имя</label>
+<input type="text" id="npc-name-inp" placeholder="Имя NPC">
+<label>Роль / описание</label>
+<input type="text" id="npc-role-inp" placeholder="Торговец, барон, союзник...">
+</div>
+<div class="confirm-modal-btns">
+<button class="confirm-btn-cancel" onclick="closeAddNPCModal()">Отмена</button>
+<button class="confirm-btn-ok" onclick="saveNPC()">Добавить</button>
+</div>
+</div>
+</div>
+
+<!-- Modal: Add Ally --><!-- Modal: Add Ally -->
+<div id="add-ally-modal" class="confirm-modal-overlay">
+<div class="confirm-modal-box party-modal-box">
+<h4>🧑‍🤝‍🧑 Добавить соратника</h4>
+<div class="party-form">
+<label>Имя</label>
+<input type="text" id="ally-name-inp" placeholder="Имя персонажа">
+<label>Класс</label>
+<select id="ally-class-sel">
+<option value="">Не указан</option>
+<option value="Варвар">🪓 Варвар</option>
+<option value="Бард">🎵 Бард</option>
+<option value="Жрец">✝️ Жрец</option>
+<option value="Друид">🌿 Друид</option>
+<option value="Воин">⚔️ Воин</option>
+<option value="Монах">👊 Монах</option>
+<option value="Паладин">🛡️ Паладин</option>
+<option value="Следопыт">🏹 Следопыт</option>
+<option value="Плут">🗡️ Плут</option>
+<option value="Чародей">🔥 Чародей</option>
+<option value="Колдун">👁️ Колдун</option>
+<option value="Волшебник">✨ Волшебник</option>
+</select>
+
+</div>
+<div class="confirm-modal-btns">
+<button class="confirm-btn-cancel" onclick="closeAddAllyModal()">Отмена</button>
+<button class="confirm-btn-ok" onclick="saveAlly()">Добавить</button>
+</div>
+</div>
+</div>
+
+<!-- Modal: Add Monster -->
+<div id="add-monster-modal" class="confirm-modal-overlay">
+<div class="confirm-modal-box party-modal-box">
+<h4>👹 Добавить монстра</h4>
+<div class="party-form">
+<label>Имя</label>
+<input type="text" id="monster-name-inp" placeholder="Название монстра">
+<label>Тип существа</label>
+<select id="monster-type-sel">
+<option value="">Выберите тип</option>
+<option value="Зверь">Зверь</option>
+<option value="Нежить">Нежить</option>
+<option value="Демон">Демон</option>
+<option value="Дракон">Дракон</option>
+<option value="Гуманоид">Гуманоид</option>
+<option value="Конструкт">Конструкт</option>
+<option value="Фея">Фея</option>
+<option value="Исчадие">Исчадие</option>
+<option value="Великан">Великан</option>
+<option value="Монстр">Монстр</option>
+</select>
+
+</div>
+<div class="confirm-modal-btns">
+<button class="confirm-btn-cancel" onclick="closeAddMonsterModal()">Отмена</button>
+<button class="confirm-btn-ok" onclick="saveMonster()">Добавить</button>
+</div>
+</div>
+</div>
+
 <!-- Modal: Rest -->
 <div id="rest-modal" class="modal">
 <div class="modal-content">
@@ -917,6 +1075,8 @@
 <button class="tab-btn" onclick="switchTab('spells', this)"><span>✨</span>Заклинания</button>
 <button class="tab-btn" onclick="switchTab('inventory', this)"><span>🎒</span>Инвентарь</button>
 <button class="tab-btn" onclick="switchTab('notes', this)"><span>📝</span>Записи</button>
+<button class="tab-btn" onclick="switchTab('party', this); openPartyTab()"><span>🧑‍🤝‍🧑</span>Отряд</button>
+<button class="tab-btn" onclick="switchTab('battle', this); openBattleTab()"><span>⚔️</span>Бой</button>
 </div>
 </div>
 

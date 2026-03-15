@@ -421,6 +421,8 @@ if (tabElement) tabElement.classList.add("active");
 var activeBtn = btnEl ? btnEl.closest(".tab-btn") : null;
 if (activeBtn) activeBtn.classList.add("active");
 try { localStorage.setItem("dnd_last_tab", tabName); } catch(e) {}
+if (tabName === "party")  { openPartyTab(); }
+if (tabName === "battle") { openBattleTab(); }
 }
 function adjustStat(stat, delta) {
 const input = document.getElementById("val-" + stat);
@@ -839,6 +841,8 @@ if (activeTabEl) activeTabEl.classList.add("active");
 document.querySelectorAll(".tab-btn").forEach(function(b) {
   if (b.getAttribute("onclick") && b.getAttribute("onclick").includes("'" + lastTab + "'")) b.classList.add("active");
 });
+if (lastTab === "party")  setTimeout(openPartyTab, 0);
+if (lastTab === "battle") setTimeout(openBattleTab, 0);
 }
 function updateChar() {
 if (!currentId) return;
@@ -2231,4 +2235,413 @@ return String(str)
   .replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&#039;');
+}
+
+// ============================================================
+// ⚔️ ОТРЯД — Соратники, Монстры, Трекер инициативы
+// ============================================================
+
+var PARTY_DATA = { allies: [], monsters: [] };
+var BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
+
+var CONDITION_STATUSES = [
+  { value: "healthy", label: "💚 Здоров" },
+  { value: "wounded", label: "💛 Ранен" },
+  { value: "heavy",   label: "🟠 Тяжело ранен" },
+  { value: "dying",   label: "❤️ При смерти" },
+  { value: "dead",    label: "💀 Мёртв" }
+];
+
+(function initParty() {
+  try {
+    var saved = localStorage.getItem("dnd_party");
+    if (saved) PARTY_DATA = JSON.parse(saved);
+    if (!PARTY_DATA.allies) PARTY_DATA.allies = [];
+    if (!PARTY_DATA.monsters) PARTY_DATA.monsters = [];
+    if (!PARTY_DATA.npcs) PARTY_DATA.npcs = [];
+  } catch(e) {}
+  try {
+    var savedBattle = localStorage.getItem("dnd_battle");
+    if (savedBattle) BATTLE_DATA = JSON.parse(savedBattle);
+  } catch(e) {}
+})();
+
+function saveParty() {
+  try { localStorage.setItem("dnd_party", JSON.stringify(PARTY_DATA)); } catch(e) {}
+}
+function saveBattle() {
+  try { localStorage.setItem("dnd_battle", JSON.stringify(BATTLE_DATA)); } catch(e) {}
+}
+
+// ===== ALLIES =====
+function renderAllies() {
+  var list = document.getElementById("allies-list");
+  if (!list) return;
+  if (PARTY_DATA.allies.length === 0) {
+    list.innerHTML = "<div class='party-empty'>📭 Нет соратников. Добавьте первого!</div>";
+    return;
+  }
+  list.innerHTML = PARTY_DATA.allies.map(function(a, i) {
+    var icon = getClassIcon(a.cls);
+    var color = getClassColor(a.cls);
+    var statusOpts = CONDITION_STATUSES.map(function(s) {
+      return '<option value="' + s.value + '"' + (s.value === (a.status||"healthy") ? " selected" : "") + '>' + s.label + '</option>';
+    }).join("");
+    return '<div class="party-card" style="border-left-color:' + color + '">' +
+      '<div class="party-card-icon" style="background:' + color + '22">' + icon + '</div>' +
+      '<div class="party-card-info">' +
+        '<div class="party-card-name">' + escapeHtml(a.name) + '</div>' +
+        '<div class="party-card-sub">' + escapeHtml(a.cls || "Класс не указан") + '</div>' +
+      '</div>' +
+      '<div class="party-card-right">' +
+        '<select class="party-status-sel" onchange="setAllyStatus(' + i + ', this.value)" onclick="event.stopPropagation()">' + statusOpts + '</select>' +
+        '<button class="party-del-btn" onclick="deleteAlly(' + i + ')">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+function openAddAllyModal() {
+  document.getElementById("add-ally-modal").classList.add("active");
+  document.getElementById("ally-name-inp").value = "";
+  document.getElementById("ally-class-sel").value = "";
+  document.getElementById("ally-initiative-inp").value = "0";
+}
+function closeAddAllyModal() { document.getElementById("add-ally-modal").classList.remove("active"); }
+function saveAlly() {
+  var name = document.getElementById("ally-name-inp").value.trim();
+  if (!name) { alert("Введите имя"); return; }
+  PARTY_DATA.allies.push({ id: Date.now(), name: name, cls: document.getElementById("ally-class-sel").value, status: "healthy" });
+  saveParty(); renderAllies(); closeAddAllyModal();
+}
+function deleteAlly(i) { PARTY_DATA.allies.splice(i, 1); saveParty(); renderAllies(); }
+function setAllyStatus(i, val) { PARTY_DATA.allies[i].status = val; saveParty(); }
+
+function exportAllies() {
+  var a = document.createElement("a");
+  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PARTY_DATA.allies, null, 2));
+  a.download = "allies_" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+}
+function importAllies(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try { var d = JSON.parse(e.target.result); if (Array.isArray(d)) { PARTY_DATA.allies = d; saveParty(); renderAllies(); } else alert("Неверный формат"); } catch(err) { alert("Ошибка чтения файла"); }
+  };
+  reader.readAsText(file); input.value = "";
+}
+
+// ===== MONSTERS =====
+function renderMonsters() {
+  var list = document.getElementById("monsters-list");
+  if (!list) return;
+  if (PARTY_DATA.monsters.length === 0) {
+    list.innerHTML = "<div class='party-empty'>📭 Нет монстров. Добавьте врага!</div>";
+    return;
+  }
+  list.innerHTML = PARTY_DATA.monsters.map(function(m, i) {
+    var statusOpts = CONDITION_STATUSES.map(function(s) {
+      return '<option value="' + s.value + '"' + (s.value === (m.status||"healthy") ? " selected" : "") + '>' + s.label + '</option>';
+    }).join("");
+    return '<div class="party-card monster-card">' +
+      '<div class="party-card-icon monster-icon">👹</div>' +
+      '<div class="party-card-info">' +
+        '<div class="party-card-name">' + escapeHtml(m.name) + '</div>' +
+        '<div class="party-card-sub">' + escapeHtml(m.type || "Монстр") + '</div>' +
+      '</div>' +
+      '<div class="party-card-right">' +
+        '<select class="party-status-sel" onchange="setMonsterStatus(' + i + ', this.value)" onclick="event.stopPropagation()">' + statusOpts + '</select>' +
+        '<button class="party-del-btn" onclick="deleteMonster(' + i + ')">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+function openAddMonsterModal() {
+  document.getElementById("add-monster-modal").classList.add("active");
+  document.getElementById("monster-name-inp").value = "";
+  document.getElementById("monster-type-sel").value = "";
+  document.getElementById("monster-initiative-inp").value = "0";
+}
+function closeAddMonsterModal() { document.getElementById("add-monster-modal").classList.remove("active"); }
+function saveMonster() {
+  var name = document.getElementById("monster-name-inp").value.trim();
+  if (!name) { alert("Введите имя"); return; }
+  PARTY_DATA.monsters.push({ id: Date.now(), name: name, type: document.getElementById("monster-type-sel").value || "Монстр", status: "healthy" });
+  saveParty(); renderMonsters(); closeAddMonsterModal();
+}
+function deleteMonster(i) { PARTY_DATA.monsters.splice(i, 1); saveParty(); renderMonsters(); }
+function setMonsterStatus(i, val) { PARTY_DATA.monsters[i].status = val; saveParty(); }
+
+function exportMonsters() {
+  var a = document.createElement("a");
+  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PARTY_DATA.monsters, null, 2));
+  a.download = "monsters_" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+}
+function importMonsters(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try { var d = JSON.parse(e.target.result); if (Array.isArray(d)) { PARTY_DATA.monsters = d; saveParty(); renderMonsters(); } else alert("Неверный формат"); } catch(err) { alert("Ошибка чтения файла"); }
+  };
+  reader.readAsText(file); input.value = "";
+}
+
+// ===== PARTY TAB =====
+function openPartyTab() {
+  renderMyChar();
+  renderAllies();
+  renderNPCs();
+  renderMonsters();
+}
+
+// ─── My char card ────────────────────────────────────────────
+function renderMyChar() {
+  var container = document.getElementById("my-char-card");
+  if (!container) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) {
+    container.innerHTML = "<div class='party-empty'>Откройте персонажа из списка профилей</div>";
+    return;
+  }
+  var icon = getClassIcon(char.class);
+  var color = getClassColor(char.class);
+  var hpCurrent = char.combat ? (char.combat.hpCurrent || 0) : 0;
+  var hpMax = char.combat ? (char.combat.hpMax || 0) : 0;
+  var hpPct = hpMax > 0 ? Math.min(100, Math.round(hpCurrent / hpMax * 100)) : 100;
+  var hpColor = hpPct > 60 ? "#4da843" : hpPct > 30 ? "#e67e22" : "#e74c3c";
+  container.innerHTML =
+    '<div class="party-card my-char-card" style="border-left-color:#4da843">' +
+      '<div class="party-card-icon" style="background:' + color + '22">' + icon + '</div>' +
+      '<div class="party-card-info">' +
+        '<div class="party-card-name">' + escapeHtml(char.name || "Мой персонаж") + '</div>' +
+        '<div class="party-card-sub">' + escapeHtml(char.class || "") +
+          (char.subclass ? " · " + escapeHtml(char.subclass) : "") +
+          " · " + (char.level || 1) + " ур.</div>" +
+      "</div>" +
+      '<div class="party-card-right">' +
+        '<span class="my-char-badge" style="color:' + hpColor + ';border-color:' + hpColor + '55;background:' + hpColor + '18">❤️ ' + hpCurrent + "/" + hpMax + "</span>" +
+        '<span class="my-char-badge">🛡️ ' + (char.combat ? (char.combat.ac || 10) : 10) + "</span>" +
+      "</div>" +
+    "</div>";
+}
+
+// ─── NPCs ────────────────────────────────────────────────────
+function renderNPCs() {
+  var list = document.getElementById("npcs-list");
+  if (!list) return;
+  if (!PARTY_DATA.npcs || PARTY_DATA.npcs.length === 0) {
+    list.innerHTML = "<div class='party-empty'>📭 Нет персонажей</div>";
+    return;
+  }
+  list.innerHTML = PARTY_DATA.npcs.map(function(n, i) {
+    var opts = CONDITION_STATUSES.map(function(s) {
+      return '<option value="' + s.value + '"' + (s.value === (n.status || "healthy") ? " selected" : "") + ">" + s.label + "</option>";
+    }).join("");
+    return '<div class="party-card npc-card">' +
+      '<div class="party-card-icon npc-icon">🧑</div>' +
+      '<div class="party-card-info">' +
+        '<div class="party-card-name">' + escapeHtml(n.name) + "</div>" +
+        '<div class="party-card-sub">' + escapeHtml(n.role || "Персонаж") + "</div>" +
+      "</div>" +
+      '<div class="party-card-right">' +
+        '<select class="party-status-sel" onchange="setNPCStatus(' + i + ',this.value)" onclick="event.stopPropagation()">' + opts + "</select>" +
+        '<button class="party-del-btn" onclick="deleteNPC(' + i + ')">✕</button>' +
+      "</div>" +
+    "</div>";
+  }).join("");
+}
+function openAddNPCModal() {
+  document.getElementById("add-npc-modal").classList.add("active");
+  document.getElementById("npc-name-inp").value = "";
+  document.getElementById("npc-role-inp").value = "";
+}
+function closeAddNPCModal() { document.getElementById("add-npc-modal").classList.remove("active"); }
+function saveNPC() {
+  var name = document.getElementById("npc-name-inp").value.trim();
+  if (!name) { alert("Введите имя"); return; }
+  if (!PARTY_DATA.npcs) PARTY_DATA.npcs = [];
+  PARTY_DATA.npcs.push({ id: Date.now(), name: name, role: document.getElementById("npc-role-inp").value.trim() || "Персонаж", status: "healthy" });
+  saveParty(); renderNPCs(); closeAddNPCModal();
+}
+function deleteNPC(i) { PARTY_DATA.npcs.splice(i, 1); saveParty(); renderNPCs(); }
+function setNPCStatus(i, val) { PARTY_DATA.npcs[i].status = val; saveParty(); }
+function exportNPCs() {
+  var a = document.createElement("a");
+  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PARTY_DATA.npcs || [], null, 2));
+  a.download = "npcs_" + new Date().toISOString().slice(0, 10) + ".json";
+  a.click();
+}
+function importNPCs(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try { var d = JSON.parse(e.target.result); if (Array.isArray(d)) { PARTY_DATA.npcs = d; saveParty(); renderNPCs(); } else alert("Неверный формат"); } catch(err) { alert("Ошибка"); }
+  };
+  reader.readAsText(file); input.value = "";
+}
+
+// ─── helpers ─────────────────────────────────────────────────
+function getMonsterIcon(type) {
+  var icons = { "Зверь": "🐺", "Нежить": "💀", "Демон": "😈", "Дракон": "🐉", "Гуманоид": "🗡️", "Конструкт": "🤖", "Фея": "🧚", "Исчадие": "👿", "Великан": "🗿", "Монстр": "👾" };
+  return icons[type] || "👾";
+}
+function getFactionColor(type) {
+  if (type === "self")    return "#4da843";
+  if (type === "ally")    return "#27ae60";
+  if (type === "npc")     return "#d4ac0d";
+  return "#c0392b";
+}
+function getFactionLabel(type) {
+  if (type === "self")    return "я";
+  if (type === "ally")    return "союзник";
+  if (type === "npc")     return "персонаж";
+  return "враг";
+}
+
+// ─── BATTLE TAB ──────────────────────────────────────────────
+var battleSetupList = [];
+var battleDragSrcIdx = null;
+var battleSectionOpen = { self: true, ally: true, npc: true, monster: true };
+
+function openBattleTab() {
+  if (BATTLE_DATA.active) {
+    document.getElementById("battle-setup-screen").classList.add("hidden");
+    document.getElementById("battle-tracker-screen").classList.remove("hidden");
+    renderBattleTracker();
+  } else {
+    document.getElementById("battle-setup-screen").classList.remove("hidden");
+    document.getElementById("battle-tracker-screen").classList.add("hidden");
+    buildBattleSetupList();
+    renderBattleSetup();
+  }
+}
+
+function buildBattleSetupList() {
+  var prevChecked = {};
+  battleSetupList.forEach(function(p) { prevChecked[p.id] = p.checked; });
+  battleSetupList = [];
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (char) {
+    battleSetupList.push({ id: "self_" + char.id, name: char.name || "Мой персонаж", icon: getClassIcon(char.class), color: "#4da843", type: "self", checked: prevChecked["self_" + char.id] === true });
+  }
+  PARTY_DATA.allies.forEach(function(a) {
+    battleSetupList.push({ id: "ally_" + a.id, name: a.name, icon: getClassIcon(a.cls), color: "#27ae60", type: "ally", checked: prevChecked["ally_" + a.id] === true });
+  });
+  if (PARTY_DATA.npcs) PARTY_DATA.npcs.forEach(function(n) {
+    battleSetupList.push({ id: "npc_" + n.id, name: n.name, icon: "🧑", color: "#d4ac0d", type: "npc", checked: prevChecked["npc_" + n.id] === true });
+  });
+  PARTY_DATA.monsters.forEach(function(m) {
+    battleSetupList.push({ id: "mon_" + m.id, name: m.name, icon: getMonsterIcon(m.type), color: "#c0392b", type: "monster", checked: prevChecked["mon_" + m.id] === true });
+  });
+}
+
+var battleSearchQuery = "";
+function setBattleSearch(val) { battleSearchQuery = val.toLowerCase().trim(); renderBattleSetup(); }
+function toggleBattleSection(type) {
+  battleSectionOpen[type] = !battleSectionOpen[type];
+  renderBattleSetup();
+}
+
+function renderBattleSetup() {
+  var container = document.getElementById("battle-setup-list");
+  if (!container) return;
+  if (battleSetupList.length === 0) {
+    container.innerHTML = "<div class='party-empty'>Добавьте участников во вкладке Отряд</div>";
+    return;
+  }
+  var sections = [
+    { type: "self",    label: "🟢 Я",          color: "#4da843" },
+    { type: "ally",    label: "🟢 Союзники",   color: "#27ae60" },
+    { type: "npc",     label: "🟡 Персонажи",  color: "#d4ac0d" },
+    { type: "monster", label: "🔴 Враги",      color: "#c0392b" }
+  ];
+  var q = battleSearchQuery;
+  container.innerHTML = sections.map(function(sec) {
+    var items = battleSetupList.filter(function(p, i) {
+      return p.type === sec.type && (!q || p.name.toLowerCase().includes(q));
+    });
+    if (items.length === 0) return "";
+    var open = battleSectionOpen[sec.type];
+    var checkedCount = items.filter(function(p) { return p.checked; }).length;
+    var rows = open ? items.map(function(p) {
+      var gi = battleSetupList.indexOf(p);
+      return '<div class="battle-setup-row' + (p.checked ? " battle-row-checked" : "") + '" id="brow_' + gi + '">' +
+        '<label class="battle-check-wrap" onclick="event.stopPropagation()">' +
+          '<input type="checkbox" class="battle-checkbox"' + (p.checked ? " checked" : "") + ' onchange="toggleBattleCheck(' + gi + ',this.checked)">' +
+        "</label>" +
+        '<div class="battle-setup-icon" style="background:' + p.color + '22;color:' + p.color + '">' + p.icon + "</div>" +
+        '<div class="battle-setup-name">' + escapeHtml(p.name) + "</div>" +
+      "</div>";
+    }).join("") : "";
+    return '<div class="battle-section">' +
+      '<div class="battle-section-title" style="color:' + sec.color + '" onclick="toggleBattleSection(\'' + sec.type + '\')">' +
+        '<span class="battle-section-arrow">' + (open ? "▾" : "▸") + "</span>" +
+        sec.label + ' <span class="battle-section-count">(' + items.length + (checkedCount > 0 ? ", выбрано: " + checkedCount : "") + ")</span>" +
+      "</div>" +
+      rows +
+    "</div>";
+  }).join("");
+}
+
+function toggleBattleCheck(i, val) {
+  if (battleSetupList[i]) battleSetupList[i].checked = val;
+  renderBattleSetup();
+}
+
+function battleDragStart(e, i) { battleDragSrcIdx = i; e.dataTransfer.effectAllowed = "move"; }
+function battleDragOver(e) { e.preventDefault(); }
+function battleDrop(e, i) {
+  e.preventDefault();
+  if (battleDragSrcIdx === null || battleDragSrcIdx === i) return;
+  var moved = battleSetupList.splice(battleDragSrcIdx, 1)[0];
+  battleSetupList.splice(i, 0, moved);
+  battleDragSrcIdx = null;
+  renderBattleSetup();
+}
+function battleDragEnd() { battleDragSrcIdx = null; }
+
+function startBattle() {
+  var selected = battleSetupList.filter(function(p) { return p.checked; });
+  if (selected.length === 0) { alert("Выберите участников боя"); return; }
+  BATTLE_DATA = { active: true, participants: selected.map(function(p) { return Object.assign({}, p, { status: "healthy" }); }), currentTurn: 0 };
+  saveBattle();
+  document.getElementById("battle-setup-screen").classList.add("hidden");
+  document.getElementById("battle-tracker-screen").classList.remove("hidden");
+  renderBattleTracker();
+}
+
+function renderBattleTracker() {
+  var list = document.getElementById("battle-tracker-list");
+  var turnInfo = document.getElementById("battle-turn-info");
+  if (!list) return;
+  var current = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
+  if (turnInfo && current) turnInfo.textContent = "Ход " + (BATTLE_DATA.currentTurn + 1) + ": " + (current.name || "?");
+  list.innerHTML = BATTLE_DATA.participants.map(function(p, i) {
+    var isCurrent = i === BATTLE_DATA.currentTurn;
+    var fcolor = getFactionColor(p.type);
+    var opts = CONDITION_STATUSES.map(function(s) {
+      return '<option value="' + s.value + '"' + (s.value === (p.status || "healthy") ? " selected" : "") + ">" + s.label + "</option>";
+    }).join("");
+    return '<div class="tracker-row' + (isCurrent ? " tracker-row-active" : "") + '" style="border-left:3px solid ' + fcolor + '">' +
+      '<div class="tracker-num" style="color:' + fcolor + '">' + (i + 1) + "</div>" +
+      '<div class="tracker-icon" style="background:' + fcolor + '22;color:' + fcolor + '">' + (p.icon || "🎭") + "</div>" +
+      '<div class="tracker-name">' + escapeHtml(p.name || "?") + '<span class="tracker-type-lbl" style="color:' + fcolor + '">' + getFactionLabel(p.type) + "</span></div>" +
+      '<select class="party-status-sel tracker-status" onchange="setBattleStatus(' + i + ',this.value)">' + opts + "</select>" +
+    "</div>";
+  }).join("");
+}
+
+function setBattleStatus(i, val) { BATTLE_DATA.participants[i].status = val; saveBattle(); renderBattleTracker(); }
+function nextTurn() { BATTLE_DATA.currentTurn = (BATTLE_DATA.currentTurn + 1) % BATTLE_DATA.participants.length; saveBattle(); renderBattleTracker(); }
+function prevTurn() { BATTLE_DATA.currentTurn = (BATTLE_DATA.currentTurn - 1 + BATTLE_DATA.participants.length) % BATTLE_DATA.participants.length; saveBattle(); renderBattleTracker(); }
+function endBattle() {
+  BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
+  saveBattle();
+  document.getElementById("battle-setup-screen").classList.remove("hidden");
+  document.getElementById("battle-tracker-screen").classList.add("hidden");
+  buildBattleSetupList();
+  renderBattleSetup();
 }

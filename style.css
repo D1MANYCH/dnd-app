@@ -2329,3 +2329,90 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .confirm-btn-cancel:hover { background: rgba(255,255,255,0.12); }
 .confirm-btn-ok:hover { background: #e74c3c; }
+
+/* ============================================================
+   ⚔️ ОТРЯД & БОЙ
+   ============================================================ */
+.party-section-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.party-section-header h3 { margin: 0; color: var(--text-color); }
+.party-header-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.party-action-btn { padding: 5px 12px; border-radius: 7px; font-size: 0.78em; cursor: pointer; border: 1px solid var(--accent-color); background: var(--accent-color); color: #000; font-weight: 600; width: auto; margin: 0; transition: all 0.18s; }
+.party-action-btn.secondary { background: transparent; color: rgba(255,255,255,0.5); border-color: rgba(255,255,255,0.12); font-weight: 400; }
+.party-action-btn.secondary:hover { border-color: var(--accent-color); color: var(--accent-color); }
+.party-empty { font-size: 0.82em; color: rgba(255,255,255,0.3); padding: 14px 0; text-align: center; }
+.party-card { display: flex; align-items: center; gap: 10px; background: #1e1e2a; border: 1px solid rgba(255,255,255,0.07); border-left: 3px solid var(--accent-color); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+.monster-card { border-left-color: #c0392b !important; }
+.party-card-icon { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1.3em; flex-shrink: 0; }
+.monster-icon { background: rgba(192,57,43,0.15) !important; }
+.party-card-info { flex: 1; min-width: 0; }
+.party-card-name { font-size: 0.92em; font-weight: 600; color: #fff; }
+.party-card-sub { font-size: 0.72em; color: rgba(255,255,255,0.4); margin-top: 2px; }
+.party-card-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.party-status-sel { background: #1e1e2a; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); border-radius: 6px; padding: 4px 6px; font-size: 0.72em; cursor: pointer; width: auto; }
+.party-status-sel option { background: #1e1e2a; color: #fff; }
+.party-form select option { background: #1e1e2a; color: #fff; }
+.party-del-btn { background: transparent; border: 1px solid rgba(231,76,60,0.3); color: rgba(231,76,60,0.6); width: 28px; height: 28px; border-radius: 7px; cursor: pointer; font-size: 0.85em; display: flex; align-items: center; justify-content: center; margin: 0; transition: all 0.18s; }
+.party-del-btn:hover { background: var(--danger-color); color: #fff; }
+.battle-start-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #c0392b, #e74c3c); border: none; border-radius: 10px; color: #fff; font-size: 1em; font-weight: 700; cursor: pointer; letter-spacing: 0.03em; transition: opacity 0.2s; margin: 0; }
+.battle-start-btn:hover { opacity: 0.85; }
+
+/* Party modal */
+.party-modal-box { max-width: 360px !important; text-align: left !important; }
+.party-modal-box h4 { text-align: center; margin-bottom: 16px; }
+.party-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.party-form label { font-size: 0.75em; color: rgba(255,255,255,0.45); }
+.party-form input, .party-form select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; padding: 8px 10px; color: #fff; font-size: 0.88em; width: 100%; box-sizing: border-box; }
+.party-form input:focus, .party-form select:focus { border-color: var(--accent-color); outline: none; }
+
+/* Battle setup */
+.battle-setup-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 6px; }
+.battle-setup-header h3 { margin: 0; color: var(--text-color); }
+.battle-drag-hint { font-size: 0.72em; color: rgba(255,255,255,0.3); }
+.battle-setup-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 9px; margin-bottom: 5px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); cursor: grab; transition: opacity 0.18s, background 0.18s; user-select: none; }
+.battle-setup-row:hover { background: rgba(255,255,255,0.07); }
+.battle-row-unchecked { opacity: 0.4; }
+.battle-drag-handle { color: rgba(255,255,255,0.25); font-size: 1.1em; flex-shrink: 0; cursor: grab; }
+.battle-check-wrap { display: flex; align-items: center; flex-shrink: 0; cursor: pointer; }
+.battle-checkbox { width: 16px; height: 16px; accent-color: var(--accent-color); cursor: pointer; }
+.battle-setup-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1em; flex-shrink: 0; }
+.battle-setup-name { flex: 1; font-size: 0.88em; color: #fff; display: flex; flex-direction: column; }
+.battle-type-label { font-size: 0.68em; color: rgba(255,255,255,0.3); margin-top: 1px; }
+
+/* Battle tracker */
+.battle-tracker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.battle-turn-info { font-size: 1.05em; font-weight: 700; color: var(--accent-color); }
+.battle-end-btn { background: transparent; border: 1px solid rgba(231,76,60,0.4); color: rgba(231,76,60,0.7); padding: 5px 12px; border-radius: 7px; cursor: pointer; font-size: 0.8em; width: auto; margin: 0; transition: all 0.18s; }
+.battle-end-btn:hover { background: var(--danger-color); color: #fff; }
+.tracker-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 9px; margin-bottom: 5px; background: rgba(255,255,255,0.03); border: 1px solid transparent; transition: all 0.2s; }
+.tracker-row-active { background: rgba(201,162,39,0.1); border-color: rgba(201,162,39,0.3); }
+.tracker-init { font-size: 1.1em; font-weight: 700; color: var(--accent-color); width: 30px; text-align: center; flex-shrink: 0; }
+.tracker-icon { width: 32px; height: 32px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 1em; flex-shrink: 0; }
+.tracker-name { flex: 1; font-size: 0.88em; color: #fff; font-weight: 500; }
+.tracker-status { font-size: 0.7em !important; }
+.battle-nav { display: flex; gap: 8px; margin-top: 14px; }
+.battle-nav-btn { flex: 1; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); font-size: 0.88em; cursor: pointer; width: auto; margin: 0; transition: all 0.18s; }
+.battle-nav-next { background: var(--accent-color); border-color: var(--accent-color); color: #000; font-weight: 700; }
+.battle-nav-btn:hover:not(.battle-nav-next) { border-color: var(--accent-color); color: var(--accent-color); }
+
+/* Fix white h3 in party sections */
+.card h3 { color: var(--text-color); }
+
+/* My char in party */
+.my-char-card { cursor: default; }
+.my-char-badge { font-size: 0.75em; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7); white-space: nowrap; }
+/* NPC card */
+.npc-card { border-left-color: #d4ac0d !important; }
+.npc-icon { background: rgba(212,172,13,0.15) !important; }
+.party-section-hint { font-size: 0.65em; color: rgba(255,255,255,0.3); font-weight: 400; margin-left: 6px; }
+/* Battle sections with collapse */
+.battle-section { margin-bottom: 8px; }
+.battle-section-title { font-size: 0.8em; font-weight: 700; padding: 8px 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; border-radius: 7px; background: rgba(255,255,255,0.04); user-select: none; }
+.battle-section-title:hover { background: rgba(255,255,255,0.07); }
+.battle-section-arrow { font-size: 0.9em; }
+.battle-section-count { font-weight: 400; opacity: 0.6; }
+.battle-setup-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; margin-top: 3px; background: rgba(255,255,255,0.03); }
+.battle-row-checked { background: rgba(255,255,255,0.06); }
+.battle-search-wrap { position: relative; margin-bottom: 10px; }
+/* Tracker */
+.tracker-num { font-size: 0.85em; font-weight: 700; width: 22px; text-align: center; flex-shrink: 0; }
+.tracker-type-lbl { font-size: 0.68em; margin-left: 6px; opacity: 0.7; }
