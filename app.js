@@ -420,6 +420,7 @@ var tabElement = document.getElementById("tab-" + tabName);
 if (tabElement) tabElement.classList.add("active");
 var activeBtn = btnEl ? btnEl.closest(".tab-btn") : null;
 if (activeBtn) activeBtn.classList.add("active");
+try { localStorage.setItem("dnd_last_tab", tabName); } catch(e) {}
 }
 function adjustStat(stat, delta) {
 const input = document.getElementById("val-" + stat);
@@ -591,10 +592,52 @@ characters.push(copy);
 saveToLocal();
 renderCharacterList();
 }
+function exportOneCharacter(id, event) {
+event.stopPropagation();
+var char = characters.find(function(c) { return c.id === id; });
+if (!char) return;
+var data = JSON.stringify({ characters: [char], spells: [] }, null, 2);
+var blob = new Blob([data], { type: "application/json" });
+var a = document.createElement("a");
+a.href = URL.createObjectURL(blob);
+a.download = (char.name || "персонаж").replace(/[^a-zA-Zа-яА-Я0-9]/g, "_") + ".json";
+a.click();
+}
+function updateCharCounter() {
+var el = document.getElementById("char-count");
+if (!el) return;
+var total = characters.length;
+var filtered2 = characters.filter(function(c) {
+  if (!charSearchQuery) return true;
+  return (c.name || "").toLowerCase().includes(charSearchQuery) ||
+         (c.class || "").toLowerCase().includes(charSearchQuery) ||
+         (c.race || "").toLowerCase().includes(charSearchQuery);
+});
+if (charSearchQuery && filtered2.length !== total) {
+  el.textContent = filtered2.length + " из " + total;
+} else {
+  el.textContent = total > 0 ? total + " шт." : "";
+}
+}
+var dragSrcId = null;
+function onDragStart(e, id) { dragSrcId = id; e.dataTransfer.effectAllowed = "move"; }
+function onDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }
+function onDrop(e, targetId) {
+e.preventDefault();
+if (dragSrcId === targetId) return;
+var srcIdx = characters.findIndex(function(c) { return c.id === dragSrcId; });
+var tgtIdx = characters.findIndex(function(c) { return c.id === targetId; });
+if (srcIdx < 0 || tgtIdx < 0) return;
+var moved = characters.splice(srcIdx, 1)[0];
+characters.splice(tgtIdx, 0, moved);
+saveToLocal();
+renderCharacterList();
+}
 function renderCharacterList() {
 const list = document.getElementById("character-list");
 if (!list) return;
 list.innerHTML = "";
+updateCharCounter();
 var filtered = characters.filter(function(c) {
   if (!charSearchQuery) return true;
   return (c.name || "").toLowerCase().includes(charSearchQuery) ||
@@ -616,6 +659,11 @@ if (filtered.length === 0) {
 filtered.forEach(function(char) {
 const div = document.createElement("div");
 div.className = "char-card";
+div.draggable = true;
+div.addEventListener("dragstart", function(e) { onDragStart(e, char.id); div.style.opacity="0.5"; });
+div.addEventListener("dragend", function() { div.style.opacity="1"; });
+div.addEventListener("dragover", onDragOver);
+div.addEventListener("drop", function(e) { onDrop(e, char.id); });
 div.onclick = function() { loadCharacter(char.id); };
 const conditionsCount = (char.conditions ? char.conditions.length : 0) + (char.effects ? char.effects.length : 0);
 const hpCurrent = char.combat.hpCurrent || 0;
@@ -633,6 +681,7 @@ div.innerHTML = "<div class=\"char-card-header\">" +
     "<div class=\"char-card-sub\">" + escapeHtml(char.class || "Класс не указан") + (char.race ? " · " + escapeHtml(char.race) : "") + (char.subclass ? " · " + escapeHtml(char.subclass) : "") + "</div>" +
   "</div>" +
   "<div class=\"char-card-actions\">" +
+    "<button class=\"char-copy-btn\" onclick=\"exportOneCharacter(" + char.id + ", event)\" title=\"Экспорт\">↓</button>" +
     "<button class=\"char-copy-btn\" onclick=\"duplicateCharacter(" + char.id + ", event)\" title=\"Дублировать\">⧉</button>" +
     "<button class=\"char-delete-btn\" onclick=\"event.stopPropagation(); deleteCharacter(" + char.id + ")\">✕</button>" +
   "</div>" +
@@ -649,11 +698,42 @@ list.appendChild(div);
 });
 }
 function deleteCharacter(id) {
-if (confirm("⚠️ Удалить персонажа?")) {
-characters = characters.filter(function(c) { return c.id !== id; });
-saveToLocal();
-renderCharacterList();
+var char = characters.find(function(c) { return c.id === id; });
+var name = char ? (char.name || "этого персонажа") : "этого персонажа";
+showConfirmModal(
+  "Удалить персонажа?",
+  "«" + name + "» будет удалён без возможности восстановления.",
+  function() {
+    characters = characters.filter(function(c) { return c.id !== id; });
+    saveToLocal();
+    renderCharacterList();
+  }
+);
 }
+function showConfirmModal(title, text, onConfirm) {
+var modal = document.getElementById("confirm-modal");
+var titleEl = document.getElementById("confirm-modal-title");
+var textEl = document.getElementById("confirm-modal-text");
+var confirmBtn = document.getElementById("confirm-modal-ok");
+var cancelBtn = document.getElementById("confirm-modal-cancel");
+if (!modal) return;
+titleEl.textContent = title;
+textEl.textContent = text;
+modal.classList.add("active");
+var newConfirm = confirmBtn.cloneNode(true);
+confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
+var newCancel = cancelBtn.cloneNode(true);
+cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+document.getElementById("confirm-modal-ok").addEventListener("click", function() {
+  modal.classList.remove("active");
+  onConfirm();
+});
+document.getElementById("confirm-modal-cancel").addEventListener("click", function() {
+  modal.classList.remove("active");
+});
+modal.addEventListener("click", function(e) {
+  if (e.target === modal) modal.classList.remove("active");
+}, { once: true });
 }
 function safeSet(id, value) {
 const el = document.getElementById(id);
@@ -748,6 +828,17 @@ renderInventory();
 updateHPDisplay();
 loadDeathSaves();
 showScreen("character");
+var lastTab = "";
+try { lastTab = localStorage.getItem("dnd_last_tab") || "sheet"; } catch(e) { lastTab = "sheet"; }
+var tabEl = document.getElementById("tab-" + lastTab);
+if (!tabEl) lastTab = "sheet";
+document.querySelectorAll(".tab-content").forEach(function(t) { t.classList.remove("active"); });
+document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
+var activeTabEl = document.getElementById("tab-" + lastTab);
+if (activeTabEl) activeTabEl.classList.add("active");
+document.querySelectorAll(".tab-btn").forEach(function(b) {
+  if (b.getAttribute("onclick") && b.getAttribute("onclick").includes("'" + lastTab + "'")) b.classList.add("active");
+});
 }
 function updateChar() {
 if (!currentId) return;

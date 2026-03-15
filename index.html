@@ -34,7 +34,7 @@
 </div>
 <div id="screen-characters">
 <div class="card">
-<h3>📜 Ваши Персонажи</h3>
+<h3>📜 Ваши Персонажи <span id="char-count" class="char-count-badge"></span></h3>
 <div class="char-controls">
 <div class="char-search-wrap">
 <span class="char-search-icon">🔍</span>
@@ -920,6 +920,18 @@
 </div>
 
 <div id="hp-toast-container"></div>
+
+<div id="confirm-modal" class="confirm-modal-overlay">
+<div class="confirm-modal-box">
+<div class="confirm-modal-icon">🗑️</div>
+<h4 id="confirm-modal-title">Удалить?</h4>
+<p id="confirm-modal-text"></p>
+<div class="confirm-modal-btns">
+<button id="confirm-modal-cancel" class="confirm-btn-cancel">Отмена</button>
+<button id="confirm-modal-ok" class="confirm-btn-ok">Удалить</button>
+</div>
+</div>
+</div>
 
 <script src="data.js"></script>
 <script src="app.js"></script>
