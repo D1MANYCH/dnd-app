@@ -1629,8 +1629,24 @@ char.deathSaves = { successes: [false, false, false], failures: [false, false, f
 for (let i = 0; i < 3; i++) {
 const sEl = document.getElementById("ds-s" + i);
 const fEl = document.getElementById("ds-f" + i);
-if (sEl) sEl.classList.toggle("active", !!char.deathSaves.successes[i]);
-if (fEl) fEl.classList.toggle("active", !!char.deathSaves.failures[i]);
+if (sEl) sEl.classList.toggle("ds-filled-s", !!char.deathSaves.successes[i]);
+if (fEl) fEl.classList.toggle("ds-filled-f", !!char.deathSaves.failures[i]);
+}
+// Обновить статус
+const successes = char.deathSaves.successes.filter(Boolean).length;
+const failures = char.deathSaves.failures.filter(Boolean).length;
+const statusEl = document.getElementById("ds-status");
+if (statusEl) {
+statusEl.className = "ds-status";
+if (successes >= 3) {
+statusEl.textContent = "✅ Стабилизирован";
+statusEl.classList.add("ds-stable");
+} else if (failures >= 3) {
+statusEl.textContent = "💀 Персонаж погиб";
+statusEl.classList.add("ds-dead");
+} else {
+statusEl.textContent = "⚠️ При смерти (" + successes + "/3 успехов, " + failures + "/3 провалов)";
+}
 }
 }
 
@@ -1678,7 +1694,14 @@ safeSet("hp-temp", hpTemp);
 // Видимые элементы отображения ХП
 const dispCurrent = document.getElementById("hp-display-current");
 const dispMax = document.getElementById("hp-display-max");
-if (dispCurrent) dispCurrent.textContent = hpCurrent;
+if (dispCurrent) {
+dispCurrent.textContent = hpCurrent;
+dispCurrent.className = "hp-big-num";
+const pct = hpMax > 0 ? (hpCurrent / hpMax) * 100 : 0;
+if (hpCurrent <= 0) dispCurrent.classList.add("hp-zero");
+else if (pct <= 25) dispCurrent.classList.add("hp-low");
+else if (pct <= 50) dispCurrent.classList.add("hp-medium");
+}
 if (dispMax) dispMax.textContent = hpMax;
 
 // Полоска ХП
@@ -1687,8 +1710,9 @@ if (hpBar) {
 const pct = hpMax > 0 ? Math.max(0, Math.min(100, (hpCurrent / hpMax) * 100)) : 0;
 hpBar.style.width = pct + "%";
 hpBar.className = "hp-bar";
-if (pct <= 25) hpBar.classList.add("critical");
-else if (pct <= 50) hpBar.classList.add("low");
+if (pct === 0) hpBar.classList.add("hp-bar-empty");
+else if (pct <= 25) hpBar.classList.add("hp-bar-low");
+else if (pct <= 50) hpBar.classList.add("hp-bar-medium");
 }
 
 // Кость хитов в быстром блоке
@@ -1701,6 +1725,10 @@ const total = char.level || 1;
 const avail = total - spent;
 hdAvailDisplay.textContent = avail + "/" + total;
 }
+
+// Кнопка броска кости — заблокировать если 0 ХП
+const rollHdBtn = document.getElementById("roll-hd-btn");
+if (rollHdBtn) rollHdBtn.disabled = hpCurrent <= 0;
 
 // Секция спасбросков смерти — показываем только при HP = 0
 const deathSavesSection = document.getElementById("death-saves-section");
@@ -1766,9 +1794,9 @@ const char = characters.find(function(c) { return c.id === currentId; });
 if (!char) return;
 const spent = char.combat.hpDiceSpent || 0;
 const total = char.level || 1;
-if (spent >= total) {
 const resultEl = document.getElementById("hd-result");
-if (resultEl) resultEl.textContent = "Нет доступных костей!";
+if (spent >= total) {
+if (resultEl) { resultEl.textContent = "Нет доступных костей!"; resultEl.style.display = "block"; }
 return;
 }
 const match = (char.combat.hpDice || "1к8").match(/(\d+)[кK](\d+)/);
@@ -1780,8 +1808,41 @@ char.combat.hpCurrent = Math.min(char.combat.hpCurrent + heal, char.combat.hpMax
 char.combat.hpDiceSpent = spent + 1;
 saveToLocal();
 updateHPDisplay();
-const resultEl = document.getElementById("hd-result");
-if (resultEl) resultEl.textContent = "🎲 " + roll + (conMod >= 0 ? "+" : "") + conMod + " = +" + heal + " ХП";
+if (resultEl) {
+resultEl.textContent = "🎲 " + roll + (conMod >= 0 ? "+" : "") + conMod + " = +" + heal + " ХП";
+resultEl.style.display = "block";
+}
+}
+
+// ============================================
+// АСИ — Улучшение характеристик
+// ============================================
+function openASIModal() {
+if (!currentId) return;
+const char = characters.find(function(c) { return c.id === currentId; });
+if (!char) return;
+const asiLevels = [4, 8, 12, 16, 19];
+const available = asiLevels.filter(function(l) { return l <= char.level; }).length;
+const modal = document.getElementById("asi-modal");
+if (modal) {
+modal.classList.add("active");
+} else {
+// Запасной вариант если модалки нет в HTML
+alert(
+"📈 Улучшение характеристик\n\n" +
+"Доступно улучшений: " + available + "\n\n" +
+"На уровнях 4, 8, 12, 16, 19 вы можете:\n" +
+"• Увеличить одну характеристику на +2\n" +
+"• Или увеличить две характеристики на +1 каждую\n" +
+"• Или выбрать черту (по усмотрению Мастера)\n\n" +
+"Используйте кнопки +/− рядом с характеристиками для изменения."
+);
+}
+}
+
+function closeASIModal() {
+const modal = document.getElementById("asi-modal");
+if (modal) modal.classList.remove("active");
 }
 
 // ============================================================
@@ -1793,4 +1854,14 @@ if ('serviceWorker' in navigator) {
       .then(function(reg) { console.log('[PWA] Service Worker зарегистрирован:', reg.scope); })
       .catch(function(err) { console.log('[PWA] Ошибка регистрации SW:', err); });
   });
+}
+
+function escapeHtml(str) {
+if (str === null || str === undefined) return '';
+return String(str)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#039;');
 }
