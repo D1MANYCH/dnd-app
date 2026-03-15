@@ -536,6 +536,35 @@ characters.push(newChar);
 saveToLocal();
 loadCharacter(newChar.id);
 }
+function getClassColor(cls) {
+const colors = {
+  "Варвар": "#c0392b", "Бард": "#8e44ad", "Жрец": "#f39c12",
+  "Друид": "#27ae60", "Воин": "#2980b9", "Монах": "#16a085",
+  "Паладин": "#d4ac0d", "Следопыт": "#1e8449", "Плут": "#6c3483",
+  "Чародей": "#e74c3c", "Колдун": "#4a235a", "Волшебник": "#1a5276"
+};
+return colors[cls] || "#c9a227";
+}
+function getClassIcon(cls) {
+const icons = {
+  "Варвар": "🪓", "Бард": "🎵", "Жрец": "✝️",
+  "Друид": "🌿", "Воин": "⚔️", "Монах": "👊",
+  "Паладин": "🛡️", "Следопыт": "🏹", "Плут": "🗡️",
+  "Чародей": "🔥", "Колдун": "👁️", "Волшебник": "✨"
+};
+return icons[cls] || "🎭";
+}
+function duplicateCharacter(id, event) {
+event.stopPropagation();
+const orig = characters.find(function(c) { return c.id === id; });
+if (!orig) return;
+const copy = JSON.parse(JSON.stringify(orig));
+copy.id = Date.now();
+copy.name = (orig.name || "Без имени") + " (копия)";
+characters.push(copy);
+saveToLocal();
+renderCharacterList();
+}
 function renderCharacterList() {
 const list = document.getElementById("character-list");
 if (!list) return;
@@ -549,7 +578,32 @@ const div = document.createElement("div");
 div.className = "char-card";
 div.onclick = function() { loadCharacter(char.id); };
 const conditionsCount = (char.conditions ? char.conditions.length : 0) + (char.effects ? char.effects.length : 0);
-div.innerHTML = "<div class=\"char-card-header\"><h4 class=\"char-card-name\">" + escapeHtml(char.name || "Без имени") + "</h4><button class=\"char-delete-btn\" onclick=\"event.stopPropagation(); deleteCharacter(" + char.id + ")\">🗑️</button></div><div class=\"char-card-info\"><span>⚔️ " + escapeHtml(char.class || "Класс не указан") + "</span><span>🧝 " + escapeHtml(char.race || "Раса не указана") + "</span></div><div class=\"char-card-stats\"><span class=\"char-stat-badge\">⭐ Ур. " + (char.level || 1) + "</span><span class=\"char-stat-badge\">❤️ " + (char.combat.hpCurrent || 0) + "/" + (char.combat.hpMax || 0) + " ХП</span><span class=\"char-stat-badge\">🛡️ КД " + (char.combat.ac || 10) + "</span>" + (conditionsCount > 0 ? "<span class=\"char-stat-badge\" style=\"background: var(--condition-active); border-color: var(--condition-border);\">⚠️ " + conditionsCount + "</span>" : "") + "</div>";
+const hpCurrent = char.combat.hpCurrent || 0;
+const hpMax = char.combat.hpMax || 0;
+const hpPercent = hpMax > 0 ? Math.min(100, Math.round((hpCurrent / hpMax) * 100)) : 100;
+const hpColor = hpPercent > 60 ? "#4da843" : hpPercent > 30 ? "#e67e22" : "#e74c3c";
+const classColor = getClassColor(char.class);
+const classIcon = getClassIcon(char.class);
+const alignment = char.alignment ? "<span class=\"char-alignment\">" + escapeHtml(char.alignment) + "</span>" : "";
+div.style.borderLeftColor = classColor;
+div.innerHTML = "<div class=\"char-card-header\">" +
+  "<div class=\"char-card-class-icon\" style=\"background:" + classColor + "22;\">" + classIcon + "</div>" +
+  "<div class=\"char-card-title\">" +
+    "<h4 class=\"char-card-name\">" + escapeHtml(char.name || "Без имени") + "</h4>" +
+    "<div class=\"char-card-sub\">" + escapeHtml(char.class || "Класс не указан") + (char.race ? " · " + escapeHtml(char.race) : "") + (char.subclass ? " · " + escapeHtml(char.subclass) : "") + "</div>" +
+  "</div>" +
+  "<div class=\"char-card-actions\">" +
+    "<button class=\"char-copy-btn\" onclick=\"duplicateCharacter(" + char.id + ", event)\" title=\"Дублировать\">⧉</button>" +
+    "<button class=\"char-delete-btn\" onclick=\"event.stopPropagation(); deleteCharacter(" + char.id + ")\">✕</button>" +
+  "</div>" +
+"</div>" +
+"<div class=\"char-card-stats\">" +
+  "<span class=\"char-stat-badge\">⭐ " + (char.level || 1) + " ур.</span>" +
+  "<span class=\"char-stat-badge-hp\" style=\"color:" + hpColor + "; border-color:" + hpColor + "55; background:" + hpColor + "18;\">❤️ " + hpCurrent + "/" + hpMax + "</span>" +
+  "<span class=\"char-stat-badge\">🛡️ " + (char.combat.ac || 10) + "</span>" +
+  (conditionsCount > 0 ? "<span class=\"char-stat-badge\" style=\"background:var(--condition-active);border-color:var(--condition-border);\">⚠️ " + conditionsCount + "</span>" : "") +
+  (char.alignment ? "<span class=\"char-alignment\">" + escapeHtml(char.alignment) + "</span>" : "") +
+"</div>";
 list.appendChild(div);
 });
 }
