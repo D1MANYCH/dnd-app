@@ -13,6 +13,7 @@ let currentFilterCategory = "all";
 let diceHistory = [];
 let currentRestType = null;
 let hitDiceToSpend = 0;
+let hpHistory = [];
 const abilities = [
 {key: "str", name: "Сила"}, {key: "dex", name: "Ловкость"}, {key: "con", name: "Телосложение"},
 {key: "int", name: "Интеллект"}, {key: "wis", name: "Мудрость"}, {key: "cha", name: "Харизма"}
@@ -928,6 +929,8 @@ char.effects = [];
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 loadConditions();
 loadEffects();
+addHPHistory(oldHp, maxHp, maxHp - oldHp, "Долгий отдых");
+if (maxHp - oldHp > 0) showHPToast(maxHp - oldHp);
 resultTitle = "✅ Долгий отдых завершён!";
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div><p>✨ Ячейки заклинаний: восстановлены</p><p>🎲 Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p><p>⚠️ Условия и эффекты: сняты</p>";
 }
@@ -941,28 +944,59 @@ const char = characters.find(function(c) { return c.id === currentId; });
 if (!char) return;
 const currentLevel = char.level || 1;
 if (currentLevel >= 20) { alert("Максимальный уровень достигнут!"); return; }
+const newLevel = currentLevel + 1;
 const conMod = getMod(char.stats.con);
 const className = char.class;
 const hitDie = CLASS_HIT_DICE[className] || 8;
 const currentMaxHP = calculateMaxHP(currentLevel, conMod, hitDie);
-const newMaxHP = calculateMaxHP(currentLevel + 1, conMod, hitDie);
+const newMaxHP = calculateMaxHP(newLevel, conMod, hitDie);
 const hpGain = newMaxHP - currentMaxHP;
-const newFeaturesContainer = document.getElementById("new-features-container");
-newFeaturesContainer.innerHTML = "";
-if (CLASS_FEATURES[className] && CLASS_FEATURES[className][currentLevel + 1]) {
-const features = CLASS_FEATURES[className][currentLevel + 1];
-features.forEach(function(f) {
+const profOld = getProficiencyBonus(currentLevel);
+const profNew = getProficiencyBonus(newLevel);
+document.getElementById("lu-from-level").textContent = currentLevel;
+document.getElementById("lu-to-level").textContent = newLevel;
+document.getElementById("lu-hp-from").textContent = currentMaxHP;
+document.getElementById("lu-hp-to").textContent = newMaxHP;
+document.getElementById("lu-hp-gain").textContent = "+" + hpGain;
+document.getElementById("lu-hit-die").textContent = "1к" + hitDie;
+document.getElementById("lu-dice-count").textContent = newLevel + " шт.";
+document.getElementById("lu-prof-old").textContent = "+" + profOld;
+if (profNew !== profOld) {
+document.getElementById("lu-prof-arrow").style.display = "inline";
+document.getElementById("lu-prof-new").style.display = "inline";
+document.getElementById("lu-prof-new").textContent = "+" + profNew;
+} else {
+document.getElementById("lu-prof-arrow").style.display = "none";
+document.getElementById("lu-prof-new").style.display = "none";
+}
+const slotsCard = document.getElementById("lu-slots-card");
+const slotsInfo = document.getElementById("lu-slots-info");
+if (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][newLevel]) {
+const newSlots = SPELL_SLOTS_BY_LEVEL[className][newLevel];
+const oldSlots = SPELL_SLOTS_BY_LEVEL[className][currentLevel] || [];
+let slotParts = [];
+for (let i = 1; i <= 9; i++) {
+const n = newSlots[i] || 0;
+const o = oldSlots[i] || 0;
+if (n > 0) slotParts.push((n > o ? "<b>+" + (n-o) + "</b> " : "") + i + "ур.: " + n);
+}
+if (slotParts.length > 0) {
+slotsCard.style.display = "";
+slotsInfo.innerHTML = slotParts.join("  •  ");
+} else { slotsCard.style.display = "none"; }
+} else { slotsCard.style.display = "none"; }
+const featuresContainer = document.getElementById("lu-features-container");
+featuresContainer.innerHTML = "";
+if (CLASS_FEATURES[className] && CLASS_FEATURES[className][newLevel]) {
+CLASS_FEATURES[className][newLevel].forEach(function(f) {
 const div = document.createElement("div");
-div.className = "feature-item new";
-div.innerHTML = "<span class=\"feature-level\">" + (currentLevel + 1) + " ур.</span><div class=\"feature-name\">" + escapeHtml(f.name) + "</div><div class=\"feature-desc\">" + escapeHtml(f.desc) + "</div>";
-newFeaturesContainer.appendChild(div);
+div.className = "lu-feature-item";
+div.innerHTML = "<div class=\"lu-feature-name\">" + escapeHtml(f.name) + "</div><div class=\"lu-feature-desc\">" + escapeHtml(f.desc) + "</div>";
+featuresContainer.appendChild(div);
 });
 }
-safeSet("current-level-display", currentLevel + " → " + (currentLevel + 1));
-safeSet("hp-before", currentMaxHP);
-safeSet("hp-after", newMaxHP + " (+" + hpGain + ")");
-safeSet("dice-before", currentLevel);
-safeSet("dice-after", (currentLevel + 1));
+document.getElementById("lu-screen-preview").style.display = "";
+document.getElementById("lu-screen-result").style.display = "none";
 const modal = document.getElementById("levelup-modal");
 if (modal) modal.classList.add("active");
 }
@@ -976,29 +1010,41 @@ const char = characters.find(function(c) { return c.id === currentId; });
 if (!char) return;
 const oldLevel = char.level || 1;
 const oldMaxHP = parseInt(char.combat.hpMax);
+const oldProf = getProficiencyBonus(oldLevel);
 char.level = oldLevel + 1;
 const conMod = getMod(char.stats.con);
 const className = char.class;
 const hitDie = CLASS_HIT_DICE[className] || 8;
 const newMaxHP = calculateMaxHP(char.level, conMod, hitDie);
 const hpGain = newMaxHP - oldMaxHP;
+const newProf = getProficiencyBonus(char.level);
 char.combat.hpMax = newMaxHP;
+char.combat.hpCurrent = Math.min(char.combat.hpCurrent + hpGain, newMaxHP);
 char.combat.hpDice = "1к" + hitDie;
-char.combat.hpCurrent = newMaxHP;
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 if (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][char.level]) {
 const slots = SPELL_SLOTS_BY_LEVEL[className][char.level];
-for(let i=1; i<=9; i++) {
+for (let i = 1; i <= 9; i++) {
 char.spells.slots[i] = slots[i] || 0;
 char.spells.slotsUsed[i] = 0;
 }
 }
 saveToLocal();
-closeLevelUpModal();
 loadCharacter(currentId);
 updateClassFeatures();
 renderSpellSlots();
-alert("🎉 Уровень повышен!\n📊 Новый уровень: " + char.level + "\n❤️ ХП: " + oldMaxHP + " → " + newMaxHP + " (+" + hpGain + ")\n🎲 Костей хитов: " + oldLevel + " → " + char.level);
+document.getElementById("lu-screen-preview").style.display = "none";
+document.getElementById("lu-screen-result").style.display = "";
+document.getElementById("lu-result-title").textContent = "Уровень " + char.level + " достигнут!";
+let resultLines = ["❤️ ХП: " + oldMaxHP + " → " + newMaxHP + " (+" + hpGain + ")", "🎲 Костей хитов: " + char.level];
+if (newProf !== oldProf) resultLines.push("⚡ Бонус мастерства: +" + oldProf + " → +" + newProf);
+if (CLASS_FEATURES[className] && CLASS_FEATURES[className][char.level]) {
+const names = CLASS_FEATURES[className][char.level].map(function(f) { return f.name; });
+resultLines.push("✨ Новые умения: " + names.join(", "));
+}
+document.getElementById("lu-result-body").innerHTML = resultLines.map(function(l) {
+return "<div class=\"lu-result-line\">" + escapeHtml(l) + "</div>";
+}).join("");
 }
 function openDiceModal() {
 const modal = document.getElementById("dice-modal");
@@ -1629,8 +1675,16 @@ char.deathSaves = { successes: [false, false, false], failures: [false, false, f
 for (let i = 0; i < 3; i++) {
 const sEl = document.getElementById("ds-s" + i);
 const fEl = document.getElementById("ds-f" + i);
-if (sEl) sEl.classList.toggle("ds-filled-s", !!char.deathSaves.successes[i]);
-if (fEl) fEl.classList.toggle("ds-filled-f", !!char.deathSaves.failures[i]);
+if (sEl) {
+sEl.classList.toggle("ds-filled-s", !!char.deathSaves.successes[i]);
+const si = sEl.querySelector(".ds-icon");
+if (si) si.textContent = char.deathSaves.successes[i] ? "✓" : "";
+}
+if (fEl) {
+fEl.classList.toggle("ds-filled-f", !!char.deathSaves.failures[i]);
+const fi = fEl.querySelector(".ds-icon");
+if (fi) fi.textContent = char.deathSaves.failures[i] ? "✕" : "";
+}
 }
 // Обновить статус
 const successes = char.deathSaves.successes.filter(Boolean).length;
@@ -1719,16 +1773,14 @@ else if (pct <= 50) hpBar.classList.add("hp-bar-medium");
 const hdTypeDisplay = document.getElementById("hd-type-display");
 const hdAvailDisplay = document.getElementById("hd-avail-display");
 if (hdTypeDisplay) hdTypeDisplay.textContent = char.combat.hpDice || "—";
-if (hdAvailDisplay) {
 const spent = char.combat.hpDiceSpent || 0;
 const total = char.level || 1;
 const avail = total - spent;
-hdAvailDisplay.textContent = avail + "/" + total;
-}
-
-// Кнопка броска кости — заблокировать если 0 ХП
+if (hdAvailDisplay) hdAvailDisplay.textContent = avail + "/" + total;
+renderHitDiceIcons(avail, total);
+// Кнопка броска кости — заблокировать если 0 ХП или нет костей
 const rollHdBtn = document.getElementById("roll-hd-btn");
-if (rollHdBtn) rollHdBtn.disabled = hpCurrent <= 0;
+if (rollHdBtn) rollHdBtn.disabled = hpCurrent <= 0 || avail <= 0;
 
 // Секция спасбросков смерти — показываем только при HP = 0
 const deathSavesSection = document.getElementById("death-saves-section");
@@ -1742,12 +1794,13 @@ updateStatusBar();
 // ============================================
 // БЫСТРОЕ ИЗМЕНЕНИЕ ХП
 // ============================================
-function quickHP(delta) {
+function quickHP(delta, source) {
 if (!currentId) return;
 const char = characters.find(function(c) { return c.id === currentId; });
 if (!char) return;
 const hpTemp = char.combat.hpTemp || 0;
-let hpCurrent = char.combat.hpCurrent || 0;
+const hpBefore = char.combat.hpCurrent || 0;
+let hpCurrent = hpBefore;
 if (delta < 0 && hpTemp > 0) {
 const dmg = Math.abs(delta);
 if (dmg <= hpTemp) {
@@ -1760,20 +1813,87 @@ hpCurrent -= (dmg - hpTemp);
 hpCurrent += delta;
 }
 hpCurrent = Math.max(0, Math.min(hpCurrent, char.combat.hpMax));
+const actualDelta = hpCurrent - hpBefore;
 char.combat.hpCurrent = hpCurrent;
 safeSet("hp-current", hpCurrent);
 safeSet("hp-temp", char.combat.hpTemp);
+if (actualDelta !== 0) {
+addHPHistory(hpBefore, hpCurrent, actualDelta, source || (delta < 0 ? "Урон" : "Лечение"));
+showHPToast(actualDelta);
+}
 saveToLocal();
 updateHPDisplay();
+}
+
+function addHPHistory(from, to, delta, source) {
+const now = new Date();
+const time = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0");
+hpHistory.unshift({ from: from, to: to, delta: delta, source: source, time: time });
+if (hpHistory.length > 30) hpHistory.pop();
+}
+
+function showHPToast(delta) {
+const container = document.getElementById("hp-toast-container");
+if (!container) return;
+const existing = container.querySelector(".hp-toast");
+if (existing) { clearTimeout(existing._fadeTimer); clearTimeout(existing._removeTimer); existing.remove(); }
+const toast = document.createElement("div");
+toast.className = "hp-toast " + (delta > 0 ? "hp-toast-heal" : "hp-toast-dmg");
+const sign = delta > 0 ? "+" : "";
+const label = delta > 0 ? "Восстановлено" : "Получено урона";
+toast.innerHTML = "<span style=\"font-size:20px;font-weight:900;\">" + sign + delta + " ХП</span><span style=\"font-size:12px;opacity:0.75;margin-left:8px;\">" + label + "</span>";
+container.appendChild(toast);
+toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 1800);
+toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 2300);
+}
+
+function openHPHistory() {
+const modal = document.getElementById("hp-history-modal");
+if (!modal) return;
+const list = document.getElementById("hp-history-list");
+if (!list) return;
+if (hpHistory.length === 0) {
+list.innerHTML = "<div class=\"hph-empty\">История пуста</div>";
+} else {
+list.innerHTML = hpHistory.map(function(e) {
+const cls = e.delta > 0 ? "hph-heal" : "hph-dmg";
+const sign = e.delta > 0 ? "+" : "";
+return "<div class=\"hph-row\">" +
+"<span class=\"hph-time\">" + e.time + "</span>" +
+"<span class=\"hph-source\">" + escapeHtml(e.source) + "</span>" +
+"<span class=\"hph-nums\">" + e.from + " → " + e.to + "</span>" +
+"<span class=\"hph-delta " + cls + "\">" + sign + e.delta + "</span>" +
+"</div>";
+}).join("");
+}
+modal.classList.add("active");
+}
+
+function closeHPHistory() {
+const modal = document.getElementById("hp-history-modal");
+if (modal) modal.classList.remove("active");
 }
 
 function applyCustomHP(mode) {
 const input = document.getElementById("hp-custom-input");
 const val = parseInt(input?.value) || 0;
 if (val <= 0) return;
-if (mode === "dmg") quickHP(-val);
-else quickHP(val);
+if (mode === "dmg") quickHP(-val, "Урон");
+else quickHP(val, "Лечение");
 if (input) input.value = "";
+}
+
+function applyHealInput() {
+const input = document.getElementById("hp-heal-input");
+const val = parseInt(input?.value) || 0;
+if (val <= 0) return;
+quickHP(val, "Лечение");
+if (input) input.value = "";
+}
+
+function setHPInput(inputId, val) {
+const input = document.getElementById(inputId);
+if (input) input.value = val;
 }
 
 function saveTempHP() {
@@ -1796,7 +1916,7 @@ const spent = char.combat.hpDiceSpent || 0;
 const total = char.level || 1;
 const resultEl = document.getElementById("hd-result");
 if (spent >= total) {
-if (resultEl) { resultEl.textContent = "Нет доступных костей!"; resultEl.style.display = "block"; }
+if (resultEl) { resultEl.textContent = "Нет костей!"; }
 return;
 }
 const match = (char.combat.hpDice || "1к8").match(/(\d+)[кK](\d+)/);
@@ -1809,9 +1929,68 @@ char.combat.hpDiceSpent = spent + 1;
 saveToLocal();
 updateHPDisplay();
 if (resultEl) {
-resultEl.textContent = "🎲 " + roll + (conMod >= 0 ? "+" : "") + conMod + " = +" + heal + " ХП";
-resultEl.style.display = "block";
+const conStr = conMod === 0 ? "" : (conMod > 0 ? " +" + conMod : " " + conMod);
+resultEl.textContent = roll + conStr + " = +" + heal + " ХП";
+const hpBefore = char.combat.hpCurrent - heal;
+addHPHistory(hpBefore < 0 ? 0 : hpBefore, char.combat.hpCurrent, heal, "Кость хитов (" + roll + conStr + ")");
+showHPToast(heal);
 }
+}
+
+function renderHitDiceIcons(avail, total) {
+const row = document.getElementById("hd-dice-row");
+if (!row) return;
+row.innerHTML = "";
+const show = Math.min(total, 20);
+for (let i = 0; i < show; i++) {
+const d = document.createElement("div");
+d.className = "hd-die-icon" + (i < avail ? " hd-die-avail" : " hd-die-spent");
+d.textContent = i < avail ? "◆" : "◇";
+row.appendChild(d);
+}
+}
+
+function rollDeathSave() {
+if (!currentId) return;
+const char = characters.find(function(c) { return c.id === currentId; });
+if (!char) return;
+const roll = Math.floor(Math.random() * 20) + 1;
+const resultEl = document.getElementById("ds-roll-result");
+let msg = "";
+let isSuccess = false;
+if (roll === 20) {
+char.combat.hpCurrent = 1;
+saveToLocal();
+updateHPDisplay();
+msg = "20 — стабилизирован! (+1 ХП)";
+isSuccess = true;
+} else if (roll === 1) {
+// 2 провала
+for (let i = 0; i < 3; i++) {
+if (!char.deathSaves.failures[i]) { char.deathSaves.failures[i] = true; break; }
+}
+for (let i = 0; i < 3; i++) {
+if (!char.deathSaves.failures[i]) { char.deathSaves.failures[i] = true; break; }
+}
+msg = "1 — 2 провала!";
+} else if (roll >= 10) {
+for (let i = 0; i < 3; i++) {
+if (!char.deathSaves.successes[i]) { char.deathSaves.successes[i] = true; break; }
+}
+msg = roll + " — успех!";
+isSuccess = true;
+} else {
+for (let i = 0; i < 3; i++) {
+if (!char.deathSaves.failures[i]) { char.deathSaves.failures[i] = true; break; }
+}
+msg = roll + " — провал!";
+}
+if (resultEl) {
+resultEl.textContent = msg;
+resultEl.className = "ds-roll-result " + (isSuccess ? "ds-result-ok" : "ds-result-fail");
+}
+saveToLocal();
+loadDeathSaves();
 }
 
 // ============================================

@@ -261,33 +261,50 @@
 </div>
 </div>
 <div class="hp-bar-wrap"><div class="hp-bar" id="hp-bar"></div></div>
+<div class="hp-toast-anchor">
+<button class="hp-history-open-btn" onclick="openHPHistory()">📋 История ХП</button>
+</div>
 </div>
 
-<!-- Быстрый урон / лечение -->
-<div class="hp-quick-section">
-<div class="hp-quick-row">
-<button class="hpb dmg" onclick="quickHP(-1)">−1</button>
-<button class="hpb dmg" onclick="quickHP(-5)">−5</button>
-<button class="hpb dmg" onclick="quickHP(-10)">−10</button>
-<input type="number" id="hp-custom-input" class="hp-custom-inp" placeholder="N" min="1">
-<button class="hpb dmg flex1" onclick="applyCustomHP('dmg')">⚔️ Урон</button>
-<button class="hpb heal flex1" onclick="applyCustomHP('heal')">💚 Лечить</button>
+<!-- Урон / Лечение -->
+<div class="hp-two-col">
+<div class="hp-side hp-side-dmg">
+<div class="hp-side-label">⚔️ Урон</div>
+<div class="hp-side-row">
+<input type="number" id="hp-custom-input" class="hp-side-inp" placeholder="0" min="1">
+<button class="hp-side-btn hp-side-btn-dmg" onclick="applyCustomHP('dmg')">Нанести</button>
 </div>
-<div class="hp-quick-row" style="margin-top:6px">
-<button class="hpb heal" onclick="quickHP(1)">+1</button>
-<button class="hpb heal" onclick="quickHP(5)">+5</button>
-<button class="hpb heal" onclick="quickHP(10)">+10</button>
+<div class="hp-presets">
+<button class="hp-preset hp-preset-dmg" onclick="setHPInput('hp-custom-input',1)">1</button>
+<button class="hp-preset hp-preset-dmg" onclick="setHPInput('hp-custom-input',5)">5</button>
+<button class="hp-preset hp-preset-dmg" onclick="setHPInput('hp-custom-input',10)">10</button>
+<button class="hp-preset hp-preset-dmg" onclick="setHPInput('hp-custom-input',20)">20</button>
+</div>
+</div>
+<div class="hp-side hp-side-heal">
+<div class="hp-side-label">💚 Лечение</div>
+<div class="hp-side-row">
+<input type="number" id="hp-heal-input" class="hp-side-inp" placeholder="0" min="1">
+<button class="hp-side-btn hp-side-btn-heal" onclick="applyHealInput()">Вылечить</button>
+</div>
+<div class="hp-presets">
+<button class="hp-preset hp-preset-heal" onclick="setHPInput('hp-heal-input',1)">1</button>
+<button class="hp-preset hp-preset-heal" onclick="setHPInput('hp-heal-input',5)">5</button>
+<button class="hp-preset hp-preset-heal" onclick="setHPInput('hp-heal-input',10)">10</button>
+<button class="hp-preset hp-preset-heal" onclick="setHPInput('hp-heal-input',20)">20</button>
+</div>
 </div>
 </div>
 
 <!-- Кость хитов -->
-<div class="hit-die-quick-block">
-<div class="hit-die-info-row">
-<span>🎲 Кости хитов: <strong id="hd-type-display">—</strong></span>
+<div class="hd-block">
+<div class="hd-top-row">
+<span class="hd-label">🎲 Кости хитов: <strong id="hd-type-display">—</strong></span>
 <span class="hd-avail-badge" id="hd-avail-display">—</span>
+<span class="hd-result" id="hd-result"></span>
 </div>
-<button class="roll-hd-btn" id="roll-hd-btn" onclick="rollHitDieQuick()">🎲 Бросить кость хитов</button>
-<div class="hd-result" id="hd-result"></div>
+<div class="hd-dice-row" id="hd-dice-row"></div>
+<button class="hd-roll-btn" id="roll-hd-btn" onclick="rollHitDieQuick()">Бросить кость хитов</button>
 </div>
 
 <!-- Скрытые поля (нужны для updateChar/loadCharacter) -->
@@ -303,28 +320,34 @@
 
 <!-- СПАСБРОСКИ НА СМЕРТЬ — только при HP = 0 -->
 <div class="card death-saves-card" id="death-saves-section" style="display:none">
-<h3>💀 Спасброски на Смерть</h3>
-<p class="ds-hint">3 успеха — стабилизирован &nbsp;·&nbsp; 3 провала — смерть</p>
+<div class="ds-header">
+<span class="ds-title">💀 Спасброски на Смерть</span>
+<span class="ds-hint">10+ успех · ниже 10 провал · 1 = 2 провала · 20 = стаб.</span>
+</div>
 <div class="ds-rows">
 <div class="ds-row">
-<span class="ds-lbl ds-success-lbl">✅ Успехи</span>
+<span class="ds-lbl ds-success-lbl">Успехи</span>
 <div class="ds-boxes">
-<div class="ds-box" id="ds-s0" onclick="toggleDeathSave('success',0)"></div>
-<div class="ds-box" id="ds-s1" onclick="toggleDeathSave('success',1)"></div>
-<div class="ds-box" id="ds-s2" onclick="toggleDeathSave('success',2)"></div>
+<div class="ds-box ds-success-box" id="ds-s0" onclick="toggleDeathSave('success',0)"><span class="ds-icon"></span></div>
+<div class="ds-box ds-success-box" id="ds-s1" onclick="toggleDeathSave('success',1)"><span class="ds-icon"></span></div>
+<div class="ds-box ds-success-box" id="ds-s2" onclick="toggleDeathSave('success',2)"><span class="ds-icon"></span></div>
 </div>
 </div>
-<div class="ds-row" style="margin-top:10px">
-<span class="ds-lbl ds-fail-lbl">❌ Провалы</span>
+<div class="ds-row">
+<span class="ds-lbl ds-fail-lbl">Провалы</span>
 <div class="ds-boxes">
-<div class="ds-box ds-fail-box" id="ds-f0" onclick="toggleDeathSave('failure',0)"></div>
-<div class="ds-box ds-fail-box" id="ds-f1" onclick="toggleDeathSave('failure',1)"></div>
-<div class="ds-box ds-fail-box" id="ds-f2" onclick="toggleDeathSave('failure',2)"></div>
+<div class="ds-box ds-fail-box" id="ds-f0" onclick="toggleDeathSave('failure',0)"><span class="ds-icon"></span></div>
+<div class="ds-box ds-fail-box" id="ds-f1" onclick="toggleDeathSave('failure',1)"><span class="ds-icon"></span></div>
+<div class="ds-box ds-fail-box" id="ds-f2" onclick="toggleDeathSave('failure',2)"><span class="ds-icon"></span></div>
 </div>
 </div>
+</div>
+<div class="ds-roll-row">
+<button class="ds-roll-btn" onclick="rollDeathSave()">🎲 Бросить d20</button>
+<div class="ds-roll-result" id="ds-roll-result"></div>
 </div>
 <div class="ds-status" id="ds-status"></div>
-<button class="secondary small" style="margin-top:12px;width:auto" onclick="resetDeathSaves()">🔄 Сбросить</button>
+<button class="ds-reset-btn" onclick="resetDeathSaves()">Сбросить</button>
 </div>
 
 <button class="info" onclick="openLevelUpModal()">⬆️ Повысить уровень</button>
@@ -348,7 +371,6 @@
 <div class="effects-section">
 <h4>✨ Временные Эффекты <span class="conditions-active-count" id="effects-count">0</span></h4>
 <div class="effects-grid" id="effects-grid"></div>
-</div>
 </div>
 <div class="card">
 <h3>📖 Владения</h3>
@@ -590,43 +612,81 @@
 </div>
 <!-- Modal: Level Up -->
 <div id="levelup-modal" class="modal">
-<div class="modal-content">
+<div class="modal-content lu-modal">
+<div class="lu-header">
+<div class="lu-title">Повышение уровня</div>
 <span class="modal-close" onclick="closeLevelUpModal()">&times;</span>
-<h3>⬆️ Повышение уровня</h3>
-<div class="rest-info">
-<h4>Текущий уровень: <span id="current-level-display">1</span></h4>
-<p style="font-size:0.85em; color:var(--text-muted);">При повышении уровня вы получите:</p>
-<ul id="levelup-benefits">
-<li>Новые ячейки заклинаний</li>
-<li>Увеличение здоровья</li>
-<li>Новые классовые умения</li>
-</ul>
 </div>
-<div id="new-features-container" style="margin: 15px 0; max-height: 200px; overflow-y: auto;"></div>
-<div class="levelup-info-block">
-<div class="lu-row">
-<span>📊 Новый уровень:</span>
-<span id="lu-new-level" class="lu-val">—</span>
+
+<!-- Экран: Предпросмотр -->
+<div id="lu-screen-preview">
+<div class="lu-level-badge">
+<span id="lu-from-level">1</span>
+<span class="lu-arrow">→</span>
+<span id="lu-to-level" class="lu-to">2</span>
 </div>
-<div class="lu-row lu-highlight">
-<span>❤️ ХП: <span id="hp-before">—</span> → <span id="hp-after" style="color:var(--success-color);font-weight:bold">—</span></span>
-<span id="lu-hp-gain" class="lu-gain">+0</span>
-</div>
-<div class="lu-row">
-<span>🎲 Кость хитов: <span id="lu-hit-die">—</span></span>
-<span id="lu-dice-count" class="lu-val">—</span>
-</div>
-<div class="lu-row">
-<span>⚡ Бонус мастерства:</span>
-<span id="lu-prof-bonus" class="lu-val">—</span>
+
+<div class="lu-stats-grid">
+<div class="lu-stat-card">
+<div class="lu-stat-label">❤️ Максимум ХП</div>
+<div class="lu-stat-row">
+<span id="lu-hp-from" class="lu-stat-old">—</span>
+<span class="lu-stat-arrow">→</span>
+<span id="lu-hp-to" class="lu-stat-new">—</span>
+<span id="lu-hp-gain" class="lu-gain-badge">+0</span>
 </div>
 </div>
-<div style="display:flex; gap:10px; margin-top: 20px;">
-<button class="secondary" onclick="closeLevelUpModal()" style="flex:1;">Отмена</button>
-<button class="success" onclick="confirmLevelUp()" style="flex:1;">Повысить уровень</button>
+<div class="lu-stat-card">
+<div class="lu-stat-label">🎲 Кость хитов</div>
+<div class="lu-stat-row">
+<span id="lu-hit-die" class="lu-stat-new">—</span>
+<span class="lu-stat-sep">×</span>
+<span id="lu-dice-count" class="lu-stat-old">—</span>
+</div>
+</div>
+<div class="lu-stat-card">
+<div class="lu-stat-label">⚡ Бонус мастерства</div>
+<div class="lu-stat-row">
+<span id="lu-prof-old" class="lu-stat-old">—</span>
+<span id="lu-prof-arrow" class="lu-stat-arrow" style="display:none">→</span>
+<span id="lu-prof-new" class="lu-stat-new" style="display:none">—</span>
+</div>
+</div>
+<div class="lu-stat-card" id="lu-slots-card" style="display:none">
+<div class="lu-stat-label">✨ Ячейки заклинаний</div>
+<div class="lu-stat-row" id="lu-slots-info">—</div>
+</div>
+</div>
+
+<div id="lu-features-container" class="lu-features"></div>
+
+<div class="lu-footer">
+<button class="lu-btn-cancel" onclick="closeLevelUpModal()">Отмена</button>
+<button class="lu-btn-confirm" onclick="confirmLevelUp()">Повысить уровень</button>
+</div>
+</div>
+
+<!-- Экран: Результат -->
+<div id="lu-screen-result" style="display:none">
+<div class="lu-result-icon">🎉</div>
+<div class="lu-result-title" id="lu-result-title">Уровень повышен!</div>
+<div class="lu-result-body" id="lu-result-body"></div>
+<button class="lu-btn-confirm" style="width:100%;margin-top:20px" onclick="closeLevelUpModal()">Готово</button>
 </div>
 </div>
 </div>
+<!-- Modal: HP History -->
+<div id="hp-history-modal" class="modal">
+<div class="modal-content hph-modal">
+<div class="hph-header">
+<span class="hph-title">📋 История здоровья</span>
+<span class="modal-close" onclick="closeHPHistory()">&times;</span>
+</div>
+<div id="hp-history-list" class="hph-list"></div>
+<button class="hph-clear-btn" onclick="hpHistory=[];openHPHistory()">Очистить историю</button>
+</div>
+</div>
+
 <!-- Modal: Dice -->
 <div id="dice-modal" class="modal">
 <div class="modal-content">
@@ -845,6 +905,8 @@
 <button class="tab-btn" onclick="switchTab('notes', this)"><span>📝</span>Записи</button>
 </div>
 </div>
+
+<div id="hp-toast-container"></div>
 
 <script src="data.js"></script>
 <script src="app.js"></script>
