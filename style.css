@@ -802,26 +802,26 @@ white-space: nowrap;
 overflow: hidden;
 text-overflow: ellipsis;
 }
-.char-card-actions { display: flex; gap: 5px; flex-shrink: 0; }
+.char-card-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
 .char-hp-bar-wrap { display: none; }
 .char-hp-bar { display: none; }
-.char-card-stats { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.char-card-stats { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .char-stat-badge {
 background: rgba(255,255,255,0.06);
-padding: 4px 9px;
-border-radius: 6px;
-font-size: 0.72em;
-color: rgba(255,255,255,0.7);
-border: 1px solid rgba(255,255,255,0.08);
+padding: 5px 10px;
+border-radius: 7px;
+font-size: 0.78em;
+color: rgba(255,255,255,0.75);
+border: 1px solid rgba(255,255,255,0.09);
 }
 .char-stat-badge-hp {
-padding: 4px 9px;
-border-radius: 6px;
-font-size: 0.72em;
+padding: 5px 10px;
+border-radius: 7px;
+font-size: 0.78em;
 border: 1px solid;
 font-weight: 700;
 }
-.char-time-ago { margin-left: auto; font-size: 0.68em; color: rgba(255,255,255,0.25); }
+.char-time-ago { margin-left: auto; font-size: 0.7em; color: rgba(255,255,255,0.28); }
 .char-controls { margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px; }
 .char-search-wrap { position: relative; }
 .char-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.85em; pointer-events: none; }
@@ -856,15 +856,15 @@ margin: 0;
 .sort-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
 .sort-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: #000; font-weight: 600; }
 .char-copy-btn {
-background: transparent;
-border: 1px solid rgba(255,255,255,0.12);
-color: rgba(255,255,255,0.4);
+background: rgba(255,255,255,0.05);
+border: 1px solid rgba(255,255,255,0.1);
+color: rgba(255,255,255,0.5);
 padding: 0;
-width: 28px;
-height: 28px;
-border-radius: 7px;
+width: 34px;
+height: 34px;
+border-radius: 8px;
 cursor: pointer;
-font-size: 0.9em;
+font-size: 1em;
 display: flex;
 align-items: center;
 justify-content: center;
@@ -873,15 +873,15 @@ margin: 0;
 }
 .char-copy-btn:hover { background: var(--accent-color); color: #000; border-color: var(--accent-color); }
 .char-delete-btn {
-background: transparent;
-border: 1px solid rgba(231,76,60,0.35);
-color: rgba(231,76,60,0.6);
+background: rgba(231,76,60,0.08);
+border: 1px solid rgba(231,76,60,0.25);
+color: rgba(231,76,60,0.7);
 padding: 0;
-width: 28px;
-height: 28px;
-border-radius: 7px;
+width: 34px;
+height: 34px;
+border-radius: 8px;
 cursor: pointer;
-font-size: 0.85em;
+font-size: 0.95em;
 display: flex;
 align-items: center;
 justify-content: center;
@@ -889,6 +889,13 @@ margin: 0;
 transition: all 0.18s;
 }
 .char-delete-btn:hover { background: var(--danger-color); color: white; border-color: var(--danger-color); }
+@media (max-width: 480px) {
+  .char-copy-btn, .char-delete-btn { width: 38px; height: 38px; font-size: 1.05em; }
+  .char-card-actions { gap: 8px; }
+  .char-stat-badge, .char-stat-badge-hp { padding: 6px 11px; font-size: 0.8em; }
+  .char-card-name { font-size: 1.05em; }
+  .char-card-class-icon { width: 42px; height: 42px; font-size: 1.4em; }
+}
 
 /* ========== FLOATING BUTTONS ========== */
 .floating-buttons {
@@ -2311,27 +2318,14 @@ flex: 1; padding: 10px; border-radius: 8px;
 background: rgba(255,255,255,0.07);
 border: 1px solid rgba(255,255,255,0.1);
 color: rgba(255,255,255,0.6);
-font-size: 0.9em; cursor: pointer;
+font-size: 0.9em; cursor: pointer; width: auto; margin: 0;
 }
 .confirm-btn-ok {
 flex: 1; padding: 10px; border-radius: 8px;
 background: #c0392b;
 border: 1px solid #c0392b;
 color: #fff;
-font-size: 0.9em; font-weight: 600; cursor: pointer;
+font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .confirm-btn-cancel:hover { background: rgba(255,255,255,0.12); }
 .confirm-btn-ok:hover { background: #e74c3c; }
-
-/* ===== Char counter badge ===== */
-.char-count-badge {
-font-size: 0.65em;
-font-weight: 400;
-color: rgba(255,255,255,0.3);
-margin-left: 6px;
-vertical-align: middle;
-}
-
-/* ===== Drag cursor ===== */
-.char-card[draggable="true"] { cursor: grab; }
-.char-card[draggable="true"]:active { cursor: grabbing; }
