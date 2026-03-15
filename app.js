@@ -527,7 +527,8 @@ spells: { slots: {}, slotsUsed: {}, mySpells: [], stat: "", dc: 0, attack: 0, mo
 notes: "",
 features: "",
 appearance: "",
-magicItems: ""
+magicItems: "",
+deathSaves: { successes: [false, false, false], failures: [false, false, false] }
 };
 for(let i=1; i<=9; i++) {
 newChar.spells.slots[i] = 0;
@@ -653,6 +654,8 @@ renderWeapons();
 renderSpellSlots();
 renderMySpells();
 renderInventory();
+updateHPDisplay();
+loadDeathSaves();
 showScreen("character");
 }
 function updateChar() {
@@ -698,6 +701,7 @@ calcSpellStats();
 saveToLocal();
 updateHeaderTitle();
 updateStatusBar();
+updateHPDisplay();
 }
 function toggleProficiency(type, value, checkbox) {
 if (!currentId) return;
@@ -927,6 +931,8 @@ const hitDiceToRestore = Math.floor(char.level / 2);
 char.combat.hpDiceSpent = Math.max(0, (char.combat.hpDiceSpent || 0) - hitDiceToRestore);
 char.conditions = [];
 char.effects = [];
+// Сбрасываем спасброски смерти при долгом отдыхе
+char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 loadConditions();
 loadEffects();
 resultTitle = "✅ Долгий отдых завершён!";
@@ -986,6 +992,7 @@ const hpGain = newMaxHP - oldMaxHP;
 char.combat.hpMax = newMaxHP;
 char.combat.hpDice = "1к" + hitDie;
 char.combat.hpCurrent = newMaxHP;
+char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 if (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][char.level]) {
 const slots = SPELL_SLOTS_BY_LEVEL[className][char.level];
 for(let i=1; i<=9; i++) {
@@ -1616,6 +1623,76 @@ alert("Ошибка чтения");
 }
 };
 reader.readAsText(file);
+}
+
+// ============================================
+// СПАСБРОСКИ СМЕРТИ
+// ============================================
+function loadDeathSaves() {
+if (!currentId) return;
+const char = characters.find(function(c) { return c.id === currentId; });
+if (!char) return;
+if (!char.deathSaves) {
+char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
+}
+["success", "failure"].forEach(function(type) {
+for (let i = 0; i < 3; i++) {
+const el = document.getElementById("death-" + type + "-" + i);
+if (el) {
+const val = type === "success" ? char.deathSaves.successes[i] : char.deathSaves.failures[i];
+el.classList.toggle("active", !!val);
+}
+}
+});
+}
+
+function toggleDeathSave(type, index) {
+if (!currentId) return;
+const char = characters.find(function(c) { return c.id === currentId; });
+if (!char) return;
+if (!char.deathSaves) {
+char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
+}
+if (type === "success") {
+char.deathSaves.successes[index] = !char.deathSaves.successes[index];
+} else {
+char.deathSaves.failures[index] = !char.deathSaves.failures[index];
+}
+saveToLocal();
+loadDeathSaves();
+}
+
+function resetDeathSaves() {
+if (!currentId) return;
+const char = characters.find(function(c) { return c.id === currentId; });
+if (!char) return;
+char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
+saveToLocal();
+loadDeathSaves();
+}
+
+// ============================================
+// ОТОБРАЖЕНИЕ ХП
+// ============================================
+function updateHPDisplay() {
+if (!currentId) return;
+const char = characters.find(function(c) { return c.id === currentId; });
+if (!char) return;
+const hpCurrent = char.combat.hpCurrent || 0;
+const hpMax = char.combat.hpMax || 10;
+const hpTemp = char.combat.hpTemp || 0;
+const hpCurrentEl = document.getElementById("hp-current");
+const hpMaxEl = document.getElementById("hp-max");
+const hpTempEl = document.getElementById("hp-temp");
+if (hpCurrentEl) hpCurrentEl.value = hpCurrent;
+if (hpMaxEl) hpMaxEl.value = hpMax;
+if (hpTempEl) hpTempEl.value = hpTemp;
+// Показываем секцию спасбросков смерти если ХП = 0
+const deathSavesSection = document.getElementById("death-saves-section");
+if (deathSavesSection) {
+deathSavesSection.style.display = hpCurrent <= 0 ? "block" : "none";
+}
+updateStatusBar();
 }
 
 // ============================================================
