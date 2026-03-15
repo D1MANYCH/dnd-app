@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v3';
+const CACHE_NAME = 'dnd-sheet-v4';
 
 const FILES_TO_CACHE = [
   './',
@@ -42,13 +42,17 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Игнорируем chrome-extension://, data:, blob: и другие не-http запросы
+  const url = event.request.url;
+  if (!url.startsWith('http://') && !url.startsWith('https://')) return;
+
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
         return response;
       }
       return fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseClone);
