@@ -271,7 +271,6 @@ modifiers.push({name: "Без доспехов варвара", value: ac - 10, 
 }
 else if (hasMonkUnarmored || (isMonk && !hasLightArmor && !hasMediumArmor && !hasHeavyArmor)) {
 ac = 10 + dexMod + wisMod;
-// 🔧 ИСПРАВЛЕНИЕ: Исправлена опечатка в формуле КД монаха (добавлена скобка)
 formulaParts = ["10 (база)", "+" + dexMod + " (ЛОВ)", "+" + wisMod + " (МУД)"];
 modifiers.push({name: "Без доспехов монаха", value: ac - 10, type: "active"});
 }
@@ -464,9 +463,7 @@ subclassSelect.appendChild(option);
 // 🔧 ИСПРАВЛЕНИЕ: Правильный расчёт ХП по правилам D&D 5e
 function calculateMaxHP(level, conMod, hitDie) {
 if (level < 1) return 0;
-// Уровень 1: максимум кости хитов + мод ТЕЛ
 const level1HP = hitDie + conMod;
-// Уровни 2+: среднее значение кости (округлённое вверх) + мод ТЕЛ за каждый уровень
 const avgPerLevel = Math.floor(hitDie / 2) + 1;
 const additionalHP = (level - 1) * (avgPerLevel + conMod);
 return level1HP + additionalHP;
@@ -492,13 +489,13 @@ if (hpDiceEl) hpDiceEl.value = "1к" + hitDie;
 if (hpDiceAvailableEl) hpDiceAvailableEl.value = (level - (char.combat.hpDiceSpent || 0)) + "/" + level;
 char.combat.hpMax = newMaxHP;
 char.combat.hpDice = "1к" + hitDie;
-// 🔧 Если текущие ХП больше нового максимума, ограничиваем
 if (char.combat.hpCurrent > newMaxHP) {
 char.combat.hpCurrent = newMaxHP;
 safeSet("hp-current", newMaxHP);
 }
 saveToLocal();
 updateStatusBar();
+updateHPDisplay();
 }
 function createNewCharacter() {
 const newChar = {
@@ -577,14 +574,12 @@ function loadCharacter(id) {
 currentId = id;
 const char = characters.find(function(c) { return c.id === id; });
 if (!char) return;
-// 🔧 СОХРАНЯЕМ ПОДКЛАСС ПЕРЕД updateSubclassOptions
 const savedSubclass = char.subclass || "";
 safeSet("char-name", char.name);
 safeSet("char-level", char.level);
 safeSet("char-exp", char.exp || 0);
 safeSet("char-class", char.class);
-updateSubclassOptions(); // Сначала создаём опции
-// 🔧 ВОССТАНАВЛИВАЕМ ПОДКЛАСС ПОСЛЕ создания опций
+updateSubclassOptions();
 safeSet("char-subclass", savedSubclass);
 safeSet("char-race", char.race);
 safeSet("char-background", char.background || "");
@@ -673,7 +668,6 @@ char.alignment = document.getElementById("char-alignment")?.value || "";
 char.size = document.getElementById("char-size")?.value || "Средний";
 char.speed = document.getElementById("char-speed")?.value || "30 фт";
 char.combat.ac = parseInt(document.getElementById("combat-ac")?.value) || 10;
-// 🔧 ИСПРАВЛЕНИЕ: hpCurrent теперь сохраняется как число (parseInt)
 char.combat.hpCurrent = parseInt(document.getElementById("hp-current")?.value) || 0;
 char.combat.hpTemp = parseInt(document.getElementById("hp-temp")?.value) || 0;
 char.combat.hpDiceSpent = parseInt(document.getElementById("hp-dice-spent")?.value) || 0;
@@ -931,7 +925,6 @@ const hitDiceToRestore = Math.floor(char.level / 2);
 char.combat.hpDiceSpent = Math.max(0, (char.combat.hpDiceSpent || 0) - hitDiceToRestore);
 char.conditions = [];
 char.effects = [];
-// Сбрасываем спасброски смерти при долгом отдыхе
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 loadConditions();
 loadEffects();
@@ -1385,7 +1378,6 @@ if (!currentId) return;
 const char = characters.find(function(c) { return c.id === currentId; });
 if (!char) return;
 char.spells.slots[level] = parseInt(value) || 0;
-// 🔧 ИСПРАВЛЕНИЕ: Использованные ячейки не могут превышать общее количество
 if (char.spells.slotsUsed[level] > char.spells.slots[level]) {
 char.spells.slotsUsed[level] = char.spells.slots[level];
 }
@@ -1413,7 +1405,6 @@ let newValue = current + delta;
 if (newValue < 0) newValue = 0;
 if (newValue > 10) newValue = 10;
 char.spells.slots[level] = newValue;
-// 🔧 ИСПРАВЛЕНИЕ: Синхронизация использованных ячеек
 if (char.spells.slotsUsed[level] > newValue) {
 char.spells.slotsUsed[level] = newValue;
 }
@@ -1563,7 +1554,6 @@ container.appendChild(div);
 });
 });
 }
-// 🔧 ИСПРАВЛЕНИЕ: Добавлен префикс "data:" для экспорта
 function exportData() {
 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(characters));
 const downloadAnchorNode = document.createElement("a");
@@ -1594,7 +1584,6 @@ alert("Ошибка чтения");
 };
 reader.readAsText(file);
 }
-// 🔧 ИСПРАВЛЕНИЕ: Добавлен префикс "data:" для экспорта заклинаний
 function exportSpells() {
 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(SPELL_DATABASE));
 const downloadAnchorNode = document.createElement("a");
@@ -1626,7 +1615,9 @@ reader.readAsText(file);
 }
 
 // ============================================
-// СПАСБРОСКИ СМЕРТИ
+// СПАСБРОСКИ СМЕРТИ — ID синхронизированы с index.html
+// ds-s0, ds-s1, ds-s2 — успехи
+// ds-f0, ds-f1, ds-f2 — провалы
 // ============================================
 function loadDeathSaves() {
 if (!currentId) return;
@@ -1635,15 +1626,12 @@ if (!char) return;
 if (!char.deathSaves) {
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 }
-["success", "failure"].forEach(function(type) {
 for (let i = 0; i < 3; i++) {
-const el = document.getElementById("death-" + type + "-" + i);
-if (el) {
-const val = type === "success" ? char.deathSaves.successes[i] : char.deathSaves.failures[i];
-el.classList.toggle("active", !!val);
+const sEl = document.getElementById("ds-s" + i);
+const fEl = document.getElementById("ds-f" + i);
+if (sEl) sEl.classList.toggle("active", !!char.deathSaves.successes[i]);
+if (fEl) fEl.classList.toggle("active", !!char.deathSaves.failures[i]);
 }
-}
-});
 }
 
 function toggleDeathSave(type, index) {
@@ -1672,7 +1660,7 @@ loadDeathSaves();
 }
 
 // ============================================
-// ОТОБРАЖЕНИЕ ХП
+// ОТОБРАЖЕНИЕ ХП — полная синхронизация с index.html
 // ============================================
 function updateHPDisplay() {
 if (!currentId) return;
@@ -1681,18 +1669,119 @@ if (!char) return;
 const hpCurrent = char.combat.hpCurrent || 0;
 const hpMax = char.combat.hpMax || 10;
 const hpTemp = char.combat.hpTemp || 0;
-const hpCurrentEl = document.getElementById("hp-current");
-const hpMaxEl = document.getElementById("hp-max");
-const hpTempEl = document.getElementById("hp-temp");
-if (hpCurrentEl) hpCurrentEl.value = hpCurrent;
-if (hpMaxEl) hpMaxEl.value = hpMax;
-if (hpTempEl) hpTempEl.value = hpTemp;
-// Показываем секцию спасбросков смерти если ХП = 0
+
+// Скрытые поля
+safeSet("hp-current", hpCurrent);
+safeSet("hp-max", hpMax);
+safeSet("hp-temp", hpTemp);
+
+// Видимые элементы отображения ХП
+const dispCurrent = document.getElementById("hp-display-current");
+const dispMax = document.getElementById("hp-display-max");
+if (dispCurrent) dispCurrent.textContent = hpCurrent;
+if (dispMax) dispMax.textContent = hpMax;
+
+// Полоска ХП
+const hpBar = document.getElementById("hp-bar");
+if (hpBar) {
+const pct = hpMax > 0 ? Math.max(0, Math.min(100, (hpCurrent / hpMax) * 100)) : 0;
+hpBar.style.width = pct + "%";
+hpBar.className = "hp-bar";
+if (pct <= 25) hpBar.classList.add("critical");
+else if (pct <= 50) hpBar.classList.add("low");
+}
+
+// Кость хитов в быстром блоке
+const hdTypeDisplay = document.getElementById("hd-type-display");
+const hdAvailDisplay = document.getElementById("hd-avail-display");
+if (hdTypeDisplay) hdTypeDisplay.textContent = char.combat.hpDice || "—";
+if (hdAvailDisplay) {
+const spent = char.combat.hpDiceSpent || 0;
+const total = char.level || 1;
+const avail = total - spent;
+hdAvailDisplay.textContent = avail + "/" + total;
+}
+
+// Секция спасбросков смерти — показываем только при HP = 0
 const deathSavesSection = document.getElementById("death-saves-section");
 if (deathSavesSection) {
 deathSavesSection.style.display = hpCurrent <= 0 ? "block" : "none";
 }
+
 updateStatusBar();
+}
+
+// ============================================
+// БЫСТРОЕ ИЗМЕНЕНИЕ ХП
+// ============================================
+function quickHP(delta) {
+if (!currentId) return;
+const char = characters.find(function(c) { return c.id === currentId; });
+if (!char) return;
+const hpTemp = char.combat.hpTemp || 0;
+let hpCurrent = char.combat.hpCurrent || 0;
+if (delta < 0 && hpTemp > 0) {
+const dmg = Math.abs(delta);
+if (dmg <= hpTemp) {
+char.combat.hpTemp = hpTemp - dmg;
+} else {
+char.combat.hpTemp = 0;
+hpCurrent -= (dmg - hpTemp);
+}
+} else {
+hpCurrent += delta;
+}
+hpCurrent = Math.max(0, Math.min(hpCurrent, char.combat.hpMax));
+char.combat.hpCurrent = hpCurrent;
+safeSet("hp-current", hpCurrent);
+safeSet("hp-temp", char.combat.hpTemp);
+saveToLocal();
+updateHPDisplay();
+}
+
+function applyCustomHP(mode) {
+const input = document.getElementById("hp-custom-input");
+const val = parseInt(input?.value) || 0;
+if (val <= 0) return;
+if (mode === "dmg") quickHP(-val);
+else quickHP(val);
+if (input) input.value = "";
+}
+
+function saveTempHP() {
+if (!currentId) return;
+const char = characters.find(function(c) { return c.id === currentId; });
+if (!char) return;
+char.combat.hpTemp = parseInt(document.getElementById("hp-temp")?.value) || 0;
+saveToLocal();
+updateHPDisplay();
+}
+
+// ============================================
+// БРОСОК КОСТИ ХИТОВ (быстрый)
+// ============================================
+function rollHitDieQuick() {
+if (!currentId) return;
+const char = characters.find(function(c) { return c.id === currentId; });
+if (!char) return;
+const spent = char.combat.hpDiceSpent || 0;
+const total = char.level || 1;
+if (spent >= total) {
+const resultEl = document.getElementById("hd-result");
+if (resultEl) resultEl.textContent = "Нет доступных костей!";
+return;
+}
+const match = (char.combat.hpDice || "1к8").match(/(\d+)[кK](\d+)/);
+const sides = match ? parseInt(match[2]) : 8;
+const roll = Math.floor(Math.random() * sides) + 1;
+const conMod = getMod(char.stats.con);
+const heal = Math.max(1, roll + conMod);
+char.combat.hpCurrent = Math.min(char.combat.hpCurrent + heal, char.combat.hpMax);
+char.combat.hpDiceSpent = spent + 1;
+saveToLocal();
+updateHPDisplay();
+const resultEl = document.getElementById("hd-result");
+if (resultEl) resultEl.textContent = "🎲 " + roll + (conMod >= 0 ? "+" : "") + conMod + " = +" + heal + " ХП";
 }
 
 // ============================================================
