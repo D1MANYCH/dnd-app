@@ -35,6 +35,19 @@
 <div id="screen-characters">
 <div class="card">
 <h3>📜 Ваши Персонажи</h3>
+<div class="char-controls">
+<div class="char-search-wrap">
+<span class="char-search-icon">🔍</span>
+<input type="text" class="char-search-inp" placeholder="Поиск по имени, классу, расе..." oninput="setCharSearch(this.value)">
+</div>
+<div class="char-sort-row">
+<span class="char-sort-label">Сортировка:</span>
+<button id="sort-btn-updated" class="sort-btn active" onclick="setCharSort('updated')">Изменён</button>
+<button id="sort-btn-name" class="sort-btn" onclick="setCharSort('name')">Имя</button>
+<button id="sort-btn-level" class="sort-btn" onclick="setCharSort('level')">Уровень</button>
+<button id="sort-btn-class" class="sort-btn" onclick="setCharSort('class')">Класс</button>
+</div>
+</div>
 <div id="character-list"></div>
 <button onclick="createNewCharacter()">+ Новый персонаж</button>
 <button class="secondary" onclick="exportData()">💾 Скачать копию</button>

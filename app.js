@@ -554,6 +554,31 @@ const icons = {
 };
 return icons[cls] || "🎭";
 }
+function formatTimeAgo(ts) {
+if (!ts) return "";
+const diff = Date.now() - ts;
+const m = Math.floor(diff / 60000);
+const h = Math.floor(diff / 3600000);
+const d = Math.floor(diff / 86400000);
+if (m < 1) return "только что";
+if (m < 60) return m + " мин. назад";
+if (h < 24) return h + " ч. назад";
+if (d < 7) return d + " д. назад";
+return new Date(ts).toLocaleDateString("ru-RU", {day:"numeric", month:"short"});
+}
+var charSearchQuery = "";
+var charSortMode = "updated";
+function setCharSort(mode) {
+charSortMode = mode;
+document.querySelectorAll(".sort-btn").forEach(function(b) { b.classList.remove("active"); });
+var btn = document.getElementById("sort-btn-" + mode);
+if (btn) btn.classList.add("active");
+renderCharacterList();
+}
+function setCharSearch(val) {
+charSearchQuery = val.toLowerCase().trim();
+renderCharacterList();
+}
 function duplicateCharacter(id, event) {
 event.stopPropagation();
 const orig = characters.find(function(c) { return c.id === id; });
@@ -561,6 +586,7 @@ if (!orig) return;
 const copy = JSON.parse(JSON.stringify(orig));
 copy.id = Date.now();
 copy.name = (orig.name || "Без имени") + " (копия)";
+copy.updatedAt = Date.now();
 characters.push(copy);
 saveToLocal();
 renderCharacterList();
@@ -569,11 +595,25 @@ function renderCharacterList() {
 const list = document.getElementById("character-list");
 if (!list) return;
 list.innerHTML = "";
-if (characters.length === 0) {
-list.innerHTML = "<div class=\"empty-list\">📭 Список пуст. Создайте персонажа!</div>";
-return;
+var filtered = characters.filter(function(c) {
+  if (!charSearchQuery) return true;
+  return (c.name || "").toLowerCase().includes(charSearchQuery) ||
+         (c.class || "").toLowerCase().includes(charSearchQuery) ||
+         (c.race || "").toLowerCase().includes(charSearchQuery);
+});
+filtered = filtered.slice().sort(function(a, b) {
+  if (charSortMode === "name") return (a.name || "").localeCompare(b.name || "", "ru");
+  if (charSortMode === "level") return (b.level || 1) - (a.level || 1);
+  if (charSortMode === "class") return (a.class || "").localeCompare(b.class || "", "ru");
+  return (b.updatedAt || b.id) - (a.updatedAt || a.id);
+});
+if (filtered.length === 0) {
+  list.innerHTML = characters.length === 0
+    ? "<div class=\"empty-list\">📭 Список пуст. Создайте персонажа!</div>"
+    : "<div class=\"empty-list\">🔍 Ничего не найдено</div>";
+  return;
 }
-characters.forEach(function(char) {
+filtered.forEach(function(char) {
 const div = document.createElement("div");
 div.className = "char-card";
 div.onclick = function() { loadCharacter(char.id); };
@@ -584,7 +624,7 @@ const hpPercent = hpMax > 0 ? Math.min(100, Math.round((hpCurrent / hpMax) * 100
 const hpColor = hpPercent > 60 ? "#4da843" : hpPercent > 30 ? "#e67e22" : "#e74c3c";
 const classColor = getClassColor(char.class);
 const classIcon = getClassIcon(char.class);
-const alignment = char.alignment ? "<span class=\"char-alignment\">" + escapeHtml(char.alignment) + "</span>" : "";
+const timeAgo = char.updatedAt ? "<span class=\"char-time-ago\">" + formatTimeAgo(char.updatedAt) + "</span>" : "";
 div.style.borderLeftColor = classColor;
 div.innerHTML = "<div class=\"char-card-header\">" +
   "<div class=\"char-card-class-icon\" style=\"background:" + classColor + "22;\">" + classIcon + "</div>" +
@@ -603,6 +643,7 @@ div.innerHTML = "<div class=\"char-card-header\">" +
   "<span class=\"char-stat-badge\">🛡️ " + (char.combat.ac || 10) + "</span>" +
   (conditionsCount > 0 ? "<span class=\"char-stat-badge\" style=\"background:var(--condition-active);border-color:var(--condition-border);\">⚠️ " + conditionsCount + "</span>" : "") +
   (char.alignment ? "<span class=\"char-alignment\">" + escapeHtml(char.alignment) + "</span>" : "") +
+  timeAgo +
 "</div>";
 list.appendChild(div);
 });
@@ -747,6 +788,8 @@ if(slotInput) char.spells.slots[i] = parseInt(slotInput.value) || 0;
 }
 }
 calcSpellStats();
+const char2 = characters.find(function(c) { return c.id === currentId; });
+if (char2) char2.updatedAt = Date.now();
 saveToLocal();
 updateHeaderTitle();
 updateStatusBar();
