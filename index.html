@@ -4,14 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1a1a24">
-<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>D&D 5e Character Sheet</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -245,18 +241,91 @@
 <div class="col"><label>Инициатива</label><input type="text" id="combat-init" readonly></div>
 <div class="col"><label>Скорость</label><input type="text" id="combat-speed" value="30 фт" oninput="updateChar()"></div>
 </div>
-<div class="row">
-<div class="col"><label>Макс. ХП</label><input type="number" id="hp-max" readonly style="color: var(--success-color); font-weight: bold;"></div>
-<div class="col"><label>Текущие ХП</label><input type="number" id="hp-current" oninput="updateChar()"></div>
-<div class="col"><label>Временные ХП</label><input type="number" id="hp-temp" value="0" oninput="updateChar()"></div>
+
+<!-- Дисплей HP + полоска -->
+<div class="hp-display-block">
+<div class="hp-numbers">
+<div class="hp-col">
+<div class="hp-lbl">Текущие ХП</div>
+<div class="hp-big-num" id="hp-display-current">—</div>
 </div>
-<div class="row">
-<div class="col"><label>Кости Хитов</label><input type="text" id="hp-dice" readonly style="color: var(--info-color);"></div>
-<div class="col"><label>Потрачено костей</label><input type="number" id="hp-dice-spent" value="0" oninput="updateChar()"></div>
+<div class="hp-divider">/</div>
+<div class="hp-col">
+<div class="hp-lbl">Максимум</div>
+<div class="hp-big-num muted" id="hp-display-max">—</div>
 </div>
-<div class="row">
-<div class="col"><label>Доступно костей</label><input type="text" id="hp-dice-available" readonly></div>
+<div class="hp-col hp-temp-col">
+<div class="hp-lbl">⚡ Врем. ХП</div>
+<input type="number" id="hp-temp" class="hp-temp-inp" value="0" min="0" onchange="saveTempHP()">
 </div>
+</div>
+<div class="hp-bar-wrap"><div class="hp-bar" id="hp-bar"></div></div>
+</div>
+
+<!-- Быстрый урон / лечение -->
+<div class="hp-quick-section">
+<div class="hp-quick-row">
+<button class="hpb dmg" onclick="quickHP(-1)">−1</button>
+<button class="hpb dmg" onclick="quickHP(-5)">−5</button>
+<button class="hpb dmg" onclick="quickHP(-10)">−10</button>
+<input type="number" id="hp-custom-input" class="hp-custom-inp" placeholder="N" min="1">
+<button class="hpb dmg flex1" onclick="applyCustomHP('dmg')">⚔️ Урон</button>
+<button class="hpb heal flex1" onclick="applyCustomHP('heal')">💚 Лечить</button>
+</div>
+<div class="hp-quick-row" style="margin-top:6px">
+<button class="hpb heal" onclick="quickHP(1)">+1</button>
+<button class="hpb heal" onclick="quickHP(5)">+5</button>
+<button class="hpb heal" onclick="quickHP(10)">+10</button>
+</div>
+</div>
+
+<!-- Кость хитов -->
+<div class="hit-die-quick-block">
+<div class="hit-die-info-row">
+<span>🎲 Кости хитов: <strong id="hd-type-display">—</strong></span>
+<span class="hd-avail-badge" id="hd-avail-display">—</span>
+</div>
+<button class="roll-hd-btn" id="roll-hd-btn" onclick="rollHitDieQuick()">🎲 Бросить кость хитов</button>
+<div class="hd-result" id="hd-result"></div>
+</div>
+
+<!-- Скрытые поля (нужны для updateChar/loadCharacter) -->
+<div style="display:none">
+<input type="number" id="hp-current">
+<input type="number" id="hp-max">
+<input type="text" id="hp-dice">
+<input type="number" id="hp-dice-spent">
+<input type="text" id="hp-dice-available">
+</div>
+
+</div>
+
+<!-- СПАСБРОСКИ НА СМЕРТЬ — только при HP = 0 -->
+<div class="card death-saves-card" id="death-saves-section" style="display:none">
+<h3>💀 Спасброски на Смерть</h3>
+<p class="ds-hint">3 успеха — стабилизирован &nbsp;·&nbsp; 3 провала — смерть</p>
+<div class="ds-rows">
+<div class="ds-row">
+<span class="ds-lbl ds-success-lbl">✅ Успехи</span>
+<div class="ds-boxes">
+<div class="ds-box" id="ds-s0" onclick="toggleDeathSave('success',0)"></div>
+<div class="ds-box" id="ds-s1" onclick="toggleDeathSave('success',1)"></div>
+<div class="ds-box" id="ds-s2" onclick="toggleDeathSave('success',2)"></div>
+</div>
+</div>
+<div class="ds-row" style="margin-top:10px">
+<span class="ds-lbl ds-fail-lbl">❌ Провалы</span>
+<div class="ds-boxes">
+<div class="ds-box ds-fail-box" id="ds-f0" onclick="toggleDeathSave('failure',0)"></div>
+<div class="ds-box ds-fail-box" id="ds-f1" onclick="toggleDeathSave('failure',1)"></div>
+<div class="ds-box ds-fail-box" id="ds-f2" onclick="toggleDeathSave('failure',2)"></div>
+</div>
+</div>
+</div>
+<div class="ds-status" id="ds-status"></div>
+<button class="secondary small" style="margin-top:12px;width:auto" onclick="resetDeathSaves()">🔄 Сбросить</button>
+</div>
+
 <button class="info" onclick="openLevelUpModal()">⬆️ Повысить уровень</button>
 <div class="ac-calc-section">
 <h4>🛡️ Класс Доспеха (Авто-расчёт)</h4>
@@ -533,15 +602,23 @@
 </ul>
 </div>
 <div id="new-features-container" style="margin: 15px 0; max-height: 200px; overflow-y: auto;"></div>
-<div class="rest-comparison">
-<div class="before">ХП: <span id="hp-before">10</span></div>
-<div class="arrow">→</div>
-<div class="after">ХП: <span id="hp-after">20</span></div>
+<div class="levelup-info-block">
+<div class="lu-row">
+<span>📊 Новый уровень:</span>
+<span id="lu-new-level" class="lu-val">—</span>
 </div>
-<div class="rest-comparison">
-<div class="before">Кости: <span id="dice-before">1</span></div>
-<div class="arrow">→</div>
-<div class="after">Кости: <span id="dice-after">2</span></div>
+<div class="lu-row lu-highlight">
+<span>❤️ ХП: <span id="hp-before">—</span> → <span id="hp-after" style="color:var(--success-color);font-weight:bold">—</span></span>
+<span id="lu-hp-gain" class="lu-gain">+0</span>
+</div>
+<div class="lu-row">
+<span>🎲 Кость хитов: <span id="lu-hit-die">—</span></span>
+<span id="lu-dice-count" class="lu-val">—</span>
+</div>
+<div class="lu-row">
+<span>⚡ Бонус мастерства:</span>
+<span id="lu-prof-bonus" class="lu-val">—</span>
+</div>
 </div>
 <div style="display:flex; gap:10px; margin-top: 20px;">
 <button class="secondary" onclick="closeLevelUpModal()" style="flex:1;">Отмена</button>
