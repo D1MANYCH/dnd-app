@@ -339,8 +339,19 @@ const char = characters.find(function(c) { return c.id === currentId; });
 if (!char) return;
 document.getElementById("status-bar").classList.add("visible");
 document.getElementById("status-level").textContent = char.level || 1;
-document.getElementById("status-hp-current").textContent = char.combat.hpCurrent || 0;
-document.getElementById("status-hp-max").textContent = char.combat.hpMax || 10;
+const hpCurrent = char.combat.hpCurrent || 0;
+const hpMax = char.combat.hpMax || 10;
+document.getElementById("status-hp-current").textContent = hpCurrent;
+document.getElementById("status-hp-max").textContent = hpMax;
+// Динамический цвет ХП
+const hpPercent = hpMax > 0 ? Math.round((hpCurrent / hpMax) * 100) : 100;
+const statusHpEl = document.querySelector(".status-hp");
+if (statusHpEl) {
+  statusHpEl.classList.remove("hp-critical", "hp-low", "hp-ok");
+  if (hpPercent <= 25) statusHpEl.classList.add("hp-critical");
+  else if (hpPercent <= 50) statusHpEl.classList.add("hp-low");
+  else statusHpEl.classList.add("hp-ok");
+}
 const conditionsContainer = document.getElementById("status-conditions");
 conditionsContainer.innerHTML = "";
 if (char.conditions && char.conditions.length > 0) {
@@ -967,6 +978,9 @@ if(perceptionCheckbox && perceptionCheckbox.checked) passivePerception += profic
 const passiveEl = document.getElementById("passive-perception");
 if (passiveEl) passiveEl.innerText = passivePerception;
 calcSpellStats();
+// Обновляем updatedAt при любом изменении характеристик
+const charForUpdate = characters.find(function(c) { return c.id === currentId; });
+if (charForUpdate) { charForUpdate.updatedAt = Date.now(); }
 saveToLocal();
 }
 function calcSpellStats() {
@@ -1108,6 +1122,10 @@ var _conMod = getMod(char.stats.con);
 const hpHealed = hitDiceToSpend > 0 ? hitDiceToSpend * (Math.floor(_hitDie / 2) + 1 + _conMod) : 0;
 char.combat.hpCurrent = Math.min(parseInt(char.combat.hpCurrent) + hpHealed, parseInt(char.combat.hpMax));
 char.combat.hpDiceSpent = (char.combat.hpDiceSpent || 0) + hitDiceToSpend;
+if (hpHealed > 0) {
+  addHPHistory(oldHp, char.combat.hpCurrent, hpHealed, "Короткий отдых");
+  showHPToast(hpHealed);
+}
 resultTitle = "✅ Короткий отдых завершён!";
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>🎲 Потрачено костей: " + hitDiceToSpend + "</p><p>❤️ Восстановлено ХП: " + hpHealed + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>";
 } else if (currentRestType === "long") {
@@ -1346,13 +1364,22 @@ updateInventoryWeight();
 }
 function editItemDirect(category, index) { openItemModal(category, index); }
 function deleteItemDirect(category, index) {
-if (!confirm("Удалить предмет?")) return;
 if (!currentId) return;
 const char = characters.find(function(c) { return c.id === currentId; });
 if (!char) return;
-char.inventory[category].splice(index, 1);
-saveToLocal();
-renderInventory();
+const item = char.inventory[category] && char.inventory[category][index];
+const name = item ? item.name : "предмет";
+showConfirmModal(
+  "Удалить предмет?",
+  "«" + name + "» будет удалён без возможности восстановления.",
+  function() {
+    const c = characters.find(function(ch) { return ch.id === currentId; });
+    if (!c) return;
+    c.inventory[category].splice(index, 1);
+    saveToLocal();
+    renderInventory();
+  }
+);
 }
 function updateInventoryWeight() {
 if (!currentId) return;
@@ -1485,13 +1512,23 @@ openItemModal(currentViewItem.category, currentViewItem.index);
 }
 function deleteItemFromView() {
 if (!currentViewItem || !currentId) return;
-if (!confirm("Удалить предмет?")) return;
 const char = characters.find(function(c) { return c.id === currentId; });
 if (!char) return;
-char.inventory[currentViewItem.category].splice(currentViewItem.index, 1);
-saveToLocal();
+const item = char.inventory[currentViewItem.category] && char.inventory[currentViewItem.category][currentViewItem.index];
+const name = item ? item.name : "предмет";
+const capturedItem = { category: currentViewItem.category, index: currentViewItem.index };
 closeItemView();
-renderInventory();
+showConfirmModal(
+  "Удалить предмет?",
+  "«" + name + "» будет удалён без возможности восстановления.",
+  function() {
+    const c = characters.find(function(ch) { return ch.id === currentId; });
+    if (!c) return;
+    c.inventory[capturedItem.category].splice(capturedItem.index, 1);
+    saveToLocal();
+    renderInventory();
+  }
+);
 }
 function renderWeaponPresets() {
 const container = document.getElementById("weapon-presets-list");
@@ -1981,6 +2018,7 @@ deathSavesSection.style.display = hpCurrent <= 0 ? "block" : "none";
 }
 
 updateStatusBar();
+syncSelfBattleStatus();
 }
 
 // ============================================
@@ -2238,10 +2276,10 @@ return String(str)
 }
 
 // ============================================================
-// ⚔️ ОТРЯД — Соратники, Монстры, Трекер инициативы
+// ⚔️ ОТРЯД — Соратники, NPC, Монстры
 // ============================================================
 
-var PARTY_DATA = { allies: [], monsters: [] };
+var PARTY_DATA = { allies: [], monsters: [], npcs: [] };
 var BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
 
 var CONDITION_STATUSES = [
@@ -2252,13 +2290,31 @@ var CONDITION_STATUSES = [
   { value: "dead",    label: "💀 Мёртв" }
 ];
 
+var MONSTER_TYPE_ICONS = {
+  "Зверь":      "🐺",
+  "Нежить":     "💀",
+  "Демон":      "😈",
+  "Дракон":     "🐉",
+  "Гуманоид":   "🗡️",
+  "Конструкт":  "🤖",
+  "Фея":        "🧚",
+  "Исчадие":    "👿",
+  "Великан":    "🗿",
+  "Аберрация":  "🦑",
+  "Элементаль": "⚡",
+  "Растение":   "🌿",
+  "Монстр":     "👾"
+};
+
+function getMonsterTypeIcon(type) { return MONSTER_TYPE_ICONS[type] || "👾"; }
+
 (function initParty() {
   try {
     var saved = localStorage.getItem("dnd_party");
     if (saved) PARTY_DATA = JSON.parse(saved);
-    if (!PARTY_DATA.allies) PARTY_DATA.allies = [];
+    if (!PARTY_DATA.allies)   PARTY_DATA.allies   = [];
     if (!PARTY_DATA.monsters) PARTY_DATA.monsters = [];
-    if (!PARTY_DATA.npcs) PARTY_DATA.npcs = [];
+    if (!PARTY_DATA.npcs)     PARTY_DATA.npcs     = [];
   } catch(e) {}
   try {
     var savedBattle = localStorage.getItem("dnd_battle");
@@ -2266,228 +2322,11 @@ var CONDITION_STATUSES = [
   } catch(e) {}
 })();
 
-function saveParty() {
-  try { localStorage.setItem("dnd_party", JSON.stringify(PARTY_DATA)); } catch(e) {}
-}
-function saveBattle() {
-  try { localStorage.setItem("dnd_battle", JSON.stringify(BATTLE_DATA)); } catch(e) {}
-}
-
-// ===== ALLIES =====
-function renderAllies() {
-  var list = document.getElementById("allies-list");
-  if (!list) return;
-  if (PARTY_DATA.allies.length === 0) {
-    list.innerHTML = "<div class='party-empty'>📭 Нет соратников. Добавьте первого!</div>";
-    return;
-  }
-  list.innerHTML = PARTY_DATA.allies.map(function(a, i) {
-    var icon = getClassIcon(a.cls);
-    var color = getClassColor(a.cls);
-    var statusOpts = CONDITION_STATUSES.map(function(s) {
-      return '<option value="' + s.value + '"' + (s.value === (a.status||"healthy") ? " selected" : "") + '>' + s.label + '</option>';
-    }).join("");
-    return '<div class="party-card" style="border-left-color:' + color + '">' +
-      '<div class="party-card-icon" style="background:' + color + '22">' + icon + '</div>' +
-      '<div class="party-card-info">' +
-        '<div class="party-card-name">' + escapeHtml(a.name) + '</div>' +
-        '<div class="party-card-sub">' + escapeHtml(a.cls || "Класс не указан") + '</div>' +
-      '</div>' +
-      '<div class="party-card-right">' +
-        '<select class="party-status-sel" onchange="setAllyStatus(' + i + ', this.value)" onclick="event.stopPropagation()">' + statusOpts + '</select>' +
-        '<button class="party-del-btn" onclick="deleteAlly(' + i + ')">✕</button>' +
-      '</div>' +
-    '</div>';
-  }).join("");
-}
-
-function openAddAllyModal() {
-  document.getElementById("add-ally-modal").classList.add("active");
-  document.getElementById("ally-name-inp").value = "";
-  document.getElementById("ally-class-sel").value = "";
-  document.getElementById("ally-initiative-inp").value = "0";
-}
-function closeAddAllyModal() { document.getElementById("add-ally-modal").classList.remove("active"); }
-function saveAlly() {
-  var name = document.getElementById("ally-name-inp").value.trim();
-  if (!name) { alert("Введите имя"); return; }
-  PARTY_DATA.allies.push({ id: Date.now(), name: name, cls: document.getElementById("ally-class-sel").value, status: "healthy" });
-  saveParty(); renderAllies(); closeAddAllyModal();
-}
-function deleteAlly(i) { PARTY_DATA.allies.splice(i, 1); saveParty(); renderAllies(); }
-function setAllyStatus(i, val) { PARTY_DATA.allies[i].status = val; saveParty(); }
-
-function exportAllies() {
-  var a = document.createElement("a");
-  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PARTY_DATA.allies, null, 2));
-  a.download = "allies_" + new Date().toISOString().slice(0,10) + ".json";
-  a.click();
-}
-function importAllies(input) {
-  var file = input.files[0]; if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    try { var d = JSON.parse(e.target.result); if (Array.isArray(d)) { PARTY_DATA.allies = d; saveParty(); renderAllies(); } else alert("Неверный формат"); } catch(err) { alert("Ошибка чтения файла"); }
-  };
-  reader.readAsText(file); input.value = "";
-}
-
-// ===== MONSTERS =====
-function renderMonsters() {
-  var list = document.getElementById("monsters-list");
-  if (!list) return;
-  if (PARTY_DATA.monsters.length === 0) {
-    list.innerHTML = "<div class='party-empty'>📭 Нет монстров. Добавьте врага!</div>";
-    return;
-  }
-  list.innerHTML = PARTY_DATA.monsters.map(function(m, i) {
-    var statusOpts = CONDITION_STATUSES.map(function(s) {
-      return '<option value="' + s.value + '"' + (s.value === (m.status||"healthy") ? " selected" : "") + '>' + s.label + '</option>';
-    }).join("");
-    return '<div class="party-card monster-card">' +
-      '<div class="party-card-icon monster-icon">👹</div>' +
-      '<div class="party-card-info">' +
-        '<div class="party-card-name">' + escapeHtml(m.name) + '</div>' +
-        '<div class="party-card-sub">' + escapeHtml(m.type || "Монстр") + '</div>' +
-      '</div>' +
-      '<div class="party-card-right">' +
-        '<select class="party-status-sel" onchange="setMonsterStatus(' + i + ', this.value)" onclick="event.stopPropagation()">' + statusOpts + '</select>' +
-        '<button class="party-del-btn" onclick="deleteMonster(' + i + ')">✕</button>' +
-      '</div>' +
-    '</div>';
-  }).join("");
-}
-
-function openAddMonsterModal() {
-  document.getElementById("add-monster-modal").classList.add("active");
-  document.getElementById("monster-name-inp").value = "";
-  document.getElementById("monster-type-sel").value = "";
-  document.getElementById("monster-initiative-inp").value = "0";
-}
-function closeAddMonsterModal() { document.getElementById("add-monster-modal").classList.remove("active"); }
-function saveMonster() {
-  var name = document.getElementById("monster-name-inp").value.trim();
-  if (!name) { alert("Введите имя"); return; }
-  PARTY_DATA.monsters.push({ id: Date.now(), name: name, type: document.getElementById("monster-type-sel").value || "Монстр", status: "healthy" });
-  saveParty(); renderMonsters(); closeAddMonsterModal();
-}
-function deleteMonster(i) { PARTY_DATA.monsters.splice(i, 1); saveParty(); renderMonsters(); }
-function setMonsterStatus(i, val) { PARTY_DATA.monsters[i].status = val; saveParty(); }
-
-function exportMonsters() {
-  var a = document.createElement("a");
-  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PARTY_DATA.monsters, null, 2));
-  a.download = "monsters_" + new Date().toISOString().slice(0,10) + ".json";
-  a.click();
-}
-function importMonsters(input) {
-  var file = input.files[0]; if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    try { var d = JSON.parse(e.target.result); if (Array.isArray(d)) { PARTY_DATA.monsters = d; saveParty(); renderMonsters(); } else alert("Неверный формат"); } catch(err) { alert("Ошибка чтения файла"); }
-  };
-  reader.readAsText(file); input.value = "";
-}
-
-// ===== PARTY TAB =====
-function openPartyTab() {
-  renderMyChar();
-  renderAllies();
-  renderNPCs();
-  renderMonsters();
-}
-
-// ─── My char card ────────────────────────────────────────────
-function renderMyChar() {
-  var container = document.getElementById("my-char-card");
-  if (!container) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
-  if (!char) {
-    container.innerHTML = "<div class='party-empty'>Откройте персонажа из списка профилей</div>";
-    return;
-  }
-  var icon = getClassIcon(char.class);
-  var color = getClassColor(char.class);
-  var hpCurrent = char.combat ? (char.combat.hpCurrent || 0) : 0;
-  var hpMax = char.combat ? (char.combat.hpMax || 0) : 0;
-  var hpPct = hpMax > 0 ? Math.min(100, Math.round(hpCurrent / hpMax * 100)) : 100;
-  var hpColor = hpPct > 60 ? "#4da843" : hpPct > 30 ? "#e67e22" : "#e74c3c";
-  container.innerHTML =
-    '<div class="party-card my-char-card" style="border-left-color:#4da843">' +
-      '<div class="party-card-icon" style="background:' + color + '22">' + icon + '</div>' +
-      '<div class="party-card-info">' +
-        '<div class="party-card-name">' + escapeHtml(char.name || "Мой персонаж") + '</div>' +
-        '<div class="party-card-sub">' + escapeHtml(char.class || "") +
-          (char.subclass ? " · " + escapeHtml(char.subclass) : "") +
-          " · " + (char.level || 1) + " ур.</div>" +
-      "</div>" +
-      '<div class="party-card-right">' +
-        '<span class="my-char-badge" style="color:' + hpColor + ';border-color:' + hpColor + '55;background:' + hpColor + '18">❤️ ' + hpCurrent + "/" + hpMax + "</span>" +
-        '<span class="my-char-badge">🛡️ ' + (char.combat ? (char.combat.ac || 10) : 10) + "</span>" +
-      "</div>" +
-    "</div>";
-}
-
-// ─── NPCs ────────────────────────────────────────────────────
-function renderNPCs() {
-  var list = document.getElementById("npcs-list");
-  if (!list) return;
-  if (!PARTY_DATA.npcs || PARTY_DATA.npcs.length === 0) {
-    list.innerHTML = "<div class='party-empty'>📭 Нет персонажей</div>";
-    return;
-  }
-  list.innerHTML = PARTY_DATA.npcs.map(function(n, i) {
-    var opts = CONDITION_STATUSES.map(function(s) {
-      return '<option value="' + s.value + '"' + (s.value === (n.status || "healthy") ? " selected" : "") + ">" + s.label + "</option>";
-    }).join("");
-    return '<div class="party-card npc-card">' +
-      '<div class="party-card-icon npc-icon">🧑</div>' +
-      '<div class="party-card-info">' +
-        '<div class="party-card-name">' + escapeHtml(n.name) + "</div>" +
-        '<div class="party-card-sub">' + escapeHtml(n.role || "Персонаж") + "</div>" +
-      "</div>" +
-      '<div class="party-card-right">' +
-        '<select class="party-status-sel" onchange="setNPCStatus(' + i + ',this.value)" onclick="event.stopPropagation()">' + opts + "</select>" +
-        '<button class="party-del-btn" onclick="deleteNPC(' + i + ')">✕</button>' +
-      "</div>" +
-    "</div>";
-  }).join("");
-}
-function openAddNPCModal() {
-  document.getElementById("add-npc-modal").classList.add("active");
-  document.getElementById("npc-name-inp").value = "";
-  document.getElementById("npc-role-inp").value = "";
-}
-function closeAddNPCModal() { document.getElementById("add-npc-modal").classList.remove("active"); }
-function saveNPC() {
-  var name = document.getElementById("npc-name-inp").value.trim();
-  if (!name) { alert("Введите имя"); return; }
-  if (!PARTY_DATA.npcs) PARTY_DATA.npcs = [];
-  PARTY_DATA.npcs.push({ id: Date.now(), name: name, role: document.getElementById("npc-role-inp").value.trim() || "Персонаж", status: "healthy" });
-  saveParty(); renderNPCs(); closeAddNPCModal();
-}
-function deleteNPC(i) { PARTY_DATA.npcs.splice(i, 1); saveParty(); renderNPCs(); }
-function setNPCStatus(i, val) { PARTY_DATA.npcs[i].status = val; saveParty(); }
-function exportNPCs() {
-  var a = document.createElement("a");
-  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PARTY_DATA.npcs || [], null, 2));
-  a.download = "npcs_" + new Date().toISOString().slice(0, 10) + ".json";
-  a.click();
-}
-function importNPCs(input) {
-  var file = input.files[0]; if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    try { var d = JSON.parse(e.target.result); if (Array.isArray(d)) { PARTY_DATA.npcs = d; saveParty(); renderNPCs(); } else alert("Неверный формат"); } catch(err) { alert("Ошибка"); }
-  };
-  reader.readAsText(file); input.value = "";
-}
+function saveParty() { try { localStorage.setItem("dnd_party", JSON.stringify(PARTY_DATA)); } catch(e) {} }
+function saveBattle() { try { localStorage.setItem("dnd_battle", JSON.stringify(BATTLE_DATA)); } catch(e) {} }
 
 // ─── helpers ─────────────────────────────────────────────────
-function getMonsterIcon(type) {
-  var icons = { "Зверь": "🐺", "Нежить": "💀", "Демон": "😈", "Дракон": "🐉", "Гуманоид": "🗡️", "Конструкт": "🤖", "Фея": "🧚", "Исчадие": "👿", "Великан": "🗿", "Монстр": "👾" };
-  return icons[type] || "👾";
-}
+function getMonsterIcon(type) { return getMonsterTypeIcon(type); }
 function getFactionColor(type) {
   if (type === "self")    return "#4da843";
   if (type === "ally")    return "#27ae60";
@@ -2499,6 +2338,260 @@ function getFactionLabel(type) {
   if (type === "ally")    return "союзник";
   if (type === "npc")     return "персонаж";
   return "враг";
+}
+function getStatusColor(status) {
+  var map = { healthy:"#4da843", wounded:"#d4a843", heavy:"#e67e22", dying:"#e74c3c", dead:"#7f8c8d" };
+  return map[status] || "#4da843";
+}
+
+// ─── PARTY TAB ────────────────────────────────────────────────
+function openPartyTab() {
+  renderMyChar();
+  renderAllies();
+  renderNPCs();
+  renderMonsters();
+}
+
+// ─── MY CHAR ─────────────────────────────────────────────────
+function renderMyChar() {
+  var container = document.getElementById("my-char-card");
+  if (!container) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) {
+    container.innerHTML = "<div class='party-empty'>Откройте персонажа из списка профилей</div>";
+    return;
+  }
+  var icon  = getClassIcon(char.class);
+  var color = getClassColor(char.class);
+  var hpCurrent = char.combat ? (char.combat.hpCurrent || 0) : 0;
+  var hpMax     = char.combat ? (char.combat.hpMax || 0) : 0;
+  var hpPct     = hpMax > 0 ? Math.min(100, Math.round(hpCurrent / hpMax * 100)) : 100;
+  var hpColor   = hpPct > 60 ? "#4da843" : hpPct > 30 ? "#e67e22" : "#e74c3c";
+  var conds     = (char.conditions && char.conditions.length) ? "⚠️ " + char.conditions.length + " статус" : "";
+  container.innerHTML =
+    '<div class="pcard pcard-self">' +
+      '<div class="pcard-icon" style="background:' + color + '22;color:' + color + '">' + icon + '</div>' +
+      '<div class="pcard-body">' +
+        '<div class="pcard-name">' + escapeHtml(char.name || "Мой персонаж") + '<span class="pcard-self-badge">я</span></div>' +
+        '<div class="pcard-sub">' + escapeHtml((char.class||"") + (char.subclass ? " · "+char.subclass : "") + " · " + (char.level||1) + " ур.") + '</div>' +
+        '<div class="pcard-badges">' +
+          '<span class="pcard-badge" style="color:' + hpColor + ';border-color:' + hpColor + '55;background:' + hpColor + '18">❤️ ' + hpCurrent + '/' + hpMax + '</span>' +
+          '<span class="pcard-badge">🛡️ ' + (char.combat ? (char.combat.ac||10) : 10) + '</span>' +
+          (conds ? '<span class="pcard-badge pcard-badge-warn">' + conds + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+// ─── ALLIES ──────────────────────────────────────────────────
+function renderAllies() {
+  var list    = document.getElementById("allies-list");
+  var countEl = document.getElementById("allies-count");
+  if (!list) return;
+  if (countEl) countEl.textContent = PARTY_DATA.allies.length > 0 ? PARTY_DATA.allies.length : "";
+  if (PARTY_DATA.allies.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет соратников. Добавьте первого!</div>"; return; }
+  list.innerHTML = PARTY_DATA.allies.map(function(a, i) {
+    var icon  = getClassIcon(a.cls);
+    var color = getClassColor(a.cls);
+    return '<div class="pcard">' +
+      '<div class="pcard-icon" style="background:' + color + '22;color:' + color + '">' + icon + '</div>' +
+      '<div class="pcard-body">' +
+        '<div class="pcard-name">' + escapeHtml(a.name) + '</div>' +
+        '<div class="pcard-sub">' + escapeHtml(a.cls || "Класс не указан") + '</div>' +
+        (a.desc ? '<div class="pcard-desc">' + escapeHtml(a.desc) + '</div>' : '') +
+        '<div class="pcard-status-row"><select class="pcard-status-sel" onchange="setAllyStatus(' + i + ',this.value)" onclick="event.stopPropagation()">' +
+        CONDITION_STATUSES.map(function(s) { return '<option value="' + s.value + '"' + (s.value === (a.status||"healthy") ? " selected" : "") + '>' + s.label + '</option>'; }).join("") +
+        '</select></div>' +
+      '</div>' +
+      '<div class="pcard-actions">' +
+        '<button class="pcard-edit-btn" onclick="openEditAllyModal(' + i + ')" title="Редактировать">✏️</button>' +
+        '<button class="pcard-del-btn"  onclick="deleteAlly(' + i + ')" title="Удалить">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+function openAddAllyModal() {
+  document.getElementById("ally-modal-title").textContent = "🧑‍🤝‍🧑 Добавить соратника";
+  document.getElementById("ally-edit-index").value = "-1";
+  document.getElementById("ally-name-inp").value   = "";
+  document.getElementById("ally-class-sel").value  = "";
+  document.getElementById("ally-desc-inp").value   = "";
+  document.getElementById("add-ally-modal").classList.add("active");
+}
+function openEditAllyModal(i) {
+  var a = PARTY_DATA.allies[i]; if (!a) return;
+  document.getElementById("ally-modal-title").textContent = "✏️ Редактировать соратника";
+  document.getElementById("ally-edit-index").value = i;
+  document.getElementById("ally-name-inp").value   = a.name || "";
+  document.getElementById("ally-class-sel").value  = a.cls  || "";
+  document.getElementById("ally-desc-inp").value   = a.desc || "";
+  document.getElementById("add-ally-modal").classList.add("active");
+}
+function closeAddAllyModal() { document.getElementById("add-ally-modal").classList.remove("active"); }
+function saveAlly() {
+  var name = document.getElementById("ally-name-inp").value.trim();
+  if (!name) { alert("Введите имя"); return; }
+  var idx  = parseInt(document.getElementById("ally-edit-index").value);
+  var data = { id: idx >= 0 ? (PARTY_DATA.allies[idx].id || Date.now()) : Date.now(), name: name, cls: document.getElementById("ally-class-sel").value, desc: document.getElementById("ally-desc-inp").value.trim(), status: idx >= 0 ? (PARTY_DATA.allies[idx].status||"healthy") : "healthy" };
+  if (idx >= 0) PARTY_DATA.allies[idx] = data; else PARTY_DATA.allies.push(data);
+  saveParty(); renderAllies(); closeAddAllyModal();
+}
+function deleteAlly(i) {
+  var name = PARTY_DATA.allies[i] ? PARTY_DATA.allies[i].name : "соратника";
+  showConfirmModal("Удалить соратника?", "«"+name+"» будет удалён.", function() { PARTY_DATA.allies.splice(i, 1); saveParty(); renderAllies(); });
+}
+function setAllyStatus(i, val) { PARTY_DATA.allies[i].status = val; saveParty(); }
+function exportAllies() {
+  var a = document.createElement("a");
+  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PARTY_DATA.allies, null, 2));
+  a.download = "allies_" + new Date().toISOString().slice(0,10) + ".json"; a.click();
+}
+function importAllies(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) { try { var d = JSON.parse(e.target.result); if (Array.isArray(d)) { PARTY_DATA.allies = d; saveParty(); renderAllies(); } else alert("Неверный формат"); } catch(err) { alert("Ошибка"); } };
+  reader.readAsText(file); input.value = "";
+}
+
+// ─── NPCs ────────────────────────────────────────────────────
+function renderNPCs() {
+  var list    = document.getElementById("npcs-list");
+  var countEl = document.getElementById("npcs-count");
+  if (!list) return;
+  if (countEl) countEl.textContent = (PARTY_DATA.npcs && PARTY_DATA.npcs.length > 0) ? PARTY_DATA.npcs.length : "";
+  if (!PARTY_DATA.npcs || PARTY_DATA.npcs.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет персонажей</div>"; return; }
+  list.innerHTML = PARTY_DATA.npcs.map(function(n, i) {
+    return '<div class="pcard pcard-npc">' +
+      '<div class="pcard-icon pcard-icon-npc">🧑</div>' +
+      '<div class="pcard-body">' +
+        '<div class="pcard-name">' + escapeHtml(n.name) + '</div>' +
+        '<div class="pcard-sub">' + escapeHtml(n.role || "Персонаж") + '</div>' +
+        (n.desc ? '<div class="pcard-desc">' + escapeHtml(n.desc) + '</div>' : '') +
+        '<div class="pcard-status-row"><select class="pcard-status-sel" onchange="setNPCStatus(' + i + ',this.value)" onclick="event.stopPropagation()">' +
+        CONDITION_STATUSES.map(function(s) { return '<option value="' + s.value + '"' + (s.value === (n.status||"healthy") ? " selected" : "") + '>' + s.label + '</option>'; }).join("") +
+        '</select></div>' +
+      '</div>' +
+      '<div class="pcard-actions">' +
+        '<button class="pcard-edit-btn" onclick="openEditNPCModal(' + i + ')" title="Редактировать">✏️</button>' +
+        '<button class="pcard-del-btn"  onclick="deleteNPC(' + i + ')" title="Удалить">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+function openAddNPCModal() {
+  document.getElementById("npc-modal-title").textContent = "🧑 Добавить персонажа";
+  document.getElementById("npc-edit-index").value = "-1";
+  document.getElementById("npc-name-inp").value  = "";
+  document.getElementById("npc-role-inp").value  = "";
+  document.getElementById("npc-desc-inp").value  = "";
+  document.getElementById("add-npc-modal").classList.add("active");
+}
+function openEditNPCModal(i) {
+  var n = PARTY_DATA.npcs[i]; if (!n) return;
+  document.getElementById("npc-modal-title").textContent = "✏️ Редактировать персонажа";
+  document.getElementById("npc-edit-index").value = i;
+  document.getElementById("npc-name-inp").value  = n.name || "";
+  document.getElementById("npc-role-inp").value  = n.role || "";
+  document.getElementById("npc-desc-inp").value  = n.desc || "";
+  document.getElementById("add-npc-modal").classList.add("active");
+}
+function closeAddNPCModal() { document.getElementById("add-npc-modal").classList.remove("active"); }
+function saveNPC() {
+  var name = document.getElementById("npc-name-inp").value.trim();
+  if (!name) { alert("Введите имя"); return; }
+  if (!PARTY_DATA.npcs) PARTY_DATA.npcs = [];
+  var idx  = parseInt(document.getElementById("npc-edit-index").value);
+  var data = { id: idx >= 0 ? (PARTY_DATA.npcs[idx].id || Date.now()) : Date.now(), name: name, role: document.getElementById("npc-role-inp").value.trim() || "Персонаж", desc: document.getElementById("npc-desc-inp").value.trim(), status: idx >= 0 ? (PARTY_DATA.npcs[idx].status||"healthy") : "healthy" };
+  if (idx >= 0) PARTY_DATA.npcs[idx] = data; else PARTY_DATA.npcs.push(data);
+  saveParty(); renderNPCs(); closeAddNPCModal();
+}
+function deleteNPC(i) {
+  var name = PARTY_DATA.npcs[i] ? PARTY_DATA.npcs[i].name : "персонажа";
+  showConfirmModal("Удалить персонажа?", "«"+name+"» будет удалён.", function() { PARTY_DATA.npcs.splice(i, 1); saveParty(); renderNPCs(); });
+}
+function setNPCStatus(i, val) { PARTY_DATA.npcs[i].status = val; saveParty(); }
+function exportNPCs() {
+  var a = document.createElement("a");
+  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PARTY_DATA.npcs || [], null, 2));
+  a.download = "npcs_" + new Date().toISOString().slice(0,10) + ".json"; a.click();
+}
+function importNPCs(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) { try { var d = JSON.parse(e.target.result); if (Array.isArray(d)) { PARTY_DATA.npcs = d; saveParty(); renderNPCs(); } else alert("Неверный формат"); } catch(err) { alert("Ошибка"); } };
+  reader.readAsText(file); input.value = "";
+}
+
+// ─── MONSTERS ─────────────────────────────────────────────────
+function renderMonsters() {
+  var list    = document.getElementById("monsters-list");
+  var countEl = document.getElementById("monsters-count");
+  if (!list) return;
+  if (countEl) countEl.textContent = PARTY_DATA.monsters.length > 0 ? PARTY_DATA.monsters.length : "";
+  if (PARTY_DATA.monsters.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет монстров. Добавьте врага!</div>"; return; }
+  list.innerHTML = PARTY_DATA.monsters.map(function(m, i) {
+    var typeIcon = getMonsterTypeIcon(m.type);
+    return '<div class="pcard pcard-monster">' +
+      '<div class="pcard-icon pcard-icon-monster">' + typeIcon + '</div>' +
+      '<div class="pcard-body">' +
+        '<div class="pcard-name">' + escapeHtml(m.name) + '</div>' +
+        '<div class="pcard-sub"><span class="pcard-type-badge">' + typeIcon + " " + escapeHtml(m.type || "Монстр") + '</span></div>' +
+        (m.desc ? '<div class="pcard-desc">' + escapeHtml(m.desc) + '</div>' : '') +
+        '<div class="pcard-status-row"><select class="pcard-status-sel" onchange="setMonsterStatus(' + i + ',this.value)" onclick="event.stopPropagation()">' +
+        CONDITION_STATUSES.map(function(s) { return '<option value="' + s.value + '"' + (s.value === (m.status||"healthy") ? " selected" : "") + '>' + s.label + '</option>'; }).join("") +
+        '</select></div>' +
+      '</div>' +
+      '<div class="pcard-actions">' +
+        '<button class="pcard-edit-btn" onclick="openEditMonsterModal(' + i + ')" title="Редактировать">✏️</button>' +
+        '<button class="pcard-del-btn"  onclick="deleteMonster(' + i + ')" title="Удалить">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+function openAddMonsterModal() {
+  document.getElementById("monster-modal-title").textContent = "👹 Добавить монстра";
+  document.getElementById("monster-edit-index").value = "-1";
+  document.getElementById("monster-name-inp").value = "";
+  document.getElementById("monster-type-sel").value = "";
+  document.getElementById("monster-desc-inp").value = "";
+  document.getElementById("add-monster-modal").classList.add("active");
+}
+function openEditMonsterModal(i) {
+  var m = PARTY_DATA.monsters[i]; if (!m) return;
+  document.getElementById("monster-modal-title").textContent = "✏️ Редактировать монстра";
+  document.getElementById("monster-edit-index").value = i;
+  document.getElementById("monster-name-inp").value = m.name || "";
+  document.getElementById("monster-type-sel").value = m.type || "";
+  document.getElementById("monster-desc-inp").value = m.desc || "";
+  document.getElementById("add-monster-modal").classList.add("active");
+}
+function closeAddMonsterModal() { document.getElementById("add-monster-modal").classList.remove("active"); }
+function saveMonster() {
+  var name = document.getElementById("monster-name-inp").value.trim();
+  if (!name) { alert("Введите имя"); return; }
+  var idx  = parseInt(document.getElementById("monster-edit-index").value);
+  var data = { id: idx >= 0 ? (PARTY_DATA.monsters[idx].id || Date.now()) : Date.now(), name: name, type: document.getElementById("monster-type-sel").value || "Монстр", desc: document.getElementById("monster-desc-inp").value.trim(), status: idx >= 0 ? (PARTY_DATA.monsters[idx].status||"healthy") : "healthy" };
+  if (idx >= 0) PARTY_DATA.monsters[idx] = data; else PARTY_DATA.monsters.push(data);
+  saveParty(); renderMonsters(); closeAddMonsterModal();
+}
+function deleteMonster(i) {
+  var name = PARTY_DATA.monsters[i] ? PARTY_DATA.monsters[i].name : "монстра";
+  showConfirmModal("Удалить монстра?", "«"+name+"» будет удалён.", function() { PARTY_DATA.monsters.splice(i, 1); saveParty(); renderMonsters(); });
+}
+function setMonsterStatus(i, val) { PARTY_DATA.monsters[i].status = val; saveParty(); }
+function exportMonsters() {
+  var a = document.createElement("a");
+  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PARTY_DATA.monsters, null, 2));
+  a.download = "monsters_" + new Date().toISOString().slice(0,10) + ".json"; a.click();
+}
+function importMonsters(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) { try { var d = JSON.parse(e.target.result); if (Array.isArray(d)) { PARTY_DATA.monsters = d; saveParty(); renderMonsters(); } else alert("Неверный формат"); } catch(err) { alert("Ошибка"); } };
+  reader.readAsText(file); input.value = "";
 }
 
 // ─── BATTLE TAB ──────────────────────────────────────────────
@@ -2613,26 +2706,124 @@ function startBattle() {
   renderBattleTracker();
 }
 
+function getParticipantDesc(p) {
+  // Look up description from party data by type and id
+  if (p.type === "ally") {
+    var a = PARTY_DATA.allies.find(function(x) { return x.id === p.id || x.name === p.name; });
+    return a ? a.desc : "";
+  }
+  if (p.type === "npc") {
+    var n = PARTY_DATA.npcs && PARTY_DATA.npcs.find(function(x) { return x.id === p.id || x.name === p.name; });
+    return n ? (n.desc || n.role || "") : "";
+  }
+  if (p.type === "monster") {
+    var m = PARTY_DATA.monsters.find(function(x) { return x.id === p.id || x.name === p.name; });
+    return m ? m.desc : "";
+  }
+  if (p.type === "self") {
+    var char = characters.find(function(c) { return c.id === currentId; });
+    return char ? (char.class || "") + (char.subclass ? " · " + char.subclass : "") + " · " + (char.level||1) + " ур." : "";
+  }
+  return "";
+}
+
+function showTrackerInfo(i) {
+  var p = BATTLE_DATA.participants[i];
+  if (!p) return;
+  var desc = getParticipantDesc(p);
+  var fcolor = getFactionColor(p.type);
+  var modal = document.getElementById("tracker-info-modal");
+  if (!modal) {
+    // create on fly
+    modal = document.createElement("div");
+    modal.id = "tracker-info-modal";
+    modal.className = "confirm-modal-overlay";
+    modal.innerHTML =
+      '<div class="confirm-modal-box tracker-info-box">' +
+        '<div class="tracker-info-icon" id="tinfo-icon"></div>' +
+        '<div class="tracker-info-name" id="tinfo-name"></div>' +
+        '<div class="tracker-info-type" id="tinfo-type"></div>' +
+        '<div class="tracker-info-desc" id="tinfo-desc"></div>' +
+        '<div class="confirm-modal-btns" style="margin-top:16px">' +
+          '<button class="confirm-btn-ok" onclick="document.getElementById(\'tracker-info-modal\').classList.remove(\'active\')">Закрыть</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener("click", function(e) { if (e.target === modal) modal.classList.remove("active"); });
+  }
+  document.getElementById("tinfo-icon").textContent = p.icon || "🎭";
+  document.getElementById("tinfo-name").textContent = p.name || "?";
+  document.getElementById("tinfo-type").style.color = fcolor;
+  document.getElementById("tinfo-type").textContent = getFactionLabel(p.type).toUpperCase();
+  var descEl = document.getElementById("tinfo-desc");
+  descEl.textContent = desc || "Нет описания.";
+  descEl.style.display = desc ? "block" : "none";
+  modal.classList.add("active");
+}
+
+
+// Авто-статус для "я" по % ХП
+function getSelfStatusFromHP() {
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return "healthy";
+  var hp  = char.combat.hpCurrent || 0;
+  var max = char.combat.hpMax    || 1;
+  if (max <= 0) return "healthy";
+  var pct = Math.round(hp / max * 100);
+  if (pct <= 0)  return "dead";
+  if (pct <= 15) return "dying";
+  if (pct <= 35) return "heavy";
+  if (pct <= 60) return "wounded";
+  return "healthy";
+}
+
+function syncSelfBattleStatus() {
+  if (!BATTLE_DATA.active) return;
+  var newStatus = getSelfStatusFromHP();
+  var changed = false;
+  BATTLE_DATA.participants.forEach(function(p) {
+    if (p.type === "self") { p.status = newStatus; changed = true; }
+  });
+  if (changed) { saveBattle(); renderBattleTracker(); }
+}
+
 function renderBattleTracker() {
   var list = document.getElementById("battle-tracker-list");
   var turnInfo = document.getElementById("battle-turn-info");
   if (!list) return;
+  // sync self HP status before render
+  var selfStatus = getSelfStatusFromHP();
+  BATTLE_DATA.participants.forEach(function(p) {
+    if (p.type === "self") p.status = selfStatus;
+  });
   var current = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
   if (turnInfo && current) turnInfo.textContent = "Ход " + (BATTLE_DATA.currentTurn + 1) + ": " + (current.name || "?");
   list.innerHTML = BATTLE_DATA.participants.map(function(p, i) {
     var isCurrent = i === BATTLE_DATA.currentTurn;
     var fcolor = getFactionColor(p.type);
+    var isSelf  = p.type === "self";
+    var desc    = getParticipantDesc(p);
+    // For self — status driven by HP, select is read-only display
+    var statusLabel = CONDITION_STATUSES.find(function(s) { return s.value === (p.status || "healthy"); });
+    var statusText  = statusLabel ? statusLabel.label : "💚 Здоров";
     var opts = CONDITION_STATUSES.map(function(s) {
       return '<option value="' + s.value + '"' + (s.value === (p.status || "healthy") ? " selected" : "") + ">" + s.label + "</option>";
     }).join("");
-    return '<div class="tracker-row' + (isCurrent ? " tracker-row-active" : "") + '" style="border-left:3px solid ' + fcolor + '">' +
+    return '<div class="tracker-row' + (isCurrent ? " tracker-row-active" : "") + (isSelf ? " tracker-row-self" : "") + '" style="border-left:3px solid ' + fcolor + '">' +
       '<div class="tracker-num" style="color:' + fcolor + '">' + (i + 1) + "</div>" +
       '<div class="tracker-icon" style="background:' + fcolor + '22;color:' + fcolor + '">' + (p.icon || "🎭") + "</div>" +
-      '<div class="tracker-name">' + escapeHtml(p.name || "?") + '<span class="tracker-type-lbl" style="color:' + fcolor + '">' + getFactionLabel(p.type) + "</span></div>" +
-      '<select class="party-status-sel tracker-status" onchange="setBattleStatus(' + i + ',this.value)">' + opts + "</select>" +
+      '<div class="tracker-name">' +
+        '<span class="tracker-name-text">' + escapeHtml(p.name || "?") + '</span>' +
+      "</div>" +
+      (desc ? '<button class="tracker-info-btn" onclick="showTrackerInfo(' + i + ')" title="Описание">!</button>' : '') +
+      (isSelf
+        ? '<span class="tracker-self-status">' + statusText + '</span>'
+        : '<select class="party-status-sel tracker-status" onchange="setBattleStatus(' + i + ',this.value)">' + opts + "</select>"
+      ) +
     "</div>";
   }).join("");
 }
+
 
 function setBattleStatus(i, val) { BATTLE_DATA.participants[i].status = val; saveBattle(); renderBattleTracker(); }
 function nextTurn() { BATTLE_DATA.currentTurn = (BATTLE_DATA.currentTurn + 1) % BATTLE_DATA.participants.length; saveBattle(); renderBattleTracker(); }
