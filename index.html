@@ -8,9 +8,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>D&D 5e Character Sheet</title>
-<link rel="manifest" href="manifest.json">
+<!-- manifest injected by JS only on http/https to avoid file:// CORS errors -->
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="stylesheet" href="style.css">
+<script>
+if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
+</script>
 </head>
 <body>
 <!-- ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА -->
@@ -102,24 +105,45 @@
 <div class="row">
 <div class="col">
 <label>Раса/Вид</label>
-<select id="char-race" onchange="updateChar()">
+<select id="char-race" onchange="updateChar(); onRaceChange()">
 <option value="">Выберите расу</option>
-<option value="Человек">Человек</option>
-<option value="Эльф">Эльф</option>
-<option value="Дварф">Дварф</option>
-<option value="Хоббит">Хоббит</option>
-<option value="Гном">Гном</option>
-<option value="Полуорк">Полуорк</option>
-<option value="Полурослик">Полурослик</option>
-<option value="Тифлинг">Тифлинг</option>
-<option value="Драконорожденный">Драконорожденный</option>
-<option value="Голиаф">Голиаф</option>
-<option value="Аасимар">Аасимар</option>
+<optgroup label="👤 Человек">
+<option value="Человек">Человек (+1 ко всем)</option>
+</optgroup>
+<optgroup label="🧝 Эльфы">
+<option value="Эльф">Эльф (+2 ЛОВ)</option>
+<option value="Высший эльф">Высший эльф (+2 ЛОВ +1 ИНТ)</option>
+<option value="Лесной эльф">Лесной эльф (+2 ЛОВ +1 МУД, 35 фт)</option>
+<option value="Дроу">Дроу (+2 ЛОВ +1 ХАР)</option>
+</optgroup>
+<optgroup label="⛏️ Дварфы">
+<option value="Дварф">Дварф (+2 ТЕЛ, 25 фт)</option>
+<option value="Горный дварф">Горный дварф (+2 СИЛ +2 ТЕЛ, 25 фт)</option>
+<option value="Холмовой дварф">Холмовой дварф (+2 ТЕЛ +1 МУД, 25 фт)</option>
+</optgroup>
+<optgroup label="🌿 Полурослики">
+<option value="Полурослик">Полурослик (+2 ЛОВ, 25 фт)</option>
+<option value="Легконогий полурослик">Легконогий (+2 ЛОВ +1 ХАР, 25 фт)</option>
+<option value="Коренастый полурослик">Коренастый (+2 ЛОВ +1 ТЕЛ, 25 фт)</option>
+</optgroup>
+<optgroup label="🔩 Гномы">
+<option value="Гном">Гном (+2 ИНТ, 25 фт)</option>
+<option value="Лесной гном">Лесной гном (+2 ИНТ +1 ЛОВ, 25 фт)</option>
+<option value="Каменный гном">Каменный гном (+2 ИНТ +1 ТЕЛ, 25 фт)</option>
+</optgroup>
+<optgroup label="⚔️ Другие">
+<option value="Полуорк">Полуорк (+2 СИЛ +1 ТЕЛ)</option>
+<option value="Полуэльф">Полуэльф (+2 ХАР +1+1)</option>
+<option value="Тифлинг">Тифлинг (+2 ХАР +1 ИНТ)</option>
+<option value="Драконорождённый">Драконорождённый (+2 СИЛ +1 ХАР)</option>
+<option value="Голиаф">Голиаф (+2 СИЛ +1 ТЕЛ)</option>
+<option value="Аасимар">Аасимар (+2 ХАР)</option>
+</optgroup>
 </select>
 </div>
 <div class="col">
 <label>Предыстория</label>
-<select id="char-background" onchange="updateChar()">
+<select id="char-background" onchange="updateChar(); onBackgroundChange()">
 <option value="">Выберите предысторию</option>
 <option value="Прислужник">Прислужник</option>
 <option value="Бродяга">Бродяга</option>
@@ -134,6 +158,8 @@
 </select>
 </div>
 </div>
+<!-- Racial bonus display -->
+<div id="race-bonus-display" class="race-bonus-bar" style="display:none;"></div>
 <div class="row">
 <div class="col">
 <label>Мировоззрение</label>
@@ -160,99 +186,128 @@
 </div>
 <div class="col"><label>Скорость</label><input type="text" id="char-speed" value="30 фт" oninput="updateChar()"></div>
 </div>
-<div style="text-align: center; margin-top: 10px;">
-<span class="proficiency-badge">Бонус мастерства: <span id="proficiency-bonus">+2</span></span>
-</div>
+
 </div>
 <div class="card">
-<h3>Характеристики</h3>
-<div class="row" style="flex-wrap:wrap; justify-content:space-between;">
-<div class="stat-box" style="width:30%;">
-<label class="stat-label">СИЛ</label>
-<div class="stat-mod" id="mod-str">+0</div>
-<div class="stat-controls">
-<input type="number" id="val-str" value="10" class="stat-input" oninput="calcStats()">
-<div class="stat-btn-row">
-<button class="stat-btn" onclick="adjustStat('str', -1)">−</button>
-<button class="stat-btn" onclick="adjustStat('str', 1)">+</button>
+<div class="section-header-row">
+<h3>⚔️ Характеристики</h3>
+<span class="prof-bonus-inline">Мастерство: <strong id="proficiency-bonus">+2</strong></span>
+</div>
+<div class="stats-compact-grid">
+<div class="stat-compact" id="stat-block-str">
+<div class="stat-compact-label">СИЛ</div>
+<div class="stat-compact-mod" id="mod-str">+0</div>
+<div class="stat-compact-val" id="val-display-str">10</div>
+<input type="number" id="val-str" value="10" class="stat-compact-inp" oninput="calcStats(); updateStatDisplay('str')">
+<div class="stat-compact-row">
+<button class="stat-btn-sm" onclick="adjustStat('str',-1)">−</button>
+<button class="stat-btn-sm" onclick="adjustStat('str',1)">+</button>
 </div>
 </div>
-</div>
-<div class="stat-box" style="width:30%;">
-<label class="stat-label">ЛОВ</label>
-<div class="stat-mod" id="mod-dex">+0</div>
-<div class="stat-controls">
-<input type="number" id="val-dex" value="10" class="stat-input" oninput="calcStats()">
-<div class="stat-btn-row">
-<button class="stat-btn" onclick="adjustStat('dex', -1)">−</button>
-<button class="stat-btn" onclick="adjustStat('dex', 1)">+</button>
-</div>
+<div class="stat-compact" id="stat-block-dex">
+<div class="stat-compact-label">ЛОВ</div>
+<div class="stat-compact-mod" id="mod-dex">+0</div>
+<div class="stat-compact-val" id="val-display-dex">10</div>
+<input type="number" id="val-dex" value="10" class="stat-compact-inp" oninput="calcStats(); updateStatDisplay('dex')">
+<div class="stat-compact-row">
+<button class="stat-btn-sm" onclick="adjustStat('dex',-1)">−</button>
+<button class="stat-btn-sm" onclick="adjustStat('dex',1)">+</button>
 </div>
 </div>
-<div class="stat-box" style="width:30%;">
-<label class="stat-label">ТЕЛ</label>
-<div class="stat-mod" id="mod-con">+0</div>
-<div class="stat-controls">
-<input type="number" id="val-con" value="10" class="stat-input" oninput="calcStats()">
-<div class="stat-btn-row">
-<button class="stat-btn" onclick="adjustStat('con', -1)">−</button>
-<button class="stat-btn" onclick="adjustStat('con', 1)">+</button>
+<div class="stat-compact" id="stat-block-con">
+<div class="stat-compact-label">ТЕЛ</div>
+<div class="stat-compact-mod" id="mod-con">+0</div>
+<div class="stat-compact-val" id="val-display-con">10</div>
+<input type="number" id="val-con" value="10" class="stat-compact-inp" oninput="calcStats(); updateStatDisplay('con')">
+<div class="stat-compact-row">
+<button class="stat-btn-sm" onclick="adjustStat('con',-1)">−</button>
+<button class="stat-btn-sm" onclick="adjustStat('con',1)">+</button>
 </div>
 </div>
-</div>
-<div class="stat-box" style="width:30%;">
-<label class="stat-label">ИНТ</label>
-<div class="stat-mod" id="mod-int">+0</div>
-<div class="stat-controls">
-<input type="number" id="val-int" value="10" class="stat-input" oninput="calcStats()">
-<div class="stat-btn-row">
-<button class="stat-btn" onclick="adjustStat('int', -1)">−</button>
-<button class="stat-btn" onclick="adjustStat('int', 1)">+</button>
-</div>
+<div class="stat-compact" id="stat-block-int">
+<div class="stat-compact-label">ИНТ</div>
+<div class="stat-compact-mod" id="mod-int">+0</div>
+<div class="stat-compact-val" id="val-display-int">10</div>
+<input type="number" id="val-int" value="10" class="stat-compact-inp" oninput="calcStats(); updateStatDisplay('int')">
+<div class="stat-compact-row">
+<button class="stat-btn-sm" onclick="adjustStat('int',-1)">−</button>
+<button class="stat-btn-sm" onclick="adjustStat('int',1)">+</button>
 </div>
 </div>
-<div class="stat-box" style="width:30%;">
-<label class="stat-label">МУД</label>
-<div class="stat-mod" id="mod-wis">+0</div>
-<div class="stat-controls">
-<input type="number" id="val-wis" value="10" class="stat-input" oninput="calcStats()">
-<div class="stat-btn-row">
-<button class="stat-btn" onclick="adjustStat('wis', -1)">−</button>
-<button class="stat-btn" onclick="adjustStat('wis', 1)">+</button>
+<div class="stat-compact" id="stat-block-wis">
+<div class="stat-compact-label">МУД</div>
+<div class="stat-compact-mod" id="mod-wis">+0</div>
+<div class="stat-compact-val" id="val-display-wis">10</div>
+<input type="number" id="val-wis" value="10" class="stat-compact-inp" oninput="calcStats(); updateStatDisplay('wis')">
+<div class="stat-compact-row">
+<button class="stat-btn-sm" onclick="adjustStat('wis',-1)">−</button>
+<button class="stat-btn-sm" onclick="adjustStat('wis',1)">+</button>
 </div>
 </div>
-</div>
-<div class="stat-box" style="width:30%;">
-<label class="stat-label">ХАР</label>
-<div class="stat-mod" id="mod-cha">+0</div>
-<div class="stat-controls">
-<input type="number" id="val-cha" value="10" class="stat-input" oninput="calcStats()">
-<div class="stat-btn-row">
-<button class="stat-btn" onclick="adjustStat('cha', -1)">−</button>
-<button class="stat-btn" onclick="adjustStat('cha', 1)">+</button>
+<div class="stat-compact" id="stat-block-cha">
+<div class="stat-compact-label">ХАР</div>
+<div class="stat-compact-mod" id="mod-cha">+0</div>
+<div class="stat-compact-val" id="val-display-cha">10</div>
+<input type="number" id="val-cha" value="10" class="stat-compact-inp" oninput="calcStats(); updateStatDisplay('cha')">
+<div class="stat-compact-row">
+<button class="stat-btn-sm" onclick="adjustStat('cha',-1)">−</button>
+<button class="stat-btn-sm" onclick="adjustStat('cha',1)">+</button>
 </div>
 </div>
 </div>
 </div>
-</div>
-<div class="card">
-<h3>🛡️ Спасброски</h3>
+<!-- ACCORDION: Спасброски -->
+<div class="card accordion-card">
+<button class="accordion-toggle" onclick="toggleAccordion(this)" aria-expanded="false">
+<span>🛡️ Спасброски</span><span class="accordion-arrow">▸</span>
+</button>
+<div class="accordion-body" style="display:none">
 <div class="saves-section">
 <div class="saves-grid" id="saves-grid"></div>
 </div>
 </div>
-<div class="card">
-<h3>📚 Навыки</h3>
+</div>
+<!-- ACCORDION: Навыки -->
+<div class="card accordion-card">
+<button class="accordion-toggle" onclick="toggleAccordion(this)" aria-expanded="false">
+<span>📚 Навыки <span class="accordion-prof-count" id="skills-prof-count"></span></span><span class="accordion-arrow">▸</span>
+</button>
+<div class="accordion-body" style="display:none">
 <div id="skills-container"></div>
 <div class="passive-wisdom">
 <div>Пассивная внимательность</div>
 <div class="value" id="passive-perception">10</div>
 </div>
 </div>
+</div>
 <div class="card">
 <h3>❤️ Здоровье и Бой</h3>
+<!-- Armor selector -->
+<div class="armor-select-row">
+<div class="armor-select-left">
+<label>🛡️ Броня</label>
+<select id="char-armor" onchange="updateChar(); onArmorChange()">
+<option value="none">👤 Без доспехов</option>
+<option value="padded">🧥 Стёганый (КД 11)</option>
+<option value="leather">🥋 Кожаный (КД 11)</option>
+<option value="studded">⚡ Клёпаный кожаный (КД 12)</option>
+<option value="chain_shirt">🔗 Кольчужная рубаха (КД 13)</option>
+<option value="scale">🐉 Чешуйчатый (КД 14)</option>
+<option value="breastplate">🛡️ Нагрудник (КД 14)</option>
+<option value="half_plate">🔰 Полупластинчатый (КД 15)</option>
+<option value="ring">⭕ Кольчуга (КД 16)</option>
+<option value="splint">🗡️ Пластинчатый (КД 17)</option>
+<option value="plate">⚔️ Латный доспех (КД 18)</option>
+<option value="custom">✏️ Вручную</option>
+</select>
+</div>
+<div class="armor-select-right">
+<label>Щит (+2)</label>
+<input type="checkbox" id="char-shield" onchange="updateChar(); onArmorChange()" style="width:auto; margin-top:8px;">
+</div>
+</div>
 <div class="row">
-<div class="col"><label>КД (AC)</label><input type="number" id="combat-ac" readonly style="color: var(--armor-color); font-weight: bold; cursor: not-allowed;"></div>
+<div class="col"><label>КД (AC)</label><input type="number" id="combat-ac" oninput="onManualAC()" style="color: var(--armor-color); font-weight: bold;"></div>
 <div class="col"><label>Инициатива</label><input type="text" id="combat-init" readonly></div>
 <div class="col"><label>Скорость</label><input type="text" id="combat-speed" value="30 фт" oninput="updateChar()"></div>
 </div>
@@ -265,9 +320,9 @@
 <div class="hp-big-num" id="hp-display-current">—</div>
 </div>
 <div class="hp-divider">/</div>
-<div class="hp-col">
-<div class="hp-lbl">Максимум</div>
-<div class="hp-big-num muted" id="hp-display-max">—</div>
+<div class="hp-col hp-max-col">
+<div class="hp-lbl">Максимум <button class="hp-recalc-btn" onclick="recalculateHP()" title="Пересчитать по классу/уровню/ТЕЛ">🔄</button></div>
+<input type="number" id="hp-max-manual" class="hp-max-manual-inp" min="1" onchange="onManualMaxHP()" placeholder="—">
 </div>
 <div class="hp-col hp-temp-col">
 <div class="hp-lbl">⚡ Врем. ХП</div>
@@ -373,18 +428,36 @@
 </div>
 <div class="ac-modifiers" id="ac-modifiers"></div>
 </div>
-<div class="class-features-section" id="class-features-section" style="display: none;">
-<h4>⚡ Классовые умения</h4>
+<!-- CLASS RESOURCES BLOCK -->
+<div id="class-resources-section" style="display:none">
+<div id="class-resources-grid"></div>
+</div>
+
+<!-- CLASS FEATURES ACCORDION -->
+<div class="accordion-card-inner" id="class-features-section" style="display:none">
+<button class="accordion-toggle accordion-toggle-sm" onclick="toggleAccordion(this)" aria-expanded="false">
+<span>⚡ Классовые умения</span><span class="accordion-arrow">▸</span>
+</button>
+<div class="accordion-body" style="display:none">
 <div class="features-grid" id="features-grid"></div>
 <div id="asi-container"></div>
 </div>
-<div class="conditions-section">
-<h4>⚠️ Условия и Статусы <span class="conditions-active-count" id="conditions-count">0</span></h4>
+</div>
+<div class="accordion-card-inner">
+<button class="accordion-toggle accordion-toggle-sm" onclick="toggleAccordion(this)" aria-expanded="false">
+<span>⚠️ Условия и Статусы <span class="conditions-active-count" id="conditions-count">0</span></span><span class="accordion-arrow">▸</span>
+</button>
+<div class="accordion-body" style="display:none">
 <div class="conditions-grid" id="conditions-grid"></div>
 </div>
-<div class="effects-section">
-<h4>✨ Временные Эффекты <span class="conditions-active-count" id="effects-count">0</span></h4>
+</div>
+<div class="accordion-card-inner">
+<button class="accordion-toggle accordion-toggle-sm" onclick="toggleAccordion(this)" aria-expanded="false">
+<span>✨ Временные Эффекты <span class="conditions-active-count" id="effects-count">0</span></span><span class="accordion-arrow">▸</span>
+</button>
+<div class="accordion-body" style="display:none">
 <div class="effects-grid" id="effects-grid"></div>
+</div>
 </div>
 <div class="card">
 <h3>📖 Владения</h3>
@@ -886,7 +959,32 @@
 </div>
 </div>
 
+<!-- Modal: ASI (Увеличение характеристик) -->
+<div id="asi-modal" class="confirm-modal-overlay" onclick="if(event.target===this)closeASIModal()">
+<div class="confirm-modal-box asi-modal-box">
+<h4>📈 Увеличение характеристик</h4>
+<p class="asi-desc">Выберите: <strong>+2 к одной</strong> характеристике или <strong>+1 к двум</strong></p>
+<div class="asi-options">
+<label class="asi-radio-row">
+<input type="radio" name="asi-mode" value="plus2" checked onchange="updateASIPreview()">
+<span>+2 к одной характеристике</span>
+</label>
+<label class="asi-radio-row">
+<input type="radio" name="asi-mode" value="plus1each" onchange="updateASIPreview()">
+<span>+1 к двум характеристикам</span>
+</label>
+</div>
+<div class="asi-stat-grid" id="asi-stat-grid"></div>
+<div class="asi-preview" id="asi-preview"></div>
+<div class="confirm-modal-btns">
+<button class="confirm-btn-cancel" onclick="closeASIModal()">Отмена</button>
+<button class="confirm-btn-ok" id="asi-apply-btn" onclick="applyASI()">Применить</button>
+</div>
+</div>
+</div>
+
 <!-- Modal: Dice -->
+
 <div id="dice-modal" class="modal">
 <div class="modal-content">
 <span class="modal-close" onclick="closeDiceModal()">&times;</span>

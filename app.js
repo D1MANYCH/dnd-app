@@ -76,15 +76,40 @@ if (!currentId) return;
 const char = characters.find(function(c) { return c.id === currentId; });
 if (!char) return;
 const className = document.getElementById("char-class")?.value || "";
-if (!className || !CLASS_SAVE_PROFICIENCIES[className]) return;
-const saves = CLASS_SAVE_PROFICIENCIES[className];
-saves.forEach(function(saveKey) {
-const checkbox = document.getElementById("save-prof-" + saveKey);
-if (checkbox && !checkbox.checked) {
-checkbox.checked = true;
-}
+if (!className) return;
+
+// ── ИСПРАВЛЕНИЕ: сначала СНИМАЕМ все спасброски, затем ставим новые ──────
+SAVES_DATA.forEach(function(save) {
+  const checkbox = document.getElementById("save-prof-" + save.key);
+  if (checkbox) checkbox.checked = false;
+  if (char.saves) char.saves[save.key] = false;
 });
+
+// Ставим спасброски нового класса
+if (CLASS_SAVE_PROFICIENCIES[className]) {
+  CLASS_SAVE_PROFICIENCIES[className].forEach(function(saveKey) {
+    const checkbox = document.getElementById("save-prof-" + saveKey);
+    if (checkbox) { checkbox.checked = true; }
+    if (char.saves) char.saves[saveKey] = true;
+  });
+}
+
+// Авто-владения бронёй и оружием по классу
+if (CLASS_ARMOR_PROFS && CLASS_ARMOR_PROFS[className]) {
+  const profs = CLASS_ARMOR_PROFS[className];
+  char.proficiencies.armor  = profs.armor  ? profs.armor.slice()  : [];
+  char.proficiencies.weapon = profs.weapon ? profs.weapon.slice() : [];
+  // Sync checkboxes
+  ["light","medium","heavy","shield"].forEach(function(t) {
+    safeSetChecked("armor-" + t, char.proficiencies.armor.includes(t));
+  });
+  ["simple","martial"].forEach(function(t) {
+    safeSetChecked("weapon-" + t, char.proficiencies.weapon.includes(t));
+  });
+}
+
 calcStats();
+calculateAC();
 }
 function initSkills() {
 const container = document.getElementById("skills-container");
@@ -92,10 +117,24 @@ if (!container) return;
 container.innerHTML = "";
 skills.forEach(function(skill, index) {
 const row = document.createElement("div");
-row.className = "skill-row";
-row.innerHTML = "<div class=\"checkbox-wrapper\"><input type=\"checkbox\" id=\"skill-prof-" + index + "\" onchange=\"calcStats()\"><label for=\"skill-prof-" + index + "\" style=\"margin:0; cursor:pointer;\">" + escapeHtml(skill.name) + "</label></div><div class=\"bonus-display\" id=\"skill-bonus-" + index + "\">+0</div>";
+row.className = "skill-row-compact";
+row.innerHTML =
+  '<input type="checkbox" id="skill-prof-' + index + '" class="skill-cb" onchange="calcStats(); updateSkillProfCount()">' +
+  '<label for="skill-prof-' + index + '" class="skill-name-compact">' + escapeHtml(skill.name) + '</label>' +
+  '<span class="skill-stat-compact">' + escapeHtml(skill.stat.toUpperCase().slice(0,3)) + '</span>' +
+  '<span class="skill-bonus-compact" id="skill-bonus-' + index + '">+0</span>';
 container.appendChild(row);
 });
+}
+function updateSkillProfCount() {
+const countEl = document.getElementById("skills-prof-count");
+if (!countEl) return;
+var count = 0;
+for (var i = 0; i < 18; i++) {
+  var cb = document.getElementById("skill-prof-" + i);
+  if (cb && cb.checked) count++;
+}
+countEl.textContent = count > 0 ? count + " ✓" : "";
 }
 function updateClassFeatures() {
 if (!currentId) return;
@@ -125,10 +164,11 @@ featuresGrid.appendChild(featureDiv);
 const asiLevels = [4, 8, 12, 16, 19];
 const availableASI = asiLevels.filter(function(l) { return l <= level; });
 if (availableASI.length > 0) {
-asiContainer.innerHTML = "<button class=\"asi-button\" onclick=\"openASIModal()\">📈 Увеличение характеристик (доступно: " + availableASI.length + ")</button>";
+asiContainer.innerHTML = '<button class="asi-button" onclick="openASIModal()">📈 Применить АСИ (доступно на ур. ' + availableASI.join(', ') + ')</button>';
 } else {
 asiContainer.innerHTML = "";
 }
+renderClassResources();
 }
 function initConditions() {
 const grid = document.getElementById("conditions-grid");
@@ -250,6 +290,49 @@ if (!char) return;
 const dexMod = getMod(char.stats.dex);
 const conMod = getMod(char.stats.con);
 const wisMod = getMod(char.stats.wis);
+
+// ── Если выбрана конкретная броня из пресетов ─────────────────────────────
+const armorId = char.combat && char.combat.armorId;
+const hasShieldSelected = char.combat && char.combat.hasShield;
+if (armorId && armorId !== "none" && armorId !== "custom" && typeof ARMOR_PRESETS !== "undefined") {
+  const preset = ARMOR_PRESETS.find(function(a) { return a.id === armorId; });
+  if (preset) {
+    const dexBonus = preset.dexCap >= 99 ? dexMod : Math.min(dexMod, preset.dexCap);
+    let ac = preset.baseAC + dexBonus;
+    let formulaParts = [preset.name + " (" + preset.baseAC + ")"];
+    if (dexBonus !== 0) formulaParts.push((dexBonus > 0 ? "+" : "") + dexBonus + " (ЛОВ)");
+    let modifiers = [];
+    if (hasShieldSelected) { ac += 2; formulaParts.push("+2 (щит)"); modifiers.push({name:"Щит",value:2,type:"active"}); }
+    // Apply magic effects on top
+    if (char.effects) {
+      char.effects.forEach(function(effectId) {
+        const effect = EFFECTS_DATA.find(function(e) { return e.id === effectId; });
+        if (effect && effect.acBonus && !["mage_armor","monk_unarmored","barbarian_unarmored"].includes(effectId)) {
+          ac += effect.acBonus;
+          formulaParts.push((effect.acBonus > 0 ? "+" : "") + effect.acBonus + " (" + effect.name + ")");
+          modifiers.push({name: effect.name, value: effect.acBonus, type: effect.acBonus > 0 ? "active" : "negative"});
+        }
+      });
+    }
+    const acTotalEl = document.getElementById("ac-total");
+    const acFormulaEl = document.getElementById("ac-formula");
+    const combatAcEl = document.getElementById("combat-ac");
+    const acModsEl = document.getElementById("ac-modifiers");
+    if (acTotalEl) acTotalEl.textContent = ac;
+    if (acFormulaEl) acFormulaEl.textContent = formulaParts.join(" ");
+    if (combatAcEl) combatAcEl.value = ac;
+    if (acModsEl) {
+      acModsEl.innerHTML = modifiers.map(function(mod) {
+        return "<div class=\"ac-modifier-item" + (mod.type === "negative" ? " negative" : "") + "\"><span>" + escapeHtml(mod.name) + "</span><span class=\"ac-modifier-value\">" + (mod.value >= 0 ? "+" : "") + mod.value + "</span></div>";
+      }).join("");
+    }
+    document.getElementById("status-ac").textContent = ac;
+    char.combat.ac = ac;
+    return;
+  }
+}
+
+// ── Режим "вручную" или без брони — старая логика ────────────────────────
 let ac = 10;
 let formulaParts = ["10 (база)"];
 let modifiers = [];
@@ -258,13 +341,11 @@ const hasMonkUnarmored = char.effects && char.effects.includes('monk_unarmored')
 const hasBarbarianUnarmored = char.effects && char.effects.includes('barbarian_unarmored');
 const isBarbarian = char.class === "Варвар";
 const isMonk = char.class === "Монах";
-// 🔧 Защита от undefined для char.proficiencies.armor
 const hasArmorProf = char.proficiencies && char.proficiencies.armor && Array.isArray(char.proficiencies.armor);
 const hasLightArmor = hasArmorProf && char.proficiencies.armor.includes('light');
 const hasMediumArmor = hasArmorProf && char.proficiencies.armor.includes('medium');
 const hasHeavyArmor = hasArmorProf && char.proficiencies.armor.includes('heavy');
-const hasShield = hasArmorProf && char.proficiencies.armor.includes('shield');
-// 🔧 ИСПРАВЛЕНИЕ: Приоритет расчёта КД
+const hasShield = (hasArmorProf && char.proficiencies.armor.includes('shield')) || hasShieldSelected;
 if (hasBarbarianUnarmored || (isBarbarian && !hasLightArmor && !hasMediumArmor && !hasHeavyArmor)) {
 ac = 10 + dexMod + conMod;
 formulaParts = ["10 (база)", "+" + dexMod + " (ЛОВ)", "+" + conMod + " (ТЕЛ)"];
@@ -435,6 +516,15 @@ try { localStorage.setItem("dnd_last_tab", tabName); } catch(e) {}
 if (tabName === "party")  { openPartyTab(); }
 if (tabName === "battle") { openBattleTab(); }
 }
+function updateStatDisplay(stat) {
+  var inp = document.getElementById("val-" + stat);
+  var disp = document.getElementById("val-display-" + stat);
+  if (inp && disp) disp.textContent = inp.value || "10";
+}
+function updateAllStatDisplays() {
+  ["str","dex","con","int","wis","cha"].forEach(updateStatDisplay);
+}
+
 function adjustStat(stat, delta) {
 const input = document.getElementById("val-" + stat);
 if (!input) return;
@@ -443,6 +533,9 @@ value += delta;
 if (value < 1) value = 1;
 if (value > 30) value = 30;
 input.value = value;
+updateStatDisplay(stat);
+// Haptic feedback on mobile
+if (navigator.vibrate) navigator.vibrate(delta > 0 ? 15 : 8);
 if (stat === "str" || stat === "con") {
 calcStats();
 recalculateHP();
@@ -500,6 +593,9 @@ const className = classEl.value;
 const hitDie = CLASS_HIT_DICE[className] || 8;
 const newMaxHP = calculateMaxHP(level, conMod, hitDie);
 if (hpMaxEl) hpMaxEl.value = newMaxHP;
+// Also update the visible manual field (only if not actively editing it)
+const hpMaxManualEl = document.getElementById("hp-max-manual");
+if (hpMaxManualEl && document.activeElement !== hpMaxManualEl) hpMaxManualEl.value = newMaxHP;
 if (hpDiceEl) hpDiceEl.value = "1к" + hitDie;
 if (hpDiceAvailableEl) hpDiceAvailableEl.value = (level - (char.combat.hpDiceSpent || 0)) + "/" + level;
 char.combat.hpMax = newMaxHP;
@@ -833,8 +929,20 @@ recalculateHP();
 loadConditions();
 loadEffects();
 updateClassFeatures();
+renderClassResources();
+// Restore armor select
+var armorId = char.combat.armorId || "none";
+safeSet("char-armor", armorId);
+safeSetChecked("char-shield", char.combat.hasShield || false);
+if (armorId !== "custom") { setTimeout(onArmorChange, 0); }
 calculateAC();
+// Restore HP max manual field
+var hpMaxEl = document.getElementById("hp-max-manual");
+if (hpMaxEl) hpMaxEl.value = char.combat.hpMax || "";
+// Show race bonuses
+setTimeout(onRaceChange, 0);
 renderWeapons();
+updateAllStatDisplays();
 renderSpellSlots();
 renderMySpells();
 renderInventory();
@@ -870,6 +978,8 @@ char.alignment = document.getElementById("char-alignment")?.value || "";
 char.size = document.getElementById("char-size")?.value || "Средний";
 char.speed = document.getElementById("char-speed")?.value || "30 фт";
 char.combat.ac = parseInt(document.getElementById("combat-ac")?.value) || 10;
+char.combat.armorId   = document.getElementById("char-armor")?.value || "none";
+char.combat.hasShield = document.getElementById("char-shield")?.checked || false;
 char.combat.hpCurrent = parseInt(document.getElementById("hp-current")?.value) || 0;
 char.combat.hpTemp = parseInt(document.getElementById("hp-temp")?.value) || 0;
 char.combat.hpDiceSpent = parseInt(document.getElementById("hp-dice-spent")?.value) || 0;
@@ -1004,6 +1114,132 @@ char.spells.attack = attack;
 char.spells.mod = statMod;
 saveToLocal();
 }
+
+// ============================================
+// РАСА: отображение бонусов
+// ============================================
+function onRaceChange() {
+  var raceEl = document.getElementById("char-race");
+  var displayEl = document.getElementById("race-bonus-display");
+  if (!raceEl || !displayEl) return;
+  var race = raceEl.value;
+  var data = (typeof RACE_DATA !== "undefined") && RACE_DATA[race];
+  if (!data) { displayEl.style.display = "none"; return; }
+  var statNames = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
+  var bonuses = Object.keys(data.stats).map(function(k) {
+    var v = data.stats[k];
+    return '<span class="race-bonus-badge">' + (v > 0 ? "+" : "") + v + " " + statNames[k] + '</span>';
+  }).join("");
+  var speedBadge = data.speed !== 30
+    ? '<span class="race-bonus-badge race-speed">' + data.speed + ' фт</span>'
+    : '<span class="race-bonus-badge race-speed">30 фт</span>';
+  displayEl.innerHTML =
+    '<span class="race-bonus-label">⚡ ' + escapeHtml(race) + ':</span>' + bonuses + speedBadge +
+    '<span class="race-bonus-traits">' + escapeHtml(data.traits) + '</span>';
+  displayEl.style.display = "flex";
+
+  // Обновляем ОБА поля скорости
+  var speedVal = data.speed + " фт";
+  var charSpeedEl  = document.getElementById("char-speed");
+  var combatSpeedEl = document.getElementById("combat-speed");
+  if (charSpeedEl)   charSpeedEl.value  = speedVal;
+  if (combatSpeedEl) combatSpeedEl.value = speedVal;
+
+  if (currentId) {
+    var char = characters.find(function(c) { return c.id === currentId; });
+    if (char) {
+      char.speed        = speedVal;
+      char.combat.speed = speedVal;
+      saveToLocal();
+    }
+  }
+}
+
+// ============================================
+// ПРЕДЫСТОРИЯ: авто-навыки
+// ============================================
+function onBackgroundChange() {
+  if (!currentId) return;
+  var bgEl = document.getElementById("char-background");
+  if (!bgEl) return;
+  var bg = bgEl.value;
+  var skillList = (typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bg];
+  if (!skillList) return;
+  // Match by exact skill name from the skills[] array
+  skillList.forEach(function(skillName) {
+    var idx = skills.findIndex(function(s) { return s.name === skillName; });
+    if (idx !== -1) {
+      var cb = document.getElementById("skill-prof-" + idx);
+      if (cb && !cb.checked) { cb.checked = true; }
+    }
+  });
+  calcStats();
+  updateSkillProfCount();
+}
+
+// ============================================
+// БРОНЯ: авто-расчёт КД по выбору брони
+// ============================================
+function onArmorChange() {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  var armorId = document.getElementById("char-armor")?.value || "none";
+  var hasShield = document.getElementById("char-shield")?.checked || false;
+  char.combat.armorId  = armorId;
+  char.combat.hasShield = hasShield;
+  if (armorId === "custom") return; // manual mode - don't recalc
+  var preset = (typeof ARMOR_PRESETS !== "undefined") && ARMOR_PRESETS.find(function(a) { return a.id === armorId; });
+  if (!preset) { calculateAC(); return; }
+  var dexMod = getMod(char.stats.dex);
+  var dexBonus = preset.dexCap >= 99 ? dexMod : Math.min(dexMod, preset.dexCap);
+  var ac = preset.baseAC + dexBonus + (hasShield ? 2 : 0);
+  // Apply armor type proficiency flags for legacy calculateAC
+  char.proficiencies.armor = char.proficiencies.armor || [];
+  ["light","medium","heavy","shield"].forEach(function(t) { safeSetChecked("armor-"+t, false); });
+  if (preset.type !== "none") {
+    if (!char.proficiencies.armor.includes(preset.type)) char.proficiencies.armor.push(preset.type);
+    safeSetChecked("armor-"+preset.type, true);
+  }
+  if (hasShield) {
+    if (!char.proficiencies.armor.includes("shield")) char.proficiencies.armor.push("shield");
+    safeSetChecked("armor-shield", true);
+  }
+  var acEl = document.getElementById("combat-ac");
+  if (acEl) acEl.value = ac;
+  char.combat.ac = ac;
+  document.getElementById("ac-total").textContent = ac;
+  document.getElementById("ac-formula").textContent = preset.name + ": " + preset.baseAC + (dexBonus !== 0 ? (dexBonus > 0 ? " +" : " ") + dexBonus + " (ЛОВ)" : "") + (hasShield ? " +2 (щит)" : "");
+  document.getElementById("status-ac").textContent = ac;
+  saveToLocal();
+  updateStatusBar();
+}
+
+function onManualAC() {
+  // When user types КД manually, switch armor select to "custom"
+  var armorEl = document.getElementById("char-armor");
+  if (armorEl && armorEl.value !== "custom") armorEl.value = "custom";
+  updateChar();
+}
+
+function onManualMaxHP() {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  var val = parseInt(document.getElementById("hp-max-manual")?.value) || 0;
+  if (val < 1) return;
+  char.combat.hpMax = val;
+  // also sync hidden field
+  safeSet("hp-max", val);
+  if (char.combat.hpCurrent > val) {
+    char.combat.hpCurrent = val;
+    safeSet("hp-current", val);
+  }
+  saveToLocal();
+  updateHPDisplay();
+}
+
+
 function calcCoinWeight() {
 const cp = parseInt(document.getElementById("coin-cp")?.value) || 0;
 const sp = parseInt(document.getElementById("coin-sp")?.value) || 0;
@@ -1137,6 +1373,7 @@ char.combat.hpDiceSpent = Math.max(0, (char.combat.hpDiceSpent || 0) - hitDiceTo
 char.conditions = [];
 char.effects = [];
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
+resetResourcesByRest("long");
 loadConditions();
 loadEffects();
 addHPHistory(oldHp, maxHp, maxHp - oldHp, "Долгий отдых");
@@ -1242,6 +1479,7 @@ char.spells.slotsUsed[i] = 0;
 saveToLocal();
 loadCharacter(currentId);
 updateClassFeatures();
+renderClassResources();
 renderSpellSlots();
 document.getElementById("lu-screen-preview").style.display = "none";
 document.getElementById("lu-screen-result").style.display = "";
@@ -1976,7 +2214,7 @@ safeSet("hp-temp", hpTemp);
 
 // Видимые элементы отображения ХП
 const dispCurrent = document.getElementById("hp-display-current");
-const dispMax = document.getElementById("hp-display-max");
+const dispMax = document.getElementById("hp-max-manual");
 if (dispCurrent) {
 dispCurrent.textContent = hpCurrent;
 dispCurrent.className = "hp-big-num";
@@ -1985,7 +2223,7 @@ if (hpCurrent <= 0) dispCurrent.classList.add("hp-zero");
 else if (pct <= 25) dispCurrent.classList.add("hp-low");
 else if (pct <= 50) dispCurrent.classList.add("hp-medium");
 }
-if (dispMax) dispMax.textContent = hpMax;
+if (dispMax && document.activeElement !== dispMax) dispMax.value = hpMax;
 
 // Полоска ХП
 const hpBar = document.getElementById("hp-bar");
@@ -2255,13 +2493,13 @@ if (modal) modal.classList.remove("active");
 }
 
 // ============================================================
-// Регистрация Service Worker для PWA (офлайн-режим)
+// Регистрация Service Worker для PWA (только по HTTP/HTTPS, не для file://)
 // ============================================================
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('./sw.js')
-      .then(function(reg) { console.log('[PWA] Service Worker зарегистрирован:', reg.scope); })
-      .catch(function(err) { console.log('[PWA] Ошибка регистрации SW:', err); });
+      .then(function(reg) { console.log('[PWA] SW зарегистрирован:', reg.scope); })
+      .catch(function(err) { console.log('[PWA] SW ошибка:', err); });
   });
 }
 
@@ -2835,4 +3073,364 @@ function endBattle() {
   document.getElementById("battle-tracker-screen").classList.add("hidden");
   buildBattleSetupList();
   renderBattleSetup();
+}
+
+// ============================================================
+// АККОРДЕОН — сворачиваемые секции
+// ============================================================
+function toggleAccordion(btn) {
+  var body = btn.nextElementSibling;
+  if (!body) return;
+  var isOpen = btn.getAttribute("aria-expanded") === "true";
+  var arrow = btn.querySelector(".accordion-arrow");
+  if (isOpen) {
+    body.style.display = "none";
+    btn.setAttribute("aria-expanded", "false");
+    if (arrow) arrow.textContent = "▸";
+  } else {
+    body.style.display = "";
+    btn.setAttribute("aria-expanded", "true");
+    if (arrow) arrow.textContent = "▾";
+  }
+}
+
+// ============================================================
+// КЛАССОВЫЕ РЕСУРСЫ — трекер + АСИ
+// ============================================================
+
+// Инициализация resources в персонаже если отсутствуют
+function initCharResources(char) {
+  if (!char.resources) char.resources = {};
+}
+
+// Вычислить максимум ресурса по уровню и характеристикам
+function getResourceMax(res, char) {
+  var level = char.level || 1;
+  var raw = res.maxByLevel ? (res.maxByLevel[level] !== undefined ? res.maxByLevel[level] : 0) : 0;
+  if (raw === "level")       return level;
+  if (raw === "cha")         return Math.max(1, getMod(char.stats.cha));
+  if (raw === "cha_plus1")   return Math.max(1, getMod(char.stats.cha) + 1);
+  if (raw === "level5")      return level * 5;  // Наложение рук — пул ХП
+  if (raw === 99)            return 99; // Безлимит (Ярость 20 ур.)
+  return parseInt(raw) || 0;
+}
+
+// Рендер блока ресурсов
+function renderClassResources() {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  initCharResources(char);
+
+  var section = document.getElementById("class-resources-section");
+  var grid = document.getElementById("class-resources-grid");
+  if (!section || !grid) return;
+
+  var cls = char.class || "";
+  var data = (typeof CLASS_RESOURCES !== "undefined") && CLASS_RESOURCES[cls];
+
+  if (!data || !data.resources || data.resources.length === 0) {
+    section.style.display = "none";
+    return;
+  }
+
+  section.style.display = "block";
+  grid.innerHTML = "";
+
+  // Passive notes card
+  if (data.passive && data.passive.notes) {
+    var notesEl = document.createElement("div");
+    notesEl.className = "resource-passive-card";
+    notesEl.innerHTML = '<div class="resource-passive-title">📖 Пассивные умения ' + escapeHtml(cls) + '</div>' +
+      '<pre class="resource-passive-text">' + escapeHtml(data.passive.notes) + '</pre>';
+    grid.appendChild(notesEl);
+  }
+
+  // Resource cards
+  data.resources.forEach(function(res) {
+    var max = getResourceMax(res, char);
+    if (max === 0) return; // не доступно на этом уровне
+
+    var used = char.resources[res.id] || 0;
+    if (used > max) { used = max; char.resources[res.id] = used; }
+    var remaining = max - used;
+
+    var card = document.createElement("div");
+    card.className = "resource-card";
+    card.style.setProperty("--res-color", res.color || "#c9a227");
+
+    var isPool = res.isPool; // Наложение рук — пул ХП а не заряды
+
+    // Build pips (max 20, beyond that just show number)
+    var pipsHtml = "";
+    if (!isPool && max <= 20) {
+      pipsHtml = '<div class="resource-pips">';
+      for (var p = 0; p < max; p++) {
+        pipsHtml += '<div class="resource-pip' + (p < remaining ? ' full' : '') + '" onclick="toggleResourcePip(\'' + res.id + '\',' + p + ')"></div>';
+      }
+      pipsHtml += '</div>';
+    }
+
+    var restLabel = res.restoreOn === "short" ? "☕ Кор." : res.restoreOn === "long" || res.restoreOn === "long_once" ? "🛏️ Длин." : res.restoreOn === "turn" ? "🔄 Каждый ход" : "–";
+
+    card.innerHTML =
+      '<div class="resource-header">' +
+        '<span class="resource-icon">' + res.icon + '</span>' +
+        '<span class="resource-name">' + escapeHtml(res.name) + '</span>' +
+        '<span class="resource-restore-badge">' + restLabel + '</span>' +
+      '</div>' +
+      (isPool
+        ? '<div class="resource-pool-row">' +
+            '<div class="resource-pool-val" id="res-pool-' + res.id + '">' + (max - used) + ' / ' + max + '</div>' +
+            '<div class="resource-pool-btns">' +
+              '<button class="res-btn" onclick="spendResource(\'' + res.id + '\',1)">−1</button>' +
+              '<button class="res-btn" onclick="spendResource(\'' + res.id + '\',-1)">+1</button>' +
+            '</div>' +
+          '</div>'
+        : '<div class="resource-counter-row">' +
+            '<button class="res-btn res-btn-use" onclick="spendResource(\'' + res.id + '\',1)" ' + (remaining <= 0 ? 'disabled' : '') + '>Использовать</button>' +
+            '<span class="resource-count" id="res-count-' + res.id + '">' + remaining + ' / ' + (max === 99 ? '∞' : max) + '</span>' +
+            '<button class="res-btn res-btn-reset" onclick="resetResource(\'' + res.id + '\')">Сброс</button>' +
+          '</div>'
+      ) +
+      pipsHtml +
+      '<div class="resource-desc">' + escapeHtml(res.desc) + '</div>';
+
+    grid.appendChild(card);
+  });
+}
+
+function spendResource(id, delta) {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  initCharResources(char);
+  var cls = char.class || "";
+  var data = CLASS_RESOURCES && CLASS_RESOURCES[cls];
+  if (!data) return;
+  var res = data.resources.find(function(r) { return r.id === id; });
+  if (!res) return;
+  var max = getResourceMax(res, char);
+  var used = char.resources[id] || 0;
+  used = Math.min(max, Math.max(0, used + delta));
+  char.resources[id] = used;
+  if (navigator.vibrate) navigator.vibrate(8);
+  saveToLocal();
+  renderClassResources();
+}
+
+function resetResource(id) {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  initCharResources(char);
+  char.resources[id] = 0;
+  saveToLocal();
+  renderClassResources();
+}
+
+function toggleResourcePip(id, pipIdx) {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  initCharResources(char);
+  var cls = char.class || "";
+  var data = CLASS_RESOURCES && CLASS_RESOURCES[cls];
+  if (!data) return;
+  var res = data.resources.find(function(r) { return r.id === id; });
+  if (!res) return;
+  var max = getResourceMax(res, char);
+  var used = char.resources[id] || 0;
+  var remaining = max - used;
+  // pip 0..remaining-1 = full, click to use; remaining..max-1 = empty, click to restore
+  if (pipIdx < remaining) {
+    used = Math.min(max, used + (remaining - pipIdx));
+  } else {
+    used = Math.max(0, pipIdx);
+  }
+  char.resources[id] = used;
+  if (navigator.vibrate) navigator.vibrate(8);
+  saveToLocal();
+  renderClassResources();
+}
+
+// Сбросить ресурсы по типу отдыха
+function resetResourcesByRest(restType) {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  initCharResources(char);
+  var cls = char.class || "";
+  var data = CLASS_RESOURCES && CLASS_RESOURCES[cls];
+  if (!data || !data.resources) return;
+  data.resources.forEach(function(res) {
+    if (restType === "long") {
+      char.resources[res.id] = 0;
+    } else if (restType === "short" && (res.restoreOn === "short")) {
+      char.resources[res.id] = 0;
+    }
+  });
+  saveToLocal();
+  renderClassResources();
+}
+
+// ============================================================
+// АСИ — модалка выбора характеристик
+// ============================================================
+var asiSelectedStats = [];
+var asiPendingPoints = 0; // сколько осталось распределить
+
+function openASIModal() {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  asiSelectedStats = [];
+  var modal = document.getElementById("asi-modal");
+  if (!modal) { alert("АСИ модалка не найдена"); return; }
+
+  // Reset radio
+  var r = modal.querySelector('input[value="plus2"]');
+  if (r) r.checked = true;
+
+  buildASIStatGrid(char);
+  updateASIPreview();
+  modal.classList.add("active");
+}
+
+function closeASIModal() {
+  var modal = document.getElementById("asi-modal");
+  if (modal) modal.classList.remove("active");
+  asiSelectedStats = [];
+}
+
+function buildASIStatGrid(char) {
+  var grid = document.getElementById("asi-stat-grid");
+  if (!grid) return;
+  var statNames = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
+  var statIcons = {str:"💪",dex:"🏃",con:"❤️",int:"🧠",wis:"👁️",cha:"🎭"};
+  grid.innerHTML = Object.keys(statNames).map(function(k) {
+    var val = char.stats[k] || 10;
+    var mod = getMod(val);
+    return '<div class="asi-stat-item" id="asi-stat-' + k + '" onclick="toggleASIStat(\'' + k + '\')">' +
+      '<span class="asi-stat-icon">' + statIcons[k] + '</span>' +
+      '<span class="asi-stat-name">' + statNames[k] + '</span>' +
+      '<span class="asi-stat-cur">' + val + ' (' + formatMod(mod) + ')</span>' +
+      '<span class="asi-stat-delta" id="asi-delta-' + k + '"></span>' +
+    '</div>';
+  }).join("");
+}
+
+function getASIMode() {
+  var r = document.querySelector('input[name="asi-mode"]:checked');
+  return r ? r.value : "plus2";
+}
+
+function toggleASIStat(statKey) {
+  var mode = getASIMode();
+  var maxPicks = mode === "plus2" ? 1 : 2;
+
+  var idx = asiSelectedStats.indexOf(statKey);
+  if (idx > -1) {
+    asiSelectedStats.splice(idx, 1);
+  } else {
+    if (asiSelectedStats.length >= maxPicks) {
+      asiSelectedStats.shift(); // remove oldest
+    }
+    asiSelectedStats.push(statKey);
+  }
+  updateASIPreview();
+}
+
+function updateASIPreview() {
+  var mode = getASIMode();
+  var maxPicks = mode === "plus2" ? 1 : 2;
+  var bonus = mode === "plus2" ? 2 : 1;
+  var preview = document.getElementById("asi-preview");
+  var applyBtn = document.getElementById("asi-apply-btn");
+  var grid = document.getElementById("asi-stat-grid");
+
+  // Update stat item highlights
+  if (grid) {
+    var allItems = grid.querySelectorAll(".asi-stat-item");
+    allItems.forEach(function(el) {
+      el.classList.remove("selected");
+      var k = el.id.replace("asi-stat-","");
+      var deltaEl = document.getElementById("asi-delta-" + k);
+      if (deltaEl) deltaEl.textContent = "";
+    });
+    asiSelectedStats.forEach(function(k) {
+      var el = document.getElementById("asi-stat-" + k);
+      if (el) el.classList.add("selected");
+      var deltaEl = document.getElementById("asi-delta-" + k);
+      if (deltaEl) deltaEl.textContent = "+" + bonus;
+    });
+  }
+
+  // Preview text
+  if (preview) {
+    if (asiSelectedStats.length === 0) {
+      preview.textContent = "Выберите характеристику";
+      preview.className = "asi-preview";
+    } else if (asiSelectedStats.length < maxPicks && mode === "plus1each") {
+      preview.textContent = "Выберите ещё одну характеристику";
+      preview.className = "asi-preview";
+    } else {
+      var char = characters.find(function(c) { return c.id === currentId; });
+      var statNames = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
+      var parts = asiSelectedStats.map(function(k) {
+        return statNames[k] + ": " + (char.stats[k]) + " → " + (char.stats[k] + bonus);
+      });
+      preview.textContent = "✅ " + parts.join("   ");
+      preview.className = "asi-preview ready";
+    }
+  }
+
+  // Enable/disable apply button
+  var ready = (mode === "plus2" && asiSelectedStats.length === 1) ||
+              (mode === "plus1each" && asiSelectedStats.length === 2);
+  if (applyBtn) applyBtn.disabled = !ready;
+}
+
+function applyASI() {
+  if (!currentId || asiSelectedStats.length === 0) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  var mode = getASIMode();
+  var bonus = mode === "plus2" ? 2 : 1;
+
+  asiSelectedStats.forEach(function(k) {
+    char.stats[k] = Math.min(20, (char.stats[k] || 10) + bonus);
+    safeSet("val-" + k, char.stats[k]);
+    updateStatDisplay(k);
+  });
+
+  saveToLocal();
+  calcStats();
+  recalculateHP();
+  calculateAC();
+  closeASIModal();
+
+  // Show confirmation toast
+  var statNames = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
+  var msg = "📈 АСИ применено: " + asiSelectedStats.map(function(k) { return statNames[k] + " +" + bonus; }).join(", ");
+  showHPToast(0, msg);
+}
+
+// Патч showHPToast для кастомных сообщений
+var _origShowHPToast = showHPToast;
+function showHPToast(delta, customMsg) {
+  if (customMsg !== undefined) {
+    var container = document.getElementById("hp-toast-container");
+    if (!container) return;
+    var existing = container.querySelector(".hp-toast");
+    if (existing) { clearTimeout(existing._fadeTimer); clearTimeout(existing._removeTimer); existing.remove(); }
+    var toast = document.createElement("div");
+    toast.className = "hp-toast hp-toast-heal";
+    toast.innerHTML = "<span style='font-size:14px;font-weight:700;'>" + customMsg + "</span>";
+    container.appendChild(toast);
+    toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 2500);
+    toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 3000);
+    return;
+  }
+  _origShowHPToast(delta);
 }
