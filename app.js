@@ -161,12 +161,38 @@ featuresGrid.appendChild(featureDiv);
 });
 }
 }
-const asiLevels = [4, 8, 12, 16, 19];
-const availableASI = asiLevels.filter(function(l) { return l <= level; });
-if (availableASI.length > 0) {
-asiContainer.innerHTML = '<button class="asi-button" onclick="openASIModal()">📈 Применить АСИ (доступно на ур. ' + availableASI.join(', ') + ')</button>';
+// ASI levels for class (Fighter gets more)
+var classAsiLevels = (char.class === "Воин")   ? [4,6,8,12,14,16,19] :
+                     (char.class === "Плут")    ? [4,8,10,12,16,19]   :
+                     [4,8,12,16,19];
+// Which levels have been earned so far
+var earnedASI = classAsiLevels.filter(function(l) { return l <= level; });
+// Which have already been spent
+if (!char.asiUsedLevels) char.asiUsedLevels = [];
+// Unused = earned but not yet spent
+var unusedASI = earnedASI.filter(function(l) {
+  return !char.asiUsedLevels.includes(l);
+});
+
+if (unusedASI.length > 0) {
+  asiContainer.innerHTML =
+    '<div class="asi-available-wrap">' +
+    unusedASI.map(function(l) {
+      return '<button class="asi-button asi-level-btn" onclick="openASIModalForLevel(' + l + ')">' +
+        '<div class="asi-btn-left">' +
+          '<span class="asi-btn-title">📈 Увеличение характеристик · ' + l + ' ур.</span>' +
+          '<span class="asi-btn-hint">+2 к одной характеристике, +1+1 к двум или черта PHB</span>' +
+        '</div>' +
+        '<span class="asi-btn-arrow">›</span>' +
+        '</button>';
+    }).join("") +
+    '</div>';
+} else if (earnedASI.length > 0) {
+  // All used — show greyed out summary
+  asiContainer.innerHTML =
+    '<div class="asi-all-used">✅ Все АСИ применены (ур. ' + earnedASI.join(", ") + ')</div>';
 } else {
-asiContainer.innerHTML = "";
+  asiContainer.innerHTML = "";
 }
 renderClassResources();
 }
@@ -951,6 +977,7 @@ updateHPDisplay();
 loadDeathSaves();
 renderCompanions();
 renderJournal();
+renderTakenFeats();
 showScreen("character");
 var lastTab = "";
 try { lastTab = localStorage.getItem("dnd_last_tab") || "sheet"; } catch(e) { lastTab = "sheet"; }
@@ -3269,17 +3296,33 @@ function resetResourcesByRest(restType) {
 var asiSelectedStats = [];
 var asiPendingPoints = 0; // сколько осталось распределить
 
+var asiCurrentLevel = null; // уровень для которого применяется АСИ
+
+function openASIModalForLevel(level) {
+  asiCurrentLevel = level;
+  openASIModal();
+}
+
 function openASIModal() {
   if (!currentId) return;
   var char = characters.find(function(c) { return c.id === currentId; });
   if (!char) return;
   asiSelectedStats = [];
+  asiFeatSelected = null;
   var modal = document.getElementById("asi-modal");
   if (!modal) { alert("АСИ модалка не найдена"); return; }
 
-  // Reset radio
+  // Reset radio to plus2
   var r = modal.querySelector('input[value="plus2"]');
   if (r) r.checked = true;
+
+  // Show level info in title if level is set
+  var title = modal.querySelector("h4");
+  if (title) {
+    title.textContent = asiCurrentLevel
+      ? "📈 Увеличение характеристик · " + asiCurrentLevel + " ур."
+      : "📈 Увеличение характеристик";
+  }
 
   buildASIStatGrid(char);
   updateASIPreview();
@@ -3290,6 +3333,8 @@ function closeASIModal() {
   var modal = document.getElementById("asi-modal");
   if (modal) modal.classList.remove("active");
   asiSelectedStats = [];
+  asiFeatSelected = null;
+  asiCurrentLevel = null;
 }
 
 function buildASIStatGrid(char) {
@@ -3710,10 +3755,17 @@ function applyASI() {
       safeSet("val-" + k, char.stats[k]);
       updateStatDisplay(k);
     });
-    var msg = "📈 АСИ: " + asiSelectedStats.map(function(k) { return statNames2[k] + " +" + bonus; }).join(", ");
+    var msg = "📈 АСИ (ур." + (asiCurrentLevel||"?") + "): " + asiSelectedStats.map(function(k) { return statNames2[k] + " +" + bonus; }).join(", ");
+    // Mark ASI level as used
+    if (asiCurrentLevel) {
+      if (!char.asiUsedLevels) char.asiUsedLevels = [];
+      if (!char.asiUsedLevels.includes(asiCurrentLevel)) char.asiUsedLevels.push(asiCurrentLevel);
+    }
+    asiCurrentLevel = null;
     addJournalEntry("stat", msg);
     saveToLocal(); calcStats(); recalculateHP(); calculateAC();
     closeASIModal();
+    updateClassFeatures();
     showHPToast(0, msg);
     renderJournal();
     return;
@@ -3790,8 +3842,16 @@ function applyASI() {
 
   closeASIModal();
   asiFeatSelected = null;
+  // Mark ASI level as used
+  if (asiCurrentLevel) {
+    if (!char.asiUsedLevels) char.asiUsedLevels = [];
+    if (!char.asiUsedLevels.includes(asiCurrentLevel)) char.asiUsedLevels.push(asiCurrentLevel);
+  }
+  asiCurrentLevel = null;
   showHPToast(0, "🎯 Черта «" + feat.name + "» получена!" + (appliedDesc.length ? " " + appliedDesc.join(", ") : ""));
   renderJournal();
+  renderTakenFeats();
+  updateClassFeatures();
 }
 
 
@@ -3843,3 +3903,59 @@ function renderChangelog() {
   }
   renderChangelog();
 })();
+
+// ============================================================
+// ОТОБРАЖЕНИЕ ВЗЯТЫХ ЧЕРТ
+// ============================================================
+function renderTakenFeats() {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+
+  var section = document.getElementById("taken-feats-section");
+  var list    = document.getElementById("taken-feats-list");
+  var count   = document.getElementById("taken-feats-count");
+  if (!section || !list) return;
+
+  var feats = char.feats || [];
+  if (feats.length === 0) {
+    section.style.display = "none";
+    return;
+  }
+
+  section.style.display = "block";
+  if (count) count.textContent = feats.length;
+
+  list.innerHTML = feats.map(function(f, i) {
+    // Find feat data for description
+    var data = typeof FEATS_DATA !== "undefined"
+      ? FEATS_DATA.find(function(d) { return d.id === f.id; })
+      : null;
+    var desc = data ? data.desc : "";
+    var lvlBadge = f.level ? '<span class="feat-taken-lvl">ур. ' + f.level + '</span>' : "";
+    return '<div class="feat-taken-card">' +
+      '<div class="feat-taken-row">' +
+        '<span class="feat-taken-icon">🎯</span>' +
+        '<span class="feat-taken-name">' + escapeHtml(f.name || f.id) + '</span>' +
+        lvlBadge +
+        '<button class="feat-taken-del" onclick="removeFeat(' + i + ')" title="Убрать черту">✕</button>' +
+      '</div>' +
+      (desc ? '<div class="feat-taken-desc">' + escapeHtml(desc) + '</div>' : '') +
+    '</div>';
+  }).join("");
+}
+
+function removeFeat(i) {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char || !char.feats) return;
+  var name = char.feats[i] ? char.feats[i].name : "черту";
+  showConfirmModal("Убрать черту?",
+    "«" + name + "» будет удалена из списка. Бонусы к характеристикам НЕ откатятся.",
+    function() {
+      char.feats.splice(i, 1);
+      saveToLocal();
+      renderTakenFeats();
+    }
+  );
+}

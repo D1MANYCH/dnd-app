@@ -657,7 +657,15 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="card">
 <h3>📖 Черты и умения</h3>
-<textarea id="char-features" rows="7" placeholder="Классовые умения, расовые черты..." oninput="updateChar()"></textarea>
+<!-- Взятые черты (АСИ) -->
+<div id="taken-feats-section" style="display:none; margin-bottom:12px;">
+<div class="taken-feats-header">
+<span>🎯 Взятые черты</span>
+<span class="taken-feats-count" id="taken-feats-count"></span>
+</div>
+<div id="taken-feats-list" class="taken-feats-list"></div>
+</div>
+<textarea id="char-features" rows="7" placeholder="Классовые умения, расовые черты, заметки об умениях..." oninput="updateChar()"></textarea>
 </div>
 <div class="card">
 <h3>📝 Заметки</h3>
