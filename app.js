@@ -515,6 +515,7 @@ if (activeBtn) activeBtn.classList.add("active");
 try { localStorage.setItem("dnd_last_tab", tabName); } catch(e) {}
 if (tabName === "party")  { openPartyTab(); }
 if (tabName === "battle") { openBattleTab(); }
+if (tabName === "journal") { renderJournal(); }
 }
 function updateStatDisplay(stat) {
   var inp = document.getElementById("val-" + stat);
@@ -948,6 +949,8 @@ renderMySpells();
 renderInventory();
 updateHPDisplay();
 loadDeathSaves();
+renderCompanions();
+renderJournal();
 showScreen("character");
 var lastTab = "";
 try { lastTab = localStorage.getItem("dnd_last_tab") || "sheet"; } catch(e) { lastTab = "sheet"; }
@@ -1379,6 +1382,8 @@ loadEffects();
 addHPHistory(oldHp, maxHp, maxHp - oldHp, "Долгий отдых");
 if (maxHp - oldHp > 0) showHPToast(maxHp - oldHp);
 resultTitle = "✅ Долгий отдых завершён!";
+addJournalEntry("rest", "Долгий отдых — новая сессия", "Уровень " + (char.level||1) + " · ХП: " + oldHp + " → " + maxHp + " · Ячейки и ресурсы восстановлены");
+renderJournal();
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div><p>✨ Ячейки заклинаний: восстановлены</p><p>🎲 Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p><p>⚠️ Условия и эффекты: сняты</p>";
 }
 saveToLocal();
@@ -1484,6 +1489,8 @@ renderSpellSlots();
 document.getElementById("lu-screen-preview").style.display = "none";
 document.getElementById("lu-screen-result").style.display = "";
 document.getElementById("lu-result-title").textContent = "Уровень " + char.level + " достигнут!";
+addJournalEntry("levelup", "Достигнут " + char.level + " уровень!", "ХП: " + oldMaxHP + " → " + newMaxHP + " · Бонус мастерства: +" + newProf);
+renderJournal();
 let resultLines = ["❤️ ХП: " + oldMaxHP + " → " + newMaxHP + " (+" + hpGain + ")", "🎲 Костей хитов: " + char.level];
 if (newProf !== oldProf) resultLines.push("⚡ Бонус мастерства: +" + oldProf + " → +" + newProf);
 if (CLASS_FEATURES[className] && CLASS_FEATURES[className][char.level]) {
@@ -2300,16 +2307,24 @@ hpHistory.unshift({ from: from, to: to, delta: delta, source: source, time: time
 if (hpHistory.length > 30) hpHistory.pop();
 }
 
-function showHPToast(delta) {
-const container = document.getElementById("hp-toast-container");
+function showHPToast(delta, customMsg) {
+var container = document.getElementById("hp-toast-container");
 if (!container) return;
-const existing = container.querySelector(".hp-toast");
+var existing = container.querySelector(".hp-toast");
 if (existing) { clearTimeout(existing._fadeTimer); clearTimeout(existing._removeTimer); existing.remove(); }
-const toast = document.createElement("div");
+var toast = document.createElement("div");
+if (customMsg !== undefined) {
+  toast.className = "hp-toast hp-toast-heal";
+  toast.innerHTML = "<span style='font-size:14px;font-weight:700;'>" + customMsg + "</span>";
+  container.appendChild(toast);
+  toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 2500);
+  toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 3000);
+  return;
+}
+var sign = delta > 0 ? "+" : "";
+var label = delta > 0 ? "Восстановлено" : "Получено урона";
 toast.className = "hp-toast " + (delta > 0 ? "hp-toast-heal" : "hp-toast-dmg");
-const sign = delta > 0 ? "+" : "";
-const label = delta > 0 ? "Восстановлено" : "Получено урона";
-toast.innerHTML = "<span style=\"font-size:20px;font-weight:900;\">" + sign + delta + " ХП</span><span style=\"font-size:12px;opacity:0.75;margin-left:8px;\">" + label + "</span>";
+toast.innerHTML = "<span style='font-size:20px;font-weight:900;'>" + sign + delta + " ХП</span><span style='font-size:12px;opacity:0.75;margin-left:8px;'>" + label + "</span>";
 container.appendChild(toast);
 toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 1800);
 toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 2300);
@@ -2464,33 +2479,7 @@ loadDeathSaves();
 // ============================================
 // АСИ — Улучшение характеристик
 // ============================================
-function openASIModal() {
-if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
-if (!char) return;
-const asiLevels = [4, 8, 12, 16, 19];
-const available = asiLevels.filter(function(l) { return l <= char.level; }).length;
-const modal = document.getElementById("asi-modal");
-if (modal) {
-modal.classList.add("active");
-} else {
-// Запасной вариант если модалки нет в HTML
-alert(
-"📈 Улучшение характеристик\n\n" +
-"Доступно улучшений: " + available + "\n\n" +
-"На уровнях 4, 8, 12, 16, 19 вы можете:\n" +
-"• Увеличить одну характеристику на +2\n" +
-"• Или увеличить две характеристики на +1 каждую\n" +
-"• Или выбрать черту (по усмотрению Мастера)\n\n" +
-"Используйте кнопки +/− рядом с характеристиками для изменения."
-);
-}
-}
-
-function closeASIModal() {
-const modal = document.getElementById("asi-modal");
-if (modal) modal.classList.remove("active");
-}
+// openASIModal и closeASIModal определены ниже
 
 // ============================================================
 // Регистрация Service Worker для PWA (только по HTTP/HTTPS, не для file://)
@@ -3343,19 +3332,41 @@ function toggleASIStat(statKey) {
 
 function updateASIPreview() {
   var mode = getASIMode();
-  var maxPicks = mode === "plus2" ? 1 : 2;
-  var bonus = mode === "plus2" ? 2 : 1;
   var preview = document.getElementById("asi-preview");
   var applyBtn = document.getElementById("asi-apply-btn");
-  var grid = document.getElementById("asi-stat-grid");
+  var statGrid = document.getElementById("asi-stat-grid");
+  var featListEl = document.getElementById("asi-feat-list");
 
-  // Update stat item highlights
-  if (grid) {
-    var allItems = grid.querySelectorAll(".asi-stat-item");
-    allItems.forEach(function(el) {
+  // ── Режим: выбор черты ───────────────────────────────────
+  if (mode === "feat") {
+    if (statGrid) statGrid.style.display = "none";
+    if (featListEl) { featListEl.style.display = "block"; buildFeatList(); }
+    if (preview) {
+      if (asiFeatSelected) {
+        var feat = typeof FEATS_DATA !== "undefined" && FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
+        preview.textContent = "✅ Черта: " + (feat ? feat.name : asiFeatSelected);
+        preview.className = "asi-preview ready";
+      } else {
+        preview.textContent = "Выберите черту из списка";
+        preview.className = "asi-preview";
+      }
+    }
+    if (applyBtn) applyBtn.disabled = !asiFeatSelected;
+    return;
+  }
+
+  // ── Режим: характеристики ────────────────────────────────
+  if (statGrid) statGrid.style.display = "";
+  if (featListEl) featListEl.style.display = "none";
+  asiFeatSelected = null;
+
+  var maxPicks = mode === "plus2" ? 1 : 2;
+  var bonus = mode === "plus2" ? 2 : 1;
+
+  if (statGrid) {
+    statGrid.querySelectorAll(".asi-stat-item").forEach(function(el) {
       el.classList.remove("selected");
-      var k = el.id.replace("asi-stat-","");
-      var deltaEl = document.getElementById("asi-delta-" + k);
+      var deltaEl = document.getElementById("asi-delta-" + el.id.replace("asi-stat-",""));
       if (deltaEl) deltaEl.textContent = "";
     });
     asiSelectedStats.forEach(function(k) {
@@ -3366,7 +3377,6 @@ function updateASIPreview() {
     });
   }
 
-  // Preview text
   if (preview) {
     if (asiSelectedStats.length === 0) {
       preview.textContent = "Выберите характеристику";
@@ -3376,61 +3386,460 @@ function updateASIPreview() {
       preview.className = "asi-preview";
     } else {
       var char = characters.find(function(c) { return c.id === currentId; });
-      var statNames = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
-      var parts = asiSelectedStats.map(function(k) {
-        return statNames[k] + ": " + (char.stats[k]) + " → " + (char.stats[k] + bonus);
-      });
-      preview.textContent = "✅ " + parts.join("   ");
+      var abbr = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
+      preview.textContent = "✅ " + asiSelectedStats.map(function(k) {
+        return abbr[k] + ": " + char.stats[k] + " → " + (char.stats[k] + bonus);
+      }).join("   ");
       preview.className = "asi-preview ready";
     }
   }
 
-  // Enable/disable apply button
   var ready = (mode === "plus2" && asiSelectedStats.length === 1) ||
               (mode === "plus1each" && asiSelectedStats.length === 2);
   if (applyBtn) applyBtn.disabled = !ready;
 }
 
-function applyASI() {
-  if (!currentId || asiSelectedStats.length === 0) return;
+// applyASI определена ниже (обрабатывает и стат-режим и черты)
+
+// showHPToast already supports customMsg (patched in place above)
+
+// ============================================================
+// ВЕРСИЯ ПРИЛОЖЕНИЯ
+// ============================================================
+(function() {
+  var el = document.getElementById("app-version-badge");
+  if (el && typeof APP_VERSION !== "undefined") {
+    el.textContent = "v" + APP_VERSION + " (" + APP_VERSION_DATE + ")";
+  }
+})();
+
+// ============================================================
+// ЖУРНАЛ ПЕРСОНАЖА — история изменений
+// ============================================================
+
+function getJournal(char) {
+  if (!char.journal) char.journal = [];
+  return char.journal;
+}
+
+function addJournalEntry(type, text, details) {
+  if (!currentId) return;
   var char = characters.find(function(c) { return c.id === currentId; });
   if (!char) return;
-  var mode = getASIMode();
-  var bonus = mode === "plus2" ? 2 : 1;
-
-  asiSelectedStats.forEach(function(k) {
-    char.stats[k] = Math.min(20, (char.stats[k] || 10) + bonus);
-    safeSet("val-" + k, char.stats[k]);
-    updateStatDisplay(k);
+  var journal = getJournal(char);
+  var now = new Date();
+  var dateStr = now.toLocaleDateString("ru-RU", { day:"numeric", month:"short", year:"numeric" });
+  var timeStr = now.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
+  journal.unshift({
+    id: Date.now(),
+    type: type,        // levelup | rest | stat | feat | note | combat | story | loot | death
+    text: text,
+    details: details || "",
+    date: dateStr,
+    time: timeStr,
+    level: char.level || 1
   });
+  if (journal.length > 200) journal.pop();
+  saveToLocal();
+}
+
+var journalFilter = "all";
+function filterJournal(type, btn) {
+  journalFilter = type;
+  document.querySelectorAll(".jfilter-btn").forEach(function(b) { b.classList.remove("active"); });
+  if (btn) btn.classList.add("active");
+  renderJournal();
+}
+
+function renderJournal() {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  var list = document.getElementById("journal-list");
+  if (!list) return;
+  var journal = getJournal(char);
+  var filtered = journalFilter === "all" ? journal : journal.filter(function(e) { return e.type === journalFilter; });
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="journal-empty">📭 Нет записей' + (journalFilter !== "all" ? " в этой категории" : "") + '</div>';
+    return;
+  }
+
+  var typeIcons = { levelup:"📈", rest:"🛏️", stat:"⚡", feat:"🎯", note:"📝", combat:"⚔️", story:"📖", loot:"💎", death:"💀" };
+  var typeColors = { levelup:"#4da843", rest:"#5b9bd5", stat:"#d4a843", feat:"#9b59b6", note:"#9a9ab0", combat:"#e74c3c", story:"#d4ac0d", loot:"#f39c12", death:"#7f8c8d" };
+
+  list.innerHTML = filtered.map(function(entry) {
+    var icon = typeIcons[entry.type] || "📝";
+    var color = typeColors[entry.type] || "#9a9ab0";
+    return '<div class="journal-entry" style="border-left-color:' + color + '">' +
+      '<div class="journal-entry-header">' +
+        '<span class="journal-icon">' + icon + '</span>' +
+        '<span class="journal-text">' + escapeHtml(entry.text) + '</span>' +
+        '<button class="journal-del-btn" onclick="deleteJournalEntry(' + entry.id + ')">✕</button>' +
+      '</div>' +
+      (entry.details ? '<div class="journal-details">' + escapeHtml(entry.details) + '</div>' : '') +
+      '<div class="journal-meta">' + escapeHtml(entry.date) + ' ' + escapeHtml(entry.time) + ' · ' + (entry.level || 1) + ' ур.</div>' +
+    '</div>';
+  }).join("");
+}
+
+function deleteJournalEntry(id) {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char || !char.journal) return;
+  char.journal = char.journal.filter(function(e) { return e.id !== id; });
+  saveToLocal();
+  renderJournal();
+}
+
+function openAddJournalEntry() {
+  document.getElementById("add-journal-modal")?.classList.add("active");
+  document.getElementById("journal-entry-text").value = "";
+}
+function closeAddJournalEntry() {
+  document.getElementById("add-journal-modal")?.classList.remove("active");
+}
+function saveJournalEntry() {
+  var type = document.getElementById("journal-entry-type")?.value || "note";
+  var text = document.getElementById("journal-entry-text")?.value.trim() || "";
+  if (!text) { alert("Введите описание события"); return; }
+  var typeNames = { note:"Заметка", combat:"Бой", story:"Сюжет", loot:"Добыча", death:"Смерть" };
+  addJournalEntry(type, typeNames[type] + ": " + text);
+  closeAddJournalEntry();
+  renderJournal();
+}
+
+// ============================================================
+// ПРИХВОСТНИ / КОМПАНЬОНЫ
+// ============================================================
+var COMPANION_TYPE_ICONS = {
+  familiar:"🦅", mount:"🐴", summoned:"✨", beast:"🐺", construct:"🤖", other:"🐾"
+};
+var COMPANION_TYPE_NAMES = {
+  familiar:"Фамильяр", mount:"Скакун", summoned:"Призванный", beast:"Зверь", construct:"Конструкт", other:"Прочее"
+};
+
+function getCompanions(char) {
+  if (!char.companions) char.companions = [];
+  return char.companions;
+}
+
+function renderCompanions() {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  var companions = getCompanions(char);
+
+  // Update counts
+  var countEl = document.getElementById("companions-count");
+  if (countEl) countEl.textContent = companions.length > 0 ? companions.length : "";
+
+  // Render in both sheet and world tab
+  ["companions-list-sheet", "companions-list-world"].forEach(function(elId) {
+    var list = document.getElementById(elId);
+    if (!list) return;
+    if (companions.length === 0) {
+      list.innerHTML = '<div class="party-empty">📭 Нет прихвостней</div>';
+      return;
+    }
+    list.innerHTML = companions.map(function(c, i) {
+      var icon = COMPANION_TYPE_ICONS[c.type] || "🐾";
+      var hpPct = c.hpMax > 0 ? Math.round((c.hpCurrent / c.hpMax) * 100) : 100;
+      var hpColor = hpPct > 60 ? "#4da843" : hpPct > 30 ? "#e67e22" : "#e74c3c";
+      return '<div class="pcard pcard-companion">' +
+        '<div class="pcard-icon" style="background:rgba(155,89,182,0.15);color:#9b59b6">' + icon + '</div>' +
+        '<div class="pcard-body">' +
+          '<div class="pcard-name">' + escapeHtml(c.name) + '</div>' +
+          '<div class="pcard-sub">' + escapeHtml(COMPANION_TYPE_NAMES[c.type] || c.type) + ' · КД ' + (c.ac || 10) + '</div>' +
+          (c.attack ? '<div class="pcard-desc">⚔️ ' + escapeHtml(c.attack) + '</div>' : '') +
+          '<div class="companion-hp-row">' +
+            '<span style="color:' + hpColor + ';font-size:0.8em;font-weight:700;">❤️ ' + c.hpCurrent + '/' + c.hpMax + '</span>' +
+            '<button class="res-btn" style="padding:2px 8px;font-size:0.72em" onclick="companionHP(' + i + ',-1)">-1</button>' +
+            '<button class="res-btn" style="padding:2px 8px;font-size:0.72em" onclick="companionHP(' + i + ',1)">+1</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="pcard-actions">' +
+          '<button class="pcard-edit-btn" onclick="openEditCompanionModal(' + i + ')">✏️</button>' +
+          '<button class="pcard-del-btn" onclick="deleteCompanion(' + i + ')">✕</button>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+  });
+}
+
+function companionHP(i, delta) {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  var companions = getCompanions(char);
+  if (!companions[i]) return;
+  companions[i].hpCurrent = Math.max(0, Math.min(companions[i].hpMax, (companions[i].hpCurrent || 0) + delta));
+  if (navigator.vibrate) navigator.vibrate(8);
+  saveToLocal();
+  renderCompanions();
+}
+
+function openAddCompanionModal() {
+  document.getElementById("companion-modal-title").textContent = "🐾 Добавить прихвостня";
+  document.getElementById("companion-edit-index").value = "-1";
+  document.getElementById("companion-name-inp").value = "";
+  document.getElementById("companion-type-sel").value = "familiar";
+  document.getElementById("companion-hp-inp").value = "10";
+  document.getElementById("companion-ac-inp").value = "10";
+  document.getElementById("companion-attack-inp").value = "";
+  document.getElementById("companion-desc-inp").value = "";
+  document.getElementById("add-companion-modal")?.classList.add("active");
+}
+function openEditCompanionModal(i) {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  var c = getCompanions(char)[i];
+  if (!c) return;
+  document.getElementById("companion-modal-title").textContent = "✏️ Редактировать прихвостня";
+  document.getElementById("companion-edit-index").value = i;
+  document.getElementById("companion-name-inp").value = c.name || "";
+  document.getElementById("companion-type-sel").value = c.type || "other";
+  document.getElementById("companion-hp-inp").value = c.hpMax || 10;
+  document.getElementById("companion-ac-inp").value = c.ac || 10;
+  document.getElementById("companion-attack-inp").value = c.attack || "";
+  document.getElementById("companion-desc-inp").value = c.desc || "";
+  document.getElementById("add-companion-modal")?.classList.add("active");
+}
+function closeAddCompanionModal() {
+  document.getElementById("add-companion-modal")?.classList.remove("active");
+}
+function saveCompanion() {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  var name = document.getElementById("companion-name-inp")?.value.trim() || "";
+  if (!name) { alert("Введите имя"); return; }
+  var idx = parseInt(document.getElementById("companion-edit-index").value);
+  var companions = getCompanions(char);
+  var hpMax = parseInt(document.getElementById("companion-hp-inp")?.value) || 10;
+  var data = {
+    id: idx >= 0 ? (companions[idx].id || Date.now()) : Date.now(),
+    name: name,
+    type: document.getElementById("companion-type-sel")?.value || "other",
+    hpMax: hpMax,
+    hpCurrent: idx >= 0 ? companions[idx].hpCurrent : hpMax,
+    ac: parseInt(document.getElementById("companion-ac-inp")?.value) || 10,
+    attack: document.getElementById("companion-attack-inp")?.value.trim() || "",
+    desc: document.getElementById("companion-desc-inp")?.value.trim() || "",
+    status: "healthy"
+  };
+  if (idx >= 0) companions[idx] = data; else companions.push(data);
+  saveToLocal();
+  renderCompanions();
+  closeAddCompanionModal();
+}
+function deleteCompanion(i) {
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+  var name = char.companions[i] ? char.companions[i].name : "прихвостня";
+  showConfirmModal("Удалить прихвостня?", "«" + name + "» будет удалён.", function() {
+    char.companions.splice(i, 1);
+    saveToLocal();
+    renderCompanions();
+  });
+}
+
+// asiFeatSelected и feat-режим обрабатываются в updateASIPreview ниже
+var asiFeatSelected = null;
+
+function buildFeatList() {
+  var el = document.getElementById("asi-feat-list");
+  if (!el || typeof FEATS_DATA === "undefined") return;
+  if (!currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  var takenFeats = char ? (char.feats || []) : [];
+
+  el.innerHTML = '<div class="feat-search-wrap"><input type="text" class="feat-search-inp" placeholder="🔍 Поиск черты..." oninput="filterFeatList(this.value)"></div>' +
+    '<div class="feat-list" id="feat-list-items">' +
+    FEATS_DATA.map(function(feat) {
+      var taken = takenFeats.some(function(f) { return f.id === feat.id; });
+      var selected = asiFeatSelected === feat.id;
+      return '<div class="feat-item' + (selected ? " selected" : "") + (taken ? " taken" : "") + '" onclick="selectFeat(\'' + feat.id + '\')" data-name="' + escapeHtml(feat.name.toLowerCase()) + '">' +
+        '<div class="feat-item-header">' +
+          '<span class="feat-item-name">' + escapeHtml(feat.name) + '</span>' +
+          (feat.prereq ? '<span class="feat-prereq">' + escapeHtml(feat.prereq) + '</span>' : '') +
+          (taken ? '<span class="feat-taken-badge">Уже взята</span>' : '') +
+        '</div>' +
+        '<div class="feat-item-desc">' + escapeHtml(feat.desc) + '</div>' +
+      '</div>';
+    }).join("") +
+    '</div>';
+}
+
+function filterFeatList(query) {
+  var q = query.toLowerCase();
+  document.querySelectorAll("#feat-list-items .feat-item").forEach(function(el) {
+    var name = el.dataset.name || "";
+    el.style.display = name.includes(q) ? "" : "none";
+  });
+}
+
+function selectFeat(id) {
+  asiFeatSelected = asiFeatSelected === id ? null : id;
+  buildFeatList();
+  var preview = document.getElementById("asi-preview");
+  var applyBtn = document.getElementById("asi-apply-btn");
+  if (asiFeatSelected) {
+    var feat = FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
+    if (preview) { preview.textContent = "✅ Черта: " + feat.name; preview.className = "asi-preview ready"; }
+    if (applyBtn) applyBtn.disabled = false;
+  } else {
+    if (preview) { preview.textContent = "Выберите черту"; preview.className = "asi-preview"; }
+    if (applyBtn) applyBtn.disabled = true;
+  }
+}
+
+function applyASI() {
+  var mode = getASIMode();
+  if (mode !== "feat") {
+    // stat mode
+    if (!currentId || asiSelectedStats.length === 0) return;
+    var char = characters.find(function(c) { return c.id === currentId; });
+    if (!char) return;
+    var bonus = mode === "plus2" ? 2 : 1;
+    var statNames2 = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
+    asiSelectedStats.forEach(function(k) {
+      char.stats[k] = Math.min(20, (char.stats[k] || 10) + bonus);
+      safeSet("val-" + k, char.stats[k]);
+      updateStatDisplay(k);
+    });
+    var msg = "📈 АСИ: " + asiSelectedStats.map(function(k) { return statNames2[k] + " +" + bonus; }).join(", ");
+    addJournalEntry("stat", msg);
+    saveToLocal(); calcStats(); recalculateHP(); calculateAC();
+    closeASIModal();
+    showHPToast(0, msg);
+    renderJournal();
+    return;
+  }
+
+  if (!asiFeatSelected || !currentId) return;
+  var char = characters.find(function(c) { return c.id === currentId; });
+  if (!char) return;
+
+  var feat = FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
+  if (!feat) return;
+
+  if (!char.feats) char.feats = [];
+
+  // Apply effects
+  var statNames = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
+  var appliedDesc = [];
+
+  (feat.effects || []).forEach(function(eff) {
+    if (eff.type === "stat") {
+      char.stats[eff.key] = Math.min(20, (char.stats[eff.key] || 10) + eff.value);
+      safeSet("val-" + eff.key, char.stats[eff.key]);
+      updateStatDisplay(eff.key);
+      appliedDesc.push("+" + eff.value + " " + statNames[eff.key]);
+    }
+    else if (eff.type === "stat_choice" || eff.type === "stat_choice_save") {
+      // Pick first available stat that isn't at 20
+      var picked = eff.keys.find(function(k) { return (char.stats[k] || 10) < 20; });
+      if (picked) {
+        char.stats[picked] = Math.min(20, (char.stats[picked] || 10) + eff.value);
+        safeSet("val-" + picked, char.stats[picked]);
+        updateStatDisplay(picked);
+        appliedDesc.push("+" + eff.value + " " + statNames[picked]);
+        if (eff.type === "stat_choice_save") {
+          if (!char.saves) char.saves = {};
+          char.saves[picked] = true;
+          safeSetChecked("save-prof-" + picked, true);
+        }
+      }
+    }
+    else if (eff.type === "armor") {
+      if (!char.proficiencies.armor) char.proficiencies.armor = [];
+      if (!char.proficiencies.armor.includes(eff.value)) {
+        char.proficiencies.armor.push(eff.value);
+        safeSetChecked("armor-" + eff.value, true);
+        appliedDesc.push("Владение: " + eff.value);
+      }
+    }
+    else if (eff.type === "hp_per_level") {
+      // Крепкий — +2 ХП за уровень ретроактивно
+      var bonus = eff.value * (char.level || 1);
+      char.combat.hpMax = (char.combat.hpMax || 10) + bonus;
+      char.combat.hpCurrent = Math.min(char.combat.hpCurrent + bonus, char.combat.hpMax);
+      appliedDesc.push("+" + bonus + " ХП (×" + (char.level||1) + " ур.)");
+    }
+    else if (eff.type === "initiative_bonus") {
+      if (!char.bonuses) char.bonuses = {};
+      char.bonuses.initiative = (char.bonuses.initiative || 0) + eff.value;
+      appliedDesc.push("+" + eff.value + " к Инициативе");
+    }
+  });
+
+  // Record feat
+  char.feats.push({ id: feat.id, name: feat.name, level: char.level });
 
   saveToLocal();
   calcStats();
   recalculateHP();
   calculateAC();
+  updateHPDisplay();
+
+  // Journal entry
+  addJournalEntry("feat", "Черта: " + feat.name, appliedDesc.length > 0 ? "Применено: " + appliedDesc.join(", ") : feat.desc.slice(0, 80));
+
   closeASIModal();
-
-  // Show confirmation toast
-  var statNames = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
-  var msg = "📈 АСИ применено: " + asiSelectedStats.map(function(k) { return statNames[k] + " +" + bonus; }).join(", ");
-  showHPToast(0, msg);
+  asiFeatSelected = null;
+  showHPToast(0, "🎯 Черта «" + feat.name + "» получена!" + (appliedDesc.length ? " " + appliedDesc.join(", ") : ""));
+  renderJournal();
 }
 
-// Патч showHPToast для кастомных сообщений
-var _origShowHPToast = showHPToast;
-function showHPToast(delta, customMsg) {
-  if (customMsg !== undefined) {
-    var container = document.getElementById("hp-toast-container");
-    if (!container) return;
-    var existing = container.querySelector(".hp-toast");
-    if (existing) { clearTimeout(existing._fadeTimer); clearTimeout(existing._removeTimer); existing.remove(); }
-    var toast = document.createElement("div");
-    toast.className = "hp-toast hp-toast-heal";
-    toast.innerHTML = "<span style='font-size:14px;font-weight:700;'>" + customMsg + "</span>";
-    container.appendChild(toast);
-    toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 2500);
-    toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 3000);
-    return;
+
+// ============================================================
+// ЭКРАН ПРОФИЛЕЙ — вкладки и чейнджлог
+// ============================================================
+function switchProfilesTab(tab, btn) {
+  document.querySelectorAll(".ptab-btn").forEach(function(b) { b.classList.remove("active"); });
+  document.querySelectorAll(".ptab-content").forEach(function(c) { c.style.display = "none"; });
+  if (btn) btn.classList.add("active");
+  var el = document.getElementById("ptab-" + tab);
+  if (el) el.style.display = "";
+  if (tab === "changelog") renderChangelog();
+}
+
+function renderChangelog() {
+  var list = document.getElementById("changelog-list");
+  if (!list || typeof APP_CHANGELOG === "undefined") return;
+
+  var typeIcon  = { feat:"✨", fix:"🐛", improve:"⚡" };
+  var typeLabel = { feat:"Новое", fix:"Исправлено", improve:"Улучшено" };
+  var typeColor = { feat:"#4da843", fix:"#e74c3c", improve:"#5b9bd5" };
+  var badgeHtml = { new:'<span class="cl-badge cl-badge-new">НОВОЕ</span>' };
+
+  list.innerHTML = APP_CHANGELOG.map(function(ver, idx) {
+    var items = ver.changes.map(function(c) {
+      var icon  = typeIcon[c.type]  || "•";
+      var color = typeColor[c.type] || "#9a9ab0";
+      return '<div class="cl-item"><span class="cl-item-icon" style="color:' + color + '">' + icon + '</span><span class="cl-item-text">' + escapeHtml(c.text) + '</span></div>';
+    }).join("");
+
+    var isLatest = idx === 0;
+    return '<div class="cl-version' + (isLatest ? " cl-version-latest" : "") + '">' +
+      '<div class="cl-version-header">' +
+        '<span class="cl-version-num">v' + escapeHtml(ver.version) + '</span>' +
+        (isLatest ? '<span class="cl-badge cl-badge-new">Текущая</span>' : '') +
+        '<span class="cl-version-date">' + escapeHtml(ver.date) + '</span>' +
+      '</div>' +
+      '<div class="cl-items">' + items + '</div>' +
+    '</div>';
+  }).join("");
+}
+
+// Рендерим при старте
+(function() {
+  var versionBadge = document.getElementById("app-version-badge");
+  if (versionBadge && typeof APP_VERSION !== "undefined") {
+    versionBadge.textContent = "v" + APP_VERSION;
   }
-  _origShowHPToast(delta);
-}
+  renderChangelog();
+})();

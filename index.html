@@ -61,8 +61,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <input type="file" id="import-file" style="display:none" onchange="importData(this)" accept=".json">
 <input type="file" id="spells-import" style="display:none" onchange="importSpells(this)" accept=".json">
 </div>
-<div class="card">
-<p style="font-size:0.8em; color:var(--text-muted);">💡 Данные сохраняются автоматически. Регулярно скачивайте резервную копию!</p>
+<div class="card profiles-bottom-card">
+<div class="profiles-tabs-row">
+<button class="ptab-btn active" onclick="switchProfilesTab('info',this)">ℹ️ О приложении</button>
+<button class="ptab-btn" onclick="switchProfilesTab('changelog',this)">📋 Изменения</button>
+</div>
+<div id="ptab-info" class="ptab-content active">
+<div class="app-version-row">
+<span class="app-version-badge" id="app-version-badge">v1.3.0</span>
+<span style="font-size:0.75em;color:var(--text-muted);">Данные сохраняются в браузере. Делайте резервные копии!</span>
+</div>
+<div class="app-info-grid">
+<div class="app-info-item">🎲 D&D 5e по Fantom Studio</div>
+<div class="app-info-item">📱 PWA — работает офлайн</div>
+<div class="app-info-item">🆓 Бесплатно, без регистрации</div>
+<div class="app-info-item">🔒 Данные хранятся на устройстве</div>
+</div>
+</div>
+<div id="ptab-changelog" class="ptab-content" style="display:none">
+<div id="changelog-list"></div>
+</div>
 </div>
 </div>
 <div id="screen-character" class="hidden">
@@ -504,6 +522,15 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <textarea id="languages" placeholder="Общий, Эльфийский, Дварфский..." oninput="updateChar()"></textarea>
 </div>
 </div>
+<div class="card accordion-card">
+<button class="accordion-toggle" onclick="toggleAccordion(this)" aria-expanded="false">
+<span>🐾 Прихвостни</span><span class="accordion-arrow">▸</span>
+</button>
+<div class="accordion-body" style="display:none">
+<div id="companions-list-sheet"></div>
+<button class="success" style="margin-top:8px" onclick="openAddCompanionModal()">＋ Добавить прихвостня</button>
+</div>
+</div>
 <div class="card">
 <h3>⚔️ Оружие</h3>
 <button class="success" onclick="openWeaponModal()">+ Добавить оружие</button>
@@ -704,6 +731,21 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="monsters-list"></div>
 </div>
 
+<!-- Companions in Мир tab -->
+<div class="party-section-card">
+<div class="party-section-title-row">
+<span class="party-section-icon">🐾</span>
+<span class="party-section-label">Прихвостни <em class="party-section-hint">фамильяры, скакуны, призванные</em></span>
+<span class="party-section-count" id="companions-count"></span>
+<div class="party-section-actions">
+<button class="party-add-btn" onclick="openAddCompanionModal()">＋ Добавить</button>
+</div>
+</div>
+<div id="companions-list-world"></div>
+</div>
+
+<!-- companion modal moved to global modals -->
+
 <div class="party-section-card">
 <button class="battle-start-btn" onclick="switchTab('battle', document.querySelector('[onclick*=battle]'))">⚔️ Перейти к бою</button>
 </div>
@@ -735,6 +777,48 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button class="battle-nav-btn" onclick="prevTurn()">◀ Назад</button>
 <button class="battle-nav-btn battle-nav-next" onclick="nextTurn()">Следующий ▶</button>
 </div>
+</div>
+</div>
+</div>
+
+<!-- TAB: JOURNAL -->
+<div id="tab-journal" class="tab-content">
+<div class="card">
+<div class="journal-header-row">
+<h3>📖 Журнал персонажа</h3>
+<button class="journal-add-btn" onclick="openAddJournalEntry()">＋ Событие</button>
+</div>
+<div class="journal-filter-row">
+<button class="jfilter-btn active" onclick="filterJournal('all',this)">Все</button>
+<button class="jfilter-btn" onclick="filterJournal('levelup',this)">📈 Уровни</button>
+<button class="jfilter-btn" onclick="filterJournal('rest',this)">🛏️ Отдых</button>
+<button class="jfilter-btn" onclick="filterJournal('stat',this)">⚡ Статы</button>
+<button class="jfilter-btn" onclick="filterJournal('feat',this)">🎯 Черты</button>
+<button class="jfilter-btn" onclick="filterJournal('note',this)">📝 Заметки</button>
+</div>
+<div id="journal-list" class="journal-list"></div>
+</div>
+</div>
+
+<!-- Modal: Add Journal Entry -->
+<div id="add-journal-modal" class="confirm-modal-overlay" onclick="if(event.target===this)closeAddJournalEntry()">
+<div class="confirm-modal-box" style="max-width:400px">
+<h4>📝 Записать событие</h4>
+<div class="party-form">
+<label>Тип события</label>
+<select id="journal-entry-type">
+<option value="note">📝 Заметка</option>
+<option value="combat">⚔️ Бой / Сражение</option>
+<option value="story">📖 Сюжет / НПС</option>
+<option value="loot">💎 Добыча / Лут</option>
+<option value="death">💀 Смерть / Воскрешение</option>
+</select>
+<label>Описание</label>
+<textarea id="journal-entry-text" rows="4" placeholder="Что произошло на этой сессии?"></textarea>
+</div>
+<div class="confirm-modal-btns">
+<button class="confirm-btn-cancel" onclick="closeAddJournalEntry()">Отмена</button>
+<button class="confirm-btn-ok" onclick="saveJournalEntry()">Сохранить</button>
 </div>
 </div>
 </div>
@@ -973,12 +1057,17 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <input type="radio" name="asi-mode" value="plus1each" onchange="updateASIPreview()">
 <span>+1 к двум характеристикам</span>
 </label>
+<label class="asi-radio-row">
+<input type="radio" name="asi-mode" value="feat" onchange="updateASIPreview()">
+<span>🎯 Выбрать черту</span>
+</label>
 </div>
+<div id="asi-feat-list" style="display:none"></div>
 <div class="asi-stat-grid" id="asi-stat-grid"></div>
 <div class="asi-preview" id="asi-preview"></div>
 <div class="confirm-modal-btns">
 <button class="confirm-btn-cancel" onclick="closeASIModal()">Отмена</button>
-<button class="confirm-btn-ok" id="asi-apply-btn" onclick="applyASI()">Применить</button>
+<button class="confirm-btn-ok" id="asi-apply-btn" onclick="applyASI()" disabled>Применить</button>
 </div>
 </div>
 </div>
@@ -1202,10 +1291,44 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button class="tab-btn" onclick="switchTab('notes', this)"><span>📝</span>Записи</button>
 <button class="tab-btn" onclick="switchTab('party', this)"><span>🌍</span>Мир</button>
 <button class="tab-btn" onclick="switchTab('battle', this)"><span>⚔️</span>Бой</button>
+<button class="tab-btn" onclick="switchTab('journal', this)"><span>📖</span>Журнал</button>
 </div>
 </div>
 
 <div id="hp-toast-container"></div>
+
+<!-- Modal: Add/Edit Companion (global - works from any tab) -->
+<div id="add-companion-modal" class="confirm-modal-overlay" onclick="if(event.target===this)closeAddCompanionModal()">
+<div class="confirm-modal-box party-modal-box">
+<h4 id="companion-modal-title">🐾 Добавить прихвостня</h4>
+<input type="hidden" id="companion-edit-index" value="-1">
+<div class="party-form">
+<label>Имя</label>
+<input type="text" id="companion-name-inp" placeholder="Фамильяр, скакун, призванное существо...">
+<label>Тип</label>
+<select id="companion-type-sel">
+<option value="familiar">🦅 Фамильяр</option>
+<option value="mount">🐴 Скакун</option>
+<option value="summoned">✨ Призванное существо</option>
+<option value="beast">🐺 Зверь-компаньон</option>
+<option value="construct">🤖 Конструкт</option>
+<option value="other">🐾 Прочее</option>
+</select>
+<label>Макс. ХП</label>
+<input type="number" id="companion-hp-inp" value="10" min="1">
+<label>КД</label>
+<input type="number" id="companion-ac-inp" value="10" min="1">
+<label>Атака</label>
+<input type="text" id="companion-attack-inp" placeholder="Укус +4, 1к6+2 колющий">
+<label>Описание / особенности</label>
+<textarea id="companion-desc-inp" rows="3" placeholder="Призван Найди фамильяра, держится в 9 м, передаёт чувства..."></textarea>
+</div>
+<div class="confirm-modal-btns">
+<button class="confirm-btn-cancel" onclick="closeAddCompanionModal()">Отмена</button>
+<button class="confirm-btn-ok" onclick="saveCompanion()">Сохранить</button>
+</div>
+</div>
+</div>
 
 <div id="confirm-modal" class="confirm-modal-overlay">
 <div class="confirm-modal-box">
