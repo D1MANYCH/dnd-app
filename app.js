@@ -3,6 +3,14 @@
 // Все функции, состояние, обработчики событий
 // ============================================================
 
+// ── Хелперы ─────────────────────────────────────────────────
+/** Короткий алиас для document.getElementById */
+function $(id) { return document.getElementById(id); }
+/** Текущий персонаж */
+function getCurrentChar() { return characters.find(function(c) { return c.id === currentId; }); }
+/** Открыть/закрыть простую модалку по id */
+function openModal(id) { var m = $(id); if (m) m.classList.add("active"); }
+function closeModal(id) { var m = $(id); if (m) m.classList.remove("active"); }
 let SPELL_DATABASE = [];
 let characters = [];
 let currentId = null;
@@ -33,8 +41,10 @@ window.onload = function() {
 try {
 const saved = localStorage.getItem("dnd_chars");
 const savedSpells = localStorage.getItem("dnd_spells");
+const savedHpHistory = localStorage.getItem("dnd_hp_history");
 if (saved) characters = JSON.parse(saved);
 if (savedSpells) SPELL_DATABASE = JSON.parse(savedSpells);
+if (savedHpHistory) hpHistory = JSON.parse(savedHpHistory);
 } catch(e) { console.log("Ошибка загрузки:", e); }
 initSaves();
 initSkills();
@@ -47,7 +57,7 @@ renderWeaponPresets();
 // УЛУЧШЕННЫЕ СПАСБРОСКИ
 // ============================================
 function initSaves() {
-const grid = document.getElementById("saves-grid");
+const grid = $("saves-grid");
 if (!grid) return;
 grid.innerHTML = "";
 SAVES_DATA.forEach(function(save, index) {
@@ -73,14 +83,14 @@ grid.appendChild(item);
 }
 function autoSelectProficiencies() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-const className = document.getElementById("char-class")?.value || "";
+const className = $("char-class")?.value || "";
 if (!className) return;
 
 // ── ИСПРАВЛЕНИЕ: сначала СНИМАЕМ все спасброски, затем ставим новые ──────
 SAVES_DATA.forEach(function(save) {
-  const checkbox = document.getElementById("save-prof-" + save.key);
+  const checkbox = $("save-prof-" + save.key);
   if (checkbox) checkbox.checked = false;
   if (char.saves) char.saves[save.key] = false;
 });
@@ -88,7 +98,7 @@ SAVES_DATA.forEach(function(save) {
 // Ставим спасброски нового класса
 if (CLASS_SAVE_PROFICIENCIES[className]) {
   CLASS_SAVE_PROFICIENCIES[className].forEach(function(saveKey) {
-    const checkbox = document.getElementById("save-prof-" + saveKey);
+    const checkbox = $("save-prof-" + saveKey);
     if (checkbox) { checkbox.checked = true; }
     if (char.saves) char.saves[saveKey] = true;
   });
@@ -112,7 +122,7 @@ calcStats();
 calculateAC();
 }
 function initSkills() {
-const container = document.getElementById("skills-container");
+const container = $("skills-container");
 if (!container) return;
 container.innerHTML = "";
 skills.forEach(function(skill, index) {
@@ -127,24 +137,24 @@ container.appendChild(row);
 });
 }
 function updateSkillProfCount() {
-const countEl = document.getElementById("skills-prof-count");
+const countEl = $("skills-prof-count");
 if (!countEl) return;
 var count = 0;
-for (var i = 0; i < 18; i++) {
-  var cb = document.getElementById("skill-prof-" + i);
+for (var i = 0; i < skills.length; i++) {
+  var cb = $("skill-prof-" + i);
   if (cb && cb.checked) count++;
 }
 countEl.textContent = count > 0 ? count + " ✓" : "";
 }
 function updateClassFeatures() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 const className = char.class;
 const level = char.level;
-const featuresSection = document.getElementById("class-features-section");
-const featuresGrid = document.getElementById("features-grid");
-const asiContainer = document.getElementById("asi-container");
+const featuresSection = $("class-features-section");
+const featuresGrid = $("features-grid");
+const asiContainer = $("asi-container");
 if (!className || !CLASS_FEATURES[className]) {
 featuresSection.style.display = "none";
 return;
@@ -197,7 +207,7 @@ if (unusedASI.length > 0) {
 renderClassResources();
 }
 function initConditions() {
-const grid = document.getElementById("conditions-grid");
+const grid = $("conditions-grid");
 if (!grid) return;
 grid.innerHTML = "";
 CONDITIONS.forEach(function(condition) {
@@ -211,17 +221,17 @@ grid.appendChild(item);
 }
 function toggleCondition(conditionId) {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 if (!char.conditions) char.conditions = [];
 const index = char.conditions.indexOf(conditionId);
-const conditionEl = document.getElementById("condition-" + conditionId);
+const conditionEl = $("condition-" + conditionId);
 if (index > -1) {
 char.conditions.splice(index, 1);
-conditionEl.classList.remove("active");
+if (conditionEl) conditionEl.classList.remove("active");
 } else {
 char.conditions.push(conditionId);
-conditionEl.classList.add("active");
+if (conditionEl) conditionEl.classList.add("active");
 }
 updateConditionsCount();
 updateStatusBar();
@@ -230,8 +240,8 @@ saveToLocal();
 }
 function updateConditionsCount() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
-const countEl = document.getElementById("conditions-count");
+const char = getCurrentChar();
+const countEl = $("conditions-count");
 if (!countEl) return;
 const count = char.conditions ? char.conditions.length : 0;
 countEl.textContent = count;
@@ -239,21 +249,21 @@ countEl.style.display = count > 0 ? "inline-block" : "none";
 }
 function loadConditions() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char || !char.conditions) return;
 CONDITIONS.forEach(function(condition) {
-const conditionEl = document.getElementById("condition-" + condition.id);
+const conditionEl = $("condition-" + condition.id);
 if (char.conditions.includes(condition.id)) {
-conditionEl.classList.add("active");
+if (conditionEl) conditionEl.classList.add("active");
 } else {
-conditionEl.classList.remove("active");
+if (conditionEl) conditionEl.classList.remove("active");
 }
 });
 updateConditionsCount();
 updateStatusBar();
 }
 function initEffects() {
-const grid = document.getElementById("effects-grid");
+const grid = $("effects-grid");
 if (!grid) return;
 grid.innerHTML = "";
 EFFECTS_DATA.forEach(function(effect) {
@@ -267,17 +277,17 @@ grid.appendChild(item);
 }
 function toggleEffect(effectId) {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 if (!char.effects) char.effects = [];
 const index = char.effects.indexOf(effectId);
-const effectEl = document.getElementById("effect-" + effectId);
+const effectEl = $("effect-" + effectId);
 if (index > -1) {
 char.effects.splice(index, 1);
-effectEl.classList.remove("active");
+if (effectEl) effectEl.classList.remove("active");
 } else {
 char.effects.push(effectId);
-effectEl.classList.add("active");
+if (effectEl) effectEl.classList.add("active");
 }
 updateEffectsCount();
 updateStatusBar();
@@ -286,8 +296,8 @@ saveToLocal();
 }
 function updateEffectsCount() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
-const countEl = document.getElementById("effects-count");
+const char = getCurrentChar();
+const countEl = $("effects-count");
 if (!countEl) return;
 const count = char.effects ? char.effects.length : 0;
 countEl.textContent = count;
@@ -295,14 +305,14 @@ countEl.style.display = count > 0 ? "inline-block" : "none";
 }
 function loadEffects() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char || !char.effects) return;
 EFFECTS_DATA.forEach(function(effect) {
-const effectEl = document.getElementById("effect-" + effect.id);
+const effectEl = $("effect-" + effect.id);
 if (char.effects.includes(effect.id)) {
-effectEl.classList.add("active");
+if (effectEl) effectEl.classList.add("active");
 } else {
-effectEl.classList.remove("active");
+if (effectEl) effectEl.classList.remove("active");
 }
 });
 updateEffectsCount();
@@ -311,7 +321,7 @@ updateStatusBar();
 // 🔧 ИСПРАВЛЕНИЕ: Защита от undefined в calculateAC()
 function calculateAC() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 const dexMod = getMod(char.stats.dex);
 const conMod = getMod(char.stats.con);
@@ -340,10 +350,10 @@ if (armorId && armorId !== "none" && armorId !== "custom" && typeof ARMOR_PRESET
         }
       });
     }
-    const acTotalEl = document.getElementById("ac-total");
-    const acFormulaEl = document.getElementById("ac-formula");
-    const combatAcEl = document.getElementById("combat-ac");
-    const acModsEl = document.getElementById("ac-modifiers");
+    const acTotalEl = $("ac-total");
+    const acFormulaEl = $("ac-formula");
+    const combatAcEl = $("combat-ac");
+    const acModsEl = $("ac-modifiers");
     if (acTotalEl) acTotalEl.textContent = ac;
     if (acFormulaEl) acFormulaEl.textContent = formulaParts.join(" ");
     if (combatAcEl) combatAcEl.value = ac;
@@ -352,7 +362,7 @@ if (armorId && armorId !== "none" && armorId !== "custom" && typeof ARMOR_PRESET
         return "<div class=\"ac-modifier-item" + (mod.type === "negative" ? " negative" : "") + "\"><span>" + escapeHtml(mod.name) + "</span><span class=\"ac-modifier-value\">" + (mod.value >= 0 ? "+" : "") + mod.value + "</span></div>";
       }).join("");
     }
-    document.getElementById("status-ac").textContent = ac;
+    $("status-ac").textContent = ac;
     char.combat.ac = ac;
     return;
   }
@@ -423,10 +433,10 @@ modifiers.push({name: effect.name, value: effect.acBonus, type: "negative"});
 }
 });
 }
-document.getElementById("ac-total").textContent = ac;
-document.getElementById("ac-formula").textContent = formulaParts.join(" ");
-document.getElementById("combat-ac").value = ac;
-const modifiersContainer = document.getElementById("ac-modifiers");
+$("ac-total").textContent = ac;
+$("ac-formula").textContent = formulaParts.join(" ");
+$("combat-ac").value = ac;
+const modifiersContainer = $("ac-modifiers");
 modifiersContainer.innerHTML = "";
 modifiers.forEach(function(mod) {
 const modDiv = document.createElement("div");
@@ -434,22 +444,23 @@ modDiv.className = "ac-modifier-item" + (mod.type === "negative" ? " negative" :
 modDiv.innerHTML = "<span>" + escapeHtml(mod.name) + "</span><span class=\"ac-modifier-value\">" + (mod.value >= 0 ? "+" : "") + mod.value + "</span>";
 modifiersContainer.appendChild(modDiv);
 });
-document.getElementById("status-ac").textContent = ac;
+$("status-ac").textContent = ac;
 char.combat.ac = ac;
 }
 function updateStatusBar() {
+const statusBar = $("status-bar");
 if (!currentId) {
-document.getElementById("status-bar").classList.remove("visible");
+if (statusBar) statusBar.classList.remove("visible");
 return;
 }
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-document.getElementById("status-bar").classList.add("visible");
-document.getElementById("status-level").textContent = char.level || 1;
+if (statusBar) statusBar.classList.add("visible");
+$("status-level").textContent = char.level || 1;
 const hpCurrent = char.combat.hpCurrent || 0;
 const hpMax = char.combat.hpMax || 10;
-document.getElementById("status-hp-current").textContent = hpCurrent;
-document.getElementById("status-hp-max").textContent = hpMax;
+$("status-hp-current").textContent = hpCurrent;
+$("status-hp-max").textContent = hpMax;
 // Динамический цвет ХП
 const hpPercent = hpMax > 0 ? Math.round((hpCurrent / hpMax) * 100) : 100;
 const statusHpEl = document.querySelector(".status-hp");
@@ -459,7 +470,7 @@ if (statusHpEl) {
   else if (hpPercent <= 50) statusHpEl.classList.add("hp-low");
   else statusHpEl.classList.add("hp-ok");
 }
-const conditionsContainer = document.getElementById("status-conditions");
+const conditionsContainer = $("status-conditions");
 conditionsContainer.innerHTML = "";
 if (char.conditions && char.conditions.length > 0) {
 char.conditions.forEach(function(condId) {
@@ -497,13 +508,14 @@ function saveToLocal() {
 try {
 localStorage.setItem("dnd_chars", JSON.stringify(characters));
 localStorage.setItem("dnd_spells", JSON.stringify(SPELL_DATABASE));
+localStorage.setItem("dnd_hp_history", JSON.stringify(hpHistory));
 } catch(e) { console.log("Ошибка сохранения:", e); }
 }
 function showScreen(screenName) {
-const charactersScreen = document.getElementById("screen-characters");
-const characterScreen = document.getElementById("screen-character");
-const characterTabs = document.getElementById("character-tabs");
-const statusBar = document.getElementById("status-bar");
+const charactersScreen = $("screen-characters");
+const characterScreen = $("screen-character");
+const characterTabs = $("character-tabs");
+const statusBar = $("status-bar");
 if (charactersScreen) charactersScreen.classList.add("hidden");
 if (characterScreen) characterScreen.classList.add("hidden");
 if (characterTabs) characterTabs.classList.add("hidden");
@@ -521,20 +533,20 @@ updateStatusBar();
 }
 function updateHeaderTitle() {
 if (!currentId) {
-document.getElementById("header-title").textContent = "🎭 Мой Персонаж D&D 5e";
+$("header-title").textContent = "🎭 Мой Персонаж D&D 5e";
 return;
 }
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (char && char.name) {
-document.getElementById("header-title").textContent = "🎭 " + escapeHtml(char.name);
+$("header-title").textContent = "🎭 " + escapeHtml(char.name);
 } else {
-document.getElementById("header-title").textContent = "🎭 Мой Персонаж D&D 5e";
+$("header-title").textContent = "🎭 Мой Персонаж D&D 5e";
 }
 }
 function switchTab(tabName, btnEl) {
 document.querySelectorAll(".tab-content").forEach(function(tab) { tab.classList.remove("active"); });
 document.querySelectorAll(".tab-btn").forEach(function(btn) { btn.classList.remove("active"); });
-var tabElement = document.getElementById("tab-" + tabName);
+var tabElement = $("tab-" + tabName);
 if (tabElement) tabElement.classList.add("active");
 var activeBtn = btnEl ? btnEl.closest(".tab-btn") : null;
 if (activeBtn) activeBtn.classList.add("active");
@@ -544,8 +556,8 @@ if (tabName === "battle") { openBattleTab(); }
 if (tabName === "journal") { renderJournal(); }
 }
 function updateStatDisplay(stat) {
-  var inp = document.getElementById("val-" + stat);
-  var disp = document.getElementById("val-display-" + stat);
+  var inp = $("val-" + stat);
+  var disp = $("val-display-" + stat);
   if (inp && disp) disp.textContent = inp.value || "10";
 }
 function updateAllStatDisplays() {
@@ -553,7 +565,7 @@ function updateAllStatDisplays() {
 }
 
 function adjustStat(stat, delta) {
-const input = document.getElementById("val-" + stat);
+const input = $("val-" + stat);
 if (!input) return;
 let value = parseInt(input.value) || 10;
 value += delta;
@@ -572,7 +584,7 @@ calcStats();
 calculateAC();
 }
 function adjustCoin(coinType, delta) {
-const input = document.getElementById("coin-" + coinType);
+const input = $("coin-" + coinType);
 if (!input) return;
 let value = parseInt(input.value) || 0;
 value += delta;
@@ -581,8 +593,8 @@ input.value = value;
 updateChar();
 }
 function updateSubclassOptions() {
-const classSelect = document.getElementById("char-class");
-const subclassSelect = document.getElementById("char-subclass");
+const classSelect = $("char-class");
+const subclassSelect = $("char-subclass");
 if (!classSelect || !subclassSelect) return;
 const selectedClass = classSelect.value;
 subclassSelect.innerHTML = "<option value=\"\">Выберите подкласс</option>";
@@ -605,14 +617,14 @@ return level1HP + additionalHP;
 }
 function recalculateHP() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-const levelEl = document.getElementById("char-level");
-const conEl = document.getElementById("val-con");
-const classEl = document.getElementById("char-class");
-const hpMaxEl = document.getElementById("hp-max");
-const hpDiceEl = document.getElementById("hp-dice");
-const hpDiceAvailableEl = document.getElementById("hp-dice-available");
+const levelEl = $("char-level");
+const conEl = $("val-con");
+const classEl = $("char-class");
+const hpMaxEl = $("hp-max");
+const hpDiceEl = $("hp-dice");
+const hpDiceAvailableEl = $("hp-dice-available");
 if (!levelEl || !conEl || !classEl) return;
 const level = parseInt(levelEl.value) || 1;
 const conMod = getMod(parseInt(conEl.value) || 10);
@@ -621,7 +633,7 @@ const hitDie = CLASS_HIT_DICE[className] || 8;
 const newMaxHP = calculateMaxHP(level, conMod, hitDie);
 if (hpMaxEl) hpMaxEl.value = newMaxHP;
 // Also update the visible manual field (only if not actively editing it)
-const hpMaxManualEl = document.getElementById("hp-max-manual");
+const hpMaxManualEl = $("hp-max-manual");
 if (hpMaxManualEl && document.activeElement !== hpMaxManualEl) hpMaxManualEl.value = newMaxHP;
 if (hpDiceEl) hpDiceEl.value = "1к" + hitDie;
 if (hpDiceAvailableEl) hpDiceAvailableEl.value = (level - (char.combat.hpDiceSpent || 0)) + "/" + level;
@@ -708,7 +720,7 @@ var charSortMode = "updated";
 function setCharSort(mode) {
 charSortMode = mode;
 document.querySelectorAll(".sort-btn").forEach(function(b) { b.classList.remove("active"); });
-var btn = document.getElementById("sort-btn-" + mode);
+var btn = $("sort-btn-" + mode);
 if (btn) btn.classList.add("active");
 renderCharacterList();
 }
@@ -740,7 +752,7 @@ a.download = (char.name || "персонаж").replace(/[^a-zA-Zа-яА-Я0-9]/g
 a.click();
 }
 function updateCharCounter() {
-var el = document.getElementById("char-count");
+var el = $("char-count");
 if (!el) return;
 var total = characters.length;
 var filtered2 = characters.filter(function(c) {
@@ -770,7 +782,7 @@ saveToLocal();
 renderCharacterList();
 }
 function renderCharacterList() {
-const list = document.getElementById("character-list");
+const list = $("character-list");
 if (!list) return;
 list.innerHTML = "";
 updateCharCounter();
@@ -847,11 +859,11 @@ showConfirmModal(
 );
 }
 function showConfirmModal(title, text, onConfirm) {
-var modal = document.getElementById("confirm-modal");
-var titleEl = document.getElementById("confirm-modal-title");
-var textEl = document.getElementById("confirm-modal-text");
-var confirmBtn = document.getElementById("confirm-modal-ok");
-var cancelBtn = document.getElementById("confirm-modal-cancel");
+var modal = $("confirm-modal");
+var titleEl = $("confirm-modal-title");
+var textEl = $("confirm-modal-text");
+var confirmBtn = $("confirm-modal-ok");
+var cancelBtn = $("confirm-modal-cancel");
 if (!modal) return;
 titleEl.textContent = title;
 textEl.textContent = text;
@@ -860,11 +872,11 @@ var newConfirm = confirmBtn.cloneNode(true);
 confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
 var newCancel = cancelBtn.cloneNode(true);
 cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
-document.getElementById("confirm-modal-ok").addEventListener("click", function() {
+$("confirm-modal-ok").addEventListener("click", function() {
   modal.classList.remove("active");
   onConfirm();
 });
-document.getElementById("confirm-modal-cancel").addEventListener("click", function() {
+$("confirm-modal-cancel").addEventListener("click", function() {
   modal.classList.remove("active");
 });
 modal.addEventListener("click", function(e) {
@@ -872,11 +884,11 @@ modal.addEventListener("click", function(e) {
 }, { once: true });
 }
 function safeSet(id, value) {
-const el = document.getElementById(id);
+const el = $(id);
 if (el) el.value = value;
 }
 function safeSetChecked(id, checked) {
-const el = document.getElementById(id);
+const el = $(id);
 if (el) el.checked = checked;
 }
 // ============================================
@@ -886,6 +898,23 @@ function loadCharacter(id) {
 currentId = id;
 const char = characters.find(function(c) { return c.id === id; });
 if (!char) return;
+
+// Load per-character party data
+if (char.party) {
+  PARTY_DATA = char.party;
+  if (!PARTY_DATA.allies)   PARTY_DATA.allies   = [];
+  if (!PARTY_DATA.monsters) PARTY_DATA.monsters = [];
+  if (!PARTY_DATA.npcs)     PARTY_DATA.npcs     = [];
+} else {
+  PARTY_DATA = { allies: [], monsters: [], npcs: [] };
+}
+
+// Load per-character battle data
+if (char.battle) {
+  BATTLE_DATA = char.battle;
+} else {
+  BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
+}
 const savedSubclass = char.subclass || "";
 safeSet("char-name", char.name);
 safeSet("char-level", char.level);
@@ -964,7 +993,7 @@ safeSetChecked("char-shield", char.combat.hasShield || false);
 if (armorId !== "custom") { setTimeout(onArmorChange, 0); }
 calculateAC();
 // Restore HP max manual field
-var hpMaxEl = document.getElementById("hp-max-manual");
+var hpMaxEl = $("hp-max-manual");
 if (hpMaxEl) hpMaxEl.value = char.combat.hpMax || "";
 // Show race bonuses
 setTimeout(onRaceChange, 0);
@@ -978,14 +1007,19 @@ loadDeathSaves();
 renderCompanions();
 renderJournal();
 renderTakenFeats();
+// Re-render party and battle with character-specific data
+renderMyChar();
+renderAllies();
+renderNPCs();
+renderMonsters();
 showScreen("character");
 var lastTab = "";
 try { lastTab = localStorage.getItem("dnd_last_tab") || "sheet"; } catch(e) { lastTab = "sheet"; }
-var tabEl = document.getElementById("tab-" + lastTab);
+var tabEl = $("tab-" + lastTab);
 if (!tabEl) lastTab = "sheet";
 document.querySelectorAll(".tab-content").forEach(function(t) { t.classList.remove("active"); });
 document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
-var activeTabEl = document.getElementById("tab-" + lastTab);
+var activeTabEl = $("tab-" + lastTab);
 if (activeTabEl) activeTabEl.classList.add("active");
 document.querySelectorAll(".tab-btn").forEach(function(b) {
   if (b.getAttribute("onclick") && b.getAttribute("onclick").includes("'" + lastTab + "'")) b.classList.add("active");
@@ -995,46 +1029,46 @@ if (lastTab === "battle") setTimeout(openBattleTab, 0);
 }
 function updateChar() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-char.name = document.getElementById("char-name")?.value || "";
-char.level = parseInt(document.getElementById("char-level")?.value) || 1;
-char.exp = parseInt(document.getElementById("char-exp")?.value) || 0;
-char.class = document.getElementById("char-class")?.value || "";
-char.subclass = document.getElementById("char-subclass")?.value || "";
-char.race = document.getElementById("char-race")?.value || "";
-char.background = document.getElementById("char-background")?.value || "";
-char.alignment = document.getElementById("char-alignment")?.value || "";
-char.size = document.getElementById("char-size")?.value || "Средний";
-char.speed = document.getElementById("char-speed")?.value || "30 фт";
-char.combat.ac = parseInt(document.getElementById("combat-ac")?.value) || 10;
-char.combat.armorId   = document.getElementById("char-armor")?.value || "none";
-char.combat.hasShield = document.getElementById("char-shield")?.checked || false;
-char.combat.hpCurrent = parseInt(document.getElementById("hp-current")?.value) || 0;
-char.combat.hpTemp = parseInt(document.getElementById("hp-temp")?.value) || 0;
-char.combat.hpDiceSpent = parseInt(document.getElementById("hp-dice-spent")?.value) || 0;
-char.combat.speed = document.getElementById("combat-speed")?.value || "30 фт";
-char.proficiencies.tools = document.getElementById("tool-proficiencies")?.value || "";
-char.proficiencies.languages = document.getElementById("languages")?.value || "";
-char.coins.cp = parseInt(document.getElementById("coin-cp")?.value) || 0;
-char.coins.sp = parseInt(document.getElementById("coin-sp")?.value) || 0;
-char.coins.ep = parseInt(document.getElementById("coin-ep")?.value) || 0;
-char.coins.gp = parseInt(document.getElementById("coin-gp")?.value) || 0;
-char.coins.pp = parseInt(document.getElementById("coin-pp")?.value) || 0;
+char.name = $("char-name")?.value || "";
+char.level = parseInt($("char-level")?.value) || 1;
+char.exp = parseInt($("char-exp")?.value) || 0;
+char.class = $("char-class")?.value || "";
+char.subclass = $("char-subclass")?.value || "";
+char.race = $("char-race")?.value || "";
+char.background = $("char-background")?.value || "";
+char.alignment = $("char-alignment")?.value || "";
+char.size = $("char-size")?.value || "Средний";
+char.speed = $("char-speed")?.value || "30 фт";
+char.combat.ac = parseInt($("combat-ac")?.value) || 10;
+char.combat.armorId   = $("char-armor")?.value || "none";
+char.combat.hasShield = $("char-shield")?.checked || false;
+char.combat.hpCurrent = parseInt($("hp-current")?.value) || 0;
+char.combat.hpTemp = parseInt($("hp-temp")?.value) || 0;
+char.combat.hpDiceSpent = parseInt($("hp-dice-spent")?.value) || 0;
+char.combat.speed = $("combat-speed")?.value || "30 фт";
+char.proficiencies.tools = $("tool-proficiencies")?.value || "";
+char.proficiencies.languages = $("languages")?.value || "";
+char.coins.cp = parseInt($("coin-cp")?.value) || 0;
+char.coins.sp = parseInt($("coin-sp")?.value) || 0;
+char.coins.ep = parseInt($("coin-ep")?.value) || 0;
+char.coins.gp = parseInt($("coin-gp")?.value) || 0;
+char.coins.pp = parseInt($("coin-pp")?.value) || 0;
 calcCoinWeight();
-char.notes = document.getElementById("char-notes")?.value || "";
-char.features = document.getElementById("char-features")?.value || "";
-char.appearance = document.getElementById("char-appearance")?.value || "";
-char.magicItems = document.getElementById("magic-items")?.value || "";
-char.spells.stat = document.getElementById("spell-stat")?.value || "";
+char.notes = $("char-notes")?.value || "";
+char.features = $("char-features")?.value || "";
+char.appearance = $("char-appearance")?.value || "";
+char.magicItems = $("magic-items")?.value || "";
+char.spells.stat = $("spell-stat")?.value || "";
 for(let i=1; i<=9; i++) {
 if(char.spells.slots[i] !== undefined) {
-const slotInput = document.getElementById("slots-" + i + "-total");
+const slotInput = $("slots-" + i + "-total");
 if(slotInput) char.spells.slots[i] = parseInt(slotInput.value) || 0;
 }
 }
 calcSpellStats();
-const char2 = characters.find(function(c) { return c.id === currentId; });
+const char2 = getCurrentChar();
 if (char2) char2.updatedAt = Date.now();
 saveToLocal();
 updateHeaderTitle();
@@ -1043,7 +1077,7 @@ updateHPDisplay();
 }
 function toggleProficiency(type, value, checkbox) {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 if (type === "armor") {
 if (!char.proficiencies.armor) char.proficiencies.armor = [];
@@ -1066,30 +1100,30 @@ saveToLocal();
 }
 function calcStats() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-const level = parseInt(document.getElementById("char-level")?.value) || 1;
+const level = parseInt($("char-level")?.value) || 1;
 const proficiencyBonus = getProficiencyBonus(level);
-const profBonusEl = document.getElementById("proficiency-bonus");
+const profBonusEl = $("proficiency-bonus");
 if (profBonusEl) profBonusEl.innerText = "+" + proficiencyBonus;
 const stats = ["str", "dex", "con", "int", "wis", "cha"];
 stats.forEach(function(s) {
-const val = parseInt(document.getElementById("val-" + s)?.value) || 10;
+const val = parseInt($("val-" + s)?.value) || 10;
 char.stats[s] = val;
 const mod = getMod(val);
-const modEl = document.getElementById("mod-" + s);
+const modEl = $("mod-" + s);
 if (modEl) modEl.innerText = formatMod(mod);
 });
 const dexMod = getMod(char.stats.dex);
-const initEl = document.getElementById("combat-init");
+const initEl = $("combat-init");
 if (initEl) initEl.value = formatMod(dexMod);
 SAVES_DATA.forEach(function(save) {
-const checkbox = document.getElementById("save-prof-" + save.key);
-const item = document.getElementById("save-item-" + save.key);
+const checkbox = $("save-prof-" + save.key);
+const item = $("save-item-" + save.key);
 if(checkbox) {
 let bonus = getMod(char.stats[save.key]);
 if(checkbox.checked) bonus += proficiencyBonus;
-const bonusEl = document.getElementById("save-bonus-" + save.key);
+const bonusEl = $("save-bonus-" + save.key);
 if (bonusEl) bonusEl.innerText = formatMod(bonus);
 char.saves[save.key] = checkbox.checked;
 }
@@ -1102,32 +1136,32 @@ item.classList.remove("proficient");
 }
 });
 skills.forEach(function(skill, index) {
-const checkbox = document.getElementById("skill-prof-" + index);
+const checkbox = $("skill-prof-" + index);
 if(checkbox) {
 let bonus = getMod(char.stats[skill.stat]);
 if(checkbox.checked) bonus += proficiencyBonus;
-const bonusEl = document.getElementById("skill-bonus-" + index);
+const bonusEl = $("skill-bonus-" + index);
 if (bonusEl) bonusEl.innerText = formatMod(bonus);
 char.skills[index] = checkbox.checked;
 }
 });
 const wisMod = getMod(char.stats.wis);
-const perceptionCheckbox = document.getElementById("skill-prof-3");
+const perceptionCheckbox = $("skill-prof-3");
 let passivePerception = 10 + wisMod;
 if(perceptionCheckbox && perceptionCheckbox.checked) passivePerception += proficiencyBonus;
-const passiveEl = document.getElementById("passive-perception");
+const passiveEl = $("passive-perception");
 if (passiveEl) passiveEl.innerText = passivePerception;
 calcSpellStats();
 // Обновляем updatedAt при любом изменении характеристик
-const charForUpdate = characters.find(function(c) { return c.id === currentId; });
+const charForUpdate = getCurrentChar();
 if (charForUpdate) { charForUpdate.updatedAt = Date.now(); }
 saveToLocal();
 }
 function calcSpellStats() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-const level = parseInt(document.getElementById("char-level")?.value) || 1;
+const level = parseInt($("char-level")?.value) || 1;
 const proficiencyBonus = getProficiencyBonus(level);
 let statMod = 0;
 const stat = char.spells.stat || "";
@@ -1149,8 +1183,8 @@ saveToLocal();
 // РАСА: отображение бонусов
 // ============================================
 function onRaceChange() {
-  var raceEl = document.getElementById("char-race");
-  var displayEl = document.getElementById("race-bonus-display");
+  var raceEl = $("char-race");
+  var displayEl = $("race-bonus-display");
   if (!raceEl || !displayEl) return;
   var race = raceEl.value;
   var data = (typeof RACE_DATA !== "undefined") && RACE_DATA[race];
@@ -1170,13 +1204,13 @@ function onRaceChange() {
 
   // Обновляем ОБА поля скорости
   var speedVal = data.speed + " фт";
-  var charSpeedEl  = document.getElementById("char-speed");
-  var combatSpeedEl = document.getElementById("combat-speed");
+  var charSpeedEl  = $("char-speed");
+  var combatSpeedEl = $("combat-speed");
   if (charSpeedEl)   charSpeedEl.value  = speedVal;
   if (combatSpeedEl) combatSpeedEl.value = speedVal;
 
   if (currentId) {
-    var char = characters.find(function(c) { return c.id === currentId; });
+    var char = getCurrentChar();
     if (char) {
       char.speed        = speedVal;
       char.combat.speed = speedVal;
@@ -1190,7 +1224,7 @@ function onRaceChange() {
 // ============================================
 function onBackgroundChange() {
   if (!currentId) return;
-  var bgEl = document.getElementById("char-background");
+  var bgEl = $("char-background");
   if (!bgEl) return;
   var bg = bgEl.value;
   var skillList = (typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bg];
@@ -1199,7 +1233,7 @@ function onBackgroundChange() {
   skillList.forEach(function(skillName) {
     var idx = skills.findIndex(function(s) { return s.name === skillName; });
     if (idx !== -1) {
-      var cb = document.getElementById("skill-prof-" + idx);
+      var cb = $("skill-prof-" + idx);
       if (cb && !cb.checked) { cb.checked = true; }
     }
   });
@@ -1212,10 +1246,10 @@ function onBackgroundChange() {
 // ============================================
 function onArmorChange() {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
-  var armorId = document.getElementById("char-armor")?.value || "none";
-  var hasShield = document.getElementById("char-shield")?.checked || false;
+  var armorId = $("char-armor")?.value || "none";
+  var hasShield = $("char-shield")?.checked || false;
   char.combat.armorId  = armorId;
   char.combat.hasShield = hasShield;
   if (armorId === "custom") return; // manual mode - don't recalc
@@ -1235,28 +1269,28 @@ function onArmorChange() {
     if (!char.proficiencies.armor.includes("shield")) char.proficiencies.armor.push("shield");
     safeSetChecked("armor-shield", true);
   }
-  var acEl = document.getElementById("combat-ac");
+  var acEl = $("combat-ac");
   if (acEl) acEl.value = ac;
   char.combat.ac = ac;
-  document.getElementById("ac-total").textContent = ac;
-  document.getElementById("ac-formula").textContent = preset.name + ": " + preset.baseAC + (dexBonus !== 0 ? (dexBonus > 0 ? " +" : " ") + dexBonus + " (ЛОВ)" : "") + (hasShield ? " +2 (щит)" : "");
-  document.getElementById("status-ac").textContent = ac;
+  $("ac-total").textContent = ac;
+  $("ac-formula").textContent = preset.name + ": " + preset.baseAC + (dexBonus !== 0 ? (dexBonus > 0 ? " +" : " ") + dexBonus + " (ЛОВ)" : "") + (hasShield ? " +2 (щит)" : "");
+  $("status-ac").textContent = ac;
   saveToLocal();
   updateStatusBar();
 }
 
 function onManualAC() {
   // When user types КД manually, switch armor select to "custom"
-  var armorEl = document.getElementById("char-armor");
+  var armorEl = $("char-armor");
   if (armorEl && armorEl.value !== "custom") armorEl.value = "custom";
   updateChar();
 }
 
 function onManualMaxHP() {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
-  var val = parseInt(document.getElementById("hp-max-manual")?.value) || 0;
+  var val = parseInt($("hp-max-manual")?.value) || 0;
   if (val < 1) return;
   char.combat.hpMax = val;
   // also sync hidden field
@@ -1271,46 +1305,46 @@ function onManualMaxHP() {
 
 
 function calcCoinWeight() {
-const cp = parseInt(document.getElementById("coin-cp")?.value) || 0;
-const sp = parseInt(document.getElementById("coin-sp")?.value) || 0;
-const ep = parseInt(document.getElementById("coin-ep")?.value) || 0;
-const gp = parseInt(document.getElementById("coin-gp")?.value) || 0;
-const pp = parseInt(document.getElementById("coin-pp")?.value) || 0;
+const cp = parseInt($("coin-cp")?.value) || 0;
+const sp = parseInt($("coin-sp")?.value) || 0;
+const ep = parseInt($("coin-ep")?.value) || 0;
+const gp = parseInt($("coin-gp")?.value) || 0;
+const pp = parseInt($("coin-pp")?.value) || 0;
 const totalCoins = cp + sp + ep + gp + pp;
 const weight = (totalCoins / 50).toFixed(2);
-const coinWeightEl = document.getElementById("coin-weight");
+const coinWeightEl = $("coin-weight");
 if (coinWeightEl) coinWeightEl.innerText = "Вес монет: " + weight + " фнт";
 updateInventoryWeight();
 }
 function openRestModal() {
-if (!currentId) { alert("Сначала выберите персонажа!"); return; }
-const modal = document.getElementById("rest-modal");
+if (!currentId) { showToast("Сначала выберите персонажа!", "warn"); return; }
+const modal = $("rest-modal");
 if (modal) modal.classList.add("active");
 showRestMain();
 }
 function closeRestModal() {
-const modal = document.getElementById("rest-modal");
+const modal = $("rest-modal");
 if (modal) modal.classList.remove("active");
 currentRestType = null;
 hitDiceToSpend = 0;
 }
 function showRestMain() {
-const main = document.getElementById("rest-main-screen");
-const info = document.getElementById("rest-info-screen");
-const result = document.getElementById("rest-result-screen");
+const main = $("rest-main-screen");
+const info = $("rest-info-screen");
+const result = $("rest-result-screen");
 if (main) main.classList.remove("hidden");
 if (info) info.classList.add("hidden");
 if (result) result.classList.add("hidden");
 }
 function showShortRestInfo() {
 currentRestType = "short";
-const main = document.getElementById("rest-main-screen");
-const info = document.getElementById("rest-info-screen");
-const result = document.getElementById("rest-result-screen");
-const title = document.getElementById("rest-info-title");
-const list = document.getElementById("rest-info-list");
-const hitDiceSection = document.getElementById("hit-dice-section");
-const confirmBtn = document.getElementById("confirm-rest-btn");
+const main = $("rest-main-screen");
+const info = $("rest-info-screen");
+const result = $("rest-result-screen");
+const title = $("rest-info-title");
+const list = $("rest-info-list");
+const hitDiceSection = $("hit-dice-section");
+const confirmBtn = $("confirm-rest-btn");
 if (main) main.classList.add("hidden");
 if (info) info.classList.remove("hidden");
 if (result) result.classList.add("hidden");
@@ -1322,13 +1356,13 @@ updateHitDiceInfo();
 }
 function showLongRestInfo() {
 currentRestType = "long";
-const main = document.getElementById("rest-main-screen");
-const info = document.getElementById("rest-info-screen");
-const result = document.getElementById("rest-result-screen");
-const title = document.getElementById("rest-info-title");
-const list = document.getElementById("rest-info-list");
-const hitDiceSection = document.getElementById("hit-dice-section");
-const confirmBtn = document.getElementById("confirm-rest-btn");
+const main = $("rest-main-screen");
+const info = $("rest-info-screen");
+const result = $("rest-result-screen");
+const title = $("rest-info-title");
+const list = $("rest-info-list");
+const hitDiceSection = $("hit-dice-section");
+const confirmBtn = $("confirm-rest-btn");
 if (main) main.classList.add("hidden");
 if (info) info.classList.remove("hidden");
 if (result) result.classList.add("hidden");
@@ -1338,11 +1372,11 @@ if (hitDiceSection) hitDiceSection.classList.add("hidden");
 if (confirmBtn) confirmBtn.textContent = "Долгий отдых";
 }
 function showRestResult(title, details) {
-const main = document.getElementById("rest-main-screen");
-const info = document.getElementById("rest-info-screen");
-const result = document.getElementById("rest-result-screen");
-const resultTitle = document.getElementById("rest-result-title");
-const resultDetails = document.getElementById("rest-result-details");
+const main = $("rest-main-screen");
+const info = $("rest-info-screen");
+const result = $("rest-result-screen");
+const resultTitle = $("rest-result-title");
+const resultDetails = $("rest-result-details");
 if (main) main.classList.add("hidden");
 if (info) info.classList.add("hidden");
 if (result) result.classList.remove("hidden");
@@ -1350,7 +1384,7 @@ if (resultTitle) resultTitle.textContent = title;
 if (resultDetails) resultDetails.innerHTML = details;
 }
 function adjustHitDice(delta) {
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 const maxHitDice = char.level || 1;
 const availableHitDice = maxHitDice - (char.combat.hpDiceSpent || 0);
@@ -1361,7 +1395,7 @@ safeSet("hit-dice-to-spend", hitDiceToSpend);
 updateHitDiceInfo();
 }
 function updateHitDiceInfo() {
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 const maxHitDice = char.level || 1;
 const availableHitDice = maxHitDice - (char.combat.hpDiceSpent || 0);
@@ -1370,14 +1404,14 @@ const hitDiceValue = hitDiceMatch ? parseInt(hitDiceMatch[2]) : 8;
 const avgHeal = Math.floor(hitDiceValue / 2) + 1;
 const conMod = getMod(char.stats.con);
 const totalHeal = hitDiceToSpend * (avgHeal + conMod);
-const availableEl = document.getElementById("hit-dice-available-rest");
-const healEl = document.getElementById("hit-dice-heal");
+const availableEl = $("hit-dice-available-rest");
+const healEl = $("hit-dice-heal");
 if (availableEl) availableEl.textContent = availableHitDice;
 if (healEl) healEl.textContent = totalHeal;
 }
 function confirmRest() {
 if (!currentId || !currentRestType) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 let resultTitle = "";
 let resultDetails = "";
@@ -1385,15 +1419,33 @@ const oldHp = parseInt(char.combat.hpCurrent);
 if (currentRestType === "short") {
 var _hitDie = parseInt(char.combat.hpDice.match(/(\d+)[кK](\d+)/)?.[2] || 8);
 var _conMod = getMod(char.stats.con);
-const hpHealed = hitDiceToSpend > 0 ? hitDiceToSpend * (Math.floor(_hitDie / 2) + 1 + _conMod) : 0;
+// FIX: roll each die individually instead of using average
+var hpHealed = 0;
+var rollLog = [];
+for (var _i = 0; _i < hitDiceToSpend; _i++) {
+  var _roll = Math.floor(Math.random() * _hitDie) + 1;
+  var _total = Math.max(1, _roll + _conMod);
+  hpHealed += _total;
+  rollLog.push(_roll + ((_conMod >= 0 ? "+" : "") + _conMod) + "=" + _total);
+}
+hpHealed = Math.max(0, hpHealed);
 char.combat.hpCurrent = Math.min(parseInt(char.combat.hpCurrent) + hpHealed, parseInt(char.combat.hpMax));
 char.combat.hpDiceSpent = (char.combat.hpDiceSpent || 0) + hitDiceToSpend;
+// FIX: Warlock recovers spell slots on short rest
+if (char.class === "Колдун" && char.spells && char.spells.slots) {
+  for (var _si = 1; _si <= 9; _si++) {
+    if (char.spells.slots[_si]) char.spells.slotsUsed[_si] = 0;
+  }
+}
 if (hpHealed > 0) {
   addHPHistory(oldHp, char.combat.hpCurrent, hpHealed, "Короткий отдых");
   showHPToast(hpHealed);
 }
+resetResourcesByRest("short");
 resultTitle = "✅ Короткий отдых завершён!";
-resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>🎲 Потрачено костей: " + hitDiceToSpend + "</p><p>❤️ Восстановлено ХП: " + hpHealed + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>";
+var rollStr = rollLog.length > 0 ? " (" + rollLog.join(", ") + ")" : "";
+var warlockStr = (char.class === "Колдун") ? "<p>🔮 Ячейки пакта восстановлены</p>" : "";
+resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>🎲 Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>❤️ Восстановлено ХП: " + hpHealed + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr;
 } else if (currentRestType === "long") {
 const maxHp = parseInt(char.combat.hpMax);
 char.combat.hpCurrent = maxHp;
@@ -1418,11 +1470,11 @@ loadCharacter(currentId);
 showRestResult(resultTitle, resultDetails);
 }
 function openLevelUpModal() {
-if (!currentId) { alert("Сначала выберите персонажа!"); return; }
-const char = characters.find(function(c) { return c.id === currentId; });
+if (!currentId) { showToast("Сначала выберите персонажа!", "warn"); return; }
+const char = getCurrentChar();
 if (!char) return;
 const currentLevel = char.level || 1;
-if (currentLevel >= 20) { alert("Максимальный уровень достигнут!"); return; }
+if (currentLevel >= 20) { showToast("Максимальный уровень достигнут!", "warn"); return; }
 const newLevel = currentLevel + 1;
 const conMod = getMod(char.stats.con);
 const className = char.class;
@@ -1432,24 +1484,24 @@ const newMaxHP = calculateMaxHP(newLevel, conMod, hitDie);
 const hpGain = newMaxHP - currentMaxHP;
 const profOld = getProficiencyBonus(currentLevel);
 const profNew = getProficiencyBonus(newLevel);
-document.getElementById("lu-from-level").textContent = currentLevel;
-document.getElementById("lu-to-level").textContent = newLevel;
-document.getElementById("lu-hp-from").textContent = currentMaxHP;
-document.getElementById("lu-hp-to").textContent = newMaxHP;
-document.getElementById("lu-hp-gain").textContent = "+" + hpGain;
-document.getElementById("lu-hit-die").textContent = "1к" + hitDie;
-document.getElementById("lu-dice-count").textContent = newLevel + " шт.";
-document.getElementById("lu-prof-old").textContent = "+" + profOld;
+$("lu-from-level").textContent = currentLevel;
+$("lu-to-level").textContent = newLevel;
+$("lu-hp-from").textContent = currentMaxHP;
+$("lu-hp-to").textContent = newMaxHP;
+$("lu-hp-gain").textContent = "+" + hpGain;
+$("lu-hit-die").textContent = "1к" + hitDie;
+$("lu-dice-count").textContent = newLevel + " шт.";
+$("lu-prof-old").textContent = "+" + profOld;
 if (profNew !== profOld) {
-document.getElementById("lu-prof-arrow").style.display = "inline";
-document.getElementById("lu-prof-new").style.display = "inline";
-document.getElementById("lu-prof-new").textContent = "+" + profNew;
+$("lu-prof-arrow").style.display = "inline";
+$("lu-prof-new").style.display = "inline";
+$("lu-prof-new").textContent = "+" + profNew;
 } else {
-document.getElementById("lu-prof-arrow").style.display = "none";
-document.getElementById("lu-prof-new").style.display = "none";
+$("lu-prof-arrow").style.display = "none";
+$("lu-prof-new").style.display = "none";
 }
-const slotsCard = document.getElementById("lu-slots-card");
-const slotsInfo = document.getElementById("lu-slots-info");
+const slotsCard = $("lu-slots-card");
+const slotsInfo = $("lu-slots-info");
 if (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][newLevel]) {
 const newSlots = SPELL_SLOTS_BY_LEVEL[className][newLevel];
 const oldSlots = SPELL_SLOTS_BY_LEVEL[className][currentLevel] || [];
@@ -1464,7 +1516,7 @@ slotsCard.style.display = "";
 slotsInfo.innerHTML = slotParts.join("  •  ");
 } else { slotsCard.style.display = "none"; }
 } else { slotsCard.style.display = "none"; }
-const featuresContainer = document.getElementById("lu-features-container");
+const featuresContainer = $("lu-features-container");
 featuresContainer.innerHTML = "";
 if (CLASS_FEATURES[className] && CLASS_FEATURES[className][newLevel]) {
 CLASS_FEATURES[className][newLevel].forEach(function(f) {
@@ -1474,18 +1526,18 @@ div.innerHTML = "<div class=\"lu-feature-name\">" + escapeHtml(f.name) + "</div>
 featuresContainer.appendChild(div);
 });
 }
-document.getElementById("lu-screen-preview").style.display = "";
-document.getElementById("lu-screen-result").style.display = "none";
-const modal = document.getElementById("levelup-modal");
+$("lu-screen-preview").style.display = "";
+$("lu-screen-result").style.display = "none";
+const modal = $("levelup-modal");
 if (modal) modal.classList.add("active");
 }
 function closeLevelUpModal() {
-const modal = document.getElementById("levelup-modal");
+const modal = $("levelup-modal");
 if (modal) modal.classList.remove("active");
 }
 function confirmLevelUp() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 const oldLevel = char.level || 1;
 const oldMaxHP = parseInt(char.combat.hpMax);
@@ -1513,9 +1565,9 @@ loadCharacter(currentId);
 updateClassFeatures();
 renderClassResources();
 renderSpellSlots();
-document.getElementById("lu-screen-preview").style.display = "none";
-document.getElementById("lu-screen-result").style.display = "";
-document.getElementById("lu-result-title").textContent = "Уровень " + char.level + " достигнут!";
+$("lu-screen-preview").style.display = "none";
+$("lu-screen-result").style.display = "";
+$("lu-result-title").textContent = "Уровень " + char.level + " достигнут!";
 addJournalEntry("levelup", "Достигнут " + char.level + " уровень!", "ХП: " + oldMaxHP + " → " + newMaxHP + " · Бонус мастерства: +" + newProf);
 renderJournal();
 let resultLines = ["❤️ ХП: " + oldMaxHP + " → " + newMaxHP + " (+" + hpGain + ")", "🎲 Костей хитов: " + char.level];
@@ -1524,52 +1576,101 @@ if (CLASS_FEATURES[className] && CLASS_FEATURES[className][char.level]) {
 const names = CLASS_FEATURES[className][char.level].map(function(f) { return f.name; });
 resultLines.push("✨ Новые умения: " + names.join(", "));
 }
-document.getElementById("lu-result-body").innerHTML = resultLines.map(function(l) {
+$("lu-result-body").innerHTML = resultLines.map(function(l) {
 return "<div class=\"lu-result-line\">" + escapeHtml(l) + "</div>";
 }).join("");
 }
 function openDiceModal() {
-const modal = document.getElementById("dice-modal");
+const modal = $("dice-modal");
 if (modal) modal.classList.add("active");
 }
 function closeDiceModal() {
-const modal = document.getElementById("dice-modal");
+const modal = $("dice-modal");
 if (modal) modal.classList.remove("active");
-const display = document.getElementById("dice-result-display");
+const display = $("dice-result-display");
 if (display) display.classList.remove("crit-success", "crit-fail", "normal");
 }
-function rollDice(sides) {
-const result = Math.floor(Math.random() * sides) + 1;
+function rollDice(sides, mode) {
+// mode: undefined=normal, 'adv'=advantage, 'dis'=disadvantage
+const r1 = Math.floor(Math.random() * sides) + 1;
+const r2 = (mode === 'adv' || mode === 'dis') ? Math.floor(Math.random() * sides) + 1 : null;
+let result, resultLabel;
+if (mode === 'adv') {
+  result = Math.max(r1, r2);
+  resultLabel = "Преимущество: " + r1 + " и " + r2 + " → ";
+} else if (mode === 'dis') {
+  result = Math.min(r1, r2);
+  resultLabel = "Помеха: " + r1 + " и " + r2 + " → ";
+} else {
+  result = r1;
+  resultLabel = null;
+}
 const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-const display = document.getElementById("dice-result-display");
-const resultBig = document.getElementById("dice-result-big");
-const resultInfo = document.getElementById("dice-result-info");
+const display = $("dice-result-display");
+const resultBig = $("dice-result-big");
+const resultInfo = $("dice-result-info");
 if (!display || !resultBig || !resultInfo) return;
 display.classList.remove("crit-success", "crit-fail", "normal");
 void display.offsetWidth;
 if (sides === 20) {
 if (result === 20) {
 display.classList.add("crit-success");
-resultInfo.textContent = "🎉 КРИТИЧЕСКИЙ УСПЕХ! 🎉";
+resultInfo.textContent = (resultLabel || "") + "🎉 КРИТИЧЕСКИЙ УСПЕХ! 🎉";
 createParticles();
 } else if (result === 1) {
 display.classList.add("crit-fail");
-resultInfo.textContent = "💀 КРИТИЧЕСКИЙ ПРОВАЛ! 💀";
+resultInfo.textContent = (resultLabel || "") + "💀 КРИТИЧЕСКИЙ ПРОВАЛ! 💀";
 } else {
 display.classList.add("normal");
-resultInfo.textContent = "Бросок d" + sides + " в " + timestamp;
+resultInfo.textContent = (resultLabel ? resultLabel.slice(0,-3) : "Бросок d" + sides + " в " + timestamp);
 }
 } else {
 display.classList.add("normal");
-resultInfo.textContent = "Бросок d" + sides + " в " + timestamp;
+resultInfo.textContent = (resultLabel ? resultLabel.slice(0,-3) : "Бросок d" + sides + " в " + timestamp);
 }
 resultBig.textContent = result;
-diceHistory.unshift({ sides: sides, result: result, time: timestamp });
+diceHistory.unshift({ sides: sides, result: result, mode: mode || 'normal', time: timestamp, r1: r1, r2: r2 });
+if (diceHistory.length > 10) diceHistory.pop();
+renderDiceHistory();
+}
+
+function rollCustomFormula() {
+const input = $("dice-custom-input");
+if (!input) return;
+const formula = input.value.trim().toLowerCase().replace(/к/g,"d").replace(/\s/g,"");
+if (!formula) return;
+// Parse NdX+M or NdX-M or just NdX
+const match = formula.match(/^(\d+)d(\d+)([+-]\d+)?$/);
+if (!match) { 
+  const display = $("dice-result-display");
+  const resultInfo = $("dice-result-info");
+  if (display) { display.classList.remove("crit-success","crit-fail","normal"); display.classList.add("normal"); }
+  if (resultInfo) resultInfo.textContent = "Неверный формат (пример: 2к6+3)";
+  return; 
+}
+const count = Math.min(parseInt(match[1]) || 1, 20);
+const sides = Math.min(parseInt(match[2]) || 6, 100);
+const bonus = parseInt(match[3] || "0");
+let rolls = [], total = 0;
+for (let i = 0; i < count; i++) { const r = Math.floor(Math.random() * sides)+1; rolls.push(r); total += r; }
+total += bonus;
+total = Math.max(1, total);
+const timestamp = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+const display = $("dice-result-display");
+const resultBig = $("dice-result-big");
+const resultInfo = $("dice-result-info");
+if (!display||!resultBig||!resultInfo) return;
+display.classList.remove("crit-success","crit-fail","normal"); void display.offsetWidth;
+display.classList.add("normal");
+resultBig.textContent = total;
+const rollStr = rolls.join("+") + (bonus !== 0 ? (bonus>0?"+":"")+bonus : "");
+resultInfo.textContent = formula.replace(/d/g,"к") + " = " + rollStr + (count>1||bonus!==0?" = "+total:"");
+diceHistory.unshift({ sides: sides, result: total, mode: "custom", formula: formula.replace(/d/g,"к"), time: timestamp });
 if (diceHistory.length > 10) diceHistory.pop();
 renderDiceHistory();
 }
 function renderDiceHistory() {
-const container = document.getElementById("dice-history");
+const container = $("dice-history");
 if (!container) return;
 container.innerHTML = "";
 diceHistory.forEach(function(record) {
@@ -1579,12 +1680,14 @@ if (record.sides === 20) {
 if (record.result === 20) div.classList.add("crit-success");
 else if (record.result === 1) div.classList.add("crit-fail");
 }
-div.innerHTML = "<span>d" + record.sides + " (" + record.time + ")</span><span>" + record.result + "</span>";
+const modeTag = record.mode === 'adv' ? ' ▲' : record.mode === 'dis' ? ' ▼' : '';
+const label = record.mode === 'custom' ? (record.formula || "custom") : ("d" + record.sides + modeTag);
+div.innerHTML = "<span>" + label + " (" + record.time + ")</span><span>" + record.result + "</span>";
 container.appendChild(div);
 });
 }
 function createParticles() {
-const display = document.getElementById("dice-result-display");
+const display = $("dice-result-display");
 if (!display) return;
 for (let i = 0; i < 20; i++) {
 const particle = document.createElement("div");
@@ -1604,9 +1707,9 @@ renderInventory();
 }
 function renderInventory() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-const container = document.getElementById("inventory-list");
+const container = $("inventory-list");
 if (!container) return;
 container.innerHTML = "";
 let allItems = [];
@@ -1637,7 +1740,7 @@ updateInventoryWeight();
 function editItemDirect(category, index) { openItemModal(category, index); }
 function deleteItemDirect(category, index) {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 const item = char.inventory[category] && char.inventory[category][index];
 const name = item ? item.name : "предмет";
@@ -1655,7 +1758,7 @@ showConfirmModal(
 }
 function updateInventoryWeight() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 let totalWeight = 0;
 Object.keys(char.inventory).forEach(function(category) {
@@ -1671,10 +1774,10 @@ const pp = parseInt(char.coins.pp) || 0;
 const coinWeight = (cp + sp + ep + gp + pp) / 50;
 totalWeight += coinWeight;
 totalWeight = totalWeight.toFixed(1);
-const totalWeightEl = document.getElementById("total-weight");
-const carryCapacityEl = document.getElementById("carry-capacity");
-const overweightWarningEl = document.getElementById("overweight-warning");
-const overweightAmountEl = document.getElementById("overweight-amount");
+const totalWeightEl = $("total-weight");
+const carryCapacityEl = $("carry-capacity");
+const overweightWarningEl = $("overweight-warning");
+const overweightAmountEl = $("overweight-amount");
 if (totalWeightEl) totalWeightEl.textContent = totalWeight + " фнт";
 const strMod = char.stats.str || 10;
 const carryCapacity = strMod * 15;
@@ -1693,17 +1796,17 @@ overweightWarningEl.classList.remove("visible");
 }
 function openItemModal(category, slotIndex) {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 if (!category) category = currentFilterCategory !== "all" ? currentFilterCategory : "weapon";
 safeSet("item-category", category);
 safeSet("item-slot-index", slotIndex);
 safeSet("new-item-category", category);
-const titleEl = document.getElementById("item-modal-title");
-const nameEl = document.getElementById("new-item-name");
-const qtyEl = document.getElementById("new-item-qty");
-const weightEl = document.getElementById("new-item-weight");
-const descEl = document.getElementById("new-item-desc");
+const titleEl = $("item-modal-title");
+const nameEl = $("new-item-name");
+const qtyEl = $("new-item-qty");
+const weightEl = $("new-item-weight");
+const descEl = $("new-item-desc");
 if (slotIndex >= 0 && char.inventory[category] && char.inventory[category][slotIndex]) {
 const item = char.inventory[category][slotIndex];
 if (titleEl) titleEl.textContent = "Редактировать предмет";
@@ -1718,26 +1821,26 @@ if (qtyEl) qtyEl.value = 1;
 if (weightEl) weightEl.value = 0;
 if (descEl) descEl.value = "";
 }
-const modal = document.getElementById("item-modal");
+const modal = $("item-modal");
 if (modal) modal.classList.add("active");
 }
 function closeItemModal() {
-const modal = document.getElementById("item-modal");
+const modal = $("item-modal");
 if (modal) modal.classList.remove("active");
 }
 function submitItem() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-const category = document.getElementById("new-item-category")?.value || document.getElementById("item-category")?.value || "weapon";
-const slotIndex = parseInt(document.getElementById("item-slot-index")?.value) || -1;
-const name = document.getElementById("new-item-name")?.value?.trim() || "";
-if (!name) { alert("Введите название!"); return; }
+const category = $("new-item-category")?.value || document.getElementById("item-category")?.value || "weapon";
+const slotIndex = parseInt($("item-slot-index")?.value) || -1;
+const name = $("new-item-name")?.value?.trim() || "";
+if (!name) { showToast("Введите название!", "warn"); return; }
 const newItem = {
 name: name,
-qty: parseInt(document.getElementById("new-item-qty")?.value) || 1,
-weight: parseFloat(document.getElementById("new-item-weight")?.value) || 0,
-desc: document.getElementById("new-item-desc")?.value || ""
+qty: parseInt($("new-item-qty")?.value) || 1,
+weight: parseFloat($("new-item-weight")?.value) || 0,
+desc: $("new-item-desc")?.value || ""
 };
 if (!char.inventory[category]) char.inventory[category] = [];
 if (slotIndex >= 0 && char.inventory[category][slotIndex]) {
@@ -1751,17 +1854,17 @@ renderInventory();
 }
 function viewItem(category, index) {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 const item = char.inventory[category][index];
 currentViewItem = { category: category, index: index };
-const iconEl = document.getElementById("view-item-icon");
-const nameEl = document.getElementById("view-item-name");
-const qtyEl = document.getElementById("view-item-qty");
-const weightEl = document.getElementById("view-item-weight");
-const totalWeightEl = document.getElementById("view-item-total-weight");
-const categoryEl = document.getElementById("view-item-category");
-const descEl = document.getElementById("view-item-desc");
+const iconEl = $("view-item-icon");
+const nameEl = $("view-item-name");
+const qtyEl = $("view-item-qty");
+const weightEl = $("view-item-weight");
+const totalWeightEl = $("view-item-total-weight");
+const categoryEl = $("view-item-category");
+const descEl = $("view-item-desc");
 if (iconEl) iconEl.textContent = ITEM_ICONS[category];
 if (nameEl) nameEl.textContent = item.name || "Без названия";
 if (qtyEl) qtyEl.textContent = (item.qty || 1) + " шт.";
@@ -1769,11 +1872,11 @@ if (weightEl) weightEl.textContent = (item.weight || 0) + " фнт";
 if (totalWeightEl) totalWeightEl.textContent = ((item.weight || 0) * (item.qty || 1)).toFixed(1) + " фнт";
 if (categoryEl) categoryEl.textContent = CATEGORY_NAMES[category];
 if (descEl) descEl.textContent = item.desc || "Нет описания";
-const modal = document.getElementById("item-view-modal");
+const modal = $("item-view-modal");
 if (modal) modal.classList.add("active");
 }
 function closeItemView() {
-const modal = document.getElementById("item-view-modal");
+const modal = $("item-view-modal");
 if (modal) modal.classList.remove("active");
 currentViewItem = null;
 }
@@ -1784,7 +1887,7 @@ openItemModal(currentViewItem.category, currentViewItem.index);
 }
 function deleteItemFromView() {
 if (!currentViewItem || !currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 const item = char.inventory[currentViewItem.category] && char.inventory[currentViewItem.category][currentViewItem.index];
 const name = item ? item.name : "предмет";
@@ -1803,7 +1906,7 @@ showConfirmModal(
 );
 }
 function renderWeaponPresets() {
-const container = document.getElementById("weapon-presets-list");
+const container = $("weapon-presets-list");
 if (!container) return;
 container.innerHTML = "";
 WEAPON_PRESETS.forEach(function(preset) {
@@ -1822,7 +1925,7 @@ safeSet("new-weapon-type", preset.type);
 safeSet("new-weapon-range", preset.range);
 safeSet("new-weapon-notes", preset.notes);
 if (currentId) {
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (char) {
 const proficiencyBonus = getProficiencyBonus(char.level);
 let statMod = 0;
@@ -1833,11 +1936,11 @@ safeSet("new-weapon-bonus", "+" + (proficiencyBonus + statMod));
 }
 }
 function openWeaponModal() {
-const modal = document.getElementById("weapon-modal");
+const modal = $("weapon-modal");
 if (modal) modal.classList.add("active");
 }
 function closeWeaponModal() {
-const modal = document.getElementById("weapon-modal");
+const modal = $("weapon-modal");
 if (modal) modal.classList.remove("active");
 safeSet("new-weapon-name", "");
 safeSet("new-weapon-bonus", "");
@@ -1848,22 +1951,22 @@ safeSet("new-weapon-notes", "");
 }
 function submitWeapon() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-const name = document.getElementById("new-weapon-name")?.value?.trim() || "";
-if (!name) { alert("Введите название!"); return; }
-const stat = document.getElementById("new-weapon-stat")?.value || "str";
+const name = $("new-weapon-name")?.value?.trim() || "";
+if (!name) { showToast("Введите название!", "warn"); return; }
+const stat = $("new-weapon-stat")?.value || "str";
 const statName = stat === "str" ? "СИЛ" : "ЛОВ";
 if (!char.weapons) char.weapons = [];
 char.weapons.push({
 name: name,
 stat: stat,
 statName: statName,
-bonus: document.getElementById("new-weapon-bonus")?.value || "",
-damage: document.getElementById("new-weapon-damage")?.value || "",
-type: document.getElementById("new-weapon-type")?.value || "",
-range: document.getElementById("new-weapon-range")?.value || "",
-notes: document.getElementById("new-weapon-notes")?.value || ""
+bonus: $("new-weapon-bonus")?.value || "",
+damage: $("new-weapon-damage")?.value || "",
+type: $("new-weapon-type")?.value || "",
+range: $("new-weapon-range")?.value || "",
+notes: $("new-weapon-notes")?.value || ""
 });
 saveToLocal();
 closeWeaponModal();
@@ -1871,9 +1974,9 @@ renderWeapons();
 }
 function renderWeapons() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-const container = document.getElementById("weapons-list");
+const container = $("weapons-list");
 if (!container) return;
 if (!char.weapons || char.weapons.length === 0) {
 container.innerHTML = '<p style="color:var(--text-muted); text-align:center;">Нет оружия</p>';
@@ -1889,7 +1992,7 @@ container.appendChild(div);
 }
 function removeWeapon(index) {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 char.weapons.splice(index, 1);
 saveToLocal();
@@ -1897,9 +2000,9 @@ renderWeapons();
 }
 function renderSpellSlots() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-const container = document.getElementById("spell-slots-visual");
+const container = $("spell-slots-visual");
 if (!container) return;
 container.innerHTML = "";
 for(let i=1; i<=9; i++) {
@@ -1908,7 +2011,7 @@ const group = document.createElement("div");
 group.className = "spell-slot-group";
 group.innerHTML = "<h4>" + i + " ур.</h4><div class=\"spell-diamonds\" id=\"slots-diamonds-" + i + "\"></div><div class=\"spell-slot-controls\"><div class=\"spell-slot-input\"><input type=\"number\" id=\"slots-" + i + "-total\" value=\"" + total + "\" min=\"0\" max=\"10\" oninput=\"updateSpellSlots(" + i + ", this.value)\"></div><div class=\"spell-slot-btn-row\"><button class=\"spell-slot-btn\" onclick=\"adjustSpellSlots(" + i + ", -1)\">−</button><button class=\"spell-slot-btn\" onclick=\"adjustSpellSlots(" + i + ", 1)\">+</button></div></div>";
 container.appendChild(group);
-const diamondsContainer = document.getElementById("slots-diamonds-" + i);
+const diamondsContainer = $("slots-diamonds-" + i);
 if (diamondsContainer) {
 for(let j=0; j<total; j++) {
 const diamond = document.createElement("div");
@@ -1922,7 +2025,7 @@ if (total === 0) diamondsContainer.innerHTML = "<span style=\"font-size:0.7em; c
 }
 function updateSpellSlots(level, value) {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 char.spells.slots[level] = parseInt(value) || 0;
 if (char.spells.slotsUsed[level] > char.spells.slots[level]) {
@@ -1933,7 +2036,7 @@ renderSpellSlots();
 }
 function toggleSpellSlot(level, index) {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 if (!char.spells.slotsUsed[level]) char.spells.slotsUsed[level] = 0;
 if (index < char.spells.slotsUsed[level]) char.spells.slotsUsed[level] = index;
@@ -1943,9 +2046,9 @@ renderSpellSlots();
 }
 function adjustSpellSlots(level, delta) {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-const input = document.getElementById('slots-' + level + '-total');
+const input = $('slots-' + level + '-total');
 let current = input ? parseInt(input.value) : (char.spells.slots[level] || 0);
 if (isNaN(current)) current = char.spells.slots[level] || 0;
 let newValue = current + delta;
@@ -1961,71 +2064,71 @@ renderSpellSlots();
 function setSpellVersion(version) {
 currentSpellVersion = version;
 document.querySelectorAll(".version-btn").forEach(function(btn) { btn.classList.remove("active"); });
-if(version === "all") document.getElementById("btn-ver-all")?.classList.add("active");
-if(version === "PH14") document.getElementById("btn-ver-ph14")?.classList.add("active");
-if(version === "PH24") document.getElementById("btn-ver-ph24")?.classList.add("active");
+if(version === "all") $("btn-ver-all")?.classList.add("active");
+if(version === "PH14") $("btn-ver-ph14")?.classList.add("active");
+if(version === "PH24") $("btn-ver-ph24")?.classList.add("active");
 renderSpellSearch();
 }
 function setSpellClass(cls) {
 currentSpellClass = cls;
 document.querySelectorAll("#spell-search-modal .version-btn").forEach(function(btn) { btn.classList.remove("active"); });
-if(cls === "all") document.getElementById("btn-class-all")?.classList.add("active");
-if(cls === "wizard") document.getElementById("btn-class-wizard")?.classList.add("active");
-if(cls === "druid") document.getElementById("btn-class-druid")?.classList.add("active");
+if(cls === "all") $("btn-class-all")?.classList.add("active");
+if(cls === "wizard") $("btn-class-wizard")?.classList.add("active");
+if(cls === "druid") $("btn-class-druid")?.classList.add("active");
 renderSpellSearch();
 }
 function openSpellSearch() {
-const modal = document.getElementById("spell-search-modal");
+const modal = $("spell-search-modal");
 if (modal) modal.classList.add("active");
 safeSet("spell-search-input", "");
 safeSet("spell-search-level", "");
 renderSpellSearch();
 }
 function closeSpellSearch() {
-const modal = document.getElementById("spell-search-modal");
+const modal = $("spell-search-modal");
 if (modal) modal.classList.remove("active");
 }
 function openAddSpellForm() {
-const modal = document.getElementById("add-spell-modal");
+const modal = $("add-spell-modal");
 if (modal) modal.classList.add("active");
 safeSet("new-spell-name", "");
 safeSet("new-spell-desc", "");
 safeSet("new-spell-higher", "");
 }
 function closeAddSpellForm() {
-const modal = document.getElementById("add-spell-modal");
+const modal = $("add-spell-modal");
 if (modal) modal.classList.remove("active");
 }
 function submitNewSpell() {
-const name = document.getElementById("new-spell-name")?.value?.trim() || "";
-const desc = document.getElementById("new-spell-desc")?.value?.trim() || "";
-if (!name || !desc) { alert("Название и описание обязательны!"); return; }
+const name = $("new-spell-name")?.value?.trim() || "";
+const desc = $("new-spell-desc")?.value?.trim() || "";
+if (!name || !desc) { showToast("Название и описание обязательны!", "warn"); return; }
 const newSpell = {
 id: Date.now(),
 name: name,
-level: parseInt(document.getElementById("new-spell-level")?.value) || 0,
-class: document.getElementById("new-spell-class")?.value || "wizard",
-source: document.getElementById("new-spell-source")?.value || "PH14",
+level: parseInt($("new-spell-level")?.value) || 0,
+class: $("new-spell-class")?.value || "wizard",
+source: $("new-spell-source")?.value || "PH14",
 school: "воплощение",
-time: document.getElementById("new-spell-time")?.value || "1 действие",
-range: document.getElementById("new-spell-range")?.value || "60 фт",
-components: document.getElementById("new-spell-components")?.value || "V,S",
-duration: document.getElementById("new-spell-duration")?.value || "Мгновенно",
+time: $("new-spell-time")?.value || "1 действие",
+range: $("new-spell-range")?.value || "60 фт",
+components: $("new-spell-components")?.value || "V,S",
+duration: $("new-spell-duration")?.value || "Мгновенно",
 desc: desc,
-higherLevel: document.getElementById("new-spell-higher")?.value?.trim() || ""
+higherLevel: $("new-spell-higher")?.value?.trim() || ""
 };
 SPELL_DATABASE.push(newSpell);
 saveToLocal();
 closeAddSpellForm();
-alert("Добавлено!");
+showToast("Заклинание добавлено!", "success");
 renderSpellSearch();
 }
 function renderSpellSearch() {
-const search = (document.getElementById("spell-search-input")?.value || "").toLowerCase();
-const level = document.getElementById("spell-search-level")?.value || "";
-const container = document.getElementById("spell-search-results");
+const search = ($("spell-search-input")?.value || "").toLowerCase();
+const level = $("spell-search-level")?.value || "";
+const container = $("spell-search-results");
 if (!container) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 let filtered = SPELL_DATABASE.filter(function(spell) {
 const matchesSearch = spell.name.toLowerCase().includes(search);
 const matchesLevel = level === "" || spell.level.toString() === level;
@@ -2049,7 +2152,7 @@ container.appendChild(div);
 });
 }
 function addSpell(spellId) {
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 const spell = SPELL_DATABASE.find(function(s) { return s.id === spellId; });
 if (!spell) return;
@@ -2062,7 +2165,7 @@ renderMySpells();
 }
 }
 function removeSpell(spellId) {
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 char.spells.mySpells = char.spells.mySpells.filter(function(s) { return s.id !== spellId; });
 saveToLocal();
@@ -2071,9 +2174,9 @@ renderMySpells();
 }
 function renderMySpells() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-const container = document.getElementById("my-spells-list");
+const container = $("my-spells-list");
 if (!container) return;
 if (!char.spells.mySpells || char.spells.mySpells.length === 0) {
 container.innerHTML = '<p style="color:var(--text-muted); text-align:center;">Нет заклинаний</p>';
@@ -2121,12 +2224,12 @@ if (Array.isArray(imported)) {
 characters = imported;
 saveToLocal();
 renderCharacterList();
-alert("Загружено!");
+showToast("Данные загружены!", "success");
 } else {
-alert("Ошибка формата");
+showToast("Ошибка: неверный формат файла", "error");
 }
 } catch (err) {
-alert("Ошибка чтения");
+showToast("Ошибка чтения файла", "error");
 }
 };
 reader.readAsText(file);
@@ -2150,12 +2253,12 @@ const imported = JSON.parse(e.target.result);
 if (Array.isArray(imported)) {
 SPELL_DATABASE = imported;
 saveToLocal();
-alert("Заклинаний: " + imported.length);
+showToast("Заклинаний загружено: " + imported.length, "success");
 } else {
-alert("Ошибка формата");
+showToast("Ошибка: неверный формат файла", "error");
 }
 } catch (err) {
-alert("Ошибка чтения");
+showToast("Ошибка чтения файла", "error");
 }
 };
 reader.readAsText(file);
@@ -2168,14 +2271,14 @@ reader.readAsText(file);
 // ============================================
 function loadDeathSaves() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 if (!char.deathSaves) {
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 }
 for (let i = 0; i < 3; i++) {
-const sEl = document.getElementById("ds-s" + i);
-const fEl = document.getElementById("ds-f" + i);
+const sEl = $("ds-s" + i);
+const fEl = $("ds-f" + i);
 if (sEl) {
 sEl.classList.toggle("ds-filled-s", !!char.deathSaves.successes[i]);
 const si = sEl.querySelector(".ds-icon");
@@ -2190,7 +2293,7 @@ if (fi) fi.textContent = char.deathSaves.failures[i] ? "✕" : "";
 // Обновить статус
 const successes = char.deathSaves.successes.filter(Boolean).length;
 const failures = char.deathSaves.failures.filter(Boolean).length;
-const statusEl = document.getElementById("ds-status");
+const statusEl = $("ds-status");
 if (statusEl) {
 statusEl.className = "ds-status";
 if (successes >= 3) {
@@ -2207,7 +2310,7 @@ statusEl.textContent = "⚠️ При смерти (" + successes + "/3 успе
 
 function toggleDeathSave(type, index) {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 if (!char.deathSaves) {
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
@@ -2223,7 +2326,7 @@ loadDeathSaves();
 
 function resetDeathSaves() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 saveToLocal();
@@ -2235,7 +2338,7 @@ loadDeathSaves();
 // ============================================
 function updateHPDisplay() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 const hpCurrent = char.combat.hpCurrent || 0;
 const hpMax = char.combat.hpMax || 10;
@@ -2247,8 +2350,8 @@ safeSet("hp-max", hpMax);
 safeSet("hp-temp", hpTemp);
 
 // Видимые элементы отображения ХП
-const dispCurrent = document.getElementById("hp-display-current");
-const dispMax = document.getElementById("hp-max-manual");
+const dispCurrent = $("hp-display-current");
+const dispMax = $("hp-max-manual");
 if (dispCurrent) {
 dispCurrent.textContent = hpCurrent;
 dispCurrent.className = "hp-big-num";
@@ -2260,7 +2363,7 @@ else if (pct <= 50) dispCurrent.classList.add("hp-medium");
 if (dispMax && document.activeElement !== dispMax) dispMax.value = hpMax;
 
 // Полоска ХП
-const hpBar = document.getElementById("hp-bar");
+const hpBar = $("hp-bar");
 if (hpBar) {
 const pct = hpMax > 0 ? Math.max(0, Math.min(100, (hpCurrent / hpMax) * 100)) : 0;
 hpBar.style.width = pct + "%";
@@ -2271,8 +2374,8 @@ else if (pct <= 50) hpBar.classList.add("hp-bar-medium");
 }
 
 // Кость хитов в быстром блоке
-const hdTypeDisplay = document.getElementById("hd-type-display");
-const hdAvailDisplay = document.getElementById("hd-avail-display");
+const hdTypeDisplay = $("hd-type-display");
+const hdAvailDisplay = $("hd-avail-display");
 if (hdTypeDisplay) hdTypeDisplay.textContent = char.combat.hpDice || "—";
 const spent = char.combat.hpDiceSpent || 0;
 const total = char.level || 1;
@@ -2280,11 +2383,11 @@ const avail = total - spent;
 if (hdAvailDisplay) hdAvailDisplay.textContent = avail + "/" + total;
 renderHitDiceIcons(avail, total);
 // Кнопка броска кости — заблокировать если 0 ХП или нет костей
-const rollHdBtn = document.getElementById("roll-hd-btn");
+const rollHdBtn = $("roll-hd-btn");
 if (rollHdBtn) rollHdBtn.disabled = hpCurrent <= 0 || avail <= 0;
 
 // Секция спасбросков смерти — показываем только при HP = 0
-const deathSavesSection = document.getElementById("death-saves-section");
+const deathSavesSection = $("death-saves-section");
 if (deathSavesSection) {
 deathSavesSection.style.display = hpCurrent <= 0 ? "block" : "none";
 }
@@ -2298,7 +2401,7 @@ syncSelfBattleStatus();
 // ============================================
 function quickHP(delta, source) {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 const hpTemp = char.combat.hpTemp || 0;
 const hpBefore = char.combat.hpCurrent || 0;
@@ -2317,6 +2420,11 @@ hpCurrent += delta;
 hpCurrent = Math.max(0, Math.min(hpCurrent, char.combat.hpMax));
 const actualDelta = hpCurrent - hpBefore;
 char.combat.hpCurrent = hpCurrent;
+// FIX: reset death saves when healed from 0 HP
+if (hpBefore <= 0 && hpCurrent > 0 && delta > 0) {
+  char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
+  loadDeathSaves && loadDeathSaves();
+}
 safeSet("hp-current", hpCurrent);
 safeSet("hp-temp", char.combat.hpTemp);
 if (actualDelta !== 0) {
@@ -2335,7 +2443,7 @@ if (hpHistory.length > 30) hpHistory.pop();
 }
 
 function showHPToast(delta, customMsg) {
-var container = document.getElementById("hp-toast-container");
+var container = $("hp-toast-container");
 if (!container) return;
 var existing = container.querySelector(".hp-toast");
 if (existing) { clearTimeout(existing._fadeTimer); clearTimeout(existing._removeTimer); existing.remove(); }
@@ -2357,10 +2465,27 @@ toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade");
 toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 2300);
 }
 
+// ============================================================
+// УНИВЕРСАЛЬНЫЕ TOAST-УВЕДОМЛЕНИЯ (замена alert)
+// type: 'success' | 'error' | 'info' | 'warn'
+// ============================================================
+function showToast(msg, type) {
+  var container = $("hp-toast-container");
+  if (!container) { return; }
+  var t = type || "info";
+  var toast = document.createElement("div");
+  toast.className = "hp-toast app-toast app-toast-" + t;
+  var icons = { success: "✅", error: "❌", info: "ℹ️", warn: "⚠️" };
+  toast.innerHTML = "<span style='margin-right:6px'>" + (icons[t] || "ℹ️") + "</span><span>" + escapeHtml(String(msg)) + "</span>";
+  container.appendChild(toast);
+  toast._fadeTimer  = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 2200);
+  toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 2700);
+}
+
 function openHPHistory() {
-const modal = document.getElementById("hp-history-modal");
+const modal = $("hp-history-modal");
 if (!modal) return;
-const list = document.getElementById("hp-history-list");
+const list = $("hp-history-list");
 if (!list) return;
 if (hpHistory.length === 0) {
 list.innerHTML = "<div class=\"hph-empty\">История пуста</div>";
@@ -2380,12 +2505,12 @@ modal.classList.add("active");
 }
 
 function closeHPHistory() {
-const modal = document.getElementById("hp-history-modal");
+const modal = $("hp-history-modal");
 if (modal) modal.classList.remove("active");
 }
 
 function applyCustomHP(mode) {
-const input = document.getElementById("hp-custom-input");
+const input = $("hp-custom-input");
 const val = parseInt(input?.value) || 0;
 if (val <= 0) return;
 if (mode === "dmg") quickHP(-val, "Урон");
@@ -2394,7 +2519,7 @@ if (input) input.value = "";
 }
 
 function applyHealInput() {
-const input = document.getElementById("hp-heal-input");
+const input = $("hp-heal-input");
 const val = parseInt(input?.value) || 0;
 if (val <= 0) return;
 quickHP(val, "Лечение");
@@ -2402,15 +2527,15 @@ if (input) input.value = "";
 }
 
 function setHPInput(inputId, val) {
-const input = document.getElementById(inputId);
+const input = $(inputId);
 if (input) input.value = val;
 }
 
 function saveTempHP() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
-char.combat.hpTemp = parseInt(document.getElementById("hp-temp")?.value) || 0;
+char.combat.hpTemp = parseInt($("hp-temp")?.value) || 0;
 saveToLocal();
 updateHPDisplay();
 }
@@ -2420,11 +2545,11 @@ updateHPDisplay();
 // ============================================
 function rollHitDieQuick() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 const spent = char.combat.hpDiceSpent || 0;
 const total = char.level || 1;
-const resultEl = document.getElementById("hd-result");
+const resultEl = $("hd-result");
 if (spent >= total) {
 if (resultEl) { resultEl.textContent = "Нет костей!"; }
 return;
@@ -2448,7 +2573,7 @@ showHPToast(heal);
 }
 
 function renderHitDiceIcons(avail, total) {
-const row = document.getElementById("hd-dice-row");
+const row = $("hd-dice-row");
 if (!row) return;
 row.innerHTML = "";
 const show = Math.min(total, 20);
@@ -2462,10 +2587,10 @@ row.appendChild(d);
 
 function rollDeathSave() {
 if (!currentId) return;
-const char = characters.find(function(c) { return c.id === currentId; });
+const char = getCurrentChar();
 if (!char) return;
 const roll = Math.floor(Math.random() * 20) + 1;
-const resultEl = document.getElementById("ds-roll-result");
+const resultEl = $("ds-roll-result");
 let msg = "";
 let isSuccess = false;
 if (roll === 20) {
@@ -2563,12 +2688,16 @@ var MONSTER_TYPE_ICONS = {
 function getMonsterTypeIcon(type) { return MONSTER_TYPE_ICONS[type] || "👾"; }
 
 (function initParty() {
+  // Global fallback load — per-character data is loaded in loadCharacter()
   try {
     var saved = localStorage.getItem("dnd_party");
-    if (saved) PARTY_DATA = JSON.parse(saved);
-    if (!PARTY_DATA.allies)   PARTY_DATA.allies   = [];
-    if (!PARTY_DATA.monsters) PARTY_DATA.monsters = [];
-    if (!PARTY_DATA.npcs)     PARTY_DATA.npcs     = [];
+    if (saved) {
+      var parsed = JSON.parse(saved);
+      if (!parsed.allies)   parsed.allies   = [];
+      if (!parsed.monsters) parsed.monsters = [];
+      if (!parsed.npcs)     parsed.npcs     = [];
+      PARTY_DATA = parsed;
+    }
   } catch(e) {}
   try {
     var savedBattle = localStorage.getItem("dnd_battle");
@@ -2576,8 +2705,16 @@ function getMonsterTypeIcon(type) { return MONSTER_TYPE_ICONS[type] || "👾"; }
   } catch(e) {}
 })();
 
-function saveParty() { try { localStorage.setItem("dnd_party", JSON.stringify(PARTY_DATA)); } catch(e) {} }
-function saveBattle() { try { localStorage.setItem("dnd_battle", JSON.stringify(BATTLE_DATA)); } catch(e) {} }
+function saveParty() {
+  if (!currentId) { try { localStorage.setItem("dnd_party", JSON.stringify(PARTY_DATA)); } catch(e) {} return; }
+  var char = getCurrentChar();
+  if (char) { char.party = PARTY_DATA; saveToLocal(); }
+}
+function saveBattle() {
+  if (!currentId) { try { localStorage.setItem("dnd_battle", JSON.stringify(BATTLE_DATA)); } catch(e) {} return; }
+  var char = getCurrentChar();
+  if (char) { char.battle = BATTLE_DATA; saveToLocal(); }
+}
 
 // ─── helpers ─────────────────────────────────────────────────
 function getMonsterIcon(type) { return getMonsterTypeIcon(type); }
@@ -2608,9 +2745,9 @@ function openPartyTab() {
 
 // ─── MY CHAR ─────────────────────────────────────────────────
 function renderMyChar() {
-  var container = document.getElementById("my-char-card");
+  var container = $("my-char-card");
   if (!container) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) {
     container.innerHTML = "<div class='party-empty'>Откройте персонажа из списка профилей</div>";
     return;
@@ -2639,8 +2776,8 @@ function renderMyChar() {
 
 // ─── ALLIES ──────────────────────────────────────────────────
 function renderAllies() {
-  var list    = document.getElementById("allies-list");
-  var countEl = document.getElementById("allies-count");
+  var list    = $("allies-list");
+  var countEl = $("allies-count");
   if (!list) return;
   if (countEl) countEl.textContent = PARTY_DATA.allies.length > 0 ? PARTY_DATA.allies.length : "";
   if (PARTY_DATA.allies.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет соратников. Добавьте первого!</div>"; return; }
@@ -2665,53 +2802,105 @@ function renderAllies() {
   }).join("");
 }
 
-function openAddAllyModal() {
-  document.getElementById("ally-modal-title").textContent = "🧑‍🤝‍🧑 Добавить соратника";
-  document.getElementById("ally-edit-index").value = "-1";
-  document.getElementById("ally-name-inp").value   = "";
-  document.getElementById("ally-class-sel").value  = "";
-  document.getElementById("ally-desc-inp").value   = "";
-  document.getElementById("add-ally-modal").classList.add("active");
+// ─── PARTY ENTITY MODAL (unified for ally / npc / monster) ───
+var _PENT = {
+  ally:    { modal:"add-ally-modal",    title:"ally-modal-title",    idx:"ally-edit-index",
+             fields: [{id:"ally-name-inp",key:"name"},{id:"ally-class-sel",key:"cls"},{id:"ally-desc-inp",key:"desc"}],
+             list: function() { return PARTY_DATA.allies; },
+             render: function() { renderAllies(); },
+             addLabel:"🧑‍🤝‍🧑 Добавить соратника", editLabel:"✏️ Редактировать соратника",
+             delMsg: "Удалить соратника?", delKey:"name" },
+  npc:     { modal:"add-npc-modal",     title:"npc-modal-title",     idx:"npc-edit-index",
+             fields: [{id:"npc-name-inp",key:"name"},{id:"npc-role-inp",key:"role",default:"Персонаж"},{id:"npc-desc-inp",key:"desc"}],
+             list: function() { if (!PARTY_DATA.npcs) PARTY_DATA.npcs = []; return PARTY_DATA.npcs; },
+             render: function() { renderNPCs(); },
+             addLabel:"🧑 Добавить персонажа", editLabel:"✏️ Редактировать персонажа",
+             delMsg: "Удалить персонажа?", delKey:"name" },
+  monster: { modal:"add-monster-modal", title:"monster-modal-title", idx:"monster-edit-index",
+             fields: [{id:"monster-name-inp",key:"name"},{id:"monster-type-sel",key:"type",default:"Монстр"},{id:"monster-desc-inp",key:"desc"}],
+             list: function() { return PARTY_DATA.monsters; },
+             render: function() { renderMonsters(); },
+             addLabel:"👹 Добавить монстра", editLabel:"✏️ Редактировать монстра",
+             delMsg: "Удалить монстра?", delKey:"name" }
+};
+function _pentOpen(type, i) {
+  var cfg = _PENT[type]; if (!cfg) return;
+  var isEdit = (i !== undefined && i >= 0);
+  $(cfg.title).textContent = isEdit ? cfg.editLabel : cfg.addLabel;
+  $(cfg.idx).value = isEdit ? i : "-1";
+  var item = isEdit ? cfg.list()[i] : null;
+  cfg.fields.forEach(function(f) { $(f.id).value = item ? (item[f.key] || "") : ""; });
+  openModal(cfg.modal);
 }
-function openEditAllyModal(i) {
-  var a = PARTY_DATA.allies[i]; if (!a) return;
-  document.getElementById("ally-modal-title").textContent = "✏️ Редактировать соратника";
-  document.getElementById("ally-edit-index").value = i;
-  document.getElementById("ally-name-inp").value   = a.name || "";
-  document.getElementById("ally-class-sel").value  = a.cls  || "";
-  document.getElementById("ally-desc-inp").value   = a.desc || "";
-  document.getElementById("add-ally-modal").classList.add("active");
+function _pentClose(type) { closeModal(_PENT[type].modal); }
+function _pentSave(type) {
+  var cfg = _PENT[type];
+  var nameField = cfg.fields[0];
+  var name = $(nameField.id).value.trim();
+  if (!name) { showToast("Введите имя", "warn"); return; }
+  var list = cfg.list();
+  var idx = parseInt($(cfg.idx).value);
+  var data = { id: idx >= 0 ? (list[idx].id || Date.now()) : Date.now(), status: idx >= 0 ? (list[idx].status || "healthy") : "healthy" };
+  cfg.fields.forEach(function(f) { data[f.key] = $(f.id).value.trim() || (f.default || ""); });
+  if (!data.name) data.name = name;
+  if (idx >= 0) list[idx] = data; else list.push(data);
+  saveParty(); cfg.render(); _pentClose(type);
 }
-function closeAddAllyModal() { document.getElementById("add-ally-modal").classList.remove("active"); }
-function saveAlly() {
-  var name = document.getElementById("ally-name-inp").value.trim();
-  if (!name) { alert("Введите имя"); return; }
-  var idx  = parseInt(document.getElementById("ally-edit-index").value);
-  var data = { id: idx >= 0 ? (PARTY_DATA.allies[idx].id || Date.now()) : Date.now(), name: name, cls: document.getElementById("ally-class-sel").value, desc: document.getElementById("ally-desc-inp").value.trim(), status: idx >= 0 ? (PARTY_DATA.allies[idx].status||"healthy") : "healthy" };
-  if (idx >= 0) PARTY_DATA.allies[idx] = data; else PARTY_DATA.allies.push(data);
-  saveParty(); renderAllies(); closeAddAllyModal();
+function _pentDelete(type, i) {
+  var cfg = _PENT[type];
+  var name = cfg.list()[i] ? cfg.list()[i][cfg.delKey] : "запись";
+  showConfirmModal(cfg.delMsg, "«"+name+"» будет удалён.", function() { cfg.list().splice(i,1); saveParty(); cfg.render(); });
 }
-function deleteAlly(i) {
-  var name = PARTY_DATA.allies[i] ? PARTY_DATA.allies[i].name : "соратника";
-  showConfirmModal("Удалить соратника?", "«"+name+"» будет удалён.", function() { PARTY_DATA.allies.splice(i, 1); saveParty(); renderAllies(); });
-}
-function setAllyStatus(i, val) { PARTY_DATA.allies[i].status = val; saveParty(); }
-function exportAllies() {
+function _pentStatus(type, i, val) { _PENT[type].list()[i].status = val; saveParty(); }
+function _pentExport(type) {
   var a = document.createElement("a");
-  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PARTY_DATA.allies, null, 2));
-  a.download = "allies_" + new Date().toISOString().slice(0,10) + ".json"; a.click();
+  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_PENT[type].list(), null, 2));
+  a.download = type + "_" + new Date().toISOString().slice(0,10) + ".json"; a.click();
 }
-function importAllies(input) {
+function _pentImport(type, input) {
   var file = input.files[0]; if (!file) return;
   var reader = new FileReader();
-  reader.onload = function(e) { try { var d = JSON.parse(e.target.result); if (Array.isArray(d)) { PARTY_DATA.allies = d; saveParty(); renderAllies(); } else alert("Неверный формат"); } catch(err) { alert("Ошибка"); } };
+  reader.onload = function(e) {
+    try { var d = JSON.parse(e.target.result);
+      if (Array.isArray(d)) { PARTY_DATA[type === "ally" ? "allies" : type+"s"] = d; saveParty(); _PENT[type].render(); }
+      else showToast("Неверный формат файла", "error");
+    } catch(err) { showToast("Ошибка загрузки", "error"); }
+  };
   reader.readAsText(file); input.value = "";
 }
+// Обёртки — сохраняем старые имена чтобы не менять index.html
+function openAddAllyModal()        { _pentOpen("ally"); }
+function openEditAllyModal(i)      { _pentOpen("ally", i); }
+function closeAddAllyModal()       { _pentClose("ally"); }
+function saveAlly()                { _pentSave("ally"); }
+function deleteAlly(i)             { _pentDelete("ally", i); }
+function setAllyStatus(i, val)     { _pentStatus("ally", i, val); }
+function exportAllies()            { _pentExport("ally"); }
+function importAllies(input)       { _pentImport("ally", input); }
+
+function openAddNPCModal()         { _pentOpen("npc"); }
+function openEditNPCModal(i)       { _pentOpen("npc", i); }
+function closeAddNPCModal()        { _pentClose("npc"); }
+function saveNPC()                 { _pentSave("npc"); }
+function deleteNPC(i)              { _pentDelete("npc", i); }
+function setNPCStatus(i, val)      { _pentStatus("npc", i, val); }
+function exportNPCs()              { _pentExport("npc"); }
+function importNPCs(input)         { _pentImport("npc", input); }
+
+function openAddMonsterModal()     { _pentOpen("monster"); }
+function openEditMonsterModal(i)   { _pentOpen("monster", i); }
+function closeAddMonsterModal()    { _pentClose("monster"); }
+function saveMonster()             { _pentSave("monster"); }
+function deleteMonster(i)          { _pentDelete("monster", i); }
+function setMonsterStatus(i, val)  { _pentStatus("monster", i, val); }
+function exportMonsters()          { _pentExport("monster"); }
+function importMonsters(input)     { _pentImport("monster", input); }
+
 
 // ─── NPCs ────────────────────────────────────────────────────
 function renderNPCs() {
-  var list    = document.getElementById("npcs-list");
-  var countEl = document.getElementById("npcs-count");
+  var list    = $("npcs-list");
+  var countEl = $("npcs-count");
   if (!list) return;
   if (countEl) countEl.textContent = (PARTY_DATA.npcs && PARTY_DATA.npcs.length > 0) ? PARTY_DATA.npcs.length : "";
   if (!PARTY_DATA.npcs || PARTY_DATA.npcs.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет персонажей</div>"; return; }
@@ -2734,54 +2923,13 @@ function renderNPCs() {
   }).join("");
 }
 
-function openAddNPCModal() {
-  document.getElementById("npc-modal-title").textContent = "🧑 Добавить персонажа";
-  document.getElementById("npc-edit-index").value = "-1";
-  document.getElementById("npc-name-inp").value  = "";
-  document.getElementById("npc-role-inp").value  = "";
-  document.getElementById("npc-desc-inp").value  = "";
-  document.getElementById("add-npc-modal").classList.add("active");
-}
-function openEditNPCModal(i) {
-  var n = PARTY_DATA.npcs[i]; if (!n) return;
-  document.getElementById("npc-modal-title").textContent = "✏️ Редактировать персонажа";
-  document.getElementById("npc-edit-index").value = i;
-  document.getElementById("npc-name-inp").value  = n.name || "";
-  document.getElementById("npc-role-inp").value  = n.role || "";
-  document.getElementById("npc-desc-inp").value  = n.desc || "";
-  document.getElementById("add-npc-modal").classList.add("active");
-}
-function closeAddNPCModal() { document.getElementById("add-npc-modal").classList.remove("active"); }
-function saveNPC() {
-  var name = document.getElementById("npc-name-inp").value.trim();
-  if (!name) { alert("Введите имя"); return; }
-  if (!PARTY_DATA.npcs) PARTY_DATA.npcs = [];
-  var idx  = parseInt(document.getElementById("npc-edit-index").value);
-  var data = { id: idx >= 0 ? (PARTY_DATA.npcs[idx].id || Date.now()) : Date.now(), name: name, role: document.getElementById("npc-role-inp").value.trim() || "Персонаж", desc: document.getElementById("npc-desc-inp").value.trim(), status: idx >= 0 ? (PARTY_DATA.npcs[idx].status||"healthy") : "healthy" };
-  if (idx >= 0) PARTY_DATA.npcs[idx] = data; else PARTY_DATA.npcs.push(data);
-  saveParty(); renderNPCs(); closeAddNPCModal();
-}
-function deleteNPC(i) {
-  var name = PARTY_DATA.npcs[i] ? PARTY_DATA.npcs[i].name : "персонажа";
-  showConfirmModal("Удалить персонажа?", "«"+name+"» будет удалён.", function() { PARTY_DATA.npcs.splice(i, 1); saveParty(); renderNPCs(); });
-}
-function setNPCStatus(i, val) { PARTY_DATA.npcs[i].status = val; saveParty(); }
-function exportNPCs() {
-  var a = document.createElement("a");
-  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PARTY_DATA.npcs || [], null, 2));
-  a.download = "npcs_" + new Date().toISOString().slice(0,10) + ".json"; a.click();
-}
-function importNPCs(input) {
-  var file = input.files[0]; if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e) { try { var d = JSON.parse(e.target.result); if (Array.isArray(d)) { PARTY_DATA.npcs = d; saveParty(); renderNPCs(); } else alert("Неверный формат"); } catch(err) { alert("Ошибка"); } };
-  reader.readAsText(file); input.value = "";
-}
+
+
 
 // ─── MONSTERS ─────────────────────────────────────────────────
 function renderMonsters() {
-  var list    = document.getElementById("monsters-list");
-  var countEl = document.getElementById("monsters-count");
+  var list    = $("monsters-list");
+  var countEl = $("monsters-count");
   if (!list) return;
   if (countEl) countEl.textContent = PARTY_DATA.monsters.length > 0 ? PARTY_DATA.monsters.length : "";
   if (PARTY_DATA.monsters.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет монстров. Добавьте врага!</div>"; return; }
@@ -2805,48 +2953,8 @@ function renderMonsters() {
   }).join("");
 }
 
-function openAddMonsterModal() {
-  document.getElementById("monster-modal-title").textContent = "👹 Добавить монстра";
-  document.getElementById("monster-edit-index").value = "-1";
-  document.getElementById("monster-name-inp").value = "";
-  document.getElementById("monster-type-sel").value = "";
-  document.getElementById("monster-desc-inp").value = "";
-  document.getElementById("add-monster-modal").classList.add("active");
-}
-function openEditMonsterModal(i) {
-  var m = PARTY_DATA.monsters[i]; if (!m) return;
-  document.getElementById("monster-modal-title").textContent = "✏️ Редактировать монстра";
-  document.getElementById("monster-edit-index").value = i;
-  document.getElementById("monster-name-inp").value = m.name || "";
-  document.getElementById("monster-type-sel").value = m.type || "";
-  document.getElementById("monster-desc-inp").value = m.desc || "";
-  document.getElementById("add-monster-modal").classList.add("active");
-}
-function closeAddMonsterModal() { document.getElementById("add-monster-modal").classList.remove("active"); }
-function saveMonster() {
-  var name = document.getElementById("monster-name-inp").value.trim();
-  if (!name) { alert("Введите имя"); return; }
-  var idx  = parseInt(document.getElementById("monster-edit-index").value);
-  var data = { id: idx >= 0 ? (PARTY_DATA.monsters[idx].id || Date.now()) : Date.now(), name: name, type: document.getElementById("monster-type-sel").value || "Монстр", desc: document.getElementById("monster-desc-inp").value.trim(), status: idx >= 0 ? (PARTY_DATA.monsters[idx].status||"healthy") : "healthy" };
-  if (idx >= 0) PARTY_DATA.monsters[idx] = data; else PARTY_DATA.monsters.push(data);
-  saveParty(); renderMonsters(); closeAddMonsterModal();
-}
-function deleteMonster(i) {
-  var name = PARTY_DATA.monsters[i] ? PARTY_DATA.monsters[i].name : "монстра";
-  showConfirmModal("Удалить монстра?", "«"+name+"» будет удалён.", function() { PARTY_DATA.monsters.splice(i, 1); saveParty(); renderMonsters(); });
-}
-function setMonsterStatus(i, val) { PARTY_DATA.monsters[i].status = val; saveParty(); }
-function exportMonsters() {
-  var a = document.createElement("a");
-  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PARTY_DATA.monsters, null, 2));
-  a.download = "monsters_" + new Date().toISOString().slice(0,10) + ".json"; a.click();
-}
-function importMonsters(input) {
-  var file = input.files[0]; if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e) { try { var d = JSON.parse(e.target.result); if (Array.isArray(d)) { PARTY_DATA.monsters = d; saveParty(); renderMonsters(); } else alert("Неверный формат"); } catch(err) { alert("Ошибка"); } };
-  reader.readAsText(file); input.value = "";
-}
+
+
 
 // ─── BATTLE TAB ──────────────────────────────────────────────
 var battleSetupList = [];
@@ -2855,12 +2963,12 @@ var battleSectionOpen = { self: true, ally: true, npc: true, monster: true };
 
 function openBattleTab() {
   if (BATTLE_DATA.active) {
-    document.getElementById("battle-setup-screen").classList.add("hidden");
-    document.getElementById("battle-tracker-screen").classList.remove("hidden");
+    $("battle-setup-screen").classList.add("hidden");
+    $("battle-tracker-screen").classList.remove("hidden");
     renderBattleTracker();
   } else {
-    document.getElementById("battle-setup-screen").classList.remove("hidden");
-    document.getElementById("battle-tracker-screen").classList.add("hidden");
+    $("battle-setup-screen").classList.remove("hidden");
+    $("battle-tracker-screen").classList.add("hidden");
     buildBattleSetupList();
     renderBattleSetup();
   }
@@ -2870,7 +2978,7 @@ function buildBattleSetupList() {
   var prevChecked = {};
   battleSetupList.forEach(function(p) { prevChecked[p.id] = p.checked; });
   battleSetupList = [];
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (char) {
     battleSetupList.push({ id: "self_" + char.id, name: char.name || "Мой персонаж", icon: getClassIcon(char.class), color: "#4da843", type: "self", checked: prevChecked["self_" + char.id] === true });
   }
@@ -2893,7 +3001,7 @@ function toggleBattleSection(type) {
 }
 
 function renderBattleSetup() {
-  var container = document.getElementById("battle-setup-list");
+  var container = $("battle-setup-list");
   if (!container) return;
   if (battleSetupList.length === 0) {
     container.innerHTML = "<div class='party-empty'>Добавьте участников во вкладке Отряд</div>";
@@ -2952,11 +3060,11 @@ function battleDragEnd() { battleDragSrcIdx = null; }
 
 function startBattle() {
   var selected = battleSetupList.filter(function(p) { return p.checked; });
-  if (selected.length === 0) { alert("Выберите участников боя"); return; }
+  if (selected.length === 0) { showToast("Выберите участников боя", "warn"); return; }
   BATTLE_DATA = { active: true, participants: selected.map(function(p) { return Object.assign({}, p, { status: "healthy" }); }), currentTurn: 0 };
   saveBattle();
-  document.getElementById("battle-setup-screen").classList.add("hidden");
-  document.getElementById("battle-tracker-screen").classList.remove("hidden");
+  $("battle-setup-screen").classList.add("hidden");
+  $("battle-tracker-screen").classList.remove("hidden");
   renderBattleTracker();
 }
 
@@ -2975,7 +3083,7 @@ function getParticipantDesc(p) {
     return m ? m.desc : "";
   }
   if (p.type === "self") {
-    var char = characters.find(function(c) { return c.id === currentId; });
+    var char = getCurrentChar();
     return char ? (char.class || "") + (char.subclass ? " · " + char.subclass : "") + " · " + (char.level||1) + " ур." : "";
   }
   return "";
@@ -2986,7 +3094,7 @@ function showTrackerInfo(i) {
   if (!p) return;
   var desc = getParticipantDesc(p);
   var fcolor = getFactionColor(p.type);
-  var modal = document.getElementById("tracker-info-modal");
+  var modal = $("tracker-info-modal");
   if (!modal) {
     // create on fly
     modal = document.createElement("div");
@@ -2999,17 +3107,17 @@ function showTrackerInfo(i) {
         '<div class="tracker-info-type" id="tinfo-type"></div>' +
         '<div class="tracker-info-desc" id="tinfo-desc"></div>' +
         '<div class="confirm-modal-btns" style="margin-top:16px">' +
-          '<button class="confirm-btn-ok" onclick="document.getElementById(\'tracker-info-modal\').classList.remove(\'active\')">Закрыть</button>' +
+          '<button class="confirm-btn-ok" onclick="$(\'tracker-info-modal\').classList.remove(\'active\')">Закрыть</button>' +
         '</div>' +
       '</div>';
     document.body.appendChild(modal);
     modal.addEventListener("click", function(e) { if (e.target === modal) modal.classList.remove("active"); });
   }
-  document.getElementById("tinfo-icon").textContent = p.icon || "🎭";
-  document.getElementById("tinfo-name").textContent = p.name || "?";
-  document.getElementById("tinfo-type").style.color = fcolor;
-  document.getElementById("tinfo-type").textContent = getFactionLabel(p.type).toUpperCase();
-  var descEl = document.getElementById("tinfo-desc");
+  $("tinfo-icon").textContent = p.icon || "🎭";
+  $("tinfo-name").textContent = p.name || "?";
+  $("tinfo-type").style.color = fcolor;
+  $("tinfo-type").textContent = getFactionLabel(p.type).toUpperCase();
+  var descEl = $("tinfo-desc");
   descEl.textContent = desc || "Нет описания.";
   descEl.style.display = desc ? "block" : "none";
   modal.classList.add("active");
@@ -3018,7 +3126,7 @@ function showTrackerInfo(i) {
 
 // Авто-статус для "я" по % ХП
 function getSelfStatusFromHP() {
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return "healthy";
   var hp  = char.combat.hpCurrent || 0;
   var max = char.combat.hpMax    || 1;
@@ -3042,8 +3150,8 @@ function syncSelfBattleStatus() {
 }
 
 function renderBattleTracker() {
-  var list = document.getElementById("battle-tracker-list");
-  var turnInfo = document.getElementById("battle-turn-info");
+  var list = $("battle-tracker-list");
+  var turnInfo = $("battle-turn-info");
   if (!list) return;
   // sync self HP status before render
   var selfStatus = getSelfStatusFromHP();
@@ -3085,8 +3193,8 @@ function prevTurn() { BATTLE_DATA.currentTurn = (BATTLE_DATA.currentTurn - 1 + B
 function endBattle() {
   BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
   saveBattle();
-  document.getElementById("battle-setup-screen").classList.remove("hidden");
-  document.getElementById("battle-tracker-screen").classList.add("hidden");
+  $("battle-setup-screen").classList.remove("hidden");
+  $("battle-tracker-screen").classList.add("hidden");
   buildBattleSetupList();
   renderBattleSetup();
 }
@@ -3134,12 +3242,12 @@ function getResourceMax(res, char) {
 // Рендер блока ресурсов
 function renderClassResources() {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
 
-  var section = document.getElementById("class-resources-section");
-  var grid = document.getElementById("class-resources-grid");
+  var section = $("class-resources-section");
+  var grid = $("class-resources-grid");
   if (!section || !grid) return;
 
   var cls = char.class || "";
@@ -3218,7 +3326,7 @@ function renderClassResources() {
 
 function spendResource(id, delta) {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
   var cls = char.class || "";
@@ -3237,7 +3345,7 @@ function spendResource(id, delta) {
 
 function resetResource(id) {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
   char.resources[id] = 0;
@@ -3247,7 +3355,7 @@ function resetResource(id) {
 
 function toggleResourcePip(id, pipIdx) {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
   var cls = char.class || "";
@@ -3273,7 +3381,7 @@ function toggleResourcePip(id, pipIdx) {
 // Сбросить ресурсы по типу отдыха
 function resetResourcesByRest(restType) {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
   var cls = char.class || "";
@@ -3305,12 +3413,12 @@ function openASIModalForLevel(level) {
 
 function openASIModal() {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
   asiSelectedStats = [];
   asiFeatSelected = null;
-  var modal = document.getElementById("asi-modal");
-  if (!modal) { alert("АСИ модалка не найдена"); return; }
+  var modal = $("asi-modal");
+  if (!modal) { showToast("Ошибка: АСИ модалка не найдена", "error"); return; }
 
   // Reset radio to plus2
   var r = modal.querySelector('input[value="plus2"]');
@@ -3330,7 +3438,7 @@ function openASIModal() {
 }
 
 function closeASIModal() {
-  var modal = document.getElementById("asi-modal");
+  var modal = $("asi-modal");
   if (modal) modal.classList.remove("active");
   asiSelectedStats = [];
   asiFeatSelected = null;
@@ -3338,7 +3446,7 @@ function closeASIModal() {
 }
 
 function buildASIStatGrid(char) {
-  var grid = document.getElementById("asi-stat-grid");
+  var grid = $("asi-stat-grid");
   if (!grid) return;
   var statNames = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
   var statIcons = {str:"💪",dex:"🏃",con:"❤️",int:"🧠",wis:"👁️",cha:"🎭"};
@@ -3377,10 +3485,10 @@ function toggleASIStat(statKey) {
 
 function updateASIPreview() {
   var mode = getASIMode();
-  var preview = document.getElementById("asi-preview");
-  var applyBtn = document.getElementById("asi-apply-btn");
-  var statGrid = document.getElementById("asi-stat-grid");
-  var featListEl = document.getElementById("asi-feat-list");
+  var preview = $("asi-preview");
+  var applyBtn = $("asi-apply-btn");
+  var statGrid = $("asi-stat-grid");
+  var featListEl = $("asi-feat-list");
 
   // ── Режим: выбор черты ───────────────────────────────────
   if (mode === "feat") {
@@ -3411,13 +3519,13 @@ function updateASIPreview() {
   if (statGrid) {
     statGrid.querySelectorAll(".asi-stat-item").forEach(function(el) {
       el.classList.remove("selected");
-      var deltaEl = document.getElementById("asi-delta-" + el.id.replace("asi-stat-",""));
+      var deltaEl = $("asi-delta-" + el.id.replace("asi-stat-",""));
       if (deltaEl) deltaEl.textContent = "";
     });
     asiSelectedStats.forEach(function(k) {
-      var el = document.getElementById("asi-stat-" + k);
+      var el = $("asi-stat-" + k);
       if (el) el.classList.add("selected");
-      var deltaEl = document.getElementById("asi-delta-" + k);
+      var deltaEl = $("asi-delta-" + k);
       if (deltaEl) deltaEl.textContent = "+" + bonus;
     });
   }
@@ -3430,7 +3538,7 @@ function updateASIPreview() {
       preview.textContent = "Выберите ещё одну характеристику";
       preview.className = "asi-preview";
     } else {
-      var char = characters.find(function(c) { return c.id === currentId; });
+      var char = getCurrentChar();
       var abbr = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
       preview.textContent = "✅ " + asiSelectedStats.map(function(k) {
         return abbr[k] + ": " + char.stats[k] + " → " + (char.stats[k] + bonus);
@@ -3452,7 +3560,7 @@ function updateASIPreview() {
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
 (function() {
-  var el = document.getElementById("app-version-badge");
+  var el = $("app-version-badge");
   if (el && typeof APP_VERSION !== "undefined") {
     el.textContent = "v" + APP_VERSION + " (" + APP_VERSION_DATE + ")";
   }
@@ -3469,7 +3577,7 @@ function getJournal(char) {
 
 function addJournalEntry(type, text, details) {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
   var journal = getJournal(char);
   var now = new Date();
@@ -3498,9 +3606,9 @@ function filterJournal(type, btn) {
 
 function renderJournal() {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
-  var list = document.getElementById("journal-list");
+  var list = $("journal-list");
   if (!list) return;
   var journal = getJournal(char);
   var filtered = journalFilter === "all" ? journal : journal.filter(function(e) { return e.type === journalFilter; });
@@ -3530,7 +3638,7 @@ function renderJournal() {
 
 function deleteJournalEntry(id) {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char || !char.journal) return;
   char.journal = char.journal.filter(function(e) { return e.id !== id; });
   saveToLocal();
@@ -3538,16 +3646,16 @@ function deleteJournalEntry(id) {
 }
 
 function openAddJournalEntry() {
-  document.getElementById("add-journal-modal")?.classList.add("active");
-  document.getElementById("journal-entry-text").value = "";
+  $("add-journal-modal")?.classList.add("active");
+  $("journal-entry-text").value = "";
 }
 function closeAddJournalEntry() {
-  document.getElementById("add-journal-modal")?.classList.remove("active");
+  $("add-journal-modal")?.classList.remove("active");
 }
 function saveJournalEntry() {
-  var type = document.getElementById("journal-entry-type")?.value || "note";
-  var text = document.getElementById("journal-entry-text")?.value.trim() || "";
-  if (!text) { alert("Введите описание события"); return; }
+  var type = $("journal-entry-type")?.value || "note";
+  var text = $("journal-entry-text")?.value.trim() || "";
+  if (!text) { showToast("Введите описание события", "warn"); return; }
   var typeNames = { note:"Заметка", combat:"Бой", story:"Сюжет", loot:"Добыча", death:"Смерть" };
   addJournalEntry(type, typeNames[type] + ": " + text);
   closeAddJournalEntry();
@@ -3571,17 +3679,17 @@ function getCompanions(char) {
 
 function renderCompanions() {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
   var companions = getCompanions(char);
 
   // Update counts
-  var countEl = document.getElementById("companions-count");
+  var countEl = $("companions-count");
   if (countEl) countEl.textContent = companions.length > 0 ? companions.length : "";
 
   // Render in both sheet and world tab
   ["companions-list-sheet", "companions-list-world"].forEach(function(elId) {
-    var list = document.getElementById(elId);
+    var list = $(elId);
     if (!list) return;
     if (companions.length === 0) {
       list.innerHTML = '<div class="party-empty">📭 Нет прихвостней</div>';
@@ -3614,7 +3722,7 @@ function renderCompanions() {
 
 function companionHP(i, delta) {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
   var companions = getCompanions(char);
   if (!companions[i]) return;
@@ -3625,53 +3733,53 @@ function companionHP(i, delta) {
 }
 
 function openAddCompanionModal() {
-  document.getElementById("companion-modal-title").textContent = "🐾 Добавить прихвостня";
-  document.getElementById("companion-edit-index").value = "-1";
-  document.getElementById("companion-name-inp").value = "";
-  document.getElementById("companion-type-sel").value = "familiar";
-  document.getElementById("companion-hp-inp").value = "10";
-  document.getElementById("companion-ac-inp").value = "10";
-  document.getElementById("companion-attack-inp").value = "";
-  document.getElementById("companion-desc-inp").value = "";
-  document.getElementById("add-companion-modal")?.classList.add("active");
+  $("companion-modal-title").textContent = "🐾 Добавить прихвостня";
+  $("companion-edit-index").value = "-1";
+  $("companion-name-inp").value = "";
+  $("companion-type-sel").value = "familiar";
+  $("companion-hp-inp").value = "10";
+  $("companion-ac-inp").value = "10";
+  $("companion-attack-inp").value = "";
+  $("companion-desc-inp").value = "";
+  $("add-companion-modal")?.classList.add("active");
 }
 function openEditCompanionModal(i) {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
   var c = getCompanions(char)[i];
   if (!c) return;
-  document.getElementById("companion-modal-title").textContent = "✏️ Редактировать прихвостня";
-  document.getElementById("companion-edit-index").value = i;
-  document.getElementById("companion-name-inp").value = c.name || "";
-  document.getElementById("companion-type-sel").value = c.type || "other";
-  document.getElementById("companion-hp-inp").value = c.hpMax || 10;
-  document.getElementById("companion-ac-inp").value = c.ac || 10;
-  document.getElementById("companion-attack-inp").value = c.attack || "";
-  document.getElementById("companion-desc-inp").value = c.desc || "";
-  document.getElementById("add-companion-modal")?.classList.add("active");
+  $("companion-modal-title").textContent = "✏️ Редактировать прихвостня";
+  $("companion-edit-index").value = i;
+  $("companion-name-inp").value = c.name || "";
+  $("companion-type-sel").value = c.type || "other";
+  $("companion-hp-inp").value = c.hpMax || 10;
+  $("companion-ac-inp").value = c.ac || 10;
+  $("companion-attack-inp").value = c.attack || "";
+  $("companion-desc-inp").value = c.desc || "";
+  $("add-companion-modal")?.classList.add("active");
 }
 function closeAddCompanionModal() {
-  document.getElementById("add-companion-modal")?.classList.remove("active");
+  $("add-companion-modal")?.classList.remove("active");
 }
 function saveCompanion() {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
-  var name = document.getElementById("companion-name-inp")?.value.trim() || "";
-  if (!name) { alert("Введите имя"); return; }
-  var idx = parseInt(document.getElementById("companion-edit-index").value);
+  var name = $("companion-name-inp")?.value.trim() || "";
+  if (!name) { showToast("Введите имя", "warn"); return; }
+  var idx = parseInt($("companion-edit-index").value);
   var companions = getCompanions(char);
-  var hpMax = parseInt(document.getElementById("companion-hp-inp")?.value) || 10;
+  var hpMax = parseInt($("companion-hp-inp")?.value) || 10;
   var data = {
     id: idx >= 0 ? (companions[idx].id || Date.now()) : Date.now(),
     name: name,
-    type: document.getElementById("companion-type-sel")?.value || "other",
+    type: $("companion-type-sel")?.value || "other",
     hpMax: hpMax,
     hpCurrent: idx >= 0 ? companions[idx].hpCurrent : hpMax,
-    ac: parseInt(document.getElementById("companion-ac-inp")?.value) || 10,
-    attack: document.getElementById("companion-attack-inp")?.value.trim() || "",
-    desc: document.getElementById("companion-desc-inp")?.value.trim() || "",
+    ac: parseInt($("companion-ac-inp")?.value) || 10,
+    attack: $("companion-attack-inp")?.value.trim() || "",
+    desc: $("companion-desc-inp")?.value.trim() || "",
     status: "healthy"
   };
   if (idx >= 0) companions[idx] = data; else companions.push(data);
@@ -3681,7 +3789,7 @@ function saveCompanion() {
 }
 function deleteCompanion(i) {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
   var name = char.companions[i] ? char.companions[i].name : "прихвостня";
   showConfirmModal("Удалить прихвостня?", "«" + name + "» будет удалён.", function() {
@@ -3695,10 +3803,10 @@ function deleteCompanion(i) {
 var asiFeatSelected = null;
 
 function buildFeatList() {
-  var el = document.getElementById("asi-feat-list");
+  var el = $("asi-feat-list");
   if (!el || typeof FEATS_DATA === "undefined") return;
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   var takenFeats = char ? (char.feats || []) : [];
 
   el.innerHTML = '<div class="feat-search-wrap"><input type="text" class="feat-search-inp" placeholder="🔍 Поиск черты..." oninput="filterFeatList(this.value)"></div>' +
@@ -3729,8 +3837,8 @@ function filterFeatList(query) {
 function selectFeat(id) {
   asiFeatSelected = asiFeatSelected === id ? null : id;
   buildFeatList();
-  var preview = document.getElementById("asi-preview");
-  var applyBtn = document.getElementById("asi-apply-btn");
+  var preview = $("asi-preview");
+  var applyBtn = $("asi-apply-btn");
   if (asiFeatSelected) {
     var feat = FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
     if (preview) { preview.textContent = "✅ Черта: " + feat.name; preview.className = "asi-preview ready"; }
@@ -3746,7 +3854,7 @@ function applyASI() {
   if (mode !== "feat") {
     // stat mode
     if (!currentId || asiSelectedStats.length === 0) return;
-    var char = characters.find(function(c) { return c.id === currentId; });
+    var char = getCurrentChar();
     if (!char) return;
     var bonus = mode === "plus2" ? 2 : 1;
     var statNames2 = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
@@ -3772,7 +3880,7 @@ function applyASI() {
   }
 
   if (!asiFeatSelected || !currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
 
   var feat = FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
@@ -3840,14 +3948,14 @@ function applyASI() {
   // Journal entry
   addJournalEntry("feat", "Черта: " + feat.name, appliedDesc.length > 0 ? "Применено: " + appliedDesc.join(", ") : feat.desc.slice(0, 80));
 
-  closeASIModal();
-  asiFeatSelected = null;
-  // Mark ASI level as used
+  // Mark ASI level as used BEFORE closeASIModal (which resets asiCurrentLevel)
   if (asiCurrentLevel) {
     if (!char.asiUsedLevels) char.asiUsedLevels = [];
     if (!char.asiUsedLevels.includes(asiCurrentLevel)) char.asiUsedLevels.push(asiCurrentLevel);
   }
   asiCurrentLevel = null;
+  closeASIModal();
+  asiFeatSelected = null;
   showHPToast(0, "🎯 Черта «" + feat.name + "» получена!" + (appliedDesc.length ? " " + appliedDesc.join(", ") : ""));
   renderJournal();
   renderTakenFeats();
@@ -3862,13 +3970,13 @@ function switchProfilesTab(tab, btn) {
   document.querySelectorAll(".ptab-btn").forEach(function(b) { b.classList.remove("active"); });
   document.querySelectorAll(".ptab-content").forEach(function(c) { c.style.display = "none"; });
   if (btn) btn.classList.add("active");
-  var el = document.getElementById("ptab-" + tab);
+  var el = $("ptab-" + tab);
   if (el) el.style.display = "";
   if (tab === "changelog") renderChangelog();
 }
 
 function renderChangelog() {
-  var list = document.getElementById("changelog-list");
+  var list = $("changelog-list");
   if (!list || typeof APP_CHANGELOG === "undefined") return;
 
   var typeIcon  = { feat:"✨", fix:"🐛", improve:"⚡" };
@@ -3897,7 +4005,7 @@ function renderChangelog() {
 
 // Рендерим при старте
 (function() {
-  var versionBadge = document.getElementById("app-version-badge");
+  var versionBadge = $("app-version-badge");
   if (versionBadge && typeof APP_VERSION !== "undefined") {
     versionBadge.textContent = "v" + APP_VERSION;
   }
@@ -3909,12 +4017,12 @@ function renderChangelog() {
 // ============================================================
 function renderTakenFeats() {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char) return;
 
-  var section = document.getElementById("taken-feats-section");
-  var list    = document.getElementById("taken-feats-list");
-  var count   = document.getElementById("taken-feats-count");
+  var section = $("taken-feats-section");
+  var list    = $("taken-feats-list");
+  var count   = $("taken-feats-count");
   if (!section || !list) return;
 
   var feats = char.feats || [];
@@ -3947,7 +4055,7 @@ function renderTakenFeats() {
 
 function removeFeat(i) {
   if (!currentId) return;
-  var char = characters.find(function(c) { return c.id === currentId; });
+  var char = getCurrentChar();
   if (!char || !char.feats) return;
   var name = char.feats[i] ? char.feats[i].name : "черту";
   showConfirmModal("Убрать черту?",

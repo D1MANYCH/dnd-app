@@ -1263,6 +1263,18 @@ font-size: 1.4em;
 padding: 18px;
 }
 .dice-btn.d20:hover { background: linear-gradient(135deg, #e0b850 0%, #d4a843 100%); }
+.dice-adv-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.dice-adv-btn { padding: 10px 8px; font-size: 0.85em; font-weight: bold; border-radius: 8px; cursor: pointer; border: 2px solid; transition: all 0.2s; }
+.dice-adv-btn.adv { background: #1a3a1a; border-color: #4da843; color: #4da843; }
+.dice-adv-btn.adv:hover { background: #4da843; color: #000; }
+.dice-adv-btn.dis { background: #3a1a1a; border-color: #e74c3c; color: #e74c3c; }
+.dice-adv-btn.dis:hover { background: #e74c3c; color: #fff; }
+.dice-custom-label { font-size: 0.8em; color: var(--text-muted); margin-bottom: 5px; margin-top: 2px; }
+.dice-custom-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 16px; }
+.dice-custom-inp { width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 9px 12px; border-radius: 8px; font-size: 0.95em; box-sizing: border-box; }
+.dice-custom-inp:focus { outline: none; border-color: var(--accent-color); }
+.dice-custom-btn { background: var(--accent-color); color: #000; border: none; padding: 9px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9em; white-space: nowrap; }
+.dice-custom-btn:hover { background: #e0b850; }
 .dice-history { max-height: 120px; overflow-y: auto; border-top: 1px solid var(--border-color); padding-top: 10px; }
 .dice-history-item { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.85em; color: var(--text-muted); border-bottom: 1px solid var(--border-color); }
 .dice-history-item:last-child { border-bottom: none; }
@@ -2247,6 +2259,36 @@ font-size: 0.85em;
 .hp-toast-fade {
   opacity: 0;
   transform: translateY(10px);
+}
+/* Универсальные toast-уведомления */
+.app-toast {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  max-width: 320px;
+  white-space: normal;
+  text-align: left;
+}
+.app-toast-success {
+  background: #1a2e10;
+  color: #7ed940;
+  border: 1.5px solid rgba(90,158,30,0.6);
+}
+.app-toast-error {
+  background: #2e1010;
+  color: #ff6b6b;
+  border: 1.5px solid rgba(226,75,74,0.6);
+}
+.app-toast-warn {
+  background: #2e2510;
+  color: #f0c040;
+  border: 1.5px solid rgba(212,168,67,0.6);
+}
+.app-toast-info {
+  background: #101a2e;
+  color: #7eb8f0;
+  border: 1.5px solid rgba(91,155,213,0.6);
 }
 .hp-history-open-btn {
   padding: 5px 14px;

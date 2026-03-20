@@ -9,7 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>D&D 5e Character Sheet</title>
 <!-- manifest injected by JS only on http/https to avoid file:// CORS errors -->
-<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="style.css">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
@@ -173,6 +175,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <option value="Отшельник">Отшельник</option>
 <option value="Герой народа">Герой народа</option>
 <option value="Чужеземец">Чужеземец</option>
+<option value="Аколит">Аколит</option>
+<option value="Артист">Артист</option>
+<option value="Матрос">Матрос</option>
+<option value="Подмастерье">Подмастерье</option>
+<option value="Преступник/Шпион">Преступник/Шпион</option>
 </select>
 </div>
 </div>
@@ -1098,6 +1105,15 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button class="dice-btn" onclick="rollDice(10)">d10</button>
 <button class="dice-btn" onclick="rollDice(12)">d12</button>
 <button class="dice-btn" onclick="rollDice(100)">d100</button>
+</div>
+<div class="dice-adv-row">
+<button class="dice-adv-btn adv" onclick="rollDice(20,'adv')">▲ Преимущество (2d20 выше)</button>
+<button class="dice-adv-btn dis" onclick="rollDice(20,'dis')">▼ Помеха (2d20 ниже)</button>
+</div>
+<div class="dice-custom-label">✏️ Своя формула</div>
+<div class="dice-custom-row">
+<input type="text" id="dice-custom-input" class="dice-custom-inp" placeholder="2к6+3, 4к4, 1к20-1..." onkeydown="if(event.key==='Enter')rollCustomFormula()">
+<button class="dice-custom-btn" onclick="rollCustomFormula()">Бросить</button>
 </div>
 <h4>История</h4>
 <div class="dice-history" id="dice-history"></div>
