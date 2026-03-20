@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v8';
+const CACHE_NAME = 'dnd-sheet-v9';
 
 const FILES_TO_CACHE = [
   './',
@@ -11,8 +11,7 @@ const FILES_TO_CACHE = [
   './data.js',
   './app.js',
   './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-192.svg'
 ];
 
 self.addEventListener('install', (event) => {
@@ -22,7 +21,7 @@ self.addEventListener('install', (event) => {
       return cache.addAll(FILES_TO_CACHE);
     })
   );
-  self.skipWaiting();
+  // НЕ вызываем skipWaiting() автоматически — ждём команды от пользователя
 });
 
 self.addEventListener('activate', (event) => {
@@ -39,6 +38,12 @@ self.addEventListener('activate', (event) => {
     })
   );
   self.clients.claim();
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', (event) => {
