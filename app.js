@@ -11,6 +11,17 @@ function getCurrentChar() { return characters.find(function(c) { return c.id ===
 /** Открыть/закрыть простую модалку по id */
 function openModal(id) { var m = $(id); if (m) m.classList.add("active"); }
 function closeModal(id) { var m = $(id); if (m) m.classList.remove("active"); }
+/** Debounce — откладывает вызов fn на delay мс после последнего вызова */
+function debounce(fn, delay) {
+  var timer;
+  return function() {
+    var args = arguments;
+    clearTimeout(timer);
+    timer = setTimeout(function() { fn.apply(null, args); }, delay);
+  };
+}
+/** Отложенное сохранение — не чаще одного раза в 300мс */
+var saveToLocalDebounced = debounce(function() { saveToLocal(); }, 300);
 let SPELL_DATABASE = [];
 let characters = [];
 let currentId = null;
@@ -648,38 +659,13 @@ updateStatusBar();
 updateHPDisplay();
 }
 function createNewCharacter() {
-const newChar = {
-id: Date.now(),
-name: "Новый Герой",
-level: 1,
-exp: 0,
-class: "",
-subclass: "",
-race: "",
-background: "",
-alignment: "",
-size: "Средний",
-speed: "30 фт",
-stats: { str:10, dex:10, con:10, int:10, wis:10, cha:10 },
-combat: { ac:10, hpMax:10, hpCurrent:10, hpTemp:0, hpDice:"1к8", hpDiceSpent:0, init:0, speed:"30 фт" },
-conditions: [],
-effects: [],
-saves: {},
-skills: {},
-proficiencies: { armor: [], weapon: [], tools: "", languages: "" },
-weapons: [],
-inventory: { weapon: [], armor: [], potion: [], scroll: [], tool: [], material: [], other: [] },
-coins: { cp:0, sp:0, ep:0, gp:0, pp:0 },
-spells: { slots: {}, slotsUsed: {}, mySpells: [], stat: "", dc: 0, attack: 0, mod: 0 },
-notes: "",
-features: "",
-appearance: "",
-magicItems: "",
-deathSaves: { successes: [false, false, false], failures: [false, false, false] }
-};
-for(let i=1; i<=9; i++) {
-newChar.spells.slots[i] = 0;
-newChar.spells.slotsUsed[i] = 0;
+// Глубокое копирование дефолтного шаблона — безопасно, без мутации оригинала
+const newChar = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));
+newChar.id = Date.now();
+// Инициализируем ячейки заклинаний
+for (let i = 1; i <= 9; i++) {
+  newChar.spells.slots[i] = 0;
+  newChar.spells.slotsUsed[i] = 0;
 }
 characters.push(newChar);
 saveToLocal();
@@ -1070,7 +1056,7 @@ if(slotInput) char.spells.slots[i] = parseInt(slotInput.value) || 0;
 calcSpellStats();
 const char2 = getCurrentChar();
 if (char2) char2.updatedAt = Date.now();
-saveToLocal();
+saveToLocalDebounced();
 updateHeaderTitle();
 updateStatusBar();
 updateHPDisplay();
@@ -1317,7 +1303,7 @@ if (coinWeightEl) coinWeightEl.innerText = "Вес монет: " + weight + " ф
 updateInventoryWeight();
 }
 function openRestModal() {
-if (!currentId) { alert("Сначала выберите персонажа!"); return; }
+if (!currentId) { showToast("Сначала выберите персонажа!", "warn"); return; }
 const modal = $("rest-modal");
 if (modal) modal.classList.add("active");
 showRestMain();
@@ -1470,11 +1456,11 @@ loadCharacter(currentId);
 showRestResult(resultTitle, resultDetails);
 }
 function openLevelUpModal() {
-if (!currentId) { alert("Сначала выберите персонажа!"); return; }
+if (!currentId) { showToast("Сначала выберите персонажа!", "warn"); return; }
 const char = getCurrentChar();
 if (!char) return;
 const currentLevel = char.level || 1;
-if (currentLevel >= 20) { alert("Максимальный уровень достигнут!"); return; }
+if (currentLevel >= 20) { showToast("Максимальный уровень достигнут!", "warn"); return; }
 const newLevel = currentLevel + 1;
 const conMod = getMod(char.stats.con);
 const className = char.class;
@@ -1835,7 +1821,7 @@ if (!char) return;
 const category = $("new-item-category")?.value || document.getElementById("item-category")?.value || "weapon";
 const slotIndex = parseInt($("item-slot-index")?.value) || -1;
 const name = $("new-item-name")?.value?.trim() || "";
-if (!name) { alert("Введите название!"); return; }
+if (!name) { showToast("Введите название!", "warn"); return; }
 const newItem = {
 name: name,
 qty: parseInt($("new-item-qty")?.value) || 1,
@@ -1954,7 +1940,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 const name = $("new-weapon-name")?.value?.trim() || "";
-if (!name) { alert("Введите название!"); return; }
+if (!name) { showToast("Введите название!", "warn"); return; }
 const stat = $("new-weapon-stat")?.value || "str";
 const statName = stat === "str" ? "СИЛ" : "ЛОВ";
 if (!char.weapons) char.weapons = [];
@@ -2102,7 +2088,7 @@ if (modal) modal.classList.remove("active");
 function submitNewSpell() {
 const name = $("new-spell-name")?.value?.trim() || "";
 const desc = $("new-spell-desc")?.value?.trim() || "";
-if (!name || !desc) { alert("Название и описание обязательны!"); return; }
+if (!name || !desc) { showToast("Название и описание обязательны!", "warn"); return; }
 const newSpell = {
 id: Date.now(),
 name: name,
@@ -2120,7 +2106,7 @@ higherLevel: $("new-spell-higher")?.value?.trim() || ""
 SPELL_DATABASE.push(newSpell);
 saveToLocal();
 closeAddSpellForm();
-alert("Добавлено!");
+showToast("Заклинание добавлено!", "success");
 renderSpellSearch();
 }
 function renderSpellSearch() {
@@ -2224,12 +2210,12 @@ if (Array.isArray(imported)) {
 characters = imported;
 saveToLocal();
 renderCharacterList();
-alert("Загружено!");
+showToast("Данные загружены!", "success");
 } else {
-alert("Ошибка формата");
+showToast("Ошибка: неверный формат файла", "error");
 }
 } catch (err) {
-alert("Ошибка чтения");
+showToast("Ошибка чтения файла", "error");
 }
 };
 reader.readAsText(file);
@@ -2253,12 +2239,12 @@ const imported = JSON.parse(e.target.result);
 if (Array.isArray(imported)) {
 SPELL_DATABASE = imported;
 saveToLocal();
-alert("Заклинаний: " + imported.length);
+showToast("Заклинаний загружено: " + imported.length, "success");
 } else {
-alert("Ошибка формата");
+showToast("Ошибка: неверный формат файла", "error");
 }
 } catch (err) {
-alert("Ошибка чтения");
+showToast("Ошибка чтения файла", "error");
 }
 };
 reader.readAsText(file);
@@ -2465,6 +2451,23 @@ toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade");
 toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 2300);
 }
 
+// ============================================================
+// УНИВЕРСАЛЬНЫЕ TOAST-УВЕДОМЛЕНИЯ (замена alert)
+// type: 'success' | 'error' | 'warn' | 'info'
+// ============================================================
+function showToast(msg, type) {
+  var container = $("hp-toast-container");
+  if (!container) return;
+  var t = type || "info";
+  var toast = document.createElement("div");
+  toast.className = "hp-toast app-toast app-toast-" + t;
+  var icons = { success:"✅", error:"❌", info:"ℹ️", warn:"⚠️" };
+  toast.innerHTML = "<span style='margin-right:6px'>" + (icons[t] || "ℹ️") + "</span><span>" + escapeHtml(String(msg)) + "</span>";
+  container.appendChild(toast);
+  toast._fadeTimer   = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 2200);
+  toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 2700);
+}
+
 function openHPHistory() {
 const modal = $("hp-history-modal");
 if (!modal) return;
@@ -2636,7 +2639,6 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
         });
       })
       .catch(function(err) { console.log('[PWA] SW ошибка:', err); });
-
     var refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', function() {
       if (!refreshing) { refreshing = true; window.location.reload(); }
@@ -2646,44 +2648,24 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 
 function showUpdateModal(worker) {
   if ($('sw-update-modal')) return;
-
   var latest  = (typeof APP_CHANGELOG !== 'undefined' && APP_CHANGELOG.length > 0) ? APP_CHANGELOG[0] : null;
   var version = (typeof APP_VERSION !== 'undefined') ? APP_VERSION : (latest ? latest.version : '?');
-
   var typeIcon  = { feat:'✨', fix:'🐛', improve:'⚡', data:'📦' };
   var typeColor = { feat:'#4da843', fix:'#e74c3c', improve:'#5b9bd5', data:'#d4a843' };
-
   var changesList = latest ? latest.changes.map(function(c) {
-    return '<div class="sw-change-item">' +
-      '<span class="sw-change-icon" style="color:' + (typeColor[c.type] || '#9a9ab0') + '">' + (typeIcon[c.type] || '•') + '</span>' +
-      '<span class="sw-change-text">' + escapeHtml(c.text) + '</span>' +
-    '</div>';
+    return '<div class="sw-change-item"><span class="sw-change-icon" style="color:' + (typeColor[c.type] || '#9a9ab0') + '">' + (typeIcon[c.type] || '•') + '</span><span class="sw-change-text">' + escapeHtml(c.text) + '</span></div>';
   }).join('') : '<div class="sw-change-item">Улучшения и исправления</div>';
-
   var modal = document.createElement('div');
   modal.id = 'sw-update-modal';
   modal.innerHTML =
     '<div class="sw-update-box">' +
-      '<div class="sw-update-header">' +
-        '<div class="sw-update-icon">🎲</div>' +
-        '<div class="sw-update-title">Доступно обновление!</div>' +
-        '<div class="sw-update-version">v' + escapeHtml(String(version)) + (latest ? ' · ' + escapeHtml(latest.date) : '') + '</div>' +
-      '</div>' +
-      '<div class="sw-update-changes">' +
-        '<div class="sw-changes-title">📋 Что нового:</div>' +
-        changesList +
-      '</div>' +
-      '<div class="sw-update-safe">' +
-        '🔒 <b>Персонажи и данные сохранятся</b> — обновление меняет только код приложения, данные хранятся отдельно в браузере' +
-      '</div>' +
-      '<div class="sw-update-btns">' +
-        '<button id="sw-update-later">Позже</button>' +
-        '<button id="sw-update-now">⚡ Установить обновление</button>' +
-      '</div>' +
+      '<div class="sw-update-header"><div class="sw-update-icon">🎲</div><div class="sw-update-title">Доступно обновление!</div><div class="sw-update-version">v' + escapeHtml(String(version)) + (latest ? ' · ' + escapeHtml(latest.date) : '') + '</div></div>' +
+      '<div class="sw-update-changes"><div class="sw-changes-title">📋 Что нового:</div>' + changesList + '</div>' +
+      '<div class="sw-update-safe">🔒 <b>Персонажи и данные сохранятся</b> — обновление меняет только код приложения, данные хранятся отдельно в браузере</div>' +
+      '<div class="sw-update-btns"><button id="sw-update-later">Позже</button><button id="sw-update-now">⚡ Установить обновление</button></div>' +
     '</div>';
   document.body.appendChild(modal);
   requestAnimationFrame(function() { modal.classList.add('sw-update-visible'); });
-
   $('sw-update-now').addEventListener('click', function() {
     $('sw-update-now').textContent = '⏳ Обновляем...';
     $('sw-update-now').disabled = true;
@@ -2694,16 +2676,6 @@ function showUpdateModal(worker) {
     modal.classList.remove('sw-update-visible');
     setTimeout(function() { if (modal.parentNode) modal.remove(); }, 300);
   });
-}
-
-function escapeHtml(str) {
-if (str === null || str === undefined) return '';
-return String(str)
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-  .replace(/'/g, '&#039;');
 }
 
 // ============================================================
@@ -2889,7 +2861,7 @@ function _pentSave(type) {
   var cfg = _PENT[type];
   var nameField = cfg.fields[0];
   var name = $(nameField.id).value.trim();
-  if (!name) { alert("Введите имя"); return; }
+  if (!name) { showToast("Введите имя", "warn"); return; }
   var list = cfg.list();
   var idx = parseInt($(cfg.idx).value);
   var data = { id: idx >= 0 ? (list[idx].id || Date.now()) : Date.now(), status: idx >= 0 ? (list[idx].status || "healthy") : "healthy" };
@@ -2915,8 +2887,8 @@ function _pentImport(type, input) {
   reader.onload = function(e) {
     try { var d = JSON.parse(e.target.result);
       if (Array.isArray(d)) { PARTY_DATA[type === "ally" ? "allies" : type+"s"] = d; saveParty(); _PENT[type].render(); }
-      else alert("Неверный формат");
-    } catch(err) { alert("Ошибка"); }
+      else showToast("Неверный формат файла", "error");
+    } catch(err) { showToast("Ошибка загрузки", "error"); }
   };
   reader.readAsText(file); input.value = "";
 }
@@ -3112,7 +3084,7 @@ function battleDragEnd() { battleDragSrcIdx = null; }
 
 function startBattle() {
   var selected = battleSetupList.filter(function(p) { return p.checked; });
-  if (selected.length === 0) { alert("Выберите участников боя"); return; }
+  if (selected.length === 0) { showToast("Выберите участников боя", "warn"); return; }
   BATTLE_DATA = { active: true, participants: selected.map(function(p) { return Object.assign({}, p, { status: "healthy" }); }), currentTurn: 0 };
   saveBattle();
   $("battle-setup-screen").classList.add("hidden");
@@ -3470,7 +3442,7 @@ function openASIModal() {
   asiSelectedStats = [];
   asiFeatSelected = null;
   var modal = $("asi-modal");
-  if (!modal) { alert("АСИ модалка не найдена"); return; }
+  if (!modal) { showToast("Ошибка: АСИ модалка не найдена", "error"); return; }
 
   // Reset radio to plus2
   var r = modal.querySelector('input[value="plus2"]');
@@ -3707,7 +3679,7 @@ function closeAddJournalEntry() {
 function saveJournalEntry() {
   var type = $("journal-entry-type")?.value || "note";
   var text = $("journal-entry-text")?.value.trim() || "";
-  if (!text) { alert("Введите описание события"); return; }
+  if (!text) { showToast("Введите описание события", "warn"); return; }
   var typeNames = { note:"Заметка", combat:"Бой", story:"Сюжет", loot:"Добыча", death:"Смерть" };
   addJournalEntry(type, typeNames[type] + ": " + text);
   closeAddJournalEntry();
@@ -3819,7 +3791,7 @@ function saveCompanion() {
   var char = getCurrentChar();
   if (!char) return;
   var name = $("companion-name-inp")?.value.trim() || "";
-  if (!name) { alert("Введите имя"); return; }
+  if (!name) { showToast("Введите имя", "warn"); return; }
   var idx = parseInt($("companion-edit-index").value);
   var companions = getCompanions(char);
   var hpMax = parseInt($("companion-hp-inp")?.value) || 10;

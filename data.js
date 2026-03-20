@@ -8,8 +8,8 @@ const _ASI  = "+2 к одной характеристике или +1 к дву
 const _FEAT = function() { return {name:"Увеличение характеристик", desc:_ASI}; };
 
 function escapeHtml(text) {
-  if (!text) return "";
-  return text.toString()
+  if (text === null || text === undefined) return "";
+  return String(text)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -19,11 +19,32 @@ function escapeHtml(text) {
 
 // ── Дефолтное состояние персонажа (используется при создании нового) ──────────
 const DEFAULT_CHARACTER = {
-  deathSaves: { successes: [false, false, false], failures: [false, false, false] },
-  hpDiceSpent: 0,
-  tempHP: 0,
+  name:       "Новый Герой",
+  level:      1,
+  exp:        0,
+  class:      "",
+  subclass:   "",
+  race:       "",
+  background: "",
+  alignment:  "",
+  size:       "Средний",
+  speed:      "30 фт",
+  stats:      { str:10, dex:10, con:10, int:10, wis:10, cha:10 },
+  combat:     { ac:10, hpMax:10, hpCurrent:10, hpTemp:0, hpDice:"1к8", hpDiceSpent:0, init:0, speed:"30 фт" },
   conditions: [],
-  effects: []
+  effects:    [],
+  saves:      {},
+  skills:     {},
+  proficiencies: { armor:[], weapon:[], tools:"", languages:"" },
+  weapons:    [],
+  inventory:  { weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[], other:[] },
+  coins:      { cp:0, sp:0, ep:0, gp:0, pp:0 },
+  spells:     { slots:{}, slotsUsed:{}, mySpells:[], stat:"", dc:0, attack:0, mod:0 },
+  notes:      "",
+  features:   "",
+  appearance: "",
+  magicItems: "",
+  deathSaves: { successes:[false,false,false], failures:[false,false,false] }
 };
 
 const SAVES_DATA = [

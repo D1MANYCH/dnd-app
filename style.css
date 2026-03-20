@@ -3992,3 +3992,10 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 #sw-update-now:hover { opacity: 0.9; }
 #sw-update-now:disabled { opacity: 0.6; cursor: default; }
+
+/* ========== УНИВЕРСАЛЬНЫЕ TOAST-УВЕДОМЛЕНИЯ ========== */
+.app-toast { display:flex; align-items:center; font-size:14px; font-weight:600; max-width:320px; white-space:normal; text-align:left; }
+.app-toast-success { background:#1a2e10; color:#7ed940; border:1.5px solid rgba(90,158,30,0.6); }
+.app-toast-error   { background:#2e1010; color:#ff6b6b; border:1.5px solid rgba(226,75,74,0.6); }
+.app-toast-warn    { background:#2e2510; color:#f0c040; border:1.5px solid rgba(212,168,67,0.6); }
+.app-toast-info    { background:#101a2e; color:#7eb8f0; border:1.5px solid rgba(91,155,213,0.6); }
