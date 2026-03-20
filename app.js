@@ -48,12 +48,87 @@ const skills = [
 // ============================================
 // ИНИЦИАЛИЗАЦИЯ
 // ============================================
+// ============================================================
+// МИГРАЦИИ СХЕМЫ ПЕРСОНАЖА
+// Запускается при загрузке для каждого персонажа.
+// Добавляет недостающие поля из новых версий без потери данных.
+// Когда добавляешь новое поле в DEFAULT_CHARACTER — добавь его
+// и сюда, в соответствующую миграцию (или создай новую).
+// ============================================================
+function migrateCharacter(char) {
+  var v = char.schemaVersion || 0;
+
+  // v0 → v1: поля companions, feats, asiUsedLevels, journal, party, battle, updatedAt
+  if (v < 1) {
+    if (!char.companions)    char.companions    = [];
+    if (!char.feats)         char.feats         = [];
+    if (!char.asiUsedLevels) char.asiUsedLevels = [];
+    if (!char.journal)       char.journal       = [];
+    if (!char.party)         char.party         = { allies:[], monsters:[], npcs:[] };
+    if (!char.battle)        char.battle        = { active:false, participants:[], currentTurn:0 };
+    if (!char.updatedAt)     char.updatedAt     = char.id || Date.now();
+    // Вложенные поля combat
+    if (!char.combat)        char.combat        = {};
+    if (char.combat.hpDiceSpent  === undefined) char.combat.hpDiceSpent  = 0;
+    if (char.combat.hpTemp       === undefined) char.combat.hpTemp       = 0;
+    if (char.combat.armorId      === undefined) char.combat.armorId      = "none";
+    if (char.combat.hasShield    === undefined) char.combat.hasShield    = false;
+    // Вложенные поля proficiencies
+    if (!char.proficiencies)         char.proficiencies         = {};
+    if (!char.proficiencies.armor)   char.proficiencies.armor   = [];
+    if (!char.proficiencies.weapon)  char.proficiencies.weapon  = [];
+    if (char.proficiencies.tools     === undefined) char.proficiencies.tools     = "";
+    if (char.proficiencies.languages === undefined) char.proficiencies.languages = "";
+    // Вложенные поля spells
+    if (!char.spells) char.spells = { slots:{}, slotsUsed:{}, mySpells:[], stat:"", dc:0, attack:0, mod:0 };
+    if (!char.spells.mySpells)  char.spells.mySpells  = [];
+    if (!char.spells.slots)     char.spells.slots     = {};
+    if (!char.spells.slotsUsed) char.spells.slotsUsed = {};
+    // Поля верхнего уровня
+    if (char.conditions  === undefined) char.conditions  = [];
+    if (char.effects     === undefined) char.effects     = [];
+    if (char.saves       === undefined) char.saves       = {};
+    if (char.skills      === undefined) char.skills      = {};
+    if (char.coins       === undefined) char.coins       = { cp:0, sp:0, ep:0, gp:0, pp:0 };
+    if (!char.deathSaves) char.deathSaves = { successes:[false,false,false], failures:[false,false,false] };
+    if (!char.inventory)  char.inventory  = { weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[], other:[] };
+    if (!char.weapons)    char.weapons    = [];
+    if (char.notes       === undefined) char.notes       = "";
+    if (char.features    === undefined) char.features    = "";
+    if (char.appearance  === undefined) char.appearance  = "";
+    if (char.magicItems  === undefined) char.magicItems  = "";
+    char.schemaVersion = 1;
+  }
+
+  // Место для будущих миграций:
+  // if (v < 2) {
+  //   char.newField = defaultValue;
+  //   char.schemaVersion = 2;
+  // }
+
+  return char;
+}
+
 window.onload = function() {
 try {
 const saved = localStorage.getItem("dnd_chars");
 const savedSpells = localStorage.getItem("dnd_spells");
 const savedHpHistory = localStorage.getItem("dnd_hp_history");
-if (saved) characters = JSON.parse(saved);
+if (saved) {
+  characters = JSON.parse(saved);
+  // Прогоняем миграции для каждого персонажа
+  var migrated = false;
+  characters = characters.map(function(char) {
+    var before = char.schemaVersion || 0;
+    var after  = migrateCharacter(char);
+    if ((after.schemaVersion || 0) > before) migrated = true;
+    return after;
+  });
+  // Если хоть один персонаж мигрировал — сразу сохраняем
+  if (migrated) {
+    try { localStorage.setItem("dnd_chars", JSON.stringify(characters)); } catch(e) {}
+  }
+}
 if (savedSpells) SPELL_DATABASE = JSON.parse(savedSpells);
 if (savedHpHistory) hpHistory = JSON.parse(savedHpHistory);
 } catch(e) { console.log("Ошибка загрузки:", e); }
@@ -662,6 +737,7 @@ function createNewCharacter() {
 // Глубокое копирование дефолтного шаблона — безопасно, без мутации оригинала
 const newChar = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));
 newChar.id = Date.now();
+newChar.schemaVersion = (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : 1;
 // Инициализируем ячейки заклинаний
 for (let i = 1; i <= 9; i++) {
   newChar.spells.slots[i] = 0;
