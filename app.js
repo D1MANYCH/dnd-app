@@ -2617,7 +2617,6 @@ loadDeathSaves();
 // openASIModal и closeASIModal определены ниже
 
 // ============================================================
-// ============================================================
 // Регистрация Service Worker + автообнаружение обновлений
 // ============================================================
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
@@ -2625,28 +2624,19 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     navigator.serviceWorker.register('./sw.js')
       .then(function(reg) {
         console.log('[PWA] SW зарегистрирован:', reg.scope);
-
-        // Если новый SW ждёт активации — показываем кнопку обновления
-        function checkForWaiting(reg) {
-          if (reg.waiting) {
-            showUpdateBanner(reg.waiting);
-          }
-        }
-        checkForWaiting(reg);
-
+        if (reg.waiting) { showUpdateModal(reg.waiting); }
         reg.addEventListener('updatefound', function() {
           var newWorker = reg.installing;
           if (!newWorker) return;
           newWorker.addEventListener('statechange', function() {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              showUpdateBanner(newWorker);
+              showUpdateModal(newWorker);
             }
           });
         });
       })
       .catch(function(err) { console.log('[PWA] SW ошибка:', err); });
 
-    // После активации нового SW — перезагружаем страницу
     var refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', function() {
       if (!refreshing) { refreshing = true; window.location.reload(); }
@@ -2654,23 +2644,55 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   });
 }
 
-function showUpdateBanner(worker) {
-  // Не показываем дважды
-  if ($('sw-update-banner')) return;
-  var banner = document.createElement('div');
-  banner.id = 'sw-update-banner';
-  banner.innerHTML =
-    '<span>🆕 Доступно обновление приложения!</span>' +
-    '<button id="sw-update-btn">Обновить</button>' +
-    '<button id="sw-update-close">✕</button>';
-  document.body.appendChild(banner);
+function showUpdateModal(worker) {
+  if ($('sw-update-modal')) return;
 
-  $('sw-update-btn').addEventListener('click', function() {
+  var latest  = (typeof APP_CHANGELOG !== 'undefined' && APP_CHANGELOG.length > 0) ? APP_CHANGELOG[0] : null;
+  var version = (typeof APP_VERSION !== 'undefined') ? APP_VERSION : (latest ? latest.version : '?');
+
+  var typeIcon  = { feat:'✨', fix:'🐛', improve:'⚡', data:'📦' };
+  var typeColor = { feat:'#4da843', fix:'#e74c3c', improve:'#5b9bd5', data:'#d4a843' };
+
+  var changesList = latest ? latest.changes.map(function(c) {
+    return '<div class="sw-change-item">' +
+      '<span class="sw-change-icon" style="color:' + (typeColor[c.type] || '#9a9ab0') + '">' + (typeIcon[c.type] || '•') + '</span>' +
+      '<span class="sw-change-text">' + escapeHtml(c.text) + '</span>' +
+    '</div>';
+  }).join('') : '<div class="sw-change-item">Улучшения и исправления</div>';
+
+  var modal = document.createElement('div');
+  modal.id = 'sw-update-modal';
+  modal.innerHTML =
+    '<div class="sw-update-box">' +
+      '<div class="sw-update-header">' +
+        '<div class="sw-update-icon">🎲</div>' +
+        '<div class="sw-update-title">Доступно обновление!</div>' +
+        '<div class="sw-update-version">v' + escapeHtml(String(version)) + (latest ? ' · ' + escapeHtml(latest.date) : '') + '</div>' +
+      '</div>' +
+      '<div class="sw-update-changes">' +
+        '<div class="sw-changes-title">📋 Что нового:</div>' +
+        changesList +
+      '</div>' +
+      '<div class="sw-update-safe">' +
+        '🔒 <b>Персонажи и данные сохранятся</b> — обновление меняет только код приложения, данные хранятся отдельно в браузере' +
+      '</div>' +
+      '<div class="sw-update-btns">' +
+        '<button id="sw-update-later">Позже</button>' +
+        '<button id="sw-update-now">⚡ Установить обновление</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+  requestAnimationFrame(function() { modal.classList.add('sw-update-visible'); });
+
+  $('sw-update-now').addEventListener('click', function() {
+    $('sw-update-now').textContent = '⏳ Обновляем...';
+    $('sw-update-now').disabled = true;
+    $('sw-update-later').disabled = true;
     worker.postMessage({ type: 'SKIP_WAITING' });
-    banner.remove();
   });
-  $('sw-update-close').addEventListener('click', function() {
-    banner.remove();
+  $('sw-update-later').addEventListener('click', function() {
+    modal.classList.remove('sw-update-visible');
+    setTimeout(function() { if (modal.parentNode) modal.remove(); }, 300);
   });
 }
 

@@ -11,7 +11,8 @@ const FILES_TO_CACHE = [
   './data.js',
   './app.js',
   './manifest.json',
-  './icons/icon-192.svg'
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -21,7 +22,7 @@ self.addEventListener('install', (event) => {
       return cache.addAll(FILES_TO_CACHE);
     })
   );
-  // НЕ вызываем skipWaiting() автоматически — ждём команды от пользователя
+  // НЕ вызываем skipWaiting() — ждём команды от пользователя через модалку
 });
 
 self.addEventListener('activate', (event) => {
@@ -40,6 +41,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Получаем команду "Установить" от пользователя
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
@@ -47,15 +49,12 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Игнорируем chrome-extension://, data:, blob: и другие не-http запросы
   const url = event.request.url;
   if (!url.startsWith('http://') && !url.startsWith('https://')) return;
 
   event.respondWith(
     caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
+      if (response) return response;
       return fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const responseClone = networkResponse.clone();
