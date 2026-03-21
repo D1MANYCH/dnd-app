@@ -27,17 +27,35 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="status-right">
 <div class="status-conditions" id="status-conditions"></div>
+<button class="nav-hamburger hidden" id="nav-hamburger" onclick="openDrawer()">☰</button>
 </div>
+</div>
+
+<!-- Drawer overlay -->
+<div class="drawer-overlay hidden" id="drawer-overlay" onclick="closeDrawer()"></div>
+<!-- Side drawer -->
+<div class="side-drawer hidden" id="side-drawer">
+  <div class="drawer-header">
+    <div class="drawer-char-name" id="drawer-char-name">Персонаж</div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <nav class="drawer-nav">
+    <button class="drawer-item drawer-item-active" onclick="switchTab('sheet',null);closeDrawer()" data-drawer-tab="sheet"><span>📋</span>Лист персонажа</button>
+    <button class="drawer-item" onclick="switchTab('spells',null);closeDrawer()" data-drawer-tab="spells"><span>✨</span>Заклинания</button>
+    <button class="drawer-item" onclick="switchTab('inventory',null);closeDrawer()" data-drawer-tab="inventory"><span>🎒</span>Инвентарь</button>
+    <button class="drawer-item" onclick="switchTab('battle',null);closeDrawer()" data-drawer-tab="battle"><span>⚔️</span>Бой</button>
+    <div class="drawer-divider"></div>
+    <button class="drawer-item" onclick="switchTab('notes',null);closeDrawer()" data-drawer-tab="notes"><span>📝</span>Записи</button>
+    <button class="drawer-item" onclick="switchTab('party',null);closeDrawer()" data-drawer-tab="party"><span>🌍</span>Мир</button>
+    <button class="drawer-item" onclick="switchTab('journal',null);closeDrawer()" data-drawer-tab="journal"><span>📖</span>Журнал</button>
+  </nav>
 </div>
 <header>
 <h2 class="header-title" id="header-title">🎭 Мой Персонаж D&D 5e</h2>
 </header>
 <div class="container">
 <!-- Floating Buttons -->
-<div class="floating-buttons">
-<div class="floating-btn floating-btn-rest" onclick="openRestModal()" title="Отдых">🏕️</div>
-<div class="floating-btn floating-btn-dice" onclick="openDiceModal()" title="Бросить кубик">🎲</div>
-</div>
+
 <div id="screen-characters">
 <div class="card">
 <h3>📜 Ваши Персонажи <span id="char-count" class="char-count-badge"></span></h3>
@@ -358,6 +376,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="hp-toast-anchor">
 <button class="hp-history-open-btn" onclick="openHPHistory()">📋 История ХП</button>
 </div>
+<div class="hp-rest-row">
+  <button class="hp-rest-btn hp-rest-short" onclick="openRestModal(); showShortRestInfo()">☕ Короткий отдых</button>
+  <button class="hp-rest-btn hp-rest-long" onclick="openRestModal(); showLongRestInfo()">🛏️ Долгий отдых</button>
+</div>
 </div>
 
 <!-- Урон / Лечение -->
@@ -547,115 +569,160 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="tab-spells" class="tab-content">
 <div class="card">
 <h3>Заклинательная характеристика</h3>
-<div class="spellcasting-stat">
-<div class="row">
-<div class="col">
-<label>Характеристика</label>
-<select id="spell-stat" onchange="updateChar(); calcSpellStats()">
-<option value="">Выберите</option>
-<option value="ИНТ">ИНТ (Интеллект)</option>
-<option value="МУД">МУД (Мудрость)</option>
-<option value="ХАР">ХАР (Харизма)</option>
+<div class="sc-stat-selector">
+  <button class="sc-stat-btn" id="sc-btn-int" onclick="setSpellStat('ИНТ')">
+    <span class="sc-stat-abbr">ИНТ</span>
+    <span class="sc-stat-name">Интеллект</span>
+  </button>
+  <button class="sc-stat-btn" id="sc-btn-wis" onclick="setSpellStat('МУД')">
+    <span class="sc-stat-abbr">МУД</span>
+    <span class="sc-stat-name">Мудрость</span>
+  </button>
+  <button class="sc-stat-btn" id="sc-btn-cha" onclick="setSpellStat('ХАР')">
+    <span class="sc-stat-abbr">ХАР</span>
+    <span class="sc-stat-name">Харизма</span>
+  </button>
+</div>
+<div class="sc-stats-row">
+  <div class="sc-stat-block">
+    <div class="sc-stat-value" id="spell-mod-display">—</div>
+    <div class="sc-stat-label">Модификатор</div>
+  </div>
+  <div class="sc-stat-block sc-stat-block--main">
+    <div class="sc-stat-value" id="spell-dc-display">—</div>
+    <div class="sc-stat-label">СЛ спасброска</div>
+  </div>
+  <div class="sc-stat-block">
+    <div class="sc-stat-value" id="spell-attack-display">—</div>
+    <div class="sc-stat-label">Бонус атаки</div>
+  </div>
+</div>
+<!-- hidden inputs for compatibility -->
+<input type="hidden" id="spell-dc">
+<input type="hidden" id="spell-attack">
+<input type="hidden" id="spell-mod">
+<select id="spell-stat" onchange="updateChar(); calcSpellStats()" style="display:none">
+<option value=""></option>
+<option value="ИНТ">ИНТ</option>
+<option value="МУД">МУД</option>
+<option value="ХАР">ХАР</option>
 </select>
 </div>
-<div class="col"><label>СЛ спасброска</label><input type="number" id="spell-dc" readonly></div>
-</div>
-<div class="row">
-<div class="col"><label>Бонус атаки</label><input type="text" id="spell-attack" readonly></div>
-<div class="col"><label>Модификатор</label><input type="text" id="spell-mod" readonly></div>
-</div>
-</div>
-</div>
 <div class="card">
+<div class="spell-slots-header">
 <h3>Ячейки заклинаний</h3>
-<p style="font-size:0.75em; color:var(--text-muted);">💎 Нажмите на ромб, чтобы отметить</p>
+<button class="ssl-restore-btn" onclick="restoreAllSlots()" title="Восстановить все ячейки">🛏️ Длинный отдых</button>
+</div>
+<p style="font-size:0.72em; color:var(--text-muted); margin-bottom:8px;">💎 Нажмите на ромб чтобы отметить · Счётчик показывает <span style="color:var(--success-color);font-weight:600;">свободные</span>/всего</p>
 <div class="spell-slots-visual" id="spell-slots-visual"></div>
 </div>
 <div class="card">
+<div class="spells-header-row">
 <h3>Мои заклинания</h3>
-<button class="success" onclick="openSpellSearch()">🔍 Найти заклинание</button>
-<button class="info" onclick="openAddSpellForm()">✏️ Добавить своё</button>
+<div class="spell-action-btns">
+<button class="spell-find-btn" onclick="openSpellSearch()">🔍 Найти заклинание</button>
+<button class="spell-add-btn" onclick="openAddSpellForm()">✏️ Добавить своё</button>
+</div>
+</div>
 <div id="my-spells-list"></div>
 </div>
 </div>
 <div id="tab-inventory" class="tab-content">
-<div class="inventory-weight-summary">
-<div class="total-weight" id="total-weight">0 фнт</div>
-<div class="weight-label">Общий вес инвентаря</div>
-<div class="carry-capacity" id="carry-capacity">Грузоподъёмность: 225 фнт</div>
-<div class="overweight-warning" id="overweight-warning">⚠️ ПЕРЕГРУЗ! Снизьте вес на <span id="overweight-amount">0</span> фнт</div>
+
+<!-- Weight bar -->
+<div class="inv-weight-bar-wrap card">
+  <div class="inv-weight-top">
+    <div class="inv-weight-left">
+      <span class="inv-weight-num" id="total-weight">0</span>
+      <span class="inv-weight-unit">фнт</span>
+      <span class="inv-weight-label">из</span>
+      <span class="inv-weight-cap" id="carry-capacity-num">225</span>
+      <span class="inv-weight-unit">фнт</span>
+    </div>
+    <div class="inv-weight-right">
+      <span id="carry-capacity" style="display:none"></span>
+      <div class="inv-overweight-badge" id="overweight-warning" style="display:none">⚠️ ПЕРЕГРУЗ на <span id="overweight-amount">0</span> фнт</div>
+    </div>
+  </div>
+  <div class="inv-weight-track">
+    <div class="inv-weight-fill" id="weight-fill" style="width:0%"></div>
+  </div>
 </div>
-<div class="inventory-header">
-<h4 style="margin-bottom: 15px;">🎒 Рюкзак</h4>
-<div class="inventory-filters">
-<button class="active" onclick="filterInventory('all', this)">📋 Все</button>
-<button onclick="filterInventory('weapon', this)">⚔️ Оружие</button>
-<button onclick="filterInventory('armor', this)">🛡️ Броня</button>
-<button onclick="filterInventory('potion', this)">🧪 Зелья</button>
-<button onclick="filterInventory('scroll', this)">📜 Свитки</button>
-<button onclick="filterInventory('tool', this)">🔧 Инструменты</button>
-<button onclick="filterInventory('material', this)">📦 Материалы</button>
-<button onclick="filterInventory('other', this)">📝 Прочее</button>
+
+<!-- Backpack -->
+<div class="card">
+  <div class="inv-backpack-header">
+    <h4>🎒 Рюкзак</h4>
+    <button class="inv-add-btn" onclick="openItemModal(null, -1)">+ Добавить</button>
+  </div>
+  <div class="inventory-filters">
+    <button class="active" onclick="filterInventory('all', this)">📋 Все</button>
+    <button onclick="filterInventory('weapon', this)">⚔️ Оружие</button>
+    <button onclick="filterInventory('armor', this)">🛡️ Броня</button>
+    <button onclick="filterInventory('potion', this)">🧪 Зелья</button>
+    <button onclick="filterInventory('scroll', this)">📜 Свитки</button>
+    <button onclick="filterInventory('tool', this)">🔧 Инструменты</button>
+    <button onclick="filterInventory('material', this)">📦 Материалы</button>
+    <button onclick="filterInventory('other', this)">📝 Прочее</button>
+  </div>
+  <div class="inventory-list" id="inventory-list"></div>
 </div>
-<button class="info" onclick="openItemModal(null, -1)">+ Добавить предмет</button>
+
+<!-- Coins -->
+<div class="card">
+  <div class="inv-coins-header">
+    <h4>💰 Кошель</h4>
+    <span class="inv-coins-weight" id="coin-weight">0 фнт</span>
+  </div>
+  <div class="inv-coins-grid">
+    <div class="inv-coin-cell inv-coin-cp">
+      <div class="inv-coin-icon">🟤</div>
+      <div class="inv-coin-name">ММ</div>
+      <input type="number" id="coin-cp" value="0" class="inv-coin-input" oninput="updateChar()">
+      <div class="inv-coin-btns">
+        <button class="inv-coin-btn" onclick="adjustCoin('cp',-1)">−</button>
+        <button class="inv-coin-btn" onclick="adjustCoin('cp',1)">+</button>
+      </div>
+    </div>
+    <div class="inv-coin-cell inv-coin-sp">
+      <div class="inv-coin-icon">⚪</div>
+      <div class="inv-coin-name">СМ</div>
+      <input type="number" id="coin-sp" value="0" class="inv-coin-input" oninput="updateChar()">
+      <div class="inv-coin-btns">
+        <button class="inv-coin-btn" onclick="adjustCoin('sp',-1)">−</button>
+        <button class="inv-coin-btn" onclick="adjustCoin('sp',1)">+</button>
+      </div>
+    </div>
+    <div class="inv-coin-cell inv-coin-ep">
+      <div class="inv-coin-icon">🔵</div>
+      <div class="inv-coin-name">ЭМ</div>
+      <input type="number" id="coin-ep" value="0" class="inv-coin-input" oninput="updateChar()">
+      <div class="inv-coin-btns">
+        <button class="inv-coin-btn" onclick="adjustCoin('ep',-1)">−</button>
+        <button class="inv-coin-btn" onclick="adjustCoin('ep',1)">+</button>
+      </div>
+    </div>
+    <div class="inv-coin-cell inv-coin-gp">
+      <div class="inv-coin-icon">🟡</div>
+      <div class="inv-coin-name">ЗМ</div>
+      <input type="number" id="coin-gp" value="0" class="inv-coin-input" oninput="updateChar()">
+      <div class="inv-coin-btns">
+        <button class="inv-coin-btn" onclick="adjustCoin('gp',-1)">−</button>
+        <button class="inv-coin-btn" onclick="adjustCoin('gp',1)">+</button>
+      </div>
+    </div>
+    <div class="inv-coin-cell inv-coin-pp">
+      <div class="inv-coin-icon">🟣</div>
+      <div class="inv-coin-name">ПМ</div>
+      <input type="number" id="coin-pp" value="0" class="inv-coin-input" oninput="updateChar()">
+      <div class="inv-coin-btns">
+        <button class="inv-coin-btn" onclick="adjustCoin('pp',-1)">−</button>
+        <button class="inv-coin-btn" onclick="adjustCoin('pp',1)">+</button>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="inventory-list" id="inventory-list"></div>
-<div class="card" style="margin-top: 15px;">
-<h4>💰 Кошель</h4>
-<div class="coin-section">
-<div class="coin-row">
-<span class="coin-label">ММ</span>
-<div class="coin-box">
-<input type="number" id="coin-cp" value="0" class="coin-value" oninput="updateChar()">
-<div class="coin-controls">
-<button class="coin-btn" onclick="adjustCoin('cp', -1)">−</button>
-<button class="coin-btn" onclick="adjustCoin('cp', 1)">+</button>
-</div>
-</div>
-</div>
-<div class="coin-row">
-<span class="coin-label">СМ</span>
-<div class="coin-box">
-<input type="number" id="coin-sp" value="0" class="coin-value" oninput="updateChar()">
-<div class="coin-controls">
-<button class="coin-btn" onclick="adjustCoin('sp', -1)">−</button>
-<button class="coin-btn" onclick="adjustCoin('sp', 1)">+</button>
-</div>
-</div>
-</div>
-<div class="coin-row">
-<span class="coin-label">ЭМ</span>
-<div class="coin-box">
-<input type="number" id="coin-ep" value="0" class="coin-value" oninput="updateChar()">
-<div class="coin-controls">
-<button class="coin-btn" onclick="adjustCoin('ep', -1)">−</button>
-<button class="coin-btn" onclick="adjustCoin('ep', 1)">+</button>
-</div>
-</div>
-</div>
-<div class="coin-row">
-<span class="coin-label">ЗМ</span>
-<div class="coin-box">
-<input type="number" id="coin-gp" value="0" class="coin-value" oninput="updateChar()">
-<div class="coin-controls">
-<button class="coin-btn" onclick="adjustCoin('gp', -1)">−</button>
-<button class="coin-btn" onclick="adjustCoin('gp', 1)">+</button>
-</div>
-</div>
-</div>
-<div class="coin-row">
-<span class="coin-label">ПМ</span>
-<div class="coin-box">
-<input type="number" id="coin-pp" value="0" class="coin-value" oninput="updateChar()">
-<div class="coin-controls">
-<button class="coin-btn" onclick="adjustCoin('pp', -1)">−</button>
-<button class="coin-btn" onclick="adjustCoin('pp', 1)">+</button>
-</div>
-</div>
-</div>
-<div class="coin-weight" id="coin-weight">Вес монет: 0 фнт</div>
-</div>
-</div>
+
 </div>
 <div id="tab-notes" class="tab-content">
 <div class="card">
@@ -1130,14 +1197,23 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button class="version-btn" onclick="setSpellVersion('PH14')" id="btn-ver-ph14">PH14</button>
 <button class="version-btn" onclick="setSpellVersion('PH24')" id="btn-ver-ph24">PH24</button>
 </div>
-<div class="version-toggle">
+<div class="version-toggle spell-class-filter">
 <button class="version-btn active" onclick="setSpellClass('all')" id="btn-class-all">Все</button>
-<button class="version-btn" onclick="setSpellClass('wizard')" id="btn-class-wizard">Волшебник</button>
-<button class="version-btn" onclick="setSpellClass('druid')" id="btn-class-druid">Друид</button>
+<button class="version-btn" onclick="setSpellClass('wizard')" id="btn-class-wizard">🧙</button>
+<button class="version-btn" onclick="setSpellClass('sorcerer')" id="btn-class-sorcerer">🔥</button>
+<button class="version-btn" onclick="setSpellClass('warlock')" id="btn-class-warlock">👁️</button>
+<button class="version-btn" onclick="setSpellClass('cleric')" id="btn-class-cleric">✝️</button>
+<button class="version-btn" onclick="setSpellClass('druid')" id="btn-class-druid">🌿</button>
+<button class="version-btn" onclick="setSpellClass('bard')" id="btn-class-bard">🎵</button>
+<button class="version-btn" onclick="setSpellClass('paladin')" id="btn-class-paladin">🛡️</button>
+<button class="version-btn" onclick="setSpellClass('ranger')" id="btn-class-ranger">🏹</button>
+</div>
+<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;">
+<span style="font-size:0.7em;color:var(--text-muted);">🧙Волшебник 🔥Чародей 👁️Колдун ✝️Жрец 🌿Друид 🎵Бард 🛡️Паладин 🏹Следопыт</span>
 </div>
 <div class="row">
 <div class="col">
-<input type="text" id="spell-search-input" placeholder="Поиск..." oninput="renderSpellSearch()">
+<input type="text" id="spell-search-input" placeholder="Поиск по названию..." oninput="renderSpellSearch()">
 </div>
 <div class="col" style="flex:0.5;">
 <select id="spell-search-level" onchange="renderSpellSearch()">
@@ -1155,7 +1231,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </select>
 </div>
 </div>
-<div id="spell-search-results" style="max-height:350px; overflow-y:auto; margin-top:15px;"></div>
+<div id="spell-search-count" style="font-size:0.75em;color:var(--text-muted);margin-bottom:4px;"></div>
+<div id="spell-search-results" style="max-height:350px; overflow-y:auto; margin-top:8px;"></div>
 <button class="secondary modal-close-bottom" onclick="closeSpellSearch()">Закрыть</button>
 </div>
 </div>
@@ -1178,9 +1255,15 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="row">
 <div class="col"><label>Класс</label>
 <select id="new-spell-class">
-<option value="wizard">Волшебник</option>
-<option value="druid">Друид</option>
-<option value="both">Оба</option>
+<option value="wizard">🧙 Волшебник</option>
+<option value="sorcerer">🔥 Чародей</option>
+<option value="warlock">👁️ Колдун</option>
+<option value="cleric">✝️ Жрец</option>
+<option value="druid">🌿 Друид</option>
+<option value="bard">🎵 Бард</option>
+<option value="paladin">🛡️ Паладин</option>
+<option value="ranger">🏹 Следопыт</option>
+<option value="both">✨ Несколько классов</option>
 </select>
 </div>
 <div class="col"><label>Источник</label>
@@ -1228,10 +1311,18 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <option value="other">📝 Прочее</option>
 </select>
 <label>Название *</label>
-<input type="text" id="new-item-name" placeholder="Например: Меч, Зелье лечения...">
+<input type="text" id="new-item-name" placeholder="Например: Меч, Зелье лечения..." onblur="autoFillItemWeight()">
 <label>Количество</label>
-<input type="number" id="new-item-qty" value="1" min="1">
-<label>Вес за шт. (фнт)</label>
+<div class="item-qty-row">
+  <input type="number" id="new-item-qty" value="1" min="1">
+  <div class="item-qty-presets">
+    <button class="item-qty-btn" onclick="setItemQty(1)">×1</button>
+    <button class="item-qty-btn" onclick="setItemQty(5)">×5</button>
+    <button class="item-qty-btn" onclick="setItemQty(10)">×10</button>
+    <button class="item-qty-btn" onclick="setItemQty(20)">×20</button>
+  </div>
+</div>
+<label>Вес за шт. (фнт) <span id="weight-hint" style="font-size:0.75em;color:var(--text-muted);font-weight:normal;"></span></label>
 <input type="number" id="new-item-weight" value="0" step="0.1" min="0">
 <label>Описание</label>
 <textarea id="new-item-desc" placeholder="Свойства, бонусы, особенности..." style="min-height:80px;"></textarea>
@@ -1309,13 +1400,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <div id="character-tabs" class="tab-nav hidden">
-<button class="tab-btn active" onclick="switchTab('sheet', this)"><span>📋</span>Лист</button>
-<button class="tab-btn" onclick="switchTab('spells', this)"><span>✨</span>Заклинания</button>
-<button class="tab-btn" onclick="switchTab('inventory', this)"><span>🎒</span>Инвентарь</button>
-<button class="tab-btn" onclick="switchTab('notes', this)"><span>📝</span>Записи</button>
-<button class="tab-btn" onclick="switchTab('party', this)"><span>🌍</span>Мир</button>
-<button class="tab-btn" onclick="switchTab('battle', this)"><span>⚔️</span>Бой</button>
-<button class="tab-btn" onclick="switchTab('journal', this)"><span>📖</span>Журнал</button>
+  <button class="tab-btn active" onclick="switchTab('sheet', this)" data-tab="sheet"><span>📋</span>Лист</button>
+  <button class="tab-btn" onclick="switchTab('spells', this)" data-tab="spells"><span>✨</span>Заклин.</button>
+  <div class="tab-dice-fab" onclick="openDiceModal()">🎲</div>
+  <button class="tab-btn" onclick="switchTab('inventory', this)" data-tab="inventory"><span>🎒</span>Инвентарь</button>
+  <button class="tab-btn" onclick="switchTab('battle', this)" data-tab="battle"><span>⚔️</span>Бой</button>
 </div>
 </div>
 

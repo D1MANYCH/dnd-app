@@ -25,6 +25,56 @@ var saveToLocalDebounced = debounce(function() { saveToLocal(); }, 300);
 // SPELL_DATABASE — объединение встроенной базы (spells.js) и пользовательских добавлений из localStorage
 // SPELLS_BASE определён в spells.js и загружается до app.js
 let SPELL_DATABASE = (typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.slice() : [];
+const CLASS_ICONS_MAP = { wizard:"🧙", druid:"🌿", bard:"🎵", cleric:"✝️", paladin:"🛡️", ranger:"🏹", sorcerer:"🔥", warlock:"👁️", both:"✨" };
+
+// Стандартные веса предметов D&D 5e для автозаполнения
+const ITEM_WEIGHTS = {
+  // Оружие
+  "кинжал":1,"нож":1,"дротик":0.25,"праща":0,"болт":0.075,"стрела":0.05,
+  "короткий меч":2,"длинный меч":3,"рапира":2,"меч":3,"сабля":3,"тесак":2,
+  "боевой топор":4,"топор":4,"секира":7,"алебарда":6,"глефа":6,"копьё":3,
+  "пика":18,"трезубец":4,"боевой молот":2,"молот":10,"булава":4,"палица":4,
+  "моргенштерн":4,"цеп":2,"боевой посох":4,"посох":4,"дубина":2,"жезл":1,
+  "лук":2,"короткий лук":2,"длинный лук":2,"арбалет":5,"ручной арбалет":3,
+  "тяжёлый арбалет":18,"духовая трубка":1,
+  // Броня
+  "стёганый доспех":8,"кожаный доспех":10,"проклёпанная кожа":13,
+  "кольчужная рубаха":20,"чешуйчатый доспех":45,"кольчуга":55,
+  "нагрудник":20,"полукираса":20,"латный доспех":65,
+  "щит":6,"небольшой щит":6,
+  // Зелья
+  "зелье лечения":0.5,"зелье":0.5,"яд":0.5,"масло":1,
+  // Приключенческое снаряжение
+  "верёвка":10,"верёвка шёлковая":5,"факел":1,"фонарь":2,"масляный фонарь":2,
+  "мешок":0.5,"рюкзак":5,"сундук":25,"мешочек":0.1,
+  "отмычки":1,"инструменты взломщика":1,"воровской инструмент":1,
+  "компонентный мешочек":2,"фокусировка":0,"аркан":0,"святой символ":1,
+  "книга заклинаний":3,"гримуар":3,"свиток":0,"пергамент":0,
+  "рация":1,"зеркало":0.5,"лупа":0,"подзорная труба":1,
+  "паёк":2,"сухой паёк":2,"вода":5,"бурдюк":1,
+};
+
+function autoFillItemWeight() {
+  const nameEl = $("new-item-name");
+  const weightEl = $("new-item-weight");
+  if (!nameEl || !weightEl) return;
+  const name = nameEl.value.toLowerCase().trim();
+  if (!name || parseFloat(weightEl.value) !== 0) return;
+  for (const key in ITEM_WEIGHTS) {
+    if (name.includes(key) || key.includes(name)) {
+      weightEl.value = ITEM_WEIGHTS[key];
+      weightEl.style.borderColor = "var(--accent-color)";
+      setTimeout(function(){ weightEl.style.borderColor = ""; }, 1500);
+      const hint = $("weight-hint");
+      if (hint) { hint.textContent = "✓ автозаполнено"; setTimeout(function(){ hint.textContent=""; }, 2000); }
+      return;
+    }
+  }
+}
+function setItemQty(n) {
+  const el = $("new-item-qty");
+  if (el) el.value = n;
+}
 let characters = [];
 let currentId = null;
 let currentSpellVersion = "all";
@@ -539,10 +589,12 @@ const charactersScreen = $("screen-characters");
 const characterScreen = $("screen-character");
 const characterTabs = $("character-tabs");
 const statusBar = $("status-bar");
+const hamburger = $("nav-hamburger");
 if (charactersScreen) charactersScreen.classList.add("hidden");
 if (characterScreen) characterScreen.classList.add("hidden");
 if (characterTabs) characterTabs.classList.add("hidden");
 if (statusBar) statusBar.classList.remove("visible");
+if (hamburger) hamburger.classList.add("hidden");
 if (screenName === "characters") {
 if (charactersScreen) charactersScreen.classList.remove("hidden");
 currentId = null;
@@ -550,6 +602,7 @@ renderCharacterList();
 } else {
 if (characterScreen) characterScreen.classList.remove("hidden");
 if (characterTabs) characterTabs.classList.remove("hidden");
+if (hamburger) hamburger.classList.remove("hidden");
 updateHeaderTitle();
 updateStatusBar();
 }
@@ -567,17 +620,85 @@ $("header-title").textContent = "🎭 Мой Персонаж D&D 5e";
 }
 }
 function switchTab(tabName, btnEl) {
-document.querySelectorAll(".tab-content").forEach(function(tab) { tab.classList.remove("active"); });
-document.querySelectorAll(".tab-btn").forEach(function(btn) { btn.classList.remove("active"); });
-var tabElement = $("tab-" + tabName);
-if (tabElement) tabElement.classList.add("active");
-var activeBtn = btnEl ? btnEl.closest(".tab-btn") : null;
-if (activeBtn) activeBtn.classList.add("active");
-try { localStorage.setItem("dnd_last_tab", tabName); } catch(e) {}
-if (tabName === "party")  { openPartyTab(); }
-if (tabName === "battle") { openBattleTab(); }
-if (tabName === "journal") { renderJournal(); }
+  document.querySelectorAll(".tab-content").forEach(function(tab) { tab.classList.remove("active"); });
+  document.querySelectorAll(".tab-btn").forEach(function(btn) { btn.classList.remove("active"); });
+  var tabElement = $("tab-" + tabName);
+  if (tabElement) tabElement.classList.add("active");
+  // Highlight tab btn
+  var activeBtn = btnEl ? btnEl.closest(".tab-btn") : document.querySelector(".tab-btn[data-tab='" + tabName + "']");
+  if (activeBtn) activeBtn.classList.add("active");
+  // Highlight drawer item
+  document.querySelectorAll(".drawer-item").forEach(function(el) { el.classList.remove("drawer-item-active"); });
+  var drawerItem = document.querySelector(".drawer-item[data-drawer-tab='" + tabName + "']");
+  if (drawerItem) drawerItem.classList.add("drawer-item-active");
+  try { localStorage.setItem("dnd_last_tab", tabName); } catch(e) {}
+  if (tabName === "party")   { openPartyTab(); }
+  if (tabName === "battle")  { openBattleTab(); }
+  if (tabName === "journal") { renderJournal(); }
 }
+
+function openDrawer() {
+  var drawer = $("side-drawer");
+  var overlay = $("drawer-overlay");
+  if (drawer) drawer.classList.remove("hidden");
+  if (overlay) overlay.classList.remove("hidden");
+  // Sync char name
+  var nameEl = $("char-name");
+  var drawerName = $("drawer-char-name");
+  if (nameEl && drawerName) drawerName.textContent = nameEl.value || "Персонаж";
+  setTimeout(function() {
+    if (drawer) drawer.classList.add("open");
+    if (overlay) overlay.classList.add("open");
+  }, 10);
+}
+function closeDrawer() {
+  var drawer = $("side-drawer");
+  var overlay = $("drawer-overlay");
+  if (drawer) drawer.classList.remove("open");
+  if (overlay) overlay.classList.remove("open");
+  setTimeout(function() {
+    if (drawer) drawer.classList.add("hidden");
+    if (overlay) overlay.classList.add("hidden");
+  }, 300);
+}
+
+// Show hamburger when character is loaded
+function showCharacterNav() {
+  var hamburger = $("nav-hamburger");
+  var tabs = $("character-tabs");
+  if (hamburger) hamburger.classList.remove("hidden");
+  if (tabs) tabs.classList.remove("hidden");
+}
+function hideCharacterNav() {
+  var hamburger = $("nav-hamburger");
+  var tabs = $("character-tabs");
+  if (hamburger) hamburger.classList.add("hidden");
+  if (tabs) tabs.classList.add("hidden");
+}
+
+// Swipe to open drawer (swipe left from right edge)
+(function() {
+  var touchStartX = 0;
+  var touchStartY = 0;
+  document.addEventListener("touchstart", function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener("touchend", function(e) {
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    var dy = e.changedTouches[0].clientY - touchStartY;
+    var drawer = $("side-drawer");
+    if (!drawer) return;
+    // Swipe left anywhere → open drawer (if not already open)
+    if (dx < -60 && Math.abs(dy) < 80 && !drawer.classList.contains("open")) {
+      openDrawer();
+    }
+    // Swipe right → close drawer
+    if (dx > 60 && Math.abs(dy) < 80 && drawer.classList.contains("open")) {
+      closeDrawer();
+    }
+  }, { passive: true });
+})();
 function updateStatDisplay(stat) {
   var inp = $("val-" + stat);
   var disp = $("val-display-" + stat);
@@ -950,6 +1071,12 @@ safeSet("char-features", char.features || "");
 safeSet("char-appearance", char.appearance || "");
 safeSet("magic-items", char.magicItems || "");
 safeSet("spell-stat", char.spells.stat || "");
+// Sync spell stat button highlight
+const _statVal = char.spells.stat || "";
+["int","wis","cha"].forEach(function(s){ var b=$("sc-btn-"+s); if(b) b.classList.remove("active"); });
+if(_statVal==="ИНТ" && $("sc-btn-int")) $("sc-btn-int").classList.add("active");
+if(_statVal==="МУД" && $("sc-btn-wis")) $("sc-btn-wis").classList.add("active");
+if(_statVal==="ХАР" && $("sc-btn-cha")) $("sc-btn-cha").classList.add("active");
 safeSetChecked("armor-light", false);
 safeSetChecked("armor-medium", false);
 safeSetChecked("armor-heavy", false);
@@ -1058,7 +1185,8 @@ char.notes = $("char-notes")?.value || "";
 char.features = $("char-features")?.value || "";
 char.appearance = $("char-appearance")?.value || "";
 char.magicItems = $("magic-items")?.value || "";
-char.spells.stat = $("spell-stat")?.value || "";
+const spellStatVal = $("spell-stat")?.value || "";
+if (spellStatVal) char.spells.stat = spellStatVal;
 for(let i=1; i<=9; i++) {
 if(char.spells.slots[i] !== undefined) {
 const slotInput = $("slots-" + i + "-total");
@@ -1155,6 +1283,16 @@ const charForUpdate = getCurrentChar();
 if (charForUpdate) { charForUpdate.updatedAt = Date.now(); }
 saveToLocal();
 }
+function setSpellStat(stat) {
+const char = getCurrentChar();
+if (!char) return;
+char.spells.stat = stat;
+// sync hidden select if needed
+const sel = $("spell-stat");
+if (sel) sel.value = stat;
+saveToLocal();
+calcSpellStats();
+}
 function calcSpellStats() {
 if (!currentId) return;
 const char = getCurrentChar();
@@ -1171,6 +1309,21 @@ const attack = proficiencyBonus + statMod;
 safeSet("spell-dc", dc);
 safeSet("spell-attack", formatMod(attack));
 safeSet("spell-mod", formatMod(statMod));
+// Update visual displays
+var modEl = $("spell-mod-display");
+var dcEl = $("spell-dc-display");
+var atkEl = $("spell-attack-display");
+if (modEl) modEl.textContent = stat ? formatMod(statMod) : "—";
+if (dcEl) dcEl.textContent = stat ? dc : "—";
+if (atkEl) atkEl.textContent = stat ? formatMod(attack) : "—";
+// Highlight active stat button
+["int","wis","cha"].forEach(function(s) {
+  var btn = $("sc-btn-" + s);
+  if (btn) btn.classList.remove("active");
+});
+if (stat === "ИНТ" && $("sc-btn-int")) $("sc-btn-int").classList.add("active");
+if (stat === "МУД" && $("sc-btn-wis")) $("sc-btn-wis").classList.add("active");
+if (stat === "ХАР" && $("sc-btn-cha")) $("sc-btn-cha").classList.add("active");
 char.spells.dc = dc;
 char.spells.attack = attack;
 char.spells.mod = statMod;
@@ -1721,19 +1874,48 @@ allItems = allItems.filter(function(i) { return i.category === currentFilterCate
 }
 if (allItems.length === 0) {
 container.innerHTML = "<div class=\"inventory-empty\">📭 Нет предметов" + (currentFilterCategory !== "all" ? " в этой категории" : "") + "</div>";
+updateInventoryWeight();
 return;
 }
 allItems.forEach(function(data) {
 const item = data.item;
 const icon = ITEM_ICONS[data.category];
 const totalWeight = (item.weight * (item.qty || 1)).toFixed(1);
+const catName = CATEGORY_NAMES[data.category];
 const div = document.createElement("div");
-div.className = "inventory-item";
-div.onclick = function() { viewItem(data.category, data.index); };
-div.innerHTML = "<div class=\"inventory-item-icon\">" + icon + "</div><div class=\"inventory-item-details\"><div class=\"inventory-item-name\">" + escapeHtml(item.name) + "</div><div class=\"inventory-item-meta\"><span>📦 " + (item.qty || 1) + " шт.</span><span>⚖️ " + totalWeight + " фнт</span><span>📋 " + CATEGORY_NAMES[data.category] + "</span></div></div><div class=\"inventory-item-actions\"><button class=\"info\" onclick=\"event.stopPropagation(); editItemDirect('" + data.category + "', " + data.index + ")\">✏️</button><button class=\"danger\" onclick=\"event.stopPropagation(); deleteItemDirect('" + data.category + "', " + data.index + ")\">🗑️</button></div>";
+div.className = "inv-item";
+div.dataset.category = data.category;
+div.dataset.index = data.index;
+div.innerHTML =
+  '<div class="inv-item-main" onclick="toggleInvItem(this)">' +
+    '<div class="inv-item-icon">' + icon + '</div>' +
+    '<div class="inv-item-info">' +
+      '<div class="inv-item-name">' + escapeHtml(item.name) + '</div>' +
+      '<div class="inv-item-meta">' +
+        '<span class="inv-meta-tag">' + (item.qty || 1) + ' шт.</span>' +
+        '<span class="inv-meta-tag">⚖️ ' + totalWeight + ' фнт</span>' +
+        '<span class="inv-meta-tag inv-cat-tag">' + catName + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<span class="inv-item-arrow">▶</span>' +
+  '</div>' +
+  '<div class="inv-item-body">' +
+    (item.desc ? '<div class="inv-item-desc">' + escapeHtml(item.desc) + '</div>' : '') +
+    '<div class="inv-item-actions">' +
+      '<button class="inv-edit-btn" onclick="event.stopPropagation(); editItemDirect(\'' + data.category + '\',' + data.index + ')">✏️ Изменить</button>' +
+      '<button class="inv-del-btn" onclick="event.stopPropagation(); deleteItemDirect(\'' + data.category + '\',' + data.index + ')">🗑 Удалить</button>' +
+    '</div>' +
+  '</div>';
 container.appendChild(div);
 });
 updateInventoryWeight();
+}
+function toggleInvItem(mainEl) {
+const item = mainEl.closest(".inv-item");
+if (!item) return;
+item.classList.toggle("expanded");
+const arrow = mainEl.querySelector(".inv-item-arrow");
+if (arrow) arrow.textContent = item.classList.contains("expanded") ? "▼" : "▶";
 }
 function editItemDirect(category, index) { openItemModal(category, index); }
 function deleteItemDirect(category, index) {
@@ -1771,26 +1953,38 @@ const gp = parseInt(char.coins.gp) || 0;
 const pp = parseInt(char.coins.pp) || 0;
 const coinWeight = (cp + sp + ep + gp + pp) / 50;
 totalWeight += coinWeight;
-totalWeight = totalWeight.toFixed(1);
-const totalWeightEl = $("total-weight");
-const carryCapacityEl = $("carry-capacity");
-const overweightWarningEl = $("overweight-warning");
-const overweightAmountEl = $("overweight-amount");
-if (totalWeightEl) totalWeightEl.textContent = totalWeight + " фнт";
+totalWeight = parseFloat(totalWeight.toFixed(1));
 const strMod = char.stats.str || 10;
 const carryCapacity = strMod * 15;
+// Update weight display
+const totalWeightEl = $("total-weight");
+if (totalWeightEl) totalWeightEl.textContent = totalWeight;
+const capNumEl = $("carry-capacity-num");
+if (capNumEl) capNumEl.textContent = carryCapacity;
+// Legacy element for compatibility
+const carryCapacityEl = $("carry-capacity");
 if (carryCapacityEl) carryCapacityEl.textContent = "Грузоподъёмность: " + carryCapacity + " фнт";
-if (totalWeightEl && overweightWarningEl && overweightAmountEl) {
-if (totalWeight > carryCapacity) {
-totalWeightEl.classList.add("overweight");
-overweightWarningEl.classList.add("visible");
-const overweightAmount = (totalWeight - carryCapacity).toFixed(1);
-overweightAmountEl.textContent = overweightAmount;
-} else {
-totalWeightEl.classList.remove("overweight");
-overweightWarningEl.classList.remove("visible");
+// Progress bar
+const fillEl = $("weight-fill");
+if (fillEl) {
+  const pct = Math.min(100, (totalWeight / carryCapacity) * 100);
+  fillEl.style.width = pct + "%";
+  fillEl.className = "inv-weight-fill" + (totalWeight > carryCapacity ? " overweight" : totalWeight > carryCapacity * 0.75 ? " warning" : "");
 }
+// Overweight badge
+const owEl = $("overweight-warning");
+const owAmtEl = $("overweight-amount");
+if (owEl) {
+  if (totalWeight > carryCapacity) {
+    owEl.style.display = "flex";
+    if (owAmtEl) owAmtEl.textContent = (totalWeight - carryCapacity).toFixed(1);
+  } else {
+    owEl.style.display = "none";
+  }
 }
+// Coin weight
+const cwEl = $("coin-weight");
+if (cwEl) cwEl.textContent = coinWeight.toFixed(2) + " фнт";
 }
 function openItemModal(category, slotIndex) {
 if (!currentId) return;
@@ -1831,7 +2025,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 const category = $("new-item-category")?.value || document.getElementById("item-category")?.value || "weapon";
-const slotIndex = parseInt($("item-slot-index")?.value) || -1;
+const _slotRaw = $("item-slot-index")?.value; const slotIndex = (_slotRaw !== undefined && _slotRaw !== "" && _slotRaw !== null) ? parseInt(_slotRaw) : -1;
 const name = $("new-item-name")?.value?.trim() || "";
 if (!name) { showToast("Введите название!", "warn"); return; }
 const newItem = {
@@ -2005,20 +2199,26 @@ if (!container) return;
 container.innerHTML = "";
 for(let i=1; i<=9; i++) {
 const total = char.spells.slots[i] || 0;
-const group = document.createElement("div");
-group.className = "spell-slot-group";
-group.innerHTML = "<h4>" + i + " ур.</h4><div class=\"spell-diamonds\" id=\"slots-diamonds-" + i + "\"></div><div class=\"spell-slot-controls\"><div class=\"spell-slot-input\"><input type=\"number\" id=\"slots-" + i + "-total\" value=\"" + total + "\" min=\"0\" max=\"10\" oninput=\"updateSpellSlots(" + i + ", this.value)\"></div><div class=\"spell-slot-btn-row\"><button class=\"spell-slot-btn\" onclick=\"adjustSpellSlots(" + i + ", -1)\">−</button><button class=\"spell-slot-btn\" onclick=\"adjustSpellSlots(" + i + ", 1)\">+</button></div></div>";
-container.appendChild(group);
-const diamondsContainer = $("slots-diamonds-" + i);
-if (diamondsContainer) {
-for(let j=0; j<total; j++) {
-const diamond = document.createElement("div");
-diamond.className = "spell-diamond" + (j < (char.spells.slotsUsed[i] || 0) ? " used" : "");
-diamond.onclick = function() { toggleSpellSlot(i, j); };
-diamondsContainer.appendChild(diamond);
+const used = char.spells.slotsUsed[i] || 0;
+const free = total - used;
+const row = document.createElement("div");
+row.className = "spell-slot-row" + (total === 0 ? " spell-slot-empty" : "");
+var diamHtml = '<div class="ssl-diamonds">';
+if (total === 0) {
+  diamHtml += '<span class="ssl-none">нет ячеек</span>';
+} else {
+  for(let j=0; j<total; j++) {
+    var cls = j < used ? " used" : "";
+    diamHtml += '<div class="spell-diamond' + cls + '" data-level="' + i + '" data-idx="' + j + '" onclick="toggleSpellSlot(' + i + ',' + j + ')"></div>';
+  }
 }
-if (total === 0) diamondsContainer.innerHTML = "<span style=\"font-size:0.7em; color:var(--text-muted);\">Нет ячеек</span>";
-}
+diamHtml += '</div>';
+row.innerHTML =
+  '<div class="ssl-label"><span class="ssl-lvl">' + i + '</span><span class="ssl-ur">ур.</span></div>' +
+  diamHtml +
+  '<div class="ssl-counter"><span class="ssl-free' + (free === 0 && total > 0 ? ' ssl-exhausted' : '') + '">' + free + '</span><span class="ssl-sep">/</span><span class="ssl-total">' + total + '</span></div>' +
+  '<div class="ssl-controls"><button class="ssl-btn" onclick="adjustSpellSlots(' + i + ',-1)">−</button><button class="ssl-btn" onclick="adjustSpellSlots(' + i + ',1)">+</button></div>';
+container.appendChild(row);
 }
 }
 function updateSpellSlots(level, value) {
@@ -2059,6 +2259,15 @@ char.spells.slotsUsed[level] = newValue;
 saveToLocal();
 renderSpellSlots();
 }
+function restoreAllSlots() {
+if (!currentId) return;
+const char = getCurrentChar();
+if (!char) return;
+for(let i=1; i<=9; i++) { char.spells.slotsUsed[i] = 0; }
+saveToLocal();
+renderSpellSlots();
+showToast("Ячейки заклинаний восстановлены!", "success");
+}
 function setSpellVersion(version) {
 currentSpellVersion = version;
 document.querySelectorAll(".version-btn").forEach(function(btn) { btn.classList.remove("active"); });
@@ -2070,9 +2279,9 @@ renderSpellSearch();
 function setSpellClass(cls) {
 currentSpellClass = cls;
 document.querySelectorAll("#spell-search-modal .version-btn").forEach(function(btn) { btn.classList.remove("active"); });
-if(cls === "all") $("btn-class-all")?.classList.add("active");
-if(cls === "wizard") $("btn-class-wizard")?.classList.add("active");
-if(cls === "druid") $("btn-class-druid")?.classList.add("active");
+var btnId = "btn-class-" + (cls === "all" ? "all" : cls);
+var btn = $(btnId);
+if (btn) btn.classList.add("active");
 renderSpellSearch();
 }
 function openSpellSearch() {
@@ -2131,7 +2340,8 @@ let filtered = SPELL_DATABASE.filter(function(spell) {
 const matchesSearch = spell.name.toLowerCase().includes(search);
 const matchesLevel = level === "" || spell.level.toString() === level;
 const matchesVersion = currentSpellVersion === "all" || spell.source === currentSpellVersion;
-const matchesClass = currentSpellClass === "all" || spell.class === "both" || spell.class === currentSpellClass;
+const spellClasses = Array.isArray(spell.classes) ? spell.classes : [spell.class || "both"];
+const matchesClass = currentSpellClass === "all" || spellClasses.includes("both") || spellClasses.includes(currentSpellClass);
 return matchesSearch && matchesLevel && matchesVersion && matchesClass;
 });
 container.innerHTML = "";
@@ -2139,15 +2349,34 @@ if (filtered.length === 0) {
 container.innerHTML = '<p style="color:var(--text-muted); text-align:center;">Не найдено</p>';
 return;
 }
-filtered.forEach(function(spell) {
+
+var countEl = $("spell-search-count");
+if (countEl) countEl.textContent = "Найдено: " + filtered.length;
+
+if (!search.trim() && level === "" && currentSpellVersion === "all" && currentSpellClass === "all") {
+container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px 0;">🔍 Введите название или выберите класс/уровень</p>';
+return;
+}
+
+var LIMIT = 80;
+var shown = filtered.slice(0, LIMIT);
+shown.forEach(function(spell) {
 const isAdded = char?.spells?.mySpells && char.spells.mySpells.some(function(s) { return s.id === spell.id; });
-const classBadge = spell.class === "wizard" ? "class-wizard" : spell.class === "druid" ? "class-druid" : "class-both";
-const classText = spell.class === "wizard" ? "🧙" : spell.class === "druid" ? "🌿" : "🧙";
-const div = document.createElement("div");
+const spellClassArr = Array.isArray(spell.classes) ? spell.classes : [spell.class || "both"];
+const primaryClass = spellClassArr.length === 1 ? spellClassArr[0] : (spellClassArr.includes(currentSpellClass) ? currentSpellClass : spellClassArr[0]);
+const classBadge = "class-" + (primaryClass || "both");
+const classText = spellClassArr.length > 1 ? spellClassArr.map(function(c){return CLASS_ICONS_MAP[c]||"✨";}).join("") : (CLASS_ICONS_MAP[primaryClass] || "✨");
+var div = document.createElement("div");
 div.className = "spell-item" + (isAdded ? " spell-added" : "");
 div.innerHTML = "<h4>" + escapeHtml(spell.name) + " <span class=\"source-badge source-" + spell.source.toLowerCase() + "\">" + escapeHtml(spell.source) + "</span> <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<button class=\"" + (isAdded ? "secondary" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + spell.id + ")" : "addSpell(" + spell.id + ")") + "\" style=\"margin-top:8px;\">" + (isAdded ? "Добавлено" : "+ Добавить") + "</button>";
 container.appendChild(div);
 });
+if (filtered.length > LIMIT) {
+var more = document.createElement("p");
+more.style.cssText = "text-align:center;color:var(--text-muted);padding:12px 0;";
+more.textContent = "Показано " + LIMIT + " из " + filtered.length + " — уточните поиск";
+container.appendChild(more);
+}
 }
 function addSpell(spellId) {
 const char = getCurrentChar();
@@ -2170,6 +2399,13 @@ saveToLocal();
 renderSpellSearch();
 renderMySpells();
 }
+function toggleSpellCard(header) {
+  var card = header.closest(".my-spell-item");
+  if (!card) return;
+  card.classList.toggle("expanded");
+  var arrow = header.querySelector(".spell-card-arrow");
+  if (arrow) arrow.textContent = card.classList.contains("expanded") ? "▼" : "▶";
+}
 function renderMySpells() {
 if (!currentId) return;
 const char = getCurrentChar();
@@ -2177,7 +2413,7 @@ if (!char) return;
 const container = $("my-spells-list");
 if (!container) return;
 if (!char.spells.mySpells || char.spells.mySpells.length === 0) {
-container.innerHTML = '<p style="color:var(--text-muted); text-align:center;">Нет заклинаний</p>';
+container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 24px 0;">✨ Нет заклинаний — нажмите «Найти заклинание»</p>';
 return;
 }
 const byLevel = {};
@@ -2187,18 +2423,45 @@ if (!byLevel[lvl]) byLevel[lvl] = [];
 byLevel[lvl].push(spell);
 });
 container.innerHTML = "";
-Object.keys(byLevel).sort().forEach(function(level) {
+Object.keys(byLevel).sort(function(a,b){return a-b;}).forEach(function(level) {
 const levelTitle = level == 0 ? "Заговоры" : level + " уровень";
+const count = byLevel[level].length;
 const groupDiv = document.createElement("div");
-groupDiv.innerHTML = '<h4 style="margin:15px 0 10px 0; color:var(--accent-color);">' + escapeHtml(levelTitle) + "</h4>";
+groupDiv.className = "spell-level-group";
+groupDiv.innerHTML = '<div class="spell-group-header"><span class="spell-group-title">' + escapeHtml(levelTitle) + '</span><span class="spell-group-count">' + count + '</span></div>';
 container.appendChild(groupDiv);
 byLevel[level].forEach(function(spell) {
-const classBadge = spell.class === "wizard" ? "class-wizard" : spell.class === "druid" ? "class-druid" : "class-both";
-const classText = spell.class === "wizard" ? "🧙" : spell.class === "druid" ? "🌿" : "🧙";
-const div = document.createElement("div");
-div.className = "my-spell-item";
-div.innerHTML = "<div class=\"spell-info\"><div class=\"spell-name\">" + escapeHtml(spell.name) + " <span class=\"source-badge source-" + spell.source.toLowerCase() + "\">" + escapeHtml(spell.source) + "</span> <span class=\"class-badge " + classBadge + "\">" + classText + "</span></div><div class=\"spell-level\">" + escapeHtml(spell.time) + " | " + escapeHtml(spell.range) + "</div><div class=\"spell-full-desc\">" + escapeHtml(spell.desc) + "</div>" + (spell.higherLevel ? "<div class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</div>" : "") + "</div><button class=\"danger small\" onclick=\"removeSpell(" + spell.id + ")\" style=\"margin-left:10px; width:auto;\">X</button>";
-container.appendChild(div);
+const spellClassArr2 = Array.isArray(spell.classes) ? spell.classes : [spell.class || "both"];
+const classIcons = spellClassArr2.map(function(c){ return CLASS_ICONS_MAP[c] || "✨"; }).join(" ");
+const sourceClass = "source-" + (spell.source || "ph14").toLowerCase();
+const schoolName = spell.school || "";
+var metaParts = [];
+if (spell.time) metaParts.push('<span>⚡ ' + escapeHtml(spell.time) + '</span>');
+if (spell.range) metaParts.push('<span>📏 ' + escapeHtml(spell.range) + '</span>');
+if (spell.components) metaParts.push('<span>' + escapeHtml(spell.components) + '</span>');
+if (spell.duration) metaParts.push('<span>⏱ ' + escapeHtml(spell.duration) + '</span>');
+var card = document.createElement("div");
+card.className = "my-spell-item";
+card.dataset.spellId = spell.id;
+card.innerHTML =
+  '<div class="spell-card-header" onclick="toggleSpellCard(this)">' +
+    '<div class="spell-card-title">' +
+      '<span class="spell-card-arrow">▶</span>' +
+      '<span class="spell-card-name">' + escapeHtml(spell.name) + '</span>' +
+    '</div>' +
+    '<div class="spell-card-badges">' +
+      '<span class="source-badge ' + sourceClass + '">' + escapeHtml(spell.source || "") + '</span>' +
+      (schoolName ? '<span class="school-badge">' + escapeHtml(schoolName) + '</span>' : '') +
+      '<span class="class-icons-row">' + classIcons + '</span>' +
+    '</div>' +
+  '</div>' +
+  '<div class="spell-card-meta">' + metaParts.join("") + '</div>' +
+  '<div class="spell-card-body">' +
+    (spell.desc ? '<div class="spell-full-desc">' + escapeHtml(spell.desc) + '</div>' : '') +
+    (spell.higherLevel ? '<div class="spell-higher">📈 На больших уровнях: ' + escapeHtml(spell.higherLevel) + '</div>' : '') +
+    '<button class="spell-remove-btn" onclick="removeSpell(' + spell.id + ')">🗑 Удалить</button>' +
+  '</div>';
+groupDiv.appendChild(card);
 });
 });
 }
