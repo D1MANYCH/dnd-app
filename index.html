@@ -629,25 +629,36 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div id="tab-inventory" class="tab-content">
 
-<!-- Weight bar -->
-<div class="inv-weight-bar-wrap card">
-  <div class="inv-weight-top">
-    <div class="inv-weight-left">
-      <span class="inv-weight-num" id="total-weight">0</span>
-      <span class="inv-weight-unit">фнт</span>
-      <span class="inv-weight-label">из</span>
-      <span class="inv-weight-cap" id="carry-capacity-num">225</span>
-      <span class="inv-weight-unit">фнт</span>
+<!-- Slots bar -->
+<div class="card inv-slots-card">
+  <div class="inv-slots-top">
+    <div class="inv-slots-left">
+      <span class="inv-slots-label">Слоты</span>
+      <span class="inv-slots-used" id="inv-slots-used">0</span>
+      <span class="inv-slots-sep">/</span>
+      <span class="inv-slots-total" id="inv-slots-total">10</span>
     </div>
-    <div class="inv-weight-right">
-      <span id="carry-capacity" style="display:none"></span>
-      <div class="inv-overweight-badge" id="overweight-warning" style="display:none">⚠️ ПЕРЕГРУЗ на <span id="overweight-amount">0</span> фнт</div>
+    <div class="inv-slots-right">
+      <span class="inv-slots-str-hint" id="inv-slots-str-hint">СИЛ: 10</span>
+      <div class="inv-overweight-badge" id="overweight-warning" style="display:none">⚠️ Перегруз <span id="overweight-amount">0</span></div>
     </div>
   </div>
   <div class="inv-weight-track">
     <div class="inv-weight-fill" id="weight-fill" style="width:0%"></div>
   </div>
+  <div class="inv-slots-legend">
+    <span title="1 слот">⚔️ 1</span>
+    <span title="3 слота">🛡️ 3</span>
+    <span title="½ слота">🧪 ½</span>
+    <span title="1 слот">📜 1</span>
+    <span title="1 слот">📦 1</span>
+  </div>
 </div>
+
+<!-- hidden weight compat -->
+<span id="carry-capacity" style="display:none"></span>
+<span id="total-weight" style="display:none">0</span>
+<span id="carry-capacity-num" style="display:none">0</span>
 
 <!-- Backpack -->
 <div class="card">
@@ -674,53 +685,113 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <h4>💰 Кошель</h4>
     <span class="inv-coins-weight" id="coin-weight">0 фнт</span>
   </div>
+  <!-- Pouches -->
+  <div class="inv-pouches" id="inv-pouches"></div>
   <div class="inv-coins-grid">
-    <div class="inv-coin-cell inv-coin-cp">
-      <div class="inv-coin-icon">🟤</div>
-      <div class="inv-coin-name">ММ</div>
-      <input type="number" id="coin-cp" value="0" class="inv-coin-input" oninput="updateChar()">
-      <div class="inv-coin-btns">
-        <button class="inv-coin-btn" onclick="adjustCoin('cp',-1)">−</button>
-        <button class="inv-coin-btn" onclick="adjustCoin('cp',1)">+</button>
+    <div class="inv-coins-row inv-coins-row-3">
+      <div class="inv-coin-card">
+        <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#a0522d"></span><span class="inv-coin-lbl">Медь</span></div>
+        <input type="number" id="coin-cp" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
+        <div class="inv-coin-rate">= 0.01 ЗМ</div>
+        <div class="inv-coin-card-btns">
+          <button class="inv-coin-btn" onclick="adjustCoin('cp',-1)">−</button>
+          <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('cp',1)">+</button>
+        </div>
+      </div>
+      <div class="inv-coin-card">
+        <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#aaa"></span><span class="inv-coin-lbl">Серебро</span></div>
+        <input type="number" id="coin-sp" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
+        <div class="inv-coin-rate">= 0.1 ЗМ</div>
+        <div class="inv-coin-card-btns">
+          <button class="inv-coin-btn" onclick="adjustCoin('sp',-1)">−</button>
+          <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('sp',1)">+</button>
+        </div>
+      </div>
+      <div class="inv-coin-card">
+        <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#4a8bc9"></span><span class="inv-coin-lbl">Электрум</span></div>
+        <input type="number" id="coin-ep" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
+        <div class="inv-coin-rate">= 0.5 ЗМ</div>
+        <div class="inv-coin-card-btns">
+          <button class="inv-coin-btn" onclick="adjustCoin('ep',-1)">−</button>
+          <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('ep',1)">+</button>
+        </div>
       </div>
     </div>
-    <div class="inv-coin-cell inv-coin-sp">
-      <div class="inv-coin-icon">⚪</div>
-      <div class="inv-coin-name">СМ</div>
-      <input type="number" id="coin-sp" value="0" class="inv-coin-input" oninput="updateChar()">
-      <div class="inv-coin-btns">
-        <button class="inv-coin-btn" onclick="adjustCoin('sp',-1)">−</button>
-        <button class="inv-coin-btn" onclick="adjustCoin('sp',1)">+</button>
+    <div class="inv-coins-row inv-coins-row-2">
+      <div class="inv-coin-card inv-coin-card-gold">
+        <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#c9a040"></span><span class="inv-coin-lbl">Золото</span></div>
+        <input type="number" id="coin-gp" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
+        <div class="inv-coin-rate">= 1 ЗМ</div>
+        <div class="inv-coin-card-btns">
+          <button class="inv-coin-btn" onclick="adjustCoin('gp',-1)">−</button>
+          <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('gp',1)">+</button>
+        </div>
       </div>
-    </div>
-    <div class="inv-coin-cell inv-coin-ep">
-      <div class="inv-coin-icon">🔵</div>
-      <div class="inv-coin-name">ЭМ</div>
-      <input type="number" id="coin-ep" value="0" class="inv-coin-input" oninput="updateChar()">
-      <div class="inv-coin-btns">
-        <button class="inv-coin-btn" onclick="adjustCoin('ep',-1)">−</button>
-        <button class="inv-coin-btn" onclick="adjustCoin('ep',1)">+</button>
-      </div>
-    </div>
-    <div class="inv-coin-cell inv-coin-gp">
-      <div class="inv-coin-icon">🟡</div>
-      <div class="inv-coin-name">ЗМ</div>
-      <input type="number" id="coin-gp" value="0" class="inv-coin-input" oninput="updateChar()">
-      <div class="inv-coin-btns">
-        <button class="inv-coin-btn" onclick="adjustCoin('gp',-1)">−</button>
-        <button class="inv-coin-btn" onclick="adjustCoin('gp',1)">+</button>
-      </div>
-    </div>
-    <div class="inv-coin-cell inv-coin-pp">
-      <div class="inv-coin-icon">🟣</div>
-      <div class="inv-coin-name">ПМ</div>
-      <input type="number" id="coin-pp" value="0" class="inv-coin-input" oninput="updateChar()">
-      <div class="inv-coin-btns">
-        <button class="inv-coin-btn" onclick="adjustCoin('pp',-1)">−</button>
-        <button class="inv-coin-btn" onclick="adjustCoin('pp',1)">+</button>
+      <div class="inv-coin-card">
+        <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#9b59b6"></span><span class="inv-coin-lbl">Платина</span></div>
+        <input type="number" id="coin-pp" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
+        <div class="inv-coin-rate">= 10 ЗМ</div>
+        <div class="inv-coin-card-btns">
+          <button class="inv-coin-btn" onclick="adjustCoin('pp',-1)">−</button>
+          <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('pp',1)">+</button>
+        </div>
       </div>
     </div>
   </div>
+  <!-- Total value -->
+  <div class="inv-coin-total">
+    <span class="inv-coin-total-label">Итого:</span>
+    <span class="inv-coin-total-value" id="coin-total-gp">0</span>
+    <span class="inv-coin-total-unit">ЗМ</span>
+    <button class="inv-exch-open-btn" onclick="openCoinExchange()">⇄ Разменять</button>
+  </div>
+</div>
+
+<!-- Coin Exchange Modal -->
+<div id="coin-exchange-modal" class="modal">
+<div class="modal-content">
+  <span class="modal-close" onclick="closeCoinExchange()">&times;</span>
+  <h3>⇄ Размен монет</h3>
+  <div class="coin-exch-rates">
+    <div class="coin-exch-rate-item"><span style="color:#9b59b6">●</span> 1 ПМ = 10 ЗМ</div>
+    <div class="coin-exch-rate-item"><span style="color:#c9a040">●</span> 1 ЗМ = 10 СМ = 100 ММ</div>
+    <div class="coin-exch-rate-item"><span style="color:#4a8bc9">●</span> 1 ЭМ = 5 СМ = 0.5 ЗМ</div>
+    <div class="coin-exch-rate-item"><span style="color:#aaa">●</span> 1 СМ = 10 ММ</div>
+  </div>
+  <div class="coin-exch-form">
+    <div class="coin-exch-row">
+      <div class="coin-exch-col">
+        <label class="coin-exch-label">Отдать</label>
+        <select id="exch-from" class="coin-exch-select" onchange="previewExchange()">
+          <option value="cp">🟤 Медь (ММ)</option>
+          <option value="sp">⚪ Серебро (СМ)</option>
+          <option value="ep">🔵 Электрум (ЭМ)</option>
+          <option value="gp" selected>🟡 Золото (ЗМ)</option>
+          <option value="pp">🟣 Платина (ПМ)</option>
+        </select>
+      </div>
+      <div class="coin-exch-arrow">→</div>
+      <div class="coin-exch-col">
+        <label class="coin-exch-label">Получить</label>
+        <select id="exch-to" class="coin-exch-select" onchange="previewExchange()">
+          <option value="cp">🟤 Медь (ММ)</option>
+          <option value="sp">⚪ Серебро (СМ)</option>
+          <option value="ep">🔵 Электрум (ЭМ)</option>
+          <option value="gp">🟡 Золото (ЗМ)</option>
+          <option value="pp" selected>🟣 Платина (ПМ)</option>
+        </select>
+      </div>
+    </div>
+    <div class="coin-exch-avail-row">
+      <span class="coin-exch-avail">В наличии: <strong id="exch-from-avail">0</strong> монет</span>
+    </div>
+    <label class="coin-exch-label">Количество</label>
+    <input type="number" id="exch-amount" value="1" min="1" class="coin-exch-amount" oninput="previewExchange()">
+    <div class="coin-exch-preview" id="exch-preview">Введите количество</div>
+    <button class="success coin-exch-confirm" onclick="confirmExchange()">✓ Обменять</button>
+    <button class="secondary" onclick="closeCoinExchange()">Отмена</button>
+  </div>
+</div>
 </div>
 
 </div>
@@ -750,10 +821,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <textarea id="magic-items" rows="5" placeholder="Настроенные предметы, свойства..." oninput="updateChar()"></textarea>
 </div>
 </div>
-</div>
-</div>
 
-<!-- TAB: PARTY -->
 <div id="tab-party" class="tab-content">
 
 <!-- Мой персонаж -->
@@ -879,6 +947,88 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button class="jfilter-btn" onclick="filterJournal('note',this)">📝 Заметки</button>
 </div>
 <div id="journal-list" class="journal-list"></div>
+</div>
+</div>
+
+</div>
+<!-- Modal: Item Reference -->
+<div id="item-ref-modal" class="modal">
+<div class="modal-content item-ref-content">
+  <span class="modal-close" onclick="closeItemRef()">&times;</span>
+  <h3 id="item-ref-title">📚 Справка</h3>
+  <div id="item-ref-tabs" class="item-ref-tabs">
+    <button class="item-ref-tab active" onclick="switchItemRef('weight',this)">⚖️ Вес</button>
+    <button class="item-ref-tab" onclick="switchItemRef('slots',this)">📦 Слоты</button>
+  </div>
+
+  <!-- Weight reference -->
+  <div id="item-ref-weight" class="item-ref-section">
+    <div class="item-ref-group">
+      <div class="item-ref-group-title">⚔️ Оружие</div>
+      <div class="item-ref-row"><span>Кинжал, нож</span><span>1 фнт</span></div>
+      <div class="item-ref-row"><span>Короткий меч, рапира</span><span>2 фнт</span></div>
+      <div class="item-ref-row"><span>Длинный меч, сабля</span><span>3 фнт</span></div>
+      <div class="item-ref-row"><span>Боевой топор, булава</span><span>4 фнт</span></div>
+      <div class="item-ref-row"><span>Двуручный меч</span><span>6 фнт</span></div>
+      <div class="item-ref-row"><span>Алебарда, глефа</span><span>6 фнт</span></div>
+      <div class="item-ref-row"><span>Короткий лук</span><span>2 фнт</span></div>
+      <div class="item-ref-row"><span>Длинный лук</span><span>2 фнт</span></div>
+      <div class="item-ref-row"><span>Арбалет лёгкий</span><span>5 фнт</span></div>
+      <div class="item-ref-row"><span>Стрелы (20 шт)</span><span>1 фнт</span></div>
+    </div>
+    <div class="item-ref-group">
+      <div class="item-ref-group-title">🛡️ Броня</div>
+      <div class="item-ref-row"><span>Стёганая, кожаная</span><span>8–10 фнт</span></div>
+      <div class="item-ref-row"><span>Кольчужная рубаха</span><span>20 фнт</span></div>
+      <div class="item-ref-row"><span>Чешуйчатый доспех</span><span>45 фнт</span></div>
+      <div class="item-ref-row"><span>Кольчуга</span><span>55 фнт</span></div>
+      <div class="item-ref-row"><span>Латный доспех</span><span>65 фнт</span></div>
+      <div class="item-ref-row"><span>Щит</span><span>6 фнт</span></div>
+    </div>
+    <div class="item-ref-group">
+      <div class="item-ref-group-title">🎒 Снаряжение</div>
+      <div class="item-ref-row"><span>Верёвка (50 фт)</span><span>10 фнт</span></div>
+      <div class="item-ref-row"><span>Факел</span><span>1 фнт</span></div>
+      <div class="item-ref-row"><span>Масляный фонарь</span><span>2 фнт</span></div>
+      <div class="item-ref-row"><span>Зелье лечения</span><span>0.5 фнт</span></div>
+      <div class="item-ref-row"><span>Рюкзак (пустой)</span><span>5 фнт</span></div>
+      <div class="item-ref-row"><span>Сухой паёк (1 день)</span><span>2 фнт</span></div>
+      <div class="item-ref-row"><span>Бурдюк с водой</span><span>5 фнт</span></div>
+      <div class="item-ref-row"><span>Свиток (любой)</span><span>0 фнт</span></div>
+      <div class="item-ref-row"><span>Книга заклинаний</span><span>3 фнт</span></div>
+    </div>
+    <div class="item-ref-note">📌 Грузоподъёмность = СИЛ × 15 фнт</div>
+  </div>
+
+  <!-- Slots reference -->
+  <div id="item-ref-slots" class="item-ref-section hidden">
+    <div class="item-ref-group">
+      <div class="item-ref-group-title">Базовые значения по категории</div>
+      <div class="item-ref-row"><span>⚔️ Оружие одноручное</span><span>1 слот</span></div>
+      <div class="item-ref-row"><span>⚔️ Оружие двуручное</span><span>2 слота</span></div>
+      <div class="item-ref-row"><span>🛡️ Броня</span><span>3 слота</span></div>
+      <div class="item-ref-row"><span>🧪 Зелье</span><span>½ слота</span></div>
+      <div class="item-ref-row"><span>📜 Свиток</span><span>1 слот</span></div>
+      <div class="item-ref-row"><span>📦 Прочее</span><span>1 слот</span></div>
+    </div>
+    <div class="item-ref-group">
+      <div class="item-ref-group-title">Примеры нестандартных слотов</div>
+      <div class="item-ref-row"><span>Верёвка 50 фт</span><span>2 слота</span></div>
+      <div class="item-ref-row"><span>Факел</span><span>1 слот</span></div>
+      <div class="item-ref-row"><span>10 факелов связка</span><span>2 слота</span></div>
+      <div class="item-ref-row"><span>Паёк (1 день)</span><span>1 слот</span></div>
+      <div class="item-ref-row"><span>Книга заклинаний</span><span>1 слот</span></div>
+      <div class="item-ref-row"><span>Монеты (до 500 шт)</span><span>1 слот</span></div>
+    </div>
+    <div class="item-ref-group">
+      <div class="item-ref-group-title">Слоты по СИЛ</div>
+      <div class="item-ref-row"><span>СИЛ до 9</span><span>7 слотов</span></div>
+      <div class="item-ref-row"><span>СИЛ 10–12</span><span>10 слотов</span></div>
+      <div class="item-ref-row"><span>СИЛ 13–15</span><span>12 слотов</span></div>
+      <div class="item-ref-row"><span>СИЛ 16+</span><span>15 слотов</span></div>
+    </div>
+    <div class="item-ref-note">📌 Поле «Слотов» заполняй только если хочешь переопределить стандарт</div>
+  </div>
 </div>
 </div>
 
@@ -1160,12 +1310,36 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="modal-content">
 <span class="modal-close" onclick="closeDiceModal()">&times;</span>
 <h3>🎲 Бросок кубиков</h3>
-<div class="dice-result-display normal" id="dice-result-display">
-<span class="dice-result-big" id="dice-result-big">-</span>
-<span class="dice-result-info" id="dice-result-info">Нажмите на кубик</span>
+
+<!-- SVG dice display -->
+<div class="dsvg-wrap">
+  <div class="dsvg-container">
+    <svg id="dice-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" class="dsvg">
+      <defs>
+        <filter id="dsvg-shadow">
+          <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,0.5)"/>
+        </filter>
+        <filter id="dsvg-glow">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="var(--dice-glow,#c9a040)" flood-opacity="0.8"/>
+        </filter>
+      </defs>
+      <g id="dice-svg-shape" filter="url(#dsvg-shadow)"></g>
+      <text id="dice-svg-num" x="60" y="60" text-anchor="middle" dominant-baseline="central"
+        font-size="32" font-weight="900" fill="white" font-family="inherit"
+        filter="url(#dsvg-shadow)" style="pointer-events:none">—</text>
+      <text id="dice-svg-type" x="60" y="108" text-anchor="middle" font-size="11"
+        font-weight="700" fill="rgba(255,255,255,0.6)" font-family="inherit"></text>
+    </svg>
+  </div>
+  <div class="dice3d-result" id="dice3d-result">
+    <span class="dice3d-num" id="dice-result-big">—</span>
+    <span class="dice3d-label" id="dice-result-info">Выберите кубик</span>
+  </div>
 </div>
+<div class="dice-result-display normal" id="dice-result-display" style="display:none"></div>
+
 <div class="dice-grid">
-<button class="dice-btn d20" onclick="rollDice(20)">🎲 d20</button>
+<button class="dice-btn d20" onclick="rollDice(20)">d20</button>
 <button class="dice-btn" onclick="rollDice(4)">d4</button>
 <button class="dice-btn" onclick="rollDice(6)">d6</button>
 <button class="dice-btn" onclick="rollDice(8)">d8</button>
@@ -1322,8 +1496,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <button class="item-qty-btn" onclick="setItemQty(20)">×20</button>
   </div>
 </div>
-<label>Вес за шт. (фнт) <span id="weight-hint" style="font-size:0.75em;color:var(--text-muted);font-weight:normal;"></span></label>
+<label>Вес за шт. (фнт) <span id="weight-hint" style="font-size:0.75em;color:var(--text-muted);font-weight:normal;"></span> <button type="button" class="field-help-btn" onclick="openItemRef('weight')">?</button></label>
 <input type="number" id="new-item-weight" value="0" step="0.1" min="0">
+<label>Слотов за шт. <span style="font-size:0.75em;color:var(--text-muted);font-weight:normal;">необязательно</span> <button type="button" class="field-help-btn" onclick="openItemRef('slots')">?</button></label>
+<input type="number" id="new-item-slots" placeholder="авто" step="0.5" min="0">
 <label>Описание</label>
 <textarea id="new-item-desc" placeholder="Свойства, бонусы, особенности..." style="min-height:80px;"></textarea>
 <button class="success" onclick="submitItem()">💾 Сохранить</button>

@@ -597,6 +597,7 @@ if (statusBar) statusBar.classList.remove("visible");
 if (hamburger) hamburger.classList.add("hidden");
 if (screenName === "characters") {
 if (charactersScreen) charactersScreen.classList.remove("hidden");
+closeDrawer();
 currentId = null;
 renderCharacterList();
 } else {
@@ -676,7 +677,7 @@ function hideCharacterNav() {
   if (tabs) tabs.classList.add("hidden");
 }
 
-// Swipe to open drawer (swipe left from right edge)
+// Swipe to open drawer (only when character screen is active)
 (function() {
   var touchStartX = 0;
   var touchStartY = 0;
@@ -688,12 +689,12 @@ function hideCharacterNav() {
     var dx = e.changedTouches[0].clientX - touchStartX;
     var dy = e.changedTouches[0].clientY - touchStartY;
     var drawer = $("side-drawer");
-    if (!drawer) return;
-    // Swipe left anywhere → open drawer (if not already open)
+    var charScreen = $("screen-character");
+    // Only work when character screen is visible and a character is loaded
+    if (!drawer || !charScreen || charScreen.classList.contains("hidden") || !currentId) return;
     if (dx < -60 && Math.abs(dy) < 80 && !drawer.classList.contains("open")) {
       openDrawer();
     }
-    // Swipe right → close drawer
     if (dx > 60 && Math.abs(dy) < 80 && drawer.classList.contains("open")) {
       closeDrawer();
     }
@@ -735,6 +736,93 @@ value += delta;
 if (value < 0) value = 0;
 input.value = value;
 updateChar();
+updateCoinTotal();
+}
+function updateCoinTotal() {
+const cp = parseInt($("coin-cp")?.value) || 0;
+const sp = parseInt($("coin-sp")?.value) || 0;
+const ep = parseInt($("coin-ep")?.value) || 0;
+const gp = parseInt($("coin-gp")?.value) || 0;
+const pp = parseInt($("coin-pp")?.value) || 0;
+const total = cp * 0.01 + sp * 0.1 + ep * 0.5 + gp * 1 + pp * 10;
+const el = $("coin-total-gp");
+if (el) el.textContent = Number.isInteger(total) ? total : total.toFixed(2);
+renderPouches();
+}
+
+// Coin rates in GP
+const COIN_RATES = { cp: 0.01, sp: 0.1, ep: 0.5, gp: 1, pp: 10 };
+const COIN_NAMES = { cp: "ММ", sp: "СМ", ep: "ЭМ", gp: "ЗМ", pp: "ПМ" };
+
+function openCoinExchange() {
+  previewExchange();
+  var modal = $("coin-exchange-modal");
+  if (modal) modal.classList.add("active");
+}
+function closeCoinExchange() {
+  var modal = $("coin-exchange-modal");
+  if (modal) modal.classList.remove("active");
+}
+function previewExchange() {
+  var from = $("exch-from")?.value;
+  var to = $("exch-to")?.value;
+  var amt = parseInt($("exch-amount")?.value) || 0;
+  var preview = $("exch-preview");
+  var availEl = $("exch-from-avail");
+  if (!from || !to || !preview) return;
+  // Show available
+  var avail = parseInt($("coin-" + from)?.value) || 0;
+  if (availEl) availEl.textContent = avail;
+  if (from === to) { preview.textContent = "Выберите разные монеты"; preview.className = "coin-exch-preview coin-exch-preview-warn"; return; }
+  if (amt <= 0) { preview.textContent = "Введите количество"; preview.className = "coin-exch-preview"; return; }
+  // Calculate
+  var valueInGP = amt * COIN_RATES[from];
+  var result = valueInGP / COIN_RATES[to];
+  if (!Number.isInteger(result) && Math.round(result) !== result) {
+    // Check if it divides evenly
+    var rounded = Math.floor(result);
+    var leftover = valueInGP - rounded * COIN_RATES[to];
+    var leftoverCoin = Math.round(leftover / COIN_RATES[from]);
+    if (leftoverCoin > 0) {
+      preview.textContent = amt + " " + COIN_NAMES[from] + " → " + rounded + " " + COIN_NAMES[to] + " + " + leftoverCoin + " " + COIN_NAMES[from] + " сдача";
+    } else {
+      preview.textContent = amt + " " + COIN_NAMES[from] + " → " + result.toFixed(2) + " " + COIN_NAMES[to] + " (нецелое, округлится до " + rounded + ")";
+    }
+    preview.className = "coin-exch-preview coin-exch-preview-warn";
+  } else {
+    if (avail < amt) {
+      preview.textContent = "⚠️ Недостаточно " + COIN_NAMES[from] + " (есть " + avail + ")";
+      preview.className = "coin-exch-preview coin-exch-preview-error";
+    } else {
+      preview.textContent = amt + " " + COIN_NAMES[from] + " → " + Math.round(result) + " " + COIN_NAMES[to];
+      preview.className = "coin-exch-preview coin-exch-preview-ok";
+    }
+  }
+}
+function confirmExchange() {
+  var from = $("exch-from")?.value;
+  var to = $("exch-to")?.value;
+  var amt = parseInt($("exch-amount")?.value) || 0;
+  if (!from || !to || from === to || amt <= 0) { showToast("Проверьте параметры обмена", "warn"); return; }
+  var avail = parseInt($("coin-" + from)?.value) || 0;
+  if (avail < amt) { showToast("Недостаточно " + COIN_NAMES[from], "error"); return; }
+  var valueInGP = amt * COIN_RATES[from];
+  var result = Math.floor(valueInGP / COIN_RATES[to]);
+  if (result <= 0) { showToast("Нельзя обменять — результат 0", "warn"); return; }
+  // Leftover back
+  var usedGP = result * COIN_RATES[to];
+  var leftoverGP = valueInGP - usedGP;
+  var leftoverAmt = Math.round(leftoverGP / COIN_RATES[from]);
+  var fromEl = $("coin-" + from);
+  var toEl = $("coin-" + to);
+  fromEl.value = avail - amt + leftoverAmt;
+  toEl.value = (parseInt(toEl.value) || 0) + result;
+  updateChar();
+  updateCoinTotal();
+  var msg = amt + " " + COIN_NAMES[from] + " → " + result + " " + COIN_NAMES[to];
+  if (leftoverAmt > 0) msg += " (сдача: " + leftoverAmt + " " + COIN_NAMES[from] + ")";
+  showToast(msg, "success");
+  closeCoinExchange();
 }
 function updateSubclassOptions() {
 const classSelect = $("char-class");
@@ -1127,6 +1215,8 @@ updateAllStatDisplays();
 renderSpellSlots();
 renderMySpells();
 renderInventory();
+updateCoinTotal();
+updateSlotsDisplay();
 updateHPDisplay();
 loadDeathSaves();
 renderCompanions();
@@ -1734,6 +1824,9 @@ return "<div class=\"lu-result-line\">" + escapeHtml(l) + "</div>";
 function openDiceModal() {
 const modal = $("dice-modal");
 if (modal) modal.classList.add("active");
+drawDiceSVG(20);
+var numEl = $("dice-svg-num");
+if (numEl) numEl.textContent = "?";
 }
 function closeDiceModal() {
 const modal = $("dice-modal");
@@ -1742,47 +1835,111 @@ const display = $("dice-result-display");
 if (display) display.classList.remove("crit-success", "crit-fail", "normal");
 }
 function rollDice(sides, mode) {
-// mode: undefined=normal, 'adv'=advantage, 'dis'=disadvantage
 const r1 = Math.floor(Math.random() * sides) + 1;
 const r2 = (mode === 'adv' || mode === 'dis') ? Math.floor(Math.random() * sides) + 1 : null;
 let result, resultLabel;
 if (mode === 'adv') {
   result = Math.max(r1, r2);
-  resultLabel = "Преимущество: " + r1 + " и " + r2 + " → ";
+  resultLabel = "Преимущество: " + r1 + " и " + r2;
 } else if (mode === 'dis') {
   result = Math.min(r1, r2);
-  resultLabel = "Помеха: " + r1 + " и " + r2 + " → ";
+  resultLabel = "Помеха: " + r1 + " и " + r2;
 } else {
   result = r1;
-  resultLabel = null;
+  resultLabel = "d" + sides;
 }
 const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-const display = $("dice-result-display");
-const resultBig = $("dice-result-big");
-const resultInfo = $("dice-result-info");
-if (!display || !resultBig || !resultInfo) return;
-display.classList.remove("crit-success", "crit-fail", "normal");
-void display.offsetWidth;
-if (sides === 20) {
-if (result === 20) {
-display.classList.add("crit-success");
-resultInfo.textContent = (resultLabel || "") + "🎉 КРИТИЧЕСКИЙ УСПЕХ! 🎉";
-createParticles();
-} else if (result === 1) {
-display.classList.add("crit-fail");
-resultInfo.textContent = (resultLabel || "") + "💀 КРИТИЧЕСКИЙ ПРОВАЛ! 💀";
-} else {
-display.classList.add("normal");
-resultInfo.textContent = (resultLabel ? resultLabel.slice(0,-3) : "Бросок d" + sides + " в " + timestamp);
-}
-} else {
-display.classList.add("normal");
-resultInfo.textContent = (resultLabel ? resultLabel.slice(0,-3) : "Бросок d" + sides + " в " + timestamp);
-}
-resultBig.textContent = result;
+// 3D dice animation
+animateDice3d(sides, result, function() {
+  var resultBig = $("dice-result-big");
+  var resultInfo = $("dice-result-info");
+  var resultBox = $("dice3d-result");
+  if (resultBig) resultBig.textContent = result;
+  if (resultBox) {
+    resultBox.classList.remove("crit-success","crit-fail","normal");
+    if (sides === 20 && result === 20) {
+      resultBox.classList.add("crit-success");
+      if (resultInfo) resultInfo.textContent = "🎉 КРИТИЧЕСКИЙ УСПЕХ!";
+      createParticles();
+    } else if (sides === 20 && result === 1) {
+      resultBox.classList.add("crit-fail");
+      if (resultInfo) resultInfo.textContent = "💀 КРИТИЧЕСКИЙ ПРОВАЛ!";
+    } else {
+      resultBox.classList.add("normal");
+      if (resultInfo) resultInfo.textContent = resultLabel + " · " + timestamp;
+    }
+    resultBox.classList.add("pop");
+    setTimeout(function(){ if(resultBox) resultBox.classList.remove("pop"); }, 400);
+  }
+});
 diceHistory.unshift({ sides: sides, result: result, mode: mode || 'normal', time: timestamp, r1: r1, r2: r2 });
 if (diceHistory.length > 10) diceHistory.pop();
 renderDiceHistory();
+}
+
+// SVG paths for each die type
+var DICE_SVG = {
+  4:   { path: "M60,8 L108,100 L12,100 Z", // triangle
+         color: "#c0392b", glow: "#e74c3c", numY: 75 },
+  6:   { path: "M18,18 L102,18 L102,102 L18,102 Z", // square
+         color: "#2980b9", glow: "#3498db", numY: 62 },
+  8:   { path: "M60,6 L108,60 L60,114 L12,60 Z", // diamond
+         color: "#27ae60", glow: "#2ecc71", numY: 62 },
+  10:  { path: "M60,10 L100,45 L85,100 L35,100 L20,45 Z", // pentagon-diamond
+         color: "#8e44ad", glow: "#9b59b6", numY: 65 },
+  12:  { path: "M60,8 L100,32 L108,76 L76,108 L44,108 L12,76 L20,32 Z", // heptagon
+         color: "#e67e22", glow: "#f39c12", numY: 64 },
+  20:  { path: "M60,6 L106,28 L114,78 L80,114 L40,114 L6,78 L14,28 Z", // octagon-ish
+         color: "#c9a040", glow: "#f1c40f", numY: 64 },
+  100: { path: "M60,8 A52,52 0 1,1 59.9,8 Z", // circle
+         color: "#16a085", glow: "#1abc9c", numY: 64 }
+};
+
+function drawDiceSVG(sides) {
+  var svgEl = $("dice-svg");
+  var shape = $("dice-svg-shape");
+  var numEl = $("dice-svg-num");
+  var typeEl = $("dice-svg-type");
+  if (!svgEl || !shape) return;
+  var d = DICE_SVG[sides] || DICE_SVG[20];
+  // Set glow color
+  svgEl.style.setProperty("--dice-glow", d.glow);
+  // Draw shape
+  if (sides === 100) {
+    // Full circle via element
+    shape.innerHTML = '<circle cx="60" cy="60" r="52" fill="' + d.color + '" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>';
+  } else {
+    shape.innerHTML = '<path d="' + d.path + '" fill="' + d.color + '" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linejoin="round"/>';
+  }
+  if (numEl) { numEl.setAttribute("y", d.numY || 64); }
+  if (typeEl) typeEl.textContent = "d" + sides;
+}
+
+function animateDice3d(sides, result, callback) {
+  var svgContainer = document.querySelector(".dsvg-container");
+  var numEl = $("dice-svg-num");
+  if (!svgContainer) { callback(); return; }
+  drawDiceSVG(sides);
+  // Show rolling numbers
+  var numEl = $("dice-svg-num");
+  var rollInterval = setInterval(function() {
+    if (numEl) numEl.textContent = Math.floor(Math.random() * sides) + 1;
+  }, 60);
+  // Shake animation
+  svgContainer.classList.remove("dsvg-shake");
+  void svgContainer.offsetWidth;
+  svgContainer.classList.add("dsvg-shake");
+  setTimeout(function() {
+    clearInterval(rollInterval);
+    svgContainer.classList.remove("dsvg-shake");
+    if (numEl) numEl.textContent = result;
+    // Land animation
+    svgContainer.classList.add("dsvg-land");
+    setTimeout(function() {
+      svgContainer.classList.remove("dsvg-land");
+      callback();
+    }, 350);
+  }, 700);
 }
 
 function rollCustomFormula() {
@@ -1856,6 +2013,115 @@ document.querySelectorAll(".inventory-filters button").forEach(function(b) { b.c
 if (btn) btn.classList.add("active");
 renderInventory();
 }
+// ── Slot system ──
+// OSR slot system: все предметы занимают слоты
+// weapon: 1h=1, 2h=2 | armor=3 | potion=1/2 | scroll=1 | tool/other=1
+const ITEM_SLOTS = { weapon:1, armor:3, potion:0.5, scroll:1, tool:1, material:1, other:1 };
+const BELT_LABELS = { weapon1:"Оружие 1", weapon2:"Оружие 2", rope:"Верёвка", shield:"Щит" };
+const POUCH_STR_REQ = [8, 12, 16, 18]; // СИЛ для каждого мешочка
+const POUCH_MAX = 500; // монет в мешочке
+
+function getSlotsTotal(str) {
+  // Base 10 slots + 1 per 2 STR above 10, min 6
+  var base = 10;
+  if (str >= 16) base = 15;
+  else if (str >= 13) base = 12;
+  else if (str >= 10) base = 10;
+  else base = 7;
+  return base;
+}
+
+function calcUsedSlots(char) {
+  var used = 0;
+  Object.keys(char.inventory).forEach(function(cat) {
+    (char.inventory[cat] || []).forEach(function(item) {
+      // Custom slots override takes priority
+      var slotsEach = (item.slots !== undefined && item.slots !== null && item.slots !== "")
+        ? parseFloat(item.slots)
+        : (ITEM_SLOTS[cat] !== undefined ? ITEM_SLOTS[cat] : 1);
+      used += slotsEach * (item.qty || 1);
+    });
+  });
+  return used;
+}
+
+function updateSlotsDisplay() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var str = char.stats.str || 10;
+  var total = getSlotsTotal(str);
+  var used = calcUsedSlots(char);
+  var usedEl = $("inv-slots-used");
+  var totalEl = $("inv-slots-total");
+  var hintEl = $("inv-slots-str-hint");
+  var fillEl = $("weight-fill");
+  var owEl = $("overweight-warning");
+  var owAmt = $("overweight-amount");
+  if (usedEl) usedEl.textContent = used % 1 === 0 ? used : used.toFixed(1);
+  if (totalEl) totalEl.textContent = total;
+  if (hintEl) hintEl.textContent = "СИЛ: " + str;
+  if (fillEl) {
+    var pct = Math.min(100, (used / total) * 100);
+    fillEl.style.width = pct + "%";
+    fillEl.className = "inv-weight-fill" + (used > total ? " overweight" : used > total * 0.75 ? " warning" : "");
+  }
+  if (owEl) {
+    if (used > total) {
+      owEl.style.display = "flex";
+      if (owAmt) owAmt.textContent = (used - total).toFixed(1);
+    } else {
+      owEl.style.display = "none";
+    }
+  }
+  // update item slot tags
+  if (usedEl) usedEl.className = "inv-slots-used" + (used > total ? " inv-slots-over" : "");
+  renderPouches();
+  }
+
+
+
+
+
+function renderPouches() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var str = char.stats.str || 10;
+  var container = $("inv-pouches");
+  if (!container) return;
+  var totalCoins = (parseInt($("coin-cp")?.value)||0) +
+    (parseInt($("coin-sp")?.value)||0) +
+    (parseInt($("coin-ep")?.value)||0) +
+    (parseInt($("coin-gp")?.value)||0) +
+    (parseInt($("coin-pp")?.value)||0);
+  var html = '<div class="inv-pouches-row">';
+  POUCH_STR_REQ.forEach(function(req, i) {
+    var unlocked = str >= req;
+    var pct = unlocked ? Math.min(100, (totalCoins / (POUCH_MAX * (i+1))) * 100) : 0;
+    html += '<div class="inv-pouch' + (unlocked ? "" : " inv-pouch-locked") + '">';
+    html += '<div class="inv-pouch-icon">' + (unlocked ? "👝" : "🔒") + '</div>';
+    html += '<div class="inv-pouch-req">СИЛ ' + req + '+</div>';
+    if (unlocked) {
+      html += '<div class="inv-pouch-cap">' + (POUCH_MAX * (i+1)) + ' мон.</div>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  // capacity hint
+  var availPouches = POUCH_STR_REQ.filter(function(r){ return str >= r; }).length;
+  var maxCoins = availPouches * POUCH_MAX;
+  html += '<div class="inv-pouches-hint">';
+  if (availPouches > 0) {
+    html += '🎒 ' + availPouches + ' мешочк' + (availPouches===1?"а":availPouches<5?"а":"ов") + ' · до <strong>' + maxCoins + '</strong> монет';
+    if (totalCoins > maxCoins) html += ' · <span style="color:var(--danger-color)">⚠️ не унести ' + (totalCoins - maxCoins) + ' монет</span>';
+  } else {
+    html += '⚠️ Нет мешочков — нужна СИЛ 8+';
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
 function renderInventory() {
 if (!currentId) return;
 const char = getCurrentChar();
@@ -1875,6 +2141,7 @@ allItems = allItems.filter(function(i) { return i.category === currentFilterCate
 if (allItems.length === 0) {
 container.innerHTML = "<div class=\"inventory-empty\">📭 Нет предметов" + (currentFilterCategory !== "all" ? " в этой категории" : "") + "</div>";
 updateInventoryWeight();
+updateSlotsDisplay();
 return;
 }
 allItems.forEach(function(data) {
@@ -1882,6 +2149,11 @@ const item = data.item;
 const icon = ITEM_ICONS[data.category];
 const totalWeight = (item.weight * (item.qty || 1)).toFixed(1);
 const catName = CATEGORY_NAMES[data.category];
+var _slotsEach = (item.slots !== undefined && item.slots !== null && item.slots !== "")
+  ? parseFloat(item.slots)
+  : (ITEM_SLOTS[data.category] !== undefined ? ITEM_SLOTS[data.category] : 1);
+var itemSlots = _slotsEach * (item.qty || 1);
+var slotsLabel = itemSlots % 1 !== 0 ? itemSlots.toFixed(1) + " сл." : itemSlots + " сл.";
 const div = document.createElement("div");
 div.className = "inv-item";
 div.dataset.category = data.category;
@@ -1895,6 +2167,7 @@ div.innerHTML =
         '<span class="inv-meta-tag">' + (item.qty || 1) + ' шт.</span>' +
         '<span class="inv-meta-tag">⚖️ ' + totalWeight + ' фнт</span>' +
         '<span class="inv-meta-tag inv-cat-tag">' + catName + '</span>' +
+        '<span class="inv-meta-tag inv-slot-tag">' + slotsLabel + '</span>' +
       '</div>' +
     '</div>' +
     '<span class="inv-item-arrow">▶</span>' +
@@ -1909,6 +2182,7 @@ div.innerHTML =
 container.appendChild(div);
 });
 updateInventoryWeight();
+updateSlotsDisplay();
 }
 function toggleInvItem(mainEl) {
 const item = mainEl.closest(".inv-item");
@@ -2005,12 +2279,16 @@ if (titleEl) titleEl.textContent = "Редактировать предмет";
 if (nameEl) nameEl.value = item.name || "";
 if (qtyEl) qtyEl.value = item.qty || 1;
 if (weightEl) weightEl.value = item.weight || 0;
+const slotsInpEdit = $("new-item-slots");
+if (slotsInpEdit) slotsInpEdit.value = (item.slots !== undefined && item.slots !== null) ? item.slots : "";
 if (descEl) descEl.value = item.desc || "";
 } else {
 if (titleEl) titleEl.textContent = "Добавить предмет";
 if (nameEl) nameEl.value = "";
 if (qtyEl) qtyEl.value = 1;
 if (weightEl) weightEl.value = 0;
+const slotsInpNew = $("new-item-slots");
+if (slotsInpNew) slotsInpNew.value = "";
 if (descEl) descEl.value = "";
 }
 const modal = $("item-modal");
@@ -2032,6 +2310,7 @@ const newItem = {
 name: name,
 qty: parseInt($("new-item-qty")?.value) || 1,
 weight: parseFloat($("new-item-weight")?.value) || 0,
+slots: $("new-item-slots")?.value !== "" ? parseFloat($("new-item-slots")?.value) : undefined,
 desc: $("new-item-desc")?.value || ""
 };
 if (!char.inventory[category]) char.inventory[category] = [];
@@ -4365,4 +4644,28 @@ function removeFeat(i) {
       renderTakenFeats();
     }
   );
+}
+
+// ── Item Reference Modal ──
+function openItemRef(tab) {
+  var modal = $("item-ref-modal");
+  if (modal) modal.classList.add("active");
+  switchItemRef(tab || 'weight', null);
+}
+function closeItemRef() {
+  var modal = $("item-ref-modal");
+  if (modal) modal.classList.remove("active");
+}
+function switchItemRef(tab, btnEl) {
+  [$("item-ref-weight"), $("item-ref-slots")].forEach(function(el) {
+    if (el) el.classList.add("hidden");
+  });
+  document.querySelectorAll(".item-ref-tab").forEach(function(b) { b.classList.remove("active"); });
+  var section = $("item-ref-" + tab);
+  if (section) section.classList.remove("hidden");
+  if (btnEl) btnEl.classList.add("active");
+  else {
+    var btn = document.querySelector(".item-ref-tab[onclick*=\"'" + tab + "'\"]");
+    if (btn) btn.classList.add("active");
+  }
 }
