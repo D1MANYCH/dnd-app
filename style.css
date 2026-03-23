@@ -5181,3 +5181,80 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   100% { transform: scale(1); opacity: 1; }
 }
 .dice3d-result.pop .dice3d-num { animation: dicePop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+/* =============================================
+   DESKTOP LAYOUT — centered max-width
+============================================= */
+@media (min-width: 768px) {
+  :root { --app-width: 720px; }
+
+  /* header и status-bar — полная ширина экрана, контент внутри центрируется */
+  header {
+    width: 100%;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+  header .header-title {
+    max-width: var(--app-width);
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .status-bar {
+    width: 100%;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+  /* Внутренности статус-бара центрируем через inner-wrapper */
+  .status-bar > * {
+    max-width: var(--app-width);
+    /* не трогаем flex-дочерние элементы — просто ограничиваем контейнер */
+  }
+
+  /* Основной контент */
+  .container {
+    max-width: var(--app-width);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Tab nav — полная ширина экрана на десктопе */
+  .tab-nav {
+    max-width: 100%;
+    left: 0;
+    transform: none;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    padding-left: calc((100vw - var(--app-width)) / 2);
+    padding-right: calc((100vw - var(--app-width)) / 2);
+  }
+  /* FAB dice остаётся по центру экрана */
+  .tab-dice-fab {
+    position: relative;
+  }
+
+  /* Drawer — справа от экрана, фиксированная ширина */
+  .side-drawer {
+    right: 0;
+    width: 320px;
+    max-width: 320px;
+    border-left: 1px solid var(--border-color);
+    border-right: none;
+    box-shadow: -8px 0 30px rgba(0,0,0,0.5);
+  }
+
+  .modal-content {
+    max-width: calc(var(--app-width) - 40px);
+  }
+}
+
+@media (min-width: 1200px) {
+  :root { --app-width: 860px; }
+}
+
+@media (min-width: 1500px) {
+  :root { --app-width: 980px; }
+}
