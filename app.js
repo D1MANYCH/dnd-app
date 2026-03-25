@@ -503,6 +503,8 @@ modifiers.push({name: effect.name, value: effect.acBonus, type: "negative"});
 }
 });
 }
+// Update concentration display
+updateConcentrationDisplay();
 $("ac-total").textContent = ac;
 $("ac-formula").textContent = formulaParts.join(" ");
 $("combat-ac").value = ac;
@@ -516,6 +518,121 @@ modifiersContainer.appendChild(modDiv);
 });
 $("status-ac").textContent = ac;
 char.combat.ac = ac;
+}
+
+function toggleInspiration() {
+if (!currentId) return;
+const char = getCurrentChar();
+if (!char) return;
+char.inspiration = !char.inspiration;
+saveToLocal();
+updateStatusBar();
+showToast(char.inspiration ? "✨ Вдохновение получено!" : "✨ Вдохновение использовано", char.inspiration ? "success" : "info");
+}
+
+function setConcentration(btnOrName) {
+var spellName = (btnOrName && typeof btnOrName === 'object') ? (btnOrName.dataset && btnOrName.dataset.name) : btnOrName;
+if (!currentId) return;
+const char = getCurrentChar();
+if (!char) return;
+// Если уже концентрируемся на этом же заклинании — открыть окно деталей
+if (char.concentration && char.concentration === spellName) {
+  openConcDetails();
+  return;
+}
+// Если другое заклинание — прервать старое
+if (char.concentration && char.concentration !== spellName) {
+  showToast("🔮 Концентрация на «" + char.concentration + "» прервана", "warn");
+}
+// Найти данные заклинания
+var spellData = null;
+if (spellName && typeof SPELL_DATABASE !== 'undefined') {
+  spellData = SPELL_DATABASE.find(function(s) { return s.name === spellName; });
+}
+if (!spellData && currentId) {
+  var c = getCurrentChar();
+  if (c && c.spells && c.spells.mySpells) {
+    spellData = c.spells.mySpells.find(function(s) { return s.name === spellName; });
+  }
+}
+char.concentration = spellName || null;
+char.concentrationData = spellData ? { duration: spellData.duration, desc: spellData.desc } : null;
+saveToLocal();
+updateConcentrationDisplay();
+if (spellName) showToast("🔮 Концентрация: " + spellName, "info");
+}
+
+function openConcDetails() {
+if (!currentId) return;
+const char = getCurrentChar();
+if (!char || !char.concentration) {
+  return;
+}
+var modal = $("conc-details-modal");
+if (!modal) {
+  return;
+}
+var nameEl = $("conc-details-name");
+var durEl = $("conc-detail-duration");
+var descEl = $("conc-detail-desc");
+var descRow = $("conc-detail-desc-row");
+if (nameEl) nameEl.textContent = char.concentration;
+if (durEl) durEl.textContent = (char.concentrationData && char.concentrationData.duration) || "—";
+if (descEl && char.concentrationData && char.concentrationData.desc) {
+  descEl.textContent = char.concentrationData.desc;
+  if (descRow) descRow.style.display = "flex";
+} else {
+  if (descRow) descRow.style.display = "none";
+}
+modal.classList.add("active");
+modal.classList.remove("hidden");
+}
+
+function closeConcDetails() {
+var modal = $("conc-details-modal");
+if (modal) {
+  modal.classList.remove("active");
+  modal.classList.add("hidden");
+}
+}
+
+function endConcentration() {
+if (!currentId) return;
+const char = getCurrentChar();
+if (!char) return;
+const name = char.concentration;
+char.concentration = null;
+saveToLocal();
+updateConcentrationDisplay();
+if (name) showToast("🔮 Концентрация на «" + name + "» завершена", "info");
+}
+
+function updateConcentrationDisplay() {
+if (!currentId) return;
+const char = getCurrentChar();
+// Update spell tab block
+const block = $("concentration-block");
+const nameEl = $("conc-name");
+if (block) {
+  if (char && char.concentration) {
+    block.classList.add("active");
+    if (nameEl) nameEl.textContent = char.concentration;
+  } else {
+    block.classList.remove("active");
+    if (nameEl) nameEl.textContent = "—";
+  }
+}
+// Update status bar indicator
+const statusConc = $("status-concentration");
+const statusConcName = $("status-conc-name");
+if (statusConc) {
+  if (char && char.concentration) {
+    statusConc.classList.remove("hidden");
+    if (statusConcName) statusConcName.textContent = char.concentration;
+  } else {
+    statusConc.classList.add("hidden");
+  }
+}
 }
 function updateStatusBar() {
 const statusBar = $("status-bar");
@@ -564,6 +681,9 @@ conditionsContainer.appendChild(badge);
 }
 });
 }
+// Вдохновение
+const inspiEl = $("status-inspiration");
+if (inspiEl) inspiEl.classList.toggle("active", !!char.inspiration);
 }
 function getProficiencyBonus(level) {
 if (level >= 17) return 6;
@@ -1217,6 +1337,8 @@ renderMySpells();
 renderInventory();
 updateCoinTotal();
 updateSlotsDisplay();
+updateStatusBar();
+updateConcentrationDisplay();
 updateHPDisplay();
 loadDeathSaves();
 renderCompanions();
@@ -2457,9 +2579,109 @@ container.innerHTML = "";
 char.weapons.forEach(function(weapon, index) {
 const div = document.createElement("div");
 div.className = "weapon-row";
-div.innerHTML = "<h4>" + escapeHtml(weapon.name) + " <button class=\"danger small\" onclick=\"removeWeapon(" + index + ")\">✕</button></h4><div class=\"weapon-stats\"><span>📊 " + escapeHtml(weapon.statName) + "</span><span>⚔️ " + escapeHtml(weapon.bonus || "-") + "</span><span>🗡️ " + escapeHtml(weapon.damage || "-") + "</span><span>" + escapeHtml(weapon.type || "") + "</span><span>📏 " + escapeHtml(weapon.range || "") + "</span></div>" + (weapon.notes ? "<p style=\"font-size:0.75em; color:var(--text-muted); margin-top:5px;\">" + escapeHtml(weapon.notes) + "</p>" : "");
+// Calculate attack bonus for display
+var statKey = weapon.stat || "str";
+var statVal = char.stats[statKey] || 10;
+var statMod = getMod(statVal);
+var profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
+var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
+var attackStr = (attackBonus >= 0 ? "+" : "") + attackBonus;
+div.innerHTML =
+  '<div class="weapon-row-top">' +
+    '<div class="weapon-info">' +
+      '<span class="weapon-name">' + escapeHtml(weapon.name) + '</span>' +
+      '<span class="weapon-meta">' + escapeHtml(weapon.damage || "—") + ' · ' + escapeHtml(weapon.statName || "") + ' ' + attackStr + '</span>' +
+    '</div>' +
+    '<button class="weapon-delete-btn" onclick="removeWeapon(' + index + ')">✕</button>' +
+  '</div>' +
+  '<div class="weapon-roll-row">' +
+    '<button class="weapon-roll-btn weapon-roll-atk" onclick="rollWeaponAttack(' + index + ')">🎲 Атака</button>' +
+    '<button class="weapon-roll-btn weapon-roll-dmg" onclick="rollWeaponDamage(' + index + ')">🗡️ Урон</button>' +
+  '</div>' +
+  (weapon.notes ? '<div class="weapon-notes">' + escapeHtml(weapon.notes) + '</div>' : '');
 container.appendChild(div);
 });
+}
+
+function rollWeaponAttack(index) {
+if (!currentId) return;
+const char = getCurrentChar();
+if (!char) return;
+const weapon = char.weapons[index];
+if (!weapon) return;
+const statKey = weapon.stat || "str";
+const statVal = char.stats[statKey] || 10;
+const statMod = getMod(statVal);
+const profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
+const attackBonus = statMod + (weapon.proficient ? profBonus : 0);
+const roll = Math.floor(Math.random() * 20) + 1;
+const total = roll + attackBonus;
+const isCrit = roll === 20;
+const isFail = roll === 1;
+let msg = "⚔️ " + escapeHtml(weapon.name) + ": бросок " + roll + " + " + attackBonus + " = " + total;
+if (isCrit) msg = "🎉 КРИТИЧЕСКОЕ ПОПАДАНИЕ! " + escapeHtml(weapon.name) + ": " + roll + " + " + attackBonus + " = " + total;
+if (isFail) msg = "💀 ПРОМАХ! " + escapeHtml(weapon.name) + ": " + roll;
+showToast(msg, isCrit ? "success" : isFail ? "error" : "info");
+openDiceModal();
+// Show in dice display
+var resultBig = $("dice-result-big");
+var resultInfo = $("dice-result-info");
+var resultBox = $("dice3d-result");
+if (resultBig) resultBig.textContent = total;
+if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · атака · к20=" + roll;
+if (resultBox) {
+  resultBox.className = "dice3d-result" + (isCrit ? " crit-success" : isFail ? " crit-fail" : " normal");
+}
+drawDiceSVG(20);
+var numEl = $("dice-svg-num");
+if (numEl) numEl.textContent = total;
+if (isCrit) createParticles();
+diceHistory.unshift({ sides:20, result:total, mode:"normal", time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:roll, r2:null, label: weapon.name + " атака" });
+if (diceHistory.length > 10) diceHistory.pop();
+renderDiceHistory();
+}
+
+function rollWeaponDamage(index) {
+if (!currentId) return;
+const char = getCurrentChar();
+if (!char) return;
+const weapon = char.weapons[index];
+if (!weapon || !weapon.damage) return;
+const statKey = weapon.stat || "str";
+const statVal = char.stats[statKey] || 10;
+const statMod = getMod(statVal);
+// Parse damage formula e.g. "1к8+3", "2к6", "1к4"
+const dmg = weapon.damage.toLowerCase().replace(/к/g, "d").replace(/\s/g, "");
+const match = dmg.match(/^(\d+)d(\d+)([+-]\d+)?$/);
+let total = 0;
+let rollStr = "";
+if (match) {
+  const num = parseInt(match[1]);
+  const sides = parseInt(match[2]);
+  const mod = match[3] ? parseInt(match[3]) : 0;
+  const rolls = [];
+  for (var i = 0; i < num; i++) rolls.push(Math.floor(Math.random() * sides) + 1);
+  total = rolls.reduce(function(a,b){return a+b;}, 0) + mod + statMod;
+  rollStr = "[" + rolls.join("+") + "]" + (mod ? (mod>0?"+":"")+mod : "") + (statMod ? (statMod>0?"+":"")+statMod : "");
+} else {
+  total = statMod;
+  rollStr = "+" + statMod;
+}
+showToast("🗡️ " + escapeHtml(weapon.name) + " урон: " + rollStr + " = " + total, "info");
+openDiceModal();
+var resultBig = $("dice-result-big");
+var resultInfo = $("dice-result-info");
+var resultBox = $("dice3d-result");
+if (resultBig) resultBig.textContent = total;
+if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · урон · " + (match ? match[1]+"d"+match[2] : "?");
+if (resultBox) resultBox.className = "dice3d-result normal";
+var sides = match ? parseInt(match[2]) : 6;
+drawDiceSVG(sides);
+var numEl = $("dice-svg-num");
+if (numEl) numEl.textContent = total;
+diceHistory.unshift({ sides:sides, result:total, mode:"normal", time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:total, r2:null, label: weapon.name + " урон" });
+if (diceHistory.length > 10) diceHistory.pop();
+renderDiceHistory();
 }
 function removeWeapon(index) {
 if (!currentId) return;
@@ -2738,7 +2960,10 @@ card.innerHTML =
   '<div class="spell-card-body">' +
     (spell.desc ? '<div class="spell-full-desc">' + escapeHtml(spell.desc) + '</div>' : '') +
     (spell.higherLevel ? '<div class="spell-higher">📈 На больших уровнях: ' + escapeHtml(spell.higherLevel) + '</div>' : '') +
+    '<div class="spell-card-actions">' +
+    (spell.duration && spell.duration.toLowerCase().includes('концентрац') ? '<button class="spell-conc-btn" onclick="setConcentration(this.dataset.name)" data-name="' + escapeHtml(spell.name) + '">🔮 Концентрация</button>' : '') +
     '<button class="spell-remove-btn" onclick="removeSpell(' + spell.id + ')">🗑 Удалить</button>' +
+    '</div>' +
   '</div>';
 groupDiv.appendChild(card);
 });

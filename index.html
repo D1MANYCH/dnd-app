@@ -24,6 +24,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="status-level">⭐ Ур. <span id="status-level">1</span></div>
 <div class="status-hp">❤️ <span class="hp-current" id="status-hp-current">10</span><span class="hp-max">/<span id="status-hp-max">10</span></span></div>
 <div class="status-ac">🛡️ КД <span id="status-ac">10</span></div>
+<div class="status-inspiration" id="status-inspiration" onclick="toggleInspiration()" title="Вдохновение — нажмите чтобы переключить">
+  <span class="inspi-icon">✨</span><span class="inspi-label">Вдохновение</span>
+</div>
+<div class="status-concentration hidden" id="status-concentration" onclick="openConcDetails()" title="Концентрация — нажмите для деталей">
+  <span class="conc-status-icon">🔮</span><span class="conc-status-name" id="status-conc-name">—</span>
+</div>
 </div>
 <div class="status-right">
 <div class="status-conditions" id="status-conditions"></div>
@@ -88,7 +94,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div id="ptab-info" class="ptab-content active">
 <div class="app-version-row">
-<span class="app-version-badge" id="app-version-badge">v1.3.0</span>
+<span class="app-version-badge" id="app-version-badge">v1.6.1</span>
 <span style="font-size:0.75em;color:var(--text-muted);">Данные сохраняются в браузере. Делайте резервные копии!</span>
 </div>
 <div class="app-info-grid">
@@ -617,6 +623,16 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="spell-slots-visual" id="spell-slots-visual"></div>
 </div>
 <div class="card">
+<div class="concentration-block" id="concentration-block">
+  <div class="conc-left">
+    <span class="conc-icon">🔮</span>
+    <div class="conc-info">
+      <span class="conc-label">Концентрация</span>
+      <span class="conc-name" id="conc-name">—</span>
+    </div>
+  </div>
+  <button class="conc-end-btn" onclick="endConcentration()" title="Завершить концентрацию">✕</button>
+</div>
 <div class="spells-header-row">
 <h3>Мои заклинания</h3>
 <div class="spell-action-btns">
@@ -1029,6 +1045,35 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
     <div class="item-ref-note">📌 Поле «Слотов» заполняй только если хочешь переопределить стандарт</div>
   </div>
+</div>
+</div>
+
+<!-- Modal: Concentration Details -->
+<div id="conc-details-modal" class="confirm-modal-overlay hidden" onclick="if(event.target===this)closeConcDetails()">
+<div class="conc-details-box">
+  <div class="conc-details-header">
+    <span class="conc-details-icon">🔮</span>
+    <div class="conc-details-title">
+      <div class="conc-details-label">КОНЦЕНТРАЦИЯ</div>
+      <div class="conc-details-name" id="conc-details-name">—</div>
+    </div>
+    <button class="conc-details-close" onclick="closeConcDetails()">✕</button>
+  </div>
+  <div class="conc-details-body">
+    <div class="conc-detail-row" id="conc-detail-duration-row">
+      <span class="conc-detail-key">⏱ Длительность</span>
+      <span class="conc-detail-val" id="conc-detail-duration">—</span>
+    </div>
+    <div class="conc-detail-row">
+      <span class="conc-detail-key">⚠️ Снимается при</span>
+      <span class="conc-detail-val">Провале спасброска ТЕЛ (СЛ 10 или ½ урона), потере сознания, новой концентрации</span>
+    </div>
+    <div class="conc-detail-row" id="conc-detail-desc-row" style="display:none">
+      <span class="conc-detail-key">📖 Описание</span>
+      <span class="conc-detail-val" id="conc-detail-desc"></span>
+    </div>
+  </div>
+  <button class="conc-details-end" onclick="endConcentration(); closeConcDetails()">✕ Завершить концентрацию</button>
 </div>
 </div>
 
