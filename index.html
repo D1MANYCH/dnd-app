@@ -115,11 +115,23 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div id="tab-sheet" class="tab-content active">
 <div class="card">
-<div class="row">
-<div class="col"><label>Имя</label><input type="text" id="char-name" oninput="updateChar()"></div>
-<div class="col"><label>Уровень</label><input type="number" id="char-level" min="1" max="20" oninput="calcStats()"></div>
-<div class="col"><label>Опыт</label><input type="number" id="char-exp" value="0" oninput="updateChar()"></div>
+
+<!-- Строка 1: аватар слева + имя/уровень/опыт справа -->
+<div class="sheet-top-row">
+  <div class="sheet-avatar-col">
+    <div id="sheet-avatar" class="sheet-avatar" title="Сменить аватар"></div>
+    <span class="sheet-avatar-hint">Сменить</span>
+  </div>
+  <div class="sheet-top-fields">
+    <div class="col" style="margin-bottom:10px;"><label>Имя</label><input type="text" id="char-name" oninput="updateChar()"></div>
+    <div class="sheet-top-small-row">
+      <div class="sheet-small-field"><label>Уровень</label><input type="number" id="char-level" min="1" max="20" oninput="calcStats()"></div>
+      <div class="sheet-small-field"><label>Опыт</label><input type="number" id="char-exp" value="0" oninput="updateChar()"></div>
+    </div>
+  </div>
 </div>
+
+<!-- Строки 2+: поля на полную ширину -->
 <div class="row">
 <div class="col">
 <label>Класс</label>
@@ -1674,6 +1686,38 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button id="confirm-modal-ok" class="confirm-btn-ok">Удалить</button>
 </div>
 </div>
+</div>
+
+<!-- ══ МОДАЛКА АВАТАРА ══════════════════════════════════════════ -->
+<div id="avatar-modal" class="modal">
+  <div class="modal-content avatar-modal-content">
+    <span class="modal-close" onclick="closeAvatarModal()">✕</span>
+    <h3>🖼️ Аватар персонажа</h3>
+    <div id="avatar-modal-preview" class="avatar-modal-preview"></div>
+
+    <!-- Секция 1: файл -->
+    <div class="avatar-section">
+      <div class="avatar-section-label">С устройства</div>
+      <label class="btn avatar-upload-btn">
+        📁 Загрузить с устройства
+        <input type="file" accept="image/*" style="display:none" onchange="handleAvatarFile(this)">
+      </label>
+    </div>
+
+    <div class="avatar-section-divider">или</div>
+
+    <!-- Секция 2: ссылка -->
+    <div class="avatar-section">
+      <div class="avatar-section-label">По ссылке</div>
+      <input type="url" id="avatar-url-input" placeholder="https://i.imgur.com/example.png" class="avatar-url-input">
+      <button class="btn avatar-url-apply-btn" onclick="applyAvatarFromUrl()">🔗 Применить ссылку</button>
+    </div>
+
+    <div class="avatar-modal-footer">
+      <button class="btn secondary" onclick="removeAvatar(event)">🗑️ Удалить</button>
+      <button class="btn secondary" onclick="closeAvatarModal()">Закрыть</button>
+    </div>
+  </div>
 </div>
 
 <script src="data.js"></script>

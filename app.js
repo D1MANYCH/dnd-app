@@ -98,14 +98,146 @@ const skills = [
 {name: "Скрытность", stat: "dex"}, {name: "Убеждение", stat: "cha"}, {name: "Уход за животными", stat: "wis"}
 ];
 // ============================================
-// ИНИЦИАЛИЗАЦИЯ
+// МИГРАЦИИ СХЕМЫ ПЕРСОНАЖА
 // ============================================
+function migrateCharacter(char) {
+  var v = char.schemaVersion || 0;
+  if (v < 1) {
+    if (char.alignment    === undefined) char.alignment    = "";
+    if (char.size         === undefined) char.size         = "Средний";
+    if (char.inspiration  === undefined) char.inspiration  = false;
+    if (char.concentration=== undefined) char.concentration= null;
+    if (!char.companions)                char.companions   = [];
+    if (!char.feats)                     char.feats        = [];
+    if (!char.asiUsedLevels)             char.asiUsedLevels= [];
+    if (!char.journal)                   char.journal      = [];
+    if (!char.party)                     char.party        = { allies:[], monsters:[], npcs:[] };
+    if (!char.battle)                    char.battle       = { active:false, participants:[], currentTurn:0 };
+    char.schemaVersion = 1;
+  }
+  if (v < 2) {
+    if (char.avatar === undefined) char.avatar = null;
+    char.schemaVersion = 2;
+  }
+  return char;
+}
+
+// ============================================
+// АВАТАР ПЕРСОНАЖА
+// ============================================
+
+/** Открыть модалку аватара для текущего персонажа */
+function openAvatarModal(event) {
+  if (event) event.stopPropagation();
+  if (!currentId) return;
+  const char = getCurrentChar();
+  if (!char) return;
+  // Показать текущий аватар в превью
+  const preview = $("avatar-modal-preview");
+  if (preview) {
+    if (char.avatar) {
+      preview.innerHTML = "<img src=\"" + char.avatar + "\" alt=\"Аватар\">";
+    } else {
+      preview.innerHTML = "<span class=\"avatar-modal-placeholder\">" + getClassIcon(char.class) + "</span>";
+    }
+  }
+  const urlInput = $("avatar-url-input");
+  if (urlInput) urlInput.value = "";
+  openModal("avatar-modal");
+}
+
+function closeAvatarModal() { closeModal("avatar-modal"); }
+
+/** Загрузить аватар с устройства — сжимаем до 400×400 через canvas */
+function handleAvatarFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/")) { showToast("Выберите файл изображения", "error"); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const MAX = 400;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+      applyAvatar(dataUrl);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  // Сбросить input чтобы можно было выбрать тот же файл повторно
+  input.value = "";
+}
+
+/** Сохранить аватар по URL */
+function applyAvatarFromUrl() {
+  const url = ($("avatar-url-input")?.value || "").trim();
+  if (!url) { showToast("Введите ссылку на изображение", "warn"); return; }
+  // Проверяем что ссылка похожа на картинку
+  applyAvatar(url);
+}
+
+/** Применить аватар (base64 или URL) — сохранить и перерисовать */
+function applyAvatar(src) {
+  if (!currentId) return;
+  const char = getCurrentChar();
+  if (!char) return;
+  char.avatar = src;
+  char.updatedAt = Date.now();
+  saveToLocal();
+  // Обновить превью в модалке
+  const preview = $("avatar-modal-preview");
+  if (preview) preview.innerHTML = "<img src=\"" + src + "\" alt=\"Аватар\">";
+  // Обновить аватар в шапке листа
+  renderSheetAvatar();
+  // Перерисовать карточку в списке
+  renderCharacterList();
+  showToast("Аватар сохранён", "success");
+}
+
+/** Удалить аватар */
+function removeAvatar(event) {
+  if (event) event.stopPropagation();
+  if (!currentId) return;
+  const char = getCurrentChar();
+  if (!char) return;
+  char.avatar = null;
+  char.updatedAt = Date.now();
+  saveToLocal();
+  const preview = $("avatar-modal-preview");
+  if (preview) preview.innerHTML = "<span class=\"avatar-modal-placeholder\">" + getClassIcon(char.class) + "</span>";
+  renderSheetAvatar();
+  renderCharacterList();
+  showToast("Аватар удалён", "info");
+}
+
+/** Обновить аватар в шапке листа персонажа */
+function renderSheetAvatar() {
+  const el = $("sheet-avatar");
+  if (!el) return;
+  const char = getCurrentChar();
+  if (char && char.avatar) {
+    el.innerHTML = "<img src=\"" + char.avatar + "\" alt=\"Аватар\" onclick=\"openAvatarModal(event)\">";
+    el.classList.add("has-avatar");
+  } else {
+    const icon = char ? getClassIcon(char.class) : "🎭";
+    el.innerHTML = "<span onclick=\"openAvatarModal(event)\">" + icon + "</span>";
+    el.classList.remove("has-avatar");
+  }
+}
+
+
 window.onload = function() {
 try {
 const saved = localStorage.getItem("dnd_chars");
 const savedSpells = localStorage.getItem("dnd_spells");
 const savedHpHistory = localStorage.getItem("dnd_hp_history");
-if (saved) characters = JSON.parse(saved);
+if (saved) characters = JSON.parse(saved).map(migrateCharacter);
 if (savedSpells) {
   // Пользовательские заклинания (добавленные через UI) — храним отдельно
   // и объединяем с базой, избегая дублей по id
@@ -1003,6 +1135,7 @@ function createNewCharacter() {
 // Глубокое копирование дефолтного шаблона — безопасно, без мутации оригинала
 const newChar = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));
 newChar.id = Date.now();
+newChar.schemaVersion = (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : 2;
 // Инициализируем ячейки заклинаний
 for (let i = 1; i <= 9; i++) {
   newChar.spells.slots[i] = 0;
@@ -1150,7 +1283,9 @@ const classIcon = getClassIcon(char.class);
 const timeAgo = char.updatedAt ? "<span class=\"char-time-ago\">" + formatTimeAgo(char.updatedAt) + "</span>" : "";
 div.style.borderLeftColor = classColor;
 div.innerHTML = "<div class=\"char-card-header\">" +
-  "<div class=\"char-card-class-icon\" style=\"background:" + classColor + "22;\">" + classIcon + "</div>" +
+  (char.avatar
+    ? "<div class=\"char-card-class-icon char-card-avatar\" style=\"background:" + classColor + "22;\"><img src=\"" + char.avatar + "\" alt=\"\"></div>"
+    : "<div class=\"char-card-class-icon\" style=\"background:" + classColor + "22;\">" + classIcon + "</div>") +
   "<div class=\"char-card-title\">" +
     "<h4 class=\"char-card-name\">" + escapeHtml(char.name || "Без имени") + "</h4>" +
     "<div class=\"char-card-sub\">" + escapeHtml(char.class || "Класс не указан") + (char.race ? " · " + escapeHtml(char.race) : "") + (char.subclass ? " · " + escapeHtml(char.subclass) : "") + "</div>" +
@@ -1349,6 +1484,7 @@ renderMyChar();
 renderAllies();
 renderNPCs();
 renderMonsters();
+renderSheetAvatar();
 showScreen("character");
 var lastTab = "";
 try { lastTab = localStorage.getItem("dnd_last_tab") || "sheet"; } catch(e) { lastTab = "sheet"; }

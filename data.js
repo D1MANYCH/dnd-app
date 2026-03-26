@@ -17,6 +17,9 @@ function escapeHtml(text) {
     .replace(/'/g, "&#039;");
 }
 
+// ── Версия схемы персонажа — увеличивать при изменении структуры ──────────────
+const SCHEMA_VERSION = 2;
+
 // ── Дефолтное состояние персонажа (используется при создании нового) ──────────
 const DEFAULT_CHARACTER = {
   name:       "Новый Герой",
@@ -46,7 +49,9 @@ const DEFAULT_CHARACTER = {
   magicItems: "",
   deathSaves: { successes:[false,false,false], failures:[false,false,false] },
   inspiration: false,
-  concentration: null
+  concentration: null,
+  avatar: null,
+  schemaVersion: 2
 };
 
 const SAVES_DATA = [
