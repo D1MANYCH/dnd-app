@@ -3538,7 +3538,7 @@ loadDeathSaves();
 // ============================================================
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('./sw.js')
+    navigator.serviceWorker.register('./sw.js?v=22')
       .then(function(reg) {
         console.log('[PWA] SW зарегистрирован:', reg.scope);
         if (reg.waiting) { showUpdateModal(reg.waiting); }
@@ -5034,7 +5034,7 @@ function switchItemRef(tab, btnEl) {
 // ============================================
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(registration => {
+    navigator.serviceWorker.register('/sw.js?v=22').then(registration => {
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
         if (installingWorker == null) return;
