@@ -1,72 +1,55 @@
-// ============================================================
-// sw.js — Service Worker для офлайн-работы D&D Sheet
-// ============================================================
-
-const CACHE_NAME = 'dnd-sheet-v14';
-
-const FILES_TO_CACHE = [
+const CACHE_NAME = 'dnd-cache-v15'; // Было v14 -> стало v15
+const urlsToCache = [
   './',
   './index.html',
   './style.css',
-  './data.js',
   './app.js',
+  './data.js',
   './spells.js',
-  './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './state.js',
+  './manifest.json'
 ];
 
-self.addEventListener('install', (event) => {
+// Установка Service Worker
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Кешируем файлы...');
-      return cache.addAll(FILES_TO_CACHE);
-    })
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Opened cache');
+        return cache.addAll(urlsToCache);
+      })
   );
-  // НЕ вызываем skipWaiting() — ждём команды от пользователя через модалку
+  // Активируем новый SW сразу
+  self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
+// Активация и удаление старых кэшей
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then((keyList) => {
+    caches.keys().then(cacheNames => {
       return Promise.all(
-        keyList.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log('[SW] Удаляем старый кеш:', key);
-            return caches.delete(key);
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
           }
         })
       );
     })
   );
+  // Заявляем о праве контролировать все страницы сразу
   self.clients.claim();
 });
 
-// Получаем команду "Установить" от пользователя
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
-
-self.addEventListener('fetch', (event) => {
-  const url = event.request.url;
-  if (!url.startsWith('http://') && !url.startsWith('https://')) return;
-
+// Перехват запросов
+self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) return response;
-      return fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
+    caches.match(event.request)
+      .then(response => {
+        if (response) {
+          return response;
         }
-        return networkResponse;
-      }).catch(() => {
-        return caches.match('./index.html');
-      });
-    })
+        return fetch(event.request);
+      })
   );
 });

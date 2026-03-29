@@ -5029,3 +5029,30 @@ function switchItemRef(tab, btnEl) {
     if (btn) btn.classList.add("active");
   }
 }
+// ============================================
+// ПРОВЕРКА ОБНОВЛЕНИЙ (UPDATE CHECK)
+// ============================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(registration => {
+      registration.onupdatefound = () => {
+        const installingWorker = registration.installing;
+        if (installingWorker == null) return;
+
+        installingWorker.onstatechange = () => {
+          if (installingWorker.state === 'installed') {
+            // Новый сервис-воркер установлен, но ещё не активен
+            if (navigator.serviceWorker.controller) {
+              // Есть активная старая версия -> показываем уведомление
+              if (confirm('Доступна новая версия приложения (2.0.0)! Перезагрузить страницу для применения обновлений? Ваши данные сохранены.')) {
+                window.location.reload();
+              }
+            }
+          }
+        };
+      };
+    }).catch(error => {
+      console.error('Ошибка регистрации SW:', error);
+    });
+  });
+}
