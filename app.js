@@ -9,19 +9,19 @@ function $(id) { return document.getElementById(id); }
 /** Текущий персонаж */
 function getCurrentChar() { return characters.find(function(c) { return c.id === currentId; }); }
 /** Открыть/закрыть простую модалку по id */
-function openModal(id) { var m = $(id); if (m) m.classList.add("active"); }
-function closeModal(id) { var m = $(id); if (m) m.classList.remove("active"); }
+function openModal(id) { let m = $(id); if (m) m.classList.add("active"); }
+function closeModal(id) { let m = $(id); if (m) m.classList.remove("active"); }
 /** Debounce — откладывает вызов fn на delay мс после последнего вызова */
 function debounce(fn, delay) {
-  var timer;
+  let timer;
   return function() {
-    var args = arguments;
+    let args = arguments;
     clearTimeout(timer);
     timer = setTimeout(function() { fn.apply(null, args); }, delay);
   };
 }
 /** Отложенное сохранение — не чаще одного раза в 300мс */
-var saveToLocalDebounced = debounce(function() { saveToLocal(); }, 300);
+let saveToLocalDebounced = debounce(function() { saveToLocalDebounced(); }, 300);
 // SPELL_DATABASE — объединение встроенной базы (spells.js) и пользовательских добавлений из localStorage
 // SPELLS_BASE определён в spells.js и загружается до app.js
 let SPELL_DATABASE = (typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.slice() : [];
@@ -101,7 +101,7 @@ const skills = [
 // МИГРАЦИИ СХЕМЫ ПЕРСОНАЖА
 // ============================================
 function migrateCharacter(char) {
-  var v = char.schemaVersion || 0;
+  let v = char.schemaVersion || 0;
   if (v < 1) {
     if (char.alignment    === undefined) char.alignment    = "";
     if (char.size         === undefined) char.size         = "Средний";
@@ -189,7 +189,7 @@ function applyAvatar(src) {
   if (!char) return;
   char.avatar = src;
   char.updatedAt = Date.now();
-  saveToLocal();
+  saveToLocalDebounced();
   // Обновить превью в модалке
   const preview = $("avatar-modal-preview");
   if (preview) preview.innerHTML = "<img src=\"" + src + "\" alt=\"Аватар\">";
@@ -208,7 +208,7 @@ function removeAvatar(event) {
   if (!char) return;
   char.avatar = null;
   char.updatedAt = Date.now();
-  saveToLocal();
+  saveToLocalDebounced();
   const preview = $("avatar-modal-preview");
   if (preview) preview.innerHTML = "<span class=\"avatar-modal-placeholder\">" + getClassIcon(char.class) + "</span>";
   renderSheetAvatar();
@@ -241,9 +241,9 @@ if (saved) characters = JSON.parse(saved).map(migrateCharacter);
 if (savedSpells) {
   // Пользовательские заклинания (добавленные через UI) — храним отдельно
   // и объединяем с базой, избегая дублей по id
-  var userSpells = JSON.parse(savedSpells);
-  var baseIds = new Set(SPELL_DATABASE.map(function(s) { return s.id; }));
-  var extra = userSpells.filter(function(s) { return !baseIds.has(s.id); });
+  let userSpells = JSON.parse(savedSpells);
+  let baseIds = new Set(SPELL_DATABASE.map(function(s) { return s.id; }));
+  let extra = userSpells.filter(function(s) { return !baseIds.has(s.id); });
   if (extra.length > 0) SPELL_DATABASE = SPELL_DATABASE.concat(extra);
 }
 if (savedHpHistory) hpHistory = JSON.parse(savedHpHistory);
@@ -341,9 +341,9 @@ container.appendChild(row);
 function updateSkillProfCount() {
 const countEl = $("skills-prof-count");
 if (!countEl) return;
-var count = 0;
-for (var i = 0; i < skills.length; i++) {
-  var cb = $("skill-prof-" + i);
+let count = 0;
+for (let i = 0; i < skills.length; i++) {
+  let cb = $("skill-prof-" + i);
   if (cb && cb.checked) count++;
 }
 countEl.textContent = count > 0 ? count + " ✓" : "";
@@ -374,15 +374,15 @@ featuresGrid.appendChild(featureDiv);
 }
 }
 // ASI levels for class (Fighter gets more)
-var classAsiLevels = (char.class === "Воин")   ? [4,6,8,12,14,16,19] :
+let classAsiLevels = (char.class === "Воин")   ? [4,6,8,12,14,16,19] :
                      (char.class === "Плут")    ? [4,8,10,12,16,19]   :
                      [4,8,12,16,19];
 // Which levels have been earned so far
-var earnedASI = classAsiLevels.filter(function(l) { return l <= level; });
+let earnedASI = classAsiLevels.filter(function(l) { return l <= level; });
 // Which have already been spent
 if (!char.asiUsedLevels) char.asiUsedLevels = [];
 // Unused = earned but not yet spent
-var unusedASI = earnedASI.filter(function(l) {
+let unusedASI = earnedASI.filter(function(l) {
   return !char.asiUsedLevels.includes(l);
 });
 
@@ -438,7 +438,7 @@ if (conditionEl) conditionEl.classList.add("active");
 updateConditionsCount();
 updateStatusBar();
 calculateAC();
-saveToLocal();
+saveToLocalDebounced();
 }
 function updateConditionsCount() {
 if (!currentId) return;
@@ -494,7 +494,7 @@ if (effectEl) effectEl.classList.add("active");
 updateEffectsCount();
 updateStatusBar();
 calculateAC();
-saveToLocal();
+saveToLocalDebounced();
 }
 function updateEffectsCount() {
 if (!currentId) return;
@@ -657,13 +657,13 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 char.inspiration = !char.inspiration;
-saveToLocal();
+saveToLocalDebounced();
 updateStatusBar();
 showToast(char.inspiration ? "✨ Вдохновение получено!" : "✨ Вдохновение использовано", char.inspiration ? "success" : "info");
 }
 
 function setConcentration(btnOrName) {
-var spellName = (btnOrName && typeof btnOrName === 'object') ? (btnOrName.dataset && btnOrName.dataset.name) : btnOrName;
+let spellName = (btnOrName && typeof btnOrName === 'object') ? (btnOrName.dataset && btnOrName.dataset.name) : btnOrName;
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
@@ -677,19 +677,19 @@ if (char.concentration && char.concentration !== spellName) {
   showToast("🔮 Концентрация на «" + char.concentration + "» прервана", "warn");
 }
 // Найти данные заклинания
-var spellData = null;
+let spellData = null;
 if (spellName && typeof SPELL_DATABASE !== 'undefined') {
   spellData = SPELL_DATABASE.find(function(s) { return s.name === spellName; });
 }
 if (!spellData && currentId) {
-  var c = getCurrentChar();
+  let c = getCurrentChar();
   if (c && c.spells && c.spells.mySpells) {
     spellData = c.spells.mySpells.find(function(s) { return s.name === spellName; });
   }
 }
 char.concentration = spellName || null;
 char.concentrationData = spellData ? { duration: spellData.duration, desc: spellData.desc } : null;
-saveToLocal();
+saveToLocalDebounced();
 updateConcentrationDisplay();
 if (spellName) showToast("🔮 Концентрация: " + spellName, "info");
 }
@@ -700,14 +700,14 @@ const char = getCurrentChar();
 if (!char || !char.concentration) {
   return;
 }
-var modal = $("conc-details-modal");
+let modal = $("conc-details-modal");
 if (!modal) {
   return;
 }
-var nameEl = $("conc-details-name");
-var durEl = $("conc-detail-duration");
-var descEl = $("conc-detail-desc");
-var descRow = $("conc-detail-desc-row");
+let nameEl = $("conc-details-name");
+let durEl = $("conc-detail-duration");
+let descEl = $("conc-detail-desc");
+let descRow = $("conc-detail-desc-row");
 if (nameEl) nameEl.textContent = char.concentration;
 if (durEl) durEl.textContent = (char.concentrationData && char.concentrationData.duration) || "—";
 if (descEl && char.concentrationData && char.concentrationData.desc) {
@@ -721,7 +721,7 @@ modal.classList.remove("hidden");
 }
 
 function closeConcDetails() {
-var modal = $("conc-details-modal");
+let modal = $("conc-details-modal");
 if (modal) {
   modal.classList.remove("active");
   modal.classList.add("hidden");
@@ -734,7 +734,7 @@ const char = getCurrentChar();
 if (!char) return;
 const name = char.concentration;
 char.concentration = null;
-saveToLocal();
+saveToLocalDebounced();
 updateConcentrationDisplay();
 if (name) showToast("🔮 Концентрация на «" + name + "» завершена", "info");
 }
@@ -830,8 +830,8 @@ function saveToLocal() {
 try {
 localStorage.setItem("dnd_chars", JSON.stringify(characters));
 // Сохраняем только заклинания добавленные пользователем (не из базы spells.js)
-var baseIds = new Set((typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.map(function(s){return s.id;}) : []);
-var userSpells = SPELL_DATABASE.filter(function(s){ return !baseIds.has(s.id); });
+let baseIds = new Set((typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.map(function(s){return s.id;}) : []);
+let userSpells = SPELL_DATABASE.filter(function(s){ return !baseIds.has(s.id); });
 localStorage.setItem("dnd_spells", JSON.stringify(userSpells));
 localStorage.setItem("dnd_hp_history", JSON.stringify(hpHistory));
 } catch(e) { console.log("Ошибка сохранения:", e); }
@@ -875,14 +875,14 @@ $("header-title").textContent = "🎭 Мой Персонаж D&D 5e";
 function switchTab(tabName, btnEl) {
   document.querySelectorAll(".tab-content").forEach(function(tab) { tab.classList.remove("active"); });
   document.querySelectorAll(".tab-btn").forEach(function(btn) { btn.classList.remove("active"); });
-  var tabElement = $("tab-" + tabName);
+  let tabElement = $("tab-" + tabName);
   if (tabElement) tabElement.classList.add("active");
   // Highlight tab btn
-  var activeBtn = btnEl ? btnEl.closest(".tab-btn") : document.querySelector(".tab-btn[data-tab='" + tabName + "']");
+  let activeBtn = btnEl ? btnEl.closest(".tab-btn") : document.querySelector(".tab-btn[data-tab='" + tabName + "']");
   if (activeBtn) activeBtn.classList.add("active");
   // Highlight drawer item
   document.querySelectorAll(".drawer-item").forEach(function(el) { el.classList.remove("drawer-item-active"); });
-  var drawerItem = document.querySelector(".drawer-item[data-drawer-tab='" + tabName + "']");
+  let drawerItem = document.querySelector(".drawer-item[data-drawer-tab='" + tabName + "']");
   if (drawerItem) drawerItem.classList.add("drawer-item-active");
   try { localStorage.setItem("dnd_last_tab", tabName); } catch(e) {}
   if (tabName === "party")   { openPartyTab(); }
@@ -891,13 +891,13 @@ function switchTab(tabName, btnEl) {
 }
 
 function openDrawer() {
-  var drawer = $("side-drawer");
-  var overlay = $("drawer-overlay");
+  let drawer = $("side-drawer");
+  let overlay = $("drawer-overlay");
   if (drawer) drawer.classList.remove("hidden");
   if (overlay) overlay.classList.remove("hidden");
   // Sync char name
-  var nameEl = $("char-name");
-  var drawerName = $("drawer-char-name");
+  let nameEl = $("char-name");
+  let drawerName = $("drawer-char-name");
   if (nameEl && drawerName) drawerName.textContent = nameEl.value || "Персонаж";
   setTimeout(function() {
     if (drawer) drawer.classList.add("open");
@@ -905,8 +905,8 @@ function openDrawer() {
   }, 10);
 }
 function closeDrawer() {
-  var drawer = $("side-drawer");
-  var overlay = $("drawer-overlay");
+  let drawer = $("side-drawer");
+  let overlay = $("drawer-overlay");
   if (drawer) drawer.classList.remove("open");
   if (overlay) overlay.classList.remove("open");
   setTimeout(function() {
@@ -917,31 +917,31 @@ function closeDrawer() {
 
 // Show hamburger when character is loaded
 function showCharacterNav() {
-  var hamburger = $("nav-hamburger");
-  var tabs = $("character-tabs");
+  let hamburger = $("nav-hamburger");
+  let tabs = $("character-tabs");
   if (hamburger) hamburger.classList.remove("hidden");
   if (tabs) tabs.classList.remove("hidden");
 }
 function hideCharacterNav() {
-  var hamburger = $("nav-hamburger");
-  var tabs = $("character-tabs");
+  let hamburger = $("nav-hamburger");
+  let tabs = $("character-tabs");
   if (hamburger) hamburger.classList.add("hidden");
   if (tabs) tabs.classList.add("hidden");
 }
 
 // Swipe to open drawer (only when character screen is active)
 (function() {
-  var touchStartX = 0;
-  var touchStartY = 0;
+  let touchStartX = 0;
+  let touchStartY = 0;
   document.addEventListener("touchstart", function(e) {
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
   }, { passive: true });
   document.addEventListener("touchend", function(e) {
-    var dx = e.changedTouches[0].clientX - touchStartX;
-    var dy = e.changedTouches[0].clientY - touchStartY;
-    var drawer = $("side-drawer");
-    var charScreen = $("screen-character");
+    let dx = e.changedTouches[0].clientX - touchStartX;
+    let dy = e.changedTouches[0].clientY - touchStartY;
+    let drawer = $("side-drawer");
+    let charScreen = $("screen-character");
     // Only work when character screen is visible and a character is loaded
     if (!drawer || !charScreen || charScreen.classList.contains("hidden") || !currentId) return;
     if (dx < -60 && Math.abs(dy) < 80 && !drawer.classList.contains("open")) {
@@ -953,8 +953,8 @@ function hideCharacterNav() {
   }, { passive: true });
 })();
 function updateStatDisplay(stat) {
-  var inp = $("val-" + stat);
-  var disp = $("val-display-" + stat);
+  let inp = $("val-" + stat);
+  let disp = $("val-display-" + stat);
   if (inp && disp) disp.textContent = inp.value || "10";
 }
 function updateAllStatDisplays() {
@@ -1008,33 +1008,33 @@ const COIN_NAMES = { cp: "ММ", sp: "СМ", ep: "ЭМ", gp: "ЗМ", pp: "ПМ" 
 
 function openCoinExchange() {
   previewExchange();
-  var modal = $("coin-exchange-modal");
+  let modal = $("coin-exchange-modal");
   if (modal) modal.classList.add("active");
 }
 function closeCoinExchange() {
-  var modal = $("coin-exchange-modal");
+  let modal = $("coin-exchange-modal");
   if (modal) modal.classList.remove("active");
 }
 function previewExchange() {
-  var from = $("exch-from")?.value;
-  var to = $("exch-to")?.value;
-  var amt = parseInt($("exch-amount")?.value) || 0;
-  var preview = $("exch-preview");
-  var availEl = $("exch-from-avail");
+  let from = $("exch-from")?.value;
+  let to = $("exch-to")?.value;
+  let amt = parseInt($("exch-amount")?.value) || 0;
+  let preview = $("exch-preview");
+  let availEl = $("exch-from-avail");
   if (!from || !to || !preview) return;
   // Show available
-  var avail = parseInt($("coin-" + from)?.value) || 0;
+  let avail = parseInt($("coin-" + from)?.value) || 0;
   if (availEl) availEl.textContent = avail;
   if (from === to) { preview.textContent = "Выберите разные монеты"; preview.className = "coin-exch-preview coin-exch-preview-warn"; return; }
   if (amt <= 0) { preview.textContent = "Введите количество"; preview.className = "coin-exch-preview"; return; }
   // Calculate
-  var valueInGP = amt * COIN_RATES[from];
-  var result = valueInGP / COIN_RATES[to];
+  let valueInGP = amt * COIN_RATES[from];
+  let result = valueInGP / COIN_RATES[to];
   if (!Number.isInteger(result) && Math.round(result) !== result) {
     // Check if it divides evenly
-    var rounded = Math.floor(result);
-    var leftover = valueInGP - rounded * COIN_RATES[to];
-    var leftoverCoin = Math.round(leftover / COIN_RATES[from]);
+    let rounded = Math.floor(result);
+    let leftover = valueInGP - rounded * COIN_RATES[to];
+    let leftoverCoin = Math.round(leftover / COIN_RATES[from]);
     if (leftoverCoin > 0) {
       preview.textContent = amt + " " + COIN_NAMES[from] + " → " + rounded + " " + COIN_NAMES[to] + " + " + leftoverCoin + " " + COIN_NAMES[from] + " сдача";
     } else {
@@ -1052,26 +1052,26 @@ function previewExchange() {
   }
 }
 function confirmExchange() {
-  var from = $("exch-from")?.value;
-  var to = $("exch-to")?.value;
-  var amt = parseInt($("exch-amount")?.value) || 0;
+  let from = $("exch-from")?.value;
+  let to = $("exch-to")?.value;
+  let amt = parseInt($("exch-amount")?.value) || 0;
   if (!from || !to || from === to || amt <= 0) { showToast("Проверьте параметры обмена", "warn"); return; }
-  var avail = parseInt($("coin-" + from)?.value) || 0;
+  let avail = parseInt($("coin-" + from)?.value) || 0;
   if (avail < amt) { showToast("Недостаточно " + COIN_NAMES[from], "error"); return; }
-  var valueInGP = amt * COIN_RATES[from];
-  var result = Math.floor(valueInGP / COIN_RATES[to]);
+  let valueInGP = amt * COIN_RATES[from];
+  let result = Math.floor(valueInGP / COIN_RATES[to]);
   if (result <= 0) { showToast("Нельзя обменять — результат 0", "warn"); return; }
   // Leftover back
-  var usedGP = result * COIN_RATES[to];
-  var leftoverGP = valueInGP - usedGP;
-  var leftoverAmt = Math.round(leftoverGP / COIN_RATES[from]);
-  var fromEl = $("coin-" + from);
-  var toEl = $("coin-" + to);
+  let usedGP = result * COIN_RATES[to];
+  let leftoverGP = valueInGP - usedGP;
+  let leftoverAmt = Math.round(leftoverGP / COIN_RATES[from]);
+  let fromEl = $("coin-" + from);
+  let toEl = $("coin-" + to);
   fromEl.value = avail - amt + leftoverAmt;
   toEl.value = (parseInt(toEl.value) || 0) + result;
   updateChar();
   updateCoinTotal();
-  var msg = amt + " " + COIN_NAMES[from] + " → " + result + " " + COIN_NAMES[to];
+  let msg = amt + " " + COIN_NAMES[from] + " → " + result + " " + COIN_NAMES[to];
   if (leftoverAmt > 0) msg += " (сдача: " + leftoverAmt + " " + COIN_NAMES[from] + ")";
   showToast(msg, "success");
   closeCoinExchange();
@@ -1127,7 +1127,7 @@ if (char.combat.hpCurrent > newMaxHP) {
 char.combat.hpCurrent = newMaxHP;
 safeSet("hp-current", newMaxHP);
 }
-saveToLocal();
+saveToLocalDebounced();
 updateStatusBar();
 updateHPDisplay();
 }
@@ -1142,7 +1142,7 @@ for (let i = 1; i <= 9; i++) {
   newChar.spells.slotsUsed[i] = 0;
 }
 characters.push(newChar);
-saveToLocal();
+saveToLocalDebounced();
 loadCharacter(newChar.id);
 }
 function getClassColor(cls) {
@@ -1175,12 +1175,12 @@ if (h < 24) return h + " ч. назад";
 if (d < 7) return d + " д. назад";
 return new Date(ts).toLocaleDateString("ru-RU", {day:"numeric", month:"short"});
 }
-var charSearchQuery = "";
-var charSortMode = "updated";
+let charSearchQuery = "";
+let charSortMode = "updated";
 function setCharSort(mode) {
 charSortMode = mode;
 document.querySelectorAll(".sort-btn").forEach(function(b) { b.classList.remove("active"); });
-var btn = $("sort-btn-" + mode);
+let btn = $("sort-btn-" + mode);
 if (btn) btn.classList.add("active");
 renderCharacterList();
 }
@@ -1197,25 +1197,25 @@ copy.id = Date.now();
 copy.name = (orig.name || "Без имени") + " (копия)";
 copy.updatedAt = Date.now();
 characters.push(copy);
-saveToLocal();
+saveToLocalDebounced();
 renderCharacterList();
 }
 function exportOneCharacter(id, event) {
 event.stopPropagation();
-var char = characters.find(function(c) { return c.id === id; });
+let char = characters.find(function(c) { return c.id === id; });
 if (!char) return;
-var data = JSON.stringify({ characters: [char], spells: [] }, null, 2);
-var blob = new Blob([data], { type: "application/json" });
-var a = document.createElement("a");
+let data = JSON.stringify({ characters: [char], spells: [] }, null, 2);
+let blob = new Blob([data], { type: "application/json" });
+let a = document.createElement("a");
 a.href = URL.createObjectURL(blob);
 a.download = (char.name || "персонаж").replace(/[^a-zA-Zа-яА-Я0-9]/g, "_") + ".json";
 a.click();
 }
 function updateCharCounter() {
-var el = $("char-count");
+let el = $("char-count");
 if (!el) return;
-var total = characters.length;
-var filtered2 = characters.filter(function(c) {
+let total = characters.length;
+let filtered2 = characters.filter(function(c) {
   if (!charSearchQuery) return true;
   return (c.name || "").toLowerCase().includes(charSearchQuery) ||
          (c.class || "").toLowerCase().includes(charSearchQuery) ||
@@ -1227,18 +1227,18 @@ if (charSearchQuery && filtered2.length !== total) {
   el.textContent = total > 0 ? total + " шт." : "";
 }
 }
-var dragSrcId = null;
+let dragSrcId = null;
 function onDragStart(e, id) { dragSrcId = id; e.dataTransfer.effectAllowed = "move"; }
 function onDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }
 function onDrop(e, targetId) {
 e.preventDefault();
 if (dragSrcId === targetId) return;
-var srcIdx = characters.findIndex(function(c) { return c.id === dragSrcId; });
-var tgtIdx = characters.findIndex(function(c) { return c.id === targetId; });
+let srcIdx = characters.findIndex(function(c) { return c.id === dragSrcId; });
+let tgtIdx = characters.findIndex(function(c) { return c.id === targetId; });
 if (srcIdx < 0 || tgtIdx < 0) return;
-var moved = characters.splice(srcIdx, 1)[0];
+let moved = characters.splice(srcIdx, 1)[0];
 characters.splice(tgtIdx, 0, moved);
-saveToLocal();
+saveToLocalDebounced();
 renderCharacterList();
 }
 function renderCharacterList() {
@@ -1246,7 +1246,7 @@ const list = $("character-list");
 if (!list) return;
 list.innerHTML = "";
 updateCharCounter();
-var filtered = characters.filter(function(c) {
+let filtered = characters.filter(function(c) {
   if (!charSearchQuery) return true;
   return (c.name || "").toLowerCase().includes(charSearchQuery) ||
          (c.class || "").toLowerCase().includes(charSearchQuery) ||
@@ -1308,31 +1308,31 @@ list.appendChild(div);
 });
 }
 function deleteCharacter(id) {
-var char = characters.find(function(c) { return c.id === id; });
-var name = char ? (char.name || "этого персонажа") : "этого персонажа";
+let char = characters.find(function(c) { return c.id === id; });
+let name = char ? (char.name || "этого персонажа") : "этого персонажа";
 showConfirmModal(
   "Удалить персонажа?",
   "«" + name + "» будет удалён без возможности восстановления.",
   function() {
     characters = characters.filter(function(c) { return c.id !== id; });
-    saveToLocal();
+    saveToLocalDebounced();
     renderCharacterList();
   }
 );
 }
 function showConfirmModal(title, text, onConfirm) {
-var modal = $("confirm-modal");
-var titleEl = $("confirm-modal-title");
-var textEl = $("confirm-modal-text");
-var confirmBtn = $("confirm-modal-ok");
-var cancelBtn = $("confirm-modal-cancel");
+let modal = $("confirm-modal");
+let titleEl = $("confirm-modal-title");
+let textEl = $("confirm-modal-text");
+let confirmBtn = $("confirm-modal-ok");
+let cancelBtn = $("confirm-modal-cancel");
 if (!modal) return;
 titleEl.textContent = title;
 textEl.textContent = text;
 modal.classList.add("active");
-var newConfirm = confirmBtn.cloneNode(true);
+let newConfirm = confirmBtn.cloneNode(true);
 confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
-var newCancel = cancelBtn.cloneNode(true);
+let newCancel = cancelBtn.cloneNode(true);
 cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
 $("confirm-modal-ok").addEventListener("click", function() {
   modal.classList.remove("active");
@@ -1416,7 +1416,7 @@ safeSet("magic-items", char.magicItems || "");
 safeSet("spell-stat", char.spells.stat || "");
 // Sync spell stat button highlight
 const _statVal = char.spells.stat || "";
-["int","wis","cha"].forEach(function(s){ var b=$("sc-btn-"+s); if(b) b.classList.remove("active"); });
+["int","wis","cha"].forEach(function(s){ let b=$("sc-btn-"+s); if(b) b.classList.remove("active"); });
 if(_statVal==="ИНТ" && $("sc-btn-int")) $("sc-btn-int").classList.add("active");
 if(_statVal==="МУД" && $("sc-btn-wis")) $("sc-btn-wis").classList.add("active");
 if(_statVal==="ХАР" && $("sc-btn-cha")) $("sc-btn-cha").classList.add("active");
@@ -1455,13 +1455,13 @@ loadEffects();
 updateClassFeatures();
 renderClassResources();
 // Restore armor select
-var armorId = char.combat.armorId || "none";
+let armorId = char.combat.armorId || "none";
 safeSet("char-armor", armorId);
 safeSetChecked("char-shield", char.combat.hasShield || false);
 if (armorId !== "custom") { setTimeout(onArmorChange, 0); }
 calculateAC();
 // Restore HP max manual field
-var hpMaxEl = $("hp-max-manual");
+let hpMaxEl = $("hp-max-manual");
 if (hpMaxEl) hpMaxEl.value = char.combat.hpMax || "";
 // Show race bonuses
 setTimeout(onRaceChange, 0);
@@ -1486,13 +1486,13 @@ renderNPCs();
 renderMonsters();
 renderSheetAvatar();
 showScreen("character");
-var lastTab = "";
+let lastTab = "";
 try { lastTab = localStorage.getItem("dnd_last_tab") || "sheet"; } catch(e) { lastTab = "sheet"; }
-var tabEl = $("tab-" + lastTab);
+let tabEl = $("tab-" + lastTab);
 if (!tabEl) lastTab = "sheet";
 document.querySelectorAll(".tab-content").forEach(function(t) { t.classList.remove("active"); });
 document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
-var activeTabEl = $("tab-" + lastTab);
+let activeTabEl = $("tab-" + lastTab);
 if (activeTabEl) activeTabEl.classList.add("active");
 document.querySelectorAll(".tab-btn").forEach(function(b) {
   if (b.getAttribute("onclick") && b.getAttribute("onclick").includes("'" + lastTab + "'")) b.classList.add("active");
@@ -1570,7 +1570,7 @@ const index = char.proficiencies.weapon.indexOf(value);
 if (index > -1) char.proficiencies.weapon.splice(index, 1);
 }
 }
-saveToLocal();
+saveToLocalDebounced();
 }
 function calcStats() {
 if (!currentId) return;
@@ -1629,7 +1629,7 @@ calcSpellStats();
 // Обновляем updatedAt при любом изменении характеристик
 const charForUpdate = getCurrentChar();
 if (charForUpdate) { charForUpdate.updatedAt = Date.now(); }
-saveToLocal();
+saveToLocalDebounced();
 }
 function setSpellStat(stat) {
 const char = getCurrentChar();
@@ -1638,7 +1638,7 @@ char.spells.stat = stat;
 // sync hidden select if needed
 const sel = $("spell-stat");
 if (sel) sel.value = stat;
-saveToLocal();
+saveToLocalDebounced();
 calcSpellStats();
 }
 function calcSpellStats() {
@@ -1658,15 +1658,15 @@ safeSet("spell-dc", dc);
 safeSet("spell-attack", formatMod(attack));
 safeSet("spell-mod", formatMod(statMod));
 // Update visual displays
-var modEl = $("spell-mod-display");
-var dcEl = $("spell-dc-display");
-var atkEl = $("spell-attack-display");
+let modEl = $("spell-mod-display");
+let dcEl = $("spell-dc-display");
+let atkEl = $("spell-attack-display");
 if (modEl) modEl.textContent = stat ? formatMod(statMod) : "—";
 if (dcEl) dcEl.textContent = stat ? dc : "—";
 if (atkEl) atkEl.textContent = stat ? formatMod(attack) : "—";
 // Highlight active stat button
 ["int","wis","cha"].forEach(function(s) {
-  var btn = $("sc-btn-" + s);
+  let btn = $("sc-btn-" + s);
   if (btn) btn.classList.remove("active");
 });
 if (stat === "ИНТ" && $("sc-btn-int")) $("sc-btn-int").classList.add("active");
@@ -1675,25 +1675,25 @@ if (stat === "ХАР" && $("sc-btn-cha")) $("sc-btn-cha").classList.add("active"
 char.spells.dc = dc;
 char.spells.attack = attack;
 char.spells.mod = statMod;
-saveToLocal();
+saveToLocalDebounced();
 }
 
 // ============================================
 // РАСА: отображение бонусов
 // ============================================
 function onRaceChange() {
-  var raceEl = $("char-race");
-  var displayEl = $("race-bonus-display");
+  let raceEl = $("char-race");
+  let displayEl = $("race-bonus-display");
   if (!raceEl || !displayEl) return;
-  var race = raceEl.value;
-  var data = (typeof RACE_DATA !== "undefined") && RACE_DATA[race];
+  let race = raceEl.value;
+  let data = (typeof RACE_DATA !== "undefined") && RACE_DATA[race];
   if (!data) { displayEl.style.display = "none"; return; }
-  var statNames = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
-  var bonuses = Object.keys(data.stats).map(function(k) {
-    var v = data.stats[k];
+  let statNames = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
+  let bonuses = Object.keys(data.stats).map(function(k) {
+    let v = data.stats[k];
     return '<span class="race-bonus-badge">' + (v > 0 ? "+" : "") + v + " " + statNames[k] + '</span>';
   }).join("");
-  var speedBadge = data.speed !== 30
+  let speedBadge = data.speed !== 30
     ? '<span class="race-bonus-badge race-speed">' + data.speed + ' фт</span>'
     : '<span class="race-bonus-badge race-speed">30 фт</span>';
   displayEl.innerHTML =
@@ -1702,18 +1702,18 @@ function onRaceChange() {
   displayEl.style.display = "flex";
 
   // Обновляем ОБА поля скорости
-  var speedVal = data.speed + " фт";
-  var charSpeedEl  = $("char-speed");
-  var combatSpeedEl = $("combat-speed");
+  let speedVal = data.speed + " фт";
+  let charSpeedEl  = $("char-speed");
+  let combatSpeedEl = $("combat-speed");
   if (charSpeedEl)   charSpeedEl.value  = speedVal;
   if (combatSpeedEl) combatSpeedEl.value = speedVal;
 
   if (currentId) {
-    var char = getCurrentChar();
+    let char = getCurrentChar();
     if (char) {
       char.speed        = speedVal;
       char.combat.speed = speedVal;
-      saveToLocal();
+      saveToLocalDebounced();
     }
   }
 }
@@ -1723,16 +1723,16 @@ function onRaceChange() {
 // ============================================
 function onBackgroundChange() {
   if (!currentId) return;
-  var bgEl = $("char-background");
+  let bgEl = $("char-background");
   if (!bgEl) return;
-  var bg = bgEl.value;
-  var skillList = (typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bg];
+  let bg = bgEl.value;
+  let skillList = (typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bg];
   if (!skillList) return;
   // Match by exact skill name from the skills[] array
   skillList.forEach(function(skillName) {
-    var idx = skills.findIndex(function(s) { return s.name === skillName; });
+    let idx = skills.findIndex(function(s) { return s.name === skillName; });
     if (idx !== -1) {
-      var cb = $("skill-prof-" + idx);
+      let cb = $("skill-prof-" + idx);
       if (cb && !cb.checked) { cb.checked = true; }
     }
   });
@@ -1745,18 +1745,18 @@ function onBackgroundChange() {
 // ============================================
 function onArmorChange() {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
-  var armorId = $("char-armor")?.value || "none";
-  var hasShield = $("char-shield")?.checked || false;
+  let armorId = $("char-armor")?.value || "none";
+  let hasShield = $("char-shield")?.checked || false;
   char.combat.armorId  = armorId;
   char.combat.hasShield = hasShield;
   if (armorId === "custom") return; // manual mode - don't recalc
-  var preset = (typeof ARMOR_PRESETS !== "undefined") && ARMOR_PRESETS.find(function(a) { return a.id === armorId; });
+  let preset = (typeof ARMOR_PRESETS !== "undefined") && ARMOR_PRESETS.find(function(a) { return a.id === armorId; });
   if (!preset) { calculateAC(); return; }
-  var dexMod = getMod(char.stats.dex);
-  var dexBonus = preset.dexCap >= 99 ? dexMod : Math.min(dexMod, preset.dexCap);
-  var ac = preset.baseAC + dexBonus + (hasShield ? 2 : 0);
+  let dexMod = getMod(char.stats.dex);
+  let dexBonus = preset.dexCap >= 99 ? dexMod : Math.min(dexMod, preset.dexCap);
+  let ac = preset.baseAC + dexBonus + (hasShield ? 2 : 0);
   // Apply armor type proficiency flags for legacy calculateAC
   char.proficiencies.armor = char.proficiencies.armor || [];
   ["light","medium","heavy","shield"].forEach(function(t) { safeSetChecked("armor-"+t, false); });
@@ -1768,28 +1768,28 @@ function onArmorChange() {
     if (!char.proficiencies.armor.includes("shield")) char.proficiencies.armor.push("shield");
     safeSetChecked("armor-shield", true);
   }
-  var acEl = $("combat-ac");
+  let acEl = $("combat-ac");
   if (acEl) acEl.value = ac;
   char.combat.ac = ac;
   $("ac-total").textContent = ac;
   $("ac-formula").textContent = preset.name + ": " + preset.baseAC + (dexBonus !== 0 ? (dexBonus > 0 ? " +" : " ") + dexBonus + " (ЛОВ)" : "") + (hasShield ? " +2 (щит)" : "");
   $("status-ac").textContent = ac;
-  saveToLocal();
+  saveToLocalDebounced();
   updateStatusBar();
 }
 
 function onManualAC() {
   // When user types КД manually, switch armor select to "custom"
-  var armorEl = $("char-armor");
+  let armorEl = $("char-armor");
   if (armorEl && armorEl.value !== "custom") armorEl.value = "custom";
   updateChar();
 }
 
 function onManualMaxHP() {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
-  var val = parseInt($("hp-max-manual")?.value) || 0;
+  let val = parseInt($("hp-max-manual")?.value) || 0;
   if (val < 1) return;
   char.combat.hpMax = val;
   // also sync hidden field
@@ -1798,7 +1798,7 @@ function onManualMaxHP() {
     char.combat.hpCurrent = val;
     safeSet("hp-current", val);
   }
-  saveToLocal();
+  saveToLocalDebounced();
   updateHPDisplay();
 }
 
@@ -1916,14 +1916,14 @@ let resultTitle = "";
 let resultDetails = "";
 const oldHp = parseInt(char.combat.hpCurrent);
 if (currentRestType === "short") {
-var _hitDie = parseInt(char.combat.hpDice.match(/(\d+)[кK](\d+)/)?.[2] || 8);
-var _conMod = getMod(char.stats.con);
+let _hitDie = parseInt(char.combat.hpDice.match(/(\d+)[кK](\d+)/)?.[2] || 8);
+let _conMod = getMod(char.stats.con);
 // FIX: roll each die individually instead of using average
-var hpHealed = 0;
-var rollLog = [];
-for (var _i = 0; _i < hitDiceToSpend; _i++) {
-  var _roll = Math.floor(Math.random() * _hitDie) + 1;
-  var _total = Math.max(1, _roll + _conMod);
+let hpHealed = 0;
+let rollLog = [];
+for (let _i = 0; _i < hitDiceToSpend; _i++) {
+  let _roll = Math.floor(Math.random() * _hitDie) + 1;
+  let _total = Math.max(1, _roll + _conMod);
   hpHealed += _total;
   rollLog.push(_roll + ((_conMod >= 0 ? "+" : "") + _conMod) + "=" + _total);
 }
@@ -1932,7 +1932,7 @@ char.combat.hpCurrent = Math.min(parseInt(char.combat.hpCurrent) + hpHealed, par
 char.combat.hpDiceSpent = (char.combat.hpDiceSpent || 0) + hitDiceToSpend;
 // FIX: Warlock recovers spell slots on short rest
 if (char.class === "Колдун" && char.spells && char.spells.slots) {
-  for (var _si = 1; _si <= 9; _si++) {
+  for (let _si = 1; _si <= 9; _si++) {
     if (char.spells.slots[_si]) char.spells.slotsUsed[_si] = 0;
   }
 }
@@ -1942,8 +1942,8 @@ if (hpHealed > 0) {
 }
 resetResourcesByRest("short");
 resultTitle = "✅ Короткий отдых завершён!";
-var rollStr = rollLog.length > 0 ? " (" + rollLog.join(", ") + ")" : "";
-var warlockStr = (char.class === "Колдун") ? "<p>🔮 Ячейки пакта восстановлены</p>" : "";
+let rollStr = rollLog.length > 0 ? " (" + rollLog.join(", ") + ")" : "";
+let warlockStr = (char.class === "Колдун") ? "<p>🔮 Ячейки пакта восстановлены</p>" : "";
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>🎲 Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>❤️ Восстановлено ХП: " + hpHealed + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr;
 } else if (currentRestType === "long") {
 const maxHp = parseInt(char.combat.hpMax);
@@ -1964,7 +1964,7 @@ addJournalEntry("rest", "Долгий отдых — новая сессия", "
 renderJournal();
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div><p>✨ Ячейки заклинаний: восстановлены</p><p>🎲 Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p><p>⚠️ Условия и эффекты: сняты</p>";
 }
-saveToLocal();
+saveToLocalDebounced();
 loadCharacter(currentId);
 showRestResult(resultTitle, resultDetails);
 }
@@ -2059,7 +2059,7 @@ char.spells.slots[i] = slots[i] || 0;
 char.spells.slotsUsed[i] = 0;
 }
 }
-saveToLocal();
+saveToLocalDebounced();
 loadCharacter(currentId);
 updateClassFeatures();
 renderClassResources();
@@ -2083,7 +2083,7 @@ function openDiceModal() {
 const modal = $("dice-modal");
 if (modal) modal.classList.add("active");
 drawDiceSVG(20);
-var numEl = $("dice-svg-num");
+let numEl = $("dice-svg-num");
 if (numEl) numEl.textContent = "?";
 }
 function closeDiceModal() {
@@ -2109,9 +2109,9 @@ if (mode === 'adv') {
 const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 // 3D dice animation
 animateDice3d(sides, result, function() {
-  var resultBig = $("dice-result-big");
-  var resultInfo = $("dice-result-info");
-  var resultBox = $("dice3d-result");
+  let resultBig = $("dice-result-big");
+  let resultInfo = $("dice-result-info");
+  let resultBox = $("dice3d-result");
   if (resultBig) resultBig.textContent = result;
   if (resultBox) {
     resultBox.classList.remove("crit-success","crit-fail","normal");
@@ -2136,7 +2136,7 @@ renderDiceHistory();
 }
 
 // SVG paths for each die type
-var DICE_SVG = {
+let DICE_SVG = {
   4:   { path: "M60,8 L108,100 L12,100 Z", // triangle
          color: "#c0392b", glow: "#e74c3c", numY: 75 },
   6:   { path: "M18,18 L102,18 L102,102 L18,102 Z", // square
@@ -2154,12 +2154,12 @@ var DICE_SVG = {
 };
 
 function drawDiceSVG(sides) {
-  var svgEl = $("dice-svg");
-  var shape = $("dice-svg-shape");
-  var numEl = $("dice-svg-num");
-  var typeEl = $("dice-svg-type");
+  let svgEl = $("dice-svg");
+  let shape = $("dice-svg-shape");
+  let numEl = $("dice-svg-num");
+  let typeEl = $("dice-svg-type");
   if (!svgEl || !shape) return;
-  var d = DICE_SVG[sides] || DICE_SVG[20];
+  let d = DICE_SVG[sides] || DICE_SVG[20];
   // Set glow color
   svgEl.style.setProperty("--dice-glow", d.glow);
   // Draw shape
@@ -2174,13 +2174,12 @@ function drawDiceSVG(sides) {
 }
 
 function animateDice3d(sides, result, callback) {
-  var svgContainer = document.querySelector(".dsvg-container");
-  var numEl = $("dice-svg-num");
+  let svgContainer = document.querySelector(".dsvg-container");
+  let numEl = $("dice-svg-num");
   if (!svgContainer) { callback(); return; }
   drawDiceSVG(sides);
   // Show rolling numbers
-  var numEl = $("dice-svg-num");
-  var rollInterval = setInterval(function() {
+  let rollInterval = setInterval(function() {
     if (numEl) numEl.textContent = Math.floor(Math.random() * sides) + 1;
   }, 60);
   // Shake animation
@@ -2281,7 +2280,7 @@ const POUCH_MAX = 500; // монет в мешочке
 
 function getSlotsTotal(str) {
   // Base 10 slots + 1 per 2 STR above 10, min 6
-  var base = 10;
+  let base = 10;
   if (str >= 16) base = 15;
   else if (str >= 13) base = 12;
   else if (str >= 10) base = 10;
@@ -2290,11 +2289,11 @@ function getSlotsTotal(str) {
 }
 
 function calcUsedSlots(char) {
-  var used = 0;
+  let used = 0;
   Object.keys(char.inventory).forEach(function(cat) {
     (char.inventory[cat] || []).forEach(function(item) {
       // Custom slots override takes priority
-      var slotsEach = (item.slots !== undefined && item.slots !== null && item.slots !== "")
+      let slotsEach = (item.slots !== undefined && item.slots !== null && item.slots !== "")
         ? parseFloat(item.slots)
         : (ITEM_SLOTS[cat] !== undefined ? ITEM_SLOTS[cat] : 1);
       used += slotsEach * (item.qty || 1);
@@ -2305,22 +2304,22 @@ function calcUsedSlots(char) {
 
 function updateSlotsDisplay() {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
-  var str = char.stats.str || 10;
-  var total = getSlotsTotal(str);
-  var used = calcUsedSlots(char);
-  var usedEl = $("inv-slots-used");
-  var totalEl = $("inv-slots-total");
-  var hintEl = $("inv-slots-str-hint");
-  var fillEl = $("weight-fill");
-  var owEl = $("overweight-warning");
-  var owAmt = $("overweight-amount");
+  let str = char.stats.str || 10;
+  let total = getSlotsTotal(str);
+  let used = calcUsedSlots(char);
+  let usedEl = $("inv-slots-used");
+  let totalEl = $("inv-slots-total");
+  let hintEl = $("inv-slots-str-hint");
+  let fillEl = $("weight-fill");
+  let owEl = $("overweight-warning");
+  let owAmt = $("overweight-amount");
   if (usedEl) usedEl.textContent = used % 1 === 0 ? used : used.toFixed(1);
   if (totalEl) totalEl.textContent = total;
   if (hintEl) hintEl.textContent = "СИЛ: " + str;
   if (fillEl) {
-    var pct = Math.min(100, (used / total) * 100);
+    let pct = Math.min(100, (used / total) * 100);
     fillEl.style.width = pct + "%";
     fillEl.className = "inv-weight-fill" + (used > total ? " overweight" : used > total * 0.75 ? " warning" : "");
   }
@@ -2343,20 +2342,20 @@ function updateSlotsDisplay() {
 
 function renderPouches() {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
-  var str = char.stats.str || 10;
-  var container = $("inv-pouches");
+  let str = char.stats.str || 10;
+  let container = $("inv-pouches");
   if (!container) return;
-  var totalCoins = (parseInt($("coin-cp")?.value)||0) +
+  let totalCoins = (parseInt($("coin-cp")?.value)||0) +
     (parseInt($("coin-sp")?.value)||0) +
     (parseInt($("coin-ep")?.value)||0) +
     (parseInt($("coin-gp")?.value)||0) +
     (parseInt($("coin-pp")?.value)||0);
-  var html = '<div class="inv-pouches-row">';
+  let html = '<div class="inv-pouches-row">';
   POUCH_STR_REQ.forEach(function(req, i) {
-    var unlocked = str >= req;
-    var pct = unlocked ? Math.min(100, (totalCoins / (POUCH_MAX * (i+1))) * 100) : 0;
+    let unlocked = str >= req;
+    let pct = unlocked ? Math.min(100, (totalCoins / (POUCH_MAX * (i+1))) * 100) : 0;
     html += '<div class="inv-pouch' + (unlocked ? "" : " inv-pouch-locked") + '">';
     html += '<div class="inv-pouch-icon">' + (unlocked ? "👝" : "🔒") + '</div>';
     html += '<div class="inv-pouch-req">СИЛ ' + req + '+</div>';
@@ -2367,8 +2366,8 @@ function renderPouches() {
   });
   html += '</div>';
   // capacity hint
-  var availPouches = POUCH_STR_REQ.filter(function(r){ return str >= r; }).length;
-  var maxCoins = availPouches * POUCH_MAX;
+  let availPouches = POUCH_STR_REQ.filter(function(r){ return str >= r; }).length;
+  let maxCoins = availPouches * POUCH_MAX;
   html += '<div class="inv-pouches-hint">';
   if (availPouches > 0) {
     html += '🎒 ' + availPouches + ' мешочк' + (availPouches===1?"а":availPouches<5?"а":"ов") + ' · до <strong>' + maxCoins + '</strong> монет';
@@ -2407,11 +2406,11 @@ const item = data.item;
 const icon = ITEM_ICONS[data.category];
 const totalWeight = (item.weight * (item.qty || 1)).toFixed(1);
 const catName = CATEGORY_NAMES[data.category];
-var _slotsEach = (item.slots !== undefined && item.slots !== null && item.slots !== "")
+let _slotsEach = (item.slots !== undefined && item.slots !== null && item.slots !== "")
   ? parseFloat(item.slots)
   : (ITEM_SLOTS[data.category] !== undefined ? ITEM_SLOTS[data.category] : 1);
-var itemSlots = _slotsEach * (item.qty || 1);
-var slotsLabel = itemSlots % 1 !== 0 ? itemSlots.toFixed(1) + " сл." : itemSlots + " сл.";
+let itemSlots = _slotsEach * (item.qty || 1);
+let slotsLabel = itemSlots % 1 !== 0 ? itemSlots.toFixed(1) + " сл." : itemSlots + " сл.";
 const div = document.createElement("div");
 div.className = "inv-item";
 div.dataset.category = data.category;
@@ -2463,7 +2462,7 @@ showConfirmModal(
     const c = characters.find(function(ch) { return ch.id === currentId; });
     if (!c) return;
     c.inventory[category].splice(index, 1);
-    saveToLocal();
+    saveToLocalDebounced();
     renderInventory();
   }
 );
@@ -2577,7 +2576,7 @@ char.inventory[category][slotIndex] = newItem;
 } else {
 char.inventory[category].push(newItem);
 }
-saveToLocal();
+saveToLocalDebounced();
 closeItemModal();
 renderInventory();
 }
@@ -2629,7 +2628,7 @@ showConfirmModal(
     const c = characters.find(function(ch) { return ch.id === currentId; });
     if (!c) return;
     c.inventory[capturedItem.category].splice(capturedItem.index, 1);
-    saveToLocal();
+    saveToLocalDebounced();
     renderInventory();
   }
 );
@@ -2697,7 +2696,7 @@ type: $("new-weapon-type")?.value || "",
 range: $("new-weapon-range")?.value || "",
 notes: $("new-weapon-notes")?.value || ""
 });
-saveToLocal();
+saveToLocalDebounced();
 closeWeaponModal();
 renderWeapons();
 }
@@ -2716,12 +2715,12 @@ char.weapons.forEach(function(weapon, index) {
 const div = document.createElement("div");
 div.className = "weapon-row";
 // Calculate attack bonus for display
-var statKey = weapon.stat || "str";
-var statVal = char.stats[statKey] || 10;
-var statMod = getMod(statVal);
-var profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
-var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
-var attackStr = (attackBonus >= 0 ? "+" : "") + attackBonus;
+let statKey = weapon.stat || "str";
+let statVal = char.stats[statKey] || 10;
+let statMod = getMod(statVal);
+let profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
+let attackBonus = statMod + (weapon.proficient ? profBonus : 0);
+let attackStr = (attackBonus >= 0 ? "+" : "") + attackBonus;
 div.innerHTML =
   '<div class="weapon-row-top">' +
     '<div class="weapon-info">' +
@@ -2760,16 +2759,16 @@ if (isFail) msg = "💀 ПРОМАХ! " + escapeHtml(weapon.name) + ": " + roll;
 showToast(msg, isCrit ? "success" : isFail ? "error" : "info");
 openDiceModal();
 // Show in dice display
-var resultBig = $("dice-result-big");
-var resultInfo = $("dice-result-info");
-var resultBox = $("dice3d-result");
+let resultBig = $("dice-result-big");
+let resultInfo = $("dice-result-info");
+let resultBox = $("dice3d-result");
 if (resultBig) resultBig.textContent = total;
 if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · атака · к20=" + roll;
 if (resultBox) {
   resultBox.className = "dice3d-result" + (isCrit ? " crit-success" : isFail ? " crit-fail" : " normal");
 }
 drawDiceSVG(20);
-var numEl = $("dice-svg-num");
+let numEl = $("dice-svg-num");
 if (numEl) numEl.textContent = total;
 if (isCrit) createParticles();
 diceHistory.unshift({ sides:20, result:total, mode:"normal", time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:roll, r2:null, label: weapon.name + " атака" });
@@ -2796,7 +2795,7 @@ if (match) {
   const sides = parseInt(match[2]);
   const mod = match[3] ? parseInt(match[3]) : 0;
   const rolls = [];
-  for (var i = 0; i < num; i++) rolls.push(Math.floor(Math.random() * sides) + 1);
+  for (let i = 0; i < num; i++) rolls.push(Math.floor(Math.random() * sides) + 1);
   total = rolls.reduce(function(a,b){return a+b;}, 0) + mod + statMod;
   rollStr = "[" + rolls.join("+") + "]" + (mod ? (mod>0?"+":"")+mod : "") + (statMod ? (statMod>0?"+":"")+statMod : "");
 } else {
@@ -2805,15 +2804,15 @@ if (match) {
 }
 showToast("🗡️ " + escapeHtml(weapon.name) + " урон: " + rollStr + " = " + total, "info");
 openDiceModal();
-var resultBig = $("dice-result-big");
-var resultInfo = $("dice-result-info");
-var resultBox = $("dice3d-result");
+let resultBig = $("dice-result-big");
+let resultInfo = $("dice-result-info");
+let resultBox = $("dice3d-result");
 if (resultBig) resultBig.textContent = total;
 if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · урон · " + (match ? match[1]+"d"+match[2] : "?");
 if (resultBox) resultBox.className = "dice3d-result normal";
-var sides = match ? parseInt(match[2]) : 6;
+let sides = match ? parseInt(match[2]) : 6;
 drawDiceSVG(sides);
-var numEl = $("dice-svg-num");
+let numEl = $("dice-svg-num");
 if (numEl) numEl.textContent = total;
 diceHistory.unshift({ sides:sides, result:total, mode:"normal", time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:total, r2:null, label: weapon.name + " урон" });
 if (diceHistory.length > 10) diceHistory.pop();
@@ -2824,7 +2823,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 char.weapons.splice(index, 1);
-saveToLocal();
+saveToLocalDebounced();
 renderWeapons();
 }
 function renderSpellSlots() {
@@ -2840,12 +2839,12 @@ const used = char.spells.slotsUsed[i] || 0;
 const free = total - used;
 const row = document.createElement("div");
 row.className = "spell-slot-row" + (total === 0 ? " spell-slot-empty" : "");
-var diamHtml = '<div class="ssl-diamonds">';
+let diamHtml = '<div class="ssl-diamonds">';
 if (total === 0) {
   diamHtml += '<span class="ssl-none">нет ячеек</span>';
 } else {
   for(let j=0; j<total; j++) {
-    var cls = j < used ? " used" : "";
+    let cls = j < used ? " used" : "";
     diamHtml += '<div class="spell-diamond' + cls + '" data-level="' + i + '" data-idx="' + j + '" onclick="toggleSpellSlot(' + i + ',' + j + ')"></div>';
   }
 }
@@ -2866,7 +2865,7 @@ char.spells.slots[level] = parseInt(value) || 0;
 if (char.spells.slotsUsed[level] > char.spells.slots[level]) {
 char.spells.slotsUsed[level] = char.spells.slots[level];
 }
-saveToLocal();
+saveToLocalDebounced();
 renderSpellSlots();
 }
 function toggleSpellSlot(level, index) {
@@ -2876,7 +2875,7 @@ if (!char) return;
 if (!char.spells.slotsUsed[level]) char.spells.slotsUsed[level] = 0;
 if (index < char.spells.slotsUsed[level]) char.spells.slotsUsed[level] = index;
 else char.spells.slotsUsed[level] = index + 1;
-saveToLocal();
+saveToLocalDebounced();
 renderSpellSlots();
 }
 function adjustSpellSlots(level, delta) {
@@ -2893,7 +2892,7 @@ char.spells.slots[level] = newValue;
 if (char.spells.slotsUsed[level] > newValue) {
 char.spells.slotsUsed[level] = newValue;
 }
-saveToLocal();
+saveToLocalDebounced();
 renderSpellSlots();
 }
 function restoreAllSlots() {
@@ -2901,7 +2900,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 for(let i=1; i<=9; i++) { char.spells.slotsUsed[i] = 0; }
-saveToLocal();
+saveToLocalDebounced();
 renderSpellSlots();
 showToast("Ячейки заклинаний восстановлены!", "success");
 }
@@ -2916,8 +2915,8 @@ renderSpellSearch();
 function setSpellClass(cls) {
 currentSpellClass = cls;
 document.querySelectorAll("#spell-search-modal .version-btn").forEach(function(btn) { btn.classList.remove("active"); });
-var btnId = "btn-class-" + (cls === "all" ? "all" : cls);
-var btn = $(btnId);
+let btnId = "btn-class-" + (cls === "all" ? "all" : cls);
+let btn = $(btnId);
 if (btn) btn.classList.add("active");
 renderSpellSearch();
 }
@@ -2962,7 +2961,7 @@ desc: desc,
 higherLevel: $("new-spell-higher")?.value?.trim() || ""
 };
 SPELL_DATABASE.push(newSpell);
-saveToLocal();
+saveToLocalDebounced();
 closeAddSpellForm();
 showToast("Заклинание добавлено!", "success");
 renderSpellSearch();
@@ -2987,7 +2986,7 @@ container.innerHTML = '<p style="color:var(--text-muted); text-align:center;">Н
 return;
 }
 
-var countEl = $("spell-search-count");
+let countEl = $("spell-search-count");
 if (countEl) countEl.textContent = "Найдено: " + filtered.length;
 
 if (!search.trim() && level === "" && currentSpellVersion === "all" && currentSpellClass === "all") {
@@ -2995,21 +2994,21 @@ container.innerHTML = '<p style="color:var(--text-muted); text-align:center; pad
 return;
 }
 
-var LIMIT = 80;
-var shown = filtered.slice(0, LIMIT);
+let LIMIT = 80;
+let shown = filtered.slice(0, LIMIT);
 shown.forEach(function(spell) {
 const isAdded = char?.spells?.mySpells && char.spells.mySpells.some(function(s) { return s.id === spell.id; });
 const spellClassArr = Array.isArray(spell.classes) ? spell.classes : [spell.class || "both"];
 const primaryClass = spellClassArr.length === 1 ? spellClassArr[0] : (spellClassArr.includes(currentSpellClass) ? currentSpellClass : spellClassArr[0]);
 const classBadge = "class-" + (primaryClass || "both");
 const classText = spellClassArr.length > 1 ? spellClassArr.map(function(c){return CLASS_ICONS_MAP[c]||"✨";}).join("") : (CLASS_ICONS_MAP[primaryClass] || "✨");
-var div = document.createElement("div");
+let div = document.createElement("div");
 div.className = "spell-item" + (isAdded ? " spell-added" : "");
 div.innerHTML = "<h4>" + escapeHtml(spell.name) + " <span class=\"source-badge source-" + spell.source.toLowerCase() + "\">" + escapeHtml(spell.source) + "</span> <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<button class=\"" + (isAdded ? "secondary" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + spell.id + ")" : "addSpell(" + spell.id + ")") + "\" style=\"margin-top:8px;\">" + (isAdded ? "Добавлено" : "+ Добавить") + "</button>";
 container.appendChild(div);
 });
 if (filtered.length > LIMIT) {
-var more = document.createElement("p");
+let more = document.createElement("p");
 more.style.cssText = "text-align:center;color:var(--text-muted);padding:12px 0;";
 more.textContent = "Показано " + LIMIT + " из " + filtered.length + " — уточните поиск";
 container.appendChild(more);
@@ -3023,7 +3022,7 @@ if (!spell) return;
 if (!char.spells.mySpells) char.spells.mySpells = [];
 if (!char.spells.mySpells.some(function(s) { return s.id === spellId; })) {
 char.spells.mySpells.push(spell);
-saveToLocal();
+saveToLocalDebounced();
 renderSpellSearch();
 renderMySpells();
 }
@@ -3032,15 +3031,15 @@ function removeSpell(spellId) {
 const char = getCurrentChar();
 if (!char) return;
 char.spells.mySpells = char.spells.mySpells.filter(function(s) { return s.id !== spellId; });
-saveToLocal();
+saveToLocalDebounced();
 renderSpellSearch();
 renderMySpells();
 }
 function toggleSpellCard(header) {
-  var card = header.closest(".my-spell-item");
+  let card = header.closest(".my-spell-item");
   if (!card) return;
   card.classList.toggle("expanded");
-  var arrow = header.querySelector(".spell-card-arrow");
+  let arrow = header.querySelector(".spell-card-arrow");
   if (arrow) arrow.textContent = card.classList.contains("expanded") ? "▼" : "▶";
 }
 function renderMySpells() {
@@ -3072,12 +3071,12 @@ const spellClassArr2 = Array.isArray(spell.classes) ? spell.classes : [spell.cla
 const classIcons = spellClassArr2.map(function(c){ return CLASS_ICONS_MAP[c] || "✨"; }).join(" ");
 const sourceClass = "source-" + (spell.source || "ph14").toLowerCase();
 const schoolName = spell.school || "";
-var metaParts = [];
+let metaParts = [];
 if (spell.time) metaParts.push('<span>⚡ ' + escapeHtml(spell.time) + '</span>');
 if (spell.range) metaParts.push('<span>📏 ' + escapeHtml(spell.range) + '</span>');
 if (spell.components) metaParts.push('<span>' + escapeHtml(spell.components) + '</span>');
 if (spell.duration) metaParts.push('<span>⏱ ' + escapeHtml(spell.duration) + '</span>');
-var card = document.createElement("div");
+let card = document.createElement("div");
 card.className = "my-spell-item";
 card.dataset.spellId = spell.id;
 card.innerHTML =
@@ -3123,7 +3122,7 @@ try {
 const imported = JSON.parse(e.target.result);
 if (Array.isArray(imported)) {
 characters = imported;
-saveToLocal();
+saveToLocalDebounced();
 renderCharacterList();
 showToast("Данные загружены!", "success");
 } else {
@@ -3153,7 +3152,7 @@ try {
 const imported = JSON.parse(e.target.result);
 if (Array.isArray(imported)) {
 SPELL_DATABASE = imported;
-saveToLocal();
+saveToLocalDebounced();
 showToast("Заклинаний загружено: " + imported.length, "success");
 } else {
 showToast("Ошибка: неверный формат файла", "error");
@@ -3221,7 +3220,7 @@ char.deathSaves.successes[index] = !char.deathSaves.successes[index];
 } else {
 char.deathSaves.failures[index] = !char.deathSaves.failures[index];
 }
-saveToLocal();
+saveToLocalDebounced();
 loadDeathSaves();
 }
 
@@ -3230,7 +3229,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
-saveToLocal();
+saveToLocalDebounced();
 loadDeathSaves();
 }
 
@@ -3332,7 +3331,7 @@ if (actualDelta !== 0) {
 addHPHistory(hpBefore, hpCurrent, actualDelta, source || (delta < 0 ? "Урон" : "Лечение"));
 showHPToast(actualDelta);
 }
-saveToLocal();
+saveToLocalDebounced();
 updateHPDisplay();
 }
 
@@ -3344,11 +3343,11 @@ if (hpHistory.length > 30) hpHistory.pop();
 }
 
 function showHPToast(delta, customMsg) {
-var container = $("hp-toast-container");
+let container = $("hp-toast-container");
 if (!container) return;
-var existing = container.querySelector(".hp-toast");
+let existing = container.querySelector(".hp-toast");
 if (existing) { clearTimeout(existing._fadeTimer); clearTimeout(existing._removeTimer); existing.remove(); }
-var toast = document.createElement("div");
+let toast = document.createElement("div");
 if (customMsg !== undefined) {
   toast.className = "hp-toast hp-toast-heal";
   toast.innerHTML = "<span style='font-size:14px;font-weight:700;'>" + customMsg + "</span>";
@@ -3357,8 +3356,8 @@ if (customMsg !== undefined) {
   toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 3000);
   return;
 }
-var sign = delta > 0 ? "+" : "";
-var label = delta > 0 ? "Восстановлено" : "Получено урона";
+let sign = delta > 0 ? "+" : "";
+let label = delta > 0 ? "Восстановлено" : "Получено урона";
 toast.className = "hp-toast " + (delta > 0 ? "hp-toast-heal" : "hp-toast-dmg");
 toast.innerHTML = "<span style='font-size:20px;font-weight:900;'>" + sign + delta + " ХП</span><span style='font-size:12px;opacity:0.75;margin-left:8px;'>" + label + "</span>";
 container.appendChild(toast);
@@ -3371,12 +3370,12 @@ toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(
 // type: 'success' | 'error' | 'warn' | 'info'
 // ============================================================
 function showToast(msg, type) {
-  var container = $("hp-toast-container");
+  let container = $("hp-toast-container");
   if (!container) return;
-  var t = type || "info";
-  var toast = document.createElement("div");
+  let t = type || "info";
+  let toast = document.createElement("div");
   toast.className = "hp-toast app-toast app-toast-" + t;
-  var icons = { success:"✅", error:"❌", info:"ℹ️", warn:"⚠️" };
+  let icons = { success:"✅", error:"❌", info:"ℹ️", warn:"⚠️" };
   toast.innerHTML = "<span style='margin-right:6px'>" + (icons[t] || "ℹ️") + "</span><span>" + escapeHtml(String(msg)) + "</span>";
   container.appendChild(toast);
   toast._fadeTimer   = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 2200);
@@ -3437,7 +3436,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 char.combat.hpTemp = parseInt($("hp-temp")?.value) || 0;
-saveToLocal();
+saveToLocalDebounced();
 updateHPDisplay();
 }
 
@@ -3462,7 +3461,7 @@ const conMod = getMod(char.stats.con);
 const heal = Math.max(1, roll + conMod);
 char.combat.hpCurrent = Math.min(char.combat.hpCurrent + heal, char.combat.hpMax);
 char.combat.hpDiceSpent = spent + 1;
-saveToLocal();
+saveToLocalDebounced();
 updateHPDisplay();
 if (resultEl) {
 const conStr = conMod === 0 ? "" : (conMod > 0 ? " +" + conMod : " " + conMod);
@@ -3496,7 +3495,7 @@ let msg = "";
 let isSuccess = false;
 if (roll === 20) {
 char.combat.hpCurrent = 1;
-saveToLocal();
+saveToLocalDebounced();
 updateHPDisplay();
 msg = "20 — стабилизирован! (+1 ХП)";
 isSuccess = true;
@@ -3525,7 +3524,7 @@ if (resultEl) {
 resultEl.textContent = msg;
 resultEl.className = "ds-roll-result " + (isSuccess ? "ds-result-ok" : "ds-result-fail");
 }
-saveToLocal();
+saveToLocalDebounced();
 loadDeathSaves();
 }
 
@@ -3539,12 +3538,12 @@ loadDeathSaves();
 // ============================================================
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('./sw.js')
+    navigator.serviceWorker.register('./sw.js?v=22')
       .then(function(reg) {
         console.log('[PWA] SW зарегистрирован:', reg.scope);
         if (reg.waiting) { showUpdateModal(reg.waiting); }
         reg.addEventListener('updatefound', function() {
-          var newWorker = reg.installing;
+          let newWorker = reg.installing;
           if (!newWorker) return;
           newWorker.addEventListener('statechange', function() {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
@@ -3554,7 +3553,7 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
         });
       })
       .catch(function(err) { console.log('[PWA] SW ошибка:', err); });
-    var refreshing = false;
+    let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', function() {
       if (!refreshing) { refreshing = true; window.location.reload(); }
     });
@@ -3563,14 +3562,14 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 
 function showUpdateModal(worker) {
   if ($('sw-update-modal')) return;
-  var latest  = (typeof APP_CHANGELOG !== 'undefined' && APP_CHANGELOG.length > 0) ? APP_CHANGELOG[0] : null;
-  var version = (typeof APP_VERSION !== 'undefined') ? APP_VERSION : (latest ? latest.version : '?');
-  var typeIcon  = { feat:'✨', fix:'🐛', improve:'⚡', data:'📦' };
-  var typeColor = { feat:'#4da843', fix:'#e74c3c', improve:'#5b9bd5', data:'#d4a843' };
-  var changesList = latest ? latest.changes.map(function(c) {
+  let latest  = (typeof APP_CHANGELOG !== 'undefined' && APP_CHANGELOG.length > 0) ? APP_CHANGELOG[0] : null;
+  let version = (typeof APP_VERSION !== 'undefined') ? APP_VERSION : (latest ? latest.version : '?');
+  let typeIcon  = { feat:'✨', fix:'🐛', improve:'⚡', data:'📦' };
+  let typeColor = { feat:'#4da843', fix:'#e74c3c', improve:'#5b9bd5', data:'#d4a843' };
+  let changesList = latest ? latest.changes.map(function(c) {
     return '<div class="sw-change-item"><span class="sw-change-icon" style="color:' + (typeColor[c.type] || '#9a9ab0') + '">' + (typeIcon[c.type] || '•') + '</span><span class="sw-change-text">' + escapeHtml(c.text) + '</span></div>';
   }).join('') : '<div class="sw-change-item">Улучшения и исправления</div>';
-  var modal = document.createElement('div');
+  let modal = document.createElement('div');
   modal.id = 'sw-update-modal';
   modal.innerHTML =
     '<div class="sw-update-box">' +
@@ -3597,10 +3596,10 @@ function showUpdateModal(worker) {
 // ⚔️ ОТРЯД — Соратники, NPC, Монстры
 // ============================================================
 
-var PARTY_DATA = { allies: [], monsters: [], npcs: [] };
-var BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
+let PARTY_DATA = { allies: [], monsters: [], npcs: [] };
+let BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
 
-var CONDITION_STATUSES = [
+let CONDITION_STATUSES = [
   { value: "healthy", label: "💚 Здоров" },
   { value: "wounded", label: "💛 Ранен" },
   { value: "heavy",   label: "🟠 Тяжело ранен" },
@@ -3608,7 +3607,7 @@ var CONDITION_STATUSES = [
   { value: "dead",    label: "💀 Мёртв" }
 ];
 
-var MONSTER_TYPE_ICONS = {
+let MONSTER_TYPE_ICONS = {
   "Зверь":      "🐺",
   "Нежить":     "💀",
   "Демон":      "😈",
@@ -3629,9 +3628,9 @@ function getMonsterTypeIcon(type) { return MONSTER_TYPE_ICONS[type] || "👾"; }
 (function initParty() {
   // Global fallback load — per-character data is loaded in loadCharacter()
   try {
-    var saved = localStorage.getItem("dnd_party");
+    let saved = localStorage.getItem("dnd_party");
     if (saved) {
-      var parsed = JSON.parse(saved);
+      let parsed = JSON.parse(saved);
       if (!parsed.allies)   parsed.allies   = [];
       if (!parsed.monsters) parsed.monsters = [];
       if (!parsed.npcs)     parsed.npcs     = [];
@@ -3639,20 +3638,20 @@ function getMonsterTypeIcon(type) { return MONSTER_TYPE_ICONS[type] || "👾"; }
     }
   } catch(e) {}
   try {
-    var savedBattle = localStorage.getItem("dnd_battle");
+    let savedBattle = localStorage.getItem("dnd_battle");
     if (savedBattle) BATTLE_DATA = JSON.parse(savedBattle);
   } catch(e) {}
 })();
 
 function saveParty() {
   if (!currentId) { try { localStorage.setItem("dnd_party", JSON.stringify(PARTY_DATA)); } catch(e) {} return; }
-  var char = getCurrentChar();
-  if (char) { char.party = PARTY_DATA; saveToLocal(); }
+  let char = getCurrentChar();
+  if (char) { char.party = PARTY_DATA; saveToLocalDebounced(); }
 }
 function saveBattle() {
   if (!currentId) { try { localStorage.setItem("dnd_battle", JSON.stringify(BATTLE_DATA)); } catch(e) {} return; }
-  var char = getCurrentChar();
-  if (char) { char.battle = BATTLE_DATA; saveToLocal(); }
+  let char = getCurrentChar();
+  if (char) { char.battle = BATTLE_DATA; saveToLocalDebounced(); }
 }
 
 // ─── helpers ─────────────────────────────────────────────────
@@ -3670,7 +3669,7 @@ function getFactionLabel(type) {
   return "враг";
 }
 function getStatusColor(status) {
-  var map = { healthy:"#4da843", wounded:"#d4a843", heavy:"#e67e22", dying:"#e74c3c", dead:"#7f8c8d" };
+  let map = { healthy:"#4da843", wounded:"#d4a843", heavy:"#e67e22", dying:"#e74c3c", dead:"#7f8c8d" };
   return map[status] || "#4da843";
 }
 
@@ -3684,20 +3683,20 @@ function openPartyTab() {
 
 // ─── MY CHAR ─────────────────────────────────────────────────
 function renderMyChar() {
-  var container = $("my-char-card");
+  let container = $("my-char-card");
   if (!container) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) {
     container.innerHTML = "<div class='party-empty'>Откройте персонажа из списка профилей</div>";
     return;
   }
-  var icon  = getClassIcon(char.class);
-  var color = getClassColor(char.class);
-  var hpCurrent = char.combat ? (char.combat.hpCurrent || 0) : 0;
-  var hpMax     = char.combat ? (char.combat.hpMax || 0) : 0;
-  var hpPct     = hpMax > 0 ? Math.min(100, Math.round(hpCurrent / hpMax * 100)) : 100;
-  var hpColor   = hpPct > 60 ? "#4da843" : hpPct > 30 ? "#e67e22" : "#e74c3c";
-  var conds     = (char.conditions && char.conditions.length) ? "⚠️ " + char.conditions.length + " статус" : "";
+  let icon  = getClassIcon(char.class);
+  let color = getClassColor(char.class);
+  let hpCurrent = char.combat ? (char.combat.hpCurrent || 0) : 0;
+  let hpMax     = char.combat ? (char.combat.hpMax || 0) : 0;
+  let hpPct     = hpMax > 0 ? Math.min(100, Math.round(hpCurrent / hpMax * 100)) : 100;
+  let hpColor   = hpPct > 60 ? "#4da843" : hpPct > 30 ? "#e67e22" : "#e74c3c";
+  let conds     = (char.conditions && char.conditions.length) ? "⚠️ " + char.conditions.length + " статус" : "";
   container.innerHTML =
     '<div class="pcard pcard-self">' +
       '<div class="pcard-icon" style="background:' + color + '22;color:' + color + '">' + icon + '</div>' +
@@ -3715,14 +3714,14 @@ function renderMyChar() {
 
 // ─── ALLIES ──────────────────────────────────────────────────
 function renderAllies() {
-  var list    = $("allies-list");
-  var countEl = $("allies-count");
+  let list    = $("allies-list");
+  let countEl = $("allies-count");
   if (!list) return;
   if (countEl) countEl.textContent = PARTY_DATA.allies.length > 0 ? PARTY_DATA.allies.length : "";
   if (PARTY_DATA.allies.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет соратников. Добавьте первого!</div>"; return; }
   list.innerHTML = PARTY_DATA.allies.map(function(a, i) {
-    var icon  = getClassIcon(a.cls);
-    var color = getClassColor(a.cls);
+    let icon  = getClassIcon(a.cls);
+    let color = getClassColor(a.cls);
     return '<div class="pcard">' +
       '<div class="pcard-icon" style="background:' + color + '22;color:' + color + '">' + icon + '</div>' +
       '<div class="pcard-body">' +
@@ -3742,7 +3741,7 @@ function renderAllies() {
 }
 
 // ─── PARTY ENTITY MODAL (unified for ally / npc / monster) ───
-var _PENT = {
+let _PENT = {
   ally:    { modal:"add-ally-modal",    title:"ally-modal-title",    idx:"ally-edit-index",
              fields: [{id:"ally-name-inp",key:"name"},{id:"ally-class-sel",key:"cls"},{id:"ally-desc-inp",key:"desc"}],
              list: function() { return PARTY_DATA.allies; },
@@ -3763,44 +3762,44 @@ var _PENT = {
              delMsg: "Удалить монстра?", delKey:"name" }
 };
 function _pentOpen(type, i) {
-  var cfg = _PENT[type]; if (!cfg) return;
-  var isEdit = (i !== undefined && i >= 0);
+  let cfg = _PENT[type]; if (!cfg) return;
+  let isEdit = (i !== undefined && i >= 0);
   $(cfg.title).textContent = isEdit ? cfg.editLabel : cfg.addLabel;
   $(cfg.idx).value = isEdit ? i : "-1";
-  var item = isEdit ? cfg.list()[i] : null;
+  let item = isEdit ? cfg.list()[i] : null;
   cfg.fields.forEach(function(f) { $(f.id).value = item ? (item[f.key] || "") : ""; });
   openModal(cfg.modal);
 }
 function _pentClose(type) { closeModal(_PENT[type].modal); }
 function _pentSave(type) {
-  var cfg = _PENT[type];
-  var nameField = cfg.fields[0];
-  var name = $(nameField.id).value.trim();
+  let cfg = _PENT[type];
+  let nameField = cfg.fields[0];
+  let name = $(nameField.id).value.trim();
   if (!name) { showToast("Введите имя", "warn"); return; }
-  var list = cfg.list();
-  var idx = parseInt($(cfg.idx).value);
-  var data = { id: idx >= 0 ? (list[idx].id || Date.now()) : Date.now(), status: idx >= 0 ? (list[idx].status || "healthy") : "healthy" };
+  let list = cfg.list();
+  let idx = parseInt($(cfg.idx).value);
+  let data = { id: idx >= 0 ? (list[idx].id || Date.now()) : Date.now(), status: idx >= 0 ? (list[idx].status || "healthy") : "healthy" };
   cfg.fields.forEach(function(f) { data[f.key] = $(f.id).value.trim() || (f.default || ""); });
   if (!data.name) data.name = name;
   if (idx >= 0) list[idx] = data; else list.push(data);
   saveParty(); cfg.render(); _pentClose(type);
 }
 function _pentDelete(type, i) {
-  var cfg = _PENT[type];
-  var name = cfg.list()[i] ? cfg.list()[i][cfg.delKey] : "запись";
+  let cfg = _PENT[type];
+  let name = cfg.list()[i] ? cfg.list()[i][cfg.delKey] : "запись";
   showConfirmModal(cfg.delMsg, "«"+name+"» будет удалён.", function() { cfg.list().splice(i,1); saveParty(); cfg.render(); });
 }
 function _pentStatus(type, i, val) { _PENT[type].list()[i].status = val; saveParty(); }
 function _pentExport(type) {
-  var a = document.createElement("a");
+  let a = document.createElement("a");
   a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_PENT[type].list(), null, 2));
   a.download = type + "_" + new Date().toISOString().slice(0,10) + ".json"; a.click();
 }
 function _pentImport(type, input) {
-  var file = input.files[0]; if (!file) return;
-  var reader = new FileReader();
+  let file = input.files[0]; if (!file) return;
+  let reader = new FileReader();
   reader.onload = function(e) {
-    try { var d = JSON.parse(e.target.result);
+    try { let d = JSON.parse(e.target.result);
       if (Array.isArray(d)) { PARTY_DATA[type === "ally" ? "allies" : type+"s"] = d; saveParty(); _PENT[type].render(); }
       else showToast("Неверный формат файла", "error");
     } catch(err) { showToast("Ошибка загрузки", "error"); }
@@ -3838,8 +3837,8 @@ function importMonsters(input)     { _pentImport("monster", input); }
 
 // ─── NPCs ────────────────────────────────────────────────────
 function renderNPCs() {
-  var list    = $("npcs-list");
-  var countEl = $("npcs-count");
+  let list    = $("npcs-list");
+  let countEl = $("npcs-count");
   if (!list) return;
   if (countEl) countEl.textContent = (PARTY_DATA.npcs && PARTY_DATA.npcs.length > 0) ? PARTY_DATA.npcs.length : "";
   if (!PARTY_DATA.npcs || PARTY_DATA.npcs.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет персонажей</div>"; return; }
@@ -3867,13 +3866,13 @@ function renderNPCs() {
 
 // ─── MONSTERS ─────────────────────────────────────────────────
 function renderMonsters() {
-  var list    = $("monsters-list");
-  var countEl = $("monsters-count");
+  let list    = $("monsters-list");
+  let countEl = $("monsters-count");
   if (!list) return;
   if (countEl) countEl.textContent = PARTY_DATA.monsters.length > 0 ? PARTY_DATA.monsters.length : "";
   if (PARTY_DATA.monsters.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет монстров. Добавьте врага!</div>"; return; }
   list.innerHTML = PARTY_DATA.monsters.map(function(m, i) {
-    var typeIcon = getMonsterTypeIcon(m.type);
+    let typeIcon = getMonsterTypeIcon(m.type);
     return '<div class="pcard pcard-monster">' +
       '<div class="pcard-icon pcard-icon-monster">' + typeIcon + '</div>' +
       '<div class="pcard-body">' +
@@ -3896,9 +3895,9 @@ function renderMonsters() {
 
 
 // ─── BATTLE TAB ──────────────────────────────────────────────
-var battleSetupList = [];
-var battleDragSrcIdx = null;
-var battleSectionOpen = { self: true, ally: true, npc: true, monster: true };
+let battleSetupList = [];
+let battleDragSrcIdx = null;
+let battleSectionOpen = { self: true, ally: true, npc: true, monster: true };
 
 function openBattleTab() {
   if (BATTLE_DATA.active) {
@@ -3914,10 +3913,10 @@ function openBattleTab() {
 }
 
 function buildBattleSetupList() {
-  var prevChecked = {};
+  let prevChecked = {};
   battleSetupList.forEach(function(p) { prevChecked[p.id] = p.checked; });
   battleSetupList = [];
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (char) {
     battleSetupList.push({ id: "self_" + char.id, name: char.name || "Мой персонаж", icon: getClassIcon(char.class), color: "#4da843", type: "self", checked: prevChecked["self_" + char.id] === true });
   }
@@ -3932,7 +3931,7 @@ function buildBattleSetupList() {
   });
 }
 
-var battleSearchQuery = "";
+let battleSearchQuery = "";
 function setBattleSearch(val) { battleSearchQuery = val.toLowerCase().trim(); renderBattleSetup(); }
 function toggleBattleSection(type) {
   battleSectionOpen[type] = !battleSectionOpen[type];
@@ -3940,28 +3939,28 @@ function toggleBattleSection(type) {
 }
 
 function renderBattleSetup() {
-  var container = $("battle-setup-list");
+  let container = $("battle-setup-list");
   if (!container) return;
   if (battleSetupList.length === 0) {
     container.innerHTML = "<div class='party-empty'>Добавьте участников во вкладке Отряд</div>";
     return;
   }
-  var sections = [
+  let sections = [
     { type: "self",    label: "🟢 Я",          color: "#4da843" },
     { type: "ally",    label: "🟢 Союзники",   color: "#27ae60" },
     { type: "npc",     label: "🟡 Персонажи",  color: "#d4ac0d" },
     { type: "monster", label: "🔴 Враги",      color: "#c0392b" }
   ];
-  var q = battleSearchQuery;
+  let q = battleSearchQuery;
   container.innerHTML = sections.map(function(sec) {
-    var items = battleSetupList.filter(function(p, i) {
+    let items = battleSetupList.filter(function(p, i) {
       return p.type === sec.type && (!q || p.name.toLowerCase().includes(q));
     });
     if (items.length === 0) return "";
-    var open = battleSectionOpen[sec.type];
-    var checkedCount = items.filter(function(p) { return p.checked; }).length;
-    var rows = open ? items.map(function(p) {
-      var gi = battleSetupList.indexOf(p);
+    let open = battleSectionOpen[sec.type];
+    let checkedCount = items.filter(function(p) { return p.checked; }).length;
+    let rows = open ? items.map(function(p) {
+      let gi = battleSetupList.indexOf(p);
       return '<div class="battle-setup-row' + (p.checked ? " battle-row-checked" : "") + '" id="brow_' + gi + '">' +
         '<label class="battle-check-wrap" onclick="event.stopPropagation()">' +
           '<input type="checkbox" class="battle-checkbox"' + (p.checked ? " checked" : "") + ' onchange="toggleBattleCheck(' + gi + ',this.checked)">' +
@@ -3990,7 +3989,7 @@ function battleDragOver(e) { e.preventDefault(); }
 function battleDrop(e, i) {
   e.preventDefault();
   if (battleDragSrcIdx === null || battleDragSrcIdx === i) return;
-  var moved = battleSetupList.splice(battleDragSrcIdx, 1)[0];
+  let moved = battleSetupList.splice(battleDragSrcIdx, 1)[0];
   battleSetupList.splice(i, 0, moved);
   battleDragSrcIdx = null;
   renderBattleSetup();
@@ -3998,7 +3997,7 @@ function battleDrop(e, i) {
 function battleDragEnd() { battleDragSrcIdx = null; }
 
 function startBattle() {
-  var selected = battleSetupList.filter(function(p) { return p.checked; });
+  let selected = battleSetupList.filter(function(p) { return p.checked; });
   if (selected.length === 0) { showToast("Выберите участников боя", "warn"); return; }
   BATTLE_DATA = { active: true, participants: selected.map(function(p) { return Object.assign({}, p, { status: "healthy" }); }), currentTurn: 0 };
   saveBattle();
@@ -4010,30 +4009,30 @@ function startBattle() {
 function getParticipantDesc(p) {
   // Look up description from party data by type and id
   if (p.type === "ally") {
-    var a = PARTY_DATA.allies.find(function(x) { return x.id === p.id || x.name === p.name; });
+    let a = PARTY_DATA.allies.find(function(x) { return x.id === p.id || x.name === p.name; });
     return a ? a.desc : "";
   }
   if (p.type === "npc") {
-    var n = PARTY_DATA.npcs && PARTY_DATA.npcs.find(function(x) { return x.id === p.id || x.name === p.name; });
+    let n = PARTY_DATA.npcs && PARTY_DATA.npcs.find(function(x) { return x.id === p.id || x.name === p.name; });
     return n ? (n.desc || n.role || "") : "";
   }
   if (p.type === "monster") {
-    var m = PARTY_DATA.monsters.find(function(x) { return x.id === p.id || x.name === p.name; });
+    let m = PARTY_DATA.monsters.find(function(x) { return x.id === p.id || x.name === p.name; });
     return m ? m.desc : "";
   }
   if (p.type === "self") {
-    var char = getCurrentChar();
+    let char = getCurrentChar();
     return char ? (char.class || "") + (char.subclass ? " · " + char.subclass : "") + " · " + (char.level||1) + " ур." : "";
   }
   return "";
 }
 
 function showTrackerInfo(i) {
-  var p = BATTLE_DATA.participants[i];
+  let p = BATTLE_DATA.participants[i];
   if (!p) return;
-  var desc = getParticipantDesc(p);
-  var fcolor = getFactionColor(p.type);
-  var modal = $("tracker-info-modal");
+  let desc = getParticipantDesc(p);
+  let fcolor = getFactionColor(p.type);
+  let modal = $("tracker-info-modal");
   if (!modal) {
     // create on fly
     modal = document.createElement("div");
@@ -4056,7 +4055,7 @@ function showTrackerInfo(i) {
   $("tinfo-name").textContent = p.name || "?";
   $("tinfo-type").style.color = fcolor;
   $("tinfo-type").textContent = getFactionLabel(p.type).toUpperCase();
-  var descEl = $("tinfo-desc");
+  let descEl = $("tinfo-desc");
   descEl.textContent = desc || "Нет описания.";
   descEl.style.display = desc ? "block" : "none";
   modal.classList.add("active");
@@ -4065,12 +4064,12 @@ function showTrackerInfo(i) {
 
 // Авто-статус для "я" по % ХП
 function getSelfStatusFromHP() {
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return "healthy";
-  var hp  = char.combat.hpCurrent || 0;
-  var max = char.combat.hpMax    || 1;
+  let hp  = char.combat.hpCurrent || 0;
+  let max = char.combat.hpMax    || 1;
   if (max <= 0) return "healthy";
-  var pct = Math.round(hp / max * 100);
+  let pct = Math.round(hp / max * 100);
   if (pct <= 0)  return "dead";
   if (pct <= 15) return "dying";
   if (pct <= 35) return "heavy";
@@ -4080,8 +4079,8 @@ function getSelfStatusFromHP() {
 
 function syncSelfBattleStatus() {
   if (!BATTLE_DATA.active) return;
-  var newStatus = getSelfStatusFromHP();
-  var changed = false;
+  let newStatus = getSelfStatusFromHP();
+  let changed = false;
   BATTLE_DATA.participants.forEach(function(p) {
     if (p.type === "self") { p.status = newStatus; changed = true; }
   });
@@ -4089,25 +4088,25 @@ function syncSelfBattleStatus() {
 }
 
 function renderBattleTracker() {
-  var list = $("battle-tracker-list");
-  var turnInfo = $("battle-turn-info");
+  let list = $("battle-tracker-list");
+  let turnInfo = $("battle-turn-info");
   if (!list) return;
   // sync self HP status before render
-  var selfStatus = getSelfStatusFromHP();
+  let selfStatus = getSelfStatusFromHP();
   BATTLE_DATA.participants.forEach(function(p) {
     if (p.type === "self") p.status = selfStatus;
   });
-  var current = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
+  let current = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
   if (turnInfo && current) turnInfo.textContent = "Ход " + (BATTLE_DATA.currentTurn + 1) + ": " + (current.name || "?");
   list.innerHTML = BATTLE_DATA.participants.map(function(p, i) {
-    var isCurrent = i === BATTLE_DATA.currentTurn;
-    var fcolor = getFactionColor(p.type);
-    var isSelf  = p.type === "self";
-    var desc    = getParticipantDesc(p);
+    let isCurrent = i === BATTLE_DATA.currentTurn;
+    let fcolor = getFactionColor(p.type);
+    let isSelf  = p.type === "self";
+    let desc    = getParticipantDesc(p);
     // For self — status driven by HP, select is read-only display
-    var statusLabel = CONDITION_STATUSES.find(function(s) { return s.value === (p.status || "healthy"); });
-    var statusText  = statusLabel ? statusLabel.label : "💚 Здоров";
-    var opts = CONDITION_STATUSES.map(function(s) {
+    let statusLabel = CONDITION_STATUSES.find(function(s) { return s.value === (p.status || "healthy"); });
+    let statusText  = statusLabel ? statusLabel.label : "💚 Здоров";
+    let opts = CONDITION_STATUSES.map(function(s) {
       return '<option value="' + s.value + '"' + (s.value === (p.status || "healthy") ? " selected" : "") + ">" + s.label + "</option>";
     }).join("");
     return '<div class="tracker-row' + (isCurrent ? " tracker-row-active" : "") + (isSelf ? " tracker-row-self" : "") + '" style="border-left:3px solid ' + fcolor + '">' +
@@ -4142,10 +4141,10 @@ function endBattle() {
 // АККОРДЕОН — сворачиваемые секции
 // ============================================================
 function toggleAccordion(btn) {
-  var body = btn.nextElementSibling;
+  let body = btn.nextElementSibling;
   if (!body) return;
-  var isOpen = btn.getAttribute("aria-expanded") === "true";
-  var arrow = btn.querySelector(".accordion-arrow");
+  let isOpen = btn.getAttribute("aria-expanded") === "true";
+  let arrow = btn.querySelector(".accordion-arrow");
   if (isOpen) {
     body.style.display = "none";
     btn.setAttribute("aria-expanded", "false");
@@ -4168,8 +4167,8 @@ function initCharResources(char) {
 
 // Вычислить максимум ресурса по уровню и характеристикам
 function getResourceMax(res, char) {
-  var level = char.level || 1;
-  var raw = res.maxByLevel ? (res.maxByLevel[level] !== undefined ? res.maxByLevel[level] : 0) : 0;
+  let level = char.level || 1;
+  let raw = res.maxByLevel ? (res.maxByLevel[level] !== undefined ? res.maxByLevel[level] : 0) : 0;
   if (raw === "level")       return level;
   if (raw === "cha")         return Math.max(1, getMod(char.stats.cha));
   if (raw === "cha_plus1")   return Math.max(1, getMod(char.stats.cha) + 1);
@@ -4181,16 +4180,16 @@ function getResourceMax(res, char) {
 // Рендер блока ресурсов
 function renderClassResources() {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
 
-  var section = $("class-resources-section");
-  var grid = $("class-resources-grid");
+  let section = $("class-resources-section");
+  let grid = $("class-resources-grid");
   if (!section || !grid) return;
 
-  var cls = char.class || "";
-  var data = (typeof CLASS_RESOURCES !== "undefined") && CLASS_RESOURCES[cls];
+  let cls = char.class || "";
+  let data = (typeof CLASS_RESOURCES !== "undefined") && CLASS_RESOURCES[cls];
 
   if (!data || !data.resources || data.resources.length === 0) {
     section.style.display = "none";
@@ -4202,7 +4201,7 @@ function renderClassResources() {
 
   // Passive notes card
   if (data.passive && data.passive.notes) {
-    var notesEl = document.createElement("div");
+    let notesEl = document.createElement("div");
     notesEl.className = "resource-passive-card";
     notesEl.innerHTML = '<div class="resource-passive-title">📖 Пассивные умения ' + escapeHtml(cls) + '</div>' +
       '<pre class="resource-passive-text">' + escapeHtml(data.passive.notes) + '</pre>';
@@ -4211,30 +4210,30 @@ function renderClassResources() {
 
   // Resource cards
   data.resources.forEach(function(res) {
-    var max = getResourceMax(res, char);
+    let max = getResourceMax(res, char);
     if (max === 0) return; // не доступно на этом уровне
 
-    var used = char.resources[res.id] || 0;
+    let used = char.resources[res.id] || 0;
     if (used > max) { used = max; char.resources[res.id] = used; }
-    var remaining = max - used;
+    let remaining = max - used;
 
-    var card = document.createElement("div");
+    let card = document.createElement("div");
     card.className = "resource-card";
     card.style.setProperty("--res-color", res.color || "#c9a227");
 
-    var isPool = res.isPool; // Наложение рук — пул ХП а не заряды
+    let isPool = res.isPool; // Наложение рук — пул ХП а не заряды
 
     // Build pips (max 20, beyond that just show number)
-    var pipsHtml = "";
+    let pipsHtml = "";
     if (!isPool && max <= 20) {
       pipsHtml = '<div class="resource-pips">';
-      for (var p = 0; p < max; p++) {
+      for (let p = 0; p < max; p++) {
         pipsHtml += '<div class="resource-pip' + (p < remaining ? ' full' : '') + '" onclick="toggleResourcePip(\'' + res.id + '\',' + p + ')"></div>';
       }
       pipsHtml += '</div>';
     }
 
-    var restLabel = res.restoreOn === "short" ? "☕ Кор." : res.restoreOn === "long" || res.restoreOn === "long_once" ? "🛏️ Длин." : res.restoreOn === "turn" ? "🔄 Каждый ход" : "–";
+    let restLabel = res.restoreOn === "short" ? "☕ Кор." : res.restoreOn === "long" || res.restoreOn === "long_once" ? "🛏️ Длин." : res.restoreOn === "turn" ? "🔄 Каждый ход" : "–";
 
     card.innerHTML =
       '<div class="resource-header">' +
@@ -4265,46 +4264,46 @@ function renderClassResources() {
 
 function spendResource(id, delta) {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
-  var cls = char.class || "";
-  var data = CLASS_RESOURCES && CLASS_RESOURCES[cls];
+  let cls = char.class || "";
+  let data = CLASS_RESOURCES && CLASS_RESOURCES[cls];
   if (!data) return;
-  var res = data.resources.find(function(r) { return r.id === id; });
+  let res = data.resources.find(function(r) { return r.id === id; });
   if (!res) return;
-  var max = getResourceMax(res, char);
-  var used = char.resources[id] || 0;
+  let max = getResourceMax(res, char);
+  let used = char.resources[id] || 0;
   used = Math.min(max, Math.max(0, used + delta));
   char.resources[id] = used;
   if (navigator.vibrate) navigator.vibrate(8);
-  saveToLocal();
+  saveToLocalDebounced();
   renderClassResources();
 }
 
 function resetResource(id) {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
   char.resources[id] = 0;
-  saveToLocal();
+  saveToLocalDebounced();
   renderClassResources();
 }
 
 function toggleResourcePip(id, pipIdx) {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
-  var cls = char.class || "";
-  var data = CLASS_RESOURCES && CLASS_RESOURCES[cls];
+  let cls = char.class || "";
+  let data = CLASS_RESOURCES && CLASS_RESOURCES[cls];
   if (!data) return;
-  var res = data.resources.find(function(r) { return r.id === id; });
+  let res = data.resources.find(function(r) { return r.id === id; });
   if (!res) return;
-  var max = getResourceMax(res, char);
-  var used = char.resources[id] || 0;
-  var remaining = max - used;
+  let max = getResourceMax(res, char);
+  let used = char.resources[id] || 0;
+  let remaining = max - used;
   // pip 0..remaining-1 = full, click to use; remaining..max-1 = empty, click to restore
   if (pipIdx < remaining) {
     used = Math.min(max, used + (remaining - pipIdx));
@@ -4313,18 +4312,18 @@ function toggleResourcePip(id, pipIdx) {
   }
   char.resources[id] = used;
   if (navigator.vibrate) navigator.vibrate(8);
-  saveToLocal();
+  saveToLocalDebounced();
   renderClassResources();
 }
 
 // Сбросить ресурсы по типу отдыха
 function resetResourcesByRest(restType) {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
-  var cls = char.class || "";
-  var data = CLASS_RESOURCES && CLASS_RESOURCES[cls];
+  let cls = char.class || "";
+  let data = CLASS_RESOURCES && CLASS_RESOURCES[cls];
   if (!data || !data.resources) return;
   data.resources.forEach(function(res) {
     if (restType === "long") {
@@ -4333,17 +4332,17 @@ function resetResourcesByRest(restType) {
       char.resources[res.id] = 0;
     }
   });
-  saveToLocal();
+  saveToLocalDebounced();
   renderClassResources();
 }
 
 // ============================================================
 // АСИ — модалка выбора характеристик
 // ============================================================
-var asiSelectedStats = [];
-var asiPendingPoints = 0; // сколько осталось распределить
+let asiSelectedStats = [];
+let asiPendingPoints = 0; // сколько осталось распределить
 
-var asiCurrentLevel = null; // уровень для которого применяется АСИ
+let asiCurrentLevel = null; // уровень для которого применяется АСИ
 
 function openASIModalForLevel(level) {
   asiCurrentLevel = level;
@@ -4352,19 +4351,19 @@ function openASIModalForLevel(level) {
 
 function openASIModal() {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
   asiSelectedStats = [];
   asiFeatSelected = null;
-  var modal = $("asi-modal");
+  let modal = $("asi-modal");
   if (!modal) { showToast("Ошибка: АСИ модалка не найдена", "error"); return; }
 
   // Reset radio to plus2
-  var r = modal.querySelector('input[value="plus2"]');
+  let r = modal.querySelector('input[value="plus2"]');
   if (r) r.checked = true;
 
   // Show level info in title if level is set
-  var title = modal.querySelector("h4");
+  let title = modal.querySelector("h4");
   if (title) {
     title.textContent = asiCurrentLevel
       ? "📈 Увеличение характеристик · " + asiCurrentLevel + " ур."
@@ -4377,7 +4376,7 @@ function openASIModal() {
 }
 
 function closeASIModal() {
-  var modal = $("asi-modal");
+  let modal = $("asi-modal");
   if (modal) modal.classList.remove("active");
   asiSelectedStats = [];
   asiFeatSelected = null;
@@ -4385,13 +4384,13 @@ function closeASIModal() {
 }
 
 function buildASIStatGrid(char) {
-  var grid = $("asi-stat-grid");
+  let grid = $("asi-stat-grid");
   if (!grid) return;
-  var statNames = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
-  var statIcons = {str:"💪",dex:"🏃",con:"❤️",int:"🧠",wis:"👁️",cha:"🎭"};
+  let statNames = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
+  let statIcons = {str:"💪",dex:"🏃",con:"❤️",int:"🧠",wis:"👁️",cha:"🎭"};
   grid.innerHTML = Object.keys(statNames).map(function(k) {
-    var val = char.stats[k] || 10;
-    var mod = getMod(val);
+    let val = char.stats[k] || 10;
+    let mod = getMod(val);
     return '<div class="asi-stat-item" id="asi-stat-' + k + '" onclick="toggleASIStat(\'' + k + '\')">' +
       '<span class="asi-stat-icon">' + statIcons[k] + '</span>' +
       '<span class="asi-stat-name">' + statNames[k] + '</span>' +
@@ -4402,15 +4401,15 @@ function buildASIStatGrid(char) {
 }
 
 function getASIMode() {
-  var r = document.querySelector('input[name="asi-mode"]:checked');
+  let r = document.querySelector('input[name="asi-mode"]:checked');
   return r ? r.value : "plus2";
 }
 
 function toggleASIStat(statKey) {
-  var mode = getASIMode();
-  var maxPicks = mode === "plus2" ? 1 : 2;
+  let mode = getASIMode();
+  let maxPicks = mode === "plus2" ? 1 : 2;
 
-  var idx = asiSelectedStats.indexOf(statKey);
+  let idx = asiSelectedStats.indexOf(statKey);
   if (idx > -1) {
     asiSelectedStats.splice(idx, 1);
   } else {
@@ -4423,11 +4422,11 @@ function toggleASIStat(statKey) {
 }
 
 function updateASIPreview() {
-  var mode = getASIMode();
-  var preview = $("asi-preview");
-  var applyBtn = $("asi-apply-btn");
-  var statGrid = $("asi-stat-grid");
-  var featListEl = $("asi-feat-list");
+  let mode = getASIMode();
+  let preview = $("asi-preview");
+  let applyBtn = $("asi-apply-btn");
+  let statGrid = $("asi-stat-grid");
+  let featListEl = $("asi-feat-list");
 
   // ── Режим: выбор черты ───────────────────────────────────
   if (mode === "feat") {
@@ -4435,7 +4434,7 @@ function updateASIPreview() {
     if (featListEl) { featListEl.style.display = "block"; buildFeatList(); }
     if (preview) {
       if (asiFeatSelected) {
-        var feat = typeof FEATS_DATA !== "undefined" && FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
+        let feat = typeof FEATS_DATA !== "undefined" && FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
         preview.textContent = "✅ Черта: " + (feat ? feat.name : asiFeatSelected);
         preview.className = "asi-preview ready";
       } else {
@@ -4452,19 +4451,19 @@ function updateASIPreview() {
   if (featListEl) featListEl.style.display = "none";
   asiFeatSelected = null;
 
-  var maxPicks = mode === "plus2" ? 1 : 2;
-  var bonus = mode === "plus2" ? 2 : 1;
+  let maxPicks = mode === "plus2" ? 1 : 2;
+  let bonus = mode === "plus2" ? 2 : 1;
 
   if (statGrid) {
     statGrid.querySelectorAll(".asi-stat-item").forEach(function(el) {
       el.classList.remove("selected");
-      var deltaEl = $("asi-delta-" + el.id.replace("asi-stat-",""));
+      let deltaEl = $("asi-delta-" + el.id.replace("asi-stat-",""));
       if (deltaEl) deltaEl.textContent = "";
     });
     asiSelectedStats.forEach(function(k) {
-      var el = $("asi-stat-" + k);
+      let el = $("asi-stat-" + k);
       if (el) el.classList.add("selected");
-      var deltaEl = $("asi-delta-" + k);
+      let deltaEl = $("asi-delta-" + k);
       if (deltaEl) deltaEl.textContent = "+" + bonus;
     });
   }
@@ -4477,8 +4476,8 @@ function updateASIPreview() {
       preview.textContent = "Выберите ещё одну характеристику";
       preview.className = "asi-preview";
     } else {
-      var char = getCurrentChar();
-      var abbr = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
+      let char = getCurrentChar();
+      let abbr = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
       preview.textContent = "✅ " + asiSelectedStats.map(function(k) {
         return abbr[k] + ": " + char.stats[k] + " → " + (char.stats[k] + bonus);
       }).join("   ");
@@ -4486,7 +4485,7 @@ function updateASIPreview() {
     }
   }
 
-  var ready = (mode === "plus2" && asiSelectedStats.length === 1) ||
+  let ready = (mode === "plus2" && asiSelectedStats.length === 1) ||
               (mode === "plus1each" && asiSelectedStats.length === 2);
   if (applyBtn) applyBtn.disabled = !ready;
 }
@@ -4499,7 +4498,7 @@ function updateASIPreview() {
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
 (function() {
-  var el = $("app-version-badge");
+  let el = $("app-version-badge");
   if (el && typeof APP_VERSION !== "undefined") {
     el.textContent = "v" + APP_VERSION + " (" + APP_VERSION_DATE + ")";
   }
@@ -4516,12 +4515,12 @@ function getJournal(char) {
 
 function addJournalEntry(type, text, details) {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
-  var journal = getJournal(char);
-  var now = new Date();
-  var dateStr = now.toLocaleDateString("ru-RU", { day:"numeric", month:"short", year:"numeric" });
-  var timeStr = now.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
+  let journal = getJournal(char);
+  let now = new Date();
+  let dateStr = now.toLocaleDateString("ru-RU", { day:"numeric", month:"short", year:"numeric" });
+  let timeStr = now.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
   journal.unshift({
     id: Date.now(),
     type: type,        // levelup | rest | stat | feat | note | combat | story | loot | death
@@ -4532,10 +4531,10 @@ function addJournalEntry(type, text, details) {
     level: char.level || 1
   });
   if (journal.length > 200) journal.pop();
-  saveToLocal();
+  saveToLocalDebounced();
 }
 
-var journalFilter = "all";
+let journalFilter = "all";
 function filterJournal(type, btn) {
   journalFilter = type;
   document.querySelectorAll(".jfilter-btn").forEach(function(b) { b.classList.remove("active"); });
@@ -4545,24 +4544,24 @@ function filterJournal(type, btn) {
 
 function renderJournal() {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
-  var list = $("journal-list");
+  let list = $("journal-list");
   if (!list) return;
-  var journal = getJournal(char);
-  var filtered = journalFilter === "all" ? journal : journal.filter(function(e) { return e.type === journalFilter; });
+  let journal = getJournal(char);
+  let filtered = journalFilter === "all" ? journal : journal.filter(function(e) { return e.type === journalFilter; });
 
   if (filtered.length === 0) {
     list.innerHTML = '<div class="journal-empty">📭 Нет записей' + (journalFilter !== "all" ? " в этой категории" : "") + '</div>';
     return;
   }
 
-  var typeIcons = { levelup:"📈", rest:"🛏️", stat:"⚡", feat:"🎯", note:"📝", combat:"⚔️", story:"📖", loot:"💎", death:"💀" };
-  var typeColors = { levelup:"#4da843", rest:"#5b9bd5", stat:"#d4a843", feat:"#9b59b6", note:"#9a9ab0", combat:"#e74c3c", story:"#d4ac0d", loot:"#f39c12", death:"#7f8c8d" };
+  let typeIcons = { levelup:"📈", rest:"🛏️", stat:"⚡", feat:"🎯", note:"📝", combat:"⚔️", story:"📖", loot:"💎", death:"💀" };
+  let typeColors = { levelup:"#4da843", rest:"#5b9bd5", stat:"#d4a843", feat:"#9b59b6", note:"#9a9ab0", combat:"#e74c3c", story:"#d4ac0d", loot:"#f39c12", death:"#7f8c8d" };
 
   list.innerHTML = filtered.map(function(entry) {
-    var icon = typeIcons[entry.type] || "📝";
-    var color = typeColors[entry.type] || "#9a9ab0";
+    let icon = typeIcons[entry.type] || "📝";
+    let color = typeColors[entry.type] || "#9a9ab0";
     return '<div class="journal-entry" style="border-left-color:' + color + '">' +
       '<div class="journal-entry-header">' +
         '<span class="journal-icon">' + icon + '</span>' +
@@ -4577,10 +4576,10 @@ function renderJournal() {
 
 function deleteJournalEntry(id) {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char || !char.journal) return;
   char.journal = char.journal.filter(function(e) { return e.id !== id; });
-  saveToLocal();
+  saveToLocalDebounced();
   renderJournal();
 }
 
@@ -4592,10 +4591,10 @@ function closeAddJournalEntry() {
   $("add-journal-modal")?.classList.remove("active");
 }
 function saveJournalEntry() {
-  var type = $("journal-entry-type")?.value || "note";
-  var text = $("journal-entry-text")?.value.trim() || "";
+  let type = $("journal-entry-type")?.value || "note";
+  let text = $("journal-entry-text")?.value.trim() || "";
   if (!text) { showToast("Введите описание события", "warn"); return; }
-  var typeNames = { note:"Заметка", combat:"Бой", story:"Сюжет", loot:"Добыча", death:"Смерть" };
+  let typeNames = { note:"Заметка", combat:"Бой", story:"Сюжет", loot:"Добыча", death:"Смерть" };
   addJournalEntry(type, typeNames[type] + ": " + text);
   closeAddJournalEntry();
   renderJournal();
@@ -4604,10 +4603,10 @@ function saveJournalEntry() {
 // ============================================================
 // ПРИХВОСТНИ / КОМПАНЬОНЫ
 // ============================================================
-var COMPANION_TYPE_ICONS = {
+let COMPANION_TYPE_ICONS = {
   familiar:"🦅", mount:"🐴", summoned:"✨", beast:"🐺", construct:"🤖", other:"🐾"
 };
-var COMPANION_TYPE_NAMES = {
+let COMPANION_TYPE_NAMES = {
   familiar:"Фамильяр", mount:"Скакун", summoned:"Призванный", beast:"Зверь", construct:"Конструкт", other:"Прочее"
 };
 
@@ -4618,26 +4617,26 @@ function getCompanions(char) {
 
 function renderCompanions() {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
-  var companions = getCompanions(char);
+  let companions = getCompanions(char);
 
   // Update counts
-  var countEl = $("companions-count");
+  let countEl = $("companions-count");
   if (countEl) countEl.textContent = companions.length > 0 ? companions.length : "";
 
   // Render in both sheet and world tab
   ["companions-list-sheet", "companions-list-world"].forEach(function(elId) {
-    var list = $(elId);
+    let list = $(elId);
     if (!list) return;
     if (companions.length === 0) {
       list.innerHTML = '<div class="party-empty">📭 Нет прихвостней</div>';
       return;
     }
     list.innerHTML = companions.map(function(c, i) {
-      var icon = COMPANION_TYPE_ICONS[c.type] || "🐾";
-      var hpPct = c.hpMax > 0 ? Math.round((c.hpCurrent / c.hpMax) * 100) : 100;
-      var hpColor = hpPct > 60 ? "#4da843" : hpPct > 30 ? "#e67e22" : "#e74c3c";
+      let icon = COMPANION_TYPE_ICONS[c.type] || "🐾";
+      let hpPct = c.hpMax > 0 ? Math.round((c.hpCurrent / c.hpMax) * 100) : 100;
+      let hpColor = hpPct > 60 ? "#4da843" : hpPct > 30 ? "#e67e22" : "#e74c3c";
       return '<div class="pcard pcard-companion">' +
         '<div class="pcard-icon" style="background:rgba(155,89,182,0.15);color:#9b59b6">' + icon + '</div>' +
         '<div class="pcard-body">' +
@@ -4661,13 +4660,13 @@ function renderCompanions() {
 
 function companionHP(i, delta) {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
-  var companions = getCompanions(char);
+  let companions = getCompanions(char);
   if (!companions[i]) return;
   companions[i].hpCurrent = Math.max(0, Math.min(companions[i].hpMax, (companions[i].hpCurrent || 0) + delta));
   if (navigator.vibrate) navigator.vibrate(8);
-  saveToLocal();
+  saveToLocalDebounced();
   renderCompanions();
 }
 
@@ -4684,9 +4683,9 @@ function openAddCompanionModal() {
 }
 function openEditCompanionModal(i) {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
-  var c = getCompanions(char)[i];
+  let c = getCompanions(char)[i];
   if (!c) return;
   $("companion-modal-title").textContent = "✏️ Редактировать прихвостня";
   $("companion-edit-index").value = i;
@@ -4703,14 +4702,14 @@ function closeAddCompanionModal() {
 }
 function saveCompanion() {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
-  var name = $("companion-name-inp")?.value.trim() || "";
+  let name = $("companion-name-inp")?.value.trim() || "";
   if (!name) { showToast("Введите имя", "warn"); return; }
-  var idx = parseInt($("companion-edit-index").value);
-  var companions = getCompanions(char);
-  var hpMax = parseInt($("companion-hp-inp")?.value) || 10;
-  var data = {
+  let idx = parseInt($("companion-edit-index").value);
+  let companions = getCompanions(char);
+  let hpMax = parseInt($("companion-hp-inp")?.value) || 10;
+  let data = {
     id: idx >= 0 ? (companions[idx].id || Date.now()) : Date.now(),
     name: name,
     type: $("companion-type-sel")?.value || "other",
@@ -4722,37 +4721,37 @@ function saveCompanion() {
     status: "healthy"
   };
   if (idx >= 0) companions[idx] = data; else companions.push(data);
-  saveToLocal();
+  saveToLocalDebounced();
   renderCompanions();
   closeAddCompanionModal();
 }
 function deleteCompanion(i) {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
-  var name = char.companions[i] ? char.companions[i].name : "прихвостня";
+  let name = char.companions[i] ? char.companions[i].name : "прихвостня";
   showConfirmModal("Удалить прихвостня?", "«" + name + "» будет удалён.", function() {
     char.companions.splice(i, 1);
-    saveToLocal();
+    saveToLocalDebounced();
     renderCompanions();
   });
 }
 
 // asiFeatSelected и feat-режим обрабатываются в updateASIPreview ниже
-var asiFeatSelected = null;
+let asiFeatSelected = null;
 
 function buildFeatList() {
-  var el = $("asi-feat-list");
+  let el = $("asi-feat-list");
   if (!el || typeof FEATS_DATA === "undefined") return;
   if (!currentId) return;
-  var char = getCurrentChar();
-  var takenFeats = char ? (char.feats || []) : [];
+  let char = getCurrentChar();
+  let takenFeats = char ? (char.feats || []) : [];
 
   el.innerHTML = '<div class="feat-search-wrap"><input type="text" class="feat-search-inp" placeholder="🔍 Поиск черты..." oninput="filterFeatList(this.value)"></div>' +
     '<div class="feat-list" id="feat-list-items">' +
     FEATS_DATA.map(function(feat) {
-      var taken = takenFeats.some(function(f) { return f.id === feat.id; });
-      var selected = asiFeatSelected === feat.id;
+      let taken = takenFeats.some(function(f) { return f.id === feat.id; });
+      let selected = asiFeatSelected === feat.id;
       return '<div class="feat-item' + (selected ? " selected" : "") + (taken ? " taken" : "") + '" onclick="selectFeat(\'' + feat.id + '\')" data-name="' + escapeHtml(feat.name.toLowerCase()) + '">' +
         '<div class="feat-item-header">' +
           '<span class="feat-item-name">' + escapeHtml(feat.name) + '</span>' +
@@ -4766,9 +4765,9 @@ function buildFeatList() {
 }
 
 function filterFeatList(query) {
-  var q = query.toLowerCase();
+  let q = query.toLowerCase();
   document.querySelectorAll("#feat-list-items .feat-item").forEach(function(el) {
-    var name = el.dataset.name || "";
+    let name = el.dataset.name || "";
     el.style.display = name.includes(q) ? "" : "none";
   });
 }
@@ -4776,10 +4775,10 @@ function filterFeatList(query) {
 function selectFeat(id) {
   asiFeatSelected = asiFeatSelected === id ? null : id;
   buildFeatList();
-  var preview = $("asi-preview");
-  var applyBtn = $("asi-apply-btn");
+  let preview = $("asi-preview");
+  let applyBtn = $("asi-apply-btn");
   if (asiFeatSelected) {
-    var feat = FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
+    let feat = FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
     if (preview) { preview.textContent = "✅ Черта: " + feat.name; preview.className = "asi-preview ready"; }
     if (applyBtn) applyBtn.disabled = false;
   } else {
@@ -4789,20 +4788,20 @@ function selectFeat(id) {
 }
 
 function applyASI() {
-  var mode = getASIMode();
+  let mode = getASIMode();
   if (mode !== "feat") {
     // stat mode
     if (!currentId || asiSelectedStats.length === 0) return;
-    var char = getCurrentChar();
+    let char = getCurrentChar();
     if (!char) return;
-    var bonus = mode === "plus2" ? 2 : 1;
-    var statNames2 = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
+    let bonus = mode === "plus2" ? 2 : 1;
+    let statNames2 = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
     asiSelectedStats.forEach(function(k) {
       char.stats[k] = Math.min(20, (char.stats[k] || 10) + bonus);
       safeSet("val-" + k, char.stats[k]);
       updateStatDisplay(k);
     });
-    var msg = "📈 АСИ (ур." + (asiCurrentLevel||"?") + "): " + asiSelectedStats.map(function(k) { return statNames2[k] + " +" + bonus; }).join(", ");
+    let msg = "📈 АСИ (ур." + (asiCurrentLevel||"?") + "): " + asiSelectedStats.map(function(k) { return statNames2[k] + " +" + bonus; }).join(", ");
     // Mark ASI level as used
     if (asiCurrentLevel) {
       if (!char.asiUsedLevels) char.asiUsedLevels = [];
@@ -4810,7 +4809,7 @@ function applyASI() {
     }
     asiCurrentLevel = null;
     addJournalEntry("stat", msg);
-    saveToLocal(); calcStats(); recalculateHP(); calculateAC();
+    saveToLocalDebounced(); calcStats(); recalculateHP(); calculateAC();
     closeASIModal();
     updateClassFeatures();
     showHPToast(0, msg);
@@ -4819,17 +4818,17 @@ function applyASI() {
   }
 
   if (!asiFeatSelected || !currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
 
-  var feat = FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
+  let feat = FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
   if (!feat) return;
 
   if (!char.feats) char.feats = [];
 
   // Apply effects
-  var statNames = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
-  var appliedDesc = [];
+  let statNames = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
+  let appliedDesc = [];
 
   (feat.effects || []).forEach(function(eff) {
     if (eff.type === "stat") {
@@ -4840,7 +4839,7 @@ function applyASI() {
     }
     else if (eff.type === "stat_choice" || eff.type === "stat_choice_save") {
       // Pick first available stat that isn't at 20
-      var picked = eff.keys.find(function(k) { return (char.stats[k] || 10) < 20; });
+      let picked = eff.keys.find(function(k) { return (char.stats[k] || 10) < 20; });
       if (picked) {
         char.stats[picked] = Math.min(20, (char.stats[picked] || 10) + eff.value);
         safeSet("val-" + picked, char.stats[picked]);
@@ -4863,7 +4862,7 @@ function applyASI() {
     }
     else if (eff.type === "hp_per_level") {
       // Крепкий — +2 ХП за уровень ретроактивно
-      var bonus = eff.value * (char.level || 1);
+      let bonus = eff.value * (char.level || 1);
       char.combat.hpMax = (char.combat.hpMax || 10) + bonus;
       char.combat.hpCurrent = Math.min(char.combat.hpCurrent + bonus, char.combat.hpMax);
       appliedDesc.push("+" + bonus + " ХП (×" + (char.level||1) + " ур.)");
@@ -4878,7 +4877,7 @@ function applyASI() {
   // Record feat
   char.feats.push({ id: feat.id, name: feat.name, level: char.level });
 
-  saveToLocal();
+  saveToLocalDebounced();
   calcStats();
   recalculateHP();
   calculateAC();
@@ -4909,28 +4908,28 @@ function switchProfilesTab(tab, btn) {
   document.querySelectorAll(".ptab-btn").forEach(function(b) { b.classList.remove("active"); });
   document.querySelectorAll(".ptab-content").forEach(function(c) { c.style.display = "none"; });
   if (btn) btn.classList.add("active");
-  var el = $("ptab-" + tab);
+  let el = $("ptab-" + tab);
   if (el) el.style.display = "";
   if (tab === "changelog") renderChangelog();
 }
 
 function renderChangelog() {
-  var list = $("changelog-list");
+  let list = $("changelog-list");
   if (!list || typeof APP_CHANGELOG === "undefined") return;
 
-  var typeIcon  = { feat:"✨", fix:"🐛", improve:"⚡" };
-  var typeLabel = { feat:"Новое", fix:"Исправлено", improve:"Улучшено" };
-  var typeColor = { feat:"#4da843", fix:"#e74c3c", improve:"#5b9bd5" };
-  var badgeHtml = { new:'<span class="cl-badge cl-badge-new">НОВОЕ</span>' };
+  let typeIcon  = { feat:"✨", fix:"🐛", improve:"⚡" };
+  let typeLabel = { feat:"Новое", fix:"Исправлено", improve:"Улучшено" };
+  let typeColor = { feat:"#4da843", fix:"#e74c3c", improve:"#5b9bd5" };
+  let badgeHtml = { new:'<span class="cl-badge cl-badge-new">НОВОЕ</span>' };
 
   list.innerHTML = APP_CHANGELOG.map(function(ver, idx) {
-    var items = ver.changes.map(function(c) {
-      var icon  = typeIcon[c.type]  || "•";
-      var color = typeColor[c.type] || "#9a9ab0";
+    let items = ver.changes.map(function(c) {
+      let icon  = typeIcon[c.type]  || "•";
+      let color = typeColor[c.type] || "#9a9ab0";
       return '<div class="cl-item"><span class="cl-item-icon" style="color:' + color + '">' + icon + '</span><span class="cl-item-text">' + escapeHtml(c.text) + '</span></div>';
     }).join("");
 
-    var isLatest = idx === 0;
+    let isLatest = idx === 0;
     return '<div class="cl-version' + (isLatest ? " cl-version-latest" : "") + '">' +
       '<div class="cl-version-header">' +
         '<span class="cl-version-num">v' + escapeHtml(ver.version) + '</span>' +
@@ -4944,7 +4943,7 @@ function renderChangelog() {
 
 // Рендерим при старте
 (function() {
-  var versionBadge = $("app-version-badge");
+  let versionBadge = $("app-version-badge");
   if (versionBadge && typeof APP_VERSION !== "undefined") {
     versionBadge.textContent = "v" + APP_VERSION;
   }
@@ -4956,15 +4955,15 @@ function renderChangelog() {
 // ============================================================
 function renderTakenFeats() {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char) return;
 
-  var section = $("taken-feats-section");
-  var list    = $("taken-feats-list");
-  var count   = $("taken-feats-count");
+  let section = $("taken-feats-section");
+  let list    = $("taken-feats-list");
+  let count   = $("taken-feats-count");
   if (!section || !list) return;
 
-  var feats = char.feats || [];
+  let feats = char.feats || [];
   if (feats.length === 0) {
     section.style.display = "none";
     return;
@@ -4975,11 +4974,11 @@ function renderTakenFeats() {
 
   list.innerHTML = feats.map(function(f, i) {
     // Find feat data for description
-    var data = typeof FEATS_DATA !== "undefined"
+    let data = typeof FEATS_DATA !== "undefined"
       ? FEATS_DATA.find(function(d) { return d.id === f.id; })
       : null;
-    var desc = data ? data.desc : "";
-    var lvlBadge = f.level ? '<span class="feat-taken-lvl">ур. ' + f.level + '</span>' : "";
+    let desc = data ? data.desc : "";
+    let lvlBadge = f.level ? '<span class="feat-taken-lvl">ур. ' + f.level + '</span>' : "";
     return '<div class="feat-taken-card">' +
       '<div class="feat-taken-row">' +
         '<span class="feat-taken-icon">🎯</span>' +
@@ -4994,14 +4993,14 @@ function renderTakenFeats() {
 
 function removeFeat(i) {
   if (!currentId) return;
-  var char = getCurrentChar();
+  let char = getCurrentChar();
   if (!char || !char.feats) return;
-  var name = char.feats[i] ? char.feats[i].name : "черту";
+  let name = char.feats[i] ? char.feats[i].name : "черту";
   showConfirmModal("Убрать черту?",
     "«" + name + "» будет удалена из списка. Бонусы к характеристикам НЕ откатятся.",
     function() {
       char.feats.splice(i, 1);
-      saveToLocal();
+      saveToLocalDebounced();
       renderTakenFeats();
     }
   );
@@ -5009,12 +5008,12 @@ function removeFeat(i) {
 
 // ── Item Reference Modal ──
 function openItemRef(tab) {
-  var modal = $("item-ref-modal");
+  let modal = $("item-ref-modal");
   if (modal) modal.classList.add("active");
   switchItemRef(tab || 'weight', null);
 }
 function closeItemRef() {
-  var modal = $("item-ref-modal");
+  let modal = $("item-ref-modal");
   if (modal) modal.classList.remove("active");
 }
 function switchItemRef(tab, btnEl) {
@@ -5022,11 +5021,38 @@ function switchItemRef(tab, btnEl) {
     if (el) el.classList.add("hidden");
   });
   document.querySelectorAll(".item-ref-tab").forEach(function(b) { b.classList.remove("active"); });
-  var section = $("item-ref-" + tab);
+  let section = $("item-ref-" + tab);
   if (section) section.classList.remove("hidden");
   if (btnEl) btnEl.classList.add("active");
   else {
-    var btn = document.querySelector(".item-ref-tab[onclick*=\"'" + tab + "'\"]");
+    let btn = document.querySelector(".item-ref-tab[onclick*=\"'" + tab + "'\"]");
     if (btn) btn.classList.add("active");
   }
+}
+// ============================================
+// ПРОВЕРКА ОБНОВЛЕНИЙ (UPDATE CHECK)
+// ============================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js?v=22').then(registration => {
+      registration.onupdatefound = () => {
+        const installingWorker = registration.installing;
+        if (installingWorker == null) return;
+
+        installingWorker.onstatechange = () => {
+          if (installingWorker.state === 'installed') {
+            // Новый сервис-воркер установлен, но ещё не активен
+            if (navigator.serviceWorker.controller) {
+              // Есть активная старая версия -> показываем уведомление
+              if (confirm('Доступна новая версия приложения (2.0.0)! Перезагрузить страницу для применения обновлений? Ваши данные сохранены.')) {
+                window.location.reload();
+              }
+            }
+          }
+        };
+      };
+    }).catch(error => {
+      console.error('Ошибка регистрации SW:', error);
+    });
+  });
 }
