@@ -1,36 +1,39 @@
-const CACHE_NAME = 'dnd-cache-v22'; // Обновлено до v22 для форсирования обновления версии 2.0.0
-const urlsToCache = [
+// ============================================================
+// sw.js — Service Worker для офлайн-работы D&D Sheet
+// ============================================================
+
+const CACHE_NAME = 'dnd-sheet-v14';
+
+const FILES_TO_CACHE = [
   './',
   './index.html',
   './style.css',
-  './app.js',
   './data.js',
+  './app.js',
   './spells.js',
-  './state.js',
-  './manifest.json'
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
-// Установка Service Worker
-self.addEventListener('install', event => {
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[SW] Кешируем файлы...');
+      return cache.addAll(FILES_TO_CACHE);
+    })
   );
-  self.skipWaiting();
+  // НЕ вызываем skipWaiting() — ждём команды от пользователя через модалку
 });
 
-// Активация и удаление старых кэшей
-self.addEventListener('activate', event => {
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
+    caches.keys().then((keyList) => {
       return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
+        keyList.map((key) => {
+          if (key !== CACHE_NAME) {
+            console.log('[SW] Удаляем старый кеш:', key);
+            return caches.delete(key);
           }
         })
       );
@@ -39,15 +42,31 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Перехват запросов
-self.addEventListener('fetch', event => {
+// Получаем команду "Установить" от пользователя
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+self.addEventListener('fetch', (event) => {
+  const url = event.request.url;
+  if (!url.startsWith('http://') && !url.startsWith('https://')) return;
+
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
+    caches.match(event.request).then((response) => {
+      if (response) return response;
+      return fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
         }
-        return fetch(event.request);
-      })
+        return networkResponse;
+      }).catch(() => {
+        return caches.match('./index.html');
+      });
+    })
   );
 });
