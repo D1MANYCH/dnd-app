@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dnd-cache-v15'; // Было v14 -> стало v15
+const CACHE_NAME = 'dnd-cache-v20'; // Обновлено до v20 для форсирования обновления
 const urlsToCache = [
   './',
   './index.html',
@@ -19,7 +19,6 @@ self.addEventListener('install', event => {
         return cache.addAll(urlsToCache);
       })
   );
-  // Активируем новый SW сразу
   self.skipWaiting();
 });
 
@@ -37,7 +36,6 @@ self.addEventListener('activate', event => {
       );
     })
   );
-  // Заявляем о праве контролировать все страницы сразу
   self.clients.claim();
 });
 
