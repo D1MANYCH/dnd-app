@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dnd-cache-v21'; // Обновлено до v21 для форсирования обновления
+const CACHE_NAME = 'dnd-cache-v22'; // Обновлено до v22 для форсирования обновления версии 2.0.0
 const urlsToCache = [
   './',
   './index.html',
