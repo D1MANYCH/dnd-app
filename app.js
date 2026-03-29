@@ -21,7 +21,7 @@ function debounce(fn, delay) {
   };
 }
 /** Отложенное сохранение — не чаще одного раза в 300мс */
-let saveToLocalDebounced = debounce(function() { saveToLocal(); }, 300);
+let saveToLocalDebounced = debounce(function() { saveToLocalDebounced(); }, 300);
 // SPELL_DATABASE — объединение встроенной базы (spells.js) и пользовательских добавлений из localStorage
 // SPELLS_BASE определён в spells.js и загружается до app.js
 let SPELL_DATABASE = (typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.slice() : [];
@@ -189,7 +189,7 @@ function applyAvatar(src) {
   if (!char) return;
   char.avatar = src;
   char.updatedAt = Date.now();
-  saveToLocal();
+  saveToLocalDebounced();
   // Обновить превью в модалке
   const preview = $("avatar-modal-preview");
   if (preview) preview.innerHTML = "<img src=\"" + src + "\" alt=\"Аватар\">";
@@ -208,7 +208,7 @@ function removeAvatar(event) {
   if (!char) return;
   char.avatar = null;
   char.updatedAt = Date.now();
-  saveToLocal();
+  saveToLocalDebounced();
   const preview = $("avatar-modal-preview");
   if (preview) preview.innerHTML = "<span class=\"avatar-modal-placeholder\">" + getClassIcon(char.class) + "</span>";
   renderSheetAvatar();
@@ -438,7 +438,7 @@ if (conditionEl) conditionEl.classList.add("active");
 updateConditionsCount();
 updateStatusBar();
 calculateAC();
-saveToLocal();
+saveToLocalDebounced();
 }
 function updateConditionsCount() {
 if (!currentId) return;
@@ -494,7 +494,7 @@ if (effectEl) effectEl.classList.add("active");
 updateEffectsCount();
 updateStatusBar();
 calculateAC();
-saveToLocal();
+saveToLocalDebounced();
 }
 function updateEffectsCount() {
 if (!currentId) return;
@@ -657,7 +657,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 char.inspiration = !char.inspiration;
-saveToLocal();
+saveToLocalDebounced();
 updateStatusBar();
 showToast(char.inspiration ? "✨ Вдохновение получено!" : "✨ Вдохновение использовано", char.inspiration ? "success" : "info");
 }
@@ -689,7 +689,7 @@ if (!spellData && currentId) {
 }
 char.concentration = spellName || null;
 char.concentrationData = spellData ? { duration: spellData.duration, desc: spellData.desc } : null;
-saveToLocal();
+saveToLocalDebounced();
 updateConcentrationDisplay();
 if (spellName) showToast("🔮 Концентрация: " + spellName, "info");
 }
@@ -734,7 +734,7 @@ const char = getCurrentChar();
 if (!char) return;
 const name = char.concentration;
 char.concentration = null;
-saveToLocal();
+saveToLocalDebounced();
 updateConcentrationDisplay();
 if (name) showToast("🔮 Концентрация на «" + name + "» завершена", "info");
 }
@@ -1127,7 +1127,7 @@ if (char.combat.hpCurrent > newMaxHP) {
 char.combat.hpCurrent = newMaxHP;
 safeSet("hp-current", newMaxHP);
 }
-saveToLocal();
+saveToLocalDebounced();
 updateStatusBar();
 updateHPDisplay();
 }
@@ -1142,7 +1142,7 @@ for (let i = 1; i <= 9; i++) {
   newChar.spells.slotsUsed[i] = 0;
 }
 characters.push(newChar);
-saveToLocal();
+saveToLocalDebounced();
 loadCharacter(newChar.id);
 }
 function getClassColor(cls) {
@@ -1197,7 +1197,7 @@ copy.id = Date.now();
 copy.name = (orig.name || "Без имени") + " (копия)";
 copy.updatedAt = Date.now();
 characters.push(copy);
-saveToLocal();
+saveToLocalDebounced();
 renderCharacterList();
 }
 function exportOneCharacter(id, event) {
@@ -1238,7 +1238,7 @@ let tgtIdx = characters.findIndex(function(c) { return c.id === targetId; });
 if (srcIdx < 0 || tgtIdx < 0) return;
 let moved = characters.splice(srcIdx, 1)[0];
 characters.splice(tgtIdx, 0, moved);
-saveToLocal();
+saveToLocalDebounced();
 renderCharacterList();
 }
 function renderCharacterList() {
@@ -1315,7 +1315,7 @@ showConfirmModal(
   "«" + name + "» будет удалён без возможности восстановления.",
   function() {
     characters = characters.filter(function(c) { return c.id !== id; });
-    saveToLocal();
+    saveToLocalDebounced();
     renderCharacterList();
   }
 );
@@ -1570,7 +1570,7 @@ const index = char.proficiencies.weapon.indexOf(value);
 if (index > -1) char.proficiencies.weapon.splice(index, 1);
 }
 }
-saveToLocal();
+saveToLocalDebounced();
 }
 function calcStats() {
 if (!currentId) return;
@@ -1629,7 +1629,7 @@ calcSpellStats();
 // Обновляем updatedAt при любом изменении характеристик
 const charForUpdate = getCurrentChar();
 if (charForUpdate) { charForUpdate.updatedAt = Date.now(); }
-saveToLocal();
+saveToLocalDebounced();
 }
 function setSpellStat(stat) {
 const char = getCurrentChar();
@@ -1638,7 +1638,7 @@ char.spells.stat = stat;
 // sync hidden select if needed
 const sel = $("spell-stat");
 if (sel) sel.value = stat;
-saveToLocal();
+saveToLocalDebounced();
 calcSpellStats();
 }
 function calcSpellStats() {
@@ -1675,7 +1675,7 @@ if (stat === "ХАР" && $("sc-btn-cha")) $("sc-btn-cha").classList.add("active"
 char.spells.dc = dc;
 char.spells.attack = attack;
 char.spells.mod = statMod;
-saveToLocal();
+saveToLocalDebounced();
 }
 
 // ============================================
@@ -1713,7 +1713,7 @@ function onRaceChange() {
     if (char) {
       char.speed        = speedVal;
       char.combat.speed = speedVal;
-      saveToLocal();
+      saveToLocalDebounced();
     }
   }
 }
@@ -1774,7 +1774,7 @@ function onArmorChange() {
   $("ac-total").textContent = ac;
   $("ac-formula").textContent = preset.name + ": " + preset.baseAC + (dexBonus !== 0 ? (dexBonus > 0 ? " +" : " ") + dexBonus + " (ЛОВ)" : "") + (hasShield ? " +2 (щит)" : "");
   $("status-ac").textContent = ac;
-  saveToLocal();
+  saveToLocalDebounced();
   updateStatusBar();
 }
 
@@ -1798,7 +1798,7 @@ function onManualMaxHP() {
     char.combat.hpCurrent = val;
     safeSet("hp-current", val);
   }
-  saveToLocal();
+  saveToLocalDebounced();
   updateHPDisplay();
 }
 
@@ -1964,7 +1964,7 @@ addJournalEntry("rest", "Долгий отдых — новая сессия", "
 renderJournal();
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div><p>✨ Ячейки заклинаний: восстановлены</p><p>🎲 Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p><p>⚠️ Условия и эффекты: сняты</p>";
 }
-saveToLocal();
+saveToLocalDebounced();
 loadCharacter(currentId);
 showRestResult(resultTitle, resultDetails);
 }
@@ -2059,7 +2059,7 @@ char.spells.slots[i] = slots[i] || 0;
 char.spells.slotsUsed[i] = 0;
 }
 }
-saveToLocal();
+saveToLocalDebounced();
 loadCharacter(currentId);
 updateClassFeatures();
 renderClassResources();
@@ -2462,7 +2462,7 @@ showConfirmModal(
     const c = characters.find(function(ch) { return ch.id === currentId; });
     if (!c) return;
     c.inventory[category].splice(index, 1);
-    saveToLocal();
+    saveToLocalDebounced();
     renderInventory();
   }
 );
@@ -2576,7 +2576,7 @@ char.inventory[category][slotIndex] = newItem;
 } else {
 char.inventory[category].push(newItem);
 }
-saveToLocal();
+saveToLocalDebounced();
 closeItemModal();
 renderInventory();
 }
@@ -2628,7 +2628,7 @@ showConfirmModal(
     const c = characters.find(function(ch) { return ch.id === currentId; });
     if (!c) return;
     c.inventory[capturedItem.category].splice(capturedItem.index, 1);
-    saveToLocal();
+    saveToLocalDebounced();
     renderInventory();
   }
 );
@@ -2696,7 +2696,7 @@ type: $("new-weapon-type")?.value || "",
 range: $("new-weapon-range")?.value || "",
 notes: $("new-weapon-notes")?.value || ""
 });
-saveToLocal();
+saveToLocalDebounced();
 closeWeaponModal();
 renderWeapons();
 }
@@ -2823,7 +2823,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 char.weapons.splice(index, 1);
-saveToLocal();
+saveToLocalDebounced();
 renderWeapons();
 }
 function renderSpellSlots() {
@@ -2865,7 +2865,7 @@ char.spells.slots[level] = parseInt(value) || 0;
 if (char.spells.slotsUsed[level] > char.spells.slots[level]) {
 char.spells.slotsUsed[level] = char.spells.slots[level];
 }
-saveToLocal();
+saveToLocalDebounced();
 renderSpellSlots();
 }
 function toggleSpellSlot(level, index) {
@@ -2875,7 +2875,7 @@ if (!char) return;
 if (!char.spells.slotsUsed[level]) char.spells.slotsUsed[level] = 0;
 if (index < char.spells.slotsUsed[level]) char.spells.slotsUsed[level] = index;
 else char.spells.slotsUsed[level] = index + 1;
-saveToLocal();
+saveToLocalDebounced();
 renderSpellSlots();
 }
 function adjustSpellSlots(level, delta) {
@@ -2892,7 +2892,7 @@ char.spells.slots[level] = newValue;
 if (char.spells.slotsUsed[level] > newValue) {
 char.spells.slotsUsed[level] = newValue;
 }
-saveToLocal();
+saveToLocalDebounced();
 renderSpellSlots();
 }
 function restoreAllSlots() {
@@ -2900,7 +2900,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 for(let i=1; i<=9; i++) { char.spells.slotsUsed[i] = 0; }
-saveToLocal();
+saveToLocalDebounced();
 renderSpellSlots();
 showToast("Ячейки заклинаний восстановлены!", "success");
 }
@@ -2961,7 +2961,7 @@ desc: desc,
 higherLevel: $("new-spell-higher")?.value?.trim() || ""
 };
 SPELL_DATABASE.push(newSpell);
-saveToLocal();
+saveToLocalDebounced();
 closeAddSpellForm();
 showToast("Заклинание добавлено!", "success");
 renderSpellSearch();
@@ -3022,7 +3022,7 @@ if (!spell) return;
 if (!char.spells.mySpells) char.spells.mySpells = [];
 if (!char.spells.mySpells.some(function(s) { return s.id === spellId; })) {
 char.spells.mySpells.push(spell);
-saveToLocal();
+saveToLocalDebounced();
 renderSpellSearch();
 renderMySpells();
 }
@@ -3031,7 +3031,7 @@ function removeSpell(spellId) {
 const char = getCurrentChar();
 if (!char) return;
 char.spells.mySpells = char.spells.mySpells.filter(function(s) { return s.id !== spellId; });
-saveToLocal();
+saveToLocalDebounced();
 renderSpellSearch();
 renderMySpells();
 }
@@ -3122,7 +3122,7 @@ try {
 const imported = JSON.parse(e.target.result);
 if (Array.isArray(imported)) {
 characters = imported;
-saveToLocal();
+saveToLocalDebounced();
 renderCharacterList();
 showToast("Данные загружены!", "success");
 } else {
@@ -3152,7 +3152,7 @@ try {
 const imported = JSON.parse(e.target.result);
 if (Array.isArray(imported)) {
 SPELL_DATABASE = imported;
-saveToLocal();
+saveToLocalDebounced();
 showToast("Заклинаний загружено: " + imported.length, "success");
 } else {
 showToast("Ошибка: неверный формат файла", "error");
@@ -3220,7 +3220,7 @@ char.deathSaves.successes[index] = !char.deathSaves.successes[index];
 } else {
 char.deathSaves.failures[index] = !char.deathSaves.failures[index];
 }
-saveToLocal();
+saveToLocalDebounced();
 loadDeathSaves();
 }
 
@@ -3229,7 +3229,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
-saveToLocal();
+saveToLocalDebounced();
 loadDeathSaves();
 }
 
@@ -3331,7 +3331,7 @@ if (actualDelta !== 0) {
 addHPHistory(hpBefore, hpCurrent, actualDelta, source || (delta < 0 ? "Урон" : "Лечение"));
 showHPToast(actualDelta);
 }
-saveToLocal();
+saveToLocalDebounced();
 updateHPDisplay();
 }
 
@@ -3436,7 +3436,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 char.combat.hpTemp = parseInt($("hp-temp")?.value) || 0;
-saveToLocal();
+saveToLocalDebounced();
 updateHPDisplay();
 }
 
@@ -3461,7 +3461,7 @@ const conMod = getMod(char.stats.con);
 const heal = Math.max(1, roll + conMod);
 char.combat.hpCurrent = Math.min(char.combat.hpCurrent + heal, char.combat.hpMax);
 char.combat.hpDiceSpent = spent + 1;
-saveToLocal();
+saveToLocalDebounced();
 updateHPDisplay();
 if (resultEl) {
 const conStr = conMod === 0 ? "" : (conMod > 0 ? " +" + conMod : " " + conMod);
@@ -3495,7 +3495,7 @@ let msg = "";
 let isSuccess = false;
 if (roll === 20) {
 char.combat.hpCurrent = 1;
-saveToLocal();
+saveToLocalDebounced();
 updateHPDisplay();
 msg = "20 — стабилизирован! (+1 ХП)";
 isSuccess = true;
@@ -3524,7 +3524,7 @@ if (resultEl) {
 resultEl.textContent = msg;
 resultEl.className = "ds-roll-result " + (isSuccess ? "ds-result-ok" : "ds-result-fail");
 }
-saveToLocal();
+saveToLocalDebounced();
 loadDeathSaves();
 }
 
@@ -3646,12 +3646,12 @@ function getMonsterTypeIcon(type) { return MONSTER_TYPE_ICONS[type] || "👾"; }
 function saveParty() {
   if (!currentId) { try { localStorage.setItem("dnd_party", JSON.stringify(PARTY_DATA)); } catch(e) {} return; }
   let char = getCurrentChar();
-  if (char) { char.party = PARTY_DATA; saveToLocal(); }
+  if (char) { char.party = PARTY_DATA; saveToLocalDebounced(); }
 }
 function saveBattle() {
   if (!currentId) { try { localStorage.setItem("dnd_battle", JSON.stringify(BATTLE_DATA)); } catch(e) {} return; }
   let char = getCurrentChar();
-  if (char) { char.battle = BATTLE_DATA; saveToLocal(); }
+  if (char) { char.battle = BATTLE_DATA; saveToLocalDebounced(); }
 }
 
 // ─── helpers ─────────────────────────────────────────────────
@@ -4277,7 +4277,7 @@ function spendResource(id, delta) {
   used = Math.min(max, Math.max(0, used + delta));
   char.resources[id] = used;
   if (navigator.vibrate) navigator.vibrate(8);
-  saveToLocal();
+  saveToLocalDebounced();
   renderClassResources();
 }
 
@@ -4287,7 +4287,7 @@ function resetResource(id) {
   if (!char) return;
   initCharResources(char);
   char.resources[id] = 0;
-  saveToLocal();
+  saveToLocalDebounced();
   renderClassResources();
 }
 
@@ -4312,7 +4312,7 @@ function toggleResourcePip(id, pipIdx) {
   }
   char.resources[id] = used;
   if (navigator.vibrate) navigator.vibrate(8);
-  saveToLocal();
+  saveToLocalDebounced();
   renderClassResources();
 }
 
@@ -4332,7 +4332,7 @@ function resetResourcesByRest(restType) {
       char.resources[res.id] = 0;
     }
   });
-  saveToLocal();
+  saveToLocalDebounced();
   renderClassResources();
 }
 
@@ -4531,7 +4531,7 @@ function addJournalEntry(type, text, details) {
     level: char.level || 1
   });
   if (journal.length > 200) journal.pop();
-  saveToLocal();
+  saveToLocalDebounced();
 }
 
 let journalFilter = "all";
@@ -4579,7 +4579,7 @@ function deleteJournalEntry(id) {
   let char = getCurrentChar();
   if (!char || !char.journal) return;
   char.journal = char.journal.filter(function(e) { return e.id !== id; });
-  saveToLocal();
+  saveToLocalDebounced();
   renderJournal();
 }
 
@@ -4666,7 +4666,7 @@ function companionHP(i, delta) {
   if (!companions[i]) return;
   companions[i].hpCurrent = Math.max(0, Math.min(companions[i].hpMax, (companions[i].hpCurrent || 0) + delta));
   if (navigator.vibrate) navigator.vibrate(8);
-  saveToLocal();
+  saveToLocalDebounced();
   renderCompanions();
 }
 
@@ -4721,7 +4721,7 @@ function saveCompanion() {
     status: "healthy"
   };
   if (idx >= 0) companions[idx] = data; else companions.push(data);
-  saveToLocal();
+  saveToLocalDebounced();
   renderCompanions();
   closeAddCompanionModal();
 }
@@ -4732,7 +4732,7 @@ function deleteCompanion(i) {
   let name = char.companions[i] ? char.companions[i].name : "прихвостня";
   showConfirmModal("Удалить прихвостня?", "«" + name + "» будет удалён.", function() {
     char.companions.splice(i, 1);
-    saveToLocal();
+    saveToLocalDebounced();
     renderCompanions();
   });
 }
@@ -4809,7 +4809,7 @@ function applyASI() {
     }
     asiCurrentLevel = null;
     addJournalEntry("stat", msg);
-    saveToLocal(); calcStats(); recalculateHP(); calculateAC();
+    saveToLocalDebounced(); calcStats(); recalculateHP(); calculateAC();
     closeASIModal();
     updateClassFeatures();
     showHPToast(0, msg);
@@ -4877,7 +4877,7 @@ function applyASI() {
   // Record feat
   char.feats.push({ id: feat.id, name: feat.name, level: char.level });
 
-  saveToLocal();
+  saveToLocalDebounced();
   calcStats();
   recalculateHP();
   calculateAC();
@@ -5000,7 +5000,7 @@ function removeFeat(i) {
     "«" + name + "» будет удалена из списка. Бонусы к характеристикам НЕ откатятся.",
     function() {
       char.feats.splice(i, 1);
-      saveToLocal();
+      saveToLocalDebounced();
       renderTakenFeats();
     }
   );
