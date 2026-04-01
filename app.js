@@ -789,29 +789,17 @@ if (statusHpEl) {
   else if (hpPercent <= 50) statusHpEl.classList.add("hp-low");
   else statusHpEl.classList.add("hp-ok");
 }
-const conditionsContainer = $("status-conditions");
-conditionsContainer.innerHTML = "";
-if (char.conditions && char.conditions.length > 0) {
-char.conditions.forEach(function(condId) {
-const condition = CONDITIONS.find(function(c) { return c.id === condId; });
-if (condition) {
-const badge = document.createElement("span");
-badge.className = "condition-badge" + (condition.type ? " " + condition.type : "");
-badge.textContent = condition.name.split(' ')[1] || condition.name;
-conditionsContainer.appendChild(badge);
-}
-});
-}
-if (char.effects && char.effects.length > 0) {
-char.effects.forEach(function(effectId) {
-const effect = EFFECTS_DATA.find(function(e) { return e.id === effectId; });
-if (effect) {
-const badge = document.createElement("span");
-badge.className = "condition-badge" + (effect.type ? " " + effect.type : "");
-badge.textContent = effect.name.split(' ')[1] || effect.name;
-conditionsContainer.appendChild(badge);
-}
-});
+// Счётчик состояний — кнопка в статус-баре
+var totalConditions = (char.conditions ? char.conditions.length : 0) + (char.effects ? char.effects.length : 0);
+var condBtn = $("status-conditions-btn");
+var condCount = $("conditions-btn-count");
+if (condBtn) {
+  if (totalConditions > 0) {
+    condBtn.classList.remove("hidden");
+    if (condCount) condCount.textContent = totalConditions;
+  } else {
+    condBtn.classList.add("hidden");
+  }
 }
 // Вдохновение
 const inspiEl = $("status-inspiration");
@@ -851,6 +839,7 @@ if (screenName === "characters") {
 if (charactersScreen) charactersScreen.classList.remove("hidden");
 closeDrawer();
 currentId = null;
+updateHeaderTitle();
 renderCharacterList();
 } else {
 if (characterScreen) characterScreen.classList.remove("hidden");
@@ -861,15 +850,34 @@ updateStatusBar();
 }
 }
 function updateHeaderTitle() {
+var avatarEl = $("header-avatar");
+var subtitleEl = $("header-subtitle");
 if (!currentId) {
-$("header-title").textContent = "🎭 Мой Персонаж D&D 5e";
-return;
+  $("header-title").textContent = "Мой Персонаж D&D 5e";
+  if (avatarEl) avatarEl.innerHTML = "🎭";
+  if (subtitleEl) subtitleEl.textContent = "";
+  return;
 }
-const char = getCurrentChar();
+var char = getCurrentChar();
 if (char && char.name) {
-$("header-title").textContent = "🎭 " + escapeHtml(char.name);
+  $("header-title").textContent = escapeHtml(char.name);
 } else {
-$("header-title").textContent = "🎭 Мой Персонаж D&D 5e";
+  $("header-title").textContent = "Мой Персонаж D&D 5e";
+}
+if (avatarEl) {
+  if (char && char.avatar) {
+    avatarEl.innerHTML = "<img src=\"" + char.avatar + "\" alt=\"\">";
+  } else {
+    avatarEl.innerHTML = char ? getClassIcon(char.class) : "🎭";
+  }
+}
+if (subtitleEl && char) {
+  var parts = [];
+  if (char.class) parts.push(char.class);
+  if (char.race) parts.push(char.race);
+  subtitleEl.textContent = parts.join(" · ");
+} else if (subtitleEl) {
+  subtitleEl.textContent = "";
 }
 }
 function switchTab(tabName, btnEl) {
@@ -5028,5 +5036,54 @@ function switchItemRef(tab, btnEl) {
   else {
     var btn = document.querySelector(".item-ref-tab[onclick*=\"'" + tab + "'\"]");
     if (btn) btn.classList.add("active");
+  }
+}
+
+// ── Попап активных состояний ──
+function toggleConditionsPopup() {
+  var overlay = $("conditions-popup-overlay");
+  var popup = $("conditions-popup");
+  if (!overlay || !popup) return;
+  if (popup.classList.contains("hidden")) {
+    renderConditionsPopup();
+    overlay.classList.remove("hidden");
+    popup.classList.remove("hidden");
+  } else {
+    closeConditionsPopup();
+  }
+}
+function closeConditionsPopup() {
+  var overlay = $("conditions-popup-overlay");
+  var popup = $("conditions-popup");
+  if (overlay) overlay.classList.add("hidden");
+  if (popup) popup.classList.add("hidden");
+}
+function renderConditionsPopup() {
+  var list = $("conditions-popup-list");
+  if (!list) return;
+  list.innerHTML = "";
+  var char = getCurrentChar();
+  if (!char) return;
+  if (char.conditions && char.conditions.length > 0) {
+    char.conditions.forEach(function(condId) {
+      var condition = CONDITIONS.find(function(c) { return c.id === condId; });
+      if (condition) {
+        var badge = document.createElement("span");
+        badge.className = "condition-badge" + (condition.type ? " " + condition.type : "");
+        badge.textContent = condition.name.split(' ')[1] || condition.name;
+        list.appendChild(badge);
+      }
+    });
+  }
+  if (char.effects && char.effects.length > 0) {
+    char.effects.forEach(function(effectId) {
+      var effect = EFFECTS_DATA.find(function(e) { return e.id === effectId; });
+      if (effect) {
+        var badge = document.createElement("span");
+        badge.className = "condition-badge" + (effect.type ? " " + effect.type : "");
+        badge.textContent = effect.name.split(' ')[1] || effect.name;
+        list.appendChild(badge);
+      }
+    });
   }
 }

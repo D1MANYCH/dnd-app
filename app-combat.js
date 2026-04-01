@@ -539,30 +539,17 @@ if (statusHpEl) {
   else if (hpPercent <= 50) statusHpEl.classList.add("hp-low");
   else statusHpEl.classList.add("hp-ok");
 }
-const conditionsContainer = $("status-conditions");
-if (!conditionsContainer) return;
-conditionsContainer.innerHTML = "";
-if (char.conditions && char.conditions.length > 0) {
-char.conditions.forEach(function(condId) {
-const condition = CONDITIONS.find(function(c) { return c.id === condId; });
-if (condition) {
-const badge = document.createElement("span");
-badge.className = "condition-badge" + (condition.type ? " " + condition.type : "");
-badge.textContent = condition.name.split(' ')[1] || condition.name;
-conditionsContainer.appendChild(badge);
-}
-});
-}
-if (char.effects && char.effects.length > 0) {
-char.effects.forEach(function(effectId) {
-const effect = EFFECTS_DATA.find(function(e) { return e.id === effectId; });
-if (effect) {
-const badge = document.createElement("span");
-badge.className = "condition-badge" + (effect.type ? " " + effect.type : "");
-badge.textContent = effect.name.split(' ')[1] || effect.name;
-conditionsContainer.appendChild(badge);
-}
-});
+// Счётчик состояний — кнопка в статус-баре
+var totalConditions = (char.conditions ? char.conditions.length : 0) + (char.effects ? char.effects.length : 0);
+var condBtn = $("status-conditions-btn");
+var condCount = $("conditions-btn-count");
+if (condBtn) {
+  if (totalConditions > 0) {
+    condBtn.classList.remove("hidden");
+    if (condCount) condCount.textContent = totalConditions;
+  } else {
+    condBtn.classList.add("hidden");
+  }
 }
 // Вдохновение
 const inspiEl = $("status-inspiration");
@@ -1075,4 +1062,53 @@ const weight = (totalCoins / 50).toFixed(2);
 const coinWeightEl = $("coin-weight");
 if (coinWeightEl) coinWeightEl.innerText = "Вес монет: " + weight + " фнт";
 updateInventoryWeight();
+}
+
+// ── Попап активных состояний ──
+function toggleConditionsPopup() {
+  var overlay = $("conditions-popup-overlay");
+  var popup = $("conditions-popup");
+  if (!overlay || !popup) return;
+  if (popup.classList.contains("hidden")) {
+    renderConditionsPopup();
+    overlay.classList.remove("hidden");
+    popup.classList.remove("hidden");
+  } else {
+    closeConditionsPopup();
+  }
+}
+function closeConditionsPopup() {
+  var overlay = $("conditions-popup-overlay");
+  var popup = $("conditions-popup");
+  if (overlay) overlay.classList.add("hidden");
+  if (popup) popup.classList.add("hidden");
+}
+function renderConditionsPopup() {
+  var list = $("conditions-popup-list");
+  if (!list) return;
+  list.innerHTML = "";
+  var char = getCurrentChar();
+  if (!char) return;
+  if (char.conditions && char.conditions.length > 0) {
+    char.conditions.forEach(function(condId) {
+      var condition = CONDITIONS.find(function(c) { return c.id === condId; });
+      if (condition) {
+        var badge = document.createElement("span");
+        badge.className = "condition-badge" + (condition.type ? " " + condition.type : "");
+        badge.textContent = condition.name.split(' ')[1] || condition.name;
+        list.appendChild(badge);
+      }
+    });
+  }
+  if (char.effects && char.effects.length > 0) {
+    char.effects.forEach(function(effectId) {
+      var effect = EFFECTS_DATA.find(function(e) { return e.id === effectId; });
+      if (effect) {
+        var badge = document.createElement("span");
+        badge.className = "condition-badge" + (effect.type ? " " + effect.type : "");
+        badge.textContent = effect.name.split(' ')[1] || effect.name;
+        list.appendChild(badge);
+      }
+    });
+  }
 }

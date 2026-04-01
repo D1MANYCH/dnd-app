@@ -172,6 +172,7 @@ if (screenName === "characters") {
 if (charactersScreen) charactersScreen.classList.remove("hidden");
 closeDrawer();
 currentId = null;
+updateHeaderTitle();
 renderCharacterList();
 } else {
 if (characterScreen) characterScreen.classList.remove("hidden");
@@ -182,15 +183,34 @@ updateStatusBar();
 }
 }
 function updateHeaderTitle() {
+var avatarEl = $("header-avatar");
+var subtitleEl = $("header-subtitle");
 if (!currentId) {
-$("header-title").textContent = "🎭 Мой Персонаж D&D 5e";
-return;
+  $("header-title").textContent = "Мой Персонаж D&D 5e";
+  if (avatarEl) avatarEl.innerHTML = "🎭";
+  if (subtitleEl) subtitleEl.textContent = "";
+  return;
 }
-const char = getCurrentChar();
+var char = getCurrentChar();
 if (char && char.name) {
-$("header-title").textContent = "🎭 " + escapeHtml(char.name);
+  $("header-title").textContent = escapeHtml(char.name);
 } else {
-$("header-title").textContent = "🎭 Мой Персонаж D&D 5e";
+  $("header-title").textContent = "Мой Персонаж D&D 5e";
+}
+if (avatarEl) {
+  if (char && char.avatar) {
+    avatarEl.innerHTML = "<img src=\"" + char.avatar + "\" alt=\"\">";
+  } else {
+    avatarEl.innerHTML = char ? getClassIcon(char.class) : "🎭";
+  }
+}
+if (subtitleEl && char) {
+  var parts = [];
+  if (char.class) parts.push(char.class);
+  if (char.race) parts.push(char.race);
+  subtitleEl.textContent = parts.join(" · ");
+} else if (subtitleEl) {
+  subtitleEl.textContent = "";
 }
 }
 function switchTab(tabName, btnEl) {

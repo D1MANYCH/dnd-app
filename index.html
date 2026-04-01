@@ -20,21 +20,35 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <body>
 <!-- ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА -->
 <div class="status-bar" id="status-bar">
-<div class="status-left">
-<div class="status-level">⭐ Ур. <span id="status-level">1</span></div>
-<div class="status-hp">❤️ <span class="hp-current" id="status-hp-current">10</span><span class="hp-max">/<span id="status-hp-max">10</span></span></div>
-<div class="status-ac">🛡️ КД <span id="status-ac">10</span></div>
-<div class="status-inspiration" id="status-inspiration" onclick="toggleInspiration()" title="Вдохновение — нажмите чтобы переключить">
-  <span class="inspi-icon">✨</span><span class="inspi-label">Вдохновение</span>
+<div class="status-top-row">
+  <div class="status-badges">
+    <div class="status-level">⭐ Ур. <span id="status-level">1</span></div>
+    <div class="status-hp">❤️ <span class="hp-current" id="status-hp-current">10</span><span class="hp-max">/<span id="status-hp-max">10</span></span></div>
+    <div class="status-ac">🛡️ КД <span id="status-ac">10</span></div>
+  </div>
+  <div class="status-inspiration" id="status-inspiration" onclick="toggleInspiration()" title="Вдохновение">
+    <span class="inspi-icon">✨</span><span class="inspi-label">Вдохновение</span>
+  </div>
+  <div class="status-concentration hidden" id="status-concentration" onclick="openConcDetails()" title="Концентрация">
+    <span class="conc-status-icon">🔮</span><span class="conc-status-name" id="status-conc-name">—</span>
+  </div>
+  <div class="status-top-right">
+    <div class="status-conditions-btn hidden" id="status-conditions-btn" onclick="toggleConditionsPopup()">
+      <span class="conditions-btn-icon">⚡</span><span class="conditions-btn-count" id="conditions-btn-count">0</span>
+    </div>
+    <button class="nav-hamburger hidden" id="nav-hamburger" onclick="openDrawer()">☰</button>
+  </div>
 </div>
-<div class="status-concentration hidden" id="status-concentration" onclick="openConcDetails()" title="Концентрация — нажмите для деталей">
-  <span class="conc-status-icon">🔮</span><span class="conc-status-name" id="status-conc-name">—</span>
 </div>
-</div>
-<div class="status-right">
-<div class="status-conditions" id="status-conditions"></div>
-<button class="nav-hamburger hidden" id="nav-hamburger" onclick="openDrawer()">☰</button>
-</div>
+
+<!-- Попап активных состояний -->
+<div class="conditions-popup-overlay hidden" id="conditions-popup-overlay" onclick="closeConditionsPopup()"></div>
+<div class="conditions-popup hidden" id="conditions-popup">
+  <div class="conditions-popup-header">
+    <span>Активные состояния</span>
+    <button class="conditions-popup-close" onclick="closeConditionsPopup()">✕</button>
+  </div>
+  <div class="conditions-popup-list" id="conditions-popup-list"></div>
 </div>
 
 <!-- Drawer overlay -->
@@ -57,7 +71,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </nav>
 </div>
 <header>
-<h2 class="header-title" id="header-title">🎭 Мой Персонаж D&D 5e</h2>
+<div class="header-avatar" id="header-avatar">🎭</div>
+<div class="header-info">
+  <h2 class="header-title" id="header-title">Мой Персонаж D&D 5e</h2>
+  <span class="header-subtitle" id="header-subtitle"></span>
+</div>
 </header>
 <div class="container">
 <!-- Floating Buttons -->
@@ -111,7 +129,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div id="screen-character" class="hidden">
 <div class="back-btn-container">
-<button class="back-btn" onclick="showScreen('characters')">← Назад к профилям</button>
+<button class="back-btn" onclick="showScreen('characters')" title="Назад к профилям">←</button>
 </div>
 <div id="tab-sheet" class="tab-content active">
 <div class="card">
