@@ -145,6 +145,7 @@ initConditions();
 initEffects();
 renderCharacterList();
 renderWeaponPresets();
+updateVersionBlock(false);
 };
 
 function saveToLocal() {
@@ -768,5 +769,34 @@ modal.classList.add("active");
 function closeHPHistory() {
 const modal = $("hp-history-modal");
 if (modal) modal.classList.remove("active");
+}
+
+// ── Блок статуса версии ──
+function updateVersionBlock(hasUpdate, worker) {
+  if (hasUpdate && worker) window._swUpdateWorker = worker;
+  if (!hasUpdate && window._swUpdateWorker) { hasUpdate = true; worker = window._swUpdateWorker; }
+  var row = $('app-version-row');
+  var badge = $('app-version-badge');
+  var status = $('app-version-status');
+  var ver = (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '?';
+  if (!row || !badge || !status) return;
+  badge.textContent = 'v' + ver;
+  if (hasUpdate) {
+    row.classList.add('has-update');
+    var latest = (typeof APP_CHANGELOG !== 'undefined' && APP_CHANGELOG.length > 0) ? APP_CHANGELOG[0] : null;
+    var count = latest ? latest.changes.length : 0;
+    status.innerHTML = 'Доступно обновление' + (count ? ' (' + count + ' изменений)' : '') + ' <button class="app-version-update-btn" id="version-install-btn">Установить</button>';
+    var btn = $('version-install-btn');
+    if (btn && worker) {
+      btn.addEventListener('click', function() {
+        btn.textContent = 'Обновляем...';
+        btn.disabled = true;
+        worker.postMessage({ type: 'SKIP_WAITING' });
+      });
+    }
+  } else {
+    row.classList.remove('has-update');
+    status.innerHTML = '<span class="version-ok">Актуальная версия ✓</span>';
+  }
 }
 

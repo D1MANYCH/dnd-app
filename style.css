@@ -4491,17 +4491,55 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  padding: 6px 0 4px 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(87,179,109,0.06);
+  border: 1px solid rgba(87,179,109,0.15);
+  transition: all 0.3s;
+}
+.app-version-row.has-update {
+  background: rgba(212,168,67,0.1);
+  border-color: rgba(212,168,67,0.35);
 }
 .app-version-badge {
-  font-size: 0.7em;
-  background: rgba(212,168,67,0.12);
-  border: 1px solid rgba(212,168,67,0.3);
-  color: var(--accent-color);
-  padding: 2px 9px;
+  font-size: 0.75em;
+  background: rgba(87,179,109,0.15);
+  border: 1px solid rgba(87,179,109,0.3);
+  color: var(--success-color);
+  padding: 3px 10px;
   border-radius: 10px;
   font-weight: 700;
   flex-shrink: 0;
+}
+.app-version-row.has-update .app-version-badge {
+  background: rgba(212,168,67,0.15);
+  border-color: rgba(212,168,67,0.4);
+  color: var(--accent-color);
+}
+.app-version-status {
+  font-size: 0.78em;
+  color: var(--text-muted);
+}
+.app-version-status .version-ok {
+  color: var(--success-color);
+  font-weight: 600;
+}
+.app-version-update-btn {
+  background: linear-gradient(135deg, var(--success-color) 0%, #4da360 100%);
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.8em;
+  font-weight: 600;
+  cursor: pointer;
+  width: auto;
+  margin: 0;
+  transition: all 0.2s;
+}
+.app-version-update-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(87,179,109,0.4);
 }
 
 /* ========== JOURNAL ========== */

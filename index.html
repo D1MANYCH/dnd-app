@@ -81,6 +81,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Floating Buttons -->
 
 <div id="screen-characters">
+<div class="app-version-row" id="app-version-row">
+  <span class="app-version-badge" id="app-version-badge"></span>
+  <span class="app-version-status" id="app-version-status"></span>
+</div>
 <div class="card">
 <h3>📜 Ваши Персонажи <span id="char-count" class="char-count-badge"></span></h3>
 <div class="char-controls">
@@ -111,10 +115,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button class="ptab-btn" onclick="switchProfilesTab('changelog',this)">📋 Изменения</button>
 </div>
 <div id="ptab-info" class="ptab-content active">
-<div class="app-version-row">
-<span class="app-version-badge" id="app-version-badge">v1.7.0</span>
-<span style="font-size:0.75em;color:var(--text-muted);">Данные сохраняются в браузере. Делайте резервные копии!</span>
-</div>
+<div style="padding:6px 0 4px;font-size:0.75em;color:var(--text-muted);">Данные сохраняются в браузере. Делайте резервные копии!</div>
 <div class="app-info-grid">
 <div class="app-info-item">🎲 D&D 5e по Fantom Studio</div>
 <div class="app-info-item">📱 PWA — работает офлайн</div>
