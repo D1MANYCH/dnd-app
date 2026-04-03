@@ -120,6 +120,10 @@ function migrateCharacter(char) {
     if (char.avatar === undefined) char.avatar = null;
     char.schemaVersion = 2;
   }
+  if (v < 3) {
+    if (!char.expertiseSkills) char.expertiseSkills = [];
+    char.schemaVersion = 3;
+  }
   return char;
 }
 
@@ -612,6 +616,7 @@ safeSetChecked("skill-prof-" + key, char.skills[key]);
 });
 }
 calcStats();
+loadExpertise();
 calcCoinWeight();
 calcSpellStats();
 recalculateHP();

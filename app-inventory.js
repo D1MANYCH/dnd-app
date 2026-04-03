@@ -416,6 +416,19 @@ safeSet("new-weapon-type", "");
 safeSet("new-weapon-range", "");
 safeSet("new-weapon-notes", "");
 }
+function checkWeaponProficiency(char, weaponName) {
+if (!char || !char.proficiencies || !char.proficiencies.weapon) return false;
+var profs = char.proficiencies.weapon;
+if (profs.indexOf("martial") !== -1) return true;
+if (profs.indexOf("simple") !== -1) {
+  var preset = WEAPON_PRESETS.find(function(p) { return p.name === weaponName; });
+  if (preset && preset.category === "simple") return true;
+  if (!preset) return true;
+}
+var preset = WEAPON_PRESETS.find(function(p) { return p.name === weaponName; });
+if (preset && profs.indexOf(preset.category) !== -1) return true;
+return false;
+}
 function submitWeapon() {
 if (!currentId) return;
 const char = getCurrentChar();
@@ -425,6 +438,7 @@ if (!name) { showToast("Введите название!", "warn"); return; }
 const stat = $("new-weapon-stat")?.value || "str";
 const statName = stat === "str" ? "СИЛ" : "ЛОВ";
 if (!char.weapons) char.weapons = [];
+var proficient = checkWeaponProficiency(char, name);
 char.weapons.push({
 name: name,
 stat: stat,
@@ -433,7 +447,8 @@ bonus: $("new-weapon-bonus")?.value || "",
 damage: $("new-weapon-damage")?.value || "",
 type: $("new-weapon-type")?.value || "",
 range: $("new-weapon-range")?.value || "",
-notes: $("new-weapon-notes")?.value || ""
+notes: $("new-weapon-notes")?.value || "",
+proficient: proficient
 });
 saveToLocal();
 closeWeaponModal();
@@ -453,6 +468,10 @@ container.innerHTML = "";
 char.weapons.forEach(function(weapon, index) {
 const div = document.createElement("div");
 div.className = "weapon-row";
+// Auto-detect proficiency if not set
+if (weapon.proficient === undefined) {
+  weapon.proficient = checkWeaponProficiency(char, weapon.name);
+}
 // Calculate attack bonus for display
 var statKey = weapon.stat || "str";
 var statVal = char.stats[statKey] || 10;
@@ -460,10 +479,11 @@ var statMod = getMod(statVal);
 var profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
 var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
 var attackStr = (attackBonus >= 0 ? "+" : "") + attackBonus;
+var profTag = weapon.proficient ? '' : ' <span class="weapon-no-prof">без влад.</span>';
 div.innerHTML =
   '<div class="weapon-row-top">' +
     '<div class="weapon-info">' +
-      '<span class="weapon-name">' + escapeHtml(weapon.name) + '</span>' +
+      '<span class="weapon-name">' + escapeHtml(weapon.name) + profTag + '</span>' +
       '<span class="weapon-meta">' + escapeHtml(weapon.damage || "—") + ' · ' + escapeHtml(weapon.statName || "") + ' ' + attackStr + '</span>' +
     '</div>' +
     '<button class="weapon-delete-btn" onclick="removeWeapon(' + index + ')">✕</button>' +

@@ -80,11 +80,44 @@ const row = document.createElement("div");
 row.className = "skill-row-compact";
 row.innerHTML =
   '<input type="checkbox" id="skill-prof-' + index + '" class="skill-cb" onchange="calcStats(); updateSkillProfCount()">' +
+  '<span class="skill-expertise-btn" id="skill-exp-' + index + '" title="Экспертиза (×2 бонус)" onclick="toggleExpertise(' + index + ')">E</span>' +
   '<label for="skill-prof-' + index + '" class="skill-name-compact">' + escapeHtml(skill.name) + '</label>' +
   '<span class="skill-stat-compact">' + escapeHtml(skill.stat.toUpperCase().slice(0,3)) + '</span>' +
   '<span class="skill-bonus-compact" id="skill-bonus-' + index + '">+0</span>';
 container.appendChild(row);
 });
+}
+function toggleExpertise(index) {
+var char = getCurrentChar();
+if (!char) return;
+if (!char.expertiseSkills) char.expertiseSkills = [];
+var profCb = $("skill-prof-" + index);
+if (!profCb || !profCb.checked) {
+  showToast("Сначала отметьте владение навыком", "error");
+  return;
+}
+var pos = char.expertiseSkills.indexOf(index);
+if (pos === -1) {
+  char.expertiseSkills.push(index);
+} else {
+  char.expertiseSkills.splice(pos, 1);
+}
+calcStats();
+saveToLocal();
+}
+function loadExpertise() {
+var char = getCurrentChar();
+if (!char || !char.expertiseSkills) return;
+for (var i = 0; i < skills.length; i++) {
+  var btn = $("skill-exp-" + i);
+  if (btn) {
+    if (char.expertiseSkills.indexOf(i) !== -1) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  }
+}
 }
 function updateSkillProfCount() {
 const countEl = $("skills-prof-count");
@@ -160,14 +193,74 @@ function initConditions() {
 const grid = $("conditions-grid");
 if (!grid) return;
 grid.innerHTML = "";
-CONDITIONS.forEach(function(condition) {
-const item = document.createElement("div");
-item.className = "condition-item" + (condition.type ? " " + condition.type : "");
-item.id = "condition-" + condition.id;
-item.onclick = function() { toggleCondition(condition.id); };
-item.innerHTML = "<div class=\"condition-name\">" + escapeHtml(condition.name) + "</div><div class=\"condition-desc\">" + escapeHtml(condition.desc) + "</div>";
-grid.appendChild(item);
+// Базовые состояния (не истощение)
+var baseConditions = CONDITIONS.filter(function(c) { return c.id.indexOf("exhaustion_") === -1; });
+baseConditions.forEach(function(condition) {
+  const item = document.createElement("div");
+  item.className = "condition-item" + (condition.type ? " " + condition.type : "");
+  item.id = "condition-" + condition.id;
+  item.onclick = function() { toggleCondition(condition.id); };
+  item.innerHTML = "<div class=\"condition-name\">" + escapeHtml(condition.name) + "</div><div class=\"condition-desc\">" + escapeHtml(condition.desc) + "</div>";
+  grid.appendChild(item);
 });
+// Блок истощения отдельно
+var exhBlock = document.createElement("div");
+exhBlock.className = "exhaustion-block";
+exhBlock.innerHTML =
+  '<div class="exhaustion-header">' +
+    '<span class="exhaustion-title">😫 Истощение</span>' +
+    '<div class="exhaustion-controls">' +
+      '<button class="exhaustion-btn" onclick="adjustExhaustion(-1)">−</button>' +
+      '<span class="exhaustion-level" id="exhaustion-level">0</span>' +
+      '<button class="exhaustion-btn" onclick="adjustExhaustion(1)">+</button>' +
+    '</div>' +
+  '</div>' +
+  '<div class="exhaustion-desc" id="exhaustion-desc"></div>';
+grid.appendChild(exhBlock);
+}
+function getExhaustionLevel(char) {
+if (!char || !char.conditions) return 0;
+for (var i = 6; i >= 1; i--) {
+  if (char.conditions.indexOf("exhaustion_" + i) !== -1) return i;
+}
+return 0;
+}
+function adjustExhaustion(delta) {
+if (!currentId) return;
+var char = getCurrentChar();
+if (!char) return;
+if (!char.conditions) char.conditions = [];
+var current = getExhaustionLevel(char);
+var next = Math.max(0, Math.min(6, current + delta));
+// Убираем все уровни истощения
+for (var i = 1; i <= 6; i++) {
+  var idx = char.conditions.indexOf("exhaustion_" + i);
+  if (idx !== -1) char.conditions.splice(idx, 1);
+}
+// Ставим новый уровень
+if (next > 0) char.conditions.push("exhaustion_" + next);
+updateExhaustionDisplay();
+updateConditionsCount();
+updateStatusBar();
+loadConditions();
+saveToLocal();
+}
+function updateExhaustionDisplay() {
+var char = getCurrentChar();
+var lvl = char ? getExhaustionLevel(char) : 0;
+var levelEl = $("exhaustion-level");
+var descEl = $("exhaustion-desc");
+if (levelEl) {
+  levelEl.textContent = lvl;
+  levelEl.className = "exhaustion-level" + (lvl > 0 ? " active" : "") + (lvl >= 5 ? " critical" : "");
+}
+if (descEl) {
+  if (lvl === 0) descEl.textContent = "";
+  else {
+    var exhCond = CONDITIONS.find(function(c) { return c.id === "exhaustion_" + lvl; });
+    descEl.textContent = exhCond ? exhCond.desc.replace(/\n/g, " · ").replace(/• /g, "") : "";
+  }
+}
 }
 function toggleCondition(conditionId) {
 if (!currentId) return;
@@ -202,13 +295,16 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char || !char.conditions) return;
 CONDITIONS.forEach(function(condition) {
-const conditionEl = $("condition-" + condition.id);
-if (char.conditions.includes(condition.id)) {
-if (conditionEl) conditionEl.classList.add("active");
-} else {
-if (conditionEl) conditionEl.classList.remove("active");
-}
+  // Пропускаем истощение — оно отображается отдельным блоком
+  if (condition.id.indexOf("exhaustion_") !== -1) return;
+  const conditionEl = $("condition-" + condition.id);
+  if (char.conditions.includes(condition.id)) {
+    if (conditionEl) conditionEl.classList.add("active");
+  } else {
+    if (conditionEl) conditionEl.classList.remove("active");
+  }
 });
+updateExhaustionDisplay();
 updateConditionsCount();
 updateStatusBar();
 }
@@ -837,8 +933,10 @@ const modEl = $("mod-" + s);
 if (modEl) modEl.innerText = formatMod(mod);
 });
 const dexMod = getMod(char.stats.dex);
+var initBonus = dexMod;
+if (char.class === "Бард" && level >= 2) initBonus += Math.floor(proficiencyBonus / 2);
 const initEl = $("combat-init");
-if (initEl) initEl.value = formatMod(dexMod);
+if (initEl) initEl.value = formatMod(initBonus);
 SAVES_DATA.forEach(function(save) {
 const checkbox = $("save-prof-" + save.key);
 const item = $("save-item-" + save.key);
@@ -857,20 +955,45 @@ item.classList.remove("proficient");
 }
 }
 });
+var isJackOfAllTrades = (char.class === "Бард" && level >= 2);
+var halfProf = Math.floor(proficiencyBonus / 2);
+if (!char.expertiseSkills) char.expertiseSkills = [];
 skills.forEach(function(skill, index) {
 const checkbox = $("skill-prof-" + index);
+const expBtn = $("skill-exp-" + index);
 if(checkbox) {
 let bonus = getMod(char.stats[skill.stat]);
-if(checkbox.checked) bonus += proficiencyBonus;
+var hasExpertise = char.expertiseSkills.indexOf(index) !== -1;
+if(checkbox.checked) {
+  if (hasExpertise) {
+    bonus += proficiencyBonus * 2;
+  } else {
+    bonus += proficiencyBonus;
+  }
+} else {
+  if (hasExpertise) {
+    char.expertiseSkills.splice(char.expertiseSkills.indexOf(index), 1);
+    hasExpertise = false;
+  }
+  if (isJackOfAllTrades) bonus += halfProf;
+}
 const bonusEl = $("skill-bonus-" + index);
 if (bonusEl) bonusEl.innerText = formatMod(bonus);
 char.skills[index] = checkbox.checked;
+if (expBtn) {
+  if (hasExpertise) { expBtn.classList.add("active"); } else { expBtn.classList.remove("active"); }
+}
 }
 });
-const wisMod = getMod(char.stats.wis);
-const perceptionCheckbox = $("skill-prof-3");
+var wisMod = getMod(char.stats.wis);
+var perceptionCheckbox = $("skill-prof-3");
+var perceptionExpertise = char.expertiseSkills.indexOf(3) !== -1;
 let passivePerception = 10 + wisMod;
-if(perceptionCheckbox && perceptionCheckbox.checked) passivePerception += proficiencyBonus;
+if(perceptionCheckbox && perceptionCheckbox.checked) {
+  passivePerception += perceptionExpertise ? proficiencyBonus * 2 : proficiencyBonus;
+} else if (isJackOfAllTrades) {
+  passivePerception += halfProf;
+}
 const passiveEl = $("passive-perception");
 if (passiveEl) passiveEl.innerText = passivePerception;
 calcSpellStats();
@@ -971,12 +1094,14 @@ function onRaceChange() {
 // ============================================
 function onBackgroundChange() {
   if (!currentId) return;
+  var char = getCurrentChar();
   var bgEl = $("char-background");
-  if (!bgEl) return;
+  if (!bgEl || !char) return;
   var bg = bgEl.value;
-  var skillList = (typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bg];
-  if (!skillList) return;
-  // Match by exact skill name from the skills[] array
+  var bgData = (typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bg];
+  if (!bgData) return;
+  // Support both old format (array) and new format (object)
+  var skillList = Array.isArray(bgData) ? bgData : (bgData.skills || []);
   skillList.forEach(function(skillName) {
     var idx = skills.findIndex(function(s) { return s.name === skillName; });
     if (idx !== -1) {
@@ -984,6 +1109,33 @@ function onBackgroundChange() {
       if (cb && !cb.checked) { cb.checked = true; }
     }
   });
+  // Инструменты и языки от предыстории
+  if (!Array.isArray(bgData) && bgData.tools && bgData.tools.length > 0) {
+    var toolsEl = $("tool-proficiencies");
+    if (toolsEl) {
+      var existing = toolsEl.value.trim();
+      var newTools = bgData.tools.join(", ");
+      if (existing && existing.indexOf(newTools) === -1) {
+        toolsEl.value = existing + ", " + newTools;
+      } else if (!existing) {
+        toolsEl.value = newTools;
+      }
+      if (char.proficiencies) char.proficiencies.tools = toolsEl.value;
+    }
+  }
+  if (!Array.isArray(bgData) && bgData.languages > 0) {
+    var langEl = $("languages");
+    if (langEl) {
+      var existing = langEl.value.trim();
+      var langNote = bgData.languages + " доп. язык" + (bgData.languages > 1 ? "а" : "");
+      if (existing && existing.indexOf(langNote) === -1) {
+        langEl.value = existing ? existing + ", " + langNote : langNote;
+      } else if (!existing) {
+        langEl.value = langNote;
+      }
+      if (char.proficiencies) char.proficiencies.languages = langEl.value;
+    }
+  }
   calcStats();
   updateSkillProfCount();
 }
@@ -1089,26 +1241,84 @@ function renderConditionsPopup() {
   list.innerHTML = "";
   var char = getCurrentChar();
   if (!char) return;
-  if (char.conditions && char.conditions.length > 0) {
+  var hasConditions = char.conditions && char.conditions.length > 0;
+  var hasEffects = char.effects && char.effects.length > 0;
+  if (!hasConditions && !hasEffects) {
+    list.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:8px;">Нет активных состояний</div>';
+    return;
+  }
+  // Группа: Состояния
+  var baseConditions = [];
+  var exhLevel = 0;
+  if (hasConditions) {
     char.conditions.forEach(function(condId) {
-      var condition = CONDITIONS.find(function(c) { return c.id === condId; });
-      if (condition) {
-        var badge = document.createElement("span");
-        badge.className = "condition-badge" + (condition.type ? " " + condition.type : "");
-        badge.textContent = condition.name.split(' ')[1] || condition.name;
-        list.appendChild(badge);
+      if (condId.indexOf("exhaustion_") !== -1) {
+        var lvl = parseInt(condId.split("_")[1]);
+        if (lvl > exhLevel) exhLevel = lvl;
+      } else {
+        var c = CONDITIONS.find(function(x) { return x.id === condId; });
+        if (c) baseConditions.push(c);
       }
     });
   }
-  if (char.effects && char.effects.length > 0) {
+  if (baseConditions.length > 0) {
+    var header = document.createElement("div");
+    header.className = "popup-group-label";
+    header.textContent = "⚠️ Состояния";
+    list.appendChild(header);
+    baseConditions.forEach(function(c) {
+      var badge = document.createElement("span");
+      badge.className = "condition-badge";
+      badge.textContent = c.name;
+      list.appendChild(badge);
+    });
+  }
+  if (exhLevel > 0) {
+    var exhBadge = document.createElement("span");
+    exhBadge.className = "condition-badge exhaustion";
+    exhBadge.textContent = "😫 Истощение " + exhLevel + (exhLevel >= 6 ? " (смерть)" : "");
+    if (baseConditions.length === 0) {
+      var header2 = document.createElement("div");
+      header2.className = "popup-group-label";
+      header2.textContent = "⚠️ Состояния";
+      list.appendChild(header2);
+    }
+    list.appendChild(exhBadge);
+  }
+  // Группа: Эффекты (баффы / дебаффы)
+  if (hasEffects) {
+    var buffs = [];
+    var debuffs = [];
     char.effects.forEach(function(effectId) {
-      var effect = EFFECTS_DATA.find(function(e) { return e.id === effectId; });
-      if (effect) {
-        var badge = document.createElement("span");
-        badge.className = "condition-badge" + (effect.type ? " " + effect.type : "");
-        badge.textContent = effect.name.split(' ')[1] || effect.name;
-        list.appendChild(badge);
+      var e = EFFECTS_DATA.find(function(x) { return x.id === effectId; });
+      if (e) {
+        if (e.type === "buff") buffs.push(e);
+        else debuffs.push(e);
       }
     });
+    if (buffs.length > 0) {
+      var bHeader = document.createElement("div");
+      bHeader.className = "popup-group-label buff";
+      bHeader.textContent = "✨ Баффы";
+      list.appendChild(bHeader);
+      buffs.forEach(function(e) {
+        var badge = document.createElement("span");
+        badge.className = "condition-badge buff";
+        badge.textContent = e.name + " · " + e.duration;
+        list.appendChild(badge);
+      });
+    }
+    if (debuffs.length > 0) {
+      var dHeader = document.createElement("div");
+      dHeader.className = "popup-group-label debuff";
+      dHeader.textContent = "💀 Дебаффы";
+      list.appendChild(dHeader);
+      debuffs.forEach(function(e) {
+        var badge = document.createElement("span");
+        badge.className = "condition-badge debuff";
+        badge.textContent = e.name + " · " + e.duration;
+        list.appendChild(badge);
+      });
+    }
   }
 }

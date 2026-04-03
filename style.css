@@ -641,6 +641,95 @@ font-size: 0.7em;
 font-weight: bold;
 margin-left: 8px;
 }
+/* ── Блок истощения ── */
+.exhaustion-block {
+  grid-column: 1 / -1;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 4px;
+}
+.exhaustion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.exhaustion-title {
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--text-color);
+}
+.exhaustion-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.exhaustion-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: rgba(255,255,255,0.05);
+  color: var(--text-color);
+  font-size: 1em;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.exhaustion-btn:hover {
+  border-color: var(--accent-color);
+  background: rgba(212,168,67,0.15);
+}
+.exhaustion-level {
+  font-size: 1.1em;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 20px;
+  text-align: center;
+}
+.exhaustion-level.active {
+  color: #e67e22;
+}
+.exhaustion-level.critical {
+  color: var(--danger-color);
+}
+.exhaustion-desc {
+  font-size: 0.68em;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.3;
+}
+/* ── Попап: группы ── */
+.popup-group-label {
+  font-size: 0.72em;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 6px 0 2px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 4px;
+}
+.popup-group-label.buff { color: var(--success-color); }
+.popup-group-label.debuff { color: var(--danger-color); }
+.condition-badge.exhaustion {
+  background: rgba(230,126,34,0.2);
+  border-color: #e67e22;
+  color: #e67e22;
+}
+.condition-badge.buff {
+  background: rgba(87,179,109,0.15);
+  border-color: rgba(87,179,109,0.4);
+  color: var(--success-color);
+}
+.condition-badge.debuff {
+  background: rgba(224,108,117,0.15);
+  border-color: rgba(224,108,117,0.4);
+  color: var(--danger-color);
+}
 
 /* ========== СПАСБРОСКИ ========== */
 .saves-section {
@@ -4179,6 +4268,33 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   text-align: right;
   flex-shrink: 0;
 }
+.skill-expertise-btn {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.6em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  opacity: 0.4;
+  transition: all 0.2s;
+}
+.skill-expertise-btn:hover {
+  opacity: 0.8;
+  border-color: var(--accent-color);
+}
+.skill-expertise-btn.active {
+  opacity: 1;
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #fff;
+}
 .accordion-prof-count {
   font-size: 0.72em;
   color: var(--accent-color);
@@ -5516,6 +5632,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .weapon-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
 .weapon-name { font-weight: 700; font-size: 0.92em; color: var(--text-color); }
+.weapon-no-prof { font-size: 0.7em; font-weight: 400; color: #e74c3c; opacity: 0.8; margin-left: 4px; }
 .weapon-meta { font-size: 0.75em; color: var(--text-muted); }
 .weapon-delete-btn {
   background: transparent !important;

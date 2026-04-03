@@ -36,7 +36,7 @@ if (main) main.classList.add("hidden");
 if (info) info.classList.remove("hidden");
 if (result) result.classList.add("hidden");
 if (title) title.textContent = "☕ Короткий отдых (1 час)";
-if (list) list.innerHTML = "<li>Потратьте кости хитов для восстановления ХП</li><li>Восстанавливаются некоторые классовые умения</li><li>Заклинания НЕ восстанавливаются (кроме Колдуна)</li><li>⚠️ Некоторые условия снимаются</li>";
+if (list) list.innerHTML = "<li>Потратьте кости хитов для восстановления ХП</li><li>Восстанавливаются некоторые классовые умения</li><li>Заклинания НЕ восстанавливаются (кроме Колдуна)</li>";
 if (hitDiceSection) hitDiceSection.classList.remove("hidden");
 if (confirmBtn) confirmBtn.textContent = "Короткий отдых";
 updateHitDiceInfo();
@@ -139,7 +139,24 @@ char.combat.hpCurrent = maxHp;
 for(let i=1; i<=9; i++) { if (char.spells.slots[i]) char.spells.slotsUsed[i] = 0; }
 const hitDiceToRestore = Math.floor(char.level / 2);
 char.combat.hpDiceSpent = Math.max(0, (char.combat.hpDiceSpent || 0) - hitDiceToRestore);
-char.conditions = [];
+// PHB: длинный отдых снижает истощение на 1 уровень, остальные состояния не снимаются автоматически
+var exhaustionReduced = false;
+if (char.conditions && char.conditions.length > 0) {
+  var exhLevels = ["exhaustion_6","exhaustion_5","exhaustion_4","exhaustion_3","exhaustion_2","exhaustion_1"];
+  for (var ei = 0; ei < exhLevels.length; ei++) {
+    var exhIdx = char.conditions.indexOf(exhLevels[ei]);
+    if (exhIdx !== -1) {
+      char.conditions.splice(exhIdx, 1);
+      // Понижаем на 1 уровень (если было 3, ставим 2)
+      var exhNum = parseInt(exhLevels[ei].split("_")[1]);
+      if (exhNum > 1) {
+        char.conditions.push("exhaustion_" + (exhNum - 1));
+      }
+      exhaustionReduced = true;
+      break;
+    }
+  }
+}
 char.effects = [];
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 resetResourcesByRest("long");
@@ -150,7 +167,8 @@ if (maxHp - oldHp > 0) showHPToast(maxHp - oldHp);
 resultTitle = "✅ Долгий отдых завершён!";
 addJournalEntry("rest", "Долгий отдых — новая сессия", "Уровень " + (char.level||1) + " · ХП: " + oldHp + " → " + maxHp + " · Ячейки и ресурсы восстановлены");
 renderJournal();
-resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div><p>✨ Ячейки заклинаний: восстановлены</p><p>🎲 Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p><p>⚠️ Условия и эффекты: сняты</p>";
+var exhaustionNote = exhaustionReduced ? "<p>😫 Истощение снижено на 1 уровень</p>" : "";
+resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div><p>✨ Ячейки заклинаний: восстановлены</p><p>🎲 Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + exhaustionNote;
 }
 saveToLocal();
 loadCharacter(currentId);
@@ -435,6 +453,28 @@ safeSet("hp-temp", char.combat.hpTemp);
 if (actualDelta !== 0) {
 addHPHistory(hpBefore, hpCurrent, actualDelta, source || (delta < 0 ? "Урон" : "Лечение"));
 showHPToast(actualDelta);
+}
+// Спасбросок концентрации при уроне (PHB: DC = max(10, урон/2))
+if (delta < 0 && char.concentration) {
+  var absDmg = Math.abs(delta);
+  if (hpCurrent <= 0) {
+    endConcentration();
+    showToast("💔 Концентрация потеряна — 0 ХП!", "error");
+  } else {
+    var concDC = Math.max(10, Math.floor(absDmg / 2));
+    var conSaveMod = getMod(char.stats.con);
+    var profBonus = getProficiencyBonus(char.level || 1);
+    if (char.saves && char.saves.con) conSaveMod += profBonus;
+    var concRoll = Math.floor(Math.random() * 20) + 1;
+    var concTotal = concRoll + conSaveMod;
+    var concSuccess = concTotal >= concDC;
+    if (concSuccess) {
+      showToast("🔮 Концентрация: спасбросок ТЕЛ " + concRoll + "+" + conSaveMod + "=" + concTotal + " vs DC " + concDC + " — Успех!", "success");
+    } else {
+      endConcentration();
+      showToast("💔 Концентрация потеряна! ТЕЛ " + concRoll + "+" + conSaveMod + "=" + concTotal + " vs DC " + concDC + " — Провал", "error");
+    }
+  }
 }
 saveToLocal();
 updateHPDisplay();
