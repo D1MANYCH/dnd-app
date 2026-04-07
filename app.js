@@ -1512,6 +1512,10 @@ safeSet("hp-dice-spent", char.combat.hpDiceSpent || 0);
 safeSet("combat-speed", char.combat.speed || "30 фт");
 safeSet("tool-proficiencies", char.proficiencies.tools || "");
 safeSet("languages", char.proficiencies.languages || "");
+// Если у персонажа есть предыстория, но инструменты/языки не заполнены — применить данные предыстории
+if (char.background && (!char.proficiencies.tools || !char.proficiencies.languages)) {
+  setTimeout(onBackgroundChange, 0);
+}
 safeSet("coin-cp", char.coins.cp);
 safeSet("coin-sp", char.coins.sp);
 safeSet("coin-ep", char.coins.ep);
@@ -5339,10 +5343,10 @@ function renderConditionsPopup() {
   var hasConditions = char.conditions && char.conditions.length > 0;
   var hasEffects = char.effects && char.effects.length > 0;
   if (!hasConditions && !hasEffects) {
-    list.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:8px;">Нет активных состояний</div>';
+    list.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:12px;">Нет активных состояний</div>';
     return;
   }
-  // Группа: Состояния
+  // Собираем данные
   var baseConditions = [];
   var exhLevel = 0;
   if (hasConditions) {
@@ -5356,64 +5360,65 @@ function renderConditionsPopup() {
       }
     });
   }
-  if (baseConditions.length > 0) {
-    var header = document.createElement("div");
-    header.className = "popup-group-label";
-    header.textContent = "⚠️ Состояния";
-    list.appendChild(header);
+  var buffs = [], debuffs = [];
+  if (hasEffects) {
+    char.effects.forEach(function(effectId) {
+      var e = EFFECTS_DATA.find(function(x) { return x.id === effectId; });
+      if (e) { if (e.type === "buff") buffs.push(e); else debuffs.push(e); }
+    });
+  }
+  // Группа: Состояния
+  if (baseConditions.length > 0 || exhLevel > 0) {
+    var group = document.createElement("div");
+    group.className = "popup-group";
+    group.innerHTML = '<div class="popup-group-label">⚠️ Состояния</div>';
+    var badges = document.createElement("div");
+    badges.className = "popup-group-badges";
     baseConditions.forEach(function(c) {
       var badge = document.createElement("span");
       badge.className = "condition-badge";
       badge.textContent = c.name;
-      list.appendChild(badge);
+      badges.appendChild(badge);
     });
-  }
-  if (exhLevel > 0) {
-    var exhBadge = document.createElement("span");
-    exhBadge.className = "condition-badge exhaustion";
-    exhBadge.textContent = "😫 Истощение " + exhLevel + (exhLevel >= 6 ? " (смерть)" : "");
-    if (baseConditions.length === 0) {
-      var header2 = document.createElement("div");
-      header2.className = "popup-group-label";
-      header2.textContent = "⚠️ Состояния";
-      list.appendChild(header2);
+    if (exhLevel > 0) {
+      var exhBadge = document.createElement("span");
+      exhBadge.className = "condition-badge exhaustion";
+      exhBadge.textContent = "😫 Истощение " + exhLevel + (exhLevel >= 6 ? " — смерть" : "/6");
+      badges.appendChild(exhBadge);
     }
-    list.appendChild(exhBadge);
+    group.appendChild(badges);
+    list.appendChild(group);
   }
-  // Группа: Эффекты (баффы / дебаффы)
-  if (hasEffects) {
-    var buffs = [];
-    var debuffs = [];
-    char.effects.forEach(function(effectId) {
-      var e = EFFECTS_DATA.find(function(x) { return x.id === effectId; });
-      if (e) {
-        if (e.type === "buff") buffs.push(e);
-        else debuffs.push(e);
-      }
+  // Группа: Баффы
+  if (buffs.length > 0) {
+    var bGroup = document.createElement("div");
+    bGroup.className = "popup-group";
+    bGroup.innerHTML = '<div class="popup-group-label buff">✨ Баффы</div>';
+    var bBadges = document.createElement("div");
+    bBadges.className = "popup-group-badges";
+    buffs.forEach(function(e) {
+      var badge = document.createElement("span");
+      badge.className = "condition-badge buff";
+      badge.innerHTML = escapeHtml(e.name.split(' ').slice(1).join(' ') || e.name) + '<span class="badge-duration">' + escapeHtml(e.duration) + '</span>';
+      bBadges.appendChild(badge);
     });
-    if (buffs.length > 0) {
-      var bHeader = document.createElement("div");
-      bHeader.className = "popup-group-label buff";
-      bHeader.textContent = "✨ Баффы";
-      list.appendChild(bHeader);
-      buffs.forEach(function(e) {
-        var badge = document.createElement("span");
-        badge.className = "condition-badge buff";
-        badge.textContent = e.name + " · " + e.duration;
-        list.appendChild(badge);
-      });
-    }
-    if (debuffs.length > 0) {
-      var dHeader = document.createElement("div");
-      dHeader.className = "popup-group-label debuff";
-      dHeader.textContent = "💀 Дебаффы";
-      list.appendChild(dHeader);
-      debuffs.forEach(function(e) {
-        var badge = document.createElement("span");
-        badge.className = "condition-badge debuff";
-        badge.textContent = e.name + " · " + e.duration;
-        list.appendChild(badge);
-      });
-    }
+    bGroup.appendChild(bBadges);
+    list.appendChild(bGroup);
+  }
+  // Группа: Дебаффы
+  if (debuffs.length > 0) {
+    var dGroup = document.createElement("div");
+    dGroup.className = "popup-group";
+    dGroup.innerHTML = '<div class="popup-group-label debuff">💀 Дебаффы</div>';
+    var dBadges = document.createElement("div");
+    dBadges.className = "popup-group-badges";
+    debuffs.forEach(function(e) {
+      var badge = document.createElement("span");
+      badge.className = "condition-badge debuff";
+      badge.innerHTML = escapeHtml(e.name.split(' ').slice(1).join(' ') || e.name) + '<span class="badge-duration">' + escapeHtml(e.duration) + '</span>';
+      dBadges.appendChild(badge);
+    });
+    dGroup.appendChild(dBadges);
+    list.appendChild(dGroup);
   }
 }

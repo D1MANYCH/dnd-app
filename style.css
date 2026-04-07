@@ -145,15 +145,29 @@ width: 100%;
 }
 .conditions-popup-close:hover { background: rgba(255,255,255,0.1); }
 .conditions-popup-list {
-  padding: 12px 16px;
+  padding: 8px 16px 12px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 0;
 }
 .conditions-popup-list .condition-badge {
   padding: 6px 12px;
   font-size: 0.8em;
   border-radius: 6px;
+}
+.popup-group {
+  padding: 10px 0 6px;
+}
+.popup-group + .popup-group {
+  border-top: 1px solid rgba(255,255,255,0.18);
+  margin-top: 8px;
+  padding-top: 12px;
+}
+.popup-group-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
 }
 .status-level {
 background: linear-gradient(135deg, var(--accent-color) 0%, #c9a040 100%);
@@ -706,12 +720,14 @@ margin-left: 8px;
 }
 /* ── Попап: группы ── */
 .popup-group-label {
-  font-size: 0.72em;
+  font-size: 0.7em;
   font-weight: 700;
-  color: var(--text-muted);
-  padding: 6px 0 2px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  margin-bottom: 4px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  padding: 0 0 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  margin-bottom: 8px;
 }
 .popup-group-label.buff { color: var(--success-color); }
 .popup-group-label.debuff { color: var(--danger-color); }
@@ -729,6 +745,12 @@ margin-left: 8px;
   background: rgba(224,108,117,0.15);
   border-color: rgba(224,108,117,0.4);
   color: var(--danger-color);
+}
+.badge-duration {
+  display: block;
+  font-size: 0.75em;
+  opacity: 0.7;
+  margin-top: 2px;
 }
 
 /* ========== СПАСБРОСКИ ========== */
