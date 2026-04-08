@@ -18,7 +18,7 @@ function escapeHtml(text) {
 }
 
 // ── Версия схемы персонажа — увеличивать при изменении структуры ──────────────
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 // ── Дефолтное состояние персонажа (используется при создании нового) ──────────
 const DEFAULT_CHARACTER = {
@@ -42,7 +42,7 @@ const DEFAULT_CHARACTER = {
   weapons:    [],
   inventory:  { weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[], other:[] },
   coins:      { cp:0, sp:0, ep:0, gp:0, pp:0 },
-  spells:     { slots:{}, slotsUsed:{}, mySpells:[], stat:"", dc:0, attack:0, mod:0 },
+  spells:     { slots:{}, slotsUsed:{}, mySpells:[], prepared:[], stat:"", dc:0, attack:0, mod:0 },
   notes:      "",
   features:   "",
   appearance: "",
@@ -52,7 +52,7 @@ const DEFAULT_CHARACTER = {
   concentration: null,
   avatar: null,
   expertiseSkills: [],
-  schemaVersion: 3
+  schemaVersion: 4
 };
 
 const SAVES_DATA = [
@@ -397,6 +397,16 @@ const CLASS_FEATURES = {
   "Монах":      ["str", "dex"],
   "Плут":       ["dex", "int"],
   "Варвар":     ["str", "con"]
+};
+
+// Классы, которые готовят заклинания (не просто знают их)
+// formula: "mod+level" | "mod+halfLevel"
+// stat: характеристика для вычисления модификатора
+const SPELL_PREP_CLASSES = {
+  "Жрец":      { stat: "wis", formula: "mod+level" },
+  "Друид":     { stat: "wis", formula: "mod+level" },
+  "Паладин":   { stat: "cha", formula: "mod+halfLevel" },
+  "Волшебник": { stat: "int", formula: "mod+level" }
 };
 
 const SPELL_SLOTS_BY_LEVEL = {
@@ -839,7 +849,23 @@ const CLASS_RESOURCES = {
     { id:"dark_ones_blessing", name:"Благо тёмного господина", icon:"👁️", color:"#4a235a",
       maxByLevel:{1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,10:1,11:1,12:1,13:1,14:1,15:1,16:1,17:1,18:1,19:1,20:1},
       restoreOn:"short",
-      desc:"Ячейки пакт-магии восстанавливаются после КОРОТКОГО отдыха. Уровень ячеек растёт с уровнем." }
+      desc:"Ячейки пакт-магии восстанавливаются после КОРОТКОГО отдыха. Уровень ячеек растёт с уровнем." },
+    { id:"mystic_arcanum_6", name:"Мистический аркан (6 ур.)", icon:"🌑", color:"#6c3483",
+      maxByLevel:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:1,12:1,13:1,14:1,15:1,16:1,17:1,18:1,19:1,20:1},
+      restoreOn:"long",
+      desc:"1/длинный отдых: использовать заклинание 6-го уровня без траты ячейки (с 11 ур.)." },
+    { id:"mystic_arcanum_7", name:"Мистический аркан (7 ур.)", icon:"🌑", color:"#6c3483",
+      maxByLevel:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:1,14:1,15:1,16:1,17:1,18:1,19:1,20:1},
+      restoreOn:"long",
+      desc:"1/длинный отдых: использовать заклинание 7-го уровня без траты ячейки (с 13 ур.)." },
+    { id:"mystic_arcanum_8", name:"Мистический аркан (8 ур.)", icon:"🌑", color:"#6c3483",
+      maxByLevel:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:1,16:1,17:1,18:1,19:1,20:1},
+      restoreOn:"long",
+      desc:"1/длинный отдых: использовать заклинание 8-го уровня без траты ячейки (с 15 ур.)." },
+    { id:"mystic_arcanum_9", name:"Мистический аркан (9 ур.)", icon:"🌑", color:"#6c3483",
+      maxByLevel:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:0,16:0,17:1,18:1,19:1,20:1},
+      restoreOn:"long",
+      desc:"1/длинный отдых: использовать заклинание 9-го уровня без траты ячейки (с 17 ур.)." }
   ],
   passive: { notes:"📖 Пакт: Цепь/Клинок/Книга (3 ур.)\n🌑 Мистические воззвания: бонусные умения (2 ур.)" }
 },

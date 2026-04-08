@@ -32,6 +32,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div class="status-concentration hidden" id="status-concentration" onclick="openConcDetails()" title="Концентрация">
     <span class="conc-status-icon">🔮</span><span class="conc-status-name" id="status-conc-name">—</span>
   </div>
+  <div class="status-ritual hidden" id="status-ritual" onclick="cancelRitual()" title="Нажмите чтобы отменить ритуал">
+    <span class="ritual-status-icon">🕐</span><span class="ritual-status-name" id="status-ritual-name">—</span><span class="ritual-status-timer" id="status-ritual-timer">10:00</span>
+  </div>
   <div class="status-top-right">
     <div class="status-conditions-btn hidden" id="status-conditions-btn" onclick="toggleConditionsPopup()">
       <span class="conditions-btn-icon">⚡</span><span class="conditions-btn-count" id="conditions-btn-count">0</span>
@@ -671,6 +674,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button class="spell-add-btn" onclick="openAddSpellForm()">✏️ Добавить своё</button>
 </div>
 </div>
+<div id="prep-counter" class="prep-counter" style="display:none"></div>
 <div id="my-spells-list"></div>
 </div>
 </div>

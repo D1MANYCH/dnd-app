@@ -2967,7 +2967,8 @@ font-size: 0.85em;
 .status-badges .status-hp,
 .status-badges .status-ac { flex: 1; text-align: center; min-width: 0; padding: 6px 8px; font-size: 0.85em; }
 .status-top-row > .status-inspiration,
-.status-top-row > .status-concentration { flex: 1; justify-content: center; min-width: 0; }
+.status-top-row > .status-concentration,
+.status-top-row > .status-ritual { flex: 1; justify-content: center; min-width: 0; }
 .status-top-right { width: auto; }
 .floating-buttons { bottom: 100px; right: 12px; }
 .floating-btn { width: 50px; height: 50px; font-size: 1.5em; }
@@ -5709,6 +5710,102 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .spell-conc-btn:hover { background: rgba(155,89,182,0.3) !important; transform: none !important; }
 
+/* ── Подготовка заклинаний ── */
+.prep-counter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82em;
+  padding: 6px 10px;
+  background: rgba(var(--accent-rgb, 74,144,226), 0.08);
+  border: 1px solid rgba(var(--accent-rgb, 74,144,226), 0.2);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  color: var(--text-secondary, #888);
+}
+.prep-counter .prep-icon { font-size: 1em; }
+.prep-counter .prep-label { font-weight: 500; }
+.prep-counter .prep-count {
+  font-size: 1.1em;
+  font-weight: 700;
+  color: var(--success-color, #27ae60);
+}
+.prep-counter .prep-count.prep-full {
+  color: var(--warning-color, #e67e22);
+}
+.prep-counter .prep-sep { color: var(--text-muted, #666); }
+.prep-counter .prep-max { font-weight: 600; }
+.prep-counter .prep-hint { color: var(--text-muted, #666); font-size: 0.88em; }
+
+.spell-prep-btn {
+  background: transparent !important;
+  border: 1px solid var(--text-muted, #666) !important;
+  color: var(--text-muted, #666) !important;
+  font-size: 0.75em !important;
+  padding: 3px 8px !important;
+  border-radius: 6px !important;
+  cursor: pointer;
+  box-shadow: none !important;
+  transition: all 0.2s;
+}
+.spell-prep-btn:hover { border-color: var(--success-color, #27ae60) !important; color: var(--success-color, #27ae60) !important; }
+.spell-prep-btn.spell-prep-active {
+  background: rgba(39,174,96,0.12) !important;
+  border-color: var(--success-color, #27ae60) !important;
+  color: var(--success-color, #27ae60) !important;
+}
+
+/* Неподготовленное заклинание */
+.my-spell-item.spell-unprepared {
+  opacity: 0.55;
+}
+.my-spell-item.spell-unprepared .spell-card-name {
+  text-decoration: line-through;
+  text-decoration-color: var(--text-muted, #666);
+}
+
+/* ── Ritual badge (inline in spell title) ── */
+.ritual-badge {
+  display: inline-block;
+  font-size: 0.65em;
+  font-weight: 600;
+  color: #8e6bbf;
+  background: rgba(142,107,191,0.12);
+  border: 1px solid rgba(142,107,191,0.35);
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-left: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.2px;
+}
+
+/* ── Ritual cast button ── */
+.spell-ritual-btn {
+  background: rgba(142,107,191,0.12) !important;
+  border: 1px solid rgba(142,107,191,0.45) !important;
+  color: #8e6bbf !important;
+  font-size: 0.78em !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  cursor: pointer;
+  width: auto;
+  margin: 0;
+  transition: all 0.2s;
+}
+.spell-ritual-btn:hover { background: rgba(142,107,191,0.28) !important; transform: none !important; }
+
+/* ── Pact magic label in spell slots ── */
+.ssl-pact {
+  display: block;
+  font-size: 0.52em;
+  font-weight: 700;
+  color: #9b59b6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  margin-top: 1px;
+}
+
 /* ── Status bar concentration indicator ── */
 .status-concentration {
   display: flex;
@@ -5735,6 +5832,41 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ── Status bar ritual indicator ── */
+.status-ritual {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(142,107,191,0.5);
+  background: rgba(142,107,191,0.15);
+  cursor: pointer;
+  user-select: none;
+  animation: ritualStatusPulse 3s ease-in-out infinite;
+  max-width: 220px;
+}
+@keyframes ritualStatusPulse {
+  0%,100% { border-color: rgba(142,107,191,0.5); }
+  50%      { border-color: rgba(142,107,191,1); box-shadow: 0 0 8px rgba(142,107,191,0.3); }
+}
+.ritual-status-icon { font-size: 1em; flex-shrink: 0; }
+.ritual-status-name {
+  font-size: 0.75em;
+  font-weight: 700;
+  color: #a88ec4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ritual-status-timer {
+  font-size: 0.75em;
+  font-weight: 700;
+  color: #d4a5ff;
+  flex-shrink: 0;
+  margin-left: 2px;
 }
 
 /* ── Concentration details modal ── */

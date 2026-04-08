@@ -124,6 +124,11 @@ function migrateCharacter(char) {
     if (!char.expertiseSkills) char.expertiseSkills = [];
     char.schemaVersion = 3;
   }
+  if (v < 4) {
+    if (!char.spells) char.spells = {};
+    if (!char.spells.prepared) char.spells.prepared = [];
+    char.schemaVersion = 4;
+  }
   return char;
 }
 
@@ -617,6 +622,22 @@ safeSetChecked("skill-prof-" + key, char.skills[key]);
 }
 calcStats();
 loadExpertise();
+// Автозаполнение инструментов/языков от предыстории если пусто
+if (char.background && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[char.background]) {
+  var bgData = BACKGROUND_SKILLS[char.background];
+  if (!Array.isArray(bgData)) {
+    var toolsEl = $("tool-proficiencies");
+    var langEl = $("languages");
+    if (toolsEl && !toolsEl.value.trim() && bgData.tools && bgData.tools.length > 0) {
+      toolsEl.value = bgData.tools.join(", ");
+      if (char.proficiencies) char.proficiencies.tools = toolsEl.value;
+    }
+    if (langEl && !langEl.value.trim() && bgData.languages > 0) {
+      langEl.value = bgData.languages + " доп. язык" + (bgData.languages > 1 ? "а" : "");
+      if (char.proficiencies) char.proficiencies.languages = langEl.value;
+    }
+  }
+}
 calcCoinWeight();
 calcSpellStats();
 recalculateHP();
