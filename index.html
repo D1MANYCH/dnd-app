@@ -1402,30 +1402,20 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- 3D Dice display -->
 <div class="dsvg-wrap">
   <div class="dsvg-container" id="dsvg-container">
-    <div class="dice-cube" id="dice-cube">
-      <div class="dice-face dice-face-front">
+    <div class="dice-3d-die" id="dice-3d-die">
         <svg id="dice-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" class="dsvg">
           <defs>
             <filter id="dsvg-shadow">
               <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,0.5)"/>
             </filter>
-            <filter id="dsvg-glow">
-              <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="var(--dice-glow,#c9a040)" flood-opacity="0.8"/>
-            </filter>
           </defs>
-          <g id="dice-svg-shape" filter="url(#dsvg-shadow)"></g>
+          <g id="dice-svg-shape"></g>
           <text id="dice-svg-num" x="60" y="60" text-anchor="middle" dominant-baseline="central"
             font-size="32" font-weight="900" fill="white" font-family="inherit"
             filter="url(#dsvg-shadow)" style="pointer-events:none">—</text>
           <text id="dice-svg-type" x="60" y="108" text-anchor="middle" font-size="11"
             font-weight="700" fill="rgba(255,255,255,0.6)" font-family="inherit"></text>
         </svg>
-      </div>
-      <div class="dice-face dice-face-back"></div>
-      <div class="dice-face dice-face-left"></div>
-      <div class="dice-face dice-face-right"></div>
-      <div class="dice-face dice-face-top"></div>
-      <div class="dice-face dice-face-bottom"></div>
     </div>
   </div>
   <div class="dice3d-result" id="dice3d-result">

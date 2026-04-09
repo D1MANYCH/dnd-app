@@ -172,23 +172,99 @@ if (diceHistory.length > 10) diceHistory.pop();
 renderDiceHistory();
 }
 
-// SVG paths for each die type
-var DICE_SVG = {
-  4:   { path: "M60,8 L108,100 L12,100 Z", // triangle
-         color: "#c0392b", glow: "#e74c3c", numY: 75 },
-  6:   { path: "M18,18 L102,18 L102,102 L18,102 Z", // square
-         color: "#2980b9", glow: "#3498db", numY: 62 },
-  8:   { path: "M60,6 L108,60 L60,114 L12,60 Z", // diamond
-         color: "#27ae60", glow: "#2ecc71", numY: 62 },
-  10:  { path: "M60,10 L100,45 L85,100 L35,100 L20,45 Z", // pentagon-diamond
-         color: "#8e44ad", glow: "#9b59b6", numY: 65 },
-  12:  { path: "M60,8 L100,32 L108,76 L76,108 L44,108 L12,76 L20,32 Z", // heptagon
-         color: "#e67e22", glow: "#f39c12", numY: 64 },
-  20:  { path: "M60,6 L106,28 L114,78 L80,114 L40,114 L6,78 L14,28 Z", // octagon-ish
-         color: "#c9a040", glow: "#f1c40f", numY: 64 },
-  100: { path: "M60,8 A52,52 0 1,1 59.9,8 Z", // circle
-         color: "#16a085", glow: "#1abc9c", numY: 64 }
+// 3D polyhedra face data for each die type
+var DICE_3D = {
+  4: {
+    // Tetrahedron — 3 visible faces
+    faces: [
+      { points: "60,14 22,96 60,68", shade: 0.95 },
+      { points: "60,14 98,96 60,68", shade: 0.6 },
+      { points: "22,96 98,96 60,68", shade: 0.3 }
+    ],
+    color: "#c0392b", glow: "#e74c3c", numY: 58, animClass: "dsvg-roll-d4"
+  },
+  6: {
+    // Cube — isometric 3 visible faces
+    faces: [
+      { points: "60,14 102,36 60,56 18,36", shade: 1.0 },
+      { points: "18,36 60,56 60,100 18,80", shade: 0.6 },
+      { points: "60,56 102,36 102,80 60,100", shade: 0.35 }
+    ],
+    color: "#2980b9", glow: "#3498db", numY: 62, animClass: "dsvg-roll-d6"
+  },
+  8: {
+    // Octahedron — 4 visible triangular faces
+    faces: [
+      { points: "60,6 18,58 60,54", shade: 1.0 },
+      { points: "60,6 102,58 60,54", shade: 0.75 },
+      { points: "18,58 60,54 56,114", shade: 0.5 },
+      { points: "102,58 60,54 64,114", shade: 0.28 }
+    ],
+    color: "#27ae60", glow: "#2ecc71", numY: 40, animClass: "dsvg-roll-d8"
+  },
+  10: {
+    // Pentagonal trapezohedron — kite faces
+    faces: [
+      { points: "60,8 96,36 60,58 24,36", shade: 1.0 },
+      { points: "24,36 60,58 36,100 8,60", shade: 0.72 },
+      { points: "60,58 96,36 112,60 84,100", shade: 0.42 },
+      { points: "36,100 84,100 60,58", shade: 0.22 }
+    ],
+    color: "#8e44ad", glow: "#9b59b6", numY: 46, animClass: "dsvg-roll-d10"
+  },
+  12: {
+    // Dodecahedron — pentagon faces
+    faces: [
+      { points: "60,10 94,30 100,66 60,82 20,66 26,30", shade: 1.0 },
+      { points: "20,66 60,82 46,112 12,92", shade: 0.58 },
+      { points: "60,82 100,66 108,92 74,112", shade: 0.34 },
+      { points: "46,112 74,112 60,82", shade: 0.18 }
+    ],
+    color: "#e67e22", glow: "#f39c12", numY: 50, animClass: "dsvg-roll-d12"
+  },
+  20: {
+    // Icosahedron — multiple triangular faces
+    faces: [
+      { points: "60,6 94,24 60,50", shade: 1.0 },
+      { points: "60,6 26,24 60,50", shade: 0.88 },
+      { points: "26,24 10,58 42,56", shade: 0.72 },
+      { points: "94,24 110,58 78,56", shade: 0.62 },
+      { points: "26,24 60,50 42,56", shade: 0.8 },
+      { points: "94,24 60,50 78,56", shade: 0.7 },
+      { points: "10,58 42,56 34,90", shade: 0.48 },
+      { points: "110,58 78,56 86,90", shade: 0.36 },
+      { points: "42,56 78,56 60,88", shade: 0.55 },
+      { points: "42,56 34,90 60,88", shade: 0.42 },
+      { points: "78,56 86,90 60,88", shade: 0.3 },
+      { points: "34,90 60,114 60,88", shade: 0.22 },
+      { points: "86,90 60,114 60,88", shade: 0.15 }
+    ],
+    color: "#c9a040", glow: "#f1c40f", numY: 38, animClass: "dsvg-roll-d20"
+  },
+  100: {
+    faces: [],
+    color: "#16a085", glow: "#1abc9c", numY: 64, animClass: "dsvg-roll-d100",
+    isCircle: true
+  }
 };
+
+function diceFaceColor(color, glow, shade) {
+  var r1 = parseInt(color.slice(1,3),16), g1 = parseInt(color.slice(3,5),16), b1 = parseInt(color.slice(5,7),16);
+  var r2 = parseInt(glow.slice(1,3),16), g2 = parseInt(glow.slice(3,5),16), b2 = parseInt(glow.slice(5,7),16);
+  var r, g, b;
+  if (shade > 0.7) {
+    var t = (shade - 0.7) / 0.3;
+    r = Math.round(r1 + (r2 - r1) * t);
+    g = Math.round(g1 + (g2 - g1) * t);
+    b = Math.round(b1 + (b2 - b1) * t);
+  } else {
+    var f = shade / 0.7;
+    r = Math.round(r1 * f);
+    g = Math.round(g1 * f);
+    b = Math.round(b1 * f);
+  }
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
 
 function drawDiceSVG(sides) {
   var svgEl = $("dice-svg");
@@ -196,62 +272,51 @@ function drawDiceSVG(sides) {
   var numEl = $("dice-svg-num");
   var typeEl = $("dice-svg-type");
   if (!svgEl || !shape) return;
-  var d = DICE_SVG[sides] || DICE_SVG[20];
+  var d = DICE_3D[sides] || DICE_3D[20];
   svgEl.style.setProperty("--dice-glow", d.glow);
-  // 3D gradient + highlight
-  var gradId = "diceGrad" + sides;
+
   var highlightId = "diceHL" + sides;
-  var innerShadowId = "diceIS" + sides;
-  var gradSvg =
+  var html =
     '<defs>' +
-      '<linearGradient id="' + gradId + '" x1="0%" y1="0%" x2="100%" y2="100%">' +
-        '<stop offset="0%" stop-color="' + d.glow + '" stop-opacity="0.9"/>' +
-        '<stop offset="40%" stop-color="' + d.color + '" stop-opacity="1"/>' +
-        '<stop offset="100%" stop-color="#000" stop-opacity="0.4"/>' +
-      '</linearGradient>' +
-      '<radialGradient id="' + highlightId + '" cx="35%" cy="30%" r="50%">' +
-        '<stop offset="0%" stop-color="white" stop-opacity="0.35"/>' +
+      '<radialGradient id="' + highlightId + '" cx="35%" cy="25%" r="55%">' +
+        '<stop offset="0%" stop-color="white" stop-opacity="0.38"/>' +
         '<stop offset="100%" stop-color="white" stop-opacity="0"/>' +
       '</radialGradient>' +
-      '<filter id="' + innerShadowId + '">' +
-        '<feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>' +
-        '<feOffset dx="2" dy="3"/>' +
-        '<feComposite in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1"/>' +
-        '<feFlood flood-color="#000" flood-opacity="0.3"/>' +
-        '<feComposite in2="SourceGraphic" operator="in"/>' +
-        '<feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>' +
-      '</filter>' +
     '</defs>';
-  if (sides === 100) {
-    shape.innerHTML = gradSvg +
-      '<circle cx="60" cy="60" r="52" fill="url(#' + gradId + ')" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" filter="url(#' + innerShadowId + ')"/>' +
-      '<circle cx="60" cy="60" r="52" fill="url(#' + highlightId + ')"/>';
+
+  if (d.isCircle) {
+    html += '<circle cx="60" cy="60" r="52" fill="' + diceFaceColor(d.color, d.glow, 0.7) + '" stroke="rgba(255,255,255,0.2)" stroke-width="1.2"/>';
+    html += '<circle cx="60" cy="60" r="52" fill="url(#' + highlightId + ')"/>';
+    html += '<ellipse cx="60" cy="60" rx="52" ry="20" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/>';
+    html += '<ellipse cx="60" cy="60" rx="20" ry="52" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="0.8"/>';
+    html += '<ellipse cx="60" cy="60" rx="42" ry="42" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.6" transform="rotate(30,60,60)"/>';
   } else {
-    shape.innerHTML = gradSvg +
-      '<path d="' + d.path + '" fill="url(#' + gradId + ')" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-linejoin="round" filter="url(#' + innerShadowId + ')"/>' +
-      '<path d="' + d.path + '" fill="url(#' + highlightId + ')"/>';
-  }
-  if (numEl) { numEl.setAttribute("y", d.numY || 64); }
-  if (typeEl) typeEl.textContent = "d" + sides;
-  // Color cube faces to match die type
-  var cube = document.getElementById("dice-cube");
-  if (cube) {
-    var faces = cube.querySelectorAll(".dice-face:not(.dice-face-front)");
-    for (var i = 0; i < faces.length; i++) {
-      var brightness = [0.7, 0.5, 0.85, 0.95, 0.3];
-      var b = brightness[i] || 0.6;
-      faces[i].style.background = 'linear-gradient(135deg, ' + d.color + ' 0%, rgba(0,0,0,' + (1-b) + ') 100%)';
-      faces[i].style.borderColor = d.glow + '33';
+    for (var i = 0; i < d.faces.length; i++) {
+      var face = d.faces[i];
+      html += '<polygon points="' + face.points + '" fill="' + diceFaceColor(d.color, d.glow, face.shade) + '" stroke="rgba(255,255,255,0.18)" stroke-width="0.8" stroke-linejoin="round"/>';
+    }
+    if (d.faces.length > 0) {
+      html += '<polygon points="' + d.faces[0].points + '" fill="url(#' + highlightId + ')"/>';
     }
   }
+
+  shape.innerHTML = html;
+  if (numEl) { numEl.setAttribute("y", d.numY || 64); }
+  if (typeEl) typeEl.textContent = "d" + sides;
+
+  // Update table shadow color
+  var container = document.querySelector('.dsvg-container');
+  if (container) container.setAttribute('data-glow', d.glow);
 }
 
 function animateDice3d(sides, result, callback) {
   var svgContainer = document.querySelector(".dsvg-container");
+  var dieEl = document.getElementById("dice-3d-die");
   var numEl = $("dice-svg-num");
-  if (!svgContainer) { callback(); return; }
+  if (!svgContainer || !dieEl) { callback(); return; }
   drawDiceSVG(sides);
-  // Hide number during roll, show "?"
+  var d = DICE_3D[sides] || DICE_3D[20];
+  // Hide number during roll
   if (numEl) { numEl.style.opacity = "0.6"; }
   // Rapidly cycling numbers
   var rollSpeed = 50;
@@ -265,14 +330,19 @@ function animateDice3d(sides, result, callback) {
       if (numEl) numEl.textContent = Math.floor(Math.random() * sides) + 1;
     }, 120);
   }, 550);
-  // Shake animation
-  svgContainer.classList.remove("dsvg-shake", "dsvg-land");
+  // Remove old animation classes
+  var allRollClasses = ["dsvg-shake", "dsvg-land",
+    "dsvg-roll-d4","dsvg-roll-d6","dsvg-roll-d8","dsvg-roll-d10","dsvg-roll-d12","dsvg-roll-d20","dsvg-roll-d100"];
+  allRollClasses.forEach(function(c) { svgContainer.classList.remove(c); dieEl.classList.remove(c); });
   void svgContainer.offsetWidth;
+  // Apply die-specific roll animation
+  dieEl.classList.add(d.animClass);
   svgContainer.classList.add("dsvg-shake");
   setTimeout(function() {
     clearTimeout(slowDown);
     clearInterval(rollInterval);
     svgContainer.classList.remove("dsvg-shake");
+    dieEl.classList.remove(d.animClass);
     if (numEl) {
       numEl.textContent = result;
       numEl.style.opacity = "1";

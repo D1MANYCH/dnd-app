@@ -5448,52 +5448,11 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   transition: all 0.3s;
   z-index: 0;
 }
-/* 3D Cube */
-.dice-cube {
+/* 3D Die element */
+.dice-3d-die {
   width: 100px; height: 100px;
   position: relative;
-  transform-style: preserve-3d;
-  transform: rotateX(-8deg) rotateY(12deg);
-  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
-}
-.dice-face {
-  position: absolute;
-  width: 100px; height: 100px;
-  border-radius: 14px;
-  border: 1.5px solid rgba(255,255,255,0.12);
-  box-sizing: border-box;
-  backface-visibility: hidden;
-}
-.dice-face-front {
-  transform: translateZ(50px);
-  background: transparent;
   display: flex; align-items: center; justify-content: center;
-  border: none;
-}
-.dice-face-back {
-  transform: rotateY(180deg) translateZ(50px);
-  background: linear-gradient(135deg, #2a1f0a 0%, #1a1508 100%);
-  border-color: rgba(201,160,64,0.15);
-}
-.dice-face-left {
-  transform: rotateY(-90deg) translateZ(50px);
-  background: linear-gradient(180deg, #2a1f0a 0%, #0f0d06 100%);
-  border-color: rgba(201,160,64,0.1);
-}
-.dice-face-right {
-  transform: rotateY(90deg) translateZ(50px);
-  background: linear-gradient(180deg, #3a2d10 0%, #1a1508 100%);
-  border-color: rgba(201,160,64,0.18);
-}
-.dice-face-top {
-  transform: rotateX(90deg) translateZ(50px);
-  background: linear-gradient(180deg, #4a3a18 0%, #2a1f0a 100%);
-  border-color: rgba(201,160,64,0.22);
-}
-.dice-face-bottom {
-  transform: rotateX(-90deg) translateZ(50px);
-  background: linear-gradient(180deg, #0a0804 0%, #151008 100%);
-  border-color: rgba(201,160,64,0.06);
 }
 .dsvg {
   width: 100px; height: 100px;
@@ -5502,34 +5461,114 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   position: relative; z-index: 2;
 }
 
-/* Анимация броска — вращение куба */
-@keyframes cubeRoll {
-  0%   { transform: rotateX(0)      rotateY(0)      rotateZ(0)     scale(1);   }
-  10%  { transform: rotateX(90deg)   rotateY(-45deg)  rotateZ(30deg)  scale(1.05); }
-  20%  { transform: rotateX(200deg)  rotateY(60deg)   rotateZ(-40deg) scale(0.95); }
-  30%  { transform: rotateX(310deg)  rotateY(-120deg) rotateZ(70deg)  scale(1.08); }
-  42%  { transform: rotateX(420deg)  rotateY(200deg)  rotateZ(-50deg) scale(0.93); }
-  55%  { transform: rotateX(520deg)  rotateY(-250deg) rotateZ(30deg)  scale(1.04); }
-  68%  { transform: rotateX(640deg)  rotateY(300deg)  rotateZ(-20deg) scale(0.98); }
-  80%  { transform: rotateX(700deg)  rotateY(-340deg) rotateZ(10deg)  scale(1.01); }
-  92%  { transform: rotateX(715deg)  rotateY(-355deg) rotateZ(-3deg)  scale(1);   }
-  100% { transform: rotateX(720deg)  rotateY(-360deg) rotateZ(0)     scale(1);   }
-}
-@keyframes cubeLand {
-  0%   { transform: rotateX(-15deg) rotateY(10deg) scale(1.12); }
-  40%  { transform: rotateX(4deg)   rotateY(-3deg) scale(0.94); }
-  70%  { transform: rotateX(-2deg)  rotateY(1deg)  scale(1.02); }
-  100% { transform: rotateX(-8deg)  rotateY(12deg) scale(1); }
-}
-@keyframes cubeGlow {
-  0%   { box-shadow: 0 0 0 rgba(201,160,64,0); }
-  40%  { box-shadow: 0 0 30px rgba(201,160,64,0.4), 0 0 60px rgba(201,160,64,0.15); }
-  100% { box-shadow: 0 0 0 rgba(201,160,64,0); }
+/* === Per-die roll animations === */
+
+/* d4 — tetrahedron: tumbles face-to-face, 3 faces = 120° steps */
+@keyframes rollD4 {
+  0%   { transform: rotate(0) scale(1); }
+  15%  { transform: rotate(35deg) scale(1.06) translateY(-8px); }
+  30%  { transform: rotate(-25deg) scale(0.94) translateY(4px); }
+  50%  { transform: rotate(120deg) scale(1.08) translateY(-12px); }
+  70%  { transform: rotate(240deg) scale(0.96) translateY(2px); }
+  85%  { transform: rotate(345deg) scale(1.02) translateY(-2px); }
+  100% { transform: rotate(360deg) scale(1) translateY(0); }
 }
 
-.dsvg-shake .dice-cube { animation: cubeRoll 0.85s cubic-bezier(0.36,0.07,0.19,0.97); }
-.dsvg-land .dice-cube  { animation: cubeLand 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards; }
-.dsvg-land .dice-face-front { animation: cubeGlow 0.6s ease-out; }
+/* d6 — cube: classic tumble with axis rotation */
+@keyframes rollD6 {
+  0%   { transform: rotate(0) scale(1); }
+  12%  { transform: rotate(40deg) scale(1.05) translateX(6px) translateY(-6px); }
+  25%  { transform: rotate(-30deg) scale(0.95) translateX(-4px) translateY(4px); }
+  40%  { transform: rotate(90deg) scale(1.08) translateY(-10px); }
+  55%  { transform: rotate(180deg) scale(0.94) translateY(3px); }
+  72%  { transform: rotate(270deg) scale(1.03) translateY(-4px); }
+  88%  { transform: rotate(350deg) scale(1.01); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* d8 — octahedron: spins on axis like a top */
+@keyframes rollD8 {
+  0%   { transform: rotate(0) scaleY(1) scale(1); }
+  10%  { transform: rotate(30deg) scaleY(0.85) scale(1.06); }
+  25%  { transform: rotate(-20deg) scaleY(1.1) scale(0.95); }
+  40%  { transform: rotate(160deg) scaleY(0.8) scale(1.08); }
+  60%  { transform: rotate(300deg) scaleY(1.05) scale(0.97); }
+  78%  { transform: rotate(340deg) scaleY(0.95) scale(1.02); }
+  100% { transform: rotate(360deg) scaleY(1) scale(1); }
+}
+
+/* d10 — pentagonal trapezohedron: asymmetric wobble */
+@keyframes rollD10 {
+  0%   { transform: rotate(0) skewX(0) scale(1); }
+  14%  { transform: rotate(25deg) skewX(8deg) scale(1.05) translateY(-6px); }
+  28%  { transform: rotate(-35deg) skewX(-6deg) scale(0.96) translateY(3px); }
+  45%  { transform: rotate(140deg) skewX(4deg) scale(1.07) translateY(-10px); }
+  62%  { transform: rotate(250deg) skewX(-3deg) scale(0.97) translateY(2px); }
+  80%  { transform: rotate(340deg) skewX(1deg) scale(1.01); }
+  100% { transform: rotate(360deg) skewX(0) scale(1); }
+}
+
+/* d12 — dodecahedron: heavy, slower with momentum */
+@keyframes rollD12 {
+  0%   { transform: rotate(0) scale(1); }
+  10%  { transform: rotate(20deg) scale(1.04) translateY(-5px); }
+  22%  { transform: rotate(-15deg) scale(0.97) translateY(3px); }
+  38%  { transform: rotate(100deg) scale(1.06) translateY(-8px); }
+  55%  { transform: rotate(200deg) scale(0.95) translateY(2px); }
+  72%  { transform: rotate(300deg) scale(1.03) translateY(-3px); }
+  90%  { transform: rotate(350deg) scale(1.01); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* d20 — icosahedron: fast chaotic multi-spin */
+@keyframes rollD20 {
+  0%   { transform: rotate(0) scale(1); }
+  8%   { transform: rotate(55deg) scale(1.07) translateY(-10px) translateX(5px); }
+  18%  { transform: rotate(-40deg) scale(0.93) translateY(5px) translateX(-4px); }
+  30%  { transform: rotate(150deg) scale(1.09) translateY(-14px); }
+  42%  { transform: rotate(260deg) scale(0.94) translateY(4px); }
+  56%  { transform: rotate(400deg) scale(1.05) translateY(-8px); }
+  70%  { transform: rotate(540deg) scale(0.97) translateY(2px); }
+  84%  { transform: rotate(660deg) scale(1.02) translateY(-2px); }
+  100% { transform: rotate(720deg) scale(1); }
+}
+
+/* d100 — sphere: smooth spin */
+@keyframes rollD100 {
+  0%   { transform: rotate(0) scale(1); }
+  15%  { transform: rotate(60deg) scale(1.04) translateY(-6px); }
+  35%  { transform: rotate(180deg) scale(1.06) translateY(-10px); }
+  55%  { transform: rotate(360deg) scale(0.97) translateY(2px); }
+  75%  { transform: rotate(540deg) scale(1.02) translateY(-3px); }
+  100% { transform: rotate(720deg) scale(1); }
+}
+
+/* Land bounce */
+@keyframes dieLand {
+  0%   { transform: scale(1.12); }
+  35%  { transform: scale(0.93); }
+  65%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* Glow on land */
+@keyframes dieGlow {
+  0%   { filter: drop-shadow(0 0 0 transparent); }
+  40%  { filter: drop-shadow(0 0 18px var(--dice-glow, #c9a040)) drop-shadow(0 0 40px var(--dice-glow, #c9a040)); }
+  100% { filter: drop-shadow(0 0 0 transparent); }
+}
+
+/* Apply roll animations */
+.dsvg-roll-d4  { animation: rollD4  0.8s cubic-bezier(0.36,0.07,0.19,0.97); }
+.dsvg-roll-d6  { animation: rollD6  0.85s cubic-bezier(0.36,0.07,0.19,0.97); }
+.dsvg-roll-d8  { animation: rollD8  0.8s cubic-bezier(0.36,0.07,0.19,0.97); }
+.dsvg-roll-d10 { animation: rollD10 0.82s cubic-bezier(0.36,0.07,0.19,0.97); }
+.dsvg-roll-d12 { animation: rollD12 0.9s cubic-bezier(0.36,0.07,0.19,0.97); }
+.dsvg-roll-d20 { animation: rollD20 0.85s cubic-bezier(0.36,0.07,0.19,0.97); }
+.dsvg-roll-d100{ animation: rollD100 0.85s cubic-bezier(0.36,0.07,0.19,0.97); }
+
+.dsvg-land .dice-3d-die { animation: dieLand 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.dsvg-land .dsvg { animation: dieGlow 0.6s ease-out; }
 
 /* Result panel */
 .dice3d-result {
