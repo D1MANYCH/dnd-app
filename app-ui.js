@@ -145,6 +145,10 @@ animateDice3d(sides, result, function() {
   var resultBig = $("dice-result-big");
   var resultInfo = $("dice-result-info");
   var resultBox = $("dice3d-result");
+  // Show dual dice for adv/dis
+  if (typeof showDualDice === 'function') {
+    showDualDice({ mode: mode || 'normal', roll: result, r1: r1, r2: r2 });
+  }
   if (resultBig) resultBig.textContent = result;
   if (resultBox) {
     resultBox.classList.remove("crit-success","crit-fail","normal");
@@ -193,17 +197,53 @@ function drawDiceSVG(sides) {
   var typeEl = $("dice-svg-type");
   if (!svgEl || !shape) return;
   var d = DICE_SVG[sides] || DICE_SVG[20];
-  // Set glow color
   svgEl.style.setProperty("--dice-glow", d.glow);
-  // Draw shape
+  // 3D gradient + highlight
+  var gradId = "diceGrad" + sides;
+  var highlightId = "diceHL" + sides;
+  var innerShadowId = "diceIS" + sides;
+  var gradSvg =
+    '<defs>' +
+      '<linearGradient id="' + gradId + '" x1="0%" y1="0%" x2="100%" y2="100%">' +
+        '<stop offset="0%" stop-color="' + d.glow + '" stop-opacity="0.9"/>' +
+        '<stop offset="40%" stop-color="' + d.color + '" stop-opacity="1"/>' +
+        '<stop offset="100%" stop-color="#000" stop-opacity="0.4"/>' +
+      '</linearGradient>' +
+      '<radialGradient id="' + highlightId + '" cx="35%" cy="30%" r="50%">' +
+        '<stop offset="0%" stop-color="white" stop-opacity="0.35"/>' +
+        '<stop offset="100%" stop-color="white" stop-opacity="0"/>' +
+      '</radialGradient>' +
+      '<filter id="' + innerShadowId + '">' +
+        '<feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>' +
+        '<feOffset dx="2" dy="3"/>' +
+        '<feComposite in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1"/>' +
+        '<feFlood flood-color="#000" flood-opacity="0.3"/>' +
+        '<feComposite in2="SourceGraphic" operator="in"/>' +
+        '<feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>' +
+      '</filter>' +
+    '</defs>';
   if (sides === 100) {
-    // Full circle via element
-    shape.innerHTML = '<circle cx="60" cy="60" r="52" fill="' + d.color + '" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>';
+    shape.innerHTML = gradSvg +
+      '<circle cx="60" cy="60" r="52" fill="url(#' + gradId + ')" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" filter="url(#' + innerShadowId + ')"/>' +
+      '<circle cx="60" cy="60" r="52" fill="url(#' + highlightId + ')"/>';
   } else {
-    shape.innerHTML = '<path d="' + d.path + '" fill="' + d.color + '" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linejoin="round"/>';
+    shape.innerHTML = gradSvg +
+      '<path d="' + d.path + '" fill="url(#' + gradId + ')" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-linejoin="round" filter="url(#' + innerShadowId + ')"/>' +
+      '<path d="' + d.path + '" fill="url(#' + highlightId + ')"/>';
   }
   if (numEl) { numEl.setAttribute("y", d.numY || 64); }
   if (typeEl) typeEl.textContent = "d" + sides;
+  // Color cube faces to match die type
+  var cube = document.getElementById("dice-cube");
+  if (cube) {
+    var faces = cube.querySelectorAll(".dice-face:not(.dice-face-front)");
+    for (var i = 0; i < faces.length; i++) {
+      var brightness = [0.7, 0.5, 0.85, 0.95, 0.3];
+      var b = brightness[i] || 0.6;
+      faces[i].style.background = 'linear-gradient(135deg, ' + d.color + ' 0%, rgba(0,0,0,' + (1-b) + ') 100%)';
+      faces[i].style.borderColor = d.glow + '33';
+    }
+  }
 }
 
 function animateDice3d(sides, result, callback) {
@@ -211,25 +251,39 @@ function animateDice3d(sides, result, callback) {
   var numEl = $("dice-svg-num");
   if (!svgContainer) { callback(); return; }
   drawDiceSVG(sides);
-  // Show rolling numbers
+  // Hide number during roll, show "?"
+  if (numEl) { numEl.style.opacity = "0.6"; }
+  // Rapidly cycling numbers
+  var rollSpeed = 50;
   var rollInterval = setInterval(function() {
     if (numEl) numEl.textContent = Math.floor(Math.random() * sides) + 1;
-  }, 60);
+  }, rollSpeed);
+  // Slow down numbers near the end
+  var slowDown = setTimeout(function() {
+    clearInterval(rollInterval);
+    rollInterval = setInterval(function() {
+      if (numEl) numEl.textContent = Math.floor(Math.random() * sides) + 1;
+    }, 120);
+  }, 550);
   // Shake animation
-  svgContainer.classList.remove("dsvg-shake");
+  svgContainer.classList.remove("dsvg-shake", "dsvg-land");
   void svgContainer.offsetWidth;
   svgContainer.classList.add("dsvg-shake");
   setTimeout(function() {
+    clearTimeout(slowDown);
     clearInterval(rollInterval);
     svgContainer.classList.remove("dsvg-shake");
-    if (numEl) numEl.textContent = result;
-    // Land animation
+    if (numEl) {
+      numEl.textContent = result;
+      numEl.style.opacity = "1";
+    }
+    // Land with bounce
     svgContainer.classList.add("dsvg-land");
     setTimeout(function() {
       svgContainer.classList.remove("dsvg-land");
       callback();
-    }, 350);
-  }, 700);
+    }, 400);
+  }, 800);
 }
 
 function rollCustomFormula() {

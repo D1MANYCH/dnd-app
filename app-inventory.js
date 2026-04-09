@@ -495,6 +495,113 @@ div.innerHTML =
   (weapon.notes ? '<div class="weapon-notes">' + escapeHtml(weapon.notes) + '</div>' : '');
 container.appendChild(div);
 });
+// Two-Weapon Fighting: если 2+ лёгких оружия — показать бонусную атаку
+var lightWeapons = [];
+char.weapons.forEach(function(w, i) {
+  if (isLightWeapon(w)) lightWeapons.push(i);
+});
+if (lightWeapons.length >= 2) {
+  var twfDiv = document.createElement("div");
+  twfDiv.className = "twf-section";
+  var twfChecked = char.twoWeaponFighting ? ' checked' : '';
+  twfDiv.innerHTML =
+    '<div class="twf-header">' +
+      '<span class="twf-title">⚔️ Бой двумя оружиями</span>' +
+      '<label class="twf-style-label">' +
+        '<input type="checkbox" id="twf-style-toggle"' + twfChecked + ' onchange="toggleTWFStyle()">' +
+        ' Стиль боя' +
+      '</label>' +
+    '</div>' +
+    '<div class="twf-info">Бонусное действие: атака вторым лёгким оружием' +
+      (char.twoWeaponFighting ? '' : ' (без мод. характеристики к урону)') +
+    '</div>' +
+    '<div class="twf-buttons">' +
+      '<button class="weapon-roll-btn weapon-roll-twf" onclick="rollTWFAttack(' + lightWeapons[1] + ')">🗡️ Бонусная атака: ' + escapeHtml(char.weapons[lightWeapons[1]].name) + '</button>' +
+    '</div>';
+  container.appendChild(twfDiv);
+}
+}
+
+function isLightWeapon(weapon) {
+  if (!weapon || !weapon.notes) return false;
+  return weapon.notes.toLowerCase().indexOf("лёгкое") !== -1 || weapon.notes.toLowerCase().indexOf("легкое") !== -1;
+}
+
+function toggleTWFStyle() {
+  var char = getCurrentChar();
+  if (!char) return;
+  char.twoWeaponFighting = !char.twoWeaponFighting;
+  saveToLocal();
+  renderWeapons();
+}
+
+function rollTWFAttack(index) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var weapon = char.weapons[index];
+  if (!weapon) return;
+  showRollModePopup(function(mode) {
+    var statKey = weapon.stat || "str";
+    var statVal = char.stats[statKey] || 10;
+    var statMod = getMod(statVal);
+    var profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
+    var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
+    var d = rollD20WithMode(mode);
+    var total = d.roll + attackBonus;
+    var modeLabel = formatRollModeLabel(d);
+    // Attack roll — same as normal
+    var msg = "⚔️ Бонусная атака " + escapeHtml(weapon.name) + modeLabel + ": к20=" + d.roll + " + " + attackBonus + " = " + total;
+    if (d.isCrit) msg = "🎉 КРИТ! Бонусная атака " + escapeHtml(weapon.name) + ": " + d.roll + " + " + attackBonus + " = " + total;
+    if (d.isFail) msg = "💀 ПРОМАХ! Бонусная атака " + escapeHtml(weapon.name) + ": " + d.roll;
+    showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
+    openDiceModal();
+    var resultBig = $("dice-result-big");
+    var resultInfo = $("dice-result-info");
+    var resultBox = $("dice3d-result");
+    if (resultBig) resultBig.textContent = total;
+    if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · бонусная атака" + modeLabel + " · " + formatDiceInfoStr(d);
+    if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
+    drawDiceSVG(20);
+    showDualDice(d);
+    var numEl = $("dice-svg-num");
+    if (numEl) numEl.textContent = total;
+    if (d.isCrit) createParticles();
+    diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: weapon.name + " бонус.атака" });
+    if (diceHistory.length > 10) diceHistory.pop();
+    renderDiceHistory();
+    // Auto-roll damage
+    rollTWFDamage(index);
+  });
+}
+
+function rollTWFDamage(index) {
+  var char = getCurrentChar();
+  if (!char) return;
+  var weapon = char.weapons[index];
+  if (!weapon || !weapon.damage) return;
+  var statKey = weapon.stat || "str";
+  var statVal = char.stats[statKey] || 10;
+  var statMod = getMod(statVal);
+  var addMod = char.twoWeaponFighting ? statMod : 0; // Without style — no stat mod to damage
+  var dmg = weapon.damage.toLowerCase().replace(/к/g, "d").replace(/\s/g, "");
+  var match = dmg.match(/^(\d+)d(\d+)([+-]\d+)?$/);
+  var total = 0;
+  var rollStr = "";
+  if (match) {
+    var num = parseInt(match[1]);
+    var sides = parseInt(match[2]);
+    var mod = match[3] ? parseInt(match[3]) : 0;
+    var rolls = [];
+    for (var i = 0; i < num; i++) rolls.push(Math.floor(Math.random() * sides) + 1);
+    total = rolls.reduce(function(a,b){return a+b;}, 0) + mod + addMod;
+    rollStr = "[" + rolls.join("+") + "]" + (mod ? (mod>0?"+":"")+mod : "") + (addMod ? (addMod>0?"+":"")+addMod : "");
+  } else {
+    total = addMod;
+    rollStr = addMod ? "+" + addMod : "0";
+  }
+  var styleNote = char.twoWeaponFighting ? "" : " (без мод.)";
+  showToast("🗡️ " + escapeHtml(weapon.name) + " бонусный урон" + styleNote + ": " + rollStr + " = " + total, "info");
 }
 
 function rollWeaponAttack(index) {
@@ -503,36 +610,35 @@ const char = getCurrentChar();
 if (!char) return;
 const weapon = char.weapons[index];
 if (!weapon) return;
-const statKey = weapon.stat || "str";
-const statVal = char.stats[statKey] || 10;
-const statMod = getMod(statVal);
-const profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
-const attackBonus = statMod + (weapon.proficient ? profBonus : 0);
-const roll = Math.floor(Math.random() * 20) + 1;
-const total = roll + attackBonus;
-const isCrit = roll === 20;
-const isFail = roll === 1;
-let msg = "⚔️ " + escapeHtml(weapon.name) + ": бросок " + roll + " + " + attackBonus + " = " + total;
-if (isCrit) msg = "🎉 КРИТИЧЕСКОЕ ПОПАДАНИЕ! " + escapeHtml(weapon.name) + ": " + roll + " + " + attackBonus + " = " + total;
-if (isFail) msg = "💀 ПРОМАХ! " + escapeHtml(weapon.name) + ": " + roll;
-showToast(msg, isCrit ? "success" : isFail ? "error" : "info");
-openDiceModal();
-// Show in dice display
-var resultBig = $("dice-result-big");
-var resultInfo = $("dice-result-info");
-var resultBox = $("dice3d-result");
-if (resultBig) resultBig.textContent = total;
-if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · атака · к20=" + roll;
-if (resultBox) {
-  resultBox.className = "dice3d-result" + (isCrit ? " crit-success" : isFail ? " crit-fail" : " normal");
-}
-drawDiceSVG(20);
-var numEl = $("dice-svg-num");
-if (numEl) numEl.textContent = total;
-if (isCrit) createParticles();
-diceHistory.unshift({ sides:20, result:total, mode:"normal", time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:roll, r2:null, label: weapon.name + " атака" });
-if (diceHistory.length > 10) diceHistory.pop();
-renderDiceHistory();
+showRollModePopup(function(mode) {
+  var statKey = weapon.stat || "str";
+  var statVal = char.stats[statKey] || 10;
+  var statMod = getMod(statVal);
+  var profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
+  var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
+  var d = rollD20WithMode(mode);
+  var total = d.roll + attackBonus;
+  var modeLabel = formatRollModeLabel(d);
+  var rollInfo = formatRollMode(d, attackBonus);
+  var msg = "⚔️ " + escapeHtml(weapon.name) + modeLabel + ": " + rollInfo + " + " + attackBonus + " = " + total;
+  if (d.isCrit) msg = "🎉 КРИТИЧЕСКОЕ ПОПАДАНИЕ! " + escapeHtml(weapon.name) + ": " + d.roll + " + " + attackBonus + " = " + total;
+  if (d.isFail) msg = "💀 ПРОМАХ! " + escapeHtml(weapon.name) + ": " + d.roll;
+  showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
+  openDiceModal();
+  var resultBig = $("dice-result-big");
+  var resultInfo = $("dice-result-info");
+  var resultBox = $("dice3d-result");
+  if (resultBig) resultBig.textContent = total;
+  if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · атака" + modeLabel + " · " + formatDiceInfoStr(d);
+  if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
+  drawDiceSVG(20);
+  var numEl = $("dice-svg-num");
+  if (numEl) numEl.textContent = total;
+  if (d.isCrit) createParticles();
+  diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: weapon.name + " атака" });
+  if (diceHistory.length > 10) diceHistory.pop();
+  renderDiceHistory();
+});
 }
 
 function rollWeaponDamage(index) {

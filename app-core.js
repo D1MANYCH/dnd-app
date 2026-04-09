@@ -129,6 +129,13 @@ function migrateCharacter(char) {
     if (!char.spells.prepared) char.spells.prepared = [];
     char.schemaVersion = 4;
   }
+  if (v < 5) {
+    if (!char.resistances) char.resistances = [];
+    if (!char.immunities) char.immunities = [];
+    if (!char.vulnerabilities) char.vulnerabilities = [];
+    if (char.twoWeaponFighting === undefined) char.twoWeaponFighting = false;
+    char.schemaVersion = 5;
+  }
   return char;
 }
 
@@ -670,6 +677,7 @@ loadDeathSaves();
 renderCompanions();
 renderJournal();
 renderTakenFeats();
+renderResistances();
 // Re-render party and battle with character-specific data
 renderMyChar();
 renderAllies();

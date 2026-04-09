@@ -546,6 +546,14 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="effects-grid" id="effects-grid"></div>
 </div>
 </div>
+<div class="accordion-card-inner">
+<button class="accordion-toggle accordion-toggle-sm" onclick="toggleAccordion(this)" aria-expanded="false">
+<span>🛡️ Сопротивления к урону</span><span class="accordion-arrow">▸</span>
+</button>
+<div class="accordion-body" style="display:none">
+<div id="resistances-container"></div>
+</div>
+</div>
 <div class="card">
 <h3>📖 Владения</h3>
 <div class="proficiencies-section">
@@ -1391,28 +1399,41 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="modal-close" onclick="closeDiceModal()">&times;</span>
 <h3>🎲 Бросок кубиков</h3>
 
-<!-- SVG dice display -->
+<!-- 3D Dice display -->
 <div class="dsvg-wrap">
-  <div class="dsvg-container">
-    <svg id="dice-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" class="dsvg">
-      <defs>
-        <filter id="dsvg-shadow">
-          <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,0.5)"/>
-        </filter>
-        <filter id="dsvg-glow">
-          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="var(--dice-glow,#c9a040)" flood-opacity="0.8"/>
-        </filter>
-      </defs>
-      <g id="dice-svg-shape" filter="url(#dsvg-shadow)"></g>
-      <text id="dice-svg-num" x="60" y="60" text-anchor="middle" dominant-baseline="central"
-        font-size="32" font-weight="900" fill="white" font-family="inherit"
-        filter="url(#dsvg-shadow)" style="pointer-events:none">—</text>
-      <text id="dice-svg-type" x="60" y="108" text-anchor="middle" font-size="11"
-        font-weight="700" fill="rgba(255,255,255,0.6)" font-family="inherit"></text>
-    </svg>
+  <div class="dsvg-container" id="dsvg-container">
+    <div class="dice-cube" id="dice-cube">
+      <div class="dice-face dice-face-front">
+        <svg id="dice-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" class="dsvg">
+          <defs>
+            <filter id="dsvg-shadow">
+              <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,0.5)"/>
+            </filter>
+            <filter id="dsvg-glow">
+              <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="var(--dice-glow,#c9a040)" flood-opacity="0.8"/>
+            </filter>
+          </defs>
+          <g id="dice-svg-shape" filter="url(#dsvg-shadow)"></g>
+          <text id="dice-svg-num" x="60" y="60" text-anchor="middle" dominant-baseline="central"
+            font-size="32" font-weight="900" fill="white" font-family="inherit"
+            filter="url(#dsvg-shadow)" style="pointer-events:none">—</text>
+          <text id="dice-svg-type" x="60" y="108" text-anchor="middle" font-size="11"
+            font-weight="700" fill="rgba(255,255,255,0.6)" font-family="inherit"></text>
+        </svg>
+      </div>
+      <div class="dice-face dice-face-back"></div>
+      <div class="dice-face dice-face-left"></div>
+      <div class="dice-face dice-face-right"></div>
+      <div class="dice-face dice-face-top"></div>
+      <div class="dice-face dice-face-bottom"></div>
+    </div>
   </div>
   <div class="dice3d-result" id="dice3d-result">
     <span class="dice3d-num" id="dice-result-big">—</span>
+    <div class="dice-dual-display" id="dice-dual-display" style="display:none">
+      <span class="dice-dual-die dice-dual-kept" id="dice-dual-kept"></span>
+      <span class="dice-dual-die dice-dual-discarded" id="dice-dual-discarded"></span>
+    </div>
     <span class="dice3d-label" id="dice-result-info">Выберите кубик</span>
   </div>
 </div>

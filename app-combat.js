@@ -4,6 +4,174 @@
 // ============================================================
 
 // ============================================
+// ПОПАП ВЫБОРА РЕЖИМА БРОСКА (Преимущество / Помеха)
+// ============================================
+function showRollModePopup(callback) {
+  var existing = document.getElementById("roll-mode-popup-overlay");
+  if (existing) existing.remove();
+  var overlay = document.createElement("div");
+  overlay.id = "roll-mode-popup-overlay";
+  overlay.className = "roll-mode-overlay";
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  var popup = document.createElement("div");
+  popup.className = "roll-mode-popup";
+  popup.innerHTML =
+    '<div class="roll-mode-title">Режим броска</div>' +
+    '<button class="roll-mode-btn roll-mode-normal" data-mode="normal">🎲 Обычный</button>' +
+    '<button class="roll-mode-btn roll-mode-adv" data-mode="adv">⬆️ Преимущество</button>' +
+    '<button class="roll-mode-btn roll-mode-dis" data-mode="dis">⬇️ Помеха</button>';
+  popup.querySelectorAll(".roll-mode-btn").forEach(function(btn) {
+    btn.onclick = function() {
+      overlay.remove();
+      callback(btn.getAttribute("data-mode"));
+    };
+  });
+  overlay.appendChild(popup);
+  document.body.appendChild(overlay);
+}
+
+// Бросок d20 с поддержкой adv/dis, возвращает {roll, r1, r2, mode, isCrit, isFail}
+function rollD20WithMode(mode) {
+  var r1 = Math.floor(Math.random() * 20) + 1;
+  var r2 = (mode === 'adv' || mode === 'dis') ? Math.floor(Math.random() * 20) + 1 : null;
+  var roll;
+  if (mode === 'adv') {
+    roll = Math.max(r1, r2);
+  } else if (mode === 'dis') {
+    roll = Math.min(r1, r2);
+  } else {
+    roll = r1;
+  }
+  return { roll: roll, r1: r1, r2: r2, mode: mode || 'normal', isCrit: roll === 20, isFail: roll === 1 };
+}
+
+// Форматирование строки броска с зачёркнутым отброшенным
+function formatRollMode(d, bonus) {
+  var total = d.roll + bonus;
+  var rollStr = "";
+  if (d.mode === 'adv') {
+    var kept = d.roll, discarded = (d.roll === d.r1) ? d.r2 : d.r1;
+    rollStr = kept + " (~~" + discarded + "~~)";
+  } else if (d.mode === 'dis') {
+    var kept = d.roll, discarded = (d.roll === d.r1) ? d.r2 : d.r1;
+    rollStr = kept + " (~~" + discarded + "~~)";
+  } else {
+    rollStr = "" + d.roll;
+  }
+  return rollStr;
+}
+
+function formatRollModeLabel(d) {
+  if (d.mode === 'adv') return ' с преимуществом';
+  if (d.mode === 'dis') return ' с помехой';
+  return '';
+}
+
+// Показать/скрыть два кубика при преимуществе/помехе
+function showDualDice(d) {
+  var dualDisplay = $("dice-dual-display");
+  var keptEl = $("dice-dual-kept");
+  var discEl = $("dice-dual-discarded");
+  if (!dualDisplay) return;
+  if (d.mode === 'adv' || d.mode === 'dis') {
+    var kept = d.roll;
+    var discarded = (d.roll === d.r1) ? d.r2 : d.r1;
+    if (keptEl) keptEl.textContent = kept;
+    if (discEl) discEl.textContent = discarded;
+    dualDisplay.style.display = "flex";
+    dualDisplay.className = "dice-dual-display " + (d.mode === 'adv' ? 'dice-dual-adv' : 'dice-dual-dis');
+  } else {
+    dualDisplay.style.display = "none";
+  }
+}
+
+// Строка для dice-result-info: показывает оба кубика при adv/dis
+function formatDiceInfoStr(d) {
+  if (d.mode === 'adv') {
+    var kept = d.roll, disc = (d.roll === d.r1) ? d.r2 : d.r1;
+    return 'к20: [' + d.r1 + ', ' + d.r2 + '] → ' + kept;
+  }
+  if (d.mode === 'dis') {
+    var kept = d.roll, disc = (d.roll === d.r1) ? d.r2 : d.r1;
+    return 'к20: [' + d.r1 + ', ' + d.r2 + '] → ' + kept;
+  }
+  return 'к20=' + d.roll;
+}
+
+// ── Бросок спасброска ──
+function rollSavingThrow(saveKey) {
+  var char = getCurrentChar();
+  if (!char) return;
+  var save = SAVES_DATA.find(function(s) { return s.key === saveKey; });
+  if (!save) return;
+  showRollModePopup(function(mode) {
+    var statMod = getMod(char.stats[saveKey]);
+    var profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
+    var checkbox = $("save-prof-" + saveKey);
+    var bonus = statMod + (checkbox && checkbox.checked ? profBonus : 0);
+    var d = rollD20WithMode(mode);
+    var total = d.roll + bonus;
+    var modeLabel = formatRollModeLabel(d);
+    var rollInfo = formatRollMode(d, bonus);
+    var msg = save.icon + " Спасбросок " + save.name + modeLabel + ": " + rollInfo + " + " + bonus + " = " + total;
+    if (d.isCrit) msg = "🎉 КРИТ! Спасбросок " + save.name + ": " + d.roll + " + " + bonus + " = " + total;
+    if (d.isFail) msg = "💀 ПРОВАЛ! Спасбросок " + save.name + ": " + d.roll;
+    showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
+    openDiceModal();
+    var resultBig = $("dice-result-big");
+    var resultInfo = $("dice-result-info");
+    var resultBox = $("dice3d-result");
+    if (resultBig) resultBig.textContent = total;
+    if (resultInfo) resultInfo.textContent = save.name + " · спасбросок" + modeLabel + " · " + formatDiceInfoStr(d);
+    if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
+    drawDiceSVG(20);
+    showDualDice(d);
+    var numEl = $("dice-svg-num");
+    if (numEl) numEl.textContent = total;
+    if (d.isCrit) createParticles();
+    diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: save.name + " спас" });
+    if (diceHistory.length > 10) diceHistory.pop();
+    renderDiceHistory();
+  });
+}
+
+// ── Бросок проверки навыка ──
+function rollSkillCheck(skillIndex) {
+  var char = getCurrentChar();
+  if (!char) return;
+  var skill = skills[skillIndex];
+  if (!skill) return;
+  showRollModePopup(function(mode) {
+    var bonusEl = $("skill-bonus-" + skillIndex);
+    var bonus = bonusEl ? parseInt(bonusEl.innerText) : 0;
+    if (isNaN(bonus)) bonus = 0;
+    var d = rollD20WithMode(mode);
+    var total = d.roll + bonus;
+    var modeLabel = formatRollModeLabel(d);
+    var rollInfo = formatRollMode(d, bonus);
+    var msg = "🎯 " + skill.name + modeLabel + ": " + rollInfo + " + " + bonus + " = " + total;
+    if (d.isCrit) msg = "🎉 КРИТ! " + skill.name + ": " + d.roll + " + " + bonus + " = " + total;
+    if (d.isFail) msg = "💀 ПРОВАЛ! " + skill.name + ": " + d.roll;
+    showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
+    openDiceModal();
+    var resultBig = $("dice-result-big");
+    var resultInfo = $("dice-result-info");
+    var resultBox = $("dice3d-result");
+    if (resultBig) resultBig.textContent = total;
+    if (resultInfo) resultInfo.textContent = skill.name + " · проверка" + modeLabel + " · " + formatDiceInfoStr(d);
+    if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
+    drawDiceSVG(20);
+    showDualDice(d);
+    var numEl = $("dice-svg-num");
+    if (numEl) numEl.textContent = total;
+    if (d.isCrit) createParticles();
+    diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: skill.name });
+    if (diceHistory.length > 10) diceHistory.pop();
+    renderDiceHistory();
+  });
+}
+
+// ============================================
 // УЛУЧШЕННЫЕ СПАСБРОСКИ
 // ============================================
 function initSaves() {
@@ -20,7 +188,7 @@ item.innerHTML = `
 <span class="save-name">${escapeHtml(save.name)}</span>
 </div>
 <div class="save-value">
-<div class="save-bonus" id="save-bonus-${save.key}">+0</div>
+<div class="save-bonus save-bonus-clickable" id="save-bonus-${save.key}" onclick="rollSavingThrow('${save.key}')" title="Бросить спасбросок">+0</div>
 <div class="save-proficiency">
 <input type="checkbox" id="save-prof-${save.key}" onchange="calcStats()">
 <label for="save-prof-${save.key}">Владение</label>
@@ -83,7 +251,7 @@ row.innerHTML =
   '<span class="skill-expertise-btn" id="skill-exp-' + index + '" title="Экспертиза (×2 бонус)" onclick="toggleExpertise(' + index + ')">E</span>' +
   '<label for="skill-prof-' + index + '" class="skill-name-compact">' + escapeHtml(skill.name) + '</label>' +
   '<span class="skill-stat-compact">' + escapeHtml(skill.stat.toUpperCase().slice(0,3)) + '</span>' +
-  '<span class="skill-bonus-compact" id="skill-bonus-' + index + '">+0</span>';
+  '<span class="skill-bonus-compact skill-bonus-clickable" id="skill-bonus-' + index + '" onclick="rollSkillCheck(' + index + ')" title="Бросить проверку навыка">+0</span>';
 container.appendChild(row);
 });
 }
@@ -189,6 +357,100 @@ if (unusedASI.length > 0) {
 }
 renderClassResources();
 }
+// ============================================
+// СОПРОТИВЛЕНИЯ / ИММУНИТЕТЫ / УЯЗВИМОСТИ
+// ============================================
+function renderResistances() {
+  var container = $("resistances-container");
+  if (!container) return;
+  var char = getCurrentChar();
+  if (!char) { container.innerHTML = ""; return; }
+  if (!char.resistances) char.resistances = [];
+  if (!char.immunities) char.immunities = [];
+  if (!char.vulnerabilities) char.vulnerabilities = [];
+
+  var categories = [
+    { key: "resistances", title: "Сопротивление", sub: "½", cssClass: "res", icon: "🛡" },
+    { key: "immunities", title: "Иммунитет", sub: "0", cssClass: "imm", icon: "🚫" },
+    { key: "vulnerabilities", title: "Уязвимость", sub: "×2", cssClass: "vul", icon: "⚠️" }
+  ];
+
+  var html = '<div class="resistances-section">';
+
+  // Три категории — бейджи + кнопки добавления для каждой
+  categories.forEach(function(cat) {
+    var items = char[cat.key] || [];
+    html += '<div class="res-row res-row-' + cat.cssClass + '">' +
+      '<div class="res-row-label">' + cat.icon + ' ' + cat.title + ' <span class="res-row-mult">' + cat.sub + '</span></div>' +
+      '<div class="res-row-content">';
+    items.forEach(function(dtype, i) {
+      html += '<span class="res-tag res-tag-' + cat.cssClass + '">' +
+        escapeHtml(dtype) +
+        '<span class="res-tag-x" onclick="removeResistance(\'' + cat.key + '\',' + i + ')">✕</span>' +
+        '</span>';
+    });
+    html += '</div></div>';
+  });
+
+  // Добавление — одна строка: dropdown + 3 маленькие кнопки
+  html += '<div class="res-add">' +
+    '<select id="resistance-type-select" class="res-add-select">';
+  DAMAGE_TYPES.forEach(function(dt) {
+    html += '<option value="' + dt + '">' + dt + '</option>';
+  });
+  html += '</select>' +
+    '<span class="res-add-label">→</span>' +
+    '<button class="res-add-btn res-add-btn-res" onclick="addResistance(\'resistances\')" title="Сопротивление (½ урона)">½</button>' +
+    '<button class="res-add-btn res-add-btn-imm" onclick="addResistance(\'immunities\')" title="Иммунитет (0 урона)">0</button>' +
+    '<button class="res-add-btn res-add-btn-vul" onclick="addResistance(\'vulnerabilities\')" title="Уязвимость (×2 урона)">×2</button>' +
+    '</div>';
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function addResistance(category) {
+  var char = getCurrentChar();
+  if (!char) return;
+  var sel = $("resistance-type-select");
+  if (!sel) return;
+  var dtype = sel.value;
+  if (!char[category]) char[category] = [];
+  if (char[category].indexOf(dtype) !== -1) {
+    showToast(dtype + " уже добавлен", "error");
+    return;
+  }
+  // Remove from other categories if present
+  ["resistances", "immunities", "vulnerabilities"].forEach(function(cat) {
+    if (cat !== category && char[cat]) {
+      var idx = char[cat].indexOf(dtype);
+      if (idx !== -1) char[cat].splice(idx, 1);
+    }
+  });
+  char[category].push(dtype);
+  saveToLocal();
+  renderResistances();
+  showToast(dtype + " добавлен", "success");
+}
+
+function removeResistance(category, index) {
+  var char = getCurrentChar();
+  if (!char || !char[category]) return;
+  char[category].splice(index, 1);
+  saveToLocal();
+  renderResistances();
+}
+
+// Применить сопротивление/иммунитет/уязвимость к урону
+function applyDamageResistance(damage, damageType) {
+  var char = getCurrentChar();
+  if (!char) return damage;
+  if (char.immunities && char.immunities.indexOf(damageType) !== -1) return 0;
+  if (char.resistances && char.resistances.indexOf(damageType) !== -1) return Math.floor(damage / 2);
+  if (char.vulnerabilities && char.vulnerabilities.indexOf(damageType) !== -1) return damage * 2;
+  return damage;
+}
+
 function initConditions() {
 const grid = $("conditions-grid");
 if (!grid) return;
