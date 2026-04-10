@@ -1294,6 +1294,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="modal-close" onclick="closeLevelUpModal()">&times;</span>
 </div>
 
+<!-- Экран: Выбор класса (мультикласс) -->
+<div id="lu-screen-multiclass" style="display:none">
+<div class="lu-mc-title">Какой класс повысить?</div>
+<div id="lu-mc-current-classes"></div>
+<div class="lu-mc-divider">или</div>
+<button class="lu-mc-add-btn" onclick="openMulticlassNewClass()">➕ Добавить новый класс</button>
+<div id="lu-mc-new-class" style="display:none">
+<div class="lu-mc-new-label">Выберите класс:</div>
+<select id="lu-mc-class-select" class="lu-mc-select">
+<option value="">—</option>
+</select>
+<div id="lu-mc-prereq-warn" class="lu-mc-warn" style="display:none"></div>
+<div id="lu-mc-subclass-row" style="display:none">
+<div class="lu-mc-new-label">Подкласс:</div>
+<select id="lu-mc-subclass-select" class="lu-mc-select"><option value="">—</option></select>
+</div>
+<button class="lu-btn-confirm lu-mc-confirm" id="lu-mc-confirm-new" onclick="confirmMulticlassNewClass()" disabled>Выбрать</button>
+</div>
+</div>
+
 <!-- Экран: Предпросмотр -->
 <div id="lu-screen-preview">
 <div class="lu-level-badge">

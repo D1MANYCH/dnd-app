@@ -301,6 +301,7 @@ function updateClassFeatures() {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
+if (typeof migrateToMulticlass === "function") migrateToMulticlass(char);
 const className = char.class;
 const level = char.level;
 const featuresSection = $("class-features-section");
@@ -312,16 +313,48 @@ return;
 }
 featuresSection.style.display = "block";
 featuresGrid.innerHTML = "";
-for (let l = 1; l <= level; l++) {
-if (CLASS_FEATURES[className][l]) {
-CLASS_FEATURES[className][l].forEach(function(feature) {
-const featureDiv = document.createElement("div");
-featureDiv.className = "feature-item" + (l === level ? " new" : "");
-featureDiv.innerHTML = "<span class=\"feature-level\">" + l + " ур.</span><div class=\"feature-name\">" + escapeHtml(feature.name) + "</div><div class=\"feature-desc\">" + escapeHtml(feature.desc) + "</div>";
-featuresGrid.appendChild(featureDiv);
+
+// Список (класс, уровень, подкласс) для рендеринга — поддержка мультикласса
+var classList = (char.classes && char.classes.length > 0)
+  ? char.classes
+  : [{class: className, level: level, subclass: char.subclass || ""}];
+
+classList.forEach(function(entry) {
+  var cls = entry.class;
+  var clsLevel = entry.level;
+  var subName = entry.subclass || "";
+  var clsFeats = CLASS_FEATURES[cls];
+  if (!clsFeats) return;
+  var subFeats = (typeof SUBCLASS_FEATURES !== "undefined" && subName) ? SUBCLASS_FEATURES[subName] : null;
+
+  // Заголовок класса (только если мультикласс)
+  if (classList.length > 1) {
+    var header = document.createElement("div");
+    header.className = "feature-class-header";
+    header.innerHTML = "<span class='feature-class-name'>⚔️ " + escapeHtml(cls) + " " + clsLevel + "</span>" +
+      (subName ? "<span class='subclass-badge'>" + escapeHtml(subName) + "</span>" : "");
+    featuresGrid.appendChild(header);
+  }
+
+  for (var l = 1; l <= clsLevel; l++) {
+    if (clsFeats[l]) {
+      clsFeats[l].forEach(function(feature) {
+        var featureDiv = document.createElement("div");
+        featureDiv.className = "feature-item" + (l === clsLevel ? " new" : "");
+        featureDiv.innerHTML = "<span class=\"feature-level\">" + l + " ур.</span><div class=\"feature-name\">" + escapeHtml(feature.name) + "</div><div class=\"feature-desc\">" + escapeHtml(feature.desc) + "</div>";
+        featuresGrid.appendChild(featureDiv);
+      });
+    }
+    if (subFeats && subFeats[l]) {
+      subFeats[l].forEach(function(feature) {
+        var featureDiv = document.createElement("div");
+        featureDiv.className = "feature-item subclass-feature" + (l === clsLevel ? " new" : "");
+        featureDiv.innerHTML = "<span class=\"feature-level\">" + l + " ур.</span><span class=\"subclass-badge\">" + escapeHtml(subName) + "</span><div class=\"feature-name\">" + escapeHtml(feature.name) + "</div><div class=\"feature-desc\">" + escapeHtml(feature.desc) + "</div>";
+        featuresGrid.appendChild(featureDiv);
+      });
+    }
+  }
 });
-}
-}
 // ASI levels for class (Fighter gets more)
 var classAsiLevels = (char.class === "Воин")   ? [4,6,8,12,14,16,19] :
                      (char.class === "Плут")    ? [4,8,10,12,16,19]   :
@@ -1115,6 +1148,23 @@ char.level = parseInt($("char-level")?.value) || 1;
 char.exp = parseInt($("char-exp")?.value) || 0;
 char.class = $("char-class")?.value || "";
 char.subclass = $("char-subclass")?.value || "";
+// Синхронизируем char.classes[0] с UI (только если не мультикласс)
+if (typeof migrateToMulticlass === "function") migrateToMulticlass(char);
+if (!char.classes || char.classes.length === 0) {
+  char.classes = [{class: char.class, level: char.level, subclass: char.subclass, hitDie: (typeof CLASS_HIT_DICE !== "undefined" ? CLASS_HIT_DICE[char.class] : 8) || 8}];
+} else if (char.classes.length === 1) {
+  // Одноклассовый — обновляем primary class из UI
+  char.classes[0].class = char.class;
+  char.classes[0].subclass = char.subclass;
+  char.classes[0].level = char.level;
+  char.classes[0].hitDie = (typeof CLASS_HIT_DICE !== "undefined" ? CLASS_HIT_DICE[char.class] : 8) || 8;
+} else {
+  // Мультикласс — обновляем только подкласс primary (класс и уровень управляются level-up UI)
+  char.classes[0].class = char.class;
+  char.classes[0].subclass = char.subclass;
+  // Принудительная синхронизация level из суммы
+  if (typeof syncClassFields === "function") syncClassFields(char);
+}
 char.race = $("char-race")?.value || "";
 char.background = $("char-background")?.value || "";
 char.alignment = $("char-alignment")?.value || "";

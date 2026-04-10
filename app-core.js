@@ -27,6 +27,130 @@ var saveToLocalDebounced = debounce(function() { saveToLocal(); }, 300);
 var SPELL_DATABASE = (typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.slice() : [];
 var CLASS_ICONS_MAP = { wizard:"🧙", druid:"🌿", bard:"🎵", cleric:"✝️", paladin:"🛡️", ranger:"🏹", sorcerer:"🔥", warlock:"👁️", both:"✨" };
 
+// ── Мультикласс: миграция и синхронизация ──────────────────────
+/** Мигрировать старый формат (char.class/level) → char.classes[] */
+function migrateToMulticlass(char) {
+  if (char.classes && char.classes.length > 0) return;
+  char.classes = [];
+  if (char.class) {
+    char.classes.push({
+      class: char.class,
+      level: char.level || 1,
+      subclass: char.subclass || "",
+      hitDie: (typeof CLASS_HIT_DICE !== "undefined" ? CLASS_HIT_DICE[char.class] : 8) || 8
+    });
+  }
+}
+
+/** Синхронизировать char.class/level/subclass из char.classes[] (обратная совместимость) */
+function syncClassFields(char) {
+  if (!char.classes || !char.classes.length) return;
+  char.class = char.classes[0].class;
+  char.subclass = char.classes[0].subclass || "";
+  char.level = char.classes.reduce(function(s, c) { return s + c.level; }, 0);
+}
+
+/** Проверить, является ли персонаж мультиклассовым */
+function isMulticlass(char) {
+  return char.classes && char.classes.length > 1;
+}
+
+/** Получить строковое описание класса: "Воин 5 / Плут 3" */
+function getClassLabel(char) {
+  if (!char.classes || char.classes.length <= 1) {
+    return char.class || "";
+  }
+  return char.classes.map(function(c) { return c.class + " " + c.level; }).join(" / ");
+}
+
+/** Рассчитать ячейки заклинаний для мультикласса (PHB p.164-165) */
+function getMulticlassSpellSlots(char) {
+  if (!char.classes || char.classes.length <= 1) {
+    // Одноклассовый — используем стандартную таблицу
+    var cn = char.class;
+    var lv = char.level;
+    if (typeof SPELL_SLOTS_BY_LEVEL !== "undefined" && SPELL_SLOTS_BY_LEVEL[cn] && SPELL_SLOTS_BY_LEVEL[cn][lv]) {
+      return SPELL_SLOTS_BY_LEVEL[cn][lv].slice();
+    }
+    return [0,0,0,0,0,0,0,0,0,0];
+  }
+  // Мультикласс — рассчитываем caster level
+  var casterLevel = 0;
+  var hasPact = false;
+  var pactLevel = 0;
+  char.classes.forEach(function(entry) {
+    var ct = (typeof CASTER_TYPE !== "undefined") ? CASTER_TYPE[entry.class] : "none";
+    // Воин/Плут — 1/3 только если правильный подкласс
+    if (ct === "third") {
+      if (typeof THIRD_CASTER_SUBCLASSES !== "undefined" && THIRD_CASTER_SUBCLASSES.indexOf(entry.subclass) !== -1) {
+        casterLevel += Math.floor(entry.level / 3);
+      }
+    } else if (ct === "full") {
+      casterLevel += entry.level;
+    } else if (ct === "half") {
+      casterLevel += Math.floor(entry.level / 2);
+    } else if (ct === "pact") {
+      hasPact = true;
+      pactLevel = entry.level;
+    }
+  });
+  // Ячейки из таблицы мультикласса
+  var slots = [0,0,0,0,0,0,0,0,0,0];
+  if (casterLevel > 0 && typeof MULTICLASS_SPELL_SLOTS !== "undefined" && MULTICLASS_SPELL_SLOTS[casterLevel]) {
+    slots = MULTICLASS_SPELL_SLOTS[casterLevel].slice();
+  }
+  // Ячейки пакта (Колдун) добавляются отдельно — они не объединяются
+  // Их обрабатывает существующая система
+  return slots;
+}
+
+/** Проверить выполнение требований для мультикласса */
+function checkMulticlassPrereqs(char, targetClass) {
+  if (typeof MULTICLASS_PREREQUISITES === "undefined") return { ok: true, missing: [] };
+  // Проверяем требования выхода из текущего класса (основного)
+  var missing = [];
+  // Проверяем требования входа в новый класс
+  var reqs = MULTICLASS_PREREQUISITES[targetClass];
+  if (reqs) {
+    Object.keys(reqs).forEach(function(stat) {
+      var val = char.stats[stat] || 10;
+      if (val < reqs[stat]) {
+        var names = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
+        missing.push((names[stat]||stat) + " " + val + " (нужно " + reqs[stat] + ")");
+      }
+    });
+  }
+  // Для Воина: альтернативное требование — dex ≥ 13 вместо str
+  if (targetClass === "Воин" && missing.length > 0) {
+    if ((char.stats.dex || 10) >= 13) missing = [];
+  }
+  // Проверяем требования выхода из текущего основного класса
+  if (char.class) {
+    var exitReqs = MULTICLASS_PREREQUISITES[char.class];
+    if (exitReqs) {
+      Object.keys(exitReqs).forEach(function(stat) {
+        var val = char.stats[stat] || 10;
+        if (val < exitReqs[stat]) {
+          var names = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
+          var msg = (names[stat]||stat) + " " + val + " (нужно " + exitReqs[stat] + " для выхода из " + char.class + ")";
+          if (missing.indexOf(msg) === -1) missing.push(msg);
+        }
+      });
+      // Воин — альтернативное требование для выхода тоже
+      if (char.class === "Воин" && missing.length > 0) {
+        var exitMissing = [];
+        Object.keys(exitReqs).forEach(function(stat) {
+          if (stat === "str" && (char.stats.dex || 10) >= 13) return;
+          var val = char.stats[stat] || 10;
+          if (val < exitReqs[stat]) exitMissing.push(stat);
+        });
+        if (exitMissing.length === 0) missing = missing.filter(function(m) { return m.indexOf("для выхода") === -1; });
+      }
+    }
+  }
+  return { ok: missing.length === 0, missing: missing };
+}
+
 // Стандартные веса предметов D&D 5e для автозаполнения
 var ITEM_WEIGHTS = {
   // Оружие
@@ -468,7 +592,7 @@ div.innerHTML = "<div class=\"char-card-header\">" +
     : "<div class=\"char-card-class-icon\" style=\"background:" + classColor + "22;\">" + classIcon + "</div>") +
   "<div class=\"char-card-title\">" +
     "<h4 class=\"char-card-name\">" + escapeHtml(char.name || "Без имени") + "</h4>" +
-    "<div class=\"char-card-sub\">" + escapeHtml(char.class || "Класс не указан") + (char.race ? " · " + escapeHtml(char.race) : "") + (char.subclass ? " · " + escapeHtml(char.subclass) : "") + "</div>" +
+    "<div class=\"char-card-sub\">" + escapeHtml((char.classes && char.classes.length > 1 ? getClassLabel(char) : char.class) || "Класс не указан") + (char.race ? " · " + escapeHtml(char.race) : "") + (char.subclass && (!char.classes || char.classes.length <= 1) ? " · " + escapeHtml(char.subclass) : "") + "</div>" +
   "</div>" +
   "<div class=\"char-card-actions\">" +
     "<button class=\"char-copy-btn\" onclick=\"exportOneCharacter(" + char.id + ", event)\" title=\"Экспорт\">↓</button>" +
@@ -558,6 +682,8 @@ if (char.battle) {
 } else {
   BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
 }
+// Миграция к мультиклассу
+migrateToMulticlass(char);
 const savedSubclass = char.subclass || "";
 safeSet("char-name", char.name);
 safeSet("char-level", char.level);

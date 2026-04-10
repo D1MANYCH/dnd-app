@@ -119,7 +119,8 @@ hpHealed = Math.max(0, hpHealed);
 char.combat.hpCurrent = Math.min((parseInt(char.combat.hpCurrent) || 0) + hpHealed, parseInt(char.combat.hpMax) || 0);
 char.combat.hpDiceSpent = (char.combat.hpDiceSpent || 0) + hitDiceToSpend;
 // FIX: Warlock recovers spell slots on short rest
-if (char.class === "Колдун" && char.spells && char.spells.slots) {
+var _isWarlock = (char.class === "Колдун") || (char.classes && char.classes.some(function(c){return c.class === "Колдун";}));
+if (_isWarlock && char.spells && char.spells.slots) {
   for (var _si = 1; _si <= 9; _si++) {
     if (char.spells.slots[_si]) char.spells.slotsUsed[_si] = 0;
   }
@@ -131,7 +132,7 @@ if (hpHealed > 0) {
 resetResourcesByRest("short");
 resultTitle = "✅ Короткий отдых завершён!";
 var rollStr = rollLog.length > 0 ? " (" + rollLog.join(", ") + ")" : "";
-var warlockStr = (char.class === "Колдун") ? "<p>🔮 Ячейки пакта восстановлены</p>" : "";
+var warlockStr = _isWarlock ? "<p>🔮 Ячейки пакта восстановлены</p>" : "";
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>🎲 Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>❤️ Восстановлено ХП: " + hpHealed + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr;
 } else if (currentRestType === "long") {
 const maxHp = parseInt(char.combat.hpMax) || 0;
@@ -174,67 +175,260 @@ saveToLocal();
 loadCharacter(currentId);
 showRestResult(resultTitle, resultDetails);
 }
+// ── Мультикласс: переменная для выбранного класса при level-up ──
+var _luMulticlassChoice = null; // {class, subclass, hitDie, isNew}
+
 function openLevelUpModal() {
 if (!currentId) { showToast("Сначала выберите персонажа!", "warn"); return; }
 const char = getCurrentChar();
 if (!char) return;
-const currentLevel = char.level || 1;
-if (currentLevel >= 20) { showToast("Максимальный уровень достигнут!", "warn"); return; }
-const newLevel = currentLevel + 1;
-const conMod = getMod(char.stats.con);
-const className = char.class;
-const hitDie = CLASS_HIT_DICE[className] || 8;
-const currentMaxHP = calculateMaxHP(currentLevel, conMod, hitDie);
-const newMaxHP = calculateMaxHP(newLevel, conMod, hitDie);
-const hpGain = newMaxHP - currentMaxHP;
-const profOld = getProficiencyBonus(currentLevel);
-const profNew = getProficiencyBonus(newLevel);
-$("lu-from-level").textContent = currentLevel;
-$("lu-to-level").textContent = newLevel;
-$("lu-hp-from").textContent = currentMaxHP;
-$("lu-hp-to").textContent = newMaxHP;
-$("lu-hp-gain").textContent = "+" + hpGain;
-$("lu-hit-die").textContent = "1к" + hitDie;
-$("lu-dice-count").textContent = newLevel + " шт.";
-$("lu-prof-old").textContent = "+" + profOld;
-if (profNew !== profOld) {
-$("lu-prof-arrow").style.display = "inline";
-$("lu-prof-new").style.display = "inline";
-$("lu-prof-new").textContent = "+" + profNew;
-} else {
-$("lu-prof-arrow").style.display = "none";
-$("lu-prof-new").style.display = "none";
-}
-const slotsCard = $("lu-slots-card");
-const slotsInfo = $("lu-slots-info");
-if (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][newLevel]) {
-const newSlots = SPELL_SLOTS_BY_LEVEL[className][newLevel];
-const oldSlots = SPELL_SLOTS_BY_LEVEL[className][currentLevel] || [];
-let slotParts = [];
-for (let i = 1; i <= 9; i++) {
-const n = newSlots[i] || 0;
-const o = oldSlots[i] || 0;
-if (n > 0) slotParts.push((n > o ? "<b>+" + (n-o) + "</b> " : "") + i + "ур.: " + n);
-}
-if (slotParts.length > 0) {
-slotsCard.style.display = "";
-slotsInfo.innerHTML = slotParts.join("  •  ");
-} else { slotsCard.style.display = "none"; }
-} else { slotsCard.style.display = "none"; }
-const featuresContainer = $("lu-features-container");
-featuresContainer.innerHTML = "";
-if (CLASS_FEATURES[className] && CLASS_FEATURES[className][newLevel]) {
-CLASS_FEATURES[className][newLevel].forEach(function(f) {
-const div = document.createElement("div");
-div.className = "lu-feature-item";
-div.innerHTML = "<div class=\"lu-feature-name\">" + escapeHtml(f.name) + "</div><div class=\"lu-feature-desc\">" + escapeHtml(f.desc) + "</div>";
-featuresContainer.appendChild(div);
-});
-}
-$("lu-screen-preview").style.display = "";
+migrateToMulticlass(char);
+const totalLevel = char.level || 1;
+if (totalLevel >= 20) { showToast("Максимальный уровень достигнут!", "warn"); return; }
+
+_luMulticlassChoice = null;
 $("lu-screen-result").style.display = "none";
+
+// Если персонаж уже мультиклассовый ИЛИ у него есть класс — показываем экран выбора
+if (char.classes && char.classes.length > 0 && char.class) {
+  _showMulticlassScreen(char);
+} else {
+  // Нет класса — прямо к стандартному preview
+  _showLevelUpPreview(char, char.class, CLASS_HIT_DICE[char.class] || 8, false);
+}
+
 const modal = $("levelup-modal");
 if (modal) modal.classList.add("active");
+}
+
+function _showMulticlassScreen(char) {
+  var mcScreen = $("lu-screen-multiclass");
+  $("lu-screen-preview").style.display = "none";
+  mcScreen.style.display = "";
+
+  // Отображаем текущие классы как кнопки
+  var container = $("lu-mc-current-classes");
+  container.innerHTML = "";
+  char.classes.forEach(function(entry, idx) {
+    var btn = document.createElement("button");
+    btn.className = "lu-mc-class-btn";
+    var maxClassLevel = 20 - (char.level - entry.level);
+    btn.innerHTML = "<span class='lu-mc-class-name'>" + escapeHtml(entry.class) +
+      (entry.subclass ? " (" + escapeHtml(entry.subclass) + ")" : "") +
+      "</span><span class='lu-mc-class-level'>ур. " + entry.level +
+      " → " + (entry.level + 1) + "</span>";
+    if (entry.level >= 20) {
+      btn.disabled = true;
+      btn.title = "Максимальный уровень класса";
+    }
+    btn.onclick = function() {
+      _luMulticlassChoice = { class: entry.class, subclass: entry.subclass, hitDie: entry.hitDie || CLASS_HIT_DICE[entry.class] || 8, isNew: false, classIndex: idx };
+      _showLevelUpPreview(char, entry.class, entry.hitDie || CLASS_HIT_DICE[entry.class] || 8, false, entry);
+    };
+    container.appendChild(btn);
+  });
+
+  // Сброс блока нового класса
+  $("lu-mc-new-class").style.display = "none";
+  var sel = $("lu-mc-class-select");
+  sel.innerHTML = '<option value="">—</option>';
+  var allClasses = ["Варвар","Бард","Воин","Волшебник","Друид","Жрец","Колдун","Монах","Паладин","Плут","Следопыт","Чародей"];
+  var existingClasses = char.classes.map(function(c) { return c.class; });
+  allClasses.forEach(function(cls) {
+    if (existingClasses.indexOf(cls) === -1) {
+      var opt = document.createElement("option");
+      opt.value = cls;
+      opt.textContent = cls;
+      sel.appendChild(opt);
+    }
+  });
+}
+
+function openMulticlassNewClass() {
+  $("lu-mc-new-class").style.display = "";
+  $("lu-mc-class-select").value = "";
+  $("lu-mc-prereq-warn").style.display = "none";
+  $("lu-mc-subclass-row").style.display = "none";
+  $("lu-mc-confirm-new").disabled = true;
+}
+
+// Обработчик выбора нового класса в мультиклассе
+document.addEventListener("DOMContentLoaded", function() {
+  var sel = $("lu-mc-class-select");
+  if (sel) sel.addEventListener("change", function() {
+    var cls = this.value;
+    var char = getCurrentChar();
+    if (!char || !cls) {
+      $("lu-mc-confirm-new").disabled = true;
+      $("lu-mc-prereq-warn").style.display = "none";
+      $("lu-mc-subclass-row").style.display = "none";
+      return;
+    }
+    // Проверка пререквизитов
+    var check = checkMulticlassPrereqs(char, cls);
+    var warnEl = $("lu-mc-prereq-warn");
+    if (!check.ok) {
+      warnEl.style.display = "";
+      warnEl.innerHTML = "⚠️ Не выполнены требования: " + check.missing.join(", ");
+      $("lu-mc-confirm-new").disabled = true;
+    } else {
+      warnEl.style.display = "none";
+      $("lu-mc-confirm-new").disabled = false;
+    }
+    // Подклассы (подкласс выбирается на 1 уровне только у некоторых классов: Жрец, Чародей, Колдун)
+    var subRow = $("lu-mc-subclass-row");
+    var subSel = $("lu-mc-subclass-select");
+    var earlySubclassClasses = ["Жрец", "Чародей", "Колдун"];
+    if (earlySubclassClasses.indexOf(cls) !== -1 && typeof SUBCLASSES !== "undefined" && SUBCLASSES[cls]) {
+      subRow.style.display = "";
+      subSel.innerHTML = '<option value="">—</option>';
+      SUBCLASSES[cls].forEach(function(sc) {
+        var o = document.createElement("option");
+        o.value = sc; o.textContent = sc;
+        subSel.appendChild(o);
+      });
+    } else {
+      subRow.style.display = "none";
+      subSel.innerHTML = '<option value="">—</option>';
+    }
+  });
+});
+
+function confirmMulticlassNewClass() {
+  var cls = $("lu-mc-class-select").value;
+  if (!cls) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var subclass = $("lu-mc-subclass-select") ? $("lu-mc-subclass-select").value : "";
+  var hitDie = CLASS_HIT_DICE[cls] || 8;
+  _luMulticlassChoice = { class: cls, subclass: subclass, hitDie: hitDie, isNew: true };
+  _showLevelUpPreview(char, cls, hitDie, true, null);
+}
+
+function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
+  $("lu-screen-multiclass").style.display = "none";
+  $("lu-screen-preview").style.display = "";
+
+  var totalLevel = char.level || 1;
+  var newTotalLevel = totalLevel + 1;
+  var classLevel = isNewClass ? 1 : (classEntry ? classEntry.level + 1 : totalLevel + 1);
+
+  var conMod = getMod(char.stats.con);
+  // HP gain for multiclass: hit die average + CON mod (not calculateMaxHP which assumes single class)
+  var hpGain;
+  if (isMulticlass(char) || isNewClass) {
+    // Мультикласс: средний бросок кости хитов + мод.ТЕЛ
+    hpGain = Math.floor(hitDie / 2) + 1 + conMod;
+    if (hpGain < 1) hpGain = 1;
+  } else {
+    var currentMaxHP = calculateMaxHP(totalLevel, conMod, hitDie);
+    var newMaxHP = calculateMaxHP(newTotalLevel, conMod, hitDie);
+    hpGain = newMaxHP - currentMaxHP;
+  }
+  var currentHP = parseInt(char.combat.hpMax) || 0;
+  var newHP = currentHP + hpGain;
+
+  var profOld = getProficiencyBonus(totalLevel);
+  var profNew = getProficiencyBonus(newTotalLevel);
+
+  $("lu-from-level").textContent = totalLevel;
+  $("lu-to-level").textContent = newTotalLevel;
+  $("lu-hp-from").textContent = currentHP;
+  $("lu-hp-to").textContent = newHP;
+  $("lu-hp-gain").textContent = "+" + hpGain;
+  $("lu-hit-die").textContent = "1к" + hitDie;
+  $("lu-dice-count").textContent = newTotalLevel + " шт.";
+  $("lu-prof-old").textContent = "+" + profOld;
+  if (profNew !== profOld) {
+    $("lu-prof-arrow").style.display = "inline";
+    $("lu-prof-new").style.display = "inline";
+    $("lu-prof-new").textContent = "+" + profNew;
+  } else {
+    $("lu-prof-arrow").style.display = "none";
+    $("lu-prof-new").style.display = "none";
+  }
+
+  // Ячейки заклинаний
+  var slotsCard = $("lu-slots-card");
+  var slotsInfo = $("lu-slots-info");
+  if (!isNewClass && !isMulticlass(char)) {
+    // Одноклассовый — стандартная логика
+    if (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][newTotalLevel]) {
+      var newSlots = SPELL_SLOTS_BY_LEVEL[className][newTotalLevel];
+      var oldSlots = SPELL_SLOTS_BY_LEVEL[className][totalLevel] || [];
+      var slotParts = [];
+      for (var i = 1; i <= 9; i++) {
+        var n = newSlots[i] || 0;
+        var o = oldSlots[i] || 0;
+        if (n > 0) slotParts.push((n > o ? "<b>+" + (n-o) + "</b> " : "") + i + "ур.: " + n);
+      }
+      if (slotParts.length > 0) {
+        slotsCard.style.display = "";
+        slotsInfo.innerHTML = slotParts.join("  •  ");
+      } else { slotsCard.style.display = "none"; }
+    } else { slotsCard.style.display = "none"; }
+  } else {
+    // Мультикласс — пересчитываем
+    var tempClasses = char.classes.map(function(c) { return {class:c.class, level:c.level, subclass:c.subclass}; });
+    if (isNewClass) {
+      tempClasses.push({class: _luMulticlassChoice.class, level: 1, subclass: _luMulticlassChoice.subclass || ""});
+    } else if (_luMulticlassChoice) {
+      tempClasses = tempClasses.map(function(c, i) {
+        if (i === _luMulticlassChoice.classIndex) return {class:c.class, level:c.level+1, subclass:c.subclass};
+        return c;
+      });
+    }
+    var tempChar = {classes: tempClasses, class: char.class, level: newTotalLevel};
+    var newSlotsMC = getMulticlassSpellSlots(tempChar);
+    var oldSlotsMC = getMulticlassSpellSlots(char);
+    var slotPartsMC = [];
+    for (var j = 1; j <= 9; j++) {
+      var nv = newSlotsMC[j] || 0;
+      var ov = oldSlotsMC[j] || 0;
+      if (nv > 0) slotPartsMC.push((nv > ov ? "<b>+" + (nv-ov) + "</b> " : "") + j + "ур.: " + nv);
+    }
+    if (slotPartsMC.length > 0) {
+      slotsCard.style.display = "";
+      slotsInfo.innerHTML = slotPartsMC.join("  •  ");
+    } else { slotsCard.style.display = "none"; }
+  }
+
+  // Фичи
+  var featuresContainer = $("lu-features-container");
+  featuresContainer.innerHTML = "";
+  if (CLASS_FEATURES[className] && CLASS_FEATURES[className][classLevel]) {
+    CLASS_FEATURES[className][classLevel].forEach(function(f) {
+      var div = document.createElement("div");
+      div.className = "lu-feature-item";
+      div.innerHTML = "<div class=\"lu-feature-name\">" + escapeHtml(f.name) + "</div><div class=\"lu-feature-desc\">" + escapeHtml(f.desc) + "</div>";
+      featuresContainer.appendChild(div);
+    });
+  }
+  // Фичи подкласса
+  var subName = isNewClass ? (_luMulticlassChoice ? _luMulticlassChoice.subclass : "") : (classEntry ? classEntry.subclass : char.subclass);
+  if (subName && typeof SUBCLASS_FEATURES !== "undefined" && SUBCLASS_FEATURES[subName] && SUBCLASS_FEATURES[subName][classLevel]) {
+    SUBCLASS_FEATURES[subName][classLevel].forEach(function(f) {
+      var div = document.createElement("div");
+      div.className = "lu-feature-item lu-feature-subclass";
+      div.innerHTML = "<span class='subclass-badge'>" + escapeHtml(subName) + "</span><div class=\"lu-feature-name\">" + escapeHtml(f.name) + "</div><div class=\"lu-feature-desc\">" + escapeHtml(f.desc) + "</div>";
+      featuresContainer.appendChild(div);
+    });
+  }
+
+  // Если мультикласс-новый — показать какие владения получает
+  if (isNewClass && typeof MULTICLASS_PROFICIENCIES !== "undefined" && MULTICLASS_PROFICIENCIES[className]) {
+    var profs = MULTICLASS_PROFICIENCIES[className];
+    var profParts = [];
+    if (profs.armor && profs.armor.length) profParts.push("Броня: " + profs.armor.join(", "));
+    if (profs.weapons && profs.weapons.length) profParts.push("Оружие: " + profs.weapons.join(", "));
+    if (profs.skills) profParts.push("Навыки: " + profs.skills + " на выбор");
+    if (profParts.length > 0) {
+      var profDiv = document.createElement("div");
+      profDiv.className = "lu-feature-item lu-feature-profs";
+      profDiv.innerHTML = "<div class=\"lu-feature-name\">🛡️ Новые владения (мультикласс)</div><div class=\"lu-feature-desc\">" + escapeHtml(profParts.join(" · ")) + "</div>";
+      featuresContainer.appendChild(profDiv);
+    }
+  }
 }
 function closeLevelUpModal() {
 const modal = $("levelup-modal");
@@ -244,47 +438,135 @@ function confirmLevelUp() {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
+migrateToMulticlass(char);
 const oldLevel = char.level || 1;
 if (oldLevel >= 20) { showToast("Максимальный уровень!", "info"); closeLevelUpModal(); return; }
 const oldMaxHP = parseInt(char.combat.hpMax) || 0;
 const oldProf = getProficiencyBonus(oldLevel);
-char.level = oldLevel + 1;
 const conMod = getMod(char.stats.con);
-const className = char.class;
-const hitDie = CLASS_HIT_DICE[className] || 8;
-const newMaxHP = calculateMaxHP(char.level, conMod, hitDie);
-const hpGain = newMaxHP - oldMaxHP;
-const newProf = getProficiencyBonus(char.level);
+
+// Определяем какой класс повышаем
+var choice = _luMulticlassChoice;
+var className, hitDie, classLevel, isNewClass, subclassName;
+
+if (choice && choice.isNew) {
+  // Добавляем новый класс
+  className = choice.class;
+  hitDie = choice.hitDie;
+  subclassName = choice.subclass || "";
+  isNewClass = true;
+  char.classes.push({ class: className, level: 1, subclass: subclassName, hitDie: hitDie });
+  classLevel = 1;
+  // Добавляем владения от мультикласса
+  if (typeof MULTICLASS_PROFICIENCIES !== "undefined" && MULTICLASS_PROFICIENCIES[className]) {
+    var profs = MULTICLASS_PROFICIENCIES[className];
+    if (!char.proficiencies) char.proficiencies = { armor:[], weapon:[], tools:"", languages:"" };
+    if (profs.armor) profs.armor.forEach(function(a) {
+      var key = a.toLowerCase();
+      if (char.proficiencies.armor.indexOf(key) === -1) char.proficiencies.armor.push(key);
+    });
+  }
+} else if (choice && !choice.isNew && typeof choice.classIndex === "number") {
+  // Повышаем существующий класс
+  var entry = char.classes[choice.classIndex];
+  className = entry.class;
+  hitDie = entry.hitDie || CLASS_HIT_DICE[className] || 8;
+  subclassName = entry.subclass || "";
+  entry.level += 1;
+  classLevel = entry.level;
+  isNewClass = false;
+} else {
+  // Одноклассовый (без мультикласса)
+  className = char.class;
+  hitDie = CLASS_HIT_DICE[className] || 8;
+  subclassName = char.subclass || "";
+  isNewClass = false;
+  if (char.classes.length > 0) {
+    char.classes[0].level = (char.classes[0].level || oldLevel) + 1;
+    classLevel = char.classes[0].level;
+  } else {
+    classLevel = oldLevel + 1;
+  }
+}
+
+// Синхронизируем поля
+syncClassFields(char);
+var newTotalLevel = char.level;
+
+// HP gain
+var hpGain;
+if (isMulticlass(char) || isNewClass) {
+  hpGain = Math.floor(hitDie / 2) + 1 + conMod;
+  if (hpGain < 1) hpGain = 1;
+} else {
+  var newMaxHPCalc = calculateMaxHP(newTotalLevel, conMod, hitDie);
+  hpGain = newMaxHPCalc - oldMaxHP;
+}
+var newMaxHP = oldMaxHP + hpGain;
+var newProf = getProficiencyBonus(newTotalLevel);
+
 char.combat.hpMax = newMaxHP;
 char.combat.hpCurrent = Math.min(char.combat.hpCurrent + hpGain, newMaxHP);
-char.combat.hpDice = "1к" + hitDie;
+char.combat.hpDice = isMulticlass(char) ? "мульти" : "1к" + hitDie;
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
-if (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][char.level]) {
-const slots = SPELL_SLOTS_BY_LEVEL[className][char.level];
-for (let i = 1; i <= 9; i++) {
-char.spells.slots[i] = slots[i] || 0;
-char.spells.slotsUsed[i] = 0;
+
+// Ячейки заклинаний
+if (isMulticlass(char)) {
+  var mcSlots = getMulticlassSpellSlots(char);
+  for (var i = 1; i <= 9; i++) {
+    char.spells.slots[i] = mcSlots[i] || 0;
+    char.spells.slotsUsed[i] = 0;
+  }
+  // Ячейки пакта Колдуна (если есть) — обрабатываются отдельно через SPELL_SLOTS_BY_LEVEL["Колдун"]
+  var warlockEntry = char.classes.find(function(c) { return c.class === "Колдун"; });
+  if (warlockEntry && SPELL_SLOTS_BY_LEVEL["Колдун"] && SPELL_SLOTS_BY_LEVEL["Колдун"][warlockEntry.level]) {
+    // Пакт-ячейки хранятся в отдельном месте или добавляются поверх
+    // Для простоты: если Колдун — единственный заклинатель, используем его таблицу
+    // Иначе пакт-ячейки добавляются к мультикласс-таблице (по RAW они отдельные)
+    // TODO: отдельное отображение пакт-ячеек
+  }
+} else {
+  if (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][newTotalLevel]) {
+    var slots = SPELL_SLOTS_BY_LEVEL[className][newTotalLevel];
+    for (var j = 1; j <= 9; j++) {
+      char.spells.slots[j] = slots[j] || 0;
+      char.spells.slotsUsed[j] = 0;
+    }
+  }
 }
-}
+
 saveToLocal();
 loadCharacter(currentId);
 updateClassFeatures();
 renderClassResources();
 renderSpellSlots();
 $("lu-screen-preview").style.display = "none";
+$("lu-screen-multiclass").style.display = "none";
 $("lu-screen-result").style.display = "";
-$("lu-result-title").textContent = "Уровень " + char.level + " достигнут!";
-addJournalEntry("levelup", "Достигнут " + char.level + " уровень!", "ХП: " + oldMaxHP + " → " + newMaxHP + " · Бонус мастерства: +" + newProf);
+
+var classLabel = isMulticlass(char) ? getClassLabel(char) : className;
+$("lu-result-title").textContent = classLabel + " · Уровень " + newTotalLevel + "!";
+addJournalEntry("levelup", "Достигнут " + newTotalLevel + " уровень! (" + classLabel + ")", "ХП: " + oldMaxHP + " → " + newMaxHP + " · Бонус мастерства: +" + newProf);
 renderJournal();
-let resultLines = ["❤️ ХП: " + oldMaxHP + " → " + newMaxHP + " (+" + hpGain + ")", "🎲 Костей хитов: " + char.level];
+
+var resultLines = ["❤️ ХП: " + oldMaxHP + " → " + newMaxHP + " (+" + hpGain + ")", "🎲 Костей хитов: " + newTotalLevel];
+if (isMulticlass(char)) resultLines.push("📋 " + getClassLabel(char));
 if (newProf !== oldProf) resultLines.push("⚡ Бонус мастерства: +" + oldProf + " → +" + newProf);
-if (CLASS_FEATURES[className] && CLASS_FEATURES[className][char.level]) {
-const names = CLASS_FEATURES[className][char.level].map(function(f) { return f.name; });
-resultLines.push("✨ Новые умения: " + names.join(", "));
+if (CLASS_FEATURES[className] && CLASS_FEATURES[className][classLevel]) {
+  var names = CLASS_FEATURES[className][classLevel].map(function(f) { return f.name; });
+  resultLines.push("✨ Новые умения: " + names.join(", "));
 }
+if (subclassName && typeof SUBCLASS_FEATURES !== "undefined" && SUBCLASS_FEATURES[subclassName] && SUBCLASS_FEATURES[subclassName][classLevel]) {
+  var subNames = SUBCLASS_FEATURES[subclassName][classLevel].map(function(f) { return f.name; });
+  resultLines.push("🔮 " + subclassName + ": " + subNames.join(", "));
+}
+if (isNewClass) resultLines.push("🆕 Новый класс: " + className);
+
 $("lu-result-body").innerHTML = resultLines.map(function(l) {
-return "<div class=\"lu-result-line\">" + escapeHtml(l) + "</div>";
+  return "<div class=\"lu-result-line\">" + l + "</div>";
 }).join("");
+
+_luMulticlassChoice = null;
 }
 
 // ============================================
