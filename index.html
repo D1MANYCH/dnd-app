@@ -1406,6 +1406,20 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 
+<!-- Modal: Class Choice (Стиль боя, Метамагия, Воззвания и т.д.) -->
+<div id="class-choice-modal" class="confirm-modal-overlay" onclick="if(event.target===this)closeClassChoiceModal()">
+<div class="confirm-modal-box cc-modal-box">
+<h4 class="cc-modal-title">⚡ Классовый выбор</h4>
+<p class="cc-modal-desc"></p>
+<div class="cc-modal-counter"></div>
+<div class="cc-modal-body"></div>
+<div class="confirm-modal-btns">
+<button class="confirm-btn-cancel" onclick="closeClassChoiceModal()">Отмена</button>
+<button class="confirm-btn-ok" id="cc-modal-apply" onclick="applyClassChoice()" disabled>Применить</button>
+</div>
+</div>
+</div>
+
 <!-- Modal: Dice -->
 
 <div id="dice-modal" class="modal">
@@ -1776,6 +1790,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script src="app-spells.js"></script>
 <script src="app-inventory.js"></script>
 <script src="app-party.js"></script>
+<script src="class-choices.js"></script>
 <script src="app-ui.js"></script>
 </body>
 </html>

@@ -6879,3 +6879,102 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   border-radius: 8px; cursor: pointer; transition: all 0.18s;
 }
 .weapon-roll-twf:hover { background: #8e44ad; color: #fff; }
+
+/* ============================================================
+   КЛАССОВЫЕ ВЫБОРЫ — карточки в asi-container
+   ============================================================ */
+.class-choices-wrap {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-top: 10px;
+}
+.cc-card {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s;
+  font-family: inherit;
+}
+.cc-card:hover { transform: translateY(-1px); border-color: var(--accent-color); }
+.cc-card.cc-pending {
+  border-color: rgba(255, 195, 0, 0.45);
+  background: linear-gradient(135deg, rgba(255, 195, 0, 0.10) 0%, rgba(255, 195, 0, 0.02) 100%);
+}
+.cc-card.cc-complete {
+  border-color: rgba(87, 179, 109, 0.5);
+  background: linear-gradient(135deg, rgba(87, 179, 109, 0.10) 0%, rgba(87, 179, 109, 0.02) 100%);
+}
+.cc-card-left { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.cc-card-title {
+  font-size: 0.95em; font-weight: 700; color: var(--text-color);
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.cc-card-summary { font-size: 0.78em; color: var(--text-muted); line-height: 1.4; }
+.cc-card-arrow { font-size: 1.4em; color: var(--text-muted); margin-left: 10px; }
+.cc-class-tag {
+  font-size: 0.7em; font-weight: 600;
+  padding: 2px 6px; border-radius: 4px;
+  background: rgba(255,255,255,0.08); color: var(--text-muted);
+}
+.cc-badge {
+  font-size: 0.72em; font-weight: 700;
+  padding: 2px 8px; border-radius: 10px;
+}
+.cc-badge-todo { background: rgba(255, 195, 0, 0.18); color: #ffc300; }
+.cc-badge-done { background: rgba(87, 179, 109, 0.22); color: #57b36d; }
+.cc-hint { display: block; }
+
+/* ── Модал классового выбора ───────────────────────────────── */
+.cc-modal-box {
+  max-width: 580px; width: 92%;
+  max-height: 86vh; display: flex; flex-direction: column;
+}
+.cc-modal-title { margin: 0 0 4px 0; }
+.cc-modal-desc {
+  margin: 0 0 8px 0; font-size: 0.85em; color: var(--text-muted);
+}
+.cc-modal-counter {
+  font-size: 0.8em; font-weight: 700; color: var(--accent-color);
+  margin-bottom: 10px;
+}
+.cc-modal-body {
+  overflow-y: auto; flex: 1;
+  margin-bottom: 12px; padding-right: 4px;
+}
+.cc-options-list { display: flex; flex-direction: column; gap: 6px; }
+.cc-opt {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.cc-opt:hover { border-color: var(--accent-color); background: rgba(255,255,255,0.06); }
+.cc-opt.selected {
+  border-color: var(--success-color);
+  background: linear-gradient(135deg, rgba(87, 179, 109, 0.18) 0%, rgba(87, 179, 109, 0.05) 100%);
+}
+.cc-opt-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-bottom: 4px;
+}
+.cc-opt-name { font-weight: 700; font-size: 0.9em; color: var(--text-color); }
+.cc-opt-req {
+  font-size: 0.7em; font-weight: 600;
+  padding: 2px 6px; border-radius: 4px;
+  background: rgba(255, 195, 0, 0.18); color: #ffc300;
+}
+.cc-opt-desc { font-size: 0.78em; color: var(--text-muted); line-height: 1.45; }
+.cc-freeform-list { display: flex; flex-direction: column; gap: 8px; }
+.cc-freeform-input {
+  width: 100%; padding: 10px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-color); border-radius: 8px;
+  color: var(--text-color); font-family: inherit; font-size: 0.9em;
+}
+.cc-freeform-input:focus { outline: none; border-color: var(--accent-color); }

@@ -384,6 +384,10 @@ if (unusedASI.length > 0) {
 } else {
   asiContainer.innerHTML = "";
 }
+// Классовые выборы (стили боя, метамагия, воззвания, экспертиза, и т.д.)
+if (typeof renderClassChoices === "function") {
+  renderClassChoices(char, asiContainer);
+}
 renderClassResources();
 }
 // ============================================
