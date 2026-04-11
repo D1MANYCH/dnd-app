@@ -1084,19 +1084,49 @@ function confirmExchange() {
   closeCoinExchange();
 }
 function updateSubclassOptions() {
-const classSelect = $("char-class");
-const subclassSelect = $("char-subclass");
-if (!classSelect || !subclassSelect) return;
-const selectedClass = classSelect.value;
-subclassSelect.innerHTML = "<option value=\"\">Выберите подкласс</option>";
-if (selectedClass && SUBCLASSES[selectedClass]) {
-SUBCLASSES[selectedClass].forEach(function(subclass) {
-const option = document.createElement("option");
-option.value = subclass;
-option.textContent = subclass;
-subclassSelect.appendChild(option);
-});
-}
+  const classSelect = $("char-class");
+  const subclassSelect = $("char-subclass");
+  if (!classSelect || !subclassSelect) return;
+  const selectedClass = classSelect.value;
+  const levelEl = $("char-level");
+  const level = Math.max(1, parseInt(levelEl && levelEl.value, 10) || 1);
+  const unlockLevel = (typeof SUBCLASS_LEVEL !== "undefined" && SUBCLASS_LEVEL[selectedClass]) || 3;
+
+  subclassSelect.innerHTML = "";
+  subclassSelect.classList.remove("subclass-locked");
+
+  if (!selectedClass || !SUBCLASSES[selectedClass]) {
+    subclassSelect.appendChild(new Option("Сначала выберите класс", ""));
+    subclassSelect.disabled = true;
+    return;
+  }
+
+  if (level < unlockLevel) {
+    subclassSelect.appendChild(new Option("🔒 Откроется на " + unlockLevel + " уровне", ""));
+    subclassSelect.disabled = true;
+    subclassSelect.classList.add("subclass-locked");
+    if (currentId) {
+      var ch = getCurrentChar();
+      if (ch && ch.subclass) {
+        ch.subclass = "";
+        saveToLocal();
+      }
+    }
+    return;
+  }
+
+  subclassSelect.disabled = false;
+  subclassSelect.appendChild(new Option("Выберите подкласс", ""));
+  SUBCLASSES[selectedClass].forEach(function(subclass) {
+    subclassSelect.appendChild(new Option(subclass, subclass));
+  });
+
+  if (currentId) {
+    var char = getCurrentChar();
+    if (char && char.subclass && SUBCLASSES[selectedClass].indexOf(char.subclass) !== -1) {
+      subclassSelect.value = char.subclass;
+    }
+  }
 }
 // 🔧 ИСПРАВЛЕНИЕ: Правильный расчёт ХП по правилам D&D 5e
 function calculateMaxHP(level, conMod, hitDie) {
@@ -1399,6 +1429,218 @@ function onRaceChange() {
       saveToLocal();
     }
   }
+  if (typeof renderRaceExtras === "function") renderRaceExtras();
+}
+
+// ============================================
+// РАСОВЫЕ ДОП. ВЫБОРЫ — Человек (черта), Полуэльф (+1+1)
+// ============================================
+var RACE_BONUS_FEATS = { "Человек": 1 };
+
+function renderRaceExtras() {
+  var panel = $("race-extras-panel");
+  if (!panel) return;
+  if (!currentId) { panel.style.display = "none"; return; }
+  var char = getCurrentChar();
+  if (!char) { panel.style.display = "none"; return; }
+  // Расовые выборы открываются только после фиксации основы
+  if (!char.basicLocked) { panel.style.display = "none"; panel.innerHTML = ""; return; }
+  var race = char.race || ($("char-race") && $("char-race").value) || "";
+  var html = "";
+
+  // Человек: 1 расовая черта
+  var featAllowance = RACE_BONUS_FEATS[race] || 0;
+  if (featAllowance > 0) {
+    if (!Array.isArray(char.raceFeats)) char.raceFeats = [];
+    var taken = char.raceFeats.length;
+    var remaining = featAllowance - taken;
+    html += '<div class="race-extras-title">🎯 Расовая черта (' + escapeHtml(race) + ')</div>';
+    var takenList = char.raceFeats.map(function(f, i) {
+      return '<span class="race-bonus-badge">' + escapeHtml(f.name) +
+        ' <span style="cursor:pointer;margin-left:4px;" onclick="removeRaceFeat(' + i + ')" title="Убрать">✕</span></span>';
+    }).join("");
+    html += '<div class="race-extras-row">' + takenList +
+      (remaining > 0
+        ? '<button class="race-extras-btn" onclick="openRaceFeatModal()">+ Выбрать черту</button>'
+        : '<span class="race-extras-btn done">✅ Черта получена</span>') +
+      '</div>';
+  }
+
+  // Полуэльф: +1 к двум характеристикам (кроме ХАР)
+  if (race === "Полуэльф") {
+    if (!Array.isArray(char.raceStatChoice)) char.raceStatChoice = [];
+    var halfElfStats = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД"};
+    var chosen = char.raceStatChoice;
+    html += '<div class="race-extras-title">📊 Полуэльф: +1 к двум характеристикам (кроме ХАР)</div>';
+    html += '<div class="race-extras-row">';
+    Object.keys(halfElfStats).forEach(function(k) {
+      var sel = chosen.indexOf(k) !== -1;
+      html += '<span class="race-extras-stat-pick' + (sel ? " selected" : "") +
+        '" onclick="toggleHalfElfStat(\'' + k + '\')">' + halfElfStats[k] + '</span>';
+    });
+    html += '<span style="margin-left:auto;color:rgba(255,255,255,0.55);font-size:0.85em;">' +
+      'Выбрано: ' + chosen.length + '/2</span>';
+    html += '</div>';
+  }
+
+  if (html) {
+    panel.innerHTML = html;
+    panel.style.display = "flex";
+  } else {
+    panel.style.display = "none";
+    panel.innerHTML = "";
+  }
+}
+
+function toggleHalfElfStat(key) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  if (!Array.isArray(char.raceStatChoice)) char.raceStatChoice = [];
+  var idx = char.raceStatChoice.indexOf(key);
+  if (idx !== -1) {
+    char.raceStatChoice.splice(idx, 1);
+    char.stats[key] = Math.max(1, (char.stats[key] || 10) - 1);
+  } else {
+    if (char.raceStatChoice.length >= 2) {
+      showToast("Уже выбрано 2 характеристики. Снимите одну.", "warning");
+      return;
+    }
+    char.raceStatChoice.push(key);
+    char.stats[key] = Math.min(20, (char.stats[key] || 10) + 1);
+  }
+  safeSet("val-" + key, char.stats[key]);
+  if (typeof updateStatDisplay === "function") updateStatDisplay(key);
+  saveToLocal();
+  calcStats();
+  renderRaceExtras();
+}
+
+function openRaceFeatModal() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  if (typeof asiSelectedStats !== "undefined") asiSelectedStats = [];
+  asiFeatSelected = null;
+  asiCurrentLevel = "race";
+  var modal = $("asi-modal");
+  if (!modal) { showToast("Ошибка: модалка не найдена", "error"); return; }
+  var featRadio = modal.querySelector('input[value="feat"]');
+  if (featRadio) featRadio.checked = true;
+  var title = modal.querySelector("h4");
+  if (title) title.textContent = "🎯 Расовая черта · " + (char.race || "");
+  if (typeof buildASIStatGrid === "function") buildASIStatGrid(char);
+  if (typeof updateASIPreview === "function") updateASIPreview();
+  modal.classList.add("active");
+}
+
+function removeRaceFeat(i) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char || !Array.isArray(char.raceFeats)) return;
+  var rf = char.raceFeats[i];
+  if (!rf) return;
+  var name = rf.name;
+  showConfirmModal("Убрать расовую черту?",
+    "«" + name + "» будет убрана. Бонусы к характеристикам НЕ откатятся.",
+    function() {
+      char.raceFeats.splice(i, 1);
+      if (Array.isArray(char.feats)) {
+        char.feats = char.feats.filter(function(f) { return !(f.racial && f.name === name); });
+      }
+      saveToLocal();
+      renderRaceExtras();
+      if (typeof renderTakenFeats === "function") renderTakenFeats();
+    }
+  );
+}
+
+// ============================================
+// МАСТЕР СОЗДАНИЯ ПЕРСОНАЖА — фиксация основы
+// ============================================
+var BASIC_FIELD_IDS = ["char-name", "char-class", "char-subclass", "char-race", "char-background", "char-level"];
+
+function applyBasicLockUI() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var banner = $("creation-wizard-banner");
+  var lockedBar = $("basic-locked-bar");
+  var locked = !!char.basicLocked;
+
+  BASIC_FIELD_IDS.forEach(function(id) {
+    var el = $(id);
+    if (!el) return;
+    el.disabled = locked;
+    var col = el.closest(".col") || el.closest(".sheet-small-field") || el.parentElement;
+    if (col) col.classList.toggle("basic-field-locked", locked);
+  });
+
+  if (banner) banner.style.display = locked ? "none" : "flex";
+  if (lockedBar) lockedBar.style.display = locked ? "flex" : "none";
+
+  if (!locked) updateLockButtonState();
+}
+
+function updateLockButtonState() {
+  var btn = $("cw-lock-btn");
+  var msg = $("cw-validation");
+  if (!btn) return;
+  var name  = ($("char-name") && $("char-name").value || "").trim();
+  var cls   = ($("char-class") && $("char-class").value || "").trim();
+  var race  = ($("char-race") && $("char-race").value || "").trim();
+  var bg    = ($("char-background") && $("char-background").value || "").trim();
+  var levelVal = parseInt(($("char-level") && $("char-level").value), 10);
+
+  var missing = [];
+  if (!name) missing.push("имя");
+  if (!cls)  missing.push("класс");
+  if (!race) missing.push("раса");
+  if (!bg)   missing.push("предыстория");
+  if (!(levelVal >= 1 && levelVal <= 20)) missing.push("уровень");
+
+  // Подкласс обязателен только если уже открыт по уровню
+  if (cls && typeof SUBCLASS_LEVEL !== "undefined") {
+    var unlock = SUBCLASS_LEVEL[cls] || 3;
+    if (levelVal >= unlock) {
+      var sub = ($("char-subclass") && $("char-subclass").value || "").trim();
+      if (!sub) missing.push("подкласс");
+    }
+  }
+
+  btn.disabled = missing.length > 0;
+  if (msg) msg.textContent = missing.length > 0 ? "⚠ Не заполнено: " + missing.join(", ") : "";
+}
+
+function lockBasicInfo() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  updateLockButtonState();
+  var btn = $("cw-lock-btn");
+  if (btn && btn.disabled) return;
+  char.basicLocked = true;
+  saveToLocal();
+  applyBasicLockUI();
+  renderRaceExtras();
+  showToast("🔒 Основа персонажа зафиксирована. Теперь можно настраивать детали.", "success");
+}
+
+function unlockBasicInfo() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  showConfirmModal(
+    "Разблокировать основу?",
+    "Имя, класс, подкласс, раса, предыстория и уровень снова станут редактируемыми. Делайте это только если действительно нужно изменить базовую информацию.",
+    function() {
+      char.basicLocked = false;
+      saveToLocal();
+      applyBasicLockUI();
+      renderRaceExtras();
+      showToast("🔓 Основа разблокирована", "info");
+    }
+  );
 }
 
 // ============================================

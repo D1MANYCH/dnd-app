@@ -4085,6 +4085,150 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   margin-top: 2px;
 }
 
+/* ── МАСТЕР СОЗДАНИЯ ПЕРСОНАЖА ────────────────────────────────── */
+.creation-wizard-banner {
+  background: linear-gradient(135deg, rgba(212,168,67,0.14) 0%, rgba(212,168,67,0.06) 100%);
+  border: 2px solid var(--accent-color);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 18px rgba(212,168,67,0.12);
+}
+.cw-step { display: flex; gap: 12px; align-items: flex-start; }
+.cw-step-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  color: #1a1a25;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.1em;
+  flex-shrink: 0;
+}
+.cw-step-title { font-weight: 700; color: var(--accent-color); font-size: 0.95em; margin-bottom: 2px; }
+.cw-step-hint { font-size: 0.8em; color: rgba(255,255,255,0.6); line-height: 1.4; }
+.cw-lock-btn {
+  background: var(--accent-color);
+  color: #1a1a25;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.cw-lock-btn:disabled {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.35);
+  cursor: not-allowed;
+}
+.cw-lock-btn:not(:disabled):hover { transform: translateY(-1px); opacity: 0.92; }
+.cw-validation {
+  font-size: 0.78em;
+  color: #ff8a8a;
+  min-height: 0;
+}
+.cw-validation:empty { display: none; }
+
+.basic-locked-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 12px;
+  background: rgba(77,168,67,0.10);
+  border: 1px solid rgba(77,168,67,0.35);
+  border-radius: 8px;
+  margin: 0 0 10px;
+  font-size: 0.82em;
+  color: #7fdc6f;
+  font-weight: 600;
+}
+.basic-unlock-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.75);
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+.basic-unlock-btn:hover { background: rgba(255,255,255,0.12); }
+
+/* Заблокированные основные поля */
+.basic-field-locked {
+  pointer-events: none;
+  opacity: 0.65;
+  filter: grayscale(0.3);
+}
+
+/* Заблокированный подкласс — серый со значком замка */
+#char-subclass.subclass-locked {
+  color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.1);
+  cursor: not-allowed;
+}
+
+/* Панель расовых бонусов, требующих выбора (черта, +1+1 ст.) */
+.race-extras-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, rgba(91,155,213,0.10) 0%, rgba(91,155,213,0.04) 100%);
+  border: 1px solid rgba(91,155,213,0.30);
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.race-extras-title {
+  font-weight: 700;
+  font-size: 0.85em;
+  color: var(--info-color);
+}
+.race-extras-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.85em;
+}
+.race-extras-btn {
+  background: rgba(91,155,213,0.20);
+  border: 1px solid rgba(91,155,213,0.45);
+  color: var(--info-color);
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+.race-extras-btn:hover { background: rgba(91,155,213,0.30); }
+.race-extras-btn.done {
+  background: rgba(77,168,67,0.18);
+  border-color: rgba(77,168,67,0.45);
+  color: #7fdc6f;
+}
+.race-extras-stat-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 3px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  user-select: none;
+}
+.race-extras-stat-pick.selected {
+  background: rgba(212,168,67,0.18);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
 /* ========== ARMOR SELECTOR ROW ========== */
 .armor-select-row {
   display: flex;

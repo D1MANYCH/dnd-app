@@ -260,6 +260,14 @@ function migrateCharacter(char) {
     if (char.twoWeaponFighting === undefined) char.twoWeaponFighting = false;
     char.schemaVersion = 5;
   }
+  if (v < 6) {
+    // Существующие персонажи считаются уже созданными — основа зафиксирована.
+    // Новые персонажи (createNewCharacter) явно ставят basicLocked = false.
+    if (char.basicLocked === undefined) char.basicLocked = true;
+    if (!Array.isArray(char.raceFeats)) char.raceFeats = [];
+    if (!Array.isArray(char.raceStatChoice)) char.raceStatChoice = [];
+    char.schemaVersion = 6;
+  }
   return char;
 }
 
@@ -787,8 +795,15 @@ calculateAC();
 // Restore HP max manual field
 var hpMaxEl = $("hp-max-manual");
 if (hpMaxEl) hpMaxEl.value = char.combat.hpMax || "";
-// Show race bonuses
-setTimeout(onRaceChange, 0);
+// Show race bonuses + расовые доп. выборы
+setTimeout(function() {
+  onRaceChange();
+  if (typeof renderRaceExtras === "function") renderRaceExtras();
+}, 0);
+// Обновить состояние селектора подкласса (с учётом текущего уровня)
+setTimeout(updateSubclassOptions, 0);
+// Применить блокировку основной информации (мастер создания)
+setTimeout(function() { if (typeof applyBasicLockUI === "function") applyBasicLockUI(); }, 0);
 renderWeapons();
 updateAllStatDisplays();
 renderSpellSlots();

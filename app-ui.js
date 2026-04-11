@@ -1278,8 +1278,16 @@ function applyASI() {
     }
   });
 
-  // Record feat
-  char.feats.push({ id: feat.id, name: feat.name, level: char.level });
+  // Record feat — расовая черта помечается отдельно
+  var isRaceFeat = (asiCurrentLevel === "race");
+  var featRecord = { id: feat.id, name: feat.name, level: char.level };
+  if (isRaceFeat) {
+    featRecord.racial = true;
+    featRecord.level = "раса";
+    if (!Array.isArray(char.raceFeats)) char.raceFeats = [];
+    char.raceFeats.push({ id: feat.id, name: feat.name });
+  }
+  char.feats.push(featRecord);
 
   saveToLocal();
   calcStats();
@@ -1290,8 +1298,8 @@ function applyASI() {
   // Journal entry
   addJournalEntry("feat", "Черта: " + feat.name, appliedDesc.length > 0 ? "Применено: " + appliedDesc.join(", ") : feat.desc.slice(0, 80));
 
-  // Mark ASI level as used BEFORE closeASIModal (which resets asiCurrentLevel)
-  if (asiCurrentLevel) {
+  // Расовые черты НЕ занимают слот ASI
+  if (asiCurrentLevel && !isRaceFeat) {
     if (!char.asiUsedLevels) char.asiUsedLevels = [];
     if (!char.asiUsedLevels.includes(asiCurrentLevel)) char.asiUsedLevels.push(asiCurrentLevel);
   }
@@ -1301,6 +1309,7 @@ function applyASI() {
   showHPToast(0, "🎯 Черта «" + feat.name + "» получена!" + (appliedDesc.length ? " " + appliedDesc.join(", ") : ""));
   renderJournal();
   renderTakenFeats();
+  if (typeof renderRaceExtras === "function") renderRaceExtras();
   updateClassFeatures();
 }
 

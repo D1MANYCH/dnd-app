@@ -136,6 +136,25 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button class="back-btn" onclick="showScreen('characters')" title="Назад к профилям">←</button>
 </div>
 <div id="tab-sheet" class="tab-content active">
+
+<!-- ─── Мастер создания: основная информация ──────────────────────── -->
+<div id="creation-wizard-banner" class="creation-wizard-banner" style="display:none;">
+  <div class="cw-step">
+    <span class="cw-step-num">1</span>
+    <div class="cw-step-text">
+      <div class="cw-step-title">Заполни основу персонажа</div>
+      <div class="cw-step-hint">Имя, класс, подкласс (если открыт), раса, предыстория, уровень. Эти поля нельзя будет случайно изменить после фиксации.</div>
+    </div>
+  </div>
+  <button id="cw-lock-btn" class="cw-lock-btn" disabled onclick="lockBasicInfo()">🔒 Сохранить и зафиксировать основу</button>
+  <div id="cw-validation" class="cw-validation"></div>
+</div>
+
+<div id="basic-locked-bar" class="basic-locked-bar" style="display:none;">
+  <span>🔒 Основа персонажа зафиксирована</span>
+  <button class="basic-unlock-btn" onclick="unlockBasicInfo()">Изменить</button>
+</div>
+
 <div class="card">
 
 <!-- Строка 1: аватар слева + имя/уровень/опыт справа -->
@@ -145,9 +164,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <span class="sheet-avatar-hint">Сменить</span>
   </div>
   <div class="sheet-top-fields">
-    <div class="col" style="margin-bottom:10px;"><label>Имя</label><input type="text" id="char-name" oninput="updateChar()"></div>
+    <div class="col" style="margin-bottom:10px;"><label>Имя</label><input type="text" id="char-name" oninput="updateChar(); updateLockButtonState()"></div>
     <div class="sheet-top-small-row">
-      <div class="sheet-small-field"><label>Уровень</label><input type="number" id="char-level" min="1" max="20" oninput="calcStats()"></div>
+      <div class="sheet-small-field"><label>Уровень</label><input type="number" id="char-level" min="1" max="20" oninput="calcStats(); updateSubclassOptions(); updateClassFeatures(); updateLockButtonState()"></div>
       <div class="sheet-small-field"><label>Опыт</label><input type="number" id="char-exp" value="0" oninput="updateChar()"></div>
     </div>
   </div>
@@ -157,7 +176,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="row">
 <div class="col">
 <label>Класс</label>
-<select id="char-class" onchange="updateChar(); updateSubclassOptions(); recalculateHP(); autoSelectProficiencies(); updateClassFeatures(); calculateAC()">
+<select id="char-class" onchange="updateChar(); updateSubclassOptions(); recalculateHP(); autoSelectProficiencies(); updateClassFeatures(); calculateAC(); updateLockButtonState()">
 <option value="">Выберите класс</option>
 <option value="Волшебник">Волшебник</option>
 <option value="Чародей">Чародей</option>
@@ -175,7 +194,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="col">
 <label>Подкласс</label>
-<select id="char-subclass" onchange="updateChar(); updateClassFeatures()">
+<select id="char-subclass" onchange="updateChar(); updateClassFeatures(); updateLockButtonState()">
 <option value="">Сначала выберите класс</option>
 </select>
 </div>
@@ -183,7 +202,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="row">
 <div class="col">
 <label>Раса/Вид</label>
-<select id="char-race" onchange="updateChar(); onRaceChange()">
+<select id="char-race" onchange="updateChar(); onRaceChange(); updateLockButtonState()">
 <option value="">Выберите расу</option>
 <optgroup label="👤 Человек">
 <option value="Человек">Человек (+1 ко всем)</option>
@@ -221,7 +240,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="col">
 <label>Предыстория</label>
-<select id="char-background" onchange="updateChar(); onBackgroundChange()">
+<select id="char-background" onchange="updateChar(); onBackgroundChange(); updateLockButtonState()">
 <option value="">Выберите предысторию</option>
 <option value="Прислужник">Прислужник</option>
 <option value="Бродяга">Бродяга</option>
@@ -243,6 +262,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <!-- Racial bonus display -->
 <div id="race-bonus-display" class="race-bonus-bar" style="display:none;"></div>
+<div id="race-extras-panel" class="race-extras-panel" style="display:none;"></div>
 <div class="row">
 <div class="col">
 <label>Мировоззрение</label>
