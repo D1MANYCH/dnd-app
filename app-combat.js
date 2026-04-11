@@ -1395,6 +1395,52 @@ function onRaceChange() {
   if (!raceEl || !displayEl) return;
   var race = raceEl.value;
   var data = (typeof RACE_DATA !== "undefined") && RACE_DATA[race];
+
+  // === Применяем расовые бонусы к характеристикам ===
+  // Делаем это только когда раса реально сменилась (или при миграции
+  // старого персонажа без поля appliedRace). На обычной загрузке
+  // appliedRace === race, поэтому бонусы не применяются повторно.
+  if (currentId) {
+    var charApply = getCurrentChar();
+    if (charApply) {
+      var appliedRace = charApply.appliedRace;
+      if (appliedRace !== race) {
+        // 1) Откатываем ранее применённые расовые бонусы
+        var prev = charApply.appliedRaceBonus || {};
+        Object.keys(prev).forEach(function(k) {
+          charApply.stats[k] = Math.max(1, (charApply.stats[k] || 10) - prev[k]);
+        });
+        // 2) Если меняем расу с Полуэльфа — откатываем его +1/+1 выбор
+        if (appliedRace === "Полуэльф" && Array.isArray(charApply.raceStatChoice) && charApply.raceStatChoice.length) {
+          charApply.raceStatChoice.forEach(function(k) {
+            charApply.stats[k] = Math.max(1, (charApply.stats[k] || 10) - 1);
+          });
+          charApply.raceStatChoice = [];
+        }
+        // 3) Применяем бонусы новой расы
+        var applied = {};
+        if (data && data.stats) {
+          Object.keys(data.stats).forEach(function(k) {
+            var v = data.stats[k];
+            charApply.stats[k] = Math.max(1, Math.min(30, (charApply.stats[k] || 10) + v));
+            applied[k] = v;
+          });
+        }
+        charApply.appliedRaceBonus = applied;
+        charApply.appliedRace = race;
+        // 4) Синхронизируем поля ввода и дисплеи модификаторов
+        ["str","dex","con","int","wis","cha"].forEach(function(k) {
+          safeSet("val-" + k, charApply.stats[k]);
+          if (typeof updateStatDisplay === "function") updateStatDisplay(k);
+        });
+        if (typeof calcStats === "function") calcStats();
+        if (typeof recalculateHP === "function") recalculateHP();
+        if (typeof calculateAC === "function") calculateAC();
+      }
+    }
+  }
+  // === /применение расовых бонусов ===
+
   if (!data) { displayEl.style.display = "none"; return; }
   var statNames = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
   var bonuses = Object.keys(data.stats).map(function(k) {
