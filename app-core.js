@@ -268,6 +268,57 @@ function migrateCharacter(char) {
     if (!Array.isArray(char.raceStatChoice)) char.raceStatChoice = [];
     char.schemaVersion = 6;
   }
+  if (v < 7) {
+    // Языки: строка → массив объектов {name, source, category}
+    if (!char.proficiencies) char.proficiencies = { armor:[], weapon:[], tools:"", languages:[], languageChoices:{} };
+    var oldLang = char.proficiencies.languages;
+    if (typeof oldLang === "string") {
+      var arr = [];
+      if (oldLang.trim()) {
+        oldLang.split(/[,;\n]/).forEach(function(s) {
+          var name = s.trim();
+          if (name) arr.push({ name: name, source: "custom", category: "custom" });
+        });
+      }
+      char.proficiencies.languages = arr;
+    } else if (!Array.isArray(oldLang)) {
+      char.proficiencies.languages = [];
+    }
+    if (!char.proficiencies.languageChoices) char.proficiencies.languageChoices = {};
+    char.schemaVersion = 7;
+  }
+  if (v < 8) {
+    // Инструменты: строка → массив объектов {name, source, category}
+    if (!char.proficiencies) char.proficiencies = { armor:[], weapon:[], tools:[], toolChoices:{}, languages:[], languageChoices:{} };
+    var oldTools = char.proficiencies.tools;
+    if (typeof oldTools === "string") {
+      var arr = [];
+      if (oldTools.trim()) {
+        oldTools.split(/[,;\n]/).forEach(function(s) {
+          var name = s.trim();
+          if (name) arr.push({ name: name, source: "custom", category: "custom" });
+        });
+      }
+      char.proficiencies.tools = arr;
+    } else if (!Array.isArray(oldTools)) {
+      char.proficiencies.tools = [];
+    }
+    if (!char.proficiencies.toolChoices) char.proficiencies.toolChoices = {};
+    char.schemaVersion = 8;
+  }
+  if (v < 9) {
+    // Доспехи/оружие: добавляем поля для источников и custom-набора
+    if (!char.proficiencies) char.proficiencies = {};
+    if (!Array.isArray(char.proficiencies.armor))  char.proficiencies.armor  = [];
+    if (!Array.isArray(char.proficiencies.weapon)) char.proficiencies.weapon = [];
+    // Существующие владения считаем custom — позже recalc их объединит с авто-источниками
+    if (!Array.isArray(char.proficiencies.armorCustom))  char.proficiencies.armorCustom  = char.proficiencies.armor.slice();
+    if (!Array.isArray(char.proficiencies.weaponCustom)) char.proficiencies.weaponCustom = char.proficiencies.weapon.slice();
+    if (!Array.isArray(char.proficiencies.specificWeapons)) char.proficiencies.specificWeapons = [];
+    if (!char.proficiencies.armorSources)  char.proficiencies.armorSources  = {};
+    if (!char.proficiencies.weaponSources) char.proficiencies.weaponSources = {};
+    char.schemaVersion = 9;
+  }
   return char;
 }
 
@@ -717,8 +768,7 @@ safeSet("hp-temp", char.combat.hpTemp);
 safeSet("hp-dice", char.combat.hpDice);
 safeSet("hp-dice-spent", char.combat.hpDiceSpent || 0);
 safeSet("combat-speed", char.combat.speed || "30 фт");
-safeSet("tool-proficiencies", char.proficiencies.tools || "");
-safeSet("languages", char.proficiencies.languages || "");
+// Языки и инструменты рендерятся через renderLanguages()/renderTools() ниже
 safeSet("coin-cp", char.coins.cp);
 safeSet("coin-sp", char.coins.sp);
 safeSet("coin-ep", char.coins.ep);
@@ -735,22 +785,7 @@ const _statVal = char.spells.stat || "";
 if(_statVal==="ИНТ" && $("sc-btn-int")) $("sc-btn-int").classList.add("active");
 if(_statVal==="МУД" && $("sc-btn-wis")) $("sc-btn-wis").classList.add("active");
 if(_statVal==="ХАР" && $("sc-btn-cha")) $("sc-btn-cha").classList.add("active");
-safeSetChecked("armor-light", false);
-safeSetChecked("armor-medium", false);
-safeSetChecked("armor-heavy", false);
-safeSetChecked("armor-shield", false);
-safeSetChecked("weapon-simple", false);
-safeSetChecked("weapon-martial", false);
-if(char.proficiencies.armor) {
-char.proficiencies.armor.forEach(function(p) {
-safeSetChecked("armor-" + p, true);
-});
-}
-if(char.proficiencies.weapon) {
-char.proficiencies.weapon.forEach(function(p) {
-safeSetChecked("weapon-" + p, true);
-});
-}
+// Доспехи и оружие рендерятся через renderArmorProf()/renderWeaponProf() ниже
 if(char.saves) {
 Object.keys(char.saves).forEach(function(key) {
 safeSetChecked("save-prof-" + key, char.saves[key]);
@@ -763,22 +798,11 @@ safeSetChecked("skill-prof-" + key, char.skills[key]);
 }
 calcStats();
 loadExpertise();
-// Автозаполнение инструментов/языков от предыстории если пусто
-if (char.background && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[char.background]) {
-  var bgData = BACKGROUND_SKILLS[char.background];
-  if (!Array.isArray(bgData)) {
-    var toolsEl = $("tool-proficiencies");
-    var langEl = $("languages");
-    if (toolsEl && !toolsEl.value.trim() && bgData.tools && bgData.tools.length > 0) {
-      toolsEl.value = bgData.tools.join(", ");
-      if (char.proficiencies) char.proficiencies.tools = toolsEl.value;
-    }
-    if (langEl && !langEl.value.trim() && bgData.languages > 0) {
-      langEl.value = bgData.languages + " доп. язык" + (bgData.languages > 1 ? "а" : "");
-      if (char.proficiencies) char.proficiencies.languages = langEl.value;
-    }
-  }
-}
+// Рендер языков и инструментов (категории + источники)
+if (typeof renderLanguages === "function") renderLanguages();
+if (typeof renderTools === "function") renderTools();
+if (typeof renderArmorProf === "function") renderArmorProf();
+if (typeof renderWeaponProf === "function") renderWeaponProf();
 calcCoinWeight();
 calcSpellStats();
 recalculateHP();

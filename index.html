@@ -194,7 +194,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="col">
 <label>Подкласс</label>
-<select id="char-subclass" onchange="updateChar(); updateClassFeatures(); updateLockButtonState()">
+<select id="char-subclass" onchange="updateChar(); updateClassFeatures(); updateLockButtonState(); if(typeof renderLanguages==='function') renderLanguages(); if(typeof renderTools==='function') renderTools(); if(typeof renderArmorProf==='function') renderArmorProf(); if(typeof renderWeaponProf==='function') renderWeaponProf(); if(typeof calculateAC==='function') calculateAC()">
 <option value="">Сначала выберите класс</option>
 </select>
 </div>
@@ -576,47 +576,21 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="card">
 <h3>📖 Владения</h3>
-<div class="proficiencies-section">
+<div class="proficiencies-section prof-categorized">
 <h4>🛡️ Доспехи</h4>
-<div class="proficiency-checkboxes" id="armor-proficiencies">
-<div class="proficiency-checkbox">
-<input type="checkbox" id="armor-light" onchange="toggleProficiency('armor', 'light', this); calculateAC()">
-<label for="armor-light">Лёгкие</label>
+<div id="armor-prof-container" class="prof-categorized-body"></div>
 </div>
-<div class="proficiency-checkbox">
-<input type="checkbox" id="armor-medium" onchange="toggleProficiency('armor', 'medium', this); calculateAC()">
-<label for="armor-medium">Средние</label>
-</div>
-<div class="proficiency-checkbox">
-<input type="checkbox" id="armor-heavy" onchange="toggleProficiency('armor', 'heavy', this); calculateAC()">
-<label for="armor-heavy">Тяжёлые</label>
-</div>
-<div class="proficiency-checkbox">
-<input type="checkbox" id="armor-shield" onchange="toggleProficiency('armor', 'shield', this); calculateAC()">
-<label for="armor-shield">Щиты (+2)</label>
-</div>
-</div>
-</div>
-<div class="proficiencies-section">
+<div class="proficiencies-section prof-categorized">
 <h4>⚔️ Оружие</h4>
-<div class="proficiency-checkboxes" id="weapon-proficiencies">
-<div class="proficiency-checkbox">
-<input type="checkbox" id="weapon-simple" onchange="toggleProficiency('weapon', 'simple', this)">
-<label for="weapon-simple">Простое</label>
+<div id="weapon-prof-container" class="prof-categorized-body"></div>
 </div>
-<div class="proficiency-checkbox">
-<input type="checkbox" id="weapon-martial" onchange="toggleProficiency('weapon', 'martial', this)">
-<label for="weapon-martial">Воинское</label>
-</div>
-</div>
-</div>
-<div class="proficiencies-section">
+<div class="proficiencies-section prof-categorized">
 <h4>🔧 Инструменты</h4>
-<textarea id="tool-proficiencies" placeholder="Воровские инструменты, музыкальные..." oninput="updateChar()"></textarea>
+<div id="tools-container" class="prof-categorized-body"></div>
 </div>
-<div class="proficiencies-section">
+<div class="proficiencies-section prof-categorized">
 <h4>🗣️ Языки</h4>
-<textarea id="languages" placeholder="Общий, Эльфийский, Дварфский..." oninput="updateChar()"></textarea>
+<div id="languages-container" class="prof-categorized-body"></div>
 </div>
 </div>
 <div class="card accordion-card">

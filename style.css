@@ -2316,6 +2316,100 @@ transition: all 0.2s;
 .proficiency-checkbox input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-color); }
 .proficiency-checkbox label { margin: 0; cursor: pointer; font-size: 0.85em; color: var(--text-color); }
 .proficiencies-section textarea { margin-top: 10px; min-height: 60px; font-size: 0.85em; }
+
+/* ── Категоризованные владения (языки/инструменты) ─────────────────────── */
+.prof-categorized-body { display: flex; flex-direction: column; gap: 10px; }
+.prof-cat-group {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.prof-cat-title {
+  font-size: 0.75em;
+  color: var(--accent-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.prof-cat-title .prof-cat-hint {
+  color: var(--text-muted, #888);
+  font-size: 0.9em;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: normal;
+}
+.prof-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.prof-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+.prof-chip[data-source="race"]       { border-color: #6cb46c; background: rgba(108,180,108,0.12); }
+.prof-chip[data-source="class"]      { border-color: #c46c6c; background: rgba(196,108,108,0.12); }
+.prof-chip[data-source="subclass"]   { border-color: #b46cc4; background: rgba(180,108,196,0.12); }
+.prof-chip[data-source="background"] { border-color: #c4a06c; background: rgba(196,160,108,0.12); }
+.prof-chip[data-source="custom"]     { border-color: #6c9cc4; background: rgba(108,156,196,0.12); }
+.prof-chip-src {
+  font-size: 0.7em;
+  opacity: 0.8;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+}
+.prof-chip-remove {
+  cursor: pointer;
+  color: #d66;
+  font-weight: bold;
+  padding: 0 2px;
+  user-select: none;
+  line-height: 1;
+}
+.prof-chip-remove:hover { color: #f88; }
+.prof-empty { font-size: 0.78em; color: var(--text-muted, #888); font-style: italic; }
+.prof-add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  align-items: center;
+}
+.prof-add-row select,
+.prof-add-row input[type="text"] {
+  flex: 1;
+  min-width: 110px;
+  padding: 5px 8px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  color: var(--text-color);
+  font-size: 0.82em;
+}
+.prof-add-row button {
+  padding: 5px 12px;
+  font-size: 0.82em;
+  background: var(--accent-color);
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+}
+.prof-add-row button:hover { filter: brightness(1.15); }
+.prof-choice-pending {
+  border-left: 3px solid var(--accent-color);
+  padding-left: 8px;
+  margin-top: 6px;
+}
+.prof-choice-pending .prof-cat-hint { color: var(--accent-color); font-weight: bold; }
 .weapon-row {
 background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
 border: 1px solid var(--border-color);

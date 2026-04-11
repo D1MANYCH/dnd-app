@@ -222,21 +222,17 @@ if (CLASS_SAVE_PROFICIENCIES[className]) {
   });
 }
 
-// Авто-владения бронёй и оружием по классу
-if (CLASS_ARMOR_PROFS && CLASS_ARMOR_PROFS[className]) {
-  const profs = CLASS_ARMOR_PROFS[className];
-  char.proficiencies.armor  = profs.armor  ? profs.armor.slice()  : [];
-  char.proficiencies.weapon = profs.weapon ? profs.weapon.slice() : [];
-  // Sync checkboxes
-  ["light","medium","heavy","shield"].forEach(function(t) {
-    safeSetChecked("armor-" + t, char.proficiencies.armor.includes(t));
-  });
-  ["simple","martial"].forEach(function(t) {
-    safeSetChecked("weapon-" + t, char.proficiencies.weapon.includes(t));
+calcStats();
+// Сброс выбора инструментов от старого класса (имя класса в ключе)
+if (char.proficiencies && char.proficiencies.toolChoices) {
+  Object.keys(char.proficiencies.toolChoices).forEach(function(k) {
+    if (k.indexOf("class_") === 0) delete char.proficiencies.toolChoices[k];
   });
 }
-
-calcStats();
+if (typeof renderLanguages === "function") renderLanguages();
+if (typeof renderTools === "function") renderTools();
+if (typeof renderArmorProf === "function") renderArmorProf();
+if (typeof renderWeaponProf === "function") renderWeaponProf();
 calculateAC();
 }
 function initSkills() {
@@ -1207,8 +1203,7 @@ char.combat.hpCurrent = parseInt($("hp-current")?.value) || 0;
 char.combat.hpTemp = parseInt($("hp-temp")?.value) || 0;
 char.combat.hpDiceSpent = parseInt($("hp-dice-spent")?.value) || 0;
 char.combat.speed = $("combat-speed")?.value || "30 фт";
-char.proficiencies.tools = $("tool-proficiencies")?.value || "";
-char.proficiencies.languages = $("languages")?.value || "";
+// Языки и инструменты управляются через renderLanguages/renderTools — не переопределяем
 char.coins.cp = parseInt($("coin-cp")?.value) || 0;
 char.coins.sp = parseInt($("coin-sp")?.value) || 0;
 char.coins.ep = parseInt($("coin-ep")?.value) || 0;
@@ -1426,10 +1421,24 @@ function onRaceChange() {
     if (char) {
       char.speed        = speedVal;
       char.combat.speed = speedVal;
+      // Очистить расовый выбор языков и инструментов — раса сменилась
+      if (char.proficiencies && char.proficiencies.languageChoices) {
+        char.proficiencies.languageChoices.race = [];
+      }
+      if (char.proficiencies && char.proficiencies.toolChoices) {
+        Object.keys(char.proficiencies.toolChoices).forEach(function(k) {
+          if (k.indexOf("race_") === 0) delete char.proficiencies.toolChoices[k];
+        });
+      }
       saveToLocal();
     }
   }
   if (typeof renderRaceExtras === "function") renderRaceExtras();
+  if (typeof renderLanguages === "function") renderLanguages();
+  if (typeof renderTools === "function") renderTools();
+  if (typeof renderArmorProf === "function") renderArmorProf();
+  if (typeof renderWeaponProf === "function") renderWeaponProf();
+  if (typeof calculateAC === "function") calculateAC();
 }
 
 // ============================================
@@ -1652,8 +1661,12 @@ function onBackgroundChange() {
   var bgEl = $("char-background");
   if (!bgEl || !char) return;
   var bg = bgEl.value;
+  // Сброс выбора языков от предыстории при смене
+  if (char.proficiencies && char.proficiencies.languageChoices) {
+    char.proficiencies.languageChoices.background = [];
+  }
   var bgData = (typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bg];
-  if (!bgData) return;
+  if (!bgData) { if (typeof renderLanguages === "function") renderLanguages(); return; }
   // Support both old format (array) and new format (object)
   var skillList = Array.isArray(bgData) ? bgData : (bgData.skills || []);
   skillList.forEach(function(skillName) {
@@ -1663,35 +1676,892 @@ function onBackgroundChange() {
       if (cb && !cb.checked) { cb.checked = true; }
     }
   });
-  // Инструменты и языки от предыстории
-  if (!Array.isArray(bgData) && bgData.tools && bgData.tools.length > 0) {
-    var toolsEl = $("tool-proficiencies");
-    if (toolsEl) {
-      var existing = toolsEl.value.trim();
-      var newTools = bgData.tools.join(", ");
-      if (existing && existing.indexOf(newTools) === -1) {
-        toolsEl.value = existing + ", " + newTools;
-      } else if (!existing) {
-        toolsEl.value = newTools;
-      }
-      if (char.proficiencies) char.proficiencies.tools = toolsEl.value;
-    }
+  // Сброс выбора инструментов от предыстории при смене
+  if (char.proficiencies && char.proficiencies.toolChoices) {
+    Object.keys(char.proficiencies.toolChoices).forEach(function(k) {
+      if (k.indexOf("bg_") === 0) delete char.proficiencies.toolChoices[k];
+    });
   }
-  if (!Array.isArray(bgData) && bgData.languages > 0) {
-    var langEl = $("languages");
-    if (langEl) {
-      var existing = langEl.value.trim();
-      var langNote = bgData.languages + " доп. язык" + (bgData.languages > 1 ? "а" : "");
-      if (existing && existing.indexOf(langNote) === -1) {
-        langEl.value = existing ? existing + ", " + langNote : langNote;
-      } else if (!existing) {
-        langEl.value = langNote;
-      }
-      if (char.proficiencies) char.proficiencies.languages = langEl.value;
-    }
-  }
+  // Инструменты/языки от предыстории — через categorized UI (recalc*FromSources)
   calcStats();
   updateSkillProfCount();
+  if (typeof renderLanguages === "function") renderLanguages();
+  if (typeof renderTools === "function") renderTools();
+  if (typeof renderArmorProf === "function") renderArmorProf();
+  if (typeof renderWeaponProf === "function") renderWeaponProf();
+}
+
+// ============================================
+// ВЛАДЕНИЯ КАТЕГОРИЗОВАННЫЕ — ЯЗЫКИ (Фаза 1)
+// ============================================
+var PROF_SOURCE_LABELS = {
+  race:       "🧬 Раса",
+  class:      "⚔️ Класс",
+  subclass:   "🎓 Подкласс",
+  background: "📜 Предыст.",
+  custom:     "✏️ Своё"
+};
+var LANG_CAT_TITLES = {
+  standard: "Стандартные",
+  exotic:   "Экзотические",
+  secret:   "Тайные",
+  custom:   "Свои"
+};
+
+// Возвращает массив [{cls, sub}] для всех классов персонажа (с учётом мультикласса)
+function getCharClassPairs(char) {
+  var out = [];
+  if (char.classes && char.classes.length) {
+    char.classes.forEach(function(c) {
+      if (c && c.class) out.push({ cls: c.class, sub: c.subclass || "" });
+    });
+  } else if (char.class) {
+    out.push({ cls: char.class, sub: char.subclass || "" });
+  }
+  return out;
+}
+
+function findLangInCatalog(name) {
+  if (typeof LANGUAGE_CATALOG === "undefined") return null;
+  var cats = ["standard","exotic","secret"];
+  for (var i = 0; i < cats.length; i++) {
+    var arr = LANGUAGE_CATALOG[cats[i]] || [];
+    for (var j = 0; j < arr.length; j++) {
+      if (arr[j].name === name) return { category: cats[i], desc: arr[j].desc };
+    }
+  }
+  return null;
+}
+
+function ensureLanguagesArray(char) {
+  if (!char.proficiencies) char.proficiencies = { armor:[], weapon:[], tools:"", languages:[], languageChoices:{} };
+  if (typeof char.proficiencies.languages === "string") {
+    var s = char.proficiencies.languages.trim();
+    var arr = [];
+    if (s) s.split(/[,;\n]/).forEach(function(x){
+      var n = x.trim();
+      if (n) arr.push({ name: n, source: "custom", category: "custom" });
+    });
+    char.proficiencies.languages = arr;
+  }
+  if (!Array.isArray(char.proficiencies.languages)) char.proficiencies.languages = [];
+  if (!char.proficiencies.languageChoices) char.proficiencies.languageChoices = {};
+}
+
+// Перестроить языки из источников race/class/background, сохранив custom
+function recalcLanguagesFromSources(char) {
+  ensureLanguagesArray(char);
+  var custom = char.proficiencies.languages.filter(function(l){ return l.source === "custom"; });
+  var result = [];
+  var seen = {};
+  function add(name, source) {
+    if (!name || seen[name]) return;
+    seen[name] = true;
+    var info = findLangInCatalog(name);
+    result.push({ name: name, source: source, category: info ? info.category : "custom" });
+  }
+  // Раса
+  if (char.race && typeof RACE_LANGUAGES !== "undefined" && RACE_LANGUAGES[char.race]) {
+    var r = RACE_LANGUAGES[char.race];
+    (r.fixed || []).forEach(function(n){ add(n, "race"); });
+    var rPicks = (char.proficiencies.languageChoices.race) || [];
+    rPicks.slice(0, r.choice || 0).forEach(function(n){ add(n, "race"); });
+  }
+  // Класс(ы) — учитываем мультикласс
+  var classPairs = getCharClassPairs(char);
+  classPairs.forEach(function(p){
+    if (typeof CLASS_LANGUAGES !== "undefined" && CLASS_LANGUAGES[p.cls]) {
+      (CLASS_LANGUAGES[p.cls].fixed || []).forEach(function(n){ add(n, "class"); });
+    }
+    // Подкласс
+    if (p.sub && typeof SUBCLASS_LANGUAGES !== "undefined" && SUBCLASS_LANGUAGES[p.cls] && SUBCLASS_LANGUAGES[p.cls][p.sub]) {
+      var sd = SUBCLASS_LANGUAGES[p.cls][p.sub];
+      (sd.fixed || []).forEach(function(n){ add(n, "subclass"); });
+      var subKey = "subclass_" + p.cls + "_" + p.sub;
+      var subPicks = (char.proficiencies.languageChoices[subKey]) || [];
+      subPicks.slice(0, sd.choice || 0).forEach(function(n){ add(n, "subclass"); });
+    }
+  });
+  // Предыстория
+  if (char.background && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[char.background]) {
+    var bg = BACKGROUND_SKILLS[char.background];
+    var bgPicks = (char.proficiencies.languageChoices.background) || [];
+    bgPicks.slice(0, bg.languages || 0).forEach(function(n){ add(n, "background"); });
+  }
+  // Custom — добавляем последними
+  custom.forEach(function(l){
+    if (!seen[l.name]) {
+      seen[l.name] = true;
+      result.push({ name: l.name, source: "custom", category: l.category || "custom" });
+    }
+  });
+  char.proficiencies.languages = result;
+}
+
+function getLanguageChoiceSlots(char) {
+  var out = [];
+  if (char.race && typeof RACE_LANGUAGES !== "undefined" && RACE_LANGUAGES[char.race]) {
+    var r = RACE_LANGUAGES[char.race];
+    if (r.choice > 0) {
+      var picks = (char.proficiencies.languageChoices.race) || [];
+      var rem = r.choice - picks.length;
+      if (rem > 0) out.push({ key:"race", label:"🧬 Раса", remaining:rem, total:r.choice });
+    }
+  }
+  // Подклассы
+  getCharClassPairs(char).forEach(function(p) {
+    if (p.sub && typeof SUBCLASS_LANGUAGES !== "undefined" && SUBCLASS_LANGUAGES[p.cls] && SUBCLASS_LANGUAGES[p.cls][p.sub]) {
+      var sd = SUBCLASS_LANGUAGES[p.cls][p.sub];
+      if (sd.choice > 0) {
+        var subKey = "subclass_" + p.cls + "_" + p.sub;
+        var subPicks = (char.proficiencies.languageChoices[subKey]) || [];
+        var rem = sd.choice - subPicks.length;
+        if (rem > 0) out.push({ key:subKey, label:"🎓 " + p.sub, remaining:rem, total:sd.choice });
+      }
+    }
+  });
+  if (char.background && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[char.background]) {
+    var bg = BACKGROUND_SKILLS[char.background];
+    if (bg.languages > 0) {
+      var bgPicks = (char.proficiencies.languageChoices.background) || [];
+      var rem = bg.languages - bgPicks.length;
+      if (rem > 0) out.push({ key:"background", label:"📜 Предыстория", remaining:rem, total:bg.languages });
+    }
+  }
+  return out;
+}
+
+function renderLanguages() {
+  var box = $("languages-container");
+  if (!box) return;
+  if (!currentId) { box.innerHTML = ""; return; }
+  var char = getCurrentChar();
+  if (!char) { box.innerHTML = ""; return; }
+  ensureLanguagesArray(char);
+  recalcLanguagesFromSources(char);
+
+  var groups = { standard:[], exotic:[], secret:[], custom:[] };
+  char.proficiencies.languages.forEach(function(l) {
+    var cat = l.category || "custom";
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(l);
+  });
+
+  var html = "";
+  ["standard","exotic","secret","custom"].forEach(function(cat) {
+    var items = groups[cat] || [];
+    if (cat === "custom" && items.length === 0) return;
+    html += '<div class="prof-cat-group">';
+    html += '<div class="prof-cat-title">' + LANG_CAT_TITLES[cat] + '</div>';
+    if (items.length === 0) {
+      html += '<div class="prof-empty">— нет —</div>';
+    } else {
+      html += '<div class="prof-chips">';
+      items.forEach(function(l) {
+        var info = findLangInCatalog(l.name);
+        var title = info ? info.desc : "";
+        var rmBtn = (l.source === "custom")
+          ? '<span class="prof-chip-remove" onclick="removeCustomLanguage(\'' + escapeHtml(l.name) + '\')">×</span>'
+          : '';
+        html += '<span class="prof-chip" data-source="' + l.source + '" title="' + escapeHtml(title) + '">' +
+          escapeHtml(l.name) +
+          '<span class="prof-chip-src">' + PROF_SOURCE_LABELS[l.source] + '</span>' +
+          rmBtn + '</span>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+
+  // Слоты выбора
+  var pending = getLanguageChoiceSlots(char);
+  var alreadyKnown = {};
+  char.proficiencies.languages.forEach(function(l){ alreadyKnown[l.name] = true; });
+  pending.forEach(function(slot) {
+    html += '<div class="prof-cat-group prof-choice-pending">';
+    html += '<div class="prof-cat-title">' + slot.label + ': выбери язык <span class="prof-cat-hint">(' + slot.remaining + ' из ' + slot.total + ')</span></div>';
+    html += '<div class="prof-add-row">';
+    html += '<select id="lang-choice-' + slot.key + '"><option value="">— выбрать —</option>';
+    ["standard","exotic"].forEach(function(c) {
+      html += '<optgroup label="' + LANG_CAT_TITLES[c] + '">';
+      (LANGUAGE_CATALOG[c]||[]).forEach(function(l) {
+        if (alreadyKnown[l.name]) return;
+        html += '<option value="' + escapeHtml(l.name) + '">' + escapeHtml(l.name) + '</option>';
+      });
+      html += '</optgroup>';
+    });
+    html += '</select>';
+    html += '<button onclick="addChoiceLanguage(\'' + slot.key + '\')">➕ Добавить</button>';
+    html += '</div></div>';
+  });
+
+  // Своё / из каталога
+  html += '<div class="prof-cat-group">';
+  html += '<div class="prof-cat-title">➕ Добавить язык</div>';
+  html += '<div class="prof-add-row">';
+  html += '<select id="lang-custom-pick"><option value="">— из каталога —</option>';
+  ["standard","exotic","secret"].forEach(function(c) {
+    html += '<optgroup label="' + LANG_CAT_TITLES[c] + '">';
+    (LANGUAGE_CATALOG[c]||[]).forEach(function(l) {
+      html += '<option value="' + escapeHtml(l.name) + '">' + escapeHtml(l.name) + '</option>';
+    });
+    html += '</optgroup>';
+  });
+  html += '</select>';
+  html += '<input type="text" id="lang-custom-name" placeholder="или свой вариант…">';
+  html += '<button onclick="addCustomLanguage()">➕ Добавить</button>';
+  html += '</div></div>';
+
+  box.innerHTML = html;
+}
+
+function addChoiceLanguage(key) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var sel = $("lang-choice-" + key);
+  if (!sel || !sel.value) return;
+  ensureLanguagesArray(char);
+  if (!char.proficiencies.languageChoices[key]) char.proficiencies.languageChoices[key] = [];
+  if (char.proficiencies.languageChoices[key].indexOf(sel.value) === -1) {
+    char.proficiencies.languageChoices[key].push(sel.value);
+  }
+  renderLanguages();
+  saveToLocal();
+}
+
+function addCustomLanguage() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  ensureLanguagesArray(char);
+  var pick = $("lang-custom-pick");
+  var name = $("lang-custom-name");
+  var val = (name && name.value.trim()) || (pick && pick.value) || "";
+  if (!val) return;
+  var exists = char.proficiencies.languages.some(function(l){ return l.name === val; });
+  if (exists) {
+    if (typeof showToast === "function") showToast("Язык уже есть", "info");
+    return;
+  }
+  var info = findLangInCatalog(val);
+  char.proficiencies.languages.push({
+    name: val,
+    source: "custom",
+    category: info ? info.category : "custom"
+  });
+  if (name) name.value = "";
+  if (pick) pick.value = "";
+  renderLanguages();
+  saveToLocal();
+}
+
+function removeCustomLanguage(name) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  ensureLanguagesArray(char);
+  char.proficiencies.languages = char.proficiencies.languages.filter(function(l) {
+    return !(l.source === "custom" && l.name === name);
+  });
+  renderLanguages();
+  saveToLocal();
+}
+
+// ============================================
+// ВЛАДЕНИЯ КАТЕГОРИЗОВАННЫЕ — ИНСТРУМЕНТЫ (Фаза 2)
+// ============================================
+var TOOL_CAT_TITLES = {
+  artisan:  "Ремесленные",
+  gaming:   "Игровые наборы",
+  musical:  "Музыкальные",
+  vehicles: "Транспорт",
+  other:    "Прочие",
+  custom:   "Свои"
+};
+
+function findToolInCatalog(name) {
+  if (typeof TOOL_CATALOG === "undefined") return null;
+  var cats = ["artisan","gaming","musical","vehicles","other"];
+  for (var i = 0; i < cats.length; i++) {
+    var arr = TOOL_CATALOG[cats[i]] || [];
+    for (var j = 0; j < arr.length; j++) {
+      if (arr[j].name === name) return { category: cats[i], desc: arr[j].desc };
+    }
+  }
+  return null;
+}
+
+function ensureToolsArray(char) {
+  if (!char.proficiencies) char.proficiencies = { armor:[], weapon:[], tools:[], toolChoices:{}, languages:[], languageChoices:{} };
+  if (typeof char.proficiencies.tools === "string") {
+    var s = char.proficiencies.tools.trim();
+    var arr = [];
+    if (s) s.split(/[,;\n]/).forEach(function(x){
+      var n = x.trim();
+      if (n) arr.push({ name: n, source: "custom", category: "custom" });
+    });
+    char.proficiencies.tools = arr;
+  }
+  if (!Array.isArray(char.proficiencies.tools)) char.proficiencies.tools = [];
+  if (!char.proficiencies.toolChoices) char.proficiencies.toolChoices = {};
+}
+
+// Является ли строка из BACKGROUND_SKILLS.tools слотом-выбором
+function parseBackgroundToolEntry(entry) {
+  // "Ремесленный инструмент (один)" → slot: artisan x1
+  // "Музыкальный инструмент (один)" → slot: musical x1
+  // "Игровой набор (один)"           → slot: gaming x1
+  if (/Ремесленн.*\(один\)/i.test(entry)) return { type:"slot", from:"artisan", count:1 };
+  if (/Музыкальн.*\(один\)/i.test(entry)) return { type:"slot", from:"musical", count:1 };
+  if (/Игров.*набор.*\(один\)/i.test(entry)) return { type:"slot", from:"gaming", count:1 };
+  return { type:"fixed", name: entry };
+}
+
+function recalcToolsFromSources(char) {
+  ensureToolsArray(char);
+  var custom = char.proficiencies.tools.filter(function(t){ return t.source === "custom"; });
+  var result = [];
+  var seen = {};
+  function add(name, source) {
+    if (!name || seen[name]) return;
+    seen[name] = true;
+    var info = findToolInCatalog(name);
+    result.push({ name: name, source: source, category: info ? info.category : "custom" });
+  }
+  // Раса
+  if (char.race && typeof RACE_TOOLS !== "undefined" && RACE_TOOLS[char.race]) {
+    var r = RACE_TOOLS[char.race];
+    (r.fixed || []).forEach(function(n){ add(n, "race"); });
+    (r.choices || []).forEach(function(slot, idx) {
+      var key = "race_" + idx;
+      var picks = (char.proficiencies.toolChoices[key]) || [];
+      picks.slice(0, slot.count || 1).forEach(function(n){ add(n, "race"); });
+    });
+  }
+  // Классы и подклассы
+  getCharClassPairs(char).forEach(function(p) {
+    var cn = p.cls;
+    if (typeof CLASS_TOOLS !== "undefined" && CLASS_TOOLS[cn]) {
+      var c = CLASS_TOOLS[cn];
+      (c.fixed || []).forEach(function(n){ add(n, "class"); });
+      (c.choices || []).forEach(function(slot, idx) {
+        var key = "class_" + cn + "_" + idx;
+        var picks = (char.proficiencies.toolChoices[key]) || [];
+        picks.slice(0, slot.count || 1).forEach(function(n){ add(n, "class"); });
+      });
+    }
+    // Подкласс
+    if (p.sub && typeof SUBCLASS_TOOLS !== "undefined" && SUBCLASS_TOOLS[cn] && SUBCLASS_TOOLS[cn][p.sub]) {
+      var sc = SUBCLASS_TOOLS[cn][p.sub];
+      (sc.fixed || []).forEach(function(n){ add(n, "subclass"); });
+      (sc.choices || []).forEach(function(slot, idx) {
+        var key = "subclass_" + cn + "_" + p.sub + "_" + idx;
+        var picks = (char.proficiencies.toolChoices[key]) || [];
+        picks.slice(0, slot.count || 1).forEach(function(n){ add(n, "subclass"); });
+      });
+    }
+  });
+  // Предыстория
+  if (char.background && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[char.background]) {
+    var bg = BACKGROUND_SKILLS[char.background];
+    var entries = (!Array.isArray(bg) && bg.tools) || [];
+    entries.forEach(function(entry, idx) {
+      var parsed = parseBackgroundToolEntry(entry);
+      if (parsed.type === "fixed") {
+        add(parsed.name, "background");
+      } else {
+        var key = "bg_" + idx;
+        var picks = (char.proficiencies.toolChoices[key]) || [];
+        picks.slice(0, parsed.count || 1).forEach(function(n){ add(n, "background"); });
+      }
+    });
+  }
+  // Custom
+  custom.forEach(function(t){
+    if (!seen[t.name]) {
+      seen[t.name] = true;
+      result.push({ name: t.name, source: "custom", category: t.category || "custom" });
+    }
+  });
+  char.proficiencies.tools = result;
+}
+
+function getToolChoiceSlots(char) {
+  var out = [];
+  // Раса
+  if (char.race && typeof RACE_TOOLS !== "undefined" && RACE_TOOLS[char.race]) {
+    var r = RACE_TOOLS[char.race];
+    (r.choices || []).forEach(function(slot, idx) {
+      var key = "race_" + idx;
+      var picks = (char.proficiencies.toolChoices[key]) || [];
+      var rem = (slot.count || 1) - picks.length;
+      if (rem > 0) out.push({
+        key: key, label: "🧬 " + (slot.label || "Раса"),
+        from: slot.from, options: slot.options,
+        remaining: rem, total: slot.count || 1
+      });
+    });
+  }
+  // Класс и подкласс
+  getCharClassPairs(char).forEach(function(p) {
+    var cn = p.cls;
+    if (typeof CLASS_TOOLS !== "undefined" && CLASS_TOOLS[cn]) {
+      var c = CLASS_TOOLS[cn];
+      (c.choices || []).forEach(function(slot, idx) {
+        var key = "class_" + cn + "_" + idx;
+        var picks = (char.proficiencies.toolChoices[key]) || [];
+        var rem = (slot.count || 1) - picks.length;
+        if (rem > 0) out.push({
+          key: key, label: "⚔️ " + cn + ": " + (slot.label || ""),
+          from: slot.from, options: slot.options,
+          remaining: rem, total: slot.count || 1
+        });
+      });
+    }
+    if (p.sub && typeof SUBCLASS_TOOLS !== "undefined" && SUBCLASS_TOOLS[cn] && SUBCLASS_TOOLS[cn][p.sub]) {
+      var sc = SUBCLASS_TOOLS[cn][p.sub];
+      (sc.choices || []).forEach(function(slot, idx) {
+        var key = "subclass_" + cn + "_" + p.sub + "_" + idx;
+        var picks = (char.proficiencies.toolChoices[key]) || [];
+        var rem = (slot.count || 1) - picks.length;
+        if (rem > 0) out.push({
+          key: key, label: "🎓 " + p.sub + ": " + (slot.label || ""),
+          from: slot.from, options: slot.options,
+          remaining: rem, total: slot.count || 1
+        });
+      });
+    }
+  });
+  // Предыстория
+  if (char.background && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[char.background]) {
+    var bg = BACKGROUND_SKILLS[char.background];
+    var entries = (!Array.isArray(bg) && bg.tools) || [];
+    entries.forEach(function(entry, idx) {
+      var parsed = parseBackgroundToolEntry(entry);
+      if (parsed.type === "slot") {
+        var key = "bg_" + idx;
+        var picks = (char.proficiencies.toolChoices[key]) || [];
+        var rem = (parsed.count || 1) - picks.length;
+        if (rem > 0) out.push({
+          key: key, label: "📜 Предыстория: " + entry,
+          from: parsed.from, remaining: rem, total: parsed.count || 1
+        });
+      }
+    });
+  }
+  return out;
+}
+
+function buildToolOptionsHtml(slot, alreadyKnown) {
+  var html = "";
+  var fromList = Array.isArray(slot.from) ? slot.from : [slot.from];
+  if (slot.options && slot.options.length) {
+    slot.options.forEach(function(name) {
+      if (alreadyKnown[name]) return;
+      html += '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + '</option>';
+    });
+  } else {
+    fromList.forEach(function(cat) {
+      html += '<optgroup label="' + (TOOL_CAT_TITLES[cat] || cat) + '">';
+      (TOOL_CATALOG[cat] || []).forEach(function(t) {
+        if (alreadyKnown[t.name]) return;
+        html += '<option value="' + escapeHtml(t.name) + '">' + escapeHtml(t.name) + '</option>';
+      });
+      html += '</optgroup>';
+    });
+  }
+  return html;
+}
+
+function renderTools() {
+  var box = $("tools-container");
+  if (!box) return;
+  if (!currentId) { box.innerHTML = ""; return; }
+  var char = getCurrentChar();
+  if (!char) { box.innerHTML = ""; return; }
+  ensureToolsArray(char);
+  recalcToolsFromSources(char);
+
+  var groups = { artisan:[], gaming:[], musical:[], vehicles:[], other:[], custom:[] };
+  char.proficiencies.tools.forEach(function(t) {
+    var cat = t.category || "custom";
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(t);
+  });
+
+  var html = "";
+  ["artisan","gaming","musical","vehicles","other","custom"].forEach(function(cat) {
+    var items = groups[cat] || [];
+    if (items.length === 0) return;
+    html += '<div class="prof-cat-group">';
+    html += '<div class="prof-cat-title">' + TOOL_CAT_TITLES[cat] + '</div>';
+    html += '<div class="prof-chips">';
+    items.forEach(function(t) {
+      var info = findToolInCatalog(t.name);
+      var title = info ? info.desc : "";
+      var rmBtn = (t.source === "custom")
+        ? '<span class="prof-chip-remove" onclick="removeCustomTool(\'' + escapeHtml(t.name).replace(/'/g,"\\'") + '\')">×</span>'
+        : '';
+      html += '<span class="prof-chip" data-source="' + t.source + '" title="' + escapeHtml(title) + '">' +
+        escapeHtml(t.name) +
+        '<span class="prof-chip-src">' + PROF_SOURCE_LABELS[t.source] + '</span>' +
+        rmBtn + '</span>';
+    });
+    html += '</div></div>';
+  });
+
+  // Слоты выбора
+  var pending = getToolChoiceSlots(char);
+  var alreadyKnown = {};
+  char.proficiencies.tools.forEach(function(t){ alreadyKnown[t.name] = true; });
+  pending.forEach(function(slot) {
+    html += '<div class="prof-cat-group prof-choice-pending">';
+    html += '<div class="prof-cat-title">' + slot.label + ' <span class="prof-cat-hint">(' + slot.remaining + ' из ' + slot.total + ')</span></div>';
+    html += '<div class="prof-add-row">';
+    html += '<select id="tool-choice-' + slot.key + '"><option value="">— выбрать —</option>';
+    html += buildToolOptionsHtml(slot, alreadyKnown);
+    html += '</select>';
+    html += '<button onclick="addChoiceTool(\'' + slot.key + '\')">➕ Добавить</button>';
+    html += '</div></div>';
+  });
+
+  // Свой / из каталога
+  html += '<div class="prof-cat-group">';
+  html += '<div class="prof-cat-title">➕ Добавить инструмент</div>';
+  html += '<div class="prof-add-row">';
+  html += '<select id="tool-custom-pick"><option value="">— из каталога —</option>';
+  ["artisan","gaming","musical","vehicles","other"].forEach(function(c) {
+    html += '<optgroup label="' + TOOL_CAT_TITLES[c] + '">';
+    (TOOL_CATALOG[c]||[]).forEach(function(t) {
+      html += '<option value="' + escapeHtml(t.name) + '">' + escapeHtml(t.name) + '</option>';
+    });
+    html += '</optgroup>';
+  });
+  html += '</select>';
+  html += '<input type="text" id="tool-custom-name" placeholder="или свой вариант…">';
+  html += '<button onclick="addCustomTool()">➕ Добавить</button>';
+  html += '</div></div>';
+
+  box.innerHTML = html;
+}
+
+function addChoiceTool(slotKey) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var sel = $("tool-choice-" + slotKey);
+  if (!sel || !sel.value) return;
+  ensureToolsArray(char);
+  if (!char.proficiencies.toolChoices[slotKey]) char.proficiencies.toolChoices[slotKey] = [];
+  if (char.proficiencies.toolChoices[slotKey].indexOf(sel.value) === -1) {
+    char.proficiencies.toolChoices[slotKey].push(sel.value);
+  }
+  renderTools();
+  saveToLocal();
+}
+
+function addCustomTool() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  ensureToolsArray(char);
+  var pick = $("tool-custom-pick");
+  var name = $("tool-custom-name");
+  var val = (name && name.value.trim()) || (pick && pick.value) || "";
+  if (!val) return;
+  var exists = char.proficiencies.tools.some(function(t){ return t.name === val; });
+  if (exists) {
+    if (typeof showToast === "function") showToast("Инструмент уже есть", "info");
+    return;
+  }
+  var info = findToolInCatalog(val);
+  char.proficiencies.tools.push({
+    name: val,
+    source: "custom",
+    category: info ? info.category : "custom"
+  });
+  if (name) name.value = "";
+  if (pick) pick.value = "";
+  renderTools();
+  saveToLocal();
+}
+
+function removeCustomTool(name) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  ensureToolsArray(char);
+  char.proficiencies.tools = char.proficiencies.tools.filter(function(t) {
+    return !(t.source === "custom" && t.name === name);
+  });
+  renderTools();
+  saveToLocal();
+}
+
+// ============================================
+// ВЛАДЕНИЯ КАТЕГОРИЗОВАННЫЕ — ДОСПЕХИ И ОРУЖИЕ (Фаза 3b)
+// ============================================
+var ARMOR_TYPE_LABELS  = { light:"Лёгкие", medium:"Средние", heavy:"Тяжёлые", shield:"Щиты" };
+var WEAPON_TYPE_LABELS = { simple:"Простое", martial:"Воинское" };
+
+function ensureArmorWeaponFields(char) {
+  if (!char.proficiencies) char.proficiencies = {};
+  var p = char.proficiencies;
+  if (!Array.isArray(p.armor))           p.armor = [];
+  if (!Array.isArray(p.weapon))          p.weapon = [];
+  if (!Array.isArray(p.armorCustom))     p.armorCustom = [];
+  if (!Array.isArray(p.weaponCustom))    p.weaponCustom = [];
+  if (!Array.isArray(p.specificWeapons)) p.specificWeapons = [];
+  if (!p.armorSources)                   p.armorSources = {};
+  if (!p.weaponSources)                  p.weaponSources = {};
+}
+
+// Пересчёт типов брони/оружия и конкретных оружий из всех источников
+function recalcArmorWeaponFromSources(char) {
+  ensureArmorWeaponFields(char);
+  var p = char.proficiencies;
+  var ar = { light:[], medium:[], heavy:[], shield:[] };
+  var wp = { simple:[], martial:[] };
+
+  function addArmor(t, src) { if (ar[t] && ar[t].indexOf(src) === -1) ar[t].push(src); }
+  function addWeapon(t, src){ if (wp[t] && wp[t].indexOf(src) === -1) wp[t].push(src); }
+
+  // Раса
+  if (char.race && typeof RACE_ARMOR !== "undefined" && RACE_ARMOR[char.race]) {
+    var r = RACE_ARMOR[char.race];
+    (r.armor  || []).forEach(function(t){ addArmor(t,  "race"); });
+    (r.weapon || []).forEach(function(t){ addWeapon(t, "race"); });
+  }
+  // Класс(ы) и подкласс(ы)
+  getCharClassPairs(char).forEach(function(pair) {
+    var ca = (typeof CLASS_ARMOR_PROFS !== "undefined") && CLASS_ARMOR_PROFS[pair.cls];
+    if (ca) {
+      (ca.armor  || []).forEach(function(t){ addArmor(t,  "class"); });
+      (ca.weapon || []).forEach(function(t){ addWeapon(t, "class"); });
+    }
+    if (pair.sub && typeof SUBCLASS_ARMOR !== "undefined" && SUBCLASS_ARMOR[pair.cls] && SUBCLASS_ARMOR[pair.cls][pair.sub]) {
+      var sa = SUBCLASS_ARMOR[pair.cls][pair.sub];
+      (sa.armor  || []).forEach(function(t){ addArmor(t,  "subclass"); });
+      (sa.weapon || []).forEach(function(t){ addWeapon(t, "subclass"); });
+    }
+  });
+  // Custom
+  (p.armorCustom  || []).forEach(function(t){ addArmor(t,  "custom"); });
+  (p.weaponCustom || []).forEach(function(t){ addWeapon(t, "custom"); });
+
+  p.armorSources  = ar;
+  p.weaponSources = wp;
+  p.armor  = Object.keys(ar).filter(function(k){ return ar[k].length > 0; });
+  p.weapon = Object.keys(wp).filter(function(k){ return wp[k].length > 0; });
+
+  // Конкретные оружия
+  var specs = [];
+  var seen = {};
+  function addSpec(name, source) {
+    if (!name || seen[name]) return;
+    seen[name] = true;
+    specs.push({ name: name, source: source });
+  }
+  if (char.race && typeof RACE_WEAPONS_SPECIFIC !== "undefined" && RACE_WEAPONS_SPECIFIC[char.race]) {
+    RACE_WEAPONS_SPECIFIC[char.race].forEach(function(n){ addSpec(n, "race"); });
+  }
+  // Custom specifics — сохранены в самом массиве
+  (p.specificWeapons || []).forEach(function(w){
+    if (w && w.source === "custom") addSpec(w.name, "custom");
+  });
+  p.specificWeapons = specs;
+}
+
+function renderArmorProf() {
+  var box = $("armor-prof-container");
+  if (!box) return;
+  if (!currentId) { box.innerHTML = ""; return; }
+  var char = getCurrentChar();
+  if (!char) { box.innerHTML = ""; return; }
+  recalcArmorWeaponFromSources(char);
+  var ar = char.proficiencies.armorSources || {};
+
+  var html = '<div class="prof-cat-group"><div class="prof-chips">';
+  ["light","medium","heavy","shield"].forEach(function(t) {
+    var srcs = ar[t] || [];
+    if (srcs.length === 0) {
+      html += '<span class="prof-chip" data-source="empty" style="opacity:0.4">' + ARMOR_TYPE_LABELS[t] + '</span>';
+    } else {
+      // Главный source — первый по приоритету (race > class > subclass > custom)
+      var primary = srcs[0];
+      var srcBadges = srcs.map(function(s){ return PROF_SOURCE_LABELS[s]; }).join(" ");
+      var rmBtn = (srcs.indexOf("custom") !== -1)
+        ? '<span class="prof-chip-remove" onclick="removeCustomArmorType(\'' + t + '\')">×</span>'
+        : '';
+      html += '<span class="prof-chip" data-source="' + primary + '">' +
+        ARMOR_TYPE_LABELS[t] +
+        '<span class="prof-chip-src">' + srcBadges + '</span>' +
+        rmBtn + '</span>';
+    }
+  });
+  html += '</div></div>';
+
+  // Добавить тип брони вручную
+  var allTypes = ["light","medium","heavy","shield"];
+  var available = allTypes.filter(function(t){ return (ar[t] || []).indexOf("custom") === -1; });
+  if (available.length > 0) {
+    html += '<div class="prof-cat-group"><div class="prof-cat-title">➕ Добавить тип</div><div class="prof-add-row">';
+    html += '<select id="armor-custom-pick"><option value="">— выбрать —</option>';
+    available.forEach(function(t) {
+      html += '<option value="' + t + '">' + ARMOR_TYPE_LABELS[t] + '</option>';
+    });
+    html += '</select>';
+    html += '<button onclick="addCustomArmorType()">➕ Добавить</button>';
+    html += '</div></div>';
+  }
+  box.innerHTML = html;
+}
+
+function renderWeaponProf() {
+  var box = $("weapon-prof-container");
+  if (!box) return;
+  if (!currentId) { box.innerHTML = ""; return; }
+  var char = getCurrentChar();
+  if (!char) { box.innerHTML = ""; return; }
+  recalcArmorWeaponFromSources(char);
+  var wp = char.proficiencies.weaponSources || {};
+
+  // Категории
+  var html = '<div class="prof-cat-group"><div class="prof-cat-title">Категории</div><div class="prof-chips">';
+  ["simple","martial"].forEach(function(t) {
+    var srcs = wp[t] || [];
+    if (srcs.length === 0) {
+      html += '<span class="prof-chip" data-source="empty" style="opacity:0.4">' + WEAPON_TYPE_LABELS[t] + '</span>';
+    } else {
+      var primary = srcs[0];
+      var srcBadges = srcs.map(function(s){ return PROF_SOURCE_LABELS[s]; }).join(" ");
+      var rmBtn = (srcs.indexOf("custom") !== -1)
+        ? '<span class="prof-chip-remove" onclick="removeCustomWeaponType(\'' + t + '\')">×</span>'
+        : '';
+      html += '<span class="prof-chip" data-source="' + primary + '">' +
+        WEAPON_TYPE_LABELS[t] +
+        '<span class="prof-chip-src">' + srcBadges + '</span>' +
+        rmBtn + '</span>';
+    }
+  });
+  html += '</div></div>';
+
+  // Конкретные оружия
+  var specs = char.proficiencies.specificWeapons || [];
+  if (specs.length > 0) {
+    html += '<div class="prof-cat-group"><div class="prof-cat-title">Конкретные оружия</div><div class="prof-chips">';
+    specs.forEach(function(w) {
+      var rmBtn = (w.source === "custom")
+        ? '<span class="prof-chip-remove" onclick="removeCustomSpecificWeapon(\'' + escapeHtml(w.name).replace(/'/g,"\\'") + '\')">×</span>'
+        : '';
+      html += '<span class="prof-chip" data-source="' + w.source + '">' +
+        escapeHtml(w.name) +
+        '<span class="prof-chip-src">' + PROF_SOURCE_LABELS[w.source] + '</span>' +
+        rmBtn + '</span>';
+    });
+    html += '</div></div>';
+  }
+
+  // Добавить категорию вручную
+  var allTypes = ["simple","martial"];
+  var available = allTypes.filter(function(t){ return (wp[t] || []).indexOf("custom") === -1; });
+  html += '<div class="prof-cat-group"><div class="prof-cat-title">➕ Добавить</div><div class="prof-add-row">';
+  if (available.length > 0) {
+    html += '<select id="weapon-custom-pick"><option value="">— тип —</option>';
+    available.forEach(function(t) {
+      html += '<option value="' + t + '">' + WEAPON_TYPE_LABELS[t] + '</option>';
+    });
+    html += '</select>';
+    html += '<button onclick="addCustomWeaponType()">➕ Тип</button>';
+  }
+  html += '<input type="text" id="weapon-spec-name" placeholder="конкретное оружие…">';
+  html += '<button onclick="addCustomSpecificWeapon()">➕ Оружие</button>';
+  html += '</div></div>';
+
+  box.innerHTML = html;
+}
+
+function addCustomArmorType() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  ensureArmorWeaponFields(char);
+  var sel = $("armor-custom-pick");
+  if (!sel || !sel.value) return;
+  if (char.proficiencies.armorCustom.indexOf(sel.value) === -1) {
+    char.proficiencies.armorCustom.push(sel.value);
+  }
+  renderArmorProf();
+  if (typeof calculateAC === "function") calculateAC();
+  saveToLocal();
+}
+
+function removeCustomArmorType(type) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  ensureArmorWeaponFields(char);
+  char.proficiencies.armorCustom = char.proficiencies.armorCustom.filter(function(t){ return t !== type; });
+  renderArmorProf();
+  if (typeof calculateAC === "function") calculateAC();
+  saveToLocal();
+}
+
+function addCustomWeaponType() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  ensureArmorWeaponFields(char);
+  var sel = $("weapon-custom-pick");
+  if (!sel || !sel.value) return;
+  if (char.proficiencies.weaponCustom.indexOf(sel.value) === -1) {
+    char.proficiencies.weaponCustom.push(sel.value);
+  }
+  renderWeaponProf();
+  saveToLocal();
+}
+
+function removeCustomWeaponType(type) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  ensureArmorWeaponFields(char);
+  char.proficiencies.weaponCustom = char.proficiencies.weaponCustom.filter(function(t){ return t !== type; });
+  renderWeaponProf();
+  saveToLocal();
+}
+
+function addCustomSpecificWeapon() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  ensureArmorWeaponFields(char);
+  var inp = $("weapon-spec-name");
+  if (!inp) return;
+  var val = inp.value.trim();
+  if (!val) return;
+  var exists = (char.proficiencies.specificWeapons || []).some(function(w){ return w.name === val; });
+  if (exists) {
+    if (typeof showToast === "function") showToast("Оружие уже есть", "info");
+    return;
+  }
+  char.proficiencies.specificWeapons.push({ name: val, source: "custom" });
+  inp.value = "";
+  renderWeaponProf();
+  saveToLocal();
+}
+
+function removeCustomSpecificWeapon(name) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  ensureArmorWeaponFields(char);
+  char.proficiencies.specificWeapons = (char.proficiencies.specificWeapons || []).filter(function(w) {
+    return !(w.source === "custom" && w.name === name);
+  });
+  renderWeaponProf();
+  saveToLocal();
 }
 
 // ============================================
@@ -1711,17 +2581,7 @@ function onArmorChange() {
   var dexMod = getMod(char.stats.dex);
   var dexBonus = preset.dexCap >= 99 ? dexMod : Math.min(dexMod, preset.dexCap);
   var ac = preset.baseAC + dexBonus + (hasShield ? 2 : 0);
-  // Apply armor type proficiency flags for legacy calculateAC
-  char.proficiencies.armor = char.proficiencies.armor || [];
-  ["light","medium","heavy","shield"].forEach(function(t) { safeSetChecked("armor-"+t, false); });
-  if (preset.type !== "none") {
-    if (!char.proficiencies.armor.includes(preset.type)) char.proficiencies.armor.push(preset.type);
-    safeSetChecked("armor-"+preset.type, true);
-  }
-  if (hasShield) {
-    if (!char.proficiencies.armor.includes("shield")) char.proficiencies.armor.push("shield");
-    safeSetChecked("armor-shield", true);
-  }
+  // proficiencies.armor is now derived state from recalcArmorWeaponFromSources
   var acEl = $("combat-ac");
   if (acEl) acEl.value = ac;
   char.combat.ac = ac;
