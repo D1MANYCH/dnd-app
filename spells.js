@@ -3956,7 +3956,7 @@ const SPELLS_BASE = [
   {
     "name": "Туманный шаг",
     "level": 2,
-    "school": "передвижение",
+    "school": "вызов",
     "source": "PH14",
     "time": "1 бонусное действие",
     "range": "На себя",
@@ -4976,7 +4976,7 @@ const SPELLS_BASE = [
   {
     "name": "Туманный шаг",
     "level": 2,
-    "school": "передвижение",
+    "school": "вызов",
     "source": "PH24",
     "time": "1 бонусное действие",
     "range": "На себя",
@@ -10642,7 +10642,8 @@ const SPELLS_BASE = [
     "higherLevel": "",
     "id": 611,
     "classes": [
-      "both"
+      "sorcerer",
+      "wizard"
     ]
   },
   {
