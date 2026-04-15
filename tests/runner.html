@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>DnD App · Test Runner</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<style>
+body{font:13px/1.5 monospace;background:#111;color:#ddd;padding:16px;margin:0}
+h1{font-size:16px;margin:0 0 12px}
+.ok{color:#6c6}
+.fail{color:#f66;font-weight:bold}
+.section{border-top:1px solid #333;margin-top:12px;padding-top:8px}
+.summary{padding:8px;background:#222;border-radius:6px;margin-bottom:12px}
+pre{white-space:pre-wrap;margin:0}
+</style>
+</head>
+<body>
+<h1>DnD App · Headless Tests</h1>
+<div id="summary" class="summary">Загрузка…</div>
+<div id="results"></div>
+
+<!-- Минимальные shims до загрузки app-кода -->
+<script>
+window.escapeHtml = function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]});};
+window.getCurrentChar = function(){ return window.__testChar || null; };
+window.currentId = "test";
+// заглушки DOM для кода, который может дёрнуться
+document.createElement; // noop
+</script>
+
+<!-- Порядок как в index.html -->
+<script src="../data.js"></script>
+<script src="../class-choices.js"></script>
+<script src="../subclass-choices-data.js"></script>
+
+<script src="./fixtures.js?v=2"></script>
+<script src="./headless.js"></script>
+</body>
+</html>

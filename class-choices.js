@@ -214,6 +214,42 @@ function ccSetStored(char, className, choiceId, value) {
   char.classChoices[className][choiceId] = value;
 }
 
+// Находит определение выбора в CLASS_CHOICES[className] или SUBCLASS_CHOICES[subclass]
+function ccFindChoice(char, className, choiceId) {
+  var defs = CLASS_CHOICES[className];
+  if (defs) {
+    var c = defs.find(function(x){ return x.id === choiceId; });
+    if (c) return c;
+  }
+  if (typeof SUBCLASS_CHOICES !== "undefined" && char && char.classes) {
+    for (var i = 0; i < char.classes.length; i++) {
+      if (char.classes[i].class === className) {
+        var sub = char.classes[i].subclass;
+        if (sub && SUBCLASS_CHOICES[sub]) {
+          var c2 = SUBCLASS_CHOICES[sub].find(function(x){ return x.id === choiceId; });
+          if (c2) return c2;
+        }
+        break;
+      }
+    }
+  }
+  if (typeof SUBCLASS_CHOICES !== "undefined" && char && char.subclass && SUBCLASS_CHOICES[char.subclass]) {
+    var c3 = SUBCLASS_CHOICES[char.subclass].find(function(x){ return x.id === choiceId; });
+    if (c3) return c3;
+  }
+  return null;
+}
+
+// Получить подкласс для заданного класса персонажа
+function ccGetSubclass(char, className) {
+  if (char && char.classes) {
+    for (var i = 0; i < char.classes.length; i++) {
+      if (char.classes[i].class === className) return char.classes[i].subclass || "";
+    }
+  }
+  return char.subclass || "";
+}
+
 function ccCount(choice, classLevel) {
   if (typeof choice.getCount === "function") return choice.getCount(classLevel);
   return 1;
@@ -231,6 +267,12 @@ function ccAvailableOptions(choice, char, className) {
     if (opt.req.pact) {
       var pact = ccGetStored(char, className, "pact-boon");
       if (pact !== opt.req.pact) return false;
+    }
+    if (opt.req.subclass) {
+      var sub = ccGetSubclass(char, className);
+      var reqSub = opt.req.subclass;
+      if (Array.isArray(reqSub)) { if (reqSub.indexOf(sub) === -1) return false; }
+      else if (sub !== reqSub) return false;
     }
     if (opt.req.spell) {
       // Проверка простая — наличие заклинания в mySpells по id (не строго)
@@ -266,6 +308,41 @@ function ccGetAllChoicesFor(char) {
       result.push({className:cls, choice:choice, classLevel:classLevel, count:count, current:current, isComplete:isComplete});
     });
   });
+
+  // Subclass choices (SUBCLASS_CHOICES keyed by subclass name)
+  if (typeof SUBCLASS_CHOICES !== "undefined") {
+    active.forEach(function(cls) {
+      var subclass = "";
+      if (char.classes && Array.isArray(char.classes)) {
+        for (var i = 0; i < char.classes.length; i++) {
+          if (char.classes[i].class === cls) { subclass = char.classes[i].subclass || ""; break; }
+        }
+      } else {
+        subclass = char.subclass || "";
+      }
+      if (!subclass) return;
+      var defs = SUBCLASS_CHOICES[subclass];
+      if (!defs) return;
+      var classLevel = ccGetClassLevel(char, cls);
+      defs.forEach(function(choice) {
+        if (classLevel < choice.minLevel) return;
+        var count = ccCount(choice, classLevel);
+        var current = ccGetStored(char, cls, choice.id);
+        var isComplete = false;
+        if (choice.type === "single") {
+          isComplete = !!current;
+        } else if (choice.type === "multi") {
+          var arr = Array.isArray(current) ? current : [];
+          isComplete = arr.length >= count;
+        } else if (choice.type === "freeform") {
+          var arr2 = Array.isArray(current) ? current : (current ? [current] : []);
+          isComplete = arr2.length >= count;
+        }
+        result.push({className:cls, choice:choice, classLevel:classLevel, count:count, current:current, isComplete:isComplete});
+      });
+    });
+  }
+
   return result;
 }
 
@@ -277,51 +354,71 @@ function renderClassChoices(char, container) {
   var items = ccGetAllChoicesFor(char);
   if (items.length === 0) return;
 
-  var html = '<div class="class-choices-wrap">';
-  items.forEach(function(it) {
+  var useAccordion = items.length > 4;
+  var groups = {};
+  var groupOrder = [];
+  items.forEach(function(it){
+    var sub = ccGetSubclass(char, it.className);
+    var isSubChoice = (typeof SUBCLASS_CHOICES !== "undefined") && sub && SUBCLASS_CHOICES[sub] &&
+      SUBCLASS_CHOICES[sub].some(function(x){ return x.id === it.choice.id; });
+    var key = isSubChoice ? (it.className + " — " + sub) : it.className;
+    if (!groups[key]) { groups[key] = []; groupOrder.push(key); }
+    groups[key].push(it);
+  });
+
+  function renderCard(it){
     var c = it.choice;
     var cls = it.className;
     var statusBadge, statusClass, summary;
-
     if (it.isComplete) {
       statusClass = "cc-card cc-complete";
       if (c.type === "single") {
-        var optName = c.optionsDict[it.current] ? c.optionsDict[it.current].name : it.current;
+        var optName = c.optionsDict && c.optionsDict[it.current] ? c.optionsDict[it.current].name : it.current;
         summary = "✅ " + escapeHtml(optName);
       } else {
         var arr = Array.isArray(it.current) ? it.current : [];
-        var names = arr.map(function(id) {
-          if (c.optionsDict && c.optionsDict[id]) return c.optionsDict[id].name;
-          return id;
-        });
+        var names = arr.map(function(id){ return (c.optionsDict && c.optionsDict[id]) ? c.optionsDict[id].name : id; });
         summary = "✅ " + escapeHtml(names.join(", "));
       }
       statusBadge = '<span class="cc-badge cc-badge-done">' + it.count + "/" + it.count + "</span>";
     } else {
       statusClass = "cc-card cc-pending";
-      var have = 0;
-      if (c.type === "single") have = it.current ? 1 : 0;
-      else have = (Array.isArray(it.current) ? it.current.length : 0);
-      summary = '<span class="cc-hint">' + escapeHtml(c.desc) + "</span>";
+      var have = (c.type === "single") ? (it.current ? 1 : 0) : (Array.isArray(it.current) ? it.current.length : 0);
+      summary = '<span class="cc-hint">' + escapeHtml(c.desc || "") + "</span>";
       statusBadge = '<span class="cc-badge cc-badge-todo">' + have + "/" + it.count + "</span>";
     }
-
-    var classLabel = (ccGetActiveClasses(char).length > 1)
-      ? ' <span class="cc-class-tag">' + escapeHtml(cls) + "</span>"
-      : "";
-
-    html +=
-      '<button class="' + statusClass + '" onclick="openClassChoiceModal(\'' + cls + '\',\'' + c.id + '\')">' +
+    var classLabel = (!useAccordion && ccGetActiveClasses(char).length > 1)
+      ? ' <span class="cc-class-tag">' + escapeHtml(cls) + "</span>" : "";
+    return '<button class="' + statusClass + '" onclick="openClassChoiceModal(\'' + cls + '\',\'' + c.id + '\')">' +
         '<div class="cc-card-left">' +
           '<div class="cc-card-title">' + (c.icon || "⚡") + " " + escapeHtml(c.name) + classLabel + statusBadge + '</div>' +
           '<div class="cc-card-summary">' + summary + '</div>' +
         '</div>' +
         '<span class="cc-card-arrow">›</span>' +
       '</button>';
+  }
+
+  var html = '<div class="class-choices-wrap">';
+  if (useAccordion) {
+    groupOrder.forEach(function(key){
+      var g = groups[key];
+      var doneN = g.filter(function(x){ return x.isComplete; }).length;
+      html += '<details class="cc-group" open>' +
+        '<summary class="cc-group-head">' + escapeHtml(key) +
+        ' <span class="cc-badge cc-badge-' + (doneN===g.length?'done':'todo') + '">' + doneN + '/' + g.length + '</span></summary>' +
+        '<div class="cc-group-body">';
+      g.forEach(function(it){ html += renderCard(it); });
+      html += '</div></details>';
+    });
+    html += '</div>';
+    container.insertAdjacentHTML("beforeend", html);
+    return;
+  }
+
+  items.forEach(function(it) {
+    html += renderCard(it);
   });
   html += '</div>';
-
-  // Дописываем к существующему содержимому asi-container
   container.insertAdjacentHTML("beforeend", html);
 }
 
@@ -333,9 +430,7 @@ var ccModalState = { className:null, choiceId:null, selection:null };
 function openClassChoiceModal(className, choiceId) {
   var char = ccGetChar();
   if (!char) return;
-  var defs = CLASS_CHOICES[className];
-  if (!defs) return;
-  var choice = defs.find(function(c) { return c.id === choiceId; });
+  var choice = ccFindChoice(char, className, choiceId);
   if (!choice) return;
   var classLevel = ccGetClassLevel(char, className);
   if (classLevel < choice.minLevel) return;
@@ -450,9 +545,7 @@ function ccToggleOption(id) {
   if (!char) return;
   var className = ccModalState.className;
   var choiceId  = ccModalState.choiceId;
-  var defs = CLASS_CHOICES[className];
-  if (!defs) return;
-  var choice = defs.find(function(c) { return c.id === choiceId; });
+  var choice = ccFindChoice(char, className, choiceId);
   if (!choice) return;
   var classLevel = ccGetClassLevel(char, className);
   var count = ccCount(choice, classLevel);
@@ -487,9 +580,7 @@ function ccUpdateModalApplyBtn() {
   if (!btn) return;
   var char = ccGetChar();
   if (!char) { btn.disabled = true; return; }
-  var defs = CLASS_CHOICES[ccModalState.className];
-  if (!defs) { btn.disabled = true; return; }
-  var choice = defs.find(function(c) { return c.id === ccModalState.choiceId; });
+  var choice = ccFindChoice(char, ccModalState.className, ccModalState.choiceId);
   if (!choice) { btn.disabled = true; return; }
   var classLevel = ccGetClassLevel(char, ccModalState.className);
   var count = ccCount(choice, classLevel);
@@ -510,9 +601,7 @@ function applyClassChoice() {
   var className = ccModalState.className;
   var choiceId  = ccModalState.choiceId;
   if (!className || !choiceId) return;
-  var defs = CLASS_CHOICES[className];
-  if (!defs) return;
-  var choice = defs.find(function(c) { return c.id === choiceId; });
+  var choice = ccFindChoice(char, className, choiceId);
   if (!choice) return;
 
   var value;
@@ -559,4 +648,6 @@ if (typeof window !== "undefined") {
   window.applyClassChoice = applyClassChoice;
   window.ccToggleOption = ccToggleOption;
   window.ccUpdateFreeform = ccUpdateFreeform;
+  window.ccFindChoice = ccFindChoice;
+  window.ccGetSubclass = ccGetSubclass;
 }

@@ -407,16 +407,43 @@ return;
 }
 featuresSection.style.display = "block";
 featuresGrid.innerHTML = "";
-for (let l = 1; l <= level; l++) {
-if (CLASS_FEATURES[className][l]) {
-CLASS_FEATURES[className][l].forEach(function(feature) {
-const featureDiv = document.createElement("div");
-featureDiv.className = "feature-item" + (l === level ? " new" : "");
-featureDiv.innerHTML = "<span class=\"feature-level\">" + l + " ур.</span><div class=\"feature-name\">" + escapeHtml(feature.name) + "</div><div class=\"feature-desc\">" + escapeHtml(feature.desc) + "</div>";
-featuresGrid.appendChild(featureDiv);
+// Список всех классов (мультикласс): [{class, level}]
+var classList = [];
+if (char.classes && char.classes.length > 0) {
+  classList = char.classes.map(function(c){ return {cls:c.class, lvl:c.level||0}; });
+} else {
+  classList = [{cls:className, lvl:level}];
+}
+var isMulti = classList.length > 1;
+classList.forEach(function(cEntry) {
+  var cls = cEntry.cls, clsLvl = cEntry.lvl;
+  if (!CLASS_FEATURES[cls]) return;
+  var subName = (typeof ccGetSubclass === "function") ? ccGetSubclass(char, cls) : null;
+  var subFeats = (subName && typeof SUBCLASS_FEATURES !== "undefined" && SUBCLASS_FEATURES[subName]) ? SUBCLASS_FEATURES[subName] : null;
+  for (var l = 1; l <= clsLvl; l++) {
+    var subAtLevel = subFeats && subFeats[l] ? subFeats[l] : null;
+    var subNames = subAtLevel ? subAtLevel.map(function(f){return f.name;}) : [];
+    var isNewLevel = (l === clsLvl && cls === className && l === level);
+    if (CLASS_FEATURES[cls][l]) {
+      CLASS_FEATURES[cls][l].forEach(function(feature) {
+        if (subNames.indexOf(feature.name) !== -1) return;
+        var featureDiv = document.createElement("div");
+        featureDiv.className = "feature-item" + (isNewLevel ? " new" : "");
+        var classTag = isMulti ? '<span class="subclass-badge">' + escapeHtml(cls) + '</span>' : '';
+        featureDiv.innerHTML = "<span class=\"feature-level\">" + l + " ур.</span>" + classTag + "<div class=\"feature-name\">" + escapeHtml(feature.name) + "</div><div class=\"feature-desc\">" + escapeHtml(feature.desc) + "</div>";
+        featuresGrid.appendChild(featureDiv);
+      });
+    }
+    if (subAtLevel) {
+      subAtLevel.forEach(function(feature) {
+        var featureDiv = document.createElement("div");
+        featureDiv.className = "feature-item subclass-feature" + (isNewLevel ? " new" : "");
+        featureDiv.innerHTML = "<span class=\"feature-level\">" + l + " ур.</span><span class=\"subclass-badge\">" + escapeHtml(subName) + "</span><div class=\"feature-name\">" + escapeHtml(feature.name) + "</div><div class=\"feature-desc\">" + escapeHtml(feature.desc) + "</div>";
+        featuresGrid.appendChild(featureDiv);
+      });
+    }
+  }
 });
-}
-}
 // ASI levels for class (Fighter gets more)
 var classAsiLevels = (char.class === "Воин")   ? [4,6,8,12,14,16,19] :
                      (char.class === "Плут")    ? [4,8,10,12,16,19]   :
@@ -451,6 +478,7 @@ if (unusedASI.length > 0) {
   asiContainer.innerHTML = "";
 }
 renderClassResources();
+if (typeof renderClassChoices === "function") renderClassChoices(char, asiContainer);
 }
 function initConditions() {
 const grid = $("conditions-grid");
@@ -4750,6 +4778,18 @@ function getResourceMax(res, char) {
   return parseInt(raw) || 0;
 }
 
+// Получить текущий размер кости ресурса (dieSizeByLevel)
+function getResourceDieSize(res, char) {
+  if (!res.dieSizeByLevel) return "";
+  var level = char.level || 1;
+  var die = "";
+  var keys = Object.keys(res.dieSizeByLevel).map(Number).sort(function(a,b){return a-b;});
+  for (var i = 0; i < keys.length; i++) {
+    if (level >= keys[i]) die = res.dieSizeByLevel[keys[i]];
+  }
+  return die;
+}
+
 // Рендер блока ресурсов
 function renderClassResources() {
   if (!currentId) return;
@@ -4764,7 +4804,17 @@ function renderClassResources() {
   var cls = char.class || "";
   var data = (typeof CLASS_RESOURCES !== "undefined") && CLASS_RESOURCES[cls];
 
-  if (!data || !data.resources || data.resources.length === 0) {
+  // Merge subclass resources
+  var subclass = char.subclass || "";
+  var subData = (typeof SUBCLASS_RESOURCES !== "undefined") && subclass && SUBCLASS_RESOURCES[subclass];
+  var allResources = [];
+  var allPassive = null;
+  if (data && data.resources) allResources = allResources.concat(data.resources);
+  if (data && data.passive) allPassive = data.passive;
+  if (subData && subData.resources) allResources = allResources.concat(subData.resources);
+  if (subData && subData.passive) allPassive = allPassive || subData.passive;
+
+  if (allResources.length === 0 && !allPassive) {
     section.style.display = "none";
     return;
   }
@@ -4772,17 +4822,38 @@ function renderClassResources() {
   section.style.display = "block";
   grid.innerHTML = "";
 
+  // Passive subclass spells (domain/oath/patron)
+  if (allPassive && allPassive.subclassSpells) {
+    var ss = allPassive.subclassSpells;
+    var charLevel = char.level || 1;
+    var levels = Object.keys(ss.byLevel).map(Number).sort(function(a,b){return a-b;});
+    var rows = "";
+    levels.forEach(function(lvl) {
+      var unlocked = charLevel >= lvl;
+      var spells = ss.byLevel[lvl].map(escapeHtml).join(", ");
+      rows += '<div class="subclass-spells-row' + (unlocked ? '' : ' locked') + '">' +
+        '<span class="subclass-spells-lvl">' + lvl + ' ур.</span>' +
+        '<span class="subclass-spells-list">' + spells + '</span>' +
+        '</div>';
+    });
+    var spEl = document.createElement("div");
+    spEl.className = "resource-passive-card";
+    spEl.innerHTML = '<div class="resource-passive-title">' + (ss.icon || '📖') + ' ' + escapeHtml(ss.label) + '</div>' +
+      '<div class="subclass-spells-body">' + rows + '</div>';
+    grid.appendChild(spEl);
+  }
+
   // Passive notes card
-  if (data.passive && data.passive.notes) {
+  if (allPassive && allPassive.notes) {
     var notesEl = document.createElement("div");
     notesEl.className = "resource-passive-card";
     notesEl.innerHTML = '<div class="resource-passive-title">📖 Пассивные умения ' + escapeHtml(cls) + '</div>' +
-      '<pre class="resource-passive-text">' + escapeHtml(data.passive.notes) + '</pre>';
+      '<pre class="resource-passive-text">' + escapeHtml(allPassive.notes) + '</pre>';
     grid.appendChild(notesEl);
   }
 
   // Resource cards
-  data.resources.forEach(function(res) {
+  allResources.forEach(function(res) {
     var max = getResourceMax(res, char);
     if (max === 0) return; // не доступно на этом уровне
 
@@ -4808,10 +4879,11 @@ function renderClassResources() {
 
     var restLabel = res.restoreOn === "short" ? "☕ Кор." : res.restoreOn === "long" || res.restoreOn === "long_once" ? "🛏️ Длин." : res.restoreOn === "turn" ? "🔄 Каждый ход" : "–";
 
+    var dieSize = getResourceDieSize(res, char);
     card.innerHTML =
       '<div class="resource-header">' +
         '<span class="resource-icon">' + res.icon + '</span>' +
-        '<span class="resource-name">' + escapeHtml(res.name) + '</span>' +
+        '<span class="resource-name">' + escapeHtml(res.name) + (dieSize ? ' <span class="resource-die-size">(' + escapeHtml(dieSize) + ')</span>' : '') + '</span>' +
         '<span class="resource-restore-badge">' + restLabel + '</span>' +
       '</div>' +
       (isPool
@@ -4896,9 +4968,14 @@ function resetResourcesByRest(restType) {
   if (!char) return;
   initCharResources(char);
   var cls = char.class || "";
+  var allRes = [];
   var data = CLASS_RESOURCES && CLASS_RESOURCES[cls];
-  if (!data || !data.resources) return;
-  data.resources.forEach(function(res) {
+  if (data && data.resources) allRes = allRes.concat(data.resources);
+  var subclass = char.subclass || "";
+  var subData = (typeof SUBCLASS_RESOURCES !== "undefined") && subclass && SUBCLASS_RESOURCES[subclass];
+  if (subData && subData.resources) allRes = allRes.concat(subData.resources);
+  if (allRes.length === 0) return;
+  allRes.forEach(function(res) {
     if (restType === "long") {
       char.resources[res.id] = 0;
     } else if (restType === "short" && (res.restoreOn === "short")) {
