@@ -125,6 +125,16 @@ if (modal) modal.classList.remove("active");
 const display = $("dice-result-display");
 if (display) display.classList.remove("crit-success", "crit-fail", "normal");
 }
+function setDiceMode(btn, mode) {
+  window.__diceSelectedMode = mode;
+  var seg = btn && btn.parentElement;
+  if (seg) seg.querySelectorAll(".dice-mode-seg-btn").forEach(function(b){ b.classList.remove("active"); });
+  if (btn) btn.classList.add("active");
+}
+function rollDiceWithSelectedMode(sides) {
+  var mode = window.__diceSelectedMode || 'normal';
+  rollDice(sides, mode === 'normal' ? undefined : mode);
+}
 function rollDice(sides, mode) {
 const r1 = Math.floor(Math.random() * sides) + 1;
 const r2 = (mode === 'adv' || mode === 'dis') ? Math.floor(Math.random() * sides) + 1 : null;

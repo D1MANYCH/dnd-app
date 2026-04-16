@@ -456,7 +456,12 @@ function switchTab(tabName, btnEl) {
   document.querySelectorAll(".drawer-item").forEach(function(el) { el.classList.remove("drawer-item-active"); });
   var drawerItem = document.querySelector(".drawer-item[data-drawer-tab='" + tabName + "']");
   if (drawerItem) drawerItem.classList.add("drawer-item-active");
-  try { localStorage.setItem("dnd_last_tab", tabName); } catch(e) {}
+  try {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    if (tabElement) tabElement.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+  } catch(e) {}
   if (tabName === "party")   { openPartyTab(); }
   if (tabName === "battle")  { openBattleTab(); }
   if (tabName === "journal") { renderJournal(); }
@@ -886,10 +891,15 @@ renderNPCs();
 renderMonsters();
 renderSheetAvatar();
 showScreen("character");
-var lastTab = "";
-try { lastTab = localStorage.getItem("dnd_last_tab") || "sheet"; } catch(e) { lastTab = "sheet"; }
+var lastTab = "sheet";
+try { localStorage.removeItem("dnd_last_tab"); } catch(e) {}
 var tabEl = $("tab-" + lastTab);
 if (!tabEl) lastTab = "sheet";
+try {
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  document.documentElement.scrollTop = 0;
+  if (document.body) document.body.scrollTop = 0;
+} catch(e) {}
 document.querySelectorAll(".tab-content").forEach(function(t) { t.classList.remove("active"); });
 document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
 var activeTabEl = $("tab-" + lastTab);
