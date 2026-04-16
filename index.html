@@ -18,30 +18,21 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </script>
 </head>
 <body>
-<!-- ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА -->
+<!-- ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА (R5: одна компактная строка) -->
 <div class="status-bar" id="status-bar">
-<div class="status-top-row">
-  <div class="status-badges">
-    <div class="status-level">⭐ Ур. <span id="status-level">1</span></div>
-    <div class="status-hp">❤️ <span class="hp-current" id="status-hp-current">10</span><span class="hp-max">/<span id="status-hp-max">10</span></span></div>
-    <div class="status-ac">🛡️ КД <span id="status-ac">10</span></div>
+  <div class="status-chip status-hp" title="Хиты">❤️ <span class="hp-current" id="status-hp-current">10</span><span class="hp-max">/<span id="status-hp-max">10</span></span></div>
+  <div class="status-chip status-ac" title="Класс доспеха">🛡️ <span id="status-ac">10</span></div>
+  <div class="status-chip status-level" title="Уровень">⭐ <span id="status-level">1</span></div>
+  <div class="status-chip status-inspiration" id="status-inspiration" onclick="toggleInspiration()" title="Вдохновение">✨</div>
+  <div class="status-chip status-concentration hidden" id="status-concentration" onclick="openConcDetails()" title="Концентрация">
+    🔮<span class="conc-status-name" id="status-conc-name">—</span>
   </div>
-  <div class="status-inspiration" id="status-inspiration" onclick="toggleInspiration()" title="Вдохновение">
-    <span class="inspi-icon">✨</span><span class="inspi-label">Вдохновение</span>
+  <div class="status-chip status-ritual hidden" id="status-ritual" onclick="cancelRitual()" title="Нажмите чтобы отменить ритуал">
+    🕐<span class="ritual-status-name" id="status-ritual-name">—</span><span class="ritual-status-timer" id="status-ritual-timer">10:00</span>
   </div>
-  <div class="status-concentration hidden" id="status-concentration" onclick="openConcDetails()" title="Концентрация">
-    <span class="conc-status-icon">🔮</span><span class="conc-status-name" id="status-conc-name">—</span>
+  <div class="status-chip status-conditions-btn hidden" id="status-conditions-btn" onclick="toggleConditionsPopup()" title="Состояния">
+    ⚡<span class="conditions-btn-count" id="conditions-btn-count">0</span>
   </div>
-  <div class="status-ritual hidden" id="status-ritual" onclick="cancelRitual()" title="Нажмите чтобы отменить ритуал">
-    <span class="ritual-status-icon">🕐</span><span class="ritual-status-name" id="status-ritual-name">—</span><span class="ritual-status-timer" id="status-ritual-timer">10:00</span>
-  </div>
-  <div class="status-top-right">
-    <div class="status-conditions-btn hidden" id="status-conditions-btn" onclick="toggleConditionsPopup()">
-      <span class="conditions-btn-icon">⚡</span><span class="conditions-btn-count" id="conditions-btn-count">0</span>
-    </div>
-    <button class="nav-hamburger hidden" id="nav-hamburger" onclick="openDrawer()">☰</button>
-  </div>
-</div>
 </div>
 
 <!-- Попап активных состояний -->
@@ -74,11 +65,13 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </nav>
 </div>
 <header>
+<button class="header-back hidden" id="header-back" onclick="showScreen('characters')" title="Назад к профилям">←</button>
 <div class="header-avatar" id="header-avatar">🎭</div>
 <div class="header-info">
   <h2 class="header-title" id="header-title">Мой Персонаж D&D 5e</h2>
   <span class="header-subtitle" id="header-subtitle"></span>
 </div>
+<button class="nav-hamburger hidden" id="nav-hamburger" onclick="openDrawer()" title="Меню">☰</button>
 </header>
 <div class="container">
 <!-- Floating Buttons -->
@@ -132,9 +125,6 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <div id="screen-character" class="hidden">
-<div class="back-btn-container">
-<button class="back-btn" onclick="showScreen('characters')" title="Назад к профилям">←</button>
-</div>
 <div id="tab-sheet" class="tab-content active">
 
 <!-- ─── Мастер создания: основная информация ──────────────────────── -->
@@ -1422,8 +1412,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 <!-- Modal: Dice -->
 
-<div id="dice-modal" class="modal">
-<div class="modal-content">
+<div id="dice-modal" class="modal modal--bottom-sheet">
+<div class="modal-content dice-modal-content">
 <span class="modal-close" onclick="closeDiceModal()">&times;</span>
 <h3>🎲 Бросок кубиков</h3>
 
@@ -1457,18 +1447,19 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="dice-result-display normal" id="dice-result-display" style="display:none"></div>
 
+<div class="dice-mode-segment" id="dice-mode-segment" role="tablist" aria-label="Режим броска d20">
+<button type="button" class="dice-mode-seg-btn active" data-mode="normal" onclick="setDiceMode(this,'normal')">Обычный</button>
+<button type="button" class="dice-mode-seg-btn adv" data-mode="adv" onclick="setDiceMode(this,'adv')">▲ Преим.</button>
+<button type="button" class="dice-mode-seg-btn dis" data-mode="dis" onclick="setDiceMode(this,'dis')">▼ Помеха</button>
+</div>
 <div class="dice-grid">
-<button class="dice-btn d20" onclick="rollDice(20)">d20</button>
+<button class="dice-btn d20" onclick="rollDiceWithSelectedMode(20)">d20</button>
 <button class="dice-btn" onclick="rollDice(4)">d4</button>
 <button class="dice-btn" onclick="rollDice(6)">d6</button>
 <button class="dice-btn" onclick="rollDice(8)">d8</button>
 <button class="dice-btn" onclick="rollDice(10)">d10</button>
 <button class="dice-btn" onclick="rollDice(12)">d12</button>
 <button class="dice-btn" onclick="rollDice(100)">d100</button>
-</div>
-<div class="dice-adv-row">
-<button class="dice-adv-btn adv" onclick="rollDice(20,'adv')">▲ Преимущество (2d20 выше)</button>
-<button class="dice-adv-btn dis" onclick="rollDice(20,'dis')">▼ Помеха (2d20 ниже)</button>
 </div>
 <div class="dice-custom-label">✏️ Своя формула</div>
 <div class="dice-custom-row">
@@ -1697,7 +1688,14 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="character-tabs" class="tab-nav hidden">
   <button class="tab-btn active" onclick="switchTab('sheet', this)" data-tab="sheet"><span>📋</span>Лист</button>
   <button class="tab-btn" onclick="switchTab('spells', this)" data-tab="spells"><span>✨</span>Заклин.</button>
-  <div class="tab-dice-fab" onclick="openDiceModal()">🎲</div>
+  <button class="tab-dice-fab" type="button" onclick="openDiceModal()" aria-label="Броски кубиков">
+    <svg class="tab-dice-fab-icon" viewBox="0 0 48 48" aria-hidden="true">
+      <polygon points="24,4 43,16 43,36 24,44 5,36 5,16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+      <polyline points="5,16 24,24 43,16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" opacity="0.55"/>
+      <line x1="24" y1="24" x2="24" y2="44" stroke="currentColor" stroke-width="1.6" opacity="0.55"/>
+      <text x="24" y="22" text-anchor="middle" font-size="11" font-weight="800" fill="currentColor" font-family="system-ui,sans-serif">20</text>
+    </svg>
+  </button>
   <button class="tab-btn" onclick="switchTab('inventory', this)" data-tab="inventory"><span>🎒</span>Инвентарь</button>
   <button class="tab-btn" onclick="switchTab('battle', this)" data-tab="battle"><span>⚔️</span>Бой</button>
 </div>
@@ -1782,16 +1780,16 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
-<script src="data.js"></script>
-<script src="spells.js"></script>
-<script src="app-core.js"></script>
-<script src="app-combat.js"></script>
-<script src="app-hp.js"></script>
-<script src="app-spells.js"></script>
-<script src="app-inventory.js"></script>
-<script src="app-party.js"></script>
-<script src="class-choices.js"></script>
-<script src="subclass-choices-data.js"></script>
-<script src="app-ui.js"></script>
+<script src="data.js?v=r5"></script>
+<script src="spells.js?v=r5"></script>
+<script src="app-core.js?v=r5"></script>
+<script src="app-combat.js?v=r5"></script>
+<script src="app-hp.js?v=r5"></script>
+<script src="app-spells.js?v=r5"></script>
+<script src="app-inventory.js?v=r5"></script>
+<script src="app-party.js?v=r5"></script>
+<script src="class-choices.js?v=r5"></script>
+<script src="subclass-choices-data.js?v=r5"></script>
+<script src="app-ui.js?v=r5"></script>
 </body>
 </html>

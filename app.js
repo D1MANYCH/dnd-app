@@ -965,11 +965,13 @@ const characterScreen = $("screen-character");
 const characterTabs = $("character-tabs");
 const statusBar = $("status-bar");
 const hamburger = $("nav-hamburger");
+const headerBack = $("header-back");
 if (charactersScreen) charactersScreen.classList.add("hidden");
 if (characterScreen) characterScreen.classList.add("hidden");
 if (characterTabs) characterTabs.classList.add("hidden");
 if (statusBar) statusBar.classList.remove("visible");
 if (hamburger) hamburger.classList.add("hidden");
+if (headerBack) headerBack.classList.add("hidden");
 if (screenName === "characters") {
 if (charactersScreen) charactersScreen.classList.remove("hidden");
 closeDrawer();
@@ -980,6 +982,7 @@ renderCharacterList();
 if (characterScreen) characterScreen.classList.remove("hidden");
 if (characterTabs) characterTabs.classList.remove("hidden");
 if (hamburger) hamburger.classList.remove("hidden");
+if (headerBack) headerBack.classList.remove("hidden");
 updateHeaderTitle();
 updateStatusBar();
 }
@@ -1062,14 +1065,18 @@ function closeDrawer() {
 function showCharacterNav() {
   var hamburger = $("nav-hamburger");
   var tabs = $("character-tabs");
+  var back = $("header-back");
   if (hamburger) hamburger.classList.remove("hidden");
   if (tabs) tabs.classList.remove("hidden");
+  if (back) back.classList.remove("hidden");
 }
 function hideCharacterNav() {
   var hamburger = $("nav-hamburger");
   var tabs = $("character-tabs");
+  var back = $("header-back");
   if (hamburger) hamburger.classList.add("hidden");
   if (tabs) tabs.classList.add("hidden");
+  if (back) back.classList.add("hidden");
 }
 
 // Swipe to open drawer (only when character screen is active)
@@ -2564,6 +2571,24 @@ if (modal) modal.classList.add("active");
 drawDiceSVG(20);
 var numEl = $("dice-svg-num");
 if (numEl) numEl.textContent = "?";
+// R3: сброс режима в «Обычный»
+if (typeof window !== 'undefined') window.__diceSelectedMode = 'normal';
+var seg = document.getElementById("dice-mode-segment");
+if (seg) {
+  seg.querySelectorAll(".dice-mode-seg-btn").forEach(function(b){
+    b.classList.toggle("active", b.getAttribute("data-mode") === "normal");
+  });
+}
+}
+function setDiceMode(btn, mode) {
+  window.__diceSelectedMode = mode;
+  var seg = btn && btn.parentElement;
+  if (seg) seg.querySelectorAll(".dice-mode-seg-btn").forEach(function(b){ b.classList.remove("active"); });
+  if (btn) btn.classList.add("active");
+}
+function rollDiceWithSelectedMode(sides) {
+  var mode = window.__diceSelectedMode || 'normal';
+  rollDice(sides, mode === 'normal' ? undefined : mode);
 }
 function closeDiceModal() {
 const modal = $("dice-modal");
