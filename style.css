@@ -459,10 +459,14 @@ color: var(--danger-color);
 
 /* ========== HEADER (R5: back + name + hamburger) ========== */
 header {
-background: var(--bg-1, var(--card-bg));
+position: sticky;
+top: 0;
+z-index: 103;
+background: rgba(23, 23, 31, 0.55);
 padding: 8px var(--sp-3, 12px);
-border-bottom: 1px solid var(--border, var(--border-color));
-backdrop-filter: blur(10px);
+border-bottom: 1px solid rgba(255,255,255,0.08);
+backdrop-filter: blur(14px) saturate(140%);
+-webkit-backdrop-filter: blur(14px) saturate(140%);
 display: flex;
 align-items: center;
 gap: var(--sp-2, 10px);
@@ -1333,14 +1337,15 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   bottom: 0;
   left: 0;
   width: 100%;
-  background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  background: rgba(23, 23, 31, 0.55);
   display: flex;
   justify-content: space-around;
   align-items: flex-end;
   padding: 8px 0 12px;
-  border-top: 2px solid var(--accent-color);
+  border-top: 1px solid rgba(255,255,255,0.08);
   z-index: 100;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 .tab-btn {
   background: none !important;
@@ -1366,36 +1371,29 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 .tab-btn.active { color: var(--accent-color) !important; background: var(--accent-glow) !important; }
 .tab-btn:hover { color: var(--text-color) !important; transform: none !important; box-shadow: none !important; }
 
-/* FAB dice — centered, raised (R3) */
+/* FAB dice — centered, raised (restored pre-R3 look) */
 .tab-dice-fab {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-color) 0%, #b88a2e 100%);
-  border: 3px solid var(--bg-0, var(--bg-color));
-  color: #1a1408;
+  background: linear-gradient(135deg, var(--accent-color) 0%, #c9a040 100%);
+  border: 3px solid var(--bg-color);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.7em;
   cursor: pointer;
   flex-shrink: 0;
-  box-shadow: var(--sh-glow), 0 8px 22px rgba(0,0,0,0.55);
-  transition: transform .18s ease, box-shadow .18s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  transition: all 0.2s;
   position: relative;
-  top: -18px;
+  top: -10px;
   margin: 0 6px;
   padding: 0;
   outline: none;
 }
-.tab-dice-fab-icon {
-  width: 34px;
-  height: 34px;
-  display: block;
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35));
-}
-.tab-dice-fab:hover { transform: scale(1.08); }
-.tab-dice-fab:active { transform: scale(0.94); }
-.tab-dice-fab:focus-visible { box-shadow: var(--sh-glow), 0 8px 22px rgba(0,0,0,0.55), 0 0 0 4px var(--accent-soft); }
+.tab-dice-fab:hover { transform: scale(1.1); box-shadow: 0 6px 25px rgba(0,0,0,0.7); }
+.tab-dice-fab:active { transform: scale(0.92); }
 
 /* R3: dice modal as bottom-sheet on mobile */
 #dice-modal.modal.active {
@@ -7290,23 +7288,7 @@ body {
 /* Watermark каждого таб-контента — тонкая иконка в правом верхнем углу.
    clip-path обрезает ~8% снизу/справа, чтобы убрать ✦-маркер Gemini. */
 .tab-content { position: relative; }
-.tab-content::before {
-  content: "";
-  position: absolute;
-  top: 12px; right: 12px;
-  width: 104px; height: 104px;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  opacity: 0.08;
-  pointer-events: none;
-  z-index: 0;
-  clip-path: inset(0 8% 8% 0);
-}
-#tab-sheet::before     { background-image: url('assets/tab-sheet.png'); }
-#tab-spells::before    { background-image: url('assets/tab-spells.png'); }
-#tab-inventory::before { background-image: url('assets/tab-inventory.png'); }
-#tab-battle::before    { background-image: url('assets/tab-battle.png'); }
+.tab-content::before { content: none; }
 
 /* Fallback-аватар (если нет картинки персонажа) */
 .avatar-fallback {
