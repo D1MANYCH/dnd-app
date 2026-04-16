@@ -18,7 +18,7 @@ function escapeHtml(text) {
 }
 
 // ── Версия схемы персонажа — увеличивать при изменении структуры ──────────────
-const SCHEMA_VERSION = 9;
+const SCHEMA_VERSION = 10;
 
 // ── Типы урона PHB 5e ──────────────────────────────────────────────────────────
 const DAMAGE_TYPES = [
@@ -67,8 +67,32 @@ const DEFAULT_CHARACTER = {
   basicLocked: false,
   raceFeats: [],
   raceStatChoice: [],
-  schemaVersion: 9
+  notesV2: {
+    sections: {
+      appearance: "", personality: "", backstory: "",
+      features: "", magicItems: "", bonds: "", flaws: "", ideals: ""
+    },
+    entries: [],
+    prefs: { lastSection: 'backstory', lastFilter: 'all' }
+  },
+  schemaVersion: 10
 };
+
+// ── Шаблон записи-карточки notesV2 (entry) ────────────────────────────────────
+// type: 'npc' | 'quest' | 'location' | 'session' | 'hook' | 'free'
+function createEntry(type) {
+  var now = Date.now();
+  return {
+    id: 'e' + now + '_' + Math.random().toString(36).slice(2, 8),
+    type: type || 'free',
+    title: '',
+    body: '',
+    tags: [],
+    pinned: false,
+    createdAt: now,
+    updatedAt: now
+  };
+}
 
 const SAVES_DATA = [
   {key: 'str', name: 'Сила',           icon: '💪', desc: 'Яд, паралич, отталкивание, захват'},
@@ -1514,8 +1538,8 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "2.6.0";
-const APP_VERSION_DATE = "2026-04-16";
+const APP_VERSION = "2.7.0";
+const APP_VERSION_DATE = "2026-04-17";
 
 // ============================================================
 // ЧЕРТЫ — PHB 5e (Fantom Studio перевод, 20 основных)
@@ -1800,9 +1824,26 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
+    version: "2.7.0",
+    date: "17 апреля 2026",
+    badge: "new",
+    changes: [
+      { type: "feat",    text: "Расширение вкладки «📝 Записи» (фазы N1–N6): структурированный «дневник игрока» вместо 4 плоских textarea" },
+      { type: "feat",    text: "Схема notesV2 v10 + миграция старых полей notes/features/appearance/magicItems в sections" },
+      { type: "feat",    text: "Под-табы по типам: Предыстория (8 секций), NPC, Квесты, Локации, Сессии, Зацепки, Свободно" },
+      { type: "feat",    text: "Markdown-тулбар (B/I/H/•/‟/🔗/▦/―), превью 👁, счётчик слов/символов, горячие клавиши Ctrl+S/B/I/K" },
+      { type: "feat",    text: "CRUD карточек-записей: теги-чипы, закрепление ★, сортировка, @-упоминания NPC, фильтр по тегам" },
+      { type: "feat",    text: "Поиск по всем записям с подсветкой совпадений, Enter — переход к следующему" },
+      { type: "feat",    text: "Экспорт .md и .json, импорт .json (слияние), импорт .md (как новая запись), печать с print-CSS" },
+      { type: "feat",    text: "Автособытия в Журнал: создание/обновление/удаление/закреп записей" },
+      { type: "feat",    text: "Drag-n-drop для ручного порядка закреплённых карточек (pinOrder)" },
+      { type: "improve", text: "Адаптив: на узких экранах под-табы превращаются в <select>, тулбар — в горизонтальный scroll" },
+      { type: "improve", text: "Индикатор «✓ сохранено HH:MM» в шапке вкладки Записи (debounced autosave)" }
+    ]
+  },
+  {
     version: "2.6.0",
     date: "16 апреля 2026",
-    badge: "new",
     changes: [
       { type: "feat",    text: "Редизайн UI (фазы R1–R7): единый минималистичный тёмный стиль на токенах дизайн-системы" },
       { type: "feat",    text: "Новые токены: палитра --bg-0..3, --accent/-hi/-lo, --overlay, радиусы --r-sm/md/lg/pill, отступы --sp-1..6, тени --sh-1/2/glow" },

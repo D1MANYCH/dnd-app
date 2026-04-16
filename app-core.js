@@ -319,6 +319,34 @@ function migrateCharacter(char) {
     if (!char.proficiencies.weaponSources) char.proficiencies.weaponSources = {};
     char.schemaVersion = 9;
   }
+  if (v < 10) {
+    // notesV2: типизированный «дневник игрока». Перенос старых полей в sections.
+    if (!char.notesV2 || typeof char.notesV2 !== 'object') {
+      char.notesV2 = {
+        sections: {
+          appearance: "", personality: "", backstory: "",
+          features: "", magicItems: "", bonds: "", flaws: "", ideals: ""
+        },
+        entries: [],
+        prefs: { lastSection: 'backstory', lastFilter: 'all' }
+      };
+    } else {
+      if (!char.notesV2.sections) char.notesV2.sections = {};
+      var _S = char.notesV2.sections;
+      ['appearance','personality','backstory','features','magicItems','bonds','flaws','ideals'].forEach(function(k){
+        if (typeof _S[k] !== 'string') _S[k] = "";
+      });
+      if (!Array.isArray(char.notesV2.entries)) char.notesV2.entries = [];
+      if (!char.notesV2.prefs) char.notesV2.prefs = { lastSection: 'backstory', lastFilter: 'all' };
+    }
+    // Перенос legacy-строк (double-write до N5: старые поля оставляем)
+    var sec = char.notesV2.sections;
+    if (typeof char.appearance === 'string' && char.appearance && !sec.appearance) sec.appearance = char.appearance;
+    if (typeof char.features   === 'string' && char.features   && !sec.features)   sec.features   = char.features;
+    if (typeof char.notes      === 'string' && char.notes      && !sec.backstory)  sec.backstory  = char.notes;
+    if (typeof char.magicItems === 'string' && char.magicItems && !sec.magicItems) sec.magicItems = char.magicItems;
+    char.schemaVersion = 10;
+  }
   return char;
 }
 
@@ -432,6 +460,7 @@ function switchTab(tabName, btnEl) {
   if (tabName === "party")   { openPartyTab(); }
   if (tabName === "battle")  { openBattleTab(); }
   if (tabName === "journal") { renderJournal(); }
+  if (tabName === "notes")   { if (typeof renderNotes === "function") renderNotes(); }
 }
 
 function openDrawer() {

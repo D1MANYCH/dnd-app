@@ -7311,3 +7311,531 @@ body {
   opacity: 0.85;
   clip-path: inset(0 6% 6% 0);
 }
+
+/* ============================================================
+   📝 Вкладка «Записи по персонажу» — фаза N2
+============================================================ */
+.notes-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.notes-search {
+  flex: 1 1 180px;
+  min-width: 0;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--text-primary, #fff);
+  padding: 7px 10px;
+  border-radius: var(--r-md, 8px);
+  font-size: 0.85em;
+}
+.notes-search::placeholder { color: var(--text-muted, rgba(255,255,255,0.4)); }
+.notes-search:disabled { opacity: 0.5; cursor: not-allowed; }
+.notes-new-btn, .notes-menu-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--text-primary, #fff);
+  padding: 7px 12px;
+  border-radius: var(--r-md, 8px);
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
+  width: auto;
+  margin: 0;
+  transition: all 0.18s;
+}
+.notes-new-btn { background: var(--accent-color, #f5c86e); color: #000; border-color: var(--accent-color, #f5c86e); }
+.notes-new-btn:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+.notes-menu-btn { padding: 7px 10px; }
+.notes-menu-btn:hover:not(:disabled) { border-color: var(--accent-color); color: var(--accent-color); }
+.notes-new-btn:disabled, .notes-menu-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.notes-save-ind {
+  font-size: 0.75em;
+  color: var(--text-muted, rgba(255,255,255,0.5));
+  opacity: 0;
+  transition: opacity 0.25s;
+  min-width: 120px;
+  text-align: right;
+}
+.notes-save-ind.visible { opacity: 1; color: var(--accent-color, #f5c86e); }
+
+.notes-subtabs {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.notes-subtabs-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+/* N6: select вариант для узких экранов — скрыт на десктопе */
+.notes-subtabs-select {
+  display: none;
+  width: 100%;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--text-primary, #fff);
+  padding: 8px 10px;
+  border-radius: var(--r-md, 8px);
+  font: inherit;
+  font-size: 0.9em;
+}
+.notes-subtabs-select:focus {
+  outline: none;
+  border-color: var(--accent-color, #f5c86e);
+  box-shadow: 0 0 0 2px var(--accent-glow, rgba(245,200,110,0.2));
+}
+.notes-pill {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.6);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8em;
+  font-weight: 500;
+  cursor: pointer;
+  width: auto;
+  margin: 0;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.notes-pill:hover { border-color: var(--accent-color, #f5c86e); color: var(--accent-color, #f5c86e); }
+.notes-pill.active {
+  background: var(--accent-color, #f5c86e);
+  border-color: var(--accent-color, #f5c86e);
+  color: #000;
+  font-weight: 700;
+}
+.notes-pill-ico { margin-right: 2px; }
+
+.notes-main { display: flex; flex-direction: column; gap: 12px; }
+.notes-section-card h3 { margin-top: 0; }
+.notes-section-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-primary, #fff);
+  padding: 8px 10px;
+  border-radius: var(--r-md, 8px);
+  font-family: inherit;
+  font-size: 0.9em;
+  line-height: 1.4;
+  resize: vertical;
+}
+.notes-section-input:focus {
+  outline: none;
+  border-color: var(--accent-color, #f5c86e);
+  box-shadow: 0 0 0 2px var(--accent-glow, rgba(245,200,110,0.2));
+}
+
+.notes-empty {
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--text-muted, rgba(255,255,255,0.5));
+}
+.notes-empty-ico { font-size: 2.4em; margin-bottom: 8px; opacity: 0.7; }
+.notes-empty-title { font-size: 1.05em; font-weight: 600; margin-bottom: 6px; color: var(--text-primary, #fff); }
+.notes-empty-hint { font-size: 0.85em; font-style: italic; }
+
+.notes-entries-list { display: flex; flex-direction: column; gap: 8px; }
+.notes-entry-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-left: 3px solid var(--accent-color, #f5c86e);
+  border-radius: 9px;
+  padding: 9px 11px;
+  position: relative;
+}
+.notes-entry-card.pinned { border-left-color: #ffd24d; background: rgba(255,210,77,0.06); }
+.notes-entry-pin { position: absolute; top: 6px; right: 10px; color: #ffd24d; }
+/* N6: drag-n-drop закреплённых */
+.notes-entry-card.pinned { cursor: grab; padding-left: 24px; }
+.notes-entry-card.pinned:active { cursor: grabbing; }
+.notes-entry-card.pinned.dragging { opacity: 0.45; }
+.notes-entry-card.pinned.drag-over {
+  box-shadow: 0 -2px 0 0 var(--accent-color, #f5c86e) inset,
+              0 0 0 2px var(--accent-glow, rgba(245,200,110,0.35));
+}
+.notes-entry-drag-handle {
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255,210,77,0.6);
+  font-size: 0.8em;
+  letter-spacing: -1px;
+  user-select: none;
+  pointer-events: none;
+}
+.notes-entry-title { font-weight: 600; margin-bottom: 4px; }
+.notes-entry-body { font-size: 0.82em; color: var(--text-muted, rgba(255,255,255,0.6)); line-height: 1.35; }
+
+/* ── N4: Карточки entries — заголовок, действия, теги ─────── */
+.notes-entry-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.notes-entry-title { font-weight: 600; flex: 1; word-break: break-word; }
+.notes-entry-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.notes-entry-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: var(--text-muted, rgba(255,255,255,0.6));
+  cursor: pointer;
+  font-size: 0.8em;
+  padding: 2px 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.notes-entry-btn:hover { background: rgba(255,255,255,0.12); color: var(--text-primary, #fff); }
+.notes-entry-btn.danger:hover { background: rgba(220,50,50,0.3); color: #ff9090; border-color: rgba(220,50,50,0.4); }
+.notes-entry-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+
+/* Теги-чипы (общий стиль, используется и в фильтре, и в карточках) */
+.notes-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(245,200,110,0.13);
+  border: 1px solid rgba(245,200,110,0.3);
+  border-radius: 20px;
+  color: #f5c86e;
+  cursor: pointer;
+  font-size: 0.78em;
+  padding: 2px 9px;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.notes-tag-chip:hover,
+.notes-tag-chip.active { background: rgba(245,200,110,0.28); border-color: #f5c86e; }
+.notes-tag-chip.small { font-size: 0.72em; padding: 1px 7px; }
+.notes-tag-chip.removable { padding-right: 4px; }
+.notes-tag-remove {
+  background: none; border: none; color: inherit; cursor: pointer;
+  font-size: 1em; line-height: 1; opacity: 0.7; padding: 0 2px;
+}
+.notes-tag-remove:hover { opacity: 1; }
+
+/* Фильтр-бар по тегам */
+.notes-tag-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+/* @-упоминания */
+.notes-at-ref {
+  color: #7eb8ff;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+.notes-at-ref:hover { color: #b3d4ff; }
+
+/* Подсветка при прыжке к NPC */
+@keyframes notesHighlight {
+  0%   { background: rgba(126,184,255,0.3); }
+  100% { background: transparent; }
+}
+.notes-entry-card.highlight { animation: notesHighlight 1.5s ease-out; }
+
+/* ── N4: Модалка записи ────────────────────────────────────── */
+.notes-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s;
+}
+.notes-modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.notes-modal {
+  background: var(--bg-card, #1e1e2e);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--r-lg, 14px);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  max-height: 90dvh;
+  max-width: 520px;
+  width: calc(100% - 32px);
+}
+.notes-modal-header {
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+}
+.notes-modal-title { font-size: 1em; font-weight: 700; margin: 0; }
+.notes-modal-close {
+  background: none; border: none; color: var(--text-muted, rgba(255,255,255,0.5));
+  cursor: pointer; font-size: 1.1em; line-height: 1; padding: 2px 6px;
+  border-radius: 6px; transition: background 0.15s;
+}
+.notes-modal-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.notes-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding: 14px 16px;
+}
+.notes-modal-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notes-modal-row.col { flex-direction: column; align-items: stretch; }
+.notes-modal-label {
+  color: var(--text-muted, rgba(255,255,255,0.55));
+  font-size: 0.8em;
+  flex-shrink: 0;
+  min-width: 64px;
+}
+.notes-modal-row.col .notes-modal-label { margin-bottom: 2px; }
+.notes-modal-select,
+.notes-modal-input,
+.notes-modal-textarea,
+.notes-modal-tag-input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: var(--text-primary, #fff);
+  font-size: 0.9em;
+  outline: none;
+  padding: 6px 10px;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+.notes-modal-select:focus,
+.notes-modal-input:focus,
+.notes-modal-textarea:focus,
+.notes-modal-tag-input:focus { border-color: var(--accent-color, #f5c86e); }
+.notes-modal-select { width: auto; flex: 1; }
+.notes-modal-textarea { resize: vertical; font-family: inherit; }
+.notes-modal-pin-label {
+  display: flex; align-items: center; gap: 4px; white-space: nowrap;
+  color: #f5c86e; font-size: 0.85em; cursor: pointer; flex-shrink: 0;
+}
+.notes-modal-tags-row { display: flex; flex-direction: column; gap: 6px; }
+.notes-modal-tags-list { display: flex; flex-wrap: wrap; gap: 5px; min-height: 20px; }
+.notes-modal-tag-input-wrap { display: flex; gap: 5px; }
+.notes-modal-tag-input { flex: 1; }
+.notes-modal-tag-add-btn {
+  background: rgba(245,200,110,0.15); border: 1px solid rgba(245,200,110,0.3);
+  border-radius: 8px; color: #f5c86e; cursor: pointer; font-size: 1em;
+  padding: 4px 12px; transition: background 0.15s;
+}
+.notes-modal-tag-add-btn:hover { background: rgba(245,200,110,0.3); }
+.notes-modal-footer {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 12px 16px;
+}
+
+/* ── N3: Markdown-тулбар, превью, счётчик ─────────────────── */
+.notes-md-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0;
+  padding: 4px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--r-md, 8px);
+}
+.notes-md-btn {
+  flex: 0 0 auto;
+  width: auto;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-primary, #fff);
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 0.85em;
+  cursor: pointer;
+  min-width: 28px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.notes-md-btn:hover { background: rgba(255,255,255,0.12); border-color: var(--accent-color, #f5c86e); }
+.notes-md-btn.active {
+  background: var(--accent-color, #f5c86e);
+  color: #000;
+  border-color: var(--accent-color, #f5c86e);
+}
+.notes-md-preview-toggle { margin-left: auto; }
+
+.notes-md-preview {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--r-md, 8px);
+  padding: 10px 14px;
+  min-height: 80px;
+  font-size: 0.9em;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+.notes-md-preview h2, .notes-md-preview h3, .notes-md-preview h4, .notes-md-preview h5 {
+  margin: 0.6em 0 0.3em; color: var(--accent-color, #f5c86e);
+}
+.notes-md-preview p { margin: 0.4em 0; }
+.notes-md-preview ul, .notes-md-preview ol { margin: 0.3em 0 0.3em 1.4em; }
+.notes-md-preview blockquote {
+  margin: 0.4em 0;
+  padding: 4px 10px;
+  border-left: 3px solid var(--accent-color, #f5c86e);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-muted, rgba(255,255,255,0.75));
+}
+.notes-md-preview code {
+  background: rgba(255,255,255,0.08);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+.notes-md-preview pre.notes-md-code {
+  background: rgba(0,0,0,0.4);
+  padding: 8px 10px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  white-space: pre;
+}
+.notes-md-preview a { color: var(--accent-color, #f5c86e); text-decoration: underline; }
+.notes-md-preview hr { border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 0.6em 0; }
+.notes-md-empty { color: var(--text-muted, rgba(255,255,255,0.5)); font-style: italic; }
+
+.notes-md-stats {
+  margin-top: 4px;
+  font-size: 0.75em;
+  color: var(--text-muted, rgba(255,255,255,0.55));
+  text-align: right;
+}
+
+@media (max-width: 480px) {
+  .notes-pill { font-size: 0.75em; padding: 5px 10px; }
+  .notes-save-ind { min-width: 0; flex-basis: 100%; text-align: left; }
+  .notes-md-btn { padding: 3px 7px; font-size: 0.8em; min-width: 24px; }
+}
+
+/* ── N6: адаптив ─────────────────────────────────────────── */
+@media (max-width: 560px) {
+  /* Под-табы: pill → select */
+  .notes-subtabs-pills { display: none; }
+  .notes-subtabs-select { display: block; }
+  /* Тулбар редактора: горизонтальный overflow вместо переноса */
+  .notes-md-toolbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .notes-md-toolbar::-webkit-scrollbar { height: 3px; }
+  .notes-md-toolbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+  .notes-md-btn { flex-shrink: 0; }
+  .notes-md-preview-toggle { position: sticky; right: 0; background: var(--bg-card, #1e2230); }
+  /* Шапка: поиск занимает полную ширину, остальное ужимается */
+  .notes-header { flex-wrap: wrap; }
+  .notes-search { flex: 1 1 100%; }
+}
+
+/* ── N5: меню ⋯ ─────────────────────────────────────────── */
+.notes-menu-wrap { position: relative; }
+.notes-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 200;
+  background: var(--bg-card, #1e2230);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--r-md, 10px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  flex-direction: column;
+  min-width: 180px;
+  padding: 6px 0;
+  gap: 0;
+}
+.notes-menu-item {
+  background: none;
+  border: none;
+  color: var(--text-primary, #eee);
+  font-size: 0.875em;
+  text-align: left;
+  padding: 8px 16px;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.12s;
+}
+.notes-menu-item:hover { background: rgba(255,255,255,0.08); }
+.notes-menu-sep { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 4px 0; }
+
+/* ── N5: поиск — highlight ───────────────────────────────── */
+mark.notes-hl {
+  background: rgba(245,200,110,0.45);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.notes-search-count {
+  font-size: 0.8em;
+  color: var(--text-muted, rgba(255,255,255,0.55));
+  padding: 0 2px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notes-search-clear {
+  background: none;
+  border: none;
+  color: var(--accent-color, #f5c86e);
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  opacity: 0.85;
+}
+.notes-search-clear:hover { opacity: 1; text-decoration: underline; }
+
+/* ── N5: @media print ────────────────────────────────────── */
+@media print {
+  body > *:not(#app),
+  .tab-bar, .char-selector-wrap, .header-glass,
+  .notes-header, .notes-subtabs,
+  .notes-md-toolbar, .notes-md-stats,
+  .notes-entry-actions, .notes-tag-filter-bar {
+    display: none !important;
+  }
+  #app { background: #fff !important; }
+  #tab-notes { display: block !important; padding: 0 !important; }
+  .notes-main, .notes-section-card, .notes-entry-card {
+    background: #fff !important;
+    color: #000 !important;
+    border: none !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+  .notes-section-input { display: block !important; border: none; resize: none; }
+  .notes-md-preview { display: block !important; }
+  .notes-entry-title { font-weight: bold; }
+}
+

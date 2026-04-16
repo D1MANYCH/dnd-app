@@ -839,30 +839,48 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 </div>
 <div id="tab-notes" class="tab-content">
-<div class="card">
-<h3>👤 Внешность</h3>
-<textarea id="char-appearance" rows="5" placeholder="Внешность, приметы, манеры..." oninput="updateChar()"></textarea>
-</div>
-<div class="card">
-<h3>📖 Черты и умения</h3>
-<!-- Взятые черты (АСИ) -->
-<div id="taken-feats-section" style="display:none; margin-bottom:12px;">
-<div class="taken-feats-header">
-<span>🎯 Взятые черты</span>
-<span class="taken-feats-count" id="taken-feats-count"></span>
-</div>
-<div id="taken-feats-list" class="taken-feats-list"></div>
-</div>
-<textarea id="char-features" rows="7" placeholder="Классовые умения, расовые черты, заметки об умениях..." oninput="updateChar()"></textarea>
-</div>
-<div class="card">
-<h3>📝 Заметки</h3>
-<textarea id="char-notes" rows="12" placeholder="История, события, NPC, планы..." oninput="updateChar()"></textarea>
-</div>
-<div class="card">
-<h3>🔮 Магические предметы</h3>
-<textarea id="magic-items" rows="5" placeholder="Настроенные предметы, свойства..." oninput="updateChar()"></textarea>
-</div>
+  <!-- Шапка: поиск + кнопка новой записи + меню -->
+  <div class="notes-header">
+    <input type="search" id="notes-search" class="notes-search" placeholder="🔍 Поиск…"
+           oninput="notesSearchInput(this.value)" onkeydown="notesSearchKeydown(event)">
+    <button class="notes-new-btn" id="notes-new-btn" onclick="notesOpenEntryModal()" title="Новая запись">+ Запись</button>
+    <div class="notes-menu-wrap">
+      <button class="notes-menu-btn" id="notes-menu-btn" onclick="notesToggleMenu(event)" title="Экспорт / Импорт / Печать">⋯</button>
+      <div class="notes-menu-dropdown" id="notes-menu-dropdown" style="display:none">
+        <button class="notes-menu-item" onclick="notesMenuAction('export-md')">📄 Экспорт .md</button>
+        <button class="notes-menu-item" onclick="notesMenuAction('export-json')">📦 Экспорт .json</button>
+        <hr class="notes-menu-sep">
+        <button class="notes-menu-item" onclick="notesMenuAction('import-json')">📥 Импорт .json</button>
+        <button class="notes-menu-item" onclick="notesMenuAction('import-md')">📥 Импорт .md</button>
+        <hr class="notes-menu-sep">
+        <button class="notes-menu-item" onclick="notesMenuAction('print')">🖨 Печать / PDF</button>
+      </div>
+    </div>
+    <span class="notes-save-ind" id="notes-save-ind" aria-live="polite"></span>
+  </div>
+  <!-- Скрытые file inputs для импорта -->
+  <input type="file" id="notes-import-json-input" style="display:none" accept=".json" onchange="notesHandleImportJson(this)">
+  <input type="file" id="notes-import-md-input" style="display:none" accept=".md,.txt" onchange="notesHandleImportMd(this)">
+  <!-- Под-табы -->
+  <div class="notes-subtabs" id="notes-subtabs" role="tablist"></div>
+  <!-- Основная область — наполняется renderNotes() -->
+  <div class="notes-main" id="notes-main"></div>
+  <!-- Взятые черты (АСИ) — переносим сюда, показываются в разделе «Черты» -->
+  <div id="taken-feats-section" style="display:none;">
+    <div class="taken-feats-header">
+      <span>🎯 Взятые черты</span>
+      <span class="taken-feats-count" id="taken-feats-count"></span>
+    </div>
+    <div id="taken-feats-list" class="taken-feats-list"></div>
+  </div>
+  <!-- Legacy shadow textareas: сохраняют совместимость с updateChar()/loadCharacter() до N5.
+       app-notes.js синхронизирует их с notesV2.sections (double-write). -->
+  <div class="notes-legacy-shadow" aria-hidden="true" style="position:absolute; left:-9999px; top:-9999px; width:1px; height:1px; overflow:hidden;">
+    <textarea id="char-appearance" oninput="updateChar()"></textarea>
+    <textarea id="char-features" oninput="updateChar()"></textarea>
+    <textarea id="char-notes" oninput="updateChar()"></textarea>
+    <textarea id="magic-items" oninput="updateChar()"></textarea>
+  </div>
 </div>
 
 <div id="tab-party" class="tab-content">
@@ -1773,16 +1791,65 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
-<script src="data.js?v=r5"></script>
-<script src="spells.js?v=r5"></script>
-<script src="app-core.js?v=r5"></script>
-<script src="app-combat.js?v=r5"></script>
-<script src="app-hp.js?v=r5"></script>
-<script src="app-spells.js?v=r5"></script>
-<script src="app-inventory.js?v=r5"></script>
-<script src="app-party.js?v=r5"></script>
-<script src="class-choices.js?v=r5"></script>
-<script src="subclass-choices-data.js?v=r5"></script>
-<script src="app-ui.js?v=r5"></script>
+<script src="data.js?v=n1"></script>
+<script src="spells.js?v=n1"></script>
+<script src="app-core.js?v=n1"></script>
+<script src="app-combat.js?v=n1"></script>
+<script src="app-hp.js?v=n1"></script>
+<script src="app-spells.js?v=n1"></script>
+<script src="app-inventory.js?v=n1"></script>
+<script src="app-party.js?v=n1"></script>
+<script src="class-choices.js?v=n1"></script>
+<script src="subclass-choices-data.js?v=n1"></script>
+<script src="app-ui.js?v=n1"></script>
+<script src="app-notes.js?v=n4"></script>
+
+<!-- ══ Модалка записи (N4) ══════════════════════════════════════ -->
+<div id="notes-entry-modal" class="notes-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="nem-heading" onclick="if(event.target===this)notesCloseEntryModal()">
+  <div class="notes-modal">
+    <div class="notes-modal-header">
+      <h3 id="nem-heading" class="notes-modal-title">Запись</h3>
+      <button type="button" class="notes-modal-close" onclick="notesCloseEntryModal()" title="Закрыть">✕</button>
+    </div>
+    <div class="notes-modal-body">
+      <div class="notes-modal-row">
+        <label class="notes-modal-label" for="nem-type">Тип</label>
+        <select id="nem-type" class="notes-modal-select">
+          <option value="npc">🧝 NPC</option>
+          <option value="quest">🎯 Квест</option>
+          <option value="location">🗺️ Локация</option>
+          <option value="session">📅 Сессия</option>
+          <option value="hook">🧲 Зацепка</option>
+          <option value="free">📝 Свободно</option>
+        </select>
+        <label class="notes-modal-pin-label" title="Закрепить вверху">
+          <input type="checkbox" id="nem-pinned"> ★ Закреп
+        </label>
+      </div>
+      <div class="notes-modal-row">
+        <label class="notes-modal-label" for="nem-title">Название</label>
+        <input type="text" id="nem-title" class="notes-modal-input" placeholder="Название записи…">
+      </div>
+      <div class="notes-modal-row col">
+        <label class="notes-modal-label" for="nem-body">Текст (Markdown)</label>
+        <textarea id="nem-body" class="notes-modal-textarea" rows="8" placeholder="Описание, заметки… Поддерживается Markdown. @ИмяNPC — кликабельная ссылка."></textarea>
+      </div>
+      <div class="notes-modal-row col">
+        <label class="notes-modal-label">Теги</label>
+        <div class="notes-modal-tags-row">
+          <div id="nem-tags-list" class="notes-modal-tags-list"></div>
+          <div class="notes-modal-tag-input-wrap">
+            <input type="text" id="nem-tag-input" class="notes-modal-tag-input" placeholder="Тег + Enter…" onkeydown="notesModalTagKeydown(event)">
+            <button type="button" class="notes-modal-tag-add-btn" onclick="notesAddModalTag()">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes-modal-footer">
+      <button type="button" class="btn-secondary" onclick="notesCloseEntryModal()">Отмена</button>
+      <button type="button" class="btn-primary" onclick="notesSaveEntryModal()">Сохранить</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
