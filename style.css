@@ -6118,31 +6118,130 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   perspective: 500px;
   position: relative;
 }
-/* Тень на "столе" */
-.dsvg-container::after {
-  content: '';
+/* DICE-1: 3D scene foundation */
+.dice-stage {
+  perspective: 900px;
+  perspective-origin: 50% 40%;
+  transform-style: preserve-3d;
+}
+.dice-3d {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.dice-shadow {
   position: absolute;
-  bottom: -10px;
-  left: 50%; transform: translateX(-50%);
-  width: 80px; height: 16px;
-  background: radial-gradient(ellipse, rgba(201,160,64,0.3) 0%, transparent 70%);
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 86px;
+  height: 18px;
+  background: radial-gradient(ellipse, rgba(201,160,64,0.38) 0%, rgba(0,0,0,0.25) 45%, transparent 75%);
   border-radius: 50%;
-  filter: blur(5px);
-  transition: all 0.3s;
+  filter: blur(8px);
+  pointer-events: none;
   z-index: 0;
+  transform-origin: 50% 50%;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 /* 3D Die element */
 .dice-3d-die {
   width: 100px; height: 100px;
   position: relative;
   display: flex; align-items: center; justify-content: center;
+  z-index: 1;
 }
+
+/* DICE-2: DOM-mesh геометрия d4/d6/d8 */
+.dice-mesh {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 80px; height: 80px;
+  transform-style: preserve-3d;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  --die-color: #2980b9;
+  --die-glow: #3498db;
+}
+.dice-mesh[hidden] { display: none; }
+.dice-mesh .face {
+  position: absolute;
+  top: 0; left: 0;
+  width: 80px; height: 80px;
+  display: flex; align-items: center; justify-content: center;
+  font: 900 26px/1 inherit;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.55);
+  background:
+    radial-gradient(ellipse at 32% 22%, rgba(255,255,255,0.28), transparent 55%),
+    var(--die-color);
+  border: 1px solid rgba(255,255,255,0.22);
+  box-shadow:
+    inset 0 0 18px rgba(0,0,0,0.38),
+    inset 0 4px 10px rgba(255,255,255,0.18);
+  backface-visibility: hidden;
+  box-sizing: border-box;
+}
+
+/* d6 — куб 80×80×80 */
+.dice-mesh.d6 .face.f1 { transform: translateZ(40px); }
+.dice-mesh.d6 .face.f2 { transform: rotateY(90deg)  translateZ(40px); }
+.dice-mesh.d6 .face.f3 { transform: rotateY(180deg) translateZ(40px); }
+.dice-mesh.d6 .face.f4 { transform: rotateY(-90deg) translateZ(40px); }
+.dice-mesh.d6 .face.f5 { transform: rotateX(90deg)  translateZ(40px); }
+.dice-mesh.d6 .face.f6 { transform: rotateX(-90deg) translateZ(40px); }
+
+/* d8 / d4 — программно позиционируются в buildDiceMesh (inline transform).
+   Общий стиль треугольной грани: equilateral clip-path, центр = центр элемента,
+   transform-origin в центре (для чистого translateZ-позиционирования). */
+.dice-mesh.d4 .face,
+.dice-mesh.d8 .face {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  transform-origin: 50% 50%;
+  font-size: 20px;
+  align-items: flex-end;
+  padding-bottom: 12%;
+}
+.dice-mesh.d4 .face { font-size: 22px; padding-bottom: 14%; }
+
 .dsvg {
   width: 100px; height: 100px;
   overflow: visible;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
   position: relative; z-index: 2;
 }
+
+/* DICE-3: депс-слой SVG для d10/d12/d20/d100 + блик */
+.dsvg-front {
+  transform: translateZ(4px);
+}
+.dsvg-back {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100px; height: 100px;
+  overflow: visible;
+  transform: translateZ(-8px);
+  opacity: 0.55;
+  filter: brightness(0.55) saturate(0.8) blur(0.4px);
+  pointer-events: none;
+  z-index: 1;
+}
+.dsvg-back[hidden] { display: none; }
+.dice-gloss {
+  position: absolute;
+  top: 6px; left: 6px;
+  width: 88px; height: 88px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 30% 22%,
+              rgba(255,255,255,0.45) 0%,
+              rgba(255,255,255,0.18) 22%,
+              transparent 55%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 3;
+  transform: translateZ(6px);
+  opacity: 0.85;
+}
+.dice-gloss[hidden] { display: none; }
 
 /* === Per-die roll animations === */
 
@@ -6252,6 +6351,94 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 
 .dsvg-land .dice-3d-die { animation: dieLand 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards; }
 .dsvg-land .dsvg { animation: dieGlow 0.6s ease-out; }
+
+/* DICE-4 — 3D tumble+bounce с приземлением на заданную грань.
+   Управляющие CSS-переменные на .dice-3d:
+     --final-rx, --final-ry  — итоговая ориентация (deg)
+     --spin-x, --spin-y, --spin-z — количество оборотов в пике (по умолчанию 2/2/1 полный круг)
+*/
+.dice-3d {
+  --final-rx: 0deg;
+  --final-ry: 0deg;
+  --spin-x: 900deg;
+  --spin-y: 880deg;
+  --spin-z: 420deg;
+}
+@keyframes diceTumble3d {
+  0% {
+    transform: translate3d(0,-4px,0)
+               rotateX(0) rotateY(0) rotateZ(0);
+  }
+  30% {
+    transform: translate3d(0,-90px,0)
+               rotateX(calc(var(--spin-x) * 0.46))
+               rotateY(calc(var(--spin-y) * 0.43))
+               rotateZ(calc(var(--spin-z) * 0.48));
+  }
+  55% {
+    transform: translate3d(0,-40px,0)
+               rotateX(calc(var(--spin-x) * 0.86))
+               rotateY(calc(var(--spin-y) * 0.82))
+               rotateZ(calc(var(--spin-z) * 0.86));
+  }
+  75% {
+    /* первый удар о стол — финальная ось уже почти в точке */
+    transform: translate3d(0,10px,0)
+               rotateX(calc(var(--final-rx) + 360deg))
+               rotateY(calc(var(--final-ry) + 360deg))
+               rotateZ(24deg);
+  }
+  85% {
+    /* отскок 1 */
+    transform: translate3d(0,-14px,0)
+               rotateX(calc(var(--final-rx) + 180deg))
+               rotateY(calc(var(--final-ry) + 180deg))
+               rotateZ(8deg);
+  }
+  93% {
+    /* отскок 2 — мельче */
+    transform: translate3d(0,-4px,0)
+               rotateX(calc(var(--final-rx) + 40deg))
+               rotateY(calc(var(--final-ry) + 30deg))
+               rotateZ(2deg);
+  }
+  100% {
+    transform: translate3d(0,0,0)
+               rotateX(var(--final-rx))
+               rotateY(var(--final-ry))
+               rotateZ(0);
+  }
+}
+
+@keyframes diceShadow3d {
+  0%   { transform: translateX(-50%) scale(0.95); opacity: 0.6; filter: blur(7px); }
+  30%  { transform: translateX(-50%) scale(0.4);  opacity: 0.3; filter: blur(12px); }
+  55%  { transform: translateX(-50%) scale(0.6);  opacity: 0.4; filter: blur(10px); }
+  75%  { transform: translateX(-50%) scale(1.15); opacity: 0.85; filter: blur(4px); }
+  85%  { transform: translateX(-50%) scale(0.85); opacity: 0.55; filter: blur(7px); }
+  100% { transform: translateX(-50%) scale(1);    opacity: 0.7; filter: blur(8px); }
+}
+
+.dice-3d.tumble3d {
+  animation: diceTumble3d 1.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.dice-stage.tumble3d .dice-shadow {
+  animation: diceShadow3d 1.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Уважаем reduced-motion: короткая мягкая посадка, без прыжков */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes diceTumble3dReduced {
+    0%   { transform: rotateX(0) rotateY(0); opacity: 0.6; }
+    100% { transform: rotateX(var(--final-rx)) rotateY(var(--final-ry)); opacity: 1; }
+  }
+  .dice-3d.tumble3d {
+    animation: diceTumble3dReduced 0.3s ease-out forwards;
+  }
+  .dice-stage.tumble3d .dice-shadow {
+    animation: none;
+  }
+}
 
 /* Result panel */
 .dice3d-result {

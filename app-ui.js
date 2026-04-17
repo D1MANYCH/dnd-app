@@ -276,14 +276,76 @@ function diceFaceColor(color, glow, shade) {
   return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
 
+// Генератор 3D-мешей из геометрических данных (нормали граней).
+// Для каждого треугольника: rotateY(yaw) rotateX(pitch) rotateZ(twist) translateZ(inradius)
+function _normalize(v){ var m=Math.hypot(v[0],v[1],v[2]); return [v[0]/m,v[1]/m,v[2]/m]; }
+var POLY_GEOM = {
+  4: (function(){
+    // тетраэдр: 4 нормали от центра к противоположным вершинам куба ABCD
+    var n = [[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]].map(_normalize);
+    return { shape:'tri', edge: 82, inradius: 82 * 1/(2*Math.sqrt(6)), normals: n };
+  })(),
+  8: (function(){
+    var n = [];
+    [-1,1].forEach(function(a){[-1,1].forEach(function(b){[-1,1].forEach(function(c){ n.push(_normalize([a,b,c])); });});});
+    return { shape:'tri', edge: 68, inradius: 68 * 1/Math.sqrt(6), normals: n };
+  })()
+};
+
+function buildDiceMesh(sides) {
+  var mesh = document.getElementById("dice-mesh");
+  if (!mesh) return;
+  var d = DICE_3D[sides] || DICE_3D[20];
+  mesh.className = "dice-mesh d" + sides;
+  mesh.style.setProperty("--die-color", d.color);
+  mesh.style.setProperty("--die-glow", d.glow);
+  var geom = POLY_GEOM[sides];
+  // d6 — ручные CSS-правила в style.css, ничего не делаем кроме фасадов
+  if (sides === 6) {
+    var html6 = "";
+    for (var n6 = 1; n6 <= 6; n6++) html6 += '<div class="face f'+n6+'"><span class="pip">'+n6+'</span></div>';
+    mesh.innerHTML = html6;
+    return;
+  }
+  if (!geom) { mesh.innerHTML = ""; return; }
+  var E = geom.edge;
+  var H = E * Math.sqrt(3) / 2; // высота равностороннего треугольника
+  var R = geom.inradius;
+  var html = "";
+  for (var i = 0; i < geom.normals.length; i++) {
+    var nrm = geom.normals[i];
+    var nx = nrm[0], ny = nrm[1], nz = nrm[2];
+    var yaw = Math.atan2(nx, nz) * 180/Math.PI;
+    var pitch = -Math.asin(Math.max(-1, Math.min(1, ny))) * 180/Math.PI;
+    // Без твиста: clip-path оставляет apex в локальном -Y; для верхних граней
+    // он смотрит в world-вниз — это визуально корректно для тетра/окта,
+    // а цифра остаётся читаемой (не зеркалится).
+    var twist = 0;
+    var N = i + 1;
+    html += '<div class="face f' + N + '" style="'+
+      'width:' + E + 'px;height:' + H.toFixed(2) + 'px;'+
+      'margin-left:' + (-E/2) + 'px;margin-top:' + (-H/2).toFixed(2) + 'px;'+
+      'transform:rotateY(' + yaw.toFixed(3) + 'deg) rotateX(' + pitch.toFixed(3) + 'deg) rotateZ(' + twist + 'deg) translateZ(' + R.toFixed(2) + 'px);'+
+      '"><span class="pip">' + N + '</span></div>';
+  }
+  mesh.innerHTML = html;
+}
+
 function drawDiceSVG(sides) {
   var svgEl = $("dice-svg");
   var shape = $("dice-svg-shape");
   var numEl = $("dice-svg-num");
   var typeEl = $("dice-svg-type");
+  var mesh = document.getElementById("dice-mesh");
   if (!svgEl || !shape) return;
   var d = DICE_3D[sides] || DICE_3D[20];
   svgEl.style.setProperty("--dice-glow", d.glow);
+
+  var useMesh = (sides === 4 || sides === 6 || sides === 8);
+  if (mesh) {
+    if (useMesh) { buildDiceMesh(sides); mesh.hidden = false; }
+    else { mesh.hidden = true; mesh.innerHTML = ""; }
+  }
 
   var highlightId = "diceHL" + sides;
   var html =
@@ -310,60 +372,138 @@ function drawDiceSVG(sides) {
     }
   }
 
-  shape.innerHTML = html;
+  shape.innerHTML = useMesh ? "" : html;
+
+  // DICE-3: back/depth слой для d10/d12/d20/d100
+  var backSvg = document.getElementById("dice-svg-back");
+  var backShape = document.getElementById("dice-svg-shape-back");
+  var gloss = document.getElementById("dice-gloss");
+  if (backSvg && backShape) {
+    if (useMesh) {
+      backSvg.hidden = true; backShape.innerHTML = "";
+    } else {
+      backSvg.hidden = false;
+      var bhtml = "";
+      if (d.isCircle) {
+        bhtml += '<circle cx="60" cy="60" r="52" fill="' + diceFaceColor(d.color, d.glow, 0.4) + '" stroke="rgba(0,0,0,0.35)" stroke-width="1.2"/>';
+      } else {
+        for (var j = 0; j < d.faces.length; j++) {
+          var bface = d.faces[j];
+          bhtml += '<polygon points="' + bface.points + '" fill="' + diceFaceColor(d.color, d.glow, Math.max(0.25, (bface.shade || 0.7) * 0.55)) + '" stroke="rgba(0,0,0,0.35)" stroke-width="0.8" stroke-linejoin="round"/>';
+        }
+      }
+      backShape.innerHTML = bhtml;
+    }
+  }
+  if (gloss) gloss.hidden = useMesh;
+
   if (numEl) { numEl.setAttribute("y", d.numY || 64); }
-  if (typeEl) typeEl.textContent = "d" + sides;
+  // DICE-5: тип-лейбл прячем — он дублирует инфо-строку и торчит из-под кубика
+  if (typeEl) typeEl.textContent = "";
 
   // Update table shadow color
   var container = document.querySelector('.dsvg-container');
   if (container) container.setAttribute('data-glow', d.glow);
 }
 
+// DICE-5 — финальные ориентации (rotateX, rotateY в градусах) для 3D-мешей.
+// Для d10/d12/d20/d100 используется плоский SVG — ориентация не влияет на отображаемую грань,
+// число рисуется поверх, поэтому возвращаем [0,0] как нейтральное положение.
+// Для программных мешей (d4/d8) финальная ориентация считается из нормалей:
+// чтобы привести нормаль n к +Z камеры, нужны rx=asin(ny), ry=atan2(-nx,nz).
+function _computePolyOrientations(sides) {
+  var g = POLY_GEOM[sides];
+  if (!g) return null;
+  var out = {};
+  for (var i = 0; i < g.normals.length; i++) {
+    var n = g.normals[i];
+    var rx = Math.asin(Math.max(-1, Math.min(1, n[1]))) * 180/Math.PI;
+    var ry = Math.atan2(-n[0], n[2]) * 180/Math.PI;
+    out[i + 1] = [rx, ry];
+  }
+  return out;
+}
+
+var FACE_ORIENTATIONS = {
+  4: _computePolyOrientations(4),
+  6: {
+    // d6: «столешный» наклон, чтобы видеть 3 грани в покое.
+    1: [-22, 28],  2: [-22, -62],  3: [-22, 208],  4: [-22, 118],
+    5: [-112, 28], 6: [68, 28]
+  },
+  8: _computePolyOrientations(8)
+};
+
+function getFinalOrientation(sides, result) {
+  var table = FACE_ORIENTATIONS[sides];
+  if (table && table[result]) return table[result];
+  return [0, 0];
+}
+
+function prefersReducedMotion() {
+  return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+
 function animateDice3d(sides, result, callback) {
-  var svgContainer = document.querySelector(".dsvg-container");
+  var stage = document.querySelector(".dsvg-container");
   var dieEl = document.getElementById("dice-3d-die");
   var numEl = $("dice-svg-num");
-  if (!svgContainer || !dieEl) { callback(); return; }
+  if (!stage || !dieEl) { callback(); return; }
   drawDiceSVG(sides);
-  var d = DICE_3D[sides] || DICE_3D[20];
-  // Hide number during roll
-  if (numEl) { numEl.style.opacity = "0.6"; }
-  // Rapidly cycling numbers
-  var rollSpeed = 50;
-  var rollInterval = setInterval(function() {
-    if (numEl) numEl.textContent = Math.floor(Math.random() * sides) + 1;
-  }, rollSpeed);
-  // Slow down numbers near the end
-  var slowDown = setTimeout(function() {
-    clearInterval(rollInterval);
-    rollInterval = setInterval(function() {
-      if (numEl) numEl.textContent = Math.floor(Math.random() * sides) + 1;
-    }, 120);
-  }, 550);
-  // Remove old animation classes
-  var allRollClasses = ["dsvg-shake", "dsvg-land",
+
+  // Устанавливаем финальную ориентацию через CSS-переменные
+  var orient = getFinalOrientation(sides, result);
+  dieEl.style.setProperty("--final-rx", orient[0] + "deg");
+  dieEl.style.setProperty("--final-ry", orient[1] + "deg");
+
+  // Сбросить все старые анимационные классы и сделать reflow
+  var stale = ["dsvg-shake","dsvg-land","tumble3d",
     "dsvg-roll-d4","dsvg-roll-d6","dsvg-roll-d8","dsvg-roll-d10","dsvg-roll-d12","dsvg-roll-d20","dsvg-roll-d100"];
-  allRollClasses.forEach(function(c) { svgContainer.classList.remove(c); dieEl.classList.remove(c); });
-  void svgContainer.offsetWidth;
-  // Apply die-specific roll animation
-  dieEl.classList.add(d.animClass);
-  svgContainer.classList.add("dsvg-shake");
-  setTimeout(function() {
-    clearTimeout(slowDown);
-    clearInterval(rollInterval);
-    svgContainer.classList.remove("dsvg-shake");
-    dieEl.classList.remove(d.animClass);
+  stale.forEach(function(c){ stage.classList.remove(c); dieEl.classList.remove(c); });
+  void stage.offsetWidth;
+
+  var reduced = prefersReducedMotion();
+  var duration = reduced ? 300 : 1300;
+  var impactAt = reduced ? 180 : Math.round(duration * 0.78); // момент «удара»
+
+  if (numEl) { numEl.style.opacity = reduced ? "1" : "0.75"; }
+
+  var rollInterval = null;
+  if (!reduced && numEl) {
+    rollInterval = setInterval(function(){
+      numEl.textContent = Math.floor(Math.random() * sides) + 1;
+    }, 55);
+    setTimeout(function(){
+      if (rollInterval) clearInterval(rollInterval);
+      rollInterval = setInterval(function(){
+        numEl.textContent = Math.floor(Math.random() * sides) + 1;
+      }, 110);
+    }, Math.round(duration * 0.45));
+  }
+
+  // Запуск tumble3d-анимации
+  stage.classList.add("tumble3d");
+  dieEl.classList.add("tumble3d");
+
+  // К моменту удара показываем итоговое число
+  setTimeout(function(){
+    if (rollInterval) { clearInterval(rollInterval); rollInterval = null; }
     if (numEl) {
       numEl.textContent = result;
       numEl.style.opacity = "1";
     }
-    // Land with bounce
-    svgContainer.classList.add("dsvg-land");
-    setTimeout(function() {
-      svgContainer.classList.remove("dsvg-land");
-      callback();
-    }, 400);
-  }, 800);
+  }, impactAt);
+
+  // Завершение: оставляем .tumble3d (animation-fill-mode: forwards держит финальную ориентацию).
+  // Перед следующим броском класс сбрасывается выше через void offsetWidth + повторное добавление.
+  setTimeout(function(){
+    if (rollInterval) { clearInterval(rollInterval); rollInterval = null; }
+    if (numEl) {
+      numEl.textContent = result;
+      numEl.style.opacity = "1";
+    }
+    callback();
+  }, duration + 20);
 }
 
 function rollCustomFormula() {
