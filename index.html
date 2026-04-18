@@ -1454,7 +1454,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 <!-- 3D Dice display -->
 <div class="dsvg-wrap">
-  <div class="dsvg-container dice-stage" id="dsvg-container"></div>
+  <div class="dsvg-container dice-stage"><div class="dice-arena" id="dsvg-container"></div></div>
   <div class="dice3d-result" id="dice3d-result">
     <span class="dice3d-num" id="dice-result-big">—</span>
     <div class="dice-dual-display" id="dice-dual-display" style="display:none">
@@ -1485,10 +1485,14 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <input type="text" id="dice-custom-input" class="dice-custom-inp" placeholder="2к6+3, 4к4, 1к20-1..." onkeydown="if(event.key==='Enter')rollCustomFormula()">
 <button class="dice-custom-btn" onclick="rollCustomFormula()">Бросить</button>
 </div>
-<div class="dice-color-row">
-<label class="dice-color-label" for="dice-color-input">🎨 Цвет кубиков</label>
-<input type="color" id="dice-color-input" class="dice-color-inp" oninput="setDiceColor(this.value)">
-<button class="dice-color-reset" onclick="resetDiceColor()" title="Сбросить к акценту">↺</button>
+<div class="dice-theme-row">
+<div class="dice-theme-label">🎨 Стиль кубиков</div>
+<div class="dice-theme-options">
+<button type="button" class="dice-theme-btn" data-dice-theme="steel" onclick="setDiceTheme('steel')">Сталь</button>
+<button type="button" class="dice-theme-btn" data-dice-theme="rock" onclick="setDiceTheme('rock')">Камень</button>
+<button type="button" class="dice-theme-btn" data-dice-theme="wooden" onclick="setDiceTheme('wooden')">Дерево</button>
+<button type="button" class="dice-theme-btn" data-dice-theme="smooth" onclick="setDiceTheme('smooth')">Гладкие</button>
+</div>
 </div>
 <h4>История</h4>
 <div class="dice-history" id="dice-history"></div>

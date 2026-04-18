@@ -248,26 +248,36 @@ function _getAccentColor() {
   return '#d4a843';
 }
 
-function setDiceColor(hex) {
-  if (!/^#[0-9a-f]{6}$/i.test(hex)) return;
-  try { localStorage.setItem('diceColor', hex); } catch (e) {}
-  if (_diceBoxInstance) _diceBoxInstance.updateConfig({ themeColor: hex });
+var DICE_THEMES = ['steel','rock','wooden','smooth'];
+var DICE_THEME_COLORS = {
+  steel: '#c0c5ca',
+  rock: '#b7aca1',
+  wooden: '#b78a55',
+  smooth: '#3a6ea5'
+};
+function _getDiceTheme() {
+  try {
+    var t = localStorage.getItem('diceTheme');
+    if (t && DICE_THEMES.indexOf(t) !== -1) return t;
+  } catch (e) {}
+  return 'steel';
 }
-
-function resetDiceColor() {
-  try { localStorage.removeItem('diceColor'); } catch (e) {}
-  var fallback = _getAccentColor();
-  var inp = document.getElementById('dice-color-input');
-  if (inp) inp.value = fallback;
-  if (_diceBoxInstance) _diceBoxInstance.updateConfig({ themeColor: fallback });
+function _getDiceThemeColor() {
+  return DICE_THEME_COLORS[_getDiceTheme()] || '#c0c5ca';
 }
-
-// Синхронизация input при открытии модалки кубиков.
-function _syncDiceColorInput() {
-  var inp = document.getElementById('dice-color-input');
-  if (inp) inp.value = _getAccentColor();
+function setDiceTheme(name) {
+  if (DICE_THEMES.indexOf(name) === -1) return;
+  try { localStorage.setItem('diceTheme', name); } catch (e) {}
+  _syncDiceThemeButtons();
+  if (_diceBoxInstance) _diceBoxInstance.updateConfig({ theme: name, themeColor: DICE_THEME_COLORS[name] });
 }
-document.addEventListener('DOMContentLoaded', _syncDiceColorInput);
+function _syncDiceThemeButtons() {
+  var active = _getDiceTheme();
+  document.querySelectorAll('.dice-theme-btn').forEach(function(b) {
+    b.classList.toggle('is-active', b.getAttribute('data-dice-theme') === active);
+  });
+}
+document.addEventListener('DOMContentLoaded', _syncDiceThemeButtons);
 
 function _initDiceBox() {
   if (_diceBoxInstance) return Promise.resolve(_diceBoxInstance);
@@ -282,8 +292,8 @@ function _initDiceBox() {
       container: '#dsvg-container',
       assetPath: basePath + 'vendor/dice-box/assets/',
       origin: location.origin,
-      theme: 'default',
-      themeColor: _getAccentColor(),
+      theme: _getDiceTheme(),
+      themeColor: _getDiceThemeColor(),
       scale: 16,
       enableShadows: true,
       shadowTransparency: 0.7,
@@ -323,7 +333,7 @@ function animateDice3d(sides, result, callback, opts) {
       callback(v1, v2);
     };
     box.clear();
-    box.roll([{ qty: qty, sides: sides }], { themeColor: _getAccentColor() });
+    box.roll([{ qty: qty, sides: sides }], { theme: _getDiceTheme(), themeColor: _getDiceThemeColor() });
   }).catch(function() {
     callback();
   });

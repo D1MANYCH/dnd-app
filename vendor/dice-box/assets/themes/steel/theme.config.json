@@ -1,0 +1,21 @@
+{
+	"name": "Steel",
+	"systemName": "steel",
+	"author": "custom",
+	"version": 0.1,
+	"meshFile": "default.json",
+	"material": {
+		"type": "color",
+		"diffuseTexture": {
+			"light": "diffuse-light.png",
+			"dark": "diffuse-dark.png"
+		},
+		"diffuseLevel": 1,
+		"bumpTexture": "normal.png",
+		"bumpLevel": 0.35,
+		"specularTexture": "specular.jpg",
+		"specularPower": 4
+	},
+	"themeColor": "#c0c5ca",
+	"diceAvailable": ["d4","d6","d8","d10","d12","d20","d100"]
+}
