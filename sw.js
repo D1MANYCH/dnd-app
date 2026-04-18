@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v31';
+const CACHE_NAME = 'dnd-sheet-v38';
 
 const FILES_TO_CACHE = [
   './',
@@ -19,7 +19,20 @@ const FILES_TO_CACHE = [
   './app-ui.js',
   './manifest.json',
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  // DICE2-1: @3d-dice/dice-box vendor (ES-модуль + воркеры + ассеты)
+  './vendor/dice-box/dice-box.es.js',
+  './vendor/dice-box/world.offscreen.js',
+  './vendor/dice-box/world.onscreen.js',
+  './vendor/dice-box/world.none.js',
+  './vendor/dice-box/Dice.js',
+  './vendor/dice-box/assets/ammo/ammo.wasm.wasm',
+  './vendor/dice-box/assets/themes/default/theme.config.json',
+  './vendor/dice-box/assets/themes/default/default.json',
+  './vendor/dice-box/assets/themes/default/diffuse-dark.png',
+  './vendor/dice-box/assets/themes/default/diffuse-light.png',
+  './vendor/dice-box/assets/themes/default/normal.png',
+  './vendor/dice-box/assets/themes/default/specular.jpg'
 ];
 
 self.addEventListener('install', (event) => {

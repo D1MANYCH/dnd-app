@@ -1433,33 +1433,28 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="dice-modal" class="modal modal--bottom-sheet">
 <div class="modal-content dice-modal-content">
 <span class="modal-close" onclick="closeDiceModal()">&times;</span>
-<h3>🎲 Бросок кубиков</h3>
+<h3>
+  <svg class="d20-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="vertical-align:-4px;margin-right:6px">
+    <defs>
+      <linearGradient id="d20-ico-grad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#3ec97e"/>
+        <stop offset="100%" stop-color="#1e7a48"/>
+      </linearGradient>
+    </defs>
+    <g fill="url(#d20-ico-grad)" stroke="#0d3b24" stroke-width="0.6" stroke-linejoin="round">
+      <polygon points="12,2 21,7 19,12 12,11 5,12 3,7"/>
+      <polygon points="3,7 5,12 7,20 12,22 4,17" opacity="0.85"/>
+      <polygon points="21,7 19,12 17,20 12,22 20,17" opacity="0.7"/>
+      <polygon points="5,12 12,11 19,12 17,20 12,14 7,20" opacity="0.9"/>
+    </g>
+    <text x="12" y="15" text-anchor="middle" font-size="6.5" font-weight="900" fill="#fff" font-family="inherit">20</text>
+  </svg>
+  Бросок кубиков
+</h3>
 
 <!-- 3D Dice display -->
 <div class="dsvg-wrap">
-  <div class="dsvg-container dice-stage" id="dsvg-container">
-    <div class="dice-3d-die dice-3d" id="dice-3d-die">
-        <div class="dice-mesh" id="dice-mesh" hidden aria-hidden="true"></div>
-        <svg id="dice-svg-back" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" class="dsvg dsvg-back" aria-hidden="true">
-          <g id="dice-svg-shape-back"></g>
-        </svg>
-        <svg id="dice-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" class="dsvg dsvg-front">
-          <defs>
-            <filter id="dsvg-shadow">
-              <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,0.5)"/>
-            </filter>
-          </defs>
-          <g id="dice-svg-shape"></g>
-          <text id="dice-svg-num" x="60" y="60" text-anchor="middle" dominant-baseline="central"
-            font-size="32" font-weight="900" fill="white" font-family="inherit"
-            filter="url(#dsvg-shadow)" style="pointer-events:none">—</text>
-          <text id="dice-svg-type" x="60" y="108" text-anchor="middle" font-size="11"
-            font-weight="700" fill="rgba(255,255,255,0.6)" font-family="inherit"></text>
-        </svg>
-        <div class="dice-gloss" id="dice-gloss" aria-hidden="true"></div>
-    </div>
-    <div class="dice-shadow" id="dice-shadow" aria-hidden="true"></div>
-  </div>
+  <div class="dsvg-container dice-stage" id="dsvg-container"></div>
   <div class="dice3d-result" id="dice3d-result">
     <span class="dice3d-num" id="dice-result-big">—</span>
     <div class="dice-dual-display" id="dice-dual-display" style="display:none">
@@ -1489,6 +1484,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="dice-custom-row">
 <input type="text" id="dice-custom-input" class="dice-custom-inp" placeholder="2к6+3, 4к4, 1к20-1..." onkeydown="if(event.key==='Enter')rollCustomFormula()">
 <button class="dice-custom-btn" onclick="rollCustomFormula()">Бросить</button>
+</div>
+<div class="dice-color-row">
+<label class="dice-color-label" for="dice-color-input">🎨 Цвет кубиков</label>
+<input type="color" id="dice-color-input" class="dice-color-inp" oninput="setDiceColor(this.value)">
+<button class="dice-color-reset" onclick="resetDiceColor()" title="Сбросить к акценту">↺</button>
 </div>
 <h4>История</h4>
 <div class="dice-history" id="dice-history"></div>
@@ -1807,7 +1807,13 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script src="app-party.js?v=n1"></script>
 <script src="class-choices.js?v=n1"></script>
 <script src="subclass-choices-data.js?v=n1"></script>
-<script src="app-ui.js?v=n7"></script>
+<!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
+<script type="module">
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=d1";
+  window.DiceBox = DiceBox;
+  window.dispatchEvent(new Event("dicebox:ready"));
+</script>
+<script src="app-ui.js?v=d2g"></script>
 <script src="app-notes.js?v=n4"></script>
 
 <!-- ══ Модалка записи (N4) ══════════════════════════════════════ -->

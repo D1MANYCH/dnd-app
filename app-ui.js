@@ -115,9 +115,6 @@ function renderSheetAvatar() {
 function openDiceModal() {
 const modal = $("dice-modal");
 if (modal) modal.classList.add("active");
-drawDiceSVG(20);
-var numEl = $("dice-svg-num");
-if (numEl) numEl.textContent = "?";
 }
 function closeDiceModal() {
 const modal = $("dice-modal");
@@ -136,8 +133,8 @@ function rollDiceWithSelectedMode(sides) {
   rollDice(sides, mode === 'normal' ? undefined : mode);
 }
 function rollDice(sides, mode) {
-const r1 = Math.floor(Math.random() * sides) + 1;
-const r2 = (mode === 'adv' || mode === 'dis') ? Math.floor(Math.random() * sides) + 1 : null;
+let r1 = Math.floor(Math.random() * sides) + 1;
+let r2 = (mode === 'adv' || mode === 'dis') ? Math.floor(Math.random() * sides) + 1 : null;
 let result, resultLabel;
 if (mode === 'adv') {
   result = Math.max(r1, r2);
@@ -150,8 +147,28 @@ if (mode === 'adv') {
   resultLabel = "d" + sides;
 }
 const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-// 3D dice animation
-animateDice3d(sides, result, function() {
+// 3D dice animation (DICE2-3: @3d-dice/dice-box, 2d20 для adv/dis).
+// callback получает (v1, v2) — реальные значения из физики. Для adv/dis
+// синхронизируем оба кубика с тем, что видит пользователь на столе.
+var qty = (mode === 'adv' || mode === 'dis') ? 2 : 1;
+animateDice3d(sides, result, function(v1, v2) {
+  if (typeof v1 === 'number' && !isNaN(v1)) {
+    if (mode === 'adv') {
+      r1 = v1;
+      r2 = (typeof v2 === 'number' && !isNaN(v2)) ? v2 : r2;
+      result = Math.max(r1, r2);
+      resultLabel = "Преимущество: " + r1 + " и " + r2;
+    } else if (mode === 'dis') {
+      r1 = v1;
+      r2 = (typeof v2 === 'number' && !isNaN(v2)) ? v2 : r2;
+      result = Math.min(r1, r2);
+      resultLabel = "Помеха: " + r1 + " и " + r2;
+    } else {
+      result = v1;
+      r1 = v1;
+      resultLabel = "d" + sides;
+    }
+  }
   var resultBig = $("dice-result-big");
   var resultInfo = $("dice-result-info");
   var resultBox = $("dice3d-result");
@@ -176,334 +193,154 @@ animateDice3d(sides, result, function() {
     resultBox.classList.add("pop");
     setTimeout(function(){ if(resultBox) resultBox.classList.remove("pop"); }, 400);
   }
-});
-diceHistory.unshift({ sides: sides, result: result, mode: mode || 'normal', time: timestamp, r1: r1, r2: r2 });
-if (diceHistory.length > 10) diceHistory.pop();
-renderDiceHistory();
+  diceHistory.unshift({ sides: sides, result: result, mode: mode || 'normal', time: timestamp, r1: r1, r2: r2 });
+  if (diceHistory.length > 10) diceHistory.pop();
+  renderDiceHistory();
+}, { qty: qty });
 }
 
-// 3D polyhedra face data for each die type
-var DICE_3D = {
-  4: {
-    // Tetrahedron — 3 visible faces
-    faces: [
-      { points: "60,14 22,96 60,68", shade: 0.95 },
-      { points: "60,14 98,96 60,68", shade: 0.6 },
-      { points: "22,96 98,96 60,68", shade: 0.3 }
-    ],
-    color: "#c0392b", glow: "#e74c3c", numY: 58, animClass: "dsvg-roll-d4"
-  },
-  6: {
-    // Cube — isometric 3 visible faces
-    faces: [
-      { points: "60,14 102,36 60,56 18,36", shade: 1.0 },
-      { points: "18,36 60,56 60,100 18,80", shade: 0.6 },
-      { points: "60,56 102,36 102,80 60,100", shade: 0.35 }
-    ],
-    color: "#2980b9", glow: "#3498db", numY: 62, animClass: "dsvg-roll-d6"
-  },
-  8: {
-    // Octahedron — 4 visible triangular faces
-    faces: [
-      { points: "60,6 18,58 60,54", shade: 1.0 },
-      { points: "60,6 102,58 60,54", shade: 0.75 },
-      { points: "18,58 60,54 56,114", shade: 0.5 },
-      { points: "102,58 60,54 64,114", shade: 0.28 }
-    ],
-    color: "#27ae60", glow: "#2ecc71", numY: 40, animClass: "dsvg-roll-d8"
-  },
-  10: {
-    // Pentagonal trapezohedron — kite faces
-    faces: [
-      { points: "60,8 96,36 60,58 24,36", shade: 1.0 },
-      { points: "24,36 60,58 36,100 8,60", shade: 0.72 },
-      { points: "60,58 96,36 112,60 84,100", shade: 0.42 },
-      { points: "36,100 84,100 60,58", shade: 0.22 }
-    ],
-    color: "#8e44ad", glow: "#9b59b6", numY: 46, animClass: "dsvg-roll-d10"
-  },
-  12: {
-    // Dodecahedron — pentagon faces
-    faces: [
-      { points: "60,10 94,30 100,66 60,82 20,66 26,30", shade: 1.0 },
-      { points: "20,66 60,82 46,112 12,92", shade: 0.58 },
-      { points: "60,82 100,66 108,92 74,112", shade: 0.34 },
-      { points: "46,112 74,112 60,82", shade: 0.18 }
-    ],
-    color: "#e67e22", glow: "#f39c12", numY: 50, animClass: "dsvg-roll-d12"
-  },
-  20: {
-    // Icosahedron — multiple triangular faces
-    faces: [
-      { points: "60,6 94,24 60,50", shade: 1.0 },
-      { points: "60,6 26,24 60,50", shade: 0.88 },
-      { points: "26,24 10,58 42,56", shade: 0.72 },
-      { points: "94,24 110,58 78,56", shade: 0.62 },
-      { points: "26,24 60,50 42,56", shade: 0.8 },
-      { points: "94,24 60,50 78,56", shade: 0.7 },
-      { points: "10,58 42,56 34,90", shade: 0.48 },
-      { points: "110,58 78,56 86,90", shade: 0.36 },
-      { points: "42,56 78,56 60,88", shade: 0.55 },
-      { points: "42,56 34,90 60,88", shade: 0.42 },
-      { points: "78,56 86,90 60,88", shade: 0.3 },
-      { points: "34,90 60,114 60,88", shade: 0.22 },
-      { points: "86,90 60,114 60,88", shade: 0.15 }
-    ],
-    color: "#c9a040", glow: "#f1c40f", numY: 38, animClass: "dsvg-roll-d20"
-  },
-  100: {
-    faces: [],
-    color: "#16a085", glow: "#1abc9c", numY: 64, animClass: "dsvg-roll-d100",
-    isCircle: true
-  }
-};
+// [DICE2-4] legacy DICE_3D / POLY_GEOM / FACE_ORIENTATIONS / diceFaceColor /
+// drawDiceSVG / buildDiceMesh / _computePolyOrientations / getFinalOrientation
+// удалены — рендер теперь полностью выполняется @3d-dice/dice-box через animateDice3d() ниже.
 
-function diceFaceColor(color, glow, shade) {
-  var r1 = parseInt(color.slice(1,3),16), g1 = parseInt(color.slice(3,5),16), b1 = parseInt(color.slice(5,7),16);
-  var r2 = parseInt(glow.slice(1,3),16), g2 = parseInt(glow.slice(3,5),16), b2 = parseInt(glow.slice(5,7),16);
-  var r, g, b;
-  if (shade > 0.7) {
-    var t = (shade - 0.7) / 0.3;
-    r = Math.round(r1 + (r2 - r1) * t);
-    g = Math.round(g1 + (g2 - g1) * t);
-    b = Math.round(b1 + (b2 - b1) * t);
-  } else {
-    var f = shade / 0.7;
-    r = Math.round(r1 * f);
-    g = Math.round(g1 * f);
-    b = Math.round(b1 * f);
-  }
-  return 'rgb(' + r + ',' + g + ',' + b + ')';
-}
+function drawDiceSVG() { /* DICE2-4: no-op (совместимость с app-combat.js/app-inventory.js) */ }
 
-// Генератор 3D-мешей из геометрических данных (нормали граней).
-// Для каждого треугольника: rotateY(yaw) rotateX(pitch) rotateZ(twist) translateZ(inradius)
-function _normalize(v){ var m=Math.hypot(v[0],v[1],v[2]); return [v[0]/m,v[1]/m,v[2]/m]; }
-var POLY_GEOM = {
-  4: (function(){
-    // тетраэдр: 4 нормали от центра к противоположным вершинам куба ABCD
-    var n = [[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]].map(_normalize);
-    return { shape:'tri', edge: 82, inradius: 82 * 1/(2*Math.sqrt(6)), normals: n };
-  })(),
-  8: (function(){
-    var n = [];
-    [-1,1].forEach(function(a){[-1,1].forEach(function(b){[-1,1].forEach(function(c){ n.push(_normalize([a,b,c])); });});});
-    return { shape:'tri', edge: 68, inradius: 68 * 1/Math.sqrt(6), normals: n };
-  })()
-};
-
-function buildDiceMesh(sides) {
-  var mesh = document.getElementById("dice-mesh");
-  if (!mesh) return;
-  var d = DICE_3D[sides] || DICE_3D[20];
-  mesh.className = "dice-mesh d" + sides;
-  mesh.style.setProperty("--die-color", d.color);
-  mesh.style.setProperty("--die-glow", d.glow);
-  var geom = POLY_GEOM[sides];
-  // d6 — ручные CSS-правила в style.css, ничего не делаем кроме фасадов
-  if (sides === 6) {
-    var html6 = "";
-    for (var n6 = 1; n6 <= 6; n6++) html6 += '<div class="face f'+n6+'"><span class="pip">'+n6+'</span></div>';
-    mesh.innerHTML = html6;
-    return;
-  }
-  if (!geom) { mesh.innerHTML = ""; return; }
-  var E = geom.edge;
-  var H = E * Math.sqrt(3) / 2; // высота равностороннего треугольника
-  var R = geom.inradius;
-  var html = "";
-  for (var i = 0; i < geom.normals.length; i++) {
-    var nrm = geom.normals[i];
-    var nx = nrm[0], ny = nrm[1], nz = nrm[2];
-    var yaw = Math.atan2(nx, nz) * 180/Math.PI;
-    var pitch = -Math.asin(Math.max(-1, Math.min(1, ny))) * 180/Math.PI;
-    // Без твиста: clip-path оставляет apex в локальном -Y; для верхних граней
-    // он смотрит в world-вниз — это визуально корректно для тетра/окта,
-    // а цифра остаётся читаемой (не зеркалится).
-    var twist = 0;
-    var N = i + 1;
-    html += '<div class="face f' + N + '" style="'+
-      'width:' + E + 'px;height:' + H.toFixed(2) + 'px;'+
-      'margin-left:' + (-E/2) + 'px;margin-top:' + (-H/2).toFixed(2) + 'px;'+
-      'transform:rotateY(' + yaw.toFixed(3) + 'deg) rotateX(' + pitch.toFixed(3) + 'deg) rotateZ(' + twist + 'deg) translateZ(' + R.toFixed(2) + 'px);'+
-      '"><span class="pip">' + N + '</span></div>';
-  }
-  mesh.innerHTML = html;
-}
-
-function drawDiceSVG(sides) {
-  var svgEl = $("dice-svg");
-  var shape = $("dice-svg-shape");
-  var numEl = $("dice-svg-num");
-  var typeEl = $("dice-svg-type");
-  var mesh = document.getElementById("dice-mesh");
-  if (!svgEl || !shape) return;
-  var d = DICE_3D[sides] || DICE_3D[20];
-  svgEl.style.setProperty("--dice-glow", d.glow);
-
-  var useMesh = (sides === 4 || sides === 6 || sides === 8);
-  if (mesh) {
-    if (useMesh) { buildDiceMesh(sides); mesh.hidden = false; }
-    else { mesh.hidden = true; mesh.innerHTML = ""; }
-  }
-
-  var highlightId = "diceHL" + sides;
-  var html =
-    '<defs>' +
-      '<radialGradient id="' + highlightId + '" cx="35%" cy="25%" r="55%">' +
-        '<stop offset="0%" stop-color="white" stop-opacity="0.38"/>' +
-        '<stop offset="100%" stop-color="white" stop-opacity="0"/>' +
-      '</radialGradient>' +
-    '</defs>';
-
-  if (d.isCircle) {
-    html += '<circle cx="60" cy="60" r="52" fill="' + diceFaceColor(d.color, d.glow, 0.7) + '" stroke="rgba(255,255,255,0.2)" stroke-width="1.2"/>';
-    html += '<circle cx="60" cy="60" r="52" fill="url(#' + highlightId + ')"/>';
-    html += '<ellipse cx="60" cy="60" rx="52" ry="20" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/>';
-    html += '<ellipse cx="60" cy="60" rx="20" ry="52" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="0.8"/>';
-    html += '<ellipse cx="60" cy="60" rx="42" ry="42" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.6" transform="rotate(30,60,60)"/>';
-  } else {
-    for (var i = 0; i < d.faces.length; i++) {
-      var face = d.faces[i];
-      html += '<polygon points="' + face.points + '" fill="' + diceFaceColor(d.color, d.glow, face.shade) + '" stroke="rgba(255,255,255,0.18)" stroke-width="0.8" stroke-linejoin="round"/>';
-    }
-    if (d.faces.length > 0) {
-      html += '<polygon points="' + d.faces[0].points + '" fill="url(#' + highlightId + ')"/>';
-    }
-  }
-
-  shape.innerHTML = useMesh ? "" : html;
-
-  // DICE-3: back/depth слой для d10/d12/d20/d100
-  var backSvg = document.getElementById("dice-svg-back");
-  var backShape = document.getElementById("dice-svg-shape-back");
-  var gloss = document.getElementById("dice-gloss");
-  if (backSvg && backShape) {
-    if (useMesh) {
-      backSvg.hidden = true; backShape.innerHTML = "";
-    } else {
-      backSvg.hidden = false;
-      var bhtml = "";
-      if (d.isCircle) {
-        bhtml += '<circle cx="60" cy="60" r="52" fill="' + diceFaceColor(d.color, d.glow, 0.4) + '" stroke="rgba(0,0,0,0.35)" stroke-width="1.2"/>';
-      } else {
-        for (var j = 0; j < d.faces.length; j++) {
-          var bface = d.faces[j];
-          bhtml += '<polygon points="' + bface.points + '" fill="' + diceFaceColor(d.color, d.glow, Math.max(0.25, (bface.shade || 0.7) * 0.55)) + '" stroke="rgba(0,0,0,0.35)" stroke-width="0.8" stroke-linejoin="round"/>';
-        }
-      }
-      backShape.innerHTML = bhtml;
-    }
-  }
-  if (gloss) gloss.hidden = useMesh;
-
-  if (numEl) { numEl.setAttribute("y", d.numY || 64); }
-  // DICE-5: тип-лейбл прячем — он дублирует инфо-строку и торчит из-под кубика
-  if (typeEl) typeEl.textContent = "";
-
-  // Update table shadow color
-  var container = document.querySelector('.dsvg-container');
-  if (container) container.setAttribute('data-glow', d.glow);
-}
-
-// DICE-5 — финальные ориентации (rotateX, rotateY в градусах) для 3D-мешей.
-// Для d10/d12/d20/d100 используется плоский SVG — ориентация не влияет на отображаемую грань,
-// число рисуется поверх, поэтому возвращаем [0,0] как нейтральное положение.
-// Для программных мешей (d4/d8) финальная ориентация считается из нормалей:
-// чтобы привести нормаль n к +Z камеры, нужны rx=asin(ny), ry=atan2(-nx,nz).
-function _computePolyOrientations(sides) {
-  var g = POLY_GEOM[sides];
-  if (!g) return null;
-  var out = {};
-  for (var i = 0; i < g.normals.length; i++) {
-    var n = g.normals[i];
-    var rx = Math.asin(Math.max(-1, Math.min(1, n[1]))) * 180/Math.PI;
-    var ry = Math.atan2(-n[0], n[2]) * 180/Math.PI;
-    out[i + 1] = [rx, ry];
-  }
-  return out;
-}
-
-var FACE_ORIENTATIONS = {
-  4: _computePolyOrientations(4),
-  6: {
-    // d6: «столешный» наклон, чтобы видеть 3 грани в покое.
-    1: [-22, 28],  2: [-22, -62],  3: [-22, 208],  4: [-22, 118],
-    5: [-112, 28], 6: [68, 28]
-  },
-  8: _computePolyOrientations(8)
-};
-
-function getFinalOrientation(sides, result) {
-  var table = FACE_ORIENTATIONS[sides];
-  if (table && table[result]) return table[result];
-  return [0, 0];
-}
 
 function prefersReducedMotion() {
   return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 
-function animateDice3d(sides, result, callback) {
-  var stage = document.querySelector(".dsvg-container");
-  var dieEl = document.getElementById("dice-3d-die");
-  var numEl = $("dice-svg-num");
-  if (!stage || !dieEl) { callback(); return; }
-  drawDiceSVG(sides);
+// ============================================================
+// DICE2-2: интеграция @3d-dice/dice-box (WebGL 3D-кубики)
+// ============================================================
+// Инициализация DiceBox ленивая (при первом броске), чтобы не грузить
+// Babylon+Ammo на старте приложения. Экземпляр хранится в _diceBoxInstance.
+var _diceBoxInstance = null;
+var _diceBoxInitPromise = null;
 
-  // Устанавливаем финальную ориентацию через CSS-переменные
-  var orient = getFinalOrientation(sides, result);
-  dieEl.style.setProperty("--final-rx", orient[0] + "deg");
-  dieEl.style.setProperty("--final-ry", orient[1] + "deg");
+function _waitDiceBoxModule() {
+  if (typeof window.DiceBox === 'function') return Promise.resolve();
+  return new Promise(function(resolve) {
+    var onReady = function() {
+      window.removeEventListener('dicebox:ready', onReady);
+      resolve();
+    };
+    window.addEventListener('dicebox:ready', onReady);
+    // На случай если событие уже отстрелило до подписки
+    if (typeof window.DiceBox === 'function') {
+      window.removeEventListener('dicebox:ready', onReady);
+      resolve();
+    }
+  });
+}
 
-  // Сбросить все старые анимационные классы и сделать reflow
-  var stale = ["dsvg-shake","dsvg-land","tumble3d",
-    "dsvg-roll-d4","dsvg-roll-d6","dsvg-roll-d8","dsvg-roll-d10","dsvg-roll-d12","dsvg-roll-d20","dsvg-roll-d100"];
-  stale.forEach(function(c){ stage.classList.remove(c); dieEl.classList.remove(c); });
-  void stage.offsetWidth;
+// DICE2-5: тема кубиков. Приоритет: пользовательский diceColor (localStorage) →
+// --accent → fallback. Изменение цвета применяется к новым броскам сразу.
+function _getAccentColor() {
+  try {
+    var custom = localStorage.getItem('diceColor');
+    if (custom && /^#[0-9a-f]{6}$/i.test(custom)) return custom;
+  } catch (e) {}
+  try {
+    var v = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    if (v && /^#[0-9a-f]{3,8}$/i.test(v)) return v;
+  } catch (e) {}
+  return '#d4a843';
+}
 
+function setDiceColor(hex) {
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) return;
+  try { localStorage.setItem('diceColor', hex); } catch (e) {}
+  if (_diceBoxInstance) _diceBoxInstance.updateConfig({ themeColor: hex });
+}
+
+function resetDiceColor() {
+  try { localStorage.removeItem('diceColor'); } catch (e) {}
+  var fallback = _getAccentColor();
+  var inp = document.getElementById('dice-color-input');
+  if (inp) inp.value = fallback;
+  if (_diceBoxInstance) _diceBoxInstance.updateConfig({ themeColor: fallback });
+}
+
+// Синхронизация input при открытии модалки кубиков.
+function _syncDiceColorInput() {
+  var inp = document.getElementById('dice-color-input');
+  if (inp) inp.value = _getAccentColor();
+}
+document.addEventListener('DOMContentLoaded', _syncDiceColorInput);
+
+function _initDiceBox() {
+  if (_diceBoxInstance) return Promise.resolve(_diceBoxInstance);
+  if (_diceBoxInitPromise) return _diceBoxInitPromise;
+
+  _diceBoxInitPromise = (async function() {
+    await _waitDiceBoxModule();
+    // assetPath строим от каталога приложения — корректно работает и в корне домена,
+    // и в подпапке (GitHub Pages). В dice-box путь собирается как origin+assetPath.
+    var basePath = location.pathname.replace(/[^/]*$/, '');
+    var box = new window.DiceBox({
+      container: '#dsvg-container',
+      assetPath: basePath + 'vendor/dice-box/assets/',
+      origin: location.origin,
+      theme: 'default',
+      themeColor: _getAccentColor(),
+      scale: 16,
+      enableShadows: true,
+      shadowTransparency: 0.7,
+      lightIntensity: 1
+    });
+    await box.init();
+    _diceBoxInstance = box;
+    return box;
+  })().catch(function(err) {
+    console.error('[DiceBox] Ошибка инициализации:', err);
+    _diceBoxInitPromise = null;
+    throw err;
+  });
+  return _diceBoxInitPromise;
+}
+
+// DICE2-3: callback принимает (actualValue, actualValue2) — второе значение не-undefined
+// только при qty=2 (adv/dis). UI синхронизирует оба числа с физикой.
+// dice-box поддерживает d4/d6/d8/d10/d12/d20/d100. В notation указываем qty×sides.
+function animateDice3d(sides, result, callback, opts) {
+  var qty = (opts && opts.qty) ? opts.qty : 1;
   var reduced = prefersReducedMotion();
-  var duration = reduced ? 300 : 1300;
-  var impactAt = reduced ? 180 : Math.round(duration * 0.78); // момент «удара»
-
-  if (numEl) { numEl.style.opacity = reduced ? "1" : "0.75"; }
-
-  var rollInterval = null;
-  if (!reduced && numEl) {
-    rollInterval = setInterval(function(){
-      numEl.textContent = Math.floor(Math.random() * sides) + 1;
-    }, 55);
-    setTimeout(function(){
-      if (rollInterval) clearInterval(rollInterval);
-      rollInterval = setInterval(function(){
-        numEl.textContent = Math.floor(Math.random() * sides) + 1;
-      }, 110);
-    }, Math.round(duration * 0.45));
+  if (reduced) {
+    setTimeout(function() { callback(); }, 30);
+    return;
   }
-
-  // Запуск tumble3d-анимации
-  stage.classList.add("tumble3d");
-  dieEl.classList.add("tumble3d");
-
-  // К моменту удара показываем итоговое число
-  setTimeout(function(){
-    if (rollInterval) { clearInterval(rollInterval); rollInterval = null; }
-    if (numEl) {
-      numEl.textContent = result;
-      numEl.style.opacity = "1";
-    }
-  }, impactAt);
-
-  // Завершение: оставляем .tumble3d (animation-fill-mode: forwards держит финальную ориентацию).
-  // Перед следующим броском класс сбрасывается выше через void offsetWidth + повторное добавление.
-  setTimeout(function(){
-    if (rollInterval) { clearInterval(rollInterval); rollInterval = null; }
-    if (numEl) {
-      numEl.textContent = result;
-      numEl.style.opacity = "1";
-    }
+  _initDiceBox().then(function(box) {
+    box.onRollComplete = function(results) {
+      var v1, v2;
+      try {
+        var rolls = results && results[0] && results[0].rolls ? results[0].rolls : [];
+        v1 = rolls[0] ? rolls[0].value : undefined;
+        v2 = rolls[1] ? rolls[1].value : undefined;
+      } catch (e) { v1 = undefined; v2 = undefined; }
+      // DICE2-5: glow на крит. d20 = 1/20 (учитываем и второй кубик при adv/dis)
+      _applyDiceCritGlow(sides, v1, v2);
+      callback(v1, v2);
+    };
+    box.clear();
+    box.roll([{ qty: qty, sides: sides }], { themeColor: _getAccentColor() });
+  }).catch(function() {
     callback();
-  }, duration + 20);
+  });
+}
+
+// DICE2-5: кратковременный glow контейнера кубиков на крит. d20.
+function _applyDiceCritGlow(sides, v1, v2) {
+  if (sides !== 20) return;
+  var el = document.getElementById('dsvg-container');
+  if (!el) return;
+  el.classList.remove('crit-success', 'crit-fail');
+  var hasCrit = (v1 === 20) || (v2 === 20);
+  var hasFail = (v1 === 1)  || (v2 === 1);
+  if (!hasCrit && !hasFail) return;
+  void el.offsetWidth;
+  el.classList.add(hasCrit ? 'crit-success' : 'crit-fail');
+  setTimeout(function() { el.classList.remove('crit-success', 'crit-fail'); }, 1400);
 }
 
 function rollCustomFormula() {
