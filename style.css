@@ -125,6 +125,14 @@
 }
 .btn-primary:hover { background: var(--accent-hi); border-color: var(--accent-hi); }
 
+.btn-secondary {
+  background: var(--bg-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+.btn-secondary:hover { background: var(--bg-3); }
+
 .btn-ghost {
   background: transparent;
   border-color: transparent;
@@ -6170,11 +6178,16 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .dice-color-inp {
   width: 42px; height: 32px; padding: 0; border: 1px solid var(--bg-3);
   border-radius: 6px; background: transparent; cursor: pointer;
+  flex: 0 0 42px; margin: 0;
 }
 .dice-color-reset {
   background: var(--bg-3); color: var(--text-color); border: 1px solid var(--bg-3);
-  border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 1em;
+  border-radius: 6px; padding: 0 12px; cursor: pointer; font-size: 1em;
+  width: auto; height: 32px; margin: 0; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 400; box-shadow: none;
 }
+.dice-color-reset:hover { transform: none; box-shadow: none; }
 .dice-color-reset:hover { border-color: var(--accent); }
 
 /* Result panel */
@@ -7512,7 +7525,9 @@ body {
   background: none; border: none; color: var(--text-muted, rgba(255,255,255,0.5));
   cursor: pointer; font-size: 1.1em; line-height: 1; padding: 2px 6px;
   border-radius: 6px; transition: background 0.15s;
+  width: auto; margin: 0; font-weight: 400; box-shadow: none;
 }
+.notes-modal-close:hover { transform: none; box-shadow: none; }
 .notes-modal-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
 .notes-modal-body {
   display: flex;
@@ -7566,8 +7581,9 @@ body {
   background: rgba(245,200,110,0.15); border: 1px solid rgba(245,200,110,0.3);
   border-radius: 8px; color: #f5c86e; cursor: pointer; font-size: 1em;
   padding: 4px 12px; transition: background 0.15s;
+  width: auto; margin: 0; flex: 0 0 auto; font-weight: 400; box-shadow: none;
 }
-.notes-modal-tag-add-btn:hover { background: rgba(245,200,110,0.3); }
+.notes-modal-tag-add-btn:hover { background: rgba(245,200,110,0.3); transform: none; box-shadow: none; }
 .notes-modal-footer {
   border-top: 1px solid rgba(255,255,255,0.08);
   display: flex;
@@ -7575,6 +7591,7 @@ body {
   justify-content: flex-end;
   padding: 12px 16px;
 }
+.notes-modal-footer button { width: auto; margin: 0; padding: 8px 18px; }
 
 /* ── N3: Markdown-тулбар, превью, счётчик ─────────────────── */
 .notes-md-toolbar {
