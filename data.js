@@ -18,7 +18,7 @@ function escapeHtml(text) {
 }
 
 // ── Версия схемы персонажа — увеличивать при изменении структуры ──────────────
-const SCHEMA_VERSION = 10;
+const SCHEMA_VERSION = 11;
 
 // ── Типы урона PHB 5e ──────────────────────────────────────────────────────────
 const DAMAGE_TYPES = [
@@ -67,6 +67,7 @@ const DEFAULT_CHARACTER = {
   basicLocked: false,
   raceFeats: [],
   raceStatChoice: [],
+  buildId: null,
   notesV2: {
     sections: {
       appearance: "", personality: "", backstory: "",
@@ -75,7 +76,7 @@ const DEFAULT_CHARACTER = {
     entries: [],
     prefs: { lastSection: 'backstory', lastFilter: 'all' }
   },
-  schemaVersion: 10
+  schemaVersion: 11
 };
 
 // ── Шаблон записи-карточки notesV2 (entry) ────────────────────────────────────
@@ -1538,8 +1539,8 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "2.8.0";
-const APP_VERSION_DATE = "2026-04-18";
+const APP_VERSION = "2.9.0";
+const APP_VERSION_DATE = "2026-04-20";
 
 // ============================================================
 // ЧЕРТЫ — PHB 5e (Fantom Studio перевод, 20 основных)
@@ -1823,6 +1824,21 @@ const FEATS_DATA = [
 // CHANGELOG — история версий приложения
 // ============================================================
 const APP_CHANGELOG = [
+  {
+    version: "2.9.0",
+    date: "20 апреля 2026",
+    badge: "new",
+    changes: [
+      { type: "feat",    text: "Готовые билды персонажей (BUILD-1..BUILD-6): 36 билдов — по 3 на каждый из 12 классов PHB 2014" },
+      { type: "feat",    text: "Кнопка «📘 По готовому билду» при создании чара — предзаполняет класс, подкласс, расу, предысторию, статы, снаряжение и заклинания" },
+      { type: "feat",    text: "Баннер-подсказка в модалке повышения уровня: «Рекомендация: {что} — {почему}» с подсветкой рекомендованного выбора" },
+      { type: "feat",    text: "Схема чара v11: поле buildId + миграция старых персонажей" },
+      { type: "feat",    text: "Пикер билдов: фильтры по классу и роли (DPS/Tank/Support/Control/Utility), поиск по названию/классу/подклассу" },
+      { type: "feat",    text: "Бейдж «⚔️ Билд: …» на экране персонажа с тултипом summary и кнопкой «✕ Отвязать»" },
+      { type: "improve", text: "Иконки ролей в бейджах и цветовая кодировка сложности билда (1 — зелёный, 2 — оранжевый, 3 — красный)" },
+      { type: "improve", text: "A11y пикера: role=\"dialog\", автофокус на поле поиска, ESC закрывает модалку, Enter/Space активирует карточку" }
+    ]
+  },
   {
     version: "2.7.0",
     date: "17 апреля 2026",

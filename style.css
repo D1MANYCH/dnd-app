@@ -3706,6 +3706,27 @@ font-size: 0.85em;
 }
 
 .lu-features { margin-bottom: 6px; }
+.lu-build-hint {
+  margin: 10px 0 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-md, 10px);
+  background: linear-gradient(135deg, rgba(168, 124, 74, 0.18), rgba(168, 124, 74, 0.08));
+  border: 1px solid var(--accent, #a87c4a);
+  box-shadow: var(--sh-1, 0 2px 6px rgba(0,0,0,0.15));
+}
+.lu-build-hint-label {
+  font-size: 12px; font-weight: 600;
+  color: var(--accent, #a87c4a);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.lu-build-hint-headline { font-weight: 700; font-size: 15px; margin-bottom: 3px; }
+.lu-build-hint-why { font-size: 13px; opacity: 0.85; }
+.lu-feature-item.recommended {
+  border-left: 3px solid var(--accent, #a87c4a);
+  background: rgba(168, 124, 74, 0.08);
+  padding-left: 8px;
+}
 .lu-feature-item {
   background: rgba(255,255,255,0.04);
   border: 1px solid var(--border-color);
@@ -7817,3 +7838,40 @@ mark.notes-hl {
   .notes-entry-title { font-weight: bold; }
 }
 
+
+/* ── BUILD-2: Build picker modal ───────────────────────────────────────────── */
+.bp-modal { max-width: 640px; }
+.bp-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; padding-right:30px; }
+.bp-title { font-size:1.15em; font-weight:600; color:var(--accent); }
+.bp-filter-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.bp-filter-label { font-size:0.9em; color:var(--text-muted); }
+.bp-select { flex:1; padding:6px 10px; background:var(--bg-3); color:var(--text-color); border:1px solid var(--border); border-radius:var(--r-sm,6px); }
+.bp-list { display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow-y:auto; }
+.bp-empty { text-align:center; color:var(--text-muted); padding:20px; }
+.bp-card { background:var(--bg-3); border:1px solid var(--border); border-radius:var(--r-md,10px); padding:12px 14px; cursor:pointer; transition:transform .12s, border-color .12s, box-shadow .12s; }
+.bp-card:hover { border-color:var(--accent); transform:translateY(-1px); box-shadow:var(--sh-1, 0 2px 8px rgba(0,0,0,.25)); }
+.bp-card-head { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px; }
+.bp-card-title { font-weight:600; color:var(--text-color); }
+.bp-role-badge { font-size:0.75em; padding:2px 8px; border-radius:999px; background:var(--bg-2); border:1px solid var(--border); color:var(--text-muted); }
+.bp-role-DPS { color:#e74c3c; border-color:#e74c3c; }
+.bp-role-Tank { color:#2980b9; border-color:#2980b9; }
+.bp-role-Control { color:#8e44ad; border-color:#8e44ad; }
+.bp-role-Support { color:#27ae60; border-color:#27ae60; }
+.bp-role-Utility { color:#f39c12; border-color:#f39c12; }
+.bp-card-sub { font-size:0.85em; color:var(--accent); margin-bottom:6px; }
+.bp-card-summary { font-size:0.88em; color:var(--text-muted); margin-bottom:8px; line-height:1.4; }
+.bp-card-meta { display:flex; gap:12px; flex-wrap:wrap; font-size:0.8em; color:var(--text-muted); }
+.bp-diff { letter-spacing:2px; }
+.bp-diff-1 { color:#27ae60; }
+.bp-diff-2 { color:#f39c12; }
+.bp-diff-3 { color:#e74c3c; }
+.bp-search { flex:1 1 220px; min-width:180px; background:var(--bg-3); color:var(--text-color); border:1px solid var(--border); border-radius:var(--r-sm,6px); padding:6px 10px; font-size:0.9em; }
+.bp-search:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(201,162,39,.25); }
+.bp-card:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(201,162,39,.3); }
+.bp-footer { margin-top:14px; display:flex; justify-content:flex-end; }
+
+/* BUILD-6: build badge on character screen */
+.char-build-badge-wrap { display:flex; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap; }
+.char-build-badge { display:inline-block; padding:4px 10px; background:var(--bg-3); border:1px solid var(--accent); color:var(--accent); border-radius:999px; font-size:0.82em; font-weight:600; cursor:help; }
+.char-build-unlink { background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:var(--r-sm,6px); padding:3px 8px; font-size:0.78em; cursor:pointer; transition:color .12s, border-color .12s; }
+.char-build-unlink:hover { color:#e74c3c; border-color:#e74c3c; }

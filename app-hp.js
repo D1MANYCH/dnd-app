@@ -393,6 +393,27 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
     } else { slotsCard.style.display = "none"; }
   }
 
+  // Баннер рекомендации билда
+  var hintEl = $("lu-build-hint");
+  var buildRec = null;
+  if (hintEl) {
+    if (char.buildId && typeof window.getBuildRecommendationForLevel === "function") {
+      buildRec = window.getBuildRecommendationForLevel(char.buildId, newTotalLevel);
+      var build = window.getBuildById ? window.getBuildById(char.buildId) : null;
+      if (buildRec) {
+        var buildTitle = build ? build.title : "";
+        hintEl.innerHTML = "<div class='lu-build-hint-label'>💡 Рекомендация билда" + (buildTitle ? " «" + escapeHtml(buildTitle) + "»" : "") + "</div><div class='lu-build-hint-headline'>" + escapeHtml(buildRec.headline) + "</div><div class='lu-build-hint-why'>" + escapeHtml(buildRec.why) + "</div>";
+        hintEl.style.display = "";
+      } else {
+        hintEl.style.display = "none";
+        hintEl.innerHTML = "";
+      }
+    } else {
+      hintEl.style.display = "none";
+      hintEl.innerHTML = "";
+    }
+  }
+
   // Фичи
   var featuresContainer = $("lu-features-container");
   featuresContainer.innerHTML = "";
@@ -400,6 +421,9 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
     CLASS_FEATURES[className][classLevel].forEach(function(f) {
       var div = document.createElement("div");
       div.className = "lu-feature-item";
+      if (buildRec && buildRec.headline && buildRec.headline.toLowerCase().indexOf(f.name.toLowerCase()) !== -1) {
+        div.className += " recommended";
+      }
       div.innerHTML = "<div class=\"lu-feature-name\">" + escapeHtml(f.name) + "</div><div class=\"lu-feature-desc\">" + escapeHtml(f.desc) + "</div>";
       featuresContainer.appendChild(div);
     });

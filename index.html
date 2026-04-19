@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=n5">
+<link rel="stylesheet" href="style.css?v=b6">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 </script>
@@ -98,6 +98,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div id="character-list"></div>
 <button onclick="createNewCharacter()">+ Новый персонаж</button>
+<button onclick="openBuildPicker()">📘 По готовому билду</button>
 <button class="secondary" onclick="exportData()">💾 Скачать копию</button>
 <button class="secondary" onclick="document.getElementById('import-file').click()">📂 Загрузить копию</button>
 <button class="secondary" onclick="document.getElementById('spells-import').click()">📥 Импорт заклинаний</button>
@@ -158,6 +159,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <div class="sheet-top-small-row">
       <div class="sheet-small-field"><label>Уровень</label><input type="number" id="char-level" min="1" max="20" oninput="calcStats(); updateSubclassOptions(); updateClassFeatures(); updateLockButtonState()"></div>
       <div class="sheet-small-field"><label>Опыт</label><input type="number" id="char-exp" value="0" oninput="updateChar()"></div>
+    </div>
+    <div id="char-build-badge-wrap" class="char-build-badge-wrap" style="display:none">
+      <span id="char-build-badge" class="char-build-badge" title=""></span>
+      <button type="button" class="char-build-unlink" onclick="unlinkBuild()" title="Отвязать билд от персонажа" aria-label="Отвязать билд">✕ Отвязать</button>
     </div>
   </div>
 </div>
@@ -1356,6 +1361,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 
+<div id="lu-build-hint" class="lu-build-hint" style="display:none"></div>
 <div id="lu-features-container" class="lu-features"></div>
 
 <div class="lu-footer">
@@ -1801,11 +1807,42 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
-<script src="data.js?v=n1"></script>
+<!-- BUILD-2: Build picker modal -->
+<div id="build-picker-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="bp-title-h">
+  <div class="modal-content bp-modal">
+    <div class="bp-header">
+      <span class="bp-title" id="bp-title-h">📘 Готовые билды</span>
+      <span class="modal-close" onclick="closeModal('build-picker-modal')" aria-label="Закрыть" tabindex="0" role="button">&times;</span>
+    </div>
+    <div class="bp-filter-row">
+      <input type="text" id="bp-search" class="bp-search" placeholder="🔍 Поиск по названию, классу, подклассу..." oninput="renderBuildPicker()" aria-label="Поиск по билдам">
+      <label class="bp-filter-label">Класс:</label>
+      <select id="bp-class-filter" class="bp-select" onchange="renderBuildPicker()" aria-label="Фильтр по классу">
+        <option value="">Все</option>
+      </select>
+      <label class="bp-filter-label">Роль:</label>
+      <select id="bp-role-filter" class="bp-select" onchange="renderBuildPicker()" aria-label="Фильтр по роли">
+        <option value="">Все</option>
+        <option value="DPS">⚔️ DPS</option>
+        <option value="Tank">🛡️ Tank</option>
+        <option value="Support">✨ Support</option>
+        <option value="Control">🌀 Control</option>
+        <option value="Utility">🧰 Utility</option>
+      </select>
+    </div>
+    <div id="bp-list" class="bp-list"></div>
+    <div class="bp-footer">
+      <button class="btn secondary" onclick="closeModal('build-picker-modal')">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<script src="data.js?v=b6"></script>
+<script src="character-builds.js?v=b5"></script>
 <script src="spells.js?v=n1"></script>
-<script src="app-core.js?v=n2"></script>
+<script src="app-core.js?v=b6"></script>
 <script src="app-combat.js?v=n1"></script>
-<script src="app-hp.js?v=n1"></script>
+<script src="app-hp.js?v=build3"></script>
 <script src="app-spells.js?v=n1"></script>
 <script src="app-inventory.js?v=n1"></script>
 <script src="app-party.js?v=n1"></script>

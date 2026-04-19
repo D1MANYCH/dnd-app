@@ -347,6 +347,11 @@ function migrateCharacter(char) {
     if (typeof char.magicItems === 'string' && char.magicItems && !sec.magicItems) sec.magicItems = char.magicItems;
     char.schemaVersion = 10;
   }
+  if (v < 11) {
+    // BUILD-1: готовые билды персонажей. Существующие чары не привязаны.
+    if (typeof char.buildId === 'undefined') char.buildId = null;
+    char.schemaVersion = 11;
+  }
   return char;
 }
 
@@ -534,6 +539,147 @@ function hideCharacterNav() {
     }
   }, { passive: true });
 })();
+
+// ── BUILD-2: Build picker ─────────────────────────────────────────────────────
+function openBuildPicker() {
+  var sel = $("bp-class-filter");
+  if (sel && sel.options.length <= 1) {
+    var classes = [];
+    (window.CHARACTER_BUILDS || []).forEach(function(b){
+      if (classes.indexOf(b.className) === -1) classes.push(b.className);
+    });
+    classes.sort();
+    classes.forEach(function(c){
+      var o = document.createElement("option");
+      o.value = c; o.textContent = c;
+      sel.appendChild(o);
+    });
+  }
+  var s = $("bp-search"); if (s) s.value = "";
+  renderBuildPicker();
+  openModal("build-picker-modal");
+  setTimeout(function(){ var el = $("bp-search"); if (el) el.focus(); }, 50);
+}
+
+var BP_ROLE_ICONS = { DPS:"⚔️", Tank:"🛡️", Support:"✨", Control:"🌀", Utility:"🧰" };
+var BP_DIFF_LABELS = { 1:"новичку", 2:"среднее", 3:"сложное" };
+
+function renderBuildPicker() {
+  var list = $("bp-list");
+  if (!list) return;
+  var filter = ($("bp-class-filter") && $("bp-class-filter").value) || "";
+  var roleFilter = ($("bp-role-filter") && $("bp-role-filter").value) || "";
+  var searchInp = $("bp-search");
+  var q = (searchInp && searchInp.value || "").trim().toLowerCase();
+  var builds = (window.CHARACTER_BUILDS || []).filter(function(b){
+    if (filter && b.className !== filter) return false;
+    if (roleFilter && b.role !== roleFilter) return false;
+    if (q) {
+      var hay = ((b.title||"") + " " + (b.className||"") + " " + (b.subclass||"") + " " + (b.race||"") + " " + (b.summary||"")).toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+  if (!builds.length) {
+    list.innerHTML = '<div class="bp-empty">Ничего не найдено. Попробуйте другой фильтр или поиск.</div>';
+    return;
+  }
+  list.innerHTML = builds.map(function(b){
+    var d = b.difficulty || 1;
+    var diff = "●".repeat(d) + "○".repeat(3 - d);
+    var roleIcon = BP_ROLE_ICONS[b.role] || "";
+    return (
+      '<div class="bp-card" tabindex="0" role="button" aria-label="' + escapeHtml(b.title) + '" onclick="applyBuild(\'' + b.id + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();applyBuild(\'' + b.id + '\')}">' +
+        '<div class="bp-card-head">' +
+          '<span class="bp-card-title">' + escapeHtml(b.title) + '</span>' +
+          '<span class="bp-role-badge bp-role-' + escapeHtml(b.role || "") + '">' + roleIcon + ' ' + escapeHtml(b.role || "") + '</span>' +
+        '</div>' +
+        '<div class="bp-card-sub">' + escapeHtml(b.className) + (b.subclass ? ' · ' + escapeHtml(b.subclass) : '') + '</div>' +
+        '<div class="bp-card-summary">' + escapeHtml(b.summary || "") + '</div>' +
+        '<div class="bp-card-meta">' +
+          '<span class="bp-diff bp-diff-' + d + '" title="Сложность: ' + (BP_DIFF_LABELS[d]||"") + '">' + diff + '</span>' +
+          '<span class="bp-race">🧬 ' + escapeHtml(b.race || "") + '</span>' +
+          '<span class="bp-bg">📜 ' + escapeHtml(b.background || "") + '</span>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join("");
+}
+
+// BUILD-6: badge on character screen
+function renderBuildBadge() {
+  var wrap = $("char-build-badge-wrap");
+  var badge = $("char-build-badge");
+  if (!wrap || !badge) return;
+  var char = getCurrentChar();
+  if (!char || !char.buildId) { wrap.style.display = "none"; return; }
+  var b = window.getBuildById && window.getBuildById(char.buildId);
+  if (!b) { wrap.style.display = "none"; return; }
+  var roleIcon = BP_ROLE_ICONS[b.role] || "📘";
+  badge.textContent = roleIcon + " Билд: " + b.title;
+  badge.title = (b.summary || "") + (b.role ? "  [" + b.role + "]" : "");
+  wrap.style.display = "";
+}
+
+function unlinkBuild() {
+  var char = getCurrentChar();
+  if (!char || !char.buildId) return;
+  if (!confirm("Отвязать билд от персонажа? Рекомендации при повышении уровня больше не будут показываться.")) return;
+  char.buildId = null;
+  char.updatedAt = Date.now();
+  saveToLocal();
+  renderBuildBadge();
+  if (typeof showToast === "function") showToast("Билд отвязан", "success");
+}
+
+// BUILD-6: ESC + focus trap for build picker
+(function(){
+  document.addEventListener("keydown", function(ev){
+    if (ev.key !== "Escape") return;
+    var m = document.getElementById("build-picker-modal");
+    if (m && m.classList.contains("active")) {
+      closeModal("build-picker-modal");
+    }
+  });
+})();
+
+function applyBuild(buildId) {
+  var b = window.getBuildById && window.getBuildById(buildId);
+  if (!b) { if (typeof showToast === "function") showToast("Билд не найден", "warn"); return; }
+  var newChar = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));
+  newChar.id = Date.now();
+  newChar.schemaVersion = (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : 11;
+  newChar.buildId = b.id;
+  newChar.name = b.title || newChar.name;
+  newChar.class = b.className || "";
+  newChar.subclass = b.subclass || "";
+  newChar.race = b.race || "";
+  newChar.background = b.background || "";
+  if (b.stats) {
+    newChar.stats = Object.assign({str:10,dex:10,con:10,int:10,wis:10,cha:10}, b.stats);
+  }
+  for (var i = 1; i <= 9; i++) {
+    newChar.spells.slots[i] = 0;
+    newChar.spells.slotsUsed[i] = 0;
+  }
+  if (b.startingSpells) {
+    if (Array.isArray(b.startingSpells.cantrips)) newChar.spells.mySpells = newChar.spells.mySpells.concat(b.startingSpells.cantrips);
+    if (Array.isArray(b.startingSpells.known))    newChar.spells.mySpells = newChar.spells.mySpells.concat(b.startingSpells.known);
+    if (Array.isArray(b.startingSpells.prepared)) newChar.spells.prepared  = newChar.spells.prepared.concat(b.startingSpells.prepared);
+  }
+  if (Array.isArray(b.startingEquipment)) {
+    if (!newChar.inventory.other) newChar.inventory.other = [];
+    b.startingEquipment.forEach(function(name){
+      newChar.inventory.other.push({ name: name, qty: 1, weight: 0, desc: "" });
+    });
+  }
+  newChar.updatedAt = Date.now();
+  characters.push(newChar);
+  saveToLocal();
+  closeModal("build-picker-modal");
+  loadCharacter(newChar.id);
+  if (typeof showToast === "function") showToast("Билд применён: " + b.title, "success");
+}
 
 function createNewCharacter() {
 // Глубокое копирование дефолтного шаблона — безопасно, без мутации оригинала
@@ -793,6 +939,7 @@ updateSubclassOptions();
 safeSet("char-subclass", savedSubclass);
 safeSet("char-race", char.race);
 safeSet("char-background", char.background || "");
+if (typeof renderBuildBadge === "function") renderBuildBadge();
 safeSet("char-alignment", char.alignment || "");
 safeSet("char-size", char.size || "Средний");
 safeSet("char-speed", char.speed || "30 фт");
