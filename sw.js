@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v38';
+const CACHE_NAME = 'dnd-sheet-v42';
 
 const FILES_TO_CACHE = [
   './',
@@ -14,6 +14,14 @@ const FILES_TO_CACHE = [
   './app-combat.js',
   './app-hp.js',
   './app-spells.js',
+  './assets/schools/abjuration.png',
+  './assets/schools/conjuration.png',
+  './assets/schools/divination.png',
+  './assets/schools/enchantment.png',
+  './assets/schools/evocation.png',
+  './assets/schools/illusion.png',
+  './assets/schools/necromancy.png',
+  './assets/schools/transmutation.png',
   './app-inventory.js',
   './app-party.js',
   './app-ui.js',

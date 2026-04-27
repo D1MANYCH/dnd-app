@@ -1,0 +1,13 @@
+School-of-magic icons — gold-style PNGs (512x512, RGBA, transparent background).
+Generated via Google Nano Banana (Gemini Image) from custom prompts, post-processed:
+black background → transparent, cropped to bbox + 6% margin, resized to 512x512.
+
+Mapping (RU → file):
+  ограждение     → abjuration.png
+  воплощение     → evocation.png
+  вызов          → conjuration.png
+  прорицание     → divination.png
+  очарование     → enchantment.png
+  иллюзия        → illusion.png
+  некромантия    → necromancy.png
+  преобразование → transmutation.png

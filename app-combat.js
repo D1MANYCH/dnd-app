@@ -184,7 +184,7 @@ item.className = "save-item";
 item.id = "save-item-" + save.key;
 item.innerHTML = `
 <div class="save-header">
-<span class="save-icon">${escapeHtml(save.icon)}</span>
+<span class="save-icon">${getAbilityIcon(save.key) || escapeHtml(save.icon)}</span>
 <span class="save-name">${escapeHtml(save.name)}</span>
 </div>
 <div class="save-value">
@@ -495,7 +495,7 @@ baseConditions.forEach(function(condition) {
   item.className = "condition-item" + (condition.type ? " " + condition.type : "");
   item.id = "condition-" + condition.id;
   item.onclick = function() { toggleCondition(condition.id); };
-  item.innerHTML = "<div class=\"condition-name\">" + escapeHtml(condition.name) + "</div><div class=\"condition-desc\">" + escapeHtml(condition.desc) + "</div>";
+  item.innerHTML = getConditionIcon(condition.id) + "<div class=\"condition-name\"><span>" + escapeHtml(stripLeadingEmoji(condition.name)) + "</span></div><div class=\"condition-desc\">" + escapeHtml(condition.desc) + "</div>";
   grid.appendChild(item);
 });
 // Блок истощения отдельно
@@ -503,7 +503,7 @@ var exhBlock = document.createElement("div");
 exhBlock.className = "exhaustion-block";
 exhBlock.innerHTML =
   '<div class="exhaustion-header">' +
-    '<span class="exhaustion-title">😫 Истощение</span>' +
+    '<span class="exhaustion-title">' + getConditionIcon('exhaustion') + '<span>Истощение</span></span>' +
     '<div class="exhaustion-controls">' +
       '<button class="exhaustion-btn" onclick="adjustExhaustion(-1)">−</button>' +
       '<span class="exhaustion-level" id="exhaustion-level">0</span>' +
@@ -549,6 +549,8 @@ if (levelEl) {
   levelEl.textContent = lvl;
   levelEl.className = "exhaustion-level" + (lvl > 0 ? " active" : "") + (lvl >= 5 ? " critical" : "");
 }
+var titleImg = document.querySelector('.exhaustion-title .condition-icon-svg');
+if (titleImg) titleImg.src = 'assets/conditions/exhaustion_' + (lvl > 0 ? lvl : 1) + '.png';
 if (descEl) {
   if (lvl === 0) descEl.textContent = "";
   else {
@@ -2742,13 +2744,13 @@ function renderConditionsPopup() {
     baseConditions.forEach(function(c) {
       var badge = document.createElement("span");
       badge.className = "condition-badge";
-      badge.textContent = c.name;
+      badge.innerHTML = getConditionIcon(c.id) + '<span>' + escapeHtml(stripLeadingEmoji(c.name)) + '</span>';
       badges.appendChild(badge);
     });
     if (exhLevel > 0) {
       var exhBadge = document.createElement("span");
       exhBadge.className = "condition-badge exhaustion";
-      exhBadge.textContent = "😫 Истощение " + exhLevel + (exhLevel >= 6 ? " — смерть" : "/6");
+      exhBadge.innerHTML = getConditionIcon('exhaustion_' + exhLevel) + '<span>Истощение ' + exhLevel + (exhLevel >= 6 ? ' — смерть' : '/6') + '</span>';
       badges.appendChild(exhBadge);
     }
     group.appendChild(badges);

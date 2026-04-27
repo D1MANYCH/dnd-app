@@ -180,7 +180,7 @@ const isAdded = char?.spells?.mySpells && char.spells.mySpells.some(function(s) 
 const spellClassArr = Array.isArray(spell.classes) ? spell.classes : [spell.class || "both"];
 const primaryClass = spellClassArr.length === 1 ? spellClassArr[0] : (spellClassArr.includes(currentSpellClass) ? currentSpellClass : spellClassArr[0]);
 const classBadge = "class-" + (primaryClass || "both");
-const classText = spellClassArr.length > 1 ? spellClassArr.map(function(c){return CLASS_ICONS_MAP[c]||"✨";}).join("") : (CLASS_ICONS_MAP[primaryClass] || "✨");
+const classText = spellClassArr.length > 1 ? spellClassArr.map(function(c){return getSpellClassIcon(c);}).join("") : getSpellClassIcon(primaryClass);
 var div = document.createElement("div");
 div.className = "spell-item" + (isAdded ? " spell-added" : "");
 div.innerHTML = "<h4>" + escapeHtml(spell.name) + " <span class=\"source-badge source-" + spell.source.toLowerCase() + "\">" + escapeHtml(spell.source) + "</span> <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<button class=\"" + (isAdded ? "secondary" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + spell.id + ")" : "addSpell(" + spell.id + ")") + "\" style=\"margin-top:8px;\">" + (isAdded ? "Добавлено" : "+ Добавить") + "</button>";
@@ -250,7 +250,7 @@ container.appendChild(groupDiv);
 var ritualClasses = ["Волшебник", "Жрец", "Друид", "Бард"];
 byLevel[level].forEach(function(spell) {
 const spellClassArr2 = Array.isArray(spell.classes) ? spell.classes : [spell.class || "both"];
-const classIcons = spellClassArr2.map(function(c){ return CLASS_ICONS_MAP[c] || "✨"; }).join(" ");
+const classIcons = spellClassArr2.map(function(c){ return getSpellClassIcon(c); }).join("");
 const sourceClass = "source-" + (spell.source || "ph14").toLowerCase();
 const schoolName = spell.school || "";
 var isRitual = !!(spell.time && spell.time.includes("(ритуал)"));
@@ -277,7 +277,7 @@ card.innerHTML =
     '</div>' +
     '<div class="spell-card-badges">' +
       '<span class="source-badge ' + sourceClass + '">' + escapeHtml(spell.source || "") + '</span>' +
-      (schoolName ? '<span class="school-badge">' + escapeHtml(schoolName) + '</span>' : '') +
+      (schoolName ? '<span class="school-badge school-' + getSchoolSlug(schoolName) + '">' + getSchoolIcon(schoolName) + '<span class="school-badge-text">' + escapeHtml(schoolName) + '</span></span>' : '') +
       '<span class="class-icons-row">' + classIcons + '</span>' +
     '</div>' +
   '</div>' +

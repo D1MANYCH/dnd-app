@@ -279,7 +279,7 @@ item.className = "save-item";
 item.id = "save-item-" + save.key;
 item.innerHTML = `
 <div class="save-header">
-<span class="save-icon">${escapeHtml(save.icon)}</span>
+<span class="save-icon">${getAbilityIcon(save.key) || escapeHtml(save.icon)}</span>
 <span class="save-name">${escapeHtml(save.name)}</span>
 </div>
 <div class="save-value">
@@ -5067,7 +5067,7 @@ function buildASIStatGrid(char) {
     var val = char.stats[k] || 10;
     var mod = getMod(val);
     return '<div class="asi-stat-item" id="asi-stat-' + k + '" onclick="toggleASIStat(\'' + k + '\')">' +
-      '<span class="asi-stat-icon">' + statIcons[k] + '</span>' +
+      '<span class="asi-stat-icon">' + (getAbilityIcon(k) || statIcons[k]) + '</span>' +
       '<span class="asi-stat-name">' + statNames[k] + '</span>' +
       '<span class="asi-stat-cur">' + val + ' (' + formatMod(mod) + ')</span>' +
       '<span class="asi-stat-delta" id="asi-delta-' + k + '"></span>' +

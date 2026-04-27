@@ -1031,7 +1031,39 @@ display: flex;
 align-items: center;
 gap: 8px;
 }
-.save-icon { font-size: 1.2em; flex-shrink: 0; }
+.save-icon { font-size: 1.2em; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
+.ability-icon-svg {
+  width: 1.25em; height: 1.25em;
+  color: var(--accent, #d4a843);
+  vertical-align: -0.2em;
+  display: inline-block;
+}
+.save-icon .ability-icon-svg { width: 1.4em; height: 1.4em; vertical-align: middle; }
+.asi-stat-icon .ability-icon-svg { width: 1.4em; height: 1.4em; vertical-align: middle; }
+.condition-icon-svg {
+  width: 1.15em; height: 1.15em;
+  vertical-align: -0.2em;
+  display: inline-block;
+  flex-shrink: 0;
+  margin-right: 6px;
+  border-radius: 4px;
+}
+/* Крупная иконка слева в карточке состояния — текст обтекает справа */
+/* Карточка состояния — отключаем flex чтобы float-обтекание работало */
+.condition-item { display: block !important; }
+.condition-item > .condition-icon-svg {
+  float: left;
+  width: 72px; height: 72px;
+  margin: 2px 10px 2px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.35);
+}
+.condition-item .condition-name { display: block; margin-bottom: 4px; }
+.condition-item::after { content: ""; display: block; clear: both; }
+.condition-badge { display: inline-flex; align-items: center; gap: 0; }
+.exhaustion-title { display: inline-flex; align-items: center; gap: 8px; font-size: 1.1em; }
+.exhaustion-title .condition-icon-svg { width: 56px; height: 56px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.35); margin: 0; }
+.exhaustion-block .exhaustion-header { align-items: center; }
 .save-name {
 font-weight: 600;
 color: var(--text-color);
@@ -1693,6 +1725,26 @@ justify-content: center;
 font-size: 1.6em;
 flex-shrink: 0;
 }
+.class-icon-svg {
+width: 100%;
+height: 100%;
+object-fit: contain;
+display: block;
+filter: brightness(1.7) saturate(1.3) contrast(1.15);
+}
+.char-card-class-icon,
+.pcard-icon,
+.battle-setup-icon,
+.tracker-icon,
+.bp-card-class-icon,
+.avatar-modal-placeholder,
+#tinfo-icon { padding: 0; overflow: hidden; }
+.bp-card-class-icon {
+width: 52px; height: 52px; border-radius: 10px;
+display: inline-flex; align-items: center; justify-content: center;
+flex-shrink: 0; margin-right: 10px; overflow: hidden;
+}
+.bp-card-class-icon .class-icon-svg { width: 100%; height: 100%; object-fit: contain; }
 .char-card-title {
 flex: 1;
 min-width: 0;
@@ -3102,19 +3154,46 @@ transition: all 0.2s;
   gap: 5px;
   flex-shrink: 0;
 }
-.class-icons-row { font-size: 0.9em; letter-spacing: 1px; }
+.class-icons-row { font-size: 0.9em; letter-spacing: 1px; display: inline-flex; align-items: center; gap: 3px; }
+.spell-class-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+.spell-class-emoji { font-size: 1.05em; line-height: 1; }
 
 .school-badge {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.65em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 1.1em;
   font-weight: 600;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.08);
   color: var(--text-muted);
   border: 1px solid var(--border-color);
   text-transform: capitalize;
 }
+.school-icon-svg {
+  width: 32px;
+  height: 32px;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.school-badge-text { line-height: 1; }
+.school-abjuration     { color: #6cb6ff; border-color: rgba(108,182,255,0.45); background: rgba(108,182,255,0.10); }
+.school-conjuration    { color: #ffb86c; border-color: rgba(255,184,108,0.45); background: rgba(255,184,108,0.10); }
+.school-divination     { color: #b5bdc8; border-color: rgba(181,189,200,0.45); background: rgba(181,189,200,0.10); }
+.school-enchantment    { color: #ff9ec7; border-color: rgba(255,158,199,0.45); background: rgba(255,158,199,0.10); }
+.school-evocation      { color: #ff7a59; border-color: rgba(255,122,89,0.45);  background: rgba(255,122,89,0.10); }
+.school-illusion       { color: #c39bff; border-color: rgba(195,155,255,0.45); background: rgba(195,155,255,0.10); }
+.school-necromancy     { color: #8be39b; border-color: rgba(139,227,155,0.45); background: rgba(139,227,155,0.10); }
+.school-transmutation  { color: #f7d56e; border-color: rgba(247,213,110,0.45); background: rgba(247,213,110,0.10); }
 
 /* Meta row — always visible */
 .spell-card-meta {

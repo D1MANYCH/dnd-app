@@ -588,9 +588,12 @@ function renderBuildPicker() {
     var d = b.difficulty || 1;
     var diff = "●".repeat(d) + "○".repeat(3 - d);
     var roleIcon = BP_ROLE_ICONS[b.role] || "";
+    var clsIcon = getClassIcon(b.className);
+    var clsColor = getClassColor(b.className);
     return (
       '<div class="bp-card" tabindex="0" role="button" aria-label="' + escapeHtml(b.title) + '" onclick="applyBuild(\'' + b.id + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();applyBuild(\'' + b.id + '\')}">' +
         '<div class="bp-card-head">' +
+          '<span class="bp-card-class-icon" style="background:' + clsColor + '22;color:' + clsColor + '">' + clsIcon + '</span>' +
           '<span class="bp-card-title">' + escapeHtml(b.title) + '</span>' +
           '<span class="bp-role-badge bp-role-' + escapeHtml(b.role || "") + '">' + roleIcon + ' ' + escapeHtml(b.role || "") + '</span>' +
         '</div>' +
@@ -704,14 +707,74 @@ const colors = {
 };
 return colors[cls] || "#c9a227";
 }
-function getClassIcon(cls) {
-const icons = {
-  "Варвар": "🪓", "Бард": "🎵", "Жрец": "✝️",
-  "Друид": "🌿", "Воин": "⚔️", "Монах": "👊",
-  "Паладин": "🛡️", "Следопыт": "🏹", "Плут": "🗡️",
-  "Чародей": "🔥", "Колдун": "👁️", "Волшебник": "✨"
+const CLASS_ICON_SLUGS = {
+  "Варвар": "barbarian", "Бард": "bard", "Жрец": "cleric",
+  "Друид": "druid", "Воин": "fighter", "Монах": "monk",
+  "Паладин": "paladin", "Следопыт": "ranger", "Плут": "rogue",
+  "Чародей": "sorcerer", "Колдун": "warlock", "Волшебник": "wizard"
 };
-return icons[cls] || "🎭";
+function getClassIcon(cls) {
+  const slug = CLASS_ICON_SLUGS[cls];
+  if (!slug) return '<span class="class-icon-fallback" aria-hidden="true">🎭</span>';
+  return '<img class="class-icon-svg" src="assets/classes/' + slug + '.png" alt="" aria-hidden="true">';
+}
+// 'con' переименован в 'constitution.png' — Windows резервирует CON как имя DOS-устройства.
+const ABILITY_ICON_FILES = {str:'str', dex:'dex', con:'constitution', int:'int', wis:'wis', cha:'cha'};
+function getAbilityIcon(key) {
+  var file = ABILITY_ICON_FILES[key];
+  if (!file) return '';
+  return '<img class="ability-icon-svg" src="assets/abilities/' + file + '.png" alt="" aria-hidden="true">';
+}
+// Состояния: id → имя PNG-файла в assets/conditions/. У истощения 6 разных иконок по уровню.
+const CONDITION_ICON_SLUGS = {
+  blinded:'blinded', charmed:'charmed', deafened:'deafened', frightened:'frightened',
+  grappled:'grappled', incapacitated:'incapacitated', invisible:'invisible',
+  paralyzed:'paralyzed', petrified:'petrified', poisoned:'poisoned', prone:'prone',
+  restrained:'restrained', stunned:'stunned', unconscious:'unconscious',
+  exhaustion_1:'exhaustion_1', exhaustion_2:'exhaustion_2', exhaustion_3:'exhaustion_3',
+  exhaustion_4:'exhaustion_4', exhaustion_5:'exhaustion_5', exhaustion_6:'exhaustion_6',
+  exhaustion:'exhaustion_1'
+};
+function getConditionIcon(id) {
+  var slug = CONDITION_ICON_SLUGS[id];
+  if (!slug) return '';
+  return '<img class="condition-icon-svg" src="assets/conditions/' + slug + '.png" alt="" aria-hidden="true">';
+}
+// Иконка класса для бейджа в заклинании: ключ CLASS_ICONS_MAP → PNG в assets/classes/
+// "both" не имеет файла → fallback на emoji-звезду.
+const SPELL_CLASS_ICON_SLUGS = {
+  wizard: 'wizard', druid: 'druid', bard: 'bard', cleric: 'cleric',
+  paladin: 'paladin', ranger: 'ranger', sorcerer: 'sorcerer', warlock: 'warlock'
+};
+function getSpellClassIcon(key) {
+  var slug = SPELL_CLASS_ICON_SLUGS[key];
+  if (!slug) return '<span class="spell-class-emoji" aria-hidden="true">' + (CLASS_ICONS_MAP[key] || '✨') + '</span>';
+  return '<img class="spell-class-icon" src="assets/classes/' + slug + '.png?v=2" alt="" aria-hidden="true">';
+}
+// Школы магии: RU → slug файла в assets/schools/*.svg
+const SCHOOL_ICON_SLUGS = {
+  "ограждение": "abjuration",
+  "воплощение": "evocation",
+  "вызов": "conjuration",
+  "прорицание": "divination",
+  "очарование": "enchantment",
+  "иллюзия": "illusion",
+  "некромантия": "necromancy",
+  "преобразование": "transmutation"
+};
+function getSchoolSlug(school) {
+  if (!school) return '';
+  return SCHOOL_ICON_SLUGS[String(school).toLowerCase().trim()] || '';
+}
+function getSchoolIcon(school) {
+  var slug = getSchoolSlug(school);
+  if (!slug) return '';
+  return '<img class="school-icon-svg" src="assets/schools/' + slug + '.png?v=6" alt="" aria-hidden="true">';
+}
+// Удаляет ведущий emoji (и пробел) из имени состояния — для отображения рядом с SVG-иконкой
+function stripLeadingEmoji(name) {
+  if (!name) return '';
+  return String(name).replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F2FF}\uFE0F\u200D]+\s*/u, '');
 }
 function formatTimeAgo(ts) {
 if (!ts) return "";

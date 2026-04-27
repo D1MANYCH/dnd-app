@@ -463,7 +463,7 @@ function showTrackerInfo(i) {
     document.body.appendChild(modal);
     modal.addEventListener("click", function(e) { if (e.target === modal) modal.classList.remove("active"); });
   }
-  $("tinfo-icon").textContent = p.icon || "🎭";
+  $("tinfo-icon").innerHTML = p.icon || "🎭";
   $("tinfo-name").textContent = p.name || "?";
   $("tinfo-type").style.color = fcolor;
   $("tinfo-type").textContent = getFactionLabel(p.type).toUpperCase();
