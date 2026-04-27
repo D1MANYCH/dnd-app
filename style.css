@@ -3199,7 +3199,7 @@ transition: all 0.2s;
 .spell-class-filter-grouped {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   align-items: stretch;
   padding: 8px;
   background: rgba(255,255,255,0.03);
@@ -3208,10 +3208,16 @@ transition: all 0.2s;
   margin-bottom: 8px;
 }
 .class-filter-all {
-  align-self: stretch;
-  padding: 6px 14px;
-  font-weight: 600;
+  flex: 0 0 auto;
+  width: 56px;
+  min-height: 60px;
+  padding: 4px 8px;
+  font-weight: 700;
+  font-size: 0.85em;
   border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .class-filter-group {
   display: flex;
