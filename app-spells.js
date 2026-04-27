@@ -93,7 +93,7 @@ renderSpellSearch();
 }
 function setSpellClass(cls) {
 currentSpellClass = cls;
-document.querySelectorAll("#spell-search-modal .version-btn").forEach(function(btn) { btn.classList.remove("active"); });
+document.querySelectorAll("#spell-search-modal .class-filter-btn, #spell-search-modal .class-filter-all").forEach(function(btn) { btn.classList.remove("active"); });
 var btnId = "btn-class-" + (cls === "all" ? "all" : cls);
 var btn = $(btnId);
 if (btn) btn.classList.add("active");

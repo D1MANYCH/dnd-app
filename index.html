@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=i4e">
+<link rel="stylesheet" href="style.css?v=i4f">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 </script>
@@ -1515,19 +1515,31 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button class="version-btn" onclick="setSpellVersion('PH14')" id="btn-ver-ph14">PH14</button>
 <button class="version-btn" onclick="setSpellVersion('PH24')" id="btn-ver-ph24">PH24</button>
 </div>
-<div class="version-toggle spell-class-filter">
-<button class="version-btn active" onclick="setSpellClass('all')" id="btn-class-all">Все</button>
-<button class="version-btn" onclick="setSpellClass('wizard')" id="btn-class-wizard">🧙</button>
-<button class="version-btn" onclick="setSpellClass('sorcerer')" id="btn-class-sorcerer">🔥</button>
-<button class="version-btn" onclick="setSpellClass('warlock')" id="btn-class-warlock">👁️</button>
-<button class="version-btn" onclick="setSpellClass('cleric')" id="btn-class-cleric">✝️</button>
-<button class="version-btn" onclick="setSpellClass('druid')" id="btn-class-druid">🌿</button>
-<button class="version-btn" onclick="setSpellClass('bard')" id="btn-class-bard">🎵</button>
-<button class="version-btn" onclick="setSpellClass('paladin')" id="btn-class-paladin">🛡️</button>
-<button class="version-btn" onclick="setSpellClass('ranger')" id="btn-class-ranger">🏹</button>
-</div>
-<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;">
-<span style="font-size:0.7em;color:var(--text-muted);">🧙Волшебник 🔥Чародей 👁️Колдун ✝️Жрец 🌿Друид 🎵Бард 🛡️Паладин 🏹Следопыт</span>
+<div class="spell-class-filter-grouped">
+  <button class="version-btn class-filter-all active" onclick="setSpellClass('all')" id="btn-class-all">Все</button>
+  <div class="class-filter-group" data-group="arcane">
+    <span class="class-filter-label">Тайная</span>
+    <div class="class-filter-row">
+      <button class="class-filter-btn" onclick="setSpellClass('wizard')"   id="btn-class-wizard"   title="Волшебник"><img src="assets/classes/wizard.png?v=2"   alt="Волшебник"></button>
+      <button class="class-filter-btn" onclick="setSpellClass('sorcerer')" id="btn-class-sorcerer" title="Чародей"><img src="assets/classes/sorcerer.png?v=2"   alt="Чародей"></button>
+      <button class="class-filter-btn" onclick="setSpellClass('warlock')"  id="btn-class-warlock"  title="Колдун"><img src="assets/classes/warlock.png?v=2"     alt="Колдун"></button>
+      <button class="class-filter-btn" onclick="setSpellClass('bard')"     id="btn-class-bard"     title="Бард"><img src="assets/classes/bard.png?v=2"           alt="Бард"></button>
+    </div>
+  </div>
+  <div class="class-filter-group" data-group="divine">
+    <span class="class-filter-label">Божественная</span>
+    <div class="class-filter-row">
+      <button class="class-filter-btn" onclick="setSpellClass('cleric')"  id="btn-class-cleric"  title="Жрец"><img src="assets/classes/cleric.png?v=2"   alt="Жрец"></button>
+      <button class="class-filter-btn" onclick="setSpellClass('paladin')" id="btn-class-paladin" title="Паладин"><img src="assets/classes/paladin.png?v=2" alt="Паладин"></button>
+    </div>
+  </div>
+  <div class="class-filter-group" data-group="primal">
+    <span class="class-filter-label">Природная</span>
+    <div class="class-filter-row">
+      <button class="class-filter-btn" onclick="setSpellClass('druid')"  id="btn-class-druid"  title="Друид"><img src="assets/classes/druid.png?v=2"   alt="Друид"></button>
+      <button class="class-filter-btn" onclick="setSpellClass('ranger')" id="btn-class-ranger" title="Следопыт"><img src="assets/classes/ranger.png?v=2" alt="Следопыт"></button>
+    </div>
+  </div>
 </div>
 <div class="row">
 <div class="col">
@@ -1843,7 +1855,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script src="app-core.js?v=i4e"></script>
 <script src="app-combat.js?v=i3c"></script>
 <script src="app-hp.js?v=build3"></script>
-<script src="app-spells.js?v=i4e"></script>
+<script src="app-spells.js?v=i4f"></script>
 <script src="app-inventory.js?v=n1"></script>
 <script src="app-party.js?v=n1"></script>
 <script src="class-choices.js?v=n1"></script>

@@ -3195,6 +3195,65 @@ transition: all 0.2s;
 .school-necromancy     { color: #8be39b; border-color: rgba(139,227,155,0.45); background: rgba(139,227,155,0.10); }
 .school-transmutation  { color: #f7d56e; border-color: rgba(247,213,110,0.45); background: rgba(247,213,110,0.10); }
 
+/* Class filter (grouped by source of magic) — модалка поиска заклинаний */
+.spell-class-filter-grouped {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: stretch;
+  padding: 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.class-filter-all {
+  align-self: stretch;
+  padding: 6px 14px;
+  font-weight: 600;
+  border-radius: 6px;
+}
+.class-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 8px;
+  border-left: 2px solid var(--border-color);
+  border-radius: 4px;
+  background: rgba(0,0,0,0.18);
+}
+.class-filter-group[data-group="arcane"]  { border-left-color: #6e9bff; }
+.class-filter-group[data-group="divine"]  { border-left-color: #f7d56e; }
+.class-filter-group[data-group="primal"]  { border-left-color: #8be39b; }
+.class-filter-label {
+  font-size: 0.65em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+.class-filter-row { display: flex; gap: 4px; flex-wrap: wrap; }
+.class-filter-btn {
+  width: 38px;
+  height: 38px;
+  padding: 4px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s, border-color 0.12s, background 0.12s;
+}
+.class-filter-btn img { width: 100%; height: 100%; object-fit: contain; }
+.class-filter-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+.class-filter-btn.active {
+  background: rgba(212,168,75,0.18);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(212,168,75,0.35);
+}
+
 /* Meta row — always visible */
 .spell-card-meta {
   display: flex;
