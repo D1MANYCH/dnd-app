@@ -104,7 +104,40 @@ const modal = $("spell-search-modal");
 if (modal) modal.classList.add("active");
 safeSet("spell-search-input", "");
 safeSet("spell-search-level", "");
+markCharOwnClassFilter();
 renderSpellSearch();
+}
+// Подсвечивает класс активного персонажа (зелёный) и остальные кастеры (приглушённый красный),
+// чтобы новички сразу понимали, какие заклинания им доступны.
+function markCharOwnClassFilter() {
+  var legend = $("class-filter-legend");
+  var btns = document.querySelectorAll('#spell-class-filter .class-filter-btn');
+  btns.forEach(function(b){ b.classList.remove('cf-own','cf-foreign'); b.removeAttribute('data-tip'); });
+  if (!legend) return;
+  var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+  if (!char || !char.class) {
+    legend.innerHTML = '<span class="cf-legend-hint">💡 Выберите класс слева, чтобы увидеть только его заклинания</span>';
+    return;
+  }
+  var ruToKey = { "Волшебник":"wizard", "Чародей":"sorcerer", "Колдун":"warlock", "Бард":"bard",
+                  "Жрец":"cleric", "Паладин":"paladin", "Друид":"druid", "Следопыт":"ranger" };
+  var ownKey = ruToKey[char.class] || null;
+  btns.forEach(function(b){
+    var k = b.getAttribute('data-class');
+    if (ownKey && k === ownKey) {
+      b.classList.add('cf-own');
+      b.setAttribute('data-tip','Ваш класс');
+    } else {
+      b.classList.add('cf-foreign');
+      b.setAttribute('data-tip','Другой класс — заклинания недоступны вашему персонажу');
+    }
+  });
+  if (ownKey) {
+    legend.innerHTML = '<span class="cf-legend-own">🟢 Ваш класс: ' + escapeHtml(char.class) + '</span>'
+                     + '<span class="cf-legend-foreign">🔴 Чужие классы — заклинания нельзя выучить</span>';
+  } else {
+    legend.innerHTML = '<span class="cf-legend-hint">💡 Класс «' + escapeHtml(char.class) + '» не использует заклинания этих школ — фильтр для справки</span>';
+  }
 }
 function closeSpellSearch() {
 const modal = $("spell-search-modal");
