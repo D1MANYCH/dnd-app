@@ -3198,35 +3198,41 @@ transition: all 0.2s;
 /* Class filter (grouped by source of magic) — модалка поиска заклинаний */
 .spell-class-filter-grouped {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
-  align-items: stretch;
   padding: 8px;
   background: rgba(255,255,255,0.03);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   margin-bottom: 8px;
 }
+.cf-row { display: flex; gap: 8px; width: 100%; }
+.cf-row > .class-filter-group { flex: 1 1 0; min-width: 0; }
+.cf-row-top > [data-group="edition"] { flex: 2 1 0; }
+.cf-row-top > [data-group="all"]     { flex: 1 1 0; }
+.class-filter-group.cf-fullspan { flex: 1 1 100%; }
+.class-filter-row.cf-equal { display: flex; gap: 6px; }
+.class-filter-row.cf-equal > .class-filter-btn,
+.class-filter-row.cf-equal > .edition-btn,
+.class-filter-row.cf-equal > .class-filter-all { flex: 1 1 0; min-width: 0; }
 .class-filter-all {
-  flex: 0 0 auto;
-  width: 64px;
-  padding: 6px 4px;
+  flex: 1 1 100%;
+  width: 100%;
+  padding: 10px 12px;
   font-weight: 700;
-  font-size: 0.72em;
+  font-size: 0.85em;
   border-radius: 8px;
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   background: linear-gradient(180deg, rgba(212,168,75,0.20), rgba(212,168,75,0.08));
   border: 1px solid var(--accent);
   color: var(--accent);
   cursor: pointer;
   transition: transform 0.12s, box-shadow 0.12s;
+  letter-spacing: 0.02em;
 }
-.class-filter-all-icon { font-size: 1.4em; line-height: 1; }
-.class-filter-all-text { line-height: 1.1; text-align: center; }
 .class-filter-all:hover { transform: translateY(-1px); }
 .class-filter-all.active { box-shadow: 0 0 0 2px rgba(212,168,75,0.55); }
 .class-filter-group {
@@ -3238,9 +3244,39 @@ transition: all 0.2s;
   border-radius: 4px;
   background: rgba(0,0,0,0.18);
 }
+.class-filter-group[data-group="edition"] { border-left-color: #d4a84b; margin-right: 4px; }
+.class-filter-group[data-group="edition"] .class-filter-row { flex-direction: row; flex-wrap: nowrap; }
 .class-filter-group[data-group="arcane"]  { border-left-color: #6e9bff; }
 .class-filter-group[data-group="divine"]  { border-left-color: #f7d56e; }
 .class-filter-group[data-group="primal"]  { border-left-color: #8be39b; }
+/* Компактные кнопки выбора редакции внутри group */
+.spell-class-filter-grouped .edition-btn,
+button.edition-btn {
+  width: auto !important;
+  display: inline-block !important;
+  padding: 8px 10px;
+  font-size: 0.78em;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1.5px solid var(--border-color);
+  background: rgba(0,0,0,0.35);
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0.65;
+  transition: all 0.15s ease;
+  margin: 0;
+  min-width: auto;
+  height: auto;
+  letter-spacing: 0.02em;
+}
+.edition-btn:hover { opacity: 1; border-color: var(--accent); }
+.edition-btn.active {
+  opacity: 1;
+  background: rgba(212,168,75,0.18);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(212,168,75,0.30);
+}
 .class-filter-label {
   font-size: 0.65em;
   color: var(--text-muted);
@@ -3250,8 +3286,9 @@ transition: all 0.2s;
 }
 .class-filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
 .class-filter-btn {
-  width: 64px;
-  padding: 4px;
+  width: auto;
+  min-width: 0;
+  padding: 6px 4px;
   background: rgba(0,0,0,0.35);
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -3304,16 +3341,23 @@ transition: all 0.2s;
   opacity: 1;
   box-shadow: 0 0 0 2px rgba(229,99,99,0.35);
 }
-/* Легенда */
+/* Легенда — растягивается на всю ширину контейнера */
 .class-filter-legend {
-  flex-basis: 100%;
+  flex: 1 0 100%;
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
+  justify-content: space-between;
   gap: 12px;
-  padding: 6px 4px 2px;
-  font-size: 0.7em;
+  padding: 8px 10px;
+  margin-top: 4px;
+  font-size: 0.72em;
   color: var(--text-muted);
+  background: rgba(0,0,0,0.25);
+  border-top: 1px solid var(--border-color);
+  border-radius: 0 0 6px 6px;
 }
+.class-filter-legend > span { flex: 1 1 auto; }
 .cf-legend-own     { color: #8be39b; }
 .cf-legend-foreign { color: #e56363; }
 .cf-legend-hint    { color: var(--text-muted); font-style: italic; }

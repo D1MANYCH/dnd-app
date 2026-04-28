@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=i4h">
+<link rel="stylesheet" href="style.css?v=i4m">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 </script>
@@ -1510,37 +1510,48 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="modal-content">
 <span class="modal-close" onclick="closeSpellSearch()">&times;</span>
 <h3>Поиск заклинаний</h3>
-<div class="version-toggle">
-<button class="version-btn active" onclick="setSpellVersion('all')" id="btn-ver-all">Все</button>
-<button class="version-btn" onclick="setSpellVersion('PH14')" id="btn-ver-ph14">PH14</button>
-<button class="version-btn" onclick="setSpellVersion('PH24')" id="btn-ver-ph24">PH24</button>
-</div>
 <div class="spell-class-filter-grouped" id="spell-class-filter">
-  <button class="class-filter-all active" onclick="setSpellClass('all')" id="btn-class-all">
-    <span class="class-filter-all-icon">✦</span>
-    <span class="class-filter-all-text">Все<br>классы</span>
-  </button>
-  <div class="class-filter-group" data-group="arcane">
-    <span class="class-filter-label" title="Заклинания, питаемые знанием и волей">🔵 Тайная магия</span>
-    <div class="class-filter-row">
-      <button class="class-filter-btn" data-class="wizard"   onclick="setSpellClass('wizard')"   id="btn-class-wizard"><img src="assets/classes/wizard.png?v=2"     alt=""><span class="cf-name">Волшебник</span></button>
-      <button class="class-filter-btn" data-class="sorcerer" onclick="setSpellClass('sorcerer')" id="btn-class-sorcerer"><img src="assets/classes/sorcerer.png?v=2" alt=""><span class="cf-name">Чародей</span></button>
-      <button class="class-filter-btn" data-class="warlock"  onclick="setSpellClass('warlock')"  id="btn-class-warlock"><img src="assets/classes/warlock.png?v=2"   alt=""><span class="cf-name">Колдун</span></button>
-      <button class="class-filter-btn" data-class="bard"     onclick="setSpellClass('bard')"     id="btn-class-bard"><img src="assets/classes/bard.png?v=2"         alt=""><span class="cf-name">Бард</span></button>
+  <div class="cf-row cf-row-top">
+    <div class="class-filter-group" data-group="edition">
+      <span class="class-filter-label" title="Редакция Player's Handbook">📖 Редакция</span>
+      <div class="class-filter-row cf-equal">
+        <button class="version-btn edition-btn active" onclick="setSpellVersion('all')"  id="btn-ver-all">Все</button>
+        <button class="version-btn edition-btn"        onclick="setSpellVersion('PH14')" id="btn-ver-ph14">PH'14</button>
+        <button class="version-btn edition-btn"        onclick="setSpellVersion('PH24')" id="btn-ver-ph24">PH'24</button>
+      </div>
+    </div>
+    <div class="class-filter-group cf-allbox" data-group="all">
+      <span class="class-filter-label">✦ Любой класс</span>
+      <div class="class-filter-row">
+        <button class="class-filter-all active" onclick="setSpellClass('all')" id="btn-class-all">Все классы</button>
+      </div>
     </div>
   </div>
-  <div class="class-filter-group" data-group="divine">
-    <span class="class-filter-label" title="Заклинания, дарованные божеством или клятвой">🟡 Божественная</span>
-    <div class="class-filter-row">
-      <button class="class-filter-btn" data-class="cleric"  onclick="setSpellClass('cleric')"  id="btn-class-cleric"><img src="assets/classes/cleric.png?v=2"   alt=""><span class="cf-name">Жрец</span></button>
-      <button class="class-filter-btn" data-class="paladin" onclick="setSpellClass('paladin')" id="btn-class-paladin"><img src="assets/classes/paladin.png?v=2" alt=""><span class="cf-name">Паладин</span></button>
+  <div class="cf-row">
+    <div class="class-filter-group cf-fullspan" data-group="arcane">
+      <span class="class-filter-label" title="Заклинания, питаемые знанием и волей">🔵 Тайная магия</span>
+      <div class="class-filter-row cf-equal">
+        <button class="class-filter-btn" data-class="wizard"   onclick="setSpellClass('wizard')"   id="btn-class-wizard"><img src="assets/classes/wizard.png?v=2"     alt=""><span class="cf-name">Волшебник</span></button>
+        <button class="class-filter-btn" data-class="sorcerer" onclick="setSpellClass('sorcerer')" id="btn-class-sorcerer"><img src="assets/classes/sorcerer.png?v=2" alt=""><span class="cf-name">Чародей</span></button>
+        <button class="class-filter-btn" data-class="warlock"  onclick="setSpellClass('warlock')"  id="btn-class-warlock"><img src="assets/classes/warlock.png?v=2"   alt=""><span class="cf-name">Колдун</span></button>
+        <button class="class-filter-btn" data-class="bard"     onclick="setSpellClass('bard')"     id="btn-class-bard"><img src="assets/classes/bard.png?v=2"         alt=""><span class="cf-name">Бард</span></button>
+      </div>
     </div>
   </div>
-  <div class="class-filter-group" data-group="primal">
-    <span class="class-filter-label" title="Заклинания, исходящие из природы">🟢 Природная</span>
-    <div class="class-filter-row">
-      <button class="class-filter-btn" data-class="druid"  onclick="setSpellClass('druid')"  id="btn-class-druid"><img src="assets/classes/druid.png?v=2"   alt=""><span class="cf-name">Друид</span></button>
-      <button class="class-filter-btn" data-class="ranger" onclick="setSpellClass('ranger')" id="btn-class-ranger"><img src="assets/classes/ranger.png?v=2" alt=""><span class="cf-name">Следопыт</span></button>
+  <div class="cf-row">
+    <div class="class-filter-group" data-group="divine">
+      <span class="class-filter-label" title="Заклинания, дарованные божеством или клятвой">🟡 Божественная</span>
+      <div class="class-filter-row cf-equal">
+        <button class="class-filter-btn" data-class="cleric"  onclick="setSpellClass('cleric')"  id="btn-class-cleric"><img src="assets/classes/cleric.png?v=2"   alt=""><span class="cf-name">Жрец</span></button>
+        <button class="class-filter-btn" data-class="paladin" onclick="setSpellClass('paladin')" id="btn-class-paladin"><img src="assets/classes/paladin.png?v=2" alt=""><span class="cf-name">Паладин</span></button>
+      </div>
+    </div>
+    <div class="class-filter-group" data-group="primal">
+      <span class="class-filter-label" title="Заклинания, исходящие из природы">🟢 Природная</span>
+      <div class="class-filter-row cf-equal">
+        <button class="class-filter-btn" data-class="druid"  onclick="setSpellClass('druid')"  id="btn-class-druid"><img src="assets/classes/druid.png?v=2"   alt=""><span class="cf-name">Друид</span></button>
+        <button class="class-filter-btn" data-class="ranger" onclick="setSpellClass('ranger')" id="btn-class-ranger"><img src="assets/classes/ranger.png?v=2" alt=""><span class="cf-name">Следопыт</span></button>
+      </div>
     </div>
   </div>
   <div class="class-filter-legend" id="class-filter-legend"></div>
