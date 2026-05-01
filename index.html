@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=i4m">
+<link rel="stylesheet" href="style.css?v=fx4">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 </script>
@@ -161,7 +161,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="sheet-small-field"><label>Опыт</label><input type="number" id="char-exp" value="0" oninput="updateChar()"></div>
     </div>
     <div id="char-build-badge-wrap" class="char-build-badge-wrap" style="display:none">
-      <span id="char-build-badge" class="char-build-badge" title=""></span>
+      <button type="button" id="char-build-badge" class="char-build-badge" onclick="openBuildGuide()" title="Открыть гайд по билду" aria-label="Открыть гайд по билду"></button>
       <button type="button" class="char-build-unlink" onclick="unlinkBuild()" title="Отвязать билд от персонажа" aria-label="Отвязать билд">✕ Отвязать</button>
     </div>
   </div>
@@ -712,7 +712,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="card">
   <div class="inv-backpack-header">
     <h4>🎒 Рюкзак</h4>
-    <button class="inv-add-btn" onclick="openItemModal(null, -1)">+ Добавить</button>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button id="inv-backpack-toggle" class="inv-add-btn" style="background:transparent;color:var(--text);border:1px solid var(--border);" onclick="toggleBackpackOff()" title="Снять/надеть рюкзак: вещи внутри временно недоступны и не занимают слотов">🎒 Надет</button>
+      <button class="inv-add-btn" onclick="openItemModal(null, -1)">+ Добавить</button>
+    </div>
   </div>
   <div class="inventory-filters">
     <button class="active" onclick="filterInventory('all', this)">📋 Все</button>
@@ -1671,6 +1674,16 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <input type="number" id="new-item-weight" value="0" step="0.1" min="0">
 <label>Слотов за шт. <span style="font-size:0.75em;color:var(--text-muted);font-weight:normal;">необязательно</span> <button type="button" class="field-help-btn" onclick="openItemRef('slots')">?</button></label>
 <input type="number" id="new-item-slots" placeholder="авто" step="0.5" min="0">
+<label>Где лежит <span style="font-size:0.75em;color:var(--text-muted);font-weight:normal;">влияет на «Снять рюкзак»</span></label>
+<select id="new-item-location">
+  <option value="">— не задано —</option>
+  <option value="backpack">🎒 в рюкзаке</option>
+  <option value="worn">🧥 на теле (надето)</option>
+  <option value="wielded">✋ в руке</option>
+  <option value="belt">🪪 на поясе</option>
+  <option value="outside">🪢 снаружи рюкзака</option>
+  <option value="stored">📦 в лагере</option>
+</select>
 <label>Описание</label>
 <textarea id="new-item-desc" placeholder="Свойства, бонусы, особенности..." style="min-height:80px;"></textarea>
 <button class="success" onclick="submitItem()">💾 Сохранить</button>
@@ -1864,14 +1877,28 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
-<script src="data.js?v=i4"></script>
-<script src="character-builds.js?v=b5"></script>
+<!-- BUILD-DESC-3: Build guide modal -->
+<div id="build-guide-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="bg-title-h">
+  <div class="modal-content bg-modal">
+    <div class="bg-header">
+      <span class="bg-title" id="bg-title-h">📘 Гайд по билду</span>
+      <span class="modal-close" onclick="closeModal('build-guide-modal')" aria-label="Закрыть" tabindex="0" role="button">&times;</span>
+    </div>
+    <div id="bg-body" class="bg-body"></div>
+    <div class="bg-footer">
+      <button class="btn" onclick="closeModal('build-guide-modal')">Понятно</button>
+    </div>
+  </div>
+</div>
+
+<script src="data.js?v=v3"></script>
+<script src="character-builds.js?v=b8"></script>
 <script src="spells.js?v=n1"></script>
-<script src="app-core.js?v=i4e"></script>
-<script src="app-combat.js?v=i3c"></script>
+<script src="app-core.js?v=bf20"></script>
+<script src="app-combat.js?v=fx4"></script>
 <script src="app-hp.js?v=build3"></script>
 <script src="app-spells.js?v=i4h"></script>
-<script src="app-inventory.js?v=n1"></script>
+<script src="app-inventory.js?v=n2"></script>
 <script src="app-party.js?v=n1"></script>
 <script src="class-choices.js?v=n1"></script>
 <script src="subclass-choices-data.js?v=n1"></script>

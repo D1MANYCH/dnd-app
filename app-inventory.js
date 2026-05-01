@@ -13,6 +13,33 @@ renderInventory();
 // OSR slot system: все предметы занимают слоты
 // weapon: 1h=1, 2h=2 | armor=3 | potion=1/2 | scroll=1 | tool/other=1
 var ITEM_SLOTS = { weapon:1, armor:3, potion:0.5, scroll:1, tool:1, material:1, other:1 };
+// BUILD-FIX-9 (rev3): местоположение предмета. Влияет на UX-тег и на расчёт слотов
+// при «снятом» рюкзаке (только location:"backpack" выпадают из подсчёта/доступа).
+var LOCATION_META = {
+  backpack: { icon:"🎒", label:"в рюкзаке" },
+  worn:     { icon:"🧥", label:"на теле" },
+  wielded:  { icon:"✋", label:"в руке" },
+  belt:     { icon:"🪪", label:"на поясе" },
+  outside:  { icon:"🪢", label:"снаружи рюкзака" },
+  stored:   { icon:"📦", label:"в лагере" }
+};
+function _isBackpackOff(char) {
+  return !!(char && char.equipState && char.equipState.backpackOff);
+}
+function _isItemActive(char, item) {
+  // Предмет «активен» (доступен/занимает слот) если рюкзак надет ИЛИ предмет НЕ из рюкзака.
+  if (!_isBackpackOff(char)) return true;
+  return (item && item.location && item.location !== "backpack");
+}
+function toggleBackpackOff() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  if (!char.equipState) char.equipState = { backpackOff: false };
+  char.equipState.backpackOff = !char.equipState.backpackOff;
+  saveToLocal();
+  renderInventory();
+}
 var BELT_LABELS = { weapon1:"Оружие 1", weapon2:"Оружие 2", rope:"Верёвка", shield:"Щит" };
 var POUCH_STR_REQ = [8, 12, 16, 18]; // СИЛ для каждого мешочка
 var POUCH_MAX = 500; // монет в мешочке
@@ -30,8 +57,10 @@ function getSlotsTotal(str) {
 function calcUsedSlots(char) {
   var used = 0;
   Object.keys(char.inventory).forEach(function(cat) {
+    if (!Array.isArray(char.inventory[cat])) return;
     (char.inventory[cat] || []).forEach(function(item) {
-      // Custom slots override takes priority
+      // BUILD-FIX-9 (rev3): если рюкзак снят, вещи в нём не занимают слотов.
+      if (!_isItemActive(char, item)) return;
       var slotsEach = (item.slots !== undefined && item.slots !== null && item.slots !== "")
         ? parseFloat(item.slots)
         : (ITEM_SLOTS[cat] !== undefined ? ITEM_SLOTS[cat] : 1);
@@ -150,20 +179,27 @@ var _slotsEach = (item.slots !== undefined && item.slots !== null && item.slots 
   : (ITEM_SLOTS[data.category] !== undefined ? ITEM_SLOTS[data.category] : 1);
 var itemSlots = _slotsEach * (item.qty || 1);
 var slotsLabel = itemSlots % 1 !== 0 ? itemSlots.toFixed(1) + " сл." : itemSlots + " сл.";
+// BUILD-FIX-9 (rev3): тег местоположения и приглушение если рюкзак снят и предмет в нём
+var _locKey = item.location || "";
+var _locMeta = LOCATION_META[_locKey];
+var _locTagHtml = _locMeta ? '<span class="inv-meta-tag inv-loc-tag" title="' + _locMeta.label + '">' + _locMeta.icon + " " + _locMeta.label + '</span>' : '';
+var _stowed = (_isBackpackOff(char) && _locKey === "backpack");
 const div = document.createElement("div");
-div.className = "inv-item";
+div.className = "inv-item" + (_stowed ? " inv-item-stowed" : "");
+if (_stowed) div.style.opacity = "0.45";
 div.dataset.category = data.category;
 div.dataset.index = data.index;
 div.innerHTML =
   '<div class="inv-item-main" onclick="toggleInvItem(this)">' +
     '<div class="inv-item-icon">' + icon + '</div>' +
     '<div class="inv-item-info">' +
-      '<div class="inv-item-name">' + escapeHtml(item.name) + '</div>' +
+      '<div class="inv-item-name">' + escapeHtml(item.name) + (_stowed ? ' <span style="color:var(--muted);font-size:11px;">(в снятом рюкзаке)</span>' : '') + '</div>' +
       '<div class="inv-item-meta">' +
         '<span class="inv-meta-tag">' + (item.qty || 1) + ' шт.</span>' +
         '<span class="inv-meta-tag">⚖️ ' + totalWeight + ' фнт</span>' +
         '<span class="inv-meta-tag inv-cat-tag">' + catName + '</span>' +
         '<span class="inv-meta-tag inv-slot-tag">' + slotsLabel + '</span>' +
+        _locTagHtml +
       '</div>' +
     '</div>' +
     '<span class="inv-item-arrow">▶</span>' +
@@ -179,6 +215,14 @@ container.appendChild(div);
 });
 updateInventoryWeight();
 updateSlotsDisplay();
+// BUILD-FIX-9 (rev3): синхронизируем кнопку «Снять/Надет рюкзак»
+var _btn = document.getElementById("inv-backpack-toggle");
+if (_btn) {
+  var _off = _isBackpackOff(char);
+  _btn.textContent = _off ? "🎒 Снят" : "🎒 Надет";
+  _btn.style.background = _off ? "var(--danger,#c0392b)" : "transparent";
+  _btn.style.color = _off ? "#fff" : "var(--text)";
+}
 }
 function toggleInvItem(mainEl) {
 const item = mainEl.closest(".inv-item");
@@ -277,6 +321,8 @@ if (qtyEl) qtyEl.value = item.qty || 1;
 if (weightEl) weightEl.value = item.weight || 0;
 const slotsInpEdit = $("new-item-slots");
 if (slotsInpEdit) slotsInpEdit.value = (item.slots !== undefined && item.slots !== null) ? item.slots : "";
+const locInpEdit = $("new-item-location");
+if (locInpEdit) locInpEdit.value = item.location || "";
 if (descEl) descEl.value = item.desc || "";
 } else {
 if (titleEl) titleEl.textContent = "Добавить предмет";
@@ -285,6 +331,8 @@ if (qtyEl) qtyEl.value = 1;
 if (weightEl) weightEl.value = 0;
 const slotsInpNew = $("new-item-slots");
 if (slotsInpNew) slotsInpNew.value = "";
+const locInpNew = $("new-item-location");
+if (locInpNew) locInpNew.value = "";
 if (descEl) descEl.value = "";
 }
 const modal = $("item-modal");
@@ -307,6 +355,7 @@ name: name,
 qty: parseInt($("new-item-qty")?.value) || 1,
 weight: parseFloat($("new-item-weight")?.value) || 0,
 slots: $("new-item-slots")?.value !== "" ? parseFloat($("new-item-slots")?.value) : undefined,
+location: $("new-item-location")?.value || undefined,
 desc: $("new-item-desc")?.value || ""
 };
 if (!char.inventory[category]) char.inventory[category] = [];

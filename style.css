@@ -740,6 +740,76 @@ color: var(--accent-color);
 color: var(--danger-color);
 }
 
+/* ========== ФИЛЬТР-БАР (состояния и эффекты) ========== */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 0 0 10px 0;
+}
+.filter-search {
+  flex: 1 1 180px;
+  min-width: 140px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-color);
+  font-size: 0.85em;
+  outline: none;
+}
+.filter-search:focus { border-color: var(--accent-color); }
+.filter-chip-group { display: inline-flex; gap: 4px; }
+.filter-chip {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-muted);
+  font-size: 0.78em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-chip:hover { border-color: var(--accent-color); color: var(--text-color); }
+.filter-chip.active {
+  background: var(--accent-color);
+  color: #1a1a24;
+  border-color: var(--accent-color);
+  font-weight: 700;
+}
+.filter-empty {
+  grid-column: 1 / -1;
+  padding: 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85em;
+  font-style: italic;
+}
+.effects-group-header {
+  grid-column: 1 / -1;
+  font-size: 0.78em;
+  font-weight: 700;
+  color: var(--accent-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 4px 4px;
+  border-bottom: 1px solid var(--border-color);
+  margin-top: 4px;
+}
+.effects-group-header:first-child { margin-top: 0; }
+/* Иконка эффекта (как у состояния) */
+.effect-icon-svg {
+  float: left;
+  width: 64px; height: 64px;
+  margin: 2px 10px 2px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.35);
+  object-fit: cover;
+}
+.effect-item { display: block !important; }
+.effect-item::after { content: ""; display: block; clear: both; }
+
 /* ========== ВРЕМЕННЫЕ ЭФФЕКТЫ ========== */
 .effects-section {
 background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
@@ -2696,6 +2766,7 @@ transition: all 0.2s;
   font-weight: normal;
 }
 .prof-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.prof-empty-hint { font-size:12px; color:var(--text-muted, #8a8a8a); padding:4px 8px; margin-bottom:6px; border-left:3px solid #c46c6c; background:rgba(196,108,108,0.08); border-radius:4px; }
 .prof-chip {
   display: inline-flex;
   align-items: center;
@@ -8106,6 +8177,13 @@ mark.notes-hl {
 .bp-role-Utility { color:#f39c12; border-color:#f39c12; }
 .bp-card-sub { font-size:0.85em; color:var(--accent); margin-bottom:6px; }
 .bp-card-summary { font-size:0.88em; color:var(--text-muted); margin-bottom:8px; line-height:1.4; }
+/* BUILD-DESC-2: мини-гайд (pitch + плюсы/минусы) в карточке пикера */
+.bp-card-guide { margin: 4px 0 8px; padding: 8px 10px; background: rgba(255,255,255,0.03); border-left: 2px solid var(--accent, #c9a24a); border-radius: 4px; }
+.bp-pitch { font-size: 0.88em; line-height: 1.45; color: var(--text, #e8e2d4); margin-bottom: 6px; font-weight: 500; }
+.bp-bullets { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; }
+.bp-bullets li { font-size: 0.82em; line-height: 1.35; color: var(--text-muted); }
+.bp-bullets .bp-pro { color: #7fc08a; }
+.bp-bullets .bp-con { color: #d68a8a; }
 .bp-card-meta { display:flex; gap:12px; flex-wrap:wrap; font-size:0.8em; color:var(--text-muted); }
 .bp-diff { letter-spacing:2px; }
 .bp-diff-1 { color:#27ae60; }
@@ -8118,6 +8196,29 @@ mark.notes-hl {
 
 /* BUILD-6: build badge on character screen */
 .char-build-badge-wrap { display:flex; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap; }
-.char-build-badge { display:inline-block; padding:4px 10px; background:var(--bg-3); border:1px solid var(--accent); color:var(--accent); border-radius:999px; font-size:0.82em; font-weight:600; cursor:help; }
+.char-build-badge { display:inline-block; padding:4px 10px; background:var(--bg-3); border:1px solid var(--accent); color:var(--accent); border-radius:999px; font-size:0.82em; font-weight:600; cursor:pointer; transition: background .15s, transform .1s; font-family:inherit; }
+.char-build-badge:hover { background:var(--accent); color:var(--bg-1, #000); }
+.char-build-badge:active { transform: scale(0.97); }
+/* BUILD-DESC-3: модалка гайда по билду */
+.bg-modal { max-width: 720px; max-height: 88vh; display:flex; flex-direction:column; }
+.bg-header { display:flex; align-items:center; justify-content:space-between; padding: 12px 16px; border-bottom: 1px solid var(--border, rgba(255,255,255,0.08)); }
+.bg-title { font-size: 1.1em; font-weight: 600; color: var(--accent); }
+.bg-body { padding: 14px 18px; overflow-y: auto; flex: 1; line-height: 1.5; }
+.bg-meta { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; font-size:0.88em; color:var(--text-muted); }
+.bg-meta .bg-cls { font-weight:600; color:var(--accent); }
+.bg-meta .bg-role { padding:1px 8px; background:rgba(255,255,255,0.06); border-radius:4px; }
+.bg-pitch { font-size:1em; font-weight:500; padding:10px 12px; background:rgba(201,162,74,0.08); border-left:3px solid var(--accent); border-radius:4px; margin-bottom:14px; line-height:1.45; }
+.bg-section { margin: 14px 0; }
+.bg-section h3 { margin: 0 0 6px; font-size: 0.98em; color: var(--accent); font-weight: 600; }
+.bg-section p { margin: 0; color: var(--text); font-size: 0.92em; }
+.bg-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:4px; }
+.bg-list li { font-size: 0.9em; line-height:1.4; padding-left:4px; }
+.bg-list .bg-mark { display:inline-block; min-width:14px; font-weight:700; }
+.bg-list.bg-pros .bg-mark { color:#7fc08a; }
+.bg-list.bg-cons .bg-mark { color:#d68a8a; }
+.bg-list.bg-tips .bg-mark { color:var(--accent); }
+.bg-list.bg-levels li { margin-left: 4px; }
+.bg-list.bg-levels .bg-why { color:var(--text-muted); font-size:0.92em; }
+.bg-footer { padding: 10px 16px; border-top: 1px solid var(--border, rgba(255,255,255,0.08)); display:flex; justify-content:flex-end; }
 .char-build-unlink { background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:var(--r-sm,6px); padding:3px 8px; font-size:0.78em; cursor:pointer; transition:color .12s, border-color .12s; }
 .char-build-unlink:hover { color:#e74c3c; border-color:#e74c3c; }

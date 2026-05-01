@@ -590,6 +590,21 @@ function renderBuildPicker() {
     var roleIcon = BP_ROLE_ICONS[b.role] || "";
     var clsIcon = getClassIcon(b.className);
     var clsColor = getClassColor(b.className);
+    // BUILD-DESC-2: мини-гайд под summary — pitch + 2 strengths + 1 weakness.
+    var guideHtml = "";
+    if (b.guide && b.guide.pitch) {
+      var _g = b.guide;
+      var _str = Array.isArray(_g.strengths) ? _g.strengths.slice(0, 2) : [];
+      var _wk = Array.isArray(_g.weaknesses) ? _g.weaknesses.slice(0, 1) : [];
+      var _bullets = "";
+      _str.forEach(function(s){ _bullets += '<li class="bp-pro">✓ ' + escapeHtml(s) + '</li>'; });
+      _wk.forEach(function(w){ _bullets += '<li class="bp-con">✗ ' + escapeHtml(w) + '</li>'; });
+      guideHtml =
+        '<div class="bp-card-guide">' +
+          '<div class="bp-pitch">🎯 ' + escapeHtml(_g.pitch) + '</div>' +
+          (_bullets ? '<ul class="bp-bullets">' + _bullets + '</ul>' : '') +
+        '</div>';
+    }
     return (
       '<div class="bp-card" tabindex="0" role="button" aria-label="' + escapeHtml(b.title) + '" onclick="applyBuild(\'' + b.id + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();applyBuild(\'' + b.id + '\')}">' +
         '<div class="bp-card-head">' +
@@ -599,6 +614,7 @@ function renderBuildPicker() {
         '</div>' +
         '<div class="bp-card-sub">' + escapeHtml(b.className) + (b.subclass ? ' · ' + escapeHtml(b.subclass) : '') + '</div>' +
         '<div class="bp-card-summary">' + escapeHtml(b.summary || "") + '</div>' +
+        guideHtml +
         '<div class="bp-card-meta">' +
           '<span class="bp-diff bp-diff-' + d + '" title="Сложность: ' + (BP_DIFF_LABELS[d]||"") + '">' + diff + '</span>' +
           '<span class="bp-race">🧬 ' + escapeHtml(b.race || "") + '</span>' +
@@ -619,8 +635,9 @@ function renderBuildBadge() {
   var b = window.getBuildById && window.getBuildById(char.buildId);
   if (!b) { wrap.style.display = "none"; return; }
   var roleIcon = BP_ROLE_ICONS[b.role] || "📘";
-  badge.textContent = roleIcon + " Билд: " + b.title;
-  badge.title = (b.summary || "") + (b.role ? "  [" + b.role + "]" : "");
+  // BUILD-DESC-3: badge — кнопка, открывает гайд. Подсказываем «📖 нажми для гайда».
+  badge.textContent = roleIcon + " Билд: " + b.title + (b.guide ? "  📖" : "");
+  badge.title = (b.guide ? "Открыть гайд: " : "") + (b.summary || "") + (b.role ? "  [" + b.role + "]" : "");
   wrap.style.display = "";
 }
 
@@ -665,23 +682,671 @@ function applyBuild(buildId) {
     newChar.spells.slots[i] = 0;
     newChar.spells.slotsUsed[i] = 0;
   }
-  if (b.startingSpells) {
-    if (Array.isArray(b.startingSpells.cantrips)) newChar.spells.mySpells = newChar.spells.mySpells.concat(b.startingSpells.cantrips);
-    if (Array.isArray(b.startingSpells.known))    newChar.spells.mySpells = newChar.spells.mySpells.concat(b.startingSpells.known);
-    if (Array.isArray(b.startingSpells.prepared)) newChar.spells.prepared  = newChar.spells.prepared.concat(b.startingSpells.prepared);
+  // BUILD-FIX-1: спасброски класса. Явно заполняем все 6 ключей,
+  // иначе чекбоксы предыдущего чара в DOM могут "протекать" через onchange.
+  newChar.saves = { str:false, dex:false, con:false, int:false, wis:false, cha:false };
+  if (typeof CLASS_SAVE_PROFICIENCIES !== "undefined" && CLASS_SAVE_PROFICIENCIES[b.className]) {
+    CLASS_SAVE_PROFICIENCIES[b.className].forEach(function(k){ newChar.saves[k] = true; });
   }
-  if (Array.isArray(b.startingEquipment)) {
-    if (!newChar.inventory.other) newChar.inventory.other = [];
-    b.startingEquipment.forEach(function(name){
-      newChar.inventory.other.push({ name: name, qty: 1, weight: 0, desc: "" });
+  // BUILD-FIX-1: навыки из предыстории + b.skills (индексы по массиву skills).
+  // Явно заполняем все индексы, чтобы старые чекбоксы не сливались.
+  newChar.skills = {};
+  for (var _si = 0; _si < skills.length; _si++) newChar.skills[_si] = false;
+  var _skillIdxByName = function(name){
+    for (var si = 0; si < skills.length; si++) if (skills[si].name === name) return si;
+    return -1;
+  };
+  // Алиасы названий предысторий: контент билдов использует PHB-имена ("Солдат"),
+  // а BACKGROUND_SKILLS — старый перевод ("Воин").
+  var _bgAliases = {
+    "Солдат":"Воин", "Шарлатан":"Преступник", "Послушник":"Прислужник",
+    "Дворянин":"Благородный", "Дикарь":"Чужеземец",
+    "Гильд-артист":"Подмастерье", "Моряк":"Матрос"
+  };
+  var _bgKey = _bgAliases[b.background] || b.background;
+  var _bgEntry = (typeof BACKGROUND_SKILLS !== "undefined") ? BACKGROUND_SKILLS[_bgKey] : null;
+  if (_bgEntry && Array.isArray(_bgEntry.skills)) {
+    _bgEntry.skills.forEach(function(n){ var si = _skillIdxByName(n); if (si >= 0) newChar.skills[si] = true; });
+  }
+  if (Array.isArray(b.skills)) {
+    b.skills.forEach(function(n){ var si = _skillIdxByName(n); if (si >= 0) newChar.skills[si] = true; });
+  }
+  // BUILD-FIX-5: мировоззрение по умолчанию точно совпадает с опцией <select>
+  newChar.alignment = b.alignment || "Истинно-нейтральное";
+  // BUILD-FIX-5: при использовании пакета стартового снаряжения PHB монеты — карманные.
+  // Раньше выдавали средний 4d4×10 (Class A) — это для альтернативного «купи сам».
+  var _bGold = (b.startingMoney && typeof b.startingMoney.gp === "number") ? b.startingMoney.gp : 10;
+  newChar.coins = { cp:0, sp:0, ep:0, gp:_bGold, pp:0 };
+  // BUILD-FIX-1: HP на 1 уровне = max(hitDie) + conMod, AC = 10 + dexMod (база, calculateAC уточнит)
+  var _conMod = Math.floor(((newChar.stats.con || 10) - 10) / 2);
+  var _dexMod = Math.floor(((newChar.stats.dex || 10) - 10) / 2);
+  var _hd = (typeof CLASS_HIT_DICE !== "undefined" && CLASS_HIT_DICE[b.className]) || 8;
+  newChar.combat.hpMax = _hd + _conMod;
+  newChar.combat.hpCurrent = newChar.combat.hpMax;
+  newChar.combat.hpDice = "1к" + _hd;
+  newChar.combat.hpDiceSpent = 0;
+  newChar.combat.ac = 10 + _dexMod;
+  // BUILD-FIX-2: владения брони/оружия класса + раса + подкласс
+  newChar.proficiencies = { armor:[], weapon:[], armorCustom:[], weaponCustom:[], specificWeapons:[], armorSources:{}, weaponSources:{}, tools:[], toolChoices:{}, languages:[], languageChoices:{} };
+  var _addProf = function(arr, val, src){
+    if (!val) return;
+    if (arr.indexOf(val) === -1) arr.push(val);
+  };
+  var _ca = (typeof CLASS_ARMOR_PROFS !== "undefined") && CLASS_ARMOR_PROFS[b.className];
+  if (_ca) {
+    (_ca.armor||[]).forEach(function(t){ _addProf(newChar.proficiencies.armor, t); });
+    (_ca.weapon||[]).forEach(function(t){ _addProf(newChar.proficiencies.weapon, t); });
+  }
+  var _ra = (typeof RACE_ARMOR !== "undefined") && RACE_ARMOR[b.race];
+  if (_ra) {
+    (_ra.armor||[]).forEach(function(t){ _addProf(newChar.proficiencies.armor, t); });
+    (_ra.weapon||[]).forEach(function(t){ _addProf(newChar.proficiencies.weapon, t); });
+  }
+  var _rw = (typeof RACE_WEAPONS_SPECIFIC !== "undefined") && RACE_WEAPONS_SPECIFIC[b.race];
+  if (Array.isArray(_rw)) _rw.forEach(function(w){ _addProf(newChar.proficiencies.specificWeapons, w); });
+  var _sa = (typeof SUBCLASS_ARMOR !== "undefined") && SUBCLASS_ARMOR[b.className] && SUBCLASS_ARMOR[b.className][b.subclass];
+  if (_sa) {
+    (_sa.armor||[]).forEach(function(t){ _addProf(newChar.proficiencies.armor, t); });
+    (_sa.weapon||[]).forEach(function(t){ _addProf(newChar.proficiencies.weapon, t); });
+  }
+  // BUILD-FIX-2: канонический ключ предыстории — чтобы recalc*FromSources видели её
+  newChar.background = _bgKey;
+  // BUILD-FIX-2: языки — заполняем languageChoices, recalcLanguagesFromSources соберёт массив
+  var _stdLangs = ["Общий","Дварфский","Эльфийский","Великаний","Гномий","Гоблинский","Орочий","Полуросликов"];
+  var _knownLangs = {};
+  var _rl = (typeof RACE_LANGUAGES !== "undefined") && RACE_LANGUAGES[b.race];
+  if (_rl) (_rl.fixed||[]).forEach(function(n){ _knownLangs[n] = true; });
+  var _cl = (typeof CLASS_LANGUAGES !== "undefined") && CLASS_LANGUAGES[b.className];
+  if (_cl) (_cl.fixed||[]).forEach(function(n){ _knownLangs[n] = true; });
+  var _pickLangs = function(count){
+    var picks = [];
+    for (var i = 0; i < _stdLangs.length && picks.length < count; i++) {
+      if (!_knownLangs[_stdLangs[i]]) { picks.push(_stdLangs[i]); _knownLangs[_stdLangs[i]] = true; }
+    }
+    return picks;
+  };
+  if (_rl && _rl.choice) newChar.proficiencies.languageChoices.race = _pickLangs(_rl.choice);
+  var _bgLangs = (_bgEntry && typeof _bgEntry.languages === "number") ? _bgEntry.languages : 0;
+  if (_bgLangs > 0) newChar.proficiencies.languageChoices.background = _pickLangs(_bgLangs);
+  // BUILD-FIX-2: инструменты — заполняем toolChoices по слотам
+  var TC = (typeof TOOL_CATALOG !== "undefined") ? TOOL_CATALOG : {};
+  var _firstFrom = function(from){
+    var froms = Array.isArray(from) ? from : [from];
+    for (var i = 0; i < froms.length; i++) {
+      var arr = TC[froms[i]] || [];
+      if (arr.length) return arr[0].name;
+    }
+    return "";
+  };
+  // Предыстория: слоты-выборы → автозаполнение, фиксы recalc сам подхватит
+  if (_bgEntry && Array.isArray(_bgEntry.tools) && typeof parseBackgroundToolEntry === "function") {
+    _bgEntry.tools.forEach(function(entry, idx){
+      var parsed = parseBackgroundToolEntry(entry);
+      if (parsed.type === "slot") {
+        var picks = [];
+        for (var k = 0; k < (parsed.count||1); k++) {
+          var name = _firstFrom(parsed.from);
+          if (name && picks.indexOf(name) === -1) picks.push(name);
+        }
+        newChar.proficiencies.toolChoices["bg_" + idx] = picks;
+      }
     });
   }
+  // Класс: choices → автозаполнение
+  var _ct = (typeof CLASS_TOOLS !== "undefined") && CLASS_TOOLS[b.className];
+  if (_ct) {
+    (_ct.choices||[]).forEach(function(ch, idx){
+      var pool = [];
+      var froms = Array.isArray(ch.from) ? ch.from : [ch.from];
+      froms.forEach(function(f){ if (TC[f]) pool = pool.concat(TC[f]); });
+      if (Array.isArray(ch.options)) pool = pool.filter(function(p){ return ch.options.indexOf(p.name) >= 0; });
+      var picks = [];
+      for (var k = 0; k < (ch.count||1) && k < pool.length; k++) {
+        if (picks.indexOf(pool[k].name) === -1) picks.push(pool[k].name);
+      }
+      newChar.proficiencies.toolChoices["class_" + b.className + "_" + idx] = picks;
+    });
+  }
+  // Раса: choices → автозаполнение
+  var _rt = (typeof RACE_TOOLS !== "undefined") && RACE_TOOLS[b.race];
+  if (_rt) {
+    (_rt.choices||[]).forEach(function(ch, idx){
+      var picks = [];
+      if (Array.isArray(ch.options) && ch.options.length) {
+        picks.push(ch.options[0]);
+      } else {
+        var n = _firstFrom(ch.from);
+        if (n) picks.push(n);
+      }
+      newChar.proficiencies.toolChoices["race_" + idx] = picks;
+    });
+  }
+  // BUILD-FIX-5: гарантируем все ячейки инвентаря
+  ['weapon','armor','potion','scroll','tool','material','other'].forEach(function(k){
+    if (!Array.isArray(newChar.inventory[k])) newChar.inventory[k] = [];
+  });
+  newChar.inventory.other.push({ name:"Обычная одежда", qty:1, weight:3, slots:1, location:"worn", desc:"Повседневный комплект (PHB)." });
+  if (!Array.isArray(newChar.weapons)) newChar.weapons = [];
+  // BUILD-FIX-5: авто-экип брони и щита из startingEquipment
+  if (Array.isArray(b.startingEquipment) && typeof ARMOR_PRESETS !== "undefined") {
+    var _eqLow = b.startingEquipment.map(function(s){ return String(s||"").toLowerCase(); });
+    var _bestPreset = null, _bestLen = 0;
+    ARMOR_PRESETS.forEach(function(p){
+      if (p.id === "none") return;
+      var pn = p.name.toLowerCase();
+      for (var ei = 0; ei < _eqLow.length; ei++) {
+        if (_eqLow[ei].indexOf(pn) >= 0 && pn.length > _bestLen) {
+          _bestPreset = p; _bestLen = pn.length;
+        }
+      }
+    });
+    if (_bestPreset) {
+      newChar.combat.armorId = _bestPreset.id;
+      var _dexBonus = _bestPreset.dexCap >= 99 ? _dexMod : Math.min(_dexMod, _bestPreset.dexCap);
+      newChar.combat.ac = _bestPreset.baseAC + _dexBonus;
+    }
+    var _hasShield = _eqLow.some(function(s){ return s.indexOf("щит") >= 0; });
+    if (_hasShield) {
+      newChar.combat.hasShield = true;
+      newChar.combat.ac = (newChar.combat.ac || 10) + 2;
+    }
+  }
+  // BUILD-FIX-7: характеристика заклинаний по классу (PHB) — ru-uppercase,
+  // как ожидают <select id="spell-stat">, calcSpellStats() и подсветка sc-btn-*.
+  // Ранее BUILD-FIX-3 писал en-lowercase ("int"/"wis"/"cha") — select и atk/DC оставались пустыми.
+  var _spellAbilityByClass = {
+    "Волшебник":"ИНТ","Жрец":"МУД","Друид":"МУД","Бард":"ХАР",
+    "Паладин":"ХАР","Следопыт":"МУД","Чародей":"ХАР","Колдун":"ХАР"
+  };
+  var _spellAb = _spellAbilityByClass[b.className] || "";
+  if (_spellAb) newChar.spells.stat = _spellAb;
+  // BUILD-FIX-3: ячейки заклинаний 1-го уровня (включая пактовые слоты колдуна)
+  if (typeof SPELL_SLOTS_BY_LEVEL !== "undefined" && SPELL_SLOTS_BY_LEVEL[b.className]) {
+    var _slotsRow = SPELL_SLOTS_BY_LEVEL[b.className][1] || [];
+    for (var _li = 1; _li <= 9; _li++) {
+      newChar.spells.slots[_li] = _slotsRow[_li] || 0;
+      newChar.spells.slotsUsed[_li] = 0;
+    }
+  }
+  if (b.startingSpells) {
+    // BUILD-FIX-12: mySpells хранит ОБЪЕКТЫ заклинаний, не строки. Имена из билда
+    // ищем в SPELL_DATABASE (case-insens), при промахе — лог + skip (иначе
+    // renderMySpells даёт «UNDEFINED УРОВЕНЬ» из-за spell.level=undefined).
+    var _spellByName = {};
+    if (typeof SPELL_DATABASE !== "undefined" && Array.isArray(SPELL_DATABASE)) {
+      for (var _si = 0; _si < SPELL_DATABASE.length; _si++) {
+        var _sp = SPELL_DATABASE[_si];
+        if (_sp && _sp.name) _spellByName[_sp.name.toLowerCase().trim()] = _sp;
+      }
+    }
+    // Карта алиасов: PHB-имя из билда → имя в SPELL_DATABASE.
+    // Билды используют названия из dnd.su/PHB14, БД использует другие переводы.
+    var _SPELL_ALIASES = {
+      "огненный снаряд": "огненный болт",
+      "луч холода": "луч мороза",
+      "указание": "руководство",
+      "сонливость": "сон",
+      "рука мага": "волшебная рука",
+      "священное пламя": "священный огонь",
+      "удар грома": "громовая волна",
+      "стрелы грома": "громовая кара",
+      "дубинка": "дубина",
+      "выработка": "друидический знак",
+      "смех таши": "жуткий смех таши",
+      "дружба": "дружелюбие",
+      "насмешка": "злобная насмешка",
+      "защита от добра и зла": "защита от зла и добра",
+      "охотничья метка": "метка охотника",
+      "снаряд-громовержец": "громовая волна",
+      "поиск следов": "метка охотника"
+    };
+    function _resolveSpell(n) {
+      if (!n) return null;
+      if (typeof n === "object") return n; // уже объект
+      var key = String(n).toLowerCase().trim();
+      // Нормализация: ё↔е, убрать «(ритуал)»/«(концентрация)» суффиксы.
+      var alt = key.replace(/ё/g, "е").replace(/\s*\([^)]*\)\s*$/, "").trim();
+      var aliased = _SPELL_ALIASES[key] || _SPELL_ALIASES[alt];
+      return _spellByName[key] || _spellByName[alt] || (aliased && _spellByName[aliased]) || null;
+    }
+    var _missing = [];
+    function _pushResolved(arr) {
+      if (!Array.isArray(arr)) return;
+      arr.forEach(function(n){
+        var sp = _resolveSpell(n);
+        if (sp) {
+          if (!newChar.spells.mySpells.some(function(x){ return x.id === sp.id; })) {
+            newChar.spells.mySpells.push(sp);
+          }
+        } else if (typeof n === "string") {
+          _missing.push(n);
+        }
+      });
+    }
+    _pushResolved(b.startingSpells.cantrips);
+    _pushResolved(b.startingSpells.known);
+    if (Array.isArray(b.startingSpells.prepared)) newChar.spells.prepared = newChar.spells.prepared.concat(b.startingSpells.prepared);
+    if (_missing.length) {
+      console.warn("[BUILD-FIX-12] " + b.id + ": заклинания не найдены в SPELL_DATABASE:", _missing);
+    }
+  }
+  // BUILD-FIX-3: для подготовленных классов (волшебник/жрец/друид/паладин) —
+  // если в билде не указан prepared, авто-подготавливаем все известные заклинания 1+ уровня.
+  // Заговоры в prepared не нужны — они всегда подготовлены.
+  var _preparedCasters = { "Волшебник":1, "Жрец":1, "Друид":1, "Паладин":1 };
+  if (_preparedCasters[b.className] && (!b.startingSpells || !Array.isArray(b.startingSpells.prepared) || b.startingSpells.prepared.length === 0)) {
+    if (b.startingSpells && Array.isArray(b.startingSpells.known)) {
+      b.startingSpells.known.forEach(function(n){
+        if (newChar.spells.prepared.indexOf(n) === -1) newChar.spells.prepared.push(n);
+      });
+    }
+  }
+  // BUILD-FIX-5: умная категоризация startingEquipment
+  if (Array.isArray(b.startingEquipment)) {
+    // Развёрнутые описания наборов снаряжения PHB
+    // BUILD-FIX-9 (rev3): формат [name, qty, weight, slots, location, desc].
+      // location: backpack/worn/wielded/belt/outside/stored. Сам рюкзак — worn (на спине).
+      // При снятии рюкзака (toggleBackpackOff) предметы с location:"backpack" выпадают
+      // из расчёта слотов и помечаются (в снятом рюкзаке).
+      var _PACKS = {
+      "набор путешественника": [
+        ["Рюкзак", 1, 5, 1, "worn", "Основная сумка. Носится на спине."],
+        ["Спальный мешок", 1, 7, 0, "outside", "Приторочен снаружи рюкзака."],
+        ["Котелок", 1, 1, 0, "backpack", "Для готовки на костре."],
+        ["Трутница", 1, 1, 0, "backpack", "Огниво и трут."],
+        ["Факел", 10, 1, 0, "backpack", "Свет 6 м на 1 час."],
+        ["Рацион (1 день)", 10, 2, 0, "backpack", "Сухие пайки на день пути."],
+        ["Бурдюк (вода)", 1, 5, 0, "belt", "На ремне. Вмещает 4 л воды."],
+        ["Верёвка пеньковая (15 м)", 1, 10, 0, "outside", "В петле на рюкзаке."]
+      ],
+      "набор исследователя": [
+        ["Рюкзак", 1, 5, 1, "worn", "Основная сумка."],
+        ["Лом", 1, 5, 0, "backpack", "Преимущество на проверки СИЛ при взломе."],
+        ["Молоток", 1, 3, 0, "backpack", "Забить колышек."],
+        ["Колышки железные", 10, 0.25, 0, "backpack", "Закрепить дверь, верёвку."],
+        ["Факел", 10, 1, 0, "backpack", "Свет 6 м на 1 час."],
+        ["Трутница", 1, 1, 0, "backpack", "Огниво и трут."],
+        ["Рацион (1 день)", 10, 2, 0, "backpack", "Сухие пайки."],
+        ["Бурдюк (вода)", 1, 5, 0, "belt", "4 л воды."],
+        ["Верёвка пеньковая (15 м)", 1, 10, 0, "outside", "В петле на рюкзаке."]
+      ],
+      "набор учёного": [
+        ["Рюкзак", 1, 5, 1, "worn", "Сумка для книг."],
+        ["Книга знаний", 1, 5, 0, "backpack", "Том по теме предыстории."],
+        ["Чернильница", 1, 0, 0, "backpack", "Чернила для письма."],
+        ["Перо", 1, 0, 0, "backpack", "Гусиное перо."],
+        ["Пергамент", 10, 0, 0, "backpack", "Чистые листы."],
+        ["Мешочек с песком", 1, 0, 0, "backpack", "Сушит чернила."],
+        ["Маленький нож", 1, 0.5, 0, "belt", "На поясе. Заточить перо."]
+      ],
+      "набор священника": [
+        ["Рюкзак", 1, 5, 1, "worn", "Сумка для утвари."],
+        ["Одеяло", 1, 3, 0, "backpack", "Тёплое."],
+        ["Свеча", 10, 0, 0, "backpack", "Свет 1.5 м на 1 час."],
+        ["Трутница", 1, 1, 0, "backpack", "Огниво и трут."],
+        ["Кружка для подаяний", 1, 0, 0, "backpack", "Жестяная."],
+        ["Палочки благовоний", 2, 0, 0, "backpack", "Для обрядов."],
+        ["Облачение", 1, 4, 0, "backpack", "Парадное священное."],
+        ["Одеяние", 1, 4, 0, "backpack", "Повседневное."],
+        ["Рацион (1 день)", 2, 2, 0, "backpack", "Скромные пайки."],
+        ["Бурдюк (вода)", 1, 5, 0, "belt", "4 л."]
+      ],
+      "набор артиста": [
+        ["Рюкзак", 1, 5, 1, "worn", "Сумка для реквизита."],
+        ["Спальный мешок", 1, 7, 0, "outside", "Приторочен снаружи."],
+        ["Костюм", 2, 4, 0, "backpack", "Сценический наряд."],
+        ["Свеча", 5, 0, 0, "backpack", "Освещение."],
+        ["Рацион (1 день)", 5, 2, 0, "backpack", "Пайки."],
+        ["Бурдюк (вода)", 1, 5, 0, "belt", "4 л."],
+        ["Набор для грима", 1, 3, 0, "backpack", "Маски, краски, парики."]
+      ],
+      "набор подземелий": [
+        ["Рюкзак", 1, 5, 1, "worn", "Основная сумка."],
+        ["Лом", 1, 5, 0, "backpack", "СИЛ-проверки взлома."],
+        ["Молоток", 1, 3, 0, "backpack", ""],
+        ["Колышки железные", 10, 0.25, 0, "backpack", ""],
+        ["Факел", 10, 1, 0, "backpack", "Свет 6 м, 1 час."],
+        ["Трутница", 1, 1, 0, "backpack", ""],
+        ["Рацион (1 день)", 10, 2, 0, "backpack", ""],
+        ["Бурдюк (вода)", 1, 5, 0, "belt", ""],
+        ["Верёвка пеньковая (15 м)", 1, 10, 0, "outside", "В петле."]
+      ],
+      "набор дипломата": [
+        ["Сундук", 1, 25, 0, "stored", "В лагере. Запирающийся."],
+        ["Футляры для свитков", 2, 1, 0, "stored", "В сундуке."],
+        ["Тёплое одеяло", 1, 3, 0, "stored", "В сундуке."],
+        ["Парадная одежда", 1, 6, 0, "stored", "В сундуке."],
+        ["Чернильница", 1, 0, 0, "stored", "В сундуке."],
+        ["Перо", 1, 0, 0, "stored", "В сундуке."],
+        ["Пергамент", 5, 0, 0, "stored", "В сундуке."],
+        ["Духи", 1, 0, 0, "stored", "В сундуке."],
+        ["Воск", 1, 0, 0, "stored", "В сундуке. Для печати."]
+      ],
+      "набор взломщика": [
+        ["Рюкзак", 1, 5, 1, "worn", "Основная сумка."],
+        ["Шарики", 1000, 2, 0, "backpack", "Раскатать на полу — Ловкость для прохода."],
+        ["Колокольчик", 1, 0, 0, "backpack", ""],
+        ["Свеча", 5, 0, 0, "backpack", ""],
+        ["Лом", 1, 5, 0, "backpack", ""],
+        ["Молоток", 1, 3, 0, "backpack", ""],
+        ["Колышки железные", 10, 0.25, 0, "backpack", ""],
+        ["Капюшонный фонарь", 1, 2, 0, "belt", "На ремне. Свет 9 м, 6 часов."],
+        ["Масло (фляга)", 2, 1, 0, "backpack", "Для фонаря/поджога."],
+        ["Рацион (1 день)", 5, 2, 0, "backpack", ""],
+        ["Трутница", 1, 1, 0, "backpack", ""],
+        ["Бурдюк (вода)", 1, 5, 0, "belt", ""]
+      ]
+    };
+    // Описания и веса для частых одиночных предметов и боеприпасов
+    // BUILD-FIX-9 (rev): добавлено поле slots — сколько слотов рюкзака занимает 1 шт.
+    var _GEAR_DB = {
+      "болты": { cat:"other", weight:1.5, qty:20, slots:0, desc:"Боеприпасы для арбалета." },
+      "стрелы": { cat:"other", weight:1, qty:20, slots:0, desc:"Боеприпасы для лука." },
+      "иглы": { cat:"other", weight:1, qty:20, slots:0, desc:"Боеприпасы для духовой трубки." },
+      "колчан": { cat:"other", weight:1, slots:0, desc:"Хранит до 20 стрел." },
+      "сумка с компонентами": { cat:"material", weight:2, slots:1, desc:"Материальные компоненты для заклинаний." },
+      "мешочек с компонентами": { cat:"material", weight:2, slots:1, desc:"Материальные компоненты для заклинаний." },
+      "компонентный мешочек": { cat:"material", weight:2, slots:1, desc:"Материальные компоненты для заклинаний." },
+      "компонентная сумка": { cat:"material", weight:2, slots:1, desc:"Материальные компоненты для заклинаний." },
+      "магическая фокусировка": { cat:"material", weight:2, slots:1, desc:"Заменяет компоненты без указанной цены." },
+      "фокусировка": { cat:"material", weight:2, slots:1, desc:"Магическая фокусировка для класса." },
+      "книга заклинаний": { cat:"other", weight:3, slots:1, desc:"6 заклинаний 1 уровня. Источник магии волшебника." },
+      "священный символ": { cat:"material", weight:1, slots:0, desc:"Фокусировка жреца/паладина." },
+      "друидическая фокусировка": { cat:"material", weight:1, slots:0, desc:"Омела, тотем, посох — фокусировка друида." },
+      "лютня": { cat:"tool", weight:2, slots:1, desc:"Музыкальный инструмент барда." },
+      "флейта": { cat:"tool", weight:1, slots:0, desc:"Музыкальный инструмент." },
+      "лира": { cat:"tool", weight:2, slots:1, desc:"Музыкальный инструмент." },
+      "воровские инструменты": { cat:"tool", weight:1, slots:1, desc:"Отмычки, щупы. Для замков и ловушек." },
+      "набор травника": { cat:"tool", weight:3, slots:1, desc:"Изготовление зелий и противоядий." },
+      "набор для грима": { cat:"tool", weight:3, slots:1, desc:"Краски, парики, маски." },
+      "ремесленный инструмент": { cat:"tool", weight:5, slots:1, desc:"Инструменты ремесленника." },
+      "молитвенник": { cat:"other", weight:5, slots:1, desc:"Сборник молитв." },
+      "пергамент": { cat:"other", weight:0, slots:0, desc:"Чистые листы." },
+      "чернила": { cat:"other", weight:0, slots:0, desc:"Флакон чернил." },
+      "свеча": { cat:"other", weight:0, slots:0, desc:"Свет 1.5 м на 1 час." },
+      "факел": { cat:"other", weight:1, slots:0, desc:"Свет 6 м на 1 час." },
+      "верёвка": { cat:"other", weight:10, slots:1, desc:"Пеньковая 15 м." },
+      "бурдюк": { cat:"other", weight:5, slots:1, desc:"4 л воды." },
+      "лом": { cat:"tool", weight:5, slots:1, desc:"Преимущество на СИЛ при взломе." },
+      "сеть": { cat:"weapon-special", weight:3, slots:1, desc:"Опутывает врага. Бросок 5/15 фт." },
+      "лошадь": { cat:"other", weight:0, slots:0, desc:"Скакун." },
+      "седло": { cat:"other", weight:25, slots:2, desc:"Верховое седло." }
+    };
+    // Парсер количества из имени: "Болты (20)" / "4 метательных топора"
+    var _parseQty = function(nm){
+      var m = nm.match(/\((\d+)\)/);
+      if (m) return parseInt(m[1]);
+      m = nm.match(/^(\d+)\s+/);
+      if (m) return parseInt(m[1]);
+      return 1;
+    };
+    // Расширенный каталог оружия для билдов (PHB), включая то, чего нет в WEAPON_PRESETS.
+    var _EXTRA_WEAPONS = [
+      {name:"Двуручный топор", stat:"str", bonus:"+3", damage:"1к12", type:"Режущий", range:"Ближний", notes:"Двуручное, тяжёлое"},
+      {name:"Двуручный меч",   stat:"str", bonus:"+3", damage:"2к6",  type:"Режущий", range:"Ближний", notes:"Двуручное, тяжёлое"},
+      {name:"Метательный топор",stat:"str",bonus:"+3", damage:"1к6",  type:"Режущий", range:"Ближний/20/60 фт", notes:"Лёгкое, метательное"},
+      {name:"Тяжёлый арбалет", stat:"dex", bonus:"+3", damage:"1к10", type:"Колющий", range:"100/400 фт", notes:"Двуручное, тяжёлое, перезарядка"},
+      {name:"Лёгкий арбалет",  stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий", range:"80/320 фт", notes:"Двуручное, дальнобойное, перезарядка"},
+      {name:"Ручной арбалет",  stat:"dex", bonus:"+3", damage:"1к6",  type:"Колющий", range:"30/120 фт", notes:"Лёгкое, перезарядка"},
+      {name:"Алебарда",        stat:"str", bonus:"+3", damage:"1к10", type:"Режущий", range:"Ближний", notes:"Двуручное, тяжёлое, досягаемость"},
+      {name:"Глефа",           stat:"str", bonus:"+3", damage:"1к10", type:"Режущий", range:"Ближний", notes:"Двуручное, тяжёлое, досягаемость"},
+      {name:"Боевой посох",    stat:"str", bonus:"+3", damage:"1к6",  type:"Дробящий", range:"Ближний", notes:"Универсальное (1к8)"},
+      {name:"Посох",           stat:"str", bonus:"+3", damage:"1к6",  type:"Дробящий", range:"Ближний", notes:"Универсальное (1к8)"},
+      {name:"Серп",            stat:"str", bonus:"+3", damage:"1к4",  type:"Режущий", range:"Ближний", notes:"Лёгкое"},
+      {name:"Праща",           stat:"dex", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"30/120 фт", notes:"Боеприпасы"},
+      {name:"Дубина",          stat:"str", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"Ближний", notes:"Лёгкое"},
+      {name:"Палица",          stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний", notes:""},
+      {name:"Тяжёлый молот",   stat:"str", bonus:"+3", damage:"2к6",  type:"Дробящий", range:"Ближний", notes:"Двуручное, тяжёлое"},
+      {name:"Метательное копьё",stat:"str",bonus:"+3", damage:"1к6",  type:"Колющий", range:"30/120 фт", notes:"Метательное"},
+      {name:"Молот",           stat:"str", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"20/60 фт", notes:"Лёгкое, метательное"},
+      {name:"Кистень",         stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний", notes:""},
+      {name:"Цеп",             stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний", notes:""},
+      {name:"Тренчёр",         stat:"str", bonus:"+3", damage:"1к8",  type:"Колющий", range:"Ближний", notes:""},
+      {name:"Сабля",           stat:"dex", bonus:"+3", damage:"1к6",  type:"Режущий", range:"Ближний", notes:"Лёгкое, фехтовальное"}
+    ];
+    // Сравнение со словоформами: берём 5-символьные стеммы каждого слова
+    var _stemSet = function(s){
+      var arr = String(s).toLowerCase().replace(/[()]/g," ").split(/\s+/);
+      var set = {};
+      arr.forEach(function(w){ if (w.length >= 4) set[w.substring(0, Math.min(5,w.length))] = 1; });
+      return set;
+    };
+    var _matchByStems = function(presetName, inputName){
+      var p = _stemSet(presetName), i = _stemSet(inputName);
+      var pk = Object.keys(p);
+      if (!pk.length) return false;
+      // все стеммы пресета должны присутствовать во входе
+      for (var k = 0; k < pk.length; k++) if (!i[pk[k]]) return false;
+      return true;
+    };
+    var _findWeapon = function(name){
+      var lo = name.toLowerCase();
+      var pools = [];
+      if (typeof WEAPON_PRESETS !== "undefined") pools.push(WEAPON_PRESETS);
+      pools.push(_EXTRA_WEAPONS);
+      // 1. подстрока
+      for (var pi = 0; pi < pools.length; pi++) {
+        var best = null, bestLen = 0;
+        pools[pi].forEach(function(w){
+          var pn = w.name.toLowerCase();
+          if (lo.indexOf(pn) >= 0 && pn.length > bestLen) { best = w; bestLen = pn.length; }
+        });
+        if (best) return best;
+      }
+      // 2. стемминг
+      for (var pj = 0; pj < pools.length; pj++) {
+        var best2 = null, bestLen2 = 0;
+        pools[pj].forEach(function(w){
+          if (_matchByStems(w.name, lo) && w.name.length > bestLen2) { best2 = w; bestLen2 = w.name.length; }
+        });
+        if (best2) return best2;
+      }
+      return null;
+    };
+    var _findArmor = function(name){
+      if (typeof ARMOR_PRESETS === "undefined") return null;
+      var lo = name.toLowerCase();
+      var best = null, bestLen = 0;
+      ARMOR_PRESETS.forEach(function(p){
+        if (p.id === "none") return;
+        var pn = p.name.toLowerCase();
+        if (lo.indexOf(pn) >= 0 && pn.length > bestLen) { best = p; bestLen = pn.length; }
+      });
+      return best;
+    };
+    b.startingEquipment.forEach(function(rawName){
+      var name = String(rawName || "").trim();
+      if (!name) return;
+      var lo = name.toLowerCase();
+      // 1. Наборы PHB — BUILD-FIX-9 (rev): разворачиваем в детальный список,
+      // НО мелочь (свечи/факелы/рационы пачкой/чернила/перо/пергамент/колышки/масло…)
+      // получает slots:0 — не «съедает» рюкзак. Контейнеры/крупное — slots:1+.
+      var packKey = null;
+      Object.keys(_PACKS).forEach(function(k){ if (lo.indexOf(k) >= 0) packKey = k; });
+      if (packKey) {
+        _PACKS[packKey].forEach(function(p){
+          newChar.inventory.other.push({ name:p[0], qty:p[1], weight:p[2], slots:p[3], location:p[4], desc:p[5] });
+        });
+        return;
+      }
+      // 2. Оружие — основное (1-е) идёт в руку, остальное на поясе
+      var w = _findWeapon(name);
+      if (w) {
+        var prof = (typeof checkWeaponProficiency === "function") ? checkWeaponProficiency(newChar, w.name) : true;
+        newChar.weapons.push({
+          name: w.name, stat: w.stat, statName: w.stat === "str" ? "СИЛ" : "ЛОВ",
+          bonus: w.bonus, damage: w.damage, type: w.type, range: w.range, notes: w.notes, proficient: prof
+        });
+        var _wLoc = (newChar.inventory.weapon.length === 0) ? "wielded" : "belt";
+        newChar.inventory.weapon.push({
+          name: w.name, qty: 1, weight: 0, location: _wLoc,
+          desc: (w.damage ? w.damage + " " + w.type + ". " : "") + (w.range ? "Дистанция: " + w.range + ". " : "") + (w.notes || "")
+        });
+        return;
+      }
+      // 3. Броня — надета на тело
+      var a = _findArmor(name);
+      if (a) {
+        newChar.inventory.armor.push({
+          name: a.name, qty: 1, weight: 0, location: "worn",
+          desc: "База КД " + a.baseAC + (a.dexCap < 99 ? ", макс. ЛОВ +" + a.dexCap : ", полный ЛОВ") + ". Тип: " + a.type + "."
+        });
+        return;
+      }
+      // 4. Щит — в руке
+      if (lo.indexOf("щит") >= 0) {
+        newChar.inventory.armor.push({ name:"Щит", qty:1, weight:6, location:"wielded", desc:"+2 КД. Требует одну руку." });
+        return;
+      }
+      // 5. Известное снаряжение из каталога
+      var gearHit = null;
+      Object.keys(_GEAR_DB).forEach(function(k){ if (lo.indexOf(k) >= 0 && (!gearHit || k.length > gearHit.length)) gearHit = k; });
+      if (gearHit) {
+        var g = _GEAR_DB[gearHit];
+        var qty = _parseQty(name) || g.qty || 1;
+        var cat = g.cat === "weapon-special" ? "weapon" : g.cat;
+        var _gSlots = (g.slots !== undefined) ? g.slots : ((g.weight || 0) <= 1 ? 0 : undefined);
+        // BUILD-FIX-9 (rev3): location по типу — фокусировки/символы/инструменты на поясе,
+        // боеприпасы/книги/мелочь в рюкзаке.
+        var _gLoc = g.loc || (
+          (cat === "material" || /символ|фокусировка|воровские|инструмент|лютня|флейта|лира/.test(gearHit)) ? "belt" :
+          (cat === "tool") ? "backpack" :
+          "backpack"
+        );
+        newChar.inventory[cat].push({ name: name.replace(/\s*\(\d+\)/, ""), qty: qty, weight: g.weight || 0, slots: _gSlots, location: _gLoc, desc: g.desc || "" });
+        return;
+      }
+      // 6. Прочее — пачка (qty>1) → slots:0, в рюкзаке.
+      var qty2 = _parseQty(name);
+      newChar.inventory.other.push({ name: name.replace(/^\d+\s+/, "").replace(/\s*\(\d+\)/, ""), qty: qty2, weight: 0, slots: (qty2 > 1 ? 0 : undefined), location: "backpack", desc: "" });
+    });
+  }
+  // BUILD-FIX-5: заметки персонажа из предыстории (внешность/личность/идеалы/связи/слабости).
+  var _BG_NOTES = {
+    "Воин":       { personality:"Прямой, дисциплинированный, доверяет товарищам по оружию.", ideals:"Долг. Каждый солдат обязан исполнить свой долг.", bonds:"Я бы умер за людей, с которыми служил.", flaws:"Слепо подчиняюсь приказам, даже сомнительным." },
+    "Солдат":     { personality:"Прямой, дисциплинированный, доверяет товарищам по оружию.", ideals:"Долг. Каждый солдат обязан исполнить свой долг.", bonds:"Я бы умер за людей, с которыми служил.", flaws:"Слепо подчиняюсь приказам, даже сомнительным." },
+    "Преступник": { personality:"Всегда продумываю запасной план на случай провала.", ideals:"Свобода. Цепи — это для других.", bonds:"Я в долгу перед тем, кто помог мне сменить путь.", flaws:"Когда удобно — обманываю даже близких." },
+    "Шарлатан":   { personality:"У меня всегда заготовлена правдоподобная легенда.", ideals:"Независимость. Никто не указывает мне путь.", bonds:"Жертвы моих обманов однажды найдут меня.", flaws:"Не могу удержаться, чтобы не воспользоваться доверчивым." },
+    "Послушник":  { personality:"Тихая молитва — мой ответ на любую тревогу.", ideals:"Вера. Боги ведут меня даже там, где я не вижу пути.", bonds:"Мой храм — то, ради чего я пошёл в мир.", flaws:"Не доверяю никому вне своей веры." },
+    "Прислужник": { personality:"Тихая молитва — мой ответ на любую тревогу.", ideals:"Вера. Боги ведут меня даже там, где я не вижу пути.", bonds:"Мой храм — то, ради чего я пошёл в мир.", flaws:"Не доверяю никому вне своей веры." },
+    "Аколит":     { personality:"Цитирую священные тексты в любых разговорах.", ideals:"Вера. Я орудие воли своего божества.", bonds:"Я бы умер, чтобы вернуть утраченную реликвию своего храма.", flaws:"Слишком сильно полагаюсь на догмы." },
+    "Дворянин":   { personality:"Привык, что слово моего имени открывает двери.", ideals:"Благородство. Высокое положение — высокая ответственность.", bonds:"Семья — то, ради чего стоит идти на любые жертвы.", flaws:"Не выношу несправедливого обращения с собой." },
+    "Благородный":{ personality:"Привык, что слово моего имени открывает двери.", ideals:"Благородство. Высокое положение — высокая ответственность.", bonds:"Семья — то, ради чего стоит идти на любые жертвы.", flaws:"Не выношу несправедливого обращения с собой." },
+    "Артист":     { personality:"Каждое появление — небольшое представление.", ideals:"Красота. Когда я выступаю, я возвышаю мир.", bonds:"Кто-то однажды дал мне шанс выступить — я в долгу.", flaws:"Падок на лесть и аплодисменты." },
+    "Дикарь":     { personality:"Чувствую себя свободно только под открытым небом.", ideals:"Природа. Цивилизация портит душу.", bonds:"Племя/клан — мой настоящий дом.", flaws:"С трудом выношу запах и шум городов." },
+    "Чужеземец":  { personality:"Чувствую себя свободно только под открытым небом.", ideals:"Природа. Цивилизация портит душу.", bonds:"Племя/клан — мой настоящий дом.", flaws:"С трудом выношу запах и шум городов." },
+    "Мудрец":     { personality:"Я всегда могу что-то процитировать по теме.", ideals:"Знание. Понять мир — высшая цель.", bonds:"Моя библиотека — то, что я защищаю превыше всего.", flaws:"Готов рисковать жизнью ради редкой книги." },
+    "Отшельник":  { personality:"Молчаливый, наблюдательный, выбираю слова.", ideals:"Просветление. Уединение открыло мне истину.", bonds:"Моё открытие должно изменить мир.", flaws:"Прежде сделаю — потом подумаю о социальных последствиях." },
+    "Герой народа":{personality:"Простые люди — мои настоящие друзья.", ideals:"Справедливость. Тираны не должны властвовать.", bonds:"Я защищаю тех, кто не может защитить себя.", flaws:"Не доверяю аристократам и магам." },
+    "Бродяга":    { personality:"Привык спать под открытым небом и довольствоваться малым.", ideals:"Свобода. Никаких корней — никаких цепей.", bonds:"Один человек когда-то был ко мне добр — за это я готов на всё.", flaws:"Беру чужое легче, чем нужно." },
+    "Гильд-артист":{personality:"Я мастер своего дела и горжусь этим.", ideals:"Сообщество. Гильдия — моя семья.", bonds:"Мастерская/инструмент — символ всей моей жизни.", flaws:"Всё измеряю в монетах и контрактах." },
+    "Подмастерье":{ personality:"Я мастер своего дела и горжусь этим.", ideals:"Сообщество. Гильдия — моя семья.", bonds:"Мастерская/инструмент — символ всей моей жизни.", flaws:"Всё измеряю в монетах и контрактах." },
+    "Моряк":      { personality:"Сыплю морскими байками и солёными шутками.", ideals:"Свобода. Открытое море — настоящая жизнь.", bonds:"Команда корабля — моя истинная семья.", flaws:"Авторитеты на суше меня раздражают." },
+    "Матрос":     { personality:"Сыплю морскими байками и солёными шутками.", ideals:"Свобода. Открытое море — настоящая жизнь.", bonds:"Команда корабля — моя истинная семья.", flaws:"Авторитеты на суше меня раздражают." },
+    "Торговец":   { personality:"Всегда оцениваю собеседника как потенциального клиента.", ideals:"Честная сделка — основа любого общества.", bonds:"Торговая марка моей семьи — то, ради чего стоит сражаться.", flaws:"Не отказываю себе в выгодной возможности." }
+  };
+  if (!newChar.notesV2) newChar.notesV2 = { sections:{appearance:"",personality:"",backstory:"",features:"",magicItems:"",bonds:"",flaws:"",ideals:""}, entries:[], prefs:{lastSection:'backstory',lastFilter:'all'} };
+  var _bgNoteKey = _bgAliases[b.background] || b.background;
+  var _bgNote = _BG_NOTES[_bgNoteKey] || _BG_NOTES[b.background] || null;
+  // BUILD-FIX-11: персонализированные заметки билда (приоритет над _BG_NOTES).
+  var _bn = (b.notes && typeof b.notes === "object") ? b.notes : null;
+  var _NS = newChar.notesV2.sections;
+  if (!_NS.appearance) _NS.appearance = (_bn && _bn.appearance) ? _bn.appearance
+      : ((b.race ? b.race + ". " : "") + "Выглядит как опытный «" + (b.title || b.className || "искатель приключений") + "». Заполни внешность под свой образ.");
+  if (!_NS.personality) _NS.personality = (_bn && _bn.personality) || (_bgNote && _bgNote.personality) || "Опиши характер своего персонажа: что движет, как держится в обществе, как реагирует на угрозу.";
+  if (!_NS.ideals)      _NS.ideals      = (_bn && _bn.ideals)      || (_bgNote && _bgNote.ideals)      || "Чему служит твой персонаж — долгу, свободе, знанию, вере?";
+  if (!_NS.bonds)       _NS.bonds       = (_bn && _bn.bonds)       || (_bgNote && _bgNote.bonds)       || "Что или кого твой персонаж готов защищать ценой жизни?";
+  if (!_NS.flaws)       _NS.flaws       = (_bn && _bn.flaws)       || (_bgNote && _bgNote.flaws)       || "Какая слабость или порок может однажды его погубить?";
+  // BUILD-FIX-4: стартовая заметка из b.summary + краткий план первых уровней.
+  if (!newChar.notesV2) newChar.notesV2 = { sections:{appearance:"",personality:"",backstory:"",features:"",magicItems:"",bonds:"",flaws:"",ideals:""}, entries:[], prefs:{lastSection:'backstory',lastFilter:'all'} };
+  var _bsLines = [];
+  _bsLines.push("# " + (b.title || ""));
+  if (b.role || b.difficulty) {
+    var _diff = b.difficulty ? (" · сложность " + b.difficulty + "/3") : "";
+    _bsLines.push("_" + (b.role || "") + _diff + "_");
+  }
+  if (b.summary) _bsLines.push("\n" + b.summary);
+  if (b.levelUp) {
+    _bsLines.push("\n## План развития (1–5)");
+    [1,2,3,4,5].forEach(function(lv){
+      var step = b.levelUp[lv];
+      if (step && step.headline) _bsLines.push("- **" + lv + ":** " + step.headline + (step.why ? " — " + step.why : ""));
+    });
+  }
+  // BUILD-FIX-11: сюжетные крючки в backstory.
+  if (_bn && Array.isArray(_bn.hooks) && _bn.hooks.length) {
+    _bsLines.push("\n## Сюжетные крючки");
+    _bn.hooks.forEach(function(h){ if (h) _bsLines.push("- " + h); });
+  }
+  var _bs = _bsLines.join("\n");
+  if (!newChar.notesV2.sections.backstory) newChar.notesV2.sections.backstory = _bs;
+  newChar.notesV2.prefs = newChar.notesV2.prefs || { lastSection:'backstory', lastFilter:'all' };
+  newChar.notesV2.entries = newChar.notesV2.entries || [];
+  newChar.notesV2.entries.push({
+    id: "build-" + b.id + "-" + Date.now(),
+    type: "free",
+    title: "Билд применён: " + (b.title || ""),
+    body: (b.summary || "") + (b.role ? "\n\nРоль: " + b.role : ""),
+    tags: ["билд", b.className || ""].filter(Boolean),
+    pinned: false,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  });
   newChar.updatedAt = Date.now();
   characters.push(newChar);
   saveToLocal();
   closeModal("build-picker-modal");
   loadCharacter(newChar.id);
   if (typeof showToast === "function") showToast("Билд применён: " + b.title, "success");
+  // BUILD-DESC-3: открыть модалку с гайдом по билду сразу после применения.
+  if (b.guide) setTimeout(function(){ openBuildGuide(b.id); }, 250);
+}
+
+// BUILD-DESC-3: модалка с полным гайдом по билду.
+// Вызов: openBuildGuide() — для текущего персонажа; openBuildGuide(buildId) — по id.
+function openBuildGuide(buildId) {
+  var b = null;
+  if (buildId) {
+    b = window.getBuildById && window.getBuildById(buildId);
+  } else {
+    var ch = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+    if (ch && ch.buildId) b = window.getBuildById && window.getBuildById(ch.buildId);
+  }
+  if (!b || !b.guide) {
+    if (typeof showToast === "function") showToast("У этого билда нет гайда", "warn");
+    return;
+  }
+  var g = b.guide;
+  var titleEl = document.getElementById("bg-title-h");
+  var bodyEl = document.getElementById("bg-body");
+  if (titleEl) titleEl.textContent = "📘 Гайд: " + (b.title || b.className || "");
+  function _list(arr, cls, mark) {
+    if (!Array.isArray(arr) || !arr.length) return "";
+    return '<ul class="bg-list ' + cls + '">' +
+      arr.map(function(x){ return '<li><span class="bg-mark">' + mark + '</span> ' + escapeHtml(x) + '</li>'; }).join("") +
+      '</ul>';
+  }
+  var html = "";
+  html += '<div class="bg-meta"><span class="bg-cls">' + escapeHtml(b.className || "") + (b.subclass ? ' · ' + escapeHtml(b.subclass) : '') + '</span>';
+  if (b.role) html += '<span class="bg-role">' + escapeHtml(b.role) + '</span>';
+  html += '</div>';
+  if (g.pitch) html += '<div class="bg-pitch">🎯 ' + escapeHtml(g.pitch) + '</div>';
+  if (g.playstyle) html += '<section class="bg-section"><h3>⚔️ Стиль игры</h3><p>' + escapeHtml(g.playstyle) + '</p></section>';
+  if (Array.isArray(g.strengths) && g.strengths.length) html += '<section class="bg-section"><h3>✅ Сильные стороны</h3>' + _list(g.strengths, "bg-pros", "✓") + '</section>';
+  if (Array.isArray(g.weaknesses) && g.weaknesses.length) html += '<section class="bg-section"><h3>⚠️ Слабости</h3>' + _list(g.weaknesses, "bg-cons", "✗") + '</section>';
+  if (g.synergy) html += '<section class="bg-section"><h3>🤝 Синергия в партии</h3><p>' + escapeHtml(g.synergy) + '</p></section>';
+  if (Array.isArray(g.tips) && g.tips.length) html += '<section class="bg-section"><h3>💡 Советы по игре</h3>' + _list(g.tips, "bg-tips", "•") + '</section>';
+  // План развития 1-5 из b.levelUp — компактный список.
+  if (b.levelUp) {
+    var lvLines = [];
+    [1,2,3,4,5].forEach(function(lv){
+      var s = b.levelUp[lv];
+      if (s && s.headline) lvLines.push('<li><strong>' + lv + ' ур.:</strong> ' + escapeHtml(s.headline) + (s.why ? ' <span class="bg-why">— ' + escapeHtml(s.why) + '</span>' : '') + '</li>');
+    });
+    if (lvLines.length) html += '<section class="bg-section"><h3>📈 План развития (1–5)</h3><ul class="bg-list bg-levels">' + lvLines.join("") + '</ul></section>';
+  }
+  if (bodyEl) bodyEl.innerHTML = html;
+  openModal("build-guide-modal");
 }
 
 function createNewCharacter() {
@@ -739,6 +1404,20 @@ function getConditionIcon(id) {
   var slug = CONDITION_ICON_SLUGS[id];
   if (!slug) return '';
   return '<img class="condition-icon-svg" src="assets/conditions/' + slug + '.png" alt="" aria-hidden="true">';
+}
+// Временные эффекты: id → имя PNG-файла в assets/effects/. Если файла ещё нет — иконка просто не отрисуется.
+const EFFECT_ICON_SLUGS = {
+  mage_armor:'mage_armor', shield_spell:'shield_spell', haste:'haste', blur:'blur', sanctuary:'sanctuary',
+  bless:'bless', heroism:'heroism', aid:'aid', faerie_fire:'faerie_fire', protection_evil:'protection_evil',
+  pass_without_trace:'pass_without_trace', mirror_image:'mirror_image',
+  barbarian_rage:'barbarian_rage', monk_unarmored:'monk_unarmored', barbarian_unarmored:'barbarian_unarmored',
+  hunters_mark:'hunters_mark', divine_favor:'divine_favor', action_surge:'action_surge',
+  hex:'hex', bestow_curse:'bestow_curse', bane:'bane', slow:'slow', armor_damaged:'armor_damaged'
+};
+function getEffectIcon(id) {
+  var slug = EFFECT_ICON_SLUGS[id];
+  if (!slug) return '';
+  return '<img class="effect-icon-svg" src="assets/effects/' + slug + '.png" alt="" aria-hidden="true" onerror="this.style.display=\'none\'">';
 }
 // Иконка класса для бейджа в заклинании: ключ CLASS_ICONS_MAP → PNG в assets/classes/
 // "both" не имеет файла → fallback на emoji-звезду.

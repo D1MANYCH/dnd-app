@@ -484,34 +484,84 @@ function applyDamageResistance(damage, damageType) {
   return damage;
 }
 
+var _condFilter = { q: "", activeOnly: false };
+function _condMatches(cond, q) {
+  if (!q) return true;
+  q = q.toLowerCase();
+  return (cond.name || "").toLowerCase().indexOf(q) !== -1 || (cond.desc || "").toLowerCase().indexOf(q) !== -1;
+}
+function setConditionsSearch(v) { _condFilter.q = v || ""; renderConditionsGrid(); }
+function toggleConditionsActiveOnly() {
+  _condFilter.activeOnly = !_condFilter.activeOnly;
+  var btn = $("conditions-active-only");
+  if (btn) btn.classList.toggle("active", _condFilter.activeOnly);
+  renderConditionsGrid();
+}
+function renderConditionsGrid() {
+  const grid = $("conditions-grid");
+  if (!grid) return;
+  const char = currentId ? getCurrentChar() : null;
+  const activeSet = (char && char.conditions) ? char.conditions : [];
+  grid.innerHTML = "";
+  var baseConditions = CONDITIONS.filter(function(c) { return c.id.indexOf("exhaustion_") === -1; });
+  // активные сначала
+  baseConditions = baseConditions.slice().sort(function(a, b) {
+    var aa = activeSet.indexOf(a.id) !== -1 ? 0 : 1;
+    var bb = activeSet.indexOf(b.id) !== -1 ? 0 : 1;
+    if (aa !== bb) return aa - bb;
+    return stripLeadingEmoji(a.name).localeCompare(stripLeadingEmoji(b.name), 'ru');
+  });
+  var any = false;
+  baseConditions.forEach(function(condition) {
+    var isActive = activeSet.indexOf(condition.id) !== -1;
+    if (_condFilter.activeOnly && !isActive) return;
+    if (!_condMatches(condition, _condFilter.q)) return;
+    any = true;
+    const item = document.createElement("div");
+    item.className = "condition-item" + (condition.type ? " " + condition.type : "") + (isActive ? " active" : "");
+    item.id = "condition-" + condition.id;
+    item.onclick = function() { toggleCondition(condition.id); };
+    item.innerHTML = getConditionIcon(condition.id) + "<div class=\"condition-name\"><span>" + escapeHtml(stripLeadingEmoji(condition.name)) + "</span></div><div class=\"condition-desc\">" + escapeHtml(condition.desc) + "</div>";
+    grid.appendChild(item);
+  });
+  if (!any) {
+    var empty = document.createElement("div");
+    empty.className = "filter-empty";
+    empty.textContent = "Ничего не найдено";
+    grid.appendChild(empty);
+  }
+}
 function initConditions() {
 const grid = $("conditions-grid");
 if (!grid) return;
-grid.innerHTML = "";
-// Базовые состояния (не истощение)
-var baseConditions = CONDITIONS.filter(function(c) { return c.id.indexOf("exhaustion_") === -1; });
-baseConditions.forEach(function(condition) {
-  const item = document.createElement("div");
-  item.className = "condition-item" + (condition.type ? " " + condition.type : "");
-  item.id = "condition-" + condition.id;
-  item.onclick = function() { toggleCondition(condition.id); };
-  item.innerHTML = getConditionIcon(condition.id) + "<div class=\"condition-name\"><span>" + escapeHtml(stripLeadingEmoji(condition.name)) + "</span></div><div class=\"condition-desc\">" + escapeHtml(condition.desc) + "</div>";
-  grid.appendChild(item);
-});
-// Блок истощения отдельно
-var exhBlock = document.createElement("div");
-exhBlock.className = "exhaustion-block";
-exhBlock.innerHTML =
-  '<div class="exhaustion-header">' +
-    '<span class="exhaustion-title">' + getConditionIcon('exhaustion') + '<span>Истощение</span></span>' +
-    '<div class="exhaustion-controls">' +
-      '<button class="exhaustion-btn" onclick="adjustExhaustion(-1)">−</button>' +
-      '<span class="exhaustion-level" id="exhaustion-level">0</span>' +
-      '<button class="exhaustion-btn" onclick="adjustExhaustion(1)">+</button>' +
+// Панель фильтров (один раз, перед grid)
+var host = grid.parentNode;
+if (host && !$("conditions-filter-bar")) {
+  var bar = document.createElement("div");
+  bar.id = "conditions-filter-bar";
+  bar.className = "filter-bar";
+  bar.innerHTML =
+    '<input type="text" class="filter-search" id="conditions-search" placeholder="🔍 Поиск состояния…" oninput="setConditionsSearch(this.value)">' +
+    '<button type="button" class="filter-chip" id="conditions-active-only" onclick="toggleConditionsActiveOnly()">Только активные</button>';
+  host.insertBefore(bar, grid);
+}
+renderConditionsGrid();
+// Блок истощения — рядом с grid, чтобы перерендер grid его не стирал
+if (host && !host.querySelector('.exhaustion-block')) {
+  var exhBlock = document.createElement("div");
+  exhBlock.className = "exhaustion-block";
+  exhBlock.innerHTML =
+    '<div class="exhaustion-header">' +
+      '<span class="exhaustion-title">' + getConditionIcon('exhaustion') + '<span>Истощение</span></span>' +
+      '<div class="exhaustion-controls">' +
+        '<button class="exhaustion-btn" onclick="adjustExhaustion(-1)">−</button>' +
+        '<span class="exhaustion-level" id="exhaustion-level">0</span>' +
+        '<button class="exhaustion-btn" onclick="adjustExhaustion(1)">+</button>' +
+      '</div>' +
     '</div>' +
-  '</div>' +
-  '<div class="exhaustion-desc" id="exhaustion-desc"></div>';
-grid.appendChild(exhBlock);
+    '<div class="exhaustion-desc" id="exhaustion-desc"></div>';
+  host.appendChild(exhBlock);
+}
 }
 function getExhaustionLevel(char) {
 if (!char || !char.conditions) return 0;
@@ -577,6 +627,7 @@ updateConditionsCount();
 updateStatusBar();
 calculateAC();
 saveToLocal();
+if (typeof renderConditionsGrid === "function") renderConditionsGrid();
 }
 function updateConditionsCount() {
 if (!currentId) return;
@@ -589,34 +640,114 @@ countEl.style.display = count > 0 ? "inline-block" : "none";
 }
 function loadConditions() {
 if (!currentId) return;
-const char = getCurrentChar();
-if (!char || !char.conditions) return;
-CONDITIONS.forEach(function(condition) {
-  // Пропускаем истощение — оно отображается отдельным блоком
-  if (condition.id.indexOf("exhaustion_") !== -1) return;
-  const conditionEl = $("condition-" + condition.id);
-  if (char.conditions.includes(condition.id)) {
-    if (conditionEl) conditionEl.classList.add("active");
-  } else {
-    if (conditionEl) conditionEl.classList.remove("active");
-  }
-});
+if (typeof renderConditionsGrid === "function") renderConditionsGrid();
 updateExhaustionDisplay();
 updateConditionsCount();
 updateStatusBar();
 }
+var _fxFilter = { q: "", type: "all", activeOnly: false };
+var EFFECT_CATEGORY_LABELS = {
+  armor: '🛡️ Броня и КД',
+  spell: '✨ Заклинания',
+  class: '⚡ Классовые умения',
+  other: '✨ Прочее'
+};
+function _fxMatches(fx, q) {
+  if (!q) return true;
+  q = q.toLowerCase();
+  return (fx.name || "").toLowerCase().indexOf(q) !== -1 || (fx.desc || "").toLowerCase().indexOf(q) !== -1;
+}
+function setEffectsSearch(v) { _fxFilter.q = v || ""; renderEffectsGrid(); }
+function setEffectsType(t) {
+  _fxFilter.type = t;
+  ["all","buff","debuff"].forEach(function(k){
+    var el = $("effects-type-" + k);
+    if (el) el.classList.toggle("active", k === t);
+  });
+  renderEffectsGrid();
+}
+function toggleEffectsActiveOnly() {
+  _fxFilter.activeOnly = !_fxFilter.activeOnly;
+  var btn = $("effects-active-only");
+  if (btn) btn.classList.toggle("active", _fxFilter.activeOnly);
+  renderEffectsGrid();
+}
+function renderEffectsGrid() {
+  const grid = $("effects-grid");
+  if (!grid) return;
+  const char = currentId ? getCurrentChar() : null;
+  const activeSet = (char && char.effects) ? char.effects : [];
+  grid.innerHTML = "";
+  // Сгруппировать
+  var groups = { armor: [], spell: [], class: [], other: [] };
+  EFFECTS_DATA.forEach(function(fx) {
+    if (_fxFilter.type === 'buff' && fx.type !== 'buff') return;
+    if (_fxFilter.type === 'debuff' && fx.type !== 'debuff') return;
+    if (!_fxMatches(fx, _fxFilter.q)) return;
+    var isActive = activeSet.indexOf(fx.id) !== -1;
+    if (_fxFilter.activeOnly && !isActive) return;
+    var cat = groups[fx.category] ? fx.category : 'other';
+    groups[cat].push(fx);
+  });
+  // Внутри группы: активные сначала, дальше по имени
+  Object.keys(groups).forEach(function(cat) {
+    groups[cat].sort(function(a, b) {
+      var aa = activeSet.indexOf(a.id) !== -1 ? 0 : 1;
+      var bb = activeSet.indexOf(b.id) !== -1 ? 0 : 1;
+      if (aa !== bb) return aa - bb;
+      return stripLeadingEmoji(a.name).localeCompare(stripLeadingEmoji(b.name), 'ru');
+    });
+  });
+  var any = false;
+  ['armor','spell','class','other'].forEach(function(cat) {
+    var list = groups[cat];
+    if (!list.length) return;
+    any = true;
+    var header = document.createElement("div");
+    header.className = "effects-group-header";
+    header.textContent = EFFECT_CATEGORY_LABELS[cat] + ' · ' + list.length;
+    grid.appendChild(header);
+    list.forEach(function(effect) {
+      var isActive = activeSet.indexOf(effect.id) !== -1;
+      var item = document.createElement("div");
+      item.className = "effect-item" + (effect.type ? " " + effect.type : "") + (isActive ? " active" : "");
+      item.id = "effect-" + effect.id;
+      item.onclick = function() { toggleEffect(effect.id); };
+      item.innerHTML =
+        getEffectIcon(effect.id) +
+        "<div class=\"effect-name\">" + escapeHtml(effect.name) + "</div>" +
+        "<div class=\"effect-desc\">" + escapeHtml(effect.desc) + "</div>" +
+        "<div class=\"effect-duration\">" + escapeHtml(effect.duration) + "</div>" +
+        "<span class=\"effect-type " + effect.type + "\">" + (effect.type === 'buff' ? '✨ Бафф' : '💀 Дебафф') + "</span>";
+      grid.appendChild(item);
+    });
+  });
+  if (!any) {
+    var empty = document.createElement("div");
+    empty.className = "filter-empty";
+    empty.textContent = "Ничего не найдено";
+    grid.appendChild(empty);
+  }
+}
 function initEffects() {
-const grid = $("effects-grid");
-if (!grid) return;
-grid.innerHTML = "";
-EFFECTS_DATA.forEach(function(effect) {
-const item = document.createElement("div");
-item.className = "effect-item" + (effect.type ? " " + effect.type : "");
-item.id = "effect-" + effect.id;
-item.onclick = function() { toggleEffect(effect.id); };
-item.innerHTML = "<div class=\"effect-name\">" + escapeHtml(effect.name) + "</div><div class=\"effect-desc\">" + escapeHtml(effect.desc) + "</div><div class=\"effect-duration\">" + escapeHtml(effect.duration) + "</div><span class=\"effect-type " + effect.type + "\">" + (effect.type === 'buff' ? '✨ Бафф' : '💀 Дебафф') + "</span>";
-grid.appendChild(item);
-});
+  const grid = $("effects-grid");
+  if (!grid) return;
+  var host = grid.parentNode;
+  if (host && !$("effects-filter-bar")) {
+    var bar = document.createElement("div");
+    bar.id = "effects-filter-bar";
+    bar.className = "filter-bar";
+    bar.innerHTML =
+      '<input type="text" class="filter-search" id="effects-search" placeholder="🔍 Поиск эффекта…" oninput="setEffectsSearch(this.value)">' +
+      '<div class="filter-chip-group">' +
+        '<button type="button" class="filter-chip active" id="effects-type-all" onclick="setEffectsType(\'all\')">Все</button>' +
+        '<button type="button" class="filter-chip" id="effects-type-buff" onclick="setEffectsType(\'buff\')">✨ Баффы</button>' +
+        '<button type="button" class="filter-chip" id="effects-type-debuff" onclick="setEffectsType(\'debuff\')">💀 Дебаффы</button>' +
+      '</div>' +
+      '<button type="button" class="filter-chip" id="effects-active-only" onclick="toggleEffectsActiveOnly()">Только активные</button>';
+    host.insertBefore(bar, grid);
+  }
+  renderEffectsGrid();
 }
 function toggleEffect(effectId) {
 if (!currentId) return;
@@ -636,6 +767,7 @@ updateEffectsCount();
 updateStatusBar();
 calculateAC();
 saveToLocal();
+if (typeof renderEffectsGrid === "function") renderEffectsGrid();
 }
 function updateEffectsCount() {
 if (!currentId) return;
@@ -648,16 +780,7 @@ countEl.style.display = count > 0 ? "inline-block" : "none";
 }
 function loadEffects() {
 if (!currentId) return;
-const char = getCurrentChar();
-if (!char || !char.effects) return;
-EFFECTS_DATA.forEach(function(effect) {
-const effectEl = $("effect-" + effect.id);
-if (char.effects.includes(effect.id)) {
-if (effectEl) effectEl.classList.add("active");
-} else {
-if (effectEl) effectEl.classList.remove("active");
-}
-});
+if (typeof renderEffectsGrid === "function") renderEffectsGrid();
 updateEffectsCount();
 updateStatusBar();
 }
@@ -711,7 +834,16 @@ if (armorId && armorId !== "none" && armorId !== "custom" && typeof ARMOR_PRESET
   }
 }
 
-// ── Режим "вручную" или без брони — старая логика ────────────────────────
+// ── Режим "вручную" — пользователь ввёл КД сам, не пересчитываем ──────────
+if (armorId === "custom") {
+  var _manualAc = (char.combat && typeof char.combat.ac === "number") ? char.combat.ac : 10;
+  var _ct = $("ac-total"); if (_ct) _ct.textContent = _manualAc;
+  var _cf = $("ac-formula"); if (_cf) _cf.textContent = "Вручную: " + _manualAc;
+  var _ci = $("combat-ac"); if (_ci) _ci.value = _manualAc;
+  var _cs = $("status-ac"); if (_cs) _cs.textContent = _manualAc;
+  return;
+}
+// ── Без брони (armorId === "none"): КД 10+ЛОВ, плюс «без доспехов» спец-фичи
 let ac = 10;
 let formulaParts = ["10 (база)"];
 let modifiers = [];
@@ -720,43 +852,26 @@ const hasMonkUnarmored = char.effects && char.effects.includes('monk_unarmored')
 const hasBarbarianUnarmored = char.effects && char.effects.includes('barbarian_unarmored');
 const isBarbarian = char.class === "Варвар";
 const isMonk = char.class === "Монах";
-const hasArmorProf = char.proficiencies && char.proficiencies.armor && Array.isArray(char.proficiencies.armor);
-const hasLightArmor = hasArmorProf && char.proficiencies.armor.includes('light');
-const hasMediumArmor = hasArmorProf && char.proficiencies.armor.includes('medium');
-const hasHeavyArmor = hasArmorProf && char.proficiencies.armor.includes('heavy');
-const hasShield = (hasArmorProf && char.proficiencies.armor.includes('shield')) || hasShieldSelected;
-if (hasBarbarianUnarmored || (isBarbarian && !hasLightArmor && !hasMediumArmor && !hasHeavyArmor)) {
+if (hasBarbarianUnarmored || isBarbarian) {
 ac = 10 + dexMod + conMod;
-formulaParts = ["10 (база)", "+" + dexMod + " (ЛОВ)", "+" + conMod + " (ТЕЛ)"];
+formulaParts = ["10 (база)", (dexMod>=0?"+":"") + dexMod + " (ЛОВ)", (conMod>=0?"+":"") + conMod + " (ТЕЛ)"];
 modifiers.push({name: "Без доспехов варвара", value: ac - 10, type: "active"});
 }
-else if (hasMonkUnarmored || (isMonk && !hasLightArmor && !hasMediumArmor && !hasHeavyArmor)) {
+else if (hasMonkUnarmored || isMonk) {
 ac = 10 + dexMod + wisMod;
-formulaParts = ["10 (база)", "+" + dexMod + " (ЛОВ)", "+" + wisMod + " (МУД)"];
+formulaParts = ["10 (база)", (dexMod>=0?"+":"") + dexMod + " (ЛОВ)", (wisMod>=0?"+":"") + wisMod + " (МУД)"];
 modifiers.push({name: "Без доспехов монаха", value: ac - 10, type: "active"});
 }
 else if (hasMageArmor) {
 ac = 13 + dexMod;
-formulaParts = ["13 (магия)", "+" + dexMod + " (ЛОВ)"];
+formulaParts = ["13 (магия)", (dexMod>=0?"+":"") + dexMod + " (ЛОВ)"];
 modifiers.push({name: "Доспех мага", value: 3, type: "active"});
 }
-else if (hasLightArmor) {
-ac = 11 + dexMod;
-formulaParts = ["11 (лёгкая)", "+" + dexMod + " (ЛОВ)"];
-modifiers.push({name: "Лёгкая броня", value: 1, type: "active"});
+else {
+ac = 10 + dexMod;
+formulaParts = ["Без брони — КД 10", (dexMod>=0?"+":"") + dexMod + " (ЛОВ)"];
 }
-else if (hasMediumArmor) {
-const dexBonus = Math.min(dexMod, 2);
-ac = 12 + dexBonus;
-formulaParts = ["12 (средняя)", "+" + dexBonus + " (ЛОВ, макс +2)"];
-modifiers.push({name: "Средняя броня", value: 2, type: "active"});
-}
-else if (hasHeavyArmor) {
-ac = 16;
-formulaParts = ["16 (тяжёлая)"];
-modifiers.push({name: "Тяжёлая броня", value: 6, type: "active"});
-}
-if (hasShield) {
+if (hasShieldSelected) {
 ac += 2;
 formulaParts.push("+2 (щит)");
 modifiers.push({name: "Щит", value: 2, type: "active"});
@@ -1104,16 +1219,11 @@ function updateSubclassOptions() {
   }
 
   if (level < unlockLevel) {
+    // BUILD-FIX-8: подкласс сохраняется в char.subclass (баннер при level-up на 2/3 ур.).
+    // Раньше этот блок очищал ch.subclass="" — из-за этого билды теряли подкласс на 1 ур.
     subclassSelect.appendChild(new Option("🔒 Откроется на " + unlockLevel + " уровне", ""));
     subclassSelect.disabled = true;
     subclassSelect.classList.add("subclass-locked");
-    if (currentId) {
-      var ch = getCurrentChar();
-      if (ch && ch.subclass) {
-        ch.subclass = "";
-        saveToLocal();
-      }
-    }
     return;
   }
 
@@ -1179,7 +1289,9 @@ char.name = $("char-name")?.value || "";
 char.level = parseInt($("char-level")?.value) || 1;
 char.exp = parseInt($("char-exp")?.value) || 0;
 char.class = $("char-class")?.value || "";
-char.subclass = $("char-subclass")?.value || "";
+// BUILD-FIX-8: при locked-дропдауне (level<unlockLevel) value="" — НЕ затираем сохранённый подкласс.
+var _scEl = $("char-subclass");
+if (_scEl && !_scEl.disabled) char.subclass = _scEl.value || "";
 // Синхронизируем char.classes[0] с UI (только если не мультикласс)
 if (typeof migrateToMulticlass === "function") migrateToMulticlass(char);
 if (!char.classes || char.classes.length === 0) {
@@ -1362,6 +1474,13 @@ if (!char) return;
 const level = parseInt($("char-level")?.value) || 1;
 const proficiencyBonus = getProficiencyBonus(level);
 let statMod = 0;
+// BUILD-FIX-7: миграция старых en-lowercase значений в ru-uppercase.
+// Покрывает сейвы, созданные до фикса applyBuild, плюс случайные несоответствия.
+const _statMigrate = { "int":"ИНТ", "wis":"МУД", "cha":"ХАР" };
+if (char.spells && _statMigrate[char.spells.stat]) {
+char.spells.stat = _statMigrate[char.spells.stat];
+const _sel = $("spell-stat"); if (_sel) _sel.value = char.spells.stat;
+}
 const stat = char.spells.stat || "";
 if (stat === "ИНТ") statMod = getMod(char.stats.int);
 else if (stat === "МУД") statMod = getMod(char.stats.wis);
@@ -2433,8 +2552,13 @@ function renderArmorProf() {
   if (!char) { box.innerHTML = ""; return; }
   recalcArmorWeaponFromSources(char);
   var ar = char.proficiencies.armorSources || {};
+  var _anyArmor = ["light","medium","heavy","shield"].some(function(t){ return (ar[t]||[]).length > 0; });
 
-  var html = '<div class="prof-cat-group"><div class="prof-chips">';
+  var html = '';
+  if (!_anyArmor) {
+    html += '<div class="prof-empty-hint">🚫 Нет владения никакой бронёй</div>';
+  }
+  html += '<div class="prof-cat-group"><div class="prof-chips">';
   ["light","medium","heavy","shield"].forEach(function(t) {
     var srcs = ar[t] || [];
     if (srcs.length === 0) {
