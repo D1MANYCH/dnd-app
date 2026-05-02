@@ -597,30 +597,38 @@ function rollTWFAttack(index) {
     var profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
     var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
     var d = rollD20WithMode(mode);
-    var total = d.roll + attackBonus;
-    var modeLabel = formatRollModeLabel(d);
-    // Attack roll — same as normal
-    var msg = "⚔️ Бонусная атака " + escapeHtml(weapon.name) + modeLabel + ": к20=" + d.roll + " + " + attackBonus + " = " + total;
-    if (d.isCrit) msg = "🎉 КРИТ! Бонусная атака " + escapeHtml(weapon.name) + ": " + d.roll + " + " + attackBonus + " = " + total;
-    if (d.isFail) msg = "💀 ПРОМАХ! Бонусная атака " + escapeHtml(weapon.name) + ": " + d.roll;
-    showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
     openDiceModal();
-    var resultBig = $("dice-result-big");
-    var resultInfo = $("dice-result-info");
-    var resultBox = $("dice3d-result");
-    if (resultBig) resultBig.textContent = total;
-    if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · бонусная атака" + modeLabel + " · " + formatDiceInfoStr(d);
-    if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
-    drawDiceSVG(20);
-    showDualDice(d);
-    var numEl = $("dice-svg-num");
-    if (numEl) numEl.textContent = total;
-    if (d.isCrit) createParticles();
-    diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: weapon.name + " бонус.атака" });
-    if (diceHistory.length > 10) diceHistory.pop();
-    renderDiceHistory();
-    // Auto-roll damage
-    rollTWFDamage(index);
+    var qty = (mode === 'adv' || mode === 'dis') ? 2 : 1;
+    animateDice3d(20, d.roll, function(v1, v2) {
+      if (typeof v1 === 'number' && !isNaN(v1)) {
+        if (mode === 'adv' || mode === 'dis') {
+          d.r1 = v1;
+          d.r2 = (typeof v2 === 'number' && !isNaN(v2)) ? v2 : d.r2;
+          d.roll = (mode === 'adv') ? Math.max(d.r1, d.r2) : Math.min(d.r1, d.r2);
+        } else {
+          d.roll = v1; d.r1 = v1;
+        }
+        d.isCrit = (d.roll === 20); d.isFail = (d.roll === 1);
+      }
+      var total = d.roll + attackBonus;
+      var modeLabel = formatRollModeLabel(d);
+      var msg = "⚔️ Бонусная атака " + escapeHtml(weapon.name) + modeLabel + ": к20=" + d.roll + " + " + attackBonus + " = " + total;
+      if (d.isCrit) msg = "🎉 КРИТ! Бонусная атака " + escapeHtml(weapon.name) + ": " + d.roll + " + " + attackBonus + " = " + total;
+      if (d.isFail) msg = "💀 ПРОМАХ! Бонусная атака " + escapeHtml(weapon.name) + ": " + d.roll;
+      showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
+      var resultBig = $("dice-result-big");
+      var resultInfo = $("dice-result-info");
+      var resultBox = $("dice3d-result");
+      if (resultBig) resultBig.textContent = total;
+      if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · бонусная атака" + modeLabel + " · " + formatDiceInfoStr(d);
+      if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
+      showDualDice(d);
+      if (d.isCrit) createParticles();
+      diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: weapon.name + " бонус.атака" });
+      if (diceHistory.length > 10) diceHistory.pop();
+      renderDiceHistory();
+      rollTWFDamage(index);
+    }, { qty: qty });
   });
 }
 
@@ -666,27 +674,38 @@ showRollModePopup(function(mode) {
   var profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
   var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
   var d = rollD20WithMode(mode);
-  var total = d.roll + attackBonus;
-  var modeLabel = formatRollModeLabel(d);
-  var rollInfo = formatRollMode(d, attackBonus);
-  var msg = "⚔️ " + escapeHtml(weapon.name) + modeLabel + ": " + rollInfo + " + " + attackBonus + " = " + total;
-  if (d.isCrit) msg = "🎉 КРИТИЧЕСКОЕ ПОПАДАНИЕ! " + escapeHtml(weapon.name) + ": " + d.roll + " + " + attackBonus + " = " + total;
-  if (d.isFail) msg = "💀 ПРОМАХ! " + escapeHtml(weapon.name) + ": " + d.roll;
-  showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
   openDiceModal();
-  var resultBig = $("dice-result-big");
-  var resultInfo = $("dice-result-info");
-  var resultBox = $("dice3d-result");
-  if (resultBig) resultBig.textContent = total;
-  if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · атака" + modeLabel + " · " + formatDiceInfoStr(d);
-  if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
-  drawDiceSVG(20);
-  var numEl = $("dice-svg-num");
-  if (numEl) numEl.textContent = total;
-  if (d.isCrit) createParticles();
-  diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: weapon.name + " атака" });
-  if (diceHistory.length > 10) diceHistory.pop();
-  renderDiceHistory();
+  var qty = (mode === 'adv' || mode === 'dis') ? 2 : 1;
+  animateDice3d(20, d.roll, function(v1, v2) {
+    if (typeof v1 === 'number' && !isNaN(v1)) {
+      if (mode === 'adv' || mode === 'dis') {
+        d.r1 = v1;
+        d.r2 = (typeof v2 === 'number' && !isNaN(v2)) ? v2 : d.r2;
+        d.roll = (mode === 'adv') ? Math.max(d.r1, d.r2) : Math.min(d.r1, d.r2);
+      } else {
+        d.roll = v1; d.r1 = v1;
+      }
+      d.isCrit = (d.roll === 20); d.isFail = (d.roll === 1);
+    }
+    var total = d.roll + attackBonus;
+    var modeLabel = formatRollModeLabel(d);
+    var rollInfo = formatRollMode(d, attackBonus);
+    var msg = "⚔️ " + escapeHtml(weapon.name) + modeLabel + ": " + rollInfo + " + " + attackBonus + " = " + total;
+    if (d.isCrit) msg = "🎉 КРИТИЧЕСКОЕ ПОПАДАНИЕ! " + escapeHtml(weapon.name) + ": " + d.roll + " + " + attackBonus + " = " + total;
+    if (d.isFail) msg = "💀 ПРОМАХ! " + escapeHtml(weapon.name) + ": " + d.roll;
+    showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
+    var resultBig = $("dice-result-big");
+    var resultInfo = $("dice-result-info");
+    var resultBox = $("dice3d-result");
+    if (resultBig) resultBig.textContent = total;
+    if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · атака" + modeLabel + " · " + formatDiceInfoStr(d);
+    if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
+    showDualDice(d);
+    if (d.isCrit) createParticles();
+    diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: weapon.name + " атака" });
+    if (diceHistory.length > 10) diceHistory.pop();
+    renderDiceHistory();
+  }, { qty: qty });
 });
 }
 
@@ -725,9 +744,8 @@ if (resultBig) resultBig.textContent = total;
 if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · урон · " + (match ? match[1]+"d"+match[2] : "?");
 if (resultBox) resultBox.className = "dice3d-result normal";
 var sides = match ? parseInt(match[2]) : 6;
-drawDiceSVG(sides);
-var numEl = $("dice-svg-num");
-if (numEl) numEl.textContent = total;
+var qty = match ? Math.max(1, Math.min(parseInt(match[1]) || 1, 8)) : 1;
+animateDice3d(sides, total, function() {}, { qty: qty });
 diceHistory.unshift({ sides:sides, result:total, mode:"normal", time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:total, r2:null, label: weapon.name + " урон" });
 if (diceHistory.length > 10) diceHistory.pop();
 renderDiceHistory();
