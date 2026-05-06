@@ -5,23 +5,24 @@
 :root {
 /* ===== Design tokens (R1) ===== */
 /* Палитра */
---bg-0: #0f0f14;
---bg-1: #17171f;
---bg-2: #1f1f2a;
---bg-3: #2a2a38;
---border: #2e2e3c;
---text: #eceef2;
---text-dim: #9aa0ad;
---text-mute: #6b7280;
---accent: #d4a843;
---accent-hi: #e0b854;
---accent-lo: #c9a040;
---accent-soft: rgba(212, 168, 67, 0.12);
---accent-glow-token: rgba(212, 168, 67, 0.35);
+--bg-0: #0f0e14;
+--bg-1: #181722;
+--bg-2: #22202e;
+--bg-3: #2e2c3d;
+--border: #3a3850;
+--border-soft: #2a2838;
+--text: #ece6d6;
+--text-dim: #a39b86;
+--text-mute: #6f6a5d;
+--accent: #e0b358;
+--accent-hi: #f0c674;
+--accent-lo: #c79941;
+--accent-soft: rgba(224, 179, 88, 0.13);
+--accent-glow-token: rgba(224, 179, 88, 0.30);
 --overlay: rgba(0, 0, 0, 0.85);
---danger: #e06c75;
---success: #57b36d;
---info: #5b9bd5;
+--danger: #e07566;
+--success: #6cba83;
+--info: #74a8da;
 
 /* Радиусы */
 --r-sm: 8px;
@@ -38,8 +39,8 @@
 --sp-6: 32px;
 
 /* Тени */
---sh-1: 0 1px 2px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.25);
---sh-2: 0 10px 30px rgba(0,0,0,0.55);
+--sh-1: 0 1px 2px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.35);
+--sh-2: 0 12px 32px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4);
 --sh-glow: 0 0 0 3px var(--accent-soft), 0 8px 24px var(--accent-glow-token);
 
 /* Типографика */
@@ -86,6 +87,598 @@
 --hp-medium: var(--accent);
 --hp-high: var(--success);
 --hp-bar-h: 10px;
+}
+
+/* ========== UI-1. Светлая тема — «Мятная дымка» (handoff) ==========
+   Палитра и override'ы перенесены из design_handoff_theme_redesign/
+   light-theme-css-block.css. Активируется data-theme="light" (или
+   data-theme="auto" + prefers-color-scheme: light).
+*/
+:root[data-theme="light"] {
+  /* Фоны: 0 — страница, 1 — карточка, 2 — поле/чип, 3 — hover/приподнятый */
+  --bg-0: #f3f6f4;
+  --bg-1: #ffffff;
+  --bg-2: #e8eeea;
+  --bg-3: #dde5e0;
+
+  /* Границы */
+  --border: #cdd6d1;
+  --border-soft: #e5ebe7;
+
+  /* Текст */
+  --text: #161c1a;
+  --text-dim: #4d5853;
+  --text-mute: #7e8a85;
+
+  /* Акцент — тёплое золото на холодном свежем фоне */
+  --accent: #bf8a22;
+  --accent-hi: #d8a335;
+  --accent-lo: #9a6f17;
+  --accent-soft: rgba(191, 138, 34, 0.13);
+  --accent-glow-token: rgba(191, 138, 34, 0.28);
+
+  /* Семантика */
+  --overlay: rgba(20, 30, 24, 0.40);
+  --danger: #cf3a2c;
+  --success: #2c8a52;
+  --info: #2c6fbd;
+
+  /* Тени — без синих rgba(0,0,0,*), используем зеленоватый оттенок */
+  --sh-1: 0 1px 2px rgba(20,40,30,0.05), 0 2px 8px rgba(20,40,30,0.05);
+  --sh-2: 0 10px 30px rgba(20,40,30,0.10), 0 2px 6px rgba(20,40,30,0.04);
+  --sh-glow: 0 0 0 3px var(--accent-soft), 0 6px 16px var(--accent-glow-token);
+
+  /* Категории предметов / состояния */
+  --weapon-color:  #c2433a;
+  --armor-color:   #2f6dba;
+  --potion-color:  #b04580;
+  --scroll-color:  #7a4eb8;
+  --tool-color:    #a07820;
+  --material-color:#2f8a52;
+  --other-color:   #5b606b;
+  --highlight-color: rgba(44, 138, 82, 0.30);
+  --condition-active: rgba(207, 58, 44, 0.25);
+  --buff-color: rgba(44, 138, 82, 0.24);
+  --debuff-color: rgba(207, 58, 44, 0.24);
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme="auto"] {
+    --bg-0: #f3f6f4; --bg-1: #ffffff; --bg-2: #e8eeea; --bg-3: #dde5e0;
+    --border: #cdd6d1; --border-soft: #e5ebe7;
+    --text: #161c1a; --text-dim: #4d5853; --text-mute: #7e8a85;
+    --accent: #bf8a22; --accent-hi: #d8a335; --accent-lo: #9a6f17;
+    --accent-soft: rgba(191, 138, 34, 0.13);
+    --accent-glow-token: rgba(191, 138, 34, 0.28);
+    --overlay: rgba(20, 30, 24, 0.40);
+    --danger: #cf3a2c; --success: #2c8a52; --info: #2c6fbd;
+    --sh-1: 0 1px 2px rgba(20,40,30,0.05), 0 2px 8px rgba(20,40,30,0.05);
+    --sh-2: 0 10px 30px rgba(20,40,30,0.10), 0 2px 6px rgba(20,40,30,0.04);
+  }
+}
+
+/* ===== Body — отключаем тёмную PNG-текстуру, мягкие radial-gradient'ы ===== */
+:root[data-theme="light"] body {
+  background-color: var(--bg-0);
+  background-image:
+    radial-gradient(1200px 900px at 15% -10%, rgba(255,255,255,0.7), transparent 60%),
+    radial-gradient(900px 700px at 110% 110%, rgba(191,138,34,0.04), transparent 55%) !important;
+  background-attachment: fixed, fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 450;
+}
+@media (prefers-color-scheme: light) {
+  :root[data-theme="auto"] body {
+    background-color: var(--bg-0);
+    background-image:
+      radial-gradient(1200px 900px at 15% -10%, rgba(255,255,255,0.7), transparent 60%),
+      radial-gradient(900px 700px at 110% 110%, rgba(191,138,34,0.04), transparent 55%) !important;
+    background-attachment: fixed, fixed;
+  }
+}
+
+/* ===== Заголовки ===== */
+:root[data-theme="light"] h1,
+:root[data-theme="light"] h2,
+:root[data-theme="light"] h3,
+:root[data-theme="light"] h4,
+:root[data-theme="light"] .header-title { font-weight: 700; }
+
+/* ===== prefers-reduced-motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="light"] *,
+  :root[data-theme="auto"] * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   Override'ы для блоков с захардкоженным rgba(255,255,255,*)
+   ============================================================ */
+
+/* ----- Карточки персонажей в списке ----- */
+:root[data-theme="light"] .char-card {
+  background: var(--bg-1) !important;
+  border: 1px solid var(--border-soft) !important;
+  box-shadow: var(--sh-1);
+  color: var(--text);
+  position: relative;
+}
+:root[data-theme="light"] .char-card::before {
+  content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px;
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent-lo));
+  border-radius: 999px;
+}
+:root[data-theme="light"] .char-card:hover {
+  background: var(--bg-1) !important;
+  border-color: var(--accent) !important;
+  box-shadow: var(--sh-2);
+}
+:root[data-theme="light"] .char-card * { color: inherit; }
+
+/* ----- Поиск персонажей ----- */
+:root[data-theme="light"] .char-search-inp {
+  background: var(--bg-2) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="light"] .char-search-inp::placeholder {
+  color: var(--text-mute) !important;
+}
+:root[data-theme="light"] .char-search-inp:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-soft) !important;
+  outline: none;
+}
+:root[data-theme="light"] .char-sort-label {
+  color: var(--text-dim) !important;
+  font-weight: 600;
+}
+
+/* ----- Чипы сортировки ----- */
+:root[data-theme="light"] .sort-btn {
+  background: var(--bg-1) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-dim) !important;
+}
+:root[data-theme="light"] .sort-btn:hover {
+  background: var(--bg-2) !important;
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+:root[data-theme="light"] .sort-btn.active {
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent)) !important;
+  border-color: var(--accent-lo) !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 3px var(--accent-glow-token);
+}
+
+/* ----- Info-чипы внизу ----- */
+:root[data-theme="light"] .app-info-item {
+  background: var(--bg-1) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-dim) !important;
+}
+:root[data-theme="light"] .cl-version,
+:root[data-theme="light"] .cl-version-latest {
+  background: var(--bg-1) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text);
+}
+
+/* ----- Кнопки ----- */
+:root[data-theme="light"] .btn-primary,
+:root[data-theme="light"] #screen-characters > .card > button:not(.secondary) {
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent)) !important;
+  border: 1px solid var(--accent-lo) !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 6px var(--accent-glow-token);
+}
+:root[data-theme="light"] .btn-primary:hover,
+:root[data-theme="light"] #screen-characters > .card > button:not(.secondary):hover {
+  background: linear-gradient(180deg, var(--accent), var(--accent-lo)) !important;
+}
+:root[data-theme="light"] .btn-primary:active { transform: translateY(1px); }
+:root[data-theme="light"] .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+:root[data-theme="light"] .btn-secondary,
+:root[data-theme="light"] button.secondary {
+  background: var(--bg-1) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  box-shadow: var(--sh-1);
+}
+:root[data-theme="light"] .btn-secondary:hover,
+:root[data-theme="light"] button.secondary:hover {
+  background: var(--bg-2) !important;
+  border-color: var(--accent) !important;
+}
+:root[data-theme="light"] .btn-ghost {
+  background: transparent !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-dim) !important;
+}
+
+/* ----- Focus ring ----- */
+:root[data-theme="light"] :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ----- Status bar (закреплённая панель HP/AC/Level) ----- */
+:root[data-theme="light"] .status-bar {
+  background: var(--bg-0) !important;
+  border-bottom: 1px solid var(--border) !important;
+  box-shadow: var(--sh-1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+:root[data-theme="light"] .status-chip {
+  background: var(--bg-1) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="light"] .status-hp {
+  color: var(--danger) !important;
+  background: rgba(207,58,44,0.07) !important;
+  border-color: rgba(207,58,44,0.33) !important;
+}
+:root[data-theme="light"] .status-ac {
+  color: var(--info) !important;
+  background: rgba(44,111,189,0.07) !important;
+  border-color: rgba(44,111,189,0.33) !important;
+}
+:root[data-theme="light"] .status-level,
+:root[data-theme="light"] .status-inspiration {
+  color: var(--accent) !important;
+  background: var(--accent-soft) !important;
+  border-color: rgba(191,138,34,0.40) !important;
+}
+
+/* ----- HP-bar ----- */
+:root[data-theme="light"] .hp-bar {
+  background: var(--bg-2) !important;
+  border: 1px solid var(--border-soft) !important;
+}
+:root[data-theme="light"] .hp-bar-fill {
+  background: linear-gradient(90deg, var(--danger), var(--accent) 50%, var(--success)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+}
+
+/* ----- Header ----- */
+:root[data-theme="light"] header {
+  background: var(--bg-1) !important;
+  border-bottom: 1px solid var(--border) !important;
+  box-shadow: var(--sh-1);
+}
+:root[data-theme="light"] .header-title { color: var(--text) !important; }
+:root[data-theme="light"] .header-subtitle { color: var(--text-dim) !important; }
+:root[data-theme="light"] .nav-hamburger,
+:root[data-theme="light"] .header-back {
+  background: var(--bg-2) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+
+/* ----- Tab nav (нижняя навигация) ----- */
+:root[data-theme="light"] .tab-nav {
+  background: var(--bg-1) !important;
+  border-top: 1px solid var(--border) !important;
+  box-shadow: 0 -4px 16px rgba(20,40,30,0.08);
+}
+:root[data-theme="light"] .tab-nav .tab-item,
+:root[data-theme="light"] .tab-nav button { color: var(--text-dim) !important; }
+:root[data-theme="light"] .tab-nav .tab-item.active,
+:root[data-theme="light"] .tab-nav button.active {
+  color: var(--accent) !important;
+  border-top: 2px solid var(--accent);
+}
+
+/* ----- Условия / popup ----- */
+:root[data-theme="light"] .condition-badge {
+  background: var(--bg-2) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="light"] .condition-badge.active {
+  background: var(--condition-active) !important;
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
+}
+:root[data-theme="light"] .conditions-popup {
+  background: var(--bg-1) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--sh-2);
+}
+:root[data-theme="light"] .conditions-popup-close:hover,
+:root[data-theme="light"] .back-btn:hover {
+  background: rgba(20,30,24,0.06) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="light"] .popup-group + .popup-group {
+  border-top-color: rgba(20,30,24,0.12) !important;
+}
+
+/* ----- Модалки ----- */
+:root[data-theme="light"] .modal,
+:root[data-theme="light"] .confirm-modal {
+  background: var(--bg-1) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--sh-2);
+}
+:root[data-theme="light"] .modal-overlay,
+:root[data-theme="light"] .confirm-modal-overlay {
+  background: var(--overlay) !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* ----- Карточки заклинаний / инвентаря ----- */
+:root[data-theme="light"] .spell-card,
+:root[data-theme="light"] .inv-item-card {
+  background: var(--bg-1) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--sh-1);
+  color: var(--text);
+}
+:root[data-theme="light"] .spell-card:hover,
+:root[data-theme="light"] .inv-item-card:hover {
+  border-color: var(--accent) !important;
+  box-shadow: var(--sh-2);
+}
+
+/* ----- PNG-иконки классов на светлом — drop-shadow + подложка ----- */
+:root[data-theme="light"] .class-filter-icon,
+:root[data-theme="light"] .header-avatar img,
+:root[data-theme="light"] .char-card img,
+:root[data-theme="light"] .drawer-item > span:first-child {
+  filter: drop-shadow(0 1px 1px rgba(20,40,30,0.30));
+}
+:root[data-theme="light"] .header-avatar,
+:root[data-theme="light"] .char-card .char-avatar {
+  background: radial-gradient(circle at 30% 30%, var(--bg-1), var(--bg-3)) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: inset 0 0 0 2px var(--bg-1);
+}
+
+/* ----- Drawer ----- */
+:root[data-theme="light"] .side-drawer {
+  background: var(--bg-1) !important;
+  border-right: 1px solid var(--border) !important;
+  box-shadow: var(--sh-2);
+}
+:root[data-theme="light"] .drawer-divider { background: var(--border); }
+:root[data-theme="light"] .drawer-item:hover { background: var(--bg-2) !important; }
+:root[data-theme="light"] .drawer-item-active {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+}
+
+/* ----- Theme picker в drawer (light variant) ----- */
+:root[data-theme="light"] .theme-picker-btn {
+  background: var(--bg-2) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="light"] .theme-picker-btn:hover {
+  background: var(--bg-3) !important;
+  border-color: var(--accent) !important;
+}
+:root[data-theme="light"] .theme-picker-btn.is-active {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
+/* ----- Default <button> (без класса) — primary-стиль из handoff ----- */
+:root[data-theme="light"] button:not(.secondary):not(.danger):not(.success):not(.info):not(.small):not(.btn):not(.btn-ghost):not(.tab-btn):not(.tab-dice-fab):not(.dice-btn):not(.modal-close):not(.dice-mode-seg-btn):not(.sort-btn):not(.theme-picker-btn):not(.drawer-item):not(.drawer-close):not(.conditions-popup-close):not(.sheet-close):not(.dice-theme-btn):not(.confirm-btn-cancel):not(.confirm-btn-ok):not(.version-btn):not(.class-filter-all):not(.dice-custom-btn):not(.modal-close-bottom):not(.nav-hamburger):not(.header-back) {
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent)) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--accent-lo) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 6px var(--accent-glow-token);
+  /* Геометрия из handoff (screens.jsx Button base) */
+  padding: 10px 14px !important;
+  min-height: 40px;
+  border-radius: 10px !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: filter 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+:root[data-theme="light"] button:not(.secondary):not(.danger):not(.success):not(.info):not(.small):not(.btn):not(.btn-ghost):not(.tab-btn):not(.tab-dice-fab):not(.dice-btn):not(.modal-close):not(.dice-mode-seg-btn):not(.sort-btn):not(.theme-picker-btn):not(.drawer-item):not(.drawer-close):not(.conditions-popup-close):not(.sheet-close):not(.dice-theme-btn):not(.confirm-btn-cancel):not(.confirm-btn-ok):not(.version-btn):not(.class-filter-all):not(.dice-custom-btn):not(.modal-close-bottom):not(.nav-hamburger):not(.header-back):hover {
+  background: linear-gradient(180deg, var(--accent), var(--accent-lo)) !important;
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px var(--accent-glow-token) !important;
+}
+:root[data-theme="light"] button:not(.secondary):not(.danger):not(.success):not(.info):not(.small):not(.btn):not(.btn-ghost):not(.tab-btn):not(.tab-dice-fab):not(.dice-btn):not(.modal-close):not(.dice-mode-seg-btn):not(.sort-btn):not(.theme-picker-btn):not(.drawer-item):not(.drawer-close):not(.conditions-popup-close):not(.sheet-close):not(.dice-theme-btn):not(.confirm-btn-cancel):not(.confirm-btn-ok):not(.version-btn):not(.class-filter-all):not(.dice-custom-btn):not(.modal-close-bottom):not(.nav-hamburger):not(.header-back):active {
+  transform: translateY(1px);
+}
+:root[data-theme="light"] button.secondary {
+  background: var(--bg-1) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--sh-1);
+  padding: 10px 14px !important;
+  min-height: 40px;
+  border-radius: 10px !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1px;
+  transition: all 0.15s;
+}
+:root[data-theme="light"] button.secondary:hover {
+  background: var(--bg-2) !important;
+  border-color: var(--accent) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--sh-2) !important;
+}
+:root[data-theme="light"] button.secondary:active { transform: translateY(1px); }
+:root[data-theme="light"] button.success {
+  background: linear-gradient(180deg, #3aa066, var(--success)) !important;
+  color: #ffffff !important;
+}
+:root[data-theme="light"] button.danger {
+  background: linear-gradient(180deg, #db4f3f, var(--danger)) !important;
+  color: #ffffff !important;
+}
+:root[data-theme="light"] button.info {
+  background: linear-gradient(180deg, #3a82d4, var(--info)) !important;
+  color: #ffffff !important;
+}
+
+/* ----- Tab nav — захардкожен rgba(23,23,31,0.55), нужен явный override ----- */
+:root[data-theme="light"] .tab-nav {
+  background: rgba(255,255,255,0.92) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+:root[data-theme="light"] .tab-btn { color: var(--text-dim) !important; }
+:root[data-theme="light"] .tab-btn.active { color: var(--accent) !important; }
+
+/* ----- Карточки/секции с захардкоженным `background: rgba(255,255,255,*)` ----- */
+:root[data-theme="light"] .card,
+:root[data-theme="light"] .accordion,
+:root[data-theme="light"] .accordion-content {
+  background: var(--bg-1) !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+}
+
+/* ----- Усиленная «мятная дымка»: явный зелёный нюанс ----- */
+:root[data-theme="light"] body {
+  background-color: #d9e8de !important;
+  background-image:
+    radial-gradient(1200px 900px at 15% -10%, rgba(255,255,255,0.55), transparent 60%),
+    radial-gradient(900px 800px at 110% 110%, rgba(191,138,34,0.08), transparent 55%),
+    radial-gradient(900px 700px at 50% 100%, rgba(120,190,160,0.22), transparent 60%) !important;
+}
+
+/* ----- Notes / textarea — захардкожен rgba(0,0,0,0.25) ----- */
+:root[data-theme="light"] .notes-section-input,
+:root[data-theme="light"] .notes-modal-textarea,
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] input[type="text"],
+:root[data-theme="light"] input[type="number"],
+:root[data-theme="light"] input[type="search"],
+:root[data-theme="light"] input[type="url"],
+:root[data-theme="light"] input[type="email"],
+:root[data-theme="light"] select {
+  background: var(--bg-1) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="light"] textarea::placeholder,
+:root[data-theme="light"] input::placeholder { color: var(--text-mute) !important; }
+:root[data-theme="light"] textarea:focus,
+:root[data-theme="light"] input:focus,
+:root[data-theme="light"] select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-soft) !important;
+  background: var(--bg-1) !important;
+}
+
+/* ----- .field (общий класс инпутов) ----- */
+:root[data-theme="light"] .field {
+  background: var(--bg-1) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+/* ----- Creation wizard banner (карточка «Заполни основу») ----- */
+:root[data-theme="light"] .creation-wizard-banner {
+  background: linear-gradient(135deg, var(--accent-soft), rgba(191,138,34,0.04)) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 4px 18px var(--accent-glow-token);
+  color: var(--text);
+}
+:root[data-theme="light"] .cw-step-hint { color: var(--text-dim) !important; }
+:root[data-theme="light"] .cw-step-title { color: var(--accent-lo) !important; }
+:root[data-theme="light"] .cw-step-num { color: #fff !important; }
+:root[data-theme="light"] .cw-lock-btn { color: #fff !important; }
+:root[data-theme="light"] .cw-lock-btn:disabled {
+  background: var(--bg-2) !important;
+  color: var(--text-mute) !important;
+}
+:root[data-theme="light"] .cw-validation { color: var(--danger) !important; }
+:root[data-theme="light"] .basic-locked-bar {
+  background: rgba(44,138,82,0.10) !important;
+  border-color: rgba(44,138,82,0.40) !important;
+  color: var(--success) !important;
+}
+
+/* ----- Notes-pill / md-toolbar / md-preview ----- */
+:root[data-theme="light"] .notes-md-btn {
+  background: var(--bg-2) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="light"] .notes-md-btn:hover { background: var(--bg-3) !important; border-color: var(--accent) !important; }
+:root[data-theme="light"] .notes-md-btn.active { background: var(--accent-soft) !important; color: var(--accent) !important; }
+:root[data-theme="light"] .notes-md-preview {
+  background: var(--bg-1) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="light"] .notes-md-preview hr { border-top-color: var(--border) !important; }
+:root[data-theme="light"] .notes-md-empty { color: var(--text-mute) !important; }
+
+/* ----- HP-display-block / hd-block / другие модули с хардкодом ----- */
+:root[data-theme="light"] .hp-display-block,
+:root[data-theme="light"] .hd-block,
+:root[data-theme="light"] .ac-block,
+:root[data-theme="light"] .stat-block,
+:root[data-theme="light"] .feature-block {
+  background: var(--bg-1) !important;
+  background-image: none !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text);
+}
+
+/* ----- Status-chip default бордер (был слишком тусклый) ----- */
+:root[data-theme="light"] .status-chip { border-width: 1.5px !important; }
+
+/* Theme picker в drawer (общие стили — для обеих тем) */
+.theme-picker-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--border);
+}
+.theme-picker-label {
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.theme-picker-btns {
+  display: flex;
+  gap: var(--sp-2);
+}
+.theme-picker-btn {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.theme-picker-btn:hover { background: var(--bg-3); border-color: var(--accent); }
+.theme-picker-btn.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* ========== R2. Базовые компоненты ==========
@@ -7646,7 +8239,7 @@ body {
 }
 .notes-search::placeholder { color: var(--text-muted, rgba(255,255,255,0.4)); }
 .notes-search:disabled { opacity: 0.5; cursor: not-allowed; }
-.notes-new-btn, .notes-menu-btn {
+.notes-new-btn, .notes-menu-btn, .notes-regen-btn {
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.12);
   color: var(--text-primary, #fff);
@@ -7664,6 +8257,8 @@ body {
 .notes-menu-btn { padding: 7px 10px; }
 .notes-menu-btn:hover:not(:disabled) { border-color: var(--accent-color); color: var(--accent-color); }
 .notes-new-btn:disabled, .notes-menu-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.notes-regen-btn { padding: 7px 10px; }
+.notes-regen-btn:hover:not(:disabled) { border-color: var(--accent-color); color: var(--accent-color); }
 .notes-save-ind {
   font-size: 0.75em;
   color: var(--text-muted, rgba(255,255,255,0.5));
@@ -7999,6 +8594,100 @@ body {
   border-color: var(--accent-color, #f5c86e);
 }
 .notes-md-preview-toggle { margin-left: auto; }
+.notes-md-variants-toggle { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; }
+.notes-md-variants-toggle + .notes-md-preview-toggle { margin-left: 0; }
+.notes-md-var-count {
+  font-size: 0.75em;
+  background: rgba(255,255,255,0.15);
+  padding: 0 5px;
+  border-radius: 8px;
+  min-width: 14px;
+  text-align: center;
+}
+.notes-md-variants-toggle.active .notes-md-var-count { background: rgba(0,0,0,0.25); color: inherit; }
+
+/* BUILD-NOTES-2: панель вариантов билда */
+.notes-variants-panel {
+  margin: 0 0 8px 0;
+  padding: 8px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--r-md, 8px);
+}
+.notes-variants-hint {
+  font-size: 0.78em;
+  opacity: 0.7;
+  margin-bottom: 6px;
+}
+.notes-variants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.notes-variant-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  text-align: left;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-primary, #fff);
+  padding: 6px 9px;
+  border-radius: 6px;
+  font-size: 0.85em;
+  line-height: 1.35;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.notes-variant-item:hover {
+  background: rgba(255,255,255,0.10);
+  border-color: var(--accent-color, #f5c86e);
+}
+.notes-variant-item.current {
+  border-color: var(--accent-color, #f5c86e);
+  background: rgba(245,200,110,0.12);
+}
+.notes-variant-num {
+  flex: 0 0 auto;
+  font-weight: 600;
+  opacity: 0.7;
+  min-width: 16px;
+}
+.notes-variant-text { flex: 1 1 auto; white-space: pre-line; word-break: break-word; line-height: 1.45; }
+.notes-variant-item { align-items: flex-start; }
+/* BUILD-NOTES-6.6: сворачиваемая шапка секции */
+.notes-section-head { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
+.notes-section-head:hover { color: var(--accent-color, #f5c86e); }
+.notes-section-toggle { display: inline-block; width: 1em; opacity: 0.75; }
+.notes-section-meta { margin-left: auto; font-size: 0.78em; opacity: 0.55; font-weight: 400; }
+.notes-section-card.collapsed .notes-section-head { margin-bottom: 0; }
+.notes-section-input { min-height: 220px; line-height: 1.5; }
+.notes-variant-random {
+  margin-top: 6px;
+  width: 100%;
+  background: rgba(245,200,110,0.12);
+  border: 1px dashed var(--accent-color, #f5c86e);
+  color: var(--accent-color, #f5c86e);
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.notes-variant-random:hover { background: rgba(245,200,110,0.22); }
+:root[data-theme="light"] .notes-variants-panel {
+  background: var(--bg-2) !important;
+  border-color: var(--border-1) !important;
+}
+:root[data-theme="light"] .notes-variant-item {
+  background: var(--bg-1) !important;
+  border-color: var(--border-1) !important;
+  color: var(--text-1) !important;
+}
+:root[data-theme="light"] .notes-variant-item:hover {
+  background: var(--bg-3) !important;
+  border-color: var(--accent) !important;
+}
 
 .notes-md-preview {
   background: rgba(0,0,0,0.25);

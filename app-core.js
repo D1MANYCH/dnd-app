@@ -898,7 +898,8 @@ function applyBuild(buildId) {
       "защита от добра и зла": "защита от зла и добра",
       "охотничья метка": "метка охотника",
       "снаряд-громовержец": "громовая волна",
-      "поиск следов": "метка охотника"
+      "шиллела": "дубина",
+      "ложная жизнь": "мнимая жизнь"
     };
     function _resolveSpell(n) {
       if (!n) return null;
@@ -1248,15 +1249,29 @@ function applyBuild(buildId) {
   if (!newChar.notesV2) newChar.notesV2 = { sections:{appearance:"",personality:"",backstory:"",features:"",magicItems:"",bonds:"",flaws:"",ideals:""}, entries:[], prefs:{lastSection:'backstory',lastFilter:'all'} };
   var _bgNoteKey = _bgAliases[b.background] || b.background;
   var _bgNote = _BG_NOTES[_bgNoteKey] || _BG_NOTES[b.background] || null;
-  // BUILD-FIX-11: персонализированные заметки билда (приоритет над _BG_NOTES).
-  var _bn = (b.notes && typeof b.notes === "object") ? b.notes : null;
+  // BUILD-FIX-11 / BUILD-NOTES-1: персонализированные заметки билда. Поля — массивы вариантов.
+  var _bn = (b.notes && typeof b.notes === "object") ? (window.normalizeBuildNotes ? window.normalizeBuildNotes(b.notes) : b.notes) : null;
   var _NS = newChar.notesV2.sections;
-  if (!_NS.appearance) _NS.appearance = (_bn && _bn.appearance) ? _bn.appearance
-      : ((b.race ? b.race + ". " : "") + "Выглядит как опытный «" + (b.title || b.className || "искатель приключений") + "». Заполни внешность под свой образ.");
-  if (!_NS.personality) _NS.personality = (_bn && _bn.personality) || (_bgNote && _bgNote.personality) || "Опиши характер своего персонажа: что движет, как держится в обществе, как реагирует на угрозу.";
-  if (!_NS.ideals)      _NS.ideals      = (_bn && _bn.ideals)      || (_bgNote && _bgNote.ideals)      || "Чему служит твой персонаж — долгу, свободе, знанию, вере?";
-  if (!_NS.bonds)       _NS.bonds       = (_bn && _bn.bonds)       || (_bgNote && _bgNote.bonds)       || "Что или кого твой персонаж готов защищать ценой жизни?";
-  if (!_NS.flaws)       _NS.flaws       = (_bn && _bn.flaws)       || (_bgNote && _bgNote.flaws)       || "Какая слабость или порок может однажды его погубить?";
+  var _seed = newChar.id || "";
+  function _pick(arr) { return (window.pickBuildVariant ? window.pickBuildVariant(arr, _seed) : (Array.isArray(arr) && arr.length ? arr[0] : "")); }
+  // Сохраняем все варианты на персонажа — для UI «🎲 вариант» (BUILD-NOTES-2).
+  if (_bn) {
+    newChar.notesV2.variants = {
+      appearance: _bn.appearance || [],
+      personality: _bn.personality || [],
+      ideals: _bn.ideals || [],
+      bonds: _bn.bonds || [],
+      flaws: _bn.flaws || [],
+      hooks: _bn.hooks || [],
+      backstories: _bn.backstories || []
+    };
+  }
+  if (!_NS.appearance) _NS.appearance = (_bn && _pick(_bn.appearance))
+      || ((b.race ? b.race + ". " : "") + "Выглядит как опытный «" + (b.title || b.className || "искатель приключений") + "». Заполни внешность под свой образ.");
+  if (!_NS.personality) _NS.personality = (_bn && _pick(_bn.personality)) || (_bgNote && _bgNote.personality) || "Опиши характер своего персонажа: что движет, как держится в обществе, как реагирует на угрозу.";
+  if (!_NS.ideals)      _NS.ideals      = (_bn && _pick(_bn.ideals))      || (_bgNote && _bgNote.ideals)      || "Чему служит твой персонаж — долгу, свободе, знанию, вере?";
+  if (!_NS.bonds)       _NS.bonds       = (_bn && _pick(_bn.bonds))       || (_bgNote && _bgNote.bonds)       || "Что или кого твой персонаж готов защищать ценой жизни?";
+  if (!_NS.flaws)       _NS.flaws       = (_bn && _pick(_bn.flaws))       || (_bgNote && _bgNote.flaws)       || "Какая слабость или порок может однажды его погубить?";
   // BUILD-FIX-4: стартовая заметка из b.summary + краткий план первых уровней.
   if (!newChar.notesV2) newChar.notesV2 = { sections:{appearance:"",personality:"",backstory:"",features:"",magicItems:"",bonds:"",flaws:"",ideals:""}, entries:[], prefs:{lastSection:'backstory',lastFilter:'all'} };
   var _bsLines = [];

@@ -114,6 +114,26 @@ function _findTab(key) {
   return null;
 }
 
+// BUILD-NOTES-2: соответствие ключа секции ключу в notesV2.variants.
+var NOTES_VARIANT_KEY = {
+  appearance: 'appearance', personality: 'personality',
+  ideals: 'ideals', bonds: 'bonds', flaws: 'flaws',
+  backstory: 'backstories'
+};
+
+function _getSectionVariants(char, secKey) {
+  var vk = NOTES_VARIANT_KEY[secKey];
+  if (!vk) return [];
+  var v = char && char.notesV2 && char.notesV2.variants;
+  if (!v || !Array.isArray(v[vk])) return [];
+  return v[vk].filter(function(x){ return typeof x === 'string' && x.trim(); });
+}
+
+// Какие варианты сейчас открыты (по ключу секции).
+var _notesVariantsOpen = {};
+// BUILD-NOTES-6.6: какие секции развёрнуты. По умолчанию все свернуты — пользователь явно открывает.
+var _notesSectionOpen = {};
+
 function _renderSectionsView() {
   var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
   if (!char) return '';
@@ -123,18 +143,33 @@ function _renderSectionsView() {
     var s = NOTES_SECTIONS[i];
     var val = sec[s.key] != null ? sec[s.key] : '';
     var previewOn = !!_notesPreviewOpen[s.key];
-    html += '<div class="card notes-section-card" data-sec-key="' + s.key + '">' +
-              '<h3>' + s.icon + ' ' + escapeHtml(s.label) + '</h3>';
+    var variants = _getSectionVariants(char, s.key);
+    var open = !!_notesSectionOpen[s.key];
+    var stats = _countStats(val);
+    html += '<div class="card notes-section-card' + (open ? '' : ' collapsed') +
+            '" data-sec-key="' + s.key + '">' +
+              '<h3 class="notes-section-head" onclick="notesToggleSection(\'' + s.key + '\')" role="button"' +
+              ' aria-expanded="' + (open ? 'true' : 'false') + '" tabindex="0">' +
+                '<span class="notes-section-toggle" aria-hidden="true">' + (open ? '▾' : '▸') + '</span> ' +
+                s.icon + ' ' + escapeHtml(s.label) +
+                '<span class="notes-section-meta">' + stats.chars + ' симв.</span>' +
+              '</h3>' +
+              '<div class="notes-section-body"' + (open ? '' : ' style="display:none;"') + '>';
     if (s.showTakenFeats) {
       html += '<div class="notes-feats-anchor" id="notes-feats-anchor"></div>';
     }
-    // MD-тулбар
-    html += _renderMdToolbar(s.key, previewOn);
-    // Textarea
+    // MD-тулбар (+ кнопка «🎲 вариант», если есть варианты билда)
+    html += _renderMdToolbar(s.key, previewOn, variants.length);
+    // BUILD-NOTES-2: панель с вариантами билда (скрыта по умолчанию).
+    if (variants.length) {
+      html += _renderVariantsPanel(s.key, variants, val);
+    }
+    // Textarea — увеличенная высота для удобного чтения.
+    var bigRows = Math.max(s.rows || 5, 10);
     html += '<textarea class="notes-section-input" id="notes-sec-' + s.key + '"' +
             ' data-section="' + s.key + '"' +
             (s.legacy ? ' data-legacy="' + s.legacy + '"' : '') +
-            ' rows="' + s.rows + '" placeholder="' + escapeHtml(s.placeholder) + '"' +
+            ' rows="' + bigRows + '" placeholder="' + escapeHtml(s.placeholder) + '"' +
             (previewOn ? ' style="display:none;"' : '') + '>' +
             escapeHtml(val) + '</textarea>';
     // Превью
@@ -142,16 +177,39 @@ function _renderSectionsView() {
             (previewOn ? '' : ' style="display:none;"') + '>' +
             _mdToHtml(val) + '</div>';
     // Счётчик
-    var stats = _countStats(val);
     html += '<div class="notes-md-stats" id="notes-stat-' + s.key + '">' +
               stats.words + ' сл. · ' + stats.chars + ' симв.' +
             '</div>';
-    html += '</div>';
+    html += '</div>'; // .notes-section-body
+    html += '</div>'; // .notes-section-card
   }
   return html;
 }
 
-function _renderMdToolbar(key, previewOn) {
+function _renderVariantsPanel(secKey, variants, currentVal) {
+  var open = !!_notesVariantsOpen[secKey];
+  var html = '<div class="notes-variants-panel" id="notes-var-' + secKey + '" role="region"' +
+             ' aria-label="Варианты из билда для секции"' +
+             (open ? '' : ' style="display:none;"') + '>';
+  html += '<div class="notes-variants-hint">Варианты из билда (' + variants.length + '):</div>';
+  html += '<div class="notes-variants-list" role="listbox" aria-label="Список вариантов">';
+  for (var i = 0; i < variants.length; i++) {
+    var v = variants[i];
+    var isCurrent = (v === currentVal);
+    html += '<button type="button" class="notes-variant-item' + (isCurrent ? ' current' : '') +
+            '" role="option" aria-selected="' + (isCurrent ? 'true' : 'false') + '"' +
+            ' onclick="notesPickVariant(\'' + secKey + '\',' + i + ')">' +
+            '<span class="notes-variant-num">' + (i + 1) + '</span>' +
+            '<span class="notes-variant-text">' + escapeHtml(v) + '</span>' +
+            '</button>';
+  }
+  html += '</div>';
+  html += '<button type="button" class="notes-variant-random" aria-label="Случайный вариант" onclick="notesPickRandomVariant(\'' + secKey + '\')">🎲 Случайный</button>';
+  html += '</div>';
+  return html;
+}
+
+function _renderMdToolbar(key, previewOn, variantsCount) {
   var btns = [
     { t: 'B',  a: 'bold',   title: 'Жирный (Ctrl+B)' },
     { t: 'I',  a: 'italic', title: 'Курсив (Ctrl+I)' },
@@ -168,11 +226,121 @@ function _renderMdToolbar(key, previewOn) {
     html += '<button type="button" class="notes-md-btn" title="' + b.title +
             '" onclick="notesMdInsert(\'' + key + '\',\'' + b.a + '\')">' + b.t + '</button>';
   }
+  if (variantsCount && variantsCount > 0) {
+    var openVar = !!_notesVariantsOpen[key];
+    html += '<button type="button" class="notes-md-btn notes-md-variants-toggle' +
+            (openVar ? ' active' : '') + '" title="Варианты из билда"' +
+            ' aria-expanded="' + (openVar ? 'true' : 'false') + '"' +
+            ' onclick="notesToggleVariants(\'' + key + '\')">🎲 <span class="notes-md-var-count">' + variantsCount + '</span></button>';
+  }
   html += '<button type="button" class="notes-md-btn notes-md-preview-toggle' +
           (previewOn ? ' active' : '') + '" title="Превью"' +
           ' onclick="notesTogglePreview(\'' + key + '\')">👁</button>';
   html += '</div>';
   return html;
+}
+
+/** BUILD-NOTES-6.6: свернуть/развернуть всю секцию (тело прячется, остаётся только заголовок). */
+function notesToggleSection(secKey) {
+  _notesSectionOpen[secKey] = !_notesSectionOpen[secKey];
+  var card = document.querySelector('.notes-section-card[data-sec-key="' + secKey + '"]');
+  if (!card) return;
+  var body = card.querySelector('.notes-section-body');
+  var head = card.querySelector('.notes-section-head');
+  var icon = card.querySelector('.notes-section-toggle');
+  var open = _notesSectionOpen[secKey];
+  if (body) body.style.display = open ? '' : 'none';
+  if (head) head.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (icon) icon.textContent = open ? '▾' : '▸';
+  card.classList.toggle('collapsed', !open);
+}
+window.notesToggleSection = notesToggleSection;
+
+/** BUILD-NOTES-2: показать/скрыть панель вариантов билда для секции. */
+function notesToggleVariants(secKey) {
+  _notesVariantsOpen[secKey] = !_notesVariantsOpen[secKey];
+  var panel = document.getElementById('notes-var-' + secKey);
+  var btn = document.querySelector('.notes-md-toolbar[data-for="' + secKey + '"] .notes-md-variants-toggle');
+  if (panel) panel.style.display = _notesVariantsOpen[secKey] ? '' : 'none';
+  if (btn) {
+    btn.classList.toggle('active', _notesVariantsOpen[secKey]);
+    btn.setAttribute('aria-expanded', _notesVariantsOpen[secKey] ? 'true' : 'false');
+  }
+}
+
+/** BUILD-NOTES-2: применить выбранный вариант билда к секции. */
+function notesPickVariant(secKey, idx) {
+  var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+  if (!char) return;
+  var variants = _getSectionVariants(char, secKey);
+  if (!variants.length) return;
+  if (idx < 0 || idx >= variants.length) return;
+  var pick = variants[idx];
+  _applyVariantToSection(secKey, pick, variants);
+}
+
+/** BUILD-NOTES-5: перегенерировать все секции, у которых есть варианты билда. */
+function notesRegenerateAll() {
+  var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+  if (!char) return;
+  var keys = ['appearance','personality','ideals','bonds','flaws','backstory'];
+  var available = [];
+  for (var i = 0; i < keys.length; i++) {
+    if (_getSectionVariants(char, keys[i]).length >= 1) available.push(keys[i]);
+  }
+  if (!available.length) {
+    alert('У текущего персонажа нет вариантов билда для перегенерации.\nПрименён ли готовый билд?');
+    return;
+  }
+  if (!confirm('Перегенерировать все секции (' + available.length + ') случайными вариантами из билда?\nТекущий текст этих секций будет заменён.')) return;
+  char.notesV2 = char.notesV2 || { sections: {}, entries: [], prefs: {} };
+  char.notesV2.sections = char.notesV2.sections || {};
+  for (var j = 0; j < available.length; j++) {
+    var sk = available[j];
+    var arr = _getSectionVariants(char, sk);
+    var current = char.notesV2.sections[sk] || '';
+    var pool = arr.filter(function(v){ return v !== current; });
+    if (!pool.length) pool = arr;
+    var pick = pool[Math.floor(Math.random() * pool.length)];
+    char.notesV2.sections[sk] = pick;
+    if (sk === 'appearance') char.appearance = pick;
+  }
+  if (typeof saveToLocalDebounced === 'function') saveToLocalDebounced();
+  _notesFlashSaved();
+  // Если открыта вкладка Предыстория — перерисуем; иначе ничего видимого.
+  if (_notesState.currentTab === 'backstory') _renderNotesMain();
+}
+
+function notesPickRandomVariant(secKey) {
+  var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+  if (!char) return;
+  var variants = _getSectionVariants(char, secKey);
+  if (!variants.length) return;
+  var ta = document.getElementById('notes-sec-' + secKey);
+  var current = ta ? (ta.value || '') : '';
+  var pool = variants.filter(function(v){ return v !== current; });
+  if (!pool.length) pool = variants;
+  var pick = pool[Math.floor(Math.random() * pool.length)];
+  _applyVariantToSection(secKey, pick, variants);
+}
+
+function _applyVariantToSection(secKey, pick, variants) {
+  var ta = document.getElementById('notes-sec-' + secKey);
+  if (!ta) return;
+  var current = ta.value || '';
+  // Confirm, если текст не пуст и не совпадает ни с одним из вариантов (т.е. отредактирован вручную).
+  if (current.trim() && variants.indexOf(current) === -1) {
+    if (!confirm('Заменить текущий текст секции на выбранный вариант? Несохранённые правки будут утеряны.')) return;
+  }
+  ta.value = pick;
+  ta.focus();
+  notesUpdateSection(ta);
+  _updateStats(ta);
+  // Если открыт preview — обновить.
+  if (_notesPreviewOpen[secKey]) {
+    var pv = document.getElementById('notes-prev-' + secKey);
+    if (pv) pv.innerHTML = _mdToHtml(pick);
+  }
 }
 
 /** Мини-парсер Markdown → безопасный HTML. Экранирует текст, затем применяет ограниченный набор правил. */
@@ -1045,6 +1213,10 @@ function notesHandleImportJson(input) {
             char.notesV2.sections[k] = incoming.sections[k];
           }
         }
+      }
+      // BUILD-NOTES-5: variants — перезаписываем целиком, если присутствуют (это снапшот билда).
+      if (incoming.variants && typeof incoming.variants === 'object') {
+        char.notesV2.variants = incoming.variants;
       }
       // Entries: добавить новые (по id)
       if (Array.isArray(incoming.entries)) {

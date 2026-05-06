@@ -279,6 +279,51 @@ function _syncDiceThemeButtons() {
 }
 document.addEventListener('DOMContentLoaded', _syncDiceThemeButtons);
 
+// UI-1: тема (Тёмная / Светлая / Системная)
+var THEMES = ['dark', 'light', 'auto'];
+function _getTheme() {
+  try {
+    var t = localStorage.getItem('dnd_theme');
+    if (THEMES.indexOf(t) !== -1) return t;
+  } catch (e) {}
+  return 'dark';
+}
+function _isEffectiveLight(t) {
+  if (t === 'light') return true;
+  if (t === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) return true;
+  return false;
+}
+function _applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', _isEffectiveLight(t) ? '#f3f6f4' : '#1a1a24');
+  // Обновить тему кубиков (цвет акцента)
+  if (typeof _diceBoxInstance !== 'undefined' && _diceBoxInstance) {
+    try { _diceBoxInstance.updateConfig({ themeColor: _getDiceThemeColor() }); } catch(e) {}
+  }
+}
+function setTheme(name) {
+  if (THEMES.indexOf(name) === -1) return;
+  try { localStorage.setItem('dnd_theme', name); } catch (e) {}
+  _applyTheme(name);
+  _syncThemeButtons();
+}
+function _syncThemeButtons() {
+  var active = _getTheme();
+  document.querySelectorAll('.theme-picker-btn').forEach(function(b) {
+    b.classList.toggle('is-active', b.getAttribute('data-theme-btn') === active);
+  });
+}
+document.addEventListener('DOMContentLoaded', _syncThemeButtons);
+// Реакция на смену системной темы при data-theme="auto"
+if (window.matchMedia) {
+  try {
+    matchMedia('(prefers-color-scheme: light)').addEventListener('change', function() {
+      if (_getTheme() === 'auto') _applyTheme('auto');
+    });
+  } catch(e) {}
+}
+
 function _initDiceBox() {
   if (_diceBoxInstance) return Promise.resolve(_diceBoxInstance);
   if (_diceBoxInitPromise) return _diceBoxInitPromise;

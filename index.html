@@ -12,9 +12,22 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=fx4">
+<link rel="stylesheet" href="style.css?v=ui1j">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
+// UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
+(function(){
+  try {
+    var t = localStorage.getItem('dnd_theme');
+    if (t !== 'light' && t !== 'auto') t = 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      var isLight = t === 'light' || (t === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches);
+      meta.setAttribute('content', isLight ? '#f3f6f4' : '#1a1a24');
+    }
+  } catch(e) {}
+})();
 </script>
 </head>
 <body>
@@ -63,6 +76,14 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <button class="drawer-item" onclick="switchTab('party',null);closeDrawer()" data-drawer-tab="party"><span>🌍</span>Мир</button>
     <button class="drawer-item" onclick="switchTab('journal',null);closeDrawer()" data-drawer-tab="journal"><span>📖</span>Журнал</button>
   </nav>
+  <div class="theme-picker-row">
+    <span class="theme-picker-label">🎨 Тема</span>
+    <div class="theme-picker-btns" role="radiogroup" aria-label="Тема оформления">
+      <button type="button" class="theme-picker-btn" data-theme-btn="dark" onclick="setTheme('dark')">🌙 Тёмная</button>
+      <button type="button" class="theme-picker-btn" data-theme-btn="light" onclick="setTheme('light')">☀️ Светлая</button>
+      <button type="button" class="theme-picker-btn" data-theme-btn="auto" onclick="setTheme('auto')">🖥️ Авто</button>
+    </div>
+  </div>
 </div>
 <header>
 <button class="header-back hidden" id="header-back" onclick="showScreen('characters')" title="Назад к профилям">←</button>
@@ -852,6 +873,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <input type="search" id="notes-search" class="notes-search" placeholder="🔍 Поиск…"
            oninput="notesSearchInput(this.value)" onkeydown="notesSearchKeydown(event)">
     <button class="notes-new-btn" id="notes-new-btn" onclick="notesOpenEntryModal()" title="Новая запись">+ Запись</button>
+    <button class="notes-regen-btn" id="notes-regen-btn" onclick="notesRegenerateAll()" title="Перегенерировать все секции из вариантов билда" aria-label="Перегенерировать все секции">🎲 всё</button>
     <div class="notes-menu-wrap">
       <button class="notes-menu-btn" id="notes-menu-btn" onclick="notesToggleMenu(event)" title="Экспорт / Импорт / Печать">⋯</button>
       <div class="notes-menu-dropdown" id="notes-menu-dropdown" style="display:none">
@@ -1892,9 +1914,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 
 <script src="data.js?v=v3"></script>
-<script src="character-builds.js?v=b8"></script>
+<script src="build-notes-data.js?v=bn4"></script>
+<script src="character-builds.js?v=b13"></script>
 <script src="spells.js?v=n1"></script>
-<script src="app-core.js?v=bf20"></script>
+<script src="app-core.js?v=bf22"></script>
 <script src="app-combat.js?v=fx4"></script>
 <script src="app-hp.js?v=build3"></script>
 <script src="app-spells.js?v=i4h"></script>
@@ -1909,7 +1932,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
 <script src="app-ui.js?v=i2"></script>
-<script src="app-notes.js?v=n4"></script>
+<script src="app-notes.js?v=n8"></script>
 
 <!-- ══ Модалка записи (N4) ══════════════════════════════════════ -->
 <div id="notes-entry-modal" class="notes-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="nem-heading" onclick="if(event.target===this)notesCloseEntryModal()">
