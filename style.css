@@ -8183,7 +8183,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
    чтобы один раз покрыть viewport и не плодить повторов (и чтобы ✦-маркер
    Gemini в углу не мозолил глаза). */
 body {
-  background-image: url('assets/bg-body.png');
+  background-image: url('assets/bg-body.webp');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
@@ -8197,7 +8197,7 @@ body {
 
 /* Fallback-аватар (если нет картинки персонажа) */
 .avatar-fallback {
-  background-image: url('assets/avatar-fallback.png');
+  background-image: url('assets/avatar-fallback.webp');
   background-size: cover;
   background-position: center;
   background-color: var(--bg-1, #17171f);
@@ -8209,7 +8209,7 @@ body {
   max-width: 280px;
   aspect-ratio: 4 / 3;
   margin: 0 auto var(--sp-3, 12px);
-  background-image: url('assets/empty-state.png');
+  background-image: url('assets/empty-state.webp');
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;

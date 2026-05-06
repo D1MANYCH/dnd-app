@@ -600,7 +600,7 @@ if (levelEl) {
   levelEl.className = "exhaustion-level" + (lvl > 0 ? " active" : "") + (lvl >= 5 ? " critical" : "");
 }
 var titleImg = document.querySelector('.exhaustion-title .condition-icon-svg');
-if (titleImg) titleImg.src = 'assets/conditions/exhaustion_' + (lvl > 0 ? lvl : 1) + '.png';
+if (titleImg) titleImg.src = 'assets/conditions/exhaustion_' + (lvl > 0 ? lvl : 1) + '.webp';
 if (descEl) {
   if (lvl === 0) descEl.textContent = "";
   else {

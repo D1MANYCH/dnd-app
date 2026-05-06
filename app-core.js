@@ -1396,14 +1396,14 @@ const CLASS_ICON_SLUGS = {
 function getClassIcon(cls) {
   const slug = CLASS_ICON_SLUGS[cls];
   if (!slug) return '<span class="class-icon-fallback" aria-hidden="true">🎭</span>';
-  return '<img class="class-icon-svg" src="assets/classes/' + slug + '.png" alt="" aria-hidden="true">';
+  return '<img class="class-icon-svg" src="assets/classes/' + slug + '.webp" alt="" aria-hidden="true">';
 }
 // 'con' переименован в 'constitution.png' — Windows резервирует CON как имя DOS-устройства.
 const ABILITY_ICON_FILES = {str:'str', dex:'dex', con:'constitution', int:'int', wis:'wis', cha:'cha'};
 function getAbilityIcon(key) {
   var file = ABILITY_ICON_FILES[key];
   if (!file) return '';
-  return '<img class="ability-icon-svg" src="assets/abilities/' + file + '.png" alt="" aria-hidden="true">';
+  return '<img class="ability-icon-svg" src="assets/abilities/' + file + '.webp" alt="" aria-hidden="true">';
 }
 // Состояния: id → имя PNG-файла в assets/conditions/. У истощения 6 разных иконок по уровню.
 const CONDITION_ICON_SLUGS = {
@@ -1418,7 +1418,7 @@ const CONDITION_ICON_SLUGS = {
 function getConditionIcon(id) {
   var slug = CONDITION_ICON_SLUGS[id];
   if (!slug) return '';
-  return '<img class="condition-icon-svg" src="assets/conditions/' + slug + '.png" alt="" aria-hidden="true">';
+  return '<img class="condition-icon-svg" src="assets/conditions/' + slug + '.webp" alt="" aria-hidden="true">';
 }
 // Временные эффекты: id → имя PNG-файла в assets/effects/. Если файла ещё нет — иконка просто не отрисуется.
 const EFFECT_ICON_SLUGS = {
@@ -1443,7 +1443,7 @@ const SPELL_CLASS_ICON_SLUGS = {
 function getSpellClassIcon(key) {
   var slug = SPELL_CLASS_ICON_SLUGS[key];
   if (!slug) return '<span class="spell-class-emoji" aria-hidden="true">' + (CLASS_ICONS_MAP[key] || '✨') + '</span>';
-  return '<img class="spell-class-icon" src="assets/classes/' + slug + '.png?v=2" alt="" aria-hidden="true">';
+  return '<img class="spell-class-icon" src="assets/classes/' + slug + '.webp?v=2" alt="" aria-hidden="true">';
 }
 // Школы магии: RU → slug файла в assets/schools/*.svg
 const SCHOOL_ICON_SLUGS = {
@@ -1463,7 +1463,7 @@ function getSchoolSlug(school) {
 function getSchoolIcon(school) {
   var slug = getSchoolSlug(school);
   if (!slug) return '';
-  return '<img class="school-icon-svg" src="assets/schools/' + slug + '.png?v=6" alt="" aria-hidden="true">';
+  return '<img class="school-icon-svg" src="assets/schools/' + slug + '.webp?v=6" alt="" aria-hidden="true">';
 }
 // Удаляет ведущий emoji (и пробел) из имени состояния — для отображения рядом с SVG-иконкой
 function stripLeadingEmoji(name) {
