@@ -24,7 +24,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
       var isLight = t === 'light' || (t === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches);
-      meta.setAttribute('content', isLight ? '#f3f6f4' : '#1a1a24');
+      meta.setAttribute('content', isLight ? '#eef2ef' : '#1a1a24');
     }
   } catch(e) {}
 })();
@@ -94,6 +94,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <button class="nav-hamburger hidden" id="nav-hamburger" onclick="openDrawer()" title="Меню">☰</button>
 </header>
+<aside class="app-right-rail" id="app-right-rail" aria-label="Быстрые действия"></aside>
 <div class="container">
 <!-- Floating Buttons -->
 
@@ -1933,6 +1934,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </script>
 <script src="app-ui.js?v=i2"></script>
 <script src="app-notes.js?v=n8"></script>
+<script src="app-desktop.js?v=rr1"></script>
 
 <!-- ══ Модалка записи (N4) ══════════════════════════════════════ -->
 <div id="notes-entry-modal" class="notes-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="nem-heading" onclick="if(event.target===this)notesCloseEntryModal()">

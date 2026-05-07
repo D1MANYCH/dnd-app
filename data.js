@@ -1540,7 +1540,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.0.1";
+const APP_VERSION = "3.1.0";
 const APP_VERSION_DATE = "2026-05-07";
 
 // ============================================================
@@ -1826,9 +1826,22 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.0.1",
+    version: "3.1.0",
     date: "7 мая 2026",
     badge: "new",
+    changes: [
+      { type: "feat", text: "Light Theme v3: тёплая cream-палитра (#eef2ef) с warm radial gradient и SVG-noise; декоративные золотые «лозы» по краям приложения" },
+      { type: "feat", text: "Унифицированная система кнопок: .btn-sm/md/lg × .btn-primary/secondary/ghost/danger/success + .btn-pill / .btn-loading; работают через CSS-переменные в обеих темах" },
+      { type: "feat", text: "Анимации: HP-bar shimmer, hover-lift на карточках/кнопках, toast-in, banner-in, lock-pulse — с уважением prefers-reduced-motion (универсально для всех тем)" },
+      { type: "feat", text: "Desktop layout (≥1200px): sidebar 240px + main центрирован + right-rail 320px (HP-виджет с кнопками урона/лечения, быстрые броски d4-d20, состояния)" },
+      { type: "feat", text: "Адаптивные брейкпоинты: tablet 768+ (увеличенные padding и .grid-2), desktop 1200+ (3-колоночный layout, drawer как статический sidebar, tab-nav скрыт)" },
+      { type: "chore", text: "Тёмная тема получила обновлённый визуал кнопок и анимации без потери привычного образа (через CSS-переменные)" }
+    ]
+  },
+  {
+    version: "3.0.1",
+    date: "7 мая 2026",
+    badge: "old",
     changes: [
       { type: "chore", text: "OPT-5: ассеты PNG → WebP q=85 (assets/ ~26 МБ → ~5 МБ, экономия 86%); ускорена загрузка preview и кеш SW" }
     ]
