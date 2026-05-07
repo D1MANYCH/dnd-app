@@ -20,12 +20,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   try {
     var t = localStorage.getItem('dnd_theme');
     if (t !== 'light' && t !== 'auto') t = 'dark';
-    document.documentElement.setAttribute('data-theme', t);
+    var isLight = t === 'light' || (t === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches);
+    // На <html> ставим резолвленную тему — для auto подставляем фактическую (light/dark),
+    // чтобы CSS [data-theme="dark"]/[data-theme="light"] срабатывали без media-query.
+    document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) {
-      var isLight = t === 'light' || (t === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches);
-      meta.setAttribute('content', isLight ? '#eef2ef' : '#1a1a24');
-    }
+    if (meta) meta.setAttribute('content', isLight ? '#eef2ef' : '#1a1a24');
   } catch(e) {}
 })();
 </script>

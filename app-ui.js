@@ -293,10 +293,21 @@ function _isEffectiveLight(t) {
   if (t === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) return true;
   return false;
 }
+// Резолвит 'auto' в фактическое 'dark'/'light' через matchMedia.
+// 'light'/'dark' возвращаются как есть.
+function _resolveTheme(t) {
+  if (t === 'light' || t === 'dark') return t;
+  if (t === 'auto') return _isEffectiveLight('auto') ? 'light' : 'dark';
+  return 'dark';
+}
 function _applyTheme(t) {
-  document.documentElement.setAttribute('data-theme', t);
+  // На <html> ставим резолвленную тему ('dark'/'light'), чтобы CSS-правила
+  // [data-theme="dark"] / [data-theme="light"] всегда срабатывали корректно
+  // независимо от того, как браузер интерпретирует prefers-color-scheme.
+  // В localStorage (через setTheme) сохраняется исходный выбор пользователя.
+  document.documentElement.setAttribute('data-theme', _resolveTheme(t));
   var meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', _isEffectiveLight(t) ? '#f3f6f4' : '#1a1a24');
+  if (meta) meta.setAttribute('content', _isEffectiveLight(t) ? '#eef2ef' : '#1a1a24');
   // Обновить тему кубиков (цвет акцента)
   if (typeof _diceBoxInstance !== 'undefined' && _diceBoxInstance) {
     try { _diceBoxInstance.updateConfig({ themeColor: _getDiceThemeColor() }); } catch(e) {}
