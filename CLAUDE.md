@@ -35,6 +35,27 @@
 - Открыть `tests/runner.html` — браузерные.
 - `verifyAllBuilds()` в DevTools-консоли — текущий результат **36/36 fullPass**.
 
+## Slash-команды (`.claude/commands/`)
+- `/test` — `node tests/headless-node.js`, выводит одну строку итога; при FAIL — desc первых 3.
+- `/preflight` — тесты + сверка `APP_VERSION` ↔ `APP_CHANGELOG[0].version` + проверка bump `CACHE_NAME`.
+- `/bump <patch|minor|major> "<changelog>" [--type chore|feat|fix]` — синхронный bump через `tools/bump-version.js` (правит `data.js` и `sw.js` за один проход).
+- `/phase <X-N>` — стартовать фазу из `memory/MEMORY.md` (например `/phase DEV-4`).
+- `/done <X-N>` — пометить фазу `**done**` в соответствующем `project_*_plan.md`.
+
+## Hooks (`.claude/settings.json`, PostToolUse на Edit|Write|MultiEdit)
+1. **sw.js guard** — при правке `sw.js` печатает текущий `CACHE_NAME` и напоминает бампнуть (exit 2 → блокирует).
+2. **data.js version sync** — если `APP_VERSION !== APP_CHANGELOG[0].version`, exit 2 → блокирует.
+3. **auto-tests** — `node tools/run-tests-hook.js` прогоняет `tests/headless-node.js` на правки `*.js` (кроме `tests/`, `vendor/`, `assets/`). Warn-режим (exit 0), не блокирует.
+
+Отключить временно — закомментировать/убрать соответствующий блок из `hooks.PostToolUse` в `.claude/settings.json`.
+
+## Типовые задачи (где править)
+- **Новый класс** → `data.js` (`CLASSES`), `class-choices.js`, опц. `subclass-choices-data.js`. Verify: `/test`.
+- **Новое заклинание** → `spells.js` (схема — по соседним записям). Если затрагивает UI — bump `CACHE_NAME`.
+- **Новый билд** → `character-builds.js` + `build-notes-data.js`. Verify: `verifyAllBuilds()` в DevTools.
+- **Релиз** → `/bump <уровень> "<changelog>"` → `/preflight` → коммит по запросу пользователя.
+- **Новая фаза плана** → скелет `.claude/templates/phase-plan.md`, индекс в `memory/MEMORY.md`.
+
 ## Конвенции коммитов
 Формат `тип(scope): описание` на русском. Типы из истории: `feat`, `fix`, `chore`. Релизы — префикс `vX.Y.Z:`. Коммиты создавать **только по запросу пользователя**.
 
