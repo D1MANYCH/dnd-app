@@ -4,6 +4,13 @@
 
 (function () {
   const RAIL_HTML = `
+    <div class="rr-card rr-stats-card">
+      <div class="rr-stats-row">
+        <div class="rr-stat-mini rr-ac" title="Класс доспеха">🛡️ <span id="rr-ac">10</span></div>
+        <div class="rr-stat-mini rr-level" title="Уровень">⭐ <span id="rr-level">1</span></div>
+        <div class="rr-stat-mini rr-insp is-empty" id="rr-insp-mini" title="Вдохновение (клик — переключить)">✨</div>
+      </div>
+    </div>
     <div class="rr-card rr-hp">
       <div class="rr-card-head">
         <span>❤️ Хиты</span>
@@ -55,6 +62,28 @@
     const cnt = document.getElementById('conditions-btn-count');
     const rrC = document.getElementById('rr-cond-count');
     if (cnt && rrC) rrC.textContent = cnt.textContent || '0';
+
+    // AC и Level из status-bar
+    const ac = document.getElementById('status-ac');
+    const lvl = document.getElementById('status-level');
+    const rrAc = document.getElementById('rr-ac');
+    const rrLvl = document.getElementById('rr-level');
+    if (ac && rrAc) {
+      const inner = ac.querySelector('span');
+      rrAc.textContent = inner ? inner.textContent : (ac.textContent || '').replace(/\D+/g, '') || '10';
+    }
+    if (lvl && rrLvl) {
+      const inner = lvl.querySelector('span');
+      rrLvl.textContent = inner ? inner.textContent : (lvl.textContent || '').replace(/\D+/g, '') || '1';
+    }
+
+    // Inspiration — по наличию active-class или непустого innerText
+    const insp = document.getElementById('status-inspiration');
+    const rrInsp = document.getElementById('rr-insp-mini');
+    if (insp && rrInsp) {
+      const isOn = insp.classList.contains('active') || insp.classList.contains('is-on') || insp.dataset.on === '1';
+      rrInsp.classList.toggle('is-empty', !isOn);
+    }
   }
 
   function rrApplyHP(mode) {
@@ -88,6 +117,11 @@
     if (btnCond) btnCond.addEventListener('click', () => {
       if (typeof window.toggleConditionsPopup === 'function') window.toggleConditionsPopup();
       else if (typeof window.openConditionsPopup === 'function') window.openConditionsPopup();
+    });
+
+    const inspEl = document.getElementById('rr-insp-mini');
+    if (inspEl) inspEl.addEventListener('click', () => {
+      if (typeof window.toggleInspiration === 'function') window.toggleInspiration();
     });
 
     rail.querySelectorAll('[data-dice]').forEach(btn => {

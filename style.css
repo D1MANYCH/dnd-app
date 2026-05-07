@@ -954,31 +954,53 @@
   /* Floating buttons (плавающие dice/rest) — позицию подвинуть чтобы не пересекались с right-rail */
   .floating-btn { right: 340px !important; }
 
-  /* Status-bar (верхние chips HP/AC/Level) — переезжают в правый верхний угол header'а */
-  .status-bar {
-    background: transparent !important;
-    border-bottom: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    position: static;
-    height: auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    justify-content: flex-end;
-    margin: 0;
-  }
+  /* Status-bar скрыт на desktop — HP/AC/Level/Inspiration в right-rail */
+  .status-bar { display: none !important; }
 
-  /* Header — стрейч одной строкой */
+  /* Header — крупнее, в одну строку, по центру */
   header {
     position: sticky;
     top: 0;
     z-index: 50;
-    padding: 12px 24px;
+    padding: 14px 28px;
     gap: 16px;
+    align-items: center;
+    min-height: 72px;
   }
+  header .header-avatar { width: 56px !important; height: 56px !important; font-size: 28px !important; }
+  header .header-title { font-size: 22px !important; }
+  header .header-subtitle { font-size: 14px !important; }
+
+  /* Right-rail — компактный ряд AC/Level/Inspiration в верхней мини-карточке */
+  .rr-stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .rr-stat-mini {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 6px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .rr-stat-mini.rr-ac { color: var(--info); border-color: rgba(44,111,189,0.32); background: rgba(44,111,189,0.06); }
+  .rr-stat-mini.rr-level { color: var(--accent); border-color: rgba(184,132,31,0.40); background: var(--accent-soft); }
+  .rr-stat-mini.rr-insp {
+    color: var(--accent);
+    border-color: rgba(184,132,31,0.40);
+    background: var(--accent-soft);
+    cursor: pointer;
+    transition: all 0.18s var(--ease-out);
+  }
+  .rr-stat-mini.rr-insp:hover { transform: translateY(-1px); box-shadow: var(--sh-1); }
+  .rr-stat-mini.rr-insp.is-empty { opacity: 0.45; }
 
   /* Main контент центрирован, ограничен по ширине */
   .container,
