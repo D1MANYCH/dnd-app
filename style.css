@@ -918,8 +918,9 @@
 .app-right-rail { display: none; }
 
 @media (min-width: 1200px) {
-  /* Layout body: padding под sidebar 240 + right-rail 320 */
+  /* Layout body: padding под sidebar 240 + right-rail 320 + header 72 сверху */
   body {
+    padding-top: 72px !important;
     padding-left: 240px !important;
     padding-right: 320px !important;
     padding-bottom: 0 !important;
@@ -957,15 +958,19 @@
   /* Status-bar скрыт на desktop — HP/AC/Level/Inspiration в right-rail */
   .status-bar { display: none !important; }
 
-  /* Header — крупнее, в одну строку, по центру */
+  /* Header — fixed во всю ширину между sidebar (240) и правым краем,
+     поверх main и right-rail; right-rail и контент уходят под header */
   header {
-    position: sticky;
+    position: fixed !important;
     top: 0;
-    z-index: 50;
+    left: 240px;
+    right: 0;
+    z-index: 60;
     padding: 14px 28px;
     gap: 16px;
     align-items: center;
     min-height: 72px;
+    margin: 0 !important;
   }
   header .header-avatar { width: 56px !important; height: 56px !important; font-size: 28px !important; }
   header .header-title { font-size: 22px !important; }
