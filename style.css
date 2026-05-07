@@ -1017,7 +1017,8 @@
     padding: 24px 32px;
   }
 
-  /* Right-rail */
+  /* Right-rail — по умолчанию тёмный (под dark и под auto+OS-dark);
+     светлый — только при явном light или auto+OS-light */
   .app-right-rail {
     display: flex;
     flex-direction: column;
@@ -1030,15 +1031,23 @@
     padding: 20px 18px;
     overflow-y: auto;
     border-left: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.45);
+    background: rgba(20, 22, 30, 0.55);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     z-index: 40;
   }
-  :root[data-theme="dark"] .app-right-rail,
-  :root:not([data-theme="light"]):not([data-theme="auto"]) .app-right-rail {
-    background: rgba(20, 22, 30, 0.55);
+  :root[data-theme="light"] .app-right-rail {
+    background: rgba(255, 255, 255, 0.45);
   }
+}
+
+@media (min-width: 1200px) and (prefers-color-scheme: light) {
+  :root[data-theme="auto"] .app-right-rail {
+    background: rgba(255, 255, 255, 0.45);
+  }
+}
+
+@media (min-width: 1200px) {
 
   /* Right-rail карточки */
   .rr-card {
