@@ -1540,8 +1540,8 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.1.0";
-const APP_VERSION_DATE = "2026-05-07";
+const APP_VERSION = "3.1.2";
+const APP_VERSION_DATE = "2026-05-08";
 
 // ============================================================
 // ЧЕРТЫ — PHB 5e (Fantom Studio перевод, 20 основных)
@@ -1826,9 +1826,26 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
+    version: "3.1.2",
+    date: "8 мая 2026",
+    badge: "new",
+    changes: [
+      { type: "fix", text: "кубики: 6-секундный fallback при зависшей 3D-физике (file://, GPU-проблемы) — результат показывается всегда" },
+      { type: "fix", text: "адаптив: right-rail активен с 1024px — планшет в landscape выглядит как ПК" }
+    ]
+  },
+  {
+    version: "3.1.1",
+    date: "7 мая 2026",
+    badge: "old",
+    changes: [
+      { type: "fix", text: "right-rail: 3D-кубы открывают модалку; inline-баджи состояний в карточке" }
+    ]
+  },
+  {
     version: "3.1.0",
     date: "7 мая 2026",
-    badge: "new",
+    badge: "old",
     changes: [
       { type: "feat", text: "Light Theme v3: тёплая cream-палитра (#eef2ef) с warm radial gradient и SVG-noise; декоративные золотые «лозы» по краям приложения" },
       { type: "feat", text: "Унифицированная система кнопок: .btn-sm/md/lg × .btn-primary/secondary/ghost/danger/success + .btn-pill / .btn-loading; работают через CSS-переменные в обеих темах" },

@@ -1059,6 +1059,10 @@ if (condBtn) {
     condBtn.classList.add("hidden");
   }
 }
+// Right-rail (десктоп) — синхронизация баджей состояний
+if (typeof window.refreshConditionsRightRail === 'function') {
+  window.refreshConditionsRightRail();
+}
 // Вдохновение
 const inspiEl = $("status-inspiration");
 if (inspiEl) inspiEl.classList.toggle("active", !!char.inspiration);
@@ -2807,6 +2811,33 @@ updateInventoryWeight();
 }
 
 // ── Попап активных состояний ──
+function getActiveConditionsForRender() {
+  var out = { baseConditions: [], exhLevel: 0, buffs: [], debuffs: [] };
+  var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+  if (!char) return out;
+  if (char.conditions && typeof CONDITIONS !== 'undefined') {
+    char.conditions.forEach(function(condId) {
+      if (condId.indexOf('exhaustion_') !== -1) {
+        var lvl = parseInt(condId.split('_')[1], 10);
+        if (lvl > out.exhLevel) out.exhLevel = lvl;
+      } else {
+        var c = CONDITIONS.find(function(x) { return x.id === condId; });
+        if (c) out.baseConditions.push(c);
+      }
+    });
+  }
+  if (char.effects && typeof EFFECTS_DATA !== 'undefined') {
+    char.effects.forEach(function(effectId) {
+      var e = EFFECTS_DATA.find(function(x) { return x.id === effectId; });
+      if (!e) return;
+      if (e.type === 'buff') out.buffs.push(e);
+      else out.debuffs.push(e);
+    });
+  }
+  return out;
+}
+window.getActiveConditionsForRender = getActiveConditionsForRender;
+
 function toggleConditionsPopup() {
   var overlay = $("conditions-popup-overlay");
   var popup = $("conditions-popup");
@@ -2829,34 +2860,14 @@ function renderConditionsPopup() {
   var list = $("conditions-popup-list");
   if (!list) return;
   list.innerHTML = "";
-  var char = getCurrentChar();
-  if (!char) return;
-  var hasConditions = char.conditions && char.conditions.length > 0;
-  var hasEffects = char.effects && char.effects.length > 0;
-  if (!hasConditions && !hasEffects) {
+  var data = getActiveConditionsForRender();
+  var baseConditions = data.baseConditions;
+  var exhLevel = data.exhLevel;
+  var buffs = data.buffs;
+  var debuffs = data.debuffs;
+  if (!baseConditions.length && !exhLevel && !buffs.length && !debuffs.length) {
     list.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:12px;">Нет активных состояний</div>';
     return;
-  }
-  // Собираем данные
-  var baseConditions = [];
-  var exhLevel = 0;
-  if (hasConditions) {
-    char.conditions.forEach(function(condId) {
-      if (condId.indexOf("exhaustion_") !== -1) {
-        var lvl = parseInt(condId.split("_")[1]);
-        if (lvl > exhLevel) exhLevel = lvl;
-      } else {
-        var c = CONDITIONS.find(function(x) { return x.id === condId; });
-        if (c) baseConditions.push(c);
-      }
-    });
-  }
-  var buffs = [], debuffs = [];
-  if (hasEffects) {
-    char.effects.forEach(function(effectId) {
-      var e = EFFECTS_DATA.find(function(x) { return x.id === effectId; });
-      if (e) { if (e.type === "buff") buffs.push(e); else debuffs.push(e); }
-    });
   }
   // Группа: Состояния
   if (baseConditions.length > 0 || exhLevel > 0) {

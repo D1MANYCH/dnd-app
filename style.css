@@ -909,15 +909,15 @@
   }
 }
 
-/* ========== UI-3. Desktop layout (≥1200px) ==========
+/* ========== UI-3. Desktop/tablet layout (≥1024px) ==========
    Sidebar (drawer как статический) + main центрирован + right-rail.
-   Mobile/tablet < 1200px не затрагиваются — drawer работает как раньше.
+   Mobile < 1024px не затрагивается — drawer работает как раньше.
 */
 
-/* Right-rail — на mobile/tablet скрыт, на desktop fixed справа */
+/* Right-rail — на mobile скрыт, на tablet/desktop fixed справа */
 .app-right-rail { display: none; }
 
-@media (min-width: 1200px) {
+@media (min-width: 1024px) {
   /* Layout body: padding под sidebar 240 + right-rail 320 + header 72 сверху */
   body {
     padding-top: 72px !important;
@@ -1041,13 +1041,13 @@
   }
 }
 
-@media (min-width: 1200px) and (prefers-color-scheme: light) {
+@media (min-width: 1024px) and (prefers-color-scheme: light) {
   :root[data-theme="auto"] .app-right-rail {
     background: rgba(255, 255, 255, 0.45);
   }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1024px) {
 
   /* Right-rail карточки */
   .rr-card {
@@ -1108,6 +1108,27 @@
     margin-bottom: 8px;
   }
   .rr-dice-grid .btn { padding: 0 4px; }
+
+  /* Inline-баджи активных состояний в right-rail */
+  .rr-cond-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .rr-cond-list:empty { display: none; }
+  .rr-cond-list .condition-badge {
+    font-size: 11px;
+    padding: 2px 6px;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .rr-cond-empty {
+    color: var(--text-muted);
+    font-size: 11px;
+    text-align: center;
+    padding: 4px 0 8px;
+  }
 
   /* На desktop primary-кнопки в right-rail остаются md (44px), не растут до lg */
   .app-right-rail .btn-primary { --btn-h: 44px; --btn-px: 18px; --btn-fs: 14px; }
@@ -7632,7 +7653,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1024px) {
   :root { --app-width: 860px; }
 }
 

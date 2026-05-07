@@ -376,8 +376,20 @@ function animateDice3d(sides, result, callback, opts) {
     setTimeout(function() { callback(); }, 30);
     return;
   }
+  // Fallback: если DiceBox не успел инициализироваться/завершить физику за 6с
+  // (например при file:// без ассетов или при зависшей WebGL-сцене), вернём
+  // числовой результат через callback() — UI обновится без 3D-анимации.
+  var done = false;
+  var fallbackTimer = setTimeout(function() {
+    if (done) return;
+    done = true;
+    try { callback(); } catch (e) {}
+  }, 6000);
   _initDiceBox().then(function(box) {
     box.onRollComplete = function(results) {
+      if (done) return;
+      done = true;
+      clearTimeout(fallbackTimer);
       var v1, v2;
       try {
         var rolls = results && results[0] && results[0].rolls ? results[0].rolls : [];
@@ -391,6 +403,9 @@ function animateDice3d(sides, result, callback, opts) {
     box.clear();
     box.roll([{ qty: qty, sides: sides }], { theme: _getDiceTheme(), themeColor: _getDiceThemeColor() });
   }).catch(function() {
+    if (done) return;
+    done = true;
+    clearTimeout(fallbackTimer);
     callback();
   });
 }

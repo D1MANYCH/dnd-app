@@ -39,7 +39,9 @@
         <span>⚡ Состояния</span>
         <span class="rr-hp-num" id="rr-cond-count" style="color:var(--accent)">0</span>
       </div>
-      <button type="button" class="btn btn-ghost btn-block" id="rr-btn-cond">+ Открыть</button>
+      <div id="rr-cond-list" class="rr-cond-list"></div>
+      <div id="rr-cond-empty" class="rr-cond-empty">Нет активных состояний</div>
+      <button type="button" class="btn btn-ghost btn-block btn-sm" id="rr-btn-cond">⚙ Управление</button>
     </div>
   `;
 
@@ -60,8 +62,15 @@
     }
 
     const cnt = document.getElementById('conditions-btn-count');
+    const condBtn = document.getElementById('status-conditions-btn');
     const rrC = document.getElementById('rr-cond-count');
-    if (cnt && rrC) rrC.textContent = cnt.textContent || '0';
+    if (rrC) {
+      const hidden = condBtn && condBtn.classList.contains('hidden');
+      rrC.textContent = (hidden || !cnt) ? '0' : (cnt.textContent || '0');
+    }
+
+    // Перерисовать inline-баджи (на случай переключения персонажа)
+    try { renderRrConditions(); } catch (e) {}
 
     // AC и Level из status-bar
     const ac = document.getElementById('status-ac');
@@ -85,6 +94,64 @@
       rrInsp.classList.toggle('is-empty', !isOn);
     }
   }
+
+  function _esc(s) {
+    if (typeof window.escapeHtml === 'function') return window.escapeHtml(s);
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
+    });
+  }
+  function _stripEmoji(s) {
+    if (typeof window.stripLeadingEmoji === 'function') return window.stripLeadingEmoji(s);
+    return String(s || '');
+  }
+  function _condIcon(id) {
+    if (typeof window.getConditionIcon === 'function') return window.getConditionIcon(id);
+    return '';
+  }
+  function renderRrConditions() {
+    var list = document.getElementById('rr-cond-list');
+    var empty = document.getElementById('rr-cond-empty');
+    if (!list) return;
+    var data = (typeof window.getActiveConditionsForRender === 'function')
+      ? window.getActiveConditionsForRender()
+      : { baseConditions: [], exhLevel: 0, buffs: [], debuffs: [] };
+    list.innerHTML = '';
+    var any = data.baseConditions.length || data.exhLevel || data.buffs.length || data.debuffs.length;
+    if (!any) {
+      if (empty) empty.style.display = '';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    function addBadge(html, cls) {
+      var b = document.createElement('span');
+      b.className = 'condition-badge' + (cls ? ' ' + cls : '');
+      b.innerHTML = html;
+      b.addEventListener('click', function() {
+        if (typeof window.toggleConditionsPopup === 'function') window.toggleConditionsPopup();
+      });
+      list.appendChild(b);
+    }
+    data.baseConditions.forEach(function(c) {
+      addBadge(_condIcon(c.id) + '<span>' + _esc(_stripEmoji(c.name)) + '</span>');
+    });
+    if (data.exhLevel > 0) {
+      addBadge(
+        _condIcon('exhaustion_' + data.exhLevel) +
+        '<span>Истощение ' + data.exhLevel + (data.exhLevel >= 6 ? ' — смерть' : '/6') + '</span>',
+        'exhaustion'
+      );
+    }
+    data.buffs.forEach(function(e) {
+      var name = (e.name || '').split(' ').slice(1).join(' ') || e.name;
+      addBadge(_esc(name), 'buff');
+    });
+    data.debuffs.forEach(function(e) {
+      var name = (e.name || '').split(' ').slice(1).join(' ') || e.name;
+      addBadge(_esc(name), 'debuff');
+    });
+  }
+  window.refreshConditionsRightRail = renderRrConditions;
 
   function rrApplyHP(mode) {
     const inp = document.getElementById('rr-hp-input');
@@ -111,6 +178,7 @@
     if (btnDmg) btnDmg.addEventListener('click', () => rrApplyHP('dmg'));
     if (btnHeal) btnHeal.addEventListener('click', () => rrApplyHP('heal'));
     if (btnD20) btnD20.addEventListener('click', () => {
+      if (typeof window.openDiceModal === 'function') window.openDiceModal();
       if (typeof window.rollDiceWithSelectedMode === 'function') window.rollDiceWithSelectedMode(20);
       else if (typeof window.rollDice === 'function') window.rollDice(20);
     });
@@ -127,11 +195,14 @@
     rail.querySelectorAll('[data-dice]').forEach(btn => {
       btn.addEventListener('click', () => {
         const d = parseInt(btn.getAttribute('data-dice'), 10);
-        if (typeof window.rollDice === 'function' && d) window.rollDice(d);
+        if (!d) return;
+        if (typeof window.openDiceModal === 'function') window.openDiceModal();
+        if (typeof window.rollDice === 'function') window.rollDice(d);
       });
     });
 
     syncFromStatusBar();
+    renderRrConditions();
 
     const statusBar = document.querySelector('.status-bar');
     if (statusBar) {
