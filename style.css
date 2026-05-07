@@ -222,14 +222,7 @@
 :root[data-theme="light"] h4,
 :root[data-theme="light"] .header-title { font-weight: 700; }
 
-/* ===== prefers-reduced-motion ===== */
-@media (prefers-reduced-motion: reduce) {
-  :root[data-theme="light"] *,
-  :root[data-theme="auto"] * {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+/* prefers-reduced-motion расширен на все темы — см. UI-2 ниже */
 
 /* ============================================================
    Override'ы для блоков с захардкоженным rgba(255,255,255,*)
@@ -744,62 +737,177 @@
    .confirm-modal-overlay и т.п.) остаются для совместимости.
 */
 
-/* --- Кнопки --- */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-2);
-  padding: 10px var(--sp-4);
-  min-height: 40px;
-  background: var(--bg-2);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  font: 500 var(--fs-md)/1.2 var(--font);
-  cursor: pointer;
-  transition: background .15s, border-color .15s, transform .05s, box-shadow .15s;
-  user-select: none;
-  white-space: nowrap;
-}
-.btn:hover { background: var(--bg-3); border-color: var(--accent); }
-.btn:active { transform: translateY(1px); }
-.btn:disabled { opacity: .45; cursor: not-allowed; }
-.btn:focus-visible { outline: none; box-shadow: var(--sh-glow); }
+/* ========== UI-2. Кнопки v3 + анимации (общая секция, обе темы) ==========
+   .btn / .btn-sm/md/lg / .btn-primary/secondary/ghost/danger/success
+   + .btn-block / .btn-pill / .btn-loading + .icon-btn
+   + анимации (shimmer, toastIn, bannerIn, lock-pulse, spin, hp-bar shimmer)
+   + responsive padding (tablet/desktop) + универсальный prefers-reduced-motion
+   Всё через CSS-переменные — работает в light и dark одинаково.
+*/
 
-.btn-primary {
-  background: var(--accent);
-  color: #1a1408;
-  border-color: var(--accent);
-  font-weight: 600;
+/* --- Кнопки v3: базовый класс + размеры через CSS-переменные --- */
+.btn {
+  --btn-h: 44px; --btn-px: 18px; --btn-fs: 14px; --btn-radius: 10px;
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: var(--btn-h); padding: 0 var(--btn-px);
+  border-radius: var(--btn-radius);
+  font-size: var(--btn-fs); font-weight: 700; letter-spacing: 0.1px;
+  cursor: pointer; user-select: none;
+  border: 1px solid transparent;
+  overflow: hidden;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+  transition:
+    transform 0.16s var(--ease-out),
+    box-shadow 0.18s var(--ease-out),
+    background 0.18s, border-color 0.18s, color 0.18s;
 }
-.btn-primary:hover { background: var(--accent-hi); border-color: var(--accent-hi); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; filter: grayscale(0.4); }
+
+.btn-sm { --btn-h: 36px; --btn-px: 14px; --btn-fs: 13px; --btn-radius: 8px; }
+.btn-md { --btn-h: 44px; --btn-px: 18px; --btn-fs: 14px; --btn-radius: 10px; }
+.btn-lg { --btn-h: 52px; --btn-px: 22px; --btn-fs: 15px; --btn-radius: 12px; }
+
+/* Mobile-first: на узких экранах primary растёт до lg */
+@media (max-width: 767px) {
+  .btn-primary:not(.btn-sm) { --btn-h: 52px; --btn-px: 22px; --btn-fs: 15px; }
+}
+
+/* Variants — все через переменные --accent/--bg-1/--border, работают в обеих темах */
+.btn-primary {
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
+  border-color: var(--accent-lo); color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.30),
+              0 4px 12px var(--accent-glow, var(--accent-glow-token, rgba(184,132,31,0.30))),
+              0 1px 2px rgba(20,40,30,0.10);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35),
+              0 8px 20px var(--accent-glow, var(--accent-glow-token, rgba(184,132,31,0.30))),
+              0 2px 4px rgba(20,40,30,0.10);
+}
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.15), 0 1px 2px var(--accent-glow, var(--accent-glow-token));
+}
 
 .btn-secondary {
-  background: var(--bg-2);
+  background: var(--bg-1);
+  border-color: var(--border);
   color: var(--text);
-  border: 1px solid var(--border);
-  font-weight: 600;
+  box-shadow: var(--sh-1);
 }
-.btn-secondary:hover { background: var(--bg-3); }
+.btn-secondary:hover {
+  background: var(--bg-2); border-color: var(--accent);
+  color: var(--accent); transform: translateY(-1px);
+  box-shadow: var(--sh-2);
+}
+.btn-secondary:active { transform: translateY(0); }
 
 .btn-ghost {
-  background: transparent;
-  border-color: transparent;
-  color: var(--text-dim);
+  background: transparent; border-color: transparent; color: var(--text-dim);
 }
-.btn-ghost:hover { background: var(--accent-soft); color: var(--text); border-color: transparent; }
+.btn-ghost:hover { background: var(--bg-2); color: var(--text); }
 
 .btn-danger {
-  background: rgba(224,108,117,0.14);
-  color: var(--danger);
-  border-color: rgba(224,108,117,0.4);
+  background: linear-gradient(180deg, #d8493b, var(--danger));
+  border-color: #a02d22; color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px rgba(199,58,44,0.30);
 }
-.btn-danger:hover { background: rgba(224,108,117,0.22); border-color: var(--danger); }
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.30), 0 8px 18px rgba(199,58,44,0.38);
+}
+.btn-danger:active { transform: translateY(0); }
 
-.btn-sm { min-height: 32px; padding: 6px var(--sp-3); font-size: var(--fs-sm); }
-.btn-lg { min-height: 52px; padding: 14px var(--sp-5); font-size: var(--fs-lg); }
+.btn-success {
+  background: linear-gradient(180deg, #399c5e, var(--success));
+  border-color: #1f6a3e; color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px rgba(44,138,82,0.30);
+}
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.30), 0 8px 18px rgba(44,138,82,0.38);
+}
+
 .btn-block { width: 100%; }
+.btn-pill  { border-radius: 999px; }
+
+/* Loading state */
+.btn-loading { color: transparent !important; pointer-events: none; }
+.btn-loading::after {
+  content: ""; position: absolute;
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  top: 50%; left: 50%;
+  margin: -9px 0 0 -9px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Icon button (компактный квадратный) */
+.icon-btn {
+  width: 38px; height: 38px; min-width: 38px;
+  border-radius: 10px;
+  background: var(--bg-1); border: 1px solid var(--border); color: var(--text);
+  cursor: pointer; font-size: 16px;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: all 0.18s var(--ease-out);
+}
+.icon-btn:hover {
+  background: var(--bg-2); border-color: var(--accent);
+  transform: translateY(-1px); box-shadow: var(--sh-1);
+}
+.icon-btn:active { transform: translateY(0); }
+
+/* --- HP-bar transition + shimmer (общее, работает в обеих темах) --- */
+.hp-bar-fill { transition: width 0.6s var(--ease, cubic-bezier(0.34,1.3,0.64,1)); position: relative; }
+.hp-bar-fill::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 2.5s linear infinite;
+  pointer-events: none;
+}
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+/* --- Анимации появления (общие) --- */
+.toast-success, .toast-error { animation: toastIn 0.3s var(--ease-out, ease-out) both; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.lock-banner { animation: bannerIn 0.5s var(--ease-out, ease-out) both; }
+@keyframes bannerIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.lock-warn { animation: lock-pulse 2.5s ease-in-out infinite; }
+@keyframes lock-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+/* --- Responsive (общие padding для main/scroll) --- */
+@media (min-width: 768px) {
+  .scroll, main, #screen-character > .scroll { padding: 20px 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+}
+
+/* --- prefers-reduced-motion: универсально для всех тем --- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
 /* --- Чипы / бейджи --- */
 .chip {
