@@ -403,6 +403,10 @@ if (characterTabs) characterTabs.classList.add("hidden");
 if (statusBar) statusBar.classList.remove("visible");
 if (hamburger) hamburger.classList.add("hidden");
 if (headerBack) headerBack.classList.add("hidden");
+// Маркер для CSS: на экране выбора персонажа скрываем right-rail и табы
+// в сайдбаре (они без выбранного персонажа всё равно ничего не делают),
+// оставляя в сайдбаре только переключатель темы.
+document.body.classList.toggle("no-character", screenName === "characters");
 if (screenName === "characters") {
 if (charactersScreen) charactersScreen.classList.remove("hidden");
 closeDrawer();

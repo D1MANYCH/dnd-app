@@ -201,6 +201,12 @@
       });
     });
 
+    // Изначально мы на экране выбора персонажа — выставим маркер,
+    // если showScreen ещё не вызывался к моменту инициализации
+    if (!window.currentId) {
+      document.body.classList.add('no-character');
+    }
+
     syncFromStatusBar();
     renderRrConditions();
 

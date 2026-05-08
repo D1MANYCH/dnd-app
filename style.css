@@ -917,6 +917,18 @@
 /* Right-rail — на mobile скрыт, на tablet/desktop fixed справа */
 .app-right-rail { display: none; }
 
+/* На экране выбора персонажа боковые панели бесполезны (нет персонажа,
+   нет HP/состояний/быстрых бросков, нет смысла в табах-вкладках).
+   Скрываем right-rail и нав. секцию сайдбара, в сайдбаре остаётся
+   только переключатель темы. */
+body.no-character .app-right-rail { display: none !important; }
+body.no-character .drawer-nav,
+body.no-character .drawer-divider { display: none; }
+@media (min-width: 1024px) {
+  /* Освобождаем правое поле, под right-rail оно больше не нужно */
+  body.no-character { padding-right: 0 !important; }
+}
+
 @media (min-width: 1024px) {
   /* Layout body: padding под sidebar 240 + right-rail 320 + header 72 сверху */
   body {
