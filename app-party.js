@@ -207,15 +207,33 @@ function _pentExport(type) {
   a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_PENT[type].list(), null, 2));
   a.download = type + "_" + new Date().toISOString().slice(0,10) + ".json"; a.click();
 }
+// BUGFIX-3: валидация party-импорта (имя обязательно, размер файла лимитирован)
+function _isValidPentry(e) {
+  return e && typeof e === 'object' && typeof e.name === 'string' && e.name.length > 0;
+}
 function _pentImport(type, input) {
   var file = input.files[0]; if (!file) return;
+  var MAX = (typeof IMPORT_MAX_BYTES !== 'undefined') ? IMPORT_MAX_BYTES : 10 * 1024 * 1024;
+  if (file.size > MAX) {
+    showToast("Файл слишком большой (макс. " + Math.round(MAX/1024/1024) + " МБ)", "error");
+    input.value = "";
+    return;
+  }
   var reader = new FileReader();
   reader.onload = function(e) {
-    try { var d = JSON.parse(e.target.result);
-      if (Array.isArray(d)) { PARTY_DATA[type === "ally" ? "allies" : type+"s"] = d; saveParty(); _PENT[type].render(); }
-      else showToast("Неверный формат файла", "error");
-    } catch(err) { showToast("Ошибка загрузки", "error"); }
+    var d;
+    try { d = JSON.parse(e.target.result); }
+    catch(err) { showToast("Файл повреждён или это не JSON", "error"); input.value = ""; return; }
+    if (!Array.isArray(d)) { showToast("Неверный формат: ожидался массив", "error"); input.value = ""; return; }
+    var valid = d.filter(_isValidPentry);
+    var skipped = d.length - valid.length;
+    if (valid.length === 0) { showToast("В файле нет валидных записей", "error"); input.value = ""; return; }
+    PARTY_DATA[type === "ally" ? "allies" : type+"s"] = valid;
+    saveParty();
+    _PENT[type].render();
+    showToast("Загружено: " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
   };
+  reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
   reader.readAsText(file); input.value = "";
 }
 // Обёртки — сохраняем старые имена чтобы не менять index.html

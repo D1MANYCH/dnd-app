@@ -1859,25 +1859,63 @@ document.body.appendChild(downloadAnchorNode);
 downloadAnchorNode.click();
 downloadAnchorNode.remove();
 }
+// BUGFIX-3: валидация импорта
+var IMPORT_MAX_BYTES = 10 * 1024 * 1024; // 10 МБ — защита от случайного OOM
+function _isValidImportedChar(c) {
+  if (!c || typeof c !== 'object') return false;
+  // Допускаем как одноклассовых (class:string), так и мультикласс (classes:array)
+  var hasClass = (typeof c.class === 'string' && c.class) ||
+                 (Array.isArray(c.classes) && c.classes.length > 0 &&
+                  c.classes.every(function(e){ return e && typeof e.class === 'string' && typeof e.level === 'number'; }));
+  var lvl = (typeof c.level === 'number' && c.level >= 1 && c.level <= 20);
+  return hasClass && lvl;
+}
+function _isValidImportedSpell(s) {
+  if (!s || typeof s !== 'object') return false;
+  return typeof s.name === 'string' && s.name &&
+         typeof s.level === 'number' && s.level >= 0 && s.level <= 9;
+}
 function importData(input) {
 const file = input?.files?.[0];
 if (!file) return;
+if (file.size > IMPORT_MAX_BYTES) {
+  showToast("Файл слишком большой (макс. " + Math.round(IMPORT_MAX_BYTES/1024/1024) + " МБ)", "error");
+  input.value = "";
+  return;
+}
 const reader = new FileReader();
 reader.onload = function(e) {
+let imported;
 try {
-const imported = JSON.parse(e.target.result);
-if (Array.isArray(imported)) {
-characters = imported;
-saveToLocal();
-renderCharacterList();
-showToast("Данные загружены!", "success");
-} else {
-showToast("Ошибка: неверный формат файла", "error");
-}
+  imported = JSON.parse(e.target.result);
 } catch (err) {
-showToast("Ошибка чтения файла", "error");
+  showToast("Файл повреждён или это не JSON", "error");
+  input.value = "";
+  return;
 }
+if (!Array.isArray(imported)) {
+  showToast("Неверный формат: ожидался массив персонажей", "error");
+  input.value = "";
+  return;
+}
+var valid = imported.filter(_isValidImportedChar);
+var skipped = imported.length - valid.length;
+if (valid.length === 0) {
+  showToast("В файле нет валидных персонажей", "error");
+  input.value = "";
+  return;
+}
+var msg = "Загрузить " + valid.length + " персонаж(а/ей)? Все текущие будут заменены.";
+if (skipped > 0) msg += " Пропущено повреждённых: " + skipped + ".";
+showConfirmModal("Импорт персонажей", msg, function() {
+  characters = valid.map(migrateCharacter);
+  saveToLocal();
+  renderCharacterList();
+  showToast("Загружено: " + characters.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
+});
+input.value = "";
 };
+reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
 reader.readAsText(file);
 }
 function exportSpells() {
@@ -1892,21 +1930,43 @@ downloadAnchorNode.remove();
 function importSpells(input) {
 const file = input?.files?.[0];
 if (!file) return;
+if (file.size > IMPORT_MAX_BYTES) {
+  showToast("Файл слишком большой (макс. " + Math.round(IMPORT_MAX_BYTES/1024/1024) + " МБ)", "error");
+  input.value = "";
+  return;
+}
 const reader = new FileReader();
 reader.onload = function(e) {
+let imported;
 try {
-const imported = JSON.parse(e.target.result);
-if (Array.isArray(imported)) {
-SPELL_DATABASE = imported;
-saveToLocal();
-showToast("Заклинаний загружено: " + imported.length, "success");
-} else {
-showToast("Ошибка: неверный формат файла", "error");
-}
+  imported = JSON.parse(e.target.result);
 } catch (err) {
-showToast("Ошибка чтения файла", "error");
+  showToast("Файл повреждён или это не JSON", "error");
+  input.value = "";
+  return;
 }
+if (!Array.isArray(imported)) {
+  showToast("Неверный формат: ожидался массив заклинаний", "error");
+  input.value = "";
+  return;
+}
+var validSpells = imported.filter(_isValidImportedSpell);
+var skippedSpells = imported.length - validSpells.length;
+if (validSpells.length === 0) {
+  showToast("В файле нет валидных заклинаний", "error");
+  input.value = "";
+  return;
+}
+var msgSp = "Загрузить " + validSpells.length + " заклинаний? Текущая база будет заменена.";
+if (skippedSpells > 0) msgSp += " Пропущено повреждённых: " + skippedSpells + ".";
+showConfirmModal("Импорт заклинаний", msgSp, function() {
+  SPELL_DATABASE = validSpells;
+  saveToLocal();
+  showToast("Загружено: " + validSpells.length + (skippedSpells > 0 ? " (пропущено " + skippedSpells + ")" : ""), "success");
+});
+input.value = "";
 };
+reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
 reader.readAsText(file);
 }
 
