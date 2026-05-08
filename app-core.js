@@ -1424,19 +1424,12 @@ function getConditionIcon(id) {
   if (!slug) return '';
   return '<img class="condition-icon-svg" src="assets/conditions/' + slug + '.webp" alt="" aria-hidden="true">';
 }
-// Временные эффекты: id → имя PNG-файла в assets/effects/. Если файла ещё нет — иконка просто не отрисуется.
-const EFFECT_ICON_SLUGS = {
-  mage_armor:'mage_armor', shield_spell:'shield_spell', haste:'haste', blur:'blur', sanctuary:'sanctuary',
-  bless:'bless', heroism:'heroism', aid:'aid', faerie_fire:'faerie_fire', protection_evil:'protection_evil',
-  pass_without_trace:'pass_without_trace', mirror_image:'mirror_image',
-  barbarian_rage:'barbarian_rage', monk_unarmored:'monk_unarmored', barbarian_unarmored:'barbarian_unarmored',
-  hunters_mark:'hunters_mark', divine_favor:'divine_favor', action_surge:'action_surge',
-  hex:'hex', bestow_curse:'bestow_curse', bane:'bane', slow:'slow', armor_damaged:'armor_damaged'
-};
+// Временные эффекты: иконок нет в репозитории (папка assets/effects/ удалена
+// после OPT-5 — все ассеты перешли на WebP, для эффектов спрайты так и не
+// были подготовлены). Возвращаем пустую строку, чтобы не плодить 404 в
+// консоли. Если когда-нибудь добавим — переключить на .webp.
 function getEffectIcon(id) {
-  var slug = EFFECT_ICON_SLUGS[id];
-  if (!slug) return '';
-  return '<img class="effect-icon-svg" src="assets/effects/' + slug + '.png" alt="" aria-hidden="true" onerror="this.style.display=\'none\'">';
+  return '';
 }
 // Иконка класса для бейджа в заклинании: ключ CLASS_ICONS_MAP → PNG в assets/classes/
 // "both" не имеет файла → fallback на emoji-звезду.
