@@ -503,7 +503,6 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     checkWhatsNew();
     navigator.serviceWorker.register('./sw.js')
       .then(function(reg) {
-        console.log('[PWA] SW зарегистрирован:', reg.scope);
         if (reg.waiting) {
           showUpdateModal(reg.waiting);
           updateVersionBlock(true, reg.waiting);
@@ -522,7 +521,7 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
         });
       })
       .catch(function(err) {
-        console.log('[PWA] SW ошибка:', err);
+        console.error('[PWA] SW ошибка:', err);
         updateVersionBlock(false);
       });
     var refreshing = false;

@@ -408,7 +408,7 @@ if (savedSpells) {
   if (extra.length > 0) SPELL_DATABASE = SPELL_DATABASE.concat(extra);
 }
 if (savedHpHistory) hpHistory = JSON.parse(savedHpHistory);
-} catch(e) { console.log("Ошибка загрузки:", e); showToast("Ошибка загрузки данных!", "error"); }
+} catch(e) { console.error("Ошибка загрузки:", e); showToast("Ошибка загрузки данных!", "error"); }
 initSaves();
 initSkills();
 initConditions();
@@ -426,7 +426,7 @@ var baseIds = new Set((typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.map(fun
 var userSpells = SPELL_DATABASE.filter(function(s){ return !baseIds.has(s.id); });
 localStorage.setItem("dnd_spells", JSON.stringify(userSpells));
 localStorage.setItem("dnd_hp_history", JSON.stringify(hpHistory));
-} catch(e) { console.log("Ошибка сохранения:", e); showToast("Ошибка сохранения данных!", "error"); }
+} catch(e) { console.error("Ошибка сохранения:", e); showToast("Ошибка сохранения данных!", "error"); }
 }
 function showScreen(screenName) {
 const charactersScreen = $("screen-characters");

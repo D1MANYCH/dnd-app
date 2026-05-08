@@ -1880,8 +1880,6 @@ window.getBuildRecommendationForLevel = function(buildId, level) {
     });
     if (problems.length) {
       console.warn("[BUILD-FIX-6] " + problems.length + " билд(ов) ссылаются на отсутствующие опции <select>:", problems);
-    } else {
-      console.log("[BUILD-FIX-6] OK: все билды (" + (window.CHARACTER_BUILDS||[]).length + ") синхронизированы с <select> race/class/background.");
     }
   }
   if (document.readyState === "loading") {
