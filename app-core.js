@@ -352,6 +352,44 @@ function migrateCharacter(char) {
     if (typeof char.buildId === 'undefined') char.buildId = null;
     char.schemaVersion = 11;
   }
+  if (v < 12) {
+    // BUGFIX-1: пакт-ячейки колдуна — отдельный счётчик (PHB p.165).
+    // У одноклассового Колдуна ячейки лежали в char.spells.slots[1..9] и были
+    // визуально неотличимы от обычных. У мультикласса с Колдуном — терялись.
+    if (!char.spells) char.spells = {};
+    char.spells.pactSlots = 0;
+    char.spells.pactLevel = 0;
+    char.spells.pactUsed = 0;
+    var _wLvl = 0;
+    if (Array.isArray(char.classes) && char.classes.length > 0) {
+      var _w = char.classes.find(function(c){ return c.class === "Колдун"; });
+      if (_w) _wLvl = _w.level || 0;
+    } else if (char.class === "Колдун") {
+      _wLvl = char.level || 0;
+    }
+    if (_wLvl > 0 && typeof SPELL_SLOTS_BY_LEVEL !== "undefined" && SPELL_SLOTS_BY_LEVEL["Колдун"] && SPELL_SLOTS_BY_LEVEL["Колдун"][_wLvl]) {
+      var _row = SPELL_SLOTS_BY_LEVEL["Колдун"][_wLvl];
+      var _cnt = 0, _lvl = 0;
+      for (var _i = 1; _i < _row.length; _i++) {
+        if (_row[_i] > 0) { _cnt = _row[_i]; _lvl = _i; }
+      }
+      char.spells.pactSlots = _cnt;
+      char.spells.pactLevel = _lvl;
+      // У одноклассового Колдуна старые слоты дублировали пакт — переносим used и чистим
+      var _isSingle = !Array.isArray(char.classes) || char.classes.length <= 1;
+      if (_isSingle && char.class === "Колдун") {
+        var _used = (char.spells.slotsUsed && char.spells.slotsUsed[_lvl]) || 0;
+        char.spells.pactUsed = Math.min(_used, _cnt);
+        if (!char.spells.slots) char.spells.slots = {};
+        if (!char.spells.slotsUsed) char.spells.slotsUsed = {};
+        for (var _j = 1; _j <= 9; _j++) {
+          char.spells.slots[_j] = 0;
+          char.spells.slotsUsed[_j] = 0;
+        }
+      }
+    }
+    char.schemaVersion = 12;
+  }
   return char;
 }
 

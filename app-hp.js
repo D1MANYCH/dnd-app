@@ -120,10 +120,14 @@ char.combat.hpCurrent = Math.min((parseInt(char.combat.hpCurrent) || 0) + hpHeal
 char.combat.hpDiceSpent = (char.combat.hpDiceSpent || 0) + hitDiceToSpend;
 // FIX: Warlock recovers spell slots on short rest
 var _isWarlock = (char.class === "Колдун") || (char.classes && char.classes.some(function(c){return c.class === "Колдун";}));
-if (_isWarlock && char.spells && char.spells.slots) {
-  for (var _si = 1; _si <= 9; _si++) {
-    if (char.spells.slots[_si]) char.spells.slotsUsed[_si] = 0;
+if (_isWarlock && char.spells) {
+  if (char.spells.slots) {
+    for (var _si = 1; _si <= 9; _si++) {
+      if (char.spells.slots[_si]) char.spells.slotsUsed[_si] = 0;
+    }
   }
+  // BUGFIX-1: пакт-ячейки восстанавливаются на коротком отдыхе
+  if (char.spells.pactSlots) char.spells.pactUsed = 0;
 }
 if (hpHealed > 0) {
   addHPHistory(oldHp, char.combat.hpCurrent, hpHealed, "Короткий отдых");
@@ -138,6 +142,7 @@ resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldH
 const maxHp = parseInt(char.combat.hpMax) || 0;
 char.combat.hpCurrent = maxHp;
 for(let i=1; i<=9; i++) { if (char.spells.slots[i]) char.spells.slotsUsed[i] = 0; }
+if (char.spells.pactSlots) char.spells.pactUsed = 0;
 const hitDiceToRestore = Math.floor(char.level / 2);
 char.combat.hpDiceSpent = Math.max(0, (char.combat.hpDiceSpent || 0) - hitDiceToRestore);
 // PHB: длинный отдых снижает истощение на 1 уровень, остальные состояния не снимаются автоматически
@@ -535,22 +540,38 @@ char.combat.hpDice = isMulticlass(char) ? "мульти" : "1к" + hitDie;
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 
 // Ячейки заклинаний
+function _resolvePact(row) {
+  var cnt = 0, lvl = 0;
+  if (row) for (var k = 1; k < row.length; k++) if (row[k] > 0) { cnt = row[k]; lvl = k; }
+  return { cnt: cnt, lvl: lvl };
+}
+char.spells.pactSlots = 0;
+char.spells.pactLevel = 0;
+char.spells.pactUsed = 0;
 if (isMulticlass(char)) {
   var mcSlots = getMulticlassSpellSlots(char);
   for (var i = 1; i <= 9; i++) {
     char.spells.slots[i] = mcSlots[i] || 0;
     char.spells.slotsUsed[i] = 0;
   }
-  // Ячейки пакта Колдуна (если есть) — обрабатываются отдельно через SPELL_SLOTS_BY_LEVEL["Колдун"]
+  // BUGFIX-1: пакт-ячейки Колдуна хранятся отдельно (PHB p.165, восст. на коротком отдыхе)
   var warlockEntry = char.classes.find(function(c) { return c.class === "Колдун"; });
   if (warlockEntry && SPELL_SLOTS_BY_LEVEL["Колдун"] && SPELL_SLOTS_BY_LEVEL["Колдун"][warlockEntry.level]) {
-    // Пакт-ячейки хранятся в отдельном месте или добавляются поверх
-    // Для простоты: если Колдун — единственный заклинатель, используем его таблицу
-    // Иначе пакт-ячейки добавляются к мультикласс-таблице (по RAW они отдельные)
-    // TODO: отдельное отображение пакт-ячеек
+    var pact = _resolvePact(SPELL_SLOTS_BY_LEVEL["Колдун"][warlockEntry.level]);
+    char.spells.pactSlots = pact.cnt;
+    char.spells.pactLevel = pact.lvl;
   }
 } else {
-  if (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][newTotalLevel]) {
+  // Одноклассовый Колдун: всё в пакт-ячейках, обычные слоты пустые
+  if (className === "Колдун" && SPELL_SLOTS_BY_LEVEL["Колдун"] && SPELL_SLOTS_BY_LEVEL["Колдун"][newTotalLevel]) {
+    var pactSingle = _resolvePact(SPELL_SLOTS_BY_LEVEL["Колдун"][newTotalLevel]);
+    char.spells.pactSlots = pactSingle.cnt;
+    char.spells.pactLevel = pactSingle.lvl;
+    for (var jw = 1; jw <= 9; jw++) {
+      char.spells.slots[jw] = 0;
+      char.spells.slotsUsed[jw] = 0;
+    }
+  } else if (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][newTotalLevel]) {
     var slots = SPELL_SLOTS_BY_LEVEL[className][newTotalLevel];
     for (var j = 1; j <= 9; j++) {
       char.spells.slots[j] = slots[j] || 0;

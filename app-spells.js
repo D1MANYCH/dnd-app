@@ -10,31 +10,81 @@ if (!char) return;
 const container = $("spell-slots-visual");
 if (!container) return;
 container.innerHTML = "";
-var isWarlock = char.class === "Колдун";
-for(let i=1; i<=9; i++) {
-const total = char.spells.slots[i] || 0;
-const used = char.spells.slotsUsed[i] || 0;
-const free = total - used;
-const row = document.createElement("div");
-row.className = "spell-slot-row" + (total === 0 ? " spell-slot-empty" : "");
-var pactBadge = (isWarlock && total > 0) ? '<span class="ssl-pact">ПАКТ</span>' : '';
-var diamHtml = '<div class="ssl-diamonds">';
-if (total === 0) {
-  diamHtml += '<span class="ssl-none">нет ячеек</span>';
-} else {
-  for(let j=0; j<total; j++) {
-    var cls = j < used ? " used" : "";
-    diamHtml += '<div class="spell-diamond' + cls + '" data-level="' + i + '" data-idx="' + j + '" onclick="toggleSpellSlot(' + i + ',' + j + ')"></div>';
+var isSingleWarlock = char.class === "Колдун" && (!Array.isArray(char.classes) || char.classes.length <= 1);
+// У одноклассового Колдуна обычные ячейки 1..9 пустые — рендерить их бессмысленно
+if (!isSingleWarlock) {
+  for(let i=1; i<=9; i++) {
+    const total = char.spells.slots[i] || 0;
+    const used = char.spells.slotsUsed[i] || 0;
+    const free = total - used;
+    const row = document.createElement("div");
+    row.className = "spell-slot-row" + (total === 0 ? " spell-slot-empty" : "");
+    var diamHtml = '<div class="ssl-diamonds">';
+    if (total === 0) {
+      diamHtml += '<span class="ssl-none">нет ячеек</span>';
+    } else {
+      for(let j=0; j<total; j++) {
+        var cls = j < used ? " used" : "";
+        diamHtml += '<div class="spell-diamond' + cls + '" data-level="' + i + '" data-idx="' + j + '" onclick="toggleSpellSlot(' + i + ',' + j + ')"></div>';
+      }
+    }
+    diamHtml += '</div>';
+    row.innerHTML =
+      '<div class="ssl-label"><span class="ssl-lvl">' + i + '</span><span class="ssl-ur">ур.</span></div>' +
+      diamHtml +
+      '<div class="ssl-counter"><span class="ssl-free' + (free === 0 && total > 0 ? ' ssl-exhausted' : '') + '">' + free + '</span><span class="ssl-sep">/</span><span class="ssl-total">' + total + '</span></div>' +
+      '<div class="ssl-controls"><button class="ssl-btn" onclick="adjustSpellSlots(' + i + ',-1)">−</button><button class="ssl-btn" onclick="adjustSpellSlots(' + i + ',1)">+</button></div>';
+    container.appendChild(row);
   }
 }
-diamHtml += '</div>';
-row.innerHTML =
-  '<div class="ssl-label"><span class="ssl-lvl">' + i + '</span><span class="ssl-ur">ур.</span>' + pactBadge + '</div>' +
-  diamHtml +
-  '<div class="ssl-counter"><span class="ssl-free' + (free === 0 && total > 0 ? ' ssl-exhausted' : '') + '">' + free + '</span><span class="ssl-sep">/</span><span class="ssl-total">' + total + '</span></div>' +
-  '<div class="ssl-controls"><button class="ssl-btn" onclick="adjustSpellSlots(' + i + ',-1)">−</button><button class="ssl-btn" onclick="adjustSpellSlots(' + i + ',1)">+</button></div>';
-container.appendChild(row);
+// BUGFIX-1: пакт-ячейки колдуна — отдельная строка (восст. на коротком отдыхе)
+var pactTotal = char.spells.pactSlots || 0;
+var pactLvl = char.spells.pactLevel || 0;
+if (pactTotal > 0 && pactLvl > 0) {
+  var pactUsed = char.spells.pactUsed || 0;
+  var pactFree = pactTotal - pactUsed;
+  var pactRow = document.createElement("div");
+  pactRow.className = "spell-slot-row spell-slot-pact";
+  var pDiams = '<div class="ssl-diamonds">';
+  for (var pj = 0; pj < pactTotal; pj++) {
+    var pcls = pj < pactUsed ? " used" : "";
+    pDiams += '<div class="spell-diamond' + pcls + '" onclick="togglePactSlot(' + pj + ')"></div>';
+  }
+  pDiams += '</div>';
+  pactRow.innerHTML =
+    '<div class="ssl-label"><span class="ssl-lvl">' + pactLvl + '</span><span class="ssl-ur">ур.</span><span class="ssl-pact">ПАКТ</span></div>' +
+    pDiams +
+    '<div class="ssl-counter"><span class="ssl-free' + (pactFree === 0 ? ' ssl-exhausted' : '') + '">' + pactFree + '</span><span class="ssl-sep">/</span><span class="ssl-total">' + pactTotal + '</span></div>' +
+    '<div class="ssl-controls"><button class="ssl-btn" onclick="adjustPactSlots(-1)">−</button><button class="ssl-btn" onclick="adjustPactSlots(1)">+</button></div>';
+  container.appendChild(pactRow);
 }
+if (container.children.length === 0) {
+  // На случай если у не-колдуна без обычных ячеек ничего нет, и у колдуна 0 пактов
+  container.innerHTML = '<div class="spell-slot-row spell-slot-empty"><span class="ssl-none">нет ячеек</span></div>';
+}
+}
+function togglePactSlot(index) {
+if (!currentId) return;
+const char = getCurrentChar();
+if (!char) return;
+if (!char.spells.pactUsed) char.spells.pactUsed = 0;
+if (index < char.spells.pactUsed) char.spells.pactUsed = index;
+else char.spells.pactUsed = index + 1;
+saveToLocal();
+renderSpellSlots();
+}
+function adjustPactSlots(delta) {
+if (!currentId) return;
+const char = getCurrentChar();
+if (!char) return;
+var current = char.spells.pactSlots || 0;
+var newValue = current + delta;
+if (newValue < 0) newValue = 0;
+if (newValue > 10) newValue = 10;
+char.spells.pactSlots = newValue;
+if ((char.spells.pactUsed || 0) > newValue) char.spells.pactUsed = newValue;
+saveToLocal();
+renderSpellSlots();
 }
 function updateSpellSlots(level, value) {
 if (!currentId) return;
@@ -79,6 +129,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 for(let i=1; i<=9; i++) { char.spells.slotsUsed[i] = 0; }
+if (char.spells.pactSlots) char.spells.pactUsed = 0;
 saveToLocal();
 renderSpellSlots();
 showToast("Ячейки заклинаний восстановлены!", "success");
