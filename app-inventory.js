@@ -115,11 +115,11 @@ function renderPouches() {
   var str = char.stats.str || 10;
   var container = $("inv-pouches");
   if (!container) return;
-  var totalCoins = (parseInt($("coin-cp")?.value)||0) +
-    (parseInt($("coin-sp")?.value)||0) +
-    (parseInt($("coin-ep")?.value)||0) +
-    (parseInt($("coin-gp")?.value)||0) +
-    (parseInt($("coin-pp")?.value)||0);
+  var totalCoins = (parseInt($("coin-cp")?.value, 10)||0) +
+    (parseInt($("coin-sp")?.value, 10)||0) +
+    (parseInt($("coin-ep")?.value, 10)||0) +
+    (parseInt($("coin-gp")?.value, 10)||0) +
+    (parseInt($("coin-pp")?.value, 10)||0);
   var html = '<div class="inv-pouches-row">';
   POUCH_STR_REQ.forEach(function(req, i) {
     var unlocked = str >= req;
@@ -260,11 +260,11 @@ Object.keys(char.inventory).forEach(function(category) {
 totalWeight += (item.weight || 0) * (item.qty || 1);
 });
 });
-const cp = parseInt(char.coins.cp) || 0;
-const sp = parseInt(char.coins.sp) || 0;
-const ep = parseInt(char.coins.ep) || 0;
-const gp = parseInt(char.coins.gp) || 0;
-const pp = parseInt(char.coins.pp) || 0;
+const cp = parseInt(char.coins.cp, 10) || 0;
+const sp = parseInt(char.coins.sp, 10) || 0;
+const ep = parseInt(char.coins.ep, 10) || 0;
+const gp = parseInt(char.coins.gp, 10) || 0;
+const pp = parseInt(char.coins.pp, 10) || 0;
 const coinWeight = (cp + sp + ep + gp + pp) / 50;
 totalWeight += coinWeight;
 totalWeight = parseFloat(totalWeight.toFixed(1));
@@ -347,12 +347,12 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 const category = $("new-item-category")?.value || document.getElementById("item-category")?.value || "weapon";
-const _slotRaw = $("item-slot-index")?.value; const slotIndex = (_slotRaw !== undefined && _slotRaw !== "" && _slotRaw !== null) ? parseInt(_slotRaw) : -1;
+const _slotRaw = $("item-slot-index")?.value; const slotIndex = (_slotRaw !== undefined && _slotRaw !== "" && _slotRaw !== null) ? parseInt(_slotRaw, 10) : -1;
 const name = $("new-item-name")?.value?.trim() || "";
 if (!name) { showToast("Введите название!", "warn"); return; }
 const newItem = {
 name: name,
-qty: parseInt($("new-item-qty")?.value) || 1,
+qty: parseInt($("new-item-qty")?.value, 10) || 1,
 weight: parseFloat($("new-item-weight")?.value) || 0,
 slots: $("new-item-slots")?.value !== "" ? parseFloat($("new-item-slots")?.value) : undefined,
 location: $("new-item-location")?.value || undefined,
@@ -525,7 +525,7 @@ if (weapon.proficient === undefined) {
 var statKey = weapon.stat || "str";
 var statVal = char.stats[statKey] || 10;
 var statMod = getMod(statVal);
-var profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
+var profBonus = getProficiencyBonus(parseInt($("char-level")?.value, 10) || 1);
 var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
 var attackStr = (attackBonus >= 0 ? "+" : "") + attackBonus;
 var profTag = weapon.proficient ? '' : ' <span class="weapon-no-prof">без влад.</span>';
@@ -594,7 +594,7 @@ function rollTWFAttack(index) {
     var statKey = weapon.stat || "str";
     var statVal = char.stats[statKey] || 10;
     var statMod = getMod(statVal);
-    var profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
+    var profBonus = getProficiencyBonus(parseInt($("char-level")?.value, 10) || 1);
     var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
     var d = rollD20WithMode(mode);
     openDiceModal();
@@ -646,9 +646,9 @@ function rollTWFDamage(index) {
   var total = 0;
   var rollStr = "";
   if (match) {
-    var num = parseInt(match[1]);
-    var sides = parseInt(match[2]);
-    var mod = match[3] ? parseInt(match[3]) : 0;
+    var num = parseInt(match[1], 10);
+    var sides = parseInt(match[2], 10);
+    var mod = match[3] ? parseInt(match[3], 10) : 0;
     var rolls = [];
     for (var i = 0; i < num; i++) rolls.push(Math.floor(Math.random() * sides) + 1);
     total = rolls.reduce(function(a,b){return a+b;}, 0) + mod + addMod;
@@ -671,7 +671,7 @@ showRollModePopup(function(mode) {
   var statKey = weapon.stat || "str";
   var statVal = char.stats[statKey] || 10;
   var statMod = getMod(statVal);
-  var profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
+  var profBonus = getProficiencyBonus(parseInt($("char-level")?.value, 10) || 1);
   var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
   var d = rollD20WithMode(mode);
   openDiceModal();
@@ -724,9 +724,9 @@ const match = dmg.match(/^(\d+)d(\d+)([+-]\d+)?$/);
 let total = 0;
 let rollStr = "";
 if (match) {
-  const num = parseInt(match[1]);
-  const sides = parseInt(match[2]);
-  const mod = match[3] ? parseInt(match[3]) : 0;
+  const num = parseInt(match[1], 10);
+  const sides = parseInt(match[2], 10);
+  const mod = match[3] ? parseInt(match[3], 10) : 0;
   const rolls = [];
   for (var i = 0; i < num; i++) rolls.push(Math.floor(Math.random() * sides) + 1);
   total = rolls.reduce(function(a,b){return a+b;}, 0) + mod + statMod;
@@ -743,8 +743,8 @@ var resultBox = $("dice3d-result");
 if (resultBig) resultBig.textContent = total;
 if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · урон · " + (match ? match[1]+"d"+match[2] : "?");
 if (resultBox) resultBox.className = "dice3d-result normal";
-var sides = match ? parseInt(match[2]) : 6;
-var qty = match ? Math.max(1, Math.min(parseInt(match[1]) || 1, 8)) : 1;
+var sides = match ? parseInt(match[2], 10) : 6;
+var qty = match ? Math.max(1, Math.min(parseInt(match[1], 10) || 1, 8)) : 1;
 animateDice3d(sides, total, function() {}, { qty: qty });
 diceHistory.unshift({ sides:sides, result:total, mode:"normal", time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:total, r2:null, label: weapon.name + " урон" });
 if (diceHistory.length > 10) diceHistory.pop();
