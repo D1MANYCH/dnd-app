@@ -244,10 +244,10 @@ const row = document.createElement("div");
 row.className = "skill-row-compact";
 row.innerHTML =
   '<input type="checkbox" id="skill-prof-' + index + '" class="skill-cb" onchange="calcStats(); updateSkillProfCount()">' +
-  '<span class="skill-expertise-btn" id="skill-exp-' + index + '" title="Экспертиза (×2 бонус)" onclick="toggleExpertise(' + index + ')">E</span>' +
+  '<button type="button" class="skill-expertise-btn" id="skill-exp-' + index + '" title="Экспертиза (×2 бонус)" onclick="toggleExpertise(' + index + ')">E</button>' +
   '<label for="skill-prof-' + index + '" class="skill-name-compact">' + escapeHtml(skill.name) + '</label>' +
   '<span class="skill-stat-compact">' + escapeHtml(skill.stat.toUpperCase().slice(0,3)) + '</span>' +
-  '<span class="skill-bonus-compact skill-bonus-clickable" id="skill-bonus-' + index + '" onclick="rollSkillCheck(' + index + ')" title="Бросить проверку навыка">+0</span>';
+  '<button type="button" class="skill-bonus-compact skill-bonus-clickable" id="skill-bonus-' + index + '" onclick="rollSkillCheck(' + index + ')" title="Бросить проверку навыка">+0</button>';
 container.appendChild(row);
 });
 }
@@ -419,7 +419,7 @@ function renderResistances() {
     items.forEach(function(dtype, i) {
       html += '<span class="res-tag res-tag-' + cat.cssClass + '">' +
         escapeHtml(dtype) +
-        '<span class="res-tag-x" onclick="removeResistance(\'' + cat.key + '\',' + i + ')">✕</span>' +
+        '<button type="button" class="res-tag-x" aria-label="Убрать" onclick="removeResistance(\'' + cat.key + '\',' + i + ')">✕</button>' +
         '</span>';
     });
     html += '</div></div>';
@@ -1641,7 +1641,7 @@ function renderRaceExtras() {
     html += '<div class="race-extras-title">🎯 Расовая черта (' + escapeHtml(race) + ')</div>';
     var takenList = char.raceFeats.map(function(f, i) {
       return '<span class="race-bonus-badge">' + escapeHtml(f.name) +
-        ' <span style="cursor:pointer;margin-left:4px;" onclick="removeRaceFeat(' + i + ')" title="Убрать">✕</span></span>';
+        ' <button type="button" class="race-bonus-x" onclick="removeRaceFeat(' + i + ')" title="Убрать" aria-label="Убрать">✕</button></span>';
     }).join("");
     html += '<div class="race-extras-row">' + takenList +
       (remaining > 0
@@ -2036,7 +2036,7 @@ function renderLanguages() {
         var info = findLangInCatalog(l.name);
         var title = info ? info.desc : "";
         var rmBtn = (l.source === "custom")
-          ? '<span class="prof-chip-remove" onclick="removeCustomLanguage(\'' + escapeHtml(l.name) + '\')">×</span>'
+          ? '<button type="button" class="prof-chip-remove" aria-label="Убрать" onclick="removeCustomLanguage(\'' + escapeHtml(l.name) + '\')">×</button>'
           : '';
         html += '<span class="prof-chip" data-source="' + l.source + '" title="' + escapeHtml(title) + '">' +
           escapeHtml(l.name) +
@@ -2376,7 +2376,7 @@ function renderTools() {
       var info = findToolInCatalog(t.name);
       var title = info ? info.desc : "";
       var rmBtn = (t.source === "custom")
-        ? '<span class="prof-chip-remove" onclick="removeCustomTool(\'' + escapeHtml(t.name).replace(/'/g,"\\'") + '\')">×</span>'
+        ? '<button type="button" class="prof-chip-remove" aria-label="Убрать" onclick="removeCustomTool(\'' + escapeHtml(t.name).replace(/'/g,"\\'") + '\')">×</button>'
         : '';
       html += '<span class="prof-chip" data-source="' + t.source + '" title="' + escapeHtml(title) + '">' +
         escapeHtml(t.name) +
@@ -2572,7 +2572,7 @@ function renderArmorProf() {
       var primary = srcs[0];
       var srcBadges = srcs.map(function(s){ return PROF_SOURCE_LABELS[s]; }).join(" ");
       var rmBtn = (srcs.indexOf("custom") !== -1)
-        ? '<span class="prof-chip-remove" onclick="removeCustomArmorType(\'' + t + '\')">×</span>'
+        ? '<button type="button" class="prof-chip-remove" aria-label="Убрать" onclick="removeCustomArmorType(\'' + t + '\')">×</button>'
         : '';
       html += '<span class="prof-chip" data-source="' + primary + '">' +
         ARMOR_TYPE_LABELS[t] +
@@ -2617,7 +2617,7 @@ function renderWeaponProf() {
       var primary = srcs[0];
       var srcBadges = srcs.map(function(s){ return PROF_SOURCE_LABELS[s]; }).join(" ");
       var rmBtn = (srcs.indexOf("custom") !== -1)
-        ? '<span class="prof-chip-remove" onclick="removeCustomWeaponType(\'' + t + '\')">×</span>'
+        ? '<button type="button" class="prof-chip-remove" aria-label="Убрать" onclick="removeCustomWeaponType(\'' + t + '\')">×</button>'
         : '';
       html += '<span class="prof-chip" data-source="' + primary + '">' +
         WEAPON_TYPE_LABELS[t] +
@@ -2633,7 +2633,7 @@ function renderWeaponProf() {
     html += '<div class="prof-cat-group"><div class="prof-cat-title">Конкретные оружия</div><div class="prof-chips">';
     specs.forEach(function(w) {
       var rmBtn = (w.source === "custom")
-        ? '<span class="prof-chip-remove" onclick="removeCustomSpecificWeapon(\'' + escapeHtml(w.name).replace(/'/g,"\\'") + '\')">×</span>'
+        ? '<button type="button" class="prof-chip-remove" aria-label="Убрать" onclick="removeCustomSpecificWeapon(\'' + escapeHtml(w.name).replace(/'/g,"\\'") + '\')">×</button>'
         : '';
       html += '<span class="prof-chip" data-source="' + w.source + '">' +
         escapeHtml(w.name) +

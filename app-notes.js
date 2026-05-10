@@ -628,14 +628,14 @@ function _renderEntryCard(e) {
 
   // @-упоминания → кликабельные ссылки
   bodyPreview = escapeHtml(bodyPreview).replace(/@([\wА-яЁё\-]+)/g, function(_, name) {
-    return '<span class="notes-at-ref" onclick="notesJumpToNpc(\'' + name.replace(/'/g, "\\'") + '\')" title="Перейти к NPC ' + name + '">@' + name + '</span>';
+    return '<button type="button" class="notes-at-ref" onclick="notesJumpToNpc(\'' + name.replace(/'/g, "\\'") + '\')" title="Перейти к NPC ' + name + '">@' + name + '</button>';
   });
 
   var tagsHtml = '';
   if (e.tags && e.tags.length) {
     tagsHtml = '<div class="notes-entry-tags">';
     for (var i = 0; i < e.tags.length; i++) {
-      tagsHtml += '<span class="notes-tag-chip small" onclick="notesSetTagFilter(\'' + escapeHtml(e.tags[i]).replace(/'/g, "\\'") + '\')">' + escapeHtml(e.tags[i]) + '</span>';
+      tagsHtml += '<button type="button" class="notes-tag-chip small" onclick="notesSetTagFilter(\'' + escapeHtml(e.tags[i]).replace(/'/g, "\\'") + '\')">' + escapeHtml(e.tags[i]) + '</button>';
     }
     tagsHtml += '</div>';
   }

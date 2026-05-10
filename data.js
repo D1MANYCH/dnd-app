@@ -1540,8 +1540,8 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.1.9";
-const APP_VERSION_DATE = "2026-05-08";
+const APP_VERSION = "3.1.10";
+const APP_VERSION_DATE = "2026-05-10";
 
 // ============================================================
 // ЧЕРТЫ — PHB 5e (Fantom Studio перевод, 20 основных)
@@ -1826,9 +1826,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
+    version: "3.1.10",
+    date: "10 мая 2026",
+    badge: "new",
+    changes: [
+      { type: "fix", text: "BUGFIX-5: a11y — все <span onclick> переведены в <button> (26 шт), CSS-сброс для button-классов; глобальный onerror+unhandledrejection с toast и троттлингом 1.5с" }
+    ]
+  },
+  {
     version: "3.1.9",
     date: "8 мая 2026",
-    badge: "new",
+    badge: "old",
     changes: [
       { type: "fix", text: "BUGFIX-4: чистка console.log в проде — удалён шумный sync-лог билдов и SW-зарегистрирован, error-catches переведены на console.error" }
     ]

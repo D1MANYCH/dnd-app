@@ -107,7 +107,7 @@ function renderSheetAvatar() {
     el.classList.add("has-avatar");
   } else {
     const icon = char ? getClassIcon(char.class) : "🎭";
-    el.innerHTML = "<span onclick=\"openAvatarModal(event)\">" + icon + "</span>";
+    el.innerHTML = "<button type=\"button\" class=\"avatar-icon-btn\" onclick=\"openAvatarModal(event)\" aria-label=\"Сменить аватар\">" + icon + "</button>";
     el.classList.remove("has-avatar");
   }
 }
@@ -494,6 +494,35 @@ setTimeout(() => particle.remove(), 1000);
 // АСИ — Улучшение характеристик
 // ============================================
 // openASIModal и closeASIModal определены ниже
+
+// ============================================================
+// BUGFIX-5: глобальный onerror-toast для uncaught ошибок
+// Чтобы пользователь увидел сбой сразу, а не «приложение зависло».
+// Лог в console.error остаётся для DevTools, toast — для UX.
+// ============================================================
+(function() {
+  var _lastErrAt = 0;
+  function _reportError(label, detail) {
+    var now = Date.now();
+    if (now - _lastErrAt < 1500) return; // throttle: не спамить toast при каскаде
+    _lastErrAt = now;
+    if (typeof showToast === 'function') {
+      showToast("⚠️ Ошибка: " + (detail || label || 'неизвестно'), "error");
+    }
+  }
+  window.addEventListener('error', function(e) {
+    var msg = (e && e.message) ? String(e.message) : '';
+    if (e && e.error) console.error('[uncaught]', e.error);
+    else if (msg) console.error('[uncaught]', msg);
+    _reportError('Uncaught', msg.slice(0, 80));
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    var reason = e && e.reason;
+    var msg = reason && reason.message ? reason.message : String(reason || '');
+    console.error('[unhandled-rejection]', reason);
+    _reportError('Promise rejection', msg.slice(0, 80));
+  });
+})();
 
 // ============================================================
 // Регистрация Service Worker + автообнаружение обновлений

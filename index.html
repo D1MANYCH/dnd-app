@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=ui1n">
+<link rel="stylesheet" href="style.css?v=ui1o">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -823,7 +823,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Coin Exchange Modal -->
 <div id="coin-exchange-modal" class="modal">
 <div class="modal-content">
-  <span class="modal-close" onclick="closeCoinExchange()">&times;</span>
+  <button type="button" class="modal-close" onclick="closeCoinExchange()" aria-label="Закрыть">&times;</button>
   <h3>⇄ Размен монет</h3>
   <div class="coin-exch-rates">
     <div class="coin-exch-rate-item"><span style="color:#9b59b6">●</span> 1 ПМ = 10 ЗМ</div>
@@ -1046,7 +1046,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Item Reference -->
 <div id="item-ref-modal" class="modal">
 <div class="modal-content item-ref-content">
-  <span class="modal-close" onclick="closeItemRef()">&times;</span>
+  <button type="button" class="modal-close" onclick="closeItemRef()" aria-label="Закрыть">&times;</button>
   <h3 id="item-ref-title">📚 Справка</h3>
   <div id="item-ref-tabs" class="item-ref-tabs">
     <button class="item-ref-tab active" onclick="switchItemRef('weight',this)">⚖️ Вес</button>
@@ -1268,7 +1268,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Rest -->
 <div id="rest-modal" class="modal">
 <div class="modal-content">
-<span class="modal-close" onclick="closeRestModal()">&times;</span>
+<button type="button" class="modal-close" onclick="closeRestModal()" aria-label="Закрыть">&times;</button>
 <h3>🏕️ Отдых</h3>
 <div id="rest-main-screen">
 <div class="rest-options">
@@ -1324,7 +1324,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="modal-content lu-modal">
 <div class="lu-header">
 <div class="lu-title">Повышение уровня</div>
-<span class="modal-close" onclick="closeLevelUpModal()">&times;</span>
+<button type="button" class="modal-close" onclick="closeLevelUpModal()" aria-label="Закрыть">&times;</button>
 </div>
 
 <!-- Экран: Выбор класса (мультикласс) -->
@@ -1410,7 +1410,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="modal-content hph-modal">
 <div class="hph-header">
 <span class="hph-title">📋 История здоровья</span>
-<span class="modal-close" onclick="closeHPHistory()">&times;</span>
+<button type="button" class="modal-close" onclick="closeHPHistory()" aria-label="Закрыть">&times;</button>
 </div>
 <div id="hp-history-list" class="hph-list"></div>
 <button class="hph-clear-btn" onclick="hpHistory=[];openHPHistory()">Очистить историю</button>
@@ -1464,7 +1464,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 <div id="dice-modal" class="modal modal--bottom-sheet">
 <div class="modal-content dice-modal-content">
-<span class="modal-close" onclick="closeDiceModal()">&times;</span>
+<button type="button" class="modal-close" onclick="closeDiceModal()" aria-label="Закрыть">&times;</button>
 <h3>
   <svg class="d20-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="vertical-align:-4px;margin-right:6px">
     <defs>
@@ -1534,7 +1534,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Spell Search -->
 <div id="spell-search-modal" class="modal">
 <div class="modal-content">
-<span class="modal-close" onclick="closeSpellSearch()">&times;</span>
+<button type="button" class="modal-close" onclick="closeSpellSearch()" aria-label="Закрыть">&times;</button>
 <h3>Поиск заклинаний</h3>
 <div class="spell-class-filter-grouped" id="spell-class-filter">
   <div class="cf-row cf-row-top">
@@ -1610,7 +1610,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Add Spell -->
 <div id="add-spell-modal" class="modal">
 <div class="modal-content">
-<span class="modal-close" onclick="closeAddSpellForm()">&times;</span>
+<button type="button" class="modal-close" onclick="closeAddSpellForm()" aria-label="Закрыть">&times;</button>
 <h3>Добавить заклинание</h3>
 <div class="add-spell-form">
 <div class="row">
@@ -1666,7 +1666,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Item -->
 <div id="item-modal" class="modal">
 <div class="modal-content">
-<span class="modal-close" onclick="closeItemModal()">&times;</span>
+<button type="button" class="modal-close" onclick="closeItemModal()" aria-label="Закрыть">&times;</button>
 <h3 id="item-modal-title">Добавить предмет</h3>
 <div class="add-spell-form item-form">
 <input type="hidden" id="item-category">
@@ -1717,7 +1717,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Item View -->
 <div id="item-view-modal" class="modal">
 <div class="modal-content">
-<span class="modal-close" onclick="closeItemView()">&times;</span>
+<button type="button" class="modal-close" onclick="closeItemView()" aria-label="Закрыть">&times;</button>
 <h3>Предмет</h3>
 <div class="item-detail-icon" id="view-item-icon">🎒</div>
 <div class="item-detail-name" id="view-item-name">Название</div>
@@ -1750,7 +1750,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Weapon -->
 <div id="weapon-modal" class="modal">
 <div class="modal-content">
-<span class="modal-close" onclick="closeWeaponModal()">&times;</span>
+<button type="button" class="modal-close" onclick="closeWeaponModal()" aria-label="Закрыть">&times;</button>
 <h3>Добавить оружие</h3>
 <label style="margin-top:10px; color: var(--text-color);">📜 Выбрать из списка:</label>
 <div class="weapon-presets" id="weapon-presets-list"></div>
@@ -1841,7 +1841,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- ══ МОДАЛКА АВАТАРА ══════════════════════════════════════════ -->
 <div id="avatar-modal" class="modal">
   <div class="modal-content avatar-modal-content">
-    <span class="modal-close" onclick="closeAvatarModal()">✕</span>
+    <button type="button" class="modal-close" onclick="closeAvatarModal()" aria-label="Закрыть">✕</button>
     <h3>🖼️ Аватар персонажа</h3>
     <div id="avatar-modal-preview" class="avatar-modal-preview"></div>
 
@@ -1875,7 +1875,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div class="modal-content bp-modal">
     <div class="bp-header">
       <span class="bp-title" id="bp-title-h">📘 Готовые билды</span>
-      <span class="modal-close" onclick="closeModal('build-picker-modal')" aria-label="Закрыть" tabindex="0" role="button">&times;</span>
+      <button type="button" class="modal-close" onclick="closeModal('build-picker-modal')" aria-label="Закрыть">&times;</button>
     </div>
     <div class="bp-filter-row">
       <input type="text" id="bp-search" class="bp-search" placeholder="🔍 Поиск по названию, классу, подклассу..." oninput="renderBuildPicker()" aria-label="Поиск по билдам">
@@ -1905,7 +1905,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div class="modal-content bg-modal">
     <div class="bg-header">
       <span class="bg-title" id="bg-title-h">📘 Гайд по билду</span>
-      <span class="modal-close" onclick="closeModal('build-guide-modal')" aria-label="Закрыть" tabindex="0" role="button">&times;</span>
+      <button type="button" class="modal-close" onclick="closeModal('build-guide-modal')" aria-label="Закрыть">&times;</button>
     </div>
     <div id="bg-body" class="bg-body"></div>
     <div class="bg-footer">
@@ -1919,7 +1919,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script src="character-builds.js?v=b14"></script>
 <script src="spells.js?v=n1"></script>
 <script src="app-core.js?v=bf27"></script>
-<script src="app-combat.js?v=fx5"></script>
+<script src="app-combat.js?v=fx6"></script>
 <script src="app-hp.js?v=build4"></script>
 <script src="app-spells.js?v=i5"></script>
 <script src="app-inventory.js?v=n3"></script>
@@ -1932,8 +1932,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=i4"></script>
-<script src="app-notes.js?v=n8"></script>
+<script src="app-ui.js?v=i5"></script>
+<script src="app-notes.js?v=n9"></script>
 <script src="app-desktop.js?v=rr5"></script>
 
 <!-- ══ Модалка записи (N4) ══════════════════════════════════════ -->
