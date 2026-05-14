@@ -442,6 +442,82 @@ function _syncDensityButtons() {
 }
 document.addEventListener('DOMContentLoaded', _syncDensityButtons);
 
+// UI-5: масштаб шрифта (0.9..1.3, шаг 0.05)
+var FS_SCALE_MIN = 0.9, FS_SCALE_MAX = 1.3, FS_SCALE_DEFAULT = 1.0;
+function _getFontScale() {
+  try {
+    var v = parseFloat(localStorage.getItem('dnd_fs_scale'));
+    if (isFinite(v) && v >= FS_SCALE_MIN && v <= FS_SCALE_MAX) return v;
+  } catch (e) {}
+  return FS_SCALE_DEFAULT;
+}
+function _applyFontScale(v) {
+  // UI-5: zoom применяем к <body>, а не к <html>. На html zoom меняет
+  // эффективную ширину вьюпорта (window/zoom) и сдвигает порог
+  // десктопного sidebar (1200px) — меню «слетает» при 130%+узком окне.
+  // На body zoom масштабирует контент, но медиа-запросы продолжают
+  // считаться по реальной ширине окна → layout остаётся стабильным.
+  var body = document.body;
+  if (!body) return;
+  if (v === FS_SCALE_DEFAULT) body.style.removeProperty('zoom');
+  else body.style.zoom = String(v);
+}
+function setFontScale(v) {
+  v = parseFloat(v);
+  if (!isFinite(v)) return;
+  // округляем до шага 0.05 и зажимаем в диапазоне
+  v = Math.round(v * 20) / 20;
+  if (v < FS_SCALE_MIN) v = FS_SCALE_MIN;
+  if (v > FS_SCALE_MAX) v = FS_SCALE_MAX;
+  try { localStorage.setItem('dnd_fs_scale', String(v)); } catch (e) {}
+  _applyFontScale(v);
+  _syncFontScaleUi();
+}
+function _syncFontScaleUi() {
+  var v = _getFontScale();
+  var slider = document.getElementById('fs-scale-slider');
+  var label = document.getElementById('fs-scale-value');
+  var pct = Math.round(v * 100);
+  if (slider && parseInt(slider.value, 10) !== pct) slider.value = String(pct);
+  if (label) label.textContent = pct + '%';
+}
+document.addEventListener('DOMContentLoaded', _syncFontScaleUi);
+
+// UI-5: модалка настроек оформления (тема/акцент/плотность/масштаб шрифта)
+function openSettingsModal() {
+  var ov = document.getElementById('settings-modal-overlay');
+  var md = document.getElementById('settings-modal');
+  if (!ov || !md) return;
+  ov.classList.remove('hidden');
+  md.classList.remove('hidden');
+  // Синхронизируем UI элементов внутри модалки перед показом
+  try { _syncFontScaleUi(); } catch (e) {}
+  try { _syncDensityButtons(); } catch (e) {}
+  try { if (typeof _syncThemeButtons === 'function') _syncThemeButtons(); } catch (e) {}
+  try { if (typeof _syncAccentButtons === 'function') _syncAccentButtons(); } catch (e) {}
+  setTimeout(function() {
+    ov.classList.add('open');
+    md.classList.add('open');
+  }, 10);
+}
+function closeSettingsModal() {
+  var ov = document.getElementById('settings-modal-overlay');
+  var md = document.getElementById('settings-modal');
+  if (!ov || !md) return;
+  ov.classList.remove('open');
+  md.classList.remove('open');
+  setTimeout(function() {
+    ov.classList.add('hidden');
+    md.classList.add('hidden');
+  }, 200);
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var md = document.getElementById('settings-modal');
+    if (md && !md.classList.contains('hidden')) closeSettingsModal();
+  }
+});
+
 // Реакция на смену системной темы при data-theme="auto"
 if (window.matchMedia) {
   try {

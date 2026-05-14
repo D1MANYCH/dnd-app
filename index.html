@@ -36,6 +36,15 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     var dAllowed = ['compact','standard','cozy'];
     if (dAllowed.indexOf(d) === -1) d = 'standard';
     if (d !== 'standard') document.documentElement.setAttribute('data-density', d);
+    // UI-5: применить масштаб шрифта (0.9..1.3) до отрисовки — через zoom на body.
+    // body ещё не существует на момент head-скрипта, поэтому используем
+    // отложенный вызов через DOMContentLoaded.
+    var fs = parseFloat(localStorage.getItem('dnd_fs_scale'));
+    if (isFinite(fs) && fs >= 0.9 && fs <= 1.3 && fs !== 1) {
+      document.addEventListener('DOMContentLoaded', function() {
+        document.body.style.zoom = String(fs);
+      });
+    }
   } catch(e) {}
 })();
 </script>
@@ -86,37 +95,64 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <button class="drawer-item" onclick="switchTab('party',null);closeDrawer()" data-drawer-tab="party"><span>🌍</span>Мир</button>
     <button class="drawer-item" onclick="switchTab('journal',null);closeDrawer()" data-drawer-tab="journal"><span>📖</span>Журнал</button>
   </nav>
-  <div class="theme-picker-row">
-    <span class="theme-picker-label">🎨 Тема</span>
-    <div class="theme-picker-btns" role="radiogroup" aria-label="Тема оформления">
-      <button type="button" class="theme-picker-btn" data-theme-btn="dark" onclick="setTheme('dark')">🌙 Тёмная</button>
-      <button type="button" class="theme-picker-btn" data-theme-btn="light" onclick="setTheme('light')">☀️ Светлая</button>
-      <button type="button" class="theme-picker-btn" data-theme-btn="auto" onclick="setTheme('auto')">🖥️ Авто</button>
-    </div>
+  <div class="drawer-settings-row">
+    <button type="button" class="drawer-settings-btn" onclick="openSettingsModal()" title="Тема, акцент, плотность, масштаб">
+      <span>⚙️</span><span>Настройки оформления</span>
+    </button>
   </div>
-  <div class="theme-picker-row">
-    <span class="theme-picker-label">🎯 Акцент</span>
-    <div class="accent-picker-chips" role="radiogroup" aria-label="Цвет акцента">
-      <button type="button" class="accent-chip" data-accent-btn="gold"     title="Золото"   aria-label="Золото"   style="--chip-hi:#f0c674;--chip-lo:#c79941;--chip-mid:#e0b358" onclick="setAccent('gold')"></button>
-      <button type="button" class="accent-chip" data-accent-btn="emerald"  title="Изумруд"  aria-label="Изумруд"  style="--chip-hi:#66c595;--chip-lo:#3a8a64;--chip-mid:#4caf80" onclick="setAccent('emerald')"></button>
-      <button type="button" class="accent-chip" data-accent-btn="ruby"     title="Рубин"    aria-label="Рубин"    style="--chip-hi:#ec7283;--chip-lo:#c44456;--chip-mid:#e0586c" onclick="setAccent('ruby')"></button>
-      <button type="button" class="accent-chip" data-accent-btn="amethyst" title="Аметист"  aria-label="Аметист"  style="--chip-hi:#c293ed;--chip-lo:#9259c4;--chip-mid:#b078e0" onclick="setAccent('amethyst')"></button>
-      <button type="button" class="accent-chip" data-accent-btn="sapphire" title="Сапфир"   aria-label="Сапфир"   style="--chip-hi:#76b3ec;--chip-lo:#4180c4;--chip-mid:#5a9de0" onclick="setAccent('sapphire')"></button>
-      <button type="button" class="accent-chip" data-accent-btn="copper"   title="Медь"     aria-label="Медь"     style="--chip-hi:#de9258;--chip-lo:#aa6230;--chip-mid:#cc7a40" onclick="setAccent('copper')"></button>
-      <button type="button" class="accent-chip" data-accent-btn="silver"   title="Серебро"  aria-label="Серебро"  style="--chip-hi:#d4d8df;--chip-lo:#9ea3aa;--chip-mid:#c0c5cc" onclick="setAccent('silver')"></button>
-      <button type="button" class="accent-chip" data-accent-btn="graphite" title="Графит"   aria-label="Графит"   style="--chip-hi:#a0a3ac;--chip-lo:#6e7178;--chip-mid:#8a8d96" onclick="setAccent('graphite')"></button>
-    </div>
-    <label class="auto-accent-row" for="auto-accent-toggle" title="Акцент автоматически подстраивается под класс активного персонажа">
-      <input type="checkbox" id="auto-accent-toggle" onchange="setAutoAccent(this.checked)">
-      <span>🎭 Авто-акцент по классу</span>
-    </label>
+</div>
+
+<!-- Settings modal (UI-5: вынес тему/акцент/плотность/масштаб из drawer) -->
+<div class="settings-modal-overlay hidden" id="settings-modal-overlay" onclick="closeSettingsModal()"></div>
+<div class="settings-modal hidden" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+  <div class="settings-modal-header">
+    <span id="settings-modal-title">⚙️ Настройки оформления</span>
+    <button class="settings-modal-close" onclick="closeSettingsModal()" aria-label="Закрыть">✕</button>
   </div>
-  <div class="theme-picker-row">
-    <span class="theme-picker-label">📐 Плотность</span>
-    <div class="theme-picker-btns density-picker-btns" role="radiogroup" aria-label="Плотность интерфейса">
-      <button type="button" class="theme-picker-btn" data-density-btn="compact"  onclick="setDensity('compact')"  title="Компактно — мельче отступы и шрифт">Компактно</button>
-      <button type="button" class="theme-picker-btn" data-density-btn="standard" onclick="setDensity('standard')" title="Стандартные размеры">Стандарт</button>
-      <button type="button" class="theme-picker-btn" data-density-btn="cozy"     onclick="setDensity('cozy')"     title="Просторно — крупнее отступы и шрифт">Просторно</button>
+  <div class="settings-modal-body">
+    <div class="theme-picker-row">
+      <span class="theme-picker-label">🎨 Тема</span>
+      <div class="theme-picker-btns" role="radiogroup" aria-label="Тема оформления">
+        <button type="button" class="theme-picker-btn" data-theme-btn="dark" onclick="setTheme('dark')">🌙 Тёмная</button>
+        <button type="button" class="theme-picker-btn" data-theme-btn="light" onclick="setTheme('light')">☀️ Светлая</button>
+        <button type="button" class="theme-picker-btn" data-theme-btn="auto" onclick="setTheme('auto')">🖥️ Авто</button>
+      </div>
+    </div>
+    <div class="theme-picker-row">
+      <span class="theme-picker-label">🎯 Акцент</span>
+      <div class="accent-picker-chips" role="radiogroup" aria-label="Цвет акцента">
+        <button type="button" class="accent-chip" data-accent-btn="gold"     title="Золото"   aria-label="Золото"   style="--chip-hi:#f0c674;--chip-lo:#c79941;--chip-mid:#e0b358" onclick="setAccent('gold')"></button>
+        <button type="button" class="accent-chip" data-accent-btn="emerald"  title="Изумруд"  aria-label="Изумруд"  style="--chip-hi:#66c595;--chip-lo:#3a8a64;--chip-mid:#4caf80" onclick="setAccent('emerald')"></button>
+        <button type="button" class="accent-chip" data-accent-btn="ruby"     title="Рубин"    aria-label="Рубин"    style="--chip-hi:#ec7283;--chip-lo:#c44456;--chip-mid:#e0586c" onclick="setAccent('ruby')"></button>
+        <button type="button" class="accent-chip" data-accent-btn="amethyst" title="Аметист"  aria-label="Аметист"  style="--chip-hi:#c293ed;--chip-lo:#9259c4;--chip-mid:#b078e0" onclick="setAccent('amethyst')"></button>
+        <button type="button" class="accent-chip" data-accent-btn="sapphire" title="Сапфир"   aria-label="Сапфир"   style="--chip-hi:#76b3ec;--chip-lo:#4180c4;--chip-mid:#5a9de0" onclick="setAccent('sapphire')"></button>
+        <button type="button" class="accent-chip" data-accent-btn="copper"   title="Медь"     aria-label="Медь"     style="--chip-hi:#de9258;--chip-lo:#aa6230;--chip-mid:#cc7a40" onclick="setAccent('copper')"></button>
+        <button type="button" class="accent-chip" data-accent-btn="silver"   title="Серебро"  aria-label="Серебро"  style="--chip-hi:#d4d8df;--chip-lo:#9ea3aa;--chip-mid:#c0c5cc" onclick="setAccent('silver')"></button>
+        <button type="button" class="accent-chip" data-accent-btn="graphite" title="Графит"   aria-label="Графит"   style="--chip-hi:#a0a3ac;--chip-lo:#6e7178;--chip-mid:#8a8d96" onclick="setAccent('graphite')"></button>
+      </div>
+      <label class="auto-accent-row" for="auto-accent-toggle" title="Акцент автоматически подстраивается под класс активного персонажа">
+        <input type="checkbox" id="auto-accent-toggle" onchange="setAutoAccent(this.checked)">
+        <span>🎭 Авто-акцент по классу</span>
+      </label>
+    </div>
+    <div class="theme-picker-row">
+      <span class="theme-picker-label">📐 Плотность</span>
+      <div class="theme-picker-btns density-picker-btns" role="radiogroup" aria-label="Плотность интерфейса">
+        <button type="button" class="theme-picker-btn" data-density-btn="compact"  onclick="setDensity('compact')"  title="Компактно — мельче отступы и шрифт">Компактно</button>
+        <button type="button" class="theme-picker-btn" data-density-btn="standard" onclick="setDensity('standard')" title="Стандартные размеры">Стандарт</button>
+        <button type="button" class="theme-picker-btn" data-density-btn="cozy"     onclick="setDensity('cozy')"     title="Просторно — крупнее отступы и шрифт">Просторно</button>
+      </div>
+    </div>
+    <div class="theme-picker-row">
+      <div class="fs-scale-head">
+        <span class="theme-picker-label">🔤 Размер шрифта</span>
+        <span class="fs-scale-value" id="fs-scale-value">100%</span>
+        <button type="button" class="fs-scale-reset" onclick="setFontScale(1)" title="Сбросить к 100%">↺</button>
+      </div>
+      <input type="range" id="fs-scale-slider" class="fs-scale-slider"
+             min="90" max="130" step="5" value="100"
+             aria-label="Масштаб шрифта в процентах"
+             oninput="setFontScale(this.value/100)">
     </div>
   </div>
 </div>

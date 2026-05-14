@@ -45,10 +45,17 @@
 
 /* Типографика */
 --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
---fs-sm: 12px;
---fs-md: 14px;
---fs-lg: 16px;
---fs-xl: 20px;
+/* UI-5: --fs-scale (0.9..1.3) — пользовательский множитель шрифта.
+   База задаётся в *-base, плотность переопределяет только *-base. */
+--fs-scale: 1;
+--fs-sm-base: 12px;
+--fs-md-base: 14px;
+--fs-lg-base: 16px;
+--fs-xl-base: 20px;
+--fs-sm: calc(var(--fs-sm-base) * var(--fs-scale));
+--fs-md: calc(var(--fs-md-base) * var(--fs-scale));
+--fs-lg: calc(var(--fs-lg-base) * var(--fs-scale));
+--fs-xl: calc(var(--fs-xl-base) * var(--fs-scale));
 
 /* ===== Алиасы старых переменных (совместимость) ===== */
 --bg-color: var(--bg-0);
@@ -101,10 +108,10 @@
   --sp-4: 12px;
   --sp-5: 18px;
   --sp-6: 24px;
-  --fs-sm: 11px;
-  --fs-md: 13px;
-  --fs-lg: 15px;
-  --fs-xl: 18px;
+  --fs-sm-base: 11px;
+  --fs-md-base: 13px;
+  --fs-lg-base: 15px;
+  --fs-xl-base: 18px;
   --hp-bar-h: 8px;
 }
 :root[data-density="cozy"] {
@@ -114,10 +121,10 @@
   --sp-4: 20px;
   --sp-5: 30px;
   --sp-6: 40px;
-  --fs-sm: 13px;
-  --fs-md: 15px;
-  --fs-lg: 18px;
-  --fs-xl: 22px;
+  --fs-sm-base: 13px;
+  --fs-md-base: 15px;
+  --fs-lg-base: 18px;
+  --fs-xl-base: 22px;
   --hp-bar-h: 12px;
 }
 
@@ -875,6 +882,182 @@
   padding: 8px 12px !important;
   white-space: nowrap;
 }
+
+/* UI-5: кнопка «Настройки оформления» в drawer */
+.drawer-settings-row {
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+.drawer-settings-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 10px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md, 8px);
+  color: var(--text);
+  font-size: var(--fs-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+.drawer-settings-btn:hover {
+  background: var(--bg-3);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.drawer-settings-btn span:first-child { font-size: 1.2em; }
+
+/* UI-5: модалка настроек оформления */
+.settings-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 400;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.settings-modal-overlay.open { opacity: 1; }
+.settings-modal-overlay.hidden { display: none; }
+
+.settings-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.96);
+  width: 92%;
+  max-width: 460px;
+  max-height: 85vh;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg, 12px);
+  z-index: 401;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.55);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.settings-modal.open {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.settings-modal.hidden { display: none; }
+
+.settings-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: var(--fs-lg);
+  color: var(--accent);
+}
+.settings-modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  width: auto;
+  line-height: 1;
+}
+.settings-modal-close:hover { background: var(--bg-3); color: var(--text); }
+
+.settings-modal-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: var(--sp-3);
+}
+/* В модалке убираем top-border у первой строки (есть у драйверной .theme-picker-row) */
+.settings-modal-body .theme-picker-row:first-child { border-top: none; }
+
+/* UI-5: слайдер размера шрифта */
+.fs-scale-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.fs-scale-head .theme-picker-label { flex: 1; margin: 0; }
+.fs-scale-slider {
+  display: block;
+  width: 100%;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  height: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--bg-3);
+  outline: none;
+  cursor: pointer;
+}
+.fs-scale-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-3);
+}
+.fs-scale-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-3);
+  border: none;
+}
+.fs-scale-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+  margin-top: -6px; /* центрируем thumb на 6px треке */
+}
+.fs-scale-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.fs-scale-slider::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  cursor: pointer;
+}
+.fs-scale-value {
+  flex: 0 0 auto;
+  min-width: 40px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+.fs-scale-reset {
+  flex: 0 0 auto;
+  width: 28px; height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.fs-scale-reset:hover { color: var(--accent); border-color: var(--accent); }
 
 /* UI-2: чипы выбора акцента — равномерная сетка 4×2 */
 .accent-picker-chips {
@@ -2876,6 +3059,11 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   transform: translateX(100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: -8px 0 30px rgba(0,0,0,0.5);
+  /* UI-5: при больших масштабах (zoom > 1) контент drawer выше вьюпорта —
+     нужен скролл по вертикали и аккуратное поведение оверфлоу. */
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 .side-drawer.open { transform: translateX(0); }
 
@@ -4815,6 +5003,29 @@ button.edition-btn {
   color: white !important;
 }
 .spell-add-btn:hover { filter: brightness(1.15); transform: none !important; box-shadow: none !important; }
+
+/* UI-5/полировка: на узких экранах (iPhone XR ~414px и меньше) кнопки
+   «Найти заклинание» / «Добавить своё» вылетают за правую границу из-за
+   white-space:nowrap. Делаем блок кнопок шириной 100% и поровну делим. */
+@media (max-width: 540px) {
+  .spells-header-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .spells-header-row h3 { margin-bottom: 4px; }
+  .spell-action-btns {
+    width: 100%;
+    gap: 6px;
+  }
+  .spell-find-btn, .spell-add-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 8px 6px !important;
+    font-size: 0.78em;
+    white-space: normal; /* разрешаем перенос «Найти заклинание» в 2 строки */
+    line-height: 1.15;
+  }
+}
 .item-detail-icon { font-size: 4em; text-align: center; margin: 20px 0; opacity: 0.8; }
 .item-detail-name { font-size: 1.4em; font-weight: bold; color: var(--accent-color); text-align: center; margin-bottom: 20px; }
 .item-detail-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }

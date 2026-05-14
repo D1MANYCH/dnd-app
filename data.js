@@ -1540,7 +1540,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.5.0";
+const APP_VERSION = "3.7.1";
 const APP_VERSION_DATE = "2026-05-14";
 
 // ============================================================
@@ -1826,9 +1826,57 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.5.0",
+    version: "3.7.1",
     date: "14 мая 2026",
     badge: "new",
+    changes: [
+      { type: "fix", text: "адаптив: кнопки заклинаний (Найти/Добавить) на узких экранах ≤540px растягиваются на всю ширину, текст переносится" }
+    ]
+  },
+  {
+    version: "3.7.0",
+    date: "14 мая 2026",
+    badge: "old",
+    changes: [
+      { type: "feat", text: "UI-5: настройки оформления вынесены в отдельную модалку, drawer короткий" }
+    ]
+  },
+  {
+    version: "3.6.3",
+    date: "14 мая 2026",
+    badge: "old",
+    changes: [
+      { type: "fix", text: "UI-5: zoom переехал с html на body, чтобы не сдвигать медиа-запросы (sidebar 1200px)" }
+    ]
+  },
+  {
+    version: "3.6.2",
+    date: "14 мая 2026",
+    badge: "old",
+    changes: [
+      { type: "fix", text: "UI-5: drawer overflow-y auto + убрал двойной скейл (--fs-scale + zoom)" }
+    ]
+  },
+  {
+    version: "3.6.1",
+    date: "14 мая 2026",
+    badge: "old",
+    changes: [
+      { type: "fix", text: "UI-5: масштаб через zoom на :root — теперь скейлится весь интерфейс, не только drawer" }
+    ]
+  },
+  {
+    version: "3.6.0",
+    date: "14 мая 2026",
+    badge: "old",
+    changes: [
+      { type: "feat", text: "UI-5: слайдер масштаба шрифта 90–130% (--fs-scale) в drawer" }
+    ]
+  },
+  {
+    version: "3.5.0",
+    date: "14 мая 2026",
+    badge: "old",
     changes: [
       { type: "feat", text: "UI-4 — переключатель плотности (Компактно / Стандарт / Просторно) через --sp-*/--fs-* и data-density" }
     ]
