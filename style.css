@@ -9829,3 +9829,47 @@ mark.notes-hl {
 .bg-footer { padding: 10px 16px; border-top: 1px solid var(--border, rgba(255,255,255,0.08)); display:flex; justify-content:flex-end; }
 .char-build-unlink { background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:var(--r-sm,6px); padding:3px 8px; font-size:0.78em; cursor:pointer; transition:color .12s, border-color .12s; }
 .char-build-unlink:hover { color:#e74c3c; border-color:#e74c3c; }
+
+/* =============================================
+   BUGFIX-6: мобильная вёрстка (≤540px)
+============================================= */
+@media (max-width: 540px) {
+  /* (а) Карточка персонажа: имя обрезалось до 1-2 букв из-за слишком крупных
+        action-кнопок + иконки. Уменьшаем их и разрешаем имени переноситься. */
+  .char-card-header { gap: 8px; }
+  .char-card-class-icon { width: 44px; height: 44px; font-size: 1.4em; }
+  .char-card-name {
+    font-size: 1em;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.15;
+    word-break: break-word;
+  }
+  .char-card-sub { font-size: 0.7em; }
+  .char-card-actions { gap: 4px; }
+  /* Переопределяем правило для 600px, где кнопки увеличены до 38×38 */
+  .char-copy-btn, .char-delete-btn { width: 32px; height: 32px; font-size: 0.9em; }
+
+  /* (б) Урон / Лечение: на узком экране 1fr 1fr сжимало кнопку "Вылечить"
+        до обрезания текста. Складываем в один столбец. */
+  .hp-two-col { grid-template-columns: 1fr; gap: 8px; }
+  .hp-side { padding: 10px 12px; }
+  .hp-side-btn { font-size: 13px; padding: 9px 8px; }
+
+  /* (в) Фильтр классов в модалке заклинаний: ряды cf-row сжимались до
+        неразличимых иконок. Разрешаем wrap и увеличиваем минимальную ширину
+        кнопок, чтобы было >=64px на кнопку. */
+  .cf-row { flex-wrap: wrap; }
+  .class-filter-group { padding: 6px 8px; }
+  .class-filter-row.cf-equal { flex-wrap: wrap; gap: 4px; }
+  .class-filter-row.cf-equal > .class-filter-btn,
+  .class-filter-row.cf-equal > .edition-btn,
+  .class-filter-row.cf-equal > .class-filter-all { flex: 1 1 64px; min-width: 64px; }
+  .class-filter-btn { padding: 5px 3px; }
+  .class-filter-btn img { width: 32px; height: 32px; }
+  .cf-name { font-size: 0.68em; }
+  .spell-class-filter-grouped .edition-btn,
+  button.edition-btn { padding: 7px 8px; font-size: 0.72em; }
+  .class-filter-all { padding: 9px 10px; font-size: 0.8em; }
+}
