@@ -19,7 +19,7 @@ function openAvatarModal(event) {
     if (char.avatar) {
       preview.innerHTML = "<img src=\"" + char.avatar + "\" alt=\"Аватар\">";
     } else {
-      preview.innerHTML = "<span class=\"avatar-modal-placeholder\">" + getClassIcon(char.class) + "</span>";
+      preview.innerHTML = char.class ? ("<span class=\"avatar-modal-placeholder\">" + getClassIcon(char.class) + "</span>") : AVATAR_FALLBACK_IMG;
     }
   }
   const urlInput = $("avatar-url-input");
@@ -91,11 +91,14 @@ function removeAvatar(event) {
   char.updatedAt = Date.now();
   saveToLocal();
   const preview = $("avatar-modal-preview");
-  if (preview) preview.innerHTML = "<span class=\"avatar-modal-placeholder\">" + getClassIcon(char.class) + "</span>";
+  if (preview) preview.innerHTML = char.class ? ("<span class=\"avatar-modal-placeholder\">" + getClassIcon(char.class) + "</span>") : AVATAR_FALLBACK_IMG;
   renderSheetAvatar();
   renderCharacterList();
   showToast("Аватар удалён", "info");
 }
+
+/** HTML-помощник для placeholder-аватара (без билда/без класса) */
+const AVATAR_FALLBACK_IMG = '<img class="avatar-modal-fallback" src="assets/avatar-fallback.webp" alt="">';
 
 /** Обновить аватар в шапке листа персонажа */
 function renderSheetAvatar() {
@@ -106,8 +109,8 @@ function renderSheetAvatar() {
     el.innerHTML = "<img src=\"" + char.avatar + "\" alt=\"Аватар\" onclick=\"openAvatarModal(event)\">";
     el.classList.add("has-avatar");
   } else {
-    const icon = char ? getClassIcon(char.class) : "🎭";
-    el.innerHTML = "<button type=\"button\" class=\"avatar-icon-btn\" onclick=\"openAvatarModal(event)\" aria-label=\"Сменить аватар\">" + icon + "</button>";
+    const inner = (char && char.class) ? getClassIcon(char.class) : AVATAR_FALLBACK_IMG;
+    el.innerHTML = "<button type=\"button\" class=\"avatar-icon-btn\" onclick=\"openAvatarModal(event)\" aria-label=\"Сменить аватар\">" + inner + "</button>";
     el.classList.remove("has-avatar");
   }
 }

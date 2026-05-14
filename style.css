@@ -3302,6 +3302,21 @@ display: inline-flex; align-items: center; justify-content: center;
 flex-shrink: 0; margin-right: 10px; overflow: hidden;
 }
 .bp-card-class-icon .class-icon-svg { width: 100%; height: 100%; object-fit: contain; }
+
+/* Fallback-аватар (фигура в плаще) — заменяет эмодзи 🎭 когда нет билда и нет класса */
+.header-avatar-fallback,
+.avatar-modal-fallback {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+.avatar-icon-btn .avatar-modal-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
 .char-card-title {
 flex: 1;
 min-width: 0;

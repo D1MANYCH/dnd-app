@@ -463,9 +463,10 @@ updateStatusBar();
 function updateHeaderTitle() {
 var avatarEl = $("header-avatar");
 var subtitleEl = $("header-subtitle");
+var AVATAR_FALLBACK_HTML = '<img class="header-avatar-fallback" src="assets/avatar-fallback.webp" alt="">';
 if (!currentId) {
   $("header-title").textContent = "Мой Персонаж D&D 5e";
-  if (avatarEl) avatarEl.innerHTML = "🎭";
+  if (avatarEl) avatarEl.innerHTML = AVATAR_FALLBACK_HTML;
   if (subtitleEl) subtitleEl.textContent = "";
   return;
 }
@@ -478,8 +479,10 @@ if (char && char.name) {
 if (avatarEl) {
   if (char && char.avatar) {
     avatarEl.innerHTML = "<img src=\"" + char.avatar + "\" alt=\"\">";
+  } else if (char && char.class) {
+    avatarEl.innerHTML = getClassIcon(char.class);
   } else {
-    avatarEl.innerHTML = char ? getClassIcon(char.class) : "🎭";
+    avatarEl.innerHTML = AVATAR_FALLBACK_HTML;
   }
 }
 if (subtitleEl && char) {
