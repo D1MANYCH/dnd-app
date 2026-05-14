@@ -3300,7 +3300,8 @@ flex-shrink: 0; margin-right: 10px; overflow: hidden;
 
 /* Fallback-аватар (фигура в плаще) — заменяет эмодзи 🎭 когда нет билда и нет класса */
 .header-avatar-fallback,
-.avatar-modal-fallback {
+.avatar-modal-fallback,
+.class-icon-fallback-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -3311,6 +3312,13 @@ flex-shrink: 0; margin-right: 10px; overflow: hidden;
   width: 100%;
   height: 100%;
   border-radius: 50%;
+}
+/* Карточка персонажа в списке — fallback вписывается в квадрат с радиусом 10px */
+.char-card-class-icon .class-icon-fallback-img {
+  border-radius: 10px;
+}
+.bp-card-class-icon .class-icon-fallback-img {
+  border-radius: 10px;
 }
 .char-card-title {
 flex: 1;

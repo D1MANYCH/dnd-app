@@ -1510,7 +1510,7 @@ const CLASS_ICON_SLUGS = {
 };
 function getClassIcon(cls) {
   const slug = CLASS_ICON_SLUGS[cls];
-  if (!slug) return '<span class="class-icon-fallback" aria-hidden="true">🎭</span>';
+  if (!slug) return '<img class="class-icon-fallback-img" src="assets/avatar-fallback.webp" alt="" aria-hidden="true">';
   return '<img class="class-icon-svg" src="assets/classes/' + slug + '.webp" alt="" aria-hidden="true">';
 }
 // 'con' переименован в 'constitution.png' — Windows резервирует CON как имя DOS-устройства.
