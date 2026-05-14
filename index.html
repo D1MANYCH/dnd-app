@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=ui1p">
+<link rel="stylesheet" href="style.css?v=ui2">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -26,6 +26,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', isLight ? '#eef2ef' : '#1a1a24');
+    // UI-2: применить акцент до отрисовки, чтобы не было вспышки золотого
+    var a = localStorage.getItem('dnd_accent');
+    var allowed = ['gold','emerald','ruby','amethyst','sapphire','copper','silver','graphite'];
+    if (allowed.indexOf(a) === -1) a = 'gold';
+    if (a !== 'gold') document.documentElement.setAttribute('data-accent', a);
   } catch(e) {}
 })();
 </script>
@@ -82,6 +87,19 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <button type="button" class="theme-picker-btn" data-theme-btn="dark" onclick="setTheme('dark')">🌙 Тёмная</button>
       <button type="button" class="theme-picker-btn" data-theme-btn="light" onclick="setTheme('light')">☀️ Светлая</button>
       <button type="button" class="theme-picker-btn" data-theme-btn="auto" onclick="setTheme('auto')">🖥️ Авто</button>
+    </div>
+  </div>
+  <div class="theme-picker-row">
+    <span class="theme-picker-label">🎯 Акцент</span>
+    <div class="accent-picker-chips" role="radiogroup" aria-label="Цвет акцента">
+      <button type="button" class="accent-chip" data-accent-btn="gold"     title="Золото"   aria-label="Золото"   style="--chip-hi:#f0c674;--chip-lo:#c79941;--chip-mid:#e0b358" onclick="setAccent('gold')"></button>
+      <button type="button" class="accent-chip" data-accent-btn="emerald"  title="Изумруд"  aria-label="Изумруд"  style="--chip-hi:#66c595;--chip-lo:#3a8a64;--chip-mid:#4caf80" onclick="setAccent('emerald')"></button>
+      <button type="button" class="accent-chip" data-accent-btn="ruby"     title="Рубин"    aria-label="Рубин"    style="--chip-hi:#ec7283;--chip-lo:#c44456;--chip-mid:#e0586c" onclick="setAccent('ruby')"></button>
+      <button type="button" class="accent-chip" data-accent-btn="amethyst" title="Аметист"  aria-label="Аметист"  style="--chip-hi:#c293ed;--chip-lo:#9259c4;--chip-mid:#b078e0" onclick="setAccent('amethyst')"></button>
+      <button type="button" class="accent-chip" data-accent-btn="sapphire" title="Сапфир"   aria-label="Сапфир"   style="--chip-hi:#76b3ec;--chip-lo:#4180c4;--chip-mid:#5a9de0" onclick="setAccent('sapphire')"></button>
+      <button type="button" class="accent-chip" data-accent-btn="copper"   title="Медь"     aria-label="Медь"     style="--chip-hi:#de9258;--chip-lo:#aa6230;--chip-mid:#cc7a40" onclick="setAccent('copper')"></button>
+      <button type="button" class="accent-chip" data-accent-btn="silver"   title="Серебро"  aria-label="Серебро"  style="--chip-hi:#d4d8df;--chip-lo:#9ea3aa;--chip-mid:#c0c5cc" onclick="setAccent('silver')"></button>
+      <button type="button" class="accent-chip" data-accent-btn="graphite" title="Графит"   aria-label="Графит"   style="--chip-hi:#a0a3ac;--chip-lo:#6e7178;--chip-mid:#8a8d96" onclick="setAccent('graphite')"></button>
     </div>
   </div>
 </div>
@@ -1935,7 +1953,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=i5"></script>
+<script src="app-ui.js?v=ui2"></script>
 <script src="app-notes.js?v=n9"></script>
 <script src="app-desktop.js?v=rr5"></script>
 

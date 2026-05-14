@@ -326,6 +326,37 @@ function _syncThemeButtons() {
   });
 }
 document.addEventListener('DOMContentLoaded', _syncThemeButtons);
+
+// UI-2: акцент (8 пресетов)
+var ACCENTS = ['gold','emerald','ruby','amethyst','sapphire','copper','silver','graphite'];
+function _getAccent() {
+  try {
+    var a = localStorage.getItem('dnd_accent');
+    if (ACCENTS.indexOf(a) !== -1) return a;
+  } catch (e) {}
+  return 'gold';
+}
+function _applyAccent(name) {
+  if (name === 'gold') document.documentElement.removeAttribute('data-accent');
+  else document.documentElement.setAttribute('data-accent', name);
+  if (typeof _diceBoxInstance !== 'undefined' && _diceBoxInstance) {
+    try { _diceBoxInstance.updateConfig({ themeColor: _getDiceThemeColor() }); } catch(e) {}
+  }
+}
+function setAccent(name) {
+  if (ACCENTS.indexOf(name) === -1) return;
+  try { localStorage.setItem('dnd_accent', name); } catch (e) {}
+  _applyAccent(name);
+  _syncAccentButtons();
+}
+function _syncAccentButtons() {
+  var active = _getAccent();
+  document.querySelectorAll('.accent-chip').forEach(function(b) {
+    b.classList.toggle('is-active', b.getAttribute('data-accent-btn') === active);
+  });
+}
+document.addEventListener('DOMContentLoaded', _syncAccentButtons);
+
 // Реакция на смену системной темы при data-theme="auto"
 if (window.matchMedia) {
   try {

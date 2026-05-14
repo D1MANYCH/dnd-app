@@ -167,6 +167,104 @@
   }
 }
 
+/* ========== UI-2. Пресеты акцента (8 цветов) ==========
+   Меняют --accent, --accent-hi, --accent-lo, --accent-soft, --accent-glow,
+   --accent-glow-token на лету. Применяются на <html data-accent="...">.
+   Default (без атрибута или data-accent="gold") — текущая золотая палитра.
+   Каждый пресет определён дважды: для тёмной темы и для светлой (приглушённее).
+*/
+/* Изумруд */
+:root[data-accent="emerald"] {
+  --accent: #4caf80; --accent-hi: #66c595; --accent-lo: #3a8a64;
+  --accent-soft: rgba(76,175,128,0.13);
+  --accent-glow: rgba(76,175,128,0.30);
+  --accent-glow-token: rgba(76,175,128,0.30);
+}
+:root[data-theme="light"][data-accent="emerald"] {
+  --accent: #2e8a5c; --accent-hi: #3aa66f; --accent-lo: #25704a;
+  --accent-soft: rgba(46,138,92,0.13);
+  --accent-glow: rgba(46,138,92,0.30);
+  --accent-glow-token: rgba(46,138,92,0.30);
+}
+/* Рубин */
+:root[data-accent="ruby"] {
+  --accent: #e0586c; --accent-hi: #ec7283; --accent-lo: #c44456;
+  --accent-soft: rgba(224,88,108,0.13);
+  --accent-glow: rgba(224,88,108,0.30);
+  --accent-glow-token: rgba(224,88,108,0.30);
+}
+:root[data-theme="light"][data-accent="ruby"] {
+  --accent: #c63a4e; --accent-hi: #d75365; --accent-lo: #a32c3e;
+  --accent-soft: rgba(198,58,78,0.13);
+  --accent-glow: rgba(198,58,78,0.30);
+  --accent-glow-token: rgba(198,58,78,0.30);
+}
+/* Аметист */
+:root[data-accent="amethyst"] {
+  --accent: #b078e0; --accent-hi: #c293ed; --accent-lo: #9259c4;
+  --accent-soft: rgba(176,120,224,0.13);
+  --accent-glow: rgba(176,120,224,0.30);
+  --accent-glow-token: rgba(176,120,224,0.30);
+}
+:root[data-theme="light"][data-accent="amethyst"] {
+  --accent: #8a4fb8; --accent-hi: #a26acc; --accent-lo: #6e3d96;
+  --accent-soft: rgba(138,79,184,0.13);
+  --accent-glow: rgba(138,79,184,0.30);
+  --accent-glow-token: rgba(138,79,184,0.30);
+}
+/* Сапфир */
+:root[data-accent="sapphire"] {
+  --accent: #5a9de0; --accent-hi: #76b3ec; --accent-lo: #4180c4;
+  --accent-soft: rgba(90,157,224,0.13);
+  --accent-glow: rgba(90,157,224,0.30);
+  --accent-glow-token: rgba(90,157,224,0.30);
+}
+:root[data-theme="light"][data-accent="sapphire"] {
+  --accent: #2c6dba; --accent-hi: #4283cc; --accent-lo: #225698;
+  --accent-soft: rgba(44,109,186,0.13);
+  --accent-glow: rgba(44,109,186,0.30);
+  --accent-glow-token: rgba(44,109,186,0.30);
+}
+/* Медь */
+:root[data-accent="copper"] {
+  --accent: #cc7a40; --accent-hi: #de9258; --accent-lo: #aa6230;
+  --accent-soft: rgba(204,122,64,0.13);
+  --accent-glow: rgba(204,122,64,0.30);
+  --accent-glow-token: rgba(204,122,64,0.30);
+}
+:root[data-theme="light"][data-accent="copper"] {
+  --accent: #a3592a; --accent-hi: #ba6e3c; --accent-lo: #864920;
+  --accent-soft: rgba(163,89,42,0.13);
+  --accent-glow: rgba(163,89,42,0.30);
+  --accent-glow-token: rgba(163,89,42,0.30);
+}
+/* Серебро */
+:root[data-accent="silver"] {
+  --accent: #c0c5cc; --accent-hi: #d4d8df; --accent-lo: #9ea3aa;
+  --accent-soft: rgba(192,197,204,0.16);
+  --accent-glow: rgba(192,197,204,0.30);
+  --accent-glow-token: rgba(192,197,204,0.30);
+}
+:root[data-theme="light"][data-accent="silver"] {
+  --accent: #6e7782; --accent-hi: #858d97; --accent-lo: #565d66;
+  --accent-soft: rgba(110,119,130,0.13);
+  --accent-glow: rgba(110,119,130,0.30);
+  --accent-glow-token: rgba(110,119,130,0.30);
+}
+/* Графит */
+:root[data-accent="graphite"] {
+  --accent: #8a8d96; --accent-hi: #a0a3ac; --accent-lo: #6e7178;
+  --accent-soft: rgba(138,141,150,0.16);
+  --accent-glow: rgba(138,141,150,0.30);
+  --accent-glow-token: rgba(138,141,150,0.30);
+}
+:root[data-theme="light"][data-accent="graphite"] {
+  --accent: #4a4d54; --accent-hi: #5e6168; --accent-lo: #363840;
+  --accent-soft: rgba(74,77,84,0.13);
+  --accent-glow: rgba(74,77,84,0.30);
+  --accent-glow-token: rgba(74,77,84,0.30);
+}
+
 /* ===== Body — атмосферный cream-фон + warm radial + SVG-noise ===== */
 :root[data-theme="light"] body {
   background-image: none !important;
@@ -729,6 +827,41 @@
   border-color: var(--accent);
   color: var(--accent);
   font-weight: 600;
+}
+
+/* UI-2: чипы выбора акцента */
+.accent-picker-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+.accent-chip {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: linear-gradient(135deg, var(--chip-hi, #e0b358), var(--chip-lo, #c79941));
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.accent-chip:hover { transform: scale(1.08); border-color: var(--text-dim); }
+.accent-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.accent-chip.is-active {
+  border-color: var(--text);
+  box-shadow: 0 0 0 2px var(--bg-1), 0 0 0 4px var(--chip-mid, var(--accent));
+}
+.accent-chip.is-active::after {
+  content: "✓";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
 }
 
 /* ========== R2. Базовые компоненты ==========
