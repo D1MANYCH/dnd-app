@@ -829,10 +829,11 @@
   font-weight: 600;
 }
 
-/* UI-2: чипы выбора акцента */
+/* UI-2: чипы выбора акцента — равномерная сетка 4×2 */
 .accent-picker-chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  justify-items: center;
   gap: var(--sp-2);
 }
 .accent-chip {
