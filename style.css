@@ -1565,37 +1565,7 @@ body.no-character .drawer-divider { display: none; }
   }
   .rr-dice-grid .btn { padding: 0 4px; }
 
-  /* Большая d20-кнопка в right-rail — картинка d20-fab + надпись */
-  .rr-d20-btn {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 8px 14px;
-    background: linear-gradient(180deg, rgba(212,168,75,0.18), rgba(212,168,75,0.08));
-    border: 1px solid var(--accent-color);
-    border-radius: var(--r-md, 10px);
-    color: var(--accent-color);
-    font-weight: 700;
-    font-size: 1.05em;
-    cursor: pointer;
-    transition: background 0.18s, transform 0.12s, box-shadow 0.18s;
-  }
-  .rr-d20-btn:hover {
-    background: linear-gradient(180deg, rgba(212,168,75,0.28), rgba(212,168,75,0.14));
-    box-shadow: 0 0 14px var(--accent-glow);
-    transform: translateY(-1px);
-  }
-  .rr-d20-btn:active { transform: translateY(0) scale(0.98); }
-  .rr-d20-icon {
-    width: 36px;
-    height: 36px;
-    object-fit: contain;
-    flex-shrink: 0;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-  }
-  .rr-d20-label { letter-spacing: 0.04em; }
+  /* d20-кнопка в right-rail — обычная btn-primary, без иконки */
 
   /* Inline-баджи активных состояний в right-rail */
   .rr-cond-list {

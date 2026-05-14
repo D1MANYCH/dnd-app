@@ -32,7 +32,7 @@
         <button type="button" class="btn btn-secondary btn-sm" data-dice="10">d10</button>
         <button type="button" class="btn btn-secondary btn-sm" data-dice="12">d12</button>
       </div>
-      <button type="button" class="btn-block rr-d20-btn" id="rr-btn-d20" aria-label="Бросить d20"><img src="assets/d20-fab.webp" alt="" class="rr-d20-icon"><span class="rr-d20-label">d20</span></button>
+      <button type="button" class="btn btn-primary btn-block rr-d20-btn" id="rr-btn-d20" aria-label="Бросить d20">🎲 d20</button>
     </div>
     <div class="rr-card rr-conditions">
       <div class="rr-card-head">
