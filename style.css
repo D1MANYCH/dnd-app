@@ -3542,6 +3542,12 @@ max-height: 90vh;
 overflow-y: auto;
 cursor: default;
 }
+/* UI-9: контейнер «Повысить / Откатить уровень» */
+.level-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: stretch; margin: 6px 0 10px; }
+.level-actions > button { flex: 1 1 auto; min-width: 0; }
+.level-down-btn { font-size: 0.95em; opacity: 0.92; }
+.level-down-btn:hover { opacity: 1; }
+
 /* BUGFIX-5: button-сброс для span→button конвертированных кликабельных элементов */
 button.modal-close,
 button.skill-expertise-btn,

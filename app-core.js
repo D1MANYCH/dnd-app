@@ -1829,6 +1829,7 @@ renderAllies();
 renderNPCs();
 renderMonsters();
 renderSheetAvatar();
+if (typeof updateLevelDownVisibility === 'function') updateLevelDownVisibility();
 showScreen("character");
 var lastTab = "sheet";
 try { localStorage.removeItem("dnd_last_tab"); } catch(e) {}

@@ -470,6 +470,13 @@ if (!char) return;
 migrateToMulticlass(char);
 const oldLevel = char.level || 1;
 if (oldLevel >= 20) { showToast("Максимальный уровень!", "info"); closeLevelUpModal(); return; }
+// UI-9: снимок состояния перед мутацией — для одношагового отката
+try {
+  var _snap = JSON.parse(JSON.stringify(char));
+  delete _snap._prevLevelSnapshot; // не вкладываем снимок в снимок
+  _snap._snapshotAt = Date.now();
+  char._prevLevelSnapshot = _snap;
+} catch(e) { console.error("[UI-9] snapshot failed:", e); }
 const oldMaxHP = parseInt(char.combat.hpMax) || 0;
 const oldProf = getProficiencyBonus(oldLevel);
 const conMod = getMod(char.stats.con);
@@ -612,6 +619,94 @@ $("lu-result-body").innerHTML = resultLines.map(function(l) {
 }).join("");
 
 _luMulticlassChoice = null;
+updateLevelDownVisibility();
+}
+
+// ============================================
+// UI-9: Откат последнего повышения уровня (одношаговый undo)
+// ============================================
+function updateLevelDownVisibility() {
+  var btn = $("level-down-btn");
+  if (!btn) return;
+  var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+  var canRollback = !!(char && char.level > 1 && char._prevLevelSnapshot);
+  btn.style.display = canRollback ? "" : "none";
+}
+
+function openLevelDownConfirm() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char || !char._prevLevelSnapshot) {
+    showToast("Нет снимка для отката", "warn");
+    return;
+  }
+  var snap = char._prevLevelSnapshot;
+  var oldLvl = snap.level || 1;
+  var curLvl = char.level || oldLvl;
+  var oldMax = (snap.combat && parseInt(snap.combat.hpMax, 10)) || 0;
+  var curMax = (char.combat && parseInt(char.combat.hpMax, 10)) || 0;
+  // Список того, что будет утеряно
+  var lostLines = [];
+  lostLines.push("Уровень: " + curLvl + " → " + oldLvl);
+  if (curMax !== oldMax) lostLines.push("ХП макс: " + curMax + " → " + oldMax);
+  // Фичи класса на текущем classLevel
+  try {
+    var cn = char.class;
+    var clvl = char.level;
+    if (Array.isArray(char.classes) && char.classes.length > 0) {
+      // берём последний изменившийся класс (тот, где level из snapshot отличается)
+      var diffEntry = null;
+      var snapClasses = Array.isArray(snap.classes) ? snap.classes : [];
+      for (var i = 0; i < char.classes.length; i++) {
+        var prev = snapClasses[i] && snapClasses[i].level;
+        if ((prev || 0) < char.classes[i].level) { diffEntry = char.classes[i]; break; }
+      }
+      if (!diffEntry && char.classes.length > snapClasses.length) {
+        diffEntry = char.classes[char.classes.length - 1]; // новый мультикласс
+      }
+      if (diffEntry) { cn = diffEntry.class; clvl = diffEntry.level; }
+    }
+    if (typeof CLASS_FEATURES !== "undefined" && CLASS_FEATURES[cn] && CLASS_FEATURES[cn][clvl]) {
+      var names = CLASS_FEATURES[cn][clvl].map(function(f){ return f.name; });
+      if (names.length) lostLines.push("Умения " + cn + " " + clvl + " ур.: " + names.join(", "));
+    }
+  } catch(e) { console.error("[UI-9] features diff failed:", e); }
+  var text = "Будет утеряно:\n• " + lostLines.join("\n• ");
+  showConfirmModal("Откатить последнее повышение?", text, function() {
+    confirmLevelDown();
+  });
+}
+
+function confirmLevelDown() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char || !char._prevLevelSnapshot) {
+    showToast("Нет снимка для отката", "warn");
+    return;
+  }
+  var snap = char._prevLevelSnapshot;
+  // Восстанавливаем все поля из снимка
+  var idx = characters.findIndex(function(c){ return c.id === currentId; });
+  if (idx === -1) return;
+  // Сохраняем id и schemaVersion (защита от downgrade)
+  var preservedSchema = Math.max(snap.schemaVersion || 0, char.schemaVersion || 0);
+  var restored = JSON.parse(JSON.stringify(snap));
+  restored.id = char.id;
+  restored.schemaVersion = preservedSchema;
+  delete restored._prevLevelSnapshot;
+  delete restored._snapshotAt;
+  characters[idx] = restored;
+  saveToLocal();
+  loadCharacter(currentId);
+  updateClassFeatures();
+  renderClassResources();
+  renderSpellSlots();
+  addJournalEntry("levelup", "Откат уровня: " + (char.level||1) + " → " + (restored.level||1),
+    "Состояние возвращено к снимку перед последним повышением");
+  renderJournal();
+  showToast("Уровень откатан: " + (char.level||1) + " → " + (restored.level||1), "success");
+  closeLevelUpModal();
+  updateLevelDownVisibility();
 }
 
 // ============================================

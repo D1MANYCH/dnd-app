@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=ui1o">
+<link rel="stylesheet" href="style.css?v=ui1p">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -543,7 +543,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button class="ds-reset-btn" onclick="resetDeathSaves()">Сбросить</button>
 </div>
 
+<div class="level-actions">
 <button class="info" onclick="openLevelUpModal()">⬆️ Повысить уровень</button>
+<button id="level-down-btn" type="button" class="secondary level-down-btn" onclick="openLevelDownConfirm()" style="display:none" title="Отменить последнее повышение">↩️ Откатить уровень</button>
+</div>
 <div class="ac-calc-section">
 <h4>🛡️ Класс Доспеха (Авто-расчёт)</h4>
 <div class="ac-display">
@@ -1918,9 +1921,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script src="build-notes-data.js?v=bn4"></script>
 <script src="character-builds.js?v=b14"></script>
 <script src="spells.js?v=n1"></script>
-<script src="app-core.js?v=bf27"></script>
+<script src="app-core.js?v=bf28"></script>
 <script src="app-combat.js?v=fx6"></script>
-<script src="app-hp.js?v=build4"></script>
+<script src="app-hp.js?v=build5"></script>
 <script src="app-spells.js?v=i5"></script>
 <script src="app-inventory.js?v=n3"></script>
 <script src="app-party.js?v=n2"></script>
