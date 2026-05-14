@@ -89,6 +89,38 @@
 --hp-bar-h: 10px;
 }
 
+/* ========== UI-4. Плотность интерфейса (compact / standard / cozy) ==========
+   data-density="compact"  — мельче отступы/шрифт, для планшетов и небольших телефонов.
+   data-density="cozy"     — крупнее, для лучшей читаемости и тач-таргетов.
+   Без атрибута — стандартные значения из :root выше.
+*/
+:root[data-density="compact"] {
+  --sp-1: 3px;
+  --sp-2: 6px;
+  --sp-3: 9px;
+  --sp-4: 12px;
+  --sp-5: 18px;
+  --sp-6: 24px;
+  --fs-sm: 11px;
+  --fs-md: 13px;
+  --fs-lg: 15px;
+  --fs-xl: 18px;
+  --hp-bar-h: 8px;
+}
+:root[data-density="cozy"] {
+  --sp-1: 5px;
+  --sp-2: 10px;
+  --sp-3: 15px;
+  --sp-4: 20px;
+  --sp-5: 30px;
+  --sp-6: 40px;
+  --fs-sm: 13px;
+  --fs-md: 15px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --hp-bar-h: 12px;
+}
+
 /* ========== UI-1. Светлая тема v3 — адаптив + атмосферный фон ==========
    Тёплая cream-палитра #eef2ef + warm radial + SVG-noise + золотые «лозы».
    Активируется data-theme="light" (или data-theme="auto" + prefers-color-scheme: light).
@@ -827,6 +859,21 @@
   border-color: var(--accent);
   color: var(--accent);
   font-weight: 600;
+}
+
+/* UI-4: density-picker — 3 кнопки в столбец (русские слова не помещаются в ряд на узком drawer) */
+.density-picker-btns {
+  display: flex !important;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.density-picker-btns .theme-picker-btn {
+  width: 100% !important;
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  min-height: 0 !important;
+  padding: 8px 12px !important;
+  white-space: nowrap;
 }
 
 /* UI-2: чипы выбора акцента — равномерная сетка 4×2 */

@@ -415,6 +415,33 @@ document.addEventListener('DOMContentLoaded', function() {
   _refreshAccent();
 });
 
+// UI-4: плотность интерфейса (compact / standard / cozy)
+var DENSITIES = ['compact','standard','cozy'];
+function _getDensity() {
+  try {
+    var d = localStorage.getItem('dnd_density');
+    if (DENSITIES.indexOf(d) !== -1) return d;
+  } catch (e) {}
+  return 'standard';
+}
+function _applyDensity(name) {
+  if (name === 'standard') document.documentElement.removeAttribute('data-density');
+  else document.documentElement.setAttribute('data-density', name);
+}
+function setDensity(name) {
+  if (DENSITIES.indexOf(name) === -1) return;
+  try { localStorage.setItem('dnd_density', name); } catch (e) {}
+  _applyDensity(name);
+  _syncDensityButtons();
+}
+function _syncDensityButtons() {
+  var active = _getDensity();
+  document.querySelectorAll('.theme-picker-btn[data-density-btn]').forEach(function(b) {
+    b.classList.toggle('is-active', b.getAttribute('data-density-btn') === active);
+  });
+}
+document.addEventListener('DOMContentLoaded', _syncDensityButtons);
+
 // Реакция на смену системной темы при data-theme="auto"
 if (window.matchMedia) {
   try {
