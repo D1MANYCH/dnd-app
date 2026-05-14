@@ -2953,24 +2953,37 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-color) 0%, #c9a040 100%);
-  border: 3px solid var(--bg-color);
+  /* Тёмный круг с акцентным свечением — кубик-полиэдр поверх */
+  background: radial-gradient(circle at 30% 30%, #2a2a36 0%, #15151e 70%);
+  border: 2px solid var(--accent-color);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.7em;
   cursor: pointer;
   flex-shrink: 0;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.55), 0 0 14px var(--accent-glow);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   position: relative;
   top: -10px;
   margin: 0 6px;
   padding: 0;
   outline: none;
 }
-.tab-dice-fab:hover { transform: scale(1.1); box-shadow: 0 6px 25px rgba(0,0,0,0.7); }
+.tab-dice-fab:hover {
+  transform: scale(1.1) rotate(-8deg);
+  box-shadow: 0 6px 25px rgba(0,0,0,0.7), 0 0 22px var(--accent-glow);
+}
 .tab-dice-fab:active { transform: scale(0.92); }
+/* Картинка d20 внутри FAB — золотой полиэдр на тёмном круге */
+.tab-dice-fab-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+}
 
 /* R3: dice modal as bottom-sheet on mobile */
 #dice-modal.modal.active {
