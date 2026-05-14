@@ -1029,7 +1029,6 @@ body.no-character .drawer-divider { display: none; }
   .drawer-overlay { display: none !important; }
   .drawer-close { display: none !important; }
   .nav-hamburger { display: none !important; }
-  .header-back { display: none !important; }
 
   /* Header сдвигается под sidebar */
   header {
