@@ -492,6 +492,8 @@ if (subtitleEl && char) {
 }
 }
 function switchTab(tabName, btnEl) {
+  // UI-6: тактильная отдача при переключении вкладок
+  try { if (navigator.vibrate) navigator.vibrate(10); } catch(e) {}
   document.querySelectorAll(".tab-content").forEach(function(tab) { tab.classList.remove("active"); });
   document.querySelectorAll(".tab-btn").forEach(function(btn) { btn.classList.remove("active"); });
   var tabElement = $("tab-" + tabName);
@@ -558,27 +560,95 @@ function hideCharacterNav() {
   if (back) back.classList.add("hidden");
 }
 
-// Swipe to open drawer (only when character screen is active)
+// UI-6: Свайпы — горизонтальные жесты между вкладками + edge-swipe для drawer.
+// Порядок вкладок в нижней панели: sheet → spells → inventory → battle.
 (function() {
-  var touchStartX = 0;
-  var touchStartY = 0;
+  var SWIPE_TABS = ["sheet", "spells", "inventory", "battle"];
+  var TAB_THRESHOLD = 60;   // px по X для смены вкладки
+  var Y_TOLERANCE   = 50;   // px по Y — иначе считаем вертикальным скроллом
+  var EDGE_ZONE     = 24;   // px от правого края — зона активации drawer
+  var DRAWER_THRESHOLD = 50;
+
+  var startX = 0, startY = 0, startTarget = null, startTime = 0;
+
+  function isInteractive(el) {
+    if (!el) return false;
+    var tag = (el.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select" || tag === "button") return true;
+    if (el.isContentEditable) return true;
+    var node = el;
+    while (node && node !== document.body) {
+      if (node.classList) {
+        if (node.classList.contains("fs-scale-slider")) return true;
+        if (node.classList.contains("modal")) return true;
+        if (node.classList.contains("side-drawer")) return true;
+      }
+      try {
+        var cs = window.getComputedStyle(node);
+        if ((cs.overflowX === "auto" || cs.overflowX === "scroll") && node.scrollWidth > node.clientWidth + 2) {
+          return true;
+        }
+      } catch(e) {}
+      node = node.parentNode;
+    }
+    return false;
+  }
+
+  function currentActiveTab() {
+    var btn = document.querySelector(".tab-btn.active");
+    return btn ? btn.getAttribute("data-tab") : null;
+  }
+
   document.addEventListener("touchstart", function(e) {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
+    if (!e.touches || e.touches.length !== 1) { startTarget = null; return; }
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startTarget = e.target;
+    startTime = Date.now();
   }, { passive: true });
+
   document.addEventListener("touchend", function(e) {
-    var dx = e.changedTouches[0].clientX - touchStartX;
-    var dy = e.changedTouches[0].clientY - touchStartY;
+    if (!startTarget) return;
+    var endX = e.changedTouches[0].clientX;
+    var endY = e.changedTouches[0].clientY;
+    var dx = endX - startX;
+    var dy = endY - startY;
+    var dt = Date.now() - startTime;
+    var target = startTarget;
+    startTarget = null;
+
     var drawer = $("side-drawer");
     var charScreen = $("screen-character");
-    // Only work when character screen is visible and a character is loaded
     if (!drawer || !charScreen || charScreen.classList.contains("hidden") || !currentId) return;
-    if (dx < -60 && Math.abs(dy) < 80 && !drawer.classList.contains("open")) {
+    if (Math.abs(dy) > Y_TOLERANCE) return;
+    if (Math.abs(dx) < DRAWER_THRESHOLD) return;
+    if (dt > 600) return;
+
+    // 1) Edge-swipe от правого края → открыть drawer (свайп влево)
+    var vw = window.innerWidth || document.documentElement.clientWidth;
+    if (startX >= vw - EDGE_ZONE && dx < -DRAWER_THRESHOLD && !drawer.classList.contains("open")) {
       openDrawer();
+      return;
     }
-    if (dx > 60 && Math.abs(dy) < 80 && drawer.classList.contains("open")) {
+    // 2) Закрыть открытый drawer свайпом вправо
+    if (drawer.classList.contains("open") && dx > DRAWER_THRESHOLD) {
       closeDrawer();
+      return;
     }
+    if (drawer.classList.contains("open")) return;
+
+    // 3) Свайпы между вкладками — только когда касание стартовало внутри .tab-content
+    if (isInteractive(target)) return;
+    var inTabContent = target.closest && target.closest(".tab-content");
+    if (!inTabContent) return;
+    if (Math.abs(dx) < TAB_THRESHOLD) return;
+
+    var current = currentActiveTab();
+    var idx = SWIPE_TABS.indexOf(current);
+    if (idx < 0) return;
+    var nextIdx = dx < 0 ? idx + 1 : idx - 1;
+    if (nextIdx < 0 || nextIdx >= SWIPE_TABS.length) return;
+    switchTab(SWIPE_TABS[nextIdx], null);
   }, { passive: true });
 })();
 

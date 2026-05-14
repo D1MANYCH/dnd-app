@@ -2893,7 +2893,8 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   display: flex;
   justify-content: space-around;
   align-items: flex-end;
-  padding: 8px 0 12px;
+  /* UI-6: safe-area-inset для нижней панели на устройствах с home-indicator (iOS) */
+  padding: 8px 0 calc(12px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid rgba(255,255,255,0.08);
   z-index: 100;
   backdrop-filter: blur(14px) saturate(140%);
@@ -2906,7 +2907,9 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   font-size: 0.65em !important;
   width: auto !important;
   margin: 0 !important;
-  padding: 4px 6px !important;
+  /* UI-6: хитбокс ≥44px (рекомендация WCAG/Apple HIG) */
+  padding: 8px 6px !important;
+  min-height: 48px;
   text-align: center;
   flex: 1;
   border-radius: 8px;
@@ -2916,11 +2919,33 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
   cursor: pointer;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
 }
 .tab-btn span { display: block; font-size: 1.5em; line-height: 1; }
 .tab-btn.active { color: var(--accent-color) !important; background: var(--accent-glow) !important; }
+/* UI-6: индикатор-полоса сверху активной вкладки */
+.tab-btn.active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--accent-color);
+  box-shadow: 0 0 8px var(--accent-glow);
+  animation: tab-indicator-in 0.22s ease-out;
+}
+@keyframes tab-indicator-in {
+  from { width: 0; opacity: 0; }
+  to   { width: 28px; opacity: 1; }
+}
+.tab-btn:active { background: var(--accent-glow) !important; }
 .tab-btn:hover { color: var(--text-color) !important; transform: none !important; box-shadow: none !important; }
 
 /* FAB dice — centered, raised (restored pre-R3 look) */
@@ -3036,11 +3061,13 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 .drawer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.45);
   z-index: 199;
   opacity: 0;
   transition: opacity 0.3s;
-  backdrop-filter: blur(2px);
+  /* UI-6: glassmorphism — усиленное размытие фона при открытом drawer */
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
 }
 .drawer-overlay.open { opacity: 1; }
 
