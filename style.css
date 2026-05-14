@@ -9873,3 +9873,73 @@ mark.notes-hl {
   button.edition-btn { padding: 7px 8px; font-size: 0.72em; }
   .class-filter-all { padding: 9px 10px; font-size: 0.8em; }
 }
+
+/* =============================================
+   UI-13: доступ к настройкам и усиление back-кнопки
+============================================= */
+/* (а) Кнопка настроек ⚙️ в строке версии на экране списка персонажей */
+.app-version-settings {
+  margin-left: auto;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: var(--text-color);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  font-size: 1.05em;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.18s, border-color 0.18s, transform 0.12s;
+}
+.app-version-settings:hover {
+  background: rgba(212,168,75,0.18);
+  border-color: var(--accent-color);
+  transform: rotate(20deg);
+}
+.app-version-settings:active { transform: rotate(20deg) scale(0.94); }
+:root[data-theme="light"] .app-version-settings {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.14);
+}
+
+/* (б) Header-back на desktop/tablet (≥1024px) — заметная контрастная кнопка
+        с текстом «К персонажам», вместо едва видимой стрелки. */
+@media (min-width: 1024px) {
+  .header-back {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 7px 14px 7px 11px;
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--text-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.2;
+    transition: background 0.18s, border-color 0.18s, transform 0.12s;
+  }
+  .header-back::after {
+    content: "К персонажам";
+    font-size: 0.88em;
+    letter-spacing: 0.01em;
+  }
+  .header-back:hover {
+    background: var(--accent-glow, rgba(212,168,75,0.18));
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    transform: translateX(-2px);
+  }
+  :root[data-theme="light"] .header-back {
+    background: rgba(0,0,0,0.04);
+    border-color: rgba(0,0,0,0.18);
+  }
+  :root[data-theme="light"] .header-back:hover {
+    background: var(--accent-glow);
+    border-color: var(--accent-color);
+  }
+}
