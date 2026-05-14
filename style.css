@@ -2997,7 +2997,7 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   border-bottom-right-radius: 0;
   max-height: 86vh;
   overflow-y: auto;
-  animation: dice-sheet-in .22s ease-out;
+  /* animation отключена — не запускалась корректно из-за display:none parent, opacity застревал в 0 */
   padding-bottom: calc(var(--sp-4) + env(safe-area-inset-bottom, 0px));
 }
 #dice-modal .dice-modal-content::before {

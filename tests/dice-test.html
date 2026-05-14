@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Dice Test — D&D 5e Sheet</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root {
+    --bg-1: #14141d;
+    --bg-2: #1e1e2a;
+    --accent: #e0b358;
+    --accent-glow: rgba(212,168,75,0.35);
+    --text: #ece6d6;
+    --text-muted: #9aa0ad;
+    --border: #2e2e3c;
+    --danger: #e06c75;
+    --success: #57b36d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px;
+    background: var(--bg-1);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+  }
+  h1 { font-size: 1.4em; margin: 0 0 12px; color: var(--accent); }
+  .desc {
+    color: var(--text-muted);
+    font-size: 0.85em;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .btn {
+    flex: 1 1 auto;
+    min-width: 70px;
+    padding: 10px 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 1em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn:hover { background: rgba(212,168,75,0.12); border-color: var(--accent); }
+  .btn.btn-adv { color: var(--success); border-color: var(--success); }
+  .btn.btn-dis { color: var(--danger); border-color: var(--danger); }
+  .btn.btn-clear { color: var(--text-muted); }
+
+  /* Контейнер сцены — копирует production-стили .dsvg-container */
+  .dsvg-container {
+    width: 100%;
+    max-width: 340px;
+    height: 340px;
+    margin: 16px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background-image: url('../assets/textures/dice-tray.jpg');
+    background-size: cover;
+    background-position: center;
+    border-radius: 12px;
+    box-shadow: inset 0 0 30px 4px rgba(0,0,0,0.45);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .dice-arena {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 62%; height: 62%;
+  }
+  .dice-arena > canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+  }
+
+  /* Большое число результата */
+  .result {
+    font-size: 5em;
+    font-weight: 800;
+    text-align: center;
+    color: var(--accent);
+    margin: 8px 0;
+    min-height: 1.2em;
+    text-shadow: 0 0 30px var(--accent-glow);
+  }
+  .result.crit-success { color: var(--success); }
+  .result.crit-fail { color: var(--danger); }
+  .result-label {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9em;
+    margin-bottom: 12px;
+  }
+
+  /* Лог состояния — для отладки */
+  .log {
+    background: #0c0c12;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 0.78em;
+    line-height: 1.6;
+    max-height: 280px;
+    overflow-y: auto;
+    margin-top: 14px;
+  }
+  .log-entry { padding: 2px 0; }
+  .log-entry.ok { color: var(--success); }
+  .log-entry.err { color: var(--danger); }
+  .log-entry.warn { color: var(--accent); }
+  .log-entry.info { color: var(--text-muted); }
+
+  .status {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.8em;
+    margin-bottom: 10px;
+  }
+  .status-pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03);
+  }
+  .status-pill.ok { color: var(--success); border-color: rgba(87,179,109,0.4); }
+  .status-pill.err { color: var(--danger); border-color: rgba(224,108,117,0.4); }
+  .status-pill.pending { color: var(--accent); border-color: rgba(212,168,75,0.4); }
+
+  .mode-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .mode-btn {
+    flex: 1;
+    padding: 8px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 0.85em;
+    cursor: pointer;
+  }
+  .mode-btn.active {
+    background: rgba(212,168,75,0.18);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<h1>🎲 Тест 3D-кубиков</h1>
+
+<div class="desc">
+  Изолированный тест @3d-dice/dice-box. Открой DevTools (F12) → Console, чтобы видеть
+  внутренние ошибки. Лог ниже показывает ключевые события (init, roll, error, fallback).
+  Запускай через HTTP-сервер (preview / http-server / python -m http.server) — в file:// WebAssembly не загружается.
+</div>
+
+<div class="status">
+  <span class="status-pill pending" id="status-module">DiceBox module: pending</span>
+  <span class="status-pill pending" id="status-init">Init: pending</span>
+  <span class="status-pill pending" id="status-canvas">Canvas: pending</span>
+  <span class="status-pill pending" id="status-roll">Last roll: —</span>
+</div>
+
+<div class="mode-row">
+  <button class="mode-btn active" data-mode="normal">Обычный</button>
+  <button class="mode-btn" data-mode="adv">▲ Преимущество</button>
+  <button class="mode-btn" data-mode="dis">▼ Помеха</button>
+</div>
+
+<div class="row">
+  <button class="btn" data-sides="4">d4</button>
+  <button class="btn" data-sides="6">d6</button>
+  <button class="btn" data-sides="8">d8</button>
+  <button class="btn" data-sides="10">d10</button>
+  <button class="btn" data-sides="12">d12</button>
+  <button class="btn" data-sides="20">d20</button>
+  <button class="btn" data-sides="100">d100</button>
+</div>
+<div class="row">
+  <button class="btn btn-clear" id="btn-clear">Очистить лог</button>
+  <button class="btn btn-clear" id="btn-reinit">Re-init DiceBox</button>
+</div>
+
+<div class="dsvg-container">
+  <div class="dice-arena" id="dsvg-container"></div>
+</div>
+
+<div class="result" id="result">—</div>
+<div class="result-label" id="result-label">Нажми кубик чтобы бросить</div>
+
+<div class="log" id="log"></div>
+
+<script type="module">
+  const $ = (id) => document.getElementById(id);
+  const log = $("log");
+  function logEntry(text, cls) {
+    const div = document.createElement("div");
+    div.className = "log-entry " + (cls || "info");
+    const t = new Date().toLocaleTimeString();
+    div.textContent = `[${t}] ${text}`;
+    log.insertBefore(div, log.firstChild);
+    while (log.children.length > 60) log.removeChild(log.lastChild);
+  }
+  function setStatus(id, text, cls) {
+    const el = $("status-" + id);
+    if (!el) return;
+    el.textContent = text;
+    el.className = "status-pill " + (cls || "pending");
+  }
+
+  let diceBoxInstance = null;
+  let initPromise = null;
+  let selectedMode = "normal";
+
+  // Mode selector
+  document.querySelectorAll(".mode-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedMode = btn.getAttribute("data-mode");
+      logEntry("Режим: " + selectedMode);
+    });
+  });
+
+  // Load dice-box vendor module
+  logEntry("Загружаю vendor/dice-box/dice-box.es.js…");
+  try {
+    const mod = await import("../vendor/dice-box/dice-box.es.js");
+    window.DiceBox = mod.default || mod.DiceBox || mod;
+    setStatus("module", "DiceBox module: loaded", "ok");
+    logEntry("DiceBox module загружен: typeof = " + typeof window.DiceBox, "ok");
+  } catch (err) {
+    setStatus("module", "DiceBox module: FAILED", "err");
+    logEntry("Не удалось загрузить DiceBox module: " + err.message, "err");
+    console.error(err);
+  }
+
+  async function initDiceBox() {
+    if (diceBoxInstance) return diceBoxInstance;
+    if (initPromise) return initPromise;
+    initPromise = (async () => {
+      setStatus("init", "Init: running", "pending");
+      logEntry("Создаю DiceBox экземпляр…");
+      try {
+        const box = new window.DiceBox({
+          container: "#dsvg-container",
+          assetPath: "../vendor/dice-box/assets/",
+          origin: location.origin,
+          theme: "default",
+          themeColor: "#e0b358",
+          scale: 16,
+          enableShadows: true,
+          shadowTransparency: 0.7,
+          lightIntensity: 1
+        });
+        logEntry("Вызываю box.init()…");
+        const t0 = performance.now();
+        await box.init();
+        const dt = (performance.now() - t0).toFixed(0);
+        logEntry("box.init() OK за " + dt + " мс", "ok");
+        diceBoxInstance = box;
+        setStatus("init", "Init: OK (" + dt + "ms)", "ok");
+
+        // Триггерим resize чтобы канвас подстроился
+        window.dispatchEvent(new Event("resize"));
+
+        // Проверим canvas
+        setTimeout(() => {
+          const canvas = document.querySelector("#dsvg-container canvas");
+          if (canvas) {
+            setStatus("canvas", `Canvas: ${canvas.offsetWidth}×${canvas.offsetHeight} (внутр. ${canvas.width}×${canvas.height})`, "ok");
+            logEntry(`Canvas создан: CSS ${canvas.offsetWidth}×${canvas.offsetHeight}, internal ${canvas.width}×${canvas.height}`, "ok");
+          } else {
+            setStatus("canvas", "Canvas: NOT FOUND", "err");
+            logEntry("Canvas не создан после init!", "err");
+          }
+        }, 200);
+
+        return box;
+      } catch (err) {
+        setStatus("init", "Init: FAILED", "err");
+        logEntry("DiceBox init failed: " + err.message, "err");
+        console.error(err);
+        initPromise = null;
+        throw err;
+      }
+    })();
+    return initPromise;
+  }
+
+  async function roll(sides) {
+    const qty = (selectedMode === "adv" || selectedMode === "dis") ? 2 : 1;
+    logEntry(`Roll: ${qty}d${sides} (${selectedMode})`);
+    setStatus("roll", `Last roll: ${qty}d${sides} pending…`, "pending");
+    const t0 = performance.now();
+    try {
+      const box = await initDiceBox();
+
+      // 6-секундный fallback таймер, чтобы UI не зависал
+      let done = false;
+      const fallbackTimer = setTimeout(() => {
+        if (done) return;
+        done = true;
+        const fallbackVal = Math.floor(Math.random() * sides) + 1;
+        setStatus("roll", `Last roll: ${fallbackVal} (FALLBACK после 6s)`, "err");
+        logEntry(`Fallback: dice-box не ответил за 6с, показан Math.random() = ${fallbackVal}`, "warn");
+        $("result").textContent = fallbackVal;
+        $("result-label").textContent = "Fallback (3D-сцена не отвечает)";
+      }, 6000);
+
+      box.onRollComplete = (results) => {
+        if (done) return;
+        done = true;
+        clearTimeout(fallbackTimer);
+        const dt = (performance.now() - t0).toFixed(0);
+        let r1, r2, result;
+        try {
+          const rolls = results && results[0] && results[0].rolls ? results[0].rolls : [];
+          r1 = rolls[0] ? rolls[0].value : null;
+          r2 = rolls[1] ? rolls[1].value : null;
+        } catch (e) { r1 = null; r2 = null; }
+
+        if (selectedMode === "adv") result = Math.max(r1, r2);
+        else if (selectedMode === "dis") result = Math.min(r1, r2);
+        else result = r1;
+
+        const label = selectedMode === "adv" ? `Преим: ${r1}, ${r2}` :
+                      selectedMode === "dis" ? `Помеха: ${r1}, ${r2}` :
+                      `d${sides}`;
+        setStatus("roll", `Last roll: ${result} (${label}) за ${dt}ms`, "ok");
+        logEntry(`Roll complete: ${result} (${label}), физика ${dt}ms`, "ok");
+        $("result").textContent = result;
+        $("result").className = "result " + (
+          sides === 20 && result === 20 ? "crit-success" :
+          sides === 20 && result === 1 ? "crit-fail" : ""
+        );
+        $("result-label").textContent = label;
+      };
+
+      box.clear();
+      box.roll([{ qty: qty, sides: sides }], { theme: "default", themeColor: "#e0b358" });
+    } catch (err) {
+      logEntry("Roll error: " + err.message, "err");
+      setStatus("roll", "Last roll: ERROR", "err");
+    }
+  }
+
+  document.querySelectorAll(".btn[data-sides]").forEach(btn => {
+    btn.addEventListener("click", () => roll(parseInt(btn.getAttribute("data-sides"))));
+  });
+
+  $("btn-clear").addEventListener("click", () => {
+    log.innerHTML = "";
+    logEntry("Лог очищен");
+  });
+
+  $("btn-reinit").addEventListener("click", async () => {
+    logEntry("Принудительная пересоздание DiceBox…", "warn");
+    try {
+      if (diceBoxInstance) {
+        try { diceBoxInstance.clear(); } catch(e) {}
+      }
+    } catch(e){}
+    diceBoxInstance = null;
+    initPromise = null;
+    const container = $("dsvg-container");
+    container.innerHTML = "";
+    setStatus("init", "Init: pending", "pending");
+    setStatus("canvas", "Canvas: pending", "pending");
+    await initDiceBox();
+  });
+
+  // Авто-init при загрузке
+  if (typeof window.DiceBox === "function") {
+    initDiceBox();
+  } else {
+    logEntry("DiceBox не загружен — re-init будет вручную", "warn");
+  }
+</script>
+
+</body>
+</html>

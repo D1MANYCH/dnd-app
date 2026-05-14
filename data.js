@@ -1540,7 +1540,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.10.6";
+const APP_VERSION = "3.10.7";
 const APP_VERSION_DATE = "2026-05-15";
 
 // ============================================================
@@ -1826,9 +1826,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.10.6",
+    version: "3.10.7",
     date: "15 мая 2026",
     badge: "new",
+    changes: [
+      { type: "fix", text: "FIX 3D-кубики: убрана animation dice-sheet-in (opacity застревал в 0 при некоторых условиях рендера); +resize event на open модалки; +отдельный tests/dice-test.html для отладки в будущем" }
+    ]
+  },
+  {
+    version: "3.10.6",
+    date: "15 мая 2026",
+    badge: "old",
     changes: [
       { type: "fix", text: "Прозрачный фон у d20-fab.webp (Gemini-картинка шла со светло-серым фоном, прогнал flood-fill из углов в Pillow); убрал иконку из right-rail d20-кнопки на desktop — вернул компактный текстовый btn-primary" }
     ]

@@ -122,6 +122,13 @@ if (modal) {
   modal.style.display = "";
   modal.classList.add("active");
 }
+// FIX: DiceBox canvas сохраняет внутренний буфер 300×150 (default) если init
+// произошёл до того как контейнер получил реальный размер.
+// resizeWorld() лишь регистрирует window.resize listener — он сам не ресайзит.
+// Триггерим resize event после показа модалки чтобы сцена подстроилась.
+setTimeout(function() {
+  try { window.dispatchEvent(new Event('resize')); } catch (e) {}
+}, 60);
 }
 function closeDiceModal() {
 const modal = $("dice-modal");
@@ -556,6 +563,10 @@ function _initDiceBox() {
     });
     await box.init();
     _diceBoxInstance = box;
+    // FIX: после init() canvas может остаться 300×150 если контейнер ещё
+    // не имел размера. resizeWorld() регистрирует resize listener — сами
+    // триггерим его, чтобы внутренний WebGL-буфер выровнялся под container.
+    try { window.dispatchEvent(new Event('resize')); } catch (e) {}
     return box;
   })().catch(function(err) {
     console.error('[DiceBox] Ошибка инициализации:', err);
