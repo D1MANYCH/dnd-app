@@ -101,6 +101,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <button type="button" class="accent-chip" data-accent-btn="silver"   title="Серебро"  aria-label="Серебро"  style="--chip-hi:#d4d8df;--chip-lo:#9ea3aa;--chip-mid:#c0c5cc" onclick="setAccent('silver')"></button>
       <button type="button" class="accent-chip" data-accent-btn="graphite" title="Графит"   aria-label="Графит"   style="--chip-hi:#a0a3ac;--chip-lo:#6e7178;--chip-mid:#8a8d96" onclick="setAccent('graphite')"></button>
     </div>
+    <label class="auto-accent-row" for="auto-accent-toggle" title="Акцент автоматически подстраивается под класс активного персонажа">
+      <input type="checkbox" id="auto-accent-toggle" onchange="setAutoAccent(this.checked)">
+      <span>🎭 Авто-акцент по классу</span>
+    </label>
   </div>
 </div>
 <header>
@@ -211,7 +215,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="row">
 <div class="col">
 <label>Класс</label>
-<select id="char-class" onchange="updateChar(); updateSubclassOptions(); recalculateHP(); autoSelectProficiencies(); updateClassFeatures(); calculateAC(); updateLockButtonState()">
+<select id="char-class" onchange="updateChar(); updateSubclassOptions(); recalculateHP(); autoSelectProficiencies(); updateClassFeatures(); calculateAC(); updateLockButtonState(); if (typeof _refreshAccent==='function') _refreshAccent()">
 <option value="">Выберите класс</option>
 <option value="Волшебник">Волшебник</option>
 <option value="Чародей">Чародей</option>

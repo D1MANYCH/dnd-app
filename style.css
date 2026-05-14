@@ -863,6 +863,32 @@
   font-weight: 700;
   text-shadow: 0 1px 2px rgba(0,0,0,0.6);
 }
+/* UI-3: чипы в авто-режиме приглушены, тоггл рядом */
+.accent-chip.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.accent-chip.is-disabled:hover { transform: none; border-color: var(--border); }
+.auto-accent-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+  padding: 6px 8px;
+  border-radius: var(--r-md);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+.auto-accent-row:hover { border-color: var(--accent); }
+.auto-accent-row input[type="checkbox"] {
+  width: 16px; height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
 
 /* ========== R2. Базовые компоненты ==========
    Унифицированные классы на токенах R1. Новая разметка должна

@@ -978,6 +978,7 @@ closeDrawer();
 currentId = null;
 updateHeaderTitle();
 renderCharacterList();
+if (typeof _refreshAccent === 'function') _refreshAccent();
 } else {
 if (characterScreen) characterScreen.classList.remove("hidden");
 if (characterTabs) characterTabs.classList.remove("hidden");
@@ -1692,6 +1693,7 @@ document.querySelectorAll(".tab-btn").forEach(function(b) {
 });
 if (lastTab === "party")  setTimeout(openPartyTab, 0);
 if (lastTab === "battle") setTimeout(openBattleTab, 0);
+if (typeof _refreshAccent === 'function') _refreshAccent();
 }
 function updateChar() {
 if (!currentId) return;

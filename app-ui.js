@@ -346,16 +346,74 @@ function _applyAccent(name) {
 function setAccent(name) {
   if (ACCENTS.indexOf(name) === -1) return;
   try { localStorage.setItem('dnd_accent', name); } catch (e) {}
+  // UI-3: ручной выбор чипа выключает авто-режим
+  if (_getAutoAccent()) {
+    try { localStorage.setItem('dnd_auto_accent', '0'); } catch (e) {}
+    _syncAutoAccentToggle();
+  }
   _applyAccent(name);
   _syncAccentButtons();
 }
 function _syncAccentButtons() {
+  var auto = _getAutoAccent();
   var active = _getAccent();
+  if (auto) {
+    var ch = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+    if (ch && ch.class) active = _accentForClass(ch.class);
+  }
   document.querySelectorAll('.accent-chip').forEach(function(b) {
     b.classList.toggle('is-active', b.getAttribute('data-accent-btn') === active);
+    b.classList.toggle('is-disabled', auto);
+    b.disabled = auto;
   });
 }
 document.addEventListener('DOMContentLoaded', _syncAccentButtons);
+
+// UI-3: авто-акцент по классу активного персонажа
+var CLASS_ACCENT_MAP = {
+  "Варвар":     "ruby",
+  "Бард":       "copper",
+  "Воин":       "silver",
+  "Волшебник":  "sapphire",
+  "Друид":      "emerald",
+  "Жрец":       "gold",
+  "Колдун":     "amethyst",
+  "Монах":      "copper",
+  "Паладин":    "gold",
+  "Плут":       "graphite",
+  "Следопыт":   "emerald",
+  "Чародей":    "ruby"
+};
+function _getAutoAccent() {
+  try { return localStorage.getItem('dnd_auto_accent') === '1'; } catch (e) { return false; }
+}
+function _accentForClass(cls) {
+  return CLASS_ACCENT_MAP[cls] || 'gold';
+}
+function _applyClassAccent(cls) {
+  _applyAccent(_accentForClass(cls));
+}
+function _refreshAccent() {
+  if (_getAutoAccent()) {
+    var ch = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+    if (ch && ch.class) { _applyClassAccent(ch.class); _syncAccentButtons(); return; }
+  }
+  _applyAccent(_getAccent());
+  _syncAccentButtons();
+}
+function setAutoAccent(on) {
+  try { localStorage.setItem('dnd_auto_accent', on ? '1' : '0'); } catch (e) {}
+  _syncAutoAccentToggle();
+  _refreshAccent();
+}
+function _syncAutoAccentToggle() {
+  var t = document.getElementById('auto-accent-toggle');
+  if (t) t.checked = _getAutoAccent();
+}
+document.addEventListener('DOMContentLoaded', function() {
+  _syncAutoAccentToggle();
+  _refreshAccent();
+});
 
 // Реакция на смену системной темы при data-theme="auto"
 if (window.matchMedia) {
