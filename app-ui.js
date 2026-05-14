@@ -117,7 +117,11 @@ function renderSheetAvatar() {
 
 function openDiceModal() {
 const modal = $("dice-modal");
-if (modal) modal.classList.add("active");
+if (modal) {
+  modal.classList.remove("hidden");
+  modal.style.display = "";
+  modal.classList.add("active");
+}
 }
 function closeDiceModal() {
 const modal = $("dice-modal");
