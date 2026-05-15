@@ -579,6 +579,12 @@ function _initDiceBox() {
 // DICE2-3: callback принимает (actualValue, actualValue2) — второе значение не-undefined
 // только при qty=2 (adv/dis). UI синхронизирует оба числа с физикой.
 // dice-box поддерживает d4/d6/d8/d10/d12/d20/d100. В notation указываем qty×sides.
+//
+// FALLBACK-СТРАТЕГИЯ (важно для file://):
+// 1. Если prefers-reduced-motion → callback() мгновенно
+// 2. Если window.DiceBox недоступен (например в file:// Chrome блокирует ES-module) →
+//    animateDice2d() — SVG-анимация подбрасывания без WebAssembly
+// 3. Если DiceBox.init() падает или физика не отвечает за 6с → тоже 2D-fallback
 function animateDice3d(sides, result, callback, opts) {
   var qty = (opts && opts.qty) ? opts.qty : 1;
   var reduced = prefersReducedMotion();
@@ -586,14 +592,16 @@ function animateDice3d(sides, result, callback, opts) {
     setTimeout(function() { callback(); }, 30);
     return;
   }
-  // Fallback: если DiceBox не успел инициализироваться/завершить физику за 6с
-  // (например при file:// без ассетов или при зависшей WebGL-сцене), вернём
-  // числовой результат через callback() — UI обновится без 3D-анимации.
+  // Если 3D-модуль вообще не загружен (file:// без HTTP-сервера) — сразу 2D-fallback
+  if (typeof window.DiceBox !== 'function') {
+    animateDice2d(sides, result, callback, opts);
+    return;
+  }
   var done = false;
   var fallbackTimer = setTimeout(function() {
     if (done) return;
     done = true;
-    try { callback(); } catch (e) {}
+    animateDice2d(sides, result, callback, opts);
   }, 6000);
   _initDiceBox().then(function(box) {
     box.onRollComplete = function(results) {
@@ -606,7 +614,6 @@ function animateDice3d(sides, result, callback, opts) {
         v1 = rolls[0] ? rolls[0].value : undefined;
         v2 = rolls[1] ? rolls[1].value : undefined;
       } catch (e) { v1 = undefined; v2 = undefined; }
-      // DICE2-5: glow на крит. d20 = 1/20 (учитываем и второй кубик при adv/dis)
       _applyDiceCritGlow(sides, v1, v2);
       callback(v1, v2);
     };
@@ -616,9 +623,117 @@ function animateDice3d(sides, result, callback, opts) {
     if (done) return;
     done = true;
     clearTimeout(fallbackTimer);
-    callback();
+    animateDice2d(sides, result, callback, opts);
   });
 }
+
+// 2D-fallback анимация подбрасывания через SVG (без WebAssembly).
+// Работает в любом контексте — file://, HTTP, PWA-standalone.
+// Кубик представлен как многоугольник: d4=треугольник, d6=квадрат, d8=октагон,
+// d10=декагон, d12=додекагон, d20=шестиугольник (символично), d100=октагон.
+function animateDice2d(sides, result, callback, opts) {
+  var qty = (opts && opts.qty) ? opts.qty : 1;
+  var container = document.getElementById('dsvg-container');
+  if (!container) { try { callback(); } catch(e){} return; }
+  // Очищаем canvas / прошлый SVG
+  container.innerHTML = '';
+
+  // Второй бросок если qty=2 (для adv/dis)
+  var result2 = (qty === 2) ? Math.floor(Math.random() * sides) + 1 : null;
+
+  var SHAPES = { 4: 3, 6: 4, 8: 8, 10: 10, 12: 12, 20: 6, 100: 8 };
+  var n = SHAPES[sides] || 6;
+
+  var NS = 'http://www.w3.org/2000/svg';
+  function buildDie(label) {
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '-55 -55 110 110');
+    svg.setAttribute('class', 'dice2d-svg');
+    var g = document.createElementNS(NS, 'g');
+    g.setAttribute('class', 'dice2d-g');
+    var radius = 44;
+    var pts = [];
+    for (var i = 0; i < n; i++) {
+      var ang = (i * 2 * Math.PI / n) - Math.PI / 2;
+      pts.push((radius * Math.cos(ang)).toFixed(1) + ',' + (radius * Math.sin(ang)).toFixed(1));
+    }
+    var poly = document.createElementNS(NS, 'polygon');
+    poly.setAttribute('points', pts.join(' '));
+    poly.setAttribute('fill', 'url(#dice2d-grad)');
+    poly.setAttribute('stroke', '#1a1410');
+    poly.setAttribute('stroke-width', '3');
+    poly.setAttribute('stroke-linejoin', 'round');
+    g.appendChild(poly);
+    var text = document.createElementNS(NS, 'text');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'central');
+    text.setAttribute('y', '3');
+    text.setAttribute('font-size', '34');
+    text.setAttribute('font-weight', '800');
+    text.setAttribute('fill', '#1a1410');
+    text.setAttribute('class', 'dice2d-text');
+    text.textContent = String(label);
+    g.appendChild(text);
+
+    // Градиент через <defs>
+    var defs = document.createElementNS(NS, 'defs');
+    var grad = document.createElementNS(NS, 'linearGradient');
+    grad.setAttribute('id', 'dice2d-grad');
+    grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
+    grad.setAttribute('x2', '0'); grad.setAttribute('y2', '1');
+    var s1 = document.createElementNS(NS, 'stop');
+    s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', '#f4d484');
+    var s2 = document.createElementNS(NS, 'stop');
+    s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', '#c79941');
+    grad.appendChild(s1); grad.appendChild(s2);
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+    svg.appendChild(g);
+    return svg;
+  }
+
+  // Для adv/dis рисуем два кубика рядом
+  if (qty === 2) {
+    container.style.display = 'flex';
+    container.style.gap = '8px';
+    container.style.justifyContent = 'center';
+    container.style.alignItems = 'center';
+    var d1 = buildDie(result);
+    var d2 = buildDie(result2);
+    d1.style.flex = '1';
+    d2.style.flex = '1';
+    container.appendChild(d1);
+    container.appendChild(d2);
+  } else {
+    container.style.display = '';
+    container.appendChild(buildDie(result));
+  }
+
+  // Запускаем анимацию через requestAnimationFrame
+  var duration = 900;
+  var t0 = performance.now();
+  var gs = container.querySelectorAll('.dice2d-g');
+  function tick(now) {
+    var t = Math.min(1, (now - t0) / duration);
+    // ease-out cubic
+    var k = 1 - Math.pow(1 - t, 3);
+    var rot = k * 720;            // 2 полных оборота
+    var scale = 0.4 + k * 0.6;    // 0.4 → 1.0
+    var opacity = Math.min(1, t * 3);
+    gs.forEach(function(g) {
+      g.setAttribute('transform', 'rotate(' + rot.toFixed(1) + ') scale(' + scale.toFixed(2) + ')');
+      g.style.opacity = opacity;
+    });
+    if (t < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      _applyDiceCritGlow(sides, result, result2);
+      try { callback(result, result2); } catch(e) {}
+    }
+  }
+  requestAnimationFrame(tick);
+}
+window.animateDice2d = animateDice2d;
 
 // DICE2-5: кратковременный glow контейнера кубиков на крит. d20.
 function _applyDiceCritGlow(sides, v1, v2) {

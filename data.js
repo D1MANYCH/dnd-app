@@ -1540,7 +1540,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.10.7";
+const APP_VERSION = "3.10.8";
 const APP_VERSION_DATE = "2026-05-15";
 
 // ============================================================
@@ -1826,9 +1826,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.10.7",
+    version: "3.10.8",
     date: "15 мая 2026",
     badge: "new",
+    changes: [
+      { type: "fix", text: "2D-fallback анимация кубиков (SVG polygon + rAF) когда DiceBox недоступен (file:// блокирует ES-module и WebAssembly); тестовая страница tests/dice-test.html с переключателем auto/3D/2D" }
+    ]
+  },
+  {
+    version: "3.10.7",
+    date: "15 мая 2026",
+    badge: "old",
     changes: [
       { type: "fix", text: "FIX 3D-кубики: убрана animation dice-sheet-in (opacity застревал в 0 при некоторых условиях рендера); +resize event на open модалки; +отдельный tests/dice-test.html для отладки в будущем" }
     ]

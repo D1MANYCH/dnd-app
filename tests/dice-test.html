@@ -18,175 +18,127 @@
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    padding: 16px;
-    background: var(--bg-1);
-    color: var(--text);
+    margin: 0; padding: 16px;
+    background: var(--bg-1); color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    min-height: 100vh;
   }
   h1 { font-size: 1.4em; margin: 0 0 12px; color: var(--accent); }
   .desc {
-    color: var(--text-muted);
-    font-size: 0.85em;
-    line-height: 1.5;
-    margin-bottom: 16px;
-    padding: 10px 14px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 8px;
+    color: var(--text-muted); font-size: 0.85em; line-height: 1.5;
+    margin-bottom: 14px; padding: 10px 14px;
+    background: rgba(255,255,255,0.03); border-radius: 8px;
     border-left: 3px solid var(--accent);
   }
-  .row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 14px;
+  .warn-banner {
+    display: none; padding: 12px 16px; margin-bottom: 14px;
+    background: rgba(224,108,117,0.12); border: 1px solid rgba(224,108,117,0.4);
+    border-radius: 8px; color: var(--danger); font-size: 0.85em;
   }
+  .warn-banner.show { display: block; }
+  .warn-banner code { background: rgba(0,0,0,0.4); padding: 1px 6px; border-radius: 4px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
   .btn {
-    flex: 1 1 auto;
-    min-width: 70px;
-    padding: 10px 14px;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-size: 1em;
-    font-weight: 700;
-    cursor: pointer;
+    flex: 1 1 auto; min-width: 70px;
+    padding: 10px 14px; background: var(--bg-2);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-size: 1em; font-weight: 700; cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
   }
   .btn:hover { background: rgba(212,168,75,0.12); border-color: var(--accent); }
-  .btn.btn-adv { color: var(--success); border-color: var(--success); }
-  .btn.btn-dis { color: var(--danger); border-color: var(--danger); }
   .btn.btn-clear { color: var(--text-muted); }
-
-  /* Контейнер сцены — копирует production-стили .dsvg-container */
   .dsvg-container {
-    width: 100%;
-    max-width: 340px;
-    height: 340px;
-    margin: 16px auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 100%; max-width: 340px; height: 340px; margin: 14px auto;
+    display: flex; align-items: center; justify-content: center;
     position: relative;
     background-image: url('../assets/textures/dice-tray.jpg');
-    background-size: cover;
-    background-position: center;
+    background-size: cover; background-position: center;
     border-radius: 12px;
     box-shadow: inset 0 0 30px 4px rgba(0,0,0,0.45);
-    overflow: hidden;
-    border: 1px solid var(--border);
+    overflow: hidden; border: 1px solid var(--border);
   }
   .dice-arena {
-    position: absolute;
-    top: 50%; left: 50%;
+    position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     width: 62%; height: 62%;
   }
-  .dice-arena > canvas {
-    width: 100% !important;
-    height: 100% !important;
-    display: block;
-  }
-
-  /* Большое число результата */
+  .dice-arena > canvas { width: 100% !important; height: 100% !important; display: block; }
+  .dice2d-svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.55)); }
+  .dice2d-g { transform-origin: 0 0; opacity: 0; }
   .result {
-    font-size: 5em;
-    font-weight: 800;
-    text-align: center;
-    color: var(--accent);
-    margin: 8px 0;
-    min-height: 1.2em;
+    font-size: 5em; font-weight: 800; text-align: center;
+    color: var(--accent); margin: 8px 0; min-height: 1.2em;
     text-shadow: 0 0 30px var(--accent-glow);
   }
   .result.crit-success { color: var(--success); }
   .result.crit-fail { color: var(--danger); }
-  .result-label {
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.9em;
-    margin-bottom: 12px;
-  }
-
-  /* Лог состояния — для отладки */
+  .result-label { text-align: center; color: var(--text-muted); font-size: 0.9em; margin-bottom: 12px; }
   .log {
-    background: #0c0c12;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-family: "Consolas", "Monaco", monospace;
-    font-size: 0.78em;
-    line-height: 1.6;
-    max-height: 280px;
-    overflow-y: auto;
-    margin-top: 14px;
+    background: #0c0c12; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; font-family: "Consolas", "Monaco", monospace;
+    font-size: 0.78em; line-height: 1.6;
+    max-height: 280px; overflow-y: auto; margin-top: 12px;
   }
   .log-entry { padding: 2px 0; }
   .log-entry.ok { color: var(--success); }
   .log-entry.err { color: var(--danger); }
   .log-entry.warn { color: var(--accent); }
   .log-entry.info { color: var(--text-muted); }
-
-  .status {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    font-size: 0.8em;
-    margin-bottom: 10px;
-  }
+  .status { display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.8em; margin-bottom: 10px; }
   .status-pill {
-    padding: 4px 10px;
-    border-radius: 999px;
+    padding: 4px 10px; border-radius: 999px;
     border: 1px solid var(--border);
     background: rgba(255,255,255,0.03);
   }
   .status-pill.ok { color: var(--success); border-color: rgba(87,179,109,0.4); }
   .status-pill.err { color: var(--danger); border-color: rgba(224,108,117,0.4); }
   .status-pill.pending { color: var(--accent); border-color: rgba(212,168,75,0.4); }
-
-  .mode-row {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 10px;
-  }
+  .mode-row { display: flex; gap: 6px; margin-bottom: 10px; }
   .mode-btn {
-    flex: 1;
-    padding: 8px;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text-muted);
-    font-size: 0.85em;
-    cursor: pointer;
+    flex: 1; padding: 8px;
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text-muted); font-size: 0.85em; cursor: pointer;
   }
   .mode-btn.active {
     background: rgba(212,168,75,0.18);
-    border-color: var(--accent);
-    color: var(--accent);
+    border-color: var(--accent); color: var(--accent);
   }
+  .toggle-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; font-size: 0.85em; }
+  .toggle-row label { color: var(--text-muted); cursor: pointer; }
 </style>
 </head>
 <body>
 
-<h1>🎲 Тест 3D-кубиков</h1>
+<h1>🎲 Тест 3D-кубиков (с 2D-fallback)</h1>
 
 <div class="desc">
-  Изолированный тест @3d-dice/dice-box. Открой DevTools (F12) → Console, чтобы видеть
-  внутренние ошибки. Лог ниже показывает ключевые события (init, roll, error, fallback).
-  Запускай через HTTP-сервер (preview / http-server / python -m http.server) — в file:// WebAssembly не загружается.
+  Изолированный тест @3d-dice/dice-box + 2D-fallback анимации.
+  Открой DevTools (F12) → Console для подробных ошибок. Лог ниже показывает ключевые события.
+</div>
+
+<div class="warn-banner" id="warn-file">
+  ⚠️ Открыто через <code>file://</code> — Chrome блокирует ES-module imports и WebAssembly.
+  3D-кубики недоступны, будет использован <strong>2D-fallback</strong>.
+  Чтобы включить 3D: запусти <code>python -m http.server 3000</code> в папке dnd-app и открой
+  <code>http://localhost:3000/tests/dice-test.html</code>.
 </div>
 
 <div class="status">
-  <span class="status-pill pending" id="status-module">DiceBox module: pending</span>
-  <span class="status-pill pending" id="status-init">Init: pending</span>
-  <span class="status-pill pending" id="status-canvas">Canvas: pending</span>
+  <span class="status-pill pending" id="status-module">DiceBox: pending</span>
+  <span class="status-pill pending" id="status-init">Init: —</span>
+  <span class="status-pill pending" id="status-canvas">Canvas: —</span>
   <span class="status-pill pending" id="status-roll">Last roll: —</span>
+  <span class="status-pill pending" id="status-mode">Mode: AUTO</span>
+</div>
+
+<div class="toggle-row">
+  <label><input type="radio" name="rmode" value="auto" checked> Auto (3D если возможно)</label>
+  <label><input type="radio" name="rmode" value="3d"> Force 3D</label>
+  <label><input type="radio" name="rmode" value="2d"> Force 2D</label>
 </div>
 
 <div class="mode-row">
   <button class="mode-btn active" data-mode="normal">Обычный</button>
-  <button class="mode-btn" data-mode="adv">▲ Преимущество</button>
+  <button class="mode-btn" data-mode="adv">▲ Преим</button>
   <button class="mode-btn" data-mode="dis">▼ Помеха</button>
 </div>
 
@@ -213,192 +165,304 @@
 
 <div class="log" id="log"></div>
 
+<!-- Загрузка dice-box тем же способом что в основном index.html (ES-module → window.DiceBox).
+     Это упадёт при file://, и мы переключимся на 2D-fallback. -->
 <script type="module">
-  const $ = (id) => document.getElementById(id);
-  const log = $("log");
-  function logEntry(text, cls) {
-    const div = document.createElement("div");
-    div.className = "log-entry " + (cls || "info");
-    const t = new Date().toLocaleTimeString();
-    div.textContent = `[${t}] ${text}`;
-    log.insertBefore(div, log.firstChild);
-    while (log.children.length > 60) log.removeChild(log.lastChild);
-  }
-  function setStatus(id, text, cls) {
-    const el = $("status-" + id);
-    if (!el) return;
-    el.textContent = text;
-    el.className = "status-pill " + (cls || "pending");
-  }
-
-  let diceBoxInstance = null;
-  let initPromise = null;
-  let selectedMode = "normal";
-
-  // Mode selector
-  document.querySelectorAll(".mode-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      selectedMode = btn.getAttribute("data-mode");
-      logEntry("Режим: " + selectedMode);
-    });
-  });
-
-  // Load dice-box vendor module
-  logEntry("Загружаю vendor/dice-box/dice-box.es.js…");
   try {
-    const mod = await import("../vendor/dice-box/dice-box.es.js");
+    const mod = await import("../vendor/dice-box/dice-box.es.js?nc=" + Date.now());
     window.DiceBox = mod.default || mod.DiceBox || mod;
-    setStatus("module", "DiceBox module: loaded", "ok");
-    logEntry("DiceBox module загружен: typeof = " + typeof window.DiceBox, "ok");
+    window.dispatchEvent(new Event("dicebox:ready"));
+    console.log("[dice-test] DiceBox module loaded");
   } catch (err) {
-    setStatus("module", "DiceBox module: FAILED", "err");
-    logEntry("Не удалось загрузить DiceBox module: " + err.message, "err");
-    console.error(err);
+    console.error("[dice-test] DiceBox module import failed:", err);
+    window.dispatchEvent(new Event("dicebox:failed"));
   }
+</script>
 
-  async function initDiceBox() {
-    if (diceBoxInstance) return diceBoxInstance;
-    if (initPromise) return initPromise;
-    initPromise = (async () => {
-      setStatus("init", "Init: running", "pending");
-      logEntry("Создаю DiceBox экземпляр…");
-      try {
-        const box = new window.DiceBox({
-          container: "#dsvg-container",
-          assetPath: "../vendor/dice-box/assets/",
-          origin: location.origin,
-          theme: "default",
-          themeColor: "#e0b358",
-          scale: 16,
-          enableShadows: true,
-          shadowTransparency: 0.7,
-          lightIntensity: 1
-        });
-        logEntry("Вызываю box.init()…");
-        const t0 = performance.now();
-        await box.init();
-        const dt = (performance.now() - t0).toFixed(0);
-        logEntry("box.init() OK за " + dt + " мс", "ok");
-        diceBoxInstance = box;
-        setStatus("init", "Init: OK (" + dt + "ms)", "ok");
+<script>
+const $ = (id) => document.getElementById(id);
+const logEl = $("log");
 
-        // Триггерим resize чтобы канвас подстроился
-        window.dispatchEvent(new Event("resize"));
+function logEntry(text, cls) {
+  const div = document.createElement("div");
+  div.className = "log-entry " + (cls || "info");
+  const t = new Date().toLocaleTimeString();
+  div.textContent = "[" + t + "] " + text;
+  logEl.insertBefore(div, logEl.firstChild);
+  while (logEl.children.length > 60) logEl.removeChild(logEl.lastChild);
+}
+function setStatus(id, text, cls) {
+  const el = $("status-" + id);
+  if (!el) return;
+  el.textContent = text;
+  el.className = "status-pill " + (cls || "pending");
+}
 
-        // Проверим canvas
-        setTimeout(() => {
-          const canvas = document.querySelector("#dsvg-container canvas");
-          if (canvas) {
-            setStatus("canvas", `Canvas: ${canvas.offsetWidth}×${canvas.offsetHeight} (внутр. ${canvas.width}×${canvas.height})`, "ok");
-            logEntry(`Canvas создан: CSS ${canvas.offsetWidth}×${canvas.offsetHeight}, internal ${canvas.width}×${canvas.height}`, "ok");
-          } else {
-            setStatus("canvas", "Canvas: NOT FOUND", "err");
-            logEntry("Canvas не создан после init!", "err");
-          }
-        }, 200);
+let diceBoxInstance = null;
+let initPromise = null;
+let selectedMode = "normal";
+let renderMode = "auto"; // auto | 3d | 2d
 
-        return box;
-      } catch (err) {
-        setStatus("init", "Init: FAILED", "err");
-        logEntry("DiceBox init failed: " + err.message, "err");
-        console.error(err);
-        initPromise = null;
-        throw err;
-      }
-    })();
-    return initPromise;
+if (location.protocol === "file:") {
+  $("warn-file").classList.add("show");
+}
+
+// Mode selector
+document.querySelectorAll(".mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedMode = btn.getAttribute("data-mode");
+    logEntry("Режим броска: " + selectedMode);
+  });
+});
+
+// Render-mode (auto/3d/2d)
+document.querySelectorAll('input[name="rmode"]').forEach(r => {
+  r.addEventListener("change", () => {
+    renderMode = r.value;
+    setStatus("mode", "Mode: " + renderMode.toUpperCase(), "pending");
+    logEntry("Render mode: " + renderMode);
+  });
+});
+
+// DiceBox loaded?
+window.addEventListener("dicebox:ready", () => {
+  setStatus("module", "DiceBox: loaded", "ok");
+  logEntry("DiceBox module готов: typeof = " + typeof window.DiceBox, "ok");
+});
+window.addEventListener("dicebox:failed", () => {
+  setStatus("module", "DiceBox: FAILED (file://?)", "err");
+  logEntry("DiceBox module не загружен — будет 2D-fallback", "err");
+});
+
+// Если через 2с DiceBox так и не пришёл — считаем failed
+setTimeout(() => {
+  if (typeof window.DiceBox !== "function") {
+    setStatus("module", "DiceBox: FAILED (timeout)", "err");
+    logEntry("DiceBox не загружен за 2с — 2D-fallback", "warn");
   }
+}, 2000);
 
-  async function roll(sides) {
-    const qty = (selectedMode === "adv" || selectedMode === "dis") ? 2 : 1;
-    logEntry(`Roll: ${qty}d${sides} (${selectedMode})`);
-    setStatus("roll", `Last roll: ${qty}d${sides} pending…`, "pending");
-    const t0 = performance.now();
+async function initDiceBox() {
+  if (diceBoxInstance) return diceBoxInstance;
+  if (initPromise) return initPromise;
+  initPromise = (async () => {
+    setStatus("init", "Init: running", "pending");
+    logEntry("DiceBox.init() запускается…");
     try {
-      const box = await initDiceBox();
-
-      // 6-секундный fallback таймер, чтобы UI не зависал
-      let done = false;
-      const fallbackTimer = setTimeout(() => {
-        if (done) return;
-        done = true;
-        const fallbackVal = Math.floor(Math.random() * sides) + 1;
-        setStatus("roll", `Last roll: ${fallbackVal} (FALLBACK после 6s)`, "err");
-        logEntry(`Fallback: dice-box не ответил за 6с, показан Math.random() = ${fallbackVal}`, "warn");
-        $("result").textContent = fallbackVal;
-        $("result-label").textContent = "Fallback (3D-сцена не отвечает)";
-      }, 6000);
-
-      box.onRollComplete = (results) => {
-        if (done) return;
-        done = true;
-        clearTimeout(fallbackTimer);
-        const dt = (performance.now() - t0).toFixed(0);
-        let r1, r2, result;
-        try {
-          const rolls = results && results[0] && results[0].rolls ? results[0].rolls : [];
-          r1 = rolls[0] ? rolls[0].value : null;
-          r2 = rolls[1] ? rolls[1].value : null;
-        } catch (e) { r1 = null; r2 = null; }
-
-        if (selectedMode === "adv") result = Math.max(r1, r2);
-        else if (selectedMode === "dis") result = Math.min(r1, r2);
-        else result = r1;
-
-        const label = selectedMode === "adv" ? `Преим: ${r1}, ${r2}` :
-                      selectedMode === "dis" ? `Помеха: ${r1}, ${r2}` :
-                      `d${sides}`;
-        setStatus("roll", `Last roll: ${result} (${label}) за ${dt}ms`, "ok");
-        logEntry(`Roll complete: ${result} (${label}), физика ${dt}ms`, "ok");
-        $("result").textContent = result;
-        $("result").className = "result " + (
-          sides === 20 && result === 20 ? "crit-success" :
-          sides === 20 && result === 1 ? "crit-fail" : ""
-        );
-        $("result-label").textContent = label;
-      };
-
-      box.clear();
-      box.roll([{ qty: qty, sides: sides }], { theme: "default", themeColor: "#e0b358" });
+      const box = new window.DiceBox({
+        container: "#dsvg-container",
+        assetPath: "../vendor/dice-box/assets/",
+        origin: location.origin,
+        theme: "default",
+        themeColor: "#e0b358",
+        scale: 16,
+        enableShadows: true,
+        shadowTransparency: 0.7,
+        lightIntensity: 1
+      });
+      const t0 = performance.now();
+      await box.init();
+      const dt = (performance.now() - t0).toFixed(0);
+      diceBoxInstance = box;
+      setStatus("init", "Init: OK (" + dt + "ms)", "ok");
+      logEntry("box.init() OK за " + dt + " мс", "ok");
+      window.dispatchEvent(new Event("resize"));
+      setTimeout(() => {
+        const canvas = document.querySelector("#dsvg-container canvas");
+        if (canvas) {
+          setStatus("canvas", "Canvas: " + canvas.offsetWidth + "x" + canvas.offsetHeight + " (буф. " + canvas.width + "x" + canvas.height + ")", "ok");
+          logEntry("Canvas создан: CSS " + canvas.offsetWidth + "x" + canvas.offsetHeight, "ok");
+        } else {
+          setStatus("canvas", "Canvas: NOT FOUND", "err");
+          logEntry("Canvas не создан после init", "err");
+        }
+      }, 200);
+      return box;
     } catch (err) {
-      logEntry("Roll error: " + err.message, "err");
-      setStatus("roll", "Last roll: ERROR", "err");
+      setStatus("init", "Init: FAILED", "err");
+      logEntry("box.init() failed: " + err.message, "err");
+      console.error(err);
+      initPromise = null;
+      throw err;
     }
+  })();
+  return initPromise;
+}
+
+// 2D-fallback (копия из app-ui.js animateDice2d, для standalone-теста)
+function animateDice2d(sides, result, result2, callback) {
+  const container = $("dsvg-container");
+  container.innerHTML = "";
+  container.style.display = result2 ? "flex" : "";
+  container.style.gap = "8px";
+  container.style.justifyContent = "center";
+  container.style.alignItems = "center";
+
+  const SHAPES = { 4: 3, 6: 4, 8: 8, 10: 10, 12: 12, 20: 6, 100: 8 };
+  const n = SHAPES[sides] || 6;
+  const NS = "http://www.w3.org/2000/svg";
+
+  function buildDie(label) {
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "-55 -55 110 110");
+    svg.setAttribute("class", "dice2d-svg");
+    if (result2) svg.style.flex = "1";
+    const g = document.createElementNS(NS, "g");
+    g.setAttribute("class", "dice2d-g");
+    const r = 44;
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i * 2 * Math.PI / n) - Math.PI / 2;
+      pts.push((r * Math.cos(a)).toFixed(1) + "," + (r * Math.sin(a)).toFixed(1));
+    }
+    const poly = document.createElementNS(NS, "polygon");
+    poly.setAttribute("points", pts.join(" "));
+    poly.setAttribute("fill", "url(#dice2d-grad)");
+    poly.setAttribute("stroke", "#1a1410");
+    poly.setAttribute("stroke-width", "3");
+    poly.setAttribute("stroke-linejoin", "round");
+    g.appendChild(poly);
+    const text = document.createElementNS(NS, "text");
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("dominant-baseline", "central");
+    text.setAttribute("y", "3");
+    text.setAttribute("font-size", "34");
+    text.setAttribute("font-weight", "800");
+    text.setAttribute("fill", "#1a1410");
+    text.textContent = String(label);
+    g.appendChild(text);
+    const defs = document.createElementNS(NS, "defs");
+    const grad = document.createElementNS(NS, "linearGradient");
+    grad.setAttribute("id", "dice2d-grad");
+    grad.setAttribute("x1","0"); grad.setAttribute("y1","0");
+    grad.setAttribute("x2","0"); grad.setAttribute("y2","1");
+    const s1 = document.createElementNS(NS, "stop");
+    s1.setAttribute("offset", "0%"); s1.setAttribute("stop-color", "#f4d484");
+    const s2 = document.createElementNS(NS, "stop");
+    s2.setAttribute("offset", "100%"); s2.setAttribute("stop-color", "#c79941");
+    grad.appendChild(s1); grad.appendChild(s2);
+    defs.appendChild(grad);
+    svg.appendChild(defs); svg.appendChild(g);
+    return svg;
   }
 
-  document.querySelectorAll(".btn[data-sides]").forEach(btn => {
-    btn.addEventListener("click", () => roll(parseInt(btn.getAttribute("data-sides"))));
-  });
+  container.appendChild(buildDie(result));
+  if (result2) container.appendChild(buildDie(result2));
 
-  $("btn-clear").addEventListener("click", () => {
-    log.innerHTML = "";
-    logEntry("Лог очищен");
-  });
+  const duration = 900;
+  const t0 = performance.now();
+  const gs = container.querySelectorAll(".dice2d-g");
+  function tick(now) {
+    const t = Math.min(1, (now - t0) / duration);
+    const k = 1 - Math.pow(1 - t, 3);
+    const rot = k * 720;
+    const scale = 0.4 + k * 0.6;
+    const op = Math.min(1, t * 3);
+    gs.forEach(g => {
+      g.setAttribute("transform", "rotate(" + rot.toFixed(1) + ") scale(" + scale.toFixed(2) + ")");
+      g.style.opacity = op;
+    });
+    if (t < 1) requestAnimationFrame(tick);
+    else if (callback) callback();
+  }
+  requestAnimationFrame(tick);
+}
 
-  $("btn-reinit").addEventListener("click", async () => {
-    logEntry("Принудительная пересоздание DiceBox…", "warn");
-    try {
-      if (diceBoxInstance) {
-        try { diceBoxInstance.clear(); } catch(e) {}
+async function roll(sides) {
+  const qty = (selectedMode === "adv" || selectedMode === "dis") ? 2 : 1;
+  const r1 = Math.floor(Math.random() * sides) + 1;
+  const r2 = (qty === 2) ? Math.floor(Math.random() * sides) + 1 : null;
+  let result;
+  if (selectedMode === "adv") result = Math.max(r1, r2);
+  else if (selectedMode === "dis") result = Math.min(r1, r2);
+  else result = r1;
+  logEntry("Roll: " + qty + "d" + sides + " (" + selectedMode + ") → " + result);
+  setStatus("roll", "Last roll: " + result + " pending…", "pending");
+
+  function showResult(mode) {
+    $("result").textContent = result;
+    $("result").className = "result " + (sides === 20 && result === 20 ? "crit-success" :
+                                          sides === 20 && result === 1 ? "crit-fail" : "");
+    const label = selectedMode === "adv" ? "Преим: " + r1 + ", " + r2 :
+                  selectedMode === "dis" ? "Помеха: " + r1 + ", " + r2 :
+                  "d" + sides;
+    $("result-label").textContent = label + " · " + mode;
+    setStatus("roll", "Last roll: " + result + " (" + label + ")", "ok");
+  }
+
+  const wantMode = renderMode === "2d" ? "2d" :
+                   renderMode === "3d" ? "3d" :
+                   (typeof window.DiceBox === "function" ? "3d" : "2d");
+
+  if (wantMode === "2d") {
+    logEntry("Используем 2D-fallback", "warn");
+    animateDice2d(sides, r1, r2, () => showResult("2D"));
+    return;
+  }
+
+  // 3D-ветка
+  const t0 = performance.now();
+  try {
+    const box = await initDiceBox();
+    let done = false;
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      logEntry("3D-physics timeout 6с — переключаемся на 2D", "warn");
+      animateDice2d(sides, r1, r2, () => showResult("2D после 3D timeout"));
+    }, 6000);
+    box.onRollComplete = (results) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      const dt = (performance.now() - t0).toFixed(0);
+      let v1, v2;
+      try {
+        const rolls = results && results[0] && results[0].rolls ? results[0].rolls : [];
+        v1 = rolls[0] ? rolls[0].value : null;
+        v2 = rolls[1] ? rolls[1].value : null;
+      } catch(e){}
+      if (typeof v1 === "number") {
+        if (selectedMode === "adv") result = Math.max(v1, v2);
+        else if (selectedMode === "dis") result = Math.min(v1, v2);
+        else result = v1;
       }
-    } catch(e){}
-    diceBoxInstance = null;
-    initPromise = null;
-    const container = $("dsvg-container");
-    container.innerHTML = "";
-    setStatus("init", "Init: pending", "pending");
-    setStatus("canvas", "Canvas: pending", "pending");
-    await initDiceBox();
-  });
-
-  // Авто-init при загрузке
-  if (typeof window.DiceBox === "function") {
-    initDiceBox();
-  } else {
-    logEntry("DiceBox не загружен — re-init будет вручную", "warn");
+      logEntry("3D roll complete за " + dt + " мс: v1=" + v1 + " v2=" + v2, "ok");
+      showResult("3D");
+    };
+    box.clear();
+    box.roll([{ qty: qty, sides: sides }], { theme: "default", themeColor: "#e0b358" });
+  } catch (err) {
+    logEntry("3D-init упал, fallback 2D: " + err.message, "err");
+    animateDice2d(sides, r1, r2, () => showResult("2D после 3D fail"));
   }
+}
+
+document.querySelectorAll(".btn[data-sides]").forEach(btn => {
+  btn.addEventListener("click", () => roll(parseInt(btn.getAttribute("data-sides"))));
+});
+$("btn-clear").addEventListener("click", () => {
+  logEl.innerHTML = "";
+  logEntry("Лог очищен");
+});
+$("btn-reinit").addEventListener("click", async () => {
+  logEntry("Принудительное пересоздание DiceBox…", "warn");
+  try { if (diceBoxInstance) diceBoxInstance.clear(); } catch(e){}
+  diceBoxInstance = null;
+  initPromise = null;
+  $("dsvg-container").innerHTML = "";
+  setStatus("init", "Init: pending", "pending");
+  setStatus("canvas", "Canvas: pending", "pending");
+  if (typeof window.DiceBox === "function") {
+    try { await initDiceBox(); } catch(e){}
+  } else {
+    logEntry("DiceBox недоступен — re-init невозможен", "err");
+  }
+});
+
+logEntry("Тест инициализирован. URL: " + location.href);
 </script>
 
 </body>
