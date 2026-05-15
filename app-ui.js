@@ -266,6 +266,27 @@ function prefersReducedMotion() {
   return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 
+// UI-11: count-up числа в элементе от from к to (ease-out cubic).
+// reduced-motion / нечисловые / равные значения → мгновенная установка.
+function animateCountUp(el, from, to, duration) {
+  if (!el) return;
+  from = Number(from); to = Number(to);
+  if (!isFinite(from) || !isFinite(to)) { el.textContent = to; return; }
+  if (from === to || prefersReducedMotion()) { el.textContent = to; return; }
+  duration = duration || 400;
+  if (el._countRaf) cancelAnimationFrame(el._countRaf);
+  var t0 = performance.now();
+  function tick(now) {
+    var t = Math.min(1, (now - t0) / duration);
+    var k = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(from + (to - from) * k);
+    if (t < 1) { el._countRaf = requestAnimationFrame(tick); }
+    else { el.textContent = to; el._countRaf = null; }
+  }
+  el._countRaf = requestAnimationFrame(tick);
+}
+window.animateCountUp = animateCountUp;
+
 // ============================================================
 // DICE2-2: интеграция @3d-dice/dice-box (WebGL 3D-кубики)
 // ============================================================

@@ -900,6 +900,20 @@ if (delta < 0 && char.concentration) {
 }
 saveToLocal();
 updateHPDisplay();
+// UI-11: pulse-ring на полосе + count-up числа ХП при фактическом изменении
+if (actualDelta !== 0) {
+  var hpWrap = document.querySelector(".hp-bar-wrap");
+  if (hpWrap) {
+    var pulseCls = actualDelta < 0 ? "hp-hit-dmg" : "hp-hit-heal";
+    hpWrap.classList.remove("hp-hit-dmg", "hp-hit-heal");
+    void hpWrap.offsetWidth; // рестарт анимации
+    hpWrap.classList.add(pulseCls);
+    setTimeout(function() { hpWrap.classList.remove(pulseCls); }, 550);
+  }
+  if (typeof animateCountUp === "function") {
+    animateCountUp($("hp-display-current"), hpBefore, hpCurrent, 400);
+  }
+}
 }
 
 function addHPHistory(from, to, delta, source) {
