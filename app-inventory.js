@@ -202,6 +202,7 @@ div.innerHTML =
         _locTagHtml +
       '</div>' +
     '</div>' +
+    '<span class="inv-drag-handle" title="Перетащите, чтобы переместить предмет">⠿</span>' +
     '<span class="inv-item-arrow">▶</span>' +
   '</div>' +
   '<div class="inv-item-body">' +
@@ -211,8 +212,19 @@ div.innerHTML =
       '<button class="inv-del-btn" onclick="event.stopPropagation(); deleteItemDirect(\'' + data.category + '\',' + data.index + ')">🗑 Удалить</button>' +
     '</div>' +
   '</div>';
+div.setAttribute("draggable", "true");
+div.classList.add("inv-draggable");
+(function(cat, idx, el) {
+  el.addEventListener("dragstart", function(ev) { invDragStart(ev, cat, idx); });
+  el.addEventListener("dragover", function(ev) { invDragOver(ev, cat, idx); });
+  el.addEventListener("dragleave", function(ev) { invDragLeave(ev, el); });
+  el.addEventListener("drop", function(ev) { invDrop(ev); });
+  el.addEventListener("dragend", function(ev) { invDragEnd(); });
+  el.addEventListener("touchstart", function(ev) { invTouchStart(ev, cat, idx, el); }, { passive: true });
+})(data.category, data.index, div);
 container.appendChild(div);
 });
+_invDndInit();
 updateInventoryWeight();
 updateSlotsDisplay();
 // BUILD-FIX-9 (rev3): синхронизируем кнопку «Снять/Надет рюкзак»
@@ -347,6 +359,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 const category = $("new-item-category")?.value || document.getElementById("item-category")?.value || "weapon";
+const origCategory = document.getElementById("item-category")?.value || category;
 const _slotRaw = $("item-slot-index")?.value; const slotIndex = (_slotRaw !== undefined && _slotRaw !== "" && _slotRaw !== null) ? parseInt(_slotRaw, 10) : -1;
 const name = $("new-item-name")?.value?.trim() || "";
 if (!name) { showToast("Введите название!", "warn"); return; }
@@ -359,8 +372,17 @@ location: $("new-item-location")?.value || undefined,
 desc: $("new-item-desc")?.value || ""
 };
 if (!char.inventory[category]) char.inventory[category] = [];
-if (slotIndex >= 0 && char.inventory[category][slotIndex]) {
+if (slotIndex >= 0 && char.inventory[origCategory] && char.inventory[origCategory][slotIndex]) {
+// Редактирование существующего предмета
+if (origCategory === category) {
+// Категория не менялась — заменяем на месте
 char.inventory[category][slotIndex] = newItem;
+} else {
+// Категория изменилась — удаляем из старой, добавляем в новую
+// (раньше предмет дублировался: оставался в старой + копия в новой)
+char.inventory[origCategory].splice(slotIndex, 1);
+char.inventory[category].push(newItem);
+}
 } else {
 char.inventory[category].push(newItem);
 }
@@ -757,4 +779,213 @@ if (!char) return;
 char.weapons.splice(index, 1);
 saveToLocal();
 renderWeapons();
+}
+
+// ── UI-8: Drag-n-drop инвентаря ──────────────────────────────
+// Перетаскивание предметов между слотами/категориями.
+// Desktop: HTML5 DnD. Touch: long-press 300ms активация.
+// Плейсхолдер-линия «куда упадёт», подсветка цели, Escape — отмена.
+var _invDrag = null;     // { cat, idx } — что тащим
+var _invDropPos = null;  // { cat, idx, before } | { btn }
+var _invTouch = null;    // состояние тач-жеста
+var _invDndReady = false;
+
+function _invDndInit() {
+  if (_invDndReady) return;
+  _invDndReady = true;
+  var fc = document.querySelector(".inventory-filters");
+  if (fc) {
+    fc.addEventListener("dragover", function(ev) {
+      if (!_invDrag) return;
+      var b = ev.target.closest("button");
+      if (!b) return;
+      ev.preventDefault();
+      _invClearIndicators();
+      b.classList.add("inv-cat-target");
+      _invDropPos = { btn: b };
+    });
+    fc.addEventListener("dragleave", function(ev) {
+      var b = ev.target.closest("button");
+      if (b) b.classList.remove("inv-cat-target");
+    });
+    fc.addEventListener("drop", function(ev) {
+      if (!_invDrag) return;
+      ev.preventDefault();
+      _invCommitDrop({ cat: _invDrag.cat, idx: _invDrag.idx });
+    });
+  }
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape" && (_invDrag || _invTouch)) _invCancelDrag();
+  });
+}
+
+function _invClearIndicators() {
+  document.querySelectorAll(".inv-drop-before,.inv-drop-after").forEach(function(el) {
+    el.classList.remove("inv-drop-before", "inv-drop-after");
+  });
+  document.querySelectorAll(".inventory-filters button.inv-cat-target").forEach(function(b) {
+    b.classList.remove("inv-cat-target");
+  });
+}
+
+function _invSetIndicator(itemEl, before) {
+  _invClearIndicators();
+  itemEl.classList.add(before ? "inv-drop-before" : "inv-drop-after");
+}
+
+function _invCleanup() {
+  _invClearIndicators();
+  document.querySelectorAll(".inv-item.inv-dragging").forEach(function(el) {
+    el.classList.remove("inv-dragging");
+  });
+}
+
+function _invCancelDrag() {
+  _invDrag = null;
+  _invDropPos = null;
+  if (_invTouch && _invTouch.timer) clearTimeout(_invTouch.timer);
+  _invTouch = null;
+  _invCleanup();
+}
+
+function _invMoveItem(fromCat, fromIdx, toCat, toIdx) {
+  var char = getCurrentChar();
+  if (!char || !char.inventory) return;
+  var src = char.inventory[fromCat];
+  if (!src || !src[fromIdx]) return;
+  if (fromCat === toCat && (toIdx === fromIdx || toIdx === fromIdx + 1)) return; // no-op
+  var moved = src.splice(fromIdx, 1)[0];
+  if (!char.inventory[toCat]) char.inventory[toCat] = [];
+  if (fromCat === toCat && fromIdx < toIdx) toIdx--;
+  if (toIdx < 0) toIdx = 0;
+  if (toIdx > char.inventory[toCat].length) toIdx = char.inventory[toCat].length;
+  char.inventory[toCat].splice(toIdx, 0, moved);
+  saveToLocal();
+  renderInventory();
+}
+
+function _invCommitDrop(src) {
+  var d = _invDropPos;
+  _invDrag = null;
+  _invDropPos = null;
+  _invCleanup();
+  if (!d || !src) return;
+  if (d.btn) {
+    var oc = d.btn.getAttribute("onclick") || "";
+    var m = oc.match(/filterInventory\('([^']+)'/);
+    if (!m || m[1] === "all") return;
+    _invMoveItem(src.cat, src.idx, m[1], 1e9);
+    return;
+  }
+  // Дроп на предмет — только перестановка в пределах своей категории.
+  // Смена категории — исключительно через кнопки фильтра (явное действие).
+  if (d.cat !== src.cat) return;
+  var toIdx = d.before ? d.idx : d.idx + 1;
+  _invMoveItem(src.cat, src.idx, d.cat, toIdx);
+}
+
+// ── Desktop HTML5 DnD ──
+function invDragStart(ev, cat, idx) {
+  _invDrag = { cat: cat, idx: idx };
+  if (ev.dataTransfer) {
+    ev.dataTransfer.effectAllowed = "move";
+    try { ev.dataTransfer.setData("text/plain", cat + ":" + idx); } catch (e) {}
+  }
+  var el = ev.currentTarget;
+  if (el && el.classList) el.classList.add("inv-dragging");
+}
+
+function invDragOver(ev, cat, idx) {
+  if (!_invDrag) return;
+  ev.preventDefault();
+  if (cat !== _invDrag.cat) {
+    if (ev.dataTransfer) ev.dataTransfer.dropEffect = "none";
+    _invClearIndicators();
+    _invDropPos = null;
+    return;
+  }
+  if (ev.dataTransfer) ev.dataTransfer.dropEffect = "move";
+  var el = ev.currentTarget;
+  var rect = el.getBoundingClientRect();
+  var before = (ev.clientY - rect.top) < rect.height / 2;
+  _invSetIndicator(el, before);
+  _invDropPos = { cat: cat, idx: idx, before: before };
+}
+
+function invDragLeave(ev, el) {
+  if (el && el.classList) el.classList.remove("inv-drop-before", "inv-drop-after");
+}
+
+function invDrop(ev) {
+  ev.preventDefault();
+  if (!_invDrag) return;
+  _invCommitDrop({ cat: _invDrag.cat, idx: _invDrag.idx });
+}
+
+function invDragEnd() {
+  _invDrag = null;
+  _invDropPos = null;
+  _invCleanup();
+}
+
+// ── Touch: long-press 300ms ──
+function invTouchStart(ev, cat, idx, el) {
+  if (ev.target && ev.target.closest("button")) return; // не мешаем кнопкам
+  var t = ev.touches[0];
+  _invTouch = { cat: cat, idx: idx, el: el, startX: t.clientX, startY: t.clientY, active: false, timer: null };
+  _invTouch.timer = setTimeout(function() {
+    if (!_invTouch) return;
+    _invTouch.active = true;
+    _invDrag = { cat: cat, idx: idx };
+    el.classList.add("inv-dragging");
+    if (navigator.vibrate) navigator.vibrate(15);
+  }, 300);
+  el.addEventListener("touchmove", invTouchMove, { passive: false });
+  el.addEventListener("touchend", invTouchEnd);
+  el.addEventListener("touchcancel", invTouchEnd);
+}
+
+function invTouchMove(ev) {
+  if (!_invTouch) return;
+  var t = ev.touches[0];
+  if (!_invTouch.active) {
+    if (Math.abs(t.clientX - _invTouch.startX) > 10 || Math.abs(t.clientY - _invTouch.startY) > 10) {
+      clearTimeout(_invTouch.timer);
+      var el0 = _invTouch.el;
+      _invTouch = null;
+      el0.removeEventListener("touchmove", invTouchMove);
+    }
+    return;
+  }
+  ev.preventDefault(); // жест наш — блокируем скролл
+  var under = document.elementFromPoint(t.clientX, t.clientY);
+  if (!under) return;
+  var btn = under.closest(".inventory-filters button");
+  if (btn) {
+    _invClearIndicators();
+    btn.classList.add("inv-cat-target");
+    _invDropPos = { btn: btn };
+    return;
+  }
+  var item = under.closest(".inv-item");
+  if (item && item.dataset && item.dataset.category !== undefined) {
+    if (item.dataset.category !== _invTouch.cat) { _invClearIndicators(); _invDropPos = null; return; }
+    var rect = item.getBoundingClientRect();
+    var before = (t.clientY - rect.top) < rect.height / 2;
+    _invSetIndicator(item, before);
+    _invDropPos = { cat: item.dataset.category, idx: parseInt(item.dataset.index, 10), before: before };
+  }
+}
+
+function invTouchEnd() {
+  if (!_invTouch) return;
+  clearTimeout(_invTouch.timer);
+  var wasActive = _invTouch.active;
+  var src = { cat: _invTouch.cat, idx: _invTouch.idx };
+  var el = _invTouch.el;
+  el.removeEventListener("touchmove", invTouchMove);
+  el.removeEventListener("touchend", invTouchEnd);
+  el.removeEventListener("touchcancel", invTouchEnd);
+  _invTouch = null;
+  if (wasActive) _invCommitDrop(src);
 }

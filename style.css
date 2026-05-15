@@ -9354,6 +9354,33 @@ body {
   user-select: none;
   pointer-events: none;
 }
+/* UI-8: drag-n-drop инвентаря */
+.inv-item.inv-draggable { position: relative; }
+.inv-drag-handle {
+  color: var(--text-muted, rgba(255,255,255,0.4));
+  font-size: 1.1em;
+  line-height: 1;
+  letter-spacing: -2px;
+  cursor: grab;
+  user-select: none;
+  flex-shrink: 0;
+  padding: 0 2px;
+}
+.inv-item.inv-draggable:active .inv-drag-handle { cursor: grabbing; }
+.inv-item.inv-dragging { opacity: 0.45; }
+.inv-item.inv-drop-before {
+  box-shadow: 0 -3px 0 0 var(--accent-color, #f5c86e) inset,
+              0 0 0 1px var(--accent-glow, rgba(245,200,110,0.35));
+}
+.inv-item.inv-drop-after {
+  box-shadow: 0 3px 0 0 var(--accent-color, #f5c86e) inset,
+              0 0 0 1px var(--accent-glow, rgba(245,200,110,0.35));
+}
+.inventory-filters button.inv-cat-target {
+  outline: 2px dashed var(--accent-color, #f5c86e);
+  outline-offset: 1px;
+  background: var(--accent-glow, rgba(245,200,110,0.18));
+}
 .notes-entry-title { font-weight: 600; margin-bottom: 4px; }
 .notes-entry-body { font-size: 0.82em; color: var(--text-muted, rgba(255,255,255,0.6)); line-height: 1.35; }
 
