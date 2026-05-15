@@ -23,7 +23,7 @@ function debounce(fn, delay) {
 /** Отложенное сохранение — не чаще одного раза в 300мс */
 var saveToLocalDebounced = debounce(function() { saveToLocal(); }, 300);
 // SPELL_DATABASE — объединение встроенной базы (spells.js) и пользовательских добавлений из localStorage
-// SPELLS_BASE определён в spells.js и загружается до app.js
+// SPELLS_BASE определён в spells.js и загружается до app-core.js
 var SPELL_DATABASE = (typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.slice() : [];
 var CLASS_ICONS_MAP = { wizard:"🧙", druid:"🌿", bard:"🎵", cleric:"✝️", paladin:"🛡️", ranger:"🏹", sorcerer:"🔥", warlock:"👁️", both:"✨" };
 
@@ -1628,7 +1628,13 @@ function exportOneCharacter(id, event) {
 event.stopPropagation();
 var char = characters.find(function(c) { return c.id === id; });
 if (!char) return;
-var data = JSON.stringify({ characters: [char], spells: [] }, null, 2);
+var data = JSON.stringify({
+  app: "dnd-sheet",
+  appVersion: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : "",
+  schemaVersion: (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : (char.schemaVersion || 0),
+  exportedAt: new Date().toISOString(),
+  characters: [char]
+}, null, 2);
 var blob = new Blob([data], { type: "application/json" });
 var a = document.createElement("a");
 a.href = URL.createObjectURL(blob);
@@ -1948,6 +1954,14 @@ function _isValidImportedSpell(s) {
   return typeof s.name === 'string' && s.name &&
          typeof s.level === 'number' && s.level >= 0 && s.level <= 9;
 }
+// FEAT-1: схема-толерантный разбор импорта. Принимает голый массив
+// [char,...] (полные бэкапы из exportData) либо обёртку
+// { characters:[...], spells?:[...] } (из exportOneCharacter). Иначе null.
+function _extractCharsFromImport(parsed) {
+  if (Array.isArray(parsed)) return parsed;
+  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.characters)) return parsed.characters;
+  return null;
+}
 function importData(input) {
 const file = input?.files?.[0];
 if (!file) return;
@@ -1966,13 +1980,14 @@ try {
   input.value = "";
   return;
 }
-if (!Array.isArray(imported)) {
-  showToast("Неверный формат: ожидался массив персонажей", "error");
+var importedChars = _extractCharsFromImport(imported);
+if (!importedChars) {
+  showToast("Неверный формат: ожидался массив или { characters: [...] }", "error");
   input.value = "";
   return;
 }
-var valid = imported.filter(_isValidImportedChar);
-var skipped = imported.length - valid.length;
+var valid = importedChars.filter(_isValidImportedChar);
+var skipped = importedChars.length - valid.length;
 if (valid.length === 0) {
   showToast("В файле нет валидных персонажей", "error");
   input.value = "";
@@ -1985,6 +2000,59 @@ showConfirmModal("Импорт персонажей", msg, function() {
   saveToLocal();
   renderCharacterList();
   showToast("Загружено: " + characters.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
+});
+input.value = "";
+};
+reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
+reader.readAsText(file);
+}
+// FEAT-1: не разрушающий импорт персонажа(ей). Добавляет в текущий список,
+// не затрагивая существующих. Свежие id (защита от коллизий) + миграция схемы.
+function importOneCharacter(input) {
+const file = input?.files?.[0];
+if (!file) return;
+if (file.size > IMPORT_MAX_BYTES) {
+  showToast("Файл слишком большой (макс. " + Math.round(IMPORT_MAX_BYTES/1024/1024) + " МБ)", "error");
+  input.value = "";
+  return;
+}
+const reader = new FileReader();
+reader.onload = function(e) {
+let parsed;
+try {
+  parsed = JSON.parse(e.target.result);
+} catch (err) {
+  showToast("Файл повреждён или это не JSON", "error");
+  input.value = "";
+  return;
+}
+var importedChars = _extractCharsFromImport(parsed);
+if (!importedChars) {
+  showToast("Неверный формат: ожидался массив или { characters: [...] }", "error");
+  input.value = "";
+  return;
+}
+var valid = importedChars.filter(_isValidImportedChar);
+var skipped = importedChars.length - valid.length;
+if (valid.length === 0) {
+  showToast("В файле нет валидных персонажей", "error");
+  input.value = "";
+  return;
+}
+var msg = "Добавить " + valid.length + " персонаж(а/ей) в список? Текущие не будут затронуты.";
+if (skipped > 0) msg += " Пропущено повреждённых: " + skipped + ".";
+showConfirmModal("Импорт персонажа", msg, function() {
+  var nextId = Date.now();
+  valid.forEach(function(c) {
+    var nc = migrateCharacter(JSON.parse(JSON.stringify(c)));
+    while (characters.some(function(x) { return x.id === nextId; })) nextId++;
+    nc.id = nextId++;
+    nc.updatedAt = Date.now();
+    characters.push(nc);
+  });
+  saveToLocal();
+  renderCharacterList();
+  showToast("Добавлено: " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
 });
 input.value = "";
 };

@@ -9,8 +9,8 @@
 
 ## Карта файлов (корень)
 - `index.html` — единственная страница.
-- `app.js` — главный модуль (~250 КБ, инициализация и связки вкладок).
-- `app-core.js` / `app-combat.js` / `app-hp.js` / `app-inventory.js` / `app-spells.js` / `app-notes.js` / `app-party.js` / `app-ui.js` — модули по вкладкам.
+- `app-core.js` — ядро: инициализация, состояние, навигация, персонажи, импорт/экспорт.
+- `app-combat.js` / `app-hp.js` / `app-inventory.js` / `app-spells.js` / `app-notes.js` / `app-party.js` / `app-ui.js` / `app-desktop.js` / `history-stack.js` — модули по вкладкам/функциям.
 - `data.js` — классы, расы, `APP_VERSION` (сейчас `"3.0.0"`), `APP_CHANGELOG`.
 - `spells.js` — БД заклинаний.
 - `character-builds.js` + `build-notes-data.js` — 36 готовых билдов PHB 2014 + варианты автозаметок.

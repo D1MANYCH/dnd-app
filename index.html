@@ -195,9 +195,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button onclick="openBuildPicker()">📘 По готовому билду</button>
 <button class="secondary" onclick="exportData()">💾 Скачать копию</button>
 <button class="secondary" onclick="document.getElementById('import-file').click()">📂 Загрузить копию</button>
+<button class="secondary" onclick="document.getElementById('import-char-file').click()">📥 Импорт персонажа</button>
 <button class="secondary" onclick="document.getElementById('spells-import').click()">📥 Импорт заклинаний</button>
 <button class="secondary" onclick="exportSpells()">📤 Экспорт заклинаний</button>
 <input type="file" id="import-file" style="display:none" onchange="importData(this)" accept=".json">
+<input type="file" id="import-char-file" style="display:none" onchange="importOneCharacter(this)" accept=".json">
 <input type="file" id="spells-import" style="display:none" onchange="importSpells(this)" accept=".json">
 </div>
 <div class="card profiles-bottom-card">
