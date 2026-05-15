@@ -4,6 +4,48 @@
 // ============================================================
 
 // ============================================
+// UI-10. Skeleton-лоадеры + подсветка поиска
+// ============================================
+
+/** Заполняет контейнер мерцающими skeleton-плашками.
+ *  variant: "list" (заклинания/инвентарь) | "card" (билды). */
+function injectSkeletons(containerId, count, variant) {
+  var c = document.getElementById(containerId);
+  if (!c) return;
+  var isCard = variant === "card";
+  var rowCls = "skel-row" + (isCard ? " skel-card" : "");
+  var row = '<div class="' + rowCls + '">' +
+              '<div class="skel-line skel-line-title"></div>' +
+              '<div class="skel-line skel-line-sub"></div>' +
+              (isCard ? '<div class="skel-line skel-line-mini"></div>' : '') +
+            '</div>';
+  c.innerHTML = '<div class="skeleton-list" aria-hidden="true">' + row.repeat(count) + '</div>';
+}
+
+/** Показывает skeleton один раз за сессию для данного ключа, затем
+ *  через delay вызывает renderFn (который рендерит реальный список).
+ *  Возвращает true, если skeleton показан (вызывающий должен сделать return). */
+function firstLoadSkeleton(key, containerId, count, variant, renderFn, delay) {
+  if (!window._skelDone) window._skelDone = {};
+  if (window._skelDone[key]) return false;
+  window._skelDone[key] = true;
+  injectSkeletons(containerId, count, variant);
+  setTimeout(renderFn, delay || 300);
+  return true;
+}
+
+/** Экранирует text и оборачивает вхождения query в <mark class="search-hl">.
+ *  Регистронезависимо. Возвращает безопасный HTML. */
+function highlightMatch(text, query) {
+  var safe = escapeHtml(text == null ? "" : String(text));
+  var q = (query == null ? "" : String(query)).trim();
+  if (!q) return safe;
+  var safeQ = escapeHtml(q).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  var rx = new RegExp("(" + safeQ + ")", "ig");
+  return safe.replace(rx, '<mark class="search-hl">$1</mark>');
+}
+
+// ============================================
 // АВАТАР ПЕРСОНАЖА
 // ============================================
 

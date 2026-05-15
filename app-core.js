@@ -451,6 +451,14 @@ closeDrawer();
 currentId = null;
 updateHeaderTitle();
 renderCharacterList();
+// Возврат к списку персонажей всегда скроллит наверх (header-back и
+// браузерный Back через history-stack оба зовут showScreen("characters")).
+try {
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  document.documentElement.scrollTop = 0;
+  if (document.body) document.body.scrollTop = 0;
+  if (charactersScreen) charactersScreen.scrollTop = 0;
+} catch(e) {}
 } else {
 if (characterScreen) characterScreen.classList.remove("hidden");
 if (characterTabs) characterTabs.classList.remove("hidden");
@@ -682,6 +690,7 @@ var BP_DIFF_LABELS = { 1:"новичку", 2:"среднее", 3:"сложное
 function renderBuildPicker() {
   var list = $("bp-list");
   if (!list) return;
+  if (firstLoadSkeleton("build", "bp-list", 6, "card", renderBuildPicker)) return;
   var filter = ($("bp-class-filter") && $("bp-class-filter").value) || "";
   var roleFilter = ($("bp-role-filter") && $("bp-role-filter").value) || "";
   var searchInp = $("bp-search");
@@ -724,11 +733,11 @@ function renderBuildPicker() {
       '<div class="bp-card" tabindex="0" role="button" aria-label="' + escapeHtml(b.title) + '" onclick="applyBuild(\'' + b.id + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();applyBuild(\'' + b.id + '\')}">' +
         '<div class="bp-card-head">' +
           '<span class="bp-card-class-icon" style="background:' + clsColor + '22;color:' + clsColor + '">' + clsIcon + '</span>' +
-          '<span class="bp-card-title">' + escapeHtml(b.title) + '</span>' +
+          '<span class="bp-card-title">' + highlightMatch(b.title, q) + '</span>' +
           '<span class="bp-role-badge bp-role-' + escapeHtml(b.role || "") + '">' + roleIcon + ' ' + escapeHtml(b.role || "") + '</span>' +
         '</div>' +
-        '<div class="bp-card-sub">' + escapeHtml(b.className) + (b.subclass ? ' · ' + escapeHtml(b.subclass) : '') + '</div>' +
-        '<div class="bp-card-summary">' + escapeHtml(b.summary || "") + '</div>' +
+        '<div class="bp-card-sub">' + highlightMatch(b.className, q) + (b.subclass ? ' · ' + highlightMatch(b.subclass, q) : '') + '</div>' +
+        '<div class="bp-card-summary">' + highlightMatch(b.summary || "", q) + '</div>' +
         guideHtml +
         '<div class="bp-card-meta">' +
           '<span class="bp-diff bp-diff-' + d + '" title="Сложность: ' + (BP_DIFF_LABELS[d]||"") + '">' + diff + '</span>' +
@@ -1904,24 +1913,14 @@ renderMonsters();
 renderSheetAvatar();
 if (typeof updateLevelDownVisibility === 'function') updateLevelDownVisibility();
 showScreen("character");
-var lastTab = "sheet";
+// Вход в персонажа всегда открывает «Лист персонажа». switchTab()
+// централизованно сбрасывает .active у tab-content, кнопок нижнего
+// таб-бара И пунктов сайдбара/drawer (.drawer-item-active), плюс
+// скроллит наверх. Раньше тут была ручная копия логики, которая не
+// трогала .drawer-item → на desktop/tablet сайдбар подсвечивал прошлую
+// вкладку (напр. «Заклинания»), хотя контент показывал лист персонажа.
 try { localStorage.removeItem("dnd_last_tab"); } catch(e) {}
-var tabEl = $("tab-" + lastTab);
-if (!tabEl) lastTab = "sheet";
-try {
-  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  document.documentElement.scrollTop = 0;
-  if (document.body) document.body.scrollTop = 0;
-} catch(e) {}
-document.querySelectorAll(".tab-content").forEach(function(t) { t.classList.remove("active"); });
-document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
-var activeTabEl = $("tab-" + lastTab);
-if (activeTabEl) activeTabEl.classList.add("active");
-document.querySelectorAll(".tab-btn").forEach(function(b) {
-  if (b.getAttribute("onclick") && b.getAttribute("onclick").includes("'" + lastTab + "'")) b.classList.add("active");
-});
-if (lastTab === "party")  setTimeout(openPartyTab, 0);
-if (lastTab === "battle") setTimeout(openBattleTab, 0);
+switchTab("sheet");
 }
 
 function exportData() {

@@ -234,6 +234,7 @@ const search = ($("spell-search-input")?.value || "").toLowerCase();
 const level = $("spell-search-level")?.value || "";
 const container = $("spell-search-results");
 if (!container) return;
+if (firstLoadSkeleton("spell", "spell-search-results", 6, "list", renderSpellSearch)) return;
 const char = getCurrentChar();
 let filtered = SPELL_DATABASE.filter(function(spell) {
 const matchesSearch = spell.name.toLowerCase().includes(search);
@@ -267,7 +268,7 @@ const classBadge = "class-" + (primaryClass || "both");
 const classText = spellClassArr.length > 1 ? spellClassArr.map(function(c){return getSpellClassIcon(c);}).join("") : getSpellClassIcon(primaryClass);
 var div = document.createElement("div");
 div.className = "spell-item" + (isAdded ? " spell-added" : "");
-div.innerHTML = "<h4>" + escapeHtml(spell.name) + " <span class=\"source-badge source-" + spell.source.toLowerCase() + "\">" + escapeHtml(spell.source) + "</span> <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<button class=\"" + (isAdded ? "secondary" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + spell.id + ")" : "addSpell(" + spell.id + ")") + "\" style=\"margin-top:8px;\">" + (isAdded ? "Добавлено" : "+ Добавить") + "</button>";
+div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + spell.source.toLowerCase() + "\">" + escapeHtml(spell.source) + "</span> <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<button class=\"" + (isAdded ? "secondary" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + spell.id + ")" : "addSpell(" + spell.id + ")") + "\" style=\"margin-top:8px;\">" + (isAdded ? "Добавлено" : "+ Добавить") + "</button>";
 container.appendChild(div);
 });
 if (filtered.length > LIMIT) {

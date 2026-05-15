@@ -153,6 +153,7 @@ const char = getCurrentChar();
 if (!char) return;
 const container = $("inventory-list");
 if (!container) return;
+if (firstLoadSkeleton("inv", "inventory-list", 5, "list", renderInventory)) return;
 container.innerHTML = "";
 let allItems = [];
 Object.keys(char.inventory).forEach(function(category) {

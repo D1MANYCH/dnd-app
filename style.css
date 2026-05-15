@@ -10014,3 +10014,66 @@ mark.notes-hl {
     border-color: var(--accent-color);
   }
 }
+
+/* ============================================================
+   UI-10. Skeleton-лоадеры + подсветка совпадений поиска
+   ============================================================ */
+
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3, 10px);
+}
+.skel-row {
+  background: var(--bg-1, #1b1a26);
+  border: 1px solid var(--border-color, rgba(255,255,255,0.06));
+  border-radius: var(--r-md, 12px);
+  padding: var(--sp-4, 14px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.skel-line {
+  height: 12px;
+  border-radius: 6px;
+  /* Мерцание --bg-2 → --bg-3 (с подсветкой акцентом по центру градиента) */
+  background: linear-gradient(
+    100deg,
+    var(--bg-2) 0%,
+    var(--bg-3) 40%,
+    var(--accent-soft) 50%,
+    var(--bg-3) 60%,
+    var(--bg-2) 100%
+  );
+  background-size: 220% 100%;
+  animation: skel-shimmer 1.25s ease-in-out infinite;
+}
+.skel-line-title { width: 55%; height: 15px; }
+.skel-line-sub   { width: 80%; }
+.skel-line-mini  { width: 38%; height: 10px; }
+.skel-card { gap: 12px; min-height: 96px; }
+.skel-card .skel-line-title { width: 48%; }
+
+@keyframes skel-shimmer {
+  0%   { background-position: 130% 0; }
+  100% { background-position: -30% 0; }
+}
+
+/* reduced-motion: универсальный блок выше гасит анимацию;
+   делаем плашку статичной и читаемой без мерцания */
+@media (prefers-reduced-motion: reduce) {
+  .skel-line {
+    background: var(--bg-3);
+    animation: none;
+  }
+}
+
+/* Подсветка совпадений в результатах поиска (заклинания, билды) */
+mark.search-hl {
+  background: var(--accent-soft);
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 3px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
