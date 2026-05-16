@@ -1277,9 +1277,29 @@ function notesHandleImportMd(input) {
 // ── N5: Печать ───────────────────────────────────────────────
 
 function notesPrint() {
-  // Временно раскроем все секции (снимем preview-скрытие)
-  var textareas = document.querySelectorAll('#notes-main .notes-section-input[style*="display:none"]');
-  for (var i = 0; i < textareas.length; i++) textareas[i].style.removeProperty('display');
+  var main = document.getElementById('notes-main');
+  if (!main) { window.print(); return; }
+  // Баг: у свёрнутой секции скрывается весь .notes-section-body
+  // (инлайн display:none). Прежний notesPrint снимал display только с
+  // .notes-section-input, поэтому контент свёрнутых секций не печатался
+  // (а в паре с битым #app-правилом — пустой лист). Раскрываем ВСЕ
+  // секции и печатаем отрендеренное превью (чистый PDF), затем полностью
+  // восстанавливаем UI через renderNotes() по afterprint.
+  var cards = main.querySelectorAll('.notes-section-card');
+  for (var i = 0; i < cards.length; i++) {
+    var card = cards[i];
+    var body = card.querySelector('.notes-section-body');
+    var ta = card.querySelector('.notes-section-input');
+    var pv = card.querySelector('.notes-md-preview');
+    if (ta && pv && typeof _mdToHtml === 'function') pv.innerHTML = _mdToHtml(ta.value || '');
+    if (body) body.style.removeProperty('display');
+    if (pv) pv.style.removeProperty('display');
+  }
+  var restore = function () {
+    window.removeEventListener('afterprint', restore);
+    if (typeof renderNotes === 'function') renderNotes();
+  };
+  window.addEventListener('afterprint', restore);
   window.print();
 }
 

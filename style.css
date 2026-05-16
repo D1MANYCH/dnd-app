@@ -9831,16 +9831,46 @@ mark.notes-hl {
 .notes-search-clear:hover { opacity: 1; text-decoration: underline; }
 
 /* ── N5: @media print ────────────────────────────────────── */
+/* Печать только вкладки «Записи». Прежняя версия завязывалась на
+   несуществующий #app: `body > *:not(#app)` → :not(#app) совпадал со
+   ВСЕМИ прямыми детьми <body>, включая .container (предок #tab-notes),
+   и display:none на предке гасил всё поддерево → пустой белый лист.
+   Решение: visibility-изоляция (не трогаем display предков — цепочка
+   остаётся в потоке) + вынос #tab-notes в (0,0). */
 @media print {
-  body > *:not(#app),
-  .tab-bar, .char-selector-wrap, .header-glass,
-  .notes-header, .notes-subtabs,
-  .notes-md-toolbar, .notes-md-stats,
-  .notes-entry-actions, .notes-tag-filter-bar {
+  html, body { background: #fff !important; }
+
+  /* Всё невидимо… */
+  body * { visibility: hidden !important; }
+  /* …кроме поддерева вкладки «Записи». */
+  #tab-notes, #tab-notes * { visibility: visible !important; }
+
+  /* Поднять записи к началу листа (невидимые элементы ещё занимают
+     место в потоке — absolute выносит блок в (0,0)). */
+  #tab-notes {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Крупная не-печатная разметка (НЕ предки #tab-notes) — убрать из
+     потока, чтобы не плодить пустые страницы. */
+  header, .header-glass, .app-right-rail, .tab-bar, .char-selector-wrap,
+  #screen-characters, .app-version-row,
+  .toast-container, [class*="modal-overlay"], [id$="-modal"],
+  .notes-header, .notes-subtabs, .notes-md-toolbar, .notes-md-stats,
+  .notes-entry-actions, .notes-tag-filter-bar, .notes-menu-wrap,
+  .notes-save-ind, .notes-new-btn, .notes-regen-btn,
+  .notes-section-toggle, .notes-section-meta, .notes-variants-panel,
+  .notes-section-input {
     display: none !important;
   }
-  #app { background: #fff !important; }
-  #tab-notes { display: block !important; padding: 0 !important; }
+
+  /* Светлый «чернильный» вид. */
   .notes-main, .notes-section-card, .notes-entry-card {
     background: #fff !important;
     color: #000 !important;
@@ -9848,9 +9878,19 @@ mark.notes-hl {
     box-shadow: none !important;
     page-break-inside: avoid;
   }
-  .notes-section-input { display: block !important; border: none; resize: none; }
-  .notes-md-preview { display: block !important; }
-  .notes-entry-title { font-weight: bold; }
+  /* Защита от свёрнутых секций: даже если JS не успел снять инлайн
+     display:none, в печати тело секции и превью видимы. */
+  .notes-section-body,
+  .notes-section-card.collapsed .notes-section-body {
+    display: block !important;
+  }
+  .notes-md-preview {
+    display: block !important;
+    color: #000 !important;
+    white-space: normal !important;
+  }
+  .notes-section-head { color: #000 !important; font-weight: bold; }
+  .notes-entry-title { font-weight: bold; color: #000 !important; }
 }
 
 

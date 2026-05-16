@@ -1540,7 +1540,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.15.1";
+const APP_VERSION = "3.15.2";
 const APP_VERSION_DATE = "2026-05-16";
 
 // ============================================================
@@ -1826,9 +1826,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.15.1",
+    version: "3.15.2",
     date: "16 мая 2026",
     badge: "new",
+    changes: [
+      { type: "fix", text: "fix(notes) — печать/PDF «Записей»: чинит пустой лист (битый #app-селектор → visibility-изоляция) и контент свёрнутых секций (notesPrint раскрывает все .notes-section-body + рендерит превью, restore через renderNotes)" }
+    ]
+  },
+  {
+    version: "3.15.1",
+    date: "16 мая 2026",
+    badge: "old",
     changes: [
       { type: "chore", text: "chore(cleanup) — удалён мёртвый app.js (легаси-монолит, не подключён в index.html)" }
     ]
