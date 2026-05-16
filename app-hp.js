@@ -919,7 +919,10 @@ if (actualDelta !== 0) {
 function addHPHistory(from, to, delta, source) {
 const now = new Date();
 const time = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0");
-hpHistory.unshift({ from: from, to: to, delta: delta, source: source, time: time });
+// FEAT-1 доработка: привязка записи к персонажу — чтобы HP-историю можно
+// было выгрузить/восстановить в составе конкретного персонажа.
+hpHistory.unshift({ from: from, to: to, delta: delta, source: source, time: time,
+  charId: (typeof currentId !== 'undefined' ? currentId : null) });
 if (hpHistory.length > 30) hpHistory.pop();
 }
 

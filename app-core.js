@@ -1628,12 +1628,17 @@ function exportOneCharacter(id, event) {
 event.stopPropagation();
 var char = characters.find(function(c) { return c.id === id; });
 if (!char) return;
+// FEAT-1 доработка: срез HP-истории именно этого персонажа.
+var charHp = (typeof hpHistory !== 'undefined' && Array.isArray(hpHistory))
+  ? hpHistory.filter(function(h) { return h && h.charId === id; })
+  : [];
 var data = JSON.stringify({
   app: "dnd-sheet",
   appVersion: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : "",
   schemaVersion: (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : (char.schemaVersion || 0),
   exportedAt: new Date().toISOString(),
-  characters: [char]
+  characters: [char],
+  hpHistory: charHp
 }, null, 2);
 var blob = new Blob([data], { type: "application/json" });
 var a = document.createElement("a");
@@ -1930,7 +1935,17 @@ switchTab("sheet");
 }
 
 function exportData() {
-const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(characters));
+// FEAT-1 доработка: полный бэкап — конверт со всеми персонажами И всей
+// HP-историей (importData принимает и голый массив, и конверт).
+const _payload = {
+  app: "dnd-sheet",
+  appVersion: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : "",
+  schemaVersion: (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : 0,
+  exportedAt: new Date().toISOString(),
+  characters: characters,
+  hpHistory: (typeof hpHistory !== 'undefined' && Array.isArray(hpHistory)) ? hpHistory : []
+};
+const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_payload));
 const downloadAnchorNode = document.createElement("a");
 downloadAnchorNode.setAttribute("href", dataStr);
 downloadAnchorNode.setAttribute("download", "dnd_backup_" + new Date().toISOString().slice(0,10) + ".json");
@@ -1997,6 +2012,13 @@ var msg = "Загрузить " + valid.length + " персонаж(а/ей)? В
 if (skipped > 0) msg += " Пропущено повреждённых: " + skipped + ".";
 showConfirmModal("Импорт персонажей", msg, function() {
   characters = valid.map(migrateCharacter);
+  // FEAT-1 доработка: «Заменить всё» сохраняет id персонажей, поэтому
+  // HP-историю из конверта восстанавливаем как есть (только для импортируемых).
+  if (imported && Array.isArray(imported.hpHistory)) {
+    var _ids = {};
+    characters.forEach(function(c){ _ids[c.id] = true; });
+    hpHistory = imported.hpHistory.filter(function(h){ return h && _ids[h.charId]; }).slice(0, 300);
+  }
   saveToLocal();
   renderCharacterList();
   showToast("Загружено: " + characters.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
@@ -2043,16 +2065,34 @@ var msg = "Добавить " + valid.length + " персонаж(а/ей) в с
 if (skipped > 0) msg += " Пропущено повреждённых: " + skipped + ".";
 showConfirmModal("Импорт персонажа", msg, function() {
   var nextId = Date.now();
+  var idMap = {};
   valid.forEach(function(c) {
+    var oldId = c.id;
     var nc = migrateCharacter(JSON.parse(JSON.stringify(c)));
     while (characters.some(function(x) { return x.id === nextId; })) nextId++;
     nc.id = nextId++;
     nc.updatedAt = Date.now();
+    idMap[oldId] = nc.id;
     characters.push(nc);
   });
+  // FEAT-1 доработка: восстановить HP-историю импортированных персонажей,
+  // перепривязав записи на новые id (защита от коллизий не ломает связь).
+  var addedHp = 0;
+  if (parsed && Array.isArray(parsed.hpHistory)) {
+    parsed.hpHistory.forEach(function(h) {
+      if (!h || typeof h !== 'object') return;
+      var mapped = idMap.hasOwnProperty(h.charId) ? idMap[h.charId] : null;
+      if (mapped == null && valid.length === 1) mapped = idMap[valid[0].id];
+      if (mapped == null) return;
+      hpHistory.push({ from: h.from, to: h.to, delta: h.delta, source: h.source, time: h.time, charId: mapped });
+      addedHp++;
+    });
+    if (addedHp && hpHistory.length > 300) hpHistory = hpHistory.slice(0, 300);
+  }
   saveToLocal();
   renderCharacterList();
-  showToast("Добавлено: " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
+  showToast("Добавлено: " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : "") +
+            (addedHp ? " · HP-история: " + addedHp : ""), "success");
 });
 input.value = "";
 };
