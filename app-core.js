@@ -2174,10 +2174,16 @@ const modal = $("hp-history-modal");
 if (!modal) return;
 const list = $("hp-history-list");
 if (!list) return;
-if (hpHistory.length === 0) {
+// История только текущего персонажа. Унаследованные записи без charId
+// (созданы до v3.15.3) показываем как общие — их немного и они быстро
+// вытесняются (глобальный лимит лога — 30).
+var rows = hpHistory.filter(function(e) {
+  return e && (e.charId === currentId || e.charId == null);
+});
+if (rows.length === 0) {
 list.innerHTML = "<div class=\"hph-empty\">История пуста</div>";
 } else {
-list.innerHTML = hpHistory.map(function(e) {
+list.innerHTML = rows.map(function(e) {
 const cls = e.delta > 0 ? "hph-heal" : "hph-dmg";
 const sign = e.delta > 0 ? "+" : "";
 return "<div class=\"hph-row\">" +
