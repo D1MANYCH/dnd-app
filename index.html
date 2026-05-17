@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=ui12">
+<link rel="stylesheet" href="style.css?v=ui13">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -251,7 +251,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <span class="sheet-avatar-hint">Сменить</span>
   </div>
   <div class="sheet-top-fields">
-    <div class="col" style="margin-bottom:10px;"><label>Имя</label><input type="text" id="char-name" oninput="updateChar(); updateLockButtonState()"></div>
+    <div class="col" style="margin-bottom:10px;"><label>Имя</label><div class="name-input-row"><input type="text" id="char-name" oninput="updateChar(); updateLockButtonState()"><button type="button" class="icon-btn name-roll-btn" onclick="rollRandomName()" title="Случайное имя по расе" aria-label="Сгенерировать случайное имя по расе">🎲</button></div></div>
     <div class="sheet-top-small-row">
       <div class="sheet-small-field"><label>Уровень</label><input type="number" id="char-level" min="1" max="20" oninput="calcStats(); updateSubclassOptions(); updateClassFeatures(); updateLockButtonState()"></div>
       <div class="sheet-small-field"><label>Опыт</label><input type="number" id="char-exp" value="0" oninput="updateChar()"></div>
@@ -1991,12 +1991,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
-<script src="data.js?v=v4"></script>
+<script src="data.js?v=v5"></script>
 <script src="build-notes-data.js?v=bn4"></script>
 <script src="character-builds.js?v=b14"></script>
 <script src="spells.js?v=n1"></script>
 <script src="app-core.js?v=ui10b"></script>
-<script src="app-combat.js?v=fx6"></script>
+<script src="app-combat.js?v=fx7"></script>
 <script src="app-hp.js?v=ui11"></script>
 <script src="app-spells.js?v=ui10"></script>
 <script src="app-inventory.js?v=ui10"></script>

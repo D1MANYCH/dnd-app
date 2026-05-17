@@ -1617,6 +1617,34 @@ function onRaceChange() {
 }
 
 // ============================================
+// FEAT-2: генератор случайных имён по расе
+// ============================================
+function rollRandomName() {
+  var nameEl = $("char-name");
+  if (!nameEl) return;
+  var raceEl = $("char-race");
+  var race = (raceEl && raceEl.value) || "";
+  var group = (typeof RACE_NAME_GROUP !== "undefined" && RACE_NAME_GROUP[race]) || "human";
+  var pools = (typeof RACE_NAME_POOLS !== "undefined") && RACE_NAME_POOLS[group];
+  if (!pools || !pools.first || !pools.first.length) return;
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function build() {
+    var n = pick(pools.first);
+    if (pools.last && pools.last.length) n += " " + pick(pools.last);
+    return n;
+  }
+  var prev = nameEl.value.trim();
+  var name = build();
+  // Не повторять предыдущее имя при повторном клике (если пул позволяет)
+  var guard = 0;
+  while (name === prev && guard < 12) { name = build(); guard++; }
+  nameEl.value = name;
+  if (typeof updateChar === "function") updateChar();
+  if (typeof updateLockButtonState === "function") updateLockButtonState();
+  if (typeof showToast === "function") showToast("🎲 " + name, "success");
+}
+
+// ============================================
 // РАСОВЫЕ ДОП. ВЫБОРЫ — Человек (черта), Полуэльф (+1+1)
 // ============================================
 var RACE_BONUS_FEATS = { "Человек": 1 };

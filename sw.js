@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v98';
+const CACHE_NAME = 'dnd-sheet-v100';
 
 const FILES_TO_CACHE = [
   './',
@@ -49,7 +49,16 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[SW] Кешируем файлы...');
-      return cache.addAll(FILES_TO_CACHE);
+      // {cache:'reload'} обходит HTTP-кеш браузера: при бампе CACHE_NAME
+      // в кеш SW попадают РЕАЛЬНО свежие файлы. Иначе addAll берёт
+      // устаревшие копии из disk-cache и клиент не получает новый код
+      // после релиза. Per-file .catch — один отсутствующий ассет не
+      // должен срывать установку всего SW.
+      return Promise.all(FILES_TO_CACHE.map((u) =>
+        fetch(new Request(u, { cache: 'reload' }))
+          .then((resp) => (resp && resp.ok) ? cache.put(u, resp) : null)
+          .catch(() => null)
+      ));
     })
   );
   // НЕ вызываем skipWaiting() — ждём команды от пользователя через модалку
