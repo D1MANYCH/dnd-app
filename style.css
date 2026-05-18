@@ -5,10 +5,19 @@
 :root {
 /* ===== Design tokens (R1) ===== */
 /* Палитра */
+/* UI4-glass: --glass-alpha/--glass-blur управляются слайдерами в Настройках
+   (ключи localStorage dnd_glass_alpha / dnd_glass_blur, preload в index.html).
+   --bg-0 остаётся НЕПРОЗРАЧНЫМ (база страницы + анти-флеш на html).
+   --bg-1/2/3 — полупрозрачные поверхности поверх орбитального canvas. */
+--glass-alpha: 0.72;
+--glass-blur: 10px;
 --bg-0: #0f0e14;
---bg-1: #181722;
---bg-2: #22202e;
---bg-3: #2e2c3d;
+--bg-1: rgba(24, 23, 34, var(--glass-alpha));
+--bg-2: rgba(34, 32, 46, var(--glass-alpha));
+--bg-3: rgba(46, 44, 61, var(--glass-alpha));
+/* UI4-glass: модалки — пол непрозрачности 0.82..1.0 (читаемость), слегка
+   реагируют на слайдер. Применяется к .settings-modal/.notes-modal. */
+--surface-modal: rgba(24, 23, 34, calc(0.82 + var(--glass-alpha) * 0.18));
 --border: #3a3850;
 --border-soft: #2a2838;
 --text: #ece6d6;
@@ -134,15 +143,18 @@
    Кнопки и анимации — в общей секции UI-2 ниже (применяются к обеим темам).
 */
 :root[data-theme="light"] {
-  /* Backgrounds */
+  /* Backgrounds — --bg-0 непрозрачный (анти-флеш), поверхности полупрозрачные
+     (UI4-glass, общий --glass-alpha из :root / inline-стиля на html). */
   --bg-0: #eef2ef;
-  --bg-1: #ffffff;
-  --bg-2: #e4ebe6;
-  --bg-3: #d4ddd7;
+  --bg-1: rgba(255, 255, 255, var(--glass-alpha));
+  --bg-2: rgba(228, 235, 230, var(--glass-alpha));
+  --bg-3: rgba(212, 221, 215, var(--glass-alpha));
+  --surface-modal: rgba(255, 255, 255, calc(0.82 + var(--glass-alpha) * 0.18));
 
-  /* Borders */
-  --border: #c3cdc7;
-  --border-soft: #dde4df;
+  /* Borders — UI4-glass LT-2: заметнее на ярком перивинкль-canvas (было
+     #c3cdc7/#dde4df — почти невидимы под стеклом). */
+  --border: #9aaca0;
+  --border-soft: #bcc7c0;
 
   /* Text */
   --text: #1a201d;
@@ -163,9 +175,10 @@
   --success: #2c8a52;
   --info: #2c6fbd;
 
-  /* Shadows — зеленоватый оттенок (без синих rgba(0,0,0,*)) */
-  --sh-1: 0 1px 2px rgba(20,40,30,0.06), 0 2px 8px rgba(20,40,30,0.05);
-  --sh-2: 0 12px 36px rgba(20,40,30,0.14), 0 2px 8px rgba(20,40,30,0.05);
+  /* Shadows — UI4-glass LT-2: усилены, чтобы панели «отрывались» от фона как
+     в тёмной (было альфы 0.05–0.14 — почти не видно поверх canvas). */
+  --sh-1: 0 1px 3px rgba(20,40,30,0.14), 0 4px 14px rgba(20,40,30,0.10);
+  --sh-2: 0 16px 44px rgba(20,40,30,0.24), 0 3px 12px rgba(20,40,30,0.12);
   --sh-glow: 0 0 0 3px var(--accent-soft), 0 6px 16px var(--accent-glow);
 
   /* Easing — общие токены */
@@ -188,8 +201,12 @@
 
 @media (prefers-color-scheme: light) {
   :root[data-theme="auto"] {
-    --bg-0: #eef2ef; --bg-1: #ffffff; --bg-2: #e4ebe6; --bg-3: #d4ddd7;
-    --border: #c3cdc7; --border-soft: #dde4df;
+    --bg-0: #eef2ef;
+    --bg-1: rgba(255, 255, 255, var(--glass-alpha));
+    --bg-2: rgba(228, 235, 230, var(--glass-alpha));
+    --bg-3: rgba(212, 221, 215, var(--glass-alpha));
+    --surface-modal: rgba(255, 255, 255, calc(0.82 + var(--glass-alpha) * 0.18));
+    --border: #9aaca0; --border-soft: #bcc7c0;
     --text: #1a201d; --text-dim: #4d5853; --text-mute: #828d88;
     --accent: #b8841f; --accent-hi: #d29c30; --accent-lo: #946815;
     --accent-soft: rgba(184, 132, 31, 0.13);
@@ -197,8 +214,8 @@
     --accent-glow-token: rgba(184, 132, 31, 0.30);
     --overlay: rgba(20, 30, 24, 0.40);
     --danger: #c73a2c; --success: #2c8a52; --info: #2c6fbd;
-    --sh-1: 0 1px 2px rgba(20,40,30,0.06), 0 2px 8px rgba(20,40,30,0.05);
-    --sh-2: 0 12px 36px rgba(20,40,30,0.14), 0 2px 8px rgba(20,40,30,0.05);
+    --sh-1: 0 1px 3px rgba(20,40,30,0.14), 0 4px 14px rgba(20,40,30,0.10);
+    --sh-2: 0 16px 44px rgba(20,40,30,0.24), 0 3px 12px rgba(20,40,30,0.12);
     --sh-glow: 0 0 0 3px var(--accent-soft), 0 6px 16px var(--accent-glow);
     --condition-active: rgba(199, 58, 44, 0.25);
     --buff-color: rgba(44, 138, 82, 0.24);
@@ -305,14 +322,11 @@
 }
 
 /* ===== Body — атмосферный cream-фон + warm radial + SVG-noise ===== */
+/* UI4-glass: пергамент светлой темы убран — фон рисует орбитальный canvas
+   (как в тёмной). Остаётся только сглаживание шрифта и его насыщенность. */
 :root[data-theme="light"] body {
   background-image: none !important;
-  background-color: var(--bg-0);
-  background-image:
-    radial-gradient(1200px 700px at 10% -10%, #fff8ea 0%, transparent 55%),
-    radial-gradient(900px 600px at 100% 110%, rgba(184,132,31,0.06), transparent 55%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 0.4  0 0 0 0 0.45  0 0 0 0 0.42  0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>") !important;
-  background-attachment: fixed, fixed, scroll;
+  background-color: transparent;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-weight: 450;
@@ -320,36 +334,16 @@
 @media (prefers-color-scheme: light) {
   :root[data-theme="auto"] body {
     background-image: none !important;
-    background-color: var(--bg-0);
-    background-image:
-      radial-gradient(1200px 700px at 10% -10%, #fff8ea 0%, transparent 55%),
-      radial-gradient(900px 600px at 100% 110%, rgba(184,132,31,0.06), transparent 55%),
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 0.4  0 0 0 0 0.45  0 0 0 0 0.42  0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>") !important;
-    background-attachment: fixed, fixed, scroll;
+    background-color: transparent;
   }
 }
 
-/* ===== Декоративные «лозы» по бокам приложения ===== */
+/* ===== UI4-glass: декоративные «лозы» светлой темы убраны ===== */
 :root[data-theme="light"] body::before,
-:root[data-theme="light"] body::after {
-  content: ""; position: fixed; top: 0; bottom: 0; width: 60px;
-  pointer-events: none; opacity: 0.55; z-index: 0;
-  background-repeat: repeat-y; background-size: 60px auto;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 240' fill='none'><g stroke='%23b8841f' stroke-width='0.8' opacity='0.6'><path d='M30 0 C 5 30, 50 60, 30 90 S 10 150, 30 180 S 50 210, 30 240'/><circle cx='12' cy='30' r='3' fill='%23b8841f'/><circle cx='48' cy='75' r='2.5' fill='%23b8841f'/><circle cx='15' cy='130' r='2' fill='%23b8841f'/><circle cx='45' cy='180' r='3' fill='%23b8841f'/></g></svg>");
-}
-:root[data-theme="light"] body::before { left: 0; }
-:root[data-theme="light"] body::after { right: 0; transform: scaleX(-1); }
-
+:root[data-theme="light"] body::after { content: none; }
 @media (prefers-color-scheme: light) {
   :root[data-theme="auto"] body::before,
-  :root[data-theme="auto"] body::after {
-    content: ""; position: fixed; top: 0; bottom: 0; width: 60px;
-    pointer-events: none; opacity: 0.55; z-index: 0;
-    background-repeat: repeat-y; background-size: 60px auto;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 240' fill='none'><g stroke='%23b8841f' stroke-width='0.8' opacity='0.6'><path d='M30 0 C 5 30, 50 60, 30 90 S 10 150, 30 180 S 50 210, 30 240'/><circle cx='12' cy='30' r='3' fill='%23b8841f'/><circle cx='48' cy='75' r='2.5' fill='%23b8841f'/><circle cx='15' cy='130' r='2' fill='%23b8841f'/><circle cx='45' cy='180' r='3' fill='%23b8841f'/></g></svg>");
-  }
-  :root[data-theme="auto"] body::before { left: 0; }
-  :root[data-theme="auto"] body::after { right: 0; transform: scaleX(-1); }
+  :root[data-theme="auto"] body::after { content: none; }
 }
 
 /* ===== Заголовки ===== */
@@ -437,38 +431,11 @@
   color: var(--text);
 }
 
-/* ----- Кнопки ----- */
-:root[data-theme="light"] .btn-primary,
-:root[data-theme="light"] #screen-characters > .card > button:not(.secondary) {
-  background: linear-gradient(180deg, var(--accent-hi), var(--accent)) !important;
-  border: 1px solid var(--accent-lo) !important;
-  color: #ffffff !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 6px var(--accent-glow-token);
-}
-:root[data-theme="light"] .btn-primary:hover,
-:root[data-theme="light"] #screen-characters > .card > button:not(.secondary):hover {
-  background: linear-gradient(180deg, var(--accent), var(--accent-lo)) !important;
-}
-:root[data-theme="light"] .btn-primary:active { transform: translateY(1px); }
-:root[data-theme="light"] .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-:root[data-theme="light"] .btn-secondary,
-:root[data-theme="light"] button.secondary {
-  background: var(--bg-1) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text) !important;
-  box-shadow: var(--sh-1);
-}
-:root[data-theme="light"] .btn-secondary:hover,
-:root[data-theme="light"] button.secondary:hover {
-  background: var(--bg-2) !important;
-  border-color: var(--accent) !important;
-}
-:root[data-theme="light"] .btn-ghost {
-  background: transparent !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-dim) !important;
-}
+/* UI4-glass LT-1: светлые kнопочные override УДАЛЕНЫ. Базовые .btn-*/button
+   правила на токенах (--accent/--bg-1/--border/--text) дают корректную светлую
+   кнопку через светлые токены; иконочные/утилитарные кнопки больше не
+   перехватываются хрупким blocklist'ом (.fs-scale-reset, .settings-modal-close
+   и т.п. сохраняют свои базовые стили в обеих темах). */
 
 /* ----- Focus ring ----- */
 :root[data-theme="light"] :focus-visible {
@@ -478,10 +445,10 @@
 
 /* ----- Status bar (закреплённая панель HP/AC/Level) ----- */
 :root[data-theme="light"] .status-bar {
-  background: rgba(255,255,255,0.6) !important;
+  background: var(--bg-1) !important;
   border-bottom: 1px solid var(--border-soft) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 :root[data-theme="light"] .status-chip {
   background: var(--bg-1) !important;
@@ -520,10 +487,10 @@
 
 /* ----- Header ----- */
 :root[data-theme="light"] header {
-  background: rgba(255,255,255,0.85) !important;
+  background: var(--bg-1) !important;
   border-bottom: 1px solid var(--border-soft) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   box-shadow: var(--sh-1);
 }
 :root[data-theme="light"] .header-title { color: var(--text) !important; }
@@ -537,10 +504,10 @@
 
 /* ----- Tab nav (нижняя навигация) ----- */
 :root[data-theme="light"] .tab-nav {
-  background: rgba(255,255,255,0.85) !important;
+  background: var(--bg-1) !important;
   border-top: 1px solid var(--border-soft) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   box-shadow: 0 -4px 16px rgba(20,40,30,0.06);
 }
 :root[data-theme="light"] .tab-nav .tab-item,
@@ -648,83 +615,31 @@
   border-color: var(--accent) !important;
 }
 :root[data-theme="light"] .theme-picker-btn.is-active {
-  background: var(--accent-soft) !important;
-  border-color: var(--accent) !important;
-  color: var(--accent) !important;
+  /* UI4-glass LT-2: было accent-soft(0.13)+gold-текст — почти не видно на
+     светлом стекле. Делаем явную золотую заливку как «выбрано». */
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent)) !important;
+  border-color: var(--accent-lo) !important;
+  color: #ffffff !important;
   font-weight: 600;
 }
 
-/* ----- Default <button> (без класса) — primary-стиль из handoff ----- */
-:root[data-theme="light"] button:not(.secondary):not(.danger):not(.success):not(.info):not(.small):not(.btn):not(.btn-ghost):not(.tab-btn):not(.tab-dice-fab):not(.dice-btn):not(.modal-close):not(.dice-mode-seg-btn):not(.sort-btn):not(.theme-picker-btn):not(.drawer-item):not(.drawer-close):not(.conditions-popup-close):not(.sheet-close):not(.dice-theme-btn):not(.confirm-btn-cancel):not(.confirm-btn-ok):not(.version-btn):not(.class-filter-all):not(.dice-custom-btn):not(.modal-close-bottom):not(.nav-hamburger):not(.header-back) {
-  background: linear-gradient(180deg, var(--accent-hi), var(--accent)) !important;
-  color: #ffffff !important;
-  border: 1px solid var(--accent-lo) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 6px var(--accent-glow-token);
-  /* Геометрия из handoff (screens.jsx Button base) */
-  padding: 10px 14px !important;
-  min-height: 40px;
-  border-radius: var(--r-md) !important;
-  font-size: 13.5px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.1px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: filter 0.15s, transform 0.1s, box-shadow 0.15s;
-}
-:root[data-theme="light"] button:not(.secondary):not(.danger):not(.success):not(.info):not(.small):not(.btn):not(.btn-ghost):not(.tab-btn):not(.tab-dice-fab):not(.dice-btn):not(.modal-close):not(.dice-mode-seg-btn):not(.sort-btn):not(.theme-picker-btn):not(.drawer-item):not(.drawer-close):not(.conditions-popup-close):not(.sheet-close):not(.dice-theme-btn):not(.confirm-btn-cancel):not(.confirm-btn-ok):not(.version-btn):not(.class-filter-all):not(.dice-custom-btn):not(.modal-close-bottom):not(.nav-hamburger):not(.header-back):hover {
-  background: linear-gradient(180deg, var(--accent), var(--accent-lo)) !important;
-  transform: translateY(-1px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px var(--accent-glow-token) !important;
-}
-:root[data-theme="light"] button:not(.secondary):not(.danger):not(.success):not(.info):not(.small):not(.btn):not(.btn-ghost):not(.tab-btn):not(.tab-dice-fab):not(.dice-btn):not(.modal-close):not(.dice-mode-seg-btn):not(.sort-btn):not(.theme-picker-btn):not(.drawer-item):not(.drawer-close):not(.conditions-popup-close):not(.sheet-close):not(.dice-theme-btn):not(.confirm-btn-cancel):not(.confirm-btn-ok):not(.version-btn):not(.class-filter-all):not(.dice-custom-btn):not(.modal-close-bottom):not(.nav-hamburger):not(.header-back):active {
-  transform: translateY(1px);
-}
-:root[data-theme="light"] button.secondary {
-  background: var(--bg-1) !important;
-  color: var(--text) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: var(--sh-1);
-  padding: 10px 14px !important;
-  min-height: 40px;
-  border-radius: var(--r-md) !important;
-  font-size: 13.5px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.1px;
-  transition: all 0.15s;
-}
-:root[data-theme="light"] button.secondary:hover {
-  background: var(--bg-2) !important;
-  border-color: var(--accent) !important;
-  transform: translateY(-1px);
-  box-shadow: var(--sh-2) !important;
-}
-:root[data-theme="light"] button.secondary:active { transform: translateY(1px); }
-:root[data-theme="light"] button.success {
-  background: linear-gradient(180deg, #3aa066, var(--success)) !important;
-  color: #ffffff !important;
-}
-:root[data-theme="light"] button.danger {
-  background: linear-gradient(180deg, #db4f3f, var(--danger)) !important;
-  color: #ffffff !important;
-}
-:root[data-theme="light"] button.info {
-  background: linear-gradient(180deg, #3a82d4, var(--info)) !important;
-  color: #ffffff !important;
-}
+/* UI4-glass LT-1: гигантский blocklist-override `button:not(...)` и светлые
+   дубли button.secondary/.success/.danger/.info УДАЛЕНЫ. Базовые правила
+   `button` / `button.secondary|danger|success|info` (style.css ~2895+) на
+   токенах работают в обеих темах; конец антипаттерна «забыли исключить класс». */
 
 /* ----- Tab nav — захардкожен rgba(23,23,31,0.55), нужен явный override ----- */
 :root[data-theme="light"] .tab-nav {
-  background: rgba(255,255,255,0.92) !important;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  background: var(--bg-1) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
 }
 :root[data-theme="light"] .tab-btn { color: var(--text-dim) !important; }
 :root[data-theme="light"] .tab-btn.active { color: var(--accent) !important; }
 
 /* ----- Карточки/секции с захардкоженным `background: rgba(255,255,255,*)` ----- */
-:root[data-theme="light"] .card,
+/* UI4-glass LT-2: .card убран из этого override — базовый .card (градиент
+   --card-bg→--bg-3) теперь работает и в светлой как в тёмной. */
 :root[data-theme="light"] .accordion,
 :root[data-theme="light"] .accordion-content {
   background: var(--bg-1) !important;
@@ -931,7 +846,10 @@
   width: 92%;
   max-width: 460px;
   max-height: 85vh;
-  background: var(--bg-1);
+  /* UI4-glass: модалка читаема при любом слайдере (пол непрозрачности) + blur */
+  background: var(--surface-modal, var(--bg-1));
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--border);
   border-radius: var(--r-lg, 12px);
   z-index: 401;
@@ -1498,13 +1416,13 @@ body.no-character .drawer-divider { display: none; }
     z-index: 40;
   }
   :root[data-theme="light"] .app-right-rail {
-    background: rgba(255, 255, 255, 0.45);
+    background: var(--bg-1);
   }
 }
 
 @media (min-width: 1024px) and (prefers-color-scheme: light) {
   :root[data-theme="auto"] .app-right-rail {
-    background: rgba(255, 255, 255, 0.45);
+    background: var(--bg-1);
   }
 }
 
@@ -1714,9 +1632,40 @@ body.no-character .drawer-divider { display: none; }
 /* ========== /R2 ========== */
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+/* UI4-1: орбитальный canvas-фон. html — сплошной фолбэк (анти-флеш до
+   первой отрисовки canvas); токен --bg-0 уже theme-aware (dark/light). */
+html { background-color: var(--bg-0); }
+#bgCanvas {
+position: fixed;
+inset: 0;
+width: 100vw;
+height: 100vh;
+z-index: -2;
+pointer-events: none;
+display: block;
+will-change: transform;
+transform: translateZ(0);
+}
+/* UI4-glass: единый слой размытия между canvas и контентом — размывает весь
+   космос ОДИН раз; любая полупрозрачная поверхность (контент, карточки,
+   под-блоки) показывает уже размытый фон. Слайдер «Размытие фона» → для всего. */
+#bgGlass {
+position: fixed;
+inset: 0;
+z-index: -1;
+pointer-events: none;
+backdrop-filter: blur(var(--glass-blur));
+-webkit-backdrop-filter: blur(var(--glass-blur));
+}
+/* UI4-glass: снять R6-декор body (assets/bg-body.webp, см. ~9201) на ОБЕИХ темах,
+   иначе непрозрачный fixed-фон перекрывает орбитальный canvas. :root body
+   (0,1,1) выше по специфичности, чем plain body на ~9201. */
+:root body { background-image: none; }
+
 body {
 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-background-color: var(--bg-color);
+background-color: transparent;
 color: var(--text-color);
 margin: 0;
 padding: 0;
@@ -1737,7 +1686,7 @@ display: none;
 align-items: center;
 flex-wrap: wrap;
 gap: var(--sp-2, 8px);
-backdrop-filter: blur(10px);
+backdrop-filter: blur(var(--glass-blur));
 }
 .status-bar.visible { display: flex; }
 
@@ -1919,11 +1868,11 @@ header {
 position: sticky;
 top: 0;
 z-index: 103;
-background: rgba(23, 23, 31, 0.55);
+background: var(--bg-1);
 padding: 8px var(--sp-3, 12px);
 border-bottom: 1px solid rgba(255,255,255,0.08);
-backdrop-filter: blur(14px) saturate(140%);
--webkit-backdrop-filter: blur(14px) saturate(140%);
+backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+-webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
 display: flex;
 align-items: center;
 gap: var(--sp-2, 10px);
@@ -1995,13 +1944,16 @@ padding-left: 10px;
 }
 .container { padding: 12px; }
 .card {
-background: linear-gradient(135deg, var(--card-bg) 0%, #2a2a35 100%);
+background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-3) 100%);
 border-radius: 12px;
 padding: 15px;
 margin-bottom: 12px;
 border: 1px solid var(--border-color);
 box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 transition: box-shadow 0.2s, transform 0.2s;
+/* UI4-glass: размытие фона за карточкой (слайдер «Размытие фона») */
+backdrop-filter: blur(var(--glass-blur));
+-webkit-backdrop-filter: blur(var(--glass-blur));
 }
 .card:hover {
 box-shadow: 0 4px 24px rgba(0,0,0,0.35), 0 0 12px var(--accent-glow);
@@ -2896,7 +2848,7 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   bottom: 0;
   left: 0;
   width: 100%;
-  background: rgba(23, 23, 31, 0.55);
+  background: var(--bg-1);
   display: flex;
   justify-content: space-around;
   align-items: flex-end;
@@ -2904,8 +2856,8 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   padding: 8px 0 calc(12px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid rgba(255,255,255,0.08);
   z-index: 100;
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
 }
 .tab-btn {
   background: none !important;
@@ -3081,8 +3033,8 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   opacity: 0;
   transition: opacity 0.3s;
   /* UI-6: glassmorphism — усиленное размытие фона при открытом drawer */
-  backdrop-filter: blur(10px) saturate(120%);
-  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
 }
 .drawer-overlay.open { opacity: 1; }
 
@@ -5248,7 +5200,7 @@ color: var(--text-color);
 /* ========== HIT DIE QUICK BLOCK ========== */
 .hit-die-quick-block {
 margin-top: 14px;
-background: linear-gradient(135deg, var(--card-bg) 0%, #2d2d3a 100%);
+background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-3) 100%);
 border: 1px solid var(--border-color);
 border-radius: var(--r-md);
 padding: 12px;
@@ -5947,8 +5899,8 @@ justify-content: center;
 }
 .confirm-modal-overlay.active { display: flex; }
 .confirm-modal-box {
-background: #1e1e2a;
-border: 1px solid rgba(255,255,255,0.1);
+background: var(--surface-modal, var(--bg-1));
+border: 1px solid var(--border, rgba(255,255,255,0.1));
 border-radius: 16px;
 padding: 28px 24px 20px;
 max-width: 320px;
@@ -5957,14 +5909,14 @@ text-align: center;
 animation: cardFadeIn 0.2s ease;
 }
 .confirm-modal-icon { font-size: 2em; margin-bottom: 10px; }
-.confirm-modal-box h4 { font-size: 1.1em; color: #fff; margin: 0 0 8px; }
-.confirm-modal-box p { font-size: 0.82em; color: rgba(255,255,255,0.45); margin: 0 0 20px; line-height: 1.5; }
+.confirm-modal-box h4 { font-size: 1.1em; color: var(--text); margin: 0 0 8px; }
+.confirm-modal-box p { font-size: 0.82em; color: var(--text-dim); margin: 0 0 20px; line-height: 1.5; }
 .confirm-modal-btns { display: flex; gap: 10px; }
 .confirm-btn-cancel {
 flex: 1; padding: 10px; border-radius: 8px;
-background: rgba(255,255,255,0.07);
-border: 1px solid rgba(255,255,255,0.1);
-color: rgba(255,255,255,0.6);
+background: var(--bg-2);
+border: 1px solid var(--border);
+color: var(--text-dim);
 font-size: 0.9em; cursor: pointer; width: auto; margin: 0;
 }
 .confirm-btn-ok {
@@ -5974,7 +5926,7 @@ border: 1px solid #c0392b;
 color: #fff;
 font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
-.confirm-btn-cancel:hover { background: rgba(255,255,255,0.12); }
+.confirm-btn-cancel:hover { background: var(--bg-3); }
 .confirm-btn-ok:hover { background: #e74c3c; }
 
 /* ============================================================
@@ -5983,7 +5935,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 
 /* Section wrapper */
 .party-section-card {
-  background: linear-gradient(135deg, var(--card-bg) 0%, #2a2a35 100%);
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-3) 100%);
   border: 1px solid var(--border-color);
   border-radius: var(--r-md);
   padding: 14px 14px 10px 14px;
@@ -6007,14 +5959,14 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   gap: 6px;
   flex-wrap: wrap;
 }
-.party-section-label em { font-style: normal; font-size: 0.72em; color: rgba(255,255,255,0.3); }
+.party-section-label em { font-style: normal; font-size: 0.72em; color: var(--text-mute); }
 .party-section-count {
   font-size: 0.72em;
-  background: rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.45);
+  background: var(--bg-2);
+  color: var(--text-dim);
   padding: 2px 8px;
   border-radius: var(--r-md);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--border-soft);
 }
 .party-section-actions { display: flex; gap: 5px; flex-shrink: 0; align-items: center; }
 .party-add-btn {
@@ -6036,9 +5988,9 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   border-radius: var(--r-sm);
   font-size: 0.85em;
   cursor: pointer;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.45);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-dim);
   display: flex; align-items: center; justify-content: center;
   margin: 0;
   transition: all 0.18s;
@@ -6046,7 +5998,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .party-io-btn:hover { border-color: var(--accent-color); color: var(--accent-color); background: var(--accent-glow); }
 
 /* Empty state */
-.party-empty { font-size: 0.82em; color: rgba(255,255,255,0.3); padding: 14px 0; text-align: center; }
+.party-empty { font-size: 0.82em; color: var(--text-mute); padding: 14px 0; text-align: center; }
 
 /* Party card — unified */
 .pcard {
@@ -6083,7 +6035,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .pcard-name {
   font-size: 0.92em;
   font-weight: 700;
-  color: #fff;
+  color: var(--text);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -6101,7 +6053,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .pcard-sub {
   font-size: 0.72em;
-  color: rgba(255,255,255,0.38);
+  color: var(--text-dim);
   margin-bottom: 4px;
   display: flex;
   align-items: center;
@@ -6121,12 +6073,12 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .pcard-desc {
   font-size: 0.72em;
-  color: rgba(255,255,255,0.5);
+  color: var(--text-dim);
   line-height: 1.45;
   margin: 4px 0 6px 0;
   padding: 5px 8px;
-  background: rgba(255,255,255,0.03);
-  border-left: 2px solid rgba(255,255,255,0.1);
+  background: var(--bg-2);
+  border-left: 2px solid var(--border);
   border-radius: 0 4px 4px 0;
   white-space: pre-wrap;
 }
@@ -6204,20 +6156,20 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .party-modal-box { max-width: 400px !important; text-align: left !important; }
 .party-modal-box h4 { text-align: center; margin-bottom: 16px; }
 .party-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-.party-form label { font-size: 0.75em; color: rgba(255,255,255,0.45); }
+.party-form label { font-size: 0.75em; color: var(--text-dim); }
 .party-form input, .party-form select, .party-form textarea {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
   border-radius: var(--r-sm);
   padding: 8px 10px;
-  color: #fff;
+  color: var(--text);
   font-size: 0.88em;
   width: 100%;
   box-sizing: border-box;
 }
 .party-form textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
 .party-form input:focus, .party-form select:focus, .party-form textarea:focus { border-color: var(--accent-color); outline: none; }
-.party-form select option { background: #1e1e2a; color: #fff; }
+.party-form select option { background: var(--bg-2); color: var(--text); }
 
 /* Battle setup */
 .battle-setup-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 6px; }
@@ -6284,8 +6236,8 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   flex-shrink: 0 !important;
   font-size: 0.72em !important;
   padding: 4px 6px !important;
-  background: #1e1e2a !important;
-  border: 1px solid rgba(255,255,255,0.1) !important;
+  background: var(--bg-2) !important;
+  border: 1px solid var(--border) !important;
   border-radius: var(--r-sm) !important;
   color: rgba(255,255,255,0.75) !important;
   cursor: pointer !important;
@@ -8558,7 +8510,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 
 /* ── Concentration details modal ── */
 .conc-details-box {
-  background: linear-gradient(135deg, var(--card-bg) 0%, #2a2a35 100%);
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-3) 100%);
   border-radius: 16px;
   padding: 0;
   width: 90vw;
@@ -9500,7 +9452,9 @@ body {
   pointer-events: auto;
 }
 .notes-modal {
-  background: var(--bg-card, #1e1e2e);
+  background: var(--surface-modal, var(--bg-1));
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: var(--r-lg, 16px);
   box-shadow: 0 8px 40px rgba(0,0,0,0.6);

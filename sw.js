@@ -2,12 +2,13 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v100';
+const CACHE_NAME = 'dnd-sheet-v111';
 
 const FILES_TO_CACHE = [
   './',
   './index.html',
   './style.css',
+  './bg-orbits.js',
   './data.js',
   './spells.js',
   './app-core.js',

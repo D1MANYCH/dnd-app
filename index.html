@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=ui13">
+<link rel="stylesheet" href="style.css?v=ui24">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -45,11 +45,18 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
         document.body.style.zoom = String(fs);
       });
     }
+    // UI4-glass: прозрачность/размытие поверхностей до отрисовки (без вспышки)
+    var ga = parseFloat(localStorage.getItem('dnd_glass_alpha'));
+    if (isFinite(ga) && ga >= 0.3 && ga <= 1) document.documentElement.style.setProperty('--glass-alpha', String(ga));
+    var gb = parseInt(localStorage.getItem('dnd_glass_blur'), 10);
+    if (isFinite(gb) && gb >= 0 && gb <= 24) document.documentElement.style.setProperty('--glass-blur', gb + 'px');
   } catch(e) {}
 })();
 </script>
 </head>
 <body>
+<canvas id="bgCanvas" aria-hidden="true"></canvas>
+<div id="bgGlass" aria-hidden="true"></div>
 <!-- ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА (R5: одна компактная строка) -->
 <div class="status-bar" id="status-bar">
   <div class="status-chip status-hp" title="Хиты">❤️ <span class="hp-current" id="status-hp-current">10</span><span class="hp-max">/<span id="status-hp-max">10</span></span></div>
@@ -153,6 +160,28 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
              min="90" max="130" step="5" value="100"
              aria-label="Масштаб шрифта в процентах"
              oninput="setFontScale(this.value/100)">
+    </div>
+    <div class="theme-picker-row">
+      <div class="fs-scale-head">
+        <span class="theme-picker-label">🪟 Непрозрачность фона</span>
+        <span class="fs-scale-value" id="glass-alpha-value">72%</span>
+        <button type="button" class="fs-scale-reset" onclick="setGlassAlpha(0.72)" title="Сбросить к 72%">↺</button>
+      </div>
+      <input type="range" id="glass-alpha-slider" class="fs-scale-slider"
+             min="30" max="100" step="1" value="72"
+             aria-label="Непрозрачность поверхностей интерфейса в процентах"
+             oninput="setGlassAlpha(this.value/100)">
+    </div>
+    <div class="theme-picker-row">
+      <div class="fs-scale-head">
+        <span class="theme-picker-label">🌫️ Размытие фона</span>
+        <span class="fs-scale-value" id="glass-blur-value">10px</span>
+        <button type="button" class="fs-scale-reset" onclick="setGlassBlur(10)" title="Сбросить к 10px">↺</button>
+      </div>
+      <input type="range" id="glass-blur-slider" class="fs-scale-slider"
+             min="0" max="24" step="1" value="10"
+             aria-label="Сила размытия за поверхностями в пикселях"
+             oninput="setGlassBlur(this.value)">
     </div>
   </div>
 </div>
@@ -1991,6 +2020,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
+<script src="bg-orbits.js?v=v3"></script>
 <script src="data.js?v=v5"></script>
 <script src="build-notes-data.js?v=bn4"></script>
 <script src="character-builds.js?v=b14"></script>
@@ -2009,7 +2039,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=ui11"></script>
+<script src="app-ui.js?v=ui13"></script>
 <script src="app-notes.js?v=n9"></script>
 <script src="app-desktop.js?v=rr6"></script>
 <script src="history-stack.js?v=hs1"></script>

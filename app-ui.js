@@ -560,6 +560,64 @@ function _syncFontScaleUi() {
 }
 document.addEventListener('DOMContentLoaded', _syncFontScaleUi);
 
+// UI4-glass: прозрачность (alpha 0.30..1.00) и размытие (blur 0..24px)
+// поверхностей. Применяются как inline CSS-переменные на documentElement
+// (--glass-alpha / --glass-blur), перебивают значения из :root в style.css.
+var GLASS_A_MIN = 0.30, GLASS_A_MAX = 1.00, GLASS_A_DEFAULT = 0.72;
+var GLASS_B_MIN = 0, GLASS_B_MAX = 24, GLASS_B_DEFAULT = 10;
+function _getGlassAlpha() {
+  try {
+    var v = parseFloat(localStorage.getItem('dnd_glass_alpha'));
+    if (isFinite(v) && v >= GLASS_A_MIN && v <= GLASS_A_MAX) return v;
+  } catch (e) {}
+  return GLASS_A_DEFAULT;
+}
+function _getGlassBlur() {
+  try {
+    var v = parseInt(localStorage.getItem('dnd_glass_blur'), 10);
+    if (isFinite(v) && v >= GLASS_B_MIN && v <= GLASS_B_MAX) return v;
+  } catch (e) {}
+  return GLASS_B_DEFAULT;
+}
+function _applyGlassAlpha(v) { document.documentElement.style.setProperty('--glass-alpha', String(v)); }
+function _applyGlassBlur(v) { document.documentElement.style.setProperty('--glass-blur', v + 'px'); }
+function setGlassAlpha(v) {
+  v = parseFloat(v);
+  if (!isFinite(v)) return;
+  v = Math.round(v * 100) / 100; // шаг 0.01 (слайдер в %)
+  if (v < GLASS_A_MIN) v = GLASS_A_MIN;
+  if (v > GLASS_A_MAX) v = GLASS_A_MAX;
+  try { localStorage.setItem('dnd_glass_alpha', String(v)); } catch (e) {}
+  _applyGlassAlpha(v);
+  _syncGlassUi();
+}
+function setGlassBlur(v) {
+  v = parseInt(v, 10);
+  if (!isFinite(v)) return;
+  if (v < GLASS_B_MIN) v = GLASS_B_MIN;
+  if (v > GLASS_B_MAX) v = GLASS_B_MAX;
+  try { localStorage.setItem('dnd_glass_blur', String(v)); } catch (e) {}
+  _applyGlassBlur(v);
+  _syncGlassUi();
+}
+function _syncGlassUi() {
+  var a = _getGlassAlpha(), b = _getGlassBlur();
+  var as = document.getElementById('glass-alpha-slider');
+  var av = document.getElementById('glass-alpha-value');
+  var bs = document.getElementById('glass-blur-slider');
+  var bv = document.getElementById('glass-blur-value');
+  var apct = Math.round(a * 100);
+  if (as && parseInt(as.value, 10) !== apct) as.value = String(apct);
+  if (av) av.textContent = apct + '%';
+  if (bs && parseInt(bs.value, 10) !== b) bs.value = String(b);
+  if (bv) bv.textContent = b + 'px';
+}
+document.addEventListener('DOMContentLoaded', function () {
+  _applyGlassAlpha(_getGlassAlpha());
+  _applyGlassBlur(_getGlassBlur());
+  _syncGlassUi();
+});
+
 // UI-5: модалка настроек оформления (тема/акцент/плотность/масштаб шрифта)
 function openSettingsModal() {
   var ov = document.getElementById('settings-modal-overlay');
@@ -569,6 +627,7 @@ function openSettingsModal() {
   md.classList.remove('hidden');
   // Синхронизируем UI элементов внутри модалки перед показом
   try { _syncFontScaleUi(); } catch (e) {}
+  try { _syncGlassUi(); } catch (e) {}
   try { _syncDensityButtons(); } catch (e) {}
   try { if (typeof _syncThemeButtons === 'function') _syncThemeButtons(); } catch (e) {}
   try { if (typeof _syncAccentButtons === 'function') _syncAccentButtons(); } catch (e) {}
