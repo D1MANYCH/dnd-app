@@ -546,12 +546,11 @@
 }
 
 /* ----- Модалки ----- */
-:root[data-theme="light"] .modal,
-:root[data-theme="light"] .confirm-modal {
-  background: var(--bg-1) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: var(--sh-2);
-}
+/* UI4-glass: .modal — это полноэкранный диммер-оверлей (база: var(--overlay)).
+   Старый override красил его в полупрозрачный --bg-1, из-за чего фон не
+   затемнялся и контент просвечивал. Панель теперь .modal-content на
+   --surface-modal (пол непрозрачности). .confirm-modal — мёртвый селектор
+   (реальный класс .confirm-modal-box). Оверлей оставляем на базовом --overlay. */
 :root[data-theme="light"] .modal-overlay,
 :root[data-theme="light"] .confirm-modal-overlay {
   background: var(--overlay) !important;
@@ -730,6 +729,220 @@
   background: var(--bg-3) !important;
   border-color: var(--accent) !important;
 }
+
+/* ----- Журнал / Notes-entries — dark-only хардкод (#fff текст,
+   rgba(255,255,255,0.03) поверхности) → нечитаемо на светлом.
+   Светлая поверхность с полом непрозрачности (не зависит от слайдера
+   «Непрозрачность фона»), тёмный текст, видимые границы. ----- */
+:root[data-theme="light"] .journal-entry,
+:root[data-theme="light"] .notes-entry-card {
+  background: rgba(255,255,255,0.96) !important;
+  border: 1px solid var(--border-soft) !important;
+  border-left: 3px solid var(--accent) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="light"] .journal-entry:hover,
+:root[data-theme="light"] .notes-entry-card:hover {
+  background: rgba(255,255,255,1) !important;
+}
+:root[data-theme="light"] .notes-entry-card.pinned {
+  background: rgba(255,210,77,0.18) !important;
+  border-left-color: var(--accent-lo) !important;
+}
+:root[data-theme="light"] .journal-text { color: var(--text) !important; }
+:root[data-theme="light"] .journal-meta,
+:root[data-theme="light"] .notes-entry-body { color: var(--text-dim) !important; }
+:root[data-theme="light"] .notes-entry-btn {
+  border: 1px solid var(--border) !important;
+  color: var(--text-dim) !important;
+}
+:root[data-theme="light"] .notes-entry-btn:hover {
+  background: var(--bg-3) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="light"] .filter-chip {
+  background: rgba(255,255,255,0.95) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-dim) !important;
+}
+:root[data-theme="light"] .filter-chip:hover {
+  border-color: var(--accent) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="light"] .filter-chip.active {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border-color: var(--accent-lo) !important;
+}
+
+/* ----- Поиск заклинаний: кластер фильтра классов — dark-only хардкод
+   (rgba(0,0,0,0.18..0.35) поверхности, #fff текст на hover) → серые
+   плашки с чёрным текстом на светлой модалке. Светлые поверхности с
+   полом непрозрачности (не зависят от слайдера), читаемый текст. ----- */
+:root[data-theme="light"] .spell-class-filter-grouped {
+  background: rgba(255,255,255,0.93) !important;
+  border: 1px solid var(--border-soft) !important;
+}
+:root[data-theme="light"] .class-filter-group {
+  background: rgba(255,255,255,0.95) !important;
+  border-left: 2px solid var(--border) !important;
+}
+:root[data-theme="light"] .class-filter-btn,
+:root[data-theme="light"] .spell-class-filter-grouped .edition-btn,
+:root[data-theme="light"] button.edition-btn,
+:root[data-theme="light"] .version-btn {
+  background: rgba(255,255,255,0.96) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-dim) !important;
+}
+:root[data-theme="light"] .class-filter-btn:hover,
+:root[data-theme="light"] .edition-btn:hover,
+:root[data-theme="light"] .version-btn:hover {
+  border-color: var(--accent) !important;
+}
+:root[data-theme="light"] .class-filter-btn:hover .cf-name { color: var(--text) !important; }
+:root[data-theme="light"] .class-filter-btn.active,
+:root[data-theme="light"] .edition-btn.active,
+:root[data-theme="light"] .version-btn.active {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent-lo) !important;
+}
+:root[data-theme="light"] .class-filter-btn.active .cf-name { color: var(--accent-lo) !important; }
+:root[data-theme="light"] .cf-name { color: var(--text-dim) !important; }
+:root[data-theme="light"] .class-filter-btn.cf-own {
+  background: rgba(44,138,82,0.12) !important;
+  border-color: rgba(44,138,82,0.45) !important;
+}
+:root[data-theme="light"] .class-filter-btn.cf-own .cf-name,
+:root[data-theme="light"] .cf-legend-own { color: var(--success) !important; }
+:root[data-theme="light"] .class-filter-btn.cf-foreign {
+  background: rgba(199,58,44,0.08) !important;
+  border-color: rgba(199,58,44,0.35) !important;
+}
+:root[data-theme="light"] .class-filter-btn.cf-foreign .cf-name,
+:root[data-theme="light"] .cf-legend-foreign { color: var(--danger) !important; }
+:root[data-theme="light"] .class-filter-legend {
+  background: rgba(255,255,255,0.93) !important;
+  border-top: 1px solid var(--border-soft) !important;
+  color: var(--text-dim) !important;
+}
+:root[data-theme="light"] .class-filter-all {
+  background: linear-gradient(180deg, var(--accent-soft), rgba(184,132,31,0.04)) !important;
+  border: 1px solid var(--accent) !important;
+  color: var(--accent-lo) !important;
+}
+
+/* ----- Бой/трекер инициативы — dark-only хардкод (#fff текст,
+   rgba(255,255,255,0.03..0.07) поверхности, rgba(255,255,255,0.25..0.3)
+   подписи) → невидимо на светлом. Светлые поверхности с полом
+   непрозрачности, читаемый текст. ----- */
+:root[data-theme="light"] .battle-setup-row,
+:root[data-theme="light"] .tracker-row {
+  background: rgba(255,255,255,0.95) !important;
+  border: 1px solid var(--border-soft) !important;
+}
+:root[data-theme="light"] .battle-setup-row:hover,
+:root[data-theme="light"] .tracker-row:hover {
+  background: rgba(255,255,255,1) !important;
+}
+:root[data-theme="light"] .tracker-row-active {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
+}
+:root[data-theme="light"] .battle-setup-name,
+:root[data-theme="light"] .tracker-info-name { color: var(--text) !important; }
+:root[data-theme="light"] .battle-drag-hint,
+:root[data-theme="light"] .battle-type-label,
+:root[data-theme="light"] .battle-drag-handle { color: var(--text-mute) !important; }
+:root[data-theme="light"] .battle-nav-btn {
+  background: rgba(255,255,255,0.96) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-dim) !important;
+}
+:root[data-theme="light"] .battle-nav-btn:hover:not(.battle-nav-next) {
+  border-color: var(--accent) !important;
+  color: var(--accent-lo) !important;
+}
+:root[data-theme="light"] .battle-nav-next {
+  background: var(--accent) !important;
+  border-color: var(--accent-lo) !important;
+  color: #fff !important;
+}
+:root[data-theme="light"] .tracker-status option { background: #fff !important; color: var(--text) !important; }
+
+/* ----- Журнал-фильтр (.jfilter-btn) — полностью dark-only
+   (rgba(255,255,255,0.05) фон, .5 текст, .1 граница) → невидим на
+   светлом даже при 100% (хардкод, не зависит от слайдера). ----- */
+:root[data-theme="light"] .jfilter-btn {
+  background: rgba(255,255,255,0.95) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-dim) !important;
+}
+:root[data-theme="light"] .jfilter-btn:hover {
+  border-color: var(--accent) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="light"] .jfilter-btn.active {
+  background: var(--accent) !important;
+  border-color: var(--accent-lo) !important;
+  color: #fff !important;
+}
+
+/* ----- Записи: пилюли-подкатегории (.notes-pill) — тот же dark-only
+   хардкод (rgba(255,255,255,0.05) фон, .6 текст, .12 граница) →
+   прозрачны/невидимы на светлом даже при 100%. ----- */
+:root[data-theme="light"] .notes-pill {
+  background: rgba(255,255,255,0.95) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-dim) !important;
+}
+:root[data-theme="light"] .notes-pill:hover {
+  border-color: var(--accent) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="light"] .notes-pill.active {
+  background: var(--accent) !important;
+  border-color: var(--accent-lo) !important;
+  color: #fff !important;
+}
+
+/* ----- Сопротивления к урону — светло-бирюзовый текст #6dc8c8 / #7db5e5
+   / #f0b860 на бледном фоне = очень низкий контраст на светлом.
+   Тёмные семантические цвета + чуть плотнее фон. ----- */
+:root[data-theme="light"] .res-tag-res {
+  background: rgba(31,122,122,0.14) !important;
+  color: #18696b !important;
+  border-color: rgba(31,122,122,0.45) !important;
+}
+:root[data-theme="light"] .res-tag-imm {
+  background: rgba(44,111,189,0.14) !important;
+  color: #235f9e !important;
+  border-color: rgba(44,111,189,0.45) !important;
+}
+:root[data-theme="light"] .res-tag-vul {
+  background: rgba(176,90,20,0.14) !important;
+  color: #8a4f15 !important;
+  border-color: rgba(176,90,20,0.45) !important;
+}
+:root[data-theme="light"] .res-tag-res .res-tag-x { color: #18696b !important; border-color: #18696b !important; }
+:root[data-theme="light"] .res-tag-imm .res-tag-x { color: #235f9e !important; border-color: #235f9e !important; }
+:root[data-theme="light"] .res-tag-vul .res-tag-x { color: #8a4f15 !important; border-color: #8a4f15 !important; }
+
+/* ----- Полоска здоровья — трек var(--card-bg)/--bg-2 (стекло) почти
+   невидим на светлой карточке. Делаем непрозрачный трек с границей,
+   заливку — насыщенной (не зависит от слайдера). ----- */
+:root[data-theme="light"] .hp-bar-wrap {
+  background: #dfe6e1 !important;
+  border: 1px solid var(--border) !important;
+}
+:root[data-theme="light"] .hp-bar {
+  background: var(--success) !important;
+  border: 1px solid var(--border-soft) !important;
+  overflow: hidden;
+}
+:root[data-theme="light"] .hp-bar.hp-bar-low { background: var(--danger) !important; }
+:root[data-theme="light"] .hp-bar.hp-bar-medium { background: var(--accent) !important; }
 
 /* ----- HP-display-block / hd-block / другие модули с хардкодом ----- */
 :root[data-theme="light"] .hp-display-block,
@@ -2046,7 +2259,7 @@ width: 38px;
 height: 38px;
 border-radius: 8px;
 border: 1px solid var(--border-color);
-background: linear-gradient(135deg, var(--card-bg) 0%, #363645 100%);
+background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-3) 100%);
 color: var(--text-color);
 font-size: 1.3em;
 font-weight: bold;
@@ -2077,7 +2290,7 @@ flex-shrink: 0;
 
 /* ========== КД АВТО-РАСЧЁТ ========== */
 .ac-calc-section {
-background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 1px solid var(--armor-color);
 border-radius: var(--r-md);
 padding: 15px;
@@ -2213,7 +2426,7 @@ color: var(--danger-color);
 
 /* ========== ВРЕМЕННЫЕ ЭФФЕКТЫ ========== */
 .effects-section {
-background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 1px solid var(--border-color);
 border-radius: var(--r-md);
 padding: 15px;
@@ -2288,7 +2501,7 @@ margin-top: 4px;
 
 /* ========== УСЛОВИЯ ========== */
 .conditions-section {
-background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 1px solid var(--border-color);
 border-radius: var(--r-md);
 padding: 15px;
@@ -2461,7 +2674,7 @@ margin-left: 8px;
 
 /* ========== СПАСБРОСКИ ========== */
 .saves-section {
-background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 1px solid var(--border-color);
 border-radius: var(--r-md);
 padding: 15px;
@@ -2584,7 +2797,7 @@ display: -webkit-box;
 
 /* ========== CLASS FEATURES ========== */
 .class-features-section {
-background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 1px solid var(--accent-color);
 border-radius: var(--r-md);
 padding: 15px;
@@ -2957,16 +3170,9 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   /* animation отключена — не запускалась корректно из-за display:none parent, opacity застревал в 0 */
   padding-bottom: calc(var(--sp-4) + env(safe-area-inset-bottom, 0px));
 }
-#dice-modal .dice-modal-content::before {
-  content: "";
-  display: block;
-  width: 40px;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--border, #2e2e3c);
-  margin: 4px auto 12px;
-  opacity: 0.8;
-}
+/* Старая «полоска»-грип убрана по просьбе пользователя — закрытие
+   через крупную кнопку × (.modal-close). */
+#dice-modal .dice-modal-content::before { content: none; display: none; }
 @keyframes dice-sheet-in {
   from { transform: translateY(16%); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
@@ -2992,8 +3198,13 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   font-weight: 600;
   border-radius: var(--r-pill);
   cursor: pointer;
+  /* перебиваем глобальный button{width:100%;margin-bottom:12px},
+     из-за которого кнопки сегмента уезжали вверх с пустотой снизу */
+  width: auto;
+  margin: 0;
   transition: background .15s ease, color .15s ease;
 }
+.dice-mode-segment { align-items: center; }
 .dice-mode-seg-btn:hover { color: var(--text, #eceef2); }
 .dice-mode-seg-btn.active {
   background: var(--accent, var(--accent-color));
@@ -3180,7 +3391,7 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 .empty-list { text-align: center; padding: 40px 20px; color: var(--text-muted); font-style: italic; }
 
 .passive-wisdom {
-background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 padding: 15px;
 border-radius: var(--r-md);
 text-align: center;
@@ -3542,7 +3753,7 @@ box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 .inventory-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-style: italic; }
 
 .inv-item {
-  background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+  background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
   border: 1px solid var(--border-color);
   border-radius: var(--r-md);
   overflow: hidden;
@@ -3947,7 +4158,11 @@ cursor: pointer;
 }
 .modal.active { display: block; }
 .modal-content {
-background: linear-gradient(135deg, var(--bg-2) 0%, var(--bg-3) 100%);
+/* UI4-glass: пол непрозрачности (--surface-modal) + blur — модалка
+   читаема при любом значении слайдера «Непрозрачность фона». */
+background: var(--surface-modal, var(--bg-1));
+backdrop-filter: blur(var(--glass-blur));
+-webkit-backdrop-filter: blur(var(--glass-blur));
 border: 1px solid var(--border);
 margin: 20px auto;
 padding: 25px;
@@ -3987,14 +4202,35 @@ button.avatar-icon-btn {
 }
 .modal-close {
 position: absolute;
-top: 12px;
-right: 15px;
-font-size: 1.6em;
+top: 10px;
+right: 12px;
+/* width:auto/left:auto — перебиваем глобальный button{width:100%},
+   из-за которого × растягивалась на всю ширину и уезжала влево.
+   Полноценная тач-кнопка 40×40 с крупным ×, поверх контента. */
+width: 40px;
+left: auto;
+height: 40px;
+min-width: 40px;
+padding: 0;
+margin: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 50%;
+line-height: 1;
+z-index: 5;
+/* !important — перебиваем глобальный сброс button.modal-close{font:inherit},
+   иначе × наследует мелкий размер родителя (≈16px в кнопке 40px). */
+font-size: 28px !important;
 cursor: pointer;
 color: var(--text-muted);
-transition: color 0.2s;
+background: transparent;
+transition: color 0.18s, background 0.18s;
 }
-.modal-close:hover { color: var(--text-color); }
+.modal-close:hover {
+color: var(--text-color);
+background: var(--bg-3);
+}
 .modal-close-bottom {
 margin-top: 20px;
 width: 100%;
@@ -4078,7 +4314,7 @@ border-radius: var(--r-sm);
 }
 .weapon-presets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px; max-height: 200px; overflow-y: auto; }
 .weapon-preset-btn {
-background: linear-gradient(135deg, #363645 0%, #3d3d4a 100%);
+background: linear-gradient(135deg, var(--bg-2) 0%, var(--bg-3) 100%);
 border: 1px solid var(--border-color);
 padding: 12px;
 border-radius: 8px;
@@ -4089,7 +4325,7 @@ color: var(--text-color);
 }
 .weapon-preset-btn:hover {
 border-color: var(--weapon-color);
-background: linear-gradient(135deg, #404050 0%, #454555 100%);
+background: linear-gradient(135deg, var(--bg-3) 0%, var(--card-hover) 100%);
 transform: translateY(-2px);
 }
 .weapon-preset-btn b { color: var(--weapon-color); font-size: 1em; }
@@ -4097,7 +4333,7 @@ transform: translateY(-2px);
 /* ========== DICE ========== */
 .dice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
 .dice-btn {
-background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 2px solid var(--border-color);
 color: var(--text-color);
 padding: 15px;
@@ -4135,7 +4371,7 @@ padding: 18px;
 .dice-history-item:last-child { border-bottom: none; }
 .dice-history-item span:last-child { color: var(--text-color); font-weight: bold; font-size: 1.1em; }
 .dice-result-display {
-background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 2px solid var(--border-color);
 border-radius: 12px;
 padding: 30px 20px;
@@ -4212,7 +4448,7 @@ animation: particleFloat 1s ease-out forwards;
 
 /* ========== OTHER STYLES ========== */
 .proficiencies-section {
-background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 1px solid var(--border-color);
 border-radius: 8px;
 padding: 12px;
@@ -4331,7 +4567,7 @@ transition: all 0.2s;
 }
 .prof-choice-pending .prof-cat-hint { color: var(--accent-color); font-weight: bold; }
 .weapon-row {
-background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 1px solid var(--border-color);
 border-radius: 8px;
 padding: 12px;
@@ -4449,7 +4685,7 @@ color: var(--text-color);
   display: flex;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(90deg, var(--input-bg) 0%, #363645 100%);
+  background: linear-gradient(90deg, var(--input-bg) 0%, var(--bg-3) 100%);
   border: 1px solid var(--border-color);
   border-radius: var(--r-md);
   padding: 8px 12px;
@@ -4608,7 +4844,7 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent-c
 .item-form label { margin-top: 10px; }
 .item-form input:first-child { margin-top: 0; }
 .spell-item {
-background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 1px solid var(--border-color);
 border-radius: 8px;
 padding: 12px;
@@ -4669,7 +4905,7 @@ transition: all 0.2s;
 
 /* ── Spell Card (my spells) ── */
 .my-spell-item {
-  background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+  background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
   border: 1px solid var(--border-color);
   border-radius: var(--r-md);
   margin-bottom: 6px;
@@ -5062,7 +5298,7 @@ button.edition-btn {
    HP DISPLAY BLOCK
 ============================================================ */
 .hp-display-block {
-background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 1px solid var(--border-color);
 border-radius: 12px;
 padding: 15px;
@@ -8288,7 +8524,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
    WEAPON CARDS WITH ROLL BUTTONS
 ============================================= */
 .weapon-row {
-  background: linear-gradient(135deg, var(--input-bg) 0%, #363645 100%);
+  background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
   border: 1px solid var(--border-color);
   border-radius: var(--r-md);
   padding: 10px 12px;
@@ -8701,10 +8937,10 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .sheet-avatar {
   width: 130px;
-  height: 140px;
-  border-radius: 16px;
+  height: 130px;
+  border-radius: 50%;
   border: 3px solid var(--accent-color);
-  background: rgba(255,255,255,0.05);
+  background: var(--bg-2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8713,10 +8949,19 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   overflow: hidden;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.sheet-avatar:hover { border-color: #fff; box-shadow: 0 0 14px rgba(77,168,67,0.45); }
-.sheet-avatar img {
+.sheet-avatar:hover { border-color: var(--accent-hi); box-shadow: 0 0 14px var(--accent-glow); }
+/* Внутренняя кнопка/картинка должна полностью заполнять круг —
+   иначе виден зазор/квадрат внутри круглой рамки («не сходится»). */
+.sheet-avatar .avatar-icon-btn {
   width: 100%; height: 100%;
-  object-fit: cover; display: block; border-radius: var(--r-md); cursor: pointer;
+  min-width: 0; margin: 0; padding: 0;
+  border-radius: 50%;
+  display: block; overflow: hidden;
+}
+.sheet-avatar img,
+.sheet-avatar .avatar-icon-btn img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block; border-radius: 50%; cursor: pointer;
 }
 .sheet-avatar span { cursor: pointer; }
 .sheet-avatar-hint {
