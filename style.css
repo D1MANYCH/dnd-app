@@ -10136,6 +10136,41 @@ mark.notes-hl {
 .bp-card:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(201,162,39,.3); }
 .bp-footer { margin-top:14px; display:flex; justify-content:flex-end; }
 
+/* UI4-glass: читаемость карточек билдов в светлой теме — глобальные цвета
+   (--text-muted, светлый #7fc08a/#d68a8a, rgba(255,255,255,.03)) блёкнут на
+   светлом стекле. Усиливаем контраст для light и auto+OS-light. */
+:root[data-theme="light"] .bp-card-sub {
+  color: var(--accent-lo); font-weight: 600;
+}
+:root[data-theme="light"] .bp-card-summary,
+:root[data-theme="light"] .bp-bullets li,
+:root[data-theme="light"] .bp-card-meta,
+:root[data-theme="light"] .bp-role-badge {
+  color: var(--text-dim);
+}
+:root[data-theme="light"] .bp-card-guide {
+  background: var(--bg-2);
+  border-left-color: var(--accent);
+}
+:root[data-theme="light"] .bp-bullets .bp-pro { color: #1f7a3a; }
+:root[data-theme="light"] .bp-bullets .bp-con { color: #b23a2c; }
+:root[data-theme="light"] .bp-diff-1 { color: #1f8a4c; }
+:root[data-theme="light"] .bp-diff-2 { color: #c47a12; }
+:root[data-theme="light"] .bp-diff-3 { color: #c0392b; }
+@media (prefers-color-scheme: light) {
+  :root[data-theme="auto"] .bp-card-sub { color: var(--accent-lo); font-weight: 600; }
+  :root[data-theme="auto"] .bp-card-summary,
+  :root[data-theme="auto"] .bp-bullets li,
+  :root[data-theme="auto"] .bp-card-meta,
+  :root[data-theme="auto"] .bp-role-badge { color: var(--text-dim); }
+  :root[data-theme="auto"] .bp-card-guide { background: var(--bg-2); border-left-color: var(--accent); }
+  :root[data-theme="auto"] .bp-bullets .bp-pro { color: #1f7a3a; }
+  :root[data-theme="auto"] .bp-bullets .bp-con { color: #b23a2c; }
+  :root[data-theme="auto"] .bp-diff-1 { color: #1f8a4c; }
+  :root[data-theme="auto"] .bp-diff-2 { color: #c47a12; }
+  :root[data-theme="auto"] .bp-diff-3 { color: #c0392b; }
+}
+
 /* BUILD-6: build badge on character screen */
 .char-build-badge-wrap { display:flex; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap; }
 .char-build-badge { display:inline-block; padding:4px 10px; background:var(--bg-3); border:1px solid var(--accent); color:var(--accent); border-radius:999px; font-size:0.82em; font-weight:600; cursor:pointer; transition: background .15s, transform .1s; font-family:inherit; }
