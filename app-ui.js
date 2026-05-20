@@ -294,6 +294,10 @@ window.animateCountUp = animateCountUp;
 // Babylon+Ammo на старте приложения. Экземпляр хранится в _diceBoxInstance.
 var _diceBoxInstance = null;
 var _diceBoxInitPromise = null;
+// Счётчик подряд идущих soft-таймаутов. Сбрасывается на успешном onRollComplete.
+// Инстанс DiceBox убиваем только после 3-х подряд — иначе можно случайно
+// прибить живой box на медленном броске и оставить пустой стол.
+var _diceBoxConsecutiveTimeouts = 0;
 
 function _waitDiceBoxModule() {
   if (typeof window.DiceBox === 'function') return Promise.resolve();
@@ -664,7 +668,18 @@ if (window.matchMedia) {
 }
 
 function _initDiceBox() {
-  if (_diceBoxInstance) return Promise.resolve(_diceBoxInstance);
+  if (_diceBoxInstance) {
+    // Recovery: если canvas DiceBox был удалён из DOM (напр. прошлый 2D-fallback
+    // когда-то делал innerHTML='') — инстанс мёртв, onRollComplete не сработает.
+    // Сбрасываем и пересоздаём, иначе все 3D-броски залипают в 2D навсегда.
+    var _cv = _diceBoxInstance.canvas;
+    var _cont = document.getElementById('dsvg-container');
+    if (_cv && _cont && _cv.isConnected && _cont.contains(_cv)) {
+      return Promise.resolve(_diceBoxInstance);
+    }
+    _diceBoxInstance = null;
+    _diceBoxInitPromise = null;
+  }
   if (_diceBoxInitPromise) return _diceBoxInitPromise;
 
   _diceBoxInitPromise = (async function() {
@@ -689,6 +704,21 @@ function _initDiceBox() {
     // не имел размера. resizeWorld() регистрирует resize listener — сами
     // триггерим его, чтобы внутренний WebGL-буфер выровнялся под container.
     try { window.dispatchEvent(new Event('resize')); } catch (e) {}
+    // Обработчик потери WebGL-контекста: типичная причина «после N бросков 3D
+    // ломается» — драйвер/браузер дропают контекст. Помечаем инстанс на
+    // пересоздание, следующий _initDiceBox() поднимет чистый.
+    try {
+      if (box.canvas && !box.canvas.__lossHandlerAttached) {
+        box.canvas.__lossHandlerAttached = true;
+        box.canvas.addEventListener('webglcontextlost', function(e) {
+          try { e.preventDefault(); } catch(_){}
+          console.warn('[DiceBox] WebGL context lost — пересоздаём инстанс');
+          try { if (box.canvas && box.canvas.parentNode) box.canvas.parentNode.removeChild(box.canvas); } catch(_){}
+          _diceBoxInstance = null;
+          _diceBoxInitPromise = null;
+        }, { once: true });
+      }
+    } catch (e) {}
     return box;
   })().catch(function(err) {
     console.error('[DiceBox] Ошибка инициализации:', err);
@@ -702,11 +732,15 @@ function _initDiceBox() {
 // только при qty=2 (adv/dis). UI синхронизирует оба числа с физикой.
 // dice-box поддерживает d4/d6/d8/d10/d12/d20/d100. В notation указываем qty×sides.
 //
-// FALLBACK-СТРАТЕГИЯ (важно для file://):
+// FALLBACK-СТРАТЕГИЯ:
 // 1. Если prefers-reduced-motion → callback() мгновенно
-// 2. Если window.DiceBox недоступен (например в file:// Chrome блокирует ES-module) →
-//    animateDice2d() — SVG-анимация подбрасывания без WebAssembly
-// 3. Если DiceBox.init() падает или физика не отвечает за 6с → тоже 2D-fallback
+// 2. Если window.DiceBox недоступен (file:// без HTTP-сервера) или init() упал →
+//    animateDice2d() — SVG-анимация подбрасывания. Это РЕАЛЬНЫЙ fallback (3D нет).
+// 3. Если 3D-инстанс есть, но физика подвисла >8с (типично: потерянный WebGL-контекст
+//    или зависший Babylon worker после нескольких бросков) → НЕ показываем плоский
+//    2D-кубик (визуально хуже + сбивает с толку «было 3D — стало плоско»). Просто
+//    отдаём precomputed-результат в UI и форсим пересоздание DiceBox к следующему
+//    броску — так деградация не накапливается.
 function animateDice3d(sides, result, callback, opts) {
   var qty = (opts && opts.qty) ? opts.qty : 1;
   var reduced = prefersReducedMotion();
@@ -720,16 +754,52 @@ function animateDice3d(sides, result, callback, opts) {
     return;
   }
   var done = false;
+  // soft-таймаут: физика обычно укладывается в 3-5с, но иногда d20 катится до 9-10с
+  // (отскоки от стенок, баланс на ребре). НЕ показываем 2D-кубик и НЕ удаляем canvas:
+  // кость может ещё доехать сама и появится на столе. Просто отдаём precomputed-
+  // результат в UI и считаем подряд идущие таймауты — только после 3-х подряд
+  // действительно убиваем инстанс (значит box реально мёртв: зомби-worker и т.п.).
   var fallbackTimer = setTimeout(function() {
     if (done) return;
     done = true;
-    animateDice2d(sides, result, callback, opts);
-  }, 6000);
+    _diceBoxConsecutiveTimeouts++;
+    if (_diceBoxConsecutiveTimeouts >= 3) {
+      console.warn('[DiceBox] 3 таймаута подряд — пересоздаём инстанс');
+      _diceBoxConsecutiveTimeouts = 0;
+      try {
+        var oldCv = _diceBoxInstance && _diceBoxInstance.canvas;
+        if (oldCv && oldCv.parentNode) oldCv.parentNode.removeChild(oldCv);
+      } catch (e) {}
+      _diceBoxInstance = null;
+      _diceBoxInitPromise = null;
+    } else {
+      console.warn('[DiceBox] roll timeout 10s (n=' + _diceBoxConsecutiveTimeouts + '); canvas сохранён, кость доедет');
+      // Чистим возможные «улетевшие» кости из физики, чтобы они не висели в фоне
+      // и не мешали следующему броску. Сам инстанс/canvas НЕ трогаем.
+      try { if (_diceBoxInstance && typeof _diceBoxInstance.clear === 'function') _diceBoxInstance.clear(); } catch (e) {}
+    }
+    // UI всё равно получает результат: precomputed `result` для одиночного броска,
+    // для adv/dis пробрасываем undefined — rollDice() оставит свои r1/r2.
+    _applyDiceCritGlow(sides, result);
+    try { callback(); } catch (e) {}
+  }, 10000);
   _initDiceBox().then(function(box) {
+    // Убираем 2D-SVG от прошлого fallback и сбрасываем inline-стили контейнера,
+    // которые мог выставить animateDice2d (display:flex/gap), затем показываем canvas.
+    var cont = document.getElementById('dsvg-container');
+    if (cont) {
+      cont.querySelectorAll('.dice2d-svg').forEach(function(el){ el.remove(); });
+      cont.style.display = '';
+      cont.style.gap = '';
+      cont.style.justifyContent = '';
+      cont.style.alignItems = '';
+    }
+    if (typeof box.show === 'function') { try { box.show(); } catch(e) {} }
     box.onRollComplete = function(results) {
       if (done) return;
       done = true;
       clearTimeout(fallbackTimer);
+      _diceBoxConsecutiveTimeouts = 0;
       var v1, v2;
       try {
         var rolls = results && results[0] && results[0].rolls ? results[0].rolls : [];
@@ -757,8 +827,16 @@ function animateDice2d(sides, result, callback, opts) {
   var qty = (opts && opts.qty) ? opts.qty : 1;
   var container = document.getElementById('dsvg-container');
   if (!container) { try { callback(); } catch(e){} return; }
-  // Очищаем canvas / прошлый SVG
-  container.innerHTML = '';
+  // ВАЖНО: не делать innerHTML='' — это удалит WebGL-canvas DiceBox из DOM,
+  // после чего все последующие 3D-броски залипают в 2D навсегда.
+  // Удаляем только прежние 2D-SVG, а canvas DiceBox прячем через hide().
+  Array.prototype.slice.call(container.children).forEach(function(ch) {
+    if (ch.tagName && ch.tagName.toLowerCase() === 'canvas') return;
+    container.removeChild(ch);
+  });
+  if (_diceBoxInstance && typeof _diceBoxInstance.hide === 'function') {
+    try { _diceBoxInstance.hide(); } catch(e) {}
+  }
 
   // Второй бросок если qty=2 (для adv/dis)
   var result2 = (qty === 2) ? Math.floor(Math.random() * sides) + 1 : null;
