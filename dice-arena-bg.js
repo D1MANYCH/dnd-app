@@ -1,0 +1,360 @@
+// ============================================================
+// dice-arena-bg.js — космо-фон арены броска кубиков
+// Локальная мини-сцена внутри #dsvg-container под канвасом dice-box.
+// Палитра жёстко тёмная (космос в любой теме приложения).
+// Публичный API: window.DiceArenaBg.{start, stop, pulse}
+// ============================================================
+(function () {
+  'use strict';
+
+  let canvas = null, ctx = null;
+  let W = 0, H = 0, cx = 0, cy = 0;
+  let dpr = 1;
+  let isMobile = false;
+  let time = 0;
+  let rafId = 0;
+  let reduce = false;
+  let initedSize = false;
+  let ro = null;
+
+  // динамика для pulse()
+  let speedMultiplier = 1;
+  let targetSpeed = 1;
+
+  let bgStars = [], nebulae = [], orbits = [], dustParticles = [], shockwaves = [];
+
+  const rmMQ = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+
+  function running() {
+    return canvas && !document.hidden && !reduce;
+  }
+
+  function rand(min, max) { return Math.random() * (max - min) + min; }
+
+  function initScene() {
+    // Звёзды — 3 слоя, локальные координаты (внутри арены 0..W, 0..H)
+    const starCounts = isMobile ? [35, 20, 8] : [70, 40, 15];
+    bgStars = starCounts.map((count, layerIdx) => {
+      const arr = [];
+      for (let i = 0; i < count; i++) {
+        arr.push({
+          x: rand(0, W),
+          y: rand(0, H),
+          size: rand(0.4, 0.8 + layerIdx * 0.5),
+          baseOpacity: rand(0.18, 0.45 + layerIdx * 0.12),
+          twinkleSpeed: rand(0.004, 0.018),
+          twinkleOffset: rand(0, Math.PI * 2)
+        });
+      }
+      return arr;
+    });
+
+    // Туманности — 2 (синяя + оранжевая)
+    nebulae = [];
+    for (let i = 0; i < 2; i++) {
+      const angle = rand(0, Math.PI * 2);
+      const dist = rand(20, Math.min(W, H) * 0.35);
+      nebulae.push({
+        x: Math.cos(angle) * dist,
+        y: Math.sin(angle) * dist,
+        radius: rand(50, 95),
+        warm: i === 0,
+        alpha: rand(0.018, 0.04),
+        rotation: rand(0, Math.PI * 2),
+        rotSpeed: rand(-0.0004, 0.0004)
+      });
+    }
+
+    // Орбиты — 5 (без центральной звезды, поверх будет 3D-кубик)
+    const minDim = Math.min(W, H);
+    const halfDim = minDim / 2;
+    const orbitDefs = [
+      { relR: 0.22, speed: 1.4, dir: 1,  arcLen: 0.55, alpha: 0.18, planets: [] },
+      { relR: 0.34, speed: 1.0, dir: -1, arcLen: 0.65, alpha: 0.20, planets: [{ type: 'cool', size: 7, offset: 0 }] },
+      { relR: 0.48, speed: 0.7, dir: 1,  arcLen: 0.75, alpha: 0.18, planets: [] },
+      { relR: 0.64, speed: 0.5, dir: -1, arcLen: 0.85, alpha: 0.17, planets: [{ type: 'warm', size: 9, offset: Math.PI * 0.6 }] },
+      { relR: 0.80, speed: 0.35, dir: 1, arcLen: 0.95, alpha: 0.14, planets: [] }
+    ];
+    orbits = orbitDefs.map(cfg => ({
+      radius: cfg.relR * halfDim,
+      speed: cfg.speed, dir: cfg.dir,
+      alpha: cfg.alpha,
+      arcLen: cfg.arcLen,
+      planets: cfg.planets,
+      angle: rand(0, Math.PI * 2)
+    }));
+
+    // Дуст — ~40 частиц
+    dustParticles = [];
+    const dCount = isMobile ? 22 : 40;
+    for (let i = 0; i < dCount; i++) {
+      dustParticles.push({
+        x: rand(0, W),
+        y: rand(0, H),
+        size: rand(0.4, 1.6),
+        baseOpacity: rand(0.05, 0.28),
+        speedX: rand(-0.04, 0.04),
+        speedY: rand(-0.04, 0.04),
+        twinkleSpeed: rand(0.003, 0.014),
+        twinkleOffset: rand(0, Math.PI * 2),
+        depth: Math.random()
+      });
+    }
+  }
+
+  function resize() {
+    if (!canvas || !ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    W = Math.max(1, Math.floor(rect.width));
+    H = Math.max(1, Math.floor(rect.height));
+    cx = W / 2;
+    cy = H / 2;
+
+    canvas.width = Math.floor(W * dpr);
+    canvas.height = Math.floor(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    initScene();
+    initedSize = true;
+  }
+
+  function drawGlow(x, y, radius, r, g, b, alpha) {
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    grad.addColorStop(0, `rgba(${r},${g},${b},${alpha})`);
+    grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+  }
+
+  function drawPlanet(x, y, radius, type) {
+    let r, g, b;
+    if (type === 'warm') { r = 255; g = 200; b = 100; }
+    else if (type === 'cool') { r = 120; g = 150; b = 220; }
+    else { r = 150; g = 210; b = 240; }
+
+    // outer glow
+    const gg = ctx.createRadialGradient(x, y, 0, x, y, radius * 2.5);
+    gg.addColorStop(0, `rgba(${r},${g},${b},0.12)`);
+    gg.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    ctx.fillStyle = gg;
+    ctx.beginPath(); ctx.arc(x, y, radius * 2.5, 0, Math.PI * 2); ctx.fill();
+
+    // body
+    const bg = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, 0, x, y, radius);
+    bg.addColorStop(0, `rgba(${Math.min(255, r + 40)},${Math.min(255, g + 40)},${Math.min(255, b + 40)},0.9)`);
+    bg.addColorStop(0.6, `rgba(${r},${g},${b},0.85)`);
+    bg.addColorStop(1, `rgba(${Math.floor(r * 0.4)},${Math.floor(g * 0.4)},${Math.floor(b * 0.4)},0.75)`);
+    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fillStyle = bg; ctx.fill();
+
+    // shadow
+    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2);
+    const sg = ctx.createLinearGradient(x - radius, y, x + radius, y);
+    sg.addColorStop(0, 'rgba(0,0,0,0)');
+    sg.addColorStop(1, 'rgba(0,0,0,0.3)');
+    ctx.fillStyle = sg; ctx.fill();
+  }
+
+  function render() {
+    if (!ctx || !initedSize) return;
+    time += 0.016;
+
+    // плавный возврат скорости к 1
+    speedMultiplier += (targetSpeed - speedMultiplier) * 0.05;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Фон — радиальный градиент (тёмный космос)
+    const bgg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.7);
+    bgg.addColorStop(0, '#0a1628');
+    bgg.addColorStop(0.55, '#060e1f');
+    bgg.addColorStop(1, '#030812');
+    ctx.fillStyle = bgg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Туманности
+    ctx.save(); ctx.translate(cx, cy);
+    nebulae.forEach(n => {
+      n.rotation += n.rotSpeed * speedMultiplier;
+      ctx.save(); ctx.translate(n.x, n.y); ctx.rotate(n.rotation);
+      const ng = ctx.createRadialGradient(0, 0, 0, 0, 0, n.radius);
+      if (n.warm) {
+        ng.addColorStop(0, `rgba(160,100,50,${n.alpha})`);
+        ng.addColorStop(1, 'rgba(160,100,50,0)');
+      } else {
+        ng.addColorStop(0, `rgba(60,80,140,${n.alpha})`);
+        ng.addColorStop(1, 'rgba(60,80,140,0)');
+      }
+      ctx.fillStyle = ng; ctx.fillRect(-n.radius, -n.radius, n.radius * 2, n.radius * 2);
+      ctx.restore();
+    });
+    ctx.restore();
+
+    // Звёзды (мерцание)
+    bgStars.forEach(layer => {
+      layer.forEach(star => {
+        const tw = Math.sin(time * star.twinkleSpeed * 60 + star.twinkleOffset) * 0.5 + 0.5;
+        const a = star.baseOpacity * (0.45 + tw * 0.55);
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200,215,255,${a})`;
+        ctx.fill();
+      });
+    });
+
+    // Дуст
+    dustParticles.forEach(p => {
+      p.x += p.speedX * speedMultiplier;
+      p.y += p.speedY * speedMultiplier;
+      // wrap внутри арены
+      if (p.x < -5) p.x = W + 5; else if (p.x > W + 5) p.x = -5;
+      if (p.y < -5) p.y = H + 5; else if (p.y > H + 5) p.y = -5;
+      const tw = Math.sin(time * p.twinkleSpeed * 60 + p.twinkleOffset) * 0.5 + 0.5;
+      const a = p.baseOpacity * (0.3 + tw * 0.7);
+      const s = p.size * (0.5 + p.depth * 0.5);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, s, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${220 + p.depth * 30},${180 + p.depth * 35},${100 + p.depth * 70},${a})`;
+      ctx.fill();
+    });
+
+    // Центральное мягкое свечение под кубик
+    drawGlow(cx, cy, Math.min(W, H) * 0.18, 255, 180, 80, 0.06 + (speedMultiplier - 1) * 0.04);
+
+    // Орбиты
+    orbits.forEach(orbit => {
+      orbit.angle += orbit.speed * orbit.dir * speedMultiplier * 0.008;
+
+      // тонкое базовое кольцо
+      ctx.beginPath();
+      ctx.arc(cx, cy, orbit.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255,200,120,${orbit.alpha * 0.18})`;
+      ctx.lineWidth = 0.4;
+      ctx.stroke();
+
+      // светящаяся дуга
+      const arcStart = orbit.angle;
+      const arcEnd = orbit.angle + orbit.arcLen;
+      ctx.beginPath();
+      ctx.arc(cx, cy, orbit.radius, arcStart, arcEnd);
+      ctx.strokeStyle = `rgba(255,190,100,${orbit.alpha * 0.25})`;
+      ctx.lineWidth = 4; ctx.lineCap = 'round';
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy, orbit.radius, arcStart, arcEnd);
+      ctx.strokeStyle = `rgba(255,190,100,${orbit.alpha * 1.1})`;
+      ctx.lineWidth = 1.1; ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // ведущая точка
+      const leadX = cx + orbit.radius * Math.cos(arcEnd);
+      const leadY = cy + orbit.radius * Math.sin(arcEnd);
+      ctx.beginPath();
+      ctx.arc(leadX, leadY, 2.4, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,230,180,${Math.min(1, orbit.alpha * 3)})`;
+      ctx.fill();
+
+      // хвост (точки)
+      for (let d = 0; d < 6; d++) {
+        const da = orbit.angle + (d / 6) * orbit.arcLen;
+        const dx = cx + orbit.radius * Math.cos(da);
+        const dy = cy + orbit.radius * Math.sin(da);
+        const a = orbit.alpha * (1 - d / 6) * 0.45;
+        ctx.beginPath();
+        ctx.arc(dx, dy, 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,200,120,${a})`;
+        ctx.fill();
+      }
+
+      // планеты
+      orbit.planets.forEach(pl => {
+        const pAngle = orbit.angle + pl.offset;
+        const ppx = cx + orbit.radius * Math.cos(pAngle);
+        const ppy = cy + orbit.radius * Math.sin(pAngle);
+        drawPlanet(ppx, ppy, pl.size / 2, pl.type);
+      });
+    });
+
+    // Shockwaves (импульсы от центра при броске)
+    for (let i = shockwaves.length - 1; i >= 0; i--) {
+      const sw = shockwaves[i];
+      sw.radius += sw.speed * speedMultiplier;
+      sw.opacity *= 0.965;
+      if (sw.opacity < 0.012 || sw.radius > Math.max(W, H)) {
+        shockwaves.splice(i, 1);
+        continue;
+      }
+      ctx.beginPath();
+      ctx.arc(cx, cy, sw.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255,200,120,${sw.opacity})`;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+    }
+  }
+
+  function loop() {
+    if (!running()) { rafId = 0; return; }
+    render();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function start(el) {
+    if (el && el !== canvas) {
+      teardownObserver();
+      canvas = el;
+      ctx = canvas.getContext('2d');
+      if (!ctx) { canvas = null; return; }
+      isMobile = window.innerWidth < 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      dpr = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+      reduce = !!(rmMQ && rmMQ.matches);
+      initedSize = false;
+      // ResizeObserver реагирует на изменения размера контейнера
+      try {
+        ro = new ResizeObserver(() => resize());
+        ro.observe(canvas);
+      } catch (e) { /* старые браузеры — резизим один раз */ }
+    }
+    if (!canvas || !ctx) return;
+    resize();
+    if (reduce || document.hidden) { render(); return; }
+    if (rafId) { cancelAnimationFrame(rafId); }
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function stop() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+  }
+
+  function teardownObserver() {
+    if (ro) { try { ro.disconnect(); } catch (e) {} ro = null; }
+  }
+
+  function pulse() {
+    if (!canvas) return;
+    // Два кольца + лёгкий импульс орбит
+    shockwaves.push({ radius: Math.min(W, H) * 0.08, opacity: 0.7, speed: 2.4 });
+    shockwaves.push({ radius: Math.min(W, H) * 0.04, opacity: 0.5, speed: 1.6 });
+    targetSpeed = 3;
+    setTimeout(() => { targetSpeed = 1; }, 1000);
+    // если RAF не крутился (например хидден стал) — нарисуем хотя бы один кадр
+    if (!rafId && !document.hidden && !reduce) {
+      rafId = requestAnimationFrame(loop);
+    }
+  }
+
+  // visibility / reduced-motion
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop();
+    else if (canvas && !rafId) { rafId = requestAnimationFrame(loop); }
+  });
+  if (rmMQ) {
+    const onRm = () => {
+      reduce = !!rmMQ.matches;
+      if (reduce) { stop(); render(); }
+      else if (canvas && !rafId) { rafId = requestAnimationFrame(loop); }
+    };
+    if (rmMQ.addEventListener) rmMQ.addEventListener('change', onRm);
+    else if (rmMQ.addListener) rmMQ.addListener(onRm);
+  }
+
+  window.DiceArenaBg = { start: start, stop: stop, pulse: pulse };
+})();

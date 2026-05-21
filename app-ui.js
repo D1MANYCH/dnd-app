@@ -164,20 +164,120 @@ if (modal) {
   modal.style.display = "";
   modal.classList.add("active");
 }
+// v3.19: обновить бейдж количества записей в истории
+try { _updateDiceHistoryBadge(); } catch (e) {}
 // FIX: DiceBox canvas сохраняет внутренний буфер 300×150 (default) если init
 // произошёл до того как контейнер получил реальный размер.
 // resizeWorld() лишь регистрирует window.resize listener — он сам не ресайзит.
 // Триггерим resize event после показа модалки чтобы сцена подстроилась.
 setTimeout(function() {
   try { window.dispatchEvent(new Event('resize')); } catch (e) {}
+  // v3.17: запуск космо-арены (canvas#diceArenaBg) после того как модалка получила размер
+  try {
+    if (window.DiceArenaBg) {
+      var arenaCv = document.getElementById('diceArenaBg');
+      if (arenaCv) window.DiceArenaBg.start(arenaCv);
+    }
+  } catch (e) {}
 }, 60);
 }
 function closeDiceModal() {
+// v3.17: ставим RAF космо-арены на паузу — экономия CPU/батареи когда модалка закрыта
+try { if (window.DiceArenaBg) window.DiceArenaBg.stop(); } catch (e) {}
+// v3.18: закрываем поповеры если были открыты
+try { closeDicePopovers(); } catch (e) {}
 const modal = $("dice-modal");
 if (modal) modal.classList.remove("active");
 const display = $("dice-result-display");
 if (display) display.classList.remove("crit-success", "crit-fail", "normal");
 }
+
+// v3.18: поповеры в шапке модалки — настройки и история бросков
+function toggleDicePopover(which) {
+  var settings = document.getElementById('dice-popover-settings');
+  var history = document.getElementById('dice-popover-history');
+  var sBtn = document.getElementById('dice-settings-btn');
+  var hBtn = document.getElementById('dice-history-btn');
+  if (!settings || !history) return;
+  if (which === 'settings') {
+    var wasOpen = !settings.hasAttribute('hidden');
+    settings.hidden = wasOpen;
+    history.hidden = true;
+    if (sBtn) sBtn.classList.toggle('is-active', !wasOpen);
+    if (hBtn) hBtn.classList.remove('is-active');
+  } else if (which === 'history') {
+    var wasOpen = !history.hasAttribute('hidden');
+    history.hidden = wasOpen;
+    settings.hidden = true;
+    if (hBtn) hBtn.classList.toggle('is-active', !wasOpen);
+    if (sBtn) sBtn.classList.remove('is-active');
+    if (!wasOpen && typeof renderDiceHistory === 'function') {
+      try { renderDiceHistory(); } catch (e) {}
+    }
+  }
+}
+function closeDicePopovers() {
+  var s = document.getElementById('dice-popover-settings');
+  var h = document.getElementById('dice-popover-history');
+  if (s) s.hidden = true;
+  if (h) h.hidden = true;
+  var sBtn = document.getElementById('dice-settings-btn');
+  var hBtn = document.getElementById('dice-history-btn');
+  if (sBtn) sBtn.classList.remove('is-active');
+  if (hBtn) hBtn.classList.remove('is-active');
+}
+function clearDiceHistory() {
+  if (typeof confirm === 'function' && !confirm('Очистить историю бросков?')) return;
+  try {
+    if (Array.isArray(window.diceHistory)) window.diceHistory.length = 0;
+    else if (typeof diceHistory !== 'undefined' && Array.isArray(diceHistory)) diceHistory.length = 0;
+  } catch (e) {}
+  try { if (typeof renderDiceHistory === 'function') renderDiceHistory(); } catch (e) {}
+  try { _updateDiceHistoryBadge(); } catch (e) {}
+}
+// v3.19: сброс отображённого результата (кнопка «Сброс» в шапке)
+function resetDiceResult() {
+  var resultBig = document.getElementById('dice-result-big');
+  var resultInfo = document.getElementById('dice-result-info');
+  var resultBox = document.getElementById('dice3d-result');
+  var dual = document.getElementById('dice-dual-display');
+  if (resultBig) resultBig.textContent = '—';
+  if (resultInfo) resultInfo.textContent = 'Выберите кубик';
+  if (resultBox) resultBox.classList.remove('crit-success', 'crit-fail', 'normal', 'pop');
+  if (dual) dual.style.display = 'none';
+  try { if (window.DiceArenaBg) window.DiceArenaBg.pulse(); } catch (e) {}
+}
+// v3.19: счётчик-бейдж на иконке истории
+function _updateDiceHistoryBadge() {
+  var badge = document.getElementById('dice-history-badge');
+  if (!badge) return;
+  var n = 0;
+  try { n = (Array.isArray(window.diceHistory) ? window.diceHistory : (typeof diceHistory !== 'undefined' ? diceHistory : [])).length; } catch (e) {}
+  if (n > 0) {
+    badge.textContent = n > 99 ? '99+' : String(n);
+    badge.hidden = false;
+  } else {
+    badge.hidden = true;
+  }
+}
+// v3.19: формула из основного input'а под сеткой (дубль popover-формулы для удобства)
+function rollCustomFormulaFromMain() {
+  var src = document.getElementById('dice-custom-input-main');
+  var dst = document.getElementById('dice-custom-input');
+  if (src && dst) { dst.value = src.value; }
+  try { rollCustomFormula(); } catch (e) {}
+}
+// Клик вне поповера закрывает его (кроме клика по tool-кнопкам, которые сами тогглят)
+document.addEventListener('click', function(ev) {
+  var modal = document.getElementById('dice-modal');
+  if (!modal || !modal.classList.contains('active')) return;
+  var popoverOpen = !document.getElementById('dice-popover-settings')?.hasAttribute('hidden')
+                 || !document.getElementById('dice-popover-history')?.hasAttribute('hidden');
+  if (!popoverOpen) return;
+  var t = ev.target;
+  if (t.closest && (t.closest('.dice-popover') || t.closest('.dice-tool-btn'))) return;
+  closeDicePopovers();
+}, true);
 function setDiceMode(btn, mode) {
   window.__diceSelectedMode = mode;
   var seg = btn && btn.parentElement;
@@ -244,7 +344,14 @@ animateDice3d(sides, result, function(v1, v2) {
       if (resultInfo) resultInfo.textContent = "💀 КРИТИЧЕСКИЙ ПРОВАЛ!";
     } else {
       resultBox.classList.add("normal");
-      if (resultInfo) resultInfo.textContent = resultLabel + " · " + timestamp;
+      // v3.19: «Кубик: d20» (или с badge mode), компактнее старого «d20 · 13:46»
+      if (resultInfo) {
+        var modeLabel = mode === 'adv' ? ' ▲' : (mode === 'dis' ? ' ▼' : '');
+        var coreLabel = mode === 'adv'
+          ? 'Преим.: ' + r1 + ' и ' + r2
+          : (mode === 'dis' ? 'Помеха: ' + r1 + ' и ' + r2 : 'Кубик: d' + sides + modeLabel);
+        resultInfo.textContent = coreLabel;
+      }
     }
     resultBox.classList.add("pop");
     setTimeout(function(){ if(resultBox) resultBox.classList.remove("pop"); }, 400);
@@ -252,6 +359,7 @@ animateDice3d(sides, result, function(v1, v2) {
   diceHistory.unshift({ sides: sides, result: result, mode: mode || 'normal', time: timestamp, r1: r1, r2: r2 });
   if (diceHistory.length > 10) diceHistory.pop();
   renderDiceHistory();
+  try { _updateDiceHistoryBadge(); } catch (e) {}
 }, { qty: qty });
 }
 
@@ -744,6 +852,8 @@ function _initDiceBox() {
 function animateDice3d(sides, result, callback, opts) {
   var qty = (opts && opts.qty) ? opts.qty : 1;
   var reduced = prefersReducedMotion();
+  // v3.17: импульс космо-арены (shockwave + ускорение орбит на 1с)
+  try { if (window.DiceArenaBg) window.DiceArenaBg.pulse(); } catch (e) {}
   if (reduced) {
     setTimeout(function() { callback(); }, 30);
     return;
@@ -825,6 +935,8 @@ function animateDice3d(sides, result, callback, opts) {
 // d10=декагон, d12=додекагон, d20=шестиугольник (символично), d100=октагон.
 function animateDice2d(sides, result, callback, opts) {
   var qty = (opts && opts.qty) ? opts.qty : 1;
+  // v3.17: импульс космо-арены и для 2D-fallback — единое UX
+  try { if (window.DiceArenaBg) window.DiceArenaBg.pulse(); } catch (e) {}
   var container = document.getElementById('dsvg-container');
   if (!container) { try { callback(); } catch(e){} return; }
   // ВАЖНО: не делать innerHTML='' — это удалит WebGL-canvas DiceBox из DOM,
@@ -983,6 +1095,13 @@ resultInfo.textContent = formula.replace(/d/g,"к") + " = " + rollStr + (count>1
 diceHistory.unshift({ sides: sides, result: total, mode: "custom", formula: formula.replace(/d/g,"к"), time: timestamp });
 if (diceHistory.length > 10) diceHistory.pop();
 renderDiceHistory();
+try { _updateDiceHistoryBadge(); } catch (e) {}
+// v3.19: пульс фона + обновить подпись «Кубик: <формула>»
+try { if (window.DiceArenaBg) window.DiceArenaBg.pulse(); } catch (e) {}
+try {
+  var ri = document.getElementById('dice-result-info');
+  if (ri) ri.textContent = 'Формула: ' + formula.replace(/d/g,"к");
+} catch (e) {}
 }
 function renderDiceHistory() {
 const container = $("dice-history");

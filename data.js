@@ -1598,8 +1598,8 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.16.3";
-const APP_VERSION_DATE = "2026-05-20";
+const APP_VERSION = "3.19.1";
+const APP_VERSION_DATE = "2026-05-21";
 
 // ============================================================
 // ЧЕРТЫ — PHB 5e (Fantom Studio перевод, 20 основных)
@@ -1884,9 +1884,49 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
+    version: "3.19.1",
+    date: "21 мая 2026",
+    badge: "new",
+    changes: [
+      { type: "fix", text: "fix(dice): видимая × в шапке + Сброс перенесён в подвал модалки" }
+    ]
+  },
+  {
+    version: "3.19.0",
+    date: "21 мая 2026",
+    badge: "old",
+    changes: [
+      { type: "feat", text: "feat(dice): новый визуал — SVG-плитки кубиков, БЫСТРЫЙ БРОСОК d20, бейдж истории, Сброс, кнопка Готово вместо ×" }
+    ]
+  },
+  {
+    version: "3.18.1",
+    date: "20 мая 2026",
+    badge: "old",
+    changes: [
+      { type: "fix", text: "fix(dice): компактные dropdown-поповеры (grid 2×2 для стилей) + меньше кнопки d4-d100 на десктопе" }
+    ]
+  },
+  {
+    version: "3.18.0",
+    date: "20 мая 2026",
+    badge: "old",
+    changes: [
+      { type: "feat", text: "feat(dice): редизайн модалки — двухколоночный layout, gear/history popovers, удалён дубль закрытия" }
+    ]
+  },
+  {
+    version: "3.17.0",
+    date: "20 мая 2026",
+    badge: "old",
+    changes: [
+      { type: "feat", text: "feat(dice): космическая арена броска — анимированный фон + shockwave" }
+    ]
+  },
+  {
     version: "3.16.3",
     date: "20 мая 2026",
-    badge: "new",
+    badge: "old",
     changes: [
       { type: "fix", text: "fix(dice): canvas сохраняется при soft-таймауте 3D-физики, инстанс DiceBox пересоздаётся только после 3 таймаутов подряд или WebGL context loss; убран ложный 2D-fallback после нескольких роллов" }
     ]

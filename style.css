@@ -4331,7 +4331,7 @@ transform: translateY(-2px);
 .weapon-preset-btn b { color: var(--weapon-color); font-size: 1em; }
 
 /* ========== DICE ========== */
-.dice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.dice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .dice-btn {
 background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 2px solid var(--border-color);
@@ -4370,6 +4370,465 @@ padding: 18px;
 .dice-history-item { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.85em; color: var(--text-muted); border-bottom: 1px solid var(--border-color); }
 .dice-history-item:last-child { border-bottom: none; }
 .dice-history-item span:last-child { color: var(--text-color); font-weight: bold; font-size: 1.1em; }
+
+/* =============================================
+   v3.18: DICE MODAL — новый UX (header tools + 2-col body + popovers)
+============================================= */
+.dice-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-color, var(--bg-3));
+  position: relative;
+  z-index: 5;
+}
+.dice-modal-tools {
+  display: flex;
+  gap: 6px;
+  margin-right: auto;
+  flex: 0 0 auto;
+}
+.dice-tool-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: var(--bg-2);
+  border: 1px solid var(--border-color, var(--bg-3));
+  border-radius: 50%;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
+  position: relative;
+}
+.dice-tool-btn:hover {
+  border-color: var(--accent-color, var(--accent));
+  color: var(--accent-color, var(--accent));
+  transform: translateY(-1px);
+}
+.dice-tool-btn.is-active {
+  background: var(--accent-color, var(--accent));
+  color: var(--bg-1);
+  border-color: var(--accent-color, var(--accent));
+}
+.dice-tool-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--accent-color, var(--accent));
+  color: var(--bg-1);
+  border-radius: 10px;
+  font-size: 0.65em;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px var(--bg-1);
+}
+.dice-tool-badge[hidden] { display: none; }
+.dice-modal-header h3 {
+  flex: 1 1 auto;
+  text-align: center;
+  margin: 0;
+  font-size: 0.92em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent-color, var(--accent));
+}
+/* v3.19.1: Сброс переехал в подвал модалки */
+.dice-modal-footer {
+  display: flex;
+  justify-content: center;
+  padding: 8px 12px 14px;
+  border-top: 1px solid var(--border-color, var(--bg-3));
+}
+.dice-reset-btn {
+  background: transparent;
+  border: 1px solid var(--border-color, var(--bg-3));
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 7px 16px;
+  font-size: 0.82em;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  border-radius: 8px;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.dice-reset-btn:hover {
+  color: var(--accent-color, var(--accent));
+  border-color: var(--accent-color, var(--accent));
+  background: var(--bg-2);
+}
+.dice-modal-header .modal-close {
+  position: static !important;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  font-size: 24px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  background: var(--bg-2);
+  border: 1px solid var(--border-color, var(--bg-3));
+  border-radius: 50%;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.dice-modal-header .modal-close:hover {
+  color: var(--danger-color, #e07566);
+  border-color: var(--danger-color, #e07566);
+  background: var(--bg-2);
+}
+
+/* Сбрасываем padding контейнера, шапка и body имеют свои внутренние отступы */
+#dice-modal .dice-modal-content {
+  padding: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  position: relative;
+}
+
+/* Двухколоночный body: арена + контролы */
+.dice-body {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  gap: 20px;
+  padding: 16px;
+  align-items: start;
+}
+.dice-arena-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.dice-controls-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.dice-last-roll {
+  display: none;  /* v3.19: устарел — теперь «Кубик: dN» под аркой */
+}
+
+/* v3.19: «Быстрый бросок d20» — отдельная двухстрочная кнопка над сеткой */
+.dice-btn-quick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  padding: 14px 12px;
+  background: linear-gradient(135deg, var(--accent-color, var(--accent)) 0%, #c9a040 100%);
+  color: #000;
+  border: 1px solid var(--accent-color, var(--accent));
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+  box-shadow: 0 4px 18px -4px var(--accent-glow-token, rgba(224,179,88,0.4));
+}
+.dice-btn-quick:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow: 0 8px 24px -6px var(--accent-glow-token, rgba(224,179,88,0.55));
+}
+.dice-btn-quick:active { transform: translateY(0); }
+.dice-btn-superlabel {
+  font-size: 0.7em;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.dice-btn-quick-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.6em;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* v3.19: компактные плитки d4-d100 с SVG-иконкой и подписью */
+.dice-controls-col .dice-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.dice-controls-col .dice-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 6px;
+  min-height: 72px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-color, var(--bg-3));
+  color: var(--text-color);
+  font-size: 1em;
+  font-weight: 700;
+  border-radius: var(--r-md);
+  transition: all 0.15s;
+}
+.dice-controls-col .dice-btn:hover {
+  border-color: var(--accent-color, var(--accent));
+  background: var(--bg-3);
+  color: var(--accent-color, var(--accent));
+  transform: translateY(-1px);
+}
+.dice-btn-icon {
+  width: 26px;
+  height: 26px;
+  color: var(--accent-color, var(--accent));
+  opacity: 0.85;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.dice-controls-col .dice-btn:hover .dice-btn-icon {
+  opacity: 1;
+  transform: scale(1.08);
+}
+.dice-btn-label {
+  font-size: 0.95em;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+/* v3.19: формула — inline под сеткой кубиков */
+.dice-formula-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-top: 4px;
+}
+.dice-formula-inp {
+  background: var(--bg-2);
+  border: 1px solid var(--border-color, var(--bg-3));
+  color: var(--text-color);
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  font-size: 0.9em;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+}
+.dice-formula-inp:focus { outline: none; border-color: var(--accent-color, var(--accent)); }
+.dice-formula-btn {
+  background: var(--bg-2);
+  border: 1px solid var(--border-color, var(--bg-3));
+  color: var(--text-color);
+  padding: 10px 18px;
+  border-radius: var(--r-md);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+.dice-formula-btn:hover {
+  border-color: var(--accent-color, var(--accent));
+  color: var(--accent-color, var(--accent));
+}
+
+/* v3.19: блок результата под ареной — decor-полоска + «Кубик: dN» */
+.dice3d-divider {
+  width: 48px;
+  height: 3px;
+  background: var(--accent-color, var(--accent));
+  border-radius: 2px;
+  margin-bottom: 6px;
+  opacity: 0.85;
+}
+
+/* Поповеры — компактные dropdown'ы у tools-кнопок (не растягиваются на всю ширину) */
+.dice-popover {
+  position: absolute;
+  top: 56px;
+  left: 12px;
+  width: 320px;
+  max-width: calc(100% - 24px);
+  max-height: calc(100% - 76px);
+  background: var(--bg-1);
+  border: 1px solid var(--border-color, var(--bg-3));
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,200,120,0.06);
+  backdrop-filter: blur(var(--glass-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
+  z-index: 30;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: dicePopoverIn 0.18s ease-out;
+}
+.dice-popover[hidden] { display: none; }
+@keyframes dicePopoverIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* Стрелка-«хвостик» поповера у tool-кнопки */
+.dice-popover::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  width: 10px;
+  height: 10px;
+  background: var(--bg-1);
+  border-left: 1px solid var(--border-color, var(--bg-3));
+  border-top: 1px solid var(--border-color, var(--bg-3));
+  transform: rotate(45deg);
+}
+#dice-popover-settings::before { left: 16px; }
+#dice-popover-history::before  { left: 56px; }
+
+.dice-popover-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color, var(--bg-3));
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 0.92em;
+  flex-wrap: nowrap;
+}
+.dice-popover-header > span:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dice-popover-clear {
+  background: transparent;
+  border: 1px solid var(--border-color, var(--bg-3));
+  border-radius: 6px;
+  padding: 3px 9px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.78em;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+.dice-popover-clear:hover {
+  color: var(--danger-color, #e07566);
+  border-color: var(--danger-color, #e07566);
+}
+.dice-popover-close { display: none; /* v3.19: убрана из шапки — закрытие через «Готово» */ }
+.dice-popover-body {
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.dice-popover-done {
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: var(--accent-color, var(--accent));
+  color: var(--bg-1);
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.15s;
+  flex: 0 0 auto;
+}
+.dice-popover-done:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.dice-popover-done:active { transform: translateY(0); }
+
+/* Внутри поповера: компактный layout */
+.dice-popover-body .dice-theme-row { margin: 0 0 10px; padding: 0; background: transparent; border: none; }
+.dice-popover-body .dice-theme-label { font-size: 0.82em; color: var(--text-muted); margin-bottom: 6px; }
+.dice-popover-body .dice-theme-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.dice-popover-body .dice-theme-btn {
+  min-width: 0;
+  height: 32px;
+  font-size: 0.85em;
+  padding: 0 8px;
+}
+.dice-popover-body .dice-custom-label { font-size: 0.82em; color: var(--text-muted); margin: 8px 0 6px; }
+.dice-popover-body .dice-custom-row { margin: 0; gap: 6px; }
+.dice-popover-body .dice-custom-inp { padding: 7px 10px; font-size: 0.88em; }
+.dice-popover-body .dice-custom-btn { padding: 7px 14px; font-size: 0.85em; }
+
+/* История внутри поповера — компактнее */
+.dice-popover-body .dice-history {
+  max-height: 280px;
+  border-top: none;
+  padding-top: 0;
+}
+.dice-popover-body .dice-history-item {
+  padding: 6px 4px;
+  font-size: 0.82em;
+}
+.dice-popover-body .dice-history:empty::after {
+  content: 'Ещё нет бросков';
+  display: block;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85em;
+  padding: 18px 8px;
+  font-style: italic;
+}
+
+/* Desktop (≥768px): модалка пошире для two-column */
+@media (min-width: 768px) {
+  #dice-modal .dice-modal-content { max-width: 720px; }
+  .dice-controls-col .dice-mode-segment .dice-mode-seg-btn { padding: 7px 10px; font-size: 0.85em; }
+  .dice-controls-col .dice-btn { min-height: 80px; }
+  .dice-btn-icon { width: 28px; height: 28px; }
+}
+
+/* Mobile (<520px): одна колонка, поповер на почти всю ширину */
+@media (max-width: 520px) {
+  .dice-body {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+  .dice-modal-header { padding: 8px 10px; gap: 6px; }
+  .dice-modal-header h3 {
+    font-size: 0.82em;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dice-modal-header h3 .d20-icon { display: none; }
+  .dice-tool-btn { width: 32px; height: 32px; }
+  .dice-tool-badge { min-width: 16px; height: 16px; font-size: 0.58em; line-height: 16px; }
+  .dice-modal-header .modal-close { width: 32px; height: 32px; font-size: 22px !important; }
+  .dice-modal-footer { padding: 6px 10px 10px; }
+  .dice-reset-btn { padding: 6px 14px; font-size: 0.78em; }
+  .dice-popover {
+    top: 52px;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-width: none;
+  }
+  #dice-popover-settings::before { left: 14px; }
+  #dice-popover-history::before  { left: 54px; }
+}
 .dice-result-display {
 background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 2px solid var(--border-color);
@@ -8226,6 +8685,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .dsvg-container {
   /* DICE2-2: расширен под WebGL-canvas от @3d-dice/dice-box */
+  /* v3.17: космо-арена вместо деревянной текстуры — фон-градиент + canvas#diceArenaBg */
   width: 100%;
   max-width: 340px;
   height: 340px;
@@ -8235,15 +8695,24 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   justify-content: center;
   perspective: 500px;
   position: relative;
-  background-image: url('assets/textures/dice-tray.jpg');
-  background-size: cover;
-  background-position: center;
-  border-radius: 12px;
-  box-shadow: inset 0 0 30px 4px rgba(0,0,0,0.45);
+  background: radial-gradient(circle at 50% 50%, #0a1628 0%, #060e1f 55%, #030812 100%);
+  border-radius: 14px;
+  box-shadow: inset 0 0 30px 4px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,200,120,0.08);
   overflow: hidden;
 }
-/* DICE2-2: canvas dice-box должен полностью заполнять контейнер */
-.dsvg-container > canvas,
+/* v3.17: фоновый canvas (звёзды + орбиты) — под всеми остальными слоями */
+.dice-arena-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+}
+/* DICE2-2: canvas dice-box должен полностью заполнять контейнер.
+   Исключаем .dice-arena-bg — у него своя position:absolute разметка. */
+.dsvg-container > canvas:not(.dice-arena-bg),
 .dice-arena > canvas {
   width: 100% !important;
   height: 100% !important;
@@ -8266,6 +8735,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   width: 62%; height: 62%;
+  z-index: 1; /* v3.17: поверх .dice-arena-bg */
 }
 /* DICE2-5: glow контейнера на крит. d20 (1/20) */
 .dsvg-container.crit-success {
@@ -8385,6 +8855,14 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   100% { transform: scale(1) rotateX(0); opacity: 1; }
 }
 .dice3d-result.pop .dice3d-num { animation: dicePop 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+/* v3.18: мобильная арена — заменён старый @media (max-width: 520px) для .dsvg-wrap;
+   общий мобильный блок dice modal находится в секции «v3.18: DICE MODAL» выше. */
+@media (max-width: 520px) {
+  .dsvg-container { height: 280px; max-width: 320px; }
+  .dice3d-result { min-width: 0; width: 100%; align-items: center; }
+  .dice3d-num { font-size: 2.6em; }
+}
 
 /* =============================================
    DESKTOP LAYOUT — centered max-width
