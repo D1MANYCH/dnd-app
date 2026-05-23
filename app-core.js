@@ -1793,6 +1793,20 @@ if (el) el.checked = checked;
 // 🔧 ИСПРАВЛЕНИЕ: Подкласс сохраняется + hpCurrent как число
 // ============================================
 function loadCharacter(id) {
+// BUGFIX-8: чистим pending-таймеры из других модулей, чтобы они не «дострелили»
+// в контексте нового персонажа (notes-поиск, индикатор сохранения, ритуал).
+try {
+  if (typeof window !== 'undefined') {
+    if (window._notesSearchTimer) { clearTimeout(window._notesSearchTimer); window._notesSearchTimer = null; }
+    if (window._notesSaveTimer)   { clearTimeout(window._notesSaveTimer);   window._notesSaveTimer   = null; }
+    if (window._ritualTimer) {
+      clearInterval(window._ritualTimer);
+      window._ritualTimer = null;
+      var _rit = (typeof document !== 'undefined') ? document.getElementById('status-ritual') : null;
+      if (_rit && _rit.classList) _rit.classList.add('hidden');
+    }
+  }
+} catch (e) { if (typeof console !== 'undefined') console.error('[loadCharacter] clear-timers:', e); }
 currentId = id;
 const char = characters.find(function(c) { return c.id === id; });
 if (!char) return;

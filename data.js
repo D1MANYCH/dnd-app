@@ -1598,8 +1598,8 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.19.2";
-const APP_VERSION_DATE = "2026-05-23";
+const APP_VERSION = "3.19.3";
+const APP_VERSION_DATE = "2026-05-24";
 
 // ============================================================
 // ЧЕРТЫ — PHB 5e (Fantom Studio перевод, 20 основных)
@@ -1884,9 +1884,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
+    version: "3.19.3",
+    date: "24 мая 2026",
+    badge: "new",
+    changes: [
+      { type: "fix", text: "BUGFIX-8: clear notesSearch/notesSave/ritual таймеров при loadCharacter — pending-таймеры из других модулей больше не «дострелят» в контексте нового персонажа" }
+    ]
+  },
+  {
     version: "3.19.2",
     date: "23 мая 2026",
-    badge: "new",
+    badge: "old",
     changes: [
       { type: "fix", text: "fix(safety): parseInt radix 10 во всех app-*.js (BUGFIX-7)" }
     ]

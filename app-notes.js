@@ -964,11 +964,14 @@ function _notesLogJournal(op, type, title) {
 
 var _notesSearchQuery = '';
 var _notesSearchTimer = null;
+// BUGFIX-8: экспонируем на window, чтобы loadCharacter() мог очистить таймер при смене персонажа.
+if (typeof window !== 'undefined') window._notesSearchTimer = null;
 
 function notesSearchInput(val) {
   _notesSearchQuery = val || '';
   if (_notesSearchTimer) clearTimeout(_notesSearchTimer);
   _notesSearchTimer = setTimeout(function() { _renderNotesMain(); }, 180);
+  if (typeof window !== 'undefined') window._notesSearchTimer = _notesSearchTimer;
 }
 
 function notesSearchKeydown(ev) {
@@ -1305,6 +1308,8 @@ function notesPrint() {
 
 // ── Индикатор «✓ сохранено HH:MM» ─────────────────────────────
 var _notesSaveTimer = null;
+// BUGFIX-8: экспонируем на window для clear-all в loadCharacter().
+if (typeof window !== 'undefined') window._notesSaveTimer = null;
 function _notesFlashSaved() {
   var el = document.getElementById('notes-save-ind');
   if (!el) return;
@@ -1315,6 +1320,7 @@ function _notesFlashSaved() {
   el.classList.add('visible');
   if (_notesSaveTimer) clearTimeout(_notesSaveTimer);
   _notesSaveTimer = setTimeout(function(){ el.classList.remove('visible'); }, 2000);
+  if (typeof window !== 'undefined') window._notesSaveTimer = _notesSaveTimer;
 }
 
 // ── Автоперерисовка при загрузке персонажа ───────────────────

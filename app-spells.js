@@ -455,6 +455,8 @@ function renderPrepCounter() {
 
 var _ritualTimer = null;
 var _ritualEndTime = 0;
+// BUGFIX-8: экспонируем на window для clear-all в loadCharacter().
+if (typeof window !== 'undefined') window._ritualTimer = null;
 function castRitual(spellName) {
 // Если уже идёт ритуал — отменить старый
 if (_ritualTimer) cancelRitual(true);
@@ -471,6 +473,7 @@ _ritualTimer = setInterval(function() {
   if (left <= 0) {
     clearInterval(_ritualTimer);
     _ritualTimer = null;
+    if (typeof window !== 'undefined') window._ritualTimer = null;
     if (container) container.classList.add("hidden");
     showToast("✅ Ритуал «" + spellName + "» завершён!", "success");
     return;
@@ -479,11 +482,13 @@ _ritualTimer = setInterval(function() {
   var sec = Math.floor((left % 60000) / 1000);
   if (timerEl) timerEl.textContent = min + ":" + (sec < 10 ? "0" : "") + sec;
 }, 1000);
+if (typeof window !== 'undefined') window._ritualTimer = _ritualTimer;
 }
 function cancelRitual(silent) {
 if (_ritualTimer) {
   clearInterval(_ritualTimer);
   _ritualTimer = null;
+  if (typeof window !== 'undefined') window._ritualTimer = null;
 }
 var container = $("status-ritual");
 if (container) container.classList.add("hidden");
