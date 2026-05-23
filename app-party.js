@@ -188,7 +188,7 @@ function _pentSave(type) {
   var name = $(nameField.id).value.trim();
   if (!name) { showToast("Введите имя", "warn"); return; }
   var list = cfg.list();
-  var idx = parseInt($(cfg.idx).value);
+  var idx = parseInt($(cfg.idx).value, 10);
   var existing = (idx >= 0 && idx < list.length) ? list[idx] : null;
   var data = { id: existing ? (existing.id || Date.now()) : Date.now(), status: existing ? (existing.status || "healthy") : "healthy" };
   cfg.fields.forEach(function(f) { data[f.key] = $(f.id).value.trim() || (f.default || ""); });

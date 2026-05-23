@@ -1598,8 +1598,8 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.19.1";
-const APP_VERSION_DATE = "2026-05-21";
+const APP_VERSION = "3.19.2";
+const APP_VERSION_DATE = "2026-05-23";
 
 // ============================================================
 // ЧЕРТЫ — PHB 5e (Fantom Studio перевод, 20 основных)
@@ -1884,9 +1884,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
+    version: "3.19.2",
+    date: "23 мая 2026",
+    badge: "new",
+    changes: [
+      { type: "fix", text: "fix(safety): parseInt radix 10 во всех app-*.js (BUGFIX-7)" }
+    ]
+  },
+  {
     version: "3.19.1",
     date: "21 мая 2026",
-    badge: "new",
+    badge: "old",
     changes: [
       { type: "fix", text: "fix(dice): видимая × в шапке + Сброс перенесён в подвал модалки" }
     ]

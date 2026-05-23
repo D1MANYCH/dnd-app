@@ -106,7 +106,7 @@ function rollSavingThrow(saveKey) {
   if (!save) return;
   showRollModePopup(function(mode) {
     var statMod = getMod(char.stats[saveKey]);
-    var profBonus = getProficiencyBonus(parseInt($("char-level")?.value) || 1);
+    var profBonus = getProficiencyBonus(parseInt($("char-level")?.value, 10) || 1);
     var checkbox = $("save-prof-" + saveKey);
     var bonus = statMod + (checkbox && checkbox.checked ? profBonus : 0);
     var d = rollD20WithMode(mode);
@@ -143,7 +143,7 @@ function rollSkillCheck(skillIndex) {
   if (!skill) return;
   showRollModePopup(function(mode) {
     var bonusEl = $("skill-bonus-" + skillIndex);
-    var bonus = bonusEl ? parseInt(bonusEl.innerText) : 0;
+    var bonus = bonusEl ? parseInt(bonusEl.innerText, 10) : 0;
     if (isNaN(bonus)) bonus = 0;
     var d = rollD20WithMode(mode);
     var total = d.roll + bonus;
@@ -1089,7 +1089,7 @@ function updateAllStatDisplays() {
 function adjustStat(stat, delta) {
 const input = $("val-" + stat);
 if (!input) return;
-let value = parseInt(input.value) || 10;
+let value = parseInt(input.value, 10) || 10;
 value += delta;
 if (value < 1) value = 1;
 if (value > 30) value = 30;
@@ -1111,7 +1111,7 @@ if (stat === "str") {
 function adjustCoin(coinType, delta) {
 const input = $("coin-" + coinType);
 if (!input) return;
-let value = parseInt(input.value) || 0;
+let value = parseInt(input.value, 10) || 0;
 value += delta;
 if (value < 0) value = 0;
 input.value = value;
@@ -1119,11 +1119,11 @@ updateChar();
 updateCoinTotal();
 }
 function updateCoinTotal() {
-const cp = parseInt($("coin-cp")?.value) || 0;
-const sp = parseInt($("coin-sp")?.value) || 0;
-const ep = parseInt($("coin-ep")?.value) || 0;
-const gp = parseInt($("coin-gp")?.value) || 0;
-const pp = parseInt($("coin-pp")?.value) || 0;
+const cp = parseInt($("coin-cp")?.value, 10) || 0;
+const sp = parseInt($("coin-sp")?.value, 10) || 0;
+const ep = parseInt($("coin-ep")?.value, 10) || 0;
+const gp = parseInt($("coin-gp")?.value, 10) || 0;
+const pp = parseInt($("coin-pp")?.value, 10) || 0;
 const total = cp * 0.01 + sp * 0.1 + ep * 0.5 + gp * 1 + pp * 10;
 const el = $("coin-total-gp");
 if (el) el.textContent = Number.isInteger(total) ? total : total.toFixed(2);
@@ -1146,12 +1146,12 @@ function closeCoinExchange() {
 function previewExchange() {
   var from = $("exch-from")?.value;
   var to = $("exch-to")?.value;
-  var amt = parseInt($("exch-amount")?.value) || 0;
+  var amt = parseInt($("exch-amount")?.value, 10) || 0;
   var preview = $("exch-preview");
   var availEl = $("exch-from-avail");
   if (!from || !to || !preview) return;
   // Show available
-  var avail = parseInt($("coin-" + from)?.value) || 0;
+  var avail = parseInt($("coin-" + from)?.value, 10) || 0;
   if (availEl) availEl.textContent = avail;
   if (from === to) { preview.textContent = "Выберите разные монеты"; preview.className = "coin-exch-preview coin-exch-preview-warn"; return; }
   if (amt <= 0) { preview.textContent = "Введите количество"; preview.className = "coin-exch-preview"; return; }
@@ -1182,9 +1182,9 @@ function previewExchange() {
 function confirmExchange() {
   var from = $("exch-from")?.value;
   var to = $("exch-to")?.value;
-  var amt = parseInt($("exch-amount")?.value) || 0;
+  var amt = parseInt($("exch-amount")?.value, 10) || 0;
   if (!from || !to || from === to || amt <= 0) { showToast("Проверьте параметры обмена", "warn"); return; }
-  var avail = parseInt($("coin-" + from)?.value) || 0;
+  var avail = parseInt($("coin-" + from)?.value, 10) || 0;
   if (avail < amt) { showToast("Недостаточно " + COIN_NAMES[from], "error"); return; }
   var valueInGP = amt * COIN_RATES[from];
   var result = Math.floor(valueInGP / COIN_RATES[to]);
@@ -1196,7 +1196,7 @@ function confirmExchange() {
   var fromEl = $("coin-" + from);
   var toEl = $("coin-" + to);
   fromEl.value = avail - amt + leftoverAmt;
-  toEl.value = (parseInt(toEl.value) || 0) + result;
+  toEl.value = (parseInt(toEl.value, 10) || 0) + result;
   updateChar();
   updateCoinTotal();
   var msg = amt + " " + COIN_NAMES[from] + " → " + result + " " + COIN_NAMES[to];
@@ -1263,8 +1263,8 @@ const hpMaxEl = $("hp-max");
 const hpDiceEl = $("hp-dice");
 const hpDiceAvailableEl = $("hp-dice-available");
 if (!levelEl || !conEl || !classEl) return;
-const level = parseInt(levelEl.value) || 1;
-const conMod = getMod(parseInt(conEl.value) || 10);
+const level = parseInt(levelEl.value, 10) || 1;
+const conMod = getMod(parseInt(conEl.value, 10) || 10);
 const className = classEl.value;
 const hitDie = CLASS_HIT_DICE[className] || 8;
 const newMaxHP = calculateMaxHP(level, conMod, hitDie);
@@ -1290,8 +1290,8 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 char.name = $("char-name")?.value || "";
-char.level = parseInt($("char-level")?.value) || 1;
-char.exp = parseInt($("char-exp")?.value) || 0;
+char.level = parseInt($("char-level")?.value, 10) || 1;
+char.exp = parseInt($("char-exp")?.value, 10) || 0;
 char.class = $("char-class")?.value || "";
 // BUILD-FIX-8: при locked-дропдауне (level<unlockLevel) value="" — НЕ затираем сохранённый подкласс.
 var _scEl = $("char-subclass");
@@ -1318,19 +1318,19 @@ char.background = $("char-background")?.value || "";
 char.alignment = $("char-alignment")?.value || "";
 char.size = $("char-size")?.value || "Средний";
 char.speed = $("char-speed")?.value || "30 фт";
-char.combat.ac = parseInt($("combat-ac")?.value) || 10;
+char.combat.ac = parseInt($("combat-ac")?.value, 10) || 10;
 char.combat.armorId   = $("char-armor")?.value || "none";
 char.combat.hasShield = $("char-shield")?.checked || false;
-char.combat.hpCurrent = parseInt($("hp-current")?.value) || 0;
-char.combat.hpTemp = parseInt($("hp-temp")?.value) || 0;
-char.combat.hpDiceSpent = parseInt($("hp-dice-spent")?.value) || 0;
+char.combat.hpCurrent = parseInt($("hp-current")?.value, 10) || 0;
+char.combat.hpTemp = parseInt($("hp-temp")?.value, 10) || 0;
+char.combat.hpDiceSpent = parseInt($("hp-dice-spent")?.value, 10) || 0;
 char.combat.speed = $("combat-speed")?.value || "30 фт";
 // Языки и инструменты управляются через renderLanguages/renderTools — не переопределяем
-char.coins.cp = parseInt($("coin-cp")?.value) || 0;
-char.coins.sp = parseInt($("coin-sp")?.value) || 0;
-char.coins.ep = parseInt($("coin-ep")?.value) || 0;
-char.coins.gp = parseInt($("coin-gp")?.value) || 0;
-char.coins.pp = parseInt($("coin-pp")?.value) || 0;
+char.coins.cp = parseInt($("coin-cp")?.value, 10) || 0;
+char.coins.sp = parseInt($("coin-sp")?.value, 10) || 0;
+char.coins.ep = parseInt($("coin-ep")?.value, 10) || 0;
+char.coins.gp = parseInt($("coin-gp")?.value, 10) || 0;
+char.coins.pp = parseInt($("coin-pp")?.value, 10) || 0;
 calcCoinWeight();
 char.notes = $("char-notes")?.value || "";
 char.features = $("char-features")?.value || "";
@@ -1341,7 +1341,7 @@ if (spellStatVal) char.spells.stat = spellStatVal;
 for(let i=1; i<=9; i++) {
 if(char.spells.slots[i] !== undefined) {
 const slotInput = $("slots-" + i + "-total");
-if(slotInput) char.spells.slots[i] = parseInt(slotInput.value) || 0;
+if(slotInput) char.spells.slots[i] = parseInt(slotInput.value, 10) || 0;
 }
 }
 calcSpellStats();
@@ -1379,13 +1379,13 @@ function calcStats() {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
-const level = parseInt($("char-level")?.value) || 1;
+const level = parseInt($("char-level")?.value, 10) || 1;
 const proficiencyBonus = getProficiencyBonus(level);
 const profBonusEl = $("proficiency-bonus");
 if (profBonusEl) profBonusEl.innerText = "+" + proficiencyBonus;
 const stats = ["str", "dex", "con", "int", "wis", "cha"];
 stats.forEach(function(s) {
-const val = parseInt($("val-" + s)?.value) || 10;
+const val = parseInt($("val-" + s)?.value, 10) || 10;
 char.stats[s] = val;
 const mod = getMod(val);
 const modEl = $("mod-" + s);
@@ -1475,7 +1475,7 @@ function calcSpellStats() {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
-const level = parseInt($("char-level")?.value) || 1;
+const level = parseInt($("char-level")?.value, 10) || 1;
 const proficiencyBonus = getProficiencyBonus(level);
 let statMod = 0;
 // BUILD-FIX-7: миграция старых en-lowercase значений в ru-uppercase.
@@ -2811,7 +2811,7 @@ function onManualMaxHP() {
   if (!currentId) return;
   var char = getCurrentChar();
   if (!char) return;
-  var val = parseInt($("hp-max-manual")?.value) || 0;
+  var val = parseInt($("hp-max-manual")?.value, 10) || 0;
   if (val < 1) return;
   char.combat.hpMax = val;
   // also sync hidden field
@@ -2826,11 +2826,11 @@ function onManualMaxHP() {
 
 
 function calcCoinWeight() {
-const cp = parseInt($("coin-cp")?.value) || 0;
-const sp = parseInt($("coin-sp")?.value) || 0;
-const ep = parseInt($("coin-ep")?.value) || 0;
-const gp = parseInt($("coin-gp")?.value) || 0;
-const pp = parseInt($("coin-pp")?.value) || 0;
+const cp = parseInt($("coin-cp")?.value, 10) || 0;
+const sp = parseInt($("coin-sp")?.value, 10) || 0;
+const ep = parseInt($("coin-ep")?.value, 10) || 0;
+const gp = parseInt($("coin-gp")?.value, 10) || 0;
+const pp = parseInt($("coin-pp")?.value, 10) || 0;
 const totalCoins = cp + sp + ep + gp + pp;
 const weight = (totalCoins / 50).toFixed(2);
 const coinWeightEl = $("coin-weight");

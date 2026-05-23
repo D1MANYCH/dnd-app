@@ -90,7 +90,7 @@ function updateSpellSlots(level, value) {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
-char.spells.slots[level] = parseInt(value) || 0;
+char.spells.slots[level] = parseInt(value, 10) || 0;
 if (char.spells.slotsUsed[level] > char.spells.slots[level]) {
 char.spells.slotsUsed[level] = char.spells.slots[level];
 }
@@ -112,7 +112,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 const input = $('slots-' + level + '-total');
-let current = input ? parseInt(input.value) : (char.spells.slots[level] || 0);
+let current = input ? parseInt(input.value, 10) : (char.spells.slots[level] || 0);
 if (isNaN(current)) current = char.spells.slots[level] || 0;
 let newValue = current + delta;
 if (newValue < 0) newValue = 0;
@@ -212,7 +212,7 @@ if (!name || !desc) { showToast("Название и описание обяза
 const newSpell = {
 id: Date.now(),
 name: name,
-level: parseInt($("new-spell-level")?.value) || 0,
+level: parseInt($("new-spell-level")?.value, 10) || 0,
 class: $("new-spell-class")?.value || "wizard",
 source: $("new-spell-source")?.value || "PH14",
 school: "воплощение",

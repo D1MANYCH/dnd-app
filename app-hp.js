@@ -87,7 +87,7 @@ if (!char) return;
 const maxHitDice = char.level || 1;
 const availableHitDice = maxHitDice - (char.combat.hpDiceSpent || 0);
 const hitDiceMatch = char.combat.hpDice.match(/(\d+)[кK](\d+)/);
-const hitDiceValue = hitDiceMatch ? parseInt(hitDiceMatch[2]) : 8;
+const hitDiceValue = hitDiceMatch ? parseInt(hitDiceMatch[2], 10) : 8;
 const avgHeal = Math.floor(hitDiceValue / 2) + 1;
 const conMod = getMod(char.stats.con);
 const totalHeal = hitDiceToSpend * (avgHeal + conMod);
@@ -102,9 +102,9 @@ const char = getCurrentChar();
 if (!char) return;
 let resultTitle = "";
 let resultDetails = "";
-const oldHp = parseInt(char.combat.hpCurrent);
+const oldHp = parseInt(char.combat.hpCurrent, 10);
 if (currentRestType === "short") {
-var _hitDie = parseInt(char.combat.hpDice.match(/(\d+)[кK](\d+)/)?.[2] || 8);
+var _hitDie = parseInt(char.combat.hpDice.match(/(\d+)[кK](\d+)/)?.[2] || 8, 10);
 var _conMod = getMod(char.stats.con);
 // FIX: roll each die individually instead of using average
 var hpHealed = 0;
@@ -116,7 +116,7 @@ for (var _i = 0; _i < hitDiceToSpend; _i++) {
   rollLog.push(_roll + ((_conMod >= 0 ? "+" : "") + _conMod) + "=" + _total);
 }
 hpHealed = Math.max(0, hpHealed);
-char.combat.hpCurrent = Math.min((parseInt(char.combat.hpCurrent) || 0) + hpHealed, parseInt(char.combat.hpMax) || 0);
+char.combat.hpCurrent = Math.min((parseInt(char.combat.hpCurrent, 10) || 0) + hpHealed, parseInt(char.combat.hpMax, 10) || 0);
 char.combat.hpDiceSpent = (char.combat.hpDiceSpent || 0) + hitDiceToSpend;
 // FIX: Warlock recovers spell slots on short rest
 var _isWarlock = (char.class === "Колдун") || (char.classes && char.classes.some(function(c){return c.class === "Колдун";}));
@@ -139,7 +139,7 @@ var rollStr = rollLog.length > 0 ? " (" + rollLog.join(", ") + ")" : "";
 var warlockStr = _isWarlock ? "<p>🔮 Ячейки пакта восстановлены</p>" : "";
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>🎲 Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>❤️ Восстановлено ХП: " + hpHealed + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr;
 } else if (currentRestType === "long") {
-const maxHp = parseInt(char.combat.hpMax) || 0;
+const maxHp = parseInt(char.combat.hpMax, 10) || 0;
 char.combat.hpCurrent = maxHp;
 for(let i=1; i<=9; i++) { if (char.spells.slots[i]) char.spells.slotsUsed[i] = 0; }
 if (char.spells.pactSlots) char.spells.pactUsed = 0;
@@ -154,7 +154,7 @@ if (char.conditions && char.conditions.length > 0) {
     if (exhIdx !== -1) {
       char.conditions.splice(exhIdx, 1);
       // Понижаем на 1 уровень (если было 3, ставим 2)
-      var exhNum = parseInt(exhLevels[ei].split("_")[1]);
+      var exhNum = parseInt(exhLevels[ei].split("_")[1], 10);
       if (exhNum > 1) {
         char.conditions.push("exhaustion_" + (exhNum - 1));
       }
@@ -330,7 +330,7 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
     var newMaxHP = calculateMaxHP(newTotalLevel, conMod, hitDie);
     hpGain = newMaxHP - currentMaxHP;
   }
-  var currentHP = parseInt(char.combat.hpMax) || 0;
+  var currentHP = parseInt(char.combat.hpMax, 10) || 0;
   var newHP = currentHP + hpGain;
 
   var profOld = getProficiencyBonus(totalLevel);
@@ -477,7 +477,7 @@ try {
   _snap._snapshotAt = Date.now();
   char._prevLevelSnapshot = _snap;
 } catch(e) { console.error("[UI-9] snapshot failed:", e); }
-const oldMaxHP = parseInt(char.combat.hpMax) || 0;
+const oldMaxHP = parseInt(char.combat.hpMax, 10) || 0;
 const oldProf = getProficiencyBonus(oldLevel);
 const conMod = getMod(char.stats.con);
 
@@ -952,7 +952,7 @@ toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(
 
 function applyCustomHP(mode) {
 const input = $("hp-custom-input");
-const val = parseInt(input?.value) || 0;
+const val = parseInt(input?.value, 10) || 0;
 if (val <= 0) return;
 if (mode === "dmg") quickHP(-val, "Урон");
 else quickHP(val, "Лечение");
@@ -961,7 +961,7 @@ if (input) input.value = "";
 
 function applyHealInput() {
 const input = $("hp-heal-input");
-const val = parseInt(input?.value) || 0;
+const val = parseInt(input?.value, 10) || 0;
 if (val <= 0) return;
 quickHP(val, "Лечение");
 if (input) input.value = "";
@@ -976,7 +976,7 @@ function saveTempHP() {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
-char.combat.hpTemp = parseInt($("hp-temp")?.value) || 0;
+char.combat.hpTemp = parseInt($("hp-temp")?.value, 10) || 0;
 saveToLocal();
 updateHPDisplay();
 }
@@ -996,7 +996,7 @@ if (resultEl) { resultEl.textContent = "Нет костей!"; }
 return;
 }
 const match = (char.combat.hpDice || "1к8").match(/(\d+)[кK](\d+)/);
-const sides = match ? parseInt(match[2]) : 8;
+const sides = match ? parseInt(match[2], 10) : 8;
 const roll = Math.floor(Math.random() * sides) + 1;
 const conMod = getMod(char.stats.con);
 const heal = Math.max(1, roll + conMod);

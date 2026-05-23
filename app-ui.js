@@ -1075,9 +1075,9 @@ if (!match) {
   if (resultInfo) resultInfo.textContent = "Неверный формат (пример: 2к6+3)";
   return; 
 }
-const count = Math.min(parseInt(match[1]) || 1, 20);
-const sides = Math.min(parseInt(match[2]) || 6, 100);
-const bonus = parseInt(match[3] || "0");
+const count = Math.min(parseInt(match[1], 10) || 1, 20);
+const sides = Math.min(parseInt(match[2], 10) || 6, 100);
+const bonus = parseInt(match[3] || "0", 10);
 let rolls = [], total = 0;
 for (let i = 0; i < count; i++) { const r = Math.floor(Math.random() * sides)+1; rolls.push(r); total += r; }
 total += bonus;
@@ -1317,7 +1317,7 @@ function getResourceMax(res, char) {
   if (raw === "cha_plus1")   return Math.max(1, getMod(char.stats.cha) + 1);
   if (raw === "level5")      return level * 5;  // Наложение рук — пул ХП
   if (raw === 99)            return 99; // Безлимит (Ярость 20 ур.)
-  return parseInt(raw) || 0;
+  return parseInt(raw, 10) || 0;
 }
 
 // Рендер блока ресурсов
@@ -1849,16 +1849,16 @@ function saveCompanion() {
   if (!char) return;
   var name = $("companion-name-inp")?.value.trim() || "";
   if (!name) { showToast("Введите имя", "warn"); return; }
-  var idx = parseInt($("companion-edit-index").value);
+  var idx = parseInt($("companion-edit-index").value, 10);
   var companions = getCompanions(char);
-  var hpMax = parseInt($("companion-hp-inp")?.value) || 10;
+  var hpMax = parseInt($("companion-hp-inp")?.value, 10) || 10;
   var data = {
     id: idx >= 0 ? (companions[idx].id || Date.now()) : Date.now(),
     name: name,
     type: $("companion-type-sel")?.value || "other",
     hpMax: hpMax,
     hpCurrent: idx >= 0 ? companions[idx].hpCurrent : hpMax,
-    ac: parseInt($("companion-ac-inp")?.value) || 10,
+    ac: parseInt($("companion-ac-inp")?.value, 10) || 10,
     attack: $("companion-attack-inp")?.value.trim() || "",
     desc: $("companion-desc-inp")?.value.trim() || "",
     status: "healthy"

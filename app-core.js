@@ -1200,9 +1200,9 @@ function applyBuild(buildId) {
     // Парсер количества из имени: "Болты (20)" / "4 метательных топора"
     var _parseQty = function(nm){
       var m = nm.match(/\((\d+)\)/);
-      if (m) return parseInt(m[1]);
+      if (m) return parseInt(m[1], 10);
       m = nm.match(/^(\d+)\s+/);
-      if (m) return parseInt(m[1]);
+      if (m) return parseInt(m[1], 10);
       return 1;
     };
     // Расширенный каталог оружия для билдов (PHB), включая то, чего нет в WEAPON_PRESETS.
