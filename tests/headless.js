@@ -112,6 +112,100 @@
     return true;
   });
 
+  // ────────── БЛОК 7 (TEST-1): бизнес-логика app-hp.js / app-combat.js ──────────
+  // Гард: тесты требуют загруженного app-кода (Node-runner и обновлённый runner.html).
+  // В минимальной браузерной среде без app-* они пропускаются как PASS-noop.
+  var _hasAppHP = (typeof quickHP === "function");
+  var _hasAppCombat = (typeof calcStats === "function" && typeof getMod === "function");
+
+  // No-op стабы для функций из не-загружаемых модулей (app-party/app-ui/app-spells),
+  // чтобы транзитивные вызовы внутри quickHP/calcStats не падали.
+  ["syncSelfBattleStatus","animateCountUp","renderJournal","renderClassResources",
+   "renderSpellSlots","renderMySpells","renderInventory","renderWeapons","renderBuildBadge",
+   "updateSlotsDisplay","loadCharacter"].forEach(function(name){
+    if (typeof window[name] !== "function") window[name] = function(){};
+  });
+
+  // Универсальный хелпер: получить элемент по id, создав при необходимости
+  // (node-стаб всегда возвращает один и тот же объект, в браузере добавляем в body).
+  function _ensureEl(id, tag) {
+    var el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement(tag || "div");
+      el.id = id;
+      if (document.body) document.body.appendChild(el);
+    }
+    return el;
+  }
+  function _ensureInput(id, value) {
+    var el = _ensureEl(id, "input");
+    el.value = String(value);
+    return el;
+  }
+
+  t("[hp] quickHP: временные ХП поглощают урон, остаток уходит в hpCurrent", function(){
+    if (!_hasAppHP) return true; // app-hp не загружен (минимальный браузерный runner)
+    var savedChars = window.characters, savedId = window.currentId;
+    try {
+      // updateStatusBar() пишет в эти элементы без null-guard — создаём заранее
+      _ensureEl("status-level", "span");
+      _ensureEl("status-hp-current", "span");
+      _ensureEl("status-hp-max", "span");
+      window.characters = [{
+        id: "test-hp-1",
+        combat: { hpTemp: 5, hpCurrent: 20, hpMax: 20, hpDice: "1к8", hpDiceSpent: 0 },
+        stats: { str:10, dex:10, con:10, int:10, wis:10, cha:10 },
+        saves: {}, skills: [], spells: { stat:"", slots:{}, slotsUsed:{} },
+        level: 1, concentration: null,
+        deathSaves: { successes:[false,false,false], failures:[false,false,false] }
+      }];
+      window.currentId = "test-hp-1";
+      quickHP(-10, "Test");
+      var ch = window.characters[0];
+      if (ch.combat.hpTemp !== 0) return "ожидал hpTemp=0, получено " + ch.combat.hpTemp;
+      if (ch.combat.hpCurrent !== 15) return "ожидал hpCurrent=15, получено " + ch.combat.hpCurrent;
+      return true;
+    } finally {
+      window.characters = savedChars;
+      window.currentId = savedId;
+    }
+  });
+
+  t("[stats] calcStats: STR 16 на уровне 5 → mod +3, prof +3", function(){
+    if (!_hasAppCombat) return true; // app-combat не загружен
+    var savedChars = window.characters, savedId = window.currentId;
+    try {
+      window.characters = [{
+        id: "test-stats-1",
+        stats: { str:16, dex:10, con:10, int:10, wis:10, cha:10 },
+        saves: { str:false, dex:false, con:false, int:false, wis:false, cha:false },
+        skills: [], expertiseSkills: [], combat: {},
+        spells: { stat:"", slots:{}, slotsUsed:{}, prepared:[] },
+        class: "", level: 5
+      }];
+      window.currentId = "test-stats-1";
+      _ensureInput("char-level", "5");
+      _ensureInput("val-str", "16");
+      _ensureInput("val-dex", "10");
+      _ensureInput("val-con", "10");
+      _ensureInput("val-int", "10");
+      _ensureInput("val-wis", "10");
+      _ensureInput("val-cha", "10");
+      // output-элементы, в которые calcStats пишет результаты
+      _ensureEl("proficiency-bonus", "span");
+      _ensureEl("mod-str", "span");
+      calcStats();
+      var prof = document.getElementById("proficiency-bonus").innerText;
+      var mod = document.getElementById("mod-str").innerText;
+      if (prof !== "+3") return "ожидал proficiency-bonus='+3', получено '" + prof + "'";
+      if (mod !== "+3") return "ожидал mod-str='+3', получено '" + mod + "'";
+      return true;
+    } finally {
+      window.characters = savedChars;
+      window.currentId = savedId;
+    }
+  });
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
