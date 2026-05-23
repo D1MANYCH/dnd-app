@@ -10,6 +10,7 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const DATA = path.join(ROOT, 'data.js');
 const SW = path.join(ROOT, 'sw.js');
+const INDEX = path.join(ROOT, 'index.html');
 
 const RU_MONTHS = [
   'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
@@ -20,8 +21,9 @@ function usage() {
   console.log('Usage: node tools/bump-version.js <patch|minor|major> "<changelog text>" [--type chore|feat|fix]');
   console.log('');
   console.log('Bumps:');
-  console.log('  data.js: APP_VERSION, APP_VERSION_DATE, APP_CHANGELOG[0] (prepend new, demote prior to badge:"old")');
-  console.log('  sw.js:   CACHE_NAME (dnd-sheet-vN -> vN+1)');
+  console.log('  data.js:    APP_VERSION, APP_VERSION_DATE, APP_CHANGELOG[0] (prepend new, demote prior to badge:"old")');
+  console.log('  sw.js:      CACHE_NAME (dnd-sheet-vN -> vN+1)');
+  console.log('  index.html: все ?v= токены js/css → vN+1 (TOOL-2)');
 }
 
 function parseArgs(argv) {
@@ -131,22 +133,40 @@ function bumpSw(src) {
   return { src: out, oldN, newN };
 }
 
+// TOOL-2: единый счётчик ?v= токенов в index.html.
+// После bump CACHE_NAME до vN — все js/css токены переписываются на v<N>.
+// Webp/png ассеты НЕ трогаем — у них свой редкий цикл (общий v=2 для класс-иконок).
+function bumpHtmlTokens(src, newN) {
+  const tokenRe = /(\.(?:js|css)\?v=)[^"'\s>]+/g;
+  let count = 0;
+  const out = src.replace(tokenRe, function(_match, prefix) {
+    count++;
+    return prefix + 'v' + newN;
+  });
+  if (count === 0) {
+    throw new Error('не найдено ни одного js/css ?v= токена в index.html');
+  }
+  return { src: out, count };
+}
+
 function main() {
   const { level, text, type } = parseArgs(process.argv);
 
-  let dataSrc, swSrc;
+  let dataSrc, swSrc, indexSrc;
   try {
     dataSrc = fs.readFileSync(DATA, 'utf8');
     swSrc = fs.readFileSync(SW, 'utf8');
+    indexSrc = fs.readFileSync(INDEX, 'utf8');
   } catch (e) {
     console.error('ERROR: чтение файла: ' + e.message);
     process.exit(1);
   }
 
-  let dataRes, swRes;
+  let dataRes, swRes, indexRes;
   try {
     dataRes = bumpData(dataSrc, level, text, type);
     swRes = bumpSw(swSrc);
+    indexRes = bumpHtmlTokens(indexSrc, swRes.newN);
   } catch (e) {
     console.error('ERROR: ' + e.message);
     process.exit(1);
@@ -154,9 +174,11 @@ function main() {
 
   fs.writeFileSync(DATA, dataRes.src);
   fs.writeFileSync(SW, swRes.src);
+  fs.writeFileSync(INDEX, indexRes.src);
 
-  console.log(`data.js: ${dataRes.oldVer} → ${dataRes.newVer} (date ${todayIso()})`);
-  console.log(`sw.js:   v${swRes.oldN} → v${swRes.newN}`);
+  console.log(`data.js:    ${dataRes.oldVer} → ${dataRes.newVer} (date ${todayIso()})`);
+  console.log(`sw.js:      v${swRes.oldN} → v${swRes.newN}`);
+  console.log(`index.html: ${indexRes.count} ?v= токенов → v${swRes.newN}`);
   console.log(`changelog: [${type}] ${text}`);
 }
 
