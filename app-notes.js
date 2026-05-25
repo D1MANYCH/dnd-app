@@ -672,7 +672,7 @@ function notesPinDragStart(ev, id) {
   _notesPinDragId = id;
   if (ev.dataTransfer) {
     ev.dataTransfer.effectAllowed = 'move';
-    try { ev.dataTransfer.setData('text/plain', id); } catch(e) {}
+    try { ev.dataTransfer.setData('text/plain', id); } catch(e) { window.__catchLog && window.__catchLog('notes:pinDrag-setData', e); }
   }
   var card = ev.currentTarget;
   if (card && card.classList) card.classList.add('dragging');
@@ -1338,7 +1338,7 @@ function _notesFlashSaved() {
             _notesState.currentTab = null; // перечитать prefs
             renderNotes();
           }
-        } catch(e) {}
+        } catch(e) { window.__catchLog && window.__catchLog('notes:tab-rerender', e); }
         return r;
       };
     }

@@ -890,7 +890,7 @@ function invDragStart(ev, cat, idx) {
   _invDrag = { cat: cat, idx: idx };
   if (ev.dataTransfer) {
     ev.dataTransfer.effectAllowed = "move";
-    try { ev.dataTransfer.setData("text/plain", cat + ":" + idx); } catch (e) {}
+    try { ev.dataTransfer.setData("text/plain", cat + ":" + idx); } catch (e) { window.__catchLog && window.__catchLog('inv:drag-setData', e); }
   }
   var el = ev.currentTarget;
   if (el && el.classList) el.classList.add("inv-dragging");

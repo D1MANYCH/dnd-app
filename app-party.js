@@ -47,20 +47,20 @@ function getMonsterTypeIcon(type) { return MONSTER_TYPE_ICONS[type] || "👾"; }
       if (!parsed.npcs)     parsed.npcs     = [];
       PARTY_DATA = parsed;
     }
-  } catch(e) {}
+  } catch(e) { window.__catchLog && window.__catchLog('party:load', e); }
   try {
     var savedBattle = localStorage.getItem("dnd_battle");
     if (savedBattle) BATTLE_DATA = JSON.parse(savedBattle);
-  } catch(e) {}
+  } catch(e) { window.__catchLog && window.__catchLog('party:loadBattle', e); }
 })();
 
 function saveParty() {
-  if (!currentId) { try { localStorage.setItem("dnd_party", JSON.stringify(PARTY_DATA)); } catch(e) {} return; }
+  if (!currentId) { try { localStorage.setItem("dnd_party", JSON.stringify(PARTY_DATA)); } catch(e) { window.__catchLog && window.__catchLog('party:saveNoChar', e); } return; }
   var char = getCurrentChar();
   if (char) { char.party = PARTY_DATA; saveToLocal(); }
 }
 function saveBattle() {
-  if (!currentId) { try { localStorage.setItem("dnd_battle", JSON.stringify(BATTLE_DATA)); } catch(e) {} return; }
+  if (!currentId) { try { localStorage.setItem("dnd_battle", JSON.stringify(BATTLE_DATA)); } catch(e) { window.__catchLog && window.__catchLog('party:saveBattleNoChar', e); } return; }
   var char = getCurrentChar();
   if (char) { char.battle = BATTLE_DATA; saveToLocal(); }
 }

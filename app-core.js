@@ -22,6 +22,8 @@ function debounce(fn, delay) {
 }
 /** Отложенное сохранение — не чаще одного раза в 300мс */
 var saveToLocalDebounced = debounce(function() { saveToLocal(); }, 300);
+/** BUGFIX-9: тегированный логгер для catch-блоков. Тихо в проде, видно при window.__DEBUG = true. */
+window.__catchLog = function(tag, e) { if (window.__DEBUG) { try { console.warn('[' + tag + ']', e); } catch (_) {} } };
 // SPELL_DATABASE — объединение встроенной базы (spells.js) и пользовательских добавлений из localStorage
 // SPELLS_BASE определён в spells.js и загружается до app-core.js
 var SPELL_DATABASE = (typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.slice() : [];
@@ -458,7 +460,7 @@ try {
   document.documentElement.scrollTop = 0;
   if (document.body) document.body.scrollTop = 0;
   if (charactersScreen) charactersScreen.scrollTop = 0;
-} catch(e) {}
+} catch(e) { window.__catchLog && window.__catchLog('core:showScreen-scroll', e); }
 } else {
 if (characterScreen) characterScreen.classList.remove("hidden");
 if (characterTabs) characterTabs.classList.remove("hidden");
@@ -504,7 +506,7 @@ if (subtitleEl && char) {
 }
 function switchTab(tabName, btnEl) {
   // UI-6: тактильная отдача при переключении вкладок
-  try { if (navigator.vibrate) navigator.vibrate(10); } catch(e) {}
+  try { if (navigator.vibrate) navigator.vibrate(10); } catch(e) { window.__catchLog && window.__catchLog('core:switchTab-vibrate', e); }
   document.querySelectorAll(".tab-content").forEach(function(tab) { tab.classList.remove("active"); });
   document.querySelectorAll(".tab-btn").forEach(function(btn) { btn.classList.remove("active"); });
   var tabElement = $("tab-" + tabName);
@@ -521,7 +523,7 @@ function switchTab(tabName, btnEl) {
     if (tabElement) tabElement.scrollTop = 0;
     document.documentElement.scrollTop = 0;
     if (document.body) document.body.scrollTop = 0;
-  } catch(e) {}
+  } catch(e) { window.__catchLog && window.__catchLog('core:switchTab-scroll', e); }
   if (tabName === "party")   { openPartyTab(); }
   if (tabName === "battle")  { openBattleTab(); }
   if (tabName === "journal") { renderJournal(); }
@@ -599,7 +601,7 @@ function hideCharacterNav() {
         if ((cs.overflowX === "auto" || cs.overflowX === "scroll") && node.scrollWidth > node.clientWidth + 2) {
           return true;
         }
-      } catch(e) {}
+      } catch(e) { window.__catchLog && window.__catchLog('core:isScrollableX', e); }
       node = node.parentNode;
     }
     return false;
@@ -1944,7 +1946,7 @@ showScreen("character");
 // скроллит наверх. Раньше тут была ручная копия логики, которая не
 // трогала .drawer-item → на desktop/tablet сайдбар подсвечивал прошлую
 // вкладку (напр. «Заклинания»), хотя контент показывал лист персонажа.
-try { localStorage.removeItem("dnd_last_tab"); } catch(e) {}
+try { localStorage.removeItem("dnd_last_tab"); } catch(e) { window.__catchLog && window.__catchLog('core:loadCharacter-clearLastTab', e); }
 switchTab("sheet");
 }
 

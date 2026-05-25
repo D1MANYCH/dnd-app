@@ -70,7 +70,7 @@
     }
 
     // Перерисовать inline-баджи (на случай переключения персонажа)
-    try { renderRrConditions(); } catch (e) {}
+    try { renderRrConditions(); } catch (e) { window.__catchLog && window.__catchLog('desktop:renderRr', e); }
 
     // AC и Level из status-bar
     const ac = document.getElementById('status-ac');
