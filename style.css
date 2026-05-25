@@ -8121,6 +8121,54 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   padding: 7px 10px;
 }
 
+.app-links-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.app-link-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-size: 0.8em;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: var(--r-sm);
+  border: 1px solid;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+.app-link-btn:hover { transform: translateY(-1px); }
+.app-link-btn-tg {
+  color: #2aabee;
+  background: rgba(42,171,238,0.08);
+  border-color: rgba(42,171,238,0.25);
+}
+.app-link-btn-tg:hover {
+  background: rgba(42,171,238,0.16);
+  border-color: rgba(42,171,238,0.5);
+}
+.app-link-btn-donate {
+  color: #d4a843;
+  background: rgba(212,168,67,0.08);
+  border-color: rgba(212,168,67,0.25);
+}
+.app-link-btn-donate:hover {
+  background: rgba(212,168,67,0.16);
+  border-color: rgba(212,168,67,0.5);
+}
+.app-link-btn-boosty {
+  color: #f15f2c;
+  background: rgba(241,95,44,0.08);
+  border-color: rgba(241,95,44,0.25);
+}
+.app-link-btn-boosty:hover {
+  background: rgba(241,95,44,0.16);
+  border-color: rgba(241,95,44,0.5);
+}
+
 /* ── Changelog entries ── */
 #changelog-list { display: flex; flex-direction: column; gap: 12px; max-height: 420px; overflow-y: auto; }
 .cl-version {

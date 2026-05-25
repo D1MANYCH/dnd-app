@@ -730,6 +730,31 @@ document.addEventListener('DOMContentLoaded', function () {
   _syncGlassUi();
 });
 
+function _initAppLinks() {
+  var row = document.getElementById('app-links-row');
+  if (!row) return;
+  var links = [
+    { id: 'app-link-tg',     url: (typeof APP_TELEGRAM_URL === 'string' ? APP_TELEGRAM_URL : '') },
+    { id: 'app-link-donate', url: (typeof APP_DONATE_URL   === 'string' ? APP_DONATE_URL   : '') },
+    { id: 'app-link-boosty', url: (typeof APP_BOOSTY_URL   === 'string' ? APP_BOOSTY_URL   : '') },
+  ];
+  var anyShown = false;
+  for (var i = 0; i < links.length; i++) {
+    var el = document.getElementById(links[i].id);
+    if (!el) continue;
+    var url = (links[i].url || '').trim();
+    if (url) {
+      el.href = url;
+      el.style.display = '';
+      anyShown = true;
+    } else {
+      el.style.display = 'none';
+    }
+  }
+  row.style.display = anyShown ? '' : 'none';
+}
+document.addEventListener('DOMContentLoaded', _initAppLinks);
+
 // UI-5: модалка настроек оформления (тема/акцент/плотность/масштаб шрифта)
 function openSettingsModal() {
   var ov = document.getElementById('settings-modal-overlay');
