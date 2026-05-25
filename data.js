@@ -1605,7 +1605,7 @@ const APP_VERSION_DATE = "2026-05-24";
 // ВНЕШНИЕ ССЫЛКИ (TG-канал, донаты, Boosty)
 // ============================================================
 // Пустая строка = ссылка не показывается в UI. Подменяем по мере запуска каналов.
-const APP_TELEGRAM_URL = ""; // TODO: https://t.me/<username> после создания канала
+const APP_TELEGRAM_URL = "https://t.me/dndlistru";
 const APP_DONATE_URL = "";   // TODO: CloudTips / ЮMoney
 const APP_BOOSTY_URL = "";   // TODO: запустить после 300+ подписчиков TG
 
