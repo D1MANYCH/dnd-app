@@ -6,6 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const DATA = path.join(ROOT, 'data.js');
@@ -149,8 +150,41 @@ function bumpHtmlTokens(src, newN) {
   return { src: out, count };
 }
 
+// Проверка remote перед bump (BUGFIX-9 follow-up): если origin/main опережает
+// по APP_VERSION или CACHE_NAME — остановиться, чтобы не возник дубль номера.
+// Soft-fail при отсутствии git/origin или сети — релиз офлайн не блокируется.
+function checkRemote() {
+  let remoteData, remoteSw;
+  try {
+    execFileSync('git', ['fetch', 'origin', 'main', '--quiet'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'pipe'] });
+    remoteData = execFileSync('git', ['show', 'origin/main:data.js'], { cwd: ROOT }).toString('utf8');
+    remoteSw   = execFileSync('git', ['show', 'origin/main:sw.js'],   { cwd: ROOT }).toString('utf8');
+  } catch (e) {
+    console.warn('WARN: пропуск remote-check (' + String(e.message || e).split('\n')[0] + ')');
+    return;
+  }
+  const localData = fs.readFileSync(DATA, 'utf8');
+  const localSw   = fs.readFileSync(SW, 'utf8');
+  const verRe = /const\s+APP_VERSION\s*=\s*"([^"]+)"/;
+  const cacheRe = /CACHE_NAME\s*=\s*['"]dnd-sheet-v(\d+)/;
+  const lv = (localData.match(verRe)  || [])[1];
+  const rv = (remoteData.match(verRe) || [])[1];
+  const lc = +((localSw.match(cacheRe)  || [])[1] || 0);
+  const rc = +((remoteSw.match(cacheRe) || [])[1] || 0);
+  const conflicts = [];
+  if (rv && lv && rv !== lv) conflicts.push('APP_VERSION: local=' + lv + ', origin/main=' + rv);
+  if (rc && lc && rc > lc)   conflicts.push('CACHE_NAME: local=v' + lc + ', origin/main=v' + rc);
+  if (conflicts.length) {
+    console.error('ERROR: origin/main опережает локальную версию:');
+    conflicts.forEach(function(c) { console.error('  - ' + c); });
+    console.error('Сначала: git pull origin main, затем повторить bump (получит свежий номер поверх remote).');
+    process.exit(1);
+  }
+}
+
 function main() {
   const { level, text, type } = parseArgs(process.argv);
+  checkRemote();
 
   let dataSrc, swSrc, indexSrc;
   try {
