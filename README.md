@@ -25,10 +25,6 @@ PWA-приложение для ведения персонажа D&D 5e. Отк
 
 ## Скриншоты
 
-> Готовятся — обновим в ближайшие дни.
-
-<!-- Когда файлы появятся в docs/screenshots/, заменить блок выше на:
-
 | Лист персонажа | Готовые билды | Гайд по билду |
 |---|---|---|
 | ![](docs/screenshots/01-character-sheet.png) | ![](docs/screenshots/02-builds-picker.png) | ![](docs/screenshots/03-build-guide.png) |
@@ -36,9 +32,6 @@ PWA-приложение для ведения персонажа D&D 5e. Отк
 | Заклинания | 3D-кубики | Боевой трекер |
 |---|---|---|
 | ![](docs/screenshots/04-spells.png) | ![](docs/screenshots/05-dice.png) | ![](docs/screenshots/06-combat.png) |
-
-Подробнее о требованиях к скринам — [docs/screenshots/README.md](docs/screenshots/README.md).
--->
 
 ## Как пользоваться
 
