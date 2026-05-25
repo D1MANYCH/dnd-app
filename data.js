@@ -1598,7 +1598,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.19.5";
+const APP_VERSION = "3.20.0";
 const APP_VERSION_DATE = "2026-05-26";
 
 // ============================================================
@@ -1892,9 +1892,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.19.5",
+    version: "3.20.0",
     date: "26 мая 2026",
     badge: "new",
+    changes: [
+      { type: "chore", text: "BUGFIX-10: финализация цикла стабилизации — инвариант APP_VERSION↔CACHE_NAME↔?v=vN зафиксирован в CLAUDE.md, remote-conflict guard в bump-version.js" }
+    ]
+  },
+  {
+    version: "3.19.5",
+    date: "26 мая 2026",
+    badge: "old",
     changes: [
       { type: "fix", text: "BUGFIX-9: тегированные catch через window.__catchLog (тихо в проде, видно при window.__DEBUG=true)" }
     ]

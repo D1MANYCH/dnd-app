@@ -11,12 +11,12 @@
 - `index.html` — единственная страница.
 - `app-core.js` — ядро: инициализация, состояние, навигация, персонажи, импорт/экспорт.
 - `app-combat.js` / `app-hp.js` / `app-inventory.js` / `app-spells.js` / `app-notes.js` / `app-party.js` / `app-ui.js` / `app-desktop.js` / `history-stack.js` — модули по вкладкам/функциям.
-- `data.js` — классы, расы, `APP_VERSION` (сейчас `"3.0.0"`), `APP_CHANGELOG`.
+- `data.js` — классы, расы, `APP_VERSION` + `APP_VERSION_DATE` + `APP_CHANGELOG`.
 - `spells.js` — БД заклинаний.
 - `character-builds.js` + `build-notes-data.js` — 36 готовых билдов PHB 2014 + варианты автозаметок.
 - `class-choices.js` + `subclass-choices-data.js` — выборы классов/подклассов.
 - `dev-verify-builds.js` — `verifyAllBuilds()` (консольный verifier билдов).
-- `sw.js` — service worker, `CACHE_NAME` (сейчас `'dnd-sheet-v51'`).
+- `sw.js` — service worker, `CACHE_NAME` формата `dnd-sheet-vN` + `FILES_TO_CACHE`.
 - `vendor/dice-box/` — 3D-кубики (вендорено).
 - `assets/` — иконки и фоны (PNG, ~27 МБ — кандидат на оптимизацию OPT-5).
 - `tests/` — `headless-node.js` (Node), `headless.js` + `runner.html` (браузерные), `fixtures.js`.
@@ -26,9 +26,21 @@
 - PWA требует `https` либо `localhost`.
 
 ## Версионирование
-После релизных правок:
-1. Bump `APP_VERSION` и добавить запись в `APP_CHANGELOG` в `data.js`.
-2. Bump `CACHE_NAME` в `sw.js` — иначе клиенты не подтянут новые файлы.
+
+**Инвариант релиза** — четыре величины должны меняться синхронно одной командой:
+
+```
+APP_VERSION  ↔  APP_CHANGELOG[0].version  ↔  CACHE_NAME (dnd-sheet-vN)  ↔  все ?v=vN токены js/css в index.html
+```
+
+Команда — `/bump <patch|minor|major> "<changelog>" [--type chore|feat|fix]` (под капотом `tools/bump-version.js`):
+
+1. **`checkRemote()`** — `git fetch origin main` + сверка локальных `APP_VERSION`/`CACHE_NAME` с remote; если origin опережает → `exit 1` с подсказкой `git pull` (чтобы не получить дубль номера). Soft-fail при отсутствии git/сети/origin — релиз офлайн не блокируется.
+2. **`data.js`** — bump `APP_VERSION` + `APP_VERSION_DATE` + добавляет запись в `APP_CHANGELOG` (предыдущая badge `new` → `old`).
+3. **`sw.js`** — bump `CACHE_NAME` `dnd-sheet-vN` → `dnd-sheet-v(N+1)`.
+4. **`index.html`** — все `?v=...` токены js/css перезаписываются на `v(N+1)`. Webp/png ассеты не трогаются (свой редкий цикл).
+
+Любая частичная ошибка → `exit 1` без записи. После bump — `/preflight` (тесты + сверка инварианта) → коммит **только по запросу пользователя**. Хуки `PostToolUse` дополнительно валидируют инвариант на каждой правке (см. ниже).
 
 ## Тесты
 - `node tests/headless-node.js` — логика.
