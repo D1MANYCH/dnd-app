@@ -17,6 +17,7 @@
 | 3. 5 фишек | [posts/03-features.txt](posts/03-features.txt) |
 | 4. Опрос | [posts/04-poll.txt](posts/04-poll.txt) (метаданные опроса) |
 | 5. vs DnDBeyond | [posts/05-vs-dndbeyond.txt](posts/05-vs-dndbeyond.txt) |
+| 6. Стабилизация (релиз-нота v3.20.0) | [posts/06-stabilizaciya.txt](posts/06-stabilizaciya.txt) |
 
 **На GitHub:** открой нужный .txt файл → справа кнопка **«Raw»** → копируй текст оттуда. Без обёрток, без подсветки, без багов в TG.
 
