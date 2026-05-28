@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v125">
+<link rel="stylesheet" href="style.css?v=v127">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -1060,6 +1060,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="party-section-count" id="npcs-count"></span>
 <div class="party-section-actions">
 <button class="party-add-btn" onclick="openAddNPCModal()">＋ Добавить</button>
+<button class="party-add-btn party-add-btn-srd" onclick="openSrdNpcPicker()" title="Шаблон-архетип">📚 Архетипы</button>
 <button class="party-io-btn" onclick="exportNPCs()" title="Экспорт">↓</button>
 <button class="party-io-btn" onclick="document.getElementById('npcs-import').click()" title="Импорт">↑</button>
 <input type="file" id="npcs-import" style="display:none" onchange="importNPCs(this)" accept=".json">
@@ -1076,6 +1077,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="party-section-count" id="monsters-count"></span>
 <div class="party-section-actions">
 <button class="party-add-btn" onclick="openAddMonsterModal()">＋ Добавить</button>
+<button class="party-add-btn party-add-btn-srd" onclick="openSrdMonsterPicker()" title="Из бестиария SRD">📚 Из SRD</button>
 <button class="party-io-btn" onclick="exportMonsters()" title="Экспорт">↓</button>
 <button class="party-io-btn" onclick="document.getElementById('monsters-import').click()" title="Импорт">↑</button>
 <input type="file" id="monsters-import" style="display:none" onchange="importMonsters(this)" accept=".json">
@@ -1295,10 +1297,19 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="party-form">
 <label>Имя</label>
 <input type="text" id="npc-name-inp" placeholder="Имя NPC">
-<label>Роль</label>
+<label>Роль / профессия</label>
 <input type="text" id="npc-role-inp" placeholder="Торговец, барон, союзник...">
+<label>Локация / где встретить</label>
+<input type="text" id="npc-location-inp" placeholder="Таверна «Серый лис», портовый квартал...">
+<label>Отношение</label>
+<select id="npc-attitude-sel">
+<option value="дружелюбный">🟢 Дружелюбный</option>
+<option value="нейтральный" selected>🟡 Нейтральный</option>
+<option value="враждебный">🔴 Враждебный</option>
+<option value="неизв.">⚪ Неизвестно</option>
+</select>
 <label>Описание / заметки</label>
-<textarea id="npc-desc-inp" placeholder="Выдал квест на убийство дракона, живёт в таверне «Серый лис»..." rows="3"></textarea>
+<textarea id="npc-desc-inp" placeholder="Выдал квест на убийство дракона, любит хорошее вино..." rows="3"></textarea>
 </div>
 <div class="confirm-modal-btns">
 <button class="confirm-btn-cancel" onclick="closeAddNPCModal()">Отмена</button>
@@ -1341,6 +1352,45 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 
+<!-- FEAT-4: Modal: SRD Monster Picker -->
+<div id="srd-monster-modal" class="confirm-modal-overlay">
+<div class="confirm-modal-box party-modal-box srd-monster-box">
+<h4>📚 Бестиарий SRD 5e</h4>
+<div class="srd-monster-filters">
+<input type="text" id="srd-monster-search" placeholder="Поиск: гоблин, wolf, нежить..." oninput="setSrdMonsterSearch(this.value)">
+<select id="srd-monster-cr" onchange="setSrdMonsterCr(this.value)">
+<option value="">Все CR</option>
+</select>
+<select id="srd-monster-edition" onchange="setSrdMonsterEdition(this.value)">
+<option value="">Все редакции</option>
+</select>
+</div>
+<div class="srd-monster-count" id="srd-monster-count"></div>
+<div class="srd-monster-results" id="srd-monster-results"></div>
+<div class="confirm-modal-btns">
+<button class="confirm-btn-cancel" onclick="closeSrdMonsterPicker()">Закрыть</button>
+</div>
+</div>
+</div>
+
+<!-- FEAT-4: Modal: SRD NPC Archetype Picker -->
+<div id="srd-npc-modal" class="confirm-modal-overlay">
+<div class="confirm-modal-box party-modal-box srd-monster-box">
+<h4>📚 Архетипы NPC</h4>
+<div class="srd-monster-filters">
+<input type="text" id="srd-npc-search" placeholder="Поиск: торговец, страж, lord..." oninput="setSrdNpcSearch(this.value)">
+<select id="srd-npc-att" onchange="setSrdNpcAtt(this.value)">
+<option value="">Любое отношение</option>
+</select>
+</div>
+<div class="srd-monster-count" id="srd-npc-count"></div>
+<div class="srd-monster-results" id="srd-npc-results"></div>
+<div class="confirm-modal-btns">
+<button class="confirm-btn-cancel" onclick="closeSrdNpcPicker()">Закрыть</button>
+</div>
+</div>
+</div>
+
 <!-- Modal: Add/Edit Monster -->
 <div id="add-monster-modal" class="confirm-modal-overlay">
 <div class="confirm-modal-box party-modal-box">
@@ -1366,8 +1416,31 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <option value="Растение">🌿 Растение</option>
 <option value="Монстр">👾 Монстр</option>
 </select>
-<label>Описание / тактика</label>
-<textarea id="monster-desc-inp" placeholder="Атакует с фланга, устойчив к огню, охраняет подземелье..." rows="3"></textarea>
+<div class="party-form-row">
+<div class="party-form-col">
+<label>CR (опц.)</label>
+<input type="text" id="monster-cr-inp" placeholder="1/4, 5, 10...">
+</div>
+<div class="party-form-col">
+<label>КД</label>
+<input type="number" id="monster-ac-inp" placeholder="15">
+</div>
+<div class="party-form-col">
+<label>ХП</label>
+<input type="number" id="monster-hp-inp" placeholder="22">
+</div>
+</div>
+<label>Редакция (опц.)</label>
+<select id="monster-edition-sel">
+<option value="">— Не указано</option>
+<option value="PHB'14">📖 PHB'14</option>
+<option value="PHB'24">📘 PHB'24</option>
+<option value="Homebrew">🏠 Homebrew</option>
+</select>
+<label>Тактика боя (опц.)</label>
+<textarea id="monster-tactics-inp" placeholder="Атакует с фланга, прячется в темноте, бежит при половине HP..." rows="2"></textarea>
+<label>Описание / лор</label>
+<textarea id="monster-desc-inp" placeholder="Полная карточка из бестиария, лор, особенности..." rows="3"></textarea>
 </div>
 <div class="confirm-modal-btns">
 <button class="confirm-btn-cancel" onclick="closeAddMonsterModal()">Отмена</button>
@@ -2115,34 +2188,37 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
-<script src="bg-orbits.js?v=v125"></script>
-<script src="dice-arena-bg.js?v=v125"></script>
-<script src="data.js?v=v125"></script>
-<script src="build-notes-data.js?v=v125"></script>
-<script src="character-builds.js?v=v125"></script>
-<script src="spells.js?v=v125"></script>
-<script src="app-core.js?v=v125"></script>
-<script src="app-combat.js?v=v125"></script>
-<script src="app-hp.js?v=v125"></script>
-<script src="app-spells.js?v=v125"></script>
-<script src="app-inventory.js?v=v125"></script>
-<script src="app-party.js?v=v125"></script>
-<script src="class-choices.js?v=v125"></script>
-<script src="subclass-choices-data.js?v=v125"></script>
+<script src="bg-orbits.js?v=v127"></script>
+<script src="dice-arena-bg.js?v=v127"></script>
+<script src="data.js?v=v127"></script>
+<script src="build-notes-data.js?v=v127"></script>
+<script src="character-builds.js?v=v127"></script>
+<script src="spells.js?v=v127"></script>
+<script src="app-core.js?v=v127"></script>
+<script src="app-combat.js?v=v127"></script>
+<script src="app-hp.js?v=v127"></script>
+<script src="app-spells.js?v=v127"></script>
+<script src="app-inventory.js?v=v127"></script>
+<!-- FEAT-4: бестиарий SRD 5e + архетипы NPC (подключаются до app-party.js) -->
+<script src="monsters-srd.js?v=v127"></script>
+<script src="npc-srd.js?v=v127"></script>
+<script src="app-party.js?v=v127"></script>
+<script src="class-choices.js?v=v127"></script>
+<script src="subclass-choices-data.js?v=v127"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v125";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v127";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v125"></script>
-<script src="app-notes.js?v=v125"></script>
-<script src="app-desktop.js?v=v125"></script>
-<script src="history-stack.js?v=v125"></script>
+<script src="app-ui.js?v=v127"></script>
+<script src="app-notes.js?v=v127"></script>
+<script src="app-desktop.js?v=v127"></script>
+<script src="history-stack.js?v=v127"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы) -->
-<script src="vendor/jspdf/jspdf.umd.min.js?v=v125"></script>
-<script src="vendor/jspdf/roboto-base64.js?v=v125"></script>
-<script src="app-pdf.js?v=v125"></script>
+<script src="vendor/jspdf/jspdf.umd.min.js?v=v127"></script>
+<script src="vendor/jspdf/roboto-base64.js?v=v127"></script>
+<script src="app-pdf.js?v=v127"></script>
 
 <!-- ══ Модалка записи (N4) ══════════════════════════════════════ -->
 <div id="notes-entry-modal" class="notes-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="nem-heading" onclick="if(event.target===this)notesCloseEntryModal()">

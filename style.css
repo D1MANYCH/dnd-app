@@ -10902,3 +10902,219 @@ mark.search-hl {
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
+
+/* ════ FEAT-4: SRD-бестиарий ════════════════════════════════ */
+/* Кнопка «📚 Из SRD» в секции монстров */
+.party-add-btn-srd {
+  background: rgba(108, 76, 168, 0.85);
+  border-color: rgba(108, 76, 168, 0.95);
+  color: #fff;
+}
+.party-add-btn-srd:hover {
+  background: rgba(128, 96, 188, 1);
+  border-color: rgba(128, 96, 188, 1);
+}
+
+/* Бэйджи CR/КД/ХП на карточке монстра */
+.pcard-srd-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0 2px 0;
+}
+.pcard-srd-badge {
+  font-size: 0.7em;
+  padding: 2px 7px;
+  border-radius: var(--r-sm);
+  background: rgba(108, 76, 168, 0.18);
+  border: 1px solid rgba(108, 76, 168, 0.35);
+  color: #c9b4f0;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* SRD-карточка в .pcard-desc — длинный текст, скролл */
+.pcard-desc-srd {
+  max-height: 140px;
+  overflow-y: auto;
+  font-size: 0.7em;
+  line-height: 1.5;
+}
+
+/* Модалка пикера SRD-монстров */
+.srd-monster-box {
+  max-width: 560px;
+  width: 95%;
+}
+.srd-monster-filters {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 8px;
+}
+.srd-monster-filters input[type="text"] {
+  flex: 1;
+}
+.srd-monster-filters select {
+  flex: 0 0 110px;
+}
+.srd-monster-count {
+  font-size: 0.78em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.srd-monster-results {
+  max-height: 50vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding-right: 4px;
+}
+.srd-mon-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+.srd-mon-row:hover {
+  background: rgba(108, 76, 168, 0.15);
+  border-color: rgba(108, 76, 168, 0.5);
+}
+.srd-mon-row:active { transform: scale(0.99); }
+.srd-mon-icon {
+  font-size: 1.5em;
+  width: 32px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.srd-mon-body {
+  flex: 1;
+  min-width: 0;
+}
+.srd-mon-name {
+  font-weight: 600;
+  font-size: 0.95em;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.srd-mon-en {
+  font-weight: 400;
+  font-size: 0.78em;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.srd-mon-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.srd-mon-badge {
+  font-size: 0.7em;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.srd-mon-add {
+  background: rgba(108, 76, 168, 0.85);
+  color: #fff;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.2em;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.1s;
+}
+.srd-mon-add:hover { background: rgba(128, 96, 188, 1); }
+.srd-mon-add:active { transform: scale(0.94); }
+
+@media (max-width: 540px) {
+  .srd-monster-filters { flex-direction: column; gap: 6px; }
+  .srd-monster-filters select { flex: 1 1 auto; }
+  .srd-mon-row { padding: 6px 8px; gap: 8px; }
+  .srd-mon-icon { font-size: 1.3em; width: 28px; }
+}
+
+/* FEAT-4 расширение: новые элементы форм/карточек */
+.party-form-row {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0;
+}
+.party-form-col {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.party-form-col label {
+  font-size: 0.78em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+.party-form-col input {
+  width: 100%;
+}
+
+/* Бэйджи редакции (на карточке монстра и в строке пикера) */
+.pcard-srd-badge-ed,
+.srd-mon-badge-ed {
+  background: rgba(76, 168, 108, 0.18);
+  border-color: rgba(76, 168, 108, 0.4);
+  color: #b4f0c9;
+}
+
+/* Бэйджи NPC (локация + отношение) */
+.pcard-npc-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0 2px 0;
+}
+.pcard-npc-badge {
+  font-size: 0.7em;
+  padding: 2px 7px;
+  border-radius: var(--r-sm);
+  background: rgba(212, 172, 13, 0.15);
+  border: 1px solid rgba(212, 172, 13, 0.4);
+  color: #f0d690;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Блок «Тактика боя» на карточке монстра */
+.pcard-tactics {
+  font-size: 0.72em;
+  color: #f7c79a;
+  line-height: 1.45;
+  margin: 4px 0 6px 0;
+  padding: 5px 8px;
+  background: rgba(192, 57, 43, 0.12);
+  border-left: 2px solid rgba(192, 57, 43, 0.6);
+  border-radius: 0 4px 4px 0;
+}
+
+/* Кнопка «+ Добавить» в строках пикера — теперь с текстом */
+.srd-mon-add {
+  width: auto !important;
+  height: auto !important;
+  border-radius: var(--r-sm) !important;
+  padding: 6px 12px;
+  font-size: 0.82em !important;
+  font-weight: 600;
+  white-space: nowrap;
+}
+@media (max-width: 540px) {
+  .srd-mon-add { padding: 5px 8px; font-size: 0.75em !important; }
+  .party-form-row { flex-direction: column; gap: 4px; }
+}

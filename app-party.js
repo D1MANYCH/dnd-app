@@ -159,14 +159,31 @@ var _PENT = {
              render: function() { renderAllies(); },
              addLabel:"🧑‍🤝‍🧑 Добавить соратника", editLabel:"✏️ Редактировать соратника",
              delMsg: "Удалить соратника?", delKey:"name" },
+  // FEAT-4 расширение: NPC получает location/attitude
   npc:     { modal:"add-npc-modal",     title:"npc-modal-title",     idx:"npc-edit-index",
-             fields: [{id:"npc-name-inp",key:"name"},{id:"npc-role-inp",key:"role",default:"Персонаж"},{id:"npc-desc-inp",key:"desc"}],
+             fields: [
+               {id:"npc-name-inp",     key:"name"},
+               {id:"npc-role-inp",     key:"role",     default:"Персонаж"},
+               {id:"npc-location-inp", key:"location"},
+               {id:"npc-attitude-sel", key:"attitude", default:"нейтральный"},
+               {id:"npc-desc-inp",     key:"desc"}
+             ],
              list: function() { if (!PARTY_DATA.npcs) PARTY_DATA.npcs = []; return PARTY_DATA.npcs; },
              render: function() { renderNPCs(); },
              addLabel:"🧑 Добавить персонажа", editLabel:"✏️ Редактировать персонажа",
              delMsg: "Удалить персонажа?", delKey:"name" },
+  // FEAT-4 расширение: монстр получает cr/ac/hp/tactics/edition
   monster: { modal:"add-monster-modal", title:"monster-modal-title", idx:"monster-edit-index",
-             fields: [{id:"monster-name-inp",key:"name"},{id:"monster-type-sel",key:"type",default:"Монстр"},{id:"monster-desc-inp",key:"desc"}],
+             fields: [
+               {id:"monster-name-inp",    key:"name"},
+               {id:"monster-type-sel",    key:"type", default:"Монстр"},
+               {id:"monster-cr-inp",      key:"cr"},
+               {id:"monster-ac-inp",      key:"ac"},
+               {id:"monster-hp-inp",      key:"hp"},
+               {id:"monster-edition-sel", key:"edition"},
+               {id:"monster-tactics-inp", key:"tactics"},
+               {id:"monster-desc-inp",    key:"desc"}
+             ],
              list: function() { return PARTY_DATA.monsters; },
              render: function() { renderMonsters(); },
              addLabel:"👹 Добавить монстра", editLabel:"✏️ Редактировать монстра",
@@ -191,7 +208,17 @@ function _pentSave(type) {
   var idx = parseInt($(cfg.idx).value, 10);
   var existing = (idx >= 0 && idx < list.length) ? list[idx] : null;
   var data = { id: existing ? (existing.id || Date.now()) : Date.now(), status: existing ? (existing.status || "healthy") : "healthy" };
-  cfg.fields.forEach(function(f) { data[f.key] = $(f.id).value.trim() || (f.default || ""); });
+  // FEAT-4: сохранить расширенные «скрытые» поля при редактировании (icon/srdSlug/xp/...) — _PENT.fields их не охватывает
+  if (existing) {
+    ['xp','size','hpMax','hpDice','speed','srdSlug','icon'].forEach(function(k) {
+      if (existing[k] !== undefined) data[k] = existing[k];
+    });
+  }
+  cfg.fields.forEach(function(f) {
+    var v = ($(f.id).value || "").trim();
+    if (!v && f.default) v = f.default;
+    if (v) data[f.key] = v;
+  });
   if (!data.name) data.name = name;
   if (idx >= 0) list[idx] = data; else list.push(data);
   saveParty(); cfg.render(); _pentClose(type);
@@ -266,6 +293,13 @@ function importMonsters(input)     { _pentImport("monster", input); }
 
 
 // ─── NPCs ────────────────────────────────────────────────────
+// Цвет бейджа отношения для NPC
+function _npcAttColor(att) {
+  if (att === "дружелюбный") return "#27ae60";
+  if (att === "враждебный")  return "#c0392b";
+  if (att === "неизв.")      return "#7f8c8d";
+  return "#d4ac0d"; // нейтральный по умолчанию
+}
 function renderNPCs() {
   var list    = $("npcs-list");
   var countEl = $("npcs-count");
@@ -273,11 +307,23 @@ function renderNPCs() {
   if (countEl) countEl.textContent = (PARTY_DATA.npcs && PARTY_DATA.npcs.length > 0) ? PARTY_DATA.npcs.length : "";
   if (!PARTY_DATA.npcs || PARTY_DATA.npcs.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет персонажей</div>"; return; }
   list.innerHTML = PARTY_DATA.npcs.map(function(n, i) {
+    // FEAT-4: бэйджи локации и отношения
+    var subBadges = "";
+    var att = n.attitude || "";
+    if (n.location || att) {
+      var attC = _npcAttColor(att);
+      var parts = [];
+      if (n.location) parts.push('<span class="pcard-npc-badge">📍 ' + escapeHtml(n.location) + '</span>');
+      if (att) parts.push('<span class="pcard-npc-badge" style="color:' + attC + ';border-color:' + attC + '55">' + escapeHtml(att) + '</span>');
+      subBadges = '<div class="pcard-npc-badges">' + parts.join("") + '</div>';
+    }
+    var icon = n.icon || "🧑";
     return '<div class="pcard pcard-npc">' +
-      '<div class="pcard-icon pcard-icon-npc">🧑</div>' +
+      '<div class="pcard-icon pcard-icon-npc">' + icon + '</div>' +
       '<div class="pcard-body">' +
         '<div class="pcard-name">' + escapeHtml(n.name) + '</div>' +
         '<div class="pcard-sub">' + escapeHtml(n.role || "Персонаж") + '</div>' +
+        subBadges +
         (n.desc ? '<div class="pcard-desc">' + escapeHtml(n.desc) + '</div>' : '') +
         '<div class="pcard-status-row"><select class="pcard-status-sel" onchange="setNPCStatus(' + i + ',this.value)" onclick="event.stopPropagation()">' +
         CONDITION_STATUSES.map(function(s) { return '<option value="' + s.value + '"' + (s.value === (n.status||"healthy") ? " selected" : "") + '>' + s.label + '</option>'; }).join("") +
@@ -303,12 +349,32 @@ function renderMonsters() {
   if (PARTY_DATA.monsters.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет монстров. Добавьте врага!</div>"; return; }
   list.innerHTML = PARTY_DATA.monsters.map(function(m, i) {
     var typeIcon = getMonsterTypeIcon(m.type);
+    // FEAT-4: бэйджи SRD-карточки (CR / КД / ХП / редакция), показываем только заполненные
+    var srdBadges = "";
+    var parts = [];
+    if (m.cr)      parts.push('<span class="pcard-srd-badge">CR ' + escapeHtml(String(m.cr)) + '</span>');
+    if (m.ac)      parts.push('<span class="pcard-srd-badge">🛡️ ' + escapeHtml(String(m.ac)) + '</span>');
+    if (m.hp)      parts.push('<span class="pcard-srd-badge">❤️ ' + escapeHtml(String(m.hp)) + '</span>');
+    if (m.edition) parts.push('<span class="pcard-srd-badge pcard-srd-badge-ed">' + escapeHtml(String(m.edition)) + '</span>');
+    if (parts.length) srdBadges = '<div class="pcard-srd-badges">' + parts.join("") + '</div>';
+    // FEAT-4: тактика отдельным блоком (если есть)
+    var tacticsBlock = "";
+    if (m.tactics) tacticsBlock = '<div class="pcard-tactics">⚔️ ' + escapeHtml(m.tactics).replace(/\n/g, "<br>") + '</div>';
+    // FEAT-4: multi-line desc (SRD-карточка) — рендерим с pre-line + max-height
+    var descBlock = "";
+    if (m.desc) {
+      var safe = escapeHtml(m.desc).replace(/\n/g, "<br>");
+      var isSrd = !!m.srdSlug;
+      descBlock = '<div class="pcard-desc' + (isSrd ? ' pcard-desc-srd' : '') + '">' + safe + '</div>';
+    }
     return '<div class="pcard pcard-monster">' +
       '<div class="pcard-icon pcard-icon-monster">' + typeIcon + '</div>' +
       '<div class="pcard-body">' +
         '<div class="pcard-name">' + escapeHtml(m.name) + '</div>' +
         '<div class="pcard-sub"><span class="pcard-type-badge">' + typeIcon + " " + escapeHtml(m.type || "Монстр") + '</span></div>' +
-        (m.desc ? '<div class="pcard-desc">' + escapeHtml(m.desc) + '</div>' : '') +
+        srdBadges +
+        tacticsBlock +
+        descBlock +
         '<div class="pcard-status-row"><select class="pcard-status-sel" onchange="setMonsterStatus(' + i + ',this.value)" onclick="event.stopPropagation()">' +
         CONDITION_STATUSES.map(function(s) { return '<option value="' + s.value + '"' + (s.value === (m.status||"healthy") ? " selected" : "") + '>' + s.label + '</option>'; }).join("") +
         '</select></div>' +
@@ -319,6 +385,197 @@ function renderMonsters() {
       '</div>' +
     '</div>';
   }).join("");
+}
+
+// ─── FEAT-4: SRD MONSTER PICKER ──────────────────────────────
+var _srdPickerState = { q: "", cr: "", edition: "" };
+
+function openSrdMonsterPicker() {
+  if (!window.MONSTERS_SRD || !window.MONSTERS_SRD.length) {
+    showToast("SRD-бестиарий не загружен", "error");
+    return;
+  }
+  _srdPickerState.q = "";
+  _srdPickerState.cr = "";
+  _srdPickerState.edition = "";
+  var inp = $("srd-monster-search"); if (inp) inp.value = "";
+  var sel = $("srd-monster-cr");
+  if (sel) {
+    if (sel.options.length <= 1) {
+      var crs = window.srdAllCRs();
+      crs.forEach(function(cr) {
+        var opt = document.createElement("option");
+        opt.value = cr; opt.textContent = "CR " + cr;
+        sel.appendChild(opt);
+      });
+    }
+    sel.value = "";
+  }
+  // Фильтр редакции (один раз на сессию). Включаем PHB'24 даже если пуст —
+  // фильтр покажет «Нет монстров» с подсказкой, что раздел в разработке.
+  var edSel = $("srd-monster-edition");
+  if (edSel && edSel.options.length <= 1) {
+    ["PHB'14", "PHB'24"].forEach(function(ed) {
+      var opt = document.createElement("option");
+      opt.value = ed; opt.textContent = ed;
+      edSel.appendChild(opt);
+    });
+    edSel.value = "";
+  }
+  renderSrdMonsterPicker();
+  openModal("srd-monster-modal");
+}
+
+function closeSrdMonsterPicker() { closeModal("srd-monster-modal"); }
+
+function setSrdMonsterSearch(val)  { _srdPickerState.q = (val || "").toLowerCase().trim(); renderSrdMonsterPicker(); }
+function setSrdMonsterCr(val)      { _srdPickerState.cr = val || ""; renderSrdMonsterPicker(); }
+function setSrdMonsterEdition(val) { _srdPickerState.edition = val || ""; renderSrdMonsterPicker(); }
+
+function renderSrdMonsterPicker() {
+  var box = $("srd-monster-results"); if (!box) return;
+  var q = _srdPickerState.q, cr = _srdPickerState.cr, ed = _srdPickerState.edition;
+  var list = window.MONSTERS_SRD.filter(function(m) {
+    if (cr && m.cr !== cr) return false;
+    if (ed && (m.edition || "") !== ed) return false;
+    if (q) {
+      var hay = (m.name + " " + (m.nameEn||"") + " " + (m.type||"")).toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+  list.sort(function(a, b) {
+    var d = window.srdCrNum(a.cr) - window.srdCrNum(b.cr);
+    return d !== 0 ? d : a.name.localeCompare(b.name, "ru");
+  });
+  var countEl = $("srd-monster-count");
+  if (countEl) countEl.textContent = "Найдено: " + list.length;
+  if (list.length === 0) {
+    if (ed === "PHB'24") box.innerHTML = '<div class="party-empty">⏳ Раздел PHB\'24 пока пуст — будет наполнен в следующем релизе</div>';
+    else box.innerHTML = '<div class="party-empty">Нет монстров под фильтр</div>';
+    return;
+  }
+  box.innerHTML = list.map(function(m) {
+    var icon = getMonsterTypeIcon(m.type);
+    return '<div class="srd-mon-row" onclick="addMonsterFromSRD(\'' + m.slug + '\', event)">' +
+      '<div class="srd-mon-icon">' + icon + '</div>' +
+      '<div class="srd-mon-body">' +
+        '<div class="srd-mon-name">' + escapeHtml(m.name) + ' <span class="srd-mon-en">' + escapeHtml(m.nameEn || "") + '</span></div>' +
+        '<div class="srd-mon-meta">' +
+          '<span class="srd-mon-badge">CR ' + escapeHtml(m.cr) + '</span>' +
+          '<span class="srd-mon-badge">🛡️ ' + m.ac + '</span>' +
+          '<span class="srd-mon-badge">❤️ ' + m.hp + '</span>' +
+          '<span class="srd-mon-badge">' + escapeHtml(m.size) + ' · ' + escapeHtml(m.type) + '</span>' +
+          (m.edition ? '<span class="srd-mon-badge srd-mon-badge-ed">' + escapeHtml(m.edition) + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<button class="srd-mon-add" onclick="addMonsterFromSRD(\'' + m.slug + '\', event)" title="Добавить">＋ Добавить</button>' +
+    '</div>';
+  }).join("");
+}
+
+function addMonsterFromSRD(slug, event) {
+  if (event && event.stopPropagation) event.stopPropagation();
+  var m = window.srdMonsterBySlug(slug);
+  if (!m) { showToast("Монстр не найден", "error"); return; }
+  var desc = window.srdMonsterToDesc(m);
+  var entry = {
+    id: Date.now() + Math.floor(Math.random() * 1000),
+    name: m.name, type: m.type, desc: desc,
+    status: "healthy",
+    cr: m.cr, xp: m.xp, size: m.size,
+    ac: m.ac, hp: m.hp, hpMax: m.hp, hpDice: m.hpDice, speed: m.speed,
+    edition: m.edition || "",
+    srdSlug: m.slug
+  };
+  while (PARTY_DATA.monsters.some(function(x) { return x.id === entry.id; })) {
+    entry.id = Date.now() + Math.floor(Math.random() * 10000);
+  }
+  PARTY_DATA.monsters.push(entry);
+  saveParty();
+  renderMonsters();
+  showToast(m.name + " добавлен(а) в монстров", "success");
+}
+
+// ─── FEAT-4: NPC ARCHETYPE PICKER ────────────────────────────
+var _npcPickerState = { q: "", att: "" };
+
+function openSrdNpcPicker() {
+  if (!window.NPC_ARCHETYPES || !window.NPC_ARCHETYPES.length) {
+    showToast("NPC-архетипы не загружены", "error");
+    return;
+  }
+  _npcPickerState.q = "";
+  _npcPickerState.att = "";
+  var inp = $("srd-npc-search"); if (inp) inp.value = "";
+  var sel = $("srd-npc-att");
+  if (sel && sel.options.length <= 1) {
+    window.npcArchAttitudes().forEach(function(a) {
+      var opt = document.createElement("option");
+      opt.value = a; opt.textContent = a;
+      sel.appendChild(opt);
+    });
+  }
+  if (sel) sel.value = "";
+  renderSrdNpcPicker();
+  openModal("srd-npc-modal");
+}
+
+function closeSrdNpcPicker() { closeModal("srd-npc-modal"); }
+
+function setSrdNpcSearch(val) { _npcPickerState.q = (val || "").toLowerCase().trim(); renderSrdNpcPicker(); }
+function setSrdNpcAtt(val)    { _npcPickerState.att = val || ""; renderSrdNpcPicker(); }
+
+function renderSrdNpcPicker() {
+  var box = $("srd-npc-results"); if (!box) return;
+  var q = _npcPickerState.q, att = _npcPickerState.att;
+  var list = window.NPC_ARCHETYPES.filter(function(a) {
+    if (att && (a.attitude || "") !== att) return false;
+    if (q) {
+      var hay = (a.name + " " + (a.role||"") + " " + (a.location||"")).toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+  list.sort(function(a, b) { return a.name.localeCompare(b.name, "ru"); });
+  var countEl = $("srd-npc-count");
+  if (countEl) countEl.textContent = "Найдено: " + list.length;
+  if (list.length === 0) { box.innerHTML = '<div class="party-empty">Нет архетипов под фильтр</div>'; return; }
+  box.innerHTML = list.map(function(a) {
+    var attC = _npcAttColor(a.attitude || "");
+    return '<div class="srd-mon-row" onclick="addNpcFromSRD(\'' + a.slug + '\', event)">' +
+      '<div class="srd-mon-icon">' + (a.icon || "🧑") + '</div>' +
+      '<div class="srd-mon-body">' +
+        '<div class="srd-mon-name">' + escapeHtml(a.name) + '</div>' +
+        '<div class="srd-mon-meta">' +
+          '<span class="srd-mon-badge">📍 ' + escapeHtml(a.location || "—") + '</span>' +
+          '<span class="srd-mon-badge" style="color:' + attC + ';border-color:' + attC + '55">' + escapeHtml(a.attitude || "—") + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<button class="srd-mon-add" onclick="addNpcFromSRD(\'' + a.slug + '\', event)" title="Добавить">＋ Добавить</button>' +
+    '</div>';
+  }).join("");
+}
+
+function addNpcFromSRD(slug, event) {
+  if (event && event.stopPropagation) event.stopPropagation();
+  var a = window.npcArchBySlug(slug);
+  if (!a) { showToast("Архетип не найден", "error"); return; }
+  if (!PARTY_DATA.npcs) PARTY_DATA.npcs = [];
+  var entry = {
+    id: Date.now() + Math.floor(Math.random() * 1000),
+    name: a.name, role: a.role, desc: a.desc || "",
+    location: a.location || "", attitude: a.attitude || "нейтральный",
+    icon: a.icon || "🧑",
+    srdSlug: a.slug, status: "healthy"
+  };
+  while (PARTY_DATA.npcs.some(function(x) { return x.id === entry.id; })) {
+    entry.id = Date.now() + Math.floor(Math.random() * 10000);
+  }
+  PARTY_DATA.npcs.push(entry);
+  saveParty();
+  renderNPCs();
+  showToast(a.name + " добавлен", "success");
 }
 
 
