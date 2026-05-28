@@ -1598,8 +1598,8 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.20.0";
-const APP_VERSION_DATE = "2026-05-26";
+const APP_VERSION = "3.21.0";
+const APP_VERSION_DATE = "2026-05-28";
 
 // ============================================================
 // ВНЕШНИЕ ССЫЛКИ (TG-канал, донаты, Boosty)
@@ -1892,9 +1892,18 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
+    version: "3.21.0",
+    date: "28 мая 2026",
+    badge: "new",
+    changes: [
+      { type: "feat", text: "feat(pdf): FEAT-3 экспорт листа персонажа в PDF (jsPDF + Roboto)" },
+      { type: "feat", text: "feat(pdf): декор листа — классовая цветовая полоса с аватаром, иконки школ магии, двойная рамка и уголки на каждой странице" }
+    ]
+  },
+  {
     version: "3.20.0",
     date: "26 мая 2026",
-    badge: "new",
+    badge: "old",
     changes: [
       { type: "chore", text: "BUGFIX-10: финализация цикла стабилизации — инвариант APP_VERSION↔CACHE_NAME↔?v=vN зафиксирован в CLAUDE.md, remote-conflict guard в bump-version.js" }
     ]

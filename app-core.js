@@ -1728,7 +1728,8 @@ div.innerHTML = "<div class=\"char-card-header\">" +
     "<div class=\"char-card-sub\">" + escapeHtml((char.classes && char.classes.length > 1 ? getClassLabel(char) : char.class) || "Класс не указан") + (char.race ? " · " + escapeHtml(char.race) : "") + (char.subclass && (!char.classes || char.classes.length <= 1) ? " · " + escapeHtml(char.subclass) : "") + "</div>" +
   "</div>" +
   "<div class=\"char-card-actions\">" +
-    "<button class=\"char-copy-btn\" onclick=\"exportOneCharacter(" + char.id + ", event)\" title=\"Экспорт\">↓</button>" +
+    "<button class=\"char-copy-btn\" onclick=\"exportOneCharacter(" + char.id + ", event)\" title=\"Экспорт JSON\">↓</button>" +
+    "<button class=\"char-copy-btn\" onclick=\"exportCharacterPDF(" + char.id + ", event)\" title=\"Экспорт PDF\">📄</button>" +
     "<button class=\"char-copy-btn\" onclick=\"duplicateCharacter(" + char.id + ", event)\" title=\"Дублировать\">⧉</button>" +
     "<button class=\"char-delete-btn\" onclick=\"event.stopPropagation(); deleteCharacter(" + char.id + ")\">✕</button>" +
   "</div>" +
