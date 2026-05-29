@@ -2,19 +2,25 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v128';
+const CACHE_NAME = 'dnd-sheet-v129';
 
 const FILES_TO_CACHE = [
   './',
   './index.html',
   './style.css',
   './bg-orbits.js',
+  './dice-arena-bg.js',
   './data.js',
+  './build-notes-data.js',
+  './character-builds.js',
   './spells.js',
   './app-core.js',
   './app-combat.js',
   './app-hp.js',
   './app-spells.js',
+  './class-choices.js',
+  './subclass-choices-data.js',
+  './app-notes.js',
   './assets/schools/abjuration.webp',
   './assets/schools/conjuration.webp',
   './assets/schools/divination.webp',
@@ -98,7 +104,11 @@ self.addEventListener('fetch', (event) => {
   if (!url.startsWith('http://') && !url.startsWith('https://')) return;
 
   event.respondWith(
-    caches.match(event.request).then((response) => {
+    // ignoreSearch: запросы идут с ?v=vN-токенами (index.html), а ключи прекеша —
+    // без query. Без этого версионные запросы мимо прекеша → офлайн-cold-start
+    // отдавал бы index.html вместо JS/CSS. Свежесть обеспечивает бамп CACHE_NAME
+    // (activate чистит старый кеш, install прекеширует свежие копии cache:'reload').
+    caches.match(event.request, { ignoreSearch: true }).then((response) => {
       if (response) return response;
       return fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {

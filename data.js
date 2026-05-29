@@ -1624,7 +1624,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.24.0";
+const APP_VERSION = "3.24.1";
 const APP_VERSION_DATE = "2026-05-29";
 
 // ============================================================
@@ -1918,9 +1918,18 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.24.0",
+    version: "3.24.1",
     date: "29 мая 2026",
     badge: "new",
+    changes: [
+      { type: "fix", text: "fix(sw): офлайн-кеш — добавлены 6 пропущенных JS в прекеш (dice-arena-bg, build-notes-data, character-builds, class-choices, subclass-choices-data, app-notes) + ignoreSearch в fetch-обработчике, чтобы версионные ?v= запросы попадали в прекеш (исправлен офлайн-cold-start)" },
+      { type: "chore", text: "Чистка: удалены 12 неиспользуемых ассетов (~600 КБ — svg-дубли, легаси tab-картинки, неиспользуемая текстура) и 2 мёртвых CSS-правила" }
+    ]
+  },
+  {
+    version: "3.24.0",
+    date: "29 мая 2026",
+    badge: "old",
     changes: [
       { type: "feat", text: "feat(companions): FEAT-6 фамильяры — слот companions в DEFAULT_CHARACTER, 15 SRD-форм фамильяра с автозаполнением статов, кнопка «Призвать фамильяра» на заклинании «Поиск фамильяра»" }
     ]

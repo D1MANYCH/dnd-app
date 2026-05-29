@@ -4520,10 +4520,6 @@ padding: 18px;
   gap: 12px;
   min-width: 0;
 }
-.dice-last-roll {
-  display: none;  /* v3.19: устарел — теперь «Кубик: dN» под аркой */
-}
-
 /* v3.19: «Быстрый бросок d20» — отдельная двухстрочная кнопка над сеткой */
 .dice-btn-quick {
   display: flex;
@@ -9459,7 +9455,6 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 
 /* ══ ШАПКА ЛИСТА: аватар слева, поля справа ══════════════════════ */
-.sheet-header-layout { display: block; } /* legacy, не используется */
 
 /* Строка 1: аватар слева + имя/уровень/опыт справа */
 .sheet-top-row {

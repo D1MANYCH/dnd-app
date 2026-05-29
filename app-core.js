@@ -1564,7 +1564,7 @@ function getSpellClassIcon(key) {
   if (!slug) return '<span class="spell-class-emoji" aria-hidden="true">' + (CLASS_ICONS_MAP[key] || '✨') + '</span>';
   return '<img class="spell-class-icon" src="assets/classes/' + slug + '.webp?v=2" alt="" aria-hidden="true">';
 }
-// Школы магии: RU → slug файла в assets/schools/*.svg
+// Школы магии: RU → slug файла в assets/schools/*.webp
 const SCHOOL_ICON_SLUGS = {
   "ограждение": "abjuration",
   "воплощение": "evocation",
