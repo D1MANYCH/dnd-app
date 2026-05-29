@@ -340,6 +340,7 @@ const sourceClass = "source-" + (spell.source || "ph14").toLowerCase();
 const schoolName = spell.school || "";
 var isRitual = !!(spell.time && spell.time.includes("(ритуал)"));
 var canCastRitual = isRitual && ritualClasses.includes(char.class);
+var isFamiliarSpell = /фамильяр/i.test(spell.name || "");
 var metaParts = [];
 if (spell.time) metaParts.push('<span>⚡ ' + escapeHtml(spell.time) + '</span>');
 if (spell.range) metaParts.push('<span>📏 ' + escapeHtml(spell.range) + '</span>');
@@ -374,6 +375,7 @@ card.innerHTML =
     (spell.duration && spell.duration.toLowerCase().includes('концентрац') ? '<button class="spell-conc-btn" onclick="setConcentration(this.dataset.name)" data-name="' + escapeHtml(spell.name) + '">🔮 Концентрация</button>' : '') +
     (canCastRitual ? '<button class="spell-ritual-btn" onclick="castRitual(\'' + escapeHtml(spell.name).replace(/'/g,"&#39;") + '\')">🕐 Ритуал</button>' : '') +
     (prepClass && !isCantrip ? '<button class="spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + spell.id + ')">' + (prepared ? '✅ Подготовлено' : '○ Подготовить') + '</button>' : '') +
+    (isFamiliarSpell ? '<button class="spell-summon-btn" onclick="summonFamiliar()">🐾 Призвать фамильяра</button>' : '') +
     '<button class="spell-remove-btn" onclick="removeSpell(' + spell.id + ')">🗑 Удалить</button>' +
     '</div>' +
   '</div>';

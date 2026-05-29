@@ -1838,16 +1838,59 @@ function companionHP(i, delta) {
   renderCompanions();
 }
 
-function openAddCompanionModal() {
+// Однократно наполняет <select> формами фамильяра из таблицы FAMILIAR_FORMS
+function buildFamiliarFormOptions() {
+  var sel = $("companion-familiar-form-sel");
+  if (!sel || sel.dataset.built === "1" || typeof FAMILIAR_FORMS === "undefined") return;
+  var html = '<option value="">— своя форма —</option>';
+  FAMILIAR_FORMS.forEach(function(f) {
+    html += '<option value="' + f.id + '">' + (f.icon ? f.icon + ' ' : '') + escapeHtml(f.name) + '</option>';
+  });
+  sel.innerHTML = html;
+  sel.dataset.built = "1";
+}
+
+// Показывает пикер формы только для типа «Фамильяр»
+function onCompanionTypeChange() {
+  var row = $("companion-familiar-row");
+  if (!row) return;
+  var isFamiliar = ($("companion-type-sel")?.value === "familiar");
+  row.style.display = isFamiliar ? "" : "none";
+}
+
+// Автозаполнение статов из выбранной формы фамильяра
+function applyFamiliarForm() {
+  var sel = $("companion-familiar-form-sel");
+  if (!sel || !sel.value || typeof familiarFormById === "undefined") return;
+  var f = familiarFormById(sel.value);
+  if (!f) return;
+  $("companion-name-inp").value = f.name;
+  $("companion-hp-inp").value = f.hp;
+  $("companion-ac-inp").value = f.ac;
+  $("companion-attack-inp").value = f.attack === "—" ? "" : f.attack;
+  $("companion-desc-inp").value = f.desc;
+}
+
+function openAddCompanionModal(presetType) {
+  buildFamiliarFormOptions();
   $("companion-modal-title").textContent = "🐾 Добавить прихвостня";
   $("companion-edit-index").value = "-1";
   $("companion-name-inp").value = "";
-  $("companion-type-sel").value = "familiar";
+  $("companion-type-sel").value = presetType || "familiar";
   $("companion-hp-inp").value = "10";
   $("companion-ac-inp").value = "10";
   $("companion-attack-inp").value = "";
   $("companion-desc-inp").value = "";
+  var fs = $("companion-familiar-form-sel"); if (fs) fs.value = "";
+  onCompanionTypeChange();
   $("add-companion-modal")?.classList.add("active");
+}
+
+// Призыв фамильяра из карточки заклинания «Поиск фамильяра»
+function summonFamiliar() {
+  if (!currentId) { showToast("Сначала выберите персонажа", "warn"); return; }
+  openAddCompanionModal("familiar");
+  $("companion-modal-title").textContent = "🐾 Призвать фамильяра";
 }
 function openEditCompanionModal(i) {
   if (!currentId) return;
@@ -1855,6 +1898,7 @@ function openEditCompanionModal(i) {
   if (!char) return;
   var c = getCompanions(char)[i];
   if (!c) return;
+  buildFamiliarFormOptions();
   $("companion-modal-title").textContent = "✏️ Редактировать прихвостня";
   $("companion-edit-index").value = i;
   $("companion-name-inp").value = c.name || "";
@@ -1863,6 +1907,8 @@ function openEditCompanionModal(i) {
   $("companion-ac-inp").value = c.ac || 10;
   $("companion-attack-inp").value = c.attack || "";
   $("companion-desc-inp").value = c.desc || "";
+  var fs = $("companion-familiar-form-sel"); if (fs) fs.value = "";
+  onCompanionTypeChange();
   $("add-companion-modal")?.classList.add("active");
 }
 function closeAddCompanionModal() {

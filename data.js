@@ -59,6 +59,7 @@ const DEFAULT_CHARACTER = {
   deathSaves: { successes:[false,false,false], failures:[false,false,false] },
   inspiration: false,
   concentration: null,
+  companions: [],
   avatar: null,
   expertiseSkills: [],
   resistances: [],
@@ -94,6 +95,31 @@ function createEntry(type) {
     createdAt: now,
     updatedAt: now
   };
+}
+
+// ── Формы фамильяра (заклинание «Поиск фамильяра», PHB) ───────────────────────
+// SRD-статблоки классических форм. Поля совпадают с моделью companion
+// (name/ac/hp/attack/desc) для прямого автозаполнения модалки.
+const FAMILIAR_FORMS = [
+  { id:'cat',     name:'Кошка',          icon:'🐱', ac:12, hp:2, attack:'Когти +0, 1 рубящий',                       desc:'Острый нюх. Скорость 12 м, лазание 9 м.' },
+  { id:'owl',     name:'Сова',           icon:'🦉', ac:11, hp:1, attack:'Когти +3, 1 рубящий',                       desc:'Тёмное зрение 36 м, пролётная атака, острый слух и зрение. Скорость 1,5 м, полёт 18 м.' },
+  { id:'raven',   name:'Ворон',          icon:'🐦‍⬛', ac:12, hp:1, attack:'Клюв +4, 1 колющий',                        desc:'Имитация звуков. Скорость 3 м, полёт 15 м.' },
+  { id:'bat',     name:'Летучая мышь',   icon:'🦇', ac:12, hp:1, attack:'Укус +0, 1 колющий',                        desc:'Слепое зрение 18 м (эхолокация). Скорость 1,5 м, полёт 9 м.' },
+  { id:'hawk',    name:'Ястреб',         icon:'🦅', ac:13, hp:1, attack:'Когти +5, 1 рубящий',                       desc:'Острое зрение. Скорость 3 м, полёт 18 м.' },
+  { id:'frog',    name:'Жаба',           icon:'🐸', ac:11, hp:1, attack:'—',                                          desc:'Амфибия, тёмное зрение 9 м. Скорость 6 м, плавание 6 м. Без атаки.' },
+  { id:'lizard',  name:'Ящерица',        icon:'🦎', ac:10, hp:2, attack:'Укус +0, 1 колющий',                        desc:'Тёмное зрение 9 м. Скорость 6 м, лазание 6 м.' },
+  { id:'rat',     name:'Крыса',          icon:'🐀', ac:10, hp:1, attack:'Укус +0, 1 колющий',                        desc:'Тёмное зрение 9 м, острый нюх. Скорость 6 м.' },
+  { id:'weasel',  name:'Ласка',          icon:'🦦', ac:13, hp:1, attack:'Укус +5, 1 колющий',                        desc:'Острый слух и нюх. Скорость 9 м.' },
+  { id:'spider',  name:'Паук',           icon:'🕷️', ac:12, hp:1, attack:'Укус +4, 1 колющий + 1к4 яд (спас ТЕЛ Сл 9)', desc:'Тёмное зрение 9 м, паучье лазание, хождение по паутине. Скорость 6 м, лазание 6 м.' },
+  { id:'snake',   name:'Ядовитая змея',  icon:'🐍', ac:13, hp:2, attack:'Укус +5, 1 колющий + 2к4 яд (спас ТЕЛ Сл 10, половина)', desc:'Слепое зрение 3 м. Скорость 9 м, плавание 9 м.' },
+  { id:'octopus', name:'Осьминог',       icon:'🐙', ac:12, hp:3, attack:'Щупальца +3, 1 дробящий (захват, Сл 10)',   desc:'Тёмное зрение 9 м, чернильное облако (1/день). Скорость 1,5 м, плавание 9 м. Только в воде.' },
+  { id:'crab',    name:'Краб',           icon:'🦀', ac:11, hp:2, attack:'Клешня +0, 1 дробящий',                     desc:'Амфибия, слепое зрение 9 м. Скорость 6 м, плавание 6 м.' },
+  { id:'quipper', name:'Рыба (квиппер)', icon:'🐟', ac:13, hp:1, attack:'Укус +1, 1 колющий',                        desc:'Дышит под водой, кровавое безумие. Скорость плавание 12 м. Только в воде.' },
+  { id:'seahorse',name:'Морской конёк',  icon:'🐠', ac:11, hp:1, attack:'—',                                          desc:'Дышит под водой. Скорость плавание 6 м. Только в воде, без атаки.' }
+];
+function familiarFormById(id) {
+  for (var i = 0; i < FAMILIAR_FORMS.length; i++) if (FAMILIAR_FORMS[i].id === id) return FAMILIAR_FORMS[i];
+  return null;
 }
 
 const SAVES_DATA = [
@@ -1598,8 +1624,8 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.23.0";
-const APP_VERSION_DATE = "2026-05-28";
+const APP_VERSION = "3.24.0";
+const APP_VERSION_DATE = "2026-05-29";
 
 // ============================================================
 // ВНЕШНИЕ ССЫЛКИ (TG-канал, донаты, Boosty)
@@ -1892,9 +1918,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
+    version: "3.24.0",
+    date: "29 мая 2026",
+    badge: "new",
+    changes: [
+      { type: "feat", text: "feat(companions): FEAT-6 фамильяры — слот companions в DEFAULT_CHARACTER, 15 SRD-форм фамильяра с автозаполнением статов, кнопка «Призвать фамильяра» на заклинании «Поиск фамильяра»" }
+    ]
+  },
+  {
     version: "3.23.0",
     date: "28 мая 2026",
-    badge: "new",
+    badge: "old",
     changes: [
       { type: "feat", text: "feat(party): FEAT-4 SRD-бестиарий — 43 монстра SRD 5e (CR 0..10) и 25 NPC-архетипов в новых пикерах «📚 Из SRD» / «📚 Архетипы»" },
       { type: "feat", text: "feat(party): фильтры пикера монстров по CR и редакции (PHB'14 / PHB'24)" },

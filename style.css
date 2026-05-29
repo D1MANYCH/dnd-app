@@ -9205,6 +9205,20 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .spell-ritual-btn:hover { background: rgba(142,107,191,0.28) !important; transform: none !important; }
 
+.spell-summon-btn {
+  background: rgba(155,89,182,0.14) !important;
+  border: 1px solid rgba(155,89,182,0.5) !important;
+  color: #9b59b6 !important;
+  font-size: 0.78em !important;
+  padding: 4px 10px !important;
+  border-radius: var(--r-sm) !important;
+  cursor: pointer;
+  width: auto;
+  margin: 0;
+  transition: all 0.2s;
+}
+.spell-summon-btn:hover { background: rgba(155,89,182,0.3) !important; transform: none !important; }
+
 /* ── Pact magic label in spell slots ── */
 .ssl-pact {
   display: block;
