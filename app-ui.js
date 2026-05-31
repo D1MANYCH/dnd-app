@@ -1538,6 +1538,20 @@ function openASIModal() {
       : "📈 Увеличение характеристик";
   }
 
+  // BUILD-LVL-3: подсказка билда для этого ASI-уровня (использует levelUp[level] — без новых данных).
+  var asiHint = $("asi-build-hint");
+  if (asiHint) {
+    var rec = (typeof getBuildLevelRec === "function") ? getBuildLevelRec(char, asiCurrentLevel) : null;
+    if (rec && rec.headline) {
+      asiHint.innerHTML = '<span class="rec-badge">💡 Совет билда</span> <span class="rec-text">' + escapeHtml(rec.headline) + '</span>' +
+        (rec.why ? ' <span class="rec-why">— ' + escapeHtml(rec.why) + '</span>' : '');
+      asiHint.style.display = "";
+    } else {
+      asiHint.style.display = "none";
+      asiHint.innerHTML = "";
+    }
+  }
+
   buildASIStatGrid(char);
   updateASIPreview();
   modal.classList.add("active");
@@ -1549,6 +1563,8 @@ function closeASIModal() {
   asiSelectedStats = [];
   asiFeatSelected = null;
   asiCurrentLevel = null;
+  // BUILD-LVL-4: обновить чек-лист guided level-up, если он открыт
+  if (typeof luRefreshChoices === "function") luRefreshChoices();
 }
 
 function buildASIStatGrid(char) {
@@ -1960,15 +1976,19 @@ function buildFeatList() {
   if (!currentId) return;
   var char = getCurrentChar();
   var takenFeats = char ? (char.feats || []) : [];
+  // BUILD-LVL-3: id черты, рекомендованной билдом для текущего ASI-уровня.
+  var recFeatId = (typeof getBuildRecFeat === "function" && char) ? getBuildRecFeat(char, asiCurrentLevel) : null;
 
   el.innerHTML = '<div class="feat-search-wrap"><input type="text" class="feat-search-inp" placeholder="🔍 Поиск черты..." oninput="filterFeatList(this.value)"></div>' +
     '<div class="feat-list" id="feat-list-items">' +
     FEATS_DATA.map(function(feat) {
       var taken = takenFeats.some(function(f) { return f.id === feat.id; });
       var selected = asiFeatSelected === feat.id;
-      return '<div class="feat-item' + (selected ? " selected" : "") + (taken ? " taken" : "") + '" onclick="selectFeat(\'' + feat.id + '\')" data-name="' + escapeHtml(feat.name.toLowerCase()) + '">' +
+      var isRec = recFeatId && feat.id === recFeatId;
+      return '<div class="feat-item' + (selected ? " selected" : "") + (taken ? " taken" : "") + (isRec ? " is-rec" : "") + '" onclick="selectFeat(\'' + feat.id + '\')" data-name="' + escapeHtml(feat.name.toLowerCase()) + '">' +
         '<div class="feat-item-header">' +
           '<span class="feat-item-name">' + escapeHtml(feat.name) + '</span>' +
+          (isRec ? '<span class="rec-badge">💡 совет билда</span>' : '') +
           (feat.prereq ? '<span class="feat-prereq">' + escapeHtml(feat.prereq) + '</span>' : '') +
           (taken ? '<span class="feat-taken-badge">Уже взята</span>' : '') +
         '</div>' +

@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v129">
+<link rel="stylesheet" href="style.css?v=v130">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -292,6 +292,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
     <div id="char-build-badge-wrap" class="char-build-badge-wrap" style="display:none">
       <button type="button" id="char-build-badge" class="char-build-badge" onclick="openBuildGuide()" title="Открыть гайд по билду" aria-label="Открыть гайд по билду"></button>
+      <button type="button" class="char-build-plan-btn" onclick="openBuildPlan()" title="План развития 1–20" aria-label="План развития 1–20">📈 План</button>
       <button type="button" class="char-build-unlink" onclick="unlinkBuild()" title="Отвязать билд от персонажа" aria-label="Отвязать билд">✕ Отвязать</button>
     </div>
   </div>
@@ -1580,6 +1581,15 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 
+<!-- BUILD-LVL-4: Экран выборов (guided level-up) -->
+<div id="lu-screen-choices" style="display:none">
+<div class="lu-choices-head">🎯 Сделай выборы нового уровня</div>
+<div id="lu-choices-body" class="lu-choices-body"></div>
+<div class="lu-footer">
+<button class="lu-btn-confirm" style="width:100%" onclick="luFinishChoices()">Продолжить →</button>
+</div>
+</div>
+
 <!-- Экран: Результат -->
 <div id="lu-screen-result" style="display:none">
 <div class="lu-result-icon">🎉</div>
@@ -1606,6 +1616,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="confirm-modal-box asi-modal-box">
 <h4>📈 Увеличение характеристик</h4>
 <p class="asi-desc">Выберите: <strong>+2 к одной</strong> характеристике или <strong>+1 к двум</strong></p>
+<div id="asi-build-hint" class="rec-banner" style="display:none"></div>
 <div class="asi-options">
 <label class="asi-radio-row">
 <input type="radio" name="asi-mode" value="plus2" checked onchange="updateASIPreview()">
@@ -2187,42 +2198,57 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
     <div id="bg-body" class="bg-body"></div>
     <div class="bg-footer">
+      <button class="btn" onclick="openBuildPlan(window.__guideBuildId)">📈 План 1–20</button>
       <button class="btn" onclick="closeModal('build-guide-modal')">Понятно</button>
     </div>
   </div>
 </div>
 
-<script src="bg-orbits.js?v=v129"></script>
-<script src="dice-arena-bg.js?v=v129"></script>
-<script src="data.js?v=v129"></script>
-<script src="build-notes-data.js?v=v129"></script>
-<script src="character-builds.js?v=v129"></script>
-<script src="spells.js?v=v129"></script>
-<script src="app-core.js?v=v129"></script>
-<script src="app-combat.js?v=v129"></script>
-<script src="app-hp.js?v=v129"></script>
-<script src="app-spells.js?v=v129"></script>
-<script src="app-inventory.js?v=v129"></script>
+<!-- BUILD-LVL-2: модалка плана развития 1–20 (подсветка текущего уровня) -->
+<div id="build-plan-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="bp-plan-title-h">
+  <div class="modal-content bg-modal">
+    <div class="bg-header">
+      <span class="bg-title" id="bp-plan-title-h">📈 План развития</span>
+      <button type="button" class="modal-close" onclick="closeModal('build-plan-modal')" aria-label="Закрыть">&times;</button>
+    </div>
+    <div id="bp-plan-body" class="bg-body bp-plan-body"></div>
+    <div class="bg-footer">
+      <button class="btn" onclick="closeModal('build-plan-modal')">Понятно</button>
+    </div>
+  </div>
+</div>
+
+<script src="bg-orbits.js?v=v130"></script>
+<script src="dice-arena-bg.js?v=v130"></script>
+<script src="data.js?v=v130"></script>
+<script src="build-notes-data.js?v=v130"></script>
+<script src="character-builds.js?v=v130"></script>
+<script src="spells.js?v=v130"></script>
+<script src="app-core.js?v=v130"></script>
+<script src="app-combat.js?v=v130"></script>
+<script src="app-hp.js?v=v130"></script>
+<script src="app-spells.js?v=v130"></script>
+<script src="app-inventory.js?v=v130"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC (подключаются до app-party.js) -->
-<script src="monsters-srd.js?v=v129"></script>
-<script src="npc-srd.js?v=v129"></script>
-<script src="app-party.js?v=v129"></script>
-<script src="class-choices.js?v=v129"></script>
-<script src="subclass-choices-data.js?v=v129"></script>
+<script src="monsters-srd.js?v=v130"></script>
+<script src="npc-srd.js?v=v130"></script>
+<script src="app-party.js?v=v130"></script>
+<script src="class-choices.js?v=v130"></script>
+<script src="subclass-choices-data.js?v=v130"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v129";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v130";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v129"></script>
-<script src="app-notes.js?v=v129"></script>
-<script src="app-desktop.js?v=v129"></script>
-<script src="history-stack.js?v=v129"></script>
+<script src="app-ui.js?v=v130"></script>
+<script src="app-notes.js?v=v130"></script>
+<script src="app-desktop.js?v=v130"></script>
+<script src="history-stack.js?v=v130"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы) -->
-<script src="vendor/jspdf/jspdf.umd.min.js?v=v129"></script>
-<script src="vendor/jspdf/roboto-base64.js?v=v129"></script>
-<script src="app-pdf.js?v=v129"></script>
+<script src="vendor/jspdf/jspdf.umd.min.js?v=v130"></script>
+<script src="vendor/jspdf/roboto-base64.js?v=v130"></script>
+<script src="app-pdf.js?v=v130"></script>
 
 <!-- ══ Модалка записи (N4) ══════════════════════════════════════ -->
 <div id="notes-entry-modal" class="notes-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="nem-heading" onclick="if(event.target===this)notesCloseEntryModal()">

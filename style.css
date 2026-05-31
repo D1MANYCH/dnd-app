@@ -28,6 +28,9 @@
 --accent-lo: #c79941;
 --accent-soft: rgba(224, 179, 88, 0.13);
 --accent-glow-token: rgba(224, 179, 88, 0.30);
+/* BUILD-LVL-3: фиксированный цвет рекомендаций билда (не зависит от темы класса) */
+--rec: #7b68ee;
+--rec-bg: rgba(123, 104, 238, 0.14);
 --overlay: rgba(0, 0, 0, 0.85);
 --danger: #e07566;
 --success: #6cba83;
@@ -10731,6 +10734,58 @@ mark.notes-hl {
 .bg-list.bg-tips .bg-mark { color:var(--accent); }
 .bg-list.bg-levels li { margin-left: 4px; }
 .bg-list.bg-levels .bg-why { color:var(--text-muted); font-size:0.92em; }
+
+/* BUILD-LVL-2: кнопка «План» у бейджа билда + модалка плана развития 1–20 */
+.char-build-plan-btn {
+  font-size: 0.78em; padding: 3px 9px; border-radius: 999px;
+  border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+  cursor: pointer; white-space: nowrap; line-height: 1.4; transition: color .12s, border-color .12s;
+}
+.char-build-plan-btn:hover { border-color: var(--accent); color: var(--accent); }
+.bp-plan-body { display: flex; flex-direction: column; gap: 4px; }
+.bp-plan-meta { font-size: 0.85em; color: var(--text-muted); margin-bottom: 8px; }
+.bp-plan-row { display: flex; gap: 10px; align-items: flex-start; padding: 7px 8px; border-radius: 8px; border: 1px solid transparent; }
+.bp-plan-lv {
+  flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--border); color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px;
+}
+.bp-plan-head { font-weight: 600; font-size: 0.95em; line-height: 1.35; }
+.bp-plan-why { color: var(--text-muted); font-size: 0.88em; margin-top: 2px; line-height: 1.4; }
+.bp-plan-row.past { opacity: 0.5; }
+.bp-plan-row.current { border-color: var(--accent); background: var(--surface-modal, rgba(255,255,255,0.05)); }
+.bp-plan-row.current .bp-plan-lv { background: var(--accent); color: #fff; }
+.bp-plan-row.next { border-color: var(--border); border-style: dashed; }
+.bp-plan-tag { display: inline-block; margin-left: 8px; font-size: 0.7em; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); vertical-align: middle; }
+.bp-plan-tag.next { color: var(--text-muted); }
+.lu-build-hint-next { font-size: 12px; opacity: 0.82; margin-top: 5px; }
+.lu-build-hint-plan { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--accent); cursor: pointer; text-decoration: underline; background: none; border: none; padding: 0; }
+
+/* BUILD-LVL-3: единый язык «рекомендация билда» (фиолетовый --rec) — баннеры, бейджи, подсветка опций */
+.rec-banner { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; margin: 8px 0 10px; padding: 8px 10px; border-radius: 8px; background: var(--rec-bg); border: 1px solid var(--rec); font-size: 0.86em; line-height: 1.4; }
+.rec-banner .rec-text { font-weight: 700; color: var(--rec); }
+.rec-banner .rec-why { color: var(--text-muted); }
+.rec-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: #fff; background: var(--rec); border-radius: 999px; padding: 1px 7px; white-space: nowrap; }
+.is-rec { border-color: var(--rec) !important; box-shadow: 0 0 0 1.5px var(--rec); }
+
+/* BUILD-LVL-4: экран guided level-up (выборы сразу после повышения) */
+.lu-choices-head { font-size: 1.05em; font-weight: 700; margin: 4px 0 10px; }
+.lu-choices-body { display: flex; flex-direction: column; gap: 10px; max-height: 56vh; overflow-y: auto; }
+.lu-choice-block { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: rgba(255,255,255,0.03); }
+.lu-choice-block.done { opacity: 0.7; }
+.lu-choice-title { font-weight: 700; font-size: 0.95em; margin-bottom: 6px; }
+.lu-choice-sub { font-size: 0.85em; color: var(--text-muted); margin-bottom: 8px; }
+.lu-choice-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.lu-choice-opt { display: inline-flex; align-items: center; gap: 4px; font-size: 0.86em; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; }
+.lu-choice-opt:hover { border-color: var(--accent); }
+.lu-choice-opt.is-rec { border-color: var(--rec); box-shadow: 0 0 0 1.5px var(--rec); }
+.lu-choice-launch { font-size: 0.86em; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--rec); background: var(--rec-bg); color: var(--rec); font-weight: 600; cursor: pointer; }
+.lu-choice-launch:hover { background: var(--rec); color: #fff; }
+.lu-apply-all-btn { width: 100%; padding: 11px; margin-bottom: 12px; border-radius: 10px; border: none; background: var(--rec); color: #fff; font-weight: 700; font-size: 0.95em; cursor: pointer; box-shadow: 0 2px 8px rgba(123,104,238,0.35); }
+.lu-apply-all-btn:hover { filter: brightness(1.08); }
+/* Пикеры, запускаемые с экрана выборов, должны лежать выше модалки повышения (z 1000) */
+#class-choice-modal.modal, #spell-search-modal.modal { z-index: 10001; }
 .bg-footer { padding: 10px 16px; border-top: 1px solid var(--border, rgba(255,255,255,0.08)); display:flex; justify-content:flex-end; }
 .char-build-unlink { background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:var(--r-sm,8px); padding:3px 8px; font-size:0.78em; cursor:pointer; transition:color .12s, border-color .12s; }
 .char-build-unlink:hover { color:#e74c3c; border-color:#e74c3c; }

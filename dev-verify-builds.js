@@ -196,7 +196,149 @@
     return { summary: summary, failTable: failTable, errors: withErr, fullResults: results };
   }
 
+  // ════════════════════════════════════════════════════════════════════════
+  // BUILD-LVL-1: верификатор данных levelUp (план развития 1–20).
+  // Проверяет, что b.levelUp согласован с PHB-механикой и данными CLASS_FEATURES.
+  //   verifyLevelUpData("fighter-champion-gwm") — одиночный билд
+  //   verifyAllLevelUpData()                    — таблица всех 36
+  // ════════════════════════════════════════════════════════════════════════
+
+  // PHB-2014 уровни ASI/черт (fallback, если CLASS_FEATURES недоступен).
+  var ASI_LEVELS_PHB = {
+    "Воин": [4,6,8,12,14,16,19], "Плут": [4,8,10,12,16,19],
+    "Варвар":[4,8,12,16,19], "Бард":[4,8,12,16,19], "Жрец":[4,8,12,16,19],
+    "Друид":[4,8,12,16,19], "Монах":[4,8,12,16,19], "Паладин":[4,8,12,16,19],
+    "Следопыт":[4,8,12,16,19], "Чародей":[4,8,12,16,19], "Колдун":[4,8,12,16,19],
+    "Волшебник":[4,8,12,16,19]
+  };
+  // PHB-2014 уровень открытия подкласса (fallback).
+  var SUBCLASS_LEVEL_PHB = {
+    "Жрец":1, "Колдун":1, "Чародей":1, "Волшебник":2, "Друид":2,
+    "Варвар":3, "Бард":3, "Воин":3, "Монах":3, "Паладин":3, "Следопыт":3, "Плут":3
+  };
+
+  // ASI-уровни по PHB — авторитет для проверки билдов (билды следуют PHB).
+  function _asiLevelsPHB(className) { return (ASI_LEVELS_PHB[className] || []).slice(); }
+  // ASI-уровни как закодированы в CLASS_FEATURES (фича "Увеличение характеристик") —
+  // для отдельной проверки целостности данных класса. null, если CLASS_FEATURES недоступен.
+  function _asiLevelsCF(className) {
+    if (typeof CLASS_FEATURES === "undefined" || !CLASS_FEATURES[className]) return null;
+    var lv = [];
+    Object.keys(CLASS_FEATURES[className]).forEach(function(k){
+      var arr = CLASS_FEATURES[className][k] || [];
+      if (arr.some(function(f){ return f && f.name === "Увеличение характеристик"; })) lv.push(parseInt(k,10));
+    });
+    return lv.sort(function(a,b){ return a-b; });
+  }
+
+  // Уровень открытия подкласса: предпочитаем min-ключ SUBCLASS_FEATURES[subclass], иначе PHB по классу.
+  function _subclassOpenLevel(className, subclass) {
+    if (subclass && typeof SUBCLASS_FEATURES !== "undefined" && SUBCLASS_FEATURES[subclass]) {
+      var ks = Object.keys(SUBCLASS_FEATURES[subclass]).map(function(k){ return parseInt(k,10); }).filter(function(n){ return n>0; });
+      if (ks.length) return Math.min.apply(null, ks);
+    }
+    return SUBCLASS_LEVEL_PHB[className] || null;
+  }
+
+  function verifyLevelUpData(buildId) {
+    var b = window.getBuildById && window.getBuildById(buildId);
+    if (!b) return { buildId: buildId, error: "build not found" };
+    var lu = b.levelUp || {};
+    var checks = [];
+
+    // 1. Полнота 1..20 + непустые headline.
+    var missing = [];
+    for (var lv = 1; lv <= 20; lv++) {
+      var step = lu[lv];
+      if (!step || !step.headline || !String(step.headline).trim()) missing.push(lv);
+    }
+    checks.push(_check("levelUp 1..20 complete", missing.length === 0,
+      missing.length ? "missing/empty: " + missing.join(",") : "all 20", "all 20 present"));
+
+    // 2. Поле why присутствует на всех уровнях.
+    var noWhy = [];
+    for (var lw = 1; lw <= 20; lw++) { var sw = lu[lw]; if (sw && (!sw.why || !String(sw.why).trim())) noWhy.push(lw); }
+    checks.push(_check("levelUp 'why' present", noWhy.length === 0,
+      noWhy.length ? "no why @ " + noWhy.join(",") : "all have why", "all have why"));
+
+    // 3. ASI: на уровнях ASI класса (PHB) headline должен упоминать ASI/характеристики/черту.
+    var asiLevels = _asiLevelsPHB(b.className);
+    var asiRe = /ASI|характеристик|\bчерт/i;
+    var asiMiss = [];
+    asiLevels.forEach(function(lv){
+      var h = (lu[lv] && lu[lv].headline) || "";
+      if (!asiRe.test(h)) asiMiss.push(lv);
+    });
+    checks.push(_check("ASI text @ ASI-уровнях", asiMiss.length === 0,
+      asiMiss.length ? "нет ASI-текста @ " + asiMiss.join(",") + " (ASI-уровни: " + asiLevels.join(",") + ")" : asiLevels.join(","),
+      "ASI @ " + asiLevels.join(",")));
+
+    // 4. Подкласс: упоминается на уровне открытия.
+    if (b.subclass) {
+      // 4a. имя подкласса существует в SUBCLASS_FEATURES (ловит опечатки/несовпадения).
+      if (typeof SUBCLASS_FEATURES !== "undefined") {
+        var hasKey = !!SUBCLASS_FEATURES[b.subclass];
+        checks.push(_check("subclass в SUBCLASS_FEATURES", hasKey, hasKey ? b.subclass : "(нет ключа) " + b.subclass, "ключ есть"));
+      }
+      var openLv = _subclassOpenLevel(b.className, b.subclass);
+      if (openLv) {
+        var hh = (lu[openLv] && lu[openLv].headline) || "";
+        var hLow = hh.toLowerCase();
+        var subWords = b.subclass.toLowerCase().replace(/[()]/g," ").split(/\s+/).filter(function(w){ return w.length > 3; });
+        var _stem = function(w){ return w.length > 5 ? w.slice(0, w.length - 2) : w; }; // грубый стем под рус. склонения
+        var SUB_SIGNAL = /подкласс|архетип|покровит|происхожд|традиц|домен|коллег|клятв|круг|школ|\bпуть|договор|пакт|исчади|архифе|\bфея|древн|драконь|дикой магии|штормов|божествен|теневой|зилот/i;
+        var subOk = SUB_SIGNAL.test(hh) || subWords.some(function(w){ return hLow.indexOf(_stem(w)) >= 0; });
+        checks.push(_check("выбор подкласса @ " + openLv + " ур.", subOk,
+          (hh.slice(0,55) || "(пусто)"), "упоминание подкласса @ " + openLv));
+      }
+    }
+
+    var failed = checks.filter(function(c){ return !c.ok; });
+    return {
+      buildId: buildId, title: b.title, className: b.className, subclass: b.subclass || "—",
+      passed: checks.length - failed.length, total: checks.length, failed: failed
+    };
+  }
+
+  function verifyAllLevelUpData() {
+    var ids = (window.CHARACTER_BUILDS || []).map(function(b){ return b.id; });
+    var results = ids.map(verifyLevelUpData);
+    var ok = results.filter(function(r){ return !r.error && (r.failed||[]).length === 0; });
+    var withErr = results.filter(function(r){ return !!r.error; });
+    var withFail = results.filter(function(r){ return !r.error && (r.failed||[]).length > 0; });
+    var failTable = withFail.map(function(r){
+      return {
+        id: r.buildId, cls: r.className, sub: r.subclass, score: r.passed + "/" + r.total,
+        fails: r.failed.map(function(f){ return f.field + ": " + JSON.stringify(f.value) + " ≠ " + JSON.stringify(f.expected); })
+      };
+    });
+    return {
+      summary: { total: results.length, fullPass: ok.length, withFailures: withFail.length, withErrors: withErr.length },
+      failTable: failTable, classFeaturesASI: verifyClassFeaturesIntegrity(), errors: withErr, fullResults: results
+    };
+  }
+
+  // Целостность самих данных CLASS_FEATURES: ASI-уровни (фича "Увеличение характеристик")
+  // должны совпадать с таблицей PHB. Ловит, напр., лишний _FEAT() у Монаха на 10 ур.
+  function verifyClassFeaturesIntegrity() {
+    var out = [];
+    Object.keys(ASI_LEVELS_PHB).forEach(function(cls){
+      var cf = _asiLevelsCF(cls);
+      if (!cf) return;
+      var phb = _asiLevelsPHB(cls);
+      var extra = cf.filter(function(l){ return phb.indexOf(l) < 0; });
+      var miss  = phb.filter(function(l){ return cf.indexOf(l) < 0; });
+      if (extra.length || miss.length) {
+        out.push({ cls: cls, cfASI: cf.join(","), phbASI: phb.join(","), extraASI: extra, missingASI: miss });
+      }
+    });
+    return out;
+  }
+
   window.verifyBuild = verifyBuild;
   window.verifyAllBuilds = verifyAllBuilds;
-  console.log("[dev-verify-builds] loaded. Try: verifyAllBuilds() or verifyBuild('wizard-evoker')");
+  window.verifyLevelUpData = verifyLevelUpData;
+  window.verifyAllLevelUpData = verifyAllLevelUpData;
+  window.verifyClassFeaturesIntegrity = verifyClassFeaturesIntegrity;
+  console.log("[dev-verify-builds] loaded. Try: verifyAllBuilds() (1 ур.) или verifyAllLevelUpData() (план 1–20)");
 })();

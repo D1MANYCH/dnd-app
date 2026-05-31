@@ -193,6 +193,8 @@ function markCharOwnClassFilter() {
 function closeSpellSearch() {
 const modal = $("spell-search-modal");
 if (modal) modal.classList.remove("active");
+// BUILD-LVL-4: обновить чек-лист guided level-up, если он открыт
+if (typeof luRefreshChoices === "function") luRefreshChoices();
 }
 function openAddSpellForm() {
 const modal = $("add-spell-modal");

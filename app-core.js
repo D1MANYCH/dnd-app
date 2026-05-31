@@ -1433,6 +1433,16 @@ function applyBuild(buildId) {
     createdAt: Date.now(),
     updatedAt: Date.now()
   });
+  // BUILD-LVL-3: авто-применить рекомендованные выборы 1-го уровня (напр. стиль боя воина).
+  if (b.recommendedChoices && typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[b.className]) {
+    newChar.classChoices = newChar.classChoices || {};
+    newChar.classChoices[b.className] = newChar.classChoices[b.className] || {};
+    CLASS_CHOICES[b.className].forEach(function(cc){
+      if (cc.type === "single" && cc.minLevel <= 1 && b.recommendedChoices[cc.id]) {
+        newChar.classChoices[b.className][cc.id] = b.recommendedChoices[cc.id];
+      }
+    });
+  }
   newChar.updatedAt = Date.now();
   characters.push(newChar);
   saveToLocal();
@@ -1457,6 +1467,7 @@ function openBuildGuide(buildId) {
     if (typeof showToast === "function") showToast("У этого билда нет гайда", "warn");
     return;
   }
+  window.__guideBuildId = b.id; // BUILD-LVL-2: чтобы кнопка «План 1–20» в футере открыла тот же билд
   var g = b.guide;
   var titleEl = document.getElementById("bg-title-h");
   var bodyEl = document.getElementById("bg-body");
@@ -1488,6 +1499,101 @@ function openBuildGuide(buildId) {
   }
   if (bodyEl) bodyEl.innerHTML = html;
   openModal("build-guide-modal");
+}
+
+// BUILD-LVL-3: рекомендации билда в точках выбора (для баннеров/подсветки).
+// getBuildLevelRec — шаг плана на уровне; getBuildRecChoiceOption — рекоменд. опция классового выбора;
+// getBuildRecFeat — id рекомендованной черты на ASI-уровне.
+function getBuildLevelRec(char, level) {
+  if (!char || !char.buildId || !level) return null;
+  var b = window.getBuildById && window.getBuildById(char.buildId);
+  return (b && b.levelUp && b.levelUp[level]) ? b.levelUp[level] : null;
+}
+function getBuildRecChoiceOption(char, choiceId) {
+  if (!char || !char.buildId || !choiceId) return null;
+  var b = window.getBuildById && window.getBuildById(char.buildId);
+  return (b && b.recommendedChoices && b.recommendedChoices[choiceId]) || null;
+}
+function getBuildRecFeat(char, level) {
+  var rec = getBuildLevelRec(char, level);
+  return (rec && rec.feat) || null;
+}
+
+// BUILD-LVL-4: общий резолвер имён заклинаний (PHB-имя билда → объект SPELL_DATABASE).
+// Те же алиасы, что и в applyBuild — для авто-применения рекомендованных заклинаний при level-up.
+window.resolveSpellByName = (function(){
+  var ALIASES = {
+    "огненный снаряд": "огненный болт", "луч холода": "луч мороза", "указание": "руководство",
+    "сонливость": "сон", "рука мага": "волшебная рука", "священное пламя": "священный огонь",
+    "удар грома": "громовая волна", "стрелы грома": "громовая кара", "дубинка": "дубина",
+    "выработка": "друидический знак", "смех таши": "жуткий смех таши", "дружба": "дружелюбие",
+    "насмешка": "злобная насмешка", "защита от добра и зла": "защита от зла и добра",
+    "охотничья метка": "метка охотника", "снаряд-громовержец": "громовая волна",
+    "шиллела": "дубина", "ложная жизнь": "мнимая жизнь"
+  };
+  return function(n){
+    if (!n) return null;
+    if (typeof n === "object") return n;
+    if (typeof SPELL_DATABASE === "undefined" || !Array.isArray(SPELL_DATABASE)) return null;
+    var key = String(n).toLowerCase().trim();
+    var alt = key.replace(/ё/g, "е").replace(/\s*\([^)]*\)\s*$/, "").trim();
+    var aliased = ALIASES[key] || ALIASES[alt];
+    for (var i = 0; i < SPELL_DATABASE.length; i++) {
+      var sp = SPELL_DATABASE[i];
+      if (!sp || !sp.name) continue;
+      var nm = sp.name.toLowerCase().trim();
+      if (nm === key || nm === alt || (aliased && nm === aliased)) return sp;
+    }
+    return null;
+  };
+})();
+
+// BUILD-LVL-2: модалка плана развития 1–20 с подсветкой текущего уровня.
+// openBuildPlan() — для текущего персонажа; openBuildPlan(buildId) — по id билда.
+function openBuildPlan(buildId) {
+  var ch = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  var b = null;
+  if (buildId) b = window.getBuildById && window.getBuildById(buildId);
+  else if (ch && ch.buildId) b = window.getBuildById && window.getBuildById(ch.buildId);
+  if (!b || !b.levelUp) {
+    if (typeof showToast === "function") showToast("У этого билда нет плана развития", "warn");
+    return;
+  }
+  // Текущий уровень подсвечиваем только если план открыт для билда текущего персонажа.
+  var curLevel = (ch && ch.buildId === b.id) ? (ch.level || 1) : 0;
+  var titleEl = document.getElementById("bp-plan-title-h");
+  if (titleEl) titleEl.textContent = "📈 План развития: " + (b.title || b.className || "");
+  var rows = [];
+  for (var lv = 1; lv <= 20; lv++) {
+    var s = b.levelUp[lv];
+    if (!s || !s.headline) continue;
+    var cls = "bp-plan-row", tag = "";
+    if (curLevel) {
+      if (lv === curLevel) { cls += " current"; tag = '<span class="bp-plan-tag">ты здесь</span>'; }
+      else if (lv === curLevel + 1) { cls += " next"; tag = '<span class="bp-plan-tag next">дальше</span>'; }
+      else if (lv < curLevel) { cls += " past"; }
+    }
+    rows.push('<div class="' + cls + '"><div class="bp-plan-lv">' + lv + '</div><div class="bp-plan-txt">' +
+      '<div class="bp-plan-head">' + escapeHtml(s.headline) + tag + '</div>' +
+      (s.why ? '<div class="bp-plan-why">' + escapeHtml(s.why) + '</div>' : '') +
+      '</div></div>');
+  }
+  var bodyEl = document.getElementById("bp-plan-body");
+  if (bodyEl) {
+    bodyEl.innerHTML =
+      '<div class="bp-plan-meta">' + escapeHtml(b.className || "") +
+      (b.subclass ? ' · ' + escapeHtml(b.subclass) : '') +
+      (b.role ? ' · ' + escapeHtml(b.role) : '') +
+      (curLevel ? ' · текущий уровень: ' + curLevel : '') + '</div>' +
+      rows.join("");
+  }
+  openModal("build-plan-modal");
+  if (curLevel && bodyEl) {
+    setTimeout(function(){
+      var el = bodyEl.querySelector(".bp-plan-row.current");
+      if (el && el.scrollIntoView) el.scrollIntoView({ block: "center" });
+    }, 60);
+  }
 }
 
 function createNewCharacter() {

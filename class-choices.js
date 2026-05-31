@@ -385,6 +385,10 @@ function renderClassChoices(char, container) {
       statusClass = "cc-card cc-pending";
       var have = (c.type === "single") ? (it.current ? 1 : 0) : (Array.isArray(it.current) ? it.current.length : 0);
       summary = '<span class="cc-hint">' + escapeHtml(c.desc || "") + "</span>";
+      // BUILD-LVL-3: показать рекомендацию билда прямо на невыбранной карточке.
+      var recId = (typeof getBuildRecChoiceOption === "function") ? getBuildRecChoiceOption(char, c.id) : null;
+      var recNm = (recId && c.optionsDict && c.optionsDict[recId]) ? c.optionsDict[recId].name : null;
+      if (recNm) summary += ' <span class="rec-badge">💡 ' + escapeHtml(recNm) + '</span>';
       statusBadge = '<span class="cc-badge cc-badge-todo">' + have + "/" + it.count + "</span>";
     }
     var classLabel = (!useAccordion && ccGetActiveClasses(char).length > 1)
@@ -459,6 +463,8 @@ function closeClassChoiceModal() {
   ccModalState.className = null;
   ccModalState.choiceId = null;
   ccModalState.selection = null;
+  // BUILD-LVL-4: обновить чек-лист guided level-up, если он открыт
+  if (typeof luRefreshChoices === "function") luRefreshChoices();
 }
 
 function buildClassChoiceModal(char, choice, className, classLevel) {
@@ -499,6 +505,18 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
     optionIds = (typeof skills !== "undefined" ? skills.map(function(s) { return s.name; }) : []);
   }
 
+  // BUILD-LVL-3: рекомендация билда — баннер сверху + подсветка опции.
+  var recOptId = (typeof getBuildRecChoiceOption === "function") ? getBuildRecChoiceOption(char, choice.id) : null;
+  var levelRec = (typeof getBuildLevelRec === "function") ? getBuildLevelRec(char, choice.minLevel) : null;
+  var recBannerHtml = "";
+  if (recOptId || (levelRec && levelRec.headline)) {
+    var recName = (recOptId && choice.optionsDict && choice.optionsDict[recOptId]) ? choice.optionsDict[recOptId].name : null;
+    recBannerHtml = '<div class="rec-banner"><span class="rec-badge">💡 Совет билда</span> ' +
+      (recName ? '<b class="rec-text">' + escapeHtml(recName) + '</b> ' : '') +
+      (levelRec && (levelRec.why || levelRec.headline) ? '<span class="rec-why">' + escapeHtml(levelRec.why || levelRec.headline) + '</span>' : '') +
+      '</div>';
+  }
+
   var bodyHtml = '<div class="cc-options-list">';
   optionIds.forEach(function(id) {
     var opt;
@@ -513,6 +531,7 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
     } else {
       selected = (ccModalState.selection || []).indexOf(id) !== -1;
     }
+    var isRec = (id === recOptId);
     var reqText = "";
     if (opt.req) {
       var bits = [];
@@ -521,13 +540,13 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
       if (bits.length) reqText = '<span class="cc-opt-req">' + bits.join(" · ") + "</span>";
     }
     bodyHtml +=
-      '<div class="cc-opt' + (selected ? " selected" : "") + '" onclick="ccToggleOption(\'' + id.replace(/'/g,"\\'") + '\')">' +
-        '<div class="cc-opt-head"><span class="cc-opt-name">' + escapeHtml(opt.name) + '</span>' + reqText + '</div>' +
+      '<div class="cc-opt' + (selected ? " selected" : "") + (isRec ? " is-rec" : "") + '" onclick="ccToggleOption(\'' + id.replace(/'/g,"\\'") + '\')">' +
+        '<div class="cc-opt-head"><span class="cc-opt-name">' + escapeHtml(opt.name) + '</span>' + (isRec ? ' <span class="rec-badge">💡 совет</span>' : '') + reqText + '</div>' +
         (opt.desc ? '<div class="cc-opt-desc">' + escapeHtml(opt.desc) + '</div>' : "") +
       '</div>';
   });
   bodyHtml += '</div>';
-  bodyEl.innerHTML = bodyHtml;
+  bodyEl.innerHTML = recBannerHtml + bodyHtml;
 
   if (counterEl) {
     if (choice.type === "single") {

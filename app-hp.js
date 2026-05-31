@@ -182,6 +182,7 @@ showRestResult(resultTitle, resultDetails);
 }
 // ── Мультикласс: переменная для выбранного класса при level-up ──
 var _luMulticlassChoice = null; // {class, subclass, hitDie, isNew}
+var _luChoicesCtx = null; // BUILD-LVL-4: контекст guided level-up (для экрана результата после выборов)
 
 function openLevelUpModal() {
 if (!currentId) { showToast("Сначала выберите персонажа!", "warn"); return; }
@@ -407,7 +408,16 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
       var build = window.getBuildById ? window.getBuildById(char.buildId) : null;
       if (buildRec) {
         var buildTitle = build ? build.title : "";
-        hintEl.innerHTML = "<div class='lu-build-hint-label'>💡 Рекомендация билда" + (buildTitle ? " «" + escapeHtml(buildTitle) + "»" : "") + "</div><div class='lu-build-hint-headline'>" + escapeHtml(buildRec.headline) + "</div><div class='lu-build-hint-why'>" + escapeHtml(buildRec.why) + "</div>";
+        // BUILD-LVL-2: следующий шаг (newTotalLevel+1) + ссылка на полный план 1–20.
+        var nextRec = window.getBuildRecommendationForLevel(char.buildId, newTotalLevel + 1);
+        var nextHtml = (nextRec && nextRec.headline)
+          ? "<div class='lu-build-hint-next'>↪ Дальше (" + (newTotalLevel + 1) + " ур.): " + escapeHtml(nextRec.headline) + "</div>"
+          : "";
+        hintEl.innerHTML = "<div class='lu-build-hint-label'>💡 Рекомендация билда" + (buildTitle ? " «" + escapeHtml(buildTitle) + "»" : "") + "</div>" +
+          "<div class='lu-build-hint-headline'>" + escapeHtml(buildRec.headline) + "</div>" +
+          "<div class='lu-build-hint-why'>" + escapeHtml(buildRec.why) + "</div>" +
+          nextHtml +
+          "<button type='button' class='lu-build-hint-plan' onclick=\"openBuildPlan('" + char.buildId + "')\">📈 весь план 1–20</button>";
         hintEl.style.display = "";
       } else {
         hintEl.style.display = "none";
@@ -592,12 +602,7 @@ loadCharacter(currentId);
 updateClassFeatures();
 renderClassResources();
 renderSpellSlots();
-$("lu-screen-preview").style.display = "none";
-$("lu-screen-multiclass").style.display = "none";
-$("lu-screen-result").style.display = "";
-
 var classLabel = isMulticlass(char) ? getClassLabel(char) : className;
-$("lu-result-title").textContent = classLabel + " · Уровень " + newTotalLevel + "!";
 addJournalEntry("levelup", "Достигнут " + newTotalLevel + " уровень! (" + classLabel + ")", "ХП: " + oldMaxHP + " → " + newMaxHP + " · Бонус мастерства: +" + newProf);
 renderJournal();
 
@@ -614,12 +619,333 @@ if (subclassName && typeof SUBCLASS_FEATURES !== "undefined" && SUBCLASS_FEATURE
 }
 if (isNewClass) resultLines.push("🆕 Новый класс: " + className);
 
-$("lu-result-body").innerHTML = resultLines.map(function(l) {
-  return "<div class=\"lu-result-line\">" + l + "</div>";
-}).join("");
-
+// BUILD-LVL-4: сохраняем контекст и решаем — показать экран выборов или сразу результат.
+_luChoicesCtx = {
+  newTotalLevel: newTotalLevel, className: className, classLevel: classLevel,
+  subclassName: subclassName, isNewClass: isNewClass, resultLines: resultLines,
+  resultTitle: classLabel + " · Уровень " + newTotalLevel + "!"
+};
 _luMulticlassChoice = null;
 updateLevelDownVisibility();
+
+$("lu-screen-multiclass").style.display = "none";
+$("lu-screen-preview").style.display = "none";
+var _luHasChoices = luBuildChoicesScreen();
+if (_luHasChoices) {
+  $("lu-screen-choices").style.display = "";
+  $("lu-screen-result").style.display = "none";
+} else {
+  _luShowResult();
+}
+}
+
+// BUILD-LVL-4: финальный экран результата повышения (из _luChoicesCtx).
+function _luShowResult() {
+  var ctx = _luChoicesCtx || { resultLines: [], resultTitle: "Уровень повышен!" };
+  var lines = (ctx.resultLines || []).slice();
+  // BUILD-LVL-4: подкласс мог быть выбран во время guided-шага → добавить его фичи в итог.
+  var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  if (char && char.subclass && !ctx.subclassName && ctx.classLevel &&
+      typeof SUBCLASS_FEATURES !== "undefined" && SUBCLASS_FEATURES[char.subclass] &&
+      SUBCLASS_FEATURES[char.subclass][ctx.classLevel]) {
+    var sn = SUBCLASS_FEATURES[char.subclass][ctx.classLevel].map(function(f){ return f.name; });
+    lines.push("🔮 " + char.subclass + ": " + sn.join(", "));
+  }
+  $("lu-screen-choices").style.display = "none";
+  $("lu-screen-multiclass").style.display = "none";
+  $("lu-screen-preview").style.display = "none";
+  $("lu-screen-result").style.display = "";
+  if ($("lu-result-title")) $("lu-result-title").textContent = ctx.resultTitle;
+  if ($("lu-result-body")) {
+    $("lu-result-body").innerHTML = lines.map(function(l) {
+      return "<div class=\"lu-result-line\">" + l + "</div>";
+    }).join("");
+  }
+}
+
+// BUILD-LVL-4: завершить экран выборов → показать результат.
+function luFinishChoices() {
+  var char = getCurrentChar();
+  if (char) { saveToLocal(); loadCharacter(currentId); if (typeof updateClassFeatures === "function") updateClassFeatures(); }
+  _luShowResult();
+}
+
+// BUILD-LVL-4: перерисовать экран выборов (вызывается из под-пикеров после применения).
+function luRefreshChoices() {
+  var screen = $("lu-screen-choices");
+  if (!screen || screen.style.display === "none") return;
+  luBuildChoicesScreen();
+}
+
+// BUILD-LVL-4: инлайн-установка подкласса с экрана выборов.
+function luSetSubclass(name) {
+  var char = getCurrentChar();
+  if (!char || !_luChoicesCtx) return;
+  char.subclass = name;
+  if (Array.isArray(char.classes) && char.classes.length) {
+    var idx = 0;
+    for (var i = 0; i < char.classes.length; i++) { if (char.classes[i].class === _luChoicesCtx.className) { idx = i; break; } }
+    char.classes[idx].subclass = name;
+  }
+  saveToLocal();
+  loadCharacter(currentId);
+  if (typeof updateClassFeatures === "function") updateClassFeatures();
+  if (typeof showToast === "function") showToast("Подкласс: " + name, "success");
+  luBuildChoicesScreen();
+}
+
+// BUILD-LVL-4: применить черту по id (эффекты + запись), без модалки. Возвращает имя или null.
+function luApplyFeatById(char, featId, level) {
+  if (typeof FEATS_DATA === "undefined") return null;
+  var feat = FEATS_DATA.find(function(f){ return f.id === featId; });
+  if (!feat) return null;
+  if (!char.feats) char.feats = [];
+  if (char.feats.some(function(f){ return f.id === featId; })) return null; // уже взята
+  (feat.effects || []).forEach(function(eff){
+    if (eff.type === "stat") {
+      char.stats[eff.key] = Math.min(20, (char.stats[eff.key] || 10) + eff.value);
+    } else if (eff.type === "stat_choice" || eff.type === "stat_choice_save") {
+      var picked = eff.keys.find(function(k){ return (char.stats[k] || 10) < 20; });
+      if (picked) {
+        char.stats[picked] = Math.min(20, (char.stats[picked] || 10) + eff.value);
+        if (eff.type === "stat_choice_save") { if (!char.saves) char.saves = {}; char.saves[picked] = true; }
+      }
+    } else if (eff.type === "armor") {
+      if (!char.proficiencies.armor) char.proficiencies.armor = [];
+      if (char.proficiencies.armor.indexOf(eff.value) === -1) char.proficiencies.armor.push(eff.value);
+    } else if (eff.type === "hp_per_level") {
+      var bonus = eff.value * (char.level || 1);
+      char.combat.hpMax = (char.combat.hpMax || 10) + bonus;
+      char.combat.hpCurrent = Math.min(char.combat.hpCurrent + bonus, char.combat.hpMax);
+    } else if (eff.type === "initiative_bonus") {
+      if (!char.bonuses) char.bonuses = {};
+      char.bonuses.initiative = (char.bonuses.initiative || 0) + eff.value;
+    }
+  });
+  char.feats.push({ id: feat.id, name: feat.name, level: level });
+  return feat.name;
+}
+
+// BUILD-LVL-4: применить ASI из плана билда (asi:{str:2} или {str:1,con:1}). Возвращает описание или null.
+function luApplyAsi(char, asi) {
+  if (!asi || typeof asi !== "object") return null;
+  var names = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
+  var parts = [];
+  Object.keys(asi).forEach(function(k){
+    if (!names[k]) return;
+    var inc = asi[k] || 0;
+    var before = char.stats[k] || 10;
+    char.stats[k] = Math.min(20, before + inc);
+    if (char.stats[k] !== before) parts.push(names[k] + " +" + (char.stats[k] - before));
+  });
+  return parts.length ? parts.join(", ") : null;
+}
+
+// BUILD-LVL-4: применить ВСЕ рекомендации билда для текущего уровня разом.
+function luApplyAllRecommendations() {
+  var char = getCurrentChar();
+  var ctx = _luChoicesCtx;
+  if (!char || !ctx) return;
+  var b = (char.buildId && window.getBuildById) ? window.getBuildById(char.buildId) : null;
+  if (!b) { if (typeof showToast === "function") showToast("Нет билда — нечего применять", "warn"); return; }
+  var cn = ctx.className, clvl = ctx.classLevel, newLevel = ctx.newTotalLevel;
+  var rec = (b.levelUp && b.levelUp[newLevel]) ? b.levelUp[newLevel] : null;
+  var applied = [];
+
+  // 1) Подкласс
+  var subMinLevel = null;
+  if (typeof SUBCLASSES !== "undefined" && SUBCLASSES[cn] && typeof SUBCLASS_FEATURES !== "undefined") {
+    SUBCLASSES[cn].forEach(function(s){
+      if (SUBCLASS_FEATURES[s]) {
+        var mn = Math.min.apply(null, Object.keys(SUBCLASS_FEATURES[s]).map(Number));
+        if (subMinLevel === null || mn < subMinLevel) subMinLevel = mn;
+      }
+    });
+  }
+  if (subMinLevel === clvl && !char.subclass && b.subclass) {
+    char.subclass = b.subclass;
+    if (Array.isArray(char.classes) && char.classes.length) {
+      var idx = 0;
+      for (var i = 0; i < char.classes.length; i++) { if (char.classes[i].class === cn) { idx = i; break; } }
+      char.classes[idx].subclass = b.subclass;
+    }
+    applied.push("подкласс: " + b.subclass);
+  }
+
+  // 2) ASI / черта
+  var isAsiLevel = (typeof CLASS_FEATURES !== "undefined" && CLASS_FEATURES[cn] && CLASS_FEATURES[cn][clvl]) &&
+    CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; });
+  if (isAsiLevel) {
+    var asiDone = Array.isArray(char.asiUsedLevels) && char.asiUsedLevels.indexOf(newLevel) >= 0;
+    if (!asiDone && rec) {
+      var did = null;
+      if (rec.feat) { var fn = luApplyFeatById(char, rec.feat, newLevel); if (fn) did = "черта «" + fn + "»"; }
+      else if (rec.asi) { var ad = luApplyAsi(char, rec.asi); if (ad) did = "характеристики (" + ad + ")"; }
+      if (did) {
+        if (!char.asiUsedLevels) char.asiUsedLevels = [];
+        char.asiUsedLevels.push(newLevel);
+        applied.push(did);
+      }
+    }
+  }
+
+  // 3) Классовые выборы (single), рекомендованные билдом и открытые на этом уровне
+  if (typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[cn] && b.recommendedChoices) {
+    CLASS_CHOICES[cn].forEach(function(cc){
+      if (cc.minLevel !== clvl || cc.type !== "single") return;
+      var recId = b.recommendedChoices[cc.id];
+      if (!recId) return;
+      var stored = char.classChoices && char.classChoices[cn] && char.classChoices[cn][cc.id];
+      if (stored) return;
+      if (typeof ccSetStored === "function") ccSetStored(char, cn, cc.id, recId);
+      else { char.classChoices = char.classChoices || {}; char.classChoices[cn] = char.classChoices[cn] || {}; char.classChoices[cn][cc.id] = recId; }
+      var nm = (cc.optionsDict && cc.optionsDict[recId]) ? cc.optionsDict[recId].name : recId;
+      applied.push(cc.name + ": " + nm);
+    });
+  }
+
+  // 4) Заклинания из плана (spellsAdd)
+  if (rec && rec.spellsAdd && typeof window.resolveSpellByName === "function") {
+    if (!char.spells) char.spells = {};
+    if (!Array.isArray(char.spells.mySpells)) char.spells.mySpells = [];
+    var addedSpells = [];
+    ["cantrips","known","prepared"].forEach(function(kind){
+      (rec.spellsAdd[kind] || []).forEach(function(n){
+        var sp = window.resolveSpellByName(n);
+        if (sp && !char.spells.mySpells.some(function(x){ return x.id === sp.id; })) {
+          char.spells.mySpells.push(sp);
+          addedSpells.push(sp.name);
+          if (kind === "prepared") {
+            if (!Array.isArray(char.spells.prepared)) char.spells.prepared = [];
+            if (char.spells.prepared.indexOf(sp.name) === -1) char.spells.prepared.push(sp.name);
+          }
+        }
+      });
+    });
+    if (addedSpells.length) applied.push("заклинания: " + addedSpells.join(", "));
+  }
+
+  if (!applied.length) {
+    if (typeof showToast === "function") showToast("Рекомендации уже применены или нечего применять", "info");
+    return;
+  }
+  saveToLocal();
+  loadCharacter(currentId);
+  if (typeof calcStats === "function") calcStats();
+  if (typeof recalculateHP === "function") recalculateHP();
+  if (typeof calculateAC === "function") calculateAC();
+  if (typeof updateClassFeatures === "function") updateClassFeatures();
+  if (typeof renderSpellSlots === "function") renderSpellSlots();
+  addJournalEntry("levelup", "Авто-применены рекомендации билда (ур. " + newLevel + ")", applied.join(" · "));
+  if (typeof renderJournal === "function") renderJournal();
+  if (typeof showToast === "function") showToast("✅ Применено: " + applied.join(", "), "success");
+  luBuildChoicesScreen();
+}
+
+// BUILD-LVL-4: построить экран выборов нового уровня. Возвращает true, если есть что выбирать.
+function luBuildChoicesScreen() {
+  var char = getCurrentChar();
+  var ctx = _luChoicesCtx;
+  var body = $("lu-choices-body");
+  if (!char || !ctx || !body) return false;
+  var b = (char.buildId && window.getBuildById) ? window.getBuildById(char.buildId) : null;
+  var cn = ctx.className, clvl = ctx.classLevel, newLevel = ctx.newTotalLevel;
+  var blocks = [];
+  function recBadge(text) { return '<span class="rec-badge">💡 ' + escapeHtml(text) + '</span>'; }
+
+  // 1) ВЫБОР ПОДКЛАССА — если открывается на этом уровне класса.
+  var subMinLevel = null;
+  if (typeof SUBCLASSES !== "undefined" && SUBCLASSES[cn] && typeof SUBCLASS_FEATURES !== "undefined") {
+    SUBCLASSES[cn].forEach(function(s){
+      if (SUBCLASS_FEATURES[s]) {
+        var mn = Math.min.apply(null, Object.keys(SUBCLASS_FEATURES[s]).map(Number));
+        if (subMinLevel === null || mn < subMinLevel) subMinLevel = mn;
+      }
+    });
+  }
+  if (subMinLevel === clvl && !char.subclass) {
+    var recSub = b ? b.subclass : null;
+    var optsHtml = SUBCLASSES[cn].map(function(s){
+      var isRec = (s === recSub);
+      return '<button class="lu-choice-opt' + (isRec ? ' is-rec' : '') + '" onclick="luSetSubclass(\'' + s.replace(/'/g,"\\'") + '\')">' +
+        escapeHtml(s) + (isRec ? ' ' + recBadge('совет') : '') + '</button>';
+    }).join("");
+    blocks.push('<div class="lu-choice-block"><div class="lu-choice-title">🔮 Выбор подкласса</div>' +
+      (recSub ? '<div class="lu-choice-sub">Билд советует: <b style="color:var(--rec)">' + escapeHtml(recSub) + '</b></div>' : '') +
+      '<div class="lu-choice-opts">' + optsHtml + '</div></div>');
+  } else if (char.subclass && subMinLevel === clvl) {
+    blocks.push('<div class="lu-choice-block done"><div class="lu-choice-title">🔮 Подкласс: ' + escapeHtml(char.subclass) + ' ✓</div></div>');
+  }
+
+  // 2) ASI / ЧЕРТА — если на этом уровне класса есть «Увеличение характеристик».
+  var isAsiLevel = (typeof CLASS_FEATURES !== "undefined" && CLASS_FEATURES[cn] && CLASS_FEATURES[cn][clvl]) &&
+    CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; });
+  if (isAsiLevel) {
+    var asiDone = Array.isArray(char.asiUsedLevels) && char.asiUsedLevels.indexOf(newLevel) >= 0;
+    var recAsi = (b && b.levelUp && b.levelUp[newLevel]) ? b.levelUp[newLevel] : null;
+    blocks.push('<div class="lu-choice-block' + (asiDone ? ' done' : '') + '">' +
+      '<div class="lu-choice-title">📈 Увеличение характеристик или черта' + (asiDone ? ' ✓' : '') + '</div>' +
+      (recAsi && recAsi.headline ? '<div class="lu-choice-sub">' + recBadge('Совет') + ' ' + escapeHtml(recAsi.headline) + '</div>' : '') +
+      (asiDone ? '' : '<button class="lu-choice-launch" onclick="openASIModalForLevel(' + newLevel + ')">Выбрать →</button>') +
+      '</div>');
+  }
+
+  // 3) КЛАССОВЫЕ ВЫБОРЫ, открывающиеся на этом уровне класса (стиль боя и т.п.).
+  if (typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[cn]) {
+    CLASS_CHOICES[cn].forEach(function(cc){
+      if (cc.minLevel !== clvl) return;
+      var stored = char.classChoices && char.classChoices[cn] && char.classChoices[cn][cc.id];
+      var has = cc.type === "single" ? !!stored : (Array.isArray(stored) && stored.length > 0);
+      var recId = (b && b.recommendedChoices) ? b.recommendedChoices[cc.id] : null;
+      var recNm = (recId && cc.optionsDict && cc.optionsDict[recId]) ? cc.optionsDict[recId].name : null;
+      blocks.push('<div class="lu-choice-block' + (has ? ' done' : '') + '">' +
+        '<div class="lu-choice-title">' + (cc.icon || "⚡") + " " + escapeHtml(cc.name) + (has ? ' ✓' : '') + '</div>' +
+        (recNm ? '<div class="lu-choice-sub">' + recBadge(recNm) + '</div>' : '') +
+        (has ? '' : '<button class="lu-choice-launch" onclick="openClassChoiceModal(\'' + cn.replace(/'/g,"\\'") + '\',\'' + cc.id + '\')">Выбрать →</button>') +
+        '</div>');
+    });
+  }
+
+  // 4) ЗАКЛИНАНИЯ — если класс-заклинатель.
+  var SPELL_CASTERS = ["Волшебник","Жрец","Друид","Бард","Паладин","Следопыт","Чародей","Колдун"];
+  if (SPELL_CASTERS.indexOf(cn) >= 0) {
+    var recSpells = (b && b.levelUp && b.levelUp[newLevel] && b.levelUp[newLevel].spellsAdd) ? b.levelUp[newLevel].spellsAdd : null;
+    var recList = [];
+    if (recSpells) ["cantrips","known","prepared"].forEach(function(k){ (recSpells[k]||[]).forEach(function(n){ recList.push(n); }); });
+    var spellSub = recList.length
+      ? '<div class="lu-choice-sub">' + recBadge('Советуют') + ' ' + escapeHtml(recList.join(", ")) + '</div>'
+      : '<div class="lu-choice-sub">Открой поиск и добавь заклинания нового уровня.</div>';
+    blocks.push('<div class="lu-choice-block">' +
+      '<div class="lu-choice-title">✨ Заклинания</div>' + spellSub +
+      '<button class="lu-choice-launch" onclick="openSpellSearch()">Открыть заклинания →</button>' +
+      '</div>');
+  }
+
+  // BUILD-LVL-4: кнопка «применить рекомендации билда разом» — если есть билд и незакрытые рек-выборы.
+  var hasOpenRec = false;
+  if (b) {
+    var asiOpen = (typeof CLASS_FEATURES !== "undefined" && CLASS_FEATURES[cn] && CLASS_FEATURES[cn][clvl] &&
+      CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; })) &&
+      !(Array.isArray(char.asiUsedLevels) && char.asiUsedLevels.indexOf(newLevel) >= 0) &&
+      !!(b.levelUp && b.levelUp[newLevel] && (b.levelUp[newLevel].feat || b.levelUp[newLevel].asi));
+    var subOpen = (subMinLevel === clvl && !char.subclass && !!b.subclass);
+    var ccOpen = false;
+    if (typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[cn] && b.recommendedChoices) {
+      ccOpen = CLASS_CHOICES[cn].some(function(cc){
+        if (cc.minLevel !== clvl || cc.type !== "single" || !b.recommendedChoices[cc.id]) return false;
+        var st = char.classChoices && char.classChoices[cn] && char.classChoices[cn][cc.id];
+        return !st;
+      });
+    }
+    var spOpen = !!(b.levelUp && b.levelUp[newLevel] && b.levelUp[newLevel].spellsAdd);
+    hasOpenRec = asiOpen || subOpen || ccOpen || spOpen;
+  }
+  var applyAllHtml = hasOpenRec
+    ? '<button class="lu-apply-all-btn" onclick="luApplyAllRecommendations()">✨ Применить рекомендации билда разом</button>'
+    : "";
+
+  body.innerHTML = applyAllHtml + blocks.join("");
+  return blocks.length > 0;
 }
 
 // ============================================
