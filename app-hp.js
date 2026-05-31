@@ -779,11 +779,14 @@ function luApplyAllRecommendations() {
     var asiDone = Array.isArray(char.asiUsedLevels) && char.asiUsedLevels.indexOf(newLevel) >= 0;
     if (!asiDone && rec) {
       var did = null;
-      if (rec.feat) { var fn = luApplyFeatById(char, rec.feat, newLevel); if (fn) did = "черта «" + fn + "»"; }
-      else if (rec.asi) { var ad = luApplyAsi(char, rec.asi); if (ad) did = "характеристики (" + ad + ")"; }
+      // приоритет: явный feat → явный asi → парсинг headline (feat → asi)
+      var featId = rec.feat || (typeof parseFeatFromHeadline === "function" ? parseFeatFromHeadline(rec.headline) : null);
+      var asiObj = rec.asi || (typeof parseAsiFromHeadline === "function" ? parseAsiFromHeadline(rec.headline) : null);
+      if (featId) { var fn = luApplyFeatById(char, featId, newLevel); if (fn) did = "черта «" + fn + "»"; }
+      else if (asiObj) { var ad = luApplyAsi(char, asiObj); if (ad) did = "характеристики (" + ad + ")"; }
       if (did) {
         if (!char.asiUsedLevels) char.asiUsedLevels = [];
-        char.asiUsedLevels.push(newLevel);
+        if (char.asiUsedLevels.indexOf(newLevel) < 0) char.asiUsedLevels.push(newLevel);
         applied.push(did);
       }
     }
@@ -927,7 +930,9 @@ function luBuildChoicesScreen() {
     var asiOpen = (typeof CLASS_FEATURES !== "undefined" && CLASS_FEATURES[cn] && CLASS_FEATURES[cn][clvl] &&
       CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; })) &&
       !(Array.isArray(char.asiUsedLevels) && char.asiUsedLevels.indexOf(newLevel) >= 0) &&
-      !!(b.levelUp && b.levelUp[newLevel] && (b.levelUp[newLevel].feat || b.levelUp[newLevel].asi));
+      !!(b.levelUp && b.levelUp[newLevel] && (b.levelUp[newLevel].feat || b.levelUp[newLevel].asi ||
+         (typeof parseAsiFromHeadline === "function" && parseAsiFromHeadline(b.levelUp[newLevel].headline)) ||
+         (typeof parseFeatFromHeadline === "function" && parseFeatFromHeadline(b.levelUp[newLevel].headline))));
     var subOpen = (subMinLevel === clvl && !char.subclass && !!b.subclass);
     var ccOpen = false;
     if (typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[cn] && b.recommendedChoices) {

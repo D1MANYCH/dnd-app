@@ -1516,7 +1516,68 @@ function getBuildRecChoiceOption(char, choiceId) {
 }
 function getBuildRecFeat(char, level) {
   var rec = getBuildLevelRec(char, level);
-  return (rec && rec.feat) || null;
+  if (!rec) return null;
+  if (rec.feat) return rec.feat;
+  // Фолбэк: распарсить feat из headline («ASI → черта «X»»).
+  return parseFeatFromHeadline(rec.headline);
+}
+
+// BUILD-LVL-4: парсер ASI из headline плана. «ASI → +2 СИЛ» → {str:2}; «+1 СИЛ +1 ТЕЛ» → {str:1,con:1}.
+// СИЛ=str, ЛОВ=dex, ТЕЛ/ВЫН=con, ИНТ=int, МУД=wis, ХАР=cha.
+function parseAsiFromHeadline(headline) {
+  if (!headline || typeof headline !== "string") return null;
+  if (/черт/i.test(headline)) return null; // это feat, не stat-ASI
+  var MAP = { "СИЛ":"str", "ЛОВ":"dex", "ТЕЛ":"con", "ВЫН":"con", "ИНТ":"int", "МУД":"wis", "ХАР":"cha" };
+  var re = /\+(\d)\s*(СИЛ|ЛОВ|ТЕЛ|ВЫН|ИНТ|МУД|ХАР)/gi, m, out = {}, found = false;
+  while ((m = re.exec(headline))) {
+    var k = MAP[m[2].toUpperCase()];
+    if (k) { out[k] = (out[k] || 0) + parseInt(m[1], 10); found = true; }
+  }
+  return found ? out : null;
+}
+
+// BUILD-LVL-4: карта name→id черт (из FEATS_DATA) + парсер feat из headline («черта «Имя»»).
+var _FEAT_NAME_TO_ID = null;
+function _buildFeatNameMap() {
+  if (_FEAT_NAME_TO_ID) return _FEAT_NAME_TO_ID;
+  _FEAT_NAME_TO_ID = {};
+  if (typeof FEATS_DATA !== "undefined" && Array.isArray(FEATS_DATA)) {
+    FEATS_DATA.forEach(function(f){ if (f && f.name) _FEAT_NAME_TO_ID[f.name.toLowerCase().replace(/ё/g,"е").trim()] = f.id; });
+  }
+  // Алиасы headline-имён билдов → каноничные имена FEATS_DATA (только уверенные совпадения).
+  var ALIAS = {
+    // тяжёлое оружие
+    "великое оружие":"great_weapon_master", "мастер тяжелого оружия":"great_weapon_master",
+    // живучесть
+    "крепыш":"tough", "крепкий":"tough", "жесткий":"tough", "стойкий":"resilient",
+    // удача
+    "везунчик":"lucky", "удачливый":"lucky", "счастливчик":"lucky", "удача":"lucky",
+    // стрельба
+    "меткий стрелок":"sharpshooter", "снайпер":"sharpshooter",
+    // инициатива/защита
+    "сторожевой":"alert", "бдительный":"alert", "внимательный":"observant",
+    "щитарь":"shield_master", "мастер щита":"shield_master",
+    // кастеры
+    "боевой маг":"war_caster", "заклинатель боя":"war_caster", "боевой кастер":"war_caster", "военная подготовка":"war_caster",
+    "родство со стихией":"elemental_adept", "адепт стихий":"elemental_adept",
+    // прочее
+    "мобильный":"mobile", "двойное владение":"dual_wielder"
+  };
+  Object.keys(ALIAS).forEach(function(k){ if (!_FEAT_NAME_TO_ID[k]) _FEAT_NAME_TO_ID[k] = ALIAS[k]; });
+  return _FEAT_NAME_TO_ID;
+}
+function parseFeatFromHeadline(headline) {
+  if (!headline || typeof headline !== "string") return null;
+  if (/\bGWM\b/i.test(headline)) return "great_weapon_master";
+  var m = headline.match(/черт[аы]?\s*[«"]([^»"]+)[»"]/i);
+  if (!m) return null;
+  var map = _buildFeatNameMap();
+  // нормализация: ё→е, убрать парентетику «(ТЕЛ)», убрать хвост после «/» или «или».
+  var name = m[1].toLowerCase().replace(/ё/g,"е")
+    .replace(/\s*\([^)]*\)/g,"")
+    .replace(/\s*(?:\/|\bили\b).*$/,"")
+    .trim();
+  return map[name] || null;
 }
 
 // BUILD-LVL-4: общий резолвер имён заклинаний (PHB-имя билда → объект SPELL_DATABASE).
