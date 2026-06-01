@@ -1580,6 +1580,32 @@ function parseFeatFromHeadline(headline) {
   return map[name] || null;
 }
 
+// BUILD-LVL-5: парсер рекомендованных заклинаний из headline плана.
+// «Заклинания N ур. — X, Y + Z/W (или V)» → ["X","Y","Z","W","V"]. Имена резолвятся через resolveSpellByName.
+// Гейт: строка должна быть заклинательной (тег «Заклинания…»/«Арканум…») и иметь список после тире «—»/«–».
+function parseSpellsFromHeadline(headline) {
+  if (!headline || typeof headline !== "string") return [];
+  // Гейт: только строки-тиры заклинаний/арканума («Заклинания N ур.» / «Арканум N ур.»),
+  // чтобы не ловить фичи подкласса со словом «заклинания» («…— Создание скульптуры заклинания»).
+  if (!/(Заклинани[ея]|Арканум)\s*\d+\s*ур\.?/i.test(headline)) return [];
+  var m = headline.match(/[—–]\s*(.+)$/);
+  if (!m) return [];
+  var seg = m[1].trim()
+    .replace(/\s+и\s+(?:пр|т\.?\s*п|т\.?\s*д|прочее)\.?\s*$/i, "") // хвост «и пр./и т.п./и прочее»
+    .replace(/\(\s*или\s+([^)]*)\)/gi, " или $1")                  // «(или X)» → альтернатива
+    .replace(/\([^)]*\)/g, " ")                                    // прочие скобки-аннотации «(Лес)»/«(ТЕЛ)» → убрать
+    .replace(/[«»"]/g, " ");                                       // кавычки → пробел
+  // Разделители: , + / · и слово «или» (с пробелами — \b в JS не работает для кириллицы).
+  // НЕ делим по « и » — может быть внутри имени («зла и добра»).
+  var parts = seg.split(/\s*[,+\/·]\s*|\s+или\s+/i);
+  var names = [];
+  parts.forEach(function(p){
+    p = p.replace(/\s+/g, " ").trim().replace(/[.\s]+$/, "").trim();
+    if (p.length > 2 && !/^(пр|т\.?\s*п|т\.?\s*д|прочее)\.?$/i.test(p)) names.push(p);
+  });
+  return names;
+}
+
 // BUILD-LVL-4: общий резолвер имён заклинаний (PHB-имя билда → объект SPELL_DATABASE).
 // Те же алиасы, что и в applyBuild — для авто-применения рекомендованных заклинаний при level-up.
 window.resolveSpellByName = (function(){
@@ -1590,7 +1616,16 @@ window.resolveSpellByName = (function(){
     "выработка": "друидический знак", "смех таши": "жуткий смех таши", "дружба": "дружелюбие",
     "насмешка": "злобная насмешка", "защита от добра и зла": "защита от зла и добра",
     "охотничья метка": "метка охотника", "снаряд-громовержец": "громовая волна",
-    "шиллела": "дубина", "ложная жизнь": "мнимая жизнь"
+    "шиллела": "дубина", "ложная жизнь": "мнимая жизнь",
+    // BUILD-LVL-5: имена заклинаний из планов билдов (headline) → каноничные имена SPELL_DATABASE.
+    "призыв молний": "призыв молнии", "стена огня": "огненная стена",
+    "возрождение": "реинкарнация", "массовое лечение": "массовое лечение ран",
+    "метеоритный дождь": "рой метеоров", "конусный холод": "конус холода",
+    "истинный полиморф": "истинное превращение", "миражный аркан": "таинственный мираж",
+    "духовные стражи": "духи-хранители", "пламенный удар": "огненный удар",
+    "огненный шторм": "огненная буря", "буря мщения": "буря мести",
+    "доминирование зверя": "подчинение зверя", "доминирование личности": "подчинение личности",
+    "антимагия": "антимагическое поле", "спайк-грейв": "рост шипов"
   };
   return function(n){
     if (!n) return null;
@@ -1608,6 +1643,26 @@ window.resolveSpellByName = (function(){
     return null;
   };
 })();
+
+// BUILD-LVL-5: рекомендованные заклинания билда на уровень → массив объектов SPELL_DATABASE (без дублей).
+// Приоритет: явный levelUp[lv].spellsAdd → парсинг headline. Нерезолвящиеся имена отбрасываются (показ = применение).
+function getBuildRecSpellObjs(b, level) {
+  if (!b || !b.levelUp || !b.levelUp[level]) return [];
+  var lu = b.levelUp[level];
+  var names = [];
+  if (lu.spellsAdd) {
+    ["cantrips", "known", "prepared"].forEach(function(k){ (lu.spellsAdd[k] || []).forEach(function(n){ names.push(n); }); });
+  } else if (typeof parseSpellsFromHeadline === "function") {
+    names = parseSpellsFromHeadline(lu.headline);
+  }
+  var out = [], seen = {};
+  names.forEach(function(n){
+    var sp = (typeof window.resolveSpellByName === "function") ? window.resolveSpellByName(n) : null;
+    var key = sp && (sp.id || sp.name);
+    if (sp && key && !seen[key]) { seen[key] = 1; out.push(sp); }
+  });
+  return out;
+}
 
 // BUILD-LVL-2: модалка плана развития 1–20 с подсветкой текущего уровня.
 // openBuildPlan() — для текущего персонажа; openBuildPlan(buildId) — по id билда.

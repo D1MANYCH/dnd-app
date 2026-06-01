@@ -807,25 +807,21 @@ function luApplyAllRecommendations() {
     });
   }
 
-  // 4) Заклинания из плана (spellsAdd)
-  if (rec && rec.spellsAdd && typeof window.resolveSpellByName === "function") {
-    if (!char.spells) char.spells = {};
-    if (!Array.isArray(char.spells.mySpells)) char.spells.mySpells = [];
-    var addedSpells = [];
-    ["cantrips","known","prepared"].forEach(function(kind){
-      (rec.spellsAdd[kind] || []).forEach(function(n){
-        var sp = window.resolveSpellByName(n);
-        if (sp && !char.spells.mySpells.some(function(x){ return x.id === sp.id; })) {
+  // 4) Заклинания из плана (явный spellsAdd или парсинг headline — через getBuildRecSpellObjs)
+  if (typeof getBuildRecSpellObjs === "function") {
+    var recSpellObjs = getBuildRecSpellObjs(b, newLevel);
+    if (recSpellObjs.length) {
+      if (!char.spells) char.spells = {};
+      if (!Array.isArray(char.spells.mySpells)) char.spells.mySpells = [];
+      var addedSpells = [];
+      recSpellObjs.forEach(function(sp){
+        if (!char.spells.mySpells.some(function(x){ return x.id === sp.id || x.name === sp.name; })) {
           char.spells.mySpells.push(sp);
           addedSpells.push(sp.name);
-          if (kind === "prepared") {
-            if (!Array.isArray(char.spells.prepared)) char.spells.prepared = [];
-            if (char.spells.prepared.indexOf(sp.name) === -1) char.spells.prepared.push(sp.name);
-          }
         }
       });
-    });
-    if (addedSpells.length) applied.push("заклинания: " + addedSpells.join(", "));
+      if (addedSpells.length) applied.push("заклинания: " + addedSpells.join(", "));
+    }
   }
 
   if (!applied.length) {
@@ -912,11 +908,9 @@ function luBuildChoicesScreen() {
   // 4) ЗАКЛИНАНИЯ — если класс-заклинатель.
   var SPELL_CASTERS = ["Волшебник","Жрец","Друид","Бард","Паладин","Следопыт","Чародей","Колдун"];
   if (SPELL_CASTERS.indexOf(cn) >= 0) {
-    var recSpells = (b && b.levelUp && b.levelUp[newLevel] && b.levelUp[newLevel].spellsAdd) ? b.levelUp[newLevel].spellsAdd : null;
-    var recList = [];
-    if (recSpells) ["cantrips","known","prepared"].forEach(function(k){ (recSpells[k]||[]).forEach(function(n){ recList.push(n); }); });
-    var spellSub = recList.length
-      ? '<div class="lu-choice-sub">' + recBadge('Советуют') + ' ' + escapeHtml(recList.join(", ")) + '</div>'
+    var recSpellObjs = (b && typeof getBuildRecSpellObjs === "function") ? getBuildRecSpellObjs(b, newLevel) : [];
+    var spellSub = recSpellObjs.length
+      ? '<div class="lu-choice-sub">' + recBadge('Советуют') + ' ' + escapeHtml(recSpellObjs.map(function(s){ return s.name; }).join(", ")) + '</div>'
       : '<div class="lu-choice-sub">Открой поиск и добавь заклинания нового уровня.</div>';
     blocks.push('<div class="lu-choice-block">' +
       '<div class="lu-choice-title">✨ Заклинания</div>' + spellSub +
@@ -942,7 +936,12 @@ function luBuildChoicesScreen() {
         return !st;
       });
     }
-    var spOpen = !!(b.levelUp && b.levelUp[newLevel] && b.levelUp[newLevel].spellsAdd);
+    var spOpen = false;
+    if (typeof getBuildRecSpellObjs === "function") {
+      var _recSp = getBuildRecSpellObjs(b, newLevel);
+      var _mine = (char.spells && Array.isArray(char.spells.mySpells)) ? char.spells.mySpells : [];
+      spOpen = _recSp.some(function(sp){ return !_mine.some(function(x){ return x.id === sp.id || x.name === sp.name; }); });
+    }
     hasOpenRec = asiOpen || subOpen || ccOpen || spOpen;
   }
   var applyAllHtml = hasOpenRec
