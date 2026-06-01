@@ -1,0 +1,8 @@
+{
+  "_comment": "Кэш RU-имя→URL для аудита SPELL_DATABASE (SPELL-AUDIT). Ключ = имя заклинания из spells.js в нижнем регистре, ё→е. Один WebSearch 'site:dnd.su <имя>' отдаёт оба URL: ph14 (dnd.su) и ph24 (next.dnd.su). Заполняется по мере резолва, чтобы не дёргать поиск повторно. Пополняет агент; формат — см. tools/spell-audit.js (loadUrlMap).",
+  "огненный шар": { "en": "Fireball", "ph14": "https://dnd.su/spells/205-fireball/", "ph24": "https://next.dnd.su/spells/10514-fireball/" },
+  "огненный болт": { "en": "Fire Bolt", "ph14": "https://dnd.su/spells/204-fire-bolt/", "ph24": "https://next.dnd.su/spells/10511-fire-bolt/" },
+  "луч мороза": { "en": "Ray of Frost", "ph14": "https://dnd.su/spells/149-ray-of-frost/", "ph24": "https://next.dnd.su/spells/10620-ray-of-frost/" },
+  "священный огонь": { "en": "Sacred Flame", "ph14": "https://dnd.su/spells/311-sacred-flame/", "ph24": "https://next.dnd.su/spells/10248-sacred-flame/" },
+  "волшебная рука": { "en": "Mage Hand", "ph14": "https://dnd.su/spells/26-mage-hand/", "ph24": "https://next.dnd.su/spells/10564-mage-hand/" }
+}
