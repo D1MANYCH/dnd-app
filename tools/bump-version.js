@@ -67,6 +67,14 @@ function bumpSemver(v, level) {
   return `${X}.${Y}.${Z}`;
 }
 
+// Сравнение SemVer: >0 если a новее b, <0 если старше, 0 если равны. Нечисловой формат → 0 (не блокируем).
+function semverCmp(a, b) {
+  const pa = String(a).match(/^(\d+)\.(\d+)\.(\d+)$/), pb = String(b).match(/^(\d+)\.(\d+)\.(\d+)$/);
+  if (!pa || !pb) return 0;
+  for (let i = 1; i <= 3; i++) { const d = (+pa[i]) - (+pb[i]); if (d) return d < 0 ? -1 : 1; }
+  return 0;
+}
+
 function todayIso() {
   const d = new Date();
   const yyyy = d.getFullYear();
@@ -172,7 +180,7 @@ function checkRemote() {
   const lc = +((localSw.match(cacheRe)  || [])[1] || 0);
   const rc = +((remoteSw.match(cacheRe) || [])[1] || 0);
   const conflicts = [];
-  if (rv && lv && rv !== lv) conflicts.push('APP_VERSION: local=' + lv + ', origin/main=' + rv);
+  if (rv && lv && semverCmp(rv, lv) > 0) conflicts.push('APP_VERSION: local=' + lv + ', origin/main=' + rv);
   if (rc && lc && rc > lc)   conflicts.push('CACHE_NAME: local=v' + lc + ', origin/main=v' + rc);
   if (conflicts.length) {
     console.error('ERROR: origin/main опережает локальную версию:');
