@@ -7832,6 +7832,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   margin-bottom: 12px;
 }
 .asi-stat-item {
+  position: relative;
   background: rgba(255,255,255,0.04);
   border: 1.5px solid rgba(255,255,255,0.1);
   border-radius: var(--r-sm);
@@ -7845,6 +7846,15 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   text-align: center;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+}
+/* BUILD-LVL-6: маркер «совет билда» в углу рекомендованной характеристики */
+.asi-stat-rec {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 0.8em;
+  line-height: 1;
+  pointer-events: none;
 }
 .asi-stat-item:hover {
   border-color: var(--accent-color);
@@ -10768,6 +10778,10 @@ mark.notes-hl {
 .rec-banner .rec-why { color: var(--text-muted); }
 .rec-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: #fff; background: var(--rec); border-radius: 999px; padding: 1px 7px; white-space: nowrap; }
 .is-rec { border-color: var(--rec) !important; box-shadow: 0 0 0 1.5px var(--rec); }
+/* BUILD-LVL-6: хинт рекомендованного подкласса у <select id=char-subclass> */
+.subclass-rec-hint { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 5px; font-size: 0.82em; line-height: 1.3; }
+.subclass-rec-hint .rec-text { font-weight: 700; color: var(--rec); }
+.subclass-rec-hint .subclass-rec-ok { color: var(--success-color); font-weight: 600; }
 
 /* BUILD-LVL-4: экран guided level-up (выборы сразу после повышения) */
 .lu-choices-head { font-size: 1.05em; font-weight: 700; margin: 4px 0 10px; }

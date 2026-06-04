@@ -1219,6 +1219,7 @@ function updateSubclassOptions() {
   if (!selectedClass || !SUBCLASSES[selectedClass]) {
     subclassSelect.appendChild(new Option("Сначала выберите класс", ""));
     subclassSelect.disabled = true;
+    updateSubclassRecHint();
     return;
   }
 
@@ -1228,6 +1229,7 @@ function updateSubclassOptions() {
     subclassSelect.appendChild(new Option("🔒 Откроется на " + unlockLevel + " уровне", ""));
     subclassSelect.disabled = true;
     subclassSelect.classList.add("subclass-locked");
+    updateSubclassRecHint();
     return;
   }
 
@@ -1243,6 +1245,25 @@ function updateSubclassOptions() {
       subclassSelect.value = char.subclass;
     }
   }
+  updateSubclassRecHint();
+}
+
+// BUILD-LVL-6: хинт рекомендованного подкласса билда у <select id=char-subclass>.
+// Показывает «💡 совет билда: <подкласс>» (+ «✓ выбран», если уже выбран). Работает и при
+// заблокированном дропдауне (подкласс ещё не открыт по уровню) — игрок видит цель заранее.
+function updateSubclassRecHint() {
+  var el = $("char-subclass-rec");
+  if (!el) return;
+  var char = currentId ? getCurrentChar() : null;
+  var rec = (char && typeof getBuildRecSubclass === "function") ? getBuildRecSubclass(char) : null;
+  if (!rec) { el.style.display = "none"; el.innerHTML = ""; return; }
+  var sel = $("char-subclass");
+  var cur = (sel && !sel.disabled && sel.value || "").trim();
+  var matched = cur && cur === rec;
+  var safe = (typeof escapeHtml === "function") ? escapeHtml(rec) : rec;
+  el.innerHTML = '<span class="rec-badge">💡 совет билда</span> <span class="rec-text">' + safe + '</span>' +
+    (matched ? ' <span class="subclass-rec-ok">✓ выбран</span>' : '');
+  el.style.display = "";
 }
 // 🔧 ИСПРАВЛЕНИЕ: Правильный расчёт ХП по правилам D&D 5e
 function calculateMaxHP(level, conMod, hitDie) {

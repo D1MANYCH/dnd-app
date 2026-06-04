@@ -1542,6 +1542,21 @@ function getBuildRecFeat(char, level) {
   // Фолбэк: распарсить feat из headline («ASI → черта «X»»).
   return parseFeatFromHeadline(rec.headline);
 }
+// BUILD-LVL-6: рекомендованный ASI на уровне (подсветка кнопок-статов в ASI-модалке).
+// Приоритет: явный rec.asi → парсинг headline (тот же приём, что в apply-all). → { str:2 } | { str:1, con:1 } | null.
+// Headline с «черт» → null (это feat-рекомендация, не stat-ASI; подсветка идёт по feat-списку).
+function getBuildRecAsi(char, level) {
+  var rec = getBuildLevelRec(char, level);
+  if (!rec) return null;
+  if (rec.asi) return rec.asi;
+  return parseAsiFromHeadline(rec.headline);
+}
+// BUILD-LVL-6: рекомендованный подкласс билда (хинт у <select id=char-subclass> в ручном редакторе).
+function getBuildRecSubclass(char) {
+  if (!char || !char.buildId) return null;
+  var b = window.getBuildById && window.getBuildById(char.buildId);
+  return (b && b.subclass) || null;
+}
 
 // BUILD-LVL-4: парсер ASI из headline плана. «ASI → +2 СИЛ» → {str:2}; «+1 СИЛ +1 ТЕЛ» → {str:1,con:1}.
 // СИЛ=str, ЛОВ=dex, ТЕЛ/ВЫН=con, ИНТ=int, МУД=wis, ХАР=cha.

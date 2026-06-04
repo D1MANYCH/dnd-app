@@ -1572,10 +1572,14 @@ function buildASIStatGrid(char) {
   if (!grid) return;
   var statNames = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
   var statIcons = {str:"💪",dex:"🏃",con:"❤️",int:"🧠",wis:"👁️",cha:"🎭"};
+  // BUILD-LVL-6: статы, рекомендованные билдом на этом ASI-уровне (подсветка как у черт).
+  var recAsi = (typeof getBuildRecAsi === "function" && char) ? getBuildRecAsi(char, asiCurrentLevel) : null;
   grid.innerHTML = Object.keys(statNames).map(function(k) {
     var val = char.stats[k] || 10;
     var mod = getMod(val);
-    return '<div class="asi-stat-item" id="asi-stat-' + k + '" onclick="toggleASIStat(\'' + k + '\')">' +
+    var isRec = !!(recAsi && recAsi[k]);
+    return '<div class="asi-stat-item' + (isRec ? " is-rec" : "") + '" id="asi-stat-' + k + '" onclick="toggleASIStat(\'' + k + '\')">' +
+      (isRec ? '<span class="asi-stat-rec" title="Совет билда: +' + recAsi[k] + '">💡</span>' : '') +
       '<span class="asi-stat-icon">' + (getAbilityIcon(k) || statIcons[k]) + '</span>' +
       '<span class="asi-stat-name">' + statNames[k] + '</span>' +
       '<span class="asi-stat-cur">' + val + ' (' + formatMod(mod) + ')</span>' +
