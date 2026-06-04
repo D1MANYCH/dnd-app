@@ -792,18 +792,38 @@ function luApplyAllRecommendations() {
     }
   }
 
-  // 3) Классовые выборы (single), рекомендованные билдом и открытые на этом уровне
+  // 3) Классовые выборы, рекомендованные билдом и открытые на этом уровне (single + multi)
   if (typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[cn] && b.recommendedChoices) {
     CLASS_CHOICES[cn].forEach(function(cc){
-      if (cc.minLevel !== clvl || cc.type !== "single") return;
-      var recId = b.recommendedChoices[cc.id];
-      if (!recId) return;
+      if (cc.minLevel !== clvl) return;
+      var recIds = getBuildRecChoiceIds(char, cc.id);
+      if (!recIds.length) return;
       var stored = char.classChoices && char.classChoices[cn] && char.classChoices[cn][cc.id];
-      if (stored) return;
-      if (typeof ccSetStored === "function") ccSetStored(char, cn, cc.id, recId);
-      else { char.classChoices = char.classChoices || {}; char.classChoices[cn] = char.classChoices[cn] || {}; char.classChoices[cn][cc.id] = recId; }
-      var nm = (cc.optionsDict && cc.optionsDict[recId]) ? cc.optionsDict[recId].name : recId;
-      applied.push(cc.name + ": " + nm);
+      if (cc.type === "single") {
+        if (stored) return;
+        var recId = recIds[0];
+        if (typeof ccSetStored === "function") ccSetStored(char, cn, cc.id, recId);
+        else { char.classChoices = char.classChoices || {}; char.classChoices[cn] = char.classChoices[cn] || {}; char.classChoices[cn][cc.id] = recId; }
+        var nm = (cc.optionsDict && cc.optionsDict[recId]) ? cc.optionsDict[recId].name : recId;
+        applied.push(cc.name + ": " + nm);
+      } else if (cc.type === "multi") {
+        var count = (typeof ccCount === "function") ? ccCount(cc, clvl) : recIds.length;
+        var arr = Array.isArray(stored) ? stored.slice() : [];
+        if (arr.length >= count) return;
+        // фильтр доступности (уровень/пакт/req); для skills-пула годятся любые навыки
+        var avail = (cc.pool !== "skills" && typeof ccAvailableOptions === "function") ? ccAvailableOptions(cc, char, cn) : null;
+        var addedNames = [];
+        recIds.forEach(function(rid){
+          if (arr.length >= count || arr.indexOf(rid) !== -1) return;
+          if (avail && avail.indexOf(rid) === -1) return;
+          arr.push(rid);
+          addedNames.push((cc.optionsDict && cc.optionsDict[rid]) ? cc.optionsDict[rid].name : rid);
+        });
+        if (!addedNames.length) return;
+        if (typeof ccSetStored === "function") ccSetStored(char, cn, cc.id, arr);
+        else { char.classChoices = char.classChoices || {}; char.classChoices[cn] = char.classChoices[cn] || {}; char.classChoices[cn][cc.id] = arr; }
+        applied.push(cc.name + ": " + addedNames.join(", "));
+      }
     });
   }
 
@@ -894,9 +914,10 @@ function luBuildChoicesScreen() {
     CLASS_CHOICES[cn].forEach(function(cc){
       if (cc.minLevel !== clvl) return;
       var stored = char.classChoices && char.classChoices[cn] && char.classChoices[cn][cc.id];
-      var has = cc.type === "single" ? !!stored : (Array.isArray(stored) && stored.length > 0);
-      var recId = (b && b.recommendedChoices) ? b.recommendedChoices[cc.id] : null;
-      var recNm = (recId && cc.optionsDict && cc.optionsDict[recId]) ? cc.optionsDict[recId].name : null;
+      var ccN = (typeof ccCount === "function") ? ccCount(cc, clvl) : 1;
+      var has = cc.type === "single" ? !!stored : (Array.isArray(stored) && stored.length >= ccN);
+      var recIds = (b && typeof getBuildRecChoiceIds === "function") ? getBuildRecChoiceIds(char, cc.id) : [];
+      var recNm = recIds.length ? recIds.map(function(rid){ return (cc.optionsDict && cc.optionsDict[rid]) ? cc.optionsDict[rid].name : rid; }).join(", ") : null;
       blocks.push('<div class="lu-choice-block' + (has ? ' done' : '') + '">' +
         '<div class="lu-choice-title">' + (cc.icon || "⚡") + " " + escapeHtml(cc.name) + (has ? ' ✓' : '') + '</div>' +
         (recNm ? '<div class="lu-choice-sub">' + recBadge(recNm) + '</div>' : '') +
@@ -931,9 +952,17 @@ function luBuildChoicesScreen() {
     var ccOpen = false;
     if (typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[cn] && b.recommendedChoices) {
       ccOpen = CLASS_CHOICES[cn].some(function(cc){
-        if (cc.minLevel !== clvl || cc.type !== "single" || !b.recommendedChoices[cc.id]) return false;
+        if (cc.minLevel !== clvl) return false;
+        var recIds = getBuildRecChoiceIds(char, cc.id);
+        if (!recIds.length) return false;
         var st = char.classChoices && char.classChoices[cn] && char.classChoices[cn][cc.id];
-        return !st;
+        if (cc.type === "single") return !st;
+        if (cc.type === "multi") {
+          var cnt = (typeof ccCount === "function") ? ccCount(cc, clvl) : recIds.length;
+          var arr = Array.isArray(st) ? st : [];
+          return arr.length < cnt;
+        }
+        return false;
       });
     }
     var spOpen = false;

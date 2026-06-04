@@ -1438,13 +1438,21 @@ function applyBuild(buildId) {
     createdAt: Date.now(),
     updatedAt: Date.now()
   });
-  // BUILD-LVL-3: авто-применить рекомендованные выборы 1-го уровня (напр. стиль боя воина).
+  // BUILD-LVL-3/5: авто-применить рекомендованные выборы 1-го уровня
+  // (стиль боя воина — single; экспертиза плута — multi, до getCount навыков).
   if (b.recommendedChoices && typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[b.className]) {
     newChar.classChoices = newChar.classChoices || {};
     newChar.classChoices[b.className] = newChar.classChoices[b.className] || {};
     CLASS_CHOICES[b.className].forEach(function(cc){
-      if (cc.type === "single" && cc.minLevel <= 1 && b.recommendedChoices[cc.id]) {
-        newChar.classChoices[b.className][cc.id] = b.recommendedChoices[cc.id];
+      if (cc.minLevel > 1) return;
+      var rec = b.recommendedChoices[cc.id];
+      if (!rec) return;
+      if (cc.type === "single") {
+        newChar.classChoices[b.className][cc.id] = Array.isArray(rec) ? rec[0] : rec;
+      } else if (cc.type === "multi") {
+        var recArr = Array.isArray(rec) ? rec.slice() : [rec];
+        var count = (typeof ccCount === "function") ? ccCount(cc, 1) : recArr.length;
+        newChar.classChoices[b.className][cc.id] = recArr.slice(0, count);
       }
     });
   }
@@ -1518,6 +1526,14 @@ function getBuildRecChoiceOption(char, choiceId) {
   if (!char || !char.buildId || !choiceId) return null;
   var b = window.getBuildById && window.getBuildById(char.buildId);
   return (b && b.recommendedChoices && b.recommendedChoices[choiceId]) || null;
+}
+// BUILD-LVL-5: нормализованный список рекомендованных optionId(ов).
+// single-выбор хранится строкой ("great-weapon"), multi — массивом (["twinned","quickened"]).
+// Всегда возвращает массив (порядок = приоритет билда).
+function getBuildRecChoiceIds(char, choiceId) {
+  var raw = getBuildRecChoiceOption(char, choiceId);
+  if (!raw) return [];
+  return Array.isArray(raw) ? raw.slice() : [raw];
 }
 function getBuildRecFeat(char, level) {
   var rec = getBuildLevelRec(char, level);

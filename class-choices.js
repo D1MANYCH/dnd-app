@@ -385,10 +385,14 @@ function renderClassChoices(char, container) {
       statusClass = "cc-card cc-pending";
       var have = (c.type === "single") ? (it.current ? 1 : 0) : (Array.isArray(it.current) ? it.current.length : 0);
       summary = '<span class="cc-hint">' + escapeHtml(c.desc || "") + "</span>";
-      // BUILD-LVL-3: показать рекомендацию билда прямо на невыбранной карточке.
-      var recId = (typeof getBuildRecChoiceOption === "function") ? getBuildRecChoiceOption(char, c.id) : null;
-      var recNm = (recId && c.optionsDict && c.optionsDict[recId]) ? c.optionsDict[recId].name : null;
-      if (recNm) summary += ' <span class="rec-badge">💡 ' + escapeHtml(recNm) + '</span>';
+      // BUILD-LVL-3/5: показать рекомендацию билда прямо на невыбранной карточке (single + multi).
+      var recIds = (typeof getBuildRecChoiceIds === "function") ? getBuildRecChoiceIds(char, c.id) : [];
+      if (recIds.length) {
+        var recNames = recIds.map(function(rid){
+          return (c.optionsDict && c.optionsDict[rid]) ? c.optionsDict[rid].name : rid;
+        });
+        summary += ' <span class="rec-badge">💡 ' + escapeHtml(recNames.join(", ")) + '</span>';
+      }
       statusBadge = '<span class="cc-badge cc-badge-todo">' + have + "/" + it.count + "</span>";
     }
     var classLabel = (!useAccordion && ccGetActiveClasses(char).length > 1)
@@ -505,14 +509,16 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
     optionIds = (typeof skills !== "undefined" ? skills.map(function(s) { return s.name; }) : []);
   }
 
-  // BUILD-LVL-3: рекомендация билда — баннер сверху + подсветка опции.
-  var recOptId = (typeof getBuildRecChoiceOption === "function") ? getBuildRecChoiceOption(char, choice.id) : null;
+  // BUILD-LVL-3/5: рекомендация билда — баннер сверху + подсветка опции(й). single + multi.
+  var recOptIds = (typeof getBuildRecChoiceIds === "function") ? getBuildRecChoiceIds(char, choice.id) : [];
   var levelRec = (typeof getBuildLevelRec === "function") ? getBuildLevelRec(char, choice.minLevel) : null;
   var recBannerHtml = "";
-  if (recOptId || (levelRec && levelRec.headline)) {
-    var recName = (recOptId && choice.optionsDict && choice.optionsDict[recOptId]) ? choice.optionsDict[recOptId].name : null;
+  if (recOptIds.length || (levelRec && levelRec.headline)) {
+    var recNames = recOptIds.map(function(rid){
+      return (choice.optionsDict && choice.optionsDict[rid]) ? choice.optionsDict[rid].name : rid;
+    });
     recBannerHtml = '<div class="rec-banner"><span class="rec-badge">💡 Совет билда</span> ' +
-      (recName ? '<b class="rec-text">' + escapeHtml(recName) + '</b> ' : '') +
+      (recNames.length ? '<b class="rec-text">' + escapeHtml(recNames.join(", ")) + '</b> ' : '') +
       (levelRec && (levelRec.why || levelRec.headline) ? '<span class="rec-why">' + escapeHtml(levelRec.why || levelRec.headline) + '</span>' : '') +
       '</div>';
   }
@@ -531,7 +537,7 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
     } else {
       selected = (ccModalState.selection || []).indexOf(id) !== -1;
     }
-    var isRec = (id === recOptId);
+    var isRec = (recOptIds.indexOf(id) !== -1);
     var reqText = "";
     if (opt.req) {
       var bits = [];
