@@ -10,6 +10,8 @@ const vm = require('vm');
 const root = path.join(__dirname, '..');
 const files = [
   'data.js',
+  'character-builds.js',     // BUILD-LVL-7: CHARACTER_BUILDS/getBuildById для тестов данных levelUp
+  'spells.js',               // BUILD-LVL-7: SPELLS_BASE → app-core строит SPELL_DATABASE (резолв заклинаний билдов)
   'class-choices.js',
   'subclass-choices-data.js',
   'app-core.js',
@@ -92,6 +94,9 @@ const summary = (() => { const s = makeStub(); s.id = 'summary'; _elements.set('
 const results = (() => { const s = makeStub(); s.id = 'results'; _elements.set('results', s); return s; })();
 
 const document = {
+  // BUILD-LVL-7: character-builds.js validateBuildOptions() читает readyState — "loading"
+  // откладывает его на DOMContentLoaded (no-op в node), избегая обращения к sel.options стаба.
+  readyState: 'loading',
   getElementById(id) {
     if (!_elements.has(id)) {
       const s = makeStub();
@@ -135,6 +140,8 @@ sandbox.self = sandbox;
 sandbox.globalThis = sandbox;
 // Шим-копия escapeHtml на случай если data.js не успеет (страховка от старой версии)
 sandbox.escapeHtml = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// BUILD-LVL-7: Option-конструктор для updateSubclassOptions (new Option(text,value)) в confirmLevelUp.
+sandbox.Option = function Option(text, value) { this.text = text; this.value = value; this.label = text; this.selected = false; };
 
 // Заглушки для функций из не-загружаемых модулей (app-party / app-ui / app-notes / etc.),
 // чтобы вызовы изнутри updateHPDisplay / loadCharacter / confirmRest не падали.
@@ -151,6 +158,7 @@ const externalStubs = [
   'updateConcentrationDisplay',  // если потребуется — определена в app-combat.js, но безопасно стабить
   'updateSlotsDisplay',          // app-spells.js
   'loadCharacter',               // app-core.js имеет, но во избежание побочки в тестах не используем
+  'addJournalEntry',             // app-notes.js — нужна для confirmLevelUp в тесте мультикласс-гайда (BUILD-LVL-7)
 ];
 externalStubs.forEach(name => { if (!(name in sandbox)) sandbox[name] = function(){}; });
 

@@ -32,6 +32,9 @@ document.createElement; // noop
 
 <!-- Порядок как в index.html -->
 <script src="../data.js"></script>
+<!-- BUILD-LVL-7: данные билдов + заклинаний (до app-core: SPELLS_BASE → SPELL_DATABASE) для тестов автолевелинга -->
+<script src="../character-builds.js"></script>
+<script src="../spells.js"></script>
 <script src="../class-choices.js"></script>
 <script src="../subclass-choices-data.js"></script>
 <!-- TEST-1: подгружаем бизнес-логику для тестов quickHP / calcStats -->
@@ -40,6 +43,6 @@ document.createElement; // noop
 <script src="../app-hp.js"></script>
 
 <script src="./fixtures.js?v=4"></script>
-<script src="./headless.js?v=3"></script>
+<script src="./headless.js?v=6"></script>
 </body>
 </html>

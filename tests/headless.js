@@ -122,7 +122,7 @@
   // чтобы транзитивные вызовы внутри quickHP/calcStats не падали.
   ["syncSelfBattleStatus","animateCountUp","renderJournal","renderClassResources",
    "renderSpellSlots","renderMySpells","renderInventory","renderWeapons","renderBuildBadge",
-   "updateSlotsDisplay","loadCharacter"].forEach(function(name){
+   "updateSlotsDisplay","loadCharacter","addJournalEntry"].forEach(function(name){
     if (typeof window[name] !== "function") window[name] = function(){};
   });
 
@@ -205,6 +205,198 @@
       window.currentId = savedId;
     }
   });
+
+  // ────────── БЛОК 8 (BUILD-LVL-7): валидность данных автолевелинга билдов ──────────
+  // Требует загруженных character-builds.js + spells.js (Node-runner и обновлённый runner.html).
+  // В минимальной среде без них блок мягко пропускается (один PASS-noop).
+  var _hasBuilds = (typeof CHARACTER_BUILDS !== "undefined" && Array.isArray(CHARACTER_BUILDS) &&
+                    typeof getBuildById === "function");
+
+  // ASI-уровни класса по CLASS_FEATURES (фича «Увеличение характеристик») — источник истины приложения,
+  // тот же приём, что в dev-verify-builds.js (_asiLevelsCF) и в guided level-up (app-hp.js).
+  function _asiLevelsForClass(cls){
+    var out = [];
+    if (typeof CLASS_FEATURES === "undefined" || !CLASS_FEATURES[cls]) return out;
+    Object.keys(CLASS_FEATURES[cls]).forEach(function(k){
+      var arr = CLASS_FEATURES[cls][k] || [];
+      if (arr.some(function(f){ return f && f.name === "Увеличение характеристик"; })) out.push(parseInt(k,10));
+    });
+    return out.sort(function(a,b){ return a-b; });
+  }
+
+  if (!_hasBuilds) {
+    t("[lvl] character-builds.js + spells.js загружены", function(){ return true; }); // noop в минимальной среде
+  } else {
+    // A1: на каждом ASI-уровне билда headline распознаётся как ASI ИЛИ черта (инвариант «0 пробелов», BUILD-LVL-6).
+    CHARACTER_BUILDS.forEach(function(b){
+      t("[lvl-asi] " + b.id, function(){
+        var char = { buildId: b.id, class: b.className };
+        var asiLevels = _asiLevelsForClass(b.className);
+        if (!asiLevels.length) return "нет ASI-уровней в CLASS_FEATURES для «" + b.className + "»";
+        var gaps = [];
+        asiLevels.forEach(function(lv){
+          var feat = (typeof getBuildRecFeat === "function") ? getBuildRecFeat(char, lv) : null;
+          var asi  = (typeof getBuildRecAsi  === "function") ? getBuildRecAsi(char, lv)  : null;
+          if (!feat && !asi) gaps.push(lv);
+        });
+        return gaps.length === 0 ||
+          ("ASI-уровни без feat/asi: " + gaps.join(",") + " (ASI-уровни класса: " + asiLevels.join(",") + ")");
+      });
+    });
+
+    // A2: id-ы recommendedChoices существуют в CLASS_CHOICES[класс], опции валидны
+    //     (в choice.options, либо — для пула «skills» экспертизы — имя из skills[]).
+    CHARACTER_BUILDS.forEach(function(b){
+      if (!b.recommendedChoices) return;
+      t("[lvl-rec] " + b.id, function(){
+        var defs = (typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[b.className]) || [];
+        var problems = [];
+        Object.keys(b.recommendedChoices).forEach(function(choiceId){
+          var choice = defs.filter(function(c){ return c.id === choiceId; })[0];
+          if (!choice) { problems.push("choiceId «" + choiceId + "» ∉ CLASS_CHOICES[" + b.className + "]"); return; }
+          var raw = b.recommendedChoices[choiceId];
+          var recIds = Array.isArray(raw) ? raw : [raw];
+          recIds.forEach(function(optId){
+            var valid;
+            if (choice.pool === "skills") {
+              valid = (typeof skills !== "undefined") && skills.some(function(s){ return s.name === optId; });
+            } else {
+              valid = (choice.options || []).indexOf(optId) !== -1;
+            }
+            if (!valid) problems.push("опция «" + optId + "» ∉ «" + choiceId + "»");
+          });
+        });
+        return problems.length === 0 || problems.join("; ");
+      });
+    });
+
+    // A3: заклинания.
+    t("[lvl-spells] SPELL_DATABASE загружена", function(){
+      if (typeof SPELL_DATABASE === "undefined" || !Array.isArray(SPELL_DATABASE)) return "SPELL_DATABASE не определена";
+      return SPELL_DATABASE.length > 100 || ("ожидал >100 заклинаний, получено " + SPELL_DATABASE.length);
+    });
+
+    t("[lvl-spells] явный spellsAdd резолвится в SPELL_DATABASE", function(){
+      if (typeof window.resolveSpellByName !== "function") return "resolveSpellByName недоступна";
+      var bad = [];
+      CHARACTER_BUILDS.forEach(function(b){
+        if (!b.levelUp) return;
+        Object.keys(b.levelUp).forEach(function(lv){
+          var add = b.levelUp[lv] && b.levelUp[lv].spellsAdd;
+          if (!add) return;
+          ["cantrips","known","prepared"].forEach(function(k){
+            (add[k] || []).forEach(function(n){
+              if (!window.resolveSpellByName(n)) bad.push(b.id + " L" + lv + ": «" + n + "»");
+            });
+          });
+        });
+      });
+      return bad.length === 0 || ("не резолвятся: " + bad.join("; "));
+    });
+
+    t("[lvl-spells] рекомендованные заклинания — валидные объекты SPELL_DATABASE без дублей", function(){
+      if (typeof getBuildRecSpellObjs !== "function") return "getBuildRecSpellObjs недоступна";
+      var total = 0, bad = [];
+      CHARACTER_BUILDS.forEach(function(b){
+        for (var lv = 1; lv <= 20; lv++) {
+          var objs = getBuildRecSpellObjs(b, lv) || [];
+          var seen = {};
+          objs.forEach(function(sp){
+            total++;
+            if (!sp || SPELL_DATABASE.indexOf(sp) === -1) { bad.push(b.id + " L" + lv + ": не из SPELL_DATABASE"); return; }
+            var key = (sp.id != null) ? sp.id : sp.name;
+            if (seen[key]) bad.push(b.id + " L" + lv + ": дубль «" + sp.name + "»");
+            seen[key] = 1;
+          });
+        }
+      });
+      if (bad.length) return bad.slice(0, 5).join("; ");
+      return total > 0 || "ни одного рекоменд. заклинания не резолвилось (парсер/БД сломаны?)";
+    });
+
+    // C: guided level-up на мультиклассе — экран выборов строится по per-class level (clvl), а не по общему.
+    // Прямой вызов luBuildChoicesScreen с контекстом «повышен второй класс» (Колдун 1→2 у Воин5/Колдун).
+    t("[lvl-mc] guided-экран: блоки повышаемого класса по clvl (а не общему уровню)", function(){
+      if (typeof luBuildChoicesScreen !== "function") return true; // app-hp не загружен (минимальный runner)
+      if (!document.getElementById("lu-choices-body")) return true; // нет DOM модалки повышения (минимальный браузерный runner; покрыто node-стабом)
+      var savedChars = window.characters, savedId = window.currentId;
+      var savedCtx = (typeof _luChoicesCtx !== "undefined") ? _luChoicesCtx : null;
+      try {
+        window.characters = [{
+          id: "test-mc-1", buildId: "warlock-fiend-blaster",
+          class: "Колдун", subclass: "Договор с исчадием",
+          classes: [
+            { class: "Воин",   level: 5, subclass: "Чемпион" },
+            { class: "Колдун", level: 2, subclass: "Договор с исчадием" }
+          ],
+          level: 7,
+          stats: { str:10, dex:14, con:14, int:8, wis:10, cha:16 },
+          combat: {}, saves: {}, skills: {}, classChoices: {}, asiUsedLevels: [],
+          feats: [], spells: { stat:"ХАР", slots:{}, slotsUsed:{}, mySpells:[] }
+        }];
+        window.currentId = "test-mc-1";
+        // Контекст как после повышения второго класса (Колдун до 2): clvl=2, а общий уровень=7.
+        _luChoicesCtx = { newTotalLevel: 7, className: "Колдун", classLevel: 2,
+                          subclassName: "Договор с исчадием", isNewClass: false, resultLines: [] };
+        var hasChoices = luBuildChoicesScreen();
+        var html = document.getElementById("lu-choices-body").innerHTML || "";
+        if (!hasChoices) return "luBuildChoicesScreen вернул false (нет блоков)";
+        if (html.indexOf("Таинственные воззвания") === -1) return "нет «Таинственные воззвания» (воззвания колдуна открыты на clvl 2)";
+        if (html.indexOf("Стиль боя") !== -1) return "просочился «Стиль боя» воина (блоки не ограничены повышаемым классом)";
+        if (html.indexOf("Пактный дар") !== -1) return "просочился «Пактный дар» (открыт на clvl 3, а повышаем до 2 → не использован clvl)";
+        return true;
+      } finally {
+        window.characters = savedChars; window.currentId = savedId;
+        if (typeof _luChoicesCtx !== "undefined") _luChoicesCtx = savedCtx;
+      }
+    });
+
+    // C2: интеграция — confirmLevelUp при повышении второго класса ставит _luChoicesCtx по этому классу и его clvl.
+    t("[lvl-mc] confirmLevelUp: ctx по повышаемому классу (className/classLevel/newTotalLevel)", function(){
+      if (typeof confirmLevelUp !== "function") return true; // app-hp не загружен
+      if (!document.getElementById("lu-screen-multiclass")) return true; // нет DOM экранов повышения (минимальный браузерный runner; покрыто node-стабом)
+      var savedChars = window.characters, savedId = window.currentId;
+      var savedCtx = (typeof _luChoicesCtx !== "undefined") ? _luChoicesCtx : null;
+      var savedMC = (typeof _luMulticlassChoice !== "undefined") ? _luMulticlassChoice : null;
+      // Изолируем логику выбора класса/ctx от полного ре-рендера листа: loadCharacter и
+      // updateClassFeatures читают всю модель (coins/inventory/<select>) — для проверки ctx не нужны.
+      var realLoad = window.loadCharacter, realUCF = window.updateClassFeatures;
+      window.loadCharacter = function(){}; window.updateClassFeatures = function(){};
+      try {
+        window.characters = [{
+          id: "test-mc-2", buildId: "warlock-fiend-blaster",
+          class: "Воин", subclass: "Чемпион",
+          classes: [
+            { class: "Воин",   level: 5, subclass: "Чемпион",           hitDie: 10 },
+            { class: "Колдун", level: 1, subclass: "Договор с исчадием", hitDie: 8 }
+          ],
+          level: 6,
+          stats: { str:16, dex:12, con:14, int:8, wis:10, cha:14 },
+          combat: { hpMax: 48, hpCurrent: 48, hpDice: "мульти", hpDiceSpent: 0 },
+          saves: {}, skills: {}, classChoices: {}, asiUsedLevels: [], feats: [],
+          proficiencies: { armor: [], weapon: [], languages: [] },
+          spells: { stat:"ХАР", slots:{}, slotsUsed:{}, mySpells:[], prepared:[] }
+        }];
+        window.currentId = "test-mc-2";
+        // Повышаем именно второй класс (Колдун, индекс 1) — существующий, не новый.
+        _luMulticlassChoice = { isNew: false, classIndex: 1 };
+        confirmLevelUp();
+        var ch = window.characters[0];
+        if (ch.classes[1].level !== 2) return "Колдун.level: ожидал 2, получено " + ch.classes[1].level;
+        if (ch.classes[0].level !== 5) return "Воин.level не должен меняться (получено " + ch.classes[0].level + ")";
+        if (typeof _luChoicesCtx === "undefined" || !_luChoicesCtx) return "_luChoicesCtx не установлен";
+        if (_luChoicesCtx.className !== "Колдун") return "ctx.className: ожидал «Колдун», получено «" + _luChoicesCtx.className + "»";
+        if (_luChoicesCtx.classLevel !== 2) return "ctx.classLevel: ожидал 2 (clvl), получено " + _luChoicesCtx.classLevel;
+        if (_luChoicesCtx.newTotalLevel !== 7) return "ctx.newTotalLevel: ожидал 7, получено " + _luChoicesCtx.newTotalLevel;
+        return true;
+      } finally {
+        window.characters = savedChars; window.currentId = savedId;
+        window.loadCharacter = realLoad; window.updateClassFeatures = realUCF;
+        if (typeof _luChoicesCtx !== "undefined") _luChoicesCtx = savedCtx;
+        if (typeof _luMulticlassChoice !== "undefined") _luMulticlassChoice = savedMC;
+      }
+    });
+  }
 
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};

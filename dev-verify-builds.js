@@ -335,10 +335,121 @@
     return out;
   }
 
+  // ════════════════════════════════════════════════════════════════════════
+  // BUILD-LVL-7: симуляция авто-левелинга 1→20 + инварианты прогрессии.
+  //   simulateBuildLevelUp("fighter-champion-gwm") — один билд
+  //   simulateAllBuilds()                          — таблица всех 36
+  // Симуляция ДАННЫХ (не мутирует персонажа/DOM): идём по плану билда 1→20,
+  // накапливая ASI (cap 20), черты и заклинания через те же хелперы, что и guided
+  // level-up (getBuildRecAsi/getBuildRecFeat/getBuildRecSpellObjs). Инварианты:
+  //   • статы ≤20 и ни одна ASI не «потрачена впустую» (стат уже 20 перед бампом);
+  //   • рост HP монотонный (прибавка за уровень ≥1, средние PHB + мод ВЫН);
+  //   • слоты заклинаний (касторы) монотонно не убывают 1→20;
+  //   • нет повторных черт; нет повторных заклинаний.
+  // NB: расовые бонусы applyBuild здесь не моделируются — старт со статов билда
+  // (консервативно: ловит только заведомые ошибки «бамп уже максимального стата»).
+  // ════════════════════════════════════════════════════════════════════════
+  function _hpStep(hd) { return Math.floor(hd / 2) + 1; } // средняя прибавка ХП за уровень (PHB)
+
+  function simulateBuildLevelUp(buildId) {
+    var b = window.getBuildById && window.getBuildById(buildId);
+    if (!b) return { buildId: buildId, error: "build not found" };
+    var cls = b.className;
+    var hd = CLASS_HD[cls] || 8;
+    var char = { buildId: b.id, class: cls };
+    var asiLevels = _asiLevelsCF(cls) || _asiLevelsPHB(cls);
+    var checks = [];
+
+    var stats = {};
+    Object.keys(b.stats || {}).forEach(function(k){ stats[k] = b.stats[k]; });
+
+    var feats = {};        // featId → счётчик
+    var spells = {};       // ключ заклинания → счётчик
+    var wastedAsi = [];    // уровни холостого бампа (стат уже 20)
+    var overCap = [];      // статы > 20 (с cap не должно случаться)
+    var hpPrev = null, hpDrops = [], hpSeq = [];
+
+    for (var lv = 1; lv <= 20; lv++) {
+      if (asiLevels.indexOf(lv) >= 0) {
+        var asi = (typeof getBuildRecAsi === "function") ? getBuildRecAsi(char, lv) : null;
+        var feat = (typeof getBuildRecFeat === "function") ? getBuildRecFeat(char, lv) : null;
+        if (asi) {
+          Object.keys(asi).forEach(function(k){
+            var before = (stats[k] == null ? 10 : stats[k]);
+            if (before >= 20) wastedAsi.push("L" + lv + ":" + k);
+            stats[k] = Math.min(20, before + asi[k]); // cap 20 как в игре
+          });
+        } else if (feat) {
+          feats[feat] = (feats[feat] || 0) + 1;
+        }
+      }
+      if (typeof getBuildRecSpellObjs === "function") {
+        getBuildRecSpellObjs(b, lv).forEach(function(sp){
+          var key = (sp.id != null) ? sp.id : sp.name;
+          spells[key] = (spells[key] || 0) + 1;
+        });
+      }
+      var conMod = Math.floor(((stats.con || 10) - 10) / 2);
+      var hpNow = (lv === 1) ? (hd + conMod) : (hpPrev + _hpStep(hd) + conMod);
+      if (hpPrev !== null && hpNow <= hpPrev) hpDrops.push("L" + lv);
+      hpSeq.push(hpNow);
+      hpPrev = hpNow;
+    }
+
+    Object.keys(stats).forEach(function(k){ if (stats[k] > 20) overCap.push(k + "=" + stats[k]); });
+    checks.push(_check("статы ≤20", overCap.length === 0, overCap.join(",") || "ok", "≤20"));
+    checks.push(_check("нет холостых ASI (стат уже 20)", wastedAsi.length === 0, wastedAsi.join(",") || "нет", "нет"));
+    checks.push(_check("HP растёт 1→20", hpDrops.length === 0,
+      hpDrops.length ? "не растёт на: " + hpDrops.join(",") : (hpSeq[0] + "→" + hpSeq[19]), "монотонно"));
+
+    if (SPELL_SLOTS_BY_LEVEL[cls]) {
+      var slotDrops = [], prevTotal = -1;
+      for (var sl = 1; sl <= 20; sl++) {
+        var row = SPELL_SLOTS_BY_LEVEL[cls][sl];
+        if (!row) { if (prevTotal > 0) slotDrops.push("L" + sl + ":нет строки"); continue; }
+        var total = 0; for (var z = 1; z < row.length; z++) total += row[z];
+        if (total < prevTotal) slotDrops.push("L" + sl);
+        prevTotal = total;
+      }
+      checks.push(_check("слоты не убывают 1→20", slotDrops.length === 0, slotDrops.join(",") || "ok", "не убывают"));
+    }
+
+    var dupFeats = Object.keys(feats).filter(function(f){ return feats[f] > 1; });
+    var dupSpells = Object.keys(spells).filter(function(s){ return spells[s] > 1; });
+    checks.push(_check("нет повторных черт", dupFeats.length === 0, dupFeats.join(",") || "нет", "нет"));
+    checks.push(_check("нет повторных заклинаний", dupSpells.length === 0, dupSpells.join(",") || "нет", "нет"));
+
+    var failed = checks.filter(function(c){ return !c.ok; });
+    return {
+      buildId: buildId, title: b.title, className: cls,
+      finalStats: stats, feats: Object.keys(feats), spellCount: Object.keys(spells).length,
+      hp: { l1: hpSeq[0], l20: hpSeq[19] },
+      passed: checks.length - failed.length, total: checks.length, failed: failed
+    };
+  }
+
+  function simulateAllBuilds() {
+    var ids = (window.CHARACTER_BUILDS || []).map(function(b){ return b.id; });
+    var results = ids.map(simulateBuildLevelUp);
+    var ok = results.filter(function(r){ return !r.error && (r.failed||[]).length === 0; });
+    var withErr = results.filter(function(r){ return !!r.error; });
+    var withFail = results.filter(function(r){ return !r.error && (r.failed||[]).length > 0; });
+    var failTable = withFail.map(function(r){
+      return { id: r.buildId, cls: r.className, score: r.passed + "/" + r.total,
+        fails: r.failed.map(function(f){ return f.field + ": " + JSON.stringify(f.value) + " (ожид. " + JSON.stringify(f.expected) + ")"; }) };
+    });
+    return {
+      summary: { total: results.length, fullPass: ok.length, withFailures: withFail.length, withErrors: withErr.length },
+      failTable: failTable, errors: withErr, fullResults: results
+    };
+  }
+
   window.verifyBuild = verifyBuild;
   window.verifyAllBuilds = verifyAllBuilds;
   window.verifyLevelUpData = verifyLevelUpData;
   window.verifyAllLevelUpData = verifyAllLevelUpData;
   window.verifyClassFeaturesIntegrity = verifyClassFeaturesIntegrity;
-  console.log("[dev-verify-builds] loaded. Try: verifyAllBuilds() (1 ур.) или verifyAllLevelUpData() (план 1–20)");
+  window.simulateBuildLevelUp = simulateBuildLevelUp;
+  window.simulateAllBuilds = simulateAllBuilds;
+  console.log("[dev-verify-builds] loaded. Try: verifyAllBuilds() (1 ур.), verifyAllLevelUpData() (план 1–20) или simulateAllBuilds() (симуляция 1→20)");
 })();
