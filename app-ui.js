@@ -291,6 +291,8 @@ function rollDiceWithSelectedMode(sides) {
   rollDice(sides, mode === 'normal' ? undefined : mode);
 }
 function rollDice(sides, mode) {
+var _logId = (window.AppLog ? AppLog.newId('roll') : null);
+if (window.AppLog) AppLog.action('dice', 'бросок d' + sides + (mode ? ' (' + mode + ')' : '') + ' — старт', { sides: sides, mode: mode || 'normal' }, _logId);
 let r1 = Math.floor(Math.random() * sides) + 1;
 let r2 = (mode === 'adv' || mode === 'dis') ? Math.floor(Math.random() * sides) + 1 : null;
 let result, resultLabel;
@@ -335,6 +337,7 @@ animateDice3d(sides, result, function(v1, v2) {
     showDualDice({ mode: mode || 'normal', roll: result, r1: r1, r2: r2 });
   }
   if (resultBig) resultBig.textContent = result;
+  if (window.AppLog) AppLog.action('dice', 'результат d' + sides + ' показан: ' + result, { result: result, r1: r1, r2: r2, mode: mode || 'normal' }, _logId);
   if (resultBox) {
     resultBox.classList.remove("crit-success","crit-fail","normal");
     if (sides === 20 && result === 20) {

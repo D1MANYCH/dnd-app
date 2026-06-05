@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v149">
+<link rel="stylesheet" href="style.css?v=v150">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -101,6 +101,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <button class="drawer-item" onclick="switchTab('notes',null);closeDrawer()" data-drawer-tab="notes"><span>📝</span>Записи</button>
     <button class="drawer-item" onclick="switchTab('party',null);closeDrawer()" data-drawer-tab="party"><span>🌍</span>Мир</button>
     <button class="drawer-item" onclick="switchTab('journal',null);closeDrawer()" data-drawer-tab="journal"><span>📖</span>Журнал</button>
+    <button class="drawer-item" onclick="AppLog.openPanel();closeDrawer()" title="Журнал действий сессии (Ctrl+Shift+L)"><span>🪵</span>Логи сессии</button>
   </nav>
   <div class="drawer-settings-row">
     <button type="button" class="drawer-settings-btn" onclick="openSettingsModal()" title="Тема, акцент, плотность, масштаб">
@@ -2220,37 +2221,62 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
-<script src="bg-orbits.js?v=v149"></script>
-<script src="dice-arena-bg.js?v=v149"></script>
-<script src="data.js?v=v149"></script>
-<script src="build-notes-data.js?v=v149"></script>
-<script src="character-builds.js?v=v149"></script>
-<script src="spells.js?v=v149"></script>
-<script src="app-core.js?v=v149"></script>
-<script src="app-combat.js?v=v149"></script>
-<script src="app-hp.js?v=v149"></script>
-<script src="app-spells.js?v=v149"></script>
-<script src="app-inventory.js?v=v149"></script>
+<!-- FEAT-LOG: панель журнала сессии (Ctrl+Shift+L / дровер → «Логи сессии») -->
+<div id="app-log-panel" class="app-log-panel" hidden>
+  <div class="app-log-header">
+    <span class="app-log-title">🪵 Журнал сессии <span id="app-log-count" class="app-log-count">0</span></span>
+    <button id="app-log-close" class="app-log-x" type="button" aria-label="Закрыть">✕</button>
+  </div>
+  <div class="app-log-toolbar">
+    <input id="app-log-filter" class="app-log-filter" type="text" placeholder="🔍 фильтр: категория / текст / ID">
+    <select id="app-log-level" class="app-log-level">
+      <option value="">все уровни</option>
+      <option value="action">action</option>
+      <option value="info">info</option>
+      <option value="warn">warn</option>
+      <option value="error">error</option>
+      <option value="debug">debug</option>
+    </select>
+    <button id="app-log-copy" class="app-log-btn" type="button">Скопировать всё</button>
+    <button id="app-log-download" class="app-log-btn" type="button">Скачать</button>
+    <button id="app-log-prev" class="app-log-btn" type="button" title="Показать прошлую сессию из localStorage">Прошлая</button>
+    <button id="app-log-clear" class="app-log-btn app-log-btn-danger" type="button">Очистить</button>
+  </div>
+  <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
+</div>
+
+<script src="app-log.js?v=v150"></script>
+<script src="bg-orbits.js?v=v150"></script>
+<script src="dice-arena-bg.js?v=v150"></script>
+<script src="data.js?v=v150"></script>
+<script src="build-notes-data.js?v=v150"></script>
+<script src="character-builds.js?v=v150"></script>
+<script src="spells.js?v=v150"></script>
+<script src="app-core.js?v=v150"></script>
+<script src="app-combat.js?v=v150"></script>
+<script src="app-hp.js?v=v150"></script>
+<script src="app-spells.js?v=v150"></script>
+<script src="app-inventory.js?v=v150"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC (подключаются до app-party.js) -->
-<script src="monsters-srd.js?v=v149"></script>
-<script src="npc-srd.js?v=v149"></script>
-<script src="app-party.js?v=v149"></script>
-<script src="class-choices.js?v=v149"></script>
-<script src="subclass-choices-data.js?v=v149"></script>
+<script src="monsters-srd.js?v=v150"></script>
+<script src="npc-srd.js?v=v150"></script>
+<script src="app-party.js?v=v150"></script>
+<script src="class-choices.js?v=v150"></script>
+<script src="subclass-choices-data.js?v=v150"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v149";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v150";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v149"></script>
-<script src="app-notes.js?v=v149"></script>
-<script src="app-desktop.js?v=v149"></script>
-<script src="history-stack.js?v=v149"></script>
+<script src="app-ui.js?v=v150"></script>
+<script src="app-notes.js?v=v150"></script>
+<script src="app-desktop.js?v=v150"></script>
+<script src="history-stack.js?v=v150"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы) -->
-<script src="vendor/jspdf/jspdf.umd.min.js?v=v149"></script>
-<script src="vendor/jspdf/roboto-base64.js?v=v149"></script>
-<script src="app-pdf.js?v=v149"></script>
+<script src="vendor/jspdf/jspdf.umd.min.js?v=v150"></script>
+<script src="vendor/jspdf/roboto-base64.js?v=v150"></script>
+<script src="app-pdf.js?v=v150"></script>
 
 <!-- ══ Модалка записи (N4) ══════════════════════════════════════ -->
 <div id="notes-entry-modal" class="notes-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="nem-heading" onclick="if(event.target===this)notesCloseEntryModal()">

@@ -505,6 +505,7 @@ if (subtitleEl && char) {
 }
 }
 function switchTab(tabName, btnEl) {
+  if (window.AppLog) AppLog.action('nav', 'вкладка → ' + tabName);
   // UI-6: тактильная отдача при переключении вкладок
   try { if (navigator.vibrate) navigator.vibrate(10); } catch(e) { window.__catchLog && window.__catchLog('core:switchTab-vibrate', e); }
   document.querySelectorAll(".tab-content").forEach(function(tab) { tab.classList.remove("active"); });
@@ -2122,6 +2123,7 @@ if (el) el.checked = checked;
 // 🔧 ИСПРАВЛЕНИЕ: Подкласс сохраняется + hpCurrent как число
 // ============================================
 function loadCharacter(id) {
+if (window.AppLog) AppLog.action('character', 'загрузка персонажа', { id: id });
 // BUGFIX-8: чистим pending-таймеры из других модулей, чтобы они не «дострелили»
 // в контексте нового персонажа (notes-поиск, индикатор сохранения, ритуал).
 try {
