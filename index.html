@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v150">
+<link rel="stylesheet" href="style.css?v=v151">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -286,10 +286,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <span class="sheet-avatar-hint">Сменить</span>
   </div>
   <div class="sheet-top-fields">
-    <div class="col" style="margin-bottom:10px;"><label>Имя</label><div class="name-input-row"><input type="text" id="char-name" oninput="updateChar(); updateLockButtonState()"><button type="button" class="icon-btn name-roll-btn" onclick="rollRandomName()" title="Случайное имя по расе" aria-label="Сгенерировать случайное имя по расе">🎲</button></div></div>
+    <div class="col"><label>Имя</label><div class="name-input-row"><input type="text" id="char-name" class="field" oninput="updateChar(); updateLockButtonState()"><button type="button" class="icon-btn name-roll-btn" onclick="rollRandomName()" title="Случайное имя по расе" aria-label="Сгенерировать случайное имя по расе">🎲</button></div></div>
     <div class="sheet-top-small-row">
-      <div class="sheet-small-field"><label>Уровень</label><input type="number" id="char-level" min="1" max="20" oninput="calcStats(); updateSubclassOptions(); updateClassFeatures(); updateLockButtonState()"></div>
-      <div class="sheet-small-field"><label>Опыт</label><input type="number" id="char-exp" value="0" oninput="updateChar()"></div>
+      <div class="sheet-small-field"><label>Уровень</label><input type="number" id="char-level" class="field" min="1" max="20" oninput="calcStats(); updateSubclassOptions(); updateClassFeatures(); updateLockButtonState()"></div>
+      <div class="sheet-small-field"><label>Опыт</label><input type="number" id="char-exp" class="field" value="0" oninput="updateChar()"></div>
     </div>
     <div id="char-build-badge-wrap" class="char-build-badge-wrap" style="display:none">
       <button type="button" id="char-build-badge" class="char-build-badge" onclick="openBuildGuide()" title="Открыть гайд по билду" aria-label="Открыть гайд по билду"></button>
@@ -303,7 +303,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="row">
 <div class="col">
 <label>Класс</label>
-<select id="char-class" onchange="updateChar(); updateSubclassOptions(); recalculateHP(); autoSelectProficiencies(); updateClassFeatures(); calculateAC(); updateLockButtonState(); if (typeof _refreshAccent==='function') _refreshAccent()">
+<select id="char-class" class="field" onchange="updateChar(); updateSubclassOptions(); recalculateHP(); autoSelectProficiencies(); updateClassFeatures(); calculateAC(); updateLockButtonState(); if (typeof _refreshAccent==='function') _refreshAccent()">
 <option value="">Выберите класс</option>
 <option value="Волшебник">Волшебник</option>
 <option value="Чародей">Чародей</option>
@@ -321,7 +321,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="col">
 <label>Подкласс</label>
-<select id="char-subclass" onchange="updateChar(); updateClassFeatures(); updateLockButtonState(); if(typeof updateSubclassRecHint==='function') updateSubclassRecHint(); if(typeof renderLanguages==='function') renderLanguages(); if(typeof renderTools==='function') renderTools(); if(typeof renderArmorProf==='function') renderArmorProf(); if(typeof renderWeaponProf==='function') renderWeaponProf(); if(typeof calculateAC==='function') calculateAC()">
+<select id="char-subclass" class="field" onchange="updateChar(); updateClassFeatures(); updateLockButtonState(); if(typeof updateSubclassRecHint==='function') updateSubclassRecHint(); if(typeof renderLanguages==='function') renderLanguages(); if(typeof renderTools==='function') renderTools(); if(typeof renderArmorProf==='function') renderArmorProf(); if(typeof renderWeaponProf==='function') renderWeaponProf(); if(typeof calculateAC==='function') calculateAC()">
 <option value="">Сначала выберите класс</option>
 </select>
 <div id="char-subclass-rec" class="subclass-rec-hint" style="display:none"></div>
@@ -330,7 +330,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="row">
 <div class="col">
 <label>Раса/Вид</label>
-<select id="char-race" onchange="updateChar(); onRaceChange(); updateLockButtonState()">
+<select id="char-race" class="field" onchange="updateChar(); onRaceChange(); updateLockButtonState()">
 <option value="">Выберите расу</option>
 <optgroup label="👤 Человек">
 <option value="Человек">Человек (+1 ко всем)</option>
@@ -368,7 +368,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="col">
 <label>Предыстория</label>
-<select id="char-background" onchange="updateChar(); onBackgroundChange(); updateLockButtonState()">
+<select id="char-background" class="field" onchange="updateChar(); onBackgroundChange(); updateLockButtonState()">
 <option value="">Выберите предысторию</option>
 <option value="Прислужник">Прислужник</option>
 <option value="Бродяга">Бродяга</option>
@@ -394,7 +394,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="row">
 <div class="col">
 <label>Мировоззрение</label>
-<select id="char-alignment" onchange="updateChar()">
+<select id="char-alignment" class="field" onchange="updateChar()">
 <option value="">Выберите</option>
 <option value="Законно-доброе">Законно-доброе</option>
 <option value="Нейтрально-доброе">Нейтрально-доброе</option>
@@ -409,13 +409,13 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="col">
 <label>Размер</label>
-<select id="char-size" onchange="updateChar()">
+<select id="char-size" class="field" onchange="updateChar()">
 <option value="Маленький">Маленький</option>
 <option value="Средний" selected>Средний</option>
 <option value="Большой">Большой</option>
 </select>
 </div>
-<div class="col"><label>Скорость</label><input type="text" id="char-speed" value="30 фт" oninput="updateChar()"></div>
+<div class="col"><label>Скорость</label><input type="text" id="char-speed" class="field" value="30 фт" oninput="updateChar()"></div>
 </div>
 
 </div>
@@ -517,7 +517,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="armor-select-row">
 <div class="armor-select-left">
 <label>🛡️ Броня</label>
-<select id="char-armor" onchange="updateChar(); onArmorChange()">
+<select id="char-armor" class="field" onchange="updateChar(); onArmorChange()">
 <option value="none">👤 Без доспехов</option>
 <option value="padded">🧥 Стёганый (КД 11)</option>
 <option value="leather">🥋 Кожаный (КД 11)</option>
@@ -538,9 +538,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <div class="row">
-<div class="col"><label>КД (AC)</label><input type="number" id="combat-ac" oninput="onManualAC()" style="color: var(--armor-color); font-weight: bold;"></div>
-<div class="col"><label>Инициатива</label><input type="text" id="combat-init" readonly></div>
-<div class="col"><label>Скорость</label><input type="text" id="combat-speed" value="30 фт" oninput="updateChar()"></div>
+<div class="col"><label>КД (AC)</label><input type="number" id="combat-ac" class="field" oninput="onManualAC()" style="color: var(--armor-color); font-weight: bold;"></div>
+<div class="col"><label>Инициатива</label><input type="text" id="combat-init" class="field" readonly></div>
+<div class="col"><label>Скорость</label><input type="text" id="combat-speed" class="field" value="30 фт" oninput="updateChar()"></div>
 </div>
 
 <!-- Дисплей HP + полоска -->
@@ -2245,38 +2245,38 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v150"></script>
-<script src="bg-orbits.js?v=v150"></script>
-<script src="dice-arena-bg.js?v=v150"></script>
-<script src="data.js?v=v150"></script>
-<script src="build-notes-data.js?v=v150"></script>
-<script src="character-builds.js?v=v150"></script>
-<script src="spells.js?v=v150"></script>
-<script src="app-core.js?v=v150"></script>
-<script src="app-combat.js?v=v150"></script>
-<script src="app-hp.js?v=v150"></script>
-<script src="app-spells.js?v=v150"></script>
-<script src="app-inventory.js?v=v150"></script>
+<script src="app-log.js?v=v151"></script>
+<script src="bg-orbits.js?v=v151"></script>
+<script src="dice-arena-bg.js?v=v151"></script>
+<script src="data.js?v=v151"></script>
+<script src="build-notes-data.js?v=v151"></script>
+<script src="character-builds.js?v=v151"></script>
+<script src="spells.js?v=v151"></script>
+<script src="app-core.js?v=v151"></script>
+<script src="app-combat.js?v=v151"></script>
+<script src="app-hp.js?v=v151"></script>
+<script src="app-spells.js?v=v151"></script>
+<script src="app-inventory.js?v=v151"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC (подключаются до app-party.js) -->
-<script src="monsters-srd.js?v=v150"></script>
-<script src="npc-srd.js?v=v150"></script>
-<script src="app-party.js?v=v150"></script>
-<script src="class-choices.js?v=v150"></script>
-<script src="subclass-choices-data.js?v=v150"></script>
+<script src="monsters-srd.js?v=v151"></script>
+<script src="npc-srd.js?v=v151"></script>
+<script src="app-party.js?v=v151"></script>
+<script src="class-choices.js?v=v151"></script>
+<script src="subclass-choices-data.js?v=v151"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v150";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v151";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v150"></script>
-<script src="app-notes.js?v=v150"></script>
-<script src="app-desktop.js?v=v150"></script>
-<script src="history-stack.js?v=v150"></script>
+<script src="app-ui.js?v=v151"></script>
+<script src="app-notes.js?v=v151"></script>
+<script src="app-desktop.js?v=v151"></script>
+<script src="history-stack.js?v=v151"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы) -->
-<script src="vendor/jspdf/jspdf.umd.min.js?v=v150"></script>
-<script src="vendor/jspdf/roboto-base64.js?v=v150"></script>
-<script src="app-pdf.js?v=v150"></script>
+<script src="vendor/jspdf/jspdf.umd.min.js?v=v151"></script>
+<script src="vendor/jspdf/roboto-base64.js?v=v151"></script>
+<script src="app-pdf.js?v=v151"></script>
 
 <!-- ══ Модалка записи (N4) ══════════════════════════════════════ -->
 <div id="notes-entry-modal" class="notes-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="nem-heading" onclick="if(event.target===this)notesCloseEntryModal()">
