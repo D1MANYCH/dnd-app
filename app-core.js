@@ -528,6 +528,8 @@ function switchTab(tabName, btnEl) {
   if (tabName === "battle")  { openBattleTab(); }
   if (tabName === "journal") { renderJournal(); }
   if (tabName === "notes")   { if (typeof renderNotes === "function") renderNotes(); }
+  // FB-2: лист стал видимым → пересчитать line-clamp-детект состояний (scrollHeight теперь валиден)
+  if (tabName === "sheet")   { if (typeof detectConditionOverflow === "function") setTimeout(detectConditionOverflow, 50); }
 }
 
 function openDrawer() {
@@ -2074,7 +2076,7 @@ showConfirmModal(
   }
 );
 }
-function showConfirmModal(title, text, onConfirm) {
+function showConfirmModal(title, text, onConfirm, confirmLabel, opts) {
 var modal = $("confirm-modal");
 var titleEl = $("confirm-modal-title");
 var textEl = $("confirm-modal-text");
@@ -2083,8 +2085,16 @@ var cancelBtn = $("confirm-modal-cancel");
 if (!modal || !confirmBtn || !cancelBtn) return;
 if (titleEl) titleEl.textContent = title;
 if (textEl) textEl.textContent = text;
+// Модалка общая с удалениями: по умолчанию деструктивный «🗑️ Удалить».
+// Иконку и стиль OK-кнопки сбрасываем на каждый показ, чтобы не-деструктивные
+// вызовы (4-й арг confirmLabel + opts.danger/icon, напр. FB-1 «Разблокировать»)
+// не «протекали» в последующие.
+var iconEl = modal.querySelector(".confirm-modal-icon");
+if (iconEl) iconEl.textContent = (opts && opts.icon) || "🗑️";
 modal.classList.add("active");
 var newConfirm = confirmBtn.cloneNode(true);
+newConfirm.textContent = confirmLabel || "Удалить";
+newConfirm.classList.toggle("confirm-btn-ok--safe", !!(opts && opts.danger === false));
 confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
 var newCancel = cancelBtn.cloneNode(true);
 cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);

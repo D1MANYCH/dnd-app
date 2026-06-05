@@ -244,9 +244,9 @@ const row = document.createElement("div");
 row.className = "skill-row-compact";
 row.innerHTML =
   '<input type="checkbox" id="skill-prof-' + index + '" class="skill-cb" onchange="calcStats(); updateSkillProfCount()">' +
-  '<button type="button" class="skill-expertise-btn" id="skill-exp-' + index + '" title="Экспертиза (×2 бонус)" onclick="toggleExpertise(' + index + ')">E</button>' +
   '<label for="skill-prof-' + index + '" class="skill-name-compact">' + escapeHtml(skill.name) + '</label>' +
   '<span class="skill-stat-compact">' + escapeHtml(skill.stat.toUpperCase().slice(0,3)) + '</span>' +
+  '<button type="button" class="skill-expertise-btn" id="skill-exp-' + index + '" title="Экспертиза (×2 бонус)" onclick="toggleExpertise(' + index + ')">E</button>' +
   '<button type="button" class="skill-bonus-compact skill-bonus-clickable" id="skill-bonus-' + index + '" onclick="rollSkillCheck(' + index + ')" title="Бросить проверку навыка">+0</button>';
 container.appendChild(row);
 });
@@ -521,15 +521,40 @@ function renderConditionsGrid() {
     item.className = "condition-item" + (condition.type ? " " + condition.type : "") + (isActive ? " active" : "");
     item.id = "condition-" + condition.id;
     item.onclick = function() { toggleCondition(condition.id); };
-    item.innerHTML = getConditionIcon(condition.id) + "<div class=\"condition-name\"><span>" + escapeHtml(stripLeadingEmoji(condition.name)) + "</span></div><div class=\"condition-desc\">" + escapeHtml(condition.desc) + "</div>";
+    item.innerHTML = getConditionIcon(condition.id) + "<div class=\"condition-name\"><span>" + escapeHtml(stripLeadingEmoji(condition.name)) + "</span></div><div class=\"condition-desc\">" + escapeHtml(condition.desc) + "</div><button type=\"button\" class=\"condition-expand\" onclick=\"toggleConditionDesc(event,this)\">Подробнее</button>";
     grid.appendChild(item);
   });
+  // FB-2: «Подробнее» только у карточек с реально обрезанным (line-clamp) описанием.
+  // scrollHeight требует, чтобы секция была не display:none — детект повторяется
+  // при switchTab('sheet') и при раскрытии аккордеона (off-screen карточки меряются нормально).
+  // setTimeout, а не rAF: rAF приостанавливается в фоновой вкладке → детект бы не сработал.
+  setTimeout(detectConditionOverflow, 50);
   if (!any) {
     var empty = document.createElement("div");
     empty.className = "filter-empty";
     empty.textContent = "Ничего не найдено";
     grid.appendChild(empty);
   }
+}
+// FB-2: раскрыть/свернуть длинное описание (stopPropagation — клик по карточке = toggleCondition)
+function toggleConditionDesc(e, btn) {
+  if (e) e.stopPropagation();
+  var item = btn.closest(".condition-item");
+  if (!item) return;
+  var expanded = item.classList.toggle("expanded");
+  btn.textContent = expanded ? "Свернуть" : "Подробнее";
+}
+// FB-2: помечаем .has-more карточки, чьё описание реально обрезано line-clamp.
+// Add-only + пропуск раскрытых (clamp снят → мерить нельзя). scrollHeight валиден и для
+// off-screen карточек — важно лишь чтобы секция была не display:none (видимая вкладка + открытый аккордеон).
+function detectConditionOverflow() {
+  var grid = document.getElementById("conditions-grid");
+  if (!grid) return;
+  grid.querySelectorAll(".condition-item").forEach(function(it) {
+    if (it.classList.contains("expanded")) return;
+    var d = it.querySelector(".condition-desc");
+    if (d && d.scrollHeight - d.clientHeight > 2) it.classList.add("has-more");
+  });
 }
 function initConditions() {
 const grid = $("conditions-grid");
@@ -1872,7 +1897,9 @@ function unlockBasicInfo() {
       applyBasicLockUI();
       renderRaceExtras();
       showToast("🔓 Основа разблокирована", "info");
-    }
+    },
+    "Разблокировать",
+    { danger: false, icon: "🔓" }
   );
 }
 

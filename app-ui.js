@@ -166,6 +166,8 @@ if (modal) {
 }
 // v3.19: обновить бейдж количества записей в истории
 try { _updateDiceHistoryBadge(); } catch (e) {}
+// FB-7: подсказка про file:// — 3D-движок dice-box (ES-модуль) не грузится по файловому протоколу
+try { var _fh = document.getElementById('dice-file-hint'); if (_fh) _fh.hidden = (location.protocol !== 'file:'); } catch (e) {}
 // FIX: DiceBox canvas сохраняет внутренний буфер 300×150 (default) если init
 // произошёл до того как контейнер получил реальный размер.
 // resizeWorld() лишь регистрирует window.resize listener — он сам не ресайзит.
@@ -827,6 +829,11 @@ function _initDiceBox() {
       theme: _getDiceTheme(),
       themeColor: _getDiceThemeColor(),
       scale: 16,
+      // FB-7: физика в ОСНОВНОМ потоке (не OffscreenCanvas-воркер). Дефолтный
+      // offscreen-воркер на части окружений (напр. GitHub Pages) не рапортует
+      // оседание костей → onRollComplete не зовётся → таймаут 10с на КАЖДЫЙ бросок
+      // (видно в логах прода). onscreen-режим (world.onscreen.js) надёжнее.
+      offscreen: false,
       enableShadows: true,
       shadowTransparency: 0.7,
       lightIntensity: 1
@@ -837,6 +844,7 @@ function _initDiceBox() {
     // не имел размера. resizeWorld() регистрирует resize listener — сами
     // триггерим его, чтобы внутренний WebGL-буфер выровнялся под container.
     try { window.dispatchEvent(new Event('resize')); } catch (e) {}
+    try { console.log('[DiceBox] init OK', { buf: (box.canvas ? box.canvas.width + 'x' + box.canvas.height : 'none'), css: (box.canvas ? box.canvas.clientWidth + 'x' + box.canvas.clientHeight : 'none'), theme: _getDiceTheme() }); } catch (e) {}
     // Обработчик потери WebGL-контекста: типичная причина «после N бросков 3D
     // ломается» — драйвер/браузер дропают контекст. Помечаем инстанс на
     // пересоздание, следующий _initDiceBox() поднимет чистый.
@@ -915,6 +923,9 @@ function animateDice3d(sides, result, callback, opts) {
     }
     // UI всё равно получает результат: precomputed `result` для одиночного броска,
     // для adv/dis пробрасываем undefined — rollDice() оставит свои r1/r2.
+    // 3D-only (решение юзера — без 2D-фолбэка). Таймаут: отдаём результат в UI,
+    // кость может ещё доехать сама; инстанс пересоздаётся выше при 3 таймаутах подряд.
+    console.warn('[DiceBox] roll timeout 10s (sides=' + sides + ') — результат без 3D-кости');
     _applyDiceCritGlow(sides, result);
     try { callback(); } catch (e) {}
   }, 10000);
@@ -941,9 +952,32 @@ function animateDice3d(sides, result, callback, opts) {
         v1 = rolls[0] ? rolls[0].value : undefined;
         v2 = rolls[1] ? rolls[1].value : undefined;
       } catch (e) { v1 = undefined; v2 = undefined; }
+      // 3D-only: поведение НЕ меняем (никакого 2D-фолбэка) — только диагностика.
+      // Если кость пропала, этот лог покажет значение, размеры canvas (буфер vs CSS),
+      // подключён ли он к DOM и не потерян ли WebGL-контекст — чтобы починить точечно.
+      var diag = {};
+      try {
+        var cnv = box.canvas;
+        if (cnv) {
+          diag.buf = cnv.width + 'x' + cnv.height;
+          diag.css = cnv.clientWidth + 'x' + cnv.clientHeight;
+          diag.connected = cnv.isConnected;
+          var gl = cnv.getContext('webgl2') || cnv.getContext('webgl');
+          diag.contextLost = gl ? gl.isContextLost() : 'no-gl';
+        } else { diag.canvas = 'none'; }
+      } catch (e) { diag.err = e.message; }
+      try { console.log('[DiceBox] onRollComplete', { sides: sides, qty: qty, v1: v1, v2: v2, diag: diag }); } catch (e) {}
       _applyDiceCritGlow(sides, v1, v2);
       callback(v1, v2);
     };
+    // Страховка от 0×0-буфера WebGL: если init случился при ещё не раскрытой модалке,
+    // кость отрисуется в нулевой фреймбуфер = невидима. Форсим ресайз под контейнер.
+    try {
+      if (box.canvas && (box.canvas.width === 0 || box.canvas.height === 0)) {
+        window.dispatchEvent(new Event('resize'));
+        if (typeof box.resize === 'function') { try { box.resize(); } catch (e) {} }
+      }
+    } catch (e) {}
     box.clear();
     box.roll([{ qty: qty, sides: sides }], { theme: _getDiceTheme(), themeColor: _getDiceThemeColor() });
   }).catch(function() {
@@ -1321,6 +1355,9 @@ function toggleAccordion(btn) {
     body.style.display = "";
     btn.setAttribute("aria-expanded", "true");
     if (arrow) arrow.textContent = "▾";
+    // FB-2: line-clamp-детект состояний требует видимой секции (scrollHeight) —
+    // повторяем при раскрытии любого аккордеона (дёшево, no-op если состояний нет).
+    if (typeof detectConditionOverflow === "function") setTimeout(detectConditionOverflow, 50);
   }
 }
 

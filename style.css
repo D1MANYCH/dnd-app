@@ -50,6 +50,9 @@
 --sp-5: 24px;
 --sp-6: 32px;
 
+/* UI5: единая высота интерактивных контролов (кнопки/поля) — выравнивание «в один рост» */
+--control-h: 44px;
+
 /* Тени */
 --sh-1: 0 1px 2px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.35);
 --sh-2: 0 12px 32px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4);
@@ -124,6 +127,7 @@
   --fs-md-base: 13px;
   --fs-lg-base: 15px;
   --fs-xl-base: 18px;
+  --control-h: 40px;
   --hp-bar-h: 8px;
 }
 :root[data-density="cozy"] {
@@ -137,6 +141,7 @@
   --fs-md-base: 15px;
   --fs-lg-base: 18px;
   --fs-xl-base: 22px;
+  --control-h: 48px;
   --hp-bar-h: 12px;
 }
 
@@ -1361,6 +1366,12 @@
 .btn-block { width: 100%; }
 .btn-pill  { border-radius: 999px; }
 
+/* UI5-1: на листе персонажа .btn-кнопки должны быть свободны от легаси-правила
+   button{} (full-width + margin-bottom). Ширину отдаём системе .btn: auto по
+   умолчанию, 100% только с .btn-block; плюс сброс margin. */
+#tab-sheet .btn { width: auto; margin: 0; }
+#tab-sheet .btn.btn-block { width: 100%; }
+
 /* Loading state */
 .btn-loading { color: transparent !important; pointer-events: none; }
 .btn-loading::after {
@@ -2538,20 +2549,19 @@ gap: 6px;
 border-color: var(--accent-color);
 transform: translateY(-2px);
 }
+/* FB-3: смягчённые заливки активных категорий (было 0.3+glow — «резало глаз»);
+   цветная рамка остаётся для идентификации категории. */
 .condition-item.active {
-background: var(--condition-active);
+background: rgba(224, 108, 117, 0.13);
 border-color: var(--condition-border);
-box-shadow: 0 0 10px rgba(224, 108, 117, 0.3);
 }
 .condition-item.active.poison {
-background: rgba(155, 89, 182, 0.3);
+background: rgba(155, 89, 182, 0.13);
 border-color: var(--poison-color);
-box-shadow: 0 0 10px rgba(155, 89, 182, 0.4);
 }
 .condition-item.active.disease {
-background: rgba(39, 174, 96, 0.3);
+background: rgba(39, 174, 96, 0.13);
 border-color: var(--disease-color);
-box-shadow: 0 0 10px rgba(39, 174, 96, 0.4);
 }
 .condition-name {
 font-size: 0.85em;
@@ -2603,13 +2613,16 @@ margin-left: 8px;
   gap: 6px;
 }
 .exhaustion-btn {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  line-height: 1;
+  margin: 0;
   border-radius: var(--r-sm);
   border: 1px solid var(--border-color);
   background: rgba(255,255,255,0.05);
   color: var(--text-color);
-  font-size: 1em;
+  font-size: 1.05em;
   font-weight: 700;
   cursor: pointer;
   display: flex;
@@ -2621,6 +2634,11 @@ margin-left: 8px;
   border-color: var(--accent-color);
   background: rgba(212,168,67,0.15);
 }
+/* FB-4: «красная рамка» на «−» была артефактом :focus — гасим, оставляем только
+   keyboard-focus; обе кнопки идентичны по боксу. */
+.exhaustion-btn:focus { outline: none; }
+.exhaustion-btn:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 1px; }
+.exhaustion-btn:active { transform: scale(0.93); }
 .exhaustion-level {
   font-size: 1.1em;
   font-weight: 700;
@@ -2735,18 +2753,45 @@ gap: 8px;
   margin-right: 6px;
   border-radius: 4px;
 }
-/* Крупная иконка слева в карточке состояния — текст обтекает справа */
-/* Карточка состояния — отключаем flex чтобы float-обтекание работало */
-.condition-item { display: block !important; }
+/* FB-2: карточка состояния — иконка крупно сверху по центру, текст под ней,
+   равная высота (flex-column из базового правила + line-clamp описания). */
+.condition-item { align-items: center; text-align: center; }
 .condition-item > .condition-icon-svg {
-  float: left;
-  width: 72px; height: 72px;
-  margin: 2px 10px 2px 0;
+  float: none;
+  width: 88px; height: 88px;
+  margin: 2px 0;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,.35);
 }
-.condition-item .condition-name { display: block; margin-bottom: 4px; }
-.condition-item::after { content: ""; display: block; clear: both; }
+.condition-item .condition-name { display: block; margin-bottom: 0; }
+.condition-item .condition-desc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+  text-align: left;
+  width: 100%;
+}
+.condition-item.expanded .condition-desc { -webkit-line-clamp: 999; line-clamp: 999; }
+.condition-expand {
+  display: none;
+  width: auto;
+  margin: auto 0 0;
+  align-self: center;
+  padding: 3px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-sm);
+  font-size: 0.7em;
+  font-weight: 600;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color .12s, border-color .12s;
+}
+.condition-item.has-more .condition-expand,
+.condition-item.expanded .condition-expand { display: inline-block; }
+.condition-expand:hover { border-color: var(--accent-color); color: var(--accent-color); transform: none; box-shadow: none; }
 .condition-badge { display: inline-flex; align-items: center; gap: 0; }
 .exhaustion-title { display: inline-flex; align-items: center; gap: 8px; font-size: 1.1em; }
 .exhaustion-title .condition-icon-svg { width: 56px; height: 56px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.35); margin: 0; }
@@ -3356,20 +3401,8 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   gap: 8px;
   margin-top: 10px;
 }
-.hp-rest-btn {
-  flex: 1;
-  padding: 8px 10px !important;
-  border-radius: 8px;
-  font-size: 0.8em !important;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid var(--border-color) !important;
-  transition: all 0.2s;
-  width: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
+/* UI5-1: геометрию даёт .btn; здесь — только раскладка (равная ширина в ряду). */
+.hp-rest-btn { flex: 1; }
 .hp-rest-short {
   background: rgba(74, 139, 201, 0.15) !important;
   color: #4a8bc9 !important;
@@ -4179,7 +4212,8 @@ cursor: default;
 /* UI-9: контейнер «Повысить / Откатить уровень» */
 .level-actions { display: flex; gap: var(--sp-2); flex-wrap: wrap; align-items: stretch; margin: var(--sp-2) 0 var(--sp-3); }
 .level-actions > button { flex: 1 1 auto; min-width: 0; }
-.level-down-btn { font-size: 0.95em; opacity: 0.92; }
+.level-actions > .btn { height: var(--control-h); }
+.level-down-btn { opacity: 0.92; }
 .level-down-btn:hover { opacity: 1; }
 
 /* BUGFIX-5: button-сброс для span→button конвертированных кликабельных элементов */
@@ -5018,6 +5052,10 @@ transition: all 0.2s;
   cursor: pointer;
 }
 .prof-add-row button:hover { filter: brightness(1.15); }
+/* Владения: кнопки не во всю ширину (глоб. button{width:100%}). ПК — инлайн по контенту; телефон — «Добавить» можно широкой. */
+.prof-add-row button, .prof-chip-remove { width: auto; margin: 0; }
+.prof-add-row button { flex: 0 0 auto; }
+@media (max-width: 600px) { .prof-add-row button { flex: 1 1 100%; } }
 .prof-choice-pending {
   border-left: 3px solid var(--accent-color);
   padding-left: 8px;
@@ -6126,17 +6164,8 @@ font-size: 0.85em;
 }
 .hp-side-dmg .hp-side-inp { border-color: rgba(226,75,74,0.5); }
 .hp-side-heal .hp-side-inp { border-color: rgba(99,153,34,0.5); }
-.hp-side-btn {
-  flex: 1;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: none;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  letter-spacing: 0.01em;
-}
+/* UI5-1: геометрию даёт .btn; здесь — только раскладка. */
+.hp-side-btn { flex: 1; }
 .hp-side-btn-dmg {
   background: #e24b4a;
   color: #fff;
@@ -6622,6 +6651,9 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .confirm-btn-cancel:hover { background: var(--bg-3); }
 .confirm-btn-ok:hover { background: #e74c3c; }
+/* FB-1: не-деструктивное подтверждение (напр. «Разблокировать») — не красная */
+.confirm-btn-ok--safe { background: var(--accent); border-color: var(--accent); color: #000; }
+.confirm-btn-ok--safe:hover { background: var(--accent); filter: brightness(1.08); }
 
 /* ============================================================
    ⚔️ ОТРЯД & БОЙ
@@ -7500,10 +7532,11 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 
 /* ========== COMPACT SKILLS ========== */
+/* FB-5: адаптивные колонки (2 при широкой, 1 при узкой — длинные имена не режутся) */
 #skills-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2px 14px;
   margin-bottom: 10px;
 }
 .skill-row-compact {
@@ -7538,15 +7571,35 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   background: rgba(255,255,255,0.05);
   border-radius: 3px;
   padding: 1px 4px;
+  min-width: 34px;
+  text-align: center;
   flex-shrink: 0;
 }
 .skill-bonus-compact {
-  font-size: 0.82em;
+  font-size: 0.85em;
   font-weight: 700;
   color: var(--accent-color);
-  min-width: 26px;
-  text-align: right;
+  width: auto;
+  min-width: 48px;
+  margin: 0;
+  text-align: center;
   flex-shrink: 0;
+}
+/* FB-5: «+N» — кнопка БРОСКА навыка. После width:auto стала 30px (трудно попасть → «нельзя кинуть»).
+   Явный тап-таргет-чип; селектор (0,2,0) перекрывает reset-блок `button.skill-bonus-clickable` (padding/border/bg:none). */
+.skill-row-compact .skill-bonus-compact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 5px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.05);
+}
+.skill-row-compact .skill-bonus-compact:hover { border-color: var(--accent-color); }
+@media (max-width: 600px) {
+  .skill-row-compact .skill-bonus-compact { min-height: 40px; min-width: 52px; }
 }
 .skill-expertise-btn {
   width: 16px;
@@ -8793,6 +8846,18 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   transform: translate(-50%, -50%);
   width: 62%; height: 62%;
   z-index: 1; /* v3.17: поверх .dice-arena-bg */
+}
+/* FB-7: подсказка про file:// — 3D-движок (ES-модуль) не грузится по файловому протоколу */
+.dice-file-hint {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: var(--r-sm, 8px);
+  background: rgba(212,168,67,0.12);
+  border: 1px solid rgba(212,168,67,0.4);
+  color: var(--text-dim, #cfc8b8);
+  font-size: 0.76em;
+  line-height: 1.4;
+  text-align: left;
 }
 /* DICE2-5: glow контейнера на крит. d20 (1/20) */
 .dsvg-container.crit-success {
@@ -10721,6 +10786,8 @@ mark.notes-hl {
 
 /* BUILD-6: build badge on character screen */
 .char-build-badge-wrap { display:flex; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap; }
+/* FB-6: бейдж/«План»/«Отвязать» — инлайн-пилюли (глоб. button{width:100%} ломал ряд в стопку) */
+.char-build-badge-wrap button { width: auto; margin: 0; }
 .char-build-badge { display:inline-block; padding:4px 10px; background:var(--bg-3); border:1px solid var(--accent); color:var(--accent); border-radius:999px; font-size:0.82em; font-weight:600; cursor:pointer; transition: background .15s, transform .1s; font-family:inherit; }
 .char-build-badge:hover { background:var(--accent); color:var(--bg-1, #000); }
 .char-build-badge:active { transform: scale(0.97); }
@@ -10746,12 +10813,15 @@ mark.notes-hl {
 .bg-list.bg-levels .bg-why { color:var(--text-muted); font-size:0.92em; }
 
 /* BUILD-LVL-2: кнопка «План» у бейджа билда + модалка плана развития 1–20 */
+/* FB-6: пилюля «📈 План» — комфортный тап-таргет и читаемость (была мелкой/тусклой) */
 .char-build-plan-btn {
-  font-size: 0.78em; padding: 3px 9px; border-radius: 999px;
-  border: 1px solid var(--border); background: transparent; color: var(--text-muted);
-  cursor: pointer; white-space: nowrap; line-height: 1.4; transition: color .12s, border-color .12s;
+  font-size: 0.8em; padding: 5px 12px; border-radius: 999px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--bg-3); color: var(--text-dim);
+  cursor: pointer; white-space: nowrap; line-height: 1.4;
+  transition: color .12s, border-color .12s, background .12s, transform .1s;
 }
 .char-build-plan-btn:hover { border-color: var(--accent); color: var(--accent); }
+.char-build-plan-btn:active { transform: scale(0.97); }
 .bp-plan-body { display: flex; flex-direction: column; gap: 4px; }
 .bp-plan-meta { font-size: 0.85em; color: var(--text-muted); margin-bottom: 8px; }
 .bp-plan-row { display: flex; gap: 10px; align-items: flex-start; padding: 7px 8px; border-radius: 8px; border: 1px solid transparent; }

@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v141">
+<link rel="stylesheet" href="style.css?v=v149">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -561,11 +561,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="hp-bar-wrap"><div class="hp-bar" id="hp-bar"></div></div>
 <div class="hp-toast-anchor">
-<button class="hp-history-open-btn" onclick="openHPHistory()">📋 История ХП</button>
+<button class="btn btn-ghost btn-sm" onclick="openHPHistory()">📋 История ХП</button>
 </div>
 <div class="hp-rest-row">
-  <button class="hp-rest-btn hp-rest-short" onclick="openRestModal(); showShortRestInfo()">☕ Короткий отдых</button>
-  <button class="hp-rest-btn hp-rest-long" onclick="openRestModal(); showLongRestInfo()">🛏️ Долгий отдых</button>
+  <button class="btn hp-rest-btn hp-rest-short" onclick="openRestModal(); showShortRestInfo()">☕ Короткий отдых</button>
+  <button class="btn hp-rest-btn hp-rest-long" onclick="openRestModal(); showLongRestInfo()">🛏️ Долгий отдых</button>
 </div>
 </div>
 
@@ -575,7 +575,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="hp-side-label">⚔️ Урон</div>
 <div class="hp-side-row">
 <input type="number" id="hp-custom-input" class="hp-side-inp" placeholder="0" min="1">
-<button class="hp-side-btn hp-side-btn-dmg" onclick="applyCustomHP('dmg')">Нанести</button>
+<button class="btn btn-danger hp-side-btn" onclick="applyCustomHP('dmg')">Нанести</button>
 </div>
 <div class="hp-presets">
 <button class="hp-preset hp-preset-dmg" onclick="setHPInput('hp-custom-input',1)">1</button>
@@ -588,7 +588,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="hp-side-label">💚 Лечение</div>
 <div class="hp-side-row">
 <input type="number" id="hp-heal-input" class="hp-side-inp" placeholder="0" min="1">
-<button class="hp-side-btn hp-side-btn-heal" onclick="applyHealInput()">Вылечить</button>
+<button class="btn btn-success hp-side-btn" onclick="applyHealInput()">Вылечить</button>
 </div>
 <div class="hp-presets">
 <button class="hp-preset hp-preset-heal" onclick="setHPInput('hp-heal-input',1)">1</button>
@@ -607,7 +607,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="hd-result" id="hd-result"></span>
 </div>
 <div class="hd-dice-row" id="hd-dice-row"></div>
-<button class="hd-roll-btn" id="roll-hd-btn" onclick="rollHitDieQuick()">Бросить кость хитов</button>
+<button class="btn btn-secondary btn-block" id="roll-hd-btn" onclick="rollHitDieQuick()">Бросить кость хитов</button>
 </div>
 
 <!-- Скрытые поля (нужны для updateChar/loadCharacter) -->
@@ -646,16 +646,16 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <div class="ds-roll-row">
-<button class="ds-roll-btn" onclick="rollDeathSave()">🎲 Бросить d20</button>
+<button class="btn btn-secondary" onclick="rollDeathSave()">🎲 Бросить d20</button>
 <div class="ds-roll-result" id="ds-roll-result"></div>
 </div>
 <div class="ds-status" id="ds-status"></div>
-<button class="ds-reset-btn" onclick="resetDeathSaves()">Сбросить</button>
+<button class="btn btn-ghost btn-sm" onclick="resetDeathSaves()">Сбросить</button>
 </div>
 
 <div class="level-actions">
-<button class="info" onclick="openLevelUpModal()">⬆️ Повысить уровень</button>
-<button id="level-down-btn" type="button" class="secondary level-down-btn" onclick="openLevelDownConfirm()" style="display:none" title="Отменить последнее повышение">↩️ Откатить уровень</button>
+<button class="btn btn-primary" onclick="openLevelUpModal()">⬆️ Повысить уровень</button>
+<button id="level-down-btn" type="button" class="btn btn-secondary level-down-btn" onclick="openLevelDownConfirm()" style="display:none" title="Отменить последнее повышение">↩️ Откатить уровень</button>
 </div>
 <div class="ac-calc-section">
 <h4>🛡️ Класс Доспеха (Авто-расчёт)</h4>
@@ -729,12 +729,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </button>
 <div class="accordion-body" style="display:none">
 <div id="companions-list-sheet"></div>
-<button class="success" style="margin-top:8px" onclick="openAddCompanionModal()">＋ Добавить прихвостня</button>
+<button class="btn btn-success btn-block" style="margin-top:8px" onclick="openAddCompanionModal()">＋ Добавить прихвостня</button>
 </div>
 </div>
 <div class="card">
 <h3>⚔️ Оружие</h3>
-<button class="success" onclick="openWeaponModal()">+ Добавить оружие</button>
+<button class="btn btn-success btn-block" onclick="openWeaponModal()">+ Добавить оружие</button>
 <div id="weapons-list"></div>
 </div>
 </div>
@@ -1699,6 +1699,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <canvas class="dice-arena-bg" id="diceArenaBg" aria-hidden="true"></canvas>
       <div class="dice-arena" id="dsvg-container"></div>
     </div>
+    <div class="dice-file-hint" id="dice-file-hint" hidden>ℹ️ 3D-кубики работают только при запуске через сервер (localhost) или на сайте. При открытии файла напрямую (file://) браузер блокирует 3D-движок — показываются плоские.</div>
     <div class="dice3d-result" id="dice3d-result">
       <div class="dice3d-divider" aria-hidden="true"></div>
       <span class="dice3d-num" id="dice-result-big">—</span>
@@ -2219,37 +2220,37 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
-<script src="bg-orbits.js?v=v141"></script>
-<script src="dice-arena-bg.js?v=v141"></script>
-<script src="data.js?v=v141"></script>
-<script src="build-notes-data.js?v=v141"></script>
-<script src="character-builds.js?v=v141"></script>
-<script src="spells.js?v=v141"></script>
-<script src="app-core.js?v=v141"></script>
-<script src="app-combat.js?v=v141"></script>
-<script src="app-hp.js?v=v141"></script>
-<script src="app-spells.js?v=v141"></script>
-<script src="app-inventory.js?v=v141"></script>
+<script src="bg-orbits.js?v=v149"></script>
+<script src="dice-arena-bg.js?v=v149"></script>
+<script src="data.js?v=v149"></script>
+<script src="build-notes-data.js?v=v149"></script>
+<script src="character-builds.js?v=v149"></script>
+<script src="spells.js?v=v149"></script>
+<script src="app-core.js?v=v149"></script>
+<script src="app-combat.js?v=v149"></script>
+<script src="app-hp.js?v=v149"></script>
+<script src="app-spells.js?v=v149"></script>
+<script src="app-inventory.js?v=v149"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC (подключаются до app-party.js) -->
-<script src="monsters-srd.js?v=v141"></script>
-<script src="npc-srd.js?v=v141"></script>
-<script src="app-party.js?v=v141"></script>
-<script src="class-choices.js?v=v141"></script>
-<script src="subclass-choices-data.js?v=v141"></script>
+<script src="monsters-srd.js?v=v149"></script>
+<script src="npc-srd.js?v=v149"></script>
+<script src="app-party.js?v=v149"></script>
+<script src="class-choices.js?v=v149"></script>
+<script src="subclass-choices-data.js?v=v149"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v141";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v149";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v141"></script>
-<script src="app-notes.js?v=v141"></script>
-<script src="app-desktop.js?v=v141"></script>
-<script src="history-stack.js?v=v141"></script>
+<script src="app-ui.js?v=v149"></script>
+<script src="app-notes.js?v=v149"></script>
+<script src="app-desktop.js?v=v149"></script>
+<script src="history-stack.js?v=v149"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы) -->
-<script src="vendor/jspdf/jspdf.umd.min.js?v=v141"></script>
-<script src="vendor/jspdf/roboto-base64.js?v=v141"></script>
-<script src="app-pdf.js?v=v141"></script>
+<script src="vendor/jspdf/jspdf.umd.min.js?v=v149"></script>
+<script src="vendor/jspdf/roboto-base64.js?v=v149"></script>
+<script src="app-pdf.js?v=v149"></script>
 
 <!-- ══ Модалка записи (N4) ══════════════════════════════════════ -->
 <div id="notes-entry-modal" class="notes-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="nem-heading" onclick="if(event.target===this)notesCloseEntryModal()">
