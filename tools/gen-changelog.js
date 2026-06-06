@@ -68,6 +68,17 @@ function render({ changelog, version }) {
   return lines.join('\n');
 }
 
-const data = loadChangelog();
-fs.writeFileSync(OUT, render(data), 'utf8');
-console.log(`CHANGELOG.md: ${data.changelog.length} версий, актуальная v${data.version}`);
+// Основная функция — переиспользуется из bump-version.js
+function generateChangelog() {
+  const data = loadChangelog();
+  fs.writeFileSync(OUT, render(data), 'utf8');
+  return data;
+}
+
+// CLI-вход: при прямом запуске печатаем сводку. При require() — экспорт.
+if (require.main === module) {
+  const data = generateChangelog();
+  console.log(`CHANGELOG.md: ${data.changelog.length} версий, актуальная v${data.version}`);
+}
+
+module.exports = { generateChangelog };

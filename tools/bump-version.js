@@ -22,9 +22,10 @@ function usage() {
   console.log('Usage: node tools/bump-version.js <patch|minor|major> "<changelog text>" [--type chore|feat|fix]');
   console.log('');
   console.log('Bumps:');
-  console.log('  data.js:    APP_VERSION, APP_VERSION_DATE, APP_CHANGELOG[0] (prepend new, demote prior to badge:"old")');
-  console.log('  sw.js:      CACHE_NAME (dnd-sheet-vN -> vN+1)');
-  console.log('  index.html: все ?v= токены js/css → vN+1 (TOOL-2)');
+  console.log('  data.js:      APP_VERSION, APP_VERSION_DATE, APP_CHANGELOG[0] (prepend new, demote prior to badge:"old")');
+  console.log('  sw.js:        CACHE_NAME (dnd-sheet-vN -> vN+1)');
+  console.log('  index.html:   все ?v= токены js/css → vN+1 (TOOL-2)');
+  console.log('  CHANGELOG.md: перегенерируется из APP_CHANGELOG (через tools/gen-changelog.js)');
 }
 
 function parseArgs(argv) {
@@ -222,6 +223,17 @@ function main() {
   console.log(`sw.js:      v${swRes.oldN} → v${swRes.newN}`);
   console.log(`index.html: ${indexRes.count} ?v= токенов → v${swRes.newN}`);
   console.log(`changelog: [${type}] ${text}`);
+
+  // CHANGELOG.md — производный артефакт из APP_CHANGELOG. Перегенерируем,
+  // чтобы релиз был полным. Soft-fail: не падаем, чтобы не оставить bump
+  // в полу-записанном состоянии (data/sw/index уже на диске).
+  try {
+    const { generateChangelog } = require('./gen-changelog.js');
+    const cl = generateChangelog();
+    console.log(`CHANGELOG.md: ${cl.changelog.length} версий, актуальная v${cl.version}`);
+  } catch (e) {
+    console.warn('WARN: CHANGELOG.md не перегенерирован (' + String(e.message || e).split('\n')[0] + '). Прогоните вручную: node tools/gen-changelog.js');
+  }
 }
 
 main();

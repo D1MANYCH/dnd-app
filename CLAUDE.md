@@ -27,10 +27,10 @@
 
 ## Версионирование
 
-**Инвариант релиза** — четыре величины должны меняться синхронно одной командой:
+**Инвариант релиза** — пять величин должны меняться синхронно одной командой:
 
 ```
-APP_VERSION  ↔  APP_CHANGELOG[0].version  ↔  CACHE_NAME (dnd-sheet-vN)  ↔  все ?v=vN токены js/css в index.html
+APP_VERSION  ↔  APP_CHANGELOG[0].version  ↔  CACHE_NAME (dnd-sheet-vN)  ↔  все ?v=vN токены js/css в index.html  ↔  CHANGELOG.md
 ```
 
 Команда — `/bump <patch|minor|major> "<changelog>" [--type chore|feat|fix]` (под капотом `tools/bump-version.js`):
@@ -39,8 +39,9 @@ APP_VERSION  ↔  APP_CHANGELOG[0].version  ↔  CACHE_NAME (dnd-sheet-vN)  ↔ 
 2. **`data.js`** — bump `APP_VERSION` + `APP_VERSION_DATE` + добавляет запись в `APP_CHANGELOG` (предыдущая badge `new` → `old`).
 3. **`sw.js`** — bump `CACHE_NAME` `dnd-sheet-vN` → `dnd-sheet-v(N+1)`.
 4. **`index.html`** — все `?v=...` токены js/css перезаписываются на `v(N+1)`. Webp/png ассеты не трогаются (свой редкий цикл).
+5. **`CHANGELOG.md`** — перегенерируется из `APP_CHANGELOG` через `tools/gen-changelog.js`. Soft-fail: если генератор упал, bump уже записан (data/sw/index), CHANGELOG чинится вручную `node tools/gen-changelog.js`.
 
-Любая частичная ошибка → `exit 1` без записи. После bump — `/preflight` (тесты + сверка инварианта) → коммит **только по запросу пользователя**. Хуки `PostToolUse` дополнительно валидируют инвариант на каждой правке (см. ниже).
+Любая частичная ошибка (пп. 2–4) → `exit 1` без записи. После bump — `/preflight` (тесты + сверка инварианта) → коммит **только по запросу пользователя**. Хуки `PostToolUse` дополнительно валидируют инвариант на каждой правке (см. ниже).
 
 ## Тесты
 - `node tests/headless-node.js` — логика.
@@ -50,7 +51,7 @@ APP_VERSION  ↔  APP_CHANGELOG[0].version  ↔  CACHE_NAME (dnd-sheet-vN)  ↔ 
 ## Slash-команды (`.claude/commands/`)
 - `/test` — `node tests/headless-node.js`, выводит одну строку итога; при FAIL — desc первых 3.
 - `/preflight` — тесты + сверка `APP_VERSION` ↔ `APP_CHANGELOG[0].version` + проверка bump `CACHE_NAME`.
-- `/bump <patch|minor|major> "<changelog>" [--type chore|feat|fix]` — синхронный bump через `tools/bump-version.js` (правит `data.js` и `sw.js` за один проход).
+- `/bump <patch|minor|major> "<changelog>" [--type chore|feat|fix]` — синхронный bump через `tools/bump-version.js` (правит `data.js`, `sw.js`, `index.html` и регенерирует `CHANGELOG.md` за один проход).
 - `/phase <X-N>` — стартовать фазу из `memory/MEMORY.md` (например `/phase DEV-4`).
 - `/done <X-N>` — пометить фазу `**done**` в соответствующем `project_*_plan.md`.
 
