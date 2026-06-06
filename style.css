@@ -1747,6 +1747,49 @@ body.no-character .drawer-divider { display: none; }
   .icon-btn { width: 34px; height: 34px; min-width: 34px; }
 }
 
+/* ========== UI5-4: ПК — многоколоночная раскладка листа ==========
+   #tab-sheet на ПК = 2 стабильные колонки. Обёртки .sheet-col на мобиле
+   ПРОЗРАЧНЫ (display:contents → поток как раньше, байт-в-байт). На ПК —
+   flex-колонки: flex-wrap + flex-basis сами схлопывают в 1 колонку при
+   нехватке ширины (без резких медиа-скачков по числу колонок). Колонки
+   НЕ перебалансируются при раскрытии аккордеонов / добавлении оружия
+   (в отличие от CSS multicol) — карточки не «прыгают» между колонками. */
+#tab-sheet > .sheet-col { display: contents; }
+
+@media (min-width: 1024px) {
+  #tab-sheet.active {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--sp-5);
+  }
+  /* Во всю ширину над колонками: баннеры мастера + широкие карточки 2–5
+     (личность / характеристики / спасброски / навыки) — их внутренние сетки
+     заполняют ширину, в узкой колонке они теснились/обрезались. */
+  #tab-sheet.active > .creation-wizard-banner,
+  #tab-sheet.active > .basic-locked-bar,
+  #tab-sheet.active > .card { flex: 0 0 100%; }
+  /* Колонки растут поровну, схлопываются в 1 при недостатке ширины контента */
+  #tab-sheet.active > .sheet-col {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 330px;
+    min-width: 0;
+  }
+  /* Компактная карточка личности: поля раскладываются в 2 колонки, шапка
+     (аватар+имя) и блок бонусов расы — во всю ширину. Высота карточки заметно
+     меньше, поля не растягиваются на весь экран. */
+  #tab-sheet.active > .identity-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-3) var(--sp-5);
+    align-items: start;
+  }
+  #tab-sheet.active > .identity-card > .sheet-top-row,
+  #tab-sheet.active > .identity-card > #race-bonus-display { grid-column: 1 / -1; }
+  #tab-sheet.active > .identity-card > .row { margin-bottom: 0; }
+}
+
 /* --- Чипы / бейджи --- */
 .chip {
   display: inline-flex;
@@ -2173,12 +2216,12 @@ h1, h2, h3, h4 { margin: 0 0 10px 0; color: var(--accent-color); font-weight: 60
 border-left: 3px solid var(--accent-color);
 padding-left: 10px;
 }
-.container { padding: 12px; }
+.container { padding: var(--sp-3); }
 .card {
 background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-3) 100%);
-border-radius: 12px;
-padding: 15px;
-margin-bottom: 12px;
+border-radius: var(--r-md);
+padding: var(--sp-4);
+margin-bottom: var(--sp-3);
 border: 1px solid var(--border-color);
 box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 transition: box-shadow 0.2s, transform 0.2s;
@@ -2190,14 +2233,14 @@ backdrop-filter: blur(var(--glass-blur));
 box-shadow: 0 4px 24px rgba(0,0,0,0.35), 0 0 12px var(--accent-glow);
 transform: translateY(-1px);
 }
-label { display: block; margin-bottom: 6px; font-size: 0.85em; color: var(--text-muted); font-weight: 500; }
+label { display: block; margin-bottom: var(--sp-2); font-size: 0.85em; color: var(--text-muted); font-weight: 500; }
 input, select, textarea {
 width: 100%;
-padding: 12px;
+padding: var(--sp-3);
 background-color: var(--input-bg);
 border: 1px solid var(--border-color);
 color: var(--text-color);
-border-radius: 8px;
+border-radius: var(--r-sm);
 box-sizing: border-box;
 font-size: 15px;
 transition: all 0.2s;
@@ -2261,15 +2304,15 @@ margin-bottom: 5px;
 display: flex;
 flex-direction: column;
 align-items: center;
-gap: 6px;
+gap: var(--sp-2);
 width: 100%;
-margin-top: 5px;
+margin-top: var(--sp-1);
 }
 .stat-btn-row {
 display: flex;
 align-items: center;
 justify-content: center;
-gap: 6px;
+gap: var(--sp-2);
 width: 100%;
 }
 .stat-btn {
@@ -2311,25 +2354,25 @@ flex-shrink: 0;
 background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
 border: 1px solid var(--armor-color);
 border-radius: var(--r-md);
-padding: 15px;
-margin-top: 15px;
+padding: var(--sp-4);
+margin-top: var(--sp-4);
 }
 .ac-calc-section h4 {
 color: var(--armor-color);
 font-size: 0.9em;
-margin: 0 0 12px 0;
+margin: 0 0 var(--sp-3) 0;
 display: flex;
 align-items: center;
-gap: 8px;
+gap: var(--sp-2);
 }
 .ac-display {
 display: flex;
 align-items: center;
 justify-content: space-between;
 background: var(--card-bg);
-padding: 12px;
-border-radius: 8px;
-margin-bottom: 12px;
+padding: var(--sp-3);
+border-radius: var(--r-sm);
+margin-bottom: var(--sp-3);
 }
 .ac-value {
 font-size: 2em;
@@ -2344,13 +2387,13 @@ text-align: right;
 .ac-modifiers {
 display: grid;
 grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-gap: 8px;
+gap: var(--sp-2);
 }
 .ac-modifier-item {
 background: var(--card-bg);
 border: 1px solid var(--border-color);
 border-radius: var(--r-sm);
-padding: 8px;
+padding: var(--sp-2);
 font-size: 0.75em;
 display: flex;
 justify-content: space-between;
@@ -2376,9 +2419,9 @@ color: var(--danger-color);
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--sp-2);
   align-items: center;
-  margin: 0 0 10px 0;
+  margin: 0 0 var(--sp-3) 0;
 }
 .filter-search {
   flex: 1 1 180px;
@@ -2536,7 +2579,7 @@ gap: 8px;
 .conditions-grid {
 display: grid;
 grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-gap: 8px;
+gap: var(--sp-2);
 }
 .condition-item {
 background: var(--card-bg);
@@ -2715,11 +2758,10 @@ gap: 8px;
 }
 .saves-grid {
 display: grid;
-grid-template-columns: repeat(2, 1fr);
-gap: 8px;
-}
-@media (min-width: 600px) {
-  .saves-grid { grid-template-columns: repeat(3, 1fr); }
+/* UI5-4: адаптируется к ширине КОНТЕЙНЕРА (а не вьюпорта) — во всю ширину карточки
+   3–5 колонок, в узкой колонке 2, на мобиле 2/1 (ниже !important). Не обрезается. */
+grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+gap: var(--sp-2);
 }
 .save-item {
 background: var(--card-bg);
@@ -6124,9 +6166,11 @@ font-size: 0.85em;
 /* ========== HP SECTION REDESIGN ========== */
 .hp-two-col {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin: 12px 0;
+  /* UI5-4: Урон/Лечение — 2-в-ряд пока влезают (вкл. мобайл ~375), и в 1 колонку
+     только когда карточка совсем узкая → не обрезаются. */
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: var(--sp-2);
+  margin: var(--sp-3) 0;
 }
 .hp-side {
   border-radius: var(--r-md);
@@ -7290,9 +7334,9 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: var(--sp-3);
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--sp-2);
 }
 .section-header-row h3 { margin: 0; }
 .prof-bonus-inline {
@@ -7308,12 +7352,12 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .stats-compact-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 5px;
+  gap: var(--sp-1);
 }
 @media (max-width: 540px) {
   .stats-compact-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: var(--sp-2);
   }
 }
 
@@ -7539,9 +7583,10 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 /* FB-5: адаптивные колонки (2 при широкой, 1 при узкой — длинные имена не режутся) */
 #skills-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 2px 14px;
-  margin-bottom: 10px;
+  /* UI5-4: 240px — на всю ширину карточки 3 колонки, длинные имена не режутся */
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--sp-1) var(--sp-4);
+  margin-bottom: var(--sp-3);
 }
 .skill-row-compact {
   display: flex;
@@ -9675,7 +9720,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 /* Уровень + Опыт: два компактных поля в ряд */
 .sheet-top-small-row {
   display: flex;
-  gap: 10px;
+  gap: var(--sp-3);
 }
 .sheet-small-field {
   flex: 1;
