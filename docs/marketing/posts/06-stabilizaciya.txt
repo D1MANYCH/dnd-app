@@ -10,4 +10,4 @@
 
 📋 Полный список изменений → github.com/D1MANYCH/dnd-app/blob/main/CHANGELOG.md#v3.20.0
 🎲 d1manych.github.io/dnd-app
-💬 t.me/+XZ4m1yFdHLE1MzMy
+💬 t.me/DnDSocialru

@@ -49,7 +49,7 @@
 
 📋 Полный список изменений → github.com/D1MANYCH/dnd-app/blob/main/CHANGELOG.md#vX.Y.Z
 🎲 d1manych.github.io/dnd-app
-💬 t.me/+XZ4m1yFdHLE1MzMy
+💬 t.me/DnDSocialru
 ```
 
 Полный список изменений всегда уходит в `CHANGELOG.md` по якорю версии — в посте только 3–5 главных пунктов. Готовые примеры: `posts/06-stabilizaciya.txt`, `posts/07-pdf-export.txt`, `posts/08-srd-bestiary.txt`. Личные версии этих же релизов (старый стиль) — в `posts/archive/`.
@@ -77,7 +77,7 @@ node tools/gen-changelog.js
 
 **Канал [@dndlistru](https://t.me/dndlistru)** — дисциплинированный контент по графику (3 поста/неделю). Релизы, фича-разборы, опросы, FAQ. Полноценные посты со скринами.
 
-**Чат-обсуждение** ([invite](https://t.me/+XZ4m1yFdHLE1MzMy)) — неформальная кухня. Мини-апдейты, work-in-progress, ответы на вопросы, баг-репорты. Темп: «когда есть что сказать», не по графику.
+**Чат-обсуждение** ([@DnDSocialru](https://t.me/DnDSocialru)) — неформальная кухня, привязана к каналу как discussion group. Под каждым постом канала кнопка «Прокомментировать» ведёт в комменты к этому посту. В чате — мини-апдейты, work-in-progress, ответы на вопросы, баг-репорты. Темп: «когда есть что сказать», не по графику.
 
 Подробно про контент в группе — [group-content.md](group-content.md).
 Закреп для группы — [group-pinned.txt](group-pinned.txt).
