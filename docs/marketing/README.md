@@ -85,8 +85,9 @@ node tools/gen-changelog.js
 ## Содержание
 
 - [first-week-posts.md](first-week-posts.md) — 5 готовых постов канала для первой недели
-- [posts/](posts/) — чистые .txt версии постов для копипасты в TG (01-05 контент, 06-08 релизы)
+- [posts/](posts/) — чистые .txt версии постов для копипасты в TG (01-05 контент, 06+ релизы)
 - [posts/archive/](posts/archive/) — старые (личные) версии релиз-постов
 - [group-content.md](group-content.md) — гайд по контенту в чате-обсуждении
 - [group-pinned.txt](group-pinned.txt) — закреп для чата-обсуждения
+- [seeding-plan.md](seeding-plan.md) — Этап 1: посев в VK / TG-чатах / Discord / форумах
 - [../../CHANGELOG.md](../../CHANGELOG.md) — полный список версий (генерируется `node tools/gen-changelog.js`)
