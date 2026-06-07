@@ -5531,6 +5531,15 @@ transition: all 0.2s;
   object-fit: contain;
 }
 .school-badge-text { line-height: 1; }
+/* UI5-5: на телефоне имя заклинания важнее — `.spell-card-badges` (flex-shrink:0) с текстом
+   школы + источником + иконками классов сжимал `.spell-card-title` до 1 буквы. Прячем ТЕКСТ
+   школы (цветная иконка остаётся = школа опознаётся) и чуть ужимаем иконки → имя получает место. */
+@media (max-width: 640px) {
+  .school-badge-text { display: none; }
+  .school-badge { padding: 4px 7px; }
+  .spell-class-icon { width: 20px; height: 20px; }
+  .class-icons-row { gap: 3px; }
+}
 .school-abjuration     { color: #6cb6ff; border-color: rgba(108,182,255,0.45); background: rgba(108,182,255,0.10); }
 .school-conjuration    { color: #ffb86c; border-color: rgba(255,184,108,0.45); background: rgba(255,184,108,0.10); }
 .school-divination     { color: #b5bdc8; border-color: rgba(181,189,200,0.45); background: rgba(181,189,200,0.10); }
@@ -7677,6 +7686,46 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   border-color: var(--accent-color);
   color: #fff;
 }
+
+/* ========== UI5-5: МОБИЛЬНЫЕ ТАЧ-ТАРГЕТЫ (≥44px) ========== */
+/* На телефоне (≤640px) интерактивные контролы листа — комфортный тап.
+   Размеры заданы в px → не зависят от data-density="compact" (дефолт на мобиле).
+   Блок идёт ПОСЛЕ базовых/≤600/≤540 правил → перекрывает их при совпадении медиа. */
+@media (max-width: 640px) {
+  /* Высота кнопок/полей (.btn/.field/--control-h) — держим 44px даже в compact */
+  :root, :root[data-density="compact"], :root[data-density="cozy"] { --control-h: 44px; }
+
+  /* — Навыки: чекбокс владения / экспертиза «E» / бросок «+N» — */
+  .skill-row-compact { min-height: 44px; padding: 4px 0; gap: 7px; }
+  .skill-cb { width: 22px !important; height: 22px !important; }
+  /* лейбл навыка = тап-таргет переключения владения на всю высоту строки */
+  .skill-name-compact { line-height: 44px; }
+  .skill-expertise-btn { width: 44px; height: 44px; font-size: 0.72em; }
+  .skill-row-compact .skill-bonus-compact { min-height: 44px; min-width: 56px; }
+
+  /* — Спасброски: чекбокс владения / бросок «+N» — */
+  .save-proficiency input[type="checkbox"] { width: 22px; height: 22px; }
+  .save-proficiency label { font-size: 0.8em; }
+  .save-bonus-clickable {
+    min-height: 44px; min-width: 52px;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0 10px;
+  }
+
+  /* — Характеристики ± — */
+  .stats-compact-grid button.stat-btn-sm,
+  .stat-btn-sm { height: 44px !important; font-size: 20px !important; }
+
+  /* — HP-пресеты 1/5/10/20 — */
+  .hp-preset { min-height: 44px; padding: 8px 4px; }
+
+  /* — Вложенные аккордеоны (Умения/Условия/Эффекты/Сопротивления) — */
+  .accordion-toggle-sm { min-height: 44px; }
+
+  /* — Истощение ± — */
+  .exhaustion-btn { width: 44px !important; height: 44px !important; }
+}
+
 .accordion-prof-count {
   font-size: 0.72em;
   color: var(--accent-color);
@@ -9103,9 +9152,17 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 /* v3.18: мобильная арена — заменён старый @media (max-width: 520px) для .dsvg-wrap;
    общий мобильный блок dice modal находится в секции «v3.18: DICE MODAL» выше. */
 @media (max-width: 520px) {
-  .dsvg-container { height: 280px; max-width: 320px; }
+  .dsvg-container { height: 160px; max-width: 320px; }
   .dice3d-result { min-width: 0; width: 100%; align-items: center; }
-  .dice3d-num { font-size: 2.6em; }
+  .dice3d-num { font-size: 2.2em; }
+  /* UI5-5: дайс-модалка целиком влезает без скролла — поднимаем max-height до 92vh
+     и ужимаем арену/кнопки/отступы (все 6 кубиков + формула + сброс видны сразу). */
+  #dice-modal .dice-modal-content { max-height: 92vh; }
+  .dice-body { gap: 8px; padding: 8px; }
+  .dice-controls-col .dice-grid { gap: 6px; }
+  .dice-controls-col .dice-btn { min-height: 50px; padding: 6px 6px; gap: 4px; }
+  .dice-btn-icon { width: 22px; height: 22px; }
+  .dice-modal-footer { padding: 5px 10px 7px; }
 }
 
 /* =============================================

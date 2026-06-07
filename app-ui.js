@@ -611,12 +611,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // UI-4: плотность интерфейса (compact / standard / cozy)
 var DENSITIES = ['compact','standard','cozy'];
-function _getDensity() {
+// UI5-5: брейкпоинт «телефон» для авто-плотности (синхронен inline-FOUC в index.html)
+var MOBILE_DENSITY_MQ = '(max-width: 640px)';
+// Явный выбор пользователя или null, если плотность не задавалась
+function _getStoredDensity() {
   try {
     var d = localStorage.getItem('dnd_density');
     if (DENSITIES.indexOf(d) !== -1) return d;
   } catch (e) {}
+  return null;
+}
+// UI5-5: дефолт без явного выбора — compact на телефоне, иначе standard
+function _getDefaultDensity() {
+  try {
+    if (window.matchMedia && window.matchMedia(MOBILE_DENSITY_MQ).matches) return 'compact';
+  } catch (e) {}
   return 'standard';
+}
+// Эффективная плотность = явный выбор, иначе авто-дефолт по вьюпорту
+function _getDensity() {
+  return _getStoredDensity() || _getDefaultDensity();
 }
 function _applyDensity(name) {
   if (name === 'standard') document.documentElement.removeAttribute('data-density');
@@ -634,7 +648,23 @@ function _syncDensityButtons() {
     b.classList.toggle('is-active', b.getAttribute('data-density-btn') === active);
   });
 }
-document.addEventListener('DOMContentLoaded', _syncDensityButtons);
+// UI5-5: при смене ширины/повороте пересчитать авто-плотность — но только пока
+// пользователь не задал её явно (его выбор всегда важнее вьюпорта).
+function _onViewportDensityChange() {
+  if (_getStoredDensity()) return;
+  _applyDensity(_getDefaultDensity());
+  _syncDensityButtons();
+}
+document.addEventListener('DOMContentLoaded', function() {
+  _syncDensityButtons();
+  try {
+    if (window.matchMedia) {
+      var mq = window.matchMedia(MOBILE_DENSITY_MQ);
+      if (mq.addEventListener) mq.addEventListener('change', _onViewportDensityChange);
+      else if (mq.addListener) mq.addListener(_onViewportDensityChange);
+    }
+  } catch (e) {}
+});
 
 // UI-5: масштаб шрифта (0.9..1.3, шаг 0.05)
 var FS_SCALE_MIN = 0.9, FS_SCALE_MAX = 1.3, FS_SCALE_DEFAULT = 1.0;
