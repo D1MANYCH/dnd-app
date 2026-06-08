@@ -90,4 +90,5 @@ node tools/gen-changelog.js
 - [group-content.md](group-content.md) — гайд по контенту в чате-обсуждении
 - [group-pinned.txt](group-pinned.txt) — закреп для чата-обсуждения
 - [seeding-plan.md](seeding-plan.md) — Этап 1: посев в VK / TG-чатах / Discord / форумах
+- [seeding-targets.md](seeding-targets.md) — конкретные сообщества-цели (со ссылками)
 - [../../CHANGELOG.md](../../CHANGELOG.md) — полный список версий (генерируется `node tools/gen-changelog.js`)
