@@ -11056,6 +11056,15 @@ mark.notes-hl {
 .lu-choice-opt.is-rec { border-color: var(--rec); box-shadow: 0 0 0 1.5px var(--rec); }
 .lu-choice-launch { font-size: 0.86em; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--rec); background: var(--rec-bg); color: var(--rec); font-weight: 600; cursor: pointer; }
 .lu-choice-launch:hover { background: var(--rec); color: #fff; }
+/* BUILD-LVL: фолбэк-подсказки заклинаний (заклинания уровня из списка класса, когда билд не указал конкретные) */
+.lu-spell-filter { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.lu-spell-fbtn { font-size: 0.76em; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; }
+.lu-spell-fbtn:hover { border-color: var(--accent); color: var(--text); }
+.lu-spell-fbtn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.lu-spell-chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 168px; overflow-y: auto; margin-bottom: 8px; }
+.lu-spell-chip { font-size: 0.82em; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; white-space: nowrap; }
+.lu-spell-chip:hover { border-color: var(--accent); }
+.lu-spell-chip.added { border-color: var(--success-color, #2ecc71); color: var(--success-color, #2ecc71); background: rgba(46,204,113,0.10); }
 .lu-apply-all-btn { width: 100%; padding: 11px; margin-bottom: 12px; border-radius: 10px; border: none; background: var(--rec); color: #fff; font-weight: 700; font-size: 0.95em; cursor: pointer; box-shadow: 0 2px 8px rgba(123,104,238,0.35); }
 .lu-apply-all-btn:hover { filter: brightness(1.08); }
 /* Пикеры, запускаемые с экрана выборов, должны лежать выше модалки повышения (z 1000) */
