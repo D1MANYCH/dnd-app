@@ -150,13 +150,36 @@ var btn = $(btnId);
 if (btn) btn.classList.add("active");
 renderSpellSearch();
 }
+// BUILD-LVL: ключ класса заклинаний персонажа (ru→en). Для мультикласса — первый класс-заклинатель.
+function _charSpellClassKey(char) {
+  var ruToKey = { "Волшебник":"wizard", "Чародей":"sorcerer", "Колдун":"warlock", "Бард":"bard",
+                  "Жрец":"cleric", "Паладин":"paladin", "Друид":"druid", "Следопыт":"ranger" };
+  if (!char) return null;
+  if (ruToKey[char.class]) return ruToKey[char.class];
+  if (Array.isArray(char.classes)) {
+    for (var i = 0; i < char.classes.length; i++) { if (ruToKey[char.classes[i].class]) return ruToKey[char.classes[i].class]; }
+  }
+  return null;
+}
+// BUILD-LVL: высший доступный уровень заклинаний персонажа (по ячейкам/пакту). 0 = некастер/нет ячеек.
+function _charMaxCastableLevel(char) {
+  if (!char || !char.spells) return 0;
+  var m = 0;
+  if (char.spells.slots) for (var i = 1; i <= 9; i++) { if ((char.spells.slots[i] || 0) > 0) m = i; }
+  if ((char.spells.pactLevel || 0) > m) m = char.spells.pactLevel;
+  return m;
+}
 function openSpellSearch() {
 const modal = $("spell-search-modal");
 if (modal) modal.classList.add("active");
 safeSet("spell-search-input", "");
 safeSet("spell-search-level", "");
+// BUILD-LVL: по умолчанию сужаем поиск до класса персонажа (чужие классы скрыты до явного выбора).
+var _char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+var _ownKey = _charSpellClassKey(_char);
+if (_ownKey) { setSpellClass(_ownKey); }            // setSpellClass уже вызывает renderSpellSearch
+else { currentSpellClass = "all"; renderSpellSearch(); }
 markCharOwnClassFilter();
-renderSpellSearch();
 }
 // Подсвечивает класс активного персонажа (зелёный) и остальные кастеры (приглушённый красный),
 // чтобы новички сразу понимали, какие заклинания им доступны.
@@ -238,13 +261,16 @@ const container = $("spell-search-results");
 if (!container) return;
 if (firstLoadSkeleton("spell", "spell-search-results", 6, "list", renderSpellSearch)) return;
 const char = getCurrentChar();
+// BUILD-LVL: по умолчанию (без явно выбранного уровня) прячем заклинания выше доступного персонажу уровня.
+const maxCastable = _charMaxCastableLevel(char);
 let filtered = SPELL_DATABASE.filter(function(spell) {
 const matchesSearch = spell.name.toLowerCase().includes(search);
 const matchesLevel = level === "" || spell.level.toString() === level;
 const matchesVersion = currentSpellVersion === "all" || spell.source === currentSpellVersion;
 const spellClasses = Array.isArray(spell.classes) ? spell.classes : [spell.class || "both"];
 const matchesClass = currentSpellClass === "all" || spellClasses.includes("both") || spellClasses.includes(currentSpellClass);
-return matchesSearch && matchesLevel && matchesVersion && matchesClass;
+const matchesCap = !(level === "" && maxCastable > 0 && spell.level > maxCastable);
+return matchesSearch && matchesLevel && matchesVersion && matchesClass && matchesCap;
 });
 container.innerHTML = "";
 if (filtered.length === 0) {

@@ -183,7 +183,6 @@ showRestResult(resultTitle, resultDetails);
 // ── Мультикласс: переменная для выбранного класса при level-up ──
 var _luMulticlassChoice = null; // {class, subclass, hitDie, isNew}
 var _luChoicesCtx = null; // BUILD-LVL-4: контекст guided level-up (для экрана результата после выборов)
-var _luSpellFilterSchool = ""; // BUILD-LVL: активный фильтр школы для фолбэк-подсказок заклинаний ("" = все)
 
 function openLevelUpModal() {
 if (!currentId) { showToast("Сначала выберите персонажа!", "warn"); return; }
@@ -627,7 +626,6 @@ _luChoicesCtx = {
   resultTitle: classLabel + " · Уровень " + newTotalLevel + "!"
 };
 _luMulticlassChoice = null;
-_luSpellFilterSchool = ""; // BUILD-LVL: сброс фильтра школы для фолбэк-подсказок нового уровня
 updateLevelDownVisibility();
 
 $("lu-screen-multiclass").style.display = "none";
@@ -928,22 +926,23 @@ function luBuildChoicesScreen() {
     });
   }
 
-  // 4) ЗАКЛИНАНИЯ — если класс-заклинатель.
+  // 4) ЗАКЛИНАНИЯ — если класс-заклинатель. Два пути:
+  //    (1) рекомендации билда + кнопка их добавить; (2) добавить самому → вкладка «Заклинания».
   var SPELL_CASTERS = ["Волшебник","Жрец","Друид","Бард","Паладин","Следопыт","Чародей","Колдун"];
   if (SPELL_CASTERS.indexOf(cn) >= 0) {
     var recSpellObjs = (b && typeof getBuildRecSpellObjs === "function") ? getBuildRecSpellObjs(b, newLevel) : [];
-    var spellInner;
+    var mySp = (char.spells && Array.isArray(char.spells.mySpells)) ? char.spells.mySpells : [];
+    var spParts = ['<div class="lu-choice-title">✨ Заклинания</div>'];
     if (recSpellObjs.length) {
-      // Билд явно рекомендует — показываем; закрепление по кнопке «применить рекомендации разом».
-      spellInner = '<div class="lu-choice-sub">' + recBadge('Советуют') + ' ' + escapeHtml(recSpellObjs.map(function(s){ return s.name; }).join(", ")) + '</div>';
+      var allAdded = recSpellObjs.every(function(sp){ return mySp.some(function(x){ return x.id === sp.id || x.name === sp.name; }); });
+      spParts.push('<div class="lu-choice-sub">' + recBadge('Советуют') + ' ' + escapeHtml(recSpellObjs.map(function(s){ return s.name; }).join(", ")) + '</div>');
+      spParts.push('<button class="lu-choice-launch"' + (allAdded ? ' disabled' : '') + ' onclick="luAddRecommendedSpells()">' +
+        (allAdded ? '✓ Рекомендованные добавлены' : '✨ Добавить рекомендованные') + '</button>');
     } else {
-      // Фолбэк: билд не указал конкретные → предлагаем заклинания доступного уровня из списка класса.
-      spellInner = luSpellFallbackHtml(char, cn, b, newLevel);
+      spParts.push('<div class="lu-choice-sub">Билд не указывает конкретные заклинания этого уровня.</div>');
     }
-    blocks.push('<div class="lu-choice-block">' +
-      '<div class="lu-choice-title">✨ Заклинания</div>' + spellInner +
-      '<button class="lu-choice-launch" onclick="openSpellSearch()">Открыть все заклинания →</button>' +
-      '</div>');
+    spParts.push('<button class="lu-choice-alt" onclick="luGoToSpellsTab()">Добавить самому — вкладка «Заклинания» →</button>');
+    blocks.push('<div class="lu-choice-block">' + spParts.join("") + '</div>');
   }
 
   // BUILD-LVL-4: кнопка «применить рекомендации билда разом» — если есть билд и незакрытые рек-выборы.
@@ -988,86 +987,39 @@ function luBuildChoicesScreen() {
   return blocks.length > 0;
 }
 
-// BUILD-LVL: фолбэк-подсказки заклинаний на guided-экране, когда билд не даёт конкретного списка.
-// Показывает заклинания доступного уровня из списка КЛАССА персонажа компактными чипами + фильтр по школе.
-// Выбор по-прежнему за пользователем (клик по чипу добавляет/убирает) — авто-закрепления нет.
-function _luClassSpellKey(cn) {
-  var map = { "Волшебник":"wizard", "Чародей":"sorcerer", "Колдун":"warlock", "Бард":"bard",
-              "Жрец":"cleric", "Паладин":"paladin", "Друид":"druid", "Следопыт":"ranger" };
-  return map[cn] || null;
-}
-
-// Целевой уровень заклинаний для подсказки: из headline «Заклинания/Арканум N ур.», иначе — высший доступный по ячейкам/пакту.
-function _luTargetSpellLevel(char, b, newLevel) {
-  if (b && b.levelUp && b.levelUp[newLevel] && b.levelUp[newLevel].headline) {
-    var m = b.levelUp[newLevel].headline.match(/(?:Заклинани[ея]|Арканум)\s*(\d+)\s*ур/i);
-    if (m) return parseInt(m[1], 10);
-  }
-  var maxLvl = 0;
-  if (char && char.spells) {
-    if (char.spells.slots) for (var i = 1; i <= 9; i++) { if ((char.spells.slots[i] || 0) > 0) maxLvl = i; }
-    if ((char.spells.pactLevel || 0) > maxLvl) maxLvl = char.spells.pactLevel;
-  }
-  return maxLvl;
-}
-
-function luSpellFallbackHtml(char, cn, b, newLevel) {
-  var fallbackHint = '<div class="lu-choice-sub">Открой поиск и добавь заклинания нового уровня.</div>';
-  var key = _luClassSpellKey(cn);
-  var lvl = _luTargetSpellLevel(char, b, newLevel);
-  if (!key || !lvl || typeof SPELL_DATABASE === "undefined" || !Array.isArray(SPELL_DATABASE)) return fallbackHint;
-  var cands = SPELL_DATABASE.filter(function(sp){
-    if (!sp || sp.level !== lvl) return false;
-    var cls = Array.isArray(sp.classes) ? sp.classes : [sp.class || "both"];
-    return cls.indexOf("both") >= 0 || cls.indexOf(key) >= 0;
-  });
-  if (!cands.length) return fallbackHint;
-  var schools = [];
-  cands.forEach(function(sp){ if (sp.school && schools.indexOf(sp.school) < 0) schools.push(sp.school); });
-  schools.sort();
-  var mine = (char.spells && Array.isArray(char.spells.mySpells)) ? char.spells.mySpells : [];
-  var shown = _luSpellFilterSchool ? cands.filter(function(sp){ return sp.school === _luSpellFilterSchool; }) : cands;
-  var seenName = {};
-  var chips = shown.map(function(sp){
-    if (seenName[sp.name]) return ""; // PH14/PH24-дубли имени — один чип
-    seenName[sp.name] = 1;
-    var added = mine.some(function(x){ return x.id === sp.id || x.name === sp.name; });
-    return '<button class="lu-spell-chip' + (added ? ' added' : '') + '" onclick="luToggleFallbackSpell(' + sp.id + ')" title="' +
-      escapeHtml((sp.school || "") + (sp.source ? " · " + sp.source : "")) + '">' +
-      (added ? '✓ ' : '+ ') + escapeHtml(sp.name) + '</button>';
-  }).join("");
-  var filterHtml = schools.length > 1
-    ? '<div class="lu-spell-filter"><button class="lu-spell-fbtn' + (_luSpellFilterSchool === "" ? ' active' : '') +
-        '" onclick="luSetSpellFilter(\'\')">Все</button>' +
-        schools.map(function(s){
-          return '<button class="lu-spell-fbtn' + (_luSpellFilterSchool === s ? ' active' : '') +
-            '" onclick="luSetSpellFilter(\'' + s.replace(/'/g,"\\'") + '\')">' + escapeHtml(s) + '</button>';
-        }).join("") + '</div>'
-    : "";
-  return '<div class="lu-choice-sub">Билд не указывает конкретные — вот заклинания ' + lvl + ' ур. твоего класса (нажми, чтобы добавить):</div>' +
-    filterHtml + '<div class="lu-spell-chips">' + chips + '</div>';
-}
-
-function luSetSpellFilter(school) {
-  _luSpellFilterSchool = school || "";
-  luBuildChoicesScreen();
-}
-
-function luToggleFallbackSpell(spellId) {
+// BUILD-LVL: добавить рекомендованные билдом заклинания текущего уровня в лист (по кнопке, без авто-закрепления).
+function luAddRecommendedSpells() {
   var char = getCurrentChar();
-  if (!char) return;
-  var sp = (typeof SPELL_DATABASE !== "undefined" && Array.isArray(SPELL_DATABASE))
-    ? SPELL_DATABASE.find(function(s){ return s.id === spellId; }) : null;
-  if (!sp) return;
+  var ctx = _luChoicesCtx;
+  if (!char || !ctx) return;
+  var b = (char.buildId && window.getBuildById) ? window.getBuildById(char.buildId) : null;
+  var objs = (b && typeof getBuildRecSpellObjs === "function") ? getBuildRecSpellObjs(b, ctx.newTotalLevel) : [];
+  if (!objs.length) return;
   if (!char.spells) char.spells = {};
   if (!Array.isArray(char.spells.mySpells)) char.spells.mySpells = [];
-  var idx = char.spells.mySpells.findIndex(function(x){ return x.id === sp.id || x.name === sp.name; });
-  if (idx >= 0) char.spells.mySpells.splice(idx, 1);
-  else char.spells.mySpells.push(sp);
-  saveToLocal();
-  if (typeof renderMySpells === "function") renderMySpells();
-  if (typeof renderPrepCounter === "function") renderPrepCounter();
+  var added = [];
+  objs.forEach(function(sp){
+    if (!char.spells.mySpells.some(function(x){ return x.id === sp.id || x.name === sp.name; })) {
+      char.spells.mySpells.push(sp);
+      added.push(sp.name);
+    }
+  });
+  if (added.length) {
+    saveToLocal();
+    if (typeof renderMySpells === "function") renderMySpells();
+    if (typeof renderPrepCounter === "function") renderPrepCounter();
+    if (typeof showToast === "function") showToast("Добавлены заклинания: " + added.join(", "), "success");
+  } else if (typeof showToast === "function") {
+    showToast("Эти заклинания уже добавлены", "info");
+  }
   luBuildChoicesScreen();
+}
+
+// BUILD-LVL: закрыть окно повышения и перейти на вкладку «Заклинания» с открытым поиском (отфильтрован по классу/уровню).
+function luGoToSpellsTab() {
+  if (typeof closeLevelUpModal === "function") closeLevelUpModal();
+  if (typeof switchTab === "function") switchTab("spells", null);
+  if (typeof openSpellSearch === "function") openSpellSearch();
 }
 
 // ============================================
