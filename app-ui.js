@@ -1404,15 +1404,14 @@ function toggleAccordion(btn) {
   var body = btn.nextElementSibling;
   if (!body) return;
   var isOpen = btn.getAttribute("aria-expanded") === "true";
-  var arrow = btn.querySelector(".accordion-arrow");
+  // UI5-6: шеврон ▸ поворачивается через CSS от [aria-expanded] (см. .accordion-arrow в style.css),
+  // JS больше не свопает символ — только переключает aria-expanded.
   if (isOpen) {
     body.style.display = "none";
     btn.setAttribute("aria-expanded", "false");
-    if (arrow) arrow.textContent = "▸";
   } else {
     body.style.display = "";
     btn.setAttribute("aria-expanded", "true");
-    if (arrow) arrow.textContent = "▾";
     // FB-2: line-clamp-детект состояний требует видимой секции (scrollHeight) —
     // повторяем при раскрытии любого аккордеона (дёшево, no-op если состояний нет).
     if (typeof detectConditionOverflow === "function") setTimeout(detectConditionOverflow, 50);
