@@ -145,6 +145,17 @@
   --hp-bar-h: 12px;
 }
 
+/* UI5-5: пока тянут слайдеры «стекла» (непрозрачность/размытие фона), отключаем все
+   transition — смена --glass-alpha/--glass-blur ~60×/сек иначе ре-триггерит
+   background/backdrop-transition на десятках поверхностей → «погоня»/тряска.
+   Класс снимается по отпусканию слайдера (значения уже финальные → без «прыжка»). */
+html.glass-adjusting,
+html.glass-adjusting *,
+html.glass-adjusting *::before,
+html.glass-adjusting *::after {
+  transition: none !important;
+}
+
 /* ========== UI-1. Светлая тема v3 — адаптив + атмосферный фон ==========
    Тёплая cream-палитра #eef2ef + warm radial + SVG-noise + золотые «лозы».
    Активируется data-theme="light" (или data-theme="auto" + prefers-color-scheme: light).

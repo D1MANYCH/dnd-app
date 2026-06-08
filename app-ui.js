@@ -763,6 +763,31 @@ document.addEventListener('DOMContentLoaded', function () {
   _applyGlassAlpha(_getGlassAlpha());
   _applyGlassBlur(_getGlassBlur());
   _syncGlassUi();
+  // UI5-5: на время перетаскивания слайдеров «стекла» —
+  //  (1) отключаем CSS-transition на всех поверхностях (класс на <html>): иначе смена
+  //      --glass-alpha/--glass-blur ~60×/сек ре-триггерит background/backdrop-transition
+  //      на десятках карточек → «погоня»/тряска (особенно непрозрачность);
+  //  (2) паузим анимированный фон #bgCanvas, чтобы backdrop-filter не пересчитывался
+  //      поверх движущегося фона (мерцание/тряска размытия).
+  // Возобновляем по отпусканию/потере фокуса.
+  var _glassStart = function () {
+    document.documentElement.classList.add('glass-adjusting');
+    if (window.__bgOrbits && __bgOrbits.pause) __bgOrbits.pause();
+  };
+  var _glassEnd = function () {
+    document.documentElement.classList.remove('glass-adjusting');
+    if (window.__bgOrbits && __bgOrbits.resume) __bgOrbits.resume();
+  };
+  ['glass-alpha-slider', 'glass-blur-slider'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('pointerdown', _glassStart);
+    el.addEventListener('pointerup', _glassEnd);
+    el.addEventListener('pointercancel', _glassEnd);
+    el.addEventListener('blur', _glassEnd);
+    el.addEventListener('touchstart', _glassStart, { passive: true });
+    el.addEventListener('touchend', _glassEnd);
+  });
 });
 
 function _initAppLinks() {

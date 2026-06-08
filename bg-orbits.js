@@ -510,7 +510,12 @@
       if (!canvas) return;
       resize();
       if (!running()) render();
-    }
+    },
+    // UI5-5: временная пауза анимации БЕЗ изменения пользовательского `enabled`
+    // (напр. на время перетаскивания слайдеров «стекла»: backdrop-filter не должен
+    // пересчитываться поверх движущегося фона — иначе тряска/мерцание на телефоне).
+    pause: function () { stop(); },
+    resume: function () { if (enabled) start(); }
   };
 
   if (document.readyState === 'loading') {
