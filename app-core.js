@@ -392,6 +392,27 @@ function migrateCharacter(char) {
     }
     char.schemaVersion = 12;
   }
+  // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
+  // поэтому валидный для импорта JSON может не содержать обязательных объектов
+  // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем
+  // недостающее из DEFAULT_CHARACTER: отсутствующие поля целиком, у объектных
+  // полей — недостающие под-ключи. Существующие значения не трогаем. Блок
+  // намеренно ПОСЛЕ версионных шагов: v<6 различает легаси-персонажей по
+  // отсутствию basicLocked (true), дефолт шаблона (false) сломал бы это.
+  if (typeof DEFAULT_CHARACTER !== 'undefined' && char && typeof char === 'object') {
+    Object.keys(DEFAULT_CHARACTER).forEach(function(k) {
+      var def = DEFAULT_CHARACTER[k];
+      if (char[k] === undefined) {
+        char[k] = JSON.parse(JSON.stringify(def));
+        return;
+      }
+      if (!def || typeof def !== 'object' || Array.isArray(def)) return;
+      if (!char[k] || typeof char[k] !== 'object' || Array.isArray(char[k])) char[k] = {};
+      Object.keys(def).forEach(function(sub) {
+        if (char[k][sub] === undefined) char[k][sub] = JSON.parse(JSON.stringify(def[sub]));
+      });
+    });
+  }
   return char;
 }
 

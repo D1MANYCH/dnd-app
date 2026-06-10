@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v164">
+<link rel="stylesheet" href="style.css?v=v165">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -2273,35 +2273,35 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v164"></script>
-<script src="bg-orbits.js?v=v164"></script>
-<script src="dice-arena-bg.js?v=v164"></script>
-<script src="data.js?v=v164"></script>
-<script src="build-notes-data.js?v=v164"></script>
-<script src="character-builds.js?v=v164"></script>
-<script src="spells.js?v=v164"></script>
-<script src="app-core.js?v=v164"></script>
-<script src="app-backup.js?v=v164"></script>
-<script src="app-combat.js?v=v164"></script>
-<script src="app-hp.js?v=v164"></script>
-<script src="app-spells.js?v=v164"></script>
-<script src="app-inventory.js?v=v164"></script>
+<script src="app-log.js?v=v165"></script>
+<script src="bg-orbits.js?v=v165"></script>
+<script src="dice-arena-bg.js?v=v165"></script>
+<script src="data.js?v=v165"></script>
+<script src="build-notes-data.js?v=v165"></script>
+<script src="character-builds.js?v=v165"></script>
+<script src="spells.js?v=v165"></script>
+<script src="app-core.js?v=v165"></script>
+<script src="app-backup.js?v=v165"></script>
+<script src="app-combat.js?v=v165"></script>
+<script src="app-hp.js?v=v165"></script>
+<script src="app-spells.js?v=v165"></script>
+<script src="app-inventory.js?v=v165"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC (подключаются до app-party.js) -->
-<script src="monsters-srd.js?v=v164"></script>
-<script src="npc-srd.js?v=v164"></script>
-<script src="app-party.js?v=v164"></script>
-<script src="class-choices.js?v=v164"></script>
-<script src="subclass-choices-data.js?v=v164"></script>
+<script src="monsters-srd.js?v=v165"></script>
+<script src="npc-srd.js?v=v165"></script>
+<script src="app-party.js?v=v165"></script>
+<script src="class-choices.js?v=v165"></script>
+<script src="subclass-choices-data.js?v=v165"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v164";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v165";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v164"></script>
-<script src="app-notes.js?v=v164"></script>
-<script src="app-desktop.js?v=v164"></script>
-<script src="history-stack.js?v=v164"></script>
+<script src="app-ui.js?v=v165"></script>
+<script src="app-notes.js?v=v165"></script>
+<script src="app-desktop.js?v=v165"></script>
+<script src="history-stack.js?v=v165"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2310,9 +2310,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v164",
-    "vendor/jspdf/roboto-base64.js?v=v164",
-    "app-pdf.js?v=v164"
+    "vendor/jspdf/jspdf.umd.min.js?v=v165",
+    "vendor/jspdf/roboto-base64.js?v=v165",
+    "app-pdf.js?v=v165"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {

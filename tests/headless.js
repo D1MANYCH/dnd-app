@@ -398,6 +398,61 @@
     });
   }
 
+  // ────────── БЛОК 9: импорт-устойчивость migrateCharacter ──────────
+  // Импортный JSON валиден по _isValidImportedChar (class+level), но мог не
+  // содержать combat/stats/… — рендер падал на char.combat.hpCurrent.
+  // migrateCharacter обязан достроить недостающее из DEFAULT_CHARACTER.
+  if (typeof migrateCharacter === "function" && typeof DEFAULT_CHARACTER !== "undefined") {
+
+    t("[import] минимальный персонаж: достроены combat/stats/inventory/spells", function(){
+      var c = migrateCharacter({ id: 1, name: "Мин", class: "Плут", level: 5 });
+      if (!c.combat || typeof c.combat.hpCurrent !== "number") return "combat.hpCurrent не число: " + JSON.stringify(c.combat);
+      if (!c.stats || c.stats.str !== 10) return "stats.str: ожидал 10, получено " + JSON.stringify(c.stats);
+      if (!c.inventory || !Array.isArray(c.inventory.weapon)) return "inventory.weapon не массив";
+      if (!c.spells || typeof c.spells.slots !== "object") return "spells.slots не объект";
+      if (!c.coins || c.coins.gp !== 0) return "coins.gp: ожидал 0";
+      if (!c.deathSaves || !Array.isArray(c.deathSaves.successes)) return "deathSaves.successes не массив";
+      if (typeof c.saves !== "object" || typeof c.skills !== "object") return "saves/skills не объекты";
+      if (c.schemaVersion !== 12) return "schemaVersion: ожидал 12, получено " + c.schemaVersion;
+      return true;
+    });
+
+    t("[import] существующие значения не перезаписываются (частичные combat/stats)", function(){
+      var c = migrateCharacter({ id: 2, class: "Воин", level: 3,
+        combat: { hpCurrent: 5, hpMax: 20 }, stats: { str: 18 } });
+      if (c.combat.hpCurrent !== 5 || c.combat.hpMax !== 20) return "combat перезаписан: " + JSON.stringify(c.combat);
+      if (c.stats.str !== 18) return "stats.str перезаписан: " + c.stats.str;
+      if (c.stats.dex !== 10) return "stats.dex не достроен: " + c.stats.dex;
+      if (c.combat.hpTemp !== 0) return "combat.hpTemp не достроен: " + c.combat.hpTemp;
+      return true;
+    });
+
+    t("[import] combat-мусор (строка) заменяется дефолтным объектом", function(){
+      var c = migrateCharacter({ id: 3, class: "Бард", level: 2, combat: "junk" });
+      if (typeof c.combat !== "object" || typeof c.combat.hpCurrent !== "number") return "combat: " + JSON.stringify(c.combat);
+      return true;
+    });
+
+    t("[import] легаси-семантика v<6 не сломана: без schemaVersion → basicLocked=true", function(){
+      // Достройка дефолтов идёт ПОСЛЕ версионных шагов: v<6 должен увидеть
+      // отсутствующий basicLocked и поставить true (а не false из шаблона).
+      var c = migrateCharacter({ id: 4, class: "Жрец", level: 1 });
+      if (c.basicLocked !== true) return "basicLocked: ожидал true (легаси), получено " + c.basicLocked;
+      return true;
+    });
+
+    t("[import] _isValidImportedChar: минимальный валиден, мусор режется", function(){
+      if (typeof _isValidImportedChar !== "function") return "нет _isValidImportedChar";
+      if (!_isValidImportedChar({ class: "Плут", level: 5 })) return "минимальный должен проходить";
+      if (_isValidImportedChar({})) return "{} не должен проходить";
+      if (_isValidImportedChar({ class: "", level: 5 })) return "пустой class не должен проходить";
+      if (_isValidImportedChar({ class: "Плут", level: 25 })) return "level 25 не должен проходить";
+      return true;
+    });
+  } else {
+    t("[import] migrateCharacter+DEFAULT_CHARACTER определены", function(){ return "не загружены"; });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
