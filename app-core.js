@@ -418,6 +418,7 @@ initEffects();
 renderCharacterList();
 renderWeaponPresets();
 updateVersionBlock(false);
+initPersistentStorage();
 };
 
 function saveToLocal() {
@@ -430,6 +431,62 @@ localStorage.setItem("dnd_spells", JSON.stringify(userSpells));
 localStorage.setItem("dnd_hp_history", JSON.stringify(hpHistory));
 } catch(e) { console.error("Ошибка сохранения:", e); showToast("Ошибка сохранения данных!", "error"); }
 }
+
+// DATA-1: persistent storage — просим браузер не вытеснять localStorage/IndexedDB
+// при нехватке места на устройстве (иначе данные могут пропасть без ведома пользователя)
+let storagePersisted = null; // null = API недоступен / ответ ещё не получен
+function initPersistentStorage() {
+try {
+if (typeof navigator === "undefined" || !navigator.storage || !navigator.storage.persist) {
+  if (window.AppLog) AppLog.info("storage", "persistent storage API недоступен");
+  updateStorageStatus();
+  return;
+}
+navigator.storage.persisted()
+  .then(function(already) { return already || navigator.storage.persist(); })
+  .then(function(granted) {
+    storagePersisted = !!granted;
+    if (window.AppLog) AppLog.info("storage", granted ? "хранилище защищено от вытеснения" : "браузер отказал в persistent storage", { persisted: !!granted });
+    updateStorageStatus();
+  })
+  .catch(function(e) {
+    if (window.AppLog) AppLog.warn("storage", "persist() ошибка: " + ((e && e.message) || e));
+    updateStorageStatus();
+  });
+} catch(e) { console.error("Ошибка persistent storage:", e); }
+}
+
+function _formatStorageBytes(n) {
+var mb = n / (1024 * 1024);
+if (mb >= 1024) return (mb / 1024).toFixed(1) + " ГБ";
+if (mb >= 100) return Math.round(mb) + " МБ";
+if (mb >= 1) return mb.toFixed(1) + " МБ";
+return Math.max(1, Math.round(n / 1024)) + " КБ";
+}
+
+function updateStorageStatus() {
+var el = $("storage-status");
+if (!el) return;
+var parts = [];
+if (storagePersisted === true) parts.push("🔒 защищено от вытеснения");
+else if (storagePersisted === false) parts.push("⚠️ не защищено — браузер может стереть при нехватке места");
+var done = function() {
+  if (!parts.length) { el.hidden = true; return; }
+  el.textContent = "Хранилище: " + parts.join(" · ");
+  el.hidden = false;
+};
+if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.estimate) {
+  navigator.storage.estimate().then(function(est) {
+    if (est && est.usage != null && est.quota) {
+      parts.push("занято " + _formatStorageBytes(est.usage) + " из " + _formatStorageBytes(est.quota));
+    }
+    done();
+  }).catch(done);
+} else {
+  done();
+}
+}
+
 function showScreen(screenName) {
 const charactersScreen = $("screen-characters");
 const characterScreen = $("screen-character");
@@ -453,6 +510,7 @@ closeDrawer();
 currentId = null;
 updateHeaderTitle();
 renderCharacterList();
+updateStorageStatus();
 // Возврат к списку персонажей всегда скроллит наверх (header-back и
 // браузерный Back через history-stack оба зовут showScreen("characters")).
 try {
