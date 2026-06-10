@@ -419,6 +419,8 @@ renderCharacterList();
 renderWeaponPresets();
 updateVersionBlock(false);
 initPersistentStorage();
+// DATA-2: авто-снапшот в IndexedDB (app-backup.js), не чаще 1 раза в день
+if (typeof initAutoBackup === "function") initAutoBackup();
 };
 
 function saveToLocal() {
@@ -2341,18 +2343,27 @@ try { localStorage.removeItem("dnd_last_tab"); } catch(e) { window.__catchLog &&
 switchTab("sheet");
 }
 
+// DATA-2: построение конверта полного бэкапа — общая точка для exportData()
+// и снапшотов app-backup.js. userSpells — только пользовательские заклинания
+// (не из базы spells.js), как в saveToLocal().
+function _buildExportPayload() {
+  var baseIds = new Set((typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.map(function(s){ return s.id; }) : []);
+  var userSpells = (typeof SPELL_DATABASE !== 'undefined' && Array.isArray(SPELL_DATABASE))
+    ? SPELL_DATABASE.filter(function(s){ return !baseIds.has(s.id); }) : [];
+  return {
+    app: "dnd-sheet",
+    appVersion: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : "",
+    schemaVersion: (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : 0,
+    exportedAt: new Date().toISOString(),
+    characters: characters,
+    hpHistory: (typeof hpHistory !== 'undefined' && Array.isArray(hpHistory)) ? hpHistory : [],
+    userSpells: userSpells
+  };
+}
 function exportData() {
 // FEAT-1 доработка: полный бэкап — конверт со всеми персонажами И всей
 // HP-историей (importData принимает и голый массив, и конверт).
-const _payload = {
-  app: "dnd-sheet",
-  appVersion: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : "",
-  schemaVersion: (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : 0,
-  exportedAt: new Date().toISOString(),
-  characters: characters,
-  hpHistory: (typeof hpHistory !== 'undefined' && Array.isArray(hpHistory)) ? hpHistory : []
-};
-const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_payload));
+const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_buildExportPayload()));
 const downloadAnchorNode = document.createElement("a");
 downloadAnchorNode.setAttribute("href", dataStr);
 downloadAnchorNode.setAttribute("download", "dnd_backup_" + new Date().toISOString().slice(0,10) + ".json");
@@ -2383,6 +2394,25 @@ function _extractCharsFromImport(parsed) {
   if (Array.isArray(parsed)) return parsed;
   if (parsed && typeof parsed === 'object' && Array.isArray(parsed.characters)) return parsed.characters;
   return null;
+}
+// DATA-2: применение полного бэкапа (конверт exportData / снапшот app-backup.js).
+// Заменяет персонажей, HP-историю и пользовательские заклинания. Конверты без
+// userSpells (бэкапы до v3.25) текущие заклинания не трогают.
+function _applyFullRestore(imported, validChars) {
+  characters = validChars.map(migrateCharacter);
+  // FEAT-1 доработка: «Заменить всё» сохраняет id персонажей, поэтому
+  // HP-историю из конверта восстанавливаем как есть (только для импортируемых).
+  if (imported && Array.isArray(imported.hpHistory)) {
+    var _ids = {};
+    characters.forEach(function(c){ _ids[c.id] = true; });
+    hpHistory = imported.hpHistory.filter(function(h){ return h && _ids[h.charId]; }).slice(0, 300);
+  }
+  if (imported && Array.isArray(imported.userSpells)) {
+    var validSpells = imported.userSpells.filter(_isValidImportedSpell);
+    SPELL_DATABASE = ((typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.slice() : []).concat(validSpells);
+  }
+  saveToLocal();
+  renderCharacterList();
 }
 function importData(input) {
 const file = input?.files?.[0];
@@ -2418,16 +2448,13 @@ if (valid.length === 0) {
 var msg = "Загрузить " + valid.length + " персонаж(а/ей)? Все текущие будут заменены.";
 if (skipped > 0) msg += " Пропущено повреждённых: " + skipped + ".";
 showConfirmModal("Импорт персонажей", msg, function() {
-  characters = valid.map(migrateCharacter);
-  // FEAT-1 доработка: «Заменить всё» сохраняет id персонажей, поэтому
-  // HP-историю из конверта восстанавливаем как есть (только для импортируемых).
-  if (imported && Array.isArray(imported.hpHistory)) {
-    var _ids = {};
-    characters.forEach(function(c){ _ids[c.id] = true; });
-    hpHistory = imported.hpHistory.filter(function(h){ return h && _ids[h.charId]; }).slice(0, 300);
+  // DATA-2: страховочный снапшот текущего состояния перед заменой всего.
+  // Конверт строится синхронно внутри вызова — фиксирует состояние ДО замены.
+  if (typeof createBackupSnapshot === "function") {
+    try { createBackupSnapshot("pre-import").catch(function(){}); }
+    catch(e) { window.__catchLog && window.__catchLog('core:pre-import-backup', e); }
   }
-  saveToLocal();
-  renderCharacterList();
+  _applyFullRestore(imported, valid);
   showToast("Загружено: " + characters.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
 });
 input.value = "";
