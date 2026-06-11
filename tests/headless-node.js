@@ -3,6 +3,8 @@
 // TEST-1: добавлены app-core.js / app-combat.js / app-hp.js + DOM-шим ($, qs, qsa, localStorage)
 // для тестов applyDamage (quickHP) и calcStats.
 // TEST-2: добавлен app-inventory.js — тесты слотов/веса/монет/мешочков (БЛОК 10).
+// TEST-3: добавлены app-spells.js + app-party.js (+ monsters-srd/npc-srd явно, т.к. в проде
+// они лениво через ensureBestiary, PERF-3) — тесты подготовки заклинаний и трекера боя (БЛОКИ 11–12).
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -19,6 +21,10 @@ const files = [
   'app-combat.js',
   'app-hp.js',
   'app-inventory.js',        // TEST-2: getSlotsTotal/calcUsedSlots/updateInventoryWeight/renderPouches/_invMoveItem (БЛОК 10)
+  'monsters-srd.js',         // TEST-3: в проде лениво (ensureBestiary, PERF-3) — в тестах явно ДО app-party
+  'npc-srd.js',              // TEST-3: то же
+  'app-spells.js',           // TEST-3: подготовка заклинаний + ячейки/пакт (БЛОК 11)
+  'app-party.js',            // TEST-3: отряд и трекер боя (БЛОК 12)
   'tests/fixtures.js',
   'tests/headless.js',
 ];
@@ -145,8 +151,10 @@ sandbox.escapeHtml = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =
 // BUILD-LVL-7: Option-конструктор для updateSubclassOptions (new Option(text,value)) в confirmLevelUp.
 sandbox.Option = function Option(text, value) { this.text = text; this.value = value; this.label = text; this.selected = false; };
 
-// Заглушки для функций из не-загружаемых модулей (app-party / app-ui / app-notes / etc.),
+// Заглушки для функций из не-загружаемых модулей (app-ui / app-notes / etc.),
 // чтобы вызовы изнутри updateHPDisplay / loadCharacter / confirmRest не падали.
+// TEST-3: app-spells.js и app-party.js теперь загружаются — их декларации
+// (renderSpellSlots, renderMySpells, syncSelfBattleStatus, …) перекрывают эти стабы.
 const externalStubs = [
   'syncSelfBattleStatus',        // app-party.js
   'animateCountUp',              // app-ui.js

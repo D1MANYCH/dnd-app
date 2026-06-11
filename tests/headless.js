@@ -7,7 +7,8 @@
   // _applyFullRestore, _invMoveItem), который пишет в localStorage реального
   // origin — на одном origin с приложением это перезаписало бы dnd_chars
   // тестовыми данными. Снимаем снапшот до тестов, возвращаем как было в конце.
-  var _lsKeys = ["dnd_chars", "dnd_spells", "dnd_hp_history"];
+  // TEST-3: + dnd_party/dnd_battle — saveParty()/saveBattle() без currentId пишут туда.
+  var _lsKeys = ["dnd_chars", "dnd_spells", "dnd_hp_history", "dnd_party", "dnd_battle"];
   var _lsSnapshot = {};
   _lsKeys.forEach(function(k){
     try { _lsSnapshot[k] = localStorage.getItem(k); } catch(e) { _lsSnapshot[k] = null; }
@@ -749,6 +750,317 @@
         if (inv.other.length !== 2 || inv.other[1].name !== "В") return "other: В должен встать в конец, получено " + JSON.stringify(inv.other);
         return true;
       } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+  }
+
+  // ────────── БЛОК 11 (TEST-3): заклинания — подготовка и ячейки (app-spells.js) ──────────
+  // Требует загруженного app-spells.js (Node-runner и обновлённый runner.html).
+  // В минимальной среде без него блок мягко пропускается (один PASS-noop).
+  var _hasSpellsMod = (typeof isPrepClass === "function" && typeof calcMaxPrepared === "function" &&
+                       typeof isSpellPrepared === "function" && typeof toggleSpellPrepared === "function" &&
+                       typeof toggleSpellSlot === "function" && typeof adjustSpellSlots === "function" &&
+                       typeof togglePactSlot === "function" && typeof adjustPactSlots === "function");
+
+  if (!_hasSpellsMod) {
+    t("[spells] app-spells.js загружен", function(){ return true; }); // noop в минимальной среде
+  } else {
+
+    t("[spells] isPrepClass: Жрец/Друид/Паладин/Волшебник готовят, Воин/Колдун/null — нет", function(){
+      var prep = ["Жрец", "Друид", "Паладин", "Волшебник"];
+      for (var i = 0; i < prep.length; i++) {
+        if (!isPrepClass({ class: prep[i] })) return prep[i] + " должен готовить заклинания";
+      }
+      if (isPrepClass({ class: "Воин" })) return "Воин не готовит";
+      if (isPrepClass({ class: "Колдун" })) return "Колдун знает заклинания, а не готовит";
+      if (isPrepClass(null)) return "null не готовит";
+      if (isPrepClass({})) return "без класса не готовит";
+      return true;
+    });
+
+    t("[spells] calcMaxPrepared: mod+level, mod+halfLevel у Паладина, кламп ≥1, не-prep → null", function(){
+      var got = calcMaxPrepared({ class: "Жрец", level: 5, stats: { wis: 16 } });
+      if (got !== 8) return "Жрец L5 МУД16: ожидал 8 (3+5), получено " + got;
+      got = calcMaxPrepared({ class: "Паладин", level: 6, stats: { cha: 16 } });
+      if (got !== 6) return "Паладин L6 ХАР16: ожидал 6 (3+3, halfLevel), получено " + got;
+      got = calcMaxPrepared({ class: "Жрец", level: 1, stats: { wis: 8 } });
+      if (got !== 1) return "Жрец L1 МУД8: ожидал кламп 1, получено " + got;
+      got = calcMaxPrepared({ class: "Волшебник", level: 3 });
+      if (got !== 3) return "Волшебник L3 без stats (ИНТ 10): ожидал 3, получено " + got;
+      if (calcMaxPrepared({ class: "Воин", level: 5, stats: { str: 18 } }) !== null) return "Воин: ожидал null";
+      if (calcMaxPrepared(null) !== null) return "null: ожидал null";
+      return true;
+    });
+
+    t("[spells] isSpellPrepared: не-prep класс всегда true, prep — по списку, prepared достраивается", function(){
+      if (isSpellPrepared({ class: "Воин", spells: {} }, 42) !== true) return "Воин: ожидал true";
+      var cleric = { class: "Жрец", spells: { prepared: [7] } };
+      if (isSpellPrepared(cleric, 7) !== true) return "id 7 в prepared: ожидал true";
+      if (isSpellPrepared(cleric, 8) !== false) return "id 8 не в prepared: ожидал false";
+      var fresh = { class: "Жрец", spells: {} };
+      if (isSpellPrepared(fresh, 1) !== false) return "пустой prepared: ожидал false";
+      if (!Array.isArray(fresh.spells.prepared)) return "prepared не достроен массивом";
+      return true;
+    });
+
+    t("[spells] toggleSpellPrepared: вкл/выкл, лимит не-заговоров, заговоры вне лимита", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{
+          id: "test-prep-1", class: "Жрец", level: 1,
+          stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, // МУД 10 → лимит max(1, 0+1) = 1
+          combat: {}, saves: {}, skills: [],
+          spells: { stat: "МУД", slots: {}, slotsUsed: {},
+            mySpells: [
+              { id: 100, name: "Свет",        level: 0 },
+              { id: 101, name: "Лечение ран", level: 1 },
+              { id: 102, name: "Щит веры",    level: 1 }
+            ],
+            prepared: [100] } // заговор «подготовлен» — не должен попадать в лимит
+        }];
+        window.currentId = "test-prep-1";
+        var sp = window.characters[0].spells;
+        toggleSpellPrepared(101); // заговор не в счёт → лимит свободен
+        if (sp.prepared.indexOf(101) === -1) return "101 не подготовлен (заговор посчитан в лимит?)";
+        toggleSpellPrepared(102); // лимит 1 не-заговор исчерпан → отказ с toast
+        if (sp.prepared.indexOf(102) !== -1) return "102 подготовлен сверх лимита";
+        if (sp.prepared.length !== 2) return "ожидал [100,101], получено " + JSON.stringify(sp.prepared);
+        toggleSpellPrepared(101); // повторный клик снимает подготовку
+        if (sp.prepared.indexOf(101) !== -1) return "101 не снят повторным кликом";
+        toggleSpellPrepared(102); // место освободилось
+        if (sp.prepared.indexOf(102) === -1) return "102 не подготовлен после освобождения лимита";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[spells] ячейки: toggleSpellSlot/adjustSpellSlots + пакт — кламп 0..10, кап used", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{
+          id: "test-slots-1", class: "Колдун", level: 5,
+          stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+          combat: {}, saves: {}, skills: [],
+          spells: { stat: "ХАР", slots: { 3: 4 }, slotsUsed: {}, mySpells: [],
+                    pactSlots: 2, pactLevel: 3, pactUsed: 0 }
+        }];
+        window.currentId = "test-slots-1";
+        var sp = window.characters[0].spells;
+        toggleSpellSlot(3, 0);
+        if (sp.slotsUsed[3] !== 1) return "toggle(3,0): ожидал used 1, получено " + sp.slotsUsed[3];
+        toggleSpellSlot(3, 2);
+        if (sp.slotsUsed[3] !== 3) return "toggle(3,2): ожидал used 3, получено " + sp.slotsUsed[3];
+        toggleSpellSlot(3, 0); // клик по потраченному ромбу освобождает начиная с него
+        if (sp.slotsUsed[3] !== 0) return "toggle(3,0) повторно: ожидал used 0, получено " + sp.slotsUsed[3];
+        toggleSpellSlot(3, 2);
+        adjustSpellSlots(3, -1); // 4 → 3, used 3 не превышает — не трогаем
+        if (sp.slots[3] !== 3 || sp.slotsUsed[3] !== 3) return "−1: ожидал slots 3 / used 3, получено " + sp.slots[3] + "/" + sp.slotsUsed[3];
+        adjustSpellSlots(3, -1); // 3 → 2, used капится 3 → 2
+        if (sp.slots[3] !== 2 || sp.slotsUsed[3] !== 2) return "−1: ожидал slots 2 / used 2, получено " + sp.slots[3] + "/" + sp.slotsUsed[3];
+        for (var i = 0; i < 12; i++) adjustSpellSlots(3, 1);
+        if (sp.slots[3] !== 10) return "+1×12: ожидал кламп 10, получено " + sp.slots[3];
+        // пакт-ячейки (BUGFIX-1)
+        togglePactSlot(0);
+        togglePactSlot(1);
+        if (sp.pactUsed !== 2) return "пакт toggle(0,1): ожидал used 2, получено " + sp.pactUsed;
+        togglePactSlot(0);
+        if (sp.pactUsed !== 0) return "пакт toggle(0) повторно: ожидал 0, получено " + sp.pactUsed;
+        sp.pactUsed = 2;
+        adjustPactSlots(-1); // 2 → 1, used капится до 1
+        if (sp.pactSlots !== 1 || sp.pactUsed !== 1) return "пакт −1: ожидал slots 1 / used 1, получено " + sp.pactSlots + "/" + sp.pactUsed;
+        adjustPactSlots(-1); adjustPactSlots(-1);
+        if (sp.pactSlots !== 0) return "пакт не клампится в 0: " + sp.pactSlots;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+  }
+
+  // ────────── БЛОК 12 (TEST-3): отряд и трекер боя (app-party.js) ──────────
+  // PARTY_DATA/BATTLE_DATA/battleSetupList — модульные глобалы app-party.js; каждый
+  // тест подменяет их фикстурой и возвращает как было (в браузере при загрузке туда
+  // мог попасть реальный dnd_party/dnd_battle пользователя).
+  var _hasParty = (typeof getSelfStatusFromHP === "function" && typeof buildBattleSetupList === "function" &&
+                   typeof startBattle === "function" && typeof nextTurn === "function" &&
+                   typeof syncSelfBattleStatus === "function" && typeof _isValidPentry === "function");
+
+  if (!_hasParty) {
+    t("[party] app-party.js загружен", function(){ return true; }); // noop в минимальной среде
+  } else {
+
+    t("[party] getSelfStatusFromHP: пороги 0/15/35/60% → dead/dying/heavy/wounded/healthy", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{ id: "test-pt-hp", combat: { hpCurrent: 100, hpMax: 100 } }];
+        window.currentId = "test-pt-hp";
+        var c = window.characters[0].combat;
+        var cases = [[100,"healthy"],[61,"healthy"],[60,"wounded"],[36,"wounded"],[35,"heavy"],
+                     [16,"heavy"],[15,"dying"],[1,"dying"],[0,"dead"],[-5,"dead"]];
+        for (var i = 0; i < cases.length; i++) {
+          c.hpCurrent = cases[i][0];
+          var got = getSelfStatusFromHP();
+          if (got !== cases[i][1]) return "HP " + cases[i][0] + "/100: ожидал " + cases[i][1] + ", получено " + got;
+        }
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[party] buildBattleSetupList: self+союзник+NPC+монстр, checked переживает пересборку", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      var savedParty = PARTY_DATA, savedSetup = battleSetupList;
+      try {
+        window.characters = [{ id: "tp1", name: "Герой", class: "Воин", combat: { hpCurrent: 10, hpMax: 10 } }];
+        window.currentId = "tp1";
+        PARTY_DATA = {
+          allies:   [{ id: 1, name: "Аля", cls: "Бард" }],
+          npcs:     [{ id: 2, name: "Трактирщик" }],
+          monsters: [{ id: 3, name: "Гоблин", type: "Гуманоид" }]
+        };
+        battleSetupList = [];
+        buildBattleSetupList();
+        if (battleSetupList.length !== 4) return "ожидал 4 участника, получено " + battleSetupList.length;
+        var ids = battleSetupList.map(function(p){ return p.id; }).join(",");
+        if (ids !== "self_tp1,ally_1,npc_2,mon_3") return "id/порядок: " + ids;
+        if (battleSetupList.some(function(p){ return p.checked; })) return "по умолчанию никто не отмечен";
+        battleSetupList[1].checked = true; // союзник
+        buildBattleSetupList(); // пересборка (повторное открытие вкладки)
+        var ally = battleSetupList.filter(function(p){ return p.id === "ally_1"; })[0];
+        if (!ally || ally.checked !== true) return "checked союзника потерян при пересборке";
+        var extra = battleSetupList.filter(function(p){ return p.id !== "ally_1" && p.checked; });
+        if (extra.length) return "лишние отмеченные: " + extra.map(function(p){ return p.id; }).join(",");
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; PARTY_DATA = savedParty; battleSetupList = savedSetup; }
+    });
+
+    t("[party] startBattle: без отмеченных — отказ; с отмеченными — копии участников, ход 0", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      var savedBattle = BATTLE_DATA, savedSetup = battleSetupList;
+      try {
+        _ensureEl("battle-setup-screen");   // startBattle переключает экраны без null-guard
+        _ensureEl("battle-tracker-screen");
+        window.characters = [{ id: "tp2", name: "Герой", class: "Воин", combat: { hpCurrent: 10, hpMax: 10 } }];
+        window.currentId = "tp2";
+        BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
+        battleSetupList = [
+          { id: "self_tp2", name: "Герой",  icon: "🗡", color: "#4da843", type: "self",    checked: false },
+          { id: "ally_1",   name: "Аля",    icon: "🎵", color: "#27ae60", type: "ally",    checked: false },
+          { id: "mon_3",    name: "Гоблин", icon: "👾", color: "#c0392b", type: "monster", checked: false }
+        ];
+        startBattle(); // никто не отмечен → отказ с toast
+        if (BATTLE_DATA.active) return "бой начался без участников";
+        battleSetupList[0].checked = true;
+        battleSetupList[2].checked = true;
+        startBattle();
+        if (!BATTLE_DATA.active) return "бой не начался";
+        if (BATTLE_DATA.participants.length !== 2) return "ожидал 2 участника, получено " + BATTLE_DATA.participants.length;
+        if (BATTLE_DATA.currentTurn !== 0) return "ход должен начинаться с 0, получено " + BATTLE_DATA.currentTurn;
+        if (!BATTLE_DATA.participants.every(function(p){ return p.status === "healthy"; })) return "статусы участников не healthy";
+        BATTLE_DATA.participants[1].status = "dying"; // участники — копии, не ссылки на setup-лист
+        if (battleSetupList[2].status === "dying") return "участник ссылается на setup-объект (нет копии)";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; battleSetupList = savedSetup; }
+    });
+
+    t("[party] nextTurn/prevTurn: ротация инициативы по кругу", function(){
+      var savedChars = window.characters, savedId = window.currentId, savedBattle = BATTLE_DATA;
+      try {
+        window.characters = [{ id: "tp3", name: "Герой", class: "Воин", combat: { hpCurrent: 10, hpMax: 10 } }];
+        window.currentId = "tp3";
+        BATTLE_DATA = { active: true, currentTurn: 0, participants: [
+          { name: "А", type: "ally" }, { name: "Б", type: "npc" }, { name: "В", type: "monster" }
+        ]};
+        nextTurn();
+        if (BATTLE_DATA.currentTurn !== 1) return "next: ожидал 1, получено " + BATTLE_DATA.currentTurn;
+        nextTurn(); nextTurn(); // 2 → wrap 0
+        if (BATTLE_DATA.currentTurn !== 0) return "wrap вперёд: ожидал 0, получено " + BATTLE_DATA.currentTurn;
+        prevTurn();
+        if (BATTLE_DATA.currentTurn !== 2) return "wrap назад: ожидал 2, получено " + BATTLE_DATA.currentTurn;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
+    });
+
+    t("[party] syncSelfBattleStatus: статус self следует за HP, чужие не трогает, вне боя — no-op", function(){
+      var savedChars = window.characters, savedId = window.currentId, savedBattle = BATTLE_DATA;
+      try {
+        window.characters = [{ id: "tp4", name: "Герой", class: "Воин", combat: { hpCurrent: 10, hpMax: 100 } }];
+        window.currentId = "tp4";
+        BATTLE_DATA = { active: true, currentTurn: 0, participants: [
+          { name: "Герой",  type: "self",    status: "healthy" },
+          { name: "Гоблин", type: "monster", status: "wounded" }
+        ]};
+        syncSelfBattleStatus(); // 10/100 = 10% → dying
+        if (BATTLE_DATA.participants[0].status !== "dying") return "self: ожидал dying, получено " + BATTLE_DATA.participants[0].status;
+        if (BATTLE_DATA.participants[1].status !== "wounded") return "статус монстра изменён: " + BATTLE_DATA.participants[1].status;
+        window.characters[0].combat.hpCurrent = 100;
+        BATTLE_DATA.active = false;
+        syncSelfBattleStatus(); // бой не активен → no-op
+        if (BATTLE_DATA.participants[0].status !== "dying") return "вне боя статус не должен меняться";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
+    });
+
+    t("[party] _isValidPentry + getParticipantDesc: валидация импорта и поиск описания", function(){
+      var savedChars = window.characters, savedId = window.currentId, savedParty = PARTY_DATA;
+      try {
+        if (!_isValidPentry({ name: "Гоблин" })) return "{name} должен проходить";
+        if (_isValidPentry({})) return "{} не должен проходить";
+        if (_isValidPentry(null)) return "null не должен проходить";
+        if (_isValidPentry({ name: "" })) return "пустое имя не должно проходить";
+        if (_isValidPentry("Гоблин")) return "строка не должна проходить";
+        window.characters = [{ id: "tp5", name: "Герой", class: "Воин", subclass: "Чемпион", level: 3, combat: {} }];
+        window.currentId = "tp5";
+        PARTY_DATA = {
+          allies:   [{ id: 1, name: "Аля", desc: "опытный лучник" }],
+          npcs:     [{ id: 2, name: "Трактирщик", role: "Хозяин таверны" }], // без desc → роль
+          monsters: [{ id: 3, name: "Гоблин", desc: "из засады" }]
+        };
+        if (getParticipantDesc({ type: "ally", id: 1 }) !== "опытный лучник") return "ally: desc не найден";
+        if (getParticipantDesc({ type: "npc", id: 2 }) !== "Хозяин таверны") return "npc: нет fallback на роль";
+        if (getParticipantDesc({ type: "monster", id: 3 }) !== "из засады") return "monster: desc не найден";
+        var self = getParticipantDesc({ type: "self" });
+        if (self !== "Воин · Чемпион · 3 ур.") return "self: получено «" + self + "»";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; PARTY_DATA = savedParty; }
+    });
+
+    t("[party] addMonsterFromSRD: карточка из SRD-каталога со статами и srdSlug", function(){
+      // PERF-3: в раннерах monsters-srd.js загружен явно; в минимальной среде — noop
+      if (typeof addMonsterFromSRD !== "function" || !window.MONSTERS_SRD || !window.MONSTERS_SRD.length) return true;
+      var savedChars = window.characters, savedId = window.currentId, savedParty = PARTY_DATA;
+      try {
+        window.characters = [{ id: "tp6", name: "Герой", class: "Воин", combat: {} }];
+        window.currentId = "tp6";
+        PARTY_DATA = { allies: [], npcs: [], monsters: [] };
+        addMonsterFromSRD("rat");
+        if (PARTY_DATA.monsters.length !== 1) return "ожидал 1 монстра, получено " + PARTY_DATA.monsters.length;
+        var m = PARTY_DATA.monsters[0];
+        if (m.name !== "Крыса") return "name: " + m.name;
+        if (m.srdSlug !== "rat") return "srdSlug: " + m.srdSlug;
+        if (m.cr !== "0" || m.ac !== 10 || m.hp !== 1 || m.hpMax !== 1)
+          return "статы: cr=" + m.cr + " ac=" + m.ac + " hp=" + m.hp + " hpMax=" + m.hpMax;
+        if (m.status !== "healthy") return "status: " + m.status;
+        if (String(m.desc).indexOf("SRD 5e") === -1) return "desc без шапки SRD";
+        addMonsterFromSRD("no-such-slug"); // неизвестный slug — отказ без записи
+        if (PARTY_DATA.monsters.length !== 1) return "неизвестный slug добавил запись";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; PARTY_DATA = savedParty; }
+    });
+
+    t("[party] addNpcFromSRD: архетип из каталога с ролью/отношением/иконкой", function(){
+      if (typeof addNpcFromSRD !== "function" || !window.NPC_ARCHETYPES || !window.NPC_ARCHETYPES.length) return true;
+      var savedChars = window.characters, savedId = window.currentId, savedParty = PARTY_DATA;
+      try {
+        window.characters = [{ id: "tp7", name: "Герой", class: "Воин", combat: {} }];
+        window.currentId = "tp7";
+        PARTY_DATA = { allies: [], npcs: [], monsters: [] };
+        addNpcFromSRD("trader");
+        if (PARTY_DATA.npcs.length !== 1) return "ожидал 1 NPC, получено " + PARTY_DATA.npcs.length;
+        var n = PARTY_DATA.npcs[0];
+        if (n.name !== "Торговец" || n.role !== "Торговец") return "name/role: " + n.name + "/" + n.role;
+        if (n.attitude !== "дружелюбный") return "attitude: " + n.attitude;
+        if (n.icon !== "🛒") return "icon: " + n.icon;
+        if (n.srdSlug !== "trader") return "srdSlug: " + n.srdSlug;
+        addNpcFromSRD("no-such-slug");
+        if (PARTY_DATA.npcs.length !== 1) return "неизвестный slug добавил запись";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; PARTY_DATA = savedParty; }
     });
   }
 
