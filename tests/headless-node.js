@@ -185,4 +185,5 @@ if (failed.length) {
   for (const f of failed) console.log(`  ✗ ${f.desc}  ${f.msg || ''}`);
 }
 console.log(`\nИтого: ${r.pass} OK / ${r.fail} FAIL из ${r.total}`);
-process.exit(r.fail === 0 ? 0 : 1);
+// total === 0 — тесты не выполнились (пустой __testResults) → красный, не ложно-зелёный CI
+process.exit(r.fail === 0 && r.total > 0 ? 0 : 1);
