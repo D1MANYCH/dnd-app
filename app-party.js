@@ -390,7 +390,18 @@ function renderMonsters() {
 // ─── FEAT-4: SRD MONSTER PICKER ──────────────────────────────
 var _srdPickerState = { q: "", cr: "", edition: "" };
 
+// PERF-3: monsters-srd.js/npc-srd.js грузятся лениво (ensureBestiary в index.html) —
+// гарантируем данные ДО открытия пикера; при ошибке загрузки guard ядра покажет toast.
 function openSrdMonsterPicker() {
+  if (!window.MONSTERS_SRD && typeof window.ensureBestiary === "function") {
+    return window.ensureBestiary().catch(function (e) {
+      if (window.__catchLog) window.__catchLog("bestiary:lazy-load", e);
+      if (typeof showToast === "function") showToast("Бестиарий не загрузился — проверьте сеть", "warn");
+    }).then(function () { return _openSrdMonsterPickerCore(); });
+  }
+  return _openSrdMonsterPickerCore();
+}
+function _openSrdMonsterPickerCore() {
   if (!window.MONSTERS_SRD || !window.MONSTERS_SRD.length) {
     showToast("SRD-бестиарий не загружен", "error");
     return;
@@ -434,6 +445,7 @@ function setSrdMonsterEdition(val) { _srdPickerState.edition = val || ""; render
 
 function renderSrdMonsterPicker() {
   var box = $("srd-monster-results"); if (!box) return;
+  if (!window.MONSTERS_SRD) return; // PERF-3: данные ещё не загружены
   var q = _srdPickerState.q, cr = _srdPickerState.cr, ed = _srdPickerState.edition;
   var list = window.MONSTERS_SRD.filter(function(m) {
     if (cr && m.cr !== cr) return false;
@@ -500,7 +512,17 @@ function addMonsterFromSRD(slug, event) {
 // ─── FEAT-4: NPC ARCHETYPE PICKER ────────────────────────────
 var _npcPickerState = { q: "", att: "" };
 
+// PERF-3: та же ленивая обёртка, что у openSrdMonsterPicker.
 function openSrdNpcPicker() {
+  if (!window.NPC_ARCHETYPES && typeof window.ensureBestiary === "function") {
+    return window.ensureBestiary().catch(function (e) {
+      if (window.__catchLog) window.__catchLog("bestiary:lazy-load", e);
+      if (typeof showToast === "function") showToast("Бестиарий не загрузился — проверьте сеть", "warn");
+    }).then(function () { return _openSrdNpcPickerCore(); });
+  }
+  return _openSrdNpcPickerCore();
+}
+function _openSrdNpcPickerCore() {
   if (!window.NPC_ARCHETYPES || !window.NPC_ARCHETYPES.length) {
     showToast("NPC-архетипы не загружены", "error");
     return;
@@ -528,6 +550,7 @@ function setSrdNpcAtt(val)    { _npcPickerState.att = val || ""; renderSrdNpcPic
 
 function renderSrdNpcPicker() {
   var box = $("srd-npc-results"); if (!box) return;
+  if (!window.NPC_ARCHETYPES) return; // PERF-3: данные ещё не загружены
   var q = _npcPickerState.q, att = _npcPickerState.att;
   var list = window.NPC_ARCHETYPES.filter(function(a) {
     if (att && (a.attitude || "") !== att) return false;

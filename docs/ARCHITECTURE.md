@@ -18,8 +18,8 @@ dnd-app/
 ├── build-notes-data.js     — автозаметки билдов (~1620 строк) — ленивая, грузится при применении билда (PERF-2)
 ├── class-choices.js        — выборы классов (боевые стили, метамагия, пакты и т.п.)
 ├── subclass-choices-data.js— выборы подклассов
-├── monsters-srd.js         — бестиарий SRD 5e (FEAT-4)
-├── npc-srd.js              — архетипы NPC SRD (FEAT-4)
+├── monsters-srd.js         — бестиарий SRD 5e (FEAT-4) — ленивый, грузится при открытии SRD-пикеров отряда (PERF-3)
+├── npc-srd.js              — архетипы NPC SRD (FEAT-4) — ленивый, грузится вместе с monsters-srd (PERF-3)
 │
 │   # Модули приложения (логика по вкладкам/функциям)
 ├── app-core.js             — ядро: хелперы, состояние, навигация, персонажи, импорт/экспорт, applyBuild
@@ -51,7 +51,7 @@ dnd-app/
 
 > Порядок подключения скриптов задан в `index.html` (низ файла). Все модули — обычные (не-ES-module) скрипты, экспонирующие функции в глобальную область; исключение — `vendor/dice-box` (ES-модуль, оборачивается в `window.DiceBox`).
 
-> **Ленивая загрузка** — инлайн-загрузчик в низу `index.html`: `loadScript(src)` с мемоизацией промиса per-src (упавший src сбрасывается → ретрай при следующем вызове). Через него грузятся два блока: PDF-стек ~600 КБ (`vendor/jspdf/jspdf.umd.min.js` + `roboto-base64.js` + `app-pdf.js`) по первому клику 📄 — заглушка `window.exportCharacterPDF` подменяется настоящей функцией (PERF-1); и `build-notes-data.js` ~530 КБ через `ensureBuildNotes()`, который вызывается из `applyBuild` (app-core.js) и после загрузки зовёт `attachBuildNotes()` (PERF-2). `?v=`-токены ленивых URL живут прямо в `index.html` — их бампает `tools/bump-version.js` вместе с остальными. Оба блока остаются в `FILES_TO_CACHE` sw.js, офлайн работает.
+> **Ленивая загрузка** — инлайн-загрузчик в низу `index.html`: `loadScript(src)` с мемоизацией промиса per-src (упавший src сбрасывается → ретрай при следующем вызове). Через него грузятся три блока: PDF-стек ~600 КБ (`vendor/jspdf/jspdf.umd.min.js` + `roboto-base64.js` + `app-pdf.js`) по первому клику 📄 — заглушка `window.exportCharacterPDF` подменяется настоящей функцией (PERF-1); `build-notes-data.js` ~530 КБ через `ensureBuildNotes()`, который вызывается из `applyBuild` (app-core.js) и после загрузки зовёт `attachBuildNotes()` (PERF-2); и бестиарий `monsters-srd.js` + `npc-srd.js` ~61 КБ через `ensureBestiary()`, который вызывается из SRD-пикеров вкладки отряда (app-party.js) (PERF-3). `?v=`-токены ленивых URL живут прямо в `index.html` — их бампает `tools/bump-version.js` вместе с остальными. Все блоки остаются в `FILES_TO_CACHE` sw.js, офлайн работает.
 
 ---
 
