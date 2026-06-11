@@ -1526,14 +1526,17 @@ window.normalizeBuildNotes = function(n) {
 };
 
 // Прикрепляем к самим билдам, чтобы applyBuild() мог читать b.notes без отдельного lookup.
-(function attachBuildNotes(){
+// PERF-2: build-notes-data.js грузится лениво (ensureBuildNotes в index.html) и зовёт
+// attachBuildNotes повторно после подгрузки карты; вызов идемпотентен (!list[i].notes).
+window.attachBuildNotes = function () {
   var list = window.CHARACTER_BUILDS || [];
   var map = window.BUILD_NOTES || {};
   for (var i = 0; i < list.length; i++) {
     var n = map[list[i].id];
     if (n && !list[i].notes) list[i].notes = window.normalizeBuildNotes(n);
   }
-})();
+};
+window.attachBuildNotes();
 
 // BUILD-DESC-1: гайд по каждому билду — pitch/playstyle/strengths/weaknesses/synergy/tips.
 // pitch виден в build-picker (DESC-2), полный гайд пишется в notesV2 при applyBuild (DESC-3).

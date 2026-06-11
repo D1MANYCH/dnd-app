@@ -873,7 +873,18 @@ function unlinkBuild() {
   });
 })();
 
+// PERF-2: build-notes-data.js (~530 КБ) грузится лениво — гарантируем заметки ДО
+// создания персонажа; если загрузка упала, билд применяется с базовыми текстами.
 function applyBuild(buildId) {
+  if (!window.BUILD_NOTES && typeof window.ensureBuildNotes === "function") {
+    return window.ensureBuildNotes().catch(function (e) {
+      if (window.__catchLog) window.__catchLog("build-notes:lazy-load", e);
+      if (typeof showToast === "function") showToast("Заметки билда не загрузились — применены базовые", "warn");
+    }).then(function () { return _applyBuildCore(buildId); });
+  }
+  return _applyBuildCore(buildId);
+}
+function _applyBuildCore(buildId) {
   var b = window.getBuildById && window.getBuildById(buildId);
   if (!b) { if (typeof showToast === "function") showToast("Билд не найден", "warn"); return; }
   var newChar = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));

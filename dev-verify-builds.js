@@ -32,6 +32,10 @@
   }
 
   function verifyBuild(buildId) {
+    // PERF-2: build-notes-data.js лениво — догружаем перед синхронной проверкой.
+    if (!window.BUILD_NOTES && typeof window.ensureBuildNotes === "function") {
+      return window.ensureBuildNotes().then(function () { return verifyBuild(buildId); });
+    }
     if (typeof applyBuild !== "function") return { buildId: buildId, error: "applyBuild not defined" };
     var b = window.getBuildById && window.getBuildById(buildId);
     if (!b) return { buildId: buildId, error: "build not found" };
@@ -170,6 +174,10 @@
   }
 
   function verifyAllBuilds() {
+    // PERF-2: после ensureBuildNotes внутренние verifyBuild идут синхронной веткой.
+    if (!window.BUILD_NOTES && typeof window.ensureBuildNotes === "function") {
+      return window.ensureBuildNotes().then(verifyAllBuilds);
+    }
     var ids = (window.CHARACTER_BUILDS || []).map(function(b){ return b.id; });
     var results = ids.map(verifyBuild);
     var ok = results.filter(function(r){ return !r.error && (r.failed||[]).length === 0; });
