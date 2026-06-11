@@ -293,6 +293,14 @@ function rollDiceWithSelectedMode(sides) {
 function rollDice(sides, mode) {
 var _logId = (window.AppLog ? AppLog.newId('roll') : null);
 if (window.AppLog) AppLog.action('dice', 'бросок d' + sides + (mode ? ' (' + mode + ')' : '') + ' — старт', { sides: sides, mode: mode || 'normal' }, _logId);
+// DICEFIX-2: мгновенная индикация старта. Первый бросок инициализирует DiceBox ~2с,
+// без плейсхолдера клик выглядит «не сработавшим» и провоцирует повторный.
+var _rbStart = $("dice-result-big");
+if (_rbStart) _rbStart.textContent = "…";
+var _riStart = $("dice-result-info");
+if (_riStart) _riStart.textContent = "Бросок d" + sides + "…";
+var _rxStart = $("dice3d-result");
+if (_rxStart) _rxStart.classList.remove("crit-success", "crit-fail");
 let r1 = Math.floor(Math.random() * sides) + 1;
 let r2 = (mode === 'adv' || mode === 'dis') ? Math.floor(Math.random() * sides) + 1 : null;
 let result, resultLabel;
@@ -407,10 +415,15 @@ window.animateCountUp = animateCountUp;
 // Babylon+Ammo на старте приложения. Экземпляр хранится в _diceBoxInstance.
 var _diceBoxInstance = null;
 var _diceBoxInitPromise = null;
-// Счётчик подряд идущих soft-таймаутов. Сбрасывается на успешном onRollComplete.
+// Счётчик подряд идущих soft-таймаутов. Сбрасывается на успешном резолве roll().
 // Инстанс DiceBox убиваем только после 3-х подряд — иначе можно случайно
 // прибить живой box на медленном броске и оставить пустой стол.
 var _diceBoxConsecutiveTimeouts = 0;
+// DICEFIX-1: текущий незавершённый 3D-бросок ({done, sides, result, callback, timer}).
+// Библиотека не умеет параллельные roll() — roll() внутри делает clear() и стирает
+// коллекцию предыдущего броска, его завершение уже никогда не репортится. Поэтому
+// в полёте максимум один бросок: новый мгновенно финализирует старый.
+var _dice3dActiveRoll = null;
 
 function _waitDiceBoxModule() {
   if (typeof window.DiceBox === 'function') return Promise.resolve();
@@ -954,30 +967,48 @@ function animateDice3d(sides, result, callback, opts) {
     animateDice2d(sides, result, callback, opts);
     return;
   }
-  var done = false;
+  // DICEFIX-1: interrupt-семантика. Новый бросок, пока предыдущий ещё катится,
+  // мгновенно финализирует его precomputed-результатом (callback без аргументов —
+  // rollDice() оставит свои r1/r2). Ждать смысла нет: roll() библиотеки всё равно
+  // сотрёт и кость, и коллекцию предыдущего, результата от физики уже не будет.
+  if (_dice3dActiveRoll && !_dice3dActiveRoll.done) {
+    var prev = _dice3dActiveRoll;
+    prev.done = true;
+    clearTimeout(prev.timer);
+    try { console.log('[DiceBox] бросок прерван новым (sides=' + prev.sides + ')'); } catch (e) {}
+    _applyDiceCritGlow(prev.sides, prev.result);
+    try { prev.callback(); } catch (e) {}
+  }
+  var roll = { done: false, sides: sides, result: result, callback: callback, timer: null };
+  _dice3dActiveRoll = roll;
   // soft-таймаут: физика обычно укладывается в 3-5с, но иногда d20 катится до 9-10с
   // (отскоки от стенок, баланс на ребре). НЕ показываем 2D-кубик и НЕ удаляем canvas:
   // кость может ещё доехать сама и появится на столе. Просто отдаём precomputed-
   // результат в UI и считаем подряд идущие таймауты — только после 3-х подряд
   // действительно убиваем инстанс (значит box реально мёртв: зомби-worker и т.п.).
-  var fallbackTimer = setTimeout(function() {
-    if (done) return;
-    done = true;
-    _diceBoxConsecutiveTimeouts++;
-    if (_diceBoxConsecutiveTimeouts >= 3) {
-      console.warn('[DiceBox] 3 таймаута подряд — пересоздаём инстанс');
-      _diceBoxConsecutiveTimeouts = 0;
-      try {
-        var oldCv = _diceBoxInstance && _diceBoxInstance.canvas;
-        if (oldCv && oldCv.parentNode) oldCv.parentNode.removeChild(oldCv);
-      } catch (e) {}
-      _diceBoxInstance = null;
-      _diceBoxInitPromise = null;
-    } else {
-      console.warn('[DiceBox] roll timeout 10s (n=' + _diceBoxConsecutiveTimeouts + '); canvas сохранён, кость доедет');
-      // Чистим возможные «улетевшие» кости из физики, чтобы они не висели в фоне
-      // и не мешали следующему броску. Сам инстанс/canvas НЕ трогаем.
-      try { if (_diceBoxInstance && typeof _diceBoxInstance.clear === 'function') _diceBoxInstance.clear(); } catch (e) {}
+  roll.timer = setTimeout(function() {
+    if (roll.done) return;
+    roll.done = true;
+    // clear()/пересоздание — только если бросок всё ещё текущий: иначе можно стереть
+    // кость уже катящегося следующего броска и получить каскад таймаутов.
+    if (_dice3dActiveRoll === roll) {
+      _dice3dActiveRoll = null;
+      _diceBoxConsecutiveTimeouts++;
+      if (_diceBoxConsecutiveTimeouts >= 3) {
+        console.warn('[DiceBox] 3 таймаута подряд — пересоздаём инстанс');
+        _diceBoxConsecutiveTimeouts = 0;
+        try {
+          var oldCv = _diceBoxInstance && _diceBoxInstance.canvas;
+          if (oldCv && oldCv.parentNode) oldCv.parentNode.removeChild(oldCv);
+        } catch (e) {}
+        _diceBoxInstance = null;
+        _diceBoxInitPromise = null;
+      } else {
+        console.warn('[DiceBox] roll timeout 10s (n=' + _diceBoxConsecutiveTimeouts + '); canvas сохранён, кость доедет');
+        // Чистим возможные «улетевшие» кости из физики, чтобы они не висели в фоне
+        // и не мешали следующему броску. Сам инстанс/canvas НЕ трогаем.
+        try { if (_diceBoxInstance && typeof _diceBoxInstance.clear === 'function') _diceBoxInstance.clear(); } catch (e) {}
+      }
     }
     // UI всё равно получает результат: precomputed `result` для одиночного броска,
     // для adv/dis пробрасываем undefined — rollDice() оставит свои r1/r2.
@@ -988,6 +1019,10 @@ function animateDice3d(sides, result, callback, opts) {
     try { callback(); } catch (e) {}
   }, 10000);
   _initDiceBox().then(function(box) {
+    // Бросок прервали, пока DiceBox инициализировался — кость не спавним вообще.
+    // Раньше тут была гонка «два куба»: clear() нового броска успевал отработать
+    // до асинхронного спавна кости старого, и обе оказывались на столе.
+    if (roll.done) return;
     // Убираем 2D-SVG от прошлого fallback и сбрасываем inline-стили контейнера,
     // которые мог выставить animateDice2d (display:flex/gap), затем показываем canvas.
     var cont = document.getElementById('dsvg-container');
@@ -999,16 +1034,31 @@ function animateDice3d(sides, result, callback, opts) {
       cont.style.alignItems = '';
     }
     if (typeof box.show === 'function') { try { box.show(); } catch(e) {} }
-    box.onRollComplete = function(results) {
-      if (done) return;
-      done = true;
-      clearTimeout(fallbackTimer);
+    // Страховка от 0×0-буфера WebGL: если init случился при ещё не раскрытой модалке,
+    // кость отрисуется в нулевой фреймбуфер = невидима. Форсим ресайз под контейнер.
+    try {
+      if (box.canvas && (box.canvas.width === 0 || box.canvas.height === 0)) {
+        window.dispatchEvent(new Event('resize'));
+        if (typeof box.resize === 'function') { try { box.resize(); } catch (e) {} }
+      }
+    } catch (e) {}
+    // DICEFIX-1: промис roll() резолвится результатами ИМЕННО этого броска
+    // ([{value, sides, ...}]) — в отличие от box.onRollComplete, который
+    // перезаписывался каждым новым броском и терял ранние. Явный clear() перед
+    // roll() не нужен — roll() чистит стол сам. Промис прерванного броска не
+    // резолвится никогда (коллекцию стёр clear() следующего) — guard по roll.done.
+    // Синхронный throw из roll() (тема ещё не загружена) уходит во внешний
+    // .catch → animateDice2d.
+    box.roll([{ qty: qty, sides: sides }], { theme: _getDiceTheme(), themeColor: _getDiceThemeColor() }).then(function(rolls) {
+      if (roll.done) return;
+      roll.done = true;
+      clearTimeout(roll.timer);
+      if (_dice3dActiveRoll === roll) _dice3dActiveRoll = null;
       _diceBoxConsecutiveTimeouts = 0;
       var v1, v2;
       try {
-        var rolls = results && results[0] && results[0].rolls ? results[0].rolls : [];
-        v1 = rolls[0] ? rolls[0].value : undefined;
-        v2 = rolls[1] ? rolls[1].value : undefined;
+        v1 = rolls && rolls[0] ? rolls[0].value : undefined;
+        v2 = rolls && rolls[1] ? rolls[1].value : undefined;
       } catch (e) { v1 = undefined; v2 = undefined; }
       // 3D-only: поведение НЕ меняем (никакого 2D-фолбэка) — только диагностика.
       // Если кость пропала, этот лог покажет значение, размеры canvas (буфер vs CSS),
@@ -1024,24 +1074,15 @@ function animateDice3d(sides, result, callback, opts) {
           diag.contextLost = gl ? gl.isContextLost() : 'no-gl';
         } else { diag.canvas = 'none'; }
       } catch (e) { diag.err = e.message; }
-      try { console.log('[DiceBox] onRollComplete', { sides: sides, qty: qty, v1: v1, v2: v2, diag: diag }); } catch (e) {}
+      try { console.log('[DiceBox] roll resolved', { sides: sides, qty: qty, v1: v1, v2: v2, diag: diag }); } catch (e) {}
       _applyDiceCritGlow(sides, v1, v2);
       callback(v1, v2);
-    };
-    // Страховка от 0×0-буфера WebGL: если init случился при ещё не раскрытой модалке,
-    // кость отрисуется в нулевой фреймбуфер = невидима. Форсим ресайз под контейнер.
-    try {
-      if (box.canvas && (box.canvas.width === 0 || box.canvas.height === 0)) {
-        window.dispatchEvent(new Event('resize'));
-        if (typeof box.resize === 'function') { try { box.resize(); } catch (e) {} }
-      }
-    } catch (e) {}
-    box.clear();
-    box.roll([{ qty: qty, sides: sides }], { theme: _getDiceTheme(), themeColor: _getDiceThemeColor() });
+    });
   }).catch(function() {
-    if (done) return;
-    done = true;
-    clearTimeout(fallbackTimer);
+    if (roll.done) return;
+    roll.done = true;
+    clearTimeout(roll.timer);
+    if (_dice3dActiveRoll === roll) _dice3dActiveRoll = null;
     animateDice2d(sides, result, callback, opts);
   });
 }
