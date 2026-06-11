@@ -2,6 +2,7 @@
 // Грузит те же скрипты что runner.html в sandbox с DOM-шимом.
 // TEST-1: добавлены app-core.js / app-combat.js / app-hp.js + DOM-шим ($, qs, qsa, localStorage)
 // для тестов applyDamage (quickHP) и calcStats.
+// TEST-2: добавлен app-inventory.js — тесты слотов/веса/монет/мешочков (БЛОК 10).
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -17,6 +18,7 @@ const files = [
   'app-core.js',
   'app-combat.js',
   'app-hp.js',
+  'app-inventory.js',        // TEST-2: getSlotsTotal/calcUsedSlots/updateInventoryWeight/renderPouches/_invMoveItem (БЛОК 10)
   'tests/fixtures.js',
   'tests/headless.js',
 ];
@@ -150,6 +152,7 @@ const externalStubs = [
   'animateCountUp',              // app-ui.js
   'renderJournal',               // app-ui.js
   'renderClassResources',        // app-ui.js
+  'firstLoadSkeleton',           // app-ui.js — скелетон первого рендера; undefined (falsy) → рендер идёт сразу
   'renderSpellSlots',            // app-spells.js
   'renderMySpells',              // app-spells.js
   'renderInventory',             // app-inventory.js

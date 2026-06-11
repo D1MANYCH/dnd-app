@@ -3,6 +3,16 @@
   var results = [];
   var pass = 0, fail = 0;
 
+  // TEST-2: страховка браузерного раннера. Тесты зовут saveToLocal() (quickHP,
+  // _applyFullRestore, _invMoveItem), который пишет в localStorage реального
+  // origin — на одном origin с приложением это перезаписало бы dnd_chars
+  // тестовыми данными. Снимаем снапшот до тестов, возвращаем как было в конце.
+  var _lsKeys = ["dnd_chars", "dnd_spells", "dnd_hp_history"];
+  var _lsSnapshot = {};
+  _lsKeys.forEach(function(k){
+    try { _lsSnapshot[k] = localStorage.getItem(k); } catch(e) { _lsSnapshot[k] = null; }
+  });
+
   function t(desc, fn) {
     try {
       var r = fn();
@@ -122,7 +132,7 @@
   // чтобы транзитивные вызовы внутри quickHP/calcStats не падали.
   ["syncSelfBattleStatus","animateCountUp","renderJournal","renderClassResources",
    "renderSpellSlots","renderMySpells","renderInventory","renderWeapons","renderBuildBadge",
-   "updateSlotsDisplay","loadCharacter","addJournalEntry"].forEach(function(name){
+   "updateSlotsDisplay","loadCharacter","addJournalEntry","firstLoadSkeleton"].forEach(function(name){
     if (typeof window[name] !== "function") window[name] = function(){};
   });
 
@@ -453,6 +463,295 @@
     t("[import] migrateCharacter+DEFAULT_CHARACTER определены", function(){ return "не загружены"; });
   }
 
+  // ────────── БЛОК 9b (TEST-2): round-trip экспорт→импорт, миграции, отбраковка ──────────
+  // Конвейер данных: _buildExportPayload() → JSON → _extractCharsFromImport →
+  // _isValidImportedChar → migrateCharacter → _applyFullRestore. Единственная
+  // поверхность приложения с риском безвозвратной потери данных.
+  var _hasExport = (typeof _buildExportPayload === "function" &&
+                    typeof _extractCharsFromImport === "function" &&
+                    typeof _isValidImportedChar === "function" &&
+                    typeof _applyFullRestore === "function" &&
+                    typeof migrateCharacter === "function" &&
+                    typeof SPELLS_BASE !== "undefined");
+
+  if (!_hasExport) {
+    t("[rt] импорт/экспорт app-core загружен", function(){ return true; }); // noop в минимальной среде
+  } else {
+
+    t("[rt] _buildExportPayload: конверт полный, userSpells — только пользовательские", function(){
+      var savedChars = window.characters, savedHist = window.hpHistory, savedDB = window.SPELL_DATABASE;
+      try {
+        var c1 = migrateCharacter({ id: 9001, name: "Экспорт-1", class: "Плут", level: 5 });
+        var c2 = migrateCharacter({ id: 9002, name: "Экспорт-2", class: "Воин", level: 6,
+          classes: [ { class: "Воин", level: 4 }, { class: "Плут", level: 2 } ] });
+        window.characters = [c1, c2];
+        window.hpHistory = [
+          { charId: 9001, from: 10, to: 8, delta: -2 },
+          { charId: 777,  from: 5,  to: 5, delta: 0 }
+        ];
+        window.SPELL_DATABASE = SPELLS_BASE.concat([{ id: "user-rt-1", name: "Тестовый луч", level: 1 }]);
+        var p = _buildExportPayload();
+        if (p.app !== "dnd-sheet") return "app: " + p.app;
+        if (p.schemaVersion !== 12) return "schemaVersion: ожидал 12, получено " + p.schemaVersion;
+        if (!p.exportedAt) return "нет exportedAt";
+        if (!Array.isArray(p.characters) || p.characters.length !== 2) return "characters: ожидал 2";
+        if (!Array.isArray(p.hpHistory) || p.hpHistory.length !== 2) return "hpHistory: ожидал 2 (как есть, фильтр — на импорте)";
+        if (!Array.isArray(p.userSpells) || p.userSpells.length !== 1 || p.userSpells[0].id !== "user-rt-1")
+          return "userSpells: ожидал ровно 1 пользовательское, получено " +
+            JSON.stringify((p.userSpells || []).map(function(s){ return s.id; }));
+        return true;
+      } finally { window.characters = savedChars; window.hpHistory = savedHist; window.SPELL_DATABASE = savedDB; }
+    });
+
+    t("[rt] round-trip: экспорт → JSON → извлечение → валидация → миграция без изменений", function(){
+      var savedChars = window.characters, savedHist = window.hpHistory;
+      try {
+        var c1 = migrateCharacter({ id: 9101, name: "РТ-Плут", class: "Плут", level: 5 });
+        var c2 = migrateCharacter({ id: 9102, name: "РТ-Мульти", class: "Воин", level: 6,
+          classes: [ { class: "Воин", level: 4 }, { class: "Плут", level: 2 } ] });
+        c1.coins.gp = 42;
+        c1.inventory.weapon.push({ name: "Кинжал", qty: 2, weight: 1 });
+        window.characters = [c1, c2];
+        window.hpHistory = [];
+        var parsed = JSON.parse(JSON.stringify(_buildExportPayload()));
+        var extracted = _extractCharsFromImport(parsed);
+        if (!extracted) return "_extractCharsFromImport вернул null для собственного конверта";
+        var valid = extracted.filter(_isValidImportedChar);
+        if (valid.length !== 2) return "валидных: ожидал 2, получено " + valid.length;
+        var migrated = valid.map(migrateCharacter);
+        if (JSON.stringify(migrated) !== JSON.stringify([c1, c2]))
+          return "round-trip изменил данные (migrateCharacter не идемпотентен для v" + c1.schemaVersion + ")";
+        return true;
+      } finally { window.characters = savedChars; window.hpHistory = savedHist; }
+    });
+
+    t("[rt] _extractCharsFromImport: голый массив, конверт {characters}, мусор → null", function(){
+      var arr = [{ class: "Плут", level: 1 }];
+      if (_extractCharsFromImport(arr) !== arr) return "голый массив должен вернуться как есть";
+      if (_extractCharsFromImport({ characters: arr }) !== arr) return "{characters:[...]} должен вернуть массив";
+      if (_extractCharsFromImport({}) !== null) return "{} → ожидал null";
+      if (_extractCharsFromImport("строка") !== null) return "строка → ожидал null";
+      if (_extractCharsFromImport(null) !== null) return "null → ожидал null";
+      if (_extractCharsFromImport({ characters: "не массив" }) !== null) return "characters-не-массив → ожидал null";
+      return true;
+    });
+
+    t("[rt] отбраковка: мультикласс валиден, classes:[] и битые элементы режутся", function(){
+      if (!_isValidImportedChar({ classes: [{ class: "Воин", level: 3 }, { class: "Плут", level: 2 }], level: 5 }))
+        return "валидный мультикласс должен проходить";
+      if (_isValidImportedChar({ classes: [], level: 5 })) return "classes:[] не должен проходить";
+      if (_isValidImportedChar({ classes: [{ class: "Воин", level: "3" }], level: 3 })) return "level-строка внутри classes не должна проходить";
+      if (_isValidImportedChar({ classes: [{ class: "Воин", level: 3 }, null], level: 4 })) return "null-элемент в classes не должен проходить";
+      if (_isValidImportedChar({ class: "Плут", level: "5" })) return "level-строка не должна проходить";
+      if (_isValidImportedChar({ class: "Плут" })) return "без level не должен проходить";
+      var mixed = [
+        { class: "Плут", level: 3 },                              // валиден
+        {}, null, "мусор",
+        { class: "Жрец", level: 0 },                              // level вне 1..20
+        { classes: [{ class: "Бард", level: 2 }], level: 2 }      // валидный мультикласс
+      ];
+      var valid = mixed.filter(_isValidImportedChar);
+      if (valid.length !== 2) return "из смеси ожидал 2 валидных, получено " + valid.length;
+      return true;
+    });
+
+    t("[rt] _applyFullRestore: замена chars, фильтр+кап hpHistory, восстановление userSpells", function(){
+      var savedChars = window.characters, savedHist = window.hpHistory, savedDB = window.SPELL_DATABASE;
+      try {
+        window.characters = [migrateCharacter({ id: 1, name: "Старый", class: "Бард", level: 2 })];
+        window.SPELL_DATABASE = SPELLS_BASE.slice();
+        var hist = [];
+        for (var i = 0; i < 310; i++) hist.push({ charId: 9201, from: 10, to: 9, delta: -1 });
+        hist.push({ charId: 555, from: 1, to: 1, delta: 0 }); // чужой id — должен отфильтроваться
+        var envelope = {
+          app: "dnd-sheet", schemaVersion: 12,
+          characters: [{ id: 9201, name: "Новый", class: "Плут", level: 7 }],
+          hpHistory: hist,
+          userSpells: [{ id: "user-rt-2", name: "Тестовая искра", level: 0 }, { name: "", level: 0 }, "мусор"]
+        };
+        _applyFullRestore(envelope, envelope.characters.filter(_isValidImportedChar));
+        if (window.characters.length !== 1 || window.characters[0].id !== 9201) return "characters не заменены";
+        if (!window.characters[0].combat || typeof window.characters[0].combat.hpCurrent !== "number")
+          return "migrateCharacter не прогнан (нет combat.hpCurrent)";
+        if (window.hpHistory.length !== 300) return "hpHistory: ожидал кап 300, получено " + window.hpHistory.length;
+        if (window.hpHistory.some(function(h){ return h.charId !== 9201; })) return "чужой charId не отфильтрован";
+        var userNow = window.SPELL_DATABASE.filter(function(s){ return s && s.id === "user-rt-2"; });
+        if (userNow.length !== 1) return "userSpells не восстановлены";
+        if (window.SPELL_DATABASE.length !== SPELLS_BASE.length + 1)
+          return "SPELL_DATABASE: ожидал база+1 (битые userSpells отрезаны), получено " + window.SPELL_DATABASE.length;
+        // конверт без userSpells (бэкап до v3.25) — заклинания не трогаются
+        _applyFullRestore({ characters: envelope.characters, hpHistory: [] }, envelope.characters.filter(_isValidImportedChar));
+        if (window.SPELL_DATABASE.length !== SPELLS_BASE.length + 1)
+          return "конверт без userSpells изменил SPELL_DATABASE: " + window.SPELL_DATABASE.length;
+        return true;
+      } finally { window.characters = savedChars; window.hpHistory = savedHist; window.SPELL_DATABASE = savedDB; }
+    });
+
+    t("[rt] миграция v0→12: легаси-Колдун L5 — языки/инструменты/заметки/пакт-ячейки", function(){
+      var legacy = {
+        id: 9301, name: "Легаси", class: "Колдун", level: 5,
+        stats: { str: 8, dex: 14, con: 12, int: 10, wis: 10, cha: 16 },
+        combat: { hpCurrent: 28, hpMax: 28 },
+        proficiencies: { armor: [], weapon: [], tools: "Воровские инструменты, Кости", languages: "Общий; Эльфийский" },
+        notes: "Старая предыстория", appearance: "Шрам",
+        spells: { slots: { 1: 0, 2: 0, 3: 2 }, slotsUsed: { 3: 1 } },
+        journal: [{ text: "запись" }]
+      };
+      var c = migrateCharacter(JSON.parse(JSON.stringify(legacy)));
+      if (c.schemaVersion !== 12) return "schemaVersion: " + c.schemaVersion;
+      var langs = c.proficiencies.languages;
+      if (!Array.isArray(langs) || langs.length !== 2 || langs[0].name !== "Общий" || langs[1].name !== "Эльфийский")
+        return "языки строка→массив: " + JSON.stringify(langs);
+      var tools = c.proficiencies.tools;
+      if (!Array.isArray(tools) || tools.length !== 2 || tools[0].name !== "Воровские инструменты")
+        return "инструменты строка→массив: " + JSON.stringify(tools);
+      if (c.notesV2.sections.backstory !== "Старая предыстория") return "notes → notesV2.backstory: " + JSON.stringify(c.notesV2.sections.backstory);
+      if (c.notesV2.sections.appearance !== "Шрам") return "appearance → notesV2: " + JSON.stringify(c.notesV2.sections.appearance);
+      if (c.basicLocked !== true) return "basicLocked (легаси v<6): " + c.basicLocked;
+      if (c.spells.pactSlots !== 2 || c.spells.pactLevel !== 3)
+        return "пакт-ячейки Колдуна L5: ожидал 2 × 3 ур., получено " + c.spells.pactSlots + " × " + c.spells.pactLevel + " ур.";
+      if (c.spells.pactUsed !== 1) return "pactUsed: ожидал 1 (перенос из slotsUsed[3]), получено " + c.spells.pactUsed;
+      if (c.spells.slots[3] !== 0) return "обычные слоты одноклассового Колдуна должны обнулиться: slots[3]=" + c.spells.slots[3];
+      if (c.combat.hpCurrent !== 28) return "hpCurrent потерян: " + c.combat.hpCurrent;
+      if (c.combat.hpTemp !== 0) return "hpTemp не достроен: " + c.combat.hpTemp;
+      if (!Array.isArray(c.journal) || c.journal.length !== 1) return "journal потерян";
+      if (c.buildId !== null) return "buildId: ожидал null, получено " + c.buildId;
+      return true;
+    });
+  }
+
+  // ────────── БЛОК 10 (TEST-2): инвентарь — слоты, вес, монеты, мешочки ──────────
+  // Требует загруженного app-inventory.js (Node-runner и обновлённый runner.html).
+  var _hasInv = (typeof getSlotsTotal === "function" && typeof calcUsedSlots === "function" &&
+                 typeof updateInventoryWeight === "function" && typeof renderPouches === "function" &&
+                 typeof _invMoveItem === "function");
+
+  if (!_hasInv) {
+    t("[inv] app-inventory.js загружен", function(){ return true; }); // noop в минимальной среде
+  } else {
+
+    t("[inv] getSlotsTotal: пороги СИЛ 8/10/12/13/15/16/20", function(){
+      var exp = { 8: 7, 10: 10, 12: 10, 13: 12, 15: 12, 16: 15, 20: 15 };
+      var bad = [];
+      Object.keys(exp).forEach(function(str){
+        var got = getSlotsTotal(parseInt(str, 10));
+        if (got !== exp[str]) bad.push("СИЛ " + str + ": ожидал " + exp[str] + ", получено " + got);
+      });
+      return bad.length === 0 || bad.join("; ");
+    });
+
+    t("[inv] calcUsedSlots: дефолты категорий, qty, явный slots (вкл. 0)", function(){
+      var char = {
+        inventory: {
+          weapon: [{ name: "Меч", qty: 1 }],                  // дефолт weapon = 1
+          armor:  [{ name: "Кольчуга", qty: 1 }],             // дефолт armor = 3
+          potion: [{ name: "Зелье", qty: 4 }],                // дефолт potion 0.5 × 4 = 2
+          scroll: [{ name: "Карта", qty: 3, slots: 0 }],      // явный 0 — не дефолт scroll=1
+          other:  [{ name: "Верёвка", qty: 2, slots: 0.5 }]   // явный 0.5 × 2 = 1
+        }
+      };
+      var used = calcUsedSlots(char);
+      return used === 7 || ("ожидал 7 слотов, получено " + used);
+    });
+
+    t("[inv] calcUsedSlots: снятый рюкзак исключает backpack и предметы без location", function(){
+      var char = {
+        equipState: { backpackOff: true },
+        inventory: {
+          weapon: [{ name: "Меч", qty: 1, location: "wielded" }], // в руке → активен
+          tool:   [{ name: "Кирка", qty: 1, location: "belt" }],  // на поясе → активен
+          other:  [
+            { name: "Палатка", qty: 1, location: "backpack" },    // в рюкзаке → исключён
+            { name: "Фляга", qty: 1 }                             // без location → считается «в рюкзаке»
+          ]
+        }
+      };
+      var off = calcUsedSlots(char);
+      if (off !== 2) return "рюкзак снят: ожидал 2, получено " + off;
+      char.equipState.backpackOff = false;
+      var on = calcUsedSlots(char);
+      if (on !== 4) return "рюкзак надет: ожидал 4, получено " + on;
+      return true;
+    });
+
+    t("[inv] updateInventoryWeight: вес + монеты (50/фнт), грузоподъёмность СИЛ×15, перегруз", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{
+          id: "test-inv-w", stats: { str: 10 },
+          inventory: { weapon: [{ name: "Молот", weight: 6, qty: 2 }] },
+          coins: { cp: 25, sp: 0, ep: 0, gp: 25, pp: 0 }
+        }];
+        window.currentId = "test-inv-w";
+        var totalEl = _ensureEl("total-weight", "span");
+        var capEl = _ensureEl("carry-capacity-num", "span");
+        var coinEl = _ensureEl("coin-weight", "span");
+        _ensureEl("overweight-warning", "div");
+        var owAmt = _ensureEl("overweight-amount", "span");
+        updateInventoryWeight();
+        if (String(totalEl.textContent) !== "13") return "total-weight: ожидал 13 (12 + 1 фнт за 50 монет), получено " + totalEl.textContent;
+        if (String(capEl.textContent) !== "150") return "carry-capacity-num: ожидал 150 (СИЛ 10 × 15), получено " + capEl.textContent;
+        if (String(coinEl.textContent) !== "1.00 фнт") return "coin-weight: ожидал '1.00 фнт', получено '" + coinEl.textContent + "'";
+        // перегруз: 170 + 1 фнт монет = 171 при грузоподъёмности 150 → бейдж 21.0
+        window.characters[0].inventory.weapon[0] = { name: "Наковальня", weight: 170, qty: 1 };
+        updateInventoryWeight();
+        if (String(owAmt.textContent) !== "21.0") return "overweight-amount: ожидал 21.0, получено " + owAmt.textContent;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[inv] мешочки: разблокировка по СИЛ, ёмкость POUCH_MAX, перебор монет", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{
+          id: "test-inv-p", stats: { str: 12 },
+          inventory: {}, coins: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }
+        }];
+        window.currentId = "test-inv-p";
+        var box = _ensureEl("inv-pouches", "div");
+        _ensureInput("coin-cp", "0"); _ensureInput("coin-sp", "0"); _ensureInput("coin-ep", "0");
+        _ensureInput("coin-gp", "1200"); _ensureInput("coin-pp", "0");
+        renderPouches();
+        var html = String(box.innerHTML);
+        var open = (html.match(/👝/g) || []).length;
+        var locked = (html.match(/🔒/g) || []).length;
+        if (open !== 2 || locked !== 2) return "СИЛ 12: ожидал 2 открытых + 2 закрытых, получено " + open + " + " + locked;
+        if (html.indexOf(String(POUCH_MAX * 2)) === -1) return "нет ёмкости " + (POUCH_MAX * 2) + " (2 × POUCH_MAX)";
+        if (html.indexOf("не унести 200") === -1) return "нет «не унести 200» (1200 монет при ёмкости 1000)";
+        window.characters[0].stats.str = 6;
+        renderPouches();
+        if (String(box.innerHTML).indexOf("Нет мешочков") === -1) return "СИЛ 6: ожидал «Нет мешочков»";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[inv] _invMoveItem: перестановка в категории, no-op, перенос между категориями", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{
+          id: "test-inv-m", stats: { str: 10 },
+          inventory: {
+            weapon: [{ name: "А" }, { name: "Б" }, { name: "В" }],
+            other:  [{ name: "Г" }]
+          },
+          coins: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }
+        }];
+        window.currentId = "test-inv-m";
+        var inv = window.characters[0].inventory;
+        _invMoveItem("weapon", 0, "weapon", 2); // А встаёт перед В → [Б, А, В]
+        var names = inv.weapon.map(function(i){ return i.name; }).join("");
+        if (names !== "БАВ") return "перестановка: ожидал БАВ, получено " + names;
+        _invMoveItem("weapon", 1, "weapon", 2); // toIdx = fromIdx+1 → no-op
+        names = inv.weapon.map(function(i){ return i.name; }).join("");
+        if (names !== "БАВ") return "no-op изменил порядок: " + names;
+        _invMoveItem("weapon", 2, "other", 1e9); // перенос В в конец other (индекс клампится)
+        if (inv.weapon.length !== 2) return "weapon: ожидал 2 после переноса, получено " + inv.weapon.length;
+        if (inv.other.length !== 2 || inv.other[1].name !== "В") return "other: В должен встать в конец, получено " + JSON.stringify(inv.other);
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
@@ -474,6 +773,14 @@
   passed.forEach(function(r){ html += '<span class="ok">✓ '+escapeHtml(r.desc)+'</span>\n'; });
   html += '</pre></div>';
   box.innerHTML = html;
+
+  // TEST-2: возвращаем localStorage как было до тестов (см. снапшот в начале IIFE).
+  _lsKeys.forEach(function(k){
+    try {
+      if (_lsSnapshot[k] === null || _lsSnapshot[k] === undefined) localStorage.removeItem(k);
+      else localStorage.setItem(k, _lsSnapshot[k]);
+    } catch(e) { /* localStorage недоступен — нечего восстанавливать */ }
+  });
 
   console.log("[TESTS]", window.__testResults);
 })();
