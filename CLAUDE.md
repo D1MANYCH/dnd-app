@@ -11,15 +11,21 @@
 - `index.html` — единственная страница.
 - `app-core.js` — ядро: инициализация, состояние, навигация, персонажи, импорт/экспорт.
 - `app-combat.js` / `app-hp.js` / `app-inventory.js` / `app-spells.js` / `app-notes.js` / `app-party.js` / `app-ui.js` / `app-desktop.js` / `history-stack.js` — модули по вкладкам/функциям.
+- `app-backup.js` — автобэкапы в IndexedDB.
+- `app-log.js` — лог сессии (панель Ctrl+Shift+L).
+- `app-pdf.js` — PDF-экспорт листа (PERF-1: грузится по требованию из инлайн-загрузчика `index.html` вместе с `vendor/jspdf/`).
 - `data.js` — классы, расы, `APP_VERSION` + `APP_VERSION_DATE` + `APP_CHANGELOG`.
 - `spells.js` — БД заклинаний.
-- `character-builds.js` + `build-notes-data.js` — 36 готовых билдов PHB 2014 + варианты автозаметок.
+- `character-builds.js` — 36 готовых билдов PHB 2014.
+- `build-notes-data.js` — варианты автозаметок билдов (PERF-2: грузится по требованию из инлайн-загрузчика `index.html`).
 - `class-choices.js` + `subclass-choices-data.js` — выборы классов/подклассов.
 - `dev-verify-builds.js` — `verifyAllBuilds()` (консольный verifier билдов).
 - `sw.js` — service worker, `CACHE_NAME` формата `dnd-sheet-vN` + `FILES_TO_CACHE`.
 - `vendor/dice-box/` — 3D-кубики (вендорено).
-- `assets/` — иконки и фоны (PNG, ~27 МБ — кандидат на оптимизацию OPT-5).
+- `assets/` — иконки и фоны (webp, ~3.5 МБ).
 - `tests/` — `headless-node.js` (Node), `headless.js` + `runner.html` (браузерные), `fixtures.js`.
+- `tools/` — `bump-version.js`, `gen-changelog.js`, `check-invariant.js` (сверка инварианта релиза), `run-tests-hook.js`.
+- `.github/workflows/tests.yml` — CI: headless-тесты + `check-invariant.js` на каждый push/PR.
 
 ## Запуск
 - Preview MCP (`preview_start`) или любой статический сервер из корня.

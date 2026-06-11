@@ -8,14 +8,14 @@
 
 ```
 dnd-app/
-├── index.html              — разметка приложения (все экраны и модалки, ~2200 строк)
-├── style.css               — все стили (~10760 строк)
+├── index.html              — разметка приложения (все экраны и модалки, ~2300 строк)
+├── style.css               — все стили (~11100 строк)
 │
 │   # Данные (статические БД, грузятся как глобалы)
-├── data.js                 — классы, расы, черты, состояния/эффекты, APP_VERSION + changelog (~2820 строк)
-├── spells.js               — база заклинаний D&D 5e: 712 заклинаний PH14/PH24 (~12400 строк)
-├── character-builds.js     — 36 готовых билдов PHB (3 на класс): стат-блоки, гайды 1–20 (~1860 строк)
-├── build-notes-data.js     — варианты автозаметок для билдов (внешность/характер/крючки) (~1620 строк)
+├── data.js                 — классы, расы, черты, состояния/эффекты, APP_VERSION + changelog (~3100 строк)
+├── spells.js               — база заклинаний D&D 5e: 706 заклинаний PH14/PH24 (~12300 строк)
+├── character-builds.js     — 36 готовых билдов PHB (3 на класс): стат-блоки, гайды 1–20 (~1880 строк)
+├── build-notes-data.js     — автозаметки билдов (~1620 строк) — ленивая, грузится при применении билда (PERF-2)
 ├── class-choices.js        — выборы классов (боевые стили, метамагия, пакты и т.п.)
 ├── subclass-choices-data.js— выборы подклассов
 ├── monsters-srd.js         — бестиарий SRD 5e (FEAT-4)
@@ -23,6 +23,8 @@ dnd-app/
 │
 │   # Модули приложения (логика по вкладкам/функциям)
 ├── app-core.js             — ядро: хелперы, состояние, навигация, персонажи, импорт/экспорт, applyBuild
+├── app-backup.js           — авто-бэкапы в IndexedDB: снапшот экспорт-конверта раз в день/перед импортом, ротация 7 шт. (DATA-2)
+├── app-log.js              — лог сессии: кольцевой буфер + корреляционные ID, панель Ctrl+Shift+L, persist в localStorage (FEAT-LOG)
 ├── app-combat.js           — боевая система: характеристики, спасброски, навыки, КД, состояния
 ├── app-hp.js               — система ХП: отдых, повышение уровня, спасброски от смерти
 ├── app-inventory.js        — инвентарь: предметы, сумки, оружие, вес снаряжения
@@ -31,7 +33,7 @@ dnd-app/
 ├── app-ui.js               — интерфейс: аватар, кости, аккордеоны, ресурсы класса, компаньоны/фамильяры (FEAT-6)
 ├── app-notes.js            — записи кампании (notesV2): NPC, квесты, локации, теги, экспорт .md/.json
 ├── app-desktop.js          — десктоп-раскладка
-├── app-pdf.js              — PDF-экспорт листа персонажа (FEAT-3, через vendor/jspdf)
+├── app-pdf.js              — PDF-экспорт листа персонажа (FEAT-3) — ленивый, грузится по первому клику 📄 вместе с vendor/jspdf (PERF-1)
 ├── history-stack.js        — стек истории для отмены действий
 ├── bg-orbits.js            — фоновая анимация (орбиты)
 ├── dice-arena-bg.js        — фон арены 3D-кубиков
@@ -40,12 +42,16 @@ dnd-app/
 ├── manifest.json           — PWA-манифест
 ├── sw.js                   — Service Worker (офлайн-кеш; CACHE_NAME dnd-sheet-vN)
 ├── icons/                  — icon-192.png, icon-512.png
-├── assets/                 — иконки классов/школ/состояний, фоны (webp)
-├── vendor/                 — dice-box (3D-кубики, WebGL) + jspdf (PDF)
-└── tests/                  — headless-node.js (Node), runner.html + headless.js (браузер)
+├── assets/                 — иконки классов/школ/состояний, фоны (webp, ~3.5 МБ)
+├── vendor/                 — dice-box (3D-кубики, WebGL) + jspdf (PDF, ленивый стек)
+├── tools/                  — bump-version.js, gen-changelog.js, check-invariant.js, run-tests-hook.js
+├── .github/workflows/      — tests.yml: CI (headless-тесты + check-invariant) на каждый push/PR
+└── tests/                  — headless-node.js (Node), runner.html + headless.js (браузер), fixtures.js
 ```
 
 > Порядок подключения скриптов задан в `index.html` (низ файла). Все модули — обычные (не-ES-module) скрипты, экспонирующие функции в глобальную область; исключение — `vendor/dice-box` (ES-модуль, оборачивается в `window.DiceBox`).
+
+> **Ленивая загрузка** — инлайн-загрузчик в низу `index.html`: `loadScript(src)` с мемоизацией промиса per-src (упавший src сбрасывается → ретрай при следующем вызове). Через него грузятся два блока: PDF-стек ~600 КБ (`vendor/jspdf/jspdf.umd.min.js` + `roboto-base64.js` + `app-pdf.js`) по первому клику 📄 — заглушка `window.exportCharacterPDF` подменяется настоящей функцией (PERF-1); и `build-notes-data.js` ~530 КБ через `ensureBuildNotes()`, который вызывается из `applyBuild` (app-core.js) и после загрузки зовёт `attachBuildNotes()` (PERF-2). `?v=`-токены ленивых URL живут прямо в `index.html` — их бампает `tools/bump-version.js` вместе с остальными. Оба блока остаются в `FILES_TO_CACHE` sw.js, офлайн работает.
 
 ---
 
@@ -166,8 +172,19 @@ const DEFAULT_CHARACTER = {
 
 ## Версионирование
 
-После релизных правок:
-1. Bump `APP_VERSION` и добавить запись в `APP_CHANGELOG` в `data.js`.
-2. Bump `CACHE_NAME` в `sw.js` — иначе клиенты не подтянут новые файлы.
+Инвариант релиза — пять величин меняются синхронно: `APP_VERSION` ↔ `APP_CHANGELOG[0].version` (data.js) ↔ `CACHE_NAME` `dnd-sheet-vN` (sw.js) ↔ все `?v=vN` токены js/css в index.html ↔ `CHANGELOG.md`.
+
+- Bump — командой `/bump <patch|minor|major> "<changelog>"` (`tools/bump-version.js`), правит всё за один проход; `CHANGELOG.md` генерируется из `APP_CHANGELOG` (`tools/gen-changelog.js`).
+- Сверка инварианта — `node tools/check-invariant.js`; гоняется и в CI (`.github/workflows/tests.yml`) на каждый push/PR.
+- Детали процесса — CLAUDE.md, раздел «Версионирование».
 
 Текущая версия и changelog — `APP_CHANGELOG` в [`../data.js`](../data.js).
+
+---
+
+## Тесты
+
+- `node tests/headless-node.js` — headless-тесты логики (слоты, выборы классов, фичи подклассов, билды, импорт/экспорт, инвентарь); сейчас **203/203**.
+- `tests/runner.html` — те же тесты в браузере (`tests/headless.js`), фикстуры — `tests/fixtures.js`.
+- `verifyAllBuilds()` в DevTools-консоли — verifier 36 билдов (`dev-verify-builds.js`), текущий результат 36/36 fullPass.
+- CI: `.github/workflows/tests.yml` — тесты + `check-invariant.js` на каждый push/PR.
