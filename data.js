@@ -1624,8 +1624,8 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.25.6";
-const APP_VERSION_DATE = "2026-06-12";
+const APP_VERSION = "3.25.7";
+const APP_VERSION_DATE = "2026-06-13";
 
 // ============================================================
 // ВНЕШНИЕ ССЫЛКИ (TG-канал, донаты, Boosty)
@@ -1918,9 +1918,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
+    version: "3.25.7",
+    date: "13 июня 2026",
+    badge: "new",
+    changes: [
+      { type: "chore", text: "Добавлен счётчик Яндекс.Метрики (статистика посещений)" }
+    ]
+  },
+  {
     version: "3.25.6",
     date: "12 июня 2026",
-    badge: "new",
+    badge: "old",
     changes: [
       { type: "feat", text: "FEAT-LOG-2: явные логи действий (AppLog) в модулях combat/hp/inventory/spells/notes/party — категории combat, hp, character, inventory, spells, notes, party, battle в панели Ctrl+Shift+L" }
     ]
