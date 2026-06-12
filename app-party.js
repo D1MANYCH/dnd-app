@@ -221,15 +221,25 @@ function _pentSave(type) {
   });
   if (!data.name) data.name = name;
   if (idx >= 0) list[idx] = data; else list.push(data);
+  if (window.AppLog) AppLog.action("party", ({ ally: "союзник", npc: "NPC", monster: "монстр" }[type] || type) + (idx >= 0 ? " изменён: " : " добавлен: ") + data.name);
   saveParty(); cfg.render(); _pentClose(type);
 }
 function _pentDelete(type, i) {
   var cfg = _PENT[type];
   var name = cfg.list()[i] ? cfg.list()[i][cfg.delKey] : "запись";
-  showConfirmModal(cfg.delMsg, "«"+name+"» будет удалён.", function() { cfg.list().splice(i,1); saveParty(); cfg.render(); });
+  showConfirmModal(cfg.delMsg, "«"+name+"» будет удалён.", function() {
+    cfg.list().splice(i,1);
+    if (window.AppLog) AppLog.action("party", "удалён " + type + ": " + name);
+    saveParty(); cfg.render();
+  });
 }
-function _pentStatus(type, i, val) { _PENT[type].list()[i].status = val; saveParty(); }
+function _pentStatus(type, i, val) {
+  _PENT[type].list()[i].status = val;
+  if (window.AppLog) AppLog.action("party", "статус " + (_PENT[type].list()[i].name || type) + " → " + val);
+  saveParty();
+}
 function _pentExport(type) {
+  if (window.AppLog) AppLog.action("party", "экспорт " + type + " (" + _PENT[type].list().length + ")");
   var a = document.createElement("a");
   a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_PENT[type].list(), null, 2));
   a.download = type + "_" + new Date().toISOString().slice(0,10) + ".json"; a.click();
@@ -256,6 +266,7 @@ function _pentImport(type, input) {
     var skipped = d.length - valid.length;
     if (valid.length === 0) { showToast("В файле нет валидных записей", "error"); input.value = ""; return; }
     PARTY_DATA[type === "ally" ? "allies" : type+"s"] = valid;
+    if (window.AppLog) AppLog.action("party", "импорт " + type + ": " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""));
     saveParty();
     _PENT[type].render();
     showToast("Загружено: " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
@@ -504,6 +515,7 @@ function addMonsterFromSRD(slug, event) {
     entry.id = Date.now() + Math.floor(Math.random() * 10000);
   }
   PARTY_DATA.monsters.push(entry);
+  if (window.AppLog) AppLog.action("party", "из SRD добавлен монстр: " + m.name, { slug: m.slug, cr: m.cr });
   saveParty();
   renderMonsters();
   showToast(m.name + " добавлен(а) в монстров", "success");
@@ -596,6 +608,7 @@ function addNpcFromSRD(slug, event) {
     entry.id = Date.now() + Math.floor(Math.random() * 10000);
   }
   PARTY_DATA.npcs.push(entry);
+  if (window.AppLog) AppLog.action("party", "из SRD добавлен NPC: " + a.name, { slug: a.slug });
   saveParty();
   renderNPCs();
   showToast(a.name + " добавлен", "success");
@@ -710,6 +723,7 @@ function startBattle() {
   var selected = battleSetupList.filter(function(p) { return p.checked; });
   if (selected.length === 0) { showToast("Выберите участников боя", "warn"); return; }
   BATTLE_DATA = { active: true, participants: selected.map(function(p) { return Object.assign({}, p, { status: "healthy" }); }), currentTurn: 0 };
+  if (window.AppLog) AppLog.action("battle", "бой начат: участников " + selected.length);
   saveBattle();
   $("battle-setup-screen").classList.add("hidden");
   $("battle-tracker-screen").classList.remove("hidden");
@@ -835,10 +849,20 @@ function renderBattleTracker() {
 }
 
 
-function setBattleStatus(i, val) { BATTLE_DATA.participants[i].status = val; saveBattle(); renderBattleTracker(); }
-function nextTurn() { BATTLE_DATA.currentTurn = (BATTLE_DATA.currentTurn + 1) % BATTLE_DATA.participants.length; saveBattle(); renderBattleTracker(); }
-function prevTurn() { BATTLE_DATA.currentTurn = (BATTLE_DATA.currentTurn - 1 + BATTLE_DATA.participants.length) % BATTLE_DATA.participants.length; saveBattle(); renderBattleTracker(); }
+function setBattleStatus(i, val) {
+  BATTLE_DATA.participants[i].status = val;
+  if (window.AppLog) AppLog.action("battle", "статус " + (BATTLE_DATA.participants[i].name || "?") + " → " + val);
+  saveBattle(); renderBattleTracker();
+}
+function _logTurn() {
+  if (!window.AppLog) return;
+  var p = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
+  AppLog.action("battle", "ход → " + ((p && p.name) || "?") + " (" + (BATTLE_DATA.currentTurn + 1) + "/" + BATTLE_DATA.participants.length + ")");
+}
+function nextTurn() { BATTLE_DATA.currentTurn = (BATTLE_DATA.currentTurn + 1) % BATTLE_DATA.participants.length; _logTurn(); saveBattle(); renderBattleTracker(); }
+function prevTurn() { BATTLE_DATA.currentTurn = (BATTLE_DATA.currentTurn - 1 + BATTLE_DATA.participants.length) % BATTLE_DATA.participants.length; _logTurn(); saveBattle(); renderBattleTracker(); }
 function endBattle() {
+  if (window.AppLog) AppLog.action("battle", "бой завершён");
   BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
   saveBattle();
   $("battle-setup-screen").classList.remove("hidden");

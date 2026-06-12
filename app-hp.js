@@ -135,6 +135,7 @@ if (hpHealed > 0) {
 }
 resetResourcesByRest("short");
 resultTitle = "✅ Короткий отдых завершён!";
+if (window.AppLog) AppLog.action("hp", "короткий отдых: костей " + hitDiceToSpend + ", +" + hpHealed + " ХП" + (_isWarlock ? ", пакт восстановлен" : ""));
 var rollStr = rollLog.length > 0 ? " (" + rollLog.join(", ") + ")" : "";
 var warlockStr = _isWarlock ? "<p>🔮 Ячейки пакта восстановлены</p>" : "";
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>🎲 Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>❤️ Восстановлено ХП: " + hpHealed + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr;
@@ -171,6 +172,7 @@ loadEffects();
 addHPHistory(oldHp, maxHp, maxHp - oldHp, "Долгий отдых");
 if (maxHp - oldHp > 0) showHPToast(maxHp - oldHp);
 resultTitle = "✅ Долгий отдых завершён!";
+if (window.AppLog) AppLog.action("hp", "длинный отдых: ХП " + oldHp + " → " + maxHp + (exhaustionReduced ? ", истощение −1" : ""));
 addJournalEntry("rest", "Долгий отдых — новая сессия", "Уровень " + (char.level||1) + " · ХП: " + oldHp + " → " + maxHp + " · Ячейки и ресурсы восстановлены");
 renderJournal();
 var exhaustionNote = exhaustionReduced ? "<p>😫 Истощение снижено на 1 уровень</p>" : "";
@@ -603,6 +605,7 @@ updateClassFeatures();
 renderClassResources();
 renderSpellSlots();
 var classLabel = isMulticlass(char) ? getClassLabel(char) : className;
+if (window.AppLog) AppLog.action("character", "уровень → " + newTotalLevel + " (" + classLabel + ")", { hp: oldMaxHP + "→" + newMaxHP, prof: newProf });
 addJournalEntry("levelup", "Достигнут " + newTotalLevel + " уровень! (" + classLabel + ")", "ХП: " + oldMaxHP + " → " + newMaxHP + " · Бонус мастерства: +" + newProf);
 renderJournal();
 
@@ -1101,6 +1104,7 @@ function confirmLevelDown() {
   updateClassFeatures();
   renderClassResources();
   renderSpellSlots();
+  if (window.AppLog) AppLog.action("character", "откат уровня: " + (char.level||1) + " → " + (restored.level||1));
   addJournalEntry("levelup", "Откат уровня: " + (char.level||1) + " → " + (restored.level||1),
     "Состояние возвращено к снимку перед последним повышением");
   renderJournal();
@@ -1165,6 +1169,7 @@ char.deathSaves.successes[index] = !char.deathSaves.successes[index];
 } else {
 char.deathSaves.failures[index] = !char.deathSaves.failures[index];
 }
+if (window.AppLog) AppLog.action("hp", "отметка спасброска смерти: " + (type === "success" ? "успех" : "провал") + " #" + (index + 1));
 saveToLocal();
 loadDeathSaves();
 }
@@ -1174,6 +1179,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
+if (window.AppLog) AppLog.action("hp", "спасброски смерти сброшены");
 saveToLocal();
 loadDeathSaves();
 }
@@ -1317,6 +1323,7 @@ if (actualDelta !== 0) {
 }
 
 function addHPHistory(from, to, delta, source) {
+if (window.AppLog) AppLog.action("hp", (delta > 0 ? "+" : "") + delta + " ХП (" + (source || "?") + "): " + from + " → " + to);
 const now = new Date();
 const time = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0");
 // FEAT-1 доработка: привязка записи к персонажу — чтобы HP-историю можно
@@ -1377,6 +1384,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 char.combat.hpTemp = parseInt($("hp-temp")?.value, 10) || 0;
+if (window.AppLog) AppLog.action("hp", "временные ХП: " + char.combat.hpTemp);
 saveToLocal();
 updateHPDisplay();
 }
@@ -1461,6 +1469,7 @@ if (!char.deathSaves.failures[i]) { char.deathSaves.failures[i] = true; break; }
 }
 msg = roll + " — провал!";
 }
+if (window.AppLog) AppLog.action("hp", "бросок спасброска смерти: " + msg, { roll: roll });
 if (resultEl) {
 resultEl.textContent = msg;
 resultEl.className = "ds-roll-result " + (isSuccess ? "ds-result-ok" : "ds-result-fail");

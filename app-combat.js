@@ -116,6 +116,7 @@ function rollSavingThrow(saveKey) {
     var msg = save.icon + " Спасбросок " + save.name + modeLabel + ": " + rollInfo + " + " + bonus + " = " + total;
     if (d.isCrit) msg = "🎉 КРИТ! Спасбросок " + save.name + ": " + d.roll + " + " + bonus + " = " + total;
     if (d.isFail) msg = "💀 ПРОВАЛ! Спасбросок " + save.name + ": " + d.roll;
+    if (window.AppLog) AppLog.action("combat", "спасбросок " + save.name + ": " + total + (d.isCrit ? " (крит)" : d.isFail ? " (провал)" : ""), { roll: d.roll, bonus: bonus, mode: d.mode });
     showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
     openDiceModal();
     var resultBig = $("dice-result-big");
@@ -152,6 +153,7 @@ function rollSkillCheck(skillIndex) {
     var msg = "🎯 " + skill.name + modeLabel + ": " + rollInfo + " + " + bonus + " = " + total;
     if (d.isCrit) msg = "🎉 КРИТ! " + skill.name + ": " + d.roll + " + " + bonus + " = " + total;
     if (d.isFail) msg = "💀 ПРОВАЛ! " + skill.name + ": " + d.roll;
+    if (window.AppLog) AppLog.action("combat", "проверка " + skill.name + ": " + total + (d.isCrit ? " (крит)" : d.isFail ? " (провал)" : ""), { roll: d.roll, bonus: bonus, mode: d.mode });
     showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
     openDiceModal();
     var resultBig = $("dice-result-big");
@@ -609,6 +611,7 @@ for (var i = 1; i <= 6; i++) {
 }
 // Ставим новый уровень
 if (next > 0) char.conditions.push("exhaustion_" + next);
+if (window.AppLog && next !== current) AppLog.action("combat", "истощение: " + current + " → " + next);
 updateExhaustionDisplay();
 updateConditionsCount();
 updateStatusBar();
@@ -648,6 +651,7 @@ if (conditionEl) conditionEl.classList.remove("active");
 char.conditions.push(conditionId);
 if (conditionEl) conditionEl.classList.add("active");
 }
+if (window.AppLog) AppLog.action("combat", "состояние " + conditionId + (index > -1 ? ": снято" : ": добавлено"));
 updateConditionsCount();
 updateStatusBar();
 calculateAC();
@@ -788,6 +792,7 @@ if (effectEl) effectEl.classList.remove("active");
 char.effects.push(effectId);
 if (effectEl) effectEl.classList.add("active");
 }
+if (window.AppLog) AppLog.action("combat", "эффект " + effectId + (index > -1 ? ": снят" : ": добавлен"));
 updateEffectsCount();
 updateStatusBar();
 calculateAC();
@@ -940,6 +945,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 char.inspiration = !char.inspiration;
+if (window.AppLog) AppLog.action("combat", char.inspiration ? "вдохновение получено" : "вдохновение использовано");
 saveToLocal();
 updateStatusBar();
 showToast(char.inspiration ? "✨ Вдохновение получено!" : "✨ Вдохновение использовано", char.inspiration ? "success" : "info");
@@ -972,6 +978,7 @@ if (!spellData && currentId) {
 }
 char.concentration = spellName || null;
 char.concentrationData = spellData ? { duration: spellData.duration, desc: spellData.desc } : null;
+if (window.AppLog) AppLog.action("combat", spellName ? "концентрация: " + spellName : "концентрация снята");
 saveToLocal();
 updateConcentrationDisplay();
 if (spellName) showToast("🔮 Концентрация: " + spellName, "info");
@@ -1016,6 +1023,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 const name = char.concentration;
+if (window.AppLog && name) AppLog.action("combat", "концентрация на «" + name + "» завершена");
 char.concentration = null;
 saveToLocal();
 updateConcentrationDisplay();
@@ -1226,6 +1234,7 @@ function confirmExchange() {
   updateCoinTotal();
   var msg = amt + " " + COIN_NAMES[from] + " → " + result + " " + COIN_NAMES[to];
   if (leftoverAmt > 0) msg += " (сдача: " + leftoverAmt + " " + COIN_NAMES[from] + ")";
+  if (window.AppLog) AppLog.action("inventory", "обмен монет: " + msg);
   showToast(msg, "success");
   closeCoinExchange();
 }

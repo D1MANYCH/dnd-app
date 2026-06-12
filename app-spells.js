@@ -70,6 +70,7 @@ if (!char) return;
 if (!char.spells.pactUsed) char.spells.pactUsed = 0;
 if (index < char.spells.pactUsed) char.spells.pactUsed = index;
 else char.spells.pactUsed = index + 1;
+if (window.AppLog) AppLog.action("spells", "ячейки пакта: использовано " + char.spells.pactUsed + "/" + (char.spells.pactSlots || 0));
 saveToLocal();
 renderSpellSlots();
 }
@@ -83,6 +84,7 @@ if (newValue < 0) newValue = 0;
 if (newValue > 10) newValue = 10;
 char.spells.pactSlots = newValue;
 if ((char.spells.pactUsed || 0) > newValue) char.spells.pactUsed = newValue;
+if (window.AppLog) AppLog.action("spells", "пакт-слотов → " + newValue);
 saveToLocal();
 renderSpellSlots();
 }
@@ -104,6 +106,7 @@ if (!char) return;
 if (!char.spells.slotsUsed[level]) char.spells.slotsUsed[level] = 0;
 if (index < char.spells.slotsUsed[level]) char.spells.slotsUsed[level] = index;
 else char.spells.slotsUsed[level] = index + 1;
+if (window.AppLog) AppLog.action("spells", "ячейки " + level + " ур.: использовано " + char.spells.slotsUsed[level] + "/" + (char.spells.slots[level] || 0));
 saveToLocal();
 renderSpellSlots();
 }
@@ -121,6 +124,7 @@ char.spells.slots[level] = newValue;
 if (char.spells.slotsUsed[level] > newValue) {
 char.spells.slotsUsed[level] = newValue;
 }
+if (window.AppLog) AppLog.action("spells", "слотов " + level + " ур. → " + newValue);
 saveToLocal();
 renderSpellSlots();
 }
@@ -130,6 +134,7 @@ const char = getCurrentChar();
 if (!char) return;
 for(let i=1; i<=9; i++) { char.spells.slotsUsed[i] = 0; }
 if (char.spells.pactSlots) char.spells.pactUsed = 0;
+if (window.AppLog) AppLog.action("spells", "все ячейки восстановлены");
 saveToLocal();
 renderSpellSlots();
 showToast("Ячейки заклинаний восстановлены!", "success");
@@ -249,6 +254,7 @@ desc: desc,
 higherLevel: $("new-spell-higher")?.value?.trim() || ""
 };
 SPELL_DATABASE.push(newSpell);
+if (window.AppLog) AppLog.action("spells", "своё заклинание создано: " + newSpell.name, { level: newSpell.level });
 saveToLocal();
 closeAddSpellForm();
 showToast("Заклинание добавлено!", "success");
@@ -314,6 +320,7 @@ if (!spell) return;
 if (!char.spells.mySpells) char.spells.mySpells = [];
 if (!char.spells.mySpells.some(function(s) { return s.id === spellId; })) {
 char.spells.mySpells.push(spell);
+if (window.AppLog) AppLog.action("spells", "заклинание добавлено: " + spell.name, { id: spell.id, level: spell.level });
 saveToLocal();
 renderSpellSearch();
 renderMySpells();
@@ -323,7 +330,9 @@ function removeSpell(spellId) {
 const char = getCurrentChar();
 if (!char) return;
 if (!char.spells.mySpells) return;
+var _rm = char.spells.mySpells.find(function(s) { return s.id === spellId; });
 char.spells.mySpells = char.spells.mySpells.filter(function(s) { return s.id !== spellId; });
+if (window.AppLog) AppLog.action("spells", "заклинание удалено" + (_rm ? ": " + _rm.name : ""), { id: spellId });
 saveToLocal();
 renderSpellSearch();
 renderMySpells();
@@ -453,10 +462,15 @@ function toggleSpellPrepared(spellId) {
       return sp && sp.level > 0;
     }).length;
     if (max !== null && nonCantripPrepared >= max) {
+      if (window.AppLog) AppLog.warn("spells", "лимит подготовленных заклинаний (" + max + ")");
       showToast("Достигнут лимит подготовленных заклинаний (" + max + ")", "warn");
       return;
     }
     char.spells.prepared.push(spellId);
+  }
+  if (window.AppLog) {
+    var _sp = char.spells.mySpells && char.spells.mySpells.find(function(s){ return s.id === spellId; });
+    AppLog.action("spells", (idx >= 0 ? "подготовка снята: " : "подготовлено: ") + (_sp ? _sp.name : spellId));
   }
   saveToLocal();
   renderMySpells();
@@ -497,6 +511,7 @@ var container = $("status-ritual");
 if (nameEl) nameEl.textContent = spellName;
 if (timerEl) timerEl.textContent = "10:00";
 if (container) container.classList.remove("hidden");
+if (window.AppLog) AppLog.action("spells", "ритуал начат: " + spellName);
 showToast("🕐 Ритуал: " + spellName + " — 10 минут", "info");
 _ritualTimer = setInterval(function() {
   var left = _ritualEndTime - Date.now();
@@ -505,6 +520,7 @@ _ritualTimer = setInterval(function() {
     _ritualTimer = null;
     if (typeof window !== 'undefined') window._ritualTimer = null;
     if (container) container.classList.add("hidden");
+    if (window.AppLog) AppLog.info("spells", "ритуал завершён: " + spellName);
     showToast("✅ Ритуал «" + spellName + "» завершён!", "success");
     return;
   }
@@ -522,5 +538,6 @@ if (_ritualTimer) {
 }
 var container = $("status-ritual");
 if (container) container.classList.add("hidden");
+if (!silent && window.AppLog) AppLog.action("spells", "ритуал отменён");
 if (!silent) showToast("🕐 Ритуал отменён", "warn");
 }

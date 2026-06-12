@@ -955,6 +955,7 @@ function _notesLogJournal(op, type, title) {
     unpin:  'Откреплена'
   };
   var word = opWords[op] || 'Изменена';
+  if (window.AppLog) AppLog.action('notes', word.toLowerCase() + ' запись «' + name + '» (' + typeLabel + ')');
   try {
     addJournalEntry('note', word + ' запись «' + name + '»', typeLabel);
   } catch(e) { /* не мешаем основному потоку */ }
@@ -1182,6 +1183,7 @@ function notesExportMd() {
   }
 
   var ts = new Date().toISOString().slice(0,10);
+  if (window.AppLog) AppLog.action('notes', 'экспорт заметок в MD');
   _notesTriggerDownload(lines.join('\n'), _notesCharName() + '-notes-' + ts + '.md', 'text/markdown;charset=utf-8');
 }
 
@@ -1190,6 +1192,7 @@ function notesExportJson() {
   if (!char) return;
   var payload = { charName: _notesCharName(), exportedAt: new Date().toISOString(), notesV2: char.notesV2 || {} };
   var ts = new Date().toISOString().slice(0,10);
+  if (window.AppLog) AppLog.action('notes', 'экспорт заметок в JSON');
   _notesTriggerDownload(JSON.stringify(payload, null, 2), _notesCharName() + '-notes-' + ts + '.json', 'application/json;charset=utf-8');
 }
 
@@ -1234,6 +1237,7 @@ function notesHandleImportJson(input) {
           }
         }
       }
+      if (window.AppLog) AppLog.action('notes', 'импорт JSON: ' + file.name);
       if (typeof saveToLocalDebounced === 'function') saveToLocalDebounced();
       _notesFlashSaved();
       renderNotes();
@@ -1269,6 +1273,7 @@ function notesHandleImportMd(input) {
       updatedAt: now
     };
     char.notesV2.entries.push(entry);
+    if (window.AppLog) AppLog.action('notes', 'импорт MD: ' + file.name);
     if (typeof saveToLocalDebounced === 'function') saveToLocalDebounced();
     _notesFlashSaved();
     notesSwitchTab('free');

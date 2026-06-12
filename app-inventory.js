@@ -37,6 +37,7 @@ function toggleBackpackOff() {
   if (!char) return;
   if (!char.equipState) char.equipState = { backpackOff: false };
   char.equipState.backpackOff = !char.equipState.backpackOff;
+  if (window.AppLog) AppLog.action("inventory", char.equipState.backpackOff ? "рюкзак снят" : "рюкзак надет");
   saveToLocal();
   renderInventory();
 }
@@ -258,6 +259,7 @@ showConfirmModal(
     const c = characters.find(function(ch) { return ch.id === currentId; });
     if (!c) return;
     c.inventory[category].splice(index, 1);
+    if (window.AppLog) AppLog.action("inventory", "предмет удалён: " + name, { cat: category });
     saveToLocal();
     renderInventory();
   }
@@ -372,6 +374,7 @@ slots: $("new-item-slots")?.value !== "" ? parseFloat($("new-item-slots")?.value
 location: $("new-item-location")?.value || undefined,
 desc: $("new-item-desc")?.value || ""
 };
+var _isEdit = !!(slotIndex >= 0 && char.inventory[origCategory] && char.inventory[origCategory][slotIndex]);
 if (!char.inventory[category]) char.inventory[category] = [];
 if (slotIndex >= 0 && char.inventory[origCategory] && char.inventory[origCategory][slotIndex]) {
 // Редактирование существующего предмета
@@ -387,6 +390,7 @@ char.inventory[category].push(newItem);
 } else {
 char.inventory[category].push(newItem);
 }
+if (window.AppLog) AppLog.action("inventory", (_isEdit ? "предмет изменён: " : "предмет добавлен: ") + name, { cat: category, qty: newItem.qty });
 saveToLocal();
 closeItemModal();
 renderInventory();
@@ -439,6 +443,7 @@ showConfirmModal(
     const c = characters.find(function(ch) { return ch.id === currentId; });
     if (!c) return;
     c.inventory[capturedItem.category].splice(capturedItem.index, 1);
+    if (window.AppLog) AppLog.action("inventory", "предмет удалён: " + name, { cat: capturedItem.category });
     saveToLocal();
     renderInventory();
   }
@@ -522,6 +527,7 @@ range: $("new-weapon-range")?.value || "",
 notes: $("new-weapon-notes")?.value || "",
 proficient: proficient
 });
+if (window.AppLog) AppLog.action("inventory", "оружие добавлено: " + name + (proficient ? "" : " (без владения)"));
 saveToLocal();
 closeWeaponModal();
 renderWeapons();
@@ -716,6 +722,7 @@ showRollModePopup(function(mode) {
     var msg = "⚔️ " + escapeHtml(weapon.name) + modeLabel + ": " + rollInfo + " + " + attackBonus + " = " + total;
     if (d.isCrit) msg = "🎉 КРИТИЧЕСКОЕ ПОПАДАНИЕ! " + escapeHtml(weapon.name) + ": " + d.roll + " + " + attackBonus + " = " + total;
     if (d.isFail) msg = "💀 ПРОМАХ! " + escapeHtml(weapon.name) + ": " + d.roll;
+    if (window.AppLog) AppLog.action("combat", "атака «" + weapon.name + "»: " + total + (d.isCrit ? " (крит)" : d.isFail ? " (промах)" : ""), { roll: d.roll, bonus: attackBonus, mode: d.mode });
     showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
     var resultBig = $("dice-result-big");
     var resultInfo = $("dice-result-info");
@@ -758,6 +765,7 @@ if (match) {
   total = statMod;
   rollStr = "+" + statMod;
 }
+if (window.AppLog) AppLog.action("combat", "урон «" + weapon.name + "»: " + total, { formula: weapon.damage, detail: rollStr });
 showToast("🗡️ " + escapeHtml(weapon.name) + " урон: " + rollStr + " = " + total, "info");
 openDiceModal();
 var resultBig = $("dice-result-big");
@@ -777,7 +785,9 @@ function removeWeapon(index) {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
+var _w = char.weapons[index];
 char.weapons.splice(index, 1);
+if (window.AppLog) AppLog.action("inventory", "оружие удалено" + (_w && _w.name ? ": " + _w.name : ""));
 saveToLocal();
 renderWeapons();
 }
@@ -861,6 +871,7 @@ function _invMoveItem(fromCat, fromIdx, toCat, toIdx) {
   if (toIdx < 0) toIdx = 0;
   if (toIdx > char.inventory[toCat].length) toIdx = char.inventory[toCat].length;
   char.inventory[toCat].splice(toIdx, 0, moved);
+  if (window.AppLog) AppLog.action("inventory", "предмет перемещён: " + ((moved && moved.name) || "?"), { from: fromCat + ":" + fromIdx, to: toCat + ":" + toIdx });
   saveToLocal();
   renderInventory();
 }

@@ -1624,7 +1624,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.25.5";
+const APP_VERSION = "3.25.6";
 const APP_VERSION_DATE = "2026-06-12";
 
 // ============================================================
@@ -1918,9 +1918,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.25.5",
+    version: "3.25.6",
     date: "12 июня 2026",
     badge: "new",
+    changes: [
+      { type: "feat", text: "FEAT-LOG-2: явные логи действий (AppLog) в модулях combat/hp/inventory/spells/notes/party — категории combat, hp, character, inventory, spells, notes, party, battle в панели Ctrl+Shift+L" }
+    ]
+  },
+  {
+    version: "3.25.5",
+    date: "12 июня 2026",
+    badge: "old",
     changes: [
       { type: "chore", text: "OPT-7 — чистка мёртвого CSS по отчёту OPT-6: −155 правил и 2 keyframes (~18 КБ, −641 строка), фикс битого комментария light-темы (терялся focus ring)" }
     ]
