@@ -659,6 +659,81 @@ function _syncEditionButtons() {
 }
 document.addEventListener('DOMContentLoaded', _syncEditionButtons);
 
+// UI6-4: раскладка листа характеристик.
+//  '2024'    — спасброски/навыки внутри карточек характеристик (вид по умолчанию);
+//  'classic' — классическая сетка 6/3 + отдельные аккордеоны спасбросков/навыков.
+// Layout-only: схема персонажа и контракт ID не меняются. Один дом для каждой
+// строки — initSaves/initSkills рендерят в контейнер по текущему layout
+// (_statsRowTarget), при переключении _placeStatRows переносит готовые DOM-узлы
+// (состояние чекбоксов/бонусов едет с узлами → reload не нужен).
+var STATS_LAYOUTS = ['2024', 'classic'];
+function _getStatsLayout() {
+  try {
+    var v = localStorage.getItem('dnd_stats_layout');
+    if (STATS_LAYOUTS.indexOf(v) !== -1) return v;
+  } catch (e) {}
+  return '2024';
+}
+function _applyStatsLayout(name) {
+  // Атрибут выставляется всегда (оба режима имеют свои правила в CSS).
+  document.documentElement.setAttribute('data-stats-layout', name);
+}
+// Контейнер-дом для строки спасброска/навыка в текущем layout.
+//  kind='save', key=ключ характеристики (str…cha);
+//  kind='skill', key=характеристика навыка (skills[i].stat).
+function _statsRowTarget(kind, key) {
+  var layout = _getStatsLayout();
+  if (kind === 'save') {
+    if (layout === '2024') {
+      var sslot = document.getElementById('abil-save-slot-' + key);
+      if (sslot) return sslot;
+    }
+    return document.getElementById('saves-grid');
+  }
+  if (kind === 'skill') {
+    if (layout === '2024') {
+      var kslot = document.getElementById('abil-skills-slot-' + key);
+      if (kslot) return kslot;
+    }
+    return document.getElementById('skills-container');
+  }
+  return null;
+}
+// Перенос уже отрисованных строк в дом текущего layout (без перерисовки → состояние сохраняется).
+function _placeStatRows() {
+  if (typeof SAVES_DATA !== 'undefined' && SAVES_DATA && SAVES_DATA.forEach) {
+    SAVES_DATA.forEach(function(save) {
+      var node = document.getElementById('save-item-' + save.key);
+      var target = _statsRowTarget('save', save.key);
+      if (node && target && node.parentNode !== target) target.appendChild(node);
+    });
+  }
+  if (typeof skills !== 'undefined' && skills && skills.forEach) {
+    skills.forEach(function(skill, i) {
+      var node = document.getElementById('skill-row-' + i);
+      var target = _statsRowTarget('skill', skill.stat);
+      if (node && target && node.parentNode !== target) target.appendChild(node);
+    });
+  }
+}
+function setStatsLayout(name) {
+  if (STATS_LAYOUTS.indexOf(name) === -1) return;
+  try { localStorage.setItem('dnd_stats_layout', name); } catch (e) {}
+  _applyStatsLayout(name);
+  _placeStatRows();
+  _syncStatsLayoutButtons();
+}
+function _syncStatsLayoutButtons() {
+  var active = _getStatsLayout();
+  document.querySelectorAll('.theme-picker-btn[data-stats-layout-btn]').forEach(function(b) {
+    b.classList.toggle('is-active', b.getAttribute('data-stats-layout-btn') === active);
+  });
+}
+document.addEventListener('DOMContentLoaded', function() {
+  _applyStatsLayout(_getStatsLayout());
+  _syncStatsLayoutButtons();
+});
+
 // UI-4: плотность интерфейса (compact / standard / cozy)
 var DENSITIES = ['compact','standard','cozy'];
 // UI5-5: брейкпоинт «телефон» для авто-плотности (синхронен inline-FOUC в index.html)

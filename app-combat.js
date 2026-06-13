@@ -136,6 +136,41 @@ function rollSavingThrow(saveKey) {
   });
 }
 
+// ── Бросок проверки характеристики (UI6-4: клик по крупному модификатору карточки) ──
+function rollAbilityCheck(abilKey) {
+  var char = getCurrentChar();
+  if (!char) return;
+  var abil = abilities.find(function(a) { return a.key === abilKey; });
+  if (!abil) return;
+  showRollModePopup(function(mode) {
+    var bonus = getMod(char.stats[abilKey]);
+    var d = rollD20WithMode(mode);
+    var total = d.roll + bonus;
+    var modeLabel = formatRollModeLabel(d);
+    var rollInfo = formatRollMode(d, bonus);
+    var msg = "🎲 Проверка «" + abil.name + "»" + modeLabel + ": " + rollInfo + " + " + bonus + " = " + total;
+    if (d.isCrit) msg = "🎉 КРИТ! Проверка «" + abil.name + "»: " + d.roll + " + " + bonus + " = " + total;
+    if (d.isFail) msg = "💀 ПРОВАЛ! Проверка «" + abil.name + "»: " + d.roll;
+    if (window.AppLog) AppLog.action("combat", "проверка хар-ки " + abil.name + ": " + total + (d.isCrit ? " (крит)" : d.isFail ? " (провал)" : ""), { roll: d.roll, bonus: bonus, mode: d.mode });
+    showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
+    openDiceModal();
+    var resultBig = $("dice-result-big");
+    var resultInfo = $("dice-result-info");
+    var resultBox = $("dice3d-result");
+    if (resultBig) resultBig.textContent = total;
+    if (resultInfo) resultInfo.textContent = abil.name + " · проверка" + modeLabel + " · " + formatDiceInfoStr(d);
+    if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
+    drawDiceSVG(20);
+    showDualDice(d);
+    var numEl = $("dice-svg-num");
+    if (numEl) numEl.textContent = total;
+    if (d.isCrit) createParticles();
+    diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: abil.name + " проверка" });
+    if (diceHistory.length > 10) diceHistory.pop();
+    renderDiceHistory();
+  });
+}
+
 // ── Бросок проверки навыка ──
 function rollSkillCheck(skillIndex) {
   var char = getCurrentChar();
@@ -177,14 +212,23 @@ function rollSkillCheck(skillIndex) {
 // УЛУЧШЕННЫЕ СПАСБРОСКИ
 // ============================================
 function initSaves() {
-const grid = $("saves-grid");
-if (!grid) return;
-grid.innerHTML = "";
+// UI6-4: строка спасброска живёт в карточке характеристики (layout 2024, слот
+// #abil-save-slot-{key}) либо в legacy-сетке #saves-grid (classic). Рендерим в дом
+// текущего layout через _statsRowTarget; id'шники сохранены, поэтому calcStats /
+// loadCharacter / applyBuild находят чекбоксы по id независимо от размещения.
+// .save-label-2024 виден только в режиме 2024 (компактная строка без шапки/описания).
+SAVES_DATA.forEach(function(save) {
+  const ex = document.getElementById("save-item-" + save.key);
+  if (ex && ex.remove) ex.remove();
+});
+const legacyGrid = $("saves-grid");
+if (legacyGrid) legacyGrid.innerHTML = "";
 SAVES_DATA.forEach(function(save, index) {
 const item = document.createElement("div");
 item.className = "save-item";
 item.id = "save-item-" + save.key;
 item.innerHTML = `
+<span class="save-label-2024">Спасбросок</span>
 <div class="save-header">
 <span class="save-icon">${getAbilityIcon(save.key) || escapeHtml(save.icon)}</span>
 <span class="save-name">${escapeHtml(save.name)}</span>
@@ -198,7 +242,8 @@ item.innerHTML = `
 </div>
 <div class="save-desc">${escapeHtml(save.desc)}</div>
 `;
-grid.appendChild(item);
+const target = (typeof _statsRowTarget === "function" ? _statsRowTarget("save", save.key) : null) || legacyGrid;
+if (target) target.appendChild(item);
 });
 }
 function autoSelectProficiencies() {
@@ -238,19 +283,27 @@ if (typeof renderWeaponProf === "function") renderWeaponProf();
 calculateAC();
 }
 function initSkills() {
-const container = $("skills-container");
-if (!container) return;
-container.innerHTML = "";
+// UI6-4: навык группируется по своей характеристике внутри карточки (layout 2024,
+// слот #abil-skills-slot-{stat}) либо живёт в общем списке #skills-container (classic).
+// id="skill-row-N" нужен _placeStatRows() для переноса узла при смене layout.
+skills.forEach(function(skill, index) {
+  const ex = document.getElementById("skill-row-" + index);
+  if (ex && ex.remove) ex.remove();
+});
+const legacyContainer = $("skills-container");
+if (legacyContainer) legacyContainer.innerHTML = "";
 skills.forEach(function(skill, index) {
 const row = document.createElement("div");
 row.className = "skill-row-compact";
+row.id = "skill-row-" + index;
 row.innerHTML =
   '<input type="checkbox" id="skill-prof-' + index + '" class="skill-cb" onchange="calcStats(); updateSkillProfCount()">' +
   '<label for="skill-prof-' + index + '" class="skill-name-compact">' + escapeHtml(skill.name) + '</label>' +
   '<span class="skill-stat-compact">' + escapeHtml(skill.stat.toUpperCase().slice(0,3)) + '</span>' +
   '<button type="button" class="skill-expertise-btn" id="skill-exp-' + index + '" title="Экспертиза (×2 бонус)" onclick="toggleExpertise(' + index + ')">E</button>' +
   '<button type="button" class="skill-bonus-compact skill-bonus-clickable" id="skill-bonus-' + index + '" onclick="rollSkillCheck(' + index + ')" title="Бросить проверку навыка">+0</button>';
-container.appendChild(row);
+const target = (typeof _statsRowTarget === "function" ? _statsRowTarget("skill", skill.stat) : null) || legacyContainer;
+if (target) target.appendChild(row);
 });
 }
 function toggleExpertise(index) {
@@ -1099,6 +1152,9 @@ if (typeof window.refreshConditionsRightRail === 'function') {
 // Вдохновение
 const inspiEl = $("status-inspiration");
 if (inspiEl) inspiEl.classList.toggle("active", !!char.inspiration);
+// UI6-4: зеркало вдохновения — мини-карточка в листе 2024
+const inspCard2024 = $("insp-card-2024");
+if (inspCard2024) inspCard2024.classList.toggle("active", !!char.inspiration);
 }
 function getProficiencyBonus(level) {
 if (level >= 17) return 6;
@@ -1438,6 +1494,9 @@ const level = parseInt($("char-level")?.value, 10) || 1;
 const proficiencyBonus = getProficiencyBonus(level);
 const profBonusEl = $("proficiency-bonus");
 if (profBonusEl) profBonusEl.innerText = "+" + proficiencyBonus;
+// UI6-4: зеркало бонуса мастерства — мини-карточка в листе 2024
+const profBonusEl2024 = $("proficiency-bonus-2024");
+if (profBonusEl2024) profBonusEl2024.innerText = "+" + proficiencyBonus;
 const stats = ["str", "dex", "con", "int", "wis", "cha"];
 stats.forEach(function(s) {
 const val = parseInt($("val-" + s)?.value, 10) || 10;
@@ -1510,6 +1569,9 @@ if(perceptionCheckbox && perceptionCheckbox.checked) {
 }
 const passiveEl = $("passive-perception");
 if (passiveEl) passiveEl.innerText = passivePerception;
+// UI6-4: зеркало пассивной внимательности — футер карточки МУД в листе 2024
+const passiveEl2024 = $("passive-perception-2024");
+if (passiveEl2024) passiveEl2024.innerText = passivePerception;
 calcSpellStats();
 // Обновляем updatedAt при любом изменении характеристик
 const charForUpdate = getCurrentChar();

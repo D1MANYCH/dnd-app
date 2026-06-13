@@ -9,7 +9,8 @@
   // тестовыми данными. Снимаем снапшот до тестов, возвращаем как было в конце.
   // TEST-3: + dnd_party/dnd_battle — saveParty()/saveBattle() без currentId пишут туда.
   // UI6-1: + dnd_accent/dnd_auto_accent — БЛОК 13 зовёт setAccent(), который их пишет.
-  var _lsKeys = ["dnd_chars", "dnd_spells", "dnd_hp_history", "dnd_party", "dnd_battle", "dnd_accent", "dnd_auto_accent"];
+  // UI6-4: + dnd_stats_layout — БЛОК 14 зовёт setStatsLayout(), который его пишет.
+  var _lsKeys = ["dnd_chars", "dnd_spells", "dnd_hp_history", "dnd_party", "dnd_battle", "dnd_accent", "dnd_auto_accent", "dnd_stats_layout"];
   var _lsSnapshot = {};
   _lsKeys.forEach(function(k){
     try { _lsSnapshot[k] = localStorage.getItem(k); } catch(e) { _lsSnapshot[k] = null; }
@@ -1116,6 +1117,65 @@
     });
     t("[accent] _accentForClass(неизвестный) → gold", function(){
       return _accentForClass("Хоббит") === "gold" || "ожидал gold";
+    });
+  }
+
+  // ────────── БЛОК 14 (UI6-4): раскладка листа характеристик (app-ui.js) ──────────
+  if (typeof _getStatsLayout === "function") {
+    t("[stats2024] дефолт без ключа → '2024'", function(){
+      localStorage.removeItem("dnd_stats_layout");
+      return _getStatsLayout() === "2024" || "получено " + _getStatsLayout();
+    });
+    t("[stats2024] мусор в ключе → '2024'", function(){
+      localStorage.setItem("dnd_stats_layout", "xyz");
+      return _getStatsLayout() === "2024" || "получено " + _getStatsLayout();
+    });
+    t("[stats2024] персист 'classic'", function(){
+      localStorage.setItem("dnd_stats_layout", "classic");
+      return _getStatsLayout() === "classic" || "получено " + _getStatsLayout();
+    });
+    t("[stats2024] setStatsLayout('classic') пишет ключ", function(){
+      localStorage.removeItem("dnd_stats_layout");
+      setStatsLayout("classic");
+      return localStorage.getItem("dnd_stats_layout") === "classic" || "ключ=" + localStorage.getItem("dnd_stats_layout");
+    });
+    t("[stats2024] setStatsLayout(мусор) игнорируется", function(){
+      localStorage.setItem("dnd_stats_layout", "2024");
+      setStatsLayout("nope");
+      return localStorage.getItem("dnd_stats_layout") === "2024" || "ключ=" + localStorage.getItem("dnd_stats_layout");
+    });
+  }
+  // Группировка навыков по характеристике (основа абилка-слотов 2024) — без хардкод-списков.
+  t("[stats2024] группировка навыков: размеры по str,dex,con,int,wis,cha = {1,3,0,5,5,4}", function(){
+    if (typeof skills === "undefined") return "нет skills";
+    var order = ["str","dex","con","int","wis","cha"];
+    var counts = {str:0, dex:0, con:0, int:0, wis:0, cha:0};
+    skills.forEach(function(s){ if (s.stat in counts) counts[s.stat]++; });
+    var got = order.map(function(k){ return counts[k]; });
+    var exp = [1,3,0,5,5,4];
+    return eq(got, exp) || ("ожидал " + JSON.stringify(exp) + ", получено " + JSON.stringify(got));
+  });
+  t("[stats2024] каждый индекс навыка 0..N-1 попадает в группу ровно один раз", function(){
+    if (typeof skills === "undefined") return "нет skills";
+    var groups = {};
+    skills.forEach(function(s, i){ (groups[s.stat] = groups[s.stat] || []).push(i); });
+    var seen = [];
+    Object.keys(groups).forEach(function(k){ seen = seen.concat(groups[k]); });
+    seen.sort(function(a, b){ return a - b; });
+    var expected = []; for (var i = 0; i < skills.length; i++) expected.push(i);
+    return eq(seen, expected) || ("индексы расходятся: " + JSON.stringify(seen));
+  });
+  if (typeof initSaves === "function" && typeof initSkills === "function") {
+    t("[stats2024] initSaves/initSkills не бросают в обоих layout", function(){
+      var layouts = ["2024", "classic"];
+      for (var i = 0; i < layouts.length; i++) {
+        localStorage.setItem("dnd_stats_layout", layouts[i]);
+        try {
+          initSaves(); initSkills();
+          if (typeof _placeStatRows === "function") _placeStatRows();
+        } catch (e) { return "layout " + layouts[i] + ": " + (e && e.message || e); }
+      }
+      return true;
     });
   }
 

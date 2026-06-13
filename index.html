@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v175">
+<link rel="stylesheet" href="style.css?v=v176">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -39,6 +39,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       d = (window.matchMedia && window.matchMedia('(max-width: 640px)').matches) ? 'compact' : 'standard';
     }
     if (d !== 'standard') document.documentElement.setAttribute('data-density', d);
+    // UI6-4: раскладка листа характеристик (2024 — вид по умолчанию / classic — классический)
+    // до отрисовки, чтобы карточки сразу встали в нужный режим без вспышки.
+    var sl = localStorage.getItem('dnd_stats_layout');
+    if (sl !== '2024' && sl !== 'classic') sl = '2024';
+    document.documentElement.setAttribute('data-stats-layout', sl);
     // UI-5: применить масштаб шрифта (0.9..1.3) до отрисовки — через zoom на body.
     // body ещё не существует на момент head-скрипта, поэтому используем
     // отложенный вызов через DOMContentLoaded.
@@ -152,6 +157,13 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
         <button type="button" class="theme-picker-btn" data-density-btn="compact"  onclick="setDensity('compact')"  title="Компактно — мельче отступы и шрифт">Компактно</button>
         <button type="button" class="theme-picker-btn" data-density-btn="standard" onclick="setDensity('standard')" title="Стандартные размеры">Стандарт</button>
         <button type="button" class="theme-picker-btn" data-density-btn="cozy"     onclick="setDensity('cozy')"     title="Просторно — крупнее отступы и шрифт">Просторно</button>
+      </div>
+    </div>
+    <div class="theme-picker-row">
+      <span class="theme-picker-label">📋 Лист характеристик</span>
+      <div class="theme-picker-btns stats-layout-picker-btns" role="radiogroup" aria-label="Раскладка листа характеристик">
+        <button type="button" class="theme-picker-btn" data-stats-layout-btn="2024"    onclick="setStatsLayout('2024')"    title="Спасброски и навыки сгруппированы внутри карточек характеристик (вид листа 2024)">2024</button>
+        <button type="button" class="theme-picker-btn" data-stats-layout-btn="classic" onclick="setStatsLayout('classic')" title="Классический вид: характеристики, спасброски и навыки отдельными блоками">Классический</button>
       </div>
     </div>
     <div class="theme-picker-row">
@@ -442,76 +454,104 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 
 </div>
-<div class="card">
+<div class="card stats-card-2024">
 <div class="section-header-row">
 <h3>⚔️ Характеристики</h3>
 <span class="prof-bonus-inline">Мастерство: <strong id="proficiency-bonus">+2</strong></span>
 </div>
-<div class="stats-compact-grid">
-<div class="stat-compact" id="stat-block-str">
-<div class="stat-compact-label">СИЛ</div>
-<div class="stat-compact-mod" id="mod-str">+0</div>
-<div class="stat-compact-val" id="val-display-str">10</div>
+<!-- UI6-4: лист 2024 — спасброски и навыки сгруппированы внутри карточки характеристики.
+     Тумблер «Классический» (настройки) → data-stats-layout="classic": регион эмулирует
+     сетку 6/3 столбцов, слоты пусты, строки переезжают в legacy-аккордеоны ниже. -->
+<div class="abilities-region" id="abilities-region">
+<div class="abil-col abil-col-left">
+<div class="abil-mini abil-mini-prof">
+<div class="abil-mini-label">Бонус мастерства</div>
+<div class="abil-mini-value" id="proficiency-bonus-2024">+2</div>
+</div>
+<div class="abil-card" data-abil="str" id="stat-block-str">
+<div class="abil-card-head"><span class="abil-card-name">Сила</span><span class="abil-card-label">СИЛ</span></div>
+<div class="abil-card-mod" id="mod-str" role="button" tabindex="0" onclick="rollAbilityCheck('str')" title="Проверка Силы">+0</div>
+<div class="abil-card-score">
+<button type="button" class="stat-btn-sm" onclick="adjustStat('str',-1)" aria-label="Уменьшить Силу">−</button>
+<span class="stat-compact-val" id="val-display-str">10</span>
 <input type="number" id="val-str" value="10" class="stat-compact-inp" oninput="calcStats(); updateStatDisplay('str')">
-<div class="stat-compact-row">
-<button class="stat-btn-sm" onclick="adjustStat('str',-1)">−</button>
-<button class="stat-btn-sm" onclick="adjustStat('str',1)">+</button>
+<button type="button" class="stat-btn-sm" onclick="adjustStat('str',1)" aria-label="Увеличить Силу">+</button>
 </div>
+<div class="abil-save-slot" id="abil-save-slot-str"></div>
+<div class="abil-skills-slot" id="abil-skills-slot-str"></div>
 </div>
-<div class="stat-compact" id="stat-block-dex">
-<div class="stat-compact-label">ЛОВ</div>
-<div class="stat-compact-mod" id="mod-dex">+0</div>
-<div class="stat-compact-val" id="val-display-dex">10</div>
+<div class="abil-card" data-abil="dex" id="stat-block-dex">
+<div class="abil-card-head"><span class="abil-card-name">Ловкость</span><span class="abil-card-label">ЛОВ</span></div>
+<div class="abil-card-mod" id="mod-dex" role="button" tabindex="0" onclick="rollAbilityCheck('dex')" title="Проверка Ловкости">+0</div>
+<div class="abil-card-score">
+<button type="button" class="stat-btn-sm" onclick="adjustStat('dex',-1)" aria-label="Уменьшить Ловкость">−</button>
+<span class="stat-compact-val" id="val-display-dex">10</span>
 <input type="number" id="val-dex" value="10" class="stat-compact-inp" oninput="calcStats(); updateStatDisplay('dex')">
-<div class="stat-compact-row">
-<button class="stat-btn-sm" onclick="adjustStat('dex',-1)">−</button>
-<button class="stat-btn-sm" onclick="adjustStat('dex',1)">+</button>
+<button type="button" class="stat-btn-sm" onclick="adjustStat('dex',1)" aria-label="Увеличить Ловкость">+</button>
 </div>
+<div class="abil-save-slot" id="abil-save-slot-dex"></div>
+<div class="abil-skills-slot" id="abil-skills-slot-dex"></div>
 </div>
-<div class="stat-compact" id="stat-block-con">
-<div class="stat-compact-label">ТЕЛ</div>
-<div class="stat-compact-mod" id="mod-con">+0</div>
-<div class="stat-compact-val" id="val-display-con">10</div>
+<div class="abil-card" data-abil="con" id="stat-block-con">
+<div class="abil-card-head"><span class="abil-card-name">Телосложение</span><span class="abil-card-label">ТЕЛ</span></div>
+<div class="abil-card-mod" id="mod-con" role="button" tabindex="0" onclick="rollAbilityCheck('con')" title="Проверка Телосложения">+0</div>
+<div class="abil-card-score">
+<button type="button" class="stat-btn-sm" onclick="adjustStat('con',-1)" aria-label="Уменьшить Телосложение">−</button>
+<span class="stat-compact-val" id="val-display-con">10</span>
 <input type="number" id="val-con" value="10" class="stat-compact-inp" oninput="calcStats(); updateStatDisplay('con')">
-<div class="stat-compact-row">
-<button class="stat-btn-sm" onclick="adjustStat('con',-1)">−</button>
-<button class="stat-btn-sm" onclick="adjustStat('con',1)">+</button>
+<button type="button" class="stat-btn-sm" onclick="adjustStat('con',1)" aria-label="Увеличить Телосложение">+</button>
+</div>
+<div class="abil-save-slot" id="abil-save-slot-con"></div>
+<div class="abil-skills-slot" id="abil-skills-slot-con"></div>
+</div>
+<div class="abil-mini abil-mini-insp" id="insp-card-2024" role="button" tabindex="0" onclick="toggleInspiration()" title="Героическое вдохновение — нажмите, чтобы переключить">
+<div class="abil-mini-label">✨ Вдохновение</div>
+<div class="abil-mini-state"></div>
 </div>
 </div>
-<div class="stat-compact" id="stat-block-int">
-<div class="stat-compact-label">ИНТ</div>
-<div class="stat-compact-mod" id="mod-int">+0</div>
-<div class="stat-compact-val" id="val-display-int">10</div>
+<div class="abil-col abil-col-right">
+<div class="abil-card" data-abil="int" id="stat-block-int">
+<div class="abil-card-head"><span class="abil-card-name">Интеллект</span><span class="abil-card-label">ИНТ</span></div>
+<div class="abil-card-mod" id="mod-int" role="button" tabindex="0" onclick="rollAbilityCheck('int')" title="Проверка Интеллекта">+0</div>
+<div class="abil-card-score">
+<button type="button" class="stat-btn-sm" onclick="adjustStat('int',-1)" aria-label="Уменьшить Интеллект">−</button>
+<span class="stat-compact-val" id="val-display-int">10</span>
 <input type="number" id="val-int" value="10" class="stat-compact-inp" oninput="calcStats(); updateStatDisplay('int')">
-<div class="stat-compact-row">
-<button class="stat-btn-sm" onclick="adjustStat('int',-1)">−</button>
-<button class="stat-btn-sm" onclick="adjustStat('int',1)">+</button>
+<button type="button" class="stat-btn-sm" onclick="adjustStat('int',1)" aria-label="Увеличить Интеллект">+</button>
 </div>
+<div class="abil-save-slot" id="abil-save-slot-int"></div>
+<div class="abil-skills-slot" id="abil-skills-slot-int"></div>
 </div>
-<div class="stat-compact" id="stat-block-wis">
-<div class="stat-compact-label">МУД</div>
-<div class="stat-compact-mod" id="mod-wis">+0</div>
-<div class="stat-compact-val" id="val-display-wis">10</div>
+<div class="abil-card" data-abil="wis" id="stat-block-wis">
+<div class="abil-card-head"><span class="abil-card-name">Мудрость</span><span class="abil-card-label">МУД</span></div>
+<div class="abil-card-mod" id="mod-wis" role="button" tabindex="0" onclick="rollAbilityCheck('wis')" title="Проверка Мудрости">+0</div>
+<div class="abil-card-score">
+<button type="button" class="stat-btn-sm" onclick="adjustStat('wis',-1)" aria-label="Уменьшить Мудрость">−</button>
+<span class="stat-compact-val" id="val-display-wis">10</span>
 <input type="number" id="val-wis" value="10" class="stat-compact-inp" oninput="calcStats(); updateStatDisplay('wis')">
-<div class="stat-compact-row">
-<button class="stat-btn-sm" onclick="adjustStat('wis',-1)">−</button>
-<button class="stat-btn-sm" onclick="adjustStat('wis',1)">+</button>
+<button type="button" class="stat-btn-sm" onclick="adjustStat('wis',1)" aria-label="Увеличить Мудрость">+</button>
 </div>
+<div class="abil-save-slot" id="abil-save-slot-wis"></div>
+<div class="abil-skills-slot" id="abil-skills-slot-wis"></div>
+<div class="abil-card-footer">Пассивная внимательность <strong id="passive-perception-2024">10</strong></div>
 </div>
-<div class="stat-compact" id="stat-block-cha">
-<div class="stat-compact-label">ХАР</div>
-<div class="stat-compact-mod" id="mod-cha">+0</div>
-<div class="stat-compact-val" id="val-display-cha">10</div>
+<div class="abil-card" data-abil="cha" id="stat-block-cha">
+<div class="abil-card-head"><span class="abil-card-name">Харизма</span><span class="abil-card-label">ХАР</span></div>
+<div class="abil-card-mod" id="mod-cha" role="button" tabindex="0" onclick="rollAbilityCheck('cha')" title="Проверка Харизмы">+0</div>
+<div class="abil-card-score">
+<button type="button" class="stat-btn-sm" onclick="adjustStat('cha',-1)" aria-label="Уменьшить Харизму">−</button>
+<span class="stat-compact-val" id="val-display-cha">10</span>
 <input type="number" id="val-cha" value="10" class="stat-compact-inp" oninput="calcStats(); updateStatDisplay('cha')">
-<div class="stat-compact-row">
-<button class="stat-btn-sm" onclick="adjustStat('cha',-1)">−</button>
-<button class="stat-btn-sm" onclick="adjustStat('cha',1)">+</button>
+<button type="button" class="stat-btn-sm" onclick="adjustStat('cha',1)" aria-label="Увеличить Харизму">+</button>
+</div>
+<div class="abil-save-slot" id="abil-save-slot-cha"></div>
+<div class="abil-skills-slot" id="abil-skills-slot-cha"></div>
 </div>
 </div>
 </div>
 </div>
-<!-- ACCORDION: Спасброски -->
-<div class="card accordion-card">
+<!-- LEGACY: Спасброски — видны в режиме «Классический» (data-stats-layout="classic") -->
+<div class="card accordion-card legacy-saves-card">
 <button class="accordion-toggle" onclick="toggleAccordion(this)" aria-expanded="false">
 <span>🛡️ Спасброски</span><span class="accordion-arrow">▸</span>
 </button>
@@ -521,8 +561,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 </div>
-<!-- ACCORDION: Навыки -->
-<div class="card accordion-card">
+<!-- LEGACY: Навыки — видны в режиме «Классический» (data-stats-layout="classic") -->
+<div class="card accordion-card legacy-skills-card">
 <button class="accordion-toggle" onclick="toggleAccordion(this)" aria-expanded="false">
 <span>📚 Навыки <span class="accordion-prof-count" id="skills-prof-count"></span></span><span class="accordion-arrow">▸</span>
 </button>
@@ -2282,34 +2322,34 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v175"></script>
-<script src="bg-orbits.js?v=v175"></script>
-<script src="dice-arena-bg.js?v=v175"></script>
-<script src="data.js?v=v175"></script>
+<script src="app-log.js?v=v176"></script>
+<script src="bg-orbits.js?v=v176"></script>
+<script src="dice-arena-bg.js?v=v176"></script>
+<script src="data.js?v=v176"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v175"></script>
-<script src="spells.js?v=v175"></script>
-<script src="app-core.js?v=v175"></script>
-<script src="app-backup.js?v=v175"></script>
-<script src="app-combat.js?v=v175"></script>
-<script src="app-hp.js?v=v175"></script>
-<script src="app-spells.js?v=v175"></script>
-<script src="app-inventory.js?v=v175"></script>
+<script src="character-builds.js?v=v176"></script>
+<script src="spells.js?v=v176"></script>
+<script src="app-core.js?v=v176"></script>
+<script src="app-backup.js?v=v176"></script>
+<script src="app-combat.js?v=v176"></script>
+<script src="app-hp.js?v=v176"></script>
+<script src="app-spells.js?v=v176"></script>
+<script src="app-inventory.js?v=v176"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v175"></script>
-<script src="class-choices.js?v=v175"></script>
-<script src="subclass-choices-data.js?v=v175"></script>
+<script src="app-party.js?v=v176"></script>
+<script src="class-choices.js?v=v176"></script>
+<script src="subclass-choices-data.js?v=v176"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v175";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v176";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v175"></script>
-<script src="app-notes.js?v=v175"></script>
-<script src="app-desktop.js?v=v175"></script>
-<script src="history-stack.js?v=v175"></script>
+<script src="app-ui.js?v=v176"></script>
+<script src="app-notes.js?v=v176"></script>
+<script src="app-desktop.js?v=v176"></script>
+<script src="history-stack.js?v=v176"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2322,9 +2362,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v175",
-    "vendor/jspdf/roboto-base64.js?v=v175",
-    "app-pdf.js?v=v175"
+    "vendor/jspdf/jspdf.umd.min.js?v=v176",
+    "vendor/jspdf/roboto-base64.js?v=v176",
+    "app-pdf.js?v=v176"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -2348,7 +2388,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v175").then(function () {
+    return loadScript("build-notes-data.js?v=v176").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -2356,8 +2396,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v175"),
-      loadScript("npc-srd.js?v=v175")
+      loadScript("monsters-srd.js?v=v176"),
+      loadScript("npc-srd.js?v=v176")
     ]);
   };
   var stub = function (id, ev) {

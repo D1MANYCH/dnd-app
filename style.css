@@ -7019,107 +7019,277 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
     border-radius: var(--r-sm) !important;
   }
 }
-.stat-compact {
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 7px 4px 7px;
+/* ============================================================
+   UI6-4: ЛИСТ ХАРАКТЕРИСТИК — режимы «2024» / «Классический».
+   2024 (по умолчанию): спасбросок и навыки сгруппированы внутри
+   карточки своей характеристики (как лист 2024). Классический
+   (html[data-stats-layout="classic"]): сетка 6/3 + отдельные
+   аккордеоны спасбросков/навыков. Один дом для каждой строки —
+   initSaves/initSkills рендерят по layout, _placeStatRows переносит
+   узлы при переключении. Стилистика без глянца (в духе UI6-5).
+   (Здесь же удалён мёртвый дубль-блок .stat-compact.)
+   ============================================================ */
+
+/* ── Регион и колонки ── */
+.abilities-region {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-2);
+  align-items: start;
+}
+@media (min-width: 768px) {
+  html[data-stats-layout="2024"] .abilities-region { grid-template-columns: 1fr 1fr; }
+}
+.abil-col {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  transition: border-color 0.2s;
+  gap: var(--sp-2);
   min-width: 0;
 }
-.stat-compact:hover { border-color: var(--accent-color); }
-.stat-compact-label {
-  font-size: 0.65em;
+
+/* ── Карточка характеристики (вид 2024) ── */
+.abil-card {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-md);
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  transition: border-color 0.2s;
+}
+.abil-card:hover { border-color: var(--accent-color); }
+.abil-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+.abil-card-name { font-weight: 700; font-size: 0.95em; color: var(--text-color); }
+.abil-card-label {
+  font-size: 0.62em;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
+  line-height: 1;
 }
-.stat-compact-mod {
-  font-size: 1.4em;
+.abil-card-mod {
+  align-self: center;
+  font-size: 1.9em;
   font-weight: 800;
   color: var(--accent-color);
   line-height: 1;
-}
-.stat-compact-row {
+  min-width: 64px;
+  min-height: 44px;
   display: flex;
   align-items: center;
-  gap: 2px;
-  width: 100%;
   justify-content: center;
-}
-.stat-compact-inp {
-  width: 32px !important;
-  min-width: 28px !important;
-  text-align: center !important;
-  padding: 3px 2px !important;
-  font-size: 0.82em !important;
-  border-radius: 4px !important;
-  border: 1px solid var(--border-color) !important;
-  background: var(--card-bg) !important;
-  color: var(--text-color) !important;
-  display: block !important;
-}
-.stat-btn-sm {
-  width: 20px !important;
-  height: 20px !important;
-  min-width: 20px !important;
-  flex-shrink: 0 !important;
-  border-radius: 4px !important;
-  border: 1px solid var(--border-color) !important;
-  background: var(--card-bg) !important;
-  color: var(--text-color) !important;
-  font-size: 14px !important;
-  font-weight: 700 !important;
-  line-height: 1 !important;
-  cursor: pointer !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  transition: border-color 0.15s, color 0.15s !important;
-  /* override global button styles */
-  width: 20px !important;
-}
-.stat-btn-sm:hover {
-  border-color: var(--accent-color) !important;
-  color: var(--accent-color) !important;
-  background: var(--accent-glow) !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
-/* Extra specificity override for global button resets */
-.stats-compact-grid button.stat-btn-sm {
-  width: 20px;
-  min-width: 20px;
-  height: 20px;
-  padding: 0;
-  margin: 0;
-  background: var(--card-bg);
-  color: var(--text-color);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1;
+  border-radius: var(--r-md);
+  background: var(--accent-glow);
+  cursor: pointer;
+  padding: 4px 14px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: border-color 0.15s, background 0.15s, transform 0.08s;
+}
+.abil-card-mod:hover { border-color: var(--accent-color); }
+.abil-card-mod:active { transform: scale(0.98); }
+.abil-card-mod:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
+
+/* ── UI6-4.1: плотная раскладка карточки 2024 ──
+   Модификатор и значение в один ряд (как в офиц. листе), отступы туже,
+   секции (значение / спасбросок / навыки) разделены тонкими линиями.
+   Grid с авто-размещением: пустые слоты (display:none) не создают ряд —
+   фантомных зазоров нет. Классический режим не затрагивается. */
+html[data-stats-layout="2024"] .abil-card {
+  display: grid;
+  /* боковые 1fr центрируют кластер [мод + значение]; шапка/слоты тянутся на всю ширину */
+  grid-template-columns: 1fr auto auto 1fr;
+  column-gap: 14px;
+  row-gap: 7px;
+  align-items: center;
+  padding: 9px 12px;
+}
+html[data-stats-layout="2024"] .abil-card-head { grid-column: 1 / -1; }
+html[data-stats-layout="2024"] .abil-card-mod {
+  grid-column: 2;
+  font-size: 1.7em;
+  min-height: 46px;
+  padding: 4px 12px;
+}
+html[data-stats-layout="2024"] .abil-card-score { grid-column: 3; }
+html[data-stats-layout="2024"] .abil-save-slot,
+html[data-stats-layout="2024"] .abil-skills-slot,
+html[data-stats-layout="2024"] .abil-card-footer { grid-column: 1 / -1; }
+html[data-stats-layout="2024"] .abil-save-slot {
+  border-top: 1px solid var(--border-color);
+  padding-top: 7px;
+}
+html[data-stats-layout="2024"] .abil-skills-slot { margin-top: 0; }
+
+/* ── Строка значения [− value +] ── */
+.abil-card-score {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  gap: 8px;
 }
-.stats-compact-grid button.stat-btn-sm:hover {
-  border-color: var(--accent-color);
-  color: var(--accent-color);
-  background: var(--accent-glow);
-  transform: none;
-  box-shadow: none;
+.abil-card-score .stat-compact-val {
+  font-size: 1.05em;
+  font-weight: 700;
+  color: var(--text-color);
+  min-width: 28px;
+  text-align: center;
+  margin: 0 !important;
+}
+.abil-card-score .stat-btn-sm {
+  flex: 0 0 auto !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+}
+
+/* ── Слоты спасброска / навыков (пустые — не занимают место) ── */
+.abil-save-slot:empty,
+.abil-skills-slot:empty { display: none; }
+.abil-skills-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 6px;
+  margin-top: 2px;
+}
+
+/* ── Слим-строка спасброска внутри карточки (только 2024) ── */
+.save-label-2024 { display: none; font-size: 0.7em; color: var(--text-muted); font-weight: 600; }
+html[data-stats-layout="2024"] .abil-save-slot .save-item {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  gap: 8px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+html[data-stats-layout="2024"] .abil-save-slot .save-item.proficient { background: transparent; border: none; }
+html[data-stats-layout="2024"] .abil-save-slot .save-header,
+html[data-stats-layout="2024"] .abil-save-slot .save-desc { display: none; }
+html[data-stats-layout="2024"] .abil-save-slot .save-label-2024 { display: inline; }
+html[data-stats-layout="2024"] .abil-save-slot .save-value {
+  background: transparent;
+  padding: 0;
+  gap: 10px;
+  flex: 1;
+}
+
+/* ── Слим-навыки внутри карточки (только 2024): ярлык характеристики дублирует группу ── */
+html[data-stats-layout="2024"] .abil-skills-slot .skill-stat-compact { display: none; }
+html[data-stats-layout="2024"] .abil-skills-slot .skill-row-compact { border-bottom: none; }
+
+/* ── Футер карточки (пассивная внимательность под МУД) ── */
+.abil-card-footer {
+  font-size: 0.72em;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  padding-top: 6px;
+}
+.abil-card-footer strong { color: var(--accent-color); }
+
+/* ── Мини-карточки: бонус мастерства / героическое вдохновение (только 2024) ── */
+.abil-mini {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-md);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+.abil-mini-label { font-size: 0.78em; color: var(--text-muted); font-weight: 600; }
+.abil-mini-value { font-size: 1.2em; font-weight: 800; color: var(--accent-color); }
+.abil-mini-insp {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: border-color 0.15s, background 0.15s;
+}
+.abil-mini-insp:hover { border-color: var(--accent-color); }
+.abil-mini-insp:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
+.abil-mini-insp .abil-mini-state::before { content: "нет"; font-size: 0.85em; color: var(--text-muted); }
+.abil-mini-insp.active { border-color: var(--accent-color); background: var(--accent-glow); }
+.abil-mini-insp.active .abil-mini-label { color: var(--accent-color); }
+.abil-mini-insp.active .abil-mini-state::before { content: "есть ✓"; color: var(--accent-color); font-weight: 700; }
+
+/* ── 2024: легаси-аккордеоны и инлайн-мастерство скрыты, видно полное имя ── */
+html[data-stats-layout="2024"] .legacy-saves-card,
+html[data-stats-layout="2024"] .legacy-skills-card,
+html[data-stats-layout="2024"] .prof-bonus-inline,
+html[data-stats-layout="2024"] .abil-card-label { display: none; }
+
+/* ── Мобайл: тап-таргеты кнопок ± в карточке ≥44px ── */
+@media (max-width: 640px) {
+  .abil-card-score .stat-btn-sm {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+  }
+}
+
+/* ============================================================
+   Режим «Классический»: регион эмулирует сетку 6/3, карточки —
+   компактные стат-блоки, аккордеоны спасбросков/навыков видимы.
+   ============================================================ */
+html[data-stats-layout="classic"] .abilities-region {
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--sp-1);
+}
+@media (max-width: 540px) {
+  html[data-stats-layout="classic"] .abilities-region {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-2);
+  }
+}
+html[data-stats-layout="classic"] .abil-col { display: contents; }
+html[data-stats-layout="classic"] .abil-mini,
+html[data-stats-layout="classic"] .abil-card-name,
+html[data-stats-layout="classic"] .abil-save-slot,
+html[data-stats-layout="classic"] .abil-skills-slot,
+html[data-stats-layout="classic"] .abil-card-footer { display: none; }
+html[data-stats-layout="classic"] .abil-card {
+  padding: 8px 4px 6px;
+  gap: 3px;
+  align-items: center;
+  text-align: center;
+}
+html[data-stats-layout="classic"] .abil-card-head { justify-content: center; }
+html[data-stats-layout="classic"] .abil-card-mod {
+  font-size: 1.35em;
+  min-width: 0;
+  min-height: 0;
+  border: none;
+  background: transparent;
+  padding: 1px 0;
+}
+html[data-stats-layout="classic"] .abil-card-mod:hover { border-color: transparent; }
+html[data-stats-layout="classic"] .abil-card-score { gap: 4px; }
+html[data-stats-layout="classic"] .abil-card-score .stat-btn-sm {
+  width: 30px !important;
+  min-width: 30px !important;
+  height: 30px !important;
+}
+@media (max-width: 640px) {
+  html[data-stats-layout="classic"] .abil-card-score .stat-btn-sm {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+  }
 }
 
 /* ========== COMPACT SKILLS ========== */
