@@ -630,6 +630,35 @@ document.addEventListener('DOMContentLoaded', function() {
   _refreshAccent();
 });
 
+// UI6-3: переключатель редакции правил на главной.
+// 2014 — единственная реализованная редакция; 2024 — UI-заглушка «в разработке»
+// (никаких изменений правил, только тост). Состояние держится в localStorage,
+// но реально выставляется только '2014', т.к. setEdition('2024') ничего не пишет.
+function getEdition() {
+  try {
+    var e = localStorage.getItem('dnd_edition');
+    if (e === '2014' || e === '2024') return e;
+  } catch (e) {}
+  return '2014';
+}
+function setEdition(ed) {
+  if (ed === '2024') {
+    // Редакция 2024 ещё не реализована — показываем тост, активной остаётся 2014.
+    if (typeof showToast === 'function') showToast('Редакция 2024 — в разработке', 'info');
+    return;
+  }
+  try { localStorage.setItem('dnd_edition', '2014'); } catch (e) {}
+  _syncEditionButtons();
+}
+function _syncEditionButtons() {
+  var ed = getEdition();
+  var b14 = document.getElementById('edition-btn-2014');
+  var b24 = document.getElementById('edition-btn-2024');
+  if (b14) b14.classList.toggle('active', ed === '2014');
+  if (b24) b24.classList.toggle('active', ed === '2024');
+}
+document.addEventListener('DOMContentLoaded', _syncEditionButtons);
+
 // UI-4: плотность интерфейса (compact / standard / cozy)
 var DENSITIES = ['compact','standard','cozy'];
 // UI5-5: брейкпоинт «телефон» для авто-плотности (синхронен inline-FOUC в index.html)

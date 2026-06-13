@@ -437,6 +437,42 @@ html.glass-adjusting *::after {
   box-shadow: 0 1px 3px var(--accent-glow-token);
 }
 
+/* UI6-3: переключатель редакции на главной — светлая тема */
+:root[data-theme="light"] .home-edition-row {
+  background: var(--bg-1) !important;
+  border: 1px solid var(--border) !important;
+}
+:root[data-theme="light"] .home-edition-label {
+  color: var(--text-dim) !important;
+  font-weight: 600;
+}
+:root[data-theme="light"] .home-edition-btn {
+  background: var(--bg-1) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-dim) !important;
+}
+:root[data-theme="light"] .home-edition-btn:hover {
+  background: var(--bg-2) !important;
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+:root[data-theme="light"] .home-edition-btn.active {
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent)) !important;
+  border-color: var(--accent-lo) !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 3px var(--accent-glow-token);
+}
+:root[data-theme="light"] .home-edition-btn.is-soon {
+  border-style: dashed !important;
+  color: var(--text-dim) !important;
+  opacity: 0.75;
+}
+:root[data-theme="light"] .home-edition-btn.is-soon:hover {
+  background: var(--bg-1) !important;
+  border-color: var(--border) !important;
+  color: var(--text-dim) !important;
+}
+
 /* ----- Info-чипы внизу ----- */
 :root[data-theme="light"] .app-info-item {
   background: var(--bg-1) !important;
@@ -3384,6 +3420,37 @@ margin: 0;
 }
 .sort-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
 .sort-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: #000; font-weight: 600; }
+/* UI6-3: переключатель редакции на главной (по образцу .char-sort-row/.sort-btn).
+   Префикс home-edition-, чтобы не коллидить с .edition-btn фильтра заклинаний. */
+.home-edition-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.home-edition-label { font-size: 0.72em; color: rgba(255,255,255,0.35); flex-shrink: 0; }
+.home-edition-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.4);
+  padding: 4px 10px;
+  border-radius: var(--r-sm);
+  font-size: 0.72em;
+  cursor: pointer;
+  transition: all 0.18s;
+  width: auto;
+  margin: 0;
+}
+.home-edition-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
+.home-edition-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: #000; font-weight: 600; }
+.home-edition-btn.is-soon { border-style: dashed; color: rgba(255,255,255,0.3); cursor: default; }
+.home-edition-btn.is-soon:hover { border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); }
+.home-edition-soon-tag { font-size: 0.85em; opacity: 0.7; margin-left: 5px; }
 .char-copy-btn {
 background: rgba(255,255,255,0.05);
 border: 1px solid rgba(255,255,255,0.1);
