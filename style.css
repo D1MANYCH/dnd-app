@@ -3426,6 +3426,27 @@ transition: all 0.18s;
   .char-card-class-icon { width: 52px; height: 52px; font-size: 1.6em; }
 }
 
+/* ============================================
+   UI6-2: Главная — компактные действия + сетка персонажей на desktop.
+   Глобальный button{width:100%/margin-bottom} НЕ трогаем (UI6-5) — здесь
+   только scoped-сетки; вертикальный отступ в grid даёт gap, поэтому
+   margin-bottom от глоб. button{}/.char-card обнуляем внутри сеток.
+============================================ */
+.home-actions-primary,
+.home-utils { display: grid; gap: 10px; }
+.home-actions-primary { grid-template-columns: 1fr; margin-top: 4px; }
+.home-utils { grid-template-columns: 1fr 1fr; margin-top: 10px; }
+.home-actions-primary > button,
+.home-utils > button { margin: 0; }
+
+@media (min-width: 768px) {
+  .home-actions-primary { grid-template-columns: 1fr 1fr; }
+  .home-utils { grid-template-columns: repeat(3, 1fr); }
+  #character-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+  #character-list .char-card { margin-bottom: 0; }
+  #character-list .empty-list { grid-column: 1 / -1; }
+}
+
 @keyframes pulse {
 0%, 100% { box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
 50% { box-shadow: 0 4px 30px rgba(0,0,0,0.8); }
