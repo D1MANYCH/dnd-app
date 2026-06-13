@@ -53,10 +53,14 @@
 /* UI5: единая высота интерактивных контролов (кнопки/поля) — выравнивание «в один рост» */
 --control-h: 44px;
 
-/* Тени */
---sh-1: 0 1px 2px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.35);
---sh-2: 0 12px 32px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4);
+/* Тени — UI6-5: alpha вниз, blur ≤24px (fantasy-modern, без тяжёлых дропов) */
+--sh-1: 0 1px 2px rgba(0,0,0,0.32), 0 2px 8px rgba(0,0,0,0.22);
+--sh-2: 0 10px 24px rgba(0,0,0,0.34), 0 2px 6px rgba(0,0,0,0.24);
 --sh-glow: 0 0 0 3px var(--accent-soft), 0 8px 24px var(--accent-glow-token);
+
+/* Анимации — UI6-5: единый ease без прыгучести (перенесён в :root, light-блок наследует) */
+--ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
 /* Типографика */
 --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
@@ -197,12 +201,10 @@ html.glass-adjusting *::after {
   /* Shadows — UI4-glass LT-2: усилены, чтобы панели «отрывались» от фона как
      в тёмной (было альфы 0.05–0.14 — почти не видно поверх canvas). */
   --sh-1: 0 1px 3px rgba(20,40,30,0.14), 0 4px 14px rgba(20,40,30,0.10);
-  --sh-2: 0 16px 44px rgba(20,40,30,0.24), 0 3px 12px rgba(20,40,30,0.12);
+  --sh-2: 0 12px 24px rgba(20,40,30,0.18), 0 3px 10px rgba(20,40,30,0.11);
   --sh-glow: 0 0 0 3px var(--accent-soft), 0 6px 16px var(--accent-glow);
 
-  /* Easing — общие токены */
-  --ease: cubic-bezier(0.34, 1.3, 0.64, 1);
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Easing — UI6-5: токены --ease/--ease-out наследуются из :root (единый источник) */
 
   /* Item categories */
   --weapon-color:  #c2433a;
@@ -234,7 +236,7 @@ html.glass-adjusting *::after {
     --overlay: rgba(20, 30, 24, 0.40);
     --danger: #c73a2c; --success: #2c8a52; --info: #2c6fbd;
     --sh-1: 0 1px 3px rgba(20,40,30,0.14), 0 4px 14px rgba(20,40,30,0.10);
-    --sh-2: 0 16px 44px rgba(20,40,30,0.24), 0 3px 12px rgba(20,40,30,0.12);
+    --sh-2: 0 12px 24px rgba(20,40,30,0.18), 0 3px 10px rgba(20,40,30,0.11);
     --sh-glow: 0 0 0 3px var(--accent-soft), 0 6px 16px var(--accent-glow);
     --condition-active: rgba(199, 58, 44, 0.25);
     --buff-color: rgba(44, 138, 82, 0.24);
@@ -1313,21 +1315,17 @@ html.glass-adjusting *::after {
 
 /* Variants — все через переменные --accent/--bg-1/--border, работают в обеих темах */
 .btn-primary {
-  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
+  background: var(--accent);
   border-color: var(--accent-lo); color: #fff;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.30),
-              0 4px 12px var(--accent-glow, var(--accent-glow-token, rgba(184,132,31,0.30))),
-              0 1px 2px rgba(20,40,30,0.10);
+  box-shadow: 0 2px 8px var(--accent-glow, var(--accent-glow-token, rgba(184,132,31,0.30)));
 }
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35),
-              0 8px 20px var(--accent-glow, var(--accent-glow-token, rgba(184,132,31,0.30))),
-              0 2px 4px rgba(20,40,30,0.10);
+  background: var(--accent-hi); border-color: var(--accent);
+  box-shadow: 0 4px 14px var(--accent-glow, var(--accent-glow-token, rgba(184,132,31,0.30)));
 }
 .btn-primary:active {
-  transform: scale(0.96);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.15), 0 1px 2px var(--accent-glow, var(--accent-glow-token));
+  transform: scale(0.98);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .btn-secondary {
@@ -1338,10 +1336,10 @@ html.glass-adjusting *::after {
 }
 .btn-secondary:hover {
   background: var(--bg-2); border-color: var(--accent);
-  color: var(--accent); transform: translateY(-1px);
-  box-shadow: var(--sh-2);
+  color: var(--accent);
+  box-shadow: var(--sh-1);
 }
-.btn-secondary:active { transform: scale(0.96); }
+.btn-secondary:active { transform: scale(0.98); }
 
 .btn-ghost {
   background: transparent; border-color: transparent; color: var(--text-dim);
@@ -1349,24 +1347,24 @@ html.glass-adjusting *::after {
 .btn-ghost:hover { background: var(--bg-2); color: var(--text); }
 
 .btn-danger {
-  background: linear-gradient(180deg, #d8493b, var(--danger));
+  background: var(--danger);
   border-color: #a02d22; color: #fff;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px rgba(199,58,44,0.30);
+  box-shadow: 0 2px 8px rgba(199,58,44,0.28);
 }
 .btn-danger:hover {
-  transform: translateY(-2px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.30), 0 8px 18px rgba(199,58,44,0.38);
+  background: #d8493b; border-color: #c73a2c;
+  box-shadow: 0 4px 14px rgba(199,58,44,0.34);
 }
-.btn-danger:active { transform: scale(0.96); }
+.btn-danger:active { transform: scale(0.98); }
 
 .btn-success {
-  background: linear-gradient(180deg, #399c5e, var(--success));
+  background: var(--success);
   border-color: #1f6a3e; color: #fff;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px rgba(44,138,82,0.30);
+  box-shadow: 0 2px 8px rgba(44,138,82,0.28);
 }
 .btn-success:hover {
-  transform: translateY(-2px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.30), 0 8px 18px rgba(44,138,82,0.38);
+  background: #399c5e; border-color: #2c8a52;
+  box-shadow: 0 4px 14px rgba(44,138,82,0.34);
 }
 
 .btn-block { width: 100%; }
@@ -1403,9 +1401,9 @@ html.glass-adjusting *::after {
 }
 .icon-btn:hover {
   background: var(--bg-2); border-color: var(--accent);
-  transform: translateY(-1px); box-shadow: var(--sh-1);
+  box-shadow: var(--sh-1);
 }
-.icon-btn:active { transform: scale(0.96); }
+.icon-btn:active { transform: scale(0.98); }
 
 /* --- FEAT-2: поле имени + кнопка-генератор --- */
 .name-input-row { display: flex; gap: var(--sp-2); align-items: center; }
@@ -2128,20 +2126,20 @@ padding-left: 10px;
 }
 .container { padding: var(--sp-3); }
 .card {
-background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-3) 100%);
+background: var(--card-bg);
 border-radius: var(--r-md);
 padding: var(--sp-4);
 margin-bottom: var(--sp-3);
 border: 1px solid var(--border-color);
-box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-transition: box-shadow 0.2s, transform 0.2s;
+box-shadow: var(--sh-1);
+transition: box-shadow 0.2s, border-color 0.2s;
 /* UI4-glass: размытие фона за карточкой (слайдер «Размытие фона») */
 backdrop-filter: blur(var(--glass-blur));
 -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 .card:hover {
-box-shadow: 0 4px 24px rgba(0,0,0,0.35), 0 0 12px var(--accent-glow);
-transform: translateY(-1px);
+box-shadow: var(--sh-2);
+border-color: var(--accent-lo);
 }
 label { display: block; margin-bottom: var(--sp-2); font-size: 0.85em; color: var(--text-muted); font-weight: 500; }
 input, select, textarea {
@@ -2166,7 +2164,7 @@ background-color: var(--bg-3);
 
 /* ========== КД АВТО-РАСЧЁТ ========== */
 .ac-calc-section {
-background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
+background: var(--input-bg);
 border: 1px solid var(--armor-color);
 border-radius: var(--r-md);
 padding: var(--sp-4);
@@ -2555,7 +2553,7 @@ transition: all 0.2s;
 }
 .save-item.proficient {
 border-color: var(--accent-color);
-background: linear-gradient(135deg, rgba(212, 168, 67, 0.1) 0%, rgba(212, 168, 67, 0.05) 100%);
+background: var(--accent-soft);
 }
 .save-header {
 display: flex;
@@ -2671,7 +2669,7 @@ display: -webkit-box;
 
 /* ========== CLASS FEATURES ========== */
 .class-features-section {
-background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-3) 100%);
+background: var(--input-bg);
 border: 1px solid var(--accent-color);
 border-radius: var(--r-md);
 padding: 15px;
@@ -2903,7 +2901,7 @@ margin: 0;
 input[type="number"] { -moz-appearance: textfield; }
 
 button {
-background: linear-gradient(135deg, var(--accent) 0%, var(--accent-lo) 100%);
+background: var(--accent);
 color: #000;
 border: none;
 padding: 13px 20px;
@@ -2912,19 +2910,19 @@ font-weight: 600;
 cursor: pointer;
 width: 100%;
 margin-bottom: var(--sp-3);
-transition: transform 0.18s var(--ease, cubic-bezier(0.34,1.3,0.64,1)), box-shadow 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+transition: transform 0.15s var(--ease), box-shadow 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
 font-size: 15px;
 }
-button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px var(--accent-glow); }
-button:active { transform: scale(0.96); }
+button:hover { background: var(--accent-hi); box-shadow: 0 2px 10px var(--accent-glow); }
+button:active { transform: scale(0.98); }
 button.secondary {
-background: linear-gradient(135deg, var(--bg-2) 0%, var(--bg-3) 100%);
+background: var(--bg-2);
 color: var(--text);
 border: 1px solid var(--border);
 }
-button.danger { background: linear-gradient(135deg, var(--danger) 0%, #c95c65 100%); color: white; }
-button.success { background: linear-gradient(135deg, var(--success) 0%, #4da360 100%); color: white; }
-button.info { background: linear-gradient(135deg, var(--info) 0%, #4a8bc9 100%); color: white; }
+button.danger { background: var(--danger); color: white; }
+button.success { background: var(--success); color: white; }
+button.info { background: var(--info); color: white; }
 button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 
 /* =============================================
