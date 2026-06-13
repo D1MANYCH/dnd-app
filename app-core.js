@@ -531,6 +531,10 @@ if (screenName === "characters") {
 if (charactersScreen) charactersScreen.classList.remove("hidden");
 closeDrawer();
 currentId = null;
+// UI6-1: на экране профилей нет активного персонажа — возвращаем акцент
+// к ручному выбору/золоту (иначе после удаления активного персонажа
+// или выхода висел бы классовый цвет предыдущего).
+if (typeof _refreshAccent === 'function') _refreshAccent();
 updateHeaderTitle();
 renderCharacterList();
 updateStorageStatus();
@@ -2237,6 +2241,10 @@ try {
 currentId = id;
 const char = characters.find(function(c) { return c.id === id; });
 if (!char) return;
+// UI6-1: акцент следует за классом загружаемого персонажа (авто-режим).
+// Раньше переключение персонажей оставляло акцент от предыдущего —
+// _refreshAccent звался только onchange класса и на DOMContentLoaded.
+if (typeof _refreshAccent === 'function') _refreshAccent();
 
 // Load per-character party data
 if (char.party) {

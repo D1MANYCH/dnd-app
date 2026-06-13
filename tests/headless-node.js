@@ -25,6 +25,7 @@ const files = [
   'npc-srd.js',              // TEST-3: то же
   'app-spells.js',           // TEST-3: подготовка заклинаний + ячейки/пакт (БЛОК 11)
   'app-party.js',            // TEST-3: отряд и трекер боя (БЛОК 12)
+  'app-ui.js',               // UI6-1: настройки оформления — _getAutoAccent/CLASS_ACCENT_MAP/setAccent (БЛОК 13); позже layout/edition (БЛОК 14)
   'tests/fixtures.js',
   'tests/headless.js',
 ];
@@ -52,7 +53,16 @@ function makeStub() {
     clientWidth: 0,
     isContentEditable: false,
   };
-  el.style = new Proxy({}, { get: () => '', set: () => true });
+  // UI6-1: style — методы setProperty/removeProperty/getPropertyValue как no-op'ы
+  // (реальные render-функции app-ui.js зовут card.style.setProperty(...)).
+  el.style = new Proxy({}, {
+    get: (t, k) => {
+      if (k === 'setProperty' || k === 'removeProperty') return function(){};
+      if (k === 'getPropertyValue') return function(){ return ''; };
+      return '';
+    },
+    set: () => true,
+  });
   el.classList = {
     _set: new Set(),
     add(...c) { c.forEach(x => this._set.add(x)); },
@@ -129,6 +139,8 @@ const document = {
 };
 
 const navigator = { vibrate: () => {}, userAgent: 'node-headless', clipboard: { writeText: () => Promise.resolve() } };
+// UI6-1: performance.now() нужен реальному animateCountUp (app-ui.js) — раньше был стабом.
+const performance = { now: () => Date.now() };
 const getComputedStyle = () => ({ overflowX: '', overflowY: '', getPropertyValue: () => '' });
 
 // ── Sandbox ────────────────────────────────────────────────
@@ -138,6 +150,7 @@ const sandbox = {
   navigator,
   localStorage,
   getComputedStyle,
+  performance,
   JSON, Object, Array, Math, Date, String, Number, Boolean, RegExp, Error,
   parseInt, parseFloat, isNaN, isFinite, Set, Map, Proxy, Symbol, Promise,
   setTimeout, clearTimeout, setInterval, clearInterval,
@@ -146,6 +159,13 @@ const sandbox = {
 sandbox.window = sandbox;
 sandbox.self = sandbox;
 sandbox.globalThis = sandbox;
+// UI6-1: app-ui.js вешает top-level window.addEventListener (error/unhandledrejection/load)
+// и проверяет window.matchMedia (за guard'ом → undefined ок). Шимим no-op'ы на window(===sandbox).
+sandbox.addEventListener = function(){};
+sandbox.removeEventListener = function(){};
+sandbox.dispatchEvent = function(){ return true; };
+sandbox.requestAnimationFrame = function(){ return 0; };
+sandbox.cancelAnimationFrame = function(){};
 // Шим-копия escapeHtml на случай если data.js не успеет (страховка от старой версии)
 sandbox.escapeHtml = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // BUILD-LVL-7: Option-конструктор для updateSubclassOptions (new Option(text,value)) в confirmLevelUp.

@@ -592,7 +592,15 @@ var CLASS_ACCENT_MAP = {
   "Чародей":    "ruby"
 };
 function _getAutoAccent() {
-  try { return localStorage.getItem('dnd_auto_accent') === '1'; } catch (e) { return false; }
+  // UI6-1: авто-акцент по классу включён по умолчанию. Явный выбор сохраняем:
+  // '1' → вкл, '0' → выкл. Если ключа нет — авто ON только когда пользователь
+  // не выбирал акцент вручную (dnd_accent отсутствует); иначе уважаем его выбор.
+  try {
+    var v = localStorage.getItem('dnd_auto_accent');
+    if (v === '1') return true;
+    if (v === '0') return false;
+    return localStorage.getItem('dnd_accent') === null;
+  } catch (e) { return false; }
 }
 function _accentForClass(cls) {
   return CLASS_ACCENT_MAP[cls] || 'gold';

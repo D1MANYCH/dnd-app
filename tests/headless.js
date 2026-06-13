@@ -8,7 +8,8 @@
   // origin — на одном origin с приложением это перезаписало бы dnd_chars
   // тестовыми данными. Снимаем снапшот до тестов, возвращаем как было в конце.
   // TEST-3: + dnd_party/dnd_battle — saveParty()/saveBattle() без currentId пишут туда.
-  var _lsKeys = ["dnd_chars", "dnd_spells", "dnd_hp_history", "dnd_party", "dnd_battle"];
+  // UI6-1: + dnd_accent/dnd_auto_accent — БЛОК 13 зовёт setAccent(), который их пишет.
+  var _lsKeys = ["dnd_chars", "dnd_spells", "dnd_hp_history", "dnd_party", "dnd_battle", "dnd_accent", "dnd_auto_accent"];
   var _lsSnapshot = {};
   _lsKeys.forEach(function(k){
     try { _lsSnapshot[k] = localStorage.getItem(k); } catch(e) { _lsSnapshot[k] = null; }
@@ -1061,6 +1062,60 @@
         if (PARTY_DATA.npcs.length !== 1) return "неизвестный slug добавил запись";
         return true;
       } finally { window.characters = savedChars; window.currentId = savedId; PARTY_DATA = savedParty; }
+    });
+  }
+
+  // ────────── БЛОК 13 (UI6-1): авто-акцент по классу (app-ui.js) ──────────
+  if (typeof _getAutoAccent === "function") {
+    t("[accent] дефолт: нет auto + нет accent → авто ВКЛ", function(){
+      localStorage.removeItem("dnd_auto_accent");
+      localStorage.removeItem("dnd_accent");
+      return _getAutoAccent() === true || "ожидал true";
+    });
+    t("[accent] дефолт: нет auto, accent выбран вручную → авто ВЫКЛ", function(){
+      localStorage.removeItem("dnd_auto_accent");
+      localStorage.setItem("dnd_accent", "ruby");
+      return _getAutoAccent() === false || "ожидал false";
+    });
+    t("[accent] явный auto='0' → ВЫКЛ (без accent)", function(){
+      localStorage.removeItem("dnd_accent");
+      localStorage.setItem("dnd_auto_accent", "0");
+      return _getAutoAccent() === false || "ожидал false";
+    });
+    t("[accent] явный auto='1' → ВКЛ (даже с accent)", function(){
+      localStorage.setItem("dnd_accent", "ruby");
+      localStorage.setItem("dnd_auto_accent", "1");
+      return _getAutoAccent() === true || "ожидал true";
+    });
+    t("[accent] setAccent(ruby) из дефолт-авто: фиксирует акцент, авто становится ВЫКЛ", function(){
+      localStorage.removeItem("dnd_auto_accent");
+      localStorage.removeItem("dnd_accent");
+      setAccent("ruby");
+      if (localStorage.getItem("dnd_accent") !== "ruby") return "dnd_accent=" + localStorage.getItem("dnd_accent");
+      // dnd_accent задан → _getAutoAccent() уже false (литерал '0' не пишется, но поведение = выкл)
+      if (_getAutoAccent() !== false) return "авто не выключился";
+      return true;
+    });
+    t("[accent] setAccent при явном auto='1' перезаписывает на '0'", function(){
+      localStorage.setItem("dnd_auto_accent", "1");
+      localStorage.removeItem("dnd_accent");
+      setAccent("emerald");
+      return localStorage.getItem("dnd_auto_accent") === "0" || "dnd_auto_accent=" + localStorage.getItem("dnd_auto_accent");
+    });
+    t("[accent] CLASS_ACCENT_MAP: значения из ACCENTS", function(){
+      if (typeof CLASS_ACCENT_MAP === "undefined") return "нет CLASS_ACCENT_MAP";
+      var bad = Object.keys(CLASS_ACCENT_MAP).filter(function(k){ return ACCENTS.indexOf(CLASS_ACCENT_MAP[k]) === -1; });
+      return bad.length === 0 || ("вне ACCENTS: " + bad.join(","));
+    });
+    t("[accent] CLASS_ACCENT_MAP покрывает все 12 классов (по CLASS_SAVE_PROFICIENCIES)", function(){
+      if (typeof CLASS_SAVE_PROFICIENCIES === "undefined") return true;
+      var missing = Object.keys(CLASS_SAVE_PROFICIENCIES).filter(function(c){ return !(c in CLASS_ACCENT_MAP); });
+      if (missing.length) return "нет акцента для: " + missing.join(",");
+      return Object.keys(CLASS_ACCENT_MAP).length === Object.keys(CLASS_SAVE_PROFICIENCIES).length
+        || ("размеры расходятся: map=" + Object.keys(CLASS_ACCENT_MAP).length + " saves=" + Object.keys(CLASS_SAVE_PROFICIENCIES).length);
+    });
+    t("[accent] _accentForClass(неизвестный) → gold", function(){
+      return _accentForClass("Хоббит") === "gold" || "ожидал gold";
     });
   }
 
