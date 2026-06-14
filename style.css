@@ -8671,6 +8671,118 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 #item-ref-modal { z-index: 400; }
 
 /* =============================================
+   HELP / ONBOARDING (HELP-1) — табовый help-центр.
+   Опирается на .item-ref-* и базовый .modal-content.
+============================================= */
+.help-content {
+  max-width: 680px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;          /* скролл уходит в .help-body, табы остаются на месте */
+}
+.help-content > h3 {
+  margin: 0 0 14px;
+  padding-right: 44px;       /* место под кнопку × */
+  flex-shrink: 0;
+}
+.help-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+.help-tab {
+  flex: 0 0 auto;
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border-color) !important;
+  background: var(--input-bg) !important;
+  color: var(--text-muted) !important;
+  font-size: 0.82em !important;
+  font-weight: 600;
+  cursor: pointer;
+  width: auto !important;
+  margin: 0 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.help-tab.active {
+  background: var(--accent-color) !important;
+  color: #000 !important;
+  border-color: var(--accent-color) !important;
+}
+.help-tab:hover:not(.active) {
+  border-color: var(--accent-color) !important;
+  color: var(--text-color) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.help-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.help-section { display: flex; flex-direction: column; gap: 12px; }
+.help-section.hidden { display: none; }
+.help-block {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+}
+.help-block-title {
+  font-size: 0.78em;
+  font-weight: 700;
+  color: var(--accent-color);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 8px;
+}
+.help-block p {
+  margin: 0 0 8px;
+  font-size: 0.9em;
+  line-height: 1.55;
+  color: var(--text-color);
+}
+.help-block p:last-child { margin-bottom: 0; }
+.help-block ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.help-block li {
+  font-size: 0.9em;
+  line-height: 1.5;
+  color: var(--text-color);
+}
+.help-block b { color: var(--text-color); font-weight: 700; }
+.help-link {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--accent-color);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+.help-link:hover { border-bottom-color: var(--accent-color); }
+
+/* Help-центр всегда поверх контента (как item-ref) */
+#help-modal { z-index: 400; }
+
+@media (max-width: 600px) {
+  .help-content { max-height: 92vh; }
+  .help-tab { font-size: 0.78em !important; padding: 5px 8px !important; }
+}
+
+/* =============================================
    3D DICE CUBE
 ============================================= */
 .dsvg-container {

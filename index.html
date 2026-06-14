@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v181">
+<link rel="stylesheet" href="style.css?v=v182">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -93,6 +93,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <button class="drawer-item" onclick="switchTab('party',null);closeDrawer()" data-drawer-tab="party"><span>🌍</span>Мир</button>
     <button class="drawer-item" onclick="switchTab('journal',null);closeDrawer()" data-drawer-tab="journal"><span>📖</span>Журнал</button>
     <button class="drawer-item" onclick="AppLog.openPanel();closeDrawer()" title="Журнал действий сессии (Ctrl+Shift+L)"><span>🪵</span>Логи сессии</button>
+    <button class="drawer-item" onclick="openHelp('start');closeDrawer()" title="Справка по приложению"><span>❓</span>Справка</button>
   </nav>
   <div class="drawer-settings-row">
     <button type="button" class="drawer-settings-btn" onclick="openSettingsModal()" title="Тема, акцент, плотность, масштаб">
@@ -1320,6 +1321,189 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 
+<!-- Modal: Help / Справка (HELP-1) — табовый help-центр по образцу item-ref-modal -->
+<div id="help-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="help-title">
+<div class="modal-content help-content">
+  <button type="button" class="modal-close" onclick="closeHelp()" aria-label="Закрыть">&times;</button>
+  <h3 id="help-title">📖 Справка</h3>
+  <div class="help-tabs" role="tablist">
+    <button class="help-tab" onclick="switchHelpSection('about',this)">🐉 Что такое D&D</button>
+    <button class="help-tab" onclick="switchHelpSection('start',this)">🚀 С чего начать</button>
+    <button class="help-tab" onclick="switchHelpSection('sheet',this)">📋 Лист</button>
+    <button class="help-tab" onclick="switchHelpSection('spells',this)">✨ Заклинания</button>
+    <button class="help-tab" onclick="switchHelpSection('inventory',this)">🎒 Инвентарь</button>
+    <button class="help-tab" onclick="switchHelpSection('battle',this)">⚔️ Бой</button>
+    <button class="help-tab" onclick="switchHelpSection('party',this)">🌍 Мир</button>
+    <button class="help-tab" onclick="switchHelpSection('notes',this)">📝 Записи</button>
+    <button class="help-tab" onclick="switchHelpSection('journal',this)">📖 Журнал</button>
+    <button class="help-tab" onclick="switchHelpSection('dice',this)">🎲 Кубики</button>
+    <button class="help-tab" onclick="switchHelpSection('data',this)">💾 Данные</button>
+  </div>
+
+  <div class="help-body">
+    <!-- 🐉 Что такое D&D -->
+    <div id="help-about" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">Что это за игра</div>
+        <p>Dungeons &amp; Dragons (D&amp;D) — настольная ролевая игра. Группа игроков совместно проходит приключение, придуманное и описанное ведущим. Исход неопределённых действий решают броски кубиков.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Роли за столом</div>
+        <ul>
+          <li><b>Игрок</b> — управляет одним персонажем: его действиями, репликами, решениями.</li>
+          <li><b>Мастер</b> (DM, Dungeon Master) — ведёт мир, играет за всех остальных персонажей и существ, описывает сцены и судит правила.</li>
+        </ul>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Персонаж и кубики</div>
+        <p>У персонажа есть характеристики и навыки. Когда исход действия под вопросом, бросают двадцатигранный кубик (d20) и прибавляют модификатор — результат сравнивают со сложностью, которую назначает мастер.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Где здесь приложение</div>
+        <p>Это приложение — <b>цифровой лист персонажа</b> для D&amp;D 5-й редакции: оно хранит и считает данные. Сама игра идёт за столом или в голосовом чате, а не внутри приложения.</p>
+        <a class="help-link" href="https://dnd.su/" target="_blank" rel="noopener">Правила на русском — dnd.su ↗</a>
+      </div>
+    </div>
+
+    <!-- 🚀 С чего начать -->
+    <div id="help-start" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">Что умеет приложение</div>
+        <p>Цифровой лист персонажа D&amp;D 5e: характеристики, заклинания, инвентарь, бой, заметки и журнал. Данные хранятся локально в браузере и работают без интернета.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Список ↔ лист</div>
+        <p>Главный экран — список персонажей. Клик по карточке открывает лист персонажа; кнопка «←» в шапке возвращает к списку.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Создать персонажа</div>
+        <ul>
+          <li><b>+ Новый персонаж</b> — пустой лист с нуля.</li>
+          <li><b>По готовому билду</b> — один из 36 преднастроенных персонажей PHB.</li>
+          <li><b>Импорт</b> — загрузить ранее сохранённый файл персонажа.</li>
+        </ul>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Оффлайн и установка</div>
+        <p>После первой загрузки приложение работает без сети (PWA). Его можно установить на устройство как отдельное приложение.</p>
+      </div>
+    </div>
+
+    <!-- 📋 Лист -->
+    <div id="help-sheet" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">Характеристики</div>
+        <p>Шесть характеристик (Сила, Ловкость, Телосложение, Интеллект, Мудрость, Харизма). Модификатор и бонус мастерства считаются автоматически.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Спасброски и навыки</div>
+        <p>Отметьте владения — приложение прибавит бонус мастерства. Для навыков доступна и компетентность (двойной бонус).</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Шапка и сводка</div>
+        <p>Уровень, класс и раса задаются в шапке листа. Класс доспеха, инициатива, скорость и вдохновение показаны рядом; HP и КД продублированы в закреплённой строке статуса сверху.</p>
+      </div>
+    </div>
+
+    <!-- ✨ Заклинания -->
+    <div id="help-spells" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">База заклинаний</div>
+        <p>Поиск по встроенной базе с фильтрами по классу и уровню. Можно добавлять собственные заклинания.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Подготовка и ячейки</div>
+        <p>Отмечайте подготовленные/известные заклинания. Ячейки заклинаний по уровням расходуются и восстанавливаются на отдыхе.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Концентрация</div>
+        <p>Заклинания с концентрацией помечаются; активная концентрация видна в строке статуса и снимается одной кнопкой.</p>
+      </div>
+    </div>
+
+    <!-- 🎒 Инвентарь -->
+    <div id="help-inventory" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">Предметы и переноска</div>
+        <p>Список предметов с учётом веса (грузоподъёмность = Сила × 15 фнт) либо слотов — режим переключается. Кнопки «?» у полей веса и слотов открывают справочные таблицы.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Деньги</div>
+        <p>Монеты (медь, серебро, золото и т.д.) учитываются отдельным блоком.</p>
+      </div>
+    </div>
+
+    <!-- ⚔️ Бой -->
+    <div id="help-battle" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">Хиты и урон</div>
+        <p>Текущие, максимальные и временные хиты. Кнопки лечения и урона меняют HP; временные хиты тратятся первыми.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Отдых и хитдайс</div>
+        <p>Короткий и длинный отдых восстанавливают HP, ячейки и ресурсы по правилам. Кости хитов тратятся на коротком отдыхе.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Состояния</div>
+        <p>Отмечайте состояния персонажа (отравлен, ошеломлён и т.п.), чтобы держать их перед глазами в бою.</p>
+      </div>
+    </div>
+
+    <!-- 🌍 Мир -->
+    <div id="help-party" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">Спутники и NPC</div>
+        <p>Список спутников, питомцев и важных персонажей мира. Существ можно добавить из встроенного бестиария SRD.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Заметки о мире</div>
+        <p>Места, фракции и связи, которые удобно держать вместе с листом персонажа.</p>
+      </div>
+    </div>
+
+    <!-- 📝 Записи -->
+    <div id="help-notes" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">Свободные заметки</div>
+        <p>Текстовые записи по ходу игры. Поддерживаются теги и ссылки между записями для быстрой навигации.</p>
+      </div>
+    </div>
+
+    <!-- 📖 Журнал -->
+    <div id="help-journal" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">Дневник приключения</div>
+        <p>Хронология событий и сессий: что произошло, какие решения приняты, к чему вернуться позже.</p>
+      </div>
+    </div>
+
+    <!-- 🎲 Кубики -->
+    <div id="help-dice" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">3D-броски</div>
+        <p>Окно кубиков бросает выбранный набор костей с трёхмерной анимацией и показывает сумму.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Броски с листа</div>
+        <p>Клик по характеристике, спасброску или навыку бросает d20 с нужным модификатором. Доступны преимущество и помеха.</p>
+      </div>
+    </div>
+
+    <!-- 💾 Данные и бэкап -->
+    <div id="help-data" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">Хранение</div>
+        <p>Персонажи хранятся в браузере (localStorage). Дополнительно ведутся автоматические резервные копии в IndexedDB.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Экспорт и импорт</div>
+        <p>Персонажа можно сохранить в файл и загрузить обратно — для переноса между устройствами или резервной копии. Доступен экспорт листа в PDF.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
 <!-- Modal: Concentration Details -->
 <div id="conc-details-modal" class="confirm-modal-overlay hidden" onclick="if(event.target===this)closeConcDetails()">
 <div class="conc-details-box">
@@ -2325,34 +2509,35 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v181"></script>
-<script src="bg-orbits.js?v=v181"></script>
-<script src="dice-arena-bg.js?v=v181"></script>
-<script src="data.js?v=v181"></script>
+<script src="app-log.js?v=v182"></script>
+<script src="bg-orbits.js?v=v182"></script>
+<script src="dice-arena-bg.js?v=v182"></script>
+<script src="data.js?v=v182"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v181"></script>
-<script src="spells.js?v=v181"></script>
-<script src="app-core.js?v=v181"></script>
-<script src="app-backup.js?v=v181"></script>
-<script src="app-combat.js?v=v181"></script>
-<script src="app-hp.js?v=v181"></script>
-<script src="app-spells.js?v=v181"></script>
-<script src="app-inventory.js?v=v181"></script>
+<script src="character-builds.js?v=v182"></script>
+<script src="spells.js?v=v182"></script>
+<script src="app-core.js?v=v182"></script>
+<script src="app-backup.js?v=v182"></script>
+<script src="app-combat.js?v=v182"></script>
+<script src="app-hp.js?v=v182"></script>
+<script src="app-spells.js?v=v182"></script>
+<script src="app-inventory.js?v=v182"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v181"></script>
-<script src="class-choices.js?v=v181"></script>
-<script src="subclass-choices-data.js?v=v181"></script>
+<script src="app-party.js?v=v182"></script>
+<script src="class-choices.js?v=v182"></script>
+<script src="subclass-choices-data.js?v=v182"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v181";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v182";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v181"></script>
-<script src="app-notes.js?v=v181"></script>
-<script src="app-desktop.js?v=v181"></script>
-<script src="history-stack.js?v=v181"></script>
+<script src="app-ui.js?v=v182"></script>
+<script src="app-notes.js?v=v182"></script>
+<script src="app-desktop.js?v=v182"></script>
+<script src="history-stack.js?v=v182"></script>
+<script src="app-help.js?v=v182"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2365,9 +2550,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v181",
-    "vendor/jspdf/roboto-base64.js?v=v181",
-    "app-pdf.js?v=v181"
+    "vendor/jspdf/jspdf.umd.min.js?v=v182",
+    "vendor/jspdf/roboto-base64.js?v=v182",
+    "app-pdf.js?v=v182"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -2391,7 +2576,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v181").then(function () {
+    return loadScript("build-notes-data.js?v=v182").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -2399,8 +2584,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v181"),
-      loadScript("npc-srd.js?v=v181")
+      loadScript("monsters-srd.js?v=v182"),
+      loadScript("npc-srd.js?v=v182")
     ]);
   };
   var stub = function (id, ev) {
