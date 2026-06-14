@@ -2924,10 +2924,13 @@ font-weight: 600;
 cursor: pointer;
 width: 100%;
 margin-bottom: var(--sp-3);
-transition: transform 0.15s var(--ease), box-shadow 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+transition: transform 0.15s var(--ease), box-shadow 0.2s, background 0.2s, color 0.2s, border-color 0.2s, filter 0.15s;
 font-size: 15px;
 }
-button:hover { background: var(--accent-hi); box-shadow: 0 2px 10px var(--accent-glow); }
+/* UI-fix: ховер осветляет ФАКТИЧЕСКИЙ фон кнопки (filter), а не красит его в accent-hi.
+   Иначе у прозрачных кнопок-чипов (.sort-btn/.home-edition-btn/фильтры) accent-фон затекал
+   под accent-текст → слова сливались. brightness на прозрачном фоне ничего не красит. */
+button:hover { filter: brightness(1.08); box-shadow: 0 2px 10px var(--accent-glow); }
 button:active { transform: scale(0.98); }
 button.secondary {
 background: var(--bg-2);
@@ -4251,6 +4254,9 @@ padding: 18px;
   align-items: center;
   justify-content: center;
   padding: 0;
+  /* UI-fix: сброс глоб. button{margin-bottom} — раздувал шапку до 69px и поднимал
+     инструменты выше центра, из-за чего × визуально «не по центру». */
+  margin: 0;
   background: var(--bg-2);
   border: 1px solid var(--border-color, var(--bg-3));
   border-radius: 50%;
@@ -4485,6 +4491,9 @@ padding: 18px;
   cursor: pointer;
   font-size: 0.9em;
   white-space: nowrap;
+  /* UI-fix: сброс глоб. button{margin-bottom} — иначе «Бросить» выше строки ввода формулы */
+  margin: 0;
+  align-self: stretch;
 }
 .dice-formula-btn:hover {
   border-color: var(--accent-color, var(--accent));
@@ -7304,6 +7313,41 @@ html[data-stats-layout="classic"] .abil-card-score .stat-btn-sm {
   }
 }
 
+/* ============================================================
+   UI-fix: телефон (≤767px) + вид 2024 — компактные карточки в 2 колонки.
+   Спасброски/навыки вынесены в legacy-аккордеоны (placement: _statsRowTarget
+   → _isNarrowStats). Пустые слоты карточек скрыты правилом :empty выше.
+   ============================================================ */
+@media (max-width: 767px) {
+  html[data-stats-layout="2024"] .abilities-region { grid-template-columns: 1fr 1fr; }
+  /* мод и значение — в столбик (в ряд не влезают в ~172px-колонке) */
+  html[data-stats-layout="2024"] .abil-card {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    column-gap: 0;
+  }
+  html[data-stats-layout="2024"] .abil-card-mod,
+  html[data-stats-layout="2024"] .abil-card-score { grid-column: 1; }
+  /* показываем вынесенные секции спасбросков/навыков */
+  html[data-stats-layout="2024"] .legacy-saves-card,
+  html[data-stats-layout="2024"] .legacy-skills-card { display: block; }
+  /* пассивная внимательность остаётся в карточке МУД — дубль в аккордеоне убираем */
+  html[data-stats-layout="2024"] .legacy-skills-card .passive-wisdom { display: none; }
+}
+
+/* Сворачивание секции «Характеристики» (кнопка-заголовок + стрелка) */
+.stats-collapse-header { cursor: pointer; user-select: none; }
+.stats-collapse-arrow {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.9em;
+  transition: transform 0.2s var(--ease);
+  flex-shrink: 0;
+}
+html[data-stats-collapsed="1"] .stats-collapse-arrow { transform: rotate(-90deg); }
+html[data-stats-collapsed="1"] #abilities-region { display: none; }
+
 /* ========== COMPACT SKILLS ========== */
 /* FB-5: адаптивные колонки (2 при широкой, 1 при узкой — длинные имена не режутся) */
 #skills-container {
@@ -7389,6 +7433,8 @@ html[data-stats-layout="classic"] .abil-card-score .stat-btn-sm {
   cursor: pointer;
   flex-shrink: 0;
   opacity: 0.4;
+  /* UI-fix: сброс глоб. button{margin-bottom} — иначе «E» сдвигалась выше центра строки */
+  margin: 0;
   transition: all 0.2s;
 }
 .skill-expertise-btn:hover {

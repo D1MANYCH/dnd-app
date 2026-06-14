@@ -678,20 +678,29 @@ function _applyStatsLayout(name) {
   // Атрибут выставляется всегда (оба режима имеют свои правила в CSS).
   document.documentElement.setAttribute('data-stats-layout', name);
 }
+// UI-fix: на телефоне (≤767px) вид 2024 делает карточки компактными в 2 колонки,
+// а спасброски/навыки выносит в отдельные сворачиваемые секции (legacy-аккордеоны) —
+// внутри узкой карточки им не хватает места. На ПК 2024 оставляет их в карточке.
+var STATS_NARROW_MQ = '(max-width: 767px)';
+function _isNarrowStats() {
+  try { return window.matchMedia && window.matchMedia(STATS_NARROW_MQ).matches; }
+  catch (e) { return false; }
+}
+// Карточки 2024 держат строки внутри только на «широком» 2024; иначе — в legacy.
+function _statsInCards() { return _getStatsLayout() === '2024' && !_isNarrowStats(); }
 // Контейнер-дом для строки спасброска/навыка в текущем layout.
 //  kind='save', key=ключ характеристики (str…cha);
 //  kind='skill', key=характеристика навыка (skills[i].stat).
 function _statsRowTarget(kind, key) {
-  var layout = _getStatsLayout();
   if (kind === 'save') {
-    if (layout === '2024') {
+    if (_statsInCards()) {
       var sslot = document.getElementById('abil-save-slot-' + key);
       if (sslot) return sslot;
     }
     return document.getElementById('saves-grid');
   }
   if (kind === 'skill') {
-    if (layout === '2024') {
+    if (_statsInCards()) {
       var kslot = document.getElementById('abil-skills-slot-' + key);
       if (kslot) return kslot;
     }
@@ -699,6 +708,15 @@ function _statsRowTarget(kind, key) {
   }
   return null;
 }
+// Перенос строк при пересечении брейкпоинта «телефон» (2024: карточки ↔ legacy-аккордеоны).
+(function _watchStatsNarrow() {
+  try {
+    var mq = window.matchMedia(STATS_NARROW_MQ);
+    var handler = function () { if (typeof _placeStatRows === 'function') _placeStatRows(); };
+    if (mq.addEventListener) mq.addEventListener('change', handler);
+    else if (mq.addListener) mq.addListener(handler);
+  } catch (e) {}
+})();
 // Перенос уже отрисованных строк в дом текущего layout (без перерисовки → состояние сохраняется).
 function _placeStatRows() {
   if (typeof SAVES_DATA !== 'undefined' && SAVES_DATA && SAVES_DATA.forEach) {
@@ -732,6 +750,25 @@ function _syncStatsLayoutButtons() {
 document.addEventListener('DOMContentLoaded', function() {
   _applyStatsLayout(_getStatsLayout());
   _syncStatsLayoutButtons();
+});
+
+// UI-fix: сворачивание секции «Характеристики». Атрибут data-stats-collapsed на <html>;
+// по умолчанию развёрнуто. Состояние в localStorage (dnd_stats_collapsed).
+function _getStatsCollapsed() {
+  try { return localStorage.getItem('dnd_stats_collapsed') === '1'; } catch (e) { return false; }
+}
+function _applyStatsCollapsed(on) {
+  document.documentElement.setAttribute('data-stats-collapsed', on ? '1' : '0');
+  var btn = document.getElementById('stats-collapse-btn');
+  if (btn) btn.setAttribute('aria-expanded', on ? 'false' : 'true');
+}
+function toggleStatsCollapsed() {
+  var on = !_getStatsCollapsed();
+  try { localStorage.setItem('dnd_stats_collapsed', on ? '1' : '0'); } catch (e) {}
+  _applyStatsCollapsed(on);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  _applyStatsCollapsed(_getStatsCollapsed());
 });
 
 // UI-4: плотность интерфейса (compact / standard / cozy)
