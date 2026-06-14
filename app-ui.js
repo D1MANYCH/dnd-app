@@ -2524,3 +2524,22 @@ function switchItemRef(tab, btnEl) {
     if (btn) btn.classList.add("active");
   }
 }
+
+// UI-fix: держим CSS-переменную --header-h равной реальной высоте <header>.
+// Статус-бар стакается под шапкой (top:var(--header-h)); высота шапки меняется
+// от контента (подзаголовок класс·раса), масштаба шрифта и ширины — поэтому
+// синхронизируем через ResizeObserver, а не магической константой.
+function _syncHeaderHeight() {
+  var h = document.querySelector("header");
+  if (!h) return;
+  var px = Math.round(h.getBoundingClientRect().height);
+  if (px > 0) document.documentElement.style.setProperty("--header-h", px + "px");
+}
+document.addEventListener("DOMContentLoaded", function () {
+  _syncHeaderHeight();
+  var h = document.querySelector("header");
+  if (h && typeof ResizeObserver === "function") {
+    try { new ResizeObserver(_syncHeaderHeight).observe(h); } catch (e) {}
+  }
+  window.addEventListener("resize", _syncHeaderHeight);
+});

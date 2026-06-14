@@ -52,6 +52,9 @@
 
 /* UI5: единая высота интерактивных контролов (кнопки/поля) — выравнивание «в один рост» */
 --control-h: 44px;
+/* UI-fix: высота шапки <header> на моб./планшете (avatar 42 + padding 16 + border 1).
+   Статус-бар стакается ПОД шапкой через top:var(--header-h). На ≥1024 статус-бар скрыт. */
+--header-h: 59px;
 
 /* Тени — UI6-5: alpha вниз, blur ≤24px (fantasy-modern, без тяжёлых дропов) */
 --sh-1: 0 1px 2px rgba(0,0,0,0.32), 0 2px 8px rgba(0,0,0,0.22);
@@ -1868,7 +1871,7 @@ overflow-x: hidden;
 /* ========== ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА (R5: компактная одна строка) ========== */
 .status-bar {
 position: sticky;
-top: 0;
+top: var(--header-h, 59px);
 z-index: 102;
 background: var(--bg-1, var(--card-bg));
 border-bottom: 1px solid var(--border, var(--border-color));
@@ -2157,8 +2160,21 @@ border-color: var(--accent-color);
 box-shadow: 0 0 0 3px var(--accent-glow);
 background-color: var(--bg-3);
 }
+/* UI-fix: оформление раскрытого списка <select> в тон теме (был системный серый фон + белый текст).
+   Заголовки групп — акцентом, пункты — обычным текстом на тёмной подложке. */
+select { accent-color: var(--accent-color); }
+/* Сплошные цвета (а не translucent --bg-*): нативный поп-ап списка ОС не композитит альфу как страница */
+select option { background-color: #1e1e2a; color: #ece6d6; font-weight: 400; }
+select optgroup { background-color: #15141d; color: var(--accent-color); font-weight: 700; font-style: normal; }
+:root[data-theme="light"] select option { background-color: #ffffff; color: #1a1a1a; }
+:root[data-theme="light"] select optgroup { background-color: #f2efe6; color: var(--accent-lo); }
 .row { display: flex; gap: var(--sp-3); margin-bottom: var(--sp-3); flex-wrap: wrap; }
 .col { flex: 1; min-width: 100px; }
+/* UI-fix: базовые поля персонажа (класс/подкласс/раса/предыстория) — один столбец на всех
+   ширинах. На ПК .identity-card это grid 367px×2, и пары по 2 поля сжимали select до ~179px,
+   из-за чего «Лесной эльф (+2 ЛОВ +1 МУД, 35 фт)» обрезалось. Стек даёт полю всю ширину ячейки. */
+.basics-row { flex-direction: column; }
+.basics-row > .col { width: 100%; min-width: 0; }
 
 /* ========== КД АВТО-РАСЧЁТ ========== */
 .ac-calc-section {
@@ -3352,9 +3368,11 @@ min-width: 0;
 font-size: 1.05em;
 font-weight: 700;
 margin: 0 0 3px 0;
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
+/* UI-fix: имя полностью видно (переносится), а не обрезается «…» в узкой 2-кол карточке */
+white-space: normal;
+overflow-wrap: anywhere;
+word-break: break-word;
+line-height: 1.2;
 color: #ffffff;
 letter-spacing: 0.01em;
 }
@@ -3497,7 +3515,8 @@ transition: all 0.18s;
 ============================================ */
 .home-actions-primary,
 .home-utils { display: grid; gap: 10px; }
-.home-actions-primary { grid-template-columns: 1fr; margin-top: 4px; }
+/* UI-fix: визуально отделяем действия от списка персонажей (раньше лепились вплотную) */
+.home-actions-primary { grid-template-columns: 1fr; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-color); }
 .home-utils { grid-template-columns: 1fr 1fr; margin-top: 10px; }
 .home-actions-primary > button,
 .home-utils > button { margin: 0; }
