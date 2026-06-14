@@ -2145,12 +2145,7 @@ div.innerHTML = "<div class=\"char-card-header\">" +
   "<div class=\"char-card-title\">" +
     "<h4 class=\"char-card-name\">" + escapeHtml(char.name || "Без имени") + "</h4>" +
     "<div class=\"char-card-sub\">" + escapeHtml((char.classes && char.classes.length > 1 ? getClassLabel(char) : char.class) || "Класс не указан") + (char.race ? " · " + escapeHtml(char.race) : "") + (char.subclass && (!char.classes || char.classes.length <= 1) ? " · " + escapeHtml(char.subclass) : "") + "</div>" +
-  "</div>" +
-  "<div class=\"char-card-actions\">" +
-    "<button class=\"char-copy-btn\" onclick=\"exportOneCharacter(" + char.id + ", event)\" title=\"Экспорт JSON\">↓</button>" +
-    "<button class=\"char-copy-btn\" onclick=\"exportCharacterPDF(" + char.id + ", event)\" title=\"Экспорт PDF\">📄</button>" +
-    "<button class=\"char-copy-btn\" onclick=\"duplicateCharacter(" + char.id + ", event)\" title=\"Дублировать\">⧉</button>" +
-    "<button class=\"char-delete-btn\" onclick=\"event.stopPropagation(); deleteCharacter(" + char.id + ")\">✕</button>" +
+    (char.background ? "<div class=\"char-card-bg\">📜 " + escapeHtml(char.background) + "</div>" : "") +
   "</div>" +
 "</div>" +
 "<div class=\"char-card-stats\">" +
@@ -2158,8 +2153,14 @@ div.innerHTML = "<div class=\"char-card-header\">" +
   "<span class=\"char-stat-badge-hp\" style=\"color:" + hpColor + "; border-color:" + hpColor + "55; background:" + hpColor + "18;\">❤️ " + hpCurrent + "/" + hpMax + "</span>" +
   "<span class=\"char-stat-badge\">🛡️ " + (char.combat.ac || 10) + "</span>" +
   (conditionsCount > 0 ? "<span class=\"char-stat-badge\" style=\"background:var(--condition-active);border-color:var(--condition-border);\">⚠️ " + conditionsCount + "</span>" : "") +
-  (char.alignment ? "<span class=\"char-alignment\">" + escapeHtml(char.alignment) + "</span>" : "") +
+  "<span class=\"char-alignment" + (char.alignment ? "" : " char-alignment-empty") + "\">" + escapeHtml(char.alignment || "Мировоззрение не выбрано") + "</span>" +
   timeAgo +
+"</div>" +
+"<div class=\"char-card-actions\">" +
+  "<button class=\"char-copy-btn\" onclick=\"exportOneCharacter(" + char.id + ", event)\" title=\"Экспорт JSON\">↓</button>" +
+  "<button class=\"char-copy-btn\" onclick=\"exportCharacterPDF(" + char.id + ", event)\" title=\"Экспорт PDF\">📄</button>" +
+  "<button class=\"char-copy-btn\" onclick=\"duplicateCharacter(" + char.id + ", event)\" title=\"Дублировать\">⧉</button>" +
+  "<button class=\"char-delete-btn\" onclick=\"event.stopPropagation(); deleteCharacter(" + char.id + ")\">✕</button>" +
 "</div>";
 list.appendChild(div);
 });

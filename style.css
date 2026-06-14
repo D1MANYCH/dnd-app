@@ -403,6 +403,7 @@ html.glass-adjusting *::after {
   box-shadow: var(--sh-2);
 }
 :root[data-theme="light"] .char-card * { color: inherit; }
+:root[data-theme="light"] .char-card-actions { border-top-color: var(--border-soft); }
 
 /* ----- Поиск персонажей ----- */
 :root[data-theme="light"] .char-search-inp {
@@ -3293,6 +3294,10 @@ cursor: pointer;
 transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
 overflow: hidden;
 animation: cardFadeIn 0.28s ease both;
+/* UI-fix: flex-колонка → ряд кнопок прижимается к низу (margin-top:auto),
+   а в сетке align-items:stretch уравнивает высоту соседних карточек. */
+display: flex;
+flex-direction: column;
 }
 .char-card:nth-child(1) { animation-delay: 0.04s; }
 .char-card:nth-child(2) { animation-delay: 0.08s; }
@@ -3386,8 +3391,30 @@ white-space: nowrap;
 overflow: hidden;
 text-overflow: ellipsis;
 }
-.char-card-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
+/* Предыстория — показывается только когда задана (доп. строка под классом/расой). */
+.char-card-bg {
+font-size: 0.7em;
+color: rgba(255,255,255,0.4);
+margin-top: 2px;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
 .char-card-stats { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+/* UI-fix: действия вынесены из шапки в отдельный нижний ряд — имя получает
+   полную ширину карточки и больше не обрезается/ужимается соседними кнопками. */
+.char-card-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  /* auto → прижимает кнопки к низу карточки (при равной высоте в сетке);
+     padding-top сохраняет отступ от контента, когда свободного места нет. */
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
 .char-stat-badge {
 background: rgba(255,255,255,0.06);
 padding: 5px 10px;
@@ -3527,7 +3554,7 @@ transition: all 0.18s;
 @media (min-width: 768px) {
   .home-actions-primary { grid-template-columns: 1fr 1fr; }
   .home-utils { grid-template-columns: repeat(3, 1fr); }
-  #character-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+  #character-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: stretch; }
   #character-list .char-card { margin-bottom: 0; }
   #character-list .empty-list { grid-column: 1 / -1; }
 }
@@ -6238,6 +6265,10 @@ border-radius: var(--r-sm);
 background: transparent;
 border: none;
 }
+/* Плейсхолдер, когда мировоззрение не задано — приглушённо и курсивом,
+   чтобы реальные значения визуально выделялись. */
+.char-alignment-empty { color: rgba(255,255,255,0.22); font-style: italic; }
+:root[data-theme="light"] .char-alignment-empty { color: var(--text-muted); opacity: 0.65; }
 
 /* ===== Confirm Modal ===== */
 .confirm-modal-overlay {
