@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v184">
+<link rel="stylesheet" href="style.css?v=v185">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -182,6 +182,74 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
              min="0" max="24" step="1" value="10"
              aria-label="Сила размытия за поверхностями в пикселях"
              oninput="setGlassBlur(this.value)">
+    </div>
+    <!-- HELP-3: перезапуск онбординга -->
+    <div class="theme-picker-row">
+      <span class="theme-picker-label">📖 Обучение</span>
+      <button type="button" class="onboarding-restart-btn" onclick="restartOnboarding()" title="Показать приветствие и тур заново">↻ Показать обучение заново</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP-3: приветствие первого запуска (2 шага: кто ты → novice/known).
+     Показывается из app-help.js при !dnd_help_seen; ставит флаг при любом выходе. -->
+<div id="welcome-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+  <div class="modal-content welcome-content">
+    <button type="button" class="modal-close" onclick="dismissWelcome()" aria-label="Закрыть">&times;</button>
+
+    <!-- Шаг 1: кто ты -->
+    <div class="welcome-step" id="welcome-step-1">
+      <div class="welcome-hero">🐉</div>
+      <h3 id="welcome-title" class="welcome-title">Добро пожаловать!</h3>
+      <p class="welcome-lead">Это цифровой лист персонажа для Dungeons &amp; Dragons 5e: характеристики, заклинания, инвентарь, бой, заметки и журнал. Всё хранится локально в браузере и работает без интернета.</p>
+      <p class="welcome-sub">Чтобы подсказки были к месту — выберите, насколько вы знакомы с D&amp;D:</p>
+      <div class="welcome-choices">
+        <button type="button" class="welcome-choice" onclick="welcomeChooseLevel('novice')">
+          <span class="welcome-choice-ico">🐉</span>
+          <span class="welcome-choice-text">
+            <span class="welcome-choice-main">Первый раз в D&amp;D</span>
+            <span class="welcome-choice-desc">Коротко объясним, что это за игра</span>
+          </span>
+        </button>
+        <button type="button" class="welcome-choice" onclick="welcomeChooseLevel('known')">
+          <span class="welcome-choice-ico">🎲</span>
+          <span class="welcome-choice-text">
+            <span class="welcome-choice-main">Знаю D&amp;D, впервые в приложении</span>
+            <span class="welcome-choice-desc">Сразу покажем, что куда жать</span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Шаг 2 (novice): что такое D&D -->
+    <div class="welcome-step hidden" id="welcome-step-novice">
+      <div class="welcome-hero">🐉</div>
+      <h3 class="welcome-title">Что такое D&amp;D</h3>
+      <div class="welcome-about">
+        <p>D&amp;D — настольная ролевая игра. Группа игроков совместно проходит приключение, которое придумывает и описывает <b>мастер</b> (ведущий). Каждый <b>игрок</b> управляет одним персонажем.</p>
+        <p>Когда исход действия под вопросом, бросают двадцатигранный кубик (d20) и прибавляют модификатор — результат сравнивают со сложностью, которую назначает мастер.</p>
+        <p>Это приложение — <b>цифровой лист персонажа</b>: оно хранит и считает данные. Сама игра идёт за столом или в голосовом чате, а не внутри приложения.</p>
+      </div>
+      <a class="help-link" href="https://dnd.su/" target="_blank" rel="noopener">Правила на русском — dnd.su ↗</a>
+      <div class="welcome-actions">
+        <button type="button" class="welcome-cta welcome-cta-primary" onclick="welcomeFinish('tour')">🧭 Запустить тур</button>
+        <button type="button" class="welcome-cta" onclick="welcomeFinish('help')">📖 Открыть справку</button>
+        <button type="button" class="welcome-cta welcome-cta-ghost" onclick="welcomeFinish('skip')">Пропустить</button>
+      </div>
+      <button type="button" class="welcome-back" onclick="welcomeBack()">← Назад</button>
+    </div>
+
+    <!-- Шаг 2 (known): готовы начать -->
+    <div class="welcome-step hidden" id="welcome-step-known">
+      <div class="welcome-hero">🎲</div>
+      <h3 class="welcome-title">Готовы начать</h3>
+      <p class="welcome-lead">Можно пройти короткий тур по интерфейсу или сразу создать персонажа — с нуля или по готовому билду.</p>
+      <div class="welcome-actions">
+        <button type="button" class="welcome-cta welcome-cta-primary" onclick="welcomeFinish('tour')">🧭 Запустить тур</button>
+        <button type="button" class="welcome-cta" onclick="welcomeFinish('create')">➕ Создать персонажа</button>
+        <button type="button" class="welcome-cta welcome-cta-ghost" onclick="welcomeFinish('skip')">Пропустить</button>
+      </div>
+      <button type="button" class="welcome-back" onclick="welcomeBack()">← Назад</button>
     </div>
   </div>
 </div>
@@ -2524,35 +2592,35 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v184"></script>
-<script src="bg-orbits.js?v=v184"></script>
-<script src="dice-arena-bg.js?v=v184"></script>
-<script src="data.js?v=v184"></script>
+<script src="app-log.js?v=v185"></script>
+<script src="bg-orbits.js?v=v185"></script>
+<script src="dice-arena-bg.js?v=v185"></script>
+<script src="data.js?v=v185"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v184"></script>
-<script src="spells.js?v=v184"></script>
-<script src="app-core.js?v=v184"></script>
-<script src="app-backup.js?v=v184"></script>
-<script src="app-combat.js?v=v184"></script>
-<script src="app-hp.js?v=v184"></script>
-<script src="app-spells.js?v=v184"></script>
-<script src="app-inventory.js?v=v184"></script>
+<script src="character-builds.js?v=v185"></script>
+<script src="spells.js?v=v185"></script>
+<script src="app-core.js?v=v185"></script>
+<script src="app-backup.js?v=v185"></script>
+<script src="app-combat.js?v=v185"></script>
+<script src="app-hp.js?v=v185"></script>
+<script src="app-spells.js?v=v185"></script>
+<script src="app-inventory.js?v=v185"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v184"></script>
-<script src="class-choices.js?v=v184"></script>
-<script src="subclass-choices-data.js?v=v184"></script>
+<script src="app-party.js?v=v185"></script>
+<script src="class-choices.js?v=v185"></script>
+<script src="subclass-choices-data.js?v=v185"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v184";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v185";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v184"></script>
-<script src="app-notes.js?v=v184"></script>
-<script src="app-desktop.js?v=v184"></script>
-<script src="history-stack.js?v=v184"></script>
-<script src="app-help.js?v=v184"></script>
+<script src="app-ui.js?v=v185"></script>
+<script src="app-notes.js?v=v185"></script>
+<script src="app-desktop.js?v=v185"></script>
+<script src="history-stack.js?v=v185"></script>
+<script src="app-help.js?v=v185"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2565,9 +2633,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v184",
-    "vendor/jspdf/roboto-base64.js?v=v184",
-    "app-pdf.js?v=v184"
+    "vendor/jspdf/jspdf.umd.min.js?v=v185",
+    "vendor/jspdf/roboto-base64.js?v=v185",
+    "app-pdf.js?v=v185"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -2591,7 +2659,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v184").then(function () {
+    return loadScript("build-notes-data.js?v=v185").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -2599,8 +2667,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v184"),
-      loadScript("npc-srd.js?v=v184")
+      loadScript("monsters-srd.js?v=v185"),
+      loadScript("npc-srd.js?v=v185")
     ]);
   };
   var stub = function (id, ev) {

@@ -8864,6 +8864,172 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 
 /* =============================================
+   HELP-3 — Приветствие первого запуска (#welcome-modal)
+   + строка «Показать обучение заново» в настройках.
+============================================= */
+/* Приветствие поверх всего на старте (выше help-центра z400). */
+#welcome-modal { z-index: 450; }
+.welcome-content {
+  /* Узкий онбординг-диалог. Десктоп-правило .modal-content{max-width:calc(var(--app-width)-40px)}
+     (style.css ~9334, идёт ниже по файлу) перебиваем более специфичным #welcome-modal ниже. */
+  max-width: 460px;
+  text-align: center;
+}
+@media (min-width: 768px) {
+  #welcome-modal .welcome-content { max-width: 460px; }
+}
+.welcome-step { display: flex; flex-direction: column; align-items: center; }
+.welcome-step.hidden { display: none; }
+.welcome-hero {
+  font-size: 3em;
+  line-height: 1;
+  margin: 4px 0 10px;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.35));
+}
+.welcome-title {
+  margin: 0 0 12px;
+  font-size: 1.35em;
+}
+.welcome-lead {
+  margin: 0 0 12px;
+  font-size: 0.95em;
+  line-height: 1.55;
+  color: var(--text-color);
+}
+.welcome-sub {
+  margin: 0 0 14px;
+  font-size: 0.88em;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+/* Выбор уровня знакомства (шаг 1) */
+.welcome-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+.welcome-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 14px 16px;
+  text-align: left;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+.welcome-choice:hover,
+.welcome-choice:focus-visible {
+  border-color: var(--accent-color);
+  background: var(--bg-3);
+}
+.welcome-choice:active { transform: translateY(1px); }
+.welcome-choice-ico { font-size: 1.7em; line-height: 1; flex-shrink: 0; }
+.welcome-choice-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.welcome-choice-main { font-weight: 700; font-size: 0.96em; }
+.welcome-choice-desc { font-size: 0.82em; color: var(--text-muted); line-height: 1.4; }
+/* Блок «Что такое D&D» (шаг 2 novice) */
+.welcome-about {
+  text-align: left;
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.welcome-about p {
+  margin: 0 0 8px;
+  font-size: 0.9em;
+  line-height: 1.55;
+  color: var(--text-color);
+}
+.welcome-about p:last-child { margin-bottom: 0; }
+.welcome-about b { color: var(--text-color); font-weight: 700; }
+.welcome-step .help-link { margin-bottom: 16px; }
+/* Кнопки действий (шаг 2) */
+.welcome-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.welcome-cta {
+  width: 100%;
+  margin: 0;
+  padding: 11px 14px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-color);
+  font-size: 0.95em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+.welcome-cta:hover,
+.welcome-cta:focus-visible { border-color: var(--accent-color); background: var(--bg-3); }
+.welcome-cta:active { transform: translateY(1px); }
+.welcome-cta-primary {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #000;
+}
+.welcome-cta-primary:hover,
+.welcome-cta-primary:focus-visible {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  filter: brightness(1.08);
+}
+.welcome-cta-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.welcome-cta-ghost:hover,
+.welcome-cta-ghost:focus-visible { background: var(--bg-3); border-color: transparent; color: var(--text-color); }
+.welcome-back {
+  width: auto;
+  margin: 14px 0 0;
+  padding: 4px 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.welcome-back:hover { color: var(--text-color); }
+
+/* Строка «Показать обучение заново» в настройках */
+.onboarding-restart-btn {
+  width: 100%;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.onboarding-restart-btn:hover { background: var(--bg-3); border-color: var(--accent); }
+
+@media (max-width: 600px) {
+  /* На телефоне модалка и так во всю ширину (.modal-content margin:10px auto) — особый cap не нужен. */
+  .welcome-hero { font-size: 2.6em; }
+  .welcome-title { font-size: 1.2em; }
+}
+
+/* =============================================
    3D DICE CUBE
 ============================================= */
 .dsvg-container {
