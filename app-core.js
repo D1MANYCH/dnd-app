@@ -616,6 +616,8 @@ function switchTab(tabName, btnEl) {
   if (tabName === "notes")   { if (typeof renderNotes === "function") renderNotes(); }
   // FB-2: лист стал видимым → пересчитать line-clamp-детект состояний (scrollHeight теперь валиден)
   if (tabName === "sheet")   { if (typeof detectConditionOverflow === "function") setTimeout(detectConditionOverflow, 50); }
+  // TOUR-1: авто-старт интерактивного тура при первом заходе на вкладку (sheet/прочее — no-op).
+  if (typeof maybeStartTabTour === "function") maybeStartTabTour(tabName);
 }
 
 function openDrawer() {

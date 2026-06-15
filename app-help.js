@@ -57,6 +57,22 @@ var HELP_FLAG_SEEN = 'dnd_help_seen';
 var HELP_FLAG_SHEET_SEEN = 'dnd_help_sheet_seen';
 var HELP_FLAG_LEVEL = 'dnd_help_level';
 
+// TOUR (фаза TOUR-1+): по флагу «тур вкладки пройден» на каждую вкладку,
+// кроме листа/списка (у тех — dnd_help_sheet_seen / dnd_help_seen).
+var HELP_FLAG_SPELLS_SEEN    = 'dnd_help_spells_seen';
+var HELP_FLAG_INVENTORY_SEEN = 'dnd_help_inventory_seen';
+var HELP_FLAG_BATTLE_SEEN    = 'dnd_help_battle_seen';
+var HELP_FLAG_NOTES_SEEN     = 'dnd_help_notes_seen';
+var HELP_FLAG_PARTY_SEEN     = 'dnd_help_party_seen';
+var HELP_FLAG_JOURNAL_SEEN   = 'dnd_help_journal_seen';
+// Все флаги онбординга — «Показать обучение заново» чистит их разом, чтобы
+// весь онбординг повторился по мере захода на вкладки.
+var TOUR_ALL_FLAGS = [
+  HELP_FLAG_SEEN, HELP_FLAG_SHEET_SEEN,
+  HELP_FLAG_SPELLS_SEEN, HELP_FLAG_INVENTORY_SEEN, HELP_FLAG_BATTLE_SEEN,
+  HELP_FLAG_NOTES_SEEN, HELP_FLAG_PARTY_SEEN, HELP_FLAG_JOURNAL_SEEN
+];
+
 /** Прочитать флаг онбординга (строка или null). */
 function getHelpFlag(key) {
   try { return localStorage.getItem(key); } catch (e) { return null; }
@@ -136,8 +152,7 @@ function maybeShowWelcome() {
 /** «Показать обучение заново» (настройки/справка) — сброс флагов + приветствие. */
 function restartOnboarding() {
   try {
-    localStorage.removeItem(HELP_FLAG_SEEN);
-    localStorage.removeItem(HELP_FLAG_SHEET_SEEN);
+    TOUR_ALL_FLAGS.forEach(function (k) { localStorage.removeItem(k); });
   } catch (e) {}
   if (typeof closeSettingsModal === 'function') closeSettingsModal();
   showWelcome();
@@ -261,6 +276,44 @@ function restartTour() {
   closeHelp();
   if (window.currentId) startSheetTour();
   else startListTour();
+}
+
+// ── TOUR-1+: туры по вкладкам (кроме листа и списка) ─────────
+// Реестр вкладок: tab → { flag, build }. Лист и список в реестр НЕ входят
+// (их туры — startSheetTour / startListTour). Наборы шагов добавляются
+// по фазам TOUR-2..6; движок (startTour/_layoutTour/…) уже готов из HELP-4.
+var TOUR_TABS = {
+  spells: { flag: HELP_FLAG_SPELLS_SEEN, build: _buildSpellsSteps }
+};
+
+/** Ручной запуск тура вкладки из help-центра: открыть вкладку → флаг → старт. */
+function startTabTour(tab) {
+  var entry = TOUR_TABS[tab];
+  if (!entry) return;
+  closeHelp();
+  if (typeof switchTab === 'function') switchTab(tab);
+  setHelpFlag(entry.flag, '1');
+  startTour(entry.build(), tab);
+}
+
+/** Авто-старт тура при первом заходе на вкладку (хук в switchTab).
+ *  Гард: вкладка есть в реестре, флаг не стоит, нет активного тура, не открыто
+ *  приветствие; затем небольшая задержка (дать вкладке/right-rail устаканиться)
+ *  и повторный гард. Флаг ставится при старте — двойного старта нет. */
+function maybeStartTabTour(tab) {
+  var entry = TOUR_TABS[tab];
+  if (!entry) return;
+  if (getHelpFlag(entry.flag)) return;
+  if (_tour) return;
+  var w = document.getElementById('welcome-modal');
+  if (w && w.classList.contains('active')) return;
+  setTimeout(function () {
+    if (_tour || getHelpFlag(entry.flag)) return;
+    var w2 = document.getElementById('welcome-modal');
+    if (w2 && w2.classList.contains('active')) return;
+    setHelpFlag(entry.flag, '1');
+    startTour(entry.build(), tab);
+  }, 350);
 }
 
 function tourNext() {
@@ -480,6 +533,43 @@ function _buildSheetSteps() {
     {
       title: '✅ Готово',
       text: 'Это всё. Подробности — в «❓ Справке» (боковое меню и каждый раздел), повторить обучение можно в «⚙️ Настройки → Показать обучение заново».'
+    }
+  ];
+}
+
+/** Тур по вкладке «Заклинания». */
+function _buildSpellsSteps() {
+  return [
+    {
+      title: '✨ Заклинания',
+      text: 'Раздел заклинаний: характеристика заклинателя, ячейки и список ваших заклинаний. Листать — «Назад»/«Далее» или стрелками ←/→, закрыть — крестиком или Esc.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return document.querySelector('#tab-spells .sc-stat-selector'); },
+      title: '🎯 Характеристика заклинателя',
+      text: 'Выберите характеристику — Интеллект, Мудрость или Харизму (зависит от класса). От неё считаются СЛ спасброска и бонус атаки заклинаниями.',
+      novice: 'СЛ спасброска — насколько трудно цели сопротивляться вашему заклинанию (чем выше, тем лучше). Бонус атаки прибавляется к броску, когда заклинание бьёт прямой атакой.'
+    },
+    {
+      requireTarget: true,
+      target: function () {
+        var h = document.querySelector('#tab-spells .spell-slots-header');
+        return h ? h.closest('.card') : null;
+      },
+      title: '💎 Ячейки заклинаний',
+      text: 'Ромбы по уровням — ваши ячейки. Нажатие отмечает потраченную; счётчик показывает свободные/всего. «🛏️ Длинный отдых» восстанавливает все ячейки.',
+      novice: 'Ячейка (слот) — «заряд» для заклинания: чтобы его наложить, тратится ячейка нужного уровня. Восстанавливаются на длинном отдыхе.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return document.querySelector('#tab-spells .spell-action-btns'); },
+      title: '📖 Мои заклинания',
+      text: '«🔍 Найти заклинание» — добавить из встроенной базы с фильтрами по классу и уровню. «✏️ Добавить своё» — вписать собственное заклинание вручную.'
+    },
+    {
+      title: '✅ Готово',
+      text: 'Это раздел заклинаний. Повторить тур — кнопкой «🧭 Пройти тур по разделу» в «❓ Справке» этой вкладки.'
     }
   ];
 }
