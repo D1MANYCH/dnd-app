@@ -6773,6 +6773,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
   padding: 7px 12px;
   background: rgba(77,168,67,0.10);
   border: 1px solid rgba(77,168,67,0.35);
@@ -6782,10 +6783,18 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   color: #7fdc6f;
   font-weight: 600;
 }
+.basic-locked-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
 .basic-unlock-btn {
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.18);
   color: rgba(255,255,255,0.75);
+  width: auto;               /* не растягивать на всю строку (перебить button{width:100%}) */
+  margin: 0;
   padding: 4px 10px;
   border-radius: var(--r-sm);
   font-size: 0.85em;
@@ -8810,6 +8819,48 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 @media (max-width: 600px) {
   .help-content { max-height: 92vh; }
   .help-tab { font-size: 0.78em !important; padding: 5px 8px !important; }
+}
+
+/* HELP-2 — контекстная «?»-кнопка справки у заголовка каждой вкладки.
+   Тонкая right-aligned строка над контентом → openHelp('<раздел>'). */
+.tab-help-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 10px;
+}
+.tab-help-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: auto;               /* перебить дефолтный button{width:100%} */
+  margin: 0;
+  padding: 3px 10px 3px 5px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-muted);
+  font-size: 0.78em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  line-height: 1;
+}
+.tab-help-btn:hover,
+.tab-help-btn:focus-visible {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+.tab-help-q {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-size: 0.85em;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 /* =============================================

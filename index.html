@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v183">
+<link rel="stylesheet" href="style.css?v=v184">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -307,7 +307,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 <div id="basic-locked-bar" class="basic-locked-bar" style="display:none;">
   <span>🔒 Основа персонажа зафиксирована</span>
-  <button class="basic-unlock-btn" onclick="unlockBasicInfo()">Изменить</button>
+  <div class="basic-locked-actions">
+    <button type="button" class="tab-help-btn" onclick="openHelp('sheet')" title="Справка по этому разделу" aria-label="Справка по разделу «Лист»"><span class="tab-help-q" aria-hidden="true">?</span>Справка</button>
+    <button class="basic-unlock-btn" onclick="unlockBasicInfo()">Изменить</button>
+  </div>
 </div>
 
 <!-- UI5-4: карточки 2–5 (личность / характеристики / спасброски / навыки) — во всю ширину НАД колонками (их внутренние сетки заполняют ширину; в узкой колонке они теснились/обрезались). -->
@@ -819,6 +822,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 </div>
 <div id="tab-spells" class="tab-content">
+<div class="tab-help-row"><button type="button" class="tab-help-btn" onclick="openHelp('spells')" title="Справка по этому разделу" aria-label="Справка по разделу «Заклинания»"><span class="tab-help-q" aria-hidden="true">?</span>Справка</button></div>
 <div class="card">
 <h3>Заклинательная характеристика</h3>
 <div class="sc-stat-selector">
@@ -891,6 +895,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <div id="tab-inventory" class="tab-content">
+
+<div class="tab-help-row"><button type="button" class="tab-help-btn" onclick="openHelp('inventory')" title="Справка по этому разделу" aria-label="Справка по разделу «Инвентарь»"><span class="tab-help-q" aria-hidden="true">?</span>Справка</button></div>
 
 <!-- Slots bar -->
 <div class="card inv-slots-card">
@@ -1062,6 +1068,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 </div>
 <div id="tab-notes" class="tab-content">
+  <div class="tab-help-row"><button type="button" class="tab-help-btn" onclick="openHelp('notes')" title="Справка по этому разделу" aria-label="Справка по разделу «Записи»"><span class="tab-help-q" aria-hidden="true">?</span>Справка</button></div>
   <!-- Шапка: поиск + кнопка новой записи + меню -->
   <div class="notes-header">
     <input type="search" id="notes-search" class="notes-search" placeholder="🔍 Поиск…"
@@ -1108,6 +1115,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 
 <div id="tab-party" class="tab-content">
+
+<div class="tab-help-row"><button type="button" class="tab-help-btn" onclick="openHelp('party')" title="Справка по этому разделу" aria-label="Справка по разделу «Мир»"><span class="tab-help-q" aria-hidden="true">?</span>Справка</button></div>
 
 <!-- Мой персонаж -->
 <div class="party-section-card">
@@ -1190,6 +1199,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 
 <div id="tab-battle" class="tab-content">
+<div class="tab-help-row"><button type="button" class="tab-help-btn" onclick="openHelp('battle')" title="Справка по этому разделу" aria-label="Справка по разделу «Бой»"><span class="tab-help-q" aria-hidden="true">?</span>Справка</button></div>
 <div id="battle-setup-screen">
 <div class="card">
 <div class="battle-setup-header">
@@ -1220,6 +1230,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 <!-- TAB: JOURNAL -->
 <div id="tab-journal" class="tab-content">
+<div class="tab-help-row"><button type="button" class="tab-help-btn" onclick="openHelp('journal')" title="Справка по этому разделу" aria-label="Справка по разделу «Журнал»"><span class="tab-help-q" aria-hidden="true">?</span>Справка</button></div>
 <div class="card">
 <div class="journal-header-row">
 <h3>📖 Журнал персонажа</h3>
@@ -1940,6 +1951,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       </svg>
       <span class="dice-tool-badge" id="dice-history-badge" hidden>0</span>
     </button>
+    <button type="button" class="dice-tool-btn" id="dice-help-btn"
+            onclick="openHelp('dice')" aria-label="Справка по кубикам" title="Справка по кубикам">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <path fill="currentColor" d="M11,18h2v-2h-2V18z M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8s8,3.59,8,8S16.41,20,12,20z M12,6c-2.21,0-4,1.79-4,4h2c0-1.1,0.9-2,2-2s2,0.9,2,2c0,2-3,1.75-3,5h2c0-2.25,3-2.5,3-5C16,7.79,14.21,6,12,6z"/>
+      </svg>
+    </button>
   </div>
   <h3>
     <svg class="d20-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="vertical-align:-3px;margin-right:6px">
@@ -2507,35 +2524,35 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v183"></script>
-<script src="bg-orbits.js?v=v183"></script>
-<script src="dice-arena-bg.js?v=v183"></script>
-<script src="data.js?v=v183"></script>
+<script src="app-log.js?v=v184"></script>
+<script src="bg-orbits.js?v=v184"></script>
+<script src="dice-arena-bg.js?v=v184"></script>
+<script src="data.js?v=v184"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v183"></script>
-<script src="spells.js?v=v183"></script>
-<script src="app-core.js?v=v183"></script>
-<script src="app-backup.js?v=v183"></script>
-<script src="app-combat.js?v=v183"></script>
-<script src="app-hp.js?v=v183"></script>
-<script src="app-spells.js?v=v183"></script>
-<script src="app-inventory.js?v=v183"></script>
+<script src="character-builds.js?v=v184"></script>
+<script src="spells.js?v=v184"></script>
+<script src="app-core.js?v=v184"></script>
+<script src="app-backup.js?v=v184"></script>
+<script src="app-combat.js?v=v184"></script>
+<script src="app-hp.js?v=v184"></script>
+<script src="app-spells.js?v=v184"></script>
+<script src="app-inventory.js?v=v184"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v183"></script>
-<script src="class-choices.js?v=v183"></script>
-<script src="subclass-choices-data.js?v=v183"></script>
+<script src="app-party.js?v=v184"></script>
+<script src="class-choices.js?v=v184"></script>
+<script src="subclass-choices-data.js?v=v184"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v183";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v184";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v183"></script>
-<script src="app-notes.js?v=v183"></script>
-<script src="app-desktop.js?v=v183"></script>
-<script src="history-stack.js?v=v183"></script>
-<script src="app-help.js?v=v183"></script>
+<script src="app-ui.js?v=v184"></script>
+<script src="app-notes.js?v=v184"></script>
+<script src="app-desktop.js?v=v184"></script>
+<script src="history-stack.js?v=v184"></script>
+<script src="app-help.js?v=v184"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2548,9 +2565,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v183",
-    "vendor/jspdf/roboto-base64.js?v=v183",
-    "app-pdf.js?v=v183"
+    "vendor/jspdf/jspdf.umd.min.js?v=v184",
+    "vendor/jspdf/roboto-base64.js?v=v184",
+    "app-pdf.js?v=v184"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -2574,7 +2591,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v183").then(function () {
+    return loadScript("build-notes-data.js?v=v184").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -2582,8 +2599,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v183"),
-      loadScript("npc-srd.js?v=v183")
+      loadScript("monsters-srd.js?v=v184"),
+      loadScript("npc-srd.js?v=v184")
     ]);
   };
   var stub = function (id, ev) {
