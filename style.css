@@ -7090,14 +7090,41 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   align-items: start;
 }
 @media (min-width: 768px) {
-  html[data-stats-layout="2024"] .abilities-region { grid-template-columns: 1fr 1fr; }
+  /* UI: 2 колонки-masonry (multicol) — карточки раскладываются по высоте, колонки
+     выравниваются, низ не пустует. Порядок чтения по колонкам сверху-вниз сохранён. */
+  html[data-stats-layout="2024"] .abilities-region {
+    display: block;
+    column-count: 2;
+    column-gap: var(--sp-2);
+  }
+  html[data-stats-layout="2024"] .abil-card {
+    break-inside: avoid;
+    margin-bottom: var(--sp-2);
+  }
 }
-.abil-col {
+/* Полоса мини-карточек (бонус мастерства + вдохновение) над колонками характеристик */
+.abil-strip {
   display: flex;
-  flex-direction: column;
   gap: var(--sp-2);
   min-width: 0;
 }
+.abil-strip .abil-mini { flex: 1 1 0; min-width: 0; }
+html[data-stats-layout="2024"] .abil-strip { column-span: all; margin-bottom: var(--sp-2); }
+/* Порядок карточек. В DOM Интеллект идёт перед Телосложением — это балансирует
+   2024-десктоп masonry (multicol игнорирует `order`). В grid-режимах (классический,
+   2024-мобайл) `order` возвращает канонический порядок СИЛ→ЛОВ→ТЕЛ→ИНТ→МУД→ХАР. */
+.abil-card[data-abil="str"] { order: 1; }
+.abil-card[data-abil="dex"] { order: 2; }
+.abil-card[data-abil="con"] { order: 3; }
+.abil-card[data-abil="int"] { order: 4; }
+.abil-card[data-abil="wis"] { order: 5; }
+.abil-card[data-abil="cha"] { order: 6; }
+/* Пассивная внимательность — строкой на всю ширину под колонками (вынесена из карточки
+   МУД, чтобы колонки совпадали по низу впритык). Стиль наследует .abil-mini; в classic
+   скрыта тем же правилом, что и прочие .abil-mini (там пассивка живёт в аккордеоне). */
+.abil-passive { font-size: 0.78em; color: var(--text-muted); order: 7; }
+.abil-passive strong { color: var(--accent-color); font-weight: 800; }
+html[data-stats-layout="2024"] .abil-passive { column-span: all; }
 
 /* ── Карточка характеристики (вид 2024) ── */
 .abil-card {
@@ -7158,18 +7185,19 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
    фантомных зазоров нет. Классический режим не затрагивается. */
 html[data-stats-layout="2024"] .abil-card {
   display: grid;
-  /* боковые 1fr центрируют кластер [мод + значение]; шапка/слоты тянутся на всю ширину */
-  grid-template-columns: 1fr auto auto 1fr;
-  column-gap: 14px;
+  /* шапка одной строкой: имя (1fr) слева, кластер [мод + значение] прижат вправо;
+     слоты спасброска/навыков/футер — на всю ширину */
+  grid-template-columns: 1fr auto auto;
+  column-gap: 12px;
   row-gap: 7px;
   align-items: center;
   padding: 9px 12px;
 }
-html[data-stats-layout="2024"] .abil-card-head { grid-column: 1 / -1; }
+html[data-stats-layout="2024"] .abil-card-head { grid-column: 1; min-width: 0; }
 html[data-stats-layout="2024"] .abil-card-mod {
   grid-column: 2;
-  font-size: 1.7em;
-  min-height: 46px;
+  font-size: 1.6em;
+  min-height: 40px;
   padding: 4px 12px;
 }
 html[data-stats-layout="2024"] .abil-card-score { grid-column: 3; }
@@ -7308,7 +7336,7 @@ html[data-stats-layout="classic"] .abilities-region {
     gap: var(--sp-2);
   }
 }
-html[data-stats-layout="classic"] .abil-col { display: contents; }
+html[data-stats-layout="classic"] .abil-strip { display: none; }
 html[data-stats-layout="classic"] .abil-mini,
 html[data-stats-layout="classic"] .abil-card-name,
 html[data-stats-layout="classic"] .abil-save-slot,
@@ -7351,6 +7379,8 @@ html[data-stats-layout="classic"] .abil-card-score .stat-btn-sm {
    ============================================================ */
 @media (max-width: 767px) {
   html[data-stats-layout="2024"] .abilities-region { grid-template-columns: 1fr 1fr; }
+  html[data-stats-layout="2024"] .abil-strip,
+  html[data-stats-layout="2024"] .abil-passive { grid-column: 1 / -1; }
   /* мод и значение — в столбик (в ряд не влезают в ~172px-колонке) */
   html[data-stats-layout="2024"] .abil-card {
     grid-template-columns: 1fr;
