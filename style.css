@@ -9029,6 +9029,137 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   .welcome-title { font-size: 1.2em; }
 }
 
+/* Кнопка «Пройти интерактивный тур» в help-центре (раздел «С чего начать»). */
+.help-tour-btn {
+  width: 100%;
+  margin: 0 0 4px;
+  padding: 11px 14px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--accent-color);
+  background: var(--accent-color);
+  color: #000;
+  font-size: 0.95em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.1s;
+}
+.help-tour-btn:hover,
+.help-tour-btn:focus-visible { filter: brightness(1.08); }
+.help-tour-btn:active { transform: translateY(1px); }
+
+/* =============================================
+   HELP-4 — Движок интерактивного тура (подсветка).
+   #tour-overlay затемняет экран, #tour-spotlight — «дырка» вокруг цели
+   (box-shadow), #tour-coach — карточка с пояснением. DOM создаётся из JS.
+============================================= */
+.tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  /* Прозрачный по умолчанию — затемнение даёт box-shadow спотлайта.
+     При шаге без цели (.tour-center) фон становится тёмным сам. */
+  background: transparent;
+}
+.tour-overlay.active { display: block; }
+.tour-overlay.tour-center { background: rgba(0, 0, 0, 0.7); }
+
+.tour-spotlight {
+  position: fixed;
+  border-radius: 12px;
+  /* Первый shadow — акцентное кольцо поверх; второй — затемнение всего экрана. */
+  box-shadow: 0 0 0 2px var(--accent-color), 0 0 0 9999px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
+}
+
+.tour-coach {
+  position: fixed;
+  z-index: 10001;
+  display: none;
+  width: calc(100vw - 24px);
+  max-width: 340px;
+  box-sizing: border-box;
+  padding: 16px 16px 14px;
+  background: var(--bg-2, var(--input-bg));
+  border: 1px solid var(--accent-color);
+  border-radius: var(--r-md);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  transition: top 0.25s ease, left 0.25s ease;
+}
+.tour-coach.tour-coach-centered {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.tour-x {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: auto;
+  margin: 0;
+  padding: 0 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.4em;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.tour-x:hover { color: var(--text-color); }
+.tour-coach-title {
+  font-size: 1.02em;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0 24px 8px 0;
+}
+.tour-coach-text {
+  font-size: 0.9em;
+  line-height: 1.55;
+  color: var(--text-color);
+  white-space: pre-line;   /* поддержка переноса строк в novice-пояснениях */
+  margin-bottom: 14px;
+}
+.tour-coach-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.tour-count {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.tour-nav { display: flex; gap: 8px; }
+.tour-btn {
+  width: auto;
+  margin: 0;
+  padding: 7px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-color);
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+}
+.tour-btn:hover:not(:disabled) { border-color: var(--accent-color); }
+.tour-btn:disabled { opacity: 0.4; cursor: default; }
+.tour-next {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #000;
+}
+.tour-next:hover { filter: brightness(1.08); }
+
+/* prefers-reduced-motion — отключаем плавные переходы подсветки/коучмарка. */
+.tour-overlay.tour-no-anim .tour-spotlight,
+.tour-overlay.tour-no-anim .tour-coach { transition: none; }
+
 /* =============================================
    3D DICE CUBE
 ============================================= */

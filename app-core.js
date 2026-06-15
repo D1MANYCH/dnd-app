@@ -2382,6 +2382,8 @@ showScreen("character");
 // вкладку (напр. «Заклинания»), хотя контент показывал лист персонажа.
 try { localStorage.removeItem("dnd_last_tab"); } catch(e) { window.__catchLog && window.__catchLog('core:loadCharacter-clearLastTab', e); }
 switchTab("sheet");
+// HELP-4: первый вход в любого персонажа запускает тур по листу (если ещё не пройден).
+if (typeof maybeStartSheetTour === 'function') maybeStartSheetTour();
 }
 
 // DATA-2: построение конверта полного бэкапа — общая точка для exportData()
