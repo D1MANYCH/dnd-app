@@ -1513,6 +1513,17 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   window.addEventListener('load', function() { updateVersionBlock(false); });
 }
 
+// ── Блок Telegram-канала для окон обновления (анонсы + новости) ──
+function swTelegramBlock() {
+  var tgUrl = (typeof APP_TELEGRAM_URL === 'string' && APP_TELEGRAM_URL) ? APP_TELEGRAM_URL : 'https://t.me/dndlistru';
+  return '<a class="sw-update-tg" href="' + escapeHtml(tgUrl) + '" target="_blank" rel="noopener">' +
+      '<span class="sw-update-tg-icon">💬</span>' +
+      '<span class="sw-update-tg-text"><b>Telegram-канал @dndlistru</b>' +
+        '<span class="sw-update-tg-sub">Анонсы обновлений, опросы, новости</span></span>' +
+      '<span class="sw-update-tg-arrow">→</span>' +
+    '</a>';
+}
+
 // ── Окно "Установить обновление" (до установки — без changelog) ──
 function showUpdateModal(worker) {
   if ($('sw-update-modal')) return;
@@ -1528,6 +1539,7 @@ function showUpdateModal(worker) {
         '<div class="sw-update-version">Текущая версия: v' + escapeHtml(ver) + '</div>' +
       '</div>' +
       '<div class="sw-update-safe">🔒 <b>Персонажи и данные сохранятся</b> — обновление меняет только код приложения, данные хранятся отдельно в браузере</div>' +
+      swTelegramBlock() +
       '<div class="sw-update-btns"><button id="sw-update-later">Позже</button><button id="sw-update-now">⚡ Установить обновление</button></div>' +
     '</div>';
   document.body.appendChild(modal);
@@ -1576,6 +1588,7 @@ function showWhatsNewModal(prevVer, newVer) {
       '</div>' +
       '<div class="sw-update-changes"><div class="sw-changes-title">📋 Что нового (' + (latest ? latest.changes.length : 0) + '):</div>' + changesList + '</div>' +
       '<div class="sw-update-safe">🔒 <b>Все данные сохранены</b> — ваши персонажи и заклинания на месте</div>' +
+      swTelegramBlock() +
       '<div class="sw-update-btns"><button id="sw-update-now" style="flex:1">👍 Отлично!</button></div>' +
     '</div>';
   document.body.appendChild(modal);
