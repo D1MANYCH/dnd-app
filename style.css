@@ -9049,28 +9049,34 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 
 /* =============================================
    HELP-4 — Движок интерактивного тура (подсветка).
-   #tour-overlay затемняет экран, #tour-spotlight — «дырка» вокруг цели
-   (box-shadow), #tour-coach — карточка с пояснением. DOM создаётся из JS.
+   #tour-overlay блокирует клики; затемнение — 4 сплошные панели .tour-mask
+   вокруг цели (надёжнее box-shadow 9999px, который не рендерится на части
+   GPU/при зуме); .tour-ring — акцентная рамка; #tour-coach — карточка.
+   DOM создаётся из JS. Без позиционных transition — чтобы при смене шага не
+   возникало промежуточного рассинхрона подсветки и текста.
 ============================================= */
 .tour-overlay {
   position: fixed;
   inset: 0;
   z-index: 10000;
   display: none;
-  /* Прозрачный по умолчанию — затемнение даёт box-shadow спотлайта.
-     При шаге без цели (.tour-center) фон становится тёмным сам. */
+  /* Прозрачный слой поверх страницы: ловит клики (в т.ч. по «дырке»),
+     визуальное затемнение дают дочерние .tour-mask. */
   background: transparent;
 }
 .tour-overlay.active { display: block; }
-.tour-overlay.tour-center { background: rgba(0, 0, 0, 0.7); }
 
-.tour-spotlight {
+.tour-mask {
   position: fixed;
-  border-radius: 12px;
-  /* Первый shadow — акцентное кольцо поверх; второй — затемнение всего экрана. */
-  box-shadow: 0 0 0 2px var(--accent-color), 0 0 0 9999px rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.7);
+  pointer-events: auto;
+}
+.tour-ring {
+  position: fixed;
+  border: 2px solid var(--accent-color);
+  border-radius: 10px;
   pointer-events: none;
-  transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 14px rgba(0, 0, 0, 0.5);
 }
 
 .tour-coach {
@@ -9085,7 +9091,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   border: 1px solid var(--accent-color);
   border-radius: var(--r-md);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-  transition: top 0.25s ease, left 0.25s ease;
 }
 .tour-coach.tour-coach-centered {
   left: 50%;
@@ -9155,10 +9160,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   color: #000;
 }
 .tour-next:hover { filter: brightness(1.08); }
-
-/* prefers-reduced-motion — отключаем плавные переходы подсветки/коучмарка. */
-.tour-overlay.tour-no-anim .tour-spotlight,
-.tour-overlay.tour-no-anim .tour-coach { transition: none; }
 
 /* =============================================
    3D DICE CUBE

@@ -172,21 +172,21 @@ var _tourRafId = 0;     // throttle репозиции на resize/scroll
  *  tab-nav и status-bar скрыты. От этого зависит, какую цель подсвечивать. */
 function _tourWide() { return window.innerWidth >= 1024; }
 
-/** prefers-reduced-motion: отключаем плавные переходы подсветки/коучмарка. */
-function _tourReducedMotion() {
-  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
-  catch (e) { return false; }
-}
-
 /** Лениво создать DOM тура (оверлей + коучмарк) и навесить обработчики кнопок. */
 function _ensureTourDom() {
   if (document.getElementById('tour-overlay')) return;
   var ov = document.createElement('div');
   ov.id = 'tour-overlay';
   ov.className = 'tour-overlay';
-  if (_tourReducedMotion()) ov.classList.add('tour-no-anim');
+  // Затемнение — 4 сплошных панели вокруг цели (надёжнее, чем box-shadow 9999px:
+  // огромный spread не рендерится на части GPU/при зуме браузера). Дырку
+  // (целевой rect) ничто не закрывает → цель видна, клики блокирует сам overlay.
   ov.innerHTML =
-    '<div id="tour-spotlight" class="tour-spotlight"></div>' +
+    '<div class="tour-mask" id="tour-mask-top"></div>' +
+    '<div class="tour-mask" id="tour-mask-right"></div>' +
+    '<div class="tour-mask" id="tour-mask-bottom"></div>' +
+    '<div class="tour-mask" id="tour-mask-left"></div>' +
+    '<div class="tour-ring" id="tour-ring"></div>' +
     '<div id="tour-coach" class="tour-coach" role="dialog" aria-modal="true" aria-live="polite">' +
       '<button type="button" class="tour-x" id="tour-x" aria-label="Пропустить тур">&times;</button>' +
       '<div class="tour-coach-title" id="tour-coach-title"></div>' +
@@ -228,10 +228,7 @@ function startTour(steps, name) {
   _ensureTourDom();
   _tour = { steps: steps, i: 0, name: name || '' };
   var ov = document.getElementById('tour-overlay');
-  if (ov) {
-    ov.classList.toggle('tour-no-anim', _tourReducedMotion());
-    ov.classList.add('active');
-  }
+  if (ov) ov.classList.add('active');
   _bindTourGlobal();
   _showTourStep();
 }
@@ -309,25 +306,40 @@ function _showTourStep() {
   _layoutTour();
 }
 
-/** Позиционировать spotlight и коучмарк относительно цели текущего шага. */
+/** Задать прямоугольник элементу (px), отрицательные размеры → 0. */
+function _setBox(el, left, top, width, height) {
+  if (!el) return;
+  el.style.left = Math.round(left) + 'px';
+  el.style.top = Math.round(top) + 'px';
+  el.style.width = Math.max(0, Math.round(width)) + 'px';
+  el.style.height = Math.max(0, Math.round(height)) + 'px';
+}
+
+/** Позиционировать панели затемнения, кольцо и коучмарк под цель текущего шага. */
 function _layoutTour() {
   if (!_tour) return;
-  var spot = document.getElementById('tour-spotlight');
   var coach = document.getElementById('tour-coach');
-  var ov = document.getElementById('tour-overlay');
-  if (!spot || !coach || !ov) return;
+  var ring = document.getElementById('tour-ring');
+  var mTop = document.getElementById('tour-mask-top');
+  var mRight = document.getElementById('tour-mask-right');
+  var mBottom = document.getElementById('tour-mask-bottom');
+  var mLeft = document.getElementById('tour-mask-left');
+  if (!coach || !ring || !mTop || !mRight || !mBottom || !mLeft) return;
   var el = _resolveTarget(_tour.steps[_tour.i]);
   var vw = window.innerWidth, vh = window.innerHeight, margin = 12;
   if (el) {
     el.scrollIntoView({ block: 'center', inline: 'nearest' });
     var r = el.getBoundingClientRect();
-    var pad = _tourPad;
-    ov.classList.remove('tour-center');
-    spot.style.display = 'block';
-    spot.style.top = (r.top - pad) + 'px';
-    spot.style.left = (r.left - pad) + 'px';
-    spot.style.width = (r.width + pad * 2) + 'px';
-    spot.style.height = (r.height + pad * 2) + 'px';
+    var p = _tourPad;
+    var hT = Math.max(0, r.top - p), hL = Math.max(0, r.left - p);
+    var hR = Math.min(vw, r.right + p), hB = Math.min(vh, r.bottom + p);
+    // 4 панели образуют рамку, оставляя целевой rect незакрытым (подсвеченным).
+    _setBox(mTop, 0, 0, vw, hT);
+    _setBox(mBottom, 0, hB, vw, vh - hB);
+    _setBox(mLeft, 0, hT, hL, hB - hT);
+    _setBox(mRight, hR, hT, vw - hR, hB - hT);
+    ring.style.display = 'block';
+    _setBox(ring, hL, hT, hR - hL, hB - hT);
     coach.classList.remove('tour-coach-centered');
     coach.style.display = 'block';
     var cw = coach.offsetWidth, ch = coach.offsetHeight;
@@ -341,9 +353,12 @@ function _layoutTour() {
     coach.style.top = top + 'px';
     coach.style.left = left + 'px';
   } else {
-    // Нет цели → полное затемнение + карточка по центру экрана.
-    spot.style.display = 'none';
-    ov.classList.add('tour-center');
+    // Нет цели → одна панель на весь экран + карточка по центру.
+    _setBox(mTop, 0, 0, vw, vh);
+    _setBox(mRight, 0, 0, 0, 0);
+    _setBox(mBottom, 0, 0, 0, 0);
+    _setBox(mLeft, 0, 0, 0, 0);
+    ring.style.display = 'none';
     coach.classList.add('tour-coach-centered');
     coach.style.display = 'block';
     coach.style.top = '';

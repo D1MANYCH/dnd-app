@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v186">
+<link rel="stylesheet" href="style.css?v=v187">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -2593,35 +2593,35 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v186"></script>
-<script src="bg-orbits.js?v=v186"></script>
-<script src="dice-arena-bg.js?v=v186"></script>
-<script src="data.js?v=v186"></script>
+<script src="app-log.js?v=v187"></script>
+<script src="bg-orbits.js?v=v187"></script>
+<script src="dice-arena-bg.js?v=v187"></script>
+<script src="data.js?v=v187"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v186"></script>
-<script src="spells.js?v=v186"></script>
-<script src="app-core.js?v=v186"></script>
-<script src="app-backup.js?v=v186"></script>
-<script src="app-combat.js?v=v186"></script>
-<script src="app-hp.js?v=v186"></script>
-<script src="app-spells.js?v=v186"></script>
-<script src="app-inventory.js?v=v186"></script>
+<script src="character-builds.js?v=v187"></script>
+<script src="spells.js?v=v187"></script>
+<script src="app-core.js?v=v187"></script>
+<script src="app-backup.js?v=v187"></script>
+<script src="app-combat.js?v=v187"></script>
+<script src="app-hp.js?v=v187"></script>
+<script src="app-spells.js?v=v187"></script>
+<script src="app-inventory.js?v=v187"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v186"></script>
-<script src="class-choices.js?v=v186"></script>
-<script src="subclass-choices-data.js?v=v186"></script>
+<script src="app-party.js?v=v187"></script>
+<script src="class-choices.js?v=v187"></script>
+<script src="subclass-choices-data.js?v=v187"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v186";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v187";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v186"></script>
-<script src="app-notes.js?v=v186"></script>
-<script src="app-desktop.js?v=v186"></script>
-<script src="history-stack.js?v=v186"></script>
-<script src="app-help.js?v=v186"></script>
+<script src="app-ui.js?v=v187"></script>
+<script src="app-notes.js?v=v187"></script>
+<script src="app-desktop.js?v=v187"></script>
+<script src="history-stack.js?v=v187"></script>
+<script src="app-help.js?v=v187"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2634,9 +2634,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v186",
-    "vendor/jspdf/roboto-base64.js?v=v186",
-    "app-pdf.js?v=v186"
+    "vendor/jspdf/jspdf.umd.min.js?v=v187",
+    "vendor/jspdf/roboto-base64.js?v=v187",
+    "app-pdf.js?v=v187"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -2660,7 +2660,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v186").then(function () {
+    return loadScript("build-notes-data.js?v=v187").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -2668,8 +2668,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v186"),
-      loadScript("npc-srd.js?v=v186")
+      loadScript("monsters-srd.js?v=v187"),
+      loadScript("npc-srd.js?v=v187")
     ]);
   };
   var stub = function (id, ev) {
