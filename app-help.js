@@ -286,7 +286,8 @@ var TOUR_TABS = {
   spells:    { flag: HELP_FLAG_SPELLS_SEEN,    build: _buildSpellsSteps },
   inventory: { flag: HELP_FLAG_INVENTORY_SEEN, build: _buildInventorySteps },
   battle:    { flag: HELP_FLAG_BATTLE_SEEN,    build: _buildBattleSteps },
-  notes:     { flag: HELP_FLAG_NOTES_SEEN,     build: _buildNotesSteps }
+  notes:     { flag: HELP_FLAG_NOTES_SEEN,     build: _buildNotesSteps },
+  party:     { flag: HELP_FLAG_PARTY_SEEN,     build: _buildPartySteps }
 };
 
 /** Ручной запуск тура вкладки из help-центра: открыть вкладку → флаг → старт. */
@@ -680,6 +681,64 @@ function _buildNotesSteps() {
     {
       title: '✅ Готово',
       text: 'Это раздел записей. Повторить тур — кнопкой «🧭 Пройти тур по разделу» в «❓ Справке» этой вкладки.'
+    }
+  ];
+}
+
+/** Тур по вкладке «Мир» (party). */
+function _buildPartySteps() {
+  return [
+    {
+      title: '🌍 Мир',
+      text: 'Раздел «Мир»: все, кто окружает вашего персонажа — соратники, NPC и монстры, плюс быстрый переход в бой. Листать — «Назад»/«Далее» или стрелками ←/→, закрыть — крестиком или Esc.'
+    },
+    {
+      requireTarget: true,
+      // Цель — сама карточка персонажа (.pcard), а не секция с заголовком:
+      // на широком десктопе секция-контейнер разрежена (контент слева), и
+      // кольцо вокруг неё смотрится пустой рамкой (урок TOUR-4). Pcard плотнее.
+      target: function () {
+        var c = document.getElementById('my-char-card');
+        return (c && c.querySelector('.pcard')) || c;
+      },
+      title: '🎭 Мой персонаж',
+      text: 'Карточка вашего активного персонажа: класс, уровень, текущие ХП, КД и статусы. Данные подтягиваются с листа автоматически — здесь их видно рядом с остальным отрядом.',
+      novice: '❤️ — текущие/максимальные хиты, 🛡️ — класс доспеха (насколько трудно по вам попасть). Меняются на вкладке «Бой» и на листе; тут только сводка.'
+    },
+    {
+      requireTarget: true,
+      // Цель — компактный блок кнопок (fit-content), а не полноширинная карточка:
+      // на десктопе пустая карточка соратников разрежена, кольцо вокруг неё —
+      // пустая рамка (урок TOUR-4); кнопки же всегда плотные. Фолбэк — карточка.
+      target: function () {
+        var l = document.getElementById('allies-list');
+        var card = l ? l.closest('.party-section-card') : null;
+        return (card && card.querySelector('.party-section-actions')) || card;
+      },
+      title: '🧑‍🤝‍🧑 Соратники и NPC',
+      text: 'Соратник — союзник под вашим контролем; «Персонажи» — это NPC мира (торговцы, квестодатели). «＋ Добавить» создаёт запись вручную, «↓ / ↑» — выгрузка и загрузка списка (.json). У блока «Персонажи» ниже есть ещё «📚 Архетипы» — готовые роли.'
+    },
+    {
+      requireTarget: true,
+      // Кнопки блока «Монстры» (плотный fit-content), не полноширинная карточка.
+      target: function () {
+        var l = document.getElementById('monsters-list');
+        var card = l ? l.closest('.party-section-card') : null;
+        return (card && card.querySelector('.party-section-actions')) || card;
+      },
+      title: '👹 Монстры и враги',
+      text: 'Два пути завести врага. Убили монстра и попросили у мастера разбор (КД, хиты, особенности) — впишите его вручную через «＋ Добавить». А типового монстра проще взять готовым: «📚 Из SRD» подставит карточку из бестиария — КД, хиты, CR уже заполнены.',
+      novice: 'CR (уровень опасности) показывает, насколько монстр силён относительно группы: чем выше, тем опаснее бой.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return document.querySelector('#tab-party .battle-start-btn'); },
+      title: '⚔️ Перейти к бою',
+      text: 'Открывает вкладку «Бой», где можно отметить участников из этого списка и запустить пошаговый трекер инициативы.'
+    },
+    {
+      title: '✅ Готово',
+      text: 'Это раздел «Мир». Повторить тур — кнопкой «🧭 Пройти тур по разделу» в «❓ Справке» этой вкладки.'
     }
   ];
 }

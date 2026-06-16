@@ -6404,6 +6404,13 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .pcard-self  { border-left-color: #4da843; }
 .pcard-npc   { border-left-color: #d4ac0d; }
 .pcard-monster { border-left-color: #c0392b; }
+/* На десктопе карточка «Мой персонаж» — единственная (не список), и при полной
+   ширине колонки контент жмётся влево, оставляя пустоту (заметно в туре «Мир»).
+   Сжимаем её до ширины содержимого. Списки соратников/NPC/монстров остаются
+   во всю ширину (ровные края). На мобильном — без изменений (full-width лучше). */
+@media (min-width: 1024px) {
+  #my-char-card .pcard { width: fit-content; max-width: 100%; }
+}
 
 /* Icon */
 .pcard-icon {
