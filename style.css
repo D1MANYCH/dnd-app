@@ -7966,6 +7966,11 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   gap: 6px;
   flex-wrap: wrap;
   margin-bottom: 12px;
+  /* fit-content: 6 узких кнопок прижаты влево; без этого кольцо тура (TOUR-6)
+     обводило бы полноширинную полосу с пустотой справа на десктопе (урок TOUR-4/5).
+     Визуально без изменений — кнопки и так слева и переносятся при нехватке места. */
+  width: fit-content;
+  max-width: 100%;
 }
 .jfilter-btn {
   background: rgba(255,255,255,0.05);

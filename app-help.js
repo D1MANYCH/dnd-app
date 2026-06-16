@@ -182,6 +182,7 @@ window.addEventListener('load', maybeShowWelcome);
 var _tour = null;       // активный тур: { steps:[], i:Number, name:String }
 var _tourPad = 6;       // отступ подсветки вокруг цели, px
 var _tourRafId = 0;     // throttle репозиции на resize/scroll
+var _tourFontsHooked = false; // один раз навешиваем re-layout на document.fonts.ready
 
 /** Широкая раскладка (≥1024): виден right-rail и статический сайдбар, нижний
  *  tab-nav и status-bar скрыты. От этого зависит, какую цель подсвечивать. */
@@ -287,7 +288,8 @@ var TOUR_TABS = {
   inventory: { flag: HELP_FLAG_INVENTORY_SEEN, build: _buildInventorySteps },
   battle:    { flag: HELP_FLAG_BATTLE_SEEN,    build: _buildBattleSteps },
   notes:     { flag: HELP_FLAG_NOTES_SEEN,     build: _buildNotesSteps },
-  party:     { flag: HELP_FLAG_PARTY_SEEN,     build: _buildPartySteps }
+  party:     { flag: HELP_FLAG_PARTY_SEEN,     build: _buildPartySteps },
+  journal:   { flag: HELP_FLAG_JOURNAL_SEEN,   build: _buildJournalSteps }
 };
 
 /** Ручной запуск тура вкладки из help-центра: открыть вкладку → флаг → старт. */
@@ -361,6 +363,17 @@ function _showTourStep() {
   if (prevBtn) prevBtn.disabled = (_tour.i === 0);
   if (nextBtn) nextBtn.textContent = (_tour.i === _tour.steps.length - 1) ? 'Готово' : 'Далее';
   _layoutTour();
+  // Защита от позднего рефлоу: подсветка считается по rect цели в момент показа,
+  // но layout может «доехать» уже после (поздняя загрузка шрифта, асинхронный
+  // ре-рендер right-rail/списка, смена ширины скролл-контейнера). На части машин
+  // это оставляло кольцо/маски смещёнными от цели («кольцо вокруг пустоты»). Re-layout
+  // идемпотентен: если layout стабилен — это no-op, иначе подсветка пере-снапится к цели.
+  requestAnimationFrame(function () { if (_tour) _layoutTour(); });
+  setTimeout(function () { if (_tour) _layoutTour(); }, 90);
+  if (document.fonts && document.fonts.ready && !_tourFontsHooked) {
+    _tourFontsHooked = true;
+    document.fonts.ready.then(function () { if (_tour) _layoutTour(); });
+  }
 }
 
 /** Задать прямоугольник элементу (px), отрицательные размеры → 0. */
@@ -739,6 +752,39 @@ function _buildPartySteps() {
     {
       title: '✅ Готово',
       text: 'Это раздел «Мир». Повторить тур — кнопкой «🧭 Пройти тур по разделу» в «❓ Справке» этой вкладки.'
+    }
+  ];
+}
+
+/** Тур по вкладке «Журнал». */
+function _buildJournalSteps() {
+  return [
+    {
+      title: '📖 Журнал',
+      text: 'Журнал — дневник приключения: хронология того, что происходило с персонажем и в игре. Листать — «Назад»/«Далее» или стрелками ←/→, закрыть — крестиком или Esc.'
+    },
+    {
+      requireTarget: true,
+      // Цель — сама кнопка «＋ Событие» (fit-content), а не полноширинная шапка:
+      // .journal-header-row — space-between (заголовок слева, кнопка справа), и на
+      // широком экране кольцо вокруг неё обводит пустой зазор посередине (урок TOUR-4/5).
+      target: function () { return document.querySelector('#tab-journal .journal-add-btn'); },
+      title: '📝 Запись события',
+      text: '«＋ Событие» добавляет запись вручную. В окне можно выбрать тип помимо фильтров ниже: ⚔️ бой, 📖 сюжет/НПС, 💎 добыча, 💀 смерть или 📝 заметка — что случилось на сессии, важное решение, к чему вернуться позже.',
+      novice: 'Многое журнал пишет сам: повышение уровня, отдых, изменения характеристик и новые черты появляются здесь автоматически — руками добавляют только свои события.'
+    },
+    {
+      requireTarget: true,
+      // Кнопки фильтра (fit-content), а не полноширинная полоса: 6 узких кнопок
+      // прижаты влево, кольцо вокруг всей полосы обвело бы пустоту справа на
+      // десктопе (урок TOUR-4/5). CSS .journal-filter-row сжат до контента.
+      target: function () { return document.querySelector('#tab-journal .journal-filter-row'); },
+      title: '🔎 Фильтры',
+      text: 'Кнопки оставляют в списке только нужный тип записей: 📈 повышения уровня, 🛏️ отдых, ⚡ изменения статов, 🎯 черты или 📝 заметки. «Все» снимает фильтр — там же видны добавленные вручную события без своей кнопки (бой, сюжет, добыча, смерть).'
+    },
+    {
+      title: '✅ Готово',
+      text: 'Это раздел «Журнал». Повторить тур — кнопкой «🧭 Пройти тур по разделу» в «❓ Справке» этой вкладки.'
     }
   ];
 }
