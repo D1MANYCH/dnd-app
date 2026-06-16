@@ -285,7 +285,8 @@ function restartTour() {
 var TOUR_TABS = {
   spells:    { flag: HELP_FLAG_SPELLS_SEEN,    build: _buildSpellsSteps },
   inventory: { flag: HELP_FLAG_INVENTORY_SEEN, build: _buildInventorySteps },
-  battle:    { flag: HELP_FLAG_BATTLE_SEEN,    build: _buildBattleSteps }
+  battle:    { flag: HELP_FLAG_BATTLE_SEEN,    build: _buildBattleSteps },
+  notes:     { flag: HELP_FLAG_NOTES_SEEN,     build: _buildNotesSteps }
 };
 
 /** Ручной запуск тура вкладки из help-центра: открыть вкладку → флаг → старт. */
@@ -644,6 +645,41 @@ function _buildBattleSteps() {
     {
       title: '✅ Готово',
       text: 'Это раздел боя. Повторить тур — кнопкой «🧭 Пройти тур по разделу» в «❓ Справке» этой вкладки.'
+    }
+  ];
+}
+
+/** Тур по вкладке «Записи». */
+function _buildNotesSteps() {
+  return [
+    {
+      title: '📝 Записи',
+      text: 'Раздел записей: всё о персонаже и мире в одном месте — предыстория, NPC, квесты, локации, сессии и свободные заметки. Листать — «Назад»/«Далее» или стрелками ←/→, закрыть — крестиком или Esc.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return document.querySelector('#tab-notes .notes-header'); },
+      title: '🔧 Шапка раздела',
+      text: '«🔍 Поиск» ищет сразу по всем записям. «+ Запись» добавляет новую запись в текущий раздел. «🎲 всё» перегенерирует текстовые поля персонажа из вариантов билда. «⋯» — экспорт/импорт (.md, .json) и печать/PDF.'
+    },
+    {
+      requireTarget: true,
+      // Узкий экран — виден select (на всю ширину), десктоп — пилюли (fit-content).
+      // Контейнер #notes-subtabs тянется на всю ширину, потому целимся внутрь,
+      // чтобы кольцо обводило сам контрол, а не пустоту справа.
+      target: function () {
+        var box = document.getElementById('notes-subtabs');
+        if (!box) return null;
+        var sel = box.querySelector('.notes-subtabs-select');
+        if (sel && sel.offsetParent !== null) return sel;
+        return box.querySelector('.notes-subtabs-pills') || box;
+      },
+      title: '🗂️ Разделы',
+      text: '«Предыстория» собирает текстовые поля о персонаже: внешность, личность, идеалы, связи, слабости, черты, магпредметы. Остальные вкладки — отдельные записи: NPC, Квесты, Локации, Сессии, Зацепки и Свободно.'
+    },
+    {
+      title: '✅ Готово',
+      text: 'Это раздел записей. Повторить тур — кнопкой «🧭 Пройти тур по разделу» в «❓ Справке» этой вкладки.'
     }
   ];
 }

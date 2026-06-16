@@ -10522,6 +10522,10 @@ body {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  /* Сжать обёртку по содержимому (пилюли left-aligned): иначе блочный flex
+     тянется на всю ширину и подсветка тура обводит пустоту справа. */
+  width: fit-content;
+  max-width: 100%;
 }
 /* N6: select вариант для узких экранов — скрыт на десктопе */
 .notes-subtabs-select {
