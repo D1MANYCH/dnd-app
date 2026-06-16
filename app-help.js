@@ -284,7 +284,8 @@ function restartTour() {
 // по фазам TOUR-2..6; движок (startTour/_layoutTour/…) уже готов из HELP-4.
 var TOUR_TABS = {
   spells:    { flag: HELP_FLAG_SPELLS_SEEN,    build: _buildSpellsSteps },
-  inventory: { flag: HELP_FLAG_INVENTORY_SEEN, build: _buildInventorySteps }
+  inventory: { flag: HELP_FLAG_INVENTORY_SEEN, build: _buildInventorySteps },
+  battle:    { flag: HELP_FLAG_BATTLE_SEEN,    build: _buildBattleSteps }
 };
 
 /** Ручной запуск тура вкладки из help-центра: открыть вкладку → флаг → старт. */
@@ -611,6 +612,38 @@ function _buildInventorySteps() {
     {
       title: '✅ Готово',
       text: 'Это раздел инвентаря. Повторить тур — кнопкой «🧭 Пройти тур по разделу» в «❓ Справке» этой вкладки.'
+    }
+  ];
+}
+
+/** Тур по вкладке «Бой». */
+function _buildBattleSteps() {
+  return [
+    {
+      title: '⚔️ Бой',
+      text: 'Раздел боя: выбор участников, запуск боя и трекер инициативы по ходам. Листать — «Назад»/«Далее» или стрелками ←/→, закрыть — крестиком или Esc.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return document.querySelector('#battle-setup-screen .card'); },
+      title: '👥 Выбор участников',
+      text: 'Отметьте, кто участвует в бою: ваш персонаж, соратники, NPC и монстры из раздела «Мир». Поиск по имени вверху помогает быстро найти нужного в длинном списке.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return document.querySelector('#battle-setup-screen .battle-start-btn'); },
+      title: '▶ Начать бой',
+      text: 'Запускает бой: приложение бросит инициативу за всех участников и выстроит очередь ходов.',
+      novice: 'Инициатива — бросок d20 + ловкость в начале боя: определяет, кто ходит первым. Чем выше результат, тем раньше очередь.'
+    },
+    {
+      title: '🎯 Трекер инициативы',
+      text: 'После старта здесь появится очередь ходов: текущий участник подсвечен, кнопками «◀ Назад» / «Следующий ▶» переключаются ходы и раунды, «✕ Завершить» закрывает бой.',
+      novice: 'Раунд — один полный круг, когда все участники сходили по разу (примерно 6 секунд игрового времени). Ход — действия одного участника внутри раунда.'
+    },
+    {
+      title: '✅ Готово',
+      text: 'Это раздел боя. Повторить тур — кнопкой «🧭 Пройти тур по разделу» в «❓ Справке» этой вкладки.'
     }
   ];
 }
