@@ -283,7 +283,8 @@ function restartTour() {
 // (их туры — startSheetTour / startListTour). Наборы шагов добавляются
 // по фазам TOUR-2..6; движок (startTour/_layoutTour/…) уже готов из HELP-4.
 var TOUR_TABS = {
-  spells: { flag: HELP_FLAG_SPELLS_SEEN, build: _buildSpellsSteps }
+  spells:    { flag: HELP_FLAG_SPELLS_SEEN,    build: _buildSpellsSteps },
+  inventory: { flag: HELP_FLAG_INVENTORY_SEEN, build: _buildInventorySteps }
 };
 
 /** Ручной запуск тура вкладки из help-центра: открыть вкладку → флаг → старт. */
@@ -570,6 +571,46 @@ function _buildSpellsSteps() {
     {
       title: '✅ Готово',
       text: 'Это раздел заклинаний. Повторить тур — кнопкой «🧭 Пройти тур по разделу» в «❓ Справке» этой вкладки.'
+    }
+  ];
+}
+
+/** Тур по вкладке «Инвентарь». */
+function _buildInventorySteps() {
+  return [
+    {
+      title: '🎒 Инвентарь',
+      text: 'Раздел инвентаря: переноска, рюкзак с предметами и кошель. Листать — «Назад»/«Далее» или стрелками ←/→, закрыть — крестиком или Esc.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return document.querySelector('#tab-inventory .inv-slots-card'); },
+      title: '⚖️ Слоты и переноска',
+      text: 'Сколько вы несёте: «занято / всего» слотов и полоса заполнения. При превышении предела появляется «⚠️ Перегруз».',
+      novice: 'Чтобы не считать точный вес каждой вещи, приложение использует слоты: оружие — 1, броня — 3, зелье — ½ и т.д. Всего слотов зависит от Силы.'
+    },
+    {
+      requireTarget: true,
+      target: function () {
+        var h = document.querySelector('#tab-inventory .inv-backpack-header');
+        return h ? h.closest('.card') : null;
+      },
+      title: '🎒 Рюкзак',
+      text: '«+ Добавить» — внести предмет вручную или из базы. «🎒 Надет/Снят» временно снимает рюкзак: вещи внутри не занимают слотов и недоступны. Кнопки-фильтры ниже показывают только нужный тип — оружие, броню, зелья и т.д.'
+    },
+    {
+      requireTarget: true,
+      target: function () {
+        var h = document.querySelector('#tab-inventory .inv-coins-header');
+        return h ? h.closest('.card') : null;
+      },
+      title: '💰 Кошель',
+      text: 'Монеты по достоинствам: медь, серебро, электрум, золото, платина. «Итого» сводит всё к золоту, а «⇄ Разменять» меняет монеты одного вида на другой.',
+      novice: 'Курс обмена: 10 медных = 1 серебряная, 10 серебряных = 1 золотая, 10 золотых = 1 платиновая (электрум — ½ золотого).'
+    },
+    {
+      title: '✅ Готово',
+      text: 'Это раздел инвентаря. Повторить тур — кнопкой «🧭 Пройти тур по разделу» в «❓ Справке» этой вкладки.'
     }
   ];
 }
