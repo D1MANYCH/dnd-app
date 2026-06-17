@@ -1642,6 +1642,35 @@ function getResourceMax(res, char) {
   return parseInt(raw, 10) || 0;
 }
 
+// SDR-1: объединить ресурсы класса и подкласса в один список.
+// Базовые ресурсы — CLASS_RESOURCES[char.class]; ресурсы подкласса (если есть запись
+// в SUBCLASS_RESOURCES[char.subclass]) добавляются следом. Одноклассовый кейс — как и весь
+// resource-код. Возвращает {resources, passive} либо null, если ресурсов нет вовсе.
+function getCharResourceDefs(char) {
+  if (!char) return null;
+  var cls = char.class || "";
+  var base = (typeof CLASS_RESOURCES !== "undefined" && CLASS_RESOURCES[cls]) ? CLASS_RESOURCES[cls] : null;
+  var resources = (base && Array.isArray(base.resources)) ? base.resources.slice() : [];
+  var sub = char.subclass || "";
+  if (sub && typeof SUBCLASS_RESOURCES !== "undefined" && SUBCLASS_RESOURCES[sub] &&
+      Array.isArray(SUBCLASS_RESOURCES[sub].resources)) {
+    resources = resources.concat(SUBCLASS_RESOURCES[sub].resources);
+  }
+  if (!resources.length) return null;
+  return { resources: resources, passive: base ? base.passive : null };
+}
+
+// SDR-1: текущий размер кости ресурса по dieSizeByLevel (ближайшее значение ≤ уровня).
+// Для ресурсов без dieSizeByLevel возвращает "" (ничего не показываем).
+function currentDieSize(res, level) {
+  if (!res || !res.dieSizeByLevel) return "";
+  var best = "";
+  Object.keys(res.dieSizeByLevel).map(Number).sort(function(a, b){ return a - b; }).forEach(function(lv){
+    if (level >= lv) best = res.dieSizeByLevel[lv];
+  });
+  return best;
+}
+
 // Рендер блока ресурсов
 function renderClassResources() {
   if (!currentId) return;
@@ -1654,7 +1683,7 @@ function renderClassResources() {
   if (!section || !grid) return;
 
   var cls = char.class || "";
-  var data = (typeof CLASS_RESOURCES !== "undefined") && CLASS_RESOURCES[cls];
+  var data = getCharResourceDefs(char);
 
   if (!data || !data.resources || data.resources.length === 0) {
     section.style.display = "none";
@@ -1681,6 +1710,7 @@ function renderClassResources() {
     var used = char.resources[res.id] || 0;
     if (used > max) { used = max; char.resources[res.id] = used; }
     var remaining = max - used;
+    var dieSize = currentDieSize(res, char.level || 1); // SDR-1: к8/к10/к12 у костей превосходства
 
     var card = document.createElement("div");
     card.className = "resource-card";
@@ -1703,7 +1733,8 @@ function renderClassResources() {
     card.innerHTML =
       '<div class="resource-header">' +
         '<span class="resource-icon">' + res.icon + '</span>' +
-        '<span class="resource-name">' + escapeHtml(res.name) + '</span>' +
+        '<span class="resource-name">' + escapeHtml(res.name) +
+          (dieSize ? ' <span class="resource-die">(' + escapeHtml(dieSize) + ')</span>' : '') + '</span>' +
         '<span class="resource-restore-badge">' + restLabel + '</span>' +
       '</div>' +
       (isPool
@@ -1732,8 +1763,7 @@ function spendResource(id, delta) {
   var char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
-  var cls = char.class || "";
-  var data = CLASS_RESOURCES && CLASS_RESOURCES[cls];
+  var data = getCharResourceDefs(char);
   if (!data) return;
   var res = data.resources.find(function(r) { return r.id === id; });
   if (!res) return;
@@ -1761,8 +1791,7 @@ function toggleResourcePip(id, pipIdx) {
   var char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
-  var cls = char.class || "";
-  var data = CLASS_RESOURCES && CLASS_RESOURCES[cls];
+  var data = getCharResourceDefs(char);
   if (!data) return;
   var res = data.resources.find(function(r) { return r.id === id; });
   if (!res) return;
@@ -1787,8 +1816,7 @@ function resetResourcesByRest(restType) {
   var char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
-  var cls = char.class || "";
-  var data = CLASS_RESOURCES && CLASS_RESOURCES[cls];
+  var data = getCharResourceDefs(char);
   if (!data || !data.resources) return;
   data.resources.forEach(function(res) {
     if (restType === "long") {

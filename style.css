@@ -7688,6 +7688,13 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   font-weight: 700;
   color: #fff;
 }
+/* SDR-1: размер кости ресурса (к8/к10/к12) рядом с названием */
+.resource-die {
+  font-weight: 600;
+  font-size: 0.82em;
+  color: var(--res-color, #c9a227);
+  opacity: 0.95;
+}
 .resource-restore-badge {
   font-size: 0.68em;
   color: rgba(255,255,255,0.45);

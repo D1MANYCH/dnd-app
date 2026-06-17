@@ -1179,6 +1179,44 @@
     });
   }
 
+  // ────────── БЛОК 15 (SDR-1): ресурсы подкласса — кости превосходства ──────────
+  if (typeof SUBCLASS_RESOURCES !== "undefined") {
+    t("[SDR-1] SUBCLASS_RESOURCES Боевого мастера = superiority_dice", function(){
+      var r = SUBCLASS_RESOURCES["Боевой мастер"];
+      return (r && r.resources && r.resources[0] && r.resources[0].id === "superiority_dice")
+        || ("получено " + JSON.stringify(r && r.resources));
+    });
+  }
+  if (typeof getCharResourceDefs === "function") {
+    t("[SDR-1] getCharResourceDefs склеивает класс+подкласс", function(){
+      var d = getCharResourceDefs({class:"Воин", subclass:"Боевой мастер", level:3, stats:{}});
+      if (!d || !d.resources) return "нет resources";
+      var ids = d.resources.map(function(x){ return x.id; });
+      return (ids.indexOf("second_wind") !== -1 && ids.indexOf("superiority_dice") !== -1)
+        || ("ids=" + JSON.stringify(ids));
+    });
+    t("[SDR-1] getCharResourceDefs без подкласса — без костей превосходства", function(){
+      var d = getCharResourceDefs({class:"Воин", level:3, stats:{}});
+      if (!d || !d.resources) return "нет resources";
+      var ids = d.resources.map(function(x){ return x.id; });
+      return (ids.indexOf("superiority_dice") === -1) || ("ids=" + JSON.stringify(ids));
+    });
+  }
+  if (typeof getResourceMax === "function" && typeof SUBCLASS_RESOURCES !== "undefined") {
+    t("[SDR-1] костей превосходства по уровням: 1→0, 3→4, 7→5, 15→6", function(){
+      var sd = SUBCLASS_RESOURCES["Боевой мастер"].resources[0];
+      var got = [1,3,7,15].map(function(lv){ return getResourceMax(sd, {level:lv, stats:{cha:10}}); });
+      return eq(got, [0,4,5,6]) || ("получено " + JSON.stringify(got));
+    });
+  }
+  if (typeof currentDieSize === "function" && typeof SUBCLASS_RESOURCES !== "undefined") {
+    t("[SDR-1] размер кости: 3→к8, 10→к10, 18→к12", function(){
+      var sd = SUBCLASS_RESOURCES["Боевой мастер"].resources[0];
+      var got = [3,10,18].map(function(lv){ return currentDieSize(sd, lv); });
+      return eq(got, ["к8","к10","к12"]) || ("получено " + JSON.stringify(got));
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
