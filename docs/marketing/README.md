@@ -91,4 +91,6 @@ node tools/gen-changelog.js
 - [group-pinned.txt](group-pinned.txt) — закреп для чата-обсуждения
 - [seeding-plan.md](seeding-plan.md) — Этап 1: посев в VK / TG-чатах / Discord / форумах
 - [seeding-targets.md](seeding-targets.md) — конкретные сообщества-цели (со ссылками)
+- [expanded-channels.md](expanded-channels.md) — расширенный пул каналов: DTF, YouTube-стримеры, GitHub awesome-lists, alternativeto, партнёры
+- готовые тексты для копипасты: `posts/seed-vk.txt`, `posts/seed-tg-chat.txt`
 - [../../CHANGELOG.md](../../CHANGELOG.md) — полный список версий (генерируется `node tools/gen-changelog.js`)
