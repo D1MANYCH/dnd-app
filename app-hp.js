@@ -744,6 +744,18 @@ function luApplyAsi(char, asi) {
   return parts.length ? parts.join(", ") : null;
 }
 
+// SDR-2: объединённый список выборов класса и подкласса для уровень-апа.
+// Манёвры Боевого мастера и подобные живут в SUBCLASS_CHOICES[char.subclass];
+// хранилище выбора в обоих случаях по имени класса (cn) — как в ccGetStored/ccSetStored.
+function _ccDefsFor(cn, char) {
+  var defs = [];
+  if (typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[cn]) defs = defs.concat(CLASS_CHOICES[cn]);
+  if (char && char.subclass && typeof SUBCLASS_CHOICES !== "undefined" && SUBCLASS_CHOICES[char.subclass]) {
+    defs = defs.concat(SUBCLASS_CHOICES[char.subclass]);
+  }
+  return defs;
+}
+
 // BUILD-LVL-4: применить ВСЕ рекомендации билда для текущего уровня разом.
 function luApplyAllRecommendations() {
   var char = getCurrentChar();
@@ -795,9 +807,10 @@ function luApplyAllRecommendations() {
     }
   }
 
-  // 3) Классовые выборы, рекомендованные билдом и открытые на этом уровне (single + multi)
-  if (typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[cn] && b.recommendedChoices) {
-    CLASS_CHOICES[cn].forEach(function(cc){
+  // 3) Классовые/подклассовые выборы, рекомендованные билдом и открытые на этом уровне (single + multi)
+  // SDR-2: помимо CLASS_CHOICES учитываем SUBCLASS_CHOICES[char.subclass] (манёвры Боевого мастера и т.п.).
+  if (b.recommendedChoices) {
+    _ccDefsFor(cn, char).forEach(function(cc){
       if (cc.minLevel !== clvl) return;
       var recIds = getBuildRecChoiceIds(char, cc.id);
       if (!recIds.length) return;
@@ -912,9 +925,9 @@ function luBuildChoicesScreen() {
       '</div>');
   }
 
-  // 3) КЛАССОВЫЕ ВЫБОРЫ, открывающиеся на этом уровне класса (стиль боя и т.п.).
-  if (typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[cn]) {
-    CLASS_CHOICES[cn].forEach(function(cc){
+  // 3) КЛАССОВЫЕ/ПОДКЛАССОВЫЕ ВЫБОРЫ, открывающиеся на этом уровне (стиль боя, манёвры и т.п.).
+  if (_ccDefsFor(cn, char).length) {                       // SDR-2: + SUBCLASS_CHOICES[char.subclass]
+    _ccDefsFor(cn, char).forEach(function(cc){
       if (cc.minLevel !== clvl) return;
       var stored = char.classChoices && char.classChoices[cn] && char.classChoices[cn][cc.id];
       var ccN = (typeof ccCount === "function") ? ccCount(cc, clvl) : 1;
@@ -959,8 +972,8 @@ function luBuildChoicesScreen() {
          (typeof parseFeatFromHeadline === "function" && parseFeatFromHeadline(b.levelUp[newLevel].headline))));
     var subOpen = (subMinLevel === clvl && !char.subclass && !!b.subclass);
     var ccOpen = false;
-    if (typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[cn] && b.recommendedChoices) {
-      ccOpen = CLASS_CHOICES[cn].some(function(cc){
+    if (b.recommendedChoices) {                            // SDR-2: + SUBCLASS_CHOICES[char.subclass]
+      ccOpen = _ccDefsFor(cn, char).some(function(cc){
         if (cc.minLevel !== clvl) return false;
         var recIds = getBuildRecChoiceIds(char, cc.id);
         if (!recIds.length) return false;

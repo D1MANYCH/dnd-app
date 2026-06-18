@@ -520,7 +520,8 @@ window.CHARACTER_BUILDS = [
     id: "fighter-battlemaster-archer",
     className: "Воин",
     subclass: "Боевой мастер",
-    recommendedChoices: { "fighting-style": "archery" },
+    // SDR-2: + рекомендованные манёвры (выбор maneuvers живёт в SUBCLASS_CHOICES, minLevel 3).
+    recommendedChoices: { "fighting-style": "archery", "maneuvers": ["precision-attack", "distracting-strike", "trip-attack"] },
     title: "Боевой мастер — лучник",
     role: "DPS",
     difficulty: 2,

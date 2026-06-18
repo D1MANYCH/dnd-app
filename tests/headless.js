@@ -262,11 +262,15 @@
     CHARACTER_BUILDS.forEach(function(b){
       if (!b.recommendedChoices) return;
       t("[lvl-rec] " + b.id, function(){
-        var defs = (typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[b.className]) || [];
+        // SDR-2: выборы билда могут жить и в SUBCLASS_CHOICES[b.subclass] (напр. манёвры Боевого мастера).
+        var defs = ((typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[b.className]) || []).slice();
+        if (b.subclass && typeof SUBCLASS_CHOICES !== "undefined" && SUBCLASS_CHOICES[b.subclass]) {
+          defs = defs.concat(SUBCLASS_CHOICES[b.subclass]);
+        }
         var problems = [];
         Object.keys(b.recommendedChoices).forEach(function(choiceId){
           var choice = defs.filter(function(c){ return c.id === choiceId; })[0];
-          if (!choice) { problems.push("choiceId «" + choiceId + "» ∉ CLASS_CHOICES[" + b.className + "]"); return; }
+          if (!choice) { problems.push("choiceId «" + choiceId + "» ∉ CLASS_CHOICES[" + b.className + "]/SUBCLASS_CHOICES[" + (b.subclass||"—") + "]"); return; }
           var raw = b.recommendedChoices[choiceId];
           var recIds = Array.isArray(raw) ? raw : [raw];
           recIds.forEach(function(optId){
@@ -1214,6 +1218,36 @@
       var sd = SUBCLASS_RESOURCES["Боевой мастер"].resources[0];
       var got = [3,10,18].map(function(lv){ return currentDieSize(sd, lv); });
       return eq(got, ["к8","к10","к12"]) || ("получено " + JSON.stringify(got));
+    });
+  }
+
+  // ────────── БЛОК 16 (SDR-2): рекомендованные манёвры в готовом билде ──────────
+  if (typeof getBuildById === "function") {
+    t("[SDR-2] билд лучника советует 3 валидных манёвра", function(){
+      var b = getBuildById("fighter-battlemaster-archer");
+      if (!b || !b.recommendedChoices) return "нет билда/recommendedChoices";
+      var m = b.recommendedChoices.maneuvers;
+      if (!Array.isArray(m) || m.length !== 3) return "maneuvers=" + JSON.stringify(m);
+      if (typeof BATTLE_MASTER_MANEUVERS === "undefined") return "нет BATTLE_MASTER_MANEUVERS";
+      var bad = m.filter(function(id){ return !BATTLE_MASTER_MANEUVERS[id]; });
+      return bad.length === 0 || ("неизвестные id: " + JSON.stringify(bad));
+    });
+  }
+  if (typeof _ccDefsFor === "function") {
+    t("[SDR-2] _ccDefsFor включает выбор maneuvers для Боевого мастера", function(){
+      var ids = _ccDefsFor("Воин", {subclass:"Боевой мастер"}).map(function(d){ return d.id; });
+      return (ids.indexOf("maneuvers") !== -1) || ("ids=" + JSON.stringify(ids));
+    });
+    t("[SDR-2] _ccDefsFor без подкласса — без maneuvers", function(){
+      var ids = _ccDefsFor("Воин", {}).map(function(d){ return d.id; });
+      return (ids.indexOf("maneuvers") === -1) || ("ids=" + JSON.stringify(ids));
+    });
+  }
+  if (typeof getBuildRecChoiceIds === "function") {
+    t("[SDR-2] getBuildRecChoiceIds даёт 3 манёвра для билда лучника", function(){
+      var ids = getBuildRecChoiceIds({ buildId: "fighter-battlemaster-archer" }, "maneuvers");
+      return (Array.isArray(ids) && ids.length === 3 && ids.indexOf("precision-attack") !== -1)
+        || ("ids=" + JSON.stringify(ids));
     });
   }
 
