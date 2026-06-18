@@ -11331,7 +11331,7 @@ mark.notes-hl {
 .lu-apply-all-btn:hover { filter: brightness(1.08); }
 /* Пикеры, запускаемые с экрана выборов, должны лежать выше модалки повышения (z 1000) */
 #class-choice-modal.modal, #spell-search-modal.modal { z-index: 10001; }
-.bg-footer { padding: 10px 16px; border-top: 1px solid var(--border, rgba(255,255,255,0.08)); display:flex; justify-content:flex-end; }
+.bg-footer { padding: 10px 16px; border-top: 1px solid var(--border, rgba(255,255,255,0.08)); display:flex; justify-content:flex-end; gap: 10px; }
 .char-build-unlink { background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:var(--r-sm,8px); padding:3px 8px; font-size:0.78em; cursor:pointer; transition:color .12s, border-color .12s; }
 .char-build-unlink:hover { color:#e74c3c; border-color:#e74c3c; }
 

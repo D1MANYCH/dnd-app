@@ -1581,7 +1581,6 @@ function openBuildGuide(buildId) {
     if (typeof showToast === "function") showToast("У этого билда нет гайда", "warn");
     return;
   }
-  window.__guideBuildId = b.id; // BUILD-LVL-2: чтобы кнопка «План 1–20» в футере открыла тот же билд
   var g = b.guide;
   var titleEl = document.getElementById("bg-title-h");
   var bodyEl = document.getElementById("bg-body");
@@ -1602,14 +1601,18 @@ function openBuildGuide(buildId) {
   if (Array.isArray(g.weaknesses) && g.weaknesses.length) html += '<section class="bg-section"><h3>⚠️ Слабости</h3>' + _list(g.weaknesses, "bg-cons", "✗") + '</section>';
   if (g.synergy) html += '<section class="bg-section"><h3>🤝 Синергия в партии</h3><p>' + escapeHtml(g.synergy) + '</p></section>';
   if (Array.isArray(g.tips) && g.tips.length) html += '<section class="bg-section"><h3>💡 Советы по игре</h3>' + _list(g.tips, "bg-tips", "•") + '</section>';
-  // План развития 1-5 из b.levelUp — компактный список.
+  // План развития 1–20 из b.levelUp — полный список по возрастанию уровней.
   if (b.levelUp) {
     var lvLines = [];
-    [1,2,3,4,5].forEach(function(lv){
-      var s = b.levelUp[lv];
-      if (s && s.headline) lvLines.push('<li><strong>' + lv + ' ур.:</strong> ' + escapeHtml(s.headline) + (s.why ? ' <span class="bg-why">— ' + escapeHtml(s.why) + '</span>' : '') + '</li>');
-    });
-    if (lvLines.length) html += '<section class="bg-section"><h3>📈 План развития (1–5)</h3><ul class="bg-list bg-levels">' + lvLines.join("") + '</ul></section>';
+    Object.keys(b.levelUp)
+      .map(function(k){ return parseInt(k, 10); })
+      .filter(function(n){ return !isNaN(n); })
+      .sort(function(a, b){ return a - b; })
+      .forEach(function(lv){
+        var s = b.levelUp[lv];
+        if (s && s.headline) lvLines.push('<li><strong>' + lv + ' ур.:</strong> ' + escapeHtml(s.headline) + (s.why ? ' <span class="bg-why">— ' + escapeHtml(s.why) + '</span>' : '') + '</li>');
+      });
+    if (lvLines.length) html += '<section class="bg-section"><h3>📈 План развития (1–20)</h3><ul class="bg-list bg-levels">' + lvLines.join("") + '</ul></section>';
   }
   if (bodyEl) bodyEl.innerHTML = html;
   openModal("build-guide-modal");
