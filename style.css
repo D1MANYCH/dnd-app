@@ -7105,17 +7105,28 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   gap: var(--sp-2);
   align-items: start;
 }
+/* Обёртки колонок прозрачны для лэйаута по умолчанию (классический/мобильный виды):
+   карточки участвуют в сетке #abilities-region напрямую, как до введения обёрток. */
+.abil-col { display: contents; }
 @media (min-width: 768px) {
-  /* UI: 2 колонки-masonry (multicol) — карточки раскладываются по высоте, колонки
-     выравниваются, низ не пустует. Порядок чтения по колонкам сверху-вниз сохранён. */
+  /* UI: две явные колонки (grid 1fr 1fr) вместо masonry. Обе колонки растягиваются
+     до общей высоты (align-items:stretch), а более короткая распределяет свободное
+     место между карточками (justify-content:space-between) — низ обеих колонок выходит
+     вровень, и полоса «Пассивная внимательность» ложится под ними симметрично. */
   html[data-stats-layout="2024"] .abilities-region {
-    display: block;
-    column-count: 2;
-    column-gap: var(--sp-2);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-2);
+    align-items: stretch;
   }
-  html[data-stats-layout="2024"] .abil-card {
-    break-inside: avoid;
-    margin-bottom: var(--sp-2);
+  html[data-stats-layout="2024"] .abil-strip { grid-column: 1 / -1; margin-bottom: 0; }
+  html[data-stats-layout="2024"] .abil-passive { grid-column: 1 / -1; }
+  html[data-stats-layout="2024"] .abil-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    justify-content: space-between;
+    min-width: 0;
   }
 }
 /* Полоса мини-карточек (бонус мастерства + вдохновение) над колонками характеристик */
@@ -7201,22 +7212,31 @@ html[data-stats-layout="2024"] .abil-passive { column-span: all; }
    фантомных зазоров нет. Классический режим не затрагивается. */
 html[data-stats-layout="2024"] .abil-card {
   display: grid;
-  /* шапка одной строкой: имя (1fr) слева, кластер [мод + значение] прижат вправо;
-     слоты спасброска/навыков/футер — на всю ширину */
-  grid-template-columns: 1fr auto auto;
+  /* Две строки шапки: имя на всю ширину сверху (длинные имена вроде
+     «Телосложение» больше не наезжают на модификатор), под ним в один ряд
+     [модификатор слева · степпер значения справа]. Слоты спасброска/навыков/
+     футер — на всю ширину ниже. */
+  grid-template-columns: auto 1fr;
   column-gap: 12px;
-  row-gap: 7px;
+  row-gap: 8px;
   align-items: center;
   padding: 9px 12px;
 }
-html[data-stats-layout="2024"] .abil-card-head { grid-column: 1; min-width: 0; }
+html[data-stats-layout="2024"] .abil-card-head {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
 html[data-stats-layout="2024"] .abil-card-mod {
-  grid-column: 2;
+  grid-column: 1;
+  justify-self: start;
   font-size: 1.6em;
   min-height: 40px;
   padding: 4px 12px;
 }
-html[data-stats-layout="2024"] .abil-card-score { grid-column: 3; }
+html[data-stats-layout="2024"] .abil-card-score {
+  grid-column: 2;
+  justify-self: end;
+}
 html[data-stats-layout="2024"] .abil-save-slot,
 html[data-stats-layout="2024"] .abil-skills-slot,
 html[data-stats-layout="2024"] .abil-card-footer { grid-column: 1 / -1; }
@@ -7405,7 +7425,7 @@ html[data-stats-layout="classic"] .abil-card-score .stat-btn-sm {
     column-gap: 0;
   }
   html[data-stats-layout="2024"] .abil-card-mod,
-  html[data-stats-layout="2024"] .abil-card-score { grid-column: 1; }
+  html[data-stats-layout="2024"] .abil-card-score { grid-column: 1; justify-self: center; }
   /* показываем вынесенные секции спасбросков/навыков */
   html[data-stats-layout="2024"] .legacy-saves-card,
   html[data-stats-layout="2024"] .legacy-skills-card { display: block; }
@@ -10241,6 +10261,39 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   transform: scale(1.15);
 }
 .skill-bonus-clickable { padding: 2px 6px; }
+
+/* Значок быстрого броска (🎲) на числовых кнопках, по которым кидается кубик.
+   Подсказка новичку: «по этому числу можно кинуть».
+   — Навык и модификатор характеристики имеют «коробку», поэтому 🎲 ставим компактным
+     бейджем в углу: не влияет на центровку самого числа (position:absolute), кликам не
+     мешает (pointer-events:none). Модификатор — только в виде 2024 (в «классическом»
+     это голое число в плотной сетке 6/3). */
+.abil-card-mod,
+.skill-bonus-clickable { position: relative; }
+.skill-bonus-clickable::after,
+html[data-stats-layout="2024"] .abil-card-mod::after {
+  content: "🎲";
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  font-size: 10px;
+  line-height: 1;
+  opacity: 0.65;
+  pointer-events: none;
+}
+.skill-bonus-clickable:hover::after,
+html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
+/* — Спасбросок — голое число без рамки: бейдж в углу «висит» некрасиво, поэтому 🎲
+     ставим РЯДОМ с числом (инлайн). */
+.save-bonus-clickable::after {
+  content: "🎲";
+  margin-left: 6px;
+  font-size: 0.62em;
+  opacity: 0.7;
+  vertical-align: 0.12em;
+  pointer-events: none;
+}
+.save-bonus-clickable:hover::after { opacity: 1; }
 
 /* ============================================
    СОПРОТИВЛЕНИЯ / ИММУНИТЕТЫ / УЯЗВИМОСТИ

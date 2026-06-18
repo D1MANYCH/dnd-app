@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v197">
+<link rel="stylesheet" href="style.css?v=v198">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -548,6 +548,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="abil-mini-state"></div>
 </div>
 </div>
+<!-- UI: две явные колонки характеристик. В виде 2024/desktop они растягиваются до
+     общей высоты и низ выходит вровень; в «классическом»/мобильном — обёртки прозрачны
+     (display:contents), карточки участвуют в сетке региона как раньше. -->
+<div class="abil-col" id="abil-col-1">
 <div class="abil-card" data-abil="str" id="stat-block-str">
 <div class="abil-card-head"><span class="abil-card-name">Сила</span><span class="abil-card-label">СИЛ</span></div>
 <div class="abil-card-mod" id="mod-str" role="button" tabindex="0" onclick="rollAbilityCheck('str')" title="Проверка Силы">+0</div>
@@ -584,6 +588,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="abil-save-slot" id="abil-save-slot-int"></div>
 <div class="abil-skills-slot" id="abil-skills-slot-int"></div>
 </div>
+</div>
+<div class="abil-col" id="abil-col-2">
 <div class="abil-card" data-abil="con" id="stat-block-con">
 <div class="abil-card-head"><span class="abil-card-name">Телосложение</span><span class="abil-card-label">ТЕЛ</span></div>
 <div class="abil-card-mod" id="mod-con" role="button" tabindex="0" onclick="rollAbilityCheck('con')" title="Проверка Телосложения">+0</div>
@@ -619,6 +625,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="abil-save-slot" id="abil-save-slot-cha"></div>
 <div class="abil-skills-slot" id="abil-skills-slot-cha"></div>
+</div>
 </div>
 <div class="abil-mini abil-passive">Пассивная внимательность <strong id="passive-perception-2024">10</strong></div>
 </div>
@@ -2598,35 +2605,35 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v197"></script>
-<script src="bg-orbits.js?v=v197"></script>
-<script src="dice-arena-bg.js?v=v197"></script>
-<script src="data.js?v=v197"></script>
+<script src="app-log.js?v=v198"></script>
+<script src="bg-orbits.js?v=v198"></script>
+<script src="dice-arena-bg.js?v=v198"></script>
+<script src="data.js?v=v198"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v197"></script>
-<script src="spells.js?v=v197"></script>
-<script src="app-core.js?v=v197"></script>
-<script src="app-backup.js?v=v197"></script>
-<script src="app-combat.js?v=v197"></script>
-<script src="app-hp.js?v=v197"></script>
-<script src="app-spells.js?v=v197"></script>
-<script src="app-inventory.js?v=v197"></script>
+<script src="character-builds.js?v=v198"></script>
+<script src="spells.js?v=v198"></script>
+<script src="app-core.js?v=v198"></script>
+<script src="app-backup.js?v=v198"></script>
+<script src="app-combat.js?v=v198"></script>
+<script src="app-hp.js?v=v198"></script>
+<script src="app-spells.js?v=v198"></script>
+<script src="app-inventory.js?v=v198"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v197"></script>
-<script src="class-choices.js?v=v197"></script>
-<script src="subclass-choices-data.js?v=v197"></script>
+<script src="app-party.js?v=v198"></script>
+<script src="class-choices.js?v=v198"></script>
+<script src="subclass-choices-data.js?v=v198"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v197";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v198";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v197"></script>
-<script src="app-notes.js?v=v197"></script>
-<script src="app-desktop.js?v=v197"></script>
-<script src="history-stack.js?v=v197"></script>
-<script src="app-help.js?v=v197"></script>
+<script src="app-ui.js?v=v198"></script>
+<script src="app-notes.js?v=v198"></script>
+<script src="app-desktop.js?v=v198"></script>
+<script src="history-stack.js?v=v198"></script>
+<script src="app-help.js?v=v198"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2639,9 +2646,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v197",
-    "vendor/jspdf/roboto-base64.js?v=v197",
-    "app-pdf.js?v=v197"
+    "vendor/jspdf/jspdf.umd.min.js?v=v198",
+    "vendor/jspdf/roboto-base64.js?v=v198",
+    "app-pdf.js?v=v198"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -2665,7 +2672,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v197").then(function () {
+    return loadScript("build-notes-data.js?v=v198").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -2673,8 +2680,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v197"),
-      loadScript("npc-srd.js?v=v197")
+      loadScript("monsters-srd.js?v=v198"),
+      loadScript("npc-srd.js?v=v198")
     ]);
   };
   var stub = function (id, ev) {
