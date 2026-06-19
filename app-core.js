@@ -216,11 +216,11 @@ var abilities = [
 {key: "int", name: "Интеллект"}, {key: "wis", name: "Мудрость"}, {key: "cha", name: "Харизма"}
 ];
 var skills = [
-{name: "Акробатика", stat: "dex"}, {name: "Аркана", stat: "int"}, {name: "Атлетика", stat: "str"},
+{name: "Акробатика", stat: "dex"}, {name: "Магия", stat: "int"}, {name: "Атлетика", stat: "str"},
 {name: "Внимательность", stat: "wis"}, {name: "Выживание", stat: "wis"}, {name: "Выступление", stat: "cha"},
 {name: "Запугивание", stat: "cha"}, {name: "История", stat: "int"}, {name: "Ловкость рук", stat: "dex"},
 {name: "Медицина", stat: "wis"}, {name: "Обман", stat: "cha"}, {name: "Природа", stat: "int"},
-{name: "Проницательность", stat: "wis"}, {name: "Расследование", stat: "int"}, {name: "Религия", stat: "int"},
+{name: "Проницательность", stat: "wis"}, {name: "Анализ", stat: "int"}, {name: "Религия", stat: "int"},
 {name: "Скрытность", stat: "dex"}, {name: "Убеждение", stat: "cha"}, {name: "Уход за животными", stat: "wis"}
 ];
 

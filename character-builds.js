@@ -719,7 +719,7 @@ window.CHARACTER_BUILDS = [
     id: "bard-lore-caster",
     className: "Бард",
     subclass: "Коллегия знаний",
-    recommendedChoices: { "expertise": ["Убеждение", "Аркана"] },
+    recommendedChoices: { "expertise": ["Убеждение", "Магия"] },
     title: "Бард-кастер контроля",
     role: "Control",
     difficulty: 3,
