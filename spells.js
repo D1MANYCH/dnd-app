@@ -25,7 +25,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Дружелюбие",
+    "name": "Дружба",
     "level": 0,
     "school": "очарование",
     "source": "PH14",
@@ -44,7 +44,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Друидический знак",
+    "name": "Искусство друидов",
     "level": 0,
     "school": "преобразование",
     "source": "PH14",
@@ -60,7 +60,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Дубина",
+    "name": "Дубинка",
     "level": 0,
     "school": "преобразование",
     "source": "PH14",
@@ -76,7 +76,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Защита клинком",
+    "name": "Защита от оружия",
     "level": 0,
     "school": "ограждение",
     "source": "PH14",
@@ -95,7 +95,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Злобная насмешка",
+    "name": "Злая насмешка",
     "level": 0,
     "school": "очарование",
     "source": "PH14",
@@ -111,7 +111,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Знаменательное послание",
+    "name": "Сообщение",
     "level": 0,
     "school": "преобразование",
     "source": "PH14",
@@ -129,7 +129,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Истинный удар",
+    "name": "Меткий удар",
     "level": 0,
     "school": "прорицание",
     "source": "PH14",
@@ -148,7 +148,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Кислота брызгами",
+    "name": "Брызги кислоты",
     "level": 0,
     "school": "вызов",
     "source": "PH14",
@@ -165,7 +165,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Луч мороза",
+    "name": "Луч холода",
     "level": 0,
     "school": "воплощение",
     "source": "PH14",
@@ -217,7 +217,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Могильный холод",
+    "name": "Леденящее прикосновение",
     "level": 0,
     "school": "некромантия",
     "source": "PH14",
@@ -235,7 +235,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Огненный болт",
+    "name": "Огненный снаряд",
     "level": 0,
     "school": "воплощение",
     "source": "PH14",
@@ -252,7 +252,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Пламя",
+    "name": "Сотворение пламени",
     "level": 0,
     "school": "вызов",
     "source": "PH14",
@@ -268,7 +268,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Пляшущие огни",
+    "name": "Пляшущие огоньки",
     "level": 0,
     "school": "воплощение",
     "source": "PH14",
@@ -286,7 +286,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Поддержка умирающего",
+    "name": "Уход за умирающим",
     "level": 0,
     "school": "некромантия",
     "source": "PH14",
@@ -302,7 +302,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Потрясение",
+    "name": "Электрошок",
     "level": 0,
     "school": "воплощение",
     "source": "PH14",
@@ -339,7 +339,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Престидижитация",
+    "name": "Фокусы",
     "level": 0,
     "school": "преобразование",
     "source": "PH14",
@@ -358,7 +358,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Руководство",
+    "name": "Указание",
     "level": 0,
     "school": "прорицание",
     "source": "PH14",
@@ -394,7 +394,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Священный огонь",
+    "name": "Священное пламя",
     "level": 0,
     "school": "воплощение",
     "source": "PH14",
@@ -427,7 +427,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Терновый бич",
+    "name": "Терновый кнут",
     "level": 0,
     "school": "преобразование",
     "source": "PH14",
@@ -459,7 +459,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Яд-брызги",
+    "name": "Ядовитые брызги",
     "level": 0,
     "school": "вызов",
     "source": "PH14",
@@ -497,7 +497,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Дружелюбие",
+    "name": "Дружба",
     "level": 0,
     "school": "очарование",
     "source": "PH24",
@@ -516,7 +516,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Друидический знак",
+    "name": "Искусство друидов",
     "level": 0,
     "school": "преобразование",
     "source": "PH24",
@@ -532,7 +532,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Дубина",
+    "name": "Дубинка",
     "level": 0,
     "school": "преобразование",
     "source": "PH24",
@@ -548,7 +548,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Защита клинком",
+    "name": "Защита от оружия",
     "level": 0,
     "school": "ограждение",
     "source": "PH24",
@@ -584,7 +584,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Злобная насмешка",
+    "name": "Злая насмешка",
     "level": 0,
     "school": "очарование",
     "source": "PH24",
@@ -600,7 +600,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Знаменательное послание",
+    "name": "Сообщение",
     "level": 0,
     "school": "преобразование",
     "source": "PH24",
@@ -619,7 +619,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Истинный удар",
+    "name": "Меткий удар",
     "level": 0,
     "school": "прорицание",
     "source": "PH24",
@@ -638,7 +638,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Кислота брызгами",
+    "name": "Брызги кислоты",
     "level": 0,
     "school": "воплощение",
     "source": "PH24",
@@ -655,7 +655,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Луч мороза",
+    "name": "Луч холода",
     "level": 0,
     "school": "воплощение",
     "source": "PH24",
@@ -707,7 +707,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Могильный холод",
+    "name": "Леденящее прикосновение",
     "level": 0,
     "school": "некромантия",
     "source": "PH24",
@@ -725,7 +725,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Огненный болт",
+    "name": "Огненный снаряд",
     "level": 0,
     "school": "воплощение",
     "source": "PH24",
@@ -742,7 +742,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Пламя",
+    "name": "Сотворение пламени",
     "level": 0,
     "school": "вызов",
     "source": "PH24",
@@ -758,7 +758,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Пляшущие огни",
+    "name": "Пляшущие огоньки",
     "level": 0,
     "school": "иллюзия",
     "source": "PH24",
@@ -776,7 +776,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Поддержка умирающего",
+    "name": "Уход за умирающим",
     "level": 0,
     "school": "некромантия",
     "source": "PH24",
@@ -793,7 +793,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Потрясение",
+    "name": "Электрошок",
     "level": 0,
     "school": "воплощение",
     "source": "PH24",
@@ -830,7 +830,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Престидижитация",
+    "name": "Фокусы",
     "level": 0,
     "school": "преобразование",
     "source": "PH24",
@@ -849,7 +849,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Руководство",
+    "name": "Указание",
     "level": 0,
     "school": "прорицание",
     "source": "PH24",
@@ -885,7 +885,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Священный огонь",
+    "name": "Священное пламя",
     "level": 0,
     "school": "воплощение",
     "source": "PH24",
@@ -918,7 +918,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Терновый бич",
+    "name": "Терновый кнут",
     "level": 0,
     "school": "преобразование",
     "source": "PH24",
@@ -984,7 +984,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Яд-брызги",
+    "name": "Ядовитые брызги",
     "level": 0,
     "school": "некромантия",
     "source": "PH24",
