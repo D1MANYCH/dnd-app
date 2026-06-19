@@ -1158,20 +1158,30 @@ function _applyBuildCore(buildId) {
     }
     _pushResolved(b.startingSpells.cantrips);
     _pushResolved(b.startingSpells.known);
-    if (Array.isArray(b.startingSpells.prepared)) newChar.spells.prepared = newChar.spells.prepared.concat(b.startingSpells.prepared);
+    // BUILD-FIX-13: канонизируем имена prepared под SPELL_DATABASE (как mySpells),
+    // иначе отметка «подготовлено» не привязывается к объекту заклинания
+    // (например prepared "Сонливость" не совпадал с mySpells "Сон").
+    var _canonName = function(n){ var sp = _resolveSpell(n); return (sp && sp.name) ? sp.name : n; };
+    if (Array.isArray(b.startingSpells.prepared)) {
+      b.startingSpells.prepared.forEach(function(n){
+        var cn = _canonName(n);
+        if (newChar.spells.prepared.indexOf(cn) === -1) newChar.spells.prepared.push(cn);
+      });
+    }
+    // BUILD-FIX-3/13: для подготовленных классов (волшебник/жрец/друид/паладин) —
+    // если в билде не указан prepared, авто-подготавливаем известные заклинания.
+    // Заговоры в prepared не нужны — они всегда подготовлены. Имена канонизируем.
+    var _preparedCasters = { "Волшебник":1, "Жрец":1, "Друид":1, "Паладин":1 };
+    if (_preparedCasters[b.className] &&
+        (!Array.isArray(b.startingSpells.prepared) || b.startingSpells.prepared.length === 0) &&
+        Array.isArray(b.startingSpells.known)) {
+      b.startingSpells.known.forEach(function(n){
+        var cn = _canonName(n);
+        if (newChar.spells.prepared.indexOf(cn) === -1) newChar.spells.prepared.push(cn);
+      });
+    }
     if (_missing.length) {
       console.warn("[BUILD-FIX-12] " + b.id + ": заклинания не найдены в SPELL_DATABASE:", _missing);
-    }
-  }
-  // BUILD-FIX-3: для подготовленных классов (волшебник/жрец/друид/паладин) —
-  // если в билде не указан prepared, авто-подготавливаем все известные заклинания 1+ уровня.
-  // Заговоры в prepared не нужны — они всегда подготовлены.
-  var _preparedCasters = { "Волшебник":1, "Жрец":1, "Друид":1, "Паладин":1 };
-  if (_preparedCasters[b.className] && (!b.startingSpells || !Array.isArray(b.startingSpells.prepared) || b.startingSpells.prepared.length === 0)) {
-    if (b.startingSpells && Array.isArray(b.startingSpells.known)) {
-      b.startingSpells.known.forEach(function(n){
-        if (newChar.spells.prepared.indexOf(n) === -1) newChar.spells.prepared.push(n);
-      });
     }
   }
   // BUILD-FIX-5: умная категоризация startingEquipment
