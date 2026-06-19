@@ -11,9 +11,9 @@ var FIGHTING_STYLES = {
   "archery":     {name:"Стрельба",        desc:"+2 к броскам атаки дальнобойным оружием."},
   "defense":     {name:"Защита",          desc:"+1 КД, пока вы носите доспех."},
   "dueling":     {name:"Дуэлянт",         desc:"+2 к урону одноручным оружием, если в другой руке нет оружия."},
-  "great-weapon":{name:"Двуручный бой",   desc:"Перебрасывайте 1 и 2 на кубике урона двуручным оружием (новый результат принимаете)."},
-  "protection":  {name:"Защитник",        desc:"Реакция: помеха атакующему по союзнику в 5 фт. Требуется щит."},
-  "two-weapon":  {name:"Двуоружный бой",  desc:"Добавляете мод. характеристики к урону второй атаки бонусным действием."}
+  "great-weapon":{name:"Сражение большим оружием", desc:"Перебрасывайте 1 и 2 на кубике урона двуручным оружием (новый результат принимаете)."},
+  "protection":  {name:"Оборона",         desc:"Реакция: помеха атакующему по союзнику в 5 фт. Требуется щит."},
+  "two-weapon":  {name:"Сражение двумя оружиями", desc:"Добавляете мод. характеристики к урону второй атаки бонусным действием."}
 };
 
 // ── Метамагия чародея (PHB 2014, 8 опций) ──────────────────────
@@ -113,19 +113,19 @@ var FAVORED_TERRAINS = {
 // ============================================================
 var CLASS_CHOICES = {
   "Воин": [
-    {id:"fighting-style", name:"Стиль боя", icon:"⚔️", minLevel:1, type:"single",
+    {id:"fighting-style", name:"Боевой стиль", icon:"⚔️", minLevel:1, type:"single",
      options:["archery","defense","dueling","great-weapon","protection","two-weapon"],
      optionsDict:FIGHTING_STYLES,
      desc:"Выберите боевой стиль."}
   ],
   "Паладин": [
-    {id:"fighting-style", name:"Стиль боя", icon:"⚔️", minLevel:2, type:"single",
+    {id:"fighting-style", name:"Боевой стиль", icon:"⚔️", minLevel:2, type:"single",
      options:["defense","dueling","great-weapon","protection"],
      optionsDict:FIGHTING_STYLES,
      desc:"Выберите боевой стиль."}
   ],
   "Следопыт": [
-    {id:"fighting-style", name:"Стиль боя", icon:"⚔️", minLevel:2, type:"single",
+    {id:"fighting-style", name:"Боевой стиль", icon:"⚔️", minLevel:2, type:"single",
      options:["archery","defense","dueling","two-weapon"],
      optionsDict:FIGHTING_STYLES,
      desc:"Выберите боевой стиль."},
