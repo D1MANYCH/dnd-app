@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v202">
+<link rel="stylesheet" href="style.css?v=v203">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -2310,6 +2310,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="modal-content">
 <button type="button" class="modal-close" onclick="closeItemModal()" aria-label="Закрыть">&times;</button>
 <h3 id="item-modal-title">Добавить предмет</h3>
+<button type="button" class="magic-catalog-open-btn" onclick="openMagicCatalog()">📖 Выбрать из каталога магических предметов</button>
 <div class="add-spell-form item-form">
 <input type="hidden" id="item-category">
 <input type="hidden" id="item-slot-index">
@@ -2354,6 +2355,40 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button class="success" onclick="submitItem()">💾 Сохранить</button>
 <button class="secondary modal-close-bottom" onclick="closeItemModal()">Закрыть</button>
 </div>
+</div>
+</div>
+<!-- Modal: Magic Items Catalog (REQ-4b) — пикер из magic-items.js (ленивый) -->
+<div id="magic-catalog-modal" class="modal">
+<div class="modal-content magic-catalog-content">
+<button type="button" class="modal-close" onclick="closeMagicCatalog()" aria-label="Закрыть">&times;</button>
+<h3>📖 Каталог магических предметов</h3>
+<div class="magic-catalog-filters">
+  <input type="text" id="magic-catalog-search" placeholder="Поиск (рус / english)…" oninput="renderMagicCatalog()">
+  <select id="magic-catalog-type" onchange="renderMagicCatalog()">
+    <option value="">Все типы</option>
+    <option value="weapon">Оружие</option>
+    <option value="armor">Доспех</option>
+    <option value="shield">Щит</option>
+    <option value="potion">Зелье</option>
+    <option value="ring">Кольцо</option>
+    <option value="rod">Жезл</option>
+    <option value="scroll">Свиток</option>
+    <option value="staff">Посох</option>
+    <option value="wand">Волшебная палочка</option>
+    <option value="wondrous">Чудесный предмет</option>
+  </select>
+  <select id="magic-catalog-rarity" onchange="renderMagicCatalog()">
+    <option value="">Любая редкость</option>
+    <option value="common">обычный</option>
+    <option value="uncommon">необычный</option>
+    <option value="rare">редкий</option>
+    <option value="very_rare">очень редкий</option>
+    <option value="legendary">легендарный</option>
+    <option value="artifact">артефакт</option>
+  </select>
+</div>
+<div id="magic-catalog-count" class="magic-catalog-count"></div>
+<div id="magic-catalog-list" class="magic-catalog-list"></div>
 </div>
 </div>
 <!-- Modal: Item View -->
@@ -2598,35 +2633,35 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v202"></script>
-<script src="bg-orbits.js?v=v202"></script>
-<script src="dice-arena-bg.js?v=v202"></script>
-<script src="data.js?v=v202"></script>
+<script src="app-log.js?v=v203"></script>
+<script src="bg-orbits.js?v=v203"></script>
+<script src="dice-arena-bg.js?v=v203"></script>
+<script src="data.js?v=v203"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v202"></script>
-<script src="spells.js?v=v202"></script>
-<script src="app-core.js?v=v202"></script>
-<script src="app-backup.js?v=v202"></script>
-<script src="app-combat.js?v=v202"></script>
-<script src="app-hp.js?v=v202"></script>
-<script src="app-spells.js?v=v202"></script>
-<script src="app-inventory.js?v=v202"></script>
+<script src="character-builds.js?v=v203"></script>
+<script src="spells.js?v=v203"></script>
+<script src="app-core.js?v=v203"></script>
+<script src="app-backup.js?v=v203"></script>
+<script src="app-combat.js?v=v203"></script>
+<script src="app-hp.js?v=v203"></script>
+<script src="app-spells.js?v=v203"></script>
+<script src="app-inventory.js?v=v203"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v202"></script>
-<script src="class-choices.js?v=v202"></script>
-<script src="subclass-choices-data.js?v=v202"></script>
+<script src="app-party.js?v=v203"></script>
+<script src="class-choices.js?v=v203"></script>
+<script src="subclass-choices-data.js?v=v203"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v202";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v203";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v202"></script>
-<script src="app-notes.js?v=v202"></script>
-<script src="app-desktop.js?v=v202"></script>
-<script src="history-stack.js?v=v202"></script>
-<script src="app-help.js?v=v202"></script>
+<script src="app-ui.js?v=v203"></script>
+<script src="app-notes.js?v=v203"></script>
+<script src="app-desktop.js?v=v203"></script>
+<script src="history-stack.js?v=v203"></script>
+<script src="app-help.js?v=v203"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2639,9 +2674,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v202",
-    "vendor/jspdf/roboto-base64.js?v=v202",
-    "app-pdf.js?v=v202"
+    "vendor/jspdf/jspdf.umd.min.js?v=v203",
+    "vendor/jspdf/roboto-base64.js?v=v203",
+    "app-pdf.js?v=v203"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -2665,7 +2700,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v202").then(function () {
+    return loadScript("build-notes-data.js?v=v203").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -2673,14 +2708,14 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v202"),
-      loadScript("npc-srd.js?v=v202")
+      loadScript("monsters-srd.js?v=v203"),
+      loadScript("npc-srd.js?v=v203")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v202");
+    return loadScript("magic-items.js?v=v203");
   };
   var stub = function (id, ev) {
     if (ev && ev.stopPropagation) ev.stopPropagation();

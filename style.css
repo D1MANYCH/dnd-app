@@ -3841,6 +3841,47 @@ transition: all 0.18s;
   line-height: 1.4;
 }
 
+/* REQ-4b: пикер магических предметов */
+.magic-catalog-open-btn {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 9px 12px;
+  border-radius: var(--r-md, 10px);
+  border: 1px dashed var(--accent);
+  background: var(--input-bg);
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.magic-catalog-open-btn:hover { background: var(--bg-3, var(--input-bg)); border-color: var(--accent); }
+.magic-catalog-content { max-width: 640px; }
+.magic-catalog-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.magic-catalog-filters #magic-catalog-search { flex: 1 1 100%; }
+.magic-catalog-filters select { flex: 1 1 45%; }
+.magic-catalog-count { font-size: 0.8em; color: var(--text-muted); margin-bottom: 8px; }
+.magic-catalog-list { display: flex; flex-direction: column; gap: 6px; max-height: 52vh; overflow-y: auto; }
+.magic-catalog-empty { text-align: center; color: var(--text-muted); padding: 24px; }
+.magic-catalog-item {
+  text-align: left; width: 100%; cursor: pointer;
+  background: var(--input-bg); border: 1px solid var(--border-color);
+  border-radius: 10px; padding: 9px 11px;
+  transition: border-color .12s, background .12s;
+}
+.magic-catalog-item:hover { border-color: var(--accent); }
+.mci-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.mci-name { font-weight: 600; font-size: 0.95em; color: var(--text-color); }
+.mci-rarity { font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+.mci-meta { font-size: 0.78em; color: var(--text-muted); margin-top: 2px; }
+.mci-desc { font-size: 0.82em; color: var(--text-muted); margin-top: 4px; line-height: 1.35; }
+/* цвета редкости (D&D) */
+.rarity-common    { color: #9aa0a6; }
+.rarity-uncommon  { color: #4da843; }
+.rarity-rare      { color: #4a8bc9; }
+.rarity-very_rare { color: #9b59b6; }
+.rarity-legendary { color: #e0972e; }
+.rarity-artifact  { color: #c0563a; }
+
 .inv-exch-open-btn {
   background: var(--input-bg) !important;
   border: 1px solid var(--border-color) !important;

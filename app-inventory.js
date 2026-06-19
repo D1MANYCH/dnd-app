@@ -395,6 +395,88 @@ saveToLocal();
 closeItemModal();
 renderInventory();
 }
+
+// REQ-4b: пикер магических предметов из каталога (magic-items.js, грузится лениво).
+// Тип предмета каталога → категория инвентаря.
+var MAGIC_TYPE_TO_CATEGORY = {
+  weapon:"weapon", armor:"armor", shield:"armor", potion:"potion", scroll:"scroll",
+  ring:"other", rod:"other", staff:"other", wand:"other", wondrous:"other"
+};
+var MAGIC_RARITY_ORDER = { common:0, uncommon:1, rare:2, very_rare:3, legendary:4, artifact:5 };
+
+function openMagicCatalog() {
+  if (typeof showToast === "function") showToast("Загружаем каталог…", "info");
+  var ensure = (typeof window.ensureMagicItems === "function") ? window.ensureMagicItems() : Promise.resolve();
+  ensure.then(function () {
+    var modal = document.getElementById("magic-catalog-modal");
+    if (modal) modal.classList.add("active");
+    var s = document.getElementById("magic-catalog-search"); if (s) s.value = "";
+    var t = document.getElementById("magic-catalog-type"); if (t) t.value = "";
+    var r = document.getElementById("magic-catalog-rarity"); if (r) r.value = "";
+    renderMagicCatalog();
+    if (s) s.focus();
+  }).catch(function (e) {
+    if (window.__catchLog) window.__catchLog("magic-catalog:load", e);
+    if (typeof showToast === "function") showToast("Не удалось загрузить каталог: " + (e && e.message ? e.message : e), "error");
+  });
+}
+function closeMagicCatalog() {
+  var modal = document.getElementById("magic-catalog-modal");
+  if (modal) modal.classList.remove("active");
+}
+function renderMagicCatalog() {
+  var items = window.MAGIC_ITEMS || [];
+  var q = ((document.getElementById("magic-catalog-search") || {}).value || "").toLowerCase().trim();
+  var ft = (document.getElementById("magic-catalog-type") || {}).value || "";
+  var fr = (document.getElementById("magic-catalog-rarity") || {}).value || "";
+  var R = window.MAGIC_ITEM_RARITY || {}, T = window.MAGIC_ITEM_TYPE || {};
+  var filtered = items.filter(function (it) {
+    if (ft && it.type !== ft) return false;
+    if (fr && it.rarity !== fr) return false;
+    if (q && it.name.toLowerCase().indexOf(q) === -1 && (it.nameEn || "").toLowerCase().indexOf(q) === -1) return false;
+    return true;
+  });
+  filtered.sort(function (a, b) {
+    var ra = MAGIC_RARITY_ORDER[a.rarity] || 0, rb = MAGIC_RARITY_ORDER[b.rarity] || 0;
+    if (ra !== rb) return ra - rb;
+    return a.name.localeCompare(b.name, "ru");
+  });
+  var countEl = document.getElementById("magic-catalog-count");
+  if (countEl) countEl.textContent = "Найдено: " + filtered.length + " из " + items.length;
+  var listEl = document.getElementById("magic-catalog-list");
+  if (!listEl) return;
+  if (!filtered.length) { listEl.innerHTML = '<div class="magic-catalog-empty">Ничего не найдено</div>'; return; }
+  listEl.innerHTML = filtered.map(function (it) {
+    var attune = it.attune ? ' · ⚙ настройка' : '';
+    return '<button type="button" class="magic-catalog-item" onclick="fillFromMagicItem(\'' + it.id + '\')">' +
+      '<div class="mci-top"><span class="mci-name">' + escapeHtml(it.name) + '</span>' +
+      '<span class="mci-rarity rarity-' + it.rarity + '">' + escapeHtml(R[it.rarity] || it.rarity) + '</span></div>' +
+      '<div class="mci-meta">' + escapeHtml(T[it.type] || it.type) + attune + ' · ' + escapeHtml(it.nameEn || '') + '</div>' +
+      '<div class="mci-desc">' + escapeHtml(it.desc || '') + '</div>' +
+      '</button>';
+  }).join("");
+}
+function fillFromMagicItem(id) {
+  var items = window.MAGIC_ITEMS || [];
+  var it = null;
+  for (var i = 0; i < items.length; i++) { if (items[i].id === id) { it = items[i]; break; } }
+  if (!it) return;
+  var R = window.MAGIC_ITEM_RARITY || {};
+  var nameEl = document.getElementById("new-item-name");
+  var wEl = document.getElementById("new-item-weight");
+  var dEl = document.getElementById("new-item-desc");
+  var cEl = document.getElementById("new-item-category");
+  if (nameEl) nameEl.value = it.name;
+  if (wEl) wEl.value = (typeof it.weight === "number") ? it.weight : 0;
+  if (cEl) cEl.value = MAGIC_TYPE_TO_CATEGORY[it.type] || "other";
+  if (dEl) {
+    var meta = (R[it.rarity] || it.rarity) + (it.attune ? ", требует настройки" : "");
+    dEl.value = (it.desc || "") + "\n(" + meta + ". " + (it.nameEn || "") + ")";
+  }
+  closeMagicCatalog();
+  if (typeof showToast === "function") showToast("Выбрано: " + it.name + " — проверьте и сохраните", "success");
+}
+
 function viewItem(category, index) {
 if (!currentId) return;
 const char = getCurrentChar();
