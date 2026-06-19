@@ -11329,6 +11329,10 @@ mark.notes-hl {
 }
 .char-build-plan-btn:hover { border-color: var(--accent); color: var(--accent); }
 .char-build-plan-btn:active { transform: scale(0.97); }
+/* REQ-3: «План класса» рядом с подписью поля «Класс» */
+.label-action-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.label-action-row > label { margin: 0; }
+.class-plan-btn { padding: 3px 10px; font-size: 0.72em; }
 .bp-plan-body { display: flex; flex-direction: column; gap: 4px; }
 .bp-plan-meta { font-size: 0.85em; color: var(--text-muted); margin-bottom: 8px; }
 .bp-plan-row { display: flex; gap: 10px; align-items: flex-start; padding: 7px 8px; border-radius: 8px; border: 1px solid transparent; }

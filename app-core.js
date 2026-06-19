@@ -1924,6 +1924,57 @@ function openBuildPlan(buildId) {
   }
 }
 
+// REQ-3: общий план класса 1–20 для ЛЮБОГО персонажа (не только из билда).
+// Данные — CLASS_FEATURES + SUBCLASS_FEATURES (data.js), те же, что в level-up.
+// openBuildPlan показывает нарратив билда; этот — официальные фичи класса/подкласса.
+function openClassPlan() {
+  var ch = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  if (!ch || !ch.class) {
+    if (typeof showToast === "function") showToast("Сначала выберите класс", "warn");
+    return;
+  }
+  if (typeof CLASS_FEATURES === "undefined" || !CLASS_FEATURES[ch.class]) {
+    if (typeof showToast === "function") showToast("Нет данных по этому классу", "warn");
+    return;
+  }
+  var cls = CLASS_FEATURES[ch.class];
+  var sub = (ch.subclass && typeof SUBCLASS_FEATURES !== "undefined") ? SUBCLASS_FEATURES[ch.subclass] : null;
+  var curLevel = ch.level || 1;
+  var titleEl = document.getElementById("bp-plan-title-h");
+  if (titleEl) titleEl.textContent = "📈 План класса: " + ch.class;
+  var rows = [];
+  for (var lv = 1; lv <= 20; lv++) {
+    var feats = [];
+    if (Array.isArray(cls[lv])) feats = feats.concat(cls[lv]);
+    if (sub && Array.isArray(sub[lv])) feats = feats.concat(sub[lv]);
+    if (!feats.length) continue;
+    var rowCls = "bp-plan-row", tag = "";
+    if (lv === curLevel) { rowCls += " current"; tag = '<span class="bp-plan-tag">ты здесь</span>'; }
+    else if (lv === curLevel + 1) { rowCls += " next"; tag = '<span class="bp-plan-tag next">дальше</span>'; }
+    else if (lv < curLevel) { rowCls += " past"; }
+    var inner = feats.map(function(f, i){
+      return '<div class="bp-plan-head">' + escapeHtml(f.name || "") + (i === 0 ? tag : "") + '</div>' +
+             (f.desc ? '<div class="bp-plan-why">' + escapeHtml(f.desc) + '</div>' : '');
+    }).join("");
+    rows.push('<div class="' + rowCls + '"><div class="bp-plan-lv">' + lv + '</div><div class="bp-plan-txt">' + inner + '</div></div>');
+  }
+  var bodyEl = document.getElementById("bp-plan-body");
+  if (bodyEl) {
+    var meta = escapeHtml(ch.class) +
+      (ch.subclass ? ' · ' + escapeHtml(ch.subclass)
+                   : ' · подкласс не выбран (фичи архетипа появятся после выбора)') +
+      ' · текущий уровень: ' + curLevel;
+    bodyEl.innerHTML = '<div class="bp-plan-meta">' + meta + '</div>' + rows.join("");
+  }
+  openModal("build-plan-modal");
+  if (bodyEl) {
+    setTimeout(function(){
+      var el = bodyEl.querySelector(".bp-plan-row.current");
+      if (el && el.scrollIntoView) el.scrollIntoView({ block: "center" });
+    }, 60);
+  }
+}
+
 function createNewCharacter() {
 // Глубокое копирование дефолтного шаблона — безопасно, без мутации оригинала
 const newChar = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));
