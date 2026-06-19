@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v205">
+<link rel="stylesheet" href="style.css?v=v206">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -477,20 +477,16 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <select id="char-background" class="field" onchange="updateChar(); onBackgroundChange(); updateLockButtonState()">
 <option value="">Выберите предысторию</option>
 <option value="Прислужник">Прислужник</option>
-<option value="Бродяга">Бродяга</option>
-<option value="Воин">Воин</option>
+<option value="Солдат">Солдат</option>
 <option value="Мудрец">Мудрец</option>
-<option value="Благородный">Благородный</option>
+<option value="Дворянин">Дворянин</option>
 <option value="Преступник">Преступник</option>
-<option value="Торговец">Торговец</option>
+<option value="Гильдейский ремесленник">Гильдейский ремесленник</option>
 <option value="Отшельник">Отшельник</option>
-<option value="Герой народа">Герой народа</option>
+<option value="Народный герой">Народный герой</option>
 <option value="Чужеземец">Чужеземец</option>
-<option value="Аколит">Аколит</option>
 <option value="Артист">Артист</option>
-<option value="Матрос">Матрос</option>
-<option value="Подмастерье">Подмастерье</option>
-<option value="Преступник/Шпион">Преступник/Шпион</option>
+<option value="Моряк">Моряк</option>
 </select>
 </div>
 </div>
@@ -2633,35 +2629,35 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v205"></script>
-<script src="bg-orbits.js?v=v205"></script>
-<script src="dice-arena-bg.js?v=v205"></script>
-<script src="data.js?v=v205"></script>
+<script src="app-log.js?v=v206"></script>
+<script src="bg-orbits.js?v=v206"></script>
+<script src="dice-arena-bg.js?v=v206"></script>
+<script src="data.js?v=v206"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v205"></script>
-<script src="spells.js?v=v205"></script>
-<script src="app-core.js?v=v205"></script>
-<script src="app-backup.js?v=v205"></script>
-<script src="app-combat.js?v=v205"></script>
-<script src="app-hp.js?v=v205"></script>
-<script src="app-spells.js?v=v205"></script>
-<script src="app-inventory.js?v=v205"></script>
+<script src="character-builds.js?v=v206"></script>
+<script src="spells.js?v=v206"></script>
+<script src="app-core.js?v=v206"></script>
+<script src="app-backup.js?v=v206"></script>
+<script src="app-combat.js?v=v206"></script>
+<script src="app-hp.js?v=v206"></script>
+<script src="app-spells.js?v=v206"></script>
+<script src="app-inventory.js?v=v206"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v205"></script>
-<script src="class-choices.js?v=v205"></script>
-<script src="subclass-choices-data.js?v=v205"></script>
+<script src="app-party.js?v=v206"></script>
+<script src="class-choices.js?v=v206"></script>
+<script src="subclass-choices-data.js?v=v206"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v205";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v206";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v205"></script>
-<script src="app-notes.js?v=v205"></script>
-<script src="app-desktop.js?v=v205"></script>
-<script src="history-stack.js?v=v205"></script>
-<script src="app-help.js?v=v205"></script>
+<script src="app-ui.js?v=v206"></script>
+<script src="app-notes.js?v=v206"></script>
+<script src="app-desktop.js?v=v206"></script>
+<script src="history-stack.js?v=v206"></script>
+<script src="app-help.js?v=v206"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2674,9 +2670,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v205",
-    "vendor/jspdf/roboto-base64.js?v=v205",
-    "app-pdf.js?v=v205"
+    "vendor/jspdf/jspdf.umd.min.js?v=v206",
+    "vendor/jspdf/roboto-base64.js?v=v206",
+    "app-pdf.js?v=v206"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -2700,7 +2696,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v205").then(function () {
+    return loadScript("build-notes-data.js?v=v206").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -2708,14 +2704,14 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v205"),
-      loadScript("npc-srd.js?v=v205")
+      loadScript("monsters-srd.js?v=v206"),
+      loadScript("npc-srd.js?v=v206")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v205");
+    return loadScript("magic-items.js?v=v206");
   };
   var stub = function (id, ev) {
     if (ev && ev.stopPropagation) ev.stopPropagation();

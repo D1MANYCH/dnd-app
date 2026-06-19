@@ -430,7 +430,7 @@
       if (!c.coins || c.coins.gp !== 0) return "coins.gp: ожидал 0";
       if (!c.deathSaves || !Array.isArray(c.deathSaves.successes)) return "deathSaves.successes не массив";
       if (typeof c.saves !== "object" || typeof c.skills !== "object") return "saves/skills не объекты";
-      if (c.schemaVersion !== 13) return "schemaVersion: ожидал 13, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 14) return "schemaVersion: ожидал 14, получено " + c.schemaVersion;
       return true;
     });
 
@@ -499,7 +499,7 @@
         window.SPELL_DATABASE = SPELLS_BASE.concat([{ id: "user-rt-1", name: "Тестовый луч", level: 1 }]);
         var p = _buildExportPayload();
         if (p.app !== "dnd-sheet") return "app: " + p.app;
-        if (p.schemaVersion !== 13) return "schemaVersion: ожидал 13, получено " + p.schemaVersion;
+        if (p.schemaVersion !== 14) return "schemaVersion: ожидал 14, получено " + p.schemaVersion;
         if (!p.exportedAt) return "нет exportedAt";
         if (!Array.isArray(p.characters) || p.characters.length !== 2) return "characters: ожидал 2";
         if (!Array.isArray(p.hpHistory) || p.hpHistory.length !== 2) return "hpHistory: ожидал 2 (как есть, фильтр — на импорте)";
@@ -605,7 +605,7 @@
         journal: [{ text: "запись" }]
       };
       var c = migrateCharacter(JSON.parse(JSON.stringify(legacy)));
-      if (c.schemaVersion !== 13) return "schemaVersion: " + c.schemaVersion;
+      if (c.schemaVersion !== 14) return "schemaVersion: " + c.schemaVersion;
       var langs = c.proficiencies.languages;
       if (!Array.isArray(langs) || langs.length !== 2 || langs[0].name !== "Общий" || langs[1].name !== "Эльфийский")
         return "языки строка→массив: " + JSON.stringify(langs);
