@@ -392,6 +392,21 @@ function migrateCharacter(char) {
     }
     char.schemaVersion = 12;
   }
+  if (v < 13) {
+    // REQ-5: переименования по dnd.su — раса «Дварф»→«Дворф», язык «Дварфский»→«Дворфийский».
+    if (char.race) char.race = char.race.replace(/Дварф/g, "Дворф").replace(/дварф/g, "дворф");
+    var _renameLang13 = function(arr){
+      if (!Array.isArray(arr)) return;
+      for (var _li = 0; _li < arr.length; _li++) if (arr[_li] === "Дварфский") arr[_li] = "Дворфийский";
+    };
+    if (char.proficiencies) {
+      _renameLang13(char.proficiencies.languages);
+      if (char.proficiencies.languageChoices) {
+        Object.keys(char.proficiencies.languageChoices).forEach(function(k){ _renameLang13(char.proficiencies.languageChoices[k]); });
+      }
+    }
+    char.schemaVersion = 13;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем
@@ -979,7 +994,7 @@ function _applyBuildCore(buildId) {
   // BUILD-FIX-2: канонический ключ предыстории — чтобы recalc*FromSources видели её
   newChar.background = _bgKey;
   // BUILD-FIX-2: языки — заполняем languageChoices, recalcLanguagesFromSources соберёт массив
-  var _stdLangs = ["Общий","Дварфский","Эльфийский","Великаний","Гномий","Гоблинский","Орочий","Полуросликов"];
+  var _stdLangs = ["Общий","Дворфийский","Эльфийский","Великаний","Гномий","Гоблинский","Орочий","Полуросликов"];
   var _knownLangs = {};
   var _rl = (typeof RACE_LANGUAGES !== "undefined") && RACE_LANGUAGES[b.race];
   if (_rl) (_rl.fixed||[]).forEach(function(n){ _knownLangs[n] = true; });
