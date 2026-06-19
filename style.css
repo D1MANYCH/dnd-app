@@ -2176,6 +2176,19 @@ select optgroup { background-color: #15141d; color: var(--accent-color); font-we
    из-за чего «Лесной эльф (+2 ЛОВ +1 МУД, 35 фт)» обрезалось. Стек даёт полю всю ширину ячейки. */
 .basics-row { flex-direction: column; }
 .basics-row > .col { width: 100%; min-width: 0; }
+/* UI-fix: выравнивание верхних полей пары (Класс ↔ Раса/Вид). Шапка «Класс» — это
+   .label-action-row с кнопкой «План класса», которая выше обычного <label>: кнопка ещё и
+   тянет stray margin-bottom от глобального button{}. Из-за этого select «Класс» и поля под
+   ним (Подкласс) опускались на ~7px ниже правой колонки. Снимаем stray-margin у кнопки и
+   резервируем одинаковую высоту шапки у первого поля каждой колонки → select'ы на одной линии. */
+.label-action-row .char-build-plan-btn { margin-bottom: 0; }
+.basics-row > .col:first-child > .label-action-row,
+.basics-row > .col:first-child > label {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--sp-2);
+}
 
 /* ========== КД АВТО-РАСЧЁТ ========== */
 .ac-calc-section {
