@@ -417,6 +417,27 @@ function migrateCharacter(char) {
     if (char.background && _bgRename14[char.background]) char.background = _bgRename14[char.background];
     char.schemaVersion = 14;
   }
+  if (v < 15) {
+    // REQ-5a′: эталон → книги «2014 PHantom». Откат REQ-5a (schema 13):
+    // раса «Дворф»→«Дварф», язык «Дворфийский»→«Дварфский» (книга, стр. 17/124).
+    if (char.race) char.race = char.race.replace(/Дворф/g, "Дварф").replace(/дворф/g, "дварф");
+    // языки хранятся объектами {name,...} (schema 7), но защищаемся и от строк
+    var _renameLang15 = function(arr){
+      if (!Array.isArray(arr)) return;
+      for (var _li = 0; _li < arr.length; _li++) {
+        var _el = arr[_li];
+        if (_el === "Дворфийский") arr[_li] = "Дварфский";
+        else if (_el && _el.name === "Дворфийский") _el.name = "Дварфский";
+      }
+    };
+    if (char.proficiencies) {
+      _renameLang15(char.proficiencies.languages);
+      if (char.proficiencies.languageChoices) {
+        Object.keys(char.proficiencies.languageChoices).forEach(function(k){ _renameLang15(char.proficiencies.languageChoices[k]); });
+      }
+    }
+    char.schemaVersion = 15;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем
@@ -1003,7 +1024,7 @@ function _applyBuildCore(buildId) {
   // BUILD-FIX-2: канонический ключ предыстории — чтобы recalc*FromSources видели её
   newChar.background = _bgKey;
   // BUILD-FIX-2: языки — заполняем languageChoices, recalcLanguagesFromSources соберёт массив
-  var _stdLangs = ["Общий","Дворфийский","Эльфийский","Великаний","Гномий","Гоблинский","Орочий","Полуросликов"];
+  var _stdLangs = ["Общий","Дварфский","Эльфийский","Великаний","Гномий","Гоблинский","Орочий","Полуросликов"];
   var _knownLangs = {};
   var _rl = (typeof RACE_LANGUAGES !== "undefined") && RACE_LANGUAGES[b.race];
   if (_rl) (_rl.fixed||[]).forEach(function(n){ _knownLangs[n] = true; });
