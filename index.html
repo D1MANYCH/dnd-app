@@ -12,7 +12,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v198">
+<link rel="stylesheet" href="style.css?v=v199">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -1039,7 +1039,6 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="inv-coin-card">
         <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#a0522d"></span><span class="inv-coin-lbl">Медь</span></div>
         <input type="number" id="coin-cp" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
-        <div class="inv-coin-rate">= 0.01 ЗМ</div>
         <div class="inv-coin-card-btns">
           <button class="inv-coin-btn" onclick="adjustCoin('cp',-1)">−</button>
           <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('cp',1)">+</button>
@@ -1048,7 +1047,6 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="inv-coin-card">
         <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#aaa"></span><span class="inv-coin-lbl">Серебро</span></div>
         <input type="number" id="coin-sp" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
-        <div class="inv-coin-rate">= 0.1 ЗМ</div>
         <div class="inv-coin-card-btns">
           <button class="inv-coin-btn" onclick="adjustCoin('sp',-1)">−</button>
           <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('sp',1)">+</button>
@@ -1057,7 +1055,6 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="inv-coin-card">
         <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#4a8bc9"></span><span class="inv-coin-lbl">Электрум</span></div>
         <input type="number" id="coin-ep" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
-        <div class="inv-coin-rate">= 0.5 ЗМ</div>
         <div class="inv-coin-card-btns">
           <button class="inv-coin-btn" onclick="adjustCoin('ep',-1)">−</button>
           <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('ep',1)">+</button>
@@ -1068,7 +1065,6 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="inv-coin-card inv-coin-card-gold">
         <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#c9a040"></span><span class="inv-coin-lbl">Золото</span></div>
         <input type="number" id="coin-gp" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
-        <div class="inv-coin-rate">= 1 ЗМ</div>
         <div class="inv-coin-card-btns">
           <button class="inv-coin-btn" onclick="adjustCoin('gp',-1)">−</button>
           <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('gp',1)">+</button>
@@ -1077,7 +1073,6 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="inv-coin-card">
         <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#9b59b6"></span><span class="inv-coin-lbl">Платина</span></div>
         <input type="number" id="coin-pp" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
-        <div class="inv-coin-rate">= 10 ЗМ</div>
         <div class="inv-coin-card-btns">
           <button class="inv-coin-btn" onclick="adjustCoin('pp',-1)">−</button>
           <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('pp',1)">+</button>
@@ -1085,11 +1080,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       </div>
     </div>
   </div>
-  <!-- Total value -->
+  <!-- Exchange-rate reference (no auto-conversion of holdings) -->
   <div class="inv-coin-total">
-    <span class="inv-coin-total-label">Итого:</span>
-    <span class="inv-coin-total-value" id="coin-total-gp">0</span>
-    <span class="inv-coin-total-unit">ЗМ</span>
+    <span class="inv-coin-rate-ref">1&nbsp;ПМ = 10&nbsp;ЗМ · 1&nbsp;ЗМ = 10&nbsp;СМ = 100&nbsp;ММ · 1&nbsp;ЭМ = ½&nbsp;ЗМ</span>
     <button class="inv-exch-open-btn" onclick="openCoinExchange()">⇄ Разменять</button>
   </div>
 </div>
@@ -2605,35 +2598,35 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v198"></script>
-<script src="bg-orbits.js?v=v198"></script>
-<script src="dice-arena-bg.js?v=v198"></script>
-<script src="data.js?v=v198"></script>
+<script src="app-log.js?v=v199"></script>
+<script src="bg-orbits.js?v=v199"></script>
+<script src="dice-arena-bg.js?v=v199"></script>
+<script src="data.js?v=v199"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v198"></script>
-<script src="spells.js?v=v198"></script>
-<script src="app-core.js?v=v198"></script>
-<script src="app-backup.js?v=v198"></script>
-<script src="app-combat.js?v=v198"></script>
-<script src="app-hp.js?v=v198"></script>
-<script src="app-spells.js?v=v198"></script>
-<script src="app-inventory.js?v=v198"></script>
+<script src="character-builds.js?v=v199"></script>
+<script src="spells.js?v=v199"></script>
+<script src="app-core.js?v=v199"></script>
+<script src="app-backup.js?v=v199"></script>
+<script src="app-combat.js?v=v199"></script>
+<script src="app-hp.js?v=v199"></script>
+<script src="app-spells.js?v=v199"></script>
+<script src="app-inventory.js?v=v199"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v198"></script>
-<script src="class-choices.js?v=v198"></script>
-<script src="subclass-choices-data.js?v=v198"></script>
+<script src="app-party.js?v=v199"></script>
+<script src="class-choices.js?v=v199"></script>
+<script src="subclass-choices-data.js?v=v199"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v198";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v199";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v198"></script>
-<script src="app-notes.js?v=v198"></script>
-<script src="app-desktop.js?v=v198"></script>
-<script src="history-stack.js?v=v198"></script>
-<script src="app-help.js?v=v198"></script>
+<script src="app-ui.js?v=v199"></script>
+<script src="app-notes.js?v=v199"></script>
+<script src="app-desktop.js?v=v199"></script>
+<script src="history-stack.js?v=v199"></script>
+<script src="app-help.js?v=v199"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2646,9 +2639,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v198",
-    "vendor/jspdf/roboto-base64.js?v=v198",
-    "app-pdf.js?v=v198"
+    "vendor/jspdf/jspdf.umd.min.js?v=v199",
+    "vendor/jspdf/roboto-base64.js?v=v199",
+    "app-pdf.js?v=v199"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -2672,7 +2665,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v198").then(function () {
+    return loadScript("build-notes-data.js?v=v199").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -2680,8 +2673,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v198"),
-      loadScript("npc-srd.js?v=v198")
+      loadScript("monsters-srd.js?v=v199"),
+      loadScript("npc-srd.js?v=v199")
     ]);
   };
   var stub = function (id, ev) {

@@ -3822,26 +3822,24 @@ transition: all 0.18s;
 }
 .inv-coin-big-inp:focus { outline: none; color: var(--accent-color); }
 
-.inv-coin-rate {
-  font-size: 0.62em;
-  color: var(--text-muted);
-  letter-spacing: 0.3px;
-  margin-top: -4px;
-}
 .inv-coin-card-gold { border-color: rgba(201,160,64,0.3); }
 
-/* Total value row */
+/* Exchange-rate reference row (replaces auto-converted total) */
 .inv-coin-total {
   display: flex;
-  align-items: baseline;
-  gap: 5px;
+  align-items: center;
+  gap: 8px;
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--border-color);
 }
-.inv-coin-total-label { font-size: 0.75em; color: var(--text-muted); }
-.inv-coin-total-value { font-size: 1.3em; font-weight: 800; color: var(--accent-color); }
-.inv-coin-total-unit { font-size: 0.8em; color: var(--text-muted); flex: 1; }
+.inv-coin-rate-ref {
+  flex: 1;
+  font-size: 0.72em;
+  color: var(--text-muted);
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+}
 
 .inv-exch-open-btn {
   background: var(--input-bg) !important;

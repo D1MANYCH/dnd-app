@@ -1208,14 +1208,9 @@ updateChar();
 updateCoinTotal();
 }
 function updateCoinTotal() {
-const cp = parseInt($("coin-cp")?.value, 10) || 0;
-const sp = parseInt($("coin-sp")?.value, 10) || 0;
-const ep = parseInt($("coin-ep")?.value, 10) || 0;
-const gp = parseInt($("coin-gp")?.value, 10) || 0;
-const pp = parseInt($("coin-pp")?.value, 10) || 0;
-const total = cp * 0.01 + sp * 0.1 + ep * 0.5 + gp * 1 + pp * 10;
-const el = $("coin-total-gp");
-if (el) el.textContent = Number.isInteger(total) ? total : total.toFixed(2);
+// Авто-конвертация всех монет в золото убрана намеренно: в игре монеты
+// не разменять мгновенно (медь в глуши, требование платины и т.п.).
+// Кошель показывает только курс обмена (статичная справка + модалка размена).
 renderPouches();
 }
 
