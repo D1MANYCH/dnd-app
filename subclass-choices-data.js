@@ -241,7 +241,7 @@ var SUBCLASS_RESOURCES = {
         icon: "✨",
         byLevel: {
           1: ["Благословение (Bless)", "Лечение ран (Cure Wounds)"],
-          3: ["Малое восстановление (Lesser Restoration)", "Духовное оружие (Spiritual Weapon)"],
+          3: ["Малое восстановление (Lesser Restoration)", "Божественное оружие (Spiritual Weapon)"],
           5: ["Маяк надежды (Beacon of Hope)", "Возрождение (Revivify)"],
           7: ["Защита от смерти (Death Ward)", "Страж веры (Guardian of Faith)"],
           9: ["Массовое лечение ран (Mass Cure Wounds)", "Оживление (Raise Dead)"]
@@ -271,7 +271,7 @@ var SUBCLASS_RESOURCES = {
         icon: "⚔️",
         byLevel: {
           1: ["Божественная благосклонность (Divine Favor)", "Щит веры (Shield of Faith)"],
-          3: ["Волшебное оружие (Magic Weapon)", "Духовное оружие (Spiritual Weapon)"],
+          3: ["Магическое оружие (Magic Weapon)", "Божественное оружие (Spiritual Weapon)"],
           5: ["Крестовый поход (Crusader's Mantle)", "Духовные стражи (Spirit Guardians)"],
           7: ["Каменная кожа (Stoneskin)", "Свобода передвижения (Freedom of Movement)"],
           9: ["Пламенный удар (Flame Strike)", "Священное пламя (Hold Monster)"]
@@ -425,7 +425,7 @@ var SUBCLASS_RESOURCES = {
         icon: "😈",
         byLevel: {
           1: ["Жгучий удар (Burning Hands)", "Приказ (Command)"],
-          3: ["Слепота/Глухота (Blindness/Deafness)", "Раскат грома (Scorching Ray)"],
+          3: ["Глухота/слепота (Blindness/Deafness)", "Раскат грома (Scorching Ray)"],
           5: ["Удержание духа (Fireball)", "Огненный шар (Stinking Cloud)"],
           7: ["Огненный щит (Fire Shield)", "Огненная стена (Wall of Fire)"],
           9: ["Пламенный удар (Flame Strike)", "Приказ исчадия (Hallow)"]
