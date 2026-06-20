@@ -362,7 +362,7 @@ var SUBCLASS_RESOURCES = {
         label: "Заклинания клятвы преданности",
         icon: "🛡️",
         byLevel: {
-          3: ["Защита от зла и добра (Protection from Evil and Good)", "Святилище (Sanctuary)"],
+          3: ["Защита от добра и зла (Protection from Evil and Good)", "Святилище (Sanctuary)"],
           5: ["Малое восстановление (Lesser Restoration)", "Обет (Zone of Truth)"],
           9: ["Маяк надежды (Beacon of Hope)", "Рассеивающая магия (Dispel Magic)"],
           13: ["Свобода передвижения (Freedom of Movement)", "Страж веры (Guardian of Faith)"],

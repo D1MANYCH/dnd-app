@@ -1003,7 +1003,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Адская расплата",
+    "name": "Адское возмездие",
     "level": 1,
     "school": "воплощение",
     "source": "PH14",
@@ -1019,7 +1019,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Беззвучное изображение",
+    "name": "Безмолвный образ",
     "level": 1,
     "school": "иллюзия",
     "source": "PH14",
@@ -1054,7 +1054,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Божественная милость",
+    "name": "Божественное благоволение",
     "level": 1,
     "school": "воплощение",
     "source": "PH14",
@@ -1070,7 +1070,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Броня Агатиса",
+    "name": "Доспех Агатиса",
     "level": 1,
     "school": "ограждение",
     "source": "PH14",
@@ -1086,7 +1086,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Ведьмин болт",
+    "name": "Ведьмин снаряд",
     "level": 1,
     "school": "воплощение",
     "source": "PH14",
@@ -1138,7 +1138,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Громовая волна",
+    "name": "Волна грома",
     "level": 1,
     "school": "воплощение",
     "source": "PH14",
@@ -1189,7 +1189,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Длинный шаг",
+    "name": "Скороход",
     "level": 1,
     "school": "преобразование",
     "source": "PH14",
@@ -1243,7 +1243,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Жгучая кара",
+    "name": "Палящая кара",
     "level": 1,
     "school": "воплощение",
     "source": "PH14",
@@ -1259,7 +1259,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Живительная ягода",
+    "name": "Чудо-ягоды",
     "level": 1,
     "school": "преобразование",
     "source": "PH14",
@@ -1293,7 +1293,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Защита от зла и добра",
+    "name": "Защита от добра и зла",
     "level": 1,
     "school": "ограждение",
     "source": "PH14",
@@ -1312,7 +1312,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Иллюзорный текст",
+    "name": "Невидимое письмо",
     "level": 1,
     "school": "иллюзия",
     "source": "PH14",
@@ -1330,7 +1330,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Команда",
+    "name": "Приказ",
     "level": 1,
     "school": "очарование",
     "source": "PH14",
@@ -1418,7 +1418,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Мнимая жизнь",
+    "name": "Псевдожизнь",
     "level": 1,
     "school": "некромантия",
     "source": "PH14",
@@ -1435,7 +1435,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Мягкое падение",
+    "name": "Падение пёрышком",
     "level": 1,
     "school": "преобразование",
     "source": "PH14",
@@ -1469,7 +1469,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Направляющий болт",
+    "name": "Направленный снаряд",
     "level": 1,
     "school": "воплощение",
     "source": "PH14",
@@ -1485,7 +1485,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Незримый слуга",
+    "name": "Невидимый слуга",
     "level": 1,
     "school": "вызов",
     "source": "PH14",
@@ -1503,7 +1503,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Обнаружение зла и добра",
+    "name": "Обнаружение добра и зла",
     "level": 1,
     "school": "прорицание",
     "source": "PH14",
@@ -1542,7 +1542,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Обнаружение яда и болезни",
+    "name": "Обнаружение болезней и яда",
     "level": 1,
     "school": "прорицание",
     "source": "PH14",
@@ -1561,7 +1561,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Огненные руки",
+    "name": "Огненные ладони",
     "level": 1,
     "school": "воплощение",
     "source": "PH14",
@@ -1578,7 +1578,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Огни фей",
+    "name": "Огонь фей",
     "level": 1,
     "school": "воплощение",
     "source": "PH14",
@@ -1648,7 +1648,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Очищение еды и питья",
+    "name": "Очищение пищи и питья",
     "level": 1,
     "school": "преобразование",
     "source": "PH14",
@@ -1666,7 +1666,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Плавающий диск Тенсера",
+    "name": "Тензеров парящий диск",
     "level": 1,
     "school": "вызов",
     "source": "PH14",
@@ -1787,7 +1787,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Сигнализация",
+    "name": "Сигнал тревоги",
     "level": 1,
     "school": "ограждение",
     "source": "PH14",
@@ -1804,7 +1804,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Слово исцеления",
+    "name": "Лечащее слово",
     "level": 1,
     "school": "воплощение",
     "source": "PH14",
@@ -1822,7 +1822,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Смазка",
+    "name": "Скольжение",
     "level": 1,
     "school": "вызов",
     "source": "PH14",
@@ -1838,7 +1838,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Создать или уничтожить воду",
+    "name": "Сотворение или уничтожение воды",
     "level": 1,
     "school": "преобразование",
     "source": "PH14",
@@ -1855,7 +1855,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Сон",
+    "name": "Усыпление",
     "level": 1,
     "school": "очарование",
     "source": "PH14",
@@ -1908,7 +1908,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Ускоренное отступление",
+    "name": "Поспешное отступление",
     "level": 1,
     "school": "преобразование",
     "source": "PH14",
@@ -1926,7 +1926,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Хроматическая сфера",
+    "name": "Цветной шарик",
     "level": 1,
     "school": "воплощение",
     "source": "PH14",
@@ -1943,7 +1943,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Цветная россыпь",
+    "name": "Сверкающие брызги",
     "level": 1,
     "school": "иллюзия",
     "source": "PH14",
@@ -1994,7 +1994,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Яростная кара",
+    "name": "Гневная кара",
     "level": 1,
     "school": "воплощение",
     "source": "PH14",
@@ -2010,7 +2010,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Адская расплата",
+    "name": "Адское возмездие",
     "level": 1,
     "school": "воплощение",
     "source": "PH24",
@@ -2026,7 +2026,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Беззвучное изображение",
+    "name": "Безмолвный образ",
     "level": 1,
     "school": "иллюзия",
     "source": "PH24",
@@ -2061,7 +2061,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Божественная милость",
+    "name": "Божественное благоволение",
     "level": 1,
     "school": "воплощение",
     "source": "PH24",
@@ -2077,7 +2077,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Броня Агатиса",
+    "name": "Доспех Агатиса",
     "level": 1,
     "school": "ограждение",
     "source": "PH24",
@@ -2093,7 +2093,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Ведьмин болт",
+    "name": "Ведьмин снаряд",
     "level": 1,
     "school": "воплощение",
     "source": "PH24",
@@ -2145,7 +2145,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Громовая волна",
+    "name": "Волна грома",
     "level": 1,
     "school": "воплощение",
     "source": "PH24",
@@ -2196,7 +2196,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Длинный шаг",
+    "name": "Скороход",
     "level": 1,
     "school": "преобразование",
     "source": "PH24",
@@ -2268,7 +2268,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Жгучая кара",
+    "name": "Палящая кара",
     "level": 1,
     "school": "воплощение",
     "source": "PH24",
@@ -2284,7 +2284,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Живительная ягода",
+    "name": "Чудо-ягоды",
     "level": 1,
     "school": "вызов",
     "source": "PH24",
@@ -2318,7 +2318,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Защита от зла и добра",
+    "name": "Защита от добра и зла",
     "level": 1,
     "school": "ограждение",
     "source": "PH24",
@@ -2354,7 +2354,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Иллюзорный текст",
+    "name": "Невидимое письмо",
     "level": 1,
     "school": "иллюзия",
     "source": "PH24",
@@ -2372,7 +2372,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Команда",
+    "name": "Приказ",
     "level": 1,
     "school": "очарование",
     "source": "PH24",
@@ -2460,7 +2460,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Мнимая жизнь",
+    "name": "Псевдожизнь",
     "level": 1,
     "school": "некромантия",
     "source": "PH24",
@@ -2477,7 +2477,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Мягкое падение",
+    "name": "Падение пёрышком",
     "level": 1,
     "school": "преобразование",
     "source": "PH24",
@@ -2511,7 +2511,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Направляющий болт",
+    "name": "Направленный снаряд",
     "level": 1,
     "school": "воплощение",
     "source": "PH24",
@@ -2527,7 +2527,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Незримый слуга",
+    "name": "Невидимый слуга",
     "level": 1,
     "school": "вызов",
     "source": "PH24",
@@ -2545,7 +2545,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Обнаружение зла и добра",
+    "name": "Обнаружение добра и зла",
     "level": 1,
     "school": "прорицание",
     "source": "PH24",
@@ -2584,7 +2584,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Обнаружение яда и болезни",
+    "name": "Обнаружение болезней и яда",
     "level": 1,
     "school": "прорицание",
     "source": "PH24",
@@ -2603,7 +2603,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Огненные руки",
+    "name": "Огненные ладони",
     "level": 1,
     "school": "воплощение",
     "source": "PH24",
@@ -2620,7 +2620,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Огни фей",
+    "name": "Огонь фей",
     "level": 1,
     "school": "воплощение",
     "source": "PH24",
@@ -2690,7 +2690,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Очищение еды и питья",
+    "name": "Очищение пищи и питья",
     "level": 1,
     "school": "преобразование",
     "source": "PH24",
@@ -2708,7 +2708,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Плавающий диск Тенсера",
+    "name": "Тензеров парящий диск",
     "level": 1,
     "school": "вызов",
     "source": "PH24",
@@ -2846,7 +2846,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Сигнализация",
+    "name": "Сигнал тревоги",
     "level": 1,
     "school": "ограждение",
     "source": "PH24",
@@ -2863,7 +2863,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Слово исцеления",
+    "name": "Лечащее слово",
     "level": 1,
     "school": "воплощение",
     "source": "PH24",
@@ -2881,7 +2881,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Смазка",
+    "name": "Скольжение",
     "level": 1,
     "school": "вызов",
     "source": "PH24",
@@ -2897,7 +2897,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Создать или уничтожить воду",
+    "name": "Сотворение или уничтожение воды",
     "level": 1,
     "school": "преобразование",
     "source": "PH24",
@@ -2914,7 +2914,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Сон",
+    "name": "Усыпление",
     "level": 1,
     "school": "очарование",
     "source": "PH24",
@@ -2967,7 +2967,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Ускоренное отступление",
+    "name": "Поспешное отступление",
     "level": 1,
     "school": "преобразование",
     "source": "PH24",
@@ -3001,7 +3001,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Хроматическая сфера",
+    "name": "Цветной шарик",
     "level": 1,
     "school": "воплощение",
     "source": "PH24",
@@ -3018,7 +3018,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Цветная россыпь",
+    "name": "Сверкающие брызги",
     "level": 1,
     "school": "иллюзия",
     "source": "PH24",
@@ -3069,7 +3069,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Яростная кара",
+    "name": "Гневная кара",
     "level": 1,
     "school": "некромантия",
     "source": "PH24",
