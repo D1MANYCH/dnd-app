@@ -6838,7 +6838,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Аура чистоты",
+    "name": "Аура очищения",
     "level": 4,
     "school": "ограждение",
     "source": "PH14",
@@ -6870,7 +6870,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Врата измерений",
+    "name": "Переносящая дверь",
     "level": 4,
     "school": "вызов",
     "source": "PH14",
@@ -6889,7 +6889,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Галлюцинаторная местность",
+    "name": "Мираж",
     "level": 4,
     "school": "иллюзия",
     "source": "PH14",
@@ -6960,7 +6960,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Иссыхание",
+    "name": "Усыхание",
     "level": 4,
     "school": "некромантия",
     "source": "PH14",
@@ -6979,7 +6979,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Ледяной шторм",
+    "name": "Град",
     "level": 4,
     "school": "воплощение",
     "source": "PH14",
@@ -6997,7 +6997,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Личное убежище Морденкайнена",
+    "name": "Кабинет Морденкайнена",
     "level": 4,
     "school": "ограждение",
     "source": "PH14",
@@ -7045,7 +7045,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Определение существа",
+    "name": "Поиск существа",
     "level": 4,
     "school": "прорицание",
     "source": "PH14",
@@ -7066,7 +7066,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Ошеломляющий удар",
+    "name": "Оглушающая кара",
     "level": 4,
     "school": "воплощение",
     "source": "PH14",
@@ -7118,7 +7118,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Призрак-убийца",
+    "name": "Воображаемый убийца",
     "level": 4,
     "school": "иллюзия",
     "source": "PH14",
@@ -7184,7 +7184,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Прорицание",
+    "name": "Предсказание",
     "level": 4,
     "school": "прорицание",
     "source": "PH14",
@@ -7200,7 +7200,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Свобода передвижения",
+    "name": "Свобода перемещения",
     "level": 4,
     "school": "ограждение",
     "source": "PH14",
@@ -7254,7 +7254,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Страж смерти",
+    "name": "Защита от смерти",
     "level": 4,
     "school": "ограждение",
     "source": "PH14",
@@ -7271,7 +7271,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Тайный сундук Леомунда",
+    "name": "Леомундов потайной сундук",
     "level": 4,
     "school": "вызов",
     "source": "PH14",
@@ -7287,7 +7287,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Улучшенная невидимость",
+    "name": "Высшая невидимость",
     "level": 4,
     "school": "иллюзия",
     "source": "PH14",
@@ -7305,7 +7305,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Управление водой",
+    "name": "Власть над водами",
     "level": 4,
     "school": "преобразование",
     "source": "PH14",
@@ -7323,7 +7323,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Упругая сфера Отилюка",
+    "name": "Отилюков упругий шар",
     "level": 4,
     "school": "воплощение",
     "source": "PH14",
@@ -7339,7 +7339,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Формование камня",
+    "name": "Изменение формы камня",
     "level": 4,
     "school": "преобразование",
     "source": "PH14",
@@ -7357,7 +7357,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Хватающая лоза",
+    "name": "Цепкая лоза",
     "level": 4,
     "school": "вызов",
     "source": "PH14",
@@ -7374,7 +7374,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Чёрные щупальца Эварда",
+    "name": "Эвардовы чёрные щупальца",
     "level": 4,
     "school": "вызов",
     "source": "PH14",
@@ -7406,7 +7406,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Аура чистоты",
+    "name": "Аура очищения",
     "level": 4,
     "school": "ограждение",
     "source": "PH24",
@@ -7423,7 +7423,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Верный пёс",
+    "name": "Верный пёс Морденкайнена",
     "level": 4,
     "school": "вызов",
     "source": "PH24",
@@ -7439,7 +7439,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Власть над водой",
+    "name": "Власть над водами",
     "level": 4,
     "school": "преобразование",
     "source": "PH24",
@@ -7475,7 +7475,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Галлюцинаторный рельеф",
+    "name": "Мираж",
     "level": 4,
     "school": "иллюзия",
     "source": "PH24",
@@ -7510,7 +7510,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Замешательство",
+    "name": "Смятение",
     "level": 4,
     "school": "очарование",
     "source": "PH24",
@@ -7635,7 +7635,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Ледяной шторм",
+    "name": "Град",
     "level": 4,
     "school": "воплощение",
     "source": "PH24",
@@ -7653,7 +7653,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Личное убежище",
+    "name": "Кабинет Морденкайнена",
     "level": 4,
     "school": "ограждение",
     "source": "PH24",
@@ -7720,7 +7720,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Определение существа",
+    "name": "Поиск существа",
     "level": 4,
     "school": "прорицание",
     "source": "PH24",
@@ -7761,7 +7761,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Ошеломляющий удар",
+    "name": "Оглушающая кара",
     "level": 4,
     "school": "очарование",
     "source": "PH24",
@@ -7795,7 +7795,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Полиморф",
+    "name": "Превращение",
     "level": 4,
     "school": "преобразование",
     "source": "PH24",
@@ -7814,7 +7814,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Преобразование камня",
+    "name": "Изменение формы камня",
     "level": 4,
     "school": "преобразование",
     "source": "PH24",
@@ -7849,7 +7849,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Призыв существ леса",
+    "name": "Призыв лесных обитателей",
     "level": 4,
     "school": "вызов",
     "source": "PH24",
@@ -7882,7 +7882,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Прорицание",
+    "name": "Предсказание",
     "level": 4,
     "school": "прорицание",
     "source": "PH24",
@@ -7900,7 +7900,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Пространственная дверь",
+    "name": "Переносящая дверь",
     "level": 4,
     "school": "вызов",
     "source": "PH24",
@@ -7919,7 +7919,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Свобода передвижения",
+    "name": "Свобода перемещения",
     "level": 4,
     "school": "ограждение",
     "source": "PH24",
@@ -7954,7 +7954,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Тайный сундук",
+    "name": "Леомундов потайной сундук",
     "level": 4,
     "school": "вызов",
     "source": "PH24",
@@ -7970,7 +7970,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Упругая сфера",
+    "name": "Отилюков упругий шар",
     "level": 4,
     "school": "воплощение",
     "source": "PH24",
@@ -8005,7 +8005,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Фантомный убийца",
+    "name": "Воображаемый убийца",
     "level": 4,
     "school": "иллюзия",
     "source": "PH24",
@@ -8021,7 +8021,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Чёрные щупальца",
+    "name": "Эвардовы чёрные щупальца",
     "level": 4,
     "school": "вызов",
     "source": "PH24",

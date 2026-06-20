@@ -273,7 +273,7 @@ var SUBCLASS_RESOURCES = {
           1: ["Божественная благосклонность (Divine Favor)", "Щит веры (Shield of Faith)"],
           3: ["Магическое оружие (Magic Weapon)", "Божественное оружие (Spiritual Weapon)"],
           5: ["Крестовый поход (Crusader's Mantle)", "Духовные стражи (Spirit Guardians)"],
-          7: ["Каменная кожа (Stoneskin)", "Свобода передвижения (Freedom of Movement)"],
+          7: ["Каменная кожа (Stoneskin)", "Свобода перемещения (Freedom of Movement)"],
           9: ["Пламенный удар (Flame Strike)", "Священное пламя (Hold Monster)"]
         }
       }
@@ -333,7 +333,7 @@ var SUBCLASS_RESOURCES = {
           1: ["Очарование личности (Charm Person)", "Маскировка (Disguise Self)"],
           3: ["Зеркальный образ (Mirror Image)", "Паутина паука (Pass without Trace)"],
           5: ["Кровожадность (Blink)", "Раздвоение личности (Dispel Magic)"],
-          7: ["Сложная иллюзия (Dimension Door)", "Полиморф (Polymorph)"],
+          7: ["Сложная иллюзия (Dimension Door)", "Превращение (Polymorph)"],
           9: ["Владычество (Dominate Person)", "Рассеивающая иллюзия (Modify Memory)"]
         }
       }
@@ -365,7 +365,7 @@ var SUBCLASS_RESOURCES = {
           3: ["Защита от добра и зла (Protection from Evil and Good)", "Святилище (Sanctuary)"],
           5: ["Малое восстановление (Lesser Restoration)", "Обет (Zone of Truth)"],
           9: ["Маяк надежды (Beacon of Hope)", "Рассеивающая магия (Dispel Magic)"],
-          13: ["Свобода передвижения (Freedom of Movement)", "Страж веры (Guardian of Faith)"],
+          13: ["Свобода перемещения (Freedom of Movement)", "Страж веры (Guardian of Faith)"],
           17: ["Преграда (Commune)", "Пламенный удар (Flame Strike)"]
         }
       }
