@@ -9333,7 +9333,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Воздушная прогулка",
+    "name": "Хождение по ветру",
     "level": 6,
     "school": "преобразование",
     "source": "PH14",
@@ -9349,7 +9349,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Вред",
+    "name": "Поражение",
     "level": 6,
     "school": "некромантия",
     "source": "PH14",
@@ -9365,7 +9365,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Дезинтеграция",
+    "name": "Распад",
     "level": 6,
     "school": "преобразование",
     "source": "PH14",
@@ -9382,7 +9382,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Дурной глаз",
+    "name": "Разящее око",
     "level": 6,
     "school": "некромантия",
     "source": "PH14",
@@ -9437,7 +9437,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Исцеление",
+    "name": "Полное исцеление",
     "level": 6,
     "school": "воплощение",
     "source": "PH14",
@@ -9472,7 +9472,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Ледяная сфера Оттилюка",
+    "name": "Отилюков ледяной шар",
     "level": 6,
     "school": "воплощение",
     "source": "PH14",
@@ -9506,7 +9506,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Магический сосуд",
+    "name": "Волшебный сосуд",
     "level": 6,
     "school": "некромантия",
     "source": "PH14",
@@ -9522,7 +9522,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Массовое внушение",
+    "name": "Множественное внушение",
     "level": 6,
     "school": "очарование",
     "source": "PH14",
@@ -9541,7 +9541,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Мгновенный вызов Дравмия",
+    "name": "Дромиджево появление",
     "level": 6,
     "school": "вызов",
     "source": "PH14",
@@ -9557,7 +9557,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Непредвиденный случай",
+    "name": "Предосторожность",
     "level": 6,
     "school": "вызов",
     "source": "PH14",
@@ -9573,7 +9573,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Неудержимый танец Отто",
+    "name": "Неудержимая пляска Отто",
     "level": 6,
     "school": "очарование",
     "source": "PH14",
@@ -9591,7 +9591,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Охрана и защита",
+    "name": "Стражи",
     "level": 6,
     "school": "ограждение",
     "source": "PH14",
@@ -9608,7 +9608,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Перемещение через растения",
+    "name": "Путешествие через растения",
     "level": 6,
     "school": "вызов",
     "source": "PH14",
@@ -9642,7 +9642,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Плоть в камень",
+    "name": "Окаменение",
     "level": 6,
     "school": "преобразование",
     "source": "PH14",
@@ -9694,7 +9694,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Программируемая иллюзия",
+    "name": "Заданная иллюзия",
     "level": 6,
     "school": "иллюзия",
     "source": "PH14",
@@ -9711,7 +9711,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Сдвинуть землю",
+    "name": "Движение почвы",
     "level": 6,
     "school": "преобразование",
     "source": "PH14",
@@ -9729,7 +9729,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Слово призыва",
+    "name": "Слово возврата",
     "level": 6,
     "school": "вызов",
     "source": "PH14",
@@ -9745,7 +9745,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Создание нежити",
+    "name": "Сотворение нежити",
     "level": 6,
     "school": "некромантия",
     "source": "PH14",
@@ -9782,7 +9782,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Союзник с иного плана",
+    "name": "Планарный союзник",
     "level": 6,
     "school": "вызов",
     "source": "PH14",
@@ -9814,7 +9814,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Стена льда",
+    "name": "Ледяная стена",
     "level": 6,
     "school": "воплощение",
     "source": "PH14",
@@ -9830,7 +9830,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Стена шипов",
+    "name": "Терновая стена",
     "level": 6,
     "school": "вызов",
     "source": "PH14",
@@ -9846,7 +9846,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Цепная молния",
+    "name": "Пляшущая молния",
     "level": 6,
     "school": "воплощение",
     "source": "PH14",
@@ -9863,7 +9863,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Шар неуязвимости",
+    "name": "Сфера неуязвимости",
     "level": 6,
     "school": "ограждение",
     "source": "PH14",
@@ -9880,7 +9880,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Воздушная прогулка",
+    "name": "Хождение по ветру",
     "level": 6,
     "school": "преобразование",
     "source": "PH24",
@@ -9896,7 +9896,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Вред",
+    "name": "Поражение",
     "level": 6,
     "school": "некромантия",
     "source": "PH24",
@@ -9912,7 +9912,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Дезинтеграция",
+    "name": "Распад",
     "level": 6,
     "school": "преобразование",
     "source": "PH24",
@@ -9929,7 +9929,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Дурной глаз",
+    "name": "Разящее око",
     "level": 6,
     "school": "некромантия",
     "source": "PH24",
@@ -9984,7 +9984,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Исцеление",
+    "name": "Полное исцеление",
     "level": 6,
     "school": "ограждение",
     "source": "PH24",
@@ -10019,7 +10019,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Ледяная сфера Оттилюка",
+    "name": "Отилюков ледяной шар",
     "level": 6,
     "school": "воплощение",
     "source": "PH24",
@@ -10053,7 +10053,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Магический сосуд",
+    "name": "Волшебный сосуд",
     "level": 6,
     "school": "некромантия",
     "source": "PH24",
@@ -10069,7 +10069,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Массовое внушение",
+    "name": "Множественное внушение",
     "level": 6,
     "school": "очарование",
     "source": "PH24",
@@ -10088,7 +10088,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Мгновенный вызов Дравмия",
+    "name": "Дромиджево появление",
     "level": 6,
     "school": "вызов",
     "source": "PH24",
@@ -10104,7 +10104,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Непредвиденный случай",
+    "name": "Предосторожность",
     "level": 6,
     "school": "вызов",
     "source": "PH24",
@@ -10120,7 +10120,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Неудержимый танец Отто",
+    "name": "Неудержимая пляска Отто",
     "level": 6,
     "school": "очарование",
     "source": "PH24",
@@ -10138,7 +10138,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Охрана и защита",
+    "name": "Стражи",
     "level": 6,
     "school": "ограждение",
     "source": "PH24",
@@ -10155,7 +10155,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Перемещение через растения",
+    "name": "Путешествие через растения",
     "level": 6,
     "school": "вызов",
     "source": "PH24",
@@ -10189,7 +10189,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Плоть в камень",
+    "name": "Окаменение",
     "level": 6,
     "school": "преобразование",
     "source": "PH24",
@@ -10241,7 +10241,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Программируемая иллюзия",
+    "name": "Заданная иллюзия",
     "level": 6,
     "school": "иллюзия",
     "source": "PH24",
@@ -10258,7 +10258,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Сдвинуть землю",
+    "name": "Движение почвы",
     "level": 6,
     "school": "преобразование",
     "source": "PH24",
@@ -10276,7 +10276,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Слово призыва",
+    "name": "Слово возврата",
     "level": 6,
     "school": "вызов",
     "source": "PH24",
@@ -10292,7 +10292,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Создание нежити",
+    "name": "Сотворение нежити",
     "level": 6,
     "school": "некромантия",
     "source": "PH24",
@@ -10329,7 +10329,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Союзник с иного плана",
+    "name": "Планарный союзник",
     "level": 6,
     "school": "вызов",
     "source": "PH24",
@@ -10361,7 +10361,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Стена льда",
+    "name": "Ледяная стена",
     "level": 6,
     "school": "воплощение",
     "source": "PH24",
@@ -10377,7 +10377,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Стена шипов",
+    "name": "Терновая стена",
     "level": 6,
     "school": "вызов",
     "source": "PH24",
@@ -10393,7 +10393,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Цепная молния",
+    "name": "Пляшущая молния",
     "level": 6,
     "school": "воплощение",
     "source": "PH24",
@@ -10410,7 +10410,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Шар неуязвимости",
+    "name": "Сфера неуязвимости",
     "level": 6,
     "school": "ограждение",
     "source": "PH24",
