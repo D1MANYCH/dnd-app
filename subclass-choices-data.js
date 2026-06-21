@@ -244,7 +244,7 @@ var SUBCLASS_RESOURCES = {
           3: ["Малое восстановление (Lesser Restoration)", "Божественное оружие (Spiritual Weapon)"],
           5: ["Маяк надежды (Beacon of Hope)", "Возрождение (Revivify)"],
           7: ["Защита от смерти (Death Ward)", "Страж веры (Guardian of Faith)"],
-          9: ["Массовое лечение ран (Mass Cure Wounds)", "Оживление (Raise Dead)"]
+          9: ["Множественное лечение ран (Mass Cure Wounds)", "Оживление (Raise Dead)"]
         }
       }
     }
@@ -304,7 +304,7 @@ var SUBCLASS_RESOURCES = {
           3: ["Шипы (Spike Growth)", "Посланник животное (Barkskin)"],
           5: ["Повелевание растений (Plant Growth)", "Ветер удачи (Wind Wall)"],
           7: ["Владычество над животными (Dominate Beast)", "Великанская сила (Grasping Vine)"],
-          9: ["Пробуждение (Awaken)", "Общение с природой (Tree Stride)"]
+          9: ["Пробуждение разума (Awaken)", "Общение с природой (Tree Stride)"]
         }
       }
     }

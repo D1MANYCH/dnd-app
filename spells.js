@@ -8037,7 +8037,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Болезнь",
+    "name": "Заражение",
     "level": 5,
     "school": "некромантия",
     "source": "PH14",
@@ -8072,7 +8072,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Изгоняющий удар",
+    "name": "Изгоняющая кара",
     "level": 5,
     "school": "ограждение",
     "source": "PH14",
@@ -8105,7 +8105,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Кисть Бигби",
+    "name": "Длань Бигби",
     "level": 5,
     "school": "воплощение",
     "source": "PH14",
@@ -8121,7 +8121,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Контакт с иным планом",
+    "name": "Связь с иным миром",
     "level": 5,
     "school": "прорицание",
     "source": "PH14",
@@ -8190,7 +8190,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Легенды и предания",
+    "name": "Знание легенд",
     "level": 5,
     "school": "прорицание",
     "source": "PH14",
@@ -8208,7 +8208,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Личина",
+    "name": "Притворство",
     "level": 5,
     "school": "иллюзия",
     "source": "PH14",
@@ -8226,7 +8226,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Магическое связывание",
+    "name": "Планарные узы",
     "level": 5,
     "school": "ограждение",
     "source": "PH14",
@@ -8246,7 +8246,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Массовое лечение ран",
+    "name": "Множественное лечение ран",
     "level": 5,
     "school": "воплощение",
     "source": "PH14",
@@ -8339,7 +8339,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Обман",
+    "name": "Фальшивый двойник",
     "level": 5,
     "school": "иллюзия",
     "source": "PH14",
@@ -8356,7 +8356,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Оболочка против жизни",
+    "name": "Преграда жизни",
     "level": 5,
     "school": "ограждение",
     "source": "PH14",
@@ -8405,7 +8405,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Огненный удар",
+    "name": "Небесный огонь",
     "level": 5,
     "school": "воплощение",
     "source": "PH14",
@@ -8421,7 +8421,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Оживление предметов",
+    "name": "Оживление вещей",
     "level": 5,
     "school": "преобразование",
     "source": "PH14",
@@ -8439,7 +8439,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Освящение",
+    "name": "Святилище",
     "level": 5,
     "school": "воплощение",
     "source": "PH14",
@@ -8455,7 +8455,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Поднятие мёртвых",
+    "name": "Оживление",
     "level": 5,
     "school": "некромантия",
     "source": "PH14",
@@ -8508,7 +8508,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Пробуждение",
+    "name": "Пробуждение разума",
     "level": 5,
     "school": "преобразование",
     "source": "PH14",
@@ -8525,7 +8525,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Прогулка по деревьям",
+    "name": "Древесный путь",
     "level": 5,
     "school": "вызов",
     "source": "PH14",
@@ -8558,7 +8558,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Рассеять добро и зло",
+    "name": "Рассеивание добра и зла",
     "level": 5,
     "school": "ограждение",
     "source": "PH14",
@@ -8591,7 +8591,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Созидание",
+    "name": "Сотворение",
     "level": 5,
     "school": "иллюзия",
     "source": "PH14",
@@ -8608,7 +8608,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Стена камня",
+    "name": "Каменная стена",
     "level": 5,
     "school": "воплощение",
     "source": "PH14",
@@ -8626,7 +8626,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Стена силы",
+    "name": "Силовая стена",
     "level": 5,
     "school": "воплощение",
     "source": "PH14",
@@ -8642,7 +8642,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Стремительный колчан",
+    "name": "Быстрый колчан",
     "level": 5,
     "school": "преобразование",
     "source": "PH14",
@@ -8675,7 +8675,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Телепатическая связь Рарыса",
+    "name": "Ментальная связь Рэри",
     "level": 5,
     "school": "прорицание",
     "source": "PH14",
@@ -8728,7 +8728,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Болезнь",
+    "name": "Заражение",
     "level": 5,
     "school": "некромантия",
     "source": "PH24",
@@ -8763,7 +8763,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Двойник",
+    "name": "Фальшивый двойник",
     "level": 5,
     "school": "иллюзия",
     "source": "PH24",
@@ -8780,7 +8780,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Знание преданий",
+    "name": "Знание легенд",
     "level": 5,
     "school": "прорицание",
     "source": "PH24",
@@ -8798,7 +8798,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Изгоняющий удар",
+    "name": "Изгоняющая кара",
     "level": 5,
     "school": "ограждение",
     "source": "PH24",
@@ -8831,7 +8831,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Кисть Бигби",
+    "name": "Длань Бигби",
     "level": 5,
     "school": "воплощение",
     "source": "PH24",
@@ -8848,7 +8848,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Контакт с иным планом",
+    "name": "Связь с иным миром",
     "level": 5,
     "school": "прорицание",
     "source": "PH24",
@@ -8899,7 +8899,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Массовое лечение ран",
+    "name": "Множественное лечение ран",
     "level": 5,
     "school": "ограждение",
     "source": "PH24",
@@ -8972,7 +8972,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Оболочка против жизни",
+    "name": "Преграда жизни",
     "level": 5,
     "school": "ограждение",
     "source": "PH24",
@@ -9021,7 +9021,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Огненный удар",
+    "name": "Небесный огонь",
     "level": 5,
     "school": "воплощение",
     "source": "PH24",
@@ -9037,7 +9037,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Оживление предметов",
+    "name": "Оживление вещей",
     "level": 5,
     "school": "преобразование",
     "source": "PH24",
@@ -9055,7 +9055,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Поднятие мёртвых",
+    "name": "Оживление",
     "level": 5,
     "school": "некромантия",
     "source": "PH24",
@@ -9091,7 +9091,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Привязка к плану",
+    "name": "Планарные узы",
     "level": 5,
     "school": "ограждение",
     "source": "PH24",
@@ -9127,7 +9127,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Пробуждение",
+    "name": "Пробуждение разума",
     "level": 5,
     "school": "преобразование",
     "source": "PH24",
@@ -9144,7 +9144,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Проход сквозь стену",
+    "name": "Создание прохода",
     "level": 5,
     "school": "преобразование",
     "source": "PH24",
@@ -9176,7 +9176,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Рассеять добро и зло",
+    "name": "Рассеивание добра и зла",
     "level": 5,
     "school": "ограждение",
     "source": "PH24",
@@ -9193,7 +9193,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Созидание",
+    "name": "Сотворение",
     "level": 5,
     "school": "иллюзия",
     "source": "PH24",
@@ -9210,7 +9210,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Стена камня",
+    "name": "Каменная стена",
     "level": 5,
     "school": "воплощение",
     "source": "PH24",
@@ -9228,7 +9228,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Стена силы",
+    "name": "Силовая стена",
     "level": 5,
     "school": "воплощение",
     "source": "PH24",
@@ -9261,7 +9261,7 @@ const SPELLS_BASE = [
     ]
   },
   {
-    "name": "Телепатическая связь Рарыса",
+    "name": "Ментальная связь Рэри",
     "level": 5,
     "school": "прорицание",
     "source": "PH24",
