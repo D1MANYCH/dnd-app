@@ -120,7 +120,7 @@ var SUBCLASS_CHOICES = {
   "Чемпион": [
     {
       id: "additional-fighting-style",
-      name: "Дополнительный стиль боя",
+      name: "Дополнительный боевой стиль",
       type: "single",
       minLevel: 10,
       options: Object.keys(FIGHTING_STYLES),
