@@ -72,7 +72,7 @@ var WARLOCK_INVOCATIONS = {
   "witch-sight":       {name:"Ведьмино зрение",       desc:"Видите истинную форму существ в радиусе 30 фт.", req:{level:15}}
 };
 
-// ── Любимый враг (Следопыт) ────────────────────────────────────
+// ── Избранный враг (Следопыт) ──────────────────────────────────
 var FAVORED_ENEMIES = {
   "aberrations":  {name:"Аберрации",     desc:"Преимущество на проверки Выживания при выслеживании и проверки Истории об этом типе."},
   "beasts":       {name:"Звери",         desc:"То же — звери."},
@@ -83,17 +83,17 @@ var FAVORED_ENEMIES = {
   "fey":          {name:"Феи",           desc:"То же — феи."},
   "fiends":       {name:"Исчадия",       desc:"То же — исчадия."},
   "giants":       {name:"Великаны",      desc:"То же — великаны."},
-  "monstrosities":{name:"Чудовища",      desc:"То же — чудовища."},
+  "monstrosities":{name:"Монстры",       desc:"То же — монстры."},
   "oozes":        {name:"Слизи",         desc:"То же — слизи."},
   "plants":       {name:"Растения",      desc:"То же — растения."},
   "undead":       {name:"Нежить",        desc:"То же — нежить."},
-  "humanoids-2":  {name:"Гуманоиды (2 расы)", desc:"Выберите 2 расы гуманоидов (например, гоблиноиды и орки) — считаются как один любимый враг."}
+  "humanoids-2":  {name:"Гуманоиды (2 расы)", desc:"Выберите 2 расы гуманоидов (например, гоблиноиды и орки) — считаются как один избранный враг."}
 };
 
-// ── Натуралист — типы местности (Следопыт) ─────────────────────
+// ── Исследователь природы — типы местности (Следопыт) ──────────
 var FAVORED_TERRAINS = {
   "arctic":      {name:"Арктика",       desc:""},
-  "coast":       {name:"Берег",         desc:""},
+  "coast":       {name:"Побережье",     desc:""},
   "desert":      {name:"Пустыня",       desc:""},
   "forest":      {name:"Лес",           desc:""},
   "grassland":   {name:"Луга",          desc:""},
@@ -129,14 +129,14 @@ var CLASS_CHOICES = {
      options:["archery","defense","dueling","two-weapon"],
      optionsDict:FIGHTING_STYLES,
      desc:"Выберите боевой стиль."},
-    {id:"favored-enemy", name:"Любимый враг", icon:"🎯", minLevel:1, type:"multi",
+    {id:"favored-enemy", name:"Избранный враг", icon:"🎯", minLevel:1, type:"multi",
      options:Object.keys(FAVORED_ENEMIES), optionsDict:FAVORED_ENEMIES,
      getCount:function(lvl){ return lvl>=14 ? 4 : (lvl>=6 ? 3 : 2); },
-     desc:"Выберите тип любимых врагов. Расширяется на 6 и 14 уровнях."},
-    {id:"natural-explorer", name:"Натуралист", icon:"🌲", minLevel:1, type:"multi",
+     desc:"Выберите тип избранных врагов. Расширяется на 6 и 14 уровнях."},
+    {id:"natural-explorer", name:"Исследователь природы", icon:"🌲", minLevel:1, type:"multi",
      options:Object.keys(FAVORED_TERRAINS), optionsDict:FAVORED_TERRAINS,
      getCount:function(lvl){ return lvl>=10 ? 3 : (lvl>=6 ? 2 : 1); },
-     desc:"Выберите любимую местность. Расширяется на 6 и 10 уровнях."}
+     desc:"Выберите известную местность. Расширяется на 6 и 10 уровнях."}
   ],
   "Чародей": [
     {id:"metamagic", name:"Метамагия", icon:"✨", minLevel:3, type:"multi",
@@ -165,10 +165,10 @@ var CLASS_CHOICES = {
      filterByReq:true}
   ],
   "Бард": [
-    {id:"expertise", name:"Экспертиза", icon:"🎓", minLevel:3, type:"multi", pool:"skills",
+    {id:"expertise", name:"Компетентность", icon:"🎓", minLevel:3, type:"multi", pool:"skills",
      getCount:function(lvl){ return lvl>=10 ? 4 : 2; },
      desc:"Удвойте бонус мастерства для выбранных навыков (уровни 3 и 10, по 2 навыка)."},
-    {id:"magical-secrets", name:"Магические секреты", icon:"📜", minLevel:10, type:"freeform",
+    {id:"magical-secrets", name:"Тайны магии", icon:"📜", minLevel:10, type:"freeform",
      getCount:function(lvl){ return lvl>=18 ? 6 : (lvl>=14 ? 4 : 2); },
      desc:"Запишите выбранные заклинания любого класса (уровни 10/14/18, по 2 заклинания)."}
   ],
