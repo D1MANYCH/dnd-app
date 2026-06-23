@@ -173,7 +173,7 @@ var CLASS_CHOICES = {
      desc:"Запишите выбранные заклинания любого класса (уровни 10/14/18, по 2 заклинания)."}
   ],
   "Плут": [
-    {id:"expertise", name:"Экспертиза", icon:"🎓", minLevel:1, type:"multi", pool:"skills",
+    {id:"expertise", name:"Компетентность", icon:"🎓", minLevel:1, type:"multi", pool:"skills",
      getCount:function(lvl){ return lvl>=6 ? 4 : 2; },
      desc:"Удвойте бонус мастерства для выбранных навыков (уровни 1 и 6, по 2)."}
   ]
