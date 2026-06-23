@@ -28,48 +28,48 @@ var SORCERER_METAMAGIC = {
   "twinned":   {name:"Удвоенное заклинание",  desc:"Ед. = уровень заклинания (мин 1): заклинание с одной целью нацеливается на ещё одну в дальности."}
 };
 
-// ── Пактный дар колдуна ────────────────────────────────────────
+// ── Предмет договора колдуна ───────────────────────────────────
 var WARLOCK_PACT_BOONS = {
-  "chain": {name:"Пакт Цепи",     desc:"Получаете заклинание Find Familiar. Фамильяр может принимать форму квазита, псевдодракона, спрайта или империума. Можете жертвовать своей атакой, чтобы фамильяр атаковал реакцией."},
-  "blade": {name:"Пакт Клинка",   desc:"Призываете пактовое оружие в свободную руку (любое оружие ближнего боя). Считаетесь владеющим им. Можно превращать обычное оружие в пактовое за ритуал 1 час."},
-  "tome":  {name:"Пакт Фолианта", desc:"Получаете Книгу Теней с 3 заговорами на выбор из любого класса. Считаются заклинаниями колдуна, не занимают слот известных."}
+  "chain": {name:"Договор цепи",    desc:"Получаете заклинание Find Familiar. Фамильяр может принимать форму беса, квазита, псевдодракона или спрайта. Можете жертвовать своей атакой, чтобы фамильяр атаковал реакцией."},
+  "blade": {name:"Договор клинка",  desc:"Призываете оружие договора в свободную руку (любое оружие ближнего боя). Считаетесь владеющим им. Можно превращать обычное оружие в оружие договора за ритуал 1 час."},
+  "tome":  {name:"Договор гримуара",desc:"Получаете Книгу Теней с 3 заговорами на выбор из любого класса. Считаются заклинаниями колдуна, не занимают слот известных."}
 };
 
 // ── Таинственные воззвания (PHB 2014) ──────────────────────────
 // req: {level?, pact?, spell?}
 var WARLOCK_INVOCATIONS = {
-  "agonizing-blast":   {name:"Болезненная вспышка",   desc:"Добавляете мод. ХАР к урону каждого луча Eldritch Blast.", req:{spell:"eldritch-blast"}},
+  "agonizing-blast":   {name:"Мучительный взрыв",     desc:"Добавляете мод. ХАР к урону каждого луча Eldritch Blast.", req:{spell:"eldritch-blast"}},
   "armor-of-shadows":  {name:"Доспех теней",          desc:"Можете без затрат сотворять Mage Armor на себя."},
-  "ascendant-step":    {name:"Шаг вознесения",        desc:"Можете без затрат сотворять Levitate на себя.", req:{level:9}},
-  "beast-speech":      {name:"Речь зверя",            desc:"Можете без затрат сотворять Speak with Animals."},
-  "beguiling-influence":{name:"Чарующее влияние",     desc:"Получаете владение навыками Обман и Убеждение."},
+  "ascendant-step":    {name:"Восходящий шаг",        desc:"Можете без затрат сотворять Levitate на себя.", req:{level:9}},
+  "beast-speech":      {name:"Животная речь",         desc:"Можете без затрат сотворять Speak with Animals."},
+  "beguiling-influence":{name:"Обманчивое влияние",   desc:"Получаете владение навыками Обман и Убеждение."},
   "bewitching-whispers":{name:"Завораживающий шёпот", desc:"Один раз в длинный отдых сотворяете Compulsion ячейкой колдуна.", req:{level:7}},
-  "book-of-ancient-secrets":{name:"Книга древних тайн",desc:"В Книгу Теней записываете два ритуальных заклинания 1-го уровня любого класса; можете находить и записывать новые ритуалы.", req:{pact:"tome"}},
-  "chains-of-carceri": {name:"Цепи Кокитуса",         desc:"Один раз в длинный отдых сотворяете Hold Monster на исчадие/небожителя/элементаль без ячейки.", req:{level:15, pact:"chain"}},
-  "devils-sight":      {name:"Зрение дьявола",        desc:"Видите в обычной и магической темноте на 120 фт."},
-  "dreadful-word":     {name:"Слово ужаса",           desc:"Один раз в длинный отдых сотворяете Confusion ячейкой колдуна.", req:{level:7}},
-  "eldritch-sight":    {name:"Тайное зрение",         desc:"Можете без затрат сотворять Detect Magic."},
-  "eldritch-spear":    {name:"Тайное копьё",          desc:"Дальность Eldritch Blast становится 300 фт.", req:{spell:"eldritch-blast"}},
+  "book-of-ancient-secrets":{name:"Книга древних секретов",desc:"В Книгу Теней записываете два ритуальных заклинания 1-го уровня любого класса; можете находить и записывать новые ритуалы.", req:{pact:"tome"}},
+  "chains-of-carceri": {name:"Цепи Карцери",          desc:"Один раз в длинный отдых сотворяете Hold Monster на исчадие/небожителя/элементаль без ячейки.", req:{level:15, pact:"chain"}},
+  "devils-sight":      {name:"Дьявольский взгляд",    desc:"Видите в обычной и магической темноте на 120 фт."},
+  "dreadful-word":     {name:"Ужасающее слово",       desc:"Один раз в длинный отдых сотворяете Confusion ячейкой колдуна.", req:{level:7}},
+  "eldritch-sight":    {name:"Таинственный взгляд",   desc:"Можете без затрат сотворять Detect Magic."},
+  "eldritch-spear":    {name:"Мистическое копьё",     desc:"Дальность Eldritch Blast становится 300 фт.", req:{spell:"eldritch-blast"}},
   "eyes-of-the-rune-keeper":{name:"Глаза хранителя рун", desc:"Можете читать любую письменность."},
-  "fiendish-vigor":    {name:"Дьявольская мощь",      desc:"Можете без затрат сотворять False Life на себя (всегда минимум на 1 уровне)."},
-  "gaze-of-two-minds": {name:"Взор двух разумов",     desc:"Касанием к согласному гуманоиду — действием воспринимаете окружение его глазами 1 ход."},
-  "lifedrinker":       {name:"Питающийся жизнью",     desc:"Попадание пактовым оружием наносит +мод. ХАР некротического урона (мин 1).", req:{level:12, pact:"blade"}},
+  "fiendish-vigor":    {name:"Мощь исчадия",          desc:"Можете без затрат сотворять False Life на себя (всегда минимум на 1 уровне)."},
+  "gaze-of-two-minds": {name:"Взор двух умов",        desc:"Касанием к согласному гуманоиду — действием воспринимаете окружение его глазами 1 ход."},
+  "lifedrinker":       {name:"Пьющий жизнь",          desc:"Попадание оружием договора наносит +мод. ХАР некротического урона (мин 1).", req:{level:12, pact:"blade"}},
   "mask-of-many-faces":{name:"Маска многих лиц",      desc:"Можете без затрат сотворять Disguise Self."},
-  "master-of-myriad-forms":{name:"Мастер мириад форм",desc:"Можете без затрат сотворять Alter Self.", req:{level:15}},
-  "minions-of-chaos":  {name:"Прислужники хаоса",     desc:"Один раз в длинный отдых сотворяете Conjure Elemental ячейкой колдуна.", req:{level:9}},
-  "mire-the-mind":     {name:"Затуманивание разума",  desc:"Один раз в длинный отдых сотворяете Slow ячейкой колдуна.", req:{level:5}},
+  "master-of-myriad-forms":{name:"Мастер бесчисленных обликов",desc:"Можете без затрат сотворять Alter Self.", req:{level:15}},
+  "minions-of-chaos":  {name:"Слуги хаоса",           desc:"Один раз в длинный отдых сотворяете Conjure Elemental ячейкой колдуна.", req:{level:9}},
+  "mire-the-mind":     {name:"Трясина разума",        desc:"Один раз в длинный отдых сотворяете Slow ячейкой колдуна.", req:{level:5}},
   "misty-visions":     {name:"Туманные видения",      desc:"Можете без затрат сотворять Silent Image."},
-  "one-with-shadows":  {name:"Един с тенями",         desc:"Действием становитесь невидимым в тусклом свете или темноте, пока не двинетесь и не атакуете.", req:{level:5}},
+  "one-with-shadows":  {name:"Один среди теней",      desc:"Действием становитесь невидимым в тусклом свете или темноте, пока не двинетесь и не атакуете.", req:{level:5}},
   "otherworldly-leap": {name:"Потусторонний прыжок",  desc:"Можете без затрат сотворять Jump на себя."},
-  "repelling-blast":   {name:"Отталкивающий взрыв",   desc:"При попадании Eldritch Blast отталкиваете цель на 10 фт по прямой.", req:{spell:"eldritch-blast"}},
-  "sculptor-of-flesh": {name:"Ваятель плоти",         desc:"Один раз в длинный отдых сотворяете Polymorph ячейкой колдуна.", req:{level:7}},
-  "sign-of-ill-omen":  {name:"Знак злого предзнаменования", desc:"Один раз в длинный отдых сотворяете Bestow Curse ячейкой колдуна.", req:{level:5}},
-  "thief-of-five-fates":{name:"Похититель судеб",     desc:"Один раз в длинный отдых сотворяете Bane ячейкой колдуна."},
-  "thirsting-blade":   {name:"Жаждущий клинок",       desc:"Атакуете пактовым оружием дважды за действие Атака.", req:{level:5, pact:"blade"}},
-  "visions-of-distant-realms":{name:"Видения дальних краёв", desc:"Можете без затрат сотворять Arcane Eye.", req:{level:15}},
-  "voice-of-the-chain-master":{name:"Голос мастера цепи", desc:"Общаетесь с фамильяром и говорите через него на любом расстоянии на одном плане.", req:{pact:"chain"}},
-  "whispers-of-the-grave":{name:"Шёпот могилы",       desc:"Можете без затрат сотворять Speak with Dead.", req:{level:9}},
-  "witch-sight":       {name:"Ведьмино зрение",       desc:"Видите истинную форму существ в радиусе 30 фт.", req:{level:15}}
+  "repelling-blast":   {name:"Отталкивающий заряд",   desc:"При попадании Eldritch Blast отталкиваете цель на 10 фт по прямой.", req:{spell:"eldritch-blast"}},
+  "sculptor-of-flesh": {name:"Скульптор плоти",       desc:"Один раз в длинный отдых сотворяете Polymorph ячейкой колдуна.", req:{level:7}},
+  "sign-of-ill-omen":  {name:"Знак дурного предзнаменования", desc:"Один раз в длинный отдых сотворяете Bestow Curse ячейкой колдуна.", req:{level:5}},
+  "thief-of-five-fates":{name:"Вор пяти судеб",       desc:"Один раз в длинный отдых сотворяете Bane ячейкой колдуна."},
+  "thirsting-blade":   {name:"Жаждущий клинок",       desc:"Атакуете оружием договора дважды за действие Атака.", req:{level:5, pact:"blade"}},
+  "visions-of-distant-realms":{name:"Видения далёких королевств", desc:"Можете без затрат сотворять Arcane Eye.", req:{level:15}},
+  "voice-of-the-chain-master":{name:"Глас цепного мастера", desc:"Общаетесь с фамильяром и говорите через него на любом расстоянии на одном плане.", req:{pact:"chain"}},
+  "whispers-of-the-grave":{name:"Могильный шёпот",    desc:"Можете без затрат сотворять Speak with Dead.", req:{level:9}},
+  "witch-sight":       {name:"Ведьмачий взор",        desc:"Видите истинную форму существ в радиусе 30 фт.", req:{level:15}}
 };
 
 // ── Избранный враг (Следопыт) ──────────────────────────────────
@@ -145,9 +145,9 @@ var CLASS_CHOICES = {
      desc:"Выберите варианты метамагии. На 10 и 17 уровнях открываются новые слоты."}
   ],
   "Колдун": [
-    {id:"pact-boon", name:"Пактный дар", icon:"🕯️", minLevel:3, type:"single",
+    {id:"pact-boon", name:"Предмет договора", icon:"🕯️", minLevel:3, type:"single",
      options:Object.keys(WARLOCK_PACT_BOONS), optionsDict:WARLOCK_PACT_BOONS,
-     desc:"Выберите пактный дар своего покровителя."},
+     desc:"Выберите предмет договора своего покровителя."},
     {id:"invocations", name:"Таинственные воззвания", icon:"👁️", minLevel:2, type:"multi",
      options:Object.keys(WARLOCK_INVOCATIONS), optionsDict:WARLOCK_INVOCATIONS,
      getCount:function(lvl){
@@ -161,7 +161,7 @@ var CLASS_CHOICES = {
        if (lvl>=2)  return 2;
        return 0;
      },
-     desc:"Выберите воззвания. Некоторые требуют уровня или пактного дара.",
+     desc:"Выберите воззвания. Некоторые требуют уровня или предмета договора.",
      filterByReq:true}
   ],
   "Бард": [
@@ -542,7 +542,7 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
     if (opt.req) {
       var bits = [];
       if (opt.req.level) bits.push("ур." + opt.req.level);
-      if (opt.req.pact)  bits.push("Пакт " + (WARLOCK_PACT_BOONS[opt.req.pact] ? WARLOCK_PACT_BOONS[opt.req.pact].name : opt.req.pact));
+      if (opt.req.pact)  bits.push(WARLOCK_PACT_BOONS[opt.req.pact] ? WARLOCK_PACT_BOONS[opt.req.pact].name : opt.req.pact);
       if (bits.length) reqText = '<span class="cc-opt-req">' + bits.join(" · ") + "</span>";
     }
     bodyHtml +=

@@ -360,7 +360,7 @@
         if (!hasChoices) return "luBuildChoicesScreen вернул false (нет блоков)";
         if (html.indexOf("Таинственные воззвания") === -1) return "нет «Таинственные воззвания» (воззвания колдуна открыты на clvl 2)";
         if (html.indexOf("Боевой стиль") !== -1) return "просочился «Боевой стиль» воина (блоки не ограничены повышаемым классом)";
-        if (html.indexOf("Пактный дар") !== -1) return "просочился «Пактный дар» (открыт на clvl 3, а повышаем до 2 → не использован clvl)";
+        if (html.indexOf("Предмет договора") !== -1) return "просочился «Предмет договора» (открыт на clvl 3, а повышаем до 2 → не использован clvl)";
         return true;
       } finally {
         window.characters = savedChars; window.currentId = savedId;
