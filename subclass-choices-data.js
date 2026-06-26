@@ -174,7 +174,7 @@ var SUBCLASS_CHOICES = {
   "Драконья кровь": [
     {
       id: "draconic-ancestry",
-      name: "Предок-дракон",
+      name: "Драконий предок",
       type: "single",
       minLevel: 1,
       options: Object.keys(DRACONIC_ANCESTRY),
