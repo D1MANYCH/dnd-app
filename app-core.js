@@ -894,6 +894,36 @@ function migrateCharacter(char) {
     }
     char.schemaVersion = 25;
   }
+  if (v < 26) {
+    // REQ-5d (партия 8, Волшебник): таксономия имён 8 школ магии сведена к
+    // книге PHB 2014 (стр.115). App-ключи подклассов были легаси и расходились
+    // со spells.js (там school-поле уже книжное: воплощение=Evocation,
+    // вызов=Conjuration, ограждение=Abjuration, очарование=Enchantment). Своп
+    // ключей подкласса (хранятся в char.subclass / char.classes[].subclass):
+    //   «Школа воплощения» (был Conjuration) → «Школа вызова»
+    //   «Школа эвокации»   (был Evocation)   → «Школа воплощения»
+    //   «Школа отмены»      (Abjuration)      → «Школа ограждения»
+    //   «Школа заговаривания»(Enchantment)    → «Школа очарования»
+    // Карта применяется по точному значению (атомарно) → своп воплощение↔вызова
+    // безопасен без коллизии. Иллюзия/Некромантия/Преобразование/Прорицание — без изм.
+    var _subRename26 = {
+      "Школа воплощения":   "Школа вызова",
+      "Школа эвокации":     "Школа воплощения",
+      "Школа отмены":       "Школа ограждения",
+      "Школа заговаривания":"Школа очарования"
+    };
+    if (typeof char.subclass === "string" && _subRename26[char.subclass]) {
+      char.subclass = _subRename26[char.subclass];
+    }
+    if (Array.isArray(char.classes)) {
+      char.classes.forEach(function(cl){
+        if (cl && typeof cl.subclass === "string" && _subRename26[cl.subclass]) {
+          cl.subclass = _subRename26[cl.subclass];
+        }
+      });
+    }
+    char.schemaVersion = 26;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем
