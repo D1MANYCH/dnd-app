@@ -81,22 +81,22 @@ var DRACONIC_ANCESTRY = {
 
 // ── Монах: Путь четырёх стихий — стихийные дисциплины ───────
 var ELEMENTAL_DISCIPLINES = {
-  "fangs-fire-snake":       {name:"Клыки огненной змеи",      desc:"При атаке безоружным ударом — реакция (1 ки): досягаемость +10 фт. и +1к10 огня."},
-  "fist-four-thunders":     {name:"Кулак четырёх громов",     desc:"3 ки: сотворяете Грохот (thunderwave)."},
-  "fist-unbroken-air":      {name:"Кулак нерушимого воздуха", desc:"2 ки: существо в 30 фт. — спасбросок СИЛ или 3к10 дробящего + отталкивание до 20 фт. + сбить с ног."},
-  "rush-gale-spirits":      {name:"Натиск духов бури",        desc:"2 ки: сотворяете Порыв ветра (gust of wind)."},
-  "shape-flowing-river":    {name:"Формирование реки",        desc:"2 ки: преобразуете воду/лёд в 30-фт. кубе."},
-  "sweeping-cinder-strike": {name:"Размашистый удар пепла",   desc:"2 ки: сотворяете Огненные ладони (burning hands)."},
-  "water-whip":             {name:"Водяной кнут",             desc:"2 ки: бонусное действие. Цель в 30 фт.: спасбросок ЛОВ, 3к10 дробящего + сбить или притянуть на 25 фт."},
-  "clench-north-wind":      {name:"Хватка северного ветра",   desc:"3 ки: сотворяете Удержание личности (hold person).", req:{level:6}},
-  "gong-of-the-summit":     {name:"Гонг вершины",             desc:"3 ки: сотворяете Раскол (shatter).", req:{level:6}},
-  "flames-of-the-phoenix":  {name:"Пламя феникса",            desc:"4 ки: сотворяете Огненный шар (fireball).", req:{level:11}},
-  "mist-stance":            {name:"Стойка тумана",            desc:"4 ки: сотворяете Газообразную форму на себя (gaseous form).", req:{level:11}},
-  "ride-the-wind":          {name:"Оседлать ветер",           desc:"4 ки: сотворяете Полёт на себя (fly).", req:{level:11}},
-  "breath-of-winter":       {name:"Дыхание зимы",             desc:"6 ки: сотворяете Конус холода (cone of cold).", req:{level:17}},
-  "eternal-mountain-def":   {name:"Защита вечной горы",       desc:"5 ки: сотворяете Каменную кожу на себя (stoneskin).", req:{level:17}},
-  "river-hungry-flame":     {name:"Река голодного пламени",   desc:"5 ки: сотворяете Огненную стену (wall of fire).", req:{level:17}},
-  "wave-rolling-earth":     {name:"Волна катящейся земли",    desc:"6 ки: сотворяете Каменную стену (wall of stone).", req:{level:17}}
+  "fangs-fire-snake":       {name:"Зубы огненной змеи",       desc:"При атаке безоружным ударом — реакция (1 ци): досягаемость +10 фт. и +1к10 огня."},
+  "fist-four-thunders":     {name:"Кулак четырёх громов",     desc:"3 ци: сотворяете Волну грома (thunderwave)."},
+  "fist-unbroken-air":      {name:"Несокрушимый воздушный кулак", desc:"2 ци: существо в 30 фт. — спасбросок СИЛ или 3к10 дробящего + отталкивание до 20 фт. + сбить с ног."},
+  "rush-gale-spirits":      {name:"Натиск штормовых духов",   desc:"2 ци: сотворяете Порыв ветра (gust of wind)."},
+  "shape-flowing-river":    {name:"Формирование текущей реки", desc:"2 ци: преобразуете воду/лёд в 30-фт. кубе."},
+  "sweeping-cinder-strike": {name:"Испепеляющий удар",        desc:"2 ци: сотворяете Огненные ладони (burning hands)."},
+  "water-whip":             {name:"Водяной кнут",             desc:"2 ци: бонусное действие. Цель в 30 фт.: спасбросок ЛОВ, 3к10 дробящего + сбить или притянуть на 25 фт."},
+  "clench-north-wind":      {name:"Объятья северного ветра",  desc:"3 ци: сотворяете Удержание личности (hold person).", req:{level:6}},
+  "gong-of-the-summit":     {name:"Гонг на вершине горы",     desc:"3 ци: сотворяете Раскол (shatter).", req:{level:6}},
+  "flames-of-the-phoenix":  {name:"Пламя феникса",            desc:"4 ци: сотворяете Огненный шар (fireball).", req:{level:11}},
+  "mist-stance":            {name:"Туманная стойка",          desc:"4 ци: сотворяете Газообразную форму на себя (gaseous form).", req:{level:11}},
+  "ride-the-wind":          {name:"Осёдланный ветер",         desc:"4 ци: сотворяете Полёт на себя (fly).", req:{level:11}},
+  "breath-of-winter":       {name:"Дыхание зимы",             desc:"6 ци: сотворяете Конус холода (cone of cold).", req:{level:17}},
+  "eternal-mountain-def":   {name:"Прочность вечных гор",     desc:"5 ци: сотворяете Каменную кожу на себя (stoneskin).", req:{level:17}},
+  "river-hungry-flame":     {name:"Река голодного пламени",   desc:"5 ци: сотворяете Огненную стену (wall of fire).", req:{level:17}},
+  "wave-rolling-earth":     {name:"Земляной вал",             desc:"6 ци: сотворяете Каменную стену (wall of stone).", req:{level:17}}
 };
 
 // ── Подклассовые выборы (параллельно CLASS_CHOICES) ─────────
