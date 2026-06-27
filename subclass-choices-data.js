@@ -190,7 +190,10 @@ var SUBCLASS_CHOICES = {
       name: "Стихийные дисциплины",
       type: "multi",
       minLevel: 3,
-      getCount: function(lvl) { return lvl >= 17 ? 5 : lvl >= 11 ? 4 : lvl >= 6 ? 3 : 2; },
+      // Книга: всего 2/3/4/5 дисциплин на L3/6/11/17, ВКЛЮЧАЯ Родство со стихией
+      // (Elemental Attunement) — а она выдаётся отдельной гарантированной фичей
+      // (SUBCLASS_FEATURES L3). Поэтому выбор из списка = на 1 меньше: 1/2/3/4.
+      getCount: function(lvl) { return lvl >= 17 ? 4 : lvl >= 11 ? 3 : lvl >= 6 ? 2 : 1; },
       options: Object.keys(ELEMENTAL_DISCIPLINES),
       optionsDict: ELEMENTAL_DISCIPLINES,
       filterByReq: true,
