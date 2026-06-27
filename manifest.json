@@ -1,7 +1,7 @@
 {
   "name": "D&D 5e — Лист Персонажа",
   "short_name": "D&D Sheet",
-  "description": "Лист персонажа Dungeons & Dragons 5e для мобильных устройств",
+  "description": "Бесплатный лист персонажа D&D 5e на русском: 36 готовых билдов, 706 заклинаний, 3D-кубики, боевой трекер. Офлайн, без регистрации.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1a24",
@@ -36,16 +36,25 @@
   ],
   "screenshots": [
     {
-      "src": "icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "form_factor": "narrow"
+      "src": "docs/screenshots/01-character-sheet.webp",
+      "sizes": "1906x904",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Лист персонажа"
     },
     {
-      "src": "icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "form_factor": "wide"
+      "src": "docs/screenshots/02-builds-picker.webp",
+      "sizes": "1903x908",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "36 готовых билдов"
+    },
+    {
+      "src": "docs/screenshots/04-spells.webp",
+      "sizes": "1884x911",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "706 заклинаний"
     }
   ],
   "categories": ["games", "utilities"]
