@@ -430,7 +430,7 @@
       if (!c.coins || c.coins.gp !== 0) return "coins.gp: ожидал 0";
       if (!c.deathSaves || !Array.isArray(c.deathSaves.successes)) return "deathSaves.successes не массив";
       if (typeof c.saves !== "object" || typeof c.skills !== "object") return "saves/skills не объекты";
-      if (c.schemaVersion !== 26) return "schemaVersion: ожидал 26, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 27) return "schemaVersion: ожидал 27, получено " + c.schemaVersion;
       return true;
     });
 
@@ -499,7 +499,7 @@
         window.SPELL_DATABASE = SPELLS_BASE.concat([{ id: "user-rt-1", name: "Тестовый луч", level: 1 }]);
         var p = _buildExportPayload();
         if (p.app !== "dnd-sheet") return "app: " + p.app;
-        if (p.schemaVersion !== 26) return "schemaVersion: ожидал 26, получено " + p.schemaVersion;
+        if (p.schemaVersion !== 27) return "schemaVersion: ожидал 27, получено " + p.schemaVersion;
         if (!p.exportedAt) return "нет exportedAt";
         if (!Array.isArray(p.characters) || p.characters.length !== 2) return "characters: ожидал 2";
         if (!Array.isArray(p.hpHistory) || p.hpHistory.length !== 2) return "hpHistory: ожидал 2 (как есть, фильтр — на импорте)";
@@ -605,7 +605,7 @@
         journal: [{ text: "запись" }]
       };
       var c = migrateCharacter(JSON.parse(JSON.stringify(legacy)));
-      if (c.schemaVersion !== 26) return "schemaVersion: " + c.schemaVersion;
+      if (c.schemaVersion !== 27) return "schemaVersion: " + c.schemaVersion;
       var langs = c.proficiencies.languages;
       if (!Array.isArray(langs) || langs.length !== 2 || langs[0].name !== "Общий" || langs[1].name !== "Эльфийский")
         return "языки строка→массив: " + JSON.stringify(langs);
@@ -634,7 +634,7 @@
           mySpells: [{ id: 101, name: "Слово исцеления" }, { id: 102, name: "Огни фей" }, { id: 103, name: "Порча" }]
         }
       });
-      if (c.schemaVersion !== 26) return "schemaVersion: ожидал 26, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 27) return "schemaVersion: ожидал 27, получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Волна грома|Усыпление|Лечение ран")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -651,7 +651,7 @@
           mySpells: [{ id: 201, name: "Духовное оружие" }, { id: 202, name: "Огненная сфера" }, { id: 203, name: "Невидимость" }]
         }
       });
-      if (c.schemaVersion !== 26) return "schemaVersion: ожидал 26, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 27) return "schemaVersion: ожидал 27, получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Отражения|Открывание|Лечение ран")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -668,7 +668,7 @@
           mySpells: [{ id: 301, name: "Оживление мертвецов" }, { id: 302, name: "Страх" }, { id: 303, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 26) return "schemaVersion: ожидал 26, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 27) return "schemaVersion: ожидал 27, получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Возрождение|Духовные стражи|Лечение ран")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -685,7 +685,7 @@
           mySpells: [{ id: 401, name: "Прорицание" }, { id: 402, name: "Чёрные щупальца" }, { id: 403, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 26) return "schemaVersion: ожидал 26, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 27) return "schemaVersion: ожидал 27, получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Превращение|Град|Лечение ран")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -702,7 +702,7 @@
           mySpells: [{ id: 481, name: "Обман" }, { id: 506, name: "Двойник" }, { id: 475, name: "Магическое связывание" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 26) return "schemaVersion: ожидал 26, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 27) return "schemaVersion: ожидал 27, получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Оживление|Множественное лечение ран|Небесный огонь")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -720,7 +720,7 @@
           mySpells: [{ id: 541, name: "Вред" }, { id: 546, name: "Исцеление" }, { id: 568, name: "Стена льда" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 26) return "schemaVersion: ожидал 26, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 27) return "schemaVersion: ожидал 27, получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Распад|Пляшущая молния|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -738,7 +738,7 @@
           mySpells: [{ id: 618, name: "Символ" }, { id: 619, name: "Симулякр" }, { id: 607, name: "Обратная гравитация" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 26) return "schemaVersion: ожидал 26, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 27) return "schemaVersion: ожидал 27, получено " + c.schemaVersion;
       // Forcecage «Силовая клетка» → «Узилище»; Prismatic spray «Призматический луч» → «Радужные брызги».
       if (c.spells.prepared.join("|") !== "Узилище|Радужные брызги|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
@@ -757,7 +757,7 @@
           mySpells: [{ id: 657, name: "Слабоумие" }, { id: 671, name: "Оцепенение" }, { id: 656, name: "Священная аура" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 26) return "schemaVersion: ожидал 26, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 27) return "schemaVersion: ожидал 27, получено " + c.schemaVersion;
       // Clone «Клон» → «Двойник»; Antimagic field «Антимагическое поле» → «Преграда магии».
       if (c.spells.prepared.join("|") !== "Двойник|Преграда магии|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
@@ -777,7 +777,7 @@
           mySpells: [{ id: 688, name: "Кошмарное видение" }, { id: 682, name: "Буря мести" }, { id: 696, name: "Слово силы: смерть" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 26) return "schemaVersion: ожидал 26, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 27) return "schemaVersion: ожидал 27, получено " + c.schemaVersion;
       // Shapechange «Перевоплощение» → «Полное превращение»; Meteor swarm «Рой метеоров» → «Метеоритный дождь».
       if (c.spells.prepared.join("|") !== "Полное превращение|Метеоритный дождь|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
@@ -812,7 +812,27 @@
       var div = migrateCharacter({ id: 9976, class: "Волшебник", level: 6, schemaVersion: 25, subclass: "Школа прорицания" });
       if (div.subclass !== "Школа прорицания")
         return "Divination не должна меняться, получено «" + div.subclass + "»";
-      if (div.schemaVersion !== 26) return "schemaVersion: ожидал 26, получено " + div.schemaVersion;
+      if (div.schemaVersion !== 27) return "schemaVersion: ожидал 27, получено " + div.schemaVersion;
+      return true;
+    });
+
+    t("[mig] schema 27 (REQ-6): дочистка имён Cloud of Daggers / Incendiary Cloud → книга PHB 2014", function(){
+      // Недокат REQ-5b: записи в spells.js остались «Туча кинжалов» (ур.2) и
+      // «Воспламеняющаяся туча» (ур.8). Сейв любой схемы 18–26 мог их содержать →
+      // v<27 сводит к «Облако кинжалов» / «Воспламеняющая туча» (имена БД после фикса).
+      var c = migrateCharacter({
+        id: 9981, class: "Волшебник", level: 16, schemaVersion: 26,
+        spells: {
+          prepared: ["Туча кинжалов", "Огненный шар"],
+          mySpells: [{ id: 652, name: "Воспламеняющаяся туча" }, { id: 405, name: "Огненный шар" }]
+        }
+      });
+      if (c.schemaVersion !== 27) return "schemaVersion: ожидал 27, получено " + c.schemaVersion;
+      if (c.spells.prepared.join("|") !== "Облако кинжалов|Огненный шар")
+        return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
+      var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
+      if (names !== "Воспламеняющая туча|Огненный шар")
+        return "mySpells не переименованы под книгу: " + names;
       return true;
     });
   }
