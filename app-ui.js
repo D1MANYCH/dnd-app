@@ -1656,8 +1656,11 @@ function getCharResourceDefs(char) {
       Array.isArray(SUBCLASS_RESOURCES[sub].resources)) {
     resources = resources.concat(SUBCLASS_RESOURCES[sub].resources);
   }
-  if (!resources.length) return null;
-  return { resources: resources, passive: base ? base.passive : null };
+  // SDR-2: списки заклинаний подкласса (домены/клятвы/покровители) — для отображения
+  var subSpells = (sub && typeof SUBCLASS_RESOURCES !== "undefined" && SUBCLASS_RESOURCES[sub] &&
+      SUBCLASS_RESOURCES[sub].passive) ? SUBCLASS_RESOURCES[sub].passive.subclassSpells : null;
+  if (!resources.length && !subSpells) return null;
+  return { resources: resources, passive: base ? base.passive : null, subclassSpells: subSpells };
 }
 
 // SDR-1: текущий размер кости ресурса по dieSizeByLevel (ближайшее значение ≤ уровня).
@@ -1685,7 +1688,7 @@ function renderClassResources() {
   var cls = char.class || "";
   var data = getCharResourceDefs(char);
 
-  if (!data || !data.resources || data.resources.length === 0) {
+  if (!data || ((!data.resources || data.resources.length === 0) && !data.subclassSpells)) {
     section.style.display = "none";
     return;
   }
@@ -1700,6 +1703,25 @@ function renderClassResources() {
     notesEl.innerHTML = '<div class="resource-passive-title">📖 Пассивные умения ' + escapeHtml(cls) + '</div>' +
       '<pre class="resource-passive-text">' + escapeHtml(data.passive.notes) + '</pre>';
     grid.appendChild(notesEl);
+  }
+
+  // SDR-2: карточка заклинаний подкласса (домены/клятвы/покровители) — открытые по уровню
+  if (data.subclassSpells && data.subclassSpells.byLevel) {
+    var ss = data.subclassSpells;
+    var lvl = char.level || 1;
+    var ssLines = [];
+    Object.keys(ss.byLevel).map(Number).sort(function(a, b){ return a - b; }).forEach(function(k){
+      if (lvl < k) return; // ещё не открыто на текущем уровне
+      var names = ss.byLevel[k].map(function(s){ return s.replace(/\s*\([^)]*\)\s*$/, ""); }).join(", ");
+      ssLines.push(k + " ур.: " + names);
+    });
+    if (ssLines.length) {
+      var ssEl = document.createElement("div");
+      ssEl.className = "resource-passive-card";
+      ssEl.innerHTML = '<div class="resource-passive-title">' + escapeHtml((ss.icon ? ss.icon + " " : "") + (ss.label || "Заклинания подкласса")) + '</div>' +
+        '<pre class="resource-passive-text">' + escapeHtml(ssLines.join("\n")) + '</pre>';
+      grid.appendChild(ssEl);
+    }
   }
 
   // Resource cards

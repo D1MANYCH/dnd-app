@@ -258,11 +258,11 @@ var SUBCLASS_RESOURCES = {
         label: "Заклинания домена света",
         icon: "☀️",
         byLevel: {
-          1: ["Огненные ладони (Burning Hands)", "Волшебная стрела (Faerie Fire)"],
-          3: ["Пылающая сфера (Flaming Sphere)", "Палящий луч (Scorching Ray)"],
+          1: ["Огненные ладони (Burning Hands)", "Огонь фей (Faerie Fire)"],
+          3: ["Пылающий шар (Flaming Sphere)", "Палящий луч (Scorching Ray)"],
           5: ["Дневной свет (Daylight)", "Огненный шар (Fireball)"],
-          7: ["Огненный щит (Fire Shield)", "Огненная стена (Wall of Fire)"],
-          9: ["Пламенный удар (Flame Strike)", "Испепеление (Scrying)"]
+          7: ["Страж веры (Guardian of Faith)", "Огненная стена (Wall of Fire)"],
+          9: ["Небесный огонь (Flame Strike)", "Наблюдение (Scrying)"]
         }
       }
     }
@@ -273,11 +273,11 @@ var SUBCLASS_RESOURCES = {
         label: "Заклинания домена войны",
         icon: "⚔️",
         byLevel: {
-          1: ["Божественная благосклонность (Divine Favor)", "Щит веры (Shield of Faith)"],
+          1: ["Божественное благоволение (Divine Favor)", "Щит веры (Shield of Faith)"],
           3: ["Магическое оружие (Magic Weapon)", "Божественное оружие (Spiritual Weapon)"],
-          5: ["Крестовый поход (Crusader's Mantle)", "Духовные стражи (Spirit Guardians)"],
-          7: ["Каменная кожа (Stoneskin)", "Свобода перемещения (Freedom of Movement)"],
-          9: ["Пламенный удар (Flame Strike)", "Священное пламя (Hold Monster)"]
+          5: ["Мантия крестоносца (Crusader's Mantle)", "Духовные стражи (Spirit Guardians)"],
+          7: ["Свобода перемещения (Freedom of Movement)", "Каменная кожа (Stoneskin)"],
+          9: ["Небесный огонь (Flame Strike)", "Удержание чудовища (Hold Monster)"]
         }
       }
     }
@@ -289,10 +289,10 @@ var SUBCLASS_RESOURCES = {
         icon: "📚",
         byLevel: {
           1: ["Приказ (Command)", "Опознание (Identify)"],
-          3: ["Усиление личности (Augury)", "Внушение (Suggestion)"],
-          5: ["Обнаружение мыслей (Nondetection)", "Слово возврата (Speak with Dead)"],
-          7: ["Проникновение в разум (Arcane Eye)", "Смятение (Confusion)"],
-          9: ["Ясновидение (Legend Lore)", "Чаша видения (Scrying)"]
+          3: ["Гадание (Augury)", "Внушение (Suggestion)"],
+          5: ["Необнаружимость (Nondetection)", "Разговор с мёртвыми (Speak with Dead)"],
+          7: ["Магический глаз (Arcane Eye)", "Смятение (Confusion)"],
+          9: ["Знание легенд (Legend Lore)", "Наблюдение (Scrying)"]
         }
       }
     }
@@ -303,11 +303,11 @@ var SUBCLASS_RESOURCES = {
         label: "Заклинания домена природы",
         icon: "🌿",
         byLevel: {
-          1: ["Говорящее с животными (Speak with Animals)", "Дружба с животными (Animal Friendship)"],
-          3: ["Шипы (Spike Growth)", "Посланник животное (Barkskin)"],
-          5: ["Повелевание растений (Plant Growth)", "Ветер удачи (Wind Wall)"],
-          7: ["Владычество над животными (Dominate Beast)", "Великанская сила (Grasping Vine)"],
-          9: ["Пробуждение разума (Awaken)", "Общение с природой (Tree Stride)"]
+          1: ["Дружба с животными (Animal Friendship)", "Разговор с животными (Speak with Animals)"],
+          3: ["Дубовая кора (Barkskin)", "Шипы (Spike Growth)"],
+          5: ["Рост растений (Plant Growth)", "Стена ветров (Wind Wall)"],
+          7: ["Подчинение зверя (Dominate Beast)", "Цепкая лоза (Grasping Vine)"],
+          9: ["Нашествие насекомых (Insect Plague)", "Древесный путь (Tree Stride)"]
         }
       }
     }
@@ -318,11 +318,11 @@ var SUBCLASS_RESOURCES = {
         label: "Заклинания домена бури",
         icon: "⛈️",
         byLevel: {
-          1: ["Туман (Fog Cloud)", "Грохот (Thunderwave)"],
-          3: ["Порыв ветра (Gust of Wind)", "Раскат грома (Shatter)"],
-          5: ["Призыв молнии (Call Lightning)", "Управление погодой (Sleet Storm)"],
-          7: ["Разрушение (Destructive Wave)", "Управление водами (Control Water)"],
-          9: ["Разрушительная волна (Destructive Wave)", "Общение с бурей (Insect Plague)"]
+          1: ["Туманное облако (Fog Cloud)", "Волна грома (Thunderwave)"],
+          3: ["Порыв ветра (Gust of Wind)", "Дребезги (Shatter)"],
+          5: ["Призыв молнии (Call Lightning)", "Метель (Sleet Storm)"],
+          7: ["Власть над водами (Control Water)", "Град (Ice Storm)"],
+          9: ["Разрушительная волна (Destructive Wave)", "Нашествие насекомых (Insect Plague)"]
         }
       }
     }
@@ -334,10 +334,10 @@ var SUBCLASS_RESOURCES = {
         icon: "🎭",
         byLevel: {
           1: ["Очарование личности (Charm Person)", "Маскировка (Disguise Self)"],
-          3: ["Зеркальный образ (Mirror Image)", "Паутина паука (Pass without Trace)"],
-          5: ["Кровожадность (Blink)", "Раздвоение личности (Dispel Magic)"],
-          7: ["Сложная иллюзия (Dimension Door)", "Превращение (Polymorph)"],
-          9: ["Владычество (Dominate Person)", "Рассеивающая иллюзия (Modify Memory)"]
+          3: ["Отражения (Mirror Image)", "Бесследное передвижение (Pass without Trace)"],
+          5: ["Мерцание (Blink)", "Рассеивание магии (Dispel Magic)"],
+          7: ["Переносящая дверь (Dimension Door)", "Превращение (Polymorph)"],
+          9: ["Подчинение личности (Dominate Person)", "Изменение памяти (Modify Memory)"]
         }
       }
     }
@@ -348,11 +348,11 @@ var SUBCLASS_RESOURCES = {
         label: "Заклинания домена могилы",
         icon: "⚰️",
         byLevel: {
-          1: ["Ложная жизнь (False Life)", "Жуткий упрёк (Ray of Sickness)"],
-          3: ["Луч слабости (Ray of Enfeeblement)", "Немая тишина (Silence)"],
-          5: ["Ревенантское касание (Revivify)", "Отражение магии (Vampiric Touch)"],
-          7: ["Защита от смерти (Death Ward)", "Убийственный взгляд (Blight)"],
-          9: ["Высасывание жизни (Antilife Shell)", "Облако смерти (Raise Dead)"]
+          1: ["Порча (Bane)", "Псевдожизнь (False Life)"],
+          3: ["Нетленные останки (Gentle Repose)", "Луч слабости (Ray of Enfeeblement)"],
+          5: ["Возрождение (Revivify)", "Прикосновение вампира (Vampiric Touch)"],
+          7: ["Усыхание (Blight)", "Защита от смерти (Death Ward)"],
+          9: ["Преграда жизни (Antilife Shell)", "Оживление (Raise Dead)"]
         }
       }
     }
@@ -365,11 +365,11 @@ var SUBCLASS_RESOURCES = {
         label: "Заклинания клятвы преданности",
         icon: "🛡️",
         byLevel: {
-          3: ["Защита от добра и зла (Protection from Evil and Good)", "Святилище (Sanctuary)"],
-          5: ["Малое восстановление (Lesser Restoration)", "Обет (Zone of Truth)"],
-          9: ["Маяк надежды (Beacon of Hope)", "Рассеивающая магия (Dispel Magic)"],
+          3: ["Защита от добра и зла (Protection from Evil and Good)", "Убежище (Sanctuary)"],
+          5: ["Малое восстановление (Lesser Restoration)", "Область истины (Zone of Truth)"],
+          9: ["Маяк надежды (Beacon of Hope)", "Рассеивание магии (Dispel Magic)"],
           13: ["Свобода перемещения (Freedom of Movement)", "Страж веры (Guardian of Faith)"],
-          17: ["Преграда (Commune)", "Пламенный удар (Flame Strike)"]
+          17: ["Общение (Commune)", "Небесный огонь (Flame Strike)"]
         }
       }
     }
@@ -380,11 +380,11 @@ var SUBCLASS_RESOURCES = {
         label: "Заклинания клятвы древних",
         icon: "🌳",
         byLevel: {
-          3: ["Волшебная стрела (Ensnaring Strike)", "Волшебный огонёк (Faerie Fire)"],
-          5: ["Лунный луч (Moonbeam)", "Покой растений (Misty Step)"],
-          9: ["Защита от энергии (Protection from Energy)", "Посланник растений (Plant Growth)"],
-          13: ["Ледяная буря (Ice Storm)", "Каменная кожа (Stoneskin)"],
-          17: ["Общение с природой (Commune with Nature)", "Удержание монстра (Tree Stride)"]
+          3: ["Опутывающий удар (Ensnaring Strike)", "Разговор с животными (Speak with Animals)"],
+          5: ["Лунный луч (Moonbeam)", "Туманный шаг (Misty Step)"],
+          9: ["Рост растений (Plant Growth)", "Защита от энергии (Protection from Energy)"],
+          13: ["Град (Ice Storm)", "Каменная кожа (Stoneskin)"],
+          17: ["Общение с природой (Commune with Nature)", "Древесный путь (Tree Stride)"]
         }
       }
     }
@@ -395,11 +395,11 @@ var SUBCLASS_RESOURCES = {
         label: "Заклинания клятвы возмездия",
         icon: "⚔️",
         byLevel: {
-          3: ["Проклятие (Bane)", "Охотник на жертву (Hunter's Mark)"],
-          5: ["Удержание личности (Hold Person)", "Туман (Misty Step)"],
-          9: ["Страх (Haste)", "Защита от энергии (Protection from Energy)"],
-          13: ["Переносимость (Banishment)", "Одержимость (Dimension Door)"],
-          17: ["Владычество над личностью (Hold Monster)", "Ясновидение (Scrying)"]
+          3: ["Порча (Bane)", "Метка охотника (Hunter's Mark)"],
+          5: ["Удержание личности (Hold Person)", "Туманный шаг (Misty Step)"],
+          9: ["Ускорение (Haste)", "Защита от энергии (Protection from Energy)"],
+          13: ["Изгнание (Banishment)", "Переносящая дверь (Dimension Door)"],
+          17: ["Удержание чудовища (Hold Monster)", "Наблюдение (Scrying)"]
         }
       }
     }
@@ -412,11 +412,11 @@ var SUBCLASS_RESOURCES = {
         label: "Заклинания покровителя-феи",
         icon: "🧚",
         byLevel: {
-          1: ["Волшебный огонёк (Faerie Fire)", "Очарование зверя (Sleep)"],
-          3: ["Смех (Calm Emotions)", "Туман (Phantasmal Force)"],
-          5: ["Осликовая пляска (Plant Growth)", "Сон (Sleep)"],
-          7: ["Посланник плана (Dominate Beast)", "Зеркальный образ (Greater Invisibility)"],
-          9: ["Огромная иллюзия (Dominate Person)", "Подчинение душ (Seeming)"]
+          1: ["Огонь фей (Faerie Fire)", "Усыпление (Sleep)"],
+          3: ["Умиротворение (Calm Emotions)", "Воображаемая сила (Phantasmal Force)"],
+          5: ["Мерцание (Blink)", "Рост растений (Plant Growth)"],
+          7: ["Подчинение зверя (Dominate Beast)", "Высшая невидимость (Greater Invisibility)"],
+          9: ["Подчинение личности (Dominate Person)", "Притворство (Seeming)"]
         }
       }
     }
@@ -427,11 +427,11 @@ var SUBCLASS_RESOURCES = {
         label: "Заклинания исчадного покровителя",
         icon: "😈",
         byLevel: {
-          1: ["Жгучий удар (Burning Hands)", "Приказ (Command)"],
-          3: ["Глухота/слепота (Blindness/Deafness)", "Раскат грома (Scorching Ray)"],
-          5: ["Удержание духа (Fireball)", "Огненный шар (Stinking Cloud)"],
+          1: ["Огненные ладони (Burning Hands)", "Приказ (Command)"],
+          3: ["Глухота/слепота (Blindness/Deafness)", "Палящий луч (Scorching Ray)"],
+          5: ["Огненный шар (Fireball)", "Зловонное облако (Stinking Cloud)"],
           7: ["Огненный щит (Fire Shield)", "Огненная стена (Wall of Fire)"],
-          9: ["Пламенный удар (Flame Strike)", "Приказ исчадия (Hallow)"]
+          9: ["Небесный огонь (Flame Strike)", "Святилище (Hallow)"]
         }
       }
     }
@@ -442,11 +442,11 @@ var SUBCLASS_RESOURCES = {
         label: "Заклинания Великого Древнего",
         icon: "🐙",
         byLevel: {
-          1: ["Диссонирующий шёпот (Dissonant Whispers)", "Обнаружение мыслей (Tasha's Hideous Laughter)"],
-          3: ["Обнаружение мыслей (Detect Thoughts)", "Кинжальное облако (Phantasmal Force)"],
-          5: ["Сон в клепсидре (Clairvoyance)", "Спешка рассудка (Sending)"],
-          7: ["Владычество над зверем (Dominate Beast)", "Эвардская чёрная щупальца (Evard's Black Tentacles)"],
-          9: ["Владычество над личностью (Dominate Person)", "Путь к монаху (Telekinesis)"]
+          1: ["Диссонирующий шёпот (Dissonant Whispers)", "Жуткий смех Таши (Tasha's Hideous Laughter)"],
+          3: ["Обнаружение мыслей (Detect Thoughts)", "Воображаемая сила (Phantasmal Force)"],
+          5: ["Подсматривание (Clairvoyance)", "Послание (Sending)"],
+          7: ["Подчинение зверя (Dominate Beast)", "Эвардовы чёрные щупальца (Evard's Black Tentacles)"],
+          9: ["Подчинение личности (Dominate Person)", "Телекинез (Telekinesis)"]
         }
       }
     }
