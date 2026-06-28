@@ -4,7 +4,7 @@
 
 - **Приложение:** https://d1manych.github.io/dnd-app/
 - **Репозиторий:** https://github.com/D1MANYCH/dnd-app
-- **Числа (сверены с README, v3.28.64):** 36 готовых билдов · 706 заклинаний · 12 классов
+- **Числа (сверены с README, v3.28.70):** 36 готовых билдов · 719 заклинаний · 12 классов
 
 ---
 
@@ -30,7 +30,7 @@ dnd  dnd5e  dungeons-and-dragons  dnd-tools  dnd5e-tools  character-sheet  dnd-c
 Строка для вставки (формат списка совпадает — `- [Имя](url) - описание`):
 
 ```markdown
-- [DnD-Лист](https://d1manych.github.io/dnd-app/) - Free Russian D&D 5e character sheet & manager (PWA, offline, no signup): 36 ready-made builds with 1–20 level-up guides, 706 spells, 3D dice, combat tracker.
+- [DnD-Лист](https://d1manych.github.io/dnd-app/) - Free Russian D&D 5e character sheet & manager (PWA, offline, no signup): 36 ready-made builds with 1–20 level-up guides, 719 spells, 3D dice, combat tracker.
 ```
 
 Как подать: открой `readme.md` на GitHub → карандаш ✏️ **Edit** → GitHub сам форкнет → добавь строку в секцию (по алфавиту или в конец списка) → **Commit changes** → **Create pull request**.
@@ -46,7 +46,7 @@ dnd  dnd5e  dungeons-and-dragons  dnd-tools  dnd5e-tools  character-sheet  dnd-c
 
 - **Name:** DnD-Лист (DnD-List)
 - **URL:** https://d1manych.github.io/dnd-app/
-- **Description:** Free, open-source D&D 5e character sheet and manager in Russian. Installable PWA that works fully offline with no signup. Includes 36 ready-made character builds with 1–20 level-up guides, the full PHB spell list (706 spells), 3D dice and a combat/party tracker. All data stays on your device — no cloud, no account.
+- **Description:** Free, open-source D&D 5e character sheet and manager in Russian. Installable PWA that works fully offline with no signup. Includes 36 ready-made character builds with 1–20 level-up guides, the full PHB spell list (719 spells), 3D dice and a combat/party tracker. All data stays on your device — no cloud, no account.
 - **Licensing:** Free / Open Source
 - **Platforms:** Online / Web (+ works offline as PWA)
 - **Alternative to:** D&D Beyond, Roll20 (character sheets), Aurora Builder, Fight Club 5e
