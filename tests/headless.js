@@ -1461,6 +1461,75 @@
     });
   }
 
+  // ────────── БЛОК 17 (UX-2): парсер формулы кубиков (app-ui.js) ──────────
+  if (typeof parseDiceFormula === "function") {
+    t("[UX-2] d20 → одна группа 1к20", function(){
+      var p = parseDiceFormula("d20");
+      if (!p.ok) return "ok=false: " + p.error;
+      return (p.groups.length===1 && p.groups[0].count===1 && p.groups[0].sides===20 && p.mod===0) || JSON.stringify(p);
+    });
+    t("[UX-2] к20 (кириллица) = d20", function(){
+      var p = parseDiceFormula("к20");
+      return (p.ok && p.groups[0].sides===20 && p.groups[0].count===1) || JSON.stringify(p);
+    });
+    t("[UX-2] 2d6+3 — группа + модификатор", function(){
+      var p = parseDiceFormula("2d6+3");
+      return (p.ok && p.groups.length===1 && p.groups[0].count===2 && p.groups[0].sides===6 && p.mod===3) || JSON.stringify(p);
+    });
+    t("[UX-2] 1d8+1d6+2 — две группы + модификатор", function(){
+      var p = parseDiceFormula("1d8+1d6+2");
+      if (!p.ok) return "ok=false: " + p.error;
+      return (p.groups.length===2 && p.groups[0].sides===8 && p.groups[1].sides===6 && p.mod===2) || JSON.stringify(p);
+    });
+    t("[UX-2] 2к6+1к4 (кириллица, две группы)", function(){
+      var p = parseDiceFormula("2к6+1к4");
+      return (p.ok && p.groups.length===2 && p.groups[0].count===2 && p.groups[1].sides===4 && p.mod===0) || JSON.stringify(p);
+    });
+    t("[UX-2] 1d20-1 — вычитание модификатора", function(){
+      var p = parseDiceFormula("1d20-1");
+      return (p.ok && p.groups[0].sides===20 && p.mod===-1) || JSON.stringify(p);
+    });
+    t("[UX-2] d8-1d4 — отрицательная группа", function(){
+      var p = parseDiceFormula("d8-1d4");
+      if (!p.ok) return "ok=false: " + p.error;
+      return (p.groups.length===2 && p.groups[1].sign===-1 && p.groups[1].sides===4) || JSON.stringify(p);
+    });
+    t("[UX-2] пробелы игнорируются", function(){
+      var p = parseDiceFormula("  2 к 6 + 3 ");
+      return (p.ok && p.groups[0].count===2 && p.groups[0].sides===6 && p.mod===3) || JSON.stringify(p);
+    });
+    t("[UX-2] клампа count ≤ 50 (99d6)", function(){
+      var p = parseDiceFormula("99d6");
+      return (p.ok && p.groups[0].count===50) || JSON.stringify(p);
+    });
+    t("[UX-2] мусор 'abc' → ошибка", function(){
+      return parseDiceFormula("abc").ok === false || "принял мусор";
+    });
+    t("[UX-2] пустая строка → ошибка", function(){
+      return parseDiceFormula("   ").ok === false || "принял пустую";
+    });
+    t("[UX-2] голый модификатор '5' → ошибка (нужен кубик)", function(){
+      return parseDiceFormula("5").ok === false || "принял без кубика";
+    });
+    t("[UX-2] грань < 2 'd1' → ошибка", function(){
+      return parseDiceFormula("d1").ok === false || "принял d1";
+    });
+    t("[UX-2] двойной знак '2d6++3' → ошибка", function(){
+      return parseDiceFormula("2d6++3").ok === false || "принял двойной знак";
+    });
+    t("[UX-2] незакрытый кубик '2d' → ошибка", function(){
+      return parseDiceFormula("2d").ok === false || "принял 2d";
+    });
+  }
+  if (typeof _formulaCanon === "function") {
+    t("[UX-2] канон d20 → 'к20'", function(){
+      return _formulaCanon([{count:1,sides:20,sign:1}], 0) === "к20" || _formulaCanon([{count:1,sides:20,sign:1}], 0);
+    });
+    t("[UX-2] канон 2d6+3 → '2к6+3'", function(){
+      return _formulaCanon([{count:2,sides:6,sign:1}], 3) === "2к6+3" || _formulaCanon([{count:2,sides:6,sign:1}], 3);
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

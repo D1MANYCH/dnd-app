@@ -4589,6 +4589,42 @@ padding: 18px;
   color: var(--accent-color, var(--accent));
 }
 
+/* UX-2: быстрые вставки токенов формулы (чипы) */
+.dice-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.dice-chip {
+  flex: 0 0 auto;
+  width: auto;          /* перебить глоб. button{width:100%} — иначе чипы стопкой */
+  min-width: 38px;
+  padding: 6px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-color, var(--bg-3));
+  color: var(--text-color);
+  border-radius: var(--r-sm, 8px);
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  margin: 0;
+  transition: border-color .15s, color .15s, background .15s, transform .05s;
+}
+.dice-chip:hover {
+  border-color: var(--accent-color, var(--accent));
+  color: var(--accent-color, var(--accent));
+}
+.dice-chip:active { transform: translateY(1px); }
+.dice-chip-op {
+  color: var(--accent-color, var(--accent));
+  font-size: 0.95em;
+}
+/* В поповере — компактнее */
+.dice-popover-body .dice-chips { gap: 5px; margin-top: 6px; }
+.dice-popover-body .dice-chip { min-width: 34px; padding: 5px 8px; font-size: 0.8em; }
+
 /* v3.19: блок результата под ареной — decor-полоска + «Кубик: dN» */
 .dice3d-divider {
   width: 48px;

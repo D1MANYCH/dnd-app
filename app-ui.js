@@ -262,13 +262,25 @@ function _updateDiceHistoryBadge() {
     badge.hidden = true;
   }
 }
-// v3.19: формула из основного input'а под сеткой (дубль popover-формулы для удобства)
+// UX-2: формула из основного input'а под сеткой — тонкая обёртка над общим обработчиком.
 function rollCustomFormulaFromMain() {
-  var src = document.getElementById('dice-custom-input-main');
-  var dst = document.getElementById('dice-custom-input');
-  if (src && dst) { dst.value = src.value; }
-  try { rollCustomFormula(); } catch (e) {}
+  try { _rollFormulaFrom('dice-custom-input-main'); } catch (e) {}
 }
+// UX-2: быстрые вставки токенов формулы (чипы под полем) в активное/основное поле.
+function diceInsertToken(token, targetId) {
+  var el = document.getElementById(targetId || 'dice-custom-input-main');
+  if (!el) return;
+  el.value = (el.value || '') + token;
+  try { el.focus(); } catch (e) {}
+}
+function diceFormulaBackspace(targetId) {
+  var el = document.getElementById(targetId || 'dice-custom-input-main');
+  if (!el) return;
+  el.value = (el.value || '').slice(0, -1);
+  try { el.focus(); } catch (e) {}
+}
+window.diceInsertToken = diceInsertToken;
+window.diceFormulaBackspace = diceFormulaBackspace;
 // Клик вне поповера закрывает его (кроме клика по tool-кнопкам, которые сами тогглят)
 document.addEventListener('click', function(ev) {
   var modal = document.getElementById('dice-modal');
@@ -1368,47 +1380,143 @@ function _applyDiceCritGlow(sides, v1, v2) {
   setTimeout(function() { el.classList.remove('crit-success', 'crit-fail'); }, 1400);
 }
 
-function rollCustomFormula() {
-const input = $("dice-custom-input");
-if (!input) return;
-const formula = input.value.trim().toLowerCase().replace(/к/g,"d").replace(/\s/g,"");
-if (!formula) return;
-// Parse NdX+M or NdX-M or just NdX
-const match = formula.match(/^(\d+)d(\d+)([+-]\d+)?$/);
-if (!match) { 
-  const display = $("dice-result-display");
-  const resultInfo = $("dice-result-info");
-  if (display) { display.classList.remove("crit-success","crit-fail","normal"); display.classList.add("normal"); }
-  if (resultInfo) resultInfo.textContent = "Неверный формат (пример: 2к6+3)";
-  return; 
+// ============================================================
+// UX-2: надёжный парсер формулы кубиков.
+// Грамматика: последовательность термов со знаком ±, где терм =
+//   NdX | dX (=1dX) | целое-модификатор. Несколько кубиковых групп
+//   складываются. Нормализация: к→d, нижний регистр, без пробелов.
+// Клампы: count 1..50, грань ≥2 (до 1000). Итог ≥1 — на стадии подсчёта.
+// Возврат: { ok:true, groups:[{count,sides,sign}], mod } | { ok:false, error }
+// ============================================================
+function parseDiceFormula(raw) {
+  var s = String(raw == null ? '' : raw).toLowerCase().replace(/к/g, 'd').replace(/\s+/g, '');
+  if (!s) return { ok: false, error: 'Введите формулу (пример: 2к6+3)' };
+  if (!/^[0-9d+\-]+$/.test(s)) return { ok: false, error: 'Неверный формат (пример: 2к6+3)' };
+  if (s[0] !== '+' && s[0] !== '-') s = '+' + s;
+  var termRe = /([+-])([^+-]*)/g;
+  var m, idx = 0, groups = [], mod = 0, hasDice = false;
+  while ((m = termRe.exec(s)) !== null) {
+    if (m.index !== idx) return { ok: false, error: 'Неверный формат (пример: 2к6+3)' };
+    idx = termRe.lastIndex;
+    var sign = m[1] === '-' ? -1 : 1;
+    var body = m[2];
+    if (body === '') return { ok: false, error: 'Неверный формат (пример: 2к6+3)' };
+    var dm = body.match(/^(\d*)d(\d*)$/);
+    if (dm) {
+      var count = dm[1] === '' ? 1 : parseInt(dm[1], 10);
+      var sides = dm[2] === '' ? 0 : parseInt(dm[2], 10);
+      if (!sides || sides < 2) return { ok: false, error: 'Грань кубика ≥ 2 (пример: к6, к20)' };
+      count = Math.max(1, Math.min(count, 50));
+      sides = Math.min(sides, 1000);
+      groups.push({ count: count, sides: sides, sign: sign });
+      hasDice = true;
+    } else if (/^\d+$/.test(body)) {
+      mod += sign * parseInt(body, 10);
+    } else {
+      return { ok: false, error: 'Неверный формат (пример: 2к6+3)' };
+    }
+  }
+  if (idx !== s.length) return { ok: false, error: 'Неверный формат (пример: 2к6+3)' };
+  if (!hasDice) return { ok: false, error: 'Нужен хотя бы один кубик (пример: к20+3)' };
+  return { ok: true, groups: groups, mod: mod };
 }
-const count = Math.min(parseInt(match[1], 10) || 1, 20);
-const sides = Math.min(parseInt(match[2], 10) || 6, 100);
-const bonus = parseInt(match[3] || "0", 10);
-let rolls = [], total = 0;
-for (let i = 0; i < count; i++) { const r = Math.floor(Math.random() * sides)+1; rolls.push(r); total += r; }
-total += bonus;
-total = Math.max(1, total);
-const timestamp = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-const display = $("dice-result-display");
-const resultBig = $("dice-result-big");
-const resultInfo = $("dice-result-info");
-if (!display||!resultBig||!resultInfo) return;
-display.classList.remove("crit-success","crit-fail","normal"); void display.offsetWidth;
-display.classList.add("normal");
-resultBig.textContent = total;
-const rollStr = rolls.join("+") + (bonus !== 0 ? (bonus>0?"+":"")+bonus : "");
-resultInfo.textContent = formula.replace(/d/g,"к") + " = " + rollStr + (count>1||bonus!==0?" = "+total:"");
-diceHistory.unshift({ sides: sides, result: total, mode: "custom", formula: formula.replace(/d/g,"к"), time: timestamp });
-if (diceHistory.length > 10) diceHistory.pop();
-renderDiceHistory();
-try { _updateDiceHistoryBadge(); } catch (e) {}
-// v3.19: пульс фона + обновить подпись «Кубик: <формула>»
-try { if (window.DiceArenaBg) window.DiceArenaBg.pulse(); } catch (e) {}
-try {
-  var ri = document.getElementById('dice-result-info');
-  if (ri) ri.textContent = 'Формула: ' + formula.replace(/d/g,"к");
-} catch (e) {}
+window.parseDiceFormula = parseDiceFormula;
+
+// UX-2: канонизованная подпись формулы (для плейсхолдера и истории), кириллица.
+function _formulaCanon(groups, mod) {
+  var out = '';
+  groups.forEach(function(g, i) {
+    var sign = g.sign < 0 ? '−' : (i === 0 ? '' : '+');
+    out += sign + (g.count > 1 ? g.count : '') + 'к' + g.sides;
+  });
+  if (mod) out += (mod < 0 ? '−' : '+') + Math.abs(mod);
+  return out;
+}
+
+// UX-2: подсчёт суммы по группам + модификатор, разбивка в #dice-result-info.
+// rollsByGroup — массив массивов выпавших значений (по группе). Возвращает {total}.
+function _renderFormulaResult(groups, rollsByGroup, mod) {
+  var total = 0, parts = [], multi = (groups.length > 1) || (mod !== 0);
+  groups.forEach(function(g, i) {
+    var rolls = rollsByGroup[i];
+    var sum = rolls.reduce(function(a, b){ return a + b; }, 0);
+    if (g.count > 1) multi = true;
+    total += g.sign * sum;
+    var prefix = (i === 0) ? (g.sign < 0 ? '−' : '') : (g.sign < 0 ? ' − ' : ' + ');
+    var dieLabel = (g.count > 1 ? g.count : '') + 'к' + g.sides;
+    parts.push(prefix + dieLabel + ': ' + rolls.join('+'));
+  });
+  if (mod !== 0) parts.push((mod < 0 ? ' − ' : ' + ') + Math.abs(mod));
+  total += mod;
+  total = Math.max(1, total);
+  var resultBig = $("dice-result-big");
+  var resultInfo = $("dice-result-info");
+  var resultBox = $("dice3d-result");
+  if (resultBig) resultBig.textContent = total;
+  if (resultInfo) resultInfo.textContent = parts.join('') + (multi ? ' = ' + total : '');
+  if (resultBox) {
+    resultBox.classList.remove('crit-success', 'crit-fail');
+    resultBox.classList.add('normal', 'pop');
+    setTimeout(function(){ if (resultBox) resultBox.classList.remove('pop'); }, 400);
+  }
+  return { total: total };
+}
+
+// UX-2: общий обработчик «своей формулы» — оба инпута (main и поповер) зовут его.
+// Запускает настоящий 3D-бросок основной группы через animateDice3d, на колбэке
+// сверяет основную группу с физикой (для ≤2 кубиков) и показывает разбивку.
+function _rollFormulaFrom(inputId) {
+  var input = document.getElementById(inputId) || document.getElementById('dice-custom-input');
+  if (!input) return;
+  var parsed = parseDiceFormula(input.value);
+  var resultBig = $("dice-result-big");
+  var resultInfo = $("dice-result-info");
+  if (!parsed.ok) {
+    if (resultInfo) resultInfo.textContent = parsed.error;
+    if (resultBig) resultBig.textContent = '—';
+    if (window.AppLog) AppLog.action('dice', 'формула отклонена: ' + parsed.error);
+    return;
+  }
+  var groups = parsed.groups, mod = parsed.mod;
+  var canon = _formulaCanon(groups, mod);
+  // Пре-расчёт всех групп (математика — авторитетна; 3D для одной группы — визуал).
+  var rollsByGroup = groups.map(function(g) {
+    var arr = [];
+    for (var i = 0; i < g.count; i++) arr.push(Math.floor(Math.random() * g.sides) + 1);
+    return arr;
+  });
+  // Основная группа для 3D — с наибольшим числом кубиков (тай-брейк: первая).
+  var primaryIdx = 0;
+  for (var gi = 1; gi < groups.length; gi++) {
+    if (groups[gi].count > groups[primaryIdx].count) primaryIdx = gi;
+  }
+  var primary = groups[primaryIdx];
+  var precompPrimarySum = rollsByGroup[primaryIdx].reduce(function(a, b){ return a + b; }, 0);
+  var timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (resultBig) resultBig.textContent = '…';
+  if (resultInfo) resultInfo.textContent = 'Бросок ' + canon + '…';
+  if (window.AppLog) AppLog.action('dice', 'формула ' + canon + ' — старт', { sides: primary.sides });
+
+  animateDice3d(primary.sides, precompPrimarySum, function(v1, v2) {
+    // Сверка основной группы с физикой, где это возможно: 1 кубик → v1, 2 → v1,v2.
+    if (primary.count === 1 && typeof v1 === 'number' && !isNaN(v1)) {
+      rollsByGroup[primaryIdx] = [v1];
+    } else if (primary.count === 2 && typeof v1 === 'number' && !isNaN(v1) && typeof v2 === 'number' && !isNaN(v2)) {
+      rollsByGroup[primaryIdx] = [v1, v2];
+    }
+    var res = _renderFormulaResult(groups, rollsByGroup, mod);
+    diceHistory.unshift({ sides: primary.sides, result: res.total, mode: 'custom', formula: canon, time: timestamp });
+    if (diceHistory.length > 10) diceHistory.pop();
+    renderDiceHistory();
+    try { _updateDiceHistoryBadge(); } catch (e) {}
+    if (window.AppLog) AppLog.action('dice', 'формула ' + canon + ' = ' + res.total, { total: res.total });
+  }, { qty: Math.min(primary.count, 10) });
+}
+
+// UX-2: поповер-инпут «своя формула» — тот же общий обработчик.
+function rollCustomFormula() {
+  try { _rollFormulaFrom('dice-custom-input'); } catch (e) {}
 }
 function renderDiceHistory() {
 const container = $("dice-history");
