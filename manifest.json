@@ -1,7 +1,7 @@
 {
   "name": "D&D 5e — Лист Персонажа",
   "short_name": "D&D Sheet",
-  "description": "Бесплатный лист персонажа D&D 5e на русском: 36 готовых билдов, 706 заклинаний, 3D-кубики, боевой трекер. Офлайн, без регистрации.",
+  "description": "Бесплатный лист персонажа D&D 5e на русском: 36 готовых билдов, 719 заклинаний, 3D-кубики, боевой трекер. Офлайн, без регистрации.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1a24",
@@ -54,7 +54,7 @@
       "sizes": "1884x911",
       "type": "image/webp",
       "form_factor": "wide",
-      "label": "706 заклинаний"
+      "label": "719 заклинаний"
     }
   ],
   "categories": ["games", "utilities"]
