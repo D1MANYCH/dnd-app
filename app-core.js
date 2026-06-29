@@ -1337,6 +1337,12 @@ function openBuildPicker() {
 
 var BP_ROLE_ICONS = { DPS:"⚔️", Tank:"🛡️", Support:"✨", Control:"🌀", Utility:"🧰" };
 var BP_DIFF_LABELS = { 1:"новичку", 2:"среднее", 3:"сложное" };
+// UX-4: расшифровка точек сложности для легенды в гайде билда.
+var BP_DIFF_DESC = {
+  1: "простое управление, почти нет ресурсов для учёта",
+  2: "есть ресурсы и тайминги, но без сложных комбинаций",
+  3: "много ресурсов и решений в каждый ход"
+};
 
 function renderBuildPicker() {
   var list = $("bp-list");
@@ -2285,6 +2291,113 @@ function _applyBuildCore(buildId) {
   if (b.guide) setTimeout(function(){ openBuildGuide(b.id); }, 250);
 }
 
+// ── UX-4: глоссарий-тултипы ──────────────────────────────────────────────────
+// Оборачиваем известные игровые термины в гайдах билдов в <span class="gloss">
+// с поповером-расшифровкой (паттерн поповеров дайс-модала, без библиотек).
+// Данные — window.GLOSSARY (glossary-data.js). Совпадение по границам слов:
+// термин не сработает внутри слова. Только первое вхождение в гайде подсвечивается.
+var _GLOSS_RE = null, _GLOSS_MAP = null, _glossActiveEl = null;
+function _glossNorm(s) { return String(s == null ? "" : s).toLowerCase().replace(/ё/g, "е").trim(); }
+function _reEscape(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+function _glossInit() {
+  if (_GLOSS_RE !== null) return;
+  _GLOSS_MAP = {};
+  var entries = (typeof window !== "undefined" && Array.isArray(window.GLOSSARY)) ? window.GLOSSARY : [];
+  var terms = [];
+  entries.forEach(function(e) {
+    if (!e || typeof e.def !== "string" || !Array.isArray(e.terms)) return;
+    e.terms.forEach(function(term) {
+      var key = _glossNorm(term);
+      if (!key) return;
+      if (!_GLOSS_MAP[key]) _GLOSS_MAP[key] = e;
+      terms.push(term);
+    });
+  });
+  if (!terms.length) { _GLOSS_RE = false; return; }
+  // Длиннее — раньше: составные термины («Метка охотника») имеют приоритет над частями.
+  terms.sort(function(a, b) { return b.length - a.length; });
+  var L = "A-Za-zА-Яа-яЁё0-9_";
+  _GLOSS_RE = new RegExp("(^|[^" + L + "])(" + terms.map(_reEscape).join("|") + ")(?![" + L + "])", "gi");
+}
+// Принимает УЖЕ экранированный HTML; seen — объект {key:true} для подсветки только
+// первого вхождения каждого термина в пределах одного гайда.
+function glossarizeHtml(escaped, seen) {
+  _glossInit();
+  if (!_GLOSS_RE || !escaped) return escaped || "";
+  return String(escaped).replace(_GLOSS_RE, function(_m, lead, term) {
+    var key = _glossNorm(term);
+    var entry = _GLOSS_MAP[key];
+    if (!entry) return _m;
+    if (seen) { if (seen[key]) return lead + term; seen[key] = true; }
+    return lead + '<span class="gloss" tabindex="0" role="button" aria-label="Термин: ' + term +
+      '" data-gloss="' + key + '">' + term + '</span>';
+  });
+}
+function _glossPopoverEl() {
+  var el = document.getElementById("gloss-popover");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "gloss-popover";
+    el.className = "gloss-popover";
+    el.setAttribute("role", "tooltip");
+    el.hidden = true;
+    document.body.appendChild(el);
+  }
+  return el;
+}
+function hideGlossPopover() {
+  var pop = document.getElementById("gloss-popover");
+  if (pop) pop.hidden = true;
+  if (_glossActiveEl) { _glossActiveEl.classList.remove("is-active"); _glossActiveEl = null; }
+}
+function showGlossPopover(span) {
+  _glossInit();
+  var key = span.getAttribute("data-gloss");
+  var entry = _GLOSS_MAP && _GLOSS_MAP[key];
+  if (!entry) return;
+  var pop = _glossPopoverEl();
+  pop.innerHTML = '<span class="gloss-term">' + escapeHtml(entry.term || "") +
+    '</span><span class="gloss-def">' + escapeHtml(entry.def || "") + '</span>';
+  pop.hidden = false;
+  var r = span.getBoundingClientRect();
+  var pw = pop.offsetWidth, ph = pop.offsetHeight;
+  var left = Math.min(Math.max(8, r.left), Math.max(8, window.innerWidth - pw - 8));
+  var top = r.bottom + 8;
+  if (top + ph > window.innerHeight - 8) top = r.top - ph - 8; // не влезает снизу — показываем сверху
+  pop.style.left = left + "px";
+  pop.style.top = Math.max(8, top) + "px";
+  _glossActiveEl = span;
+  span.classList.add("is-active");
+}
+function _glossBindOnce() {
+  if (window.__glossBound) return;
+  window.__glossBound = true;
+  document.addEventListener("click", function(ev) {
+    var t = ev.target;
+    var span = t && t.closest && t.closest(".gloss");
+    if (span) {
+      ev.stopPropagation();
+      if (_glossActiveEl === span) hideGlossPopover();
+      else { hideGlossPopover(); showGlossPopover(span); }
+      return;
+    }
+    if (t && t.closest && t.closest("#gloss-popover")) return;
+    hideGlossPopover();
+  }, true);
+  document.addEventListener("keydown", function(ev) {
+    if (ev.key === "Escape") { hideGlossPopover(); return; }
+    if (ev.key === "Enter" || ev.key === " ") {
+      var a = document.activeElement;
+      if (a && a.classList && a.classList.contains("gloss")) {
+        ev.preventDefault();
+        if (_glossActiveEl === a) hideGlossPopover();
+        else { hideGlossPopover(); showGlossPopover(a); }
+      }
+    }
+  });
+  window.addEventListener("resize", hideGlossPopover);
+}
+
 // BUILD-DESC-3: модалка с полным гайдом по билду.
 // Вызов: openBuildGuide() — для текущего персонажа; openBuildGuide(buildId) — по id.
 function openBuildGuide(buildId) {
@@ -2303,21 +2416,47 @@ function openBuildGuide(buildId) {
   var titleEl = document.getElementById("bg-title-h");
   var bodyEl = document.getElementById("bg-body");
   if (titleEl) titleEl.textContent = "📘 Гайд: " + (b.title || b.className || "");
+  // UX-4: gx() = экранирование + обёртка терминов глоссария. seen — первое вхождение
+  // термина в гайде подсвечивается, повторы остаются простым текстом (без шума).
+  var seen = {};
+  function gx(s) { return glossarizeHtml(escapeHtml(s == null ? "" : s), seen); }
   function _list(arr, cls, mark) {
     if (!Array.isArray(arr) || !arr.length) return "";
     return '<ul class="bg-list ' + cls + '">' +
-      arr.map(function(x){ return '<li><span class="bg-mark">' + mark + '</span> ' + escapeHtml(x) + '</li>'; }).join("") +
+      arr.map(function(x){ return '<li><span class="bg-mark">' + mark + '</span> ' + gx(x) + '</li>'; }).join("") +
       '</ul>';
   }
   var html = "";
   html += '<div class="bg-meta"><span class="bg-cls">' + escapeHtml(b.className || "") + (b.subclass ? ' · ' + escapeHtml(b.subclass) : '') + '</span>';
   if (b.role) html += '<span class="bg-role">' + escapeHtml(b.role) + '</span>';
   html += '</div>';
-  if (g.pitch) html += '<div class="bg-pitch">🎯 ' + escapeHtml(g.pitch) + '</div>';
-  if (g.playstyle) html += '<section class="bg-section"><h3>⚔️ Стиль игры</h3><p>' + escapeHtml(g.playstyle) + '</p></section>';
+  // UX-4: легенда сложности — расшифровка точек из карточки билда.
+  var _diff = b.difficulty || 1;
+  var _dots = "●".repeat(_diff) + "○".repeat(3 - _diff);
+  html += '<div class="bg-diff-legend"><span class="bg-diff-dots bg-diff-' + _diff + '">' + _dots + '</span> Сложность: <b>' +
+    escapeHtml(BP_DIFF_LABELS[_diff] || "") + '</b> — ' + escapeHtml(BP_DIFF_DESC[_diff] || "") + '</div>';
+  if (g.pitch) html += '<div class="bg-pitch">🎯 ' + gx(g.pitch) + '</div>';
+  // UX-4: шкала живучести d6→d12 с подсветкой кости хитов класса.
+  var _hd = (typeof CLASS_HIT_DICE !== "undefined" && CLASS_HIT_DICE[b.className]) || 0;
+  if (_hd) {
+    var _HD_DESC = {
+      6:  "Самая малая кость хитов — мало здоровья, держись подальше от ближнего боя.",
+      8:  "Кость хитов ниже среднего — здоровья немного, береги дистанцию.",
+      10: "Крепкая кость хитов — уверенно держишь первый ряд.",
+      12: "Самая большая кость хитов — максимум здоровья, ты танк партии."
+    };
+    var _scale = [6, 8, 10, 12].map(function(d){
+      return '<span class="bg-hp-chip' + (d === _hd ? " is-active" : "") + '">d' + d + '</span>';
+    }).join('<span class="bg-hp-arrow">›</span>');
+    html += '<section class="bg-section bg-legend"><h3>🩺 Живучесть</h3>' +
+      '<div class="bg-hpscale" role="img" aria-label="Кость хитов d' + _hd + ' из шкалы d6–d12">' + _scale + '</div>' +
+      '<div class="bg-hp-ends"><span>хрупкий</span><span>живучий</span></div>' +
+      '<p class="bg-legend-note">' + gx(_HD_DESC[_hd] || ("Кость хитов d" + _hd + ".")) + '</p></section>';
+  }
+  if (g.playstyle) html += '<section class="bg-section"><h3>⚔️ Стиль игры</h3><p>' + gx(g.playstyle) + '</p></section>';
   if (Array.isArray(g.strengths) && g.strengths.length) html += '<section class="bg-section"><h3>✅ Сильные стороны</h3>' + _list(g.strengths, "bg-pros", "✓") + '</section>';
   if (Array.isArray(g.weaknesses) && g.weaknesses.length) html += '<section class="bg-section"><h3>⚠️ Слабости</h3>' + _list(g.weaknesses, "bg-cons", "✗") + '</section>';
-  if (g.synergy) html += '<section class="bg-section"><h3>🤝 Синергия в партии</h3><p>' + escapeHtml(g.synergy) + '</p></section>';
+  if (g.synergy) html += '<section class="bg-section"><h3>🤝 Синергия в партии</h3><p>' + gx(g.synergy) + '</p></section>';
   if (Array.isArray(g.tips) && g.tips.length) html += '<section class="bg-section"><h3>💡 Советы по игре</h3>' + _list(g.tips, "bg-tips", "•") + '</section>';
   // План развития 1–20 из b.levelUp — полный список по возрастанию уровней.
   if (b.levelUp) {
@@ -2328,11 +2467,13 @@ function openBuildGuide(buildId) {
       .sort(function(a, b){ return a - b; })
       .forEach(function(lv){
         var s = b.levelUp[lv];
-        if (s && s.headline) lvLines.push('<li><strong>' + lv + ' ур.:</strong> ' + escapeHtml(s.headline) + (s.why ? ' <span class="bg-why">— ' + escapeHtml(s.why) + '</span>' : '') + '</li>');
+        if (s && s.headline) lvLines.push('<li><strong>' + lv + ' ур.:</strong> ' + gx(s.headline) + (s.why ? ' <span class="bg-why">— ' + gx(s.why) + '</span>' : '') + '</li>');
       });
     if (lvLines.length) html += '<section class="bg-section"><h3>📈 План развития (1–20)</h3><ul class="bg-list bg-levels">' + lvLines.join("") + '</ul></section>';
   }
   if (bodyEl) bodyEl.innerHTML = html;
+  hideGlossPopover();
+  _glossBindOnce();
   openModal("build-guide-modal");
 }
 

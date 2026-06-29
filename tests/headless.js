@@ -1530,6 +1530,40 @@
     });
   }
 
+  // ────────── БЛОК 18 (UX-4): глоссарий-тултипы (app-core.js + glossary-data.js) ──────────
+  if (typeof glossarizeHtml === "function" && typeof window !== "undefined" && Array.isArray(window.GLOSSARY)) {
+    t("[UX-4] GLOSSARY: у каждой записи непустые term/terms/def", function(){
+      var bad = [];
+      window.GLOSSARY.forEach(function(e, i){
+        if (!e || typeof e.term !== "string" || !e.term.trim()) bad.push(i + ":term");
+        if (!e || !Array.isArray(e.terms) || !e.terms.length) bad.push(i + ":terms");
+        if (!e || typeof e.def !== "string" || !e.def.trim()) bad.push(i + ":def");
+      });
+      return bad.length === 0 || ("плохие записи: " + bad.join(", "));
+    });
+    t("[UX-4] glossarizeHtml оборачивает известный термин (КД)", function(){
+      var out = glossarizeHtml("высокий КД и щит", {});
+      return /<span class="gloss"[^>]*data-gloss="кд"[^>]*>КД<\/span>/.test(out) || out;
+    });
+    t("[UX-4] первое вхождение оборачивается, повтор — нет", function(){
+      var out = glossarizeHtml("ячейки и снова ячейки", {});
+      var n = (out.match(/class="gloss"/g) || []).length;
+      return n === 1 || ("ожидал 1 обёртку, получено " + n + ": " + out);
+    });
+    t("[UX-4] не срабатывает внутри слова (ки в «руки»)", function(){
+      var out = glossarizeHtml("он сложил руки на груди", {});
+      return out.indexOf("gloss") === -1 || ("ложное срабатывание: " + out);
+    });
+    t("[UX-4] составной термин в приоритете (Метка охотника, не «Метка»)", function(){
+      var out = glossarizeHtml("ставит Метку охотника на цель", {});
+      return /data-gloss="метку охотника"/.test(out) || out;
+    });
+    t("[UX-4] текст без терминов не меняется", function(){
+      var src = "просто описание без игровых терминов";
+      return glossarizeHtml(src, {}) === src || glossarizeHtml(src, {});
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

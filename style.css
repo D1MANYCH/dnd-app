@@ -11556,6 +11556,52 @@ mark.notes-hl {
 .bg-list.bg-levels li { margin-left: 4px; }
 .bg-list.bg-levels .bg-why { color:var(--text-muted); font-size:0.92em; }
 
+/* UX-4: легенда сложности + шкала живучести в гайде билда */
+.bg-diff-legend { font-size:0.82em; color:var(--text-muted); margin:0 0 12px; line-height:1.4; }
+.bg-diff-legend b { color:var(--text); }
+.bg-diff-dots { letter-spacing:1px; margin-right:2px; }
+.bg-diff-dots.bg-diff-1 { color:#7fc08a; }
+.bg-diff-dots.bg-diff-2 { color:#d8b24a; }
+.bg-diff-dots.bg-diff-3 { color:#d68a8a; }
+.bg-legend { margin-top: 4px; }
+.bg-hpscale { display:flex; align-items:center; gap:6px; margin:4px 0 2px; flex-wrap:wrap; }
+.bg-hp-chip {
+  min-width:34px; text-align:center; padding:4px 9px; border-radius:8px;
+  font-size:0.82em; font-weight:700; color:var(--text-muted);
+  background:var(--bg-3); border:1px solid var(--border, rgba(255,255,255,0.08));
+  transition: color .12s, background .12s, border-color .12s;
+}
+.bg-hp-chip.is-active {
+  color:#fff; background:var(--accent); border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(201,162,74,0.25);
+}
+.bg-hp-arrow { color:var(--text-muted); font-size:0.9em; }
+.bg-hp-ends { display:flex; justify-content:space-between; max-width:204px; font-size:0.72em; color:var(--text-muted); }
+.bg-legend-note { margin:6px 0 0; font-size:0.86em; color:var(--text); line-height:1.45; }
+
+/* UX-4: глоссарий-термины + поповер-расшифровка */
+.gloss {
+  border-bottom:1px dashed var(--accent);
+  cursor:help; color:inherit;
+}
+.gloss:hover, .gloss:focus, .gloss.is-active { color:var(--accent); outline:none; }
+.gloss-popover {
+  position:fixed; z-index:12000; max-width:280px;
+  padding:10px 12px; border-radius:10px;
+  background:var(--surface-sticky, var(--bg-2)); color:var(--text);
+  border:1px solid var(--border, rgba(255,255,255,0.12));
+  box-shadow:0 10px 30px rgba(0,0,0,0.45);
+  backdrop-filter: blur(var(--glass-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
+  font-size:0.85em; line-height:1.45;
+  display:flex; flex-direction:column; gap:4px;
+  animation: glossPop .12s ease-out;
+}
+.gloss-popover[hidden] { display:none; }
+.gloss-popover .gloss-term { font-weight:700; color:var(--accent); }
+.gloss-popover .gloss-def { color:var(--text); }
+@keyframes glossPop { from { opacity:0; transform:translateY(-3px); } to { opacity:1; transform:none; } }
+
 /* BUILD-LVL-2: кнопка «План» у бейджа билда + модалка плана развития 1–20 */
 /* FB-6: пилюля «📈 План» — комфортный тап-таргет и читаемость (была мелкой/тусклой) */
 .char-build-plan-btn {
