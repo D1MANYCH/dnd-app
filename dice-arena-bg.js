@@ -23,6 +23,33 @@
 
   let bgStars = [], nebulae = [], orbits = [], dustParticles = [], shockwaves = [];
 
+  // UX-3: варианты фона арены. Палитра + флаги (орбиты/плотность звёзд).
+  // cosmos — исходный космос (орбиты + тёплое золото); aurora — холодное
+  // сияние (бирюза + фиолет); starfield — плотное звёздное поле без орбит.
+  const VARIANTS = {
+    cosmos: {
+      bg: ['#0a1628', '#060e1f', '#030812'],
+      orbit: [255, 190, 100], lead: [255, 230, 180], glow: [255, 180, 80],
+      nebWarm: [160, 100, 50], nebCool: [60, 80, 140],
+      star: [200, 215, 255], orbits: true, starScale: 1
+    },
+    aurora: {
+      bg: ['#04140f', '#06121c', '#02090f'],
+      orbit: [120, 230, 180], lead: [200, 255, 230], glow: [120, 220, 170],
+      nebWarm: [80, 180, 140], nebCool: [120, 90, 200],
+      star: [200, 255, 235], orbits: true, starScale: 1.1
+    },
+    starfield: {
+      bg: ['#0a0a18', '#06060f', '#020208'],
+      orbit: [200, 210, 255], lead: [230, 235, 255], glow: [150, 165, 230],
+      nebWarm: [120, 90, 200], nebCool: [70, 90, 160],
+      star: [220, 225, 255], orbits: false, starScale: 1.8
+    }
+  };
+  let variant = 'cosmos';
+  function V() { return VARIANTS[variant] || VARIANTS.cosmos; }
+  function col(rgb, a) { return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ')'; }
+
   const rmMQ = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
 
   function running() {
@@ -33,7 +60,8 @@
 
   function initScene() {
     // Звёзды — 3 слоя, локальные координаты (внутри арены 0..W, 0..H)
-    const starCounts = isMobile ? [35, 20, 8] : [70, 40, 15];
+    const sc = V().starScale || 1;
+    const starCounts = (isMobile ? [35, 20, 8] : [70, 40, 15]).map(function (n) { return Math.round(n * sc); });
     bgStars = starCounts.map((count, layerIdx) => {
       const arr = [];
       for (let i = 0; i < count; i++) {
@@ -162,12 +190,13 @@
     speedMultiplier += (targetSpeed - speedMultiplier) * 0.05;
 
     ctx.clearRect(0, 0, W, H);
+    const v = V();
 
     // Фон — радиальный градиент (тёмный космос)
     const bgg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.7);
-    bgg.addColorStop(0, '#0a1628');
-    bgg.addColorStop(0.55, '#060e1f');
-    bgg.addColorStop(1, '#030812');
+    bgg.addColorStop(0, v.bg[0]);
+    bgg.addColorStop(0.55, v.bg[1]);
+    bgg.addColorStop(1, v.bg[2]);
     ctx.fillStyle = bgg;
     ctx.fillRect(0, 0, W, H);
 
@@ -177,13 +206,9 @@
       n.rotation += n.rotSpeed * speedMultiplier;
       ctx.save(); ctx.translate(n.x, n.y); ctx.rotate(n.rotation);
       const ng = ctx.createRadialGradient(0, 0, 0, 0, 0, n.radius);
-      if (n.warm) {
-        ng.addColorStop(0, `rgba(160,100,50,${n.alpha})`);
-        ng.addColorStop(1, 'rgba(160,100,50,0)');
-      } else {
-        ng.addColorStop(0, `rgba(60,80,140,${n.alpha})`);
-        ng.addColorStop(1, 'rgba(60,80,140,0)');
-      }
+      const nc = n.warm ? v.nebWarm : v.nebCool;
+      ng.addColorStop(0, col(nc, n.alpha));
+      ng.addColorStop(1, col(nc, 0));
       ctx.fillStyle = ng; ctx.fillRect(-n.radius, -n.radius, n.radius * 2, n.radius * 2);
       ctx.restore();
     });
@@ -196,7 +221,7 @@
         const a = star.baseOpacity * (0.45 + tw * 0.55);
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200,215,255,${a})`;
+        ctx.fillStyle = col(v.star, a);
         ctx.fill();
       });
     });
@@ -218,16 +243,16 @@
     });
 
     // Центральное мягкое свечение под кубик
-    drawGlow(cx, cy, Math.min(W, H) * 0.18, 255, 180, 80, 0.06 + (speedMultiplier - 1) * 0.04);
+    drawGlow(cx, cy, Math.min(W, H) * 0.18, v.glow[0], v.glow[1], v.glow[2], 0.06 + (speedMultiplier - 1) * 0.04);
 
-    // Орбиты
-    orbits.forEach(orbit => {
+    // Орбиты (вариант starfield их не рисует)
+    if (v.orbits) orbits.forEach(orbit => {
       orbit.angle += orbit.speed * orbit.dir * speedMultiplier * 0.008;
 
       // тонкое базовое кольцо
       ctx.beginPath();
       ctx.arc(cx, cy, orbit.radius, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(255,200,120,${orbit.alpha * 0.18})`;
+      ctx.strokeStyle = col(v.orbit, orbit.alpha * 0.18);
       ctx.lineWidth = 0.4;
       ctx.stroke();
 
@@ -236,12 +261,12 @@
       const arcEnd = orbit.angle + orbit.arcLen;
       ctx.beginPath();
       ctx.arc(cx, cy, orbit.radius, arcStart, arcEnd);
-      ctx.strokeStyle = `rgba(255,190,100,${orbit.alpha * 0.25})`;
+      ctx.strokeStyle = col(v.orbit, orbit.alpha * 0.25);
       ctx.lineWidth = 4; ctx.lineCap = 'round';
       ctx.stroke();
       ctx.beginPath();
       ctx.arc(cx, cy, orbit.radius, arcStart, arcEnd);
-      ctx.strokeStyle = `rgba(255,190,100,${orbit.alpha * 1.1})`;
+      ctx.strokeStyle = col(v.orbit, orbit.alpha * 1.1);
       ctx.lineWidth = 1.1; ctx.lineCap = 'round';
       ctx.stroke();
 
@@ -250,7 +275,7 @@
       const leadY = cy + orbit.radius * Math.sin(arcEnd);
       ctx.beginPath();
       ctx.arc(leadX, leadY, 2.4, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255,230,180,${Math.min(1, orbit.alpha * 3)})`;
+      ctx.fillStyle = col(v.lead, Math.min(1, orbit.alpha * 3));
       ctx.fill();
 
       // хвост (точки)
@@ -261,7 +286,7 @@
         const a = orbit.alpha * (1 - d / 6) * 0.45;
         ctx.beginPath();
         ctx.arc(dx, dy, 0.8, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,200,120,${a})`;
+        ctx.fillStyle = col(v.orbit, a);
         ctx.fill();
       }
 
@@ -285,7 +310,7 @@
       }
       ctx.beginPath();
       ctx.arc(cx, cy, sw.radius, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(255,200,120,${sw.opacity})`;
+      ctx.strokeStyle = col(v.orbit, sw.opacity);
       ctx.lineWidth = 1.6;
       ctx.stroke();
     }
@@ -356,5 +381,18 @@
     else if (rmMQ.addListener) rmMQ.addListener(onRm);
   }
 
-  window.DiceArenaBg = { start: start, stop: stop, pulse: pulse };
+  // UX-3: смена варианта фона. Пересобирает сцену (плотность звёзд) и
+  // перерисовывает кадр; при reduced-motion/скрытой вкладке — один статичный кадр.
+  function setVariant(name) {
+    if (!VARIANTS[name]) return;
+    variant = name;
+    if (canvas && ctx && initedSize) {
+      initScene();
+      if (reduce || document.hidden) { render(); }
+      else if (!rafId) { rafId = requestAnimationFrame(loop); }
+    }
+  }
+  function getVariant() { return variant; }
+
+  window.DiceArenaBg = { start: start, stop: stop, pulse: pulse, setVariant: setVariant, getVariant: getVariant };
 })();

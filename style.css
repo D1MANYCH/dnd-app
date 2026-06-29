@@ -9520,15 +9520,15 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .dice-theme-label { font-size: 0.92em; color: var(--text-color); margin-bottom: 8px; }
 .dice-theme-options { display: flex; gap: 6px; flex-wrap: wrap; }
-.dice-theme-btn {
+.dice-theme-btn, .dice-bg-btn {
   flex: 1 1 auto; min-width: 72px; padding: 6px 10px; height: 34px;
   background: var(--bg-3); color: var(--text-color);
   border: 1px solid var(--bg-3); border-radius: 8px;
   cursor: pointer; font-size: 0.9em; font-weight: 500;
   box-shadow: none; margin: 0;
 }
-.dice-theme-btn:hover { border-color: var(--accent); transform: none; box-shadow: none; }
-.dice-theme-btn.is-active {
+.dice-theme-btn:hover, .dice-bg-btn:hover { border-color: var(--accent); transform: none; box-shadow: none; }
+.dice-theme-btn.is-active, .dice-bg-btn.is-active {
   background: var(--accent); color: var(--bg-1);
   border-color: var(--accent);
 }
@@ -9587,6 +9587,159 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   .dice-controls-col .dice-btn { min-height: 50px; padding: 6px 6px; gap: 4px; }
   .dice-btn-icon { width: 22px; height: 22px; }
   .dice-modal-footer { padding: 5px 10px 7px; }
+}
+
+/* UX-3: на телефоне «верхнего окна» (арены) не видно — модалка показывает
+   только кнопки выбора кубика. Тап по кубику открывает полноэкранный оверлей
+   с 3D-броском поверх размытого фона; тап по оверлею закрывает его обратно
+   к кнопкам. Десктоп (две колонки) не трогаем — всё под медиазапросом. */
+@media (max-width: 520px) {
+  /* Экран бросков — на весь экран (арена вынесена в фикс-оверлей поверх) */
+  #dice-modal.modal.active { display: block; padding: 0; }
+  #dice-modal .dice-modal-content {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    /* убираем backdrop-filter — иначе он создаёт containing-block и фикс-оверлей
+       арены перестаёт быть полноэкранным (привязывается к контенту) */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .dice-modal-header { flex: 0 0 auto; }
+  /* Тело модалки — только контролы, по центру свободного места */
+  .dice-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    grid-template-columns: none;
+    gap: 0;
+    padding: 14px;
+  }
+  .dice-controls-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0;
+  }
+  .dice-controls-col .dice-btn { min-height: 56px; }
+  .dice-modal-footer { flex: 0 0 auto; }
+
+  /* Арена — полноэкранный оверлей, скрыт пока не идёт бросок */
+  .dice-arena-col {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: block;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    background: rgba(6, 8, 18, 0.55);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    /* плавный вход/выход оверлея (menu → бросок) */
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+  }
+  #dice-modal.dice-rolling .dice-arena-col {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+  /* Космо-фон + 3D-кубик заполняют весь экран */
+  .dice-arena-col .dsvg-container {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    border-radius: 0;
+    box-shadow: inset 0 0 60px 10px rgba(0, 0, 0, 0.6);
+    /* лёгкий зум космо-арены при проявлении оверлея */
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #dice-modal:not(.dice-rolling) .dice-arena-col .dsvg-container { transform: scale(1.05); }
+  /* Зона физики 3D-кубика — компактный квадрат (~340, как на десктопе):
+     в большой/вытянутой арене кость долго скачет, тут устаканивается быстро */
+  .dice-arena-col .dice-arena {
+    top: 46%;
+    left: 50%;
+    width: min(80vw, 360px);
+    height: min(42vh, 360px);
+  }
+  /* Число результата — крупный оверлей в верхней части */
+  .dice-arena-col .dice3d-result {
+    position: absolute;
+    top: 13%;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    pointer-events: none;
+  }
+  .dice-arena-col .dice3d-num {
+    font-size: 4.6em;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.9), 0 0 32px rgba(0, 0, 0, 0.7);
+  }
+  .dice-arena-col .dice3d-label {
+    color: #e3dff0;
+    font-size: 0.95em;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95);
+  }
+  .dice-arena-col .dice3d-divider { display: none; }
+  .dice-arena-col .dice-dual-display { justify-content: center; }
+  .dice-arena-col .dice-file-hint {
+    position: absolute;
+    top: 8px; left: 8px; right: 8px;
+    z-index: 3;
+    margin: 0;
+  }
+  /* Подсказка-закрытие внизу оверлея */
+  #dice-modal.dice-rolling .dice-arena-col::after {
+    content: "Нажмите, чтобы закрыть";
+    position: absolute;
+    left: 0; right: 0;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8em;
+    letter-spacing: 0.3px;
+    pointer-events: none;
+  }
+}
+
+/* UX-3: плавный «вход» в бросок на ПК — арена коротко оживает при старте
+   (на телефоне переход обеспечивает проявление оверлея, поэтому gated ≥521px) */
+@keyframes diceArenaEnter {
+  0%   { transform: scale(0.965); }
+  55%  { transform: scale(1.025); }
+  100% { transform: scale(1); }
+}
+@media (min-width: 521px) {
+  .dsvg-container.dice-enter-fx {
+    animation: diceArenaEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dice-arena-col,
+  .dice-arena-col .dsvg-container,
+  .dsvg-container.dice-enter-fx {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
 /* =============================================

@@ -179,6 +179,8 @@ setTimeout(function() {
     if (window.DiceArenaBg) {
       var arenaCv = document.getElementById('diceArenaBg');
       if (arenaCv) window.DiceArenaBg.start(arenaCv);
+      // UX-3: применить сохранённый вариант фона арены
+      try { if (DiceArenaBg.setVariant) DiceArenaBg.setVariant(_getDiceBg()); } catch (e) {}
     }
   } catch (e) {}
 }, 60);
@@ -189,9 +191,40 @@ try { if (window.DiceArenaBg) window.DiceArenaBg.stop(); } catch (e) {}
 // v3.18: закрываем поповеры если были открыты
 try { closeDicePopovers(); } catch (e) {}
 const modal = $("dice-modal");
-if (modal) modal.classList.remove("active");
+if (modal) modal.classList.remove("active", "dice-rolling");
 const display = $("dice-result-display");
 if (display) display.classList.remove("crit-success", "crit-fail", "normal");
+}
+
+// UX-3: на телефоне арена скрыта — видны только кнопки. Бросок открывает
+// полноэкранный оверлей с 3D-анимацией поверх размытого фона; тап по нему закрывает.
+function _diceFullscreenActive() {
+  try {
+    var m = document.getElementById('dice-modal');
+    return !!(m && m.classList.contains('active') &&
+      window.matchMedia && window.matchMedia('(max-width: 520px)').matches);
+  } catch (e) { return false; }
+}
+function showDiceRollOverlay() {
+  if (!_diceFullscreenActive()) return;
+  var m = document.getElementById('dice-modal');
+  if (m) m.classList.add('dice-rolling');
+}
+function hideDiceRollOverlay() {
+  var m = document.getElementById('dice-modal');
+  if (m) m.classList.remove('dice-rolling');
+}
+// UX-3: плавный «вход» в бросок — короткая анимация арены при старте.
+// На телефоне идёт вместе с проявлением оверлея; на ПК — единственный entrance-эффект
+// (CSS-keyframe gated на ≥521px). Перезапуск через reflow, чтобы играла каждый бросок.
+function _diceArenaEnterFX() {
+  var cont = document.querySelector('#dice-modal .dsvg-container');
+  if (!cont) return;
+  cont.classList.remove('dice-enter-fx');
+  void cont.offsetWidth;
+  cont.classList.add('dice-enter-fx');
+  clearTimeout(cont._enterFxT);
+  cont._enterFxT = setTimeout(function () { cont.classList.remove('dice-enter-fx'); }, 600);
 }
 
 // v3.18: поповеры в шапке модалки — настройки и история бросков
@@ -497,6 +530,29 @@ function _syncDiceThemeButtons() {
   });
 }
 document.addEventListener('DOMContentLoaded', _syncDiceThemeButtons);
+
+// UX-3: вариант фона арены (cosmos/aurora/starfield), персист рядом с diceTheme.
+var DICE_BGS = ['cosmos', 'aurora', 'starfield'];
+function _getDiceBg() {
+  try {
+    var b = localStorage.getItem('diceBg');
+    if (b && DICE_BGS.indexOf(b) !== -1) return b;
+  } catch (e) {}
+  return 'cosmos';
+}
+function setDiceBg(name) {
+  if (DICE_BGS.indexOf(name) === -1) return;
+  try { localStorage.setItem('diceBg', name); } catch (e) {}
+  _syncDiceBgButtons();
+  try { if (window.DiceArenaBg && DiceArenaBg.setVariant) DiceArenaBg.setVariant(name); } catch (e) {}
+}
+function _syncDiceBgButtons() {
+  var active = _getDiceBg();
+  document.querySelectorAll('.dice-bg-btn').forEach(function(b) {
+    b.classList.toggle('is-active', b.getAttribute('data-dice-bg') === active);
+  });
+}
+document.addEventListener('DOMContentLoaded', _syncDiceBgButtons);
 
 // UI-1: тема (Тёмная / Светлая / Системная)
 var THEMES = ['dark', 'light', 'auto'];
@@ -1117,6 +1173,9 @@ function _initDiceBox() {
 function animateDice3d(sides, result, callback, opts) {
   var qty = (opts && opts.qty) ? opts.qty : 1;
   var reduced = prefersReducedMotion();
+  // UX-3: на телефоне открыть полноэкранный оверлей с броском + плавный вход арены
+  try { showDiceRollOverlay(); } catch (e) {}
+  try { _diceArenaEnterFX(); } catch (e) {}
   // v3.17: импульс космо-арены (shockwave + ускорение орбит на 1с)
   try { if (window.DiceArenaBg) window.DiceArenaBg.pulse(); } catch (e) {}
   if (reduced) {
@@ -1254,6 +1313,9 @@ function animateDice3d(sides, result, callback, opts) {
 // d10=декагон, d12=додекагон, d20=шестиугольник (символично), d100=октагон.
 function animateDice2d(sides, result, callback, opts) {
   var qty = (opts && opts.qty) ? opts.qty : 1;
+  // UX-3: на телефоне открыть полноэкранный оверлей и для 2D-fallback + вход арены
+  try { showDiceRollOverlay(); } catch (e) {}
+  try { _diceArenaEnterFX(); } catch (e) {}
   // v3.17: импульс космо-арены и для 2D-fallback — единое UX
   try { if (window.DiceArenaBg) window.DiceArenaBg.pulse(); } catch (e) {}
   var container = document.getElementById('dsvg-container');
