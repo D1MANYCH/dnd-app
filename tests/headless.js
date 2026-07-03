@@ -1564,6 +1564,54 @@
     });
   }
 
+  // ────────── БЛОК 19 (UX-5): универсальная кидалка quickRoll (app-ui.js) ──────────
+  if (typeof _quickRollCompute === "function") {
+    t("[UX-5] обычный d20+мод: итог = бросок + мод", function(){
+      var c = _quickRollCompute(20, 3, 'normal', 17, null);
+      return (c.natural===17 && c.total===20 && c.isCrit===false && c.isFail===false) || JSON.stringify(c);
+    });
+    t("[UX-5] натуральная 20 → крит (по натуральному, не итогу)", function(){
+      var c = _quickRollCompute(20, 3, 'normal', 20, null);
+      return (c.isCrit===true && c.total===23) || JSON.stringify(c);
+    });
+    t("[UX-5] натуральная 1 → провал", function(){
+      var c = _quickRollCompute(20, 5, 'normal', 1, null);
+      return (c.isFail===true && c.total===6) || JSON.stringify(c);
+    });
+    t("[UX-5] преимущество берёт больший кубик", function(){
+      var c = _quickRollCompute(20, 2, 'adv', 8, 15);
+      return (c.natural===15 && c.discarded===8 && c.total===17) || JSON.stringify(c);
+    });
+    t("[UX-5] помеха берёт меньший кубик", function(){
+      var c = _quickRollCompute(20, 0, 'dis', 8, 15);
+      return (c.natural===8 && c.discarded===15 && c.total===8) || JSON.stringify(c);
+    });
+    t("[UX-5] не-d20 (d6): крит/провал не выставляются", function(){
+      var c = _quickRollCompute(6, 0, 'normal', 1, null);
+      return (c.isFail===false && c.isCrit===false && c.total===1) || JSON.stringify(c);
+    });
+    t("[UX-5] отрицательный модификатор", function(){
+      var c = _quickRollCompute(20, -1, 'normal', 10, null);
+      return (c.total===9) || JSON.stringify(c);
+    });
+    t("[UX-5] неизвестный режим трактуется как обычный", function(){
+      var c = _quickRollCompute(20, 0, 'wat', 12, 19);
+      return (c.mode==='normal' && c.natural===12 && c.discarded===null) || JSON.stringify(c);
+    });
+  }
+  if (typeof _quickRollRecord === "function") {
+    t("[UX-5] запись истории: label/result/mode/mod/natural сохранены", function(){
+      var c = _quickRollCompute(20, 3, 'normal', 17, null);
+      var rec = _quickRollRecord("Спас. Ловкость", 20, 3, c, 17, null, "12:00");
+      return (rec.label==="Спас. Ловкость" && rec.result===20 && rec.sides===20 && rec.mode==='normal' && rec.mod===3 && rec.natural===17 && rec.time==="12:00") || JSON.stringify(rec);
+    });
+    t("[UX-5] запись истории adv: r1/r2 и natural корректны", function(){
+      var c = _quickRollCompute(20, 0, 'adv', 5, 19);
+      var rec = _quickRollRecord("Атлетика", 20, 0, c, 5, 19, "12:01");
+      return (rec.mode==='adv' && rec.r1===5 && rec.r2===19 && rec.natural===19 && rec.result===19) || JSON.stringify(rec);
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

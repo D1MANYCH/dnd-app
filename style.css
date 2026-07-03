@@ -3065,6 +3065,100 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   filter: drop-shadow(0 4px 8px rgba(0,0,0,0.55));
 }
 
+/* ============================================
+   UX-5: лента последних бросков вне модалки
+   Парит над нижней панелью (мобила) / в правом-нижнем углу (ПК).
+   ============================================ */
+.quick-roll-strip {
+  position: fixed;
+  left: 50%;
+  bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+  transform: translate(-50%, 12px);
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: min(94vw, 520px);
+  padding: 5px 6px 5px 10px;
+  background: var(--surface-sticky, var(--bg-1));
+  border: 1px solid var(--border, rgba(255,255,255,0.1));
+  border-radius: 999px;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.4);
+  backdrop-filter: blur(var(--glass-blur, 8px)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 8px)) saturate(140%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s var(--ease-out, ease), transform 0.22s var(--ease-out, ease);
+}
+.quick-roll-strip.qrs-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+.qrs-icon { font-size: 0.95em; line-height: 1; flex: 0 0 auto; opacity: 0.85; }
+.qrs-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.qrs-list::-webkit-scrollbar { display: none; }
+.qrs-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 4px 9px;
+  border: 1px solid var(--border, rgba(255,255,255,0.1));
+  border-radius: 999px;
+  background: var(--bg-2, rgba(255,255,255,0.04));
+  color: var(--text, #e8e8ef);
+  font-size: 0.74em;
+  line-height: 1.1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.16s, border-color 0.16s, transform 0.12s;
+}
+.qrs-chip:hover { background: var(--accent-glow, rgba(201,160,64,0.18)); border-color: var(--accent-color, #c9a040); }
+.qrs-chip:active { transform: scale(0.96); }
+.qrs-chip-label { color: var(--text-muted, #a8a8b8); max-width: 12ch; overflow: hidden; text-overflow: ellipsis; }
+.qrs-chip-val { font-weight: 700; color: var(--accent-color, #e0b358); font-variant-numeric: tabular-nums; }
+.qrs-chip.qrs-crit { border-color: #4da843; }
+.qrs-chip.qrs-crit .qrs-chip-val { color: #6fd35f; }
+.qrs-chip.qrs-fail { border-color: #c0392b; }
+.qrs-chip.qrs-fail .qrs-chip-val { color: #e8705f; }
+.qrs-close {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted, #a8a8b8);
+  font-size: 1.1em;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.16s, color 0.16s;
+}
+.qrs-close:hover { background: var(--bg-2, rgba(255,255,255,0.08)); color: var(--text, #e8e8ef); }
+/* ПК (≥1024): нижней панели нет — лента в правом-нижнем, не под right-rail (320px) */
+@media (min-width: 1024px) {
+  .quick-roll-strip {
+    left: auto;
+    right: calc(336px + env(safe-area-inset-right, 0px));
+    bottom: 18px;
+    transform: translate(0, 12px);
+    max-width: 420px;
+  }
+  .quick-roll-strip.qrs-visible { transform: translate(0, 0); }
+}
+
 /* R3: dice modal as bottom-sheet on mobile */
 #dice-modal.modal.active {
   align-items: flex-end;

@@ -98,7 +98,7 @@ function formatDiceInfoStr(d) {
   return 'к20=' + d.roll;
 }
 
-// ── Бросок спасброска ──
+// ── Бросок спасброска (UX-5: через quickRoll — реальный 3D + общая история) ──
 function rollSavingThrow(saveKey) {
   var char = getCurrentChar();
   if (!char) return;
@@ -109,30 +109,7 @@ function rollSavingThrow(saveKey) {
     var profBonus = getProficiencyBonus(parseInt($("char-level")?.value, 10) || 1);
     var checkbox = $("save-prof-" + saveKey);
     var bonus = statMod + (checkbox && checkbox.checked ? profBonus : 0);
-    var d = rollD20WithMode(mode);
-    var total = d.roll + bonus;
-    var modeLabel = formatRollModeLabel(d);
-    var rollInfo = formatRollMode(d, bonus);
-    var msg = save.icon + " Спасбросок " + save.name + modeLabel + ": " + rollInfo + " + " + bonus + " = " + total;
-    if (d.isCrit) msg = "🎉 КРИТ! Спасбросок " + save.name + ": " + d.roll + " + " + bonus + " = " + total;
-    if (d.isFail) msg = "💀 ПРОВАЛ! Спасбросок " + save.name + ": " + d.roll;
-    if (window.AppLog) AppLog.action("combat", "спасбросок " + save.name + ": " + total + (d.isCrit ? " (крит)" : d.isFail ? " (провал)" : ""), { roll: d.roll, bonus: bonus, mode: d.mode });
-    showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
-    openDiceModal();
-    var resultBig = $("dice-result-big");
-    var resultInfo = $("dice-result-info");
-    var resultBox = $("dice3d-result");
-    if (resultBig) resultBig.textContent = total;
-    if (resultInfo) resultInfo.textContent = save.name + " · спасбросок" + modeLabel + " · " + formatDiceInfoStr(d);
-    if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
-    drawDiceSVG(20);
-    showDualDice(d);
-    var numEl = $("dice-svg-num");
-    if (numEl) numEl.textContent = total;
-    if (d.isCrit) createParticles();
-    diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: save.name + " спас" });
-    if (diceHistory.length > 10) diceHistory.pop();
-    renderDiceHistory();
+    quickRoll({ label: "Спас. " + save.name, sides: 20, mod: bonus, mode: mode });
   });
 }
 
@@ -144,30 +121,7 @@ function rollAbilityCheck(abilKey) {
   if (!abil) return;
   showRollModePopup(function(mode) {
     var bonus = getMod(char.stats[abilKey]);
-    var d = rollD20WithMode(mode);
-    var total = d.roll + bonus;
-    var modeLabel = formatRollModeLabel(d);
-    var rollInfo = formatRollMode(d, bonus);
-    var msg = "🎲 Проверка «" + abil.name + "»" + modeLabel + ": " + rollInfo + " + " + bonus + " = " + total;
-    if (d.isCrit) msg = "🎉 КРИТ! Проверка «" + abil.name + "»: " + d.roll + " + " + bonus + " = " + total;
-    if (d.isFail) msg = "💀 ПРОВАЛ! Проверка «" + abil.name + "»: " + d.roll;
-    if (window.AppLog) AppLog.action("combat", "проверка хар-ки " + abil.name + ": " + total + (d.isCrit ? " (крит)" : d.isFail ? " (провал)" : ""), { roll: d.roll, bonus: bonus, mode: d.mode });
-    showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
-    openDiceModal();
-    var resultBig = $("dice-result-big");
-    var resultInfo = $("dice-result-info");
-    var resultBox = $("dice3d-result");
-    if (resultBig) resultBig.textContent = total;
-    if (resultInfo) resultInfo.textContent = abil.name + " · проверка" + modeLabel + " · " + formatDiceInfoStr(d);
-    if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
-    drawDiceSVG(20);
-    showDualDice(d);
-    var numEl = $("dice-svg-num");
-    if (numEl) numEl.textContent = total;
-    if (d.isCrit) createParticles();
-    diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: abil.name + " проверка" });
-    if (diceHistory.length > 10) diceHistory.pop();
-    renderDiceHistory();
+    quickRoll({ label: "Проверка " + abil.name, sides: 20, mod: bonus, mode: mode });
   });
 }
 
@@ -181,30 +135,7 @@ function rollSkillCheck(skillIndex) {
     var bonusEl = $("skill-bonus-" + skillIndex);
     var bonus = bonusEl ? parseInt(bonusEl.innerText, 10) : 0;
     if (isNaN(bonus)) bonus = 0;
-    var d = rollD20WithMode(mode);
-    var total = d.roll + bonus;
-    var modeLabel = formatRollModeLabel(d);
-    var rollInfo = formatRollMode(d, bonus);
-    var msg = "🎯 " + skill.name + modeLabel + ": " + rollInfo + " + " + bonus + " = " + total;
-    if (d.isCrit) msg = "🎉 КРИТ! " + skill.name + ": " + d.roll + " + " + bonus + " = " + total;
-    if (d.isFail) msg = "💀 ПРОВАЛ! " + skill.name + ": " + d.roll;
-    if (window.AppLog) AppLog.action("combat", "проверка " + skill.name + ": " + total + (d.isCrit ? " (крит)" : d.isFail ? " (провал)" : ""), { roll: d.roll, bonus: bonus, mode: d.mode });
-    showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
-    openDiceModal();
-    var resultBig = $("dice-result-big");
-    var resultInfo = $("dice-result-info");
-    var resultBox = $("dice3d-result");
-    if (resultBig) resultBig.textContent = total;
-    if (resultInfo) resultInfo.textContent = skill.name + " · проверка" + modeLabel + " · " + formatDiceInfoStr(d);
-    if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
-    drawDiceSVG(20);
-    showDualDice(d);
-    var numEl = $("dice-svg-num");
-    if (numEl) numEl.textContent = total;
-    if (d.isCrit) createParticles();
-    diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: skill.name });
-    if (diceHistory.length > 10) diceHistory.pop();
-    renderDiceHistory();
+    quickRoll({ label: skill.name, sides: 20, mod: bonus, mode: mode });
   });
 }
 

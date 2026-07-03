@@ -184,6 +184,8 @@ setTimeout(function() {
     }
   } catch (e) {}
 }, 60);
+// UX-5: пока модалка открыта — лента последних бросков прячется (избыточна).
+try { updateQuickRollStripVisibility(); } catch (e) {}
 }
 function closeDiceModal() {
 // v3.17: ставим RAF космо-арены на паузу — экономия CPU/батареи когда модалка закрыта
@@ -194,6 +196,8 @@ const modal = $("dice-modal");
 if (modal) modal.classList.remove("active", "dice-rolling");
 const display = $("dice-result-display");
 if (display) display.classList.remove("crit-success", "crit-fail", "normal");
+// UX-5: модалка закрыта — показать ленту последних бросков на листе.
+try { updateQuickRollStripVisibility(); } catch (e) {}
 }
 
 // UX-3: арена скрыта — видны только кнопки (телефон и ПК). Бросок открывает
@@ -407,6 +411,170 @@ animateDice3d(sides, result, function(v1, v2) {
   try { _updateDiceHistoryBadge(); } catch (e) {}
 }, { qty: qty });
 }
+
+// ============================================================
+// UX-5: универсальная «кидалка» с листа (характеристики, спасброски,
+// навыки) — d20(+мод) поверх animateDice3d + общий diceHistory с подписью.
+// Чистые помощники (_quickRoll*) тестируются в headless без DOM.
+// ============================================================
+// Натуральный бросок с учётом режима + итог с модификатором.
+// adv/dis: берём больший/меньший из r1/r2; крит/провал — по НАТУРАЛЬНОМУ d20.
+function _quickRollCompute(sides, mod, mode, r1, r2) {
+  sides = sides || 20; mod = mod || 0;
+  var natural, discarded = null;
+  if ((mode === 'adv' || mode === 'dis') && typeof r2 === 'number' && !isNaN(r2)) {
+    natural = (mode === 'adv') ? Math.max(r1, r2) : Math.min(r1, r2);
+    discarded = (natural === r1) ? r2 : r1;
+  } else {
+    natural = r1;
+  }
+  return {
+    natural: natural,
+    total: natural + mod,
+    discarded: discarded,
+    isCrit: sides === 20 && natural === 20,
+    isFail: sides === 20 && natural === 1,
+    mode: (mode === 'adv' || mode === 'dis') ? mode : 'normal'
+  };
+}
+// Подпись модификатора: «+3» / «−1» / '' (со «шпациями» для читаемости).
+function _quickRollModStr(mod) {
+  if (!mod) return '';
+  return mod > 0 ? ' + ' + mod : ' − ' + Math.abs(mod);
+}
+// Запись для общего diceHistory (renderDiceHistory покажет label вместо «d20»).
+function _quickRollRecord(label, sides, mod, comp, r1, r2, time) {
+  return {
+    sides: sides, result: comp.total, mode: comp.mode, time: time,
+    r1: r1, r2: r2, label: label, mod: mod, natural: comp.natural
+  };
+}
+// Текст для #dice-result-info: «Ловкость · 17 + 3 = 20» (+ откинутый при adv/dis).
+function _quickRollInfoText(label, comp, mod) {
+  var modeTag = comp.mode === 'adv' ? ' ▲' : comp.mode === 'dis' ? ' ▼' : '';
+  var rollPart = (comp.discarded != null) ? (comp.natural + ' (' + comp.discarded + ')') : String(comp.natural);
+  var tail = (mod || comp.discarded != null) ? ' = ' + comp.total : '';
+  return label + modeTag + ' · ' + rollPart + _quickRollModStr(mod) + tail;
+}
+// Текст тоста с эмодзи крита/провала.
+function _quickRollToastText(label, comp, mod) {
+  var modeTag = comp.mode === 'adv' ? ' ▲' : comp.mode === 'dis' ? ' ▼' : '';
+  if (comp.isCrit) return '🎉 КРИТ! ' + label + ': ' + comp.natural + _quickRollModStr(mod) + ' = ' + comp.total;
+  if (comp.isFail) return '💀 ПРОВАЛ! ' + label + ': ' + comp.natural + _quickRollModStr(mod) + ' = ' + comp.total;
+  var rollPart = (comp.discarded != null) ? (comp.natural + ' (' + comp.discarded + ')') : String(comp.natural);
+  return '🎲 ' + label + modeTag + ': ' + rollPart + _quickRollModStr(mod) + ' = ' + comp.total;
+}
+window._quickRollCompute = _quickRollCompute;
+window._quickRollRecord = _quickRollRecord;
+
+// UX-5: лента последних бросков вне модалки. _qrsDismissed — пользователь скрыл
+// её крестиком (сбрасывается на новом quickRoll). Объявлено до quickRoll (var-hoist).
+var _qrsDismissed = false;
+
+// Универсальный быстрый бросок d20(+мод): открывает арену, кидает 3D, пишет
+// в общий diceHistory с подписью, показывает тост. opts: {label, sides=20, mod=0, mode}.
+function quickRoll(opts) {
+  opts = opts || {};
+  var sides = opts.sides || 20;
+  var mod = opts.mod || 0;
+  var mode = (opts.mode === 'adv' || opts.mode === 'dis') ? opts.mode : 'normal';
+  var label = opts.label || ('d' + sides);
+  var openArena = opts.openArena !== false;
+  if (openArena) { try { openDiceModal(); } catch (e) {} }
+  _qrsDismissed = false;
+  var r1 = Math.floor(Math.random() * sides) + 1;
+  var r2 = (mode === 'adv' || mode === 'dis') ? Math.floor(Math.random() * sides) + 1 : null;
+  var pre = _quickRollCompute(sides, mod, mode, r1, r2);
+  var qty = (mode === 'adv' || mode === 'dis') ? 2 : 1;
+  var time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  var _logId = (window.AppLog ? AppLog.newId('roll') : null);
+  if (window.AppLog) AppLog.action('dice', label + ' — старт (d' + sides + (mod ? (mod > 0 ? '+' : '') + mod : '') + ', ' + mode + ')', { sides: sides, mod: mod, mode: mode }, _logId);
+  var _rb = $("dice-result-big"); if (_rb) _rb.textContent = '…';
+  var _ri = $("dice-result-info"); if (_ri) _ri.textContent = 'Бросок ' + label + '…';
+  var _rx = $("dice3d-result"); if (_rx) _rx.classList.remove('crit-success', 'crit-fail');
+  animateDice3d(sides, pre.natural, function(v1, v2) {
+    var rr1 = r1, rr2 = r2;
+    if (typeof v1 === 'number' && !isNaN(v1)) {
+      rr1 = v1;
+      if ((mode === 'adv' || mode === 'dis') && typeof v2 === 'number' && !isNaN(v2)) rr2 = v2;
+    }
+    var comp = _quickRollCompute(sides, mod, mode, rr1, rr2);
+    var resultBig = $("dice-result-big");
+    var resultInfo = $("dice-result-info");
+    var resultBox = $("dice3d-result");
+    if (resultBig) resultBig.textContent = comp.total;
+    if (resultBox) {
+      resultBox.classList.remove('crit-success', 'crit-fail', 'normal');
+      resultBox.classList.add(comp.isCrit ? 'crit-success' : comp.isFail ? 'crit-fail' : 'normal', 'pop');
+      setTimeout(function() { if (resultBox) resultBox.classList.remove('pop'); }, 400);
+    }
+    if (resultInfo) resultInfo.textContent = _quickRollInfoText(label, comp, mod);
+    if (comp.isCrit) { try { createParticles(); } catch (e) {} }
+    if (typeof showDualDice === 'function') {
+      try { showDualDice({ mode: mode, roll: comp.natural, r1: rr1, r2: rr2 }); } catch (e) {}
+    }
+    try { showToast(_quickRollToastText(label, comp, mod), comp.isCrit ? 'success' : comp.isFail ? 'error' : 'info'); } catch (e) {}
+    diceHistory.unshift(_quickRollRecord(label, sides, mod, comp, rr1, rr2, time));
+    if (diceHistory.length > 10) diceHistory.pop();
+    try { renderDiceHistory(); } catch (e) {}
+    try { _updateDiceHistoryBadge(); } catch (e) {}
+    try { renderQuickRollStrip(); } catch (e) {}
+    if (window.AppLog) AppLog.action('dice', label + ' = ' + comp.total + (comp.isCrit ? ' (крит)' : comp.isFail ? ' (провал)' : ''), { total: comp.total, natural: comp.natural }, _logId);
+  }, { qty: qty });
+}
+window.quickRoll = quickRoll;
+
+// UX-5: рендер чипов ленты из общего diceHistory (последние 4 броска).
+function renderQuickRollStrip() {
+  var list = document.getElementById('qrs-list');
+  if (!list) return;
+  var hist = (Array.isArray(window.diceHistory) ? window.diceHistory : (typeof diceHistory !== 'undefined' ? diceHistory : []));
+  var items = hist.slice(0, 4);
+  if (!items.length) { list.innerHTML = ''; return; }
+  list.innerHTML = items.map(function(r) {
+    var modeTag = r.mode === 'adv' ? '▲' : r.mode === 'dis' ? '▼' : '';
+    var lbl = r.label ? r.label : (r.mode === 'custom' ? (r.formula || 'формула') : ('d' + r.sides));
+    var critCls = '';
+    if (r.sides === 20 && r.mode !== 'custom') {
+      var nat = (typeof r.natural === 'number') ? r.natural : (r.result - (r.mod || 0));
+      if (nat === 20) critCls = ' qrs-crit';
+      else if (nat === 1) critCls = ' qrs-fail';
+    }
+    return '<button type="button" class="qrs-chip' + critCls + '" onclick="openDiceRollHistory()" title="Открыть историю бросков">' +
+             '<span class="qrs-chip-label">' + escapeHtml(lbl) + (modeTag ? ' ' + modeTag : '') + '</span>' +
+             '<span class="qrs-chip-val">' + escapeHtml(String(r.result)) + '</span>' +
+           '</button>';
+  }).join('');
+}
+// Показ/скрытие ленты: видна только когда модалка закрыта, есть история и не скрыта вручную.
+function updateQuickRollStripVisibility() {
+  var strip = document.getElementById('quick-roll-strip');
+  if (!strip) return;
+  var hist = (Array.isArray(window.diceHistory) ? window.diceHistory : (typeof diceHistory !== 'undefined' ? diceHistory : []));
+  var show = !_diceModalActive() && !_qrsDismissed && hist.length > 0;
+  if (show) {
+    renderQuickRollStrip();
+    strip.hidden = false;
+    void strip.offsetWidth; // форс reflow → CSS-переход opacity 0→1 (надёжнее rAF в фоне)
+    strip.classList.add('qrs-visible');
+  } else {
+    strip.classList.remove('qrs-visible');
+    setTimeout(function() { if (strip && !strip.classList.contains('qrs-visible')) strip.hidden = true; }, 260);
+  }
+}
+function dismissQuickRollStrip() {
+  _qrsDismissed = true;
+  updateQuickRollStripVisibility();
+}
+// Тап по чипу ленты — открыть модалку и поповер истории.
+function openDiceRollHistory() {
+  try { openDiceModal(); } catch (e) {}
+  try { toggleDicePopover('history'); } catch (e) {}
+}
+window.renderQuickRollStrip = renderQuickRollStrip;
+window.updateQuickRollStripVisibility = updateQuickRollStripVisibility;
+window.dismissQuickRollStrip = dismissQuickRollStrip;
+window.openDiceRollHistory = openDiceRollHistory;
 
 // [DICE2-4] legacy DICE_3D / POLY_GEOM / FACE_ORIENTATIONS / diceFaceColor /
 // drawDiceSVG / buildDiceMesh / _computePolyOrientations / getFinalOrientation
@@ -1577,7 +1745,12 @@ if (record.result === 20) div.classList.add("crit-success");
 else if (record.result === 1) div.classList.add("crit-fail");
 }
 const modeTag = record.mode === 'adv' ? ' ▲' : record.mode === 'dis' ? ' ▼' : '';
-const label = record.mode === 'custom' ? (record.formula || "custom") : ("d" + record.sides + modeTag);
+// UX-5: для бросков с листа (quickRoll) показываем подпись («Спас. Ловкость»),
+// иначе — формулу (custom) или «dN».
+var label;
+if (record.label) label = escapeHtml(record.label) + modeTag;
+else if (record.mode === 'custom') label = record.formula || "custom";
+else label = "d" + record.sides + modeTag;
 div.innerHTML = "<span>" + label + " (" + record.time + ")</span><span>" + record.result + "</span>";
 container.appendChild(div);
 });
