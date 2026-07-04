@@ -903,6 +903,14 @@ html.glass-adjusting *::after {
   color: #fff !important;
 }
 :root[data-theme="light"] .tracker-status option { background: #fff !important; color: var(--text) !important; }
+/* UX-6: инлайн-ХП / инициатива / кнопки в светлой теме */
+:root[data-theme="light"] .tracker-hp-cur,
+:root[data-theme="light"] .tracker-hp-max { background: #fff !important; border: 1px solid var(--border) !important; color: var(--text) !important; }
+:root[data-theme="light"] .tracker-hp-sep { color: var(--text-dim) !important; }
+:root[data-theme="light"] .tracker-hp-btn { background: rgba(0,0,0,0.04) !important; border: 1px solid var(--border) !important; color: var(--text) !important; }
+:root[data-theme="light"] .tracker-init-inp { background: var(--accent-soft) !important; border: 1px solid var(--accent) !important; color: var(--accent-lo) !important; }
+:root[data-theme="light"] .tracker-init-roll { color: var(--text-dim) !important; }
+:root[data-theme="light"] .tracker-init-roll:hover { color: var(--accent-lo) !important; }
 
 /* ----- Журнал-фильтр (.jfilter-btn) — полностью dark-only
    (rgba(255,255,255,0.05) фон, .5 текст, .1 граница) → невидим на
@@ -6766,12 +6774,50 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .battle-setup-name { flex: 1; font-size: 0.88em; color: #fff; display: flex; flex-direction: column; }
 
 /* Battle tracker */
-.battle-tracker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.battle-turn-info { font-size: 1.05em; font-weight: 700; color: var(--accent-color); }
-.battle-end-btn { background: transparent; border: 1px solid rgba(231,76,60,0.4); color: rgba(231,76,60,0.7); padding: 5px 12px; border-radius: var(--r-sm); cursor: pointer; font-size: 0.8em; width: auto; margin: 0; transition: all 0.18s; }
+.battle-tracker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 8px; }
+.battle-turn-info { font-size: 1.05em; font-weight: 700; color: var(--accent-color); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.battle-tracker-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.battle-add-mon-btn { background: transparent; border: 1px solid rgba(192,57,43,0.45); color: rgba(231,76,60,0.85); padding: 5px 12px; border-radius: var(--r-sm); cursor: pointer; font-size: 0.8em; font-weight: 700; width: auto; margin: 0; transition: all 0.18s; white-space: nowrap; }
+.battle-add-mon-btn:hover { background: rgba(192,57,43,0.18); border-color: rgba(192,57,43,0.7); }
+.battle-end-btn { background: transparent; border: 1px solid rgba(231,76,60,0.4); color: rgba(231,76,60,0.7); padding: 5px 12px; border-radius: var(--r-sm); cursor: pointer; font-size: 0.8em; width: auto; margin: 0; transition: all 0.18s; white-space: nowrap; }
 .battle-end-btn:hover { background: var(--danger-color); color: #fff; }
-.tracker-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: var(--r-sm); margin-bottom: 5px; background: rgba(255,255,255,0.03); border: 1px solid transparent; transition: all 0.2s; }
+/* UX-6: строка трекера — две линии (main: инициатива/имя/действия, sub: ХП/статус) */
+.tracker-row { display: flex; flex-direction: column; align-items: stretch; gap: 7px; padding: 9px 10px; border-radius: var(--r-sm); margin-bottom: 5px; background: rgba(255,255,255,0.03); border: 1px solid transparent; transition: background 0.2s, border-color 0.2s; }
 .tracker-row-active { background: rgba(201,162,39,0.1); border-color: rgba(201,162,39,0.3); }
+.tracker-main { display: flex; align-items: center; gap: 8px; }
+/* sub-строка: HP-колонка фикс. ширины + статус — выровнено по всем строкам */
+.tracker-sub { display: flex; align-items: center; gap: 10px; padding-left: 32px; }
+/* Инициатива — фиксированная колонка (инпут+⟳) для ровного левого края имён */
+.tracker-init { display: flex; align-items: center; gap: 2px; flex-shrink: 0; width: 60px; }
+.tracker-init-inp { width: 34px !important; text-align: center; font-size: 0.82em !important; font-weight: 700; padding: 3px 2px !important; background: rgba(201,162,39,0.12) !important; border: 1px solid rgba(201,162,39,0.35) !important; border-radius: var(--r-sm) !important; color: var(--accent-color) !important; -moz-appearance: textfield; margin: 0 !important; }
+.tracker-init-inp::-webkit-inner-spin-button, .tracker-init-inp::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.tracker-init-roll { width: 22px; min-width: 22px; height: 22px; padding: 0; margin: 0; border: none; background: transparent; color: rgba(255,255,255,0.45); font-size: 0.9em; cursor: pointer; border-radius: 50%; transition: color 0.15s, transform 0.15s; flex-shrink: 0; }
+.tracker-init-roll:hover { color: var(--accent-color); transform: rotate(90deg); }
+/* Группа действий — ровные колонки info / d20 / remove (пустые слоты держат сетку) */
+.tracker-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: auto; }
+.tracker-slot { width: 22px; min-width: 22px; height: 22px; flex-shrink: 0; display: inline-block; }
+.tracker-roll-btn { width: 26px; min-width: 26px; height: 26px; padding: 0; margin: 0; border: 1px solid rgba(201,162,39,0.35); background: rgba(201,162,39,0.1); font-size: 0.9em; cursor: pointer; border-radius: 50%; flex-shrink: 0; transition: background 0.15s, transform 0.15s; line-height: 1; }
+.tracker-roll-btn:hover { background: var(--accent-color); transform: scale(1.12); }
+.tracker-remove-btn { width: 22px; min-width: 22px; height: 22px; padding: 0; margin: 0; border: 1px solid rgba(231,76,60,0.35); background: transparent; color: rgba(231,76,60,0.7); font-size: 0.8em; font-weight: 700; cursor: pointer; border-radius: 50%; flex-shrink: 0; transition: all 0.15s; line-height: 1; }
+.tracker-remove-btn:hover { background: var(--danger-color); color: #fff; }
+/* Инлайн-ХП — фикс. ширина (пустой контейнер у союзников/NPC держит выравнивание) */
+.tracker-hp { display: flex; align-items: center; gap: 3px; flex-shrink: 0; width: 158px; }
+.tracker-hp-empty { width: 158px; }
+.tracker-hp-heart { font-size: 0.8em; margin-right: 1px; }
+.tracker-hp-btn { width: 22px; min-width: 22px; height: 22px; padding: 0; margin: 0; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.85); font-size: 1em; font-weight: 700; cursor: pointer; border-radius: var(--r-sm); flex-shrink: 0; line-height: 1; transition: all 0.15s; }
+.tracker-hp-minus:hover { background: rgba(231,76,60,0.8); border-color: rgba(231,76,60,0.8); color: #fff; }
+.tracker-hp-plus:hover { background: rgba(77,168,67,0.8); border-color: rgba(77,168,67,0.8); color: #fff; }
+.tracker-hp-cur, .tracker-hp-max { width: 36px !important; text-align: center; font-size: 0.8em !important; padding: 3px 2px !important; background: var(--bg-2) !important; border: 1px solid var(--border) !important; border-radius: var(--r-sm) !important; color: rgba(255,255,255,0.9) !important; -moz-appearance: textfield; margin: 0 !important; }
+.tracker-hp-cur::-webkit-inner-spin-button, .tracker-hp-cur::-webkit-outer-spin-button, .tracker-hp-max::-webkit-inner-spin-button, .tracker-hp-max::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.tracker-hp-max[readonly] { opacity: 0.65; cursor: default; }
+.tracker-hp-sep { color: rgba(255,255,255,0.35); font-size: 0.8em; }
+/* UX-6: на узких экранах ужимаем sub-строку, чтобы статус не срезался */
+@media (max-width: 500px) {
+  .tracker-sub { padding-left: 8px; gap: 8px; }
+  .tracker-hp, .tracker-hp-empty { width: 150px; }
+  .tracker-hp-cur, .tracker-hp-max { width: 34px !important; }
+  .tracker-status { width: 112px !important; }
+}
 .tracker-icon { width: 32px; height: 32px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 1em; flex-shrink: 0; }
 .battle-nav { display: flex; gap: 8px; margin-top: 14px; }
 .battle-nav-btn { flex: 1; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); font-size: 0.88em; cursor: pointer; width: auto; margin: 0; transition: all 0.18s; }

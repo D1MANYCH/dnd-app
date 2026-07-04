@@ -403,7 +403,10 @@ var _srdPickerState = { q: "", cr: "", edition: "" };
 
 // PERF-3: monsters-srd.js/npc-srd.js грузятся лениво (ensureBestiary в index.html) —
 // гарантируем данные ДО открытия пикера; при ошибке загрузки guard ядра покажет toast.
-function openSrdMonsterPicker() {
+// UX-6: _srdPickerBattleMode — открыт ли пикер «в бой» (добавляет участника в
+// BATTLE_DATA) или «в отряд» (добавляет в PARTY_DATA.monsters, старое поведение).
+var _srdPickerBattleMode = false;
+function _openSrdMonsterPickerLazy() {
   if (!window.MONSTERS_SRD && typeof window.ensureBestiary === "function") {
     return window.ensureBestiary().catch(function (e) {
       if (window.__catchLog) window.__catchLog("bestiary:lazy-load", e);
@@ -411,6 +414,14 @@ function openSrdMonsterPicker() {
     }).then(function () { return _openSrdMonsterPickerCore(); });
   }
   return _openSrdMonsterPickerCore();
+}
+// Пикер «в отряд» (кнопка на вкладке Отряд).
+function openSrdMonsterPicker() { _srdPickerBattleMode = false; return _openSrdMonsterPickerLazy(); }
+// UX-6: пикер «в бой» (кнопка на трекере) — добавляет монстра прямо в стычку.
+function openSrdMonsterPickerForBattle() {
+  if (!BATTLE_DATA.active) { showToast("Сначала начните бой", "warn"); return; }
+  _srdPickerBattleMode = true;
+  return _openSrdMonsterPickerLazy();
 }
 function _openSrdMonsterPickerCore() {
   if (!window.MONSTERS_SRD || !window.MONSTERS_SRD.length) {
@@ -448,7 +459,7 @@ function _openSrdMonsterPickerCore() {
   openModal("srd-monster-modal");
 }
 
-function closeSrdMonsterPicker() { closeModal("srd-monster-modal"); }
+function closeSrdMonsterPicker() { _srdPickerBattleMode = false; closeModal("srd-monster-modal"); }
 
 function setSrdMonsterSearch(val)  { _srdPickerState.q = (val || "").toLowerCase().trim(); renderSrdMonsterPicker(); }
 function setSrdMonsterCr(val)      { _srdPickerState.cr = val || ""; renderSrdMonsterPicker(); }
@@ -501,6 +512,12 @@ function addMonsterFromSRD(slug, event) {
   if (event && event.stopPropagation) event.stopPropagation();
   var m = window.srdMonsterBySlug(slug);
   if (!m) { showToast("Монстр не найден", "error"); return; }
+  // UX-6: режим боя — добавляем монстра прямо в идущую стычку, модалка остаётся
+  // открытой (можно добавить несколько подряд), в отряд не пишем.
+  if (_srdPickerBattleMode && BATTLE_DATA.active) {
+    _addSrdMonsterToBattle(m);
+    return;
+  }
   var desc = window.srdMonsterToDesc(m);
   var entry = {
     id: Date.now() + Math.floor(Math.random() * 1000),
@@ -719,11 +736,108 @@ function battleDrop(e, i) {
 }
 function battleDragEnd() { battleDragSrcIdx = null; }
 
+// ── UX-6: авто-инициатива, HP и мета участника боя ──────────────
+// Один d20 + мод Ловкости. Отделён от сортировки, чтобы sort тестировался чисто.
+function rollInitiativeValue(dexMod) {
+  return Math.floor(Math.random() * 20) + 1 + (dexMod || 0);
+}
+// Сортировка участников по инициативе (по убыванию). Стабильная (Array.sort в
+// современных движках стабилен) — при равенстве сохраняется исходный порядок.
+function sortParticipantsByInitiative(arr) {
+  if (!Array.isArray(arr)) return arr;
+  arr.sort(function(a, b) { return (b.initiative || 0) - (a.initiative || 0); });
+  return arr;
+}
+// Найти запись отряда по id участника вида "mon_<id>" (для HP/Ловкости монстра).
+function _findPartyMonster(pid) {
+  if (!pid || String(pid).indexOf("mon_") !== 0) return null;
+  var raw = String(pid).slice(4);
+  return PARTY_DATA.monsters.filter(function(m) { return String(m.id) === raw; })[0] || null;
+}
+// Мета боя участника: мод Ловкости (для инициативы) + текущие/макс ХП.
+// self — из листа персонажа; монстр — ХП из записи отряда, Ловкость из SRD по
+// srdSlug; союзник/NPC — без числовых ХП/Ловкости (0).
+function _participantCombatMeta(p) {
+  var dexMod = 0, hp = 0, hpMax = 0;
+  if (!p) return { dexMod: dexMod, hp: hp, hpMax: hpMax };
+  if (p.type === "self") {
+    var char = getCurrentChar();
+    if (char) {
+      if (char.stats) dexMod = getMod(char.stats.dex);
+      if (char.combat) { hp = char.combat.hpCurrent || 0; hpMax = char.combat.hpMax || 0; }
+    }
+  } else if (p.type === "monster") {
+    var raw = _findPartyMonster(p.id);
+    if (raw) {
+      hpMax = parseInt(raw.hpMax != null ? raw.hpMax : raw.hp, 10) || 0;
+      hp = hpMax;
+      if (raw.srdSlug && typeof window.srdMonsterBySlug === "function") {
+        var srd = window.srdMonsterBySlug(raw.srdSlug);
+        if (srd && srd.stats) dexMod = getMod(srd.stats.dex);
+      }
+    }
+  }
+  return { dexMod: dexMod, hp: hp, hpMax: hpMax };
+}
+// Копия setup-участника, обогащённая боевыми полями (статус/инициатива/ХП).
+function _makeBattleParticipant(p) {
+  var meta = _participantCombatMeta(p);
+  return Object.assign({}, p, {
+    status: "healthy",
+    dexMod: meta.dexMod,
+    hp: meta.hp,
+    hpMax: meta.hpMax,
+    initiative: rollInitiativeValue(meta.dexMod)
+  });
+}
+// ХП участника для рендера: self — живьём из листа (меняется и на вкладке ХП),
+// иначе — снимок p.hp/p.hpMax.
+function _battleParticipantHP(p) {
+  if (p && p.type === "self") {
+    var char = getCurrentChar();
+    if (char && char.combat) return { hp: char.combat.hpCurrent || 0, hpMax: char.combat.hpMax || 0 };
+    return { hp: 0, hpMax: 0 };
+  }
+  return { hp: (p && p.hp != null) ? p.hp : 0, hpMax: (p && p.hpMax != null) ? p.hpMax : 0 };
+}
+// UX-6: добавить SRD-монстра прямо в бой (уникальное имя при дублях, авто-инициатива).
+function _addSrdMonsterToBattle(m) {
+  var dexMod = (m.stats ? getMod(m.stats.dex) : 0);
+  var hpMax = parseInt(m.hp, 10) || 0;
+  var dup = BATTLE_DATA.participants.filter(function(p) { return p.baseName === m.name; }).length;
+  var name = dup > 0 ? m.name + " " + (dup + 1) : m.name;
+  var part = {
+    id: "monb_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+    baseName: m.name,
+    name: name,
+    icon: getMonsterTypeIcon(m.type),
+    color: "#c0392b",
+    type: "monster",
+    status: "healthy",
+    dexMod: dexMod,
+    hp: hpMax,
+    hpMax: hpMax,
+    initiative: rollInitiativeValue(dexMod),
+    srdSlug: m.slug,
+    desc: (typeof window.srdMonsterToDesc === "function") ? window.srdMonsterToDesc(m) : ""
+  };
+  var currentP = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
+  BATTLE_DATA.participants.push(part);
+  sortParticipantsByInitiative(BATTLE_DATA.participants);
+  if (currentP) { var ci = BATTLE_DATA.participants.indexOf(currentP); if (ci >= 0) BATTLE_DATA.currentTurn = ci; }
+  if (window.AppLog) AppLog.action("battle", "в бой добавлен монстр: " + name + " (иниц. " + part.initiative + ")");
+  saveBattle();
+  renderBattleTracker();
+  showToast(name + " добавлен(а) в бой", "success");
+}
+
 function startBattle() {
   var selected = battleSetupList.filter(function(p) { return p.checked; });
   if (selected.length === 0) { showToast("Выберите участников боя", "warn"); return; }
-  BATTLE_DATA = { active: true, participants: selected.map(function(p) { return Object.assign({}, p, { status: "healthy" }); }), currentTurn: 0 };
-  if (window.AppLog) AppLog.action("battle", "бой начат: участников " + selected.length);
+  var participants = selected.map(_makeBattleParticipant);
+  sortParticipantsByInitiative(participants);
+  BATTLE_DATA = { active: true, participants: participants, currentTurn: 0 };
+  if (window.AppLog) AppLog.action("battle", "бой начат: участников " + selected.length + " (авто-инициатива)");
   saveBattle();
   $("battle-setup-screen").classList.add("hidden");
   $("battle-tracker-screen").classList.remove("hidden");
@@ -731,6 +845,8 @@ function startBattle() {
 }
 
 function getParticipantDesc(p) {
+  // UX-6: у участника, добавленного прямо в бой (монстр из SRD), описание лежит на нём
+  if (p && p.desc) return p.desc;
   // Look up description from party data by type and id
   if (p.type === "ally") {
     var a = PARTY_DATA.allies.find(function(x) { return x.id === p.id || x.name === p.name; });
@@ -833,19 +949,147 @@ function renderBattleTracker() {
     var opts = CONDITION_STATUSES.map(function(s) {
       return '<option value="' + s.value + '"' + (s.value === (p.status || "healthy") ? " selected" : "") + ">" + s.label + "</option>";
     }).join("");
+    // UX-6: строка инициативы (число редактируется, ⟳ — переброс d20+ЛОВ)
+    var initVal = (p.initiative != null) ? p.initiative : 0;
+    var initBlock = '<div class="tracker-init" title="Инициатива">' +
+      '<input type="number" class="tracker-init-inp" value="' + initVal + '" onchange="setBattleInitiative(' + i + ',this.value)" aria-label="Инициатива">' +
+      '<button type="button" class="tracker-init-roll" onclick="rerollInitiative(' + i + ')" title="Перебросить инициативу (d20+ЛОВ)">⟳</button>' +
+    '</div>';
+    // UX-6: инлайн-ХП (−/+ и тек/макс). Контейнер рендерим всегда (пустым для
+    // союзников/NPC без чисел) — фикс. ширина держит статус выровненным по колонке.
+    var hp = _battleParticipantHP(p);
+    var showHP = isSelf || p.type === "monster" || hp.hpMax > 0;
+    var hpBlock = '<div class="tracker-hp' + (showHP ? '' : ' tracker-hp-empty') + '">' +
+      (showHP
+        ? '<span class="tracker-hp-heart">❤️</span>' +
+          '<button type="button" class="tracker-hp-btn tracker-hp-minus" onclick="adjustBattleHP(' + i + ',-1)" title="−1 ХП">−</button>' +
+          '<input type="number" class="tracker-hp-cur" value="' + hp.hp + '" onchange="setBattleHP(' + i + ',this.value)" aria-label="Текущие ХП">' +
+          '<span class="tracker-hp-sep">/</span>' +
+          '<input type="number" class="tracker-hp-max" value="' + hp.hpMax + '"' + (isSelf ? ' readonly title="Макс. ХП — на вкладке ХП"' : ' onchange="setBattleHPMax(' + i + ',this.value)" aria-label="Макс. ХП"') + '>' +
+          '<button type="button" class="tracker-hp-btn tracker-hp-plus" onclick="adjustBattleHP(' + i + ',1)" title="+1 ХП">+</button>'
+        : '') +
+    '</div>';
+    // Кнопки-действия по фиксированным слотам: info / d20 / remove. Отсутствующие
+    // (нет описания; self не удаляется) заменяются пустым слотом → колонки ровные.
+    var infoSlot = desc
+      ? '<button type="button" class="tracker-info-btn" onclick="showTrackerInfo(' + i + ')" title="Описание">!</button>'
+      : '<span class="tracker-slot"></span>';
+    var removeSlot = isSelf
+      ? '<span class="tracker-slot"></span>'
+      : '<button type="button" class="tracker-remove-btn" onclick="removeBattleParticipant(' + i + ')" title="Убрать из боя">✕</button>';
     return '<div class="tracker-row' + (isCurrent ? " tracker-row-active" : "") + (isSelf ? " tracker-row-self" : "") + '" style="border-left:3px solid ' + fcolor + '">' +
-      '<div class="tracker-num" style="color:' + fcolor + '">' + (i + 1) + "</div>" +
-      '<div class="tracker-icon" style="background:' + fcolor + '22;color:' + fcolor + '">' + (p.icon || "🎭") + "</div>" +
-      '<div class="tracker-name">' +
-        '<span class="tracker-name-text">' + escapeHtml(p.name || "?") + '</span>' +
-      "</div>" +
-      (desc ? '<button class="tracker-info-btn" onclick="showTrackerInfo(' + i + ')" title="Описание">!</button>' : '') +
-      (isSelf
-        ? '<span class="tracker-self-status">' + statusText + '</span>'
-        : '<select class="party-status-sel tracker-status" onchange="setBattleStatus(' + i + ',this.value)">' + opts + "</select>"
-      ) +
+      '<div class="tracker-main">' +
+        '<div class="tracker-num" style="color:' + fcolor + '">' + (i + 1) + "</div>" +
+        initBlock +
+        '<div class="tracker-icon" style="background:' + fcolor + '22;color:' + fcolor + '">' + (p.icon || "🎭") + "</div>" +
+        '<div class="tracker-name">' +
+          '<span class="tracker-name-text">' + escapeHtml(p.name || "?") + '</span>' +
+        "</div>" +
+        '<div class="tracker-actions">' +
+          infoSlot +
+          '<button type="button" class="tracker-roll-btn" onclick="battleRollD20(' + i + ')" title="Бросить d20 (в общую историю)">🎲</button>' +
+          removeSlot +
+        '</div>' +
+      '</div>' +
+      '<div class="tracker-sub">' +
+        hpBlock +
+        (isSelf
+          ? '<span class="tracker-self-status">' + statusText + '</span>'
+          : '<select class="party-status-sel tracker-status" onchange="setBattleStatus(' + i + ',this.value)">' + opts + "</select>"
+        ) +
+      '</div>' +
     "</div>";
   }).join("");
+}
+
+// ── UX-6: действия в строке трекера (ХП / инициатива / броски / удаление) ──
+function adjustBattleHP(i, delta) {
+  var p = BATTLE_DATA.participants[i];
+  if (!p) return;
+  if (p.type === "self") {
+    if (typeof quickHP === "function") quickHP(delta, "Бой");
+    syncSelfBattleStatus();
+  } else {
+    p.hp = Math.max(0, (p.hp || 0) + delta);
+    if (p.hpMax > 0) p.hp = Math.min(p.hp, p.hpMax);
+    saveBattle();
+  }
+  renderBattleTracker();
+}
+function setBattleHP(i, val) {
+  var p = BATTLE_DATA.participants[i];
+  if (!p) return;
+  var n = parseInt(val, 10);
+  if (isNaN(n)) n = 0;
+  if (n < 0) n = 0;
+  if (p.type === "self") {
+    var char = getCurrentChar();
+    if (char && char.combat) {
+      if (n > (char.combat.hpMax || n)) n = char.combat.hpMax;
+      var delta = n - (char.combat.hpCurrent || 0);
+      if (delta !== 0 && typeof quickHP === "function") quickHP(delta, "Бой");
+      syncSelfBattleStatus();
+    }
+  } else {
+    if (p.hpMax > 0 && n > p.hpMax) n = p.hpMax;
+    p.hp = n;
+    saveBattle();
+  }
+  renderBattleTracker();
+}
+function setBattleHPMax(i, val) {
+  var p = BATTLE_DATA.participants[i];
+  if (!p || p.type === "self") { renderBattleTracker(); return; } // макс «я» — с листа
+  var n = parseInt(val, 10);
+  if (isNaN(n) || n < 0) n = 0;
+  p.hpMax = n;
+  if (n > 0 && p.hp > n) p.hp = n;
+  saveBattle();
+  renderBattleTracker();
+}
+// Ручная правка инициативы: пересортировать, но оставить ход на текущем участнике.
+function setBattleInitiative(i, val) {
+  var p = BATTLE_DATA.participants[i];
+  if (!p) return;
+  var n = parseInt(val, 10);
+  if (isNaN(n)) n = 0;
+  p.initiative = n;
+  var currentP = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
+  sortParticipantsByInitiative(BATTLE_DATA.participants);
+  if (currentP) { var ci = BATTLE_DATA.participants.indexOf(currentP); if (ci >= 0) BATTLE_DATA.currentTurn = ci; }
+  saveBattle();
+  renderBattleTracker();
+}
+function rerollInitiative(i) {
+  var p = BATTLE_DATA.participants[i];
+  if (!p) return;
+  p.initiative = rollInitiativeValue(p.dexMod || 0);
+  var currentP = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
+  sortParticipantsByInitiative(BATTLE_DATA.participants);
+  if (currentP) { var ci = BATTLE_DATA.participants.indexOf(currentP); if (ci >= 0) BATTLE_DATA.currentTurn = ci; }
+  if (window.AppLog) AppLog.action("battle", "инициатива " + (p.name || "?") + " → " + p.initiative);
+  saveBattle();
+  renderBattleTracker();
+}
+// Быстрый d20 из строки — реальный 3D-бросок + запись в общую историю (UX-5 quickRoll).
+function battleRollD20(i) {
+  var p = BATTLE_DATA.participants[i];
+  if (!p) return;
+  if (typeof quickRoll === "function") quickRoll({ label: p.name || "Бросок", sides: 20, mod: 0 });
+}
+function removeBattleParticipant(i) {
+  var p = BATTLE_DATA.participants[i];
+  if (!p) return;
+  if (p.type === "self") { showToast("Себя нельзя убрать из боя", "warn"); return; }
+  var currentP = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
+  BATTLE_DATA.participants.splice(i, 1);
+  if (window.AppLog) AppLog.action("battle", "убран из боя: " + (p.name || "?"));
+  if (BATTLE_DATA.participants.length === 0) { endBattle(); return; }
+  // Ход остаётся на текущем участнике (если это был он — на следующего по кругу).
+  var ci = (currentP && currentP !== p) ? BATTLE_DATA.participants.indexOf(currentP) : -1;
+  BATTLE_DATA.currentTurn = ci >= 0 ? ci : (i % BATTLE_DATA.participants.length);
+  saveBattle();
+  renderBattleTracker();
 }
 
 

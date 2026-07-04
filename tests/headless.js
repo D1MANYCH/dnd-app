@@ -1278,6 +1278,147 @@
         return true;
       } finally { window.characters = savedChars; window.currentId = savedId; PARTY_DATA = savedParty; }
     });
+
+    // ── UX-6: авто-инициатива, HP, добавление монстра в бой ──
+    t("[party] sortParticipantsByInitiative: по убыванию, равные — исходный порядок", function(){
+      if (typeof sortParticipantsByInitiative !== "function") return true;
+      var arr = [
+        { name: "A", initiative: 12 }, { name: "B", initiative: 20 },
+        { name: "C", initiative: 12 }, { name: "D", initiative: 5 }
+      ];
+      sortParticipantsByInitiative(arr);
+      var order = arr.map(function(p){ return p.name; }).join("");
+      if (order !== "BACD") return "порядок: " + order;
+      // участник без initiative трактуется как 0
+      var arr2 = [{ name: "X" }, { name: "Y", initiative: 3 }];
+      sortParticipantsByInitiative(arr2);
+      if (arr2[0].name !== "Y") return "undefined-иниц. должна быть внизу";
+      return true;
+    });
+
+    t("[party] _participantCombatMeta: self — из листа; монстр — ЛОВ из SRD, ХП из записи", function(){
+      if (typeof _participantCombatMeta !== "function") return true;
+      var savedChars = window.characters, savedId = window.currentId, savedParty = PARTY_DATA;
+      try {
+        window.characters = [{ id: "tp8", name: "Герой", stats: { dex: 16 }, combat: { hpCurrent: 22, hpMax: 30 } }];
+        window.currentId = "tp8";
+        var mSelf = _participantCombatMeta({ type: "self" });
+        if (mSelf.dexMod !== 3) return "self dexMod: ожидал 3, получено " + mSelf.dexMod;
+        if (mSelf.hp !== 22 || mSelf.hpMax !== 30) return "self hp: " + mSelf.hp + "/" + mSelf.hpMax;
+        // монстр отряда со srdSlug "bandit" (dex 12 → +1, hp 11)
+        PARTY_DATA = { allies: [], npcs: [], monsters: [{ id: 5, name: "Бандит", srdSlug: "bandit", hp: 11, hpMax: 11 }] };
+        if (window.MONSTERS_SRD && window.MONSTERS_SRD.length) {
+          var mMon = _participantCombatMeta({ type: "monster", id: "mon_5" });
+          if (mMon.hpMax !== 11) return "monster hpMax: " + mMon.hpMax;
+          if (mMon.dexMod !== 1) return "monster dexMod: ожидал 1 (ЛОВ 12), получено " + mMon.dexMod;
+        }
+        // союзник — без числовых данных
+        var mAlly = _participantCombatMeta({ type: "ally", id: "ally_1" });
+        if (mAlly.dexMod !== 0 || mAlly.hpMax !== 0) return "ally мета не 0";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; PARTY_DATA = savedParty; }
+    });
+
+    t("[party] startBattle: авто-инициатива всем + сортировка по убыванию", function(){
+      if (typeof startBattle !== "function") return true;
+      var savedChars = window.characters, savedId = window.currentId;
+      var savedBattle = BATTLE_DATA, savedSetup = battleSetupList;
+      try {
+        _ensureEl("battle-setup-screen"); _ensureEl("battle-tracker-screen");
+        window.characters = [{ id: "tp9", name: "Герой", stats: { dex: 14 }, combat: { hpCurrent: 20, hpMax: 20 } }];
+        window.currentId = "tp9";
+        BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
+        battleSetupList = [
+          { id: "self_tp9", name: "Герой",  icon: "🗡", color: "#4da843", type: "self",    checked: true },
+          { id: "ally_1",   name: "Аля",    icon: "🎵", color: "#27ae60", type: "ally",    checked: true },
+          { id: "mon_9",    name: "Гоблин", icon: "👾", color: "#c0392b", type: "monster", checked: true }
+        ];
+        startBattle();
+        var ps = BATTLE_DATA.participants;
+        if (ps.length !== 3) return "ожидал 3 участника, получено " + ps.length;
+        for (var i = 0; i < ps.length; i++) {
+          if (typeof ps[i].initiative !== "number") return ps[i].name + ": инициатива не число";
+          if (!("hp" in ps[i]) || !("hpMax" in ps[i]) || !("dexMod" in ps[i])) return ps[i].name + ": нет боевых полей";
+        }
+        for (var j = 1; j < ps.length; j++) {
+          if (ps[j-1].initiative < ps[j].initiative) return "не отсортировано по убыванию";
+        }
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; battleSetupList = savedSetup; }
+    });
+
+    t("[party] addMonsterFromSRD (режим боя): участник с инициативой/ХП, дубль → имя +N", function(){
+      if (typeof addMonsterFromSRD !== "function" || !window.MONSTERS_SRD || !window.MONSTERS_SRD.length) return true;
+      if (typeof openSrdMonsterPickerForBattle !== "function") return true;
+      var savedChars = window.characters, savedId = window.currentId;
+      var savedBattle = BATTLE_DATA, savedParty = PARTY_DATA, savedMode = _srdPickerBattleMode;
+      try {
+        _ensureEl("battle-tracker-list");
+        window.characters = [{ id: "tpA", name: "Герой", combat: {} }];
+        window.currentId = "tpA";
+        PARTY_DATA = { allies: [], npcs: [], monsters: [] };
+        BATTLE_DATA = { active: true, currentTurn: 0, participants: [{ id: "self_tpA", name: "Герой", type: "self", status: "healthy", initiative: 10 }] };
+        _srdPickerBattleMode = true;
+        addMonsterFromSRD("rat"); // Крыса, hp 1
+        addMonsterFromSRD("rat"); // дубль → "Крыса 2"
+        // в бой добавлены двое, в отряд — ничего
+        if (PARTY_DATA.monsters.length !== 0) return "монстр попал в отряд в режиме боя";
+        var mons = BATTLE_DATA.participants.filter(function(p){ return p.type === "monster"; });
+        if (mons.length !== 2) return "ожидал 2 монстров в бою, получено " + mons.length;
+        var names = mons.map(function(p){ return p.name; }).sort().join(",");
+        if (names !== "Крыса,Крыса 2") return "имена дублей: " + names;
+        var m0 = mons[0];
+        if (typeof m0.initiative !== "number") return "у монстра нет инициативы";
+        if (m0.hp !== 1 || m0.hpMax !== 1) return "ХП монстра: " + m0.hp + "/" + m0.hpMax;
+        if (m0.srdSlug !== "rat") return "srdSlug монстра: " + m0.srdSlug;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; PARTY_DATA = savedParty; _srdPickerBattleMode = savedMode; }
+    });
+
+    t("[party] adjustBattleHP/setBattleHP: клампы 0..hpMax для не-self", function(){
+      if (typeof adjustBattleHP !== "function" || typeof setBattleHP !== "function") return true;
+      var savedChars = window.characters, savedId = window.currentId, savedBattle = BATTLE_DATA;
+      try {
+        _ensureEl("battle-tracker-list");
+        window.characters = [{ id: "tpB", name: "Герой", combat: {} }];
+        window.currentId = "tpB";
+        BATTLE_DATA = { active: true, currentTurn: 0, participants: [
+          { id: "mon_1", name: "Гоблин", type: "monster", status: "healthy", hp: 5, hpMax: 7, initiative: 8 }
+        ]};
+        adjustBattleHP(0, 10); // 5+10 → клампится до hpMax 7
+        if (BATTLE_DATA.participants[0].hp !== 7) return "верхний кламп: " + BATTLE_DATA.participants[0].hp;
+        adjustBattleHP(0, -20); // 7-20 → 0
+        if (BATTLE_DATA.participants[0].hp !== 0) return "нижний кламп: " + BATTLE_DATA.participants[0].hp;
+        setBattleHP(0, "4");
+        if (BATTLE_DATA.participants[0].hp !== 4) return "setBattleHP: " + BATTLE_DATA.participants[0].hp;
+        setBattleHP(0, "99"); // > hpMax → 7
+        if (BATTLE_DATA.participants[0].hp !== 7) return "setBattleHP кламп: " + BATTLE_DATA.participants[0].hp;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
+    });
+
+    t("[party] rerollInitiative: пересортировка держит ход на текущем участнике", function(){
+      if (typeof rerollInitiative !== "function") return true;
+      var savedChars = window.characters, savedId = window.currentId, savedBattle = BATTLE_DATA;
+      try {
+        _ensureEl("battle-tracker-list");
+        window.characters = [{ id: "tpC", name: "Герой", combat: {} }];
+        window.currentId = "tpC";
+        BATTLE_DATA = { active: true, currentTurn: 1, participants: [
+          { id: "a", name: "A", type: "ally",    status: "healthy", initiative: 18, dexMod: 0 },
+          { id: "b", name: "B", type: "monster", status: "healthy", initiative: 15, dexMod: 0 },
+          { id: "c", name: "C", type: "monster", status: "healthy", initiative: 10, dexMod: 0 }
+        ]};
+        var currentBefore = BATTLE_DATA.participants[BATTLE_DATA.currentTurn]; // B
+        rerollInitiative(2); // перебросить C — B по-прежнему текущий, где бы ни оказался
+        if (BATTLE_DATA.participants[BATTLE_DATA.currentTurn] !== currentBefore) return "ход соскочил с текущего участника";
+        // сортировка сохранена
+        for (var j = 1; j < BATTLE_DATA.participants.length; j++) {
+          if (BATTLE_DATA.participants[j-1].initiative < BATTLE_DATA.participants[j].initiative) return "не отсортировано";
+        }
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
+    });
   }
 
   // ────────── БЛОК 13 (UI6-1): авто-акцент по классу (app-ui.js) ──────────
