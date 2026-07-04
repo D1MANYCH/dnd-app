@@ -235,6 +235,20 @@ function _resolveTarget(step) {
   return el;
 }
 
+/** Первый видимый (ненулевой rect) элемент из списка селекторов — для целей
+ *  с фолбэками по раскладке (например: статичный сайдбар ≥1200 → нижние табы
+ *  <1024 → hamburger на 1024–1199, где и то и другое display:none). */
+function _tourFirstVisible(selectors) {
+  for (var i = 0; i < selectors.length; i++) {
+    var el = null;
+    try { el = document.querySelector(selectors[i]); } catch (e) { el = null; }
+    if (!el) continue;
+    var r = el.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) return el;
+  }
+  return null;
+}
+
 /** Запустить тур из набора шагов. Шаги с requireTarget без видимой цели
  *  отсеиваются на старте (счётчик остаётся корректным, без скачков). */
 function startTour(steps, name) {
@@ -398,8 +412,30 @@ function _layoutTour() {
   var el = _resolveTarget(_tour.steps[_tour.i]);
   var vw = window.innerWidth, vh = window.innerHeight, margin = 12;
   if (el) {
+    // Размер коуча нужен до прокрутки → показываем карточку заранее
+    // (при display:none offsetWidth/Height нулевые).
+    coach.classList.remove('tour-coach-centered');
+    coach.style.display = 'block';
+    var cw = coach.offsetWidth, ch = coach.offsetHeight;
     el.scrollIntoView({ block: 'center', inline: 'nearest' });
     var r = el.getBoundingClientRect();
+    // block:'center' центрует одну цель; если цель+коуч влезают в экран вместе,
+    // но под отцентрованной целью коучу не хватает места (высокая карточка,
+    // напр. «Кошель» на телефоне) — докручиваем окно, освобождая место снизу.
+    // Идемпотентно: конечная позиция скролла одна и та же при повторном layout.
+    var need = r.height + margin + ch;
+    if (need <= vh - 2 * margin) {
+      if (r.bottom + margin + ch > vh - margin) {
+        window.scrollBy(0, r.top - (vh - need) / 2);
+        r = el.getBoundingClientRect();
+      }
+      if (r.bottom + margin + ch > vh - margin && r.top - margin - ch < margin) {
+        // Снизу упёрлись в конец документа (цель — последняя карточка вкладки):
+        // освобождаем место над целью, коуч встанет сверху.
+        window.scrollBy(0, r.top - ((vh - need) / 2 + ch + margin));
+        r = el.getBoundingClientRect();
+      }
+    }
     var p = _tourPad;
     var hT = Math.max(0, r.top - p), hL = Math.max(0, r.left - p);
     var hR = Math.min(vw, r.right + p), hB = Math.min(vh, r.bottom + p);
@@ -410,14 +446,29 @@ function _layoutTour() {
     _setBox(mRight, hR, hT, vw - hR, hB - hT);
     ring.style.display = 'block';
     _setBox(ring, hL, hT, hR - hL, hB - hT);
-    coach.classList.remove('tour-coach-centered');
-    coach.style.display = 'block';
-    var cw = coach.offsetWidth, ch = coach.offsetHeight;
-    var top;
-    if (r.bottom + margin + ch <= vh) top = r.bottom + margin;        // под целью
-    else if (r.top - margin - ch >= 0) top = r.top - margin - ch;     // над целью
-    else top = (vh - ch) / 2;                                         // не влезает — по центру вертикали
-    var left = r.left + r.width / 2 - cw / 2;
+    // Порядок размещения: под целью → над → справа → слева → к низу вьюпорта.
+    // Вертикальный центр не используется: цель выше экрана (сайдбар на ПК,
+    // крупная карточка ячеек) отцентрована scrollIntoView, и центрированный
+    // коуч ложился ровно на подсветку.
+    var top, left;
+    // Условия «влезает» учитывают margin с обеих сторон — иначе кламп по краю
+    // вьюпорта задвигал карточку обратно на подсветку (полоска-пересечение).
+    if (r.bottom + margin + ch <= vh - margin) {                      // под целью
+      top = r.bottom + margin;
+      left = r.left + r.width / 2 - cw / 2;
+    } else if (r.top - margin - ch >= margin) {                       // над целью
+      top = r.top - margin - ch;
+      left = r.left + r.width / 2 - cw / 2;
+    } else if (r.right + margin + cw <= vw - margin) {                // справа от цели
+      left = r.right + margin;
+      top = r.top + r.height / 2 - ch / 2;
+    } else if (r.left - margin - cw >= margin) {                      // слева от цели
+      left = r.left - margin - cw;
+      top = r.top + r.height / 2 - ch / 2;
+    } else {                                                          // цель ~весь экран
+      top = vh - ch - margin;
+      left = r.left + r.width / 2 - cw / 2;
+    }
     left = Math.max(margin, Math.min(left, vw - cw - margin));
     top = Math.max(margin, Math.min(top, vh - ch - margin));
     coach.style.top = top + 'px';
@@ -511,10 +562,10 @@ function _buildSheetSteps() {
     },
     {
       requireTarget: true,
+      // ≥1200 — статичный сайдбар; <1024 — нижний tab-nav; 1024–1199 оба
+      // display:none (drawer закрыт) — подсвечиваем hamburger, который его открывает.
       target: function () {
-        return _tourWide()
-          ? document.querySelector('.side-drawer .drawer-nav')
-          : document.querySelector('.tab-nav');
+        return _tourFirstVisible(['.side-drawer .drawer-nav', '.tab-nav', '#nav-hamburger']);
       },
       title: '🧭 Разделы персонажа',
       text: 'Переключение разделов: Лист, Заклинания, Инвентарь, Бой, Записи, Мир, Журнал.'
@@ -542,8 +593,15 @@ function _buildSheetSteps() {
       novice: 'Хиты (HP) — запас здоровья: на нуле персонаж при смерти. КД (AC) — класс доспеха: чем выше, тем труднее по персонажу попасть.'
     },
     {
-      requireTarget: true,
-      target: function () { return document.querySelector('#basic-locked-bar .tab-help-btn'); },
+      // Без requireTarget: на свежем персонаже #basic-locked-bar скрыт
+      // (основа не зафиксирована) и шаг молча выпадал. Фолбэк — «❓ Справка»
+      // в сайдбаре (виден на ≥1200); совсем без цели — центрированная карточка.
+      target: function () {
+        return _tourFirstVisible([
+          '#basic-locked-bar .tab-help-btn',
+          '.side-drawer .drawer-item[onclick*="openHelp"]'
+        ]);
+      },
       title: '❓ Справка по разделу',
       text: 'Кнопка «❓ Справка» есть в каждом разделе — открывает подсказки именно по текущему экрану.'
     },

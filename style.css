@@ -9404,7 +9404,12 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   max-width: 340px;
   box-sizing: border-box;
   padding: 16px 16px 14px;
-  background: var(--bg-2, var(--input-bg));
+  /* UI4-glass: пол непрозрачности (--surface-modal) + blur, как у .modal-content —
+     иначе при низком слайдере «Непрозрачность фона» --bg-2 почти прозрачен и
+     текст страницы просвечивает сквозь карточку тура (наслаивание строк). */
+  background: var(--surface-modal, var(--bg-2, var(--input-bg)));
+  backdrop-filter: blur(var(--glass-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
   border: 1px solid var(--accent-color);
   border-radius: var(--r-md);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
