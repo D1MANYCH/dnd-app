@@ -9,10 +9,10 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
       - name: Headless-тесты
         run: node tests/headless-node.js
       - name: Инвариант релиза (APP_VERSION ↔ APP_CHANGELOG ↔ CACHE_NAME ↔ ?v= ↔ CHANGELOG.md)
