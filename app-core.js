@@ -951,6 +951,28 @@ function migrateCharacter(char) {
     }
     char.schemaVersion = 27;
   }
+  if (v < 28) {
+    // BUGFIX: применение билда набирало PH24-версии заклинаний — карта имён в
+    // applyBuild строилась перезаписью, а PH24-дубли идут в spells.js после PH14
+    // («последний побеждает»). Билды = PHB 2014 → у персонажей, созданных из
+    // билда (buildId), заменяем PH24-заклинания на PH14-аналог (имя+уровень).
+    // PH24-версии без PH14-аналога и персонажей без buildId не трогаем —
+    // вручную добавленные PH24-заклинания могут быть осознанным выбором.
+    if (char.buildId && char.spells && Array.isArray(char.spells.mySpells) &&
+        typeof SPELL_DATABASE !== "undefined" && Array.isArray(SPELL_DATABASE)) {
+      var _ph14ByName28 = {};
+      SPELL_DATABASE.forEach(function(sp){
+        if (sp && sp.name && sp.source === "PH14") {
+          _ph14ByName28[sp.name.toLowerCase().trim() + "|" + sp.level] = sp;
+        }
+      });
+      char.spells.mySpells = char.spells.mySpells.map(function(sp){
+        if (!sp || !sp.name || sp.source !== "PH24") return sp;
+        return _ph14ByName28[sp.name.toLowerCase().trim() + "|" + sp.level] || sp;
+      });
+    }
+    char.schemaVersion = 28;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем
@@ -1667,7 +1689,13 @@ function _applyBuildCore(buildId) {
     if (typeof SPELL_DATABASE !== "undefined" && Array.isArray(SPELL_DATABASE)) {
       for (var _si = 0; _si < SPELL_DATABASE.length; _si++) {
         var _sp = SPELL_DATABASE[_si];
-        if (_sp && _sp.name) _spellByName[_sp.name.toLowerCase().trim()] = _sp;
+        if (!_sp || !_sp.name) continue;
+        var _snk = _sp.name.toLowerCase().trim();
+        // Билды = PHB 2014: при дубле имени (PH14+PH24 версии в БД) в карту идёт PH14,
+        // иначе «последний побеждает» отдавал билдам PH24-версии заклинаний.
+        if (!_spellByName[_snk] || (_sp.source === "PH14" && _spellByName[_snk].source !== "PH14")) {
+          _spellByName[_snk] = _sp;
+        }
       }
     }
     // Карта алиасов: PHB-имя из билда → имя в SPELL_DATABASE.
@@ -2822,13 +2850,19 @@ window.resolveSpellByName = (function(){
     var key = String(n).toLowerCase().trim();
     var alt = key.replace(/ё/g, "е").replace(/\s*\([^)]*\)\s*$/, "").trim();
     var aliased = ALIASES[key] || ALIASES[alt];
+    // Билды/level-up = PHB 2014: при дубле имени (PH14+PH24 версии в БД) отдаём PH14;
+    // PH24-версию — только если PH14-аналога нет вовсе.
+    var found = null;
     for (var i = 0; i < SPELL_DATABASE.length; i++) {
       var sp = SPELL_DATABASE[i];
       if (!sp || !sp.name) continue;
       var nm = sp.name.toLowerCase().trim();
-      if (nm === key || nm === alt || (aliased && nm === aliased)) return sp;
+      if (nm === key || nm === alt || (aliased && nm === aliased)) {
+        if (sp.source === "PH14") return sp;
+        if (!found) found = sp;
+      }
     }
-    return null;
+    return found;
   };
 })();
 
@@ -3020,10 +3054,17 @@ const SPELL_CLASS_ICON_SLUGS = {
   wizard: 'wizard', druid: 'druid', bard: 'bard', cleric: 'cleric',
   paladin: 'paladin', ranger: 'ranger', sorcerer: 'sorcerer', warlock: 'warlock'
 };
+// Русские имена классов для подписей к иконкам заклинаний (тултипы, строка в карточке).
+const SPELL_CLASS_RU = {
+  wizard: 'Волшебник', druid: 'Друид', bard: 'Бард', cleric: 'Жрец',
+  paladin: 'Паладин', ranger: 'Следопыт', sorcerer: 'Чародей', warlock: 'Колдун',
+  both: 'Все классы'
+};
 function getSpellClassIcon(key) {
+  var ru = SPELL_CLASS_RU[key] || '';
   var slug = SPELL_CLASS_ICON_SLUGS[key];
-  if (!slug) return '<span class="spell-class-emoji" aria-hidden="true">' + (CLASS_ICONS_MAP[key] || '✨') + '</span>';
-  return '<img class="spell-class-icon" src="assets/classes/' + slug + '.webp?v=2" alt="" aria-hidden="true">';
+  if (!slug) return '<span class="spell-class-emoji"' + (ru ? ' title="' + ru + '"' : '') + ' aria-hidden="true">' + (CLASS_ICONS_MAP[key] || '✨') + '</span>';
+  return '<img class="spell-class-icon" src="assets/classes/' + slug + '.webp?v=2" title="' + ru + '" alt="' + ru + '">';
 }
 // Школы магии: RU → slug файла в assets/schools/*.webp
 const SCHOOL_ICON_SLUGS = {
@@ -3043,7 +3084,9 @@ function getSchoolSlug(school) {
 function getSchoolIcon(school) {
   var slug = getSchoolSlug(school);
   if (!slug) return '';
-  return '<img class="school-icon-svg" src="assets/schools/' + slug + '.webp?v=6" alt="" aria-hidden="true">';
+  var ru = String(school).trim();
+  ru = ru.charAt(0).toUpperCase() + ru.slice(1);
+  return '<img class="school-icon-svg" src="assets/schools/' + slug + '.webp?v=6" title="Школа: ' + ru + '" alt="' + ru + '">';
 }
 // Удаляет ведущий emoji (и пробел) из имени состояния — для отображения рядом с SVG-иконкой
 function stripLeadingEmoji(name) {

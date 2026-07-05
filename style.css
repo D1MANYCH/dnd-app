@@ -5501,6 +5501,33 @@ transition: all 0.2s;
   object-fit: contain;
 }
 .school-badge-text { line-height: 1; }
+/* Чип «+N» — свёрнутый хвост иконок классов (больше 4 классов не влезают на телефоне).
+   Полный список имён — в строке таксономии раскрытой карточки. */
+.class-icons-more {
+  font-size: 0.75em;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 2px 6px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+/* Подписи для новичков: школа/классы/источник текстом в раскрытой карточке. */
+.spell-card-taxonomy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 0.8em;
+  color: var(--text-muted);
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-sm);
+}
+.spell-card-taxonomy b { color: var(--text-color); font-weight: 600; }
 /* UI5-5: на телефоне имя заклинания важнее — `.spell-card-badges` (flex-shrink:0) с текстом
    школы + источником + иконками классов сжимал `.spell-card-title` до 1 буквы. Прячем ТЕКСТ
    школы (цветная иконка остаётся = школа опознаётся) и чуть ужимаем иконки → имя получает место. */
@@ -5509,6 +5536,23 @@ transition: all 0.2s;
   .school-badge { padding: 4px 7px; }
   .spell-class-icon { width: 20px; height: 20px; }
   .class-icons-row { gap: 3px; }
+  /* Текст «Ритуал» тоже прячем (🕐 остаётся; свойство видно в мете «(ритуал)»). */
+  .ritual-badge-text { display: none; }
+  /* Бейджи (источник+школа+классы) не помещаются рядом с именем при 3+ иконках —
+     переносим их на вторую строку шапки, имя получает всю ширину. */
+  .spell-card-header { flex-wrap: wrap; row-gap: 6px; }
+  .spell-card-title { flex: 1 1 100%; }
+  .spell-card-badges { margin-left: 20px; } /* 20px = стрелка 12 + gap 8, в линию с именем */
+  /* Имя не режем в 1 строку — переносим до 2 строк, дальше многоточие. */
+  .spell-card-name {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+    line-height: 1.25;
+  }
 }
 .school-abjuration     { color: #6cb6ff; border-color: rgba(108,182,255,0.45); background: rgba(108,182,255,0.10); }
 .school-conjuration    { color: #ffb86c; border-color: rgba(255,184,108,0.45); background: rgba(255,184,108,0.10); }
@@ -11604,9 +11648,13 @@ mark.notes-hl {
 .bp-modal { max-width: 640px; }
 .bp-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; padding-right:30px; }
 .bp-title { font-size:1.15em; font-weight:600; color:var(--accent); }
-.bp-filter-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+/* flex-wrap: на телефоне поиск занимает первую строку, пары «подпись+селект»
+   переносятся на вторую целиком; без переноса селекты сжимались до нуля (виден
+   только шеврон), а подпись отрывалась от своего селекта. */
+.bp-filter-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.bp-filter-group { display:flex; align-items:center; gap:8px; flex:1 1 140px; min-width:130px; }
 .bp-filter-label { font-size:0.9em; color:var(--text-muted); }
-.bp-select { flex:1; padding:6px 10px; background:var(--bg-3); color:var(--text-color); border:1px solid var(--border); border-radius:var(--r-sm,8px); }
+.bp-select { flex:1; min-width:80px; padding:6px 10px; background:var(--bg-3); color:var(--text-color); border:1px solid var(--border); border-radius:var(--r-sm,8px); }
 .bp-list { display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow-y:auto; }
 .bp-empty { text-align:center; color:var(--text-muted); padding:20px; }
 .bp-card { background:var(--bg-3); border:1px solid var(--border); border-radius:var(--r-md,10px); padding:12px 14px; cursor:pointer; transition:transform .12s, border-color .12s, box-shadow .12s; }

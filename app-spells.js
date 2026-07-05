@@ -372,9 +372,28 @@ container.appendChild(groupDiv);
 var ritualClasses = ["Волшебник", "Жрец", "Друид", "Бард"];
 byLevel[level].forEach(function(spell) {
 const spellClassArr2 = Array.isArray(spell.classes) ? spell.classes : [spell.class || "both"];
-const classIcons = spellClassArr2.map(function(c){ return getSpellClassIcon(c); }).join("");
+// Больше 4 классов не влезают на телефоне и вытесняют название — первые 3 + счётчик «+N».
+// Полный список имён — в строке таксономии раскрытой карточки.
+var classIcons;
+if (spellClassArr2.length > 4) {
+  classIcons = spellClassArr2.slice(0, 3).map(function(c){ return getSpellClassIcon(c); }).join("") +
+    '<span class="class-icons-more">+' + (spellClassArr2.length - 3) + '</span>';
+} else {
+  classIcons = spellClassArr2.map(function(c){ return getSpellClassIcon(c); }).join("");
+}
 const sourceClass = "source-" + (spell.source || "ph14").toLowerCase();
 const schoolName = spell.school || "";
+// Подписи для новичков: школа/классы/источник текстом в раскрытой карточке.
+var classNamesRu = spellClassArr2.map(function(c){
+  return (typeof SPELL_CLASS_RU !== "undefined" && SPELL_CLASS_RU[c]) || c;
+}).join(", ");
+var schoolRu = schoolName ? schoolName.charAt(0).toUpperCase() + schoolName.slice(1) : "";
+var sourceRu = spell.source === "PH14" ? "Книга игрока 2014" : (spell.source === "PH24" ? "Книга игрока 2024" : (spell.source || ""));
+var taxonomyLine = '<div class="spell-card-taxonomy">' +
+  (schoolRu ? '<span>🎓 Школа: <b>' + escapeHtml(schoolRu) + '</b></span>' : '') +
+  '<span>🧙 Классы: <b>' + escapeHtml(classNamesRu) + '</b></span>' +
+  (sourceRu ? '<span>📖 <b>' + escapeHtml(sourceRu) + '</b></span>' : '') +
+  '</div>';
 var isRitual = !!(spell.time && spell.time.includes("(ритуал)"));
 var canCastRitual = isRitual && ritualClasses.includes(char.class);
 var isFamiliarSpell = /фамильяр/i.test(spell.name || "");
@@ -396,7 +415,7 @@ card.innerHTML =
     '<div class="spell-card-title">' +
       '<span class="spell-card-arrow">▶</span>' +
       '<span class="spell-card-name">' + escapeHtml(spell.name) + '</span>' +
-      (isRitual ? '<span class="ritual-badge">🕐 Ритуал</span>' : '') +
+      (isRitual ? '<span class="ritual-badge" title="Ритуал">🕐<span class="ritual-badge-text"> Ритуал</span></span>' : '') +
     '</div>' +
     '<div class="spell-card-badges">' +
       '<span class="source-badge ' + sourceClass + '">' + escapeHtml(spell.source || "") + '</span>' +
@@ -406,6 +425,7 @@ card.innerHTML =
   '</div>' +
   '<div class="spell-card-meta">' + metaParts.join("") + '</div>' +
   '<div class="spell-card-body">' +
+    taxonomyLine +
     (spell.desc ? '<div class="spell-full-desc">' + escapeHtml(spell.desc) + '</div>' : '') +
     (spell.higherLevel ? '<div class="spell-higher">📈 На больших уровнях: ' + escapeHtml(spell.higherLevel) + '</div>' : '') +
     '<div class="spell-card-actions">' +
