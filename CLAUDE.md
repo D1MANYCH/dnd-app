@@ -61,6 +61,13 @@ APP_VERSION  ↔  APP_CHANGELOG[0].version  ↔  CACHE_NAME (dnd-sheet-vN)  ↔ 
 - `/phase <X-N>` — стартовать фазу из `memory/MEMORY.md` (например `/phase DEV-4`).
 - `/done <X-N>` — пометить фазу `**done**` в соответствующем `project_*_plan.md`.
 
+## Skills (`.claude/skills/`) — читать ПЕРЕД соответствующей задачей
+- `release` — релизный цикл целиком: инвариант версий, /bump → /preflight → коммит по запросу, rebase при push.
+- `verify-ui` — верификация в preview: ловушка SW-кеша, зависающий из-за WebGL скриншот, кумулятивная сеть, когда computed-стили врут.
+- `add-content` — заклинания/классы/билды/магпредметы/черты: файлы, эталон названий (книги 2014), миграции schemaVersion.
+- `dice-3d` — дайс-подсистема: quickRoll/animateDice3d, решённая гонка бросков (не ломать!), особенности вендоренного dice-box.
+- `tours` — движок туров app-help.js: 4-панельное затемнение (не box-shadow!), непрозрачный коуч, флаги dnd_help_*.
+
 ## Hooks (`.claude/settings.json`, PostToolUse на Edit|Write|MultiEdit)
 1. **sw.js guard** — при правке `sw.js` печатает текущий `CACHE_NAME` и напоминает бампнуть (exit 2 → блокирует).
 2. **data.js version sync** — если `APP_VERSION !== APP_CHANGELOG[0].version`, exit 2 → блокирует.
