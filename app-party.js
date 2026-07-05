@@ -737,7 +737,8 @@ function battleDrop(e, i) {
 function battleDragEnd() { battleDragSrcIdx = null; }
 
 // ── UX-6: авто-инициатива, HP и мета участника боя ──────────────
-// Один d20 + мод Ловкости. Отделён от сортировки, чтобы sort тестировался чисто.
+// Один d20 + модификатор (мод Ловкости; для self ещё + бонус черт, FIN-1).
+// Отделён от сортировки, чтобы sort тестировался чисто.
 function rollInitiativeValue(dexMod) {
   return Math.floor(Math.random() * 20) + 1 + (dexMod || 0);
 }
@@ -755,15 +756,17 @@ function _findPartyMonster(pid) {
   return PARTY_DATA.monsters.filter(function(m) { return String(m.id) === raw; })[0] || null;
 }
 // Мета боя участника: мод Ловкости (для инициативы) + текущие/макс ХП.
-// self — из листа персонажа; монстр — ХП из записи отряда, Ловкость из SRD по
-// srdSlug; союзник/NPC — без числовых ХП/Ловкости (0).
+// self — из листа персонажа (initBonus — бонус инициативы от черт, напр. «Бдительный» +5);
+// монстр — ХП из записи отряда, Ловкость из SRD по srdSlug;
+// союзник/NPC — без числовых ХП/Ловкости (0).
 function _participantCombatMeta(p) {
-  var dexMod = 0, hp = 0, hpMax = 0;
-  if (!p) return { dexMod: dexMod, hp: hp, hpMax: hpMax };
+  var dexMod = 0, hp = 0, hpMax = 0, initBonus = 0;
+  if (!p) return { dexMod: dexMod, hp: hp, hpMax: hpMax, initBonus: initBonus };
   if (p.type === "self") {
     var char = getCurrentChar();
     if (char) {
       if (char.stats) dexMod = getMod(char.stats.dex);
+      if (char.bonuses && char.bonuses.initiative) initBonus = char.bonuses.initiative; // FIN-1
       if (char.combat) { hp = char.combat.hpCurrent || 0; hpMax = char.combat.hpMax || 0; }
     }
   } else if (p.type === "monster") {
@@ -777,7 +780,7 @@ function _participantCombatMeta(p) {
       }
     }
   }
-  return { dexMod: dexMod, hp: hp, hpMax: hpMax };
+  return { dexMod: dexMod, hp: hp, hpMax: hpMax, initBonus: initBonus };
 }
 // Копия setup-участника, обогащённая боевыми полями (статус/инициатива/ХП).
 function _makeBattleParticipant(p) {
@@ -785,9 +788,10 @@ function _makeBattleParticipant(p) {
   return Object.assign({}, p, {
     status: "healthy",
     dexMod: meta.dexMod,
+    initBonus: meta.initBonus,
     hp: meta.hp,
     hpMax: meta.hpMax,
-    initiative: rollInitiativeValue(meta.dexMod)
+    initiative: rollInitiativeValue(meta.dexMod + meta.initBonus)
   });
 }
 // ХП участника для рендера: self — живьём из листа (меняется и на вкладке ХП),
@@ -1063,7 +1067,7 @@ function setBattleInitiative(i, val) {
 function rerollInitiative(i) {
   var p = BATTLE_DATA.participants[i];
   if (!p) return;
-  p.initiative = rollInitiativeValue(p.dexMod || 0);
+  p.initiative = rollInitiativeValue((p.dexMod || 0) + (p.initBonus || 0)); // FIN-1: + бонус черт (Бдительный)
   var currentP = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
   sortParticipantsByInitiative(BATTLE_DATA.participants);
   if (currentP) { var ci = BATTLE_DATA.participants.indexOf(currentP); if (ci >= 0) BATTLE_DATA.currentTurn = ci; }

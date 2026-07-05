@@ -2770,8 +2770,8 @@ function applyASI() {
       if (!char.proficiencies.armor) char.proficiencies.armor = [];
       if (!char.proficiencies.armor.includes(eff.value)) {
         char.proficiencies.armor.push(eff.value);
-        safeSetChecked("armor-" + eff.value, true);
-        appliedDesc.push("Владение: " + eff.value);
+        var armorLabel = (typeof ARMOR_TYPE_LABELS !== "undefined" && ARMOR_TYPE_LABELS[eff.value]) ? ARMOR_TYPE_LABELS[eff.value] : eff.value;
+        appliedDesc.push("Владение: " + armorLabel);
       }
     }
     else if (eff.type === "hp_per_level") {
@@ -2804,6 +2804,8 @@ function applyASI() {
   recalculateHP();
   calculateAC();
   updateHPDisplay();
+  // FIN-1: черты — источник владения бронёй (recalcArmorWeaponFromSources), обновить панель
+  if (typeof renderArmorProf === "function") renderArmorProf();
 
   // Journal entry
   addJournalEntry("feat", "Черта: " + feat.name, appliedDesc.length > 0 ? "Применено: " + appliedDesc.join(", ") : feat.desc.slice(0, 80));

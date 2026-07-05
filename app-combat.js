@@ -1947,6 +1947,7 @@ var PROF_SOURCE_LABELS = {
   class:      "⚔️ Класс",
   subclass:   "🎓 Подкласс",
   background: "📜 Предыст.",
+  feat:       "🎯 Черта",
   custom:     "✏️ Своё"
 };
 var LANG_CAT_TITLES = {
@@ -2594,6 +2595,16 @@ function recalcArmorWeaponFromSources(char) {
       (sa.weapon || []).forEach(function(t){ addWeapon(t, "subclass"); });
     }
   });
+  // Черты (FIN-1): effects type:"armor" — Знаток лёгких/средних/тяжёлых доспехов.
+  // Без этого владение от черты стиралось бы при каждом пересчёте из источников.
+  if (Array.isArray(char.feats) && typeof FEATS_DATA !== "undefined") {
+    char.feats.forEach(function(f) {
+      var def = f && FEATS_DATA.find(function(d){ return d.id === f.id; });
+      ((def && def.effects) || []).forEach(function(eff) {
+        if (eff.type === "armor") addArmor(eff.value, "feat");
+      });
+    });
+  }
   // Custom
   (p.armorCustom  || []).forEach(function(t){ addArmor(t,  "custom"); });
   (p.weaponCustom || []).forEach(function(t){ addWeapon(t, "custom"); });
@@ -2641,7 +2652,7 @@ function renderArmorProf() {
     if (srcs.length === 0) {
       html += '<span class="prof-chip" data-source="empty" style="opacity:0.4">' + ARMOR_TYPE_LABELS[t] + '</span>';
     } else {
-      // Главный source — первый по приоритету (race > class > subclass > custom)
+      // Главный source — первый по приоритету (race > class > subclass > feat > custom)
       var primary = srcs[0];
       var srcBadges = srcs.map(function(s){ return PROF_SOURCE_LABELS[s]; }).join(" ");
       var rmBtn = (srcs.indexOf("custom") !== -1)

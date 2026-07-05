@@ -1753,6 +1753,113 @@
     });
   }
 
+  // ────────── БЛОК 20 (FIN-1): черты — каталог 42, эффекты, инициатива ──────────
+  if (typeof FEATS_DATA !== "undefined") {
+    t("[FIN-1] FEATS_DATA: ровно 42 черты (PHB гл. 6)", function(){
+      return FEATS_DATA.length === 42 || "получено " + FEATS_DATA.length;
+    });
+    t("[FIN-1] id уникальны, внекнижная spell_master удалена", function(){
+      var seen = {}, dup = [];
+      FEATS_DATA.forEach(function(f){ if (seen[f.id]) dup.push(f.id); seen[f.id] = true; });
+      if (dup.length) return "дубли: " + dup.join(",");
+      if (seen["spell_master"]) return "spell_master ещё в каталоге";
+      return true;
+    });
+    t("[FIN-1] у каждой черты непустые id/name/desc и source PHB", function(){
+      var bad = FEATS_DATA.filter(function(f){
+        return !f.id || !/^[a-z][a-z_]*$/.test(f.id) || !f.name || !f.desc || f.source !== "PHB";
+      }).map(function(f){ return f.id || f.name || "?"; });
+      return bad.length === 0 || "битые: " + bad.join(",");
+    });
+    t("[FIN-1] whitelist типов эффектов (мёртвые ac_bonus/speed_bonus/passive_perception_bonus запрещены)", function(){
+      var ok = ["stat","stat_choice","stat_choice_save","armor","hp_per_level","initiative_bonus","passive"];
+      var bad = [];
+      FEATS_DATA.forEach(function(f){
+        (f.effects || []).forEach(function(e){ if (ok.indexOf(e.type) === -1) bad.push(f.id + ":" + e.type); });
+      });
+      return bad.length === 0 || bad.join(",");
+    });
+    t("[FIN-1] 7 добавленных черт присутствуют", function(){
+      var need = ["heavy_armor_master","keen_mind","lightly_armored","magic_initiate","martial_adept","medium_armor_master","moderately_armored"];
+      var have = {}; FEATS_DATA.forEach(function(f){ have[f.id] = 1; });
+      var miss = need.filter(function(id){ return !have[id]; });
+      return miss.length === 0 || "нет: " + miss.join(",");
+    });
+  }
+  if (typeof luApplyFeatById === "function") {
+    t("[FIN-1] luApplyFeatById(heavy_armor_master): СИЛ +1 и запись; повтор → null", function(){
+      var char = { stats:{str:15,dex:10,con:10,int:10,wis:10,cha:10}, level:4, combat:{hpMax:30,hpCurrent:30}, proficiencies:{}, feats:[] };
+      var name = luApplyFeatById(char, "heavy_armor_master", 4);
+      if (!name) return "черта не применилась";
+      if (char.stats.str !== 16) return "СИЛ " + char.stats.str + " (ожидал 16)";
+      if (!char.feats.some(function(f){ return f.id === "heavy_armor_master"; })) return "нет записи в char.feats";
+      if (luApplyFeatById(char, "heavy_armor_master", 8) !== null) return "повтор не заблокирован";
+      return true;
+    });
+    t("[FIN-1] luApplyFeatById(alert): +5 в char.bonuses.initiative", function(){
+      var char = { stats:{str:10,dex:10,con:10,int:10,wis:10,cha:10}, level:1, combat:{hpMax:10,hpCurrent:10}, proficiencies:{}, feats:[] };
+      luApplyFeatById(char, "alert", 1);
+      var got = char.bonuses && char.bonuses.initiative;
+      return got === 5 || "bonuses.initiative = " + got;
+    });
+    t("[FIN-1] luApplyFeatById(moderately_armored): владение средними + щитами", function(){
+      var char = { stats:{str:10,dex:10,con:10,int:10,wis:10,cha:10}, level:4, combat:{hpMax:20,hpCurrent:20}, proficiencies:{}, feats:[] };
+      luApplyFeatById(char, "moderately_armored", 4);
+      var a = char.proficiencies.armor || [];
+      return (a.indexOf("medium") > -1 && a.indexOf("shield") > -1) || "armor: " + a.join(",");
+    });
+  }
+  if (typeof recalcArmorWeaponFromSources === "function") {
+    t("[FIN-1] владение бронёй от черты переживает пересчёт из источников (source feat)", function(){
+      var char = { race:"", class:"", classes:[], feats:[{ id:"lightly_armored", name:"Знаток лёгких доспехов" }], proficiencies:{} };
+      recalcArmorWeaponFromSources(char);
+      var ar = char.proficiencies.armorSources;
+      if (!ar || !ar.light || ar.light.indexOf("feat") === -1) return "нет источника feat: " + JSON.stringify(ar && ar.light);
+      if ((char.proficiencies.armor || []).indexOf("light") === -1) return "light не попал в derived armor";
+      return true;
+    });
+  }
+  if (typeof parseFeatFromHeadline === "function") {
+    t("[FIN-1] headline-имена билдов резолвятся после ренеймов (канон + алиасы)", function(){
+      var cases = [
+        ["Увеличение характеристик → черта «Устойчивый (ТЕЛ)»", "resilient"],
+        ["Увеличение характеристик → черта «Крепыш» или +2 ВЫН", "tough"],
+        ["Увеличение характеристик → черта «Мастер тяжёлого оружия» (GWM)", "great_weapon_master"],
+        ["Увеличение характеристик → черта «Везунчик»", "lucky"],
+        ["Увеличение характеристик → черта «Снайпер»", "sharpshooter"],
+        ["Увеличение характеристик → черта «Удача»", "lucky"],
+        ["Увеличение характеристик → черта «Сторожевой»", "alert"]
+      ];
+      for (var i = 0; i < cases.length; i++) {
+        var got = parseFeatFromHeadline(cases[i][0]);
+        if (got !== cases[i][1]) return "«" + cases[i][0] + "» → " + got + " (ожидал " + cases[i][1] + ")";
+      }
+      return true;
+    });
+  }
+  if (typeof _participantCombatMeta === "function" && typeof rollInitiativeValue === "function") {
+    t("[FIN-1] мета self в бою: initBonus из char.bonuses.initiative (Бдительный)", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{ id: "tf1", stats: { dex: 14 }, bonuses: { initiative: 5 }, combat: { hpCurrent: 7, hpMax: 10 } }];
+        window.currentId = "tf1";
+        var m = _participantCombatMeta({ type: "self", id: "self_tf1" });
+        if (m.dexMod !== 2) return "dexMod " + m.dexMod + " (ожидал 2)";
+        if (m.initBonus !== 5) return "initBonus " + m.initBonus + " (ожидал 5)";
+        var m2 = _participantCombatMeta({ type: "ally", id: "ally_1" });
+        if (m2.initBonus !== 0) return "у союзника initBonus должен быть 0, получено " + m2.initBonus;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+    t("[FIN-1] rollInitiativeValue(мод): результат в диапазоне 1+мод..20+мод", function(){
+      for (var i = 0; i < 50; i++) {
+        var v = rollInitiativeValue(7);
+        if (v < 8 || v > 27) return "вне диапазона: " + v;
+      }
+      return true;
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

@@ -2544,23 +2544,37 @@ function _buildFeatNameMap() {
     FEATS_DATA.forEach(function(f){ if (f && f.name) _FEAT_NAME_TO_ID[f.name.toLowerCase().replace(/ё/g,"е").trim()] = f.id; });
   }
   // Алиасы headline-имён билдов → каноничные имена FEATS_DATA (только уверенные совпадения).
+  // FIN-1: черты переименованы по книге (гл. 6 PHB) — старые канон-имена оставлены алиасами,
+  // чтобы headline-тексты билдов и старые упоминания продолжали резолвиться.
+  // Внимание: канон побеждает алиас, поэтому «стойкий» теперь durable (книжное имя),
+  // а прежний resilient («Стойкий» до аудита) стал «Устойчивый» — headlines билдов обновлены.
   var ALIAS = {
     // тяжёлое оружие
     "великое оружие":"great_weapon_master", "мастер тяжелого оружия":"great_weapon_master",
     // живучесть
-    "крепыш":"tough", "крепкий":"tough", "жесткий":"tough", "стойкий":"resilient",
+    "крепыш":"tough", "жесткий":"tough",
+    "живучий":"durable",
     // удача
     "везунчик":"lucky", "удачливый":"lucky", "счастливчик":"lucky", "удача":"lucky",
     // стрельба
     "меткий стрелок":"sharpshooter", "снайпер":"sharpshooter",
     // инициатива/защита
-    "сторожевой":"alert", "бдительный":"alert", "внимательный":"observant",
+    "сторожевой":"alert", "бдительность":"alert",
+    "наблюдательный":"observant",
     "щитарь":"shield_master", "мастер щита":"shield_master",
     // кастеры
     "боевой маг":"war_caster", "заклинатель боя":"war_caster", "боевой кастер":"war_caster", "военная подготовка":"war_caster",
     "родство со стихией":"elemental_adept", "адепт стихий":"elemental_adept",
-    // прочее
-    "мобильный":"mobile", "двойное владение":"dual_wielder"
+    "меткий заклинатель":"spell_sniper",
+    // доспехи/оружие
+    "тяжелые доспехи":"heavily_armored", "двойное владение":"dual_wielder",
+    "мастер арбалета":"crossbow_expert",
+    // прочее (старые имена до FIN-1)
+    "мобильный":"mobile", "актер":"actor", "атлет":"athlete",
+    "конный боец":"mounted_combatant", "вдохновляющий лидер":"inspiring_leader",
+    "таверный буян":"tavern_brawler", "целитель":"healer",
+    "атакующий":"charger", "защитный поединщик":"defensive_duelist",
+    "опытный":"skilled", "скрытный":"skulker", "лингвист":"linguist"
   };
   Object.keys(ALIAS).forEach(function(k){ if (!_FEAT_NAME_TO_ID[k]) _FEAT_NAME_TO_ID[k] = ALIAS[k]; });
   return _FEAT_NAME_TO_ID;
