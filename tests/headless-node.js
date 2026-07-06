@@ -194,6 +194,10 @@ const externalStubs = [
 ];
 externalStubs.forEach(name => { if (!(name in sandbox)) sandbox[name] = function(){}; });
 
+// FIN-3: исходник index.html для fs-тестов (сверка option'ов брони и т.п.);
+// в браузерном runner.html этого поля нет → соответствующие тесты пропускаются.
+try { sandbox.__indexHtmlSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8'); } catch (e) { /* нет файла — тест пропустится */ }
+
 vm.createContext(sandbox);
 
 for (const rel of files) {

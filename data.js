@@ -18,7 +18,7 @@ function escapeHtml(text) {
 }
 
 // ── Версия схемы персонажа — увеличивать при изменении структуры ──────────────
-const SCHEMA_VERSION = 28;
+const SCHEMA_VERSION = 29;
 
 // ── Типы урона PHB 5e ──────────────────────────────────────────────────────────
 const DAMAGE_TYPES = [
@@ -1444,18 +1444,27 @@ const SUBCLASS_ARMOR = {
 };
 
 // ── Пресеты брони ────────────────────────────────────────────────────────────
+// FIN-3: полная таблица PHB 2014 «Доспехи» (13 позиций + «Без доспехов»).
+// Поля: strReq (СИЛ ниже → −10 фт скорости, 0 = нет требования), stealthDisadv
+// (помеха на Скрытность), weight (фнт), cost (зм по книге), aliases (для матчинга
+// строк билдов/старых сейвов). dexCap: 99 = полный ЛОВ, 2 = медиум, 0 = хэви.
+// Историческая ловушка: старый id "ring" назывался «Кольчуга» с КД16 — это была
+// кольчуга (chain mail). Теперь "ring" = Колечный доспех (ring mail, КД14),
+// а Кольчуга (КД16) переехала в новый id "chain_mail" (миграция schema 29).
 const ARMOR_PRESETS = [
-  {id:"none",      name:"Без доспехов",       type:"none",   baseAC:10, dexCap:99, icon:"👤"},
-  {id:"padded",    name:"Стёганый",           type:"light",  baseAC:11, dexCap:99, icon:"🧥"},
-  {id:"leather",   name:"Кожаный",            type:"light",  baseAC:11, dexCap:99, icon:"🥋"},
-  {id:"studded",   name:"Клёпаный кожаный",   type:"light",  baseAC:12, dexCap:99, icon:"⚡"},
-  {id:"chain_shirt",name:"Кольчужная рубаха", type:"medium", baseAC:13, dexCap:2,  icon:"🔗"},
-  {id:"scale",     name:"Чешуйчатый",         type:"medium", baseAC:14, dexCap:2,  icon:"🐉"},
-  {id:"breastplate",name:"Нагрудник",         type:"medium", baseAC:14, dexCap:2,  icon:"🛡️"},
-  {id:"half_plate",name:"Полупластинчатый",   type:"medium", baseAC:15, dexCap:2,  icon:"🔰"},
-  {id:"ring",      name:"Кольчуга",           type:"heavy",  baseAC:16, dexCap:0,  icon:"⭕"},
-  {id:"splint",    name:"Пластинчатый",       type:"heavy",  baseAC:17, dexCap:0,  icon:"🗡️"},
-  {id:"plate",     name:"Латный доспех",      type:"heavy",  baseAC:18, dexCap:0,  icon:"⚔️"}
+  {id:"none",       name:"Без доспехов",      type:"none",   baseAC:10, dexCap:99, strReq:0,  stealthDisadv:false, weight:0,  cost:0,    icon:"👤", aliases:[]},
+  {id:"padded",     name:"Стёганый",          type:"light",  baseAC:11, dexCap:99, strReq:0,  stealthDisadv:true,  weight:8,  cost:5,    icon:"🧥", aliases:["Стёганый доспех","Стёганая броня"]},
+  {id:"leather",    name:"Кожаный",           type:"light",  baseAC:11, dexCap:99, strReq:0,  stealthDisadv:false, weight:10, cost:10,   icon:"🥋", aliases:["Кожаный доспех","Кожаная броня"]},
+  {id:"studded",    name:"Клёпаный кожаный",  type:"light",  baseAC:12, dexCap:99, strReq:0,  stealthDisadv:false, weight:13, cost:45,   icon:"⚡", aliases:["Клёпаный кожаный доспех","Проклёпанная кожа","Проклёпанный доспех"]},
+  {id:"hide",       name:"Шкурный",           type:"medium", baseAC:12, dexCap:2,  strReq:0,  stealthDisadv:false, weight:12, cost:10,   icon:"🐺", aliases:["Шкурный доспех","Шкуры"]},
+  {id:"chain_shirt",name:"Кольчужная рубаха", type:"medium", baseAC:13, dexCap:2,  strReq:0,  stealthDisadv:false, weight:20, cost:50,   icon:"🔗", aliases:[]},
+  {id:"scale",      name:"Чешуйчатый",        type:"medium", baseAC:14, dexCap:2,  strReq:0,  stealthDisadv:true,  weight:45, cost:50,   icon:"🐉", aliases:["Чешуйчатый доспех","Чешуя"]},
+  {id:"breastplate",name:"Кираса",            type:"medium", baseAC:14, dexCap:2,  strReq:0,  stealthDisadv:false, weight:20, cost:400,  icon:"🛡️", aliases:["Нагрудник"]},
+  {id:"half_plate", name:"Полулаты",          type:"medium", baseAC:15, dexCap:2,  strReq:0,  stealthDisadv:true,  weight:40, cost:750,  icon:"🔰", aliases:["Полупластинчатый","Полупластинчатый доспех"]},
+  {id:"ring",       name:"Колечный доспех",   type:"heavy",  baseAC:14, dexCap:0,  strReq:0,  stealthDisadv:true,  weight:40, cost:30,   icon:"⛓️", aliases:["Колечный","Колечная броня"]},
+  {id:"chain_mail", name:"Кольчуга",          type:"heavy",  baseAC:16, dexCap:0,  strReq:13, stealthDisadv:true,  weight:55, cost:75,   icon:"⭕", aliases:["Кольчужный доспех","Кольчужная броня"]},
+  {id:"splint",     name:"Наборный доспех",   type:"heavy",  baseAC:17, dexCap:0,  strReq:15, stealthDisadv:true,  weight:60, cost:200,  icon:"🗡️", aliases:["Пластинчатый","Пластинчатый доспех","Наборный"]},
+  {id:"plate",      name:"Латы",              type:"heavy",  baseAC:18, dexCap:0,  strReq:15, stealthDisadv:true,  weight:65, cost:1500, icon:"⚔️", aliases:["Латный доспех","Латная броня"]}
 ];
 
 // ── Доступные навыки по классу ───────────────────────────────────────────────
@@ -1658,7 +1667,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.33.0";
+const APP_VERSION = "3.34.0";
 const APP_VERSION_DATE = "2026-07-06";
 
 // ============================================================
@@ -2004,9 +2013,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.33.0",
+    version: "3.34.0",
     date: "6 июля 2026",
     badge: "new",
+    changes: [
+      { type: "feat", text: "feat(armor): каталог доспехов 13 позиций PHB 2014 — +Шкурный (КД12), разделены Колечный доспех (КД14) и Кольчуга (КД16, СИЛ13); поля СИЛ-требование/помеха Скрытности/вес/цена; бейджи помех в расчёте КД; миграция schema 29 (armorId ring→chain_mail, КД16 сохранён); имена по книге (Кираса/Полулаты/Наборный/Латы) с алиасами; пикер сгруппирован по категориям" }
+    ]
+  },
+  {
+    version: "3.33.0",
+    date: "6 июля 2026",
+    badge: "old",
     changes: [
       { type: "feat", text: "Оружие: единый каталог PHB 2014 — все 37 позиций с ценой/весом/категорией (было 13 в пикере + 21 скрыто для билдов), Секира 1к10→1к12, книжные имена с алиасами старых (Скимитар, Дубинка, Боевой посох, Молот 2к6); пикер оружия с поиском и чипами Простое/Воинское · Ближнее/Дальнобойное; владения по книге: скимитар друида, короткий меч монаха, рапира/длинный меч/ручной арбалет барда и плута; дротики, метательные копья и скимитары билдов теперь ложатся оружием в лист" },
       { type: "feat", text: "Оружие связано с инвентарём: добавление кладёт предмет во вкладку Инвентарь (вес из каталога, повтор — стопкой ×N), удаление из списка атак синхронно уменьшает стопку; чекбокс «Добавить и в инвентарь» в окне оружия" },

@@ -2266,6 +2266,14 @@ background: var(--buff-color);
 border-color: var(--danger-color);
 background: var(--debuff-color);
 }
+/* FIN-3: бейдж-примечание (помеха брони) — не влияет на КД, предупреждает */
+.ac-modifier-item.note {
+border-color: var(--warning-color, #b8860b);
+background: color-mix(in srgb, var(--warning-color, #b8860b) 12%, transparent);
+}
+.ac-modifier-item.note span:first-child {
+opacity: 0.9;
+}
 .ac-modifier-value {
 font-weight: bold;
 color: var(--accent-color);

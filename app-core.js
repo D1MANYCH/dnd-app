@@ -973,6 +973,18 @@ function migrateCharacter(char) {
     }
     char.schemaVersion = 28;
   }
+  if (v < 29) {
+    // FIN-3: таблица доспехов сведена к PHB 2014. Раньше id "ring" ошибочно
+    // назывался «Кольчуга» с КД16 — это была кольчуга (chain mail). Теперь
+    // "ring" = Колечный доспех (ring mail, КД14), а Кольчуга КД16 переехала в
+    // новый id "chain_mail". Старые сейвы с armorId "ring" имели КД16 →
+    // мигрируем на "chain_mail", чтобы КД не просел до 14. Пересчёт char.combat.ac
+    // делает onArmorChange при загрузке листа (loadCharacter).
+    if (char.combat && char.combat.armorId === "ring") {
+      char.combat.armorId = "chain_mail";
+    }
+    char.schemaVersion = 29;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем
@@ -1511,6 +1523,23 @@ function _findWeapon(name){
   });
   return best2;
 }
+// FIN-3: поиск пресета брони по тексту (имя ИЛИ алиас, подстрока, длиннейшее
+// совпадение). Используется и авто-экипом билда (combat.armorId), и раскладкой
+// в инвентарь. Модульный уровень — нужен node-тестам. «Латы» матчатся строке
+// «Латный доспех» билдов через алиас (имя «латы» не подстрока «латного»).
+function _findArmorPreset(text) {
+  if (typeof ARMOR_PRESETS === "undefined") return null;
+  var lo = String(text || "").toLowerCase();
+  var best = null, bestLen = 0;
+  ARMOR_PRESETS.forEach(function(p){
+    if (p.id === "none") return;
+    [p.name].concat(Array.isArray(p.aliases) ? p.aliases : []).forEach(function(cand){
+      var pn = String(cand).toLowerCase();
+      if (pn && lo.indexOf(pn) >= 0 && pn.length > bestLen) { best = p; bestLen = pn.length; }
+    });
+  });
+  return best;
+}
 
 function applyBuild(buildId) {
   if (!window.BUILD_NOTES && typeof window.ensureBuildNotes === "function") {
@@ -1690,16 +1719,12 @@ function _applyBuildCore(buildId) {
   // BUILD-FIX-5: авто-экип брони и щита из startingEquipment
   if (Array.isArray(b.startingEquipment) && typeof ARMOR_PRESETS !== "undefined") {
     var _eqLow = b.startingEquipment.map(function(s){ return String(s||"").toLowerCase(); });
-    var _bestPreset = null, _bestLen = 0;
-    ARMOR_PRESETS.forEach(function(p){
-      if (p.id === "none") return;
-      var pn = p.name.toLowerCase();
-      for (var ei = 0; ei < _eqLow.length; ei++) {
-        if (_eqLow[ei].indexOf(pn) >= 0 && pn.length > _bestLen) {
-          _bestPreset = p; _bestLen = pn.length;
-        }
-      }
-    });
+    // FIN-3: единый матчер имён+алиасов (см. _findArmorPreset). Первая строка
+    // снаряжения с распознанной бронёй выигрывает — у билдов ровно одна броня.
+    var _bestPreset = null;
+    for (var _ai = 0; _ai < b.startingEquipment.length && !_bestPreset; _ai++) {
+      _bestPreset = _findArmorPreset(b.startingEquipment[_ai]);
+    }
     if (_bestPreset) {
       newChar.combat.armorId = _bestPreset.id;
       var _dexBonus = _bestPreset.dexCap >= 99 ? _dexMod : Math.min(_dexMod, _bestPreset.dexCap);
@@ -2112,17 +2137,7 @@ function _applyBuildCore(buildId) {
       if (m) return parseInt(m[1], 10);
       return 1;
     };
-    var _findArmor = function(name){
-      if (typeof ARMOR_PRESETS === "undefined") return null;
-      var lo = name.toLowerCase();
-      var best = null, bestLen = 0;
-      ARMOR_PRESETS.forEach(function(p){
-        if (p.id === "none") return;
-        var pn = p.name.toLowerCase();
-        if (lo.indexOf(pn) >= 0 && pn.length > bestLen) { best = p; bestLen = pn.length; }
-      });
-      return best;
-    };
+    var _findArmor = _findArmorPreset; // FIN-3: единый матчер имён+алиасов
     b.startingEquipment.forEach(function(rawName){
       var name = String(rawName || "").trim();
       if (!name) return;

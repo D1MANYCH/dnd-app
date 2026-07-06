@@ -798,6 +798,19 @@ if (typeof renderEffectsGrid === "function") renderEffectsGrid();
 updateEffectsCount();
 updateStatusBar();
 }
+// FIN-3: чистый расчёт помех брони по книге PHB 2014.
+// slowed — СИЛ ниже strReq доспеха → скорость −10 фт (только тяжёлые с «Сил 13/15»).
+// stealthDisadv — помеха на проверки Ловкости (Скрытность). char.combat.speed
+// НЕ трогаем: помеха ситуативна, показываем предупреждением, а не автоправкой.
+function armorPenalties(char, preset) {
+  if (!preset || preset.id === "none" || preset.id === "custom") {
+    return { slowed: false, stealthDisadv: false };
+  }
+  var strScore = (char && char.stats && typeof char.stats.str === "number") ? char.stats.str : 10;
+  var slowed = !!(preset.strReq && strScore < preset.strReq);
+  return { slowed: slowed, stealthDisadv: !!preset.stealthDisadv };
+}
+
 // 🔧 ИСПРАВЛЕНИЕ: Защита от undefined в calculateAC()
 function calculateAC() {
 if (!currentId) return;
@@ -830,6 +843,11 @@ if (armorId && armorId !== "none" && armorId !== "custom" && typeof ARMOR_PRESET
         }
       });
     }
+    // FIN-3: бейджи помех брони (Скрытность / скорость по СИЛ) — не влияют на КД,
+    // информируют игрока. Тип "note" рендерится с иконкой ⚠️ без числа.
+    const pen = armorPenalties(char, preset);
+    if (pen.stealthDisadv) modifiers.push({name:"Помеха на Скрытность", type:"note"});
+    if (pen.slowed) modifiers.push({name:"СИЛ < " + preset.strReq + ": скорость −10 фт", type:"note"});
     const acTotalEl = $("ac-total");
     const acFormulaEl = $("ac-formula");
     const combatAcEl = $("combat-ac");
@@ -839,6 +857,9 @@ if (armorId && armorId !== "none" && armorId !== "custom" && typeof ARMOR_PRESET
     if (combatAcEl) combatAcEl.value = ac;
     if (acModsEl) {
       acModsEl.innerHTML = modifiers.map(function(mod) {
+        if (mod.type === "note") {
+          return "<div class=\"ac-modifier-item note\"><span>" + escapeHtml(mod.name) + "</span><span class=\"ac-modifier-value\">⚠️</span></div>";
+        }
         return "<div class=\"ac-modifier-item" + (mod.type === "negative" ? " negative" : "") + "\"><span>" + escapeHtml(mod.name) + "</span><span class=\"ac-modifier-value\">" + (mod.value >= 0 ? "+" : "") + mod.value + "</span></div>";
       }).join("");
     }
@@ -2845,19 +2866,17 @@ function onArmorChange() {
   var hasShield = $("char-shield")?.checked || false;
   char.combat.armorId  = armorId;
   char.combat.hasShield = hasShield;
-  if (armorId === "custom") return; // manual mode - don't recalc
+  if (armorId === "custom") { saveToLocal(); return; } // manual mode - don't recalc
+  // FIN-3: единый расчёт КД + бейджи помех делает calculateAC (не дублируем формулу).
+  calculateAC();
   var preset = (typeof ARMOR_PRESETS !== "undefined") && ARMOR_PRESETS.find(function(a) { return a.id === armorId; });
-  if (!preset) { calculateAC(); return; }
-  var dexMod = getMod(char.stats.dex);
-  var dexBonus = preset.dexCap >= 99 ? dexMod : Math.min(dexMod, preset.dexCap);
-  var ac = preset.baseAC + dexBonus + (hasShield ? 2 : 0);
-  // proficiencies.armor is now derived state from recalcArmorWeaponFromSources
-  var acEl = $("combat-ac");
-  if (acEl) acEl.value = ac;
-  char.combat.ac = ac;
-  $("ac-total").textContent = ac;
-  $("ac-formula").textContent = preset.name + ": " + preset.baseAC + (dexBonus !== 0 ? (dexBonus > 0 ? " +" : " ") + dexBonus + " (ЛОВ)" : "") + (hasShield ? " +2 (щит)" : "");
-  $("status-ac").textContent = ac;
+  if (preset && typeof armorPenalties === "function" && typeof showToast === "function") {
+    var pen = armorPenalties(char, preset);
+    var warns = [];
+    if (pen.slowed) warns.push("СИЛ < " + preset.strReq + " → скорость −10 фт");
+    if (pen.stealthDisadv) warns.push("помеха на Скрытность");
+    if (warns.length) showToast("⚠️ " + preset.name + ": " + warns.join(", "), "warn");
+  }
   saveToLocal();
   updateStatusBar();
 }
