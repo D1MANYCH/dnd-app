@@ -999,20 +999,53 @@ const SUBCLASS_FEATURES = {
 }
 };
 
+// FIN-2: полный каталог оружия PHB 2014 гл.5 — 37 позиций (10 простое ближнее /
+// 4 простое дальнобойное / 18 воинское ближнее / 5 воинское дальнобойное).
+// Имена, урон, свойства, цена и вес — по книге. kind: melee|ranged; weight — фунты.
+// aliases — старые имена приложения и словоформы билдов: участвуют в матчинге
+// startingEquipment (_findWeapon, app-core.js) и в checkWeaponProficiency по сейвам.
 const WEAPON_PRESETS = [
-  {name:"Кинжал",         stat:"dex", bonus:"+2", damage:"1к4",  type:"Колющий",  range:"Ближний/20/60 фт", notes:"Лёгкое, метательное, фехтовальное", category:"simple"},
-  {name:"Короткий меч",   stat:"dex", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний",          notes:"Лёгкое, фехтовальное",             category:"martial"},
-  {name:"Длинный меч",    stat:"str", bonus:"+3", damage:"1к8",  type:"Режущий",  range:"Ближний",          notes:"Универсальное (1к10 двуруч.)",      category:"martial"},
-  {name:"Боевой топор",   stat:"str", bonus:"+3", damage:"1к8",  type:"Режущий",  range:"Ближний",          notes:"Универсальное (1к10 двуруч.)",      category:"martial"},
-  {name:"Копьё",          stat:"str", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний/20/60 фт", notes:"Метательное, универсальное (1к8)",   category:"simple"},
-  {name:"Булава",         stat:"str", bonus:"+3", damage:"1к6",  type:"Дробящий", range:"Ближний",          notes:"Простое",                           category:"simple"},
-  {name:"Короткий лук",   stat:"dex", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"80/320 фт",        notes:"Двуручное, дальнобойное",           category:"simple"},
-  {name:"Длинный лук",    stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"150/600 фт",       notes:"Двуручное, тяжёлое, дальнобойное",  category:"martial"},
-  {name:"Арбалет лёгкий", stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"80/320 фт",        notes:"Двуручное, дальнобойное, перезарядка", category:"simple"},
-  {name:"Большой меч",    stat:"str", bonus:"+3", damage:"2к6",  type:"Режущий",  range:"Ближний",          notes:"Двуручное, тяжёлое",                category:"martial"},
-  {name:"Секира",         stat:"str", bonus:"+3", damage:"1к10", type:"Режущий",  range:"Ближний",          notes:"Двуручное, тяжёлое",                category:"martial"},
-  {name:"Рапира",         stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"Ближний",          notes:"Фехтовальное",                      category:"martial"},
-  {name:"Боевой молот",   stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний",          notes:"Универсальное (1к10 двуруч.)",      category:"martial"}
+  // ── Простое рукопашное ────────────────────────────────────────────────────
+  {name:"Боевой посох",     stat:"str", bonus:"+3", damage:"1к6",  type:"Дробящий", range:"Ближний",          notes:"Универсальное (1к8)",                 category:"simple",  kind:"melee",  cost:"2 см",  weight:4,    aliases:["Посох"]},
+  {name:"Булава",           stat:"str", bonus:"+3", damage:"1к6",  type:"Дробящий", range:"Ближний",          notes:"",                                    category:"simple",  kind:"melee",  cost:"5 зм",  weight:4},
+  {name:"Дубинка",          stat:"str", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"Ближний",          notes:"Лёгкое",                              category:"simple",  kind:"melee",  cost:"1 см",  weight:2,    aliases:["Дубина"]},
+  {name:"Кинжал",           stat:"dex", bonus:"+2", damage:"1к4",  type:"Колющий",  range:"Ближний/20/60 фт", notes:"Лёгкое, метательное, фехтовальное",   category:"simple",  kind:"melee",  cost:"2 зм",  weight:1},
+  {name:"Копьё",            stat:"str", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний/20/60 фт", notes:"Метательное, универсальное (1к8)",    category:"simple",  kind:"melee",  cost:"1 зм",  weight:3},
+  {name:"Лёгкий молот",     stat:"str", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"Ближний/20/60 фт", notes:"Лёгкое, метательное",                 category:"simple",  kind:"melee",  cost:"2 зм",  weight:2},
+  {name:"Метательное копьё",stat:"str", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний/30/120 фт",notes:"Метательное",                         category:"simple",  kind:"melee",  cost:"5 см",  weight:2,    aliases:["Метательные копья"]},
+  {name:"Палица",           stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний",          notes:"Двуручное",                           category:"simple",  kind:"melee",  cost:"2 см",  weight:10},
+  {name:"Ручной топор",     stat:"str", bonus:"+3", damage:"1к6",  type:"Рубящий",  range:"Ближний/20/60 фт", notes:"Лёгкое, метательное",                 category:"simple",  kind:"melee",  cost:"5 зм",  weight:2,    aliases:["Метательный топор"]},
+  {name:"Серп",             stat:"str", bonus:"+3", damage:"1к4",  type:"Рубящий",  range:"Ближний",          notes:"Лёгкое",                              category:"simple",  kind:"melee",  cost:"1 зм",  weight:2},
+  // ── Простое дальнобойное ──────────────────────────────────────────────────
+  {name:"Лёгкий арбалет",   stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"80/320 фт",        notes:"Боеприпас, двуручное, перезарядка",   category:"simple",  kind:"ranged", cost:"25 зм", weight:5,    aliases:["Арбалет лёгкий"]},
+  {name:"Дротик",           stat:"dex", bonus:"+3", damage:"1к4",  type:"Колющий",  range:"20/60 фт",         notes:"Метательное, фехтовальное",           category:"simple",  kind:"ranged", cost:"5 мм",  weight:0.25},
+  {name:"Короткий лук",     stat:"dex", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"80/320 фт",        notes:"Боеприпас, двуручное",                category:"simple",  kind:"ranged", cost:"25 зм", weight:2},
+  {name:"Праща",            stat:"dex", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"30/120 фт",        notes:"Боеприпас",                           category:"simple",  kind:"ranged", cost:"1 см",  weight:0},
+  // ── Воинское рукопашное ───────────────────────────────────────────────────
+  {name:"Алебарда",         stat:"str", bonus:"+3", damage:"1к10", type:"Рубящий",  range:"Ближний",          notes:"Двуручное, досягаемость, тяжёлое",    category:"martial", kind:"melee",  cost:"20 зм", weight:6},
+  {name:"Боевая кирка",     stat:"str", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"Ближний",          notes:"",                                    category:"martial", kind:"melee",  cost:"5 зм",  weight:2},
+  {name:"Боевой молот",     stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний",          notes:"Универсальное (1к10)",                category:"martial", kind:"melee",  cost:"15 зм", weight:2},
+  {name:"Боевой топор",     stat:"str", bonus:"+3", damage:"1к8",  type:"Рубящий",  range:"Ближний",          notes:"Универсальное (1к10)",                category:"martial", kind:"melee",  cost:"10 зм", weight:4},
+  {name:"Глефа",            stat:"str", bonus:"+3", damage:"1к10", type:"Рубящий",  range:"Ближний",          notes:"Двуручное, досягаемость, тяжёлое",    category:"martial", kind:"melee",  cost:"20 зм", weight:6},
+  {name:"Двуручный меч",    stat:"str", bonus:"+3", damage:"2к6",  type:"Рубящий",  range:"Ближний",          notes:"Двуручное, тяжёлое",                  category:"martial", kind:"melee",  cost:"50 зм", weight:6,    aliases:["Большой меч"]},
+  {name:"Длинное копьё",    stat:"str", bonus:"+3", damage:"1к12", type:"Колющий",  range:"Ближний",          notes:"Досягаемость, особое (для конного)",  category:"martial", kind:"melee",  cost:"10 зм", weight:6},
+  {name:"Длинный меч",      stat:"str", bonus:"+3", damage:"1к8",  type:"Рубящий",  range:"Ближний",          notes:"Универсальное (1к10)",                category:"martial", kind:"melee",  cost:"15 зм", weight:3},
+  {name:"Кнут",             stat:"dex", bonus:"+3", damage:"1к4",  type:"Рубящий",  range:"Ближний",          notes:"Досягаемость, фехтовальное",          category:"martial", kind:"melee",  cost:"2 зм",  weight:3},
+  {name:"Короткий меч",     stat:"dex", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний",          notes:"Лёгкое, фехтовальное",                category:"martial", kind:"melee",  cost:"10 зм", weight:2,    aliases:["Коротких меча"]},
+  {name:"Молот",            stat:"str", bonus:"+3", damage:"2к6",  type:"Дробящий", range:"Ближний",          notes:"Двуручное, тяжёлое",                  category:"martial", kind:"melee",  cost:"10 зм", weight:10,   aliases:["Тяжёлый молот"]},
+  {name:"Моргенштерн",      stat:"str", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"Ближний",          notes:"",                                    category:"martial", kind:"melee",  cost:"15 зм", weight:4},
+  {name:"Пика",             stat:"str", bonus:"+3", damage:"1к10", type:"Колющий",  range:"Ближний",          notes:"Двуручное, досягаемость, тяжёлое",    category:"martial", kind:"melee",  cost:"5 зм",  weight:18},
+  {name:"Рапира",           stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"Ближний",          notes:"Фехтовальное",                        category:"martial", kind:"melee",  cost:"25 зм", weight:2},
+  {name:"Секира",           stat:"str", bonus:"+3", damage:"1к12", type:"Рубящий",  range:"Ближний",          notes:"Двуручное, тяжёлое",                  category:"martial", kind:"melee",  cost:"30 зм", weight:7,    aliases:["Двуручный топор"]},
+  {name:"Скимитар",         stat:"dex", bonus:"+3", damage:"1к6",  type:"Рубящий",  range:"Ближний",          notes:"Лёгкое, фехтовальное",                category:"martial", kind:"melee",  cost:"25 зм", weight:3,    aliases:["Сабля"]},
+  {name:"Трезубец",         stat:"str", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний/20/60 фт", notes:"Метательное, универсальное (1к8)",    category:"martial", kind:"melee",  cost:"5 зм",  weight:4},
+  {name:"Цеп",              stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний",          notes:"",                                    category:"martial", kind:"melee",  cost:"10 зм", weight:2,    aliases:["Кистень"]},
+  // ── Воинское дальнобойное ─────────────────────────────────────────────────
+  {name:"Ручной арбалет",   stat:"dex", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"30/120 фт",        notes:"Боеприпас, лёгкое, перезарядка",      category:"martial", kind:"ranged", cost:"75 зм", weight:3},
+  {name:"Тяжёлый арбалет",  stat:"dex", bonus:"+3", damage:"1к10", type:"Колющий",  range:"100/400 фт",       notes:"Боеприпас, двуручное, перезарядка, тяжёлое", category:"martial", kind:"ranged", cost:"50 зм", weight:18},
+  {name:"Длинный лук",      stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"150/600 фт",       notes:"Боеприпас, двуручное, тяжёлое",       category:"martial", kind:"ranged", cost:"50 зм", weight:2},
+  {name:"Духовая трубка",   stat:"dex", bonus:"+3", damage:"1",    type:"Колющий",  range:"25/100 фт",        notes:"Боеприпас, перезарядка",              category:"martial", kind:"ranged", cost:"10 зм", weight:1},
+  {name:"Сеть",             stat:"dex", bonus:"+3", damage:"",     type:"",         range:"5/15 фт",          notes:"Метательное, особое (опутывает)",     category:"martial", kind:"ranged", cost:"1 зм",  weight:3}
 ];
 
 const ITEM_ICONS    = {weapon:"⚔️", armor:"🛡️", potion:"🧪", scroll:"📜", tool:"🔧", material:"📦", other:"📝"};
@@ -1329,6 +1362,16 @@ const RACE_WEAPONS_SPECIFIC = {
   "Холмовой дварф": ["Боевой топор","Ручной топор","Лёгкий молот","Боевой молот"]
 };
 
+// FIN-2: конкретные владения оружием классов сверх категории (PHB 2014, гл.3).
+// Воинские позиции из классовых списков «простое + …»; собираются в
+// proficiencies.specificWeapons источником "class" (recalcArmorWeaponFromSources).
+const CLASS_WEAPONS_SPECIFIC = {
+  "Бард":  ["Ручной арбалет","Длинный меч","Рапира","Короткий меч"],
+  "Плут":  ["Ручной арбалет","Длинный меч","Рапира","Короткий меч"],
+  "Друид": ["Скимитар"],
+  "Монах": ["Короткий меч"]
+};
+
 // ── Имена по расам (FEAT-2: генератор случайных имён) ────────────────────────
 // Расы-варианты делят общий пул (все эльфы → "elf" и т.п.). Дроу, тифлинги,
 // драконорождённые, голиафы — отдельные тематические пулы (PHB 5e, кириллица).
@@ -1615,8 +1658,8 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.32.1";
-const APP_VERSION_DATE = "2026-07-05";
+const APP_VERSION = "3.33.0";
+const APP_VERSION_DATE = "2026-07-06";
 
 // ============================================================
 // ВНЕШНИЕ ССЫЛКИ (TG-канал, донаты, Boosty)
@@ -1961,9 +2004,19 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
+    version: "3.33.0",
+    date: "6 июля 2026",
+    badge: "new",
+    changes: [
+      { type: "feat", text: "Оружие: единый каталог PHB 2014 — все 37 позиций с ценой/весом/категорией (было 13 в пикере + 21 скрыто для билдов), Секира 1к10→1к12, книжные имена с алиасами старых (Скимитар, Дубинка, Боевой посох, Молот 2к6); пикер оружия с поиском и чипами Простое/Воинское · Ближнее/Дальнобойное; владения по книге: скимитар друида, короткий меч монаха, рапира/длинный меч/ручной арбалет барда и плута; дротики, метательные копья и скимитары билдов теперь ложатся оружием в лист" },
+      { type: "feat", text: "Оружие связано с инвентарём: добавление кладёт предмет во вкладку Инвентарь (вес из каталога, повтор — стопкой ×N), удаление из списка атак синхронно уменьшает стопку; чекбокс «Добавить и в инвентарь» в окне оружия" },
+      { type: "feat", text: "В карточках пикера оружия — бейдж владения текущего персонажа (✓ владение / без владения); бонус атаки при выборе пресета считается без бонуса мастерства, если владения нет; блок «❓ Как это работает» в окне оружия — атака, урон, владение, свойства оружия простыми словами" }
+    ]
+  },
+  {
     version: "3.32.1",
     date: "5 июля 2026",
-    badge: "new",
+    badge: "old",
     changes: [
       { type: "fix", text: "Фикс: билды получали PH24-версии заклинаний вместо PHB 2014 (+миграция сохранённых персонажей); фикс фильтров Класс/Роль пикера билдов и обрезанных названий заклинаний на телефоне; подписи школ/классов/источника в карточке заклинания и тултипы на иконках" }
     ]

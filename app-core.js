@@ -1468,6 +1468,50 @@ function unlinkBuild() {
 
 // PERF-2: build-notes-data.js (~530 КБ) грузится лениво — гарантируем заметки ДО
 // создания персонажа; если загрузка упала, билд применяется с базовыми текстами.
+// ── FIN-2: матчинг оружия по единому каталогу WEAPON_PRESETS (data.js) ───────
+// Раньше жил в closure applyBuild + скрытый пул _EXTRA_WEAPONS; теперь модульный
+// уровень (нужен node-тестам), один пул, имя И aliases проходят один алгоритм:
+// пасс 1 — подстрока, пасс 2 — стеммы; из совпавших побеждает длиннейшее имя.
+// Сравнение со словоформами: берём 5-символьные стеммы каждого слова
+function _stemSet(s){
+  var arr = String(s).toLowerCase().replace(/[()]/g," ").split(/\s+/);
+  var set = {};
+  arr.forEach(function(w){ if (w.length >= 4) set[w.substring(0, Math.min(5,w.length))] = 1; });
+  return set;
+}
+function _matchByStems(presetName, inputName){
+  var p = _stemSet(presetName), i = _stemSet(inputName);
+  var pk = Object.keys(p);
+  if (!pk.length) return false;
+  // все стеммы пресета должны присутствовать во входе
+  for (var k = 0; k < pk.length; k++) if (!i[pk[k]]) return false;
+  return true;
+}
+function _weaponMatchNames(w){
+  return [w.name].concat(Array.isArray(w.aliases) ? w.aliases : []);
+}
+function _findWeapon(name){
+  if (typeof WEAPON_PRESETS === "undefined") return null;
+  var lo = String(name).toLowerCase();
+  // 1. подстрока
+  var best = null, bestLen = 0;
+  WEAPON_PRESETS.forEach(function(w){
+    _weaponMatchNames(w).forEach(function(cand){
+      var pn = cand.toLowerCase();
+      if (lo.indexOf(pn) >= 0 && pn.length > bestLen) { best = w; bestLen = pn.length; }
+    });
+  });
+  if (best) return best;
+  // 2. стемминг
+  var best2 = null, bestLen2 = 0;
+  WEAPON_PRESETS.forEach(function(w){
+    _weaponMatchNames(w).forEach(function(cand){
+      if (_matchByStems(cand, lo) && cand.length > bestLen2) { best2 = w; bestLen2 = cand.length; }
+    });
+  });
+  return best2;
+}
+
 function applyBuild(buildId) {
   if (!window.BUILD_NOTES && typeof window.ensureBuildNotes === "function") {
     return window.ensureBuildNotes().catch(function (e) {
@@ -1557,6 +1601,9 @@ function _applyBuildCore(buildId) {
   }
   var _rw = (typeof RACE_WEAPONS_SPECIFIC !== "undefined") && RACE_WEAPONS_SPECIFIC[b.race];
   if (Array.isArray(_rw)) _rw.forEach(function(w){ _addProf(newChar.proficiencies.specificWeapons, w); });
+  // FIN-2: конкретные владения класса (recalcArmorWeaponFromSources пересоберёт их же)
+  var _cw = (typeof CLASS_WEAPONS_SPECIFIC !== "undefined") && CLASS_WEAPONS_SPECIFIC[b.className];
+  if (Array.isArray(_cw)) _cw.forEach(function(w){ _addProf(newChar.proficiencies.specificWeapons, w); });
   var _sa = (typeof SUBCLASS_ARMOR !== "undefined") && SUBCLASS_ARMOR[b.className] && SUBCLASS_ARMOR[b.className][b.subclass];
   if (_sa) {
     (_sa.armor||[]).forEach(function(t){ _addProf(newChar.proficiencies.armor, t); });
@@ -2064,69 +2111,6 @@ function _applyBuildCore(buildId) {
       m = nm.match(/^(\d+)\s+/);
       if (m) return parseInt(m[1], 10);
       return 1;
-    };
-    // Расширенный каталог оружия для билдов (PHB), включая то, чего нет в WEAPON_PRESETS.
-    var _EXTRA_WEAPONS = [
-      {name:"Двуручный топор", stat:"str", bonus:"+3", damage:"1к12", type:"Режущий", range:"Ближний", notes:"Двуручное, тяжёлое"},
-      {name:"Двуручный меч",   stat:"str", bonus:"+3", damage:"2к6",  type:"Режущий", range:"Ближний", notes:"Двуручное, тяжёлое"},
-      {name:"Метательный топор",stat:"str",bonus:"+3", damage:"1к6",  type:"Режущий", range:"Ближний/20/60 фт", notes:"Лёгкое, метательное"},
-      {name:"Тяжёлый арбалет", stat:"dex", bonus:"+3", damage:"1к10", type:"Колющий", range:"100/400 фт", notes:"Двуручное, тяжёлое, перезарядка"},
-      {name:"Лёгкий арбалет",  stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий", range:"80/320 фт", notes:"Двуручное, дальнобойное, перезарядка"},
-      {name:"Ручной арбалет",  stat:"dex", bonus:"+3", damage:"1к6",  type:"Колющий", range:"30/120 фт", notes:"Лёгкое, перезарядка"},
-      {name:"Алебарда",        stat:"str", bonus:"+3", damage:"1к10", type:"Режущий", range:"Ближний", notes:"Двуручное, тяжёлое, досягаемость"},
-      {name:"Глефа",           stat:"str", bonus:"+3", damage:"1к10", type:"Режущий", range:"Ближний", notes:"Двуручное, тяжёлое, досягаемость"},
-      {name:"Боевой посох",    stat:"str", bonus:"+3", damage:"1к6",  type:"Дробящий", range:"Ближний", notes:"Универсальное (1к8)"},
-      {name:"Посох",           stat:"str", bonus:"+3", damage:"1к6",  type:"Дробящий", range:"Ближний", notes:"Универсальное (1к8)"},
-      {name:"Серп",            stat:"str", bonus:"+3", damage:"1к4",  type:"Режущий", range:"Ближний", notes:"Лёгкое"},
-      {name:"Праща",           stat:"dex", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"30/120 фт", notes:"Боеприпасы"},
-      {name:"Дубина",          stat:"str", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"Ближний", notes:"Лёгкое"},
-      {name:"Палица",          stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний", notes:""},
-      {name:"Тяжёлый молот",   stat:"str", bonus:"+3", damage:"2к6",  type:"Дробящий", range:"Ближний", notes:"Двуручное, тяжёлое"},
-      {name:"Метательное копьё",stat:"str",bonus:"+3", damage:"1к6",  type:"Колющий", range:"30/120 фт", notes:"Метательное"},
-      {name:"Молот",           stat:"str", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"20/60 фт", notes:"Лёгкое, метательное"},
-      {name:"Кистень",         stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний", notes:""},
-      {name:"Цеп",             stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний", notes:""},
-      {name:"Тренчёр",         stat:"str", bonus:"+3", damage:"1к8",  type:"Колющий", range:"Ближний", notes:""},
-      {name:"Сабля",           stat:"dex", bonus:"+3", damage:"1к6",  type:"Режущий", range:"Ближний", notes:"Лёгкое, фехтовальное"}
-    ];
-    // Сравнение со словоформами: берём 5-символьные стеммы каждого слова
-    var _stemSet = function(s){
-      var arr = String(s).toLowerCase().replace(/[()]/g," ").split(/\s+/);
-      var set = {};
-      arr.forEach(function(w){ if (w.length >= 4) set[w.substring(0, Math.min(5,w.length))] = 1; });
-      return set;
-    };
-    var _matchByStems = function(presetName, inputName){
-      var p = _stemSet(presetName), i = _stemSet(inputName);
-      var pk = Object.keys(p);
-      if (!pk.length) return false;
-      // все стеммы пресета должны присутствовать во входе
-      for (var k = 0; k < pk.length; k++) if (!i[pk[k]]) return false;
-      return true;
-    };
-    var _findWeapon = function(name){
-      var lo = name.toLowerCase();
-      var pools = [];
-      if (typeof WEAPON_PRESETS !== "undefined") pools.push(WEAPON_PRESETS);
-      pools.push(_EXTRA_WEAPONS);
-      // 1. подстрока
-      for (var pi = 0; pi < pools.length; pi++) {
-        var best = null, bestLen = 0;
-        pools[pi].forEach(function(w){
-          var pn = w.name.toLowerCase();
-          if (lo.indexOf(pn) >= 0 && pn.length > bestLen) { best = w; bestLen = pn.length; }
-        });
-        if (best) return best;
-      }
-      // 2. стемминг
-      for (var pj = 0; pj < pools.length; pj++) {
-        var best2 = null, bestLen2 = 0;
-        pools[pj].forEach(function(w){
-          if (_matchByStems(w.name, lo) && w.name.length > bestLen2) { best2 = w; bestLen2 = w.name.length; }
-        });
-        if (best2) return best2;
-      }
-      return null;
     };
     var _findArmor = function(name){
       if (typeof ARMOR_PRESETS === "undefined") return null;

@@ -531,17 +531,58 @@ showConfirmModal(
   }
 );
 }
+// FIN-2: пикер оружия — 37 позиций PHB с поиском и чипами
+// «Простое/Воинское · Ближнее/Дальнобойное»; показывает урон/свойства/цену/вес.
+var _weaponPickFilter = { cat: null, kind: null, q: "" };
 function renderWeaponPresets() {
 const container = $("weapon-presets-list");
 if (!container) return;
 container.innerHTML = "";
+var q = (_weaponPickFilter.q || "").toLowerCase();
+var shown = 0;
+// FIN-2: бейдж владения текущего персонажа прямо в карточке пикера
+var _pickChar = currentId ? getCurrentChar() : null;
 WEAPON_PRESETS.forEach(function(preset) {
+if (_weaponPickFilter.cat && preset.category !== _weaponPickFilter.cat) return;
+if (_weaponPickFilter.kind && preset.kind !== _weaponPickFilter.kind) return;
+if (q) {
+  var hay = preset.name.toLowerCase();
+  (preset.aliases || []).forEach(function(a) { hay += " " + a.toLowerCase(); });
+  if (hay.indexOf(q) < 0) return;
+}
 const btn = document.createElement("button");
 btn.className = "weapon-preset-btn";
-btn.innerHTML = "<b>" + escapeHtml(preset.name) + "</b><br>" + escapeHtml(preset.damage) + " " + escapeHtml(preset.type);
-btn.onclick = function() { fillWeaponPreset(preset); };
+var tag = (preset.category === "martial" ? "Воинское" : "Простое") + " · " + (preset.kind === "ranged" ? "Дальнобойное" : "Ближнее");
+var profBadge = "";
+if (_pickChar) {
+  profBadge = checkWeaponProficiency(_pickChar, preset.name)
+    ? ' <span class="wp-prof yes">✓ владение</span>'
+    : ' <span class="wp-prof no">без владения</span>';
+}
+btn.innerHTML = "<b>" + escapeHtml(preset.name) + "</b> <span class=\"wp-tag\">" + tag + "</span>" + profBadge + "<br>" +
+  escapeHtml(preset.damage ? preset.damage + " " + (preset.type || "") : "—") +
+  (preset.notes ? " · " + escapeHtml(preset.notes) : "") + "<br>" +
+  "<span class=\"wp-meta\">" + escapeHtml(preset.cost || "—") + " · " + (preset.weight ? preset.weight + " фнт." : "—") + " · " + escapeHtml(preset.range || "") + "</span>";
+btn.onclick = function() {
+  fillWeaponPreset(preset);
+  container.querySelectorAll(".weapon-preset-btn.selected").forEach(function(b) { b.classList.remove("selected"); });
+  btn.classList.add("selected");
+};
 container.appendChild(btn);
+shown++;
 });
+if (!shown) container.innerHTML = '<p class="weapon-presets-empty">Ничего не найдено</p>';
+}
+function filterWeaponPresets() {
+_weaponPickFilter.q = ($("weapon-search-inp")?.value || "").trim().toLowerCase();
+renderWeaponPresets();
+}
+function toggleWeaponFilter(group, val) {
+_weaponPickFilter[group] = _weaponPickFilter[group] === val ? null : val;
+document.querySelectorAll("#weapon-filter-chips .wf-chip").forEach(function(b) {
+  b.classList.toggle("active", _weaponPickFilter[b.dataset.fgroup] === b.dataset.fval);
+});
+renderWeaponPresets();
 }
 function fillWeaponPreset(preset) {
 safeSet("new-weapon-name", preset.name);
@@ -557,13 +598,21 @@ const proficiencyBonus = getProficiencyBonus(char.level);
 let statMod = 0;
 if (preset.stat === "str") statMod = getMod(char.stats.str);
 else if (preset.stat === "dex") statMod = getMod(char.stats.dex);
-safeSet("new-weapon-bonus", "+" + (proficiencyBonus + statMod));
+// FIN-2: бонус мастерства только при владении — как считает список оружия
+var prof = checkWeaponProficiency(char, preset.name);
+var atk = statMod + (prof ? proficiencyBonus : 0);
+safeSet("new-weapon-bonus", (atk >= 0 ? "+" : "") + atk);
 }
 }
 }
 function openWeaponModal() {
 const modal = $("weapon-modal");
 if (modal) modal.classList.add("active");
+// FIN-2: сброс поиска/чипов при каждом открытии
+_weaponPickFilter = { cat: null, kind: null, q: "" };
+safeSet("weapon-search-inp", "");
+document.querySelectorAll("#weapon-filter-chips .wf-chip").forEach(function(b) { b.classList.remove("active"); });
+renderWeaponPresets();
 }
 function closeWeaponModal() {
 const modal = $("weapon-modal");
@@ -574,17 +623,41 @@ safeSet("new-weapon-damage", "");
 safeSet("new-weapon-type", "");
 safeSet("new-weapon-range", "");
 safeSet("new-weapon-notes", "");
+var addInv = $("new-weapon-add-inv");
+if (addInv) addInv.checked = true;
+}
+// FIN-2: пресет по имени ИЛИ алиасу — старые сейвы хранят дореформенные имена
+// («Большой меч», «Сабля», «Дубина», «Посох», «Арбалет лёгкий»…).
+function _weaponPresetByName(weaponName) {
+var lo = String(weaponName || "").toLowerCase();
+return WEAPON_PRESETS.find(function(p) {
+  if (p.name.toLowerCase() === lo) return true;
+  return Array.isArray(p.aliases) && p.aliases.some(function(a) { return a.toLowerCase() === lo; });
+});
 }
 function checkWeaponProficiency(char, weaponName) {
 if (!char || !char.proficiencies || !char.proficiencies.weapon) return false;
 var profs = char.proficiencies.weapon;
+var preset = _weaponPresetByName(weaponName);
 if (profs.indexOf("martial") !== -1) return true;
+// FIN-2: конкретные владения (раса/класс/custom) — скимитар друида, короткий меч
+// монаха, эльфийские мечи/луки; сверяем и с алиасами пресета. Элементы массива
+// бывают строками (applyBuild до пересчёта) и объектами {name} (после recalc).
+var names = [String(weaponName || "").toLowerCase()];
+if (preset) {
+  names.push(preset.name.toLowerCase());
+  (preset.aliases || []).forEach(function(a) { names.push(a.toLowerCase()); });
+}
+var specs = char.proficiencies.specificWeapons || [];
+var specHit = specs.some(function(s) {
+  var n = (typeof s === "string") ? s : (s && s.name) || "";
+  return names.indexOf(String(n).toLowerCase()) !== -1;
+});
+if (specHit) return true;
 if (profs.indexOf("simple") !== -1) {
-  var preset = WEAPON_PRESETS.find(function(p) { return p.name === weaponName; });
   if (preset && preset.category === "simple") return true;
   if (!preset) return true;
 }
-var preset = WEAPON_PRESETS.find(function(p) { return p.name === weaponName; });
 if (preset && profs.indexOf(preset.category) !== -1) return true;
 return false;
 }
@@ -596,6 +669,10 @@ const name = $("new-weapon-name")?.value?.trim() || "";
 if (!name) { showToast("Введите название!", "warn"); return; }
 const stat = $("new-weapon-stat")?.value || "str";
 const statName = stat === "str" ? "СИЛ" : "ЛОВ";
+const damage = $("new-weapon-damage")?.value || "";
+const type = $("new-weapon-type")?.value || "";
+const range = $("new-weapon-range")?.value || "";
+const notes = $("new-weapon-notes")?.value || "";
 if (!char.weapons) char.weapons = [];
 var proficient = checkWeaponProficiency(char, name);
 char.weapons.push({
@@ -603,13 +680,36 @@ name: name,
 stat: stat,
 statName: statName,
 bonus: $("new-weapon-bonus")?.value || "",
-damage: $("new-weapon-damage")?.value || "",
-type: $("new-weapon-type")?.value || "",
-range: $("new-weapon-range")?.value || "",
-notes: $("new-weapon-notes")?.value || "",
+damage: damage,
+type: type,
+range: range,
+notes: notes,
 proficient: proficient
 });
-if (window.AppLog) AppLog.action("inventory", "оружие добавлено: " + name + (proficient ? "" : " (без владения)"));
+// FIN-2: коннект с инвентарём — оружие сразу появляется во вкладке Инвентарь
+// (вес из каталога; повтор имени складывается в стопку qty)
+var addInvEl = $("new-weapon-add-inv");
+var addInv = addInvEl ? !!addInvEl.checked : true;
+if (addInv) {
+  if (!char.inventory) char.inventory = { weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[], other:[] };
+  if (!Array.isArray(char.inventory.weapon)) char.inventory.weapon = [];
+  var invList = char.inventory.weapon;
+  var existing = invList.find(function(it) { return it && it.name === name; });
+  if (existing) {
+    existing.qty = (parseInt(existing.qty, 10) || 1) + 1;
+  } else {
+    var preset = _weaponPresetByName(name);
+    invList.push({
+      name: name, qty: 1,
+      weight: preset ? (preset.weight || 0) : 0,
+      location: invList.length === 0 ? "wielded" : "belt",
+      desc: (damage ? damage + (type ? " " + type : "") + ". " : "") + (range ? "Дистанция: " + range + ". " : "") + (notes || "")
+    });
+  }
+  if (typeof renderInventory === "function") renderInventory();
+}
+if (window.AppLog) AppLog.action("inventory", "оружие добавлено: " + name + (proficient ? "" : " (без владения)") + (addInv ? " (+инвентарь)" : ""));
+showToast("⚔️ " + escapeHtml(name) + " — добавлено" + (addInv ? " (и в инвентарь)" : ""), "success");
 saveToLocal();
 closeWeaponModal();
 renderWeapons();
@@ -843,6 +943,10 @@ if (match) {
   for (var i = 0; i < num; i++) rolls.push(Math.floor(Math.random() * sides) + 1);
   total = rolls.reduce(function(a,b){return a+b;}, 0) + mod + statMod;
   rollStr = "[" + rolls.join("+") + "]" + (mod ? (mod>0?"+":"")+mod : "") + (statMod ? (statMod>0?"+":"")+statMod : "");
+} else if (/^\d+$/.test(dmg)) {
+  // FIN-2: фиксированный урон без кости (Духовая трубка: «1»)
+  total = parseInt(dmg, 10) + statMod;
+  rollStr = dmg + (statMod ? (statMod > 0 ? "+" : "") + statMod : "");
 } else {
   total = statMod;
   rollStr = "+" + statMod;
@@ -869,7 +973,21 @@ const char = getCurrentChar();
 if (!char) return;
 var _w = char.weapons[index];
 char.weapons.splice(index, 1);
-if (window.AppLog) AppLog.action("inventory", "оружие удалено" + (_w && _w.name ? ": " + _w.name : ""));
+// FIN-2: коннект с инвентарём — стопка предмета уменьшается синхронно
+var invNote = "";
+if (_w && _w.name && char.inventory && Array.isArray(char.inventory.weapon)) {
+  var ii = char.inventory.weapon.findIndex(function(it) { return it && it.name === _w.name; });
+  if (ii >= 0) {
+    var item = char.inventory.weapon[ii];
+    var q = parseInt(item.qty, 10) || 1;
+    if (q > 1) item.qty = q - 1;
+    else char.inventory.weapon.splice(ii, 1);
+    invNote = " (и из инвентаря)";
+    if (typeof renderInventory === "function") renderInventory();
+  }
+}
+if (window.AppLog) AppLog.action("inventory", "оружие удалено" + (_w && _w.name ? ": " + _w.name : "") + invNote);
+if (_w && _w.name) showToast("🗑️ " + escapeHtml(_w.name) + " — убрано" + invNote, "info");
 saveToLocal();
 renderWeapons();
 }

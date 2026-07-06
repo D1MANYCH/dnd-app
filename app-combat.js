@@ -2625,6 +2625,12 @@ function recalcArmorWeaponFromSources(char) {
   if (char.race && typeof RACE_WEAPONS_SPECIFIC !== "undefined" && RACE_WEAPONS_SPECIFIC[char.race]) {
     RACE_WEAPONS_SPECIFIC[char.race].forEach(function(n){ addSpec(n, "race"); });
   }
+  // FIN-2: конкретные владения классов (скимитар друида, короткий меч монаха…)
+  if (typeof CLASS_WEAPONS_SPECIFIC !== "undefined") {
+    getCharClassPairs(char).forEach(function(pair) {
+      (CLASS_WEAPONS_SPECIFIC[pair.cls] || []).forEach(function(n){ addSpec(n, "class"); });
+    });
+  }
   // Custom specifics — сохранены в самом массиве
   (p.specificWeapons || []).forEach(function(w){
     if (w && w.source === "custom") addSpec(w.name, "custom");

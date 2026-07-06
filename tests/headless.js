@@ -1886,6 +1886,190 @@
     });
   }
 
+  // ────────── БЛОК 21 (FIN-2): оружие — каталог 37, матчинг билдов, владения ──────────
+  if (typeof WEAPON_PRESETS !== "undefined") {
+    t("[FIN-2] WEAPON_PRESETS: ровно 37 позиций PHB (10/4/18/5 по группам)", function(){
+      if (WEAPON_PRESETS.length !== 37) return "длина " + WEAPON_PRESETS.length;
+      var n = { "simple|melee":0, "simple|ranged":0, "martial|melee":0, "martial|ranged":0 };
+      WEAPON_PRESETS.forEach(function(w){ n[w.category + "|" + w.kind] = (n[w.category + "|" + w.kind] || 0) + 1; });
+      var exp = { "simple|melee":10, "simple|ranged":4, "martial|melee":18, "martial|ranged":5 };
+      var bad = Object.keys(exp).filter(function(k){ return n[k] !== exp[k]; })
+        .map(function(k){ return k + "=" + n[k] + " (ожидал " + exp[k] + ")"; });
+      return bad.length === 0 || bad.join("; ");
+    });
+    t("[FIN-2] имена и алиасы уникальны в совокупности (без конфликтов)", function(){
+      var seen = {}, dup = [];
+      WEAPON_PRESETS.forEach(function(w){
+        [w.name].concat(w.aliases || []).forEach(function(n){
+          var k = n.toLowerCase();
+          if (seen[k]) dup.push(n); seen[k] = true;
+        });
+      });
+      return dup.length === 0 || "дубли: " + dup.join(",");
+    });
+    t("[FIN-2] у каждой позиции валидные stat/category/kind/cost/weight/range", function(){
+      var bad = [];
+      WEAPON_PRESETS.forEach(function(w){
+        if (!w.name) bad.push("(без имени)");
+        else if (["str","dex"].indexOf(w.stat) === -1) bad.push(w.name + ":stat");
+        else if (["simple","martial"].indexOf(w.category) === -1) bad.push(w.name + ":category");
+        else if (["melee","ranged"].indexOf(w.kind) === -1) bad.push(w.name + ":kind");
+        else if (!w.cost || !/^\d+ (мм|см|зм)$/.test(w.cost)) bad.push(w.name + ":cost");
+        else if (typeof w.weight !== "number" || w.weight < 0) bad.push(w.name + ":weight");
+        else if (!w.range) bad.push(w.name + ":range");
+        else if (!w.damage && w.name !== "Сеть") bad.push(w.name + ":damage");
+      });
+      return bad.length === 0 || "битые: " + bad.join(",");
+    });
+    t("[FIN-2] книжные значения: Секира 1к12, Молот 2к6, Лёгкий молот 1к4; Тренчёра нет", function(){
+      var byName = {};
+      WEAPON_PRESETS.forEach(function(w){ byName[w.name] = w; });
+      if (!byName["Секира"] || byName["Секира"].damage !== "1к12") return "Секира: " + (byName["Секира"] && byName["Секира"].damage);
+      if (!byName["Молот"] || byName["Молот"].damage !== "2к6") return "Молот: " + (byName["Молот"] && byName["Молот"].damage);
+      if (!byName["Лёгкий молот"] || byName["Лёгкий молот"].damage !== "1к4") return "Лёгкий молот: " + (byName["Лёгкий молот"] && byName["Лёгкий молот"].damage);
+      if (byName["Тренчёр"]) return "Тренчёр остался в каталоге";
+      return true;
+    });
+  }
+  if (typeof _findWeapon === "function") {
+    t("[FIN-2] _findWeapon: алиасы ведут к канону (Посох, Сабля, Дубина, Кистень…)", function(){
+      var cases = [
+        ["Посох", "Боевой посох"], ["Сабля", "Скимитар"], ["Дубина", "Дубинка"],
+        ["Кистень", "Цеп"], ["Двуручный топор", "Секира"], ["Большой меч", "Двуручный меч"],
+        ["Тяжёлый молот", "Молот"], ["Арбалет лёгкий", "Лёгкий арбалет"]
+      ];
+      for (var i = 0; i < cases.length; i++) {
+        var w = _findWeapon(cases[i][0]);
+        if (!w || w.name !== cases[i][1]) return "«" + cases[i][0] + "» → " + (w ? w.name : "null") + " (ожидал " + cases[i][1] + ")";
+      }
+      return true;
+    });
+    t("[FIN-2] _findWeapon: пары Копьё/Метательное/Длинное и Молот/Лёгкий/Боевой — длиннейшее имя побеждает", function(){
+      var cases = [
+        ["Копьё", "Копьё"], ["Метательное копьё", "Метательное копьё"], ["Длинное копьё", "Длинное копьё"],
+        ["Молот", "Молот"], ["Лёгкий молот", "Лёгкий молот"], ["Боевой молот", "Боевой молот"]
+      ];
+      for (var i = 0; i < cases.length; i++) {
+        var w = _findWeapon(cases[i][0]);
+        if (!w || w.name !== cases[i][1]) return "«" + cases[i][0] + "» → " + (w ? w.name : "null") + " (ожидал " + cases[i][1] + ")";
+      }
+      return true;
+    });
+    t("[FIN-2] _findWeapon: словоформы билдов (дротики, метательные копья, 2 коротких меча)", function(){
+      var cases = [
+        ["10 дротиков", "Дротик"], ["4 метательных копья", "Метательное копьё"],
+        ["4 метательных топора", "Ручной топор"], ["2 коротких меча", "Короткий меч"],
+        ["Кинжалы ×2", "Кинжал"]
+      ];
+      for (var i = 0; i < cases.length; i++) {
+        var w = _findWeapon(cases[i][0]);
+        if (!w || w.name !== cases[i][1]) return "«" + cases[i][0] + "» → " + (w ? w.name : "null") + " (ожидал " + cases[i][1] + ")";
+      }
+      var none = _findWeapon("Боевое оружие (даёт Договор клинка)");
+      if (none) return "«Боевое оружие (даёт Договор клинка)» не должно матчиться, получено " + none.name;
+      if (_findWeapon("Тренчёр")) return "«Тренчёр» не должен матчиться";
+      return true;
+    });
+    // Регресс-снапшот FIN-2: резолв ВСЕХ строк startingEquipment билдов зафиксирован.
+    // null = строка уходит в другие ветки applyBuild (наборы/броня/щит/снаряжение).
+    // При добавлении билда с новой строкой оружия — дополнить карту (снять факт через _findWeapon).
+    if (typeof CHARACTER_BUILDS !== "undefined") {
+      t("[FIN-2] регресс-снапшот: резолв всех строк startingEquipment соответствует эталону", function(){
+        var expected = {
+          "10 дротиков":"Дротик", "2 кинжала":"Кинжал", "2 коротких меча":"Короткий меч",
+          "20 стрел":null, "4 метательных копья":"Метательное копьё", "4 метательных топора":"Ручной топор",
+          "5 дротиков":"Дротик", "Боевое оружие (даёт Договор клинка)":null, "Боевой молот":"Боевой молот",
+          "Болты (20)":null, "Булава":"Булава", "Воровские инструменты":null,
+          "Двуручный меч":"Двуручный меч", "Двуручный топор":"Секира", "Деревянный щит":null,
+          "Длинный лук":"Длинный лук", "Длинный меч":"Длинный меч", "Дубина":"Дубинка",
+          "Кинжал":"Кинжал", "Кинжалы ×2":"Кинжал", "Книга":null, "Книга заклинаний":null,
+          "Кожаный доспех":null, "Кольчуга":null, "Кольчужная рубаха":null, "Компонентный мешочек":null,
+          "Короткий лук":"Короткий лук", "Короткий меч":"Короткий меч", "Латный доспех":null,
+          "Лютня":null, "Лёгкий арбалет":"Лёгкий арбалет", "Набор артиста":null,
+          "Набор исследователя":null, "Набор прислужника":null, "Набор путешественника":null,
+          "Набор священника":null, "Набор учёного":null, "Набор фокусника":null, "Набор яда":null,
+          "Посох":"Боевой посох", "Рапира":"Рапира", "Ручной топор":"Ручной топор",
+          "Символ веры":null, "Скимитар":"Скимитар", "Тотем друида":null,
+          "Тяжёлый арбалет":"Тяжёлый арбалет", "Чешуйчатый доспех":null, "Щит":null
+        };
+        var bad = [];
+        var strings = {};
+        CHARACTER_BUILDS.forEach(function(b){ (b.startingEquipment || []).forEach(function(s){ strings[s] = 1; }); });
+        Object.keys(strings).forEach(function(s){
+          if (!(s in expected)) { bad.push("нет в эталоне: «" + s + "» → снять факт и дополнить карту"); return; }
+          var w = _findWeapon(s);
+          var got = w ? w.name : null;
+          if (got !== expected[s]) bad.push("«" + s + "» → " + got + " (эталон " + expected[s] + ")");
+        });
+        return bad.length === 0 || bad.join("; ");
+      });
+    }
+  }
+  if (typeof checkWeaponProficiency === "function") {
+    t("[FIN-2] checkWeaponProficiency: алиасы и конкретные владения (specificWeapons)", function(){
+      var simple = { proficiencies: { weapon: ["simple"], specificWeapons: [] } };
+      if (!checkWeaponProficiency(simple, "Дубина")) return "simple + алиас «Дубина» → false";
+      if (checkWeaponProficiency(simple, "Сабля")) return "simple + «Сабля» (воинский Скимитар) → true";
+      var monk = { proficiencies: { weapon: ["simple"], specificWeapons: ["Короткий меч"] } };
+      if (!checkWeaponProficiency(monk, "Короткий меч")) return "монах: строковый specificWeapons не учтён";
+      var druid = { proficiencies: { weapon: ["simple"], specificWeapons: [{ name: "Скимитар", source: "class" }] } };
+      if (!checkWeaponProficiency(druid, "Скимитар")) return "друид: объектный specificWeapons не учтён";
+      if (!checkWeaponProficiency(druid, "Сабля")) return "друид: алиас «Сабля» не сведён к Скимитару";
+      var martial = { proficiencies: { weapon: ["martial"], specificWeapons: [] } };
+      if (!checkWeaponProficiency(martial, "Секира")) return "martial + Секира → false";
+      return true;
+    });
+  }
+  if (typeof recalcArmorWeaponFromSources === "function" && typeof CLASS_WEAPONS_SPECIFIC !== "undefined") {
+    t("[FIN-2] recalc: конкретные владения класса (Друид → Скимитар, source class)", function(){
+      var char = { race: "", class: "Друид", classes: [], feats: [], proficiencies: {} };
+      recalcArmorWeaponFromSources(char);
+      var specs = char.proficiencies.specificWeapons || [];
+      var hit = specs.find(function(w){ return w.name === "Скимитар"; });
+      if (!hit) return "Скимитара нет: " + JSON.stringify(specs);
+      if (hit.source !== "class") return "source " + hit.source + " (ожидал class)";
+      return true;
+    });
+  }
+  if (typeof submitWeapon === "function" && typeof removeWeapon === "function") {
+    t("[FIN-2] submitWeapon/removeWeapon: коннект с инвентарём (вес каталога, стопка qty)", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        var char = { id: "tw1", level: 1, stats: { str: 10, dex: 14, con: 10, int: 10, wis: 10, cha: 10 },
+          proficiencies: { weapon: ["simple"], specificWeapons: [] },
+          coins: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }, equipState: {}, pouches: [],
+          weapons: [], inventory: { weapon: [], armor: [], potion: [], scroll: [], tool: [], material: [], other: [] } };
+        window.characters = [char]; window.currentId = "tw1";
+        function fill() {
+          document.getElementById("new-weapon-name").value = "Кинжал";
+          document.getElementById("new-weapon-stat").value = "dex";
+          document.getElementById("new-weapon-damage").value = "1к4";
+          document.getElementById("new-weapon-type").value = "Колющий";
+          document.getElementById("new-weapon-range").value = "Ближний/20/60 фт";
+          document.getElementById("new-weapon-notes").value = "Лёгкое";
+          document.getElementById("new-weapon-add-inv").checked = true;
+        }
+        fill();
+        submitWeapon();
+        if (char.weapons.length !== 1) return "weapons после добавления: " + char.weapons.length;
+        if (!char.weapons[0].proficient) return "Кинжал (simple) должен быть с владением";
+        if (char.inventory.weapon.length !== 1) return "в инвентаре: " + char.inventory.weapon.length;
+        if (char.inventory.weapon[0].weight !== 1) return "вес не из каталога: " + char.inventory.weapon[0].weight;
+        if (char.inventory.weapon[0].location !== "wielded") return "location: " + char.inventory.weapon[0].location;
+        fill(); // closeWeaponModal очистил поля
+        submitWeapon();
+        if (char.inventory.weapon.length !== 1) return "дубль вместо стопки: " + char.inventory.weapon.length;
+        if (char.inventory.weapon[0].qty !== 2) return "qty после повтора: " + char.inventory.weapon[0].qty;
+        removeWeapon(0);
+        if (char.inventory.weapon[0].qty !== 1) return "qty после удаления: " + char.inventory.weapon[0].qty;
+        removeWeapon(0);
+        if (char.inventory.weapon.length !== 0) return "предмет не ушёл из инвентаря";
+        if (char.weapons.length !== 0) return "строки атак остались: " + char.weapons.length;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
