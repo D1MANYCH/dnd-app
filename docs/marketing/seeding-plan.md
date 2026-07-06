@@ -105,10 +105,11 @@ D&D-сообщества активно сидят в Discord. Сложнее н
 Бесплатный лист персонажа D&D 5e на русском, в браузере, оффлайн.
 
 Главное что есть:
-🎲 40 готовых билдов с гайдом 1–20 (на все 12 классов PHB)
-📜 712 заклинаний с поиском и фильтрами
+🎲 36 готовых билдов с гайдом 1–20 (на все 12 классов PHB)
+📜 719 заклинаний с поиском и фильтрами
+🎖️ Все 42 черты и каталог оружия PHB (связано с инвентарём)
 🎲 3D-кубики (физический бросок, история)
-⚔️ Боевой трекер с инициативой
+⚔️ Боевой трекер с авто-инициативой и монстрами SRD
 📱 Установка на телефон как PWA, работает оффлайн
 
 Сделал потому что:
@@ -135,7 +136,7 @@ D&D-сообщества активно сидят в Discord. Сложнее н
 ### Discord (короткий, 200-400 знаков)
 
 ```
-Hi! I made a free D&D 5e character sheet (in Russian) — works offline, has 40 prebuilt characters with 1–20 guides, 3D dice, full PHB spells (712). PWA, installable on phone, no registration.
+Hi! I made a free D&D 5e character sheet (in Russian) — works offline, has 36 prebuilt characters with 1–20 guides, 3D dice, full PHB spells (719). PWA, installable on phone, no registration.
 
 → d1manych.github.io/dnd-app
 → TG: @dndlistru
