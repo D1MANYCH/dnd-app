@@ -1958,6 +1958,23 @@ function onBackgroundChange() {
   if (typeof renderTools === "function") renderTools();
   if (typeof renderArmorProf === "function") renderArmorProf();
   if (typeof renderWeaponProf === "function") renderWeaponProf();
+  renderBackgroundFeature();
+}
+
+// FIN-4: панель «умение предыстории» под селектом (образец — race-bonus-display).
+// Читает BACKGROUND_SKILLS[bg].feature; вызывается из onBackgroundChange и loadCharacter.
+function renderBackgroundFeature() {
+  var el = $("background-feature-display");
+  if (!el) return;
+  var bgEl = $("char-background");
+  var bg = bgEl ? bgEl.value : "";
+  var data = (typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bg];
+  var feat = data && data.feature;
+  if (!feat || !feat.name) { el.style.display = "none"; el.innerHTML = ""; return; }
+  el.innerHTML =
+    '<span class="bg-feature-label">📜 ' + escapeHtml(feat.name) + '</span>' +
+    '<span class="bg-feature-text">' + escapeHtml(feat.desc || "") + '</span>';
+  el.style.display = "flex";
 }
 
 // ============================================

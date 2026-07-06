@@ -7061,6 +7061,32 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   width: 100%;
   margin-top: 2px;
 }
+/* FIN-4: панель «умение предыстории» */
+.bg-feature-bar {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(91,155,213,0.06);
+  border: 1px solid rgba(91,155,213,0.25);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 0.78em;
+}
+.bg-feature-label {
+  font-weight: 700;
+  color: var(--info-color);
+  flex-shrink: 0;
+  align-self: center;
+}
+.bg-feature-text {
+  color: rgba(255,255,255,0.55);
+  font-size: 0.9em;
+  line-height: 1.4;
+  width: 100%;
+  margin-top: 2px;
+}
 
 /* ── МАСТЕР СОЗДАНИЯ ПЕРСОНАЖА ────────────────────────────────── */
 .creation-wizard-banner {

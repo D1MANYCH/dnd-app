@@ -2196,6 +2196,75 @@
     }
   }
 
+  // ────────── БЛОК 23 (FIN-4): предыстории — сверка 13, инструменты, умение ──────────
+  if (typeof BACKGROUND_SKILLS !== "undefined") {
+    t("[FIN-4] BACKGROUND_SKILLS: ровно 13 предысторий, у каждой 2 навыка", function(){
+      var keys = Object.keys(BACKGROUND_SKILLS);
+      if (keys.length !== 13) return "предысторий " + keys.length + ": " + keys.join(",");
+      var bad = keys.filter(function(k){ return !Array.isArray(BACKGROUND_SKILLS[k].skills) || BACKGROUND_SKILLS[k].skills.length !== 2; });
+      return bad.length === 0 || "не 2 навыка: " + bad.join(",");
+    });
+    t("[FIN-4] +Шарлатан и +Беспризорник присутствуют", function(){
+      var miss = ["Шарлатан","Беспризорник"].filter(function(k){ return !BACKGROUND_SKILLS[k]; });
+      return miss.length === 0 || "нет: " + miss.join(",");
+    });
+    t("[FIN-4] все навыки предысторий ∈ каталог навыков (skills)", function(){
+      if (typeof skills === "undefined") return "нет глобального skills";
+      var names = {}; skills.forEach(function(s){ names[s.name] = true; });
+      var bad = [];
+      Object.keys(BACKGROUND_SKILLS).forEach(function(k){
+        (BACKGROUND_SKILLS[k].skills || []).forEach(function(sk){ if (!names[sk]) bad.push(k + ":" + sk); });
+      });
+      return bad.length === 0 || "вне каталога: " + bad.join(",");
+    });
+    t("[FIN-4] все инструменты ∈ TOOL_CATALOG или choice-слот (parseBackgroundToolEntry)", function(){
+      if (typeof parseBackgroundToolEntry !== "function" || typeof findToolInCatalog !== "function")
+        return "нет parseBackgroundToolEntry/findToolInCatalog";
+      var bad = [];
+      Object.keys(BACKGROUND_SKILLS).forEach(function(k){
+        (BACKGROUND_SKILLS[k].tools || []).forEach(function(tool){
+          var p = parseBackgroundToolEntry(tool);
+          if (p.type === "slot") return;                 // слот-выбор — ок
+          if (!findToolInCatalog(tool)) bad.push(k + ":" + tool);
+        });
+      });
+      return bad.length === 0 || "вне TOOL_CATALOG: " + bad.join(",");
+    });
+    t("[FIN-4] у каждой предыстории непустое feature {name,desc}", function(){
+      var bad = [];
+      Object.keys(BACKGROUND_SKILLS).forEach(function(k){
+        var f = BACKGROUND_SKILLS[k].feature;
+        if (!f || !f.name || !f.desc) bad.push(k);
+      });
+      return bad.length === 0 || "без умения: " + bad.join(",");
+    });
+    t("[FIN-4] книжные значения Шарлатан/Беспризорник (навыки/инстр./умение)", function(){
+      var sh = BACKGROUND_SKILLS["Шарлатан"], be = BACKGROUND_SKILLS["Беспризорник"];
+      if (sh.skills.slice().sort().join(",") !== ["Ловкость рук","Обман"].sort().join(",")) return "Шарлатан навыки: " + sh.skills;
+      if (sh.tools.slice().sort().join(",") !== ["Набор для грима","Принадлежности фальсификатора"].sort().join(",")) return "Шарлатан инстр.: " + sh.tools;
+      if (sh.feature.name !== "Поддельная личность") return "Шарлатан умение: " + sh.feature.name;
+      if (be.skills.slice().sort().join(",") !== ["Ловкость рук","Скрытность"].sort().join(",")) return "Беспризорник навыки: " + be.skills;
+      if (be.tools.slice().sort().join(",") !== ["Воровские инструменты","Набор для грима"].sort().join(",")) return "Беспризорник инстр.: " + be.tools;
+      if (be.feature.name !== "Городские тайны") return "Беспризорник умение: " + be.feature.name;
+      return true;
+    });
+    t("[FIN-4] сверка по книге: Солдат +«Игровой набор (один)», Народный герой +«Транспорт (наземный)»", function(){
+      if (BACKGROUND_SKILLS["Солдат"].tools.indexOf("Игровой набор (один)") === -1) return "Солдат без игрового набора";
+      if (BACKGROUND_SKILLS["Народный герой"].tools.indexOf("Транспорт (наземный)") === -1) return "Народный герой без транспорта";
+      return true;
+    });
+    // fs-тест: каждая предыстория присутствует в index.html как <option value="...">
+    if (typeof window !== "undefined" && typeof window.__indexHtmlSource === "string") {
+      t("[FIN-4] каждая предыстория есть в index.html как <option>", function(){
+        var html = window.__indexHtmlSource;
+        var missing = Object.keys(BACKGROUND_SKILLS).filter(function(k){
+          return html.indexOf('value="' + k + '"') === -1;
+        });
+        return missing.length === 0 || "нет option: " + missing.join(",");
+      });
+    }
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
