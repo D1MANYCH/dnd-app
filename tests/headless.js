@@ -2292,14 +2292,16 @@
     });
   }
   if (typeof GEAR_CATALOG !== "undefined") {
-    var _WHITE = (typeof ITEM_ICONS !== "undefined") ? Object.keys(ITEM_ICONS) : ["weapon","armor","potion","scroll","tool","material","other"];
-    t("[FIN-5] GEAR_CATALOG: 50–60 позиций, id уникальны", function(){
-      if (GEAR_CATALOG.length < 50 || GEAR_CATALOG.length > 60) return "позиций " + GEAR_CATALOG.length + " (ожидал 50–60)";
+    // FIN-9: cat допускает mount|vehicle (транспорт) сверх категорий ITEM_ICONS —
+    // в инвентарь они падают как «Прочее» (fillFromGearItem), в каталоге — свои чипы.
+    var _WHITE = ((typeof ITEM_ICONS !== "undefined") ? Object.keys(ITEM_ICONS) : ["weapon","armor","potion","scroll","tool","material","other"]).concat(["mount","vehicle"]);
+    t("[FIN-5/9] GEAR_CATALOG: 56 снаряжения + транспорт (75–90 позиций), id уникальны", function(){
+      if (GEAR_CATALOG.length < 75 || GEAR_CATALOG.length > 90) return "позиций " + GEAR_CATALOG.length + " (ожидал 75–90: снаряжение + транспорт)";
       var seen = {}, dup = [];
       GEAR_CATALOG.forEach(function(g){ if (seen[g.id]) dup.push(g.id); seen[g.id] = true; });
       return dup.length === 0 || "дубли id: " + dup.join(",");
     });
-    t("[FIN-5] GEAR_CATALOG: cat ∈ ITEM_ICONS, cost непустая строка, weight/slots числа ≥0", function(){
+    t("[FIN-5] GEAR_CATALOG: cat ∈ ITEM_ICONS∪{mount,vehicle}, cost непустая строка, weight/slots числа ≥0", function(){
       var bad = [];
       GEAR_CATALOG.forEach(function(g){
         if (!g.name) bad.push("(без имени)");
@@ -2316,6 +2318,33 @@
       var need = ["arrows","bolts","component-pouch","holy-symbol"];
       var miss = need.filter(function(id){ return !byId[id]; });
       return miss.length === 0 || "нет: " + miss.join(",");
+    });
+    // ── FIN-9: транспорт/ездовые + безделушки d100 ─────────────────────────────
+    t("[FIN-9] GEAR_CATALOG: транспорт mount/vehicle ≥ 20 записей, у каждого cost и location:outside", function(){
+      var trans = GEAR_CATALOG.filter(function(g){ return g.cat === "mount" || g.cat === "vehicle"; });
+      if (trans.length < 20) return "транспорта только " + trans.length + " (ожидал ≥20)";
+      var bad = [];
+      trans.forEach(function(g){
+        if (typeof g.cost !== "string" || !g.cost) bad.push(g.name + ":cost");
+        else if (g.location !== "outside") bad.push(g.name + ":location=" + g.location);
+        else if (g.weight !== 0) bad.push(g.name + ":weight=" + g.weight);   // не нести в рюкзаке
+      });
+      return bad.length === 0 || "битые: " + bad.slice(0, 6).join(",");
+    });
+    t("[FIN-9] GEAR_CATALOG: ключевые скакуны/повозки/суда присутствуют", function(){
+      var byId = {}; GEAR_CATALOG.forEach(function(g){ byId[g.id] = g; });
+      var need = ["warhorse","riding-horse","pony","donkey-mule","cart","wagon","rowboat"];
+      var miss = need.filter(function(id){ return !byId[id]; });
+      return miss.length === 0 || "нет: " + miss.join(",");
+    });
+  }
+  if (typeof TRINKETS_D100 !== "undefined") {
+    t("[FIN-9] TRINKETS_D100: ровно 100 непустых строк", function(){
+      if (!Array.isArray(TRINKETS_D100)) return "не массив";
+      if (TRINKETS_D100.length !== 100) return "длина " + TRINKETS_D100.length + " (ожидал 100)";
+      var bad = [];
+      TRINKETS_D100.forEach(function(s, i){ if (typeof s !== "string" || !s.trim()) bad.push(i + 1); });
+      return bad.length === 0 || "пустые к100: " + bad.slice(0, 6).join(",");
     });
   }
   // Интеграция: applyBuild разворачивает пак-строку startingEquipment в inventory.other.

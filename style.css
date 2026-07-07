@@ -7163,6 +7163,25 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   margin-top: 2px;
 }
 
+/* FIN-9: строка кнопки «Безделушка (к100)» на карточке персонажа */
+.trinket-roll-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+/* width:auto/flex — перебиваем глобальный button{width:100%} (ловушка FIN-2/FIN-5) */
+.trinket-roll-btn {
+  width: auto; flex: 0 0 auto; margin: 0; cursor: pointer;
+  background: var(--input-bg); border: 1px dashed var(--accent);
+  border-radius: 999px; padding: 6px 14px;
+  font-size: 0.82em; font-weight: 600; color: var(--accent);
+  transition: border-color .12s, background .12s;
+}
+.trinket-roll-btn:hover { background: var(--bg-3, var(--input-bg)); border-color: var(--accent); }
+.trinket-roll-hint { font-size: 0.75em; color: var(--text-muted); }
+
 /* ── МАСТЕР СОЗДАНИЯ ПЕРСОНАЖА ────────────────────────────────── */
 .creation-wizard-banner {
   background: rgba(212,168,67,0.10);

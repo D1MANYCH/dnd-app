@@ -616,7 +616,9 @@ function fillFromMagicItem(id) {
 
 // FIN-5: пикер обычного снаряжения (gear-catalog.js, грузится лениво) + наборы PHB.
 // Наборы (GEAR_PACKS) живут в data.js — доступны сразу, без ленивой загрузки.
-var GEAR_CAT_LABELS = { other:"Прочее", tool:"Инструмент", material:"Материал/фокус", potion:"Зелье", weapon:"Оружие", armor:"Броня", scroll:"Свиток" };
+var GEAR_CAT_LABELS = { other:"Прочее", tool:"Инструмент", material:"Материал/фокус", potion:"Зелье", weapon:"Оружие", armor:"Броня", scroll:"Свиток", mount:"Ездовое", vehicle:"Транспорт" };
+// FIN-9: mount/vehicle нет в ITEM_ICONS — свои иконки для пикера (в инвентарь падают как «Прочее»).
+var GEAR_EXTRA_ICONS = { mount:"🐴", vehicle:"🛞" };
 // 7 канонических наборов PHB — короткое имя для чипа → точный ключ GEAR_PACKS.
 // (ключ "набор исследователя" в UI не показываем — это дубль "набор подземелий";
 //  он остаётся в GEAR_PACKS для матчинга startingEquipment старых билдов.)
@@ -676,11 +678,14 @@ function renderGearCatalog() {
   if (!listEl) return;
   if (!filtered.length) { listEl.innerHTML = '<div class="magic-catalog-empty">Ничего не найдено</div>'; return; }
   listEl.innerHTML = filtered.map(function (it) {
-    var icon = (typeof ITEM_ICONS !== "undefined" && ITEM_ICONS[it.cat]) ? ITEM_ICONS[it.cat] : "🎒";
+    var icon = (typeof ITEM_ICONS !== "undefined" && ITEM_ICONS[it.cat]) ? ITEM_ICONS[it.cat]
+             : (GEAR_EXTRA_ICONS[it.cat] || "🎒");
+    // FIN-9: вес показываем только если он есть (скакуны/транспорт — weight:0, вес/скорость в desc).
+    var costLine = escapeHtml(it.cost || '') + (it.weight ? ' · ' + it.weight + ' фнт' : '');
     return '<button type="button" class="magic-catalog-item" onclick="fillFromGearItem(\'' + it.id + '\')">' +
       '<div class="mci-top"><span class="mci-name">' + icon + ' ' + escapeHtml(it.name) + '</span>' +
       '<span class="gci-cat">' + escapeHtml(GEAR_CAT_LABELS[it.cat] || it.cat) + '</span></div>' +
-      '<div class="gci-cost">' + escapeHtml(it.cost || '') + ' · ' + (it.weight || 0) + ' фнт</div>' +
+      '<div class="gci-cost">' + costLine + '</div>' +
       '<div class="mci-desc">' + escapeHtml(it.desc || '') + '</div>' +
       '</button>';
   }).join("");
@@ -695,10 +700,13 @@ function fillFromGearItem(id) {
   var sEl = document.getElementById("new-item-slots");
   var cEl = document.getElementById("new-item-category");
   var dEl = document.getElementById("new-item-desc");
+  var locEl = document.getElementById("new-item-location");
   if (nameEl) nameEl.value = it.name;
   if (wEl) wEl.value = (typeof it.weight === "number") ? it.weight : 0;
   if (sEl && typeof it.slots === "number") sEl.value = it.slots;
   if (cEl) cEl.value = (typeof ITEM_ICONS !== "undefined" && ITEM_ICONS[it.cat]) ? it.cat : "other";
+  // FIN-9: mount/vehicle предзаполняют «Где лежит» = снаружи рюкзака; прочее — сброс.
+  if (locEl) locEl.value = it.location || "";
   if (dEl) dEl.value = (it.desc || "") + (it.cost ? "\n(Цена: " + it.cost + ")" : "");
   closeGearCatalog();
   if (typeof showToast === "function") showToast("Выбрано: " + it.name + " — проверьте и сохраните", "success");
@@ -721,6 +729,34 @@ function addPackToInventory(key) {
   saveToLocal();
   renderInventory();
   if (typeof showToast === "function") showToast("Набор «" + disp + "» добавлен (" + pack.length + " предм.)", "success");
+}
+
+// FIN-9: бросок по таблице безделушек PHB (к100) → предмет в инвентарь «Прочее».
+// Кнопка «🎲 Безделушка (к100)» на карточке персонажа. TRINKETS_D100 лежит в
+// gear-catalog.js (ленивый) — грузим через ensureGearCatalog. 3D-куб не гоняем.
+function rollTrinket() {
+  if (!currentId) { if (typeof showToast === "function") showToast("Сначала создайте или выберите персонажа", "warn"); return; }
+  var ensure = (typeof window.ensureGearCatalog === "function") ? window.ensureGearCatalog() : Promise.resolve();
+  ensure.then(function () {
+    var list = window.TRINKETS_D100 || [];
+    if (!list.length) { if (typeof showToast === "function") showToast("Таблица безделушек недоступна", "error"); return; }
+    var char = getCurrentChar();
+    if (!char) return;
+    var roll = Math.floor(Math.random() * 100);   // 0..99 → результат «01»…«100»
+    var nn = roll + 1;
+    var nnStr = (nn < 10 ? "0" : "") + nn;
+    var text = list[roll];
+    if (!char.inventory) char.inventory = {};
+    if (!char.inventory.other) char.inventory.other = [];
+    char.inventory.other.push({ name: text, qty: 1, weight: 0, slots: 0, location: "", desc: "🎲 Безделушка (к100: " + nnStr + ")" });
+    if (window.AppLog) AppLog.action("inventory", "безделушка (к100: " + nnStr + ")", { text: text });
+    saveToLocal();
+    if (typeof renderInventory === "function") renderInventory();
+    if (typeof showToast === "function") showToast("🎲 Безделушка: " + text, "success");
+  }).catch(function (e) {
+    if (window.__catchLog) window.__catchLog("trinket:load", e);
+    if (typeof showToast === "function") showToast("Не удалось загрузить каталог: " + (e && e.message ? e.message : e), "error");
+  });
 }
 
 function viewItem(category, index) {
