@@ -3868,6 +3868,39 @@ transition: all 0.18s;
 }
 .inv-del-btn:hover { background: var(--danger-color) !important; color: white !important; transform: none !important; box-shadow: none !important; }
 
+/* FIN-6: настройка магпредметов — бейдж, кнопка, счётчик N/3 */
+.inv-attune-tag { color: #b8860b; border-color: rgba(184,134,11,0.4); }
+.inv-attune-tag.on { color: #fff; background: #b8860b; border-color: #b8860b; }
+.inv-attune-btn {
+  padding: 5px 12px !important;
+  border-radius: var(--r-sm);
+  font-size: 0.78em !important;
+  font-weight: 600;
+  cursor: pointer;
+  width: auto !important;
+  margin: 0 !important;
+  transform: none !important;
+  transition: all 0.15s;
+  background: transparent !important;
+  border: 1px solid #b8860b !important;
+  color: #b8860b !important;
+}
+.inv-attune-btn:hover { background: #b8860b !important; color: #fff !important; transform: none !important; box-shadow: none !important; }
+.inv-attune-btn.attuned { background: #b8860b !important; color: #fff !important; }
+.inv-attune-btn.attuned:hover { background: transparent !important; color: #b8860b !important; }
+.inv-attune-count {
+  font-size: 0.72em;
+  color: #b8860b;
+  background: var(--input-bg);
+  border: 1px solid rgba(184,134,11,0.5);
+  border-radius: var(--r-sm);
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.inv-attune-count.over { color: #fff; background: var(--danger-color); border-color: var(--danger-color); }
+.item-attune-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.item-attune-label input[type="checkbox"] { width: auto; margin: 0; }
+
 /* ========================================
    COINS — BIG NUMBER CARD GRID
 ======================================== */

@@ -103,6 +103,7 @@ function updateSlotsDisplay() {
   // update item slot tags
   if (usedEl) usedEl.className = "inv-slots-used" + (used > total ? " inv-slots-over" : "");
   renderPouches();
+  updateAttuneCount();
   }
 
 
@@ -185,6 +186,13 @@ var slotsLabel = itemSlots % 1 !== 0 ? itemSlots.toFixed(1) + " сл." : itemSlo
 var _locKey = item.location || "";
 var _locMeta = LOCATION_META[_locKey];
 var _locTagHtml = _locMeta ? '<span class="inv-meta-tag inv-loc-tag" title="' + _locMeta.label + '">' + _locMeta.icon + " " + _locMeta.label + '</span>' : '';
+// FIN-6: бейдж настройки для магпредметов (attunable) — «⚙ настроен» / «⚙ не настроен»
+var _attuneTagHtml = item.attunable
+  ? '<span class="inv-meta-tag inv-attune-tag' + (item.attuned ? ' on' : '') + '" title="Настройка магического предмета">⚙ ' + (item.attuned ? 'настроен' : 'не настроен') + '</span>'
+  : '';
+var _attuneBtnHtml = item.attunable
+  ? '<button class="inv-attune-btn' + (item.attuned ? ' attuned' : '') + '" onclick="event.stopPropagation(); toggleAttuned(\'' + data.category + '\',' + data.index + ')">⚙ ' + (item.attuned ? 'Снять настройку' : 'Настроить') + '</button>'
+  : '';
 var _stowed = (_isBackpackOff(char) && _locKey === "backpack");
 const div = document.createElement("div");
 div.className = "inv-item" + (_stowed ? " inv-item-stowed" : "");
@@ -202,6 +210,7 @@ div.innerHTML =
         '<span class="inv-meta-tag inv-cat-tag">' + catName + '</span>' +
         '<span class="inv-meta-tag inv-slot-tag">' + slotsLabel + '</span>' +
         _locTagHtml +
+        _attuneTagHtml +
       '</div>' +
     '</div>' +
     '<span class="inv-drag-handle" title="Перетащите, чтобы переместить предмет">⠿</span>' +
@@ -210,6 +219,7 @@ div.innerHTML =
   '<div class="inv-item-body">' +
     (item.desc ? '<div class="inv-item-desc">' + escapeHtml(item.desc) + '</div>' : '') +
     '<div class="inv-item-actions">' +
+      _attuneBtnHtml +
       '<button class="inv-edit-btn" onclick="event.stopPropagation(); editItemDirect(\'' + data.category + '\',' + data.index + ')">✏️ Изменить</button>' +
       '<button class="inv-del-btn" onclick="event.stopPropagation(); deleteItemDirect(\'' + data.category + '\',' + data.index + ')">🗑 Удалить</button>' +
     '</div>' +
@@ -315,6 +325,54 @@ if (owEl) {
 const cwEl = $("coin-weight");
 if (cwEl) cwEl.textContent = coinWeight.toFixed(2) + " фнт";
 }
+// FIN-6: настройка магпредметов (лимит 3). countAttuned — чистая (без DOM/currentId).
+function countAttuned(char) {
+  if (!char || !char.inventory) return 0;
+  var n = 0;
+  Object.keys(char.inventory).forEach(function(cat) {
+    if (!Array.isArray(char.inventory[cat])) return;
+    char.inventory[cat].forEach(function(it) { if (it && it.attuned) n++; });
+  });
+  return n;
+}
+// Есть ли у персонажа хоть один attunable-предмет (для показа счётчика/подсказок).
+function _hasAttunable(char) {
+  if (!char || !char.inventory) return false;
+  return Object.keys(char.inventory).some(function(cat) {
+    return Array.isArray(char.inventory[cat]) && char.inventory[cat].some(function(it){ return it && it.attunable; });
+  });
+}
+// Переключить настройку предмета. 4-ю НЕ блокируем — только красный тост (правило-напоминание).
+function toggleAttuned(category, index) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var item = char.inventory[category] && char.inventory[category][index];
+  if (!item || !item.attunable) return;
+  if (!item.attuned) {
+    item.attuned = true;
+    var n = countAttuned(char);
+    if (n > 3) showToast("⚠ Лимит настройки 3 превышен (" + n + "/3)", "error");
+    else showToast("⚙ Настроен: " + item.name + " (" + n + "/3)", "success");
+  } else {
+    item.attuned = false;
+    showToast("⚙ Настройка снята: " + item.name, "info");
+  }
+  if (window.AppLog) AppLog.action("inventory", (item.attuned ? "настроен: " : "снята настройка: ") + item.name);
+  saveToLocal();
+  renderInventory();
+}
+// Обновить счётчик «⚙ N/3» в шапке вкладки (скрыт, если нет attunable-предметов и настроек).
+function updateAttuneCount() {
+  var el = document.getElementById("inv-attune-count");
+  if (!el) return;
+  var char = currentId ? getCurrentChar() : null;
+  var n = char ? countAttuned(char) : 0;
+  if (!char || (n === 0 && !_hasAttunable(char))) { el.style.display = "none"; return; }
+  el.style.display = "";
+  el.textContent = "⚙ " + n + "/3";
+  el.classList.toggle("over", n > 3);
+}
 function openItemModal(category, slotIndex) {
 if (!currentId) return;
 const char = getCurrentChar();
@@ -338,6 +396,8 @@ const slotsInpEdit = $("new-item-slots");
 if (slotsInpEdit) slotsInpEdit.value = (item.slots !== undefined && item.slots !== null) ? item.slots : "";
 const locInpEdit = $("new-item-location");
 if (locInpEdit) locInpEdit.value = item.location || "";
+const attuneInpEdit = $("new-item-attune");
+if (attuneInpEdit) attuneInpEdit.checked = !!item.attunable;
 if (descEl) descEl.value = item.desc || "";
 } else {
 if (titleEl) titleEl.textContent = "Добавить предмет";
@@ -348,6 +408,8 @@ const slotsInpNew = $("new-item-slots");
 if (slotsInpNew) slotsInpNew.value = "";
 const locInpNew = $("new-item-location");
 if (locInpNew) locInpNew.value = "";
+const attuneInpNew = $("new-item-attune");
+if (attuneInpNew) attuneInpNew.checked = false;
 if (descEl) descEl.value = "";
 }
 const modal = $("item-modal");
@@ -374,6 +436,13 @@ slots: $("new-item-slots")?.value !== "" ? parseFloat($("new-item-slots")?.value
 location: $("new-item-location")?.value || undefined,
 desc: $("new-item-desc")?.value || ""
 };
+// FIN-6: настройка магпредмета. Чекбокс = attunable; состояние attuned сохраняем
+// из старой записи при редактировании (снятие attunable гасит и attuned).
+var _prevItem = (slotIndex >= 0 && char.inventory[origCategory]) ? char.inventory[origCategory][slotIndex] : null;
+if ($("new-item-attune")?.checked) {
+newItem.attunable = true;
+if (_prevItem && _prevItem.attuned) newItem.attuned = true;
+}
 var _isEdit = !!(slotIndex >= 0 && char.inventory[origCategory] && char.inventory[origCategory][slotIndex]);
 if (!char.inventory[category]) char.inventory[category] = [];
 if (slotIndex >= 0 && char.inventory[origCategory] && char.inventory[origCategory][slotIndex]) {
@@ -469,6 +538,9 @@ function fillFromMagicItem(id) {
   if (nameEl) nameEl.value = it.name;
   if (wEl) wEl.value = (typeof it.weight === "number") ? it.weight : 0;
   if (cEl) cEl.value = MAGIC_TYPE_TO_CATEGORY[it.type] || "other";
+  // FIN-6: перенос флага настройки из каталога в чекбокс модалки
+  var aEl = document.getElementById("new-item-attune");
+  if (aEl) aEl.checked = !!it.attune;
   if (dEl) {
     var meta = (R[it.rarity] || it.rarity) + (it.attune ? ", требует настройки" : "");
     dEl.value = (it.desc || "") + "\n(" + meta + ". " + (it.nameEn || "") + ")";

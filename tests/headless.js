@@ -2340,6 +2340,73 @@
     });
   }
 
+  // ────────── БЛОК 25 (FIN-6): настройка магпредметов — countAttuned, лимит 3 ──────────
+  if (typeof countAttuned === "function") {
+    t("[FIN-6] countAttuned: суммирует attuned по всем категориям инвентаря", function(){
+      var char = { inventory: {
+        weapon: [{ name:"Меч +1", attunable:true, attuned:true }, { name:"Кинжал" }],
+        armor:  [{ name:"Латы адаманта", attunable:true }],                 // attunable, но не настроен
+        other:  [{ name:"Кольцо защиты", attunable:true, attuned:true },
+                 { name:"Плащ эльфов", attunable:true, attuned:true }],
+        potion: [{ name:"Зелье лечения" }]
+      }};
+      var n = countAttuned(char);
+      return n === 3 || "ожидал 3 настроенных, получено " + n;
+    });
+    t("[FIN-6] countAttuned: пустой/отсутствующий inventory → 0", function(){
+      if (countAttuned({}) !== 0) return "пустой char → не 0";
+      if (countAttuned(null) !== 0) return "null → не 0";
+      if (countAttuned({ inventory: { other: [] } }) !== 0) return "пустая категория → не 0";
+      return true;
+    });
+  }
+  if (typeof toggleAttuned === "function") {
+    t("[FIN-6] toggleAttuned: переключает attuned, 4-я настройка РАЗРЕШЕНА (не блок)", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{
+          id: "test-attune", stats: { str: 10 }, coins: { cp:0,sp:0,ep:0,gp:0,pp:0 },
+          inventory: {
+            weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[],
+            other: [
+              { name:"Кольцо 1", attunable:true },
+              { name:"Кольцо 2", attunable:true },
+              { name:"Кольцо 3", attunable:true },
+              { name:"Кольцо 4", attunable:true }
+            ]
+          }
+        }];
+        window.currentId = "test-attune";
+        var char = window.characters[0];
+        try { toggleAttuned("other", 0); } catch(e) {}   // render-побочка в шиме — не важна
+        if (!char.inventory.other[0].attuned) return "1-я настройка не включилась";
+        try { toggleAttuned("other", 1); } catch(e) {}
+        try { toggleAttuned("other", 2); } catch(e) {}
+        try { toggleAttuned("other", 3); } catch(e) {}   // 4-я — разрешена
+        if (!char.inventory.other[3].attuned) return "4-я настройка заблокирована (должна быть разрешена)";
+        if (countAttuned(char) !== 4) return "ожидал 4 настройки, получено " + countAttuned(char);
+        try { toggleAttuned("other", 0); } catch(e) {}   // снять первую
+        if (char.inventory.other[0].attuned) return "снятие настройки не сработало";
+        if (countAttuned(char) !== 3) return "после снятия ожидал 3, получено " + countAttuned(char);
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+    t("[FIN-6] toggleAttuned: не-attunable предмет игнорируется", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{
+          id: "test-attune2", stats: { str: 10 }, coins: { cp:0,sp:0,ep:0,gp:0,pp:0 },
+          inventory: { weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[],
+            other: [{ name:"Обычная верёвка" }] }
+        }];
+        window.currentId = "test-attune2";
+        var char = window.characters[0];
+        try { toggleAttuned("other", 0); } catch(e) {}
+        return !char.inventory.other[0].attuned || "не-attunable предмет получил attuned";
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

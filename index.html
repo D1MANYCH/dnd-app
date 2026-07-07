@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v264">
+<link rel="stylesheet" href="style.css?v=v265">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -1008,6 +1008,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <span class="inv-slots-total" id="inv-slots-total">10</span>
     </div>
     <div class="inv-slots-right">
+      <span class="inv-attune-count" id="inv-attune-count" style="display:none" title="Настроенные магические предметы (лимит 3)">⚙ 0/3</span>
       <span class="inv-slots-str-hint" id="inv-slots-str-hint">СИЛ: 10</span>
       <div class="inv-overweight-badge" id="overweight-warning" style="display:none">⚠️ Перегруз <span id="overweight-amount">0</span></div>
     </div>
@@ -2412,6 +2413,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <option value="outside">🪢 снаружи рюкзака</option>
   <option value="stored">📦 в лагере</option>
 </select>
+<label class="item-attune-label"><input type="checkbox" id="new-item-attune"> ⚙ Требует настройки <span style="font-size:0.75em;color:var(--text-muted);font-weight:normal;">(магический предмет, лимит 3)</span></label>
 <label>Описание</label>
 <textarea id="new-item-desc" placeholder="Свойства, бонусы, особенности..." style="min-height:80px;"></textarea>
 <button class="success" onclick="submitItem()">💾 Сохранить</button>
@@ -2748,37 +2750,37 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v264"></script>
-<script src="bg-orbits.js?v=v264"></script>
-<script src="dice-arena-bg.js?v=v264"></script>
-<script src="data.js?v=v264"></script>
+<script src="app-log.js?v=v265"></script>
+<script src="bg-orbits.js?v=v265"></script>
+<script src="dice-arena-bg.js?v=v265"></script>
+<script src="data.js?v=v265"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v264"></script>
+<script src="character-builds.js?v=v265"></script>
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v264"></script>
-<script src="spells.js?v=v264"></script>
-<script src="app-core.js?v=v264"></script>
-<script src="app-backup.js?v=v264"></script>
-<script src="app-combat.js?v=v264"></script>
-<script src="app-hp.js?v=v264"></script>
-<script src="app-spells.js?v=v264"></script>
-<script src="app-inventory.js?v=v264"></script>
+<script src="glossary-data.js?v=v265"></script>
+<script src="spells.js?v=v265"></script>
+<script src="app-core.js?v=v265"></script>
+<script src="app-backup.js?v=v265"></script>
+<script src="app-combat.js?v=v265"></script>
+<script src="app-hp.js?v=v265"></script>
+<script src="app-spells.js?v=v265"></script>
+<script src="app-inventory.js?v=v265"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v264"></script>
-<script src="class-choices.js?v=v264"></script>
-<script src="subclass-choices-data.js?v=v264"></script>
+<script src="app-party.js?v=v265"></script>
+<script src="class-choices.js?v=v265"></script>
+<script src="subclass-choices-data.js?v=v265"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v264";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v265";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v264"></script>
-<script src="app-notes.js?v=v264"></script>
-<script src="app-desktop.js?v=v264"></script>
-<script src="history-stack.js?v=v264"></script>
-<script src="app-help.js?v=v264"></script>
+<script src="app-ui.js?v=v265"></script>
+<script src="app-notes.js?v=v265"></script>
+<script src="app-desktop.js?v=v265"></script>
+<script src="history-stack.js?v=v265"></script>
+<script src="app-help.js?v=v265"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2791,9 +2793,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v264",
-    "vendor/jspdf/roboto-base64.js?v=v264",
-    "app-pdf.js?v=v264"
+    "vendor/jspdf/jspdf.umd.min.js?v=v265",
+    "vendor/jspdf/roboto-base64.js?v=v265",
+    "app-pdf.js?v=v265"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -2817,7 +2819,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v264").then(function () {
+    return loadScript("build-notes-data.js?v=v265").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -2825,19 +2827,19 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v264"),
-      loadScript("npc-srd.js?v=v264")
+      loadScript("monsters-srd.js?v=v265"),
+      loadScript("npc-srd.js?v=v265")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v264");
+    return loadScript("magic-items.js?v=v265");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v264");
+    return loadScript("gear-catalog.js?v=v265");
   };
   var stub = function (id, ev) {
     if (ev && ev.stopPropagation) ev.stopPropagation();
