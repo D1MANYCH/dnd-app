@@ -3,7 +3,9 @@
 // стартовый бандл. Используется пикером в модалке инвентаря (app-inventory.js).
 //
 // Схема записи:
-//   { id, name, nameEn, rarity, type, attune, weight, desc }
+//   { id, name, nameEn, rarity, type, attune, weight, desc, charges?, recharge? }
+//   charges:  число зарядов (FIN-8) — предзаполняется в модалке инвентаря; опционально
+//   recharge: "dawn" (по умолч.) | "none" — восстанавливаются ли на длинном отдыхе
 //   rarity: "common" | "uncommon" | "rare" | "very_rare" | "legendary" | "artifact"
 //   type:   "weapon" | "armor" | "shield" | "potion" | "ring" | "rod" |
 //           "scroll" | "staff" | "wand" | "wondrous"
@@ -83,13 +85,13 @@ window.MAGIC_ITEMS = [
   { id:"ring-swimming",           name:"Кольцо плавания",                   nameEn:"Ring of Swimming",                  rarity:"uncommon",  type:"ring", attune:false, weight:0, desc:"Скорость плавания 12 м." },
   { id:"ring-resistance",         name:"Кольцо сопротивления",              nameEn:"Ring of Resistance",                rarity:"rare",      type:"ring", attune:true,  weight:0, desc:"Сопротивление одному типу урона (по типу самоцвета)." },
   { id:"ring-spell-storing",      name:"Кольцо хранения заклинаний",        nameEn:"Ring of Spell Storing",             rarity:"rare",      type:"ring", attune:true,  weight:0, desc:"Хранит до 5 уровней заклинаний для последующего сотворения." },
-  { id:"ring-evasion",           name:"Кольцо уклонения",                  nameEn:"Ring of Evasion",                   rarity:"rare",      type:"ring", attune:true,  weight:0, desc:"3 заряда: реакцией превратить проваленный спас Лов в успешный." },
+  { id:"ring-evasion",           name:"Кольцо уклонения",                  nameEn:"Ring of Evasion",                   rarity:"rare",      type:"ring", attune:true,  weight:0, charges:3, desc:"3 заряда: реакцией превратить проваленный спас Лов в успешный." },
   { id:"ring-x-ray-vision",       name:"Кольцо проникающего зрения",        nameEn:"Ring of X-ray Vision",              rarity:"rare",      type:"ring", attune:true,  weight:0, desc:"Действием видите сквозь твёрдые объекты на 9 м (с риском истощения)." },
   { id:"ring-telekinesis",        name:"Кольцо телекинеза",                 nameEn:"Ring of Telekinesis",               rarity:"very_rare", type:"ring", attune:true,  weight:0, desc:"По желанию накладываете «Телекинез»." },
   { id:"ring-spell-turning",      name:"Кольцо отражения заклинаний",       nameEn:"Ring of Spell Turning",             rarity:"legendary", type:"ring", attune:true,  weight:0, desc:"Преимущество против заклинаний, нацеленных только на вас; иногда отражает их." },
   { id:"ring-regeneration",       name:"Кольцо регенерации",                nameEn:"Ring of Regeneration",              rarity:"very_rare", type:"ring", attune:true,  weight:0, desc:"Восстанавливаете 1к6 хитов каждые 10 минут; отращиваете утраченные части тела." },
   { id:"ring-invisibility",       name:"Кольцо невидимости",                nameEn:"Ring of Invisibility",              rarity:"legendary", type:"ring", attune:true,  weight:0, desc:"Действием становитесь невидимым, пока не отмените." },
-  { id:"ring-three-wishes",       name:"Кольцо трёх желаний",               nameEn:"Ring of Three Wishes",              rarity:"legendary", type:"ring", attune:false, weight:0, desc:"3 заряда: каждый позволяет сотворить «Исполнение желаний»." },
+  { id:"ring-three-wishes",       name:"Кольцо трёх желаний",               nameEn:"Ring of Three Wishes",              rarity:"legendary", type:"ring", attune:false, weight:0, charges:3, recharge:"none", desc:"3 заряда: каждый позволяет сотворить «Исполнение желаний»." },
 
   // ─── Жезлы (Rods) ─────────────────────────────────────────────────────────
   { id:"immovable-rod",           name:"Неподвижный жезл",                  nameEn:"Immovable Rod",                     rarity:"uncommon",  type:"rod", attune:false, weight:2, desc:"Зафиксируйте в воздухе — удерживает до 3600 кг." },
@@ -99,7 +101,7 @@ window.MAGIC_ITEMS = [
   { id:"rod-alertness",           name:"Жезл бдительности",                 nameEn:"Rod of Alertness",                  rarity:"very_rare", type:"rod", attune:true,  weight:2, desc:"+1 к инициативе и Внимательности; даёт ауру защиты союзникам." },
   { id:"rod-absorption",          name:"Жезл поглощения",                   nameEn:"Rod of Absorption",                 rarity:"very_rare", type:"rod", attune:true,  weight:2, desc:"Реакцией поглощает направленное на вас заклинание и копит уровни для своих ячеек." },
   { id:"rod-security",            name:"Жезл безопасности",                 nameEn:"Rod of Security",                   rarity:"very_rare", type:"rod", attune:false, weight:2, desc:"Переносит вас и спутников в безопасный райский полудом для отдыха." },
-  { id:"rod-rulership",           name:"Жезл правления",                    nameEn:"Rod of Rulership",                  rarity:"rare",      type:"rod", attune:true,  weight:2, desc:"1 заряд: до 8 часов очаровывает существа в радиусе 36 м (Мдр)." },
+  { id:"rod-rulership",           name:"Жезл правления",                    nameEn:"Rod of Rulership",                  rarity:"rare",      type:"rod", attune:true,  weight:2, charges:1, desc:"1 заряд: до 8 часов очаровывает существа в радиусе 36 м (Мдр)." },
   { id:"rod-lordly-might",        name:"Жезл величественной мощи",          nameEn:"Rod of Lordly Might",               rarity:"legendary", type:"rod", attune:true,  weight:2, desc:"Булава-«швейцарский нож»: превращается в меч, копьё, лестницу и т.д." },
 
   // ─── Посохи (Staves) ──────────────────────────────────────────────────────
@@ -118,19 +120,19 @@ window.MAGIC_ITEMS = [
   { id:"staff-magi",              name:"Посох магов",                       nameEn:"Staff of the Magi",                 rarity:"legendary", type:"staff", attune:true, weight:4, desc:"Поглощение заклинаний, +2 к атакам/Сл и обширный список могучих заклинаний." },
 
   // ─── Волшебные палочки (Wands) ────────────────────────────────────────────
-  { id:"wand-magic-detection",    name:"Волшебная палочка обнаружения магии", nameEn:"Wand of Magic Detection",           rarity:"uncommon",  type:"wand", attune:false, weight:1, desc:"3 заряда в день: накладывает «Обнаружение магии»." },
-  { id:"wand-secrets",            name:"Волшебная палочка секретов",        nameEn:"Wand of Secrets",                   rarity:"uncommon",  type:"wand", attune:false, weight:1, desc:"3 заряда: указывает на скрытую дверь или ловушку поблизости." },
-  { id:"wand-magic-missiles",     name:"Волшебная палочка снарядов",        nameEn:"Wand of Magic Missiles",            rarity:"uncommon",  type:"wand", attune:false, weight:1, desc:"7 зарядов: тратьте на «Волшебная стрела» (1 заряд = 1 уровень)." },
+  { id:"wand-magic-detection",    name:"Волшебная палочка обнаружения магии", nameEn:"Wand of Magic Detection",           rarity:"uncommon",  type:"wand", attune:false, weight:1, charges:3, desc:"3 заряда в день: накладывает «Обнаружение магии»." },
+  { id:"wand-secrets",            name:"Волшебная палочка секретов",        nameEn:"Wand of Secrets",                   rarity:"uncommon",  type:"wand", attune:false, weight:1, charges:3, desc:"3 заряда: указывает на скрытую дверь или ловушку поблизости." },
+  { id:"wand-magic-missiles",     name:"Волшебная палочка снарядов",        nameEn:"Wand of Magic Missiles",            rarity:"uncommon",  type:"wand", attune:false, weight:1, charges:7, desc:"7 зарядов: тратьте на «Волшебная стрела» (1 заряд = 1 уровень)." },
   { id:"wand-war-mage-1",         name:"Волшебная палочка боевого мага +1", nameEn:"Wand of the War Mage, +1",          rarity:"uncommon",  type:"wand", attune:true,  weight:1, desc:"+1 к попаданию атак заклинаниями; игнор укрытия в половину." },
-  { id:"wand-web",                name:"Волшебная палочка паутины",         nameEn:"Wand of Web",                       rarity:"uncommon",  type:"wand", attune:true,  weight:1, desc:"7 зарядов: накладывает «Паутина» (концентрация)." },
-  { id:"wand-enemy-detection",    name:"Волшебная палочка обнаружения врагов", nameEn:"Wand of Enemy Detection",           rarity:"rare",      type:"wand", attune:true,  weight:1, desc:"7 зарядов: указывает направление к ближайшим враждебным существам." },
+  { id:"wand-web",                name:"Волшебная палочка паутины",         nameEn:"Wand of Web",                       rarity:"uncommon",  type:"wand", attune:true,  weight:1, charges:7, desc:"7 зарядов: накладывает «Паутина» (концентрация)." },
+  { id:"wand-enemy-detection",    name:"Волшебная палочка обнаружения врагов", nameEn:"Wand of Enemy Detection",           rarity:"rare",      type:"wand", attune:true,  weight:1, charges:7, desc:"7 зарядов: указывает направление к ближайшим враждебным существам." },
   { id:"wand-fear",               name:"Волшебная палочка страха",          nameEn:"Wand of Fear",                      rarity:"rare",      type:"wand", attune:true,  weight:1, desc:"Заряды на ауру страха или конус устрашения (Мдр)." },
-  { id:"wand-fireballs",          name:"Волшебная палочка огненных шаров",  nameEn:"Wand of Fireballs",                 rarity:"rare",      type:"wand", attune:true,  weight:1, desc:"7 зарядов: «Огненный шар» (1 заряд = 3 уровень, +1 за уровень)." },
-  { id:"wand-lightning-bolts",    name:"Волшебная палочка молний",          nameEn:"Wand of Lightning Bolts",           rarity:"rare",      type:"wand", attune:true,  weight:1, desc:"7 зарядов: «Молния» (1 заряд = 3 уровень, +1 за уровень)." },
-  { id:"wand-paralysis",          name:"Волшебная палочка паралича",        nameEn:"Wand of Paralysis",                 rarity:"rare",      type:"wand", attune:true,  weight:1, desc:"7 зарядов: цель парализуется при провале спаса Телосложения." },
+  { id:"wand-fireballs",          name:"Волшебная палочка огненных шаров",  nameEn:"Wand of Fireballs",                 rarity:"rare",      type:"wand", attune:true,  weight:1, charges:7, desc:"7 зарядов: «Огненный шар» (1 заряд = 3 уровень, +1 за уровень)." },
+  { id:"wand-lightning-bolts",    name:"Волшебная палочка молний",          nameEn:"Wand of Lightning Bolts",           rarity:"rare",      type:"wand", attune:true,  weight:1, charges:7, desc:"7 зарядов: «Молния» (1 заряд = 3 уровень, +1 за уровень)." },
+  { id:"wand-paralysis",          name:"Волшебная палочка паралича",        nameEn:"Wand of Paralysis",                 rarity:"rare",      type:"wand", attune:true,  weight:1, charges:7, desc:"7 зарядов: цель парализуется при провале спаса Телосложения." },
   { id:"wand-binding",            name:"Волшебная палочка сковывания",      nameEn:"Wand of Binding",                   rarity:"rare",      type:"wand", attune:true,  weight:1, desc:"Заряды на «Удержание существа» и сопротивление обездвиживанию." },
-  { id:"wand-polymorph",          name:"Волшебная палочка превращения",     nameEn:"Wand of Polymorph",                 rarity:"very_rare", type:"wand", attune:true,  weight:1, desc:"7 зарядов: накладывает «Превращение»." },
-  { id:"wand-wonder",             name:"Волшебная палочка чудес",           nameEn:"Wand of Wonder",                    rarity:"rare",      type:"wand", attune:true,  weight:1, desc:"7 зарядов: случайный, часто непредсказуемый магический эффект." },
+  { id:"wand-polymorph",          name:"Волшебная палочка превращения",     nameEn:"Wand of Polymorph",                 rarity:"very_rare", type:"wand", attune:true,  weight:1, charges:7, desc:"7 зарядов: накладывает «Превращение»." },
+  { id:"wand-wonder",             name:"Волшебная палочка чудес",           nameEn:"Wand of Wonder",                    rarity:"rare",      type:"wand", attune:true,  weight:1, charges:7, desc:"7 зарядов: случайный, часто непредсказуемый магический эффект." },
 
   // ─── Оружие (Weapons) ─────────────────────────────────────────────────────
   { id:"weapon-plus-1",           name:"Оружие +1",                         nameEn:"Weapon, +1",                        rarity:"uncommon",  type:"weapon", attune:false, weight:0, desc:"+1 к броску атаки и урона этим магическим оружием." },
@@ -154,7 +156,7 @@ window.MAGIC_ITEMS = [
   { id:"sun-blade",               name:"Солнечный клинок",                  nameEn:"Sun Blade",                         rarity:"rare",      type:"weapon", attune:true,  weight:0, desc:"Клинок света (как длинный меч +2); +урон нежити и яркий свет." },
   { id:"mace-of-disruption",      name:"Булава распада",                    nameEn:"Mace of Disruption",                rarity:"rare",      type:"weapon", attune:true,  weight:4, desc:"Меч... булава +0; +2к6 урона излучением нежити/исчадиям, страх или гибель." },
   { id:"mace-of-smiting",         name:"Булава кары",                       nameEn:"Mace of Smiting",                   rarity:"rare",      type:"weapon", attune:false, weight:4, desc:"+1 (+3 конструктам); при 20 крушит конструктов." },
-  { id:"mace-of-terror",          name:"Булава ужаса",                      nameEn:"Mace of Terror",                    rarity:"rare",      type:"weapon", attune:true,  weight:4, desc:"3 заряда: аура страха в радиусе 9 м (Мдр)." },
+  { id:"mace-of-terror",          name:"Булава ужаса",                      nameEn:"Mace of Terror",                    rarity:"rare",      type:"weapon", attune:true,  weight:4, charges:3, desc:"3 заряда: аура страха в радиусе 9 м (Мдр)." },
   { id:"berserker-axe",           name:"Топор берсерка",                    nameEn:"Berserker Axe",                     rarity:"rare",      type:"weapon", attune:true,  weight:0, desc:"Магический топор +1; в бою может вынудить впасть в ярость." },
   { id:"vorpal-sword",            name:"Меч головоруб",                     nameEn:"Vorpal Sword",                      rarity:"legendary", type:"weapon", attune:true,  weight:0, desc:"Меч +3, игнорирует сопротивление рубящему; при 20 отрубает голову." },
   { id:"defender",                name:"Защитник",                          nameEn:"Defender",                          rarity:"legendary", type:"weapon", attune:true,  weight:0, desc:"Меч +3; распределяйте бонус между атакой и КД каждый ход." },
@@ -216,18 +218,18 @@ window.MAGIC_ITEMS = [
   { id:"headband-of-intellect",   name:"Повязка интеллекта",                nameEn:"Headband of Intellect",             rarity:"uncommon",  type:"wondrous", attune:true,  weight:0, desc:"Интеллект становится 19." },
   { id:"goggles-of-night",        name:"Ночные очки",                       nameEn:"Goggles of Night",                  rarity:"uncommon",  type:"wondrous", attune:false, weight:0, desc:"Тёмное зрение на 18 м (или +18 м к имеющемуся)." },
   { id:"eyes-of-the-eagle",       name:"Очки орлиного зрения",              nameEn:"Eyes of the Eagle",                 rarity:"uncommon",  type:"wondrous", attune:true,  weight:0, desc:"Преимущество на Внимательность (зрение)." },
-  { id:"eyes-of-charming",        name:"Очки очарования",                   nameEn:"Eyes of Charming",                  rarity:"uncommon",  type:"wondrous", attune:true,  weight:0, desc:"3 заряда: «Очарование личности» взглядом (Мдр)." },
+  { id:"eyes-of-charming",        name:"Очки очарования",                   nameEn:"Eyes of Charming",                  rarity:"uncommon",  type:"wondrous", attune:true,  weight:0, charges:3, desc:"3 заряда: «Очарование личности» взглядом (Мдр)." },
   { id:"hat-of-disguise",         name:"Шапка маскировки",                  nameEn:"Hat of Disguise",                   rarity:"uncommon",  type:"wondrous", attune:true,  weight:0, desc:"По желанию накладываете на себя «Изменение внешности»." },
   { id:"helm-comprehend-languages",name:"Шлем понимания языков",            nameEn:"Helm of Comprehending Languages",   rarity:"uncommon",  type:"wondrous", attune:false, weight:3, desc:"По желанию накладываете «Понимание языков»." },
   { id:"helm-of-telepathy",       name:"Шлем телепатии",                    nameEn:"Helm of Telepathy",                 rarity:"uncommon",  type:"wondrous", attune:true,  weight:3, desc:"Читаете мысли и мысленно общаетесь; заряды на «Внушение»." },
-  { id:"helm-of-teleportation",   name:"Шлем телепортации",                 nameEn:"Helm of Teleportation",             rarity:"rare",      type:"wondrous", attune:true,  weight:3, desc:"3 заряда: накладывает «Телепортация»." },
+  { id:"helm-of-teleportation",   name:"Шлем телепортации",                 nameEn:"Helm of Teleportation",             rarity:"rare",      type:"wondrous", attune:true,  weight:3, charges:3, desc:"3 заряда: накладывает «Телепортация»." },
   { id:"helm-of-brilliance",      name:"Шлем блеска",                       nameEn:"Helm of Brilliance",                rarity:"very_rare", type:"wondrous", attune:true,  weight:3, desc:"Самоцветы дают огненные/радиантные заклинания и сияние против нежити." },
   { id:"necklace-of-fireballs",   name:"Ожерелье огненных шаров",           nameEn:"Necklace of Fireballs",             rarity:"rare",      type:"wondrous", attune:false, weight:0, desc:"Сорвите шарик и бросьте — взрывается «Огненным шаром»." },
   { id:"necklace-of-adaptation",  name:"Ожерелье адаптации",                nameEn:"Necklace of Adaptation",            rarity:"uncommon",  type:"wondrous", attune:true,  weight:0, desc:"Дышите нормально в любой среде; преимущество против вредных газов." },
   { id:"necklace-prayer-beads",   name:"Ожерелье молитвенных чёток",        nameEn:"Necklace of Prayer Beads",          rarity:"rare",      type:"wondrous", attune:true,  weight:0, desc:"Магические бусины дают заклинания (благословение, лечение и пр.)." },
   { id:"pearl-of-power",          name:"Жемчужина силы",                    nameEn:"Pearl of Power",                    rarity:"uncommon",  type:"wondrous", attune:true,  weight:0, desc:"1 раз в день бонусным действием восстанавливаете ячейку ≤3 уровня." },
   { id:"stone-of-good-luck",      name:"Камень удачи",                      nameEn:"Stone of Good Luck (Luckstone)",    rarity:"uncommon",  type:"wondrous", attune:true,  weight:0, desc:"+1 ко всем проверкам характеристик и спасброскам." },
-  { id:"medallion-of-thoughts",   name:"Медальон мыслей",                   nameEn:"Medallion of Thoughts",             rarity:"uncommon",  type:"wondrous", attune:true,  weight:0, desc:"3 заряда: накладывает «Обнаружение мыслей»." },
+  { id:"medallion-of-thoughts",   name:"Медальон мыслей",                   nameEn:"Medallion of Thoughts",             rarity:"uncommon",  type:"wondrous", attune:true,  weight:0, charges:3, desc:"3 заряда: накладывает «Обнаружение мыслей»." },
   { id:"slippers-spider-climbing",name:"Туфли паука",                       nameEn:"Slippers of Spider Climbing",       rarity:"uncommon",  type:"wondrous", attune:true,  weight:0, desc:"Хождение по стенам и потолку со скоростью лазания." },
   { id:"winged-cloak",            name:"Плащ ската",                        nameEn:"Cloak of the Manta Ray",            rarity:"uncommon",  type:"wondrous", attune:false, weight:1, desc:"Под водой даёт подводное дыхание и скорость плавания 18 м." },
   { id:"decanter-endless-water",  name:"Графин бесконечной воды",           nameEn:"Decanter of Endless Water",         rarity:"uncommon",  type:"wondrous", attune:false, weight:2, desc:"Выливает по команде струю, поток или гейзер пресной воды." },

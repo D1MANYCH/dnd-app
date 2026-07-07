@@ -2459,6 +2459,88 @@
     });
   }
 
+  // ────────── БЛОК 27 (FIN-8): заряды предметов ──────────
+  if (typeof restoreItemCharges === "function") {
+    t("[FIN-8] restoreItemCharges: длинный отдых восполняет заряды до максимума (2/7→7/7)", function(){
+      var char = { inventory: {
+        weapon: [{ name:"Палочка молний", maxCharges:7, charges:2, recharge:"dawn" }],
+        other:  [{ name:"Кольцо уклонения", maxCharges:3, charges:0, recharge:"dawn" }],
+        potion: [{ name:"Зелье лечения", qty:3 }]   // без зарядов — не трогается
+      }};
+      var n = restoreItemCharges(char);
+      if (char.inventory.weapon[0].charges !== 7) return "палочка не восполнена: " + char.inventory.weapon[0].charges;
+      if (char.inventory.other[0].charges !== 3) return "кольцо не восполнено: " + char.inventory.other[0].charges;
+      if ("charges" in char.inventory.potion[0]) return "зелью без maxCharges добавлены charges";
+      return n === 2 || "ожидал 2 восстановленных, получено " + n;
+    });
+    t("[FIN-8] restoreItemCharges: recharge:'none' НЕ восстанавливается", function(){
+      var char = { inventory: { other: [{ name:"Кольцо трёх желаний", maxCharges:3, charges:1, recharge:"none" }] } };
+      var n = restoreItemCharges(char);
+      if (char.inventory.other[0].charges !== 1) return "recharge none восстановлен: " + char.inventory.other[0].charges;
+      return n === 0 || "ожидал 0 восстановленных, получено " + n;
+    });
+    t("[FIN-8] restoreItemCharges: полностью заряженный не считается восстановленным", function(){
+      var char = { inventory: { other: [{ name:"Палочка", maxCharges:7, charges:7, recharge:"dawn" }] } };
+      return restoreItemCharges(char) === 0 || "полный запас засчитан как восстановленный";
+    });
+    t("[FIN-8] restoreItemCharges: пустой/без inventory → 0", function(){
+      if (restoreItemCharges({}) !== 0) return "пустой char → не 0";
+      if (restoreItemCharges(null) !== 0) return "null → не 0";
+      return true;
+    });
+  }
+  if (typeof adjustItemCharges === "function") {
+    t("[FIN-8] adjustItemCharges: кламп 0..maxCharges", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{
+          id:"test-charges", stats:{str:10}, coins:{cp:0,sp:0,ep:0,gp:0,pp:0},
+          inventory:{ weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[],
+            other:[{ name:"Палочка", maxCharges:3, charges:1, recharge:"dawn" }] }
+        }];
+        window.currentId = "test-charges";
+        var it = window.characters[0].inventory.other[0];
+        try { adjustItemCharges("other", 0, 1); } catch(e) {}
+        if (it.charges !== 2) return "после +1 ожидал 2, получено " + it.charges;
+        try { adjustItemCharges("other", 0, 5); } catch(e) {}    // кламп к max
+        if (it.charges !== 3) return "кламп сверху: ожидал 3, получено " + it.charges;
+        try { adjustItemCharges("other", 0, -10); } catch(e) {}  // кламп к 0
+        if (it.charges !== 0) return "кламп снизу: ожидал 0, получено " + it.charges;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+    t("[FIN-8] adjustItemCharges: без maxCharges игнорируется", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{
+          id:"test-charges2", stats:{str:10}, coins:{cp:0,sp:0,ep:0,gp:0,pp:0},
+          inventory:{ weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[],
+            other:[{ name:"Верёвка" }] }
+        }];
+        window.currentId = "test-charges2";
+        var it = window.characters[0].inventory.other[0];
+        try { adjustItemCharges("other", 0, 1); } catch(e) {}
+        return !("charges" in it) || "не-заряжаемому добавлены charges";
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+  }
+  if (window.MAGIC_ITEMS) {   // в браузерном runner.html каталог лениво → тесты пропускаются
+    t("[FIN-8] magic-items: у записей с charges — целое число > 0 (и ≥10 таких)", function(){
+      var bad = (window.MAGIC_ITEMS || []).filter(function(it){
+        return ("charges" in it) && !(typeof it.charges === "number" && it.charges > 0 && it.charges % 1 === 0);
+      });
+      if (bad.length) return "некорректные charges: " + bad.map(function(x){return x.id+"="+x.charges;}).join(", ");
+      var withCharges = (window.MAGIC_ITEMS||[]).filter(function(it){return "charges" in it;});
+      return withCharges.length >= 10 || "ожидал ≥10 заряжаемых записей, получено " + withCharges.length;
+    });
+    t("[FIN-8] magic-items: recharge — только 'dawn'|'none', если задан", function(){
+      var bad = (window.MAGIC_ITEMS||[]).filter(function(it){
+        return ("recharge" in it) && it.recharge !== "dawn" && it.recharge !== "none";
+      });
+      return bad.length === 0 || "неверный recharge: " + bad.map(function(x){return x.id;}).join(", ");
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

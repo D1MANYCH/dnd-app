@@ -193,6 +193,19 @@ var _attuneTagHtml = item.attunable
 var _attuneBtnHtml = item.attunable
   ? '<button class="inv-attune-btn' + (item.attuned ? ' attuned' : '') + '" onclick="event.stopPropagation(); toggleAttuned(\'' + data.category + '\',' + data.index + ')">⚙ ' + (item.attuned ? 'Снять настройку' : 'Настроить') + '</button>'
   : '';
+// FIN-8: заряды предмета — бейдж «⚡ N/M» в мете + счётчик с кнопками ± в actions
+var _maxCh = parseInt(item.maxCharges, 10) || 0;
+var _curCh = _maxCh > 0 ? Math.max(0, Math.min(_maxCh, parseInt(item.charges, 10) || 0)) : 0;
+var _chargesTagHtml = _maxCh > 0
+  ? '<span class="inv-meta-tag inv-charges-tag' + (_curCh === 0 ? ' empty' : '') + '" title="Заряды' + (item.recharge === "none" ? " — не восстанавливаются" : " — восстанавливаются на длинном отдыхе") + '">⚡ ' + _curCh + '/' + _maxCh + '</span>'
+  : '';
+var _chargesCtrlHtml = _maxCh > 0
+  ? '<span class="inv-charges-ctrl">' +
+      '<button class="inv-charge-btn" onclick="event.stopPropagation(); adjustItemCharges(\'' + data.category + '\',' + data.index + ',-1)"' + (_curCh <= 0 ? ' disabled' : '') + '>−</button>' +
+      '<span class="inv-charges-label">⚡ ' + _curCh + '/' + _maxCh + '</span>' +
+      '<button class="inv-charge-btn" onclick="event.stopPropagation(); adjustItemCharges(\'' + data.category + '\',' + data.index + ',1)"' + (_curCh >= _maxCh ? ' disabled' : '') + '>+</button>' +
+    '</span>'
+  : '';
 var _stowed = (_isBackpackOff(char) && _locKey === "backpack");
 const div = document.createElement("div");
 div.className = "inv-item" + (_stowed ? " inv-item-stowed" : "");
@@ -211,6 +224,7 @@ div.innerHTML =
         '<span class="inv-meta-tag inv-slot-tag">' + slotsLabel + '</span>' +
         _locTagHtml +
         _attuneTagHtml +
+        _chargesTagHtml +
       '</div>' +
     '</div>' +
     '<span class="inv-drag-handle" title="Перетащите, чтобы переместить предмет">⠿</span>' +
@@ -219,6 +233,7 @@ div.innerHTML =
   '<div class="inv-item-body">' +
     (item.desc ? '<div class="inv-item-desc">' + escapeHtml(item.desc) + '</div>' : '') +
     '<div class="inv-item-actions">' +
+      _chargesCtrlHtml +
       _attuneBtnHtml +
       '<button class="inv-edit-btn" onclick="event.stopPropagation(); editItemDirect(\'' + data.category + '\',' + data.index + ')">✏️ Изменить</button>' +
       '<button class="inv-del-btn" onclick="event.stopPropagation(); deleteItemDirect(\'' + data.category + '\',' + data.index + ')">🗑 Удалить</button>' +
@@ -373,6 +388,23 @@ function updateAttuneCount() {
   el.textContent = "⚙ " + n + "/3";
   el.classList.toggle("over", n > 3);
 }
+// FIN-8: изменить заряды предмета на delta (кламп 0..maxCharges). Не трогает qty.
+function adjustItemCharges(category, index, delta) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var item = char.inventory[category] && char.inventory[category][index];
+  if (!item) return;
+  var max = parseInt(item.maxCharges, 10) || 0;
+  if (max <= 0) return;
+  var cur = Math.max(0, Math.min(max, parseInt(item.charges, 10) || 0));
+  var next = Math.max(0, Math.min(max, cur + delta));
+  if (next === cur) return;
+  item.charges = next;
+  if (window.AppLog) AppLog.action("inventory", "заряды: " + item.name + " " + next + "/" + max);
+  saveToLocal();
+  renderInventory();
+}
 function openItemModal(category, slotIndex) {
 if (!currentId) return;
 const char = getCurrentChar();
@@ -398,6 +430,14 @@ const locInpEdit = $("new-item-location");
 if (locInpEdit) locInpEdit.value = item.location || "";
 const attuneInpEdit = $("new-item-attune");
 if (attuneInpEdit) attuneInpEdit.checked = !!item.attunable;
+// FIN-8: заряды
+var _chMaxEd = parseInt(item.maxCharges, 10) || 0;
+const chInpEd = $("new-item-charges");
+if (chInpEd) chInpEd.value = _chMaxEd > 0 ? (parseInt(item.charges, 10) || 0) : "";
+const chMaxInpEd = $("new-item-maxcharges");
+if (chMaxInpEd) chMaxInpEd.value = _chMaxEd > 0 ? _chMaxEd : "";
+const rechInpEd = $("new-item-recharge");
+if (rechInpEd) rechInpEd.value = item.recharge === "none" ? "none" : "dawn";
 if (descEl) descEl.value = item.desc || "";
 } else {
 if (titleEl) titleEl.textContent = "Добавить предмет";
@@ -410,6 +450,13 @@ const locInpNew = $("new-item-location");
 if (locInpNew) locInpNew.value = "";
 const attuneInpNew = $("new-item-attune");
 if (attuneInpNew) attuneInpNew.checked = false;
+// FIN-8: заряды — сброс
+const chInpNew = $("new-item-charges");
+if (chInpNew) chInpNew.value = "";
+const chMaxInpNew = $("new-item-maxcharges");
+if (chMaxInpNew) chMaxInpNew.value = "";
+const rechInpNew = $("new-item-recharge");
+if (rechInpNew) rechInpNew.value = "dawn";
 if (descEl) descEl.value = "";
 }
 const modal = $("item-modal");
@@ -442,6 +489,16 @@ var _prevItem = (slotIndex >= 0 && char.inventory[origCategory]) ? char.inventor
 if ($("new-item-attune")?.checked) {
 newItem.attunable = true;
 if (_prevItem && _prevItem.attuned) newItem.attuned = true;
+}
+// FIN-8: заряды. maxCharges>0 включает механику; charges клампится 0..max
+// (пусто → полный запас). recharge "none" отключает восстановление на отдыхе.
+var _maxChIn = parseInt($("new-item-maxcharges")?.value, 10) || 0;
+if (_maxChIn > 0) {
+newItem.maxCharges = _maxChIn;
+var _curRaw = $("new-item-charges")?.value;
+var _curChIn = (_curRaw !== undefined && _curRaw !== "" && _curRaw !== null) ? (parseInt(_curRaw, 10) || 0) : _maxChIn;
+newItem.charges = Math.max(0, Math.min(_maxChIn, _curChIn));
+newItem.recharge = ($("new-item-recharge")?.value === "none") ? "none" : "dawn";
 }
 var _isEdit = !!(slotIndex >= 0 && char.inventory[origCategory] && char.inventory[origCategory][slotIndex]);
 if (!char.inventory[category]) char.inventory[category] = [];
@@ -541,6 +598,14 @@ function fillFromMagicItem(id) {
   // FIN-6: перенос флага настройки из каталога в чекбокс модалки
   var aEl = document.getElementById("new-item-attune");
   if (aEl) aEl.checked = !!it.attune;
+  // FIN-8: перенос зарядов из каталога (палочки/посохи/жезлы) — полный запас
+  var _catCh = parseInt(it.charges, 10) || 0;
+  var chEl = document.getElementById("new-item-charges");
+  var chMaxEl = document.getElementById("new-item-maxcharges");
+  var rechEl = document.getElementById("new-item-recharge");
+  if (chEl) chEl.value = _catCh > 0 ? _catCh : "";
+  if (chMaxEl) chMaxEl.value = _catCh > 0 ? _catCh : "";
+  if (rechEl) rechEl.value = (it.recharge === "none") ? "none" : "dawn";
   if (dEl) {
     var meta = (R[it.rarity] || it.rarity) + (it.attune ? ", требует настройки" : "");
     dEl.value = (it.desc || "") + "\n(" + meta + ". " + (it.nameEn || "") + ")";

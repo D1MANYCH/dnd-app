@@ -96,6 +96,24 @@ const healEl = $("hit-dice-heal");
 if (availableEl) availableEl.textContent = availableHitDice;
 if (healEl) healEl.textContent = totalHeal;
 }
+// FIN-8: заряды предметов на длинном отдыхе — полное восстановление (упрощение
+// против «1к6+N» книги). Восстанавливает предметы всех категорий инвентаря с
+// maxCharges>0 и recharge!=="none", если заряды не полны. Возвращает число предметов.
+function restoreItemCharges(char) {
+  if (!char || !char.inventory) return 0;
+  var restored = 0;
+  Object.keys(char.inventory).forEach(function(cat) {
+    if (!Array.isArray(char.inventory[cat])) return;
+    char.inventory[cat].forEach(function(it) {
+      if (!it) return;
+      var max = parseInt(it.maxCharges, 10) || 0;
+      if (max <= 0 || it.recharge === "none") return;
+      var cur = parseInt(it.charges, 10) || 0;
+      if (cur < max) { it.charges = max; restored++; }
+    });
+  });
+  return restored;
+}
 function confirmRest() {
 if (!currentId || !currentRestType) return;
 const char = getCurrentChar();
@@ -167,16 +185,19 @@ if (char.conditions && char.conditions.length > 0) {
 char.effects = [];
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 resetResourcesByRest("long");
+// FIN-8: восстановить заряды предметов (палочки/посохи/жезлы)
+var chargesRestored = restoreItemCharges(char);
 loadConditions();
 loadEffects();
 addHPHistory(oldHp, maxHp, maxHp - oldHp, "Долгий отдых");
 if (maxHp - oldHp > 0) showHPToast(maxHp - oldHp);
 resultTitle = "✅ Долгий отдых завершён!";
-if (window.AppLog) AppLog.action("hp", "длинный отдых: ХП " + oldHp + " → " + maxHp + (exhaustionReduced ? ", истощение −1" : ""));
+if (window.AppLog) AppLog.action("hp", "длинный отдых: ХП " + oldHp + " → " + maxHp + (exhaustionReduced ? ", истощение −1" : "") + (chargesRestored ? ", заряды: " + chargesRestored : ""));
 addJournalEntry("rest", "Долгий отдых — новая сессия", "Уровень " + (char.level||1) + " · ХП: " + oldHp + " → " + maxHp + " · Ячейки и ресурсы восстановлены");
 renderJournal();
 var exhaustionNote = exhaustionReduced ? "<p>😫 Истощение снижено на 1 уровень</p>" : "";
-resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div><p>✨ Ячейки заклинаний: восстановлены</p><p>🎲 Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + exhaustionNote;
+var chargesNote = chargesRestored ? "<p>⚡ Заряды предметов восстановлены: " + chargesRestored + "</p>" : "";
+resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div><p>✨ Ячейки заклинаний: восстановлены</p><p>🎲 Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + exhaustionNote + chargesNote;
 }
 saveToLocal();
 loadCharacter(currentId);

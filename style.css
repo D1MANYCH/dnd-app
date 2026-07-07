@@ -3843,7 +3843,7 @@ transition: all 0.18s;
   margin-bottom: 10px;
   white-space: pre-line;
 }
-.inv-item-actions { display: flex; gap: 8px; }
+.inv-item-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .inv-edit-btn, .inv-del-btn {
   padding: 5px 12px !important;
   border-radius: var(--r-sm);
@@ -3900,6 +3900,34 @@ transition: all 0.18s;
 .inv-attune-count.over { color: #fff; background: var(--danger-color); border-color: var(--danger-color); }
 .item-attune-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .item-attune-label input[type="checkbox"] { width: auto; margin: 0; }
+
+/* FIN-8: заряды предметов — строка в модалке, бейдж «⚡ N/M» и кнопки ± в списке */
+.item-charges-row { display: flex; align-items: center; gap: 8px; }
+.item-charges-row input[type="number"] { width: auto; flex: 1 1 0; min-width: 0; margin: 0; }
+.item-charges-row .item-charges-sep { flex: 0 0 auto; color: var(--text-muted); font-weight: 700; }
+.item-charges-row select { width: auto; flex: 1.6 1 0; min-width: 0; margin: 0; }
+.inv-charges-tag { color: #9b59b6; border-color: rgba(155,89,182,0.4); }
+.inv-charges-tag.empty { color: var(--text-muted); border-color: var(--border-color); }
+.inv-charges-ctrl { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; }
+.inv-charges-ctrl .inv-charges-label { font-size: 0.78em; font-weight: 600; color: #9b59b6; white-space: nowrap; }
+.inv-charge-btn {
+  padding: 3px 10px !important;
+  border-radius: var(--r-sm);
+  font-size: 0.9em !important;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  width: auto !important;
+  margin: 0 !important;
+  transform: none !important;
+  transition: all 0.15s;
+  background: transparent !important;
+  border: 1px solid #9b59b6 !important;
+  color: #9b59b6 !important;
+}
+.inv-charge-btn:hover { background: #9b59b6 !important; color: #fff !important; transform: none !important; box-shadow: none !important; }
+.inv-charge-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.inv-charge-btn:disabled:hover { background: transparent !important; color: #9b59b6 !important; }
 
 /* ========================================
    COINS — BIG NUMBER CARD GRID
