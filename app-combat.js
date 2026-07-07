@@ -727,7 +727,6 @@ function renderEffectsGrid() {
       item.id = "effect-" + effect.id;
       item.onclick = function() { toggleEffect(effect.id); };
       item.innerHTML =
-        getEffectIcon(effect.id) +
         "<div class=\"effect-name\">" + escapeHtml(effect.name) + "</div>" +
         "<div class=\"effect-desc\">" + escapeHtml(effect.desc) + "</div>" +
         "<div class=\"effect-duration\">" + escapeHtml(effect.duration) + "</div>" +
@@ -1391,10 +1390,8 @@ char.coins.ep = parseInt($("coin-ep")?.value, 10) || 0;
 char.coins.gp = parseInt($("coin-gp")?.value, 10) || 0;
 char.coins.pp = parseInt($("coin-pp")?.value, 10) || 0;
 calcCoinWeight();
-char.notes = $("char-notes")?.value || "";
-char.features = $("char-features")?.value || "";
-char.appearance = $("char-appearance")?.value || "";
-char.magicItems = $("magic-items")?.value || "";
+// Заметки/особенности/внешность/магпредметы живут в notesV2.sections
+// (управляются notesUpdateSection в app-notes.js) — здесь не дублируются.
 const spellStatVal = $("spell-stat")?.value || "";
 if (spellStatVal) char.spells.stat = spellStatVal;
 for(let i=1; i<=9; i++) {

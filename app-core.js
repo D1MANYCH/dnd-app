@@ -985,6 +985,37 @@ function migrateCharacter(char) {
     }
     char.schemaVersion = 29;
   }
+  if (v < 30) {
+    // FIN-11 (чистка): два изменения одной миграцией.
+    // 1) Подкласс Плута «Мошенник» — внекнижный дубль «Мистического ловкача»
+    //    (SUBCLASS_FEATURES совпадали по смыслу). Удалён из данных → сводим
+    //    сейвы к книжному имени по точному значению (прецедент v<26). Хранится
+    //    в char.subclass и char.classes[].subclass (мультикласс).
+    if (char.subclass === "Мошенник") char.subclass = "Мистический ловкач";
+    if (Array.isArray(char.classes)) {
+      char.classes.forEach(function(cl){
+        if (cl && cl.subclass === "Мошенник") cl.subclass = "Мистический ловкач";
+      });
+    }
+    // 2) Legacy-поля заметок (char.notes/features/appearance/magicItems) убраны
+    //    из схемы — единственный источник истины теперь notesV2.sections.
+    //    Double-write прекращён (updateChar/notesUpdateSection/shadow-textareas).
+    //    Защитный перенос в секцию ТОЛЬКО если она пуста (повтор логики v<10),
+    //    затем поля удаляются. Идемпотентно: у прошедших сейвов секции уже
+    //    заполнены → перенос no-op, поля просто исчезают.
+    if (char.notesV2 && char.notesV2.sections) {
+      var _sec30 = char.notesV2.sections;
+      if (typeof char.appearance === 'string' && char.appearance && !_sec30.appearance) _sec30.appearance = char.appearance;
+      if (typeof char.features   === 'string' && char.features   && !_sec30.features)   _sec30.features   = char.features;
+      if (typeof char.magicItems === 'string' && char.magicItems && !_sec30.magicItems) _sec30.magicItems = char.magicItems;
+      if (typeof char.notes      === 'string' && char.notes      && !_sec30.backstory)  _sec30.backstory  = char.notes;
+    }
+    delete char.notes;
+    delete char.features;
+    delete char.appearance;
+    delete char.magicItems;
+    char.schemaVersion = 30;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем
@@ -2958,13 +2989,6 @@ function getConditionIcon(id) {
   if (!slug) return '';
   return '<img class="condition-icon-svg" src="assets/conditions/' + slug + '.webp" alt="" aria-hidden="true">';
 }
-// Временные эффекты: иконок нет в репозитории (папка assets/effects/ удалена
-// после OPT-5 — все ассеты перешли на WebP, для эффектов спрайты так и не
-// были подготовлены). Возвращаем пустую строку, чтобы не плодить 404 в
-// консоли. Если когда-нибудь добавим — переключить на .webp.
-function getEffectIcon(id) {
-  return '';
-}
 // Иконка класса для бейджа в заклинании: ключ CLASS_ICONS_MAP → PNG в assets/classes/
 // "both" не имеет файла → fallback на emoji-звезду.
 const SPELL_CLASS_ICON_SLUGS = {
@@ -3300,10 +3324,6 @@ safeSet("coin-sp", char.coins.sp);
 safeSet("coin-ep", char.coins.ep);
 safeSet("coin-gp", char.coins.gp);
 safeSet("coin-pp", char.coins.pp);
-safeSet("char-notes", char.notes || "");
-safeSet("char-features", char.features || "");
-safeSet("char-appearance", char.appearance || "");
-safeSet("magic-items", char.magicItems || "");
 safeSet("spell-stat", char.spells.stat || "");
 // Sync spell stat button highlight
 const _statVal = char.spells.stat || "";

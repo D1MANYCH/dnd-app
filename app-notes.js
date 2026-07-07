@@ -24,15 +24,16 @@ var NOTES_TABS = [
 ];
 
 // Поля секции «Предыстория» — все 8 из notesV2.sections.
+// FIN-11: legacy shadow-textareas удалены — секции пишутся только в notesV2.
 var NOTES_SECTIONS = [
-  { key: 'backstory',   icon: '📖', label: 'Предыстория',         rows: 10, placeholder: 'Происхождение, семья, важные события прошлого…', legacy: null },
-  { key: 'appearance',  icon: '👤', label: 'Внешность',            rows: 5,  placeholder: 'Внешность, приметы, манеры…',                 legacy: 'char-appearance' },
-  { key: 'personality', icon: '🎭', label: 'Личность',             rows: 5,  placeholder: 'Характер, привычки, особенности поведения…',   legacy: null },
-  { key: 'ideals',      icon: '✨', label: 'Идеалы',               rows: 3,  placeholder: 'Во что верит персонаж…',                       legacy: null },
-  { key: 'bonds',       icon: '🔗', label: 'Связи',                rows: 3,  placeholder: 'Люди, места, предметы, важные персонажу…',     legacy: null },
-  { key: 'flaws',       icon: '⚠️', label: 'Слабости',             rows: 3,  placeholder: 'Недостатки, страхи, уязвимости…',              legacy: null },
-  { key: 'features',    icon: '📖', label: 'Черты и умения',       rows: 7,  placeholder: 'Классовые умения, расовые черты…',             legacy: 'char-features', showTakenFeats: true },
-  { key: 'magicItems',  icon: '🔮', label: 'Магические предметы',  rows: 5,  placeholder: 'Настроенные предметы, свойства…',              legacy: 'magic-items' }
+  { key: 'backstory',   icon: '📖', label: 'Предыстория',         rows: 10, placeholder: 'Происхождение, семья, важные события прошлого…' },
+  { key: 'appearance',  icon: '👤', label: 'Внешность',            rows: 5,  placeholder: 'Внешность, приметы, манеры…' },
+  { key: 'personality', icon: '🎭', label: 'Личность',             rows: 5,  placeholder: 'Характер, привычки, особенности поведения…' },
+  { key: 'ideals',      icon: '✨', label: 'Идеалы',               rows: 3,  placeholder: 'Во что верит персонаж…' },
+  { key: 'bonds',       icon: '🔗', label: 'Связи',                rows: 3,  placeholder: 'Люди, места, предметы, важные персонажу…' },
+  { key: 'flaws',       icon: '⚠️', label: 'Слабости',             rows: 3,  placeholder: 'Недостатки, страхи, уязвимости…' },
+  { key: 'features',    icon: '📖', label: 'Черты и умения',       rows: 7,  placeholder: 'Классовые умения, расовые черты…',             showTakenFeats: true },
+  { key: 'magicItems',  icon: '🔮', label: 'Магические предметы',  rows: 5,  placeholder: 'Настроенные предметы, свойства…' }
 ];
 
 // ── Состояние UI (не сохраняется; prefs.lastSection живёт в notesV2) ──
@@ -168,7 +169,6 @@ function _renderSectionsView() {
     var bigRows = Math.max(s.rows || 5, 10);
     html += '<textarea class="notes-section-input" id="notes-sec-' + s.key + '"' +
             ' data-section="' + s.key + '"' +
-            (s.legacy ? ' data-legacy="' + s.legacy + '"' : '') +
             ' rows="' + bigRows + '" placeholder="' + escapeHtml(s.placeholder) + '"' +
             (previewOn ? ' style="display:none;"' : '') + '>' +
             escapeHtml(val) + '</textarea>';
@@ -303,7 +303,6 @@ function notesRegenerateAll() {
     if (!pool.length) pool = arr;
     var pick = pool[Math.floor(Math.random() * pool.length)];
     char.notesV2.sections[sk] = pick;
-    if (sk === 'appearance') char.appearance = pick;
   }
   if (typeof saveToLocalDebounced === 'function') saveToLocalDebounced();
   _notesFlashSaved();
@@ -529,21 +528,12 @@ function notesUpdateSection(el) {
   var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
   if (!el || !char) return;
   var key = el.getAttribute('data-section');
-  var legacyId = el.getAttribute('data-legacy');
   var val = el.value || '';
   char.notesV2 = char.notesV2 || { sections: {}, entries: [], prefs: {} };
   char.notesV2.sections = char.notesV2.sections || {};
   char.notesV2.sections[key] = val;
-  // Double-write: синхронизируем скрытый legacy-textarea, чтобы updateChar() подхватил.
-  if (legacyId) {
-    var legacy = document.getElementById(legacyId);
-    if (legacy && legacy.value !== val) legacy.value = val;
-  }
-  // Плюс — зеркалим в char.* поля напрямую для секций-аналогов.
-  if (key === 'appearance') char.appearance = val;
-  else if (key === 'features') char.features = val;
-  else if (key === 'magicItems') char.magicItems = val;
-  // «Заметки» теперь не имеют прямого аналога в секциях — старое поле char.notes оставляем как legacy.
+  // FIN-11: единственный источник истины — notesV2.sections; legacy-поля
+  // (char.appearance/features/magicItems/notes) удалены из схемы.
   _notesFlashSaved();
   if (typeof saveToLocalDebounced === 'function') saveToLocalDebounced();
 }

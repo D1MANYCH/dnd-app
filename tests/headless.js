@@ -430,7 +430,7 @@
       if (!c.coins || c.coins.gp !== 0) return "coins.gp: ожидал 0";
       if (!c.deathSaves || !Array.isArray(c.deathSaves.successes)) return "deathSaves.successes не массив";
       if (typeof c.saves !== "object" || typeof c.skills !== "object") return "saves/skills не объекты";
-      if (c.schemaVersion !== 29) return "schemaVersion: ожидал 29, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 30) return "schemaVersion: ожидал 30, получено " + c.schemaVersion;
       return true;
     });
 
@@ -499,7 +499,7 @@
         window.SPELL_DATABASE = SPELLS_BASE.concat([{ id: "user-rt-1", name: "Тестовый луч", level: 1 }]);
         var p = _buildExportPayload();
         if (p.app !== "dnd-sheet") return "app: " + p.app;
-        if (p.schemaVersion !== 29) return "schemaVersion: ожидал 29, получено " + p.schemaVersion;
+        if (p.schemaVersion !== 30) return "schemaVersion: ожидал 30, получено " + p.schemaVersion;
         if (!p.exportedAt) return "нет exportedAt";
         if (!Array.isArray(p.characters) || p.characters.length !== 2) return "characters: ожидал 2";
         if (!Array.isArray(p.hpHistory) || p.hpHistory.length !== 2) return "hpHistory: ожидал 2 (как есть, фильтр — на импорте)";
@@ -605,7 +605,7 @@
         journal: [{ text: "запись" }]
       };
       var c = migrateCharacter(JSON.parse(JSON.stringify(legacy)));
-      if (c.schemaVersion !== 29) return "schemaVersion: " + c.schemaVersion;
+      if (c.schemaVersion !== 30) return "schemaVersion: " + c.schemaVersion;
       var langs = c.proficiencies.languages;
       if (!Array.isArray(langs) || langs.length !== 2 || langs[0].name !== "Общий" || langs[1].name !== "Эльфийский")
         return "языки строка→массив: " + JSON.stringify(langs);
@@ -634,7 +634,7 @@
           mySpells: [{ id: 101, name: "Слово исцеления" }, { id: 102, name: "Огни фей" }, { id: 103, name: "Порча" }]
         }
       });
-      if (c.schemaVersion !== 29) return "schemaVersion: ожидал 29, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 30) return "schemaVersion: ожидал 30, получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Волна грома|Усыпление|Лечение ран")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -651,7 +651,7 @@
           mySpells: [{ id: 201, name: "Духовное оружие" }, { id: 202, name: "Огненная сфера" }, { id: 203, name: "Невидимость" }]
         }
       });
-      if (c.schemaVersion !== 29) return "schemaVersion: ожидал 29, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 30) return "schemaVersion: ожидал 30, получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Отражения|Открывание|Лечение ран")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -668,7 +668,7 @@
           mySpells: [{ id: 301, name: "Оживление мертвецов" }, { id: 302, name: "Страх" }, { id: 303, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 29) return "schemaVersion: ожидал 29, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 30) return "schemaVersion: ожидал 30, получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Возрождение|Духовные стражи|Лечение ран")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -685,7 +685,7 @@
           mySpells: [{ id: 401, name: "Прорицание" }, { id: 402, name: "Чёрные щупальца" }, { id: 403, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 29) return "schemaVersion: ожидал 29, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 30) return "schemaVersion: ожидал 30, получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Превращение|Град|Лечение ран")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -702,7 +702,7 @@
           mySpells: [{ id: 481, name: "Обман" }, { id: 506, name: "Двойник" }, { id: 475, name: "Магическое связывание" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 29) return "schemaVersion: ожидал 29, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 30) return "schemaVersion: ожидал 30, получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Оживление|Множественное лечение ран|Небесный огонь")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -720,7 +720,7 @@
           mySpells: [{ id: 541, name: "Вред" }, { id: 546, name: "Исцеление" }, { id: 568, name: "Стена льда" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 29) return "schemaVersion: ожидал 29, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 30) return "schemaVersion: ожидал 30, получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Распад|Пляшущая молния|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -738,7 +738,7 @@
           mySpells: [{ id: 618, name: "Символ" }, { id: 619, name: "Симулякр" }, { id: 607, name: "Обратная гравитация" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 29) return "schemaVersion: ожидал 29, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 30) return "schemaVersion: ожидал 30, получено " + c.schemaVersion;
       // Forcecage «Силовая клетка» → «Узилище»; Prismatic spray «Призматический луч» → «Радужные брызги».
       if (c.spells.prepared.join("|") !== "Узилище|Радужные брызги|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
@@ -757,7 +757,7 @@
           mySpells: [{ id: 657, name: "Слабоумие" }, { id: 671, name: "Оцепенение" }, { id: 656, name: "Священная аура" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 29) return "schemaVersion: ожидал 29, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 30) return "schemaVersion: ожидал 30, получено " + c.schemaVersion;
       // Clone «Клон» → «Двойник»; Antimagic field «Антимагическое поле» → «Преграда магии».
       if (c.spells.prepared.join("|") !== "Двойник|Преграда магии|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
@@ -777,7 +777,7 @@
           mySpells: [{ id: 688, name: "Кошмарное видение" }, { id: 682, name: "Буря мести" }, { id: 696, name: "Слово силы: смерть" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 29) return "schemaVersion: ожидал 29, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 30) return "schemaVersion: ожидал 30, получено " + c.schemaVersion;
       // Shapechange «Перевоплощение» → «Полное превращение»; Meteor swarm «Рой метеоров» → «Метеоритный дождь».
       if (c.spells.prepared.join("|") !== "Полное превращение|Метеоритный дождь|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
@@ -812,7 +812,7 @@
       var div = migrateCharacter({ id: 9976, class: "Волшебник", level: 6, schemaVersion: 25, subclass: "Школа прорицания" });
       if (div.subclass !== "Школа прорицания")
         return "Divination не должна меняться, получено «" + div.subclass + "»";
-      if (div.schemaVersion !== 29) return "schemaVersion: ожидал 29, получено " + div.schemaVersion;
+      if (div.schemaVersion !== 30) return "schemaVersion: ожидал 30, получено " + div.schemaVersion;
       return true;
     });
 
@@ -827,7 +827,7 @@
           mySpells: [{ id: 652, name: "Воспламеняющаяся туча" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 29) return "schemaVersion: ожидал 29, получено " + c.schemaVersion;
+      if (c.schemaVersion !== 30) return "schemaVersion: ожидал 30, получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Облако кинжалов|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -2131,7 +2131,7 @@
           combat: { armorId: "ring", hpCurrent: 20, hpMax: 20 }
         });
         if (c.combat.armorId !== "chain_mail") return "armorId не мигрирован: " + c.combat.armorId;
-        if (c.schemaVersion !== 29) return "schemaVersion: " + c.schemaVersion;
+        if (c.schemaVersion !== 30) return "schemaVersion: " + c.schemaVersion;
         // повторный прогон не должен ничего менять (idempotent)
         var again = migrateCharacter(JSON.parse(JSON.stringify(c)));
         if (again.combat.armorId !== "chain_mail") return "повторная миграция сломала armorId: " + again.combat.armorId;
@@ -2638,6 +2638,96 @@
       if (html.indexOf('id="help-planes"') === -1) miss.push("#help-planes");
       if (html.indexOf("switchHelpSection('planes'") === -1) miss.push("вкладка planes");
       return miss.length === 0 || "нет: " + miss.join(", ");
+    });
+  }
+
+  // ────────── БЛОК 29 (FIN-11): чистка — миграция «Мошенник», legacy notes, мёртвый код ──────────
+  // Данные: подкласс «Мошенник» удалён (дубль «Мистического ловкача»).
+  if (typeof SUBCLASS_FEATURES !== "undefined") {
+    t("[FIN-11] SUBCLASS_FEATURES: ключ «Мошенник» удалён, «Мистический ловкач» на месте", function(){
+      if (SUBCLASS_FEATURES["Мошенник"]) return "ключ «Мошенник» всё ещё есть";
+      if (!SUBCLASS_FEATURES["Мистический ловкач"]) return "нет «Мистического ловкача»";
+      return true;
+    });
+  }
+  if (typeof SUBCLASSES !== "undefined") {
+    t("[FIN-11] SUBCLASSES.Плут: без «Мошенника», с «Мистическим ловкачом»", function(){
+      var list = SUBCLASSES["Плут"] || [];
+      if (list.indexOf("Мошенник") !== -1) return "«Мошенник» в списке подклассов Плута";
+      if (list.indexOf("Мистический ловкач") === -1) return "нет «Мистического ловкача»";
+      return true;
+    });
+  }
+  if (typeof THIRD_CASTER_SUBCLASSES !== "undefined") {
+    t("[FIN-11] THIRD_CASTER_SUBCLASSES: без «Мошенника», с «Мистическим ловкачом»", function(){
+      if (THIRD_CASTER_SUBCLASSES.indexOf("Мошенник") !== -1) return "«Мошенник» в списке 1/3-кастеров";
+      if (THIRD_CASTER_SUBCLASSES.indexOf("Мистический ловкач") === -1) return "нет «Мистического ловкача»";
+      return true;
+    });
+  }
+  // Миграция v<30: подкласс + legacy notes
+  if (typeof migrateCharacter === "function") {
+    t("[FIN-11] migrateCharacter: char.subclass «Мошенник» → «Мистический ловкач»", function(){
+      var c = migrateCharacter({ id: 9401, class: "Плут", level: 5, subclass: "Мошенник" });
+      if (c.subclass !== "Мистический ловкач") return "subclass = " + JSON.stringify(c.subclass);
+      if (c.schemaVersion !== 30) return "schemaVersion = " + c.schemaVersion;
+      return true;
+    });
+    t("[FIN-11] migrateCharacter: «Мошенник» в char.classes[] (мультикласс) тоже мигрирует", function(){
+      var c = migrateCharacter({ id: 9402, class: "Воин", level: 8,
+        classes: [ { class: "Воин", level: 5 }, { class: "Плут", level: 3, subclass: "Мошенник" } ] });
+      var rogue = c.classes.find(function(cl){ return cl.class === "Плут"; });
+      return (rogue && rogue.subclass === "Мистический ловкач") || "classes[].subclass = " + JSON.stringify(rogue && rogue.subclass);
+    });
+    t("[FIN-11] migrateCharacter: legacy notes → notesV2 при пустой секции + поля удалены", function(){
+      var c = migrateCharacter({ id: 9403, class: "Бард", level: 2, schemaVersion: 29,
+        notesV2: { sections: { appearance: "", features: "", magicItems: "", backstory: "" }, entries: [], prefs: {} },
+        notes: "Био", appearance: "Шрам", features: "Умения", magicItems: "Кольцо" });
+      var s = c.notesV2.sections;
+      if (s.backstory !== "Био") return "notes → backstory: " + JSON.stringify(s.backstory);
+      if (s.appearance !== "Шрам") return "appearance: " + JSON.stringify(s.appearance);
+      if (s.features !== "Умения") return "features: " + JSON.stringify(s.features);
+      if (s.magicItems !== "Кольцо") return "magicItems: " + JSON.stringify(s.magicItems);
+      if ("notes" in c || "appearance" in c || "features" in c || "magicItems" in c)
+        return "legacy-поля не удалены: " + JSON.stringify({n:c.notes,a:c.appearance,f:c.features,m:c.magicItems});
+      return true;
+    });
+    t("[FIN-11] migrateCharacter: заполненная секция НЕ затирается legacy-полем", function(){
+      var c = migrateCharacter({ id: 9404, class: "Бард", level: 2, schemaVersion: 29,
+        notesV2: { sections: { appearance: "Актуальная внешность" }, entries: [], prefs: {} },
+        appearance: "Старое легаси" });
+      if (c.notesV2.sections.appearance !== "Актуальная внешность")
+        return "секция затёрта: " + JSON.stringify(c.notesV2.sections.appearance);
+      if ("appearance" in c) return "legacy appearance не удалён";
+      return true;
+    });
+    t("[FIN-11] migrateCharacter идемпотентна для v30 (повторный прогон не портит)", function(){
+      var c = migrateCharacter({ id: 9405, class: "Плут", level: 5, subclass: "Мошенник",
+        notes: "Био", notesV2: { sections: {}, entries: [], prefs: {} } });
+      var again = migrateCharacter(JSON.parse(JSON.stringify(c)));
+      if (again.subclass !== "Мистический ловкач") return "subclass после повтора: " + again.subclass;
+      if (again.schemaVersion !== 30) return "schemaVersion после повтора: " + again.schemaVersion;
+      return true;
+    });
+  }
+  // Схема: legacy-поля убраны из DEFAULT_CHARACTER
+  if (typeof DEFAULT_CHARACTER !== "undefined") {
+    t("[FIN-11] DEFAULT_CHARACTER: нет полей notes/features/appearance/magicItems", function(){
+      var leaked = ["notes","features","appearance","magicItems"].filter(function(k){ return k in DEFAULT_CHARACTER; });
+      return leaked.length === 0 || "остались поля: " + leaked.join(", ");
+    });
+  }
+  // Мёртвый код: getEffectIcon удалён
+  t("[FIN-11] getEffectIcon удалён (мёртвая функция)", function(){
+    return typeof getEffectIcon === "undefined" || "getEffectIcon всё ещё определена";
+  });
+  // fs-тест: shadow-textareas удалены из index.html
+  if (typeof window !== "undefined" && typeof window.__indexHtmlSource === "string") {
+    t("[FIN-11] index.html: legacy shadow-textareas удалены (#char-notes и т.п.)", function(){
+      var html = window.__indexHtmlSource;
+      var found = ['id="char-notes"','id="char-features"','id="char-appearance"','id="magic-items"']
+        .filter(function(sel){ return html.indexOf(sel) !== -1; });
+      return found.length === 0 || "остались: " + found.join(", ");
     });
   }
 

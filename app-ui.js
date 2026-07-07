@@ -1266,6 +1266,13 @@ if (window.matchMedia) {
   } catch(e) {}
 }
 
+// FIN-11: диагностические логи дайса шумели в консоли прода. Прячем за флаг —
+// window.DND_DEBUG или localStorage 'dnd_debug_dice'==='1' (для отладки бросков).
+function _diceDbg() {
+  try { return !!window.DND_DEBUG || localStorage.getItem('dnd_debug_dice') === '1'; }
+  catch (e) { return false; }
+}
+
 function _initDiceBox() {
   if (_diceBoxInstance) {
     // Recovery: если canvas DiceBox был удалён из DOM (напр. прошлый 2D-fallback
@@ -1308,7 +1315,7 @@ function _initDiceBox() {
     // не имел размера. resizeWorld() регистрирует resize listener — сами
     // триггерим его, чтобы внутренний WebGL-буфер выровнялся под container.
     try { window.dispatchEvent(new Event('resize')); } catch (e) {}
-    try { console.log('[DiceBox] init OK', { buf: (box.canvas ? box.canvas.width + 'x' + box.canvas.height : 'none'), css: (box.canvas ? box.canvas.clientWidth + 'x' + box.canvas.clientHeight : 'none'), theme: _getDiceTheme() }); } catch (e) {}
+    try { if (_diceDbg()) console.log('[DiceBox] init OK', { buf: (box.canvas ? box.canvas.width + 'x' + box.canvas.height : 'none'), css: (box.canvas ? box.canvas.clientWidth + 'x' + box.canvas.clientHeight : 'none'), theme: _getDiceTheme() }); } catch (e) {}
     // Обработчик потери WebGL-контекста: типичная причина «после N бросков 3D
     // ломается» — драйвер/браузер дропают контекст. Помечаем инстанс на
     // пересоздание, следующий _initDiceBox() поднимет чистый.
@@ -1370,7 +1377,7 @@ function animateDice3d(sides, result, callback, opts) {
     var prev = _dice3dActiveRoll;
     prev.done = true;
     clearTimeout(prev.timer);
-    try { console.log('[DiceBox] бросок прерван новым (sides=' + prev.sides + ')'); } catch (e) {}
+    try { if (_diceDbg()) console.log('[DiceBox] бросок прерван новым (sides=' + prev.sides + ')'); } catch (e) {}
     _applyDiceCritGlow(prev.sides, prev.result);
     try { prev.callback(); } catch (e) {}
   }
@@ -1469,7 +1476,7 @@ function animateDice3d(sides, result, callback, opts) {
           diag.contextLost = gl ? gl.isContextLost() : 'no-gl';
         } else { diag.canvas = 'none'; }
       } catch (e) { diag.err = e.message; }
-      try { console.log('[DiceBox] roll resolved', { sides: sides, qty: qty, v1: v1, v2: v2, diag: diag }); } catch (e) {}
+      try { if (_diceDbg()) console.log('[DiceBox] roll resolved', { sides: sides, qty: qty, v1: v1, v2: v2, diag: diag }); } catch (e) {}
       _applyDiceCritGlow(sides, v1, v2);
       callback(v1, v2);
     });

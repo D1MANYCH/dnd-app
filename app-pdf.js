@@ -620,10 +620,9 @@ function _pdfNotes(doc, y, char) {
     features:    'Особенности',
     magicItems:  'Магические предметы'
   };
+  // FIN-11: legacy-поля (char.notes/features/appearance/magicItems) удалены —
+  // единственный источник заметок теперь notesV2.sections.
   var any = Object.keys(labels).some(function(k) { return sections[k] && sections[k].trim(); });
-  // legacy-поля
-  any = any || (char.notes && char.notes.trim()) || (char.features && char.features.trim()) ||
-        (char.appearance && char.appearance.trim()) || (char.magicItems && char.magicItems.trim());
   if (!any) return y;
 
   y = _pdfSection(doc, y, 'Заметки и описание');
@@ -633,31 +632,15 @@ function _pdfNotes(doc, y, char) {
   for (var i = 0; i < order.length; i++) {
     var k = order[i];
     var txt = (sections[k] && sections[k].trim()) || '';
-    // fallback на легаси-поля верхнего уровня
-    if (!txt) {
-      if (k === 'appearance' && char.appearance) txt = char.appearance;
-      else if (k === 'features' && char.features) txt = char.features;
-      else if (k === 'magicItems' && char.magicItems) txt = char.magicItems;
-      else if (k === 'backstory' && char.notes && !any) txt = char.notes;
-    }
-    if (!txt || !txt.trim()) continue;
+    if (!txt) continue;
     y = _pdfNeed(doc, y, 6);
     doc.setTextColor(60);
     doc.setFontSize(9);
     doc.text(labels[k] + ':', 17, y);
     doc.setTextColor(0);
     y += 4;
-    y = _pdfMultiline(doc, y, txt.trim(), { size: 9, x: 19, maxW: 176, lineH: 4.2 });
+    y = _pdfMultiline(doc, y, txt, { size: 9, x: 19, maxW: 176, lineH: 4.2 });
     y += 1;
-  }
-  // Старые свободные заметки в char.notes если notesV2 нет
-  if ((!sections.backstory || !sections.backstory.trim()) && char.notes && char.notes.trim()) {
-    y = _pdfNeed(doc, y, 6);
-    doc.setTextColor(60);
-    doc.text('Заметки:', 17, y);
-    doc.setTextColor(0);
-    y += 4;
-    y = _pdfMultiline(doc, y, char.notes.trim(), { size: 9, x: 19, maxW: 176, lineH: 4.2 });
   }
   return y;
 }
