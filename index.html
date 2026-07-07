@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v268">
+<link rel="stylesheet" href="style.css?v=v269">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -535,6 +535,14 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <option value="Нейтрально-злое">Нейтрально-злое</option>
 <option value="Хаотично-злое">Хаотично-злое</option>
 </select>
+</div>
+</div>
+<!-- FIN-10: Божество — свободный текст с подсказками из DEITIES_DATA (Приложение Б PHB). Не под basicLocked. -->
+<div class="row">
+<div class="col">
+<label>Божество</label>
+<input type="text" id="char-deity" class="field" list="deity-datalist" placeholder="Необязательно — например, Мистра" autocomplete="off" oninput="updateChar()">
+<datalist id="deity-datalist"></datalist>
 </div>
 </div>
 <div class="row">
@@ -1447,6 +1455,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <button class="help-tab" onclick="switchHelpSection('party',this)">🌍 Мир</button>
     <button class="help-tab" onclick="switchHelpSection('notes',this)">📝 Записи</button>
     <button class="help-tab" onclick="switchHelpSection('journal',this)">📖 Журнал</button>
+    <button class="help-tab" onclick="switchHelpSection('planes',this)">🌌 Планы</button>
     <button class="help-tab" onclick="switchHelpSection('dice',this)">🎲 Кубики</button>
     <button class="help-tab" onclick="switchHelpSection('data',this)">💾 Данные</button>
   </div>
@@ -1592,6 +1601,34 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="help-block">
         <div class="help-block-title">Дневник приключения</div>
         <p>Хронология событий и сессий: что произошло, какие решения приняты, к чему вернуться позже.</p>
+      </div>
+    </div>
+
+    <!-- 🌌 Планы существования (Приложение В PHB 2014) -->
+    <div id="help-planes" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">Что это</div>
+        <p>Вселенная D&amp;D — это множество миров и миллиарды измерений, называемых <b>планами существования</b>. Заклинания и магические предметы черпают из них силу, призывают их обитателей, а на высоких уровнях герои и сами отправляются в путешествия между планами.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Материальный План и его отражения</div>
+        <p>Ядро мультивселенной: здесь существуют все миры D&amp;D (Забытые Королевства, Серый Ястреб, Эберрон и другие) — отправная точка большинства кампаний. Его магию отражают два параллельных измерения: <b>Страна Фей</b> — земля рассеянного света, чудес и вечных сумерек, и <b>Царство Теней</b> — тёмный мир чёрного и белого, где из всего вытянуты цвета.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Переходные Планы</div>
+        <p><b>Эфирный План</b> — затянутое туманами измерение-«океан»; его берега (Пограничный Эфир) пересекаются с Материальным и Внутренними Планами. <b>Астральный План</b> — серебристое царство мыслей и грёз, через которое бестелесные души переходят к планам богов. Служат в основном для перехода с одного плана на другой (заклинания <i>эфирность</i>, <i>проекция в астрал</i>).</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Внутренние Планы</div>
+        <p>Сырая стихийная материя, из которой состоят миры. Четыре <b>Стихийных Плана</b> — Воздух, Вода, Земля и Огонь — образуют кольцо вокруг Материального Плана; на дальних границах они сливаются в бурю Стихийного Хаоса. Над всем висят <b>Положительный План</b> (источник жизненной силы) и его тёмное отражение — <b>Отрицательный План</b> (некротическая энергия, оживляющая нежить).</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Внешние Планы</div>
+        <p>Царства мысли и духа, где обитают боги. Больше всего известны шестнадцать планов, соответствующих мировоззрениям: <b>Верхние Планы</b> (добро — Гора Целестия, Арборея, Элизиум, дом ангелов и пегасов) и <b>Нижние Планы</b> (зло — Девять Преисподних, Бездна, Гадес, дом демонов и дьяволов). Мировоззрение плана пропитывает его целиком, и чужак с иным мировоззрением чувствует себя там неуютно.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Сигил, демипланы и Дальний Предел</div>
+        <p><b>Внешние Земли</b> — план нейтралитета, в центре которого парит <b>Сигил, Город Дверей</b>, с бессчётными порталами в другие миры. <b>Демипланы</b> — крошечные карманы реальности со своими правилами. <b>Дальний Предел</b> — чужеродная область за пределами известной мультивселенной, знание о которой опасно для рассудка.</p>
       </div>
     </div>
 
@@ -2767,37 +2804,37 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v268"></script>
-<script src="bg-orbits.js?v=v268"></script>
-<script src="dice-arena-bg.js?v=v268"></script>
-<script src="data.js?v=v268"></script>
+<script src="app-log.js?v=v269"></script>
+<script src="bg-orbits.js?v=v269"></script>
+<script src="dice-arena-bg.js?v=v269"></script>
+<script src="data.js?v=v269"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v268"></script>
+<script src="character-builds.js?v=v269"></script>
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v268"></script>
-<script src="spells.js?v=v268"></script>
-<script src="app-core.js?v=v268"></script>
-<script src="app-backup.js?v=v268"></script>
-<script src="app-combat.js?v=v268"></script>
-<script src="app-hp.js?v=v268"></script>
-<script src="app-spells.js?v=v268"></script>
-<script src="app-inventory.js?v=v268"></script>
+<script src="glossary-data.js?v=v269"></script>
+<script src="spells.js?v=v269"></script>
+<script src="app-core.js?v=v269"></script>
+<script src="app-backup.js?v=v269"></script>
+<script src="app-combat.js?v=v269"></script>
+<script src="app-hp.js?v=v269"></script>
+<script src="app-spells.js?v=v269"></script>
+<script src="app-inventory.js?v=v269"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v268"></script>
-<script src="class-choices.js?v=v268"></script>
-<script src="subclass-choices-data.js?v=v268"></script>
+<script src="app-party.js?v=v269"></script>
+<script src="class-choices.js?v=v269"></script>
+<script src="subclass-choices-data.js?v=v269"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v268";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v269";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v268"></script>
-<script src="app-notes.js?v=v268"></script>
-<script src="app-desktop.js?v=v268"></script>
-<script src="history-stack.js?v=v268"></script>
-<script src="app-help.js?v=v268"></script>
+<script src="app-ui.js?v=v269"></script>
+<script src="app-notes.js?v=v269"></script>
+<script src="app-desktop.js?v=v269"></script>
+<script src="history-stack.js?v=v269"></script>
+<script src="app-help.js?v=v269"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2810,9 +2847,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v268",
-    "vendor/jspdf/roboto-base64.js?v=v268",
-    "app-pdf.js?v=v268"
+    "vendor/jspdf/jspdf.umd.min.js?v=v269",
+    "vendor/jspdf/roboto-base64.js?v=v269",
+    "app-pdf.js?v=v269"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -2836,7 +2873,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v268").then(function () {
+    return loadScript("build-notes-data.js?v=v269").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -2844,19 +2881,19 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v268"),
-      loadScript("npc-srd.js?v=v268")
+      loadScript("monsters-srd.js?v=v269"),
+      loadScript("npc-srd.js?v=v269")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v268");
+    return loadScript("magic-items.js?v=v269");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v268");
+    return loadScript("gear-catalog.js?v=v269");
   };
   var stub = function (id, ev) {
     if (ev && ev.stopPropagation) ev.stopPropagation();

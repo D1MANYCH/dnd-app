@@ -252,6 +252,7 @@ async function _pdfHeader(doc, char, classRgb) {
   if (char.race) sub.push(char.race);
   if (char.background) sub.push(char.background);
   if (char.alignment) sub.push(char.alignment);
+  if (char.deity) sub.push(char.deity);
   doc.setFontSize(9.5);
   doc.setTextColor(240);
   if (sub.length) doc.text(sub.join(' · '), cx + r + 4, cy + 5);

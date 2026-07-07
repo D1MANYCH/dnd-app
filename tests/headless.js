@@ -2570,6 +2570,77 @@
     });
   }
 
+  // ────────── БЛОК 28 (FIN-10): божества (DEITIES_DATA) + поле char.deity ──────────
+  if (typeof DEITIES_DATA !== "undefined") {
+    t("[FIN-10] DEITIES_DATA: 61 запись = 37 Забытых Королевств + 24 нечеловеческих", function(){
+      if (!Array.isArray(DEITIES_DATA)) return "не массив";
+      var fr = DEITIES_DATA.filter(function(d){ return d.pantheon === "Забытые Королевства"; }).length;
+      var nh = DEITIES_DATA.filter(function(d){ return d.pantheon === "Нечеловеческие"; }).length;
+      if (DEITIES_DATA.length !== 61) return "длина " + DEITIES_DATA.length + " (ожидал 61)";
+      if (fr !== 37) return "Забытых Королевств " + fr + " (ожидал 37)";
+      if (nh !== 24) return "нечеловеческих " + nh + " (ожидал 24)";
+      return true;
+    });
+    t("[FIN-10] DEITIES_DATA: имена уникальны, name/title/domains/symbol непустые", function(){
+      var seen = {}, bad = [];
+      DEITIES_DATA.forEach(function(d){
+        if (!d.name || !d.title || !d.domains || !d.symbol) bad.push((d && d.name) || "?");
+        if (seen[d.name]) bad.push("дубль:" + d.name); seen[d.name] = 1;
+      });
+      return bad.length === 0 || "проблемы: " + bad.join(", ");
+    });
+    t("[FIN-10] DEITIES_DATA: alignment у всех ∈ DEITY_ALIGN_LABELS (расшифровка есть)", function(){
+      if (typeof DEITY_ALIGN_LABELS === "undefined") return "нет DEITY_ALIGN_LABELS";
+      var bad = DEITIES_DATA.filter(function(d){ return !d.alignment || !(d.alignment in DEITY_ALIGN_LABELS); });
+      return bad.length === 0 || "неизвестный код: " + bad.map(function(d){return d.name+"="+d.alignment;}).join(", ");
+    });
+    t("[FIN-10] DEITIES_DATA: якорные божества из книги на месте", function(){
+      var byName = {}; DEITIES_DATA.forEach(function(d){ byName[d.name] = d; });
+      var checks = [
+        ["Мистра", "НД", "Знание"],       // Забытые Королевства
+        ["Тир", "ЗД", "Война"],
+        ["Морадин", "ЗД", "Знание"],      // нечеловеческие
+        ["Лолс", "ХЗ", "Обман"],
+        ["Тиамат", "ЗЗ", "Обман"]
+      ];
+      for (var i = 0; i < checks.length; i++) {
+        var d = byName[checks[i][0]];
+        if (!d) return "нет " + checks[i][0];
+        if (d.alignment !== checks[i][1]) return checks[i][0] + " мировоззрение " + d.alignment + " (ожидал " + checks[i][1] + ")";
+        if (d.domains.indexOf(checks[i][2]) === -1) return checks[i][0] + " домены «" + d.domains + "» без «" + checks[i][2] + "»";
+      }
+      return true;
+    });
+  } else {
+    t("[FIN-10] DEITIES_DATA определён", function(){ return "не загружен"; });
+  }
+  // Бэкфилл char.deity: DEFAULT_CHARACTER.deity === "" + migrateCharacter достраивает старые сейвы
+  if (typeof DEFAULT_CHARACTER !== "undefined") {
+    t("[FIN-10] DEFAULT_CHARACTER.deity === '' (поле по умолчанию пустое)", function(){
+      return DEFAULT_CHARACTER.deity === "" || "получено " + JSON.stringify(DEFAULT_CHARACTER.deity);
+    });
+  }
+  if (typeof migrateCharacter === "function") {
+    t("[FIN-10] migrateCharacter: старый сейв без deity → char.deity === '' (без версионной миграции)", function(){
+      var c = migrateCharacter({ id: 91, class: "Жрец", level: 3 });   // deity отсутствует
+      if (c.deity !== "") return "deity = " + JSON.stringify(c.deity) + " (ожидал '')";
+      var c2 = migrateCharacter({ id: 92, class: "Паладин", level: 5, deity: "Тир" });  // не затирается
+      return c2.deity === "Тир" || "существующее значение затёрто: " + JSON.stringify(c2.deity);
+    });
+  }
+  // fs-тест: поле божества, datalist и раздел справки «Планы» присутствуют в index.html
+  if (typeof window !== "undefined" && typeof window.__indexHtmlSource === "string") {
+    t("[FIN-10] index.html: поле #char-deity + <datalist id=\"deity-datalist\"> + раздел #help-planes", function(){
+      var html = window.__indexHtmlSource;
+      var miss = [];
+      if (html.indexOf('id="char-deity"') === -1) miss.push("#char-deity");
+      if (html.indexOf('id="deity-datalist"') === -1) miss.push("deity-datalist");
+      if (html.indexOf('id="help-planes"') === -1) miss.push("#help-planes");
+      if (html.indexOf("switchHelpSection('planes'") === -1) miss.push("вкладка planes");
+      return miss.length === 0 || "нет: " + miss.join(", ");
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

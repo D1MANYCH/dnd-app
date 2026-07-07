@@ -45,6 +45,23 @@ function highlightMatch(text, query) {
   return safe.replace(rx, '<mark class="search-hl">$1</mark>');
 }
 
+/** FIN-10: заполняет datalist подсказок божеств из DEITIES_DATA.
+ *  Значение опции = имя божества (попадает в поле), текст-подсказка =
+ *  «титул · мировоззрение · рекомендуемые домены». Список статичен →
+ *  достаточно вызвать один раз при загрузке (app-core onload). */
+function renderDeityDatalist() {
+  var dl = document.getElementById("deity-datalist");
+  if (!dl || typeof DEITIES_DATA === "undefined") return;
+  var labels = (typeof DEITY_ALIGN_LABELS !== "undefined") ? DEITY_ALIGN_LABELS : {};
+  var html = "";
+  DEITIES_DATA.forEach(function(d) {
+    var al = labels[d.alignment] || d.alignment;
+    var hint = [d.title, al, d.domains].filter(Boolean).join(" · ");
+    html += '<option value="' + escapeHtml(d.name) + '">' + escapeHtml(hint) + '</option>';
+  });
+  dl.innerHTML = html;
+}
+
 // ============================================
 // АВАТАР ПЕРСОНАЖА
 // ============================================

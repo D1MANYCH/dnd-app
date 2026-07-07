@@ -1374,6 +1374,7 @@ if (!char.classes || char.classes.length === 0) {
 char.race = $("char-race")?.value || "";
 char.background = $("char-background")?.value || "";
 char.alignment = $("char-alignment")?.value || "";
+char.deity = $("char-deity")?.value || "";
 char.size = $("char-size")?.value || "Средний";
 char.speed = $("char-speed")?.value || "30 фт";
 char.combat.ac = parseInt($("combat-ac")?.value, 10) || 10;

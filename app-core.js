@@ -1031,6 +1031,7 @@ initConditions();
 initEffects();
 renderCharacterList();
 renderWeaponPresets();
+if (typeof renderDeityDatalist === "function") renderDeityDatalist();
 updateVersionBlock(false);
 initPersistentStorage();
 // DATA-2: авто-снапшот в IndexedDB (app-backup.js), не чаще 1 раза в день
@@ -3277,6 +3278,7 @@ safeSet("char-race", char.race);
 safeSet("char-background", char.background || "");
 if (typeof renderBuildBadge === "function") renderBuildBadge();
 safeSet("char-alignment", char.alignment || "");
+safeSet("char-deity", char.deity || "");
 safeSet("char-size", char.size || "Средний");
 safeSet("char-speed", char.speed || "30 фт");
 safeSet("val-str", char.stats.str);
