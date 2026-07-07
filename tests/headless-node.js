@@ -5,6 +5,13 @@
 // TEST-2: добавлен app-inventory.js — тесты слотов/веса/монет/мешочков (БЛОК 10).
 // TEST-3: добавлены app-spells.js + app-party.js (+ monsters-srd/npc-srd явно, т.к. в проде
 // они лениво через ensureBestiary, PERF-3) — тесты подготовки заклинаний и трекера боя (БЛОКИ 11–12).
+// FIN-12: добавлены app-log.js (первым, как в index.html — перехватывает console),
+// app-notes.js, history-stack.js, app-backup.js + history-шим ДО загрузки (history-stack
+// на загрузке зовёт history.pushState). Тесты — БЛОК 30 (AppLog / history-stack / notesV2 /
+// backup-smoke / quickRoll-edge / party-id). ВАЖНО: раннер синхронный (process.exit вызывается
+// до слива микротасков/таймеров), поэтому асинхронные проверки невозможны — backup покрыт
+// smoke'ом (константы/наличие/чистые хелперы + thenable без sync-throw на ветке «нет indexedDB»);
+// in-memory indexedDB-фейк намеренно НЕ добавлен (его результат нечем дождаться в sync-раннере).
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -12,6 +19,7 @@ const vm = require('vm');
 
 const root = path.join(__dirname, '..');
 const files = [
+  'app-log.js',              // FIN-12: window.AppLog — грузится ПЕРВЫМ (как в index.html), перехватывает console (БЛОК 30)
   'data.js',
   'gear-catalog.js',         // FIN-5: window.GEAR_CATALOG — в проде лениво (ensureGearCatalog), в тестах явно (БЛОК 24)
   'magic-items.js',          // FIN-8: window.MAGIC_ITEMS — в проде лениво (ensureMagicItems), в тестах явно (БЛОК 27, проверка charges)
@@ -29,6 +37,9 @@ const files = [
   'app-spells.js',           // TEST-3: подготовка заклинаний + ячейки/пакт (БЛОК 11)
   'app-party.js',            // TEST-3: отряд и трекер боя (БЛОК 12)
   'app-ui.js',               // UI6-1: настройки оформления — _getAutoAccent/CLASS_ACCENT_MAP/setAccent (БЛОК 13); позже layout/edition (БЛОК 14)
+  'app-notes.js',            // FIN-12: notesV2 — _mdToHtml/_notesReorderPinned/notesSaveEntryModal/notesExport* (БЛОК 30)
+  'history-stack.js',        // FIN-12: pushHistoryLayer/syncCloseLayer/getHistoryLayers (нужен history-шим ниже) (БЛОК 30)
+  'app-backup.js',           // FIN-12: авто-бэкап IndexedDB — smoke: константы/наличие/чистые хелперы (БЛОК 30)
   'tests/fixtures.js',
   'tests/headless.js',
 ];
@@ -142,6 +153,20 @@ const document = {
 };
 
 const navigator = { vibrate: () => {}, userAgent: 'node-headless', clipboard: { writeText: () => Promise.resolve() } };
+// FIN-12: history-шим. history-stack.js на загрузке зовёт history.pushState (в try/catch),
+// а syncCloseLayer — history.go(-n). Фейк с записью вызовов позволяет проверить, что
+// pushLayer→pushState и syncCloseLayer→go(-n) реально срабатывают (БЛОК 30).
+const history = {
+  _pushCount: 0,
+  _lastGo: null,
+  length: 1,
+  state: null,
+  pushState(s) { this.state = s; this._pushCount++; },
+  replaceState(s) { this.state = s; },
+  go(n) { this._lastGo = n; },
+  back() { this._lastGo = -1; },
+  forward() { this._lastGo = 1; },
+};
 // UI6-1: performance.now() нужен реальному animateCountUp (app-ui.js) — раньше был стабом.
 const performance = { now: () => Date.now() };
 const getComputedStyle = () => ({ overflowX: '', overflowY: '', getPropertyValue: () => '' });
@@ -151,6 +176,7 @@ const sandbox = {
   console,
   document,
   navigator,
+  history,
   localStorage,
   getComputedStyle,
   performance,

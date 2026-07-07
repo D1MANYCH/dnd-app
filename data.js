@@ -1851,7 +1851,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.41.1";
+const APP_VERSION = "3.41.2";
 const APP_VERSION_DATE = "2026-07-08";
 
 // ============================================================
@@ -2197,9 +2197,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.41.1",
+    version: "3.41.2",
     date: "8 июля 2026",
     badge: "new",
+    changes: [
+      { type: "chore", text: "тесты: покрытие headless непокрытых модулей — app-log (кольцевой буфер 600, newId, exportText, fmtTime), app-notes (markdown-парсер, реордер закреплённых, CRUD/экспорт заметок), history-stack (слои back-навигации), app-backup (smoke), quickRoll-edge, id участников боя; node 375→394" }
+    ]
+  },
+  {
+    version: "3.41.1",
+    date: "8 июля 2026",
+    badge: "old",
     changes: [
       { type: "fix", text: "чистка: подкласс «Мошенник» (внекнижный дубль) удалён с миграцией сейвов в «Мистический ловкач»; legacy-поля заметок (notes/features/appearance/magicItems) убраны из схемы — единый источник notesV2; диагностические логи дайса скрыты за флагом DND_DEBUG; удалена мёртвая функция getEffectIcon" }
     ]

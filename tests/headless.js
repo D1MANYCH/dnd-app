@@ -2731,6 +2731,264 @@
     });
   }
 
+  // ────────── БЛОК 30 (FIN-12): непокрытые модули — AppLog / history-stack / notesV2 / backup / quickRoll-edge / party ──────────
+  // Все под-блоки гардируются typeof — в минимальной среде (браузерный runner без app-log/
+  // app-notes/history-stack/app-backup) молча пропускаются. Раннер синхронный (process.exit
+  // до слива микротасков), поэтому backup — smoke, а onResult quickRoll тестируется через
+  // синхронную подмену animateDice3d.
+
+  // ── AppLog (app-log.js): кольцевой буфер MAX=600, newId, exportText, fmtTime ──
+  if (typeof window !== "undefined" && window.AppLog) {
+    t("[FIN-12][log] кольцевой буфер обрезается до MAX=600", function(){
+      AppLog.clear();                                  // сброс seq/буфера (оставляет запись «журнал очищен»)
+      for (var i = 0; i < 700; i++) AppLog.info("test", "e" + i);
+      var e = AppLog.entries();
+      if (e.length !== 600) return "ожидал 600, получено " + e.length;
+      if (e[e.length - 1].seq - e[0].seq !== 599) return "хвост буфера не непрерывен: " + e[0].seq + ".." + e[e.length - 1].seq;
+      return true;
+    });
+    t("[FIN-12][log] newId: уникальные инкрементные корреляц-ID с префиксом", function(){
+      var a = AppLog.newId("roll"), b = AppLog.newId("roll");
+      if (a === b) return "ID совпали: " + a;
+      if (a.indexOf("roll-") !== 0 || b.indexOf("roll-") !== 0) return "нет префикса: " + a + "/" + b;
+      return true;
+    });
+    t("[FIN-12][log] fmtTime: мс → «s.mmm» и «m:ss.mmm»", function(){
+      if (AppLog.fmtTime(1500) !== "1.500s") return "1500мс → " + AppLog.fmtTime(1500);
+      if (AppLog.fmtTime(65000) !== "1:05.000s") return "65000мс → " + AppLog.fmtTime(65000);
+      return true;
+    });
+    t("[FIN-12][log] exportText: шапка + счётчик записей = длине буфера", function(){
+      AppLog.clear();
+      AppLog.action("test", "одно действие");          // буфер = [«журнал очищен», «одно действие»]
+      var txt = AppLog.exportText();
+      if (txt.indexOf("=== DnD App Log ===") === -1) return "нет шапки";
+      if (txt.indexOf("entries: " + AppLog.entries().length) === -1) return "счётчик не совпал с буфером (" + AppLog.entries().length + ")";
+      return true;
+    });
+  }
+
+  // ── history-stack.js: pushLayer / syncCloseLayer + порядок закрытия слоёв ──
+  if (typeof pushHistoryLayer === "function" && typeof syncCloseLayer === "function" && typeof getHistoryLayers === "function") {
+    t("[FIN-12][hist] pushLayer добавляет слои по порядку + history.pushState на каждый", function(){
+      var base = getHistoryLayers().length;
+      var pc = (typeof history !== "undefined" && typeof history._pushCount === "number") ? history._pushCount : null;
+      pushHistoryLayer("A", function(){});
+      pushHistoryLayer("B", function(){});
+      pushHistoryLayer("C", function(){});
+      var L = getHistoryLayers();
+      if (L.length !== base + 3) return "слоёв: ожидал " + (base + 3) + ", получено " + L.length;
+      if (L[base].name !== "A" || L[base + 1].name !== "B" || L[base + 2].name !== "C") return "порядок слоёв нарушен";
+      if (pc !== null && history._pushCount !== pc + 3) return "pushState вызван не 3 раза (" + (history._pushCount - pc) + ")";
+      syncCloseLayer("A");                             // cleanup: снимет A и всё выше → база
+      return true;
+    });
+    t("[FIN-12][hist] syncCloseLayer(средний) снимает слой И все над ним + history.go(-n)", function(){
+      var base = getHistoryLayers().length;
+      pushHistoryLayer("X", function(){});
+      pushHistoryLayer("Y", function(){});
+      pushHistoryLayer("Z", function(){});
+      var ok = syncCloseLayer("Y");                    // закрыть средний Y → уходят Y и Z, остаётся X
+      if (ok !== true) return "syncCloseLayer вернул не true";
+      var L = getHistoryLayers();
+      if (L.length !== base + 1) return "после закрытия Y ожидал " + (base + 1) + " слоёв, получено " + L.length;
+      if (L[base].name !== "X") return "остаться должен X, получено " + L[base].name;
+      if (typeof history !== "undefined" && history._lastGo !== -2) return "history.go: ожидал -2 (сняты Y,Z), получено " + history._lastGo;
+      if (syncCloseLayer("нет-такого") !== false) return "закрытие несуществующего слоя должно вернуть false";
+      syncCloseLayer("X");                             // cleanup → база
+      return true;
+    });
+  }
+
+  // ── app-notes.js: Markdown-парсер, реордер закреплённых, CRUD entry, экспорт ──
+  if (typeof _mdToHtml === "function") {
+    t("[FIN-12][notes] _mdToHtml: пусто / заголовок / список / жирный", function(){
+      if (_mdToHtml("").indexOf("notes-md-empty") === -1) return "пустой ввод → нет плейсхолдера";
+      if (_mdToHtml("# Заголовок").indexOf("<h2>Заголовок</h2>") === -1) return "заголовок H1→h2: " + _mdToHtml("# Заголовок");
+      var ul = _mdToHtml("- один\n- два");
+      if (ul.indexOf("<ul>") === -1 || ul.indexOf("<li>один</li>") === -1 || ul.indexOf("<li>два</li>") === -1) return "список: " + ul;
+      if (_mdToHtml("**жирный**").indexOf("<strong>жирный</strong>") === -1) return "жирный: " + _mdToHtml("**жирный**");
+      return true;
+    });
+    t("[FIN-12][notes] _mdToHtml: ссылки — http/# разрешены, прочие схемы → '#'", function(){
+      if (_mdToHtml("[дом](https://a.b)").indexOf('href="https://a.b"') === -1) return "https не сохранён";
+      var bad = _mdToHtml("[клик](javascript:alert)");
+      if (bad.indexOf('href="#"') === -1) return "опасная схема не заменена на #: " + bad;
+      if (bad.indexOf("javascript:") !== -1) return "javascript: просочился в href";
+      return true;
+    });
+    t("[FIN-12][notes] _notesReorderPinned: перенос закреплённой карточки переставляет pinOrder", function(){
+      if (typeof _notesReorderPinned !== "function") return true;
+      var savedChars = window.characters, savedId = window.currentId, savedTab = _notesState.currentTab;
+      try {
+        window.characters = [{ id: "fn-notes-1", notesV2: { sections: {}, prefs: {}, entries: [
+          { id: "p1", type: "npc", pinned: true, pinOrder: 0, updatedAt: 1, title: "A", body: "" },
+          { id: "p2", type: "npc", pinned: true, pinOrder: 1, updatedAt: 2, title: "B", body: "" },
+          { id: "p3", type: "npc", pinned: true, pinOrder: 2, updatedAt: 3, title: "C", body: "" }
+        ] } }];
+        window.currentId = "fn-notes-1";
+        _notesState.currentTab = "npc";
+        _notesReorderPinned("p1", "p3");               // p1 → на место p3: порядок станет [p2,p3,p1]
+        var byId = {}; window.characters[0].notesV2.entries.forEach(function(e){ byId[e.id] = e; });
+        if (byId.p2.pinOrder !== 0 || byId.p3.pinOrder !== 1 || byId.p1.pinOrder !== 2)
+          return "pinOrder после переноса: p2=" + byId.p2.pinOrder + " p3=" + byId.p3.pinOrder + " p1=" + byId.p1.pinOrder;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; _notesState.currentTab = savedTab; }
+    });
+    t("[FIN-12][notes] notesSaveEntryModal: создание новой + редактирование существующей", function(){
+      if (typeof notesSaveEntryModal !== "function") return true;
+      var savedChars = window.characters, savedId = window.currentId, savedTab = _notesState.currentTab;
+      var savedMid = (typeof _notesModalEntryId !== "undefined") ? _notesModalEntryId : null;
+      var savedTags = (typeof _notesModalTags !== "undefined") ? _notesModalTags : [];
+      try {
+        window.characters = [{ id: "fn-notes-2", name: "Тест", notesV2: { sections: {}, prefs: {}, entries: [] } }];
+        window.currentId = "fn-notes-2";
+        _notesState.currentTab = "npc";
+        // — создание —
+        document.getElementById("nem-title").value = "Гоблин Гриз";
+        document.getElementById("nem-body").value = "Злобный вожак";
+        document.getElementById("nem-type").value = "npc";
+        document.getElementById("nem-pinned").checked = false;
+        _notesModalEntryId = null;
+        _notesModalTags = ["враг"];
+        notesSaveEntryModal();
+        var ents = window.characters[0].notesV2.entries;
+        if (ents.length !== 1) return "после создания ожидал 1 запись, получено " + ents.length;
+        var e = ents[0];
+        if (e.title !== "Гоблин Гриз" || e.body !== "Злобный вожак" || e.type !== "npc") return "поля новой записи: " + JSON.stringify({ t: e.title, b: e.body, ty: e.type });
+        if (!e.id) return "у новой записи нет id";
+        if ((e.tags || []).join(",") !== "враг") return "теги новой записи: " + JSON.stringify(e.tags);
+        // — редактирование той же записи —
+        document.getElementById("nem-title").value = "Гоблин Гроз";
+        document.getElementById("nem-pinned").checked = true;
+        _notesModalEntryId = e.id;
+        _notesModalTags = ["враг", "босс"];
+        notesSaveEntryModal();
+        if (window.characters[0].notesV2.entries.length !== 1) return "редактирование создало дубль";
+        var e2 = window.characters[0].notesV2.entries[0];
+        if (e2.title !== "Гоблин Гроз") return "заголовок не обновлён: " + e2.title;
+        if (e2.pinned !== true) return "pinned не обновлён";
+        if ((e2.tags || []).join(",") !== "враг,босс") return "теги не обновлены: " + JSON.stringify(e2.tags);
+        return true;
+      } finally {
+        window.characters = savedChars; window.currentId = savedId; _notesState.currentTab = savedTab;
+        if (typeof _notesModalEntryId !== "undefined") _notesModalEntryId = savedMid;
+        if (typeof _notesModalTags !== "undefined") _notesModalTags = savedTags;
+      }
+    });
+    t("[FIN-12][notes] notesExportMd/Json: контент секций и записей + расширение файла", function(){
+      if (typeof notesExportMd !== "function" || typeof notesExportJson !== "function" || typeof _notesTriggerDownload !== "function") return true;
+      var savedChars = window.characters, savedId = window.currentId;
+      var origDl = _notesTriggerDownload;                // Blob/URL нет в sandbox — перехватываем вывод
+      var cap = null;
+      try {
+        window.characters = [{ id: "fn-notes-3", name: "Арагорн", notesV2: {
+          sections: { backstory: "Родился в глуши" },
+          entries: [{ id: "n1", type: "npc", title: "Голлум", body: "преследователь", tags: [], pinned: false }],
+          prefs: {}
+        } }];
+        window.currentId = "fn-notes-3";
+        _notesTriggerDownload = function(content, filename, mime){ cap = { content: content, filename: filename, mime: mime }; };
+        notesExportMd();
+        if (!cap) return "notesExportMd не вызвал загрузку";
+        if (cap.content.indexOf("# Записи: Арагорн") === -1) return "MD: нет заголовка с именем";
+        if (cap.content.indexOf("Родился в глуши") === -1) return "MD: нет текста секции";
+        if (cap.content.indexOf("Голлум") === -1) return "MD: нет записи NPC";
+        if (!/\.md$/.test(cap.filename)) return "MD: расширение файла: " + cap.filename;
+        cap = null;
+        notesExportJson();
+        if (!cap) return "notesExportJson не вызвал загрузку";
+        var parsed = JSON.parse(cap.content);
+        if (!parsed.notesV2 || parsed.notesV2.sections.backstory !== "Родился в глуши") return "JSON: секция не сериализована";
+        if (!/\.json$/.test(cap.filename)) return "JSON: расширение файла: " + cap.filename;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; _notesTriggerDownload = origDl; }
+    });
+  }
+
+  // ── app-backup.js: smoke (async IndexedDB нечем дождаться в sync-раннере) ──
+  if (typeof createBackupSnapshot === "function") {
+    t("[FIN-12][backup] константы BACKUP_KEEP=7 + метки причин", function(){
+      if (typeof BACKUP_KEEP === "undefined" || BACKUP_KEEP !== 7) return "BACKUP_KEEP: " + (typeof BACKUP_KEEP !== "undefined" ? BACKUP_KEEP : "undef");
+      var miss = ["auto", "pre-import", "pre-restore", "manual"].filter(function(k){ return !BACKUP_REASON_LABELS[k]; });
+      return miss.length === 0 || "нет меток причин: " + miss.join(",");
+    });
+    t("[FIN-12][backup] публичный API определён", function(){
+      var fns = ["listBackupSnapshots", "restoreBackupSnapshot", "initAutoBackup", "createBackupNow", "_backupOpenDb", "_backupFmtDate"];
+      var missing = fns.filter(function(n){ return typeof window[n] !== "function"; });
+      return missing.length === 0 || "нет функций: " + missing.join(",");
+    });
+    t("[FIN-12][backup] _backupFmtDate возвращает непустую строку", function(){
+      var s = _backupFmtDate(Date.now());
+      return (typeof s === "string" && s.length > 0) || "получено: " + JSON.stringify(s);
+    });
+    t("[FIN-12][backup] createBackupSnapshot: thenable без sync-throw (пусто и с данными)", function(){
+      var savedChars = window.characters, savedHist = window.hpHistory;
+      try {
+        window.characters = []; window.hpHistory = [];  // пусто → Promise.resolve(null), БД не трогается
+        var pEmpty = createBackupSnapshot("manual");
+        if (!pEmpty || typeof pEmpty.then !== "function") return "пустое: не thenable";
+        pEmpty.then(function(){}, function(){});         // подавляем возможный unhandled
+        // с персонажем → _backupOpenDb → indexedDB нет → reject (ветка «нет indexedDB»)
+        window.characters = [migrateCharacter({ id: 1, name: "Б", class: "Бард", level: 1 })];
+        var pData = createBackupSnapshot("manual");
+        if (!pData || typeof pData.then !== "function") return "с данными: не thenable";
+        pData.then(function(){}, function(){});          // ожидаемый reject, подавляем
+        return true;
+      } finally { window.characters = savedChars; window.hpHistory = savedHist; }
+    });
+  }
+
+  // ── quickRoll edge-cases (app-ui.js): дополнение к БЛОК 19 ──
+  if (typeof _quickRollCompute === "function") {
+    t("[FIN-12][UX-5] отрицательный итог НЕ клампится (штраф больше броска)", function(){
+      var c = _quickRollCompute(20, -25, 'normal', 3, null);
+      return c.total === -22 || "ожидал -22, получено " + c.total;
+    });
+    t("[FIN-12][UX-5] d100: крит/провал не выставляются, итог = бросок + мод", function(){
+      var c = _quickRollCompute(100, 5, 'normal', 87, null);
+      return (c.natural === 87 && c.total === 92 && c.isCrit === false && c.isFail === false) || JSON.stringify(c);
+    });
+  }
+  // onResult (FIN-7): quickRoll зовёт opts.onResult(comp) после записи в историю.
+  // animateDice3d подменяем синхронным стабом (иначе бросок асинхронен — раннер его не дождётся).
+  if (typeof quickRoll === "function" && typeof animateDice3d === "function") {
+    t("[FIN-12][UX-5] quickRoll прокидывает результат в opts.onResult(comp)", function(){
+      var origA3d = animateDice3d, savedHist = window.diceHistory, got = null;
+      try {
+        if (!Array.isArray(window.diceHistory)) window.diceHistory = [];
+        animateDice3d = function(sides, result, cb){ try { cb(result); } catch(e){} };  // синхронно отдаём precomputed
+        quickRoll({ label: "Проверка", sides: 20, mod: 4, mode: 'normal', openArena: false,
+          onResult: function(comp){ got = comp; } });
+        if (!got) return "onResult не вызван";
+        if (typeof got.total !== "number" || got.total !== got.natural + 4) return "comp.total ≠ natural+mod: " + JSON.stringify(got);
+        if (got.natural < 1 || got.natural > 20) return "natural вне 1..20: " + got.natural;
+        return true;
+      } finally { animateDice3d = origA3d; window.diceHistory = savedHist; }
+    });
+  }
+
+  // ── party (app-party.js): уникальность id участников при коллизии числовых id (дополнение к БЛОК 12) ──
+  if (typeof buildBattleSetupList === "function") {
+    t("[FIN-12][party] buildBattleSetupList: id уникальны при совпадении числовых id в разных категориях", function(){
+      var savedChars = window.characters, savedId = window.currentId, savedParty = PARTY_DATA, savedSetup = battleSetupList;
+      try {
+        window.characters = [{ id: "pu1", name: "Герой", combat: { hpCurrent: 10, hpMax: 10 } }];
+        window.currentId = "pu1";
+        PARTY_DATA = { allies: [{ id: 1, name: "A" }], npcs: [{ id: 1, name: "N" }], monsters: [{ id: 1, name: "M" }] };
+        battleSetupList = [];
+        buildBattleSetupList();
+        var ids = battleSetupList.map(function(p){ return p.id; });
+        if (ids.length !== 4) return "ожидал 4 участника, получено " + ids.length;
+        var uniq = {}; ids.forEach(function(x){ uniq[x] = 1; });
+        if (Object.keys(uniq).length !== 4) return "id не уникальны: " + ids.join(",");
+        if (ids.indexOf("self_pu1") === -1 || ids.indexOf("ally_1") === -1 || ids.indexOf("npc_1") === -1 || ids.indexOf("mon_1") === -1)
+          return "ожидаемые id отсутствуют: " + ids.join(",");
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; PARTY_DATA = savedParty; battleSetupList = savedSetup; }
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
