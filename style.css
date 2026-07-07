@@ -4014,6 +4014,20 @@ transition: all 0.18s;
 .rarity-very_rare { color: #9b59b6; }
 .rarity-legendary { color: #e0972e; }
 .rarity-artifact  { color: #c0563a; }
+/* FIN-5: секция готовых наборов снаряжения в пикере */
+.gear-packs-section { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
+.gear-packs-label { font-size: 0.82em; color: var(--text-muted); margin-bottom: 8px; }
+.gear-packs-list { display: flex; flex-wrap: wrap; gap: 6px; }
+/* чип-кнопка набора: перебиваем глобальный button{width:100%} (ловушка FIN-2) */
+.gear-pack-btn {
+  width: auto; flex: 0 0 auto; cursor: pointer;
+  background: var(--input-bg); border: 1px solid var(--border-color);
+  border-radius: 999px; padding: 6px 12px; font-size: 0.82em; font-weight: 600;
+  color: var(--text-color); transition: border-color .12s, background .12s;
+}
+.gear-pack-btn:hover { border-color: var(--accent); background: var(--bg-3, var(--input-bg)); }
+.gci-cat { font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; color: var(--text-muted); }
+.gci-cost { font-size: 0.78em; color: var(--text-muted); margin-top: 2px; }
 
 .inv-exch-open-btn {
   background: var(--input-bg) !important;

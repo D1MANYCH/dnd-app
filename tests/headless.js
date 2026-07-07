@@ -2265,6 +2265,81 @@
     }
   }
 
+  // ────────── БЛОК 24 (FIN-5): снаряжение — каталог товаров + наборы PHB ──────────
+  // GEAR_PACKS в data.js (грузится всегда). GEAR_CATALOG лениво (gear-catalog.js) —
+  // в node-раннере подключён явно, в браузерном runner.html отсутствует → часть тестов пропускается.
+  if (typeof GEAR_PACKS !== "undefined" || (typeof window !== "undefined" && window.GEAR_PACKS)) {
+    var _PACKS_T = (typeof GEAR_PACKS !== "undefined") ? GEAR_PACKS : window.GEAR_PACKS;
+    t("[FIN-5] GEAR_PACKS: 7 канонических наборов PHB присутствуют", function(){
+      var need = ["набор путешественника","набор подземелий","набор учёного","набор священника","набор артиста","набор дипломата","набор взломщика"];
+      var miss = need.filter(function(k){ return !Array.isArray(_PACKS_T[k]) || !_PACKS_T[k].length; });
+      return miss.length === 0 || "нет наборов: " + miss.join(",");
+    });
+    t("[FIN-5] GEAR_PACKS: каждая запись набора — массив длины 6 [name,qty,weight,slots,location,desc]", function(){
+      var bad = [];
+      Object.keys(_PACKS_T).forEach(function(k){
+        (_PACKS_T[k] || []).forEach(function(p, i){
+          if (!Array.isArray(p) || p.length !== 6) { bad.push(k + "[" + i + "]:len=" + (Array.isArray(p) ? p.length : "не массив")); return; }
+          if (typeof p[0] !== "string" || !p[0]) bad.push(k + "[" + i + "]:name");
+          else if (typeof p[1] !== "number") bad.push(k + "[" + i + "]:qty");
+          else if (typeof p[2] !== "number") bad.push(k + "[" + i + "]:weight");
+          else if (typeof p[3] !== "number") bad.push(k + "[" + i + "]:slots");
+          else if (typeof p[4] !== "string") bad.push(k + "[" + i + "]:location");
+          else if (typeof p[5] !== "string") bad.push(k + "[" + i + "]:desc");
+        });
+      });
+      return bad.length === 0 || "битые записи: " + bad.slice(0, 6).join("; ");
+    });
+  }
+  if (typeof GEAR_CATALOG !== "undefined") {
+    var _WHITE = (typeof ITEM_ICONS !== "undefined") ? Object.keys(ITEM_ICONS) : ["weapon","armor","potion","scroll","tool","material","other"];
+    t("[FIN-5] GEAR_CATALOG: 50–60 позиций, id уникальны", function(){
+      if (GEAR_CATALOG.length < 50 || GEAR_CATALOG.length > 60) return "позиций " + GEAR_CATALOG.length + " (ожидал 50–60)";
+      var seen = {}, dup = [];
+      GEAR_CATALOG.forEach(function(g){ if (seen[g.id]) dup.push(g.id); seen[g.id] = true; });
+      return dup.length === 0 || "дубли id: " + dup.join(",");
+    });
+    t("[FIN-5] GEAR_CATALOG: cat ∈ ITEM_ICONS, cost непустая строка, weight/slots числа ≥0", function(){
+      var bad = [];
+      GEAR_CATALOG.forEach(function(g){
+        if (!g.name) bad.push("(без имени)");
+        else if (_WHITE.indexOf(g.cat) === -1) bad.push(g.name + ":cat=" + g.cat);
+        else if (typeof g.cost !== "string" || !g.cost) bad.push(g.name + ":cost");
+        else if (typeof g.weight !== "number" || g.weight < 0) bad.push(g.name + ":weight");
+        else if (typeof g.slots !== "number" || g.slots < 0) bad.push(g.name + ":slots");
+        else if (!g.desc) bad.push(g.name + ":desc");
+      });
+      return bad.length === 0 || "битые: " + bad.slice(0, 8).join(",");
+    });
+    t("[FIN-5] GEAR_CATALOG: боеприпасы и фокусировки на месте (стрелы/болты/мешочек с компонентами)", function(){
+      var byId = {}; GEAR_CATALOG.forEach(function(g){ byId[g.id] = g; });
+      var need = ["arrows","bolts","component-pouch","holy-symbol"];
+      var miss = need.filter(function(id){ return !byId[id]; });
+      return miss.length === 0 || "нет: " + miss.join(",");
+    });
+  }
+  // Интеграция: applyBuild разворачивает пак-строку startingEquipment в inventory.other.
+  // (билд fighter-champion-gwm имеет «Набор путешественника».) loadCharacter в DOM-шиме
+  // может бросить ПОСЛЕ characters.push — персонаж уже в массиве, ловим и инспектируем.
+  if (typeof applyBuild === "function" && typeof getBuildById === "function" &&
+      typeof characters !== "undefined" && (typeof GEAR_PACKS !== "undefined" || (typeof window !== "undefined" && window.GEAR_PACKS))) {
+    t("[FIN-5] applyBuild разворачивает «Набор путешественника» в inventory.other", function(){
+      if (!getBuildById("fighter-champion-gwm")) return "билд-фикстура fighter-champion-gwm недоступен";
+      try { applyBuild("fighter-champion-gwm"); } catch (e) { /* побочка loadCharacter в шиме — ок */ }
+      var ch = null;
+      for (var i = characters.length - 1; i >= 0; i--) { if (characters[i].buildId === "fighter-champion-gwm") { ch = characters[i]; break; } }
+      if (!ch) return "персонаж не создан applyBuild";
+      var other = (ch.inventory && ch.inventory.other) || [];
+      var pack = ((typeof GEAR_PACKS !== "undefined") ? GEAR_PACKS : window.GEAR_PACKS)["набор путешественника"] || [];
+      var names = other.map(function(x){ return x.name; });
+      var miss = pack.filter(function(p){ return names.indexOf(p[0]) === -1; }).map(function(p){ return p[0]; });
+      if (miss.length) return "в inventory.other нет из набора: " + miss.join(",");
+      var rukzak = other.filter(function(x){ return x.name === "Рюкзак"; })[0];
+      if (!rukzak || rukzak.location !== "worn") return "Рюкзак развёрнут без location:worn";
+      return true;
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

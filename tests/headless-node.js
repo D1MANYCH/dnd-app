@@ -13,6 +13,7 @@ const vm = require('vm');
 const root = path.join(__dirname, '..');
 const files = [
   'data.js',
+  'gear-catalog.js',         // FIN-5: window.GEAR_CATALOG — в проде лениво (ensureGearCatalog), в тестах явно (БЛОК 24)
   'character-builds.js',     // BUILD-LVL-7: CHARACTER_BUILDS/getBuildById для тестов данных levelUp
   'glossary-data.js',        // UX-4: window.GLOSSARY для тестов glossarizeHtml (БЛОК 18)
   'spells.js',               // BUILD-LVL-7: SPELLS_BASE → app-core строит SPELL_DATABASE (резолв заклинаний билдов)

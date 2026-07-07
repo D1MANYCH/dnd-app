@@ -477,6 +477,115 @@ function fillFromMagicItem(id) {
   if (typeof showToast === "function") showToast("Выбрано: " + it.name + " — проверьте и сохраните", "success");
 }
 
+// FIN-5: пикер обычного снаряжения (gear-catalog.js, грузится лениво) + наборы PHB.
+// Наборы (GEAR_PACKS) живут в data.js — доступны сразу, без ленивой загрузки.
+var GEAR_CAT_LABELS = { other:"Прочее", tool:"Инструмент", material:"Материал/фокус", potion:"Зелье", weapon:"Оружие", armor:"Броня", scroll:"Свиток" };
+// 7 канонических наборов PHB — короткое имя для чипа → точный ключ GEAR_PACKS.
+// (ключ "набор исследователя" в UI не показываем — это дубль "набор подземелий";
+//  он остаётся в GEAR_PACKS для матчинга startingEquipment старых билдов.)
+var GEAR_PACK_DISPLAY = [
+  { key:"набор путешественника", name:"Путешественника" },
+  { key:"набор подземелий",      name:"Исследователя подземелий" },
+  { key:"набор учёного",         name:"Учёного" },
+  { key:"набор священника",      name:"Священника" },
+  { key:"набор артиста",         name:"Артиста" },
+  { key:"набор дипломата",       name:"Дипломата" },
+  { key:"набор взломщика",       name:"Взломщика" }
+];
+
+function openGearCatalog() {
+  if (typeof showToast === "function") showToast("Загружаем каталог…", "info");
+  var ensure = (typeof window.ensureGearCatalog === "function") ? window.ensureGearCatalog() : Promise.resolve();
+  ensure.then(function () {
+    var modal = document.getElementById("gear-catalog-modal");
+    if (modal) modal.classList.add("active");
+    var s = document.getElementById("gear-catalog-search"); if (s) s.value = "";
+    var c = document.getElementById("gear-catalog-cat"); if (c) c.value = "";
+    renderGearPacks();
+    renderGearCatalog();
+    if (s) s.focus();
+  }).catch(function (e) {
+    if (window.__catchLog) window.__catchLog("gear-catalog:load", e);
+    if (typeof showToast === "function") showToast("Не удалось загрузить каталог: " + (e && e.message ? e.message : e), "error");
+  });
+}
+function closeGearCatalog() {
+  var modal = document.getElementById("gear-catalog-modal");
+  if (modal) modal.classList.remove("active");
+}
+function renderGearPacks() {
+  var el = document.getElementById("gear-packs-list");
+  if (!el) return;
+  var PACKS = window.GEAR_PACKS || {};
+  el.innerHTML = GEAR_PACK_DISPLAY.filter(function (p) { return PACKS[p.key]; }).map(function (p) {
+    var n = PACKS[p.key].length;
+    return '<button type="button" class="gear-pack-btn" onclick="addPackToInventory(\'' + p.key + '\')">🎒 ' +
+      escapeHtml(p.name) + ' <span style="opacity:.6">(' + n + ')</span></button>';
+  }).join("");
+}
+function renderGearCatalog() {
+  var items = window.GEAR_CATALOG || [];
+  var q = ((document.getElementById("gear-catalog-search") || {}).value || "").toLowerCase().trim();
+  var fc = (document.getElementById("gear-catalog-cat") || {}).value || "";
+  var filtered = items.filter(function (it) {
+    if (fc && it.cat !== fc) return false;
+    if (q && it.name.toLowerCase().indexOf(q) === -1 && (it.desc || "").toLowerCase().indexOf(q) === -1) return false;
+    return true;
+  });
+  filtered.sort(function (a, b) { return a.name.localeCompare(b.name, "ru"); });
+  var countEl = document.getElementById("gear-catalog-count");
+  if (countEl) countEl.textContent = "Найдено: " + filtered.length + " из " + items.length;
+  var listEl = document.getElementById("gear-catalog-list");
+  if (!listEl) return;
+  if (!filtered.length) { listEl.innerHTML = '<div class="magic-catalog-empty">Ничего не найдено</div>'; return; }
+  listEl.innerHTML = filtered.map(function (it) {
+    var icon = (typeof ITEM_ICONS !== "undefined" && ITEM_ICONS[it.cat]) ? ITEM_ICONS[it.cat] : "🎒";
+    return '<button type="button" class="magic-catalog-item" onclick="fillFromGearItem(\'' + it.id + '\')">' +
+      '<div class="mci-top"><span class="mci-name">' + icon + ' ' + escapeHtml(it.name) + '</span>' +
+      '<span class="gci-cat">' + escapeHtml(GEAR_CAT_LABELS[it.cat] || it.cat) + '</span></div>' +
+      '<div class="gci-cost">' + escapeHtml(it.cost || '') + ' · ' + (it.weight || 0) + ' фнт</div>' +
+      '<div class="mci-desc">' + escapeHtml(it.desc || '') + '</div>' +
+      '</button>';
+  }).join("");
+}
+function fillFromGearItem(id) {
+  var items = window.GEAR_CATALOG || [];
+  var it = null;
+  for (var i = 0; i < items.length; i++) { if (items[i].id === id) { it = items[i]; break; } }
+  if (!it) return;
+  var nameEl = document.getElementById("new-item-name");
+  var wEl = document.getElementById("new-item-weight");
+  var sEl = document.getElementById("new-item-slots");
+  var cEl = document.getElementById("new-item-category");
+  var dEl = document.getElementById("new-item-desc");
+  if (nameEl) nameEl.value = it.name;
+  if (wEl) wEl.value = (typeof it.weight === "number") ? it.weight : 0;
+  if (sEl && typeof it.slots === "number") sEl.value = it.slots;
+  if (cEl) cEl.value = (typeof ITEM_ICONS !== "undefined" && ITEM_ICONS[it.cat]) ? it.cat : "other";
+  if (dEl) dEl.value = (it.desc || "") + (it.cost ? "\n(Цена: " + it.cost + ")" : "");
+  closeGearCatalog();
+  if (typeof showToast === "function") showToast("Выбрано: " + it.name + " — проверьте и сохраните", "success");
+}
+// Развернуть набор GEAR_PACKS в char.inventory.other (6-элементная структура записи).
+function addPackToInventory(key) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var PACKS = window.GEAR_PACKS || {};
+  var pack = PACKS[key];
+  if (!pack || !pack.length) { if (typeof showToast === "function") showToast("Набор не найден", "warn"); return; }
+  if (!char.inventory.other) char.inventory.other = [];
+  pack.forEach(function (p) {
+    char.inventory.other.push({ name: p[0], qty: p[1], weight: p[2], slots: p[3], location: p[4], desc: p[5] });
+  });
+  var disp = key;
+  for (var i = 0; i < GEAR_PACK_DISPLAY.length; i++) { if (GEAR_PACK_DISPLAY[i].key === key) { disp = GEAR_PACK_DISPLAY[i].name; break; } }
+  if (window.AppLog) AppLog.action("inventory", "набор добавлен: " + key, { items: pack.length });
+  saveToLocal();
+  renderInventory();
+  if (typeof showToast === "function") showToast("Набор «" + disp + "» добавлен (" + pack.length + " предм.)", "success");
+}
+
 function viewItem(category, index) {
 if (!currentId) return;
 const char = getCurrentChar();
