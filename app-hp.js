@@ -1260,6 +1260,25 @@ updateStatusBar();
 syncSelfBattleStatus();
 }
 
+// FIN-7: чистые параметры спасброска концентрации (PHB стр.203–204).
+// СЛ = max(10, урон/2 округл. вниз); модификатор = ТЕЛ-мод (+ мастерство при
+// владении спасом ТЕЛ); черта «Боевой маг» (war_caster) даёт преимущество.
+// Выделено в window-функцию для юнит-тестов (БЛОК 26).
+function concSaveParams(char, dmg) {
+  char = char || {};
+  var stats = char.stats || {};
+  var mod = (typeof getMod === "function") ? getMod(stats.con) : 0;
+  if (char.saves && char.saves.con && typeof getProficiencyBonus === "function") {
+    mod += getProficiencyBonus(char.level || 1);
+  }
+  var mode = "normal";
+  if (Array.isArray(char.feats) && char.feats.some(function(f){ return f && f.id === "war_caster"; })) {
+    mode = "adv";
+  }
+  return { dc: Math.max(10, Math.floor((Math.abs(dmg) || 0) / 2)), mod: mod, mode: mode };
+}
+window.concSaveParams = concSaveParams;
+
 // ============================================
 // БЫСТРОЕ ИЗМЕНЕНИЕ ХП
 // ============================================
@@ -1295,26 +1314,40 @@ if (actualDelta !== 0) {
 addHPHistory(hpBefore, hpCurrent, actualDelta, source || (delta < 0 ? "Урон" : "Лечение"));
 showHPToast(actualDelta);
 }
-// Спасбросок концентрации при уроне (PHB: DC = max(10, урон/2))
+// FIN-7: спасбросок концентрации при уроне (PHB: СЛ = max(10, урон/2)).
+// 0 ХП — авто-срыв без броска (оставлено). Иначе — модалка подтверждения →
+// настоящий 3D-бросок через quickRoll с колбэком onResult (без скрытого Math.random).
 if (delta < 0 && char.concentration) {
-  var absDmg = Math.abs(delta);
+  var _concDmg = Math.abs(delta);
   if (hpCurrent <= 0) {
     endConcentration();
     showToast("💔 Концентрация потеряна — 0 ХП!", "error");
-  } else {
-    var concDC = Math.max(10, Math.floor(absDmg / 2));
-    var conSaveMod = getMod(char.stats.con);
-    var profBonus = getProficiencyBonus(char.level || 1);
-    if (char.saves && char.saves.con) conSaveMod += profBonus;
-    var concRoll = Math.floor(Math.random() * 20) + 1;
-    var concTotal = concRoll + conSaveMod;
-    var concSuccess = concTotal >= concDC;
-    if (concSuccess) {
-      showToast("🔮 Концентрация: спасбросок ТЕЛ " + concRoll + "+" + conSaveMod + "=" + concTotal + " vs DC " + concDC + " — Успех!", "success");
-    } else {
-      endConcentration();
-      showToast("💔 Концентрация потеряна! ТЕЛ " + concRoll + "+" + conSaveMod + "=" + concTotal + " vs DC " + concDC + " — Провал", "error");
-    }
+  } else if (typeof showConfirmModal === "function" && typeof quickRoll === "function") {
+    var _cp = concSaveParams(char, _concDmg);
+    var _concSpell = char.concentration;
+    if (window.AppLog) AppLog.action("combat", "урон " + _concDmg + " → спасбросок концентрации «" + _concSpell + "» СЛ " + _cp.dc);
+    showConfirmModal(
+      "Концентрация под угрозой",
+      "«" + _concSpell + "»: спасбросок ТЕЛ, СЛ " + _cp.dc + (_cp.mode === "adv" ? " (с преимуществом)" : ""),
+      function() {
+        quickRoll({
+          label: "Концентрация СЛ " + _cp.dc,
+          sides: 20,
+          mod: _cp.mod,
+          mode: _cp.mode,
+          onResult: function(comp) {
+            if (comp.total < _cp.dc) {
+              endConcentration();
+              showToast("💔 Концентрация «" + _concSpell + "» потеряна! " + comp.total + " < СЛ " + _cp.dc, "error");
+            } else {
+              showToast("🔮 Концентрация удержана! " + comp.total + " ≥ СЛ " + _cp.dc, "success");
+            }
+          }
+        });
+      },
+      "🎲 Бросить спасбросок",
+      { danger: false, icon: "🔮" }
+    );
   }
 }
 saveToLocal();

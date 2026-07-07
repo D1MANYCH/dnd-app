@@ -520,6 +520,10 @@ function quickRoll(opts) {
     try { _updateDiceHistoryBadge(); } catch (e) {}
     try { renderQuickRollStrip(); } catch (e) {}
     if (window.AppLog) AppLog.action('dice', label + ' = ' + comp.total + (comp.isCrit ? ' (крит)' : comp.isFail ? ' (провал)' : ''), { total: comp.total, natural: comp.natural }, _logId);
+    // FIN-7: колбэк с готовым результатом (после записи в историю). Изолирован
+    // в try/catch — ошибка потребителя (напр. спасбросок концентрации) не должна
+    // ронять отрисовку броска.
+    if (typeof opts.onResult === 'function') { try { opts.onResult(comp); } catch (e) {} }
   }, { qty: qty });
 }
 window.quickRoll = quickRoll;

@@ -2407,6 +2407,58 @@
     });
   }
 
+  // ────────── БЛОК 26 (FIN-7): спасбросок концентрации при уроне ──────────
+  if (typeof concSaveParams === "function") {
+    t("[FIN-7] concSaveParams: урон 10 → СЛ 10 (минимум)", function(){
+      var p = concSaveParams({ stats:{con:10}, saves:{}, level:1 }, 10);
+      return p.dc === 10 || "ожидал СЛ 10, получено " + p.dc;
+    });
+    t("[FIN-7] concSaveParams: урон 47 → СЛ 23 (урон/2 вниз)", function(){
+      var p = concSaveParams({ stats:{con:10}, saves:{}, level:1 }, 47);
+      return p.dc === 23 || "ожидал СЛ 23, получено " + p.dc;
+    });
+    t("[FIN-7] concSaveParams: ТЕЛ-мод; владение спасом добавляет мастерство", function(){
+      var noProf = concSaveParams({ stats:{con:14}, saves:{con:false}, level:5 }, 20);
+      if (noProf.mod !== 2) return "без владения ожидал +2, получено " + noProf.mod;
+      var withProf = concSaveParams({ stats:{con:14}, saves:{con:true}, level:5 }, 20);
+      if (withProf.mod !== 5) return "с владением (5 ур.) ожидал +5, получено " + withProf.mod;
+      return true;
+    });
+    t("[FIN-7] concSaveParams: черта «Боевой маг» (war_caster) → преимущество", function(){
+      var plain = concSaveParams({ stats:{con:10}, saves:{}, level:3, feats:[{id:"alert"}] }, 8);
+      if (plain.mode !== "normal") return "без war_caster ожидал normal, получено " + plain.mode;
+      var wc = concSaveParams({ stats:{con:10}, saves:{}, level:3, feats:[{id:"war_caster"}] }, 8);
+      return wc.mode === "adv" || "с war_caster ожидал adv, получено " + wc.mode;
+    });
+  }
+  if (typeof quickHP === "function") {
+    t("[FIN-7] quickHP: урон до 0 ХП снимает концентрацию без броска", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        _ensureEl("status-level", "span");
+        _ensureEl("status-hp-current", "span");
+        _ensureEl("status-hp-max", "span");
+        window.characters = [{
+          id: "test-conc-0",
+          combat: { hpTemp: 0, hpCurrent: 8, hpMax: 20, hpDice: "1к8", hpDiceSpent: 0 },
+          stats: { str:10, dex:10, con:10, int:10, wis:10, cha:10 },
+          saves: {}, skills: [], spells: { stat:"", slots:{}, slotsUsed:{} },
+          level: 3, concentration: "Благословение",
+          deathSaves: { successes:[false,false,false], failures:[false,false,false] }
+        }];
+        window.currentId = "test-conc-0";
+        quickHP(-12, "Test");                       // 8 − 12 → 0 ХП (авто-срыв, без модалки/броска)
+        var ch = window.characters[0];
+        if (ch.combat.hpCurrent !== 0) return "ожидал hpCurrent=0, получено " + ch.combat.hpCurrent;
+        if (ch.concentration !== null) return "концентрация должна сняться на 0 ХП, получено " + JSON.stringify(ch.concentration);
+        return true;
+      } finally {
+        window.characters = savedChars;
+        window.currentId = savedId;
+      }
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
