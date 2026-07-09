@@ -9,43 +9,54 @@
    (ключи localStorage dnd_glass_alpha / dnd_glass_blur, preload в index.html).
    --bg-0 остаётся НЕПРОЗРАЧНЫМ (база страницы + анти-флеш на html).
    --bg-1/2/3 — полупрозрачные поверхности поверх орбитального canvas. */
---glass-alpha: 0.72;
---glass-blur: 10px;
---bg-0: #0f0e14;
---bg-1: rgba(24, 23, 34, var(--glass-alpha));
---bg-2: rgba(34, 32, 46, var(--glass-alpha));
---bg-3: rgba(46, 44, 61, var(--glass-alpha));
-/* UI4-glass: модалки — пол непрозрачности 0.82..1.0 (читаемость), слегка
-   реагируют на слайдер. Применяется к .settings-modal/.notes-modal. */
---surface-modal: rgba(24, 23, 34, calc(0.82 + var(--glass-alpha) * 0.18));
-/* UX-1: липкие поверхности (header/status-bar/нижняя навигация) отвязаны от
-   --glass-alpha карточек — пол непрозрачности 0.86, чтобы имя/контент не
-   просвечивали сквозь шапку при прокрутке. --sticky-blur — усиленное размытие
+/* Дымка v5: тёмная тема — глубокий сине-чёрный космос, стекло с холодным отливом */
+--glass-alpha: 0.60;
+--glass-blur: 18px;
+--bg-0: #050a14;
+--bg-1: rgba(15, 23, 40, var(--glass-alpha));
+--bg-2: rgba(150, 180, 255, 0.06);
+--bg-3: rgba(150, 180, 255, 0.115);
+/* Дымка v5: модалки — фиксированная плотность (читаемость поверх космоса) */
+--surface-modal: rgba(17, 26, 45, 0.84);
+/* UX-1: липкие поверхности (header/status-bar/нижняя навигация) — уровень
+   «хром»: полупрозрачное стекло + усиленное размытие --sticky-blur
    (тема-независимо, наследуется light/auto от базового --glass-blur). */
---surface-sticky: rgba(24, 23, 34, max(var(--glass-alpha), 0.86));
+--surface-sticky: rgba(8, 14, 28, 0.55);
 --sticky-blur: calc(var(--glass-blur) + 4px);
---border: #3a3850;
---border-soft: #2a2838;
---text: #ece6d6;
---text-dim: #a39b86;
---text-mute: #6f6a5d;
---accent: #e0b358;
---accent-hi: #f0c674;
---accent-lo: #c79941;
---accent-soft: rgba(224, 179, 88, 0.13);
---accent-glow-token: rgba(224, 179, 88, 0.30);
+/* Дымка v5: третий уровень стекла (модалки/коуч/тосты) + блик по кромке */
+--surface-pop: rgba(17, 26, 45, 0.84);
+--pop-blur: 30px;
+--glass-hi: rgba(255, 255, 255, 0.07);
+--border: rgba(190, 210, 255, 0.11);
+--border-soft: rgba(190, 210, 255, 0.065);
+--text: #eef2fa;
+--text-dim: #b0bad3;
+--text-mute: #8d97b2;   /* не темнее — иначе подписи секций нечитаемы */
+--accent: #d6b25e;
+--accent-hi: #e2c67e;
+--accent-lo: #b8963f;
+--accent-soft: rgba(214, 178, 94, 0.13);
+--accent-glow-token: rgba(214, 178, 94, 0.32);
+--on-accent: #1d1503;   /* текст на акцентной заливке */
 /* BUILD-LVL-3: фиксированный цвет рекомендаций билда (не зависит от темы класса) */
 --rec: #7b68ee;
 --rec-bg: rgba(123, 104, 238, 0.14);
---overlay: rgba(0, 0, 0, 0.85);
---danger: #e07566;
---success: #6cba83;
---info: #74a8da;
+--overlay: rgba(2, 4, 10, 0.55);
+--danger: #e0665a;
+--success: #4fae78;
+--info: #6aa4e8;
+
+/* Дымка v5: цвета школ магии / состояний */
+--magic: #a68ae8;
+--necro: #a4c25e;
+--divin: #4fc0c0;
+--charm: #e884ad;
 
 /* Радиусы */
---r-sm: 8px;
---r-md: 12px;
---r-lg: 16px;
+--r-sm: 10px;
+--r-md: 14px;
+--r-lg: 18px;
+--r-xl: 26px;   /* модалки/шторки */
 --r-pill: 999px;
 
 /* Отступы */
@@ -62,14 +73,21 @@
    Статус-бар стакается ПОД шапкой через top:var(--header-h). На ≥1024 статус-бар скрыт. */
 --header-h: 59px;
 
-/* Тени — UI6-5: alpha вниз, blur ≤24px (fantasy-modern, без тяжёлых дропов) */
---sh-1: 0 1px 2px rgba(0,0,0,0.32), 0 2px 8px rgba(0,0,0,0.22);
---sh-2: 0 10px 24px rgba(0,0,0,0.34), 0 2px 6px rgba(0,0,0,0.24);
+/* Тени — Дымка v5 (+ блик inset 0 1px 0 var(--glass-hi) первым слоем у карточек) */
+--sh-1: 0 1px 3px rgba(0,0,0,0.35), 0 6px 22px rgba(0,0,0,0.30);
+--sh-2: 0 10px 28px rgba(0,0,0,0.45), 0 32px 80px rgba(0,0,0,0.60);
 --sh-glow: 0 0 0 3px var(--accent-soft), 0 8px 24px var(--accent-glow-token);
 
-/* Анимации — UI6-5: единый ease без прыгучести (перенесён в :root, light-блок наследует) */
+/* Дымка v5: система движения — микро 140 / компоненты 240 / крупное 420 */
+--t1: 140ms;   /* hover, press, чипы */
+--t2: 240ms;   /* табы, аккордеоны, списки */
+--t3: 420ms;   /* модалки, шторки, тур */
+--ez-out: cubic-bezier(0.22, 1, 0.36, 1);
+--ez-spring: cubic-bezier(0.34, 1.30, 0.56, 1);
+--ez-inout: cubic-bezier(0.65, 0, 0.35, 1);
+/* Старые ease — алиасы (легаси-код продолжает работать) */
 --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
---ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+--ease-out: var(--ez-out);
 
 /* Типографика */
 --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
@@ -175,44 +193,51 @@ html.glass-adjusting *::after {
    Кнопки и анимации — в общей секции UI-2 ниже (применяются к обеим темам).
 */
 :root[data-theme="light"] {
-  /* Backgrounds — --bg-0 непрозрачный (анти-флеш), поверхности полупрозрачные
+  /* Дымка v5: нейтрально-голубоватый воздух, молочное стекло.
+     --bg-0 непрозрачный (анти-флеш), --bg-1 полупрозрачная
      (UI4-glass, общий --glass-alpha из :root / inline-стиля на html). */
-  --bg-0: #eef2ef;
+  --bg-0: #eceff5;
   --bg-1: rgba(255, 255, 255, var(--glass-alpha));
-  --bg-2: rgba(228, 235, 230, var(--glass-alpha));
-  --bg-3: rgba(212, 221, 215, var(--glass-alpha));
-  --surface-modal: rgba(255, 255, 255, calc(0.82 + var(--glass-alpha) * 0.18));
-  /* UX-1: липкие поверхности на светлом стекле — тот же пол 0.86 */
-  --surface-sticky: rgba(255, 255, 255, max(var(--glass-alpha), 0.86));
+  --bg-2: rgba(255, 255, 255, 0.55);
+  --bg-3: rgba(222, 227, 238, 0.88);
+  --surface-modal: rgba(253, 254, 255, 0.84);
+  --surface-sticky: rgba(255, 255, 255, 0.58);
+  --surface-pop: rgba(253, 254, 255, 0.84);
+  --glass-hi: rgba(255, 255, 255, 0.65);
 
-  /* Borders — UI4-glass LT-2: заметнее на ярком перивинкль-canvas (было
-     #c3cdc7/#dde4df — почти невидимы под стеклом). */
-  --border: #9aaca0;
-  --border-soft: #bcc7c0;
+  /* Borders */
+  --border: rgba(24, 26, 36, 0.10);
+  --border-soft: rgba(24, 26, 36, 0.065);
 
   /* Text */
-  --text: #1a201d;
-  --text-dim: #4d5853;
-  --text-mute: #828d88;
+  --text: #1b1c20;
+  --text-dim: #55575f;
+  --text-mute: #898b94;
 
-  /* Accent — тёплое золото на cream-фоне */
-  --accent: #b8841f;
-  --accent-hi: #d29c30;
-  --accent-lo: #946815;
-  --accent-soft: rgba(184, 132, 31, 0.13);
-  --accent-glow: rgba(184, 132, 31, 0.30);
-  --accent-glow-token: rgba(184, 132, 31, 0.30);
+  /* Accent — приглушённое золото на голубоватом воздухе */
+  --accent: #a8823a;
+  --accent-hi: #c09a50;
+  --accent-lo: #8a6a2c;
+  --accent-soft: rgba(168, 130, 58, 0.12);
+  --accent-glow: rgba(168, 130, 58, 0.30);
+  --accent-glow-token: rgba(168, 130, 58, 0.30);
+  --on-accent: #ffffff;
 
   /* Semantic */
-  --overlay: rgba(20, 30, 24, 0.40);
-  --danger: #c73a2c;
-  --success: #2c8a52;
+  --overlay: rgba(24, 26, 34, 0.38);
+  --danger: #c53a2e;
+  --success: #2e8a54;
   --info: #2c6fbd;
 
-  /* Shadows — UI4-glass LT-2: усилены, чтобы панели «отрывались» от фона как
-     в тёмной (было альфы 0.05–0.14 — почти не видно поверх canvas). */
-  --sh-1: 0 1px 3px rgba(20,40,30,0.14), 0 4px 14px rgba(20,40,30,0.10);
-  --sh-2: 0 12px 24px rgba(20,40,30,0.18), 0 3px 10px rgba(20,40,30,0.11);
+  /* Школы/состояния — темнее для контраста на светлом */
+  --magic: #7a5cd0;
+  --necro: #6c8636;
+  --divin: #1f8a8a;
+  --charm: #bf4a7d;
+
+  /* Shadows */
+  --sh-1: 0 1px 3px rgba(22,26,38,0.05), 0 6px 22px rgba(22,26,38,0.06);
+  --sh-2: 0 10px 28px rgba(22,26,38,0.12), 0 32px 80px rgba(22,26,38,0.20);
   --sh-glow: 0 0 0 3px var(--accent-soft), 0 6px 16px var(--accent-glow);
 
   /* Easing — UI6-5: токены --ease/--ease-out наследуются из :root (единый источник) */
@@ -233,22 +258,26 @@ html.glass-adjusting *::after {
 
 @media (prefers-color-scheme: light) {
   :root[data-theme="auto"] {
-    --bg-0: #eef2ef;
+    --bg-0: #eceff5;
     --bg-1: rgba(255, 255, 255, var(--glass-alpha));
-    --bg-2: rgba(228, 235, 230, var(--glass-alpha));
-    --bg-3: rgba(212, 221, 215, var(--glass-alpha));
-    --surface-modal: rgba(255, 255, 255, calc(0.82 + var(--glass-alpha) * 0.18));
-    --surface-sticky: rgba(255, 255, 255, max(var(--glass-alpha), 0.86));
-    --border: #9aaca0; --border-soft: #bcc7c0;
-    --text: #1a201d; --text-dim: #4d5853; --text-mute: #828d88;
-    --accent: #b8841f; --accent-hi: #d29c30; --accent-lo: #946815;
-    --accent-soft: rgba(184, 132, 31, 0.13);
-    --accent-glow: rgba(184, 132, 31, 0.30);
-    --accent-glow-token: rgba(184, 132, 31, 0.30);
-    --overlay: rgba(20, 30, 24, 0.40);
-    --danger: #c73a2c; --success: #2c8a52; --info: #2c6fbd;
-    --sh-1: 0 1px 3px rgba(20,40,30,0.14), 0 4px 14px rgba(20,40,30,0.10);
-    --sh-2: 0 12px 24px rgba(20,40,30,0.18), 0 3px 10px rgba(20,40,30,0.11);
+    --bg-2: rgba(255, 255, 255, 0.55);
+    --bg-3: rgba(222, 227, 238, 0.88);
+    --surface-modal: rgba(253, 254, 255, 0.84);
+    --surface-sticky: rgba(255, 255, 255, 0.58);
+    --surface-pop: rgba(253, 254, 255, 0.84);
+    --glass-hi: rgba(255, 255, 255, 0.65);
+    --border: rgba(24, 26, 36, 0.10); --border-soft: rgba(24, 26, 36, 0.065);
+    --text: #1b1c20; --text-dim: #55575f; --text-mute: #898b94;
+    --accent: #a8823a; --accent-hi: #c09a50; --accent-lo: #8a6a2c;
+    --accent-soft: rgba(168, 130, 58, 0.12);
+    --accent-glow: rgba(168, 130, 58, 0.30);
+    --accent-glow-token: rgba(168, 130, 58, 0.30);
+    --on-accent: #ffffff;
+    --overlay: rgba(24, 26, 34, 0.38);
+    --danger: #c53a2e; --success: #2e8a54; --info: #2c6fbd;
+    --magic: #7a5cd0; --necro: #6c8636; --divin: #1f8a8a; --charm: #bf4a7d;
+    --sh-1: 0 1px 3px rgba(22,26,38,0.05), 0 6px 22px rgba(22,26,38,0.06);
+    --sh-2: 0 10px 28px rgba(22,26,38,0.12), 0 32px 80px rgba(22,26,38,0.20);
     --sh-glow: 0 0 0 3px var(--accent-soft), 0 6px 16px var(--accent-glow);
     --condition-active: rgba(199, 58, 44, 0.25);
     --buff-color: rgba(44, 138, 82, 0.24);
@@ -2323,7 +2352,7 @@ color: var(--danger-color);
 .filter-chip:hover { border-color: var(--accent-color); color: var(--text-color); }
 .filter-chip.active {
   background: var(--accent-color);
-  color: #1a1a24;
+  color: var(--on-accent);
   border-color: var(--accent-color);
   font-weight: 700;
 }

@@ -758,7 +758,7 @@ function _applyTheme(t) {
   // В localStorage (через setTheme) сохраняется исходный выбор пользователя.
   document.documentElement.setAttribute('data-theme', _resolveTheme(t));
   var meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', _isEffectiveLight(t) ? '#eef2ef' : '#1a1a24');
+  if (meta) meta.setAttribute('content', _isEffectiveLight(t) ? '#eceff5' : '#050a14');
   // Обновить тему кубиков (цвет акцента)
   if (typeof _diceBoxInstance !== 'undefined' && _diceBoxInstance) {
     try { _diceBoxInstance.updateConfig({ themeColor: _getDiceThemeColor() }); } catch(e) {}
@@ -1116,8 +1116,8 @@ document.addEventListener('DOMContentLoaded', _syncFontScaleUi);
 // UI4-glass: прозрачность (alpha 0.30..1.00) и размытие (blur 0..24px)
 // поверхностей. Применяются как inline CSS-переменные на documentElement
 // (--glass-alpha / --glass-blur), перебивают значения из :root в style.css.
-var GLASS_A_MIN = 0.30, GLASS_A_MAX = 1.00, GLASS_A_DEFAULT = 0.72;
-var GLASS_B_MIN = 0, GLASS_B_MAX = 24, GLASS_B_DEFAULT = 10;
+var GLASS_A_MIN = 0.30, GLASS_A_MAX = 1.00, GLASS_A_DEFAULT = 0.60;
+var GLASS_B_MIN = 0, GLASS_B_MAX = 24, GLASS_B_DEFAULT = 18;
 function _getGlassAlpha() {
   try {
     var v = parseFloat(localStorage.getItem('dnd_glass_alpha'));
@@ -1178,11 +1178,11 @@ document.addEventListener('DOMContentLoaded', function () {
   // Возобновляем по отпусканию/потере фокуса.
   var _glassStart = function () {
     document.documentElement.classList.add('glass-adjusting');
-    if (window.__bgOrbits && __bgOrbits.pause) __bgOrbits.pause();
+    if (window.__spaceBg && __spaceBg.pause) __spaceBg.pause();
   };
   var _glassEnd = function () {
     document.documentElement.classList.remove('glass-adjusting');
-    if (window.__bgOrbits && __bgOrbits.resume) __bgOrbits.resume();
+    if (window.__spaceBg && __spaceBg.resume) __spaceBg.resume();
   };
   ['glass-alpha-slider', 'glass-blur-slider'].forEach(function (id) {
     var el = document.getElementById(id);
@@ -1194,6 +1194,68 @@ document.addEventListener('DOMContentLoaded', function () {
     el.addEventListener('touchstart', _glassStart, { passive: true });
     el.addEventListener('touchend', _glassEnd);
   });
+});
+
+// Дымка v5: космос-фон (bg-space.js) на #bgCanvas.
+// Режим «Космос на фоне»: off / calm / lively (ключ dnd_space_mode, дефолт lively).
+// При смене темы/режима — destroy() и повторный init (следим за data-theme на <html>).
+// prefers-reduced-motion → модуль рисует один статичный кадр (motion: false).
+var SPACE_MODES = ['off', 'calm', 'lively'];
+var _spaceDestroy = null;
+function _getSpaceMode() {
+  try {
+    var m = localStorage.getItem('dnd_space_mode');
+    if (SPACE_MODES.indexOf(m) !== -1) return m;
+  } catch (e) {}
+  return 'lively';
+}
+function _applySpaceBg() {
+  var canvas = document.getElementById('bgCanvas');
+  if (!canvas) return;
+  if (_spaceDestroy) { try { _spaceDestroy(); } catch (e) {} _spaceDestroy = null; }
+  var mode = _getSpaceMode();
+  // «Выкл» полностью убирает канвас (не рисуем и не держим последний кадр)
+  canvas.style.display = mode === 'off' ? 'none' : '';
+  if (mode === 'off' || typeof window.initSpaceBg !== 'function') return;
+  var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  _spaceDestroy = window.initSpaceBg(canvas, {
+    theme: _resolveTheme(_getTheme()),
+    mode: mode,
+    motion: !reduced
+  });
+}
+function setSpaceMode(m) {
+  if (SPACE_MODES.indexOf(m) === -1) return;
+  try { localStorage.setItem('dnd_space_mode', m); } catch (e) {}
+  _applySpaceBg();
+  _syncSpaceButtons();
+}
+function _syncSpaceButtons() {
+  var active = _getSpaceMode();
+  document.querySelectorAll('[data-space-btn]').forEach(function (b) {
+    b.classList.toggle('is-active', b.getAttribute('data-space-btn') === active);
+  });
+}
+// Пауза/возобновление без пересоздания сцены (используется слайдерами «стекла»)
+window.__spaceBg = {
+  pause: function () { if (_spaceDestroy && _spaceDestroy.pause) _spaceDestroy.pause(); },
+  resume: function () { if (_spaceDestroy && _spaceDestroy.resume) _spaceDestroy.resume(); },
+  refresh: _applySpaceBg
+};
+document.addEventListener('DOMContentLoaded', function () {
+  _applySpaceBg();
+  _syncSpaceButtons();
+  // Тема резолвится в data-theme на <html> (включая auto) — пересоздаём сцену под палитру
+  try {
+    new MutationObserver(function () { _applySpaceBg(); })
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  } catch (e) {}
+  try {
+    var rm = matchMedia('(prefers-reduced-motion: reduce)');
+    var onRm = function () { _applySpaceBg(); };
+    if (rm.addEventListener) rm.addEventListener('change', onRm);
+    else if (rm.addListener) rm.addListener(onRm);
+  } catch (e) {}
 });
 
 function _initAppLinks() {
@@ -1234,6 +1296,7 @@ function openSettingsModal() {
   try { _syncDensityButtons(); } catch (e) {}
   try { if (typeof _syncThemeButtons === 'function') _syncThemeButtons(); } catch (e) {}
   try { if (typeof _syncAccentButtons === 'function') _syncAccentButtons(); } catch (e) {}
+  try { if (typeof _syncSpaceButtons === 'function') _syncSpaceButtons(); } catch (e) {}
   setTimeout(function() {
     ov.classList.add('open');
     md.classList.add('open');

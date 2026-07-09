@@ -4,7 +4,7 @@
   "description": "Бесплатный лист персонажа D&D 5e на русском: 36 готовых билдов, 719 заклинаний, 3D-кубики, боевой трекер. Офлайн, без регистрации.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#1a1a24",
+  "background_color": "#050a14",
   "theme_color": "#4da843",
   "orientation": "portrait",
   "lang": "ru",
