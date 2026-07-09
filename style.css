@@ -1128,16 +1128,16 @@ html.glass-adjusting *::after {
   width: 92%;
   max-width: 460px;
   max-height: 85vh;
-  /* UI4-glass: модалка читаема при любом слайдере (пол непрозрачности) + blur */
-  background: var(--surface-modal, var(--bg-1));
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg, 12px);
+  /* Дымка v5: уровень 3 стекла — поповер (самый плотный, самый сильный blur) */
+  background: var(--surface-pop, var(--surface-modal));
+  backdrop-filter: blur(var(--pop-blur, 30px));
+  -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-xl, 26px);
   z-index: 401;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--sh-2);
+  box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
   opacity: 0;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
@@ -1350,10 +1350,11 @@ html.glass-adjusting *::after {
   -webkit-tap-highlight-color: transparent;
   font-family: inherit;
   transition:
-    transform 0.18s var(--ease, cubic-bezier(0.34,1.3,0.64,1)),
-    box-shadow 0.18s var(--ease-out, cubic-bezier(0.22,1,0.36,1)),
-    background 0.18s, border-color 0.18s, color 0.18s;
+    transform var(--t1, 140ms) var(--ez-spring, cubic-bezier(0.34,1.3,0.56,1)),
+    box-shadow var(--t2, 240ms) var(--ez-out, cubic-bezier(0.22,1,0.36,1)),
+    background var(--t1, 140ms), border-color var(--t1, 140ms), color var(--t1, 140ms);
 }
+.btn:active { transform: scale(0.965); }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; filter: grayscale(0.4); }
 
@@ -1365,18 +1366,18 @@ html.glass-adjusting *::after {
 }
 
 /* Variants — все через переменные --accent/--bg-1/--border, работают в обеих темах */
+/* Дымка v5: primary — вертикальный градиент + внутренний блик + текст --on-accent */
 .btn-primary {
-  background: var(--accent);
-  border-color: var(--accent-lo); color: #fff;
-  box-shadow: 0 2px 8px var(--accent-glow, var(--accent-glow-token, rgba(184,132,31,0.30)));
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
+  border-color: transparent; color: var(--on-accent, #fff);
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.42), 0 4px 14px var(--accent-glow-token, rgba(184,132,31,0.30));
 }
 .btn-primary:hover {
-  background: var(--accent-hi); border-color: var(--accent);
-  box-shadow: 0 4px 14px var(--accent-glow, var(--accent-glow-token, rgba(184,132,31,0.30)));
+  filter: brightness(1.07);
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.42), 0 4px 14px var(--accent-glow-token, rgba(184,132,31,0.30));
 }
 .btn-primary:active {
-  transform: scale(0.98);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+  transform: scale(0.965);
 }
 
 .btn-secondary {
@@ -1988,9 +1989,13 @@ user-select: none;
   width: 90%;
   max-width: 400px;
   max-height: 70vh;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  /* Дымка v5: уровень 3 стекла — поповер */
+  background: var(--surface-pop, var(--card-bg));
+  backdrop-filter: blur(var(--pop-blur, 30px));
+  -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
+  border: 1px solid var(--border-soft);
+  box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
+  border-radius: var(--r-lg, 18px);
   z-index: 301;
   overflow-y: auto;
   box-shadow: var(--sh-2);
@@ -2181,21 +2186,22 @@ border-left: 3px solid var(--accent-color);
 padding-left: 10px;
 }
 .container { padding: var(--sp-3); }
+/* Дымка v5: уровень 2 стекла — карточка (блик по верхней кромке первым слоем box-shadow) */
 .card {
 background: var(--card-bg);
-border-radius: var(--r-md);
+border-radius: var(--r-lg);
 padding: var(--sp-4);
 margin-bottom: var(--sp-3);
-border: 1px solid var(--border-color);
-box-shadow: var(--sh-1);
-transition: box-shadow 0.2s, border-color 0.2s;
+border: 1px solid var(--border-soft);
+box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-1);
+transition: box-shadow var(--t2) var(--ez-out), border-color var(--t2) var(--ez-out);
 /* UI4-glass: размытие фона за карточкой (слайдер «Размытие фона») */
 backdrop-filter: blur(var(--glass-blur));
 -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 .card:hover {
-box-shadow: var(--sh-2);
-border-color: var(--accent-lo);
+box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
+border-color: color-mix(in srgb, var(--accent) 32%, var(--border-soft));
 }
 label { display: block; margin-bottom: var(--sp-2); font-size: 0.85em; color: var(--text-muted); font-weight: 500; }
 input, select, textarea {
@@ -2204,7 +2210,7 @@ padding: var(--sp-3);
 background-color: var(--input-bg);
 border: 1px solid var(--border-color);
 color: var(--text-color);
-border-radius: var(--r-sm);
+border-radius: var(--r-md); /* Дымка v5: поля 14px */
 box-sizing: border-box;
 font-size: 15px;
 transition: all 0.2s;
@@ -3315,8 +3321,11 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   width: 72vw;
   max-width: 300px;
   height: 100%;
-  background: var(--bg-2, #1f1f2a);
-  border-left: 1px solid var(--border, var(--border-color));
+  /* Дымка v5: уровень 1 стекла — хром (сайдбар) */
+  background: var(--surface-sticky, var(--bg-2));
+  backdrop-filter: blur(var(--sticky-blur, var(--glass-blur)));
+  -webkit-backdrop-filter: blur(var(--sticky-blur, var(--glass-blur)));
+  border-left: 1px solid var(--border-soft);
   z-index: 200;
   display: flex;
   flex-direction: column;
@@ -4332,15 +4341,15 @@ cursor: pointer;
 }
 .modal.active { display: block; }
 .modal-content {
-/* UI4-glass: пол непрозрачности (--surface-modal) + blur — модалка
-   читаема при любом значении слайдера «Непрозрачность фона». */
-background: var(--surface-modal, var(--bg-1));
-backdrop-filter: blur(var(--glass-blur));
--webkit-backdrop-filter: blur(var(--glass-blur));
-border: 1px solid var(--border);
+/* Дымка v5: уровень 3 стекла — поповер (surface-pop + pop-blur + блик) */
+background: var(--surface-pop, var(--surface-modal));
+backdrop-filter: blur(var(--pop-blur, 30px));
+-webkit-backdrop-filter: blur(var(--pop-blur, 30px));
+border: 1px solid var(--border-soft);
+box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
 margin: 20px auto;
 padding: 25px;
-border-radius: var(--r-md);
+border-radius: var(--r-xl);
 max-width: 500px;
 position: relative;
 max-height: 90vh;
@@ -6689,9 +6698,12 @@ justify-content: center;
 }
 .confirm-modal-overlay.active { display: flex; }
 .confirm-modal-box {
-background: var(--surface-modal, var(--bg-1));
-border: 1px solid var(--border, rgba(255,255,255,0.1));
-border-radius: 16px;
+background: var(--surface-pop, var(--surface-modal));
+backdrop-filter: blur(var(--pop-blur, 30px));
+-webkit-backdrop-filter: blur(var(--pop-blur, 30px));
+border: 1px solid var(--border-soft);
+box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
+border-radius: var(--r-xl, 26px);
 padding: 28px 24px 20px;
 max-width: 320px;
 width: 90%;
@@ -11454,12 +11466,12 @@ body {
   pointer-events: auto;
 }
 .notes-modal {
-  background: var(--surface-modal, var(--bg-1));
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: var(--r-lg, 16px);
-  box-shadow: var(--sh-2);
+  background: var(--surface-pop, var(--surface-modal));
+  backdrop-filter: blur(var(--pop-blur, 30px));
+  -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-xl, 26px);
+  box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
   display: flex;
   flex-direction: column;
   max-height: 90dvh;
@@ -11991,12 +12003,12 @@ mark.notes-hl {
 .gloss:hover, .gloss:focus, .gloss.is-active { color:var(--accent); outline:none; }
 .gloss-popover {
   position:fixed; z-index:12000; max-width:280px;
-  padding:10px 12px; border-radius:10px;
-  background:var(--surface-sticky, var(--bg-2)); color:var(--text);
-  border:1px solid var(--border, rgba(255,255,255,0.12));
-  box-shadow:0 10px 30px rgba(0,0,0,0.45);
-  backdrop-filter: blur(var(--glass-blur, 12px));
-  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
+  padding:10px 12px; border-radius:var(--r-md, 14px);
+  background:var(--surface-pop, var(--surface-modal)); color:var(--text);
+  border:1px solid var(--border-soft);
+  box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
+  backdrop-filter: blur(var(--pop-blur, 30px));
+  -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
   font-size:0.85em; line-height:1.45;
   display:flex; flex-direction:column; gap:4px;
   animation: glossPop .12s ease-out;
