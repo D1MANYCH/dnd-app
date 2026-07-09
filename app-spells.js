@@ -370,7 +370,7 @@ groupDiv.className = "spell-level-group";
 groupDiv.innerHTML = '<div class="spell-group-header"><span class="spell-group-title">' + escapeHtml(levelTitle) + '</span><span class="spell-group-count">' + count + '</span></div>';
 container.appendChild(groupDiv);
 var ritualClasses = ["Волшебник", "Жрец", "Друид", "Бард"];
-byLevel[level].forEach(function(spell) {
+byLevel[level].forEach(function(spell, _idx) {
 const spellClassArr2 = Array.isArray(spell.classes) ? spell.classes : [spell.class || "both"];
 // Больше 4 классов не влезают на телефоне и вытесняют название — первые 3 + счётчик «+N».
 // Полный список имён — в строке таксономии раскрытой карточки.
@@ -408,7 +408,8 @@ var isCantrip = spell.level === 0;
 var cardClass = "my-spell-item";
 if (prepClass && !isCantrip && !prepared) cardClass += " spell-unprepared";
 var card = document.createElement("div");
-card.className = cardClass;
+card.className = cardClass + " rise";
+card.style.setProperty("--i", Math.min(_idx, 10)); // Дымка v5: stagger-появление
 card.dataset.spellId = spell.id;
 card.innerHTML =
   '<div class="spell-card-header" onclick="toggleSpellCard(this)">' +

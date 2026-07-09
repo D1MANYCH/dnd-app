@@ -1256,6 +1256,11 @@ hpBar.className = "hp-bar";
 if (pct === 0) hpBar.classList.add("hp-bar-empty");
 else if (pct <= 25) hpBar.classList.add("hp-bar-low");
 else if (pct <= 50) hpBar.classList.add("hp-bar-medium");
+// Дымка v5: ghost-след идёт к тому же значению медленнее (transition 900ms
+// с задержкой 250ms в CSS) — при уроне остаётся красный «хвост», при лечении
+// прячется под основной полосой.
+const hpGhost = $("hp-bar-ghost");
+if (hpGhost) hpGhost.style.width = pct + "%";
 }
 
 // Кость хитов в быстром блоке

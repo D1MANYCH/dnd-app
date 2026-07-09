@@ -1139,13 +1139,29 @@ html.glass-adjusting *::after {
   flex-direction: column;
   box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
   opacity: 0;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  /* Дымка v5: открытие пружиной --t3, закрытие быстрее --t2 */
+  transition: opacity var(--t2, 240ms) var(--ez-out, ease), transform var(--t3, 420ms) var(--ez-spring, ease);
 }
 .settings-modal.open {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
 .settings-modal.hidden { display: none; }
+/* Дымка v5: на телефоне настройки — bottom-sheet с ручкой */
+@media (max-width: 767px) {
+  .settings-modal {
+    top: auto; bottom: 0; left: 0; right: 0;
+    width: 100%; max-width: none; max-height: 92vh;
+    transform: translateY(40px);
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    border-left: none; border-right: none; border-bottom: none;
+  }
+  .settings-modal.open { transform: translateY(0); }
+  .settings-modal::before {
+    content: ""; display: block; width: 36px; height: 4px; border-radius: 999px;
+    background: var(--border); margin: 8px auto 0; flex-shrink: 0;
+  }
+}
 
 .settings-modal-header {
   display: flex;
@@ -3437,12 +3453,15 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 .hp-rest-long:hover { background: rgba(77,168,67,0.25) !important; transform: none !important; }
 
 .tab-content { display: none; }
-.tab-content.active { display: block; animation: tabFadeSlide 0.18s var(--ease-out, cubic-bezier(0.22,1,0.36,1)) both; }
-/* UI-11: fade+slide при смене вкладок (reduced-motion гасится глоб. блоком ~стр.1295) */
+/* Дымка v5: появление экрана — fade + translateY(7px), --t2 240ms */
+.tab-content.active { display: block; animation: tabFadeSlide var(--t2, 240ms) var(--ez-out, cubic-bezier(0.22,1,0.36,1)) both; }
 @keyframes tabFadeSlide {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(7px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+/* Дымка v5: stagger-появление элементов списка — style="--i: N" (N ≤ 10) */
+.rise { animation: rise var(--t3, 420ms) var(--ez-out, cubic-bezier(0.22,1,0.36,1)) both; animation-delay: calc(var(--i, 0) * 26ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(9px); } }
 .hidden { display: none !important; }
 .empty-list { text-align: center; padding: 40px 20px; color: var(--text-muted); font-style: italic; }
 
@@ -4339,7 +4358,33 @@ overflow-y: auto;
 padding: 20px 0;
 cursor: pointer;
 }
-.modal.active { display: block; }
+/* Дымка v5: движение модалок — оверлей fade --t2, окно пружиной --t3;
+   закрытие через класс .closing (ставит closeModal), ~240ms обратная анимация */
+.modal.active { display: block; animation: dymka-ovl-in var(--t2, 240ms) var(--ez-out, ease-out); }
+.modal.active .modal-content { animation: dymka-modal-in var(--t3, 420ms) var(--ez-spring, ease-out); }
+.modal.active.closing { animation: dymka-ovl-out var(--t2, 240ms) var(--ez-out, ease-out) forwards; }
+.modal.active.closing .modal-content { animation: dymka-modal-out var(--t2, 240ms) var(--ez-out, ease-out) forwards; }
+@keyframes dymka-ovl-in { from { opacity: 0; } }
+@keyframes dymka-ovl-out { to { opacity: 0; } }
+@keyframes dymka-modal-in { from { opacity: 0; transform: translateY(18px) scale(0.96); } }
+@keyframes dymka-modal-out { to { opacity: 0; transform: translateY(10px) scale(0.97); } }
+/* Дымка v5: на телефоне модалка — bottom-sheet с ручкой */
+@media (max-width: 767px) {
+  .modal.active { display: flex; flex-direction: column; justify-content: flex-end; padding: 0; }
+  .modal.active .modal-content {
+    width: 100%; max-width: none; margin: 0; max-height: 92vh;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    border-left: none; border-right: none; border-bottom: none;
+    animation: dymka-sheet-in var(--t3, 420ms) var(--ez-spring, ease-out);
+  }
+  .modal.active.closing .modal-content { animation: dymka-sheet-out var(--t2, 240ms) var(--ez-out, ease-out) forwards; }
+  .modal.active .modal-content::before {
+    content: ""; display: block; width: 36px; height: 4px; border-radius: 999px;
+    background: var(--border); margin: 0 auto 10px; flex-shrink: 0;
+  }
+}
+@keyframes dymka-sheet-in { from { transform: translateY(60%); } }
+@keyframes dymka-sheet-out { to { transform: translateY(100%); opacity: 0.6; } }
 .modal-content {
 /* Дымка v5: уровень 3 стекла — поповер (surface-pop + pop-blur + блик) */
 background: var(--surface-pop, var(--surface-modal));
@@ -6091,6 +6136,7 @@ border-radius: var(--r-sm);
 background: var(--card-bg);
 }
 .hp-bar-wrap {
+position: relative; /* Дымка v5: ghost-слой позиционируется внутри */
 width: 100%;
 height: var(--hp-bar-h);
 background: var(--card-bg);
@@ -6098,12 +6144,22 @@ border-radius: 999px;
 overflow: hidden;
 border: 1px solid var(--border-color);
 }
+/* Дымка v5: «призрачный» красный след урона — догоняет основную полосу с задержкой */
+.hp-bar-ghost {
+position: absolute;
+inset: 0 auto 0 0;
+width: 100%;
+border-radius: 999px;
+background: color-mix(in srgb, var(--danger) 45%, var(--bg-3));
+transition: width 900ms var(--ez-out, ease-out) 250ms;
+}
 .hp-bar {
+position: relative;
 height: 100%;
 width: 100%;
-background: var(--success-color);
+background: linear-gradient(90deg, color-mix(in oklab, var(--success) 88%, black), var(--success));
 border-radius: 999px;
-transition: width 0.4s ease, background 0.4s;
+transition: width var(--t3, 420ms) var(--ez-spring, ease), background 0.4s;
 }
 .hp-bar.hp-bar-low { background: var(--hp-low); }
 .hp-bar.hp-bar-medium { background: var(--hp-medium); }

@@ -172,7 +172,7 @@ updateInventoryWeight();
 updateSlotsDisplay();
 return;
 }
-allItems.forEach(function(data) {
+allItems.forEach(function(data, _idx) {
 const item = data.item;
 const icon = ITEM_ICONS[data.category];
 const totalWeight = (item.weight * (item.qty || 1)).toFixed(1);
@@ -208,7 +208,8 @@ var _chargesCtrlHtml = _maxCh > 0
   : '';
 var _stowed = (_isBackpackOff(char) && _locKey === "backpack");
 const div = document.createElement("div");
-div.className = "inv-item" + (_stowed ? " inv-item-stowed" : "");
+div.className = "inv-item rise" + (_stowed ? " inv-item-stowed" : "");
+div.style.setProperty("--i", Math.min(_idx, 10)); // Дымка v5: stagger-появление
 if (_stowed) div.style.opacity = "0.45";
 div.dataset.category = data.category;
 div.dataset.index = data.index;

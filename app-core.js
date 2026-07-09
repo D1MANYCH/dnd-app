@@ -9,8 +9,17 @@ function $(id) { return document.getElementById(id); }
 /** Текущий персонаж */
 function getCurrentChar() { return characters.find(function(c) { return c.id === currentId; }); }
 /** Открыть/закрыть простую модалку по id */
-function openModal(id) { var m = $(id); if (m) m.classList.add("active"); }
-function closeModal(id) { var m = $(id); if (m) m.classList.remove("active"); }
+function openModal(id) { var m = $(id); if (m) { m.classList.remove("closing"); m.classList.add("active"); } }
+/** Дымка v5: закрытие с обратной анимацией ~240ms (класс .closing, см. style.css) */
+function closeModal(id) {
+  var m = $(id);
+  if (!m || !m.classList.contains("active")) return;
+  if (m.classList.contains("closing")) return;
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduced || !m.classList.contains("modal")) { m.classList.remove("active"); return; }
+  m.classList.add("closing");
+  setTimeout(function () { m.classList.remove("active"); m.classList.remove("closing"); }, 240);
+}
 /** Debounce — откладывает вызов fn на delay мс после последнего вызова */
 function debounce(fn, delay) {
   var timer;
@@ -3146,9 +3155,10 @@ if (filtered.length === 0) {
     : "<div class=\"empty-list\">🔍 Ничего не найдено</div>";
   return;
 }
-filtered.forEach(function(char) {
+filtered.forEach(function(char, _idx) {
 const div = document.createElement("div");
-div.className = "char-card";
+div.className = "char-card rise";
+div.style.setProperty("--i", Math.min(_idx, 10)); // Дымка v5: stagger-появление (кап 10)
 div.draggable = true;
 div.addEventListener("dragstart", function(e) { onDragStart(e, char.id); div.style.opacity="0.5"; });
 div.addEventListener("dragend", function() { div.style.opacity="1"; });
