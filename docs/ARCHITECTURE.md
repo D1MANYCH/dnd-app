@@ -35,7 +35,7 @@ dnd-app/
 ├── app-desktop.js          — десктоп-раскладка
 ├── app-pdf.js              — PDF-экспорт листа персонажа (FEAT-3) — ленивый, грузится по первому клику 📄 вместе с vendor/jspdf (PERF-1)
 ├── history-stack.js        — стек истории для отмены действий
-├── bg-orbits.js            — фоновая анимация (орбиты)
+├── bg-space.js             — космос-фон «Дымка» (initSpaceBg: off/calm/lively, light/dark)
 ├── dice-arena-bg.js        — фон арены 3D-кубиков
 ├── dev-verify-builds.js    — verifyAllBuilds() — консольный verifier билдов (DevTools)
 │
