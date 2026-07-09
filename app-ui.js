@@ -1315,6 +1315,21 @@ function _initDiceBox() {
     // не имел размера. resizeWorld() регистрирует resize listener — сами
     // триггерим его, чтобы внутренний WebGL-буфер выровнялся под container.
     try { window.dispatchEvent(new Event('resize')); } catch (e) {}
+    // Если контейнер в момент init всё ещё свёрнут (модалка/оверлей в CSS-переходе)
+    // — буфер остаётся 0×0 и кость будет невидима. Повторяем ресайз после
+    // завершения переходов (~320мс), когда размеры уже настоящие.
+    try {
+      if (box.canvas && (box.canvas.width === 0 || box.canvas.height === 0)) {
+        setTimeout(function () {
+          try {
+            if (box.canvas && (box.canvas.width === 0 || box.canvas.height === 0)) {
+              window.dispatchEvent(new Event('resize'));
+              if (typeof box.resize === 'function') box.resize();
+            }
+          } catch (e) {}
+        }, 320);
+      }
+    } catch (e) {}
     try { if (_diceDbg()) console.log('[DiceBox] init OK', { buf: (box.canvas ? box.canvas.width + 'x' + box.canvas.height : 'none'), css: (box.canvas ? box.canvas.clientWidth + 'x' + box.canvas.clientHeight : 'none'), theme: _getDiceTheme() }); } catch (e) {}
     // Обработчик потери WebGL-контекста: типичная причина «после N бросков 3D
     // ломается» — драйвер/браузер дропают контекст. Помечаем инстанс на
@@ -1406,10 +1421,29 @@ function animateDice3d(sides, result, callback, opts) {
         _diceBoxInstance = null;
         _diceBoxInitPromise = null;
       } else {
-        console.warn('[DiceBox] roll timeout 10s (n=' + _diceBoxConsecutiveTimeouts + '); canvas сохранён, кость доедет');
-        // Чистим возможные «улетевшие» кости из физики, чтобы они не висели в фоне
-        // и не мешали следующему броску. Сам инстанс/canvas НЕ трогаем.
-        try { if (_diceBoxInstance && typeof _diceBoxInstance.clear === 'function') _diceBoxInstance.clear(); } catch (e) {}
+        // Буфер WebGL 0×0 = сцена создана при свёрнутом контейнере или после потери
+        // контекста: кость гарантированно невидима, «доедет» ей некуда. Ждать
+        // 3 таймаута бессмысленно — пересоздаём инстанс сразу (жалоба «кубика нет»).
+        var _deadBuf = false;
+        try {
+          var _bc = _diceBoxInstance && _diceBoxInstance.canvas;
+          _deadBuf = !!(_bc && (_bc.width === 0 || _bc.height === 0));
+        } catch (e) {}
+        if (_deadBuf) {
+          console.warn('[DiceBox] roll timeout 10s + буфер 0×0 — пересоздаём инстанс');
+          _diceBoxConsecutiveTimeouts = 0;
+          try {
+            var _oldCv = _diceBoxInstance && _diceBoxInstance.canvas;
+            if (_oldCv && _oldCv.parentNode) _oldCv.parentNode.removeChild(_oldCv);
+          } catch (e) {}
+          _diceBoxInstance = null;
+          _diceBoxInitPromise = null;
+        } else {
+          console.warn('[DiceBox] roll timeout 10s (n=' + _diceBoxConsecutiveTimeouts + '); canvas сохранён, кость доедет');
+          // Чистим возможные «улетевшие» кости из физики, чтобы они не висели в фоне
+          // и не мешали следующему броску. Сам инстанс/canvas НЕ трогаем.
+          try { if (_diceBoxInstance && typeof _diceBoxInstance.clear === 'function') _diceBoxInstance.clear(); } catch (e) {}
+        }
       }
     }
     // UI всё равно получает результат: precomputed `result` для одиночного броска,
@@ -1442,6 +1476,15 @@ function animateDice3d(sides, result, callback, opts) {
       if (box.canvas && (box.canvas.width === 0 || box.canvas.height === 0)) {
         window.dispatchEvent(new Event('resize'));
         if (typeof box.resize === 'function') { try { box.resize(); } catch (e) {} }
+        // Ресайз мог не примениться (оверлей ещё в transition) — добиваем после него.
+        setTimeout(function () {
+          try {
+            if (box.canvas && (box.canvas.width === 0 || box.canvas.height === 0)) {
+              window.dispatchEvent(new Event('resize'));
+              if (typeof box.resize === 'function') box.resize();
+            }
+          } catch (e) {}
+        }, 320);
       }
     } catch (e) {}
     // DICEFIX-1: промис roll() резолвится результатами ИМЕННО этого броска

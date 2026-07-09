@@ -1,7 +1,8 @@
 // ============================================================
 // dice-arena-bg.js — космо-фон арены броска кубиков
 // Локальная мини-сцена внутри #dsvg-container под канвасом dice-box.
-// Палитра жёстко тёмная (космос в любой теме приложения).
+// Палитра тема-зависимая: тёмный космос в тёмной теме, светлый «дневной»
+// вариант в светлой (data-theme на <html>, читается каждый кадр).
 // Публичный API: window.DiceArenaBg.{start, stop, pulse}
 // ============================================================
 (function () {
@@ -46,8 +47,36 @@
       star: [220, 225, 255], orbits: false, starScale: 1.8
     }
   };
+  // Светлые варианты тех же палитр (светлая тема приложения): фон — светлый
+  // перивинкль в тон орбитальному bg-orbits, звёзды/орбиты — тёмные на светлом.
+  const VARIANTS_LIGHT = {
+    cosmos: {
+      bg: ['#dbe4f2', '#c8d4e8', '#b2c1da'],
+      orbit: [170, 120, 35], lead: [130, 90, 25], glow: [190, 140, 50],
+      nebWarm: [190, 150, 90], nebCool: [120, 140, 190],
+      star: [60, 80, 130], orbits: true, starScale: 1
+    },
+    aurora: {
+      bg: ['#d6ece2', '#c4ded4', '#adcabf'],
+      orbit: [35, 130, 95], lead: [25, 105, 75], glow: [50, 150, 110],
+      nebWarm: [90, 170, 140], nebCool: [130, 110, 190],
+      star: [45, 110, 90], orbits: true, starScale: 1.1
+    },
+    starfield: {
+      bg: ['#dedfe9', '#ccd0e0', '#b8bdd2'],
+      orbit: [80, 90, 160], lead: [60, 70, 140], glow: [100, 110, 180],
+      nebWarm: [140, 120, 200], nebCool: [110, 130, 180],
+      star: [70, 80, 140], orbits: false, starScale: 1.8
+    }
+  };
   let variant = 'cosmos';
-  function V() { return VARIANTS[variant] || VARIANTS.cosmos; }
+  function isLightTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'light';
+  }
+  function V() {
+    const set = isLightTheme() ? VARIANTS_LIGHT : VARIANTS;
+    return set[variant] || set.cosmos;
+  }
   function col(rgb, a) { return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ')'; }
 
   const rmMQ = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
@@ -156,7 +185,12 @@
 
   function drawPlanet(x, y, radius, type) {
     let r, g, b;
-    if (type === 'warm') { r = 255; g = 200; b = 100; }
+    if (isLightTheme()) {
+      // приглушённые тела — на светлом фоне яркие «неоновые» сливаются
+      if (type === 'warm') { r = 190; g = 130; b = 50; }
+      else if (type === 'cool') { r = 70; g = 100; b = 170; }
+      else { r = 80; g = 140; b = 180; }
+    } else if (type === 'warm') { r = 255; g = 200; b = 100; }
     else if (type === 'cool') { r = 120; g = 150; b = 220; }
     else { r = 150; g = 210; b = 240; }
 
@@ -192,7 +226,7 @@
     ctx.clearRect(0, 0, W, H);
     const v = V();
 
-    // Фон — радиальный градиент (тёмный космос)
+    // Фон — радиальный градиент (палитра активной темы, см. V())
     const bgg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.7);
     bgg.addColorStop(0, v.bg[0]);
     bgg.addColorStop(0.55, v.bg[1]);
@@ -238,7 +272,9 @@
       const s = p.size * (0.5 + p.depth * 0.5);
       ctx.beginPath();
       ctx.arc(p.x, p.y, s, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${220 + p.depth * 30},${180 + p.depth * 35},${100 + p.depth * 70},${a})`;
+      ctx.fillStyle = isLightTheme()
+        ? `rgba(110,95,55,${a * 0.7})`
+        : `rgba(${220 + p.depth * 30},${180 + p.depth * 35},${100 + p.depth * 70},${a})`;
       ctx.fill();
     });
 

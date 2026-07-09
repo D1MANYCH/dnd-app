@@ -249,6 +249,28 @@ function _tourFirstVisible(selectors) {
   return null;
 }
 
+/** Открыта ли какая-либо модалка (.modal.active): гайд билда, приветствие,
+ *  пикеры и т.п. Авто-тур поверх открытой модалки выглядит сломанным —
+ *  подсветка остаётся за окном, карточка тура конфликтует с ним (так «слетал»
+ *  тур листа при создании по билду: гайд авто-открывается через 250мс,
+ *  а тур стартовал через 450мс прямо поверх него). */
+function _tourModalOpen() {
+  return !!document.querySelector('.modal.active');
+}
+
+/** Дождаться закрытия всех модалок и вызвать cb (проверка каждые 600мс,
+ *  до ~2 минут). Если модалку так и не закрыли — тур молча не стартует;
+ *  флаг seen при этом не ставится, авто-старт повторится в следующий раз. */
+function _tourStartWhenClear(cb) {
+  var tries = 0;
+  (function poll() {
+    if (_tour) return;
+    if (!_tourModalOpen()) { cb(); return; }
+    if (++tries > 200) return;
+    setTimeout(poll, 600);
+  })();
+}
+
 /** Запустить тур из набора шагов. Шаги с requireTarget без видимой цели
  *  отсеиваются на старте (счётчик остаётся корректным, без скачков). */
 function startTour(steps, name) {
@@ -282,7 +304,12 @@ function maybeStartSheetTour() {
   // Даём листу и right-rail устаканиться после loadCharacter→switchTab.
   setTimeout(function () {
     if (_tour || getHelpFlag(HELP_FLAG_SHEET_SEEN)) return;
-    startSheetTour();
+    // Открыт гайд билда/другая модалка → ждём её закрытия, не стартуем поверх.
+    _tourStartWhenClear(function () {
+      if (_tour || getHelpFlag(HELP_FLAG_SHEET_SEEN)) return;
+      if (!window.currentId) return; // пока ждали — вернулись к списку персонажей
+      startSheetTour();
+    });
   }, 450);
 }
 
@@ -331,8 +358,14 @@ function maybeStartTabTour(tab) {
     if (_tour || getHelpFlag(entry.flag)) return;
     var w2 = document.getElementById('welcome-modal');
     if (w2 && w2.classList.contains('active')) return;
-    setHelpFlag(entry.flag, '1');
-    startTour(entry.build(), tab);
+    // Открыта модалка (пикер, гайд и т.п.) → ждём закрытия, не стартуем поверх.
+    _tourStartWhenClear(function () {
+      if (_tour || getHelpFlag(entry.flag)) return;
+      var tabEl = document.getElementById('tab-' + tab);
+      if (!tabEl || !tabEl.classList.contains('active')) return; // вкладку сменили, пока ждали
+      setHelpFlag(entry.flag, '1');
+      startTour(entry.build(), tab);
+    });
   }, 350);
 }
 
