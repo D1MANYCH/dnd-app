@@ -1258,6 +1258,22 @@ document.addEventListener('DOMContentLoaded', function () {
   } catch (e) {}
 });
 
+// Дымка v5: подстановка линейных SVG-иконок (icons.js) в статическую разметку.
+// <span data-ico="sheet" data-ico-size="20" data-ico-color="var(--danger)">📋</span>
+// Эмодзи внутри — фолбэк, если icons.js не загрузился.
+function _applyDymkaIcons(root) {
+  if (typeof dndIcon !== 'function') return;
+  (root || document).querySelectorAll('[data-ico]').forEach(function (el) {
+    var svg = dndIcon(el.getAttribute('data-ico'), parseInt(el.getAttribute('data-ico-size'), 10) || 18);
+    if (!svg) return;
+    el.innerHTML = svg;
+    el.classList.add('dico');
+    var c = el.getAttribute('data-ico-color');
+    if (c) el.style.color = c;
+  });
+}
+document.addEventListener('DOMContentLoaded', function () { _applyDymkaIcons(); });
+
 function _initAppLinks() {
   var row = document.getElementById('app-links-row');
   if (!row) return;

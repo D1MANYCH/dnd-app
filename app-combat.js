@@ -3002,14 +3002,16 @@ function renderConditionsPopup() {
     badges.className = "popup-group-badges";
     baseConditions.forEach(function(c) {
       var badge = document.createElement("span");
-      badge.className = "condition-badge";
-      badge.innerHTML = getConditionIcon(c.id) + '<span>' + escapeHtml(stripLeadingEmoji(c.name)) + '</span>';
+      badge.className = "condition-badge cond-chip on";
+      if (DYMKA_CONDITION_META[c.id]) badge.style.setProperty("--sc", DYMKA_CONDITION_META[c.id].color);
+      badge.innerHTML = getConditionChipIcon(c.id) + '<span>' + escapeHtml(stripLeadingEmoji(c.name)) + '</span>';
       badges.appendChild(badge);
     });
     if (exhLevel > 0) {
       var exhBadge = document.createElement("span");
-      exhBadge.className = "condition-badge exhaustion";
-      exhBadge.innerHTML = getConditionIcon('exhaustion_' + exhLevel) + '<span>Истощение ' + exhLevel + (exhLevel >= 6 ? ' — смерть' : '/6') + '</span>';
+      exhBadge.className = "condition-badge exhaustion cond-chip on";
+      exhBadge.style.setProperty("--sc", "var(--danger)");
+      exhBadge.innerHTML = getConditionChipIcon('exhaustion_' + exhLevel) + '<span>Истощение ' + exhLevel + (exhLevel >= 6 ? ' — смерть' : '/6') + '</span>';
       badges.appendChild(exhBadge);
     }
     group.appendChild(badges);

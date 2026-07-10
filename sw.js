@@ -9,6 +9,7 @@ const FILES_TO_CACHE = [
   './index.html',
   './style.css',
   './app-log.js',
+  './icons.js',
   './bg-space.js',
   './dice-arena-bg.js',
   './data.js',

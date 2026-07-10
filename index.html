@@ -101,16 +101,16 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
   </div>
   <nav class="drawer-nav">
-    <button class="drawer-item drawer-item-active" onclick="switchTab('sheet',null);closeDrawer()" data-drawer-tab="sheet"><span>📋</span>Лист персонажа</button>
-    <button class="drawer-item" onclick="switchTab('spells',null);closeDrawer()" data-drawer-tab="spells"><span>✨</span>Заклинания</button>
-    <button class="drawer-item" onclick="switchTab('inventory',null);closeDrawer()" data-drawer-tab="inventory"><span>🎒</span>Инвентарь</button>
-    <button class="drawer-item" onclick="switchTab('battle',null);closeDrawer()" data-drawer-tab="battle"><span>⚔️</span>Бой</button>
+    <button class="drawer-item drawer-item-active" onclick="switchTab('sheet',null);closeDrawer()" data-drawer-tab="sheet"><span data-ico="sheet">📋</span>Лист персонажа</button>
+    <button class="drawer-item" onclick="switchTab('spells',null);closeDrawer()" data-drawer-tab="spells"><span data-ico="spells">✨</span>Заклинания</button>
+    <button class="drawer-item" onclick="switchTab('inventory',null);closeDrawer()" data-drawer-tab="inventory"><span data-ico="inventory">🎒</span>Инвентарь</button>
+    <button class="drawer-item" onclick="switchTab('battle',null);closeDrawer()" data-drawer-tab="battle"><span data-ico="combat">⚔️</span>Бой</button>
     <div class="drawer-divider"></div>
-    <button class="drawer-item" onclick="switchTab('notes',null);closeDrawer()" data-drawer-tab="notes"><span>📝</span>Записи</button>
-    <button class="drawer-item" onclick="switchTab('party',null);closeDrawer()" data-drawer-tab="party"><span>🌍</span>Мир</button>
-    <button class="drawer-item" onclick="switchTab('journal',null);closeDrawer()" data-drawer-tab="journal"><span>📖</span>Журнал</button>
-    <button class="drawer-item" onclick="AppLog.openPanel();closeDrawer()" title="Журнал действий сессии (Ctrl+Shift+L)"><span>🪵</span>Логи сессии</button>
-    <button class="drawer-item" onclick="openHelp('start');closeDrawer()" title="Справка по приложению"><span>❓</span>Справка</button>
+    <button class="drawer-item" onclick="switchTab('notes',null);closeDrawer()" data-drawer-tab="notes"><span data-ico="notes">📝</span>Записи</button>
+    <button class="drawer-item" onclick="switchTab('party',null);closeDrawer()" data-drawer-tab="party"><span data-ico="users">🌍</span>Мир</button>
+    <button class="drawer-item" onclick="switchTab('journal',null);closeDrawer()" data-drawer-tab="journal"><span data-ico="book">📖</span>Журнал</button>
+    <button class="drawer-item" onclick="AppLog.openPanel();closeDrawer()" title="Журнал действий сессии (Ctrl+Shift+L)"><span data-ico="scroll">🪵</span>Логи сессии</button>
+    <button class="drawer-item" onclick="openHelp('start');closeDrawer()" title="Справка по приложению"><span data-ico="help">❓</span>Справка</button>
   </nav>
   <div class="drawer-settings-row">
     <button type="button" class="drawer-settings-btn" onclick="openSettingsModal()" title="Тема, акцент, плотность, масштаб">
@@ -290,18 +290,18 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </header>
 <!-- ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА (R5: одна компактная строка). UI-fix: после <header>, чтобы стакаться ПОД ним (sticky top:var(--header-h)), а не перекрывать. -->
 <div class="status-bar" id="status-bar">
-  <div class="status-chip status-hp" title="Хиты">❤️ <span class="hp-current" id="status-hp-current">10</span><span class="hp-max">/<span id="status-hp-max">10</span></span></div>
-  <div class="status-chip status-ac" title="Класс доспеха">🛡️ <span id="status-ac">10</span></div>
-  <div class="status-chip status-level" title="Уровень">⭐ <span id="status-level">1</span></div>
-  <div class="status-chip status-inspiration" id="status-inspiration" onclick="toggleInspiration()" title="Вдохновение">✨</div>
+  <div class="status-chip status-hp" title="Хиты"><span data-ico="heart" data-ico-color="var(--danger)">❤️</span> <span class="hp-current" id="status-hp-current">10</span><span class="hp-max">/<span id="status-hp-max">10</span></span></div>
+  <div class="status-chip status-ac" title="Класс доспеха"><span data-ico="shield" data-ico-color="var(--info)">🛡️</span> <span id="status-ac">10</span></div>
+  <div class="status-chip status-level" title="Уровень"><span data-ico="star" data-ico-color="var(--accent)">⭐</span> <span id="status-level">1</span></div>
+  <div class="status-chip status-inspiration" id="status-inspiration" onclick="toggleInspiration()" title="Вдохновение"><span data-ico="sparkle">✨</span></div>
   <div class="status-chip status-concentration hidden" id="status-concentration" onclick="openConcDetails()" title="Концентрация">
-    🔮<span class="conc-status-name" id="status-conc-name">—</span>
+    <span data-ico="focus" data-ico-color="var(--accent)">🔮</span><span class="conc-status-name" id="status-conc-name">—</span>
   </div>
   <div class="status-chip status-ritual hidden" id="status-ritual" onclick="cancelRitual()" title="Нажмите чтобы отменить ритуал">
-    🕐<span class="ritual-status-name" id="status-ritual-name">—</span><span class="ritual-status-timer" id="status-ritual-timer">10:00</span>
+    <span data-ico="history" data-ico-color="var(--info)">🕐</span><span class="ritual-status-name" id="status-ritual-name">—</span><span class="ritual-status-timer" id="status-ritual-timer">10:00</span>
   </div>
   <div class="status-chip status-conditions-btn hidden" id="status-conditions-btn" onclick="toggleConditionsPopup()" title="Состояния">
-    ⚡<span class="conditions-btn-count" id="conditions-btn-count">0</span>
+    <span data-ico="zap" data-ico-color="var(--accent)">⚡</span><span class="conditions-btn-count" id="conditions-btn-count">0</span>
   </div>
 </div>
 <aside class="app-right-rail" id="app-right-rail" aria-label="Быстрые действия"></aside>
@@ -2621,11 +2621,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <div id="character-tabs" class="tab-nav hidden">
-  <button class="tab-btn active" onclick="switchTab('sheet', this)" data-tab="sheet"><span>📋</span>Лист</button>
-  <button class="tab-btn" onclick="switchTab('spells', this)" data-tab="spells"><span>✨</span>Заклин.</button>
+  <button class="tab-btn active" onclick="switchTab('sheet', this)" data-tab="sheet"><span data-ico="sheet" data-ico-size="20">📋</span>Лист</button>
+  <button class="tab-btn" onclick="switchTab('spells', this)" data-tab="spells"><span data-ico="spells" data-ico-size="20">✨</span>Заклин.</button>
   <button class="tab-dice-fab" type="button" onclick="openDiceModal()" aria-label="Броски кубиков"><img class="tab-dice-fab-icon" src="assets/d20-fab.webp" alt=""></button>
-  <button class="tab-btn" onclick="switchTab('inventory', this)" data-tab="inventory"><span>🎒</span>Инвентарь</button>
-  <button class="tab-btn" onclick="switchTab('battle', this)" data-tab="battle"><span>⚔️</span>Бой</button>
+  <button class="tab-btn" onclick="switchTab('inventory', this)" data-tab="inventory"><span data-ico="inventory" data-ico-size="20">🎒</span>Инвентарь</button>
+  <button class="tab-btn" onclick="switchTab('battle', this)" data-tab="battle"><span data-ico="combat" data-ico-size="20">⚔️</span>Бой</button>
 </div>
 </div>
 
@@ -2806,6 +2806,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 
 <script src="app-log.js?v=v272"></script>
+<!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
+<script src="icons.js?v=v272"></script>
 <script src="bg-space.js?v=v272"></script>
 <script src="dice-arena-bg.js?v=v272"></script>
 <script src="data.js?v=v272"></script>

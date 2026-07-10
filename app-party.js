@@ -988,6 +988,7 @@ function renderBattleTracker() {
         '<div class="tracker-icon" style="background:' + fcolor + '22;color:' + fcolor + '">' + (p.icon || "🎭") + "</div>" +
         '<div class="tracker-name">' +
           '<span class="tracker-name-text">' + escapeHtml(p.name || "?") + '</span>' +
+          _battleCondDots(p) +
         "</div>" +
         '<div class="tracker-actions">' +
           infoSlot +
@@ -1004,6 +1005,20 @@ function renderBattleTracker() {
       '</div>' +
     "</div>";
   }).join("");
+}
+
+// Дымка v5: мини-иконки активных состояний рядом с именем (.cond-dot).
+// Для «себя» — состояния с листа; у остальных участников списка состояний нет.
+function _battleCondDots(p) {
+  if (!p || p.type !== "self" || typeof getConditionChipIcon !== "function") return "";
+  var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  if (!char || !char.conditions || !char.conditions.length) return "";
+  var names = {};
+  (typeof CONDITIONS !== "undefined" ? CONDITIONS : []).forEach(function(c) { names[c.id] = stripLeadingEmoji(c.name); });
+  return '<span class="tracker-cond-dots">' + char.conditions.slice(0, 6).map(function(id) {
+    var meta = (typeof DYMKA_CONDITION_META !== "undefined") ? DYMKA_CONDITION_META[String(id).indexOf("exhaustion") === 0 ? "exhaustion" : id] : null;
+    return '<span class="cond-dot" style="--sc:' + (meta ? meta.color : "var(--accent)") + '" title="' + escapeHtml(names[id] || id) + '">' + getConditionChipIcon(id, 13) + '</span>';
+  }).join('') + '</span>';
 }
 
 // ── UX-6: действия в строке трекера (ХП / инициатива / броски / удаление) ──

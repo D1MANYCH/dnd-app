@@ -2998,6 +2998,31 @@ function getConditionIcon(id) {
   if (!slug) return '';
   return '<img class="condition-icon-svg" src="assets/conditions/' + slug + '.webp" alt="" aria-hidden="true">';
 }
+// Дымка v5: компактная линейная SVG-иконка состояния (чипы/бейджи/трекер боя).
+// Карточки состояний на листе оставляют крупные webp-иллюстрации (getConditionIcon).
+const DYMKA_CONDITION_META = {
+  blinded:       { ico: 'eyeOff', color: 'var(--text-dim)' },
+  charmed:       { ico: 'charm',  color: 'var(--charm)' },
+  deafened:      { ico: 'x',      color: 'var(--text-dim)' },
+  frightened:    { ico: 'ghost',  color: 'var(--magic)' },
+  grappled:      { ico: 'lock',   color: 'var(--danger)' },
+  incapacitated: { ico: 'alert',  color: 'var(--danger)' },
+  invisible:     { ico: 'dashed', color: 'var(--text-mute)' },
+  paralyzed:     { ico: 'zapOff', color: 'var(--divin)' },
+  petrified:     { ico: 'shield', color: 'var(--text-mute)' },
+  poisoned:      { ico: 'flask',  color: 'var(--necro)' },
+  prone:         { ico: 'fall',   color: 'var(--danger)' },
+  restrained:    { ico: 'lock',   color: 'var(--necro)' },
+  stunned:       { ico: 'dizzy',  color: 'var(--magic)' },
+  unconscious:   { ico: 'moon',   color: 'var(--text-mute)' },
+  exhaustion:    { ico: 'drop',   color: 'var(--danger)' }
+};
+function getConditionChipIcon(id, size) {
+  var key = String(id || '').indexOf('exhaustion') === 0 ? 'exhaustion' : id;
+  var meta = DYMKA_CONDITION_META[key];
+  if (!meta || typeof dndIcon !== 'function') return getConditionIcon(id);
+  return '<span class="cond-ico" style="color:' + meta.color + '">' + dndIcon(meta.ico, size || 15) + '</span>';
+}
 // Иконка класса для бейджа в заклинании: ключ CLASS_ICONS_MAP → PNG в assets/classes/
 // "both" не имеет файла → fallback на emoji-звезду.
 const SPELL_CLASS_ICON_SLUGS = {
@@ -3036,6 +3061,11 @@ function getSchoolIcon(school) {
   if (!slug) return '';
   var ru = String(school).trim();
   ru = ru.charAt(0).toUpperCase() + ru.slice(1);
+  // Дымка v5: линейная SVG-иконка школы, тонированная цветом из SCHOOL_META
+  var meta = (typeof SCHOOL_META !== 'undefined') ? SCHOOL_META[ru] : null;
+  if (meta && typeof dndIcon === 'function') {
+    return '<span class="school-icon-svg" style="color:' + meta.color + '" title="Школа: ' + ru + '">' + dndIcon(meta.ico, 16) + '</span>';
+  }
   return '<img class="school-icon-svg" src="assets/schools/' + slug + '.webp?v=6" title="Школа: ' + ru + '" alt="' + ru + '">';
 }
 // Удаляет ведущий emoji (и пробел) из имени состояния — для отображения рядом с SVG-иконкой

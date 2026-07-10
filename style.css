@@ -5697,6 +5697,7 @@ transition: all 0.2s;
 }
 .spell-class-emoji { font-size: 1.05em; line-height: 1; }
 
+/* Дымка v5: бейдж школы тонируется цветом школы (--sc из класса school-<slug>) */
 .school-badge {
   display: inline-flex;
   align-items: center;
@@ -5705,11 +5706,20 @@ transition: all 0.2s;
   border-radius: var(--r-sm);
   font-size: 1.1em;
   font-weight: 600;
-  background: rgba(255,255,255,0.08);
-  color: var(--text-muted);
-  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--sc, var(--accent)) 13%, transparent);
+  color: var(--sc, var(--text-muted));
+  border: 1px solid color-mix(in srgb, var(--sc, var(--accent)) 30%, transparent);
   text-transform: capitalize;
 }
+.school-badge.school-abjuration    { --sc: var(--success); }
+.school-badge.school-conjuration   { --sc: var(--info); }
+.school-badge.school-divination    { --sc: var(--divin); }
+.school-badge.school-enchantment   { --sc: var(--charm); }
+.school-badge.school-evocation     { --sc: var(--danger); }
+.school-badge.school-illusion      { --sc: var(--magic); }
+.school-badge.school-necromancy    { --sc: var(--necro); }
+.school-badge.school-transmutation { --sc: var(--accent); }
+.school-icon-svg > svg { display: block; }
 .school-icon-svg {
   width: 24px;
   height: 24px;
@@ -12632,3 +12642,40 @@ textarea:focus-visible {
 :root[data-theme="light"] .res-row-res .res-row-mult { color: #256d6d; }
 :root[data-theme="light"] .res-row-imm .res-row-mult { color: #24578f; }
 :root[data-theme="light"] .res-row-vul .res-row-mult { color: #8f5a12; }
+
+/* ============================================================
+   Дымка v5: чипы состояний, мини-индикаторы, SVG-иконки
+============================================================ */
+/* Контейнер SVG-иконки (data-ico → dndIcon) */
+.dico { display: inline-flex; align-items: center; justify-content: center; line-height: 1; vertical-align: -0.15em; }
+.dico > svg { display: block; }
+.cond-ico { display: inline-flex; align-items: center; color: var(--sc, currentColor); }
+.cond-ico > svg { display: block; }
+
+/* Чип состояния: иконка + подпись; активный — тонированный фон цветом состояния */
+.cond-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  min-height: 26px; padding: 3px 10px; border-radius: var(--r-pill);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text-dim);
+  background: var(--bg-2); border: 1px solid var(--border-soft);
+  transition: background var(--t1, 140ms) var(--ez-out, ease), color var(--t1, 140ms) var(--ez-out, ease),
+              border-color var(--t1, 140ms) var(--ez-out, ease), transform var(--t1, 140ms) var(--ez-spring, ease);
+}
+.cond-chip:active { transform: scale(0.95); }
+.cond-chip.on {
+  background: color-mix(in srgb, var(--sc, var(--accent)) 14%, transparent);
+  color: var(--sc, var(--accent));
+  border-color: color-mix(in srgb, var(--sc, var(--accent)) 36%, transparent);
+}
+
+/* Мини-индикатор состояния (в трекере боя, рядом с именем) */
+.tracker-cond-dots { display: inline-flex; gap: 3px; margin-left: 6px; vertical-align: middle; }
+.cond-dot {
+  width: 21px; height: 21px; border-radius: 7px;
+  display: inline-grid; place-items: center;
+  background: color-mix(in srgb, var(--sc, var(--accent)) 14%, transparent);
+  color: var(--sc, var(--accent));
+}
+
+/* Иконки в нижнем таб-баре и drawer — по центру над подписью */
+.tab-btn .dico { margin: 0 auto; }
