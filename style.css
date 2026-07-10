@@ -231,6 +231,7 @@ html.glass-adjusting *::after {
 
   /* Semantic */
   --overlay: rgba(24, 26, 34, 0.38);
+  --tour-dim: rgba(24, 26, 34, 0.55);
   --danger: #c53a2e;
   --success: #2e8a54;
   --info: #2c6fbd;
@@ -285,6 +286,7 @@ html.glass-adjusting *::after {
     --accent-glow-token: rgba(168, 130, 58, 0.30);
     --on-accent: #ffffff;
     --overlay: rgba(24, 26, 34, 0.38);
+    --tour-dim: rgba(24, 26, 34, 0.55);
     --danger: #c53a2e; --success: #2e8a54; --info: #2c6fbd;
     --magic: #7a5cd0; --necro: #6c8636; --divin: #1f8a8a; --charm: #bf4a7d;
     --slot-gold: #a8823a; --slot-gold-hi: #c09a50; --slot-gold-glow: rgba(168, 130, 58, 0.35);
@@ -9087,7 +9089,11 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   opacity: 1;
 }
 .sw-update-box {
-  background: var(--card-bg);
+  /* Дымка v5: уровень 3 стекла (как модалки) — на светлой теме полупрозрачный
+     --card-bg поверх тёмного бэкдропа серел, содержимое плохо читалось */
+  background: var(--surface-modal, var(--card-bg));
+  backdrop-filter: blur(var(--pop-blur, 30px));
+  -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
   border: 1.5px solid var(--accent-color);
   border-radius: 16px;
   max-width: 440px;
@@ -9106,6 +9112,16 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   padding: 20px;
   text-align: center;
 }
+/* Светлая тема: тёмно-зелёный хедер и салатовые тексты не читаются на светлом —
+   заменяем на мягкую зелёную подложку и семантические токены темы */
+:root[data-theme="light"] .sw-update-header {
+  background: rgba(46, 138, 84, 0.10);
+  border-bottom-color: rgba(46, 138, 84, 0.28);
+}
+:root[data-theme="light"] .sw-update-title { color: var(--success, #2e8a54); }
+:root[data-theme="light"] .sw-update-safe { color: var(--success, #2e8a54); }
+:root[data-theme="light"] .sw-update-tg-text b,
+:root[data-theme="light"] .sw-update-tg-arrow { color: var(--info, #2c6fbd); }
 .sw-update-icon {
   font-size: 40px;
   margin-bottom: 8px;
@@ -9849,10 +9865,12 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .tour-overlay.active { display: block; }
 
-/* Дымка v5: маски — сплошной --overlay без рамок; появление fade-in 240ms */
+/* Дымка v5: маски — сплошные, без рамок; появление fade-in 240ms.
+   Затемнение тура — отдельный токен --tour-dim: общий --overlay на светлой теме
+   (0.38) слишком слабый — «дырка» подсветки почти не читается. */
 .tour-mask {
   position: fixed;
-  background: var(--overlay, rgba(0, 0, 0, 0.55));
+  background: var(--tour-dim, var(--overlay, rgba(0, 0, 0, 0.55)));
   border: none;
   pointer-events: auto;
 }

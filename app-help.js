@@ -555,6 +555,17 @@ function _layoutTour() {
     top = Math.max(margin, Math.min(top, vh - ch - margin));
     coach.style.top = top + 'px';
     coach.style.left = left + 'px';
+    // Страховка: если фактический rect карточки шире/выше замера (замер успел
+    // разойтись с рендером — поздний шрифт, транзишен, нулевой offsetWidth в
+    // момент показа), докручиваем координаты по реальным размерам. В обычном
+    // состоянии условие ложно (кламп выше уже удержал карточку в экране).
+    var cr = coach.getBoundingClientRect();
+    if (left + cr.width > vw - margin) {
+      coach.style.left = Math.max(margin, vw - cr.width - margin) + 'px';
+    }
+    if (top + cr.height > vh - margin) {
+      coach.style.top = Math.max(margin, vh - cr.height - margin) + 'px';
+    }
   } else {
     // Нет цели → одна панель на весь экран + карточка по центру.
     _setBox(mTop, 0, 0, vw, vh);
