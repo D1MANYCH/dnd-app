@@ -1672,6 +1672,16 @@ body.no-character .drawer-divider { display: none; }
     margin: 0 auto;
     padding: 24px 32px;
   }
+}
+/* Дымка v5: на широких экранах лист занимает больше ширины — между контентом
+   и правым rail оставались большие пустые поля (фидбек юзера) */
+@media (min-width: 1600px) {
+  #screen-character,
+  #screen-character > .scroll {
+    max-width: 1400px;
+  }
+}
+@media (min-width: 1024px) {
 
   /* Right-rail — по умолчанию тёмный (под dark и под auto+OS-dark);
      светлый — только при явном light или auto+OS-light */
@@ -1962,8 +1972,11 @@ position: fixed;
 inset: 0;
 z-index: -1;
 pointer-events: none;
-backdrop-filter: blur(var(--glass-blur));
--webkit-backdrop-filter: blur(var(--glass-blur));
+/* Дымка v5: глобальный слой — лишь лёгкая «дымка» (треть слайдера), иначе
+   при дефолтных 18px космос превращается в кашу и орбиты не видны.
+   Полное размытие за поверхностями дают их собственные backdrop-filter. */
+backdrop-filter: blur(calc(var(--glass-blur) / 3));
+-webkit-backdrop-filter: blur(calc(var(--glass-blur) / 3));
 }
 /* UI4-glass: снять R6-декор body (assets/bg-body.webp, см. ~9201) на ОБЕИХ темах,
    иначе непрозрачный fixed-фон перекрывает орбитальный canvas. :root body
@@ -3711,10 +3724,11 @@ margin: 0;
   gap: 6px;
   flex-wrap: wrap;
   margin-top: 8px;
+  margin-bottom: 14px; /* Дымка v5: воздух между переключателем редакции и списком */
   padding: 6px 12px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--r-md);
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
 }
 .home-edition-label { font-size: 0.72em; color: var(--text-mute); flex-shrink: 0; }
 .home-edition-btn {
@@ -3801,11 +3815,11 @@ transition: all 0.18s;
   .home-utils { grid-template-columns: repeat(3, 1fr); }
 }
 @media (min-width: 1000px) {
+  /* Максимум 3 колонки — 4 слишком сжимали карточки (фидбек юзера) */
   #character-list { grid-template-columns: repeat(3, 1fr); }
 }
 @media (min-width: 1560px) {
-  #character-list { grid-template-columns: repeat(4, 1fr); }
-  /* Шире контейнер главной, чтобы 4 колонки дышали */
+  /* Шире контейнер главной — 3 колонки получают крупные карточки */
   #screen-characters { max-width: 1400px; }
 }
 
@@ -5474,17 +5488,19 @@ font-size: 0.95em;
 }
 
 /* ── Spell Slot Row ── */
+/* Дымка v5: строка ячеек — стеклянная плашка с бликом */
 .spell-slot-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(90deg, var(--input-bg) 0%, var(--bg-3) 100%);
-  border: 1px solid var(--border-color);
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
   border-radius: var(--r-md);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
   padding: 8px 12px;
-  transition: border-color 0.2s;
+  transition: border-color var(--t1, 140ms) var(--ez-out, ease), background var(--t1, 140ms) var(--ez-out, ease);
 }
-.spell-slot-row:hover { border-color: rgba(77,168,67,0.4); }
+.spell-slot-row:hover { border-color: color-mix(in srgb, var(--accent) 32%, var(--border-soft)); background: var(--bg-3); }
 .spell-slot-empty {
   opacity: 0.45;
 }
@@ -5524,22 +5540,26 @@ font-size: 0.95em;
   color: var(--text-muted);
   font-style: italic;
 }
+/* Дымка v5: свободная ячейка — золотой градиент со свечением, потраченная гаснет */
 .spell-diamond {
   width: 18px;
   height: 18px;
-  border: 2px solid var(--accent-color);
+  border: 1.5px solid var(--accent);
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
+  box-shadow: 0 0 8px var(--accent-glow-token), inset 0 1px 0 rgba(255,255,255,0.35);
   transform: rotate(45deg);
   cursor: pointer;
-  transition: all 0.18s;
-  background-color: transparent;
-  border-radius: 3px;
+  transition: background var(--t1, 140ms) var(--ez-out, ease), border-color var(--t1, 140ms) var(--ez-out, ease),
+              box-shadow var(--t1, 140ms) var(--ez-out, ease), transform var(--t1, 140ms) var(--ez-spring, ease);
+  border-radius: 4px;
   flex-shrink: 0;
 }
 .spell-diamond.used {
-  background: var(--danger-color);
-  border-color: var(--danger-color);
+  background: var(--bg-3);
+  border-color: var(--border);
+  box-shadow: none;
 }
-.spell-diamond:hover { transform: rotate(45deg) scale(1.2); border-color: var(--success-color); }
+.spell-diamond:hover { transform: rotate(45deg) scale(1.2); }
 .spell-diamond:active { transform: rotate(45deg) scale(0.9); }
 
 /* Counter */

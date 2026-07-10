@@ -44,7 +44,11 @@
       }));
 
     var init = () => {
-      W = host.clientWidth; H = host.clientHeight;
+      // dnd-app: размер сцены — CSS-бокс самого канваса (fixed, 100vw×100vh),
+      // а не host/body: высота body равна высоте ДОКУМЕНТА вкладки, из-за чего
+      // центр орбит уезжал вниз и на каждой вкладке сцена выглядела по-разному.
+      W = canvas.clientWidth || host.clientWidth;
+      H = canvas.clientHeight || Math.min(host.clientHeight, window.innerHeight || host.clientHeight);
       if (!W || !H) return;
       var dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.floor(W * dpr); canvas.height = Math.floor(H * dpr);
@@ -189,9 +193,11 @@
       var ox = cx + px, oy = cy + py;
 
       // Орбиты + планеты
+      // dnd-app: ×1.5 к яркости линий — сцена лежит под слоем #bgGlass
+      // (лёгкое глобальное размытие), исходные альфы прототипа тонут.
       for (var o of orbits) {
         var rot = o.ang + time * o.sp * o.dir * 0.1;
-        ctx.strokeStyle = `rgba(${P.orbit},${o.a})`;
+        ctx.strokeStyle = `rgba(${P.orbit},${Math.min(1, o.a * 1.5)})`;
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.arc(ox, oy, o.r, rot, rot + o.arc * Math.PI * 2); ctx.stroke();
         for (var p of o.pl) {
@@ -207,10 +213,10 @@
         }
       }
 
-      // Золотые акцент-дуги
+      // Золотые акцент-дуги (dnd-app: ×1.4 к яркости, см. комментарий у орбит)
       for (var a of arcs) {
         var rot = (a.st * Math.PI / 180) + a.ang + time * a.sp * a.dir * 0.1;
-        ctx.strokeStyle = `rgba(${P.arcGold},${a.a})`;
+        ctx.strokeStyle = `rgba(${P.arcGold},${Math.min(1, a.a * 1.4)})`;
         ctx.lineWidth = 1.4; ctx.lineCap = 'round';
         ctx.beginPath(); ctx.arc(ox, oy, a.r, rot, rot + a.len * Math.PI / 180); ctx.stroke();
       }
@@ -270,10 +276,12 @@
       clearTimeout(resizeT);
       resizeT = setTimeout(() => { init(); if (!animate) draw(); }, 150);
     });
-    ro.observe(host);
+    // dnd-app: следим за канвасом (вьюпорт), а не за body — рост высоты
+    // документа при смене вкладки не должен пересеивать сцену.
+    ro.observe(canvas);
 
     var onMouse = (e) => {
-      var r = host.getBoundingClientRect();
+      var r = canvas.getBoundingClientRect();
       tmx = ((e.clientX - r.left) / r.width - 0.5) * 2;
       tmy = ((e.clientY - r.top) / r.height - 0.5) * 2;
     };
