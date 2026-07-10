@@ -131,8 +131,11 @@ function welcomeFinish(action) {
   closeWelcome();
   switch (action) {
     case 'tour':
-      // Движок интерактивного тура — HELP-4. До его появления мягкий фолбэк в справку.
-      if (typeof startListTour === 'function') startListTour();
+      // Тур по контексту: открыт персонаж → тур листа (цели тура главной
+      // на экране листа скрыты, и тур вырождался в пару пустых карточек);
+      // иначе — тур главного экрана.
+      if (window.currentId && typeof startSheetTour === 'function') startSheetTour();
+      else if (typeof startListTour === 'function') startListTour();
       else openHelp('start');
       break;
     case 'help':

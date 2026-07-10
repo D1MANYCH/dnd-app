@@ -57,17 +57,18 @@
       var area = (W * H) / (1280 * 800);
       var k = (lively ? 1 : 0.65) * Math.min(1.4, Math.max(0.45, area));
 
+      // dnd-app: плотность деталей ×1.6 к прототипу (фидбек: «детализированнее»)
       stars = dark ? [
-        ...mkStars(Math.round(95 * k), 0.4, 1.4, 0.15, 0.45),
-        ...mkStars(Math.round(48 * k), 0.6, 2.0, 0.2, 0.55),
-        ...mkStars(Math.round(14 * k), 1.2, 2.5, 0.3, 0.65),
+        ...mkStars(Math.round(150 * k), 0.4, 1.4, 0.15, 0.45),
+        ...mkStars(Math.round(76 * k), 0.6, 2.0, 0.2, 0.55),
+        ...mkStars(Math.round(22 * k), 1.2, 2.5, 0.3, 0.65),
       ] : [
-        ...mkStars(Math.round(68 * k), 0.4, 1.1, 0.10, 0.26),
-        ...mkStars(Math.round(28 * k), 0.5, 1.4, 0.14, 0.32),
-        ...mkStars(Math.round(10 * k), 1.0, 2.0, 0.18, 0.36),
+        ...mkStars(Math.round(110 * k), 0.4, 1.1, 0.10, 0.26),
+        ...mkStars(Math.round(46 * k), 0.5, 1.4, 0.14, 0.32),
+        ...mkStars(Math.round(16 * k), 1.0, 2.0, 0.18, 0.36),
       ];
 
-      nebulae = Array.from({ length: lively ? 4 : 2 }, () => {
+      nebulae = Array.from({ length: lively ? 6 : 3 }, () => {
         var ang = rand(0, Math.PI * 2);
         var dist = rand(50, minDim * 0.35 + 50);
         return {
@@ -104,14 +105,14 @@
         { r: maxR * 0.52, st: -65, len: 65, sp: 0.25, dir: -1, a: dark ? 0.30 : 0.16 },
       ].map((a) => ({ ...a, ang: rand(0, Math.PI * 2) })) : [];
 
-      dust = Array.from({ length: Math.min(54, Math.floor((W * H) / 20000) * (lively ? 1 : 0.5)) | 0 }, () => ({
+      dust = Array.from({ length: Math.min(96, Math.floor((W * H) / 13000) * (lively ? 1 : 0.5)) | 0 }, () => ({
         x: rand(-100, W + 100), y: rand(-100, H + 100),
         size: rand(0.4, 2.2), o: rand(0.04, 0.32),
         vx: rand(-0.02, 0.02), vy: rand(-0.02, 0.02),
         om: rand(0.15, 0.9), ph: rand(0, Math.PI * 2), depth: Math.random(),
       }));
 
-      comets = lively ? Array.from({ length: Math.min(8, orbits.length) }, () => {
+      comets = lively ? Array.from({ length: Math.min(12, orbits.length + 3) }, () => {
         var oi = Math.floor(rand(0, orbits.length));
         return { oi, ang: rand(0, Math.PI * 2), sp: orbits[oi].sp * rand(0.3, 1.1), size: rand(0.4, 1.6), o: rand(0.10, 0.38) };
       }) : [];
