@@ -52,6 +52,12 @@
 --divin: #4fc0c0;
 --charm: #e884ad;
 
+/* Дымка v5: золото ячеек заклинаний — НЕ зависит от акцента класса
+   (свободная ячейка всегда золотая, потраченная — серая) */
+--slot-gold: #d6b25e;
+--slot-gold-hi: #e2c67e;
+--slot-gold-glow: rgba(214, 178, 94, 0.4);
+
 /* Радиусы */
 --r-sm: 10px;
 --r-md: 14px;
@@ -235,6 +241,11 @@ html.glass-adjusting *::after {
   --divin: #1f8a8a;
   --charm: #bf4a7d;
 
+  /* Золото ячеек заклинаний на светлом — приглушённое */
+  --slot-gold: #a8823a;
+  --slot-gold-hi: #c09a50;
+  --slot-gold-glow: rgba(168, 130, 58, 0.35);
+
   /* Shadows */
   --sh-1: 0 1px 3px rgba(22,26,38,0.05), 0 6px 22px rgba(22,26,38,0.06);
   --sh-2: 0 10px 28px rgba(22,26,38,0.12), 0 32px 80px rgba(22,26,38,0.20);
@@ -276,6 +287,7 @@ html.glass-adjusting *::after {
     --overlay: rgba(24, 26, 34, 0.38);
     --danger: #c53a2e; --success: #2e8a54; --info: #2c6fbd;
     --magic: #7a5cd0; --necro: #6c8636; --divin: #1f8a8a; --charm: #bf4a7d;
+    --slot-gold: #a8823a; --slot-gold-hi: #c09a50; --slot-gold-glow: rgba(168, 130, 58, 0.35);
     --sh-1: 0 1px 3px rgba(22,26,38,0.05), 0 6px 22px rgba(22,26,38,0.06);
     --sh-2: 0 10px 28px rgba(22,26,38,0.12), 0 32px 80px rgba(22,26,38,0.20);
     --sh-glow: 0 0 0 3px var(--accent-soft), 0 6px 16px var(--accent-glow);
@@ -1886,11 +1898,11 @@ body.no-character .drawer-divider { display: none; }
   }
   #tab-sheet.active > .identity-card > .sheet-top-row,
   #tab-sheet.active > .identity-card > #race-bonus-display,
-  /* FIN-4/FIN-9: панель предыстории и строка безделушки — тоже во всю ширину,
-     иначе в 2-кол grid они вставали рядом и под низкой строкой безделушки
-     оставался пустой «карман» высотой панели предыстории */
-  #tab-sheet.active > .identity-card > .bg-feature-bar,
-  #tab-sheet.active > .identity-card > .trinket-roll-row { grid-column: 1 / -1; }
+  /* FIN-4: панель предыстории — во всю ширину. Дымка v5: безделушка больше
+     НЕ full-width — она правая ячейка рядом со строкой «Размер/Скорость»
+     (перенесена в конец карточки), пустых «карманов» в сетке не остаётся */
+  #tab-sheet.active > .identity-card > .bg-feature-bar { grid-column: 1 / -1; }
+  #tab-sheet.active > .identity-card > .trinket-roll-row { align-self: end; padding-bottom: 4px; }
   #tab-sheet.active > .identity-card > .row { margin-bottom: 0; }
 }
 
@@ -5540,13 +5552,15 @@ font-size: 0.95em;
   color: var(--text-muted);
   font-style: italic;
 }
-/* Дымка v5: свободная ячейка — золотой градиент со свечением, потраченная гаснет */
+/* Дымка v5: свободная ячейка — ВСЕГДА золотая (фиксированное золото, не акцент:
+   при красном/зелёном акценте класса свободные читались как «потраченные» —
+   семантика переворачивалась). Потраченная — гаснет в серую. */
 .spell-diamond {
   width: 18px;
   height: 18px;
-  border: 1.5px solid var(--accent);
-  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
-  box-shadow: 0 0 8px var(--accent-glow-token), inset 0 1px 0 rgba(255,255,255,0.35);
+  border: 1.5px solid var(--slot-gold, #d6b25e);
+  background: linear-gradient(180deg, var(--slot-gold-hi, #e2c67e), var(--slot-gold, #d6b25e));
+  box-shadow: 0 0 8px var(--slot-gold-glow, rgba(214,178,94,0.4)), inset 0 1px 0 rgba(255,255,255,0.35);
   transform: rotate(45deg);
   cursor: pointer;
   transition: background var(--t1, 140ms) var(--ez-out, ease), border-color var(--t1, 140ms) var(--ez-out, ease),
@@ -5554,9 +5568,11 @@ font-size: 0.95em;
   border-radius: 4px;
   flex-shrink: 0;
 }
+/* Потраченная — заметная «выцветшая» бусина (по образцу прототипа:
+   золотая = свободна, серая заполненная = потрачена) */
 .spell-diamond.used {
-  background: var(--bg-3);
-  border-color: var(--border);
+  background: color-mix(in srgb, var(--text-mute) 30%, transparent);
+  border-color: color-mix(in srgb, var(--text-mute) 50%, transparent);
   box-shadow: none;
 }
 .spell-diamond:hover { transform: rotate(45deg) scale(1.2); }
