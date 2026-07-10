@@ -217,62 +217,59 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
-<!-- HELP-3: приветствие первого запуска (2 шага: кто ты → novice/known).
+<!-- Дымка v5: приветствие первого запуска (2 шага: марка+фичи → «С чего начнём?»).
      Показывается из app-help.js при !dnd_help_seen; ставит флаг при любом выходе. -->
 <div id="welcome-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
   <div class="modal-content welcome-content">
     <button type="button" class="modal-close" onclick="dismissWelcome()" aria-label="Закрыть">&times;</button>
 
-    <!-- Шаг 1: кто ты -->
+    <!-- Шаг 1: марка приложения + фичи -->
     <div class="welcome-step" id="welcome-step-1">
-      <div class="welcome-hero">🐉</div>
-      <h3 id="welcome-title" class="welcome-title">Добро пожаловать!</h3>
-      <p class="welcome-lead">Это цифровой лист персонажа для Dungeons &amp; Dragons 5e: характеристики, заклинания, инвентарь, бой, заметки и журнал. Всё хранится локально в браузере и работает без интернета.</p>
-      <p class="welcome-sub">Чтобы подсказки были к месту — выберите, насколько вы знакомы с D&amp;D:</p>
+      <div class="welcome-brand">
+        <span class="welcome-brand-ico" data-ico="dice" data-ico-size="34">🎲</span>
+        <h3 id="welcome-title" class="welcome-title">DnD-Лист</h3>
+        <p class="welcome-lead">Цифровой лист персонажа D&amp;D 5e на русском. Всё хранится локально и работает без интернета.</p>
+      </div>
+      <div class="welcome-feats">
+        <div class="welcome-feat"><span class="welcome-feat-ico" data-ico="sheet">📋</span><span>Лист персонажа с автоподсчётом модификаторов и 36 готовыми билдами</span></div>
+        <div class="welcome-feat"><span class="welcome-feat-ico" data-ico="spells">✨</span><span>719 заклинаний с фильтрами, ячейками и подготовкой</span></div>
+        <div class="welcome-feat"><span class="welcome-feat-ico" data-ico="dice">🎲</span><span>3D-кубики: быстрые броски с листа с историей</span></div>
+        <div class="welcome-feat"><span class="welcome-feat-ico" data-ico="combat">⚔️</span><span>Боевой трекер: инициатива, ХП и монстры из SRD</span></div>
+      </div>
+      <div class="welcome-actions">
+        <button type="button" class="welcome-cta welcome-cta-primary" onclick="welcomeContinue()">Продолжить</button>
+        <button type="button" class="welcome-cta welcome-cta-ghost" onclick="welcomeSkipExperienced()">Я опытный — пропустить</button>
+      </div>
+    </div>
+
+    <!-- Шаг 2: с чего начнём -->
+    <div class="welcome-step hidden" id="welcome-step-2">
+      <h3 class="welcome-title">С чего начнём?</h3>
       <div class="welcome-choices">
-        <button type="button" class="welcome-choice" onclick="welcomeChooseLevel('novice')">
-          <span class="welcome-choice-ico">🐉</span>
+        <button type="button" class="welcome-choice" onclick="welcomeFinish('build')">
+          <span class="welcome-choice-ico" data-ico="grad">🎓</span>
           <span class="welcome-choice-text">
-            <span class="welcome-choice-main">Первый раз в D&amp;D</span>
-            <span class="welcome-choice-desc">Коротко объясним, что это за игра</span>
+            <span class="welcome-choice-main">Готовый билд <span class="welcome-choice-badge">советуем новичкам</span></span>
+            <span class="welcome-choice-desc">36 собранных персонажей по «Книге игрока» — выбрать и играть</span>
           </span>
         </button>
-        <button type="button" class="welcome-choice" onclick="welcomeChooseLevel('known')">
-          <span class="welcome-choice-ico">🎲</span>
+        <button type="button" class="welcome-choice" onclick="welcomeFinish('create')">
+          <span class="welcome-choice-ico" data-ico="plus">➕</span>
           <span class="welcome-choice-text">
-            <span class="welcome-choice-main">Знаю D&amp;D, впервые в приложении</span>
-            <span class="welcome-choice-desc">Сразу покажем, что куда жать</span>
+            <span class="welcome-choice-main">С нуля</span>
+            <span class="welcome-choice-desc">Пустой лист — заполните сами как хотите</span>
+          </span>
+        </button>
+        <button type="button" class="welcome-choice" onclick="welcomeFinish('import')">
+          <span class="welcome-choice-ico" data-ico="import">📥</span>
+          <span class="welcome-choice-text">
+            <span class="welcome-choice-main">Импорт</span>
+            <span class="welcome-choice-desc">Загрузите персонажа из файла JSON</span>
           </span>
         </button>
       </div>
-    </div>
-
-    <!-- Шаг 2 (novice): что такое D&D -->
-    <div class="welcome-step hidden" id="welcome-step-novice">
-      <div class="welcome-hero">🐉</div>
-      <h3 class="welcome-title">Что такое D&amp;D</h3>
-      <div class="welcome-about">
-        <p>D&amp;D — настольная ролевая игра. Группа игроков совместно проходит приключение, которое придумывает и описывает <b>мастер</b> (ведущий). Каждый <b>игрок</b> управляет одним персонажем.</p>
-        <p>Когда исход действия под вопросом, бросают двадцатигранный кубик (d20) и прибавляют модификатор — результат сравнивают со сложностью, которую назначает мастер.</p>
-        <p>Это приложение — <b>цифровой лист персонажа</b>: оно хранит и считает данные. Сама игра идёт за столом или в голосовом чате, а не внутри приложения.</p>
-      </div>
-      <a class="help-link" href="https://dnd.su/" target="_blank" rel="noopener">Правила на русском — dnd.su ↗</a>
       <div class="welcome-actions">
-        <button type="button" class="welcome-cta welcome-cta-primary" onclick="welcomeFinish('tour')">🧭 Запустить тур</button>
-        <button type="button" class="welcome-cta" onclick="welcomeFinish('help')">📖 Открыть справку</button>
-        <button type="button" class="welcome-cta welcome-cta-ghost" onclick="welcomeFinish('skip')">Пропустить</button>
-      </div>
-      <button type="button" class="welcome-back" onclick="welcomeBack()">← Назад</button>
-    </div>
-
-    <!-- Шаг 2 (known): готовы начать -->
-    <div class="welcome-step hidden" id="welcome-step-known">
-      <div class="welcome-hero">🎲</div>
-      <h3 class="welcome-title">Готовы начать</h3>
-      <p class="welcome-lead">Можно пройти короткий тур по интерфейсу или сразу создать персонажа — с нуля или по готовому билду.</p>
-      <div class="welcome-actions">
-        <button type="button" class="welcome-cta welcome-cta-primary" onclick="welcomeFinish('tour')">🧭 Запустить тур</button>
-        <button type="button" class="welcome-cta" onclick="welcomeFinish('create')">➕ Создать персонажа</button>
+        <button type="button" class="welcome-cta" onclick="welcomeFinish('tour')"><span data-ico="help" data-ico-size="16">🧭</span> Показать, как всё устроено</button>
         <button type="button" class="welcome-cta welcome-cta-ghost" onclick="welcomeFinish('skip')">Пропустить</button>
       </div>
       <button type="button" class="welcome-back" onclick="welcomeBack()">← Назад</button>

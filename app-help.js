@@ -82,9 +82,10 @@ function setHelpFlag(key, value) {
   try { localStorage.setItem(key, value); } catch (e) {}
 }
 
-/** Показать нужный шаг приветствия (1 / 'novice' / 'known') и прокрутить вверх. */
+/** Показать нужный шаг приветствия (1 / 2) и прокрутить вверх.
+ *  Дымка v5: шаги — «марка + фичи» → «С чего начнём?» (были novice/known). */
 function welcomeGoStep(which) {
-  ['1', 'novice', 'known'].forEach(function (s) {
+  ['1', '2'].forEach(function (s) {
     var el = document.getElementById('welcome-step-' + s);
     if (el) el.classList.toggle('hidden', s !== String(which));
   });
@@ -105,20 +106,25 @@ function closeWelcome() {
   if (modal) modal.classList.remove('active');
 }
 
-/** Выбор уровня знакомства → запись флага + переход на соответствующий шаг 2. */
-function welcomeChooseLevel(level) {
-  if (level !== 'novice' && level !== 'known') level = 'known';
-  setHelpFlag(HELP_FLAG_LEVEL, level);
-  welcomeGoStep(level);
+/** «Продолжить» на шаге 1: уровень novice (подсказки с пояснениями) + шаг 2. */
+function welcomeContinue() {
+  if (!getHelpFlag(HELP_FLAG_LEVEL)) setHelpFlag(HELP_FLAG_LEVEL, 'novice');
+  welcomeGoStep(2);
 }
 
-/** Кнопка «Назад» на шаге 2 → вернуться к выбору уровня. */
+/** «Я опытный — пропустить»: уровень known, приветствие закрывается. */
+function welcomeSkipExperienced() {
+  setHelpFlag(HELP_FLAG_LEVEL, 'known');
+  welcomeFinish('skip');
+}
+
+/** Кнопка «Назад» на шаге 2 → вернуться к марке приложения. */
 function welcomeBack() { welcomeGoStep(1); }
 
 /**
  * Завершить приветствие выбранным действием. Любой выход помечает dnd_help_seen,
  * чтобы приветствие больше не всплывало автоматически.
- * @param {'tour'|'help'|'create'|'skip'} action
+ * @param {'tour'|'help'|'build'|'create'|'import'|'skip'} action
  */
 function welcomeFinish(action) {
   setHelpFlag(HELP_FLAG_SEEN, '1');
@@ -132,9 +138,17 @@ function welcomeFinish(action) {
     case 'help':
       openHelp('about');
       break;
+    case 'build':
+      if (typeof openBuildPicker === 'function') openBuildPicker();
+      break;
     case 'create':
       if (typeof createNewCharacter === 'function') createNewCharacter();
       break;
+    case 'import': {
+      var f = document.getElementById('import-char-file');
+      if (f) f.click();
+      break;
+    }
     case 'skip':
     default:
       break;
@@ -205,10 +219,12 @@ function _ensureTourDom() {
     '<div class="tour-ring" id="tour-ring"></div>' +
     '<div id="tour-coach" class="tour-coach" role="dialog" aria-modal="true" aria-live="polite">' +
       '<button type="button" class="tour-x" id="tour-x" aria-label="Пропустить тур">&times;</button>' +
+      // Дымка v5: шапка «ШАГ N ИЗ M» + точки-прогресс вместо текстового счётчика
+      '<div class="tour-coach-step" id="tour-step-label" aria-live="polite"></div>' +
       '<div class="tour-coach-title" id="tour-coach-title"></div>' +
       '<div class="tour-coach-text" id="tour-coach-text"></div>' +
       '<div class="tour-coach-foot">' +
-        '<span class="tour-count" id="tour-count"></span>' +
+        '<div class="tc-dots" id="tour-dots" aria-hidden="true"></div>' +
         '<div class="tour-nav">' +
           '<button type="button" class="tour-btn tour-prev" id="tour-prev">Назад</button>' +
           '<button type="button" class="tour-btn tour-next" id="tour-next">Далее</button>' +
@@ -389,14 +405,19 @@ function endTour(markSeen) {
 }
 
 /** Отрисовать текущий шаг: текст/счётчик/кнопки + геометрия. */
+var _tourFlightT = 0; // таймер снятия класса «перелёта» (transition координат)
 function _showTourStep() {
   if (!_tour) return;
   var step = _tour.steps[_tour.i];
   var titleEl = document.getElementById('tour-coach-title');
   var textEl = document.getElementById('tour-coach-text');
-  var countEl = document.getElementById('tour-count');
+  var stepEl = document.getElementById('tour-step-label');
+  var dotsEl = document.getElementById('tour-dots');
   var prevBtn = document.getElementById('tour-prev');
   var nextBtn = document.getElementById('tour-next');
+  // Дымка v5: контент коуча меняется fade-ом ~140ms (CSS transition opacity)
+  if (titleEl) titleEl.style.opacity = '0';
+  if (textEl) textEl.style.opacity = '0';
   if (titleEl) titleEl.textContent = step.title || '';
   if (textEl) {
     var body = step.text || '';
@@ -406,9 +427,29 @@ function _showTourStep() {
     }
     textEl.textContent = body;
   }
-  if (countEl) countEl.textContent = (_tour.i + 1) + ' / ' + _tour.steps.length;
+  requestAnimationFrame(function () {
+    if (titleEl) titleEl.style.opacity = '1';
+    if (textEl) textEl.style.opacity = '1';
+  });
+  if (stepEl) stepEl.textContent = 'Шаг ' + (_tour.i + 1) + ' из ' + _tour.steps.length;
+  if (dotsEl) {
+    var dots = '';
+    for (var di = 0; di < _tour.steps.length; di++) {
+      dots += '<span class="tc-dot' + (di === _tour.i ? ' on' : '') + '"></span>';
+    }
+    dotsEl.innerHTML = dots;
+  }
   if (prevBtn) prevBtn.disabled = (_tour.i === 0);
   if (nextBtn) nextBtn.textContent = (_tour.i === _tour.steps.length - 1) ? 'Готово' : 'Далее';
+  // Дымка v5: «перелёт» ring/масок/коуча к новой цели — CSS transition координат
+  // включается только на время смены шага (класс tour-flight), чтобы reflow при
+  // скролле/resize оставался мгновенным (без погони подсветки за пальцем).
+  var ov = document.getElementById('tour-overlay');
+  if (ov) {
+    ov.classList.add('tour-flight');
+    clearTimeout(_tourFlightT);
+    _tourFlightT = setTimeout(function () { ov.classList.remove('tour-flight'); }, 500);
+  }
   _layoutTour();
   // Защита от позднего рефлоу: подсветка считается по rect цели в момент показа,
   // но layout может «доехать» уже после (поздняя загрузка шрифта, асинхронный
@@ -423,13 +464,16 @@ function _showTourStep() {
   }
 }
 
-/** Задать прямоугольник элементу (px), отрицательные размеры → 0. */
+/** Задать прямоугольник элементу (px), отрицательные размеры → 0.
+ *  Дымка v5: floor для top/left и ceil для размеров — панели затемнения
+ *  перекрываются, а не стыкуются впритык (иначе на светлой теме между ними
+ *  просвечивала «подсвеченная линия» из-за субпиксельного зазора). */
 function _setBox(el, left, top, width, height) {
   if (!el) return;
-  el.style.left = Math.round(left) + 'px';
-  el.style.top = Math.round(top) + 'px';
-  el.style.width = Math.max(0, Math.round(width)) + 'px';
-  el.style.height = Math.max(0, Math.round(height)) + 'px';
+  el.style.left = Math.floor(left) + 'px';
+  el.style.top = Math.floor(top) + 'px';
+  el.style.width = Math.max(0, Math.ceil(width)) + 'px';
+  el.style.height = Math.max(0, Math.ceil(height)) + 'px';
 }
 
 /** Позиционировать панели затемнения, кольцо и коучмарк под цель текущего шага. */
@@ -473,10 +517,12 @@ function _layoutTour() {
     var hT = Math.max(0, r.top - p), hL = Math.max(0, r.left - p);
     var hR = Math.min(vw, r.right + p), hB = Math.min(vh, r.bottom + p);
     // 4 панели образуют рамку, оставляя целевой rect незакрытым (подсвеченным).
+    // Дымка v5: боковые панели заходят на 1px под верхнюю/нижнюю — швы не просвечивают
+    // (дырку это не трогает: перекрытие только по вертикали, вне целевого rect).
     _setBox(mTop, 0, 0, vw, hT);
     _setBox(mBottom, 0, hB, vw, vh - hB);
-    _setBox(mLeft, 0, hT, hL, hB - hT);
-    _setBox(mRight, hR, hT, vw - hR, hB - hT);
+    _setBox(mLeft, 0, hT - 1, hL, hB - hT + 2);
+    _setBox(mRight, hR, hT - 1, vw - hR, hB - hT + 2);
     ring.style.display = 'block';
     _setBox(ring, hL, hT, hR - hL, hB - hT);
     // Порядок размещения: под целью → над → справа → слева → к низу вьюпорта.

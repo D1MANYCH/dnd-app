@@ -9581,9 +9581,42 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .welcome-choice:active { transform: translateY(1px); }
 .welcome-choice-ico { font-size: 1.7em; line-height: 1; flex-shrink: 0; }
+.welcome-choice-ico.dico { color: var(--accent); }
 .welcome-choice-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .welcome-choice-main { font-weight: 700; font-size: 0.96em; }
 .welcome-choice-desc { font-size: 0.82em; color: var(--text-muted); line-height: 1.4; }
+/* Дымка v5: марка приложения + строки фич с иконками (шаг 1) */
+.welcome-brand { display: flex; flex-direction: column; align-items: center; }
+.welcome-brand-ico { color: var(--accent); margin: 4px 0 10px; filter: drop-shadow(0 2px 10px var(--accent-glow-token)); }
+.welcome-feats {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+  margin: 2px 0 16px;
+  text-align: left;
+}
+.welcome-feat {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 0.88em;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+.welcome-feat-ico { color: var(--accent); flex-shrink: 0; }
+/* Дымка v5: бейдж «советуем новичкам» на карточке готового билда */
+.welcome-choice-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  font-size: 0.72em;
+  font-weight: 700;
+  vertical-align: 1px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
 /* Блок «Что такое D&D» (шаг 2 novice) */
 .welcome-about {
   text-align: left;
@@ -9716,17 +9749,31 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .tour-overlay.active { display: block; }
 
+/* Дымка v5: маски — сплошной --overlay без рамок; появление fade-in 240ms */
 .tour-mask {
   position: fixed;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay, rgba(0, 0, 0, 0.55));
+  border: none;
   pointer-events: auto;
 }
+.tour-overlay.active .tour-mask { animation: dymka-ovl-in var(--t2, 240ms) var(--ez-out, ease-out); }
+/* Дымка v5: скруглённое кольцо с золотым свечением; появление — из прозрачного */
 .tour-ring {
   position: fixed;
-  border: 2px solid var(--accent-color);
-  border-radius: 10px;
+  border: 2px solid color-mix(in srgb, var(--accent) 85%, transparent);
+  border-radius: 14px;
   pointer-events: none;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 14px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 24px 4px var(--accent-glow-token);
+}
+.tour-overlay.active .tour-ring { animation: tour-ring-in var(--t3, 420ms) var(--ez-out, ease-out); }
+@keyframes tour-ring-in { from { border-color: transparent; box-shadow: 0 0 24px 4px transparent; } }
+/* Дымка v5: «перелёт» подсветки между шагами — только на время смены шага
+   (класс tour-flight ставит _showTourStep); reflow при скролле — мгновенный */
+.tour-overlay.tour-flight .tour-mask,
+.tour-overlay.tour-flight .tour-ring,
+.tour-overlay.tour-flight .tour-coach {
+  transition: top var(--t3, 420ms) var(--ez-spring, ease), left var(--t3, 420ms) var(--ez-spring, ease),
+              width var(--t3, 420ms) var(--ez-spring, ease), height var(--t3, 420ms) var(--ez-spring, ease);
 }
 
 .tour-coach {
@@ -9737,16 +9784,31 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   max-width: 340px;
   box-sizing: border-box;
   padding: 16px 16px 14px;
-  /* UI4-glass: пол непрозрачности (--surface-modal) + blur, как у .modal-content —
-     иначе при низком слайдере «Непрозрачность фона» --bg-2 почти прозрачен и
-     текст страницы просвечивает сквозь карточку тура (наслаивание строк). */
-  background: var(--surface-modal, var(--bg-2, var(--input-bg)));
-  backdrop-filter: blur(var(--glass-blur, 12px));
-  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
-  border: 1px solid var(--accent-color);
-  border-radius: var(--r-md);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  /* Дымка v5: уровень 3 стекла — непрозрачная карта независимо от слайдера
+     glass-alpha (v3.31.1: при низком alpha коуч «растворялся»). */
+  background: var(--surface-pop, var(--surface-modal));
+  backdrop-filter: blur(var(--pop-blur, 30px));
+  -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg, 18px);
+  box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
 }
+/* Дымка v5: шапка «ШАГ N ИЗ M» — капс мелким кеглем цветом акцента */
+.tour-coach-step {
+  font-size: 10.5px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 24px 5px 0;
+}
+/* Дымка v5: точки-прогресс (активная вытягивается в полоску 16px) */
+.tc-dots { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+.tc-dot {
+  width: 6px; height: 6px; border-radius: 999px; background: var(--bg-3);
+  transition: background var(--t2, 240ms) var(--ez-out, ease), width var(--t2, 240ms) var(--ez-spring, ease);
+}
+.tc-dot.on { background: var(--accent); width: 16px; }
 .tour-coach.tour-coach-centered {
   left: 50%;
   top: 50%;
@@ -9773,11 +9835,13 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   font-weight: 700;
   color: var(--text-color);
   margin: 0 24px 8px 0;
+  transition: opacity 140ms var(--ez-out, ease); /* Дымка v5: fade контента при смене шага */
 }
 .tour-coach-text {
   font-size: 0.9em;
   line-height: 1.55;
   color: var(--text-color);
+  transition: opacity 140ms var(--ez-out, ease);
   white-space: pre-line;   /* поддержка переноса строк в novice-пояснениях */
   margin-bottom: 14px;
 }
@@ -9794,27 +9858,29 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   flex-shrink: 0;
 }
 .tour-nav { display: flex; gap: 8px; }
+/* Дымка v5: «Назад» — ghost, «Далее/Готово» — primary градиентом (ниже .tour-next) */
 .tour-btn {
   width: auto;
   margin: 0;
   padding: 7px 14px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border-color);
-  background: var(--input-bg);
-  color: var(--text-color);
+  border-radius: var(--r-md, 14px);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-dim);
   font-size: 0.85em;
   font-weight: 600;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s, opacity 0.15s;
 }
-.tour-btn:hover:not(:disabled) { border-color: var(--accent-color); }
+.tour-btn:hover:not(:disabled) { background: var(--bg-2); color: var(--text); }
 .tour-btn:disabled { opacity: 0.4; cursor: default; }
 .tour-next {
-  background: var(--accent-color);
-  border-color: var(--accent-color);
-  color: #000;
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
+  border-color: transparent;
+  color: var(--on-accent, #000);
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.42), 0 4px 14px var(--accent-glow-token);
 }
-.tour-next:hover { filter: brightness(1.08); }
+.tour-next:hover { filter: brightness(1.07); background: linear-gradient(180deg, var(--accent-hi), var(--accent)); color: var(--on-accent, #000); }
 
 /* =============================================
    3D DICE CUBE
