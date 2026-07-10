@@ -37,6 +37,7 @@ const files = [
   'app-spells.js',           // TEST-3: подготовка заклинаний + ячейки/пакт (БЛОК 11)
   'app-party.js',            // TEST-3: отряд и трекер боя (БЛОК 12)
   'app-ui.js',               // UI6-1: настройки оформления — _getAutoAccent/CLASS_ACCENT_MAP/setAccent (БЛОК 13); позже layout/edition (БЛОК 14)
+  'app-help.js',             // THEME-1: геометрия прожектора тура — _computeTourBoxes (БЛОК 31)
   'app-notes.js',            // FIN-12: notesV2 — _mdToHtml/_notesReorderPinned/notesSaveEntryModal/notesExport* (БЛОК 30)
   'history-stack.js',        // FIN-12: pushHistoryLayer/syncCloseLayer/getHistoryLayers (нужен history-шим ниже) (БЛОК 30)
   'app-backup.js',           // FIN-12: авто-бэкап IndexedDB — smoke: константы/наличие/чистые хелперы (БЛОК 30)

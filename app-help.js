@@ -219,6 +219,11 @@ function _ensureTourDom() {
     '<div class="tour-mask" id="tour-mask-right"></div>' +
     '<div class="tour-mask" id="tour-mask-bottom"></div>' +
     '<div class="tour-mask" id="tour-mask-left"></div>' +
+    // THEME-1: угловые заплатки — скругляют прямоугольный вырез 4 панелей
+    '<div class="tour-corner" id="tour-corner-tl"></div>' +
+    '<div class="tour-corner" id="tour-corner-tr"></div>' +
+    '<div class="tour-corner" id="tour-corner-bl"></div>' +
+    '<div class="tour-corner" id="tour-corner-br"></div>' +
     '<div class="tour-ring" id="tour-ring"></div>' +
     '<div id="tour-coach" class="tour-coach" role="dialog" aria-modal="true" aria-live="polite">' +
       '<button type="button" class="tour-x" id="tour-x" aria-label="Пропустить тур">&times;</button>' +
@@ -468,15 +473,77 @@ function _showTourStep() {
 }
 
 /** Задать прямоугольник элементу (px), отрицательные размеры → 0.
- *  Дымка v5: floor для top/left и ceil для размеров — панели затемнения
- *  перекрываются, а не стыкуются впритык (иначе на светлой теме между ними
- *  просвечивала «подсвеченная линия» из-за субпиксельного зазора). */
+ *  THEME-1: без собственного округления — края считает _computeTourBoxes со
+ *  снапом к device-пикселям. Прежние floor/ceil разводили панели врозь, и их
+ *  приходилось перекрывать на ±1px; на светлой теме два слоя полупрозрачного
+ *  затемнения в месте перехлёста давали тёмные швы-«полоски». */
 function _setBox(el, left, top, width, height) {
   if (!el) return;
-  el.style.left = Math.floor(left) + 'px';
-  el.style.top = Math.floor(top) + 'px';
-  el.style.width = Math.max(0, Math.ceil(width)) + 'px';
-  el.style.height = Math.max(0, Math.ceil(height)) + 'px';
+  el.style.left = left + 'px';
+  el.style.top = top + 'px';
+  el.style.width = Math.max(0, width) + 'px';
+  el.style.height = Math.max(0, height) + 'px';
+}
+
+/** THEME-1: чистая геометрия прожектора (без DOM — тестируется в headless).
+ *  Панели стыкуются впритык по ОБЩИМ краям дырки — ни перехлёста (двойное
+ *  затемнение = тёмные швы на светлой теме), ни зазора: каждый край снапится
+ *  к device-пикселям (k/dpr) и ложится ровно на физический пиксель, поэтому
+ *  антиалиасной «светящейся линии» между панелями не возникает (DPR 1/1.25/1.5/2).
+ *  corners — 4 угловые заплатки скругления выреза (radial-gradient в CSS);
+ *  null там, где заплатка не нужна: дырка обрезана краем вьюпорта (край не от
+ *  цели, а от клампа) или радиус выродился на крошечной цели. */
+function _computeTourBoxes(vw, vh, rect, pad, dpr) {
+  var d = dpr > 0 ? dpr : 1;
+  function snap(v) { return Math.round(v * d) / d; }
+  var clipT = rect.top - pad < 0, clipL = rect.left - pad < 0;
+  var clipR = rect.right + pad > vw, clipB = rect.bottom + pad > vh;
+  var T = snap(Math.max(0, rect.top - pad));
+  var L = snap(Math.max(0, rect.left - pad));
+  var R = snap(Math.min(vw, rect.right + pad));
+  var B = snap(Math.min(vh, rect.bottom + pad));
+  if (R < L) R = L;
+  if (B < T) B = T;
+  // Радиус скругления выреза = радиусу .tour-ring (14px), на маленькой цели
+  // ужимается до полуразмера дырки; совсем мелкий (<3px) не рисуем.
+  var rad = Math.floor(Math.min(14, (R - L) / 2, (B - T) / 2));
+  if (rad < 3) rad = 0;
+  function corner(x, y, hidden) {
+    return (rad > 0 && !hidden) ? { left: x, top: y, width: rad, height: rad } : null;
+  }
+  return {
+    hole: { left: L, top: T, right: R, bottom: B },
+    radius: rad,
+    masks: {
+      top:    { left: 0, top: 0, width: vw, height: T },
+      bottom: { left: 0, top: B, width: vw, height: Math.max(0, vh - B) },
+      left:   { left: 0, top: T, width: L, height: B - T },
+      right:  { left: R, top: T, width: Math.max(0, vw - R), height: B - T }
+    },
+    corners: {
+      tl: corner(L, T, clipT || clipL),
+      tr: corner(R - rad, T, clipT || clipR),
+      bl: corner(L, B - rad, clipB || clipL),
+      br: corner(R - rad, B - rad, clipB || clipR)
+    }
+  };
+}
+
+/** Разложить 4 угловые заплатки по расчёту _computeTourBoxes (boxes = null → скрыть все). */
+function _layoutTourCorners(boxes) {
+  var ids = { tl: 'tour-corner-tl', tr: 'tour-corner-tr', bl: 'tour-corner-bl', br: 'tour-corner-br' };
+  for (var k in ids) {
+    var el = document.getElementById(ids[k]);
+    if (!el) continue;
+    var box = boxes && boxes.corners[k];
+    if (box) {
+      el.style.display = 'block';
+      el.style.setProperty('--tc-r', boxes.radius + 'px');
+      _setBox(el, box.left, box.top, box.width, box.height);
+    } else {
+      el.style.display = 'none';
+    }
+  }
 }
 
 /** Позиционировать панели затемнения, кольцо и коучмарк под цель текущего шага. */
@@ -516,17 +583,19 @@ function _layoutTour() {
         r = el.getBoundingClientRect();
       }
     }
-    var p = _tourPad;
-    var hT = Math.max(0, r.top - p), hL = Math.max(0, r.left - p);
-    var hR = Math.min(vw, r.right + p), hB = Math.min(vh, r.bottom + p);
     // 4 панели образуют рамку, оставляя целевой rect незакрытым (подсвеченным).
-    // Дымка v5: боковые панели заходят на 1px под верхнюю/нижнюю — швы не просвечивают
-    // (дырку это не трогает: перекрытие только по вертикали, вне целевого rect).
-    _setBox(mTop, 0, 0, vw, hT);
-    _setBox(mBottom, 0, hB, vw, vh - hB);
-    _setBox(mLeft, 0, hT - 1, hL, hB - hT + 2);
-    _setBox(mRight, hR, hT - 1, vw - hR, hB - hT + 2);
+    // THEME-1: панели стыкуются впритык по общим снап-краям (см. _computeTourBoxes),
+    // скругление выреза дают 4 угловые заплатки .tour-corner.
+    var boxes = _computeTourBoxes(vw, vh, r, _tourPad, window.devicePixelRatio || 1);
+    var hT = boxes.hole.top, hL = boxes.hole.left, hR = boxes.hole.right, hB = boxes.hole.bottom;
+    _setBox(mTop, boxes.masks.top.left, boxes.masks.top.top, boxes.masks.top.width, boxes.masks.top.height);
+    _setBox(mBottom, boxes.masks.bottom.left, boxes.masks.bottom.top, boxes.masks.bottom.width, boxes.masks.bottom.height);
+    _setBox(mLeft, boxes.masks.left.left, boxes.masks.left.top, boxes.masks.left.width, boxes.masks.left.height);
+    _setBox(mRight, boxes.masks.right.left, boxes.masks.right.top, boxes.masks.right.width, boxes.masks.right.height);
+    _layoutTourCorners(boxes);
     ring.style.display = 'block';
+    // Радиус кольца следует за радиусом выреза (на мелких целях он ужимается).
+    ring.style.borderRadius = boxes.radius + 'px';
     _setBox(ring, hL, hT, hR - hL, hB - hT);
     // Порядок размещения: под целью → над → справа → слева → к низу вьюпорта.
     // Вертикальный центр не используется: цель выше экрана (сайдбар на ПК,
@@ -572,6 +641,7 @@ function _layoutTour() {
     _setBox(mRight, 0, 0, 0, 0);
     _setBox(mBottom, 0, 0, 0, 0);
     _setBox(mLeft, 0, 0, 0, 0);
+    _layoutTourCorners(null);
     ring.style.display = 'none';
     coach.classList.add('tour-coach-centered');
     coach.style.display = 'block';

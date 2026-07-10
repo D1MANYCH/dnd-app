@@ -2989,6 +2989,71 @@
     });
   }
 
+  // ────────── БЛОК 31 (THEME-1): _computeTourBoxes — геометрия прожектора тура ──────────
+  // Панели затемнения должны стыковаться впритык по общим снап-краям (перехлёст
+  // полупрозрачных панелей давал тёмные швы на светлой теме), угловые заплатки —
+  // сидеть в углах дырки и пропадать на обрезанных краях вьюпорта.
+  if (typeof _computeTourBoxes === "function") {
+    var _trect = function(l, t, r, b) { return { left: l, top: t, right: r, bottom: b }; };
+
+    t("[THEME-1][tour] панели стыкуются впритык (без перехлёста и щели)", function(){
+      var bx = _computeTourBoxes(1280, 800, _trect(100, 200, 400, 300), 6, 1);
+      var m = bx.masks, h = bx.hole;
+      if (m.top.height !== h.top) return "top.height ≠ hole.top";
+      if (m.left.top !== h.top || m.right.top !== h.top) return "боковые начинаются не с hole.top";
+      if (m.left.top + m.left.height !== m.bottom.top) return "левая не стыкуется с нижней: " + (m.left.top + m.left.height) + " vs " + m.bottom.top;
+      if (m.right.top + m.right.height !== m.bottom.top) return "правая не стыкуется с нижней";
+      if (m.left.width !== h.left) return "left.width ≠ hole.left";
+      if (m.right.left !== h.right) return "right.left ≠ hole.right";
+      return true;
+    });
+
+    t("[THEME-1][tour] края снапятся к device-пикселям при дробном DPR (1.25)", function(){
+      var bx = _computeTourBoxes(1280, 800, _trect(100.37, 200.61, 400.12, 300.94), 6, 1.25);
+      var h = bx.hole, edges = [h.left, h.top, h.right, h.bottom];
+      for (var i = 0; i < edges.length; i++) {
+        var dev = edges[i] * 1.25;
+        if (Math.abs(dev - Math.round(dev)) > 1e-9) return "край " + edges[i] + " не на границе device-пикселя";
+      }
+      if (bx.masks.left.top !== h.top || bx.masks.bottom.top !== h.bottom) return "панели не на общих краях";
+      return true;
+    });
+
+    t("[THEME-1][tour] радиус: 14 в норме, полразмера на мелкой цели, 0 на крошечной", function(){
+      if (_computeTourBoxes(1280, 800, _trect(100, 200, 400, 300), 6, 1).radius !== 14) return "норма: ожидал 14";
+      var small = _computeTourBoxes(1280, 800, _trect(100, 200, 110, 210), 6, 1); // дырка 22×22
+      if (small.radius !== 11) return "мелкая: ожидал 11, получено " + small.radius;
+      var tiny = _computeTourBoxes(1280, 800, _trect(100, 200, 101, 201), 0, 1); // дырка 1×1
+      if (tiny.radius !== 0) return "крошечная: ожидал 0, получено " + tiny.radius;
+      if (tiny.corners.tl || tiny.corners.tr || tiny.corners.bl || tiny.corners.br) return "крошечная: заплаток быть не должно";
+      return true;
+    });
+
+    t("[THEME-1][tour] заплатки в углах дырки; скрыты на обрезанных краях вьюпорта", function(){
+      var bx = _computeTourBoxes(1280, 800, _trect(100, 200, 400, 300), 6, 1);
+      var c = bx.corners, h = bx.hole;
+      if (!c.tl || !c.tr || !c.bl || !c.br) return "в норме нужны все 4 заплатки";
+      if (c.tl.left !== h.left || c.tl.top !== h.top) return "tl не в углу дырки";
+      if (c.br.left !== h.right - bx.radius || c.br.top !== h.bottom - bx.radius) return "br не в углу дырки";
+      // Цель прижата к верхнему левому краю (сайдбар на ПК): tl/tr/bl обрезаны → скрыты, br остаётся
+      var clipped = _computeTourBoxes(1280, 800, _trect(0, 0, 260, 700), 6, 1);
+      if (clipped.corners.tl || clipped.corners.tr || clipped.corners.bl) return "обрезанные углы должны быть скрыты";
+      if (!clipped.corners.br) return "br должен остаться";
+      return true;
+    });
+
+    t("[THEME-1][tour] дырка клампится вьюпортом, размеры панелей неотрицательны", function(){
+      var bx = _computeTourBoxes(375, 667, _trect(-20, -10, 400, 700), 6, 2);
+      var h = bx.hole, m = bx.masks;
+      if (h.left < 0 || h.top < 0 || h.right > 375 || h.bottom > 667) return "дырка вне вьюпорта: " + JSON.stringify(h);
+      var all = [m.top, m.bottom, m.left, m.right];
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].width < 0 || all[i].height < 0) return "отрицательный размер панели";
+      }
+      return true;
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

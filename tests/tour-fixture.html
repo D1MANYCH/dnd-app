@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>tour-fixture</title>
+<!-- THEME-1: визуальная фикстура прожектора тура для headless-скриншотов.
+     Открывать: /tests/tour-fixture.html?theme=light|dark
+     Снимать:  chrome --headless=new --screenshot=... (PNG без JPEG-автоэкспозиции);
+     геометрия детерминирована: цель fixed 200,150 320x120, pad 6 → дырка (194,144)-(526,276) в CSS px.
+     Анимации/фоновые градиенты отключены — попиксельный анализ швов стабилен. -->
+<link rel="stylesheet" href="../style.css">
+<style>
+  * { animation: none !important; transition: none !important; }
+  body { margin: 0; background: var(--bg-0) !important; }
+  body::before, body::after { content: none !important; }
+  #fake-target {
+    position: fixed; left: 200px; top: 150px; width: 320px; height: 120px;
+    background: var(--bg-3); border: 1px solid var(--border); border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; color: var(--text);
+    font-family: sans-serif;
+  }
+</style>
+</head>
+<body>
+<div id="fake-target">Цель тура</div>
+<script>
+  // До app-help.js: гасим авто-приветствие и ставим тему из query (?theme=light|dark)
+  try { localStorage.setItem('dnd_help_seen', '1'); } catch (e) {}
+  var qs = new URLSearchParams(location.search);
+  document.documentElement.setAttribute('data-theme', qs.get('theme') === 'light' ? 'light' : 'dark');
+  // ?dim=0.45 → подбор плотности затемнения (--tour-dim) без правки style.css
+  if (qs.get('dim')) document.documentElement.style.setProperty('--tour-dim', 'rgba(24, 26, 34, ' + qs.get('dim') + ')');
+</script>
+<script src="../app-help.js"></script>
+<script>
+  window.addEventListener('load', function () {
+    startTour([{ target: '#fake-target', title: 'Проверка прожектора', text: 'Стыки панелей затемнения и скругление выреза.' }], 'fixture');
+    // ?diag=1 → геометрия HTTP-маячком в лог сервера (headless-chrome не отдаёт
+    // --dump-dom на части сборок): GET /__diag?<json> виден в stdout http.server.
+    if (qs.get('diag')) setTimeout(function () {
+      var c = document.getElementById('tour-coach').getBoundingClientRect();
+      var mL = document.getElementById('tour-mask-left').getBoundingClientRect();
+      var mT = document.getElementById('tour-mask-top').getBoundingClientRect();
+      new Image().src = '/__diag?' + encodeURIComponent(JSON.stringify({
+        vw: window.innerWidth, vh: window.innerHeight, dpr: window.devicePixelRatio,
+        coach: { l: c.left, t: c.top, w: c.width, h: c.height },
+        maskTopH: mT.height, maskLeftW: mL.width
+      }));
+    }, 400);
+  });
+</script>
+</body>
+</html>

@@ -57,7 +57,20 @@ for(const n of await caches.keys())await caches.delete(n);})()
 чёрное затемнение тоже работает; «слабое чёрное затемнение на скриншоте» сам по
 себе багом НЕ считать.
 
-## 6. Прочее
+## 6. Preview-инструменты недоступны (нет расширения Chrome) → headless-Chrome
+
+Если интерактивные preview-тулзы (eval/inspect/screenshot) не работают, а сервер
+запущен — снимать **PNG** headless-Chrome'ом (без JPEG-автоэкспозиции из п. 5):
+`chrome --headless=new --disable-gpu --hide-scrollbars --window-size=W,H
+--force-device-scale-factor=DPR --virtual-time-budget=3000 --screenshot=out.png <url>`
++ попиксельный анализ Pillow'ом. Для оверлеев/затемнений есть готовая фикстура
+`tests/tour-fixture.html?theme=light|dark&dim=0.5&diag=1` (детерминированная
+дырка (194,144)-(526,276) CSS px). Ловушки: `--dump-dom` на части сборок молчит —
+диагностику из страницы вытаскивать HTTP-маячком `GET /__diag?<json>` (виден в
+stdout `python -m http.server`); `--window-size` при `--force-device-scale-factor`
+даёт вьюпорт НЕ равный заданному (проверять `window.innerWidth` маячком).
+
+## 7. Прочее
 
 - Физика 3D-кубиков в СКРЫТОЙ вкладке preview не идёт (rAF заморожен) — броски проверять
   только с видимой вкладкой; детали дайс-подсистемы — скилл `dice-3d`.

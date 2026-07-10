@@ -231,7 +231,7 @@ html.glass-adjusting *::after {
 
   /* Semantic */
   --overlay: rgba(24, 26, 34, 0.38);
-  --tour-dim: rgba(24, 26, 34, 0.55);
+  --tour-dim: rgba(24, 26, 34, 0.5); /* THEME-1: 0.55→0.5 — швов больше нет, затемнение чуть мягче; ниже 0.45 нельзя (0.38 не читалось) */
   --danger: #c53a2e;
   --success: #2e8a54;
   --info: #2c6fbd;
@@ -286,7 +286,7 @@ html.glass-adjusting *::after {
     --accent-glow-token: rgba(168, 130, 58, 0.30);
     --on-accent: #ffffff;
     --overlay: rgba(24, 26, 34, 0.38);
-    --tour-dim: rgba(24, 26, 34, 0.55);
+    --tour-dim: rgba(24, 26, 34, 0.5); /* THEME-1: 0.55→0.5 — швов больше нет, затемнение чуть мягче; ниже 0.45 нельзя (0.38 не читалось) */
     --danger: #c53a2e; --success: #2e8a54; --info: #2c6fbd;
     --magic: #7a5cd0; --necro: #6c8636; --divin: #1f8a8a; --charm: #bf4a7d;
     --slot-gold: #a8823a; --slot-gold-hi: #c09a50; --slot-gold-glow: rgba(168, 130, 58, 0.35);
@@ -9875,6 +9875,24 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   pointer-events: auto;
 }
 .tour-overlay.active .tour-mask { animation: dymka-ovl-in var(--t2, 240ms) var(--ez-out, ease-out); }
+/* THEME-1: скругление выреза прожектора — 4 угловые заплатки поверх углов «дырки».
+   Простой radial-gradient рендерится надёжно (в отличие от box-shadow-дырки, см.
+   выше), деградация мягкая: не отрисуется — углы просто снова прямые. Радиус --tc-r
+   и геометрию задаёт JS (_layoutTourCorners), позицию прозрачного центра — --tc-at
+   (внутренний угол дырки); полупиксельная ступень — антиалиас кромки. */
+.tour-corner {
+  position: fixed;
+  display: none;
+  pointer-events: auto;
+  background: radial-gradient(circle at var(--tc-at, 100% 100%),
+      transparent calc(var(--tc-r, 14px) - 0.5px),
+      var(--tour-dim, var(--overlay, rgba(0, 0, 0, 0.55))) var(--tc-r, 14px));
+}
+#tour-corner-tl { --tc-at: 100% 100%; }
+#tour-corner-tr { --tc-at: 0% 100%; }
+#tour-corner-bl { --tc-at: 100% 0%; }
+#tour-corner-br { --tc-at: 0% 0%; }
+.tour-overlay.active .tour-corner { animation: dymka-ovl-in var(--t2, 240ms) var(--ez-out, ease-out); }
 /* Дымка v5: скруглённое кольцо с золотым свечением; появление — из прозрачного */
 .tour-ring {
   position: fixed;
@@ -9888,6 +9906,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 /* Дымка v5: «перелёт» подсветки между шагами — только на время смены шага
    (класс tour-flight ставит _showTourStep); reflow при скролле — мгновенный */
 .tour-overlay.tour-flight .tour-mask,
+.tour-overlay.tour-flight .tour-corner,
 .tour-overlay.tour-flight .tour-ring,
 .tour-overlay.tour-flight .tour-coach {
   transition: top var(--t3, 420ms) var(--ez-spring, ease), left var(--t3, 420ms) var(--ez-spring, ease),
