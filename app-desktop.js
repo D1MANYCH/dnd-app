@@ -13,10 +13,16 @@
     </div>
     <div class="rr-card rr-hp">
       <div class="rr-card-head">
-        <span>❤️ Хиты</span>
-        <span class="rr-hp-num"><span id="rr-hp-current">10</span>/<span id="rr-hp-max">10</span></span>
+        <span><span data-ico="heart" data-ico-size="14" data-ico-color="var(--danger)">❤️</span> Хиты</span>
       </div>
+      <div class="rr-hp-big"><span id="rr-hp-current">10</span><span class="rr-hp-big-sep">/</span><span id="rr-hp-max">10</span></div>
       <div class="rr-hp-bar"><div id="rr-hp-bar-fill" class="rr-hp-bar-fill" style="width:100%"></div></div>
+      <div class="rr-hp-quick">
+        <button type="button" class="btn btn-secondary btn-sm" data-hp="-5">−5</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-hp="-1">−1</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-hp="1">+1</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-hp="5">+5</button>
+      </div>
       <input type="number" id="rr-hp-input" class="rr-hp-input" placeholder="0" min="1" autocomplete="off">
       <div class="rr-hp-buttons">
         <button type="button" class="btn btn-danger" id="rr-btn-dmg">− Урон</button>
@@ -24,19 +30,24 @@
       </div>
     </div>
     <div class="rr-card rr-dice">
-      <div class="rr-card-head"><span>🎲 Быстрые броски</span></div>
+      <div class="rr-card-head"><span><span data-ico="dice" data-ico-size="14">🎲</span> Быстрый бросок</span></div>
       <div class="rr-dice-grid">
         <button type="button" class="btn btn-secondary btn-sm" data-dice="4">d4</button>
         <button type="button" class="btn btn-secondary btn-sm" data-dice="6">d6</button>
         <button type="button" class="btn btn-secondary btn-sm" data-dice="8">d8</button>
         <button type="button" class="btn btn-secondary btn-sm" data-dice="10">d10</button>
         <button type="button" class="btn btn-secondary btn-sm" data-dice="12">d12</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-dice="20">d20</button>
       </div>
       <button type="button" class="btn btn-primary btn-block rr-d20-btn" id="rr-btn-d20" aria-label="Бросить d20">🎲 d20</button>
     </div>
+    <div class="rr-card rr-slots" id="rr-slots-card" style="display:none">
+      <div class="rr-card-head"><span><span data-ico="spells" data-ico-size="14">✨</span> Ячейки</span></div>
+      <div id="rr-slots-list" class="rr-slots-list"></div>
+    </div>
     <div class="rr-card rr-conditions">
       <div class="rr-card-head">
-        <span>⚡ Состояния</span>
+        <span><span data-ico="zap" data-ico-size="14">⚡</span> Состояния</span>
         <span class="rr-hp-num" id="rr-cond-count" style="color:var(--accent)">0</span>
       </div>
       <div id="rr-cond-list" class="rr-cond-list"></div>
@@ -71,6 +82,7 @@
 
     // Перерисовать inline-баджи (на случай переключения персонажа)
     try { renderRrConditions(); } catch (e) { window.__catchLog && window.__catchLog('desktop:renderRr', e); }
+    try { renderRailSlots(); } catch (e) { window.__catchLog && window.__catchLog('desktop:renderSlots', e); }
 
     // AC и Level из status-bar
     const ac = document.getElementById('status-ac');
@@ -153,6 +165,41 @@
   }
   window.refreshConditionsRightRail = renderRrConditions;
 
+  // Дымка v5: «Ячейки» — полоски свободных ячеек по кругам (те же сторы,
+  // что и вкладка «Заклинания»; renderSpellSlots дёргает refreshRailSlots).
+  function renderRailSlots() {
+    var card = document.getElementById('rr-slots-card');
+    var list = document.getElementById('rr-slots-list');
+    if (!card || !list) return;
+    var char = (typeof window.getCurrentChar === 'function' && window.currentId) ? window.getCurrentChar() : null;
+    var rows = '';
+    if (char && char.spells) {
+      var slots = char.spells.slots || {}, used = char.spells.slotsUsed || {};
+      for (var i = 1; i <= 9; i++) {
+        var total = slots[i] || 0;
+        if (!total) continue;
+        var free = total - (used[i] || 0);
+        rows += '<div class="rr-slot-row" title="' + i + ' круг: свободно ' + free + ' из ' + total + '">' +
+          '<span class="rr-slot-lvl">' + i + '</span>' +
+          '<span class="rr-slot-bar"><span class="rr-slot-fill' + (free === 0 ? ' empty' : '') + '" style="width:' + Math.round((free / total) * 100) + '%"></span></span>' +
+          '<span class="rr-slot-num">' + free + '/' + total + '</span>' +
+        '</div>';
+      }
+      var pactTotal = char.spells.pactSlots || 0;
+      if (pactTotal > 0) {
+        var pactFree = pactTotal - (char.spells.pactUsed || 0);
+        rows += '<div class="rr-slot-row rr-slot-pact" title="Ячейки пакта: свободно ' + pactFree + ' из ' + pactTotal + '">' +
+          '<span class="rr-slot-lvl">П</span>' +
+          '<span class="rr-slot-bar"><span class="rr-slot-fill' + (pactFree === 0 ? ' empty' : '') + '" style="width:' + Math.round((pactFree / pactTotal) * 100) + '%"></span></span>' +
+          '<span class="rr-slot-num">' + pactFree + '/' + pactTotal + '</span>' +
+        '</div>';
+      }
+    }
+    list.innerHTML = rows;
+    card.style.display = rows ? '' : 'none';
+  }
+  window.refreshRailSlots = renderRailSlots;
+
   function rrApplyHP(mode) {
     const inp = document.getElementById('rr-hp-input');
     if (!inp) return;
@@ -201,6 +248,24 @@
       });
     });
 
+    // Дымка v5: быстрые ±1/±5 к хитам (зеркалит лист через quickHP)
+    rail.querySelectorAll('[data-hp]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const delta = parseInt(btn.getAttribute('data-hp'), 10);
+        if (!delta) return;
+        if (typeof window.quickHP === 'function') { window.quickHP(delta, 'Панель'); return; }
+        const mainInput = document.getElementById('hp-custom-input');
+        if (mainInput && typeof window.applyCustomHP === 'function') {
+          mainInput.value = Math.abs(delta);
+          window.applyCustomHP(delta < 0 ? 'dmg' : 'heal');
+        }
+      });
+    });
+
+    // Дымка v5: SVG-иконки в заголовках карточек rail (разметка создана после
+    // общего прохода _applyDymkaIcons на DOMContentLoaded)
+    if (typeof window._applyDymkaIcons === 'function') window._applyDymkaIcons(rail);
+
     // Изначально мы на экране выбора персонажа — выставим маркер,
     // если showScreen ещё не вызывался к моменту инициализации
     if (!window.currentId) {
@@ -209,6 +274,7 @@
 
     syncFromStatusBar();
     renderRrConditions();
+    renderRailSlots();
 
     const statusBar = document.querySelector('.status-bar');
     if (statusBar) {

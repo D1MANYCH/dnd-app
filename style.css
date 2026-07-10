@@ -1683,13 +1683,14 @@ body.no-character .drawer-divider { display: none; }
     top: 72px;
     right: 0;
     bottom: 0;
-    width: 320px;
+    width: 296px; /* Дымка v5 */
     padding: 20px 18px;
     overflow-y: auto;
-    border-left: 1px solid var(--border);
-    background: rgba(20, 22, 30, 0.55);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    border-left: 1px solid var(--border-soft);
+    /* Дымка v5: уровень 1 стекла — хром */
+    background: var(--surface-sticky, rgba(20, 22, 30, 0.55));
+    backdrop-filter: blur(var(--sticky-blur, 12px));
+    -webkit-backdrop-filter: blur(var(--sticky-blur, 12px));
     z-index: 40;
   }
   :root[data-theme="light"] .app-right-rail {
@@ -1705,13 +1706,13 @@ body.no-character .drawer-divider { display: none; }
 
 @media (min-width: 1024px) {
 
-  /* Right-rail карточки */
+  /* Right-rail карточки — Дымка v5: уровень 2 стекла с бликом */
   .rr-card {
     background: var(--bg-1);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--r-lg, 18px);
     padding: 14px 16px;
-    box-shadow: var(--sh-1);
+    box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-1);
   }
   .rr-card-head {
     display: flex;
@@ -1756,9 +1757,47 @@ body.no-character .drawer-divider { display: none; }
     grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
+  /* Дымка v5: крупное число хитов + быстрые ±1/±5 */
+  .rr-hp-big {
+    display: flex; align-items: baseline; justify-content: center; gap: 2px;
+    font-size: 30px; font-weight: 800; color: var(--text);
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 8px;
+  }
+  .rr-hp-big-sep, .rr-hp-big > span:last-child { font-size: 16px; font-weight: 600; color: var(--text-mute); }
+  .rr-hp-quick {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .rr-hp-quick .btn { padding: 0 4px; }
+  /* Дымка v5: ячейки заклинаний — полоски по кругам */
+  .rr-slots-list { display: flex; flex-direction: column; gap: 7px; }
+  .rr-slot-row { display: flex; align-items: center; gap: 8px; }
+  .rr-slot-lvl {
+    width: 18px; flex-shrink: 0; text-align: center;
+    font-size: 11px; font-weight: 750; color: var(--text-dim);
+  }
+  .rr-slot-pact .rr-slot-lvl { color: var(--magic, var(--accent)); }
+  .rr-slot-bar {
+    flex: 1; height: 7px; border-radius: 999px;
+    background: var(--bg-3); overflow: hidden; position: relative;
+  }
+  .rr-slot-fill {
+    position: absolute; inset: 0 auto 0 0; border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent-lo), var(--accent));
+    transition: width var(--t3, 420ms) var(--ez-spring, ease);
+  }
+  .rr-slot-fill.empty { background: transparent; }
+  .rr-slot-num {
+    width: 32px; flex-shrink: 0; text-align: right;
+    font-size: 11px; font-weight: 650; color: var(--text-mute);
+    font-variant-numeric: tabular-nums;
+  }
   .rr-dice-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr); /* Дымка v5: 6 кубиков */
     gap: 6px;
     margin-bottom: 8px;
   }
@@ -1816,13 +1855,16 @@ body.no-character .drawer-divider { display: none; }
   #tab-sheet.active > .creation-wizard-banner,
   #tab-sheet.active > .basic-locked-bar,
   #tab-sheet.active > .card { flex: 0 0 100%; }
-  /* Колонки растут поровну, схлопываются в 1 при недостатке ширины контента */
+  /* Колонки схлопываются в 1 при недостатке ширины контента.
+     Дымка v5: пропорции 12-колоночной сетки — здоровье/бой (col-1) span 4,
+     основа: владения/оружие (col-2) span 8. */
   #tab-sheet.active > .sheet-col {
     display: flex;
     flex-direction: column;
     flex: 1 1 330px;
     min-width: 0;
   }
+  #tab-sheet.active > .sheet-col-2 { flex: 2 1 380px; }
   /* Компактная карточка личности: поля раскладываются в 2 колонки, шапка
      (аватар+имя) и блок бонусов расы — во всю ширину. Высота карточки заметно
      меньше, поля не растягиваются на весь экран. */
@@ -3748,12 +3790,23 @@ transition: all 0.18s;
 .home-actions-primary > button,
 .home-utils > button { margin: 0; }
 
-@media (min-width: 768px) {
-  .home-actions-primary { grid-template-columns: 1fr 1fr; }
-  .home-utils { grid-template-columns: repeat(3, 1fr); }
+/* Дымка v5: сетка персонажей 1 / 2 / 3 / 4 колонки на 620 / 1000 / 1560px */
+@media (min-width: 620px) {
   #character-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: stretch; }
   #character-list .char-card { margin-bottom: 0; }
   #character-list .empty-list { grid-column: 1 / -1; }
+}
+@media (min-width: 768px) {
+  .home-actions-primary { grid-template-columns: 1fr 1fr; }
+  .home-utils { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1000px) {
+  #character-list { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1560px) {
+  #character-list { grid-template-columns: repeat(4, 1fr); }
+  /* Шире контейнер главной, чтобы 4 колонки дышали */
+  #screen-characters { max-width: 1400px; }
 }
 
 @keyframes pulse {

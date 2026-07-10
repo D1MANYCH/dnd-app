@@ -62,6 +62,8 @@ if (container.children.length === 0) {
   // На случай если у не-колдуна без обычных ячеек ничего нет, и у колдуна 0 пактов
   container.innerHTML = '<div class="spell-slot-row spell-slot-empty"><span class="ssl-none">нет ячеек</span></div>';
 }
+// Дымка v5: зеркало ячеек в правом rail на ПК
+try { if (typeof window.refreshRailSlots === 'function') window.refreshRailSlots(); } catch (e) {}
 }
 function togglePactSlot(index) {
 if (!currentId) return;
