@@ -23,9 +23,14 @@ if (!isSingleWarlock) {
     if (total === 0) {
       diamHtml += '<span class="ssl-none">нет ячеек</span>';
     } else {
-      for(let j=0; j<total; j++) {
-        var cls = j < used ? " used" : "";
-        diamHtml += '<div class="spell-diamond' + cls + '" data-level="' + i + '" data-idx="' + j + '" onclick="toggleSpellSlot(' + i + ',' + j + ')"></div>';
+      // Дымка v5: свободные — слева (золотые), потраченные — справа (серые),
+      // как в образце. Клик по свободной тратит одну (toggleSpellSlot с
+      // index=used → used+1), по потраченной — возвращает одну (index=used-1).
+      // Сама toggleSpellSlot не менялась (позиционная семантика, тесты БЛОК 26).
+      for (let p = 0; p < total; p++) {
+        var isFree = p < free;
+        var clickIdx = isFree ? used : used - 1;
+        diamHtml += '<div class="spell-diamond' + (isFree ? '' : ' used') + '" data-level="' + i + '" data-idx="' + p + '" title="' + (isFree ? 'Потратить ячейку' : 'Вернуть ячейку') + '" onclick="toggleSpellSlot(' + i + ',' + clickIdx + ')"></div>';
       }
     }
     diamHtml += '</div>';
@@ -46,9 +51,11 @@ if (pactTotal > 0 && pactLvl > 0) {
   var pactRow = document.createElement("div");
   pactRow.className = "spell-slot-row spell-slot-pact";
   var pDiams = '<div class="ssl-diamonds">';
+  // Дымка v5: пакт-ячейки — та же схема «свободные слева», клик ±1
   for (var pj = 0; pj < pactTotal; pj++) {
-    var pcls = pj < pactUsed ? " used" : "";
-    pDiams += '<div class="spell-diamond' + pcls + '" onclick="togglePactSlot(' + pj + ')"></div>';
+    var pIsFree = pj < pactFree;
+    var pClickIdx = pIsFree ? pactUsed : pactUsed - 1;
+    pDiams += '<div class="spell-diamond' + (pIsFree ? '' : ' used') + '" title="' + (pIsFree ? 'Потратить ячейку' : 'Вернуть ячейку') + '" onclick="togglePactSlot(' + pClickIdx + ')"></div>';
   }
   pDiams += '</div>';
   pactRow.innerHTML =

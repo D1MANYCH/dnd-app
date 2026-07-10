@@ -3210,33 +3210,35 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
    UX-5: лента последних бросков вне модалки
    Парит над нижней панелью (мобила) / в правом-нижнем углу (ПК).
    ============================================ */
+/* Дымка v5: плашка последних бросков — стекло-поповер (уровень 3) с бликом,
+   появление пружиной снизу; последний бросок выделен крупным золотым числом */
 .quick-roll-strip {
   position: fixed;
   left: 50%;
   bottom: calc(74px + env(safe-area-inset-bottom, 0px));
-  transform: translate(-50%, 12px);
+  transform: translate(-50%, 14px) scale(0.96);
   z-index: 95;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   max-width: min(94vw, 520px);
-  padding: 5px 6px 5px 10px;
-  background: var(--surface-sticky, var(--bg-1));
-  border: 1px solid var(--border, rgba(255,255,255,0.1));
+  padding: 7px 8px 7px 13px;
+  background: var(--surface-pop, var(--surface-sticky));
+  border: 1px solid var(--border-soft, rgba(255,255,255,0.1));
   border-radius: 999px;
-  box-shadow: 0 6px 22px rgba(0,0,0,0.4);
-  backdrop-filter: blur(var(--glass-blur, 8px)) saturate(140%);
-  -webkit-backdrop-filter: blur(var(--glass-blur, 8px)) saturate(140%);
+  box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
+  backdrop-filter: blur(var(--pop-blur, 30px)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--pop-blur, 30px)) saturate(140%);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.22s var(--ease-out, ease), transform 0.22s var(--ease-out, ease);
+  transition: opacity var(--t2, 240ms) var(--ez-out, ease), transform var(--t3, 420ms) var(--ez-spring, ease);
 }
 .quick-roll-strip.qrs-visible {
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: translate(-50%, 0) scale(1);
   pointer-events: auto;
 }
-.qrs-icon { font-size: 0.95em; line-height: 1; flex: 0 0 auto; opacity: 0.85; }
+.qrs-icon { font-size: 0.95em; line-height: 1; flex: 0 0 auto; color: var(--accent); opacity: 0.9; }
 .qrs-list {
   display: flex;
   align-items: center;
@@ -3252,7 +3254,7 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   align-items: baseline;
   gap: 5px;
   padding: 4px 9px;
-  border: 1px solid var(--border, rgba(255,255,255,0.1));
+  border: 1px solid var(--border-soft, rgba(255,255,255,0.1));
   border-radius: 999px;
   background: var(--bg-2, rgba(255,255,255,0.04));
   color: var(--text, #e8e8ef);
@@ -3262,10 +3264,19 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   cursor: pointer;
   transition: background 0.16s, border-color 0.16s, transform 0.12s;
 }
-.qrs-chip:hover { background: var(--accent-glow, rgba(201,160,64,0.18)); border-color: var(--accent-color, #c9a040); }
+.qrs-chip:hover { background: var(--accent-soft, rgba(201,160,64,0.18)); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
 .qrs-chip:active { transform: scale(0.96); }
 .qrs-chip-label { color: var(--text-muted, #a8a8b8); max-width: 12ch; overflow: hidden; text-overflow: ellipsis; }
 .qrs-chip-val { font-weight: 700; color: var(--accent-color, #e0b358); font-variant-numeric: tabular-nums; }
+/* Последний бросок (первый чип) — крупнее, число золотом на тонированном фоне */
+.qrs-chip:first-child {
+  font-size: 0.86em;
+  padding: 5px 12px;
+  background: var(--accent-soft, rgba(214,178,94,0.13));
+  border-color: color-mix(in srgb, var(--accent) 36%, transparent);
+}
+.qrs-chip:first-child .qrs-chip-val { font-size: 1.25em; line-height: 1; }
+.qrs-chip:first-child .qrs-chip-label { color: var(--text-dim, #a8a8b8); }
 .qrs-chip.qrs-crit { border-color: #4da843; }
 .qrs-chip.qrs-crit .qrs-chip-val { color: #6fd35f; }
 .qrs-chip.qrs-fail { border-color: #c0392b; }
@@ -5552,20 +5563,20 @@ font-size: 0.95em;
   color: var(--text-muted);
   font-style: italic;
 }
-/* Дымка v5: свободная ячейка — ВСЕГДА золотая (фиксированное золото, не акцент:
-   при красном/зелёном акценте класса свободные читались как «потраченные» —
-   семантика переворачивалась). Потраченная — гаснет в серую. */
+/* Дымка v5: ячейка — круглая бусина, как в образце прототипа.
+   Свободная — ВСЕГДА золотая (фиксированное золото, не акцент: при
+   красном/зелёном акценте класса свободные читались как «потраченные»).
+   Потраченная — гаснет в серую. */
 .spell-diamond {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   border: 1.5px solid var(--slot-gold, #d6b25e);
   background: linear-gradient(180deg, var(--slot-gold-hi, #e2c67e), var(--slot-gold, #d6b25e));
   box-shadow: 0 0 8px var(--slot-gold-glow, rgba(214,178,94,0.4)), inset 0 1px 0 rgba(255,255,255,0.35);
-  transform: rotate(45deg);
   cursor: pointer;
   transition: background var(--t1, 140ms) var(--ez-out, ease), border-color var(--t1, 140ms) var(--ez-out, ease),
               box-shadow var(--t1, 140ms) var(--ez-out, ease), transform var(--t1, 140ms) var(--ez-spring, ease);
-  border-radius: 4px;
+  border-radius: 999px;
   flex-shrink: 0;
 }
 /* Потраченная — заметная «выцветшая» бусина (по образцу прототипа:
@@ -5575,8 +5586,8 @@ font-size: 0.95em;
   border-color: color-mix(in srgb, var(--text-mute) 50%, transparent);
   box-shadow: none;
 }
-.spell-diamond:hover { transform: rotate(45deg) scale(1.2); }
-.spell-diamond:active { transform: rotate(45deg) scale(0.9); }
+.spell-diamond:hover { transform: scale(1.2); }
+.spell-diamond:active { transform: scale(0.9); }
 
 /* Counter */
 .ssl-counter {
