@@ -149,6 +149,26 @@
 --hp-medium: var(--accent);
 --hp-high: var(--success);
 --hp-bar-h: 10px;
+
+/* ===== THEME-4: компонентные токены базового хрома =====
+   Пары значений живут в light-блоке и auto-блоке (паритет-чек следит).
+   Позволяют базовым правилам работать в обеих темах без light-!important. */
+/* Нативный поп-ап <select> (ОС не композитит альфу — цвета сплошные) */
+--opt-bg: #1e1e2a;
+--opt-text: #ece6d6;
+--optgroup-bg: #15141d;
+--optgroup-text: var(--accent);
+/* Пилюли/чипы фильтров; в светлой — пол непрозрачности (не зависит от слайдера) */
+--chip-bg: var(--bg-2);
+/* Строки-списки / записи журнала-заметок; в светлой — почти непрозрачная белизна */
+--list-solid: rgba(255,255,255,0.03);
+--list-solid-hover: rgba(255,255,255,0.05);
+/* Заливка активных кнопок: тёмная — плоский акцент, светлая — мягкий градиент */
+--accent-fill: var(--accent);
+/* Сопротивление / иммунитет / уязвимость — текст + плашка + кромка */
+--res-res: #6dc8c8; --res-res-bg: rgba(77,168,168,0.18); --res-res-bd: rgba(77,168,168,0.3);
+--res-imm: #7db5e5; --res-imm-bg: rgba(91,155,213,0.18); --res-imm-bd: rgba(91,155,213,0.3);
+--res-vul: #f0b860; --res-vul-bg: rgba(230,160,64,0.18); --res-vul-bd: rgba(230,160,64,0.3);
 }
 
 /* ========== UI-4. Плотность интерфейса (compact / standard / cozy) ==========
@@ -269,6 +289,15 @@ html.glass-adjusting *::after {
   --condition-active: rgba(199, 58, 44, 0.25);
   --buff-color: rgba(44, 138, 82, 0.24);
   --debuff-color: rgba(199, 58, 44, 0.24);
+
+  /* THEME-4: компонентные токены базового хрома (пары к :root) */
+  --opt-bg: #ffffff; --opt-text: #1a1a1a; --optgroup-bg: #f2efe6; --optgroup-text: var(--accent-lo);
+  --chip-bg: rgba(255,255,255,0.95);
+  --list-solid: rgba(255,255,255,0.96); --list-solid-hover: rgba(255,255,255,1);
+  --accent-fill: linear-gradient(180deg, var(--accent-hi), var(--accent));
+  --res-res: #18696b; --res-res-bg: rgba(31,122,122,0.14); --res-res-bd: rgba(31,122,122,0.45);
+  --res-imm: #235f9e; --res-imm-bg: rgba(44,111,189,0.14); --res-imm-bd: rgba(44,111,189,0.45);
+  --res-vul: #8a4f15; --res-vul-bg: rgba(176,90,20,0.14); --res-vul-bd: rgba(176,90,20,0.45);
 }
 
 @media (prefers-color-scheme: light) {
@@ -304,6 +333,14 @@ html.glass-adjusting *::after {
     --condition-active: rgba(199, 58, 44, 0.25);
     --buff-color: rgba(44, 138, 82, 0.24);
     --debuff-color: rgba(199, 58, 44, 0.24);
+    /* THEME-4: компонентные токены базового хрома */
+    --opt-bg: #ffffff; --opt-text: #1a1a1a; --optgroup-bg: #f2efe6; --optgroup-text: var(--accent-lo);
+    --chip-bg: rgba(255,255,255,0.95);
+    --list-solid: rgba(255,255,255,0.96); --list-solid-hover: rgba(255,255,255,1);
+    --accent-fill: linear-gradient(180deg, var(--accent-hi), var(--accent));
+    --res-res: #18696b; --res-res-bg: rgba(31,122,122,0.14); --res-res-bd: rgba(31,122,122,0.45);
+    --res-imm: #235f9e; --res-imm-bg: rgba(44,111,189,0.14); --res-imm-bd: rgba(44,111,189,0.45);
+    --res-vul: #8a4f15; --res-vul-bg: rgba(176,90,20,0.14); --res-vul-bd: rgba(176,90,20,0.45);
   }
 }
 
@@ -484,59 +521,9 @@ html.glass-adjusting *::after {
   font-weight: 600;
 }
 
-/* ----- Чипы сортировки ----- */
-:root[data-theme="light"] .sort-btn {
-  background: var(--bg-1) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-dim) !important;
-}
-:root[data-theme="light"] .sort-btn:hover {
-  background: var(--bg-2) !important;
-  color: var(--accent) !important;
-  border-color: var(--accent) !important;
-}
-:root[data-theme="light"] .sort-btn.active {
-  background: linear-gradient(180deg, var(--accent-hi), var(--accent)) !important;
-  border-color: var(--accent-lo) !important;
-  color: #ffffff !important;
-  box-shadow: 0 1px 3px var(--accent-glow-token);
-}
-
-/* UI6-3: переключатель редакции на главной — светлая тема */
-:root[data-theme="light"] .home-edition-row {
-  background: var(--bg-1) !important;
-  border: 1px solid var(--border) !important;
-}
-:root[data-theme="light"] .home-edition-label {
-  color: var(--text-dim) !important;
-  font-weight: 600;
-}
-:root[data-theme="light"] .home-edition-btn {
-  background: var(--bg-1) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-dim) !important;
-}
-:root[data-theme="light"] .home-edition-btn:hover {
-  background: var(--bg-2) !important;
-  color: var(--accent) !important;
-  border-color: var(--accent) !important;
-}
-:root[data-theme="light"] .home-edition-btn.active {
-  background: linear-gradient(180deg, var(--accent-hi), var(--accent)) !important;
-  border-color: var(--accent-lo) !important;
-  color: #ffffff !important;
-  box-shadow: 0 1px 3px var(--accent-glow-token);
-}
-:root[data-theme="light"] .home-edition-btn.is-soon {
-  border-style: dashed !important;
-  color: var(--text-dim) !important;
-  opacity: 0.75;
-}
-:root[data-theme="light"] .home-edition-btn.is-soon:hover {
-  background: var(--bg-1) !important;
-  border-color: var(--border) !important;
-  color: var(--text-dim) !important;
-}
+/* THEME-4: light-override чипов сортировки и переключателя редакции удалены —
+   базовые .sort-btn / .home-edition-* на токенах --border / --accent-fill /
+   --on-accent. Активная кнопка в светлой получает градиент через --accent-fill. */
 
 /* ----- Info-чипы внизу ----- */
 :root[data-theme="light"] .app-info-item {
@@ -922,40 +909,10 @@ html.glass-adjusting *::after {
   color: var(--accent-lo) !important;
 }
 
-/* ----- Бой/трекер инициативы — dark-only хардкод (#fff текст,
-   rgba(255,255,255,0.03..0.07) поверхности, rgba(255,255,255,0.25..0.3)
-   подписи) → невидимо на светлом. Светлые поверхности с полом
-   непрозрачности, читаемый текст. ----- */
-:root[data-theme="light"] .battle-setup-row,
-:root[data-theme="light"] .tracker-row {
-  background: rgba(255,255,255,0.95) !important;
-  border: 1px solid var(--border-soft) !important;
-}
-:root[data-theme="light"] .battle-setup-row:hover,
-:root[data-theme="light"] .tracker-row:hover {
-  background: rgba(255,255,255,1) !important;
-}
-:root[data-theme="light"] .tracker-row-active {
-  background: var(--accent-soft) !important;
-  border-color: var(--accent) !important;
-}
-:root[data-theme="light"] .battle-setup-name,
-:root[data-theme="light"] .tracker-info-name { color: var(--text) !important; }
-:root[data-theme="light"] .battle-nav-btn {
-  background: rgba(255,255,255,0.96) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-dim) !important;
-}
-:root[data-theme="light"] .battle-nav-btn:hover:not(.battle-nav-next) {
-  border-color: var(--accent) !important;
-  color: var(--accent-lo) !important;
-}
-:root[data-theme="light"] .battle-nav-next {
-  background: var(--accent) !important;
-  border-color: var(--accent-lo) !important;
-  color: #fff !important;
-}
-:root[data-theme="light"] .tracker-status option { background: #fff !important; color: var(--text) !important; }
+/* THEME-4: light-override строк боя/трекера удалён — базовые .battle-setup-row /
+   .tracker-row / .tracker-row-active / .battle-nav-* на токенах --list-solid /
+   --accent-soft / --chip-bg / --accent-fill. Ниже — только UX-6 тонкая настройка
+   инлайн-ХП и инициативы (значения, которых нет в общих токенах). */
 /* UX-6: инлайн-ХП / инициатива / кнопки в светлой теме */
 :root[data-theme="light"] .tracker-hp-cur,
 :root[data-theme="light"] .tracker-hp-max { background: #fff !important; border: 1px solid var(--border) !important; color: var(--text) !important; }
@@ -965,63 +922,11 @@ html.glass-adjusting *::after {
 :root[data-theme="light"] .tracker-init-roll { color: var(--text-dim) !important; }
 :root[data-theme="light"] .tracker-init-roll:hover { color: var(--accent-lo) !important; }
 
-/* ----- Журнал-фильтр (.jfilter-btn) — полностью dark-only
-   (rgba(255,255,255,0.05) фон, .5 текст, .1 граница) → невидим на
-   светлом даже при 100% (хардкод, не зависит от слайдера). ----- */
-:root[data-theme="light"] .jfilter-btn {
-  background: rgba(255,255,255,0.95) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-dim) !important;
-}
-:root[data-theme="light"] .jfilter-btn:hover {
-  border-color: var(--accent) !important;
-  color: var(--text) !important;
-}
-:root[data-theme="light"] .jfilter-btn.active {
-  background: var(--accent) !important;
-  border-color: var(--accent-lo) !important;
-  color: #fff !important;
-}
+/* THEME-4: light-override .jfilter-btn / .notes-pill удалены — базовые правила
+   на токенах --chip-bg / --accent-fill / --on-accent работают в обеих темах. */
 
-/* ----- Записи: пилюли-подкатегории (.notes-pill) — тот же dark-only
-   хардкод (rgba(255,255,255,0.05) фон, .6 текст, .12 граница) →
-   прозрачны/невидимы на светлом даже при 100%. ----- */
-:root[data-theme="light"] .notes-pill {
-  background: rgba(255,255,255,0.95) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-dim) !important;
-}
-:root[data-theme="light"] .notes-pill:hover {
-  border-color: var(--accent) !important;
-  color: var(--text) !important;
-}
-:root[data-theme="light"] .notes-pill.active {
-  background: var(--accent) !important;
-  border-color: var(--accent-lo) !important;
-  color: #fff !important;
-}
-
-/* ----- Сопротивления к урону — светло-бирюзовый текст #6dc8c8 / #7db5e5
-   / #f0b860 на бледном фоне = очень низкий контраст на светлом.
-   Тёмные семантические цвета + чуть плотнее фон. ----- */
-:root[data-theme="light"] .res-tag-res {
-  background: rgba(31,122,122,0.14) !important;
-  color: #18696b !important;
-  border-color: rgba(31,122,122,0.45) !important;
-}
-:root[data-theme="light"] .res-tag-imm {
-  background: rgba(44,111,189,0.14) !important;
-  color: #235f9e !important;
-  border-color: rgba(44,111,189,0.45) !important;
-}
-:root[data-theme="light"] .res-tag-vul {
-  background: rgba(176,90,20,0.14) !important;
-  color: #8a4f15 !important;
-  border-color: rgba(176,90,20,0.45) !important;
-}
-:root[data-theme="light"] .res-tag-res .res-tag-x { color: #18696b !important; border-color: #18696b !important; }
-:root[data-theme="light"] .res-tag-imm .res-tag-x { color: #235f9e !important; border-color: #235f9e !important; }
-:root[data-theme="light"] .res-tag-vul .res-tag-x { color: #8a4f15 !important; border-color: #8a4f15 !important; }
+/* THEME-4: light-override сопротивлений удалён — базовые .res-tag-*/.res-add-btn-*
+   теперь на токенах --res-* (light-пары в теме), ✕ наследует цвет плашки. */
 
 /* ----- Полоска здоровья — трек var(--card-bg)/--bg-2 (стекло) почти
    невидим на светлой карточке. Делаем непрозрачный трек с границей,
@@ -2317,11 +2222,10 @@ background-color: var(--bg-3);
 /* UI-fix: оформление раскрытого списка <select> в тон теме (был системный серый фон + белый текст).
    Заголовки групп — акцентом, пункты — обычным текстом на тёмной подложке. */
 select { accent-color: var(--accent-color); }
-/* Сплошные цвета (а не translucent --bg-*): нативный поп-ап списка ОС не композитит альфу как страница */
-select option { background-color: #1e1e2a; color: #ece6d6; font-weight: 400; }
-select optgroup { background-color: #15141d; color: var(--accent-color); font-weight: 700; font-style: normal; }
-:root[data-theme="light"] select option { background-color: #ffffff; color: #1a1a1a; }
-:root[data-theme="light"] select optgroup { background-color: #f2efe6; color: var(--accent-lo); }
+/* Сплошные цвета (а не translucent --bg-*): нативный поп-ап списка ОС не композитит альфу как страница.
+   THEME-4: значения вынесены в токены --opt-*/--optgroup-* (light-пары в теме) */
+select option { background-color: var(--opt-bg); color: var(--opt-text); font-weight: 400; }
+select optgroup { background-color: var(--optgroup-bg); color: var(--optgroup-text); font-weight: 700; font-style: normal; }
 .row { display: flex; gap: var(--sp-3); margin-bottom: var(--sp-3); flex-wrap: wrap; }
 .col { flex: 1; min-width: 100px; }
 /* UI-fix: базовые поля персонажа (класс/подкласс/раса/предыстория) — один столбец на всех
@@ -3737,7 +3641,7 @@ transition: border-color 0.2s;
 .char-sort-label { font-size: 0.72em; color: var(--text-mute); flex-shrink: 0; }
 .sort-btn {
 background: transparent;
-border: 1px solid rgba(255,255,255,0.1);
+border: 1px solid var(--border);
 color: var(--text-mute);
 padding: 4px 10px;
 border-radius: var(--r-sm);
@@ -3748,7 +3652,7 @@ width: auto;
 margin: 0;
 }
 .sort-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
-.sort-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: #000; font-weight: 600; }
+.sort-btn.active { background: var(--accent-fill); border-color: var(--accent-lo); color: var(--on-accent); font-weight: 600; }
 /* UI6-3: переключатель редакции на главной (по образцу .char-sort-row/.sort-btn).
    Префикс home-edition-, чтобы не коллидить с .edition-btn фильтра заклинаний. */
 .home-edition-row {
@@ -3766,7 +3670,7 @@ margin: 0;
 .home-edition-label { font-size: 0.72em; color: var(--text-mute); flex-shrink: 0; }
 .home-edition-btn {
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid var(--border);
   color: var(--text-mute);
   padding: 4px 10px;
   border-radius: var(--r-sm);
@@ -3777,7 +3681,7 @@ margin: 0;
   margin: 0;
 }
 .home-edition-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
-.home-edition-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: #000; font-weight: 600; }
+.home-edition-btn.active { background: var(--accent-fill); border-color: var(--accent-lo); color: var(--on-accent); font-weight: 600; }
 .home-edition-btn.is-soon { border-style: dashed; color: var(--text-mute); cursor: default; }
 .home-edition-btn.is-soon:hover { border-color: var(--border-soft); color: var(--text-mute); }
 .home-edition-soon-tag { font-size: 0.85em; opacity: 0.7; margin-left: 5px; }
@@ -7099,7 +7003,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   transition: border-color 0.18s;
 }
 .pcard-status-sel:focus { border-color: var(--accent-color); outline: none; }
-.pcard-status-sel option { background: #1e1e2a; color: #fff; }
+.pcard-status-sel option { background: var(--opt-bg); color: var(--opt-text); }
 
 /* Actions column */
 .pcard-actions {
@@ -7162,8 +7066,8 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 /* Battle setup */
 .battle-setup-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 6px; }
 .battle-setup-header h3 { margin: 0; color: var(--text-color); }
-.battle-setup-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: var(--r-sm); margin-bottom: 5px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); cursor: grab; transition: opacity 0.18s, background 0.18s; user-select: none; }
-.battle-setup-row:hover { background: rgba(255,255,255,0.07); }
+.battle-setup-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: var(--r-sm); margin-bottom: 5px; background: var(--list-solid); border: 1px solid var(--border-soft); cursor: grab; transition: opacity 0.18s, background 0.18s; user-select: none; }
+.battle-setup-row:hover { background: var(--list-solid-hover); }
 .battle-check-wrap { display: flex; align-items: center; flex-shrink: 0; cursor: pointer; }
 .battle-checkbox { width: 16px; height: 16px; accent-color: var(--accent-color); cursor: pointer; }
 .battle-setup-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1em; flex-shrink: 0; }
@@ -7178,8 +7082,8 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .battle-end-btn { background: transparent; border: 1px solid rgba(231,76,60,0.4); color: rgba(231,76,60,0.7); padding: 5px 12px; border-radius: var(--r-sm); cursor: pointer; font-size: 0.8em; width: auto; margin: 0; transition: all 0.18s; white-space: nowrap; }
 .battle-end-btn:hover { background: var(--danger-color); color: #fff; }
 /* UX-6: строка трекера — две линии (main: инициатива/имя/действия, sub: ХП/статус) */
-.tracker-row { display: flex; flex-direction: column; align-items: stretch; gap: 7px; padding: 9px 10px; border-radius: var(--r-sm); margin-bottom: 5px; background: rgba(255,255,255,0.03); border: 1px solid transparent; transition: background 0.2s, border-color 0.2s; }
-.tracker-row-active { background: rgba(201,162,39,0.1); border-color: rgba(201,162,39,0.3); }
+.tracker-row { display: flex; flex-direction: column; align-items: stretch; gap: 7px; padding: 9px 10px; border-radius: var(--r-sm); margin-bottom: 5px; background: var(--list-solid); border: 1px solid transparent; transition: background 0.2s, border-color 0.2s; }
+.tracker-row-active { background: var(--accent-soft); border-color: var(--accent); }
 .tracker-main { display: flex; align-items: center; gap: 8px; }
 /* sub-строка: HP-колонка фикс. ширины + статус — выровнено по всем строкам */
 .tracker-sub { display: flex; align-items: center; gap: 10px; padding-left: 32px; }
@@ -7216,20 +7120,20 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .tracker-icon { width: 32px; height: 32px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 1em; flex-shrink: 0; }
 .battle-nav { display: flex; gap: 8px; margin-top: 14px; }
-.battle-nav-btn { flex: 1; padding: 10px; border-radius: 8px; background: var(--bg-2); border: 1px solid var(--border-soft); color: var(--text-dim); font-size: 0.88em; cursor: pointer; width: auto; margin: 0; transition: all 0.18s; }
-.battle-nav-next { background: var(--accent-color); border-color: var(--accent-color); color: #000; font-weight: 700; }
+.battle-nav-btn { flex: 1; padding: 10px; border-radius: 8px; background: var(--chip-bg); border: 1px solid var(--border); color: var(--text-dim); font-size: 0.88em; cursor: pointer; width: auto; margin: 0; transition: all 0.18s; }
+.battle-nav-next { background: var(--accent-fill); border-color: var(--accent-lo); color: var(--on-accent); font-weight: 700; }
 .battle-nav-btn:hover:not(.battle-nav-next) { border-color: var(--accent-color); color: var(--accent-color); }
 
 /* Fix white h3 in party sections */
 .card h3 { color: var(--text-color); }
 /* Battle sections with collapse */
 .battle-section { margin-bottom: 8px; }
-.battle-section-title { font-size: 0.8em; font-weight: 700; padding: 8px 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; border-radius: var(--r-sm); background: rgba(255,255,255,0.04); user-select: none; }
-.battle-section-title:hover { background: rgba(255,255,255,0.07); }
+.battle-section-title { font-size: 0.8em; font-weight: 700; padding: 8px 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; border-radius: var(--r-sm); background: var(--list-solid); user-select: none; }
+.battle-section-title:hover { background: var(--list-solid-hover); }
 .battle-section-arrow { font-size: 0.9em; }
 .battle-section-count { font-weight: 400; opacity: 0.6; }
-.battle-setup-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; margin-top: 3px; background: rgba(255,255,255,0.03); }
-.battle-row-checked { background: rgba(255,255,255,0.06); }
+.battle-setup-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; margin-top: 3px; background: var(--list-solid); }
+.battle-row-checked { background: var(--list-solid-hover); }
 .battle-search-wrap { position: relative; margin-bottom: 10px; }
 /* Tracker */
 .tracker-num { font-size: 0.85em; font-weight: 700; width: 20px; text-align: center; flex-shrink: 0; color: var(--text-mute); }
@@ -7264,7 +7168,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   -webkit-appearance: none;
   appearance: none;
 }
-.tracker-status option { background: #1e1e2a; color: #fff; }
+.tracker-status option { background: var(--opt-bg); color: var(--opt-text); }
 /* Self status — plain text badge driven by HP, no select */
 .tracker-self-status {
   font-size: 0.72em;
@@ -8680,8 +8584,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   max-width: 100%;
 }
 .jfilter-btn {
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
+  background: var(--chip-bg);
+  border: 1px solid var(--border);
   color: var(--text-dim);
   padding: 4px 10px;
   border-radius: var(--r-sm);
@@ -8692,7 +8596,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   transition: all 0.18s;
 }
 .jfilter-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
-.jfilter-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: #000; font-weight: 700; }
+.jfilter-btn.active { background: var(--accent-fill); border-color: var(--accent-lo); color: var(--on-accent); font-weight: 700; }
 .journal-list { display: flex; flex-direction: column; gap: 7px; max-height: 600px; overflow-y: auto; }
 .journal-empty { text-align: center; padding: 30px 20px; color: var(--text-muted); font-style: italic; font-size: 0.85em; }
 .journal-entry {
@@ -11237,9 +11141,9 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
 .res-row-mult {
   font-size: 0.85em; font-weight: 700; margin-left: 2px;
 }
-.res-row-res .res-row-mult { color: #4da8a8; }
-.res-row-imm .res-row-mult { color: #5b9bd5; }
-.res-row-vul .res-row-mult { color: #e6a040; }
+.res-row-res .res-row-mult { color: var(--res-res); }
+.res-row-imm .res-row-mult { color: var(--res-imm); }
+.res-row-vul .res-row-mult { color: var(--res-vul); }
 .res-row-content {
   display: flex; flex-wrap: wrap; gap: 4px; min-height: 20px;
 }
@@ -11252,9 +11156,9 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
   cursor: pointer; opacity: 0.4; font-size: 0.8em; margin-left: 1px;
 }
 .res-tag-x:hover { opacity: 1; }
-.res-tag-res { background: rgba(77,168,168,0.18); color: #6dc8c8; border: 1px solid rgba(77,168,168,0.3); }
-.res-tag-imm { background: rgba(91,155,213,0.18); color: #7db5e5; border: 1px solid rgba(91,155,213,0.3); }
-.res-tag-vul { background: rgba(230,160,64,0.18); color: #f0b860; border: 1px solid rgba(230,160,64,0.3); }
+.res-tag-res { background: var(--res-res-bg); color: var(--res-res); border: 1px solid var(--res-res-bd); }
+.res-tag-imm { background: var(--res-imm-bg); color: var(--res-imm); border: 1px solid var(--res-imm-bd); }
+.res-tag-vul { background: var(--res-vul-bg); color: var(--res-vul); border: 1px solid var(--res-vul-bd); }
 /* Строка добавления */
 .res-add {
   display: flex; align-items: center; gap: 6px;
@@ -11263,8 +11167,8 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
 }
 .res-add-select {
   flex: 1; padding: 6px 8px;
-  background: var(--input-bg, #1a1d22); border: 1px solid var(--border-color, #444);
-  color: var(--text-color, #eee); border-radius: var(--r-sm); font-size: 0.82em;
+  background: var(--input-bg); border: 1px solid var(--border-color);
+  color: var(--text-color); border-radius: var(--r-sm); font-size: 0.82em;
 }
 .res-add-label {
   color: var(--text-muted, #666); font-size: 0.85em;
@@ -11275,12 +11179,12 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
   transition: all 0.15s; padding: 0; text-align: center; line-height: 26px;
 }
 .res-add-btn:hover { transform: scale(1.12); }
-.res-add-btn-res { background: rgba(77,168,168,0.1); border-color: #4da8a8; color: #4da8a8; }
-.res-add-btn-res:hover { background: #4da8a8; color: #000; }
-.res-add-btn-imm { background: rgba(91,155,213,0.1); border-color: #5b9bd5; color: #5b9bd5; }
-.res-add-btn-imm:hover { background: #5b9bd5; color: #000; }
-.res-add-btn-vul { background: rgba(230,160,64,0.1); border-color: #e6a040; color: #e6a040; }
-.res-add-btn-vul:hover { background: #e6a040; color: #000; }
+.res-add-btn-res { background: var(--res-res-bg); border-color: var(--res-res); color: var(--res-res); }
+.res-add-btn-res:hover { background: var(--res-res); color: #000; }
+.res-add-btn-imm { background: var(--res-imm-bg); border-color: var(--res-imm); color: var(--res-imm); }
+.res-add-btn-imm:hover { background: var(--res-imm); color: #000; }
+.res-add-btn-vul { background: var(--res-vul-bg); border-color: var(--res-vul); color: var(--res-vul); }
+.res-add-btn-vul:hover { background: var(--res-vul); color: #000; }
 
 /* ============================================
    БОЙ ДВУМЯ ОРУЖИЯМИ (Two-Weapon Fighting)
@@ -11541,8 +11445,8 @@ body {
   box-shadow: 0 0 0 2px var(--accent-glow, rgba(245,200,110,0.2));
 }
 .notes-pill {
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
+  background: var(--chip-bg);
+  border: 1px solid var(--border);
   color: var(--text-dim);
   padding: 6px 12px;
   border-radius: 999px;
@@ -11554,11 +11458,11 @@ body {
   transition: all 0.18s;
   white-space: nowrap;
 }
-.notes-pill:hover { border-color: var(--accent-color, #f5c86e); color: var(--accent-color, #f5c86e); }
+.notes-pill:hover { border-color: var(--accent-color); color: var(--accent-color); }
 .notes-pill.active {
-  background: var(--accent-color, #f5c86e);
-  border-color: var(--accent-color, #f5c86e);
-  color: #000;
+  background: var(--accent-fill);
+  border-color: var(--accent-lo);
+  color: var(--on-accent);
   font-weight: 700;
 }
 .notes-pill-ico { margin-right: 2px; }
@@ -12845,14 +12749,7 @@ textarea:focus-visible {
   filter: brightness(1.06);
 }
 
-/* Светлая тема: бейджи сопротивлений/иммунитетов/уязвимостей — базовые цвета
-   подобраны под тёмный фон (светлые бирюза/голубой/золото), на белом бледнеют. */
-:root[data-theme="light"] .res-tag-res { color: #256d6d; background: rgba(45,125,125,0.14); border-color: rgba(45,125,125,0.45); }
-:root[data-theme="light"] .res-tag-imm { color: #24578f; background: rgba(44,111,189,0.12); border-color: rgba(44,111,189,0.4); }
-:root[data-theme="light"] .res-tag-vul { color: #8f5a12; background: rgba(190,130,40,0.14); border-color: rgba(190,130,40,0.45); }
-:root[data-theme="light"] .res-row-res .res-row-mult { color: #256d6d; }
-:root[data-theme="light"] .res-row-imm .res-row-mult { color: #24578f; }
-:root[data-theme="light"] .res-row-vul .res-row-mult { color: #8f5a12; }
+/* THEME-4: дублирующий light-override сопротивлений удалён (см. токены --res-*). */
 
 /* ============================================================
    Дымка v5: чипы состояний, мини-индикаторы, SVG-иконки
