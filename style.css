@@ -609,7 +609,20 @@ html.glass-adjusting *::after {
   transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease-out);
 }
 :root[data-theme="light"] .status-chip:hover { box-shadow: var(--sh-1); }
-:root[data-theme="light"] .status-hp {
+/* Светлая тема: HP-чип отражает состояние (ok/low/critical), как тёмная.
+   !important нужен, чтобы перебить нейтральный .status-chip выше (тот тоже !important).
+   low-янтарь #8a6510 = 5.07:1 на light bg-1 (WCAG 4.5, проверено check-theme). */
+:root[data-theme="light"] .status-hp.hp-ok {
+  color: var(--success) !important;
+  background: rgba(42,126,76,0.10) !important;
+  border-color: rgba(42,126,76,0.34) !important;
+}
+:root[data-theme="light"] .status-hp.hp-low {
+  color: #8a6510 !important;
+  background: rgba(138,101,16,0.12) !important;
+  border-color: rgba(138,101,16,0.38) !important;
+}
+:root[data-theme="light"] .status-hp.hp-critical {
   color: var(--danger) !important;
   background: rgba(199,58,44,0.08) !important;
   border-color: rgba(199,58,44,0.32) !important;
