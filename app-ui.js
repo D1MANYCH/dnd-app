@@ -1116,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', _syncFontScaleUi);
 // UI4-glass: прозрачность (alpha 0.30..1.00) и размытие (blur 0..24px)
 // поверхностей. Применяются как inline CSS-переменные на documentElement
 // (--glass-alpha / --glass-blur), перебивают значения из :root в style.css.
-var GLASS_A_MIN = 0.30, GLASS_A_MAX = 1.00, GLASS_A_DEFAULT = 0.60;
+var GLASS_A_MIN = 0.30, GLASS_A_MAX = 1.00, GLASS_A_DEFAULT = 0.66; /* THEME-3: 0.60→0.66, синхронно с --glass-alpha в style.css */
 var GLASS_B_MIN = 0, GLASS_B_MAX = 24, GLASS_B_DEFAULT = 18;
 function _getGlassAlpha() {
   try {

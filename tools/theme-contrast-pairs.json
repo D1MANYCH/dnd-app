@@ -1,28 +1,28 @@
 {
-  "comment": "THEME-2: пары WCAG-контраста для tools/check-theme.js. bg — стек полупрозрачных слоёв, композитится на непрозрачный --bg-0 (flatten). min — порог обеих тем, minLight/minDark — переопределения. Поля note/target чекер игнорирует (документация). Пороги ниже цели 4.5 стартово мягкие — ужесточаются в THEME-3 (тёмная палитра) и THEME-6 (финал). --glass-alpha берётся дефолтный 0.60 из :root (слайдер юзера статически не учесть).",
+  "comment": "THEME-2: пары WCAG-контраста для tools/check-theme.js. bg — стек полупрозрачных слоёв, композитится на непрозрачный --bg-0 (flatten). min — порог обеих тем, minLight/minDark — переопределения. Поля note/target чекер игнорирует (документация). THEME-3: тёмная палитра поднята (dim #c9d2e8, mute #a8b2cb, glass-alpha 0.66) — достигнутое залочено через minDark с запасом ~0.4–0.8; светлая не менялась, её пороги ужесточаются в THEME-6. --glass-alpha берётся дефолтный 0.66 из :root (слайдер юзера статически не учесть).",
   "pairs": [
-    { "fg": "--text", "bg": [], "min": 4.5 },
-    { "fg": "--text", "bg": ["--bg-1"], "min": 4.5 },
-    { "fg": "--text", "bg": ["--surface-modal"], "min": 4.5 },
+    { "fg": "--text", "bg": [], "min": 4.5, "minDark": 14.0 },
+    { "fg": "--text", "bg": ["--bg-1"], "min": 4.5, "minDark": 14.0 },
+    { "fg": "--text", "bg": ["--surface-modal"], "min": 4.5, "minDark": 14.0 },
 
-    { "fg": "--text-dim", "bg": [], "min": 4.5 },
-    { "fg": "--text-dim", "bg": ["--bg-1"], "min": 4.5 },
-    { "fg": "--text-dim", "bg": ["--surface-modal"], "min": 4.5 },
+    { "fg": "--text-dim", "bg": [], "min": 4.5, "minDark": 11.0, "note": "THEME-3: dark факт 12.3–13.1" },
+    { "fg": "--text-dim", "bg": ["--bg-1"], "min": 4.5, "minDark": 11.0 },
+    { "fg": "--text-dim", "bg": ["--surface-modal"], "min": 4.5, "minDark": 11.0 },
 
-    { "fg": "--text-mute", "bg": [], "min": 3.0, "minLight": 2.9,
-      "note": "light факт 2.95 — единственная пара ниже 3.0; поднять палитру в THEME-3, затем minLight → 3.0+", "target": 4.5 },
-    { "fg": "--text-mute", "bg": ["--bg-1"], "min": 3.0, "target": 4.5 },
-    { "fg": "--text-mute", "bg": ["--surface-modal"], "min": 3.0, "target": 4.5 },
+    { "fg": "--text-mute", "bg": [], "min": 3.0, "minLight": 2.9, "minDark": 8.0,
+      "note": "light факт 2.95 — единственная пара ниже 3.0; светлая палитра — THEME-6, затем minLight → 3.0+. THEME-3: dark факт 8.4–9.3", "target": 4.5 },
+    { "fg": "--text-mute", "bg": ["--bg-1"], "min": 3.0, "minDark": 8.0, "target": 4.5 },
+    { "fg": "--text-mute", "bg": ["--surface-modal"], "min": 3.0, "minDark": 8.0, "target": 4.5 },
 
-    { "fg": "--danger", "bg": ["--bg-1"], "min": 4.5 },
-    { "fg": "--success", "bg": ["--bg-1"], "min": 4.0,
-      "note": "light факт 4.07; цель 4.5 — THEME-3", "target": 4.5 },
-    { "fg": "--info", "bg": ["--bg-1"], "min": 4.5 },
+    { "fg": "--danger", "bg": ["--bg-1"], "min": 4.5, "minDark": 5.0 },
+    { "fg": "--success", "bg": ["--bg-1"], "min": 4.0, "minDark": 6.0,
+      "note": "light факт 4.07; цель 4.5 — THEME-6", "target": 4.5 },
+    { "fg": "--info", "bg": ["--bg-1"], "min": 4.5, "minDark": 6.5 },
 
-    { "fg": "--magic", "bg": ["--bg-1"], "min": 3.0, "note": "школы магии: light факт 3.89–4.65; цель 4.5 — THEME-3/6", "target": 4.5 },
-    { "fg": "--necro", "bg": ["--bg-1"], "min": 3.0, "target": 4.5 },
-    { "fg": "--divin", "bg": ["--bg-1"], "min": 3.0, "target": 4.5 },
-    { "fg": "--charm", "bg": ["--bg-1"], "min": 3.0, "target": 4.5 }
+    { "fg": "--magic", "bg": ["--bg-1"], "min": 3.0, "minDark": 6.0, "note": "школы магии: light факт 3.89–4.65; цель 4.5 — THEME-6. THEME-3: dark факт 6.6–9.3, лок 6.0", "target": 4.5 },
+    { "fg": "--necro", "bg": ["--bg-1"], "min": 3.0, "minDark": 6.0, "target": 4.5 },
+    { "fg": "--divin", "bg": ["--bg-1"], "min": 3.0, "minDark": 6.0, "target": 4.5 },
+    { "fg": "--charm", "bg": ["--bg-1"], "min": 3.0, "minDark": 6.0, "target": 4.5 }
   ],
   "accents": {
     "fg": "--on-accent",

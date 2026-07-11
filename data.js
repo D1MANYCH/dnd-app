@@ -1851,7 +1851,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.43.3";
+const APP_VERSION = "3.43.4";
 const APP_VERSION_DATE = "2026-07-11";
 
 // ============================================================
@@ -2197,9 +2197,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.43.3",
+    version: "3.43.4",
     date: "11 июля 2026",
     badge: "new",
+    changes: [
+      { type: "fix", text: "Тёмная тема (THEME-3): вторичный текст ярче (--text-dim #c9d2e8, --text-mute #a8b2cb), границы и блик карточек заметнее (0.16/0.10), дефолт непрозрачности стекла 60%→66%; пороги WCAG-чекера ужесточены (minDark), фикстура аудита тем tests/theme-audit-fixture.html" }
+    ]
+  },
+  {
+    version: "3.43.3",
+    date: "11 июля 2026",
+    badge: "old",
     changes: [
       { type: "fix", text: "Автопроверки тем: tools/check-theme.js (синхрон light/auto-блоков, паритет dark↔light, WCAG-контраст, ratchet хардкодов) в CI и PostToolUse-hook; фикс дрейфа auto-блока — 8 токенов категорий предметов (--weapon-color…--highlight-color)" }
     ]

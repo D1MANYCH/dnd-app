@@ -65,7 +65,11 @@ for(const n of await caches.keys())await caches.delete(n);})()
 --force-device-scale-factor=DPR --virtual-time-budget=3000 --screenshot=out.png <url>`
 + попиксельный анализ Pillow'ом. Для оверлеев/затемнений есть готовая фикстура
 `tests/tour-fixture.html?theme=light|dark&dim=0.5&diag=1` (детерминированная
-дырка (194,144)-(526,276) CSS px). Ловушки: `--dump-dom` на части сборок молчит —
+дырка (194,144)-(526,276) CSS px). Для скриншот-матрицы ПРИЛОЖЕНИЯ (вкладки/
+модалки/темы, THEME-3+) — `tests/theme-audit-fixture.html?tab=…&theme=…&scroll=…
+&modal=settings|levelup&set=--токен:значение;…&keepbg=1`: сеет персонажа,
+глушит rAF/WebGL, умеет A/B-инъекцию токенов без правки файлов (параметры —
+в шапке файла). Ловушки: `--dump-dom` на части сборок молчит —
 диагностику из страницы вытаскивать HTTP-маячком `GET /__diag?<json>` (виден в
 stdout `python -m http.server`); `--window-size` при `--force-device-scale-factor`
 даёт вьюпорт НЕ равный заданному (проверять `window.innerWidth` маячком).

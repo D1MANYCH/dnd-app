@@ -1,0 +1,80 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>theme-audit-fixture</title>
+<style>html,body{margin:0;height:100%;background:#050a14}iframe{position:fixed;inset:0;width:100vw;height:100vh;border:0}</style>
+<iframe id="f"></iframe>
+<script>
+// THEME-3: постоянная фикстура аудита тем (аналог tour-fixture.html из THEME-1).
+// Открывает приложение в iframe, сеет персонажа-волшебника 5 ур. с ячейками/состояниями/
+// инвентарём, глушит rAF+WebGL и позиционирует нужный экран — для headless-скриншотов:
+//   chrome --headless=new --disable-gpu --hide-scrollbars --window-size=1280,800
+//     --virtual-time-budget=15000 --screenshot=out.png
+//     "http://localhost:3017/tests/theme-audit-fixture.html?tab=spells&scroll=1100"
+// Параметры: ?tab=sheet|spells|inventory|battle|notes|party|journal · &theme=dark|light
+//   &modal=settings|levelup · &scroll=N · &keepbg=1 (не прятать космо-канвас)
+//   &set=--token:value;--token:value (A/B-инъекция токенов без правки файлов)
+// Диагностика: HTTP-маячок GET /__diag?... в stdout сервера (см. skills/verify-ui п.6).
+const q = new URLSearchParams(location.search);
+const beacon = m => { try { fetch('/__diag?' + encodeURIComponent(m)).catch(()=>{}); } catch (e) {} };
+try {
+  localStorage.clear();
+  ['seen','sheet_seen','spells_seen','inventory_seen','battle_seen','notes_seen','party_seen','journal_seen']
+    .forEach(k => localStorage.setItem('dnd_help_' + k, '1'));
+  localStorage.setItem('dnd_help_level', 'known');
+  localStorage.setItem('dnd_theme', q.get('theme') || 'dark');
+} catch (e) { beacon('ERR seed ' + e.message); }
+const f = document.getElementById('f');
+f.src = '/index.html';
+f.addEventListener('load', () => {
+  const w = f.contentWindow;
+  setTimeout(async () => {
+    try {
+      w.requestAnimationFrame = () => 0;
+      await w.applyBuild('wizard-evoker');
+      const c = w.characters[0];
+      c.level = 5; c.classes[0].level = 5;
+      c.combat.hpMax = 32; c.combat.hpCurrent = 19; c.combat.hpTemp = 4;
+      c.spells.slots['1'] = 4; c.spells.slots['2'] = 3; c.spells.slots['3'] = 2;
+      c.spells.slotsUsed['1'] = 2; c.spells.slotsUsed['2'] = 1;
+      c.conditions = ['poisoned', 'frightened'];
+      c.inventory.armor.push({ name: 'Кожаный доспех', qty: 1, weight: 10, location: 'worn', desc: 'КД 11 + ЛОВ' });
+      c.inventory.potion.push({ name: 'Зелье лечения', qty: 2, weight: 0.5, location: 'belt', desc: '2к4+2 хитов' });
+      c.inventory.scroll.push({ name: 'Свиток огненного шара', qty: 1, weight: 0, location: 'backpack', desc: 'Огненный шар, 3 ур.' });
+      c.inventory.tool.push({ name: 'Воровские инструменты', qty: 1, weight: 1, location: 'backpack', desc: 'Набор инструментов' });
+      w.saveToLocal();
+      if (typeof w.closeModal === 'function') { try { w.closeModal('build-guide-modal'); } catch (e) {} }
+      const bg = w.document.getElementById('build-guide-modal');
+      if (bg) { bg.classList.remove('show', 'active'); bg.style.display = 'none'; }
+      w.loadCharacter(c.id);
+      const tab = q.get('tab') || 'sheet';
+      if (tab !== 'sheet') w.switchTab(tab);
+      const modal = q.get('modal') || '';
+      if (modal === 'settings') w.openSettingsModal();
+      else if (modal === 'whatsnew') w.showWhatsNewModal('3.42.0', (w.APP_VERSION || '3.43.3'));
+      else if (modal === 'levelup') w.openLevelUpModal();
+      setTimeout(() => {
+        const sc = parseInt(q.get('scroll') || '0', 10);
+        if (sc) { try { w.scrollTo(0, sc); w.document.documentElement.scrollTop = sc; } catch (e) {} }
+        const setStr = q.get('set') || '';
+        if (setStr) {
+          setStr.split(';').forEach(pair => {
+            const i = pair.indexOf(':');
+            if (i > 0) w.document.documentElement.style.setProperty(pair.slice(0, i).trim(), pair.slice(i + 1).trim());
+          });
+        }
+        if (!q.get('keepbg')) {
+          try {
+            w.document.querySelectorAll('canvas').forEach(cv => {
+              try { const gl = cv.getContext('webgl2') || cv.getContext('webgl');
+                if (gl) { const x = gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); } } catch (e) {}
+              cv.style.display = 'none';
+            });
+          } catch (e) {}
+        }
+        beacon('READY tab=' + tab + ' modal=' + modal + ' vw=' + w.innerWidth);
+        document.title = 'READY';
+      }, 600);
+    } catch (e) { beacon('ERR ' + (e && e.message)); }
+  }, 700);
+});
+</script>
