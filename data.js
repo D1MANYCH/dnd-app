@@ -1851,7 +1851,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.43.6";
+const APP_VERSION = "3.43.7";
 const APP_VERSION_DATE = "2026-07-11";
 
 // ============================================================
@@ -2197,9 +2197,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.43.6",
+    version: "3.43.7",
     date: "11 июля 2026",
     badge: "new",
+    changes: [
+      { type: "fix", text: "светлая тема — вторичный текст, семантика и школы магии до контраста WCAG 4.5 (THEME-6, финал плана тем): в light+auto-блоках затемнены --text-mute #898b94→#67686f (2.95→4.8:1 на кремовом фоне), --success #2e8a54→#2a7e4c (4.11→4.84), --necro/--divin/--charm (3.9–4.5→4.8); тон сохранён, тёмная палитра не тронута. Пороги в theme-contrast-pairs.json подняты min→4.5 (сняты minLight/target), все текстовые пары обеих тем ≥4.5; акценты оставлены на large-text AA 3.0 (--on-accent красит крупные метки на заливке). Базлайны хардкодов 1020 цветов / 153 light-!important зафиксированы как документированный осадок; verify-ui пополнен приёмами контраст-пробы и свотч-проверки. План THEME закрыт (6/6)." }
+    ]
+  },
+  {
+    version: "3.43.6",
+    date: "11 июля 2026",
+    badge: "old",
     changes: [
       { type: "fix", text: "fix(ui): токенизация фичевых зон (THEME-5) — журнал/заметки (.journal-entry/.notes-entry-card+pinned/.notes-entry-btn/.filter-chip), кластер фильтра классов заклинаний (.class-filter-*/.edition-btn/.version-btn/легенда/свой-чужой), build-picker и гайды билдов (diff-цвета/pro-con/шкала сложности) переведены на компонентные токены --pin-bg/--pin-edge, --cf-wrap/group/btn/legend, --cf-own-*/--cf-foreign-*, --pro-color/--con-color/--diff-1/2/3 в 3 блоках dark/light/auto; яд/болезнь получили светлые варианты (--poison-color/--disease-color), сняты из PARITY_DARK_ONLY; удалены мёртвые light-!important-переопределения. Хардкоды 1081 в 1020, light-!important 193 в 153, ratchet-база опущена. Исправлены битые комментарии THEME-4 (opt и res-tag закрывали комментарий досрочно), из-за которых в v3.43.5 молча выпадали правила select option/optgroup и сопротивлений. Чекер тем 4/4 зелёный, node 399/399" }
     ]

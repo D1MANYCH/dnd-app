@@ -1,5 +1,5 @@
 {
-  "comment": "Ratchet THEME-2: базовые счётчики хардкодов style.css. CI падает только при РОСТЕ. Обновлять при снижении: node tools/check-theme.js --update-baseline",
+  "comment": "Ratchet THEME-2: базовые счётчики хардкодов style.css. CI падает только при РОСТЕ. Обновлять при снижении: node tools/check-theme.js --update-baseline. THEME-6 (финал плана THEME): 1020 цветовых литералов / 153 light-!important — это документированный ОСАДОК (light-слой сведён к нему за THEME-4/5). Дальнейшего снижения ни одна фаза не требует; ратчет держит потолок, чистка осадка — по мере надобности через --update-baseline. Крупные оставшиеся light-!important кластеры (status-bar, tab-nav, header, char-search, theme-picker, notes-md/textarea, creation-wizard, conditions-popup) уже на var(--токен), правятся значением токена — вечных фиксов больше нет.",
   "hardcodedColors": 1020,
   "lightImportant": 153
 }
