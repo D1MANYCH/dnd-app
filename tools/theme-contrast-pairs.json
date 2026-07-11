@@ -1,0 +1,34 @@
+{
+  "comment": "THEME-2: пары WCAG-контраста для tools/check-theme.js. bg — стек полупрозрачных слоёв, композитится на непрозрачный --bg-0 (flatten). min — порог обеих тем, minLight/minDark — переопределения. Поля note/target чекер игнорирует (документация). Пороги ниже цели 4.5 стартово мягкие — ужесточаются в THEME-3 (тёмная палитра) и THEME-6 (финал). --glass-alpha берётся дефолтный 0.60 из :root (слайдер юзера статически не учесть).",
+  "pairs": [
+    { "fg": "--text", "bg": [], "min": 4.5 },
+    { "fg": "--text", "bg": ["--bg-1"], "min": 4.5 },
+    { "fg": "--text", "bg": ["--surface-modal"], "min": 4.5 },
+
+    { "fg": "--text-dim", "bg": [], "min": 4.5 },
+    { "fg": "--text-dim", "bg": ["--bg-1"], "min": 4.5 },
+    { "fg": "--text-dim", "bg": ["--surface-modal"], "min": 4.5 },
+
+    { "fg": "--text-mute", "bg": [], "min": 3.0, "minLight": 2.9,
+      "note": "light факт 2.95 — единственная пара ниже 3.0; поднять палитру в THEME-3, затем minLight → 3.0+", "target": 4.5 },
+    { "fg": "--text-mute", "bg": ["--bg-1"], "min": 3.0, "target": 4.5 },
+    { "fg": "--text-mute", "bg": ["--surface-modal"], "min": 3.0, "target": 4.5 },
+
+    { "fg": "--danger", "bg": ["--bg-1"], "min": 4.5 },
+    { "fg": "--success", "bg": ["--bg-1"], "min": 4.0,
+      "note": "light факт 4.07; цель 4.5 — THEME-3", "target": 4.5 },
+    { "fg": "--info", "bg": ["--bg-1"], "min": 4.5 },
+
+    { "fg": "--magic", "bg": ["--bg-1"], "min": 3.0, "note": "школы магии: light факт 3.89–4.65; цель 4.5 — THEME-3/6", "target": 4.5 },
+    { "fg": "--necro", "bg": ["--bg-1"], "min": 3.0, "target": 4.5 },
+    { "fg": "--divin", "bg": ["--bg-1"], "min": 3.0, "target": 4.5 },
+    { "fg": "--charm", "bg": ["--bg-1"], "min": 3.0, "target": 4.5 }
+  ],
+  "accents": {
+    "fg": "--on-accent",
+    "bg": "--accent",
+    "min": 3.0,
+    "note": "×8 пресетов ×2 темы; худший факт light/gold 3.55; цель 4.5 — THEME-6",
+    "target": 4.5
+  }
+}

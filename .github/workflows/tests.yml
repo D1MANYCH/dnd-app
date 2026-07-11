@@ -17,3 +17,5 @@ jobs:
         run: node tests/headless-node.js
       - name: Инвариант релиза (APP_VERSION ↔ APP_CHANGELOG ↔ CACHE_NAME ↔ ?v= ↔ CHANGELOG.md)
         run: node tools/check-invariant.js
+      - name: Автопроверки тем (синхрон light/auto, паритет dark↔light, WCAG-контраст, ratchet хардкодов)
+        run: node tools/check-theme.js

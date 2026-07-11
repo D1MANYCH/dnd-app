@@ -24,8 +24,8 @@
 - `vendor/dice-box/` — 3D-кубики (вендорено).
 - `assets/` — иконки и фоны (webp, ~3.5 МБ).
 - `tests/` — `headless-node.js` (Node), `headless.js` + `runner.html` (браузерные), `fixtures.js`.
-- `tools/` — `bump-version.js`, `gen-changelog.js`, `check-invariant.js` (сверка инварианта релиза), `run-tests-hook.js`.
-- `.github/workflows/tests.yml` — CI: headless-тесты + `check-invariant.js` на каждый push/PR.
+- `tools/` — `bump-version.js`, `gen-changelog.js`, `check-invariant.js` (сверка инварианта релиза), `run-tests-hook.js`, `check-theme.js` + `theme-contrast-pairs.json` + `theme-baseline.json` (THEME-2: автопроверки тем — синхрон light/auto, паритет dark↔light, WCAG-контраст, ratchet хардкодов; режимы `--report`/`--update-baseline`/`--hook`).
+- `.github/workflows/tests.yml` — CI: headless-тесты + `check-invariant.js` + `check-theme.js` на каждый push/PR.
 
 ## Запуск
 - Preview MCP (`preview_start`) или любой статический сервер из корня.
@@ -72,6 +72,7 @@ APP_VERSION  ↔  APP_CHANGELOG[0].version  ↔  CACHE_NAME (dnd-sheet-vN)  ↔ 
 1. **sw.js guard** — при правке `sw.js` печатает текущий `CACHE_NAME` и напоминает бампнуть (exit 2 → блокирует).
 2. **data.js version sync** — если `APP_VERSION !== APP_CHANGELOG[0].version`, exit 2 → блокирует.
 3. **auto-tests** — `node tools/run-tests-hook.js` прогоняет `tests/headless-node.js` на правки `*.js` (кроме `tests/`, `vendor/`, `assets/`). Warn-режим (exit 0), не блокирует.
+4. **theme-check** — `node tools/check-theme.js --hook` на правки `style.css` / `tools/theme-*.json` / `check-theme.js`. Warn-режим навсегда (решение плана THEME) — блокирует только CI.
 
 Отключить временно — закомментировать/убрать соответствующий блок из `hooks.PostToolUse` в `.claude/settings.json`.
 
