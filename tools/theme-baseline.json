@@ -1,5 +1,5 @@
 {
   "comment": "Ratchet THEME-2: базовые счётчики хардкодов style.css. CI падает только при РОСТЕ. Обновлять при снижении: node tools/check-theme.js --update-baseline",
-  "hardcodedColors": 1081,
-  "lightImportant": 193
+  "hardcodedColors": 1020,
+  "lightImportant": 153
 }

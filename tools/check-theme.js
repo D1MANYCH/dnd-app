@@ -55,8 +55,7 @@ const PARITY_LIGHT_ONLY = {
 const PARITY_DARK_ONLY = {
   '--rec': 'BUILD-LVL-3: фиксированный цвет рекомендаций билда, тема-независим (коммент в :root)',
   '--rec-bg': 'BUILD-LVL-3: пара к --rec',
-  '--poison-color': 'легаси-алиас; кандидат на light-вариант в THEME-4 (аудит читаемости)',
-  '--disease-color': 'легаси-алиас; кандидат на light-вариант в THEME-4 (аудит читаемости)',
+  // THEME-5: --poison-color/--disease-color получили light+auto-пары (плашки состояний читаемы на кремовом).
 };
 
 // ---------- CSS-парсер ----------

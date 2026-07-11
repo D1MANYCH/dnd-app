@@ -1851,7 +1851,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.43.5";
+const APP_VERSION = "3.43.6";
 const APP_VERSION_DATE = "2026-07-11";
 
 // ============================================================
@@ -2197,9 +2197,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.43.5",
+    version: "3.43.6",
     date: "11 июля 2026",
     badge: "new",
+    changes: [
+      { type: "fix", text: "fix(ui): токенизация фичевых зон (THEME-5) — журнал/заметки (.journal-entry/.notes-entry-card+pinned/.notes-entry-btn/.filter-chip), кластер фильтра классов заклинаний (.class-filter-*/.edition-btn/.version-btn/легенда/свой-чужой), build-picker и гайды билдов (diff-цвета/pro-con/шкала сложности) переведены на компонентные токены --pin-bg/--pin-edge, --cf-wrap/group/btn/legend, --cf-own-*/--cf-foreign-*, --pro-color/--con-color/--diff-1/2/3 в 3 блоках dark/light/auto; яд/болезнь получили светлые варианты (--poison-color/--disease-color), сняты из PARITY_DARK_ONLY; удалены мёртвые light-!important-переопределения. Хардкоды 1081 в 1020, light-!important 193 в 153, ratchet-база опущена. Исправлены битые комментарии THEME-4 (opt и res-tag закрывали комментарий досрочно), из-за которых в v3.43.5 молча выпадали правила select option/optgroup и сопротивлений. Чекер тем 4/4 зелёный, node 399/399" }
+    ]
+  },
+  {
+    version: "3.43.5",
+    date: "11 июля 2026",
+    badge: "old",
     changes: [
       { type: "fix", text: "fix(ui): токенизация базового хрома (THEME-4) — select-попап, сопротивления, пилюли-фильтры (jfilter/notes-pill), строки боя/трекера, чипы главной (sort/edition) переведены на компонентные токены --opt-*/--res-*/--chip-bg/--list-solid*/--accent-fill (заведены в 3 блоках dark/light/auto); удалены ставшие мёртвыми light-!important; хардкоды 1177 в 1081 цветов и 266 в 193 !important; ratchet-база опущена; чекер тем зелёный, node 399/399" }
     ]

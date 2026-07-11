@@ -169,6 +169,22 @@
 --res-res: #6dc8c8; --res-res-bg: rgba(77,168,168,0.18); --res-res-bd: rgba(77,168,168,0.3);
 --res-imm: #7db5e5; --res-imm-bg: rgba(91,155,213,0.18); --res-imm-bd: rgba(91,155,213,0.3);
 --res-vul: #f0b860; --res-vul-bg: rgba(230,160,64,0.18); --res-vul-bd: rgba(230,160,64,0.3);
+
+/* ===== THEME-5: компонентные токены фичевых зон (партия B) =====
+   Пары значений живут в light-блоке и auto-блоке (паритет/синхрон-чек следят). */
+/* Журнал/заметки: закреплённая запись (тёмная — тонкий золотой тинт) */
+--pin-bg: rgba(255,210,77,0.06); --pin-edge: #ffd24d;
+/* Поиск заклинаний: поверхности кластера фильтра классов (тёмные «сливы») */
+--cf-wrap: rgba(255,255,255,0.03);
+--cf-group: rgba(0,0,0,0.18);
+--cf-btn: rgba(0,0,0,0.35);
+--cf-legend: rgba(0,0,0,0.25);
+/* Фильтр классов: свой класс (зелёный) / чужой (приглушённый красный) */
+--cf-own-bd: rgba(139,227,155,0.55); --cf-own-bg: rgba(139,227,155,0.10); --cf-own-tx: #8be39b;
+--cf-foreign-bd: rgba(229,99,99,0.30); --cf-foreign-bg: rgba(229,99,99,0.05); --cf-foreign-tx: #e56363;
+/* Гайды билдов / build-picker: плюсы/минусы + шкала сложности */
+--pro-color: #7fc08a; --con-color: #d68a8a;
+--diff-1: #27ae60; --diff-2: #f39c12; --diff-3: #e74c3c;
 }
 
 /* ========== UI-4. Плотность интерфейса (compact / standard / cozy) ==========
@@ -289,6 +305,9 @@ html.glass-adjusting *::after {
   --condition-active: rgba(199, 58, 44, 0.25);
   --buff-color: rgba(44, 138, 82, 0.24);
   --debuff-color: rgba(199, 58, 44, 0.24);
+  /* THEME-5: яд/болезнь — тёмно-темовый пурпур/зелёный не читался на кремовом */
+  --poison-color: #8a3f9e;
+  --disease-color: #1f8a4c;
 
   /* THEME-4: компонентные токены базового хрома (пары к :root) */
   --opt-bg: #ffffff; --opt-text: #1a1a1a; --optgroup-bg: #f2efe6; --optgroup-text: var(--accent-lo);
@@ -298,6 +317,17 @@ html.glass-adjusting *::after {
   --res-res: #18696b; --res-res-bg: rgba(31,122,122,0.14); --res-res-bd: rgba(31,122,122,0.45);
   --res-imm: #235f9e; --res-imm-bg: rgba(44,111,189,0.14); --res-imm-bd: rgba(44,111,189,0.45);
   --res-vul: #8a4f15; --res-vul-bg: rgba(176,90,20,0.14); --res-vul-bd: rgba(176,90,20,0.45);
+
+  /* THEME-5: компонентные токены фичевых зон (пары к :root) */
+  --pin-bg: rgba(255,210,77,0.18); --pin-edge: var(--accent-lo);
+  --cf-wrap: rgba(255,255,255,0.93);
+  --cf-group: rgba(255,255,255,0.95);
+  --cf-btn: rgba(255,255,255,0.96);
+  --cf-legend: rgba(255,255,255,0.93);
+  --cf-own-bd: rgba(44,138,82,0.45); --cf-own-bg: rgba(44,138,82,0.12); --cf-own-tx: var(--success);
+  --cf-foreign-bd: rgba(199,58,44,0.35); --cf-foreign-bg: rgba(199,58,44,0.08); --cf-foreign-tx: var(--danger);
+  --pro-color: #1f7a3a; --con-color: #b23a2c;
+  --diff-1: #1f8a4c; --diff-2: #c47a12; --diff-3: #c0392b;
 }
 
 @media (prefers-color-scheme: light) {
@@ -333,6 +363,9 @@ html.glass-adjusting *::after {
     --condition-active: rgba(199, 58, 44, 0.25);
     --buff-color: rgba(44, 138, 82, 0.24);
     --debuff-color: rgba(199, 58, 44, 0.24);
+    /* THEME-5: яд/болезнь — светлые пары */
+    --poison-color: #8a3f9e;
+    --disease-color: #1f8a4c;
     /* THEME-4: компонентные токены базового хрома */
     --opt-bg: #ffffff; --opt-text: #1a1a1a; --optgroup-bg: #f2efe6; --optgroup-text: var(--accent-lo);
     --chip-bg: rgba(255,255,255,0.95);
@@ -341,6 +374,16 @@ html.glass-adjusting *::after {
     --res-res: #18696b; --res-res-bg: rgba(31,122,122,0.14); --res-res-bd: rgba(31,122,122,0.45);
     --res-imm: #235f9e; --res-imm-bg: rgba(44,111,189,0.14); --res-imm-bd: rgba(44,111,189,0.45);
     --res-vul: #8a4f15; --res-vul-bg: rgba(176,90,20,0.14); --res-vul-bd: rgba(176,90,20,0.45);
+    /* THEME-5: компонентные токены фичевых зон */
+    --pin-bg: rgba(255,210,77,0.18); --pin-edge: var(--accent-lo);
+    --cf-wrap: rgba(255,255,255,0.93);
+    --cf-group: rgba(255,255,255,0.95);
+    --cf-btn: rgba(255,255,255,0.96);
+    --cf-legend: rgba(255,255,255,0.93);
+    --cf-own-bd: rgba(44,138,82,0.45); --cf-own-bg: rgba(44,138,82,0.12); --cf-own-tx: var(--success);
+    --cf-foreign-bd: rgba(199,58,44,0.35); --cf-foreign-bg: rgba(199,58,44,0.08); --cf-foreign-tx: var(--danger);
+    --pro-color: #1f7a3a; --con-color: #b23a2c;
+    --diff-1: #1f8a4c; --diff-2: #c47a12; --diff-3: #c0392b;
   }
 }
 
@@ -806,106 +849,28 @@ html.glass-adjusting *::after {
   border-color: var(--accent) !important;
 }
 
-/* ----- Журнал / Notes-entries — dark-only хардкод (#fff текст,
-   rgba(255,255,255,0.03) поверхности) → нечитаемо на светлом.
-   Светлая поверхность с полом непрозрачности (не зависит от слайдера
-   «Непрозрачность фона»), тёмный текст, видимые границы. ----- */
-:root[data-theme="light"] .journal-entry,
-:root[data-theme="light"] .notes-entry-card {
-  background: rgba(255,255,255,0.96) !important;
-  border: 1px solid var(--border-soft) !important;
-  border-left: 3px solid var(--accent) !important;
-  color: var(--text) !important;
-}
-:root[data-theme="light"] .journal-entry:hover,
-:root[data-theme="light"] .notes-entry-card:hover {
-  background: rgba(255,255,255,1) !important;
-}
-:root[data-theme="light"] .notes-entry-card.pinned {
-  background: rgba(255,210,77,0.18) !important;
-  border-left-color: var(--accent-lo) !important;
-}
-:root[data-theme="light"] .journal-text { color: var(--text) !important; }
-:root[data-theme="light"] .journal-meta,
-:root[data-theme="light"] .notes-entry-body { color: var(--text-dim) !important; }
-:root[data-theme="light"] .notes-entry-btn {
-  border: 1px solid var(--border) !important;
-  color: var(--text-dim) !important;
-}
-:root[data-theme="light"] .notes-entry-btn:hover {
-  background: var(--bg-3) !important;
-  color: var(--text) !important;
-}
-:root[data-theme="light"] .filter-chip {
-  background: rgba(255,255,255,0.95) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-dim) !important;
-}
-:root[data-theme="light"] .filter-chip:hover {
-  border-color: var(--accent) !important;
-  color: var(--text) !important;
-}
-:root[data-theme="light"] .filter-chip.active {
-  background: var(--accent) !important;
-  color: #fff !important;
-  border-color: var(--accent-lo) !important;
-}
+/* THEME-5: light-override журнала/заметок/фильтр-чипов удалён — базовые
+   .journal-entry / .notes-entry-card / .notes-entry-btn / .filter-chip на
+   токенах --list-solid* / --border-soft / --pin-bg/--pin-edge / --chip-bg /
+   --bg-3 работают в обеих темах. .filter-chip.active на --accent/--on-accent. */
 
-/* ----- Поиск заклинаний: кластер фильтра классов — dark-only хардкод
-   (rgba(0,0,0,0.18..0.35) поверхности, #fff текст на hover) → серые
-   плашки с чёрным текстом на светлой модалке. Светлые поверхности с
-   полом непрозрачности (не зависят от слайдера), читаемый текст. ----- */
-:root[data-theme="light"] .spell-class-filter-grouped {
-  background: rgba(255,255,255,0.93) !important;
-  border: 1px solid var(--border-soft) !important;
-}
-:root[data-theme="light"] .class-filter-group {
-  background: rgba(255,255,255,0.95) !important;
-  border-left: 2px solid var(--border) !important;
-}
-:root[data-theme="light"] .class-filter-btn,
-:root[data-theme="light"] .spell-class-filter-grouped .edition-btn,
-:root[data-theme="light"] button.edition-btn,
+/* THEME-5: light-override кластера фильтра классов удалён — базовые
+   .spell-class-filter-grouped / .class-filter-group / .class-filter-btn /
+   .edition-btn / .class-filter-legend / .class-filter-all на токенах
+   --cf-wrap/group/btn/legend + --cf-own-x / --cf-foreign-x + --accent-soft
+   работают в обеих темах. */
+/* .version-btn — база = прозрачная пилюля (глобальный button красит её в --accent),
+   переключатель редакции в модалках. В тёмной оставляем как есть (dark-only не
+   трогаем), светлый surface — компонентный токен --cf-btn. */
 :root[data-theme="light"] .version-btn {
-  background: rgba(255,255,255,0.96) !important;
+  background: var(--cf-btn) !important;
   border: 1px solid var(--border) !important;
   color: var(--text-dim) !important;
 }
-:root[data-theme="light"] .class-filter-btn:hover,
-:root[data-theme="light"] .edition-btn:hover,
-:root[data-theme="light"] .version-btn:hover {
-  border-color: var(--accent) !important;
-}
-:root[data-theme="light"] .class-filter-btn:hover .cf-name { color: var(--text) !important; }
-:root[data-theme="light"] .class-filter-btn.active,
-:root[data-theme="light"] .edition-btn.active,
+:root[data-theme="light"] .version-btn:hover { border-color: var(--accent) !important; }
 :root[data-theme="light"] .version-btn.active {
   background: var(--accent-soft) !important;
   border-color: var(--accent) !important;
-  color: var(--accent-lo) !important;
-}
-:root[data-theme="light"] .class-filter-btn.active .cf-name { color: var(--accent-lo) !important; }
-:root[data-theme="light"] .cf-name { color: var(--text-dim) !important; }
-:root[data-theme="light"] .class-filter-btn.cf-own {
-  background: rgba(44,138,82,0.12) !important;
-  border-color: rgba(44,138,82,0.45) !important;
-}
-:root[data-theme="light"] .class-filter-btn.cf-own .cf-name,
-:root[data-theme="light"] .cf-legend-own { color: var(--success) !important; }
-:root[data-theme="light"] .class-filter-btn.cf-foreign {
-  background: rgba(199,58,44,0.08) !important;
-  border-color: rgba(199,58,44,0.35) !important;
-}
-:root[data-theme="light"] .class-filter-btn.cf-foreign .cf-name,
-:root[data-theme="light"] .cf-legend-foreign { color: var(--danger) !important; }
-:root[data-theme="light"] .class-filter-legend {
-  background: rgba(255,255,255,0.93) !important;
-  border-top: 1px solid var(--border-soft) !important;
-  color: var(--text-dim) !important;
-}
-:root[data-theme="light"] .class-filter-all {
-  background: linear-gradient(180deg, var(--accent-soft), rgba(184,132,31,0.04)) !important;
-  border: 1px solid var(--accent) !important;
   color: var(--accent-lo) !important;
 }
 
@@ -925,7 +890,7 @@ html.glass-adjusting *::after {
 /* THEME-4: light-override .jfilter-btn / .notes-pill удалены — базовые правила
    на токенах --chip-bg / --accent-fill / --on-accent работают в обеих темах. */
 
-/* THEME-4: light-override сопротивлений удалён — базовые .res-tag-*/.res-add-btn-*
+/* THEME-4: light-override сопротивлений удалён — базовые res-tag / res-add-btn
    теперь на токенах --res-* (light-пары в теме), ✕ наследует цвет плашки. */
 
 /* ----- Полоска здоровья — трек var(--card-bg)/--bg-2 (стекло) почти
@@ -2223,7 +2188,7 @@ background-color: var(--bg-3);
    Заголовки групп — акцентом, пункты — обычным текстом на тёмной подложке. */
 select { accent-color: var(--accent-color); }
 /* Сплошные цвета (а не translucent --bg-*): нативный поп-ап списка ОС не композитит альфу как страница.
-   THEME-4: значения вынесены в токены --opt-*/--optgroup-* (light-пары в теме) */
+   THEME-4: значения вынесены в токены opt / optgroup (light-пары в теме) */
 select option { background-color: var(--opt-bg); color: var(--opt-text); font-weight: 400; }
 select optgroup { background-color: var(--optgroup-bg); color: var(--optgroup-text); font-weight: 700; font-style: normal; }
 .row { display: flex; gap: var(--sp-3); margin-bottom: var(--sp-3); flex-wrap: wrap; }
@@ -2346,7 +2311,7 @@ color: var(--danger-color);
   padding: 6px 10px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
-  background: rgba(255,255,255,0.04);
+  background: var(--chip-bg);
   color: var(--text-muted);
   font-size: 0.78em;
   cursor: pointer;
@@ -5811,7 +5776,7 @@ transition: all 0.2s;
   flex-direction: column;
   gap: 8px;
   padding: 8px;
-  background: rgba(255,255,255,0.03);
+  background: var(--cf-wrap);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   margin-bottom: 8px;
@@ -5852,7 +5817,7 @@ transition: all 0.2s;
   padding: 4px 8px;
   border-left: 2px solid var(--border-color);
   border-radius: 4px;
-  background: rgba(0,0,0,0.18);
+  background: var(--cf-group);
 }
 .class-filter-group[data-group="edition"] { border-left-color: #d4a84b; margin-right: 4px; }
 .class-filter-group[data-group="edition"] .class-filter-row { flex-direction: row; flex-wrap: nowrap; }
@@ -5869,7 +5834,7 @@ button.edition-btn {
   font-weight: 700;
   border-radius: var(--r-sm);
   border: 1.5px solid var(--border-color);
-  background: rgba(0,0,0,0.35);
+  background: var(--cf-btn);
   color: var(--text-muted);
   cursor: pointer;
   opacity: 0.65;
@@ -5882,7 +5847,7 @@ button.edition-btn {
 .edition-btn:hover { opacity: 1; border-color: var(--accent); }
 .edition-btn.active {
   opacity: 1;
-  background: rgba(212,168,75,0.18);
+  background: var(--accent-soft);
   border-color: var(--accent);
   color: var(--accent);
   box-shadow: 0 0 0 2px rgba(212,168,75,0.30);
@@ -5899,7 +5864,7 @@ button.edition-btn {
   width: auto;
   min-width: 0;
   padding: 6px 4px;
-  background: rgba(0,0,0,0.35);
+  background: var(--cf-btn);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   cursor: pointer;
@@ -5921,32 +5886,32 @@ button.edition-btn {
 .class-filter-btn:hover { border-color: var(--accent); box-shadow: var(--sh-1); }
 .class-filter-btn:hover .cf-name { color: var(--text); }
 .class-filter-btn.active {
-  background: rgba(212,168,75,0.18);
+  background: var(--accent-soft);
   border-color: var(--accent);
   box-shadow: 0 0 0 2px rgba(212,168,75,0.35);
 }
 .class-filter-btn.active .cf-name { color: var(--accent); }
 /* Свой класс — зелёный */
 .class-filter-btn.cf-own {
-  border-color: rgba(139,227,155,0.55);
-  background: rgba(139,227,155,0.10);
+  border-color: var(--cf-own-bd);
+  background: var(--cf-own-bg);
 }
-.class-filter-btn.cf-own .cf-name { color: #8be39b; }
+.class-filter-btn.cf-own .cf-name { color: var(--cf-own-tx); }
 .class-filter-btn.cf-own.active {
-  border-color: #8be39b;
+  border-color: var(--cf-own-tx);
   box-shadow: 0 0 0 2px rgba(139,227,155,0.45);
 }
 /* Чужой класс — приглушённый красный (но кликабельный) */
 .class-filter-btn.cf-foreign {
-  border-color: rgba(229,99,99,0.30);
-  background: rgba(229,99,99,0.05);
+  border-color: var(--cf-foreign-bd);
+  background: var(--cf-foreign-bg);
   opacity: 0.75;
 }
 .class-filter-btn.cf-foreign img { filter: saturate(0.55); }
-.class-filter-btn.cf-foreign .cf-name { color: rgba(229,99,99,0.85); }
+.class-filter-btn.cf-foreign .cf-name { color: var(--cf-foreign-tx); }
 .class-filter-btn.cf-foreign:hover { opacity: 1; }
 .class-filter-btn.cf-foreign.active {
-  border-color: #e56363;
+  border-color: var(--cf-foreign-tx);
   background: rgba(229,99,99,0.18);
   opacity: 1;
   box-shadow: 0 0 0 2px rgba(229,99,99,0.35);
@@ -5963,13 +5928,13 @@ button.edition-btn {
   margin-top: 4px;
   font-size: 0.72em;
   color: var(--text-muted);
-  background: rgba(0,0,0,0.25);
+  background: var(--cf-legend);
   border-top: 1px solid var(--border-color);
   border-radius: 0 0 var(--r-sm) var(--r-sm);
 }
 .class-filter-legend > span { flex: 1 1 auto; }
-.cf-legend-own     { color: #8be39b; }
-.cf-legend-foreign { color: #e56363; }
+.cf-legend-own     { color: var(--cf-own-tx); }
+.cf-legend-foreign { color: var(--cf-foreign-tx); }
 .cf-legend-hint    { color: var(--text-muted); font-style: italic; }
 
 /* Meta row — always visible */
@@ -8600,14 +8565,14 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .journal-list { display: flex; flex-direction: column; gap: 7px; max-height: 600px; overflow-y: auto; }
 .journal-empty { text-align: center; padding: 30px 20px; color: var(--text-muted); font-style: italic; font-size: 0.85em; }
 .journal-entry {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: var(--list-solid);
+  border: 1px solid var(--border-soft);
   border-left: 3px solid var(--accent-color);
   border-radius: var(--r-sm);
   padding: 9px 11px;
   transition: background 0.15s;
 }
-.journal-entry:hover { background: rgba(255,255,255,0.05); }
+.journal-entry:hover { background: var(--list-solid-hover); }
 .journal-entry-header {
   display: flex;
   align-items: flex-start;
@@ -8636,7 +8601,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .journal-meta {
   font-size: 0.65em;
-  color: var(--text-mute);
+  color: var(--text-dim);  /* THEME-5: как .notes-entry-body — читается на near-white карточке в светлой */
   margin-top: 4px;
   margin-left: 18px;
 }
@@ -11499,14 +11464,14 @@ body {
 
 .notes-entries-list { display: flex; flex-direction: column; gap: 8px; }
 .notes-entry-card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: var(--list-solid);
+  border: 1px solid var(--border-soft);
   border-left: 3px solid var(--accent-color, #f5c86e);
   border-radius: var(--r-sm);
   padding: 9px 11px;
   position: relative;
 }
-.notes-entry-card.pinned { border-left-color: #ffd24d; background: rgba(255,210,77,0.06); }
+.notes-entry-card.pinned { border-left-color: var(--pin-edge); background: var(--pin-bg); }
 /* N6: drag-n-drop закреплённых */
 .notes-entry-card.pinned { cursor: grab; padding-left: 24px; }
 .notes-entry-card.pinned:active { cursor: grabbing; }
@@ -11568,7 +11533,7 @@ body {
 .notes-entry-actions { display: flex; gap: 4px; flex-shrink: 0; }
 .notes-entry-btn {
   background: none;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid var(--border);
   border-radius: var(--r-sm);
   color: var(--text-muted, rgba(255,255,255,0.6));
   cursor: pointer;
@@ -11576,7 +11541,7 @@ body {
   padding: 2px 6px;
   transition: background 0.15s, color 0.15s;
 }
-.notes-entry-btn:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+.notes-entry-btn:hover { background: var(--bg-3); color: var(--text); }
 .notes-entry-btn.danger:hover { background: rgba(220,50,50,0.3); color: #ff9090; border-color: rgba(220,50,50,0.4); }
 .notes-entry-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 
@@ -12074,17 +12039,17 @@ mark.notes-hl {
 .bp-card-sub { font-size:0.85em; color:var(--accent); margin-bottom:6px; }
 .bp-card-summary { font-size:0.88em; color:var(--text-muted); margin-bottom:8px; line-height:1.4; }
 /* BUILD-DESC-2: мини-гайд (pitch + плюсы/минусы) в карточке пикера */
-.bp-card-guide { margin: 4px 0 8px; padding: 8px 10px; background: rgba(255,255,255,0.03); border-left: 2px solid var(--accent, #c9a24a); border-radius: 4px; }
+.bp-card-guide { margin: 4px 0 8px; padding: 8px 10px; background: var(--list-solid); border-left: 2px solid var(--accent, #c9a24a); border-radius: 4px; }
 .bp-pitch { font-size: 0.88em; line-height: 1.45; color: var(--text, #e8e2d4); margin-bottom: 6px; font-weight: 500; }
 .bp-bullets { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; }
 .bp-bullets li { font-size: 0.82em; line-height: 1.35; color: var(--text-muted); }
-.bp-bullets .bp-pro { color: #7fc08a; }
-.bp-bullets .bp-con { color: #d68a8a; }
+.bp-bullets .bp-pro { color: var(--pro-color); }
+.bp-bullets .bp-con { color: var(--con-color); }
 .bp-card-meta { display:flex; gap:12px; flex-wrap:wrap; font-size:0.8em; color:var(--text-muted); }
 .bp-diff { letter-spacing:2px; }
-.bp-diff-1 { color:#27ae60; }
-.bp-diff-2 { color:#f39c12; }
-.bp-diff-3 { color:#e74c3c; }
+.bp-diff-1 { color:var(--diff-1); }
+.bp-diff-2 { color:var(--diff-2); }
+.bp-diff-3 { color:var(--diff-3); }
 .bp-search { flex:1 1 220px; min-width:180px; background:var(--bg-3); color:var(--text-color); border:1px solid var(--border); border-radius:var(--r-sm,8px); padding:6px 10px; font-size:0.9em; }
 .bp-search:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(201,162,39,.25); }
 .bp-card:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(201,162,39,.3); }
@@ -12106,11 +12071,12 @@ mark.notes-hl {
   background: var(--bg-2);
   border-left-color: var(--accent);
 }
-:root[data-theme="light"] .bp-bullets .bp-pro { color: #1f7a3a; }
-:root[data-theme="light"] .bp-bullets .bp-con { color: #b23a2c; }
-:root[data-theme="light"] .bp-diff-1 { color: #1f8a4c; }
-:root[data-theme="light"] .bp-diff-2 { color: #c47a12; }
-:root[data-theme="light"] .bp-diff-3 { color: #c0392b; }
+/* THEME-5: диф-цвета .bp-diff-1/2/3 / .bg-mark / .bg-diff-dots переведены на
+   токены diff / pro-color / con-color (light-пары в теме) — хардкод-дубли
+   удалены. .bp-pro/.bp-con остаются под light/auto-override на ТЕХ ЖЕ токенах:
+   иначе их перебивает `.bp-bullets li {--text-dim}` по специфичности. */
+:root[data-theme="light"] .bp-bullets .bp-pro { color: var(--pro-color); }
+:root[data-theme="light"] .bp-bullets .bp-con { color: var(--con-color); }
 @media (prefers-color-scheme: light) {
   :root[data-theme="auto"] .bp-card-sub { color: var(--accent-lo); font-weight: 600; }
   :root[data-theme="auto"] .bp-card-summary,
@@ -12118,11 +12084,8 @@ mark.notes-hl {
   :root[data-theme="auto"] .bp-card-meta,
   :root[data-theme="auto"] .bp-role-badge { color: var(--text-dim); }
   :root[data-theme="auto"] .bp-card-guide { background: var(--bg-2); border-left-color: var(--accent); }
-  :root[data-theme="auto"] .bp-bullets .bp-pro { color: #1f7a3a; }
-  :root[data-theme="auto"] .bp-bullets .bp-con { color: #b23a2c; }
-  :root[data-theme="auto"] .bp-diff-1 { color: #1f8a4c; }
-  :root[data-theme="auto"] .bp-diff-2 { color: #c47a12; }
-  :root[data-theme="auto"] .bp-diff-3 { color: #c0392b; }
+  :root[data-theme="auto"] .bp-bullets .bp-pro { color: var(--pro-color); }
+  :root[data-theme="auto"] .bp-bullets .bp-con { color: var(--con-color); }
 }
 
 /* BUILD-6: build badge on character screen */
@@ -12147,8 +12110,8 @@ mark.notes-hl {
 .bg-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:4px; }
 .bg-list li { font-size: 0.9em; line-height:1.4; padding-left:4px; }
 .bg-list .bg-mark { display:inline-block; min-width:14px; font-weight:700; }
-.bg-list.bg-pros .bg-mark { color:#7fc08a; }
-.bg-list.bg-cons .bg-mark { color:#d68a8a; }
+.bg-list.bg-pros .bg-mark { color:var(--pro-color); }
+.bg-list.bg-cons .bg-mark { color:var(--con-color); }
 .bg-list.bg-tips .bg-mark { color:var(--accent); }
 .bg-list.bg-levels li { margin-left: 4px; }
 .bg-list.bg-levels .bg-why { color:var(--text-muted); font-size:0.92em; }
@@ -12157,9 +12120,9 @@ mark.notes-hl {
 .bg-diff-legend { font-size:0.82em; color:var(--text-muted); margin:0 0 12px; line-height:1.4; }
 .bg-diff-legend b { color:var(--text); }
 .bg-diff-dots { letter-spacing:1px; margin-right:2px; }
-.bg-diff-dots.bg-diff-1 { color:#7fc08a; }
+.bg-diff-dots.bg-diff-1 { color:var(--pro-color); }
 .bg-diff-dots.bg-diff-2 { color:#d8b24a; }
-.bg-diff-dots.bg-diff-3 { color:#d68a8a; }
+.bg-diff-dots.bg-diff-3 { color:var(--con-color); }
 .bg-legend { margin-top: 4px; }
 .bg-hpscale { display:flex; align-items:center; gap:6px; margin:4px 0 2px; flex-wrap:wrap; }
 .bg-hp-chip {
