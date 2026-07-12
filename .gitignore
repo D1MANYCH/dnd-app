@@ -9,3 +9,10 @@ Thumbs.db
 !.claude/skills/
 __pycache__/
 *.pyc
+
+# Внутренние материалы — не для публичного репозитория/Pages (файлы остаются локально)
+docs/marketing/
+docs/spell-audit/
+docs/phases/
+docs/naming-audit.md
+docs/css-usage-report.md
