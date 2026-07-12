@@ -18,7 +18,7 @@ function escapeHtml(text) {
 }
 
 // ── Версия схемы персонажа — увеличивать при изменении структуры ──────────────
-const SCHEMA_VERSION = 30;
+const SCHEMA_VERSION = 31;
 
 // ── Типы урона PHB 5e ──────────────────────────────────────────────────────────
 const DAMAGE_TYPES = [
@@ -32,6 +32,7 @@ const DEFAULT_CHARACTER = {
   name:       "Новый Герой",
   level:      1,
   exp:        0,
+  edition:    "2014",   // E24-0: редакция правил персонажа ('2014' | '2024'); резолвится через edData(char)
   class:      "",
   subclass:   "",
   classes:    [],
@@ -1851,7 +1852,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.43.10";
+const APP_VERSION = "3.44.0";
 const APP_VERSION_DATE = "2026-07-13";
 
 // ============================================================
@@ -2197,9 +2198,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.43.10",
+    version: "3.44.0",
     date: "13 июля 2026",
     badge: "new",
+    changes: [
+      { type: "feat", text: "E24-0 (фундамент редакции 2024): редакция стала свойством персонажа — char.edition '2014'|'2024'. Реестр EDITION_DATA + резолвер edData(char) с ленивой сборкой набора 2014 (обход порядка загрузки: CLASS_CHOICES/SUBCLASS_CHOICES грузятся после data.js); registerEdition2024() наполняет '2024' в будущих фазах, call-sites переводятся на edData по мере расхождения таблиц. Миграция schema 30→31: существующим персонажам edition='2014'. Тумблер редакции на главной = редакция по умолчанию для новых персонажей; выбор 2024 за dev-флагом localStorage.dnd_e24_beta='1' (без флага кнопка «в разработке»). Бейдж «2024» в списке и шапке листа (только для 2024-персонажей). Скелет data-2024.js (lazy, ensureEdition2024) — в E24-0 '2024' ≡ '2014'. Тесты 411 (БЛОК 32)." }
+    ]
+  },
+  {
+    version: "3.43.10",
+    date: "13 июля 2026",
+    badge: "old",
     changes: [
       { type: "fix", text: "Дозаполнены панели доп-заклинаний ещё 3 подклассов в SUBCLASS_RESOURCES (источник dnd.su, имена сверены с spells.js PH14): Клятва смотрителя (Tasha's — 3/5/9/13/17), Договор с Гением (Tasha's — общий список + добавки видов Дао/Джинн/Ифрит/Марид по кругам 1–5), Договор с Безгласным (Van Richten's — круги 1–5). Теперь панели заклинаний есть у всех клятв паладина и всех покровителей колдуна." }
     ]
@@ -4395,3 +4404,77 @@ const MULTICLASS_PROFICIENCIES = {
   "Волшебник": { armor: [], weapons: [] },
   "Следопыт":  { armor: ["Лёгкая броня", "Средняя броня", "Щиты"], weapons: ["Простое оружие", "Воинское оружие"], skills: 1 }
 };
+
+// ── E24-0: Реестр редакционно-зависимых данных ───────────────────────────────
+// Редакция — свойство персонажа (char.edition '2014'|'2024'), а не приложения.
+// edData(char) возвращает набор игровых таблиц для редакции персонажа; call-site
+// вида CLASS_FEATURES[char.class] по мере расхождения редакций переводится на
+// edData(char).CLASS_FEATURES[char.class] в ТОЙ фазе E24, где таблица начинает
+// отличаться (решение 13.07.2026 — ленивый перевод вместо разового рефактора всех
+// ~190 мест: в E24-0 '2024' ≡ '2014', непереведённый call-site читает ту же 2014-
+// таблицу и даёт идентичное поведение). Будущие фазы кладут 2024-версии таблиц
+// через registerEdition2024() из ленивого data-2024.js.
+//
+// Ловушка порядка загрузки: CLASS_CHOICES/SUBCLASS_CHOICES определены в отдельных
+// файлах, которые index.html грузит ПОСЛЕ data.js. Поэтому набор '2014' собираем
+// ЛЕНИВО — при первом вызове edData/registerEdition2024 (runtime, все скрипты уже
+// выполнены), а не в момент выполнения data.js (тогда эти таблицы ещё undefined).
+var EDITION_DATA = { '2014': null, '2024': null };
+
+function _buildEdition2014() {
+  // Все 13 data.js-таблиц на момент вызова определены (runtime); CLASS_CHOICES/
+  // SUBCLASS_CHOICES — из файлов, загружаемых позже, но edData зовётся уже после
+  // их выполнения. typeof-гарды страхуют частичное окружение (тесты/минимум).
+  return {
+    CLASS_FEATURES:            (typeof CLASS_FEATURES           !== 'undefined') ? CLASS_FEATURES           : {},
+    SUBCLASS_FEATURES:         (typeof SUBCLASS_FEATURES        !== 'undefined') ? SUBCLASS_FEATURES        : {},
+    SPELL_SLOTS_BY_LEVEL:      (typeof SPELL_SLOTS_BY_LEVEL     !== 'undefined') ? SPELL_SLOTS_BY_LEVEL     : {},
+    BACKGROUND_SKILLS:         (typeof BACKGROUND_SKILLS        !== 'undefined') ? BACKGROUND_SKILLS        : {},
+    CLASS_HIT_DICE:            (typeof CLASS_HIT_DICE           !== 'undefined') ? CLASS_HIT_DICE           : {},
+    FEATS_DATA:                (typeof FEATS_DATA               !== 'undefined') ? FEATS_DATA               : [],
+    CLASS_CHOICES:             (typeof CLASS_CHOICES            !== 'undefined') ? CLASS_CHOICES            : {},
+    SUBCLASS_CHOICES:          (typeof SUBCLASS_CHOICES         !== 'undefined') ? SUBCLASS_CHOICES         : {},
+    SUBCLASSES:                (typeof SUBCLASSES               !== 'undefined') ? SUBCLASSES               : {},
+    CONDITIONS:                (typeof CONDITIONS               !== 'undefined') ? CONDITIONS               : [],
+    SUBCLASS_LEVEL:            (typeof SUBCLASS_LEVEL           !== 'undefined') ? SUBCLASS_LEVEL           : {},
+    CLASS_RESOURCES:           (typeof CLASS_RESOURCES          !== 'undefined') ? CLASS_RESOURCES          : {},
+    MULTICLASS_PREREQUISITES:  (typeof MULTICLASS_PREREQUISITES !== 'undefined') ? MULTICLASS_PREREQUISITES : {},
+    MULTICLASS_PROFICIENCIES:  (typeof MULTICLASS_PROFICIENCIES !== 'undefined') ? MULTICLASS_PROFICIENCIES : {},
+    RACE_DATA:                 (typeof RACE_DATA                !== 'undefined') ? RACE_DATA                : {},
+    CASTER_TYPE:               (typeof CASTER_TYPE              !== 'undefined') ? CASTER_TYPE              : {}
+  };
+}
+
+function _ensureEdition2014() {
+  if (!EDITION_DATA['2014']) EDITION_DATA['2014'] = _buildEdition2014();
+  return EDITION_DATA['2014'];
+}
+
+// Резолвер таблиц по редакции персонажа. char отсутствует/без edition → '2014'.
+// Незарегистрированная '2024' (data-2024.js не загружен) → безопасный фолбэк '2014'.
+function edData(char) {
+  var base = _ensureEdition2014();
+  var ed = (char && char.edition) || '2014';
+  return EDITION_DATA[ed] || base;
+}
+
+// Вызывается из data-2024.js: overrides — частичный набор 2024-таблиц; недостающие
+// ключи наследуются от '2014' (в E24-0 overrides пуст → '2024' полностью ≡ '2014').
+function registerEdition2024(overrides) {
+  var base = _ensureEdition2014();
+  var merged = {};
+  Object.keys(base).forEach(function(k) { merged[k] = base[k]; });
+  if (overrides) {
+    Object.keys(overrides).forEach(function(k) {
+      if (overrides[k] !== undefined && overrides[k] !== null) merged[k] = overrides[k];
+    });
+  }
+  EDITION_DATA['2024'] = merged;
+  return merged;
+}
+
+if (typeof window !== 'undefined') {
+  window.EDITION_DATA = EDITION_DATA;
+  window.edData = edData;
+  window.registerEdition2024 = registerEdition2024;
+}

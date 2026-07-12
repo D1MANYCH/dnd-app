@@ -1025,6 +1025,13 @@ function migrateCharacter(char) {
     delete char.magicItems;
     char.schemaVersion = 30;
   }
+  if (v < 31) {
+    // E24-0: редакция правил стала свойством персонажа. Все существующие
+    // персонажи создавались по правилам 2014 → проставляем явно. Тумблер
+    // редакции на главной влияет только на НОВЫХ персонажей (createNewCharacter).
+    if (!char.edition) char.edition = '2014';
+    char.schemaVersion = 31;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем
@@ -1076,6 +1083,16 @@ updateVersionBlock(false);
 initPersistentStorage();
 // DATA-2: авто-снапшот в IndexedDB (app-backup.js), не чаще 1 раза в день
 if (typeof initAutoBackup === "function") initAutoBackup();
+// E24-0: если есть хоть один 2024-персонаж или дефолт-редакция = 2024 — подгружаем
+// данные 2024 (fire-and-forget). Без загрузки 2024-персонаж всё равно рендерится
+// (edData падает на фолбэк '2014'), но при бете держим данные наготове.
+try {
+  var _need24 = (typeof getEdition === "function" && getEdition() === "2024") ||
+                (Array.isArray(characters) && characters.some(function(c){ return c && c.edition === "2024"; }));
+  if (_need24 && typeof window !== "undefined" && typeof window.ensureEdition2024 === "function") {
+    window.ensureEdition2024().catch(function(){ /* фолбэк '2014' в edData */ });
+  }
+} catch (e) {}
 };
 
 function saveToLocal() {
@@ -1497,6 +1514,22 @@ function renderBuildBadge() {
   wrap.style.display = "";
 }
 
+// E24-0: мелкий бейдж редакции в шапке листа. Показывается ТОЛЬКО для 2024 —
+// 2014 это дефолт (у 100% текущих персонажей), бейдж «2014» был бы шумом. До
+// публичного открытия (E24-14) 2024 доступна лишь в бете, так что бейдж видят
+// только бета-тестеры — это и есть нужный маркер нестандартной редакции.
+function renderEditionBadge() {
+  var badge = $("char-edition-badge");
+  if (!badge) return;
+  var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+  if (char && char.edition === '2024') {
+    badge.textContent = "2024";
+    badge.style.display = "";
+  } else {
+    badge.style.display = "none";
+  }
+}
+
 function unlinkBuild() {
   var char = getCurrentChar();
   if (!char || !char.buildId) return;
@@ -1597,6 +1630,7 @@ function _applyBuildCore(buildId) {
   var newChar = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));
   newChar.id = Date.now();
   newChar.schemaVersion = (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : 11;
+  newChar.edition = '2014';  // E24-0: 36 готовых билдов — контент PHB 2014, редакция явно (не с тумблера)
   newChar.buildId = b.id;
   newChar.name = b.title || newChar.name;
   newChar.class = b.className || "";
@@ -2947,6 +2981,10 @@ function createNewCharacter() {
 const newChar = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));
 newChar.id = Date.now();
 newChar.schemaVersion = (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : 2;
+// E24-0: новый персонаж наследует редакцию по умолчанию с тумблера главной.
+// getEdition() возвращает '2024' только если тумблер реально переключён (доступно
+// лишь при dnd_e24_beta='1'); иначе всегда '2014'.
+newChar.edition = (typeof getEdition === 'function') ? getEdition() : '2014';
 // Инициализируем ячейки заклинаний
 for (let i = 1; i <= 9; i++) {
   newChar.spells.slots[i] = 0;
@@ -3216,6 +3254,7 @@ div.innerHTML = "<div class=\"char-card-header\">" +
 "</div>" +
 "<div class=\"char-card-stats\">" +
   "<span class=\"char-stat-badge\">⭐ " + (char.level || 1) + " ур.</span>" +
+  (char.edition === "2024" ? "<span class=\"char-stat-badge char-edition-tag\" title=\"Редакция правил 2024\">2024</span>" : "") +
   "<span class=\"char-stat-badge-hp\" style=\"color:" + hpColor + "; border-color:" + hpColor + "55; background:" + hpColor + "18;\">❤️ " + hpCurrent + "/" + hpMax + "</span>" +
   "<span class=\"char-stat-badge\">🛡️ " + (char.combat.ac || 10) + "</span>" +
   (conditionsCount > 0 ? "<span class=\"char-stat-badge\" style=\"background:var(--condition-active);border-color:var(--condition-border);\">⚠️ " + conditionsCount + "</span>" : "") +
@@ -3341,6 +3380,7 @@ safeSet("char-subclass", savedSubclass);
 safeSet("char-race", char.race);
 safeSet("char-background", char.background || "");
 if (typeof renderBuildBadge === "function") renderBuildBadge();
+if (typeof renderEditionBadge === "function") renderEditionBadge();
 safeSet("char-alignment", char.alignment || "");
 safeSet("char-deity", char.deity || "");
 safeSet("char-size", char.size || "Средний");

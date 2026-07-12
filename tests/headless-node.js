@@ -28,6 +28,7 @@ const files = [
   'spells.js',               // BUILD-LVL-7: SPELLS_BASE → app-core строит SPELL_DATABASE (резолв заклинаний билдов)
   'class-choices.js',
   'subclass-choices-data.js',
+  'data-2024.js',            // E24-0: в проде лениво (ensureEdition2024) — в тестах явно ПОСЛЕ class/subclass-choices (иначе ленивый снапшот '2014' закэширует пустые CHOICES). Регистрирует EDITION_DATA['2024'] (БЛОК 32)
   'app-core.js',
   'app-combat.js',
   'app-hp.js',

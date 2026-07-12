@@ -3599,6 +3599,29 @@ font-size: 0.78em;
 border: 1px solid;
 font-weight: 700;
 }
+/* E24-0: бейдж редакции 2024. В списке (.char-edition-tag поверх .char-stat-badge)
+   и в шапке листа (.char-edition-badge). Показывается только для 2024-персонажей —
+   2014 это дефолт. Акцентные токены → тема-совместимо (как .home-edition-btn.active). */
+.char-edition-tag {
+  background: var(--accent-fill);
+  border-color: var(--accent-lo);
+  color: var(--on-accent);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.char-edition-badge {
+  display: inline-block;
+  align-self: center;
+  background: var(--accent-fill);
+  border: 1px solid var(--accent-lo);
+  color: var(--on-accent);
+  font-size: 0.66em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: var(--r-sm);
+  line-height: 1.5;
+}
 .char-time-ago { margin-left: auto; font-size: 0.7em; color: var(--text-mute); }
 .char-controls { margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px; }
 .char-search-wrap { position: relative; }
