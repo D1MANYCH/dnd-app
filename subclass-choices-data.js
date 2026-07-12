@@ -418,6 +418,21 @@ var SUBCLASS_RESOURCES = {
       }
     }
   },
+  "Клятва смотрителя": {
+    passive: {
+      subclassSpells: {
+        label: "Заклинания клятвы смотрителя",
+        icon: "👁️",
+        byLevel: {
+          3: ["Обнаружение магии (Detect Magic)", "Сигнал тревоги (Alarm)"],
+          5: ["Видение невидимого (See Invisibility)", "Лунный луч (Moonbeam)"],
+          9: ["Контрзаклинание (Counterspell)", "Необнаружимость (Nondetection)"],
+          13: ["Аура очищения (Aura of Purity)", "Изгнание (Banishment)"],
+          17: ["Наблюдение (Scrying)", "Удержание чудовища (Hold Monster)"]
+        }
+      }
+    }
+  },
 
   // ═══ КОЛДУН: Покровители — заклинания покровителя ═══
   "Договор с феей": {
@@ -461,6 +476,36 @@ var SUBCLASS_RESOURCES = {
           5: ["Подсматривание (Clairvoyance)", "Послание (Sending)"],
           7: ["Подчинение зверя (Dominate Beast)", "Эвардовы чёрные щупальца (Evard's Black Tentacles)"],
           9: ["Подчинение личности (Dominate Person)", "Телекинез (Telekinesis)"]
+        }
+      }
+    }
+  },
+  "Договор с Гением": {
+    passive: {
+      subclassSpells: {
+        label: "Заклинания покровителя-гения",
+        icon: "🪔",
+        byLevel: {
+          1: ["Обнаружение добра и зла (Detect Evil and Good)", "Дао — Убежище (Sanctuary)", "Джинн — Волна грома (Thunderwave)", "Ифрит — Огненные ладони (Burning Hands)", "Марид — Туманное облако (Fog Cloud)"],
+          3: ["Воображаемая сила (Phantasmal Force)", "Дао — Шипы (Spike Growth)", "Джинн — Порыв ветра (Gust of Wind)", "Ифрит — Палящий луч (Scorching Ray)", "Марид — Размытый образ (Blur)"],
+          5: ["Сотворение пищи и воды (Create Food and Water)", "Дао — Слияние с камнем (Meld into Stone)", "Джинн — Стена ветров (Wind Wall)", "Ифрит — Огненный шар (Fireball)", "Марид — Метель (Sleet Storm)"],
+          7: ["Воображаемый убийца (Phantasmal Killer)", "Дао — Изменение формы камня (Stone Shape)", "Джинн — Высшая невидимость (Greater Invisibility)", "Ифрит — Огненный щит (Fire Shield)", "Марид — Власть над водами (Control Water)"],
+          9: ["Сотворение (Creation)", "Дао — Каменная стена (Wall of Stone)", "Джинн — Притворство (Seeming)", "Ифрит — Небесный огонь (Flame Strike)", "Марид — Конус холода (Cone of Cold)"]
+        }
+      }
+    }
+  },
+  "Договор с Безгласным": {
+    passive: {
+      subclassSpells: {
+        label: "Заклинания покровителя-нежити",
+        icon: "🪦",
+        byLevel: {
+          1: ["Порча (Bane)", "Псевдожизнь (False Life)"],
+          3: ["Глухота/слепота (Blindness/Deafness)", "Воображаемая сила (Phantasmal Force)"],
+          5: ["Призрачный скакун (Phantom Steed)", "Разговор с мёртвыми (Speak with Dead)"],
+          7: ["Защита от смерти (Death Ward)", "Высшая невидимость (Greater Invisibility)"],
+          9: ["Преграда жизни (Antilife Shell)", "Облако смерти (Cloudkill)"]
         }
       }
     }
