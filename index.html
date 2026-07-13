@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v286">
+<link rel="stylesheet" href="style.css?v=v287">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -1458,6 +1458,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <button class="help-tab" onclick="switchHelpSection('journal',this)">📖 Журнал</button>
     <button class="help-tab" onclick="switchHelpSection('planes',this)">🌌 Планы</button>
     <button class="help-tab" onclick="switchHelpSection('dice',this)">🎲 Кубики</button>
+    <button class="help-tab" onclick="switchHelpSection('edition2024',this)">📕 Редакция 2024</button>
     <button class="help-tab" onclick="switchHelpSection('data',this)">💾 Данные</button>
   </div>
 
@@ -1642,6 +1643,36 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="help-block">
         <div class="help-block-title">Броски с листа</div>
         <p>Клик по характеристике, спасброску или навыку бросает d20 с нужным модификатором. Доступны преимущество и помеха.</p>
+      </div>
+    </div>
+
+    <!-- 📕 Редакция 2024 — что изменилось -->
+    <div id="help-edition2024" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">Коротко</div>
+        <p>Редакция 2024 (обновлённая «Книга Игрока») сохраняет ту же основу правил, что и 2014, но меняет создание персонажа и уточняет боевые механики. Редакция — свойство персонажа: тумблер 2014/2024 на главной задаёт её для новых листов, старые персонажи остаются в 2014. Поддержка 2024 в приложении дополняется постепенно.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Создание персонажа</div>
+        <p>• <b>Характеристики даёт предыстория</b>, а не вид: +2 и +1 к двум из трёх характеристик предыстории (или +1/+1/+1).<br>
+        • <b>Вид не даёт бонусов к характеристикам</b> — только размер, скорость и видовые черты.<br>
+        • <b>Предыстория выдаёт черту происхождения</b> и владения навыками/инструментом.<br>
+        • <b>Подклассы — строго на 3 уровне</b> у всех классов.<br>
+        • <b>На 19 уровне — эпический дар</b> вместо обычного повышения характеристик.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Бой и приключения</div>
+        <p>• <b>Мастерство оружия</b>: у оружия появился приём (Прорубание, Задевание, Выпад, Толкание и др.), доступный по классовой способности.<br>
+        • <b>Героическое вдохновение</b>: можно потратить, чтобы перебросить любой кубик; берётся новый результат.<br>
+        • <b>Истощение</b> — единый счётчик: −2 к каждому броску к20 и −5 футов скорости за степень; смерть на 6-й. Долгий отдых снимает одну степень.<br>
+        • <b>Состояния переписаны</b>: уточнены эффекты Схваченного (его можно тащить за собой), Невидимого и Недееспособного (влияют на инициативу) и других.<br>
+        • <b>Внезапность</b> больше не пропускает ход — застигнутый врасплох получает помеху на инициативу.<br>
+        • <b>Действия структурированы</b>: Влияние, Изучение, Поиск, Использование, Магия и др.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Классы и магия</div>
+        <p>• <b>Все заклинатели готовят заклинания</b>: число подготовленных и заговоров берётся из классовой таблицы, а не из формулы.<br>
+        • <b>Стили боя стали чертами</b>; черты делятся на происхождение / общие / боевого стиля / эпические дары.</p>
       </div>
     </div>
 
@@ -2809,39 +2840,39 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v286"></script>
+<script src="app-log.js?v=v287"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
-<script src="icons.js?v=v286"></script>
-<script src="bg-space.js?v=v286"></script>
-<script src="dice-arena-bg.js?v=v286"></script>
-<script src="data.js?v=v286"></script>
+<script src="icons.js?v=v287"></script>
+<script src="bg-space.js?v=v287"></script>
+<script src="dice-arena-bg.js?v=v287"></script>
+<script src="data.js?v=v287"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v286"></script>
+<script src="character-builds.js?v=v287"></script>
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v286"></script>
-<script src="spells.js?v=v286"></script>
-<script src="app-core.js?v=v286"></script>
-<script src="app-backup.js?v=v286"></script>
-<script src="app-combat.js?v=v286"></script>
-<script src="app-hp.js?v=v286"></script>
-<script src="app-spells.js?v=v286"></script>
-<script src="app-inventory.js?v=v286"></script>
+<script src="glossary-data.js?v=v287"></script>
+<script src="spells.js?v=v287"></script>
+<script src="app-core.js?v=v287"></script>
+<script src="app-backup.js?v=v287"></script>
+<script src="app-combat.js?v=v287"></script>
+<script src="app-hp.js?v=v287"></script>
+<script src="app-spells.js?v=v287"></script>
+<script src="app-inventory.js?v=v287"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v286"></script>
-<script src="class-choices.js?v=v286"></script>
-<script src="subclass-choices-data.js?v=v286"></script>
+<script src="app-party.js?v=v287"></script>
+<script src="class-choices.js?v=v287"></script>
+<script src="subclass-choices-data.js?v=v287"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v286";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v287";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v286"></script>
-<script src="app-notes.js?v=v286"></script>
-<script src="app-desktop.js?v=v286"></script>
-<script src="history-stack.js?v=v286"></script>
-<script src="app-help.js?v=v286"></script>
+<script src="app-ui.js?v=v287"></script>
+<script src="app-notes.js?v=v287"></script>
+<script src="app-desktop.js?v=v287"></script>
+<script src="history-stack.js?v=v287"></script>
+<script src="app-help.js?v=v287"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2854,9 +2885,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v286",
-    "vendor/jspdf/roboto-base64.js?v=v286",
-    "app-pdf.js?v=v286"
+    "vendor/jspdf/jspdf.umd.min.js?v=v287",
+    "vendor/jspdf/roboto-base64.js?v=v287",
+    "app-pdf.js?v=v287"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -2880,7 +2911,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v286").then(function () {
+    return loadScript("build-notes-data.js?v=v287").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -2888,26 +2919,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v286"),
-      loadScript("npc-srd.js?v=v286")
+      loadScript("monsters-srd.js?v=v287"),
+      loadScript("npc-srd.js?v=v287")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v286");
+    return loadScript("magic-items.js?v=v287");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v286");
+    return loadScript("gear-catalog.js?v=v287");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v286").then(function () {
+    return loadScript("data-2024.js?v=v287").then(function () {
       window.__edition2024Loaded = true;
     });
   };

@@ -1014,7 +1014,9 @@ function _battleCondDots(p) {
   var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
   if (!char || !char.conditions || !char.conditions.length) return "";
   var names = {};
-  (typeof CONDITIONS !== "undefined" ? CONDITIONS : []).forEach(function(c) { names[c.id] = stripLeadingEmoji(c.name); });
+  // E24-1: имена состояний по редакции персонажа (у 2024 набор тот же по id).
+  var _cs = (typeof edData === "function") ? edData(char).CONDITIONS : (typeof CONDITIONS !== "undefined" ? CONDITIONS : []);
+  _cs.forEach(function(c) { names[c.id] = stripLeadingEmoji(c.name); });
   return '<span class="tracker-cond-dots">' + char.conditions.slice(0, 6).map(function(id) {
     var meta = (typeof DYMKA_CONDITION_META !== "undefined") ? DYMKA_CONDITION_META[String(id).indexOf("exhaustion") === 0 ? "exhaustion" : id] : null;
     return '<span class="cond-dot" style="--sc:' + (meta ? meta.color : "var(--accent)") + '" title="' + escapeHtml(names[id] || id) + '">' + getConditionChipIcon(id, 13) + '</span>';

@@ -489,7 +489,9 @@ function renderConditionsGrid() {
   const char = currentId ? getCurrentChar() : null;
   const activeSet = (char && char.conditions) ? char.conditions : [];
   grid.innerHTML = "";
-  var baseConditions = CONDITIONS.filter(function(c) { return c.id.indexOf("exhaustion_") === -1; });
+  // E24-1: набор состояний по редакции персонажа (2024 переписал эффекты); фолбэк 2014.
+  var condSet = (typeof edData === "function") ? edData(char).CONDITIONS : CONDITIONS;
+  var baseConditions = condSet.filter(function(c) { return c.id.indexOf("exhaustion_") === -1; });
   // активные сначала
   baseConditions = baseConditions.slice().sort(function(a, b) {
     var aa = activeSet.indexOf(a.id) !== -1 ? 0 : 1;
@@ -616,7 +618,9 @@ if (titleImg) titleImg.src = 'assets/conditions/exhaustion_' + (lvl > 0 ? lvl : 
 if (descEl) {
   if (lvl === 0) descEl.textContent = "";
   else {
-    var exhCond = CONDITIONS.find(function(c) { return c.id === "exhaustion_" + lvl; });
+    // E24-1: описание степени истощения — из набора состояний редакции персонажа.
+    var _cs = (typeof edData === "function") ? edData(char).CONDITIONS : CONDITIONS;
+    var exhCond = _cs.find(function(c) { return c.id === "exhaustion_" + lvl; });
     descEl.textContent = exhCond ? exhCond.desc.replace(/\n/g, " · ").replace(/• /g, "") : "";
   }
 }
@@ -1106,6 +1110,28 @@ if (inspiEl) inspiEl.classList.toggle("active", !!char.inspiration);
 // UI6-4: зеркало вдохновения — мини-карточка в листе 2024
 const inspCard2024 = $("insp-card-2024");
 if (inspCard2024) inspCard2024.classList.toggle("active", !!char.inspiration);
+// E24-1: в редакции 2024 «Вдохновение» → «Героическое вдохновение» + правило переброса к20.
+updateInspirationLabels(char);
+}
+// E24-1: подписи/тултипы вдохновения зависят от редакции персонажа.
+// 2024 — «Героическое вдохновение»: потратить = перебросить любой кубик (берётся новый результат).
+// 2014 — «Вдохновение»: потратить = преимущество на один бросок к20.
+function updateInspirationLabels(char) {
+  var isE24 = !!(char && char.edition === "2024");
+  var name = isE24 ? "Героическое вдохновение" : "Вдохновение";
+  var tip = isE24
+    ? "Героическое вдохновение — потратьте, чтобы перебросить любой кубик; берётся новый результат"
+    : "Вдохновение — потратьте, чтобы получить преимущество на один бросок к20";
+  var chip = $("status-inspiration");
+  if (chip) chip.title = tip;
+  var card = $("insp-card-2024");
+  if (card) {
+    card.title = tip + " — нажмите, чтобы переключить";
+    var lbl = card.querySelector(".abil-mini-label");
+    if (lbl) lbl.textContent = "✨ " + name;
+  }
+  var rr = document.getElementById("rr-insp-mini");
+  if (rr) rr.title = name + " (клик — переключить)";
 }
 function getProficiencyBonus(level) {
 if (level >= 17) return 6;
@@ -2940,12 +2966,14 @@ function getActiveConditionsForRender() {
   var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
   if (!char) return out;
   if (char.conditions && typeof CONDITIONS !== 'undefined') {
+    // E24-1: резолвим состояния по редакции персонажа (фолбэк 2014).
+    var _cs = (typeof edData === 'function') ? edData(char).CONDITIONS : CONDITIONS;
     char.conditions.forEach(function(condId) {
       if (condId.indexOf('exhaustion_') !== -1) {
         var lvl = parseInt(condId.split('_')[1], 10);
         if (lvl > out.exhLevel) out.exhLevel = lvl;
       } else {
-        var c = CONDITIONS.find(function(x) { return x.id === condId; });
+        var c = _cs.find(function(x) { return x.id === condId; });
         if (c) out.baseConditions.push(c);
       }
     });

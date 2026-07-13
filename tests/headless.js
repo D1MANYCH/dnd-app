@@ -3095,14 +3095,15 @@
       return true;
     });
 
-    t("[e24] '2024' зарегистрирована (data-2024.js) и в E24-0 ≡ '2014'", function(){
+    t("[e24] '2024' зарегистрирована (data-2024.js); незаполненные таблицы наследуются от 2014", function(){
       if (!EDITION_DATA["2024"]) return "EDITION_DATA['2024'] не зарегистрирован (data-2024.js не загружен?)";
       var d24 = edData({ edition: "2024" });
       var d14 = edData({ edition: "2014" });
-      // Пустые overrides → все таблицы наследуются от 2014 по ссылке.
+      // Ещё не наполненные фазами таблицы наследуются от 2014 по ссылке (CONDITIONS уже
+      // переопределена в E24-1 — её паритет проверяется в БЛОКЕ 33).
       if (d24.CLASS_FEATURES !== d14.CLASS_FEATURES) return "CLASS_FEATURES 2024 ≠ 2014";
-      if (d24.CONDITIONS !== d14.CONDITIONS) return "CONDITIONS 2024 ≠ 2014";
       if (d24.SPELL_SLOTS_BY_LEVEL !== d14.SPELL_SLOTS_BY_LEVEL) return "слоты 2024 ≠ 2014";
+      if (d24.FEATS_DATA !== d14.FEATS_DATA) return "FEATS_DATA 2024 ≠ 2014";
       return true;
     });
 
@@ -3113,11 +3114,16 @@
       var d = edData({ edition: "2024" });
       var ok = (d.CONDITIONS === fake);
       var inherited = (typeof CLASS_FEATURES === "undefined") || (d.CLASS_FEATURES === CLASS_FEATURES);
-      registerEdition2024({}); // сброс к полному зеркалу 2014 (как в скелете E24-0)
+      // Восстанавливаем РЕАЛЬНЫЕ 2024-данные (по мере фаз overrides растёт — берём из
+      // data-2024.js; было registerEdition2024({}) в скелете E24-0, но теперь пустой
+      // сброс затёр бы CONDITIONS_2024 для последующих тестов).
+      registerEdition2024((typeof window !== "undefined" && window.EDITION_2024_OVERRIDES) || {});
       if (!ok) return "override CONDITIONS не применён";
       if (!inherited) return "CLASS_FEATURES не унаследован при частичном override";
       var after = edData({ edition: "2024" });
-      if (typeof CONDITIONS !== "undefined" && after.CONDITIONS !== CONDITIONS) return "сброс не вернул CONDITIONS к 2014";
+      var expectCond = (typeof window !== "undefined" && window.CONDITIONS_2024) ? window.CONDITIONS_2024
+                       : (typeof CONDITIONS !== "undefined" ? CONDITIONS : null);
+      if (expectCond && after.CONDITIONS !== expectCond) return "восстановление не вернуло реальные 2024-состояния";
       return true;
     });
 
@@ -3171,6 +3177,81 @@
 
   } else {
     t("[e24] eddata/EDITION_DATA определены", function(){ return "не загружены"; });
+  }
+
+  // ────────── БЛОК 33 (E24-1): состояния 2024 + глоссарий edition-aware ──────────
+  if (typeof edData === "function" && typeof CONDITIONS !== "undefined" &&
+      typeof window !== "undefined" && Array.isArray(window.CONDITIONS_2024)) {
+    var C24 = window.CONDITIONS_2024;
+
+    t("[e24-1] CONDITIONS_2024: id-паритет с 2014 (тот же набор id)", function(){
+      var a = CONDITIONS.map(function(c){ return c.id; }).sort();
+      var b = C24.map(function(c){ return c.id; }).sort();
+      if (a.length !== b.length) return "разное число: 2014=" + a.length + " 2024=" + b.length;
+      for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return "расхождение id: " + a[i] + " ≠ " + b[i];
+      return true;
+    });
+
+    t("[e24-1] CONDITIONS_2024: у каждого непустые id/name/desc", function(){
+      for (var i = 0; i < C24.length; i++) {
+        var c = C24[i];
+        if (!c || !c.id || !c.name || typeof c.desc !== "string" || !c.desc.trim()) return "битая запись: " + (c && c.id);
+      }
+      return true;
+    });
+
+    t("[e24-1] CONDITIONS_2024: 6 степеней истощения exhaustion_1..6", function(){
+      for (var i = 1; i <= 6; i++) {
+        if (!C24.some(function(c){ return c.id === "exhaustion_" + i; })) return "нет exhaustion_" + i;
+      }
+      return true;
+    });
+
+    t("[e24-1] истощение 2024 переписано (степень 3 → −6 к броскам к20)", function(){
+      var e14 = CONDITIONS.find(function(c){ return c.id === "exhaustion_3"; });
+      var e24 = C24.find(function(c){ return c.id === "exhaustion_3"; });
+      if (!e14 || !e24) return "нет exhaustion_3";
+      if (e14.desc === e24.desc) return "desc истощения не изменён относительно 2014";
+      if (e24.desc.indexOf("−6") === -1) return "нет «−6» в описании 2024";
+      return true;
+    });
+
+    t("[e24-1] edData('2024').CONDITIONS === CONDITIONS_2024 (2014 — свой набор)", function(){
+      if (edData({ edition: "2024" }).CONDITIONS !== C24) return "2024 не указывает на CONDITIONS_2024";
+      if (edData({ edition: "2014" }).CONDITIONS === C24) return "2014 ошибочно указывает на набор 2024";
+      return true;
+    });
+
+    if (Array.isArray(window.GLOSSARY_2024) && typeof glossarizeHtml === "function") {
+      t("[e24-1] GLOSSARY_2024: у каждой записи непустые term/terms/def", function(){
+        for (var i = 0; i < window.GLOSSARY_2024.length; i++) {
+          var e = window.GLOSSARY_2024[i];
+          if (!e || !e.term || !Array.isArray(e.terms) || !e.terms.length || typeof e.def !== "string" || !e.def.trim())
+            return "битая запись #" + i;
+        }
+        return true;
+      });
+
+      t("[e24-1] glossarizeHtml('2024') оборачивает новый термин 2024 (Изучение) с data-gloss-ed", function(){
+        var out = glossarizeHtml("действие Изучение помогает", {}, "2024");
+        if (out.indexOf('class="gloss"') === -1) return "термин не обёрнут: " + out;
+        if (out.indexOf('data-gloss-ed="2024"') === -1) return "нет data-gloss-ed";
+        return true;
+      });
+
+      t("[e24-1] набор 2014 не знает терминов 2024 (Изучение не оборачивается)", function(){
+        var out = glossarizeHtml("действие Изучение помогает", {}, "2014");
+        return out.indexOf('class="gloss"') === -1 ? true : "обёрнут в наборе 2014: " + out;
+      });
+
+      t("[e24-1] определение «Истощение» 2024 переопределяет базовое", function(){
+        var base = glossarizeHtml("уровни истощения", {}, "2014");
+        var e24  = glossarizeHtml("уровни истощения", {}, "2024");
+        if (base.indexOf('class="gloss"') === -1) return "базовое «истощение» не обёрнуто";
+        if (e24.indexOf('data-gloss-ed="2024"') === -1) return "2024 «истощение» без ed-атрибута";
+        return true;
+      });
+    }
   }
 
   // ────────── РЕЗУЛЬТАТЫ ──────────

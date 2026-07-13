@@ -2315,41 +2315,58 @@ function _applyBuildCore(buildId) {
 // с поповером-расшифровкой (паттерн поповеров дайс-модала, без библиотек).
 // Данные — window.GLOSSARY (glossary-data.js). Совпадение по границам слов:
 // термин не сработает внутри слова. Только первое вхождение в гайде подсвечивается.
-var _GLOSS_RE = null, _GLOSS_MAP = null, _glossActiveEl = null;
+// E24-1: индекс глоссария строится ПО РЕДАКЦИИ. Кэш на редакцию: набор '2014' —
+// только window.GLOSSARY; '2024' — GLOSSARY + window.GLOSSARY_2024 (последний
+// переопределяет базу по нормализованному ключу термина). Вызов без edition даёт
+// '2014' — прежнее поведение гайдов билдов не меняется.
+var _GLOSS_CACHE = {}, _glossActiveEl = null;
 function _glossNorm(s) { return String(s == null ? "" : s).toLowerCase().replace(/ё/g, "е").trim(); }
 function _reEscape(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
-function _glossInit() {
-  if (_GLOSS_RE !== null) return;
-  _GLOSS_MAP = {};
-  var entries = (typeof window !== "undefined" && Array.isArray(window.GLOSSARY)) ? window.GLOSSARY : [];
-  var terms = [];
-  entries.forEach(function(e) {
-    if (!e || typeof e.def !== "string" || !Array.isArray(e.terms)) return;
-    e.terms.forEach(function(term) {
-      var key = _glossNorm(term);
-      if (!key) return;
-      if (!_GLOSS_MAP[key]) _GLOSS_MAP[key] = e;
-      terms.push(term);
+function _glossEd(edition) { return (edition === "2024") ? "2024" : "2014"; }
+function _glossBuild(edition) {
+  var map = {}, terms = [];
+  function ingest(entries, override) {
+    if (!Array.isArray(entries)) return;
+    entries.forEach(function(e) {
+      if (!e || typeof e.def !== "string" || !Array.isArray(e.terms)) return;
+      e.terms.forEach(function(term) {
+        var key = _glossNorm(term);
+        if (!key) return;
+        if (override || !map[key]) map[key] = e; // 2024-запись перекрывает базовую
+        terms.push(term);
+      });
     });
-  });
-  if (!terms.length) { _GLOSS_RE = false; return; }
+  }
+  if (typeof window !== "undefined") {
+    ingest(window.GLOSSARY, false);
+    if (edition === "2024") ingest(window.GLOSSARY_2024, true);
+  }
+  if (!terms.length) return { re: false, map: map };
   // Длиннее — раньше: составные термины («Метка охотника») имеют приоритет над частями.
   terms.sort(function(a, b) { return b.length - a.length; });
   var L = "A-Za-zА-Яа-яЁё0-9_";
-  _GLOSS_RE = new RegExp("(^|[^" + L + "])(" + terms.map(_reEscape).join("|") + ")(?![" + L + "])", "gi");
+  return { re: new RegExp("(^|[^" + L + "])(" + terms.map(_reEscape).join("|") + ")(?![" + L + "])", "gi"), map: map };
+}
+function _glossIndex(edition) {
+  edition = _glossEd(edition);
+  if (!_GLOSS_CACHE[edition]) _GLOSS_CACHE[edition] = _glossBuild(edition);
+  return _GLOSS_CACHE[edition];
 }
 // Принимает УЖЕ экранированный HTML; seen — объект {key:true} для подсветки только
-// первого вхождения каждого термина в пределах одного гайда.
-function glossarizeHtml(escaped, seen) {
-  _glossInit();
-  if (!_GLOSS_RE || !escaped) return escaped || "";
-  return String(escaped).replace(_GLOSS_RE, function(_m, lead, term) {
+// первого вхождения каждого термина в пределах одного гайда. edition (по умолч. '2014')
+// выбирает набор терминов; на не-2014 к span добавляется data-gloss-ed для поповера.
+function glossarizeHtml(escaped, seen, edition) {
+  edition = _glossEd(edition);
+  var idx = _glossIndex(edition);
+  if (!idx.re || !escaped) return escaped || "";
+  var edAttr = (edition === "2024") ? ' data-gloss-ed="2024"' : "";
+  return String(escaped).replace(idx.re, function(_m, lead, term) {
     var key = _glossNorm(term);
-    var entry = _GLOSS_MAP[key];
+    var entry = idx.map[key];
     if (!entry) return _m;
     if (seen) { if (seen[key]) return lead + term; seen[key] = true; }
     return lead + '<span class="gloss" tabindex="0" role="button" aria-label="Термин: ' + term +
-      '" data-gloss="' + key + '">' + term + '</span>';
+      '" data-gloss="' + key + '"' + edAttr + '>' + term + '</span>';
   });
 }
 function _glossPopoverEl() {
@@ -2370,9 +2387,9 @@ function hideGlossPopover() {
   if (_glossActiveEl) { _glossActiveEl.classList.remove("is-active"); _glossActiveEl = null; }
 }
 function showGlossPopover(span) {
-  _glossInit();
   var key = span.getAttribute("data-gloss");
-  var entry = _GLOSS_MAP && _GLOSS_MAP[key];
+  var idx = _glossIndex(span.getAttribute("data-gloss-ed"));
+  var entry = idx.map && idx.map[key];
   if (!entry) return;
   var pop = _glossPopoverEl();
   pop.innerHTML = '<span class="gloss-term">' + escapeHtml(entry.term || "") +
@@ -2438,7 +2455,8 @@ function openBuildGuide(buildId) {
   // UX-4: gx() = экранирование + обёртка терминов глоссария. seen — первое вхождение
   // термина в гайде подсвечивается, повторы остаются простым текстом (без шума).
   var seen = {};
-  function gx(s) { return glossarizeHtml(escapeHtml(s == null ? "" : s), seen); }
+  var _bgEd = (b && b.edition) || "2014"; // E24-1: гайд 2024-билда возьмёт набор терминов 2024
+  function gx(s) { return glossarizeHtml(escapeHtml(s == null ? "" : s), seen, _bgEd); }
   function _list(arr, cls, mark) {
     if (!Array.isArray(arr) || !arr.length) return "";
     return '<ul class="bg-list ' + cls + '">' +

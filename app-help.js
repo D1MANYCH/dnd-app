@@ -22,7 +22,7 @@ function closeHelp() {
 /**
  * Переключить раздел справки.
  * @param {string} section ключ раздела (about/start/sheet/spells/inventory/
- *                         battle/party/notes/journal/dice/data)
+ *                         battle/party/notes/journal/planes/dice/edition2024/data)
  * @param {HTMLElement|null} btnEl кнопка-таб, по которой кликнули (если есть)
  */
 function switchHelpSection(section, btnEl) {
