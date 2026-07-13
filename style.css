@@ -4750,6 +4750,9 @@ padding: 18px;
   flex: 0 0 auto;
   width: 36px;
   height: 36px;
+  /* Базовый .modal-close задаёт min-width:40px — без сброса кнопка выходит
+     40×36 (эллипс, «не круглая»). Приравниваем min-width к width → ровный круг. */
+  min-width: 36px;
   font-size: 24px !important;
   display: inline-flex;
   align-items: center;
@@ -4950,6 +4953,17 @@ padding: 18px;
 /* В поповере — компактнее */
 .dice-popover-body .dice-chips { gap: 5px; margin-top: 6px; }
 .dice-popover-body .dice-chip { min-width: 34px; padding: 5px 8px; font-size: 0.8em; }
+/* Формульные чипы под сеткой кубиков (9 шт: 6 костей + 3 оператора) раньше не
+   влезали в строку — ⌫ переносился один на вторую строку, оставляя пустое место.
+   Делаем их равной ширины во всю строку (flex:1 1 0): один аккуратный ряд без
+   переноса. Скоуп — только основная колонка (в поповере чипы прежние). */
+.dice-controls-col .dice-chips { gap: 5px; }
+.dice-controls-col .dice-chips .dice-chip {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 8px 2px;
+  text-align: center;
+}
 
 /* v3.19: блок результата под ареной — decor-полоска + «Кубик: dN» */
 .dice3d-divider {
@@ -5123,7 +5137,7 @@ padding: 18px;
   .dice-modal-header h3 .d20-icon { display: none; }
   .dice-tool-btn { width: 32px; height: 32px; }
   .dice-tool-badge { min-width: 16px; height: 16px; font-size: 0.58em; line-height: 16px; }
-  .dice-modal-header .modal-close { width: 32px; height: 32px; font-size: 22px !important; }
+  .dice-modal-header .modal-close { width: 32px; height: 32px; min-width: 32px; font-size: 22px !important; }
   .dice-modal-footer { padding: 6px 10px 10px; }
   .dice-reset-btn { padding: 6px 14px; font-size: 0.78em; }
   .dice-popover {
@@ -5773,21 +5787,24 @@ transition: all 0.2s;
   border-radius: var(--r-sm);
 }
 .spell-card-taxonomy b { color: var(--text-color); font-weight: 600; }
-/* UI5-5: на телефоне имя заклинания важнее — `.spell-card-badges` (flex-shrink:0) с текстом
-   школы + источником + иконками классов сжимал `.spell-card-title` до 1 буквы. Прячем ТЕКСТ
-   школы (цветная иконка остаётся = школа опознаётся) и чуть ужимаем иконки → имя получает место. */
+/* UI5-5: на телефоне имя заклинания раньше сжималось до 1 буквы бейджами школы/
+   источника/классов. Решение (v3.44+): имя занимает ВСЮ первую строку шапки
+   (`.spell-card-title{flex:1 1 100%}`), а бейджи переносятся на отдельную вторую
+   строку — там ширины хватает, поэтому текст школы больше НЕ прячем (пустое место
+   справа заполняется подписью школы), а иконки классов чуть крупнее. */
 @media (max-width: 640px) {
-  .school-badge-text { display: none; }
-  .school-badge { padding: 4px 7px; }
-  .spell-class-icon { width: 20px; height: 20px; }
-  .class-icons-row { gap: 3px; }
+  .school-badge { padding: 4px 8px; font-size: 0.95em; }
+  .school-badge-text { font-size: 0.82em; }
+  .spell-class-icon { width: 22px; height: 22px; }
+  .class-icons-row { gap: 4px; }
   /* Текст «Ритуал» тоже прячем (🕐 остаётся; свойство видно в мете «(ритуал)»). */
   .ritual-badge-text { display: none; }
   /* Бейджи (источник+школа+классы) не помещаются рядом с именем при 3+ иконках —
-     переносим их на вторую строку шапки, имя получает всю ширину. */
+     переносим их на вторую строку шапки, имя получает всю ширину. При редком
+     переполнении (длинное имя школы + 4 иконки) сами бейджи тоже мягко переносятся. */
   .spell-card-header { flex-wrap: wrap; row-gap: 6px; }
   .spell-card-title { flex: 1 1 100%; }
-  .spell-card-badges { margin-left: 20px; } /* 20px = стрелка 12 + gap 8, в линию с именем */
+  .spell-card-badges { margin-left: 20px; flex-wrap: wrap; row-gap: 4px; } /* 20px = стрелка 12 + gap 8, в линию с именем */
   /* Имя не режем в 1 строку — переносим до 2 строк, дальше многоточие. */
   .spell-card-name {
     white-space: normal;

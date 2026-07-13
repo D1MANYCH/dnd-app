@@ -522,9 +522,12 @@ function renderPrepCounter() {
     var sp = char.spells.mySpells ? char.spells.mySpells.find(function(s){ return s.id === id; }) : null;
     return sp && sp.level > 0;
   }).length;
-  var statName = { wis: "МУД", cha: "ХАР", int: "ИНТ" }[SPELL_PREP_CLASSES[char.class].stat] || "";
+  var prep = SPELL_PREP_CLASSES[char.class];
+  var statName = { wis: "МУД", cha: "ХАР", int: "ИНТ" }[prep.stat] || "";
+  // PHB 2014: жрец/друид/волшебник готовят «мод + уровень», паладин — «мод + ½ уровня».
+  var lvlLabel = prep.formula === "mod+halfLevel" ? "½ ур." : "ур.";
   el.style.display = "";
-  el.innerHTML = '<span class="prep-icon">📋</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span><span class="prep-hint">(' + statName + ' + ур.)</span>';
+  el.innerHTML = '<span class="prep-icon">📋</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span><span class="prep-hint">(' + statName + ' + ' + lvlLabel + ')</span>';
 }
 
 var _ritualTimer = null;
