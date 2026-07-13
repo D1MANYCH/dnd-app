@@ -3104,8 +3104,9 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
    UX-5: лента последних бросков вне модалки
    Парит над нижней панелью (мобила) / в правом-нижнем углу (ПК).
    ============================================ */
-/* Дымка v5: плашка последних бросков — стекло-поповер (уровень 3) с бликом,
-   появление пружиной снизу; последний бросок выделен крупным золотым числом */
+/* Дымка v5 / v3.44+: карточка последнего броска — стекло-поповер (уровень 3) с
+   заголовком «Последний бросок», крупным чипом последнего результата и рядом
+   недавних бросков. Появление пружиной снизу. */
 .quick-roll-strip {
   position: fixed;
   left: 50%;
@@ -3113,13 +3114,13 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   transform: translate(-50%, 14px) scale(0.96);
   z-index: 95;
   display: flex;
-  align-items: center;
-  gap: 7px;
+  flex-direction: column;
+  gap: 8px;
   max-width: min(94vw, 520px);
-  padding: 7px 8px 7px 13px;
+  padding: 10px 12px 12px;
   background: var(--surface-pop, var(--surface-sticky));
   border: 1px solid var(--border-soft, rgba(255,255,255,0.1));
-  border-radius: 999px;
+  border-radius: 16px;
   box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
   backdrop-filter: blur(var(--pop-blur, 30px)) saturate(140%);
   -webkit-backdrop-filter: blur(var(--pop-blur, 30px)) saturate(140%);
@@ -3132,10 +3133,21 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   transform: translate(-50%, 0) scale(1);
   pointer-events: auto;
 }
-.qrs-icon { font-size: 0.95em; line-height: 1; flex: 0 0 auto; color: var(--accent); opacity: 0.9; }
+/* Шапка: иконка кубика + подпись «Последний бросок» + крестик справа */
+.qrs-head { display: flex; align-items: center; gap: 6px; }
+.qrs-icon { line-height: 1; flex: 0 0 auto; color: var(--accent); display: inline-flex; }
+.qrs-title {
+  font-size: 0.66em;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-right: auto;
+  white-space: nowrap;
+}
 .qrs-list {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 6px;
   overflow-x: auto;
   scrollbar-width: none;
@@ -3144,12 +3156,14 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 .qrs-list::-webkit-scrollbar { display: none; }
 .qrs-chip {
   flex: 0 0 auto;
+  width: auto;            /* сброс глоб. button{width:100%} — иначе чип на всю ширину */
+  margin: 0;
   display: inline-flex;
   align-items: baseline;
-  gap: 5px;
-  padding: 4px 9px;
+  gap: 6px;
+  padding: 5px 10px;
   border: 1px solid var(--border-soft, rgba(255,255,255,0.1));
-  border-radius: 999px;
+  border-radius: 10px;
   background: var(--bg-2, rgba(255,255,255,0.04));
   color: var(--text, #e8e8ef);
   font-size: 0.74em;
@@ -3160,31 +3174,35 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 }
 .qrs-chip:hover { background: var(--accent-soft, rgba(201,160,64,0.18)); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
 .qrs-chip:active { transform: scale(0.96); }
-.qrs-chip-label { color: var(--text-muted, #a8a8b8); max-width: 12ch; overflow: hidden; text-overflow: ellipsis; }
-.qrs-chip-val { font-weight: 700; color: var(--accent-color, #e0b358); font-variant-numeric: tabular-nums; }
-/* Последний бросок (первый чип) — крупнее, число золотом на тонированном фоне */
+.qrs-chip-label { color: var(--text-muted, #a8a8b8); font-weight: 600; max-width: 12ch; overflow: hidden; text-overflow: ellipsis; }
+.qrs-chip-val { font-weight: 800; color: var(--accent-color, #e0b358); font-variant-numeric: tabular-nums; }
+/* Последний бросок (первый чип) — крупный, на всю ширину карточки: метка слева,
+   число золотом справа (строка результата). Остальные (недавние) — компактные. */
 .qrs-chip:first-child {
-  font-size: 0.86em;
-  padding: 5px 12px;
+  flex: 1 1 auto;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 6px 13px;
   background: var(--accent-soft, rgba(214,178,94,0.13));
-  border-color: color-mix(in srgb, var(--accent) 36%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
 }
-.qrs-chip:first-child .qrs-chip-val { font-size: 1.25em; line-height: 1; }
-.qrs-chip:first-child .qrs-chip-label { color: var(--text-dim, #a8a8b8); }
+.qrs-chip:first-child .qrs-chip-label { font-size: 0.92em; color: var(--text-dim, #a8a8b8); }
+.qrs-chip:first-child .qrs-chip-val { font-size: 1.55em; line-height: 1; }
 .qrs-chip.qrs-crit { border-color: #4da843; }
 .qrs-chip.qrs-crit .qrs-chip-val { color: #6fd35f; }
 .qrs-chip.qrs-fail { border-color: #c0392b; }
 .qrs-chip.qrs-fail .qrs-chip-val { color: #e8705f; }
 .qrs-close {
   flex: 0 0 auto;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
   padding: 0;
   border: none;
   border-radius: 50%;
   background: transparent;
   color: var(--text-muted, #a8a8b8);
-  font-size: 1.1em;
+  font-size: 1.05em;
   line-height: 1;
   cursor: pointer;
   display: flex;
@@ -3193,7 +3211,7 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   transition: background 0.16s, color 0.16s;
 }
 .qrs-close:hover { background: var(--bg-2, rgba(255,255,255,0.08)); color: var(--text, #e8e8ef); }
-/* ПК (≥1024): нижней панели нет — лента в правом-нижнем, не под right-rail (320px) */
+/* ПК (≥1024): нижней панели нет — карточка в правом-нижнем, не под right-rail (320px) */
 @media (min-width: 1024px) {
   .quick-roll-strip {
     left: auto;
