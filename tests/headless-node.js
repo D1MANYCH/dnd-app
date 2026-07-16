@@ -26,6 +26,7 @@ const files = [
   'character-builds.js',     // BUILD-LVL-7: CHARACTER_BUILDS/getBuildById для тестов данных levelUp
   'glossary-data.js',        // UX-4: window.GLOSSARY для тестов glossarizeHtml (БЛОК 18)
   'spells.js',               // BUILD-LVL-7: SPELLS_BASE → app-core строит SPELL_DATABASE (резолв заклинаний билдов)
+  'spell-effects.js',        // CAST-0: SPELL_EFFECTS + getSpellEffect/scaleFormula/durationToRounds (БЛОК 34)
   'class-choices.js',
   'subclass-choices-data.js',
   'data-2024.js',            // E24-0: в проде лениво (ensureEdition2024) — в тестах явно ПОСЛЕ class/subclass-choices (иначе ленивый снапшот '2014' закэширует пустые CHOICES). Регистрирует EDITION_DATA['2024'] (БЛОК 32)

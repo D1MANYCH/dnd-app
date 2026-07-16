@@ -431,7 +431,7 @@
       if (!c.coins || c.coins.gp !== 0) return "coins.gp: ожидал 0";
       if (!c.deathSaves || !Array.isArray(c.deathSaves.successes)) return "deathSaves.successes не массив";
       if (typeof c.saves !== "object" || typeof c.skills !== "object") return "saves/skills не объекты";
-      if (c.schemaVersion !== 31) return "schemaVersion: ожидал 31, получено " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       return true;
     });
 
@@ -500,7 +500,7 @@
         window.SPELL_DATABASE = SPELLS_BASE.concat([{ id: "user-rt-1", name: "Тестовый луч", level: 1 }]);
         var p = _buildExportPayload();
         if (p.app !== "dnd-sheet") return "app: " + p.app;
-        if (p.schemaVersion !== 31) return "schemaVersion: ожидал 31, получено " + p.schemaVersion;
+        if (p.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + p.schemaVersion;
         if (!p.exportedAt) return "нет exportedAt";
         if (!Array.isArray(p.characters) || p.characters.length !== 2) return "characters: ожидал 2";
         if (!Array.isArray(p.hpHistory) || p.hpHistory.length !== 2) return "hpHistory: ожидал 2 (как есть, фильтр — на импорте)";
@@ -606,7 +606,7 @@
         journal: [{ text: "запись" }]
       };
       var c = migrateCharacter(JSON.parse(JSON.stringify(legacy)));
-      if (c.schemaVersion !== 31) return "schemaVersion: " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: " + c.schemaVersion;
       var langs = c.proficiencies.languages;
       if (!Array.isArray(langs) || langs.length !== 2 || langs[0].name !== "Общий" || langs[1].name !== "Эльфийский")
         return "языки строка→массив: " + JSON.stringify(langs);
@@ -635,7 +635,7 @@
           mySpells: [{ id: 101, name: "Слово исцеления" }, { id: 102, name: "Огни фей" }, { id: 103, name: "Порча" }]
         }
       });
-      if (c.schemaVersion !== 31) return "schemaVersion: ожидал 31, получено " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Волна грома|Усыпление|Лечение ран")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -652,7 +652,7 @@
           mySpells: [{ id: 201, name: "Духовное оружие" }, { id: 202, name: "Огненная сфера" }, { id: 203, name: "Невидимость" }]
         }
       });
-      if (c.schemaVersion !== 31) return "schemaVersion: ожидал 31, получено " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Отражения|Открывание|Лечение ран")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -669,7 +669,7 @@
           mySpells: [{ id: 301, name: "Оживление мертвецов" }, { id: 302, name: "Страх" }, { id: 303, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 31) return "schemaVersion: ожидал 31, получено " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Возрождение|Духовные стражи|Лечение ран")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -686,7 +686,7 @@
           mySpells: [{ id: 401, name: "Прорицание" }, { id: 402, name: "Чёрные щупальца" }, { id: 403, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 31) return "schemaVersion: ожидал 31, получено " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Превращение|Град|Лечение ран")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -703,7 +703,7 @@
           mySpells: [{ id: 481, name: "Обман" }, { id: 506, name: "Двойник" }, { id: 475, name: "Магическое связывание" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 31) return "schemaVersion: ожидал 31, получено " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Оживление|Множественное лечение ран|Небесный огонь")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -721,7 +721,7 @@
           mySpells: [{ id: 541, name: "Вред" }, { id: 546, name: "Исцеление" }, { id: 568, name: "Стена льда" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 31) return "schemaVersion: ожидал 31, получено " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Распад|Пляшущая молния|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -739,7 +739,7 @@
           mySpells: [{ id: 618, name: "Символ" }, { id: 619, name: "Симулякр" }, { id: 607, name: "Обратная гравитация" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 31) return "schemaVersion: ожидал 31, получено " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       // Forcecage «Силовая клетка» → «Узилище»; Prismatic spray «Призматический луч» → «Радужные брызги».
       if (c.spells.prepared.join("|") !== "Узилище|Радужные брызги|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
@@ -758,7 +758,7 @@
           mySpells: [{ id: 657, name: "Слабоумие" }, { id: 671, name: "Оцепенение" }, { id: 656, name: "Священная аура" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 31) return "schemaVersion: ожидал 31, получено " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       // Clone «Клон» → «Двойник»; Antimagic field «Антимагическое поле» → «Преграда магии».
       if (c.spells.prepared.join("|") !== "Двойник|Преграда магии|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
@@ -778,7 +778,7 @@
           mySpells: [{ id: 688, name: "Кошмарное видение" }, { id: 682, name: "Буря мести" }, { id: 696, name: "Слово силы: смерть" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 31) return "schemaVersion: ожидал 31, получено " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       // Shapechange «Перевоплощение» → «Полное превращение»; Meteor swarm «Рой метеоров» → «Метеоритный дождь».
       if (c.spells.prepared.join("|") !== "Полное превращение|Метеоритный дождь|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
@@ -813,7 +813,7 @@
       var div = migrateCharacter({ id: 9976, class: "Волшебник", level: 6, schemaVersion: 25, subclass: "Школа прорицания" });
       if (div.subclass !== "Школа прорицания")
         return "Divination не должна меняться, получено «" + div.subclass + "»";
-      if (div.schemaVersion !== 31) return "schemaVersion: ожидал 31, получено " + div.schemaVersion;
+      if (div.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + div.schemaVersion;
       return true;
     });
 
@@ -828,7 +828,7 @@
           mySpells: [{ id: 652, name: "Воспламеняющаяся туча" }, { id: 405, name: "Огненный шар" }]
         }
       });
-      if (c.schemaVersion !== 31) return "schemaVersion: ожидал 31, получено " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       if (c.spells.prepared.join("|") !== "Облако кинжалов|Огненный шар")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
@@ -2209,7 +2209,7 @@
           combat: { armorId: "ring", hpCurrent: 20, hpMax: 20 }
         });
         if (c.combat.armorId !== "chain_mail") return "armorId не мигрирован: " + c.combat.armorId;
-        if (c.schemaVersion !== 31) return "schemaVersion: " + c.schemaVersion;
+        if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: " + c.schemaVersion;
         // повторный прогон не должен ничего менять (idempotent)
         var again = migrateCharacter(JSON.parse(JSON.stringify(c)));
         if (again.combat.armorId !== "chain_mail") return "повторная миграция сломала armorId: " + again.combat.armorId;
@@ -2748,7 +2748,7 @@
     t("[FIN-11] migrateCharacter: char.subclass «Мошенник» → «Мистический ловкач»", function(){
       var c = migrateCharacter({ id: 9401, class: "Плут", level: 5, subclass: "Мошенник" });
       if (c.subclass !== "Мистический ловкач") return "subclass = " + JSON.stringify(c.subclass);
-      if (c.schemaVersion !== 31) return "schemaVersion = " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion = " + c.schemaVersion;
       return true;
     });
     t("[FIN-11] migrateCharacter: «Мошенник» в char.classes[] (мультикласс) тоже мигрирует", function(){
@@ -2784,7 +2784,7 @@
         notes: "Био", notesV2: { sections: {}, entries: [], prefs: {} } });
       var again = migrateCharacter(JSON.parse(JSON.stringify(c)));
       if (again.subclass !== "Мистический ловкач") return "subclass после повтора: " + again.subclass;
-      if (again.schemaVersion !== 31) return "schemaVersion после повтора: " + again.schemaVersion;
+      if (again.schemaVersion !== SCHEMA_VERSION) return "schemaVersion после повтора: " + again.schemaVersion;
       return true;
     });
   }
@@ -3205,10 +3205,10 @@
     });
 
     if (typeof migrateCharacter === "function") {
-      t("[e24] миграция: персонаж без edition → '2014', schemaVersion → 31", function(){
+      t("[e24] миграция: персонаж без edition → '2014', schemaVersion → актуальная (SCHEMA_VERSION)", function(){
         var c = migrateCharacter({ id: 77001, class: "Воин", level: 3 });
         if (c.edition !== "2014") return "edition: " + c.edition;
-        if (c.schemaVersion !== 31) return "schemaVersion: " + c.schemaVersion;
+        if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: " + c.schemaVersion;
         return true;
       });
 
@@ -3329,6 +3329,99 @@
         return true;
       });
     }
+  }
+
+  // ────────── БЛОК 34 (CAST-0): spell-effects.js — таблица механики + хелперы + миграция v32 ──────────
+  if (typeof SPELL_EFFECTS !== "undefined" && typeof SPELLS_BASE !== "undefined" &&
+      typeof getSpellEffect === "function") {
+
+    t("[cast-0] каждый ключ SPELL_EFFECTS существует среди имён SPELLS_BASE", function(){
+      var names = {};
+      SPELLS_BASE.forEach(function(s){ names[s.name] = true; });
+      var bad = Object.keys(SPELL_EFFECTS).filter(function(k){ return !names[k]; });
+      return bad.length === 0 ? true : "нет в spells.js: " + bad.join(", ");
+    });
+
+    t("[cast-0] каждый effect-id из дескрипторов есть в EFFECTS_DATA", function(){
+      var ids = {};
+      EFFECTS_DATA.forEach(function(e){ ids[e.id] = true; });
+      var bad = [];
+      Object.keys(SPELL_EFFECTS).forEach(function(k){
+        var d = SPELL_EFFECTS[k];
+        (d.effects || []).forEach(function(id){ if (!ids[id]) bad.push(k + "→" + id); });
+      });
+      return bad.length === 0 ? true : "битые id: " + bad.join(", ");
+    });
+
+    t("[cast-0] все формулы (база и апкаст ×2) парсятся parseDiceFormula", function(){
+      if (typeof parseDiceFormula !== "function") return "нет parseDiceFormula";
+      var bad = [];
+      Object.keys(SPELL_EFFECTS).forEach(function(k){
+        var d = SPELL_EFFECTS[k];
+        [d.damage, d.heal, d.tempHp].forEach(function(part){
+          if (!part || !part.formula) return;
+          if (!parseDiceFormula(part.formula).ok) bad.push(k + ": " + part.formula);
+          if (part.upcast) {
+            var up = scaleFormula(part.formula, part.upcast, 1, 3);
+            if (!parseDiceFormula(up).ok) bad.push(k + " (апкаст): " + up);
+          }
+        });
+      });
+      return bad.length === 0 ? true : bad.join("; ");
+    });
+
+    t("[cast-0] scaleFormula: Огненный шар ячейкой 5 ур. → 8к6+1к6+1к6", function(){
+      var out = scaleFormula("8к6", "1к6", 3, 5);
+      return out === "8к6+1к6+1к6" ? true : out;
+    });
+
+    t("[cast-0] scaleFormula: базовый уровень / null-слот (заговор) / без upcast — база как есть", function(){
+      if (scaleFormula("1к8", "1к8", 1, 1) !== "1к8") return "castLevel == baseLevel";
+      if (scaleFormula("1к8", "1к8", 1, null) !== "1к8") return "castLevel = null";
+      if (scaleFormula("1к8", null, 1, 5) !== "1к8") return "upcast отсутствует";
+      return true;
+    });
+
+    t("[cast-0] durationToRounds: round→v, minute→×10, hour/instant/null→null", function(){
+      if (durationToRounds({value:3, unit:"round"}) !== 3) return "round";
+      if (durationToRounds({value:1, unit:"minute"}) !== 10) return "minute";
+      if (durationToRounds({value:8, unit:"hour"}) !== null) return "hour должен быть null";
+      if (durationToRounds({value:1, unit:"instant"}) !== null) return "instant должен быть null";
+      if (durationToRounds(null) !== null) return "null-вход";
+      return true;
+    });
+
+    t("[cast-0] getSpellEffect: bySource-оверрайд мержится, база не мутирует", function(){
+      SPELL_EFFECTS["__test_spell__"] = {
+        effects: ["mage_armor"],
+        duration: { value: 1, unit: "hour" },
+        bySource: { PH24: { duration: { value: 10, unit: "minute" } } }
+      };
+      try {
+        var base = getSpellEffect("__test_spell__", "PH14");
+        var over = getSpellEffect("__test_spell__", "PH24");
+        if (base.duration.unit !== "hour") return "база: " + base.duration.unit;
+        if (over.duration.unit !== "minute") return "оверрайд: " + over.duration.unit;
+        if (over.bySource) return "bySource протёк в мерж";
+        if (!eq(over.effects, ["mage_armor"])) return "непереопределённое поле потеряно";
+        if (SPELL_EFFECTS["__test_spell__"].duration.unit !== "hour") return "мутация базы";
+        if (getSpellEffect("нет такого заклинания", "PH14") !== null) return "не-null для незнакомого имени";
+        return true;
+      } finally { delete SPELL_EFFECTS["__test_spell__"]; }
+    });
+
+    t("[cast-0] миграция v<32: activeSpellEffects появляется, SCHEMA_VERSION = 32", function(){
+      if (SCHEMA_VERSION !== 32) return "SCHEMA_VERSION = " + SCHEMA_VERSION;
+      var c = migrateCharacter({ name: "Тест", class: "Воин", level: 1, schemaVersion: 31 });
+      if (!Array.isArray(c.activeSpellEffects)) return "нет activeSpellEffects после миграции";
+      if (c.schemaVersion !== 32) return "schemaVersion = " + c.schemaVersion;
+      return true;
+    });
+
+    t("[cast-0] DEFAULT_CHARACTER.activeSpellEffects — пустой массив в шаблоне", function(){
+      return (Array.isArray(DEFAULT_CHARACTER.activeSpellEffects) &&
+              DEFAULT_CHARACTER.activeSpellEffects.length === 0) || "нет в шаблоне";
+    });
   }
 
   // ────────── РЕЗУЛЬТАТЫ ──────────

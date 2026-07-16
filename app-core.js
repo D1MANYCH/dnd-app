@@ -1032,6 +1032,13 @@ function migrateCharacter(char) {
     if (!char.edition) char.edition = '2014';
     char.schemaVersion = 31;
   }
+  if (v < 32) {
+    // CAST-0: активные экземпляры эффектов заклинаний (длительность, связь
+    // с концентрацией). char.effects остаётся массивом строк-id — метадата
+    // живёт отдельно, семантика .includes() по всему коду не меняется.
+    if (!Array.isArray(char.activeSpellEffects)) char.activeSpellEffects = [];
+    char.schemaVersion = 32;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

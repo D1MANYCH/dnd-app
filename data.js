@@ -18,7 +18,7 @@ function escapeHtml(text) {
 }
 
 // ── Версия схемы персонажа — увеличивать при изменении структуры ──────────────
-const SCHEMA_VERSION = 31;
+const SCHEMA_VERSION = 32;
 
 // ── Типы урона PHB 5e ──────────────────────────────────────────────────────────
 const DAMAGE_TYPES = [
@@ -46,6 +46,7 @@ const DEFAULT_CHARACTER = {
   combat:     { ac:10, hpMax:10, hpCurrent:10, hpTemp:0, hpDice:"1к8", hpDiceSpent:0, init:0, speed:"30 фт" },
   conditions: [],
   effects:    [],
+  activeSpellEffects: [], // CAST-0: экземпляры эффектов заклинаний (таймеры, связь с концентрацией); метадата к effects
   saves:      {},
   skills:     {},
   proficiencies: { armor:[], weapon:[], armorCustom:[], weaponCustom:[], specificWeapons:[], armorSources:{}, weaponSources:{}, tools:[], toolChoices:{}, languages:[], languageChoices:{} },
@@ -1852,7 +1853,7 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.46.0";
+const APP_VERSION = "3.47.0";
 const APP_VERSION_DATE = "2026-07-16";
 
 // ============================================================
@@ -2198,9 +2199,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.46.0",
+    version: "3.47.0",
     date: "16 июля 2026",
     badge: "new",
+    changes: [
+      { type: "chore", text: "CAST-0 — фундамент механики применения заклинаний: таблица spell-effects.js («заклинание → эффект», хелперы формул и длительностей), поле activeSpellEffects у персонажа (схема 32)" }
+    ]
+  },
+  {
+    version: "3.46.0",
+    date: "16 июля 2026",
+    badge: "old",
     changes: [
       { type: "feat", text: "Вкладка заклинаний: кнопка «Использовать» — заговор без ячейки, уровневое заклинание тратит ячейку с выбором уровня при апкасте (учёт пакт-ячеек колдуна), для prep-классов только подготовленные, авто-концентрация; фикс: ряд кнопок карточки заклинания переносится на телефоне (кнопка «Подготовить» обрезалась)" }
     ]
