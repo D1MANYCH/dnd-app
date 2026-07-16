@@ -62,6 +62,22 @@ f.addEventListener('load', () => {
             if (i > 0) w.document.documentElement.style.setProperty(pair.slice(0, i).trim(), pair.slice(i + 1).trim());
           });
         }
+        // castSpell-верификация: &expandspells=1 раскрывает карточки заклинаний
+        // (кнопки действий видны только в раскрытой), &modal=cast открывает чузер
+        // уровня ячейки первого уровневого заклинания.
+        if (q.get('expandspells')) {
+          try {
+            w.document.querySelectorAll('.my-spell-item').forEach(el => el.classList.add('expanded'));
+          } catch (e) {}
+        }
+        if (modal === 'cast') {
+          try {
+            const ch = w.getCurrentChar();
+            const sp = (ch.spells.mySpells || []).find(s => s.level > 0);
+            if (sp && typeof w.openCastChooser === 'function')
+              w.openCastChooser(sp, w._castableSlotOptions(ch, sp));
+          } catch (e) { beacon('ERR cast ' + e.message); }
+        }
         if (!q.get('keepbg')) {
           try {
             w.document.querySelectorAll('canvas').forEach(cv => {

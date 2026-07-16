@@ -10544,8 +10544,48 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .weapon-roll-dmg { background: var(--danger-color) !important; color: white !important; }
 .weapon-notes { font-size: 0.75em; color: var(--text-muted); margin-top: 6px; }
 
-/* Spell card actions row */
-.spell-card-actions { display: flex; gap: 8px; align-items: center; }
+/* Spell card actions row. flex-wrap обязателен: на телефоне 4-5 кнопок
+   (Использовать/Концентрация/Ритуал/Подготовить/Удалить) не влезают в один ряд —
+   без переноса хвост ряда обрезался краем карточки («пропала кнопка Подготовить»). */
+.spell-card-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+/* Кнопка «Использовать» + чузер уровня ячейки (castSpell) */
+.spell-cast-btn {
+  background: var(--accent-soft) !important;
+  border: 1px solid var(--accent) !important;
+  color: var(--accent-hi) !important;
+  border-radius: var(--r-sm);
+  padding: 5px 12px !important;
+  font-size: 0.78em !important;
+  font-weight: 600;
+  cursor: pointer;
+  width: auto !important;
+  margin: 0 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  transition: all 0.2s;
+}
+.spell-cast-btn:hover { background: var(--accent-glow) !important; color: var(--text) !important; transform: none !important; }
+.cast-spell-content { max-width: 380px; }
+.cast-spell-hint { color: var(--text-mute); font-size: 0.85em; margin: 4px 0 12px; }
+.cast-slot-options { display: flex; flex-direction: column; gap: 8px; }
+.cast-slot-option {
+  display: flex; justify-content: space-between; align-items: center;
+  width: 100%;
+  padding: 10px 14px !important;
+  margin: 0 !important;
+  background: var(--accent-soft) !important;
+  border: 1px solid var(--accent) !important;
+  border-radius: var(--r-sm);
+  color: var(--text) !important;
+  cursor: pointer;
+  transform: none !important;
+  box-shadow: none !important;
+  transition: background 0.2s;
+}
+.cast-slot-option:hover { background: var(--accent-glow) !important; transform: none !important; }
+.cast-slot-option .cso-lvl { font-weight: 700; color: var(--accent-hi); }
+.cast-slot-option .cso-free { color: var(--text-mute); font-size: 0.85em; }
+
 .spell-conc-btn {
   background: rgba(155,89,182,0.15) !important;
   border: 1px solid rgba(155,89,182,0.5) !important;
@@ -10598,6 +10638,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   padding: 3px 8px !important;
   border-radius: var(--r-sm) !important;
   cursor: pointer;
+  width: auto; /* базовый button { width:100% } ломал перенос ряда действий */
+  margin: 0;
   box-shadow: none !important;
   transition: all 0.2s;
 }

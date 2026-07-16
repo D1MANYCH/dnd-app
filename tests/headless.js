@@ -1114,6 +1114,83 @@
         return true;
       } finally { window.characters = savedChars; window.currentId = savedId; }
     });
+
+    t("[spells] _castableSlotOptions: уровни от spell.level, только свободные, пакт при уровне ≥", function(){
+      if (typeof _castableSlotOptions !== "function") return true; // noop в минимальной среде
+      var char = { spells: { slots: { 1: 4, 2: 2, 3: 1 }, slotsUsed: { 1: 4, 2: 1 },
+                             pactSlots: 2, pactLevel: 2, pactUsed: 1 } };
+      var opts = _castableSlotOptions(char, { level: 2 });
+      var got = opts.map(function(o){ return o.type + o.level + ":" + o.free; }).join(",");
+      if (got !== "slot2:1,slot3:1,pact2:1") return "L2: ожидал slot2:1,slot3:1,pact2:1, получено " + got;
+      opts = _castableSlotOptions(char, { level: 3 }); // пакт 2 ур. уже не годится
+      got = opts.map(function(o){ return o.type + o.level + ":" + o.free; }).join(",");
+      if (got !== "slot3:1") return "L3: ожидал slot3:1, получено " + got;
+      opts = _castableSlotOptions(char, { level: 1 }); // 1 ур. весь потрачен → с 2-го
+      got = opts.map(function(o){ return o.type + o.level; }).join(",");
+      if (got !== "slot2,slot3,pact2") return "L1: ожидал slot2,slot3,pact2, получено " + got;
+      if (_castableSlotOptions(null, { level: 1 }).length !== 0) return "null-char: ожидал []";
+      if (_castableSlotOptions({ spells: { slots: {}, slotsUsed: {} } }, { level: 4 }).length !== 0) return "без ячеек: ожидал []";
+      return true;
+    });
+
+    t("[spells] castSpell: заговор без ячейки, трата единственной, отказ без ячеек и неподготовленному", function(){
+      if (typeof castSpell !== "function") return true; // noop в минимальной среде
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{
+          id: "test-cast-1", class: "Жрец", level: 3,
+          stats: { str: 10, dex: 10, con: 10, int: 10, wis: 16, cha: 10 },
+          combat: {}, saves: {}, skills: [],
+          spells: { stat: "МУД", slots: { 1: 2 }, slotsUsed: {},
+            mySpells: [
+              { id: 200, name: "Свет",          level: 0 },
+              { id: 201, name: "Лечение ран",   level: 1 },
+              { id: 202, name: "Щит веры",      level: 1 },
+              { id: 203, name: "Вечный огонь",  level: 2 }
+            ],
+            prepared: [201, 203] }
+        }];
+        window.currentId = "test-cast-1";
+        var sp = window.characters[0].spells;
+        castSpell(200); // заговор — ячейки не тронуты
+        if ((sp.slotsUsed[1] || 0) !== 0) return "заговор потратил ячейку: used " + sp.slotsUsed[1];
+        castSpell(201); // единственный вариант (1 ур.) — тратится сразу
+        if (sp.slotsUsed[1] !== 1) return "каст 1 ур.: ожидал used 1, получено " + sp.slotsUsed[1];
+        castSpell(202); // не подготовлено у prep-класса → отказ
+        if (sp.slotsUsed[1] !== 1) return "неподготовленное потратило ячейку";
+        castSpell(203); // подготовлено, но ячеек 2 ур.+ нет → отказ
+        if (sp.slotsUsed[1] !== 1 || (sp.slotsUsed[2] || 0) !== 0) return "каст без ячеек что-то потратил";
+        castSpell(201); castSpell(201); // вторая ячейка ушла, третьей нет
+        if (sp.slotsUsed[1] !== 2) return "повторный каст: ожидал used 2, получено " + sp.slotsUsed[1];
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[spells] _castSpellWithSlot: пакт-ячейка колдуна и защита от двойной траты", function(){
+      if (typeof _castSpellWithSlot !== "function") return true; // noop в минимальной среде
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{
+          id: "test-cast-2", class: "Колдун", level: 5,
+          stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 16 },
+          combat: {}, saves: {}, skills: [],
+          spells: { stat: "ХАР", slots: {}, slotsUsed: {},
+            pactSlots: 2, pactLevel: 3, pactUsed: 0,
+            mySpells: [{ id: 300, name: "Ведьмин снаряд", level: 1 }] }
+        }];
+        window.currentId = "test-cast-2";
+        var sp = window.characters[0].spells;
+        castSpell(300); // Колдун не prep-класс; единственный вариант — пакт
+        if (sp.pactUsed !== 1) return "пакт-каст: ожидал pactUsed 1, получено " + sp.pactUsed;
+        _castSpellWithSlot(300, "pact", 3);
+        if (sp.pactUsed !== 2) return "пакт-каст 2: ожидал pactUsed 2, получено " + sp.pactUsed;
+        _castSpellWithSlot(300, "pact", 3); // свободных нет → отказ без ухода в минус
+        if (sp.pactUsed !== 2) return "пакт ушёл выше лимита: " + sp.pactUsed;
+        _castSpellWithSlot(300, "slot", 1); // обычных ячеек нет вовсе → отказ
+        if ((sp.slotsUsed[1] || 0) !== 0) return "потрачена несуществующая обычная ячейка";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
   }
 
   // ────────── БЛОК 12 (TEST-3): отряд и трекер боя (app-party.js) ──────────

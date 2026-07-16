@@ -439,6 +439,7 @@ card.innerHTML =
     (spell.desc ? '<div class="spell-full-desc">' + escapeHtml(spell.desc) + '</div>' : '') +
     (spell.higherLevel ? '<div class="spell-higher">📈 На больших уровнях: ' + escapeHtml(spell.higherLevel) + '</div>' : '') +
     '<div class="spell-card-actions">' +
+    '<button class="spell-cast-btn" onclick="castSpell(' + spell.id + ')">✨ Использовать</button>' +
     (spell.duration && spell.duration.toLowerCase().includes('концентрац') ? '<button class="spell-conc-btn" onclick="setConcentration(this.dataset.name)" data-name="' + escapeHtml(spell.name) + '">🔮 Концентрация</button>' : '') +
     (canCastRitual ? '<button class="spell-ritual-btn" onclick="castRitual(\'' + escapeHtml(spell.name).replace(/'/g,"&#39;") + '\')">🕐 Ритуал</button>' : '') +
     (prepClass && !isCantrip ? '<button class="spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + spell.id + ')">' + (prepared ? '✅ Подготовлено' : '○ Подготовить') + '</button>' : '') +
@@ -528,6 +529,111 @@ function renderPrepCounter() {
   var lvlLabel = prep.formula === "mod+halfLevel" ? "½ ур." : "ур.";
   el.style.display = "";
   el.innerHTML = '<span class="prep-icon">📋</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span><span class="prep-hint">(' + statName + ' + ' + lvlLabel + ')</span>';
+}
+
+// ── Использование заклинания (трата ячейки из карточки) ─────
+// Варианты ячеек для каста: обычные уровней spell.level..9 со свободными
+// + пакт-ячейки колдуна (их уровень не ниже уровня заклинания).
+function _castableSlotOptions(char, spell) {
+  var opts = [];
+  if (!char || !char.spells || !spell) return opts;
+  var minLvl = Math.max(1, spell.level || 0);
+  for (var i = minLvl; i <= 9; i++) {
+    var free = (char.spells.slots[i] || 0) - (char.spells.slotsUsed[i] || 0);
+    if (free > 0) opts.push({ type: "slot", level: i, free: free });
+  }
+  var pactFree = (char.spells.pactSlots || 0) - (char.spells.pactUsed || 0);
+  var pactLvl = char.spells.pactLevel || 0;
+  if (pactFree > 0 && pactLvl >= minLvl) opts.push({ type: "pact", level: pactLvl, free: pactFree });
+  return opts;
+}
+
+function castSpell(spellId) {
+  const char = getCurrentChar();
+  if (!char) return;
+  var spell = (char.spells.mySpells || []).find(function(s){ return s.id === spellId; });
+  if (!spell) return;
+  // Заговоры кастуются без ячеек
+  if ((spell.level || 0) === 0) { _finishCast(char, spell, null); return; }
+  if (isPrepClass(char) && !isSpellPrepared(char, spell.id)) {
+    showToast("«" + spell.name + "» не подготовлено — сначала нажмите «Подготовить»", "warn");
+    return;
+  }
+  var opts = _castableSlotOptions(char, spell);
+  if (opts.length === 0) {
+    showToast("Нет свободных ячеек " + spell.level + " уровня и выше", "warn");
+    return;
+  }
+  // Единственный вариант — тратим сразу; несколько (апкаст/пакт) — выбор уровня
+  if (opts.length === 1) { _castSpellWithSlot(spellId, opts[0].type, opts[0].level); return; }
+  openCastChooser(spell, opts);
+}
+
+function _castSpellWithSlot(spellId, slotType, level) {
+  const char = getCurrentChar();
+  if (!char) return;
+  var spell = (char.spells.mySpells || []).find(function(s){ return s.id === spellId; });
+  if (!spell) return;
+  if (slotType === "pact") {
+    if ((char.spells.pactSlots || 0) - (char.spells.pactUsed || 0) <= 0) {
+      showToast("Нет свободных пакт-ячеек", "warn"); return;
+    }
+    char.spells.pactUsed = (char.spells.pactUsed || 0) + 1;
+  } else {
+    if ((char.spells.slots[level] || 0) - (char.spells.slotsUsed[level] || 0) <= 0) {
+      showToast("Нет свободных ячеек " + level + " уровня", "warn"); return;
+    }
+    char.spells.slotsUsed[level] = (char.spells.slotsUsed[level] || 0) + 1;
+  }
+  closeCastChooser();
+  saveToLocal();
+  renderSpellSlots();
+  _finishCast(char, spell, { type: slotType, level: level });
+}
+
+function _finishCast(char, spell, slot) {
+  var note;
+  if (slot) {
+    var freeLeft = slot.type === "pact"
+      ? (char.spells.pactSlots || 0) - (char.spells.pactUsed || 0)
+      : (char.spells.slots[slot.level] || 0) - (char.spells.slotsUsed[slot.level] || 0);
+    note = " — " + (slot.type === "pact" ? "пакт-ячейка" : "ячейка") + " " + slot.level + " ур. (осталось " + freeLeft + ")";
+  } else {
+    note = " (заговор, без ячейки)";
+  }
+  if (window.AppLog) AppLog.action("spells", "заклинание использовано: " + spell.name + note);
+  showToast("✨ «" + spell.name + "»" + note, "success");
+  // Заклинание с концентрацией сразу ставит концентрацию (повторный каст того же — не трогаем)
+  if (spell.duration && spell.duration.toLowerCase().includes("концентрац") &&
+      typeof setConcentration === "function" && char.concentration !== spell.name) {
+    setConcentration(spell.name);
+  }
+}
+
+function openCastChooser(spell, opts) {
+  var modal = $("cast-spell-modal");
+  var box = $("cast-spell-options");
+  if (!modal || !box) return;
+  var title = $("cast-spell-title");
+  if (title) title.textContent = spell.name;
+  var hint = $("cast-spell-hint");
+  if (hint) hint.textContent = (spell.level > 0 ? spell.level + " уровень. " : "") +
+    (spell.higherLevel ? spell.higherLevel : "Выберите, какую ячейку потратить.");
+  box.innerHTML = "";
+  opts.forEach(function(o) {
+    var b = document.createElement("button");
+    b.className = "cast-slot-option";
+    b.innerHTML = '<span class="cso-lvl">' + o.level + ' ур.' + (o.type === "pact" ? ' · ПАКТ' : '') + '</span>' +
+      '<span class="cso-free">свободно: ' + o.free + '</span>';
+    b.onclick = function(){ _castSpellWithSlot(spell.id, o.type, o.level); };
+    box.appendChild(b);
+  });
+  modal.classList.add("active");
+}
+
+function closeCastChooser() {
+  var modal = $("cast-spell-modal");
+  if (modal) modal.classList.remove("active");
 }
 
 var _ritualTimer = null;
