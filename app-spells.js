@@ -603,10 +603,58 @@ function _finishCast(char, spell, slot) {
   }
   if (window.AppLog) AppLog.action("spells", "заклинание использовано: " + spell.name + note);
   showToast("✨ «" + spell.name + "»" + note, "success");
-  // Заклинание с концентрацией сразу ставит концентрацию (повторный каст того же — не трогаем)
+  // Заклинание с концентрацией сразу ставит концентрацию (повторный каст того же — не трогаем).
+  // Порядок критичен (CAST-1): setConcentration снимет эффекты старого заклинания,
+  // applyCastEffects после — добавит новые.
   if (spell.duration && spell.duration.toLowerCase().includes("концентрац") &&
       typeof setConcentration === "function" && char.concentration !== spell.name) {
     setConcentration(spell.name);
+  }
+  applyCastEffects(char, spell, slot);
+}
+
+// CAST-1: мост от каста к механике — дескриптор из SPELL_EFFECTS (spell-effects.js).
+// Ветка effects: карточки идут в char.effects (идемпотентно — ручной toggleEffect
+// мог включить их раньше), экземпляр-трекер — в char.activeSpellEffects; повторный
+// каст того же заклинания заменяет свой экземпляр (refresh таймера, без дублей).
+// Ветка summon: пока только фамильяр (модалка призыва), остальные призывы — CAST-5.
+function applyCastEffects(char, spell, slot) {
+  var d = (typeof getSpellEffect === "function") ? getSpellEffect(spell.name, spell.source) : null;
+  if (!d) return;
+  if (d.effects && d.effects.length) {
+    if (!char.effects) char.effects = [];
+    if (!char.activeSpellEffects) char.activeSpellEffects = [];
+    var names = [];
+    d.effects.forEach(function(id) {
+      if (char.effects.indexOf(id) === -1) char.effects.push(id);
+      var card = (typeof EFFECTS_DATA !== "undefined") &&
+        EFFECTS_DATA.find(function(e) { return e.id === id; });
+      names.push(card ? card.name : id);
+    });
+    char.activeSpellEffects = char.activeSpellEffects.filter(function(inst) {
+      return inst.spellName !== spell.name;
+    });
+    char.activeSpellEffects.push({
+      id: Date.now(),
+      spellName: spell.name,
+      source: spell.source || null,
+      effectIds: d.effects.slice(),
+      slotLevel: slot ? slot.level : null,
+      concentration: !!(spell.duration && spell.duration.toLowerCase().includes("концентрац")),
+      unit: d.duration ? d.duration.unit : null,
+      value: d.duration ? d.duration.value : null,
+      roundsLeft: (typeof durationToRounds === "function") ? durationToRounds(d.duration) : null
+    });
+    if (window.AppLog) AppLog.action("spells", "эффект от каста: " + spell.name + " → " + names.join(", "));
+    showToast("✨ Эффект: " + names.join(", "), "info");
+    if (typeof calculateAC === "function") calculateAC();
+    if (typeof updateEffectsCount === "function") updateEffectsCount();
+    if (typeof updateStatusBar === "function") updateStatusBar();
+    if (typeof renderEffectsGrid === "function") renderEffectsGrid();
+    saveToLocal();
+  }
+  if (d.summon && d.summon.companionType === "familiar" && typeof summonFamiliar === "function") {
+    summonFamiliar();
   }
 }
 

@@ -3424,6 +3424,173 @@
     });
   }
 
+  // ────────── БЛОК 35 (CAST-1): мост баффов — applyCastEffects / removeCastEffectsForSpell ──────────
+  if (typeof applyCastEffects === "function" && typeof removeCastEffectsForSpell === "function" &&
+      typeof castSpell === "function" && typeof SPELL_EFFECTS !== "undefined") {
+
+    // Фикстура: безбронный волшебник ЛОВ 16 с подготовленными баффами.
+    // mySpells — копии полей реальных записей spells.js (name/duration/source критичны).
+    function _castFixture() {
+      return {
+        id: "test-cast1", name: "Тест CAST-1", class: "Волшебник", level: 5,
+        stats: { str: 10, dex: 16, con: 10, int: 16, wis: 10, cha: 10 },
+        combat: { armorId: "none", hasShield: false, hpCurrent: 20, hpMax: 20, hpDiceSpent: 0 },
+        saves: {}, skills: [], conditions: [], effects: [], activeSpellEffects: [],
+        spells: { stat: "ИНТ", slots: { 1: 4, 3: 3 }, slotsUsed: {}, prepared: [900, 901, 902, 904],
+          mySpells: [
+            { id: 900, name: "Доспехи мага", level: 1, duration: "8 часов",                    source: "PH14" },
+            { id: 901, name: "Ускорение",    level: 3, duration: "Концентрация, до 1 минуты",  source: "PH14" },
+            { id: 902, name: "Огонь фей",    level: 1, duration: "Концентрация, до 1 минуты",  source: "PH14" },
+            { id: 903, name: "Свет",         level: 0, duration: "1 час",                      source: "PH14" },
+            { id: 904, name: "Поиск фамильяра", level: 1, duration: "Мгновенно",               source: "PH14" }
+          ] }
+      };
+    }
+
+    t("[cast-1] каст «Доспехи мага»: карточка + экземпляр-трекер, КД 13+ЛОВ (без двойного учёта)", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [_castFixture()];
+        window.currentId = "test-cast1";
+        var c = window.characters[0];
+        _castSpellWithSlot(900, "slot", 1);
+        if (c.effects.indexOf("mage_armor") === -1) return "mage_armor не в char.effects";
+        if (c.activeSpellEffects.length !== 1) return "экземпляров: " + c.activeSpellEffects.length;
+        var inst = c.activeSpellEffects[0];
+        if (inst.spellName !== "Доспехи мага") return "spellName: " + inst.spellName;
+        if (inst.unit !== "hour" || inst.value !== 8) return "длительность: " + inst.value + " " + inst.unit;
+        if (inst.roundsLeft !== null) return "часовые не тикают, roundsLeft: " + inst.roundsLeft;
+        if (inst.concentration !== false) return "концентрация не должна ставиться";
+        if (inst.slotLevel !== 1) return "slotLevel: " + inst.slotLevel;
+        if (c.combat.ac !== 16) return "КД: ожидал 16 (13+3 ЛОВ), получено " + c.combat.ac;
+        castSpell(903); // заговор без дескриптора — no-op для эффектов
+        if (c.activeSpellEffects.length !== 1) return "«Свет» создал экземпляр";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[cast-1] повторный каст = refresh: один экземпляр, карточка без дублей, таймер заново", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [_castFixture()];
+        window.currentId = "test-cast1";
+        var c = window.characters[0];
+        _castSpellWithSlot(901, "slot", 3); // Ускорение: 1 мин → roundsLeft 10
+        if (c.activeSpellEffects[0].roundsLeft !== 10) return "roundsLeft: " + c.activeSpellEffects[0].roundsLeft;
+        c.activeSpellEffects[0].roundsLeft = 3; // «прошло 7 раундов»
+        _castSpellWithSlot(901, "slot", 3); // повторный каст того же
+        if (c.activeSpellEffects.length !== 1) return "экземпляров после реккаста: " + c.activeSpellEffects.length;
+        if (c.activeSpellEffects[0].roundsLeft !== 10) return "таймер не освежён: " + c.activeSpellEffects[0].roundsLeft;
+        if (c.effects.filter(function(x){ return x === "haste"; }).length !== 1) return "дубль haste в char.effects";
+        if (c.concentration !== "Ускорение") return "концентрация: " + c.concentration;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[cast-1] смена концентрации снимает эффекты старого, не-концентрационные живут", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [_castFixture()];
+        window.currentId = "test-cast1";
+        var c = window.characters[0];
+        _castSpellWithSlot(900, "slot", 1); // Доспехи мага — без концентрации
+        _castSpellWithSlot(901, "slot", 3); // Ускорение — концентрация
+        _castSpellWithSlot(902, "slot", 1); // Огонь фей — сменил концентрацию
+        if (c.effects.indexOf("haste") !== -1) return "haste не снят при смене концентрации";
+        if (c.effects.indexOf("faerie_fire") === -1) return "faerie_fire не применён";
+        if (c.effects.indexOf("mage_armor") === -1) return "mage_armor пострадал от смены концентрации";
+        var names = c.activeSpellEffects.map(function(i){ return i.spellName; }).sort().join(",");
+        if (names !== "Доспехи мага,Огонь фей") return "экземпляры: " + names;
+        if (c.concentration !== "Огонь фей") return "концентрация: " + c.concentration;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[cast-1] endConcentration снимает связанный эффект и экземпляр", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [_castFixture()];
+        window.currentId = "test-cast1";
+        var c = window.characters[0];
+        _castSpellWithSlot(901, "slot", 3);
+        if (c.effects.indexOf("haste") === -1) return "haste не применён";
+        endConcentration();
+        if (c.concentration !== null) return "концентрация не снята";
+        if (c.effects.indexOf("haste") !== -1) return "haste не снят";
+        if (c.activeSpellEffects.length !== 0) return "экземпляр не удалён";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[cast-1] toggleEffect-off вручную чистит экземпляр каста (двусторонняя синхронизация)", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [_castFixture()];
+        window.currentId = "test-cast1";
+        var c = window.characters[0];
+        _castSpellWithSlot(901, "slot", 3);
+        toggleEffect("haste"); // ручное снятие карточки
+        if (c.effects.indexOf("haste") !== -1) return "карточка не снята";
+        if (c.activeSpellEffects.length !== 0) return "экземпляр каста пережил ручное снятие";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[cast-1] «Поиск фамильяра»: каст открывает модалку призыва, экземпляр не создаётся", function(){
+      if (typeof summonFamiliar !== "function") return true; // noop в минимальной среде
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [_castFixture()];
+        window.currentId = "test-cast1";
+        var c = window.characters[0];
+        _castSpellWithSlot(904, "slot", 1);
+        var modal = document.getElementById("add-companion-modal");
+        if (!modal || !modal.classList.contains("active")) return "модалка призыва не открыта";
+        modal.classList.remove("active");
+        if (c.activeSpellEffects.length !== 0) return "summon создал экземпляр-трекер";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[cast-1] рефкаунт: карточку держат два экземпляра — уходит только после снятия обоих", function(){
+      var c = _castFixture();
+      c.effects = ["bless"];
+      c.activeSpellEffects = [
+        { id: 1, spellName: "А", effectIds: ["bless"] },
+        { id: 2, spellName: "Б", effectIds: ["bless"] }
+      ];
+      removeCastEffectsForSpell(c, "А", "тест");
+      if (c.effects.indexOf("bless") === -1) return "карточка снята, пока её держит второй экземпляр";
+      removeCastEffectsForSpell(c, "Б", "тест");
+      if (c.effects.indexOf("bless") !== -1) return "карточка не снята после снятия обоих";
+      if (removeCastEffectsForSpell(c, "нет такого", "тест") !== false) return "не-false для незнакомого имени";
+      return true;
+    });
+
+    t("[cast-1] длинный отдых чистит activeSpellEffects и концентрацию", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      var savedRest = window.currentRestType, savedLoad = window.loadCharacter, savedShow = window.showRestResult;
+      try {
+        window.characters = [_castFixture()];
+        window.currentId = "test-cast1";
+        var c = window.characters[0];
+        _castSpellWithSlot(900, "slot", 1);
+        _castSpellWithSlot(901, "slot", 3);
+        window.currentRestType = "long";
+        window.loadCharacter = function(){};   // без полного перерендера в тесте
+        window.showRestResult = function(){};
+        confirmRest();
+        if (c.effects.length !== 0) return "char.effects не очищен: " + c.effects.join(",");
+        if (c.activeSpellEffects.length !== 0) return "activeSpellEffects не очищен";
+        if (c.concentration !== null) return "концентрация пережила длинный отдых";
+        return true;
+      } finally {
+        window.characters = savedChars; window.currentId = savedId;
+        window.currentRestType = savedRest; window.loadCharacter = savedLoad; window.showRestResult = savedShow;
+      }
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

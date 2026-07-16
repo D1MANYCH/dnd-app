@@ -183,6 +183,10 @@ if (char.conditions && char.conditions.length > 0) {
   }
 }
 char.effects = [];
+// CAST-1: длинный отдых снимает все эффекты кастов и обрывает концентрацию
+char.activeSpellEffects = [];
+char.concentration = null;
+char.concentrationData = null;
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 resetResourcesByRest("long");
 // FIN-8: восстановить заряды предметов (палочки/посохи/жезлы)

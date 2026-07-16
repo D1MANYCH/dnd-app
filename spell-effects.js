@@ -23,8 +23,29 @@
 // ============================================================
 
 const SPELL_EFFECTS = {
-  // ── Баффы (мост к EFFECTS_DATA — потребитель в CAST-1) ─────────────────────
-  "Доспехи мага":    { effects: ["mage_armor"],   duration: { value: 8, unit: "hour" } },
+  // ── Баффы/дебаффы (мост к EFFECTS_DATA — потребитель applyCastEffects, CAST-1) ──
+  // Ловушки перевода (ключ = имя ЗАКЛИНАНИЯ из spells.js, карточка может зваться иначе):
+  // Bane = «Порча» (id bane, карточка «Злосчастье»), Hex = «Сглаз» (id hex, карточка
+  // «Порча (Колдун)»), Mirror Image = «Отражения», Divine Favor = «Божественное
+  // благоволение» (карточка «Священное воодушевление»), Bestow Curse = «Проклятие»,
+  // Pass Without Trace = «Бесследное передвижение».
+  "Доспехи мага":              { effects: ["mage_armor"],         duration: { value: 8,  unit: "hour" } },
+  "Щит":                       { effects: ["shield_spell"],       duration: { value: 1,  unit: "round" } },
+  "Ускорение":                 { effects: ["haste"],              duration: { value: 1,  unit: "minute" } },
+  "Размытый образ":            { effects: ["blur"],               duration: { value: 1,  unit: "minute" } },
+  "Убежище":                   { effects: ["sanctuary"],          duration: { value: 1,  unit: "minute" } },
+  "Благословение":             { effects: ["bless"],              duration: { value: 1,  unit: "minute" } },
+  "Героизм":                   { effects: ["heroism"],            duration: { value: 1,  unit: "minute" } },
+  "Огонь фей":                 { effects: ["faerie_fire"],        duration: { value: 1,  unit: "minute" } },
+  "Защита от добра и зла":     { effects: ["protection_evil"],    duration: { value: 10, unit: "minute" } },
+  "Бесследное передвижение":   { effects: ["pass_without_trace"], duration: { value: 1,  unit: "hour" } },
+  "Отражения":                 { effects: ["mirror_image"],       duration: { value: 1,  unit: "minute" } },
+  "Метка охотника":            { effects: ["hunters_mark"],       duration: { value: 1,  unit: "hour" } },
+  "Божественное благоволение": { effects: ["divine_favor"],       duration: { value: 1,  unit: "minute" } },
+  "Сглаз":                     { effects: ["hex"],                duration: { value: 1,  unit: "hour" } },
+  "Проклятие":                 { effects: ["bestow_curse"],       duration: { value: 1,  unit: "minute" } },
+  "Порча":                     { effects: ["bane"],               duration: { value: 1,  unit: "minute" } },
+  "Замедление":                { effects: ["slow"],               duration: { value: 1,  unit: "minute" } },
 
   // ── Урон (потребитель в CAST-4) ─────────────────────────────────────────────
   "Огненный шар":    { damage: { formula: "8к6", upcast: "1к6", save: "dex", halfOnSave: true } },

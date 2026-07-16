@@ -694,6 +694,15 @@ function renderEffectsGrid() {
   if (!grid) return;
   const char = currentId ? getCurrentChar() : null;
   const activeSet = (char && char.effects) ? char.effects : [];
+  // CAST-1: карточкам с живым экземпляром каста показываем остаток в раундах
+  // (тикать начнёт трекер боя в CAST-2; часовые длительности не тикают — без остатка)
+  var _castLeft = {};
+  if (char && char.activeSpellEffects) {
+    char.activeSpellEffects.forEach(function(inst) {
+      if (inst.roundsLeft == null) return;
+      (inst.effectIds || []).forEach(function(id) { _castLeft[id] = inst.roundsLeft; });
+    });
+  }
   grid.innerHTML = "";
   // Сгруппировать
   var groups = { armor: [], spell: [], class: [], other: [] };
@@ -730,10 +739,12 @@ function renderEffectsGrid() {
       item.className = "effect-item" + (effect.type ? " " + effect.type : "") + (isActive ? " active" : "");
       item.id = "effect-" + effect.id;
       item.onclick = function() { toggleEffect(effect.id); };
+      var durText = effect.duration;
+      if (isActive && _castLeft[effect.id] != null) durText += " · ⏳ осталось " + _castLeft[effect.id] + " рд";
       item.innerHTML =
         "<div class=\"effect-name\">" + escapeHtml(effect.name) + "</div>" +
         "<div class=\"effect-desc\">" + escapeHtml(effect.desc) + "</div>" +
-        "<div class=\"effect-duration\">" + escapeHtml(effect.duration) + "</div>" +
+        "<div class=\"effect-duration\">" + escapeHtml(durText) + "</div>" +
         "<span class=\"effect-type " + effect.type + "\">" + (effect.type === 'buff' ? '✨ Бафф' : '💀 Дебафф') + "</span>";
       grid.appendChild(item);
     });
@@ -774,6 +785,13 @@ const index = char.effects.indexOf(effectId);
 const effectEl = $("effect-" + effectId);
 if (index > -1) {
 char.effects.splice(index, 1);
+// CAST-1: ручное снятие карточки убирает и экземпляры каста, которые её держат
+// (двусторонняя синхронизация с applyCastEffects)
+if (char.activeSpellEffects && char.activeSpellEffects.length) {
+  char.activeSpellEffects = char.activeSpellEffects.filter(function(inst) {
+    return (inst.effectIds || []).indexOf(effectId) === -1;
+  });
+}
 if (effectEl) effectEl.classList.remove("active");
 } else {
 char.effects.push(effectId);
@@ -917,7 +935,9 @@ modifiers.push({name: "Щит", value: 2, type: "active"});
 if (char.effects) {
 char.effects.forEach(function(effectId) {
 const effect = EFFECTS_DATA.find(function(e) { return e.id === effectId; });
-if (effect && effect.acBonus) {
+// CAST-1: базово-формульные эффекты (13+ЛОВ и т.п.) уже учтены веткой выше —
+// без исключения mage_armor давал 13+ЛОВ+3 (двойной учёт, как в бронной ветке)
+if (effect && effect.acBonus && !["mage_armor","monk_unarmored","barbarian_unarmored"].includes(effectId)) {
 ac += effect.acBonus;
 if (effect.acBonus > 0) {
 formulaParts.push("+" + effect.acBonus + " (" + effect.name + ")");
@@ -959,6 +979,35 @@ updateStatusBar();
 showToast(char.inspiration ? "✨ Вдохновение получено!" : "✨ Вдохновение использовано", char.inspiration ? "success" : "info");
 }
 
+// CAST-1: снять эффекты, повешенные кастом заклинания spellName (конец/смена
+// концентрации, ручное снятие). Рефкаунт: карточка уходит из char.effects, только
+// если её не держит другой живой экземпляр activeSpellEffects. Возвращает true,
+// если что-то сняли (вызывающий решает, перерендеривать ли).
+function removeCastEffectsForSpell(char, spellName, reason) {
+  if (!char || !char.activeSpellEffects || !char.activeSpellEffects.length) return false;
+  var gone = char.activeSpellEffects.filter(function(i) { return i.spellName === spellName; });
+  if (!gone.length) return false;
+  char.activeSpellEffects = char.activeSpellEffects.filter(function(i) { return i.spellName !== spellName; });
+  var held = {};
+  char.activeSpellEffects.forEach(function(i) {
+    (i.effectIds || []).forEach(function(id) { held[id] = true; });
+  });
+  gone.forEach(function(i) {
+    (i.effectIds || []).forEach(function(id) {
+      if (held[id]) return;
+      var idx = char.effects ? char.effects.indexOf(id) : -1;
+      if (idx > -1) char.effects.splice(idx, 1);
+    });
+  });
+  if (window.AppLog) AppLog.action("combat", "эффекты «" + spellName + "» сняты (" + (reason || "снятие") + ")");
+  calculateAC();
+  updateEffectsCount();
+  updateStatusBar();
+  if (typeof renderEffectsGrid === "function") renderEffectsGrid();
+  saveToLocal();
+  return true;
+}
+
 function setConcentration(btnOrName) {
 var spellName = (btnOrName && typeof btnOrName === 'object') ? (btnOrName.dataset && btnOrName.dataset.name) : btnOrName;
 if (!currentId) return;
@@ -969,9 +1018,10 @@ if (char.concentration && char.concentration === spellName) {
   openConcDetails();
   return;
 }
-// Если другое заклинание — прервать старое
+// Если другое заклинание — прервать старое (CAST-1: вместе с его эффектами)
 if (char.concentration && char.concentration !== spellName) {
   showToast("🔮 Концентрация на «" + char.concentration + "» прервана", "warn");
+  removeCastEffectsForSpell(char, char.concentration, "смена концентрации");
 }
 // Найти данные заклинания
 var spellData = null;
@@ -1033,6 +1083,7 @@ if (!char) return;
 const name = char.concentration;
 if (window.AppLog && name) AppLog.action("combat", "концентрация на «" + name + "» завершена");
 char.concentration = null;
+if (name) removeCastEffectsForSpell(char, name, "конец концентрации"); // CAST-1
 saveToLocal();
 updateConcentrationDisplay();
 if (name) showToast("🔮 Концентрация на «" + name + "» завершена", "info");
