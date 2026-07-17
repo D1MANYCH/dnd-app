@@ -979,6 +979,27 @@ updateStatusBar();
 showToast(char.inspiration ? "✨ Вдохновение получено!" : "✨ Вдохновение использовано", char.inspiration ? "success" : "info");
 }
 
+// CAST-3: откат «телесных» следов экземпляра каста. «Подмога» (hpMaxBonus) —
+// минус бонус максимума; текущие ХП поджимаются к новому максимуму, но иначе
+// не уменьшаются (RAW). Врем. ХП гаснут, только если пользователь не
+// перезаписал их бо́льшим значением (tempHpApplied = грант заклинания).
+// Возвращает true, если ХП-поля менялись (вызывающий обновляет экран).
+function _revertCastInstanceBody(char, inst) {
+  if (!char || !char.combat || !inst) return false;
+  var touched = false;
+  if (inst.hpMaxBonus) {
+    char.combat.hpMax = Math.max(1, (parseInt(char.combat.hpMax, 10) || 0) - inst.hpMaxBonus);
+    var cur = parseInt(char.combat.hpCurrent, 10) || 0;
+    if (cur > char.combat.hpMax) char.combat.hpCurrent = char.combat.hpMax;
+    touched = true;
+  }
+  if (inst.tempHpApplied != null) {
+    var tmp = parseInt(char.combat.hpTemp, 10) || 0;
+    if (tmp > 0 && tmp <= inst.tempHpApplied) { char.combat.hpTemp = 0; touched = true; }
+  }
+  return touched;
+}
+
 // CAST-1: снять эффекты, повешенные кастом заклинания spellName (конец/смена
 // концентрации, ручное снятие). Рефкаунт: карточка уходит из char.effects, только
 // если её не держит другой живой экземпляр activeSpellEffects. Возвращает true,
@@ -992,7 +1013,9 @@ function removeCastEffectsForSpell(char, spellName, reason) {
   char.activeSpellEffects.forEach(function(i) {
     (i.effectIds || []).forEach(function(id) { held[id] = true; });
   });
+  var bodyTouched = false;
   gone.forEach(function(i) {
+    if (_revertCastInstanceBody(char, i)) bodyTouched = true; // CAST-3: врем. ХП / hpMax
     (i.effectIds || []).forEach(function(id) {
       if (held[id]) return;
       var idx = char.effects ? char.effects.indexOf(id) : -1;
@@ -1004,8 +1027,28 @@ function removeCastEffectsForSpell(char, spellName, reason) {
   updateEffectsCount();
   updateStatusBar();
   if (typeof renderEffectsGrid === "function") renderEffectsGrid();
+  if (bodyTouched && typeof updateHPDisplay === "function") updateHPDisplay();
   saveToLocal();
   return true;
+}
+
+// CAST-3: полная очистка эффектов кастов — длинный отдых (app-hp.js confirmRest)
+// зовёт её ВМЕСТО голого обнуления: реверт hpMax «Подмоги» обязан пройти ДО
+// сброса hpCurrent = maxHp. Карточки экземпляров уходят из char.effects,
+// концентрация гаснет. Без перерендеров — вызывающий обновляет экран сам
+// (confirmRest делает loadCharacter).
+function clearAllCastEffects(char) {
+  if (!char) return;
+  (char.activeSpellEffects || []).forEach(function(inst) {
+    _revertCastInstanceBody(char, inst);
+    (inst.effectIds || []).forEach(function(id) {
+      var idx = char.effects ? char.effects.indexOf(id) : -1;
+      if (idx > -1) char.effects.splice(idx, 1);
+    });
+  });
+  char.activeSpellEffects = [];
+  char.concentration = null;
+  char.concentrationData = null;
 }
 
 // CAST-2: экспирация эффектов каста по юнитам длительности — короткий отдых
@@ -1424,7 +1467,12 @@ const level = parseInt(levelEl.value, 10) || 1;
 const conMod = getMod(parseInt(conEl.value, 10) || 10);
 const className = classEl.value;
 const hitDie = CLASS_HIT_DICE[className] || 8;
-const newMaxHP = calculateMaxHP(level, conMod, hitDie);
+// CAST-3: живые бонусы максимума от кастов («Подмога») — поверх авто-расчёта,
+// иначе перезагрузка/переключение персонажа молча съедает бонус, а реверт
+// при экспирации уводит hpMax НИЖЕ базы. Инвариант: hpMax = авто-база + бонусы.
+var castHpBonus = 0;
+(char.activeSpellEffects || []).forEach(function(i) { if (i.hpMaxBonus) castHpBonus += i.hpMaxBonus; });
+const newMaxHP = calculateMaxHP(level, conMod, hitDie) + castHpBonus;
 if (hpMaxEl) hpMaxEl.value = newMaxHP;
 // Also update the visible manual field (only if not actively editing it)
 const hpMaxManualEl = $("hp-max-manual");

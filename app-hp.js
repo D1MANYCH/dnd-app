@@ -163,6 +163,15 @@ var warlockStr = _isWarlock ? "<p>🔮 Ячейки пакта восстано�
 var castExpiredStr = _castExpired.length ? "<p>⏳ Истекли эффекты: " + _castExpired.join(", ") + "</p>" : "";
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>🎲 Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>❤️ Восстановлено ХП: " + hpHealed + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr + castExpiredStr;
 } else if (currentRestType === "long") {
+// CAST-3: откат эффектов кастов СТРОГО до чтения maxHp — «Подмога» мутирует
+// hpMax, и реверт обязан пройти раньше, чем hpCurrent = maxHp.
+if (typeof clearAllCastEffects === "function") {
+  clearAllCastEffects(char);
+} else {
+  char.activeSpellEffects = [];
+  char.concentration = null;
+  char.concentrationData = null;
+}
 const maxHp = parseInt(char.combat.hpMax, 10) || 0;
 char.combat.hpCurrent = maxHp;
 for(let i=1; i<=9; i++) { if (char.spells.slots[i]) char.spells.slotsUsed[i] = 0; }
@@ -188,10 +197,8 @@ if (char.conditions && char.conditions.length > 0) {
   }
 }
 char.effects = [];
-// CAST-1: длинный отдых снимает все эффекты кастов и обрывает концентрацию
-char.activeSpellEffects = [];
-char.concentration = null;
-char.concentrationData = null;
+// CAST-1/3: эффекты кастов и концентрацию уже снял clearAllCastEffects выше
+// (до сброса ХП); здесь гасятся оставшиеся РУЧНЫЕ карточки эффектов.
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 resetResourcesByRest("long");
 // FIN-8: восстановить заряды предметов (палочки/посохи/жезлы)

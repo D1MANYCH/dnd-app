@@ -147,6 +147,13 @@ const document = {
     s.tagName = (tag || 'div').toUpperCase();
     return s;
   },
+  // CAST-3: каст лечения зовёт rollFormula → animateDice3d; в node нет DiceBox,
+  // ветка 2D-fallback (animateDice2d) синхронно строит SVG через createElementNS.
+  createElementNS(ns, tag) {
+    const s = makeStub();
+    s.tagName = (tag || 'div').toUpperCase();
+    return s;
+  },
   createTextNode(t) { const s = makeStub(); s.textContent = String(t); return s; },
   addEventListener() {},
   removeEventListener() {},

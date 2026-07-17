@@ -50,9 +50,26 @@ const SPELL_EFFECTS = {
   // ── Урон (потребитель в CAST-4) ─────────────────────────────────────────────
   "Огненный шар":    { damage: { formula: "8к6", upcast: "1к6", save: "dex", halfOnSave: true } },
 
-  // ── Лечение и временные ХП (потребитель в CAST-3) ───────────────────────────
-  "Лечение ран":     { heal: { formula: "1к8", upcast: "1к8", addSpellMod: true } },
-  "Псевдожизнь":     { tempHp: { formula: "1к4+4", upcast: "5" }, duration: { value: 1, unit: "hour" } },
+  // ── Лечение и временные ХП (CAST-3) ─────────────────────────────────────────
+  // Формулы сверены с desc/higherLevel spells.js обеих редакций; расхождения
+  // PH24 (базовые кубы удвоены у «слов»/«Лечения ран», 5к8 у Множественного) —
+  // через bySource. Плоские формулы без кубиков («70», «5») применяются без
+  // броска (flatFormulaTotal ниже).
+  "Лечение ран":     { heal: { formula: "1к8", upcast: "1к8", addSpellMod: true },
+                       bySource: { PH24: { heal: { formula: "2к8", upcast: "2к8", addSpellMod: true } } } },
+  "Лечащее слово":   { heal: { formula: "1к4", upcast: "1к4", addSpellMod: true },
+                       bySource: { PH24: { heal: { formula: "2к4", upcast: "2к4", addSpellMod: true } } } },
+  "Молебен лечения": { heal: { formula: "2к8", upcast: "1к8", addSpellMod: true } },
+  "Множественное лечащее слово": { heal: { formula: "1к4", upcast: "1к4", addSpellMod: true },
+                       bySource: { PH24: { heal: { formula: "2к4", upcast: "1к4", addSpellMod: true } } } },
+  "Множественное лечение ран":   { heal: { formula: "3к8", upcast: "1к8", addSpellMod: true },
+                       bySource: { PH24: { heal: { formula: "5к8", upcast: "1к8", addSpellMod: true } } } },
+  "Полное исцеление": { heal: { formula: "70", upcast: "10" } },
+  "Регенерация":      { heal: { formula: "4к8+15" } },
+  "Псевдожизнь":     { tempHp: { formula: "1к4+4", upcast: "5" }, duration: { value: 1, unit: "hour" },
+                       bySource: { PH24: { tempHp: { formula: "2к4+4", upcast: "5" } } } },
+  "Доспех Агатиса":  { tempHp: { formula: "5", upcast: "5" }, duration: { value: 1, unit: "hour" } },
+  "Подмога":         { hpMaxBonus: { base: 5, perUpcast: 5 }, duration: { value: 8, unit: "hour" } },
 
   // ── Призывы (потребитель в CAST-1/CAST-5) ───────────────────────────────────
   "Поиск фамильяра": { summon: { companionType: "familiar", picker: "familiarForms" } }
@@ -95,9 +112,26 @@ function durationToRounds(dur) {
   return null;
 }
 
+// CAST-3: сумма «плоской» формулы без кубиков — «70+10+10» → 90, «5» → 5.
+// Формулы с кубиками (и любой мусор) → null: их бросает rollFormula.
+// Нужна плоскому лечению/врем. ХП («Полное исцеление», «Доспех Агатиса»).
+function flatFormulaTotal(formula) {
+  var s = String(formula == null ? "" : formula).replace(/\s+/g, "");
+  if (!s || !/^[0-9+\-]+$/.test(s)) return null;
+  if (s[0] !== "+" && s[0] !== "-") s = "+" + s;
+  var re = /([+-])(\d+)/g, m, idx = 0, total = 0;
+  while ((m = re.exec(s)) !== null) {
+    if (m.index !== idx) return null;
+    idx = re.lastIndex;
+    total += (m[1] === "-" ? -1 : 1) * parseInt(m[2], 10);
+  }
+  return idx === s.length ? total : null;
+}
+
 if (typeof window !== "undefined") {
   window.SPELL_EFFECTS = SPELL_EFFECTS;
   window.getSpellEffect = getSpellEffect;
   window.scaleFormula = scaleFormula;
   window.durationToRounds = durationToRounds;
+  window.flatFormulaTotal = flatFormulaTotal;
 }

@@ -3353,18 +3353,29 @@
       return bad.length === 0 ? true : "битые id: " + bad.join(", ");
     });
 
-    t("[cast-0] все формулы (база и апкаст ×2) парсятся parseDiceFormula", function(){
+    t("[cast-0] все формулы (база и апкаст ×2, вкл. bySource) парсятся или плоские", function(){
       if (typeof parseDiceFormula !== "function") return "нет parseDiceFormula";
+      // CAST-3: формула валидна, если её берёт parseDiceFormula (кубики) ЛИБО
+      // flatFormulaTotal (плоская без кубиков — «70», «5»).
+      function formulaOk(f) {
+        if (parseDiceFormula(f).ok) return true;
+        return typeof flatFormulaTotal === "function" && flatFormulaTotal(f) != null;
+      }
       var bad = [];
       Object.keys(SPELL_EFFECTS).forEach(function(k){
-        var d = SPELL_EFFECTS[k];
-        [d.damage, d.heal, d.tempHp].forEach(function(part){
-          if (!part || !part.formula) return;
-          if (!parseDiceFormula(part.formula).ok) bad.push(k + ": " + part.formula);
-          if (part.upcast) {
-            var up = scaleFormula(part.formula, part.upcast, 1, 3);
-            if (!parseDiceFormula(up).ok) bad.push(k + " (апкаст): " + up);
-          }
+        var variants = [SPELL_EFFECTS[k]];
+        Object.keys(SPELL_EFFECTS[k].bySource || {}).forEach(function(src){
+          variants.push(getSpellEffect(k, src));
+        });
+        variants.forEach(function(d){
+          [d.damage, d.heal, d.tempHp].forEach(function(part){
+            if (!part || !part.formula) return;
+            if (!formulaOk(part.formula)) bad.push(k + ": " + part.formula);
+            if (part.upcast) {
+              var up = scaleFormula(part.formula, part.upcast, 1, 3);
+              if (!formulaOk(up)) bad.push(k + " (апкаст): " + up);
+            }
+          });
         });
       });
       return bad.length === 0 ? true : bad.join("; ");
@@ -3683,6 +3694,158 @@
         window.currentRestType = savedRest; window.hitDiceToSpend = savedDice;
         window.loadCharacter = savedLoad; window.showRestResult = savedShow;
       }
+    });
+  }
+
+  // ────────── БЛОК 37 (CAST-3): лечение / временные ХП / «Подмога» ──────────
+  // Раннер синхронный: кастуются только «плоские» пути (без 3D-броска) —
+  // «Полное исцеление» (70), «Доспех Агатиса» (5), «Подмога» (+5). Бросковая
+  // математика покрыта чистыми хелперами (scaleFormula/flatFormulaTotal/castStatMod).
+  if (typeof applyCastEffects === "function" && typeof clearAllCastEffects === "function" &&
+      typeof flatFormulaTotal === "function" && typeof castSpell === "function") {
+
+    // Фикстура: жрец МУД 16 (+3), ХП 12/20; hpDice нужен confirmRest.
+    function _cast3Fixture() {
+      return {
+        id: "test-cast3", name: "Тест CAST-3", class: "Жрец", level: 11,
+        stats: { str: 10, dex: 10, con: 10, int: 10, wis: 16, cha: 10 },
+        combat: { armorId: "none", hasShield: false, hpCurrent: 12, hpMax: 20, hpTemp: 0, hpDiceSpent: 0, hpDice: "11к8" },
+        saves: {}, skills: [], conditions: [], effects: [], activeSpellEffects: [],
+        spells: { stat: "МУД", slots: { 1: 4, 2: 3, 3: 3, 4: 2, 6: 1 }, slotsUsed: {}, prepared: [910, 911, 912],
+          mySpells: [
+            { id: 910, name: "Подмога",          level: 2, duration: "8 часов",   source: "PH14" },
+            { id: 911, name: "Доспех Агатиса",   level: 1, duration: "1 час",     source: "PH14" },
+            { id: 912, name: "Полное исцеление", level: 6, duration: "Мгновенно", source: "PH14" }
+          ] }
+      };
+    }
+
+    t("[cast-3] flatFormulaTotal: плоские суммируются, кубики и мусор → null", function(){
+      if (flatFormulaTotal("70") !== 70) return "«70»: " + flatFormulaTotal("70");
+      if (flatFormulaTotal("70+10+10") !== 90) return "«70+10+10»: " + flatFormulaTotal("70+10+10");
+      if (flatFormulaTotal("5+5+5") !== 15) return "«5+5+5»: " + flatFormulaTotal("5+5+5");
+      if (flatFormulaTotal("1к8") !== null) return "«1к8» должна быть null";
+      if (flatFormulaTotal("4к8+15") !== null) return "«4к8+15» должна быть null";
+      if (flatFormulaTotal("") !== null) return "пустая должна быть null";
+      if (flatFormulaTotal("abc") !== null) return "мусор должен быть null";
+      return true;
+    });
+
+    t("[cast-3] апкаст-математика лечения: PH14/PH24 «Лечение ран» ячейкой 3 ур.", function(){
+      var d14 = getSpellEffect("Лечение ран", "PH14");
+      var d24 = getSpellEffect("Лечение ран", "PH24");
+      var up14 = scaleFormula(d14.heal.formula, d14.heal.upcast, 1, 3);
+      var up24 = scaleFormula(d24.heal.formula, d24.heal.upcast, 1, 3);
+      if (up14 !== "1к8+1к8+1к8") return "PH14: " + up14;
+      if (up24 !== "2к8+2к8+2к8") return "PH24: " + up24;
+      if (!d24.heal.addSpellMod) return "PH24 потерял addSpellMod";
+      return true;
+    });
+
+    t("[cast-3] castStatMod: МУД 16 → +3, без spells.stat → 0", function(){
+      var c = _cast3Fixture();
+      if (castStatMod(c) !== 3) return "МУД 16: " + castStatMod(c);
+      c.spells.stat = "";
+      if (castStatMod(c) !== 0) return "пустой stat: " + castStatMod(c);
+      return true;
+    });
+
+    t("[cast-3] «Полное исцеление»: плоское лечение без броска, кап по максимуму", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [_cast3Fixture()];
+        window.currentId = "test-cast3";
+        var c = window.characters[0];
+        _castSpellWithSlot(912, "slot", 6); // 70 ХП при 12/20 → кап 20
+        if (c.combat.hpCurrent !== 20) return "ХП: " + c.combat.hpCurrent;
+        if (c.activeSpellEffects.length !== 0) return "мгновенное лечение создало экземпляр";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[cast-3] «Доспех Агатиса»: 5 врем. ХП, апкаст 3 ур. → 15, правило max", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [_cast3Fixture()];
+        window.currentId = "test-cast3";
+        var c = window.characters[0];
+        _castSpellWithSlot(911, "slot", 1);
+        if (c.combat.hpTemp !== 5) return "врем. ХП базой: " + c.combat.hpTemp;
+        var inst = c.activeSpellEffects[0];
+        if (!inst || inst.tempHpApplied !== 5) return "tempHpApplied: " + (inst ? inst.tempHpApplied : "нет экземпляра");
+        if (inst.unit !== "hour") return "unit: " + inst.unit;
+        _castSpellWithSlot(911, "slot", 3); // апкаст: 5+5+5 = 15 > 5 → берём 15
+        if (c.combat.hpTemp !== 15) return "врем. ХП апкастом: " + c.combat.hpTemp;
+        if (c.activeSpellEffects.length !== 1) return "экземпляров: " + c.activeSpellEffects.length;
+        c.combat.hpTemp = 20; // «пользователь перезаписал бо́льшим»
+        _castSpellWithSlot(911, "slot", 1); // грант 5 < 20 → max оставляет 20
+        if (c.combat.hpTemp !== 20) return "меньший грант затёр бо́льшие врем. ХП: " + c.combat.hpTemp;
+        if (c.activeSpellEffects[0].tempHpApplied !== 5) return "tempHpApplied после реккаста: " + c.activeSpellEffects[0].tempHpApplied;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[cast-3] экспирация врем. ХП: остаток гаснет, перезаписанные бо́льшим — переживают", function(){
+      var c = _cast3Fixture();
+      c.combat.hpTemp = 4; // потрёпанный грант (было 5)
+      c.activeSpellEffects = [{ id: 1, spellName: "Доспех Агатиса", effectIds: [], unit: "hour", tempHpApplied: 5 }];
+      removeCastEffectsForSpell(c, "Доспех Агатиса", "тест");
+      if (c.combat.hpTemp !== 0) return "остаток гранта не погас: " + c.combat.hpTemp;
+      c.combat.hpTemp = 12; // больше гранта — источник уже другой
+      c.activeSpellEffects = [{ id: 2, spellName: "Доспех Агатиса", effectIds: [], unit: "hour", tempHpApplied: 5 }];
+      removeCastEffectsForSpell(c, "Доспех Агатиса", "тест");
+      if (c.combat.hpTemp !== 12) return "чужие врем. ХП погашены: " + c.combat.hpTemp;
+      return true;
+    });
+
+    t("[cast-3] «Подмога»: +5 к hpMax/hpCurrent, повторный каст 4 ур. не стакается", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [_cast3Fixture()];
+        window.currentId = "test-cast3";
+        var c = window.characters[0];
+        _castSpellWithSlot(910, "slot", 2);
+        if (c.combat.hpMax !== 25) return "hpMax базой: " + c.combat.hpMax;
+        if (c.combat.hpCurrent !== 17) return "hpCurrent базой: " + c.combat.hpCurrent;
+        _castSpellWithSlot(910, "slot", 4); // реккаст: −5 старого, +15 нового
+        if (c.combat.hpMax !== 35) return "hpMax после реккаста: " + c.combat.hpMax;
+        if (c.combat.hpCurrent !== 32) return "hpCurrent после реккаста: " + c.combat.hpCurrent;
+        if (c.activeSpellEffects.length !== 1) return "экземпляров: " + c.activeSpellEffects.length;
+        if (c.activeSpellEffects[0].hpMaxBonus !== 15) return "hpMaxBonus: " + c.activeSpellEffects[0].hpMaxBonus;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+
+    t("[cast-3] round-trip «Подмоги» через длинный отдых: hpMax откатывается ДО сброса ХП", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      var savedRest = window.currentRestType, savedLoad = window.loadCharacter, savedShow = window.showRestResult;
+      try {
+        window.characters = [_cast3Fixture()];
+        window.currentId = "test-cast3";
+        var c = window.characters[0];
+        _castSpellWithSlot(910, "slot", 2); // hpMax 25, hpCurrent 17
+        window.currentRestType = "long";
+        window.loadCharacter = function(){};
+        window.showRestResult = function(){};
+        confirmRest();
+        if (c.combat.hpMax !== 20) return "hpMax не откатился: " + c.combat.hpMax;
+        if (c.combat.hpCurrent !== 20) return "hpCurrent ≠ базовому максимуму: " + c.combat.hpCurrent;
+        if (c.activeSpellEffects.length !== 0) return "экземпляр пережил длинный отдых";
+        return true;
+      } finally {
+        window.characters = savedChars; window.currentId = savedId;
+        window.currentRestType = savedRest; window.loadCharacter = savedLoad; window.showRestResult = savedShow;
+      }
+    });
+
+    t("[cast-3] снятие «Подмоги» поджимает текущие ХП к новому максимуму", function(){
+      var c = _cast3Fixture();
+      c.combat.hpMax = 25; c.combat.hpCurrent = 24;
+      c.activeSpellEffects = [{ id: 1, spellName: "Подмога", effectIds: [], unit: "hour", hpMaxBonus: 5 }];
+      removeCastEffectsForSpell(c, "Подмога", "тест");
+      if (c.combat.hpMax !== 20) return "hpMax: " + c.combat.hpMax;
+      if (c.combat.hpCurrent !== 20) return "hpCurrent не поджат: " + c.combat.hpCurrent;
+      return true;
     });
   }
 

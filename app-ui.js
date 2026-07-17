@@ -1851,21 +1851,23 @@ function _renderFormulaResult(groups, rollsByGroup, mod) {
   return { total: total };
 }
 
-// UX-2: общий обработчик «своей формулы» — оба инпута (main и поповер) зовут его.
+// CAST-3: универсальный бросок формулы «2к6+3» — ядро, извлечённое из
+// _rollFormulaFrom, доступно другим модулям (лечение/урон кастов).
 // Запускает настоящий 3D-бросок основной группы через animateDice3d, на колбэке
 // сверяет основную группу с физикой (для ≤2 кубиков) и показывает разбивку.
-function _rollFormulaFrom(inputId) {
-  var input = document.getElementById(inputId) || document.getElementById('dice-custom-input');
-  if (!input) return;
-  var parsed = parseDiceFormula(input.value);
-  var resultBig = $("dice-result-big");
-  var resultInfo = $("dice-result-info");
+// opts: { label — подпись в истории/ленте/инфо, openArena — открыть арену кубов,
+// onResult(res{total}) — колбэк после записи в историю (изолирован try/catch) }.
+// Возвращает результат parseDiceFormula ({ok:false,error} — вызывающий решает,
+// что показать). Interrupt-семантику гонок бросков разруливает animateDice3d.
+function rollFormula(formula, opts) {
+  opts = opts || {};
+  var parsed = parseDiceFormula(formula);
   if (!parsed.ok) {
-    if (resultInfo) resultInfo.textContent = parsed.error;
-    if (resultBig) resultBig.textContent = '—';
     if (window.AppLog) AppLog.action('dice', 'формула отклонена: ' + parsed.error);
-    return;
+    return parsed;
   }
+  if (opts.openArena) { try { openDiceModal(); } catch (e) {} }
+  var label = opts.label || null;
   var groups = parsed.groups, mod = parsed.mod;
   var canon = _formulaCanon(groups, mod);
   // Пре-расчёт всех групп (математика — авторитетна; 3D для одной группы — визуал).
@@ -1883,9 +1885,11 @@ function _rollFormulaFrom(inputId) {
   var precompPrimarySum = rollsByGroup[primaryIdx].reduce(function(a, b){ return a + b; }, 0);
   var timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+  var resultBig = $("dice-result-big");
+  var resultInfo = $("dice-result-info");
   if (resultBig) resultBig.textContent = '…';
-  if (resultInfo) resultInfo.textContent = 'Бросок ' + canon + '…';
-  if (window.AppLog) AppLog.action('dice', 'формула ' + canon + ' — старт', { sides: primary.sides });
+  if (resultInfo) resultInfo.textContent = 'Бросок ' + (label ? label + ' · ' : '') + canon + '…';
+  if (window.AppLog) AppLog.action('dice', 'формула ' + canon + (label ? ' (' + label + ')' : '') + ' — старт', { sides: primary.sides });
 
   animateDice3d(primary.sides, precompPrimarySum, function(v1, v2) {
     // Сверка основной группы с физикой, где это возможно: 1 кубик → v1, 2 → v1,v2.
@@ -1895,12 +1899,33 @@ function _rollFormulaFrom(inputId) {
       rollsByGroup[primaryIdx] = [v1, v2];
     }
     var res = _renderFormulaResult(groups, rollsByGroup, mod);
-    diceHistory.unshift({ sides: primary.sides, result: res.total, mode: 'custom', formula: canon, time: timestamp });
+    if (label) {
+      var ri = $("dice-result-info");
+      if (ri) ri.textContent = label + ' · ' + ri.textContent;
+    }
+    diceHistory.unshift({ sides: primary.sides, result: res.total, mode: 'custom', formula: canon, label: label || undefined, time: timestamp });
     if (diceHistory.length > 10) diceHistory.pop();
     renderDiceHistory();
     try { _updateDiceHistoryBadge(); } catch (e) {}
-    if (window.AppLog) AppLog.action('dice', 'формула ' + canon + ' = ' + res.total, { total: res.total });
+    if (window.AppLog) AppLog.action('dice', 'формула ' + canon + ' = ' + res.total + (label ? ' (' + label + ')' : ''), { total: res.total });
+    if (typeof opts.onResult === 'function') { try { opts.onResult(res); } catch (e) {} }
   }, { qty: Math.min(primary.count, 10) });
+  return parsed;
+}
+window.rollFormula = rollFormula;
+
+// UX-2: общий обработчик «своей формулы» — оба инпута (main и поповер) зовут его.
+// CAST-3: стал обёрткой над rollFormula; на себе — только показ ошибки парсинга.
+function _rollFormulaFrom(inputId) {
+  var input = document.getElementById(inputId) || document.getElementById('dice-custom-input');
+  if (!input) return;
+  var parsed = rollFormula(input.value);
+  if (parsed && !parsed.ok) {
+    var resultBig = $("dice-result-big");
+    var resultInfo = $("dice-result-info");
+    if (resultInfo) resultInfo.textContent = parsed.error;
+    if (resultBig) resultBig.textContent = '—';
+  }
 }
 
 // UX-2: поповер-инпут «своя формула» — тот же общий обработчик.

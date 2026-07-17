@@ -617,13 +617,13 @@ function _finishCast(char, spell, slot) {
 // Ветка effects: карточки идут в char.effects (идемпотентно — ручной toggleEffect
 // мог включить их раньше), экземпляр-трекер — в char.activeSpellEffects; повторный
 // каст того же заклинания заменяет свой экземпляр (refresh таймера, без дублей).
+// CAST-3: ветки heal (бросок → quickHP), tempHp (правило max), hpMaxBonus («Подмога»).
 // Ветка summon: пока только фамильяр (модалка призыва), остальные призывы — CAST-5.
 function applyCastEffects(char, spell, slot) {
   var d = (typeof getSpellEffect === "function") ? getSpellEffect(spell.name, spell.source) : null;
   if (!d) return;
   if (d.effects && d.effects.length) {
     if (!char.effects) char.effects = [];
-    if (!char.activeSpellEffects) char.activeSpellEffects = [];
     var names = [];
     d.effects.forEach(function(id) {
       if (char.effects.indexOf(id) === -1) char.effects.push(id);
@@ -631,20 +631,7 @@ function applyCastEffects(char, spell, slot) {
         EFFECTS_DATA.find(function(e) { return e.id === id; });
       names.push(card ? card.name : id);
     });
-    char.activeSpellEffects = char.activeSpellEffects.filter(function(inst) {
-      return inst.spellName !== spell.name;
-    });
-    char.activeSpellEffects.push({
-      id: Date.now(),
-      spellName: spell.name,
-      source: spell.source || null,
-      effectIds: d.effects.slice(),
-      slotLevel: slot ? slot.level : null,
-      concentration: !!(spell.duration && spell.duration.toLowerCase().includes("концентрац")),
-      unit: d.duration ? d.duration.unit : null,
-      value: d.duration ? d.duration.value : null,
-      roundsLeft: (typeof durationToRounds === "function") ? durationToRounds(d.duration) : null
-    });
+    _replaceCastInstance(char, spell, d, slot, null);
     if (window.AppLog) AppLog.action("spells", "эффект от каста: " + spell.name + " → " + names.join(", "));
     showToast("✨ Эффект: " + names.join(", "), "info");
     if (typeof calculateAC === "function") calculateAC();
@@ -653,9 +640,122 @@ function applyCastEffects(char, spell, slot) {
     if (typeof renderEffectsGrid === "function") renderEffectsGrid();
     saveToLocal();
   }
+  if (d.heal) _applyCastHeal(char, spell, d, slot);
+  if (d.tempHp) _applyCastTempHp(char, spell, d, slot);
+  if (d.hpMaxBonus) _applyCastHpMaxBonus(char, spell, d, slot);
   if (d.summon && d.summon.companionType === "familiar" && typeof summonFamiliar === "function") {
     summonFamiliar();
   }
+}
+
+// Экземпляр-трекер каста в char.activeSpellEffects: повторный каст того же
+// заклинания заменяет свой экземпляр (refresh таймера, без дублей). extra —
+// доп. поля экземпляра (tempHpApplied, hpMaxBonus). Возвращает экземпляр.
+function _replaceCastInstance(char, spell, d, slot, extra) {
+  if (!char.activeSpellEffects) char.activeSpellEffects = [];
+  char.activeSpellEffects = char.activeSpellEffects.filter(function(inst) {
+    return inst.spellName !== spell.name;
+  });
+  var inst = {
+    id: Date.now(),
+    spellName: spell.name,
+    source: spell.source || null,
+    effectIds: (d.effects || []).slice(),
+    slotLevel: slot ? slot.level : null,
+    concentration: !!(spell.duration && spell.duration.toLowerCase().includes("концентрац")),
+    unit: d.duration ? d.duration.unit : null,
+    value: d.duration ? d.duration.value : null,
+    roundsLeft: (typeof durationToRounds === "function") ? durationToRounds(d.duration) : null
+  };
+  if (extra) Object.keys(extra).forEach(function(k) { inst[k] = extra[k]; });
+  char.activeSpellEffects.push(inst);
+  return inst;
+}
+
+// CAST-3: модификатор заклинательной характеристики (char.spells.stat — «ИНТ»/«МУД»/«ХАР»).
+function castStatMod(char) {
+  if (!char || !char.stats || !char.spells) return 0;
+  var stat = char.spells.stat || "";
+  if (stat === "ИНТ") return getMod(char.stats.int);
+  if (stat === "МУД") return getMod(char.stats.wis);
+  if (stat === "ХАР") return getMod(char.stats.cha);
+  return 0;
+}
+
+// CAST-3: лечение — формула с апкастом (+ мод заклинательной характеристики),
+// 3D-бросок в арене, итог уходит в quickHP (кап по hpMax и история — внутри
+// него). Плоские формулы без кубиков («Полное исцеление» 70+10/ур.)
+// применяются сразу, без броска. Экземпляр-трекер не создаётся (мгновенно).
+function _applyCastHeal(char, spell, d, slot) {
+  var castLevel = slot ? slot.level : (spell.level || 0);
+  var formula = scaleFormula(d.heal.formula, d.heal.upcast, spell.level || 0, castLevel);
+  var mod = d.heal.addSpellMod ? castStatMod(char) : 0;
+  var flat = (typeof flatFormulaTotal === "function") ? flatFormulaTotal(formula) : null;
+  if (flat != null) {
+    if (typeof quickHP === "function") quickHP(Math.max(0, flat + mod), spell.name);
+    return;
+  }
+  if (typeof rollFormula !== "function") return;
+  if (mod) formula += (mod > 0 ? "+" + mod : String(mod));
+  rollFormula(formula, {
+    label: "💚 " + spell.name,
+    openArena: true,
+    onResult: function(res) {
+      if (typeof quickHP === "function") quickHP(res.total, spell.name);
+    }
+  });
+}
+
+// CAST-3: временные ХП — бросок формулы (плоские — сразу), итог в applyCastTempHp.
+function _applyCastTempHp(char, spell, d, slot) {
+  var castLevel = slot ? slot.level : (spell.level || 0);
+  var formula = scaleFormula(d.tempHp.formula, d.tempHp.upcast, spell.level || 0, castLevel);
+  var flat = (typeof flatFormulaTotal === "function") ? flatFormulaTotal(formula) : null;
+  if (flat != null) { applyCastTempHp(char, spell, d, slot, flat); return; }
+  if (typeof rollFormula !== "function") return;
+  rollFormula(formula, {
+    label: "🛡 " + spell.name,
+    openArena: true,
+    onResult: function(res) { applyCastTempHp(char, spell, d, slot, res.total); }
+  });
+}
+
+// Правило 5e: временные ХП не стакаются — остаётся большее из текущих и новых.
+// В экземпляр пишется tempHpApplied = грант ЗАКЛИНАНИЯ (не итог): экспирация
+// обнулит hpTemp, только если текущее значение не больше гранта (пользователь
+// не перезаписал бо́льшим из другого источника) — см. _revertCastInstanceBody.
+function applyCastTempHp(char, spell, d, slot, rolled) {
+  var cur = parseInt(char.combat.hpTemp, 10) || 0;
+  char.combat.hpTemp = Math.max(cur, rolled);
+  _replaceCastInstance(char, spell, d, slot, { tempHpApplied: rolled });
+  if (window.AppLog) AppLog.action("spells", "врем. ХП от «" + spell.name + "»: " + rolled + (cur > rolled ? " (оставлены прежние " + cur + ")" : ""));
+  showToast(cur > rolled ? ("🛡 Прежние врем. ХП больше (" + cur + ") — оставлены") : ("🛡 Временные ХП: " + rolled), "info");
+  if (typeof updateHPDisplay === "function") updateHPDisplay();
+  saveToLocal();
+}
+
+// CAST-3: «Подмога» — +N к максимуму И текущим ХП без броска (N = base +
+// perUpcast за каждый уровень ячейки выше базового). Повторный каст не
+// стакается: бонус старого экземпляра откатывается перед новым. Реверт при
+// экспирации/снятии/длинном отдыхе — _revertCastInstanceBody (app-combat.js).
+function _applyCastHpMaxBonus(char, spell, d, slot) {
+  var castLevel = slot ? slot.level : (spell.level || 0);
+  var over = Math.max(0, castLevel - (spell.level || 0));
+  var bonus = (d.hpMaxBonus.base || 0) + (d.hpMaxBonus.perUpcast || 0) * over;
+  if (typeof _revertCastInstanceBody === "function") {
+    (char.activeSpellEffects || []).forEach(function(inst) {
+      if (inst.spellName === spell.name) _revertCastInstanceBody(char, inst);
+    });
+  }
+  var before = parseInt(char.combat.hpCurrent, 10) || 0;
+  char.combat.hpMax = (parseInt(char.combat.hpMax, 10) || 0) + bonus;
+  char.combat.hpCurrent = before + bonus;
+  _replaceCastInstance(char, spell, d, slot, { hpMaxBonus: bonus });
+  if (typeof addHPHistory === "function") addHPHistory(before, char.combat.hpCurrent, bonus, spell.name);
+  if (window.AppLog) AppLog.action("spells", "«" + spell.name + "»: +" + bonus + " к hpMax и hpCurrent");
+  showToast("💪 +" + bonus + " к максимуму и текущим ХП («" + spell.name + "»)", "success");
+  if (typeof updateHPDisplay === "function") updateHPDisplay();
+  saveToLocal();
 }
 
 function openCastChooser(spell, opts) {
