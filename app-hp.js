@@ -152,11 +152,16 @@ if (hpHealed > 0) {
   showHPToast(hpHealed);
 }
 resetResourcesByRest("short");
+// CAST-2: короткий отдых (1 час) — раундовые/минутные эффекты кастов истекают,
+// часовые и дольше переживают
+var _castExpired = (typeof expireCastEffectsByUnits === "function")
+  ? expireCastEffectsByUnits(char, ["round", "minute"], "короткий отдых") : [];
 resultTitle = "✅ Короткий отдых завершён!";
-if (window.AppLog) AppLog.action("hp", "короткий отдых: костей " + hitDiceToSpend + ", +" + hpHealed + " ХП" + (_isWarlock ? ", пакт восстановлен" : ""));
+if (window.AppLog) AppLog.action("hp", "короткий отдых: костей " + hitDiceToSpend + ", +" + hpHealed + " ХП" + (_isWarlock ? ", пакт восстановлен" : "") + (_castExpired.length ? ", истекло эффектов: " + _castExpired.length : ""));
 var rollStr = rollLog.length > 0 ? " (" + rollLog.join(", ") + ")" : "";
 var warlockStr = _isWarlock ? "<p>🔮 Ячейки пакта восстановлены</p>" : "";
-resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>🎲 Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>❤️ Восстановлено ХП: " + hpHealed + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr;
+var castExpiredStr = _castExpired.length ? "<p>⏳ Истекли эффекты: " + _castExpired.join(", ") + "</p>" : "";
+resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>🎲 Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>❤️ Восстановлено ХП: " + hpHealed + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr + castExpiredStr;
 } else if (currentRestType === "long") {
 const maxHp = parseInt(char.combat.hpMax, 10) || 0;
 char.combat.hpCurrent = maxHp;

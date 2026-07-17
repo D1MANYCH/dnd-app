@@ -3591,6 +3591,101 @@
     });
   }
 
+  // ────────── БЛОК 36 (CAST-2): счётчик раундов + тик длительностей кастов ──────────
+  if (typeof tickCastEffectsRound === "function" && typeof expireCastEffectsByUnits === "function" &&
+      typeof nextTurn === "function" && typeof SPELL_EFFECTS !== "undefined") {
+
+    // Фикстура: безбронный волшебник с часовым («Доспехи мага») и минутным
+    // концентрационным («Ускорение») баффами; hpDice нужен короткому отдыху.
+    function _cast2Fixture() {
+      return {
+        id: "test-cast2", name: "Тест CAST-2", class: "Волшебник", level: 5,
+        stats: { str: 10, dex: 16, con: 10, int: 16, wis: 10, cha: 10 },
+        combat: { armorId: "none", hasShield: false, hpCurrent: 20, hpMax: 20, hpDiceSpent: 0, hpDice: "5к6" },
+        saves: {}, skills: [], conditions: [], effects: [], activeSpellEffects: [],
+        spells: { stat: "ИНТ", slots: { 1: 4, 3: 3 }, slotsUsed: {}, prepared: [900, 901],
+          mySpells: [
+            { id: 900, name: "Доспехи мага", level: 1, duration: "8 часов",                   source: "PH14" },
+            { id: 901, name: "Ускорение",    level: 3, duration: "Концентрация, до 1 минуты", source: "PH14" }
+          ] }
+      };
+    }
+
+    t("[cast-2] wrap nextTurn → round++, prevTurn через границу → round−1, не ниже 1", function(){
+      var savedChars = window.characters, savedId = window.currentId, savedBattle = BATTLE_DATA;
+      try {
+        window.characters = []; window.currentId = null; // тик — гарантированный no-op
+        BATTLE_DATA = { active: true, currentTurn: 0, round: 1, participants: [
+          { name: "А", type: "self", status: "healthy" }, { name: "Б", type: "monster", status: "healthy" }, { name: "В", type: "monster", status: "healthy" }
+        ]};
+        nextTurn(); nextTurn(); // 0→1→2, раунд не меняется
+        if (BATTLE_DATA.round !== 1) return "round до wrap: " + BATTLE_DATA.round;
+        nextTurn(); // wrap 2→0 → раунд 2
+        if (BATTLE_DATA.round !== 2) return "wrap не инкрементировал: " + BATTLE_DATA.round;
+        prevTurn(); // 0→2 через границу назад → раунд 1
+        if (BATTLE_DATA.round !== 1) return "prevTurn через границу: " + BATTLE_DATA.round;
+        prevTurn(); prevTurn(); // 2→1→0, раунд не меняется
+        if (BATTLE_DATA.round !== 1) return "round внутри раунда: " + BATTLE_DATA.round;
+        prevTurn(); // 0→2 ещё раз назад — пол на 1
+        if (BATTLE_DATA.round !== 1) return "round ушёл ниже 1: " + BATTLE_DATA.round;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
+    });
+
+    t("[cast-2] тик: минутный эффект истекает на 10-м раунде (концентрация гаснет), часовой не тикает", function(){
+      var savedChars = window.characters, savedId = window.currentId, savedBattle = BATTLE_DATA;
+      try {
+        window.characters = [_cast2Fixture()];
+        window.currentId = "test-cast2";
+        var c = window.characters[0];
+        _castSpellWithSlot(900, "slot", 1); // Доспехи мага — 8 часов, roundsLeft null
+        _castSpellWithSlot(901, "slot", 3); // Ускорение — 1 мин = 10 раундов, концентрация
+        BATTLE_DATA = { active: true, currentTurn: 0, round: 1, participants: [{ name: "Я", type: "self", status: "healthy" }] };
+        for (var i = 0; i < 9; i++) nextTurn(); // 1 участник — каждый nextTurn = wrap = тик
+        if (BATTLE_DATA.round !== 10) return "round после 9 тиков: " + BATTLE_DATA.round;
+        var haste = c.activeSpellEffects.find(function(x){ return x.spellName === "Ускорение"; });
+        if (!haste || haste.roundsLeft !== 1) return "roundsLeft после 9 тиков: " + (haste ? haste.roundsLeft : "нет экземпляра");
+        if (c.effects.indexOf("haste") === -1) return "haste истёк раньше времени";
+        nextTurn(); // 10-й тик → экспирация
+        if (c.effects.indexOf("haste") !== -1) return "haste не истёк на 10-м раунде";
+        if (c.concentration !== null) return "концентрация не погасла при истечении: " + c.concentration;
+        if (c.effects.indexOf("mage_armor") === -1) return "часовой эффект пострадал от тика";
+        if (c.activeSpellEffects.length !== 1 || c.activeSpellEffects[0].spellName !== "Доспехи мага")
+          return "экземпляры после экспирации: " + c.activeSpellEffects.map(function(x){ return x.spellName; }).join(",");
+        if (c.activeSpellEffects[0].roundsLeft !== null) return "часовой затикал: " + c.activeSpellEffects[0].roundsLeft;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
+    });
+
+    t("[cast-2] короткий отдых: минутные эффекты истекают, часовые переживают", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      var savedRest = window.currentRestType, savedDice = window.hitDiceToSpend;
+      var savedLoad = window.loadCharacter, savedShow = window.showRestResult;
+      try {
+        window.characters = [_cast2Fixture()];
+        window.currentId = "test-cast2";
+        var c = window.characters[0];
+        _castSpellWithSlot(900, "slot", 1);
+        _castSpellWithSlot(901, "slot", 3);
+        window.currentRestType = "short";
+        window.hitDiceToSpend = 0;
+        window.loadCharacter = function(){};
+        window.showRestResult = function(){};
+        confirmRest();
+        if (c.effects.indexOf("haste") !== -1) return "минутный эффект пережил короткий отдых";
+        if (c.concentration !== null) return "концентрация пережила экспирацию: " + c.concentration;
+        if (c.effects.indexOf("mage_armor") === -1) return "часовой эффект снят коротким отдыхом";
+        if (c.activeSpellEffects.length !== 1 || c.activeSpellEffects[0].spellName !== "Доспехи мага")
+          return "экземпляры: " + c.activeSpellEffects.map(function(x){ return x.spellName; }).join(",");
+        return true;
+      } finally {
+        window.characters = savedChars; window.currentId = savedId;
+        window.currentRestType = savedRest; window.hitDiceToSpend = savedDice;
+        window.loadCharacter = savedLoad; window.showRestResult = savedShow;
+      }
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

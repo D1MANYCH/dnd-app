@@ -12,6 +12,7 @@
 //     "http://localhost:3017/tests/theme-audit-fixture.html?tab=spells&scroll=1100"
 // Параметры: ?tab=sheet|spells|inventory|battle|notes|party|journal · &theme=dark|light
 //   &modal=settings|levelup · &scroll=N · &keepbg=1 (не прятать космо-канвас)
+//   &battle=N (CAST-2: активный бой на раунде N + каст «Ускорения» — трекер/бейдж раундов)
 //   &set=--token:value;--token:value (A/B-инъекция токенов без правки файлов)
 // Диагностика: HTTP-маячок GET /__diag?... в stdout сервера (см. skills/verify-ui п.6).
 const q = new URLSearchParams(location.search);
@@ -46,6 +47,25 @@ f.addEventListener('load', () => {
       const bg = w.document.getElementById('build-guide-modal');
       if (bg) { bg.classList.remove('show', 'active'); bg.style.display = 'none'; }
       w.loadCharacter(c.id);
+      // CAST-2: &battle=N — активный бой (я + гоблин) на раунде N c кастом
+      // «Ускорение» (тикающий бафф) для скриншотов трекера/бейджа раундов
+      const battleRound = parseInt(q.get('battle') || '0', 10);
+      if (battleRound) {
+        try {
+          const ch = w.getCurrentChar();
+          const haste = w.SPELL_DATABASE.find(s => s.name === 'Ускорение' && s.source !== 'PH24');
+          if (haste && !(ch.spells.mySpells || []).some(s => s.id === haste.id)) {
+            ch.spells.mySpells.push(JSON.parse(JSON.stringify(haste)));
+            w._castSpellWithSlot(haste.id, 'slot', 3);
+          }
+          w.BATTLE_DATA = { active: true, currentTurn: 0, round: battleRound, participants: [
+            { name: ch.name, type: 'self', status: 'healthy', initiative: 14 },
+            { name: 'Гоблин', type: 'monster', icon: '🗡️', status: 'wounded', initiative: 9,
+              hpCurrent: 4, hpMax: 7 }
+          ]};
+          w.saveBattle();
+        } catch (e) { beacon('ERR battle ' + e.message); }
+      }
       const tab = q.get('tab') || 'sheet';
       if (tab !== 'sheet') w.switchTab(tab);
       const modal = q.get('modal') || '';

@@ -1008,6 +1008,29 @@ function removeCastEffectsForSpell(char, spellName, reason) {
   return true;
 }
 
+// CAST-2: экспирация эффектов каста по юнитам длительности — короткий отдых
+// (1 час) снимает units ['round','minute'], часовые и дольше переживают
+// («Доспехи мага» 8 ч корректно). Снятие карточек — через
+// removeCastEffectsForSpell (рефкаунт); концентрация истёкшего заклинания
+// гаснет. Возвращает имена снятых заклинаний (для сводки отдыха).
+function expireCastEffectsByUnits(char, units, reason) {
+  if (!char || !char.activeSpellEffects || !char.activeSpellEffects.length) return [];
+  var expired = char.activeSpellEffects.filter(function(inst) {
+    return units.indexOf(inst.unit) !== -1;
+  });
+  var names = [];
+  expired.forEach(function(inst) {
+    if (!removeCastEffectsForSpell(char, inst.spellName, reason || "экспирация")) return;
+    names.push(inst.spellName);
+    if (char.concentration === inst.spellName) {
+      char.concentration = null;
+      char.concentrationData = null;
+      if (typeof updateConcentrationDisplay === "function") updateConcentrationDisplay();
+    }
+  });
+  return names;
+}
+
 function setConcentration(btnOrName) {
 var spellName = (btnOrName && typeof btnOrName === 'object') ? (btnOrName.dataset && btnOrName.dataset.name) : btnOrName;
 if (!currentId) return;

@@ -3390,8 +3390,10 @@ if (char.party) {
 // Load per-character battle data
 if (char.battle) {
   BATTLE_DATA = char.battle;
+  // CAST-2: сохранения до появления счётчика раундов
+  if (BATTLE_DATA.round == null) BATTLE_DATA.round = 1;
 } else {
-  BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
+  BATTLE_DATA = { active: false, participants: [], currentTurn: 0, round: 1 };
 }
 // Миграция к мультиклассу
 migrateToMulticlass(char);

@@ -8,7 +8,7 @@
 // ============================================================
 
 var PARTY_DATA = { allies: [], monsters: [], npcs: [] };
-var BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
+var BATTLE_DATA = { active: false, participants: [], currentTurn: 0, round: 1 };
 
 var CONDITION_STATUSES = [
   { value: "healthy", label: "💚 Здоров" },
@@ -51,6 +51,8 @@ function getMonsterTypeIcon(type) { return MONSTER_TYPE_ICONS[type] || "👾"; }
   try {
     var savedBattle = localStorage.getItem("dnd_battle");
     if (savedBattle) BATTLE_DATA = JSON.parse(savedBattle);
+    // CAST-2: сохранения до появления счётчика раундов
+    if (BATTLE_DATA.round == null) BATTLE_DATA.round = 1;
   } catch(e) { window.__catchLog && window.__catchLog('party:loadBattle', e); }
 })();
 
@@ -840,7 +842,7 @@ function startBattle() {
   if (selected.length === 0) { showToast("Выберите участников боя", "warn"); return; }
   var participants = selected.map(_makeBattleParticipant);
   sortParticipantsByInitiative(participants);
-  BATTLE_DATA = { active: true, participants: participants, currentTurn: 0 };
+  BATTLE_DATA = { active: true, participants: participants, currentTurn: 0, round: 1 };
   if (window.AppLog) AppLog.action("battle", "бой начат: участников " + selected.length + " (авто-инициатива)");
   saveBattle();
   $("battle-setup-screen").classList.add("hidden");
@@ -942,6 +944,9 @@ function renderBattleTracker() {
   });
   var current = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
   if (turnInfo && current) turnInfo.textContent = "Ход " + (BATTLE_DATA.currentTurn + 1) + ": " + (current.name || "?");
+  // CAST-2: бейдж номера раунда в шапке трекера
+  var roundEl = $("battle-round-badge");
+  if (roundEl) roundEl.textContent = "Раунд " + (BATTLE_DATA.round || 1);
   list.innerHTML = BATTLE_DATA.participants.map(function(p, i) {
     var isCurrent = i === BATTLE_DATA.currentTurn;
     var fcolor = getFactionColor(p.type);
@@ -1124,11 +1129,54 @@ function _logTurn() {
   var p = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
   AppLog.action("battle", "ход → " + ((p && p.name) || "?") + " (" + (BATTLE_DATA.currentTurn + 1) + "/" + BATTLE_DATA.participants.length + ")");
 }
-function nextTurn() { BATTLE_DATA.currentTurn = (BATTLE_DATA.currentTurn + 1) % BATTLE_DATA.participants.length; _logTurn(); saveBattle(); renderBattleTracker(); }
-function prevTurn() { BATTLE_DATA.currentTurn = (BATTLE_DATA.currentTurn - 1 + BATTLE_DATA.participants.length) % BATTLE_DATA.participants.length; _logTurn(); saveBattle(); renderBattleTracker(); }
+function nextTurn() {
+  BATTLE_DATA.currentTurn = (BATTLE_DATA.currentTurn + 1) % BATTLE_DATA.participants.length;
+  // CAST-2: wrap по кругу инициативы = новый раунд → тик длительностей кастов
+  if (BATTLE_DATA.currentTurn === 0) {
+    BATTLE_DATA.round = (BATTLE_DATA.round || 1) + 1;
+    if (window.AppLog) AppLog.action("battle", "раунд " + BATTLE_DATA.round);
+    tickCastEffectsRound();
+  }
+  _logTurn(); saveBattle(); renderBattleTracker();
+}
+function prevTurn() {
+  // CAST-2: шаг назад через границу раунда откатывает счётчик (не ниже 1),
+  // но истёкшие эффекты не оживляет и roundsLeft не возвращает
+  if (BATTLE_DATA.currentTurn === 0) BATTLE_DATA.round = Math.max(1, (BATTLE_DATA.round || 1) - 1);
+  BATTLE_DATA.currentTurn = (BATTLE_DATA.currentTurn - 1 + BATTLE_DATA.participants.length) % BATTLE_DATA.participants.length;
+  _logTurn(); saveBattle(); renderBattleTracker();
+}
+// CAST-2: тик на смене раунда — декремент roundsLeft эффектов каста текущего
+// персонажа; на нуле — экспирация (карточки снимает removeCastEffectsForSpell
+// с рефкаунтом, концентрация истёкшего заклинания гаснет). Часовые и дольше
+// (roundsLeft == null) не тикают — истекают на отдыхе или вручную.
+function tickCastEffectsRound() {
+  var char = (typeof getCurrentChar === "function" && currentId) ? getCurrentChar() : null;
+  if (!char || !char.activeSpellEffects || !char.activeSpellEffects.length) return;
+  var expired = [];
+  var ticked = false;
+  char.activeSpellEffects.forEach(function(inst) {
+    if (inst.roundsLeft == null) return;
+    ticked = true;
+    inst.roundsLeft -= 1;
+    if (inst.roundsLeft <= 0) expired.push(inst);
+  });
+  if (!ticked) return;
+  expired.forEach(function(inst) {
+    removeCastEffectsForSpell(char, inst.spellName, "длительность истекла");
+    if (char.concentration === inst.spellName) {
+      char.concentration = null;
+      char.concentrationData = null;
+      if (typeof updateConcentrationDisplay === "function") updateConcentrationDisplay();
+    }
+    showToast("⏳ «" + inst.spellName + "» — эффект истёк", "info");
+  });
+  if (!expired.length && typeof renderEffectsGrid === "function") renderEffectsGrid();
+  saveToLocal();
+}
 function endBattle() {
   if (window.AppLog) AppLog.action("battle", "бой завершён");
-  BATTLE_DATA = { active: false, participants: [], currentTurn: 0 };
+  BATTLE_DATA = { active: false, participants: [], currentTurn: 0, round: 1 };
   saveBattle();
   $("battle-setup-screen").classList.remove("hidden");
   $("battle-tracker-screen").classList.add("hidden");

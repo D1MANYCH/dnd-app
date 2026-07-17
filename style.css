@@ -7113,6 +7113,8 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 
 /* Battle tracker */
 .battle-tracker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 8px; }
+/* CAST-2: бейдж номера раунда в шапке трекера боя */
+.battle-round-badge { background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent-color); padding: 4px 10px; border-radius: 999px; font-size: 0.8em; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
 .battle-turn-info { font-size: 1.05em; font-weight: 700; color: var(--accent-color); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .battle-tracker-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .battle-add-mon-btn { background: transparent; border: 1px solid rgba(192,57,43,0.45); color: rgba(231,76,60,0.85); padding: 5px 12px; border-radius: var(--r-sm); cursor: pointer; font-size: 0.8em; font-weight: 700; width: auto; margin: 0; transition: all 0.18s; white-space: nowrap; }
