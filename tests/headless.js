@@ -3375,6 +3375,10 @@
               var up = scaleFormula(part.formula, part.upcast, 1, 3);
               if (!formulaOk(up)) bad.push(k + " (апкаст): " + up);
             }
+            // CAST-4: тиры заговоров — тоже формулы
+            Object.keys(part.cantripTiers || {}).forEach(function(tier){
+              if (!formulaOk(part.cantripTiers[tier])) bad.push(k + " (тир " + tier + "): " + part.cantripTiers[tier]);
+            });
           });
         });
       });
@@ -3846,6 +3850,72 @@
       if (c.combat.hpMax !== 20) return "hpMax: " + c.combat.hpMax;
       if (c.combat.hpCurrent !== 20) return "hpCurrent не поджат: " + c.combat.hpCurrent;
       return true;
+    });
+  }
+
+  // ────────── БЛОК 38 (CAST-4): броски урона — damageFormulaFor + таблица ──────────
+  // Раннер синхронный: каст урона запускает настоящий 3D-бросок, поэтому
+  // (как в БЛОКЕ 37) тестируем только чистую математику формул — сам бросок
+  // и тост спасброска верифицируются в preview.
+  if (typeof damageFormulaFor === "function" && typeof getSpellEffect === "function" &&
+      typeof SPELL_EFFECTS !== "undefined") {
+
+    t("[cast-4] Огненный шар ячейкой 5 ур. → 8к6+1к6+1к6", function(){
+      var d = getSpellEffect("Огненный шар", "PH14");
+      var out = damageFormulaFor(d.damage, 3, 5, 7);
+      return out === "8к6+1к6+1к6" ? true : out;
+    });
+
+    t("[cast-4] Волшебная стрела: база 3к4+3, апкаст 3 ур. добавляет 1к4+1 за уровень", function(){
+      var d = getSpellEffect("Волшебная стрела", "PH14");
+      var base = damageFormulaFor(d.damage, 1, 1, 5);
+      if (base !== "3к4+3") return "база: " + base;
+      var up = damageFormulaFor(d.damage, 1, 3, 5);
+      if (up !== "3к4+3+1к4+1+1к4+1") return "апкаст: " + up;
+      if (typeof parseDiceFormula === "function" && !parseDiceFormula(up).ok) return "апкаст не парсится";
+      return true;
+    });
+
+    t("[cast-4] тиры заговоров: Огненный снаряд по уровню персонажа, слот null не мешает", function(){
+      var d = getSpellEffect("Огненный снаряд", "PH14");
+      if (damageFormulaFor(d.damage, 0, null, 1) !== "1к10") return "ур.1: " + damageFormulaFor(d.damage, 0, null, 1);
+      if (damageFormulaFor(d.damage, 0, null, 4) !== "1к10") return "ур.4 рано перескочил";
+      if (damageFormulaFor(d.damage, 0, null, 5) !== "2к10") return "ур.5: " + damageFormulaFor(d.damage, 0, null, 5);
+      if (damageFormulaFor(d.damage, 0, null, 11) !== "3к10") return "ур.11: " + damageFormulaFor(d.damage, 0, null, 11);
+      if (damageFormulaFor(d.damage, 0, null, 17) !== "4к10") return "ур.17: " + damageFormulaFor(d.damage, 0, null, 17);
+      if (damageFormulaFor(d.damage, 0, null, 20) !== "4к10") return "ур.20: " + damageFormulaFor(d.damage, 0, null, 20);
+      return true;
+    });
+
+    t("[cast-4] bySource урона: Нанесение ран 3к10→2к10, Леденящее 1к8→1к10, Ядовитые брызги PH24 без спасброска", function(){
+      var iw14 = getSpellEffect("Нанесение ран", "PH14"), iw24 = getSpellEffect("Нанесение ран", "PH24");
+      if (iw14.damage.formula !== "3к10") return "PH14 Нанесение ран: " + iw14.damage.formula;
+      if (iw24.damage.formula !== "2к10") return "PH24 Нанесение ран: " + iw24.damage.formula;
+      var ct24 = getSpellEffect("Леденящее прикосновение", "PH24");
+      if (damageFormulaFor(ct24.damage, 0, null, 11) !== "3к10") return "PH24 Леденящее ур.11: " + damageFormulaFor(ct24.damage, 0, null, 11);
+      var ps14 = getSpellEffect("Ядовитые брызги", "PH14"), ps24 = getSpellEffect("Ядовитые брызги", "PH24");
+      if (ps14.damage.save !== "con") return "PH14 Ядовитые брызги: save = " + ps14.damage.save;
+      if (ps24.damage.save) return "PH24 Ядовитые брызги: спасбросок протёк из PH14";
+      return true;
+    });
+
+    t("[cast-4] целостность таблицы: save только из {str,dex,con,int,wis,cha}, у заговоров тиры ровно 5/11/17", function(){
+      var okSaves = { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 };
+      var bad = [];
+      Object.keys(SPELL_EFFECTS).forEach(function(k){
+        var variants = [SPELL_EFFECTS[k]];
+        Object.keys(SPELL_EFFECTS[k].bySource || {}).forEach(function(src){ variants.push(getSpellEffect(k, src)); });
+        variants.forEach(function(d){
+          if (!d.damage) return;
+          if (d.damage.save && !okSaves[d.damage.save]) bad.push(k + ": save " + d.damage.save);
+          if (d.damage.cantripTiers) {
+            var tiers = Object.keys(d.damage.cantripTiers).map(Number).sort(function(a,b){ return a-b; }).join(",");
+            if (tiers !== "5,11,17") bad.push(k + ": тиры " + tiers);
+            if (d.damage.upcast) bad.push(k + ": у заговора не бывает апкаста ячейкой");
+          }
+        });
+      });
+      return bad.length === 0 ? true : bad.join("; ");
     });
   }
 

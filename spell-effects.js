@@ -47,8 +47,72 @@ const SPELL_EFFECTS = {
   "Порча":                     { effects: ["bane"],               duration: { value: 1,  unit: "minute" } },
   "Замедление":                { effects: ["slow"],               duration: { value: 1,  unit: "minute" } },
 
-  // ── Урон (потребитель в CAST-4) ─────────────────────────────────────────────
-  "Огненный шар":    { damage: { formula: "8к6", upcast: "1к6", save: "dex", halfOnSave: true } },
+  // ── Урон (потребитель _applyCastDamage, CAST-4) ─────────────────────────────
+  // Формулы сверены с desc/higherLevel spells.js обеих редакций; расхождения
+  // PH24 — через bySource. Заговоры растут по уровню ПЕРСОНАЖА (cantripTiers
+  // 5/11/17, damageFormulaFor), ячейка не участвует. save — характеристика
+  // спасброска ЦЕЛИ (тост с СЛ заклинателя); halfOnSave — половина урона при
+  // успехе, без флага успех отменяет урон целиком. Мультилучевые («Мистический
+  // заряд», «Палящий луч») бросаются суммой всех лучей одним броском.
+
+  // Заговоры
+  "Огненный снаряд":   { damage: { formula: "1к10", cantripTiers: { 5: "2к10", 11: "3к10", 17: "4к10" } } },
+  "Луч холода":        { damage: { formula: "1к8",  cantripTiers: { 5: "2к8",  11: "3к8",  17: "4к8" } } },
+  "Электрошок":        { damage: { formula: "1к8",  cantripTiers: { 5: "2к8",  11: "3к8",  17: "4к8" } } },
+  "Мистический заряд": { damage: { formula: "1к10", cantripTiers: { 5: "2к10", 11: "3к10", 17: "4к10" } } },
+  "Священное пламя":   { damage: { formula: "1к8",  cantripTiers: { 5: "2к8",  11: "3к8",  17: "4к8" }, save: "dex" } },
+  // PH24: стало атакой вместо испытания ТЕЛ (кубы те же)
+  "Ядовитые брызги":   { damage: { formula: "1к12", cantripTiers: { 5: "2к12", 11: "3к12", 17: "4к12" }, save: "con" },
+                         bySource: { PH24: { damage: { formula: "1к12", cantripTiers: { 5: "2к12", 11: "3к12", 17: "4к12" } } } } },
+  "Злая насмешка":     { damage: { formula: "1к4",  cantripTiers: { 5: "2к4",  11: "3к4",  17: "4к4" }, save: "wis" },
+                         bySource: { PH24: { damage: { formula: "1к6", cantripTiers: { 5: "2к6", 11: "3к6", 17: "4к6" }, save: "wis" } } } },
+  "Леденящее прикосновение": { damage: { formula: "1к8", cantripTiers: { 5: "2к8", 11: "3к8", 17: "4к8" } },
+                         bySource: { PH24: { damage: { formula: "1к10", cantripTiers: { 5: "2к10", 11: "3к10", 17: "4к10" } } } } },
+
+  // 1 уровень
+  "Волшебная стрела":    { damage: { formula: "3к4+3", upcast: "1к4+1" } },
+  "Огненные ладони":     { damage: { formula: "3к6",  upcast: "1к6",  save: "dex", halfOnSave: true } },
+  "Волна грома":         { damage: { formula: "2к8",  upcast: "1к8",  save: "con", halfOnSave: true } },
+  "Направленный снаряд": { damage: { formula: "4к6",  upcast: "1к6" } },
+  "Луч болезни":         { damage: { formula: "2к8",  upcast: "1к8" } },
+  "Нанесение ран":       { damage: { formula: "3к10", upcast: "1к10" },
+                           bySource: { PH24: { damage: { formula: "2к10", upcast: "1к10" } } } },
+  "Адское возмездие":    { damage: { formula: "2к10", upcast: "1к10", save: "dex", halfOnSave: true } },
+  "Диссонирующий шёпот": { damage: { formula: "3к6",  upcast: "1к6",  save: "wis", halfOnSave: true } },
+  // Начальное попадание; повторный тик бонусным действием (1к12) не бросаем
+  "Ведьмин снаряд":      { damage: { formula: "1к12", upcast: "1к12" },
+                           bySource: { PH24: { damage: { formula: "2к12", upcast: "1к12" } } } },
+
+  // 2 уровень
+  "Палящий луч":     { damage: { formula: "6к6",  upcast: "2к6" } }, // 3 луча по 2к6, апкаст = +1 луч
+  "Дребезги":        { damage: { formula: "3к8",  upcast: "1к8",  save: "con", halfOnSave: true } },
+  "Лунный луч":      { damage: { formula: "2к10", upcast: "1к10", save: "con", halfOnSave: true } },
+  "Облако кинжалов": { damage: { formula: "4к4",  upcast: "2к4" } },
+
+  // 3 уровень
+  "Огненный шар":          { damage: { formula: "8к6",  upcast: "1к6",  save: "dex", halfOnSave: true } },
+  "Молния":                { damage: { formula: "8к6",  upcast: "1к6",  save: "dex", halfOnSave: true } },
+  "Призыв молнии":         { damage: { formula: "3к10", upcast: "1к10", save: "dex", halfOnSave: true } }, // 4к10 под открытым небом — не моделируем
+  "Прикосновение вампира": { damage: { formula: "3к6",  upcast: "1к6" } },
+
+  // 4 уровень
+  "Град":     { damage: { formula: "2к8+4к6", upcast: "1к8", save: "dex", halfOnSave: true } },
+  "Усыхание": { damage: { formula: "8к8",     upcast: "1к8", save: "con", halfOnSave: true } },
+
+  // 5 уровень
+  "Конус холода": { damage: { formula: "8к8", upcast: "1к8", save: "con", halfOnSave: true } },
+
+  // 6 уровень
+  "Круг смерти":     { damage: { formula: "8к6",  upcast: "2к6", save: "con", halfOnSave: true } },
+  "Пляшущая молния": { damage: { formula: "10к8", save: "dex", halfOnSave: true } }, // апкаст = +1 цель, формула та же
+  "Поражение":       { damage: { formula: "14к6", save: "con", halfOnSave: true } },
+
+  // 7 уровень
+  "Перст смерти":  { damage: { formula: "7к8+30", save: "con", halfOnSave: true } },
+  "Огненная буря": { damage: { formula: "7к10",   save: "dex", halfOnSave: true } },
+
+  // 9 уровень
+  "Метеоритный дождь": { damage: { formula: "20к6+20к6", save: "dex", halfOnSave: true } }, // огонь + дробящий одного взрыва
 
   // ── Лечение и временные ХП (CAST-3) ─────────────────────────────────────────
   // Формулы сверены с desc/higherLevel spells.js обеих редакций; расхождения
@@ -112,6 +176,23 @@ function durationToRounds(dur) {
   return null;
 }
 
+// CAST-4: формула урона по типу заклинания. Заговор (есть cantripTiers) растёт
+// по уровню ПЕРСОНАЖА — берётся старший достигнутый тир (5/11/17), ячейка не
+// участвует (castLevel у заговора null — обязаны переживать). Уровневое —
+// апкаст ячейкой через scaleFormula.
+function damageFormulaFor(dmg, spellLevel, castLevel, charLevel) {
+  if (!dmg || !dmg.formula) return "";
+  if (dmg.cantripTiers) {
+    var lvl = charLevel || 1, best = String(dmg.formula);
+    Object.keys(dmg.cantripTiers)
+      .map(function(k) { return parseInt(k, 10); })
+      .sort(function(a, b) { return a - b; })
+      .forEach(function(t) { if (lvl >= t) best = String(dmg.cantripTiers[t]); });
+    return best;
+  }
+  return scaleFormula(dmg.formula, dmg.upcast, spellLevel, castLevel);
+}
+
 // CAST-3: сумма «плоской» формулы без кубиков — «70+10+10» → 90, «5» → 5.
 // Формулы с кубиками (и любой мусор) → null: их бросает rollFormula.
 // Нужна плоскому лечению/врем. ХП («Полное исцеление», «Доспех Агатиса»).
@@ -134,4 +215,5 @@ if (typeof window !== "undefined") {
   window.scaleFormula = scaleFormula;
   window.durationToRounds = durationToRounds;
   window.flatFormulaTotal = flatFormulaTotal;
+  window.damageFormulaFor = damageFormulaFor;
 }

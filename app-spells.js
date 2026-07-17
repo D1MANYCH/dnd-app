@@ -618,6 +618,7 @@ function _finishCast(char, spell, slot) {
 // мог включить их раньше), экземпляр-трекер — в char.activeSpellEffects; повторный
 // каст того же заклинания заменяет свой экземпляр (refresh таймера, без дублей).
 // CAST-3: ветки heal (бросок → quickHP), tempHp (правило max), hpMaxBonus («Подмога»).
+// CAST-4: ветка damage — 3D-бросок формулы урона (заговоры по тирам уровня персонажа).
 // Ветка summon: пока только фамильяр (модалка призыва), остальные призывы — CAST-5.
 function applyCastEffects(char, spell, slot) {
   var d = (typeof getSpellEffect === "function") ? getSpellEffect(spell.name, spell.source) : null;
@@ -640,6 +641,7 @@ function applyCastEffects(char, spell, slot) {
     if (typeof renderEffectsGrid === "function") renderEffectsGrid();
     saveToLocal();
   }
+  if (d.damage) _applyCastDamage(char, spell, d, slot);
   if (d.heal) _applyCastHeal(char, spell, d, slot);
   if (d.tempHp) _applyCastTempHp(char, spell, d, slot);
   if (d.hpMaxBonus) _applyCastHpMaxBonus(char, spell, d, slot);
@@ -670,6 +672,31 @@ function _replaceCastInstance(char, spell, d, slot, extra) {
   if (extra) Object.keys(extra).forEach(function(k) { inst[k] = extra[k]; });
   char.activeSpellEffects.push(inst);
   return inst;
+}
+
+// CAST-4: урон — формула по типу заклинания (заговор: тиры 5/11/17 по уровню
+// персонажа, слот null; уровневое: апкаст ячейкой), 3D-бросок в арене с
+// подписью уровня ячейки. При save — тост «спасбросок цели, СЛ заклинателя».
+// Урон по целям в трекере боя НЕ применяется (бросок информационный, за
+// рамками CAST). Экземпляр-трекер не создаётся (урон мгновенный).
+var _SAVE_LABELS = { str: "СИЛ", dex: "ЛОВ", con: "ТЕЛ", int: "ИНТ", wis: "МУД", cha: "ХАР" };
+function _applyCastDamage(char, spell, d, slot) {
+  var castLevel = slot ? slot.level : null;
+  var formula = (typeof damageFormulaFor === "function")
+    ? damageFormulaFor(d.damage, spell.level || 0, castLevel, char.level || 1) : "";
+  if (!formula || typeof rollFormula !== "function") return;
+  if (d.damage.save) {
+    var saveName = _SAVE_LABELS[d.damage.save] || String(d.damage.save).toUpperCase();
+    var dc = char.spells && char.spells.dc;
+    var saveNote = "спасбросок " + saveName + (dc ? ", СЛ " + dc : "") +
+      (d.damage.halfOnSave ? " — половина урона при успехе" : " — при успехе урона нет");
+    showToast("🎯 " + saveNote.charAt(0).toUpperCase() + saveNote.slice(1), "info");
+    if (window.AppLog) AppLog.action("spells", "«" + spell.name + "»: " + saveNote);
+  }
+  rollFormula(formula, {
+    label: "💥 " + spell.name + (castLevel ? " · " + castLevel + " ур." : ""),
+    openArena: true
+  });
 }
 
 // CAST-3: модификатор заклинательной характеристики (char.spells.stat — «ИНТ»/«МУД»/«ХАР»).
