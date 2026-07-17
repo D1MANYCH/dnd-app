@@ -12,8 +12,10 @@
 //   heal:     { formula:"1к8", upcast:"1к8", addSpellMod:true }
 //   tempHp:   { formula:"1к4+4", upcast:"5" } — врем. ХП (не стакаются, берём max)
 //   hpMaxBonus: { base:5, perUpcast:5 } — «Подмога»: +hpMax и +hpCurrent
-//   summon:   { companionType:"familiar"|"mount"|"summoned"|...,
-//               picker:"familiarForms" | srdSlug:"..." | prefill:{...} }
+//   summon:   { companionType:"familiar"|"mount"|"summoned"|"beast"|"other",
+//               picker:"familiarForms" | srdSlug:"air-elemental" | prefill:{name,hp,ac,attack,desc},
+//               byLevel:{ 5:{...} } — оверрайды полей префилла по уровню
+//               ячейки (берётся старший ключ ≤ уровня каста) }
 //   duration: { value:8, unit:"round"|"minute"|"hour"|"day"|"untilLongRest"|"instant"|"special" }
 //   bySource: { PH24: {...} } — точечный оверрайд полей для одной редакции
 //
@@ -135,8 +137,69 @@ const SPELL_EFFECTS = {
   "Доспех Агатиса":  { tempHp: { formula: "5", upcast: "5" }, duration: { value: 1, unit: "hour" } },
   "Подмога":         { hpMaxBonus: { base: 5, perUpcast: 5 }, duration: { value: 8, unit: "hour" } },
 
-  // ── Призывы (потребитель в CAST-1/CAST-5) ───────────────────────────────────
-  "Поиск фамильяра": { summon: { companionType: "familiar", picker: "familiarForms" } }
+  // ── Призывы (потребитель _applyCastSummon, CAST-5) ──────────────────────────
+  // Каст открывает модалку спутника, предзаполненную buildCompanionPrefill:
+  // picker — пикер форм фамильяра, srdSlug — карточка SRD-бестиария (лениво,
+  // ensureBestiary у вызывающего), prefill — статичные поля (поверх SRD),
+  // byLevel — оверрайды по уровню ячейки. Призыв с duration получает
+  // экземпляр-трекер {summon:true}: конец/смена концентрации — тост «существо
+  // исчезает», сам спутник из списка НЕ удаляется (вычёркивает игрок).
+  // PH24 переработал «Призыв …» в бестелесных духов/эманации без статблока
+  // существа — там bySource обнуляет summon (мост молчит).
+  "Поиск фамильяра": { summon: { companionType: "familiar", picker: "familiarForms" } },
+  "Невидимый слуга": { summon: { companionType: "other", prefill: {
+      name: "Невидимый слуга", hp: 1, ac: 10, attack: "",
+      desc: "Незримая бесформенная сила (СИЛ 2). Выполняет простые задачи по команде: носит, чистит, подаёт. Не может атаковать. Исчезает при 0 ХП или через час." } },
+    duration: { value: 1, unit: "hour" } },
+  // PH14: статы боевого коня (MM); PH24: статблок «Потусторонний скакун» —
+  // КД 10+N, ХП 5+10×N, урон 1к8+N от уровня ячейки N, полёт с ячейки 4+
+  "Поиск скакуна": { summon: { companionType: "mount", prefill: {
+      name: "Боевой конь", hp: 19, ac: 11, attack: "Копыта: +4, 5 фт. Попадание: 9 (2к6+2) дробящего",
+      desc: "Дух в облике скакуна (боевой конь; можно выбрать пони, верблюда, лося или мастифа — статы в Бестиарии). Тип — небожитель, фея или исчадие на ваш выбор; телепатическая связь в 1 миле. Скорость 60 фт. При гибели исчезает — можно призвать вновь." } },
+    bySource: { PH24: { summon: { companionType: "mount", prefill: {
+        name: "Потусторонний скакун", hp: 25, ac: 12, attack: "Потусторонний удар: мод. атаки заклинаниями, 1к8+2 излучением/психической/некротической энергией",
+        desc: "Большой небожитель, фея или исчадие (на ваш выбор). Скорость 60 фт. Делит вашу инициативу; телепатия с вами в 1 милю. Связь жизни: ваше лечение заклинанием 1+ уровня лечит и скакуна в 5 фт. Бонусное действие 1/отдых по типу: испуг (исчадие), телепорт 60 фт (фея), лечение 2к8+ур. (небожитель). Повторный каст заменяет скакуна." },
+      byLevel: {
+        3: { hp: 35, ac: 13, attack: "Потусторонний удар: мод. атаки заклинаниями, 1к8+3 излучением/психической/некротической энергией" },
+        4: { hp: 45, ac: 14, attack: "Потусторонний удар: мод. атаки заклинаниями, 1к8+4 излучением/психической/некротической энергией",
+             desc: "Большой небожитель, фея или исчадие (на ваш выбор). Скорость 60 фт, полёт 60 фт. Делит вашу инициативу; телепатия с вами в 1 милю. Связь жизни: ваше лечение заклинанием 1+ уровня лечит и скакуна в 5 фт. Бонусное действие 1/отдых по типу: испуг (исчадие), телепорт 60 фт (фея), лечение 2к8+ур. (небожитель). Повторный каст заменяет скакуна." },
+        5: { hp: 55, ac: 15, attack: "Потусторонний удар: мод. атаки заклинаниями, 1к8+5 излучением/психической/некротической энергией",
+             desc: "Большой небожитель, фея или исчадие (на ваш выбор). Скорость 60 фт, полёт 60 фт. Делит вашу инициативу; телепатия с вами в 1 милю. Связь жизни: ваше лечение заклинанием 1+ уровня лечит и скакуна в 5 фт. Бонусное действие 1/отдых по типу: испуг (исчадие), телепорт 60 фт (фея), лечение 2к8+ур. (небожитель). Повторный каст заменяет скакуна." }
+      } } } } },
+  "Призрачный скакун": { summon: { companionType: "mount", prefill: {
+      name: "Призрачный скакун", hp: 13, ac: 10, attack: "",
+      desc: "Полупрозрачный конеподобный скакун (статы ездовой лошади). Скорость 100 фт; труднопроходимая местность не замедляет. Исчезает при получении любого урона или по окончании часа." } },
+    duration: { value: 1, unit: "hour" } },
+  "Восставший труп": { summon: { companionType: "summoned", srdSlug: "skeleton" } },
+  "Призыв животных":  { summon: { companionType: "beast", srdSlug: "wolf",
+      prefill: { name: "Волк ×8" },
+      byLevel: { 5: { name: "Волк ×16" }, 7: { name: "Волк ×24" }, 9: { name: "Волк ×32" } } },
+    duration: { value: 1, unit: "hour" },
+    bySource: { PH24: { summon: null } } },
+  "Призыв лесных обитателей": { summon: { companionType: "summoned", srdSlug: "satyr",
+      prefill: { name: "Сатир ×4" },
+      byLevel: { 6: { name: "Сатир ×8" }, 8: { name: "Сатир ×12" } } },
+    duration: { value: 1, unit: "hour" },
+    bySource: { PH24: { summon: null } } },
+  "Призыв малых элементалей": { summon: { companionType: "summoned", prefill: {
+      name: "Малые элементали (ПО до 2)",
+      desc: "Выберите элементалей суммарным ПО до 2: один ПО 2, два ПО 1, четыре ПО 1/2 или восемь ПО 1/4 — статблоки в Бестиарии. Дружественны и подчиняются командам." } },
+    duration: { value: 1, unit: "hour" },
+    bySource: { PH24: { summon: null } } },
+  "Призыв элементаля": { summon: { companionType: "summoned", srdSlug: "air-elemental" },
+    duration: { value: 1, unit: "hour" },
+    bySource: { PH24: { summon: null } } },
+  "Призыв феи": { summon: { companionType: "summoned", prefill: {
+      name: "Фея (ПО до 6)",
+      desc: "Выберите фею с ПО не выше 6 — статблок в Бестиарии. При потере концентрации призванная фея может стать враждебной." } },
+    duration: { value: 1, unit: "hour" },
+    bySource: { PH24: { summon: null } } },
+  "Призыв небожителя": { summon: { companionType: "summoned", prefill: {
+      name: "Небожитель (ПО до 4)",
+      desc: "Выберите небожителя с ПО не выше 4 — статблок в Бестиарии. Дружественен вам и союзникам." },
+      byLevel: { 9: { name: "Небожитель (ПО до 5)" } } },
+    duration: { value: 1, unit: "hour" },
+    bySource: { PH24: { summon: null } } }
 };
 
 // ── Хелперы (чистые, тестируются в headless БЛОК 34) ──────────────────────────
@@ -209,8 +272,47 @@ function flatFormulaTotal(formula) {
   return idx === s.length ? total : null;
 }
 
+// CAST-5: префилл модалки спутника из дескриптора summon. Источники по
+// порядку наложения: srdSlug (карточка SRD-бестиария — данные должны быть уже
+// загружены, ленивую загрузку делает вызывающий) → статичный prefill (поверх
+// SRD) → byLevel (оверрайд по уровню ячейки, берётся старший ключ ≤ castLevel;
+// castLevel ниже младшего ключа — база без изменений). Возвращает
+// {type, name?, hp?, ac?, attack?, desc?}; незаполненные поля оставляют
+// дефолты модалки. Для picker-призывов не вызывается (свой путь).
+function buildCompanionPrefill(summon, castLevel) {
+  if (!summon) return null;
+  var out = { type: summon.companionType || "summoned" };
+  if (summon.srdSlug && typeof window !== "undefined" &&
+      typeof window.srdMonsterBySlug === "function") {
+    var m = window.srdMonsterBySlug(summon.srdSlug);
+    if (m) {
+      out.name = m.name;
+      out.hp = m.hp;
+      out.ac = m.ac;
+      if (m.actions && m.actions.length) out.attack = m.actions[0].name + ": " + m.actions[0].desc;
+      if (typeof window.srdMonsterToDesc === "function") out.desc = window.srdMonsterToDesc(m);
+    }
+  }
+  if (summon.prefill) {
+    Object.keys(summon.prefill).forEach(function(k) { out[k] = summon.prefill[k]; });
+  }
+  if (summon.byLevel && castLevel != null) {
+    var best = null;
+    Object.keys(summon.byLevel)
+      .map(function(k) { return parseInt(k, 10); })
+      .sort(function(a, b) { return a - b; })
+      .forEach(function(lv) { if (castLevel >= lv) best = lv; });
+    if (best != null) {
+      var over = summon.byLevel[best];
+      Object.keys(over).forEach(function(k) { out[k] = over[k]; });
+    }
+  }
+  return out;
+}
+
 if (typeof window !== "undefined") {
   window.SPELL_EFFECTS = SPELL_EFFECTS;
+  window.buildCompanionPrefill = buildCompanionPrefill;
   window.getSpellEffect = getSpellEffect;
   window.scaleFormula = scaleFormula;
   window.durationToRounds = durationToRounds;

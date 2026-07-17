@@ -3919,6 +3919,129 @@
     });
   }
 
+  // ────────── БЛОК 39 (CAST-5): призывы — buildCompanionPrefill + таблица ──────────
+  // Модалка и ленивая загрузка бестиария верифицируются в preview; здесь —
+  // чистый префилл, целостность таблицы и экземпляр-трекер призыва.
+  if (typeof buildCompanionPrefill === "function" && typeof getSpellEffect === "function" &&
+      typeof SPELL_EFFECTS !== "undefined" && typeof window.srdMonsterBySlug === "function") {
+
+    t("[cast-5] каждый srdSlug из таблицы существует в SRD-бестиарии", function(){
+      var bad = [];
+      Object.keys(SPELL_EFFECTS).forEach(function(k){
+        var variants = [SPELL_EFFECTS[k]];
+        Object.keys(SPELL_EFFECTS[k].bySource || {}).forEach(function(src){ variants.push(getSpellEffect(k, src)); });
+        variants.forEach(function(d){
+          if (d.summon && d.summon.srdSlug && !window.srdMonsterBySlug(d.summon.srdSlug))
+            bad.push(k + "→" + d.summon.srdSlug);
+        });
+      });
+      return bad.length === 0 ? true : "битые slug: " + bad.join(", ");
+    });
+
+    t("[cast-5] companionType призывов валиден (ключ COMPANION_TYPE_NAMES)", function(){
+      if (typeof COMPANION_TYPE_NAMES === "undefined") return true; // минимальная среда
+      var bad = [];
+      Object.keys(SPELL_EFFECTS).forEach(function(k){
+        var variants = [SPELL_EFFECTS[k]];
+        Object.keys(SPELL_EFFECTS[k].bySource || {}).forEach(function(src){ variants.push(getSpellEffect(k, src)); });
+        variants.forEach(function(d){
+          if (d.summon && !COMPANION_TYPE_NAMES[d.summon.companionType || "summoned"])
+            bad.push(k + ": " + d.summon.companionType);
+        });
+      });
+      return bad.length === 0 ? true : "неизвестный тип: " + bad.join(", ");
+    });
+
+    t("[cast-5] префилл из SRD: «Призыв элементаля» PH14 → воздушный элементаль со статблоком", function(){
+      var d = getSpellEffect("Призыв элементаля", "PH14");
+      var m = window.srdMonsterBySlug("air-elemental");
+      var p = buildCompanionPrefill(d.summon, 5);
+      if (!p || p.type !== "summoned") return "type: " + (p && p.type);
+      if (p.name !== m.name) return "name: " + p.name;
+      if (p.hp !== m.hp || p.ac !== m.ac) return "hp/ac: " + p.hp + "/" + p.ac;
+      if (!p.desc || p.desc.indexOf("CR") === -1) return "desc без статблока SRD";
+      if (!p.attack) return "attack не взят из actions";
+      return true;
+    });
+
+    t("[cast-5] prefill поверх SRD + byLevel: «Призыв животных» — «Волк ×8», статы волка, ×2/×3/×4", function(){
+      var d = getSpellEffect("Призыв животных", "PH14");
+      var wolf = window.srdMonsterBySlug("wolf");
+      var p3 = buildCompanionPrefill(d.summon, 3);
+      if (p3.name !== "Волк ×8") return "3 ур.: " + p3.name;
+      if (p3.hp !== wolf.hp || p3.ac !== wolf.ac) return "статы не от волка: " + p3.hp + "/" + p3.ac;
+      if (buildCompanionPrefill(d.summon, 4).name !== "Волк ×8") return "4 ур. (ниже младшего ключа byLevel)";
+      if (buildCompanionPrefill(d.summon, 5).name !== "Волк ×16") return "5 ур.";
+      if (buildCompanionPrefill(d.summon, 8).name !== "Волк ×24") return "8 ур. (старший ключ ≤ 8 — это 7)";
+      if (buildCompanionPrefill(d.summon, 9).name !== "Волк ×32") return "9 ур.";
+      return true;
+    });
+
+    t("[cast-5] bySource: PH24 «Поиск скакуна» — потусторонний скакун растёт от ячейки, PH14 — боевой конь", function(){
+      var d14 = getSpellEffect("Поиск скакуна", "PH14");
+      var p14 = buildCompanionPrefill(d14.summon, 2);
+      if (p14.name !== "Боевой конь" || p14.hp !== 19 || p14.ac !== 11) return "PH14: " + p14.name + " " + p14.hp + "/" + p14.ac;
+      var d24 = getSpellEffect("Поиск скакуна", "PH24");
+      var p2 = buildCompanionPrefill(d24.summon, 2);
+      if (p2.hp !== 25 || p2.ac !== 12) return "PH24 2 ур.: " + p2.hp + "/" + p2.ac; // ХП 5+10×N, КД 10+N
+      var p4 = buildCompanionPrefill(d24.summon, 4);
+      if (p4.hp !== 45 || p4.ac !== 14) return "PH24 4 ур.: " + p4.hp + "/" + p4.ac;
+      if ((p4.desc || "").indexOf("полёт") === -1) return "PH24 4 ур.: нет полёта в desc";
+      var p5 = buildCompanionPrefill(d24.summon, 5);
+      if (p5.hp !== 55 || p5.ac !== 15) return "PH24 5 ур.: " + p5.hp + "/" + p5.ac;
+      return true;
+    });
+
+    t("[cast-5] PH24-переработки «Призыв …» без summon (bySource обнуляет), PH14 — с summon", function(){
+      var reworked = ["Призыв животных", "Призыв лесных обитателей", "Призыв малых элементалей",
+                      "Призыв элементаля", "Призыв феи", "Призыв небожителя"];
+      var bad = [];
+      reworked.forEach(function(k){
+        if (getSpellEffect(k, "PH24").summon) bad.push("PH24 " + k);
+        if (!getSpellEffect(k, "PH14").summon) bad.push("PH14 " + k + " потерял summon");
+      });
+      return bad.length === 0 ? true : bad.join(", ");
+    });
+
+    // Интеграция: каст призыва с концентрацией создаёт экземпляр {summon:true},
+    // открывает предзаполненную модалку; endConcentration снимает экземпляр.
+    if (typeof applyCastEffects === "function" && typeof endConcentration === "function" &&
+        typeof openPrefilledCompanionModal === "function") {
+      t("[cast-5] каст «Призыв элементаля»: экземпляр {summon:true, hour} + модалка, конец концентрации снимает", function(){
+        var savedChars = window.characters, savedId = window.currentId;
+        try {
+          window.characters = [{
+            id: "test-cast5", name: "Тест CAST-5", class: "Друид", level: 9,
+            stats: { str: 10, dex: 10, con: 10, int: 10, wis: 16, cha: 10 },
+            combat: { armorId: "none", hasShield: false, hpCurrent: 30, hpMax: 30, hpDiceSpent: 0 },
+            saves: {}, skills: [], conditions: [], effects: [], activeSpellEffects: [], companions: [],
+            spells: { stat: "МУД", slots: { 5: 2 }, slotsUsed: {}, prepared: [910],
+              mySpells: [{ id: 910, name: "Призыв элементаля", level: 5, duration: "Концентрация, до 1 часа", source: "PH14" }] }
+          }];
+          window.currentId = "test-cast5";
+          var c = window.characters[0];
+          _castSpellWithSlot(910, "slot", 5);
+          if (c.activeSpellEffects.length !== 1) return "экземпляров: " + c.activeSpellEffects.length;
+          var inst = c.activeSpellEffects[0];
+          if (inst.summon !== true) return "нет флага summon";
+          if (inst.unit !== "hour" || inst.roundsLeft !== null) return "длительность: " + inst.unit + "/" + inst.roundsLeft;
+          if (inst.concentration !== true) return "концентрация не отмечена";
+          if (c.concentration !== "Призыв элементаля") return "концентрация: " + c.concentration;
+          var modal = document.getElementById("add-companion-modal");
+          if (!modal || !modal.classList.contains("active")) return "модалка призыва не открыта";
+          modal.classList.remove("active");
+          var nameInp = document.getElementById("companion-name-inp");
+          var m = window.srdMonsterBySlug("air-elemental");
+          if (nameInp && nameInp.value !== m.name) return "префилл имени: " + nameInp.value;
+          endConcentration();
+          if (c.activeSpellEffects.length !== 0) return "экземпляр пережил конец концентрации";
+          if (c.companions.length !== 0) return "спутники затронуты снятием";
+          return true;
+        } finally { window.characters = savedChars; window.currentId = savedId; }
+      });
+    }
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

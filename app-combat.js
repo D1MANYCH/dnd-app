@@ -1013,9 +1013,10 @@ function removeCastEffectsForSpell(char, spellName, reason) {
   char.activeSpellEffects.forEach(function(i) {
     (i.effectIds || []).forEach(function(id) { held[id] = true; });
   });
-  var bodyTouched = false;
+  var bodyTouched = false, hadSummon = false;
   gone.forEach(function(i) {
     if (_revertCastInstanceBody(char, i)) bodyTouched = true; // CAST-3: врем. ХП / hpMax
+    if (i.summon) hadSummon = true; // CAST-5: призыв
     (i.effectIds || []).forEach(function(id) {
       if (held[id]) return;
       var idx = char.effects ? char.effects.indexOf(id) : -1;
@@ -1023,6 +1024,11 @@ function removeCastEffectsForSpell(char, spellName, reason) {
     });
   });
   if (window.AppLog) AppLog.action("combat", "эффекты «" + spellName + "» сняты (" + (reason || "снятие") + ")");
+  // CAST-5: призванное существо исчезает по правилам, но спутника из списка
+  // не удаляем автоматически — игрок вычёркивает сам (мог договориться с ДМ).
+  if (hadSummon && typeof showToast === "function") {
+    showToast("✨ «" + spellName + "»: призванное существо исчезает — спутника удалите вручную", "info");
+  }
   calculateAC();
   updateEffectsCount();
   updateStatusBar();

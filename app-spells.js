@@ -619,7 +619,7 @@ function _finishCast(char, spell, slot) {
 // каст того же заклинания заменяет свой экземпляр (refresh таймера, без дублей).
 // CAST-3: ветки heal (бросок → quickHP), tempHp (правило max), hpMaxBonus («Подмога»).
 // CAST-4: ветка damage — 3D-бросок формулы урона (заговоры по тирам уровня персонажа).
-// Ветка summon: пока только фамильяр (модалка призыва), остальные призывы — CAST-5.
+// CAST-5: ветка summon — модалка спутника с предзаполнением (_applyCastSummon).
 function applyCastEffects(char, spell, slot) {
   var d = (typeof getSpellEffect === "function") ? getSpellEffect(spell.name, spell.source) : null;
   if (!d) return;
@@ -645,9 +645,43 @@ function applyCastEffects(char, spell, slot) {
   if (d.heal) _applyCastHeal(char, spell, d, slot);
   if (d.tempHp) _applyCastTempHp(char, spell, d, slot);
   if (d.hpMaxBonus) _applyCastHpMaxBonus(char, spell, d, slot);
-  if (d.summon && d.summon.companionType === "familiar" && typeof summonFamiliar === "function") {
-    summonFamiliar();
+  if (d.summon) _applyCastSummon(char, spell, d, slot);
+}
+
+// CAST-5: призывы — модалка спутника с предзаполнением из дескриптора
+// (picker → пикер форм фамильяра, srdSlug → SRD-бестиарий с ленивой загрузкой,
+// prefill/byLevel → статичные поля с оверрайдом по уровню ячейки, см.
+// buildCompanionPrefill в spell-effects.js). Призыв с duration получает
+// экземпляр-трекер {summon:true}: конец/смена концентрации и экспирация
+// покажут «существо исчезает» (removeCastEffectsForSpell), сам спутник из
+// списка НЕ удаляется — вычёркивает игрок.
+function _applyCastSummon(char, spell, d, slot) {
+  if (d.duration) {
+    _replaceCastInstance(char, spell, d, slot, { summon: true });
+    saveToLocal();
   }
+  if (d.summon.picker === "familiarForms") {
+    if (typeof summonFamiliar === "function") summonFamiliar();
+    return;
+  }
+  var open = function() {
+    if (typeof buildCompanionPrefill !== "function" ||
+        typeof openPrefilledCompanionModal !== "function") return;
+    var prefill = buildCompanionPrefill(d.summon, slot ? slot.level : (spell.level || 0));
+    openPrefilledCompanionModal(prefill, "✨ Призыв: " + spell.name);
+    if (window.AppLog) AppLog.action("spells", "призыв от каста: " + spell.name +
+      (prefill && prefill.name ? " → " + prefill.name : ""));
+  };
+  // PERF-3: SRD-бестиарий ленивый — гарантируем данные до построения префилла
+  // (паттерн openSrdMonsterPicker, app-party.js).
+  if (d.summon.srdSlug && !window.MONSTERS_SRD && typeof window.ensureBestiary === "function") {
+    window.ensureBestiary().catch(function(e) {
+      if (window.__catchLog) window.__catchLog("cast:summon-bestiary", e);
+      if (typeof showToast === "function") showToast("Бестиарий не загрузился — проверьте сеть", "warn");
+    }).then(open);
+    return;
+  }
+  open();
 }
 
 // Экземпляр-трекер каста в char.activeSpellEffects: повторный каст того же

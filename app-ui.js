@@ -2786,6 +2786,22 @@ function summonFamiliar() {
   openAddCompanionModal("familiar");
   $("companion-modal-title").textContent = "🐾 Призвать фамильяра";
 }
+
+// CAST-5: модалка спутника, предзаполненная дескриптором призыва
+// (buildCompanionPrefill, spell-effects.js). Поверх openAddCompanionModal;
+// saveCompanion не меняется — игрок может поправить любые поля и сохранить
+// спутника обычным путём.
+function openPrefilledCompanionModal(prefill, title) {
+  if (!currentId) { showToast("Сначала выберите персонажа", "warn"); return; }
+  openAddCompanionModal(prefill && prefill.type);
+  $("companion-modal-title").textContent = title || "✨ Призыв существа";
+  if (!prefill) return;
+  if (prefill.name != null)   $("companion-name-inp").value = prefill.name;
+  if (prefill.hp != null)     $("companion-hp-inp").value = prefill.hp;
+  if (prefill.ac != null)     $("companion-ac-inp").value = prefill.ac;
+  if (prefill.attack != null) $("companion-attack-inp").value = prefill.attack;
+  if (prefill.desc != null)   $("companion-desc-inp").value = prefill.desc;
+}
 function openEditCompanionModal(i) {
   if (!currentId) return;
   var char = getCurrentChar();
