@@ -1039,6 +1039,7 @@ function removeCastEffectsForSpell(char, spellName, reason) {
   updateStatusBar();
   if (typeof renderEffectsGrid === "function") renderEffectsGrid();
   if (typeof updateSpellActiveBadges === "function") updateSpellActiveBadges(); // CAST-6
+  if (typeof renderBattleCastPanels === "function") renderBattleCastPanels(); // CAST-9: полоса повторов
   if (bodyTouched && typeof updateHPDisplay === "function") updateHPDisplay();
   saveToLocal();
   return true;
@@ -1193,6 +1194,9 @@ if (statusConc) {
     statusConc.classList.add("hidden");
   }
 }
+// CAST-9b: чип остатка концентрации в шапке трекера боя — обновляем здесь,
+// чтобы он ловил любую смену концентрации (постановка, конец, прерывание).
+if (typeof renderBattleCastPanels === "function") renderBattleCastPanels();
 }
 function updateStatusBar() {
 const statusBar = $("status-bar");

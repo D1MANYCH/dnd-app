@@ -13,6 +13,7 @@
 // Параметры: ?tab=sheet|spells|inventory|battle|notes|party|journal · &theme=dark|light
 //   &modal=settings|levelup · &scroll=N · &keepbg=1 (не прятать космо-канвас)
 //   &battle=N (CAST-2: активный бой на раунде N + каст «Ускорения» — трекер/бейдж раундов)
+//   &castrepeat=1 (CAST-9: + каст «Раскалённого металла» — полоса повторов и чип концентрации)
 //   &modal=cast|castdamage|castvariant (чузер ячейки · пикер цели урона · чузер варианта)
 //   &set=--token:value;--token:value (A/B-инъекция токенов без правки файлов)
 // Диагностика: HTTP-маячок GET /__diag?... в stdout сервера (см. skills/verify-ui п.6).
@@ -65,6 +66,24 @@ f.addEventListener('load', () => {
               hpCurrent: 4, hpMax: 7 }
           ]};
           w.saveBattle();
+          // CAST-9: &castrepeat=1 — каст «Раскалённого металла» поверх боя:
+          // полоса повторных тиков (9a) + чип остатка концентрации (9b) в шапке.
+          // rollFormula глушится, иначе 3D-арена накрывает кадр скриншота.
+          if (q.get('castrepeat')) {
+            const savedRoll = w.rollFormula;
+            try {
+              w.rollFormula = () => {};
+              const hm = w.SPELL_DATABASE.find(s => s.name === 'Раскалённый металл' && s.source !== 'PH24');
+              if (hm) {
+                if (!(ch.spells.mySpells || []).some(s => s.id === hm.id))
+                  ch.spells.mySpells.push(JSON.parse(JSON.stringify(hm)));
+                if (!(ch.spells.prepared || []).includes(hm.id)) ch.spells.prepared.push(hm.id);
+                ch.spells.slots['4'] = 2;
+                w._castSpellWithSlot(hm.id, 'slot', 4);
+              }
+            } finally { w.rollFormula = savedRoll; }
+            w.renderBattleTracker();
+          }
         } catch (e) { beacon('ERR battle ' + e.message); }
       }
       const tab = q.get('tab') || 'sheet';

@@ -7,11 +7,19 @@
 // Схема дескриптора (все поля опциональны):
 //   effects:  ["effect_id", ...] — id карточек EFFECTS_DATA (data.js);
 //             при касте вешаются в char.effects (CAST-1)
-//   damage:   { formula:"8к6", upcast:"1к6", save:"dex"|"con"|"wis"|...,
+//   damage:   { formula:"8к6", upcast:"1к6", upcastEvery:2 — апкаст за КАЖДЫЕ
+//               N уровней ячейки (по умолчанию 1), save:"dex"|"con"|"wis"|...,
 //               halfOnSave:true, cantripTiers:{5:"2к10",11:"3к10",17:"4к10"},
 //               attack:true — каст сначала кидает d20 + бонус атаки заклинаний
 //               (CAST-7: нат. 1 — промах без урона, нат. 20 — кубы урона ×2),
+//               addSpellMod:true — + мод. заклинательной характеристики к урону,
 //               volley:true — мультилучевое: один бросок атаки на весь залп }
+//   repeat:   { ...та же схема, что damage, + hint:"когда повторяется" }
+//             — CAST-9a: заклинание бьёт КАЖДЫЙ раунд (бонусным действием или
+//             зоной). Каст создаёт экземпляр-трекер {repeat:true, repeatFormula},
+//             повторный бросок игрок делает кнопкой в шапке трекера боя
+//             (полоса повторов, app-party.js). Формула считается тем же
+//             damageFormulaFor — схема полей совпадает с damage
 //   heal:     { formula:"1к8", upcast:"1к8", addSpellMod:true }
 //   tempHp:   { formula:"1к4+4", upcast:"5" } — врем. ХП (не стакаются, берём max)
 //   hpMaxBonus: { base:5, perUpcast:5 } — «Подмога»: +hpMax и +hpCurrent
@@ -142,8 +150,12 @@ const SPELL_EFFECTS = {
                            bySource: { PH24: { damage: { formula: "2к10", upcast: "1к10", attack: true } } } },
   "Адское возмездие":    { damage: { formula: "2к10", upcast: "1к10", save: "dex", halfOnSave: true } },
   "Диссонирующий шёпот": { damage: { formula: "3к6",  upcast: "1к6",  save: "wis", halfOnSave: true } },
-  // Начальное попадание; повторный тик бонусным действием (1к12) не бросаем
+  // CAST-9a: начальное попадание — атака; повтор бонусным действием бьёт
+  // автоматически (без броска атаки) и НЕ растёт от ячейки — «повторный
+  // остаётся 1к12» в higherLevel обеих редакций
   "Ведьмин снаряд":      { damage: { formula: "1к12", upcast: "1к12", attack: true },
+                           repeat: { formula: "1к12", hint: "бонусное действие, автоматически" },
+                           duration: { value: 1, unit: "minute" },
                            bySource: { PH24: { damage: { formula: "2к12", upcast: "1к12", attack: true } } } },
   // CAST-8: тип урона выбирается при накладывании — вариант уходит в подпись броска
   "Цветной шарик":       { damage: { formula: "3к8", upcast: "1к8", attack: true },
@@ -161,32 +173,57 @@ const SPELL_EFFECTS = {
   "Дребезги":        { damage: { formula: "3к8",  upcast: "1к8",  save: "con", halfOnSave: true } },
   "Лунный луч":      { damage: { formula: "2к10", upcast: "1к10", save: "con", halfOnSave: true } },
   "Облако кинжалов": { damage: { formula: "4к4",  upcast: "2к4" } },
-  // Добивка CAST-8b. «Раскалённый металл» и «Пылающий шар» повторяются бонусным
-  // действием каждый ход — бросаем начальный тик, повтор игрок кидает кнопкой снова.
-  "Раскалённый металл": { damage: { formula: "2к8", upcast: "1к8" } },
-  "Пылающий шар":       { damage: { formula: "2к6", upcast: "1к6", save: "dex", halfOnSave: true } },
-  // 4к4 сразу + 2к4 в конце следующего хода цели — один бросок на оба тика
-  "Мельфова кислотная стрела": { damage: { formula: "4к4+2к4", upcast: "1к4+1к4", attack: true } },
+  // Добивка CAST-8b; CAST-9a добавил повторный тик бонусным действием
+  "Раскалённый металл": { damage: { formula: "2к8", upcast: "1к8" },
+                          repeat: { formula: "2к8", upcast: "1к8", hint: "бонусное действие, повторный нагрев" },
+                          duration: { value: 1, unit: "minute" } },
+  "Пылающий шар":       { damage: { formula: "2к6", upcast: "1к6", save: "dex", halfOnSave: true },
+                          repeat: { formula: "2к6", upcast: "1к6", save: "dex", halfOnSave: true,
+                                    hint: "бонусное действие: двинуть сферу в существо" },
+                          duration: { value: 1, unit: "minute" } },
+  // CAST-9a: 4к4 сразу + 2к4 в конце следующего хода цели — раньше сросшимся
+  // «4к4+2к4» одним броском, теперь второй тик отдельной кнопкой повтора
+  "Мельфова кислотная стрела": { damage: { formula: "4к4", upcast: "1к4", attack: true },
+                          repeat: { formula: "2к4", upcast: "1к4", hint: "конец следующего хода цели" },
+                          duration: { value: 1, unit: "round" } },
+  // CAST-9a. Ловушка перевода: Spiritual Weapon = «Божественное оружие»
+  // (не «Духовное»!). Апкаст за КАЖДЫЕ ДВА уровня выше 2-го (upcastEvery),
+  // урон включает мод. заклинательной характеристики (addSpellMod).
+  // PH14 без концентрации, PH24 с ней — берётся из duration-текста spells.js.
+  "Божественное оружие": { damage: { formula: "1к8", upcast: "1к8", upcastEvery: 2, attack: true, addSpellMod: true },
+                          repeat: { formula: "1к8", upcast: "1к8", upcastEvery: 2, attack: true, addSpellMod: true,
+                                    hint: "бонусное действие: переместить и атаковать" },
+                          duration: { value: 1, unit: "minute" } },
 
   // 3 уровень
   "Огненный шар":          { damage: { formula: "8к6",  upcast: "1к6",  save: "dex", halfOnSave: true } },
   "Молния":                { damage: { formula: "8к6",  upcast: "1к6",  save: "dex", halfOnSave: true } },
   "Призыв молнии":         { damage: { formula: "3к10", upcast: "1к10", save: "dex", halfOnSave: true } }, // 4к10 под открытым небом — не моделируем
   "Прикосновение вампира": { damage: { formula: "3к6",  upcast: "1к6", attack: true } },
-  // Урон зоны при входе/начале хода — бросаем на одну цель за раз (CAST-8b)
-  "Духовные стражи": { damage: { formula: "3к8", upcast: "1к8", save: "wis", halfOnSave: true } },
+  // Урон зоны при входе/начале хода — бросаем на одну цель за раз (CAST-8b).
+  // CAST-9a: зона живёт раундами — повтор кнопкой на каждое существо в ней
+  "Духовные стражи": { damage: { formula: "3к8", upcast: "1к8", save: "wis", halfOnSave: true },
+                       repeat: { formula: "3к8", upcast: "1к8", save: "wis", halfOnSave: true,
+                                 hint: "вход в зону или начало хода в ней" },
+                       duration: { value: 10, unit: "minute" } },
 
   // 4 уровень
   "Град":     { damage: { formula: "2к8+4к6", upcast: "1к8", save: "dex", halfOnSave: true } },
   "Усыхание": { damage: { formula: "8к8",     upcast: "1к8", save: "con", halfOnSave: true } },
-  "Огненная стена":      { damage: { formula: "5к8",  upcast: "1к8",  save: "dex", halfOnSave: true } },
+  "Огненная стена":      { damage: { formula: "5к8",  upcast: "1к8",  save: "dex", halfOnSave: true },
+                           repeat: { formula: "5к8", upcast: "1к8", save: "dex", halfOnSave: true,
+                                     hint: "вход в стену или начало хода у горячей стороны" },
+                           duration: { value: 1, unit: "minute" } },
   "Воображаемый убийца": { damage: { formula: "4к10", upcast: "1к10", save: "wis", halfOnSave: true } },
 
   // 5 уровень
   "Конус холода": { damage: { formula: "8к8", upcast: "1к8", save: "con", halfOnSave: true } },
   // Апкаст «Небесного огня» усиливает огонь ИЛИ излучение на выбор — один куб за уровень
   "Небесный огонь": { damage: { formula: "4к6+4к6", upcast: "1к6", save: "dex", halfOnSave: true } },
-  "Облако смерти":  { damage: { formula: "5к8",     upcast: "1к8", save: "con", halfOnSave: true } },
+  "Облако смерти":  { damage: { formula: "5к8",     upcast: "1к8", save: "con", halfOnSave: true },
+                      repeat: { formula: "5к8", upcast: "1к8", save: "con", halfOnSave: true,
+                                hint: "начало хода существа в облаке" },
+                      duration: { value: 10, unit: "minute" } },
 
   // 6 уровень
   "Круг смерти":     { damage: { formula: "8к6",  upcast: "2к6", save: "con", halfOnSave: true } },
@@ -307,12 +344,16 @@ function getSpellEffect(name, source) {
 // Формула с апкастом: +upcastPer за каждый уровень ячейки выше базового.
 // scaleFormula("8к6","1к6",3,5) → "8к6+1к6+1к6". castLevel == null (заговор,
 // без ячейки) или ≤ baseLevel → база без изменений.
-function scaleFormula(base, upcastPer, baseLevel, castLevel) {
+// CAST-9a: every — апкаст «за каждые N уровней» («Божественное оружие»: +1к8 за
+// каждые 2 уровня выше 2-го, ячейка 5 ур. → один шаг, не три). По умолчанию 1.
+function scaleFormula(base, upcastPer, baseLevel, castLevel, every) {
   var out = String(base || "");
   if (!upcastPer || !baseLevel || !castLevel || castLevel <= baseLevel) return out;
+  var step = (every && every > 1) ? Math.floor(every) : 1;
+  var times = Math.floor((castLevel - baseLevel) / step);
   var add = String(upcastPer);
   if (add[0] !== "+" && add[0] !== "-") add = "+" + add;
-  for (var i = 0; i < castLevel - baseLevel; i++) out += add;
+  for (var i = 0; i < times; i++) out += add;
   return out;
 }
 
@@ -329,7 +370,8 @@ function durationToRounds(dur) {
 // CAST-4: формула урона по типу заклинания. Заговор (есть cantripTiers) растёт
 // по уровню ПЕРСОНАЖА — берётся старший достигнутый тир (5/11/17), ячейка не
 // участвует (castLevel у заговора null — обязаны переживать). Уровневое —
-// апкаст ячейкой через scaleFormula.
+// апкаст ячейкой через scaleFormula (upcastEvery — шаг апкаста, CAST-9a).
+// Схема repeat совпадает с damage — повторный тик считается этой же функцией.
 function damageFormulaFor(dmg, spellLevel, castLevel, charLevel) {
   if (!dmg || !dmg.formula) return "";
   if (dmg.cantripTiers) {
@@ -340,7 +382,7 @@ function damageFormulaFor(dmg, spellLevel, castLevel, charLevel) {
       .forEach(function(t) { if (lvl >= t) best = String(dmg.cantripTiers[t]); });
     return best;
   }
-  return scaleFormula(dmg.formula, dmg.upcast, spellLevel, castLevel);
+  return scaleFormula(dmg.formula, dmg.upcast, spellLevel, castLevel, dmg.upcastEvery);
 }
 
 // CAST-7: формула критического урона — правило 5e «кубы ×2, модификаторы как

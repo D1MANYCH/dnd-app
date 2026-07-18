@@ -947,6 +947,7 @@ function renderBattleTracker() {
   // CAST-2: бейдж номера раунда в шапке трекера
   var roundEl = $("battle-round-badge");
   if (roundEl) roundEl.textContent = "Раунд " + (BATTLE_DATA.round || 1);
+  renderBattleCastPanels(); // CAST-9: повторные тики + остаток концентрации
   list.innerHTML = BATTLE_DATA.participants.map(function(p, i) {
     var isCurrent = i === BATTLE_DATA.currentTurn;
     var fcolor = getFactionColor(p.type);
@@ -1010,6 +1011,49 @@ function renderBattleTracker() {
       '</div>' +
     "</div>";
   }).join("");
+}
+
+// ── CAST-9: панели шапки трекера, зависящие от состояния кастов ──────────────
+// 9a — полоса повторных тиков урона (заклинание бьёт каждый раунд: «Ведьмин
+// снаряд» бонусным действием, зоны вроде «Духовных стражей»); 9b — чип остатка
+// концентрации рядом с «Раунд N».
+// Обновляются ТОЧЕЧНО, отдельно от renderBattleTracker: перерисовка списка
+// участников сбрасывает фокус и ввод в полях ХП/инициативы, а концентрация
+// меняется и вне боевого цикла (та же причина, что у бейджа заклинания в CAST-6).
+function renderBattleCastPanels() {
+  var strip = $("battle-repeat-strip");
+  var concEl = $("battle-conc-badge");
+  if (!strip && !concEl) return;
+  var char = (typeof getCurrentChar === "function" && currentId) ? getCurrentChar() : null;
+  var insts = (char && char.activeSpellEffects) || [];
+  var inBattle = !!BATTLE_DATA.active;
+  if (strip) {
+    var reps = inBattle ? insts.filter(function(i) { return i.repeat; }) : [];
+    strip.innerHTML = reps.map(function(i) {
+      var d = (typeof getSpellEffect === "function") ? getSpellEffect(i.spellName, i.source) : null;
+      var hint = (d && d.repeat && d.repeat.hint) || "Повторный урон";
+      return '<button type="button" class="battle-repeat-btn" onclick="castRepeatDamage(' + i.id + ')"' +
+        ' title="' + escapeHtml(i.spellName + " — " + hint) + '">' +
+        '🔁 ' + escapeHtml(i.spellName) +
+        (i.repeatFormula ? ' <span class="brb-formula">' + escapeHtml(i.repeatFormula) + '</span>' : '') +
+      '</button>';
+    }).join("");
+    strip.classList.toggle("hidden", !reps.length);
+  }
+  if (concEl) {
+    var name = char && char.concentration;
+    if (!name || !inBattle) {
+      concEl.classList.add("hidden");
+      concEl.textContent = "";
+    } else {
+      // Остаток берём у экземпляра каста; часовые и без экземпляра (концентрация
+      // поставлена кнопкой на карточке) показываются одним именем, без ⏳.
+      var ci = insts.find(function(x) { return x.spellName === name && x.roundsLeft != null; });
+      concEl.classList.remove("hidden");
+      concEl.textContent = "🔮 " + name + (ci ? " · ⏳" + ci.roundsLeft + " рд" : "");
+      concEl.title = "Концентрация: " + name + (ci ? " — осталось " + ci.roundsLeft + " раундов" : "") + ". Нажмите для деталей";
+    }
+  }
 }
 
 // Дымка v5: мини-иконки активных состояний рядом с именем (.cond-dot).

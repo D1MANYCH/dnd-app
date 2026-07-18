@@ -7112,10 +7112,20 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .battle-setup-name { flex: 1; font-size: 0.88em; color: var(--text); display: flex; flex-direction: column; }
 
 /* Battle tracker */
-.battle-tracker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 8px; }
+/* CAST-9b: шапка переносится — чип концентрации рядом с «Раунд N» иначе
+   съедает «Ход: имя» до многоточия (проверено скриншотом на 1280) */
+.battle-tracker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 8px; flex-wrap: wrap; }
 /* CAST-2: бейдж номера раунда в шапке трекера боя */
 .battle-round-badge { background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent-color); padding: 4px 10px; border-radius: 999px; font-size: 0.8em; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
-.battle-turn-info { font-size: 1.05em; font-weight: 700; color: var(--accent-color); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* CAST-9b: чип остатка концентрации рядом с номером раунда */
+.battle-conc-badge { background: var(--accent-soft); border: 1px dashed var(--accent); color: var(--accent-color); padding: 4px 10px; border-radius: 999px; font-size: 0.8em; font-weight: 700; white-space: nowrap; flex-shrink: 0; cursor: pointer; }
+.battle-conc-badge:hover { background: var(--accent-fill); }
+/* CAST-9a: полоса повторных тиков урона (заклинание бьёт каждый раунд) */
+.battle-repeat-strip { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.battle-repeat-btn { background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent-color); padding: 5px 11px; border-radius: 999px; font-size: 0.8em; font-weight: 700; cursor: pointer; width: auto; margin: 0; transition: background 0.18s, border-color 0.18s; white-space: nowrap; }
+.battle-repeat-btn:hover { background: var(--accent-fill); border-color: var(--accent-color); }
+.brb-formula { opacity: 0.75; font-weight: 600; }
+.battle-turn-info { font-size: 1.05em; font-weight: 700; color: var(--accent-color); min-width: 0; max-width: 100%; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .battle-tracker-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .battle-add-mon-btn { background: transparent; border: 1px solid rgba(192,57,43,0.45); color: rgba(231,76,60,0.85); padding: 5px 12px; border-radius: var(--r-sm); cursor: pointer; font-size: 0.8em; font-weight: 700; width: auto; margin: 0; transition: all 0.18s; white-space: nowrap; }
 .battle-add-mon-btn:hover { background: rgba(192,57,43,0.18); border-color: rgba(192,57,43,0.7); }

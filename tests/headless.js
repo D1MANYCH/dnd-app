@@ -3368,7 +3368,8 @@
           variants.push(getSpellEffect(k, src));
         });
         variants.forEach(function(d){
-          [d.damage, d.heal, d.tempHp].forEach(function(part){
+          // CAST-9a: repeat — та же схема полей, что damage
+          [d.damage, d.heal, d.tempHp, d.repeat].forEach(function(part){
             if (!part || !part.formula) return;
             if (!formulaOk(part.formula)) bad.push(k + ": " + part.formula);
             if (part.upcast) {
@@ -4413,6 +4414,213 @@
         if (damageFormulaFor(beam, 6, 8, 13) !== "6к8") return "Солнечный луч: " + damageFormulaFor(beam, 6, 8, 13);
         return true;
       });
+    }
+  }
+
+  // ────────── БЛОК 43 (CAST-9): повторные тики урона + концентрация в шапке ──────────
+  if (typeof SPELL_EFFECTS !== "undefined" && typeof getSpellEffect === "function") {
+
+    var _CAST9_REPEATS = ["Ведьмин снаряд","Раскалённый металл","Пылающий шар","Божественное оружие",
+                          "Мельфова кислотная стрела","Духовные стражи","Огненная стена","Облако смерти"];
+
+    t("[cast-9] scaleFormula: upcastEvery — апкаст за КАЖДЫЕ N уровней", function(){
+      // «Божественное оружие»: +1к8 за каждые ДВА уровня выше 2-го
+      if (scaleFormula("1к8","1к8",2,3,2) !== "1к8") return "ячейка 3 (полшага): " + scaleFormula("1к8","1к8",2,3,2);
+      if (scaleFormula("1к8","1к8",2,4,2) !== "1к8+1к8") return "ячейка 4: " + scaleFormula("1к8","1к8",2,4,2);
+      if (scaleFormula("1к8","1к8",2,5,2) !== "1к8+1к8") return "ячейка 5: " + scaleFormula("1к8","1к8",2,5,2);
+      if (scaleFormula("1к8","1к8",2,6,2) !== "1к8+1к8+1к8") return "ячейка 6: " + scaleFormula("1к8","1к8",2,6,2);
+      // Без every (и с every=1) поведение прежнее — шаг в один уровень
+      if (scaleFormula("8к6","1к6",3,5) !== "8к6+1к6+1к6") return "без every сломан";
+      if (scaleFormula("8к6","1к6",3,5,1) !== "8к6+1к6+1к6") return "every=1 сломан";
+      return true;
+    });
+
+    t("[cast-9] дескрипторы repeat: 8 ключей, у каждого формула, hint и duration", function(){
+      var withRep = Object.keys(SPELL_EFFECTS).filter(function(k){ return !!SPELL_EFFECTS[k].repeat; });
+      var missing = _CAST9_REPEATS.filter(function(k){ return withRep.indexOf(k) === -1; });
+      if (missing.length) return "нет repeat: " + missing.join(", ");
+      var extra = withRep.filter(function(k){ return _CAST9_REPEATS.indexOf(k) === -1; });
+      if (extra.length) return "лишний repeat (не в списке фазы): " + extra.join(", ");
+      var bad = [];
+      withRep.forEach(function(k){
+        var d = SPELL_EFFECTS[k];
+        if (!d.repeat.formula) bad.push(k + ": нет формулы");
+        if (!d.repeat.hint) bad.push(k + ": нет hint (уходит в подсказку кнопки)");
+        // Без duration каст не создаст экземпляр-трекер → кнопки повтора не будет
+        if (!d.duration) bad.push(k + ": нет duration — экземпляр не создастся");
+        if (d.repeat.save && d.repeat.attack) bad.push(k + ": и save, и attack");
+      });
+      return bad.length ? bad.join("; ") : true;
+    });
+
+    if (typeof damageFormulaFor === "function") {
+      t("[cast-9] формулы повторов: «Ведьмин снаряд» не растёт ячейкой, «Божественное оружие» +1к8 за 2 уровня", function(){
+        // higherLevel обеих редакций: ячейка усиливает только начальное попадание
+        var wb = getSpellEffect("Ведьмин снаряд").repeat;
+        if (damageFormulaFor(wb, 1, 5, 9) !== "1к12") return "Ведьмин снаряд повтор ячейкой 5: " + damageFormulaFor(wb, 1, 5, 9);
+        if (damageFormulaFor(getSpellEffect("Ведьмин снаряд").damage, 1, 3, 9) !== "1к12+1к12+1к12")
+          return "начальный тик не растёт: " + damageFormulaFor(getSpellEffect("Ведьмин снаряд").damage, 1, 3, 9);
+        // PH24: база начального удвоена, повтор общий (в bySource его нет)
+        if (getSpellEffect("Ведьмин снаряд", "PH24").damage.formula !== "2к12") return "PH24 начальный не 2к12";
+        if (getSpellEffect("Ведьмин снаряд", "PH24").repeat.formula !== "1к12") return "PH24 повтор потерян в bySource";
+        var sw = getSpellEffect("Божественное оружие");
+        if (damageFormulaFor(sw.repeat, 2, 2, 9) !== "1к8") return "СО ячейка 2: " + damageFormulaFor(sw.repeat, 2, 2, 9);
+        if (damageFormulaFor(sw.repeat, 2, 5, 9) !== "1к8+1к8") return "СО ячейка 5: " + damageFormulaFor(sw.repeat, 2, 5, 9);
+        if (damageFormulaFor(sw.damage, 2, 6, 9) !== "1к8+1к8+1к8") return "СО начальный ячейкой 6: " + damageFormulaFor(sw.damage, 2, 6, 9);
+        if (!sw.damage.addSpellMod || !sw.repeat.addSpellMod) return "СО: потерян addSpellMod";
+        return true;
+      });
+
+      t("[cast-9] «Мельфова кислотная стрела»: сросшийся 4к4+2к4 разделён на damage + repeat", function(){
+        var m = getSpellEffect("Мельфова кислотная стрела");
+        if (m.damage.formula !== "4к4") return "начальный: " + m.damage.formula;
+        if (!m.repeat || m.repeat.formula !== "2к4") return "повтор: " + (m.repeat && m.repeat.formula);
+        // higherLevel: оба броска растут на 1к4 за уровень
+        if (damageFormulaFor(m.damage, 2, 4, 9) !== "4к4+1к4+1к4") return "апкаст начального: " + damageFormulaFor(m.damage, 2, 4, 9);
+        if (damageFormulaFor(m.repeat, 2, 4, 9) !== "2к4+1к4+1к4") return "апкаст повтора: " + damageFormulaFor(m.repeat, 2, 4, 9);
+        return true;
+      });
+    }
+
+    if (typeof _rollCastDamage === "function") {
+      t("[cast-9] addSpellMod дописывает мод. заклинательной хар-ки в формулу урона", function(){
+        var savedRF = window.rollFormula, captured = null;
+        try {
+          window.rollFormula = function(f){ captured = f; };
+          var char = { level: 5, stats: { wis: 16 }, spells: { stat: "МУД" } }; // МУД 16 → +3
+          _rollCastDamage(char, { spellName: "Тест", dmg: { addSpellMod: true }, formula: "1к8" });
+          if (captured !== "1к8+3") return "с модификатором: " + captured;
+          captured = null;
+          _rollCastDamage(char, { spellName: "Тест", dmg: {}, formula: "1к8" });
+          if (captured !== "1к8") return "без addSpellMod формула изменилась: " + captured;
+          return true;
+        } finally { window.rollFormula = savedRF; }
+      });
+    }
+
+    if (typeof _castSpellWithSlot === "function" && typeof castRepeatDamage === "function") {
+      // Друид 9 ур. с «Раскалённым металлом» (2 круг, концентрация 1 мин, без attack/save
+      // у повтора — бросок идёт напрямую в rollFormula, без асинхронной атаки)
+      var _cast9Char = function(){
+        return {
+          id: "test-cast9", name: "Тест CAST-9", class: "Друид", level: 9,
+          stats: { str: 10, dex: 12, con: 12, int: 10, wis: 18, cha: 10 },
+          combat: { armorId: "none", hasShield: false, hpCurrent: 40, hpMax: 40, hpDiceSpent: 0 },
+          saves: {}, skills: [], conditions: [], effects: [], activeSpellEffects: [],
+          spells: { stat: "МУД", dc: 15, slots: { 4: 3 }, slotsUsed: {}, prepared: [940],
+            mySpells: [{ id: 940, name: "Раскалённый металл", level: 2,
+              duration: "Концентрация, до 1 минуты", source: "PH14" }] }
+        };
+      };
+
+      t("[cast-9] каст с repeat создаёт экземпляр {repeat, repeatFormula} по уровню ячейки", function(){
+        var savedChars = window.characters, savedId = window.currentId, savedRF = window.rollFormula;
+        try {
+          window.rollFormula = function(){}; // начальный тик не бросаем
+          window.characters = [_cast9Char()];
+          window.currentId = "test-cast9";
+          var c = window.characters[0];
+          _castSpellWithSlot(940, "slot", 4);
+          if (c.activeSpellEffects.length !== 1) return "экземпляров: " + c.activeSpellEffects.length;
+          var inst = c.activeSpellEffects[0];
+          if (inst.repeat !== true) return "нет метки repeat";
+          // 2 круг ячейкой 4 → 2к8 + 1к8 + 1к8
+          if (inst.repeatFormula !== "2к8+1к8+1к8") return "repeatFormula: " + inst.repeatFormula;
+          if (inst.roundsLeft !== 10) return "1 минута ≠ 10 раундов: " + inst.roundsLeft;
+          if (inst.concentration !== true) return "концентрация не отмечена";
+          // Реккаст меньшей ячейкой освежает формулу, дублей нет
+          c.spells.slots[2] = 2;
+          _castSpellWithSlot(940, "slot", 2);
+          if (c.activeSpellEffects.length !== 1) return "дубль после реккаста: " + c.activeSpellEffects.length;
+          if (c.activeSpellEffects[0].repeatFormula !== "2к8") return "формула не освежена: " + c.activeSpellEffects[0].repeatFormula;
+          return true;
+        } finally { window.characters = savedChars; window.currentId = savedId; window.rollFormula = savedRF; }
+      });
+
+      t("[cast-9] castRepeatDamage: формула из экземпляра, подпись «повтор»; чужой id — тихо", function(){
+        var savedChars = window.characters, savedId = window.currentId, savedRF = window.rollFormula;
+        var calls = 0, lastF = null, lastLabel = null;
+        try {
+          window.rollFormula = function(f, o){ calls++; lastF = f; lastLabel = o && o.label; };
+          window.characters = [_cast9Char()];
+          window.currentId = "test-cast9";
+          var c = window.characters[0];
+          _castSpellWithSlot(940, "slot", 4); // 1-й вызов — начальный тик
+          var inst = c.activeSpellEffects[0];
+          castRepeatDamage(inst.id);
+          if (calls !== 2) return "повтор не бросился, вызовов: " + calls;
+          if (lastF !== "2к8+1к8+1к8") return "формула повтора: " + lastF;
+          if (String(lastLabel).indexOf("повтор") === -1) return "подпись без «повтор»: " + lastLabel;
+          if (String(lastLabel).indexOf("🔁") === -1) return "подпись без иконки повтора: " + lastLabel;
+          castRepeatDamage(-1); // мёртвый id — ничего не бросаем
+          if (calls !== 2) return "чужой id бросил кубы, вызовов: " + calls;
+          return true;
+        } finally { window.characters = savedChars; window.currentId = savedId; window.rollFormula = savedRF; }
+      });
+
+      if (typeof renderBattleCastPanels === "function") {
+        t("[cast-9a] полоса повторов: кнопка на экземпляр с repeat, вне боя пусто", function(){
+          var savedChars = window.characters, savedId = window.currentId,
+              savedRF = window.rollFormula, savedBattle = BATTLE_DATA;
+          try {
+            window.rollFormula = function(){};
+            window.characters = [_cast9Char()];
+            window.currentId = "test-cast9";
+            var c = window.characters[0];
+            BATTLE_DATA = { active: true, currentTurn: 0, round: 3, participants: [
+              { id: "s", name: "Я", type: "self", status: "healthy" }
+            ] };
+            _castSpellWithSlot(940, "slot", 4);
+            renderBattleCastPanels();
+            var strip = $("battle-repeat-strip");
+            var html = strip.innerHTML || "";
+            if (html.indexOf("Раскалённый металл") === -1) return "нет кнопки повтора: " + html;
+            if (html.indexOf("castRepeatDamage(" + c.activeSpellEffects[0].id + ")") === -1)
+              return "кнопка не привязана к экземпляру: " + html;
+            if (html.indexOf("2к8+1к8+1к8") === -1) return "формула не показана: " + html;
+            if (strip.classList.contains("hidden")) return "полоса скрыта при живом повторе";
+            // Конец концентрации убирает экземпляр → полоса пустеет
+            endConcentration();
+            renderBattleCastPanels();
+            if ((strip.innerHTML || "") !== "") return "полоса пережила конец концентрации: " + strip.innerHTML;
+            if (!strip.classList.contains("hidden")) return "пустая полоса не скрыта";
+            return true;
+          } finally {
+            window.characters = savedChars; window.currentId = savedId;
+            window.rollFormula = savedRF; BATTLE_DATA = savedBattle;
+          }
+        });
+
+        t("[cast-9b] чип концентрации: имя + остаток раундов, вне боя скрыт", function(){
+          var savedChars = window.characters, savedId = window.currentId, savedBattle = BATTLE_DATA;
+          try {
+            var c = _cast9Char();
+            c.concentration = "Ускорение";
+            c.activeSpellEffects = [{ id: 1, spellName: "Ускорение", effectIds: ["haste"],
+              concentration: true, unit: "minute", value: 1, roundsLeft: 7 }];
+            window.characters = [c];
+            window.currentId = "test-cast9";
+            BATTLE_DATA = { active: true, currentTurn: 0, round: 4, participants: [
+              { id: "s", name: "Я", type: "self", status: "healthy" }
+            ] };
+            var el = $("battle-conc-badge");
+            renderBattleCastPanels();
+            if (el.textContent !== "🔮 Ускорение · ⏳7 рд") return "текст чипа: " + el.textContent;
+            if (el.classList.contains("hidden")) return "чип скрыт при живой концентрации";
+            // Часовое заклинание без раундового экземпляра — только имя, без ⏳
+            c.concentration = "Метка охотника";
+            c.activeSpellEffects = [{ id: 2, spellName: "Метка охотника", effectIds: ["hunters_mark"],
+              concentration: true, unit: "hour", value: 1, roundsLeft: null }];
+            renderBattleCastPanels();
+            if (el.textContent !== "🔮 Метка охотника") return "часовое с ⏳: " + el.textContent;
+            // Вне боя чип не показываем
+            BATTLE_DATA = { active: false, participants: [], currentTurn: 0, round: 1 };
+            renderBattleCastPanels();
+            if (!el.classList.contains("hidden")) return "чип виден вне боя";
+            return true;
+          } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
+        });
+      }
     }
   }
 

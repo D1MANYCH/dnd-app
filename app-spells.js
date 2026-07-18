@@ -653,6 +653,8 @@ function _finishCast(char, spell, slot) {
 // CAST-3: ветки heal (бросок → quickHP), tempHp (правило max), hpMaxBonus («Подмога»).
 // CAST-4: ветка damage — 3D-бросок формулы урона (заговоры по тирам уровня персонажа).
 // CAST-5: ветка summon — модалка спутника с предзаполнением (_applyCastSummon).
+// CAST-9a: ветка repeat — заклинание бьёт каждый раунд: экземпляр помечается
+// {repeat, repeatFormula}, повтор игрок кидает кнопкой в шапке трекера боя.
 // CAST-8a: дескриптор с variants сперва спрашивает вариант (openCastVariantChooser)
 // и возвращается сюда с выбором. variant === undefined — «ещё не спрашивали»,
 // null — спросили и отменили (применяем без варианта).
@@ -681,6 +683,7 @@ function applyCastEffects(char, spell, slot, variant) {
     saveToLocal();
   }
   if (d.damage) _applyCastDamage(char, spell, d, slot, variant);
+  if (d.repeat) _startCastRepeat(char, spell, d, slot, variant);
   if (d.heal) _applyCastHeal(char, spell, d, slot);
   if (d.tempHp) _applyCastTempHp(char, spell, d, slot);
   if (d.hpMaxBonus) _applyCastHpMaxBonus(char, spell, d, slot);
@@ -824,37 +827,58 @@ function _applyCastDamage(char, spell, d, slot, variant) {
   var castLevel = slot ? slot.level : null;
   var formula = (typeof damageFormulaFor === "function")
     ? damageFormulaFor(d.damage, spell.level || 0, castLevel, char.level || 1) : "";
+  _rollCastDamage(char, {
+    spellName: spell.name, dmg: d.damage, formula: formula, castLevel: castLevel,
+    variantName: variant ? variant.name : null
+  });
+}
+
+// CAST-9a: общий путь броска урона — начальный тик (_applyCastDamage) и
+// повторный (castRepeatDamage) отличаются только формулой, подписью и
+// дескриптором (damage / repeat), схема полей у них одна.
+// CAST-9a: addSpellMod — модификатор заклинательной характеристики в урон
+// («Божественное оружие»); дописывается в формулу ДО critFormula, поэтому крит
+// удваивает кубы, а модификатор оставляет как есть (правило 5e).
+function _rollCastDamage(char, o) {
+  var formula = o.formula;
   if (!formula || typeof rollFormula !== "function") return;
-  if (d.damage.save) {
-    var saveName = _SAVE_LABELS[d.damage.save] || String(d.damage.save).toUpperCase();
+  var dmg = o.dmg || {};
+  if (dmg.addSpellMod) {
+    var sm = castStatMod(char);
+    if (sm) formula += (sm > 0 ? "+" + sm : String(sm));
+  }
+  if (dmg.save) {
+    var saveName = _SAVE_LABELS[dmg.save] || String(dmg.save).toUpperCase();
     var dc = char.spells && char.spells.dc;
     var saveNote = "спасбросок " + saveName + (dc ? ", СЛ " + dc : "") +
-      (d.damage.halfOnSave ? " — половина урона при успехе" : " — при успехе урона нет");
+      (dmg.halfOnSave ? " — половина урона при успехе" : " — при успехе урона нет");
     showToast("🎯 " + saveNote.charAt(0).toUpperCase() + saveNote.slice(1), "info");
-    if (window.AppLog) AppLog.action("spells", "«" + spell.name + "»: " + saveNote);
+    if (window.AppLog) AppLog.action("spells", "«" + o.spellName + "»: " + saveNote);
   }
+  var icon = o.isRepeat ? "🔁" : "💥";
   var rollDamage = function(crit) {
     var f = (crit && typeof critFormula === "function") ? critFormula(formula) : formula;
     rollFormula(f, {
-      label: "💥 " + spell.name + (castLevel ? " · " + castLevel + " ур." : "") +
-        (variant ? " · " + variant.name : "") + (crit ? " · КРИТ ×2" : ""),
+      label: icon + " " + o.spellName + (o.castLevel ? " · " + o.castLevel + " ур." : "") +
+        (o.variantName ? " · " + o.variantName : "") +
+        (o.isRepeat ? " · повтор" : "") + (crit ? " · КРИТ ×2" : ""),
       openArena: true,
       onResult: function(res) {
         if (typeof offerCastDamageToBattle === "function")
-          offerCastDamageToBattle(spell.name, res.total, { half: !!(d.damage.save && d.damage.halfOnSave) });
+          offerCastDamageToBattle(o.spellName, res.total, { half: !!(dmg.save && dmg.halfOnSave) });
       }
     });
   };
-  if (d.damage.attack && typeof quickRoll === "function") {
-    if (d.damage.volley) showToast("🏹 Мультилучевое: один бросок атаки на весь залп (упрощение)", "info");
+  if (dmg.attack && typeof quickRoll === "function") {
+    if (dmg.volley) showToast("🏹 Мультилучевое: один бросок атаки на весь залп (упрощение)", "info");
     quickRoll({
-      label: "🎯 Атака: " + spell.name,
+      label: "🎯 Атака: " + o.spellName,
       sides: 20,
       mod: castSpellAttackMod(char),
       onResult: function(comp) {
         if (comp.isFail) {
           showToast("💨 Натуральная 1 — промах, урон не бросается", "warn");
-          if (window.AppLog) AppLog.action("spells", "«" + spell.name + "»: промах (натуральная 1)");
+          if (window.AppLog) AppLog.action("spells", "«" + o.spellName + "»: промах (натуральная 1)");
           return;
         }
         // Пауза, чтобы итог атаки успел показаться до старта броска урона
@@ -865,6 +889,46 @@ function _applyCastDamage(char, spell, d, slot, variant) {
     return;
   }
   rollDamage(false);
+}
+
+// CAST-9a: заклинание с повторным тиком («Ведьмин снаряд» бонусным действием,
+// зоны вроде «Духовных стражей») получает экземпляр-трекер с готовой формулой
+// повтора — она посчитана по ячейке и редакции на момент каста и переживает
+// перезагрузку. Если экземпляр уже создан веткой effects — дописываем поля в
+// него, чтобы не плодить дубли.
+function _startCastRepeat(char, spell, d, slot, variant) {
+  var castLevel = slot ? slot.level : null;
+  var formula = (typeof damageFormulaFor === "function")
+    ? damageFormulaFor(d.repeat, spell.level || 0, castLevel, char.level || 1) : d.repeat.formula;
+  var inst = (char.activeSpellEffects || []).find(function(i) { return i.spellName === spell.name; });
+  if (inst) {
+    inst.repeat = true;
+    inst.repeatFormula = formula;
+  } else {
+    var extra = { repeat: true, repeatFormula: formula };
+    if (variant) { extra.variantId = variant.id; extra.variantName = variant.name; }
+    _replaceCastInstance(char, spell, d, slot, extra);
+  }
+  saveToLocal();
+  if (typeof renderBattleCastPanels === "function") renderBattleCastPanels();
+}
+
+// CAST-9a: повторный тик по кнопке в шапке трекера боя. Формула — из экземпляра
+// (repeatFormula); у экземпляров, созданных до CAST-9, её нет — падаем на базовую
+// формулу дескриптора без апкаста.
+function castRepeatDamage(instId) {
+  var char = getCurrentChar();
+  if (!char) return;
+  var inst = (char.activeSpellEffects || []).find(function(i) { return String(i.id) === String(instId); });
+  if (!inst || !inst.repeat) return;
+  var d = (typeof getSpellEffect === "function") ? getSpellEffect(inst.spellName, inst.source) : null;
+  if (!d || !d.repeat) return;
+  if (window.AppLog) AppLog.action("spells", "повторный урон: " + inst.spellName);
+  _rollCastDamage(char, {
+    spellName: inst.spellName, dmg: d.repeat,
+    formula: inst.repeatFormula || d.repeat.formula,
+    castLevel: inst.slotLevel, variantName: inst.variantName, isRepeat: true
+  });
 }
 
 // CAST-7a: бонус атаки заклинаниями — всегда живой расчёт (мастерство + мод
