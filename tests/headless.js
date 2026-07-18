@@ -4129,6 +4129,134 @@
     }
   }
 
+  // ────────── БЛОК 41 (CAST-7): бросок атаки заклинанием + урон в цель трекера ──────────
+  if (typeof SPELL_EFFECTS !== "undefined" && typeof getSpellEffect === "function") {
+
+    if (typeof critFormula === "function") {
+      t("[cast-7] critFormula удваивает кубы, плоские слагаемые не трогает", function(){
+        var cases = { "3к4+3": "6к4+3", "8к6": "16к6", "2к8+4к6": "4к8+8к6", "7к8+30": "14к8+30", "1к12": "2к12", "5": "5", "": "" };
+        var bad = [];
+        Object.keys(cases).forEach(function(f){
+          var got = critFormula(f);
+          if (got !== cases[f]) bad.push(f + " → " + got + " (ждал " + cases[f] + ")");
+        });
+        return bad.length ? bad.join("; ") : true;
+      });
+    }
+
+    t("[cast-7] флаг attack на 11 заклинаниях-атаках, volley на мультилучевых", function(){
+      // Заговоры/уровневые атаки (кроме Ядовитых брызг — атака только в PH24)
+      var atk = ["Огненный снаряд","Луч холода","Электрошок","Мистический заряд","Леденящее прикосновение",
+                 "Луч болезни","Палящий луч","Нанесение ран","Прикосновение вампира","Ведьмин снаряд"];
+      var bad = [];
+      atk.forEach(function(n){
+        var d = getSpellEffect(n);
+        if (!d || !d.damage || d.damage.attack !== true) bad.push("нет attack: " + n);
+      });
+      // volley — только мультилучевые
+      if (getSpellEffect("Мистический заряд").damage.volley !== true) bad.push("нет volley: Мистический заряд");
+      if (getSpellEffect("Палящий луч").damage.volley !== true) bad.push("нет volley: Палящий луч");
+      // save-заклинания attack не получают
+      ["Огненный шар","Молния","Конус холода","Огненные ладони"].forEach(function(n){
+        if (getSpellEffect(n).damage.attack) bad.push("лишний attack: " + n);
+      });
+      return bad.length ? bad.join("; ") : true;
+    });
+
+    t("[cast-7] Ядовитые брызги: PH14 — испытание ТЕЛ (без attack), PH24 — атака", function(){
+      var p14 = getSpellEffect("Ядовитые брызги", "PH14");
+      var p24 = getSpellEffect("Ядовитые брызги", "PH24");
+      if (p14.damage.attack) return "PH14 не должен быть атакой";
+      if (p14.damage.save !== "con") return "PH14 save: " + p14.damage.save;
+      if (p24.damage.attack !== true) return "PH24 должен быть атакой";
+      if (p24.damage.save) return "PH24 не должен иметь save: " + p24.damage.save;
+      return true;
+    });
+
+    if (typeof castSpellAttackMod === "function" && typeof getProficiencyBonus === "function") {
+      t("[cast-7] castSpellAttackMod = бонус мастерства + мод. заклинательной хар-ки", function(){
+        var char = { level: 5, stats: { int: 18 }, spells: { stat: "ИНТ" } };
+        // 5 ур. → мастерство +3; ИНТ 18 → +4; итого +7
+        var got = castSpellAttackMod(char);
+        if (got !== 7) return "ожидал +7 (3+4), получено " + got;
+        var char2 = { level: 1, stats: { cha: 14 }, spells: { stat: "ХАР" } };
+        // 1 ур. → +2; ХАР 14 → +2; итого +4
+        if (castSpellAttackMod(char2) !== 4) return "level1 ХАР14: ожидал +4, получено " + castSpellAttackMod(char2);
+        return true;
+      });
+    }
+
+    if (typeof _battleStatusFromHp === "function") {
+      t("[cast-7] _battleStatusFromHp: пороги статуса по % ХП (шкала как у себя)", function(){
+        var cases = [ [100,"healthy"],[60,"wounded"],[35,"heavy"],[15,"dying"],[0,"dead"],[7,"dying"],[50,"wounded"] ];
+        var bad = [];
+        cases.forEach(function(c){
+          var got = _battleStatusFromHp(c[0], 100);
+          if (got !== c[1]) bad.push(c[0] + "% → " + got + " (ждал " + c[1] + ")");
+        });
+        if (_battleStatusFromHp(5, 0) !== null) return "hpMax 0 должен давать null";
+        return bad.length ? bad.join("; ") : true;
+      });
+    }
+
+    if (typeof offerCastDamageToBattle === "function" && typeof applyCastDamageToTarget === "function") {
+      t("[cast-7] урон каста к цели трекера: минус ХП + статус, «я» не в списке", function(){
+        var savedBattle = BATTLE_DATA, savedId = window.currentId;
+        try {
+          window.currentId = null; // saveBattle → localStorage, без getCurrentChar
+          BATTLE_DATA = { active: true, currentTurn: 0, round: 1, participants: [
+            { id: "s", name: "Я", type: "self", status: "healthy" },
+            { id: "m1", name: "Гоблин", type: "monster", hp: 20, hpMax: 20, status: "healthy" }
+          ] };
+          offerCastDamageToBattle("Огненный шар", 8, { half: false });
+          applyCastDamageToTarget(1);
+          var m = BATTLE_DATA.participants[1];
+          if (m.hp !== 12) return "ХП после 8 урона: ожидал 12, получено " + m.hp;
+          if (m.status !== "wounded") return "статус при 60% ХП: ожидал wounded, получено " + m.status;
+          // повторный урон валит в 0 → dead
+          offerCastDamageToBattle("Огненный шар", 30, { half: false });
+          applyCastDamageToTarget(1);
+          if (m.hp !== 0) return "ХП не обнулился: " + m.hp;
+          if (m.status !== "dead") return "статус при 0 ХП: ожидал dead, получено " + m.status;
+          return true;
+        } finally { BATTLE_DATA = savedBattle; window.currentId = savedId; }
+      });
+
+      t("[cast-7] halfOnSave: переключатель половины применяет floor(N/2)", function(){
+        var savedBattle = BATTLE_DATA, savedId = window.currentId;
+        try {
+          window.currentId = null;
+          BATTLE_DATA = { active: true, currentTurn: 0, round: 1, participants: [
+            { id: "m1", name: "Огр", type: "monster", hp: 30, hpMax: 30, status: "healthy" }
+          ] };
+          offerCastDamageToBattle("Огненный шар", 15, { half: true });
+          setCastDamageHalf(true);
+          applyCastDamageToTarget(0);
+          var m = BATTLE_DATA.participants[0];
+          // floor(15/2)=7 → 30-7=23
+          if (m.hp !== 23) return "половина 15→7, 30-7=23; получено " + m.hp;
+          return true;
+        } finally { BATTLE_DATA = savedBattle; window.currentId = savedId; }
+      });
+
+      t("[cast-7] вне боя / без целей — тихо, _castDamagePending не выставляется", function(){
+        var savedBattle = BATTLE_DATA;
+        try {
+          BATTLE_DATA = { active: false, participants: [], currentTurn: 0, round: 1 };
+          offerCastDamageToBattle("Огненный шар", 20, {});
+          if (typeof _castDamagePending !== "undefined" && _castDamagePending !== null) return "pending выставлен вне боя";
+          // бой активен, но только «я» — целей нет
+          BATTLE_DATA = { active: true, currentTurn: 0, round: 1, participants: [
+            { id: "s", name: "Я", type: "self", status: "healthy" }
+          ] };
+          offerCastDamageToBattle("Огненный шар", 20, {});
+          if (typeof _castDamagePending !== "undefined" && _castDamagePending !== null) return "pending выставлен без целей-монстров";
+          return true;
+        } finally { BATTLE_DATA = savedBattle; }
+      });
+    }
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

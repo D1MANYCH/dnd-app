@@ -16,7 +16,7 @@
 - `app-pdf.js` — PDF-экспорт листа (PERF-1: грузится по требованию из инлайн-загрузчика `index.html` вместе с `vendor/jspdf/`).
 - `data.js` — классы, расы, `APP_VERSION` + `APP_VERSION_DATE` + `APP_CHANGELOG`.
 - `spells.js` — БД заклинаний.
-- `spell-effects.js` — механика применения заклинаний (план CAST): кураторская таблица `SPELL_EFFECTS` (ключ = имя заклинания, оверрайды редакций `bySource`) + чистые хелперы `getSpellEffect`/`scaleFormula`/`damageFormulaFor`/`buildCompanionPrefill`; потребитель — `applyCastEffects` в `app-spells.js`.
+- `spell-effects.js` — механика применения заклинаний (план CAST): кураторская таблица `SPELL_EFFECTS` (ключ = имя заклинания, оверрайды редакций `bySource`) + чистые хелперы `getSpellEffect`/`scaleFormula`/`damageFormulaFor`/`critFormula`/`buildCompanionPrefill`; потребитель — `applyCastEffects` в `app-spells.js` (урон в цель боя — `offerCastDamageToBattle` в `app-party.js`).
 - `character-builds.js` — 36 готовых билдов PHB 2014.
 - `build-notes-data.js` — варианты автозаметок билдов (PERF-2: грузится по требованию из инлайн-загрузчика `index.html`).
 - `class-choices.js` + `subclass-choices-data.js` — выборы классов/подклассов.

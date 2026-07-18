@@ -744,8 +744,12 @@ function _replaceCastInstance(char, spell, d, slot, extra) {
 // CAST-4: урон — формула по типу заклинания (заговор: тиры 5/11/17 по уровню
 // персонажа, слот null; уровневое: апкаст ячейкой), 3D-бросок в арене с
 // подписью уровня ячейки. При save — тост «спасбросок цели, СЛ заклинателя».
-// Урон по целям в трекере боя НЕ применяется (бросок информационный, за
-// рамками CAST). Экземпляр-трекер не создаётся (урон мгновенный).
+// CAST-7a: attack — сначала d20 + бонус атаки заклинаний (quickRoll): нат. 1 —
+// промах, урон не бросается; нат. 20 — кубы урона ×2 (critFormula); volley —
+// один бросок атаки на весь залп (упрощение, фиксируется тостом, крит удваивает
+// весь залп). CAST-7b: итог броска урона предлагается целям трекера боя
+// (offerCastDamageToBattle, app-party.js) — вне боя бросок информационный.
+// Экземпляр-трекер не создаётся (урон мгновенный).
 var _SAVE_LABELS = { str: "СИЛ", dex: "ЛОВ", con: "ТЕЛ", int: "ИНТ", wis: "МУД", cha: "ХАР" };
 function _applyCastDamage(char, spell, d, slot) {
   var castLevel = slot ? slot.level : null;
@@ -760,10 +764,45 @@ function _applyCastDamage(char, spell, d, slot) {
     showToast("🎯 " + saveNote.charAt(0).toUpperCase() + saveNote.slice(1), "info");
     if (window.AppLog) AppLog.action("spells", "«" + spell.name + "»: " + saveNote);
   }
-  rollFormula(formula, {
-    label: "💥 " + spell.name + (castLevel ? " · " + castLevel + " ур." : ""),
-    openArena: true
-  });
+  var rollDamage = function(crit) {
+    var f = (crit && typeof critFormula === "function") ? critFormula(formula) : formula;
+    rollFormula(f, {
+      label: "💥 " + spell.name + (castLevel ? " · " + castLevel + " ур." : "") + (crit ? " · КРИТ ×2" : ""),
+      openArena: true,
+      onResult: function(res) {
+        if (typeof offerCastDamageToBattle === "function")
+          offerCastDamageToBattle(spell.name, res.total, { half: !!(d.damage.save && d.damage.halfOnSave) });
+      }
+    });
+  };
+  if (d.damage.attack && typeof quickRoll === "function") {
+    if (d.damage.volley) showToast("🏹 Мультилучевое: один бросок атаки на весь залп (упрощение)", "info");
+    quickRoll({
+      label: "🎯 Атака: " + spell.name,
+      sides: 20,
+      mod: castSpellAttackMod(char),
+      onResult: function(comp) {
+        if (comp.isFail) {
+          showToast("💨 Натуральная 1 — промах, урон не бросается", "warn");
+          if (window.AppLog) AppLog.action("spells", "«" + spell.name + "»: промах (натуральная 1)");
+          return;
+        }
+        // Пауза, чтобы итог атаки успел показаться до старта броска урона
+        // (interrupt-семантика animateDice3d мгновенно затёрла бы его).
+        setTimeout(function() { rollDamage(comp.isCrit); }, 1100);
+      }
+    });
+    return;
+  }
+  rollDamage(false);
+}
+
+// CAST-7a: бонус атаки заклинаниями — всегда живой расчёт (мастерство + мод
+// заклинательной характеристики), как в calcSpellStats (app-combat.js), но без
+// чтения DOM: char.spells.attack мог не пересчитаться с прошлого уровня.
+function castSpellAttackMod(char) {
+  var prof = (typeof getProficiencyBonus === "function") ? getProficiencyBonus(char.level || 1) : 0;
+  return prof + castStatMod(char);
 }
 
 // CAST-3: модификатор заклинательной характеристики (char.spells.stat — «ИНТ»/«МУД»/«ХАР»).

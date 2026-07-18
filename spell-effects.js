@@ -8,7 +8,10 @@
 //   effects:  ["effect_id", ...] — id карточек EFFECTS_DATA (data.js);
 //             при касте вешаются в char.effects (CAST-1)
 //   damage:   { formula:"8к6", upcast:"1к6", save:"dex"|"con"|"wis"|...,
-//               halfOnSave:true, cantripTiers:{5:"2к10",11:"3к10",17:"4к10"} }
+//               halfOnSave:true, cantripTiers:{5:"2к10",11:"3к10",17:"4к10"},
+//               attack:true — каст сначала кидает d20 + бонус атаки заклинаний
+//               (CAST-7: нат. 1 — промах без урона, нат. 20 — кубы урона ×2),
+//               volley:true — мультилучевое: один бросок атаки на весь залп }
 //   heal:     { formula:"1к8", upcast:"1к8", addSpellMod:true }
 //   tempHp:   { formula:"1к4+4", upcast:"5" } — врем. ХП (не стакаются, берём max)
 //   hpMaxBonus: { base:5, perUpcast:5 } — «Подмога»: +hpMax и +hpCurrent
@@ -78,39 +81,43 @@ const SPELL_EFFECTS = {
   // PH24 — через bySource. Заговоры растут по уровню ПЕРСОНАЖА (cantripTiers
   // 5/11/17, damageFormulaFor), ячейка не участвует. save — характеристика
   // спасброска ЦЕЛИ (тост с СЛ заклинателя); halfOnSave — половина урона при
-  // успехе, без флага успех отменяет урон целиком. Мультилучевые («Мистический
-  // заряд», «Палящий луч») бросаются суммой всех лучей одним броском.
+  // успехе, без флага успех отменяет урон целиком. attack (CAST-7) — сначала
+  // d20 + бонус атаки заклинаний; сверено с desc spells.js: «Ядовитые брызги»
+  // атака только в PH24 (bySource-оверрайд заменяет damage ЦЕЛИКОМ — флаг
+  // повторяется в оверрайдах). Мультилучевые («Мистический заряд», «Палящий
+  // луч») бросаются суммой всех лучей одним броском — volley: один бросок
+  // атаки на весь залп (упрощение, фиксируется тостом).
 
   // Заговоры
-  "Огненный снаряд":   { damage: { formula: "1к10", cantripTiers: { 5: "2к10", 11: "3к10", 17: "4к10" } } },
-  "Луч холода":        { damage: { formula: "1к8",  cantripTiers: { 5: "2к8",  11: "3к8",  17: "4к8" } } },
-  "Электрошок":        { damage: { formula: "1к8",  cantripTiers: { 5: "2к8",  11: "3к8",  17: "4к8" } } },
-  "Мистический заряд": { damage: { formula: "1к10", cantripTiers: { 5: "2к10", 11: "3к10", 17: "4к10" } } },
+  "Огненный снаряд":   { damage: { formula: "1к10", cantripTiers: { 5: "2к10", 11: "3к10", 17: "4к10" }, attack: true } },
+  "Луч холода":        { damage: { formula: "1к8",  cantripTiers: { 5: "2к8",  11: "3к8",  17: "4к8" }, attack: true } },
+  "Электрошок":        { damage: { formula: "1к8",  cantripTiers: { 5: "2к8",  11: "3к8",  17: "4к8" }, attack: true } },
+  "Мистический заряд": { damage: { formula: "1к10", cantripTiers: { 5: "2к10", 11: "3к10", 17: "4к10" }, attack: true, volley: true } },
   "Священное пламя":   { damage: { formula: "1к8",  cantripTiers: { 5: "2к8",  11: "3к8",  17: "4к8" }, save: "dex" } },
   // PH24: стало атакой вместо испытания ТЕЛ (кубы те же)
   "Ядовитые брызги":   { damage: { formula: "1к12", cantripTiers: { 5: "2к12", 11: "3к12", 17: "4к12" }, save: "con" },
-                         bySource: { PH24: { damage: { formula: "1к12", cantripTiers: { 5: "2к12", 11: "3к12", 17: "4к12" } } } } },
+                         bySource: { PH24: { damage: { formula: "1к12", cantripTiers: { 5: "2к12", 11: "3к12", 17: "4к12" }, attack: true } } } },
   "Злая насмешка":     { damage: { formula: "1к4",  cantripTiers: { 5: "2к4",  11: "3к4",  17: "4к4" }, save: "wis" },
                          bySource: { PH24: { damage: { formula: "1к6", cantripTiers: { 5: "2к6", 11: "3к6", 17: "4к6" }, save: "wis" } } } },
-  "Леденящее прикосновение": { damage: { formula: "1к8", cantripTiers: { 5: "2к8", 11: "3к8", 17: "4к8" } },
-                         bySource: { PH24: { damage: { formula: "1к10", cantripTiers: { 5: "2к10", 11: "3к10", 17: "4к10" } } } } },
+  "Леденящее прикосновение": { damage: { formula: "1к8", cantripTiers: { 5: "2к8", 11: "3к8", 17: "4к8" }, attack: true },
+                         bySource: { PH24: { damage: { formula: "1к10", cantripTiers: { 5: "2к10", 11: "3к10", 17: "4к10" }, attack: true } } } },
 
   // 1 уровень
   "Волшебная стрела":    { damage: { formula: "3к4+3", upcast: "1к4+1" } },
   "Огненные ладони":     { damage: { formula: "3к6",  upcast: "1к6",  save: "dex", halfOnSave: true } },
   "Волна грома":         { damage: { formula: "2к8",  upcast: "1к8",  save: "con", halfOnSave: true } },
   "Направленный снаряд": { damage: { formula: "4к6",  upcast: "1к6" } },
-  "Луч болезни":         { damage: { formula: "2к8",  upcast: "1к8" } },
-  "Нанесение ран":       { damage: { formula: "3к10", upcast: "1к10" },
-                           bySource: { PH24: { damage: { formula: "2к10", upcast: "1к10" } } } },
+  "Луч болезни":         { damage: { formula: "2к8",  upcast: "1к8", attack: true } },
+  "Нанесение ран":       { damage: { formula: "3к10", upcast: "1к10", attack: true },
+                           bySource: { PH24: { damage: { formula: "2к10", upcast: "1к10", attack: true } } } },
   "Адское возмездие":    { damage: { formula: "2к10", upcast: "1к10", save: "dex", halfOnSave: true } },
   "Диссонирующий шёпот": { damage: { formula: "3к6",  upcast: "1к6",  save: "wis", halfOnSave: true } },
   // Начальное попадание; повторный тик бонусным действием (1к12) не бросаем
-  "Ведьмин снаряд":      { damage: { formula: "1к12", upcast: "1к12" },
-                           bySource: { PH24: { damage: { formula: "2к12", upcast: "1к12" } } } },
+  "Ведьмин снаряд":      { damage: { formula: "1к12", upcast: "1к12", attack: true },
+                           bySource: { PH24: { damage: { formula: "2к12", upcast: "1к12", attack: true } } } },
 
   // 2 уровень
-  "Палящий луч":     { damage: { formula: "6к6",  upcast: "2к6" } }, // 3 луча по 2к6, апкаст = +1 луч
+  "Палящий луч":     { damage: { formula: "6к6",  upcast: "2к6", attack: true, volley: true } }, // 3 луча по 2к6, апкаст = +1 луч
   "Дребезги":        { damage: { formula: "3к8",  upcast: "1к8",  save: "con", halfOnSave: true } },
   "Лунный луч":      { damage: { formula: "2к10", upcast: "1к10", save: "con", halfOnSave: true } },
   "Облако кинжалов": { damage: { formula: "4к4",  upcast: "2к4" } },
@@ -119,7 +126,7 @@ const SPELL_EFFECTS = {
   "Огненный шар":          { damage: { formula: "8к6",  upcast: "1к6",  save: "dex", halfOnSave: true } },
   "Молния":                { damage: { formula: "8к6",  upcast: "1к6",  save: "dex", halfOnSave: true } },
   "Призыв молнии":         { damage: { formula: "3к10", upcast: "1к10", save: "dex", halfOnSave: true } }, // 4к10 под открытым небом — не моделируем
-  "Прикосновение вампира": { damage: { formula: "3к6",  upcast: "1к6" } },
+  "Прикосновение вампира": { damage: { formula: "3к6",  upcast: "1к6", attack: true } },
 
   // 4 уровень
   "Град":     { damage: { formula: "2к8+4к6", upcast: "1к8", save: "dex", halfOnSave: true } },
@@ -280,6 +287,16 @@ function damageFormulaFor(dmg, spellLevel, castLevel, charLevel) {
   return scaleFormula(dmg.formula, dmg.upcast, spellLevel, castLevel);
 }
 
+// CAST-7: формула критического урона — правило 5e «кубы ×2, модификаторы как
+// есть»: «3к4+3» → «6к4+3», «8к6» → «16к6». Работает текстово по нотации
+// дескрипторов («NкM», «к» или латинская «d»); плоские слагаемые не трогает.
+function critFormula(formula) {
+  return String(formula == null ? "" : formula).replace(/(\d*)([кКdD])(\d+)/g, function(_, cnt, k, sides) {
+    var n = cnt === "" ? 1 : parseInt(cnt, 10);
+    return (n * 2) + "к" + sides;
+  });
+}
+
 // CAST-3: сумма «плоской» формулы без кубиков — «70+10+10» → 90, «5» → 5.
 // Формулы с кубиками (и любой мусор) → null: их бросает rollFormula.
 // Нужна плоскому лечению/врем. ХП («Полное исцеление», «Доспех Агатиса»).
@@ -342,4 +359,5 @@ if (typeof window !== "undefined") {
   window.durationToRounds = durationToRounds;
   window.flatFormulaTotal = flatFormulaTotal;
   window.damageFormulaFor = damageFormulaFor;
+  window.critFormula = critFormula;
 }

@@ -98,6 +98,28 @@ f.addEventListener('load', () => {
               w.openCastChooser(sp, w._castableSlotOptions(ch, sp));
           } catch (e) { beacon('ERR cast ' + e.message); }
         }
+        // CAST-7b: &modal=castdamage — пикер цели для урона каста (с переключателем
+        // «полный/половина» от halfOnSave). Ставит свой бой: у участников поле hp
+        // (ветка &battle= пишет hpCurrent — пикеру нужен снимок p.hp/p.hpMax).
+        if (modal === 'castdamage') {
+          try {
+            // Обработчик 'load' iframe может отработать дважды (перерегистрация SW):
+            // на раннем проходе персонаж ещё не загружен и getCurrentChar() пуст.
+            // НЕ выходим через return — ниже ещё глушение canvas и маячок READY.
+            const ch = w.getCurrentChar();
+            if (!ch) {
+              beacon('SKIP castdamage — персонаж ещё не загружен');
+            } else {
+              w.BATTLE_DATA = { active: true, currentTurn: 0, round: 3, participants: [
+                { id: 's',  name: ch.name, type: 'self',    icon: '🧙', status: 'healthy', initiative: 14 },
+                { id: 'm1', name: 'Гоблин', type: 'monster', icon: '🗡️', status: 'wounded', initiative: 9,  hp: 12, hpMax: 20 },
+                { id: 'm2', name: 'Огр',    type: 'monster', icon: '🗿', status: 'healthy', initiative: 6,  hp: 59, hpMax: 59 }
+              ]};
+              w.saveBattle();
+              w.offerCastDamageToBattle('Огненный шар', 29, { half: true });
+            }
+          } catch (e) { beacon('ERR castdamage ' + e.message); }
+        }
         if (!q.get('keepbg')) {
           try {
             w.document.querySelectorAll('canvas').forEach(cv => {

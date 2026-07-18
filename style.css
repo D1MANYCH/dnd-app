@@ -10588,6 +10588,35 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .cast-slot-option .cso-lvl { font-weight: 700; color: var(--accent-hi); }
 .cast-slot-option .cso-free { color: var(--text-mute); font-size: 0.85em; }
 
+/* ── CAST-7b: пикер цели для урона каста ── */
+.cast-damage-box { max-width: 360px; }
+.cast-damage-half-row { display: flex; gap: 8px; margin: 4px 0 12px; }
+.cast-damage-amt {
+  flex: 1; padding: 8px 6px; border-radius: var(--r-sm);
+  background: var(--bg-2); border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 0.8em; font-weight: 600;
+  cursor: pointer; transition: all 0.18s;
+}
+.cast-damage-amt.active {
+  background: var(--accent-soft); border-color: var(--accent);
+  color: var(--accent-hi);
+}
+.cast-damage-targets { display: flex; flex-direction: column; gap: 7px; max-height: 46vh; overflow-y: auto; }
+.cast-damage-target {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 9px 12px; border-radius: var(--r-sm); text-align: left;
+  background: var(--accent-soft); border: 1px solid var(--accent);
+  color: var(--text); cursor: pointer; transition: background 0.18s;
+}
+.cast-damage-target:hover { background: var(--accent-glow); }
+.cast-damage-target .cdt-icon {
+  width: 30px; height: 30px; flex: none; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-size: 1.05em;
+}
+.cast-damage-target .cdt-name { flex: 1; font-weight: 600; font-size: 0.9em; }
+.cast-damage-target .cdt-hp { color: var(--text-mute); font-size: 0.82em; white-space: nowrap; }
+.cast-damage-target .cdt-hp b { color: var(--accent-hi); }
+
 .spell-conc-btn {
   background: rgba(155,89,182,0.15) !important;
   border: 1px solid rgba(155,89,182,0.5) !important;

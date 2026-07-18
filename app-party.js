@@ -1124,6 +1124,127 @@ function setBattleStatus(i, val) {
   if (window.AppLog) AppLog.action("battle", "статус " + (BATTLE_DATA.participants[i].name || "?") + " → " + val);
   saveBattle(); renderBattleTracker();
 }
+
+// ── CAST-7b: применение урона каста к цели трекера боя ──────────────────────
+// Пороги статуса по % ХП — те же, что getSelfStatusFromHP (единая шкала).
+function _battleStatusFromHp(hp, hpMax) {
+  if (!hpMax || hpMax <= 0) return null;
+  var pct = Math.round((hp / hpMax) * 100);
+  if (pct <= 0)  return "dead";
+  if (pct <= 15) return "dying";
+  if (pct <= 35) return "heavy";
+  if (pct <= 60) return "wounded";
+  return "healthy";
+}
+
+// Экран выбора цели после броска урона (вызывается из _applyCastDamage,
+// app-spells.js). Вне активного боя или без подходящих участников — бросок
+// остаётся информационным (тихо выходим). Кандидаты — все не-«я» участники с
+// полоской ХП (монстры/союзники/NPC с hpMax). При halfOnSave показываем
+// переключатель «полный/половина» — выбранная величина применяется к цели.
+var _castDamagePending = null;
+function offerCastDamageToBattle(spellName, total, opts) {
+  opts = opts || {};
+  if (!BATTLE_DATA.active) return;
+  var targets = BATTLE_DATA.participants
+    .map(function(p, i) { return { p: p, i: i }; })
+    .filter(function(x) { return x.p.type !== "self" && (x.p.type === "monster" || (x.p.hpMax || 0) > 0); });
+  if (!targets.length) return;
+  _castDamagePending = {
+    spellName: spellName,
+    full: Math.max(0, parseInt(total, 10) || 0),
+    half: !!opts.half,
+    useHalf: false
+  };
+  _renderCastDamageModal(targets);
+}
+
+function _castDamageAmount() {
+  if (!_castDamagePending) return 0;
+  return _castDamagePending.useHalf ? Math.floor(_castDamagePending.full / 2) : _castDamagePending.full;
+}
+
+function _renderCastDamageModal(targets) {
+  var modal = $("cast-damage-modal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "cast-damage-modal";
+    modal.className = "confirm-modal-overlay";
+    modal.innerHTML =
+      '<div class="confirm-modal-box cast-damage-box">' +
+        '<div class="confirm-modal-icon">💥</div>' +
+        '<h4 id="cast-damage-title"></h4>' +
+        '<div id="cast-damage-half-row" class="cast-damage-half-row"></div>' +
+        '<div id="cast-damage-targets" class="cast-damage-targets"></div>' +
+        '<div class="confirm-modal-btns" style="margin-top:14px">' +
+          '<button class="confirm-btn-cancel" onclick="closeCastDamageModal()">Не применять</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener("click", function(e) { if (e.target === modal) closeCastDamageModal(); });
+  }
+  var pend = _castDamagePending;
+  $("cast-damage-title").textContent = "«" + (pend.spellName || "Заклинание") + "»: кому нанести урон?";
+  // Переключатель полный/половина — только при halfOnSave
+  var halfRow = $("cast-damage-half-row");
+  if (pend.half) {
+    var fullN = pend.full, halfN = Math.floor(pend.full / 2);
+    halfRow.style.display = "flex";
+    halfRow.innerHTML =
+      '<button type="button" class="cast-damage-amt' + (!pend.useHalf ? " active" : "") + '" onclick="setCastDamageHalf(false)">Провал спас.: ' + fullN + '</button>' +
+      '<button type="button" class="cast-damage-amt' + (pend.useHalf ? " active" : "") + '" onclick="setCastDamageHalf(true)">Успех (½): ' + halfN + '</button>';
+  } else {
+    halfRow.style.display = "none";
+    halfRow.innerHTML = "";
+  }
+  var amount = _castDamageAmount();
+  var box = $("cast-damage-targets");
+  box.innerHTML = targets.map(function(x) {
+    var p = x.p;
+    var hp = _battleParticipantHP(p);
+    var after = Math.max(0, (hp.hp || 0) - amount);
+    var fcolor = getFactionColor(p.type);
+    return '<button type="button" class="cast-damage-target" onclick="applyCastDamageToTarget(' + x.i + ')">' +
+      '<span class="cdt-icon" style="background:' + fcolor + '22;color:' + fcolor + '">' + (p.icon || "🎭") + '</span>' +
+      '<span class="cdt-name">' + escapeHtml(p.name || "?") + '</span>' +
+      '<span class="cdt-hp">' + (hp.hp || 0) + ' → <b>' + after + '</b> / ' + (hp.hpMax || 0) + '</span>' +
+    '</button>';
+  }).join("");
+  modal.classList.add("active");
+}
+
+function setCastDamageHalf(useHalf) {
+  if (!_castDamagePending) return;
+  _castDamagePending.useHalf = !!useHalf;
+  var targets = BATTLE_DATA.participants
+    .map(function(p, i) { return { p: p, i: i }; })
+    .filter(function(x) { return x.p.type !== "self" && (x.p.type === "monster" || (x.p.hpMax || 0) > 0); });
+  _renderCastDamageModal(targets);
+}
+
+function applyCastDamageToTarget(i) {
+  var p = BATTLE_DATA.participants[i];
+  if (!p || !_castDamagePending) { closeCastDamageModal(); return; }
+  var amount = _castDamageAmount();
+  var before = (p.hp != null) ? p.hp : 0;
+  p.hp = Math.max(0, before - amount);
+  var st = _battleStatusFromHp(p.hp, p.hpMax);
+  if (st) p.status = st;
+  var name = _castDamagePending.spellName;
+  if (window.AppLog) AppLog.action("battle", "«" + name + "»: −" + amount + " ХП " + (p.name || "?") +
+    " (" + before + "→" + p.hp + ")" + (p.hp <= 0 ? " — повержен(а)" : ""));
+  showToast("💥 " + (p.name || "Цель") + ": −" + amount + " ХП" + (p.hp <= 0 ? " (повержен!)" : " → " + p.hp + " ХП"),
+    p.hp <= 0 ? "success" : "info");
+  closeCastDamageModal();
+  saveBattle();
+  renderBattleTracker();
+}
+
+function closeCastDamageModal() {
+  var modal = $("cast-damage-modal");
+  if (modal) modal.classList.remove("active");
+  _castDamagePending = null;
+}
 function _logTurn() {
   if (!window.AppLog) return;
   var p = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
