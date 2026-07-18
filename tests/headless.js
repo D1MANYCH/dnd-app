@@ -4042,6 +4042,93 @@
     }
   }
 
+  // ────────── БЛОК 40 (CAST-6): добивка EFFECTS_DATA + бейдж «Активно» + финал таблицы ──────────
+  if (typeof SPELL_EFFECTS !== "undefined" && typeof EFFECTS_DATA !== "undefined") {
+
+    t("[cast-6] EFFECTS_DATA: id уникальны, обязательные поля на месте, тип валиден", function(){
+      var seen = {}, bad = [];
+      EFFECTS_DATA.forEach(function(e){
+        if (seen[e.id]) bad.push("дубль id: " + e.id);
+        seen[e.id] = true;
+        if (!e.id || !e.name || !e.desc || !e.duration || !e.type || !e.category)
+          bad.push("нет полей: " + (e.id || e.name));
+        if (e.type !== "buff" && e.type !== "debuff") bad.push("тип " + e.id + ": " + e.type);
+      });
+      return bad.length === 0 ? true : bad.join("; ");
+    });
+
+    t("[cast-6] 20 новых карточек на месте, «Щит веры» даёт acBonus +2", function(){
+      var ids = ["shield_of_faith","barkskin","invisibility","greater_invisibility","fly_spell",
+                 "stoneskin","protection_energy","freedom_movement","death_ward","fire_shield",
+                 "spider_climb","darkvision_spell","see_invisibility","longstrider",
+                 "expeditious_retreat","protection_poison","water_breathing","water_walk",
+                 "gaseous_form","enlarge_reduce"];
+      var byId = {};
+      EFFECTS_DATA.forEach(function(e){ byId[e.id] = e; });
+      var missing = ids.filter(function(id){ return !byId[id]; });
+      if (missing.length) return "нет карточек: " + missing.join(", ");
+      if (byId.shield_of_faith.acBonus !== 2) return "acBonus Щита веры: " + byId.shield_of_faith.acBonus;
+      return true;
+    });
+
+    t("[cast-6] финальная таблица SPELL_EFFECTS ≥ 90 ключей, каждый дескриптор с механикой", function(){
+      var keys = Object.keys(SPELL_EFFECTS);
+      if (keys.length < 90) return "ключей: " + keys.length;
+      // Пустой дескриптор (ни одной ветки applyCastEffects) — опечатка при добавлении
+      var empty = keys.filter(function(k){
+        var d = SPELL_EFFECTS[k];
+        return !d.effects && !d.damage && !d.heal && !d.tempHp && !d.hpMaxBonus && !d.summon;
+      });
+      return empty.length === 0 ? true : "без механики: " + empty.join(", ");
+    });
+
+    if (typeof _spellActiveBadgeHtml === "function") {
+      t("[cast-6] бейдж «Активно»: остаток раундов показан, без roundsLeft — только «Активно»", function(){
+        var withN = _spellActiveBadgeHtml({ roundsLeft: 7 });
+        if (withN.indexOf("Активно") === -1 || withN.indexOf("⏳7") === -1) return withN;
+        if (withN.indexOf("spell-active-badge") === -1) return "нет класса бейджа";
+        var noN = _spellActiveBadgeHtml({ roundsLeft: null });
+        if (noN.indexOf("⏳") !== -1) return "⏳ без roundsLeft: " + noN;
+        return true;
+      });
+    }
+
+    // Интеграция: новая карточка сквозь мост CAST-1 — каст «Щит веры» даёт +2 КД
+    // generic-веткой calculateAC, конец концентрации откатывает.
+    if (typeof applyCastEffects === "function" && typeof _castSpellWithSlot === "function" &&
+        typeof endConcentration === "function") {
+      t("[cast-6] каст «Щит веры»: 10 мин → 100 рд, КД 10+ЛОВ+2, конец концентрации откатывает", function(){
+        var savedChars = window.characters, savedId = window.currentId;
+        try {
+          window.characters = [{
+            id: "test-cast6", name: "Тест CAST-6", class: "Жрец", level: 5,
+            stats: { str: 10, dex: 16, con: 10, int: 10, wis: 16, cha: 10 },
+            combat: { armorId: "none", hasShield: false, hpCurrent: 20, hpMax: 20, hpDiceSpent: 0 },
+            saves: {}, skills: [], conditions: [], effects: [], activeSpellEffects: [],
+            spells: { stat: "МУД", slots: { 1: 3 }, slotsUsed: {}, prepared: [920],
+              mySpells: [{ id: 920, name: "Щит веры", level: 1, duration: "Концентрация, до 10 минут", source: "PH14" }] }
+          }];
+          window.currentId = "test-cast6";
+          var c = window.characters[0];
+          _castSpellWithSlot(920, "slot", 1);
+          if (c.effects.indexOf("shield_of_faith") === -1) return "shield_of_faith не в char.effects";
+          var inst = c.activeSpellEffects[0];
+          if (!inst) return "нет экземпляра-трекера";
+          if (inst.unit !== "minute" || inst.value !== 10) return "длительность: " + inst.value + " " + inst.unit;
+          if (inst.roundsLeft !== 100) return "roundsLeft: " + inst.roundsLeft;
+          if (inst.concentration !== true) return "концентрация не отмечена в экземпляре";
+          if (c.concentration !== "Щит веры") return "концентрация: " + c.concentration;
+          if (c.combat.ac !== 15) return "КД: ожидал 15 (10+3 ЛОВ+2), получено " + c.combat.ac;
+          endConcentration();
+          if (c.effects.indexOf("shield_of_faith") !== -1) return "не снят по концу концентрации";
+          if (c.activeSpellEffects.length !== 0) return "экземпляр пережил конец концентрации";
+          if (c.combat.ac !== 13) return "КД после снятия: " + c.combat.ac;
+          return true;
+        } finally { window.characters = savedChars; window.currentId = savedId; }
+      });
+    }
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

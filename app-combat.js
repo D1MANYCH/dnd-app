@@ -803,6 +803,7 @@ updateStatusBar();
 calculateAC();
 saveToLocal();
 if (typeof renderEffectsGrid === "function") renderEffectsGrid();
+if (typeof updateSpellActiveBadges === "function") updateSpellActiveBadges(); // CAST-6: ручное снятие убрало экземпляры
 }
 function updateEffectsCount() {
 if (!currentId) return;
@@ -1033,6 +1034,7 @@ function removeCastEffectsForSpell(char, spellName, reason) {
   updateEffectsCount();
   updateStatusBar();
   if (typeof renderEffectsGrid === "function") renderEffectsGrid();
+  if (typeof updateSpellActiveBadges === "function") updateSpellActiveBadges(); // CAST-6
   if (bodyTouched && typeof updateHPDisplay === "function") updateHPDisplay();
   saveToLocal();
   return true;

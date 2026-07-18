@@ -1172,6 +1172,7 @@ function tickCastEffectsRound() {
     showToast("⏳ «" + inst.spellName + "» — эффект истёк", "info");
   });
   if (!expired.length && typeof renderEffectsGrid === "function") renderEffectsGrid();
+  if (typeof updateSpellActiveBadges === "function") updateSpellActiveBadges(); // CAST-6: остаток ⏳ на карточках
   saveToLocal();
 }
 function endBattle() {

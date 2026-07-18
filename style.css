@@ -10676,6 +10676,21 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   letter-spacing: 0.2px;
 }
 
+/* ── CAST-6: бейдж «Активно · ⏳N рд» — заклинание с живым эффектом каста ── */
+.spell-active-badge {
+  display: inline-block;
+  font-size: 0.65em;
+  font-weight: 700;
+  color: var(--accent-color);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 1px 7px;
+  margin-left: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
 /* ── Ritual cast button ── */
 .spell-ritual-btn {
   background: rgba(142,107,191,0.12) !important;

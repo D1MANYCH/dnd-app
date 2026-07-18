@@ -48,6 +48,30 @@ const SPELL_EFFECTS = {
   "Проклятие":                 { effects: ["bestow_curse"],       duration: { value: 1,  unit: "minute" } },
   "Порча":                     { effects: ["bane"],               duration: { value: 1,  unit: "minute" } },
   "Замедление":                { effects: ["slow"],               duration: { value: 1,  unit: "minute" } },
+  // Добивка CAST-6. Ловушка перевода: Spider Climb = заклинание «Паук»
+  // (карточка «Паучье лазание»). Длительности совпадают в обеих редакциях;
+  // расхождение «Дубовой коры» (PH24 без концентрации) снимается само —
+  // флаг concentration берётся из duration-текста записи spells.js.
+  "Щит веры":                  { effects: ["shield_of_faith"],    duration: { value: 10, unit: "minute" } },
+  "Невидимость":               { effects: ["invisibility"],       duration: { value: 1,  unit: "hour" } },
+  "Высшая невидимость":        { effects: ["greater_invisibility"], duration: { value: 1, unit: "minute" } },
+  "Полёт":                     { effects: ["fly_spell"],          duration: { value: 10, unit: "minute" } },
+  "Каменная кожа":             { effects: ["stoneskin"],          duration: { value: 1,  unit: "hour" } },
+  "Защита от энергии":         { effects: ["protection_energy"],  duration: { value: 1,  unit: "hour" } },
+  "Дубовая кора":              { effects: ["barkskin"],           duration: { value: 1,  unit: "hour" } },
+  "Свобода перемещения":       { effects: ["freedom_movement"],   duration: { value: 1,  unit: "hour" } },
+  "Защита от смерти":          { effects: ["death_ward"],         duration: { value: 8,  unit: "hour" } },
+  "Огненный щит":              { effects: ["fire_shield"],        duration: { value: 10, unit: "minute" } },
+  "Паук":                      { effects: ["spider_climb"],       duration: { value: 1,  unit: "hour" } },
+  "Тёмное зрение":             { effects: ["darkvision_spell"],   duration: { value: 8,  unit: "hour" } },
+  "Видение невидимого":        { effects: ["see_invisibility"],   duration: { value: 1,  unit: "hour" } },
+  "Скороход":                  { effects: ["longstrider"],        duration: { value: 1,  unit: "hour" } },
+  "Поспешное отступление":     { effects: ["expeditious_retreat"], duration: { value: 10, unit: "minute" } },
+  "Защита от яда":             { effects: ["protection_poison"],  duration: { value: 1,  unit: "hour" } },
+  "Подводное дыхание":         { effects: ["water_breathing"],    duration: { value: 24, unit: "hour" } },
+  "Хождение по воде":          { effects: ["water_walk"],         duration: { value: 1,  unit: "hour" } },
+  "Газообразная форма":        { effects: ["gaseous_form"],       duration: { value: 1,  unit: "hour" } },
+  "Увеличение/уменьшение":     { effects: ["enlarge_reduce"],     duration: { value: 1,  unit: "minute" } },
 
   // ── Урон (потребитель _applyCastDamage, CAST-4) ─────────────────────────────
   // Формулы сверены с desc/higherLevel spells.js обеих редакций; расхождения

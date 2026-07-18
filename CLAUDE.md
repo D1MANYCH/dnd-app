@@ -16,6 +16,7 @@
 - `app-pdf.js` — PDF-экспорт листа (PERF-1: грузится по требованию из инлайн-загрузчика `index.html` вместе с `vendor/jspdf/`).
 - `data.js` — классы, расы, `APP_VERSION` + `APP_VERSION_DATE` + `APP_CHANGELOG`.
 - `spells.js` — БД заклинаний.
+- `spell-effects.js` — механика применения заклинаний (план CAST): кураторская таблица `SPELL_EFFECTS` (ключ = имя заклинания, оверрайды редакций `bySource`) + чистые хелперы `getSpellEffect`/`scaleFormula`/`damageFormulaFor`/`buildCompanionPrefill`; потребитель — `applyCastEffects` в `app-spells.js`.
 - `character-builds.js` — 36 готовых билдов PHB 2014.
 - `build-notes-data.js` — варианты автозаметок билдов (PERF-2: грузится по требованию из инлайн-загрузчика `index.html`).
 - `class-choices.js` + `subclass-choices-data.js` — выборы классов/подклассов.
@@ -78,7 +79,7 @@ APP_VERSION  ↔  APP_CHANGELOG[0].version  ↔  CACHE_NAME (dnd-sheet-vN)  ↔ 
 
 ## Типовые задачи (где править)
 - **Новый класс** → `data.js` (`CLASSES`), `class-choices.js`, опц. `subclass-choices-data.js`. Verify: `/test`.
-- **Новое заклинание** → `spells.js` (схема — по соседним записям). Если затрагивает UI — bump `CACHE_NAME`.
+- **Новое заклинание** → `spells.js` (схема — по соседним записям). Механика кнопки «Использовать» (баффы/урон/лечение/призыв) — дескриптор в `spell-effects.js` (ключ = точное имя). Если затрагивает UI — bump `CACHE_NAME`.
 - **Новый билд** → `character-builds.js` + `build-notes-data.js`. Verify: `verifyAllBuilds()` в DevTools.
 - **Релиз** → `/bump <уровень> "<changelog>"` → `/preflight` → коммит по запросу пользователя.
 - **Новая фаза плана** → скелет `.claude/templates/phase-plan.md`, индекс в `memory/MEMORY.md`.

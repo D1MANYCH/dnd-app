@@ -364,6 +364,9 @@ if (!char.spells.mySpells || char.spells.mySpells.length === 0) {
 container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 24px 0;">✨ Нет заклинаний — нажмите «Найти заклинание»</p>';
 return;
 }
+// CAST-6: живые экземпляры каста по имени заклинания — бейдж «Активно · ⏳N рд»
+var activeCast = {};
+(char.activeSpellEffects || []).forEach(function(inst) { activeCast[inst.spellName] = inst; });
 const byLevel = {};
 char.spells.mySpells.forEach(function(spell) {
 const lvl = spell.level;
@@ -420,12 +423,14 @@ var card = document.createElement("div");
 card.className = cardClass + " rise";
 card.style.setProperty("--i", Math.min(_idx, 10)); // Дымка v5: stagger-появление
 card.dataset.spellId = spell.id;
+card.dataset.spellName = spell.name; // CAST-6: ключ для updateSpellActiveBadges
 card.innerHTML =
   '<div class="spell-card-header" onclick="toggleSpellCard(this)">' +
     '<div class="spell-card-title">' +
       '<span class="spell-card-arrow">▶</span>' +
       '<span class="spell-card-name">' + escapeHtml(spell.name) + '</span>' +
       (isRitual ? '<span class="ritual-badge" title="Ритуал">🕐<span class="ritual-badge-text"> Ритуал</span></span>' : '') +
+      (activeCast[spell.name] ? _spellActiveBadgeHtml(activeCast[spell.name]) : '') +
     '</div>' +
     '<div class="spell-card-badges">' +
       '<span class="source-badge ' + sourceClass + '">' + escapeHtml(spell.source || "") + '</span>' +
@@ -450,6 +455,33 @@ card.innerHTML =
 groupDiv.appendChild(card);
 });
 });
+}
+// CAST-6: бейдж «Активно · ⏳N рд» в заголовке карточки заклинания с живым
+// экземпляром каста (char.activeSpellEffects). Полный рендер списка ставит
+// бейджи сам (activeCast в renderMySpells); точечные изменения — каст, снятие,
+// тик раундов — обновляет updateSpellActiveBadges НА МЕСТЕ, не перерисовывая
+// список (раскрытая карточка не схлопывается под пальцами).
+function _spellActiveBadgeHtml(inst) {
+  return '<span class="spell-active-badge">✨ Активно' +
+    (inst.roundsLeft != null ? ' · ⏳' + inst.roundsLeft + ' рд' : '') + '</span>';
+}
+function updateSpellActiveBadges() {
+  var container = $("my-spells-list");
+  if (!container || typeof container.querySelectorAll !== "function") return;
+  var char = (typeof currentId !== "undefined" && currentId) ? getCurrentChar() : null;
+  var activeCast = {};
+  ((char && char.activeSpellEffects) || []).forEach(function(inst) { activeCast[inst.spellName] = inst; });
+  Array.prototype.forEach.call(container.querySelectorAll(".my-spell-item"), function(card) {
+    var inst = activeCast[card.dataset ? card.dataset.spellName : null];
+    var badge = card.querySelector(".spell-active-badge");
+    if (!inst) { if (badge) badge.remove(); return; }
+    if (badge) {
+      badge.textContent = "✨ Активно" + (inst.roundsLeft != null ? " · ⏳" + inst.roundsLeft + " рд" : "");
+      return;
+    }
+    var title = card.querySelector(".spell-card-title");
+    if (title) title.insertAdjacentHTML("beforeend", _spellActiveBadgeHtml(inst));
+  });
 }
 // ── Подготовка заклинаний ────────────────────────────────────
 function calcMaxPrepared(char) {
@@ -705,6 +737,7 @@ function _replaceCastInstance(char, spell, d, slot, extra) {
   };
   if (extra) Object.keys(extra).forEach(function(k) { inst[k] = extra[k]; });
   char.activeSpellEffects.push(inst);
+  updateSpellActiveBadges(); // CAST-6: бейдж «Активно» на карточке заклинания
   return inst;
 }
 
