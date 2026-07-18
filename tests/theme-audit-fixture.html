@@ -13,6 +13,7 @@
 // Параметры: ?tab=sheet|spells|inventory|battle|notes|party|journal · &theme=dark|light
 //   &modal=settings|levelup · &scroll=N · &keepbg=1 (не прятать космо-канвас)
 //   &battle=N (CAST-2: активный бой на раунде N + каст «Ускорения» — трекер/бейдж раундов)
+//   &modal=cast|castdamage|castvariant (чузер ячейки · пикер цели урона · чузер варианта)
 //   &set=--token:value;--token:value (A/B-инъекция токенов без правки файлов)
 // Диагностика: HTTP-маячок GET /__diag?... в stdout сервера (см. skills/verify-ui п.6).
 const q = new URLSearchParams(location.search);
@@ -119,6 +120,27 @@ f.addEventListener('load', () => {
               w.offerCastDamageToBattle('Огненный шар', 29, { half: true });
             }
           } catch (e) { beacon('ERR castdamage ' + e.message); }
+        }
+        // CAST-8a: &modal=castvariant — мини-чузер варианта каста. Берём
+        // «Проклятие»: у него опции с подсказками (cvo-name + cvo-hint) — видно
+        // обе строки. Заклинание доносим в книгу вручную: билд-эвокер его не
+        // знает, а чузер строится из дескриптора SPELL_EFFECTS.
+        if (modal === 'castvariant') {
+          try {
+            const ch = w.getCurrentChar();
+            if (!ch) {
+              beacon('SKIP castvariant — персонаж ещё не загружен');
+            } else {
+              const sp = w.SPELL_DATABASE.find(s => s.name === 'Проклятие' && s.source !== 'PH24');
+              if (!sp) beacon('SKIP castvariant — нет заклинания в базе');
+              else {
+                if (!(ch.spells.mySpells || []).some(s => s.id === sp.id))
+                  ch.spells.mySpells.push(JSON.parse(JSON.stringify(sp)));
+                w.saveToLocal();
+                w.openCastVariantChooser(sp, { type: 'slot', level: 3 }, w.getSpellEffect(sp.name, sp.source));
+              }
+            }
+          } catch (e) { beacon('ERR castvariant ' + e.message); }
         }
         if (!q.get('keepbg')) {
           try {

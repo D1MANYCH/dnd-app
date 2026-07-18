@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v296">
+<link rel="stylesheet" href="style.css?v=v297">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -2849,40 +2849,40 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v296"></script>
+<script src="app-log.js?v=v297"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
-<script src="icons.js?v=v296"></script>
-<script src="bg-space.js?v=v296"></script>
-<script src="dice-arena-bg.js?v=v296"></script>
-<script src="data.js?v=v296"></script>
+<script src="icons.js?v=v297"></script>
+<script src="bg-space.js?v=v297"></script>
+<script src="dice-arena-bg.js?v=v297"></script>
+<script src="data.js?v=v297"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v296"></script>
+<script src="character-builds.js?v=v297"></script>
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v296"></script>
-<script src="spells.js?v=v296"></script>
-<script src="spell-effects.js?v=v296"></script>
-<script src="app-core.js?v=v296"></script>
-<script src="app-backup.js?v=v296"></script>
-<script src="app-combat.js?v=v296"></script>
-<script src="app-hp.js?v=v296"></script>
-<script src="app-spells.js?v=v296"></script>
-<script src="app-inventory.js?v=v296"></script>
+<script src="glossary-data.js?v=v297"></script>
+<script src="spells.js?v=v297"></script>
+<script src="spell-effects.js?v=v297"></script>
+<script src="app-core.js?v=v297"></script>
+<script src="app-backup.js?v=v297"></script>
+<script src="app-combat.js?v=v297"></script>
+<script src="app-hp.js?v=v297"></script>
+<script src="app-spells.js?v=v297"></script>
+<script src="app-inventory.js?v=v297"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v296"></script>
-<script src="class-choices.js?v=v296"></script>
-<script src="subclass-choices-data.js?v=v296"></script>
+<script src="app-party.js?v=v297"></script>
+<script src="class-choices.js?v=v297"></script>
+<script src="subclass-choices-data.js?v=v297"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v296";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v297";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-ui.js?v=v296"></script>
-<script src="app-notes.js?v=v296"></script>
-<script src="app-desktop.js?v=v296"></script>
-<script src="history-stack.js?v=v296"></script>
-<script src="app-help.js?v=v296"></script>
+<script src="app-ui.js?v=v297"></script>
+<script src="app-notes.js?v=v297"></script>
+<script src="app-desktop.js?v=v297"></script>
+<script src="history-stack.js?v=v297"></script>
+<script src="app-help.js?v=v297"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -2895,9 +2895,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v296",
-    "vendor/jspdf/roboto-base64.js?v=v296",
-    "app-pdf.js?v=v296"
+    "vendor/jspdf/jspdf.umd.min.js?v=v297",
+    "vendor/jspdf/roboto-base64.js?v=v297",
+    "app-pdf.js?v=v297"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -2921,7 +2921,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v296").then(function () {
+    return loadScript("build-notes-data.js?v=v297").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -2929,26 +2929,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v296"),
-      loadScript("npc-srd.js?v=v296")
+      loadScript("monsters-srd.js?v=v297"),
+      loadScript("npc-srd.js?v=v297")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v296");
+    return loadScript("magic-items.js?v=v297");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v296");
+    return loadScript("gear-catalog.js?v=v297");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v296").then(function () {
+    return loadScript("data-2024.js?v=v297").then(function () {
       window.__edition2024Loaded = true;
     });
   };

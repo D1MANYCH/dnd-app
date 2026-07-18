@@ -20,6 +20,14 @@
 //               byLevel:{ 5:{...} } — оверрайды полей префилла по уровню
 //               ячейки (берётся старший ключ ≤ уровня каста) }
 //   duration: { value:8, unit:"round"|"minute"|"hour"|"day"|"untilLongRest"|"instant"|"special" }
+//   variants: { label:"Тип урона", options:[{id:"fire", name:"Огонь", hint:"…"}] }
+//             — CAST-8a: заклинание с выбором при накладывании. Мини-чузер
+//             открывается ПОСЛЕ выбора ячейки (ячейка уже потрачена, отмена
+//             = применить без варианта); выбор пишется в экземпляр
+//             (inst.variantId/variantName) и виден в бейдже карточки,
+//             сетке эффектов и подписи броска урона. name — КОРОТКОЕ (бейдж
+//             карточки не переносится, white-space:nowrap), механику варианта
+//             несёт необязательный hint (виден только в чузере)
 //   bySource: { PH24: {...} } — точечный оверрайд полей для одной редакции
 //
 // Формулы — в нотации parseDiceFormula (app-ui.js): «8к6», «1к4+4».
@@ -48,7 +56,13 @@ const SPELL_EFFECTS = {
   "Метка охотника":            { effects: ["hunters_mark"],       duration: { value: 1,  unit: "hour" } },
   "Божественное благоволение": { effects: ["divine_favor"],       duration: { value: 1,  unit: "minute" } },
   "Сглаз":                     { effects: ["hex"],                duration: { value: 1,  unit: "hour" } },
-  "Проклятие":                 { effects: ["bestow_curse"],       duration: { value: 1,  unit: "minute" } },
+  // CAST-8a: варианты — формулировки сверены с desc карточек EFFECTS_DATA
+  "Проклятие":                 { effects: ["bestow_curse"],       duration: { value: 1,  unit: "minute" },
+                                 variants: { label: "Эффект проклятия", options: [
+                                   { id: "save",   name: "Помеха на хар-ку", hint: "Помеха на броски выбранной характеристики" },
+                                   { id: "attack", name: "Помеха на атаки",  hint: "Цель с помехой атакует вас" },
+                                   { id: "action", name: "Трата действия",   hint: "В начале хода спасбросок МУД, иначе действие потеряно" },
+                                   { id: "damage", name: "+1к8 некроза",     hint: "Ваши атаки по цели наносят +1к8 некротического" } ] } },
   "Порча":                     { effects: ["bane"],               duration: { value: 1,  unit: "minute" } },
   "Замедление":                { effects: ["slow"],               duration: { value: 1,  unit: "minute" } },
   // Добивка CAST-6. Ловушка перевода: Spider Climb = заклинание «Паук»
@@ -60,11 +74,20 @@ const SPELL_EFFECTS = {
   "Высшая невидимость":        { effects: ["greater_invisibility"], duration: { value: 1, unit: "minute" } },
   "Полёт":                     { effects: ["fly_spell"],          duration: { value: 10, unit: "minute" } },
   "Каменная кожа":             { effects: ["stoneskin"],          duration: { value: 1,  unit: "hour" } },
-  "Защита от энергии":         { effects: ["protection_energy"],  duration: { value: 1,  unit: "hour" } },
+  "Защита от энергии":         { effects: ["protection_energy"],  duration: { value: 1,  unit: "hour" },
+                                 variants: { label: "Тип урона", options: [
+                                   { id: "acid",      name: "Кислота" },
+                                   { id: "cold",      name: "Холод" },
+                                   { id: "fire",      name: "Огонь" },
+                                   { id: "lightning", name: "Молния" },
+                                   { id: "thunder",   name: "Гром" } ] } },
   "Дубовая кора":              { effects: ["barkskin"],           duration: { value: 1,  unit: "hour" } },
   "Свобода перемещения":       { effects: ["freedom_movement"],   duration: { value: 1,  unit: "hour" } },
   "Защита от смерти":          { effects: ["death_ward"],         duration: { value: 8,  unit: "hour" } },
-  "Огненный щит":              { effects: ["fire_shield"],        duration: { value: 10, unit: "minute" } },
+  "Огненный щит":              { effects: ["fire_shield"],        duration: { value: 10, unit: "minute" },
+                                 variants: { label: "Облик щита", options: [
+                                   { id: "warm", name: "Тёплый",   hint: "Сопротивление холоду, атакующий в ближнем бою получает 2к8 огнём" },
+                                   { id: "cold", name: "Холодный", hint: "Сопротивление огню, атакующий в ближнем бою получает 2к8 холодом" } ] } },
   "Паук":                      { effects: ["spider_climb"],       duration: { value: 1,  unit: "hour" } },
   "Тёмное зрение":             { effects: ["darkvision_spell"],   duration: { value: 8,  unit: "hour" } },
   "Видение невидимого":        { effects: ["see_invisibility"],   duration: { value: 1,  unit: "hour" } },
@@ -74,7 +97,10 @@ const SPELL_EFFECTS = {
   "Подводное дыхание":         { effects: ["water_breathing"],    duration: { value: 24, unit: "hour" } },
   "Хождение по воде":          { effects: ["water_walk"],         duration: { value: 1,  unit: "hour" } },
   "Газообразная форма":        { effects: ["gaseous_form"],       duration: { value: 1,  unit: "hour" } },
-  "Увеличение/уменьшение":     { effects: ["enlarge_reduce"],     duration: { value: 1,  unit: "minute" } },
+  "Увеличение/уменьшение":     { effects: ["enlarge_reduce"],     duration: { value: 1,  unit: "minute" },
+                                 variants: { label: "Режим", options: [
+                                   { id: "enlarge", name: "Увеличение", hint: "+1к4 к урону оружием, преимущество на проверки и спасброски СИЛ" },
+                                   { id: "reduce",  name: "Уменьшение", hint: "−1к4 к урону оружием, помеха на проверки и спасброски СИЛ" } ] } },
 
   // ── Урон (потребитель _applyCastDamage, CAST-4) ─────────────────────────────
   // Формулы сверены с desc/higherLevel spells.js обеих редакций; расхождения
@@ -101,6 +127,10 @@ const SPELL_EFFECTS = {
                          bySource: { PH24: { damage: { formula: "1к6", cantripTiers: { 5: "2к6", 11: "3к6", 17: "4к6" }, save: "wis" } } } },
   "Леденящее прикосновение": { damage: { formula: "1к8", cantripTiers: { 5: "2к8", 11: "3к8", 17: "4к8" }, attack: true },
                          bySource: { PH24: { damage: { formula: "1к10", cantripTiers: { 5: "2к10", 11: "3к10", 17: "4к10" }, attack: true } } } },
+  // Добивка CAST-8b
+  "Брызги кислоты":    { damage: { formula: "1к6",  cantripTiers: { 5: "2к6",  11: "3к6",  17: "4к6" }, save: "dex" } },
+  "Терновый кнут":     { damage: { formula: "1к6",  cantripTiers: { 5: "2к6",  11: "3к6",  17: "4к6" }, attack: true } },
+  "Сотворение пламени": { damage: { formula: "1к8", cantripTiers: { 5: "2к8",  11: "3к8",  17: "4к8" }, attack: true } },
 
   // 1 уровень
   "Волшебная стрела":    { damage: { formula: "3к4+3", upcast: "1к4+1" } },
@@ -115,28 +145,54 @@ const SPELL_EFFECTS = {
   // Начальное попадание; повторный тик бонусным действием (1к12) не бросаем
   "Ведьмин снаряд":      { damage: { formula: "1к12", upcast: "1к12", attack: true },
                            bySource: { PH24: { damage: { formula: "2к12", upcast: "1к12", attack: true } } } },
+  // CAST-8: тип урона выбирается при накладывании — вариант уходит в подпись броска
+  "Цветной шарик":       { damage: { formula: "3к8", upcast: "1к8", attack: true },
+                           variants: { label: "Тип урона", options: [
+                             { id: "acid",      name: "Кислота" },
+                             { id: "cold",      name: "Холод" },
+                             { id: "fire",      name: "Огонь" },
+                             { id: "lightning", name: "Молния" },
+                             { id: "poison",    name: "Яд" },
+                             { id: "thunder",   name: "Гром" } ] } },
+  "Руки Хадара":         { damage: { formula: "2к6", upcast: "1к6", save: "str", halfOnSave: true } },
 
   // 2 уровень
   "Палящий луч":     { damage: { formula: "6к6",  upcast: "2к6", attack: true, volley: true } }, // 3 луча по 2к6, апкаст = +1 луч
   "Дребезги":        { damage: { formula: "3к8",  upcast: "1к8",  save: "con", halfOnSave: true } },
   "Лунный луч":      { damage: { formula: "2к10", upcast: "1к10", save: "con", halfOnSave: true } },
   "Облако кинжалов": { damage: { formula: "4к4",  upcast: "2к4" } },
+  // Добивка CAST-8b. «Раскалённый металл» и «Пылающий шар» повторяются бонусным
+  // действием каждый ход — бросаем начальный тик, повтор игрок кидает кнопкой снова.
+  "Раскалённый металл": { damage: { formula: "2к8", upcast: "1к8" } },
+  "Пылающий шар":       { damage: { formula: "2к6", upcast: "1к6", save: "dex", halfOnSave: true } },
+  // 4к4 сразу + 2к4 в конце следующего хода цели — один бросок на оба тика
+  "Мельфова кислотная стрела": { damage: { formula: "4к4+2к4", upcast: "1к4+1к4", attack: true } },
 
   // 3 уровень
   "Огненный шар":          { damage: { formula: "8к6",  upcast: "1к6",  save: "dex", halfOnSave: true } },
   "Молния":                { damage: { formula: "8к6",  upcast: "1к6",  save: "dex", halfOnSave: true } },
   "Призыв молнии":         { damage: { formula: "3к10", upcast: "1к10", save: "dex", halfOnSave: true } }, // 4к10 под открытым небом — не моделируем
   "Прикосновение вампира": { damage: { formula: "3к6",  upcast: "1к6", attack: true } },
+  // Урон зоны при входе/начале хода — бросаем на одну цель за раз (CAST-8b)
+  "Духовные стражи": { damage: { formula: "3к8", upcast: "1к8", save: "wis", halfOnSave: true } },
 
   // 4 уровень
   "Град":     { damage: { formula: "2к8+4к6", upcast: "1к8", save: "dex", halfOnSave: true } },
   "Усыхание": { damage: { formula: "8к8",     upcast: "1к8", save: "con", halfOnSave: true } },
+  "Огненная стена":      { damage: { formula: "5к8",  upcast: "1к8",  save: "dex", halfOnSave: true } },
+  "Воображаемый убийца": { damage: { formula: "4к10", upcast: "1к10", save: "wis", halfOnSave: true } },
 
   // 5 уровень
   "Конус холода": { damage: { formula: "8к8", upcast: "1к8", save: "con", halfOnSave: true } },
+  // Апкаст «Небесного огня» усиливает огонь ИЛИ излучение на выбор — один куб за уровень
+  "Небесный огонь": { damage: { formula: "4к6+4к6", upcast: "1к6", save: "dex", halfOnSave: true } },
+  "Облако смерти":  { damage: { formula: "5к8",     upcast: "1к8", save: "con", halfOnSave: true } },
 
   // 6 уровень
   "Круг смерти":     { damage: { formula: "8к6",  upcast: "2к6", save: "con", halfOnSave: true } },
+  // Успешное испытание отменяет урон целиком — halfOnSave нет
+  "Распад":          { damage: { formula: "10к6+40", upcast: "3к6+10", save: "dex" } },
+  "Солнечный луч":   { damage: { formula: "6к8",  save: "con", halfOnSave: true } }, // 6 круг, апкаста нет
   "Пляшущая молния": { damage: { formula: "10к8", save: "dex", halfOnSave: true } }, // апкаст = +1 цель, формула та же
   "Поражение":       { damage: { formula: "14к6", save: "con", halfOnSave: true } },
 

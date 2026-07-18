@@ -696,11 +696,14 @@ function renderEffectsGrid() {
   const activeSet = (char && char.effects) ? char.effects : [];
   // CAST-1: карточкам с живым экземпляром каста показываем остаток в раундах
   // (тикать начнёт трекер боя в CAST-2; часовые длительности не тикают — без остатка)
-  var _castLeft = {};
+  // CAST-8a: выбранный при касте вариант («Огонь», «Тёплый щит», …) — той же строкой
+  var _castLeft = {}, _castVar = {};
   if (char && char.activeSpellEffects) {
     char.activeSpellEffects.forEach(function(inst) {
-      if (inst.roundsLeft == null) return;
-      (inst.effectIds || []).forEach(function(id) { _castLeft[id] = inst.roundsLeft; });
+      (inst.effectIds || []).forEach(function(id) {
+        if (inst.roundsLeft != null) _castLeft[id] = inst.roundsLeft;
+        if (inst.variantName) _castVar[id] = inst.variantName;
+      });
     });
   }
   grid.innerHTML = "";
@@ -740,6 +743,7 @@ function renderEffectsGrid() {
       item.id = "effect-" + effect.id;
       item.onclick = function() { toggleEffect(effect.id); };
       var durText = effect.duration;
+      if (isActive && _castVar[effect.id]) durText += " · ✨ " + _castVar[effect.id];
       if (isActive && _castLeft[effect.id] != null) durText += " · ⏳ осталось " + _castLeft[effect.id] + " рд";
       item.innerHTML =
         "<div class=\"effect-name\">" + escapeHtml(effect.name) + "</div>" +

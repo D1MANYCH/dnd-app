@@ -461,9 +461,13 @@ groupDiv.appendChild(card);
 // бейджи сам (activeCast в renderMySpells); точечные изменения — каст, снятие,
 // тик раундов — обновляет updateSpellActiveBadges НА МЕСТЕ, не перерисовывая
 // список (раскрытая карточка не схлопывается под пальцами).
+// CAST-8a: выбранный вариант каста (inst.variantName) — между «Активно» и остатком.
+function _spellActiveBadgeText(inst) {
+  return "✨ Активно" + (inst.variantName ? " · " + inst.variantName : "") +
+    (inst.roundsLeft != null ? " · ⏳" + inst.roundsLeft + " рд" : "");
+}
 function _spellActiveBadgeHtml(inst) {
-  return '<span class="spell-active-badge">✨ Активно' +
-    (inst.roundsLeft != null ? ' · ⏳' + inst.roundsLeft + ' рд' : '') + '</span>';
+  return '<span class="spell-active-badge">' + escapeHtml(_spellActiveBadgeText(inst)) + '</span>';
 }
 function updateSpellActiveBadges() {
   var container = $("my-spells-list");
@@ -475,10 +479,7 @@ function updateSpellActiveBadges() {
     var inst = activeCast[card.dataset ? card.dataset.spellName : null];
     var badge = card.querySelector(".spell-active-badge");
     if (!inst) { if (badge) badge.remove(); return; }
-    if (badge) {
-      badge.textContent = "✨ Активно" + (inst.roundsLeft != null ? " · ⏳" + inst.roundsLeft + " рд" : "");
-      return;
-    }
+    if (badge) { badge.textContent = _spellActiveBadgeText(inst); return; }
     var title = card.querySelector(".spell-card-title");
     if (title) title.insertAdjacentHTML("beforeend", _spellActiveBadgeHtml(inst));
   });
@@ -652,9 +653,14 @@ function _finishCast(char, spell, slot) {
 // CAST-3: ветки heal (бросок → quickHP), tempHp (правило max), hpMaxBonus («Подмога»).
 // CAST-4: ветка damage — 3D-бросок формулы урона (заговоры по тирам уровня персонажа).
 // CAST-5: ветка summon — модалка спутника с предзаполнением (_applyCastSummon).
-function applyCastEffects(char, spell, slot) {
+// CAST-8a: дескриптор с variants сперва спрашивает вариант (openCastVariantChooser)
+// и возвращается сюда с выбором. variant === undefined — «ещё не спрашивали»,
+// null — спросили и отменили (применяем без варианта).
+function applyCastEffects(char, spell, slot, variant) {
   var d = (typeof getSpellEffect === "function") ? getSpellEffect(spell.name, spell.source) : null;
   if (!d) return;
+  if (d.variants && variant === undefined) { openCastVariantChooser(spell, slot, d); return; }
+  var vExtra = variant ? { variantId: variant.id, variantName: variant.name } : null;
   if (d.effects && d.effects.length) {
     if (!char.effects) char.effects = [];
     var names = [];
@@ -664,20 +670,82 @@ function applyCastEffects(char, spell, slot) {
         EFFECTS_DATA.find(function(e) { return e.id === id; });
       names.push(card ? card.name : id);
     });
-    _replaceCastInstance(char, spell, d, slot, null);
-    if (window.AppLog) AppLog.action("spells", "эффект от каста: " + spell.name + " → " + names.join(", "));
-    showToast("✨ Эффект: " + names.join(", "), "info");
+    _replaceCastInstance(char, spell, d, slot, vExtra);
+    var vNote = variant ? " · " + variant.name : "";
+    if (window.AppLog) AppLog.action("spells", "эффект от каста: " + spell.name + " → " + names.join(", ") + vNote);
+    showToast("✨ Эффект: " + names.join(", ") + vNote, "info");
     if (typeof calculateAC === "function") calculateAC();
     if (typeof updateEffectsCount === "function") updateEffectsCount();
     if (typeof updateStatusBar === "function") updateStatusBar();
     if (typeof renderEffectsGrid === "function") renderEffectsGrid();
     saveToLocal();
   }
-  if (d.damage) _applyCastDamage(char, spell, d, slot);
+  if (d.damage) _applyCastDamage(char, spell, d, slot, variant);
   if (d.heal) _applyCastHeal(char, spell, d, slot);
   if (d.tempHp) _applyCastTempHp(char, spell, d, slot);
   if (d.hpMaxBonus) _applyCastHpMaxBonus(char, spell, d, slot);
   if (d.summon) _applyCastSummon(char, spell, d, slot);
+}
+
+// CAST-8a: мини-чузер варианта каста («Защита от энергии» — тип урона, «Огненный
+// щит» — тёплый/холодный, «Увеличение/уменьшение» — режим, «Проклятие» — эффект,
+// «Цветной шарик» — тип урона). Открывается ПОСЛЕ выбора ячейки: она уже
+// потрачена, поэтому отмена не отменяет каст, а применяет его без варианта
+// (pickCastVariant(-1)). Модалка строится на лету (паттерн _renderCastDamageModal,
+// app-party.js) — index.html не трогаем.
+var _castVariantPending = null;
+function openCastVariantChooser(spell, slot, d) {
+  _castVariantPending = { spell: spell, slot: slot, options: d.variants.options || [] };
+  var modal = $("cast-variant-modal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "cast-variant-modal";
+    modal.className = "confirm-modal-overlay";
+    modal.innerHTML =
+      '<div class="confirm-modal-box cast-variant-box">' +
+        '<div class="confirm-modal-icon">✨</div>' +
+        '<h4 id="cast-variant-title"></h4>' +
+        '<div id="cast-variant-hint" class="cast-variant-hint"></div>' +
+        '<div id="cast-variant-options" class="cast-variant-options"></div>' +
+        '<div class="confirm-modal-btns" style="margin-top:14px">' +
+          '<button class="confirm-btn-cancel" onclick="pickCastVariant(-1)">Без выбора</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener("click", function(e) { if (e.target === modal) pickCastVariant(-1); });
+  }
+  var title = $("cast-variant-title");
+  if (title) title.textContent = "«" + spell.name + "»";
+  var hint = $("cast-variant-hint");
+  if (hint) hint.textContent = d.variants.label || "Выберите вариант";
+  var box = $("cast-variant-options");
+  if (box) {
+    // name — короткое (уходит в бейдж карточки), hint — механика варианта
+    box.innerHTML = _castVariantPending.options.map(function(o, i) {
+      return '<button type="button" class="cast-variant-option" onclick="pickCastVariant(' + i + ')">' +
+        '<span class="cvo-name">' + escapeHtml(o.name) + '</span>' +
+        (o.hint ? '<span class="cvo-hint">' + escapeHtml(o.hint) + '</span>' : '') +
+        '</button>';
+    }).join("");
+  }
+  modal.classList.add("active");
+}
+
+// i < 0 — «Без выбора»/клик мимо: каст применяется без варианта (ячейка потрачена).
+function pickCastVariant(i) {
+  var pend = _castVariantPending;
+  closeCastVariantChooser();
+  if (!pend) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var variant = (i >= 0 && pend.options[i]) ? pend.options[i] : null;
+  applyCastEffects(char, pend.spell, pend.slot, variant);
+}
+
+function closeCastVariantChooser() {
+  var modal = $("cast-variant-modal");
+  if (modal) modal.classList.remove("active");
+  _castVariantPending = null;
 }
 
 // CAST-5: призывы — модалка спутника с предзаполнением из дескриптора
@@ -750,8 +818,9 @@ function _replaceCastInstance(char, spell, d, slot, extra) {
 // весь залп). CAST-7b: итог броска урона предлагается целям трекера боя
 // (offerCastDamageToBattle, app-party.js) — вне боя бросок информационный.
 // Экземпляр-трекер не создаётся (урон мгновенный).
+// CAST-8a: variant (тип урона «Цветного шарика») уходит в подпись броска.
 var _SAVE_LABELS = { str: "СИЛ", dex: "ЛОВ", con: "ТЕЛ", int: "ИНТ", wis: "МУД", cha: "ХАР" };
-function _applyCastDamage(char, spell, d, slot) {
+function _applyCastDamage(char, spell, d, slot, variant) {
   var castLevel = slot ? slot.level : null;
   var formula = (typeof damageFormulaFor === "function")
     ? damageFormulaFor(d.damage, spell.level || 0, castLevel, char.level || 1) : "";
@@ -767,7 +836,8 @@ function _applyCastDamage(char, spell, d, slot) {
   var rollDamage = function(crit) {
     var f = (crit && typeof critFormula === "function") ? critFormula(formula) : formula;
     rollFormula(f, {
-      label: "💥 " + spell.name + (castLevel ? " · " + castLevel + " ур." : "") + (crit ? " · КРИТ ×2" : ""),
+      label: "💥 " + spell.name + (castLevel ? " · " + castLevel + " ур." : "") +
+        (variant ? " · " + variant.name : "") + (crit ? " · КРИТ ×2" : ""),
       openArena: true,
       onResult: function(res) {
         if (typeof offerCastDamageToBattle === "function")

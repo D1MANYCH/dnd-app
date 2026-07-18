@@ -4257,6 +4257,165 @@
     }
   }
 
+  // ────────── БЛОК 42 (CAST-8): варианты каста + добивка дескрипторов урона ──────────
+  if (typeof SPELL_EFFECTS !== "undefined" && typeof getSpellEffect === "function") {
+
+    t("[cast-8] дескрипторы с variants: 5 ключей, у каждого label и ≥2 уникальные опции", function(){
+      var expect = ["Защита от энергии","Огненный щит","Увеличение/уменьшение","Проклятие","Цветной шарик"];
+      var withVar = Object.keys(SPELL_EFFECTS).filter(function(k){ return !!SPELL_EFFECTS[k].variants; });
+      var missing = expect.filter(function(k){ return withVar.indexOf(k) === -1; });
+      if (missing.length) return "нет variants: " + missing.join(", ");
+      var bad = [];
+      withVar.forEach(function(k){
+        var v = SPELL_EFFECTS[k].variants;
+        if (!v.label) bad.push(k + ": нет label");
+        var opts = v.options || [];
+        if (opts.length < 2) bad.push(k + ": опций " + opts.length);
+        var ids = {};
+        opts.forEach(function(o){
+          if (!o.id || !o.name) bad.push(k + ": опция без id/name");
+          if (ids[o.id]) bad.push(k + ": дубль id " + o.id);
+          ids[o.id] = true;
+          // name уходит в бейдж карточки (white-space:nowrap) — держим коротким,
+          // механику варианта несёт hint (виден только в чузере)
+          if (o.name && o.name.length > 20) bad.push(k + ": длинное name «" + o.name + "»");
+        });
+      });
+      return bad.length ? bad.join("; ") : true;
+    });
+
+    if (typeof applyCastEffects === "function" && typeof pickCastVariant === "function" &&
+        typeof _castSpellWithSlot === "function") {
+      // Общая расстановка: жрец 5 ур. с «Защитой от энергии» (3 круг, концентрация, 1 час)
+      var _cast8Char = function(){
+        return {
+          id: "test-cast8", name: "Тест CAST-8", class: "Жрец", level: 5,
+          stats: { str: 10, dex: 14, con: 10, int: 10, wis: 16, cha: 10 },
+          combat: { armorId: "none", hasShield: false, hpCurrent: 30, hpMax: 30, hpDiceSpent: 0 },
+          saves: {}, skills: [], conditions: [], effects: [], activeSpellEffects: [],
+          spells: { stat: "МУД", dc: 14, slots: { 3: 3 }, slotsUsed: {}, prepared: [930],
+            mySpells: [{ id: 930, name: "Защита от энергии", level: 3,
+              duration: "Концентрация, до 1 часа", source: "PH14" }] }
+        };
+      };
+
+      t("[cast-8] каст спрашивает вариант: до выбора эффект не применён, после — variantId/Name в экземпляре", function(){
+        var savedChars = window.characters, savedId = window.currentId;
+        try {
+          window.characters = [_cast8Char()];
+          window.currentId = "test-cast8";
+          var c = window.characters[0];
+          _castSpellWithSlot(930, "slot", 3);
+          // Ячейка потрачена, но эффект ждёт выбора варианта
+          if (c.spells.slotsUsed[3] !== 1) return "ячейка не потрачена: " + c.spells.slotsUsed[3];
+          if (c.effects.indexOf("protection_energy") !== -1) return "эффект применён до выбора варианта";
+          if (c.activeSpellEffects.length !== 0) return "экземпляр создан до выбора варианта";
+          pickCastVariant(2); // третья опция — «Огонь»
+          if (c.effects.indexOf("protection_energy") === -1) return "эффект не применён после выбора";
+          var inst = c.activeSpellEffects[0];
+          if (!inst) return "нет экземпляра-трекера";
+          if (inst.variantId !== "fire") return "variantId: " + inst.variantId;
+          if (inst.variantName !== "Огонь") return "variantName: " + inst.variantName;
+          if (inst.roundsLeft !== null) return "часовой затикал: " + inst.roundsLeft;
+          return true;
+        } finally { window.characters = savedChars; window.currentId = savedId; }
+      });
+
+      t("[cast-8] «Без выбора» (pickCastVariant(-1)) применяет эффект без варианта", function(){
+        var savedChars = window.characters, savedId = window.currentId;
+        try {
+          window.characters = [_cast8Char()];
+          window.currentId = "test-cast8";
+          var c = window.characters[0];
+          _castSpellWithSlot(930, "slot", 3);
+          pickCastVariant(-1);
+          if (c.effects.indexOf("protection_energy") === -1) return "эффект не применён";
+          var inst = c.activeSpellEffects[0];
+          if (!inst) return "нет экземпляра-трекера";
+          if (inst.variantId != null || inst.variantName != null)
+            return "вариант просочился: " + inst.variantId + "/" + inst.variantName;
+          return true;
+        } finally { window.characters = savedChars; window.currentId = savedId; }
+      });
+
+      t("[cast-8] дескриптор без variants кастуется сразу, чузер не открывается", function(){
+        var savedChars = window.characters, savedId = window.currentId;
+        try {
+          var ch = _cast8Char();
+          ch.spells.prepared = [931];
+          ch.spells.mySpells = [{ id: 931, name: "Доспехи мага", level: 1,
+            duration: "8 часов", source: "PH14" }];
+          ch.spells.slots = { 1: 2 };
+          window.characters = [ch];
+          window.currentId = "test-cast8";
+          _castSpellWithSlot(931, "slot", 1);
+          if (ch.effects.indexOf("mage_armor") === -1) return "эффект без variants не применился сразу";
+          if (typeof _castVariantPending !== "undefined" && _castVariantPending !== null)
+            return "чузер открылся для дескриптора без variants";
+          return true;
+        } finally { window.characters = savedChars; window.currentId = savedId; }
+      });
+    }
+
+    if (typeof _spellActiveBadgeText === "function") {
+      t("[cast-8] бейдж «Активно»: вариант между «Активно» и остатком раундов", function(){
+        var full = _spellActiveBadgeText({ variantName: "Огонь", roundsLeft: 7 });
+        if (full !== "✨ Активно · Огонь · ⏳7 рд") return full;
+        var noVar = _spellActiveBadgeText({ roundsLeft: 7 });
+        if (noVar.indexOf("·") !== noVar.lastIndexOf("·")) return "лишний разделитель без варианта: " + noVar;
+        var noRounds = _spellActiveBadgeText({ variantName: "Тёплый", roundsLeft: null });
+        if (noRounds.indexOf("⏳") !== -1) return "⏳ без roundsLeft: " + noRounds;
+        if (noRounds.indexOf("Тёплый") === -1) return "вариант потерян: " + noRounds;
+        return true;
+      });
+    }
+
+    t("[cast-8] 15 новых дескрипторов урона на месте, save/attack расставлены", function(){
+      var added = ["Брызги кислоты","Терновый кнут","Сотворение пламени","Цветной шарик","Руки Хадара",
+                   "Раскалённый металл","Пылающий шар","Мельфова кислотная стрела","Духовные стражи",
+                   "Огненная стена","Воображаемый убийца","Небесный огонь","Облако смерти",
+                   "Распад","Солнечный луч"];
+      var bad = [];
+      added.forEach(function(n){
+        var d = getSpellEffect(n);
+        if (!d || !d.damage || !d.damage.formula) { bad.push("нет damage: " + n); return; }
+        if (d.damage.save && d.damage.attack) bad.push("и save, и attack: " + n);
+      });
+      // Атаки против испытаний — сверено с desc spells.js
+      ["Терновый кнут","Сотворение пламени","Цветной шарик","Мельфова кислотная стрела"].forEach(function(n){
+        if (getSpellEffect(n).damage.attack !== true) bad.push("нет attack: " + n);
+      });
+      ["Брызги кислоты","Руки Хадара","Пылающий шар","Духовные стражи","Огненная стена",
+       "Воображаемый убийца","Небесный огонь","Облако смерти","Распад","Солнечный луч"].forEach(function(n){
+        if (!getSpellEffect(n).damage.save) bad.push("нет save: " + n);
+      });
+      return bad.length ? bad.join("; ") : true;
+    });
+
+    if (typeof damageFormulaFor === "function") {
+      t("[cast-8] формулы новых: заговор по уровню персонажа, апкаст ячейкой, «Распад» без halfOnSave", function(){
+        // «Терновый кнут» — заговор: 11 ур. персонажа → 3к6, ячейка не участвует
+        var whip = getSpellEffect("Терновый кнут").damage;
+        if (damageFormulaFor(whip, 0, null, 11) !== "3к6") return "Терновый кнут 11 ур.: " + damageFormulaFor(whip, 0, null, 11);
+        if (damageFormulaFor(whip, 0, null, 4) !== "1к6") return "Терновый кнут 4 ур.: " + damageFormulaFor(whip, 0, null, 4);
+        // «Цветной шарик» 1 круг ячейкой 3 ур. → 3к8+1к8+1к8
+        var orb = getSpellEffect("Цветной шарик").damage;
+        if (damageFormulaFor(orb, 1, 3, 5) !== "3к8+1к8+1к8") return "Цветной шарик: " + damageFormulaFor(orb, 1, 3, 5);
+        // «Небесный огонь» 5 круг ячейкой 7 → 4к6+4к6+1к6+1к6
+        var strike = getSpellEffect("Небесный огонь").damage;
+        if (damageFormulaFor(strike, 5, 7, 11) !== "4к6+4к6+1к6+1к6") return "Небесный огонь: " + damageFormulaFor(strike, 5, 7, 11);
+        // «Распад» — успех отменяет урон целиком: save есть, halfOnSave нет
+        var dis = getSpellEffect("Распад").damage;
+        if (dis.save !== "dex" || dis.halfOnSave) return "Распад: save=" + dis.save + " half=" + dis.halfOnSave;
+        if (damageFormulaFor(dis, 6, 7, 13) !== "10к6+40+3к6+10") return "Распад апкаст: " + damageFormulaFor(dis, 6, 7, 13);
+        // «Солнечный луч» — 6 круг без апкаста: ячейка 8 не меняет формулу
+        var beam = getSpellEffect("Солнечный луч").damage;
+        if (damageFormulaFor(beam, 6, 8, 13) !== "6к8") return "Солнечный луч: " + damageFormulaFor(beam, 6, 8, 13);
+        return true;
+      });
+    }
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

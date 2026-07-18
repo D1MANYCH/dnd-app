@@ -10617,6 +10617,20 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .cast-damage-target .cdt-hp { color: var(--text-mute); font-size: 0.82em; white-space: nowrap; }
 .cast-damage-target .cdt-hp b { color: var(--accent-hi); }
 
+/* ── CAST-8a: мини-чузер варианта каста ── */
+.cast-variant-box { max-width: 340px; }
+.cast-variant-hint { color: var(--text-mute); font-size: 0.85em; margin: 4px 0 12px; }
+.cast-variant-options { display: flex; flex-direction: column; gap: 7px; max-height: 46vh; overflow-y: auto; }
+.cast-variant-option {
+  display: flex; flex-direction: column; gap: 3px;
+  width: 100%; padding: 10px 14px; border-radius: var(--r-sm); text-align: left;
+  background: var(--accent-soft); border: 1px solid var(--accent);
+  color: var(--text); cursor: pointer; transition: background 0.18s;
+}
+.cast-variant-option:hover { background: var(--accent-glow); }
+.cast-variant-option .cvo-name { font-weight: 700; font-size: 0.9em; }
+.cast-variant-option .cvo-hint { color: var(--text-mute); font-size: 0.78em; font-weight: 400; line-height: 1.35; }
+
 .spell-conc-btn {
   background: rgba(155,89,182,0.15) !important;
   border: 1px solid rgba(155,89,182,0.5) !important;
