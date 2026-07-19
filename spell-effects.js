@@ -20,6 +20,14 @@
 //             повторный бросок игрок делает кнопкой в шапке трекера боя
 //             (полоса повторов, app-party.js). Формула считается тем же
 //             damageFormulaFor — схема полей совпадает с damage
+//   debuff:   { id:"bane", name:"Порча", icon:"💀", color:"#8e44ad",
+//               save:"cha", attack:true, hint:"что делает с целью",
+//               targets:3, targetsUpcast:1 — +N целей за уровень ячейки выше
+//               базового } — CAST-10: эффект вешается НЕ на себя, а на УЧАСТНИКА
+//             трекера боя (чип в его строке, p.debuffs в BATTLE_DATA). Каст
+//             открывает пикер целей (offerCastDebuffToBattle, app-party.js);
+//             снятие — по концентрации/раундам вместе с экземпляром каста или
+//             вручную кликом по чипу. Вне боя ветка молчит (как урон в CAST-4)
 //   heal:     { formula:"1к8", upcast:"1к8", addSpellMod:true }
 //   tempHp:   { formula:"1к4+4", upcast:"5" } — врем. ХП (не стакаются, берём max)
 //   hpMaxBonus: { base:5, perUpcast:5 } — «Подмога»: +hpMax и +hpCurrent
@@ -57,22 +65,37 @@ const SPELL_EFFECTS = {
   "Убежище":                   { effects: ["sanctuary"],          duration: { value: 1,  unit: "minute" } },
   "Благословение":             { effects: ["bless"],              duration: { value: 1,  unit: "minute" } },
   "Героизм":                   { effects: ["heroism"],            duration: { value: 1,  unit: "minute" } },
-  "Огонь фей":                 { effects: ["faerie_fire"],        duration: { value: 1,  unit: "minute" } },
+  "Огонь фей":                 { effects: ["faerie_fire"],        duration: { value: 1,  unit: "minute" },
+                                 debuff: { id: "faerie_fire", name: "Огонь фей", icon: "🌟", color: "#2980b9",
+                                   save: "dex", targets: 6,
+                                   hint: "Атаки по цели с преимуществом, невидимость не помогает (куб 20 фт)" } },
   "Защита от добра и зла":     { effects: ["protection_evil"],    duration: { value: 10, unit: "minute" } },
   "Бесследное передвижение":   { effects: ["pass_without_trace"], duration: { value: 1,  unit: "hour" } },
   "Отражения":                 { effects: ["mirror_image"],       duration: { value: 1,  unit: "minute" } },
-  "Метка охотника":            { effects: ["hunters_mark"],       duration: { value: 1,  unit: "hour" } },
+  "Метка охотника":            { effects: ["hunters_mark"],       duration: { value: 1,  unit: "hour" },
+                                 debuff: { id: "hunters_mark", name: "Метка", icon: "🏹", color: "#16a085",
+                                   hint: "+1к6 урона от ваших атак по цели; при её смерти метку переносят бонусным действием" } },
   "Божественное благоволение": { effects: ["divine_favor"],       duration: { value: 1,  unit: "minute" } },
-  "Сглаз":                     { effects: ["hex"],                duration: { value: 1,  unit: "hour" } },
+  "Сглаз":                     { effects: ["hex"],                duration: { value: 1,  unit: "hour" },
+                                 debuff: { id: "hex", name: "Сглаз", icon: "👁️", color: "#9b59b6",
+                                   hint: "+1к6 некротического от ваших атак; помеха на проверки выбранной характеристики" } },
   // CAST-8a: варианты — формулировки сверены с desc карточек EFFECTS_DATA
   "Проклятие":                 { effects: ["bestow_curse"],       duration: { value: 1,  unit: "minute" },
                                  variants: { label: "Эффект проклятия", options: [
                                    { id: "save",   name: "Помеха на хар-ку", hint: "Помеха на броски выбранной характеристики" },
                                    { id: "attack", name: "Помеха на атаки",  hint: "Цель с помехой атакует вас" },
                                    { id: "action", name: "Трата действия",   hint: "В начале хода спасбросок МУД, иначе действие потеряно" },
-                                   { id: "damage", name: "+1к8 некроза",     hint: "Ваши атаки по цели наносят +1к8 некротического" } ] } },
-  "Порча":                     { effects: ["bane"],               duration: { value: 1,  unit: "minute" } },
-  "Замедление":                { effects: ["slow"],               duration: { value: 1,  unit: "minute" } },
+                                   { id: "damage", name: "+1к8 некроза",     hint: "Ваши атаки по цели наносят +1к8 некротического" } ] },
+                                 debuff: { id: "bestow_curse", name: "Проклятие", icon: "🩸", color: "#a93226",
+                                   save: "wis", hint: "Выбранное проклятие держится, пока идёт концентрация" } },
+  "Порча":                     { effects: ["bane"],               duration: { value: 1,  unit: "minute" },
+                                 debuff: { id: "bane", name: "Порча", icon: "💀", color: "#8e44ad",
+                                   save: "cha", targets: 3, targetsUpcast: 1,
+                                   hint: "Цель вычитает 1к4 из бросков атаки и спасбросков" } },
+  "Замедление":                { effects: ["slow"],               duration: { value: 1,  unit: "minute" },
+                                 debuff: { id: "slow", name: "Замедление", icon: "🐢", color: "#117864",
+                                   save: "wis", targets: 6,
+                                   hint: "Скорость вдвое, −2 к КД и спасброскам ЛОВ, одно действие в ход; спасбросок в конце хода" } },
   // Добивка CAST-6. Ловушка перевода: Spider Climb = заклинание «Паук»
   // (карточка «Паучье лазание»). Длительности совпадают в обеих редакциях;
   // расхождение «Дубовой коры» (PH24 без концентрации) снимается само —
@@ -109,6 +132,31 @@ const SPELL_EFFECTS = {
                                  variants: { label: "Режим", options: [
                                    { id: "enlarge", name: "Увеличение", hint: "+1к4 к урону оружием, преимущество на проверки и спасброски СИЛ" },
                                    { id: "reduce",  name: "Уменьшение", hint: "−1к4 к урону оружием, помеха на проверки и спасброски СИЛ" } ] } },
+
+  // ── Чистые дебаффы на цель (CAST-10) ────────────────────────────────────────
+  // Заклинания, у которых на СЕБЯ вешать нечего: весь эффект живёт на участнике
+  // боя (чип в строке трекера). Карточки EFFECTS_DATA у них нет — ветка effects
+  // отсутствует, экземпляр-трекер создаёт сам _applyCastDebuff по duration.
+  // Ловушка перевода: Blindness/Deafness = «Глухота/слепота» (глухота ПЕРВАЯ!),
+  // Hold Person = «Удержание личности», Ray of Enfeeblement = «Луч слабости»
+  // (в PH24 сохранился, статы те же).
+  "Луч слабости": { debuff: { id: "ray_enfeeblement", name: "Слабость", icon: "🦴", color: "#6c7a89",
+                      attack: true,
+                      hint: "Рукопашные атаки цели с СИЛ наносят половину урона; спасбросок ТЕЛ в конце её хода" },
+                    duration: { value: 1, unit: "minute" } },
+  // Выбор «ослепить или оглушить» — вариант каста (CAST-8a): имя варианта
+  // уходит в чип вместо name дескриптора
+  "Глухота/слепота": { debuff: { id: "blind_deaf", name: "Слепота", icon: "🙈", color: "#c0611b",
+                         save: "con", targets: 1, targetsUpcast: 1,
+                         hint: "Цель слепа или глуха; спасбросок ТЕЛ в конце каждого её хода" },
+                       variants: { label: "Что накладываем", options: [
+                         { id: "blind", name: "Слепота", hint: "Цель ослеплена: атаки по ней с преимуществом, её атаки с помехой" },
+                         { id: "deaf",  name: "Глухота", hint: "Цель оглохла: не слышит и проваливает проверки на слух" } ] },
+                       duration: { value: 1, unit: "minute" } },
+  "Удержание личности": { debuff: { id: "hold_person", name: "Паралич", icon: "🧊", color: "#2471a3",
+                            save: "wis", targets: 1, targetsUpcast: 1,
+                            hint: "Гуманоид парализован (атаки в упор — крит); спасбросок МУД в конце каждого его хода" },
+                          duration: { value: 1, unit: "minute" } },
 
   // ── Урон (потребитель _applyCastDamage, CAST-4) ─────────────────────────────
   // Формулы сверены с desc/higherLevel spells.js обеих редакций; расхождения
@@ -395,6 +443,17 @@ function critFormula(formula) {
   });
 }
 
+// CAST-10: сколько целей можно отметить чипом. targets — база (по умолчанию 1),
+// targetsUpcast — сколько ЕЩЁ целей даёт каждый уровень ячейки выше базового
+// («Порча»: 3 цели, +1 за уровень). Заговор/каст без ячейки (castLevel == null)
+// и ячейка не выше базовой — база без изменений.
+function debuffTargetCount(dbf, spellLevel, castLevel) {
+  if (!dbf) return 0;
+  var base = dbf.targets != null ? dbf.targets : 1;
+  if (!dbf.targetsUpcast || !spellLevel || !castLevel || castLevel <= spellLevel) return base;
+  return base + (castLevel - spellLevel) * dbf.targetsUpcast;
+}
+
 // CAST-3: сумма «плоской» формулы без кубиков — «70+10+10» → 90, «5» → 5.
 // Формулы с кубиками (и любой мусор) → null: их бросает rollFormula.
 // Нужна плоскому лечению/врем. ХП («Полное исцеление», «Доспех Агатиса»).
@@ -458,4 +517,5 @@ if (typeof window !== "undefined") {
   window.flatFormulaTotal = flatFormulaTotal;
   window.damageFormulaFor = damageFormulaFor;
   window.critFormula = critFormula;
+  window.debuffTargetCount = debuffTargetCount;
 }

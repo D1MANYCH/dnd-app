@@ -79,7 +79,7 @@ APP_VERSION  ↔  APP_CHANGELOG[0].version  ↔  CACHE_NAME (dnd-sheet-vN)  ↔ 
 
 ## Типовые задачи (где править)
 - **Новый класс** → `data.js` (`CLASSES`), `class-choices.js`, опц. `subclass-choices-data.js`. Verify: `/test`.
-- **Новое заклинание** → `spells.js` (схема — по соседним записям). Механика кнопки «Использовать» (баффы/урон/лечение/призыв) — дескриптор в `spell-effects.js` (ключ = точное имя). Если затрагивает UI — bump `CACHE_NAME`.
+- **Новое заклинание** → `spells.js` (схема — по соседним записям). Механика кнопки «Использовать» (баффы/урон/лечение/призыв/дебафф на цель боя) — дескриптор в `spell-effects.js` (ключ = точное имя). Если затрагивает UI — bump `CACHE_NAME`.
 - **Новый билд** → `character-builds.js` + `build-notes-data.js`. Verify: `verifyAllBuilds()` в DevTools.
 - **Релиз** → `/bump <уровень> "<changelog>"` → `/preflight` → коммит по запросу пользователя.
 - **Новая фаза плана** → скелет `.claude/templates/phase-plan.md`, индекс в `memory/MEMORY.md`.

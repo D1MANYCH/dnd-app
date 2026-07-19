@@ -10641,6 +10641,26 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .cast-variant-option .cvo-name { font-weight: 700; font-size: 0.9em; }
 .cast-variant-option .cvo-hint { color: var(--text-mute); font-size: 0.78em; font-weight: 400; line-height: 1.35; }
 
+/* ── CAST-10: пикер целей для дебаффа ── */
+.cast-debuff-box { max-width: 360px; }
+.cast-debuff-hint { color: var(--text-mute); font-size: 0.82em; margin: 4px 0 12px; line-height: 1.4; }
+.cast-debuff-targets { display: flex; flex-direction: column; gap: 7px; max-height: 46vh; overflow-y: auto; }
+.cast-debuff-target {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 9px 12px; border-radius: var(--r-sm); text-align: left;
+  background: var(--bg-2); border: 1px solid var(--border);
+  color: var(--text); cursor: pointer; transition: background 0.18s, border-color 0.18s;
+}
+.cast-debuff-target:hover { background: var(--accent-glow); }
+.cast-debuff-target.chosen { background: var(--accent-soft); border-color: var(--accent); }
+.cast-debuff-target .cdb-icon {
+  width: 30px; height: 30px; flex: none; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-size: 1.05em;
+}
+.cast-debuff-target .cdb-name { flex: 1; font-weight: 600; font-size: 0.9em; }
+.cast-debuff-target .cdb-note { color: var(--text-mute); font-size: 0.75em; white-space: nowrap; }
+.cast-debuff-target .cdb-mark { width: 16px; text-align: center; color: var(--accent-hi); font-weight: 700; }
+
 .spell-conc-btn {
   background: rgba(155,89,182,0.15) !important;
   border: 1px solid rgba(155,89,182,0.5) !important;
@@ -12923,6 +12943,22 @@ textarea:focus-visible {
   color: var(--sc, var(--accent));
   border-color: color-mix(in srgb, var(--sc, var(--accent)) 36%, transparent);
 }
+
+/* CAST-10: чипы дебаффов на участнике боя — своя строка под ХП/статусом.
+   Цвет заклинания приходит инлайном из дескриптора (--dbc), как --sc у
+   .cond-dot, но живёт только в заливке и рамке: ПОДПИСЬ красим токеном текста.
+   Цветной текст на тонированном фоне того же тона давал 2.5–4.4 контраста
+   (в тёмной теме хуже всего — тёмный акцент на тёмном фоне). */
+.tracker-debuffs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+.debuff-chip {
+  width: auto; margin: 0; padding: 3px 9px; border-radius: 999px;
+  font-size: 0.72em; font-weight: 700; white-space: nowrap; cursor: pointer;
+  background: color-mix(in srgb, var(--dbc, var(--accent)) 16%, var(--bg-2));
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--dbc, var(--accent)) 48%, transparent);
+  transition: background 0.18s;
+}
+.debuff-chip:hover { background: color-mix(in srgb, var(--dbc, var(--accent)) 30%, var(--bg-2)); }
 
 /* Мини-индикатор состояния (в трекере боя, рядом с именем) */
 .tracker-cond-dots { display: inline-flex; gap: 3px; margin-left: 6px; vertical-align: middle; }

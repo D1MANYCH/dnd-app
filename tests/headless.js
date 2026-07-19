@@ -4075,10 +4075,12 @@
     t("[cast-6] финальная таблица SPELL_EFFECTS ≥ 90 ключей, каждый дескриптор с механикой", function(){
       var keys = Object.keys(SPELL_EFFECTS);
       if (keys.length < 90) return "ключей: " + keys.length;
-      // Пустой дескриптор (ни одной ветки applyCastEffects) — опечатка при добавлении
+      // Пустой дескриптор (ни одной ветки applyCastEffects) — опечатка при добавлении.
+      // Список веток пополняется фазами: repeat (CAST-9a), debuff (CAST-10).
       var empty = keys.filter(function(k){
         var d = SPELL_EFFECTS[k];
-        return !d.effects && !d.damage && !d.heal && !d.tempHp && !d.hpMaxBonus && !d.summon;
+        return !d.effects && !d.damage && !d.heal && !d.tempHp && !d.hpMaxBonus &&
+               !d.summon && !d.repeat && !d.debuff;
       });
       return empty.length === 0 ? true : "без механики: " + empty.join(", ");
     });
@@ -4617,6 +4619,210 @@
             BATTLE_DATA = { active: false, participants: [], currentTurn: 0, round: 1 };
             renderBattleCastPanels();
             if (!el.classList.contains("hidden")) return "чип виден вне боя";
+            return true;
+          } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
+        });
+      }
+    }
+  }
+
+  // ────────── БЛОК 44 (CAST-10): дебаффы чипом на участнике трекера ──────────
+  if (typeof SPELL_EFFECTS !== "undefined" && typeof getSpellEffect === "function") {
+
+    var _CAST10_DEBUFFS = ["Порча","Сглаз","Огонь фей","Метка охотника","Замедление","Проклятие",
+                           "Луч слабости","Глухота/слепота","Удержание личности"];
+
+    t("[cast-10] дескрипторы debuff: 9 ключей, у каждого id/name/icon/hint", function(){
+      var withDbf = Object.keys(SPELL_EFFECTS).filter(function(k){ return !!SPELL_EFFECTS[k].debuff; });
+      var missing = _CAST10_DEBUFFS.filter(function(k){ return withDbf.indexOf(k) === -1; });
+      if (missing.length) return "нет debuff: " + missing.join(", ");
+      var extra = withDbf.filter(function(k){ return _CAST10_DEBUFFS.indexOf(k) === -1; });
+      if (extra.length) return "лишний debuff (не в списке фазы): " + extra.join(", ");
+      var bad = [];
+      withDbf.forEach(function(k){
+        var d = SPELL_EFFECTS[k], b = d.debuff;
+        if (!b.id) bad.push(k + ": нет id");
+        if (!b.name) bad.push(k + ": нет name (уходит в чип)");
+        if (!b.icon) bad.push(k + ": нет icon");
+        if (!b.hint) bad.push(k + ": нет hint (подсказка пикера и тултип чипа)");
+        // Имя чипа не переносится (white-space:nowrap) — та же гоча, что у CAST-8
+        if (b.name && b.name.length > 20) bad.push(k + ": name длиннее 20 символов — чип поедет");
+        // Без duration каст не создаст экземпляр → чип осиротеет без ⏳ и снятия
+        if (!d.duration) bad.push(k + ": нет duration — экземпляр не создастся");
+        if (b.save && b.attack) bad.push(k + ": и save, и attack");
+      });
+      return bad.length ? bad.join("; ") : true;
+    });
+
+    t("[cast-10] ключи debuff существуют в базе заклинаний (ловушки перевода)", function(){
+      if (typeof SPELLS_BASE === "undefined") return true;
+      var names = {};
+      SPELLS_BASE.forEach(function(s){ names[s.name] = true; });
+      var absent = _CAST10_DEBUFFS.filter(function(k){ return !names[k]; });
+      return absent.length ? "нет в spells.js: " + absent.join(", ") : true;
+    });
+
+    if (typeof debuffTargetCount === "function") {
+      t("[cast-10] debuffTargetCount: база, апкаст за уровень, каст без ячейки", function(){
+        var bane = getSpellEffect("Порча").debuff;          // 3 цели, +1 за уровень
+        if (debuffTargetCount(bane, 1, 1) !== 3) return "Порча ячейкой 1: " + debuffTargetCount(bane, 1, 1);
+        if (debuffTargetCount(bane, 1, 3) !== 5) return "Порча ячейкой 3: " + debuffTargetCount(bane, 1, 3);
+        if (debuffTargetCount(bane, 1, null) !== 3) return "Порча без ячейки: " + debuffTargetCount(bane, 1, null);
+        var hex = getSpellEffect("Сглаз").debuff;            // одна цель, апкаст не даёт целей
+        if (debuffTargetCount(hex, 1, 5) !== 1) return "Сглаз ячейкой 5: " + debuffTargetCount(hex, 1, 5);
+        var slow = getSpellEffect("Замедление").debuff;      // 6 целей без апкаста
+        if (debuffTargetCount(slow, 3, 5) !== 6) return "Замедление ячейкой 5: " + debuffTargetCount(slow, 3, 5);
+        var hold = getSpellEffect("Удержание личности").debuff;
+        if (debuffTargetCount(hold, 2, 4) !== 3) return "Удержание ячейкой 4: " + debuffTargetCount(hold, 2, 4);
+        if (debuffTargetCount(null, 1, 1) !== 0) return "пустой дескриптор не 0";
+        return true;
+      });
+    }
+
+    if (typeof offerCastDebuffToBattle === "function" && typeof applyCastDebuffTargets === "function") {
+      var _cast10Battle = function(){
+        return { active: true, currentTurn: 0, round: 2, participants: [
+          { id: "s",  name: "Я",      type: "self",    status: "healthy" },
+          { id: "m1", name: "Гоблин", type: "monster", status: "healthy", hp: 7,  hpMax: 7 },
+          { id: "m2", name: "Огр",    type: "monster", status: "healthy", hp: 59, hpMax: 59 }
+        ] };
+      };
+
+      t("[cast-10] пикер целей: «я» не кандидат, лимит целей держится, отметка кладёт чип", function(){
+        var savedBattle = BATTLE_DATA;
+        try {
+          BATTLE_DATA = _cast10Battle();
+          var bane = getSpellEffect("Порча").debuff;
+          offerCastDebuffToBattle("Порча", bane, { castId: 77, maxTargets: 2 });
+          var html = $("cast-debuff-targets").innerHTML || "";
+          if (html.indexOf("Гоблин") === -1 || html.indexOf("Огр") === -1) return "нет целей в пикере: " + html;
+          if (html.indexOf(">Я<") !== -1) return "«я» попал в кандидаты";
+          toggleCastDebuffTarget(1);
+          toggleCastDebuffTarget(2);
+          toggleCastDebuffTarget(1); // снятие отметки
+          toggleCastDebuffTarget(1); // обратно — лимит 2 не превышен
+          applyCastDebuffTargets();
+          var g = BATTLE_DATA.participants[1], o = BATTLE_DATA.participants[2];
+          if (!g.debuffs || g.debuffs.length !== 1) return "чип не лёг на Гоблина";
+          if (!o.debuffs || o.debuffs.length !== 1) return "чип не лёг на Огра";
+          if (g.debuffs[0].castId !== 77) return "потеряна связь с экземпляром: " + g.debuffs[0].castId;
+          if (g.debuffs[0].name !== "Порча") return "имя чипа: " + g.debuffs[0].name;
+          if (BATTLE_DATA.participants[0].debuffs) return "чип уехал на «я»";
+          return true;
+        } finally { BATTLE_DATA = savedBattle; }
+      });
+
+      if (typeof _battleDebuffChips === "function") {
+        t("[cast-10] чип: остаток ⏳ из экземпляра каста, имя варианта поверх имени дескриптора", function(){
+          var savedChars = window.characters, savedId = window.currentId, savedBattle = BATTLE_DATA;
+          try {
+            window.characters = [{ id: "c10", name: "Т", level: 5, stats: {}, combat: {}, effects: [],
+              activeSpellEffects: [{ id: 55, spellName: "Глухота/слепота", roundsLeft: 6, unit: "minute" }] }];
+            window.currentId = "c10";
+            BATTLE_DATA = _cast10Battle();
+            var p = BATTLE_DATA.participants[1];
+            p.debuffs = [{ id: "blind_deaf", spellName: "Глухота/слепота", name: "Слепота",
+              icon: "🙈", color: "#c0611b", hint: "h", castId: 55, variantName: "Глухота" }];
+            var html = _battleDebuffChips(p, 1);
+            if (html.indexOf("⏳6") === -1) return "нет остатка из экземпляра: " + html;
+            if (html.indexOf("Глухота") === -1) return "вариант не в чипе: " + html;
+            if (html.indexOf("removeBattleDebuff(1,0)") === -1) return "чип не снимается кликом: " + html;
+            if (html.indexOf("--dbc:#c0611b") === -1) return "цвет не проброшен инлайном: " + html;
+            // Осиротевший чип (экземпляра нет — переключили персонажа) живёт без ⏳
+            p.debuffs[0].castId = 999;
+            if (_battleDebuffChips(p, 1).indexOf("⏳") !== -1) return "⏳ без экземпляра";
+            // Пустой участник — строки нет вовсе
+            if (_battleDebuffChips(BATTLE_DATA.participants[2], 2) !== "") return "пустая строка чипов рисуется";
+            return true;
+          } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
+        });
+      }
+
+      t("[cast-10] снятие: вручную кликом, по имени заклинания, длинным отдыхом", function(){
+        var savedBattle = BATTLE_DATA;
+        try {
+          BATTLE_DATA = _cast10Battle();
+          var mk = function(name){ return { id: "x", spellName: name, name: name, icon: "✨", castId: 1 }; };
+          BATTLE_DATA.participants[1].debuffs = [mk("Порча"), mk("Замедление")];
+          BATTLE_DATA.participants[2].debuffs = [mk("Порча")];
+          removeBattleDebuff(1, 0);
+          if (BATTLE_DATA.participants[1].debuffs.length !== 1) return "ручное снятие не сработало";
+          if (BATTLE_DATA.participants[1].debuffs[0].spellName !== "Замедление") return "снят не тот чип";
+          if (removeBattleDebuffsForSpell("Порча") !== true) return "снятие по заклинанию не отчиталось";
+          if (BATTLE_DATA.participants[2].debuffs.length !== 0) return "чип Огра пережил снятие";
+          if (BATTLE_DATA.participants[1].debuffs.length !== 1) return "снялся чужой чип";
+          if (removeBattleDebuffsForSpell("Порча") !== false) return "повторное снятие отчиталось true";
+          clearAllBattleDebuffs();
+          if (BATTLE_DATA.participants[1].debuffs.length !== 0) return "длинный отдых не снял чипы";
+          return true;
+        } finally { BATTLE_DATA = savedBattle; }
+      });
+
+      if (typeof _castSpellWithSlot === "function") {
+        // Волшебник 5 ур. с «Удержанием личности» (2 круг, концентрация 1 мин,
+        // дебафф без attack — пикер открывается сразу, без броска d20)
+        var _cast10Char = function(){
+          return {
+            id: "test-cast10", name: "Тест CAST-10", class: "Волшебник", level: 5,
+            stats: { str: 10, dex: 12, con: 12, int: 18, wis: 10, cha: 10 },
+            combat: { armorId: "none", hasShield: false, hpCurrent: 30, hpMax: 30, hpDiceSpent: 0 },
+            saves: {}, skills: [], conditions: [], effects: [], activeSpellEffects: [],
+            spells: { stat: "ИНТ", dc: 15, slots: { 3: 2 }, slotsUsed: {}, prepared: [941],
+              mySpells: [{ id: 941, name: "Удержание личности", level: 2,
+                duration: "Концентрация, до 1 минуты", source: "PH14" }] }
+          };
+        };
+
+        t("[cast-10] каст дебаффа: экземпляр {debuff}, пикер открыт, конец концентрации снимает чип", function(){
+          var savedChars = window.characters, savedId = window.currentId, savedBattle = BATTLE_DATA;
+          try {
+            window.characters = [_cast10Char()];
+            window.currentId = "test-cast10";
+            var c = window.characters[0];
+            BATTLE_DATA = _cast10Battle();
+            _castSpellWithSlot(941, "slot", 3);
+            if (c.activeSpellEffects.length !== 1) return "экземпляров: " + c.activeSpellEffects.length;
+            var inst = c.activeSpellEffects[0];
+            if (inst.debuff !== true) return "нет метки debuff";
+            if (inst.roundsLeft !== 10) return "1 минута ≠ 10 раундов: " + inst.roundsLeft;
+            if (inst.concentration !== true) return "концентрация не отмечена";
+            // Ячейка 3 при базовом 2 круге → 1 + 1 = 2 цели
+            if (!_castDebuffPending) return "пикер не открылся";
+            if (_castDebuffPending.max !== 2) return "лимит целей: " + _castDebuffPending.max;
+            toggleCastDebuffTarget(1);
+            applyCastDebuffTargets();
+            if (!BATTLE_DATA.participants[1].debuffs.length) return "чип не лёг";
+            if (BATTLE_DATA.participants[1].debuffs[0].castId !== inst.id) return "чип не привязан к экземпляру";
+            endConcentration();
+            if (BATTLE_DATA.participants[1].debuffs.length !== 0) return "чип пережил конец концентрации";
+            return true;
+          } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
+        });
+
+        t("[cast-10] реккаст снимает чипы прошлого каста (экземпляр меняется молча)", function(){
+          var savedChars = window.characters, savedId = window.currentId, savedBattle = BATTLE_DATA;
+          try {
+            window.characters = [_cast10Char()];
+            window.currentId = "test-cast10";
+            var c = window.characters[0];
+            BATTLE_DATA = _cast10Battle();
+            _castSpellWithSlot(941, "slot", 3);
+            toggleCastDebuffTarget(1);
+            applyCastDebuffTargets();
+            var firstId = c.activeSpellEffects[0].id;
+            c.activeSpellEffects[0].roundsLeft = 3; // подтикали раунды
+            // Реккаст того же заклинания: setConcentration не зовётся (то же имя),
+            // removeCastEffectsForSpell тоже — старый чип обязан снять сам каст
+            _castSpellWithSlot(941, "slot", 3);
+            if (c.activeSpellEffects[0].roundsLeft !== 10) return "таймер не освежён реккастом: " + c.activeSpellEffects[0].roundsLeft;
+            if (BATTLE_DATA.participants[1].debuffs.length !== 0) return "чип прошлого каста остался";
+            if (_castDebuffPending === null) return "пикер реккаста не открылся";
+            toggleCastDebuffTarget(2);
+            applyCastDebuffTargets();
+            var o = BATTLE_DATA.participants[2];
+            if (!o.debuffs.length) return "чип реккаста не лёг";
+            if (o.debuffs[0].castId === firstId) return "чип держит мёртвый экземпляр";
+            if (c.activeSpellEffects.length !== 1) return "дубль экземпляра: " + c.activeSpellEffects.length;
             return true;
           } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
         });

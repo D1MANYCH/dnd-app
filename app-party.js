@@ -1009,6 +1009,11 @@ function renderBattleTracker() {
           : '<select class="party-status-sel tracker-status" onchange="setBattleStatus(' + i + ',this.value)">' + opts + "</select>"
         ) +
       '</div>' +
+      // CAST-10: чипы дебаффов — отдельной строкой под ХП/статусом. В .tracker-name
+      // им места нет: там overflow:hidden и имя с многоточием, чип его съедал бы
+      // (та же ловушка, что у чипа концентрации в шапке, CAST-9b). Строки нет
+      // вовсе, пока на участнике ничего не висит.
+      _battleDebuffChips(p, i) +
     "</div>";
   }).join("");
 }
@@ -1288,6 +1293,205 @@ function closeCastDamageModal() {
   var modal = $("cast-damage-modal");
   if (modal) modal.classList.remove("active");
   _castDamagePending = null;
+}
+
+// ── CAST-10: дебаффы чипом на участнике трекера ─────────────────────────────
+// Слой «эффект на цели»: до CAST-10 каст мог повесить карточку EFFECTS_DATA
+// только на СЕБЯ, поэтому «кто под Порчой» игрок держал в голове. Теперь
+// участник боя получает p.debuffs — массив чипов; таймер и связь с
+// концентрацией живут в экземпляре каста (char.activeSpellEffects), чип держит
+// только castId и читает остаток ⏳ живьём. Так тик раундов, конец концентрации
+// и отдых снимают чипы сами, без второго таймера.
+// p.debuffs уезжает в localStorage вместе с BATTLE_DATA (saveBattle) — схему
+// персонажа не трогаем, старые бои просто приходят без поля.
+var _castDebuffPending = null;
+var _SAVE_LABELS_BATTLE = { str: "СИЛ", dex: "ЛОВ", con: "ТЕЛ", int: "ИНТ", wis: "МУД", cha: "ХАР" };
+
+// Кандидаты — все участники, кроме «я» (дебафф на себя бессмысленен, а карточка
+// на листе для этого уже есть). ХП не требуем: пометить можно и союзника/NPC
+// без полоски.
+function _castDebuffTargets() {
+  return BATTLE_DATA.participants
+    .map(function(p, i) { return { p: p, i: i }; })
+    .filter(function(x) { return x.p.type !== "self"; });
+}
+
+function offerCastDebuffToBattle(spellName, dbf, opts) {
+  opts = opts || {};
+  if (!BATTLE_DATA.active || !dbf) return;
+  var targets = _castDebuffTargets();
+  if (!targets.length) return;
+  _castDebuffPending = {
+    spellName: spellName,
+    dbf: dbf,
+    castId: opts.castId != null ? opts.castId : null,
+    variantName: opts.variantName || null,
+    max: Math.max(1, parseInt(opts.maxTargets, 10) || 1),
+    chosen: []
+  };
+  _renderCastDebuffModal(targets);
+}
+
+function _renderCastDebuffModal(targets) {
+  var modal = $("cast-debuff-modal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "cast-debuff-modal";
+    modal.className = "confirm-modal-overlay";
+    modal.innerHTML =
+      '<div class="confirm-modal-box cast-debuff-box">' +
+        '<div class="confirm-modal-icon">🎯</div>' +
+        '<h4 id="cast-debuff-title"></h4>' +
+        '<div id="cast-debuff-hint" class="cast-debuff-hint"></div>' +
+        '<div id="cast-debuff-targets" class="cast-debuff-targets"></div>' +
+        '<div class="confirm-modal-btns" style="margin-top:14px">' +
+          '<button class="confirm-btn-cancel" onclick="closeCastDebuffModal()">Не отмечать</button>' +
+          '<button class="confirm-btn-ok" id="cast-debuff-apply" onclick="applyCastDebuffTargets()"></button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener("click", function(e) { if (e.target === modal) closeCastDebuffModal(); });
+  }
+  var pend = _castDebuffPending;
+  var single = pend.max === 1;
+  $("cast-debuff-title").textContent = "«" + pend.spellName + "»: на кого повесить?";
+  var hintEl = $("cast-debuff-hint");
+  var saveNote = pend.dbf.save
+    ? "Спасбросок " + (_SAVE_LABELS_BATTLE[pend.dbf.save] || String(pend.dbf.save).toUpperCase()) +
+      " — отмечайте только провалившихся. "
+    : "";
+  hintEl.textContent = saveNote + (pend.dbf.hint || "") +
+    (single ? "" : " · Целей: до " + pend.max);
+  // Одна цель — клик применяет сразу (как пикер урона CAST-7b); несколько —
+  // отмечаем переключением и подтверждаем кнопкой.
+  var box = $("cast-debuff-targets");
+  box.innerHTML = targets.map(function(x) {
+    var p = x.p;
+    var on = pend.chosen.indexOf(x.i) !== -1;
+    var fcolor = getFactionColor(p.type);
+    var has = (p.debuffs || []).some(function(db) { return db.spellName === pend.spellName; });
+    return '<button type="button" class="cast-debuff-target' + (on ? " chosen" : "") + '"' +
+      ' onclick="' + (single ? "pickCastDebuffTarget(" : "toggleCastDebuffTarget(") + x.i + ')">' +
+      '<span class="cdb-icon" style="background:' + fcolor + '22;color:' + fcolor + '">' + (p.icon || "🎭") + '</span>' +
+      '<span class="cdb-name">' + escapeHtml(p.name || "?") + '</span>' +
+      (has ? '<span class="cdb-note">уже отмечен</span>' : '') +
+      (single ? '' : '<span class="cdb-mark">' + (on ? "✓" : "") + '</span>') +
+    '</button>';
+  }).join("");
+  var applyBtn = $("cast-debuff-apply");
+  if (applyBtn) {
+    applyBtn.style.display = single ? "none" : "";
+    applyBtn.textContent = "Отметить (" + pend.chosen.length + "/" + pend.max + ")";
+    applyBtn.disabled = !pend.chosen.length;
+  }
+  modal.classList.add("active");
+}
+
+function toggleCastDebuffTarget(i) {
+  var pend = _castDebuffPending;
+  if (!pend) return;
+  var at = pend.chosen.indexOf(i);
+  if (at !== -1) pend.chosen.splice(at, 1);
+  else if (pend.chosen.length < pend.max) pend.chosen.push(i);
+  else { showToast("Целей уже " + pend.max + " — снимите отметку с другой", "warn"); return; }
+  _renderCastDebuffModal(_castDebuffTargets());
+}
+
+function pickCastDebuffTarget(i) {
+  var pend = _castDebuffPending;
+  if (!pend) return;
+  pend.chosen = [i];
+  applyCastDebuffTargets();
+}
+
+// Чип с одним и тем же заклинанием не дублируется: повторная отметка той же
+// цели обновляет запись (новый castId — свежий таймер).
+function applyCastDebuffTargets() {
+  var pend = _castDebuffPending;
+  if (!pend || !pend.chosen.length) { closeCastDebuffModal(); return; }
+  var names = [];
+  pend.chosen.forEach(function(i) {
+    var p = BATTLE_DATA.participants[i];
+    if (!p) return;
+    if (!p.debuffs) p.debuffs = [];
+    p.debuffs = p.debuffs.filter(function(db) { return db.spellName !== pend.spellName; });
+    p.debuffs.push({
+      id: pend.dbf.id || pend.spellName,
+      spellName: pend.spellName,
+      name: pend.dbf.name || pend.spellName,
+      icon: pend.dbf.icon || "✨",
+      color: pend.dbf.color || null,
+      hint: pend.dbf.hint || "",
+      castId: pend.castId,
+      variantName: pend.variantName || null
+    });
+    names.push(p.name || "?");
+  });
+  if (window.AppLog) AppLog.action("battle", "«" + pend.spellName + "» наложено: " + names.join(", "));
+  showToast("🎯 «" + pend.spellName + "» → " + names.join(", "), "success");
+  closeCastDebuffModal();
+  saveBattle();
+  renderBattleTracker();
+}
+
+function closeCastDebuffModal() {
+  var modal = $("cast-debuff-modal");
+  if (modal) modal.classList.remove("active");
+  _castDebuffPending = null;
+}
+
+// Чипы дебаффов в строке участника. Остаток ⏳ берём у экземпляра каста по
+// castId (единственный источник таймера); если персонажа переключили и
+// экземпляра нет — чип живёт дальше, но без остатка. Клик снимает чип вручную.
+function _battleDebuffChips(p, pi) {
+  if (!p || !p.debuffs || !p.debuffs.length) return "";
+  var char = (typeof getCurrentChar === "function" && currentId) ? getCurrentChar() : null;
+  var insts = (char && char.activeSpellEffects) || [];
+  return '<div class="tracker-debuffs">' + p.debuffs.map(function(db, k) {
+    var inst = insts.find(function(x) { return db.castId != null && String(x.id) === String(db.castId); });
+    var left = (inst && inst.roundsLeft != null) ? " ⏳" + inst.roundsLeft : "";
+    var label = db.variantName || db.name || db.spellName;
+    var title = db.spellName + (db.hint ? " — " + db.hint : "") + " · нажмите, чтобы снять";
+    return '<button type="button" class="debuff-chip"' +
+      (db.color ? ' style="--dbc:' + db.color + '"' : '') +
+      ' onclick="removeBattleDebuff(' + pi + ',' + k + ')" title="' + escapeHtml(title) + '">' +
+      (db.icon || "✨") + " " + escapeHtml(label) + left +
+    '</button>';
+  }).join("") + '</div>';
+}
+
+function removeBattleDebuff(pi, k) {
+  var p = BATTLE_DATA.participants[pi];
+  if (!p || !p.debuffs || !p.debuffs[k]) return;
+  var db = p.debuffs.splice(k, 1)[0];
+  if (window.AppLog) AppLog.action("battle", "«" + db.spellName + "» снято с " + (p.name || "?"));
+  showToast("✖ «" + db.spellName + "» снято с " + (p.name || "цели"), "info");
+  saveBattle();
+  renderBattleTracker();
+}
+
+// Зовётся из removeCastEffectsForSpell (app-combat.js): конец/смена
+// концентрации, истечение раунда, ручное снятие карточки — чипы уходят вместе
+// с экземпляром. Возвращает true, если что-то сняли.
+function removeBattleDebuffsForSpell(spellName) {
+  if (!BATTLE_DATA || !BATTLE_DATA.participants || !BATTLE_DATA.participants.length) return false;
+  var touched = false;
+  BATTLE_DATA.participants.forEach(function(p) {
+    if (!p.debuffs || !p.debuffs.length) return;
+    var kept = p.debuffs.filter(function(db) { return db.spellName !== spellName; });
+    if (kept.length === p.debuffs.length) return;
+    p.debuffs = kept;
+    touched = true;
+  });
+  if (touched) { saveBattle(); renderBattleTracker(); }
+  return touched;
+}
+
+// Длинный отдых (clearAllCastEffects, app-combat.js) — снимаем всё разом.
+function clearAllBattleDebuffs() {
+  if (!BATTLE_DATA || !BATTLE_DATA.participants) return;
+  BATTLE_DATA.participants.forEach(function(p) { if (p.debuffs) p.debuffs = []; });
+  saveBattle();
 }
 function _logTurn() {
   if (!window.AppLog) return;

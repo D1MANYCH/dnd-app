@@ -15,6 +15,7 @@
 //   &battle=N (CAST-2: активный бой на раунде N + каст «Ускорения» — трекер/бейдж раундов)
 //   &castrepeat=1 (CAST-9: + каст «Раскалённого металла» — полоса повторов и чип концентрации)
 //   &modal=cast|castdamage|castvariant (чузер ячейки · пикер цели урона · чузер варианта)
+//   &castdebuff=1 (CAST-10: трекер с чипами дебаффов) · &modal=castdebuff (+ пикер целей)
 //   &set=--token:value;--token:value (A/B-инъекция токенов без правки файлов)
 // Диагностика: HTTP-маячок GET /__diag?... в stdout сервера (см. skills/verify-ui п.6).
 const q = new URLSearchParams(location.search);
@@ -160,6 +161,48 @@ f.addEventListener('load', () => {
               }
             }
           } catch (e) { beacon('ERR castvariant ' + e.message); }
+        }
+        // CAST-10: &castdebuff=1 — трекер боя с чипами дебаффов на участниках
+        // (⏳ берётся у экземпляра каста, поэтому сеем и его); &modal=castdebuff
+        // добавляет сверху пикер целей в режиме мультивыбора. Свой бой, как у
+        // castdamage (нужен снимок p.hp/p.hpMax), и экраны переключаем руками:
+        // ветка идёт ПОСЛЕ switchTab, сам по себе трекер не раскроется.
+        if (modal === 'castdebuff' || q.get('castdebuff')) {
+          try {
+            const ch = w.getCurrentChar();
+            if (!ch) {
+              beacon('SKIP castdebuff — персонаж ещё не загружен');
+            } else {
+              ch.activeSpellEffects = [
+                { id: 101, spellName: 'Сглаз', source: 'PH14', effectIds: ['hex'], slotLevel: 1,
+                  concentration: true, unit: 'hour', value: 1, roundsLeft: null, debuff: true },
+                { id: 102, spellName: 'Замедление', source: 'PH14', effectIds: ['slow'], slotLevel: 3,
+                  concentration: true, unit: 'minute', value: 1, roundsLeft: 7, debuff: true }
+              ];
+              w.saveToLocal();
+              w.BATTLE_DATA = { active: true, currentTurn: 0, round: 3, participants: [
+                { id: 's',  name: ch.name, type: 'self',    icon: '🧙', status: 'healthy', initiative: 14 },
+                { id: 'm1', name: 'Гоблин', type: 'monster', icon: '🗡️', status: 'wounded', initiative: 9, hp: 12, hpMax: 20,
+                  debuffs: [
+                    { id: 'hex',  spellName: 'Сглаз', name: 'Сглаз', icon: '👁️', color: '#9b59b6',
+                      hint: 'помеха на проверки выбранной характеристики', castId: 101 },
+                    { id: 'slow', spellName: 'Замедление', name: 'Замедление', icon: '🐢', color: '#117864',
+                      hint: 'скорость вдвое, −2 к КД', castId: 102 }
+                  ] },
+                { id: 'm2', name: 'Огр',    type: 'monster', icon: '🗿', status: 'healthy', initiative: 6, hp: 59, hpMax: 59,
+                  debuffs: [{ id: 'slow', spellName: 'Замедление', name: 'Замедление', icon: '🐢', color: '#117864',
+                              hint: 'скорость вдвое, −2 к КД', castId: 102 }] }
+              ]};
+              w.saveBattle();
+              const setup = w.document.getElementById('battle-setup-screen');
+              const track = w.document.getElementById('battle-tracker-screen');
+              if (setup) setup.classList.add('hidden');
+              if (track) track.classList.remove('hidden');
+              w.renderBattleTracker();
+              if (modal === 'castdebuff')
+                w.offerCastDebuffToBattle('Порча', w.getSpellEffect('Порча').debuff, { castId: null, maxTargets: 3 });
+            }
+          } catch (e) { beacon('ERR castdebuff ' + e.message); }
         }
         if (!q.get('keepbg')) {
           try {

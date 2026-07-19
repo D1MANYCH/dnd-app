@@ -1040,6 +1040,8 @@ function removeCastEffectsForSpell(char, spellName, reason) {
   if (typeof renderEffectsGrid === "function") renderEffectsGrid();
   if (typeof updateSpellActiveBadges === "function") updateSpellActiveBadges(); // CAST-6
   if (typeof renderBattleCastPanels === "function") renderBattleCastPanels(); // CAST-9: полоса повторов
+  // CAST-10: чипы дебаффов на участниках снимаются вместе с экземпляром каста
+  if (typeof removeBattleDebuffsForSpell === "function") removeBattleDebuffsForSpell(spellName);
   if (bodyTouched && typeof updateHPDisplay === "function") updateHPDisplay();
   saveToLocal();
   return true;
@@ -1062,6 +1064,8 @@ function clearAllCastEffects(char) {
   char.activeSpellEffects = [];
   char.concentration = null;
   char.concentrationData = null;
+  // CAST-10: чипы дебаффов живут в BATTLE_DATA, не в персонаже — снимаем явно
+  if (typeof clearAllBattleDebuffs === "function") clearAllBattleDebuffs();
 }
 
 // CAST-2: экспирация эффектов каста по юнитам длительности — короткий отдых

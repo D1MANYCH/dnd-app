@@ -653,6 +653,8 @@ function _finishCast(char, spell, slot) {
 // CAST-3: ветки heal (бросок → quickHP), tempHp (правило max), hpMaxBonus («Подмога»).
 // CAST-4: ветка damage — 3D-бросок формулы урона (заговоры по тирам уровня персонажа).
 // CAST-5: ветка summon — модалка спутника с предзаполнением (_applyCastSummon).
+// CAST-10: ветка debuff — эффект вешается на УЧАСТНИКА трекера боя (чип), а не
+// на себя: пикер целей в app-party.js.
 // CAST-9a: ветка repeat — заклинание бьёт каждый раунд: экземпляр помечается
 // {repeat, repeatFormula}, повтор игрок кидает кнопкой в шапке трекера боя.
 // CAST-8a: дескриптор с variants сперва спрашивает вариант (openCastVariantChooser)
@@ -662,6 +664,7 @@ function applyCastEffects(char, spell, slot, variant) {
   var d = (typeof getSpellEffect === "function") ? getSpellEffect(spell.name, spell.source) : null;
   if (!d) return;
   if (d.variants && variant === undefined) { openCastVariantChooser(spell, slot, d); return; }
+  _castInstanceThisCast = null; // CAST-10: см. _ensureCastInstance
   var vExtra = variant ? { variantId: variant.id, variantName: variant.name } : null;
   if (d.effects && d.effects.length) {
     if (!char.effects) char.effects = [];
@@ -684,6 +687,7 @@ function applyCastEffects(char, spell, slot, variant) {
   }
   if (d.damage) _applyCastDamage(char, spell, d, slot, variant);
   if (d.repeat) _startCastRepeat(char, spell, d, slot, variant);
+  if (d.debuff) _applyCastDebuff(char, spell, d, slot, variant);
   if (d.heal) _applyCastHeal(char, spell, d, slot);
   if (d.tempHp) _applyCastTempHp(char, spell, d, slot);
   if (d.hpMaxBonus) _applyCastHpMaxBonus(char, spell, d, slot);
@@ -787,6 +791,16 @@ function _applyCastSummon(char, spell, d, slot) {
   open();
 }
 
+// CAST-10: id экземпляра — время каста, но строго растущее: на id завязаны
+// кнопка повтора (CAST-9a) и чип дебаффа на участнике боя, а два каста в одну
+// миллисекунду дали бы одинаковый Date.now() и чип прошлого каста прилип бы к
+// новому экземпляру.
+var _lastCastInstanceId = 0;
+function _nextCastInstanceId() {
+  _lastCastInstanceId = Math.max(Date.now(), _lastCastInstanceId + 1);
+  return _lastCastInstanceId;
+}
+
 // Экземпляр-трекер каста в char.activeSpellEffects: повторный каст того же
 // заклинания заменяет свой экземпляр (refresh таймера, без дублей). extra —
 // доп. поля экземпляра (tempHpApplied, hpMaxBonus). Возвращает экземпляр.
@@ -796,7 +810,7 @@ function _replaceCastInstance(char, spell, d, slot, extra) {
     return inst.spellName !== spell.name;
   });
   var inst = {
-    id: Date.now(),
+    id: _nextCastInstanceId(),
     spellName: spell.name,
     source: spell.source || null,
     effectIds: (d.effects || []).slice(),
@@ -808,8 +822,25 @@ function _replaceCastInstance(char, spell, d, slot, extra) {
   };
   if (extra) Object.keys(extra).forEach(function(k) { inst[k] = extra[k]; });
   char.activeSpellEffects.push(inst);
+  _castInstanceThisCast = inst;
   updateSpellActiveBadges(); // CAST-6: бейдж «Активно» на карточке заклинания
   return inst;
+}
+
+// CAST-10: экземпляр, созданный ТЕКУЩИМ проходом applyCastEffects (сбрасывается
+// в его начале, ветки идут синхронно одна за другой). Ветки repeat/debuff
+// дописывают поля в общий экземпляр каста, но искать его по имени нельзя:
+// у дескриптора без effects/heal своего экземпляра в этом проходе ещё нет, и
+// поиск находил бы экземпляр ПРОШЛОГО каста — таймер не обновлялся бы, а чип
+// дебаффа прилипал к мёртвому id.
+var _castInstanceThisCast = null;
+function _ensureCastInstance(char, spell, d, slot, extra) {
+  if (_castInstanceThisCast) {
+    if (extra) Object.keys(extra).forEach(function(k) { _castInstanceThisCast[k] = extra[k]; });
+    return _castInstanceThisCast;
+  }
+  if (!d.duration) return null; // без длительности трекать нечего
+  return _replaceCastInstance(char, spell, d, slot, extra);
 }
 
 // CAST-4: урон — формула по типу заклинания (заговор: тиры 5/11/17 по уровню
@@ -900,15 +931,9 @@ function _startCastRepeat(char, spell, d, slot, variant) {
   var castLevel = slot ? slot.level : null;
   var formula = (typeof damageFormulaFor === "function")
     ? damageFormulaFor(d.repeat, spell.level || 0, castLevel, char.level || 1) : d.repeat.formula;
-  var inst = (char.activeSpellEffects || []).find(function(i) { return i.spellName === spell.name; });
-  if (inst) {
-    inst.repeat = true;
-    inst.repeatFormula = formula;
-  } else {
-    var extra = { repeat: true, repeatFormula: formula };
-    if (variant) { extra.variantId = variant.id; extra.variantName = variant.name; }
-    _replaceCastInstance(char, spell, d, slot, extra);
-  }
+  var extra = { repeat: true, repeatFormula: formula };
+  if (variant) { extra.variantId = variant.id; extra.variantName = variant.name; }
+  _ensureCastInstance(char, spell, d, slot, extra);
   saveToLocal();
   if (typeof renderBattleCastPanels === "function") renderBattleCastPanels();
 }
@@ -929,6 +954,54 @@ function castRepeatDamage(instId) {
     formula: inst.repeatFormula || d.repeat.formula,
     castLevel: inst.slotLevel, variantName: inst.variantName, isRepeat: true
   });
+}
+
+// CAST-10: дебафф на цель — весь эффект живёт НЕ на листе, а на участнике
+// трекера боя (чип в его строке, p.debuffs в BATTLE_DATA). Экземпляр каста
+// у персонажа всё равно нужен: он несёт таймер и связь с концентрацией, по нему
+// чип показывает остаток ⏳ и снимается сам (removeCastEffectsForSpell →
+// removeBattleDebuffsForSpell). Метка дописывается в экземпляр ТЕКУЩЕГО каста
+// (_ensureCastInstance) — дублей не плодим, таймер освежается реккастом.
+// Реккаст снимает чипы прошлого каста: _replaceCastInstance меняет экземпляр
+// молча, без removeCastEffectsForSpell, — старые чипы осиротели бы.
+// Вне боя (или без целей) пикер молчит, как урон в CAST-4: каст уже отчитался
+// своим тостом, а помечать в трекере некого.
+function _applyCastDebuff(char, spell, d, slot, variant) {
+  if (typeof removeBattleDebuffsForSpell === "function") removeBattleDebuffsForSpell(spell.name);
+  var dExtra = { debuff: true };
+  if (variant) { dExtra.variantId = variant.id; dExtra.variantName = variant.name; }
+  var inst = _ensureCastInstance(char, spell, d, slot, dExtra);
+  saveToLocal();
+  if (typeof offerCastDebuffToBattle !== "function") return;
+  var open = function() {
+    offerCastDebuffToBattle(spell.name, d.debuff, {
+      castId: inst ? inst.id : null,
+      maxTargets: (typeof debuffTargetCount === "function")
+        ? debuffTargetCount(d.debuff, spell.level || 0, slot ? slot.level : null) : 1,
+      variantName: variant ? variant.name : (inst && inst.variantName) || null
+    });
+  };
+  // «Луч слабости» — дальнобойная атака заклинанием: сначала d20, при
+  // натуральной 1 цель не помечается вовсе. Экземпляр и концентрацию при
+  // промахе НЕ трогаем (заклинание кончилось — игрок снимает концентрацию сам),
+  // как и урон в CAST-7a. Пауза 1100 мс — иначе модалка накроет итог броска.
+  if (d.debuff.attack && typeof quickRoll === "function") {
+    quickRoll({
+      label: "🎯 Атака: " + spell.name,
+      sides: 20,
+      mod: castSpellAttackMod(char),
+      onResult: function(comp) {
+        if (comp.isFail) {
+          showToast("💨 Натуральная 1 — промах, цель не помечена", "warn");
+          if (window.AppLog) AppLog.action("spells", "«" + spell.name + "»: промах (натуральная 1)");
+          return;
+        }
+        setTimeout(open, 1100);
+      }
+    });
+    return;
+  }
+  open();
 }
 
 // CAST-7a: бонус атаки заклинаниями — всегда живой расчёт (мастерство + мод
