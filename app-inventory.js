@@ -337,9 +337,9 @@ if (owEl) {
     owEl.style.display = "none";
   }
 }
-// Coin weight
+// Coin weight — подпись «Вес:» обязательна: без неё число читается как сумма
 const cwEl = $("coin-weight");
-if (cwEl) cwEl.textContent = coinWeight.toFixed(2) + " фнт";
+if (cwEl) cwEl.textContent = "Вес: " + coinWeight.toFixed(2) + " фнт";
 }
 // FIN-6: настройка магпредметов (лимит 3). countAttuned — чистая (без DOM/currentId).
 function countAttuned(char) {

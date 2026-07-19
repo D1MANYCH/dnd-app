@@ -935,7 +935,8 @@
         updateInventoryWeight();
         if (String(totalEl.textContent) !== "13") return "total-weight: ожидал 13 (12 + 1 фнт за 50 монет), получено " + totalEl.textContent;
         if (String(capEl.textContent) !== "150") return "carry-capacity-num: ожидал 150 (СИЛ 10 × 15), получено " + capEl.textContent;
-        if (String(coinEl.textContent) !== "1.00 фнт") return "coin-weight: ожидал '1.00 фнт', получено '" + coinEl.textContent + "'";
+        // подпись «Вес:» обязательна — без неё число читают как денежную сумму (фидбек с DTF)
+        if (String(coinEl.textContent) !== "Вес: 1.00 фнт") return "coin-weight: ожидал 'Вес: 1.00 фнт', получено '" + coinEl.textContent + "'";
         // перегруз: 170 + 1 фнт монет = 171 при грузоподъёмности 150 → бейдж 21.0
         window.characters[0].inventory.weapon[0] = { name: "Наковальня", weight: 170, qty: 1 };
         updateInventoryWeight();
