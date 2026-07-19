@@ -4077,10 +4077,16 @@
       if (keys.length < 90) return "ключей: " + keys.length;
       // Пустой дескриптор (ни одной ветки applyCastEffects) — опечатка при добавлении.
       // Список веток пополняется фазами: repeat (CAST-9a), debuff (CAST-10).
+      // CAST-11: механика может жить ТОЛЬКО в оверрайде редакции («Слово Силы:
+      // смерть» наносит урон лишь в PH24) — проверяем базу и каждый вариант.
+      function hasMech(d) {
+        return !!(d.effects || d.damage || d.heal || d.tempHp || d.hpMaxBonus ||
+                  d.summon || d.repeat || d.debuff);
+      }
       var empty = keys.filter(function(k){
         var d = SPELL_EFFECTS[k];
-        return !d.effects && !d.damage && !d.heal && !d.tempHp && !d.hpMaxBonus &&
-               !d.summon && !d.repeat && !d.debuff;
+        if (hasMech(d)) return false;
+        return !Object.keys(d.bySource || {}).some(function(src){ return hasMech(getSpellEffect(k, src)); });
       });
       return empty.length === 0 ? true : "без механики: " + empty.join(", ");
     });
@@ -4437,12 +4443,13 @@
       return true;
     });
 
-    t("[cast-9] дескрипторы repeat: 8 ключей, у каждого формула, hint и duration", function(){
+    // CAST-11 добивал таблицу «карами», зонами и клинками-конструктами, поэтому
+    // проверка перестала быть списком фазы: ключи CAST-9 стерегутся от регрессии,
+    // а структура (формула + hint + duration) требуется от ЛЮБОГО repeat.
+    t("[cast-9] дескрипторы repeat: ключи фазы на месте, у каждого формула, hint и duration", function(){
       var withRep = Object.keys(SPELL_EFFECTS).filter(function(k){ return !!SPELL_EFFECTS[k].repeat; });
       var missing = _CAST9_REPEATS.filter(function(k){ return withRep.indexOf(k) === -1; });
       if (missing.length) return "нет repeat: " + missing.join(", ");
-      var extra = withRep.filter(function(k){ return _CAST9_REPEATS.indexOf(k) === -1; });
-      if (extra.length) return "лишний repeat (не в списке фазы): " + extra.join(", ");
       var bad = [];
       withRep.forEach(function(k){
         var d = SPELL_EFFECTS[k];
@@ -4632,12 +4639,12 @@
     var _CAST10_DEBUFFS = ["Порча","Сглаз","Огонь фей","Метка охотника","Замедление","Проклятие",
                            "Луч слабости","Глухота/слепота","Удержание личности"];
 
-    t("[cast-10] дескрипторы debuff: 9 ключей, у каждого id/name/icon/hint", function(){
+    // CAST-11 добавил чипы «Паутине», «Смятению», «Усыплению» и др. — список
+    // фазы держит регрессию, структура требуется от ЛЮБОГО debuff (см. cast-9).
+    t("[cast-10] дескрипторы debuff: ключи фазы на месте, у каждого id/name/icon/hint", function(){
       var withDbf = Object.keys(SPELL_EFFECTS).filter(function(k){ return !!SPELL_EFFECTS[k].debuff; });
       var missing = _CAST10_DEBUFFS.filter(function(k){ return withDbf.indexOf(k) === -1; });
       if (missing.length) return "нет debuff: " + missing.join(", ");
-      var extra = withDbf.filter(function(k){ return _CAST10_DEBUFFS.indexOf(k) === -1; });
-      if (extra.length) return "лишний debuff (не в списке фазы): " + extra.join(", ");
       var bad = [];
       withDbf.forEach(function(k){
         var d = SPELL_EFFECTS[k], b = d.debuff;
@@ -4827,6 +4834,160 @@
           } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
         });
       }
+    }
+  }
+
+  // ────────── БЛОК 45 (CAST-11): добивка дескрипторов — покрытие и формулы ──────────
+  // Финальная фаза плана CAST: таблица доросла до ~164 ключей, непокрытыми
+  // осознанно остались 23 заклинания (список причин — в хвосте spell-effects.js).
+  if (typeof SPELL_EFFECTS !== "undefined" && typeof getSpellEffect === "function") {
+
+    if (typeof SPELLS_BASE !== "undefined") {
+      // Ратчет покрытия: тот же скан, которым отбиралась фаза («в desc или
+      // higherLevel есть кубы, ключа в таблице нет»). Растёт таблица — падает
+      // остаток; тест ловит откат покрытия и тихое выпадение ключей.
+      t("[cast-11] покрытие: ≥160 ключей в таблице, ≤23 заклинания с кубами без дескриптора", function(){
+        var keys = Object.keys(SPELL_EFFECTS);
+        if (keys.length < 160) return "ключей в таблице: " + keys.length;
+        var DICE = /\d*[кk]\d+/i, seen = {}, uncovered = [];
+        SPELLS_BASE.forEach(function(s){
+          if (seen[s.name] || SPELL_EFFECTS[s.name]) { seen[s.name] = true; return; }
+          if (DICE.test(s.desc || "") || DICE.test(s.higherLevel || "")) { seen[s.name] = true; uncovered.push(s.name); }
+        });
+        return uncovered.length <= 23 ? true : "без дескриптора: " + uncovered.length + " — " + uncovered.join(", ");
+      });
+    }
+
+    // «Кара» бьёт на попадании оружием, а не в момент каста: ветки damage у неё
+    // быть НЕ должно (иначе урон улетит сразу при касте), а подпись обязана
+    // переопределять слово «повтор» — иначе кнопка соврёт про механику.
+    t("[cast-11] «кары» и райдеры: repeat без damage, свои icon/label", function(){
+      var smites = ["Гневная кара","Громовая кара","Палящая кара","Клеймящая кара","Ослепляющая кара",
+                    "Оглушающая кара","Изгоняющая кара","Опутывающий удар","Поглощение стихий",
+                    "Град шипов","Молниевая стрела","Мантия крестоносца","Стихийное оружие",
+                    "Источник лунного света"];
+      var bad = [];
+      smites.forEach(function(k){
+        var d = SPELL_EFFECTS[k];
+        if (!d) { bad.push(k + ": нет ключа"); return; }
+        if (!d.repeat) bad.push(k + ": нет repeat");
+        else {
+          if (d.repeat.label !== "по попаданию") bad.push(k + ": label «" + d.repeat.label + "»");
+          if (!d.repeat.icon) bad.push(k + ": нет icon");
+        }
+        if (d.damage) bad.push(k + ": есть damage — урон улетит в момент каста");
+        if (!d.duration) bad.push(k + ": нет duration");
+      });
+      return bad.length ? bad.join("; ") : true;
+    });
+
+    if (typeof damageFormulaFor === "function") {
+      t("[cast-11] формулы добивки: upcastEvery у клинка и оружия, апкаст сферы", function(){
+        // «Горящий клинок» — +1к6 за КАЖДЫЕ два уровня выше 2-го (4-й, 6-й, 8-й)
+        var fb = getSpellEffect("Горящий клинок").damage;
+        if (damageFormulaFor(fb, 2, 3, 9) !== "3к6") return "ГК ячейка 3: " + damageFormulaFor(fb, 2, 3, 9);
+        if (damageFormulaFor(fb, 2, 4, 9) !== "3к6+1к6") return "ГК ячейка 4: " + damageFormulaFor(fb, 2, 4, 9);
+        if (damageFormulaFor(fb, 2, 6, 9) !== "3к6+1к6+1к6") return "ГК ячейка 6: " + damageFormulaFor(fb, 2, 6, 9);
+        if (damageFormulaFor(fb, 2, 8, 9) !== "3к6+1к6+1к6+1к6") return "ГК ячейка 8: " + damageFormulaFor(fb, 2, 8, 9);
+        // «Стихийное оружие» — 5–6 круг: 2к4, 7-й: 3к4
+        var ew = getSpellEffect("Стихийное оружие").repeat;
+        if (damageFormulaFor(ew, 3, 4, 9) !== "1к4") return "СтО ячейка 4: " + damageFormulaFor(ew, 3, 4, 9);
+        if (damageFormulaFor(ew, 3, 6, 9) !== "1к4+1к4") return "СтО ячейка 6: " + damageFormulaFor(ew, 3, 6, 9);
+        if (damageFormulaFor(ew, 3, 7, 9) !== "1к4+1к4+1к4") return "СтО ячейка 7: " + damageFormulaFor(ew, 3, 7, 9);
+        // «Кислотная сфера»: начальный +2к4 за уровень, второй тик 5к4 без апкаста
+        var ao = getSpellEffect("Кислотная сфера");
+        if (damageFormulaFor(ao.damage, 4, 6, 9) !== "10к4+2к4+2к4") return "КС апкаст: " + damageFormulaFor(ao.damage, 4, 6, 9);
+        if (damageFormulaFor(ao.repeat, 4, 6, 9) !== "5к4") return "КС второй тик вырос: " + damageFormulaFor(ao.repeat, 4, 6, 9);
+        return true;
+      });
+
+      t("[cast-11] bySource: оверрайд заменяет ветку целиком — damage и repeat переписаны оба", function(){
+        // Гоча CAST-7: PH24 усилил кулак «Длани Бигби» 4к8 → 5к8, и повтор обязан
+        // приехать из того же оверрайда, иначе кнопка останется на старых кубах
+        var b14 = getSpellEffect("Длань Бигби", "PH14"), b24 = getSpellEffect("Длань Бигби", "PH24");
+        if (b14.damage.formula !== "4к8") return "PH14 кулак: " + b14.damage.formula;
+        if (b14.repeat.formula !== "4к8") return "PH14 повтор: " + b14.repeat.formula;
+        if (b24.damage.formula !== "5к8") return "PH24 кулак: " + b24.damage.formula;
+        if (b24.repeat.formula !== "5к8") return "PH24 повтор не переписан: " + b24.repeat.formula;
+        if (!b24.repeat.hint) return "PH24 повтор потерял hint";
+        // «Заражение»: урон только в PH24, чип в обеих (в PH14 через атаку)
+        var c14 = getSpellEffect("Заражение", "PH14"), c24 = getSpellEffect("Заражение", "PH24");
+        if (c14.damage) return "PH14 «Заражение» получило урон";
+        if (!c14.debuff || c14.debuff.attack !== true) return "PH14 «Заражение» без атаки";
+        if (!c24.damage || c24.damage.formula !== "11к8") return "PH24 «Заражение»: " + (c24.damage && c24.damage.formula);
+        if (!c24.debuff || c24.debuff.save !== "con") return "PH24 чип без испытания ТЕЛ";
+        // «Усыпление»: испытание МУД только в PH24, пул хитов PH14 — без save
+        if (getSpellEffect("Усыпление", "PH24").debuff.save !== "wis") return "PH24 «Усыпление» без save";
+        if (getSpellEffect("Усыпление", "PH14").debuff.save) return "PH14 «Усыпление» получило save";
+        return true;
+      });
+
+      t("[cast-11] механика только в оверрайде: «Слово Силы: смерть» бьёт лишь в PH24", function(){
+        var w14 = getSpellEffect("Слово Силы: смерть", "PH14");
+        var w24 = getSpellEffect("Слово Силы: смерть", "PH24");
+        if (w14.damage) return "PH14 получил урон (в книге — мгновенная смерть без кубов)";
+        if (!w24.damage || w24.damage.formula !== "12к12") return "PH24: " + (w24.damage && w24.damage.formula);
+        return true;
+      });
+    }
+
+    if (typeof _castSpellWithSlot === "function" && typeof castRepeatDamage === "function") {
+      // Новая форма фазы: дескриптор БЕЗ damage/effects — единственный источник
+      // экземпляра-трекера здесь ветка repeat (_ensureCastInstance при пустом
+      // _castInstanceThisCast). Паладин 5 ур. с «Палящей карой» (1 круг).
+      t("[cast-11] каст «кары»: урона при касте нет, экземпляр и кнопка появляются", function(){
+        var savedChars = window.characters, savedId = window.currentId, savedRF = window.rollFormula;
+        var rolls = 0, lastLabel = null;
+        try {
+          window.rollFormula = function(f, o){ rolls++; lastLabel = o && o.label; };
+          window.characters = [{
+            id: "test-cast11", name: "Тест CAST-11", class: "Паладин", level: 5,
+            stats: { str: 16, dex: 10, con: 14, int: 10, wis: 10, cha: 16 },
+            combat: { armorId: "none", hasShield: false, hpCurrent: 44, hpMax: 44, hpDiceSpent: 0 },
+            saves: {}, skills: [], conditions: [], effects: [], activeSpellEffects: [],
+            spells: { stat: "ХАР", dc: 13, slots: { 2: 2 }, slotsUsed: {}, prepared: [942],
+              mySpells: [{ id: 942, name: "Палящая кара", level: 1,
+                duration: "Концентрация, до 1 минуты", source: "PH14" }] }
+          }];
+          window.currentId = "test-cast11";
+          var c = window.characters[0];
+          _castSpellWithSlot(942, "slot", 2);
+          // Каст «кары» НЕ кидает урон: он ждёт попадания оружием
+          if (rolls !== 0) return "каст бросил урон сразу, вызовов: " + rolls;
+          if (c.activeSpellEffects.length !== 1) return "экземпляров: " + c.activeSpellEffects.length;
+          var inst = c.activeSpellEffects[0];
+          if (inst.repeat !== true) return "нет метки repeat";
+          if (inst.repeatFormula !== "1к6+1к6") return "ячейка 2 при 1 круге: " + inst.repeatFormula;
+          if (inst.roundsLeft !== 10) return "1 минута ≠ 10 раундов: " + inst.roundsLeft;
+          // Попадание — кнопкой; подпись обязана сказать «по попаданию», не «повтор»
+          castRepeatDamage(inst.id);
+          if (rolls !== 1) return "бросок по попаданию не ушёл: " + rolls;
+          if (lastLabel !== "⚔️ Палящая кара · 2 ур. · по попаданию") return "подпись: " + lastLabel;
+          return true;
+        } finally { window.characters = savedChars; window.currentId = savedId; window.rollFormula = savedRF; }
+      });
+    }
+
+    if (typeof _rollCastDamage === "function") {
+      t("[cast-11] подпись повтора: icon/label дескриптора вытесняют «🔁 … · повтор»", function(){
+        var savedRF = window.rollFormula, label = null;
+        try {
+          window.rollFormula = function(f, o){ label = o && o.label; };
+          var char = { level: 5, stats: {}, spells: {} };
+          _rollCastDamage(char, { spellName: "Гневная кара", dmg: { icon: "⚔️", label: "по попаданию" },
+            formula: "1к6", isRepeat: true });
+          if (label !== "⚔️ Гневная кара · по попаданию") return "переопределение: " + label;
+          label = null;
+          // Дефолт не тронут: дескриптор без icon/label по-прежнему «🔁 … · повтор»
+          _rollCastDamage(char, { spellName: "Раскалённый металл", dmg: {}, formula: "2к8", isRepeat: true });
+          if (label !== "🔁 Раскалённый металл · повтор") return "дефолт съехал: " + label;
+          label = null;
+          // Начальный тик иконку повтора не берёт
+          _rollCastDamage(char, { spellName: "Огненный шар", dmg: { icon: "⚔️" }, formula: "8к6" });
+          if (label !== "💥 Огненный шар") return "начальный тик: " + label;
+          return true;
+        } finally { window.rollFormula = savedRF; }
+      });
     }
   }
 

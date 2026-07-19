@@ -1037,9 +1037,12 @@ function renderBattleCastPanels() {
     strip.innerHTML = reps.map(function(i) {
       var d = (typeof getSpellEffect === "function") ? getSpellEffect(i.spellName, i.source) : null;
       var hint = (d && d.repeat && d.repeat.hint) || "Повторный урон";
+      // CAST-11: «кары» и залповые бьют не повтором, а по попаданию — дескриптор
+      // может переопределить иконку кнопки (repeat.icon), по умолчанию 🔁.
+      var rIcon = (d && d.repeat && d.repeat.icon) || "🔁";
       return '<button type="button" class="battle-repeat-btn" onclick="castRepeatDamage(' + i.id + ')"' +
         ' title="' + escapeHtml(i.spellName + " — " + hint) + '">' +
-        '🔁 ' + escapeHtml(i.spellName) +
+        escapeHtml(rIcon) + ' ' + escapeHtml(i.spellName) +
         (i.repeatFormula ? ' <span class="brb-formula">' + escapeHtml(i.repeatFormula) + '</span>' : '') +
       '</button>';
     }).join("");

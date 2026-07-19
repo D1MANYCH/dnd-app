@@ -886,13 +886,16 @@ function _rollCastDamage(char, o) {
     showToast("🎯 " + saveNote.charAt(0).toUpperCase() + saveNote.slice(1), "info");
     if (window.AppLog) AppLog.action("spells", "«" + o.spellName + "»: " + saveNote);
   }
-  var icon = o.isRepeat ? "🔁" : "💥";
+  // CAST-11: у «кар» и залповых заклинаний повторный тик — не «повтор», а первое
+  // попадание оружием / выстрел сферой. Дескриптор repeat может переопределить
+  // иконку и слово подписи (icon/label); по умолчанию — «🔁 … · повтор».
+  var icon = o.isRepeat ? (dmg.icon || "🔁") : "💥";
   var rollDamage = function(crit) {
     var f = (crit && typeof critFormula === "function") ? critFormula(formula) : formula;
     rollFormula(f, {
       label: icon + " " + o.spellName + (o.castLevel ? " · " + o.castLevel + " ур." : "") +
         (o.variantName ? " · " + o.variantName : "") +
-        (o.isRepeat ? " · повтор" : "") + (crit ? " · КРИТ ×2" : ""),
+        (o.isRepeat ? " · " + (dmg.label || "повтор") : "") + (crit ? " · КРИТ ×2" : ""),
       openArena: true,
       onResult: function(res) {
         if (typeof offerCastDamageToBattle === "function")
