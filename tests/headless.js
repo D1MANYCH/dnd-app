@@ -5144,8 +5144,11 @@
     function _fillSpellForm(over) {
       var f = { name: "Хватка тлена", desc: "Проверочное описание", level: "3", school: "воплощение",
                 source: "PH14", classes: "", time: "1 действие", range: "60 фт",
-                components: "В,С", duration: "Мгновенно", higher: "" };
+                components: "В,С", duration: "Мгновенно", higher: "", editId: "" };
       Object.keys(over || {}).forEach(function(k){ f[k] = over[k]; });
+      // HB-3: edit-id тоже часть формы — не сброшенный, он превратил бы следующее
+      // «создание» в правку чужой записи (стабы живут между тестами).
+      _ensureInput("new-spell-edit-id", f.editId);
       _ensureInput("new-spell-name", f.name);
       _ensureInput("new-spell-desc", f.desc);
       _ensureInput("new-spell-level", f.level);
@@ -5162,12 +5165,14 @@
     // (или null) и список тостов — сам submit пишет в глобальную SPELL_DATABASE.
     function _runSubmit(over, db) {
       var savedDB = window.SPELL_DATABASE, savedRender = window.renderSpellSearch, savedToast = window.showToast;
+      var savedMine = window.renderMySpells; // HB-3: ветка правки перерисовывает и список персонажа
       var toasts = [];
       try {
         window.SPELL_DATABASE = db || [];
         // База мутируется по месту (push той же ссылке) — длину фиксируем ДО прогона
         var before = window.SPELL_DATABASE.length;
         window.renderSpellSearch = function(){};
+        window.renderMySpells = function(){};
         window.showToast = function(msg, kind){ toasts.push({ msg: msg, kind: kind }); };
         _fillSpellForm(over);
         submitNewSpell();
@@ -5176,6 +5181,7 @@
         return { spell: added, toasts: toasts, db: window.SPELL_DATABASE };
       } finally {
         window.SPELL_DATABASE = savedDB; window.renderSpellSearch = savedRender; window.showToast = savedToast;
+        window.renderMySpells = savedMine;
       }
     }
 
@@ -5301,6 +5307,281 @@
         var missClass = NEW_SPELL_CLASS_KEYS.filter(function(k){ return src.indexOf("toggleNewSpellClass('" + k + "')") === -1; });
         if (missClass.length) return "нет чипов классов: " + missClass.join(", ");
         return true;
+      });
+    }
+
+    // ────────── HB-3: правка и удаление своих заклинаний ──────────
+    // Ключевая ловушка фазы: mySpells держит КОПИИ записей базы, поэтому правка
+    // и удаление обязаны проходить по всем персонажам — иначе в поиске одно,
+    // а в списке персонажа другое.
+
+    function _mkHb(over) {
+      var s = { id: 990501, name: "Хватка тлена", level: 3, classes: ["cleric"], class: "cleric",
+                source: "PH14", homebrew: true, school: "некромантия", time: "1 действие",
+                range: "60 фт", components: "В,С", duration: "Мгновенно", desc: "описание", higherLevel: "" };
+      Object.keys(over || {}).forEach(function(k){ s[k] = over[k]; });
+      return s;
+    }
+    // Прогон на изолированных базе и списке персонажей: и то и другое — глобальные
+    // var'ы, которые правят функции фазы напрямую.
+    function _withHbEnv(db, chars, fn) {
+      var savedDB = window.SPELL_DATABASE, savedChars = window.characters;
+      var savedSearch = window.renderSpellSearch, savedMine = window.renderMySpells;
+      var savedToast = window.showToast, savedSave = window.saveToLocal, savedConfirm = window.showConfirmModal;
+      var env = { toasts: [], confirms: [] };
+      try {
+        window.SPELL_DATABASE = db;
+        window.characters = chars;
+        window.renderSpellSearch = function(){};
+        window.renderMySpells = function(){};
+        window.saveToLocal = function(){};
+        window.showToast = function(msg, kind){ env.toasts.push({ msg: msg, kind: kind }); };
+        // Подтверждение удаления — автоматическое: проверяем последствия, а не модалку
+        window.showConfirmModal = function(title, text, onConfirm){
+          env.confirms.push({ title: title, text: text });
+          onConfirm();
+        };
+        return fn(env);
+      } finally {
+        window.SPELL_DATABASE = savedDB; window.characters = savedChars;
+        window.renderSpellSearch = savedSearch; window.renderMySpells = savedMine;
+        window.showToast = savedToast; window.saveToLocal = savedSave; window.showConfirmModal = savedConfirm;
+      }
+    }
+
+    if (typeof _spellIdArg === "function") {
+      t("[hb-3] _spellIdArg: число как есть, строковый id в кавычках, мусор срезан", function(){
+        if (_spellIdArg(990501) !== "990501") return "число: " + _spellIdArg(990501);
+        // Легаси-импорт приносит строковые id — без кавычек onclick ронял SyntaxError
+        if (_spellIdArg("user-hb1") !== "'user-hb1'") return "строка: " + _spellIdArg("user-hb1");
+        // Кавычка/скобка внутри id разорвала бы атрибут onclick — срезаем
+        if (_spellIdArg("a')+alert(1)+('") !== "'aalert1'") return "мусор: " + _spellIdArg("a')+alert(1)+('");
+        return true;
+      });
+    }
+
+    t("[hb-3] openAddSpellForm(id): префилл всех полей + заголовок «Редактировать»", function(){
+      var title = _ensureEl("add-spell-modal-title", "h3");
+      var hb = _mkHb({ classes: ["cleric", "druid"], class: "cleric", level: 5, source: "PH24",
+        time: "1 бонусное действие", range: "Касание", components: "В", duration: "1 минута",
+        desc: "жуткая хватка", higherLevel: "+1к6 за уровень" });
+      return _withHbEnv([hb], [], function(){
+        openAddSpellForm(hb.id);
+        var expect = { "new-spell-edit-id": "990501", "new-spell-name": "Хватка тлена",
+          "new-spell-level": "5", "new-spell-school": "некромантия", "new-spell-source": "PH24",
+          "new-spell-classes": "cleric,druid", "new-spell-time": "1 бонусное действие",
+          "new-spell-range": "Касание", "new-spell-components": "В", "new-spell-duration": "1 минута",
+          "new-spell-desc": "жуткая хватка", "new-spell-higher": "+1к6 за уровень" };
+        var bad = Object.keys(expect).filter(function(id){
+          var el = document.getElementById(id);
+          return !el || el.value !== expect[id];
+        });
+        if (bad.length) return "не префиллены: " + bad.join(", ");
+        if (title.textContent !== "Редактировать заклинание") return "заголовок: " + title.textContent;
+        return true;
+      });
+    });
+
+    t("[hb-3] openAddSpellForm: книжное на правку не открывается — форма пустая", function(){
+      var title = _ensureEl("add-spell-modal-title", "h3");
+      // Гард на homebrew: книжные записи переживают перезагрузку из SPELLS_BASE,
+      // их «правка» молча откатывалась бы обратно.
+      var book = _mkHb({ id: 12, name: "Огненный шар", homebrew: false });
+      return _withHbEnv([book], [], function(){
+        openAddSpellForm(12);
+        if ((document.getElementById("new-spell-edit-id") || {}).value !== "") return "edit-id заполнен для книжного";
+        if ((document.getElementById("new-spell-name") || {}).value !== "") return "имя книжного уехало в форму";
+        if (title.textContent !== "Добавить заклинание") return "заголовок: " + title.textContent;
+        // Несуществующий id — то же самое, без исключения
+        openAddSpellForm(404404);
+        openAddSpellForm();
+        return true;
+      });
+    });
+
+    t("[hb-3] submitNewSpell: правка меняет запись по месту, id и длина базы сохраняются", function(){
+      var hb = _mkHb();
+      var db = [{ id: 12, name: "Огненный шар" }, hb];
+      var r = _runSubmit({ editId: "990501", name: "Хватка бездны", level: "4",
+        school: "воплощение", classes: "wizard", desc: "новое описание" }, db);
+      if (r.db.length !== 2) return "база выросла — создался дубль вместо правки";
+      if (r.spell) return "запись добавлена, а должна была замениться";
+      if (hb.id !== 990501) return "id изменился: " + hb.id;
+      if (hb.name !== "Хватка бездны") return "имя не обновилось: " + hb.name;
+      if (hb.level !== 4) return "уровень не обновился: " + hb.level;
+      if (hb.school !== "воплощение") return "школа не обновилась: " + hb.school;
+      if (hb.classes.join(",") !== "wizard") return "классы не обновились: " + hb.classes.join(",");
+      if (hb.class !== "wizard") return "легаси-поле class рассинхронилось: " + hb.class;
+      if (hb.homebrew !== true) return "потерян признак homebrew";
+      if ((r.toasts[r.toasts.length - 1] || {}).kind !== "success") return "тост не success";
+      return true;
+    });
+
+    t("[hb-3] submitNewSpell: правка без смены имени не ругается на «дубль» самой себя", function(){
+      var hb = _mkHb();
+      var r = _runSubmit({ editId: "990501", name: "Хватка тлена" }, [hb]);
+      var last = r.toasts[r.toasts.length - 1] || {};
+      if (last.kind !== "success") return "тост: " + last.kind + " / " + last.msg;
+      // А вот совпадение с ЧУЖОЙ записью предупреждать обязано
+      var hb2 = _mkHb();
+      var r2 = _runSubmit({ editId: "990501", name: "огненный шар" }, [{ id: 12, name: "Огненный шар" }, hb2]);
+      if ((r2.toasts[r2.toasts.length - 1] || {}).kind !== "warn") return "чужой дубль имени не дал warn";
+      return true;
+    });
+
+    t("[hb-3] submitNewSpell: исчезнувшая запись правки → создаётся новая с warn", function(){
+      // Удалили во второй вкладке — молча создать дубль хуже, чем сказать вслух
+      var r = _runSubmit({ editId: "990501", name: "Хватка тлена" }, [{ id: 12, name: "Огненный шар" }]);
+      if (!r.spell) return "запись не создана";
+      if (r.spell.id === 990501) return "id взят от несуществующей записи";
+      var last = r.toasts[r.toasts.length - 1] || {};
+      if (last.kind !== "warn" || last.msg.indexOf("не найден") === -1) return "нет предупреждения: " + last.msg;
+      return true;
+    });
+
+    t("[hb-3] submitNewSpell: правка книжного через подставленный edit-id не проходит", function(){
+      var book = { id: 12, name: "Огненный шар", level: 3 };
+      var r = _runSubmit({ editId: "12", name: "Взломанный шар" }, [book]);
+      if (book.name !== "Огненный шар") return "книжная запись изменена: " + book.name;
+      if (!r.spell) return "должна была создаться новая запись, а не измениться книжная";
+      if (r.spell.id === 12) return "новая запись перехватила id книжной";
+      return true;
+    });
+
+    if (typeof _syncCustomSpellAcrossChars === "function") {
+      t("[hb-3] _syncCustomSpellAcrossChars: правка доезжает до копий в mySpells", function(){
+        var hb = _mkHb({ name: "Хватка бездны" });
+        var chars = [
+          { id: 1, spells: { mySpells: [{ id: 990501, name: "Хватка тлена" }, { id: 12, name: "Огненный шар" }] } },
+          { id: 2, spells: { mySpells: [{ id: 990501, name: "Хватка тлена" }] } },
+          { id: 3, spells: {} }, // без mySpells — не падать
+          { id: 4 }              // без spells — не падать
+        ];
+        return _withHbEnv([hb], chars, function(){
+          var touched = _syncCustomSpellAcrossChars(hb);
+          if (touched !== 2) return "затронуто персонажей: " + touched;
+          if (chars[0].spells.mySpells[0].name !== "Хватка бездны") return "правка не доехала до первого";
+          if (chars[0].spells.mySpells[1].name !== "Огненный шар") return "задета книжная запись в списке";
+          if (chars[1].spells.mySpells[0].name !== "Хватка бездны") return "правка не доехала до второго";
+          // Копия, а не ссылка: так рантайм совпадает с состоянием после перезагрузки
+          if (chars[0].spells.mySpells[0] === hb) return "в mySpells положена ссылка вместо копии";
+          _syncCustomSpellAcrossChars(null);
+          return true;
+        });
+      });
+    }
+
+    if (typeof _purgeCustomSpellFromChars === "function") {
+      t("[hb-3] _purgeCustomSpellFromChars: чистит и mySpells, и prepared", function(){
+        var chars = [
+          { id: 1, spells: { mySpells: [{ id: 990501 }, { id: 12 }], prepared: [990501, 12] } },
+          { id: 2, spells: { mySpells: [{ id: 990501 }], prepared: [] } },
+          { id: 3, spells: {} },
+          { id: 4 }
+        ];
+        return _withHbEnv([], chars, function(){
+          var touched = _purgeCustomSpellFromChars(990501);
+          if (touched !== 2) return "затронуто персонажей: " + touched;
+          if (chars[0].spells.mySpells.length !== 1 || chars[0].spells.mySpells[0].id !== 12) return "книжная запись не уцелела";
+          // Сирота в prepared считался бы подготовленным заклинанием в счётчике
+          if (chars[0].spells.prepared.join(",") !== "12") return "prepared: " + chars[0].spells.prepared.join(",");
+          if (chars[1].spells.mySpells.length !== 0) return "у второго персонажа запись осталась";
+          return true;
+        });
+      });
+    }
+
+    if (typeof deleteCustomSpell === "function") {
+      t("[hb-3] deleteCustomSpell: сносит из базы и из списков всех персонажей", function(){
+        var hb = _mkHb();
+        var db = [{ id: 12, name: "Огненный шар" }, hb];
+        var chars = [{ id: 1, spells: { mySpells: [{ id: 990501 }, { id: 12 }], prepared: [990501] } }];
+        return _withHbEnv(db, chars, function(env){
+          deleteCustomSpell(990501);
+          if (env.confirms.length !== 1) return "подтверждение не запрошено";
+          if (env.confirms[0].text.indexOf("Хватка тлена") === -1) return "в подтверждении нет имени заклинания";
+          // splice, а не переприсваивание: ссылку на базу держат и app-core, и тесты
+          if (db.length !== 1 || db[0].id !== 12) return "база после удаления: " + db.length;
+          if (chars[0].spells.mySpells.length !== 1) return "запись осталась в списке персонажа";
+          if (chars[0].spells.prepared.length !== 0) return "id остался в prepared";
+          return true;
+        });
+      });
+
+      t("[hb-3] deleteCustomSpell: книжное не удаляется и не спрашивает подтверждения", function(){
+        var book = { id: 12, name: "Огненный шар" };
+        var db = [book];
+        return _withHbEnv(db, [], function(env){
+          deleteCustomSpell(12);
+          if (env.confirms.length !== 0) return "запрошено подтверждение удаления книжного";
+          if (db.length !== 1) return "книжное заклинание удалено из базы";
+          deleteCustomSpell(404404); // несуществующий id — тихий выход
+          if (env.confirms.length !== 0) return "подтверждение для несуществующего id";
+          return true;
+        });
+      });
+    }
+
+    if (typeof renderSpellSearch === "function") {
+      t("[hb-3] поиск: ✏️/🗑 только у своего заклинания", function(){
+        var savedVer = window.currentSpellVersion, savedCls = window.currentSpellClass, savedId = window.currentId;
+        var container = _ensureEl("spell-search-results", "div");
+        var savedAppend = container.appendChild;
+        // _withHbEnv глушит renderSpellSearch (её зовут правка и удаление) — здесь нужна настоящая
+        var realRenderSpellSearch = window.renderSpellSearch;
+        var cards = [];
+        var db = [_mkHb({ name: "Хомбрю-луч" }), _mkHb({ id: 990502, name: "Хомбрю-книжный", homebrew: false })];
+        try {
+          window.currentSpellVersion = "all"; window.currentSpellClass = "all"; window.currentId = null;
+          _ensureInput("spell-search-input", "хомбрю");
+          _ensureInput("spell-search-level", "");
+          container.appendChild = function(el){ cards.push(el); return el; };
+          return _withHbEnv(db, [], function(){
+            window.renderSpellSearch = realRenderSpellSearch;
+            renderSpellSearch();
+            if (cards.length !== 2) return "карточек: " + cards.length;
+            if (cards[0].innerHTML.indexOf("deleteCustomSpell(990501)") === -1) return "у хомбрю нет кнопки удаления";
+            if (cards[0].innerHTML.indexOf("openAddSpellForm(990501)") === -1) return "у хомбрю нет кнопки правки";
+            if (cards[1].innerHTML.indexOf("deleteCustomSpell") !== -1) return "кнопка удаления приехала книжному";
+            if (cards[1].innerHTML.indexOf("openAddSpellForm") !== -1) return "кнопка правки приехала книжному";
+            return true;
+          });
+        } finally {
+          try { delete container.appendChild; } catch (e) {}
+          if (typeof container.appendChild !== "function") container.appendChild = savedAppend;
+          window.currentSpellVersion = savedVer; window.currentSpellClass = savedCls; window.currentId = savedId;
+        }
+      });
+    }
+
+    if (typeof renderMySpells === "function") {
+      t("[hb-3] список персонажа: ✏️ только у своего, вторая корзина не добавлена", function(){
+        var savedId = window.currentId, savedCreate = document.createElement;
+        // _withHbEnv глушит renderMySpells (её зовёт ветка правки) — здесь нужна настоящая
+        var realRenderMySpells = window.renderMySpells;
+        var made = [];
+        var chars = [{ id: "t-hb3", name: "Тест HB-3", class: "Волшебник", level: 5,
+          conditions: [], effects: [], activeSpellEffects: [],
+          spells: { stat: "ИНТ", dc: 13, slots: { 1: 2 }, slotsUsed: {}, prepared: [], mySpells: [
+            _mkHb({ id: 990501, name: "Хомбрю-луч", level: 1 }),
+            _mkHb({ id: 990502, name: "Книжный луч", level: 1, homebrew: false })
+          ] } }];
+        try {
+          window.currentId = "t-hb3";
+          document.createElement = function(tag){ var el = savedCreate.call(document, tag); made.push(el); return el; };
+          return _withHbEnv([], chars, function(){
+            window.renderMySpells = realRenderMySpells;
+            renderMySpells();
+            var cards = made.filter(function(el){ return String(el.className || "").indexOf("my-spell-item") === 0; });
+            if (cards.length !== 2) return "карточек: " + cards.length;
+            if (cards[0].innerHTML.indexOf("openAddSpellForm(990501)") === -1) return "у хомбрю нет кнопки правки";
+            if (cards[1].innerHTML.indexOf("openAddSpellForm") !== -1) return "кнопка правки приехала книжному";
+            // Удаление из базы здесь намеренно отсутствует: рядом стоит removeSpell
+            // («убрать у персонажа»), две корзины на карточке читаются как одна.
+            if (cards[0].innerHTML.indexOf("deleteCustomSpell") !== -1) return "удаление из базы попало на карточку персонажа";
+            return true;
+          });
+        } finally { document.createElement = savedCreate; window.currentId = savedId; }
       });
     }
   }

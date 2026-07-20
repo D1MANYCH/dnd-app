@@ -6082,6 +6082,39 @@ button.edition-btn {
   background: var(--danger-color);
   color: white;
 }
+/* HB-3: ✏️ правка своего заклинания. Форма и метрика — как у .spell-remove-btn
+   рядом (тот же ряд действий), цвет акцентный вместо опасного. Только токены и
+   без !important: один класс уже перебивает базовый `button` по специфичности —
+   ратчет THEME-6 (1025 хардкодов / 159 !important) остаётся на месте. */
+.spell-edit-btn {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent-hi);
+  border-radius: var(--r-sm);
+  padding: 5px 12px;
+  font-size: 0.78em;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: auto;
+  margin: 0;
+}
+.spell-edit-btn:hover { background: var(--accent-soft); }
+/* В светлой теме --accent-hi (#c09a50 у золота) на стекле карточки даёт 2.63:1 —
+   ниже WCAG 4.5 для обычного текста. --accent-lo (#8a6a2c) даёт 5.03:1 и по
+   определению самый тёмный из акцентной тройки, т.е. держит порог на всех
+   8 пресетах акцента. В тёмной теме --accent-hi остаётся: там он светлее фона. */
+:root[data-theme="light"] .spell-edit-btn { color: var(--accent-lo); }
+/* Ряд действий карточки поиска. До HB-3 кнопка была одна и жила на inline
+   margin-top; теперь у хомбрю их три, и без флекса глобальное
+   button{width:100%;margin-bottom} растянуло бы их в столбец. */
+.spell-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+.spell-item-actions button { width: auto; margin: 0; }
 
 /* ── Spells tab header ── */
 .spells-header-row {

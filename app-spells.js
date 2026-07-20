@@ -268,7 +268,25 @@ function toggleNewSpellClass(key) {
   hidden.value = list.join(",");
   _syncNewSpellClassChips(list);
 }
-function openAddSpellForm() {
+// HB-3: id хомбрю обычно число (Date.now()), но у легаси-импорта встречается строка
+// («user-hb1»). В инлайн-onclick число подставляется как есть, строка — в кавычках;
+// всё, кроме букв/цифр/дефиса/подчёркивания, срезается: битый id даст не-совпадение
+// (кнопка тихо ничего не сделает), а не сломанный обработчик.
+function _spellIdArg(id) {
+  if (typeof id === "number") return String(id);
+  return "'" + String(id).replace(/[^\w\-]/g, "") + "'";
+}
+// HB-3: правится только своё. Резолв по String(id) — edit-id из скрытого инпута
+// всегда строка, а в базе id бывает и числом, и строкой.
+function _findHomebrewSpell(rawId) {
+  if (rawId === undefined || rawId === null || rawId === "") return null;
+  var key = String(rawId);
+  return SPELL_DATABASE.find(function(s) {
+    return s && s.homebrew && String(s.id) === key;
+  }) || null;
+}
+// HB-3: аргумент — id редактируемого хомбрю; без него форма открывается на создание.
+function openAddSpellForm(spellId) {
 const modal = $("add-spell-modal");
 if (modal) modal.classList.add("active");
 // HB-2: форма выросла с 3 полей до 12 — сбрасываем все. Раньше чистились только
@@ -287,6 +305,94 @@ safeSet("new-spell-duration", "Мгновенно");
 safeSet("new-spell-desc", "");
 safeSet("new-spell-higher", "");
 _syncNewSpellClassChips([]);
+var titleEl = $("add-spell-modal-title");
+if (titleEl) titleEl.textContent = "Добавить заклинание";
+// HB-3: префилл идёт СТРОГО после полного сброса — иначе непереписанные поля
+// (см. находку HB-2) донесут до формы остатки прошлого черновика.
+var spell = _findHomebrewSpell(spellId);
+if (!spell) return;
+if (titleEl) titleEl.textContent = "Редактировать заклинание";
+safeSet("new-spell-edit-id", String(spell.id));
+safeSet("new-spell-name", spell.name || "");
+safeSet("new-spell-level", String(spell.level || 0));
+// Школа/источник — только из известного набора: чужое значение оставило бы
+// селект на первом option и молча подменило школу при сохранении.
+safeSet("new-spell-school", NEW_SPELL_SCHOOLS.indexOf(spell.school) !== -1 ? spell.school : "воплощение");
+safeSet("new-spell-source", spell.source === "PH24" ? "PH24" : "PH14");
+var classes = _parseSpellClassList(
+  (Array.isArray(spell.classes) ? spell.classes : [spell.class]).join(",")
+);
+safeSet("new-spell-classes", classes.join(","));
+_syncNewSpellClassChips(classes);
+safeSet("new-spell-time", spell.time || "1 действие");
+safeSet("new-spell-range", spell.range || "60 фт");
+safeSet("new-spell-components", spell.components || "V,S");
+safeSet("new-spell-duration", spell.duration || "Мгновенно");
+safeSet("new-spell-desc", spell.desc || "");
+safeSet("new-spell-higher", spell.higherLevel || "");
+}
+// HB-3: разнос правки по спискам персонажей. mySpells держит КОПИИ (JSON-раунд-трип
+// через dnd_chars рвёт ссылку из addSpell) — без этого прохода в поиске новое имя,
+// а в списке персонажа старое. Механика та же, что у _backfillHomebrewFlag (HB-1).
+function _syncCustomSpellAcrossChars(spell) {
+  if (!spell || typeof characters === "undefined" || !Array.isArray(characters)) return 0;
+  var touched = 0;
+  characters.forEach(function(c) {
+    var list = c && c.spells && c.spells.mySpells;
+    if (!Array.isArray(list)) return;
+    list.forEach(function(s, i) {
+      if (!s || s.id !== spell.id) return;
+      // Свежая копия, а не ссылка: так рантайм ведёт себя ровно как после
+      // перезагрузки, где localStorage всё равно раздаст копии.
+      list[i] = JSON.parse(JSON.stringify(spell));
+      touched++;
+    });
+  });
+  return touched;
+}
+// HB-3: удаление хомбрю из всех списков персонажей. prepared хранит id — оставленный
+// там сирота считался бы подготовленным заклинанием в счётчике.
+function _purgeCustomSpellFromChars(id) {
+  if (typeof characters === "undefined" || !Array.isArray(characters)) return 0;
+  var touched = 0;
+  characters.forEach(function(c) {
+    if (!c || !c.spells) return;
+    if (Array.isArray(c.spells.mySpells)) {
+      var before = c.spells.mySpells.length;
+      c.spells.mySpells = c.spells.mySpells.filter(function(s) { return !s || s.id !== id; });
+      if (c.spells.mySpells.length !== before) touched++;
+    }
+    if (Array.isArray(c.spells.prepared)) {
+      c.spells.prepared = c.spells.prepared.filter(function(pid) { return pid !== id; });
+    }
+  });
+  return touched;
+}
+// HB-3: удаление своего заклинания из базы. Гард на homebrew — книжные 719 записей
+// не удаляются ничем: они переживают перезагрузку (SPELLS_BASE), и «удаление»
+// выглядело бы как молча откатившееся действие.
+function deleteCustomSpell(id) {
+  var spell = _findHomebrewSpell(id);
+  if (!spell) return;
+  showConfirmModal(
+    "Удалить своё заклинание?",
+    "«" + spell.name + "» исчезнет из базы и из списков всех персонажей. Отменить нельзя.",
+    function() { _deleteCustomSpellConfirmed(spell.id); }
+  );
+}
+function _deleteCustomSpellConfirmed(id) {
+  var spell = _findHomebrewSpell(id);
+  if (!spell) return;
+  var idx = SPELL_DATABASE.indexOf(spell);
+  // splice, а не пересборка массива: SPELL_DATABASE держат по ссылке и app-core,
+  // и тесты — переприсваивание оставило бы их со старой копией базы.
+  if (idx !== -1) SPELL_DATABASE.splice(idx, 1);
+  var touched = _purgeCustomSpellFromChars(spell.id);
+  if (window.AppLog) AppLog.action("spells", "своё заклинание удалено: " + spell.name, { id: spell.id, chars: touched });
+  saveToLocal();
+  showToast("Заклинание удалено", "success");
+  renderSpellSearch();
+  renderMySpells();
 }
 function closeAddSpellForm() {
 const modal = $("add-spell-modal");
@@ -308,18 +414,19 @@ var classes = _parseSpellClassList($("new-spell-classes")?.value);
 if (!classes.length) classes = ["both"];
 var school = $("new-spell-school")?.value || "";
 if (NEW_SPELL_SCHOOLS.indexOf(school) === -1) school = "воплощение";
-// Date.now() один на миллисекунду: два быстрых сохранения подряд (или сохранение
-// поверх импортированного хомбрю) дали бы одинаковый id, а addSpell/removeSpell/
-// isSpellPrepared резолвят заклинание строго по нему — второе стало бы призраком.
-var id = Date.now();
-while (SPELL_DATABASE.some(function(s) { return s && s.id === id; })) id++;
+// HB-3: непустое скрытое поле = режим правки. Если запись за это время исчезла
+// (удалили во второй вкладке), молча создать дубль хуже, чем сказать вслух.
+var editRaw = $("new-spell-edit-id")?.value || "";
+var editing = editRaw ? _findHomebrewSpell(editRaw) : null;
+var lostEdit = !!editRaw && !editing;
 // Совпадение имени не ломает базу (резолв по id), но в поиске записи неразличимы,
 // а resolveSpellEffect (HB-4) уведёт каст по хомбрю-ветке — предупреждаем.
+// Саму редактируемую запись из сверки исключаем: иначе сохранение без правки
+// имени всегда ругалось бы на «дубль» самого себя.
 var isDupName = SPELL_DATABASE.some(function(s) {
-  return s && s.name && s.name.toLowerCase() === name.toLowerCase();
+  return s && s !== editing && s.name && s.name.toLowerCase() === name.toLowerCase();
 });
-const newSpell = {
-id: id,
+const payload = {
 name: name,
 level: parseInt($("new-spell-level")?.value, 10) || 0,
 // classes — то, что читают renderSpellSearch/renderMySpells; class остаётся
@@ -339,11 +446,32 @@ duration: $("new-spell-duration")?.value || "Мгновенно",
 desc: desc,
 higherLevel: higher
 };
-SPELL_DATABASE.push(newSpell);
-if (window.AppLog) AppLog.action("spells", "своё заклинание создано: " + newSpell.name, { level: newSpell.level, school: newSpell.school, classes: classes.join(",") });
+if (editing) {
+  // Правка по месту, с сохранением id: на него завязаны mySpells, prepared
+  // и addSpell/removeSpell. Пересоздание записи осиротило бы все три.
+  Object.keys(payload).forEach(function(k) { editing[k] = payload[k]; });
+  var touched = _syncCustomSpellAcrossChars(editing);
+  if (window.AppLog) AppLog.action("spells", "своё заклинание изменено: " + editing.name, { id: editing.id, chars: touched });
+  saveToLocal();
+  closeAddSpellForm();
+  if (isDupName) showToast("Сохранено, но заклинание с таким именем уже есть", "warn");
+  else showToast("Заклинание обновлено!", "success");
+  renderSpellSearch();
+  renderMySpells();
+  return;
+}
+// Date.now() один на миллисекунду: два быстрых сохранения подряд (или сохранение
+// поверх импортированного хомбрю) дали бы одинаковый id, а addSpell/removeSpell/
+// isSpellPrepared резолвят заклинание строго по нему — второе стало бы призраком.
+var id = Date.now();
+while (SPELL_DATABASE.some(function(s) { return s && s.id === id; })) id++;
+payload.id = id;
+SPELL_DATABASE.push(payload);
+if (window.AppLog) AppLog.action("spells", "своё заклинание создано: " + payload.name, { level: payload.level, school: payload.school, classes: classes.join(",") });
 saveToLocal();
 closeAddSpellForm();
-if (isDupName) showToast("Добавлено, но заклинание с таким именем уже есть", "warn");
+if (lostEdit) showToast("Исходное заклинание не найдено — сохранено как новое", "warn");
+else if (isDupName) showToast("Добавлено, но заклинание с таким именем уже есть", "warn");
 else showToast("Заклинание добавлено!", "success");
 renderSpellSearch();
 }
@@ -391,9 +519,17 @@ const classText = spellClassArr.length > 1 ? spellClassArr.map(function(c){retur
 // toLowerCase() роняет весь рендер поиска.
 const srcRaw = spell.source || "PH14";
 const hbBadge = spell.homebrew ? " <span class=\"source-badge hb-badge\" title=\"Ваше заклинание\">🏠 Своё</span>" : "";
+// HB-3: своё заклинание правится и удаляется прямо из базы — карточка поиска
+// и есть вид на базу. У книжных кнопок нет: они переживают перезагрузку из
+// SPELLS_BASE, и «удаление» выглядело бы как молча откатившееся действие.
+var idArg = _spellIdArg(spell.id);
+var hbActions = spell.homebrew
+  ? "<button class=\"spell-edit-btn\" onclick=\"openAddSpellForm(" + idArg + ")\">✏️ Изменить</button>" +
+    "<button class=\"spell-remove-btn\" title=\"Удалить своё заклинание — исчезнет у всех персонажей\" onclick=\"deleteCustomSpell(" + idArg + ")\">🗑 Удалить</button>"
+  : "";
 var div = document.createElement("div");
 div.className = "spell-item" + (isAdded ? " spell-added" : "");
-div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase() + "\">" + escapeHtml(srcRaw) + "</span>" + hbBadge + " <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<button class=\"" + (isAdded ? "secondary" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + spell.id + ")" : "addSpell(" + spell.id + ")") + "\" style=\"margin-top:8px;\">" + (isAdded ? "Добавлено" : "+ Добавить") + "</button>";
+div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase() + "\">" + escapeHtml(srcRaw) + "</span>" + hbBadge + " <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<div class=\"spell-item-actions\"><button class=\"" + (isAdded ? "secondary" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + idArg + ")" : "addSpell(" + idArg + ")") + "\">" + (isAdded ? "Добавлено" : "+ Добавить") + "</button>" + hbActions + "</div>";
 container.appendChild(div);
 });
 if (filtered.length > LIMIT) {
@@ -528,12 +664,18 @@ card.innerHTML =
     (spell.desc ? '<div class="spell-full-desc">' + escapeHtml(spell.desc) + '</div>' : '') +
     (spell.higherLevel ? '<div class="spell-higher">📈 На больших уровнях: ' + escapeHtml(spell.higherLevel) + '</div>' : '') +
     '<div class="spell-card-actions">' +
-    '<button class="spell-cast-btn" onclick="castSpell(' + spell.id + ')">✨ Использовать</button>' +
+    // HB-3: id через _spellIdArg — у легаси-импорта он бывает строкой, и «голая»
+    // подстановка давала битый идентификатор в onclick (кнопка роняла SyntaxError).
+    '<button class="spell-cast-btn" onclick="castSpell(' + _spellIdArg(spell.id) + ')">✨ Использовать</button>' +
     (spell.duration && spell.duration.toLowerCase().includes('концентрац') ? '<button class="spell-conc-btn" onclick="setConcentration(this.dataset.name)" data-name="' + escapeHtml(spell.name) + '">🔮 Концентрация</button>' : '') +
     (canCastRitual ? '<button class="spell-ritual-btn" onclick="castRitual(\'' + escapeHtml(spell.name).replace(/'/g,"&#39;") + '\')">🕐 Ритуал</button>' : '') +
-    (prepClass && !isCantrip ? '<button class="spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + spell.id + ')">' + (prepared ? '✅ Подготовлено' : '○ Подготовить') + '</button>' : '') +
+    (prepClass && !isCantrip ? '<button class="spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">' + (prepared ? '✅ Подготовлено' : '○ Подготовить') + '</button>' : '') +
     (isFamiliarSpell ? '<button class="spell-summon-btn" onclick="summonFamiliar()">🐾 Призвать фамильяра</button>' : '') +
-    '<button class="spell-remove-btn" onclick="removeSpell(' + spell.id + ')">🗑 Удалить</button>' +
+    // HB-3: правка своего заклинания прямо из списка. Удаления из базы здесь нет
+    // намеренно — рядом уже стоит «🗑 Удалить», и две корзины с разным смыслом
+    // на одной карточке читаются как одна. Удаление насовсем живёт в поиске.
+    (spell.homebrew ? '<button class="spell-edit-btn" onclick="openAddSpellForm(' + _spellIdArg(spell.id) + ')">✏️ Изменить</button>' : '') +
+    '<button class="spell-remove-btn" title="Убрать из списка персонажа" onclick="removeSpell(' + _spellIdArg(spell.id) + ')">🗑 Удалить</button>' +
     '</div>' +
   '</div>';
 groupDiv.appendChild(card);
