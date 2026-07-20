@@ -254,6 +254,10 @@ name: name,
 level: parseInt($("new-spell-level")?.value, 10) || 0,
 class: $("new-spell-class")?.value || "wizard",
 source: $("new-spell-source")?.value || "PH14",
+// HB-1: признак «своё» — отдельное булево. source остаётся PH14/PH24 (редакция,
+// под которую написан хомбрю): на нём висят matchesVersion, sourceRu и
+// source.toLowerCase() в рендерах.
+homebrew: true,
 school: "воплощение",
 time: $("new-spell-time")?.value || "1 действие",
 range: $("new-spell-range")?.value || "60 фт",
@@ -309,9 +313,13 @@ const spellClassArr = Array.isArray(spell.classes) ? spell.classes : [spell.clas
 const primaryClass = spellClassArr.length === 1 ? spellClassArr[0] : (spellClassArr.includes(currentSpellClass) ? currentSpellClass : spellClassArr[0]);
 const classBadge = "class-" + (primaryClass || "both");
 const classText = spellClassArr.length > 1 ? spellClassArr.map(function(c){return getSpellClassIcon(c);}).join("") : getSpellClassIcon(primaryClass);
+// HB-1: source может отсутствовать у импортированной записи — без фолбэка
+// toLowerCase() роняет весь рендер поиска.
+const srcRaw = spell.source || "PH14";
+const hbBadge = spell.homebrew ? " <span class=\"source-badge hb-badge\" title=\"Ваше заклинание\">🏠 Своё</span>" : "";
 var div = document.createElement("div");
 div.className = "spell-item" + (isAdded ? " spell-added" : "");
-div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + spell.source.toLowerCase() + "\">" + escapeHtml(spell.source) + "</span> <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<button class=\"" + (isAdded ? "secondary" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + spell.id + ")" : "addSpell(" + spell.id + ")") + "\" style=\"margin-top:8px;\">" + (isAdded ? "Добавлено" : "+ Добавить") + "</button>";
+div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase() + "\">" + escapeHtml(srcRaw) + "</span>" + hbBadge + " <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<button class=\"" + (isAdded ? "secondary" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + spell.id + ")" : "addSpell(" + spell.id + ")") + "\" style=\"margin-top:8px;\">" + (isAdded ? "Добавлено" : "+ Добавить") + "</button>";
 container.appendChild(div);
 });
 if (filtered.length > LIMIT) {
@@ -393,14 +401,15 @@ if (spellClassArr2.length > 4) {
 } else {
   classIcons = spellClassArr2.map(function(c){ return getSpellClassIcon(c); }).join("");
 }
-const sourceClass = "source-" + (spell.source || "ph14").toLowerCase();
+const srcRaw = spell.source || "PH14"; // HB-1: у импортированной записи source может отсутствовать
+const sourceClass = "source-" + srcRaw.toLowerCase();
 const schoolName = spell.school || "";
 // Подписи для новичков: школа/классы/источник текстом в раскрытой карточке.
 var classNamesRu = spellClassArr2.map(function(c){
   return (typeof SPELL_CLASS_RU !== "undefined" && SPELL_CLASS_RU[c]) || c;
 }).join(", ");
 var schoolRu = schoolName ? schoolName.charAt(0).toUpperCase() + schoolName.slice(1) : "";
-var sourceRu = spell.source === "PH14" ? "Книга игрока 2014" : (spell.source === "PH24" ? "Книга игрока 2024" : (spell.source || ""));
+var sourceRu = srcRaw === "PH14" ? "Книга игрока 2014" : (srcRaw === "PH24" ? "Книга игрока 2024" : srcRaw);
 var taxonomyLine = '<div class="spell-card-taxonomy">' +
   (schoolRu ? '<span>🎓 Школа: <b>' + escapeHtml(schoolRu) + '</b></span>' : '') +
   '<span>🧙 Классы: <b>' + escapeHtml(classNamesRu) + '</b></span>' +
@@ -433,7 +442,8 @@ card.innerHTML =
       (activeCast[spell.name] ? _spellActiveBadgeHtml(activeCast[spell.name]) : '') +
     '</div>' +
     '<div class="spell-card-badges">' +
-      '<span class="source-badge ' + sourceClass + '">' + escapeHtml(spell.source || "") + '</span>' +
+      '<span class="source-badge ' + sourceClass + '">' + escapeHtml(srcRaw) + '</span>' +
+      (spell.homebrew ? '<span class="source-badge hb-badge" title="Ваше заклинание">🏠 Своё</span>' : '') +
       (schoolName ? '<span class="school-badge school-' + getSchoolSlug(schoolName) + '">' + getSchoolIcon(schoolName) + '<span class="school-badge-text">' + escapeHtml(schoolName) + '</span></span>' : '') +
       '<span class="class-icons-row">' + classIcons + '</span>' +
     '</div>' +

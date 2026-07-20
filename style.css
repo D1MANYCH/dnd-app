@@ -5639,6 +5639,13 @@ transition: all 0.2s;
 .source-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.7em; font-weight: 600; margin-left: 8px; }
 .source-ph14 { background: #5b9bd5; color: white; }
 .source-ph24 { background: #e06c75; color: white; }
+/* HB-1: бейдж «своё» соседствует с бейджем редакции (source не заменяется —
+   это разные оси: кто автор и под какую книгу написано). Только токены —
+   ратчет хардкодов THEME-6 держит базу 1025. */
+.hb-badge { background: var(--accent-fill); color: var(--on-accent); border: 1px solid var(--accent-lo); }
+/* В карточке бейджи разложены флексом с gap:5px — унаследованный от .source-badge
+   margin-left:8px там сложился бы с гэпом в 13px. В поиске (инлайн-поток) он нужен. */
+.spell-card-badges .hb-badge { margin-left: 0; }
 .class-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.65em; font-weight: 600; margin-left: 5px; }
 .class-wizard   { background: var(--scroll-color);   color: white; }
 .class-druid    { background: var(--material-color); color: black; }

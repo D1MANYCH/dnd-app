@@ -4992,6 +4992,150 @@
     }
   }
 
+  // ────────── БЛОК 46 (HB-1): признак «своё» — флаг homebrew, бейдж, бэкфилл легаси ──────────
+  // До этой фазы хомбрю маскировался под книжный: отличить своё заклинание от PHB
+  // было нечем. Признак — отдельное булево `homebrew`; `source` остаётся редакцией,
+  // под которую написано (на нём висят matchesVersion, sourceRu и source.toLowerCase()).
+  if (typeof submitNewSpell === "function" && typeof SPELLS_BASE !== "undefined") {
+
+    t("[hb-1] submitNewSpell: запись помечена homebrew, source остаётся редакцией", function(){
+      var savedDB = window.SPELL_DATABASE, savedRender = window.renderSpellSearch, savedToast = window.showToast;
+      try {
+        window.SPELL_DATABASE = SPELLS_BASE.slice();
+        window.renderSpellSearch = function(){}; // рендер поиска проверяется отдельным тестом
+        window.showToast = function(){};
+        _ensureInput("new-spell-name", "Хватка тлена");
+        _ensureInput("new-spell-desc", "Проверочное описание хомбрю-заклинания");
+        _ensureInput("new-spell-level", "3");
+        _ensureInput("new-spell-source", "PH24");
+        submitNewSpell();
+        if (window.SPELL_DATABASE.length !== SPELLS_BASE.length + 1) return "заклинание не добавлено";
+        var s = window.SPELL_DATABASE[window.SPELL_DATABASE.length - 1];
+        if (s.name !== "Хватка тлена") return "имя: " + s.name;
+        if (s.homebrew !== true) return "нет признака homebrew";
+        if (s.source !== "PH24") return "source подменён признаком: " + s.source;
+        return true;
+      } finally { window.SPELL_DATABASE = savedDB; window.renderSpellSearch = savedRender; window.showToast = savedToast; }
+    });
+
+    if (typeof renderSpellSearch === "function") {
+      t("[hb-1] поиск: бейдж «Своё» только у хомбрю, запись без source не роняет рендер", function(){
+        var savedDB = window.SPELL_DATABASE, savedChars = window.characters, savedId = window.currentId,
+            savedVer = window.currentSpellVersion, savedCls = window.currentSpellClass;
+        var container = _ensureEl("spell-search-results");
+        var savedAppend = container.appendChild, cards = [];
+        try {
+          window._skelDone = window._skelDone || {};
+          window._skelDone.spell = true; // иначе firstLoadSkeleton съедает первый вызов
+          window.characters = [{ id: "t-hb1", name: "Тест HB-1", class: "Волшебник", level: 5,
+            spells: { mySpells: [], slots: { 1: 2 } } }];
+          window.currentId = "t-hb1";
+          window.currentSpellVersion = "all";
+          window.currentSpellClass = "all";
+          var proto = { level: 1, class: "wizard", school: "воплощение", time: "1 действие",
+            range: "60 фт", components: "В,С", duration: "Мгновенно", desc: "тест" };
+          function mk(over){ var o = {}; Object.keys(proto).forEach(function(k){ o[k] = proto[k]; });
+            Object.keys(over).forEach(function(k){ o[k] = over[k]; }); return o; }
+          window.SPELL_DATABASE = [
+            mk({ id: 990001, name: "Хомбрю-луч", source: "PH14", homebrew: true }),
+            // Легаси-импорт без source — до HB-1 ронял весь рендер на source.toLowerCase()
+            mk({ id: 990002, name: "Хомбрю-безысточника", homebrew: true }),
+            mk({ id: 990003, name: "Хомбрю-книжный", source: "PH14" })
+          ];
+          _ensureInput("spell-search-input", "хомбрю");
+          _ensureInput("spell-search-level", "");
+          container.appendChild = function(el){ cards.push(el); return el; };
+          renderSpellSearch();
+          if (cards.length !== 3) return "карточек: " + cards.length;
+          if (cards[0].innerHTML.indexOf("hb-badge") === -1) return "у хомбрю нет бейджа «Своё»";
+          if (cards[2].innerHTML.indexOf("hb-badge") !== -1) return "бейдж «Своё» приехал книжному";
+          if (cards[1].innerHTML.indexOf("source-ph14") === -1) return "запись без source не получила фолбэк PH14";
+          return true;
+        } finally {
+          // В браузере appendChild живёт на прототипе — delete возвращает его;
+          // в node-стабе это собственное свойство, там восстанавливаем ссылкой.
+          try { delete container.appendChild; } catch (e) {}
+          if (typeof container.appendChild !== "function") container.appendChild = savedAppend;
+          window.SPELL_DATABASE = savedDB; window.characters = savedChars; window.currentId = savedId;
+          window.currentSpellVersion = savedVer; window.currentSpellClass = savedCls;
+        }
+      });
+    }
+
+    if (typeof renderMySpells === "function") {
+      t("[hb-1] список персонажа: бейдж «Своё» у хомбрю, у книжного — только редакция", function(){
+        var savedChars = window.characters, savedId = window.currentId, savedCreate = document.createElement;
+        var made = [];
+        try {
+          window.characters = [{ id: "t-hb1b", name: "Тест HB-1", class: "Волшебник", level: 5,
+            conditions: [], effects: [], activeSpellEffects: [],
+            spells: { stat: "ИНТ", dc: 13, slots: { 1: 2 }, slotsUsed: {}, prepared: [], mySpells: [
+              { id: 990101, name: "Хомбрю-луч", level: 1, class: "wizard", source: "PH14",
+                homebrew: true, school: "воплощение", desc: "тест" },
+              { id: 990102, name: "Книжный луч", level: 1, class: "wizard", source: "PH14",
+                school: "воплощение", desc: "тест" }
+            ] } }];
+          window.currentId = "t-hb1b";
+          // Карточки уходят в groupDiv, созданный внутри рендера, — перехватываем на createElement
+          document.createElement = function(tag){ var el = savedCreate.call(document, tag); made.push(el); return el; };
+          renderMySpells();
+          var cards = made.filter(function(el){ return String(el.className || "").indexOf("my-spell-item") === 0; });
+          if (cards.length !== 2) return "карточек: " + cards.length;
+          if (cards[0].innerHTML.indexOf("hb-badge") === -1) return "у хомбрю нет бейджа «Своё»";
+          if (cards[1].innerHTML.indexOf("hb-badge") !== -1) return "бейдж «Своё» приехал книжному";
+          return true;
+        } finally { document.createElement = savedCreate; window.characters = savedChars; window.currentId = savedId; }
+      });
+    }
+
+    if (typeof _backfillHomebrewFlag === "function") {
+      // Ключевая ловушка плана: mySpells держит КОПИИ объектов базы (JSON-раунд-трип
+      // через dnd_chars рвёт ссылку из addSpell). Без разноса по копиям бейдж есть
+      // в поиске и пропадает в списке персонажа — то есть ровно там, где нужен.
+      t("[hb-1] разнос по копиям: mySpells помечается по id, книжные в списке не трогаются", function(){
+        var chars = [
+          { id: 1, spells: { mySpells: [
+            { id: 5001, name: "Своё" },        // хомбрю — должен получить флаг
+            { id: 12, name: "Книжное" }        // книжное — остаться без флага
+          ] } },
+          { id: 2, spells: { mySpells: [{ id: 5001, name: "Своё" }] } }, // копия у второго персонажа
+          { id: 3, spells: {} },                                         // без mySpells — не падать
+          { id: 4 }                                                      // без spells — не падать
+        ];
+        _backfillHomebrewFlag(chars, new Set([5001]));
+        if (chars[0].spells.mySpells[0].homebrew !== true) return "флаг не доехал до первого персонажа";
+        if (chars[0].spells.mySpells[1].homebrew) return "флаг приехал книжному в списке";
+        if (chars[1].spells.mySpells[0].homebrew !== true) return "флаг не доехал до второго персонажа";
+        // Пустой набор id и мусор на входе — тихий выход, без исключений
+        _backfillHomebrewFlag(chars, new Set());
+        _backfillHomebrewFlag(null, new Set([5001]));
+        _backfillHomebrewFlag(chars, null);
+        return true;
+      });
+    }
+
+    if (typeof _applyFullRestore === "function") {
+      t("[hb-1] бэкфилл легаси: восстановленные userSpells получают признак homebrew", function(){
+        var savedChars = window.characters, savedHist = window.hpHistory, savedDB = window.SPELL_DATABASE;
+        try {
+          window.SPELL_DATABASE = SPELLS_BASE.slice();
+          // Копия в mySpells — как её пишет реальный конверт: без признака
+          var chars = [{ id: 9301, name: "Носитель", class: "Плут", level: 3,
+            spells: { mySpells: [{ id: "user-hb1", name: "Легаси-заклинание", level: 1 }] } }];
+          _applyFullRestore({ app: "dnd-sheet", characters: chars, hpHistory: [],
+            userSpells: [{ id: "user-hb1", name: "Легаси-заклинание", level: 1 }] }, chars);
+          var restored = window.SPELL_DATABASE.filter(function(s){ return s && s.id === "user-hb1"; })[0];
+          if (!restored) return "заклинание не восстановлено";
+          if (restored.homebrew !== true) return "бэкфилл не проставил homebrew";
+          if (window.SPELL_DATABASE[0].homebrew) return "признак приехал книжному заклинанию";
+          var copy = window.characters[0].spells.mySpells[0];
+          if (!copy || copy.homebrew !== true) return "копия в mySpells осталась без признака";
+          return true;
+        } finally { window.characters = savedChars; window.hpHistory = savedHist; window.SPELL_DATABASE = savedDB; }
+      });
+    }
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

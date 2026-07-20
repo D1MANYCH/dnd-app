@@ -1063,6 +1063,21 @@ function migrateCharacter(char) {
   return char;
 }
 
+// HB-1: разнос признака «своё» по спискам персонажей. char.spells.mySpells держит
+// КОПИИ объектов, а не ссылки на SPELL_DATABASE — JSON-раунд-трип через dnd_chars
+// рвёт связь, поставленную в addSpell. Без этого прохода бейдж «🏠 Своё» есть в
+// поиске и пропадает в списке персонажа, где на него и смотрят.
+// Идемпотентно и без схемы: гоняется на каждой загрузке, id хомбрю берутся из
+// SPELL_DATABASE (то, что не совпало с базой книг).
+function _backfillHomebrewFlag(chars, hbIds) {
+  if (!Array.isArray(chars) || !hbIds || !hbIds.size) return;
+  chars.forEach(function(c) {
+    var list = c && c.spells && c.spells.mySpells;
+    if (!Array.isArray(list)) return;
+    list.forEach(function(s) { if (s && hbIds.has(s.id)) s.homebrew = true; });
+  });
+}
+
 window.onload = function() {
 try {
 const saved = localStorage.getItem("dnd_chars");
@@ -1075,7 +1090,11 @@ if (savedSpells) {
   var userSpells = JSON.parse(savedSpells);
   var baseIds = new Set(SPELL_DATABASE.map(function(s) { return s.id; }));
   var extra = userSpells.filter(function(s) { return !baseIds.has(s.id); });
+  // HB-1: бэкфилл легаси — до этой версии признака «своё» не было, а всё, что
+  // пережило фильтр по baseIds, по определению создано пользователем.
+  extra.forEach(function(s) { if (s) s.homebrew = true; });
   if (extra.length > 0) SPELL_DATABASE = SPELL_DATABASE.concat(extra);
+  _backfillHomebrewFlag(characters, new Set(extra.map(function(s) { return s && s.id; })));
 }
 if (savedHpHistory) hpHistory = JSON.parse(savedHpHistory);
 } catch(e) { console.error("Ошибка загрузки:", e); showToast("Ошибка загрузки данных!", "error"); }
@@ -3583,7 +3602,9 @@ function _applyFullRestore(imported, validChars) {
   }
   if (imported && Array.isArray(imported.userSpells)) {
     var validSpells = imported.userSpells.filter(_isValidImportedSpell);
+    validSpells.forEach(function(s) { if (s) s.homebrew = true; }); // HB-1: тот же бэкфилл, что и в onload
     SPELL_DATABASE = ((typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.slice() : []).concat(validSpells);
+    _backfillHomebrewFlag(characters, new Set(validSpells.map(function(s) { return s && s.id; })));
   }
   saveToLocal();
   renderCharacterList();
