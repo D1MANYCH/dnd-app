@@ -5620,6 +5620,13 @@ font-size: 0.95em;
 input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent-color); }
 .add-spell-form textarea { min-height: 100px; font-size: 0.9em; }
 .add-spell-form .row { margin-bottom: 15px; }
+/* HB-2: чипы классов в форме своего заклинания. Внешний вид целиком берём у
+   .filter-chip (те же токены --chip-bg/--accent-color/--on-accent, обе темы уже
+   выверены) — здесь только раскладка: глобальное button{width:100%;margin-bottom}
+   иначе растянуло бы чипы в столбец. */
+.hb-class-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: var(--sp-2); }
+.hb-class-chips .filter-chip { width: auto; margin: 0; flex: 0 0 auto; }
+.hb-form-hint { margin: 0; font-size: 0.75em; color: var(--text-muted); line-height: 1.4; }
 .item-form label { margin-top: 10px; }
 .item-form input:first-child { margin-top: 0; }
 .spell-item {

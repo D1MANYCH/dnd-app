@@ -233,12 +233,60 @@ if (modal) modal.classList.remove("active");
 // BUILD-LVL-4: обновить чек-лист guided level-up, если он открыт
 if (typeof luRefreshChoices === "function") luRefreshChoices();
 }
+// HB-2: справочники и лимиты формы «Добавить своё».
+// Ключи классов — те же, что в SPELL_CLASS_RU (без "both": он не выбирается вручную,
+// а проставляется автоматически, когда не отмечен ни один класс).
+const NEW_SPELL_CLASS_KEYS = ["wizard", "sorcerer", "warlock", "cleric", "druid", "bard", "paladin", "ranger"];
+// Порядок и написание — как в SCHOOL_ICON_SLUGS (app-core.js): по этим строкам
+// резолвится иконка школы, любое расхождение молча даёт карточку без иконки.
+const NEW_SPELL_SCHOOLS = ["ограждение", "воплощение", "вызов", "прорицание", "очарование", "иллюзия", "некромантия", "преобразование"];
+// Капы длины: у книжных заклинаний максимум — имя 34, описание 431, «на больших» 124.
+// Запас кратный, но конечный — вставленная простыня иначе уезжает в localStorage целиком.
+const NEW_SPELL_NAME_MAX = 60;
+const NEW_SPELL_DESC_MAX = 2000;
+const NEW_SPELL_HIGHER_MAX = 500;
+
+// Скрытый CSV-инпут — источник истины по выбранным классам: он переживает
+// перерисовку чипов, читается из submitNewSpell без обхода DOM и виден тестам.
+function _parseSpellClassList(raw) {
+  return String(raw || "").split(",").map(function(s) { return s.trim(); })
+    .filter(function(k, i, arr) { return NEW_SPELL_CLASS_KEYS.indexOf(k) !== -1 && arr.indexOf(k) === i; });
+}
+function _syncNewSpellClassChips(list) {
+  var chips = document.querySelectorAll("#new-spell-class-chips .filter-chip");
+  if (!chips || !chips.forEach) return;
+  chips.forEach(function(b) {
+    b.classList.toggle("active", list.indexOf(b.getAttribute("data-class")) !== -1);
+  });
+}
+function toggleNewSpellClass(key) {
+  var hidden = $("new-spell-classes");
+  if (!hidden || NEW_SPELL_CLASS_KEYS.indexOf(key) === -1) return;
+  var list = _parseSpellClassList(hidden.value);
+  var i = list.indexOf(key);
+  if (i === -1) list.push(key); else list.splice(i, 1);
+  hidden.value = list.join(",");
+  _syncNewSpellClassChips(list);
+}
 function openAddSpellForm() {
 const modal = $("add-spell-modal");
 if (modal) modal.classList.add("active");
+// HB-2: форма выросла с 3 полей до 12 — сбрасываем все. Раньше чистились только
+// имя/описание/«на больших», и прошлый черновик (уровень, школа, время, дистанция)
+// молча уезжал в следующее заклинание.
+safeSet("new-spell-edit-id", "");
 safeSet("new-spell-name", "");
+safeSet("new-spell-level", "0");
+safeSet("new-spell-school", "воплощение");
+safeSet("new-spell-source", "PH14");
+safeSet("new-spell-classes", "");
+safeSet("new-spell-time", "1 действие");
+safeSet("new-spell-range", "60 фт");
+safeSet("new-spell-components", "V,S");
+safeSet("new-spell-duration", "Мгновенно");
 safeSet("new-spell-desc", "");
 safeSet("new-spell-higher", "");
+_syncNewSpellClassChips([]);
 }
 function closeAddSpellForm() {
 const modal = $("add-spell-modal");
@@ -247,30 +295,56 @@ if (modal) modal.classList.remove("active");
 function submitNewSpell() {
 const name = $("new-spell-name")?.value?.trim() || "";
 const desc = $("new-spell-desc")?.value?.trim() || "";
+const higher = $("new-spell-higher")?.value?.trim() || "";
 if (!name || !desc) { showToast("Название и описание обязательны!", "warn"); return; }
+// HB-2: капы длины. maxlength на инпуте не спасает — в textarea его нет, а вставка
+// через DevTools/импорт вообще минует разметку.
+if (name.length > NEW_SPELL_NAME_MAX) { showToast("Название длиннее " + NEW_SPELL_NAME_MAX + " символов", "warn"); return; }
+if (desc.length > NEW_SPELL_DESC_MAX) { showToast("Описание длиннее " + NEW_SPELL_DESC_MAX + " символов", "warn"); return; }
+if (higher.length > NEW_SPELL_HIGHER_MAX) { showToast("«На больших уровнях» длиннее " + NEW_SPELL_HIGHER_MAX + " символов", "warn"); return; }
+// Ни один класс не отмечен → "both": заклинание видно под любым фильтром,
+// как книжные без привязки. Блокировать сохранение из-за этого не за что.
+var classes = _parseSpellClassList($("new-spell-classes")?.value);
+if (!classes.length) classes = ["both"];
+var school = $("new-spell-school")?.value || "";
+if (NEW_SPELL_SCHOOLS.indexOf(school) === -1) school = "воплощение";
+// Date.now() один на миллисекунду: два быстрых сохранения подряд (или сохранение
+// поверх импортированного хомбрю) дали бы одинаковый id, а addSpell/removeSpell/
+// isSpellPrepared резолвят заклинание строго по нему — второе стало бы призраком.
+var id = Date.now();
+while (SPELL_DATABASE.some(function(s) { return s && s.id === id; })) id++;
+// Совпадение имени не ломает базу (резолв по id), но в поиске записи неразличимы,
+// а resolveSpellEffect (HB-4) уведёт каст по хомбрю-ветке — предупреждаем.
+var isDupName = SPELL_DATABASE.some(function(s) {
+  return s && s.name && s.name.toLowerCase() === name.toLowerCase();
+});
 const newSpell = {
-id: Date.now(),
+id: id,
 name: name,
 level: parseInt($("new-spell-level")?.value, 10) || 0,
-class: $("new-spell-class")?.value || "wizard",
+// classes — то, что читают renderSpellSearch/renderMySpells; class остаётся
+// для легаси-веток, которые ещё берут одиночное поле.
+classes: classes,
+class: classes[0],
 source: $("new-spell-source")?.value || "PH14",
 // HB-1: признак «своё» — отдельное булево. source остаётся PH14/PH24 (редакция,
 // под которую написан хомбрю): на нём висят matchesVersion, sourceRu и
 // source.toLowerCase() в рендерах.
 homebrew: true,
-school: "воплощение",
+school: school,
 time: $("new-spell-time")?.value || "1 действие",
 range: $("new-spell-range")?.value || "60 фт",
 components: $("new-spell-components")?.value || "V,S",
 duration: $("new-spell-duration")?.value || "Мгновенно",
 desc: desc,
-higherLevel: $("new-spell-higher")?.value?.trim() || ""
+higherLevel: higher
 };
 SPELL_DATABASE.push(newSpell);
-if (window.AppLog) AppLog.action("spells", "своё заклинание создано: " + newSpell.name, { level: newSpell.level });
+if (window.AppLog) AppLog.action("spells", "своё заклинание создано: " + newSpell.name, { level: newSpell.level, school: newSpell.school, classes: classes.join(",") });
 saveToLocal();
 closeAddSpellForm();
-showToast("Заклинание добавлено!", "success");
+if (isDupName) showToast("Добавлено, но заклинание с таким именем уже есть", "warn");
+else showToast("Заклинание добавлено!", "success");
 renderSpellSearch();
 }
 function renderSpellSearch() {

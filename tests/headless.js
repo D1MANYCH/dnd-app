@@ -5134,6 +5134,175 @@
         } finally { window.characters = savedChars; window.hpHistory = savedHist; window.SPELL_DATABASE = savedDB; }
       });
     }
+
+    // ────────── HB-2: полная форма — школа, классы, валидация ──────────
+    // До этой фазы школа была жёстко зашита как «воплощение», класс выбирался
+    // ровно один, а длина полей и коллизия Date.now()-id не проверялись вовсе.
+
+    // В форме 12 полей, а стабы живут между тестами — заполняем её целиком,
+    // иначе остаток предыдущего теста молча уезжает в новую запись.
+    function _fillSpellForm(over) {
+      var f = { name: "Хватка тлена", desc: "Проверочное описание", level: "3", school: "воплощение",
+                source: "PH14", classes: "", time: "1 действие", range: "60 фт",
+                components: "В,С", duration: "Мгновенно", higher: "" };
+      Object.keys(over || {}).forEach(function(k){ f[k] = over[k]; });
+      _ensureInput("new-spell-name", f.name);
+      _ensureInput("new-spell-desc", f.desc);
+      _ensureInput("new-spell-level", f.level);
+      _ensureInput("new-spell-school", f.school);
+      _ensureInput("new-spell-source", f.source);
+      _ensureInput("new-spell-classes", f.classes);
+      _ensureInput("new-spell-time", f.time);
+      _ensureInput("new-spell-range", f.range);
+      _ensureInput("new-spell-components", f.components);
+      _ensureInput("new-spell-duration", f.duration);
+      _ensureInput("new-spell-higher", f.higher);
+    }
+    // Прогон submitNewSpell на изолированной базе: возвращает добавленную запись
+    // (или null) и список тостов — сам submit пишет в глобальную SPELL_DATABASE.
+    function _runSubmit(over, db) {
+      var savedDB = window.SPELL_DATABASE, savedRender = window.renderSpellSearch, savedToast = window.showToast;
+      var toasts = [];
+      try {
+        window.SPELL_DATABASE = db || [];
+        // База мутируется по месту (push той же ссылке) — длину фиксируем ДО прогона
+        var before = window.SPELL_DATABASE.length;
+        window.renderSpellSearch = function(){};
+        window.showToast = function(msg, kind){ toasts.push({ msg: msg, kind: kind }); };
+        _fillSpellForm(over);
+        submitNewSpell();
+        var added = window.SPELL_DATABASE.length > before
+          ? window.SPELL_DATABASE[window.SPELL_DATABASE.length - 1] : null;
+        return { spell: added, toasts: toasts, db: window.SPELL_DATABASE };
+      } finally {
+        window.SPELL_DATABASE = savedDB; window.renderSpellSearch = savedRender; window.showToast = savedToast;
+      }
+    }
+
+    t("[hb-2] submitNewSpell: школа из селекта, classes массивом, class = первый ключ", function(){
+      var r = _runSubmit({ school: "некромантия", classes: "cleric,druid" });
+      if (!r.spell) return "заклинание не добавлено";
+      if (r.spell.school !== "некромантия") return "школа: " + r.spell.school;
+      if (!Array.isArray(r.spell.classes)) return "classes не массив";
+      if (r.spell.classes.join(",") !== "cleric,druid") return "classes: " + r.spell.classes.join(",");
+      // Легаси-поле class ещё читают старые ветки — оно обязано быть согласовано
+      if (r.spell.class !== "cleric") return "class: " + r.spell.class;
+      if (r.spell.homebrew !== true) return "потерян признак homebrew";
+      return true;
+    });
+
+    t("[hb-2] submitNewSpell: пустой выбор классов → both; мусор и дубли отбрасываются", function(){
+      var r1 = _runSubmit({ classes: "" });
+      if (!r1.spell || r1.spell.classes.join(",") !== "both") return "пустой выбор: " + (r1.spell && r1.spell.classes);
+      if (r1.spell.class !== "both") return "class при пустом выборе: " + r1.spell.class;
+      // "both" и "monk" в CSV — не ключи выбора; "bard" продублирован
+      var r2 = _runSubmit({ classes: "bard, monk ,bard,both, wizard" });
+      if (!r2.spell || r2.spell.classes.join(",") !== "bard,wizard") return "фильтрация: " + (r2.spell && r2.spell.classes.join(","));
+      return true;
+    });
+
+    t("[hb-2] submitNewSpell: неизвестная школа откатывается к «воплощение»", function(){
+      // getSchoolIcon резолвит по точной строке — опечатка дала бы карточку без иконки
+      var r = _runSubmit({ school: "телепатия" });
+      if (!r.spell) return "заклинание не добавлено";
+      if (r.spell.school !== "воплощение") return "школа: " + r.spell.school;
+      return true;
+    });
+
+    t("[hb-2] submitNewSpell: капы длины блокируют запись", function(){
+      function rep(n) { return new Array(n + 1).join("а"); }
+      var rName = _runSubmit({ name: rep(NEW_SPELL_NAME_MAX + 1) });
+      if (rName.spell) return "длинное имя записалось";
+      if (!rName.toasts.length || rName.toasts[0].kind !== "warn") return "нет предупреждения об имени";
+      var rDesc = _runSubmit({ desc: rep(NEW_SPELL_DESC_MAX + 1) });
+      if (rDesc.spell) return "длинное описание записалось";
+      var rHigh = _runSubmit({ higher: rep(NEW_SPELL_HIGHER_MAX + 1) });
+      if (rHigh.spell) return "длинное «на больших уровнях» записалось";
+      // Ровно по границе — проходит
+      var rOk = _runSubmit({ name: rep(NEW_SPELL_NAME_MAX) });
+      if (!rOk.spell) return "имя ровно по капу отвергнуто";
+      return true;
+    });
+
+    t("[hb-2] submitNewSpell: id обходит занятый Date.now()", function(){
+      var RealDate = window.Date, savedSave = window.saveToLocal, savedLog = window.AppLog;
+      try {
+        var Fake = function(a, b, c) { return new RealDate(a, b, c); };
+        Fake.now = function(){ return 777000; };
+        Fake.prototype = RealDate.prototype;
+        window.Date = Fake;
+        window.saveToLocal = function(){};
+        window.AppLog = null;
+        // Две записи уже сидят на 777000/777001 — новая обязана взять 777002,
+        // иначе addSpell/removeSpell резолвят по id чужую запись.
+        var r = _runSubmit({ name: "Третье" }, [{ id: 777000, name: "Первое" }, { id: 777001, name: "Второе" }]);
+        if (!r.spell) return "заклинание не добавлено";
+        if (r.spell.id !== 777002) return "id: " + r.spell.id;
+        return true;
+      } finally { window.Date = RealDate; window.saveToLocal = savedSave; window.AppLog = savedLog; }
+    });
+
+    t("[hb-2] submitNewSpell: совпадение имени — тост warn, но запись добавлена", function(){
+      var r = _runSubmit({ name: "огненный шар" }, [{ id: 1, name: "Огненный шар" }]);
+      if (!r.spell) return "заклинание не добавлено — дубль имени не должен блокировать";
+      var last = r.toasts[r.toasts.length - 1] || {};
+      if (last.kind !== "warn") return "тост не предупреждающий: " + last.kind;
+      var uniq = _runSubmit({ name: "Хватка тлена" }, [{ id: 1, name: "Огненный шар" }]);
+      if ((uniq.toasts[uniq.toasts.length - 1] || {}).kind !== "success") return "уникальное имя тоже дало warn";
+      return true;
+    });
+
+    if (typeof toggleNewSpellClass === "function") {
+      t("[hb-2] toggleNewSpellClass: тумблер добавляет и снимает, чужой ключ игнорируется", function(){
+        var hidden = _ensureInput("new-spell-classes", "");
+        toggleNewSpellClass("cleric");
+        if (hidden.value !== "cleric") return "после первого клика: " + hidden.value;
+        toggleNewSpellClass("druid");
+        if (hidden.value !== "cleric,druid") return "после второго клика: " + hidden.value;
+        toggleNewSpellClass("cleric"); // повторный клик снимает
+        if (hidden.value !== "druid") return "снятие не сработало: " + hidden.value;
+        toggleNewSpellClass("monk");   // не ключ выбора — не должен попасть
+        if (hidden.value !== "druid") return "чужой ключ попал в список: " + hidden.value;
+        hidden.value = "";
+        return true;
+      });
+    }
+
+    t("[hb-2] openAddSpellForm: сбрасывает все поля, а не только три", function(){
+      // До HB-2 чистились только имя/описание/«на больших» — уровень, школа, время
+      // и дистанция прошлого черновика уезжали в следующее заклинание.
+      _fillSpellForm({ level: "7", school: "иллюзия", source: "PH24", classes: "bard",
+        time: "1 бонусное действие", range: "Касание", components: "В", duration: "1 час",
+        higher: "остаток" });
+      _ensureInput("new-spell-edit-id", "42");
+      openAddSpellForm();
+      var expect = { "new-spell-edit-id": "", "new-spell-name": "", "new-spell-level": "0",
+        "new-spell-school": "воплощение", "new-spell-source": "PH14", "new-spell-classes": "",
+        "new-spell-time": "1 действие", "new-spell-range": "60 фт", "new-spell-components": "V,S",
+        "new-spell-duration": "Мгновенно", "new-spell-desc": "", "new-spell-higher": "" };
+      var bad = Object.keys(expect).filter(function(id){
+        var el = document.getElementById(id);
+        return !el || el.value !== expect[id];
+      });
+      if (bad.length) return "не сброшены: " + bad.join(", ");
+      return true;
+    });
+
+    if (typeof __indexHtmlSource === "string") {
+      t("[hb-2] разметка формы: 8 школ, 8 чипов классов, скрытые поля на месте", function(){
+        var src = __indexHtmlSource;
+        if (src.indexOf('id="new-spell-school"') === -1) return "нет селекта школы";
+        if (src.indexOf('id="new-spell-classes"') === -1) return "нет скрытого поля классов";
+        if (src.indexOf('id="new-spell-edit-id"') === -1) return "нет скрытого поля правки (задел HB-3)";
+        // Одиночный селект класса должен был уйти — иначе submitNewSpell читает не тот источник
+        if (src.indexOf('id="new-spell-class"') !== -1) return "старый одиночный селект класса остался";
+        var missSchool = NEW_SPELL_SCHOOLS.filter(function(s){ return src.indexOf('<option value="' + s + '"') === -1; });
+        if (missSchool.length) return "нет школ: " + missSchool.join(", ");
+        var missClass = NEW_SPELL_CLASS_KEYS.filter(function(k){ return src.indexOf("toggleNewSpellClass('" + k + "')") === -1; });
+        if (missClass.length) return "нет чипов классов: " + missClass.join(", ");
+        return true;
+      });
+    }
   }
 
   // ────────── РЕЗУЛЬТАТЫ ──────────
