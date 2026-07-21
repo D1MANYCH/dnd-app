@@ -55,6 +55,17 @@
 // Формулы — в нотации parseDiceFormula (app-ui.js): «8к6», «1к4+4».
 // Апкаст — конкатенация «+upcast» за каждый уровень ячейки выше базового
 // (scaleFormula); результат остаётся валидной формулой.
+//
+// HB-4: у СВОИХ заклинаний (spell.homebrew) дескриптор в этой таблице лежать не
+// может — её ключ — точное книжное имя. Их механика живёт инлайн, в поле
+// spell.hbEffect, и резолвится обёрткой resolveSpellEffect(spell) — единственной
+// точкой входа каст-пайплайна. Схема hbEffect — ПОДМНОЖЕСТВО схемы выше: только
+// damage / heal / tempHp, причём damage дополнен полем
+//   dmgType: "Холод" — тип урона из DAMAGE_TYPES (data.js), уходит в подпись
+//            броска; у книжных дескрипторов его нет (тип виден в описании)
+// Ветки effects/summon/debuff/repeat/variants конструктор не собирает: они
+// требуют либо id карточек EFFECTS_DATA, либо статблоков, либо кураторских
+// подсказок — то, что пользователь ввести не может. См. план HB.
 // ============================================================
 
 const SPELL_EFFECTS = {
@@ -664,6 +675,20 @@ function getSpellEffect(name, source) {
   return merged;
 }
 
+// HB-4: единая точка резолва дескриптора для каста. Кураторская таблица ключуется
+// точным книжным именем — своё заклинание в неё не попадает никогда, поэтому его
+// механика лежит ИНЛАЙН, в самом объекте заклинания (spell.hbEffect). Боковая
+// таблица здесь не работает принципиально: castSpell берёт заклинание из
+// char.spells.mySpells, а это независимая копия — JSON-раунд-трип через dnd_chars
+// рвёт любую ссылку, поставленную при добавлении.
+// Хомбрю БЕЗ механики уходит штатным путём: так каст ведёт себя ровно как до HB-4
+// (для уникального имени — молча, для совпадающего с книжным — по книжной ветке).
+function resolveSpellEffect(spell) {
+  if (!spell) return null;
+  if (spell.homebrew && spell.hbEffect) return spell.hbEffect;
+  return getSpellEffect(spell.name, spell.source);
+}
+
 // Формула с апкастом: +upcastPer за каждый уровень ячейки выше базового.
 // scaleFormula("8к6","1к6",3,5) → "8к6+1к6+1к6". castLevel == null (заговор,
 // без ячейки) или ≤ baseLevel → база без изменений.
@@ -787,6 +812,7 @@ if (typeof window !== "undefined") {
   window.SPELL_EFFECTS = SPELL_EFFECTS;
   window.buildCompanionPrefill = buildCompanionPrefill;
   window.getSpellEffect = getSpellEffect;
+  window.resolveSpellEffect = resolveSpellEffect;
   window.scaleFormula = scaleFormula;
   window.durationToRounds = durationToRounds;
   window.flatFormulaTotal = flatFormulaTotal;

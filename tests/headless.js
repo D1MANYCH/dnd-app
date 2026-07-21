@@ -5584,6 +5584,217 @@
         } finally { document.createElement = savedCreate; window.currentId = savedId; }
       });
     }
+
+    // ── HB-4: рабочее «Использовать» — механика своего заклинания ──────────────
+    // До фазы каст хомбрю жёг ячейку и молча ничего не делал: дескриптор резолвился
+    // по имени в кураторской таблице SPELL_EFFECTS, а своего имени там нет и быть
+    // не может. Механика переехала ИНЛАЙН, в spell.hbEffect (боковая таблица не
+    // пережила бы JSON-раунд-трип mySpells), резолвер — resolveSpellEffect.
+    function _mechForm(o) {
+      o = o || {};
+      _ensureInput("new-spell-mech-kind", o.kind || "none");
+      _ensureInput("new-spell-mech-formula", o.formula || "");
+      _ensureInput("new-spell-mech-upcast", o.upcast || "");
+      _ensureInput("new-spell-mech-dmgtype", o.dmgType || "");
+      _ensureInput("new-spell-mech-save", o.save || "");
+      _ensureEl("new-spell-mech-half", "input").checked = !!o.half;
+      _ensureEl("new-spell-mech-mod", "input").checked = !!o.mod;
+    }
+
+    if (typeof resolveSpellEffect === "function") {
+      t("[hb-4] resolveSpellEffect: своё с механикой → инлайн, без неё → штатный путь", function(){
+        var hb = _mkHb({ hbEffect: { damage: { formula: "6к8", dmgType: "Холод" } } });
+        var got = resolveSpellEffect(hb);
+        if (!got || !got.damage || got.damage.formula !== "6к8") return "инлайн-дескриптор не отдан";
+        // Своё БЕЗ механики обязано вести себя ровно как до HB-4 — уйти в таблицу
+        // по имени (для уникального имени это null, каст просто тратит ячейку).
+        if (resolveSpellEffect(_mkHb({ name: "Хватка тлена" })) !== null)
+          return "хомбрю без hbEffect не ушёл штатным путём";
+        // Книжное — всегда через таблицу, даже если ему подложили hbEffect
+        var book = _mkHb({ name: "Огненный шар", homebrew: false, hbEffect: { damage: { formula: "1к1" } } });
+        var fb = resolveSpellEffect(book);
+        if (!fb || !fb.damage || fb.damage.formula === "1к1") return "книжное увели по хомбрю-ветке";
+        if (resolveSpellEffect(null) !== null) return "null не пережит";
+        return true;
+      });
+    }
+
+    if (typeof _collectHbEffect === "function") {
+      t("[hb-4] _collectHbEffect: бросок атаки вытесняет спасбросок; лечение/врем. ХП без полей урона", function(){
+        _mechForm({ kind: "damage", formula: "4к6", dmgType: "Огненный", save: "attack", half: true });
+        var d = _collectHbEffect().effect.damage;
+        if (d.attack !== true) return "attack не выставлен";
+        // Спасбросок и бросок атаки взаимоисключающи: пропусти форма оба — каст
+        // разрешил бы их молча и не так, как ждёт автор.
+        if (d.save || d.halfOnSave) return "спасбросок приехал вместе с броском атаки";
+        _mechForm({ kind: "heal", formula: "2к4+2", dmgType: "Огненный", save: "dex", half: true, mod: true });
+        var h = _collectHbEffect().effect;
+        if (!h.heal || h.heal.formula !== "2к4+2") return "лечение не собрано";
+        if (h.heal.dmgType || h.heal.save || h.heal.halfOnSave) return "поля урона утекли в лечение";
+        if (h.heal.addSpellMod !== true) return "лечение потеряло модификатор характеристики";
+        // _applyCastTempHp модификатор характеристики не читает — мёртвого поля быть не должно
+        _mechForm({ kind: "tempHp", formula: "1к4+4", mod: true });
+        var tmp = _collectHbEffect().effect;
+        if (!tmp.tempHp || tmp.tempHp.formula !== "1к4+4") return "врем. ХП не собраны";
+        if (tmp.tempHp.addSpellMod) return "врем. ХП получили addSpellMod";
+        return true;
+      });
+
+      t("[hb-4] _collectHbEffect: формулы валидируются через parseDiceFormula", function(){
+        _mechForm({ kind: "damage", formula: "" });
+        if (_collectHbEffect().ok) return "пустая формула принята";
+        _mechForm({ kind: "damage", formula: "шесть кубов" });
+        var bad = _collectHbEffect();
+        if (bad.ok || String(bad.error).indexOf("Формула") !== 0) return "мусор: " + JSON.stringify(bad);
+        // Плоскую формулу урона rollFormula не бросит вовсе — ловим на форме, иначе
+        // каст сжёг бы ячейку и снова промолчал (ровно баг, который чинит фаза).
+        _mechForm({ kind: "damage", formula: "12" });
+        if (_collectHbEffect().ok) return "плоская формула урона принята";
+        // А лечению и врем. ХП плоское законно: _applyCastHeal/_applyCastTempHp
+        // применяют его сразу через flatFormulaTotal (книжное «Полное исцеление»).
+        _mechForm({ kind: "heal", formula: "12" });
+        if (!_collectHbEffect().ok) return "плоское лечение отклонено";
+        _mechForm({ kind: "damage", formula: "6к8", upcast: "мусор" });
+        var bu = _collectHbEffect();
+        if (bu.ok || String(bu.error).indexOf("«За уровень") !== 0) return "апкаст: " + JSON.stringify(bu);
+        // Апкаст не бросается сам по себе, а конкатенируется в формулу (scaleFormula),
+        // поэтому плоская прибавка законна и для урона — так устроена «Ложная жизнь».
+        _mechForm({ kind: "tempHp", formula: "1к4+4", upcast: "5" });
+        var flatUp = _collectHbEffect();
+        if (!flatUp.ok) return "плоский апкаст отклонён: " + flatUp.error;
+        if (flatUp.effect.tempHp.upcast !== "5") return "плоский апкаст потерян";
+        if (scaleFormula("1к4+4", "5", 1, 3) !== "1к4+4+5+5") return "scaleFormula не сложила плоский апкаст";
+        _mechForm({ kind: "none" });
+        var none = _collectHbEffect();
+        if (!none.ok || none.effect !== null) return "«Нет» не дало пустую механику";
+        return true;
+      });
+    }
+
+    if (typeof submitNewSpell === "function" && typeof _collectHbEffect === "function") {
+      // Общая обвязка полей формы, кроме механики: её выставляет _mechForm.
+      function _spellForm(o) {
+        o = o || {};
+        _ensureInput("new-spell-edit-id", o.editId || "");
+        _ensureInput("new-spell-name", o.name || "Ледяная кара");
+        _ensureInput("new-spell-desc", o.desc || "Описание своей механики");
+        _ensureInput("new-spell-higher", "");
+        _ensureInput("new-spell-level", String(o.level == null ? 3 : o.level));
+        _ensureInput("new-spell-school", o.school || "воплощение");
+        _ensureInput("new-spell-source", "PH14");
+        _ensureInput("new-spell-classes", o.classes || "wizard");
+      }
+
+      t("[hb-4] submitNewSpell: механика урона собирается в hbEffect целиком", function(){
+        _spellForm();
+        _mechForm({ kind: "damage", formula: "6к8", upcast: "1к8", dmgType: "Холод",
+                    save: "dex", half: true, mod: true });
+        var db = [];
+        return _withHbEnv(db, [], function(){
+          submitNewSpell();
+          if (db.length !== 1) return "записей в базе: " + db.length;
+          var e = db[0].hbEffect;
+          if (!e || !e.damage) return "hbEffect не собран";
+          var d = e.damage;
+          if (d.formula !== "6к8" || d.upcast !== "1к8") return "формула/апкаст: " + JSON.stringify(d);
+          if (d.dmgType !== "Холод") return "тип урона: " + d.dmgType;
+          if (d.save !== "dex" || d.halfOnSave !== true) return "спасбросок: " + JSON.stringify(d);
+          if (d.addSpellMod !== true) return "модификатор характеристики потерян";
+          // Ветки, которых конструктор не собирает, не должны заводиться сами
+          if (e.heal || e.tempHp || e.effects || e.summon || e.repeat || e.debuff)
+            return "лишняя ветка в hbEffect: " + Object.keys(e).join(",");
+          return true;
+        });
+      });
+
+      t("[hb-4] submitNewSpell: без механики поля hbEffect нет вовсе", function(){
+        _spellForm({ name: "Просто описание" });
+        _mechForm({ kind: "none" });
+        var db = [];
+        return _withHbEnv(db, [], function(){
+          submitNewSpell();
+          if (db.length !== 1) return "записей в базе: " + db.length;
+          // По наличию поля resolveSpellEffect выбирает ветку — пустой hbEffect
+          // увёл бы каст в инлайн-путь с дескриптором без единой механики.
+          if ("hbEffect" in db[0]) return "пустая механика записана в заклинание";
+          return true;
+        });
+      });
+
+      t("[hb-4] submitNewSpell: невалидная механика отменяет сохранение целиком", function(){
+        _spellForm({ name: "Кривая формула" });
+        _mechForm({ kind: "damage", formula: "2к" });
+        var db = [];
+        return _withHbEnv(db, [], function(env){
+          submitNewSpell();
+          if (db.length !== 0) return "заклинание сохранено с битой механикой";
+          if (!env.toasts.some(function(x){ return /Формула/.test(x.msg) && x.kind === "warn"; }))
+            return "нет предупреждения: " + JSON.stringify(env.toasts);
+          return true;
+        });
+      });
+
+      t("[hb-4] submitNewSpell: снятая при правке механика исчезает и из копий персонажа", function(){
+        var hb = _mkHb({ hbEffect: { damage: { formula: "6к8", dmgType: "Холод" } } });
+        var chars = [{ id: "t-hb4", spells: { prepared: [],
+          mySpells: [JSON.parse(JSON.stringify(hb))] } }];
+        _spellForm({ editId: String(hb.id), name: hb.name, desc: "Теперь без механики",
+                     school: "некромантия", classes: "cleric" });
+        _mechForm({ kind: "none" });
+        return _withHbEnv([hb], chars, function(){
+          submitNewSpell();
+          // payload механики не содержит, а копирование по ключам оставило бы
+          // прежний hbEffect жить дальше: «выключил урон, сохранил, а он всё ещё бьёт».
+          if ("hbEffect" in hb) return "дескриптор пережил снятие механики";
+          var copy = chars[0].spells.mySpells[0];
+          if (copy.hbEffect) return "в списке персонажа осталась старая механика";
+          if (copy.desc !== "Теперь без механики") return "правка не доехала до копии";
+          return true;
+        });
+      });
+    }
+
+    if (typeof damageFormulaFor === "function" && typeof _collectHbEffect === "function") {
+      t("[hb-4] сцепка с каст-пайплайном: своя формула апкастится штатным damageFormulaFor", function(){
+        _mechForm({ kind: "damage", formula: "6к8", upcast: "1к8", dmgType: "Холод", save: "dex", half: true });
+        var d = _collectHbEffect().effect.damage;
+        // Строка Verify фазы: заклинание 3 ур. ячейкой 5 ур. → два шага апкаста
+        var f = damageFormulaFor(d, 3, 5, 9);
+        if (f !== "6к8+1к8+1к8") return "формула каста: " + f;
+        if (damageFormulaFor(d, 3, 3, 9) !== "6к8") return "ячейка своего уровня дала апкаст";
+        if (typeof critFormula === "function" && critFormula("6к8+3") !== "12к8+3")
+          return "крит: " + critFormula("6к8+3");
+        return true;
+      });
+    }
+
+    if (typeof openAddSpellForm === "function") {
+      t("[hb-4] openAddSpellForm: механика префиллится и полностью сбрасывается", function(){
+        _mechForm({}); // материализуем поля — в браузерном runner'е разметки index.html нет
+        _ensureEl("add-spell-modal-title", "h3");
+        var hb = _mkHb({ hbEffect: { damage: { formula: "6к8", upcast: "1к8", dmgType: "Холод",
+          save: "dex", halfOnSave: true, addSpellMod: true } } });
+        return _withHbEnv([hb], [], function(){
+          var v = function(id){ return (document.getElementById(id) || {}).value; };
+          var c = function(id){ return !!(document.getElementById(id) || {}).checked; };
+          openAddSpellForm(hb.id);
+          if (v("new-spell-mech-kind") !== "damage") return "вид: " + v("new-spell-mech-kind");
+          if (v("new-spell-mech-formula") !== "6к8") return "формула: " + v("new-spell-mech-formula");
+          if (v("new-spell-mech-upcast") !== "1к8") return "апкаст: " + v("new-spell-mech-upcast");
+          if (v("new-spell-mech-dmgtype") !== "Холод") return "тип урона: " + v("new-spell-mech-dmgtype");
+          if (v("new-spell-mech-save") !== "dex") return "спасбросок: " + v("new-spell-mech-save");
+          if (!c("new-spell-mech-half") || !c("new-spell-mech-mod")) return "чекбоксы не префиллены";
+          // Открытие на СОЗДАНИЕ обязано вычистить всё (находка HB-2: недочищенное
+          // поле уезжает в следующее заклинание — здесь это молча подаренный урон).
+          openAddSpellForm();
+          if (v("new-spell-mech-kind") !== "none" || v("new-spell-mech-formula") !== "" ||
+              v("new-spell-mech-upcast") !== "" || v("new-spell-mech-save") !== "")
+            return "механика прошлого черновика осталась в форме";
+          if (c("new-spell-mech-half") || c("new-spell-mech-mod")) return "чекбоксы не сброшены";
+          return true;
+        });
+      });
+    }
   }
 
   // ────────── РЕЗУЛЬТАТЫ ──────────

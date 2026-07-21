@@ -268,6 +268,95 @@ function toggleNewSpellClass(key) {
   hidden.value = list.join(",");
   _syncNewSpellClassChips(list);
 }
+// HB-4: механика своего заклинания. Конструктор собирает ПОДМНОЖЕСТВО схемы
+// дескриптора (spell-effects.js) — damage/heal/tempHp; ветки effects/summon/
+// debuff/repeat/variants требуют id карточек EFFECTS_DATA, статблоков и
+// кураторских подсказок, которые пользователь ввести не может.
+const NEW_SPELL_MECH_KINDS = ["damage", "heal", "tempHp"];
+// Ключи спасбросков — те же, что в _SAVE_LABELS каст-пайплайна: по ним резолвится
+// подпись «спасбросок ЛОВ, СЛ N» в тосте броска. "attack" стоит в том же селекте,
+// но это не спасбросок — в дескрипторе он отдельным полем damage.attack.
+const NEW_SPELL_SAVE_KEYS = ["str", "dex", "con", "int", "wis", "cha"];
+// Тип урона по умолчанию: у заклинаний он куда чаще стихийный, чем «Дробящий»
+// (первый в DAMAGE_TYPES — там порядок от оружейных).
+const NEW_SPELL_DMGTYPE_DEFAULT = "Огненный";
+
+// Опции типа урона — из DAMAGE_TYPES (data.js), а не из разметки: второй список
+// тех же строк разъехался бы с первым молча. Наполняется при каждом открытии
+// формы — 13 опций дешевле, чем ветка «уже наполнено».
+function _fillNewSpellDamageTypes() {
+  var sel = $("new-spell-mech-dmgtype");
+  if (!sel || typeof DAMAGE_TYPES === "undefined") return;
+  sel.innerHTML = DAMAGE_TYPES.map(function(t) {
+    return '<option value="' + escapeHtml(t) + '">' + escapeHtml(t) + '</option>';
+  }).join("");
+}
+function _toggleHidden(id, hide) {
+  var el = $(id);
+  if (el && el.classList) el.classList.toggle("hidden", !!hide);
+}
+// Показ полей по выбранному виду механики. У лечения нет ни типа урона, ни
+// спасброска; у временных ХП вдобавок нет модификатора характеристики
+// (_applyCastTempHp его не читает — видимый чекбокс был бы обещанием, которое
+// приложение не выполнит). «Половина при успехе» осмысленна только со спасброском.
+function updateNewSpellMechFields() {
+  var kind = ($("new-spell-mech-kind") || {}).value || "none";
+  var save = ($("new-spell-mech-save") || {}).value || "";
+  var isDamage = kind === "damage";
+  _toggleHidden("new-spell-mech-fields", NEW_SPELL_MECH_KINDS.indexOf(kind) === -1);
+  _toggleHidden("new-spell-mech-dmg-row", !isDamage);
+  _toggleHidden("new-spell-mech-half-row", !isDamage || !save || save === "attack");
+  _toggleHidden("new-spell-mech-mod-row", kind === "tempHp");
+}
+// Формула годится, если её примет бросалка (parseDiceFormula) либо — для лечения
+// и врем. ХП — если это плоское значение без кубиков: _applyCastHeal и
+// _applyCastTempHp применяют такое сразу, через flatFormulaTotal (так работает
+// книжное «Полное исцеление»). Урону плоское запрещено: _rollCastDamage идёт
+// только через rollFormula, и «12» молча не бросилось бы — ровно тот баг с
+// потраченной впустую ячейкой, который чинит фаза.
+function _hbFormulaCheck(formula, allowFlat) {
+  var p = (typeof parseDiceFormula === "function") ? parseDiceFormula(formula) : { ok: true };
+  if (p.ok) return null;
+  if (allowFlat && typeof flatFormulaTotal === "function" && flatFormulaTotal(formula) != null) return null;
+  return p.error;
+}
+// Сборка дескриптора из формы: {ok:true, effect:null|{...}} либо {ok:false, error}.
+// Текст ошибки берётся у parseDiceFormula — автор видит ту же подсказку, что и в
+// бросалке. Вид «Нет» → effect:null, поле hbEffect не пишется вовсе.
+function _collectHbEffect() {
+  var kind = ($("new-spell-mech-kind") || {}).value || "none";
+  if (NEW_SPELL_MECH_KINDS.indexOf(kind) === -1) return { ok: true, effect: null };
+  var formula = String(($("new-spell-mech-formula") || {}).value || "").trim();
+  var upcast = String(($("new-spell-mech-upcast") || {}).value || "").trim();
+  if (!formula) return { ok: false, error: "Механика выбрана — укажите формулу (пример: 6к8)" };
+  var allowFlat = kind !== "damage";
+  var err = _hbFormulaCheck(formula, allowFlat);
+  if (err) return { ok: false, error: "Формула: " + err };
+  if (upcast) {
+    // Апкаст сам по себе не бросается — он КОНКАТЕНИРУЕТСЯ в формулу (scaleFormula),
+    // поэтому плоская прибавка «5» законна: так устроена «Ложная жизнь» в книжной
+    // таблице. Проверяем ровно то, что получит каст, — формулу с одним шагом апкаста.
+    var scaled = (typeof scaleFormula === "function") ? scaleFormula(formula, upcast, 1, 2) : formula;
+    var uerr = _hbFormulaCheck(scaled, allowFlat);
+    if (uerr) return { ok: false, error: "«За уровень ячейки выше»: " + uerr };
+  }
+  var body = { formula: formula };
+  if (upcast) body.upcast = upcast;
+  if (kind === "damage") {
+    var dt = String(($("new-spell-mech-dmgtype") || {}).value || "").trim();
+    if (dt && typeof DAMAGE_TYPES !== "undefined" && DAMAGE_TYPES.indexOf(dt) !== -1) body.dmgType = dt;
+    var save = String(($("new-spell-mech-save") || {}).value || "").trim();
+    if (save === "attack") body.attack = true;
+    else if (NEW_SPELL_SAVE_KEYS.indexOf(save) !== -1) {
+      body.save = save;
+      if (($("new-spell-mech-half") || {}).checked) body.halfOnSave = true;
+    }
+  }
+  if (kind !== "tempHp" && ($("new-spell-mech-mod") || {}).checked) body.addSpellMod = true;
+  var effect = {};
+  effect[kind] = body;
+  return { ok: true, effect: effect };
+}
 // HB-3: id хомбрю обычно число (Date.now()), но у легаси-импорта встречается строка
 // («user-hb1»). В инлайн-onclick число подставляется как есть, строка — в кавычках;
 // всё, кроме букв/цифр/дефиса/подчёркивания, срезается: битый id даст не-совпадение
@@ -305,6 +394,17 @@ safeSet("new-spell-duration", "Мгновенно");
 safeSet("new-spell-desc", "");
 safeSet("new-spell-higher", "");
 _syncNewSpellClassChips([]);
+// HB-4: механика — часть того же полного сброса (находка HB-2: недочищенное поле
+// уезжает в следующее заклинание, а здесь это молча подаренный чужой урон).
+_fillNewSpellDamageTypes();
+safeSet("new-spell-mech-kind", "none");
+safeSet("new-spell-mech-formula", "");
+safeSet("new-spell-mech-upcast", "");
+safeSet("new-spell-mech-dmgtype", NEW_SPELL_DMGTYPE_DEFAULT);
+safeSet("new-spell-mech-save", "");
+safeSetChecked("new-spell-mech-half", false);
+safeSetChecked("new-spell-mech-mod", false);
+updateNewSpellMechFields();
 var titleEl = $("add-spell-modal-title");
 if (titleEl) titleEl.textContent = "Добавить заклинание";
 // HB-3: префилл идёт СТРОГО после полного сброса — иначе непереписанные поля
@@ -330,6 +430,26 @@ safeSet("new-spell-components", spell.components || "V,S");
 safeSet("new-spell-duration", spell.duration || "Мгновенно");
 safeSet("new-spell-desc", spell.desc || "");
 safeSet("new-spell-higher", spell.higherLevel || "");
+// HB-4: механику префиллим обязательно. submitNewSpell всегда переписывает
+// hbEffect по форме, поэтому непрефилленное поле означало бы, что правка одного
+// только имени молча сносит весь дескриптор.
+var mech = spell.hbEffect || null;
+var mKind = "none";
+if (mech) NEW_SPELL_MECH_KINDS.forEach(function(k) { if (mech[k] && mKind === "none") mKind = k; });
+if (mKind !== "none") {
+  var body = mech[mKind] || {};
+  safeSet("new-spell-mech-kind", mKind);
+  safeSet("new-spell-mech-formula", body.formula || "");
+  safeSet("new-spell-mech-upcast", body.upcast || "");
+  // Чужой тип урона оставил бы селект на первом option и молча подменил тип при
+  // сохранении — та же логика, что у школы выше.
+  if (typeof DAMAGE_TYPES !== "undefined" && DAMAGE_TYPES.indexOf(body.dmgType) !== -1)
+    safeSet("new-spell-mech-dmgtype", body.dmgType);
+  safeSet("new-spell-mech-save", body.attack ? "attack" : (body.save || ""));
+  safeSetChecked("new-spell-mech-half", !!body.halfOnSave);
+  safeSetChecked("new-spell-mech-mod", !!body.addSpellMod);
+  updateNewSpellMechFields();
+}
 }
 // HB-3: разнос правки по спискам персонажей. mySpells держит КОПИИ (JSON-раунд-трип
 // через dnd_chars рвёт ссылку из addSpell) — без этого прохода в поиске новое имя,
@@ -414,6 +534,11 @@ var classes = _parseSpellClassList($("new-spell-classes")?.value);
 if (!classes.length) classes = ["both"];
 var school = $("new-spell-school")?.value || "";
 if (NEW_SPELL_SCHOOLS.indexOf(school) === -1) school = "воплощение";
+// HB-4: механика собирается ДО payload. Невалидная формула отменяет сохранение
+// целиком: записать заклинание с половиной дескриптора хуже, чем не записать —
+// каст молча не состоялся бы, а ячейка уже сгорела бы (ровно баг, который чинит фаза).
+var mech = _collectHbEffect();
+if (!mech.ok) { showToast(mech.error, "warn"); return; }
 // HB-3: непустое скрытое поле = режим правки. Если запись за это время исчезла
 // (удалили во второй вкладке), молча создать дубль хуже, чем сказать вслух.
 var editRaw = $("new-spell-edit-id")?.value || "";
@@ -446,10 +571,18 @@ duration: $("new-spell-duration")?.value || "Мгновенно",
 desc: desc,
 higherLevel: higher
 };
+// HB-4: поле пишется, только когда механика выбрана. По его наличию
+// resolveSpellEffect решает, идти инлайн-веткой или штатной (таблица по имени),
+// поэтому пустой hbEffect у заклинания «без механики» лежать не должен.
+if (mech.effect) payload.hbEffect = mech.effect;
 if (editing) {
   // Правка по месту, с сохранением id: на него завязаны mySpells, prepared
   // и addSpell/removeSpell. Пересоздание записи осиротило бы все три.
   Object.keys(payload).forEach(function(k) { editing[k] = payload[k]; });
+  // Снятая механика обязана ИСЧЕЗНУТЬ: payload её просто не содержит, а копирование
+  // по ключам оставило бы прежний hbEffect жить дальше — «выключил урон, сохранил,
+  // а он всё ещё бьёт».
+  if (!payload.hbEffect) delete editing.hbEffect;
   var touched = _syncCustomSpellAcrossChars(editing);
   if (window.AppLog) AppLog.action("spells", "своё заклинание изменено: " + editing.name, { id: editing.id, chars: touched });
   saveToLocal();
@@ -886,8 +1019,12 @@ function _finishCast(char, spell, slot) {
 // CAST-8a: дескриптор с variants сперва спрашивает вариант (openCastVariantChooser)
 // и возвращается сюда с выбором. variant === undefined — «ещё не спрашивали»,
 // null — спросили и отменили (применяем без варианта).
+// HB-4: резолв идёт через resolveSpellEffect — у своего заклинания дескриптор
+// лежит инлайн (spell.hbEffect), у книжного путь прежний (таблица по имени +
+// редакции). Единственная правка каст-пайплайна за всю фазу: таблица на 164
+// ключа и getSpellEffect не трогаются.
 function applyCastEffects(char, spell, slot, variant) {
-  var d = (typeof getSpellEffect === "function") ? getSpellEffect(spell.name, spell.source) : null;
+  var d = (typeof resolveSpellEffect === "function") ? resolveSpellEffect(spell) : null;
   if (!d) return;
   if (d.variants && variant === undefined) { openCastVariantChooser(spell, slot, d); return; }
   _castInstanceThisCast = null; // CAST-10: см. _ensureCastInstance
@@ -1116,11 +1253,15 @@ function _rollCastDamage(char, o) {
   // попадание оружием / выстрел сферой. Дескриптор repeat может переопределить
   // иконку и слово подписи (icon/label); по умолчанию — «🔁 … · повтор».
   var icon = o.isRepeat ? (dmg.icon || "🔁") : "💥";
+  // HB-4: тип урона своего заклинания — в подпись броска. У книжных дескрипторов
+  // dmgType нет (тип виден в описании), поэтому подпись им не меняется. Если
+  // выбран вариант каста, он тип уже называет — второй раз не дублируем.
+  var typeNote = (!o.variantName && dmg.dmgType) ? " · " + dmg.dmgType : "";
   var rollDamage = function(crit) {
     var f = (crit && typeof critFormula === "function") ? critFormula(formula) : formula;
     rollFormula(f, {
       label: icon + " " + o.spellName + (o.castLevel ? " · " + o.castLevel + " ур." : "") +
-        (o.variantName ? " · " + o.variantName : "") +
+        (o.variantName ? " · " + o.variantName : "") + typeNote +
         (o.isRepeat ? " · " + (dmg.label || "повтор") : "") + (crit ? " · КРИТ ×2" : ""),
       openArena: true,
       onResult: function(res) {
