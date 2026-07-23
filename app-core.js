@@ -1039,6 +1039,13 @@ function migrateCharacter(char) {
     if (!Array.isArray(char.activeSpellEffects)) char.activeSpellEffects = [];
     char.schemaVersion = 32;
   }
+  if (v < 33) {
+    // HB-5: своё оружие хранится В ПЕРСОНАЖЕ — так экспорт/импорт/бэкапы/дубликат
+    // получают его даром (characters сериализуется целиком). Слияние с книжным
+    // каталогом идёт строго на чтении (_weaponCatalog), константа не мутируется.
+    if (!Array.isArray(char.customWeapons)) char.customWeapons = [];
+    char.schemaVersion = 33;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

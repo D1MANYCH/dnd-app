@@ -814,9 +814,25 @@ showConfirmModal(
   }
 );
 }
+// HB-5: каталог оружия = книжные пресеты + своё оружие персонажа (char.customWeapons).
+// Слияние строго НА ЧТЕНИИ: WEAPON_PRESETS остаётся константой на 37 позиций (её длину
+// держит тест FIN-2), а хомбрю живёт в персонаже и уезжает вместе с ним в экспорт.
+// Книжные идут ПЕРВЫМИ — своё оружие с именем книжного не перехватывает матчинг.
+// Признак «своё» проставляется на месте: элемент char.customWeapons по определению
+// пользовательский (тот же приём, что _backfillHomebrewFlag у заклинаний, HB-1).
+function _weaponCatalog(char) {
+var base = (typeof WEAPON_PRESETS !== "undefined") ? WEAPON_PRESETS : [];
+if (!char || !Array.isArray(char.customWeapons) || !char.customWeapons.length) return base;
+// Безымянные записи (мусор из чужого импорта) отсекаем — рендер и матчинг идут по name
+var hb = char.customWeapons.filter(function(w) { return w && w.name; });
+if (!hb.length) return base;
+hb.forEach(function(w) { if (!w.homebrew) w.homebrew = true; });
+return base.concat(hb);
+}
 // FIN-2: пикер оружия — 37 позиций PHB с поиском и чипами
 // «Простое/Воинское · Ближнее/Дальнобойное»; показывает урон/свойства/цену/вес.
-var _weaponPickFilter = { cat: null, kind: null, q: "" };
+// HB-5: + группа «Мои» (своё оружие персонажа), чип показывается только когда оно есть.
+var _weaponPickFilter = { cat: null, kind: null, src: null, q: "" };
 function renderWeaponPresets() {
 const container = $("weapon-presets-list");
 if (!container) return;
@@ -825,7 +841,17 @@ var q = (_weaponPickFilter.q || "").toLowerCase();
 var shown = 0;
 // FIN-2: бейдж владения текущего персонажа прямо в карточке пикера
 var _pickChar = currentId ? getCurrentChar() : null;
-WEAPON_PRESETS.forEach(function(preset) {
+var catalog = _weaponCatalog(_pickChar);
+// HB-5: чип «Мои» без своего оружия ведёт в заведомо пустой список — прячем его
+// и снимаем залипший фильтр (иначе после удаления последнего хомбрю в HB-6
+// пикер остался бы пустым без единого способа это починить).
+var hasHb = catalog.some(function(p) { return p && p.homebrew; });
+if (!hasHb) _weaponPickFilter.src = null;
+var hbChip = $("weapon-filter-hb"), hbSep = $("weapon-filter-hb-sep");
+if (hbChip) hbChip.classList.toggle("hidden", !hasHb);
+if (hbSep) hbSep.classList.toggle("hidden", !hasHb);
+catalog.forEach(function(preset) {
+if (_weaponPickFilter.src === "hb" && !preset.homebrew) return;
 if (_weaponPickFilter.cat && preset.category !== _weaponPickFilter.cat) return;
 if (_weaponPickFilter.kind && preset.kind !== _weaponPickFilter.kind) return;
 if (q) {
@@ -842,7 +868,8 @@ if (_pickChar) {
     ? ' <span class="wp-prof yes">✓ владение</span>'
     : ' <span class="wp-prof no">без владения</span>';
 }
-btn.innerHTML = "<b>" + escapeHtml(preset.name) + "</b> <span class=\"wp-tag\">" + tag + "</span>" + profBadge + "<br>" +
+var hbBadge = preset.homebrew ? ' <span class="wp-hb">🏠 Своё</span>' : "";
+btn.innerHTML = "<b>" + escapeHtml(preset.name) + "</b> <span class=\"wp-tag\">" + tag + "</span>" + hbBadge + profBadge + "<br>" +
   escapeHtml(preset.damage ? preset.damage + " " + (preset.type || "") : "—") +
   (preset.notes ? " · " + escapeHtml(preset.notes) : "") + "<br>" +
   "<span class=\"wp-meta\">" + escapeHtml(preset.cost || "—") + " · " + (preset.weight ? preset.weight + " фнт." : "—") + " · " + escapeHtml(preset.range || "") + "</span>";
@@ -892,7 +919,7 @@ function openWeaponModal() {
 const modal = $("weapon-modal");
 if (modal) modal.classList.add("active");
 // FIN-2: сброс поиска/чипов при каждом открытии
-_weaponPickFilter = { cat: null, kind: null, q: "" };
+_weaponPickFilter = { cat: null, kind: null, src: null, q: "" };
 safeSet("weapon-search-inp", "");
 document.querySelectorAll("#weapon-filter-chips .wf-chip").forEach(function(b) { b.classList.remove("active"); });
 renderWeaponPresets();
@@ -911,9 +938,11 @@ if (addInv) addInv.checked = true;
 }
 // FIN-2: пресет по имени ИЛИ алиасу — старые сейвы хранят дореформенные имена
 // («Большой меч», «Сабля», «Дубина», «Посох», «Арбалет лёгкий»…).
-function _weaponPresetByName(weaponName) {
+// HB-5: второй аргумент — персонаж, чьё своё оружие тоже участвует в матчинге.
+// Без него (внешние вызовы) резолвим только по книжному каталогу, как раньше.
+function _weaponPresetByName(weaponName, char) {
 var lo = String(weaponName || "").toLowerCase();
-return WEAPON_PRESETS.find(function(p) {
+return _weaponCatalog(char).find(function(p) {
   if (p.name.toLowerCase() === lo) return true;
   return Array.isArray(p.aliases) && p.aliases.some(function(a) { return a.toLowerCase() === lo; });
 });
@@ -921,7 +950,9 @@ return WEAPON_PRESETS.find(function(p) {
 function checkWeaponProficiency(char, weaponName) {
 if (!char || !char.proficiencies || !char.proficiencies.weapon) return false;
 var profs = char.proficiencies.weapon;
-var preset = _weaponPresetByName(weaponName);
+// HB-5: своё оружие резолвится в пресет с категорией — до этого оно проваливалось
+// в ветку «неизвестное» ниже, и владение простым объявляло владением что угодно.
+var preset = _weaponPresetByName(weaponName, char);
 if (profs.indexOf("martial") !== -1) return true;
 // FIN-2: конкретные владения (раса/класс/custom) — скимитар друида, короткий меч
 // монаха, эльфийские мечи/луки; сверяем и с алиасами пресета. Элементы массива
@@ -981,7 +1012,7 @@ if (addInv) {
   if (existing) {
     existing.qty = (parseInt(existing.qty, 10) || 1) + 1;
   } else {
-    var preset = _weaponPresetByName(name);
+    var preset = _weaponPresetByName(name, char);   // HB-5: вес своего оружия тоже из каталога
     invList.push({
       name: name, qty: 1,
       weight: preset ? (preset.weight || 0) : 0,

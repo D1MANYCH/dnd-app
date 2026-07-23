@@ -18,7 +18,7 @@ function escapeHtml(text) {
 }
 
 // ── Версия схемы персонажа — увеличивать при изменении структуры ──────────────
-const SCHEMA_VERSION = 32;
+const SCHEMA_VERSION = 33;
 
 // ── Типы урона PHB 5e ──────────────────────────────────────────────────────────
 const DAMAGE_TYPES = [
@@ -51,6 +51,7 @@ const DEFAULT_CHARACTER = {
   skills:     {},
   proficiencies: { armor:[], weapon:[], armorCustom:[], weaponCustom:[], specificWeapons:[], armorSources:{}, weaponSources:{}, tools:[], toolChoices:{}, languages:[], languageChoices:{} },
   weapons:    [],
+  customWeapons: [], // HB-5: своё (хомбрю) оружие персонажа; сливается с WEAPON_PRESETS на чтении (_weaponCatalog)
   inventory:  { weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[], other:[] },
   equipState: { backpackOff: false },
   coins:      { cp:0, sp:0, ep:0, gp:0, pp:0 },
@@ -1874,8 +1875,8 @@ const ASI_LEVELS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.58.6";
-const APP_VERSION_DATE = "2026-07-21";
+const APP_VERSION = "3.58.7";
+const APP_VERSION_DATE = "2026-07-23";
 
 // ============================================================
 // ВНЕШНИЕ ССЫЛКИ (TG-канал, донаты, Boosty)
@@ -2220,9 +2221,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
+    version: "3.58.7",
+    date: "23 июля 2026",
+    badge: "new",
+    changes: [
+      { type: "feat", text: "Задел под своё оружие: хранилище в персонаже (схема 33), каталог пикера сливает своё оружие с книжным, фильтр «Мои» и признак «Своё» на карточке; владение своим оружием считается по его категории" }
+    ]
+  },
+  {
     version: "3.58.6",
     date: "21 июля 2026",
-    badge: "new",
+    badge: "old",
     changes: [
       { type: "feat", text: "HB-4: у своих заклинаний заработала кнопка «Использовать» — урон, лечение и временные ХП с апкастом, типом урона, спасброском или броском атаки" }
     ]

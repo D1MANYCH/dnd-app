@@ -3427,11 +3427,12 @@
       } finally { delete SPELL_EFFECTS["__test_spell__"]; }
     });
 
-    t("[cast-0] миграция v<32: activeSpellEffects появляется, SCHEMA_VERSION = 32", function(){
-      if (SCHEMA_VERSION !== 32) return "SCHEMA_VERSION = " + SCHEMA_VERSION;
+    // HB-5: точное число схемы уехало в свой тест ([hb-5] ниже) — здесь шаг v<32
+    // проверяется по существу (поле появилось), а версия сверяется с актуальной.
+    t("[cast-0] миграция v<32: activeSpellEffects появляется, схема доводится до актуальной", function(){
       var c = migrateCharacter({ name: "Тест", class: "Воин", level: 1, schemaVersion: 31 });
       if (!Array.isArray(c.activeSpellEffects)) return "нет activeSpellEffects после миграции";
-      if (c.schemaVersion !== 32) return "schemaVersion = " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion = " + c.schemaVersion;
       return true;
     });
 
@@ -5793,6 +5794,145 @@
           if (c("new-spell-mech-half") || c("new-spell-mech-mod")) return "чекбоксы не сброшены";
           return true;
         });
+      });
+    }
+  }
+
+  // ────────── БЛОК 47 (HB-5): хранилище своего оружия — схема 33, каталог на чтении ──────────
+  // Своё оружие живёт В ПЕРСОНАЖЕ (char.customWeapons): экспорт, импорт, снапшоты и
+  // дубликат получают его даром — characters сериализуется целиком. Книжный каталог
+  // остаётся константой на 37 позиций, слияние идёт только при чтении.
+  if (typeof SCHEMA_VERSION !== "undefined" && typeof DEFAULT_CHARACTER !== "undefined") {
+    t("[hb-5] SCHEMA_VERSION = 33, customWeapons — пустой массив в шаблоне персонажа", function(){
+      if (SCHEMA_VERSION !== 33) return "SCHEMA_VERSION = " + SCHEMA_VERSION;
+      if (!Array.isArray(DEFAULT_CHARACTER.customWeapons)) return "нет customWeapons в DEFAULT_CHARACTER";
+      if (DEFAULT_CHARACTER.customWeapons.length !== 0) return "шаблон не пуст";
+      return true;
+    });
+  }
+
+  if (typeof migrateCharacter === "function") {
+    t("[hb-5] миграция v<33: старый сейв получает customWeapons массивом, схема → 33", function(){
+      var c = migrateCharacter({ id: 95001, class: "Воин", level: 4, schemaVersion: 32 });
+      if (!Array.isArray(c.customWeapons)) return "customWeapons не массив: " + typeof c.customWeapons;
+      if (c.customWeapons.length !== 0) return "непустой список у старого сейва";
+      if (c.schemaVersion !== 33) return "schemaVersion = " + c.schemaVersion;
+      return true;
+    });
+
+    t("[hb-5] миграция идемпотентна: уже заполненный customWeapons не затирается", function(){
+      var c = migrateCharacter({ id: 95002, class: "Плут", level: 3, schemaVersion: 32,
+        customWeapons: [{ name: "Клинок бездны", damage: "2к6", category: "martial", kind: "melee" }] });
+      if (c.customWeapons.length !== 1) return "список затёрт: " + JSON.stringify(c.customWeapons);
+      var again = migrateCharacter(JSON.parse(JSON.stringify(c)));
+      if (again.customWeapons.length !== 1) return "повторный прогон испортил список";
+      if (again.customWeapons[0].name !== "Клинок бездны") return "имя потеряно: " + again.customWeapons[0].name;
+      return true;
+    });
+  }
+
+  if (typeof _weaponCatalog === "function" && typeof WEAPON_PRESETS !== "undefined") {
+    // Фикстура: два своих клинка + мусорные записи, какие может принести чужой импорт.
+    function _hbChar(over) {
+      var c = { id: "t-hb5", level: 5, stats: { str: 16, dex: 12, con: 12, int: 10, wis: 10, cha: 10 },
+        proficiencies: { weapon: ["simple"], specificWeapons: [] },
+        customWeapons: [
+          { name: "Клинок бездны", stat: "str", damage: "2к6", type: "Некротический",
+            range: "Ближний", notes: "Двуручное", category: "martial", kind: "melee", cost: "50 зм", weight: 3 },
+          { name: "Игла шёпота", stat: "dex", damage: "1к4", type: "Психический",
+            range: "Ближний", notes: "Лёгкое", category: "simple", kind: "melee", cost: "10 зм", weight: 1 }
+        ] };
+      Object.keys(over || {}).forEach(function(k){ c[k] = over[k]; });
+      return c;
+    }
+
+    t("[hb-5] _weaponCatalog: книжная константа не мутирует, своё уходит в хвост с признаком", function(){
+      var before = WEAPON_PRESETS.length;
+      var cat = _weaponCatalog(_hbChar());
+      if (WEAPON_PRESETS.length !== before) return "WEAPON_PRESETS мутировала: " + WEAPON_PRESETS.length;
+      if (cat.length !== before + 2) return "длина слитого каталога: " + cat.length;
+      if (cat[0] !== WEAPON_PRESETS[0]) return "книжные не идут первыми";
+      if (!cat[before].homebrew || !cat[before + 1].homebrew) return "признак «своё» не проставлен";
+      if (WEAPON_PRESETS.some(function(w){ return w.homebrew; })) return "признак протёк в книжные";
+      return true;
+    });
+
+    t("[hb-5] _weaponCatalog: без персонажа и с пустым списком — та же константа, мусор отсеян", function(){
+      if (_weaponCatalog(null) !== WEAPON_PRESETS) return "null дал не константу";
+      if (_weaponCatalog({}) !== WEAPON_PRESETS) return "персонаж без поля дал не константу";
+      if (_weaponCatalog({ customWeapons: [] }) !== WEAPON_PRESETS) return "пустой список дал не константу";
+      // Безымянные записи роняли бы рендер и матчинг — они идут по name
+      var junk = _weaponCatalog({ customWeapons: [null, { damage: "1к6" }] });
+      if (junk !== WEAPON_PRESETS) return "мусорные записи попали в каталог: " + junk.length;
+      return true;
+    });
+
+    if (typeof _weaponPresetByName === "function") {
+      t("[hb-5] _weaponPresetByName: своё видно только со своим персонажем, книжное имя не перехватывается", function(){
+        var char = _hbChar();
+        if (_weaponPresetByName("Клинок бездны")) return "своё нашлось без персонажа";
+        var hb = _weaponPresetByName("Клинок бездны", char);
+        if (!hb || hb.damage !== "2к6") return "своё не нашлось с персонажем";
+        // Тень книжного: своё оружие с именем из PHB не должно перехватывать матчинг —
+        // книжные идут первыми, поэтому find отдаёт именно книжную позицию.
+        var shadow = _hbChar({ customWeapons: [{ name: "Длинный меч", damage: "9к9", category: "simple", kind: "melee" }] });
+        var got = _weaponPresetByName("Длинный меч", shadow);
+        if (!got || got.damage !== "1к8") return "хомбрю затенил книжный «Длинный меч»: " + (got && got.damage);
+        return true;
+      });
+    }
+
+    if (typeof checkWeaponProficiency === "function") {
+      t("[hb-5] checkWeaponProficiency: своё воинское без владения, martial — с владением", function(){
+        var simple = _hbChar();
+        // До HB-5 своё оружие не резолвилось в пресет и падало в ветку «неизвестное»,
+        // где владение простым объявляло владением ЛЮБОЕ незнакомое имя.
+        if (checkWeaponProficiency(simple, "Клинок бездны")) return "воинский хомбрю засчитан владением простым";
+        if (!checkWeaponProficiency(simple, "Игла шёпота")) return "простой хомбрю не засчитан";
+        var martial = _hbChar({ proficiencies: { weapon: ["martial"], specificWeapons: [] } });
+        if (!checkWeaponProficiency(martial, "Клинок бездны")) return "martial не покрыл свой воинский клинок";
+        // Оружие вне обоих каталогов (ручной ввод без сохранения) — прежнее поведение
+        if (!checkWeaponProficiency(simple, "Палка-копалка")) return "неизвестное имя перестало считаться простым";
+        return true;
+      });
+    }
+
+    if (typeof renderWeaponPresets === "function") {
+      t("[hb-5] пикер: своё оружие с чипом «Своё», фильтр «Мои» оставляет только его", function(){
+        var savedChars = window.characters, savedId = window.currentId;
+        var container = _ensureEl("weapon-presets-list");
+        var savedAppend = container.appendChild, cards = [];
+        try {
+          window.characters = [_hbChar()];
+          window.currentId = "t-hb5";
+          container.appendChild = function(el){ cards.push(el); return el; };
+          renderWeaponPresets();
+          if (cards.length !== WEAPON_PRESETS.length + 2) return "карточек: " + cards.length;
+          var hbCards = cards.filter(function(el){ return String(el.innerHTML).indexOf("wp-hb") !== -1; });
+          if (hbCards.length !== 2) return "карточек с чипом «Своё»: " + hbCards.length;
+          if (String(cards[0].innerHTML).indexOf("wp-hb") !== -1) return "чип «Своё» приехал книжной позиции";
+          // Чип фильтра появляется только когда есть что фильтровать
+          var chip = document.getElementById("weapon-filter-hb");
+          if (chip && chip.classList.contains("hidden")) return "чип «Мои» скрыт при непустом списке";
+          cards.length = 0;
+          if (typeof toggleWeaponFilter === "function") toggleWeaponFilter("src", "hb");
+          if (cards.length !== 2) return "фильтр «Мои» показал позиций: " + cards.length;
+          if (cards.some(function(el){ return String(el.innerHTML).indexOf("wp-hb") === -1; }))
+            return "в «Моих» осталось книжное оружие";
+          // Персонаж без своего оружия: чип прячется, залипший фильтр снимается сам,
+          // иначе пикер остался бы пустым без единого способа это починить.
+          window.characters = [_hbChar({ customWeapons: [] })];
+          cards.length = 0;
+          renderWeaponPresets();
+          if (cards.length !== WEAPON_PRESETS.length) return "без хомбрю показано: " + cards.length;
+          if (chip && !chip.classList.contains("hidden")) return "чип «Мои» не спрятался";
+          return true;
+        } finally {
+          if (typeof toggleWeaponFilter === "function" && _weaponPickFilter.src === "hb") toggleWeaponFilter("src", "hb");
+          try { delete container.appendChild; } catch (e) {}
+          if (typeof container.appendChild !== "function") container.appendChild = savedAppend;
+          window.characters = savedChars; window.currentId = savedId;
+        }
       });
     }
   }

@@ -4613,9 +4613,12 @@ box-shadow: var(--sh-1);
 .wp-meta { font-size: 0.85em; color: var(--text-muted); }
 .weapon-presets-empty { color: var(--text-muted); text-align: center; margin: 10px 0; }
 .weapon-preset-btn.selected { border-color: var(--weapon-color); box-shadow: 0 0 0 1px var(--weapon-color); }
-.wp-prof { font-size: 0.72em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 1px; }
+.wp-prof, .wp-hb { font-size: 0.72em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 1px; }
 .wp-prof.yes { background: rgba(87, 179, 109, 0.15); color: var(--success-color); }
 .wp-prof.no { background: rgba(255, 255, 255, 0.06); color: var(--text-muted); }
+/* HB-5: «своё» в пикере оружия — та же геометрия, что у бейджа владения, цвета
+   из акцентной пары (как .hb-badge у заклинаний): новых хардкодов не появляется. */
+.wp-hb { background: var(--accent-fill); color: var(--on-accent); }
 /* FIN-2: блок «Как это работает» + чекбокс синхронизации с инвентарём */
 .weapon-help { margin: 4px 0 12px; border: 1px solid var(--border-color); border-radius: var(--r-md); background: var(--bg-2); }
 .weapon-help summary { cursor: pointer; padding: 8px 12px; font-size: 0.85em; color: var(--text-muted); user-select: none; list-style: none; }
