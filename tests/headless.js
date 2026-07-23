@@ -6096,6 +6096,109 @@
     }
   }
 
+  // ────────── БЛОК 49 (HB-7): экспорт/импорт хомбрю-заклинаний ──────────
+  // Полный бэкап уже симметричен, дыры — в одиночном пути (exportOneCharacter/
+  // importOneCharacter) и в затирающем importSpells. Логика вынесена в чистые
+  // хелперы: нормализатор, сбор из mySpells, долив с ремапом id.
+  if (typeof _normalizeImportedSpell === "function" &&
+      typeof _ingestImportedUserSpells === "function" &&
+      typeof _collectCharUserSpells === "function" &&
+      typeof SPELLS_BASE !== "undefined") {
+
+    t("[hb-7] _normalizeImportedSpell: кламп level, дефолт source, клон, отбраковка мусора", function(){
+      if (_normalizeImportedSpell(null) !== null) return "null должен отбраковаться";
+      if (_normalizeImportedSpell("строка") !== null) return "строка должна отбраковаться";
+      if (_normalizeImportedSpell({ name: "", level: 1 }) !== null) return "пустое имя должно отбраковаться";
+      if (_normalizeImportedSpell({ name: "Икс", level: "3" }) !== null) return "level-строка должна отбраковаться";
+      var hi = _normalizeImportedSpell({ name: "Выше девяти", level: 15 });
+      if (!hi || hi.level !== 9) return "level>9 не склампился: " + (hi && hi.level);
+      var lo = _normalizeImportedSpell({ name: "Ниже нуля", level: -3 });
+      if (!lo || lo.level !== 0) return "level<0 не склампился: " + (lo && lo.level);
+      var frac = _normalizeImportedSpell({ name: "Дробный", level: 2.7 });
+      if (!frac || frac.level !== 3) return "дробный level не округлился: " + (frac && frac.level);
+      if (_normalizeImportedSpell({ name: "Без источника", level: 1 }).source !== "PH14") return "source не по умолчанию";
+      if (_normalizeImportedSpell({ name: "Кривой", level: 1, source: "мусор" }).source !== "PH14") return "битый source не починен";
+      if (_normalizeImportedSpell({ name: "PH24", level: 1, source: "PH24" }).source !== "PH24") return "PH24 не сохранён";
+      // Глубокий клон — не делим ссылку с mySpells/чужим конвертом
+      var orig = { name: "Клон", level: 1, hbEffect: { damage: { formula: "1к6" } } };
+      var cl = _normalizeImportedSpell(orig);
+      if (cl === orig) return "вернулась та же ссылка, а не клон";
+      if (cl.hbEffect === orig.hbEffect) return "hbEffect не глубоко склонирован";
+      if (!cl.hbEffect || cl.hbEffect.damage.formula !== "1к6") return "hbEffect потерян при клоне";
+      return true;
+    });
+
+    t("[hb-7] _collectCharUserSpells: только хомбрю из mySpells, дубли по id схлопнуты", function(){
+      var char = { spells: { mySpells: [
+        { id: 7001, name: "Своё-А", homebrew: true },
+        { id: 12, name: "Книжное" },                    // без флага — не берём
+        { id: 7001, name: "Своё-А", homebrew: true },   // дубль id — один раз
+        null,
+        { id: 7002, name: "Своё-Б", homebrew: true }
+      ] } };
+      var ids = _collectCharUserSpells(char).map(function(s){ return s.id; }).sort();
+      if (ids.join(",") !== "7001,7002") return "собрано: " + ids.join(",");
+      if (_collectCharUserSpells({}).length !== 0) return "персонаж без spells → не пусто";
+      if (_collectCharUserSpells(null).length !== 0) return "null → не пусто";
+      return true;
+    });
+
+    t("[hb-7] _ingestImportedUserSpells: долив в базу + признак на копиях mySpells, база — клон", function(){
+      var savedDB = window.SPELL_DATABASE;
+      try {
+        window.SPELL_DATABASE = SPELLS_BASE.slice();
+        var chars = [{ id: 1, spells: { mySpells: [{ id: 8001, name: "Хомяк", level: 2 }] } }];
+        var res = _ingestImportedUserSpells([{ id: 8001, name: "Хомяк", level: 2, source: "PH14" }], chars);
+        if (res.added !== 1) return "added = " + res.added;
+        if (res.remapped !== 0) return "remapped = " + res.remapped;
+        var inDb = window.SPELL_DATABASE.filter(function(s){ return s && s.id === 8001; });
+        if (inDb.length !== 1) return "в базе не ровно 1: " + inDb.length;
+        if (inDb[0].homebrew !== true) return "запись базы без homebrew";
+        if (window.SPELL_DATABASE.length !== SPELLS_BASE.length + 1) return "длина базы: " + window.SPELL_DATABASE.length;
+        if (chars[0].spells.mySpells[0].homebrew !== true) return "копия mySpells без homebrew";
+        if (inDb[0] === chars[0].spells.mySpells[0]) return "база делит ссылку с mySpells";
+        return true;
+      } finally { window.SPELL_DATABASE = savedDB; }
+    });
+
+    t("[hb-7] _ingestImportedUserSpells: коллизия id — новый id + ремап mySpells/prepared", function(){
+      var savedDB = window.SPELL_DATABASE;
+      try {
+        // В базе уже сидит ДРУГОЕ заклинание на том же id
+        window.SPELL_DATABASE = SPELLS_BASE.concat([{ id: 9500, name: "Занявший", homebrew: true }]);
+        var chars = [{ id: 1, spells: {
+          mySpells: [{ id: 9500, name: "Импортируемое", level: 3 }],
+          prepared: [9500, 42]
+        } }];
+        var res = _ingestImportedUserSpells([{ id: 9500, name: "Импортируемое", level: 3 }], chars);
+        if (res.added !== 1) return "added = " + res.added;
+        if (res.remapped !== 1) return "remapped = " + res.remapped;
+        var mine = window.SPELL_DATABASE.filter(function(s){ return s.name === "Импортируемое"; });
+        if (mine.length !== 1) return "импортируемое не в базе";
+        var newId = mine[0].id;
+        if (newId === 9500) return "id не перевыдан";
+        if (!window.SPELL_DATABASE.some(function(s){ return s.id === 9500 && s.name === "Занявший"; })) return "затёрли занявшего";
+        if (chars[0].spells.mySpells[0].id !== newId) return "mySpells не ремапнут: " + chars[0].spells.mySpells[0].id;
+        if (chars[0].spells.prepared[0] !== newId) return "prepared[0] не ремапнут: " + chars[0].spells.prepared[0];
+        if (chars[0].spells.prepared[1] !== 42) return "prepared[1] (не хомбрю) затронут: " + chars[0].spells.prepared[1];
+        return true;
+      } finally { window.SPELL_DATABASE = savedDB; }
+    });
+
+    t("[hb-7] _ingestImportedUserSpells: та же хомбрю-запись (id+имя) не дублируется", function(){
+      var savedDB = window.SPELL_DATABASE;
+      try {
+        window.SPELL_DATABASE = SPELLS_BASE.concat([{ id: 8800, name: "Уже есть", homebrew: true }]);
+        var before = window.SPELL_DATABASE.length;
+        var res = _ingestImportedUserSpells([{ id: 8800, name: "Уже есть", level: 1 }], []);
+        if (res.added !== 0) return "added = " + res.added + " (ожидал 0)";
+        if (res.remapped !== 0) return "remapped = " + res.remapped;
+        if (window.SPELL_DATABASE.length !== before) return "база выросла: " + window.SPELL_DATABASE.length;
+        return true;
+      } finally { window.SPELL_DATABASE = savedDB; }
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

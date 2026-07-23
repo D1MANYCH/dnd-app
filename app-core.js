@@ -3207,13 +3207,17 @@ if (!char) return;
 var charHp = (typeof hpHistory !== 'undefined' && Array.isArray(hpHistory))
   ? hpHistory.filter(function(h) { return h && h.charId === id; })
   : [];
+// HB-7: хомбрю-заклинания этого персонажа в конверт — иначе при импорте в чистый
+// профиль их не видно в поиске (в mySpells копия едет, но глобальная база пуста).
+var charSpells = _collectCharUserSpells(char);
 var data = JSON.stringify({
   app: "dnd-sheet",
   appVersion: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : "",
   schemaVersion: (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : (char.schemaVersion || 0),
   exportedAt: new Date().toISOString(),
   characters: [char],
-  hpHistory: charHp
+  hpHistory: charHp,
+  userSpells: charSpells
 }, null, 2);
 var blob = new Blob([data], { type: "application/json" });
 var a = document.createElement("a");
@@ -3582,10 +3586,85 @@ function _isValidImportedChar(c) {
   var lvl = (typeof c.level === 'number' && c.level >= 1 && c.level <= 20);
   return hasClass && lvl;
 }
-function _isValidImportedSpell(s) {
-  if (!s || typeof s !== 'object') return false;
-  return typeof s.name === 'string' && s.name &&
-         typeof s.level === 'number' && s.level >= 0 && s.level <= 9;
+// HB-7: нормализация импортируемого заклинания. Возвращает пригодную КОПИЮ
+// (глубокий клон — чтобы не делить ссылку с mySpells/чужим конвертом) или null.
+// Отличие от прежней голой валидации: level вне 0..9 не отбраковывается, а
+// клампится (это опечатка автора хомбрю, а не мусор), а отсутствующий/битый
+// source чинится на "PH14" — иначе renderSpellSearch падает на .toLowerCase().
+function _normalizeImportedSpell(s) {
+  if (!s || typeof s !== 'object') return null;
+  if (typeof s.name !== 'string' || !s.name) return null;
+  if (typeof s.level !== 'number' || !isFinite(s.level)) return null;
+  var out;
+  try { out = JSON.parse(JSON.stringify(s)); } catch (e) { return null; }
+  out.level = Math.max(0, Math.min(9, Math.round(s.level)));
+  if (out.source !== "PH14" && out.source !== "PH24") out.source = "PH14";
+  return out;
+}
+// Булев предикат оставлен для совместимости (фильтры прошлых фаз).
+function _isValidImportedSpell(s) { return _normalizeImportedSpell(s) !== null; }
+// HB-7: хомбрю-заклинания одного персонажа для конверта exportOneCharacter —
+// только копии из его mySpells с признаком «своё». Дескриптор hbEffect едет
+// вместе с копией, поэтому «Использовать» переживает экспорт-импорт.
+function _collectCharUserSpells(char) {
+  var out = [], seen = {};
+  var list = (char && char.spells && Array.isArray(char.spells.mySpells)) ? char.spells.mySpells : [];
+  list.forEach(function(s) {
+    if (!s || !s.homebrew) return;
+    var key = String(s.id);
+    if (seen[key]) return;
+    seen[key] = true;
+    out.push(s);
+  });
+  return out;
+}
+// HB-7: долив хомбрю-заклинаний из конверта в глобальную базу + перепривязка
+// ссылок. mySpells везёт копии (каст работает и без базы), но без долива их не
+// видно в поиске и нельзя переиспользовать/править. Заклинания клонируются
+// (нормализатором), поэтому запись базы не делит ссылку с mySpells персонажа.
+// При коллизии id с уже занятой ДРУГОЙ записью — новый id и перепривязка
+// mySpells/prepared импортированных персонажей. Возвращает { added, remapped }.
+function _ingestImportedUserSpells(rawSpells, targetChars) {
+  var res = { added: 0, remapped: 0 };
+  if (!Array.isArray(rawSpells) || typeof SPELL_DATABASE === 'undefined' || !Array.isArray(SPELL_DATABASE)) return res;
+  var idMap = {};        // oldId -> newId (только при ремапе)
+  var addedIds = [];     // финальные id для бэкфилла признака на копиях
+  var nextId = Date.now();
+  rawSpells.forEach(function(raw) {
+    var s = _normalizeImportedSpell(raw);
+    if (!s) return;
+    s.homebrew = true;
+    var oldId = s.id;
+    var clash = SPELL_DATABASE.find(function(x) { return x && x.id === oldId; });
+    if (clash) {
+      // Тот же id уже в базе: если это та же запись (хомбрю с тем же именем) —
+      // просто помечаем копию и не дублируем; иначе перевыдаём id.
+      if (clash.homebrew && clash.name === s.name) { addedIds.push(oldId); return; }
+      while (SPELL_DATABASE.some(function(x){ return x && x.id === nextId; })) nextId++;
+      s.id = nextId++;
+      if (oldId != null) idMap[oldId] = s.id;
+      res.remapped++;
+    }
+    SPELL_DATABASE.push(s);
+    addedIds.push(s.id);
+    res.added++;
+  });
+  if (Object.keys(idMap).length && Array.isArray(targetChars)) {
+    targetChars.forEach(function(c) {
+      var sp = c && c.spells;
+      if (!sp) return;
+      if (Array.isArray(sp.mySpells)) sp.mySpells.forEach(function(x) {
+        if (x && idMap.hasOwnProperty(x.id)) x.id = idMap[x.id];
+      });
+      if (Array.isArray(sp.prepared)) sp.prepared = sp.prepared.map(function(pid) {
+        return idMap.hasOwnProperty(pid) ? idMap[pid] : pid;
+      });
+    });
+  }
+  if (addedIds.length && typeof _backfillHomebrewFlag === 'function' && Array.isArray(targetChars)) {
+    _backfillHomebrewFlag(targetChars, new Set(addedIds));
+  }
+  return res;
 }
 // FEAT-1: схема-толерантный разбор импорта. Принимает голый массив
 // [char,...] (полные бэкапы из exportData) либо обёртку
@@ -3608,8 +3687,9 @@ function _applyFullRestore(imported, validChars) {
     hpHistory = imported.hpHistory.filter(function(h){ return h && _ids[h.charId]; }).slice(0, 300);
   }
   if (imported && Array.isArray(imported.userSpells)) {
-    var validSpells = imported.userSpells.filter(_isValidImportedSpell);
-    validSpells.forEach(function(s) { if (s) s.homebrew = true; }); // HB-1: тот же бэкфилл, что и в onload
+    // HB-7: через нормализатор — кламп level и фикс source прямо при загрузке.
+    var validSpells = imported.userSpells.map(_normalizeImportedSpell).filter(Boolean);
+    validSpells.forEach(function(s) { s.homebrew = true; }); // HB-1: тот же бэкфилл, что и в onload
     SPELL_DATABASE = ((typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.slice() : []).concat(validSpells);
     _backfillHomebrewFlag(characters, new Set(validSpells.map(function(s) { return s && s.id; })));
   }
@@ -3702,6 +3782,7 @@ if (skipped > 0) msg += " Пропущено повреждённых: " + skipp
 showConfirmModal("Импорт персонажа", msg, function() {
   var nextId = Date.now();
   var idMap = {};
+  var addedChars = [];
   valid.forEach(function(c) {
     var oldId = c.id;
     var nc = migrateCharacter(JSON.parse(JSON.stringify(c)));
@@ -3710,6 +3791,7 @@ showConfirmModal("Импорт персонажа", msg, function() {
     nc.updatedAt = Date.now();
     idMap[oldId] = nc.id;
     characters.push(nc);
+    addedChars.push(nc);
   });
   // FEAT-1 доработка: восстановить HP-историю импортированных персонажей,
   // перепривязав записи на новые id (защита от коллизий не ломает связь).
@@ -3725,10 +3807,26 @@ showConfirmModal("Импорт персонажа", msg, function() {
     });
     if (addedHp && hpHistory.length > 300) hpHistory = hpHistory.slice(0, 300);
   }
+  // HB-7: долить хомбрю-заклинания в глобальную базу. Конверт HB-7+ несёт
+  // userSpells; для файлов до HB-7 (поля нет) собираем хомбрю из mySpells
+  // импортированных — тогда «Использовать» и поиск работают и для старых экспортов.
+  var rawUserSpells = (parsed && Array.isArray(parsed.userSpells)) ? parsed.userSpells : null;
+  if (!rawUserSpells) {
+    var harvested = [], seenSp = {};
+    addedChars.forEach(function(c) {
+      _collectCharUserSpells(c).forEach(function(s) {
+        var key = String(s.id);
+        if (!seenSp[key]) { seenSp[key] = true; harvested.push(s); }
+      });
+    });
+    rawUserSpells = harvested;
+  }
+  var addedSpells = _ingestImportedUserSpells(rawUserSpells, addedChars).added;
   saveToLocal();
   renderCharacterList();
   showToast("Добавлено: " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : "") +
-            (addedHp ? " · HP-история: " + addedHp : ""), "success");
+            (addedHp ? " · HP-история: " + addedHp : "") +
+            (addedSpells ? " · свои заклинания: " + addedSpells : ""), "success");
 });
 input.value = "";
 };
@@ -3767,19 +3865,44 @@ if (!Array.isArray(imported)) {
   input.value = "";
   return;
 }
-var validSpells = imported.filter(_isValidImportedSpell);
+var validSpells = imported.map(_normalizeImportedSpell).filter(Boolean);
 var skippedSpells = imported.length - validSpells.length;
 if (validSpells.length === 0) {
   showToast("В файле нет валидных заклинаний", "error");
   input.value = "";
   return;
 }
-var msgSp = "Загрузить " + validSpells.length + " заклинаний? Текущая база будет заменена.";
+// HB-7: больше НЕ затираем базу 719 книжных — доливаем только своё (id не из
+// SPELLS_BASE), дедуп по id внутри файла. Файл exportSpells содержит всю базу;
+// после фильтра остаётся только пользовательская дельта.
+var baseIds = new Set((typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.map(function(s){ return s.id; }) : []);
+var seenSp = {}, mergeable = [];
+validSpells.forEach(function(s) {
+  if (baseIds.has(s.id)) return;                 // книжное — уже в базе
+  var key = String(s.id);
+  if (seenSp[key]) return;                        // дубль внутри файла
+  seenSp[key] = true;
+  s.homebrew = true;
+  mergeable.push(s);
+});
+if (mergeable.length === 0) {
+  showToast("В файле только книжные заклинания — добавлять нечего" +
+            (skippedSpells > 0 ? " (пропущено " + skippedSpells + ")" : ""), "info");
+  input.value = "";
+  return;
+}
+var msgSp = "Добавить " + mergeable.length + " своих заклинаний к базе? Книжные не затрагиваются.";
 if (skippedSpells > 0) msgSp += " Пропущено повреждённых: " + skippedSpells + ".";
 showConfirmModal("Импорт заклинаний", msgSp, function() {
-  SPELL_DATABASE = validSpells;
+  var base = (typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.slice() : [];
+  // Уже сидящее в базе своё (по id) заменяем свежей версией из файла;
+  // остальное пользовательское сохраняем.
+  var mergeIds = new Set(mergeable.map(function(s){ return s.id; }));
+  var existingUser = SPELL_DATABASE.filter(function(s){ return s && !baseIds.has(s.id) && !mergeIds.has(s.id); });
+  SPELL_DATABASE = base.concat(existingUser, mergeable);
+  _backfillHomebrewFlag(characters, mergeIds);
   saveToLocal();
-  showToast("Загружено: " + validSpells.length + (skippedSpells > 0 ? " (пропущено " + skippedSpells + ")" : ""), "success");
+  showToast("Добавлено: " + mergeable.length + (skippedSpells > 0 ? " (пропущено " + skippedSpells + ")" : ""), "success");
 });
 input.value = "";
 };
