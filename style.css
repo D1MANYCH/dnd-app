@@ -4619,6 +4619,11 @@ box-shadow: var(--sh-1);
 /* HB-5: «своё» в пикере оружия — та же геометрия, что у бейджа владения, цвета
    из акцентной пары (как .hb-badge у заклинаний): новых хардкодов не появляется. */
 .wp-hb { background: var(--accent-fill); color: var(--on-accent); }
+/* HB-6: 🗑 «убрать из каталога» у своего оружия в пикере. span-действие в самой
+   карточке (нельзя вложить <button> в <button>), уводим в правый край строки.
+   Токены/без !important → ратчет хардкодов не растёт. */
+.wp-del { float: right; cursor: pointer; opacity: 0.6; padding: 0 2px; font-size: 0.95em; line-height: 1.2; }
+.wp-del:hover { opacity: 1; }
 /* FIN-2: блок «Как это работает» + чекбокс синхронизации с инвентарём */
 .weapon-help { margin: 4px 0 12px; border: 1px solid var(--border-color); border-radius: var(--r-md); background: var(--bg-2); }
 .weapon-help summary { cursor: pointer; padding: 8px 12px; font-size: 0.85em; color: var(--text-muted); user-select: none; list-style: none; }
@@ -10587,6 +10592,24 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   transition: all 0.15s;
 }
 .weapon-delete-btn:hover { border-color: var(--danger-color) !important; color: var(--danger-color) !important; transform: none !important; }
+/* HB-6: ✏️ правка строки атаки рядом с ✕. Плоская специфичность класса (0,1,0)
+   перебивает глобальный button{width:100%} без !important — как .spell-edit-btn
+   (HB-3); ратчет хардкодов/!important не растёт. */
+.weapon-row-actions { display: flex; gap: 6px; align-items: center; }
+.weapon-edit-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  border-radius: var(--r-sm);
+  padding: 3px 8px;
+  font-size: 0.75em;
+  cursor: pointer;
+  width: auto;
+  margin: 0;
+  transition: all 0.15s;
+}
+.weapon-edit-btn:hover { border-color: var(--accent); color: var(--accent-hi); }
+:root[data-theme="light"] .weapon-edit-btn:hover { color: var(--accent-lo); }
 .weapon-roll-row { display: flex; gap: 8px; }
 .weapon-roll-btn {
   flex: 1;

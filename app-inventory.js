@@ -869,11 +869,19 @@ if (_pickChar) {
     : ' <span class="wp-prof no">без владения</span>';
 }
 var hbBadge = preset.homebrew ? ' <span class="wp-hb">🏠 Своё</span>' : "";
-btn.innerHTML = "<b>" + escapeHtml(preset.name) + "</b> <span class=\"wp-tag\">" + tag + "</span>" + hbBadge + profBadge + "<br>" +
+// HB-6: у своего оружия — 🗑 «убрать из каталога», прямо в карточке (нельзя вложить
+// <button> в <button>: делаем span-действие, клик по нему ловим в onclick по e.target).
+var hbDel = preset.homebrew ? ' <span class="wp-del" role="button" tabindex="0" title="Убрать из каталога" aria-label="Убрать из каталога">🗑</span>' : "";
+btn.innerHTML = "<b>" + escapeHtml(preset.name) + "</b> <span class=\"wp-tag\">" + tag + "</span>" + hbBadge + profBadge + hbDel + "<br>" +
   escapeHtml(preset.damage ? preset.damage + " " + (preset.type || "") : "—") +
   (preset.notes ? " · " + escapeHtml(preset.notes) : "") + "<br>" +
   "<span class=\"wp-meta\">" + escapeHtml(preset.cost || "—") + " · " + (preset.weight ? preset.weight + " фнт." : "—") + " · " + escapeHtml(preset.range || "") + "</span>";
-btn.onclick = function() {
+btn.onclick = function(e) {
+  if (e && e.target && e.target.classList && e.target.classList.contains("wp-del")) {
+    e.stopPropagation();
+    deleteCustomWeapon(preset.name);
+    return;
+  }
   fillWeaponPreset(preset);
   container.querySelectorAll(".weapon-preset-btn.selected").forEach(function(b) { b.classList.remove("selected"); });
   btn.classList.add("selected");
@@ -901,6 +909,12 @@ safeSet("new-weapon-damage", preset.damage);
 safeSet("new-weapon-type", preset.type);
 safeSet("new-weapon-range", preset.range);
 safeSet("new-weapon-notes", preset.notes);
+// HB-6: категория/вид/вес/цена тоже переносим — если пользователь сохранит
+// выбранное в свой каталог, данные о владении и весе будут корректными.
+safeSet("new-weapon-category", preset.category || "simple");
+safeSet("new-weapon-kind", preset.kind || "melee");
+safeSet("new-weapon-weight", (preset.weight != null) ? preset.weight : "");
+safeSet("new-weapon-cost", preset.cost || "");
 if (currentId) {
 const char = getCurrentChar();
 if (char) {
@@ -915,6 +929,27 @@ safeSet("new-weapon-bonus", (atk >= 0 ? "+" : "") + atk);
 }
 }
 }
+// HB-6: полный сброс формы к режиму «добавить» — чистит все поля, снимает edit-index,
+// возвращает заголовок и показывает пикер (правка его прячет). Зовётся из open/close.
+function _resetWeaponForm() {
+safeSet("new-weapon-name", "");
+safeSet("new-weapon-bonus", "");
+safeSet("new-weapon-damage", "");
+safeSet("new-weapon-type", "");
+safeSet("new-weapon-range", "");
+safeSet("new-weapon-notes", "");
+safeSet("new-weapon-stat", "str");
+safeSet("new-weapon-category", "simple");
+safeSet("new-weapon-kind", "melee");
+safeSet("new-weapon-weight", "");
+safeSet("new-weapon-cost", "");
+safeSet("weapon-edit-index", "-1");
+safeSetChecked("new-weapon-add-inv", true);
+safeSetChecked("new-weapon-save-catalog", false);
+var title = $("weapon-modal-title"); if (title) title.textContent = "Добавить оружие";
+var picker = $("weapon-picker-section"); if (picker) picker.classList.remove("hidden");
+var manLbl = $("weapon-manual-label"); if (manLbl) manLbl.classList.remove("hidden");
+}
 function openWeaponModal() {
 const modal = $("weapon-modal");
 if (modal) modal.classList.add("active");
@@ -922,19 +957,66 @@ if (modal) modal.classList.add("active");
 _weaponPickFilter = { cat: null, kind: null, src: null, q: "" };
 safeSet("weapon-search-inp", "");
 document.querySelectorAll("#weapon-filter-chips .wf-chip").forEach(function(b) { b.classList.remove("active"); });
+_resetWeaponForm();
 renderWeaponPresets();
 }
 function closeWeaponModal() {
 const modal = $("weapon-modal");
 if (modal) modal.classList.remove("active");
-safeSet("new-weapon-name", "");
-safeSet("new-weapon-bonus", "");
-safeSet("new-weapon-damage", "");
-safeSet("new-weapon-type", "");
-safeSet("new-weapon-range", "");
-safeSet("new-weapon-notes", "");
-var addInv = $("new-weapon-add-inv");
-if (addInv) addInv.checked = true;
+_resetWeaponForm();
+}
+// HB-6: режим правки строки оружия (char.weapons[index]) — префилл ПОСЛЕ полного
+// сброса (урок HB-2/HB-4: неполный сброс тащит поля прошлого черновика). Пикер и
+// подпись «или вручную» прячем — правится конкретная запись, а не создаётся новая.
+function editWeapon(index) {
+if (!currentId) return;
+const char = getCurrentChar();
+if (!char || !Array.isArray(char.weapons)) return;
+var w = char.weapons[index];
+if (!w) return;
+openWeaponModal();
+safeSet("new-weapon-name", w.name || "");
+safeSet("new-weapon-stat", w.stat || "str");
+safeSet("new-weapon-bonus", w.bonus || "");
+safeSet("new-weapon-damage", w.damage || "");
+safeSet("new-weapon-type", w.type || "");
+safeSet("new-weapon-range", w.range || "");
+safeSet("new-weapon-notes", w.notes || "");
+safeSet("new-weapon-category", w.category || "simple");
+safeSet("new-weapon-kind", w.kind || "melee");
+safeSet("new-weapon-weight", (w.weight != null) ? w.weight : "");
+safeSet("new-weapon-cost", w.cost || "");
+safeSet("weapon-edit-index", String(index));
+// Если эта запись уже лежит в каталоге — отметим чекбокс, чтобы правка доехала
+// и туда (запись в customWeapons идёт по имени, дубля не будет).
+var inCat = Array.isArray(char.customWeapons) && char.customWeapons.some(function(cw) { return cw && cw.name === w.name; });
+safeSetChecked("new-weapon-save-catalog", inCat);
+var title = $("weapon-modal-title"); if (title) title.textContent = "Редактировать оружие";
+var picker = $("weapon-picker-section"); if (picker) picker.classList.add("hidden");
+var manLbl = $("weapon-manual-label"); if (manLbl) manLbl.classList.add("hidden");
+}
+// HB-6: удаление своего оружия из каталога персонажа (char.customWeapons). НЕ трогает
+// уже добавленные в лист записи char.weapons — там своя корзина (removeWeapon).
+function deleteCustomWeapon(name) {
+if (!currentId) return;
+const char = getCurrentChar();
+if (!char || !Array.isArray(char.customWeapons)) return;
+var idx = char.customWeapons.findIndex(function(w) { return w && w.name === name; });
+if (idx < 0) return;
+showConfirmModal(
+  "Убрать из каталога?",
+  "«" + name + "» исчезнет из вашего каталога оружия. Уже добавленное в лист останется.",
+  function() {
+    const c = getCurrentChar();
+    if (!c || !Array.isArray(c.customWeapons)) return;
+    var i = c.customWeapons.findIndex(function(w) { return w && w.name === name; });
+    if (i < 0) return;
+    c.customWeapons.splice(i, 1);
+    if (window.AppLog) AppLog.action("inventory", "оружие убрано из каталога: " + name);
+    saveToLocal();
+    renderWeaponPresets();
+  }
+);
 }
 // FIN-2: пресет по имени ИЛИ алиасу — старые сейвы хранят дореформенные имена
 // («Большой меч», «Сабля», «Дубина», «Посох», «Арбалет лёгкий»…).
@@ -983,28 +1065,58 @@ const name = $("new-weapon-name")?.value?.trim() || "";
 if (!name) { showToast("Введите название!", "warn"); return; }
 const stat = $("new-weapon-stat")?.value || "str";
 const statName = stat === "str" ? "СИЛ" : "ЛОВ";
-const damage = $("new-weapon-damage")?.value || "";
-const type = $("new-weapon-type")?.value || "";
-const range = $("new-weapon-range")?.value || "";
-const notes = $("new-weapon-notes")?.value || "";
-if (!char.weapons) char.weapons = [];
+const damage = ($("new-weapon-damage")?.value || "").trim();
+const type = ($("new-weapon-type")?.value || "").trim();
+const range = ($("new-weapon-range")?.value || "").trim();
+const notes = ($("new-weapon-notes")?.value || "").trim();
+const category = $("new-weapon-category")?.value || "simple";
+const kind = $("new-weapon-kind")?.value || "melee";
+const weightRaw = ($("new-weapon-weight")?.value || "").trim();
+const cost = ($("new-weapon-cost")?.value || "").trim();
+// HB-6: урон пустым допустим («Сеть»/«Кнут» без кости), непустой — только валидная
+// формула. Иначе бросок урона молча не сработает — тот самый пустой каст из HB-4.
+if (damage && typeof parseDiceFormula === "function") {
+  var dchk = parseDiceFormula(damage);
+  if (!dchk.ok) { showToast("Урон: " + dchk.error, "warn"); return; }
+}
+// Цена — число + монета (мм/см/зм/эм/пм) либо пусто.
+if (cost && !/^\d+\s+(мм|см|зм|эм|пм)$/.test(cost)) {
+  showToast("Цена: число и монета, напр. «10 зм»", "warn"); return;
+}
+var weight = weightRaw ? (parseFloat(weightRaw.replace(",", ".")) || 0) : 0;
+if (weight < 0) weight = 0;
+if (!Array.isArray(char.weapons)) char.weapons = [];
+// HB-6: сохранение в каталог идёт ДО расчёта владения — чтобы checkWeaponProficiency
+// увидел категорию своего оружия (иначе воинское засчиталось бы простым, баг HB-5).
+var saveCatEl = $("new-weapon-save-catalog");
+var saveCat = saveCatEl ? !!saveCatEl.checked : false;
+if (saveCat) {
+  if (!Array.isArray(char.customWeapons)) char.customWeapons = [];
+  var catEntry = { name: name, stat: stat, bonus: $("new-weapon-bonus")?.value || "",
+    damage: damage, type: type, range: range, notes: notes,
+    category: category, kind: kind, cost: cost, weight: weight, homebrew: true };
+  var ci = char.customWeapons.findIndex(function(w) { return w && w.name === name; });
+  if (ci >= 0) char.customWeapons[ci] = catEntry; else char.customWeapons.push(catEntry);
+}
 var proficient = checkWeaponProficiency(char, name);
-char.weapons.push({
-name: name,
-stat: stat,
-statName: statName,
-bonus: $("new-weapon-bonus")?.value || "",
-damage: damage,
-type: type,
-range: range,
-notes: notes,
-proficient: proficient
-});
-// FIN-2: коннект с инвентарём — оружие сразу появляется во вкладке Инвентарь
-// (вес из каталога; повтор имени складывается в стопку qty)
+var weaponEntry = {
+  name: name, stat: stat, statName: statName,
+  bonus: $("new-weapon-bonus")?.value || "",
+  damage: damage, type: type, range: range, notes: notes,
+  category: category, kind: kind, weight: weight, cost: cost,   // HB-6: раньше терялись
+  proficient: proficient
+};
+// HB-6: режим правки — заменяем строку по индексу вместо push (правка без дубля).
+var editIdxEl = $("weapon-edit-index");
+var editIdx = editIdxEl ? parseInt(editIdxEl.value, 10) : -1;
+var isEdit = !isNaN(editIdx) && editIdx >= 0 && !!char.weapons[editIdx];
+if (isEdit) char.weapons[editIdx] = weaponEntry;
+else char.weapons.push(weaponEntry);
+// FIN-2: коннект с инвентарём — только при ДОБАВЛЕНИИ (в правке повторная запись
+// плодила бы дубль/лишний qty). Вес — из формы, иначе из каталога.
 var addInvEl = $("new-weapon-add-inv");
 var addInv = addInvEl ? !!addInvEl.checked : true;
-if (addInv) {
+if (addInv && !isEdit) {
   if (!char.inventory) char.inventory = { weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[], other:[] };
   if (!Array.isArray(char.inventory.weapon)) char.inventory.weapon = [];
   var invList = char.inventory.weapon;
@@ -1012,18 +1124,19 @@ if (addInv) {
   if (existing) {
     existing.qty = (parseInt(existing.qty, 10) || 1) + 1;
   } else {
-    var preset = _weaponPresetByName(name, char);   // HB-5: вес своего оружия тоже из каталога
+    var invWeight = weight;
+    if (!invWeight) { var wp = _weaponPresetByName(name, char); invWeight = wp ? (wp.weight || 0) : 0; }
     invList.push({
       name: name, qty: 1,
-      weight: preset ? (preset.weight || 0) : 0,
+      weight: invWeight,
       location: invList.length === 0 ? "wielded" : "belt",
       desc: (damage ? damage + (type ? " " + type : "") + ". " : "") + (range ? "Дистанция: " + range + ". " : "") + (notes || "")
     });
   }
   if (typeof renderInventory === "function") renderInventory();
 }
-if (window.AppLog) AppLog.action("inventory", "оружие добавлено: " + name + (proficient ? "" : " (без владения)") + (addInv ? " (+инвентарь)" : ""));
-showToast("⚔️ " + escapeHtml(name) + " — добавлено" + (addInv ? " (и в инвентарь)" : ""), "success");
+if (window.AppLog) AppLog.action("inventory", (isEdit ? "оружие изменено: " : "оружие добавлено: ") + name + (proficient ? "" : " (без владения)") + (saveCat ? " (+каталог)" : "") + (addInv && !isEdit ? " (+инвентарь)" : ""));
+showToast("⚔️ " + escapeHtml(name) + (isEdit ? " — изменено" : " — добавлено") + (saveCat ? " (в каталог)" : "") + (addInv && !isEdit ? " (и в инвентарь)" : ""), "success");
 saveToLocal();
 closeWeaponModal();
 renderWeapons();
@@ -1060,7 +1173,10 @@ div.innerHTML =
       '<span class="weapon-name">' + escapeHtml(weapon.name) + profTag + '</span>' +
       '<span class="weapon-meta">' + escapeHtml(weapon.damage || "—") + ' · ' + escapeHtml(weapon.statName || "") + ' ' + attackStr + '</span>' +
     '</div>' +
-    '<button class="weapon-delete-btn" onclick="removeWeapon(' + index + ')">✕</button>' +
+    '<div class="weapon-row-actions">' +
+      '<button class="weapon-edit-btn" onclick="editWeapon(' + index + ')" title="Редактировать оружие" aria-label="Редактировать оружие">✏️</button>' +
+      '<button class="weapon-delete-btn" onclick="removeWeapon(' + index + ')" aria-label="Удалить оружие">✕</button>' +
+    '</div>' +
   '</div>' +
   '<div class="weapon-roll-row">' +
     '<button class="weapon-roll-btn weapon-roll-atk" onclick="rollWeaponAttack(' + index + ')">🎲 Атака</button>' +

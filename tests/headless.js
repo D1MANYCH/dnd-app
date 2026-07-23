@@ -5937,6 +5937,165 @@
     }
   }
 
+  // ────────── БЛОК 48 (HB-6): конструктор оружия — создать/править/удалить ──────────
+  // submitWeapon теперь пишет category/kind/weight в char.weapons (раньше терялись),
+  // по чекбоксу кладёт своё оружие в char.customWeapons (дедуп по имени), правит строку
+  // по weapon-edit-index без дубля; deleteCustomWeapon чистит каталог, не трогая лист.
+  if (typeof submitWeapon === "function") {
+    // Свежий персонаж + изоляция showToast/saveToLocal; toasts копятся для проверок.
+    function _wpEnv() {
+      var saved = { chars: window.characters, id: window.currentId,
+        toast: window.showToast, save: window.saveToLocal };
+      var toasts = [];
+      var char = { id: "thb6", level: 1, stats: { str: 16, dex: 14, con: 10, int: 10, wis: 10, cha: 10 },
+        proficiencies: { weapon: ["simple"], specificWeapons: [] },
+        weapons: [], customWeapons: [],
+        coins: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }, equipState: {}, pouches: [],
+        inventory: { weapon: [], armor: [], potion: [], scroll: [], tool: [], material: [], other: [] } };
+      window.characters = [char]; window.currentId = "thb6";
+      window.showToast = function(msg, kind){ toasts.push({ msg: msg, kind: kind }); };
+      window.saveToLocal = function(){};
+      return { char: char, toasts: toasts, restore: function(){
+        window.characters = saved.chars; window.currentId = saved.id;
+        window.showToast = saved.toast; window.saveToLocal = saved.save;
+      } };
+    }
+    // Проставляет все поля формы (стабы кешируются по id — задаём каждый раз явно).
+    function _setWForm(o) {
+      o = o || {};
+      var s = function(id, v){ document.getElementById(id).value = (v == null ? "" : String(v)); };
+      s("new-weapon-name", o.name); s("new-weapon-stat", o.stat || "str");
+      s("new-weapon-bonus", o.bonus); s("new-weapon-damage", o.damage);
+      s("new-weapon-type", o.type); s("new-weapon-range", o.range); s("new-weapon-notes", o.notes);
+      s("new-weapon-category", o.category || "simple"); s("new-weapon-kind", o.kind || "melee");
+      s("new-weapon-weight", o.weight); s("new-weapon-cost", o.cost);
+      s("weapon-edit-index", o.editIndex != null ? o.editIndex : -1);
+      document.getElementById("new-weapon-add-inv").checked = (o.addInv != null) ? !!o.addInv : true;
+      document.getElementById("new-weapon-save-catalog").checked = !!o.saveCat;
+    }
+
+    t("[hb-6] submitWeapon пишет category/kind/weight в строку атаки (раньше терялись)", function(){
+      var env = _wpEnv();
+      try {
+        _setWForm({ name: "Клинок бездны", category: "martial", kind: "melee",
+          damage: "2к6", type: "Некротический", weight: 3, saveCat: true, addInv: false });
+        submitWeapon();
+        var w = env.char.weapons[0];
+        if (!w) return "строка атаки не создана";
+        if (w.category !== "martial") return "category = " + w.category;
+        if (w.kind !== "melee") return "kind = " + w.kind;
+        if (w.weight !== 3) return "weight = " + w.weight;
+        // simple-персонаж на своём воинском оружии (в каталоге) — без владения (починка HB-5)
+        if (w.proficient) return "воинское засчитано владением у simple";
+        return true;
+      } finally { env.restore(); }
+    });
+
+    t("[hb-6] чекбокс «в каталог» кладёт в customWeapons, повтор имени — замена без дубля", function(){
+      var env = _wpEnv();
+      try {
+        _setWForm({ name: "Игла шёпота", category: "simple", kind: "melee",
+          damage: "1к4", type: "Психический", weight: 1, cost: "10 зм", saveCat: true, addInv: false });
+        submitWeapon();
+        if (env.char.customWeapons.length !== 1) return "в каталоге: " + env.char.customWeapons.length;
+        if (!env.char.customWeapons[0].homebrew) return "признак homebrew не выставлен";
+        if (env.char.customWeapons[0].damage !== "1к4") return "урон в каталоге: " + env.char.customWeapons[0].damage;
+        // Повтор того же имени с другим уроном — заменяет запись, не плодит дубль
+        _setWForm({ name: "Игла шёпота", category: "simple", kind: "melee",
+          damage: "1к6", type: "Психический", weight: 1, saveCat: true, addInv: false });
+        submitWeapon();
+        if (env.char.customWeapons.length !== 1) return "дубль в каталоге: " + env.char.customWeapons.length;
+        if (env.char.customWeapons[0].damage !== "1к6") return "запись не обновилась: " + env.char.customWeapons[0].damage;
+        // Слитый каталог видит своё оружие в хвосте (интеграция с _weaponCatalog)
+        if (typeof _weaponCatalog === "function") {
+          var cat = _weaponCatalog(env.char);
+          if (cat.length !== WEAPON_PRESETS.length + 1) return "слитый каталог: " + cat.length;
+        }
+        return true;
+      } finally { env.restore(); }
+    });
+
+    t("[hb-6] weapon-edit-index → замена строки атаки без дубля, инвентарь не дублируется", function(){
+      var env = _wpEnv();
+      try {
+        _setWForm({ name: "Меч", damage: "1к8", category: "martial", addInv: true });
+        submitWeapon();
+        if (env.char.weapons.length !== 1) return "после добавления строк: " + env.char.weapons.length;
+        if (env.char.inventory.weapon.length !== 1) return "инвентарь после добавления: " + env.char.inventory.weapon.length;
+        _setWForm({ name: "Меч+1", damage: "1к8+1", category: "martial", editIndex: 0, addInv: true });
+        submitWeapon();
+        if (env.char.weapons.length !== 1) return "правка создала дубль строки: " + env.char.weapons.length;
+        if (env.char.weapons[0].name !== "Меч+1") return "правка не доехала: " + env.char.weapons[0].name;
+        if (env.char.weapons[0].damage !== "1к8+1") return "урон после правки: " + env.char.weapons[0].damage;
+        if (env.char.inventory.weapon.length !== 1) return "правка дублировала инвентарь: " + env.char.inventory.weapon.length;
+        return true;
+      } finally { env.restore(); }
+    });
+
+    t("[hb-6] валидация: битый урон отклоняется, пустой урон допустим («Сеть»)", function(){
+      var env = _wpEnv();
+      try {
+        _setWForm({ name: "Кривой", damage: "абырвалг", addInv: false });
+        submitWeapon();
+        if (env.char.weapons.length !== 0) return "битый урон прошёл: " + env.char.weapons.length;
+        if (!env.toasts.some(function(x){ return String(x.msg).indexOf("Урон:") === 0; })) return "нет тоста про урон";
+        _setWForm({ name: "Сеть", damage: "", category: "martial", kind: "ranged", addInv: false });
+        submitWeapon();
+        if (env.char.weapons.length !== 1) return "пустой урон отклонён: " + env.char.weapons.length;
+        return true;
+      } finally { env.restore(); }
+    });
+
+    t("[hb-6] валидация цены: «10 зм» проходит, «пять золотых» отклоняется", function(){
+      var env = _wpEnv();
+      try {
+        _setWForm({ name: "Дешёвый", damage: "1к6", cost: "10 зм", addInv: false });
+        submitWeapon();
+        if (env.char.weapons.length !== 1) return "валидная цена отклонена";
+        _setWForm({ name: "Дорогой", damage: "1к6", cost: "пять золотых", addInv: false });
+        submitWeapon();
+        if (env.char.weapons.length !== 1) return "битая цена прошла: " + env.char.weapons.length;
+        if (!env.toasts.some(function(x){ return String(x.msg).indexOf("Цена:") === 0; })) return "нет тоста про цену";
+        return true;
+      } finally { env.restore(); }
+    });
+
+    if (typeof deleteCustomWeapon === "function") {
+      t("[hb-6] deleteCustomWeapon: убирает из каталога, строку атаки не трогает", function(){
+        var env = _wpEnv();
+        var savedConfirm = window.showConfirmModal;
+        window.showConfirmModal = function(title, text, onConfirm){ onConfirm(); };
+        try {
+          env.char.customWeapons = [{ name: "Клинок бездны", damage: "2к6", category: "martial", kind: "melee", homebrew: true }];
+          env.char.weapons = [{ name: "Клинок бездны", damage: "2к6", category: "martial", kind: "melee", proficient: false }];
+          deleteCustomWeapon("Клинок бездны");
+          if (env.char.customWeapons.length !== 0) return "каталог не очистился: " + env.char.customWeapons.length;
+          if (env.char.weapons.length !== 1) return "строка атаки исчезла: " + env.char.weapons.length;
+          return true;
+        } finally { window.showConfirmModal = savedConfirm; env.restore(); }
+      });
+    }
+
+    if (typeof editWeapon === "function") {
+      t("[hb-6] editWeapon: префилл формы + edit-index, заголовок в режим правки", function(){
+        var env = _wpEnv();
+        try {
+          env.char.weapons = [{ name: "Секира", stat: "str", damage: "1к12", type: "Рубящий",
+            range: "Ближний", notes: "тяжёлое", category: "martial", kind: "melee", weight: 6, cost: "20 зм", proficient: false }];
+          editWeapon(0);
+          if (document.getElementById("new-weapon-name").value !== "Секира") return "имя не префилл: " + document.getElementById("new-weapon-name").value;
+          if (document.getElementById("new-weapon-category").value !== "martial") return "категория не префилл";
+          if (String(document.getElementById("new-weapon-weight").value) !== "6") return "вес не префилл: " + document.getElementById("new-weapon-weight").value;
+          if (document.getElementById("weapon-edit-index").value !== "0") return "edit-index не выставлен: " + document.getElementById("weapon-edit-index").value;
+          if (document.getElementById("new-weapon-save-catalog").checked) return "чекбокс каталога не должен стоять (записи нет в каталоге)";
+          var title = document.getElementById("weapon-modal-title");
+          if (title && title.textContent !== "Редактировать оружие") return "заголовок: " + title.textContent;
+          return true;
+        } finally { env.restore(); }
+      });
+    }
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
