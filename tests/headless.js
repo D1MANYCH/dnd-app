@@ -2342,6 +2342,37 @@
         return missing.length === 0 || "нет option: " + missing.join(",");
       });
     }
+
+    // BUILD-FIX-6: BACKGROUND_ALIASES — единая таблица алиасов (data.js) для applyBuild()
+    // и валидатора билдов. Пока копия жила в валидаторе, она разошлась с оригиналом
+    // и на каждой загрузке страницы печатала ложный warn на 13 билдов.
+    // Сам валидатор в node не срабатывает (readyState 'loading' → ждёт DOMContentLoaded),
+    // поэтому его инвариант проверяем здесь.
+    if (typeof BACKGROUND_ALIASES !== "undefined") {
+      t("[BUILD-FIX-6] BACKGROUND_ALIASES: цели — ключи BACKGROUND_SKILLS, алиасы не перекрывают предыстории", function(){
+        var keys = Object.keys(BACKGROUND_ALIASES);
+        if (!keys.length) return "таблица пуста";
+        var bad = [];
+        keys.forEach(function(k){
+          if (BACKGROUND_SKILLS[k]) bad.push("алиас «" + k + "» перекрывает настоящую предысторию");
+          if (!BACKGROUND_SKILLS[BACKGROUND_ALIASES[k]]) bad.push("«" + k + "» → «" + BACKGROUND_ALIASES[k] + "» (нет такой предыстории)");
+        });
+        return bad.length === 0 || bad.join("; ");
+      });
+
+      if (typeof CHARACTER_BUILDS !== "undefined" || (typeof window !== "undefined" && window.CHARACTER_BUILDS)) {
+        t("[BUILD-FIX-6] предыстория каждого билда резолвится через BACKGROUND_ALIASES в реальную предысторию", function(){
+          var list = (typeof CHARACTER_BUILDS !== "undefined") ? CHARACTER_BUILDS : window.CHARACTER_BUILDS;
+          var bad = [];
+          list.forEach(function(b){
+            if (!b.background) return;
+            var key = BACKGROUND_ALIASES[b.background] || b.background;
+            if (!BACKGROUND_SKILLS[key]) bad.push(b.id + ": «" + b.background + "» → «" + key + "»");
+          });
+          return bad.length === 0 || "не резолвятся: " + bad.join(", ");
+        });
+      }
+    }
   }
 
   // ────────── БЛОК 24 (FIN-5): снаряжение — каталог товаров + наборы PHB ──────────

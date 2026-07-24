@@ -1864,8 +1864,8 @@ window.getBuildRecommendationForLevel = function(buildId, level) {
 };
 
 // BUILD-FIX-6: runtime-валидатор. Сверяет race/className/background каждого билда
-// со значениями <select> в DOM. Для background допускает PHB-имена, которые
-// applyBuild() мапит через _bgAliases на канонические опции.
+// со значениями <select> в DOM. Для background допускает старые переводы, которые
+// applyBuild() мапит через BACKGROUND_ALIASES (data.js) на канонические опции.
 (function validateBuildOptions(){
   function readOptions(id){
     var sel = document.getElementById(id);
@@ -1877,17 +1877,14 @@ window.getBuildRecommendationForLevel = function(buildId, level) {
     }
     return out;
   }
-  // Дублируем алиасы предысторий из applyBuild (app-core.js): PHB-названия → опции <select>.
-  var BG_ALIASES = {
-    "Солдат":"Воин", "Шарлатан":"Преступник", "Послушник":"Прислужник",
-    "Дворянин":"Благородный", "Дикарь":"Чужеземец",
-    "Гильд-артист":"Подмастерье", "Моряк":"Матрос"
-  };
   function run(){
     var races = readOptions("char-race");
     var classes = readOptions("char-class");
     var backgrounds = readOptions("char-background");
     if (!races || !classes || !backgrounds) return; // DOM ещё не готов
+    // Та же таблица алиасов, что применяет applyBuild(), — единый источник в data.js.
+    // Своя копия здесь однажды разошлась с оригиналом и давала ложный warn на 13 билдов.
+    var bgAliases = (typeof BACKGROUND_ALIASES !== "undefined") ? BACKGROUND_ALIASES : {};
     var problems = [];
     (window.CHARACTER_BUILDS || []).forEach(function(b){
       if (b.race && races.indexOf(b.race) === -1) {
@@ -1897,7 +1894,7 @@ window.getBuildRecommendationForLevel = function(buildId, level) {
         problems.push({id:b.id, field:"className", value:b.className});
       }
       if (b.background) {
-        var bgKey = BG_ALIASES[b.background] || b.background;
+        var bgKey = bgAliases[b.background] || b.background;
         if (backgrounds.indexOf(bgKey) === -1) {
           problems.push({id:b.id, field:"background", value:b.background});
         }

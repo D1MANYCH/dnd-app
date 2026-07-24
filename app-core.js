@@ -1693,14 +1693,10 @@ function _applyBuildCore(buildId) {
     for (var si = 0; si < skills.length; si++) if (skills[si].name === name) return si;
     return -1;
   };
-  // Алиасы названий предысторий: контент билдов использует PHB-имена ("Солдат"),
-  // а BACKGROUND_SKILLS — старый перевод ("Воин").
-  // FIN-4: «Шарлатан» — теперь самостоятельная предыстория в BACKGROUND_SKILLS,
-  // алиас на «Преступника» снят (иначе билд получал бы чужие навыки/заметки).
-  var _bgAliases = {
-    "Послушник":"Прислужник", "Дикарь":"Чужеземец",
-    "Бродяга":"Чужеземец", "Гильд-артист":"Гильдейский ремесленник"
-  };
+  // Алиасы названий предысторий (старые переводы билдов → ключи BACKGROUND_SKILLS
+  // и опции <select>). Таблица одна на всё приложение — BACKGROUND_ALIASES в data.js;
+  // её же читает валидатор BUILD-FIX-6 в character-builds.js.
+  var _bgAliases = (typeof BACKGROUND_ALIASES !== "undefined") ? BACKGROUND_ALIASES : {};
   var _bgKey = _bgAliases[b.background] || b.background;
   var _bgEntry = (typeof BACKGROUND_SKILLS !== "undefined") ? BACKGROUND_SKILLS[_bgKey] : null;
   if (_bgEntry && Array.isArray(_bgEntry.skills)) {
