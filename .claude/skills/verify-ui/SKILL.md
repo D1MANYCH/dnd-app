@@ -34,6 +34,13 @@ for(const n of await caches.keys())await caches.delete(n);})()
 `cancelAnimationFrame` активного цикла, переопределить `requestAnimationFrame` на no-op,
 `WEBGL_lose_context.loseContext()` на всех canvas, `display:none` на них — потом screenshot.
 
+**Вторая причина отказа — скрытая панель браузера.** `computer {action:"screenshot"}`
+падает за 5 с с `Browser pane is not displayed, so the page is not compositing frames`:
+кадры не композитятся вообще, обход выше не помогает. Проверено (фаза 4): при скрытой
+панели остальные инструменты работают штатно — `read_page`, реальные клики `computer`,
+`read_console_messages`, `read_network_requests`, `javascript_tool`. Дыра ровно одна,
+лечится headless-Chrome из п. 6.
+
 ## 3. preview_network кумулятивна между reload
 
 Старые 404 от диагностических fetch висят в списке и путают. Для «что реально запросила
@@ -63,7 +70,13 @@ for(const n of await caches.keys())await caches.delete(n);})()
 запущен — снимать **PNG** headless-Chrome'ом (без JPEG-автоэкспозиции из п. 5):
 `chrome --headless=new --disable-gpu --hide-scrollbars --window-size=W,H
 --force-device-scale-factor=DPR --virtual-time-budget=3000 --screenshot=out.png <url>`
-+ попиксельный анализ Pillow'ом. Для оверлеев/затемнений есть готовая фикстура
++ попиксельный анализ Pillow'ом. Chrome — `C:\Program Files\Google\Chrome\Application\chrome.exe`.
+**Гоча PowerShell:** аргумент с запятой без кавычек (`--window-size=390,844`) парсится как
+массив и Chrome молча не пишет PNG — квотировать целиком (`"--window-size=390,844"`,
+`"--screenshot=$path"`); каждому запуску — свой `--user-data-dir` (иначе второй старт
+упирается в залоченный профиль первого) и `--no-first-run`. Свежий профиль = нет SW
+(ловушка п. 1 снимается сама), но и нет localStorage — приложение встречает онбордингом
+поверх главной. Для оверлеев/затемнений есть готовая фикстура
 `tests/tour-fixture.html?theme=light|dark&dim=0.5&diag=1` (детерминированная
 дырка (194,144)-(526,276) CSS px). Для скриншот-матрицы ПРИЛОЖЕНИЯ (вкладки/
 модалки/темы, THEME-3+) — `tests/theme-audit-fixture.html?tab=…&theme=…&scroll=…
