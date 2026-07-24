@@ -1222,6 +1222,8 @@ if (typeof _refreshAccent === 'function') _refreshAccent();
 updateHeaderTitle();
 renderCharacterList();
 updateStorageStatus();
+// Нет активного персонажа — прячем плавающий чип активных эффектов.
+if (typeof renderActiveEffectsFab === "function") renderActiveEffectsFab();
 // Возврат к списку персонажей всегда скроллит наверх (header-back и
 // браузерный Back через history-stack оба зовут showScreen("characters")).
 try {

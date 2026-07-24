@@ -1201,6 +1201,130 @@ if (statusConc) {
 // CAST-9b: чип остатка концентрации в шапке трекера боя — обновляем здесь,
 // чтобы он ловил любую смену концентрации (постановка, конец, прерывание).
 if (typeof renderBattleCastPanels === "function") renderBattleCastPanels();
+renderActiveEffectsFab(); // плавающий чип активных эффектов (ловит загрузку/смену концентрации)
+}
+
+// ── Плавающий чип активных эффектов заклинаний ──────────────────
+// Виден на всех вкладках, пока в char.activeSpellEffects есть эффекты; тап
+// раскрывает список со снятием (✕) и кнопками хода. Механику переиспользует:
+// tickCastEffectsRound (тик длительностей), removeCastEffectsForSpell /
+// endConcentration (снятие). Рендер дёргается там же, где updateSpellActiveBadges
+// (каст/снятие/тик) и updateConcentrationDisplay (загрузка/концентрация).
+function _aefRemainingLabel(inst) {
+  // Раундовые/минутные заклинания имеют roundsLeft; часовые+ (roundsLeft==null)
+  // показываем по unit/value — они не тикают кнопкой хода, снимаются ✕/отдыхом.
+  if (inst.roundsLeft != null) return "⏳ " + inst.roundsLeft + " рд";
+  switch (inst.unit) {
+    case "hour": return (inst.value || "") + " ч";
+    case "day": return (inst.value || "") + " дн";
+    case "minute": return (inst.value || "") + " мин";
+    case "round": return (inst.value || "") + " рд";
+    case "untilLongRest": return "до отдыха";
+    case "instant": return "мгновенно";
+    case "special": return "особая";
+    default: return "—";
+  }
+}
+function _aefRowHtml(inst) {
+  var esc = (typeof escapeHtml === "function") ? escapeHtml : function(s){ return s; };
+  var name = esc(inst.spellName || "");
+  var conc = inst.concentration ? '<span class="aef-row-conc" title="Концентрация">🔮</span> ' : '';
+  var variant = inst.variantName ? ' <span class="aef-row-variant">· ' + esc(inst.variantName) + '</span>' : '';
+  // Снятие по data-атрибуту (this.dataset.spell) — имя не попадает в JS-строку
+  // onclick, поэтому спецсимволы («Слово Силы: смерть» и т.п.) не ломают кнопку.
+  return '<div class="aef-row">' +
+    '<span class="aef-row-name">' + conc + name + variant + '</span>' +
+    '<span class="aef-row-time">' + esc(_aefRemainingLabel(inst)) + '</span>' +
+    '<button class="aef-row-x" type="button" data-spell="' + esc(inst.spellName || "") +
+      '" onclick="removeActiveEffect(this.dataset.spell)" title="Снять эффект" aria-label="Снять эффект">✕</button>' +
+  '</div>';
+}
+function renderActiveEffectsFab() {
+  var fab = document.getElementById("active-effects-fab");
+  var panel = document.getElementById("active-effects-panel");
+  if (!fab || !panel) return;
+  var char = (typeof currentId !== "undefined" && currentId && typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  var list = (char && Array.isArray(char.activeSpellEffects)) ? char.activeSpellEffects : [];
+  if (!list.length) {
+    fab.setAttribute("hidden", "");
+    panel.setAttribute("hidden", "");
+    panel.classList.remove("aef-open");
+    fab.setAttribute("aria-expanded", "false");
+    _aefBindOutside(false);
+    return;
+  }
+  fab.removeAttribute("hidden");
+  var cnt = fab.querySelector(".aef-fab-count");
+  if (cnt) cnt.textContent = list.length;
+  var body = panel.querySelector(".aef-list");
+  if (body) body.innerHTML = list.map(_aefRowHtml).join("");
+}
+function toggleActiveEffectsPanel() {
+  var fab = document.getElementById("active-effects-fab");
+  var panel = document.getElementById("active-effects-panel");
+  if (!panel) return;
+  var willOpen = panel.hasAttribute("hidden");
+  if (willOpen) {
+    renderActiveEffectsFab(); // свежий список на открытии
+    panel.removeAttribute("hidden");
+    panel.classList.add("aef-open");
+    if (fab) fab.setAttribute("aria-expanded", "true");
+    _aefBindOutside(true);
+  } else {
+    panel.setAttribute("hidden", "");
+    panel.classList.remove("aef-open");
+    if (fab) fab.setAttribute("aria-expanded", "false");
+    _aefBindOutside(false);
+  }
+}
+var _aefOutsideHandler = null;
+function _aefBindOutside(on) {
+  if (on) {
+    if (_aefOutsideHandler) return;
+    _aefOutsideHandler = function(e) {
+      var panel = document.getElementById("active-effects-panel");
+      var fab = document.getElementById("active-effects-fab");
+      if (!panel) return;
+      if (panel.contains(e.target) || (fab && fab.contains(e.target))) return;
+      panel.setAttribute("hidden", "");
+      panel.classList.remove("aef-open");
+      if (fab) fab.setAttribute("aria-expanded", "false");
+      _aefBindOutside(false);
+    };
+    // Отложенная привязка — иначе тот же клик, что открыл панель, тут же закроет.
+    setTimeout(function() { document.addEventListener("click", _aefOutsideHandler); }, 0);
+  } else if (_aefOutsideHandler) {
+    document.removeEventListener("click", _aefOutsideHandler);
+    _aefOutsideHandler = null;
+  }
+}
+function advanceActiveEffects(count) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char || !char.activeSpellEffects) return;
+  var hasTicking = char.activeSpellEffects.some(function(i) { return i.roundsLeft != null; });
+  if (!hasTicking) {
+    showToast("⏳ Нет эффектов с раундовой длительностью", "info");
+    return;
+  }
+  // tickCastEffectsRound сам снимет истёкшие, обновит бейджи/сетку/чип и сохранит.
+  if (typeof tickCastEffectsRound === "function") tickCastEffectsRound(count);
+}
+function removeActiveEffect(spellName) {
+  if (!currentId || !spellName) return;
+  var char = getCurrentChar();
+  if (!char || !char.activeSpellEffects) return;
+  var inst = char.activeSpellEffects.find(function(i) { return i.spellName === spellName; });
+  if (!inst) return;
+  // Концентрационный эффект снимаем через endConcentration — иначе char.concentration
+  // останется висеть (removeCastEffectsForSpell его не чистит). Обе ветки в итоге
+  // зовут renderActiveEffectsFab (через updateSpellActiveBadges/updateConcentrationDisplay).
+  if (inst.concentration && char.concentration === spellName) {
+    endConcentration();
+  } else {
+    removeCastEffectsForSpell(char, spellName, "снято вручную");
+    showToast("✨ «" + spellName + "» снято", "info");
+  }
 }
 function updateStatusBar() {
 const statusBar = $("status-bar");

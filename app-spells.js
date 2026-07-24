@@ -842,6 +842,8 @@ function updateSpellActiveBadges() {
     var title = card.querySelector(".spell-card-title");
     if (title) title.insertAdjacentHTML("beforeend", _spellActiveBadgeHtml(inst));
   });
+  // Плавающий чип активных эффектов ловит каст/снятие/тик через этот же вызов.
+  if (typeof renderActiveEffectsFab === "function") renderActiveEffectsFab();
 }
 // ── Подготовка заклинаний ────────────────────────────────────
 function calcMaxPrepared(char) {

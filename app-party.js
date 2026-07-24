@@ -1522,7 +1522,10 @@ function prevTurn() {
 // персонажа; на нуле — экспирация (карточки снимает removeCastEffectsForSpell
 // с рефкаунтом, концентрация истёкшего заклинания гаснет). Часовые и дольше
 // (roundsLeft == null) не тикают — истекают на отдыхе или вручную.
-function tickCastEffectsRound() {
+function tickCastEffectsRound(count) {
+  // count — сколько раундов пройдёт за раз (кнопка «Минута» = 10). По умолчанию 1
+  // (бой зовёт без аргумента на смене раунда — полная обратная совместимость).
+  var n = (typeof count === "number" && count > 0) ? Math.floor(count) : 1;
   var char = (typeof getCurrentChar === "function" && currentId) ? getCurrentChar() : null;
   if (!char || !char.activeSpellEffects || !char.activeSpellEffects.length) return;
   var expired = [];
@@ -1530,7 +1533,7 @@ function tickCastEffectsRound() {
   char.activeSpellEffects.forEach(function(inst) {
     if (inst.roundsLeft == null) return;
     ticked = true;
-    inst.roundsLeft -= 1;
+    inst.roundsLeft -= n;
     if (inst.roundsLeft <= 0) expired.push(inst);
   });
   if (!ticked) return;
