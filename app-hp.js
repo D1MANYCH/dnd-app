@@ -939,8 +939,11 @@ function luBuildChoicesScreen() {
     var recSub = b ? b.subclass : null;
     var optsHtml = SUBCLASSES[cn].map(function(s){
       var isRec = (s === recSub);
+      // SUB-0: приписка источника подкласса на кнопке выбора level-up.
+      var src = (typeof subclassSourceShort === "function") ? subclassSourceShort(s) : "";
+      var srcHtml = src ? ' <span class="lu-src-tag">' + escapeHtml(src) + '</span>' : '';
       return '<button class="lu-choice-opt' + (isRec ? ' is-rec' : '') + '" onclick="luSetSubclass(\'' + s.replace(/'/g,"\\'") + '\')">' +
-        escapeHtml(s) + (isRec ? ' ' + recBadge('совет') : '') + '</button>';
+        escapeHtml(s) + srcHtml + (isRec ? ' ' + recBadge('совет') : '') + '</button>';
     }).join("");
     blocks.push('<div class="lu-choice-block"><div class="lu-choice-title">🔮 Выбор подкласса</div>' +
       (recSub ? '<div class="lu-choice-sub">Билд советует: <b style="color:var(--rec)">' + escapeHtml(recSub) + '</b></div>' : '') +

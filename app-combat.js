@@ -1559,7 +1559,12 @@ function updateSubclassOptions() {
   subclassSelect.disabled = false;
   subclassSelect.appendChild(new Option("Выберите подкласс", ""));
   SUBCLASSES[selectedClass].forEach(function(subclass) {
-    subclassSelect.appendChild(new Option(subclass, subclass));
+    // SUB-0: приписка источника в подписи опции (значение = чистое имя подкласса).
+    var src = (typeof subclassSourceShort === "function") ? subclassSourceShort(subclass) : "";
+    var opt = new Option(src ? subclass + " · " + src : subclass, subclass);
+    var full = (typeof subclassSourceFull === "function") ? subclassSourceFull(subclass) : "";
+    if (full) opt.title = full;
+    subclassSelect.appendChild(opt);
   });
 
   if (currentId) {

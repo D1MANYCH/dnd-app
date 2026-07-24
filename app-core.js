@@ -2964,7 +2964,7 @@ function openBuildPlan(buildId) {
   if (bodyEl) {
     bodyEl.innerHTML =
       '<div class="bp-plan-meta">' + escapeHtml(b.className || "") +
-      (b.subclass ? ' · ' + escapeHtml(b.subclass) : '') +
+      (b.subclass ? ' · ' + escapeHtml(b.subclass) + (typeof subclassSourceShort === "function" && subclassSourceShort(b.subclass) ? ' (' + escapeHtml(subclassSourceShort(b.subclass)) + ')' : '') : '') +
       (b.role ? ' · ' + escapeHtml(b.role) : '') +
       (curLevel ? ' · текущий уровень: ' + curLevel : '') + '</div>' +
       rows.join("");
@@ -3014,8 +3014,9 @@ function openClassPlan() {
   }
   var bodyEl = document.getElementById("bp-plan-body");
   if (bodyEl) {
+    var subSrc = (ch.subclass && typeof subclassSourceShort === "function") ? subclassSourceShort(ch.subclass) : "";
     var meta = escapeHtml(ch.class) +
-      (ch.subclass ? ' · ' + escapeHtml(ch.subclass)
+      (ch.subclass ? ' · ' + escapeHtml(ch.subclass) + (subSrc ? ' (' + escapeHtml(subSrc) + ')' : '')
                    : ' · подкласс не выбран (фичи архетипа появятся после выбора)') +
       ' · текущий уровень: ' + curLevel;
     bodyEl.innerHTML = '<div class="bp-plan-meta">' + meta + '</div>' + rows.join("");

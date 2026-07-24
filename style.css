@@ -12615,6 +12615,8 @@ mark.notes-hl {
 .lu-choice-opt { display: inline-flex; align-items: center; gap: 4px; font-size: 0.86em; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; }
 .lu-choice-opt:hover { border-color: var(--accent); }
 .lu-choice-opt.is-rec { border-color: var(--rec); box-shadow: 0 0 0 1.5px var(--rec); }
+/* SUB-0: метка источника подкласса (PHB/дополнение/авторский) на кнопке выбора */
+.lu-src-tag { font-size: 0.72em; font-weight: 600; letter-spacing: 0.02em; color: var(--text-mute); border: 1px solid var(--border); border-radius: 999px; padding: 0 6px; white-space: nowrap; }
 .lu-choice-launch { font-size: 0.86em; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--rec); background: var(--rec-bg); color: var(--rec); font-weight: 600; cursor: pointer; }
 .lu-choice-launch:hover { background: var(--rec); color: #fff; }
 /* BUILD-LVL: блок заклинаний на экране повышения — disabled-состояние «уже добавлены» + вторичная кнопка перехода на вкладку */
