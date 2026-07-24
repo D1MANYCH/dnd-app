@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dnd-app",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "3017"],
+      "port": 3017,
+      "autoPort": true
+    }
+  ]
+}
