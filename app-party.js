@@ -758,7 +758,8 @@ function _findPartyMonster(pid) {
   return PARTY_DATA.monsters.filter(function(m) { return String(m.id) === raw; })[0] || null;
 }
 // Мета боя участника: мод Ловкости (для инициативы) + текущие/макс ХП.
-// self — из листа персонажа (initBonus — бонус инициативы от черт, напр. «Бдительный» +5);
+// self — из листа персонажа (initBonus — надбавки сверх ЛОВ из getInitiativeMod: черты
+// вроде «Бдительного» +5, пол-БМ Барда — тот же расчёт, что и поле листа);
 // монстр — ХП из записи отряда, Ловкость из SRD по srdSlug;
 // союзник/NPC — без числовых ХП/Ловкости (0).
 function _participantCombatMeta(p) {
@@ -768,7 +769,7 @@ function _participantCombatMeta(p) {
     var char = getCurrentChar();
     if (char) {
       if (char.stats) dexMod = getMod(char.stats.dex);
-      if (char.bonuses && char.bonuses.initiative) initBonus = char.bonuses.initiative; // FIN-1
+      initBonus = getInitiativeMod(char) - dexMod; // FIN-1
       if (char.combat) { hp = char.combat.hpCurrent || 0; hpMax = char.combat.hpMax || 0; }
     }
   } else if (p.type === "monster") {

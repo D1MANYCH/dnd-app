@@ -1963,6 +1963,56 @@
       }
       return true;
     });
+    t("[init] лист и трекер считают инициативу одинаково (Бард 5 ур. + «Бдительный»)", function(){
+      if (typeof calcStats !== "function" || typeof getInitiativeMod !== "function") return true;
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        window.characters = [{
+          id: "test-init-1",
+          stats: { str:10, dex:14, con:10, int:10, wis:10, cha:10 },
+          saves: { str:false, dex:false, con:false, int:false, wis:false, cha:false },
+          skills: [], expertiseSkills: [], combat: { hpCurrent:10, hpMax:10 },
+          spells: { stat:"", slots:{}, slotsUsed:{}, prepared:[] },
+          bonuses: { initiative: 5 },
+          class: "Бард", level: 5
+        }];
+        window.currentId = "test-init-1";
+        _ensureInput("char-level", "5");
+        _ensureInput("val-str", "10");
+        _ensureInput("val-dex", "14");
+        _ensureInput("val-con", "10");
+        _ensureInput("val-int", "10");
+        _ensureInput("val-wis", "10");
+        _ensureInput("val-cha", "10");
+        _ensureEl("combat-init", "input");
+        calcStats();
+        var sheet = document.getElementById("combat-init").value;
+        if (sheet !== "+8") return "лист: combat-init '" + sheet + "' (ожидал '+8' = +2 ЛОВ +1 пол-БМ +5 черта)";
+        var m = _participantCombatMeta({ type: "self", id: "self_test-init-1" });
+        if (m.dexMod + m.initBonus !== 8) return "трекер: " + m.dexMod + " + " + m.initBonus + " (ожидал в сумме 8)";
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; }
+    });
+  }
+  if (typeof getInitiativeMod === "function") {
+    t("[init] getInitiativeMod: ЛОВ + пол-БМ Барда (с 2 ур.) + бонус черты, без дублей", function(){
+      var cases = [
+        [{ stats:{dex:14} }, 1, 2],
+        [{ stats:{dex:14}, bonuses:{initiative:5} }, 1, 7],
+        [{ stats:{dex:14}, class:"Бард" }, 1, 2],
+        [{ stats:{dex:14}, class:"Бард" }, 2, 3],
+        [{ stats:{dex:14}, class:"Бард" }, 5, 3],
+        [{ stats:{dex:14}, class:"Бард" }, 9, 4],
+        [{ stats:{dex:14}, class:"Бард", bonuses:{initiative:5} }, 9, 9],
+        [{ stats:{dex:14}, class:"Воин" }, 9, 2]
+      ];
+      for (var i = 0; i < cases.length; i++) {
+        var got = getInitiativeMod(cases[i][0], cases[i][1]);
+        if (got !== cases[i][2]) return (cases[i][0].class || "без класса") + " " + cases[i][1] + " ур. → " + got + " (ожидал " + cases[i][2] + ")";
+      }
+      if (getInitiativeMod(null) !== 0) return "getInitiativeMod(null) должен вернуть 0";
+      return true;
+    });
   }
 
   // ────────── БЛОК 21 (FIN-2): оружие — каталог 37, матчинг билдов, владения ──────────

@@ -1728,6 +1728,14 @@ if (index > -1) char.proficiencies.weapon.splice(index, 1);
 }
 saveToLocal();
 }
+function getInitiativeMod(char, level) {
+  if (!char) return 0;
+  var lvl = level || char.level || 1;
+  var mod = char.stats ? getMod(char.stats.dex) : 0;
+  if (char.class === "Бард" && lvl >= 2) mod += Math.floor(getProficiencyBonus(lvl) / 2);
+  if (char.bonuses && char.bonuses.initiative) mod += char.bonuses.initiative;
+  return mod;
+}
 function calcStats() {
 if (!currentId) return;
 const char = getCurrentChar();
@@ -1747,9 +1755,7 @@ const mod = getMod(val);
 const modEl = $("mod-" + s);
 if (modEl) modEl.innerText = formatMod(mod);
 });
-const dexMod = getMod(char.stats.dex);
-var initBonus = dexMod;
-if (char.class === "Бард" && level >= 2) initBonus += Math.floor(proficiencyBonus / 2);
+var initBonus = getInitiativeMod(char, level);
 const initEl = $("combat-init");
 if (initEl) initEl.value = formatMod(initBonus);
 SAVES_DATA.forEach(function(save) {
