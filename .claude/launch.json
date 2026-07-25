@@ -7,6 +7,13 @@
       "runtimeArgs": ["-m", "http.server", "3017"],
       "port": 3017,
       "autoPort": false
+    },
+    {
+      "name": "dnd-app-alt",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "3018"],
+      "port": 3018,
+      "autoPort": false
     }
   ]
 }

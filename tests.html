@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Проверки правил — rules.js</title>
+<style>
+  :root {
+    --bg: #12100c;
+    --panel: #1c1813;
+    --panel-2: #242017;
+    --line: rgba(240, 180, 41, 0.18);
+    --text: #ece5d8;
+    --mute: #a99f8b;
+    --amber: #f0b429;
+    --amber-dim: #c98f16;
+    --ok: #5bc46b;
+    --fail: #e5534b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 0 12px calc(28px + env(safe-area-inset-bottom));
+    -webkit-text-size-adjust: 100%;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: 0 -12px 14px;
+    padding: 14px 12px calc(12px + env(safe-area-inset-top));
+    padding-top: calc(14px + env(safe-area-inset-top));
+    background: linear-gradient(180deg, #16130e 0%, rgba(22, 19, 14, 0.96) 100%);
+    border-bottom: 1px solid var(--line);
+  }
+  h1 {
+    margin: 0 0 10px;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    color: var(--amber);
+  }
+  h1 small { display: block; margin-top: 3px; font-size: 12px; font-weight: 400; color: var(--mute); letter-spacing: 0; }
+  .totals { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .pill {
+    padding: 7px 13px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 700;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    white-space: nowrap;
+  }
+  .pill.ok { color: var(--ok); border-color: rgba(91, 196, 107, 0.45); }
+  .pill.fail { color: var(--fail); border-color: rgba(229, 83, 75, 0.45); }
+  .pill.all-green { background: rgba(91, 196, 107, 0.12); }
+  .pill.has-fails { background: rgba(229, 83, 75, 0.14); }
+  button {
+    font: inherit;
+    font-size: 14px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--amber);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:active { background: var(--panel-2); }
+  button[aria-pressed="true"] { background: rgba(240, 180, 41, 0.16); border-color: var(--amber-dim); }
+  .warn {
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border: 1px solid rgba(229, 83, 75, 0.5);
+    border-left-width: 4px;
+    border-radius: 10px;
+    background: rgba(229, 83, 75, 0.09);
+    font-size: 14px;
+  }
+  .warn b { color: var(--fail); }
+  .warn button { margin-top: 10px; display: block; }
+  .group { margin: 0 0 18px; }
+  .group > h2 {
+    margin: 0 0 8px;
+    padding: 0 2px;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--amber-dim);
+  }
+  .case {
+    display: flex;
+    gap: 10px;
+    padding: 11px 13px;
+    margin-bottom: 6px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--ok);
+    border-radius: 10px;
+  }
+  .case.fail { border-left-color: var(--fail); background: var(--panel-2); }
+  .case .mark { flex: none; font-size: 15px; line-height: 1.45; }
+  .case .body { min-width: 0; }
+  .case .desc { overflow-wrap: anywhere; }
+  .case.fail .desc { font-weight: 600; }
+  .case .msg {
+    margin-top: 6px;
+    padding: 7px 9px;
+    border-radius: 7px;
+    background: rgba(229, 83, 75, 0.12);
+    color: #ffb3ad;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+  .empty { color: var(--mute); padding: 20px 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Проверки правил <small id="env">rules.js</small></h1>
+  <div class="totals">
+    <span class="pill ok" id="pill-ok">✅ 0</span>
+    <span class="pill fail" id="pill-fail">❌ 0</span>
+    <button id="only-fails" aria-pressed="false">Только упавшие</button>
+    <button id="rerun">Прогнать заново</button>
+  </div>
+</header>
+
+<div id="sw-warn" class="warn" hidden>
+  <b>Активен Service Worker.</b> Он отдаёт <code>rules.js</code> и <code>data.js</code> из прекеша,
+  поэтому страница может проверять СТАРЫЙ код. Сбросьте кеш и перезагрузите.
+  <button id="sw-reset">Сбросить кеш и перезагрузить</button>
+</div>
+
+<main id="results"><div class="empty">Проверки не выполнились.</div></main>
+
+<script src="data.js"></script>
+<script src="rules.js"></script>
+
+<script>
+// Движок: формат кейса общий с tests/headless.js — функция возвращает true (ок)
+// или строку с описанием расхождения. Исключение = падение.
+var RULES_RESULTS = [];
+var _curGroup = null;
+
+function group(title) {
+  _curGroup = { title: title, cases: [] };
+  RULES_RESULTS.push(_curGroup);
+}
+
+function t(desc, fn) {
+  if (!_curGroup) group("Прочее");
+  var res, msg = "";
+  try {
+    res = fn();
+  } catch (e) {
+    res = false;
+    msg = "падение: " + ((e && e.message) || String(e));
+  }
+  if (res !== true && !msg) {
+    msg = (typeof res === "string" && res) ? res : "проверка не вернула true (получено " + String(res) + ")";
+  }
+  _curGroup.cases.push({ desc: desc, ok: res === true, msg: res === true ? "" : msg });
+}
+</script>
+
+<script src="tests/rules-cases.js"></script>
+
+<script>
+(function() {
+  if (typeof rulesCases === "function") rulesCases(t, group);
+
+  var onlyFails = false;
+
+  function counts() {
+    var ok = 0, fail = 0;
+    RULES_RESULTS.forEach(function(g) {
+      g.cases.forEach(function(c) { c.ok ? ok++ : fail++; });
+    });
+    return { ok: ok, fail: fail };
+  }
+
+  function render() {
+    var box = document.getElementById("results");
+    var n = counts();
+    var okPill = document.getElementById("pill-ok");
+    var failPill = document.getElementById("pill-fail");
+    okPill.textContent = "✅ " + n.ok;
+    failPill.textContent = "❌ " + n.fail;
+    okPill.className = "pill ok" + (n.fail === 0 && n.ok > 0 ? " all-green" : "");
+    failPill.className = "pill fail" + (n.fail > 0 ? " has-fails" : "");
+    document.title = (n.fail ? "❌ " + n.fail + " — " : "✅ ") + "Проверки правил";
+
+    var html = "";
+    RULES_RESULTS.forEach(function(g) {
+      var cases = onlyFails ? g.cases.filter(function(c) { return !c.ok; }) : g.cases;
+      if (!cases.length) return;
+      html += '<section class="group"><h2>' + esc(g.title) + "</h2>";
+      cases.forEach(function(c) {
+        html += '<div class="case' + (c.ok ? "" : " fail") + '">' +
+                '<span class="mark">' + (c.ok ? "✅" : "❌") + "</span>" +
+                '<div class="body"><div class="desc">' + esc(c.desc) + "</div>" +
+                (c.ok ? "" : '<div class="msg">' + esc(c.msg) + "</div>") +
+                "</div></div>";
+      });
+      html += "</section>";
+    });
+    if (!html) {
+      html = '<div class="empty">' + (n.ok + n.fail === 0
+        ? "Ни одной проверки не зарегистрировано — проверьте tests/rules-cases.js."
+        : "Упавших проверок нет.") + "</div>";
+    }
+    box.innerHTML = html;
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  document.getElementById("env").textContent =
+    "rules.js · приложение " + (typeof APP_VERSION !== "undefined" ? "v" + APP_VERSION : "версия не загружена");
+
+  document.getElementById("only-fails").addEventListener("click", function() {
+    onlyFails = !onlyFails;
+    this.setAttribute("aria-pressed", onlyFails ? "true" : "false");
+    render();
+  });
+  document.getElementById("rerun").addEventListener("click", function() {
+    location.reload();
+  });
+
+  // Ловушка проекта: sw.js кеширует cache-first с ignoreSearch — под активным
+  // Service Worker страница проверит прекешированную (старую) копию rules.js.
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+      if (!regs.length) return;
+      document.getElementById("sw-warn").hidden = false;
+    });
+  }
+  document.getElementById("sw-reset").addEventListener("click", function() {
+    this.disabled = true;
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+      return Promise.all(regs.map(function(r) { return r.unregister(); }));
+    }).then(function() {
+      return caches.keys().then(function(keys) {
+        return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+      });
+    }).then(function() { location.reload(); });
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>

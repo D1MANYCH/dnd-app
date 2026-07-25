@@ -74,47 +74,6 @@ function getClassLabel(char) {
   return char.classes.map(function(c) { return c.class + " " + c.level; }).join(" / ");
 }
 
-/** Рассчитать ячейки заклинаний для мультикласса (PHB p.164-165) */
-function getMulticlassSpellSlots(char) {
-  if (!char.classes || char.classes.length <= 1) {
-    // Одноклассовый — используем стандартную таблицу
-    var cn = char.class;
-    var lv = char.level;
-    if (typeof SPELL_SLOTS_BY_LEVEL !== "undefined" && SPELL_SLOTS_BY_LEVEL[cn] && SPELL_SLOTS_BY_LEVEL[cn][lv]) {
-      return SPELL_SLOTS_BY_LEVEL[cn][lv].slice();
-    }
-    return [0,0,0,0,0,0,0,0,0,0];
-  }
-  // Мультикласс — рассчитываем caster level
-  var casterLevel = 0;
-  var hasPact = false;
-  var pactLevel = 0;
-  char.classes.forEach(function(entry) {
-    var ct = (typeof CASTER_TYPE !== "undefined") ? CASTER_TYPE[entry.class] : "none";
-    // Воин/Плут — 1/3 только если правильный подкласс
-    if (ct === "third") {
-      if (typeof THIRD_CASTER_SUBCLASSES !== "undefined" && THIRD_CASTER_SUBCLASSES.indexOf(entry.subclass) !== -1) {
-        casterLevel += Math.floor(entry.level / 3);
-      }
-    } else if (ct === "full") {
-      casterLevel += entry.level;
-    } else if (ct === "half") {
-      casterLevel += Math.floor(entry.level / 2);
-    } else if (ct === "pact") {
-      hasPact = true;
-      pactLevel = entry.level;
-    }
-  });
-  // Ячейки из таблицы мультикласса
-  var slots = [0,0,0,0,0,0,0,0,0,0];
-  if (casterLevel > 0 && typeof MULTICLASS_SPELL_SLOTS !== "undefined" && MULTICLASS_SPELL_SLOTS[casterLevel]) {
-    slots = MULTICLASS_SPELL_SLOTS[casterLevel].slice();
-  }
-  // Ячейки пакта (Колдун) добавляются отдельно — они не объединяются
-  // Их обрабатывает существующая система
-  return slots;
-}
-
 /** Проверить выполнение требований для мультикласса */
 function checkMulticlassPrereqs(char, targetClass) {
   if (typeof MULTICLASS_PREREQUISITES === "undefined") return { ok: true, missing: [] };
@@ -224,15 +183,6 @@ var abilities = [
 {key: "str", name: "Сила"}, {key: "dex", name: "Ловкость"}, {key: "con", name: "Телосложение"},
 {key: "int", name: "Интеллект"}, {key: "wis", name: "Мудрость"}, {key: "cha", name: "Харизма"}
 ];
-var skills = [
-{name: "Акробатика", stat: "dex"}, {name: "Магия", stat: "int"}, {name: "Атлетика", stat: "str"},
-{name: "Внимательность", stat: "wis"}, {name: "Выживание", stat: "wis"}, {name: "Выступление", stat: "cha"},
-{name: "Запугивание", stat: "cha"}, {name: "История", stat: "int"}, {name: "Ловкость рук", stat: "dex"},
-{name: "Медицина", stat: "wis"}, {name: "Обман", stat: "cha"}, {name: "Природа", stat: "int"},
-{name: "Проницательность", stat: "wis"}, {name: "Анализ", stat: "int"}, {name: "Религия", stat: "int"},
-{name: "Скрытность", stat: "dex"}, {name: "Убеждение", stat: "cha"}, {name: "Уход за животными", stat: "wis"}
-];
-
 // ============================================
 // МИГРАЦИИ СХЕМЫ ПЕРСОНАЖА
 // ============================================

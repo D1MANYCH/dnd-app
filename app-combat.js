@@ -824,56 +824,18 @@ if (typeof renderEffectsGrid === "function") renderEffectsGrid();
 updateEffectsCount();
 updateStatusBar();
 }
-// FIN-3: чистый расчёт помех брони по книге PHB 2014.
-// slowed — СИЛ ниже strReq доспеха → скорость −10 фт (только тяжёлые с «Сил 13/15»).
-// stealthDisadv — помеха на проверки Ловкости (Скрытность). char.combat.speed
-// НЕ трогаем: помеха ситуативна, показываем предупреждением, а не автоправкой.
-function armorPenalties(char, preset) {
-  if (!preset || preset.id === "none" || preset.id === "custom") {
-    return { slowed: false, stealthDisadv: false };
-  }
-  var strScore = (char && char.stats && typeof char.stats.str === "number") ? char.stats.str : 10;
-  var slowed = !!(preset.strReq && strScore < preset.strReq);
-  return { slowed: slowed, stealthDisadv: !!preset.stealthDisadv };
-}
-
 // 🔧 ИСПРАВЛЕНИЕ: Защита от undefined в calculateAC()
 function calculateAC() {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
-const dexMod = getMod(char.stats.dex);
-const conMod = getMod(char.stats.con);
-const wisMod = getMod(char.stats.wis);
+const acRes = rulesAC(char);
+const ac = acRes.ac;
+const formulaParts = acRes.formula;
+const modifiers = acRes.modifiers;
 
 // ── Если выбрана конкретная броня из пресетов ─────────────────────────────
-const armorId = char.combat && char.combat.armorId;
-const hasShieldSelected = char.combat && char.combat.hasShield;
-if (armorId && armorId !== "none" && armorId !== "custom" && typeof ARMOR_PRESETS !== "undefined") {
-  const preset = ARMOR_PRESETS.find(function(a) { return a.id === armorId; });
-  if (preset) {
-    const dexBonus = preset.dexCap >= 99 ? dexMod : Math.min(dexMod, preset.dexCap);
-    let ac = preset.baseAC + dexBonus;
-    let formulaParts = [preset.name + " (" + preset.baseAC + ")"];
-    if (dexBonus !== 0) formulaParts.push((dexBonus > 0 ? "+" : "") + dexBonus + " (ЛОВ)");
-    let modifiers = [];
-    if (hasShieldSelected) { ac += 2; formulaParts.push("+2 (щит)"); modifiers.push({name:"Щит",value:2,type:"active"}); }
-    // Apply magic effects on top
-    if (char.effects) {
-      char.effects.forEach(function(effectId) {
-        const effect = EFFECTS_DATA.find(function(e) { return e.id === effectId; });
-        if (effect && effect.acBonus && !["mage_armor","monk_unarmored","barbarian_unarmored"].includes(effectId)) {
-          ac += effect.acBonus;
-          formulaParts.push((effect.acBonus > 0 ? "+" : "") + effect.acBonus + " (" + effect.name + ")");
-          modifiers.push({name: effect.name, value: effect.acBonus, type: effect.acBonus > 0 ? "active" : "negative"});
-        }
-      });
-    }
-    // FIN-3: бейджи помех брони (Скрытность / скорость по СИЛ) — не влияют на КД,
-    // информируют игрока. Тип "note" рендерится с иконкой ⚠️ без числа.
-    const pen = armorPenalties(char, preset);
-    if (pen.stealthDisadv) modifiers.push({name:"Помеха на Скрытность", type:"note"});
-    if (pen.slowed) modifiers.push({name:"СИЛ < " + preset.strReq + ": скорость −10 фт", type:"note"});
+if (acRes.mode === "preset") {
     const acTotalEl = $("ac-total");
     const acFormulaEl = $("ac-formula");
     const combatAcEl = $("combat-ac");
@@ -892,67 +854,15 @@ if (armorId && armorId !== "none" && armorId !== "custom" && typeof ARMOR_PRESET
     $("status-ac").textContent = ac;
     char.combat.ac = ac;
     return;
-  }
 }
 
 // ── Режим "вручную" — пользователь ввёл КД сам, не пересчитываем ──────────
-if (armorId === "custom") {
-  var _manualAc = (char.combat && typeof char.combat.ac === "number") ? char.combat.ac : 10;
-  var _ct = $("ac-total"); if (_ct) _ct.textContent = _manualAc;
-  var _cf = $("ac-formula"); if (_cf) _cf.textContent = "Вручную: " + _manualAc;
-  var _ci = $("combat-ac"); if (_ci) _ci.value = _manualAc;
-  var _cs = $("status-ac"); if (_cs) _cs.textContent = _manualAc;
+if (acRes.mode === "manual") {
+  var _ct = $("ac-total"); if (_ct) _ct.textContent = ac;
+  var _cf = $("ac-formula"); if (_cf) _cf.textContent = formulaParts.join(" ");
+  var _ci = $("combat-ac"); if (_ci) _ci.value = ac;
+  var _cs = $("status-ac"); if (_cs) _cs.textContent = ac;
   return;
-}
-// ── Без брони (armorId === "none"): КД 10+ЛОВ, плюс «без доспехов» спец-фичи
-let ac = 10;
-let formulaParts = ["10 (база)"];
-let modifiers = [];
-const hasMageArmor = char.effects && char.effects.includes('mage_armor');
-const hasMonkUnarmored = char.effects && char.effects.includes('monk_unarmored');
-const hasBarbarianUnarmored = char.effects && char.effects.includes('barbarian_unarmored');
-const isBarbarian = char.class === "Варвар";
-const isMonk = char.class === "Монах";
-if (hasBarbarianUnarmored || isBarbarian) {
-ac = 10 + dexMod + conMod;
-formulaParts = ["10 (база)", (dexMod>=0?"+":"") + dexMod + " (ЛОВ)", (conMod>=0?"+":"") + conMod + " (ТЕЛ)"];
-modifiers.push({name: "Без доспехов варвара", value: ac - 10, type: "active"});
-}
-else if (hasMonkUnarmored || isMonk) {
-ac = 10 + dexMod + wisMod;
-formulaParts = ["10 (база)", (dexMod>=0?"+":"") + dexMod + " (ЛОВ)", (wisMod>=0?"+":"") + wisMod + " (МУД)"];
-modifiers.push({name: "Без доспехов монаха", value: ac - 10, type: "active"});
-}
-else if (hasMageArmor) {
-ac = 13 + dexMod;
-formulaParts = ["13 (магия)", (dexMod>=0?"+":"") + dexMod + " (ЛОВ)"];
-modifiers.push({name: "Доспех мага", value: 3, type: "active"});
-}
-else {
-ac = 10 + dexMod;
-formulaParts = ["Без брони — КД 10", (dexMod>=0?"+":"") + dexMod + " (ЛОВ)"];
-}
-if (hasShieldSelected) {
-ac += 2;
-formulaParts.push("+2 (щит)");
-modifiers.push({name: "Щит", value: 2, type: "active"});
-}
-if (char.effects) {
-char.effects.forEach(function(effectId) {
-const effect = EFFECTS_DATA.find(function(e) { return e.id === effectId; });
-// CAST-1: базово-формульные эффекты (13+ЛОВ и т.п.) уже учтены веткой выше —
-// без исключения mage_armor давал 13+ЛОВ+3 (двойной учёт, как в бронной ветке)
-if (effect && effect.acBonus && !["mage_armor","monk_unarmored","barbarian_unarmored"].includes(effectId)) {
-ac += effect.acBonus;
-if (effect.acBonus > 0) {
-formulaParts.push("+" + effect.acBonus + " (" + effect.name + ")");
-modifiers.push({name: effect.name, value: effect.acBonus, type: "active"});
-} else {
-formulaParts.push(effect.acBonus + " (" + effect.name + ")");
-modifiers.push({name: effect.name, value: effect.acBonus, type: "negative"});
-}
-}
-});
 }
 // Update concentration display
 updateConcentrationDisplay();
@@ -1394,16 +1304,6 @@ function updateInspirationLabels(char) {
   var rr = document.getElementById("rr-insp-mini");
   if (rr) rr.title = name + " (клик — переключить)";
 }
-function getProficiencyBonus(level) {
-if (level >= 17) return 6;
-if (level >= 13) return 5;
-if (level >= 9) return 4;
-if (level >= 5) return 3;
-return 2;
-}
-function getMod(val) { return Math.floor((val - 10) / 2); }
-function formatMod(val) { return val >= 0 ? "+" + val : "" + val; }
-
 function updateStatDisplay(stat) {
   var inp = $("val-" + stat);
   var disp = $("val-display-" + stat);
@@ -1593,14 +1493,6 @@ function updateSubclassRecHint() {
     (matched ? ' <span class="subclass-rec-ok">✓ выбран</span>' : '');
   el.style.display = "";
 }
-// 🔧 ИСПРАВЛЕНИЕ: Правильный расчёт ХП по правилам D&D 5e
-function calculateMaxHP(level, conMod, hitDie) {
-if (level < 1) return 0;
-const level1HP = hitDie + conMod;
-const avgPerLevel = Math.floor(hitDie / 2) + 1;
-const additionalHP = (level - 1) * (avgPerLevel + conMod);
-return level1HP + additionalHP;
-}
 function recalculateHP() {
 if (!currentId) return;
 const char = getCurrentChar();
@@ -1728,14 +1620,6 @@ if (index > -1) char.proficiencies.weapon.splice(index, 1);
 }
 saveToLocal();
 }
-function getInitiativeMod(char, level) {
-  if (!char) return 0;
-  var lvl = level || char.level || 1;
-  var mod = char.stats ? getMod(char.stats.dex) : 0;
-  if (char.class === "Бард" && lvl >= 2) mod += Math.floor(getProficiencyBonus(lvl) / 2);
-  if (char.bonuses && char.bonuses.initiative) mod += char.bonuses.initiative;
-  return mod;
-}
 function calcStats() {
 if (!currentId) return;
 const char = getCurrentChar();
@@ -1762,8 +1646,7 @@ SAVES_DATA.forEach(function(save) {
 const checkbox = $("save-prof-" + save.key);
 const item = $("save-item-" + save.key);
 if(checkbox) {
-let bonus = getMod(char.stats[save.key]);
-if(checkbox.checked) bonus += proficiencyBonus;
+let bonus = rulesSaveBonus(char, save.key, level, checkbox.checked);
 const bonusEl = $("save-bonus-" + save.key);
 if (bonusEl) bonusEl.innerText = formatMod(bonus);
 char.saves[save.key] = checkbox.checked;
@@ -1776,28 +1659,17 @@ item.classList.remove("proficient");
 }
 }
 });
-var isJackOfAllTrades = (char.class === "Бард" && level >= 2);
-var halfProf = Math.floor(proficiencyBonus / 2);
 if (!char.expertiseSkills) char.expertiseSkills = [];
 skills.forEach(function(skill, index) {
 const checkbox = $("skill-prof-" + index);
 const expBtn = $("skill-exp-" + index);
 if(checkbox) {
-let bonus = getMod(char.stats[skill.stat]);
-var hasExpertise = char.expertiseSkills.indexOf(index) !== -1;
-if(checkbox.checked) {
-  if (hasExpertise) {
-    bonus += proficiencyBonus * 2;
-  } else {
-    bonus += proficiencyBonus;
-  }
-} else {
-  if (hasExpertise) {
-    char.expertiseSkills.splice(char.expertiseSkills.indexOf(index), 1);
-    hasExpertise = false;
-  }
-  if (isJackOfAllTrades) bonus += halfProf;
+var hasExpertise = rulesHasExpertise(char, index);
+if (!checkbox.checked && hasExpertise) {
+  char.expertiseSkills.splice(char.expertiseSkills.indexOf(index), 1);
+  hasExpertise = false;
 }
+let bonus = rulesSkillBonus(char, index, level, checkbox.checked);
 const bonusEl = $("skill-bonus-" + index);
 if (bonusEl) bonusEl.innerText = formatMod(bonus);
 char.skills[index] = checkbox.checked;
@@ -1806,15 +1678,8 @@ if (expBtn) {
 }
 }
 });
-var wisMod = getMod(char.stats.wis);
 var perceptionCheckbox = $("skill-prof-3");
-var perceptionExpertise = char.expertiseSkills.indexOf(3) !== -1;
-let passivePerception = 10 + wisMod;
-if(perceptionCheckbox && perceptionCheckbox.checked) {
-  passivePerception += perceptionExpertise ? proficiencyBonus * 2 : proficiencyBonus;
-} else if (isJackOfAllTrades) {
-  passivePerception += halfProf;
-}
+let passivePerception = rulesPassivePerception(char, level, !!(perceptionCheckbox && perceptionCheckbox.checked));
 const passiveEl = $("passive-perception");
 if (passiveEl) passiveEl.innerText = passivePerception;
 // UI6-4: зеркало пассивной внимательности — футер карточки МУД в листе 2024
@@ -1841,8 +1706,6 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 const level = parseInt($("char-level")?.value, 10) || 1;
-const proficiencyBonus = getProficiencyBonus(level);
-let statMod = 0;
 // BUILD-FIX-7: миграция старых en-lowercase значений в ru-uppercase.
 // Покрывает сейвы, созданные до фикса applyBuild, плюс случайные несоответствия.
 const _statMigrate = { "int":"ИНТ", "wis":"МУД", "cha":"ХАР" };
@@ -1851,11 +1714,10 @@ char.spells.stat = _statMigrate[char.spells.stat];
 const _sel = $("spell-stat"); if (_sel) _sel.value = char.spells.stat;
 }
 const stat = char.spells.stat || "";
-if (stat === "ИНТ") statMod = getMod(char.stats.int);
-else if (stat === "МУД") statMod = getMod(char.stats.wis);
-else if (stat === "ХАР") statMod = getMod(char.stats.cha);
-const dc = 8 + proficiencyBonus + statMod;
-const attack = proficiencyBonus + statMod;
+const spellStats = rulesSpellStats(char, level);
+const statMod = spellStats.mod;
+const dc = spellStats.dc;
+const attack = spellStats.attack;
 safeSet("spell-dc", dc);
 safeSet("spell-attack", formatMod(attack));
 safeSet("spell-mod", formatMod(statMod));
@@ -2296,96 +2158,6 @@ var LANG_CAT_TITLES = {
   custom:   "Свои"
 };
 
-// Возвращает массив [{cls, sub}] для всех классов персонажа (с учётом мультикласса)
-function getCharClassPairs(char) {
-  var out = [];
-  if (char.classes && char.classes.length) {
-    char.classes.forEach(function(c) {
-      if (c && c.class) out.push({ cls: c.class, sub: c.subclass || "" });
-    });
-  } else if (char.class) {
-    out.push({ cls: char.class, sub: char.subclass || "" });
-  }
-  return out;
-}
-
-function findLangInCatalog(name) {
-  if (typeof LANGUAGE_CATALOG === "undefined") return null;
-  var cats = ["standard","exotic","secret"];
-  for (var i = 0; i < cats.length; i++) {
-    var arr = LANGUAGE_CATALOG[cats[i]] || [];
-    for (var j = 0; j < arr.length; j++) {
-      if (arr[j].name === name) return { category: cats[i], desc: arr[j].desc };
-    }
-  }
-  return null;
-}
-
-function ensureLanguagesArray(char) {
-  if (!char.proficiencies) char.proficiencies = { armor:[], weapon:[], tools:"", languages:[], languageChoices:{} };
-  if (typeof char.proficiencies.languages === "string") {
-    var s = char.proficiencies.languages.trim();
-    var arr = [];
-    if (s) s.split(/[,;\n]/).forEach(function(x){
-      var n = x.trim();
-      if (n) arr.push({ name: n, source: "custom", category: "custom" });
-    });
-    char.proficiencies.languages = arr;
-  }
-  if (!Array.isArray(char.proficiencies.languages)) char.proficiencies.languages = [];
-  if (!char.proficiencies.languageChoices) char.proficiencies.languageChoices = {};
-}
-
-// Перестроить языки из источников race/class/background, сохранив custom
-function recalcLanguagesFromSources(char) {
-  ensureLanguagesArray(char);
-  var custom = char.proficiencies.languages.filter(function(l){ return l.source === "custom"; });
-  var result = [];
-  var seen = {};
-  function add(name, source) {
-    if (!name || seen[name]) return;
-    seen[name] = true;
-    var info = findLangInCatalog(name);
-    result.push({ name: name, source: source, category: info ? info.category : "custom" });
-  }
-  // Раса
-  if (char.race && typeof RACE_LANGUAGES !== "undefined" && RACE_LANGUAGES[char.race]) {
-    var r = RACE_LANGUAGES[char.race];
-    (r.fixed || []).forEach(function(n){ add(n, "race"); });
-    var rPicks = (char.proficiencies.languageChoices.race) || [];
-    rPicks.slice(0, r.choice || 0).forEach(function(n){ add(n, "race"); });
-  }
-  // Класс(ы) — учитываем мультикласс
-  var classPairs = getCharClassPairs(char);
-  classPairs.forEach(function(p){
-    if (typeof CLASS_LANGUAGES !== "undefined" && CLASS_LANGUAGES[p.cls]) {
-      (CLASS_LANGUAGES[p.cls].fixed || []).forEach(function(n){ add(n, "class"); });
-    }
-    // Подкласс
-    if (p.sub && typeof SUBCLASS_LANGUAGES !== "undefined" && SUBCLASS_LANGUAGES[p.cls] && SUBCLASS_LANGUAGES[p.cls][p.sub]) {
-      var sd = SUBCLASS_LANGUAGES[p.cls][p.sub];
-      (sd.fixed || []).forEach(function(n){ add(n, "subclass"); });
-      var subKey = "subclass_" + p.cls + "_" + p.sub;
-      var subPicks = (char.proficiencies.languageChoices[subKey]) || [];
-      subPicks.slice(0, sd.choice || 0).forEach(function(n){ add(n, "subclass"); });
-    }
-  });
-  // Предыстория
-  if (char.background && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[char.background]) {
-    var bg = BACKGROUND_SKILLS[char.background];
-    var bgPicks = (char.proficiencies.languageChoices.background) || [];
-    bgPicks.slice(0, bg.languages || 0).forEach(function(n){ add(n, "background"); });
-  }
-  // Custom — добавляем последними
-  custom.forEach(function(l){
-    if (!seen[l.name]) {
-      seen[l.name] = true;
-      result.push({ name: l.name, source: "custom", category: l.category || "custom" });
-    }
-  });
-  char.proficiencies.languages = result;
-}
-
 function getLanguageChoiceSlots(char) {
   var out = [];
   if (char.race && typeof RACE_LANGUAGES !== "undefined" && RACE_LANGUAGES[char.race]) {
@@ -2567,113 +2339,6 @@ var TOOL_CAT_TITLES = {
   other:    "Прочие",
   custom:   "Свои"
 };
-
-function findToolInCatalog(name) {
-  if (typeof TOOL_CATALOG === "undefined") return null;
-  var cats = ["artisan","gaming","musical","vehicles","other"];
-  for (var i = 0; i < cats.length; i++) {
-    var arr = TOOL_CATALOG[cats[i]] || [];
-    for (var j = 0; j < arr.length; j++) {
-      if (arr[j].name === name) return { category: cats[i], desc: arr[j].desc };
-    }
-  }
-  return null;
-}
-
-function ensureToolsArray(char) {
-  if (!char.proficiencies) char.proficiencies = { armor:[], weapon:[], tools:[], toolChoices:{}, languages:[], languageChoices:{} };
-  if (typeof char.proficiencies.tools === "string") {
-    var s = char.proficiencies.tools.trim();
-    var arr = [];
-    if (s) s.split(/[,;\n]/).forEach(function(x){
-      var n = x.trim();
-      if (n) arr.push({ name: n, source: "custom", category: "custom" });
-    });
-    char.proficiencies.tools = arr;
-  }
-  if (!Array.isArray(char.proficiencies.tools)) char.proficiencies.tools = [];
-  if (!char.proficiencies.toolChoices) char.proficiencies.toolChoices = {};
-}
-
-// Является ли строка из BACKGROUND_SKILLS.tools слотом-выбором
-function parseBackgroundToolEntry(entry) {
-  // "Ремесленный инструмент (один)" → slot: artisan x1
-  // "Музыкальный инструмент (один)" → slot: musical x1
-  // "Игровой набор (один)"           → slot: gaming x1
-  if (/Ремесленн.*\(один\)/i.test(entry)) return { type:"slot", from:"artisan", count:1 };
-  if (/Музыкальн.*\(один\)/i.test(entry)) return { type:"slot", from:"musical", count:1 };
-  if (/Игров.*набор.*\(один\)/i.test(entry)) return { type:"slot", from:"gaming", count:1 };
-  return { type:"fixed", name: entry };
-}
-
-function recalcToolsFromSources(char) {
-  ensureToolsArray(char);
-  var custom = char.proficiencies.tools.filter(function(t){ return t.source === "custom"; });
-  var result = [];
-  var seen = {};
-  function add(name, source) {
-    if (!name || seen[name]) return;
-    seen[name] = true;
-    var info = findToolInCatalog(name);
-    result.push({ name: name, source: source, category: info ? info.category : "custom" });
-  }
-  // Раса
-  if (char.race && typeof RACE_TOOLS !== "undefined" && RACE_TOOLS[char.race]) {
-    var r = RACE_TOOLS[char.race];
-    (r.fixed || []).forEach(function(n){ add(n, "race"); });
-    (r.choices || []).forEach(function(slot, idx) {
-      var key = "race_" + idx;
-      var picks = (char.proficiencies.toolChoices[key]) || [];
-      picks.slice(0, slot.count || 1).forEach(function(n){ add(n, "race"); });
-    });
-  }
-  // Классы и подклассы
-  getCharClassPairs(char).forEach(function(p) {
-    var cn = p.cls;
-    if (typeof CLASS_TOOLS !== "undefined" && CLASS_TOOLS[cn]) {
-      var c = CLASS_TOOLS[cn];
-      (c.fixed || []).forEach(function(n){ add(n, "class"); });
-      (c.choices || []).forEach(function(slot, idx) {
-        var key = "class_" + cn + "_" + idx;
-        var picks = (char.proficiencies.toolChoices[key]) || [];
-        picks.slice(0, slot.count || 1).forEach(function(n){ add(n, "class"); });
-      });
-    }
-    // Подкласс
-    if (p.sub && typeof SUBCLASS_TOOLS !== "undefined" && SUBCLASS_TOOLS[cn] && SUBCLASS_TOOLS[cn][p.sub]) {
-      var sc = SUBCLASS_TOOLS[cn][p.sub];
-      (sc.fixed || []).forEach(function(n){ add(n, "subclass"); });
-      (sc.choices || []).forEach(function(slot, idx) {
-        var key = "subclass_" + cn + "_" + p.sub + "_" + idx;
-        var picks = (char.proficiencies.toolChoices[key]) || [];
-        picks.slice(0, slot.count || 1).forEach(function(n){ add(n, "subclass"); });
-      });
-    }
-  });
-  // Предыстория
-  if (char.background && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[char.background]) {
-    var bg = BACKGROUND_SKILLS[char.background];
-    var entries = (!Array.isArray(bg) && bg.tools) || [];
-    entries.forEach(function(entry, idx) {
-      var parsed = parseBackgroundToolEntry(entry);
-      if (parsed.type === "fixed") {
-        add(parsed.name, "background");
-      } else {
-        var key = "bg_" + idx;
-        var picks = (char.proficiencies.toolChoices[key]) || [];
-        picks.slice(0, parsed.count || 1).forEach(function(n){ add(n, "background"); });
-      }
-    });
-  }
-  // Custom
-  custom.forEach(function(t){
-    if (!seen[t.name]) {
-      seen[t.name] = true;
-      result.push({ name: t.name, source: "custom", category: t.category || "custom" });
-    }
-  });
-  char.proficiencies.tools = result;
-}
 
 function getToolChoiceSlots(char) {
   var out = [];
@@ -2892,90 +2557,6 @@ function removeCustomTool(name) {
 // ============================================
 var ARMOR_TYPE_LABELS  = { light:"Лёгкие", medium:"Средние", heavy:"Тяжёлые", shield:"Щиты" };
 var WEAPON_TYPE_LABELS = { simple:"Простое", martial:"Воинское" };
-
-function ensureArmorWeaponFields(char) {
-  if (!char.proficiencies) char.proficiencies = {};
-  var p = char.proficiencies;
-  if (!Array.isArray(p.armor))           p.armor = [];
-  if (!Array.isArray(p.weapon))          p.weapon = [];
-  if (!Array.isArray(p.armorCustom))     p.armorCustom = [];
-  if (!Array.isArray(p.weaponCustom))    p.weaponCustom = [];
-  if (!Array.isArray(p.specificWeapons)) p.specificWeapons = [];
-  if (!p.armorSources)                   p.armorSources = {};
-  if (!p.weaponSources)                  p.weaponSources = {};
-}
-
-// Пересчёт типов брони/оружия и конкретных оружий из всех источников
-function recalcArmorWeaponFromSources(char) {
-  ensureArmorWeaponFields(char);
-  var p = char.proficiencies;
-  var ar = { light:[], medium:[], heavy:[], shield:[] };
-  var wp = { simple:[], martial:[] };
-
-  function addArmor(t, src) { if (ar[t] && ar[t].indexOf(src) === -1) ar[t].push(src); }
-  function addWeapon(t, src){ if (wp[t] && wp[t].indexOf(src) === -1) wp[t].push(src); }
-
-  // Раса
-  if (char.race && typeof RACE_ARMOR !== "undefined" && RACE_ARMOR[char.race]) {
-    var r = RACE_ARMOR[char.race];
-    (r.armor  || []).forEach(function(t){ addArmor(t,  "race"); });
-    (r.weapon || []).forEach(function(t){ addWeapon(t, "race"); });
-  }
-  // Класс(ы) и подкласс(ы)
-  getCharClassPairs(char).forEach(function(pair) {
-    var ca = (typeof CLASS_ARMOR_PROFS !== "undefined") && CLASS_ARMOR_PROFS[pair.cls];
-    if (ca) {
-      (ca.armor  || []).forEach(function(t){ addArmor(t,  "class"); });
-      (ca.weapon || []).forEach(function(t){ addWeapon(t, "class"); });
-    }
-    if (pair.sub && typeof SUBCLASS_ARMOR !== "undefined" && SUBCLASS_ARMOR[pair.cls] && SUBCLASS_ARMOR[pair.cls][pair.sub]) {
-      var sa = SUBCLASS_ARMOR[pair.cls][pair.sub];
-      (sa.armor  || []).forEach(function(t){ addArmor(t,  "subclass"); });
-      (sa.weapon || []).forEach(function(t){ addWeapon(t, "subclass"); });
-    }
-  });
-  // Черты (FIN-1): effects type:"armor" — Знаток лёгких/средних/тяжёлых доспехов.
-  // Без этого владение от черты стиралось бы при каждом пересчёте из источников.
-  if (Array.isArray(char.feats) && typeof FEATS_DATA !== "undefined") {
-    char.feats.forEach(function(f) {
-      var def = f && FEATS_DATA.find(function(d){ return d.id === f.id; });
-      ((def && def.effects) || []).forEach(function(eff) {
-        if (eff.type === "armor") addArmor(eff.value, "feat");
-      });
-    });
-  }
-  // Custom
-  (p.armorCustom  || []).forEach(function(t){ addArmor(t,  "custom"); });
-  (p.weaponCustom || []).forEach(function(t){ addWeapon(t, "custom"); });
-
-  p.armorSources  = ar;
-  p.weaponSources = wp;
-  p.armor  = Object.keys(ar).filter(function(k){ return ar[k].length > 0; });
-  p.weapon = Object.keys(wp).filter(function(k){ return wp[k].length > 0; });
-
-  // Конкретные оружия
-  var specs = [];
-  var seen = {};
-  function addSpec(name, source) {
-    if (!name || seen[name]) return;
-    seen[name] = true;
-    specs.push({ name: name, source: source });
-  }
-  if (char.race && typeof RACE_WEAPONS_SPECIFIC !== "undefined" && RACE_WEAPONS_SPECIFIC[char.race]) {
-    RACE_WEAPONS_SPECIFIC[char.race].forEach(function(n){ addSpec(n, "race"); });
-  }
-  // FIN-2: конкретные владения классов (скимитар друида, короткий меч монаха…)
-  if (typeof CLASS_WEAPONS_SPECIFIC !== "undefined") {
-    getCharClassPairs(char).forEach(function(pair) {
-      (CLASS_WEAPONS_SPECIFIC[pair.cls] || []).forEach(function(n){ addSpec(n, "class"); });
-    });
-  }
-  // Custom specifics — сохранены в самом массиве
-  (p.specificWeapons || []).forEach(function(w){
-    if (w && w.source === "custom") addSpec(w.name, "custom");
-  });
-  p.specificWeapons = specs;
-}
 
 function renderArmorProf() {
   var box = $("armor-prof-container");

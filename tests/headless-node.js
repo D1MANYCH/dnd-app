@@ -30,6 +30,7 @@ const files = [
   'class-choices.js',
   'subclass-choices-data.js',
   'data-2024.js',            // E24-0: в проде лениво (ensureEdition2024) — в тестах явно ПОСЛЕ class/subclass-choices (иначе ленивый снапшот '2014' закэширует пустые CHOICES). Регистрирует EDITION_DATA['2024'] (БЛОК 32)
+  'rules.js',                // SETUP-5: чистые расчёты правил без DOM — до app-core (как в index.html)
   'app-core.js',
   'app-combat.js',
   'app-hp.js',

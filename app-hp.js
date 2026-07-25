@@ -96,24 +96,6 @@ const healEl = $("hit-dice-heal");
 if (availableEl) availableEl.textContent = availableHitDice;
 if (healEl) healEl.textContent = totalHeal;
 }
-// FIN-8: заряды предметов на длинном отдыхе — полное восстановление (упрощение
-// против «1к6+N» книги). Восстанавливает предметы всех категорий инвентаря с
-// maxCharges>0 и recharge!=="none", если заряды не полны. Возвращает число предметов.
-function restoreItemCharges(char) {
-  if (!char || !char.inventory) return 0;
-  var restored = 0;
-  Object.keys(char.inventory).forEach(function(cat) {
-    if (!Array.isArray(char.inventory[cat])) return;
-    char.inventory[cat].forEach(function(it) {
-      if (!it) return;
-      var max = parseInt(it.maxCharges, 10) || 0;
-      if (max <= 0 || it.recharge === "none") return;
-      var cur = parseInt(it.charges, 10) || 0;
-      if (cur < max) { it.charges = max; restored++; }
-    });
-  });
-  return restored;
-}
 function confirmRest() {
 if (!currentId || !currentRestType) return;
 const char = getCurrentChar();
@@ -122,31 +104,16 @@ let resultTitle = "";
 let resultDetails = "";
 const oldHp = parseInt(char.combat.hpCurrent, 10);
 if (currentRestType === "short") {
-var _hitDie = parseInt(char.combat.hpDice.match(/(\d+)[кK](\d+)/)?.[2] || 8, 10);
-var _conMod = getMod(char.stats.con);
+var _hitDie = rulesHitDieSides(char);
 // FIX: roll each die individually instead of using average
-var hpHealed = 0;
-var rollLog = [];
+var _rolls = [];
 for (var _i = 0; _i < hitDiceToSpend; _i++) {
-  var _roll = Math.floor(Math.random() * _hitDie) + 1;
-  var _total = Math.max(1, _roll + _conMod);
-  hpHealed += _total;
-  rollLog.push(_roll + ((_conMod >= 0 ? "+" : "") + _conMod) + "=" + _total);
+  _rolls.push(Math.floor(Math.random() * _hitDie) + 1);
 }
-hpHealed = Math.max(0, hpHealed);
-char.combat.hpCurrent = Math.min((parseInt(char.combat.hpCurrent, 10) || 0) + hpHealed, parseInt(char.combat.hpMax, 10) || 0);
-char.combat.hpDiceSpent = (char.combat.hpDiceSpent || 0) + hitDiceToSpend;
-// FIX: Warlock recovers spell slots on short rest
-var _isWarlock = (char.class === "Колдун") || (char.classes && char.classes.some(function(c){return c.class === "Колдун";}));
-if (_isWarlock && char.spells) {
-  if (char.spells.slots) {
-    for (var _si = 1; _si <= 9; _si++) {
-      if (char.spells.slots[_si]) char.spells.slotsUsed[_si] = 0;
-    }
-  }
-  // BUGFIX-1: пакт-ячейки восстанавливаются на коротком отдыхе
-  if (char.spells.pactSlots) char.spells.pactUsed = 0;
-}
+var _short = rulesShortRest(char, { hitDiceSpent: hitDiceToSpend, rolls: _rolls });
+var hpHealed = _short.hpHealed;
+var rollLog = _short.rollLog;
+var _isWarlock = _short.isWarlock;
 if (hpHealed > 0) {
   addHPHistory(oldHp, char.combat.hpCurrent, hpHealed, "Короткий отдых");
   showHPToast(hpHealed);
@@ -172,37 +139,14 @@ if (typeof clearAllCastEffects === "function") {
   char.concentration = null;
   char.concentrationData = null;
 }
-const maxHp = parseInt(char.combat.hpMax, 10) || 0;
-char.combat.hpCurrent = maxHp;
-for(let i=1; i<=9; i++) { if (char.spells.slots[i]) char.spells.slotsUsed[i] = 0; }
-if (char.spells.pactSlots) char.spells.pactUsed = 0;
-const hitDiceToRestore = Math.floor(char.level / 2);
-char.combat.hpDiceSpent = Math.max(0, (char.combat.hpDiceSpent || 0) - hitDiceToRestore);
-// PHB: длинный отдых снижает истощение на 1 уровень, остальные состояния не снимаются автоматически
-var exhaustionReduced = false;
-if (char.conditions && char.conditions.length > 0) {
-  var exhLevels = ["exhaustion_6","exhaustion_5","exhaustion_4","exhaustion_3","exhaustion_2","exhaustion_1"];
-  for (var ei = 0; ei < exhLevels.length; ei++) {
-    var exhIdx = char.conditions.indexOf(exhLevels[ei]);
-    if (exhIdx !== -1) {
-      char.conditions.splice(exhIdx, 1);
-      // Понижаем на 1 уровень (если было 3, ставим 2)
-      var exhNum = parseInt(exhLevels[ei].split("_")[1], 10);
-      if (exhNum > 1) {
-        char.conditions.push("exhaustion_" + (exhNum - 1));
-      }
-      exhaustionReduced = true;
-      break;
-    }
-  }
-}
-char.effects = [];
 // CAST-1/3: эффекты кастов и концентрацию уже снял clearAllCastEffects выше
-// (до сброса ХП); здесь гасятся оставшиеся РУЧНЫЕ карточки эффектов.
-char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
+// (до сброса ХП); оставшиеся РУЧНЫЕ карточки эффектов гасит rulesLongRest.
+var _long = rulesLongRest(char);
+const maxHp = _long.hpAfter;
+const hitDiceToRestore = _long.hitDiceRestored;
+var exhaustionReduced = _long.exhaustionReduced;
+var chargesRestored = _long.chargesRestored;
 resetResourcesByRest("long");
-// FIN-8: восстановить заряды предметов (палочки/посохи/жезлы)
-var chargesRestored = restoreItemCharges(char);
 loadConditions();
 loadEffects();
 addHPHistory(oldHp, maxHp, maxHp - oldHp, "Долгий отдых");
@@ -596,11 +540,6 @@ char.combat.hpDice = isMulticlass(char) ? "мульти" : "1к" + hitDie;
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 
 // Ячейки заклинаний
-function _resolvePact(row) {
-  var cnt = 0, lvl = 0;
-  if (row) for (var k = 1; k < row.length; k++) if (row[k] > 0) { cnt = row[k]; lvl = k; }
-  return { cnt: cnt, lvl: lvl };
-}
 char.spells.pactSlots = 0;
 char.spells.pactLevel = 0;
 char.spells.pactUsed = 0;
@@ -613,14 +552,14 @@ if (isMulticlass(char)) {
   // BUGFIX-1: пакт-ячейки Колдуна хранятся отдельно (PHB p.165, восст. на коротком отдыхе)
   var warlockEntry = char.classes.find(function(c) { return c.class === "Колдун"; });
   if (warlockEntry && SPELL_SLOTS_BY_LEVEL["Колдун"] && SPELL_SLOTS_BY_LEVEL["Колдун"][warlockEntry.level]) {
-    var pact = _resolvePact(SPELL_SLOTS_BY_LEVEL["Колдун"][warlockEntry.level]);
+    var pact = resolvePactSlots(SPELL_SLOTS_BY_LEVEL["Колдун"][warlockEntry.level]);
     char.spells.pactSlots = pact.cnt;
     char.spells.pactLevel = pact.lvl;
   }
 } else {
   // Одноклассовый Колдун: всё в пакт-ячейках, обычные слоты пустые
   if (className === "Колдун" && SPELL_SLOTS_BY_LEVEL["Колдун"] && SPELL_SLOTS_BY_LEVEL["Колдун"][newTotalLevel]) {
-    var pactSingle = _resolvePact(SPELL_SLOTS_BY_LEVEL["Колдун"][newTotalLevel]);
+    var pactSingle = resolvePactSlots(SPELL_SLOTS_BY_LEVEL["Колдун"][newTotalLevel]);
     char.spells.pactSlots = pactSingle.cnt;
     char.spells.pactLevel = pactSingle.lvl;
     for (var jw = 1; jw <= 9; jw++) {
@@ -1304,25 +1243,6 @@ deathSavesSection.style.display = hpCurrent <= 0 ? "block" : "none";
 updateStatusBar();
 syncSelfBattleStatus();
 }
-
-// FIN-7: чистые параметры спасброска концентрации (PHB стр.203–204).
-// СЛ = max(10, урон/2 округл. вниз); модификатор = ТЕЛ-мод (+ мастерство при
-// владении спасом ТЕЛ); черта «Боевой маг» (war_caster) даёт преимущество.
-// Выделено в window-функцию для юнит-тестов (БЛОК 26).
-function concSaveParams(char, dmg) {
-  char = char || {};
-  var stats = char.stats || {};
-  var mod = (typeof getMod === "function") ? getMod(stats.con) : 0;
-  if (char.saves && char.saves.con && typeof getProficiencyBonus === "function") {
-    mod += getProficiencyBonus(char.level || 1);
-  }
-  var mode = "normal";
-  if (Array.isArray(char.feats) && char.feats.some(function(f){ return f && f.id === "war_caster"; })) {
-    mode = "adv";
-  }
-  return { dc: Math.max(10, Math.floor((Math.abs(dmg) || 0) / 2)), mod: mod, mode: mode };
-}
-window.concSaveParams = concSaveParams;
 
 // ============================================
 // БЫСТРОЕ ИЗМЕНЕНИЕ ХП
