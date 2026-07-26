@@ -15,24 +15,31 @@
 
 🐛 Длинный отдых на 0 хитов больше не даёт преимуществ (PHB стр. 186): rulesLongRest возвращает отказ и не меняет персонажа — ХП, кости хитов, ячейки, истощение и спасброски от смерти остаются как были. В окне отдыха кнопка подтверждения гаснет с причиной, в confirmRest продублирована страховка. Короткий отдых не гейтится: требование «хотя бы 1 хит в начале» книга предъявляет только к продолжительному отдыху. Тесты 650 → 653.
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/9778ee01...main) · 8 файлов, +148 −57
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/9778ee01...0803f7c9) · 13 файлов, +344 −55
 
 <details><summary>Коммиты и файлы</summary>
 
-**Коммиты (1):**
+**Коммиты (3):**
 
 - [`85dbda8e`](https://github.com/D1MANYCH/dnd-app/commit/85dbda8e) chore(docs): точная запись v3.58.18 в подробном логе
+- [`8adba1e7`](https://github.com/D1MANYCH/dnd-app/commit/8adba1e7) chore(dev): сабагент-судья правил dnd-rules + команда /rules
+- [`0803f7c9`](https://github.com/D1MANYCH/dnd-app/commit/0803f7c9) v3.58.19: fix(rules): длинный отдых требует хотя бы 1 хит в начале (PHB стр. 186)
 
-**Файлы (8):**
+**Файлы (13):**
 
+- `.claude/agents/dnd-rules.md` +97 −0
 - `index.html` +44 −44
+- `tools/phb-search.py` +69 −0
 - `tests/rules-cases.js` +38 −0
+- `docs/RELEASES.md` +32 −4
 - `app-hp.js` +18 −3
 - `rules.js` +21 −0
-- `docs/RELEASES.md` +10 −6
 - `data.js` +10 −2
 - `CHANGELOG.md` +6 −1
+- `.claude/commands/rules.md` +5 −0
+- `.claude/skills/faza/SKILL.md` +2 −0
 - `sw.js` +1 −1
+- `CLAUDE.md` +1 −0
 
 </details>
 
