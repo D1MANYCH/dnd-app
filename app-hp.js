@@ -38,7 +38,9 @@ if (result) result.classList.add("hidden");
 if (title) title.textContent = "☕ Короткий отдых (1 час)";
 if (list) list.innerHTML = "<li>Потратьте кости хитов для восстановления ХП</li><li>Восстанавливаются некоторые классовые умения</li><li>Заклинания НЕ восстанавливаются (кроме Колдуна)</li>";
 if (hitDiceSection) hitDiceSection.classList.remove("hidden");
-if (confirmBtn) confirmBtn.textContent = "Короткий отдых";
+// Короткий отдых доступен всегда: требования «хотя бы 1 хит» книга предъявляет
+// только к продолжительному (PHB стр.186). Кнопку могла погасить ветка длинного.
+if (confirmBtn) { confirmBtn.textContent = "Короткий отдых"; confirmBtn.disabled = false; }
 updateHitDiceInfo();
 }
 function showLongRestInfo() {
@@ -54,9 +56,14 @@ if (main) main.classList.add("hidden");
 if (info) info.classList.remove("hidden");
 if (result) result.classList.add("hidden");
 if (title) title.textContent = "🛏️ Долгий отдых (8 часов)";
-if (list) list.innerHTML = "<li>Восстанавливаются ВСЕ ХП</li><li>Восстанавливаются ВСЕ ячейки заклинаний</li><li>Восстанавливаются кости хитов (до половины уровня)</li><li>Сбрасываются потраченные кости хитов</li><li>Восстанавливаются все классовые умения</li><li>✅ Снимаются большинство условий</li>";
+// PHB стр.186: на 0 хитов отдых не даёт преимуществ — решение принимает rules.js,
+// здесь только показываем причину и не даём подтвердить.
+const char = getCurrentChar();
+const blockReason = char ? rulesLongRestBlockReason(char) : null;
+const blockNote = blockReason ? "<li style='color:var(--danger); font-weight:600;'>⛔ " + escapeHtml(blockReason) + "</li>" : "";
+if (list) list.innerHTML = blockNote + "<li>Восстанавливаются ВСЕ ХП</li><li>Восстанавливаются ВСЕ ячейки заклинаний</li><li>Восстанавливаются кости хитов (до половины уровня)</li><li>Сбрасываются потраченные кости хитов</li><li>Восстанавливаются все классовые умения</li><li>✅ Снимаются большинство условий</li>";
 if (hitDiceSection) hitDiceSection.classList.add("hidden");
-if (confirmBtn) confirmBtn.textContent = "Долгий отдых";
+if (confirmBtn) { confirmBtn.textContent = "Долгий отдых"; confirmBtn.disabled = !!blockReason; }
 }
 function showRestResult(title, details) {
 const main = $("rest-main-screen");
@@ -130,6 +137,14 @@ var warlockStr = _isWarlock ? "<p>🔮 Ячейки пакта восстано�
 var castExpiredStr = _castExpired.length ? "<p>⏳ Истекли эффекты: " + _castExpired.join(", ") + "</p>" : "";
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>🎲 Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>❤️ Восстановлено ХП: " + hpHealed + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr + castExpiredStr;
 } else if (currentRestType === "long") {
+// PHB стр.186: страховка на случай, если кнопку не погасил showLongRestInfo —
+// проверка СТРОГО до clearAllCastEffects, иначе заблокированный отдых уже снял бы эффекты.
+var _blockReason = rulesLongRestBlockReason(char);
+if (_blockReason) {
+  showToast(_blockReason, "warn");
+  if (window.AppLog) AppLog.action("hp", "длинный отдых отклонён: 0 хитов");
+  return;
+}
 // CAST-3: откат эффектов кастов СТРОГО до чтения maxHp — «Подмога» мутирует
 // hpMax, и реверт обязан пройти раньше, чем hpCurrent = maxHp.
 if (typeof clearAllCastEffects === "function") {

@@ -351,6 +351,44 @@ function rulesCases(t, group) {
     return fixture(base);
   }
 
+  // PHB стр.186: «у персонажа должен быть хотя бы 1 хит в начале отдыха, чтобы получить
+  // от него преимущества» — оговорка раздела «Продолжительный отдых».
+  t("Стартовое условие длинного отдыха: 0 хитов запрещает, 1 хит разрешает", function() {
+    var dead = restChar({ combat: { armorId: "none", hasShield: false, hpCurrent: 0, hpMax: 44, hpTemp: 0, hpDiceSpent: 0, hpDice: "1к10" } });
+    if (!rulesLongRestBlockReason(dead)) return "0 хитов: отдых разрешён, ожидал отказ";
+    var alive = restChar({ combat: { armorId: "none", hasShield: false, hpCurrent: 1, hpMax: 44, hpTemp: 0, hpDiceSpent: 0, hpDice: "1к10" } });
+    if (rulesLongRestBlockReason(alive)) return "1 хит: отказ «" + rulesLongRestBlockReason(alive) + "», ожидал разрешение";
+    return true;
+  });
+
+  t("Длинный отдых на 0 хитов не даёт преимуществ и ничего не меняет", function() {
+    var c = restChar({ conditions: ["exhaustion_3"], effects: ["mage_armor"],
+      deathSaves: { successes: [true, false, false], failures: [true, true, false] },
+      combat: { armorId: "none", hasShield: false, hpCurrent: 0, hpMax: 44, hpTemp: 0, hpDiceSpent: 4, hpDice: "1к10" },
+      spells: { stat: "ИНТ", slots: { 1: 4, 2: 3 }, slotsUsed: { 1: 4, 2: 3 }, pactSlots: 2, pactLevel: 3, pactUsed: 2 } });
+    var r = rulesLongRest(c);
+    if (r.blocked !== true) return "сводка не помечена blocked: " + JSON.stringify(r);
+    if (!r.reason) return "нет причины отказа в сводке";
+    if (c.combat.hpCurrent !== 0) return "ХП поднялись без отдыха: " + c.combat.hpCurrent;
+    if (c.combat.hpDiceSpent !== 4) return "кости хитов вернулись: потрачено " + c.combat.hpDiceSpent + ", ожидал 4";
+    if (r.hitDiceRestored !== 0) return "сводка вернула кости: " + r.hitDiceRestored;
+    if (c.spells.slotsUsed[1] !== 4 || c.spells.pactUsed !== 2) return "ячейки восстановились: " + JSON.stringify(c.spells.slotsUsed) + " пакт " + c.spells.pactUsed;
+    if (c.conditions.indexOf("exhaustion_3") === -1) return "истощение понижено: " + c.conditions.join(",");
+    if (c.effects.length !== 1) return "карточки эффектов сняты: " + c.effects.join(",");
+    if (!c.deathSaves.failures[0] || !c.deathSaves.failures[1]) return "спасброски от смерти сброшены заблокированным отдыхом";
+    return true;
+  });
+
+  // Обратная сторона того же правила: у короткого отдыха (PHB стр.186) требований
+  // к стартовым ХП нет, кости хитов на 0 хитов тратятся штатно.
+  t("Короткий отдых на 0 хитов книгой не запрещён: кости хитов лечат", function() {
+    var c = restChar({ combat: { armorId: "none", hasShield: false, hpCurrent: 0, hpMax: 44, hpTemp: 0, hpDiceSpent: 0, hpDice: "1к10" } });
+    var r = rulesShortRest(c, { rolls: [6] });
+    if (r.hpHealed !== 8) return "лечение: " + r.hpHealed + ", ожидал 8 (6+2)";
+    if (c.combat.hpCurrent !== 8) return "ХП: " + c.combat.hpCurrent + ", ожидал 8";
+    return true;
+  });
+
   t("Короткий отдых: каждая кость лечит бросок + ТЕЛ, кости уходят в потраченные", function() {
     var c = restChar();
     var r = rulesShortRest(c, { rolls: [3, 8] });

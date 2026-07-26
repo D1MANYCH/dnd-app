@@ -301,11 +301,31 @@ function rulesShortRest(char, opts) {
   };
 }
 
+// PHB стр.186: «у персонажа должен быть хотя бы 1 хит в начале отдыха, чтобы получить
+// от него преимущества». Оговорка стоит в разделе «Продолжительный отдых» — короткого
+// она не касается (там требований к стартовым ХП нет), поэтому гейт только здесь.
+// Возвращает причину отказа строкой либо null, если отдых допустим.
+function rulesLongRestBlockReason(char) {
+  var hp = parseInt(char && char.combat ? char.combat.hpCurrent : 0, 10) || 0;
+  if (hp < 1) return "На 0 хитов длинный отдых не даёт преимуществ: нужен хотя бы 1 хит в начале отдыха (PHB стр. 186)";
+  return null;
+}
+
 // Длинный отдых: ХП до максимума, временные ХП гаснут (PHB стр.198), ячейки и половина
 // костей хитов, истощение −1, ручные карточки эффектов и спасброски от смерти, заряды предметов.
 // Эффекты кастов снимает вызывающий (clearAllCastEffects) — СТРОГО до этой функции,
 // иначе реверт hpMax «Подмоги» пройдёт после hpCurrent = maxHp.
+// На 0 хитов отдых не проходит: возвращается {blocked:true}, персонаж не мутируется.
 function rulesLongRest(char) {
+  var blockReason = rulesLongRestBlockReason(char);
+  if (blockReason) {
+    var hpNow = parseInt(char.combat.hpCurrent, 10) || 0;
+    return {
+      blocked: true, reason: blockReason,
+      hpBefore: hpNow, hpAfter: hpNow, hitDiceRestored: 0,
+      exhaustionReduced: false, chargesRestored: 0
+    };
+  }
   var hpBefore = parseInt(char.combat.hpCurrent, 10);
   var maxHp = parseInt(char.combat.hpMax, 10) || 0;
   char.combat.hpCurrent = maxHp;
@@ -339,6 +359,7 @@ function rulesLongRest(char) {
   // FIN-8: восстановить заряды предметов (палочки/посохи/жезлы)
   var chargesRestored = restoreItemCharges(char);
   return {
+    blocked: false, reason: null,
     hpBefore: hpBefore, hpAfter: maxHp, hitDiceRestored: hitDiceRestored,
     exhaustionReduced: exhaustionReduced, chargesRestored: chargesRestored
   };
