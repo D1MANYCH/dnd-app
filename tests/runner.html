@@ -21,22 +21,120 @@ pre{white-space:pre-wrap;margin:0}
 <div id="summary" class="summary">Загрузка…</div>
 <div id="results"></div>
 
+<!-- Браузерный близнец `node tests/headless-node.js`: та же fixtures.js + headless.js,
+     тот же набор тестов, те же числа (на этом коммите — 650 OK / 0 FAIL из 650).
+     Расходятся два раннера только средой, и её выравнивают три шима ниже:
+       • DOM-стабы по id — у раннера нет разметки index.html;
+       • подмена history — тесты читают счётчики вызовов, а native go(-n) увёл бы страницу;
+       • подкачка index.html в __indexHtmlSource — в node её инжектит fs.
+     Если браузер вдруг краснит там, где node зелёный, — первым делом сверить список
+     скриптов с массивом files в headless-node.js (см. «ВАЖНО» ниже), вторым — снять
+     Service Worker: он отдаёт закешированные копии, и правка просто не доезжает. -->
+
 <!-- Минимальные shims до загрузки app-кода -->
 <script>
 window.escapeHtml = function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]});};
 window.getCurrentChar = function(){ return window.__testChar || null; };
 window.currentId = "test";
-// заглушки DOM для кода, который может дёрнуться
-document.createElement; // noop
+
+// ── DOM-шим: id, которых нет в разметке раннера ─────────────────────────────
+// Тесты гоняют настоящие render-функции приложения, а те лезут к десяткам полей
+// index.html ($ === document.getElementById, app-core.js:8). Держать здесь копию
+// разметки приложения нереально, поэтому повторяем поведение node-раннера
+// (tests/headless-node.js): на неизвестный id отдаём стаб и кешируем его — один
+// и тот же id всегда даёт один и тот же объект, как ждут тесты. Иначе те же
+// тесты краснеют в браузере на «Cannot set properties of null».
+// Реальные элементы разметки в приоритете — шим включается только на null.
+(function(){
+  var stubs = {};
+  var realGet = document.getElementById.bind(document);
+  var realCreate = document.createElement.bind(document); // тесты подменяют createElement — берём оригинал
+  document.getElementById = function(id){
+    var el = realGet(id);
+    if (el) return el;
+    var key = String(id);
+    if (!stubs[key]) {
+      var s = realCreate("div");
+      s.id = key;
+      s.value = "";       // как в стабе node: поля формы читаются и до записи
+      s.checked = false;
+      stubs[key] = s;     // намеренно НЕ в document: querySelector не должен их видеть (как в node)
+    }
+    return stubs[key];
+  };
+  window.__gebiStubs = stubs;
+  // Шим живёт только на время прогона: тесты собираются синхронно, при парсинге
+  // headless.js. Дальше в браузере (в отличие от node) стреляют DOMContentLoaded/
+  // load приложения, а там код рассчитывает на честный null — например
+  // validateBuildOptions (character-builds.js) на нём и отваливается штатно.
+  // Возврат оригинала зовёт скрипт в самом низу страницы.
+  window.__restoreGetElementById = function(){ document.getElementById = realGet; };
+})();
+
+// ── SW не регистрируем ─────────────────────────────────────────────────────
+// app-ui.js на load зовёт navigator.serviceWorker.register('./sw.js'). Из
+// /tests/ это 404 (шум в консоли), а если раздавать раннер из корня — SW начнёт
+// отдавать закешированные копии тестов и app-кода, и прогон перестанет
+// показывать правку. Промис, который никогда не разрешается, глушит и то и то.
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.register = function(){ return new Promise(function(){}); };
+}
+
+// ── источник index.html ────────────────────────────────────────────────────
+// 5 fs-тестов (FIN-3/FIN-4/FIN-10/FIN-11/hb-2) сверяют разметку index.html с
+// данными и читают её из window.__indexHtmlSource — node-раннер инжектит поле
+// через fs. В браузере тянем сами: раннер синхронный (результаты собираются на
+// парсинге headless.js), поэтому XHR тоже синхронный. Не вышло — поле остаётся
+// пустым, и тесты честно пропускаются, как было до этого.
+(function(){
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "../index.html", false);
+    xhr.send(null);
+    if (xhr.status === 200 || xhr.status === 0) window.__indexHtmlSource = xhr.responseText;
+  } catch (e) { /* нет доступа (file://) — 5 fs-тестов пропустятся */ }
+})();
+
+// ── history-шим ────────────────────────────────────────────────────────────
+// history-stack.js на загрузке зовёт history.pushState, а syncCloseLayer —
+// history.go(-n); тесты БЛОКА 30 читают счётчики _pushCount/_lastGo, которые в
+// node даёт фейк history. В браузере native go(-n) не только нечитаем, но и увёл
+// бы страницу раннера с прогона. Сам объект history заменить нельзя — подменяем
+// методы (state/length не трогаем: они read-only и тестам не нужны).
+(function(){
+  var h = window.history;
+  h._pushCount = 0;
+  h._lastGo = null;
+  h.pushState = function(){ h._pushCount++; };
+  h.replaceState = function(){};
+  h.go = function(n){ h._lastGo = n; };
+  h.back = function(){ h._lastGo = -1; };
+  h.forward = function(){ h._lastGo = 1; };
+})();
 </script>
 
-<!-- Порядок как в index.html -->
+<!-- ВАЖНО: список ниже обязан совпадать с массивом files в tests/headless-node.js —
+     иначе браузерный прогон недосчитывает тесты или краснит их на отсутствующих
+     функциях. Порядок как в index.html, с двумя жёсткими требованиями:
+       • app-log.js — ПЕРВЫМ (перехватывает console);
+       • data-2024.js — ПОСЛЕ class-choices.js/subclass-choices-data.js, иначе
+         ленивый снапшот '2014' закэширует пустые CHOICES. -->
+<script src="../app-log.js"></script>
 <script src="../data.js"></script>
+<!-- FIN-5/FIN-8: в проде лениво (ensureGearCatalog/ensureMagicItems) — в тестах явно (БЛОКИ 24, 27) -->
+<script src="../gear-catalog.js"></script>
+<script src="../magic-items.js"></script>
 <!-- BUILD-LVL-7: данные билдов + заклинаний (до app-core: SPELLS_BASE → SPELL_DATABASE) для тестов автолевелинга -->
 <script src="../character-builds.js"></script>
+<!-- UX-4: window.GLOSSARY для тестов glossarizeHtml (БЛОК 18) -->
+<script src="../glossary-data.js"></script>
 <script src="../spells.js"></script>
+<!-- CAST-0: SPELL_EFFECTS + getSpellEffect/scaleFormula/durationToRounds (БЛОК 34) -->
+<script src="../spell-effects.js"></script>
 <script src="../class-choices.js"></script>
 <script src="../subclass-choices-data.js"></script>
+<!-- E24-0: в проде лениво (ensureEdition2024) — в тестах явно, EDITION_DATA['2024'] (БЛОК 32) -->
+<script src="../data-2024.js"></script>
 <!-- SETUP-5: чистые расчёты правил — до app-core (как в index.html) -->
 <script src="../rules.js"></script>
 <!-- TEST-1: подгружаем бизнес-логику для тестов quickHP / calcStats -->
@@ -51,12 +149,21 @@ document.createElement; // noop
 <!-- TEST-3: подготовка заклинаний (БЛОК 11) + отряд/трекер боя (БЛОК 12) -->
 <script src="../app-spells.js"></script>
 <script src="../app-party.js"></script>
+<!-- UI6-1: оформление/раскладка/редакция (БЛОКИ 13–14) + highlightMatch/parseDiceFormula (БЛОКИ 45–48) -->
+<script src="../app-ui.js"></script>
 <!-- THEME-1: геометрия прожектора тура — _computeTourBoxes (БЛОК 31) -->
 <script src="../app-help.js"></script>
+<!-- FIN-12: заметки/история/бэкап (БЛОК 30) -->
+<script src="../app-notes.js"></script>
+<script src="../history-stack.js"></script>
+<script src="../app-backup.js"></script>
 
 <script src="./fixtures.js?v=4"></script>
 <!-- SETUP-5.3: кейсы страницы tests.html — их же гоняет headless.js (БЛОК 50) -->
 <script src="./rules-cases.js?v=1"></script>
 <script src="./headless.js?v=8"></script>
+<!-- Прогон закончен — снимаем DOM-шим, чтобы инициализация приложения на
+     DOMContentLoaded/load видела разметку как есть (см. комментарий у шима). -->
+<script>window.__restoreGetElementById();</script>
 </body>
 </html>
