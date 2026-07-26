@@ -234,6 +234,17 @@ function main() {
   } catch (e) {
     console.warn('WARN: CHANGELOG.md не перегенерирован (' + String(e.message || e).split('\n')[0] + '). Прогоните вручную: node tools/gen-changelog.js');
   }
+
+  // docs/RELEASES.md — подробный лог (коммиты + файлы + ссылка на патч). Строится
+  // по git-истории, поэтому запись текущего релиза собирается по рабочему дереву,
+  // а точные коммиты подставятся при следующей генерации. Soft-fail, как и выше.
+  try {
+    const { generateReleaseLog } = require('./gen-release-log.js');
+    const rl = generateReleaseLog();
+    console.log(`docs/RELEASES.md: ${rl.total} версий, из них с патчем ${rl.matched}`);
+  } catch (e) {
+    console.warn('WARN: docs/RELEASES.md не перегенерирован (' + String(e.message || e).split('\n')[0] + '). Прогоните вручную: node tools/gen-release-log.js');
+  }
 }
 
 main();

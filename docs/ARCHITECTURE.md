@@ -44,7 +44,7 @@ dnd-app/
 ├── icons/                  — icon-192.png, icon-512.png
 ├── assets/                 — иконки классов/школ/состояний, фоны (webp, ~3.5 МБ)
 ├── vendor/                 — dice-box (3D-кубики, WebGL) + jspdf (PDF, ленивый стек)
-├── tools/                  — bump-version.js, gen-changelog.js, check-invariant.js, run-tests-hook.js
+├── tools/                  — bump-version.js, gen-changelog.js, gen-release-log.js, gen-release-post.js, check-invariant.js, run-tests-hook.js
 ├── .github/workflows/      — tests.yml: CI (headless-тесты + check-invariant) на каждый push/PR
 └── tests/                  — headless-node.js (Node), runner.html + headless.js (браузер), fixtures.js
 ```
@@ -177,6 +177,16 @@ const DEFAULT_CHARACTER = {
 - Bump — командой `/bump <patch|minor|major> "<changelog>"` (`tools/bump-version.js`), правит всё за один проход; `CHANGELOG.md` генерируется из `APP_CHANGELOG` (`tools/gen-changelog.js`).
 - Сверка инварианта — `node tools/check-invariant.js`; гоняется и в CI (`.github/workflows/tests.yml`) на каждый push/PR.
 - Детали процесса — CLAUDE.md, раздел «Версионирование».
+
+### Три уровня описания релиза
+
+| Уровень | Файл | Чем наполняется | Для кого |
+|---|---|---|---|
+| Короткий | `CHANGELOG.md` + окно «История версий» | `APP_CHANGELOG` в data.js | игрок |
+| Подробный | `docs/RELEASES.md` | `tools/gen-release-log.js`: APP_CHANGELOG + git (коммиты, файлы, +/− строк) | тот, кто хочет деталей |
+| Полный патч | ссылка `compare/<пред. релиз>...<этот>` на GitHub | git | тот, кто читает код |
+
+Оба генератора идемпотентны и вызываются из `tools/bump-version.js` — вести руками нечего. Границей релиза считается коммит с сабжектом `vX.Y.Z: …`, поэтому запись свежей версии собирается по рабочему дереву (релизного коммита ещё нет) и уточняется при следующем bump. Краткий пост-анонс релиза со всеми тремя ссылками — `node tools/gen-release-post.js [версия] [--out <slug>]`.
 
 Текущая версия и changelog — `APP_CHANGELOG` в [`../data.js`](../data.js).
 

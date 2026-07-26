@@ -9060,6 +9060,61 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .cl-item-icon { flex-shrink: 0; margin-top: 1px; font-size: 0.9em; }
 .cl-item-text { color: var(--text-dim); }
+/* Кнопка «ещё» у обрезанной записи — раскрывает полный текст на месте.
+   Гасим глобальные button-стили (width:100%, отступы, тень на ховере), чтобы
+   кнопка осталась словом в строке текста. */
+.cl-more {
+  display: inline;
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  padding: 0 2px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--accent-color);
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: underline;
+  box-shadow: none;
+  /* Без глобального transition кнопок: с ним цвет из var(--accent-color)
+     залипает при смене темы на лету (соседние span/a обновляются, кнопка — нет). */
+  transition: none;
+}
+.cl-more:hover { color: var(--accent-hi); box-shadow: none; filter: none; }
+.cl-more:active { transform: none; }
+/* Ссылка на запись версии в подробном логе релизов */
+.cl-version-link {
+  font-size: 0.68em;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--border-color);
+  white-space: nowrap;
+}
+.cl-version-link:hover { color: var(--accent-color); border-bottom-color: var(--accent-color); }
+/* Шапка вкладки «Изменения»: подпись + переход в полный лог */
+.cl-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.cl-toolbar-hint { font-size: 0.72em; color: var(--text-muted); }
+.cl-full-log {
+  font-size: 0.75em;
+  font-weight: 700;
+  color: var(--text-color);
+  text-decoration: none;
+  padding: 5px 10px;
+  border: 1px solid var(--accent-lo);
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  white-space: nowrap;
+}
+.cl-full-log:hover { border-color: var(--accent-color); background: var(--accent-glow); }
 
 /* ========== TAKEN FEATS ========== */
 .taken-feats-header {

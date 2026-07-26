@@ -49,6 +49,7 @@ function render({ changelog, version }) {
   lines.push(`Актуальная версия — **v${version}**. В приложении: меню → «📜 История версий».`);
   lines.push('');
   lines.push('🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)');
+  lines.push('🔍 [Подробный лог релизов](docs/RELEASES.md) — коммиты, изменённые файлы и полный патч каждой версии.');
   lines.push('');
   lines.push('---');
   lines.push('');
@@ -81,4 +82,4 @@ if (require.main === module) {
   console.log(`CHANGELOG.md: ${data.changelog.length} версий, актуальная v${data.version}`);
 }
 
-module.exports = { generateChangelog };
+module.exports = { generateChangelog, loadChangelog };

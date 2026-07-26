@@ -331,8 +331,8 @@ function checkWhatsNew() {
 function showWhatsNewModal(prevVer, newVer) {
   if ($('sw-update-modal')) return;
   var latest = (typeof APP_CHANGELOG !== 'undefined' && APP_CHANGELOG.length > 0) ? APP_CHANGELOG[0] : null;
-  var typeIcon  = { feat:'✨', fix:'🐛', improve:'⚡', data:'📦' };
-  var typeColor = { feat:'#4da843', fix:'#e74c3c', improve:'#5b9bd5', data:'#d4a843' };
+  var typeIcon  = { feat:'✨', fix:'🐛', improve:'⚡', data:'📦', chore:'🔧' };
+  var typeColor = { feat:'#4da843', fix:'#e74c3c', improve:'#5b9bd5', data:'#d4a843', chore:'#9a9ab0' };
   var changesList = latest ? latest.changes.map(function(c) {
     return '<div class="sw-change-item"><span class="sw-change-icon" style="color:' + (typeColor[c.type] || '#9a9ab0') + '">' + (typeIcon[c.type] || '•') + '</span><span class="sw-change-text">' + escapeHtml(c.text) + '</span></div>';
   }).join('') : '<div class="sw-change-item">Улучшения и исправления</div>';
@@ -345,7 +345,9 @@ function showWhatsNewModal(prevVer, newVer) {
         '<div class="sw-update-title">Обновлено!</div>' +
         '<div class="sw-update-version">v' + escapeHtml(prevVer) + ' → v' + escapeHtml(newVer) + (latest ? ' · ' + escapeHtml(latest.date) : '') + '</div>' +
       '</div>' +
-      '<div class="sw-update-changes"><div class="sw-changes-title">📋 Что нового (' + (latest ? latest.changes.length : 0) + '):</div>' + changesList + '</div>' +
+      '<div class="sw-update-changes"><div class="sw-changes-title">📋 Что нового (' + (latest ? latest.changes.length : 0) + '):</div>' + changesList +
+        (latest ? '<a class="cl-version-link" style="display:inline-block;margin-top:8px" href="' + RELEASES_URL + '#v' + encodeURIComponent(latest.version) + '" target="_blank" rel="noopener">подробно: что менялось в коде ↗</a>' : '') +
+      '</div>' +
       '<div class="sw-update-safe">🔒 <b>Все данные сохранены</b> — ваши персонажи и заклинания на месте</div>' +
       swTelegramBlock() +
       '<div class="sw-update-btns"><button id="sw-update-now" style="flex:1">👍 Отлично!</button></div>' +
@@ -930,20 +932,48 @@ function switchProfilesTab(tab, btn) {
   if (tab === "changelog") renderChangelog();
 }
 
+// Подробный лог релизов — docs/RELEASES.md (генерится tools/gen-release-log.js):
+// коммиты, изменённые файлы и ссылка на полный патч. Якорь версии — "v" + номер.
+var RELEASES_URL = "https://github.com/D1MANYCH/dnd-app/blob/main/docs/RELEASES.md";
+
+// В списке версий держим смысл одной-двумя строками: длинные записи режем по границе
+// предложения или слова, полный текст открывается кнопкой «ещё».
+function clipChangelogText(text) {
+  var LIMIT = 130;
+  if (text.length <= LIMIT) return null;
+  var cut = text.slice(0, LIMIT);
+  var dot = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("; "));
+  if (dot > 70) return cut.slice(0, dot + 1);
+  var sp = cut.lastIndexOf(" ");
+  return (sp > 70 ? cut.slice(0, sp) : cut) + "…";
+}
+
+// Разворачивает обрезанную запись на месте: полный текст лежит в data-full.
+function expandChangelogItem(btn) {
+  var wrap = btn.parentNode;
+  if (!wrap) return;
+  wrap.textContent = btn.getAttribute("data-full") || wrap.textContent;
+}
+
 function renderChangelog() {
   var list = $("changelog-list");
   if (!list || typeof APP_CHANGELOG === "undefined") return;
 
-  var typeIcon  = { feat:"✨", fix:"🐛", improve:"⚡" };
-  var typeLabel = { feat:"Новое", fix:"Исправлено", improve:"Улучшено" };
-  var typeColor = { feat:"#4da843", fix:"#e74c3c", improve:"#5b9bd5" };
+  var typeIcon  = { feat:"✨", fix:"🐛", improve:"⚡", chore:"🔧" };
+  var typeLabel = { feat:"Новое", fix:"Исправлено", improve:"Улучшено", chore:"Под капотом" };
+  var typeColor = { feat:"#4da843", fix:"#e74c3c", improve:"#5b9bd5", chore:"#9a9ab0" };
   var badgeHtml = { new:'<span class="cl-badge cl-badge-new">НОВОЕ</span>' };
 
   list.innerHTML = APP_CHANGELOG.map(function(ver, idx) {
     var items = ver.changes.map(function(c) {
       var icon  = typeIcon[c.type]  || "•";
       var color = typeColor[c.type] || "#9a9ab0";
-      return '<div class="cl-item"><span class="cl-item-icon" style="color:' + color + '">' + icon + '</span><span class="cl-item-text">' + escapeHtml(c.text) + '</span></div>';
+      var text  = String(c.text);
+      var short = clipChangelogText(text);
+      var body  = short
+        ? escapeHtml(short) + ' <button type="button" class="cl-more" data-full="' + escapeHtml(text) + '" onclick="expandChangelogItem(this)">ещё</button>'
+        : escapeHtml(text);
+      return '<div class="cl-item"><span class="cl-item-icon" style="color:' + color + '">' + icon + '</span><span class="cl-item-text">' + body + '</span></div>';
     }).join("");
 
     var isLatest = idx === 0;
@@ -952,6 +982,7 @@ function renderChangelog() {
         '<span class="cl-version-num">v' + escapeHtml(ver.version) + '</span>' +
         (isLatest ? '<span class="cl-badge cl-badge-new">Текущая</span>' : '') +
         '<span class="cl-version-date">' + escapeHtml(ver.date) + '</span>' +
+        '<a class="cl-version-link" href="' + RELEASES_URL + '#v' + encodeURIComponent(ver.version) + '" target="_blank" rel="noopener" title="Что менялось в коде: коммиты, файлы, полный патч">подробно ↗</a>' +
       '</div>' +
       '<div class="cl-items">' + items + '</div>' +
     '</div>';

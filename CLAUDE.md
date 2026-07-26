@@ -14,7 +14,7 @@
 - Ядро и вкладки: `app-core.js` (состояние, навигация, персонажи, импорт/экспорт), `app-combat.js`, `app-hp.js`, `app-inventory.js`, `app-spells.js`, `app-party.js`, `app-notes.js`, `app-ui.js`, `app-desktop.js`, `app-help.js` (справка и туры), `history-stack.js`, `app-backup.js` (IndexedDB), `app-log.js` (панель Ctrl+Shift+L), `app-pdf.js`.
 - Данные: `data.js` (классы/расы/черты + `APP_VERSION`/`APP_VERSION_DATE`/`APP_CHANGELOG`), `data-2024.js` (edition-слой), `spells.js`, `spell-effects.js` (механика кнопки «Использовать»), `character-builds.js` + `build-notes-data.js`, `class-choices.js` + `subclass-choices-data.js`, `magic-items.js`, `gear-catalog.js`, `glossary-data.js`, `monsters-srd.js` + `npc-srd.js`.
 - Прочее: `icons.js` (SVG-иконки), `bg-space.js` + `dice-arena-bg.js` (фоны), `dev-verify-builds.js` (`verifyAllBuilds()`).
-- `tools/` — `bump-version.js`, `gen-changelog.js`, `check-invariant.js`, `check-theme.js`, `run-tests-hook.js`. `tests/` — `headless-node.js`, `runner.html` + `headless.js`, `fixtures.js`. CI — `.github/workflows/tests.yml` (тесты + инвариант + темы), `pages.yml` (деплой).
+- `tools/` — `bump-version.js`, `gen-changelog.js`, `gen-release-log.js`, `gen-release-post.js`, `check-invariant.js`, `check-theme.js`, `run-tests-hook.js`. `tests/` — `headless-node.js`, `runner.html` + `headless.js`, `fixtures.js`. CI — `.github/workflows/tests.yml` (тесты + инвариант + темы), `pages.yml` (деплой).
 
 ## Соглашения по коду
 - Модули — обычные `<script src>` внизу `index.html` в **жёстком порядке**: `app-log` → `icons` → фоны → данные → `app-core` → вкладки → `app-ui`/`app-notes`/`app-desktop`/`app-help`. Единственный `type="module"` — обёртка dice-box (`index.html:2998`).
@@ -36,6 +36,13 @@ APP_VERSION ↔ APP_CHANGELOG[0].version ↔ CACHE_NAME (dnd-sheet-vN) ↔ вс�
 ```
 
 Правит их `/bump <patch|minor|major> "<changelog>" [--type chore|feat|fix]`, дальше `/preflight`. Пошаговая механика, сбои и push — скилл `release`.
+
+Релиз описывается на трёх уровнях, всё генерится из `APP_CHANGELOG` + git, руками не ведём:
+- короткий — `CHANGELOG.md` и окно «История версий» (`tools/gen-changelog.js`);
+- подробный — `docs/RELEASES.md`: коммиты, изменённые файлы, +/− строк (`tools/gen-release-log.js`);
+- полный патч — ссылка `compare/<пред. релиз>...<этот>` на GitHub, внутри подробного лога.
+
+Оба генератора вызывает `/bump`. Краткий пост-анонс со всеми тремя ссылками — `/relpost` (`tools/gen-release-post.js`).
 
 ## Хуки (`.claude/settings.json`, `PostToolUse` на Edit|Write|MultiEdit)
 Блокируют (exit 2): правку `sw.js` без bump `CACHE_NAME`; рассинхрон `APP_VERSION` ↔ `APP_CHANGELOG[0].version`. Предупреждают: `tools/run-tests-hook.js` на правку `*.js`, `tools/check-theme.js --hook` на правку `style.css`. Отключить — убрать блок из `hooks.PostToolUse`; источник истины — сам `settings.json`.
