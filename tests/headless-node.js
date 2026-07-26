@@ -31,15 +31,24 @@ const files = [
   'subclass-choices-data.js',
   'data-2024.js',            // E24-0: в проде лениво (ensureEdition2024) — в тестах явно ПОСЛЕ class/subclass-choices (иначе ленивый снапшот '2014' закэширует пустые CHOICES). Регистрирует EDITION_DATA['2024'] (БЛОК 32)
   'rules.js',                // SETUP-5: чистые расчёты правил без DOM — до app-core (как в index.html)
+  'app-migrate.js',          // SETUP-6: migrateCharacter — до app-core (как в index.html)
+  'app-builds.js',           // SETUP-6: билды и глоссарий-тултипы — до app-core (как в index.html)
   'app-core.js',
+  'app-io.js',               // SETUP-6: экспорт/импорт — после app-core (как в index.html)
   'app-combat.js',
+  'app-conditions.js',       // SETUP-6: состояния/эффекты/сопротивления — после app-combat (как в index.html)
+  'app-cast-effects.js',     // SETUP-6: эффекты кастов и концентрация — после app-combat (как в index.html)
+  'app-proficiencies.js',    // SETUP-6: языки/инструменты/владения — после app-combat (как в index.html)
   'app-hp.js',
   'app-inventory.js',        // TEST-2: getSlotsTotal/calcUsedSlots/updateInventoryWeight/renderPouches/_invMoveItem (БЛОК 10)
   'monsters-srd.js',         // TEST-3: в проде лениво (ensureBestiary, PERF-3) — в тестах явно ДО app-party
   'npc-srd.js',              // TEST-3: то же
   'app-spells.js',           // TEST-3: подготовка заклинаний + ячейки/пакт (БЛОК 11)
   'app-party.js',            // TEST-3: отряд и трекер боя (БЛОК 12)
+  'app-dice.js',             // SETUP-6: броски и dice-box — до app-ui (как в index.html)
+  'app-settings.js',         // SETUP-6: оформление и настройки — до app-ui (как в index.html)
   'app-ui.js',               // UI6-1: настройки оформления — _getAutoAccent/CLASS_ACCENT_MAP/setAccent (БЛОК 13); позже layout/edition (БЛОК 14)
+  'app-asi.js',              // SETUP-6: АСИ и черты — после app-ui (как в index.html)
   'app-help.js',             // THEME-1: геометрия прожектора тура — _computeTourBoxes (БЛОК 31)
   'app-notes.js',            // FIN-12: notesV2 — _mdToHtml/_notesReorderPinned/notesSaveEntryModal/notesExport* (БЛОК 30)
   'history-stack.js',        // FIN-12: pushHistoryLayer/syncCloseLayer/getHistoryLayers (нужен history-шим ниже) (БЛОК 30)

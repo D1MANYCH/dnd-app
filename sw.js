@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v316';
+const CACHE_NAME = 'dnd-sheet-v317';
 
 const FILES_TO_CACHE = [
   './',
@@ -20,9 +20,15 @@ const FILES_TO_CACHE = [
   './spells.js',
   './spell-effects.js',
   './rules.js',
+  './app-migrate.js',
+  './app-builds.js',
   './app-core.js',
+  './app-io.js',
   './app-backup.js',
   './app-combat.js',
+  './app-conditions.js',
+  './app-cast-effects.js',
+  './app-proficiencies.js',
   './app-hp.js',
   './app-spells.js',
   './class-choices.js',
@@ -42,7 +48,10 @@ const FILES_TO_CACHE = [
   './app-party.js',
   './monsters-srd.js',
   './npc-srd.js',
+  './app-dice.js',
+  './app-settings.js',
   './app-ui.js',
+  './app-asi.js',
   './app-desktop.js',
   './history-stack.js',
   './app-help.js',
