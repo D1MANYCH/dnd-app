@@ -1,0 +1,97 @@
+# SETUP-8: авторевью пул-реквестов. Третий workflow рядом с tests.yml и pages.yml.
+# Включено ТОЛЬКО ревью PR: реакции на @claude, метки и автосоздание фич по issue нет.
+# ТРЕБУЕТ: приложение Claude на репозитории + секрет CLAUDE_CODE_OAUTH_TOKEN.
+name: claude-review
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+# Одно ревью на PR: новый прогон отменяет предыдущий.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Черновики не ревьюим; PR из форка на публичном репозитории не получает секретов
+    # и упал бы красным — пропускаем.
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          track_progress: true
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Ты ревьюер пул-реквестов проекта dnd-app (D&D 5e PWA, vanilla JS без сборщика).
+            Весь вывод — на русском языке.
+
+            Порядок работы:
+            1. Прочитай CLAUDE.md в корне — это источник истины по соглашениям проекта;
+               подробности структуры при необходимости в docs/ARCHITECTURE.md.
+            2. Возьми диф: gh pr diff. Ветка PR уже выкачана в рабочую директорию,
+               поэтому читай затронутые файлы целиком, а не только диф.
+            3. Проверь по списку ниже.
+
+            Что проверять:
+
+            A. Соглашения проекта (CLAUDE.md):
+               - сборщик и npm-runtime-зависимости запрещены, всё vanilla;
+               - обмен между модулями — через глобалы; оборачивать файл в IIFE нельзя
+                 (в index.html ~460 inline-обработчиков зовут функции по имени);
+               - стиль ES5 (var), писать по соседнему коду;
+               - новый js/css-файл обязан получить три вещи: подключение в index.html
+                 (<script src> или loadScript), токен ?v=, строку в FILES_TO_CACHE (sw.js);
+               - правка sw.js или статики в assets/ требует бампа CACHE_NAME.
+
+            B. Инвариант релиза — если PR трогает версию, пять величин меняются синхронно:
+               APP_VERSION ↔ APP_CHANGELOG[0].version ↔ CACHE_NAME (dnd-sheet-vN) ↔ все
+               токены ?v= в index.html ↔ CHANGELOG.md. Правит их только tools/bump-version.js,
+               руками версии не редактируют.
+
+            C. Правила D&D — если диф трогает rules.js, расчёты в app-*.js или таблицы
+               в data.js / class-choices.js / data-2024.js:
+               - общий код и код редакции 2014 сверяй с «Книгой игрока» 2014;
+               - ветки за char.edition / edData / EDITION_DATA — с «Книгой игрока» 2024;
+               - PDF книг в CI нет, в репозиторий они не выкладываются. Номера страниц
+                 не выдумывай: если не уверен в цифре, так и пиши —
+                 «требуется локальная сверка: /rules».
+
+            D. Тесты: изменённая математика правил без нового кейса в tests/rules-cases.js —
+               это находка. Если менялась схема персонажа, проверь миграцию schemaVersion
+               в app-migrate.js.
+
+            E. Обычное ревью: баги, крайние случаи, регрессии, мёртвый код.
+
+            Чего НЕ делать:
+            - не правь файлы, не коммить, не пушь, не апрувь и не мержи PR;
+            - не переписывай стиль под современный JS и не придирайся к var;
+            - не предлагай сборщик, npm-зависимости, ES-модули, i18n и ленивую загрузку
+              spells.js/data.js — автор проекта эти решения уже отклонил;
+            - не пересказывай диф и не хвали, если сказать нечего.
+
+            Формат ответа:
+            - конкретные замечания — инлайн-комментариями к строкам;
+            - в конце один сводный комментарий, его первая строка —
+              «ВЕРДИКТ: ✅ можно вливать», «ВЕРДИКТ: ⚠️ есть замечания»
+              или «ВЕРДИКТ: ❌ вливать нельзя»;
+            - дальше находки списком, каждая с файлом и строкой;
+            - замечаний нет — короткий вердикт без воды.
+
+          claude_args: |
+            --model opus
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
