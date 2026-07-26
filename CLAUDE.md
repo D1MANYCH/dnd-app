@@ -22,7 +22,7 @@
 - Обмен — через глобалы: функции объявляются на верхнем уровне файла (`function f()`), экспортов нет. В `index.html` ~460 inline-обработчиков (`onclick=`, `oninput=`) зовут их по имени — обернуть такой файл в IIFE значит сломать вкладку. IIFE только у самодостаточных `app-log.js` / `icons.js` / `history-stack.js` / `bg-space.js` / `dice-arena-bg.js` — они публикуют API через `window.X`.
 - Стиль — ES5: `var` (стрелки и шаблонные строки в коде почти не встречаются), писать по соседнему коду.
 - Тяжёлое грузится лениво через `loadScript()` в низу `index.html`: `app-pdf` + `vendor/jspdf`, `build-notes-data`, `monsters-srd` + `npc-srd`, `magic-items`, `gear-catalog`, `data-2024`. Их `?v=` токены живут там же.
-- Новый js/css-файл → подключение в `index.html` (`<script src>` или `loadScript`) + `?v=` токен + строка в `FILES_TO_CACHE` (`sw.js`).
+- Новый js/css-файл → подключение в `index.html` (`<script src>` или `loadScript`) + `?v=` токен + строка в `FILES_TO_CACHE` (`sw.js`). Все три требования проверяет `tools/check-invariant.js` (в CI), пропуск любого — красный job `tests`.
 - UI и термины — русские, эталон — книги D&D 5e 2014; редакция 2024 живёт за `char.edition` (`EDITION_DATA`/`edData`).
 
 ## Запуск и тесты

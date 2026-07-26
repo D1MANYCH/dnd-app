@@ -3,6 +3,9 @@
 // Проверка инварианта релиза (TOOL-3, второй шаг CI):
 //   APP_VERSION ↔ APP_CHANGELOG[0].version ↔ CACHE_NAME (dnd-sheet-vN)
 //   ↔ все ?v= токены js/css в index.html ↔ CHANGELOG.md (первый ## vX.Y.Z)
+// Плюс соглашение CLAUDE.md «новый js/css → подключение + ?v= токен + строка
+// в FILES_TO_CACHE»: у каждого локального подключения в index.html есть токен
+// (проверка 5) и запись в прекеше sw.js (проверка 6).
 // Регэкспы — те же, что в tools/bump-version.js (источник логики).
 // Exit 0 — инвариант цел; exit 1 — нумерованный список расхождений.
 'use strict';
@@ -73,7 +76,64 @@ function checkInvariant(root) {
       ' ?v= токенов != v' + cacheN + ': ' + badTokens.join(', '));
   }
 
-  // 5. CHANGELOG.md: первый заголовок ## vX.Y.Z === APP_VERSION
+  // 5. index.html: подключения js/css вообще БЕЗ ?v= — слепое пятно проверки 4.
+  //    Та сверяет только уже существующие токены, поэтому строка вида
+  //    <script src="app-experimental.js"></script> проходила зелёной, а после
+  //    релиза SW отдавал бы клиенту старую копию файла.
+  //    Ссылки собираем по строковым литералам index.html: этим ловятся и атрибуты
+  //    <script src>/<link href>, и ленивые пути (loadScript(), массив PDF_STACK).
+  //    vendor/ пропускаем — у него свой цикл вендоринга и ручные записи в прекеше.
+  const refs = [];
+  const seenRef = {};
+  const refRe = /(["'])((?:\.\/)?(?:[\w.@-]+\/)*[\w.@-]+\.(?:js|css))(\?[^"']*)?\1/g;
+  let rm;
+  while ((rm = refRe.exec(indexSrc)) !== null) {
+    const file = rm[2].replace(/^\.\//, '');
+    if (/^vendor\//.test(file) || seenRef[file]) continue;
+    seenRef[file] = true;
+    refs.push({
+      file: file,
+      token: ((rm[3] || '').match(/[?&]v=([^&]*)/) || [])[1] || null,
+      line: indexSrc.slice(0, rm.index).split('\n').length
+    });
+  }
+  if (refs.length === 0) {
+    problems.push('index.html: не найдено ни одного локального подключения js/css');
+  }
+  const noToken = [];
+  refs.forEach(function (r) {
+    if (!r.token) noToken.push(r.file + ' (строка ' + r.line + ')');
+  });
+  if (noToken.length) {
+    problems.push('index.html: ' + noToken.length + ' подключение(й) js/css без токена ?v=v' +
+      (cacheN || '?') + ' — после релиза Service Worker отдаст старую копию: ' + noToken.join(', '));
+  }
+
+  // 6. sw.js: каждый локальный js/css из index.html есть в FILES_TO_CACHE.
+  //    Без записи файл не попадает в прекеш — офлайн-старт получит index.html
+  //    вместо скрипта (см. ignoreSearch в обработчике fetch) и приложение ляжет.
+  const fm = swSrc.match(/FILES_TO_CACHE\s*=\s*\[([\s\S]*?)\]\s*;/);
+  if (!fm) {
+    problems.push('sw.js: не найден массив FILES_TO_CACHE');
+  } else {
+    const cacheList = [];
+    const strRe = /["']([^"']+)["']/g;
+    let sm;
+    // Построчные комментарии внутри массива режем, чтобы кавычка в тексте
+    // комментария не попала в список путей.
+    const body = fm[1].replace(/\/\/[^\n]*/g, '');
+    while ((sm = strRe.exec(body)) !== null) cacheList.push(sm[1].replace(/^\.\//, ''));
+    const notCached = [];
+    refs.forEach(function (r) {
+      if (cacheList.indexOf(r.file) === -1) notCached.push(r.file + ' (строка ' + r.line + ')');
+    });
+    if (notCached.length) {
+      problems.push('sw.js: ' + notCached.length + ' файл(ов) из index.html нет в FILES_TO_CACHE' +
+        ' — офлайн-режим их не получит: ' + notCached.join(', '));
+    }
+  }
+
+  // 7. CHANGELOG.md: первый заголовок ## vX.Y.Z === APP_VERSION
   const mdVer = (mdSrc.match(/^## v(\d+\.\d+\.\d+)/m) || [])[1];
   if (!mdVer) {
     problems.push('CHANGELOG.md: не найден первый заголовок ## vX.Y.Z');
@@ -85,6 +145,7 @@ function checkInvariant(root) {
     'APP_CHANGELOG[0] ' + (clogVersion || '?'),
     'CACHE dnd-sheet-v' + (cacheN || '?'),
     tokenCount + ' ?v= токенов',
+    refs.length + ' локальных js/css ↔ FILES_TO_CACHE',
     'CHANGELOG.md v' + (mdVer || '?'));
   return { ok: problems.length === 0, problems, summary };
 }
