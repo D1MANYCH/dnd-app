@@ -38,6 +38,8 @@ if (result) result.classList.add("hidden");
 if (title) title.textContent = "☕ Короткий отдых (1 час)";
 if (list) list.innerHTML = "<li>Потратьте кости хитов для восстановления ХП</li><li>Восстанавливаются некоторые классовые умения</li><li>Заклинания НЕ восстанавливаются (кроме Колдуна)</li>";
 if (hitDiceSection) hitDiceSection.classList.remove("hidden");
+const foodSection = $("rest-food-section");
+if (foodSection) foodSection.classList.add("hidden");
 // Короткий отдых доступен всегда: требования «хотя бы 1 хит» книга предъявляет
 // только к продолжительному (PHB стр.186). Кнопку могла погасить ветка длинного.
 if (confirmBtn) { confirmBtn.textContent = "Короткий отдых"; confirmBtn.disabled = false; }
@@ -63,6 +65,13 @@ const blockReason = char ? rulesLongRestBlockReason(char) : null;
 const blockNote = blockReason ? "<li style='color:var(--danger); font-weight:600;'>⛔ " + escapeHtml(blockReason) + "</li>" : "";
 if (list) list.innerHTML = blockNote + "<li>Восстанавливаются ВСЕ ХП</li><li>Восстанавливаются ВСЕ ячейки заклинаний</li><li>Восстанавливаются кости хитов (до половины уровня)</li><li>Сбрасываются потраченные кости хитов</li><li>Восстанавливаются все классовые умения</li><li>✅ Снимаются большинство условий</li>";
 if (hitDiceSection) hitDiceSection.classList.add("hidden");
+// PHB стр.291: истощение снижает только тот отдых, в котором персонаж поел и попил.
+// Спрашиваем, только если истощение есть — иначе флажок в окне ни на что не влияет.
+const foodSection = $("rest-food-section");
+const foodBox = $("rest-food-drink");
+const hasExhaustion = !!(char && char.conditions && char.conditions.some(function(c) { return String(c).indexOf("exhaustion_") === 0; }));
+if (foodBox) foodBox.checked = true;
+if (foodSection) foodSection.classList.toggle("hidden", !hasExhaustion);
 if (confirmBtn) { confirmBtn.textContent = "Долгий отдых"; confirmBtn.disabled = !!blockReason; }
 }
 function showRestResult(title, details) {
@@ -156,10 +165,16 @@ if (typeof clearAllCastEffects === "function") {
 }
 // CAST-1/3: эффекты кастов и концентрацию уже снял clearAllCastEffects выше
 // (до сброса ХП); оставшиеся РУЧНЫЕ карточки эффектов гасит rulesLongRest.
-var _long = rulesLongRest(char);
+// PHB стр.291: флажок «поел и попил» показывается только при истощении, в остальных
+// случаях его нет в DOM — тогда считаем, что персонаж ел и пил.
+var _foodBox = $("rest-food-drink");
+var _foodSection = $("rest-food-section");
+var _ateAndDrank = (_foodBox && _foodSection && !_foodSection.classList.contains("hidden")) ? _foodBox.checked : true;
+var _long = rulesLongRest(char, { foodAndDrink: _ateAndDrank });
 const maxHp = _long.hpAfter;
 const hitDiceToRestore = _long.hitDiceRestored;
 var exhaustionReduced = _long.exhaustionReduced;
+var exhaustionHeld = _long.exhaustionHeld;
 var chargesRestored = _long.chargesRestored;
 resetResourcesByRest("long");
 loadConditions();
@@ -167,10 +182,11 @@ loadEffects();
 addHPHistory(oldHp, maxHp, maxHp - oldHp, "Долгий отдых");
 if (maxHp - oldHp > 0) showHPToast(maxHp - oldHp);
 resultTitle = "✅ Долгий отдых завершён!";
-if (window.AppLog) AppLog.action("hp", "длинный отдых: ХП " + oldHp + " → " + maxHp + (exhaustionReduced ? ", истощение −1" : "") + (chargesRestored ? ", заряды: " + chargesRestored : ""));
+if (window.AppLog) AppLog.action("hp", "длинный отдых: ХП " + oldHp + " → " + maxHp + (exhaustionReduced ? ", истощение −1" : "") + (exhaustionHeld ? ", истощение осталось (без еды и питья)" : "") + (chargesRestored ? ", заряды: " + chargesRestored : ""));
 addJournalEntry("rest", "Долгий отдых — новая сессия", "Уровень " + (char.level||1) + " · ХП: " + oldHp + " → " + maxHp + " · Ячейки и ресурсы восстановлены");
 renderJournal();
-var exhaustionNote = exhaustionReduced ? "<p>😫 Истощение снижено на 1 уровень</p>" : "";
+var exhaustionNote = exhaustionReduced ? "<p>😫 Истощение снижено на 1 уровень</p>"
+  : (exhaustionHeld ? "<p>🍖 Истощение осталось прежним: персонаж не ел и не пил (PHB стр. 291)</p>" : "");
 var chargesNote = chargesRestored ? "<p>⚡ Заряды предметов восстановлены: " + chargesRestored + "</p>" : "";
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div><p>✨ Ячейки заклинаний: восстановлены</p><p>🎲 Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + exhaustionNote + chargesNote;
 }

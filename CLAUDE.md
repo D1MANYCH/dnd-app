@@ -11,10 +11,11 @@
 Полная структура, ключевые функции, схема персонажа, миграции — [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 - `index.html` — единственная страница: разметка, порядок скриптов, ленивый загрузчик.
-- Ядро и вкладки: `app-core.js` (состояние, навигация, персонажи, импорт/экспорт), `app-combat.js`, `app-hp.js`, `app-inventory.js`, `app-spells.js`, `app-party.js`, `app-notes.js`, `app-ui.js`, `app-desktop.js`, `app-help.js` (справка и туры), `history-stack.js`, `app-backup.js` (IndexedDB), `app-log.js` (панель Ctrl+Shift+L), `app-pdf.js`.
+- Ядро: `rules.js` (чистые расчёты правил без DOM — КД, спасброски, ячейки, отдых, концентрация), `app-core.js` (состояние, навигация, персонажи) + `app-migrate.js` (миграции), `app-builds.js` (билды и гайды), `app-io.js` (экспорт/импорт).
+- Вкладки: `app-combat.js` + `app-conditions.js` / `app-cast-effects.js` / `app-proficiencies.js`, `app-hp.js`, `app-inventory.js`, `app-spells.js`, `app-party.js`, `app-notes.js`, `app-ui.js` + `app-dice.js` / `app-settings.js` / `app-asi.js`, `app-desktop.js`, `app-help.js` (справка и туры), `history-stack.js`, `app-backup.js` (IndexedDB), `app-log.js` (панель Ctrl+Shift+L), `app-pdf.js`.
 - Данные: `data.js` (классы/расы/черты + `APP_VERSION`/`APP_VERSION_DATE`/`APP_CHANGELOG`), `data-2024.js` (edition-слой), `spells.js`, `spell-effects.js` (механика кнопки «Использовать»), `character-builds.js` + `build-notes-data.js`, `class-choices.js` + `subclass-choices-data.js`, `magic-items.js`, `gear-catalog.js`, `glossary-data.js`, `monsters-srd.js` + `npc-srd.js`.
 - Прочее: `icons.js` (SVG-иконки), `bg-space.js` + `dice-arena-bg.js` (фоны), `dev-verify-builds.js` (`verifyAllBuilds()`).
-- `tools/` — `bump-version.js`, `gen-changelog.js`, `gen-release-log.js`, `gen-release-post.js`, `check-invariant.js`, `check-theme.js`, `run-tests-hook.js`. `tests/` — `headless-node.js`, `runner.html` + `headless.js`, `fixtures.js`. CI — `.github/workflows/tests.yml` (тесты + инвариант + темы), `pages.yml` (деплой).
+- `tools/` — `bump-version.js`, `gen-changelog.js`, `gen-release-log.js`, `gen-release-post.js`, `check-invariant.js`, `check-theme.js`, `run-tests-hook.js`, `check-syntax-hook.js`, `check-sw-hook.js`, `phb-search.py` (поиск по локальным PDF книг). `tests/` — `headless-node.js`, `runner.html` + `headless.js`, `fixtures.js`, `rules-cases.js` (кейсы `rules.js`, общие с `tests.html`). CI — `.github/workflows/tests.yml` (тесты + инвариант + темы), `pages.yml` (деплой).
 
 ## Соглашения по коду
 - Модули — обычные `<script src>` внизу `index.html` в **жёстком порядке**: `app-log` → `icons` → фоны → данные → `app-core` → вкладки → `app-ui`/`app-notes`/`app-desktop`/`app-help`. Единственный `type="module"` — обёртка dice-box (`index.html:2998`).
@@ -26,7 +27,7 @@
 
 ## Запуск и тесты
 - Превью — конфиг `dnd-app` в `.claude/launch.json` (`preview_start`, порт 3017) либо любой статический сервер из корня; PWA требует `https` или `localhost`.
-- `/test` (= `node tests/headless-node.js`) — логика; `tests/runner.html` — те же тесты в браузере; `verifyAllBuilds()` в DevTools-консоли — билды, сейчас 36/36 fullPass.
+- `/test` (= `node tests/headless-node.js`) — логика; `tests/runner.html` — те же тесты в браузере; `tests.html` в корне — только кейсы `rules.js` (страница читаема с телефона, есть сброс SW); `verifyAllBuilds()` в DevTools-консоли — билды, сейчас 36/36 fullPass.
 
 ## Версионирование
 Инвариант релиза — пять величин меняются синхронно одной командой:
@@ -45,7 +46,7 @@ APP_VERSION ↔ APP_CHANGELOG[0].version ↔ CACHE_NAME (dnd-sheet-vN) ↔ вс�
 Оба генератора вызывает `/bump`. Краткий пост-анонс со всеми тремя ссылками — `/relpost` (`tools/gen-release-post.js`).
 
 ## Хуки (`.claude/settings.json`, `PostToolUse` на Edit|Write|MultiEdit)
-Блокируют (exit 2): правку `sw.js` без bump `CACHE_NAME`; рассинхрон `APP_VERSION` ↔ `APP_CHANGELOG[0].version`. Предупреждают: `tools/run-tests-hook.js` на правку `*.js`, `tools/check-theme.js --hook` на правку `style.css`. Отключить — убрать блок из `hooks.PostToolUse`; источник истины — сам `settings.json`.
+Пять хуков. Блокируют (exit 2): `check-sw-hook.js` — правку `sw.js` без bump `CACHE_NAME`; рассинхрон `APP_VERSION` ↔ `APP_CHANGELOG[0].version`; `check-syntax-hook.js` — `node --check` на любой правке `*.js` (кроме `vendor/`). Предупреждают: `tools/run-tests-hook.js` на правку `*.js`, `tools/check-theme.js --hook` на правку `style.css`. Отключить — убрать блок из `hooks.PostToolUse`; источник истины — сам `settings.json`.
 
 ## Процедуры
 - Slash-команды — `.claude/commands/*.md`, скиллы — `.claude/skills/*/SKILL.md`. **Скилл читать ДО задачи, а не после.** Контент (класс, заклинание, билд, магпредмет, черта, оружие) — скилл `add-content`, там же файлы и миграции `schemaVersion`.

@@ -419,6 +419,21 @@ function rulesCases(t, group) {
     return true;
   });
 
+  // PHB стр.186: запас костей хитов равен уровню, потраченные возвращает только
+  // продолжительный отдых — потратить больше, чем осталось, нельзя.
+  t("Короткий отдых: нельзя потратить костей больше, чем осталось в запасе", function() {
+    var c = restChar({ combat: { armorId: "none", hasShield: false, hpCurrent: 12, hpMax: 44, hpTemp: 0, hpDiceSpent: 3, hpDice: "1к10" } });
+    var r = rulesShortRest(c, { hitDiceSpent: 4, rolls: [5, 5, 5, 5] });
+    if (r.hitDiceSpent !== 2) return "потрачено по сводке: " + r.hitDiceSpent + ", ожидал 2 (осталось 5−3)";
+    if (r.hpHealed !== 14) return "лечение: " + r.hpHealed + ", ожидал 14 (только 2 кости по 5+2)";
+    if (c.combat.hpDiceSpent !== 5) return "потрачено костей: " + c.combat.hpDiceSpent + ", ожидал 5 (не больше уровня)";
+    var empty = restChar({ combat: { armorId: "none", hasShield: false, hpCurrent: 12, hpMax: 44, hpTemp: 0, hpDiceSpent: 5, hpDice: "1к10" } });
+    var re = rulesShortRest(empty, { rolls: [8] });
+    if (re.hpHealed !== 0 || re.hitDiceSpent !== 0) return "пустой запас лечит: " + re.hpHealed + " ХП за " + re.hitDiceSpent + " костей";
+    if (empty.combat.hpDiceSpent !== 5) return "потраченные выросли сверх уровня: " + empty.combat.hpDiceSpent;
+    return true;
+  });
+
   t("Короткий отдых: Колдун восстанавливает пакт-ячейки, Волшебник — ничего", function() {
     var w = restChar({ class: "Колдун",
       spells: { stat: "ХАР", slots: {}, slotsUsed: {}, pactSlots: 2, pactLevel: 3, pactUsed: 2 } });
@@ -485,6 +500,30 @@ function rulesCases(t, group) {
     if (c1.conditions.length !== 0) return "истощение 1 не снято: " + c1.conditions.join(",");
     var clean = restChar();
     if (rulesLongRest(clean).exhaustionReduced !== false) return "истощения не было, а флаг поднят";
+    return true;
+  });
+
+  // PHB стр.291: «Продолжительный отдых снижает степень истощения на 1, при условии,
+  // что существо что-нибудь съест и выпьет».
+  t("Длинный отдых без еды и питья: истощение остаётся, остальное восстанавливается", function() {
+    var c = restChar({ conditions: ["exhaustion_3"],
+      combat: { armorId: "none", hasShield: false, hpCurrent: 4, hpMax: 44, hpTemp: 0, hpDiceSpent: 5, hpDice: "1к10" },
+      spells: { stat: "ИНТ", slots: { 1: 4, 2: 3 }, slotsUsed: { 1: 4, 2: 3 }, pactSlots: 0, pactLevel: 0, pactUsed: 0 } });
+    var r = rulesLongRest(c, { foodAndDrink: false });
+    if (r.exhaustionReduced !== false) return "истощение понижено без еды и питья";
+    if (r.exhaustionHeld !== true) return "нет флага exhaustionHeld: " + JSON.stringify(r);
+    if (c.conditions.indexOf("exhaustion_3") === -1) return "степень истощения изменилась: " + c.conditions.join(",");
+    if (c.combat.hpCurrent !== 44) return "ХП не восстановились: " + c.combat.hpCurrent;
+    if (c.spells.slotsUsed[1] !== 0) return "ячейки не восстановились: " + JSON.stringify(c.spells.slotsUsed);
+    if (r.hitDiceRestored !== 2) return "кости хитов: " + r.hitDiceRestored + ", ожидал 2";
+    // Тот же персонаж после еды и питья: степень падает
+    var r2 = rulesLongRest(c, { foodAndDrink: true });
+    if (r2.exhaustionReduced !== true || c.conditions.indexOf("exhaustion_2") === -1)
+      return "с едой и питьём истощение не понижено: " + c.conditions.join(",");
+    if (r2.exhaustionHeld !== false) return "флаг exhaustionHeld держится при еде";
+    // Умолчание (аргумента нет) = персонаж ел и пил
+    var d = restChar({ conditions: ["exhaustion_1"] });
+    if (rulesLongRest(d).exhaustionReduced !== true) return "без opts истощение не понижено";
     return true;
   });
 

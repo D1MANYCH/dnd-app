@@ -270,6 +270,13 @@ function rulesShortRest(char, opts) {
   opts = opts || {};
   var rolls = opts.rolls || [];
   var spent = (opts.hitDiceSpent != null) ? opts.hitDiceSpent : rolls.length;
+  // PHB стр.186: запас костей хитов равен уровню, потраченные возвращает только
+  // продолжительный отдых — потратить больше, чем осталось, нельзя. В UI предел держит
+  // adjustHitDice, здесь тот же предел на уровне правил: лишние броски не считаются.
+  var availableDice = Math.max(0, (char.level || 1) - (char.combat.hpDiceSpent || 0));
+  if (spent < 0) spent = 0;
+  if (spent > availableDice) spent = availableDice;
+  if (rolls.length > spent) rolls = rolls.slice(0, spent);
   var conMod = getMod(char.stats.con);
   var hpBefore = parseInt(char.combat.hpCurrent, 10);
   var hpHealed = 0;
@@ -316,14 +323,18 @@ function rulesLongRestBlockReason(char) {
 // Эффекты кастов снимает вызывающий (clearAllCastEffects) — СТРОГО до этой функции,
 // иначе реверт hpMax «Подмоги» пройдёт после hpCurrent = maxHp.
 // На 0 хитов отдых не проходит: возвращается {blocked:true}, персонаж не мутируется.
-function rulesLongRest(char) {
+// opts.foodAndDrink === false — персонаж не ел и не пил: всё остальное отдых даёт,
+// но истощение не снижается (PHB стр.291). По умолчанию считаем, что ел и пил.
+function rulesLongRest(char, opts) {
+  opts = opts || {};
+  var foodAndDrink = (opts.foodAndDrink !== false);
   var blockReason = rulesLongRestBlockReason(char);
   if (blockReason) {
     var hpNow = parseInt(char.combat.hpCurrent, 10) || 0;
     return {
       blocked: true, reason: blockReason,
       hpBefore: hpNow, hpAfter: hpNow, hitDiceRestored: 0,
-      exhaustionReduced: false, chargesRestored: 0
+      exhaustionReduced: false, exhaustionHeld: false, chargesRestored: 0
     };
   }
   var hpBefore = parseInt(char.combat.hpCurrent, 10);
@@ -336,13 +347,16 @@ function rulesLongRest(char) {
   var hitDiceSpentBefore = char.combat.hpDiceSpent || 0;
   var hitDiceRestored = Math.min(hitDiceSpentBefore, Math.max(1, Math.floor((char.level || 1) / 2)));
   char.combat.hpDiceSpent = Math.max(0, hitDiceSpentBefore - hitDiceRestored);
-  // PHB: длинный отдых снижает истощение на 1 уровень, остальные состояния не снимаются автоматически
+  // PHB стр.291: продолжительный отдых снижает степень истощения на 1 — но только если
+  // существо «что-нибудь съест и выпьет». Остальные состояния не снимаются автоматически.
   var exhaustionReduced = false;
+  var exhaustionHeld = false;
   if (char.conditions && char.conditions.length > 0) {
     var exhLevels = ["exhaustion_6","exhaustion_5","exhaustion_4","exhaustion_3","exhaustion_2","exhaustion_1"];
     for (var ei = 0; ei < exhLevels.length; ei++) {
       var exhIdx = char.conditions.indexOf(exhLevels[ei]);
       if (exhIdx !== -1) {
+        if (!foodAndDrink) { exhaustionHeld = true; break; }
         char.conditions.splice(exhIdx, 1);
         // Понижаем на 1 уровень (если было 3, ставим 2)
         var exhNum = parseInt(exhLevels[ei].split("_")[1], 10);
@@ -361,7 +375,8 @@ function rulesLongRest(char) {
   return {
     blocked: false, reason: null,
     hpBefore: hpBefore, hpAfter: maxHp, hitDiceRestored: hitDiceRestored,
-    exhaustionReduced: exhaustionReduced, chargesRestored: chargesRestored
+    exhaustionReduced: exhaustionReduced, exhaustionHeld: exhaustionHeld,
+    chargesRestored: chargesRestored
   };
 }
 
