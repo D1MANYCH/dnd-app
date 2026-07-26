@@ -45,6 +45,7 @@ const files = [
   'history-stack.js',        // FIN-12: pushHistoryLayer/syncCloseLayer/getHistoryLayers (нужен history-шим ниже) (БЛОК 30)
   'app-backup.js',           // FIN-12: авто-бэкап IndexedDB — smoke: константы/наличие/чистые хелперы (БЛОК 30)
   'tests/fixtures.js',
+  'tests/rules-cases.js',    // SETUP-5.3: кейсы rules.js со страницы tests.html — гоняет БЛОК 50 в headless.js
   'tests/headless.js',
 ];
 

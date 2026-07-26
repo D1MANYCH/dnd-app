@@ -6280,6 +6280,16 @@
     });
   }
 
+  // ────────── БЛОК 50 (SETUP-5.3): кейсы rules.js со страницы tests.html ──────────
+  // Файл общий: tests.html показывает их с группами и фильтром, node/CI гоняет тем же
+  // движком t() — имя группы уходит в префикс описания.
+  if (typeof rulesCases === "function") {
+    var _rcGroup = "";
+    rulesCases(function(desc, fn){
+      t("[rules] " + (_rcGroup ? _rcGroup + ": " : "") + desc, fn);
+    }, function(title){ _rcGroup = title; });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

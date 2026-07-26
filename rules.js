@@ -275,7 +275,7 @@ function rulesShortRest(char, opts) {
   var hpHealed = 0;
   var rollLog = [];
   rolls.forEach(function(_roll) {
-    var _total = Math.max(1, _roll + conMod);
+    var _total = Math.max(0, _roll + conMod);
     hpHealed += _total;
     rollLog.push(_roll + ((conMod >= 0 ? "+" : "") + conMod) + "=" + _total);
   });
@@ -284,8 +284,10 @@ function rulesShortRest(char, opts) {
   char.combat.hpDiceSpent = (char.combat.hpDiceSpent || 0) + spent;
   // FIX: Warlock recovers spell slots on short rest
   var isWarlock = (char.class === "Колдун") || (char.classes && char.classes.some(function(c){return c.class === "Колдун";}));
+  var isMulticlassChar = !!(char.classes && char.classes.length > 1);
   if (isWarlock && char.spells) {
-    if (char.spells.slots) {
+    // У мультикласса slots — ячейки полного заклинателя, короткий отдых их не трогает (PHB стр.164)
+    if (char.spells.slots && !isMulticlassChar) {
       for (var _si = 1; _si <= 9; _si++) {
         if (char.spells.slots[_si]) char.spells.slotsUsed[_si] = 0;
       }
@@ -299,18 +301,21 @@ function rulesShortRest(char, opts) {
   };
 }
 
-// Длинный отдых: ХП до максимума, ячейки и половина костей хитов, истощение −1,
-// ручные карточки эффектов и спасброски от смерти, заряды предметов.
+// Длинный отдых: ХП до максимума, временные ХП гаснут (PHB стр.198), ячейки и половина
+// костей хитов, истощение −1, ручные карточки эффектов и спасброски от смерти, заряды предметов.
 // Эффекты кастов снимает вызывающий (clearAllCastEffects) — СТРОГО до этой функции,
 // иначе реверт hpMax «Подмоги» пройдёт после hpCurrent = maxHp.
 function rulesLongRest(char) {
   var hpBefore = parseInt(char.combat.hpCurrent, 10);
   var maxHp = parseInt(char.combat.hpMax, 10) || 0;
   char.combat.hpCurrent = maxHp;
+  char.combat.hpTemp = 0;
   for (var i = 1; i <= 9; i++) { if (char.spells.slots[i]) char.spells.slotsUsed[i] = 0; }
   if (char.spells.pactSlots) char.spells.pactUsed = 0;
-  var hitDiceRestored = Math.floor(char.level / 2);
-  char.combat.hpDiceSpent = Math.max(0, (char.combat.hpDiceSpent || 0) - hitDiceRestored);
+  // PHB стр.186: восстанавливается половина костей, но не меньше одной и не больше потраченных
+  var hitDiceSpentBefore = char.combat.hpDiceSpent || 0;
+  var hitDiceRestored = Math.min(hitDiceSpentBefore, Math.max(1, Math.floor((char.level || 1) / 2)));
+  char.combat.hpDiceSpent = Math.max(0, hitDiceSpentBefore - hitDiceRestored);
   // PHB: длинный отдых снижает истощение на 1 уровень, остальные состояния не снимаются автоматически
   var exhaustionReduced = false;
   if (char.conditions && char.conditions.length > 0) {
