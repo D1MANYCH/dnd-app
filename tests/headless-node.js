@@ -48,6 +48,7 @@ const files = [
   'app-dice.js',             // SETUP-6: броски и dice-box — до app-ui (как в index.html)
   'app-settings.js',         // SETUP-6: оформление и настройки — до app-ui (как в index.html)
   'app-ui.js',               // UI6-1: настройки оформления — _getAutoAccent/CLASS_ACCENT_MAP/setAccent (БЛОК 13); позже layout/edition (БЛОК 14)
+  'app-home.js',             // MENU-7: главный экран — getLastCharacter/_homeHeroChips (БЛОК 51); после app-ui (как в index.html)
   'app-asi.js',              // SETUP-6: АСИ и черты — после app-ui (как в index.html)
   'app-help.js',             // THEME-1: геометрия прожектора тура — _computeTourBoxes (БЛОК 31)
   'app-notes.js',            // FIN-12: notesV2 — _mdToHtml/_notesReorderPinned/notesSaveEntryModal/notesExport* (БЛОК 30)

@@ -6290,6 +6290,101 @@
     }, function(title){ _rcGroup = title; });
   }
 
+  // ────────── БЛОК 51 (MENU-7): главный экран — плашка героя ──────────
+  // Проверяем только чистые хелперы app-home.js (без DOM): выбор последнего
+  // героя и состав чипов. Рендер renderHomeHero тут не трогаем — он про DOM.
+  (function(){
+    if (typeof getLastCharacter !== "function") return; // app-home.js не загружен
+
+    // characters — глобал из app-core.js; подменяем на время блока и возвращаем.
+    var _charsBackup = (typeof characters !== "undefined" && characters) ? characters.slice() : [];
+    function setChars(arr){ characters.length = 0; arr.forEach(function(c){ characters.push(c); }); }
+    function mkChar(o){
+      return {
+        id: o.id, name: o.name || "Герой", class: o.cls || "", race: o.race || "", level: o.level || 1,
+        updatedAt: o.updatedAt,
+        combat: { ac: o.ac != null ? o.ac : 10, hpMax: o.hpMax != null ? o.hpMax : 10, hpCurrent: o.hpCur != null ? o.hpCur : 10 },
+        spells: { mySpells: o.spells || [] }
+      };
+    }
+
+    t("[menu] getLastCharacter: пустой список → null", function(){
+      setChars([]);
+      return getLastCharacter() === null || "вернул не null";
+    });
+
+    t("[menu] getLastCharacter: берёт максимальный updatedAt", function(){
+      setChars([
+        mkChar({id:1, name:"Старый",  updatedAt: 1000}),
+        mkChar({id:2, name:"Свежий",  updatedAt: 3000}),
+        mkChar({id:3, name:"Средний", updatedAt: 2000})
+      ]);
+      var got = getLastCharacter();
+      return (got && got.name === "Свежий") || ("получен " + (got && got.name));
+    });
+
+    t("[menu] getLastCharacter: без updatedAt падает на id", function(){
+      setChars([ mkChar({id: 10, name:"Меньший"}), mkChar({id: 99, name:"Больший"}) ]);
+      var got = getLastCharacter();
+      return (got && got.name === "Больший") || ("получен " + (got && got.name));
+    });
+
+    t("[menu] _homeCantripCount: считает только 0-й круг", function(){
+      var c = mkChar({id:1, spells:[
+        {name:"Луч холода", level:0}, {name:"Свет", level:0},
+        {name:"Магическая стрела", level:1}, {name:"Огненный шар", level:3}
+      ]});
+      var n = _homeCantripCount(c);
+      return n === 2 || ("получено " + n);
+    });
+
+    t("[menu] _homeHeroChips: три чипа, третий — заговоры у заклинателя", function(){
+      var c = mkChar({id:1, hpCur:34, hpMax:40, ac:16, level:5, spells:[
+        {level:0},{level:0},{level:0},{level:2}
+      ]});
+      var chips = _homeHeroChips(c);
+      if (chips.length !== 3) return "чипов " + chips.length;
+      if (chips[0].text !== "34/40") return "хиты: " + chips[0].text;
+      if (chips[1].text !== "КД 16") return "КД: " + chips[1].text;
+      if (chips[2].text !== "3 заговора") return "третий чип: " + chips[2].text;
+      return true;
+    });
+
+    t("[menu] _homeHeroChips: у не-заклинателя третий чип — уровень", function(){
+      var c = mkChar({id:1, hpCur:28, hpMax:28, ac:15, level:3, spells:[]});
+      var chips = _homeHeroChips(c);
+      return chips[2].text === "3 ур." || ("третий чип: " + chips[2].text);
+    });
+
+    t("[menu] _homeHeroChips: aria-подписи не полагаются на глифы", function(){
+      var c = mkChar({id:1, hpCur:34, hpMax:40, ac:16, level:5, spells:[]});
+      var chips = _homeHeroChips(c);
+      return (chips[0].aria === "Хиты 34 из 40" && chips[1].aria === "Класс доспеха 16")
+        || ("aria: " + chips[0].aria + " / " + chips[1].aria);
+    });
+
+    t("[menu] _homePlural: русское склонение заговоров", function(){
+      var got = [1,2,5,11,21,22,25].map(function(n){ return _homePlural(n, "заговор", "заговора", "заговоров"); });
+      return eq(got, ["заговор","заговора","заговоров","заговоров","заговор","заговора","заговоров"]) || got.join(",");
+    });
+
+    t("[menu] _homePlural: склонение героев для «Выбора персонажа»", function(){
+      var got = [1,2,5,11].map(function(n){ return _homePlural(n, "герой", "героя", "героев"); });
+      return eq(got, ["герой","героя","героев","героев"]) || got.join(",");
+    });
+
+    // MENU-8: экранов три, и глубина решает две вещи — куда возвращает «←»
+    // и когда history-stack пушит слой. Карта должна оставаться согласованной.
+    t("[menu] SCREEN_DEPTH: home < characters < character", function(){
+      if (typeof SCREEN_DEPTH === "undefined") return "нет SCREEN_DEPTH";
+      return (SCREEN_DEPTH.home < SCREEN_DEPTH.characters &&
+              SCREEN_DEPTH.characters < SCREEN_DEPTH.character)
+        || JSON.stringify(SCREEN_DEPTH);
+    });
+
+    setChars(_charsBackup);
+  })();
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

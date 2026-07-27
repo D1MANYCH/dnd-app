@@ -77,18 +77,23 @@
     return true;
   }
 
-  // Обёртка для showScreen — стек только при переходе characters → character
+  // Обёртка для showScreen. MENU-8: экранов три (home → characters → character),
+  // поэтому слой истории пушим на любом движении ВПЕРЁД (по глубине), а не только
+  // на characters → character. Назад (Back браузера / кнопка «←») слоёв не создаёт —
+  // иначе стек рос бы при каждом возврате и Back застревал.
+  var SCREEN_DEPTH = { home: 0, characters: 1, character: 2 };
   function wrapShowScreen() {
     var orig = window.showScreen;
     if (typeof orig !== "function") return false;
     window.showScreen = function(name) {
       var prev = null;
       var prevEl = document.querySelector('div[id^="screen-"]:not(.hidden)');
-      if (prevEl) prev = prevEl.id;
+      if (prevEl) prev = prevEl.id.replace("screen-", "");
       var r = orig.apply(this, arguments);
-      if (prev === "screen-characters" && name === "character") {
-        pushLayer("screen:character", function(){
-          try { orig.call(window, "characters"); } catch(e){}
+      var from = SCREEN_DEPTH[prev], to = SCREEN_DEPTH[name];
+      if (from != null && to != null && to > from) {
+        pushLayer("screen:" + name, function(){
+          try { orig.call(window, prev); } catch(e){}
         });
       }
       return r;

@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v320">
+<link rel="stylesheet" href="style.css?v=v322">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -209,6 +209,15 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
         <button type="button" class="theme-picker-btn" data-space-btn="lively" onclick="setSpaceMode('lively')" title="Полная сцена: планеты, кометы, падающие звёзды">Живой</button>
       </div>
     </div>
+    <!-- MENU-10: редакция правил переехала сюда со встречающего экрана —
+         это настройка, ей место рядом с темой и плотностью. -->
+    <div class="theme-picker-row" id="edition-row">
+      <span class="theme-picker-label">📖 Редакция</span>
+      <div class="theme-picker-btns" role="radiogroup" aria-label="Редакция правил">
+        <button type="button" id="edition-btn-2014" class="theme-picker-btn active" onclick="setEdition('2014')">2014</button>
+        <button type="button" id="edition-btn-2024" class="theme-picker-btn is-soon" aria-disabled="true" onclick="setEdition('2024')">2024 <span class="home-edition-soon-tag">в разработке</span></button>
+      </div>
+    </div>
     <!-- HELP-3: перезапуск онбординга -->
     <div class="theme-picker-row">
       <span class="theme-picker-label">📖 Обучение</span>
@@ -277,7 +286,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 <header>
-<button class="header-back hidden" id="header-back" onclick="showScreen('characters')" title="Назад к профилям">←</button>
+<button class="header-back hidden" id="header-back" onclick="headerBack()" title="Назад">←</button>
 <div class="header-avatar" id="header-avatar">🎭</div>
 <div class="header-info">
   <h2 class="header-title" id="header-title">Мой Персонаж D&amp;D 5e</h2>
@@ -305,17 +314,99 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="container">
 <!-- Floating Buttons -->
 
-<div id="screen-characters">
-<div class="app-version-row" id="app-version-row">
-  <span class="app-version-badge" id="app-version-badge"></span>
-  <span class="app-version-status" id="app-version-status"></span>
-  <button type="button" class="app-version-settings" id="app-version-settings" onclick="openSettingsModal()" title="Настройки оформления" aria-label="Настройки оформления">⚙️</button>
+<!-- ══ ЭКРАН 1: встречающий (MENU-8) ═══════════════════════════════
+     Занимает всё окно: шапка и сайдбар на нём скрыты (body.screen-home).
+     Слева меню, справа плашка последнего героя. -->
+<div id="screen-home">
+<!-- MENU-1: слот под фоновый арт (выключен через --home-art-src: none).
+     Обязан быть прямым ребёнком экрана — см. комментарий у .home-art. -->
+<div class="home-art" id="home-art" aria-hidden="true"></div>
+
+<div class="home-stage">
+
+<!-- MENU-9: меню. Пункты — настоящие <button>, поэтому Enter/Space, tab-order
+     и роль работают без JS. Раскрытие «Нового персонажа» использует штатный
+     toggleAccordion (app-ui.js): панель обязана быть СЛЕДУЮЩИМ сиблингом
+     кнопки и стартовать со style="display:none" (не с атрибутом hidden). -->
+<nav class="home-menu" aria-label="Главное меню">
+<div class="home-brand">
+<span class="home-brand-mark" id="home-brand-mark" aria-hidden="true"></span>
+<span class="home-brand-text">Мой Персонаж<i>D&amp;D 5e</i></span>
 </div>
-<div class="home-edition-row" id="edition-row">
-<span class="home-edition-label">Редакция:</span>
-<button type="button" id="edition-btn-2014" class="home-edition-btn active" onclick="setEdition('2014')">2014</button>
-<button type="button" id="edition-btn-2024" class="home-edition-btn is-soon" aria-disabled="true" onclick="setEdition('2024')">2024<span class="home-edition-soon-tag">в разработке</span></button>
+<ul class="home-menu-list">
+
+<li class="home-menu-row home-menu-row--primary">
+<button type="button" class="home-menu-item" id="home-menu-continue" onclick="homeContinue()">
+<span class="home-bullet" aria-hidden="true"></span>
+<span class="home-menu-label">Продолжить</span>
+<span class="home-menu-hint" id="home-continue-sub"></span>
+</button>
+</li>
+
+<li class="home-menu-row">
+<button type="button" class="home-menu-item" id="home-menu-new" aria-expanded="false" aria-controls="home-sub-new" onclick="toggleHomeSection(this)">
+<span class="home-bullet" aria-hidden="true"></span>
+<span class="home-menu-label">Новый персонаж</span>
+<span class="home-menu-hint">билд или с нуля</span>
+</button>
+<div class="home-menu-sub" id="home-sub-new" role="region" aria-labelledby="home-menu-new" style="display:none">
+<button type="button" class="home-menu-subitem" onclick="openBuildPicker()"><span class="home-bullet home-bullet--sm" aria-hidden="true"></span>По готовому билду</button>
+<button type="button" class="home-menu-subitem" onclick="createNewCharacter()"><span class="home-bullet home-bullet--sm" aria-hidden="true"></span>С нуля</button>
 </div>
+</li>
+
+<li class="home-menu-row">
+<button type="button" class="home-menu-item" id="home-menu-pick" onclick="showScreen('characters')">
+<span class="home-bullet" aria-hidden="true"></span>
+<span class="home-menu-label">Выбор персонажа</span>
+<span class="home-menu-hint" id="home-pick-sub"></span>
+</button>
+</li>
+
+<li class="home-menu-row">
+<button type="button" class="home-menu-item" id="home-menu-data" onclick="openDataModal()">
+<span class="home-bullet" aria-hidden="true"></span>
+<span class="home-menu-label">Данные</span>
+<span class="home-menu-hint">импорт · экспорт · копии</span>
+</button>
+</li>
+
+<li class="home-menu-row">
+<button type="button" class="home-menu-item" id="home-menu-settings" onclick="openSettingsModal()">
+<span class="home-bullet" aria-hidden="true"></span>
+<span class="home-menu-label">Настройки</span>
+<span class="home-menu-hint">тема · редакция</span>
+</button>
+</li>
+
+<li class="home-menu-row">
+<button type="button" class="home-menu-item" id="home-menu-about" onclick="openAboutModal()">
+<span class="home-bullet" aria-hidden="true"></span>
+<span class="home-menu-label">О версии</span>
+<span class="home-menu-hint" id="home-about-sub"></span>
+</button>
+</li>
+
+</ul>
+</nav>
+
+<!-- MENU-2: плашка последнего героя. Содержимое рисует renderHomeHero()
+     из app-home.js (хук — первая строка renderCharacterList). -->
+<section class="home-hero" id="home-hero" aria-label="Последний герой">
+<div class="home-hero-emblem" id="home-hero-emblem" aria-hidden="true"></div>
+<div class="home-hero-text">
+<span class="home-hero-cap" id="home-hero-cap" hidden></span>
+<h2 class="home-hero-name" id="home-hero-name"></h2>
+<div class="home-hero-sub" id="home-hero-sub"></div>
+<div class="home-hero-chips" id="home-hero-chips"></div>
+</div>
+</section>
+
+</div>
+</div>
+
+<!-- ══ ЭКРАН 2: выбор персонажа ════════════════════════════════════ -->
+<div id="screen-characters" class="hidden">
 <div class="card">
 <h3>📜 Ваши Персонажи <span id="char-count" class="char-count-badge"></span></h3>
 <div class="char-controls">
@@ -336,6 +427,15 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button onclick="createNewCharacter()">+ Новый персонаж</button>
 <button onclick="openBuildPicker()">📘 По готовому билду</button>
 </div>
+</div>
+</div>
+
+<!-- MENU-10: «Данные» — модалкой со встречающего экрана. Разметка перенесена
+     как есть, поэтому все inline-onclick и id (#storage-status, #backup-panel,
+     file-инпуты) продолжают работать без правок JS. -->
+<div id="data-modal" class="confirm-modal-overlay">
+<div class="confirm-modal-box party-modal-box">
+<h4>🗄 Данные</h4>
 <div class="home-utils">
 <button class="secondary" onclick="exportData()">💾 Скачать копию</button>
 <button class="secondary" onclick="document.getElementById('import-file').click()">📂 Загрузить копию</button>
@@ -355,8 +455,21 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <input type="file" id="import-file" style="display:none" onchange="importData(this)" accept=".json">
 <input type="file" id="import-char-file" style="display:none" onchange="importOneCharacter(this)" accept=".json">
 <input type="file" id="spells-import" style="display:none" onchange="importSpells(this)" accept=".json">
+<div class="confirm-modal-btns">
+<button class="confirm-btn-cancel" onclick="closeDataModal()">Закрыть</button>
 </div>
-<div class="card profiles-bottom-card">
+</div>
+</div>
+
+<!-- MENU-10: «О версии» — модалкой. Внутри полоса версии (вместе с кнопкой
+     «Установить» при обновлении SW) и обе вкладки бывшей нижней карточки. -->
+<div id="about-modal" class="confirm-modal-overlay">
+<div class="confirm-modal-box party-modal-box">
+<h4>ℹ️ О версии</h4>
+<div class="app-version-row" id="app-version-row">
+  <span class="app-version-badge" id="app-version-badge"></span>
+  <span class="app-version-status" id="app-version-status"></span>
+</div>
 <div class="profiles-tabs-row">
 <button class="ptab-btn active" onclick="switchProfilesTab('info',this)">ℹ️ О приложении</button>
 <button class="ptab-btn" onclick="switchProfilesTab('changelog',this)">📋 Изменения</button>
@@ -382,8 +495,13 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div id="changelog-list"></div>
 </div>
+<div class="confirm-modal-btns">
+<button class="confirm-btn-cancel" onclick="closeAboutModal()">Закрыть</button>
 </div>
 </div>
+</div>
+
+<!-- ══ ЭКРАН 3: лист персонажа ═════════════════════════════════════ -->
 <div id="screen-character" class="hidden">
 <div id="tab-sheet" class="tab-content active">
 
@@ -2979,51 +3097,52 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v320"></script>
+<script src="app-log.js?v=v322"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
-<script src="icons.js?v=v320"></script>
-<script src="bg-space.js?v=v320"></script>
-<script src="dice-arena-bg.js?v=v320"></script>
-<script src="data.js?v=v320"></script>
+<script src="icons.js?v=v322"></script>
+<script src="bg-space.js?v=v322"></script>
+<script src="dice-arena-bg.js?v=v322"></script>
+<script src="data.js?v=v322"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v320"></script>
+<script src="character-builds.js?v=v322"></script>
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v320"></script>
-<script src="spells.js?v=v320"></script>
-<script src="spell-effects.js?v=v320"></script>
+<script src="glossary-data.js?v=v322"></script>
+<script src="spells.js?v=v322"></script>
+<script src="spell-effects.js?v=v322"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v320"></script>
-<script src="app-migrate.js?v=v320"></script>
-<script src="app-builds.js?v=v320"></script>
-<script src="app-core.js?v=v320"></script>
-<script src="app-io.js?v=v320"></script>
-<script src="app-backup.js?v=v320"></script>
-<script src="app-combat.js?v=v320"></script>
-<script src="app-conditions.js?v=v320"></script>
-<script src="app-cast-effects.js?v=v320"></script>
-<script src="app-proficiencies.js?v=v320"></script>
-<script src="app-hp.js?v=v320"></script>
-<script src="app-spells.js?v=v320"></script>
-<script src="app-inventory.js?v=v320"></script>
+<script src="rules.js?v=v322"></script>
+<script src="app-migrate.js?v=v322"></script>
+<script src="app-builds.js?v=v322"></script>
+<script src="app-core.js?v=v322"></script>
+<script src="app-io.js?v=v322"></script>
+<script src="app-backup.js?v=v322"></script>
+<script src="app-combat.js?v=v322"></script>
+<script src="app-conditions.js?v=v322"></script>
+<script src="app-cast-effects.js?v=v322"></script>
+<script src="app-proficiencies.js?v=v322"></script>
+<script src="app-hp.js?v=v322"></script>
+<script src="app-spells.js?v=v322"></script>
+<script src="app-inventory.js?v=v322"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v320"></script>
-<script src="class-choices.js?v=v320"></script>
-<script src="subclass-choices-data.js?v=v320"></script>
+<script src="app-party.js?v=v322"></script>
+<script src="class-choices.js?v=v322"></script>
+<script src="subclass-choices-data.js?v=v322"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v320";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v322";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-dice.js?v=v320"></script>
-<script src="app-settings.js?v=v320"></script>
-<script src="app-ui.js?v=v320"></script>
-<script src="app-asi.js?v=v320"></script>
-<script src="app-notes.js?v=v320"></script>
-<script src="app-desktop.js?v=v320"></script>
-<script src="history-stack.js?v=v320"></script>
-<script src="app-help.js?v=v320"></script>
+<script src="app-dice.js?v=v322"></script>
+<script src="app-settings.js?v=v322"></script>
+<script src="app-ui.js?v=v322"></script>
+<script src="app-home.js?v=v322"></script>
+<script src="app-asi.js?v=v322"></script>
+<script src="app-notes.js?v=v322"></script>
+<script src="app-desktop.js?v=v322"></script>
+<script src="history-stack.js?v=v322"></script>
+<script src="app-help.js?v=v322"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3036,9 +3155,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v320",
-    "vendor/jspdf/roboto-base64.js?v=v320",
-    "app-pdf.js?v=v320"
+    "vendor/jspdf/jspdf.umd.min.js?v=v322",
+    "vendor/jspdf/roboto-base64.js?v=v322",
+    "app-pdf.js?v=v322"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3062,7 +3181,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v320").then(function () {
+    return loadScript("build-notes-data.js?v=v322").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -3070,26 +3189,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v320"),
-      loadScript("npc-srd.js?v=v320")
+      loadScript("monsters-srd.js?v=v322"),
+      loadScript("npc-srd.js?v=v322")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v320");
+    return loadScript("magic-items.js?v=v322");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v320");
+    return loadScript("gear-catalog.js?v=v322");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v320").then(function () {
+    return loadScript("data-2024.js?v=v322").then(function () {
       window.__edition2024Loaded = true;
     });
   };

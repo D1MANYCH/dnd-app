@@ -684,30 +684,39 @@ function _buildListSteps() {
     },
     {
       requireTarget: true,
-      target: function () { return document.querySelector('.home-actions-primary button'); },
-      title: '➕ Новый персонаж',
-      text: 'Создаёт пустой лист с нуля: класс, расу, характеристики и снаряжение выбираете сами.'
+      target: function () { return document.getElementById('home-hero'); },
+      title: '🛡️ Ваш последний герой',
+      text: 'Плашка показывает того, кого правили свежее всех: хиты, класс доспеха и заговоры видно, не открывая лист.'
     },
     {
       requireTarget: true,
-      target: function () {
-        var b = document.querySelectorAll('.home-actions-primary button');
-        return b.length > 1 ? b[1] : null;
-      },
-      title: '📘 По готовому билду',
-      text: 'Готовый персонаж из набора PHB — удобно для быстрого старта или как пример. Уровень и снаряжение уже заполнены.'
+      target: function () { return document.getElementById('home-menu-continue'); },
+      title: '◇ Продолжить',
+      text: 'Возвращает к последнему герою в один тап — справа от пункта видно, кто это и когда вы его правили.'
     },
     {
       requireTarget: true,
-      target: function () { return document.querySelector('.home-utils button'); },
-      title: '💾 Копии и импорт',
+      target: function () { return document.getElementById('home-menu-new'); },
+      title: '◇ Новый персонаж',
+      text: 'Два пути: «По готовому билду» — собранный персонаж из набора PHB для быстрого старта, «С нуля» — пустой лист, где всё выбираете сами.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return document.getElementById('home-menu-pick'); },
+      title: '◇ Выбор персонажа',
+      text: 'Все ваши герои списком: поиск, сортировка, экспорт в JSON и PDF, копирование и удаление.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return document.getElementById('home-menu-data'); },
+      title: '🗄 Данные',
       text: 'Скачать резервную копию всех персонажей или загрузить ранее сохранённый файл. Данные хранятся только в этом браузере — делайте копии.'
     },
     {
       requireTarget: true,
-      target: function () { return document.getElementById('app-version-settings'); },
+      target: function () { return document.getElementById('home-menu-settings'); },
       title: '⚙️ Настройки',
-      text: 'Тема, цвет акцента, плотность и размер шрифта. Здесь же — «Показать обучение заново», если захотите повторить тур.'
+      text: 'Тема, цвет акцента, плотность, размер шрифта и редакция правил. Здесь же — «Показать обучение заново», если захотите повторить тур.'
     },
     {
       title: '❓ Справка всегда рядом',

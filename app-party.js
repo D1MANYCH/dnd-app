@@ -512,6 +512,13 @@ function renderSrdMonsterPicker() {
 
 function addMonsterFromSRD(slug, event) {
   if (event && event.stopPropagation) event.stopPropagation();
+  // MENU-5: без выбранного персонажа saveParty() пишет в ГЛОБАЛЬНЫЙ
+  // localStorage (dnd_party), а не в лист — такой монстр потом «прилипал» бы
+  // к первому же открытому герою. Бестиарий с главной работает только на чтение.
+  if (!currentId) {
+    if (typeof showToast === "function") showToast("Сначала откройте персонажа — отряд хранится в его листе", "warn");
+    return;
+  }
   var m = window.srdMonsterBySlug(slug);
   if (!m) { showToast("Монстр не найден", "error"); return; }
   // UX-6: режим боя — добавляем монстра прямо в идущую стычку, модалка остаётся

@@ -208,7 +208,9 @@ initSaves();
 initSkills();
 initConditions();
 initEffects();
-renderCharacterList();
+// MENU-8: стартуем на встречающем экране (в разметке он единственный видимый,
+// но showScreen ещё и расставляет классы body — от них зависят шапка и сайдбар).
+showScreen("home");
 renderWeaponPresets();
 if (typeof renderDeityDatalist === "function") renderDeityDatalist();
 updateVersionBlock(false);
@@ -293,38 +295,76 @@ if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.e
 }
 }
 
+// MENU-8: экранов три — встречающее меню, выбор персонажа и лист.
+// Глубина нужна двум вещам: history-stack пушит слой только при движении
+// ВПЕРЁД, а кнопка «←» возвращает туда, откуда пришли (см. _screenPrev).
+var SCREEN_DEPTH = { home: 0, characters: 1, character: 2 };
+// Откуда вошли на лист персонажа: "home" (через «Продолжить») или
+// "characters" (через «Выбор персонажа»). Не персистится — в рамках сессии.
+var _screenPrev = "home";
+
+/**
+ * Кнопка «←» в шапке. С листа персонажа возвращает туда, откуда на него
+ * зашли; с экрана выбора персонажа — во встречающее меню.
+ */
+function headerBack() {
+  var visible = document.querySelector('div[id^="screen-"]:not(.hidden)');
+  if (visible && visible.id === "screen-character") {
+    showScreen(_screenPrev === "characters" ? "characters" : "home");
+  } else {
+    showScreen("home");
+  }
+}
+
 function showScreen(screenName) {
+const homeScreen = $("screen-home");
 const charactersScreen = $("screen-characters");
 const characterScreen = $("screen-character");
 const characterTabs = $("character-tabs");
 const statusBar = $("status-bar");
 const hamburger = $("nav-hamburger");
 const headerBack = $("header-back");
+
+// Запоминаем, откуда уходим на лист, — до переключения экранов.
+if (screenName === "character") {
+  var visible = document.querySelector('div[id^="screen-"]:not(.hidden)');
+  if (visible && visible.id === "screen-characters") _screenPrev = "characters";
+  else if (visible && visible.id === "screen-home") _screenPrev = "home";
+}
+
+if (homeScreen) homeScreen.classList.add("hidden");
 if (charactersScreen) charactersScreen.classList.add("hidden");
 if (characterScreen) characterScreen.classList.add("hidden");
 if (characterTabs) characterTabs.classList.add("hidden");
 if (statusBar) statusBar.classList.remove("visible");
 if (hamburger) hamburger.classList.add("hidden");
 if (headerBack) headerBack.classList.add("hidden");
-// Маркер для CSS: на экране выбора персонажа скрываем right-rail и табы
-// в сайдбаре (они без выбранного персонажа всё равно ничего не делают),
-// оставляя в сайдбаре только переключатель темы.
-document.body.classList.toggle("no-character", screenName === "characters");
+
+// Маркер для CSS: без выбранного персонажа скрываем right-rail и табы
+// в сайдбаре (они всё равно ничего не делают), оставляя переключатель темы.
+document.body.classList.toggle("no-character", screenName !== "character");
+// Встречающий экран занимает всё окно — на нём прячется и шапка.
+document.body.classList.toggle("screen-home", screenName === "home");
+
+if (screenName === "home" || screenName === "characters") {
+if (screenName === "home" && homeScreen) homeScreen.classList.remove("hidden");
 if (screenName === "characters") {
-if (charactersScreen) charactersScreen.classList.remove("hidden");
+  if (charactersScreen) charactersScreen.classList.remove("hidden");
+  if (headerBack) headerBack.classList.remove("hidden");
+}
 closeDrawer();
 currentId = null;
-// UI6-1: на экране профилей нет активного персонажа — возвращаем акцент
-// к ручному выбору/золоту (иначе после удаления активного персонажа
-// или выхода висел бы классовый цвет предыдущего).
+// UI6-1: вне листа нет активного персонажа — возвращаем акцент к ручному
+// выбору/золоту (иначе после удаления активного персонажа или выхода
+// висел бы классовый цвет предыдущего).
 if (typeof _refreshAccent === 'function') _refreshAccent();
 updateHeaderTitle();
 renderCharacterList();
 updateStorageStatus();
 // Нет активного персонажа — прячем плавающий чип активных эффектов.
 if (typeof renderActiveEffectsFab === "function") renderActiveEffectsFab();
-// Возврат к списку персонажей всегда скроллит наверх (header-back и
-// браузерный Back через history-stack оба зовут showScreen("characters")).
+// Возврат к списку/меню всегда скроллит наверх (кнопка «←» и браузерный
+// Back через history-stack оба приходят сюда).
 try {
   window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   document.documentElement.scrollTop = 0;
@@ -345,7 +385,9 @@ var avatarEl = $("header-avatar");
 var subtitleEl = $("header-subtitle");
 var AVATAR_FALLBACK_HTML = '<img class="header-avatar-fallback" src="assets/avatar-fallback.webp" alt="">';
 if (!currentId) {
-  $("header-title").textContent = "Мой Персонаж D&D 5e";
+  // MENU-8: шапка вне листа видна только на экране выбора персонажа —
+  // на встречающем она скрыта (body.screen-home), поэтому заголовок именно про выбор.
+  $("header-title").textContent = "Выбор персонажа";
   if (avatarEl) avatarEl.innerHTML = AVATAR_FALLBACK_HTML;
   if (subtitleEl) subtitleEl.textContent = "";
   return;
@@ -769,6 +811,12 @@ saveToLocal();
 renderCharacterList();
 }
 function renderCharacterList() {
+// MENU-2: плашка героя живёт над списком и обязана обновляться вместе с ним.
+// Вызов стоит ПЕРВОЙ строкой намеренно: ниже два ранних return (нет контейнера
+// и пустая выборка), а плашке рисоваться нужно и в этих случаях.
+// От лишних перерисовок (например, на каждый символ в поиске) защищает
+// сигнатура внутри самой renderHomeHero.
+if (typeof renderHomeHero === "function") renderHomeHero();
 const list = $("character-list");
 if (!list) return;
 list.innerHTML = "";

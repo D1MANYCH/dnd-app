@@ -3,32 +3,75 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v3.58.20**.
+Актуальная версия — **v3.60.0**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v3.60.0"></a>
+## v3.60.0 — 27 июля 2026
+
+✨ Встречающий экран во всё окно: меню Продолжить / Новый персонаж / Выбор персонажа / Данные / Настройки / О версии, список персонажей отдельным экраном
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/cf9b583b...main) · 16 файлов, +1285 −102
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (2):**
+
+- [`96b3e6f3`](https://github.com/D1MANYCH/dnd-app/commit/96b3e6f3) chore(dev): авторевью пул-реквестов в GitHub Actions
+- [`f53c327c`](https://github.com/D1MANYCH/dnd-app/commit/f53c327c) chore(dev): ревьюер PR сам гоняет тесты и инвариант
+
+**Файлы (16):**
+
+- `style.css` +363 −0
+- `app-home.js` +266 −0
+- `index.html` +174 −55
+- `.github/workflows/claude-code-review.yml` +211 −3
+- `tests/headless.js` +95 −0
+- `app-core.js` +60 −12
+- `docs/RELEASES.md` +38 −4
+- `app-help.js` +22 −13
+- `data.js` +19 −3
+- `history-stack.js` +10 −5
+- `CHANGELOG.md` +11 −1
+- `app-party.js` +7 −0
+- `tools/gen-release-post.js` +4 −3
+- `CLAUDE.md` +2 −2
+- `sw.js` +2 −1
+- `tests/headless-node.js` +1 −0
+
+</details>
+
+<a id="v3.59.0"></a>
+## v3.59.0 — 27 июля 2026
+
+✨ Новый стартовый экран: плашка последнего героя и меню приключения — продолжить, создать по билду или с нуля, бестиарий, кости, данные
+
+_Релизного коммита нет в истории репозитория — патч недоступен._
+
 <a id="v3.58.20"></a>
 ## v3.58.20 — 26 июля 2026
 
 🐛 Короткий отдых не даёт потратить костей хитов больше, чем осталось в запасе (PHB стр. 186). Истощение снижается длинным отдыхом только если персонаж поел и попил (PHB стр. 291) — в окне отдыха появился флажок, он виден только при истощении.
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/0803f7c9...main) · 10 файлов, +206 −82
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/0803f7c9...cf9b583b) · 10 файлов, +224 −79
 
 <details><summary>Коммиты и файлы</summary>
 
-**Коммиты (1):**
+**Коммиты (2):**
 
 - [`c5518982`](https://github.com/D1MANYCH/dnd-app/commit/c5518982) chore(docs): точная запись v3.58.19 в подробном логе
+- [`cf9b583b`](https://github.com/D1MANYCH/dnd-app/commit/cf9b583b) v3.58.20: fix(rules): короткий отдых по остатку костей, истощение при еде и питье
 
 **Файлы (10):**
 
 - `index.html` +48 −44
 - `docs/ARCHITECTURE.md` +37 −15
+- `docs/RELEASES.md` +40 −5
 - `tests/rules-cases.js` +39 −0
-- `docs/RELEASES.md` +22 −8
 - `rules.js` +19 −4
 - `app-hp.js` +19 −3
 - `data.js` +10 −2

@@ -185,6 +185,30 @@
 /* Гайды билдов / build-picker: плюсы/минусы + шкала сложности */
 --pro-color: #7fc08a; --con-color: #d68a8a;
 --diff-1: #27ae60; --diff-2: #f39c12; --diff-3: #e74c3c;
+
+/* ===== MENU-1: главный экран — плашка героя, меню приключения, слот под арт =====
+   Цветовые токены здесь намеренно АЛИАСЫ уже парных (var(--accent) и т.п.):
+   паритет-чек требует light/auto-пару только для токенов с цветовым ЛИТЕРАЛОМ,
+   а алиас резолвится темой сам. Настоящий триплет тут один — --home-art-veil. */
+/* Заголовки меню и имя героя: системный serif, «книжный» характер без загрузки
+   шрифтов (в проекте нет ни @font-face, ни <link> к CDN — и не должно быть). */
+--font-display: Georgia, 'Times New Roman', 'Iowan Old Style', 'Palatino Linotype', serif;
+--home-hero-size: 76px;   /* сторона ромба-эмблемы */
+--home-bullet: 9px;       /* сторона ромбовидного буллета пункта */
+--home-shift: 8px;        /* сдвиг пункта вправо на hover */
+--home-rail-w: 3px;       /* полоса слева у выделенного пункта */
+--home-plate: var(--bg-2);
+--home-rule: var(--border-soft);
+--home-accent: var(--accent);   /* JS перекрывает инлайном под цвет класса героя */
+--home-primary-bg: var(--accent-soft);
+--home-sub: var(--text-mute);
+/* Слот под фоновый арт главной: включение = правка двух значений ниже
+   (+ строка в FILES_TO_CACHE и bump CACHE_NAME). Разметка и JS не трогаются. */
+--home-art-src: none;
+--home-art-opacity: 0;
+--home-art-z: -3;   /* -3 — под #bgCanvas, арт размывается #bgGlass вместе с космосом;
+                       -1 — над стеклом, арт остаётся резким. Переключается числом. */
+--home-art-veil: rgba(5, 10, 20, 0.58);
 }
 
 /* ========== UI-4. Плотность интерфейса (compact / standard / cozy) ==========
@@ -330,6 +354,9 @@ html.glass-adjusting *::after {
   --cf-foreign-bd: rgba(199,58,44,0.35); --cf-foreign-bg: rgba(199,58,44,0.08); --cf-foreign-tx: var(--danger);
   --pro-color: #1f7a3a; --con-color: #b23a2c;
   --diff-1: #1f8a4c; --diff-2: #c47a12; --diff-3: #c0392b;
+
+  /* MENU-1: вуаль под артом главной (тёмная убила бы кремовый фон светлой темы) */
+  --home-art-veil: rgba(236, 239, 245, 0.62);
 }
 
 @media (prefers-color-scheme: light) {
@@ -386,6 +413,9 @@ html.glass-adjusting *::after {
     --cf-foreign-bd: rgba(199,58,44,0.35); --cf-foreign-bg: rgba(199,58,44,0.08); --cf-foreign-tx: var(--danger);
     --pro-color: #1f7a3a; --con-color: #b23a2c;
     --diff-1: #1f8a4c; --diff-2: #c47a12; --diff-3: #c0392b;
+
+    /* MENU-1: вуаль под артом главной (тёмная убила бы кремовый фон светлой темы) */
+    --home-art-veil: rgba(236, 239, 245, 0.62);
   }
 }
 
@@ -1889,6 +1919,32 @@ backdrop-filter: blur(calc(var(--glass-blur) / 3));
    иначе непрозрачный fixed-фон перекрывает орбитальный canvas. :root body
    (0,1,1) выше по специфичности, чем plain body на ~9201. */
 :root body { background-image: none; }
+
+/* MENU-1: слот под фоновый арт ГЛАВНОГО экрана. Сейчас выключен
+   (--home-art-src: none, --home-art-opacity: 0) — виден только космо-canvas.
+   Включение = две строки в :root, разметка и JS не меняются.
+   Элемент обязан быть прямым ребёнком #screen-characters: .card имеет
+   backdrop-filter, а он создаёт containing block и position:fixed внутри
+   карточки перестал бы цепляться к вьюпорту. При уходе на лист персонажа
+   предок получает .hidden (display:none) и слой пропадает сам. */
+.home-art {
+position: fixed;
+inset: 0;
+z-index: var(--home-art-z);
+pointer-events: none;
+background-image: var(--home-art-src);
+background-size: cover;
+background-position: center top;
+opacity: var(--home-art-opacity);
+transition: opacity var(--t3) var(--ez-out);
+}
+/* Вуаль поверх арта — держит контраст текста меню независимо от картинки. */
+.home-art::after {
+content: "";
+position: absolute;
+inset: 0;
+background: var(--home-art-veil);
+}
 
 body {
 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -3895,6 +3951,321 @@ transition: all 0.18s;
 @media (min-width: 1560px) {
   /* Шире контейнер главной — 3 колонки получают крупные карточки */
   #screen-characters { max-width: 1400px; }
+}
+
+/* ============================================
+   MENU-8/9: встречающий экран во всё окно.
+   Шапка, сайдбар и правая панель на нём скрыты — экран должен читаться как
+   заставка, а не как страница приложения.
+============================================ */
+body.screen-home > header,
+body.screen-home .status-bar,
+body.screen-home .app-right-rail,
+body.screen-home .side-drawer,
+body.screen-home #character-tabs { display: none !important; }
+/* Контейнер на этом экране не ограничивает ширину и не даёт своих полей —
+   раскладку целиком держит .home-stage. */
+body.screen-home .container { max-width: none; margin: 0; padding: 0; }
+/* Поля body зарезервированы под шапку (72px сверху), сайдбар (240px слева) и
+   right-rail (320px справа) — на этом экране все три скрыты, а поля остались бы
+   и сдвинули блок высотой 100vh вниз, давая ~72px скролла в пустоту.
+   !important обязателен: десктопные правила выше объявлены с ним. */
+body.screen-home {
+padding: 0 !important;
+overflow-x: hidden;
+}
+
+#screen-home {
+min-height: 100vh;
+min-height: 100dvh;   /* на мобильных вычитает адресную строку */
+display: flex;
+}
+.home-stage {
+flex: 1 1 auto;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: clamp(24px, 4vw, 64px);
+padding: clamp(20px, 4vw, 56px);
+max-width: 1240px;
+margin: 0 auto;
+width: 100%;
+}
+
+/* ============================================
+   MENU-2: плашка последнего героя.
+   Цвет плашки — --home-accent: по умолчанию алиас --accent, а
+   renderHomeHero перекрывает его инлайном цветом класса героя.
+============================================ */
+/* Правая колонка встречающего экрана: крупная карточка героя по центру. */
+.home-hero {
+flex: 0 1 340px;
+min-width: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+text-align: center;
+gap: var(--sp-3);
+}
+/* Ромб-эмблема: поворот на 45° у контейнера, обратный — у картинки внутри. */
+.home-hero-emblem {
+flex: 0 0 auto;
+width: var(--home-hero-size);
+height: var(--home-hero-size);
+display: grid;
+place-items: center;
+overflow: hidden;
+transform: rotate(45deg);
+border: 1px solid var(--home-accent);
+border-radius: var(--r-sm);
+background: color-mix(in srgb, var(--home-accent) 16%, transparent);
+}
+.home-hero-img {
+display: block;
+width: 78%;
+height: 78%;
+object-fit: cover;
+transform: rotate(-45deg);
+}
+.home-hero-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.home-hero-text { min-width: 0; flex: 1 1 auto; }
+.home-hero-cap {
+display: block;
+font-size: var(--fs-sm);
+letter-spacing: 0.14em;
+text-transform: uppercase;
+color: var(--home-sub);
+margin-bottom: 2px;
+}
+/* Селектор из двух классов намеренно: имя героя — это h3 внутри .card, а
+   правило .card h3 (0,1,1) вешает на него декоративную золотую полосу слева.
+   .home-hero .home-hero-name даёт (0,2,0) и перебивает её без !important. */
+.home-hero .home-hero-name {
+font-family: var(--font-display);
+font-size: calc(var(--fs-xl) * 1.15);
+line-height: 1.15;
+margin: 0;
+border-left: 0;
+padding-left: 0;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.home-hero-sub {
+font-size: var(--fs-sm);
+color: var(--home-sub);
+margin-top: 3px;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.home-hero-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.home-chip {
+display: inline-flex;
+align-items: center;
+gap: 5px;
+padding: 4px 11px;
+border: 1px solid var(--home-rule);
+border-radius: var(--r-pill);
+background: var(--home-plate);
+font-size: var(--fs-sm);
+font-weight: 600;
+white-space: nowrap;
+}
+.home-chip-ico { font-style: normal; font-size: 0.95em; }
+
+/* ============================================
+   MENU-3: меню приключения.
+   Глобальный button{} (width:100%, margin-bottom, сплошная акцентная заливка,
+   :hover{filter:brightness}) сбрасывается здесь явно — иначе пункты выглядят
+   как шесть жёлтых кнопок подряд.
+============================================ */
+/* Левая колонка встречающего экрана. */
+.home-menu {
+flex: 1 1 auto;
+max-width: 680px;
+min-width: 0;
+/* запас под сдвиг пункта на hover, чтобы он не давал горизонтальный оверфлоу */
+padding-right: var(--home-shift);
+}
+.home-menu-list { list-style: none; margin: 0; padding: 0; }
+
+/* Марка над меню — заменяет скрытую на этом экране шапку приложения. */
+.home-brand {
+display: flex;
+align-items: center;
+gap: 12px;
+margin-bottom: var(--sp-4);
+padding-left: 12px;
+}
+.home-brand-mark {
+width: 34px;
+height: 34px;
+flex: 0 0 auto;
+transform: rotate(45deg);
+border: 1.5px solid var(--accent);
+border-radius: 6px;
+background: var(--accent-soft);
+}
+.home-brand-text {
+font-family: var(--font-display);
+font-size: calc(var(--fs-lg) * 1.05);
+font-weight: 700;
+line-height: 1.1;
+}
+.home-brand-text i {
+display: block;
+font-style: normal;
+font-family: var(--font);
+font-size: var(--fs-sm);
+font-weight: 400;
+letter-spacing: 0.18em;
+text-transform: uppercase;
+color: var(--home-sub);
+margin-top: 3px;
+}
+.home-menu-row + .home-menu-row { border-top: 1px solid var(--home-rule); }
+
+.home-menu-item,
+.home-menu-subitem {
+display: flex;
+align-items: center;
+gap: 12px;
+width: 100%;
+margin: 0;
+padding: 13px 12px;
+min-height: var(--control-h, 44px);
+background: transparent;
+color: var(--text);
+border: 0;
+border-left: var(--home-rail-w) solid transparent;
+border-radius: 0;
+text-align: left;
+font-size: var(--fs-lg);
+font-weight: 500;
+cursor: pointer;
+box-shadow: none;
+transition: transform var(--t2) var(--ez-out), background var(--t1) var(--ez-out), color var(--t1) var(--ez-out);
+}
+.home-menu-item:hover,
+.home-menu-subitem:hover { filter: none; box-shadow: none; }
+.home-menu-label { font-family: var(--font-display); }
+/* Подстрочник («Гробница Аннигиляции · 3 ч. назад») — прижат вправо, гасится
+   при нехватке места, чтобы не ломать строку пункта. */
+.home-menu-hint {
+margin-left: auto;
+padding-left: 10px;
+font-size: var(--fs-sm);
+color: var(--home-sub);
+font-weight: 400;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+min-width: 0;
+}
+
+/* Ромбовидный буллет */
+.home-bullet {
+flex: 0 0 auto;
+width: var(--home-bullet);
+height: var(--home-bullet);
+transform: rotate(45deg);
+border: 1.5px solid var(--home-accent);
+transition: transform var(--t2) var(--ez-out), background var(--t2) var(--ez-out);
+}
+.home-bullet--sm { width: 6px; height: 6px; border-width: 1px; }
+
+/* Выделенный пункт («Новая кампания») — полоса слева + подложка, как в макете */
+.home-menu-row--primary > .home-menu-item {
+border-left-color: var(--accent);
+background: var(--home-primary-bg);
+}
+
+/* Раскрывающаяся секция */
+.home-menu-sub { padding: 2px 0 8px 30px; }
+/* MENU-4: сетка утилит приехала сюда из карточки «Ваши Персонажи», где над ней
+   стояли кнопки действий. Здесь их нет — верхний отступ лишний. */
+.home-menu-sub .home-utils { margin-top: 0; }
+.home-menu-subitem {
+font-size: var(--fs-md);
+padding: 10px 12px;
+color: var(--text-dim);
+}
+.home-menu-subitem:hover { color: var(--text); }
+
+/* Пункт без цели (нет героев) — гасим и убираем из tab-order атрибутом disabled */
+.home-menu-item:disabled { opacity: 0.5; cursor: default; background: transparent; }
+.home-menu-item:disabled:hover { transform: none; }
+
+.home-menu-item:focus-visible,
+.home-menu-subitem:focus-visible { outline: none; box-shadow: var(--sh-glow); }
+
+/* Hover только под настоящим указателем: на тач-экране :hover «залипает»
+   после тапа и пункт остаётся сдвинутым. */
+@media (hover: hover) and (pointer: fine) {
+  .home-menu-item:not(:disabled):hover,
+  .home-menu-subitem:hover { transform: translateX(var(--home-shift)); color: var(--accent-hi); }
+  .home-menu-item:not(:disabled):hover .home-bullet,
+  .home-menu-subitem:hover .home-bullet { transform: rotate(135deg); background: var(--home-accent); }
+  .home-menu-item:not(:disabled):hover .home-menu-label { text-decoration: underline; text-underline-offset: 4px; }
+}
+.home-menu-item:not(:disabled):active,
+.home-menu-subitem:active { background: var(--home-primary-bg); }
+
+/* ============================================
+   MENU-11: адаптив встречающего экрана, доступность, спокойное движение.
+============================================ */
+/* До 900px — одна колонка: сверху герой, под ним меню. Герой первым
+   намеренно: это «кто я сейчас», меню — что с этим делать. */
+@media (max-width: 899px) {
+  .home-stage {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: var(--sp-4);
+  }
+  .home-hero { flex: 0 0 auto; order: -1; padding-left: 0; border-left: 0; }
+  .home-menu { flex: 1 1 auto; max-width: none; }
+  .home-brand { display: none; }   /* на узком экране марка съедает первый экран */
+}
+@media (max-width: 640px) {
+  #screen-home { --home-hero-size: 64px; }
+  .home-menu-item { padding: 11px 10px; font-size: var(--fs-md); }
+  .home-menu-subitem { padding: 9px 10px; }
+  .home-hero .home-hero-name { font-size: var(--fs-xl); }
+  /* Подстрочник справа на узком экране сжимал бы название пункта до
+     многоточия — переносим его на вторую строку под названием (как в макете),
+     а не прячем: «‹Имя героя› · 3 ч. назад» — самая полезная строка меню. */
+  .home-menu-item { flex-wrap: wrap; }
+  .home-menu-hint {
+    flex: 0 0 100%;
+    margin-left: 0;
+    /* выравнивание под текст названия: ширина ромба + gap */
+    padding-left: calc(var(--home-bullet) + 12px);
+    margin-top: 2px;
+  }
+  .home-menu-sub { padding-left: 22px; }
+}
+/* От 900px — две колонки (меню слева, герой справа) и крупная типографика:
+   экран заставки, а не список ссылок. */
+@media (min-width: 900px) {
+  #screen-home { --home-hero-size: 128px; --home-bullet: 11px; }
+  .home-menu-item { padding: 16px 14px; font-size: calc(var(--fs-lg) * 1.15); }
+  .home-hero .home-hero-name { font-size: calc(var(--fs-xl) * 1.35); }
+  .home-hero { padding-left: var(--sp-5); border-left: 1px solid var(--home-rule); }
+}
+
+/* Глобальный reduce-блок обнуляет ДЛИТЕЛЬНОСТИ, из-за чего сдвиг пункта на
+   8px и поворот ромба становятся мгновенным скачком — то самое движение,
+   которое эта настройка должна убирать. Гасим сам эффект, а не его скорость;
+   подчёркивание остаётся немоторным индикатором наведения. */
+@media (prefers-reduced-motion: reduce) {
+  .home-menu-item:hover,
+  .home-menu-subitem:hover { transform: none; }
+  .home-menu-item:hover .home-bullet,
+  .home-menu-subitem:hover .home-bullet { transform: rotate(45deg); }
+  .home-art { transition: none; }
 }
 
 @keyframes pulse {
