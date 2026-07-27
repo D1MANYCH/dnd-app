@@ -49,9 +49,10 @@ function build(entry, info) {
     lines.push(cleanText(c.text));
     lines.push('');
   }
-  lines.push(`📋 Changelog: ${bare(REPO)}/blob/main/CHANGELOG.md#${anchor}`);
-  lines.push(`🔍 Подробно: ${bare(REPO)}/blob/main/docs/RELEASES.md#${anchor}`);
-  lines.push(`🧩 Патч: ${bare(info.patch)}`);
+  // Ссылки на CHANGELOG.md#version в посте нет намеренно: запись подробного лога
+  // начинается тем же текстом changelog, две ссылки вели бы к одному и тому же.
+  lines.push(`🧩 Полный патч: ${bare(info.patch)}`);
+  lines.push(`🔍 Подробно (коммиты и файлы): ${bare(REPO)}/blob/main/docs/RELEASES.md#${anchor}`);
   lines.push(`🎲 ${APP_URL}`);
   lines.push(`💬 ${TG_URL}`);
   return lines.join('\n') + '\n';
