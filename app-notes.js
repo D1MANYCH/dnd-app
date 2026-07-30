@@ -151,8 +151,10 @@ function _renderSectionsView() {
             '" data-sec-key="' + s.key + '">' +
               '<h3 class="notes-section-head" onclick="notesToggleSection(\'' + s.key + '\')" role="button"' +
               ' aria-expanded="' + (open ? 'true' : 'false') + '" tabindex="0">' +
+                // STYLE-7: эмодзи-иконка секции убрана — это хром, а роль
+                // ведущего знака у строки уже играет шеврон раскрытия.
                 '<span class="notes-section-toggle" aria-hidden="true">' + (open ? '▾' : '▸') + '</span> ' +
-                s.icon + ' ' + escapeHtml(s.label) +
+                escapeHtml(s.label) +
                 '<span class="notes-section-meta">' + stats.chars + ' симв.</span>' +
               '</h3>' +
               '<div class="notes-section-body"' + (open ? '' : ' style="display:none;"') + '>';

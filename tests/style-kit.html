@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STYLE-0 — эталон компонентов</title>
+
+<!-- Подключаем РЕАЛЬНЫЙ style.css: страница всегда показывает текущие токены
+     и не протухает при их правке. Из index.html она не подключается, поэтому
+     check-invariant.js её не видит и в FILES_TO_CACHE она не нужна. -->
+<link rel="stylesheet" href="../style.css">
+<script src="../icons.js"></script>
+
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   ПРЕДЛАГАЕМЫЙ СТИЛЬ. Всё под префиксом .sk- и живёт только здесь —
+   приложение не трогается. После одобрения правила переезжают в
+   style.css фазами STYLE-1…8.
+   Цвета — только через токены, чтобы обе темы работали сами.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* --- каркас витрины (не часть предложения) --- */
+html, body { background: var(--bg-0); }
+body { margin: 0; padding: 0; color: var(--text); }
+.sk-wrap { max-width: 1180px; margin: 0 auto; padding: 24px 20px 80px; }
+
+.sk-topbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 14px 20px; margin: 0 -20px 28px;
+  background: color-mix(in srgb, var(--bg-0) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-soft);
+}
+.sk-topbar h1 {
+  font-family: var(--font-display); font-size: 20px; margin: 0; border: 0; padding: 0;
+  color: var(--text);
+}
+.sk-topbar .sk-spacer { flex: 1 1 auto; }
+.sk-ctl { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-dim); }
+.sk-ctl input[type=range] { width: 90px; }
+.sk-seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-pill); overflow: hidden; }
+.sk-seg button {
+  width: auto; margin: 0; padding: 6px 12px; font-size: 12px; font-weight: 600;
+  background: transparent; color: var(--text-dim); border: 0; border-radius: 0; cursor: pointer;
+}
+.sk-seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+
+.sk-sec { margin-bottom: 44px; }
+.sk-sec > h2 {
+  font-family: var(--font-display); font-size: 15px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--text-mute);
+  border: 0; padding: 0 0 8px; margin: 0 0 18px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.sk-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+@media (max-width: 860px) { .sk-cols { grid-template-columns: 1fr; } }
+.sk-col > h3 {
+  font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  border: 0; padding: 0; margin: 0 0 10px; font-weight: 700;
+}
+.sk-col.is-old > h3 { color: var(--text-mute); }
+.sk-col.is-new > h3 { color: var(--accent); }
+.sk-note { font-size: 12px; color: var(--text-mute); line-height: 1.5; margin: 10px 0 0; }
+.sk-row-demo { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* ── 1. ЗАГОЛОВКИ ────────────────────────────────────────────────
+   Было: золотая полоса слева + эмодзи. Стало: ромб + serif, без эмодзи. */
+.sk-h {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg); font-weight: 700; color: var(--text);
+  margin: 0 0 14px; padding: 0; border: 0;
+}
+.sk-h::before {
+  content: ""; flex: 0 0 auto;
+  width: var(--home-bullet, 9px); height: var(--home-bullet, 9px);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--accent);
+}
+.sk-h--sub { font-size: var(--fs-md); color: var(--text-dim); }
+.sk-h--sub::before { width: 6px; height: 6px; border-width: 1px; }
+
+/* ── 2. КАРТОЧКА ─────────────────────────────────────────────────
+   Облегчение: убран верхний блик и тень, рамка волосяная.
+   backdrop-filter ОБЯЗАТЕЛЬНО через токен — иначе сломается
+   пользовательский слайдер «Размытие фона». */
+.sk-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+/* Плоские строки внутри карточки — тот же приём, что в меню. */
+.sk-list { margin: 0; padding: 0; list-style: none; }
+.sk-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 2px;
+  min-height: var(--control-h, 44px);
+}
+.sk-item + .sk-item { border-top: 1px solid var(--home-rule, var(--border-soft)); }
+.sk-item-label { flex: 1 1 auto; min-width: 0; }
+.sk-item-value { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.sk-bullet {
+  flex: 0 0 auto; width: 8px; height: 8px;
+  transform: rotate(45deg); border: 1.5px solid var(--accent);
+}
+.sk-item--primary { border-left: 3px solid var(--accent); background: var(--accent-soft); padding-left: 12px; margin-left: -12px; }
+
+/* ── 3. КНОПКИ ───────────────────────────────────────────────────
+   Глушим глобальный button{} для всего, что размечено как .btn — это
+   предпросмотр STYLE-4: ширину и отступ задаёт класс, а не элемент.
+   Внешний вид целиком приходит от готовой системы .btn (style.css:1292). */
+.sk-wrap .btn { width: auto; margin: 0; }
+.sk-wrap .btn.btn-block { width: 100%; }
+
+/* ── 4. ПОЛЯ ─────────────────────────────────────────────────────*/
+.sk-field { display: block; margin-bottom: 14px; }
+.sk-field > span {
+  display: block; margin-bottom: 6px;
+  font-size: var(--fs-sm); color: var(--text-mute); font-weight: 600;
+  letter-spacing: .04em;
+}
+.sk-field input, .sk-field select, .sk-field textarea {
+  width: 100%; box-sizing: border-box;
+  background: var(--bg-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  padding: 10px 12px; font: inherit; font-size: var(--fs-md);
+  transition: border-color var(--t1) var(--ez-out), box-shadow var(--t1) var(--ez-out);
+}
+.sk-field input:focus, .sk-field select:focus, .sk-field textarea:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* ── 5. ЧИПЫ ─────────────────────────────────────────────────────*/
+.sk-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: var(--r-pill);
+  border: 1px solid var(--home-rule, var(--border-soft));
+  background: var(--home-plate, var(--bg-2));
+  font-size: var(--fs-sm); font-weight: 600; white-space: nowrap;
+}
+.sk-chip--accent { border-color: var(--accent); color: var(--accent); }
+.sk-chip--danger { border-color: var(--danger); color: var(--danger); }
+.sk-chip--success { border-color: var(--success); color: var(--success); }
+
+/* ── 6. МОДАЛКА (статичный макет коробки) ────────────────────────*/
+.sk-modal {
+  border: 1px solid var(--border-soft); border-radius: var(--r-lg);
+  background: var(--surface-modal, var(--bg-1));
+  backdrop-filter: blur(var(--pop-blur, 14px));
+  overflow: hidden;
+}
+.sk-modal-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; border-bottom: 1px solid var(--border-soft);
+}
+.sk-modal-head h4 {
+  flex: 1 1 auto; margin: 0; padding: 0; border: 0;
+  font-family: var(--font-display); font-size: var(--fs-lg); color: var(--text);
+}
+.sk-modal-close {
+  width: 32px; height: 32px; margin: 0; padding: 0; flex: 0 0 auto;
+  display: grid; place-items: center;
+  background: transparent; color: var(--text-mute);
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  font-size: 15px; line-height: 1; cursor: pointer;
+}
+.sk-modal-close:hover { color: var(--text); border-color: var(--accent); }
+.sk-modal-body { padding: 16px; }
+.sk-modal-foot {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 12px 16px; border-top: 1px solid var(--border-soft);
+  background: var(--bg-2);
+}
+.sk-modal-foot button { width: auto; margin: 0; }
+
+/* ── 6b. ДВИЖЕНИЕ ────────────────────────────────────────────────
+   Порт эффектов из мокапа Qwen. Все длительности — из уже существующей
+   системы движения проекта: --t1 микро / --t2 компоненты / --t3 крупное. */
+
+/* Строка меню: сдвиг + разворот ромба + РАСТУЩЕЕ подчёркивание.
+   Ширину анимировать можно только у настоящего элемента, поэтому линия —
+   псевдоэлемент, а не text-decoration. */
+.sk-mrow {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; margin: 0; padding: 12px 10px;
+  background: transparent; border: 0;
+  border-left: 3px solid transparent; border-radius: 0;
+  color: var(--text); font: inherit; font-size: var(--fs-lg);
+  font-family: var(--font-display); text-align: left; cursor: pointer;
+  transition: transform var(--t2) var(--ez-out), color var(--t1) var(--ez-out);
+}
+.sk-mrow + .sk-mrow { border-top: 1px solid var(--home-rule, var(--border-soft)); }
+.sk-mrow:hover { filter: none; box-shadow: none; }
+.sk-mrow-txt { position: relative; }
+.sk-mrow-txt::after {
+  content: ""; position: absolute; left: 0; bottom: -3px;
+  width: 0; height: 1.5px; background: var(--accent-hi);
+  transition: width var(--t2) var(--ez-out);
+}
+.sk-mrow .sk-bullet { transition: transform var(--t2) var(--ez-out), background var(--t2) var(--ez-out); }
+.sk-mrow:hover, .sk-mrow:focus-visible {
+  transform: translateX(var(--home-shift, 8px)); color: var(--accent-hi); outline: none;
+}
+.sk-mrow:hover .sk-bullet, .sk-mrow:focus-visible .sk-bullet {
+  transform: rotate(135deg); background: var(--accent);
+}
+.sk-mrow:hover .sk-mrow-txt::after, .sk-mrow:focus-visible .sk-mrow-txt::after { width: 100%; }
+.sk-mrow:active { transform: translateX(2px); background: var(--accent-soft); }
+.sk-mrow--primary { border-left-color: var(--accent); background: var(--accent-soft); }
+
+/* Каскадное появление — тот же keyframe rise, что у карточек персонажей */
+.sk-stagger > * { animation: rise var(--t3) var(--ez-out) both; }
+.sk-stagger > *:nth-child(1) { animation-delay:  40ms; }
+.sk-stagger > *:nth-child(2) { animation-delay:  80ms; }
+.sk-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.sk-stagger > *:nth-child(4) { animation-delay: 160ms; }
+.sk-stagger > *:nth-child(5) { animation-delay: 200ms; }
+
+/* Вход модалки — существующие keyframes dymka-ovl-in / dymka-modal-in */
+.sk-anim-modal { animation: dymka-modal-in var(--t3) var(--ez-spring) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-mrow:hover, .sk-mrow:focus-visible, .sk-mrow:active { transform: none; }
+  .sk-mrow:hover .sk-bullet, .sk-mrow:focus-visible .sk-bullet { transform: rotate(45deg); }
+  .sk-stagger > * { animation: none; }
+}
+
+/* ── 7. ИКОНКИ ───────────────────────────────────────────────────*/
+.sk-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+.sk-ico {
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  padding: 12px 6px; border: 1px solid var(--border-soft); border-radius: var(--r-sm);
+  font-size: 10px; color: var(--text-mute); text-align: center; word-break: break-all;
+}
+.sk-ico svg { color: var(--accent); }
+.sk-ico.is-unused { opacity: .55; }
+
+/* ── таблица ─────────────────────────────────────────────────────*/
+.sk-table { width: 100%; border-collapse: collapse; font-size: var(--fs-md); }
+.sk-table th {
+  text-align: left; font-size: var(--fs-sm); font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--text-mute);
+  padding: 0 8px 8px; border-bottom: 1px solid var(--border-soft);
+}
+.sk-table td { padding: 10px 8px; border-bottom: 1px solid var(--home-rule, var(--border-soft)); }
+.sk-table tr:last-child td { border-bottom: 0; }
+
+/* ── пустое состояние ────────────────────────────────────────────*/
+.sk-empty {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 34px 20px; text-align: center; color: var(--text-mute);
+}
+.sk-empty-mark {
+  width: 34px; height: 34px; transform: rotate(45deg);
+  border: 1.5px solid var(--border); border-radius: 4px;
+}
+</style>
+</head>
+<body>
+
+<div class="sk-topbar">
+  <h1>Эталон компонентов · STYLE-0</h1>
+  <div class="sk-spacer"></div>
+  <div class="sk-seg" role="group" aria-label="Тема">
+    <button type="button" data-theme-set="dark"  aria-pressed="true">Тёмная</button>
+    <button type="button" data-theme-set="light" aria-pressed="false">Светлая</button>
+    <button type="button" data-theme-set="auto"  aria-pressed="false">Авто</button>
+  </div>
+  <label class="sk-ctl">Прозрачность
+    <input type="range" id="sk-alpha" min="0.3" max="1" step="0.02" value="0.66">
+  </label>
+  <label class="sk-ctl">Размытие
+    <input type="range" id="sk-blur" min="0" max="30" step="1" value="18">
+  </label>
+</div>
+
+<div class="sk-wrap">
+
+<!-- ═══ ЗАГОЛОВКИ ═══════════════════════════════════════════════ -->
+<section class="sk-sec">
+  <h2>Заголовки</h2>
+  <div class="sk-cols">
+    <div class="sk-col is-old">
+      <h3>Было</h3>
+      <div class="card">
+        <h3>⚔️ Характеристики</h3>
+        <h4>🛡️ Класс Доспеха (Авто-расчёт)</h4>
+      </div>
+      <p class="sk-note">Золотая полоса слева, эмодзи в тексте, sans-serif. Полоса потребовала трёх точечных перебивок в других местах CSS.</p>
+    </div>
+    <div class="sk-col is-new">
+      <h3>Стало</h3>
+      <div class="sk-card">
+        <p class="sk-h">Характеристики</p>
+        <p class="sk-h sk-h--sub">Класс доспеха · авто-расчёт</p>
+      </div>
+      <p class="sk-note">Ромб вместо полосы, serif-гарнитура, эмодзи нет. Ромб — тот же элемент, что маркеры пунктов меню.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ КНОПКИ ══════════════════════════════════════════════════ -->
+<section class="sk-sec">
+  <h2>Кнопки</h2>
+  <div class="sk-cols">
+    <div class="sk-col is-old">
+      <h3>Было — две системы</h3>
+      <div class="card">
+        <button>Обычная (легаси)</button>
+        <button class="secondary">secondary</button>
+        <button class="danger">danger</button>
+        <button class="small">small</button>
+      </div>
+      <p class="sk-note">Легаси-система задаёт вид самому элементу <code>button</code>: сплошная заливка, <code>width:100%</code>, нижний отступ. Отсюда столбик вместо ряда и сброс-список на 9 иконочных кнопок.</p>
+    </div>
+    <div class="sk-col is-new">
+      <h3>Стало — одна система</h3>
+      <div class="sk-card sk-btns">
+        <div class="sk-row-demo" style="margin-bottom:12px">
+          <button class="btn btn-primary">Основная</button>
+          <button class="btn btn-secondary">Вторичная</button>
+          <button class="btn btn-ghost">Призрачная</button>
+        </div>
+        <div class="sk-row-demo" style="margin-bottom:12px">
+          <button class="btn btn-danger">Удалить</button>
+          <button class="btn btn-success">Готово</button>
+          <button class="btn btn-primary" disabled>Недоступна</button>
+        </div>
+        <div class="sk-row-demo">
+          <button class="btn btn-secondary btn-sm">Мелкая</button>
+          <button class="btn btn-primary btn-sm">Мелкая основная</button>
+        </div>
+      </div>
+      <p class="sk-note">Ничего нового не рисуем: это готовая система <code>.btn</code> из <code>style.css:1292</code> — размеры через переменные, восемь вариантов, корректные состояния фокуса и блокировки. Ширину задаёт <code>.btn-block</code>, а не элемент.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ КАРТОЧКА И СТРОКИ ═══════════════════════════════════════ -->
+<section class="sk-sec">
+  <h2>Карточка и строки</h2>
+  <div class="sk-cols">
+    <div class="sk-col is-old">
+      <h3>Было</h3>
+      <div class="card">
+        <h3>🎒 Рюкзак</h3>
+        <div style="padding:8px 0">Верёвка пеньковая (50 фт) — 10 фн</div>
+        <div style="padding:8px 0">Факел ×5 — 5 фн</div>
+        <div style="padding:8px 0">Рацион (1 день) ×3 — 6 фн</div>
+      </div>
+      <p class="sk-note">Рамка, верхний блик и тень. В приложении таких независимых определений карточки 24 штуки — каждое красит фон само.</p>
+    </div>
+    <div class="sk-col is-new">
+      <h3>Стало</h3>
+      <div class="sk-card">
+        <p class="sk-h">Рюкзак</p>
+        <ul class="sk-list">
+          <li class="sk-item"><span class="sk-bullet"></span><span class="sk-item-label">Верёвка пеньковая, 50 фт</span><span class="sk-item-value">10 фн</span></li>
+          <li class="sk-item"><span class="sk-bullet"></span><span class="sk-item-label">Факел ×5</span><span class="sk-item-value">5 фн</span></li>
+          <li class="sk-item"><span class="sk-bullet"></span><span class="sk-item-label">Рацион, 1 день ×3</span><span class="sk-item-value">6 фн</span></li>
+        </ul>
+      </div>
+      <p class="sk-note">Карточка осталась средством группировки, но стала тише: волосяная рамка, без тени и блика. Структуру внутри держат разделители строк, а не рамки.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:22px">
+    <p class="sk-h sk-h--sub">Выделенная строка и таблица</p>
+    <div class="sk-cols">
+      <div class="sk-col is-new">
+        <div class="sk-card">
+          <ul class="sk-list">
+            <li class="sk-item sk-item--primary"><span class="sk-bullet"></span><span class="sk-item-label">Активное действие</span><span class="sk-item-value">выбрано</span></li>
+            <li class="sk-item"><span class="sk-bullet"></span><span class="sk-item-label">Обычная строка</span><span class="sk-item-value">—</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="sk-col is-new">
+        <div class="sk-card">
+          <table class="sk-table">
+            <thead><tr><th>Спасбросок</th><th>Модификатор</th></tr></thead>
+            <tbody>
+              <tr><td>Телосложение</td><td>+6</td></tr>
+              <tr><td>Мудрость</td><td>+4</td></tr>
+              <tr><td>Ловкость</td><td>+1</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ПОЛЯ ════════════════════════════════════════════════════ -->
+<section class="sk-sec">
+  <h2>Поля ввода</h2>
+  <div class="sk-cols">
+    <div class="sk-col is-old">
+      <h3>Было</h3>
+      <div class="card">
+        <label>Имя персонажа</label>
+        <input type="text" value="Тарион Пепельный">
+        <label>Класс</label>
+        <select><option>Волшебник</option><option>Воин</option></select>
+      </div>
+    </div>
+    <div class="sk-col is-new">
+      <h3>Стало</h3>
+      <div class="sk-card">
+        <label class="sk-field"><span>Имя персонажа</span><input type="text" value="Тарион Пепельный"></label>
+        <label class="sk-field"><span>Класс</span><select><option>Волшебник</option><option>Воин</option></select></label>
+        <label class="sk-field" style="margin-bottom:0"><span>Заметка</span><textarea rows="2">Нашёл посох в гробнице.</textarea></label>
+      </div>
+      <p class="sk-note">Подпись мельче и приглушена, фокус — кольцо акцентом вместо смены толщины рамки (не дёргает раскладку).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ЧИПЫ ════════════════════════════════════════════════════ -->
+<section class="sk-sec">
+  <h2>Чипы и бейджи</h2>
+  <div class="sk-card">
+    <div class="sk-row-demo">
+      <span class="sk-chip">❤️ 34/40</span>
+      <span class="sk-chip">🛡️ КД 16</span>
+      <span class="sk-chip">✦ 3 заговора</span>
+      <span class="sk-chip sk-chip--accent">5 уровень</span>
+      <span class="sk-chip sk-chip--danger">Отравлен</span>
+      <span class="sk-chip sk-chip--success">Концентрация</span>
+    </div>
+    <p class="sk-note">Здесь эмодзи <b>остаются</b>: в чипах хитов, КД и состояний они несут смысл и читаются быстрее подписи. Убираем эмодзи только из хрома — заголовков, кнопок, вкладок.</p>
+  </div>
+</section>
+
+<!-- ═══ МОДАЛКА ═════════════════════════════════════════════════ -->
+<section class="sk-sec">
+  <h2>Модальное окно</h2>
+  <div class="sk-cols">
+    <div class="sk-col is-old">
+      <h3>Было — 9 разных паттернов</h3>
+      <div class="card">
+        <p style="margin:0 0 10px">В приложении 43 модалки и девять непохожих оболочек. Кнопка закрытия — шесть классов и два разных глифа: <code>&times;</code> в одних, <code>✕</code> в других.</p>
+        <p style="margin:0;color:var(--text-mute);font-size:var(--fs-sm)">У 33 модалок собственные функции открытия и закрытия.</p>
+      </div>
+    </div>
+    <div class="sk-col is-new">
+      <h3>Стало — один паттерн</h3>
+      <div class="sk-modal">
+        <div class="sk-modal-head">
+          <h4>Удалить персонажа</h4>
+          <button class="sk-modal-close" aria-label="Закрыть">✕</button>
+        </div>
+        <div class="sk-modal-body">
+          <p style="margin:0">«Тарион Пепельный» будет удалён без возможности восстановления. Резервные копии останутся нетронутыми.</p>
+        </div>
+        <div class="sk-modal-foot">
+          <button class="btn btn-secondary">Отмена</button>
+          <button class="btn btn-danger">Удалить</button>
+        </div>
+      </div>
+      <p class="sk-note">Шапка, тело и футер с едиными отступами; крестик один и тот же везде. Большую часть можно свести групповым селектором, не трогая разметку и JS.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ПУСТОЕ СОСТОЯНИЕ ════════════════════════════════════════ -->
+<section class="sk-sec">
+  <h2>Пустое состояние</h2>
+  <div class="sk-card">
+    <div class="sk-empty">
+      <span class="sk-empty-mark"></span>
+      <p style="margin:0;font-family:var(--font-display);font-size:var(--fs-lg);color:var(--text)">Заклинаний пока нет</p>
+      <p style="margin:0;font-size:var(--fs-sm)">Добавьте заклинание из книги или создайте своё.</p>
+      <button class="btn btn-primary btn-sm" style="margin-top:6px">Добавить заклинание</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ДВИЖЕНИЕ ════════════════════════════════════════════════ -->
+<section class="sk-sec">
+  <h2>Движение <span style="font-weight:400;letter-spacing:0;text-transform:none;font-size:12px">— наведите курсор и пройдите Tab'ом</span></h2>
+  <div class="sk-cols">
+    <div class="sk-col is-new">
+      <h3>Выделение строки</h3>
+      <div class="sk-card">
+        <button class="sk-mrow sk-mrow--primary"><span class="sk-bullet"></span><span class="sk-mrow-txt">Продолжить</span></button>
+        <button class="sk-mrow"><span class="sk-bullet"></span><span class="sk-mrow-txt">Новый персонаж</span></button>
+        <button class="sk-mrow"><span class="sk-bullet"></span><span class="sk-mrow-txt">Выбор персонажа</span></button>
+      </div>
+      <p class="sk-note">Три эффекта одновременно: строка уезжает вправо на 8 px, ромб проворачивается и заливается, подчёркивание вырастает слева направо. Нажатие даёт короткую отдачу назад. То же самое происходит при переходе по Tab — клавиатура получает ту же отдачу, что курсор.</p>
+    </div>
+    <div class="sk-col is-new">
+      <h3>Каскадное появление</h3>
+      <div class="sk-card">
+        <ul class="sk-list sk-stagger" id="sk-stagger">
+          <li class="sk-item"><span class="sk-bullet"></span><span class="sk-item-label">Первая строка</span></li>
+          <li class="sk-item"><span class="sk-bullet"></span><span class="sk-item-label">Вторая строка</span></li>
+          <li class="sk-item"><span class="sk-bullet"></span><span class="sk-item-label">Третья строка</span></li>
+          <li class="sk-item"><span class="sk-bullet"></span><span class="sk-item-label">Четвёртая строка</span></li>
+        </ul>
+        <button class="btn btn-secondary btn-sm" id="sk-replay" style="margin-top:12px">Проиграть заново</button>
+      </div>
+      <p class="sk-note">Строки всплывают с шагом 40 мс. Механизм не новый — это готовый keyframe <code>rise</code>, которым уже появляются карточки персонажей. На встречающем экране каскад перезапускается сам при каждом входе.</p>
+    </div>
+  </div>
+
+  <div class="sk-cols" style="margin-top:22px">
+    <div class="sk-col is-new">
+      <h3>Вход модального окна</h3>
+      <div class="sk-modal sk-anim-modal" id="sk-modal-demo">
+        <div class="sk-modal-head">
+          <h4>Короткий отдых</h4>
+          <button class="sk-modal-close" aria-label="Закрыть">✕</button>
+        </div>
+        <div class="sk-modal-body"><p style="margin:0">Потратьте кости хитов, чтобы восстановить здоровье.</p></div>
+        <div class="sk-modal-foot"><button class="btn btn-primary btn-sm" id="sk-modal-replay">Проиграть заново</button></div>
+      </div>
+      <p class="sk-note">Всплытие с лёгким масштабом на пружинной кривой. Тоже готовое: <code>dymka-modal-in</code> уже есть в проекте, просто применено не ко всем 43 модалкам.</p>
+    </div>
+    <div class="sk-col is-old">
+      <h3>Что даёт система</h3>
+      <div class="sk-card">
+        <ul class="sk-list">
+          <li class="sk-item"><span class="sk-item-label">Микро — наведение, нажатие, чипы</span><span class="sk-item-value">140 мс</span></li>
+          <li class="sk-item"><span class="sk-item-label">Компоненты — вкладки, строки</span><span class="sk-item-value">240 мс</span></li>
+          <li class="sk-item"><span class="sk-item-label">Крупное — модалки, шторки</span><span class="sk-item-value">420 мс</span></li>
+        </ul>
+      </div>
+      <p class="sk-note">Три длительности и три кривые уже описаны в токенах проекта — новых величин не вводим, только доприменяем к тем местам, где движения сейчас нет.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ИКОНКИ ══════════════════════════════════════════════════ -->
+<section class="sk-sec">
+  <h2>Иконки <span style="font-weight:400;letter-spacing:0;text-transform:none;font-size:12px">— всё уже есть в <code>icons.js</code></span></h2>
+  <div class="sk-card">
+    <p class="sk-note" style="margin:0 0 14px">
+      Приглушённые — те, что сейчас не используются в разметке нигде. Их <b id="sk-unused-count">…</b> из <b id="sk-total-count">…</b>;
+      дорисовывать под замену эмодзи в хроме, скорее всего, ничего не придётся.
+    </p>
+    <div class="sk-icons" id="sk-icons"></div>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ── тема ────────────────────────────────────────────────────
+  var btns = document.querySelectorAll('[data-theme-set]');
+  function setTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    btns.forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-theme-set') === t));
+    });
+  }
+  btns.forEach(function (b) {
+    b.addEventListener('click', function () { setTheme(b.getAttribute('data-theme-set')); });
+  });
+  // ?theme=light для headless-скриншотов
+  var q = new URLSearchParams(location.search);
+  if (q.get('theme')) setTheme(q.get('theme'));
+
+  // ── слайдеры стекла: те же токены, что у пользователя в настройках ──
+  function bind(id, token, unit) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var apply = function () {
+      document.documentElement.style.setProperty(token, el.value + (unit || ''));
+    };
+    el.addEventListener('input', apply);
+    apply();
+  }
+  bind('sk-alpha', '--glass-alpha', '');
+  bind('sk-blur', '--glass-blur', 'px');
+
+  // ── повтор анимаций по кнопке ───────────────────────────────
+  // Перезапуск CSS-анимации: снять класс, форсировать рефлоу, вернуть.
+  function replay(el, cls) {
+    if (!el) return;
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+  var rp = document.getElementById('sk-replay');
+  if (rp) rp.addEventListener('click', function () {
+    replay(document.getElementById('sk-stagger'), 'sk-stagger');
+  });
+  var mp = document.getElementById('sk-modal-replay');
+  if (mp) mp.addEventListener('click', function () {
+    replay(document.getElementById('sk-modal-demo'), 'sk-anim-modal');
+  });
+
+  // ── сетка иконок из icons.js ────────────────────────────────
+  // Список задействованных собран инвентаризацией STYLE-0; остальные
+  // показываем приглушёнными как свободный запас.
+  var USED = ['sheet','spells','inventory','combat','notes','users','settings','home',
+              'heart','shield','star','sparkle','zap','dice','scroll','plus','import',
+              'history','help','book','grad','focus'];
+  var box = document.getElementById('sk-icons');
+  if (box && window.DND_ICON_PATHS) {
+    var names = Object.keys(window.DND_ICON_PATHS).sort();
+    var unused = 0;
+    box.innerHTML = names.map(function (n) {
+      var isUsed = USED.indexOf(n) !== -1;
+      if (!isUsed) unused++;
+      return '<div class="sk-ico' + (isUsed ? '' : ' is-unused') + '">' +
+             window.dndIcon(n, 22) + '<span>' + n + '</span></div>';
+    }).join('');
+    document.getElementById('sk-total-count').textContent = names.length;
+    document.getElementById('sk-unused-count').textContent = unused;
+  } else if (box) {
+    box.innerHTML = '<p class="sk-note">icons.js не отдал DND_ICON_PATHS — проверьте, что страница открыта с сервера, а не по file://</p>';
+  }
+})();
+</script>
+</body>
+</html>

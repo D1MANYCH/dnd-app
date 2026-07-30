@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v322">
+<link rel="stylesheet" href="style.css?v=v323">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -230,7 +230,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
      Показывается из app-help.js при !dnd_help_seen; ставит флаг при любом выходе. -->
 <div id="welcome-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
   <div class="modal-content welcome-content">
-    <button type="button" class="modal-close" onclick="dismissWelcome()" aria-label="Закрыть">&times;</button>
+    <button type="button" class="modal-close" onclick="dismissWelcome()" aria-label="Закрыть">✕</button>
 
     <!-- Шаг 1: марка приложения + фичи -->
     <div class="welcome-step" id="welcome-step-1">
@@ -408,7 +408,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- ══ ЭКРАН 2: выбор персонажа ════════════════════════════════════ -->
 <div id="screen-characters" class="hidden">
 <div class="card">
-<h3>📜 Ваши Персонажи <span id="char-count" class="char-count-badge"></span></h3>
+<h3>Ваши Персонажи <span id="char-count" class="char-count-badge"></span></h3>
 <div class="char-controls">
 <div class="char-search-wrap">
 <span class="char-search-icon">🔍</span>
@@ -424,8 +424,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div id="character-list"></div>
 <div class="home-actions-primary">
-<button onclick="createNewCharacter()">+ Новый персонаж</button>
-<button onclick="openBuildPicker()">📘 По готовому билду</button>
+<button class="btn btn-primary btn-block" onclick="createNewCharacter()">+ Новый персонаж</button>
+<button class="btn btn-secondary btn-block" onclick="openBuildPicker()">📘 По готовому билду</button>
 </div>
 </div>
 </div>
@@ -435,7 +435,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
      file-инпуты) продолжают работать без правок JS. -->
 <div id="data-modal" class="confirm-modal-overlay">
 <div class="confirm-modal-box party-modal-box">
-<h4>🗄 Данные</h4>
+<h4>Данные</h4>
 <div class="home-utils">
 <button class="secondary" onclick="exportData()">💾 Скачать копию</button>
 <button class="secondary" onclick="document.getElementById('import-file').click()">📂 Загрузить копию</button>
@@ -465,7 +465,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
      «Установить» при обновлении SW) и обе вкладки бывшей нижней карточки. -->
 <div id="about-modal" class="confirm-modal-overlay">
 <div class="confirm-modal-box party-modal-box">
-<h4>ℹ️ О версии</h4>
+<h4>О версии</h4>
 <div class="app-version-row" id="app-version-row">
   <span class="app-version-badge" id="app-version-badge"></span>
   <span class="app-version-status" id="app-version-status"></span>
@@ -691,7 +691,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="card stats-card-2024">
 <div class="section-header-row stats-collapse-header" id="stats-collapse-btn" role="button" tabindex="0" aria-controls="abilities-region" aria-expanded="true" title="Свернуть / развернуть характеристики" onclick="toggleStatsCollapsed()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleStatsCollapsed();}">
-<h3>⚔️ Характеристики</h3>
+<h3>Характеристики</h3>
 <span class="prof-bonus-inline">Мастерство: <strong id="proficiency-bonus">+2</strong></span>
 <span class="stats-collapse-arrow" aria-hidden="true">▾</span>
 </div>
@@ -820,7 +820,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="sheet-col sheet-col-1">
 
 <div class="card">
-<h3>❤️ Здоровье и Бой</h3>
+<h3>Здоровье и Бой</h3>
 <!-- Armor selector -->
 <div class="armor-select-row">
 <div class="armor-select-left">
@@ -975,7 +975,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button id="level-down-btn" type="button" class="btn btn-secondary level-down-btn" onclick="openLevelDownConfirm()" style="display:none" title="Отменить последнее повышение">↩️ Откатить уровень</button>
 </div>
 <div class="ac-calc-section">
-<h4>🛡️ Класс Доспеха (Авто-расчёт)</h4>
+<h4>Класс Доспеха (Авто-расчёт)</h4>
 <div class="ac-display">
 <div class="ac-value"><span id="ac-total">10</span></div>
 <div class="ac-formula" id="ac-formula">10 (база)</div>
@@ -1029,21 +1029,21 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="sheet-col sheet-col-2">
 
 <div class="card">
-<h3>📖 Владения</h3>
+<h3>Владения</h3>
 <div class="proficiencies-section prof-categorized">
-<h4>🛡️ Доспехи</h4>
+<h4>Доспехи</h4>
 <div id="armor-prof-container" class="prof-categorized-body"></div>
 </div>
 <div class="proficiencies-section prof-categorized">
-<h4>⚔️ Оружие</h4>
+<h4>Оружие</h4>
 <div id="weapon-prof-container" class="prof-categorized-body"></div>
 </div>
 <div class="proficiencies-section prof-categorized">
-<h4>🔧 Инструменты</h4>
+<h4>Инструменты</h4>
 <div id="tools-container" class="prof-categorized-body"></div>
 </div>
 <div class="proficiencies-section prof-categorized">
-<h4>🗣️ Языки</h4>
+<h4>Языки</h4>
 <div id="languages-container" class="prof-categorized-body"></div>
 </div>
 </div>
@@ -1057,7 +1057,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <div class="card">
-<h3>⚔️ Оружие</h3>
+<h3>Оружие</h3>
 <button class="btn btn-success btn-block" onclick="openWeaponModal()">+ Добавить оружие</button>
 <div id="weapons-list"></div>
 </div>
@@ -1177,7 +1177,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Backpack -->
 <div class="card">
   <div class="inv-backpack-header">
-    <h4>🎒 Рюкзак</h4>
+    <h4>Рюкзак</h4>
     <div style="display:flex;gap:8px;align-items:center;">
       <button id="inv-backpack-toggle" class="inv-add-btn" style="background:transparent;color:var(--text);border:1px solid var(--border);" onclick="toggleBackpackOff()" title="Снять/надеть рюкзак: вещи внутри временно недоступны и не занимают слотов">🎒 Надет</button>
       <button class="inv-add-btn" onclick="openItemModal(null, -1)">+ Добавить</button>
@@ -1199,7 +1199,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Coins -->
 <div class="card">
   <div class="inv-coins-header">
-    <h4>💰 Кошель</h4>
+    <h4>Кошель</h4>
     <span class="inv-coins-weight" id="coin-weight" title="Вес монет: 50 монет = 1 фунт. Номинал не конвертируется — размен только вручную.">Вес: 0 фнт</span>
   </div>
   <!-- Pouches -->
@@ -1260,8 +1260,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Coin Exchange Modal -->
 <div id="coin-exchange-modal" class="modal">
 <div class="modal-content">
-  <button type="button" class="modal-close" onclick="closeCoinExchange()" aria-label="Закрыть">&times;</button>
-  <h3>⇄ Размен монет</h3>
+  <button type="button" class="modal-close" onclick="closeCoinExchange()" aria-label="Закрыть">✕</button>
+  <h3>Размен монет</h3>
   <div class="coin-exch-rates">
     <div class="coin-exch-rate-item"><span style="color:#9b59b6">●</span> 1 ПМ = 10 ЗМ</div>
     <div class="coin-exch-rate-item"><span style="color:#c9a040">●</span> 1 ЗМ = 10 СМ = 100 ММ</div>
@@ -1351,7 +1351,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Мой персонаж -->
 <div class="party-section-card">
 <div class="party-section-title-row">
-<span class="party-section-icon">🎭</span>
+<span class="party-section-icon" data-ico="sheet">🎭</span>
 <span class="party-section-label">Мой персонаж</span>
 </div>
 <div id="my-char-card"></div>
@@ -1360,7 +1360,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Соратники -->
 <div class="party-section-card">
 <div class="party-section-title-row">
-<span class="party-section-icon">🧑‍🤝‍🧑</span>
+<span class="party-section-icon" data-ico="users">🧑‍🤝‍🧑</span>
 <span class="party-section-label">Соратники</span>
 <span class="party-section-count" id="allies-count"></span>
 <div class="party-section-actions">
@@ -1376,7 +1376,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- NPC -->
 <div class="party-section-card">
 <div class="party-section-title-row">
-<span class="party-section-icon">🧑</span>
+<span class="party-section-icon" data-ico="user">🧑</span>
 <span class="party-section-label">Персонажи <em class="party-section-hint">NPC и квестовые герои</em></span>
 <span class="party-section-count" id="npcs-count"></span>
 <div class="party-section-actions">
@@ -1393,7 +1393,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Монстры -->
 <div class="party-section-card">
 <div class="party-section-title-row">
-<span class="party-section-icon">👹</span>
+<span class="party-section-icon" data-ico="skull">👹</span>
 <span class="party-section-label">Монстры и враги</span>
 <span class="party-section-count" id="monsters-count"></span>
 <div class="party-section-actions">
@@ -1410,7 +1410,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Companions in Мир tab -->
 <div class="party-section-card">
 <div class="party-section-title-row">
-<span class="party-section-icon">🐾</span>
+<span class="party-section-icon" data-ico="wolf">🐾</span>
 <span class="party-section-label">Прихвостни <em class="party-section-hint">фамильяры, скакуны, призванные</em></span>
 <span class="party-section-count" id="companions-count"></span>
 <div class="party-section-actions">
@@ -1433,7 +1433,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="battle-setup-screen">
 <div class="card">
 <div class="battle-setup-header">
-<h3>⚔️ Выбор участников</h3>
+<h3>Выбор участников</h3>
 </div>
 <div class="battle-search-wrap">
 <span class="char-search-icon">🔍</span>
@@ -1469,7 +1469,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="tab-help-row"><button type="button" class="tab-help-btn" onclick="openHelp('journal')" title="Справка по этому разделу" aria-label="Справка по разделу «Журнал»"><span class="tab-help-q" aria-hidden="true">?</span>Справка</button></div>
 <div class="card">
 <div class="journal-header-row">
-<h3>📖 Журнал персонажа</h3>
+<h3>Журнал персонажа</h3>
 <button class="journal-add-btn" onclick="openAddJournalEntry()">＋ Событие</button>
 </div>
 <div class="journal-filter-row">
@@ -1488,8 +1488,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Item Reference -->
 <div id="item-ref-modal" class="modal">
 <div class="modal-content item-ref-content">
-  <button type="button" class="modal-close" onclick="closeItemRef()" aria-label="Закрыть">&times;</button>
-  <h3 id="item-ref-title">📚 Справка</h3>
+  <button type="button" class="modal-close" onclick="closeItemRef()" aria-label="Закрыть">✕</button>
+  <h3 id="item-ref-title">Справка</h3>
   <div id="item-ref-tabs" class="item-ref-tabs">
     <button class="item-ref-tab active" onclick="switchItemRef('weight',this)">⚖️ Вес</button>
     <button class="item-ref-tab" onclick="switchItemRef('slots',this)">📦 Слоты</button>
@@ -1569,8 +1569,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Help / Справка (HELP-1) — табовый help-центр по образцу item-ref-modal -->
 <div id="help-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="help-title">
 <div class="modal-content help-content">
-  <button type="button" class="modal-close" onclick="closeHelp()" aria-label="Закрыть">&times;</button>
-  <h3 id="help-title">📖 Справка</h3>
+  <button type="button" class="modal-close" onclick="closeHelp()" aria-label="Закрыть">✕</button>
+  <h3 id="help-title">Справка</h3>
   <div class="help-tabs" role="tablist">
     <button class="help-tab" onclick="switchHelpSection('about',this)">🐉 Что такое D&amp;D</button>
     <button class="help-tab" onclick="switchHelpSection('start',this)">🚀 С чего начать</button>
@@ -1848,7 +1848,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Add Journal Entry -->
 <div id="add-journal-modal" class="confirm-modal-overlay" onclick="if(event.target===this)closeAddJournalEntry()">
 <div class="confirm-modal-box" style="max-width:400px">
-<h4>📝 Записать событие</h4>
+<h4>Записать событие</h4>
 <div class="party-form">
 <label>Тип события</label>
 <select id="journal-entry-type">
@@ -1871,7 +1871,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Add/Edit NPC -->
 <div id="add-npc-modal" class="confirm-modal-overlay">
 <div class="confirm-modal-box party-modal-box">
-<h4 id="npc-modal-title">🧑 Добавить персонажа</h4>
+<h4 id="npc-modal-title">Добавить персонажа</h4>
 <input type="hidden" id="npc-edit-index" value="-1">
 <div class="party-form">
 <label>Имя</label>
@@ -1900,7 +1900,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Add/Edit Ally -->
 <div id="add-ally-modal" class="confirm-modal-overlay">
 <div class="confirm-modal-box party-modal-box">
-<h4 id="ally-modal-title">🧑‍🤝‍🧑 Добавить соратника</h4>
+<h4 id="ally-modal-title">Добавить соратника</h4>
 <input type="hidden" id="ally-edit-index" value="-1">
 <div class="party-form">
 <label>Имя</label>
@@ -1934,7 +1934,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- FEAT-4: Modal: SRD Monster Picker -->
 <div id="srd-monster-modal" class="confirm-modal-overlay">
 <div class="confirm-modal-box party-modal-box srd-monster-box">
-<h4>📚 Бестиарий SRD 5e</h4>
+<h4>Бестиарий SRD 5e</h4>
 <div class="srd-monster-filters">
 <input type="text" id="srd-monster-search" placeholder="Поиск: гоблин, wolf, нежить..." oninput="setSrdMonsterSearch(this.value)">
 <select id="srd-monster-cr" onchange="setSrdMonsterCr(this.value)">
@@ -1955,7 +1955,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- FEAT-4: Modal: SRD NPC Archetype Picker -->
 <div id="srd-npc-modal" class="confirm-modal-overlay">
 <div class="confirm-modal-box party-modal-box srd-monster-box">
-<h4>📚 Архетипы NPC</h4>
+<h4>Архетипы NPC</h4>
 <div class="srd-monster-filters">
 <input type="text" id="srd-npc-search" placeholder="Поиск: торговец, страж, lord..." oninput="setSrdNpcSearch(this.value)">
 <select id="srd-npc-att" onchange="setSrdNpcAtt(this.value)">
@@ -1973,7 +1973,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Add/Edit Monster -->
 <div id="add-monster-modal" class="confirm-modal-overlay">
 <div class="confirm-modal-box party-modal-box">
-<h4 id="monster-modal-title">👹 Добавить монстра</h4>
+<h4 id="monster-modal-title">Добавить монстра</h4>
 <input type="hidden" id="monster-edit-index" value="-1">
 <div class="party-form">
 <label>Имя</label>
@@ -2031,8 +2031,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Rest -->
 <div id="rest-modal" class="modal">
 <div class="modal-content">
-<button type="button" class="modal-close" onclick="closeRestModal()" aria-label="Закрыть">&times;</button>
-<h3>🏕️ Отдых</h3>
+<button type="button" class="modal-close" onclick="closeRestModal()" aria-label="Закрыть">✕</button>
+<h3>Отдых</h3>
 <div id="rest-main-screen">
 <div class="rest-options">
 <button class="rest-option-btn short-rest" onclick="showShortRestInfo()">
@@ -2047,7 +2047,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </button>
 </div>
 <div class="rest-info">
-<h4>ℹ️ Выберите тип отдыха</h4>
+<h4>Выберите тип отдыха</h4>
 <p style="font-size:0.85em; color:var(--text-muted); margin:0;">Нажмите на кнопку выше чтобы увидеть что восстановится</p>
 </div>
 </div>
@@ -2057,7 +2057,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <ul id="rest-info-list"></ul>
 </div>
 <div id="hit-dice-section" class="hit-dice-section hidden">
-<h4>🎲 Потратить кости хитов</h4>
+<h4>Потратить кости хитов</h4>
 <div class="hit-dice-controls">
 <button class="secondary" onclick="adjustHitDice(-1)">-</button>
 <input type="number" id="hit-dice-to-spend" value="0" min="0" readonly>
@@ -2079,7 +2079,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div id="rest-result-screen" class="hidden">
 <div class="rest-result">
-<h3 id="rest-result-title">✅ Отдых завершён!</h3>
+<h3 id="rest-result-title">Отдых завершён!</h3>
 <div id="rest-result-details"></div>
 </div>
 <button class="success modal-close-bottom" onclick="closeRestModal()">Закрыть</button>
@@ -2091,7 +2091,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="modal-content lu-modal">
 <div class="lu-header">
 <div class="lu-title">Повышение уровня</div>
-<button type="button" class="modal-close" onclick="closeLevelUpModal()" aria-label="Закрыть">&times;</button>
+<button type="button" class="modal-close" onclick="closeLevelUpModal()" aria-label="Закрыть">✕</button>
 </div>
 
 <!-- Экран: Выбор класса (мультикласс) -->
@@ -2186,7 +2186,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="modal-content hph-modal">
 <div class="hph-header">
 <span class="hph-title">📋 История здоровья</span>
-<button type="button" class="modal-close" onclick="closeHPHistory()" aria-label="Закрыть">&times;</button>
+<button type="button" class="modal-close" onclick="closeHPHistory()" aria-label="Закрыть">✕</button>
 </div>
 <div id="hp-history-list" class="hph-list"></div>
 <button class="hph-clear-btn" onclick="hpHistory=[];openHPHistory()">Очистить историю</button>
@@ -2196,7 +2196,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: ASI (Увеличение характеристик) -->
 <div id="asi-modal" class="confirm-modal-overlay" onclick="if(event.target===this)closeASIModal()">
 <div class="confirm-modal-box asi-modal-box">
-<h4>📈 Увеличение характеристик</h4>
+<h4>Увеличение характеристик</h4>
 <p class="asi-desc">Выберите: <strong>+2 к одной</strong> характеристике или <strong>+1 к двум</strong></p>
 <div id="asi-build-hint" class="rec-banner" style="display:none"></div>
 <div class="asi-options">
@@ -2226,7 +2226,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Class Choice (Стиль боя, Метамагия, Воззвания и т.д.) -->
 <div id="class-choice-modal" class="confirm-modal-overlay" onclick="if(event.target===this)closeClassChoiceModal()">
 <div class="confirm-modal-box cc-modal-box">
-<h4 class="cc-modal-title">⚡ Классовый выбор</h4>
+<h4 class="cc-modal-title">Классовый выбор</h4>
 <p class="cc-modal-desc"></p>
 <div class="cc-modal-counter"></div>
 <div class="cc-modal-body"></div>
@@ -2276,7 +2276,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </svg>
     Бросок кубиков
   </h3>
-  <button type="button" class="modal-close" onclick="closeDiceModal()" aria-label="Закрыть">&times;</button>
+  <button type="button" class="modal-close" onclick="closeDiceModal()" aria-label="Закрыть">✕</button>
 </div>
 
 <!-- v3.18: two-column body — арена слева, контролы справа -->
@@ -2441,7 +2441,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Spell Search -->
 <div id="spell-search-modal" class="modal">
 <div class="modal-content">
-<button type="button" class="modal-close" onclick="closeSpellSearch()" aria-label="Закрыть">&times;</button>
+<button type="button" class="modal-close" onclick="closeSpellSearch()" aria-label="Закрыть">✕</button>
 <h3>Поиск заклинаний</h3>
 <div class="spell-class-filter-grouped" id="spell-class-filter">
   <div class="cf-row cf-row-top">
@@ -2517,15 +2517,15 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Add Spell -->
 <div id="cast-spell-modal" class="modal">
 <div class="modal-content cast-spell-content">
-<button type="button" class="modal-close" onclick="closeCastChooser()" aria-label="Закрыть">&times;</button>
-<h3>✨ <span id="cast-spell-title"></span></h3>
+<button type="button" class="modal-close" onclick="closeCastChooser()" aria-label="Закрыть">✕</button>
+<h3><span id="cast-spell-title"></span></h3>
 <p id="cast-spell-hint" class="cast-spell-hint"></p>
 <div id="cast-spell-options" class="cast-slot-options"></div>
 </div>
 </div>
 <div id="add-spell-modal" class="modal">
 <div class="modal-content">
-<button type="button" class="modal-close" onclick="closeAddSpellForm()" aria-label="Закрыть">&times;</button>
+<button type="button" class="modal-close" onclick="closeAddSpellForm()" aria-label="Закрыть">✕</button>
 <h3 id="add-spell-modal-title">Добавить заклинание</h3>
 <div class="add-spell-form">
 <!-- HB-2: задел под HB-3 — в режиме правки сюда кладётся id редактируемого
@@ -2654,7 +2654,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Item -->
 <div id="item-modal" class="modal">
 <div class="modal-content">
-<button type="button" class="modal-close" onclick="closeItemModal()" aria-label="Закрыть">&times;</button>
+<button type="button" class="modal-close" onclick="closeItemModal()" aria-label="Закрыть">✕</button>
 <h3 id="item-modal-title">Добавить предмет</h3>
 <button type="button" class="magic-catalog-open-btn" onclick="openGearCatalog()">🎒 Из каталога снаряжения</button>
 <button type="button" class="magic-catalog-open-btn" onclick="openMagicCatalog()">📖 Выбрать из каталога магических предметов</button>
@@ -2718,8 +2718,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Magic Items Catalog (REQ-4b) — пикер из magic-items.js (ленивый) -->
 <div id="magic-catalog-modal" class="modal">
 <div class="modal-content magic-catalog-content">
-<button type="button" class="modal-close" onclick="closeMagicCatalog()" aria-label="Закрыть">&times;</button>
-<h3>📖 Каталог магических предметов</h3>
+<button type="button" class="modal-close" onclick="closeMagicCatalog()" aria-label="Закрыть">✕</button>
+<h3>Каталог магических предметов</h3>
 <div class="magic-catalog-filters">
   <input type="text" id="magic-catalog-search" placeholder="Поиск (рус / english)…" oninput="renderMagicCatalog()">
   <select id="magic-catalog-type" onchange="renderMagicCatalog()">
@@ -2752,8 +2752,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Gear Catalog (FIN-5) — пикер обычного снаряжения из gear-catalog.js (ленивый) + наборы PHB -->
 <div id="gear-catalog-modal" class="modal">
 <div class="modal-content magic-catalog-content">
-<button type="button" class="modal-close" onclick="closeGearCatalog()" aria-label="Закрыть">&times;</button>
-<h3>🎒 Каталог снаряжения</h3>
+<button type="button" class="modal-close" onclick="closeGearCatalog()" aria-label="Закрыть">✕</button>
+<h3>Каталог снаряжения</h3>
 <div class="gear-packs-section">
   <div class="gear-packs-label">📦 Готовые наборы PHB — добавить целиком:</div>
   <div id="gear-packs-list" class="gear-packs-list"></div>
@@ -2777,7 +2777,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Item View -->
 <div id="item-view-modal" class="modal">
 <div class="modal-content">
-<button type="button" class="modal-close" onclick="closeItemView()" aria-label="Закрыть">&times;</button>
+<button type="button" class="modal-close" onclick="closeItemView()" aria-label="Закрыть">✕</button>
 <h3>Предмет</h3>
 <div class="item-detail-icon" id="view-item-icon">🎒</div>
 <div class="item-detail-name" id="view-item-name">Название</div>
@@ -2810,7 +2810,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Weapon -->
 <div id="weapon-modal" class="modal">
 <div class="modal-content">
-<button type="button" class="modal-close" onclick="closeWeaponModal()" aria-label="Закрыть">&times;</button>
+<button type="button" class="modal-close" onclick="closeWeaponModal()" aria-label="Закрыть">✕</button>
 <h3 id="weapon-modal-title">Добавить оружие</h3>
 <div id="weapon-picker-section">
 <label style="margin-top:10px; color: var(--text-color);">📜 Выбрать из списка:</label>
@@ -2903,7 +2903,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div class="qrs-head">
     <span class="qrs-icon" aria-hidden="true" data-ico="dice" data-ico-size="13">🎲</span>
     <span class="qrs-title">Последний бросок</span>
-    <button type="button" class="qrs-close" onclick="dismissQuickRollStrip()" aria-label="Скрыть">&times;</button>
+    <button type="button" class="qrs-close" onclick="dismissQuickRollStrip()" aria-label="Скрыть">✕</button>
   </div>
   <div class="qrs-list" id="qrs-list"></div>
 </div>
@@ -2919,7 +2919,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="active-effects-panel" class="aef-panel" hidden role="dialog" aria-label="Активные эффекты">
   <div class="aef-head">
     <span class="aef-head-title">✨ Активные эффекты</span>
-    <button type="button" class="aef-close" onclick="toggleActiveEffectsPanel()" aria-label="Закрыть">&times;</button>
+    <button type="button" class="aef-close" onclick="toggleActiveEffectsPanel()" aria-label="Закрыть">✕</button>
   </div>
   <div class="aef-list" id="aef-list"></div>
   <div class="aef-turns">
@@ -2933,7 +2933,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Modal: Add/Edit Companion (global - works from any tab) -->
 <div id="add-companion-modal" class="confirm-modal-overlay" onclick="if(event.target===this)closeAddCompanionModal()">
 <div class="confirm-modal-box party-modal-box">
-<h4 id="companion-modal-title">🐾 Добавить прихвостня</h4>
+<h4 id="companion-modal-title">Добавить прихвостня</h4>
 <input type="hidden" id="companion-edit-index" value="-1">
 <div class="party-form">
 <label>Имя</label>
@@ -2983,7 +2983,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="avatar-modal" class="modal">
   <div class="modal-content avatar-modal-content">
     <button type="button" class="modal-close" onclick="closeAvatarModal()" aria-label="Закрыть">✕</button>
-    <h3>🖼️ Аватар персонажа</h3>
+    <h3>Аватар персонажа</h3>
     <div id="avatar-modal-preview" class="avatar-modal-preview"></div>
 
     <!-- Секция 1: файл -->
@@ -3001,7 +3001,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <div class="avatar-section">
       <div class="avatar-section-label">По ссылке</div>
       <input type="url" id="avatar-url-input" placeholder="https://i.imgur.com/example.png" class="avatar-url-input">
-      <button class="btn avatar-url-apply-btn" onclick="applyAvatarFromUrl()">🔗 Применить ссылку</button>
+      <button class="btn btn-primary avatar-url-apply-btn" onclick="applyAvatarFromUrl()">🔗 Применить ссылку</button>
     </div>
 
     <div class="avatar-modal-footer">
@@ -3016,7 +3016,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div class="modal-content bp-modal">
     <div class="bp-header">
       <span class="bp-title" id="bp-title-h">📘 Готовые билды</span>
-      <button type="button" class="modal-close" onclick="closeModal('build-picker-modal')" aria-label="Закрыть">&times;</button>
+      <button type="button" class="modal-close" onclick="closeModal('build-picker-modal')" aria-label="Закрыть">✕</button>
     </div>
     <div class="bp-filter-row">
       <input type="text" id="bp-search" class="bp-search" placeholder="🔍 Поиск по названию, классу, подклассу..." oninput="renderBuildPicker()" aria-label="Поиск по билдам">
@@ -3050,11 +3050,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div class="modal-content bg-modal">
     <div class="bg-header">
       <span class="bg-title" id="bg-title-h">📘 Гайд по билду</span>
-      <button type="button" class="modal-close" onclick="closeModal('build-guide-modal')" aria-label="Закрыть">&times;</button>
+      <button type="button" class="modal-close" onclick="closeModal('build-guide-modal')" aria-label="Закрыть">✕</button>
     </div>
     <div id="bg-body" class="bg-body"></div>
     <div class="bg-footer">
-      <button class="btn" onclick="closeModal('build-guide-modal')">Понятно</button>
+      <button class="btn btn-primary" onclick="closeModal('build-guide-modal')">Понятно</button>
     </div>
   </div>
 </div>
@@ -3064,11 +3064,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div class="modal-content bg-modal">
     <div class="bg-header">
       <span class="bg-title" id="bp-plan-title-h">📈 План развития</span>
-      <button type="button" class="modal-close" onclick="closeModal('build-plan-modal')" aria-label="Закрыть">&times;</button>
+      <button type="button" class="modal-close" onclick="closeModal('build-plan-modal')" aria-label="Закрыть">✕</button>
     </div>
     <div id="bp-plan-body" class="bg-body bp-plan-body"></div>
     <div class="bg-footer">
-      <button class="btn" onclick="closeModal('build-plan-modal')">Понятно</button>
+      <button class="btn btn-primary" onclick="closeModal('build-plan-modal')">Понятно</button>
     </div>
   </div>
 </div>
@@ -3097,52 +3097,52 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v322"></script>
+<script src="app-log.js?v=v323"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
-<script src="icons.js?v=v322"></script>
-<script src="bg-space.js?v=v322"></script>
-<script src="dice-arena-bg.js?v=v322"></script>
-<script src="data.js?v=v322"></script>
+<script src="icons.js?v=v323"></script>
+<script src="bg-space.js?v=v323"></script>
+<script src="dice-arena-bg.js?v=v323"></script>
+<script src="data.js?v=v323"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v322"></script>
+<script src="character-builds.js?v=v323"></script>
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v322"></script>
-<script src="spells.js?v=v322"></script>
-<script src="spell-effects.js?v=v322"></script>
+<script src="glossary-data.js?v=v323"></script>
+<script src="spells.js?v=v323"></script>
+<script src="spell-effects.js?v=v323"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v322"></script>
-<script src="app-migrate.js?v=v322"></script>
-<script src="app-builds.js?v=v322"></script>
-<script src="app-core.js?v=v322"></script>
-<script src="app-io.js?v=v322"></script>
-<script src="app-backup.js?v=v322"></script>
-<script src="app-combat.js?v=v322"></script>
-<script src="app-conditions.js?v=v322"></script>
-<script src="app-cast-effects.js?v=v322"></script>
-<script src="app-proficiencies.js?v=v322"></script>
-<script src="app-hp.js?v=v322"></script>
-<script src="app-spells.js?v=v322"></script>
-<script src="app-inventory.js?v=v322"></script>
+<script src="rules.js?v=v323"></script>
+<script src="app-migrate.js?v=v323"></script>
+<script src="app-builds.js?v=v323"></script>
+<script src="app-core.js?v=v323"></script>
+<script src="app-io.js?v=v323"></script>
+<script src="app-backup.js?v=v323"></script>
+<script src="app-combat.js?v=v323"></script>
+<script src="app-conditions.js?v=v323"></script>
+<script src="app-cast-effects.js?v=v323"></script>
+<script src="app-proficiencies.js?v=v323"></script>
+<script src="app-hp.js?v=v323"></script>
+<script src="app-spells.js?v=v323"></script>
+<script src="app-inventory.js?v=v323"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v322"></script>
-<script src="class-choices.js?v=v322"></script>
-<script src="subclass-choices-data.js?v=v322"></script>
+<script src="app-party.js?v=v323"></script>
+<script src="class-choices.js?v=v323"></script>
+<script src="subclass-choices-data.js?v=v323"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v322";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v323";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-dice.js?v=v322"></script>
-<script src="app-settings.js?v=v322"></script>
-<script src="app-ui.js?v=v322"></script>
-<script src="app-home.js?v=v322"></script>
-<script src="app-asi.js?v=v322"></script>
-<script src="app-notes.js?v=v322"></script>
-<script src="app-desktop.js?v=v322"></script>
-<script src="history-stack.js?v=v322"></script>
-<script src="app-help.js?v=v322"></script>
+<script src="app-dice.js?v=v323"></script>
+<script src="app-settings.js?v=v323"></script>
+<script src="app-ui.js?v=v323"></script>
+<script src="app-home.js?v=v323"></script>
+<script src="app-asi.js?v=v323"></script>
+<script src="app-notes.js?v=v323"></script>
+<script src="app-desktop.js?v=v323"></script>
+<script src="history-stack.js?v=v323"></script>
+<script src="app-help.js?v=v323"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3155,9 +3155,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v322",
-    "vendor/jspdf/roboto-base64.js?v=v322",
-    "app-pdf.js?v=v322"
+    "vendor/jspdf/jspdf.umd.min.js?v=v323",
+    "vendor/jspdf/roboto-base64.js?v=v323",
+    "app-pdf.js?v=v323"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3181,7 +3181,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v322").then(function () {
+    return loadScript("build-notes-data.js?v=v323").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -3189,26 +3189,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v322"),
-      loadScript("npc-srd.js?v=v322")
+      loadScript("monsters-srd.js?v=v323"),
+      loadScript("npc-srd.js?v=v323")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v322");
+    return loadScript("magic-items.js?v=v323");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v322");
+    return loadScript("gear-catalog.js?v=v323");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v322").then(function () {
+    return loadScript("data-2024.js?v=v323").then(function () {
       window.__edition2024Loaded = true;
     });
   };

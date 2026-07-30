@@ -85,6 +85,9 @@
 /* Тени — Дымка v5 (+ блик inset 0 1px 0 var(--glass-hi) первым слоем у карточек) */
 --sh-1: 0 1px 3px rgba(0,0,0,0.35), 0 6px 22px rgba(0,0,0,0.30);
 --sh-2: 0 10px 28px rgba(0,0,0,0.45), 0 32px 80px rgba(0,0,0,0.60);
+/* STYLE-5: тень карточки — заметно легче --sh-1. Карточка должна отделять
+   группу данных, а не висеть над страницей. */
+--sh-card: 0 1px 2px rgba(0,0,0,0.24), 0 3px 10px rgba(0,0,0,0.16);
 --sh-glow: 0 0 0 3px var(--accent-soft), 0 8px 24px var(--accent-glow-token);
 
 /* Дымка v5: система движения — микро 140 / компоненты 240 / крупное 420 */
@@ -100,6 +103,9 @@
 
 /* Типографика */
 --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+/* STYLE-1: моноширинный стек был трижды выписан литералом в трёх разных
+   вариантах (логи, формулы бросков) — свели к одному токену. */
+--font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 /* UI-5: --fs-scale (0.9..1.3) — пользовательский множитель шрифта.
    База задаётся в *-base, плотность переопределяет только *-base. */
 --fs-scale: 1;
@@ -315,6 +321,7 @@ html.glass-adjusting *::after {
   /* Shadows */
   --sh-1: 0 1px 3px rgba(22,26,38,0.05), 0 6px 22px rgba(22,26,38,0.06);
   --sh-2: 0 10px 28px rgba(22,26,38,0.12), 0 32px 80px rgba(22,26,38,0.20);
+  --sh-card: 0 1px 2px rgba(22,26,38,0.04), 0 3px 10px rgba(22,26,38,0.05);
   --sh-glow: 0 0 0 3px var(--accent-soft), 0 6px 16px var(--accent-glow);
 
   /* Easing — UI6-5: токены --ease/--ease-out наследуются из :root (единый источник) */
@@ -383,6 +390,7 @@ html.glass-adjusting *::after {
     --slot-gold: #a8823a; --slot-gold-hi: #c09a50; --slot-gold-glow: rgba(168, 130, 58, 0.35);
     --sh-1: 0 1px 3px rgba(22,26,38,0.05), 0 6px 22px rgba(22,26,38,0.06);
     --sh-2: 0 10px 28px rgba(22,26,38,0.12), 0 32px 80px rgba(22,26,38,0.20);
+    --sh-card: 0 1px 2px rgba(22,26,38,0.04), 0 3px 10px rgba(22,26,38,0.05);
     --sh-glow: 0 0 0 3px var(--accent-soft), 0 6px 16px var(--accent-glow);
     /* THEME-2: категории предметов — были только в light-блоке (дрейф light/auto) */
     --weapon-color: #c2433a; --armor-color: #2f6dba; --potion-color: #b04580;
@@ -1049,7 +1057,7 @@ html.glass-adjusting *::after {
 .settings-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: var(--overlay);
   z-index: 400;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -1947,7 +1955,9 @@ background: var(--home-art-veil);
 }
 
 body {
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+/* STYLE-1: раньше стек был продублирован здесь литералом, из-за чего токен
+   --font ни на что не влиял. Теперь гарнитуру всего приложения задаёт токен. */
+font-family: var(--font);
 background-color: transparent;
 color: var(--text-color);
 margin: 0;
@@ -2214,10 +2224,28 @@ font-size: 0.72em;
 color: var(--text-muted);
 font-weight: 400;
 }
-h1, h2, h3, h4 { margin: 0 0 10px 0; color: var(--accent-color); font-weight: 600; }
-.card h2, .card h3 {
-border-left: 3px solid var(--accent-color);
-padding-left: 10px;
+/* STYLE-1: единая гарнитура заголовков — системный serif (--font-display),
+   тот же, что на встречающем экране. Вес 700: serif в 600 на части систем
+   подменяется синтетическим полужирным и выглядит грязно. */
+h1, h2, h3, h4 {
+margin: 0 0 10px 0;
+color: var(--accent-color);
+font-family: var(--font-display);
+font-weight: 700;
+letter-spacing: 0.01em;
+}
+/* STYLE-2: вместо золотой полосы слева — ромбовидный маркер, тот же элемент,
+   что у пунктов меню. Маркер инлайновый (не flex!) намеренно: часть заголовков
+   держит внутри бейджи и кнопки, и смена display развалила бы их раскладку. */
+.card h2::before, .card h3::before, .card h4::before {
+content: "";
+display: inline-block;
+width: var(--home-bullet, 9px);
+height: var(--home-bullet, 9px);
+margin-right: 10px;
+vertical-align: baseline;
+transform: rotate(45deg);
+border: 1.5px solid var(--accent);
 }
 .container { padding: var(--sp-3); }
 /* Дымка v5: уровень 2 стекла — карточка (блик по верхней кромке первым слоем box-shadow) */
@@ -3029,15 +3057,19 @@ margin: 0;
 }
 input[type="number"] { -moz-appearance: textfield; }
 
+/* STYLE-4: элементный селектор больше НЕ красит кнопки и НЕ растягивает их.
+   Заливку и цвет даёт система .btn и классовые правила, ширину — сами
+   компоненты. Обе правки подтверждены пробой в живой странице: заливку
+   не потеряла ни одна из 749 кнопок, ширину — 12, они перечислены явно
+   в блоке STYLE-4b. Именно width:100% здесь заставлял держать список
+   сбросов для иконочных кнопок (см. ниже). margin-bottom пока остаётся:
+   его зависимость измеряется иначе (вертикальные отступы, не геометрия). */
 button {
-background: var(--accent);
-color: #000;
 border: none;
 padding: 13px 20px;
 border-radius: var(--r-sm);
 font-weight: 600;
 cursor: pointer;
-width: 100%;
 margin-bottom: var(--sp-3);
 transition: transform 0.15s var(--ease), box-shadow 0.2s, background 0.2s, color 0.2s, border-color 0.2s, filter 0.15s;
 font-size: 15px;
@@ -4201,6 +4233,30 @@ color: var(--text-dim);
 .home-menu-item:focus-visible,
 .home-menu-subitem:focus-visible { outline: none; box-shadow: var(--sh-glow); }
 
+/* MOTION: растущее подчёркивание под названием пункта.
+   text-decoration анимировать нельзя — ширину можно только у настоящего
+   элемента, поэтому линия рисуется псевдоэлементом от левого края текста. */
+.home-menu-label { position: relative; }
+.home-menu-label::after {
+content: "";
+position: absolute;
+left: 0;
+bottom: -3px;
+width: 0;
+height: 1.5px;
+background: var(--accent-hi);
+transition: width var(--t2) var(--ez-out);
+}
+
+/* Движение выделения строки — общее для мыши и клавиатуры.
+   Клавиатурная половина ВНЕ media-запроса ниже: на тач-устройстве с
+   подключённой клавиатурой фокус обязан давать ту же отдачу, что курсор. */
+.home-menu-item:not(:disabled):focus-visible,
+.home-menu-subitem:focus-visible { transform: translateX(var(--home-shift)); color: var(--accent-hi); }
+.home-menu-item:not(:disabled):focus-visible .home-bullet,
+.home-menu-subitem:focus-visible .home-bullet { transform: rotate(135deg); background: var(--home-accent); }
+.home-menu-item:not(:disabled):focus-visible .home-menu-label::after { width: 100%; }
+
 /* Hover только под настоящим указателем: на тач-экране :hover «залипает»
    после тапа и пункт остаётся сдвинутым. */
 @media (hover: hover) and (pointer: fine) {
@@ -4208,10 +4264,30 @@ color: var(--text-dim);
   .home-menu-subitem:hover { transform: translateX(var(--home-shift)); color: var(--accent-hi); }
   .home-menu-item:not(:disabled):hover .home-bullet,
   .home-menu-subitem:hover .home-bullet { transform: rotate(135deg); background: var(--home-accent); }
-  .home-menu-item:not(:disabled):hover .home-menu-label { text-decoration: underline; text-underline-offset: 4px; }
+  .home-menu-item:not(:disabled):hover .home-menu-label::after { width: 100%; }
 }
+/* Нажатие — короткий возврат к исходной позиции: строка «поддаётся» под пальцем */
 .home-menu-item:not(:disabled):active,
-.home-menu-subitem:active { background: var(--home-primary-bg); }
+.home-menu-subitem:active { background: var(--home-primary-bg); transform: translateX(2px); }
+
+/* MOTION: каскадное появление встречающего экрана.
+   Переиспользуем готовый keyframe rise (style.css:3626) — тот же, что у
+   карточек персонажей. Разметку не трогаем: задержки раздаёт nth-child.
+   Анимация перезапускается САМА при каждом входе на экран, потому что
+   #screen-home уходит в display:none — скрытый элемент анимаций не крутит. */
+#screen-home .home-brand,
+#screen-home .home-hero,
+#screen-home .home-menu-row {
+animation: rise var(--t3) var(--ez-out) both;
+}
+#screen-home .home-brand { animation-delay: 0ms; }
+#screen-home .home-hero  { animation-delay: 60ms; }
+#screen-home .home-menu-row:nth-child(1) { animation-delay:  40ms; }
+#screen-home .home-menu-row:nth-child(2) { animation-delay:  80ms; }
+#screen-home .home-menu-row:nth-child(3) { animation-delay: 120ms; }
+#screen-home .home-menu-row:nth-child(4) { animation-delay: 160ms; }
+#screen-home .home-menu-row:nth-child(5) { animation-delay: 200ms; }
+#screen-home .home-menu-row:nth-child(6) { animation-delay: 240ms; }
 
 /* ============================================
    MENU-11: адаптив встречающего экрана, доступность, спокойное движение.
@@ -4262,10 +4338,21 @@ color: var(--text-dim);
    подчёркивание остаётся немоторным индикатором наведения. */
 @media (prefers-reduced-motion: reduce) {
   .home-menu-item:hover,
-  .home-menu-subitem:hover { transform: none; }
+  .home-menu-item:focus-visible,
+  .home-menu-subitem:hover,
+  .home-menu-subitem:focus-visible { transform: none; }
   .home-menu-item:hover .home-bullet,
-  .home-menu-subitem:hover .home-bullet { transform: rotate(45deg); }
+  .home-menu-item:focus-visible .home-bullet,
+  .home-menu-subitem:hover .home-bullet,
+  .home-menu-subitem:focus-visible .home-bullet { transform: rotate(45deg); }
+  .home-menu-item:active, .home-menu-subitem:active { transform: none; }
   .home-art { transition: none; }
+  /* Глобальный reduce-блок обнуляет длительность, но НЕ задержку. У анимации
+     с fill-mode both это значит, что элемент висит невидимым всю задержку —
+     каскад превратился бы в мигание. Снимаем задержки и само появление. */
+  #screen-home .home-brand,
+  #screen-home .home-hero,
+  #screen-home .home-menu-row { animation: none; }
 }
 
 @keyframes pulse {
@@ -7354,7 +7441,9 @@ border: none;
 display: none;
 position: fixed;
 inset: 0;
-background: rgba(0,0,0,0.7);
+/* STYLE-6: был хардкод rgba(0,0,0,0.7) — в светлой теме он затемнял
+   страницу вдвое сильнее задуманного, мимо токена. */
+background: var(--overlay);
 z-index: 9999;
 align-items: center;
 justify-content: center;
@@ -7371,8 +7460,12 @@ padding: 28px 24px 20px;
 max-width: 320px;
 width: 90%;
 text-align: center;
-animation: cardFadeIn 0.2s ease;
+/* STYLE-6: тот же вход, что у .modal-content — пружина --t3/--ez-spring
+   вместо старого cardFadeIn. Модалка не должна открываться по-разному
+   в зависимости от того, каким из девяти паттернов она собрана. */
+animation: dymka-modal-in var(--t3, 420ms) var(--ez-spring, ease-out);
 }
+.confirm-modal-overlay.active { animation: dymka-ovl-in var(--t2, 240ms) var(--ez-out, ease-out); }
 .confirm-modal-icon { font-size: 2em; margin-bottom: 10px; }
 .confirm-modal-box h4 { font-size: 1.1em; color: var(--text); margin: 0 0 8px; }
 .confirm-modal-box p { font-size: 0.82em; color: var(--text-dim); margin: 0 0 20px; line-height: 1.5; }
@@ -10703,7 +10796,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .app-log-btn-danger:hover { border-color: #e06c75; color: #e06c75; }
 .app-log-list {
   flex: 1 1 auto; overflow-y: auto; padding: 4px 0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; line-height: 1.45;
+  font-family: var(--font-mono); line-height: 1.45;
 }
 .al-row {
   padding: 2px 12px; border-bottom: 1px solid rgba(255,255,255,0.04);
@@ -11808,7 +11901,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
    ============================================ */
 .roll-mode-overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.55); z-index: 10000;
+  background: var(--overlay); z-index: 10000;
   display: flex; align-items: center; justify-content: center;
   animation: fadeIn 0.15s;
 }
@@ -12422,7 +12515,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 2000;
-  background: rgba(0,0,0,0.6);
+  background: var(--overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12666,7 +12759,7 @@ body {
   background: rgba(255,255,255,0.08);
   padding: 1px 5px;
   border-radius: 4px;
-  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.9em;
 }
 .notes-md-preview pre.notes-md-code {
@@ -12674,7 +12767,7 @@ body {
   padding: 8px 10px;
   border-radius: var(--r-sm);
   overflow-x: auto;
-  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.85em;
   white-space: pre;
 }
@@ -12998,7 +13091,23 @@ mark.notes-hl {
 /* REQ-3: «План класса» рядом с подписью поля «Класс» */
 .label-action-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .label-action-row > label { margin: 0; }
-.class-plan-btn { padding: 3px 10px; font-size: 0.72em; }
+/* STYLE-3: ширину брала от button{width:100%} — фиксируем явно, чтобы кнопка
+   пережила снятие вида с элементного селектора. */
+.class-plan-btn { padding: 3px 10px; font-size: 0.72em; width: 100%; }
+
+/* ============================================
+   STYLE-4b: кнопки, которым ширину давал элементный button{width:100%}.
+   Найдены пробой в живой странице с принудительно раскрытыми модалками
+   (у скрытых модалок геометрия нулевая и зависимость не видна).
+   Во флекс-футерах ставим flex:1, а не width:100% — так кнопки делят
+   ширину поровну, что и происходило раньше по факту.
+============================================ */
+.dice-reset-btn { width: 100%; }
+.add-spell-form button.success,
+.item-form button.success { width: 100%; }
+.avatar-modal-footer > .btn,
+.bp-footer > .btn,
+.bg-footer > .btn { flex: 1; }
 .bp-plan-body { display: flex; flex-direction: column; gap: 4px; }
 .bp-plan-meta { font-size: 0.85em; color: var(--text-muted); margin-bottom: 8px; }
 .bp-plan-row { display: flex; gap: 10px; align-items: flex-start; padding: 7px 8px; border-radius: 8px; border: 1px solid transparent; }
@@ -13591,3 +13700,41 @@ textarea:focus-visible {
 
 /* Иконки в нижнем таб-баре и drawer — по центру над подписью */
 .tab-btn .dico { margin: 0 auto; }
+
+/* ============================================================
+   STYLE-5: одна поверхность для всех карточек-контейнеров.
+   До этого 24 корня задавали фон, рамку и радиус каждый по-своему:
+   радиусы 4/8/12/16px и три разных токена, рамки то --border-color,
+   то --border-soft, то сырая rgba. Блок стоит в конце файла намеренно —
+   при равной специфичности выигрывает последнее правило, поэтому
+   определения выше перебиваются без !important.
+   Тему это НЕ ломает: правила вида :root[data-theme="light"] .char-card
+   специфичнее (0,2,0) и продолжают выигрывать.
+   Прозрачность и размытие берутся из пользовательских слайдеров
+   (--card-bg зависит от --glass-alpha, --glass-blur) — их не трогаем.
+============================================================ */
+.card,
+.abil-card,
+.bp-card,
+.cc-card,
+.char-card,
+.feat-taken-card,
+.inv-coin-card,
+.lu-stat-card,
+.notes-entry-card,
+.party-section-card,
+.pcard,
+.resource-card,
+.resource-passive-card,
+.rr-card {
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border-soft);
+  box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-card);
+}
+
+/* STYLE-7: у интерактивного заголовка-аккордеона ромб-маркер лишний —
+   ведущий знак строки там уже есть (шеврон раскрытия ▾/▸), и вместе они
+   дают два декоративных символа подряд перед текстом. */
+.card h2[role="button"]::before,
+.card h3[role="button"]::before,
+.card h4[role="button"]::before { display: none; }

@@ -3,36 +3,76 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v3.60.0**.
+Актуальная версия — **v3.61.0**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
-<a id="v3.60.0"></a>
-## v3.60.0 — 27 июля 2026
+<a id="v3.61.0"></a>
+## v3.61.0 — 30 июля 2026
 
-✨ Встречающий экран во всё окно: меню Продолжить / Новый персонаж / Выбор персонажа / Данные / Настройки / О версии, список персонажей отдельным экраном
+✨ Единый стиль интерфейса: serif-заголовки с ромбовидными маркерами вместо эмодзи, облегчённые карточки, одинаковые оболочка и анимация у всех модальных окон, плавное подчёркивание пунктов меню; в светлой теме затемнение под модалками больше не чернит страницу
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/cf9b583b...main) · 16 файлов, +1285 −102
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/1a865611...main) · 17 файлов, +1710 −181
 
 <details><summary>Коммиты и файлы</summary>
 
 **Коммиты (2):**
 
+- [`e25e6d2e`](https://github.com/D1MANYCH/dnd-app/commit/e25e6d2e) chore(dev): агенты releaser/relpost/content, команда /ship и Stop-хук
+- [`61aea109`](https://github.com/D1MANYCH/dnd-app/commit/61aea109) chore(dev): /ship разбирает изменения сам, releaser умеет коммит без bump
+
+**Файлы (17):**
+
+- `tests/style-kit.html` +627 −0
+- `index.html` +112 −112
+- `.claude/agents/releaser.md` +200 −4
+- `style.css` +168 −21
+- `.claude/commands/ship.md` +142 −20
+- `tools/check-uncommitted-hook.js` +130 −0
+- `.claude/agents/content.md` +128 −0
+- `.claude/agents/relpost.md` +108 −0
+- `.claude/skills/faza/SKILL.md` +26 −8
+- `CLAUDE.md` +19 −7
+- `.claude/settings.json` +22 −0
+- `data.js` +11 −3
+- `CHANGELOG.md` +6 −1
+- `icons.js` +5 −1
+- `app-notes.js` +3 −1
+- `tools/theme-baseline.json` +2 −2
+- `sw.js` +1 −1
+
+</details>
+
+<a id="v3.60.0"></a>
+## v3.60.0 — 27 июля 2026
+
+✨ Встречающий экран во всё окно: меню Продолжить / Новый персонаж / Выбор персонажа / Данные / Настройки / О версии, список персонажей отдельным экраном
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/cf9b583b...1a865611) · 18 файлов, +1261 −104
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (5):**
+
 - [`96b3e6f3`](https://github.com/D1MANYCH/dnd-app/commit/96b3e6f3) chore(dev): авторевью пул-реквестов в GitHub Actions
 - [`f53c327c`](https://github.com/D1MANYCH/dnd-app/commit/f53c327c) chore(dev): ревьюер PR сам гоняет тесты и инвариант
+- [`31f35571`](https://github.com/D1MANYCH/dnd-app/commit/31f35571) chore(dev): инвариант ловит подключения без ?v= и вне FILES_TO_CACHE
+- [`d6ca34fb`](https://github.com/D1MANYCH/dnd-app/commit/d6ca34fb) chore(dev): генератор релиз-поста — патч первой ссылкой, без дубля
+- [`1a865611`](https://github.com/D1MANYCH/dnd-app/commit/1a865611) v3.60.0: feat(ui): встречающий экран во всё окно
 
-**Файлы (16):**
+**Файлы (18):**
 
-- `style.css` +363 −0
+- `style.css` +371 −0
 - `app-home.js` +266 −0
 - `index.html` +174 −55
-- `.github/workflows/claude-code-review.yml` +211 −3
+- `.github/workflows/claude-code-review.yml` +107 −3
 - `tests/headless.js` +95 −0
 - `app-core.js` +60 −12
-- `docs/RELEASES.md` +38 −4
+- `tools/check-invariant.js` +62 −1
+- `docs/RELEASES.md` +47 −4
 - `app-help.js` +22 −13
 - `data.js` +19 −3
 - `history-stack.js` +10 −5
@@ -41,6 +81,7 @@
 - `tools/gen-release-post.js` +4 −3
 - `CLAUDE.md` +2 −2
 - `sw.js` +2 −1
+- `.github/workflows/tests.yml` +1 −1
 - `tests/headless-node.js` +1 −0
 
 </details>
