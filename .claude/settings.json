@@ -50,6 +50,17 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node tools/check-uncommitted-hook.js"
+          }
+        ]
+      }
     ]
   }
 }

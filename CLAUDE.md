@@ -15,7 +15,7 @@
 - Вкладки: `app-combat.js` + `app-conditions.js` / `app-cast-effects.js` / `app-proficiencies.js`, `app-hp.js`, `app-inventory.js`, `app-spells.js`, `app-party.js`, `app-notes.js`, `app-ui.js` + `app-dice.js` / `app-settings.js` / `app-asi.js`, `app-desktop.js`, `app-help.js` (справка и туры), `history-stack.js`, `app-backup.js` (IndexedDB), `app-log.js` (панель Ctrl+Shift+L), `app-pdf.js`.
 - Данные: `data.js` (классы/расы/черты + `APP_VERSION`/`APP_VERSION_DATE`/`APP_CHANGELOG`), `data-2024.js` (edition-слой), `spells.js`, `spell-effects.js` (механика кнопки «Использовать»), `character-builds.js` + `build-notes-data.js`, `class-choices.js` + `subclass-choices-data.js`, `magic-items.js`, `gear-catalog.js`, `glossary-data.js`, `monsters-srd.js` + `npc-srd.js`.
 - Прочее: `icons.js` (SVG-иконки), `bg-space.js` + `dice-arena-bg.js` (фоны), `dev-verify-builds.js` (`verifyAllBuilds()`).
-- `tools/` — `bump-version.js`, `gen-changelog.js`, `gen-release-log.js`, `gen-release-post.js`, `check-invariant.js`, `check-theme.js`, `run-tests-hook.js`, `check-syntax-hook.js`, `check-sw-hook.js`, `phb-search.py` (поиск по локальным PDF книг). `tests/` — `headless-node.js`, `runner.html` + `headless.js`, `fixtures.js`, `rules-cases.js` (кейсы `rules.js`, общие с `tests.html`). CI — `.github/workflows/tests.yml` (тесты + инвариант + темы), `pages.yml` (деплой), `claude-code-review.yml` (авторевью PR на русском: соглашения этого файла + правила D&D; только ревью, ничего не правит).
+- `tools/` — `bump-version.js`, `gen-changelog.js`, `gen-release-log.js`, `gen-release-post.js`, `check-invariant.js`, `check-theme.js`, `run-tests-hook.js`, `check-syntax-hook.js`, `check-sw-hook.js`, `check-uncommitted-hook.js`, `phb-search.py` (поиск по локальным PDF книг). `tests/` — `headless-node.js`, `runner.html` + `headless.js`, `fixtures.js`, `rules-cases.js` (кейсы `rules.js`, общие с `tests.html`). CI — `.github/workflows/tests.yml` (тесты + инвариант + темы), `pages.yml` (деплой), `claude-code-review.yml` (авторевью PR на русском: соглашения этого файла + правила D&D; только ревью, ничего не правит).
 
 ## Соглашения по коду
 - Модули — обычные `<script src>` внизу `index.html` в **жёстком порядке**: `app-log` → `icons` → фоны → данные → `app-core` → вкладки → `app-ui`/`app-notes`/`app-desktop`/`app-help`. Единственный `type="module"` — обёртка dice-box (`index.html:2998`).
@@ -24,6 +24,7 @@
 - Тяжёлое грузится лениво через `loadScript()` в низу `index.html`: `app-pdf` + `vendor/jspdf`, `build-notes-data`, `monsters-srd` + `npc-srd`, `magic-items`, `gear-catalog`, `data-2024`. Их `?v=` токены живут там же.
 - Новый js/css-файл → подключение в `index.html` (`<script src>` или `loadScript`) + `?v=` токен + строка в `FILES_TO_CACHE` (`sw.js`). Все три требования проверяет `tools/check-invariant.js` (в CI), пропуск любого — красный job `tests`.
 - UI и термины — русские, эталон — книги D&D 5e 2014; редакция 2024 живёт за `char.edition` (`EDITION_DATA`/`edData`).
+- Большие файлы (`spells.js` / `data.js` / `build-notes-data.js` ≈0.5 МБ, `character-builds.js` и `index.html` ≈0.2 МБ) **целиком не читать**: искать `Grep`, читать `Read` с `offset`/`limit`, править точечным `Edit`. Один полный Read такого файла оседает в контексте до конца сессии и оплачивается в каждом следующем запросе.
 
 ## Запуск и тесты
 - Превью — конфиг `dnd-app` в `.claude/launch.json` (`preview_start`, порт 3017) либо любой статический сервер из корня; PWA требует `https` или `localhost`.
@@ -38,6 +39,8 @@ APP_VERSION ↔ APP_CHANGELOG[0].version ↔ CACHE_NAME (dnd-sheet-vN) ↔ вс�
 
 Правит их `/bump <patch|minor|major> "<changelog>" [--type chore|feat|fix]`, дальше `/preflight`. Пошаговая механика, сбои и push — скилл `release`.
 
+Весь цикл одной командой — **`/ship <patch|minor|major> "<changelog>"`**: сабагент `releaser` делает bump → тесты → инвариант → коммит → пуш → ждёт CI (`tests` и `pages`), следом `relpost` отдаёт текст поста. Коммит и пуш происходят только по этой команде — сам по себе `/ship` никто не вызывает.
+
 Релиз описывается на трёх уровнях, всё генерится из `APP_CHANGELOG` + git, руками не ведём:
 - короткий — `CHANGELOG.md` и окно «История версий» (`tools/gen-changelog.js`);
 - подробный — `docs/RELEASES.md`: коммиты, изменённые файлы, +/− строк (`tools/gen-release-log.js`);
@@ -45,13 +48,16 @@ APP_VERSION ↔ APP_CHANGELOG[0].version ↔ CACHE_NAME (dnd-sheet-vN) ↔ вс�
 
 Оба генератора вызывает `/bump`. Краткий пост-анонс со всеми тремя ссылками — `/relpost` (`tools/gen-release-post.js`).
 
-## Хуки (`.claude/settings.json`, `PostToolUse` на Edit|Write|MultiEdit)
-Пять хуков. Блокируют (exit 2): `check-sw-hook.js` — правку `sw.js` без bump `CACHE_NAME`; рассинхрон `APP_VERSION` ↔ `APP_CHANGELOG[0].version`; `check-syntax-hook.js` — `node --check` на любой правке `*.js` (кроме `vendor/`). Предупреждают: `tools/run-tests-hook.js` на правку `*.js`, `tools/check-theme.js --hook` на правку `style.css`. Отключить — убрать блок из `hooks.PostToolUse`; источник истины — сам `settings.json`.
+## Хуки (`.claude/settings.json`)
+`PostToolUse` на Edit|Write|MultiEdit — пять штук. Блокируют (exit 2): `check-sw-hook.js` — правку `sw.js` без bump `CACHE_NAME`; рассинхрон `APP_VERSION` ↔ `APP_CHANGELOG[0].version`; `check-syntax-hook.js` — `node --check` на любой правке `*.js` (кроме `vendor/`). Предупреждают: `tools/run-tests-hook.js` на правку `*.js`, `tools/check-theme.js --hook` на правку `style.css`.
+`Stop` — `tools/check-uncommitted-hook.js`: одна строка про незакоммиченные правки в конце хода, ничего не коммитит и не блокирует (заглушить — `DND_NO_STOP_HINT=1`).
+Отключить — убрать блок из `hooks`; источник истины — сам `settings.json`.
 
 ## Процедуры
 - Slash-команды — `.claude/commands/*.md`, скиллы — `.claude/skills/*/SKILL.md`. **Скилл читать ДО задачи, а не после.** Контент (класс, заклинание, билд, магпредмет, черта, оружие) — скилл `add-content`, там же файлы и миграции `schemaVersion`.
 - Планы: фазы — в `~/.claude/projects/.../memory/project_*_plan.md`, индекс — `MEMORY.md`; старт нового чата — «начать фазу X-N», после закрытия фазы отметить `**done**`.
 - Менялась математика правил (`rules.js`, КД/спасброски/ячейки/отдых/концентрация, таблицы `data.js`) — сабагент `dnd-rules` (`.claude/agents/`): сверяет с «Книгой Игрока» по локальным PDF (`tools/phb-search.py`), возвращает вердикт, файлы не правит. Ручной вызов — `/rules [функция|файл]`.
+- Механическую рутину отдавать сабагентам на моделях подешевле: `releaser` (sonnet — bump → preflight → коммит/пуш), `relpost` (haiku — пост-анонс), `content` (sonnet — контент по скиллу `add-content` в больших файлах данных). Поиск по репо — встроенный `Explore` с `model: "sonnet"`. Планирование, архитектура, разбор багов и решения по содержанию остаются в основном чате. Спавнить агента ради одной команды (`/test`) невыгодно — он стартует с пустым контекстом и всё перечитывает.
 
 ## Конвенции коммитов
 Формат `тип(scope): описание` на русском, типы `feat` / `fix` / `chore`, релизы — префикс `vX.Y.Z:`. Коммиты создавать **только по запросу пользователя**.
