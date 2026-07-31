@@ -8673,10 +8673,29 @@ html[data-stats-layout="classic"] .abil-card-score .stat-btn-sm {
   html[data-stats-layout="2024"] .abil-passive { grid-column: 1 / -1; }
   /* мод и значение — в столбик (в ряд не влезают в ~172px-колонке) */
   html[data-stats-layout="2024"] .abil-card {
-    grid-template-columns: 1fr;
+    /* minmax(0,…) вместо 1fr: у 1fr нижняя граница трека — min-content, и если
+       строки спасброска/навыка остались в карточке (см. страховку ниже), трек
+       распирает до ~220px и содержимое вылезает за вьюпорт. */
+    grid-template-columns: minmax(0, 1fr);
     justify-items: center;
     text-align: center;
     column-gap: 0;
+  }
+  /* Страховка от горизонтального вылета: штатно _placeStatRows() уносит строки
+     спасбросков/навыков в legacy-аккордеоны и слоты прячутся правилом :empty.
+     Если перенос не отработал (пропущенное событие matchMedia), строки должны
+     ужиматься внутри колонки, а не растягивать страницу на ~49px. */
+  html[data-stats-layout="2024"] .abil-save-slot,
+  html[data-stats-layout="2024"] .abil-skills-slot,
+  html[data-stats-layout="2024"] .abil-save-slot .save-item,
+  html[data-stats-layout="2024"] .abil-save-slot .save-value,
+  html[data-stats-layout="2024"] .abil-save-slot .save-proficiency,
+  html[data-stats-layout="2024"] .abil-skills-slot .skill-row-compact { min-width: 0; }
+  /* подпись «Владение» — последний нерастяжимый кусок строки (min-content по
+     самому длинному слову): без переноса вылет остаётся 3px на 375 и 18px на 320 */
+  html[data-stats-layout="2024"] .abil-save-slot .save-proficiency label {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   html[data-stats-layout="2024"] .abil-card-mod,
   html[data-stats-layout="2024"] .abil-card-score { grid-column: 1; justify-self: center; }
