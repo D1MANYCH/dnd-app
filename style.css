@@ -823,7 +823,7 @@ html.glass-adjusting *::after {
 :root[data-theme="light"] .notes-modal-textarea,
 :root[data-theme="light"] textarea,
 :root[data-theme="light"] input[type="text"],
-:root[data-theme="light"] input[type="number"],
+:root[data-theme="light"] input[type="number"]:not(.inv-coin-big-inp),
 :root[data-theme="light"] input[type="search"],
 :root[data-theme="light"] input[type="url"],
 :root[data-theme="light"] input[type="email"],
@@ -835,7 +835,7 @@ html.glass-adjusting *::after {
 :root[data-theme="light"] textarea::placeholder,
 :root[data-theme="light"] input::placeholder { color: var(--text-mute) !important; }
 :root[data-theme="light"] textarea:focus,
-:root[data-theme="light"] input:focus,
+:root[data-theme="light"] input:focus:not(.inv-coin-big-inp),
 :root[data-theme="light"] select:focus {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 3px var(--accent-soft) !important;
@@ -4419,8 +4419,8 @@ animation: rise var(--t3) var(--ez-out) both;
   padding: 6px 12px !important;
   font-size: 0.78em !important;
   border-radius: var(--r-pill);
-  background: var(--input-bg) !important;
-  border: 1px solid var(--border-color) !important;
+  background: transparent !important;
+  border: 1px solid var(--border-soft) !important;
   width: auto !important;
   color: var(--text-muted) !important;
   transform: none !important;
@@ -4428,7 +4428,7 @@ animation: rise var(--t3) var(--ez-out) both;
   transition: all 0.15s;
 }
 .inventory-filters button:hover { border-color: var(--accent-color) !important; color: var(--text-color) !important; transform: none !important; box-shadow: none !important; }
-.inventory-filters button.active { background: var(--accent-color) !important; color: #000 !important; border-color: var(--accent-color) !important; }
+.inventory-filters button.active { background: var(--accent-color) !important; color: var(--on-accent) !important; border-color: var(--accent-color) !important; }
 
 /* ========================================
    INVENTORY — ITEM CARDS
@@ -4437,14 +4437,9 @@ animation: rise var(--t3) var(--ez-out) both;
 .inventory-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-style: italic; }
 
 .inv-item {
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-md);
   overflow: hidden;
   transition: border-color 0.2s;
 }
-.inv-item:hover { border-color: rgba(77,168,67,0.4); }
-.inv-item.expanded { border-color: var(--accent-color); }
 
 .inv-item-main {
   display: flex;
@@ -4458,12 +4453,9 @@ animation: rise var(--t3) var(--ez-out) both;
   font-size: 1.4em;
   width: 36px;
   height: 36px;
-  background: var(--card-bg);
-  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border-color);
   flex-shrink: 0;
 }
 .inv-item-info { flex: 1; min-width: 0; }
@@ -4471,14 +4463,14 @@ animation: rise var(--t3) var(--ez-out) both;
 .inv-item.expanded .inv-item-name { color: var(--accent-color); }
 .inv-item-meta { display: flex; gap: 5px; flex-wrap: wrap; }
 .inv-meta-tag {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+  background: transparent;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
   padding: 1px 6px;
   font-size: 0.7em;
   color: var(--text-muted);
 }
-.inv-cat-tag { color: var(--accent-color); border-color: rgba(77,168,67,0.3); }
+.inv-cat-tag { color: var(--accent-color); border-color: color-mix(in srgb, var(--accent) 32%, transparent); }
 .inv-item-arrow {
   font-size: 0.65em;
   color: var(--text-muted);
@@ -4490,7 +4482,7 @@ animation: rise var(--t3) var(--ez-out) both;
 .inv-item-body {
   display: none;
   padding: 10px 12px 12px 58px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--home-rule);
 }
 .inv-item.expanded .inv-item-body { display: block; }
 .inv-item-desc {
@@ -4514,20 +4506,20 @@ animation: rise var(--t3) var(--ez-out) both;
 }
 .inv-edit-btn {
   background: transparent !important;
-  border: 1px solid #2980b9 !important;
-  color: #2980b9 !important;
+  border: 1px solid color-mix(in srgb, var(--info) 55%, transparent) !important;
+  color: var(--info) !important;
 }
-.inv-edit-btn:hover { background: #2980b9 !important; color: white !important; transform: none !important; box-shadow: none !important; }
+.inv-edit-btn:hover { background: color-mix(in srgb, var(--info) 14%, transparent) !important; border-color: var(--info) !important; transform: none !important; box-shadow: none !important; }
 .inv-del-btn {
   background: transparent !important;
-  border: 1px solid var(--danger-color) !important;
+  border: 1px solid color-mix(in srgb, var(--danger) 55%, transparent) !important;
   color: var(--danger-color) !important;
 }
-.inv-del-btn:hover { background: var(--danger-color) !important; color: white !important; transform: none !important; box-shadow: none !important; }
+.inv-del-btn:hover { background: color-mix(in srgb, var(--danger) 14%, transparent) !important; border-color: var(--danger) !important; transform: none !important; box-shadow: none !important; }
 
 /* FIN-6: настройка магпредметов — бейдж, кнопка, счётчик N/3 */
-.inv-attune-tag { color: #b8860b; border-color: rgba(184,134,11,0.4); }
-.inv-attune-tag.on { color: #fff; background: #b8860b; border-color: #b8860b; }
+.inv-attune-tag { color: var(--accent-lo); border-color: color-mix(in srgb, var(--accent-lo) 40%, transparent); }
+.inv-attune-tag.on { color: var(--on-accent); background: var(--accent-lo); border-color: var(--accent-lo); }
 .inv-attune-btn {
   padding: 5px 12px !important;
   border-radius: var(--r-sm);
@@ -4539,17 +4531,17 @@ animation: rise var(--t3) var(--ez-out) both;
   transform: none !important;
   transition: all 0.15s;
   background: transparent !important;
-  border: 1px solid #b8860b !important;
-  color: #b8860b !important;
+  border: 1px solid color-mix(in srgb, var(--accent-lo) 55%, transparent) !important;
+  color: var(--accent-lo) !important;
 }
-.inv-attune-btn:hover { background: #b8860b !important; color: #fff !important; transform: none !important; box-shadow: none !important; }
-.inv-attune-btn.attuned { background: #b8860b !important; color: #fff !important; }
-.inv-attune-btn.attuned:hover { background: transparent !important; color: #b8860b !important; }
+.inv-attune-btn:hover { background: color-mix(in srgb, var(--accent-lo) 14%, transparent) !important; border-color: var(--accent-lo) !important; transform: none !important; box-shadow: none !important; }
+.inv-attune-btn.attuned { background: color-mix(in srgb, var(--accent-lo) 18%, transparent) !important; border-color: var(--accent-lo) !important; }
+.inv-attune-btn.attuned:hover { background: transparent !important; }
 .inv-attune-count {
   font-size: 0.72em;
-  color: #b8860b;
-  background: var(--input-bg);
-  border: 1px solid rgba(184,134,11,0.5);
+  color: var(--accent-lo);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--accent-lo) 45%, transparent);
   border-radius: var(--r-sm);
   padding: 2px 8px;
   white-space: nowrap;
@@ -4563,10 +4555,10 @@ animation: rise var(--t3) var(--ez-out) both;
 .item-charges-row input[type="number"] { width: auto; flex: 1 1 0; min-width: 0; margin: 0; }
 .item-charges-row .item-charges-sep { flex: 0 0 auto; color: var(--text-muted); font-weight: 700; }
 .item-charges-row select { width: auto; flex: 1.6 1 0; min-width: 0; margin: 0; }
-.inv-charges-tag { color: #9b59b6; border-color: rgba(155,89,182,0.4); }
-.inv-charges-tag.empty { color: var(--text-muted); border-color: var(--border-color); }
+.inv-charges-tag { color: var(--magic); border-color: color-mix(in srgb, var(--magic) 40%, transparent); }
+.inv-charges-tag.empty { color: var(--text-muted); border-color: var(--border-soft); }
 .inv-charges-ctrl { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; }
-.inv-charges-ctrl .inv-charges-label { font-size: 0.78em; font-weight: 600; color: #9b59b6; white-space: nowrap; }
+.inv-charges-ctrl .inv-charges-label { font-size: 0.78em; font-weight: 600; color: var(--magic); white-space: nowrap; }
 .inv-charge-btn {
   padding: 3px 10px !important;
   border-radius: var(--r-sm);
@@ -4579,12 +4571,12 @@ animation: rise var(--t3) var(--ez-out) both;
   transform: none !important;
   transition: all 0.15s;
   background: transparent !important;
-  border: 1px solid #9b59b6 !important;
-  color: #9b59b6 !important;
+  border: 1px solid color-mix(in srgb, var(--magic) 55%, transparent) !important;
+  color: var(--magic) !important;
 }
-.inv-charge-btn:hover { background: #9b59b6 !important; color: #fff !important; transform: none !important; box-shadow: none !important; }
+.inv-charge-btn:hover { background: color-mix(in srgb, var(--magic) 14%, transparent) !important; border-color: var(--magic) !important; transform: none !important; box-shadow: none !important; }
 .inv-charge-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.inv-charge-btn:disabled:hover { background: transparent !important; color: #9b59b6 !important; }
+.inv-charge-btn:disabled:hover { background: transparent !important; }
 
 /* ========================================
    COINS — BIG NUMBER CARD GRID
@@ -4629,9 +4621,6 @@ animation: rise var(--t3) var(--ez-out) both;
 .inv-coins-row-2 { grid-template-columns: repeat(2, 1fr); }
 
 .inv-coin-card {
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
   padding: 12px 10px 10px;
   display: flex;
   flex-direction: column;
@@ -4639,7 +4628,6 @@ animation: rise var(--t3) var(--ez-out) both;
   gap: 6px;
   transition: border-color 0.2s;
 }
-.inv-coin-card:hover { border-color: rgba(77,168,67,0.4); }
 
 .inv-coin-card-top {
   display: flex;
@@ -4673,8 +4661,6 @@ animation: rise var(--t3) var(--ez-out) both;
 }
 .inv-coin-big-inp:focus { outline: none; color: var(--accent-color); }
 
-.inv-coin-card-gold { border-color: rgba(201,160,64,0.3); }
-
 /* Exchange-rate reference row (replaces auto-converted total) */
 .inv-coin-total {
   display: flex;
@@ -4682,7 +4668,7 @@ animation: rise var(--t3) var(--ez-out) both;
   gap: 8px;
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--home-rule);
 }
 .inv-coin-rate-ref {
   flex: 1;
@@ -4748,8 +4734,8 @@ animation: rise var(--t3) var(--ez-out) both;
 .gci-cost { font-size: 0.78em; color: var(--text-muted); margin-top: 2px; }
 
 .inv-exch-open-btn {
-  background: var(--input-bg) !important;
-  border: 1px solid var(--border-color) !important;
+  background: transparent !important;
+  border: 1px solid var(--border-soft) !important;
   color: var(--text-muted) !important;
   border-radius: var(--r-sm);
   padding: 5px 12px !important;
@@ -9947,8 +9933,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .inv-slots-str-hint {
   font-size: 0.72em;
   color: var(--text-muted);
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
+  background: transparent;
+  border: 1px solid var(--border-soft);
   border-radius: var(--r-sm);
   padding: 2px 8px;
 }
@@ -9961,8 +9947,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .inv-slots-legend span {
   font-size: 0.72em;
   color: var(--text-muted);
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
+  background: transparent;
+  border: 1px solid var(--border-soft);
   border-radius: var(--r-sm);
   padding: 2px 8px;
   cursor: default;
@@ -9982,13 +9968,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   align-items: center;
   gap: 3px;
   padding: 8px 4px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border-color);
-  background: var(--input-bg);
   text-align: center;
   transition: border-color 0.2s;
 }
-.inv-pouch:not(.inv-pouch-locked) { border-color: rgba(201,160,64,0.4); background: rgba(201,160,64,0.06); }
 .inv-pouch-locked { opacity: 0.4; }
 .inv-pouch-icon { font-size: 1.3em; }
 .inv-pouch-req { font-size: 0.65em; font-weight: 700; color: var(--text-muted); }
@@ -9997,18 +9979,15 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   font-size: 0.78em;
   color: var(--text-muted);
   padding: 6px 10px;
-  background: var(--input-bg);
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border-color);
   line-height: 1.5;
 }
 .inv-pouches-hint strong { color: var(--accent-color); font-weight: 700; }
 
 /* slot tag on item */
 .inv-slot-tag {
-  background: rgba(77,168,67,0.12);
-  border: 1px solid rgba(77,168,67,0.3);
-  border-radius: 4px;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+  border-radius: var(--r-sm);
   padding: 1px 6px;
   font-size: 0.7em;
   color: var(--accent-color);
@@ -13707,7 +13686,6 @@ textarea:focus-visible {
 .cc-card,
 .char-card,
 .feat-taken-card,
-.inv-coin-card,
 .lu-stat-card,
 .notes-entry-card,
 .party-section-card,
@@ -13829,10 +13807,43 @@ textarea:focus-visible {
   background: color-mix(in srgb, var(--success) 12%, transparent);
 }
 
+/* ══ STYLE-8c: вкладка «Сумка» — та же вложенная подложка ═════════════════
+   Продолжение блоков выше. Здесь было четыре рецепта коробки: .inv-item на
+   --input-bg/--border-color, .inv-item-icon на --card-bg с радиусом 8
+   литералом, .inv-pouch и .inv-pouches-hint на --input-bg/--border-color с
+   --r-sm. .inv-coin-card стояла в группе STYLE-5 и получала оформление
+   карточки-контейнера, хотя лежит ВНУТРИ карточки «Кошель» — перенесена сюда.
+   Модификаторы (наведение, раскрытая вещь, доступный кошель, золотая монета)
+   стоят НИЖЕ группового правила: специфичность равная, решает порядок. */
+.inv-item,
+.inv-item-icon,
+.inv-coin-card,
+.inv-pouch,
+.inv-pouches-hint {
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+}
+.inv-item:hover,
+.inv-coin-card:hover { border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+.inv-item.expanded { border-color: var(--accent-color); }
+.inv-pouch:not(.inv-pouch-locked) {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+.inv-coin-card-gold { border-color: color-mix(in srgb, var(--accent) 32%, transparent); }
+/* Крупная цифра монеты задумана плоской (border:none, фон карточки) и в тёмной
+   теме плоская. В светлой её обрамлял общий override input[type="number"]
+   (~строка 826, через !important) — вместо ещё одной перебивки поле исключено
+   из самого блока (:not), иначе ратчет !important светлой темы растёт. */
+
 /* Цвет заголовка задаётся ролью, а не тегом: заголовок карточки — текстом
    (как .card h3), подзаголовок секции внутри карточки — акцентом. «Класс Доспеха»
    разметан h4, но это заголовок карточки, а не секции. */
-.ac-calc-section h4 { color: var(--text-color); }
+.ac-calc-section h4,
+.inv-backpack-header h4,
+.inv-coins-header h4 { color: var(--text-color); }
 
 /* Каскадное появление при входе на вкладку. Разметку не трогаем: скрытый через
    display:none #tab-sheet анимаций не крутит, поэтому каскад перезапускается сам
@@ -13857,9 +13868,24 @@ textarea:focus-visible {
 #tab-spells.active > *:nth-child(2) { animation-delay:  40ms; }
 #tab-spells.active > *:nth-child(3) { animation-delay:  80ms; }
 #tab-spells.active > *:nth-child(n+4) { animation-delay: 120ms; }
+/* STYLE-8c: тот же каскад на вкладке «Сумка», шаг тот же 40 мс. Модалка
+   размена монет лежит прямым потомком вкладки — её из каскада исключаем:
+   у неё свой вход (dymka-modal-in), и rise с задержкой дал бы второй. */
+#tab-inventory.active > *:not(.modal) {
+  animation: rise var(--t3) var(--ez-out) both;
+}
+/* Позиции 3–5 занимают скрытые compat-span'ы веса (#carry-capacity и соседи):
+   они не видны, но номера тратят — иначе «Рюкзак» и «Кошель» выехали бы
+   одновременно. Поэтому шкала расписана до седьмого потомка. */
+#tab-inventory.active > *:nth-child(1) { animation-delay:   0ms; }
+#tab-inventory.active > *:nth-child(2) { animation-delay:  40ms; }
+#tab-inventory.active > *:nth-child(6) { animation-delay:  80ms; }
+#tab-inventory.active > *:nth-child(7) { animation-delay: 120ms; }
+#tab-inventory.active > *:nth-child(n+8) { animation-delay: 160ms; }
 /* Глобальный reduce-блок обнуляет длительности, но НЕ задержки: при fill-mode
    both элемент висел бы невидимым всю задержку. Поэтому снимаем появление целиком. */
 @media (prefers-reduced-motion: reduce) {
   #tab-sheet.active > *,
-  #tab-spells.active > * { animation: none; }
+  #tab-spells.active > *,
+  #tab-inventory.active > *:not(.modal) { animation: none; }
 }
