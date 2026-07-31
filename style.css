@@ -7480,10 +7480,10 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .party-section-label em { font-style: normal; font-size: 0.72em; color: var(--text-mute); }
 .party-section-count {
   font-size: 0.72em;
-  background: var(--bg-2);
+  background: transparent;
   color: var(--text-dim);
   padding: 2px 8px;
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   border: 1px solid var(--border-soft);
 }
 .party-section-actions { display: flex; gap: 5px; flex-shrink: 0; align-items: center; }
@@ -7506,14 +7506,14 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   border-radius: var(--r-sm);
   font-size: 0.85em;
   cursor: pointer;
-  border: 1px solid var(--border);
-  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
+  background: transparent;
   color: var(--text-dim);
   display: flex; align-items: center; justify-content: center;
   margin: 0;
   transition: all 0.18s;
 }
-.party-io-btn:hover { border-color: var(--accent-color); color: var(--accent-color); background: var(--accent-glow); }
+.party-io-btn:hover { border-color: var(--accent-color); color: var(--accent-color); background: color-mix(in srgb, var(--accent) 14%, transparent); }
 
 /* Empty state */
 .party-empty { font-size: 0.82em; color: var(--text-mute); padding: 14px 0; text-align: center; }
@@ -7523,25 +7523,10 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-left: 3px solid var(--accent-color);
-  border-radius: var(--r-md);
   padding: 10px 10px 10px 12px;
   margin-bottom: 7px;
   transition: background 0.18s, border-color 0.18s;
   animation: cardFadeIn 0.22s ease both;
-}
-.pcard:hover { background: rgba(255,255,255,0.055); }
-.pcard-self  { border-left-color: #4da843; }
-.pcard-npc   { border-left-color: #d4ac0d; }
-.pcard-monster { border-left-color: var(--danger); }
-/* На десктопе карточка «Мой персонаж» — единственная (не список), и при полной
-   ширине колонки контент жмётся влево, оставляя пустоту (заметно в туре «Мир»).
-   Сжимаем её до ширины содержимого. Списки соратников/NPC/монстров остаются
-   во всю ширину (ровные края). На мобильном — без изменений (full-width лучше). */
-@media (min-width: 1024px) {
-  #my-char-card .pcard { width: fit-content; max-width: 100%; }
 }
 
 /* Icon */
@@ -7552,8 +7537,8 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   font-size: 1.35em;
   flex-shrink: 0;
 }
-.pcard-icon-npc     { background: rgba(212,172,13,0.15); color: #d4ac0d; }
-.pcard-icon-monster { background: rgba(192,57,43,0.18); color: #e74c3c; }
+.pcard-icon-npc     { background: color-mix(in srgb, var(--slot-gold) 16%, transparent); color: var(--slot-gold); }
+.pcard-icon-monster { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); }
 
 /* Body */
 .pcard-body { flex: 1; min-width: 0; }
@@ -7568,10 +7553,11 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .pcard-self-badge {
   font-size: 0.65em;
-  background: #4da843;
-  color: #000;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--success) 50%, transparent);
+  color: var(--success);
   padding: 1px 6px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -7588,9 +7574,9 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(192,57,43,0.15);
-  border: 1px solid rgba(192,57,43,0.3);
-  color: #e07060;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+  color: var(--danger);
   padding: 2px 7px;
   border-radius: var(--r-sm);
   font-size: 0.9em;
@@ -7602,9 +7588,6 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   line-height: 1.45;
   margin: 4px 0 6px 0;
   padding: 5px 8px;
-  background: var(--bg-2);
-  border-left: 2px solid var(--border);
-  border-radius: 0 4px 4px 0;
   white-space: pre-wrap;
 }
 .pcard-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
@@ -7613,18 +7596,18 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   padding: 3px 8px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border-soft);
-  background: var(--bg-2);
+  background: transparent;
   color: var(--text-dim);
   white-space: nowrap;
 }
 .pcard-badge-warn {
-  border-color: rgba(224,108,117,0.4);
-  background: rgba(224,108,117,0.12);
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+  background: transparent;
   color: var(--danger-color);
 }
 .pcard-status-row { margin-top: 6px; }
 .pcard-status-sel {
-  background: var(--bg-2);
+  background: transparent;
   border: 1px solid var(--border-soft);
   color: var(--text-dim);
   border-radius: var(--r-sm);
@@ -7648,7 +7631,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .pcard-edit-btn {
   width: 30px; height: 30px;
-  background: var(--bg-2);
+  background: transparent;
   border: 1px solid var(--border-soft);
   color: var(--text-mute);
   border-radius: var(--r-sm);
@@ -7658,12 +7641,12 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   margin: 0;
   transition: all 0.18s;
 }
-.pcard-edit-btn:hover { background: var(--info-color); border-color: var(--info-color); color: #fff; }
+.pcard-edit-btn:hover { background: color-mix(in srgb, var(--info) 14%, transparent); border-color: var(--info-color); color: var(--info-color); }
 .pcard-del-btn {
   width: 30px; height: 30px;
   background: transparent;
-  border: 1px solid rgba(231,76,60,0.25);
-  color: rgba(231,76,60,0.55);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
+  color: color-mix(in srgb, var(--danger) 70%, transparent);
   border-radius: var(--r-sm);
   cursor: pointer;
   font-size: 0.85em;
@@ -7671,7 +7654,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   margin: 0;
   transition: all 0.18s;
 }
-.pcard-del-btn:hover { background: var(--danger-color); border-color: var(--danger-color); color: #fff; }
+.pcard-del-btn:hover { background: color-mix(in srgb, var(--danger) 14%, transparent); border-color: var(--danger-color); color: var(--danger-color); }
 
 /* Battle start */
 /* STYLE-8d: единственное сплошное действие экрана сбора. В тёмной теме кнопка
@@ -9303,7 +9286,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 
 /* ========== COMPANIONS ========== */
-.pcard-companion { border-left-color: #9b59b6 !important; }
+/* STYLE-8e: цвет полосы прихвостня переехал в блок конца файла (см. .pcard-*),
+   !important стал не нужен — порядок правил решает. */
 .companion-hp-row {
   display: flex;
   align-items: center;
@@ -13330,8 +13314,8 @@ mark.search-hl {
   font-size: 0.7em;
   padding: 2px 7px;
   border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--magic) 18%, transparent);
-  border: 1px solid color-mix(in srgb, var(--magic) 35%, transparent);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--magic) 45%, transparent);
   color: var(--magic);
   font-weight: 600;
   white-space: nowrap;
@@ -13473,9 +13457,9 @@ mark.search-hl {
 /* Бэйджи редакции (на карточке монстра и в строке пикера) */
 .pcard-srd-badge-ed,
 .srd-mon-badge-ed {
-  background: rgba(76, 168, 108, 0.18);
-  border-color: rgba(76, 168, 108, 0.4);
-  color: #b4f0c9;
+  background: transparent;
+  border-color: color-mix(in srgb, var(--success) 45%, transparent);
+  color: var(--success);
 }
 
 /* Бэйджи NPC (локация + отношение) */
@@ -13489,9 +13473,9 @@ mark.search-hl {
   font-size: 0.7em;
   padding: 2px 7px;
   border-radius: var(--r-sm);
-  background: rgba(212, 172, 13, 0.15);
-  border: 1px solid rgba(212, 172, 13, 0.4);
-  color: #f0d690;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--slot-gold) 45%, transparent);
+  color: var(--slot-gold);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -13499,13 +13483,9 @@ mark.search-hl {
 /* Блок «Тактика боя» на карточке монстра */
 .pcard-tactics {
   font-size: 0.72em;
-  color: #f7c79a;
   line-height: 1.45;
   margin: 4px 0 6px 0;
   padding: 5px 8px;
-  background: rgba(192, 57, 43, 0.12);
-  border-left: 2px solid rgba(192, 57, 43, 0.6);
-  border-radius: 0 4px 4px 0;
 }
 
 /* Кнопка «+ Добавить» в строках пикера — теперь с текстом */
@@ -13687,7 +13667,6 @@ textarea:focus-visible {
 .lu-stat-card,
 .notes-entry-card,
 .party-section-card,
-.pcard,
 .resource-card,
 .resource-passive-card,
 .rr-card {
@@ -13866,6 +13845,42 @@ textarea:focus-visible {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--success) 20%, transparent);
 }
 
+/* ══ STYLE-8e: вкладка «Мир» — та же вложенная подложка ═══════════════════
+   Продолжение блоков выше. .pcard стояла в группе STYLE-5 и получала оформление
+   карточки-контейнера, хотя лежит ВНУТРИ .party-section-card — тот же случай,
+   что .inv-coin-card на 8c. Своя коробка была на двух сырых rgba
+   (фон .03, рамка .07); цитаты .pcard-desc и .pcard-tactics держали радиус
+   литералом (0 4px 4px 0) и полосу слева на --border / сыром rgba.
+   Полоса слева у .pcard — индикация типа участника (я / персонаж / монстр /
+   прихвостень), она остаётся, но объявлена НИЖЕ группового правила: иначе
+   border: 1px из него её срезает. */
+.pcard {
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+  border-left: 3px solid var(--accent-color);
+}
+.pcard:hover { border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+.pcard-self      { border-left-color: var(--success); }
+.pcard-npc       { border-left-color: var(--slot-gold); }
+.pcard-monster   { border-left-color: var(--danger); }
+.pcard-companion { border-left-color: var(--magic); }
+/* Цитаты внутри карточки — плоские: карточка уже стоит на --bg-2, вторая такая
+   же подложка внутри неё не читалась бы. Оставлена только планка слева;
+   у тактики монстра она красная — это кодировка данных, а не декор. */
+.pcard-desc,
+.pcard-tactics {
+  background: transparent;
+  border: none;
+  border-left: 2px solid var(--home-rule);
+  border-radius: 0;
+}
+.pcard-tactics {
+  border-left-color: color-mix(in srgb, var(--danger) 55%, transparent);
+  color: var(--text-dim);
+}
+
 /* Цвет заголовка задаётся ролью, а не тегом: заголовок карточки — текстом
    (как .card h3), подзаголовок секции внутри карточки — акцентом. «Класс Доспеха»
    разметан h4, но это заголовок карточки, а не секции. */
@@ -13919,11 +13934,200 @@ textarea:focus-visible {
 #tab-battle.active > *:nth-child(1) { animation-delay:   0ms; }
 #tab-battle.active > *:nth-child(2) { animation-delay:  40ms; }
 #tab-battle.active > *:nth-child(n+3) { animation-delay: 80ms; }
+/* STYLE-8e: тот же каскад на вкладке «Мир» — семь прямых потомков (строка
+   справки, пять секций и карточка с кнопкой перехода к бою). */
+#tab-party.active > * {
+  animation: rise var(--t3) var(--ez-out) both;
+}
+#tab-party.active > *:nth-child(1) { animation-delay:   0ms; }
+#tab-party.active > *:nth-child(2) { animation-delay:  40ms; }
+#tab-party.active > *:nth-child(3) { animation-delay:  80ms; }
+#tab-party.active > *:nth-child(4) { animation-delay: 120ms; }
+#tab-party.active > *:nth-child(5) { animation-delay: 160ms; }
+#tab-party.active > *:nth-child(6) { animation-delay: 200ms; }
+#tab-party.active > *:nth-child(n+7) { animation-delay: 240ms; }
 /* Глобальный reduce-блок обнуляет длительности, но НЕ задержки: при fill-mode
    both элемент висел бы невидимым всю задержку. Поэтому снимаем появление целиком. */
 @media (prefers-reduced-motion: reduce) {
   #tab-sheet.active > *,
   #tab-spells.active > *,
   #tab-battle.active > *,
+  #tab-party.active > *,
   #tab-inventory.active > *:not(.modal) { animation: none; }
+}
+
+/* ══ STYLE-8e: вкладка «Мир» в языке встречающего экрана ══════════════════
+   Решение юзера 01.08.2026 после трёх забракованных раскладок: «оформить как
+   начальный экран, с такой же лёгкостью». Лёгкость там даёт отсутствие коробок —
+   только строки, ромбовидные буллеты, тонкие разделители --home-rule и воздух.
+   Здесь то же самое: раздел перестаёт быть карточкой, участник перестаёт быть
+   карточкой, чипы сводятся к тексту через точку-разделитель. Разметка и JS не
+   тронуты, классы на месте (на них висят inline-onclick и селекторы туров).
+   Правило одно для всех ширин — на телефоне ровно тот же вид (решение юзера). */
+
+/* Раздел — не карточка, а полоса с заголовком-строкой. */
+#tab-party .party-section-card {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0 0 var(--sp-6) 0;
+}
+#tab-party .party-section-title-row {
+  padding: var(--sp-3) var(--sp-3);
+  margin-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--home-rule);
+  gap: var(--sp-3);
+}
+#tab-party .party-section-icon { color: var(--accent); opacity: 0.85; }
+#tab-party .party-section-label {
+  font-family: var(--font-display);
+  font-size: calc(var(--fs-lg) * 1.05);
+  font-weight: 700;
+}
+#tab-party .party-section-label em { color: var(--home-sub); }
+#tab-party .party-section-count {
+  border: 0;
+  background: none;
+  color: var(--home-sub);
+  font-size: var(--fs-sm);
+  padding: 0 var(--sp-1);
+}
+/* Действия раздела — текстовые, как пункты меню; каталоги приглушены. */
+#tab-party .party-add-btn,
+#tab-party .party-add-btn-srd,
+#tab-party .party-io-btn {
+  background: none;
+  border: 0;
+  font-weight: 500;
+}
+/* --accent-lo, а не --accent: у кнопки не осталось ни рамки, ни заливки, весь
+   вес несёт текст, а --accent на белом фоне светлой темы даёт 3.55 — ниже
+   порога для мелкого текста. --accent-lo: 5.03 в светлой, 6.37 в тёмной. */
+#tab-party .party-add-btn { color: var(--accent-lo); }
+#tab-party .party-add-btn-srd,
+#tab-party .party-io-btn { color: var(--home-sub); }
+#tab-party .party-add-btn:hover { background: none; color: var(--accent); }
+#tab-party .party-add-btn-srd:hover,
+#tab-party .party-io-btn:hover { background: none; color: var(--text-color); }
+
+/* Участник — плоская строка. Тип кодируется ромбом слева (цвет тот же, что
+   был у полосы), поэтому цветная граница больше не нужна. */
+#tab-party .pcard {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-5);
+  margin: 0;
+  align-items: center;
+  position: relative;
+}
+#tab-party .pcard + .pcard { border-top: 1px solid var(--home-rule); }
+#tab-party .pcard::before {
+  content: "";
+  position: absolute;
+  left: var(--sp-2);
+  top: 50%;
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  margin-top: calc(var(--home-bullet) / -2);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--accent);
+}
+#tab-party .pcard-self::before      { border-color: var(--success); }
+#tab-party .pcard-npc::before       { border-color: var(--slot-gold); }
+#tab-party .pcard-monster::before   { border-color: var(--danger); }
+#tab-party .pcard-companion::before { border-color: var(--magic); }
+#tab-party .pcard-name {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+#tab-party .pcard-icon { width: 34px; height: 34px; }
+/* Цитаты — просто приглушённый текст, планка слева лишняя. */
+#tab-party .pcard-desc,
+#tab-party .pcard-tactics {
+  border: 0;
+  padding-left: 0;
+  color: var(--home-sub);
+}
+#tab-party .pcard-tactics { color: color-mix(in srgb, var(--danger) 70%, var(--text-dim)); }
+/* Чипы сводятся к тексту, разделитель — точка. Цвет остаётся кодировкой
+   (враждебный красным, дружелюбный зелёным, SRD-метки фиолетовым). */
+#tab-party .pcard-badge,
+#tab-party .pcard-npc-badge,
+#tab-party .pcard-srd-badge,
+#tab-party .pcard-type-badge,
+#tab-party .pcard-self-badge {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: var(--fs-sm);
+}
+/* Локация NPC — тот же случай, что «+ Добавить»: чистый текст на светлом фоне. */
+#tab-party .pcard-npc-badge { color: var(--accent-lo); }
+#tab-party .pcard-badges,
+#tab-party .pcard-npc-badges,
+#tab-party .pcard-srd-badges { gap: var(--sp-3); }
+#tab-party .pcard-badge + .pcard-badge::before,
+#tab-party .pcard-npc-badge + .pcard-npc-badge::before,
+#tab-party .pcard-srd-badge + .pcard-srd-badge::before {
+  content: "·";
+  color: var(--home-sub);
+  margin-right: var(--sp-3);
+}
+#tab-party .pcard-status-sel { border-color: transparent; padding-left: 0; }
+#tab-party .pcard-status-sel:hover { border-color: var(--border-soft); }
+/* Правка и удаление приглушены и проявляются на строке — как на начальном экране. */
+#tab-party .pcard-actions { opacity: 0.4; transition: opacity var(--t1) var(--ez-out); }
+#tab-party .pcard:hover .pcard-actions,
+#tab-party .pcard:focus-within .pcard-actions { opacity: 1; }
+#tab-party .pcard-edit-btn,
+#tab-party .pcard-del-btn { border: 0; background: none; }
+#tab-party .party-empty {
+  color: var(--home-sub);
+  text-align: left;
+  padding: var(--sp-3);
+}
+/* Переход к бою — последний пункт списка, а не залитая кнопка: на начальном
+   экране главное действие тоже строка, отмеченная рельсой слева. */
+#tab-party .battle-start-btn {
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--home-rule);
+  border-left: var(--home-rail-w) solid var(--accent);
+  border-radius: 0;
+  color: var(--accent-lo);
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  padding: var(--sp-4) var(--sp-3);
+  text-align: left;
+}
+#tab-party .battle-start-btn:hover { opacity: 1; background: color-mix(in srgb, var(--accent) 8%, transparent); }
+/* Шапка «Мой персонаж»: имя слева, хиты и КД — правым краем. Только там, где
+   строка это вмещает; ниже 700px всё переносится, как раньше. */
+@media (min-width: 700px) {
+  #my-char-card .pcard-body { display: flex; align-items: center; gap: var(--sp-3); }
+  #my-char-card .pcard-name,
+  #my-char-card .pcard-sub { margin-bottom: 0; }
+  #my-char-card .pcard-badges { margin-left: auto; margin-top: 0; flex-wrap: nowrap; }
+}
+/* Широкий экран: участники раскладываются в несколько колонок — ширина
+   занята содержимым, а не воздухом справа от строки. */
+@media (min-width: 1100px) {
+  #allies-list,
+  #npcs-list,
+  #monsters-list,
+  #companions-list-world {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 0 var(--sp-5);
+    align-items: start;
+  }
+  /* В сетке волосяная линия обрывалась по ширине колонки и читалась как
+     недорисованный разделитель — здесь строки разделяет пустота, а не линия. */
+  #tab-party .pcard + .pcard { border-top: 0; }
+  #tab-party .pcard { padding-top: var(--sp-4); padding-bottom: var(--sp-4); }
 }

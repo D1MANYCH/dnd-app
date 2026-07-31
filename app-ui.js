@@ -756,9 +756,11 @@ function renderCompanions() {
     list.innerHTML = companions.map(function(c, i) {
       var icon = COMPANION_TYPE_ICONS[c.type] || "🐾";
       var hpPct = c.hpMax > 0 ? Math.round((c.hpCurrent / c.hpMax) * 100) : 100;
-      var hpColor = hpPct > 60 ? "#4da843" : hpPct > 30 ? "#e67e22" : "#e74c3c";
+      // STYLE-8e: цвета идут в свойство целиком — берутся токенами (в светлой
+      // теме литералы давали контраст ниже 4.5 на белой подложке).
+      var hpColor = hpPct > 60 ? "var(--success-color)" : hpPct > 30 ? "var(--slot-gold)" : "var(--danger-color)";
       return '<div class="pcard pcard-companion">' +
-        '<div class="pcard-icon" style="background:rgba(155,89,182,0.15);color:#9b59b6">' + icon + '</div>' +
+        '<div class="pcard-icon" style="background:color-mix(in srgb, var(--magic) 16%, transparent);color:var(--magic)">' + icon + '</div>' +
         '<div class="pcard-body">' +
           '<div class="pcard-name">' + escapeHtml(c.name) + '</div>' +
           '<div class="pcard-sub">' + escapeHtml(COMPANION_TYPE_NAMES[c.type] || c.type) + ' · КД ' + (c.ac || 10) + '</div>' +

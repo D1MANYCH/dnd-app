@@ -50,6 +50,23 @@ f.addEventListener('load', () => {
       const bg = w.document.getElementById('build-guide-modal');
       if (bg) { bg.classList.remove('show', 'active'); bg.style.display = 'none'; }
       w.loadCharacter(c.id);
+      // STYLE-8e: отряд для вкладки «Мир» — по одному объекту каждого вида,
+      // с описанием, тактикой и SRD-бейджами (иначе секции пустые и смотреть нечего).
+      try {
+        w.PARTY_DATA.allies = [{ name: 'Тордек', cls: 'Воин 3 ур.', status: 'wounded',
+          desc: 'Наёмник из Глубоководья, взят на один поход.' }];
+        w.PARTY_DATA.npcs = [
+          { name: 'Староста Марек', role: 'Квестодатель', location: 'Деревня Хилл',
+            attitude: 'дружелюбный', status: 'healthy', desc: 'Просит разобраться с гоблинами у мельницы.' },
+          { name: 'Культист в капюшоне', role: 'Культист', attitude: 'враждебный', status: 'healthy' }
+        ];
+        w.PARTY_DATA.monsters = [{ name: 'Гоблин', type: 'Гуманоид', cr: '1/4', ac: 15, hp: 7,
+          edition: '2014', status: 'healthy', srd: true,
+          tactics: 'Стреляет из укрытия, отступает к сородичам.',
+          desc: 'Мелкий злобный гуманоид, нападает стаей.' }];
+        w.PARTY_DATA.companions = [{ name: 'Сова', type: 'Фамильяр', hp: 1, hpMax: 1 }];
+        w.saveParty();
+      } catch (e) { beacon('ERR party ' + e.message); }
       // CAST-2: &battle=N — активный бой (я + гоблин) на раунде N c кастом
       // «Ускорение» (тикающий бафф) для скриншотов трекера/бейджа раундов
       const battleRound = parseInt(q.get('battle') || '0', 10);

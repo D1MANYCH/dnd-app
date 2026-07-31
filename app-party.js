@@ -108,7 +108,9 @@ function renderMyChar() {
   var hpCurrent = char.combat ? (char.combat.hpCurrent || 0) : 0;
   var hpMax     = char.combat ? (char.combat.hpMax || 0) : 0;
   var hpPct     = hpMax > 0 ? Math.min(100, Math.round(hpCurrent / hpMax * 100)) : 100;
-  var hpColor   = hpPct > 60 ? "#4da843" : hpPct > 30 ? "#e67e22" : "#e74c3c";
+  // STYLE-8e: цвет идёт в свойство целиком, поэтому берётся токеном — литерал
+  // #4da843 на белой карточке светлой темы давал контраст 3.0.
+  var hpColor   = hpPct > 60 ? "var(--success-color)" : hpPct > 30 ? "var(--slot-gold)" : "var(--danger-color)";
   var conds     = (char.conditions && char.conditions.length) ? "" + dndIcoHtml("alert", 13) + " " + char.conditions.length + " статус" : "";
   container.innerHTML =
     '<div class="pcard pcard-self">' +
@@ -117,7 +119,7 @@ function renderMyChar() {
         '<div class="pcard-name">' + escapeHtml(char.name || "Мой персонаж") + '<span class="pcard-self-badge">я</span></div>' +
         '<div class="pcard-sub">' + escapeHtml((char.class||"") + (char.subclass ? " · "+char.subclass : "") + " · " + (char.level||1) + " ур.") + '</div>' +
         '<div class="pcard-badges">' +
-          '<span class="pcard-badge" style="color:' + hpColor + ';border-color:' + hpColor + '55;background:' + hpColor + '18">' + dndIcoHtml("heart", 13) + ' ' + hpCurrent + '/' + hpMax + '</span>' +
+          '<span class="pcard-badge" style="color:' + hpColor + ';border-color:color-mix(in srgb, ' + hpColor + ' 45%, transparent)">' + dndIcoHtml("heart", 13) + ' ' + hpCurrent + '/' + hpMax + '</span>' +
           '<span class="pcard-badge">' + dndIcoHtml("shield", 13) + ' ' + (char.combat ? (char.combat.ac||10) : 10) + '</span>' +
           (conds ? '<span class="pcard-badge pcard-badge-warn">' + conds + '</span>' : '') +
         '</div>' +
@@ -313,10 +315,10 @@ function importMonsters(input)     { _pentImport("monster", input); }
 // ─── NPCs ────────────────────────────────────────────────────
 // Цвет бейджа отношения для NPC
 function _npcAttColor(att) {
-  if (att === "дружелюбный") return "#27ae60";
-  if (att === "враждебный")  return "#c0392b";
-  if (att === "неизв.")      return "#7f8c8d";
-  return "#d4ac0d"; // нейтральный по умолчанию
+  if (att === "дружелюбный") return "var(--success-color)";
+  if (att === "враждебный")  return "var(--danger-color)";
+  if (att === "неизв.")      return "var(--text-dim)";
+  return "var(--accent-lo)"; // нейтральный по умолчанию (--slot-gold на белом даёт 3.55)
 }
 function renderNPCs() {
   var list    = $("npcs-list");
@@ -332,7 +334,7 @@ function renderNPCs() {
       var attC = _npcAttColor(att);
       var parts = [];
       if (n.location) parts.push('<span class="pcard-npc-badge">' + dndIcoHtml("mapPin", 13) + ' ' + escapeHtml(n.location) + '</span>');
-      if (att) parts.push('<span class="pcard-npc-badge" style="color:' + attC + ';border-color:' + attC + '55">' + escapeHtml(att) + '</span>');
+      if (att) parts.push('<span class="pcard-npc-badge" style="color:' + attC + ';border-color:color-mix(in srgb, ' + attC + ' 45%, transparent)">' + escapeHtml(att) + '</span>');
       subBadges = '<div class="pcard-npc-badges">' + parts.join("") + '</div>';
     }
     var icon = n.icon || "🧑";
@@ -615,7 +617,7 @@ function renderSrdNpcPicker() {
         '<div class="srd-mon-name">' + escapeHtml(a.name) + '</div>' +
         '<div class="srd-mon-meta">' +
           '<span class="srd-mon-badge">' + dndIcoHtml("mapPin", 13) + ' ' + escapeHtml(a.location || "—") + '</span>' +
-          '<span class="srd-mon-badge" style="color:' + attC + ';border-color:' + attC + '55">' + escapeHtml(a.attitude || "—") + '</span>' +
+          '<span class="srd-mon-badge" style="color:' + attC + ';border-color:color-mix(in srgb, ' + attC + ' 45%, transparent)">' + escapeHtml(a.attitude || "—") + '</span>' +
         '</div>' +
       '</div>' +
       '<button class="srd-mon-add" onclick="addNpcFromSRD(\'' + a.slug + '\', event)" title="Добавить">＋ Добавить</button>' +
