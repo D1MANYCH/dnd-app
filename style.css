@@ -5954,27 +5954,27 @@ font-size: 0.95em;
   gap: 3px;
   padding: 10px 6px;
   border-radius: var(--r-md);
-  border: 2px solid var(--border-color) !important;
-  background: var(--input-bg) !important;
-  color: var(--text-color) !important;
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-color);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color var(--t1, 140ms) var(--ez-out, ease), background var(--t1, 140ms) var(--ez-out, ease);
   width: 100%;
-  margin-bottom: 0 !important;
+  margin-bottom: 0;
   font-size: 0.9em;
-  transform: none !important;
-  box-shadow: none !important;
+  transform: none;
+  box-shadow: none;
 }
 .sc-stat-btn:hover {
-  border-color: rgba(77,168,67,0.5) !important;
-  background: rgba(77,168,67,0.06) !important;
-  transform: none !important;
-  box-shadow: none !important;
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border-soft));
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  transform: none;
+  box-shadow: none;
 }
 .sc-stat-btn.active {
-  border-color: var(--accent-color) !important;
-  background: rgba(77,168,67,0.12) !important;
-  box-shadow: 0 0 0 1px var(--accent-color) !important;
+  border-color: var(--accent-color);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: none;
 }
 .sc-stat-abbr {
   font-size: 1.1em;
@@ -5999,15 +5999,8 @@ font-size: 0.95em;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-md);
   padding: 10px 6px;
   gap: 4px;
-}
-.sc-stat-block--main {
-  border-color: var(--accent-color);
-  background: rgba(77,168,67,0.08);
 }
 .sc-stat-value {
   font-size: 1.6em;
@@ -6202,9 +6195,6 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent-c
 .item-form label { margin-top: 10px; }
 .item-form input:first-child { margin-top: 0; }
 .spell-item {
-background: var(--input-bg);
-border: 1px solid var(--border-color);
-border-radius: 8px;
 padding: 12px;
 margin-bottom: 10px;
 transition: all 0.2s;
@@ -6214,7 +6204,6 @@ transition: all 0.2s;
 .spell-item p { margin: 6px 0; font-size: 0.8em; color: var(--text-muted); line-height: 1.5; }
 .spell-item .spell-meta { display: flex; gap: 8px; font-size: 0.75em; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px; }
 .spell-item .spell-meta span { background: var(--card-bg); padding: 3px 7px; border-radius: 4px; border: 1px solid var(--border-color); color: var(--text-color); }
-.spell-added { background: rgba(87, 179, 109, 0.12); border-color: var(--success-color); }
 .source-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.7em; font-weight: 600; margin-left: 8px; }
 .source-ph14 { background: #5b9bd5; color: white; }
 .source-ph24 { background: #e06c75; color: white; }
@@ -6244,11 +6233,9 @@ transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 8px 2px;
   margin: 16px 0 6px 0;
-  background: linear-gradient(90deg, rgba(77,168,67,0.15) 0%, transparent 100%);
-  border-left: 3px solid var(--accent-color);
-  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  border-bottom: 1px solid var(--home-rule);
 }
 .spell-group-title {
   font-size: 0.85em;
@@ -6258,8 +6245,8 @@ transition: all 0.2s;
   letter-spacing: 0.5px;
 }
 .spell-group-count {
-  background: var(--accent-color);
-  color: black;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent-color);
   font-size: 0.7em;
   font-weight: 700;
   padding: 2px 8px;
@@ -6270,14 +6257,11 @@ transition: all 0.2s;
 
 /* ── Spell Card (my spells) ── */
 .my-spell-item {
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-md);
   margin-bottom: 6px;
   overflow: hidden;
   transition: border-color 0.2s;
 }
-.my-spell-item:hover { border-color: rgba(77,168,67,0.5); }
+.my-spell-item:hover { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
 .my-spell-item.expanded { border-color: var(--accent-color); }
 
 .spell-card-header {
@@ -6289,7 +6273,7 @@ transition: all 0.2s;
   gap: 8px;
   user-select: none;
 }
-.spell-card-header:active { background: rgba(255,255,255,0.03); }
+.spell-card-header:active { background: var(--bg-3); }
 
 .spell-card-title {
   display: flex;
@@ -6631,7 +6615,7 @@ button.edition-btn {
   font-size: 0.78em;
   color: var(--accent-color);
   font-style: italic;
-  background: rgba(77,168,67,0.08);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
   border-left: 2px solid var(--accent-color);
   padding: 6px 10px;
   border-radius: 0 var(--r-sm) var(--r-sm) 0;
@@ -11168,35 +11152,35 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   padding: 10px 14px;
   margin-bottom: 10px;
   border-radius: var(--r-md);
-  background: rgba(155,89,182,0.1);
-  border: 1px solid rgba(155,89,182,0.4);
+  background: color-mix(in srgb, var(--magic) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--magic) 40%, transparent);
   animation: concPulse 3s ease-in-out infinite;
 }
 .concentration-block.active { display: flex; }
 @keyframes concPulse {
-  0%,100% { border-color: rgba(155,89,182,0.4); }
-  50%      { border-color: rgba(155,89,182,0.8); }
+  0%,100% { border-color: color-mix(in srgb, var(--magic) 40%, transparent); }
+  50%      { border-color: color-mix(in srgb, var(--magic) 80%, transparent); }
 }
 .conc-left { display: flex; align-items: center; gap: 10px; }
-.conc-icon { font-size: 1.3em; }
+.conc-icon { font-size: 1.3em; color: var(--magic); }
 .conc-info { display: flex; flex-direction: column; gap: 1px; }
-.conc-label { font-size: 0.65em; color: rgba(155,89,182,0.8); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-.conc-name { font-size: 0.9em; font-weight: 600; color: #c39bd3; }
+.conc-label { font-size: 0.65em; color: var(--magic); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.conc-name { font-size: 0.9em; font-weight: 600; color: var(--magic); }
 .conc-end-btn {
-  background: transparent !important;
-  border: 1px solid rgba(155,89,182,0.5) !important;
-  color: rgba(155,89,182,0.8) !important;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--magic) 50%, transparent);
+  color: var(--magic);
   border-radius: var(--r-sm);
-  padding: 4px 10px !important;
-  font-size: 0.8em !important;
+  padding: 4px 10px;
+  font-size: 0.8em;
   cursor: pointer;
-  width: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  box-shadow: none !important;
+  width: auto;
+  margin: 0;
+  transform: none;
+  box-shadow: none;
   transition: all 0.15s;
 }
-.conc-end-btn:hover { background: rgba(155,89,182,0.2) !important; color: #c39bd3 !important; transform: none !important; }
+.conc-end-btn:hover { background: color-mix(in srgb, var(--magic) 20%, transparent); color: var(--magic); transform: none; }
 
 /* =============================================
    WEAPON CARDS WITH ROLL BUTTONS
@@ -11378,9 +11362,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .cast-debuff-target .cdb-mark { width: 16px; text-align: center; color: var(--accent-hi); font-weight: 700; }
 
 .spell-conc-btn {
-  background: rgba(155,89,182,0.15) !important;
-  border: 1px solid rgba(155,89,182,0.5) !important;
-  color: #c39bd3 !important;
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--magic) 50%, transparent) !important;
+  color: var(--magic) !important;
   border-radius: var(--r-sm);
   padding: 5px 12px !important;
   font-size: 0.78em !important;
@@ -11392,7 +11376,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   box-shadow: none !important;
   transition: all 0.2s;
 }
-.spell-conc-btn:hover { background: rgba(155,89,182,0.3) !important; transform: none !important; }
+.spell-conc-btn:hover { background: color-mix(in srgb, var(--magic) 16%, transparent) !important; transform: none !important; }
 
 /* ── Подготовка заклинаний ── */
 .prep-counter {
@@ -11401,11 +11385,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   gap: 5px;
   font-size: 0.82em;
   padding: 6px 10px;
-  background: rgba(var(--accent-rgb, 74,144,226), 0.08);
-  border: 1px solid rgba(var(--accent-rgb, 74,144,226), 0.2);
-  border-radius: 8px;
   margin-bottom: 10px;
-  color: var(--text-secondary, #888);
+  color: var(--text-muted);
 }
 .prep-counter .prep-icon { font-size: 1em; }
 .prep-counter .prep-label { font-weight: 500; }
@@ -11423,8 +11404,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 
 .spell-prep-btn {
   background: transparent !important;
-  border: 1px solid var(--text-muted, #666) !important;
-  color: var(--text-muted, #666) !important;
+  border: 1px solid var(--text-muted) !important;
+  color: var(--text-muted) !important;
   font-size: 0.75em !important;
   padding: 3px 8px !important;
   border-radius: var(--r-sm) !important;
@@ -11434,11 +11415,11 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   box-shadow: none !important;
   transition: all 0.2s;
 }
-.spell-prep-btn:hover { border-color: var(--success-color, #27ae60) !important; color: var(--success-color, #27ae60) !important; }
+.spell-prep-btn:hover { border-color: var(--success-color) !important; color: var(--success-color) !important; }
 .spell-prep-btn.spell-prep-active {
-  background: rgba(39,174,96,0.12) !important;
-  border-color: var(--success-color, #27ae60) !important;
-  color: var(--success-color, #27ae60) !important;
+  background: color-mix(in srgb, var(--success) 12%, transparent) !important;
+  border-color: var(--success-color) !important;
+  color: var(--success-color) !important;
 }
 
 /* Неподготовленное заклинание */
@@ -11455,9 +11436,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   display: inline-block;
   font-size: 0.65em;
   font-weight: 600;
-  color: #8e6bbf;
-  background: rgba(142,107,191,0.12);
-  border: 1px solid rgba(142,107,191,0.35);
+  color: var(--magic);
+  background: color-mix(in srgb, var(--magic) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--magic) 35%, transparent);
   border-radius: 4px;
   padding: 1px 5px;
   margin-left: 6px;
@@ -11482,9 +11463,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 
 /* ── Ritual cast button ── */
 .spell-ritual-btn {
-  background: rgba(142,107,191,0.12) !important;
-  border: 1px solid rgba(142,107,191,0.45) !important;
-  color: #8e6bbf !important;
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--magic) 45%, transparent) !important;
+  color: var(--magic) !important;
   font-size: 0.78em !important;
   padding: 4px 10px !important;
   border-radius: var(--r-sm) !important;
@@ -11493,12 +11474,12 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   margin: 0;
   transition: all 0.2s;
 }
-.spell-ritual-btn:hover { background: rgba(142,107,191,0.28) !important; transform: none !important; }
+.spell-ritual-btn:hover { background: color-mix(in srgb, var(--magic) 16%, transparent) !important; transform: none !important; }
 
 .spell-summon-btn {
-  background: rgba(155,89,182,0.14) !important;
-  border: 1px solid rgba(155,89,182,0.5) !important;
-  color: #9b59b6 !important;
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--magic) 50%, transparent) !important;
+  color: var(--magic) !important;
   font-size: 0.78em !important;
   padding: 4px 10px !important;
   border-radius: var(--r-sm) !important;
@@ -11507,7 +11488,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   margin: 0;
   transition: all 0.2s;
 }
-.spell-summon-btn:hover { background: rgba(155,89,182,0.3) !important; transform: none !important; }
+.spell-summon-btn:hover { background: color-mix(in srgb, var(--magic) 16%, transparent) !important; transform: none !important; }
 
 /* ── Pact magic label in spell slots ── */
 .ssl-pact {
@@ -11523,21 +11504,21 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 
 /* ── Status bar concentration indicator ── */
 .status-concentration {
-  border-color: rgba(155,89,182,0.5);
-  background: rgba(155,89,182,0.15);
-  color: #c39bd3;
+  border-color: color-mix(in srgb, var(--magic) 50%, transparent);
+  background: color-mix(in srgb, var(--magic) 15%, transparent);
+  color: var(--magic);
   cursor: pointer;
   animation: concStatusPulse 2.5s ease-in-out infinite;
   max-width: 180px;
 }
 @keyframes concStatusPulse {
-  0%,100% { border-color: rgba(155,89,182,0.5); }
-  50%      { border-color: rgba(155,89,182,1); box-shadow: 0 0 8px rgba(155,89,182,0.4); }
+  0%,100% { border-color: color-mix(in srgb, var(--magic) 50%, transparent); }
+  50%      { border-color: var(--magic); box-shadow: 0 0 8px color-mix(in srgb, var(--magic) 40%, transparent); }
 }
 .conc-status-name {
   font-size: 0.75em;
   font-weight: 700;
-  color: #c39bd3;
+  color: var(--magic);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -11579,7 +11560,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   padding: 0;
   width: 90vw;
   max-width: 400px;
-  border: 1px solid rgba(155,89,182,0.5);
+  border: 1px solid color-mix(in srgb, var(--magic) 50%, transparent);
   overflow: hidden;
   box-shadow: var(--sh-2);
 }
@@ -11588,15 +11569,15 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: rgba(155,89,182,0.12);
-  border-bottom: 1px solid rgba(155,89,182,0.3);
+  background: color-mix(in srgb, var(--magic) 12%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--magic) 30%, transparent);
 }
 .conc-details-icon { font-size: 1.6em; flex-shrink: 0; }
 .conc-details-title { flex: 1; }
 .conc-details-label {
   font-size: 0.6em;
   font-weight: 700;
-  color: rgba(155,89,182,0.8);
+  color: var(--magic);
   text-transform: uppercase;
   letter-spacing: 0.8px;
   margin-bottom: 2px;
@@ -11604,7 +11585,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .conc-details-name {
   font-size: 1em;
   font-weight: 700;
-  color: #c39bd3;
+  color: var(--magic);
 }
 .conc-details-close {
   background: transparent !important;
@@ -11653,17 +11634,17 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   padding: 12px !important;
   border-radius: 0 !important;
   border: none !important;
-  background: rgba(155,89,182,0.15) !important;
-  color: #c39bd3 !important;
+  background: color-mix(in srgb, var(--magic) 15%, transparent) !important;
+  color: var(--magic) !important;
   font-size: 0.85em !important;
   font-weight: 600;
   cursor: pointer;
-  border-top: 1px solid rgba(155,89,182,0.3) !important;
+  border-top: 1px solid color-mix(in srgb, var(--magic) 30%, transparent) !important;
   transition: background 0.2s;
   transform: none !important;
   box-shadow: none !important;
 }
-.conc-details-end:hover { background: rgba(155,89,182,0.3) !important; transform: none !important; }
+.conc-details-end:hover { background: color-mix(in srgb, var(--magic) 30%, transparent) !important; transform: none !important; }
 
 /* ══ АВАТАР ПЕРСОНАЖА ══════════════════════════════════════════════ */
 
@@ -13823,6 +13804,31 @@ textarea:focus-visible {
   border-radius: var(--r-md);
 }
 
+/* ══ STYLE-8b: вкладка «Заклинания» — та же вложенная подложка ════════════
+   Продолжение блока выше: .sc-stat-block жил на --input-bg/--border-color,
+   .spell-item — на радиусе 8 литералом, .my-spell-item — на --r-md,
+   .prep-counter — на rgba(--accent-rgb) с собственным радиусом. Эталон уже
+   был в этой же вкладке (.spell-slot-row: --bg-2 + --border-soft + блик),
+   к нему всё и сведено. Модификаторы (--main, .spell-added) стоят НИЖЕ
+   группового правила: специфичность у них равная, решает порядок. */
+.sc-stat-block,
+.spell-item,
+.my-spell-item,
+.prep-counter {
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+}
+.sc-stat-block--main {
+  border-color: var(--accent-color);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.spell-added {
+  border-color: var(--success-color);
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+}
+
 /* Цвет заголовка задаётся ролью, а не тегом: заголовок карточки — текстом
    (как .card h3), подзаголовок секции внутри карточки — акцентом. «Класс Доспеха»
    разметан h4, но это заголовок карточки, а не секции. */
@@ -13842,8 +13848,18 @@ textarea:focus-visible {
 #tab-sheet.active > *:nth-child(6) { animation-delay: 200ms; }
 #tab-sheet.active > *:nth-child(7) { animation-delay: 240ms; }
 #tab-sheet.active > *:nth-child(n+8) { animation-delay: 280ms; }
+/* STYLE-8b: тот же каскад на вкладке «Заклинания» — у неё четыре прямых
+   потомка (строка справки + три карточки), шаг тот же 40 мс. */
+#tab-spells.active > * {
+  animation: rise var(--t3) var(--ez-out) both;
+}
+#tab-spells.active > *:nth-child(1) { animation-delay:   0ms; }
+#tab-spells.active > *:nth-child(2) { animation-delay:  40ms; }
+#tab-spells.active > *:nth-child(3) { animation-delay:  80ms; }
+#tab-spells.active > *:nth-child(n+4) { animation-delay: 120ms; }
 /* Глобальный reduce-блок обнуляет длительности, но НЕ задержки: при fill-mode
    both элемент висел бы невидимым всю задержку. Поэтому снимаем появление целиком. */
 @media (prefers-reduced-motion: reduce) {
-  #tab-sheet.active > * { animation: none; }
+  #tab-sheet.active > *,
+  #tab-spells.active > * { animation: none; }
 }
