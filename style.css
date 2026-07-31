@@ -7674,7 +7674,10 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .pcard-del-btn:hover { background: var(--danger-color); border-color: var(--danger-color); color: #fff; }
 
 /* Battle start */
-.battle-start-btn { width: 100%; padding: 14px; background: var(--danger); border: none; border-radius: var(--r-md); color: #fff; font-size: 1em; font-weight: 700; cursor: pointer; letter-spacing: 0.03em; transition: opacity 0.2s; margin: 0; }
+/* STYLE-8d: единственное сплошное действие экрана сбора. В тёмной теме кнопка
+   была красной (--danger), в светлой её перебивали на акцент — сведено к
+   акценту в обеих темах, дубль в light-блоке снят. */
+.battle-start-btn { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: var(--r-md); color: var(--on-accent); font-size: 1em; font-weight: 700; cursor: pointer; letter-spacing: 0.03em; transition: opacity 0.2s; margin: 0; }
 .battle-start-btn:hover { opacity: 0.85; }
 
 /* Party modal */
@@ -7699,8 +7702,10 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 /* Battle setup */
 .battle-setup-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 6px; }
 .battle-setup-header h3 { margin: 0; color: var(--text-color); }
-.battle-setup-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: var(--r-sm); margin-bottom: 5px; background: var(--list-solid); border: 1px solid var(--border-soft); cursor: grab; transition: opacity 0.18s, background 0.18s; user-select: none; }
-.battle-setup-row:hover { background: var(--list-solid-hover); }
+/* STYLE-8d: правило было объявлено дважды (второе — ниже, в блоке секций) и
+   тихо перебивало это: снимало рамку, меняло радиус и отступ. Сведено сюда,
+   фон/рамка/радиус — из группы вложенных подложек в конце файла. */
+.battle-setup-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px; margin-bottom: 5px; cursor: grab; transition: opacity 0.18s, background 0.18s, border-color 0.18s; user-select: none; }
 .battle-check-wrap { display: flex; align-items: center; flex-shrink: 0; cursor: pointer; }
 .battle-checkbox { width: 16px; height: 16px; accent-color: var(--accent-color); cursor: pointer; }
 .battle-setup-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1em; flex-shrink: 0; }
@@ -7711,47 +7716,46 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
    съедает «Ход: имя» до многоточия (проверено скриншотом на 1280) */
 .battle-tracker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 8px; flex-wrap: wrap; }
 /* CAST-2: бейдж номера раунда в шапке трекера боя */
-.battle-round-badge { background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent-color); padding: 4px 10px; border-radius: 999px; font-size: 0.8em; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+.battle-round-badge { background: transparent; border: 1px solid var(--accent); color: var(--accent-color); padding: 4px 10px; border-radius: 999px; font-size: 0.8em; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
 /* CAST-9b: чип остатка концентрации рядом с номером раунда */
-.battle-conc-badge { background: var(--accent-soft); border: 1px dashed var(--accent); color: var(--accent-color); padding: 4px 10px; border-radius: 999px; font-size: 0.8em; font-weight: 700; white-space: nowrap; flex-shrink: 0; cursor: pointer; }
-.battle-conc-badge:hover { background: var(--accent-fill); }
+.battle-conc-badge { background: transparent; border: 1px dashed var(--accent); color: var(--accent-color); padding: 4px 10px; border-radius: 999px; font-size: 0.8em; font-weight: 700; white-space: nowrap; flex-shrink: 0; cursor: pointer; }
+.battle-conc-badge:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
 /* CAST-9a: полоса повторных тиков урона (заклинание бьёт каждый раунд) */
 .battle-repeat-strip { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-.battle-repeat-btn { background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent-color); padding: 5px 11px; border-radius: 999px; font-size: 0.8em; font-weight: 700; cursor: pointer; width: auto; margin: 0; transition: background 0.18s, border-color 0.18s; white-space: nowrap; }
-.battle-repeat-btn:hover { background: var(--accent-fill); border-color: var(--accent-color); }
+.battle-repeat-btn { background: transparent; border: 1px solid var(--accent); color: var(--accent-color); padding: 5px 11px; border-radius: 999px; font-size: 0.8em; font-weight: 700; cursor: pointer; width: auto; margin: 0; transition: background 0.18s, border-color 0.18s; white-space: nowrap; }
+.battle-repeat-btn:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: var(--accent-color); }
 .brb-formula { opacity: 0.75; font-weight: 600; }
 .battle-turn-info { font-size: 1.05em; font-weight: 700; color: var(--accent-color); min-width: 0; max-width: 100%; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .battle-tracker-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.battle-add-mon-btn { background: transparent; border: 1px solid rgba(192,57,43,0.45); color: rgba(231,76,60,0.85); padding: 5px 12px; border-radius: var(--r-sm); cursor: pointer; font-size: 0.8em; font-weight: 700; width: auto; margin: 0; transition: all 0.18s; white-space: nowrap; }
-.battle-add-mon-btn:hover { background: rgba(192,57,43,0.18); border-color: rgba(192,57,43,0.7); }
-.battle-end-btn { background: transparent; border: 1px solid rgba(231,76,60,0.4); color: rgba(231,76,60,0.7); padding: 5px 12px; border-radius: var(--r-sm); cursor: pointer; font-size: 0.8em; width: auto; margin: 0; transition: all 0.18s; white-space: nowrap; }
-.battle-end-btn:hover { background: var(--danger-color); color: #fff; }
+.battle-add-mon-btn { background: transparent; border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent); color: var(--danger-color); padding: 5px 12px; border-radius: var(--r-sm); cursor: pointer; font-size: 0.8em; font-weight: 700; width: auto; margin: 0; transition: all 0.18s; white-space: nowrap; }
+.battle-add-mon-btn:hover { background: color-mix(in srgb, var(--danger) 18%, transparent); border-color: color-mix(in srgb, var(--danger) 70%, transparent); }
+.battle-end-btn { background: transparent; border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent); color: var(--danger-color); padding: 5px 12px; border-radius: var(--r-sm); cursor: pointer; font-size: 0.8em; width: auto; margin: 0; transition: all 0.18s; white-space: nowrap; }
+.battle-end-btn:hover { background: color-mix(in srgb, var(--danger) 18%, transparent); border-color: var(--danger-color); }
 /* UX-6: строка трекера — две линии (main: инициатива/имя/действия, sub: ХП/статус) */
-.tracker-row { display: flex; flex-direction: column; align-items: stretch; gap: 7px; padding: 9px 10px; border-radius: var(--r-sm); margin-bottom: 5px; background: var(--list-solid); border: 1px solid transparent; transition: background 0.2s, border-color 0.2s; }
-.tracker-row-active { background: var(--accent-soft); border-color: var(--accent); }
+.tracker-row { display: flex; flex-direction: column; align-items: stretch; gap: 7px; padding: 9px 10px; margin-bottom: 5px; transition: background 0.2s, border-color 0.2s; }
 .tracker-main { display: flex; align-items: center; gap: 8px; }
 /* sub-строка: HP-колонка фикс. ширины + статус — выровнено по всем строкам */
 .tracker-sub { display: flex; align-items: center; gap: 10px; padding-left: 32px; }
 /* Инициатива — фиксированная колонка (инпут+⟳) для ровного левого края имён */
 .tracker-init { display: flex; align-items: center; gap: 2px; flex-shrink: 0; width: 60px; }
-.tracker-init-inp { width: 34px !important; text-align: center; font-size: 0.82em !important; font-weight: 700; padding: 3px 2px !important; background: rgba(201,162,39,0.12) !important; border: 1px solid rgba(201,162,39,0.35) !important; border-radius: var(--r-sm) !important; color: var(--accent-color) !important; -moz-appearance: textfield; margin: 0 !important; }
+.tracker-init-inp { width: 34px !important; text-align: center; font-size: 0.82em !important; font-weight: 700; padding: 3px 2px !important; background: color-mix(in srgb, var(--accent) 12%, transparent) !important; border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent) !important; border-radius: var(--r-sm) !important; color: var(--accent-color) !important; -moz-appearance: textfield; margin: 0 !important; }
 .tracker-init-inp::-webkit-inner-spin-button, .tracker-init-inp::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .tracker-init-roll { width: 22px; min-width: 22px; height: 22px; padding: 0; margin: 0; border: none; background: transparent; color: var(--text-mute); font-size: 0.9em; cursor: pointer; border-radius: 50%; transition: color 0.15s, transform 0.15s; flex-shrink: 0; }
 .tracker-init-roll:hover { color: var(--accent-color); transform: rotate(90deg); }
 /* Группа действий — ровные колонки info / d20 / remove (пустые слоты держат сетку) */
 .tracker-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: auto; }
 .tracker-slot { width: 22px; min-width: 22px; height: 22px; flex-shrink: 0; display: inline-block; }
-.tracker-roll-btn { width: 26px; min-width: 26px; height: 26px; padding: 0; margin: 0; border: 1px solid rgba(201,162,39,0.35); background: rgba(201,162,39,0.1); font-size: 0.9em; cursor: pointer; border-radius: 50%; flex-shrink: 0; transition: background 0.15s, transform 0.15s; line-height: 1; }
+.tracker-roll-btn { width: 26px; min-width: 26px; height: 26px; padding: 0; margin: 0; border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); font-size: 0.9em; cursor: pointer; border-radius: 50%; flex-shrink: 0; transition: background 0.15s, transform 0.15s; line-height: 1; }
 .tracker-roll-btn:hover { background: var(--accent-color); transform: scale(1.12); }
-.tracker-remove-btn { width: 22px; min-width: 22px; height: 22px; padding: 0; margin: 0; border: 1px solid rgba(231,76,60,0.35); background: transparent; color: rgba(231,76,60,0.7); font-size: 0.8em; font-weight: 700; cursor: pointer; border-radius: 50%; flex-shrink: 0; transition: all 0.15s; line-height: 1; }
-.tracker-remove-btn:hover { background: var(--danger-color); color: #fff; }
+.tracker-remove-btn { width: 22px; min-width: 22px; height: 22px; padding: 0; margin: 0; border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent); background: transparent; color: var(--danger-color); font-size: 0.8em; font-weight: 700; cursor: pointer; border-radius: 50%; flex-shrink: 0; transition: all 0.15s; line-height: 1; }
+.tracker-remove-btn:hover { background: color-mix(in srgb, var(--danger) 18%, transparent); border-color: var(--danger-color); }
 /* Инлайн-ХП — фикс. ширина (пустой контейнер у союзников/NPC держит выравнивание) */
 .tracker-hp { display: flex; align-items: center; gap: 3px; flex-shrink: 0; width: 158px; }
 .tracker-hp-empty { width: 158px; }
 .tracker-hp-heart { font-size: 0.8em; margin-right: 1px; }
 .tracker-hp-btn { width: 22px; min-width: 22px; height: 22px; padding: 0; margin: 0; border: 1px solid var(--border); background: var(--bg-2); color: var(--text); font-size: 1em; font-weight: 700; cursor: pointer; border-radius: var(--r-sm); flex-shrink: 0; line-height: 1; transition: all 0.15s; }
-.tracker-hp-minus:hover { background: rgba(231,76,60,0.8); border-color: rgba(231,76,60,0.8); color: #fff; }
-.tracker-hp-plus:hover { background: rgba(77,168,67,0.8); border-color: rgba(77,168,67,0.8); color: #fff; }
+.tracker-hp-minus:hover { background: color-mix(in srgb, var(--danger) 18%, transparent); border-color: var(--danger-color); color: var(--danger-color); }
+.tracker-hp-plus:hover { background: color-mix(in srgb, var(--success) 18%, transparent); border-color: var(--success-color); color: var(--success-color); }
 .tracker-hp-cur, .tracker-hp-max { width: 36px !important; text-align: center; font-size: 0.8em !important; padding: 3px 2px !important; background: var(--bg-2) !important; border: 1px solid var(--border) !important; border-radius: var(--r-sm) !important; color: var(--text) !important; -moz-appearance: textfield; margin: 0 !important; }
 .tracker-hp-cur::-webkit-inner-spin-button, .tracker-hp-cur::-webkit-outer-spin-button, .tracker-hp-max::-webkit-inner-spin-button, .tracker-hp-max::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .tracker-hp-max[readonly] { opacity: 0.65; cursor: default; }
@@ -7765,7 +7769,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .tracker-icon { width: 32px; height: 32px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 1em; flex-shrink: 0; }
 .battle-nav { display: flex; gap: 8px; margin-top: 14px; }
-.battle-nav-btn { flex: 1; padding: 10px; border-radius: 8px; background: var(--chip-bg); border: 1px solid var(--border); color: var(--text-dim); font-size: 0.88em; cursor: pointer; width: auto; margin: 0; transition: all 0.18s; }
+.battle-nav-btn { flex: 1; padding: 10px; border-radius: var(--r-md); background: transparent; border: 1px solid var(--border); color: var(--text-dim); font-size: 0.88em; cursor: pointer; width: auto; margin: 0; transition: all 0.18s; }
 .battle-nav-next { background: var(--accent-fill); border-color: var(--accent-lo); color: var(--on-accent); font-weight: 700; }
 .battle-nav-btn:hover:not(.battle-nav-next) { border-color: var(--accent-color); color: var(--accent-color); }
 
@@ -7773,12 +7777,9 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .card h3 { color: var(--text-color); }
 /* Battle sections with collapse */
 .battle-section { margin-bottom: 8px; }
-.battle-section-title { font-size: 0.8em; font-weight: 700; padding: 8px 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; border-radius: var(--r-sm); background: var(--list-solid); user-select: none; }
-.battle-section-title:hover { background: var(--list-solid-hover); }
+.battle-section-title { font-size: 0.8em; font-weight: 700; padding: 8px 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none; transition: background 0.18s, border-color 0.18s; }
 .battle-section-arrow { font-size: 0.9em; }
 .battle-section-count { font-weight: 400; opacity: 0.6; }
-.battle-setup-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; margin-top: 3px; background: var(--list-solid); }
-.battle-row-checked { background: var(--list-solid-hover); }
 .battle-search-wrap { position: relative; margin-bottom: 10px; }
 /* Tracker */
 .tracker-num { font-size: 0.85em; font-weight: 700; width: 20px; text-align: center; flex-shrink: 0; color: var(--text-mute); }
@@ -7827,13 +7828,10 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   flex-shrink: 0;
   user-select: none;
 }
-/* Self row — strong green highlight */
-.tracker-row-self {
-  background: rgba(77,168,67,0.13) !important;
-  border-color: rgba(77,168,67,0.45) !important;
-  box-shadow: inset 0 0 0 1px rgba(77,168,67,0.2), 0 0 12px rgba(77,168,67,0.15);
-}
-.tracker-row-self .tracker-name { color: #7ddf6e; }
+/* Self row — strong green highlight.
+   STYLE-8d: сам блок подсветки перенесён под групповое правило подложек
+   в конце файла (специфичность равная, решает порядок). */
+.tracker-row-self .tracker-name { color: var(--success-color); }
 .tracker-info-btn {
   width: 22px; height: 22px;
   border-radius: 50%;
@@ -13764,7 +13762,6 @@ textarea:focus-visible {
   border-color: var(--text-muted);
   color: var(--text-color);
 }
-.battle-start-btn { background: var(--accent); color: var(--on-accent); }
 .rr-slot-fill { background: color-mix(in srgb, var(--accent) 45%, transparent); }
 
 /* ══ STYLE-8a: вкладка «Лист» — одна вложенная подложка ═══════════════════
@@ -13838,6 +13835,37 @@ textarea:focus-visible {
    (~строка 826, через !important) — вместо ещё одной перебивки поле исключено
    из самого блока (:not), иначе ратчет !important светлой темы растёт. */
 
+/* ══ STYLE-8d: вкладка «Бой» — та же вложенная подложка ═══════════════════
+   Продолжение блоков выше. Строки боя жили на --list-solid с тремя разными
+   радиусами (--r-sm у .tracker-row и .battle-section-title, литерал 8 у
+   второго объявления .battle-setup-row) и без общей рамки. Модификаторы
+   (отмеченный участник, чей ход, свой персонаж, наведение) стоят НИЖЕ
+   группового правила: специфичность равная, решает порядок. */
+.battle-setup-row,
+.battle-section-title,
+.tracker-row {
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+}
+.battle-setup-row:hover,
+.battle-section-title:hover { border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+.battle-row-checked {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+.tracker-row-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+/* Свой персонаж в трекере — зелёная подсветка, была на четырёх сырых rgba */
+.tracker-row-self {
+  background: color-mix(in srgb, var(--success) 13%, transparent);
+  border-color: color-mix(in srgb, var(--success) 45%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--success) 20%, transparent);
+}
+
 /* Цвет заголовка задаётся ролью, а не тегом: заголовок карточки — текстом
    (как .card h3), подзаголовок секции внутри карточки — акцентом. «Класс Доспеха»
    разметан h4, но это заголовок карточки, а не секции. */
@@ -13882,10 +13910,20 @@ textarea:focus-visible {
 #tab-inventory.active > *:nth-child(6) { animation-delay:  80ms; }
 #tab-inventory.active > *:nth-child(7) { animation-delay: 120ms; }
 #tab-inventory.active > *:nth-child(n+8) { animation-delay: 160ms; }
+/* STYLE-8d: тот же каскад на вкладке «Бой». Прямых потомка три (строка справки,
+   экран сбора, экран трекера), причём экраны переключаются классом .hidden —
+   виден всегда один, поэтому шкала короткая. */
+#tab-battle.active > * {
+  animation: rise var(--t3) var(--ez-out) both;
+}
+#tab-battle.active > *:nth-child(1) { animation-delay:   0ms; }
+#tab-battle.active > *:nth-child(2) { animation-delay:  40ms; }
+#tab-battle.active > *:nth-child(n+3) { animation-delay: 80ms; }
 /* Глобальный reduce-блок обнуляет длительности, но НЕ задержки: при fill-mode
    both элемент висел бы невидимым всю задержку. Поэтому снимаем появление целиком. */
 @media (prefers-reduced-motion: reduce) {
   #tab-sheet.active > *,
   #tab-spells.active > *,
+  #tab-battle.active > *,
   #tab-inventory.active > *:not(.modal) { animation: none; }
 }

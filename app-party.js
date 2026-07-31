@@ -699,11 +699,14 @@ function renderBattleSetup() {
     container.innerHTML = "<div class='party-empty'>Добавьте участников во вкладке Отряд</div>";
     return;
   }
+  // STYLE-8d: цвет заголовка секции — токеном темы, а не литералом: старый
+  // зелёный #4da843 на светлой подложке давал контраст 2.9. Цвет участника
+  // (p.color) остаётся hex — к нему конкатенируется альфа "22" для диска иконки.
   var sections = [
-    { type: "self",    label: "🟢 Я",          color: "#4da843" },
-    { type: "ally",    label: "🟢 Союзники",   color: "#27ae60" },
-    { type: "npc",     label: "🟡 Персонажи",  color: "#d4ac0d" },
-    { type: "monster", label: "🔴 Враги",      color: "#c0392b" }
+    { type: "self",    label: "🟢 Я",          color: "var(--success-color)" },
+    { type: "ally",    label: "🟢 Союзники",   color: "var(--success-color)" },
+    { type: "npc",     label: "🟡 Персонажи",  color: "var(--slot-gold)" },
+    { type: "monster", label: "🔴 Враги",      color: "var(--danger-color)" }
   ];
   var q = battleSearchQuery;
   container.innerHTML = sections.map(function(sec) {
