@@ -140,10 +140,10 @@ function renderPouches() {
   var maxCoins = availPouches * POUCH_MAX;
   html += '<div class="inv-pouches-hint">';
   if (availPouches > 0) {
-    html += '🎒 ' + availPouches + ' мешочк' + (availPouches===1?"а":availPouches<5?"а":"ов") + ' · до <strong>' + maxCoins + '</strong> монет';
-    if (totalCoins > maxCoins) html += ' · <span style="color:var(--danger-color)">⚠️ не унести ' + (totalCoins - maxCoins) + ' монет</span>';
+    html += '' + dndIcoHtml("inventory", 13) + ' ' + availPouches + ' мешочк' + (availPouches===1?"а":availPouches<5?"а":"ов") + ' · до <strong>' + maxCoins + '</strong> монет';
+    if (totalCoins > maxCoins) html += ' · <span style="color:var(--danger-color)">' + dndIcoHtml("alert", 12) + ' не унести ' + (totalCoins - maxCoins) + ' монет</span>';
   } else {
-    html += '⚠️ Нет мешочков — нужна СИЛ 8+';
+    html += '' + dndIcoHtml("alert", 13) + ' Нет мешочков — нужна СИЛ 8+';
   }
   html += '</div>';
   container.innerHTML = html;
@@ -167,7 +167,7 @@ if (currentFilterCategory !== "all") {
 allItems = allItems.filter(function(i) { return i.category === currentFilterCategory; });
 }
 if (allItems.length === 0) {
-container.innerHTML = "<div class=\"inventory-empty\">📭 Нет предметов" + (currentFilterCategory !== "all" ? " в этой категории" : "") + "</div>";
+container.innerHTML = "<div class=\"inventory-empty\">" + dndIcoHtml("inbox", 22) + " Нет предметов" + (currentFilterCategory !== "all" ? " в этой категории" : "") + "</div>";
 updateInventoryWeight();
 updateSlotsDisplay();
 return;
@@ -188,21 +188,21 @@ var _locMeta = LOCATION_META[_locKey];
 var _locTagHtml = _locMeta ? '<span class="inv-meta-tag inv-loc-tag" title="' + _locMeta.label + '">' + _locMeta.icon + " " + _locMeta.label + '</span>' : '';
 // FIN-6: бейдж настройки для магпредметов (attunable) — «⚙ настроен» / «⚙ не настроен»
 var _attuneTagHtml = item.attunable
-  ? '<span class="inv-meta-tag inv-attune-tag' + (item.attuned ? ' on' : '') + '" title="Настройка магического предмета">⚙ ' + (item.attuned ? 'настроен' : 'не настроен') + '</span>'
+  ? '<span class="inv-meta-tag inv-attune-tag' + (item.attuned ? ' on' : '') + '" title="Настройка магического предмета">' + dndIcoHtml("settings", 12) + ' ' + (item.attuned ? 'настроен' : 'не настроен') + '</span>'
   : '';
 var _attuneBtnHtml = item.attunable
-  ? '<button class="inv-attune-btn' + (item.attuned ? ' attuned' : '') + '" onclick="event.stopPropagation(); toggleAttuned(\'' + data.category + '\',' + data.index + ')">⚙ ' + (item.attuned ? 'Снять настройку' : 'Настроить') + '</button>'
+  ? '<button class="inv-attune-btn' + (item.attuned ? ' attuned' : '') + '" onclick="event.stopPropagation(); toggleAttuned(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("settings", 13) + ' ' + (item.attuned ? 'Снять настройку' : 'Настроить') + '</button>'
   : '';
 // FIN-8: заряды предмета — бейдж «⚡ N/M» в мете + счётчик с кнопками ± в actions
 var _maxCh = parseInt(item.maxCharges, 10) || 0;
 var _curCh = _maxCh > 0 ? Math.max(0, Math.min(_maxCh, parseInt(item.charges, 10) || 0)) : 0;
 var _chargesTagHtml = _maxCh > 0
-  ? '<span class="inv-meta-tag inv-charges-tag' + (_curCh === 0 ? ' empty' : '') + '" title="Заряды' + (item.recharge === "none" ? " — не восстанавливаются" : " — восстанавливаются на длинном отдыхе") + '">⚡ ' + _curCh + '/' + _maxCh + '</span>'
+  ? '<span class="inv-meta-tag inv-charges-tag' + (_curCh === 0 ? ' empty' : '') + '" title="Заряды' + (item.recharge === "none" ? " — не восстанавливаются" : " — восстанавливаются на длинном отдыхе") + '">' + dndIcoHtml("zap", 12) + ' ' + _curCh + '/' + _maxCh + '</span>'
   : '';
 var _chargesCtrlHtml = _maxCh > 0
   ? '<span class="inv-charges-ctrl">' +
       '<button class="inv-charge-btn" onclick="event.stopPropagation(); adjustItemCharges(\'' + data.category + '\',' + data.index + ',-1)"' + (_curCh <= 0 ? ' disabled' : '') + '>−</button>' +
-      '<span class="inv-charges-label">⚡ ' + _curCh + '/' + _maxCh + '</span>' +
+      '<span class="inv-charges-label">' + dndIcoHtml("zap", 12) + ' ' + _curCh + '/' + _maxCh + '</span>' +
       '<button class="inv-charge-btn" onclick="event.stopPropagation(); adjustItemCharges(\'' + data.category + '\',' + data.index + ',1)"' + (_curCh >= _maxCh ? ' disabled' : '') + '>+</button>' +
     '</span>'
   : '';
@@ -220,7 +220,7 @@ div.innerHTML =
       '<div class="inv-item-name">' + escapeHtml(item.name) + (_stowed ? ' <span style="color:var(--muted);font-size:11px;">(в снятом рюкзаке)</span>' : '') + '</div>' +
       '<div class="inv-item-meta">' +
         '<span class="inv-meta-tag">' + (item.qty || 1) + ' шт.</span>' +
-        '<span class="inv-meta-tag">⚖️ ' + totalWeight + ' фнт</span>' +
+        '<span class="inv-meta-tag">' + dndIcoHtml("scale", 12) + ' ' + totalWeight + ' фнт</span>' +
         '<span class="inv-meta-tag inv-cat-tag">' + catName + '</span>' +
         '<span class="inv-meta-tag inv-slot-tag">' + slotsLabel + '</span>' +
         _locTagHtml +
@@ -236,8 +236,8 @@ div.innerHTML =
     '<div class="inv-item-actions">' +
       _chargesCtrlHtml +
       _attuneBtnHtml +
-      '<button class="inv-edit-btn" onclick="event.stopPropagation(); editItemDirect(\'' + data.category + '\',' + data.index + ')">✏️ Изменить</button>' +
-      '<button class="inv-del-btn" onclick="event.stopPropagation(); deleteItemDirect(\'' + data.category + '\',' + data.index + ')">🗑 Удалить</button>' +
+      '<button class="inv-edit-btn" onclick="event.stopPropagation(); editItemDirect(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("edit", 14) + ' Изменить</button>' +
+      '<button class="inv-del-btn" onclick="event.stopPropagation(); deleteItemDirect(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("trash", 14) + ' Удалить</button>' +
     '</div>' +
   '</div>';
 div.setAttribute("draggable", "true");
@@ -259,7 +259,7 @@ updateSlotsDisplay();
 var _btn = document.getElementById("inv-backpack-toggle");
 if (_btn) {
   var _off = _isBackpackOff(char);
-  _btn.textContent = _off ? "🎒 Снят" : "🎒 Надет";
+  _btn.innerHTML = (typeof dndIcon === "function" ? '<span class="dico">' + dndIcon("inventory", 16) + "</span> " : "🎒 ") + (_off ? "Снят" : "Надет");
   _btn.style.background = _off ? "var(--danger,#c0392b)" : "transparent";
   _btn.style.color = _off ? "#fff" : "var(--text)";
 }
@@ -386,7 +386,7 @@ function updateAttuneCount() {
   var n = char ? countAttuned(char) : 0;
   if (!char || (n === 0 && !_hasAttunable(char))) { el.style.display = "none"; return; }
   el.style.display = "";
-  el.textContent = "⚙ " + n + "/3";
+  el.innerHTML = (typeof dndIcon === "function" ? '<span class="dico">' + dndIcon("settings", 14) + "</span> " : "⚙ ") + n + "/3";
   el.classList.toggle("over", n > 3);
 }
 // FIN-8: изменить заряды предмета на delta (кламп 0..maxCharges). Не трогает qty.
@@ -574,7 +574,7 @@ function renderMagicCatalog() {
   if (!listEl) return;
   if (!filtered.length) { listEl.innerHTML = '<div class="magic-catalog-empty">Ничего не найдено</div>'; return; }
   listEl.innerHTML = filtered.map(function (it) {
-    var attune = it.attune ? ' · ⚙ настройка' : '';
+    var attune = it.attune ? ' · ' + dndIcoHtml("settings", 12) + ' настройка' : '';
     return '<button type="button" class="magic-catalog-item" onclick="fillFromMagicItem(\'' + it.id + '\')">' +
       '<div class="mci-top"><span class="mci-name">' + escapeHtml(it.name) + '</span>' +
       '<span class="mci-rarity rarity-' + it.rarity + '">' + escapeHtml(R[it.rarity] || it.rarity) + '</span></div>' +
@@ -659,7 +659,7 @@ function renderGearPacks() {
   var PACKS = window.GEAR_PACKS || {};
   el.innerHTML = GEAR_PACK_DISPLAY.filter(function (p) { return PACKS[p.key]; }).map(function (p) {
     var n = PACKS[p.key].length;
-    return '<button type="button" class="gear-pack-btn" onclick="addPackToInventory(\'' + p.key + '\')">🎒 ' +
+    return '<button type="button" class="gear-pack-btn" onclick="addPackToInventory(\'' + p.key + '\')">' + dndIcoHtml("inventory", 14) + ' ' +
       escapeHtml(p.name) + ' <span style="opacity:.6">(' + n + ')</span></button>';
   }).join("");
 }
@@ -868,10 +868,10 @@ if (_pickChar) {
     ? ' <span class="wp-prof yes">✓ владение</span>'
     : ' <span class="wp-prof no">без владения</span>';
 }
-var hbBadge = preset.homebrew ? ' <span class="wp-hb">🏠 Своё</span>' : "";
+var hbBadge = preset.homebrew ? ' <span class="wp-hb">' + dndIcoHtml("home", 12) + ' Своё</span>' : "";
 // HB-6: у своего оружия — 🗑 «убрать из каталога», прямо в карточке (нельзя вложить
 // <button> в <button>: делаем span-действие, клик по нему ловим в onclick по e.target).
-var hbDel = preset.homebrew ? ' <span class="wp-del" role="button" tabindex="0" title="Убрать из каталога" aria-label="Убрать из каталога">🗑</span>' : "";
+var hbDel = preset.homebrew ? ' <span class="wp-del" role="button" tabindex="0" title="Убрать из каталога" aria-label="Убрать из каталога">' + dndIcoHtml("trash", 13) + '</span>' : "";
 btn.innerHTML = "<b>" + escapeHtml(preset.name) + "</b> <span class=\"wp-tag\">" + tag + "</span>" + hbBadge + profBadge + hbDel + "<br>" +
   escapeHtml(preset.damage ? preset.damage + " " + (preset.type || "") : "—") +
   (preset.notes ? " · " + escapeHtml(preset.notes) : "") + "<br>" +
@@ -1174,13 +1174,13 @@ div.innerHTML =
       '<span class="weapon-meta">' + escapeHtml(weapon.damage || "—") + ' · ' + escapeHtml(weapon.statName || "") + ' ' + attackStr + '</span>' +
     '</div>' +
     '<div class="weapon-row-actions">' +
-      '<button class="weapon-edit-btn" onclick="editWeapon(' + index + ')" title="Редактировать оружие" aria-label="Редактировать оружие">✏️</button>' +
+      '<button class="weapon-edit-btn" onclick="editWeapon(' + index + ')" title="Редактировать оружие" aria-label="Редактировать оружие">' + dndIcoHtml("edit", 14) + '</button>' +
       '<button class="weapon-delete-btn" onclick="removeWeapon(' + index + ')" aria-label="Удалить оружие">✕</button>' +
     '</div>' +
   '</div>' +
   '<div class="weapon-roll-row">' +
-    '<button class="weapon-roll-btn weapon-roll-atk" onclick="rollWeaponAttack(' + index + ')">🎲 Атака</button>' +
-    '<button class="weapon-roll-btn weapon-roll-dmg" onclick="rollWeaponDamage(' + index + ')">🗡️ Урон</button>' +
+    '<button class="weapon-roll-btn weapon-roll-atk" onclick="rollWeaponAttack(' + index + ')">' + dndIcoHtml("dice", 14) + ' Атака</button>' +
+    '<button class="weapon-roll-btn weapon-roll-dmg" onclick="rollWeaponDamage(' + index + ')">' + dndIcoHtml("sword", 14) + ' Урон</button>' +
   '</div>' +
   (weapon.notes ? '<div class="weapon-notes">' + escapeHtml(weapon.notes) + '</div>' : '');
 container.appendChild(div);
@@ -1196,7 +1196,7 @@ if (lightWeapons.length >= 2) {
   var twfChecked = char.twoWeaponFighting ? ' checked' : '';
   twfDiv.innerHTML =
     '<div class="twf-header">' +
-      '<span class="twf-title">⚔️ Бой двумя оружиями</span>' +
+      '<span class="twf-title">' + dndIcoHtml("combat", 14) + ' Бой двумя оружиями</span>' +
       '<label class="twf-style-label">' +
         '<input type="checkbox" id="twf-style-toggle"' + twfChecked + ' onchange="toggleTWFStyle()">' +
         ' Стиль боя' +
@@ -1206,7 +1206,7 @@ if (lightWeapons.length >= 2) {
       (char.twoWeaponFighting ? '' : ' (без мод. характеристики к урону)') +
     '</div>' +
     '<div class="twf-buttons">' +
-      '<button class="weapon-roll-btn weapon-roll-twf" onclick="rollTWFAttack(' + lightWeapons[1] + ')">🗡️ Бонусная атака: ' + escapeHtml(char.weapons[lightWeapons[1]].name) + '</button>' +
+      '<button class="weapon-roll-btn weapon-roll-twf" onclick="rollTWFAttack(' + lightWeapons[1] + ')">' + dndIcoHtml("sword", 14) + ' Бонусная атака: ' + escapeHtml(char.weapons[lightWeapons[1]].name) + '</button>' +
     '</div>';
   container.appendChild(twfDiv);
 }

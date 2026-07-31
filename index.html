@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v323">
+<link rel="stylesheet" href="style.css?v=v324">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -114,7 +114,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </nav>
   <div class="drawer-settings-row">
     <button type="button" class="drawer-settings-btn" onclick="openSettingsModal()" title="Тема, акцент, плотность, масштаб">
-      <span>⚙️</span><span>Настройки оформления</span>
+      <span data-ico="settings" data-ico-size="18">⚙️</span><span>Настройки оформления</span>
     </button>
   </div>
 </div>
@@ -123,20 +123,20 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="settings-modal-overlay hidden" id="settings-modal-overlay" onclick="closeSettingsModal()"></div>
 <div class="settings-modal hidden" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
   <div class="settings-modal-header">
-    <span id="settings-modal-title">⚙️ Настройки оформления</span>
+    <span id="settings-modal-title"><span data-ico="settings" data-ico-size="18">⚙️</span> Настройки оформления</span>
     <button class="settings-modal-close" onclick="closeSettingsModal()" aria-label="Закрыть">✕</button>
   </div>
   <div class="settings-modal-body">
     <div class="theme-picker-row">
-      <span class="theme-picker-label">🎨 Тема</span>
+      <span class="theme-picker-label"><span data-ico="palette" data-ico-size="16">🎨</span> Тема</span>
       <div class="theme-picker-btns" role="radiogroup" aria-label="Тема оформления">
-        <button type="button" class="theme-picker-btn" data-theme-btn="dark" onclick="setTheme('dark')">🌙 Тёмная</button>
-        <button type="button" class="theme-picker-btn" data-theme-btn="light" onclick="setTheme('light')">☀️ Светлая</button>
-        <button type="button" class="theme-picker-btn" data-theme-btn="auto" onclick="setTheme('auto')">🖥️ Авто</button>
+        <button type="button" class="theme-picker-btn" data-theme-btn="dark" onclick="setTheme('dark')"><span data-ico="moon" data-ico-size="16">🌙</span> Тёмная</button>
+        <button type="button" class="theme-picker-btn" data-theme-btn="light" onclick="setTheme('light')"><span data-ico="sun" data-ico-size="16">☀️</span> Светлая</button>
+        <button type="button" class="theme-picker-btn" data-theme-btn="auto" onclick="setTheme('auto')"><span data-ico="monitor" data-ico-size="16">🖥️</span> Авто</button>
       </div>
     </div>
     <div class="theme-picker-row">
-      <span class="theme-picker-label">🎯 Акцент</span>
+      <span class="theme-picker-label"><span data-ico="drop" data-ico-size="16">🎯</span> Акцент</span>
       <div class="accent-picker-chips" role="radiogroup" aria-label="Цвет акцента">
         <button type="button" class="accent-chip" data-accent-btn="gold"     title="Золото"   aria-label="Золото"   style="--chip-hi:#f0c674;--chip-lo:#c79941;--chip-mid:#e0b358" onclick="setAccent('gold')"></button>
         <button type="button" class="accent-chip" data-accent-btn="emerald"  title="Изумруд"  aria-label="Изумруд"  style="--chip-hi:#66c595;--chip-lo:#3a8a64;--chip-mid:#4caf80" onclick="setAccent('emerald')"></button>
@@ -149,11 +149,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       </div>
       <label class="auto-accent-row" for="auto-accent-toggle" title="Акцент автоматически подстраивается под класс активного персонажа">
         <input type="checkbox" id="auto-accent-toggle" onchange="setAutoAccent(this.checked)">
-        <span>🎭 Авто-акцент по классу</span>
+        <span><span data-ico="sparkle" data-ico-size="16">🎭</span> Авто-акцент по классу</span>
       </label>
     </div>
     <div class="theme-picker-row">
-      <span class="theme-picker-label">📐 Плотность</span>
+      <span class="theme-picker-label"><span data-ico="layers" data-ico-size="16">📐</span> Плотность</span>
       <div class="theme-picker-btns density-picker-btns" role="radiogroup" aria-label="Плотность интерфейса">
         <button type="button" class="theme-picker-btn" data-density-btn="compact"  onclick="setDensity('compact')"  title="Компактно — мельче отступы и шрифт">Компактно</button>
         <button type="button" class="theme-picker-btn" data-density-btn="standard" onclick="setDensity('standard')" title="Стандартные размеры">Стандарт</button>
@@ -161,7 +161,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       </div>
     </div>
     <div class="theme-picker-row">
-      <span class="theme-picker-label">📋 Лист характеристик</span>
+      <span class="theme-picker-label"><span data-ico="sheet" data-ico-size="16">📋</span> Лист характеристик</span>
       <div class="theme-picker-btns stats-layout-picker-btns" role="radiogroup" aria-label="Раскладка листа характеристик">
         <button type="button" class="theme-picker-btn" data-stats-layout-btn="2024"    onclick="setStatsLayout('2024')"    title="Спасброски и навыки сгруппированы внутри карточек характеристик (вид листа 2024)">2024</button>
         <button type="button" class="theme-picker-btn" data-stats-layout-btn="classic" onclick="setStatsLayout('classic')" title="Классический вид: характеристики, спасброски и навыки отдельными блоками">Классический</button>
@@ -169,7 +169,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
     <div class="theme-picker-row">
       <div class="fs-scale-head">
-        <span class="theme-picker-label">🔤 Размер шрифта</span>
+        <span class="theme-picker-label"><span data-ico="type" data-ico-size="16">🔤</span> Размер шрифта</span>
         <span class="fs-scale-value" id="fs-scale-value">100%</span>
         <button type="button" class="fs-scale-reset" onclick="setFontScale(1)" title="Сбросить к 100%">↺</button>
       </div>
@@ -180,7 +180,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
     <div class="theme-picker-row">
       <div class="fs-scale-head">
-        <span class="theme-picker-label">🪟 Непрозрачность фона</span>
+        <span class="theme-picker-label"><span data-ico="contrast" data-ico-size="16">🪟</span> Непрозрачность фона</span>
         <span class="fs-scale-value" id="glass-alpha-value">66%</span>
         <button type="button" class="fs-scale-reset" onclick="setGlassAlpha(0.66)" title="Сбросить к 66%">↺</button>
       </div>
@@ -191,7 +191,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
     <div class="theme-picker-row">
       <div class="fs-scale-head">
-        <span class="theme-picker-label">🌫️ Размытие фона</span>
+        <span class="theme-picker-label"><span data-ico="dashed" data-ico-size="16">🌫️</span> Размытие фона</span>
         <span class="fs-scale-value" id="glass-blur-value">18px</span>
         <button type="button" class="fs-scale-reset" onclick="setGlassBlur(18)" title="Сбросить к 18px">↺</button>
       </div>
@@ -202,7 +202,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
     <!-- Дымка v5: режим космос-фона -->
     <div class="theme-picker-row">
-      <span class="theme-picker-label">🌌 Космос на фоне</span>
+      <span class="theme-picker-label"><span data-ico="atom" data-ico-size="16">🌌</span> Космос на фоне</span>
       <div class="theme-picker-btns" role="radiogroup" aria-label="Космический фон">
         <button type="button" class="theme-picker-btn" data-space-btn="off"    onclick="setSpaceMode('off')"    title="Полностью убрать анимированный фон">Выкл</button>
         <button type="button" class="theme-picker-btn" data-space-btn="calm"   onclick="setSpaceMode('calm')"   title="Меньше звёзд и орбит, без комет">Тихий</button>
@@ -212,7 +212,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <!-- MENU-10: редакция правил переехала сюда со встречающего экрана —
          это настройка, ей место рядом с темой и плотностью. -->
     <div class="theme-picker-row" id="edition-row">
-      <span class="theme-picker-label">📖 Редакция</span>
+      <span class="theme-picker-label"><span data-ico="book" data-ico-size="16">📖</span> Редакция</span>
       <div class="theme-picker-btns" role="radiogroup" aria-label="Редакция правил">
         <button type="button" id="edition-btn-2014" class="theme-picker-btn active" onclick="setEdition('2014')">2014</button>
         <button type="button" id="edition-btn-2024" class="theme-picker-btn is-soon" aria-disabled="true" onclick="setEdition('2024')">2024 <span class="home-edition-soon-tag">в разработке</span></button>
@@ -220,7 +220,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
     <!-- HELP-3: перезапуск онбординга -->
     <div class="theme-picker-row">
-      <span class="theme-picker-label">📖 Обучение</span>
+      <span class="theme-picker-label"><span data-ico="grad" data-ico-size="16">📖</span> Обучение</span>
       <button type="button" class="onboarding-restart-btn" onclick="restartOnboarding()" title="Показать приветствие и тур заново">↻ Показать обучение заново</button>
     </div>
   </div>
@@ -292,7 +292,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <h2 class="header-title" id="header-title">Мой Персонаж D&amp;D 5e</h2>
   <span class="header-subtitle" id="header-subtitle"></span>
 </div>
-<button class="nav-hamburger hidden" id="nav-hamburger" onclick="openDrawer()" title="Меню">☰</button>
+<button class="nav-hamburger hidden" id="nav-hamburger" onclick="openDrawer()" title="Меню"><span data-ico="menu">☰</span></button>
 </header>
 <!-- ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА (R5: одна компактная строка). UI-fix: после <header>, чтобы стакаться ПОД ним (sticky top:var(--header-h)), а не перекрывать. -->
 <div class="status-bar" id="status-bar">
@@ -411,7 +411,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <h3>Ваши Персонажи <span id="char-count" class="char-count-badge"></span></h3>
 <div class="char-controls">
 <div class="char-search-wrap">
-<span class="char-search-icon">🔍</span>
+<span class="char-search-icon" data-ico="search" data-ico-size="16">🔍</span>
 <input type="text" class="char-search-inp" placeholder="Поиск по имени, классу, расе..." oninput="setCharSearch(this.value)">
 </div>
 <div class="char-sort-row">
@@ -425,7 +425,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="character-list"></div>
 <div class="home-actions-primary">
 <button class="btn btn-primary btn-block" onclick="createNewCharacter()">+ Новый персонаж</button>
-<button class="btn btn-secondary btn-block" onclick="openBuildPicker()">📘 По готовому билду</button>
+<button class="btn btn-secondary btn-block" onclick="openBuildPicker()"><span data-ico="grad" data-ico-size="16">📘</span> По готовому билду</button>
 </div>
 </div>
 </div>
@@ -437,12 +437,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="confirm-modal-box party-modal-box">
 <h4>Данные</h4>
 <div class="home-utils">
-<button class="secondary" onclick="exportData()">💾 Скачать копию</button>
-<button class="secondary" onclick="document.getElementById('import-file').click()">📂 Загрузить копию</button>
-<button class="secondary" onclick="document.getElementById('import-char-file').click()">📥 Импорт персонажа</button>
-<button class="secondary" onclick="document.getElementById('spells-import').click()">📥 Импорт заклинаний</button>
-<button class="secondary" onclick="exportSpells()">📤 Экспорт заклинаний</button>
-<button class="secondary" onclick="toggleBackupPanel()">🗄 Резервные копии</button>
+<button class="secondary" onclick="exportData()"><span data-ico="download" data-ico-size="16">💾</span> Скачать копию</button>
+<button class="secondary" onclick="document.getElementById('import-file').click()"><span data-ico="folder" data-ico-size="16">📂</span> Загрузить копию</button>
+<button class="secondary" onclick="document.getElementById('import-char-file').click()"><span data-ico="import" data-ico-size="16">📥</span> Импорт персонажа</button>
+<button class="secondary" onclick="document.getElementById('spells-import').click()"><span data-ico="import" data-ico-size="16">📥</span> Импорт заклинаний</button>
+<button class="secondary" onclick="exportSpells()"><span data-ico="upload" data-ico-size="16">📤</span> Экспорт заклинаний</button>
+<button class="secondary" onclick="toggleBackupPanel()"><span data-ico="archive" data-ico-size="16">🗄</span> Резервные копии</button>
 </div>
 <div id="storage-status" style="margin-top:6px;font-size:0.75em;color:var(--text-muted);" hidden></div>
 <div id="backup-panel" style="margin-top:8px;" hidden>
@@ -471,27 +471,27 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <span class="app-version-status" id="app-version-status"></span>
 </div>
 <div class="profiles-tabs-row">
-<button class="ptab-btn active" onclick="switchProfilesTab('info',this)">ℹ️ О приложении</button>
-<button class="ptab-btn" onclick="switchProfilesTab('changelog',this)">📋 Изменения</button>
+<button class="ptab-btn active" onclick="switchProfilesTab('info',this)"><span data-ico="info" data-ico-size="16">ℹ️</span> О приложении</button>
+<button class="ptab-btn" onclick="switchProfilesTab('changelog',this)"><span data-ico="history" data-ico-size="16">📋</span> Изменения</button>
 </div>
 <div id="ptab-info" class="ptab-content active">
 <div style="padding:6px 0 4px;font-size:0.75em;color:var(--text-muted);">Данные сохраняются в браузере. Делайте резервные копии!</div>
 <div class="app-info-grid">
-<div class="app-info-item">🎲 D&amp;D 5e по Fantom Studio</div>
-<div class="app-info-item">📱 PWA — работает офлайн</div>
+<div class="app-info-item"><span data-ico="dice" data-ico-size="16">🎲</span> D&amp;D 5e по Fantom Studio</div>
+<div class="app-info-item"><span data-ico="phone" data-ico-size="16">📱</span> PWA — работает офлайн</div>
 <div class="app-info-item">🆓 Бесплатно, без регистрации</div>
-<div class="app-info-item">🔒 Данные хранятся на устройстве</div>
+<div class="app-info-item"><span data-ico="lock" data-ico-size="16">🔒</span> Данные хранятся на устройстве</div>
 </div>
 <div class="app-links-row" id="app-links-row" style="display:none">
-<a class="app-link-btn app-link-btn-tg" id="app-link-tg" href="#" target="_blank" rel="noopener" style="display:none">💬 Канал в Telegram</a>
-<a class="app-link-btn app-link-btn-donate" id="app-link-donate" href="#" target="_blank" rel="noopener" style="display:none">☕ Поддержать донатом</a>
-<a class="app-link-btn app-link-btn-boosty" id="app-link-boosty" href="#" target="_blank" rel="noopener" style="display:none">🚀 Подписаться на Boosty</a>
+<a class="app-link-btn app-link-btn-tg" id="app-link-tg" href="#" target="_blank" rel="noopener" style="display:none"><span data-ico="chat" data-ico-size="16">💬</span> Канал в Telegram</a>
+<a class="app-link-btn app-link-btn-donate" id="app-link-donate" href="#" target="_blank" rel="noopener" style="display:none"><span data-ico="coffee" data-ico-size="16">☕</span> Поддержать донатом</a>
+<a class="app-link-btn app-link-btn-boosty" id="app-link-boosty" href="#" target="_blank" rel="noopener" style="display:none"><span data-ico="heart" data-ico-size="16">🚀</span> Подписаться на Boosty</a>
 </div>
 </div>
 <div id="ptab-changelog" class="ptab-content" style="display:none">
 <div class="cl-toolbar">
 <span class="cl-toolbar-hint">Кратко о каждой версии. Что менялось в коде — в полном логе.</span>
-<a class="cl-full-log" href="https://github.com/D1MANYCH/dnd-app/blob/main/docs/RELEASES.md" target="_blank" rel="noopener">🔍 Полный лог изменений ↗</a>
+<a class="cl-full-log" href="https://github.com/D1MANYCH/dnd-app/blob/main/docs/RELEASES.md" target="_blank" rel="noopener"><span data-ico="search" data-ico-size="14">🔍</span> Полный лог изменений ↗</a>
 </div>
 <div id="changelog-list"></div>
 </div>
@@ -514,12 +514,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="cw-step-hint">Имя, класс, подкласс (если открыт), раса, предыстория, уровень. Эти поля нельзя будет случайно изменить после фиксации.</div>
     </div>
   </div>
-  <button id="cw-lock-btn" class="cw-lock-btn" disabled onclick="lockBasicInfo()">🔒 Сохранить и зафиксировать основу</button>
+  <button id="cw-lock-btn" class="cw-lock-btn" disabled onclick="lockBasicInfo()"><span data-ico="lock" data-ico-size="16">🔒</span> Сохранить и зафиксировать основу</button>
   <div id="cw-validation" class="cw-validation"></div>
 </div>
 
 <div id="basic-locked-bar" class="basic-locked-bar" style="display:none;">
-  <span>🔒 Основа персонажа зафиксирована</span>
+  <span><span data-ico="lock" data-ico-size="16">🔒</span> Основа персонажа зафиксирована</span>
   <div class="basic-locked-actions">
     <button type="button" class="tab-help-btn" onclick="openHelp('sheet')" title="Справка по этому разделу" aria-label="Справка по разделу «Лист»"><span class="tab-help-q" aria-hidden="true">?</span>Справка</button>
     <button class="basic-unlock-btn" onclick="unlockBasicInfo()">Изменить</button>
@@ -537,7 +537,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <span class="sheet-avatar-hint">Сменить</span>
   </div>
   <div class="sheet-top-fields">
-    <div class="col"><label>Имя</label><div class="name-input-row"><input type="text" id="char-name" class="field" oninput="updateChar(); updateLockButtonState()"><button type="button" class="icon-btn name-roll-btn" onclick="rollRandomName()" title="Случайное имя по расе" aria-label="Сгенерировать случайное имя по расе">🎲</button></div></div>
+    <div class="col"><label>Имя</label><div class="name-input-row"><input type="text" id="char-name" class="field" oninput="updateChar(); updateLockButtonState()"><button type="button" class="icon-btn name-roll-btn" onclick="rollRandomName()" title="Случайное имя по расе" aria-label="Сгенерировать случайное имя по расе"><span data-ico="dice">🎲</span></button></div></div>
     <div class="sheet-top-small-row">
       <div class="sheet-small-field"><label>Уровень</label><input type="number" id="char-level" class="field" min="1" max="20" oninput="calcStats(); updateSubclassOptions(); updateClassFeatures(); updateLockButtonState()"></div>
       <div class="sheet-small-field"><label>Опыт</label><input type="number" id="char-exp" class="field" value="0" oninput="updateChar()"></div>
@@ -546,7 +546,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
     <div id="char-build-badge-wrap" class="char-build-badge-wrap" style="display:none">
       <button type="button" id="char-build-badge" class="char-build-badge" onclick="openBuildGuide()" title="Открыть гайд по билду" aria-label="Открыть гайд по билду"></button>
-      <button type="button" class="char-build-plan-btn" onclick="openBuildPlan()" title="План развития 1–20" aria-label="План развития 1–20">📈 План</button>
+      <button type="button" class="char-build-plan-btn" onclick="openBuildPlan()" title="План развития 1–20" aria-label="План развития 1–20"><span data-ico="trend" data-ico-size="16">📈</span> План</button>
       <button type="button" class="char-build-unlink" onclick="unlinkBuild()" title="Отвязать билд от персонажа" aria-label="Отвязать билд">✕ Отвязать</button>
     </div>
   </div>
@@ -555,7 +555,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Строки 2+: поля на полную ширину -->
 <div class="row basics-row">
 <div class="col">
-<div class="label-action-row"><label>Класс</label><button type="button" class="char-build-plan-btn class-plan-btn" onclick="openClassPlan()" title="Что даёт класс на каждом уровне (1–20)" aria-label="План класса 1–20">📈 План класса</button></div>
+<div class="label-action-row"><label>Класс</label><button type="button" class="char-build-plan-btn class-plan-btn" onclick="openClassPlan()" title="Что даёт класс на каждом уровне (1–20)" aria-label="План класса 1–20"><span data-ico="trend" data-ico-size="16">📈</span> План класса</button></div>
 <select id="char-class" class="field" onchange="updateChar(); updateSubclassOptions(); recalculateHP(); autoSelectProficiencies(); updateClassFeatures(); calculateAC(); updateLockButtonState(); if (typeof _refreshAccent==='function') _refreshAccent()">
 <option value="">Выберите класс</option>
 <option value="Волшебник">Волшебник</option>
@@ -684,7 +684,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- FIN-9: случайная безделушка из таблицы PHB (к100) → в инвентарь.
      Дымка v5: в правой ячейке рядом с «Размер/Скорость» — без пустой строки -->
 <div class="trinket-roll-row">
-<button type="button" class="trinket-roll-btn" onclick="rollTrinket()" title="Бросить к100 по таблице безделушек PHB — предмет попадёт в инвентарь (Прочее)">🎲 Безделушка (к100)</button>
+<button type="button" class="trinket-roll-btn" onclick="rollTrinket()" title="Бросить к100 по таблице безделушек PHB — предмет попадёт в инвентарь (Прочее)"><span data-ico="dice" data-ico-size="16">🎲</span> Безделушка (к100)</button>
 <span class="trinket-roll-hint">случайная мелочь для отыгрыша → в инвентарь</span>
 </div>
 
@@ -705,7 +705,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="abil-mini-value" id="proficiency-bonus-2024">+2</div>
 </div>
 <div class="abil-mini abil-mini-insp" id="insp-card-2024" role="button" tabindex="0" onclick="toggleInspiration()" title="Героическое вдохновение — нажмите, чтобы переключить">
-<div class="abil-mini-label">✨ Вдохновение</div>
+<div class="abil-mini-label"><span data-ico="sparkle" data-ico-size="14">✨</span> Вдохновение</div>
 <div class="abil-mini-state"></div>
 </div>
 </div>
@@ -794,7 +794,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- LEGACY: Спасброски — видны в режиме «Классический» (data-stats-layout="classic") -->
 <div class="card accordion-card legacy-saves-card">
 <button class="accordion-toggle" onclick="toggleAccordion(this)" aria-expanded="false">
-<span>🛡️ Спасброски</span><span class="accordion-arrow">▸</span>
+<span><span data-ico="shield" data-ico-size="16">🛡️</span> Спасброски</span><span class="accordion-arrow">▸</span>
 </button>
 <div class="accordion-body" style="display:none">
 <div class="saves-section">
@@ -805,7 +805,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- LEGACY: Навыки — видны в режиме «Классический» (data-stats-layout="classic") -->
 <div class="card accordion-card legacy-skills-card">
 <button class="accordion-toggle" onclick="toggleAccordion(this)" aria-expanded="false">
-<span>📚 Навыки <span class="accordion-prof-count" id="skills-prof-count"></span></span><span class="accordion-arrow">▸</span>
+<span><span data-ico="book" data-ico-size="16">📚</span> Навыки <span class="accordion-prof-count" id="skills-prof-count"></span></span><span class="accordion-arrow">▸</span>
 </button>
 <div class="accordion-body" style="display:none">
 <div id="skills-container"></div>
@@ -824,7 +824,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Armor selector -->
 <div class="armor-select-row">
 <div class="armor-select-left">
-<label>🛡️ Броня</label>
+<label><span data-ico="shield" data-ico-size="16">🛡️</span> Броня</label>
 <select id="char-armor" class="field" onchange="updateChar(); onArmorChange()">
 <option value="none">👤 Без доспехов</option>
 <optgroup label="Лёгкий доспех">
@@ -868,28 +868,28 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="hp-divider">/</div>
 <div class="hp-col hp-max-col">
-<div class="hp-lbl">Максимум <button class="hp-recalc-btn" onclick="recalculateHP()" title="Пересчитать по классу/уровню/ТЕЛ">🔄</button></div>
+<div class="hp-lbl">Максимум <button class="hp-recalc-btn" onclick="recalculateHP()" title="Пересчитать по классу/уровню/ТЕЛ"><span data-ico="reset">🔄</span></button></div>
 <input type="number" id="hp-max-manual" class="hp-max-manual-inp" min="1" onchange="onManualMaxHP()" placeholder="—">
 </div>
 <div class="hp-col hp-temp-col">
-<div class="hp-lbl">⚡ Врем. ХП</div>
+<div class="hp-lbl"><span data-ico="zap" data-ico-size="14">⚡</span> Врем. ХП</div>
 <input type="number" id="hp-temp" class="hp-temp-inp" value="0" min="0" onchange="saveTempHP()">
 </div>
 </div>
 <div class="hp-bar-wrap"><div class="hp-bar-ghost" id="hp-bar-ghost"></div><div class="hp-bar" id="hp-bar"></div></div>
 <div class="hp-toast-anchor">
-<button class="btn btn-ghost btn-sm" onclick="openHPHistory()">📋 История ХП</button>
+<button class="btn btn-ghost btn-sm" onclick="openHPHistory()"><span data-ico="history" data-ico-size="16">📋</span> История ХП</button>
 </div>
 <div class="hp-rest-row">
-  <button class="btn hp-rest-btn hp-rest-short" onclick="openRestModal(); showShortRestInfo()">☕ Короткий отдых</button>
-  <button class="btn hp-rest-btn hp-rest-long" onclick="openRestModal(); showLongRestInfo()">🛏️ Долгий отдых</button>
+  <button class="btn hp-rest-btn hp-rest-short" onclick="openRestModal(); showShortRestInfo()"><span data-ico="coffee" data-ico-size="16">☕</span> Короткий отдых</button>
+  <button class="btn hp-rest-btn hp-rest-long" onclick="openRestModal(); showLongRestInfo()"><span data-ico="bed" data-ico-size="16">🛏️</span> Долгий отдых</button>
 </div>
 </div>
 
 <!-- Урон / Лечение -->
 <div class="hp-two-col">
 <div class="hp-side hp-side-dmg">
-<div class="hp-side-label">⚔️ Урон</div>
+<div class="hp-side-label"><span data-ico="sword" data-ico-size="16">⚔️</span> Урон</div>
 <div class="hp-side-row">
 <input type="number" id="hp-custom-input" class="hp-side-inp" placeholder="0" min="1">
 <button class="btn btn-danger hp-side-btn" onclick="applyCustomHP('dmg')">Нанести</button>
@@ -902,7 +902,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <div class="hp-side hp-side-heal">
-<div class="hp-side-label">💚 Лечение</div>
+<div class="hp-side-label"><span data-ico="heart" data-ico-size="16">💚</span> Лечение</div>
 <div class="hp-side-row">
 <input type="number" id="hp-heal-input" class="hp-side-inp" placeholder="0" min="1">
 <button class="btn btn-success hp-side-btn" onclick="applyHealInput()">Вылечить</button>
@@ -919,7 +919,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Кость хитов -->
 <div class="hd-block">
 <div class="hd-top-row">
-<span class="hd-label">🎲 Кости хитов: <strong id="hd-type-display">—</strong></span>
+<span class="hd-label"><span data-ico="dice" data-ico-size="16">🎲</span> Кости хитов: <strong id="hd-type-display">—</strong></span>
 <span class="hd-avail-badge" id="hd-avail-display">—</span>
 <span class="hd-result" id="hd-result"></span>
 </div>
@@ -941,7 +941,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- СПАСБРОСКИ НА СМЕРТЬ — только при HP = 0 -->
 <div class="card death-saves-card" id="death-saves-section" style="display:none">
 <div class="ds-header">
-<span class="ds-title">💀 Спасброски на Смерть</span>
+<span class="ds-title"><span data-ico="skull" data-ico-size="16">💀</span> Спасброски на Смерть</span>
 <span class="ds-hint">10+ успех · ниже 10 провал · 1 = 2 провала · 20 = стаб.</span>
 </div>
 <div class="ds-rows">
@@ -963,7 +963,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <div class="ds-roll-row">
-<button class="btn btn-secondary" onclick="rollDeathSave()">🎲 Бросить d20</button>
+<button class="btn btn-secondary" onclick="rollDeathSave()"><span data-ico="dice" data-ico-size="16">🎲</span> Бросить d20</button>
 <div class="ds-roll-result" id="ds-roll-result"></div>
 </div>
 <div class="ds-status" id="ds-status"></div>
@@ -971,8 +971,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 
 <div class="level-actions">
-<button class="btn btn-primary" onclick="openLevelUpModal()">⬆️ Повысить уровень</button>
-<button id="level-down-btn" type="button" class="btn btn-secondary level-down-btn" onclick="openLevelDownConfirm()" style="display:none" title="Отменить последнее повышение">↩️ Откатить уровень</button>
+<button class="btn btn-primary" onclick="openLevelUpModal()"><span data-ico="arrowUp" data-ico-size="16">⬆️</span> Повысить уровень</button>
+<button id="level-down-btn" type="button" class="btn btn-secondary level-down-btn" onclick="openLevelDownConfirm()" style="display:none" title="Отменить последнее повышение"><span data-ico="arrowLeft" data-ico-size="16">↩️</span> Откатить уровень</button>
 </div>
 <div class="ac-calc-section">
 <h4>Класс Доспеха (Авто-расчёт)</h4>
@@ -991,7 +991,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- CLASS FEATURES ACCORDION -->
 <div class="accordion-card-inner" id="class-features-section" style="display:none">
 <button class="accordion-toggle accordion-toggle-sm" onclick="toggleAccordion(this)" aria-expanded="false">
-<span>⚡ Классовые умения</span><span class="accordion-arrow">▸</span>
+<span><span data-ico="zap" data-ico-size="16">⚡</span> Классовые умения</span><span class="accordion-arrow">▸</span>
 </button>
 <div class="accordion-body" style="display:none">
 <div class="features-grid" id="features-grid"></div>
@@ -1000,7 +1000,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="accordion-card-inner">
 <button class="accordion-toggle accordion-toggle-sm" onclick="toggleAccordion(this)" aria-expanded="false">
-<span>⚠️ Условия и Статусы <span class="conditions-active-count" id="conditions-count">0</span></span><span class="accordion-arrow">▸</span>
+<span><span data-ico="alert" data-ico-size="16">⚠️</span> Условия и Статусы <span class="conditions-active-count" id="conditions-count">0</span></span><span class="accordion-arrow">▸</span>
 </button>
 <div class="accordion-body" style="display:none">
 <div class="conditions-grid" id="conditions-grid"></div>
@@ -1008,7 +1008,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="accordion-card-inner">
 <button class="accordion-toggle accordion-toggle-sm" onclick="toggleAccordion(this)" aria-expanded="false">
-<span>✨ Временные Эффекты <span class="conditions-active-count" id="effects-count">0</span></span><span class="accordion-arrow">▸</span>
+<span><span data-ico="sparkle" data-ico-size="16">✨</span> Временные Эффекты <span class="conditions-active-count" id="effects-count">0</span></span><span class="accordion-arrow">▸</span>
 </button>
 <div class="accordion-body" style="display:none">
 <div class="effects-grid" id="effects-grid"></div>
@@ -1016,7 +1016,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="accordion-card-inner">
 <button class="accordion-toggle accordion-toggle-sm" onclick="toggleAccordion(this)" aria-expanded="false">
-<span>🛡️ Сопротивления к урону</span><span class="accordion-arrow">▸</span>
+<span><span data-ico="shield" data-ico-size="16">🛡️</span> Сопротивления к урону</span><span class="accordion-arrow">▸</span>
 </button>
 <div class="accordion-body" style="display:none">
 <div id="resistances-container"></div>
@@ -1049,7 +1049,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="card accordion-card">
 <button class="accordion-toggle" onclick="toggleAccordion(this)" aria-expanded="false">
-<span>🐾 Прихвостни</span><span class="accordion-arrow">▸</span>
+<span><span data-ico="wolf" data-ico-size="16">🐾</span> Прихвостни</span><span class="accordion-arrow">▸</span>
 </button>
 <div class="accordion-body" style="display:none">
 <div id="companions-list-sheet"></div>
@@ -1111,15 +1111,15 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="card">
 <div class="spell-slots-header">
 <h3>Ячейки заклинаний</h3>
-<button class="ssl-restore-btn" onclick="restoreAllSlots()" title="Восстановить все ячейки">🛏️ Длинный отдых</button>
+<button class="ssl-restore-btn" onclick="restoreAllSlots()" title="Восстановить все ячейки"><span data-ico="bed" data-ico-size="16">🛏️</span> Длинный отдых</button>
 </div>
-<p style="font-size:0.72em; color:var(--text-muted); margin-bottom:8px;">💎 Клик по ячейке — потратить / вернуть · Золотые слева — свободные, счётчик: <span style="color:var(--success-color);font-weight:600;">свободные</span>/всего</p>
+<p style="font-size:0.72em; color:var(--text-muted); margin-bottom:8px;"><span data-ico="bulb" data-ico-size="14">💎</span> Клик по ячейке — потратить / вернуть · Золотые слева — свободные, счётчик: <span style="color:var(--success-color);font-weight:600;">свободные</span>/всего</p>
 <div class="spell-slots-visual" id="spell-slots-visual"></div>
 </div>
 <div class="card">
 <div class="concentration-block" id="concentration-block">
   <div class="conc-left">
-    <span class="conc-icon">🔮</span>
+    <span class="conc-icon" data-ico="focus" data-ico-size="16">🔮</span>
     <div class="conc-info">
       <span class="conc-label">Концентрация</span>
       <span class="conc-name" id="conc-name">—</span>
@@ -1130,8 +1130,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="spells-header-row">
 <h3>Мои заклинания</h3>
 <div class="spell-action-btns">
-<button class="spell-find-btn" onclick="openSpellSearch()">🔍 Найти заклинание</button>
-<button class="spell-add-btn" onclick="openAddSpellForm()">✏️ Добавить своё</button>
+<button class="spell-find-btn" onclick="openSpellSearch()"><span data-ico="search" data-ico-size="16">🔍</span> Найти заклинание</button>
+<button class="spell-add-btn" onclick="openAddSpellForm()"><span data-ico="edit" data-ico-size="16">✏️</span> Добавить своё</button>
 </div>
 </div>
 <div id="prep-counter" class="prep-counter" style="display:none"></div>
@@ -1152,20 +1152,20 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <span class="inv-slots-total" id="inv-slots-total">10</span>
     </div>
     <div class="inv-slots-right">
-      <span class="inv-attune-count" id="inv-attune-count" style="display:none" title="Настроенные магические предметы (лимит 3)">⚙ 0/3</span>
+      <span class="inv-attune-count" id="inv-attune-count" style="display:none" title="Настроенные магические предметы (лимит 3)"><span data-ico="settings" data-ico-size="14">⚙</span> 0/3</span>
       <span class="inv-slots-str-hint" id="inv-slots-str-hint">СИЛ: 10</span>
-      <div class="inv-overweight-badge" id="overweight-warning" style="display:none">⚠️ Перегруз <span id="overweight-amount">0</span></div>
+      <div class="inv-overweight-badge" id="overweight-warning" style="display:none"><span data-ico="alert" data-ico-size="14">⚠️</span> Перегруз <span id="overweight-amount">0</span></div>
     </div>
   </div>
   <div class="inv-weight-track">
     <div class="inv-weight-fill" id="weight-fill" style="width:0%"></div>
   </div>
   <div class="inv-slots-legend">
-    <span title="1 слот">⚔️ 1</span>
-    <span title="3 слота">🛡️ 3</span>
-    <span title="½ слота">🧪 ½</span>
-    <span title="1 слот">📜 1</span>
-    <span title="1 слот">📦 1</span>
+    <span title="1 слот"><span data-ico="sword" data-ico-size="14">⚔️</span> 1</span>
+    <span title="3 слота"><span data-ico="shield" data-ico-size="14">🛡️</span> 3</span>
+    <span title="½ слота"><span data-ico="flask" data-ico-size="14">🧪</span> ½</span>
+    <span title="1 слот"><span data-ico="scroll" data-ico-size="14">📜</span> 1</span>
+    <span title="1 слот"><span data-ico="box" data-ico-size="14">📦</span> 1</span>
   </div>
 </div>
 
@@ -1179,19 +1179,19 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div class="inv-backpack-header">
     <h4>Рюкзак</h4>
     <div style="display:flex;gap:8px;align-items:center;">
-      <button id="inv-backpack-toggle" class="inv-add-btn" style="background:transparent;color:var(--text);border:1px solid var(--border);" onclick="toggleBackpackOff()" title="Снять/надеть рюкзак: вещи внутри временно недоступны и не занимают слотов">🎒 Надет</button>
+      <button id="inv-backpack-toggle" class="inv-add-btn" style="background:transparent;color:var(--text);border:1px solid var(--border);" onclick="toggleBackpackOff()" title="Снять/надеть рюкзак: вещи внутри временно недоступны и не занимают слотов"><span data-ico="inventory" data-ico-size="16">🎒</span> Надет</button>
       <button class="inv-add-btn" onclick="openItemModal(null, -1)">+ Добавить</button>
     </div>
   </div>
   <div class="inventory-filters">
-    <button class="active" onclick="filterInventory('all', this)">📋 Все</button>
-    <button onclick="filterInventory('weapon', this)">⚔️ Оружие</button>
-    <button onclick="filterInventory('armor', this)">🛡️ Броня</button>
-    <button onclick="filterInventory('potion', this)">🧪 Зелья</button>
-    <button onclick="filterInventory('scroll', this)">📜 Свитки</button>
-    <button onclick="filterInventory('tool', this)">🔧 Инструменты</button>
-    <button onclick="filterInventory('material', this)">📦 Материалы</button>
-    <button onclick="filterInventory('other', this)">📝 Прочее</button>
+    <button class="active" onclick="filterInventory('all', this)"><span data-ico="layers" data-ico-size="16">📋</span> Все</button>
+    <button onclick="filterInventory('weapon', this)"><span data-ico="sword" data-ico-size="16">⚔️</span> Оружие</button>
+    <button onclick="filterInventory('armor', this)"><span data-ico="shield" data-ico-size="16">🛡️</span> Броня</button>
+    <button onclick="filterInventory('potion', this)"><span data-ico="flask" data-ico-size="16">🧪</span> Зелья</button>
+    <button onclick="filterInventory('scroll', this)"><span data-ico="scroll" data-ico-size="16">📜</span> Свитки</button>
+    <button onclick="filterInventory('tool', this)"><span data-ico="wrench" data-ico-size="16">🔧</span> Инструменты</button>
+    <button onclick="filterInventory('material', this)"><span data-ico="box" data-ico-size="16">📦</span> Материалы</button>
+    <button onclick="filterInventory('other', this)"><span data-ico="more" data-ico-size="16">📝</span> Прочее</button>
   </div>
   <div class="inventory-list" id="inventory-list"></div>
 </div>
@@ -1298,7 +1298,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <label class="coin-exch-label">Количество</label>
     <input type="number" id="exch-amount" value="1" min="1" class="coin-exch-amount" oninput="previewExchange()">
     <div class="coin-exch-preview" id="exch-preview">Введите количество</div>
-    <button class="success coin-exch-confirm" onclick="confirmExchange()">✓ Обменять</button>
+    <button class="success coin-exch-confirm" onclick="confirmExchange()"><span data-ico="check" data-ico-size="16">✓</span> Обменять</button>
     <button class="secondary" onclick="closeCoinExchange()">Отмена</button>
   </div>
 </div>
@@ -1312,17 +1312,17 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <input type="search" id="notes-search" class="notes-search" placeholder="🔍 Поиск…"
            oninput="notesSearchInput(this.value)" onkeydown="notesSearchKeydown(event)">
     <button class="notes-new-btn" id="notes-new-btn" onclick="notesOpenEntryModal()" title="Новая запись">+ Запись</button>
-    <button class="notes-regen-btn" id="notes-regen-btn" onclick="notesRegenerateAll()" title="Перегенерировать все секции из вариантов билда" aria-label="Перегенерировать все секции">🎲 всё</button>
+    <button class="notes-regen-btn" id="notes-regen-btn" onclick="notesRegenerateAll()" title="Перегенерировать все секции из вариантов билда" aria-label="Перегенерировать все секции"><span data-ico="dice" data-ico-size="16">🎲</span> всё</button>
     <div class="notes-menu-wrap">
       <button class="notes-menu-btn" id="notes-menu-btn" onclick="notesToggleMenu(event)" title="Экспорт / Импорт / Печать">⋯</button>
       <div class="notes-menu-dropdown" id="notes-menu-dropdown" style="display:none">
-        <button class="notes-menu-item" onclick="notesMenuAction('export-md')">📄 Экспорт .md</button>
-        <button class="notes-menu-item" onclick="notesMenuAction('export-json')">📦 Экспорт .json</button>
+        <button class="notes-menu-item" onclick="notesMenuAction('export-md')"><span data-ico="file" data-ico-size="16">📄</span> Экспорт .md</button>
+        <button class="notes-menu-item" onclick="notesMenuAction('export-json')"><span data-ico="box" data-ico-size="16">📦</span> Экспорт .json</button>
         <hr class="notes-menu-sep">
-        <button class="notes-menu-item" onclick="notesMenuAction('import-json')">📥 Импорт .json</button>
-        <button class="notes-menu-item" onclick="notesMenuAction('import-md')">📥 Импорт .md</button>
+        <button class="notes-menu-item" onclick="notesMenuAction('import-json')"><span data-ico="import" data-ico-size="16">📥</span> Импорт .json</button>
+        <button class="notes-menu-item" onclick="notesMenuAction('import-md')"><span data-ico="import" data-ico-size="16">📥</span> Импорт .md</button>
         <hr class="notes-menu-sep">
-        <button class="notes-menu-item" onclick="notesMenuAction('print')">🖨 Печать / PDF</button>
+        <button class="notes-menu-item" onclick="notesMenuAction('print')"><span data-ico="printer" data-ico-size="16">🖨</span> Печать / PDF</button>
       </div>
     </div>
     <span class="notes-save-ind" id="notes-save-ind" aria-live="polite"></span>
@@ -1337,7 +1337,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <!-- Взятые черты (АСИ) — переносим сюда, показываются в разделе «Черты» -->
   <div id="taken-feats-section" style="display:none;">
     <div class="taken-feats-header">
-      <span>🎯 Взятые черты</span>
+      <span><span data-ico="target" data-ico-size="16">🎯</span> Взятые черты</span>
       <span class="taken-feats-count" id="taken-feats-count"></span>
     </div>
     <div id="taken-feats-list" class="taken-feats-list"></div>
@@ -1381,7 +1381,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="party-section-count" id="npcs-count"></span>
 <div class="party-section-actions">
 <button class="party-add-btn" onclick="openAddNPCModal()">＋ Добавить</button>
-<button class="party-add-btn party-add-btn-srd" onclick="openSrdNpcPicker()" title="Шаблон-архетип">📚 Архетипы</button>
+<button class="party-add-btn party-add-btn-srd" onclick="openSrdNpcPicker()" title="Шаблон-архетип"><span data-ico="book" data-ico-size="16">📚</span> Архетипы</button>
 <button class="party-io-btn" onclick="exportNPCs()" title="Экспорт">↓</button>
 <button class="party-io-btn" onclick="document.getElementById('npcs-import').click()" title="Импорт">↑</button>
 <input type="file" id="npcs-import" style="display:none" onchange="importNPCs(this)" accept=".json">
@@ -1398,7 +1398,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="party-section-count" id="monsters-count"></span>
 <div class="party-section-actions">
 <button class="party-add-btn" onclick="openAddMonsterModal()">＋ Добавить</button>
-<button class="party-add-btn party-add-btn-srd" onclick="openSrdMonsterPicker()" title="Из бестиария SRD">📚 Из SRD</button>
+<button class="party-add-btn party-add-btn-srd" onclick="openSrdMonsterPicker()" title="Из бестиария SRD"><span data-ico="book" data-ico-size="16">📚</span> Из SRD</button>
 <button class="party-io-btn" onclick="exportMonsters()" title="Экспорт">↓</button>
 <button class="party-io-btn" onclick="document.getElementById('monsters-import').click()" title="Импорт">↑</button>
 <input type="file" id="monsters-import" style="display:none" onchange="importMonsters(this)" accept=".json">
@@ -1423,7 +1423,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- companion modal moved to global modals -->
 
 <div class="party-section-card">
-<button class="battle-start-btn" onclick="switchTab('battle', document.querySelector('[onclick*=battle]'))">⚔️ Перейти к бою</button>
+<button class="battle-start-btn" onclick="switchTab('battle', document.querySelector('[onclick*=battle]'))"><span data-ico="combat" data-ico-size="16">⚔️</span> Перейти к бою</button>
 </div>
 
 </div>
@@ -1436,7 +1436,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <h3>Выбор участников</h3>
 </div>
 <div class="battle-search-wrap">
-<span class="char-search-icon">🔍</span>
+<span class="char-search-icon" data-ico="search" data-ico-size="16">🔍</span>
 <input type="text" class="char-search-inp" placeholder="Поиск по имени..." oninput="setBattleSearch(this.value)">
 </div>
 <div id="battle-setup-list"></div>
@@ -1474,11 +1474,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="journal-filter-row">
 <button class="jfilter-btn active" onclick="filterJournal('all',this)">Все</button>
-<button class="jfilter-btn" onclick="filterJournal('levelup',this)">📈 Уровни</button>
-<button class="jfilter-btn" onclick="filterJournal('rest',this)">🛏️ Отдых</button>
-<button class="jfilter-btn" onclick="filterJournal('stat',this)">⚡ Статы</button>
-<button class="jfilter-btn" onclick="filterJournal('feat',this)">🎯 Черты</button>
-<button class="jfilter-btn" onclick="filterJournal('note',this)">📝 Заметки</button>
+<button class="jfilter-btn" onclick="filterJournal('levelup',this)"><span data-ico="trend" data-ico-size="16">📈</span> Уровни</button>
+<button class="jfilter-btn" onclick="filterJournal('rest',this)"><span data-ico="bed" data-ico-size="16">🛏️</span> Отдых</button>
+<button class="jfilter-btn" onclick="filterJournal('stat',this)"><span data-ico="zap" data-ico-size="16">⚡</span> Статы</button>
+<button class="jfilter-btn" onclick="filterJournal('feat',this)"><span data-ico="target" data-ico-size="16">🎯</span> Черты</button>
+<button class="jfilter-btn" onclick="filterJournal('note',this)"><span data-ico="notes" data-ico-size="16">📝</span> Заметки</button>
 </div>
 <div id="journal-list" class="journal-list"></div>
 </div>
@@ -1491,14 +1491,14 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <button type="button" class="modal-close" onclick="closeItemRef()" aria-label="Закрыть">✕</button>
   <h3 id="item-ref-title">Справка</h3>
   <div id="item-ref-tabs" class="item-ref-tabs">
-    <button class="item-ref-tab active" onclick="switchItemRef('weight',this)">⚖️ Вес</button>
-    <button class="item-ref-tab" onclick="switchItemRef('slots',this)">📦 Слоты</button>
+    <button class="item-ref-tab active" onclick="switchItemRef('weight',this)"><span data-ico="scale" data-ico-size="16">⚖️</span> Вес</button>
+    <button class="item-ref-tab" onclick="switchItemRef('slots',this)"><span data-ico="box" data-ico-size="16">📦</span> Слоты</button>
   </div>
 
   <!-- Weight reference -->
   <div id="item-ref-weight" class="item-ref-section">
     <div class="item-ref-group">
-      <div class="item-ref-group-title">⚔️ Оружие</div>
+      <div class="item-ref-group-title"><span data-ico="sword" data-ico-size="16">⚔️</span> Оружие</div>
       <div class="item-ref-row"><span>Кинжал, нож</span><span>1 фнт</span></div>
       <div class="item-ref-row"><span>Короткий меч, рапира</span><span>2 фнт</span></div>
       <div class="item-ref-row"><span>Длинный меч, сабля</span><span>3 фнт</span></div>
@@ -1511,7 +1511,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="item-ref-row"><span>Стрелы (20 шт)</span><span>1 фнт</span></div>
     </div>
     <div class="item-ref-group">
-      <div class="item-ref-group-title">🛡️ Броня</div>
+      <div class="item-ref-group-title"><span data-ico="shield" data-ico-size="16">🛡️</span> Броня</div>
       <div class="item-ref-row"><span>Стёганая, кожаная</span><span>8–10 фнт</span></div>
       <div class="item-ref-row"><span>Кольчужная рубаха</span><span>20 фнт</span></div>
       <div class="item-ref-row"><span>Чешуйчатый доспех</span><span>45 фнт</span></div>
@@ -1520,7 +1520,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="item-ref-row"><span>Щит</span><span>6 фнт</span></div>
     </div>
     <div class="item-ref-group">
-      <div class="item-ref-group-title">🎒 Снаряжение</div>
+      <div class="item-ref-group-title"><span data-ico="inventory" data-ico-size="16">🎒</span> Снаряжение</div>
       <div class="item-ref-row"><span>Верёвка (50 фт)</span><span>10 фнт</span></div>
       <div class="item-ref-row"><span>Факел</span><span>1 фнт</span></div>
       <div class="item-ref-row"><span>Масляный фонарь</span><span>2 фнт</span></div>
@@ -1531,19 +1531,19 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="item-ref-row"><span>Свиток (любой)</span><span>0 фнт</span></div>
       <div class="item-ref-row"><span>Книга заклинаний</span><span>3 фнт</span></div>
     </div>
-    <div class="item-ref-note">📌 Грузоподъёмность = СИЛ × 15 фнт</div>
+    <div class="item-ref-note"><span data-ico="pin" data-ico-size="14">📌</span> Грузоподъёмность = СИЛ × 15 фнт</div>
   </div>
 
   <!-- Slots reference -->
   <div id="item-ref-slots" class="item-ref-section hidden">
     <div class="item-ref-group">
       <div class="item-ref-group-title">Базовые значения по категории</div>
-      <div class="item-ref-row"><span>⚔️ Оружие одноручное</span><span>1 слот</span></div>
-      <div class="item-ref-row"><span>⚔️ Оружие двуручное</span><span>2 слота</span></div>
-      <div class="item-ref-row"><span>🛡️ Броня</span><span>3 слота</span></div>
-      <div class="item-ref-row"><span>🧪 Зелье</span><span>½ слота</span></div>
-      <div class="item-ref-row"><span>📜 Свиток</span><span>1 слот</span></div>
-      <div class="item-ref-row"><span>📦 Прочее</span><span>1 слот</span></div>
+      <div class="item-ref-row"><span><span data-ico="sword" data-ico-size="14">⚔️</span> Оружие одноручное</span><span>1 слот</span></div>
+      <div class="item-ref-row"><span><span data-ico="sword" data-ico-size="14">⚔️</span> Оружие двуручное</span><span>2 слота</span></div>
+      <div class="item-ref-row"><span><span data-ico="shield" data-ico-size="14">🛡️</span> Броня</span><span>3 слота</span></div>
+      <div class="item-ref-row"><span><span data-ico="flask" data-ico-size="14">🧪</span> Зелье</span><span>½ слота</span></div>
+      <div class="item-ref-row"><span><span data-ico="scroll" data-ico-size="14">📜</span> Свиток</span><span>1 слот</span></div>
+      <div class="item-ref-row"><span><span data-ico="box" data-ico-size="14">📦</span> Прочее</span><span>1 слот</span></div>
     </div>
     <div class="item-ref-group">
       <div class="item-ref-group-title">Примеры нестандартных слотов</div>
@@ -1561,7 +1561,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="item-ref-row"><span>СИЛ 13–15</span><span>12 слотов</span></div>
       <div class="item-ref-row"><span>СИЛ 16+</span><span>15 слотов</span></div>
     </div>
-    <div class="item-ref-note">📌 Поле «Слотов» заполняй только если хочешь переопределить стандарт</div>
+    <div class="item-ref-note"><span data-ico="pin" data-ico-size="14">📌</span> Поле «Слотов» заполняй только если хочешь переопределить стандарт</div>
   </div>
 </div>
 </div>
@@ -1572,19 +1572,19 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <button type="button" class="modal-close" onclick="closeHelp()" aria-label="Закрыть">✕</button>
   <h3 id="help-title">Справка</h3>
   <div class="help-tabs" role="tablist">
-    <button class="help-tab" onclick="switchHelpSection('about',this)">🐉 Что такое D&amp;D</button>
-    <button class="help-tab" onclick="switchHelpSection('start',this)">🚀 С чего начать</button>
-    <button class="help-tab" onclick="switchHelpSection('sheet',this)">📋 Лист</button>
-    <button class="help-tab" onclick="switchHelpSection('spells',this)">✨ Заклинания</button>
-    <button class="help-tab" onclick="switchHelpSection('inventory',this)">🎒 Инвентарь</button>
-    <button class="help-tab" onclick="switchHelpSection('battle',this)">⚔️ Бой</button>
-    <button class="help-tab" onclick="switchHelpSection('party',this)">🌍 Мир</button>
-    <button class="help-tab" onclick="switchHelpSection('notes',this)">📝 Записи</button>
-    <button class="help-tab" onclick="switchHelpSection('journal',this)">📖 Журнал</button>
-    <button class="help-tab" onclick="switchHelpSection('planes',this)">🌌 Планы</button>
-    <button class="help-tab" onclick="switchHelpSection('dice',this)">🎲 Кубики</button>
-    <button class="help-tab" onclick="switchHelpSection('edition2024',this)">📕 Редакция 2024</button>
-    <button class="help-tab" onclick="switchHelpSection('data',this)">💾 Данные</button>
+    <button class="help-tab" onclick="switchHelpSection('about',this)"><span data-ico="bulb" data-ico-size="16">🐉</span> Что такое D&amp;D</button>
+    <button class="help-tab" onclick="switchHelpSection('start',this)"><span data-ico="play" data-ico-size="16">🚀</span> С чего начать</button>
+    <button class="help-tab" onclick="switchHelpSection('sheet',this)"><span data-ico="sheet" data-ico-size="16">📋</span> Лист</button>
+    <button class="help-tab" onclick="switchHelpSection('spells',this)"><span data-ico="spells" data-ico-size="16">✨</span> Заклинания</button>
+    <button class="help-tab" onclick="switchHelpSection('inventory',this)"><span data-ico="inventory" data-ico-size="16">🎒</span> Инвентарь</button>
+    <button class="help-tab" onclick="switchHelpSection('battle',this)"><span data-ico="combat" data-ico-size="16">⚔️</span> Бой</button>
+    <button class="help-tab" onclick="switchHelpSection('party',this)"><span data-ico="users" data-ico-size="16">🌍</span> Мир</button>
+    <button class="help-tab" onclick="switchHelpSection('notes',this)"><span data-ico="notes" data-ico-size="16">📝</span> Записи</button>
+    <button class="help-tab" onclick="switchHelpSection('journal',this)"><span data-ico="bookOpen" data-ico-size="16">📖</span> Журнал</button>
+    <button class="help-tab" onclick="switchHelpSection('planes',this)"><span data-ico="atom" data-ico-size="16">🌌</span> Планы</button>
+    <button class="help-tab" onclick="switchHelpSection('dice',this)"><span data-ico="dice" data-ico-size="16">🎲</span> Кубики</button>
+    <button class="help-tab" onclick="switchHelpSection('edition2024',this)"><span data-ico="book" data-ico-size="16">📕</span> Редакция 2024</button>
+    <button class="help-tab" onclick="switchHelpSection('data',this)"><span data-ico="save" data-ico-size="16">💾</span> Данные</button>
   </div>
 
   <div class="help-body">
@@ -1614,7 +1614,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- 🚀 С чего начать -->
     <div id="help-start" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="restartTour()">🧭 Пройти интерактивный тур</button>
+      <button type="button" class="help-tour-btn" onclick="restartTour()"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти интерактивный тур</button>
       <div class="help-block">
         <div class="help-block-title">Что умеет приложение</div>
         <p>Цифровой лист персонажа D&amp;D 5e: характеристики, заклинания, инвентарь, бой, заметки и журнал. Данные хранятся локально в браузере и работают без интернета.</p>
@@ -1655,7 +1655,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- ✨ Заклинания -->
     <div id="help-spells" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="startTabTour('spells')">🧭 Пройти тур по разделу</button>
+      <button type="button" class="help-tour-btn" onclick="startTabTour('spells')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по разделу</button>
       <div class="help-block">
         <div class="help-block-title">База заклинаний</div>
         <p>Поиск по встроенной базе с фильтрами по классу и уровню. Можно добавлять собственные заклинания.</p>
@@ -1672,7 +1672,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- 🎒 Инвентарь -->
     <div id="help-inventory" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="startTabTour('inventory')">🧭 Пройти тур по разделу</button>
+      <button type="button" class="help-tour-btn" onclick="startTabTour('inventory')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по разделу</button>
       <div class="help-block">
         <div class="help-block-title">Предметы и переноска</div>
         <p>Список предметов с учётом веса (грузоподъёмность = Сила × 15 фнт) либо слотов — режим переключается. Кнопки «?» у полей веса и слотов открывают справочные таблицы.</p>
@@ -1685,7 +1685,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- ⚔️ Бой -->
     <div id="help-battle" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="startTabTour('battle')">🧭 Пройти тур по разделу</button>
+      <button type="button" class="help-tour-btn" onclick="startTabTour('battle')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по разделу</button>
       <div class="help-block">
         <div class="help-block-title">Хиты и урон</div>
         <p>Текущие, максимальные и временные хиты. Кнопки лечения и урона меняют HP; временные хиты тратятся первыми.</p>
@@ -1702,7 +1702,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- 🌍 Мир -->
     <div id="help-party" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="startTabTour('party')">🧭 Пройти тур по разделу</button>
+      <button type="button" class="help-tour-btn" onclick="startTabTour('party')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по разделу</button>
       <div class="help-block">
         <div class="help-block-title">Спутники и NPC</div>
         <p>Список спутников, питомцев и важных персонажей мира. Существ можно добавить из встроенного бестиария SRD.</p>
@@ -1715,7 +1715,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- 📝 Записи -->
     <div id="help-notes" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="startTabTour('notes')">🧭 Пройти тур по разделу</button>
+      <button type="button" class="help-tour-btn" onclick="startTabTour('notes')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по разделу</button>
       <div class="help-block">
         <div class="help-block-title">Свободные заметки</div>
         <p>Текстовые записи по ходу игры. Поддерживаются теги и ссылки между записями для быстрой навигации.</p>
@@ -1724,7 +1724,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- 📖 Журнал -->
     <div id="help-journal" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="startTabTour('journal')">🧭 Пройти тур по разделу</button>
+      <button type="button" class="help-tour-btn" onclick="startTabTour('journal')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по разделу</button>
       <div class="help-block">
         <div class="help-block-title">Дневник приключения</div>
         <p>Хронология событий и сессий: что произошло, какие решения приняты, к чему вернуться позже.</p>
@@ -1820,7 +1820,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="conc-details-modal" class="confirm-modal-overlay hidden" onclick="if(event.target===this)closeConcDetails()">
 <div class="conc-details-box">
   <div class="conc-details-header">
-    <span class="conc-details-icon">🔮</span>
+    <span class="conc-details-icon" data-ico="focus" data-ico-size="16">🔮</span>
     <div class="conc-details-title">
       <div class="conc-details-label">КОНЦЕНТРАЦИЯ</div>
       <div class="conc-details-name" id="conc-details-name">—</div>
@@ -2041,7 +2041,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="time">1 час</span>
 </button>
 <button class="rest-option-btn long-rest" onclick="showLongRestInfo()">
-<span class="icon">🛏️</span>
+<span class="icon" data-ico="bed" data-ico-size="20">🛏️</span>
 Долгий отдых
 <span class="time">8 часов</span>
 </button>
@@ -2069,7 +2069,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <div id="rest-food-section" class="rest-info hidden">
-<label class="item-attune-label"><input type="checkbox" id="rest-food-drink" checked> 🍖 Персонаж поел и попил</label>
+<label class="item-attune-label"><input type="checkbox" id="rest-food-drink" checked> <span data-ico="food" data-ico-size="16">🍖</span> Персонаж поел и попил</label>
 <p style="font-size:0.8em; color:var(--text-muted); margin:6px 0 0;">Без еды и питья продолжительный отдых не снижает истощение (PHB стр. 291)</p>
 </div>
 <div style="display:flex; gap:10px;">
@@ -2099,7 +2099,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="lu-mc-title">Какой класс повысить?</div>
 <div id="lu-mc-current-classes"></div>
 <div class="lu-mc-divider">или</div>
-<button class="lu-mc-add-btn" onclick="openMulticlassNewClass()">➕ Добавить новый класс</button>
+<button class="lu-mc-add-btn" onclick="openMulticlassNewClass()"><span data-ico="plus" data-ico-size="16">➕</span> Добавить новый класс</button>
 <div id="lu-mc-new-class" style="display:none">
 <div class="lu-mc-new-label">Выберите класс:</div>
 <select id="lu-mc-class-select" class="lu-mc-select">
@@ -2124,7 +2124,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 <div class="lu-stats-grid">
 <div class="lu-stat-card">
-<div class="lu-stat-label">❤️ Максимум ХП</div>
+<div class="lu-stat-label"><span data-ico="heart" data-ico-size="14">❤️</span> Максимум ХП</div>
 <div class="lu-stat-row">
 <span id="lu-hp-from" class="lu-stat-old">—</span>
 <span class="lu-stat-arrow">→</span>
@@ -2133,7 +2133,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <div class="lu-stat-card">
-<div class="lu-stat-label">🎲 Кость хитов</div>
+<div class="lu-stat-label"><span data-ico="dice" data-ico-size="14">🎲</span> Кость хитов</div>
 <div class="lu-stat-row">
 <span id="lu-hit-die" class="lu-stat-new">—</span>
 <span class="lu-stat-sep">×</span>
@@ -2141,7 +2141,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <div class="lu-stat-card">
-<div class="lu-stat-label">⚡ Бонус мастерства</div>
+<div class="lu-stat-label"><span data-ico="zap" data-ico-size="14">⚡</span> Бонус мастерства</div>
 <div class="lu-stat-row">
 <span id="lu-prof-old" class="lu-stat-old">—</span>
 <span id="lu-prof-arrow" class="lu-stat-arrow" style="display:none">→</span>
@@ -2149,7 +2149,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <div class="lu-stat-card" id="lu-slots-card" style="display:none">
-<div class="lu-stat-label">✨ Ячейки заклинаний</div>
+<div class="lu-stat-label"><span data-ico="spells" data-ico-size="14">✨</span> Ячейки заклинаний</div>
 <div class="lu-stat-row" id="lu-slots-info">—</div>
 </div>
 </div>
@@ -2165,7 +2165,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 <!-- BUILD-LVL-4: Экран выборов (guided level-up) -->
 <div id="lu-screen-choices" style="display:none">
-<div class="lu-choices-head">🎯 Сделай выборы нового уровня</div>
+<div class="lu-choices-head"><span data-ico="target" data-ico-size="16">🎯</span> Сделай выборы нового уровня</div>
 <div id="lu-choices-body" class="lu-choices-body"></div>
 <div class="lu-footer">
 <button class="lu-btn-confirm" style="width:100%" onclick="luFinishChoices()">Продолжить →</button>
@@ -2174,7 +2174,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 <!-- Экран: Результат -->
 <div id="lu-screen-result" style="display:none">
-<div class="lu-result-icon">🎉</div>
+<div class="lu-result-icon" data-ico="star" data-ico-size="28">🎉</div>
 <div class="lu-result-title" id="lu-result-title">Уровень повышен!</div>
 <div class="lu-result-body" id="lu-result-body"></div>
 <button class="lu-btn-confirm" style="width:100%;margin-top:20px" onclick="closeLevelUpModal()">Готово</button>
@@ -2185,7 +2185,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="hp-history-modal" class="modal">
 <div class="modal-content hph-modal">
 <div class="hph-header">
-<span class="hph-title">📋 История здоровья</span>
+<span class="hph-title"><span data-ico="history" data-ico-size="18">📋</span> История здоровья</span>
 <button type="button" class="modal-close" onclick="closeHPHistory()" aria-label="Закрыть">✕</button>
 </div>
 <div id="hp-history-list" class="hph-list"></div>
@@ -2210,7 +2210,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </label>
 <label class="asi-radio-row">
 <input type="radio" name="asi-mode" value="feat" onchange="updateASIPreview()">
-<span>🎯 Выбрать черту</span>
+<span><span data-ico="target" data-ico-size="16">🎯</span> Выбрать черту</span>
 </label>
 </div>
 <div id="asi-feat-list" style="display:none"></div>
@@ -2286,7 +2286,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <canvas class="dice-arena-bg" id="diceArenaBg" aria-hidden="true"></canvas>
       <div class="dice-arena" id="dsvg-container"></div>
     </div>
-    <div class="dice-file-hint" id="dice-file-hint" hidden>ℹ️ 3D-кубики работают только при запуске через сервер (localhost) или на сайте. При открытии файла напрямую (file://) браузер блокирует 3D-движок — показываются плоские.</div>
+    <div class="dice-file-hint" id="dice-file-hint" hidden><span data-ico="info" data-ico-size="14">ℹ️</span> 3D-кубики работают только при запуске через сервер (localhost) или на сайте. При открытии файла напрямую (file://) браузер блокирует 3D-движок — показываются плоские.</div>
     <div class="dice3d-result" id="dice3d-result">
       <div class="dice3d-divider" aria-hidden="true"></div>
       <span class="dice3d-num" id="dice-result-big">—</span>
@@ -2446,7 +2446,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="spell-class-filter-grouped" id="spell-class-filter">
   <div class="cf-row cf-row-top">
     <div class="class-filter-group" data-group="edition">
-      <span class="class-filter-label" title="Редакция Player's Handbook">📖 Редакция</span>
+      <span class="class-filter-label" title="Редакция Player's Handbook"><span data-ico="book" data-ico-size="14">📖</span> Редакция</span>
       <div class="class-filter-row cf-equal">
         <button class="version-btn edition-btn active" onclick="setSpellVersion('all')"  id="btn-ver-all">Все</button>
         <button class="version-btn edition-btn"        onclick="setSpellVersion('PH14')" id="btn-ver-ph14">PH'14</button>
@@ -2454,7 +2454,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       </div>
     </div>
     <div class="class-filter-group cf-allbox" data-group="all">
-      <span class="class-filter-label">✦ Любой класс</span>
+      <span class="class-filter-label"><span data-ico="star" data-ico-size="14">✦</span> Любой класс</span>
       <div class="class-filter-row">
         <button class="class-filter-all active" onclick="setSpellClass('all')" id="btn-class-all">Все классы</button>
       </div>
@@ -2603,7 +2603,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
      разметки), новый CSS не нужен, и значение читается через .value без обхода
      DOM — как скрытый CSV классов из HB-2. -->
 <div class="row">
-<div class="col"><label>⚙️ Механика (необязательно)</label>
+<div class="col"><label><span data-ico="settings" data-ico-size="16">⚙️</span> Механика (необязательно)</label>
 <select id="new-spell-mech-kind" onchange="updateNewSpellMechFields()">
 <option value="none" selected>Нет — только описание</option>
 <option value="damage">💥 Урон</option>
@@ -2656,8 +2656,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="modal-content">
 <button type="button" class="modal-close" onclick="closeItemModal()" aria-label="Закрыть">✕</button>
 <h3 id="item-modal-title">Добавить предмет</h3>
-<button type="button" class="magic-catalog-open-btn" onclick="openGearCatalog()">🎒 Из каталога снаряжения</button>
-<button type="button" class="magic-catalog-open-btn" onclick="openMagicCatalog()">📖 Выбрать из каталога магических предметов</button>
+<button type="button" class="magic-catalog-open-btn" onclick="openGearCatalog()"><span data-ico="inventory" data-ico-size="16">🎒</span> Из каталога снаряжения</button>
+<button type="button" class="magic-catalog-open-btn" onclick="openMagicCatalog()"><span data-ico="book" data-ico-size="16">📖</span> Выбрать из каталога магических предметов</button>
 <div class="add-spell-form item-form">
 <input type="hidden" id="item-category">
 <input type="hidden" id="item-slot-index">
@@ -2697,8 +2697,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <option value="outside">🪢 снаружи рюкзака</option>
   <option value="stored">📦 в лагере</option>
 </select>
-<label class="item-attune-label"><input type="checkbox" id="new-item-attune"> ⚙ Требует настройки <span style="font-size:0.75em;color:var(--text-muted);font-weight:normal;">(магический предмет, лимит 3)</span></label>
-<label>⚡ Заряды <span style="font-size:0.75em;color:var(--text-muted);font-weight:normal;">палочка/посох/жезл — макс. 0, если зарядов нет</span></label>
+<label class="item-attune-label"><input type="checkbox" id="new-item-attune"> <span data-ico="settings" data-ico-size="14">⚙</span> Требует настройки <span style="font-size:0.75em;color:var(--text-muted);font-weight:normal;">(магический предмет, лимит 3)</span></label>
+<label><span data-ico="zap" data-ico-size="16">⚡</span> Заряды <span style="font-size:0.75em;color:var(--text-muted);font-weight:normal;">палочка/посох/жезл — макс. 0, если зарядов нет</span></label>
 <div class="item-charges-row">
   <input type="number" id="new-item-charges" placeholder="тек." min="0" title="Текущие заряды">
   <span class="item-charges-sep">/</span>
@@ -2710,7 +2710,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <label>Описание</label>
 <textarea id="new-item-desc" placeholder="Свойства, бонусы, особенности..." style="min-height:80px;"></textarea>
-<button class="success" onclick="submitItem()">💾 Сохранить</button>
+<button class="success" onclick="submitItem()"><span data-ico="save" data-ico-size="16">💾</span> Сохранить</button>
 <button class="secondary modal-close-bottom" onclick="closeItemModal()">Закрыть</button>
 </div>
 </div>
@@ -2755,7 +2755,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button type="button" class="modal-close" onclick="closeGearCatalog()" aria-label="Закрыть">✕</button>
 <h3>Каталог снаряжения</h3>
 <div class="gear-packs-section">
-  <div class="gear-packs-label">📦 Готовые наборы PHB — добавить целиком:</div>
+  <div class="gear-packs-label"><span data-ico="box" data-ico-size="14">📦</span> Готовые наборы PHB — добавить целиком:</div>
   <div id="gear-packs-list" class="gear-packs-list"></div>
 </div>
 <div class="magic-catalog-filters">
@@ -2801,8 +2801,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="item-detail-desc" id="view-item-desc">Описание предмета...</div>
 <div class="item-detail-actions">
-<button class="info" onclick="editItemFromView()">✏️ Редактировать</button>
-<button class="danger" onclick="deleteItemFromView()">🗑️ Удалить</button>
+<button class="info" onclick="editItemFromView()"><span data-ico="edit" data-ico-size="16">✏️</span> Редактировать</button>
+<button class="danger" onclick="deleteItemFromView()"><span data-ico="trash" data-ico-size="16">🗑️</span> Удалить</button>
 </div>
 <button class="secondary modal-close-bottom" onclick="closeItemView()">Закрыть</button>
 </div>
@@ -2813,7 +2813,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button type="button" class="modal-close" onclick="closeWeaponModal()" aria-label="Закрыть">✕</button>
 <h3 id="weapon-modal-title">Добавить оружие</h3>
 <div id="weapon-picker-section">
-<label style="margin-top:10px; color: var(--text-color);">📜 Выбрать из списка:</label>
+<label style="margin-top:10px; color: var(--text-color);"><span data-ico="scroll" data-ico-size="16">📜</span> Выбрать из списка:</label>
 <input type="text" id="weapon-search-inp" class="weapon-search-inp" placeholder="🔍 Поиск оружия..." oninput="filterWeaponPresets()">
 <div class="weapon-filter-chips" id="weapon-filter-chips">
 <button type="button" class="wf-chip" data-fgroup="cat" data-fval="simple" onclick="toggleWeaponFilter('cat','simple')">Простое</button>
@@ -2823,21 +2823,21 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button type="button" class="wf-chip" data-fgroup="kind" data-fval="ranged" onclick="toggleWeaponFilter('kind','ranged')">Дальнобойное</button>
 <!-- HB-5: группа «своё оружие» — чип и разделитель прячутся, пока customWeapons пуст (renderWeaponPresets) -->
 <span class="wf-sep hidden" id="weapon-filter-hb-sep" aria-hidden="true"></span>
-<button type="button" class="wf-chip hidden" id="weapon-filter-hb" data-fgroup="src" data-fval="hb" onclick="toggleWeaponFilter('src','hb')">🏠 Мои</button>
+<button type="button" class="wf-chip hidden" id="weapon-filter-hb" data-fgroup="src" data-fval="hb" onclick="toggleWeaponFilter('src','hb')"><span data-ico="home" data-ico-size="16">🏠</span> Мои</button>
 </div>
 <div class="weapon-presets" id="weapon-presets-list"></div>
 <details class="weapon-help">
-<summary>❓ Как это работает</summary>
+<summary><span data-ico="help" data-ico-size="16">❓</span> Как это работает</summary>
 <div class="weapon-help-body">
-<p><b>🎲 Атака:</b> к20 + модификатор характеристики (СИЛ — ближний бой, ЛОВ — дальнобойное и фехтовальное) + бонус мастерства, если владеете оружием. Итог не меньше КД цели — попадание.</p>
-<p><b>🗡️ Урон:</b> кость оружия + тот же модификатор (например, 1к8+3). Крит (20 на к20) — кости урона бросаются дважды.</p>
-<p><b>⚔️ Владение:</b> дают класс и раса — целой категорией («Простое», «Воинское») или конкретным оружием (скимитар друида, короткий меч монаха). Без владения бонус мастерства к атаке не добавляется, оружие помечается «без влад.».</p>
-<p><b>📜 Свойства:</b> Лёгкое — подходит для боя двумя оружиями; Фехтовальное — СИЛ или ЛОВ на выбор; Универсальное — бо́льшая кость урона двумя руками; Досягаемость — атака на 3 м; Метательное — можно метнуть (дистанция в скобках); Боеприпас — нужны стрелы/болты; Перезарядка — один выстрел за атаку; Тяжёлое — помеха существам размера Маленький.</p>
-<p><b>🎒 Инвентарь:</b> добавленное оружие появляется и во вкладке «Инвентарь» (вес и слоты учитываются), удаление из списка атак синхронно убирает предмет.</p>
+<p><b><span data-ico="dice" data-ico-size="14">🎲</span> Атака:</b> к20 + модификатор характеристики (СИЛ — ближний бой, ЛОВ — дальнобойное и фехтовальное) + бонус мастерства, если владеете оружием. Итог не меньше КД цели — попадание.</p>
+<p><b><span data-ico="sword" data-ico-size="14">🗡️</span> Урон:</b> кость оружия + тот же модификатор (например, 1к8+3). Крит (20 на к20) — кости урона бросаются дважды.</p>
+<p><b><span data-ico="combat" data-ico-size="14">⚔️</span> Владение:</b> дают класс и раса — целой категорией («Простое», «Воинское») или конкретным оружием (скимитар друида, короткий меч монаха). Без владения бонус мастерства к атаке не добавляется, оружие помечается «без влад.».</p>
+<p><b><span data-ico="scroll" data-ico-size="14">📜</span> Свойства:</b> Лёгкое — подходит для боя двумя оружиями; Фехтовальное — СИЛ или ЛОВ на выбор; Универсальное — бо́льшая кость урона двумя руками; Досягаемость — атака на 3 м; Метательное — можно метнуть (дистанция в скобках); Боеприпас — нужны стрелы/болты; Перезарядка — один выстрел за атаку; Тяжёлое — помеха существам размера Маленький.</p>
+<p><b><span data-ico="inventory" data-ico-size="14">🎒</span> Инвентарь:</b> добавленное оружие появляется и во вкладке «Инвентарь» (вес и слоты учитываются), удаление из списка атак синхронно убирает предмет.</p>
 </div>
 </details>
 </div>
-<label id="weapon-manual-label" style="margin-top:15px; color: var(--text-color);">✏️ Или введите вручную:</label>
+<label id="weapon-manual-label" style="margin-top:15px; color: var(--text-color);"><span data-ico="edit" data-ico-size="16">✏️</span> Или введите вручную:</label>
 <div class="add-spell-form">
 <input type="hidden" id="weapon-edit-index" value="-1">
 <div class="row">
@@ -2881,8 +2881,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="col"><label>Вес (фнт)</label><input type="number" id="new-weapon-weight" min="0" step="0.25" placeholder="3"></div>
 <div class="col"><label>Цена</label><input type="text" id="new-weapon-cost" placeholder="10 зм"></div>
 </div>
-<label class="weapon-inv-sync"><input type="checkbox" id="new-weapon-add-inv" checked> 🎒 Добавить и в инвентарь</label>
-<label class="weapon-inv-sync"><input type="checkbox" id="new-weapon-save-catalog"> 💾 Сохранить в мой каталог</label>
+<label class="weapon-inv-sync"><input type="checkbox" id="new-weapon-add-inv" checked> <span data-ico="inventory" data-ico-size="16">🎒</span> Добавить и в инвентарь</label>
+<label class="weapon-inv-sync"><input type="checkbox" id="new-weapon-save-catalog"> <span data-ico="save" data-ico-size="16">💾</span> Сохранить в мой каталог</label>
 <button class="success" onclick="submitWeapon()">Сохранить</button>
 <button class="secondary modal-close-bottom" onclick="closeWeaponModal()">Закрыть</button>
 </div>
@@ -2913,12 +2913,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
      со снятием (✕) и кнопками хода. Механику тика/снятия переиспользует из
      tickCastEffectsRound / removeCastEffectsForSpell / endConcentration. -->
 <button id="active-effects-fab" class="aef-fab" type="button" hidden onclick="toggleActiveEffectsPanel()" aria-label="Активные эффекты заклинаний" aria-expanded="false">
-  <span class="aef-fab-icon" aria-hidden="true">✨</span>
+  <span class="aef-fab-icon" aria-hidden="true" data-ico="sparkle" data-ico-size="20">✨</span>
   <span class="aef-fab-count" aria-hidden="true">0</span>
 </button>
 <div id="active-effects-panel" class="aef-panel" hidden role="dialog" aria-label="Активные эффекты">
   <div class="aef-head">
-    <span class="aef-head-title">✨ Активные эффекты</span>
+    <span class="aef-head-title"><span data-ico="sparkle" data-ico-size="16">✨</span> Активные эффекты</span>
     <button type="button" class="aef-close" onclick="toggleActiveEffectsPanel()" aria-label="Закрыть">✕</button>
   </div>
   <div class="aef-list" id="aef-list"></div>
@@ -2969,7 +2969,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 <div id="confirm-modal" class="confirm-modal-overlay">
 <div class="confirm-modal-box">
-<div class="confirm-modal-icon">🗑️</div>
+<div class="confirm-modal-icon" data-ico="trash" data-ico-size="28">🗑️</div>
 <h4 id="confirm-modal-title">Удалить?</h4>
 <p id="confirm-modal-text"></p>
 <div class="confirm-modal-btns">
@@ -2990,7 +2990,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <div class="avatar-section">
       <div class="avatar-section-label">С устройства</div>
       <label class="btn avatar-upload-btn">
-        📁 Загрузить с устройства
+        <span data-ico="folder" data-ico-size="16">📁</span> Загрузить с устройства
         <input type="file" accept="image/*" style="display:none" onchange="handleAvatarFile(this)">
       </label>
     </div>
@@ -3001,11 +3001,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <div class="avatar-section">
       <div class="avatar-section-label">По ссылке</div>
       <input type="url" id="avatar-url-input" placeholder="https://i.imgur.com/example.png" class="avatar-url-input">
-      <button class="btn btn-primary avatar-url-apply-btn" onclick="applyAvatarFromUrl()">🔗 Применить ссылку</button>
+      <button class="btn btn-primary avatar-url-apply-btn" onclick="applyAvatarFromUrl()"><span data-ico="link" data-ico-size="16">🔗</span> Применить ссылку</button>
     </div>
 
     <div class="avatar-modal-footer">
-      <button class="btn secondary" onclick="removeAvatar(event)">🗑️ Удалить</button>
+      <button class="btn secondary" onclick="removeAvatar(event)"><span data-ico="trash" data-ico-size="16">🗑️</span> Удалить</button>
       <button class="btn secondary" onclick="closeAvatarModal()">Закрыть</button>
     </div>
   </div>
@@ -3015,7 +3015,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="build-picker-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="bp-title-h">
   <div class="modal-content bp-modal">
     <div class="bp-header">
-      <span class="bp-title" id="bp-title-h">📘 Готовые билды</span>
+      <span class="bp-title" id="bp-title-h"><span data-ico="grad" data-ico-size="18">📘</span> Готовые билды</span>
       <button type="button" class="modal-close" onclick="closeModal('build-picker-modal')" aria-label="Закрыть">✕</button>
     </div>
     <div class="bp-filter-row">
@@ -3049,7 +3049,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="build-guide-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="bg-title-h">
   <div class="modal-content bg-modal">
     <div class="bg-header">
-      <span class="bg-title" id="bg-title-h">📘 Гайд по билду</span>
+      <span class="bg-title" id="bg-title-h"><span data-ico="book" data-ico-size="18">📘</span> Гайд по билду</span>
       <button type="button" class="modal-close" onclick="closeModal('build-guide-modal')" aria-label="Закрыть">✕</button>
     </div>
     <div id="bg-body" class="bg-body"></div>
@@ -3063,7 +3063,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="build-plan-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="bp-plan-title-h">
   <div class="modal-content bg-modal">
     <div class="bg-header">
-      <span class="bg-title" id="bp-plan-title-h">📈 План развития</span>
+      <span class="bg-title" id="bp-plan-title-h"><span data-ico="trend" data-ico-size="18">📈</span> План развития</span>
       <button type="button" class="modal-close" onclick="closeModal('build-plan-modal')" aria-label="Закрыть">✕</button>
     </div>
     <div id="bp-plan-body" class="bg-body bp-plan-body"></div>
@@ -3076,7 +3076,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- FEAT-LOG: панель журнала сессии (Ctrl+Shift+L / дровер → «Логи сессии») -->
 <div id="app-log-panel" class="app-log-panel" hidden>
   <div class="app-log-header">
-    <span class="app-log-title">🪵 Журнал сессии <span id="app-log-count" class="app-log-count">0</span></span>
+    <span class="app-log-title"><span data-ico="scroll" data-ico-size="16">🪵</span> Журнал сессии <span id="app-log-count" class="app-log-count">0</span></span>
     <button id="app-log-close" class="app-log-x" type="button" aria-label="Закрыть">✕</button>
   </div>
   <div class="app-log-toolbar">
@@ -3097,52 +3097,57 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v323"></script>
+<script src="app-log.js?v=v324"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
-<script src="icons.js?v=v323"></script>
-<script src="bg-space.js?v=v323"></script>
-<script src="dice-arena-bg.js?v=v323"></script>
-<script src="data.js?v=v323"></script>
+<!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
+     не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
+     вкладки оставались пустыми; так теряются только иконки. icons.js ниже
+     перезаписывает обе функции своими. -->
+<script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
+<script src="icons.js?v=v324"></script>
+<script src="bg-space.js?v=v324"></script>
+<script src="dice-arena-bg.js?v=v324"></script>
+<script src="data.js?v=v324"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v323"></script>
+<script src="character-builds.js?v=v324"></script>
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v323"></script>
-<script src="spells.js?v=v323"></script>
-<script src="spell-effects.js?v=v323"></script>
+<script src="glossary-data.js?v=v324"></script>
+<script src="spells.js?v=v324"></script>
+<script src="spell-effects.js?v=v324"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v323"></script>
-<script src="app-migrate.js?v=v323"></script>
-<script src="app-builds.js?v=v323"></script>
-<script src="app-core.js?v=v323"></script>
-<script src="app-io.js?v=v323"></script>
-<script src="app-backup.js?v=v323"></script>
-<script src="app-combat.js?v=v323"></script>
-<script src="app-conditions.js?v=v323"></script>
-<script src="app-cast-effects.js?v=v323"></script>
-<script src="app-proficiencies.js?v=v323"></script>
-<script src="app-hp.js?v=v323"></script>
-<script src="app-spells.js?v=v323"></script>
-<script src="app-inventory.js?v=v323"></script>
+<script src="rules.js?v=v324"></script>
+<script src="app-migrate.js?v=v324"></script>
+<script src="app-builds.js?v=v324"></script>
+<script src="app-core.js?v=v324"></script>
+<script src="app-io.js?v=v324"></script>
+<script src="app-backup.js?v=v324"></script>
+<script src="app-combat.js?v=v324"></script>
+<script src="app-conditions.js?v=v324"></script>
+<script src="app-cast-effects.js?v=v324"></script>
+<script src="app-proficiencies.js?v=v324"></script>
+<script src="app-hp.js?v=v324"></script>
+<script src="app-spells.js?v=v324"></script>
+<script src="app-inventory.js?v=v324"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v323"></script>
-<script src="class-choices.js?v=v323"></script>
-<script src="subclass-choices-data.js?v=v323"></script>
+<script src="app-party.js?v=v324"></script>
+<script src="class-choices.js?v=v324"></script>
+<script src="subclass-choices-data.js?v=v324"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v323";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v324";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-dice.js?v=v323"></script>
-<script src="app-settings.js?v=v323"></script>
-<script src="app-ui.js?v=v323"></script>
-<script src="app-home.js?v=v323"></script>
-<script src="app-asi.js?v=v323"></script>
-<script src="app-notes.js?v=v323"></script>
-<script src="app-desktop.js?v=v323"></script>
-<script src="history-stack.js?v=v323"></script>
-<script src="app-help.js?v=v323"></script>
+<script src="app-dice.js?v=v324"></script>
+<script src="app-settings.js?v=v324"></script>
+<script src="app-ui.js?v=v324"></script>
+<script src="app-home.js?v=v324"></script>
+<script src="app-asi.js?v=v324"></script>
+<script src="app-notes.js?v=v324"></script>
+<script src="app-desktop.js?v=v324"></script>
+<script src="history-stack.js?v=v324"></script>
+<script src="app-help.js?v=v324"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3155,9 +3160,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v323",
-    "vendor/jspdf/roboto-base64.js?v=v323",
-    "app-pdf.js?v=v323"
+    "vendor/jspdf/jspdf.umd.min.js?v=v324",
+    "vendor/jspdf/roboto-base64.js?v=v324",
+    "app-pdf.js?v=v324"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3181,7 +3186,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v323").then(function () {
+    return loadScript("build-notes-data.js?v=v324").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -3189,26 +3194,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v323"),
-      loadScript("npc-srd.js?v=v323")
+      loadScript("monsters-srd.js?v=v324"),
+      loadScript("npc-srd.js?v=v324")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v323");
+    return loadScript("magic-items.js?v=v324");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v323");
+    return loadScript("gear-catalog.js?v=v324");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v323").then(function () {
+    return loadScript("data-2024.js?v=v324").then(function () {
       window.__edition2024Loaded = true;
     });
   };
@@ -3247,7 +3252,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
           <option value="free">📝 Свободно</option>
         </select>
         <label class="notes-modal-pin-label" title="Закрепить вверху">
-          <input type="checkbox" id="nem-pinned"> ★ Закреп
+          <input type="checkbox" id="nem-pinned"> <span data-ico="star" data-ico-size="14">★</span> Закреп
         </label>
       </div>
       <div class="notes-modal-row">

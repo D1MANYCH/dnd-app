@@ -247,7 +247,7 @@ function _aefRemainingLabel(inst) {
 function _aefRowHtml(inst) {
   var esc = (typeof escapeHtml === "function") ? escapeHtml : function(s){ return s; };
   var name = esc(inst.spellName || "");
-  var conc = inst.concentration ? '<span class="aef-row-conc" title="Концентрация">🔮</span> ' : '';
+  var conc = inst.concentration ? '<span class="aef-row-conc" title="Концентрация">' + dndIcoHtml("focus", 12) + '</span> ' : '';
   var variant = inst.variantName ? ' <span class="aef-row-variant">· ' + esc(inst.variantName) + '</span>' : '';
   // Снятие по data-атрибуту (this.dataset.spell) — имя не попадает в JS-строку
   // onclick, поэтому спецсимволы («Слово Силы: смерть» и т.п.) не ломают кнопку.

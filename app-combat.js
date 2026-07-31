@@ -17,9 +17,9 @@ function showRollModePopup(callback) {
   popup.className = "roll-mode-popup";
   popup.innerHTML =
     '<div class="roll-mode-title">Режим броска</div>' +
-    '<button class="roll-mode-btn roll-mode-normal" data-mode="normal">🎲 Обычный</button>' +
-    '<button class="roll-mode-btn roll-mode-adv" data-mode="adv">⬆️ Преимущество</button>' +
-    '<button class="roll-mode-btn roll-mode-dis" data-mode="dis">⬇️ Помеха</button>';
+    '<button class="roll-mode-btn roll-mode-normal" data-mode="normal">' + dndIcoHtml("dice", 14) + ' Обычный</button>' +
+    '<button class="roll-mode-btn roll-mode-adv" data-mode="adv">' + dndIcoHtml("arrowUp", 14) + ' Преимущество</button>' +
+    '<button class="roll-mode-btn roll-mode-dis" data-mode="dis">' + dndIcoHtml("arrowDown", 14) + ' Помеха</button>';
   popup.querySelectorAll(".roll-mode-btn").forEach(function(btn) {
     btn.onclick = function() {
       overlay.remove();
@@ -313,7 +313,7 @@ classList.forEach(function(entry) {
   if (classList.length > 1) {
     var header = document.createElement("div");
     header.className = "feature-class-header";
-    header.innerHTML = "<span class='feature-class-name'>⚔️ " + escapeHtml(cls) + " " + clsLevel + "</span>" +
+    header.innerHTML = "<span class='feature-class-name'>" + dndIcoHtml("combat", 14) + " " + escapeHtml(cls) + " " + clsLevel + "</span>" +
       (subName ? "<span class='subclass-badge'>" + escapeHtml(subName) + "</span>" : "");
     featuresGrid.appendChild(header);
   }
@@ -356,7 +356,7 @@ if (unusedASI.length > 0) {
     unusedASI.map(function(l) {
       return '<button class="asi-button asi-level-btn" onclick="openASIModalForLevel(' + l + ')">' +
         '<div class="asi-btn-left">' +
-          '<span class="asi-btn-title">📈 Увеличение характеристик · ' + l + ' ур.</span>' +
+          '<span class="asi-btn-title">' + dndIcoHtml("trend", 14) + ' Увеличение характеристик · ' + l + ' ур.</span>' +
           '<span class="asi-btn-hint">+2 к одной характеристике, +1+1 к двум или черта PHB</span>' +
         '</div>' +
         '<span class="asi-btn-arrow">›</span>' +
@@ -366,7 +366,7 @@ if (unusedASI.length > 0) {
 } else if (earnedASI.length > 0) {
   // All used — show greyed out summary
   asiContainer.innerHTML =
-    '<div class="asi-all-used">✅ Все АСИ применены (ур. ' + earnedASI.join(", ") + ')</div>';
+    '<div class="asi-all-used">' + dndIcoHtml("check", 14) + ' Все АСИ применены (ур. ' + earnedASI.join(", ") + ')</div>';
 } else {
   asiContainer.innerHTML = "";
 }
@@ -398,7 +398,7 @@ if (acRes.mode === "preset") {
     if (acModsEl) {
       acModsEl.innerHTML = modifiers.map(function(mod) {
         if (mod.type === "note") {
-          return "<div class=\"ac-modifier-item note\"><span>" + escapeHtml(mod.name) + "</span><span class=\"ac-modifier-value\">⚠️</span></div>";
+          return "<div class=\"ac-modifier-item note\"><span>" + escapeHtml(mod.name) + "</span><span class=\"ac-modifier-value\">" + dndIcoHtml("alert", 12) + "</span></div>";
         }
         return "<div class=\"ac-modifier-item" + (mod.type === "negative" ? " negative" : "") + "\"><span>" + escapeHtml(mod.name) + "</span><span class=\"ac-modifier-value\">" + (mod.value >= 0 ? "+" : "") + mod.value + "</span></div>";
       }).join("");
@@ -509,7 +509,7 @@ function updateInspirationLabels(char) {
   if (card) {
     card.title = tip + " — нажмите, чтобы переключить";
     var lbl = card.querySelector(".abil-mini-label");
-    if (lbl) lbl.textContent = "✨ " + name;
+    if (lbl) lbl.innerHTML = dndIcoHtml("sparkle", 14) + " " + escapeHtml(name);
   }
   var rr = document.getElementById("rr-insp-mini");
   if (rr) rr.title = name + " (клик — переключить)";
@@ -699,7 +699,7 @@ function updateSubclassRecHint() {
   var cur = (sel && !sel.disabled && sel.value || "").trim();
   var matched = cur && cur === rec;
   var safe = (typeof escapeHtml === "function") ? escapeHtml(rec) : rec;
-  el.innerHTML = '<span class="rec-badge">💡 совет билда</span> <span class="rec-text">' + safe + '</span>' +
+  el.innerHTML = '<span class="rec-badge">' + dndIcoHtml("bulb", 12) + ' совет билда</span> <span class="rec-text">' + safe + '</span>' +
     (matched ? ' <span class="subclass-rec-ok">✓ выбран</span>' : '');
   el.style.display = "";
 }
@@ -1017,7 +1017,7 @@ function onRaceChange() {
     ? '<span class="race-bonus-badge race-speed">' + data.speed + ' фт</span>'
     : '<span class="race-bonus-badge race-speed">30 фт</span>';
   displayEl.innerHTML =
-    '<span class="race-bonus-label">⚡ ' + escapeHtml(race) + ':</span>' + bonuses + speedBadge +
+    '<span class="race-bonus-label">' + dndIcoHtml("zap", 12) + ' ' + escapeHtml(race) + ':</span>' + bonuses + speedBadge +
     '<span class="race-bonus-traits">' + escapeHtml(data.traits) + '</span>';
   displayEl.style.display = "flex";
 
@@ -1103,7 +1103,7 @@ function renderRaceExtras() {
     if (!Array.isArray(char.raceFeats)) char.raceFeats = [];
     var taken = char.raceFeats.length;
     var remaining = featAllowance - taken;
-    html += '<div class="race-extras-title">🎯 Расовая черта (' + escapeHtml(race) + ')</div>';
+    html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' Расовая черта (' + escapeHtml(race) + ')</div>';
     var takenList = char.raceFeats.map(function(f, i) {
       return '<span class="race-bonus-badge">' + escapeHtml(f.name) +
         ' <button type="button" class="race-bonus-x" onclick="removeRaceFeat(' + i + ')" title="Убрать" aria-label="Убрать">✕</button></span>';
@@ -1111,7 +1111,7 @@ function renderRaceExtras() {
     html += '<div class="race-extras-row">' + takenList +
       (remaining > 0
         ? '<button class="race-extras-btn" onclick="openRaceFeatModal()">+ Выбрать черту</button>'
-        : '<span class="race-extras-btn done">✅ Черта получена</span>') +
+        : '<span class="race-extras-btn done">' + dndIcoHtml("check", 13) + ' Черта получена</span>') +
       '</div>';
   }
 
@@ -1120,7 +1120,7 @@ function renderRaceExtras() {
     if (!Array.isArray(char.raceStatChoice)) char.raceStatChoice = [];
     var halfElfStats = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД"};
     var chosen = char.raceStatChoice;
-    html += '<div class="race-extras-title">📊 Полуэльф: +1 к двум характеристикам (кроме ХАР)</div>';
+    html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' Полуэльф: +1 к двум характеристикам (кроме ХАР)</div>';
     html += '<div class="race-extras-row">';
     Object.keys(halfElfStats).forEach(function(k) {
       var sel = chosen.indexOf(k) !== -1;
@@ -1177,7 +1177,7 @@ function openRaceFeatModal() {
   var featRadio = modal.querySelector('input[value="feat"]');
   if (featRadio) featRadio.checked = true;
   var title = modal.querySelector("h4");
-  if (title) title.textContent = "🎯 Расовая черта · " + (char.race || "");
+  if (title) title.innerHTML = dndIcoHtml("target", 16) + escapeHtml(" Расовая черта · " + (char.race || ""));
   if (typeof buildASIStatGrid === "function") buildASIStatGrid(char);
   if (typeof updateASIPreview === "function") updateASIPreview();
   modal.classList.add("active");
@@ -1290,7 +1290,7 @@ function unlockBasicInfo() {
       showToast("🔓 Основа разблокирована", "info");
     },
     "Разблокировать",
-    { danger: false, icon: "🔓" }
+    { danger: false, icon: "lock" }
   );
 }
 
@@ -1345,7 +1345,7 @@ function renderBackgroundFeature() {
   var feat = data && data.feature;
   if (!feat || !feat.name) { el.style.display = "none"; el.innerHTML = ""; return; }
   el.innerHTML =
-    '<span class="bg-feature-label">📜 ' + escapeHtml(feat.name) + '</span>' +
+    '<span class="bg-feature-label">' + dndIcoHtml("scroll", 13) + ' ' + escapeHtml(feat.name) + '</span>' +
     '<span class="bg-feature-text">' + escapeHtml(feat.desc || "") + '</span>';
   el.style.display = "flex";
 }
@@ -1479,7 +1479,7 @@ function renderConditionsPopup() {
   if (baseConditions.length > 0 || exhLevel > 0) {
     var group = document.createElement("div");
     group.className = "popup-group";
-    group.innerHTML = '<div class="popup-group-label">⚠️ Состояния</div>';
+    group.innerHTML = '<div class="popup-group-label">' + dndIcoHtml("alert", 13) + ' Состояния</div>';
     var badges = document.createElement("div");
     badges.className = "popup-group-badges";
     baseConditions.forEach(function(c) {
@@ -1503,7 +1503,7 @@ function renderConditionsPopup() {
   if (buffs.length > 0) {
     var bGroup = document.createElement("div");
     bGroup.className = "popup-group";
-    bGroup.innerHTML = '<div class="popup-group-label buff">✨ Баффы</div>';
+    bGroup.innerHTML = '<div class="popup-group-label buff">' + dndIcoHtml("sparkle", 13) + ' Баффы</div>';
     var bBadges = document.createElement("div");
     bBadges.className = "popup-group-badges";
     buffs.forEach(function(e) {
@@ -1519,7 +1519,7 @@ function renderConditionsPopup() {
   if (debuffs.length > 0) {
     var dGroup = document.createElement("div");
     dGroup.className = "popup-group";
-    dGroup.innerHTML = '<div class="popup-group-label debuff">💀 Дебаффы</div>';
+    dGroup.innerHTML = '<div class="popup-group-label debuff">' + dndIcoHtml("skull", 13) + ' Дебаффы</div>';
     var dBadges = document.createElement("div");
     dBadges.className = "popup-group-badges";
     debuffs.forEach(function(e) {

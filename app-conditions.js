@@ -16,9 +16,9 @@ function renderResistances() {
   if (!char.vulnerabilities) char.vulnerabilities = [];
 
   var categories = [
-    { key: "resistances", title: "Сопротивление", sub: "½", cssClass: "res", icon: "🛡" },
-    { key: "immunities", title: "Иммунитет", sub: "0", cssClass: "imm", icon: "🚫" },
-    { key: "vulnerabilities", title: "Уязвимость", sub: "×2", cssClass: "vul", icon: "⚠️" }
+    { key: "resistances", title: "Сопротивление", sub: "½", cssClass: "res", icon: "" + dndIcoHtml("shield", 13) + "" },
+    { key: "immunities", title: "Иммунитет", sub: "0", cssClass: "imm", icon: "" + dndIcoHtml("ban", 13) + "" },
+    { key: "vulnerabilities", title: "Уязвимость", sub: "×2", cssClass: "vul", icon: "" + dndIcoHtml("alert", 13) + "" }
   ];
 
   var html = '<div class="resistances-section">';
@@ -370,13 +370,13 @@ function renderEffectsGrid() {
       item.id = "effect-" + effect.id;
       item.onclick = function() { toggleEffect(effect.id); };
       var durText = effect.duration;
-      if (isActive && _castVar[effect.id]) durText += " · ✨ " + _castVar[effect.id];
+      if (isActive && _castVar[effect.id]) durText += " · " + dndIcoHtml("sparkle", 12) + " " + _castVar[effect.id];
       if (isActive && _castLeft[effect.id] != null) durText += " · ⏳ осталось " + _castLeft[effect.id] + " рд";
       item.innerHTML =
         "<div class=\"effect-name\">" + escapeHtml(effect.name) + "</div>" +
         "<div class=\"effect-desc\">" + escapeHtml(effect.desc) + "</div>" +
         "<div class=\"effect-duration\">" + escapeHtml(durText) + "</div>" +
-        "<span class=\"effect-type " + effect.type + "\">" + (effect.type === 'buff' ? '✨ Бафф' : '💀 Дебафф') + "</span>";
+        "<span class=\"effect-type " + effect.type + "\">" + (effect.type === 'buff' ? '' + dndIcoHtml("sparkle", 12) + ' Бафф' : '' + dndIcoHtml("skull", 12) + ' Дебафф') + "</span>";
       grid.appendChild(item);
     });
   });
@@ -399,8 +399,8 @@ function initEffects() {
       '<input type="text" class="filter-search" id="effects-search" placeholder="🔍 Поиск эффекта…" oninput="setEffectsSearch(this.value)">' +
       '<div class="filter-chip-group">' +
         '<button type="button" class="filter-chip active" id="effects-type-all" onclick="setEffectsType(\'all\')">Все</button>' +
-        '<button type="button" class="filter-chip" id="effects-type-buff" onclick="setEffectsType(\'buff\')">✨ Баффы</button>' +
-        '<button type="button" class="filter-chip" id="effects-type-debuff" onclick="setEffectsType(\'debuff\')">💀 Дебаффы</button>' +
+        '<button type="button" class="filter-chip" id="effects-type-buff" onclick="setEffectsType(\'buff\')">' + dndIcoHtml("sparkle", 13) + ' Баффы</button>' +
+        '<button type="button" class="filter-chip" id="effects-type-debuff" onclick="setEffectsType(\'debuff\')">' + dndIcoHtml("skull", 13) + ' Дебаффы</button>' +
       '</div>' +
       '<button type="button" class="filter-chip" id="effects-active-only" onclick="toggleEffectsActiveOnly()">Только активные</button>';
     host.insertBefore(bar, grid);

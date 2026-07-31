@@ -835,8 +835,8 @@ filtered = filtered.slice().sort(function(a, b) {
 });
 if (filtered.length === 0) {
   list.innerHTML = characters.length === 0
-    ? "<div class=\"empty-list\">📭 Список пуст. Создайте персонажа!</div>"
-    : "<div class=\"empty-list\">🔍 Ничего не найдено</div>";
+    ? "<div class=\"empty-list\">" + dndIcoHtml("inbox", 22) + " Список пуст. Создайте персонажа!</div>"
+    : "<div class=\"empty-list\">" + dndIcoHtml("search", 22) + " Ничего не найдено</div>";
   return;
 }
 filtered.forEach(function(char, _idx) {
@@ -865,21 +865,21 @@ div.innerHTML = "<div class=\"char-card-header\">" +
   "<div class=\"char-card-title\">" +
     "<h4 class=\"char-card-name\">" + escapeHtml(char.name || "Без имени") + "</h4>" +
     "<div class=\"char-card-sub\">" + escapeHtml((char.classes && char.classes.length > 1 ? getClassLabel(char) : char.class) || "Класс не указан") + (char.race ? " · " + escapeHtml(char.race) : "") + (char.subclass && (!char.classes || char.classes.length <= 1) ? " · " + escapeHtml(char.subclass) : "") + "</div>" +
-    (char.background ? "<div class=\"char-card-bg\">📜 " + escapeHtml(char.background) + "</div>" : "") +
+    (char.background ? "<div class=\"char-card-bg\">" + dndIcoHtml("scroll", 12) + " " + escapeHtml(char.background) + "</div>" : "") +
   "</div>" +
 "</div>" +
 "<div class=\"char-card-stats\">" +
-  "<span class=\"char-stat-badge\">⭐ " + (char.level || 1) + " ур.</span>" +
+  "<span class=\"char-stat-badge\">" + dndIcoHtml("star", 12) + " " + (char.level || 1) + " ур.</span>" +
   (char.edition === "2024" ? "<span class=\"char-stat-badge char-edition-tag\" title=\"Редакция правил 2024\">2024</span>" : "") +
-  "<span class=\"char-stat-badge-hp\" style=\"color:" + hpColor + "; border-color:" + hpColor + "55; background:" + hpColor + "18;\">❤️ " + hpCurrent + "/" + hpMax + "</span>" +
-  "<span class=\"char-stat-badge\">🛡️ " + (char.combat.ac || 10) + "</span>" +
-  (conditionsCount > 0 ? "<span class=\"char-stat-badge\" style=\"background:var(--condition-active);border-color:var(--condition-border);\">⚠️ " + conditionsCount + "</span>" : "") +
+  "<span class=\"char-stat-badge-hp\" style=\"color:" + hpColor + "; border-color:" + hpColor + "55; background:" + hpColor + "18;\">" + dndIcoHtml("heart", 12) + " " + hpCurrent + "/" + hpMax + "</span>" +
+  "<span class=\"char-stat-badge\">" + dndIcoHtml("shield", 12) + " " + (char.combat.ac || 10) + "</span>" +
+  (conditionsCount > 0 ? "<span class=\"char-stat-badge\" style=\"background:var(--condition-active);border-color:var(--condition-border);\">" + dndIcoHtml("alert", 12) + " " + conditionsCount + "</span>" : "") +
   "<span class=\"char-alignment" + (char.alignment ? "" : " char-alignment-empty") + "\">" + escapeHtml(char.alignment || "Мировоззрение не выбрано") + "</span>" +
   timeAgo +
 "</div>" +
 "<div class=\"char-card-actions\">" +
   "<button class=\"char-copy-btn\" onclick=\"exportOneCharacter(" + char.id + ", event)\" title=\"Экспорт JSON\">↓</button>" +
-  "<button class=\"char-copy-btn\" onclick=\"exportCharacterPDF(" + char.id + ", event)\" title=\"Экспорт PDF\">📄</button>" +
+  "<button class=\"char-copy-btn\" onclick=\"exportCharacterPDF(" + char.id + ", event)\" title=\"Экспорт PDF\">" + dndIcoHtml("file", 14) + "</button>" +
   "<button class=\"char-copy-btn\" onclick=\"duplicateCharacter(" + char.id + ", event)\" title=\"Дублировать\">⧉</button>" +
   "<button class=\"char-delete-btn\" onclick=\"event.stopPropagation(); deleteCharacter(" + char.id + ")\">✕</button>" +
 "</div>";
@@ -913,7 +913,7 @@ if (textEl) textEl.textContent = text;
 // вызовы (4-й арг confirmLabel + opts.danger/icon, напр. FB-1 «Разблокировать»)
 // не «протекали» в последующие.
 var iconEl = modal.querySelector(".confirm-modal-icon");
-if (iconEl) iconEl.textContent = (opts && opts.icon) || "🗑️";
+if (iconEl) iconEl.innerHTML = dndIcoHtml((opts && opts.icon) || "trash", 28);
 modal.classList.add("active");
 var newConfirm = confirmBtn.cloneNode(true);
 newConfirm.textContent = confirmLabel || "Удалить";

@@ -6,14 +6,20 @@
 // ============================================
 // ВЛАДЕНИЯ КАТЕГОРИЗОВАННЫЕ — ЯЗЫКИ (Фаза 1)
 // ============================================
+// STYLE-7c: пара «иконка + подпись». Иконка берётся лениво (dndIcoHtml в момент
+// отрисовки): на верхнем уровне модуля icons.js ещё может быть не загружен.
 var PROF_SOURCE_LABELS = {
-  race:       "🧬 Раса",
-  class:      "⚔️ Класс",
-  subclass:   "🎓 Подкласс",
-  background: "📜 Предыст.",
-  feat:       "🎯 Черта",
-  custom:     "✏️ Своё"
+  race:       ["user",   "Раса"],
+  class:      ["combat", "Класс"],
+  subclass:   ["grad",   "Подкласс"],
+  background: ["scroll", "Предыст."],
+  feat:       ["target", "Черта"],
+  custom:     ["edit",   "Своё"]
 };
+function profSourceLabel(src) {
+  var v = PROF_SOURCE_LABELS[src];
+  return v ? dndIcoHtml(v[0], 12) + " " + v[1] : (src || "");
+}
 var LANG_CAT_TITLES = {
   standard: "Стандартные",
   exotic:   "Экзотические",
@@ -28,7 +34,7 @@ function getLanguageChoiceSlots(char) {
     if (r.choice > 0) {
       var picks = (char.proficiencies.languageChoices.race) || [];
       var rem = r.choice - picks.length;
-      if (rem > 0) out.push({ key:"race", label:"🧬 Раса", remaining:rem, total:r.choice });
+      if (rem > 0) out.push({ key:"race", label:"" + dndIcoHtml("user", 12) + " Раса", remaining:rem, total:r.choice });
     }
   }
   // Подклассы
@@ -39,7 +45,7 @@ function getLanguageChoiceSlots(char) {
         var subKey = "subclass_" + p.cls + "_" + p.sub;
         var subPicks = (char.proficiencies.languageChoices[subKey]) || [];
         var rem = sd.choice - subPicks.length;
-        if (rem > 0) out.push({ key:subKey, label:"🎓 " + p.sub, remaining:rem, total:sd.choice });
+        if (rem > 0) out.push({ key:subKey, label:"" + dndIcoHtml("grad", 12) + " " + p.sub, remaining:rem, total:sd.choice });
       }
     }
   });
@@ -48,7 +54,7 @@ function getLanguageChoiceSlots(char) {
     if (bg.languages > 0) {
       var bgPicks = (char.proficiencies.languageChoices.background) || [];
       var rem = bg.languages - bgPicks.length;
-      if (rem > 0) out.push({ key:"background", label:"📜 Предыстория", remaining:rem, total:bg.languages });
+      if (rem > 0) out.push({ key:"background", label:"" + dndIcoHtml("scroll", 12) + " Предыстория", remaining:rem, total:bg.languages });
     }
   }
   return out;
@@ -88,7 +94,7 @@ function renderLanguages() {
           : '';
         html += '<span class="prof-chip" data-source="' + l.source + '" title="' + escapeHtml(title) + '">' +
           escapeHtml(l.name) +
-          '<span class="prof-chip-src">' + PROF_SOURCE_LABELS[l.source] + '</span>' +
+          '<span class="prof-chip-src">' + profSourceLabel(l.source) + '</span>' +
           rmBtn + '</span>';
       });
       html += '</div>';
@@ -114,13 +120,13 @@ function renderLanguages() {
       html += '</optgroup>';
     });
     html += '</select>';
-    html += '<button onclick="addChoiceLanguage(\'' + slot.key + '\')">➕ Добавить</button>';
+    html += '<button onclick="addChoiceLanguage(\'' + slot.key + '\')">' + dndIcoHtml("plus", 13) + ' Добавить</button>';
     html += '</div></div>';
   });
 
   // Своё / из каталога
   html += '<div class="prof-cat-group">';
-  html += '<div class="prof-cat-title">➕ Добавить язык</div>';
+  html += '<div class="prof-cat-title">' + dndIcoHtml("plus", 13) + ' Добавить язык</div>';
   html += '<div class="prof-add-row">';
   html += '<select id="lang-custom-pick"><option value="">— из каталога —</option>';
   ["standard","exotic","secret"].forEach(function(c) {
@@ -132,7 +138,7 @@ function renderLanguages() {
   });
   html += '</select>';
   html += '<input type="text" id="lang-custom-name" placeholder="или свой вариант…">';
-  html += '<button onclick="addCustomLanguage()">➕ Добавить</button>';
+  html += '<button onclick="addCustomLanguage()">' + dndIcoHtml("plus", 13) + ' Добавить</button>';
   html += '</div></div>';
 
   box.innerHTML = html;
@@ -213,7 +219,7 @@ function getToolChoiceSlots(char) {
       var picks = (char.proficiencies.toolChoices[key]) || [];
       var rem = (slot.count || 1) - picks.length;
       if (rem > 0) out.push({
-        key: key, label: "🧬 " + (slot.label || "Раса"),
+        key: key, label: "" + dndIcoHtml("user", 12) + " " + (slot.label || "Раса"),
         from: slot.from, options: slot.options,
         remaining: rem, total: slot.count || 1
       });
@@ -229,7 +235,7 @@ function getToolChoiceSlots(char) {
         var picks = (char.proficiencies.toolChoices[key]) || [];
         var rem = (slot.count || 1) - picks.length;
         if (rem > 0) out.push({
-          key: key, label: "⚔️ " + cn + ": " + (slot.label || ""),
+          key: key, label: "" + dndIcoHtml("combat", 12) + " " + cn + ": " + (slot.label || ""),
           from: slot.from, options: slot.options,
           remaining: rem, total: slot.count || 1
         });
@@ -242,7 +248,7 @@ function getToolChoiceSlots(char) {
         var picks = (char.proficiencies.toolChoices[key]) || [];
         var rem = (slot.count || 1) - picks.length;
         if (rem > 0) out.push({
-          key: key, label: "🎓 " + p.sub + ": " + (slot.label || ""),
+          key: key, label: "" + dndIcoHtml("grad", 12) + " " + p.sub + ": " + (slot.label || ""),
           from: slot.from, options: slot.options,
           remaining: rem, total: slot.count || 1
         });
@@ -260,7 +266,7 @@ function getToolChoiceSlots(char) {
         var picks = (char.proficiencies.toolChoices[key]) || [];
         var rem = (parsed.count || 1) - picks.length;
         if (rem > 0) out.push({
-          key: key, label: "📜 Предыстория: " + entry,
+          key: key, label: "" + dndIcoHtml("scroll", 12) + " Предыстория: " + entry,
           from: parsed.from, remaining: rem, total: parsed.count || 1
         });
       }
@@ -321,7 +327,7 @@ function renderTools() {
         : '';
       html += '<span class="prof-chip" data-source="' + t.source + '" title="' + escapeHtml(title) + '">' +
         escapeHtml(t.name) +
-        '<span class="prof-chip-src">' + PROF_SOURCE_LABELS[t.source] + '</span>' +
+        '<span class="prof-chip-src">' + profSourceLabel(t.source) + '</span>' +
         rmBtn + '</span>';
     });
     html += '</div></div>';
@@ -338,13 +344,13 @@ function renderTools() {
     html += '<select id="tool-choice-' + slot.key + '"><option value="">— выбрать —</option>';
     html += buildToolOptionsHtml(slot, alreadyKnown);
     html += '</select>';
-    html += '<button onclick="addChoiceTool(\'' + slot.key + '\')">➕ Добавить</button>';
+    html += '<button onclick="addChoiceTool(\'' + slot.key + '\')">' + dndIcoHtml("plus", 13) + ' Добавить</button>';
     html += '</div></div>';
   });
 
   // Свой / из каталога
   html += '<div class="prof-cat-group">';
-  html += '<div class="prof-cat-title">➕ Добавить инструмент</div>';
+  html += '<div class="prof-cat-title">' + dndIcoHtml("plus", 13) + ' Добавить инструмент</div>';
   html += '<div class="prof-add-row">';
   html += '<select id="tool-custom-pick"><option value="">— из каталога —</option>';
   ["artisan","gaming","musical","vehicles","other"].forEach(function(c) {
@@ -356,7 +362,7 @@ function renderTools() {
   });
   html += '</select>';
   html += '<input type="text" id="tool-custom-name" placeholder="или свой вариант…">';
-  html += '<button onclick="addCustomTool()">➕ Добавить</button>';
+  html += '<button onclick="addCustomTool()">' + dndIcoHtml("plus", 13) + ' Добавить</button>';
   html += '</div></div>';
 
   box.innerHTML = html;
@@ -433,7 +439,7 @@ function renderArmorProf() {
 
   var html = '';
   if (!_anyArmor) {
-    html += '<div class="prof-empty-hint">🚫 Нет владения никакой бронёй</div>';
+    html += '<div class="prof-empty-hint">' + dndIcoHtml("ban", 14) + ' Нет владения никакой бронёй</div>';
   }
   html += '<div class="prof-cat-group"><div class="prof-chips">';
   ["light","medium","heavy","shield"].forEach(function(t) {
@@ -443,7 +449,7 @@ function renderArmorProf() {
     } else {
       // Главный source — первый по приоритету (race > class > subclass > feat > custom)
       var primary = srcs[0];
-      var srcBadges = srcs.map(function(s){ return PROF_SOURCE_LABELS[s]; }).join(" ");
+      var srcBadges = srcs.map(function(s){ return profSourceLabel(s); }).join(" ");
       var rmBtn = (srcs.indexOf("custom") !== -1)
         ? '<button type="button" class="prof-chip-remove" aria-label="Убрать" onclick="removeCustomArmorType(\'' + t + '\')">×</button>'
         : '';
@@ -459,13 +465,13 @@ function renderArmorProf() {
   var allTypes = ["light","medium","heavy","shield"];
   var available = allTypes.filter(function(t){ return (ar[t] || []).indexOf("custom") === -1; });
   if (available.length > 0) {
-    html += '<div class="prof-cat-group"><div class="prof-cat-title">➕ Добавить тип</div><div class="prof-add-row">';
+    html += '<div class="prof-cat-group"><div class="prof-cat-title">' + dndIcoHtml("plus", 13) + ' Добавить тип</div><div class="prof-add-row">';
     html += '<select id="armor-custom-pick"><option value="">— выбрать —</option>';
     available.forEach(function(t) {
       html += '<option value="' + t + '">' + ARMOR_TYPE_LABELS[t] + '</option>';
     });
     html += '</select>';
-    html += '<button onclick="addCustomArmorType()">➕ Добавить</button>';
+    html += '<button onclick="addCustomArmorType()">' + dndIcoHtml("plus", 13) + ' Добавить</button>';
     html += '</div></div>';
   }
   box.innerHTML = html;
@@ -488,7 +494,7 @@ function renderWeaponProf() {
       html += '<span class="prof-chip" data-source="empty" style="opacity:0.4">' + WEAPON_TYPE_LABELS[t] + '</span>';
     } else {
       var primary = srcs[0];
-      var srcBadges = srcs.map(function(s){ return PROF_SOURCE_LABELS[s]; }).join(" ");
+      var srcBadges = srcs.map(function(s){ return profSourceLabel(s); }).join(" ");
       var rmBtn = (srcs.indexOf("custom") !== -1)
         ? '<button type="button" class="prof-chip-remove" aria-label="Убрать" onclick="removeCustomWeaponType(\'' + t + '\')">×</button>'
         : '';
@@ -510,7 +516,7 @@ function renderWeaponProf() {
         : '';
       html += '<span class="prof-chip" data-source="' + w.source + '">' +
         escapeHtml(w.name) +
-        '<span class="prof-chip-src">' + PROF_SOURCE_LABELS[w.source] + '</span>' +
+        '<span class="prof-chip-src">' + profSourceLabel(w.source) + '</span>' +
         rmBtn + '</span>';
     });
     html += '</div></div>';

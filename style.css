@@ -3084,8 +3084,8 @@ background: var(--bg-2);
 color: var(--text);
 border: 1px solid var(--border);
 }
-button.danger { background: var(--danger); color: white; }
-button.success { background: var(--success); color: white; }
+button.danger { background: transparent; color: var(--danger); border: 1px solid color-mix(in srgb, var(--danger) 50%, transparent); }
+button.success { background: transparent; color: var(--success); border: 1px solid color-mix(in srgb, var(--success) 50%, transparent); }
 button.info { background: var(--info); color: white; }
 button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 
@@ -3278,7 +3278,7 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 .qrs-chip:first-child .qrs-chip-val { font-size: 1.55em; line-height: 1; }
 .qrs-chip.qrs-crit { border-color: #4da843; }
 .qrs-chip.qrs-crit .qrs-chip-val { color: #6fd35f; }
-.qrs-chip.qrs-fail { border-color: #c0392b; }
+.qrs-chip.qrs-fail { border-color: var(--danger); }
 .qrs-chip.qrs-fail .qrs-chip-val { color: #e8705f; }
 .qrs-close {
   flex: 0 0 auto;
@@ -4371,6 +4371,7 @@ animation: rise var(--t3) var(--ez-out) both;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: var(--r-pill);
+  gap: 4px;
   animation: overweightPulse 1s ease-in-out infinite;
 }
 .inv-weight-track {
@@ -4400,9 +4401,9 @@ animation: rise var(--t3) var(--ez-out) both;
 }
 .inv-backpack-header h4 { margin: 0; }
 .inv-add-btn {
-  background: var(--success-color) !important;
-  color: white !important;
-  border: none !important;
+  background: transparent !important;
+  color: var(--success) !important;
+  border: 1px solid color-mix(in srgb, var(--success) 50%, transparent) !important;
   border-radius: 8px;
   padding: 7px 14px !important;
   font-size: 0.82em !important;
@@ -4413,7 +4414,7 @@ animation: rise var(--t3) var(--ez-out) both;
   transform: none !important;
   transition: filter 0.2s;
 }
-.inv-add-btn:hover { filter: brightness(1.15); transform: none !important; box-shadow: none !important; }
+.inv-add-btn:hover { background: color-mix(in srgb, var(--success) 14%, transparent) !important; border-color: var(--success) !important; filter: none; transform: none !important; box-shadow: none !important; }
 
 /* ========================================
    INVENTORY — FILTERS
@@ -5239,7 +5240,7 @@ padding: 18px;
 .dice-custom-inp { width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 9px 12px; border-radius: 8px; font-size: 0.95em; box-sizing: border-box; }
 .dice-custom-inp:focus { outline: none; border-color: var(--accent-color); }
 .dice-custom-btn { background: var(--accent-color); color: #000; border: none; padding: 9px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9em; white-space: nowrap; }
-.dice-custom-btn:hover { background: #e0b850; }
+.dice-custom-btn:hover { background: var(--accent-hi); }
 .dice-history { max-height: 120px; overflow-y: auto; border-top: 1px solid var(--border-color); padding-top: 10px; }
 .dice-history-item { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.85em; color: var(--text-muted); border-bottom: 1px solid var(--border-color); }
 .dice-history-item:last-child { border-bottom: none; }
@@ -6726,15 +6727,17 @@ button.edition-btn {
   transform: none !important;
 }
 .spell-find-btn {
-  background: var(--success-color) !important;
-  color: white !important;
+  background: transparent !important;
+  color: var(--accent) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent) !important;
 }
-.spell-find-btn:hover { filter: brightness(1.15); transform: none !important; box-shadow: none !important; }
+.spell-find-btn:hover { background: color-mix(in srgb, var(--accent) 14%, transparent) !important; border-color: var(--accent) !important; filter: none; transform: none !important; box-shadow: none !important; }
 .spell-add-btn {
-  background: #2980b9 !important;
-  color: white !important;
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 40%, transparent) !important;
 }
-.spell-add-btn:hover { filter: brightness(1.15); transform: none !important; box-shadow: none !important; }
+.spell-add-btn:hover { background: color-mix(in srgb, var(--text-muted) 12%, transparent) !important; border-color: var(--text-muted) !important; color: var(--text-color) !important; filter: none; transform: none !important; box-shadow: none !important; }
 
 /* UI-5/полировка: на узких экранах (iPhone XR ~414px и меньше) кнопки
    «Найти заклинание» / «Добавить своё» вылетают за правую границу из-за
@@ -7479,8 +7482,8 @@ font-size: 0.9em; cursor: pointer; width: auto; margin: 0;
 }
 .confirm-btn-ok {
 flex: 1; padding: 10px; border-radius: 8px;
-background: #c0392b;
-border: 1px solid #c0392b;
+background: var(--danger);
+border: 1px solid var(--danger);
 color: #fff;
 font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
@@ -7543,7 +7546,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   margin: 0;
   transition: all 0.18s;
 }
-.party-add-btn:hover { background: #e0b850; border-color: #e0b850; }
+.party-add-btn:hover { background: var(--accent-hi); border-color: var(--accent-hi); }
 .party-io-btn {
   width: 30px; height: 30px;
   border-radius: var(--r-sm);
@@ -7578,7 +7581,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .pcard:hover { background: rgba(255,255,255,0.055); }
 .pcard-self  { border-left-color: #4da843; }
 .pcard-npc   { border-left-color: #d4ac0d; }
-.pcard-monster { border-left-color: #c0392b; }
+.pcard-monster { border-left-color: var(--danger); }
 /* На десктопе карточка «Мой персонаж» — единственная (не список), и при полной
    ширине колонки контент жмётся влево, оставляя пустоту (заметно в туре «Мир»).
    Сжимаем её до ширины содержимого. Списки соратников/NPC/монстров остаются
@@ -7717,7 +7720,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 .pcard-del-btn:hover { background: var(--danger-color); border-color: var(--danger-color); color: #fff; }
 
 /* Battle start */
-.battle-start-btn { width: 100%; padding: 14px; background: #c0392b; border: none; border-radius: var(--r-md); color: #fff; font-size: 1em; font-weight: 700; cursor: pointer; letter-spacing: 0.03em; transition: opacity 0.2s; margin: 0; }
+.battle-start-btn { width: 100%; padding: 14px; background: var(--danger); border: none; border-radius: var(--r-md); color: #fff; font-size: 1em; font-weight: 700; cursor: pointer; letter-spacing: 0.03em; transition: opacity 0.2s; margin: 0; }
 .battle-start-btn:hover { opacity: 0.85; }
 
 /* Party modal */
@@ -9259,7 +9262,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   margin: 0;
   transition: all 0.18s;
 }
-.journal-add-btn:hover { background: #e0b850; box-shadow: 0 2px 8px var(--accent-glow); }
+.journal-add-btn:hover { background: var(--accent-hi); box-shadow: 0 2px 8px var(--accent-glow); }
 .journal-filter-row {
   display: flex;
   gap: 6px;
@@ -13347,13 +13350,13 @@ mark.search-hl {
 /* ════ FEAT-4: SRD-бестиарий ════════════════════════════════ */
 /* Кнопка «📚 Из SRD» в секции монстров */
 .party-add-btn-srd {
-  background: rgba(108, 76, 168, 0.85);
-  border-color: rgba(108, 76, 168, 0.95);
+  background: var(--magic);
+  border-color: var(--magic);
   color: #fff;
 }
 .party-add-btn-srd:hover {
-  background: rgba(128, 96, 188, 1);
-  border-color: rgba(128, 96, 188, 1);
+  background: color-mix(in srgb, var(--magic) 82%, white);
+  border-color: color-mix(in srgb, var(--magic) 82%, white);
 }
 
 /* Бэйджи CR/КД/ХП на карточке монстра */
@@ -13367,9 +13370,9 @@ mark.search-hl {
   font-size: 0.7em;
   padding: 2px 7px;
   border-radius: var(--r-sm);
-  background: rgba(108, 76, 168, 0.18);
-  border: 1px solid rgba(108, 76, 168, 0.35);
-  color: #c9b4f0;
+  background: color-mix(in srgb, var(--magic) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--magic) 35%, transparent);
+  color: var(--magic);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -13424,8 +13427,8 @@ mark.search-hl {
   transition: background 0.15s, border-color 0.15s, transform 0.1s;
 }
 .srd-mon-row:hover {
-  background: rgba(108, 76, 168, 0.15);
-  border-color: rgba(108, 76, 168, 0.5);
+  background: color-mix(in srgb, var(--magic) 15%, transparent);
+  border-color: color-mix(in srgb, var(--magic) 50%, transparent);
 }
 .srd-mon-row:active { transform: scale(0.99); }
 .srd-mon-icon {
@@ -13465,7 +13468,7 @@ mark.search-hl {
   white-space: nowrap;
 }
 .srd-mon-add {
-  background: rgba(108, 76, 168, 0.85);
+  background: var(--magic);
   color: #fff;
   border: none;
   width: 32px;
@@ -13738,3 +13741,65 @@ textarea:focus-visible {
 .card h2[role="button"]::before,
 .card h3[role="button"]::before,
 .card h4[role="button"]::before { display: none; }
+
+
+/* ══ STYLE-7: спокойная светлая палитра кнопок ═══════════════════════════
+   Решение юзера 31.07.2026: цветные заливки читались как пестрота, особенно
+   в светлой теме. Вторичные действия — контур + цветной текст, нейтральные —
+   серые, сплошная заливка остаётся у одного действия на экран (.btn-primary,
+   «Перейти к бою», кнопка подтверждения в модалке). Блок в КОНЦЕ файла: при
+   равной специфичности выигрывает последнее правило — точечные перебивки
+   вариантов .btn-* не приходится трогать поштучно. */
+.btn-danger {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--danger) 50%, transparent);
+  color: var(--danger);
+  box-shadow: none;
+}
+.btn-danger:hover {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  border-color: var(--danger);
+  color: var(--danger);
+  box-shadow: none;
+}
+.btn-success {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--success) 50%, transparent);
+  color: var(--success);
+  box-shadow: none;
+}
+.btn-success:hover {
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+  border-color: var(--success);
+  color: var(--success);
+  box-shadow: none;
+}
+/* главное действие — плоская заливка без градиента и свечения */
+.btn-primary {
+  background: var(--accent);
+  box-shadow: none;
+}
+.btn-primary:hover { background: var(--accent-hi); box-shadow: none; filter: none; }
+/* вкладка «Мир»: добавление — контур акцентом, каталоги — нейтраль */
+.party-add-btn {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
+}
+.party-add-btn:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.party-add-btn-srd {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--text-muted) 40%, transparent);
+  color: var(--text-muted);
+}
+.party-add-btn-srd:hover {
+  background: color-mix(in srgb, var(--text-muted) 12%, transparent);
+  border-color: var(--text-muted);
+  color: var(--text-color);
+}
+.battle-start-btn { background: var(--accent); color: var(--on-accent); }
+.rr-slot-fill { background: color-mix(in srgb, var(--accent) 45%, transparent); }

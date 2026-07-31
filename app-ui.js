@@ -276,7 +276,7 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 function swTelegramBlock() {
   var tgUrl = (typeof APP_TELEGRAM_URL === 'string' && APP_TELEGRAM_URL) ? APP_TELEGRAM_URL : 'https://t.me/dndlistru';
   return '<a class="sw-update-tg" href="' + escapeHtml(tgUrl) + '" target="_blank" rel="noopener">' +
-      '<span class="sw-update-tg-icon">💬</span>' +
+      '<span class="sw-update-tg-icon">' + dndIcoHtml("chat", 16) + '</span>' +
       '<span class="sw-update-tg-text"><b>Telegram-канал @dndlistru</b>' +
         '<span class="sw-update-tg-sub">Анонсы обновлений, опросы, новости</span></span>' +
       '<span class="sw-update-tg-arrow">→</span>' +
@@ -293,13 +293,13 @@ function showUpdateModal(worker) {
   modal.innerHTML =
     '<div class="sw-update-box">' +
       '<div class="sw-update-header">' +
-        '<div class="sw-update-icon">🎲</div>' +
+        '<div class="sw-update-icon">' + dndIcoHtml("dice", 28) + '</div>' +
         '<div class="sw-update-title">Доступно обновление!</div>' +
         '<div class="sw-update-version">Текущая версия: v' + escapeHtml(ver) + '</div>' +
       '</div>' +
-      '<div class="sw-update-safe">🔒 <b>Персонажи и данные сохранятся</b> — обновление меняет только код приложения, данные хранятся отдельно в браузере</div>' +
+      '<div class="sw-update-safe">' + dndIcoHtml("lock", 13) + ' <b>Персонажи и данные сохранятся</b> — обновление меняет только код приложения, данные хранятся отдельно в браузере</div>' +
       swTelegramBlock() +
-      '<div class="sw-update-btns"><button id="sw-update-later">Позже</button><button id="sw-update-now">⚡ Установить обновление</button></div>' +
+      '<div class="sw-update-btns"><button id="sw-update-later">Позже</button><button id="sw-update-now">' + dndIcoHtml("zap", 14) + ' Установить обновление</button></div>' +
     '</div>';
   document.body.appendChild(modal);
   requestAnimationFrame(function() { modal.classList.add('sw-update-visible'); });
@@ -341,16 +341,16 @@ function showWhatsNewModal(prevVer, newVer) {
   modal.innerHTML =
     '<div class="sw-update-box">' +
       '<div class="sw-update-header">' +
-        '<div class="sw-update-icon">🎉</div>' +
+        '<div class="sw-update-icon">' + dndIcoHtml("star", 28) + '</div>' +
         '<div class="sw-update-title">Обновлено!</div>' +
         '<div class="sw-update-version">v' + escapeHtml(prevVer) + ' → v' + escapeHtml(newVer) + (latest ? ' · ' + escapeHtml(latest.date) : '') + '</div>' +
       '</div>' +
-      '<div class="sw-update-changes"><div class="sw-changes-title">📋 Что нового (' + (latest ? latest.changes.length : 0) + '):</div>' + changesList +
+      '<div class="sw-update-changes"><div class="sw-changes-title">' + dndIcoHtml("sheet", 14) + ' Что нового (' + (latest ? latest.changes.length : 0) + '):</div>' + changesList +
         (latest ? '<a class="cl-version-link" style="display:inline-block;margin-top:8px" href="' + RELEASES_URL + '#v' + encodeURIComponent(latest.version) + '" target="_blank" rel="noopener">подробно: что менялось в коде ↗</a>' : '') +
       '</div>' +
-      '<div class="sw-update-safe">🔒 <b>Все данные сохранены</b> — ваши персонажи и заклинания на месте</div>' +
+      '<div class="sw-update-safe">' + dndIcoHtml("lock", 13) + ' <b>Все данные сохранены</b> — ваши персонажи и заклинания на месте</div>' +
       swTelegramBlock() +
-      '<div class="sw-update-btns"><button id="sw-update-now" style="flex:1">👍 Отлично!</button></div>' +
+      '<div class="sw-update-btns"><button id="sw-update-now" style="flex:1">' + dndIcoHtml("check", 14) + ' Отлично!</button></div>' +
     '</div>';
   document.body.appendChild(modal);
   requestAnimationFrame(function() { modal.classList.add('sw-update-visible'); });
@@ -461,7 +461,7 @@ function renderClassResources() {
   if (data.passive && data.passive.notes) {
     var notesEl = document.createElement("div");
     notesEl.className = "resource-passive-card";
-    notesEl.innerHTML = '<div class="resource-passive-title">📖 Пассивные умения ' + escapeHtml(cls) + '</div>' +
+    notesEl.innerHTML = '<div class="resource-passive-title">' + dndIcoHtml("book", 14) + ' Пассивные умения ' + escapeHtml(cls) + '</div>' +
       '<pre class="resource-passive-text">' + escapeHtml(data.passive.notes) + '</pre>';
     grid.appendChild(notesEl);
   }
@@ -511,7 +511,7 @@ function renderClassResources() {
       pipsHtml += '</div>';
     }
 
-    var restLabel = res.restoreOn === "short" ? "☕ Кор." : res.restoreOn === "long" || res.restoreOn === "long_once" ? "🛏️ Длин." : res.restoreOn === "turn" ? "🔄 Каждый ход" : "–";
+    var restLabel = res.restoreOn === "short" ? "" + dndIcoHtml("coffee", 12) + " Кор." : res.restoreOn === "long" || res.restoreOn === "long_once" ? "" + dndIcoHtml("bed", 12) + " Длин." : res.restoreOn === "turn" ? "" + dndIcoHtml("reset", 12) + " Каждый ход" : "–";
 
     card.innerHTML =
       '<div class="resource-header">' +
@@ -672,7 +672,7 @@ function renderJournal() {
   var filtered = journalFilter === "all" ? journal : journal.filter(function(e) { return e.type === journalFilter; });
 
   if (filtered.length === 0) {
-    list.innerHTML = '<div class="journal-empty">📭 Нет записей' + (journalFilter !== "all" ? " в этой категории" : "") + '</div>';
+    list.innerHTML = '<div class="journal-empty">' + dndIcoHtml("inbox", 22) + ' Нет записей' + (journalFilter !== "all" ? " в этой категории" : "") + '</div>';
     return;
   }
 
@@ -750,7 +750,7 @@ function renderCompanions() {
     var list = $(elId);
     if (!list) return;
     if (companions.length === 0) {
-      list.innerHTML = '<div class="party-empty">📭 Нет прихвостней</div>';
+      list.innerHTML = '<div class="party-empty">' + dndIcoHtml("inbox", 22) + ' Нет прихвостней</div>';
       return;
     }
     list.innerHTML = companions.map(function(c, i) {
@@ -762,15 +762,15 @@ function renderCompanions() {
         '<div class="pcard-body">' +
           '<div class="pcard-name">' + escapeHtml(c.name) + '</div>' +
           '<div class="pcard-sub">' + escapeHtml(COMPANION_TYPE_NAMES[c.type] || c.type) + ' · КД ' + (c.ac || 10) + '</div>' +
-          (c.attack ? '<div class="pcard-desc">⚔️ ' + escapeHtml(c.attack) + '</div>' : '') +
+          (c.attack ? '<div class="pcard-desc">' + dndIcoHtml("sword", 12) + ' ' + escapeHtml(c.attack) + '</div>' : '') +
           '<div class="companion-hp-row">' +
-            '<span style="color:' + hpColor + ';font-size:0.8em;font-weight:700;">❤️ ' + c.hpCurrent + '/' + c.hpMax + '</span>' +
+            '<span style="color:' + hpColor + ';font-size:0.8em;font-weight:700;">' + dndIcoHtml("heart", 12) + ' ' + c.hpCurrent + '/' + c.hpMax + '</span>' +
             '<button class="res-btn" style="padding:2px 8px;font-size:0.72em" onclick="companionHP(' + i + ',-1)">-1</button>' +
             '<button class="res-btn" style="padding:2px 8px;font-size:0.72em" onclick="companionHP(' + i + ',1)">+1</button>' +
           '</div>' +
         '</div>' +
         '<div class="pcard-actions">' +
-          '<button class="pcard-edit-btn" onclick="openEditCompanionModal(' + i + ')">✏️</button>' +
+          '<button class="pcard-edit-btn" onclick="openEditCompanionModal(' + i + ')">' + dndIcoHtml("edit", 14) + '</button>' +
           '<button class="pcard-del-btn" onclick="deleteCompanion(' + i + ')">✕</button>' +
         '</div>' +
       '</div>';
@@ -825,7 +825,7 @@ function applyFamiliarForm() {
 
 function openAddCompanionModal(presetType) {
   buildFamiliarFormOptions();
-  $("companion-modal-title").textContent = "🐾 Добавить прихвостня";
+  $("companion-modal-title").innerHTML = dndIcoHtml("wolf", 16) + " Добавить прихвостня";
   $("companion-edit-index").value = "-1";
   $("companion-name-inp").value = "";
   $("companion-type-sel").value = presetType || "familiar";
@@ -842,7 +842,7 @@ function openAddCompanionModal(presetType) {
 function summonFamiliar() {
   if (!currentId) { showToast("Сначала выберите персонажа", "warn"); return; }
   openAddCompanionModal("familiar");
-  $("companion-modal-title").textContent = "🐾 Призвать фамильяра";
+  $("companion-modal-title").innerHTML = dndIcoHtml("wolf", 16) + " Призвать фамильяра";
 }
 
 // CAST-5: модалка спутника, предзаполненная дескриптором призыва
@@ -852,7 +852,7 @@ function summonFamiliar() {
 function openPrefilledCompanionModal(prefill, title) {
   if (!currentId) { showToast("Сначала выберите персонажа", "warn"); return; }
   openAddCompanionModal(prefill && prefill.type);
-  $("companion-modal-title").textContent = title || "✨ Призыв существа";
+  $("companion-modal-title").innerHTML = title ? escapeHtml(title) : (dndIcoHtml("sparkle", 16) + " Призыв существа");
   if (!prefill) return;
   if (prefill.name != null)   $("companion-name-inp").value = prefill.name;
   if (prefill.hp != null)     $("companion-hp-inp").value = prefill.hp;
@@ -867,7 +867,7 @@ function openEditCompanionModal(i) {
   var c = getCompanions(char)[i];
   if (!c) return;
   buildFamiliarFormOptions();
-  $("companion-modal-title").textContent = "✏️ Редактировать прихвостня";
+  $("companion-modal-title").innerHTML = dndIcoHtml("edit", 16) + " Редактировать прихвостня";
   $("companion-edit-index").value = i;
   $("companion-name-inp").value = c.name || "";
   $("companion-type-sel").value = c.type || "other";

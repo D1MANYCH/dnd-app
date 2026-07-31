@@ -109,7 +109,7 @@ function renderMyChar() {
   var hpMax     = char.combat ? (char.combat.hpMax || 0) : 0;
   var hpPct     = hpMax > 0 ? Math.min(100, Math.round(hpCurrent / hpMax * 100)) : 100;
   var hpColor   = hpPct > 60 ? "#4da843" : hpPct > 30 ? "#e67e22" : "#e74c3c";
-  var conds     = (char.conditions && char.conditions.length) ? "⚠️ " + char.conditions.length + " статус" : "";
+  var conds     = (char.conditions && char.conditions.length) ? "" + dndIcoHtml("alert", 13) + " " + char.conditions.length + " статус" : "";
   container.innerHTML =
     '<div class="pcard pcard-self">' +
       '<div class="pcard-icon" style="background:' + color + '22;color:' + color + '">' + icon + '</div>' +
@@ -117,8 +117,8 @@ function renderMyChar() {
         '<div class="pcard-name">' + escapeHtml(char.name || "Мой персонаж") + '<span class="pcard-self-badge">я</span></div>' +
         '<div class="pcard-sub">' + escapeHtml((char.class||"") + (char.subclass ? " · "+char.subclass : "") + " · " + (char.level||1) + " ур.") + '</div>' +
         '<div class="pcard-badges">' +
-          '<span class="pcard-badge" style="color:' + hpColor + ';border-color:' + hpColor + '55;background:' + hpColor + '18">❤️ ' + hpCurrent + '/' + hpMax + '</span>' +
-          '<span class="pcard-badge">🛡️ ' + (char.combat ? (char.combat.ac||10) : 10) + '</span>' +
+          '<span class="pcard-badge" style="color:' + hpColor + ';border-color:' + hpColor + '55;background:' + hpColor + '18">' + dndIcoHtml("heart", 13) + ' ' + hpCurrent + '/' + hpMax + '</span>' +
+          '<span class="pcard-badge">' + dndIcoHtml("shield", 13) + ' ' + (char.combat ? (char.combat.ac||10) : 10) + '</span>' +
           (conds ? '<span class="pcard-badge pcard-badge-warn">' + conds + '</span>' : '') +
         '</div>' +
       '</div>' +
@@ -131,7 +131,7 @@ function renderAllies() {
   var countEl = $("allies-count");
   if (!list) return;
   if (countEl) countEl.textContent = PARTY_DATA.allies.length > 0 ? PARTY_DATA.allies.length : "";
-  if (PARTY_DATA.allies.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет соратников. Добавьте первого!</div>"; return; }
+  if (PARTY_DATA.allies.length === 0) { list.innerHTML = "<div class='party-empty'>" + dndIcoHtml("inbox", 22) + " Нет соратников. Добавьте первого!</div>"; return; }
   list.innerHTML = PARTY_DATA.allies.map(function(a, i) {
     var icon  = getClassIcon(a.cls);
     var color = getClassColor(a.cls);
@@ -146,7 +146,7 @@ function renderAllies() {
         '</select></div>' +
       '</div>' +
       '<div class="pcard-actions">' +
-        '<button class="pcard-edit-btn" onclick="openEditAllyModal(' + i + ')" title="Редактировать">✏️</button>' +
+        '<button class="pcard-edit-btn" onclick="openEditAllyModal(' + i + ')" title="Редактировать">' + dndIcoHtml("edit", 14) + '</button>' +
         '<button class="pcard-del-btn"  onclick="deleteAlly(' + i + ')" title="Удалить">✕</button>' +
       '</div>' +
     '</div>';
@@ -154,12 +154,17 @@ function renderAllies() {
 }
 
 // ─── PARTY ENTITY MODAL (unified for ally / npc / monster) ───
+// STYLE-7c: подписи — пара [иконка, текст]; иконка собирается в момент открытия
+// модалки (на верхнем уровне модуля icons.js ещё может быть не загружен).
+function _pentLabel(pair) {
+  return Array.isArray(pair) ? dndIcoHtml(pair[0], 16) + " " + pair[1] : (pair || "");
+}
 var _PENT = {
   ally:    { modal:"add-ally-modal",    title:"ally-modal-title",    idx:"ally-edit-index",
              fields: [{id:"ally-name-inp",key:"name"},{id:"ally-class-sel",key:"cls"},{id:"ally-desc-inp",key:"desc"}],
              list: function() { return PARTY_DATA.allies; },
              render: function() { renderAllies(); },
-             addLabel:"🧑‍🤝‍🧑 Добавить соратника", editLabel:"✏️ Редактировать соратника",
+             addLabel:["users","Добавить соратника"], editLabel:["edit","Редактировать соратника"],
              delMsg: "Удалить соратника?", delKey:"name" },
   // FEAT-4 расширение: NPC получает location/attitude
   npc:     { modal:"add-npc-modal",     title:"npc-modal-title",     idx:"npc-edit-index",
@@ -172,7 +177,7 @@ var _PENT = {
              ],
              list: function() { if (!PARTY_DATA.npcs) PARTY_DATA.npcs = []; return PARTY_DATA.npcs; },
              render: function() { renderNPCs(); },
-             addLabel:"🧑 Добавить персонажа", editLabel:"✏️ Редактировать персонажа",
+             addLabel:["user","Добавить персонажа"], editLabel:["edit","Редактировать персонажа"],
              delMsg: "Удалить персонажа?", delKey:"name" },
   // FEAT-4 расширение: монстр получает cr/ac/hp/tactics/edition
   monster: { modal:"add-monster-modal", title:"monster-modal-title", idx:"monster-edit-index",
@@ -188,13 +193,13 @@ var _PENT = {
              ],
              list: function() { return PARTY_DATA.monsters; },
              render: function() { renderMonsters(); },
-             addLabel:"👹 Добавить монстра", editLabel:"✏️ Редактировать монстра",
+             addLabel:["skull","Добавить монстра"], editLabel:["edit","Редактировать монстра"],
              delMsg: "Удалить монстра?", delKey:"name" }
 };
 function _pentOpen(type, i) {
   var cfg = _PENT[type]; if (!cfg) return;
   var isEdit = (i !== undefined && i >= 0);
-  $(cfg.title).textContent = isEdit ? cfg.editLabel : cfg.addLabel;
+  $(cfg.title).innerHTML = _pentLabel(isEdit ? cfg.editLabel : cfg.addLabel);
   $(cfg.idx).value = isEdit ? i : "-1";
   var item = isEdit ? cfg.list()[i] : null;
   cfg.fields.forEach(function(f) { $(f.id).value = item ? (item[f.key] || "") : ""; });
@@ -318,7 +323,7 @@ function renderNPCs() {
   var countEl = $("npcs-count");
   if (!list) return;
   if (countEl) countEl.textContent = (PARTY_DATA.npcs && PARTY_DATA.npcs.length > 0) ? PARTY_DATA.npcs.length : "";
-  if (!PARTY_DATA.npcs || PARTY_DATA.npcs.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет персонажей</div>"; return; }
+  if (!PARTY_DATA.npcs || PARTY_DATA.npcs.length === 0) { list.innerHTML = "<div class='party-empty'>" + dndIcoHtml("inbox", 22) + " Нет персонажей</div>"; return; }
   list.innerHTML = PARTY_DATA.npcs.map(function(n, i) {
     // FEAT-4: бэйджи локации и отношения
     var subBadges = "";
@@ -326,7 +331,7 @@ function renderNPCs() {
     if (n.location || att) {
       var attC = _npcAttColor(att);
       var parts = [];
-      if (n.location) parts.push('<span class="pcard-npc-badge">📍 ' + escapeHtml(n.location) + '</span>');
+      if (n.location) parts.push('<span class="pcard-npc-badge">' + dndIcoHtml("mapPin", 13) + ' ' + escapeHtml(n.location) + '</span>');
       if (att) parts.push('<span class="pcard-npc-badge" style="color:' + attC + ';border-color:' + attC + '55">' + escapeHtml(att) + '</span>');
       subBadges = '<div class="pcard-npc-badges">' + parts.join("") + '</div>';
     }
@@ -343,7 +348,7 @@ function renderNPCs() {
         '</select></div>' +
       '</div>' +
       '<div class="pcard-actions">' +
-        '<button class="pcard-edit-btn" onclick="openEditNPCModal(' + i + ')" title="Редактировать">✏️</button>' +
+        '<button class="pcard-edit-btn" onclick="openEditNPCModal(' + i + ')" title="Редактировать">' + dndIcoHtml("edit", 14) + '</button>' +
         '<button class="pcard-del-btn"  onclick="deleteNPC(' + i + ')" title="Удалить">✕</button>' +
       '</div>' +
     '</div>';
@@ -359,20 +364,20 @@ function renderMonsters() {
   var countEl = $("monsters-count");
   if (!list) return;
   if (countEl) countEl.textContent = PARTY_DATA.monsters.length > 0 ? PARTY_DATA.monsters.length : "";
-  if (PARTY_DATA.monsters.length === 0) { list.innerHTML = "<div class='party-empty'>📭 Нет монстров. Добавьте врага!</div>"; return; }
+  if (PARTY_DATA.monsters.length === 0) { list.innerHTML = "<div class='party-empty'>" + dndIcoHtml("inbox", 22) + " Нет монстров. Добавьте врага!</div>"; return; }
   list.innerHTML = PARTY_DATA.monsters.map(function(m, i) {
     var typeIcon = getMonsterTypeIcon(m.type);
     // FEAT-4: бэйджи SRD-карточки (CR / КД / ХП / редакция), показываем только заполненные
     var srdBadges = "";
     var parts = [];
     if (m.cr)      parts.push('<span class="pcard-srd-badge">CR ' + escapeHtml(String(m.cr)) + '</span>');
-    if (m.ac)      parts.push('<span class="pcard-srd-badge">🛡️ ' + escapeHtml(String(m.ac)) + '</span>');
-    if (m.hp)      parts.push('<span class="pcard-srd-badge">❤️ ' + escapeHtml(String(m.hp)) + '</span>');
+    if (m.ac)      parts.push('<span class="pcard-srd-badge">' + dndIcoHtml("shield", 13) + ' ' + escapeHtml(String(m.ac)) + '</span>');
+    if (m.hp)      parts.push('<span class="pcard-srd-badge">' + dndIcoHtml("heart", 13) + ' ' + escapeHtml(String(m.hp)) + '</span>');
     if (m.edition) parts.push('<span class="pcard-srd-badge pcard-srd-badge-ed">' + escapeHtml(String(m.edition)) + '</span>');
     if (parts.length) srdBadges = '<div class="pcard-srd-badges">' + parts.join("") + '</div>';
     // FEAT-4: тактика отдельным блоком (если есть)
     var tacticsBlock = "";
-    if (m.tactics) tacticsBlock = '<div class="pcard-tactics">⚔️ ' + escapeHtml(m.tactics).replace(/\n/g, "<br>") + '</div>';
+    if (m.tactics) tacticsBlock = '<div class="pcard-tactics">' + dndIcoHtml("sword", 14) + ' ' + escapeHtml(m.tactics).replace(/\n/g, "<br>") + '</div>';
     // FEAT-4: multi-line desc (SRD-карточка) — рендерим с pre-line + max-height
     var descBlock = "";
     if (m.desc) {
@@ -393,7 +398,7 @@ function renderMonsters() {
         '</select></div>' +
       '</div>' +
       '<div class="pcard-actions">' +
-        '<button class="pcard-edit-btn" onclick="openEditMonsterModal(' + i + ')" title="Редактировать">✏️</button>' +
+        '<button class="pcard-edit-btn" onclick="openEditMonsterModal(' + i + ')" title="Редактировать">' + dndIcoHtml("edit", 14) + '</button>' +
         '<button class="pcard-del-btn"  onclick="deleteMonster(' + i + ')" title="Удалить">✕</button>' +
       '</div>' +
     '</div>';
@@ -499,8 +504,8 @@ function renderSrdMonsterPicker() {
         '<div class="srd-mon-name">' + escapeHtml(m.name) + ' <span class="srd-mon-en">' + escapeHtml(m.nameEn || "") + '</span></div>' +
         '<div class="srd-mon-meta">' +
           '<span class="srd-mon-badge">CR ' + escapeHtml(m.cr) + '</span>' +
-          '<span class="srd-mon-badge">🛡️ ' + m.ac + '</span>' +
-          '<span class="srd-mon-badge">❤️ ' + m.hp + '</span>' +
+          '<span class="srd-mon-badge">' + dndIcoHtml("shield", 13) + ' ' + m.ac + '</span>' +
+          '<span class="srd-mon-badge">' + dndIcoHtml("heart", 13) + ' ' + m.hp + '</span>' +
           '<span class="srd-mon-badge">' + escapeHtml(m.size) + ' · ' + escapeHtml(m.type) + '</span>' +
           (m.edition ? '<span class="srd-mon-badge srd-mon-badge-ed">' + escapeHtml(m.edition) + '</span>' : '') +
         '</div>' +
@@ -609,7 +614,7 @@ function renderSrdNpcPicker() {
       '<div class="srd-mon-body">' +
         '<div class="srd-mon-name">' + escapeHtml(a.name) + '</div>' +
         '<div class="srd-mon-meta">' +
-          '<span class="srd-mon-badge">📍 ' + escapeHtml(a.location || "—") + '</span>' +
+          '<span class="srd-mon-badge">' + dndIcoHtml("mapPin", 13) + ' ' + escapeHtml(a.location || "—") + '</span>' +
           '<span class="srd-mon-badge" style="color:' + attC + ';border-color:' + attC + '55">' + escapeHtml(a.attitude || "—") + '</span>' +
         '</div>' +
       '</div>' +
@@ -979,7 +984,7 @@ function renderBattleTracker() {
     var showHP = isSelf || p.type === "monster" || hp.hpMax > 0;
     var hpBlock = '<div class="tracker-hp' + (showHP ? '' : ' tracker-hp-empty') + '">' +
       (showHP
-        ? '<span class="tracker-hp-heart">❤️</span>' +
+        ? '<span class="tracker-hp-heart">' + dndIcoHtml("heart", 13) + '</span>' +
           '<button type="button" class="tracker-hp-btn tracker-hp-minus" onclick="adjustBattleHP(' + i + ',-1)" title="−1 ХП">−</button>' +
           '<input type="number" class="tracker-hp-cur" value="' + hp.hp + '" onchange="setBattleHP(' + i + ',this.value)" aria-label="Текущие ХП">' +
           '<span class="tracker-hp-sep">/</span>' +
@@ -1006,7 +1011,7 @@ function renderBattleTracker() {
         "</div>" +
         '<div class="tracker-actions">' +
           infoSlot +
-          '<button type="button" class="tracker-roll-btn" onclick="battleRollD20(' + i + ')" title="Бросить d20 (в общую историю)">🎲</button>' +
+          '<button type="button" class="tracker-roll-btn" onclick="battleRollD20(' + i + ')" title="Бросить d20 (в общую историю)">' + dndIcoHtml("dice", 14) + '</button>' +
           removeSlot +
         '</div>' +
       '</div>' +
@@ -1232,7 +1237,7 @@ function _renderCastDamageModal(targets) {
     modal.className = "confirm-modal-overlay";
     modal.innerHTML =
       '<div class="confirm-modal-box cast-damage-box">' +
-        '<div class="confirm-modal-icon">💥</div>' +
+        '<div class="confirm-modal-icon">' + dndIcoHtml("zap", 28) + '</div>' +
         '<h4 id="cast-damage-title"></h4>' +
         '<div id="cast-damage-half-row" class="cast-damage-half-row"></div>' +
         '<div id="cast-damage-targets" class="cast-damage-targets"></div>' +
@@ -1351,7 +1356,7 @@ function _renderCastDebuffModal(targets) {
     modal.className = "confirm-modal-overlay";
     modal.innerHTML =
       '<div class="confirm-modal-box cast-debuff-box">' +
-        '<div class="confirm-modal-icon">🎯</div>' +
+        '<div class="confirm-modal-icon">' + dndIcoHtml("target", 28) + '</div>' +
         '<h4 id="cast-debuff-title"></h4>' +
         '<div id="cast-debuff-hint" class="cast-debuff-hint"></div>' +
         '<div id="cast-debuff-targets" class="cast-debuff-targets"></div>' +

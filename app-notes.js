@@ -206,7 +206,7 @@ function _renderVariantsPanel(secKey, variants, currentVal) {
             '</button>';
   }
   html += '</div>';
-  html += '<button type="button" class="notes-variant-random" aria-label="Случайный вариант" onclick="notesPickRandomVariant(\'' + secKey + '\')">🎲 Случайный</button>';
+  html += '<button type="button" class="notes-variant-random" aria-label="Случайный вариант" onclick="notesPickRandomVariant(\'' + secKey + '\')">' + dndIcoHtml("dice", 13) + ' Случайный</button>';
   html += '</div>';
   return html;
 }
@@ -218,7 +218,7 @@ function _renderMdToolbar(key, previewOn, variantsCount) {
     { t: 'H',  a: 'h2',     title: 'Заголовок' },
     { t: '•',  a: 'ul',     title: 'Список' },
     { t: '“',  a: 'quote',  title: 'Цитата' },
-    { t: '🔗', a: 'link',   title: 'Ссылка (Ctrl+K)' },
+    { t: '' + dndIcoHtml("link", 13) + '', a: 'link',   title: 'Ссылка (Ctrl+K)' },
     { t: '▦',  a: 'table',  title: 'Таблица' },
     { t: '―',  a: 'hr',     title: 'Разделитель' }
   ];
@@ -233,11 +233,11 @@ function _renderMdToolbar(key, previewOn, variantsCount) {
     html += '<button type="button" class="notes-md-btn notes-md-variants-toggle' +
             (openVar ? ' active' : '') + '" title="Варианты из билда"' +
             ' aria-expanded="' + (openVar ? 'true' : 'false') + '"' +
-            ' onclick="notesToggleVariants(\'' + key + '\')">🎲 <span class="notes-md-var-count">' + variantsCount + '</span></button>';
+            ' onclick="notesToggleVariants(\'' + key + '\')">' + dndIcoHtml("dice", 13) + ' <span class="notes-md-var-count">' + variantsCount + '</span></button>';
   }
   html += '<button type="button" class="notes-md-btn notes-md-preview-toggle' +
           (previewOn ? ' active' : '') + '" title="Превью"' +
-          ' onclick="notesTogglePreview(\'' + key + '\')">👁</button>';
+          ' onclick="notesTogglePreview(\'' + key + '\')">' + dndIcoHtml("eye", 13) + '</button>';
   html += '</div>';
   return html;
 }

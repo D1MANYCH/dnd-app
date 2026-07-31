@@ -71,7 +71,7 @@ function renderBuildPicker() {
       _wk.forEach(function(w){ _bullets += '<li class="bp-con">✗ ' + escapeHtml(w) + '</li>'; });
       guideHtml =
         '<div class="bp-card-guide">' +
-          '<div class="bp-pitch">🎯 ' + escapeHtml(_g.pitch) + '</div>' +
+          '<div class="bp-pitch">' + dndIcoHtml("target", 13) + ' ' + escapeHtml(_g.pitch) + '</div>' +
           (_bullets ? '<ul class="bp-bullets">' + _bullets + '</ul>' : '') +
         '</div>';
     }
@@ -87,8 +87,8 @@ function renderBuildPicker() {
         guideHtml +
         '<div class="bp-card-meta">' +
           '<span class="bp-diff bp-diff-' + d + '" title="Сложность: ' + (BP_DIFF_LABELS[d]||"") + '">' + diff + '</span>' +
-          '<span class="bp-race">🧬 ' + escapeHtml(b.race || "") + '</span>' +
-          '<span class="bp-bg">📜 ' + escapeHtml(b.background || "") + '</span>' +
+          '<span class="bp-race">' + dndIcoHtml("user", 12) + ' ' + escapeHtml(b.race || "") + '</span>' +
+          '<span class="bp-bg">' + dndIcoHtml("scroll", 12) + ' ' + escapeHtml(b.background || "") + '</span>' +
         '</div>' +
       '</div>'
     );
@@ -1044,7 +1044,7 @@ function openBuildGuide(buildId) {
   var g = b.guide;
   var titleEl = document.getElementById("bg-title-h");
   var bodyEl = document.getElementById("bg-body");
-  if (titleEl) titleEl.textContent = "📘 Гайд: " + (b.title || b.className || "");
+  if (titleEl) titleEl.innerHTML = (typeof dndIcon === "function" ? '<span class="dico">' + dndIcon("book", 18) + "</span> " : "📘 ") + escapeHtml("Гайд: " + (b.title || b.className || ""));
   // UX-4: gx() = экранирование + обёртка терминов глоссария. seen — первое вхождение
   // термина в гайде подсвечивается, повторы остаются простым текстом (без шума).
   var seen = {};
@@ -1065,7 +1065,7 @@ function openBuildGuide(buildId) {
   var _dots = "●".repeat(_diff) + "○".repeat(3 - _diff);
   html += '<div class="bg-diff-legend"><span class="bg-diff-dots bg-diff-' + _diff + '">' + _dots + '</span> Сложность: <b>' +
     escapeHtml(BP_DIFF_LABELS[_diff] || "") + '</b> — ' + escapeHtml(BP_DIFF_DESC[_diff] || "") + '</div>';
-  if (g.pitch) html += '<div class="bg-pitch">🎯 ' + gx(g.pitch) + '</div>';
+  if (g.pitch) html += '<div class="bg-pitch">' + dndIcoHtml("target", 13) + ' ' + gx(g.pitch) + '</div>';
   // UX-4: шкала живучести d6→d12 с подсветкой кости хитов класса.
   var _hd = (typeof CLASS_HIT_DICE !== "undefined" && CLASS_HIT_DICE[b.className]) || 0;
   if (_hd) {
@@ -1078,16 +1078,16 @@ function openBuildGuide(buildId) {
     var _scale = [6, 8, 10, 12].map(function(d){
       return '<span class="bg-hp-chip' + (d === _hd ? " is-active" : "") + '">d' + d + '</span>';
     }).join('<span class="bg-hp-arrow">›</span>');
-    html += '<section class="bg-section bg-legend"><h3>🩺 Живучесть</h3>' +
+    html += '<section class="bg-section bg-legend"><h3>' + dndIcoHtml("heart", 14) + ' Живучесть</h3>' +
       '<div class="bg-hpscale" role="img" aria-label="Кость хитов d' + _hd + ' из шкалы d6–d12">' + _scale + '</div>' +
       '<div class="bg-hp-ends"><span>хрупкий</span><span>живучий</span></div>' +
       '<p class="bg-legend-note">' + gx(_HD_DESC[_hd] || ("Кость хитов d" + _hd + ".")) + '</p></section>';
   }
-  if (g.playstyle) html += '<section class="bg-section"><h3>⚔️ Стиль игры</h3><p>' + gx(g.playstyle) + '</p></section>';
-  if (Array.isArray(g.strengths) && g.strengths.length) html += '<section class="bg-section"><h3>✅ Сильные стороны</h3>' + _list(g.strengths, "bg-pros", "✓") + '</section>';
-  if (Array.isArray(g.weaknesses) && g.weaknesses.length) html += '<section class="bg-section"><h3>⚠️ Слабости</h3>' + _list(g.weaknesses, "bg-cons", "✗") + '</section>';
-  if (g.synergy) html += '<section class="bg-section"><h3>🤝 Синергия в партии</h3><p>' + gx(g.synergy) + '</p></section>';
-  if (Array.isArray(g.tips) && g.tips.length) html += '<section class="bg-section"><h3>💡 Советы по игре</h3>' + _list(g.tips, "bg-tips", "•") + '</section>';
+  if (g.playstyle) html += '<section class="bg-section"><h3>' + dndIcoHtml("combat", 14) + ' Стиль игры</h3><p>' + gx(g.playstyle) + '</p></section>';
+  if (Array.isArray(g.strengths) && g.strengths.length) html += '<section class="bg-section"><h3>' + dndIcoHtml("check", 14) + ' Сильные стороны</h3>' + _list(g.strengths, "bg-pros", "✓") + '</section>';
+  if (Array.isArray(g.weaknesses) && g.weaknesses.length) html += '<section class="bg-section"><h3>' + dndIcoHtml("alert", 14) + ' Слабости</h3>' + _list(g.weaknesses, "bg-cons", "✗") + '</section>';
+  if (g.synergy) html += '<section class="bg-section"><h3>' + dndIcoHtml("users", 14) + ' Синергия в партии</h3><p>' + gx(g.synergy) + '</p></section>';
+  if (Array.isArray(g.tips) && g.tips.length) html += '<section class="bg-section"><h3>' + dndIcoHtml("bulb", 14) + ' Советы по игре</h3>' + _list(g.tips, "bg-tips", "•") + '</section>';
   // План развития 1–20 из b.levelUp — полный список по возрастанию уровней.
   if (b.levelUp) {
     var lvLines = [];
@@ -1099,7 +1099,7 @@ function openBuildGuide(buildId) {
         var s = b.levelUp[lv];
         if (s && s.headline) lvLines.push('<li><strong>' + lv + ' ур.:</strong> ' + gx(s.headline) + (s.why ? ' <span class="bg-why">— ' + gx(s.why) + '</span>' : '') + '</li>');
       });
-    if (lvLines.length) html += '<section class="bg-section"><h3>📈 План развития (1–20)</h3><ul class="bg-list bg-levels">' + lvLines.join("") + '</ul></section>';
+    if (lvLines.length) html += '<section class="bg-section"><h3>' + dndIcoHtml("trend", 14) + ' План развития (1–20)</h3><ul class="bg-list bg-levels">' + lvLines.join("") + '</ul></section>';
   }
   if (bodyEl) bodyEl.innerHTML = html;
   hideGlossPopover();
@@ -1502,7 +1502,7 @@ function openBuildPlan(buildId) {
   // Текущий уровень подсвечиваем только если план открыт для билда текущего персонажа.
   var curLevel = (ch && ch.buildId === b.id) ? (ch.level || 1) : 0;
   var titleEl = document.getElementById("bp-plan-title-h");
-  if (titleEl) titleEl.textContent = "📈 План развития: " + (b.title || b.className || "");
+  if (titleEl) titleEl.innerHTML = (typeof dndIcon === "function" ? '<span class="dico">' + dndIcon("trend", 18) + "</span> " : "📈 ") + escapeHtml("План развития: " + (b.title || b.className || ""));
   var rows = [];
   for (var lv = 1; lv <= 20; lv++) {
     var s = b.levelUp[lv];
@@ -1553,7 +1553,7 @@ function openClassPlan() {
   var sub = (ch.subclass && typeof SUBCLASS_FEATURES !== "undefined") ? SUBCLASS_FEATURES[ch.subclass] : null;
   var curLevel = ch.level || 1;
   var titleEl = document.getElementById("bp-plan-title-h");
-  if (titleEl) titleEl.textContent = "📈 План класса: " + ch.class;
+  if (titleEl) titleEl.innerHTML = (typeof dndIcon === "function" ? '<span class="dico">' + dndIcon("trend", 18) + "</span> " : "📈 ") + escapeHtml("План класса: " + ch.class);
   var rows = [];
   for (var lv = 1; lv <= 20; lv++) {
     var feats = [];

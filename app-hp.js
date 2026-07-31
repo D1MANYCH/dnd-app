@@ -35,7 +35,7 @@ const confirmBtn = $("confirm-rest-btn");
 if (main) main.classList.add("hidden");
 if (info) info.classList.remove("hidden");
 if (result) result.classList.add("hidden");
-if (title) title.textContent = "☕ Короткий отдых (1 час)";
+if (title) title.innerHTML = dndIcoHtml("coffee", 16) + " Короткий отдых (1 час)";
 if (list) list.innerHTML = "<li>Потратьте кости хитов для восстановления ХП</li><li>Восстанавливаются некоторые классовые умения</li><li>Заклинания НЕ восстанавливаются (кроме Колдуна)</li>";
 if (hitDiceSection) hitDiceSection.classList.remove("hidden");
 const foodSection = $("rest-food-section");
@@ -57,13 +57,13 @@ const confirmBtn = $("confirm-rest-btn");
 if (main) main.classList.add("hidden");
 if (info) info.classList.remove("hidden");
 if (result) result.classList.add("hidden");
-if (title) title.textContent = "🛏️ Долгий отдых (8 часов)";
+if (title) title.innerHTML = dndIcoHtml("bed", 16) + " Долгий отдых (8 часов)";
 // PHB стр.186: на 0 хитов отдых не даёт преимуществ — решение принимает rules.js,
 // здесь только показываем причину и не даём подтвердить.
 const char = getCurrentChar();
 const blockReason = char ? rulesLongRestBlockReason(char) : null;
-const blockNote = blockReason ? "<li style='color:var(--danger); font-weight:600;'>⛔ " + escapeHtml(blockReason) + "</li>" : "";
-if (list) list.innerHTML = blockNote + "<li>Восстанавливаются ВСЕ ХП</li><li>Восстанавливаются ВСЕ ячейки заклинаний</li><li>Восстанавливаются кости хитов (до половины уровня)</li><li>Сбрасываются потраченные кости хитов</li><li>Восстанавливаются все классовые умения</li><li>✅ Снимаются большинство условий</li>";
+const blockNote = blockReason ? "<li style='color:var(--danger); font-weight:600;'>" + dndIcoHtml("alert", 13) + " " + escapeHtml(blockReason) + "</li>" : "";
+if (list) list.innerHTML = blockNote + "<li>Восстанавливаются ВСЕ ХП</li><li>Восстанавливаются ВСЕ ячейки заклинаний</li><li>Восстанавливаются кости хитов (до половины уровня)</li><li>Сбрасываются потраченные кости хитов</li><li>Восстанавливаются все классовые умения</li><li>" + dndIcoHtml("check", 13) + " Снимаются большинство условий</li>";
 if (hitDiceSection) hitDiceSection.classList.add("hidden");
 // PHB стр.291: истощение снижает только тот отдых, в котором персонаж поел и попил.
 // Спрашиваем, только если истощение есть — иначе флажок в окне ни на что не влияет.
@@ -83,7 +83,7 @@ const resultDetails = $("rest-result-details");
 if (main) main.classList.add("hidden");
 if (info) info.classList.add("hidden");
 if (result) result.classList.remove("hidden");
-if (resultTitle) resultTitle.textContent = title;
+if (resultTitle) resultTitle.innerHTML = title;
 if (resultDetails) resultDetails.innerHTML = details;
 }
 function adjustHitDice(delta) {
@@ -139,12 +139,12 @@ resetResourcesByRest("short");
 // часовые и дольше переживают
 var _castExpired = (typeof expireCastEffectsByUnits === "function")
   ? expireCastEffectsByUnits(char, ["round", "minute"], "короткий отдых") : [];
-resultTitle = "✅ Короткий отдых завершён!";
+resultTitle = dndIcoHtml("check", 16) + " Короткий отдых завершён!";
 if (window.AppLog) AppLog.action("hp", "короткий отдых: костей " + hitDiceToSpend + ", +" + hpHealed + " ХП" + (_isWarlock ? ", пакт восстановлен" : "") + (_castExpired.length ? ", истекло эффектов: " + _castExpired.length : ""));
 var rollStr = rollLog.length > 0 ? " (" + rollLog.join(", ") + ")" : "";
-var warlockStr = _isWarlock ? "<p>🔮 Ячейки пакта восстановлены</p>" : "";
+var warlockStr = _isWarlock ? "<p>" + dndIcoHtml("focus", 13) + " Ячейки пакта восстановлены</p>" : "";
 var castExpiredStr = _castExpired.length ? "<p>⏳ Истекли эффекты: " + _castExpired.join(", ") + "</p>" : "";
-resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>🎲 Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>❤️ Восстановлено ХП: " + hpHealed + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr + castExpiredStr;
+resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>" + dndIcoHtml("dice", 12) + " Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>" + dndIcoHtml("heart", 12) + " Восстановлено ХП: " + hpHealed + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr + castExpiredStr;
 } else if (currentRestType === "long") {
 // PHB стр.186: страховка на случай, если кнопку не погасил showLongRestInfo —
 // проверка СТРОГО до clearAllCastEffects, иначе заблокированный отдых уже снял бы эффекты.
@@ -181,14 +181,14 @@ loadConditions();
 loadEffects();
 addHPHistory(oldHp, maxHp, maxHp - oldHp, "Долгий отдых");
 if (maxHp - oldHp > 0) showHPToast(maxHp - oldHp);
-resultTitle = "✅ Долгий отдых завершён!";
+resultTitle = dndIcoHtml("check", 16) + " Долгий отдых завершён!";
 if (window.AppLog) AppLog.action("hp", "длинный отдых: ХП " + oldHp + " → " + maxHp + (exhaustionReduced ? ", истощение −1" : "") + (exhaustionHeld ? ", истощение осталось (без еды и питья)" : "") + (chargesRestored ? ", заряды: " + chargesRestored : ""));
 addJournalEntry("rest", "Долгий отдых — новая сессия", "Уровень " + (char.level||1) + " · ХП: " + oldHp + " → " + maxHp + " · Ячейки и ресурсы восстановлены");
 renderJournal();
-var exhaustionNote = exhaustionReduced ? "<p>😫 Истощение снижено на 1 уровень</p>"
-  : (exhaustionHeld ? "<p>🍖 Истощение осталось прежним: персонаж не ел и не пил (PHB стр. 291)</p>" : "");
-var chargesNote = chargesRestored ? "<p>⚡ Заряды предметов восстановлены: " + chargesRestored + "</p>" : "";
-resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div><p>✨ Ячейки заклинаний: восстановлены</p><p>🎲 Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>📊 Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + exhaustionNote + chargesNote;
+var exhaustionNote = exhaustionReduced ? "<p>" + dndIcoHtml("dizzy", 13) + " Истощение снижено на 1 уровень</p>"
+  : (exhaustionHeld ? "<p>" + dndIcoHtml("food", 13) + " Истощение осталось прежним: персонаж не ел и не пил (PHB стр. 291)</p>" : "");
+var chargesNote = chargesRestored ? "<p>" + dndIcoHtml("zap", 13) + " Заряды предметов восстановлены: " + chargesRestored + "</p>" : "";
+resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div><p>" + dndIcoHtml("sparkle", 12) + " Ячейки заклинаний: восстановлены</p><p>" + dndIcoHtml("dice", 12) + " Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + exhaustionNote + chargesNote;
 }
 saveToLocal();
 loadCharacter(currentId);
@@ -289,7 +289,7 @@ document.addEventListener("DOMContentLoaded", function() {
     var warnEl = $("lu-mc-prereq-warn");
     if (!check.ok) {
       warnEl.style.display = "";
-      warnEl.innerHTML = "⚠️ Не выполнены требования: " + check.missing.join(", ");
+      warnEl.innerHTML = "" + dndIcoHtml("alert", 13) + " Не выполнены требования: " + check.missing.join(", ");
       $("lu-mc-confirm-new").disabled = true;
     } else {
       warnEl.style.display = "none";
@@ -427,11 +427,11 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
         var nextHtml = (nextRec && nextRec.headline)
           ? "<div class='lu-build-hint-next'>↪ Дальше (" + (newTotalLevel + 1) + " ур.): " + escapeHtml(nextRec.headline) + "</div>"
           : "";
-        hintEl.innerHTML = "<div class='lu-build-hint-label'>💡 Рекомендация билда" + (buildTitle ? " «" + escapeHtml(buildTitle) + "»" : "") + "</div>" +
+        hintEl.innerHTML = "<div class='lu-build-hint-label'>" + dndIcoHtml("bulb", 13) + " Рекомендация билда" + (buildTitle ? " «" + escapeHtml(buildTitle) + "»" : "") + "</div>" +
           "<div class='lu-build-hint-headline'>" + escapeHtml(buildRec.headline) + "</div>" +
           "<div class='lu-build-hint-why'>" + escapeHtml(buildRec.why) + "</div>" +
           nextHtml +
-          "<button type='button' class='lu-build-hint-plan' onclick=\"openBuildPlan('" + char.buildId + "')\">📈 весь план 1–20</button>";
+          "<button type='button' class='lu-build-hint-plan' onclick=\"openBuildPlan('" + char.buildId + "')\">" + dndIcoHtml("trend", 13) + " весь план 1–20</button>";
         hintEl.style.display = "";
       } else {
         hintEl.style.display = "none";
@@ -478,7 +478,7 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
     if (profParts.length > 0) {
       var profDiv = document.createElement("div");
       profDiv.className = "lu-feature-item lu-feature-profs";
-      profDiv.innerHTML = "<div class=\"lu-feature-name\">🛡️ Новые владения (мультикласс)</div><div class=\"lu-feature-desc\">" + escapeHtml(profParts.join(" · ")) + "</div>";
+      profDiv.innerHTML = "<div class=\"lu-feature-name\">" + dndIcoHtml("shield", 14) + " Новые владения (мультикласс)</div><div class=\"lu-feature-desc\">" + escapeHtml(profParts.join(" · ")) + "</div>";
       featuresContainer.appendChild(profDiv);
     }
   }
@@ -616,18 +616,18 @@ if (window.AppLog) AppLog.action("character", "уровень → " + newTotalLe
 addJournalEntry("levelup", "Достигнут " + newTotalLevel + " уровень! (" + classLabel + ")", "ХП: " + oldMaxHP + " → " + newMaxHP + " · Бонус мастерства: +" + newProf);
 renderJournal();
 
-var resultLines = ["❤️ ХП: " + oldMaxHP + " → " + newMaxHP + " (+" + hpGain + ")", "🎲 Костей хитов: " + newTotalLevel];
-if (isMulticlass(char)) resultLines.push("📋 " + getClassLabel(char));
-if (newProf !== oldProf) resultLines.push("⚡ Бонус мастерства: +" + oldProf + " → +" + newProf);
+var resultLines = ["" + dndIcoHtml("heart", 13) + " ХП: " + oldMaxHP + " → " + newMaxHP + " (+" + hpGain + ")", "" + dndIcoHtml("dice", 13) + " Костей хитов: " + newTotalLevel];
+if (isMulticlass(char)) resultLines.push("" + dndIcoHtml("sheet", 13) + " " + getClassLabel(char));
+if (newProf !== oldProf) resultLines.push("" + dndIcoHtml("zap", 13) + " Бонус мастерства: +" + oldProf + " → +" + newProf);
 if (CLASS_FEATURES[className] && CLASS_FEATURES[className][classLevel]) {
   var names = CLASS_FEATURES[className][classLevel].map(function(f) { return f.name; });
-  resultLines.push("✨ Новые умения: " + names.join(", "));
+  resultLines.push("" + dndIcoHtml("sparkle", 13) + " Новые умения: " + names.join(", "));
 }
 if (subclassName && typeof SUBCLASS_FEATURES !== "undefined" && SUBCLASS_FEATURES[subclassName] && SUBCLASS_FEATURES[subclassName][classLevel]) {
   var subNames = SUBCLASS_FEATURES[subclassName][classLevel].map(function(f) { return f.name; });
-  resultLines.push("🔮 " + subclassName + ": " + subNames.join(", "));
+  resultLines.push("" + dndIcoHtml("focus", 13) + " " + subclassName + ": " + subNames.join(", "));
 }
-if (isNewClass) resultLines.push("🆕 Новый класс: " + className);
+if (isNewClass) resultLines.push("" + dndIcoHtml("plus", 13) + " Новый класс: " + className);
 
 // BUILD-LVL-4: сохраняем контекст и решаем — показать экран выборов или сразу результат.
 _luChoicesCtx = {
@@ -659,7 +659,7 @@ function _luShowResult() {
       typeof SUBCLASS_FEATURES !== "undefined" && SUBCLASS_FEATURES[char.subclass] &&
       SUBCLASS_FEATURES[char.subclass][ctx.classLevel]) {
     var sn = SUBCLASS_FEATURES[char.subclass][ctx.classLevel].map(function(f){ return f.name; });
-    lines.push("🔮 " + char.subclass + ": " + sn.join(", "));
+    lines.push("" + dndIcoHtml("focus", 13) + " " + char.subclass + ": " + sn.join(", "));
   }
   $("lu-screen-choices").style.display = "none";
   $("lu-screen-multiclass").style.display = "none";
@@ -893,7 +893,7 @@ function luBuildChoicesScreen() {
   var b = (char.buildId && window.getBuildById) ? window.getBuildById(char.buildId) : null;
   var cn = ctx.className, clvl = ctx.classLevel, newLevel = ctx.newTotalLevel;
   var blocks = [];
-  function recBadge(text) { return '<span class="rec-badge">💡 ' + escapeHtml(text) + '</span>'; }
+  function recBadge(text) { return '<span class="rec-badge">' + dndIcoHtml("bulb", 12) + ' ' + escapeHtml(text) + '</span>'; }
 
   // 1) ВЫБОР ПОДКЛАССА — если открывается на этом уровне класса.
   var subMinLevel = null;
@@ -915,11 +915,11 @@ function luBuildChoicesScreen() {
       return '<button class="lu-choice-opt' + (isRec ? ' is-rec' : '') + '" onclick="luSetSubclass(\'' + s.replace(/'/g,"\\'") + '\')">' +
         escapeHtml(s) + srcHtml + (isRec ? ' ' + recBadge('совет') : '') + '</button>';
     }).join("");
-    blocks.push('<div class="lu-choice-block"><div class="lu-choice-title">🔮 Выбор подкласса</div>' +
+    blocks.push('<div class="lu-choice-block"><div class="lu-choice-title">' + dndIcoHtml("focus", 14) + ' Выбор подкласса</div>' +
       (recSub ? '<div class="lu-choice-sub">Билд советует: <b style="color:var(--rec)">' + escapeHtml(recSub) + '</b></div>' : '') +
       '<div class="lu-choice-opts">' + optsHtml + '</div></div>');
   } else if (char.subclass && subMinLevel === clvl) {
-    blocks.push('<div class="lu-choice-block done"><div class="lu-choice-title">🔮 Подкласс: ' + escapeHtml(char.subclass) + ' ✓</div></div>');
+    blocks.push('<div class="lu-choice-block done"><div class="lu-choice-title">' + dndIcoHtml("focus", 14) + ' Подкласс: ' + escapeHtml(char.subclass) + ' ✓</div></div>');
   }
 
   // 2) ASI / ЧЕРТА — если на этом уровне класса есть «Увеличение характеристик».
@@ -929,7 +929,7 @@ function luBuildChoicesScreen() {
     var asiDone = Array.isArray(char.asiUsedLevels) && char.asiUsedLevels.indexOf(newLevel) >= 0;
     var recAsi = (b && b.levelUp && b.levelUp[newLevel]) ? b.levelUp[newLevel] : null;
     blocks.push('<div class="lu-choice-block' + (asiDone ? ' done' : '') + '">' +
-      '<div class="lu-choice-title">📈 Увеличение характеристик или черта' + (asiDone ? ' ✓' : '') + '</div>' +
+      '<div class="lu-choice-title">' + dndIcoHtml("trend", 14) + ' Увеличение характеристик или черта' + (asiDone ? ' ✓' : '') + '</div>' +
       (recAsi && recAsi.headline ? '<div class="lu-choice-sub">' + recBadge('Совет') + ' ' + escapeHtml(recAsi.headline) + '</div>' : '') +
       (asiDone ? '' : '<button class="lu-choice-launch" onclick="openASIModalForLevel(' + newLevel + ')">Выбрать →</button>') +
       '</div>');
@@ -958,7 +958,7 @@ function luBuildChoicesScreen() {
   if (SPELL_CASTERS.indexOf(cn) >= 0) {
     var recSpellObjs = (b && typeof getBuildRecSpellObjs === "function") ? getBuildRecSpellObjs(b, newLevel) : [];
     var mySp = (char.spells && Array.isArray(char.spells.mySpells)) ? char.spells.mySpells : [];
-    var spParts = ['<div class="lu-choice-title">✨ Заклинания</div>'];
+    var spParts = ['<div class="lu-choice-title">' + dndIcoHtml("spells", 14) + ' Заклинания</div>'];
     if (recSpellObjs.length) {
       var allAdded = recSpellObjs.every(function(sp){ return mySp.some(function(x){ return x.id === sp.id || x.name === sp.name; }); });
       spParts.push('<div class="lu-choice-sub">' + recBadge('Советуют') + ' ' + escapeHtml(recSpellObjs.map(function(s){ return s.name; }).join(", ")) + '</div>');
@@ -1006,7 +1006,7 @@ function luBuildChoicesScreen() {
     hasOpenRec = asiOpen || subOpen || ccOpen || spOpen;
   }
   var applyAllHtml = hasOpenRec
-    ? '<button class="lu-apply-all-btn" onclick="luApplyAllRecommendations()">✨ Применить рекомендации билда разом</button>'
+    ? '<button class="lu-apply-all-btn" onclick="luApplyAllRecommendations()">' + dndIcoHtml("sparkle", 14) + ' Применить рекомендации билда разом</button>'
     : "";
 
   body.innerHTML = applyAllHtml + blocks.join("");
@@ -1342,7 +1342,7 @@ if (delta < 0 && char.concentration) {
         });
       },
       "🎲 Бросить спасбросок",
-      { danger: false, icon: "🔮" }
+      { danger: false, icon: "focus" }
     );
   }
 }

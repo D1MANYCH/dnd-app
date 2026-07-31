@@ -42,7 +42,7 @@ function openASIModal() {
   if (asiHint) {
     var rec = (typeof getBuildLevelRec === "function") ? getBuildLevelRec(char, asiCurrentLevel) : null;
     if (rec && rec.headline) {
-      asiHint.innerHTML = '<span class="rec-badge">💡 Совет билда</span> <span class="rec-text">' + escapeHtml(rec.headline) + '</span>' +
+      asiHint.innerHTML = '<span class="rec-badge">' + dndIcoHtml("bulb", 12) + ' Совет билда</span> <span class="rec-text">' + escapeHtml(rec.headline) + '</span>' +
         (rec.why ? ' <span class="rec-why">— ' + escapeHtml(rec.why) + '</span>' : '');
       asiHint.style.display = "";
     } else {
@@ -78,7 +78,7 @@ function buildASIStatGrid(char) {
     var mod = getMod(val);
     var isRec = !!(recAsi && recAsi[k]);
     return '<div class="asi-stat-item' + (isRec ? " is-rec" : "") + '" id="asi-stat-' + k + '" onclick="toggleASIStat(\'' + k + '\')">' +
-      (isRec ? '<span class="asi-stat-rec" title="Совет билда: +' + recAsi[k] + '">💡</span>' : '') +
+      (isRec ? '<span class="asi-stat-rec" title="Совет билда: +' + recAsi[k] + '">' + dndIcoHtml("bulb", 11) + '</span>' : '') +
       '<span class="asi-stat-icon">' + (getAbilityIcon(k) || statIcons[k]) + '</span>' +
       '<span class="asi-stat-name">' + statNames[k] + '</span>' +
       '<span class="asi-stat-cur">' + val + ' (' + formatMod(mod) + ')</span>' +
@@ -200,7 +200,7 @@ function buildFeatList() {
       return '<div class="feat-item' + (selected ? " selected" : "") + (taken ? " taken" : "") + (isRec ? " is-rec" : "") + '" onclick="selectFeat(\'' + feat.id + '\')" data-name="' + escapeHtml(feat.name.toLowerCase()) + '">' +
         '<div class="feat-item-header">' +
           '<span class="feat-item-name">' + escapeHtml(feat.name) + '</span>' +
-          (isRec ? '<span class="rec-badge">💡 совет билда</span>' : '') +
+          (isRec ? '<span class="rec-badge">' + dndIcoHtml("bulb", 12) + ' совет билда</span>' : '') +
           (feat.prereq ? '<span class="feat-prereq">' + escapeHtml(feat.prereq) + '</span>' : '') +
           (taken ? '<span class="feat-taken-badge">Уже взята</span>' : '') +
         '</div>' +
@@ -389,7 +389,7 @@ function renderTakenFeats() {
     var lvlBadge = f.level ? '<span class="feat-taken-lvl">ур. ' + f.level + '</span>' : "";
     return '<div class="feat-taken-card">' +
       '<div class="feat-taken-row">' +
-        '<span class="feat-taken-icon">🎯</span>' +
+        '<span class="feat-taken-icon">' + dndIcoHtml("target", 14) + '</span>' +
         '<span class="feat-taken-name">' + escapeHtml(f.name || f.id) + '</span>' +
         lvlBadge +
         '<button class="feat-taken-del" onclick="removeFeat(' + i + ')" title="Убрать черту">✕</button>' +

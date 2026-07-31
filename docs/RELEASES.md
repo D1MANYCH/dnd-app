@@ -3,41 +3,84 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v3.61.0**.
+Актуальная версия — **v3.62.0**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v3.62.0"></a>
+## v3.62.0 — 31 июля 2026
+
+✨ Иконки вместо эмодзи в интерфейсе: подписи кнопок, шапки секций, заголовки окон и пустые списки рисуются линейными SVG (набор 99 иконок); у игровых данных — состояний, школ магии, типов монстров — значки прежние. Кнопки спокойнее: вторичные действия контурные, сплошная заливка остаётся у одного действия на экран
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/d0a3340f...main) · 25 файлов, +667 −533
+
+<details><summary>Файлы</summary>
+
+_Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
+
+**Файлы (25):**
+
+- `index.html` +228 −223
+- `style.css` +95 −30
+- `app-help.js` +59 −59
+- `app-hp.js` +31 −31
+- `app-proficiencies.js` +33 −27
+- `app-party.js` +29 −24
+- `app-spells.js` +24 −24
+- `app-inventory.js` +22 −22
+- `icons.js` +39 −0
+- `app-combat.js` +19 −19
+- `app-ui.js` +19 −19
+- `app-builds.js` +14 −14
+- `app-core.js` +9 −9
+- `app-conditions.js` +7 −7
+- `data.js` +11 −3
+- `app-desktop.js` +5 −5
+- `app-asi.js` +4 −4
+- `app-home.js` +4 −4
+- `app-notes.js` +4 −4
+- `CHANGELOG.md` +6 −1
+- `app-backup.js` +1 −1
+- `app-cast-effects.js` +1 −1
+- `sw.js` +1 −1
+- `tools/theme-baseline.json` +1 −1
+- `tests/headless-node.js` +1 −0
+
+</details>
+
 <a id="v3.61.0"></a>
 ## v3.61.0 — 30 июля 2026
 
 ✨ Единый стиль интерфейса: serif-заголовки с ромбовидными маркерами вместо эмодзи, облегчённые карточки, одинаковые оболочка и анимация у всех модальных окон, плавное подчёркивание пунктов меню; в светлой теме затемнение под модалками больше не чернит страницу
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/1a865611...main) · 17 файлов, +1710 −181
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/1a865611...d0a3340f) · 18 файлов, +1385 −183
 
 <details><summary>Коммиты и файлы</summary>
 
-**Коммиты (2):**
+**Коммиты (3):**
 
 - [`e25e6d2e`](https://github.com/D1MANYCH/dnd-app/commit/e25e6d2e) chore(dev): агенты releaser/relpost/content, команда /ship и Stop-хук
 - [`61aea109`](https://github.com/D1MANYCH/dnd-app/commit/61aea109) chore(dev): /ship разбирает изменения сам, releaser умеет коммит без bump
+- [`d0a3340f`](https://github.com/D1MANYCH/dnd-app/commit/d0a3340f) v3.61.0: feat(ui): единый визуальный язык интерфейса
 
-**Файлы (17):**
+**Файлы (18):**
 
 - `tests/style-kit.html` +627 −0
 - `index.html` +112 −112
-- `.claude/agents/releaser.md` +200 −4
 - `style.css` +168 −21
-- `.claude/commands/ship.md` +142 −20
-- `tools/check-uncommitted-hook.js` +130 −0
-- `.claude/agents/content.md` +128 −0
-- `.claude/agents/relpost.md` +108 −0
-- `.claude/skills/faza/SKILL.md` +26 −8
-- `CLAUDE.md` +19 −7
-- `.claude/settings.json` +22 −0
+- `.claude/agents/releaser.md` +102 −4
+- `.claude/commands/ship.md` +81 −20
+- `tools/check-uncommitted-hook.js` +65 −0
+- `.claude/agents/content.md` +64 −0
+- `docs/RELEASES.md` +48 −7
+- `.claude/agents/relpost.md` +54 −0
+- `.claude/skills/faza/SKILL.md` +15 −6
+- `CLAUDE.md` +10 −4
 - `data.js` +11 −3
+- `.claude/settings.json` +11 −0
 - `CHANGELOG.md` +6 −1
 - `icons.js` +5 −1
 - `app-notes.js` +3 −1

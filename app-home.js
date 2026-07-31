@@ -51,15 +51,15 @@ function _homeHeroChips(char) {
   var hpCur = (cb.hpCurrent != null ? cb.hpCurrent : 0);
   var hpMax = (cb.hpMax != null ? cb.hpMax : 0);
   var chips = [
-    { ico: "❤️", text: hpCur + "/" + hpMax, aria: "Хиты " + hpCur + " из " + hpMax },
-    { ico: "🛡️", text: "КД " + (cb.ac != null ? cb.ac : 10), aria: "Класс доспеха " + (cb.ac != null ? cb.ac : 10) }
+    { ico: "" + dndIcoHtml("heart", 13) + "", text: hpCur + "/" + hpMax, aria: "Хиты " + hpCur + " из " + hpMax },
+    { ico: "" + dndIcoHtml("shield", 13) + "", text: "КД " + (cb.ac != null ? cb.ac : 10), aria: "Класс доспеха " + (cb.ac != null ? cb.ac : 10) }
   ];
   var cantrips = _homeCantripCount(char);
   if (cantrips > 0) {
-    chips.push({ ico: "✦", text: cantrips + " " + _homePlural(cantrips, "заговор", "заговора", "заговоров"), aria: "Заговоров: " + cantrips });
+    chips.push({ ico: dndIcoHtml("sparkle", 13), text: cantrips + " " + _homePlural(cantrips, "заговор", "заговора", "заговоров"), aria: "Заговоров: " + cantrips });
   } else {
     var lvl = char.level || 1;
-    chips.push({ ico: "⭐", text: lvl + " ур.", aria: "Уровень " + lvl });
+    chips.push({ ico: "" + dndIcoHtml("star", 13) + "", text: lvl + " ур.", aria: "Уровень " + lvl });
   }
   return chips;
 }

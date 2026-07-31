@@ -204,7 +204,7 @@ function markCharOwnClassFilter() {
   if (!legend) return;
   var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
   if (!char || !char.class) {
-    legend.innerHTML = '<span class="cf-legend-hint">💡 Выберите класс слева, чтобы увидеть только его заклинания</span>';
+    legend.innerHTML = '<span class="cf-legend-hint">' + dndIcoHtml("bulb", 12) + ' Выберите класс слева, чтобы увидеть только его заклинания</span>';
     return;
   }
   var ruToKey = { "Волшебник":"wizard", "Чародей":"sorcerer", "Колдун":"warlock", "Бард":"bard",
@@ -224,7 +224,7 @@ function markCharOwnClassFilter() {
     legend.innerHTML = '<span class="cf-legend-own">🟢 Ваш класс: ' + escapeHtml(char.class) + '</span>'
                      + '<span class="cf-legend-foreign">🔴 Чужие классы — заклинания нельзя выучить</span>';
   } else {
-    legend.innerHTML = '<span class="cf-legend-hint">💡 Класс «' + escapeHtml(char.class) + '» не использует заклинания этих школ — фильтр для справки</span>';
+    legend.innerHTML = '<span class="cf-legend-hint">' + dndIcoHtml("bulb", 12) + ' Класс «' + escapeHtml(char.class) + '» не использует заклинания этих школ — фильтр для справки</span>';
   }
 }
 function closeSpellSearch() {
@@ -636,7 +636,7 @@ var countEl = $("spell-search-count");
 if (countEl) countEl.textContent = "Найдено: " + filtered.length;
 
 if (!search.trim() && level === "" && currentSpellVersion === "all" && currentSpellClass === "all") {
-container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px 0;">🔍 Введите название или выберите класс/уровень</p>';
+container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px 0;">' + dndIcoHtml("search", 20) + ' Введите название или выберите класс/уровень</p>';
 return;
 }
 
@@ -651,14 +651,14 @@ const classText = spellClassArr.length > 1 ? spellClassArr.map(function(c){retur
 // HB-1: source может отсутствовать у импортированной записи — без фолбэка
 // toLowerCase() роняет весь рендер поиска.
 const srcRaw = spell.source || "PH14";
-const hbBadge = spell.homebrew ? " <span class=\"source-badge hb-badge\" title=\"Ваше заклинание\">🏠 Своё</span>" : "";
+const hbBadge = spell.homebrew ? " <span class=\"source-badge hb-badge\" title=\"Ваше заклинание\">" + dndIcoHtml("home", 12) + " Своё</span>" : "";
 // HB-3: своё заклинание правится и удаляется прямо из базы — карточка поиска
 // и есть вид на базу. У книжных кнопок нет: они переживают перезагрузку из
 // SPELLS_BASE, и «удаление» выглядело бы как молча откатившееся действие.
 var idArg = _spellIdArg(spell.id);
 var hbActions = spell.homebrew
-  ? "<button class=\"spell-edit-btn\" onclick=\"openAddSpellForm(" + idArg + ")\">✏️ Изменить</button>" +
-    "<button class=\"spell-remove-btn\" title=\"Удалить своё заклинание — исчезнет у всех персонажей\" onclick=\"deleteCustomSpell(" + idArg + ")\">🗑 Удалить</button>"
+  ? "<button class=\"spell-edit-btn\" onclick=\"openAddSpellForm(" + idArg + ")\">" + dndIcoHtml("edit", 13) + " Изменить</button>" +
+    "<button class=\"spell-remove-btn\" title=\"Удалить своё заклинание — исчезнет у всех персонажей\" onclick=\"deleteCustomSpell(" + idArg + ")\">" + dndIcoHtml("trash", 13) + " Удалить</button>"
   : "";
 var div = document.createElement("div");
 div.className = "spell-item" + (isAdded ? " spell-added" : "");
@@ -712,7 +712,7 @@ const container = $("my-spells-list");
 if (!container) return;
 renderPrepCounter();
 if (!char.spells.mySpells || char.spells.mySpells.length === 0) {
-container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 24px 0;">✨ Нет заклинаний — нажмите «Найти заклинание»</p>';
+container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 24px 0;">' + dndIcoHtml("inbox", 22) + ' Нет заклинаний — нажмите «Найти заклинание»</p>';
 return;
 }
 // CAST-6: живые экземпляры каста по имени заклинания — бейдж «Активно · ⏳N рд»
@@ -754,16 +754,16 @@ var classNamesRu = spellClassArr2.map(function(c){
 var schoolRu = schoolName ? schoolName.charAt(0).toUpperCase() + schoolName.slice(1) : "";
 var sourceRu = srcRaw === "PH14" ? "Книга игрока 2014" : (srcRaw === "PH24" ? "Книга игрока 2024" : srcRaw);
 var taxonomyLine = '<div class="spell-card-taxonomy">' +
-  (schoolRu ? '<span>🎓 Школа: <b>' + escapeHtml(schoolRu) + '</b></span>' : '') +
-  '<span>🧙 Классы: <b>' + escapeHtml(classNamesRu) + '</b></span>' +
-  (sourceRu ? '<span>📖 <b>' + escapeHtml(sourceRu) + '</b></span>' : '') +
+  (schoolRu ? '<span>' + dndIcoHtml("grad", 12) + ' Школа: <b>' + escapeHtml(schoolRu) + '</b></span>' : '') +
+  '<span>' + dndIcoHtml("user", 12) + ' Классы: <b>' + escapeHtml(classNamesRu) + '</b></span>' +
+  (sourceRu ? '<span>' + dndIcoHtml("book", 12) + ' <b>' + escapeHtml(sourceRu) + '</b></span>' : '') +
   '</div>';
 var isRitual = !!(spell.time && spell.time.includes("(ритуал)"));
 var canCastRitual = isRitual && ritualClasses.includes(char.class);
 var isFamiliarSpell = /фамильяр/i.test(spell.name || "");
 var metaParts = [];
-if (spell.time) metaParts.push('<span>⚡ ' + escapeHtml(spell.time) + '</span>');
-if (spell.range) metaParts.push('<span>📏 ' + escapeHtml(spell.range) + '</span>');
+if (spell.time) metaParts.push('<span>' + dndIcoHtml("zap", 12) + ' ' + escapeHtml(spell.time) + '</span>');
+if (spell.range) metaParts.push('<span>' + dndIcoHtml("ruler", 12) + ' ' + escapeHtml(spell.range) + '</span>');
 if (spell.components) metaParts.push('<span>' + escapeHtml(spell.components) + '</span>');
 if (spell.duration) metaParts.push('<span>⏱ ' + escapeHtml(spell.duration) + '</span>');
 var prepClass = isPrepClass(char);
@@ -781,12 +781,12 @@ card.innerHTML =
     '<div class="spell-card-title">' +
       '<span class="spell-card-arrow">▶</span>' +
       '<span class="spell-card-name">' + escapeHtml(spell.name) + '</span>' +
-      (isRitual ? '<span class="ritual-badge" title="Ритуал">🕐<span class="ritual-badge-text"> Ритуал</span></span>' : '') +
+      (isRitual ? '<span class="ritual-badge" title="Ритуал">' + dndIcoHtml("history", 12) + '<span class="ritual-badge-text"> Ритуал</span></span>' : '') +
       (activeCast[spell.name] ? _spellActiveBadgeHtml(activeCast[spell.name]) : '') +
     '</div>' +
     '<div class="spell-card-badges">' +
       '<span class="source-badge ' + sourceClass + '">' + escapeHtml(srcRaw) + '</span>' +
-      (spell.homebrew ? '<span class="source-badge hb-badge" title="Ваше заклинание">🏠 Своё</span>' : '') +
+      (spell.homebrew ? '<span class="source-badge hb-badge" title="Ваше заклинание">' + dndIcoHtml("home", 12) + ' Своё</span>' : '') +
       (schoolName ? '<span class="school-badge school-' + getSchoolSlug(schoolName) + '">' + getSchoolIcon(schoolName) + '<span class="school-badge-text">' + escapeHtml(schoolName) + '</span></span>' : '') +
       '<span class="class-icons-row">' + classIcons + '</span>' +
     '</div>' +
@@ -795,20 +795,20 @@ card.innerHTML =
   '<div class="spell-card-body">' +
     taxonomyLine +
     (spell.desc ? '<div class="spell-full-desc">' + escapeHtml(spell.desc) + '</div>' : '') +
-    (spell.higherLevel ? '<div class="spell-higher">📈 На больших уровнях: ' + escapeHtml(spell.higherLevel) + '</div>' : '') +
+    (spell.higherLevel ? '<div class="spell-higher">' + dndIcoHtml("trend", 13) + ' На больших уровнях: ' + escapeHtml(spell.higherLevel) + '</div>' : '') +
     '<div class="spell-card-actions">' +
     // HB-3: id через _spellIdArg — у легаси-импорта он бывает строкой, и «голая»
     // подстановка давала битый идентификатор в onclick (кнопка роняла SyntaxError).
-    '<button class="spell-cast-btn" onclick="castSpell(' + _spellIdArg(spell.id) + ')">✨ Использовать</button>' +
-    (spell.duration && spell.duration.toLowerCase().includes('концентрац') ? '<button class="spell-conc-btn" onclick="setConcentration(this.dataset.name)" data-name="' + escapeHtml(spell.name) + '">🔮 Концентрация</button>' : '') +
-    (canCastRitual ? '<button class="spell-ritual-btn" onclick="castRitual(\'' + escapeHtml(spell.name).replace(/'/g,"&#39;") + '\')">🕐 Ритуал</button>' : '') +
-    (prepClass && !isCantrip ? '<button class="spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">' + (prepared ? '✅ Подготовлено' : '○ Подготовить') + '</button>' : '') +
-    (isFamiliarSpell ? '<button class="spell-summon-btn" onclick="summonFamiliar()">🐾 Призвать фамильяра</button>' : '') +
+    '<button class="spell-cast-btn" onclick="castSpell(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("sparkle", 13) + ' Использовать</button>' +
+    (spell.duration && spell.duration.toLowerCase().includes('концентрац') ? '<button class="spell-conc-btn" onclick="setConcentration(this.dataset.name)" data-name="' + escapeHtml(spell.name) + '">' + dndIcoHtml("focus", 13) + ' Концентрация</button>' : '') +
+    (canCastRitual ? '<button class="spell-ritual-btn" onclick="castRitual(\'' + escapeHtml(spell.name).replace(/'/g,"&#39;") + '\')">" + dndIcoHtml("history", 13) + " Ритуал</button>' : '') +
+    (prepClass && !isCantrip ? '<button class="spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">' + (prepared ? '' + dndIcoHtml("check", 13) + ' Подготовлено' : '○ Подготовить') + '</button>' : '') +
+    (isFamiliarSpell ? '<button class="spell-summon-btn" onclick="summonFamiliar()">' + dndIcoHtml("wolf", 13) + ' Призвать фамильяра</button>' : '') +
     // HB-3: правка своего заклинания прямо из списка. Удаления из базы здесь нет
     // намеренно — рядом уже стоит «🗑 Удалить», и две корзины с разным смыслом
     // на одной карточке читаются как одна. Удаление насовсем живёт в поиске.
-    (spell.homebrew ? '<button class="spell-edit-btn" onclick="openAddSpellForm(' + _spellIdArg(spell.id) + ')">✏️ Изменить</button>' : '') +
-    '<button class="spell-remove-btn" title="Убрать из списка персонажа" onclick="removeSpell(' + _spellIdArg(spell.id) + ')">🗑 Удалить</button>' +
+    (spell.homebrew ? '<button class="spell-edit-btn" onclick="openAddSpellForm(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("edit", 13) + ' Изменить</button>' : '') +
+    '<button class="spell-remove-btn" title="Убрать из списка персонажа" onclick="removeSpell(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("trash", 13) + ' Удалить</button>' +
     '</div>' +
   '</div>';
 groupDiv.appendChild(card);
@@ -922,7 +922,7 @@ function renderPrepCounter() {
   // PHB 2014: жрец/друид/волшебник готовят «мод + уровень», паладин — «мод + ½ уровня».
   var lvlLabel = prep.formula === "mod+halfLevel" ? "½ ур." : "ур.";
   el.style.display = "";
-  el.innerHTML = '<span class="prep-icon">📋</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span><span class="prep-hint">(' + statName + ' + ' + lvlLabel + ')</span>';
+  el.innerHTML = '<span class="prep-icon">' + dndIcoHtml("sheet", 13) + '</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span><span class="prep-hint">(' + statName + ' + ' + lvlLabel + ')</span>';
 }
 
 // ── Использование заклинания (трата ячейки из карточки) ─────
@@ -1075,7 +1075,7 @@ function openCastVariantChooser(spell, slot, d) {
     modal.className = "confirm-modal-overlay";
     modal.innerHTML =
       '<div class="confirm-modal-box cast-variant-box">' +
-        '<div class="confirm-modal-icon">✨</div>' +
+        '<div class="confirm-modal-icon">' + dndIcoHtml("sparkle", 28) + '</div>' +
         '<h4 id="cast-variant-title"></h4>' +
         '<div id="cast-variant-hint" class="cast-variant-hint"></div>' +
         '<div id="cast-variant-options" class="cast-variant-options"></div>' +

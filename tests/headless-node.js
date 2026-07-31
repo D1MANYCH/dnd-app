@@ -20,6 +20,7 @@ const vm = require('vm');
 const root = path.join(__dirname, '..');
 const files = [
   'app-log.js',              // FIN-12: window.AppLog — грузится ПЕРВЫМ (как в index.html), перехватывает console (БЛОК 30)
+  'icons.js',                // STYLE-7c: window.dndIcon/dndIcoHtml — разметка вкладок собирается с иконками, вторым файлом (как в index.html)
   'data.js',
   'gear-catalog.js',         // FIN-5: window.GEAR_CATALOG — в проде лениво (ensureGearCatalog), в тестах явно (БЛОК 24)
   'magic-items.js',          // FIN-8: window.MAGIC_ITEMS — в проде лениво (ensureMagicItems), в тестах явно (БЛОК 27, проверка charges)

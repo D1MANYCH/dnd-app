@@ -136,7 +136,7 @@ function restoreBackupSnapshot(id) {
         _backupLog("action", "восстановлен снапшот #" + id + " от " + _backupFmtDate(row.createdAt), { chars: valid.length });
         showToast("Восстановлено: " + valid.length, "success");
         (pre || Promise.resolve()).then(renderBackupList);
-      }, "Восстановить", { icon: "🗄" });
+      }, "Восстановить", { icon: "archive" });
   }).catch(function(e) {
     _backupLog("error", "restore: " + ((e && e.message) || e));
     showToast("Не удалось прочитать копию", "error");

@@ -6,9 +6,9 @@
   const RAIL_HTML = `
     <div class="rr-card rr-stats-card">
       <div class="rr-stats-row">
-        <div class="rr-stat-mini rr-ac" title="Класс доспеха">🛡️ <span id="rr-ac">10</span></div>
-        <div class="rr-stat-mini rr-level" title="Уровень">⭐ <span id="rr-level">1</span></div>
-        <div class="rr-stat-mini rr-insp is-empty" id="rr-insp-mini" title="Вдохновение (клик — переключить)">✨</div>
+        <div class="rr-stat-mini rr-ac" title="Класс доспеха"><span data-ico="shield" data-ico-size="13">🛡️</span> <span id="rr-ac">10</span></div>
+        <div class="rr-stat-mini rr-level" title="Уровень"><span data-ico="star" data-ico-size="13">⭐</span> <span id="rr-level">1</span></div>
+        <div class="rr-stat-mini rr-insp is-empty" id="rr-insp-mini" title="Вдохновение (клик — переключить)"><span data-ico="sparkle" data-ico-size="13">✨</span></div>
       </div>
     </div>
     <div class="rr-card rr-hp">
@@ -39,7 +39,7 @@
         <button type="button" class="btn btn-secondary btn-sm" data-dice="12">d12</button>
         <button type="button" class="btn btn-secondary btn-sm" data-dice="20">d20</button>
       </div>
-      <button type="button" class="btn btn-primary btn-block rr-d20-btn" id="rr-btn-d20" aria-label="Бросить d20">🎲 d20</button>
+      <button type="button" class="btn btn-primary btn-block rr-d20-btn" id="rr-btn-d20" aria-label="Бросить d20"><span data-ico="dice" data-ico-size="14">🎲</span> d20</button>
     </div>
     <div class="rr-card rr-slots" id="rr-slots-card" style="display:none">
       <div class="rr-card-head"><span><span data-ico="spells" data-ico-size="14">✨</span> Ячейки</span></div>
@@ -52,7 +52,7 @@
       </div>
       <div id="rr-cond-list" class="rr-cond-list"></div>
       <div id="rr-cond-empty" class="rr-cond-empty">Нет активных состояний</div>
-      <button type="button" class="btn btn-ghost btn-block btn-sm" id="rr-btn-cond">⚙ Управление</button>
+      <button type="button" class="btn btn-ghost btn-block btn-sm" id="rr-btn-cond"><span data-ico="settings" data-ico-size="13">⚙</span> Управление</button>
     </div>
   `;
 
