@@ -67,6 +67,24 @@ f.addEventListener('load', () => {
         w.PARTY_DATA.companions = [{ name: 'Сова', type: 'Фамильяр', hp: 1, hpMax: 1 }];
         w.saveParty();
       } catch (e) { beacon('ERR party ' + e.message); }
+      // STYLE-8f: записи для вкладки «Записи» — закреплённая и обычные, с тегами
+      // и @-упоминанием. Раздел выбирается параметром &notes=npc|quest|…
+      try {
+        const nsub = q.get('notes');
+        if (nsub) {
+          c.notesV2.entries = [
+            { id: 'f1', type: nsub, title: 'Мирна Златорук', pinned: true, created: 1, updated: 1,
+              tags: ['порт', 'торговля'],
+              body: 'Хозяйка «Сломанного весла». Знает всё про @Гарен и портовые слухи, держит долговую книгу.' },
+            { id: 'f2', type: nsub, title: 'Гарен Тень', pinned: false, created: 2, updated: 2,
+              tags: ['порт'], body: 'Скупщик краденого, встреча только ночью у третьего причала.' },
+            { id: 'f3', type: nsub, title: 'Сестра Аэлин', pinned: false, created: 3, updated: 3,
+              tags: [], body: 'Жрица Латандера, лечит бесплатно в обмен на услугу храму.' }
+          ];
+          w.saveToLocal();
+          w.notesSwitchTab(nsub);
+        }
+      } catch (e) { beacon('ERR notes ' + e.message); }
       // CAST-2: &battle=N — активный бой (я + гоблин) на раунде N c кастом
       // «Ускорение» (тикающий бафф) для скриншотов трекера/бейджа раундов
       const battleRound = parseInt(q.get('battle') || '0', 10);

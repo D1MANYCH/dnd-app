@@ -153,7 +153,9 @@ function _renderSectionsView() {
               ' aria-expanded="' + (open ? 'true' : 'false') + '" tabindex="0">' +
                 // STYLE-7: эмодзи-иконка секции убрана — это хром, а роль
                 // ведущего знака у строки уже играет шеврон раскрытия.
-                '<span class="notes-section-toggle" aria-hidden="true">' + (open ? '▾' : '▸') + '</span> ' +
+                // STYLE-8f: шеврон заменён ромбом главной — состояние «раскрыто»
+                // кодируется поворотом и заливкой (CSS по aria-expanded).
+                '<span class="notes-section-toggle home-bullet" aria-hidden="true"></span> ' +
                 escapeHtml(s.label) +
                 '<span class="notes-section-meta">' + stats.chars + ' симв.</span>' +
               '</h3>' +
@@ -249,11 +251,11 @@ function notesToggleSection(secKey) {
   if (!card) return;
   var body = card.querySelector('.notes-section-body');
   var head = card.querySelector('.notes-section-head');
-  var icon = card.querySelector('.notes-section-toggle');
   var open = _notesSectionOpen[secKey];
   if (body) body.style.display = open ? '' : 'none';
+  // STYLE-8f: ромб-маркер перекрашивается CSS'ом по aria-expanded шапки —
+  // текст в .notes-section-toggle больше не пишем.
   if (head) head.setAttribute('aria-expanded', open ? 'true' : 'false');
-  if (icon) icon.textContent = open ? '▾' : '▸';
   card.classList.toggle('collapsed', !open);
 }
 window.notesToggleSection = notesToggleSection;

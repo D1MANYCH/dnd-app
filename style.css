@@ -814,12 +814,15 @@ html.glass-adjusting *::after {
    --card-bg→--bg-3) теперь работает и в светлой как в тёмной. */
 
 /* ----- Notes / textarea — захардкожен rgba(0,0,0,0.25) ----- */
-:root[data-theme="light"] .notes-section-input,
+/* STYLE-8f: .notes-section-input и .notes-search исключены — на «Записях» это
+   плоские поля (рамка --home-rule, без заливки), а блок ниже обрамлял бы их
+   коробкой через !important. Приём тот же, что у .inv-coin-big-inp (8c):
+   исключение в самом блоке дешевле перебивки. */
 :root[data-theme="light"] .notes-modal-textarea,
-:root[data-theme="light"] textarea,
+:root[data-theme="light"] textarea:not(.notes-section-input),
 :root[data-theme="light"] input[type="text"],
 :root[data-theme="light"] input[type="number"]:not(.inv-coin-big-inp),
-:root[data-theme="light"] input[type="search"],
+:root[data-theme="light"] input[type="search"]:not(.notes-search),
 :root[data-theme="light"] input[type="url"],
 :root[data-theme="light"] input[type="email"],
 :root[data-theme="light"] select {
@@ -829,8 +832,8 @@ html.glass-adjusting *::after {
 }
 :root[data-theme="light"] textarea::placeholder,
 :root[data-theme="light"] input::placeholder { color: var(--text-mute) !important; }
-:root[data-theme="light"] textarea:focus,
-:root[data-theme="light"] input:focus:not(.inv-coin-big-inp),
+:root[data-theme="light"] textarea:focus:not(.notes-section-input),
+:root[data-theme="light"] input:focus:not(.inv-coin-big-inp):not(.notes-search),
 :root[data-theme="light"] select:focus {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 3px var(--accent-soft) !important;
@@ -866,36 +869,11 @@ html.glass-adjusting *::after {
   color: var(--success) !important;
 }
 
-/* ----- Notes-pill / md-toolbar / md-preview ----- */
-:root[data-theme="light"] .notes-md-btn {
-  background: var(--bg-2) !important;
-  border-color: var(--border) !important;
-  color: var(--text) !important;
-}
-:root[data-theme="light"] .notes-md-btn:hover { background: var(--bg-3) !important; border-color: var(--accent) !important; }
-:root[data-theme="light"] .notes-md-btn.active { background: var(--accent-soft) !important; color: var(--accent) !important; }
-:root[data-theme="light"] .notes-md-preview {
-  background: var(--bg-1) !important;
-  border-color: var(--border) !important;
-  color: var(--text) !important;
-}
-:root[data-theme="light"] .notes-md-preview hr { border-top-color: var(--border) !important; }
-:root[data-theme="light"] .notes-md-empty { color: var(--text-mute) !important; }
-
-/* ----- Notes variants (перенесено из дальнего блока, опечатки исправлены) ----- */
-:root[data-theme="light"] .notes-variants-panel {
-  background: var(--bg-2) !important;
-  border-color: var(--border) !important;
-}
-:root[data-theme="light"] .notes-variant-item {
-  background: var(--bg-1) !important;
-  border-color: var(--border) !important;
-  color: var(--text) !important;
-}
-:root[data-theme="light"] .notes-variant-item:hover {
-  background: var(--bg-3) !important;
-  border-color: var(--accent) !important;
-}
+/* STYLE-8f: светлые перебивки MD-тулбара, превью и панели вариантов удалены
+   (12 !important). Они существовали, пока базовые правила держали сырые
+   rgba(255,255,255,·) — теперь база на токенах (--chip-bg / --border-soft /
+   --input-bg), а на «Записях» поверх неё лежат плоские правила блока 8f.
+   Превью цвет текста берёт от .notes-md-preview, оно наследует --text. */
 
 /* THEME-5: light-override журнала/заметок/фильтр-чипов удалён — базовые
    .journal-entry / .notes-entry-card / .notes-entry-btn / .filter-chip на
@@ -3482,15 +3460,6 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   border-bottom: 1px solid var(--home-rule);
   background: transparent;
 }
-.drawer-brand-mark {
-  width: 26px;
-  height: 26px;
-  flex: 0 0 auto;
-  transform: rotate(45deg);
-  border: 1.5px solid var(--accent);
-  border-radius: 5px;
-  background: var(--accent-soft);
-}
 .drawer-brand-text { flex: 1; min-width: 0; }
 .drawer-char-name {
   font-family: var(--font-display);
@@ -4138,15 +4107,6 @@ align-items: center;
 gap: 12px;
 margin-bottom: var(--sp-4);
 padding-left: 12px;
-}
-.home-brand-mark {
-width: 34px;
-height: 34px;
-flex: 0 0 auto;
-transform: rotate(45deg);
-border: 1.5px solid var(--accent);
-border-radius: 6px;
-background: var(--accent-soft);
 }
 .home-brand-text {
 font-family: var(--font-display);
@@ -9563,8 +9523,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   margin-bottom: 8px;
 }
 .taken-feats-count {
-  background: rgba(212,168,67,0.15);
-  border: 1px solid rgba(212,168,67,0.3);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   border-radius: var(--r-md);
   font-size: 0.82em;
   padding: 1px 8px;
@@ -9577,8 +9537,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   margin-bottom: 4px;
 }
 .feat-taken-card {
-  background: rgba(212,168,67,0.05);
-  border: 1px solid rgba(212,168,67,0.18);
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
   border-left: 3px solid var(--accent-color);
   border-radius: 8px;
   padding: 8px 11px;
@@ -12224,7 +12184,7 @@ body {
   border-radius: var(--r-md, 8px);
   font-size: 0.85em;
 }
-.notes-search::placeholder { color: var(--text-muted, rgba(255,255,255,0.4)); }
+.notes-search::placeholder { color: var(--text-muted); }
 .notes-search:disabled { opacity: 0.5; cursor: not-allowed; }
 .notes-new-btn, .notes-menu-btn, .notes-regen-btn {
   background: var(--bg-2);
@@ -12239,7 +12199,7 @@ body {
   margin: 0;
   transition: all 0.18s;
 }
-.notes-new-btn { background: var(--accent-color, #f5c86e); color: #000; border-color: var(--accent-color, #f5c86e); }
+.notes-new-btn { background: var(--accent-color); color: var(--on-accent); border-color: var(--accent-color); }
 .notes-new-btn:hover:not(:disabled) { filter: brightness(1.08); }
 .notes-menu-btn { padding: 7px 10px; }
 .notes-menu-btn:hover:not(:disabled) { border-color: var(--accent-color); color: var(--accent-color); }
@@ -12248,18 +12208,18 @@ body {
 .notes-regen-btn:hover:not(:disabled) { border-color: var(--accent-color); color: var(--accent-color); }
 .notes-save-ind {
   font-size: 0.75em;
-  color: var(--text-muted, rgba(255,255,255,0.5));
+  color: var(--text-muted);
   opacity: 0;
   transition: opacity 0.25s;
   min-width: 120px;
   text-align: right;
 }
-.notes-save-ind.visible { opacity: 1; color: var(--accent-color, #f5c86e); }
+.notes-save-ind.visible { opacity: 1; color: var(--accent-color); }
 
 .notes-subtabs {
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid var(--border-soft);
 }
 .notes-subtabs-pills {
   display: flex;
@@ -12274,8 +12234,8 @@ body {
 .notes-subtabs-select {
   display: none;
   width: 100%;
-  background: rgba(0,0,0,0.35);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: var(--input-bg);
+  border: 1px solid var(--border-soft);
   color: var(--text);
   padding: 8px 10px;
   border-radius: var(--r-md, 8px);
@@ -12284,8 +12244,8 @@ body {
 }
 .notes-subtabs-select:focus {
   outline: none;
-  border-color: var(--accent-color, #f5c86e);
-  box-shadow: 0 0 0 2px var(--accent-glow, rgba(245,200,110,0.2));
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px var(--accent-glow);
 }
 .notes-pill {
   background: var(--chip-bg);
@@ -12315,8 +12275,8 @@ body {
 .notes-section-input {
   width: 100%;
   box-sizing: border-box;
-  background: rgba(0,0,0,0.25);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--input-bg);
+  border: 1px solid var(--border-soft);
   color: var(--text);
   padding: 8px 10px;
   border-radius: var(--r-md, 8px);
@@ -12327,14 +12287,14 @@ body {
 }
 .notes-section-input:focus {
   outline: none;
-  border-color: var(--accent-color, #f5c86e);
-  box-shadow: 0 0 0 2px var(--accent-glow, rgba(245,200,110,0.2));
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px var(--accent-glow);
 }
 
 .notes-empty {
   text-align: center;
   padding: 32px 20px;
-  color: var(--text-muted, rgba(255,255,255,0.5));
+  color: var(--text-muted);
 }
 .notes-empty-ico { font-size: 2.4em; margin-bottom: 8px; opacity: 0.7; }
 .notes-empty-title { font-size: 1.05em; font-weight: 600; margin-bottom: 6px; color: var(--text); }
@@ -12344,7 +12304,7 @@ body {
 .notes-entry-card {
   background: var(--list-solid);
   border: 1px solid var(--border-soft);
-  border-left: 3px solid var(--accent-color, #f5c86e);
+  border-left: 3px solid var(--accent-color);
   border-radius: var(--r-sm);
   padding: 9px 11px;
   position: relative;
@@ -12355,15 +12315,15 @@ body {
 .notes-entry-card.pinned:active { cursor: grabbing; }
 .notes-entry-card.pinned.dragging { opacity: 0.45; }
 .notes-entry-card.pinned.drag-over {
-  box-shadow: 0 -2px 0 0 var(--accent-color, #f5c86e) inset,
-              0 0 0 2px var(--accent-glow, rgba(245,200,110,0.35));
+  box-shadow: 0 -2px 0 0 var(--accent-color) inset,
+              0 0 0 2px var(--accent-glow);
 }
 .notes-entry-drag-handle {
   position: absolute;
   left: 7px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255,210,77,0.6);
+  color: color-mix(in srgb, var(--slot-gold) 60%, transparent);
   font-size: 0.8em;
   letter-spacing: -1px;
   user-select: none;
@@ -12372,7 +12332,7 @@ body {
 /* UI-8: drag-n-drop инвентаря */
 .inv-item.inv-draggable { position: relative; }
 .inv-drag-handle {
-  color: var(--text-muted, rgba(255,255,255,0.4));
+  color: var(--text-muted);
   font-size: 1.1em;
   line-height: 1;
   letter-spacing: -2px;
@@ -12384,20 +12344,20 @@ body {
 .inv-item.inv-draggable:active .inv-drag-handle { cursor: grabbing; }
 .inv-item.inv-dragging { opacity: 0.45; }
 .inv-item.inv-drop-before {
-  box-shadow: 0 -3px 0 0 var(--accent-color, #f5c86e) inset,
-              0 0 0 1px var(--accent-glow, rgba(245,200,110,0.35));
+  box-shadow: 0 -3px 0 0 var(--accent-color) inset,
+              0 0 0 1px var(--accent-glow);
 }
 .inv-item.inv-drop-after {
-  box-shadow: 0 3px 0 0 var(--accent-color, #f5c86e) inset,
-              0 0 0 1px var(--accent-glow, rgba(245,200,110,0.35));
+  box-shadow: 0 3px 0 0 var(--accent-color) inset,
+              0 0 0 1px var(--accent-glow);
 }
 .inventory-filters button.inv-cat-target {
-  outline: 2px dashed var(--accent-color, #f5c86e);
+  outline: 2px dashed var(--accent-color);
   outline-offset: 1px;
-  background: var(--accent-glow, rgba(245,200,110,0.18));
+  background: var(--accent-glow);
 }
 .notes-entry-title { font-weight: 600; margin-bottom: 4px; }
-.notes-entry-body { font-size: 0.82em; color: var(--text-muted, rgba(255,255,255,0.6)); line-height: 1.35; }
+.notes-entry-body { font-size: 0.82em; color: var(--text-muted); line-height: 1.35; }
 
 /* ── N4: Карточки entries — заголовок, действия, теги ─────── */
 .notes-entry-header {
@@ -12413,14 +12373,14 @@ body {
   background: none;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
-  color: var(--text-muted, rgba(255,255,255,0.6));
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 0.8em;
   padding: 2px 6px;
   transition: background 0.15s, color 0.15s;
 }
 .notes-entry-btn:hover { background: var(--bg-3); color: var(--text); }
-.notes-entry-btn.danger:hover { background: rgba(220,50,50,0.3); color: #ff9090; border-color: rgba(220,50,50,0.4); }
+.notes-entry-btn.danger:hover { background: color-mix(in srgb, var(--danger) 30%, transparent); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
 .notes-entry-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 
 /* Теги-чипы (общий стиль, используется и в фильтре, и в карточках) */
@@ -12428,10 +12388,10 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  background: rgba(245,200,110,0.13);
-  border: 1px solid rgba(245,200,110,0.3);
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   border-radius: var(--r-pill);
-  color: #f5c86e;
+  color: var(--accent);
   cursor: pointer;
   font-size: 0.78em;
   padding: 2px 9px;
@@ -12439,7 +12399,7 @@ body {
   white-space: nowrap;
 }
 .notes-tag-chip:hover,
-.notes-tag-chip.active { background: rgba(245,200,110,0.28); border-color: #f5c86e; }
+.notes-tag-chip.active { background: color-mix(in srgb, var(--accent) 28%, transparent); border-color: var(--accent); }
 .notes-tag-chip.small { font-size: 0.72em; padding: 1px 7px; }
 .notes-tag-chip.removable { padding-right: 4px; }
 .notes-tag-remove {
@@ -12458,16 +12418,16 @@ body {
 
 /* @-упоминания */
 .notes-at-ref {
-  color: #7eb8ff;
+  color: var(--info);
   cursor: pointer;
   text-decoration: underline;
   text-decoration-style: dotted;
 }
-.notes-at-ref:hover { color: #b3d4ff; }
+.notes-at-ref:hover { color: var(--info-hi, var(--info)); }
 
 /* Подсветка при прыжке к NPC */
 @keyframes notesHighlight {
-  0%   { background: rgba(126,184,255,0.3); }
+  0%   { background: color-mix(in srgb, var(--info) 30%, transparent); }
   100% { background: transparent; }
 }
 .notes-entry-card.highlight { animation: notesHighlight 1.5s ease-out; }
@@ -12504,14 +12464,14 @@ body {
 }
 .notes-modal-header {
   align-items: center;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid var(--border-soft);
   display: flex;
   justify-content: space-between;
   padding: 14px 16px 12px;
 }
 .notes-modal-title { font-size: 1em; font-weight: 700; margin: 0; }
 .notes-modal-close {
-  background: none; border: none; color: var(--text-muted, rgba(255,255,255,0.5));
+  background: none; border: none; color: var(--text-muted);
   cursor: pointer; font-size: 1.1em; line-height: 1; padding: 2px 6px;
   border-radius: var(--r-sm); transition: background 0.15s;
   width: auto; margin: 0; font-weight: 400; box-shadow: none;
@@ -12532,7 +12492,7 @@ body {
 }
 .notes-modal-row.col { flex-direction: column; align-items: stretch; }
 .notes-modal-label {
-  color: var(--text-muted, rgba(255,255,255,0.55));
+  color: var(--text-muted);
   font-size: 0.8em;
   flex-shrink: 0;
   min-width: 64px;
@@ -12542,8 +12502,8 @@ body {
 .notes-modal-input,
 .notes-modal-textarea,
 .notes-modal-tag-input {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--chip-bg);
+  border: 1px solid var(--border-soft);
   border-radius: 8px;
   color: var(--text);
   font-size: 0.9em;
@@ -12555,26 +12515,26 @@ body {
 .notes-modal-select:focus,
 .notes-modal-input:focus,
 .notes-modal-textarea:focus,
-.notes-modal-tag-input:focus { border-color: var(--accent-color, #f5c86e); }
+.notes-modal-tag-input:focus { border-color: var(--accent-color); }
 .notes-modal-select { width: auto; flex: 1; }
 .notes-modal-textarea { resize: vertical; font-family: inherit; }
 .notes-modal-pin-label {
   display: flex; align-items: center; gap: 4px; white-space: nowrap;
-  color: #f5c86e; font-size: 0.85em; cursor: pointer; flex-shrink: 0;
+  color: var(--accent); font-size: 0.85em; cursor: pointer; flex-shrink: 0;
 }
 .notes-modal-tags-row { display: flex; flex-direction: column; gap: 6px; }
 .notes-modal-tags-list { display: flex; flex-wrap: wrap; gap: 5px; min-height: 20px; }
 .notes-modal-tag-input-wrap { display: flex; gap: 5px; }
 .notes-modal-tag-input { flex: 1; }
 .notes-modal-tag-add-btn {
-  background: rgba(245,200,110,0.15); border: 1px solid rgba(245,200,110,0.3);
-  border-radius: 8px; color: #f5c86e; cursor: pointer; font-size: 1em;
+  background: color-mix(in srgb, var(--accent) 15%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 8px; color: var(--accent); cursor: pointer; font-size: 1em;
   padding: 4px 12px; transition: background 0.15s;
   width: auto; margin: 0; flex: 0 0 auto; font-weight: 400; box-shadow: none;
 }
-.notes-modal-tag-add-btn:hover { background: rgba(245,200,110,0.3); transform: none; box-shadow: none; }
+.notes-modal-tag-add-btn:hover { background: color-mix(in srgb, var(--accent) 30%, transparent); transform: none; box-shadow: none; }
 .notes-modal-footer {
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid var(--border-soft);
   display: flex;
   gap: 8px;
   justify-content: flex-end;
@@ -12589,15 +12549,15 @@ body {
   gap: 4px;
   margin: 6px 0;
   padding: 4px;
-  background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--input-bg);
+  border: 1px solid var(--border-soft);
   border-radius: var(--r-md, 8px);
 }
 .notes-md-btn {
   flex: 0 0 auto;
   width: auto;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--chip-bg);
+  border: 1px solid var(--border-soft);
   color: var(--text);
   padding: 3px 9px;
   border-radius: var(--r-sm);
@@ -12606,31 +12566,31 @@ body {
   min-width: 28px;
   transition: background 0.15s, border-color 0.15s;
 }
-.notes-md-btn:hover { background: rgba(255,255,255,0.12); border-color: var(--accent-color, #f5c86e); }
+.notes-md-btn:hover { background: var(--chip-bg); border-color: var(--accent-color); }
 .notes-md-btn.active {
-  background: var(--accent-color, #f5c86e);
-  color: #000;
-  border-color: var(--accent-color, #f5c86e);
+  background: var(--accent-color);
+  color: var(--on-accent);
+  border-color: var(--accent-color);
 }
 .notes-md-preview-toggle { margin-left: auto; }
 .notes-md-variants-toggle { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; }
 .notes-md-variants-toggle + .notes-md-preview-toggle { margin-left: 0; }
 .notes-md-var-count {
   font-size: 0.75em;
-  background: rgba(255,255,255,0.15);
+  background: var(--chip-bg);
   padding: 0 5px;
   border-radius: 8px;
   min-width: 14px;
   text-align: center;
 }
-.notes-md-variants-toggle.active .notes-md-var-count { background: rgba(0,0,0,0.25); color: inherit; }
+.notes-md-variants-toggle.active .notes-md-var-count { background: var(--input-bg); color: inherit; }
 
 /* BUILD-NOTES-2: панель вариантов билда */
 .notes-variants-panel {
   margin: 0 0 8px 0;
   padding: 8px;
-  background: rgba(0,0,0,0.18);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--input-bg);
+  border: 1px solid var(--border-soft);
   border-radius: var(--r-md, 8px);
 }
 .notes-variants-hint {
@@ -12648,8 +12608,8 @@ body {
   align-items: flex-start;
   gap: 8px;
   text-align: left;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--chip-bg);
+  border: 1px solid var(--border-soft);
   color: var(--text);
   padding: 6px 9px;
   border-radius: var(--r-sm);
@@ -12659,12 +12619,12 @@ body {
   transition: background 0.15s, border-color 0.15s;
 }
 .notes-variant-item:hover {
-  background: rgba(255,255,255,0.10);
-  border-color: var(--accent-color, #f5c86e);
+  background: var(--chip-bg);
+  border-color: var(--accent-color);
 }
 .notes-variant-item.current {
-  border-color: var(--accent-color, #f5c86e);
-  background: rgba(245,200,110,0.12);
+  border-color: var(--accent-color);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 .notes-variant-num {
   flex: 0 0 auto;
@@ -12676,7 +12636,7 @@ body {
 .notes-variant-item { align-items: flex-start; }
 /* BUILD-NOTES-6.6: сворачиваемая шапка секции */
 .notes-section-head { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
-.notes-section-head:hover { color: var(--accent-color, #f5c86e); }
+.notes-section-head:hover { color: var(--accent-color); }
 .notes-section-toggle { display: inline-block; width: 1em; opacity: 0.75; }
 .notes-section-meta { margin-left: auto; font-size: 0.78em; opacity: 0.55; font-weight: 400; }
 .notes-section-card.collapsed .notes-section-head { margin-bottom: 0; }
@@ -12684,20 +12644,20 @@ body {
 .notes-variant-random {
   margin-top: 6px;
   width: 100%;
-  background: rgba(245,200,110,0.12);
-  border: 1px dashed var(--accent-color, #f5c86e);
-  color: var(--accent-color, #f5c86e);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px dashed var(--accent-color);
+  color: var(--accent-color);
   padding: 5px 9px;
   border-radius: var(--r-sm);
   font-size: 0.85em;
   cursor: pointer;
   transition: background 0.15s;
 }
-.notes-variant-random:hover { background: rgba(245,200,110,0.22); }
+.notes-variant-random:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); }
 
 .notes-md-preview {
-  background: rgba(0,0,0,0.25);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--input-bg);
+  border: 1px solid var(--border-soft);
   border-radius: var(--r-md, 8px);
   padding: 10px 14px;
   min-height: 80px;
@@ -12706,26 +12666,26 @@ body {
   overflow-x: auto;
 }
 .notes-md-preview h2, .notes-md-preview h3, .notes-md-preview h4, .notes-md-preview h5 {
-  margin: 0.6em 0 0.3em; color: var(--accent-color, #f5c86e);
+  margin: 0.6em 0 0.3em; color: var(--accent-color);
 }
 .notes-md-preview p { margin: 0.4em 0; }
 .notes-md-preview ul, .notes-md-preview ol { margin: 0.3em 0 0.3em 1.4em; }
 .notes-md-preview blockquote {
   margin: 0.4em 0;
   padding: 4px 10px;
-  border-left: 3px solid var(--accent-color, #f5c86e);
-  background: rgba(255,255,255,0.04);
-  color: var(--text-muted, rgba(255,255,255,0.75));
+  border-left: 3px solid var(--accent-color);
+  background: var(--chip-bg);
+  color: var(--text-muted);
 }
 .notes-md-preview code {
-  background: rgba(255,255,255,0.08);
+  background: var(--chip-bg);
   padding: 1px 5px;
   border-radius: 4px;
   font-family: var(--font-mono);
   font-size: 0.9em;
 }
 .notes-md-preview pre.notes-md-code {
-  background: rgba(0,0,0,0.4);
+  background: var(--input-bg);
   padding: 8px 10px;
   border-radius: var(--r-sm);
   overflow-x: auto;
@@ -12733,14 +12693,14 @@ body {
   font-size: 0.85em;
   white-space: pre;
 }
-.notes-md-preview a { color: var(--accent-color, #f5c86e); text-decoration: underline; }
-.notes-md-preview hr { border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 0.6em 0; }
-.notes-md-empty { color: var(--text-muted, rgba(255,255,255,0.5)); font-style: italic; }
+.notes-md-preview a { color: var(--accent-color); text-decoration: underline; }
+.notes-md-preview hr { border: none; border-top: 1px solid var(--border-soft); margin: 0.6em 0; }
+.notes-md-empty { color: var(--text-muted); font-style: italic; }
 
 .notes-md-stats {
   margin-top: 4px;
   font-size: 0.75em;
-  color: var(--text-muted, rgba(255,255,255,0.55));
+  color: var(--text-muted);
   text-align: right;
 }
 
@@ -12763,9 +12723,9 @@ body {
     scrollbar-width: thin;
   }
   .notes-md-toolbar::-webkit-scrollbar { height: 3px; }
-  .notes-md-toolbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+  .notes-md-toolbar::-webkit-scrollbar-thumb { background: var(--chip-bg); border-radius: 2px; }
   .notes-md-btn { flex-shrink: 0; }
-  .notes-md-preview-toggle { position: sticky; right: 0; background: var(--bg-card, #1e2230); }
+  .notes-md-preview-toggle { position: sticky; right: 0; background: var(--bg-card); }
   /* Шапка: поиск занимает полную ширину, остальное ужимается */
   .notes-header { flex-wrap: wrap; }
   .notes-search { flex: 1 1 100%; }
@@ -12778,8 +12738,8 @@ body {
   top: calc(100% + 4px);
   right: 0;
   z-index: 200;
-  background: var(--bg-card, #1e2230);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
   border-radius: var(--r-md, 12px);
   box-shadow: var(--sh-2);
   flex-direction: column;
@@ -12790,7 +12750,7 @@ body {
 .notes-menu-item {
   background: none;
   border: none;
-  color: var(--text-primary, #eee);
+  color: var(--text-primary);
   font-size: 0.875em;
   text-align: left;
   padding: 8px 16px;
@@ -12798,19 +12758,19 @@ body {
   width: 100%;
   transition: background 0.12s;
 }
-.notes-menu-item:hover { background: rgba(255,255,255,0.08); }
-.notes-menu-sep { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 4px 0; }
+.notes-menu-item:hover { background: var(--chip-bg); }
+.notes-menu-sep { border: none; border-top: 1px solid var(--border-soft); margin: 4px 0; }
 
 /* ── N5: поиск — highlight ───────────────────────────────── */
 mark.notes-hl {
-  background: rgba(245,200,110,0.45);
+  background: color-mix(in srgb, var(--accent) 45%, transparent);
   color: inherit;
   border-radius: 2px;
   padding: 0 1px;
 }
 .notes-search-count {
   font-size: 0.8em;
-  color: var(--text-muted, rgba(255,255,255,0.55));
+  color: var(--text-muted);
   padding: 0 2px 8px;
   display: flex;
   align-items: center;
@@ -12819,7 +12779,7 @@ mark.notes-hl {
 .notes-search-clear {
   background: none;
   border: none;
-  color: var(--accent-color, #f5c86e);
+  color: var(--accent-color);
   cursor: pointer;
   font-size: inherit;
   padding: 0;
@@ -13678,14 +13638,14 @@ textarea:focus-visible {
 .bp-card,
 .cc-card,
 .char-card,
-.feat-taken-card,
 .lu-stat-card,
-.notes-entry-card,
 .party-section-card,
 .resource-card,
 .resource-passive-card {
   /* STYLE-8R: .rr-card из группы убран — правого rail как набора карточек
-     больше нет, там плоские строки. */
+     больше нет, там плоские строки.
+     STYLE-8f: .notes-entry-card и .feat-taken-card убраны по той же причине —
+     запись и взятая черта стали плоскими строками с ромбом. */
   border-radius: var(--r-lg);
   border: 1px solid var(--border-soft);
   box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-card);
@@ -14317,4 +14277,428 @@ textarea:focus-visible {
   .app-right-rail .rr-hp,
   .app-right-rail .rr-line,
   .rr-panel > * { animation: none; }
+}
+
+/* ══ STYLE-8f: вкладка «Записи» в языке встречающего экрана ═══════════════
+   Продолжение 8e/8L/8R: ни одной коробки. Секция предыстории перестаёт быть
+   карточкой, запись перестаёт быть карточкой с цветной полосой слева, пилюли
+   под-табов и кнопки MD-тулбара — плоские подписи с растущим подчёркиванием.
+   Разметка почти не тронута, классы на месте (на них висят inline-onclick,
+   селекторы туров и списки @media print). Блок в конце файла: при равной
+   специфичности выигрывает последнее правило — точечные объявления выше
+   перебиваются без !important. */
+
+/* ── Шапка: поиск-строка и текстовые действия ───────────────────────────── */
+#tab-notes .notes-header { gap: var(--sp-5); margin-bottom: var(--sp-4); }
+#tab-notes .notes-search {
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+  padding: var(--sp-2) 2px;
+  font-size: var(--fs-md);
+  transition: border-color var(--t1) var(--ez-out);
+}
+#tab-notes .notes-search:focus {
+  outline: none;
+  border-bottom-color: var(--accent-lo);
+  box-shadow: none;
+}
+/* Действий на экране три, залитых среди них не остаётся: «+ Запись» несёт
+   акцент текстом (--accent-lo, а не --accent: 3.55 на белом — ниже порога),
+   перегенерация и меню приглушены до --home-sub. */
+#tab-notes .notes-new-btn,
+#tab-notes .notes-menu-btn,
+#tab-notes .notes-regen-btn {
+  position: relative;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: var(--sp-2) 2px;
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  transition: color var(--t1) var(--ez-out);
+}
+#tab-notes .notes-new-btn { color: var(--accent-lo); }
+#tab-notes .notes-regen-btn,
+#tab-notes .notes-menu-btn { color: var(--home-sub); }
+#tab-notes .notes-new-btn::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: auto;
+  bottom: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
+}
+#tab-notes .notes-new-btn:hover:not(:disabled) {
+  filter: none;
+  background: none;
+  color: var(--accent);
+}
+#tab-notes .notes-new-btn:hover:not(:disabled)::after,
+#tab-notes .notes-new-btn:focus-visible::after { width: calc(100% - 4px); }
+#tab-notes .notes-regen-btn:hover:not(:disabled),
+#tab-notes .notes-menu-btn:hover:not(:disabled) {
+  background: none;
+  border-color: transparent;
+  color: var(--text-color);
+}
+#tab-notes .notes-save-ind { color: var(--home-sub); }
+
+/* ── Под-табы: пилюли → подписи с растущим подчёркиванием ───────────────── */
+#tab-notes .notes-subtabs {
+  padding-bottom: 0;
+  margin-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--home-rule);
+}
+/* Семь разделов в колонку между сайдбаром и rail не влезают одной строкой —
+   перенос допустим, но строки не должны расходиться: колоночный зазор широкий,
+   строчный почти нулевой, иначе одинокий «Свободно» читается оторванным. */
+#tab-notes .notes-subtabs-pills { gap: 0 var(--sp-5); }
+#tab-notes .notes-pill {
+  position: relative;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: var(--sp-3) 2px;
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  transition: color var(--t1) var(--ez-out);
+}
+#tab-notes .notes-pill::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  bottom: -1px;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
+}
+#tab-notes .notes-pill:hover { background: none; border-color: transparent; color: var(--accent-lo); }
+#tab-notes .notes-pill:hover::after,
+#tab-notes .notes-pill:focus-visible::after { width: calc(100% - 4px); }
+/* Активный раздел — та же подсветка без подложки, что у пункта сайдбара:
+   заливка роняла контраст (гоча 8L), вес несут цвет и подчёркивание. */
+#tab-notes .notes-pill.active {
+  background: none;
+  color: var(--accent-lo);
+  font-weight: 700;
+}
+#tab-notes .notes-pill.active::after { width: calc(100% - 4px); }
+#tab-notes .notes-pill-ico { opacity: 0.75; }
+#tab-notes .notes-subtabs-select {
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+  padding: var(--sp-3) 2px;
+}
+
+/* ── Секция предыстории: карточка → строка-сводка со значением справа ───── */
+#tab-notes .notes-section-card {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+}
+#tab-notes .notes-section-card + .notes-section-card { border-top: 1px solid var(--home-rule); }
+#tab-notes .notes-main { gap: 0; }
+#tab-notes .notes-section-head {
+  gap: var(--sp-3);
+  margin: 0;
+  padding: var(--sp-3) var(--sp-2);
+  min-height: var(--control-h, 44px);
+  color: var(--text-color);
+  font-family: var(--font-display);
+  font-size: calc(var(--fs-lg) * 1.05);
+  font-weight: 700;
+  transition: transform var(--t2) var(--ez-out), color var(--t1) var(--ez-out);
+}
+#tab-notes .notes-section-head:hover { color: var(--accent-lo); transform: translateX(var(--home-shift)); }
+#tab-notes .notes-section-head:focus-visible {
+  outline: none;
+  box-shadow: var(--sh-glow);
+  color: var(--accent-lo);
+}
+/* Шеврон ▾/▸ заменён ромбом (JS): у строки главной ведущий знак именно такой,
+   а состояние «раскрыто» кодируется поворотом и заливкой, как у .rr-row. */
+#tab-notes .notes-section-toggle { width: var(--home-bullet); opacity: 1; }
+#tab-notes .notes-section-head:hover .home-bullet,
+#tab-notes .notes-section-head[aria-expanded="true"] .home-bullet {
+  transform: rotate(135deg);
+  background: var(--home-accent);
+}
+#tab-notes .notes-section-meta {
+  font-family: var(--font);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--home-sub);
+  opacity: 1;
+  font-variant-numeric: tabular-nums;
+}
+#tab-notes .notes-section-body { padding: 0 var(--sp-2) var(--sp-4) calc(var(--sp-2) + var(--home-rail-w)); }
+
+/* ── MD-тулбар: коробочки → плоские глифы ──────────────────────────────── */
+#tab-notes .notes-md-toolbar {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  gap: var(--sp-4);
+  margin: var(--sp-2) 0 var(--sp-3);
+}
+#tab-notes .notes-md-btn {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: var(--sp-1) 2px;
+  min-width: 0;
+  color: var(--home-sub);
+  font-size: var(--fs-md);
+  transition: color var(--t1) var(--ez-out);
+}
+#tab-notes .notes-md-btn:hover { background: none; border-color: transparent; color: var(--accent-lo); }
+#tab-notes .notes-md-btn.active {
+  background: none;
+  border-color: transparent;
+  color: var(--accent-lo);
+  font-weight: 700;
+}
+#tab-notes .notes-md-var-count {
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  color: inherit;
+}
+#tab-notes .notes-md-variants-toggle.active .notes-md-var-count { background: none; }
+
+/* ── Панель вариантов билда: коробка → список плоских строк ─────────────── */
+#tab-notes .notes-variants-panel {
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--home-rule);
+  border-radius: 0;
+  padding: var(--sp-3) 0;
+  margin: 0 0 var(--sp-3);
+}
+#tab-notes .notes-variants-hint {
+  color: var(--home-sub);
+  font-size: var(--fs-sm);
+  opacity: 1;
+}
+#tab-notes .notes-variants-list { gap: 0; }
+#tab-notes .notes-variant-item {
+  position: relative;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: var(--sp-3) var(--sp-2);
+  color: var(--text-dim);
+  transition: color var(--t1) var(--ez-out);
+}
+#tab-notes .notes-variant-item + .notes-variant-item { border-top: 1px solid var(--home-rule); }
+#tab-notes .notes-variant-item:hover { background: none; border-color: transparent; color: var(--text-color); }
+#tab-notes .notes-variant-item + .notes-variant-item:hover { border-top-color: var(--home-rule); }
+#tab-notes .notes-variant-num { color: var(--home-sub); font-weight: 600; opacity: 1; }
+/* Выбранный вариант — ромб, а не рамка с заливкой. */
+#tab-notes .notes-variant-item.current { background: none; color: var(--text-color); }
+#tab-notes .notes-variant-item.current .notes-variant-num { color: var(--accent-lo); }
+#tab-notes .notes-variant-random {
+  width: auto;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: var(--sp-2) 2px;
+  color: var(--accent-lo);
+  font-family: var(--font-display);
+  text-align: left;
+  transition: color var(--t1) var(--ez-out);
+}
+#tab-notes .notes-variant-random:hover { background: none; color: var(--accent); }
+
+/* ── Поля ввода: остаются полями, но без плотной коробки ────────────────── */
+#tab-notes .notes-section-input,
+#tab-notes .notes-md-preview {
+  background: none;
+  border: 1px solid var(--home-rule);
+  border-radius: var(--r-sm);
+}
+#tab-notes .notes-section-input:focus {
+  outline: none;
+  border-color: var(--accent-lo);
+  box-shadow: none;
+}
+#tab-notes .notes-md-preview blockquote {
+  background: none;
+  border-left: var(--home-rail-w) solid var(--accent);
+  color: var(--home-sub);
+}
+#tab-notes .notes-md-stats { color: var(--home-sub); }
+#tab-notes .notes-md-empty { color: var(--home-sub); }
+
+/* ── Записи: карточка с полосой слева → плоская строка с ромбом ─────────── */
+#tab-notes .notes-entries-list { gap: 0; }
+#tab-notes .notes-entry-card {
+  position: relative;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  /* Жёлоб под ромб считается от его размера, а не от --sp-5: на узком экране
+     шкала отступов сжимается и заголовок прилипал к ромбу. */
+  padding: var(--sp-3) var(--sp-2) var(--sp-3) calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
+}
+#tab-notes .notes-entry-card + .notes-entry-card { border-top: 1px solid var(--home-rule); }
+#tab-notes .notes-entry-card::before {
+  content: "";
+  position: absolute;
+  left: var(--sp-2);
+  top: calc(var(--sp-3) + 0.6em);
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--accent);
+}
+/* Закреплённая запись — залитый ромб цвета закрепления вместо своей подложки
+   и сдвига: закрепление кодирует ромб, поэтому строка встаёт в общий ряд. */
+#tab-notes .notes-entry-card.pinned { background: none; }
+#tab-notes .notes-entry-card.pinned::before {
+  border-color: var(--slot-gold);
+  background: var(--slot-gold);
+}
+/* Ручка «⋮⋮» была декоративной (pointer-events:none) и в плоской строке падала
+   ровно на текст записи — тянется вся строка, подсказку несёт залитый ромб. */
+#tab-notes .notes-entry-drag-handle { display: none; }
+#tab-notes .notes-entry-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+#tab-notes .notes-entry-body { font-size: var(--fs-sm); color: var(--home-sub); }
+/* Действия строки приглушены и проявляются на наведении — рецепт 8e. */
+#tab-notes .notes-entry-actions { opacity: 0.4; transition: opacity var(--t1) var(--ez-out); }
+#tab-notes .notes-entry-card:hover .notes-entry-actions,
+#tab-notes .notes-entry-card:focus-within .notes-entry-actions { opacity: 1; }
+#tab-notes .notes-entry-btn {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 2px var(--sp-2);
+  color: var(--home-sub);
+}
+#tab-notes .notes-entry-btn:hover { background: none; color: var(--text-color); }
+#tab-notes .notes-entry-btn.danger:hover {
+  background: none;
+  border-color: transparent;
+  color: var(--danger);
+}
+#tab-notes .notes-at-ref { color: var(--info); }
+#tab-notes .notes-at-ref:hover { color: var(--info); text-decoration-style: solid; }
+
+/* ── Теги: чипы → текст через точку-разделитель (рецепт 8e) ─────────────── */
+#tab-notes .notes-tag-chip {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  color: var(--home-sub);
+  font-size: var(--fs-sm);
+  transition: color var(--t1) var(--ez-out);
+}
+#tab-notes .notes-tag-chip:hover { background: none; border-color: transparent; color: var(--accent-lo); }
+#tab-notes .notes-tag-chip.active {
+  background: none;
+  border-color: transparent;
+  color: var(--accent-lo);
+  font-weight: 700;
+}
+#tab-notes .notes-entry-tags,
+#tab-notes .notes-tag-filter-bar { gap: var(--sp-3); }
+#tab-notes .notes-tag-chip + .notes-tag-chip::before {
+  content: "·";
+  color: var(--home-sub);
+  margin-right: var(--sp-3);
+}
+#tab-notes .notes-tag-filter-bar { margin-bottom: var(--sp-4); padding-bottom: var(--sp-3); border-bottom: 1px solid var(--home-rule); }
+#tab-notes .notes-tag-chip.removable { padding-right: 0; }
+#tab-notes mark.notes-hl {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 0;
+}
+#tab-notes .notes-search-count { color: var(--home-sub); }
+#tab-notes .notes-search-clear { color: var(--accent-lo); }
+
+/* ── Пустое состояние и взятые черты ────────────────────────────────────── */
+#tab-notes .notes-empty {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  text-align: left;
+  padding: var(--sp-5) var(--sp-2);
+  color: var(--home-sub);
+}
+#tab-notes .notes-empty-ico { opacity: 0.45; }
+#tab-notes .notes-empty-title { font-family: var(--font-display); }
+#tab-notes .taken-feats-header {
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--home-rule);
+  color: var(--text-color);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+}
+#tab-notes .taken-feats-count {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  margin-left: auto;
+  color: var(--home-sub);
+}
+#tab-notes .taken-feats-list { gap: 0; }
+#tab-notes .feat-taken-card {
+  position: relative;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: var(--sp-3) var(--sp-2) var(--sp-3) calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
+}
+#tab-notes .feat-taken-card + .feat-taken-card { border-top: 1px solid var(--home-rule); }
+#tab-notes .feat-taken-card::before {
+  content: "";
+  position: absolute;
+  left: var(--sp-2);
+  top: calc(var(--sp-3) + 0.5em);
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--accent);
+}
+#tab-notes .feat-taken-name { font-family: var(--font-display); }
+
+/* MOTION: каскад входа. Позиции 3 и 4 занимают скрытые input[type=file]
+   импорта — номера они тратят, поэтому шкала расписана по фактическим
+   позициям блоков (гоча STYLE-8c). */
+#tab-notes.active > * { animation: rise var(--t3) var(--ez-out) both; }
+#tab-notes.active > *:nth-child(1) { animation-delay:   0ms; }
+#tab-notes.active > *:nth-child(2) { animation-delay:  40ms; }
+#tab-notes.active > *:nth-child(5) { animation-delay:  80ms; }
+#tab-notes.active > *:nth-child(6) { animation-delay: 120ms; }
+#tab-notes.active > *:nth-child(n+7) { animation-delay: 160ms; }
+@media (prefers-reduced-motion: reduce) {
+  #tab-notes.active > * { animation: none; }
 }
