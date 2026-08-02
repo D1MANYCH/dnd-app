@@ -9167,35 +9167,68 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   box-shadow: var(--sh-1);
 }
 
-/* ========== JOURNAL ========== */
+/* ══ JOURNAL ═══════════════════════════════════════════════════════════════
+   STYLE-8g: вкладка «Журнал» в языке встречающего экрана — ни одной коробки.
+   Карточка-обёртка плоская, запись = строка с ромбом типа и датой справа,
+   фильтры и «＋ Событие» — подписи с растущим подчёркиванием.
+   Селектор #tab-journal .card (0,1,1) бьёт и базовый .card, и групповое
+   правило STYLE-5 в конце файла — порядок правил тут ни при чём. */
+#tab-journal .card {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
 .journal-header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 0;
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--home-rule);
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--sp-3);
 }
 .journal-header-row h3 { margin: 0; }
+/* Единственное действие шапки — текстовая подпись с растущим подчёркиванием.
+   Цвет --accent-lo, а не --accent: у плоского текста весь вес несёт цвет, а
+   --accent на белом даёт 3.55 (гоча 8e). */
 .journal-add-btn {
-  background: var(--accent-color);
-  color: #000;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 0.82em;
-  font-weight: 700;
+  position: relative;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: var(--sp-2) 2px;
+  color: var(--accent-lo);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 500;
   cursor: pointer;
   width: auto;
   margin: 0;
-  transition: all 0.18s;
+  transition: color var(--t1) var(--ez-out);
 }
-.journal-add-btn:hover { background: var(--accent-hi); box-shadow: 0 2px 8px var(--accent-glow); }
+.journal-add-btn::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  bottom: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
+}
+.journal-add-btn:hover { background: none; box-shadow: none; color: var(--accent); }
+.journal-add-btn:hover::after,
+.journal-add-btn:focus-visible::after { width: calc(100% - 4px); }
 .journal-filter-row {
   display: flex;
-  gap: 6px;
+  gap: 0 var(--sp-5);
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  margin: var(--sp-3) 0 var(--sp-4);
   /* fit-content: 6 узких кнопок прижаты влево; без этого кольцо тура (TOUR-6)
      обводило бы полноширинную полосу с пустотой справа на десктопе (урок TOUR-4/5).
      Визуально без изменений — кнопки и так слева и переносятся при нехватке места. */
@@ -9203,61 +9236,132 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   max-width: 100%;
 }
 .jfilter-btn {
-  background: var(--chip-bg);
-  border: 1px solid var(--border);
+  position: relative;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
   color: var(--text-dim);
-  padding: 4px 10px;
-  border-radius: var(--r-sm);
-  font-size: 0.75em;
+  padding: var(--sp-2) 2px;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 500;
   cursor: pointer;
   width: auto;
   margin: 0;
-  transition: all 0.18s;
+  transition: color var(--t1) var(--ez-out);
 }
-.jfilter-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
-.jfilter-btn.active { background: var(--accent-fill); border-color: var(--accent-lo); color: var(--on-accent); font-weight: 700; }
-.journal-list { display: flex; flex-direction: column; gap: 7px; max-height: 600px; overflow-y: auto; }
-.journal-empty { text-align: center; padding: 30px 20px; color: var(--text-muted); font-style: italic; font-size: 0.85em; }
+.jfilter-btn::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
+}
+.jfilter-btn:hover { background: none; border-color: transparent; color: var(--accent-lo); }
+.jfilter-btn:hover::after,
+.jfilter-btn:focus-visible::after { width: calc(100% - 4px); }
+/* Активный фильтр — та же подсветка без подложки, что у пункта сайдбара:
+   заливка роняла контраст (гоча 8L), вес несут цвет и подчёркивание. */
+.jfilter-btn.active { background: none; color: var(--accent-lo); font-weight: 700; }
+.jfilter-btn.active::after { width: calc(100% - 4px); }
+.jfilter-btn [data-ico] { opacity: 0.75; }
+.journal-list { display: flex; flex-direction: column; gap: 0; max-height: 600px; overflow-y: auto; }
+.journal-empty {
+  text-align: left;
+  padding: var(--sp-5) var(--sp-2);
+  color: var(--home-sub);
+  font-style: normal;
+  font-size: var(--fs-sm);
+}
 .journal-entry {
-  background: var(--list-solid);
-  border: 1px solid var(--border-soft);
-  border-left: 3px solid var(--accent-color);
-  border-radius: var(--r-sm);
-  padding: 9px 11px;
-  transition: background 0.15s;
+  position: relative;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  /* Жёлоб под ромб считается от его размера, а не от --sp-5: на узком экране
+     шкала отступов сжимается и текст прилипал бы к ромбу (гоча 8f). */
+  padding: var(--sp-3) var(--sp-2) var(--sp-3) calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
+  transition: color var(--t1) var(--ez-out);
 }
-.journal-entry:hover { background: var(--list-solid-hover); }
+.journal-entry + .journal-entry { border-top: 1px solid var(--home-rule); }
+/* Тип записи кодирует залитый ромб; цвет приходит инлайном (--jrn-color,
+   renderJournal в app-ui.js) — раньше это была полоса слева 3px. */
+.journal-entry::before {
+  content: "";
+  position: absolute;
+  left: var(--sp-2);
+  top: calc(var(--sp-3) + 0.45em);
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--jrn-color, var(--accent));
+  background: var(--jrn-color, transparent);
+}
+.journal-entry:hover { background: none; }
 .journal-entry-header {
   display: flex;
-  align-items: flex-start;
-  gap: 7px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-3);
 }
-.journal-icon { font-size: 1.1em; flex-shrink: 0; margin-top: 1px; }
-.journal-text { flex: 1; font-size: 0.88em; font-weight: 600; color: var(--text); line-height: 1.3; }
+.journal-icon { font-size: 1em; flex-shrink: 0; }
+.journal-text {
+  flex: 1 1 12em;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--text-color);
+  line-height: 1.35;
+}
+.journal-meta {
+  margin: 0 0 0 auto;
+  flex-shrink: 0;
+  color: var(--home-sub);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+}
+/* Действие строки приглушено и проявляется на наведении — рецепт 8e/8f. */
 .journal-del-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-mute);
+  background: none;
+  border: 0;
+  color: var(--home-sub);
   cursor: pointer;
-  font-size: 0.8em;
-  padding: 0 2px;
+  font-size: var(--fs-sm);
+  padding: 0 var(--sp-2);
   width: auto;
   margin: 0;
   flex-shrink: 0;
-  transition: color 0.15s;
+  opacity: 0.4;
+  transition: color var(--t1) var(--ez-out), opacity var(--t1) var(--ez-out);
 }
-.journal-del-btn:hover { color: var(--danger-color); transform: none; box-shadow: none; }
+.journal-entry:hover .journal-del-btn,
+.journal-entry:focus-within .journal-del-btn { opacity: 1; }
+.journal-del-btn:hover { background: none; color: var(--danger); transform: none; box-shadow: none; }
 .journal-details {
-  font-size: 0.74em;
-  color: var(--text-mute);
-  margin: 4px 0 3px 18px;
-  line-height: 1.4;
+  margin: var(--sp-1) 0 0;
+  color: var(--home-sub);
+  font-size: var(--fs-sm);
+  line-height: 1.45;
 }
-.journal-meta {
-  font-size: 0.65em;
-  color: var(--text-dim);  /* THEME-5: как .notes-entry-body — читается на near-white карточке в светлой */
-  margin-top: 4px;
-  margin-left: 18px;
+/* На телефоне дата рядом с заголовком отъедает 112px из 357 и рвёт название на
+   три строки — уводим её под заголовок. order нужен, чтобы на новую строку
+   переносилась именно дата, а не крестик, идущий в разметке после неё. */
+@media (max-width: 560px) {
+  .journal-del-btn { order: 1; }
+  .journal-meta { order: 2; flex-basis: 100%; margin-left: 0; }
+}
+
+/* MOTION: каскад входа — два прямых потомка (строка справки и карточка). */
+#tab-journal.active > * { animation: rise var(--t3) var(--ez-out) both; }
+#tab-journal.active > *:nth-child(1) { animation-delay:  0ms; }
+#tab-journal.active > *:nth-child(2) { animation-delay: 40ms; }
+@media (prefers-reduced-motion: reduce) {
+  #tab-journal.active > * { animation: none; }
 }
 
 /* ========== COMPANIONS ========== */

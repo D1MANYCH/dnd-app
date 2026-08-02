@@ -28,6 +28,13 @@
       "runtimeArgs": ["-m", "http.server", "3020"],
       "port": 3020,
       "autoPort": false
+    },
+    {
+      "name": "dnd-app-alt4",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "3021"],
+      "port": 3021,
+      "autoPort": false
     }
   ]
 }

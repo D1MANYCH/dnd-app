@@ -677,19 +677,24 @@ function renderJournal() {
   }
 
   var typeIcons = { levelup:"📈", rest:"🛏️", stat:"⚡", feat:"🎯", note:"📝", combat:"⚔️", story:"📖", loot:"💎", death:"💀" };
-  var typeColors = { levelup:"#4da843", rest:"#5b9bd5", stat:"#d4a843", feat:"#9b59b6", note:"#9a9ab0", combat:"#e74c3c", story:"#d4ac0d", loot:"#f39c12", death:"#7f8c8d" };
+  // STYLE-8g: цвет типа кодирует ромб строки (--jrn-color, см. .journal-entry::before).
+  // Значение идёт в свойство целиком, поэтому токен подставляется как var() —
+  // конкатенации альфы, ломавшей var() на вкладке «Мир», здесь нет.
+  var typeColors = { levelup:"var(--success)", rest:"var(--info)", stat:"var(--accent)",
+    feat:"var(--magic)", note:"var(--home-sub)", combat:"var(--danger)",
+    story:"var(--slot-gold)", loot:"var(--slot-gold-hi)", death:"var(--text-dim)" };
 
   list.innerHTML = filtered.map(function(entry) {
     var icon = typeIcons[entry.type] || "📝";
-    var color = typeColors[entry.type] || "#9a9ab0";
-    return '<div class="journal-entry" style="border-left-color:' + color + '">' +
+    var color = typeColors[entry.type] || "var(--home-sub)";
+    return '<div class="journal-entry" style="--jrn-color:' + color + '">' +
       '<div class="journal-entry-header">' +
         '<span class="journal-icon">' + icon + '</span>' +
         '<span class="journal-text">' + escapeHtml(entry.text) + '</span>' +
+        '<span class="journal-meta">' + escapeHtml(entry.date) + ' ' + escapeHtml(entry.time) + ' · ' + (entry.level || 1) + ' ур.</span>' +
         '<button class="journal-del-btn" onclick="deleteJournalEntry(' + entry.id + ')">✕</button>' +
       '</div>' +
       (entry.details ? '<div class="journal-details">' + escapeHtml(entry.details) + '</div>' : '') +
-      '<div class="journal-meta">' + escapeHtml(entry.date) + ' ' + escapeHtml(entry.time) + ' · ' + (entry.level || 1) + ' ур.</div>' +
     '</div>';
   }).join("");
 }

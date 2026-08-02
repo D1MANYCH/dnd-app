@@ -85,6 +85,27 @@ f.addEventListener('load', () => {
           w.notesSwitchTab(nsub);
         }
       } catch (e) { beacon('ERR notes ' + e.message); }
+      // STYLE-8g: записи журнала для вкладки «Журнал» (&journal=1) — по одной
+      // на каждый цвет ромба, одна с деталями. Иначе список пуст.
+      try {
+        if (q.get('journal')) {
+          c.journal = [
+            { id: 9001, type: 'levelup', text: 'Повышение уровня: 4 → 5', details: 'Хиты +6, ячейки 3 круга',
+              date: '2 авг 2026', time: '21:14', level: 5 },
+            { id: 9002, type: 'combat', text: 'Бой: засада гоблинов у мельницы',
+              date: '2 авг 2026', time: '20:41', level: 4 },
+            { id: 9003, type: 'loot', text: 'Добыча: жезл дознания', date: '1 авг 2026', time: '19:02', level: 4 },
+            { id: 9004, type: 'rest', text: 'Продолжительный отдых', date: '1 авг 2026', time: '18:30', level: 4 },
+            { id: 9005, type: 'story', text: 'Сюжет: староста Марек назвал имя заказчика',
+              details: 'Обещал награду в 150 зм, если культ будет разогнан до полнолуния.',
+              date: '31 июл 2026', time: '22:55', level: 4 },
+            { id: 9006, type: 'feat', text: 'Черта: Знаток войны', date: '31 июл 2026', time: '22:10', level: 4 },
+            { id: 9007, type: 'note', text: 'Заметка: вернуться к третьему причалу ночью',
+              date: '30 июл 2026', time: '12:20', level: 3 }
+          ];
+          w.saveToLocal();
+        }
+      } catch (e) { beacon('ERR journal ' + e.message); }
       // CAST-2: &battle=N — активный бой (я + гоблин) на раунде N c кастом
       // «Ускорение» (тикающий бафф) для скриншотов трекера/бейджа раундов
       const battleRound = parseInt(q.get('battle') || '0', 10);
