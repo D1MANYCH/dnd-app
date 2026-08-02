@@ -1553,36 +1553,8 @@ body.no-character .drawer-nav { display: none; }
   header .header-title { font-size: 22px !important; }
   header .header-subtitle { font-size: 14px !important; }
 
-  /* Right-rail — компактный ряд AC/Level/Inspiration в верхней мини-карточке */
-  .rr-stats-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-  }
-  .rr-stat-mini {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 8px 6px;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--text);
-  }
-  .rr-stat-mini.rr-ac { color: var(--info); border-color: rgba(44,111,189,0.32); background: rgba(44,111,189,0.06); }
-  .rr-stat-mini.rr-level { color: var(--accent); border-color: rgba(184,132,31,0.40); background: var(--accent-soft); }
-  .rr-stat-mini.rr-insp {
-    color: var(--accent);
-    border-color: rgba(184,132,31,0.40);
-    background: var(--accent-soft);
-    cursor: pointer;
-    transition: all 0.18s var(--ease-out);
-  }
-  .rr-stat-mini.rr-insp:hover { box-shadow: var(--sh-1); }
-  .rr-stat-mini.rr-insp.is-empty { opacity: 0.45; }
+  /* STYLE-8R: мини-карточки AC/Level/Inspiration сняты — эти величины стали
+     строками-сводками правого rail (блок STYLE-8R в конце файла). */
 
   /* Main контент центрирован, ограничен по ширине */
   .container,
@@ -1637,26 +1609,9 @@ body.no-character .drawer-nav { display: none; }
 
 @media (min-width: 1024px) {
 
-  /* Right-rail карточки — Дымка v5: уровень 2 стекла с бликом */
-  .rr-card {
-    background: var(--bg-1);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r-lg, 18px);
-    padding: 14px 16px;
-    box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-1);
-  }
-  .rr-card-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 10px;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .rr-hp-num { color: var(--danger); font-size: 15px; }
+  /* STYLE-8R: коробки .rr-card и их заголовки сняты — rail собран из плоских
+     строк (блок STYLE-8R в конце файла). Ниже остаётся только внутренняя
+     механика блоков: полоса хитов, поле, полоски ячеек, сетка кубиков. */
   .rr-hp-bar {
     height: 8px; border-radius: 999px;
     background: var(--bg-2);
@@ -1728,13 +1683,10 @@ body.no-character .drawer-nav { display: none; }
   }
   .rr-dice-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr); /* Дымка v5: 6 кубиков */
+    grid-template-columns: repeat(5, 1fr); /* STYLE-8R: d20 уехал в строку */
     gap: 6px;
-    margin-bottom: 8px;
   }
   .rr-dice-grid .btn { padding: 0 4px; }
-
-  /* d20-кнопка в right-rail — обычная btn-primary, без иконки */
 
   /* Inline-баджи активных состояний в right-rail */
   .rr-cond-list {
@@ -1756,9 +1708,6 @@ body.no-character .drawer-nav { display: none; }
     text-align: center;
     padding: 4px 0 8px;
   }
-
-  /* На desktop primary-кнопки в right-rail остаются md (44px), не растут до lg */
-  .app-right-rail .btn-primary { --btn-h: 44px; --btn-px: 18px; --btn-fs: 14px; }
 
   /* Иконочные кнопки на desktop компактнее */
   .icon-btn { width: 34px; height: 34px; min-width: 34px; }
@@ -13734,8 +13683,9 @@ textarea:focus-visible {
 .notes-entry-card,
 .party-section-card,
 .resource-card,
-.resource-passive-card,
-.rr-card {
+.resource-passive-card {
+  /* STYLE-8R: .rr-card из группы убран — правого rail как набора карточек
+     больше нет, там плоские строки. */
   border-radius: var(--r-lg);
   border: 1px solid var(--border-soft);
   box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-card);
@@ -14196,4 +14146,175 @@ textarea:focus-visible {
      недорисованный разделитель — здесь строки разделяет пустота, а не линия. */
   #tab-party .pcard + .pcard { border-top: 0; }
   #tab-party .pcard { padding-top: var(--sp-4); padding-bottom: var(--sp-4); }
+}
+
+/* ══ STYLE-8R: правый rail в языке встречающего экрана ════════════════════
+   Вариант П6: всегда видны хиты и бросок d20, остальное — четыре строки-
+   сводки со значением справа, раскрывающиеся на месте. Коробок нет: пять
+   .rr-card сняты (вместе с группой STYLE-5 и мини-чипами AC/Level/Insp),
+   осталась внутренняя механика блоков. Медиа-обёртка не нужна: до 1024px
+   .app-right-rail стоит display:none и потомки не рендерятся вовсе.
+   !important не требуется — .rr-row (0,1,0) бьёт базовый button{} (0,0,1),
+   .rr-row:hover (0,2,0) — button:hover (0,1,1), как у .drawer-item. */
+.app-right-rail { gap: var(--sp-4); padding: 20px 16px; }
+
+/* Капитель вместо заголовка карточки — одна на весь блок хитов */
+.rr-group {
+  padding: 0 4px 8px;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--home-sub);
+}
+.rr-hp { padding-bottom: var(--sp-4); border-bottom: 1px solid var(--home-rule); }
+/* Крупное число выровнено по левому краю строк, а не по центру карточки */
+.rr-hp-big { justify-content: flex-start; padding-left: 4px; }
+
+.rr-rows { display: flex; flex-direction: column; }
+.rr-line { display: flex; align-items: center; }
+.rr-line + .rr-line { border-top: 1px solid var(--home-rule); }
+
+.rr-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  margin: 0;
+  padding: 10px 4px;
+  min-height: var(--control-h, 44px);
+  background: transparent;
+  border: 0;
+  border-left: var(--home-rail-w) solid transparent;
+  border-radius: 0;
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none;
+  transition: transform var(--t2) var(--ez-out), color var(--t1) var(--ez-out);
+}
+.rr-row-static { cursor: default; }
+.rr-row-label {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* MOTION: то же растущее подчёркивание, что у пунктов главной и сайдбара */
+.rr-row-label::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 0;
+  height: 1.5px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
+}
+/* Значение справа — не serif: это число, а не заголовок */
+.rr-row-val {
+  margin-left: auto;
+  padding-left: 10px;
+  font-family: var(--font);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--home-sub);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* Бросок d20 — единственное действие rail: рельса слева, как «Продолжить» */
+.rr-line-primary .rr-row { border-left-color: var(--accent); color: var(--text); }
+
+/* Клавиатурная половина — вне @media (hover), как на главной */
+.rr-row:not(.rr-row-static):focus-visible {
+  outline: none;
+  box-shadow: var(--sh-glow);
+  color: var(--accent-lo);
+  transform: translateX(var(--home-shift));
+}
+.rr-row:not(.rr-row-static):focus-visible .home-bullet { transform: rotate(135deg); background: var(--home-accent); }
+.rr-row:not(.rr-row-static):focus-visible .rr-row-label::after { width: 100%; }
+@media (hover: hover) and (pointer: fine) {
+  .rr-row:not(.rr-row-static):hover {
+    background: transparent;
+    color: var(--accent-lo);
+    transform: translateX(var(--home-shift));
+  }
+  .rr-row:not(.rr-row-static):hover .home-bullet { transform: rotate(135deg); background: var(--home-accent); }
+  .rr-row:not(.rr-row-static):hover .rr-row-label::after { width: 100%; }
+}
+/* Раскрытая строка — повёрнутый залитый ромб (состояние, а не наведение) */
+.rr-row[aria-expanded="true"] .home-bullet { transform: rotate(135deg); background: var(--home-accent); }
+/* Вдохновение живёт ромбом строки «Уровень»: залит — есть, пуст — нет */
+#rr-insp-mini:not(.is-empty) .home-bullet { background: var(--home-accent); }
+
+/* Кнопка раскрытия остальных кубиков — приглушённый подстрочник строки d20 */
+.rr-more {
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0;
+  padding: 6px 4px 6px 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--home-sub);
+  font-family: var(--font);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: color var(--t1) var(--ez-out);
+}
+.rr-more::after { content: " ▾"; }
+.rr-more[aria-expanded="true"]::after { content: " ▴"; }
+.rr-more:hover { color: var(--accent-lo); background: transparent; }
+.rr-more:focus-visible { outline: none; color: var(--accent-lo); box-shadow: var(--sh-glow); }
+
+/* Раскрытая панель — с отступом под ромбом строки, без подложки */
+.rr-panel { padding: 2px 4px 12px calc(4px + var(--home-rail-w)); }
+.rr-panel[hidden] { display: none; }
+.rr-panel > * { animation: rise var(--t2) var(--ez-out) both; }
+.rr-panel-action {
+  width: auto;
+  margin: 8px 0 0;
+  padding: 4px 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--home-sub);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--t1) var(--ez-out);
+}
+.rr-panel-action:hover { color: var(--accent-lo); background: transparent; }
+.rr-cond-empty {
+  text-align: left;
+  padding: 2px 0 0;
+  font-size: var(--fs-sm);
+  color: var(--home-sub);
+}
+
+/* MOTION: каскад входа. Панели тоже дети .rr-rows и тратят номера nth-child —
+   задержки расписаны по фактическим позициям строк (гоча STYLE-8c). */
+.app-right-rail .rr-hp,
+.app-right-rail .rr-line { animation: rise var(--t3) var(--ez-out) both; }
+.app-right-rail .rr-hp { animation-delay: 0ms; }
+.rr-rows > .rr-line:nth-child(1) { animation-delay:  40ms; }
+.rr-rows > .rr-line:nth-child(3) { animation-delay:  80ms; }
+.rr-rows > .rr-line:nth-child(4) { animation-delay: 120ms; }
+.rr-rows > .rr-line:nth-child(5) { animation-delay: 160ms; }
+.rr-rows > .rr-line:nth-child(7) { animation-delay: 200ms; }
+/* Глобальный reduce-блок обнуляет длительности, но НЕ задержки: при fill-mode
+   both строка висела бы невидимой всю задержку — снимаем появление целиком. */
+@media (prefers-reduced-motion: reduce) {
+  .app-right-rail .rr-hp,
+  .app-right-rail .rr-line,
+  .rr-panel > * { animation: none; }
 }

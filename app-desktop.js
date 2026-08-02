@@ -3,18 +3,12 @@
 // Использует существующие глобальные функции (rollDice, applyCustomHP, openConditionsPopup).
 
 (function () {
+  // STYLE-8R: язык встречающего экрана — ни одной коробки. Всегда видны хиты
+  // и бросок d20, остальное — четыре строки-сводки со значением справа,
+  // раскрывающиеся на месте.
   const RAIL_HTML = `
-    <div class="rr-card rr-stats-card">
-      <div class="rr-stats-row">
-        <div class="rr-stat-mini rr-ac" title="Класс доспеха"><span data-ico="shield" data-ico-size="13">🛡️</span> <span id="rr-ac">10</span></div>
-        <div class="rr-stat-mini rr-level" title="Уровень"><span data-ico="star" data-ico-size="13">⭐</span> <span id="rr-level">1</span></div>
-        <div class="rr-stat-mini rr-insp is-empty" id="rr-insp-mini" title="Вдохновение (клик — переключить)"><span data-ico="sparkle" data-ico-size="13">✨</span></div>
-      </div>
-    </div>
-    <div class="rr-card rr-hp">
-      <div class="rr-card-head">
-        <span><span data-ico="heart" data-ico-size="14" data-ico-color="var(--danger)">❤️</span> Хиты</span>
-      </div>
+    <div class="rr-hp">
+      <div class="rr-group">Хиты</div>
       <div class="rr-hp-big"><span id="rr-hp-current">10</span><span class="rr-hp-big-sep">/</span><span id="rr-hp-max">10</span></div>
       <div class="rr-hp-bar"><div id="rr-hp-bar-fill" class="rr-hp-bar-fill" style="width:100%"></div></div>
       <div class="rr-hp-quick">
@@ -29,30 +23,63 @@
         <button type="button" class="btn btn-success" id="rr-btn-heal">+ Лечение</button>
       </div>
     </div>
-    <div class="rr-card rr-dice">
-      <div class="rr-card-head"><span><span data-ico="dice" data-ico-size="14">🎲</span> Быстрый бросок</span></div>
-      <div class="rr-dice-grid">
-        <button type="button" class="btn btn-secondary btn-sm" data-dice="4">d4</button>
-        <button type="button" class="btn btn-secondary btn-sm" data-dice="6">d6</button>
-        <button type="button" class="btn btn-secondary btn-sm" data-dice="8">d8</button>
-        <button type="button" class="btn btn-secondary btn-sm" data-dice="10">d10</button>
-        <button type="button" class="btn btn-secondary btn-sm" data-dice="12">d12</button>
-        <button type="button" class="btn btn-secondary btn-sm" data-dice="20">d20</button>
+    <div class="rr-rows">
+      <div class="rr-line rr-line-primary">
+        <button type="button" class="rr-row" id="rr-btn-d20" aria-label="Бросить d20">
+          <span class="home-bullet home-bullet--sm"></span>
+          <span class="rr-row-label">Бросок d20</span>
+        </button>
+        <button type="button" class="rr-more" data-rr-toggle="rr-panel-dice" aria-controls="rr-panel-dice" aria-expanded="false">d4–d12</button>
       </div>
-      <button type="button" class="btn btn-primary btn-block rr-d20-btn" id="rr-btn-d20" aria-label="Бросить d20"><span data-ico="dice" data-ico-size="14">🎲</span> d20</button>
-    </div>
-    <div class="rr-card rr-slots" id="rr-slots-card" style="display:none">
-      <div class="rr-card-head"><span><span data-ico="spells" data-ico-size="14">✨</span> Ячейки</span></div>
-      <div id="rr-slots-list" class="rr-slots-list"></div>
-    </div>
-    <div class="rr-card rr-conditions">
-      <div class="rr-card-head">
-        <span><span data-ico="zap" data-ico-size="14">⚡</span> Состояния</span>
-        <span class="rr-hp-num" id="rr-cond-count" style="color:var(--accent)">0</span>
+      <div class="rr-panel" id="rr-panel-dice" hidden>
+        <div class="rr-dice-grid">
+          <button type="button" class="btn btn-secondary btn-sm" data-dice="4">d4</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-dice="6">d6</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-dice="8">d8</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-dice="10">d10</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-dice="12">d12</button>
+        </div>
       </div>
-      <div id="rr-cond-list" class="rr-cond-list"></div>
-      <div id="rr-cond-empty" class="rr-cond-empty">Нет активных состояний</div>
-      <button type="button" class="btn btn-ghost btn-block btn-sm" id="rr-btn-cond"><span data-ico="settings" data-ico-size="13">⚙</span> Управление</button>
+
+      <div class="rr-line">
+        <div class="rr-row rr-row-static">
+          <span class="home-bullet home-bullet--sm"></span>
+          <span class="rr-row-label">Класс доспеха</span>
+          <span class="rr-row-val" id="rr-ac">10</span>
+        </div>
+      </div>
+
+      <div class="rr-line">
+        <button type="button" class="rr-row is-empty" id="rr-insp-mini" aria-pressed="false" title="Вдохновение (клик — переключить)">
+          <span class="home-bullet home-bullet--sm"></span>
+          <span class="rr-row-label">Уровень</span>
+          <span class="rr-row-val" id="rr-level">1</span>
+        </button>
+      </div>
+
+      <div class="rr-line" id="rr-slots-line" style="display:none">
+        <button type="button" class="rr-row" data-rr-toggle="rr-panel-slots" aria-controls="rr-panel-slots" aria-expanded="false">
+          <span class="home-bullet home-bullet--sm"></span>
+          <span class="rr-row-label">Ячейки</span>
+          <span class="rr-row-val" id="rr-slots-sum">0/0</span>
+        </button>
+      </div>
+      <div class="rr-panel" id="rr-panel-slots" hidden>
+        <div id="rr-slots-list" class="rr-slots-list"></div>
+      </div>
+
+      <div class="rr-line">
+        <button type="button" class="rr-row" data-rr-toggle="rr-panel-cond" aria-controls="rr-panel-cond" aria-expanded="false">
+          <span class="home-bullet home-bullet--sm"></span>
+          <span class="rr-row-label">Состояния</span>
+          <span class="rr-row-val" id="rr-cond-count">0</span>
+        </button>
+      </div>
+      <div class="rr-panel" id="rr-panel-cond" hidden>
+        <div id="rr-cond-list" class="rr-cond-list"></div>
+        <div id="rr-cond-empty" class="rr-cond-empty">Нет активных состояний</div>
+        <button type="button" class="rr-panel-action" id="rr-btn-cond">Управление состояниями</button>
+      </div>
     </div>
   `;
 
@@ -104,6 +131,7 @@
     if (insp && rrInsp) {
       const isOn = insp.classList.contains('active') || insp.classList.contains('is-on') || insp.dataset.on === '1';
       rrInsp.classList.toggle('is-empty', !isOn);
+      rrInsp.setAttribute('aria-pressed', isOn ? 'true' : 'false');
     }
   }
 
@@ -121,6 +149,16 @@
     if (typeof window.getConditionIcon === 'function') return window.getConditionIcon(id);
     return '';
   }
+  // STYLE-8R: строка-сводка раскрывается на месте — панель ищется по
+  // aria-controls, состояние держит aria-expanded.
+  function setRowExpanded(btn, open) {
+    if (!btn) return;
+    var panel = document.getElementById(btn.getAttribute('aria-controls'));
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (panel) panel.hidden = !open;
+  }
+  function collapseRow(btn) { setRowExpanded(btn, false); }
+
   function renderRrConditions() {
     var list = document.getElementById('rr-cond-list');
     var empty = document.getElementById('rr-cond-empty');
@@ -168,17 +206,18 @@
   // Дымка v5: «Ячейки» — полоски свободных ячеек по кругам (те же сторы,
   // что и вкладка «Заклинания»; renderSpellSlots дёргает refreshRailSlots).
   function renderRailSlots() {
-    var card = document.getElementById('rr-slots-card');
+    var line = document.getElementById('rr-slots-line');
     var list = document.getElementById('rr-slots-list');
-    if (!card || !list) return;
+    if (!line || !list) return;
     var char = (typeof window.getCurrentChar === 'function' && window.currentId) ? window.getCurrentChar() : null;
-    var rows = '';
+    var rows = '', sumFree = 0, sumTotal = 0;
     if (char && char.spells) {
       var slots = char.spells.slots || {}, used = char.spells.slotsUsed || {};
       for (var i = 1; i <= 9; i++) {
         var total = slots[i] || 0;
         if (!total) continue;
         var free = total - (used[i] || 0);
+        sumFree += free; sumTotal += total;
         rows += '<div class="rr-slot-row" title="' + i + ' круг: свободно ' + free + ' из ' + total + '">' +
           '<span class="rr-slot-lvl">' + i + '</span>' +
           '<span class="rr-slot-bar"><span class="rr-slot-fill' + (free === 0 ? ' empty' : '') + '" style="width:' + Math.round((free / total) * 100) + '%"></span></span>' +
@@ -188,6 +227,7 @@
       var pactTotal = char.spells.pactSlots || 0;
       if (pactTotal > 0) {
         var pactFree = pactTotal - (char.spells.pactUsed || 0);
+        sumFree += pactFree; sumTotal += pactTotal;
         rows += '<div class="rr-slot-row rr-slot-pact" title="Ячейки пакта: свободно ' + pactFree + ' из ' + pactTotal + '">' +
           '<span class="rr-slot-lvl">П</span>' +
           '<span class="rr-slot-bar"><span class="rr-slot-fill' + (pactFree === 0 ? ' empty' : '') + '" style="width:' + Math.round((pactFree / pactTotal) * 100) + '%"></span></span>' +
@@ -196,7 +236,12 @@
       }
     }
     list.innerHTML = rows;
-    card.style.display = rows ? '' : 'none';
+    line.style.display = rows ? '' : 'none';
+    var sum = document.getElementById('rr-slots-sum');
+    if (sum) sum.textContent = sumFree + '/' + sumTotal;
+    // Строка спряталась (сменили персонажа на неколдующего) — панель под ней
+    // обязана свернуться вместе с ней, иначе полоски повиснут без заголовка.
+    if (!rows) collapseRow(line.querySelector('[data-rr-toggle]'));
   }
   window.refreshRailSlots = renderRailSlots;
 
@@ -262,9 +307,12 @@
       });
     });
 
-    // Дымка v5: SVG-иконки в заголовках карточек rail (разметка создана после
-    // общего прохода _applyDymkaIcons на DOMContentLoaded)
-    if (typeof window._applyDymkaIcons === 'function') window._applyDymkaIcons(rail);
+    // STYLE-8R: раскрытие строк-сводок (кубики, ячейки, состояния)
+    rail.querySelectorAll('[data-rr-toggle]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setRowExpanded(btn, btn.getAttribute('aria-expanded') !== 'true');
+      });
+    });
 
     // Изначально мы на экране выбора персонажа — выставим маркер,
     // если showScreen ещё не вызывался к моменту инициализации
