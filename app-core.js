@@ -390,6 +390,7 @@ if (!currentId) {
   $("header-title").textContent = "Выбор персонажа";
   if (avatarEl) avatarEl.innerHTML = AVATAR_FALLBACK_HTML;
   if (subtitleEl) subtitleEl.textContent = "";
+  syncDrawerHeader("Выбор персонажа", null);
   return;
 }
 var char = getCurrentChar();
@@ -414,6 +415,22 @@ if (subtitleEl && char) {
   subtitleEl.textContent = parts.join(" · ");
 } else if (subtitleEl) {
   subtitleEl.textContent = "";
+}
+// STYLE-8L: шапка сайдбара повторяет шапку приложения. Синка только в
+// openDrawer() не хватало: на ПК ≥1200 сайдбар статичен и не открывается,
+// там вечно висело «Персонаж».
+syncDrawerHeader(char && char.name ? char.name : "Персонаж", char);
+}
+// Имя и «класс · раса» в шапке сайдбара. char может быть null (экран выбора).
+function syncDrawerHeader(name, char) {
+var nameEl = $("drawer-char-name");
+var subEl = $("drawer-char-sub");
+if (nameEl) nameEl.textContent = name;
+if (subEl) {
+  var parts = [];
+  if (char && char.class) parts.push(char.class);
+  if (char && char.race) parts.push(char.race);
+  subEl.textContent = parts.join(" · ");
 }
 }
 function switchTab(tabName, btnEl) {
@@ -452,10 +469,9 @@ function openDrawer() {
   var overlay = $("drawer-overlay");
   if (drawer) drawer.classList.remove("hidden");
   if (overlay) overlay.classList.remove("hidden");
-  // Sync char name
+  // Sync char name (поле листа могли править прямо сейчас — оно свежее модели)
   var nameEl = $("char-name");
-  var drawerName = $("drawer-char-name");
-  if (nameEl && drawerName) drawerName.textContent = nameEl.value || "Персонаж";
+  syncDrawerHeader((nameEl && nameEl.value) || "Персонаж", getCurrentChar());
   setTimeout(function() {
     if (drawer) drawer.classList.add("open");
     if (overlay) overlay.classList.add("open");

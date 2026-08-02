@@ -753,9 +753,10 @@ html.glass-adjusting *::after {
 }
 
 /* ----- PNG-иконки классов на светлом — drop-shadow + подложка ----- */
+/* STYLE-8L: пункт сайдбара из списка убран — первым потомком там теперь ромб,
+   а иконка вкладки рисуется линейным SVG (icons.js), тень ей не нужна. */
 :root[data-theme="light"] .header-avatar img,
-:root[data-theme="light"] .char-card img,
-:root[data-theme="light"] .drawer-item > span:first-child {
+:root[data-theme="light"] .char-card img {
   filter: drop-shadow(0 1px 1px rgba(20,40,30,0.30));
 }
 /* Тёмный диск под PNG-иконки классов: line-art рисован светлым под тёмную тему
@@ -772,14 +773,8 @@ html.glass-adjusting *::after {
   border-right: 1px solid var(--border) !important;
   box-shadow: var(--sh-2);
 }
-:root[data-theme="light"] .drawer-divider { background: var(--border); }
-:root[data-theme="light"] .drawer-item { transition: all 0.2s var(--ease-out); }
-:root[data-theme="light"] .drawer-item:hover { background: var(--bg-2) !important; transform: translateX(2px); }
-:root[data-theme="light"] .drawer-item-active {
-  background: linear-gradient(180deg, var(--accent-soft), transparent) !important;
-  color: var(--accent-lo) !important;
-  box-shadow: inset 3px 0 0 var(--accent);
-}
+/* STYLE-8L: четыре светлые перебивки пунктов сняты — базовый блок сайдбара
+   собран на токенах и работает в обеих темах без коробок и !important. */
 
 /* ----- Theme picker в drawer (light variant) ----- */
 :root[data-theme="light"] .theme-picker-btn {
@@ -1025,33 +1020,15 @@ html.glass-adjusting *::after {
   white-space: nowrap;
 }
 
-/* UI-5: кнопка «Настройки оформления» в drawer */
+/* UI-5: кнопка «Настройки оформления» в drawer.
+   STYLE-8L: коробки у неё больше нет — вид и движение общие с .drawer-item
+   (правило в блоке сайдбара). Здесь остаётся только прижатость к низу:
+   margin-top:auto — это поведение, а не оформление. */
 .drawer-settings-row {
-  padding: var(--sp-3) var(--sp-4);
-  border-top: 1px solid var(--border);
+  padding: 4px 0 8px;
+  border-top: 1px solid var(--home-rule);
   margin-top: auto;
 }
-.drawer-settings-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  padding: 10px 12px;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md, 8px);
-  color: var(--text);
-  font-size: var(--fs-md);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: left;
-}
-.drawer-settings-btn:hover {
-  background: var(--bg-3);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.drawer-settings-btn span:first-child { font-size: 1.2em; }
 
 /* UI-5: модалка настроек оформления */
 .settings-modal-overlay {
@@ -1460,8 +1437,7 @@ html.glass-adjusting *::after {
    Скрываем right-rail и нав. секцию сайдбара, в сайдбаре остаётся
    только переключатель темы. */
 body.no-character .app-right-rail { display: none !important; }
-body.no-character .drawer-nav,
-body.no-character .drawer-divider { display: none; }
+body.no-character .drawer-nav { display: none; }
 @media (min-width: 1024px) {
   /* На экране выбора персонажа: освобождаем правое поле (right-rail скрыт)
      и принудительно показываем sidebar статично — иначе на 1024-1199
@@ -3543,80 +3519,170 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 }
 .side-drawer.open { transform: translateX(0); }
 
+/* ===== STYLE-8L: сайдбар в языке встречающего экрана =====
+   Ни одной коробки: марка сверху (как .home-brand), пункт = ромб-буллет +
+   иконка + serif-подпись с растущим подчёркиванием, группы капителью вместо
+   .drawer-divider. !important не нужны: .drawer-item (0,1,0) бьёт базовый
+   button{} (0,0,1), а .drawer-item:hover (0,2,0) — button:hover (0,1,1).
+   Ровно так живёт .home-menu-item. */
 .drawer-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 20px 16px 16px;
-  border-bottom: 1px solid var(--border, var(--border-color));
+  gap: 10px;
+  padding: 18px 14px 14px;
+  border-bottom: 1px solid var(--home-rule);
   background: transparent;
 }
+.drawer-brand-mark {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  transform: rotate(45deg);
+  border: 1.5px solid var(--accent);
+  border-radius: 5px;
+  background: var(--accent-soft);
+}
+.drawer-brand-text { flex: 1; min-width: 0; }
 .drawer-char-name {
-  font-size: 1.05em;
+  font-family: var(--font-display);
+  font-size: calc(var(--fs-md) * 1.05);
   font-weight: 700;
-  color: var(--accent-color);
-  flex: 1;
+  line-height: 1.15;
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* «Класс · раса». Пустой подзаголовок (нет персонажа) обязан схлопываться,
+   иначе под именем висит дыра в высоту строки. */
+.drawer-char-sub {
+  display: block;
+  margin-top: 3px;
+  font-style: normal;
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--home-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.drawer-char-sub:empty { display: none; }
 .drawer-close {
-  background: none !important;
-  border: none !important;
-  color: var(--text-muted) !important;
-  font-size: 1.1em !important;
-  padding: 4px 8px !important;
-  width: auto !important;
-  margin: 0 !important;
+  background: none;
+  border: 0;
+  color: var(--home-sub);
+  font-size: 1.05em;
+  padding: 4px 8px;
+  width: auto;
+  margin: 0;
   cursor: pointer;
   border-radius: var(--r-sm);
-  transition: all 0.15s;
-  transform: none !important;
-  box-shadow: none !important;
+  box-shadow: none;
+  transition: color var(--t1) var(--ez-out);
 }
-.drawer-close:hover { color: var(--text-color) !important; background: rgba(255,255,255,0.08) !important; transform: none !important; }
+.drawer-close:hover { color: var(--accent-lo); background: none; }
 
 .drawer-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 0;
+  padding: 6px 0;
 }
-.drawer-item {
-  display: flex !important;
+/* Группа пунктов — капитель вместо разделительной линейки */
+.drawer-group {
+  padding: 14px 16px 4px;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--home-sub);
+}
+.drawer-group:first-child { padding-top: 6px; }
+
+.drawer-item,
+.drawer-settings-btn {
+  display: flex;
   align-items: center;
-  gap: 14px;
-  width: 100% !important;
-  padding: 13px 20px !important;
-  background: none !important;
-  border: none !important;
-  color: var(--text-muted) !important;
-  font-size: 0.95em !important;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 11px 14px;
+  min-height: var(--control-h, 44px);   /* палец: строка 40px в mobile-drawer мала */
+  background: transparent;
+  border: 0;
+  border-left: var(--home-rail-w) solid transparent;
+  border-radius: 0;
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
   font-weight: 500;
   text-align: left;
   cursor: pointer;
-  margin: 0 !important;
-  border-radius: 0 !important;
-  transition: all 0.15s;
-  transform: none !important;
-  box-shadow: none !important;
-  border-left: 3px solid transparent !important;
+  box-shadow: none;
+  transition: transform var(--t2) var(--ez-out), color var(--t1) var(--ez-out), background var(--t1) var(--ez-out);
 }
-.drawer-item span { font-size: 1.3em; width: 28px; text-align: center; }
-.drawer-item:hover {
-  background: rgba(255,255,255,0.05) !important;
-  color: var(--text-color) !important;
-  transform: none !important;
+/* Иконка в ровной колонке. Селектор по [data-ico], а НЕ по span: первым
+   потомком теперь идёт ромб, а класс .dico вешает _applyDymkaIcons уже после
+   загрузки — при упавшем icons.js останется эмодзи-фолбэк без класса. */
+.drawer-item [data-ico],
+.drawer-settings-btn [data-ico] {
+  flex: 0 0 auto;
+  width: 20px;
+  text-align: center;
+  color: var(--home-sub);
+  transition: color var(--t1) var(--ez-out);
 }
+.drawer-item-label {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* MOTION: то же растущее подчёркивание, что у пунктов главной */
+.drawer-item-label::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 0;
+  height: 1.5px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
+}
+/* Клавиатурная половина — вне @media (hover), как на главной */
+.drawer-item:focus-visible,
+.drawer-settings-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--sh-glow);
+  color: var(--accent-lo);
+  transform: translateX(var(--home-shift));
+}
+.drawer-item:focus-visible .home-bullet,
+.drawer-settings-btn:focus-visible .home-bullet { transform: rotate(135deg); background: var(--home-accent); }
+.drawer-item:focus-visible .drawer-item-label::after,
+.drawer-settings-btn:focus-visible .drawer-item-label::after { width: 100%; }
+@media (hover: hover) and (pointer: fine) {
+  .drawer-item:hover,
+  .drawer-settings-btn:hover {
+    background: transparent;
+    color: var(--accent-lo);
+    transform: translateX(var(--home-shift));
+  }
+  .drawer-item:hover .home-bullet,
+  .drawer-settings-btn:hover .home-bullet { transform: rotate(135deg); background: var(--home-accent); }
+  .drawer-item:hover .drawer-item-label::after,
+  .drawer-settings-btn:hover .drawer-item-label::after { width: 100%; }
+}
+/* Активная вкладка — рельса и залитый ромб, без подложки: тонировка
+   --home-primary-bg роняла --accent-lo с 5.0 до 4.19 в светлой теме
+   (текст 14px, нужен AA 4.5), а на строке 14px читалась ещё и коробкой. */
 .drawer-item-active {
-  color: var(--accent, var(--accent-color)) !important;
-  background: var(--accent-soft, rgba(212,168,67,0.12)) !important;
-  border-left-color: var(--accent, var(--accent-color)) !important;
+  color: var(--accent-lo);
+  border-left-color: var(--accent);
 }
-.drawer-divider {
-  height: 1px;
-  background: var(--border-color);
-  margin: 8px 16px;
-}
+.drawer-item-active [data-ico] { color: var(--accent-lo); }
+.drawer-item-active .home-bullet { background: var(--home-accent); }
 
 /* Rest buttons in HP block */
 .hp-rest-row {
