@@ -87,7 +87,7 @@
     if (typeof orig !== "function") return false;
     window.showScreen = function(name) {
       var prev = null;
-      var prevEl = document.querySelector('div[id^="screen-"]:not(.hidden)');
+      var prevEl = document.querySelector('div[id^="screen-"]:not(.hidden):not(.screen-ghost)');
       if (prevEl) prev = prevEl.id.replace("screen-", "");
       var r = orig.apply(this, arguments);
       var from = SCREEN_DEPTH[prev], to = SCREEN_DEPTH[name];

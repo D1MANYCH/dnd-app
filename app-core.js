@@ -9,16 +9,32 @@ function $(id) { return document.getElementById(id); }
 /** Текущий персонаж */
 function getCurrentChar() { return characters.find(function(c) { return c.id === currentId; }); }
 /** Открыть/закрыть простую модалку по id */
-function openModal(id) { var m = $(id); if (m) { m.classList.remove("closing"); m.classList.add("active"); } }
+function openModal(id) { var m = $(id); if (m) { m.classList.remove("closing"); m.classList.add("active"); _syncModalOpenFlag(); } }
+/**
+ * MOTION: маркер body.modal-open. Нужен встречающему экрану: модалки меню
+ * («Данные», «Настройки», «О версии») читаются как под-меню, и пока такая
+ * открыта, само меню отъезжает влево и притухает (см. style.css).
+ * Считаем по DOM, а не счётчиком: модалки открываются и закрываются из
+ * десятков мест, счётчик рассинхронизировался бы на первом же закрытии
+ * мимо closeModal.
+ */
+function _syncModalOpenFlag() {
+  if (!document.body) return;
+  // Три паттерна модалок: .modal, .confirm-modal-overlay и настройки —
+  // маркер один на всех, иначе меню отъезжало бы не под каждым под-меню.
+  var open = document.querySelector('.modal.active:not(.closing), .confirm-modal-overlay.active, .settings-modal.open');
+  document.body.classList.toggle("modal-open", !!open);
+}
 /** Дымка v5: закрытие с обратной анимацией ~240ms (класс .closing, см. style.css) */
 function closeModal(id) {
   var m = $(id);
   if (!m || !m.classList.contains("active")) return;
   if (m.classList.contains("closing")) return;
   var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduced || !m.classList.contains("modal")) { m.classList.remove("active"); return; }
+  if (reduced || !m.classList.contains("modal")) { m.classList.remove("active"); _syncModalOpenFlag(); return; }
   m.classList.add("closing");
-  setTimeout(function () { m.classList.remove("active"); m.classList.remove("closing"); }, 240);
+  _syncModalOpenFlag();
+  setTimeout(function () { m.classList.remove("active"); m.classList.remove("closing"); _syncModalOpenFlag(); }, 240);
 }
 /** Debounce — откладывает вызов fn на delay мс после последнего вызова */
 function debounce(fn, delay) {
@@ -308,12 +324,69 @@ var _screenPrev = "home";
  * зашли; с экрана выбора персонажа — во встречающее меню.
  */
 function headerBack() {
-  var visible = document.querySelector('div[id^="screen-"]:not(.hidden)');
+  var visible = document.querySelector('div[id^="screen-"]:not(.hidden):not(.screen-ghost)');
   if (visible && visible.id === "screen-character") {
     showScreen(_screenPrev === "characters" ? "characters" : "home");
   } else {
     showScreen("home");
   }
+}
+
+// ── MOTION: переход между экранами ──────────────────────────────
+// Уходящий экран улетает в сторону, входящий приезжает навстречу: вперёд
+// (меню → лист) — влево/справа, назад — зеркально.
+// Уходящий на время анимации становится fixed-«призраком» по СВОИМ же
+// координатам (getBoundingClientRect): два экрана в общем потоке толкали бы
+// друг друга и входящий рисовался бы под уходящим. Координаты снимаем до
+// смены классов body — они меняют поля (шапка/сайдбар) мгновенно.
+var _screenAnimMs = 300;
+var _screenGhost = null;
+var _screenGhostTimer = null;
+
+/** Уважает системную настройку «меньше движения». */
+function _screenMotionOk() {
+  try { return !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches); }
+  catch (e) { return false; }
+}
+
+/** Убрать призрака и вернуть элементу его обычное состояние. */
+function _screenGhostDrop() {
+  if (_screenGhostTimer) { clearTimeout(_screenGhostTimer); _screenGhostTimer = null; }
+  var g = _screenGhost;
+  _screenGhost = null;
+  if (!g) return;
+  g.classList.remove("screen-ghost", "screen-leave-fwd", "screen-leave-back");
+  if (g.__screenCss) { g.setAttribute("style", g.__screenCss); } else { g.removeAttribute("style"); }
+  g.__screenCss = null;
+  g.classList.add("hidden");
+}
+
+/** Заморозить уходящий экран на месте и отправить его за край. */
+function _screenGhostStart(el, back) {
+  _screenGhostDrop();                       // быстрый повторный переход — старого призрака долой
+  var r = el.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  el.__screenCss = el.getAttribute("style");
+  el.classList.remove("hidden");
+  el.style.position = "fixed";
+  el.style.top = r.top + "px";
+  el.style.left = r.left + "px";
+  el.style.width = r.width + "px";
+  el.style.height = r.height + "px";
+  el.style.margin = "0";
+  el.classList.add("screen-ghost", back ? "screen-leave-back" : "screen-leave-fwd");
+  _screenGhost = el;
+  _screenGhostTimer = setTimeout(_screenGhostDrop, _screenAnimMs);
+}
+
+/** Въезд входящего экрана. Класс снимается сам — иначе он не перезапустится. */
+function _screenEnter(el, back) {
+  if (!el) return;
+  var cls = back ? "screen-enter-back" : "screen-enter-fwd";
+  el.classList.remove("screen-enter-fwd", "screen-enter-back");
+  void el.offsetWidth;                      // перезапуск анимации при повторном входе
+  el.classList.add(cls);
+  setTimeout(function () { el.classList.remove(cls); }, _screenAnimMs);
 }
 
 function showScreen(screenName) {
@@ -327,14 +400,27 @@ const headerBack = $("header-back");
 
 // Запоминаем, откуда уходим на лист, — до переключения экранов.
 if (screenName === "character") {
-  var visible = document.querySelector('div[id^="screen-"]:not(.hidden)');
+  var visible = document.querySelector('div[id^="screen-"]:not(.hidden):not(.screen-ghost)');
   if (visible && visible.id === "screen-characters") _screenPrev = "characters";
   else if (visible && visible.id === "screen-home") _screenPrev = "home";
 }
 
+// Кто уходит и в какую сторону — считаем ДО того, как экраны спрятаны.
+var _leaving = document.querySelector('div[id^="screen-"]:not(.hidden):not(.screen-ghost)');
+var _back = false;
+if (_leaving) {
+  var _fromName = _leaving.id.replace("screen-", "");
+  if (_fromName === screenName || !_screenMotionOk()) _leaving = null;
+  else _back = (SCREEN_DEPTH[screenName] || 0) < (SCREEN_DEPTH[_fromName] || 0);
+}
+// Замер только пока экран на виду: у display:none размеры нулевые.
+if (_leaving) _screenGhostStart(_leaving, _back);
+
 if (homeScreen) homeScreen.classList.add("hidden");
 if (charactersScreen) charactersScreen.classList.add("hidden");
 if (characterScreen) characterScreen.classList.add("hidden");
+// Три строки выше спрятали бы и призрака — возвращаем его на время полёта.
+if (_screenGhost) _screenGhost.classList.remove("hidden");
 if (characterTabs) characterTabs.classList.add("hidden");
 if (statusBar) statusBar.classList.remove("visible");
 if (hamburger) hamburger.classList.add("hidden");
@@ -378,6 +464,12 @@ if (hamburger) hamburger.classList.remove("hidden");
 if (headerBack) headerBack.classList.remove("hidden");
 updateHeaderTitle();
 updateStatusBar();
+}
+
+if (_leaving) {
+  _screenEnter(screenName === "home" ? homeScreen
+             : screenName === "characters" ? charactersScreen
+             : characterScreen, _back);
 }
 }
 function updateHeaderTitle() {

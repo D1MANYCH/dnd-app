@@ -14702,3 +14702,65 @@ textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   #tab-notes.active > * { animation: none; }
 }
+
+/* ============================================
+   MOTION: переходы между экранами и под-меню встречающего экрана.
+   Смена экрана читается как движение вглубь: уходящий улетает влево,
+   входящий приезжает справа; кнопка «←» проигрывает то же зеркально.
+   Уходящий экран на время полёта — fixed-«призрак» по своим прежним
+   координатам (их ставит инлайном _screenGhostStart, app-core.js),
+   поэтому здесь только слой, отсечка и сама анимация.
+============================================ */
+.screen-ghost {
+  z-index: 40;
+  pointer-events: none;
+  overflow: hidden;
+}
+@keyframes screen-out-left  { to { transform: translateX(-26%); opacity: 0; } }
+@keyframes screen-out-right { to { transform: translateX(26%);  opacity: 0; } }
+@keyframes screen-in-right  { from { transform: translateX(22%);  opacity: 0; } }
+@keyframes screen-in-left   { from { transform: translateX(-22%); opacity: 0; } }
+
+.screen-leave-fwd  { animation: screen-out-left  var(--t2) var(--ez-out) forwards; }
+.screen-leave-back { animation: screen-out-right var(--t2) var(--ez-out) forwards; }
+.screen-enter-fwd  { animation: screen-in-right  var(--t3) var(--ez-out) both; }
+.screen-enter-back { animation: screen-in-left   var(--t3) var(--ez-out) both; }
+
+/* Пункты меню, открывающие модалку («Данные», «Настройки», «О версии»), —
+   тоже под-меню: панель приезжает справа, а само меню отъезжает влево и
+   притухает, оставаясь фоном. body.modal-open ставит _syncModalOpenFlag.
+   До 768px модалки — bottom-sheet (едут снизу), там въезд справа не трогаем.
+   Паттернов модалки в проекте три, и каждый анимируется по-своему:
+   .modal-content и .confirm-modal-box — анимацией, .settings-modal — переходом
+   на своём же transform (у него центрирование через translate(-50%,-50%),
+   любая посторонняя анимация сбила бы позицию). */
+@media (min-width: 768px) {
+  body.screen-home .modal.active .modal-content,
+  body.screen-home .confirm-modal-overlay.active .confirm-modal-box {
+    animation: screen-in-right var(--t3) var(--ez-out) both;
+  }
+  body.screen-home .modal.active.closing .modal-content {
+    animation: screen-out-right var(--t2) var(--ez-out) forwards;
+  }
+  body.screen-home .settings-modal { transform: translate(-32%, -50%) scale(1); }
+  body.screen-home .settings-modal.open { transform: translate(-50%, -50%) scale(1); }
+}
+body.screen-home .home-stage {
+  transition: transform var(--t3) var(--ez-out), opacity var(--t3) var(--ez-out);
+}
+body.screen-home.modal-open .home-stage {
+  transform: translateX(-4%);
+  opacity: 0.45;
+}
+
+/* «Меньше движения»: JS вообще не заводит призрака (см. _screenMotionOk),
+   гасим оставшееся — въезд экрана и отъезд меню под модалкой. */
+@media (prefers-reduced-motion: reduce) {
+  .screen-enter-fwd, .screen-enter-back { animation: none; }
+  body.screen-home .home-stage { transition: none; }
+  body.screen-home.modal-open .home-stage { transform: none; opacity: 1; }
+  body.screen-home .modal.active .modal-content,
+  body.screen-home .confirm-modal-overlay.active .confirm-modal-box { animation: none; }
+  body.screen-home .settings-modal,
+  body.screen-home .settings-modal.open { transform: translate(-50%, -50%) scale(1); }
+}

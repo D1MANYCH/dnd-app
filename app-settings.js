@@ -613,6 +613,7 @@ function openSettingsModal() {
   setTimeout(function() {
     ov.classList.add('open');
     md.classList.add('open');
+    if (typeof _syncModalOpenFlag === 'function') _syncModalOpenFlag();
   }, 10);
 }
 function closeSettingsModal() {
@@ -621,6 +622,8 @@ function closeSettingsModal() {
   if (!ov || !md) return;
   ov.classList.remove('open');
   md.classList.remove('open');
+  // Меню из-под под-меню возвращается сразу, не дожидаясь конца затухания.
+  if (typeof _syncModalOpenFlag === 'function') _syncModalOpenFlag();
   setTimeout(function() {
     ov.classList.add('hidden');
     md.classList.add('hidden');
