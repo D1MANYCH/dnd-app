@@ -224,28 +224,29 @@ function homeContinue() {
   if (typeof loadCharacter === "function") loadCharacter(c.id);
 }
 
-// ─── Модалки меню ───────────────────────────────────────────────
-// Через openModal/closeModal, а не руками: history-stack оборачивает именно
-// эту пару, и браузерный Back закрывает модалку без отдельного кода.
+// ─── Экраны меню ────────────────────────────────────────────────
+// STYLE-8M-2: «Данные» и «О версии» стали экранами, а не модалками — переход
+// такой же, как у «Продолжить», а браузерный Back ловит showScreen-обёртка
+// history-stack (глубина экрана в SCREEN_DEPTH).
 
 function openDataModal() {
   // Статус хранилища считается лениво — показываем актуальный при открытии.
   if (typeof updateStorageStatus === "function") updateStorageStatus();
-  if (typeof openModal === "function") openModal("data-modal");
+  if (typeof showScreen === "function") showScreen("data");
 }
 function closeDataModal() {
-  if (typeof closeModal === "function") closeModal("data-modal");
+  if (typeof screenBack === "function") screenBack();
 }
 
 function openAboutModal() {
-  // Полоса версии живёт внутри модалки, поэтому наполняем её перед показом
+  // Полоса версии живёт внутри экрана, поэтому наполняем её перед показом
   // (в т.ч. кнопкой «Установить», если SW принёс обновление).
   if (typeof updateVersionBlock === "function") updateVersionBlock(false);
   if (typeof renderChangelog === "function") renderChangelog();
-  if (typeof openModal === "function") openModal("about-modal");
+  if (typeof showScreen === "function") showScreen("about");
 }
 function closeAboutModal() {
-  if (typeof closeModal === "function") closeModal("about-modal");
+  if (typeof screenBack === "function") screenBack();
 }
 
 /** Подстрочник и доступность пункта «Продолжить». */

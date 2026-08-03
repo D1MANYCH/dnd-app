@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v336">
+<link rel="stylesheet" href="style.css?v=v337">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -126,14 +126,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
-<!-- Settings modal (UI-5: вынес тему/акцент/плотность/масштаб из drawer) -->
-<div class="settings-modal-overlay hidden" id="settings-modal-overlay" onclick="closeSettingsModal()"></div>
-<div class="settings-modal hidden" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
-  <div class="settings-modal-header">
-    <span id="settings-modal-title"><span data-ico="settings" data-ico-size="18">⚙️</span> Настройки оформления</span>
-    <button class="settings-modal-close" onclick="closeSettingsModal()" aria-label="Закрыть">✕</button>
-  </div>
-  <div class="settings-modal-body">
+<!-- STYLE-8M-2: «Настройки» — отдельный экран в языке встречающего меню
+     (была модалка UI-5 с оверлеем). Содержимое строк не менялось. -->
+<div id="screen-settings" class="page-screen hidden">
+<div class="page-stage">
+  <div class="page-head"><h2 class="page-title" id="settings-modal-title">Настройки</h2><button type="button" class="page-back" onclick="screenBack()">← Назад</button></div>
+  <div class="page-body settings-modal-body">
     <div class="theme-picker-row">
       <span class="theme-picker-label"><span data-ico="palette" data-ico-size="16">🎨</span> Тема</span>
       <div class="theme-picker-btns" role="radiogroup" aria-label="Тема оформления">
@@ -231,6 +229,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <button type="button" class="onboarding-restart-btn" onclick="restartOnboarding()" title="Показать приветствие и тур заново">↻ Показать обучение заново</button>
     </div>
   </div>
+</div>
 </div>
 
 <!-- Дымка v5: приветствие первого запуска (2 шага: марка+фичи → «С чего начнём?»).
@@ -411,10 +410,17 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 
-<!-- ══ ЭКРАН 2: выбор персонажа ════════════════════════════════════ -->
-<div id="screen-characters" class="hidden">
-<div class="card">
-<h3>Ваши Персонажи <span id="char-count" class="char-count-badge"></span></h3>
+<!-- ══ ЭКРАН 2: выбор персонажа ════════════════════════════════════
+     STYLE-8M-2: экран собран как встречающее меню — слева список-меню,
+     справа плашка героя под курсором (по умолчанию последний изменённый).
+     Клик по строке по-прежнему открывает лист. -->
+<div id="screen-characters" class="page-screen hidden">
+<div class="page-stage page-stage--split">
+<nav class="home-menu" aria-label="Список персонажей">
+<div class="page-head">
+<h2 class="page-title">Ваши персонажи <span id="char-count" class="char-count-badge"></span></h2>
+<button type="button" class="page-back" onclick="screenBack()">← Назад</button>
+</div>
 <div class="char-controls">
 <div class="char-search-wrap">
 <span class="char-search-icon" data-ico="search" data-ico-size="16">🔍</span>
@@ -428,20 +434,46 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button id="sort-btn-class" class="sort-btn" onclick="setCharSort('class')">Класс</button>
 </div>
 </div>
-<div id="character-list"></div>
-<div class="home-actions-primary">
-<button class="btn btn-primary btn-block" onclick="createNewCharacter()">+ Новый персонаж</button>
-<button class="btn btn-secondary btn-block" onclick="openBuildPicker()"><span data-ico="grad" data-ico-size="16">📘</span> По готовому билду</button>
+<ul id="character-list" class="home-menu-list"></ul>
+<ul class="home-menu-list char-menu-actions">
+<li class="home-menu-row home-menu-row--primary">
+<button type="button" class="home-menu-item" onclick="createNewCharacter()">
+<span class="home-bullet" aria-hidden="true"></span>
+<span class="home-menu-label">Новый персонаж</span>
+<span class="home-menu-hint">с нуля</span>
+</button>
+</li>
+<li class="home-menu-row">
+<button type="button" class="home-menu-item" onclick="openBuildPicker()">
+<span class="home-bullet" aria-hidden="true"></span>
+<span class="home-menu-label">По готовому билду</span>
+<span class="home-menu-hint">36 сборок PHB</span>
+</button>
+</li>
+</ul>
+</nav>
+
+<!-- Плашка героя под курсором. Наполняет renderCharPlate() (app-core.js). -->
+<section class="home-hero" id="char-hero" aria-label="Выбранный герой">
+<div class="home-hero-emblem" id="char-hero-emblem" aria-hidden="true"></div>
+<div class="home-hero-text">
+<span class="home-hero-cap" id="char-hero-cap" hidden></span>
+<h2 class="home-hero-name" id="char-hero-name"></h2>
+<div class="home-hero-sub" id="char-hero-sub"></div>
+<div class="home-hero-chips" id="char-hero-chips"></div>
+<div class="char-hero-actions" id="char-hero-actions"></div>
 </div>
+</section>
 </div>
 </div>
 
-<!-- MENU-10: «Данные» — модалкой со встречающего экрана. Разметка перенесена
-     как есть, поэтому все inline-onclick и id (#storage-status, #backup-panel,
-     file-инпуты) продолжают работать без правок JS. -->
-<div id="data-modal" class="confirm-modal-overlay">
-<div class="confirm-modal-box party-modal-box">
-<h4>Данные</h4>
+<!-- STYLE-8M-2: «Данные» — отдельный экран в языке встречающего меню (была
+     модалка MENU-10). Разметка внутри не менялась, поэтому все inline-onclick
+     и id (#storage-status, #backup-panel, file-инпуты) работают как прежде. -->
+<div id="screen-data" class="page-screen hidden">
+<div class="page-stage">
+<div class="page-head"><h2 class="page-title">Данные</h2><button type="button" class="page-back" onclick="screenBack()">← Назад</button></div>
+<div class="page-body">
 <div class="home-utils">
 <button class="secondary" onclick="exportData()"><span data-ico="download" data-ico-size="16">💾</span> <span class="home-utils-label">Скачать копию</span></button>
 <button class="secondary" onclick="document.getElementById('import-file').click()"><span data-ico="folder" data-ico-size="16">📂</span> <span class="home-utils-label">Загрузить копию</span></button>
@@ -461,17 +493,17 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <input type="file" id="import-file" style="display:none" onchange="importData(this)" accept=".json">
 <input type="file" id="import-char-file" style="display:none" onchange="importOneCharacter(this)" accept=".json">
 <input type="file" id="spells-import" style="display:none" onchange="importSpells(this)" accept=".json">
-<div class="confirm-modal-btns">
-<button class="confirm-btn-cancel" onclick="closeDataModal()">Закрыть</button>
 </div>
 </div>
 </div>
 
-<!-- MENU-10: «О версии» — модалкой. Внутри полоса версии (вместе с кнопкой
-     «Установить» при обновлении SW) и обе вкладки бывшей нижней карточки. -->
-<div id="about-modal" class="confirm-modal-overlay">
-<div class="confirm-modal-box party-modal-box">
-<h4>О версии</h4>
+<!-- STYLE-8M-2: «О версии» — отдельный экран (была модалка MENU-10). Внутри
+     полоса версии (вместе с кнопкой «Установить» при обновлении SW) и обе
+     вкладки бывшей нижней карточки. -->
+<div id="screen-about" class="page-screen hidden">
+<div class="page-stage">
+<div class="page-head"><h2 class="page-title">О версии</h2><button type="button" class="page-back" onclick="screenBack()">← Назад</button></div>
+<div class="page-body">
 <div class="app-version-row" id="app-version-row">
   <span class="app-version-badge" id="app-version-badge"></span>
   <span class="app-version-status" id="app-version-status"></span>
@@ -501,8 +533,6 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div id="changelog-list"></div>
 </div>
-<div class="confirm-modal-btns">
-<button class="confirm-btn-cancel" onclick="closeAboutModal()">Закрыть</button>
 </div>
 </div>
 </div>
@@ -3103,57 +3133,57 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v336"></script>
+<script src="app-log.js?v=v337"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v336"></script>
-<script src="bg-space.js?v=v336"></script>
-<script src="dice-arena-bg.js?v=v336"></script>
-<script src="data.js?v=v336"></script>
+<script src="icons.js?v=v337"></script>
+<script src="bg-space.js?v=v337"></script>
+<script src="dice-arena-bg.js?v=v337"></script>
+<script src="data.js?v=v337"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v336"></script>
+<script src="character-builds.js?v=v337"></script>
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v336"></script>
-<script src="spells.js?v=v336"></script>
-<script src="spell-effects.js?v=v336"></script>
+<script src="glossary-data.js?v=v337"></script>
+<script src="spells.js?v=v337"></script>
+<script src="spell-effects.js?v=v337"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v336"></script>
-<script src="app-migrate.js?v=v336"></script>
-<script src="app-builds.js?v=v336"></script>
-<script src="app-core.js?v=v336"></script>
-<script src="app-io.js?v=v336"></script>
-<script src="app-backup.js?v=v336"></script>
-<script src="app-combat.js?v=v336"></script>
-<script src="app-conditions.js?v=v336"></script>
-<script src="app-cast-effects.js?v=v336"></script>
-<script src="app-proficiencies.js?v=v336"></script>
-<script src="app-hp.js?v=v336"></script>
-<script src="app-spells.js?v=v336"></script>
-<script src="app-inventory.js?v=v336"></script>
+<script src="rules.js?v=v337"></script>
+<script src="app-migrate.js?v=v337"></script>
+<script src="app-builds.js?v=v337"></script>
+<script src="app-core.js?v=v337"></script>
+<script src="app-io.js?v=v337"></script>
+<script src="app-backup.js?v=v337"></script>
+<script src="app-combat.js?v=v337"></script>
+<script src="app-conditions.js?v=v337"></script>
+<script src="app-cast-effects.js?v=v337"></script>
+<script src="app-proficiencies.js?v=v337"></script>
+<script src="app-hp.js?v=v337"></script>
+<script src="app-spells.js?v=v337"></script>
+<script src="app-inventory.js?v=v337"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v336"></script>
-<script src="class-choices.js?v=v336"></script>
-<script src="subclass-choices-data.js?v=v336"></script>
+<script src="app-party.js?v=v337"></script>
+<script src="class-choices.js?v=v337"></script>
+<script src="subclass-choices-data.js?v=v337"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v336";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v337";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-dice.js?v=v336"></script>
-<script src="app-settings.js?v=v336"></script>
-<script src="app-ui.js?v=v336"></script>
-<script src="app-home.js?v=v336"></script>
-<script src="app-asi.js?v=v336"></script>
-<script src="app-notes.js?v=v336"></script>
-<script src="app-desktop.js?v=v336"></script>
-<script src="history-stack.js?v=v336"></script>
-<script src="app-help.js?v=v336"></script>
+<script src="app-dice.js?v=v337"></script>
+<script src="app-settings.js?v=v337"></script>
+<script src="app-ui.js?v=v337"></script>
+<script src="app-home.js?v=v337"></script>
+<script src="app-asi.js?v=v337"></script>
+<script src="app-notes.js?v=v337"></script>
+<script src="app-desktop.js?v=v337"></script>
+<script src="history-stack.js?v=v337"></script>
+<script src="app-help.js?v=v337"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3166,9 +3196,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v336",
-    "vendor/jspdf/roboto-base64.js?v=v336",
-    "app-pdf.js?v=v336"
+    "vendor/jspdf/jspdf.umd.min.js?v=v337",
+    "vendor/jspdf/roboto-base64.js?v=v337",
+    "app-pdf.js?v=v337"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3192,7 +3222,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v336").then(function () {
+    return loadScript("build-notes-data.js?v=v337").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -3200,26 +3230,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v336"),
-      loadScript("npc-srd.js?v=v336")
+      loadScript("monsters-srd.js?v=v337"),
+      loadScript("npc-srd.js?v=v337")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v336");
+    return loadScript("magic-items.js?v=v337");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v336");
+    return loadScript("gear-catalog.js?v=v337");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v336").then(function () {
+    return loadScript("data-2024.js?v=v337").then(function () {
       window.__edition2024Loaded = true;
     });
   };

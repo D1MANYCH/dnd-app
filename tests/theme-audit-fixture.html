@@ -143,6 +143,28 @@ f.addEventListener('load', () => {
           }
         } catch (e) { beacon('ERR battle ' + e.message); }
       }
+      // STYLE-8M-2: экран выбора персонажа. &screen=characters сеет ещё двух
+      // героев (раненого и почти умирающего) — иначе в списке одна строка и не
+      // видно ни разделителей, ни сетки колонок.
+      if (q.get('screen') === 'characters') {
+        try {
+          const base = w.characters[0];
+          const mk = (n, cls, race, hp, cur, ed, al) => {
+            const x = JSON.parse(JSON.stringify(base));
+            x.id = base.id + n.length * 7 + hp; x.name = n; x.class = cls; x.subclass = ''; x.race = race;
+            x.combat.hpMax = hp; x.combat.hpCurrent = cur; x.edition = ed; x.alignment = al;
+            x.conditions = []; x.effects = []; x.updatedAt = base.updatedAt - 864e5;
+            return x;
+          };
+          w.characters.push(
+            mk('Тордек Камнещит', 'Воин', 'Дварф', 44, 17, '2014', 'Законно-добрый'),
+            mk('Сестра Аэлин', 'Жрец', 'Человек', 38, 6, '2024', 'Нейтрально-добрая')
+          );
+          w.saveToLocal();
+          w.showScreen('characters');
+          w.renderCharacterList();
+        } catch (e) { beacon('ERR chars ' + e.message); }
+      }
       const tab = q.get('tab') || 'sheet';
       if (tab !== 'sheet') w.switchTab(tab);
       const modal = q.get('modal') || '';
@@ -157,6 +179,19 @@ f.addEventListener('load', () => {
           try { await w.createBackupNow(); } catch (e) { beacon('ERR backup ' + e.message); }
           try { w.toggleBackupPanel(); } catch (e) {}
         }
+      }
+      // STYLE-8M-2: контентные окна. &helptab=<раздел> открывает нужный раздел
+      // справки (по умолчанию «С чего начать» — там кнопка тура).
+      else if (modal === 'help') {
+        w.openHelp(q.get('helptab') || 'start');
+      }
+      else if (modal === 'builds') w.openBuildPicker();
+      else if (modal === 'buildguide' || modal === 'buildplan') {
+        try {
+          const bid = q.get('build') || 'wizard-evoker';
+          if (modal === 'buildguide') w.openBuildGuide(bid);
+          else w.openBuildPlan(bid);
+        } catch (e) { beacon('ERR buildmodal ' + e.message); }
       }
       else if (modal === 'about') {
         w.openAboutModal();

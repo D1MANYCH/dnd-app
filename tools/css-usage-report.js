@@ -25,7 +25,9 @@ const path = require('path');
 
 // План OPT-6 предлагал в sanity ещё .card-v2, но он оказался реально мёртвым
 // (0 вхождений в index.html/корневые js, включая конкатенации) — заменён на char-card.
-const SANITY_LIVE = ['btn', 'field', 'bp-card', 'char-card'];
+// STYLE-8M-2: char-card тоже умер (персонаж в списке стал строкой меню) —
+// в sanity вместо него home-menu-item.
+const SANITY_LIVE = ['btn', 'field', 'bp-card', 'home-menu-item'];
 
 // ---------- CSS-парсер ----------
 

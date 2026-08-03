@@ -81,7 +81,10 @@
   // поэтому слой истории пушим на любом движении ВПЕРЁД (по глубине), а не только
   // на characters → character. Назад (Back браузера / кнопка «←») слоёв не создаёт —
   // иначе стек рос бы при каждом возврате и Back застревал.
-  var SCREEN_DEPTH = { home: 0, characters: 1, character: 2 };
+  // STYLE-8M-2: копия глубин из app-core.js — страницы сервиса («Данные»,
+  // «Настройки», «О версии») стали экранами и обязаны пушить слой истории,
+  // иначе браузерный Back с них уводил бы сразу из приложения.
+  var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3 };
   function wrapShowScreen() {
     var orig = window.showScreen;
     if (typeof orig !== "function") return false;
@@ -125,8 +128,8 @@
     if (wrapShowScreen()) applied.push("showScreen");
     if (wrapGenericModal()) applied.push("openModal/closeModal");
     [
+      // STYLE-8M-2: пара настроек снята — это экран, слой пушит wrapShowScreen.
       ["drawer",        "openDrawer",          "closeDrawer"],
-      ["settings",      "openSettingsModal",   "closeSettingsModal"],
       ["dice",          "openDiceModal",       "closeDiceModal"],
       ["spellSearch",   "openSpellSearch",     "closeSpellSearch"],
       ["rest",          "openRestModal",       "closeRestModal"],

@@ -597,44 +597,21 @@ function _initAppLinks() {
 document.addEventListener('DOMContentLoaded', _initAppLinks);
 
 // UI-5: модалка настроек оформления (тема/акцент/плотность/масштаб шрифта)
+// STYLE-8M-2: настройки стали экраном — открытие и закрытие идут через
+// showScreen/screenBack, оверлея и таймеров затухания больше нет. Синхронизацию
+// контролов делаем перед показом, как и раньше.
 function openSettingsModal() {
-  var ov = document.getElementById('settings-modal-overlay');
-  var md = document.getElementById('settings-modal');
-  if (!ov || !md) return;
-  ov.classList.remove('hidden');
-  md.classList.remove('hidden');
-  // Синхронизируем UI элементов внутри модалки перед показом
   try { _syncFontScaleUi(); } catch (e) {}
   try { _syncGlassUi(); } catch (e) {}
   try { _syncDensityButtons(); } catch (e) {}
   try { if (typeof _syncThemeButtons === 'function') _syncThemeButtons(); } catch (e) {}
   try { if (typeof _syncAccentButtons === 'function') _syncAccentButtons(); } catch (e) {}
   try { if (typeof _syncSpaceButtons === 'function') _syncSpaceButtons(); } catch (e) {}
-  setTimeout(function() {
-    ov.classList.add('open');
-    md.classList.add('open');
-    if (typeof _syncModalOpenFlag === 'function') _syncModalOpenFlag();
-  }, 10);
+  if (typeof showScreen === 'function') showScreen('settings');
 }
 function closeSettingsModal() {
-  var ov = document.getElementById('settings-modal-overlay');
-  var md = document.getElementById('settings-modal');
-  if (!ov || !md) return;
-  ov.classList.remove('open');
-  md.classList.remove('open');
-  // Меню из-под под-меню возвращается сразу, не дожидаясь конца затухания.
-  if (typeof _syncModalOpenFlag === 'function') _syncModalOpenFlag();
-  setTimeout(function() {
-    ov.classList.add('hidden');
-    md.classList.add('hidden');
-  }, 200);
+  if (typeof screenBack === 'function') screenBack();
 }
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    var md = document.getElementById('settings-modal');
-    if (md && !md.classList.contains('hidden')) closeSettingsModal();
-  }
-});
 
 // Реакция на смену системной темы при data-theme="auto"
 if (window.matchMedia) {

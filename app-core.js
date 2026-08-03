@@ -22,7 +22,8 @@ function _syncModalOpenFlag() {
   if (!document.body) return;
   // Три паттерна модалок: .modal, .confirm-modal-overlay и настройки —
   // маркер один на всех, иначе меню отъезжало бы не под каждым под-меню.
-  var open = document.querySelector('.modal.active:not(.closing), .confirm-modal-overlay.active, .settings-modal.open');
+  // STYLE-8M-2: .settings-modal из списка убран — настройки стали экраном.
+  var open = document.querySelector('.modal.active:not(.closing), .confirm-modal-overlay.active');
   document.body.classList.toggle("modal-open", !!open);
 }
 /** Дымка v5: закрытие с обратной анимацией ~240ms (класс .closing, см. style.css) */
@@ -311,26 +312,47 @@ if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.e
 }
 }
 
-// MENU-8: экранов три — встречающее меню, выбор персонажа и лист.
-// Глубина нужна двум вещам: history-stack пушит слой только при движении
-// ВПЕРЁД, а кнопка «←» возвращает туда, откуда пришли (см. _screenPrev).
-var SCREEN_DEPTH = { home: 0, characters: 1, character: 2 };
-// Откуда вошли на лист персонажа: "home" (через «Продолжить») или
-// "characters" (через «Выбор персонажа»). Не персистится — в рамках сессии.
-var _screenPrev = "home";
+// MENU-8 / STYLE-8M-2: экранов шесть — встречающее меню, выбор персонажа,
+// лист и три страницы сервиса. Глубина нужна двум вещам: history-stack пушит
+// слой только при движении ВПЕРЁД, а «←» возвращает по стеку переходов.
+// Страницы сервиса стоят ГЛУБЖЕ листа: в них заходят и с меню, и с листа
+// («Настройки оформления» в сайдбаре), и возврат обязан вести туда, откуда
+// пришли, — при равной с листом глубине переход считался бы движением назад.
+var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3 };
+// Экраны-страницы: у них нет своего персонажа, currentId не трогаем — иначе
+// «Настройки» с листа выбрасывали бы из персонажа.
+var PAGE_SCREENS = ["data", "settings", "about"];
+var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О версии" };
+// Стек экранов, из которых уходили вперёд. Не персистится — в рамках сессии.
+var _screenStack = [];
 
-/**
- * Кнопка «←» в шапке. С листа персонажа возвращает туда, откуда на него
- * зашли; с экрана выбора персонажа — во встречающее меню.
- */
-function headerBack() {
-  var visible = document.querySelector('div[id^="screen-"]:not(.hidden):not(.screen-ghost)');
-  if (visible && visible.id === "screen-character") {
-    showScreen(_screenPrev === "characters" ? "characters" : "home");
-  } else {
-    showScreen("home");
-  }
+/** Имя видимого экрана (без призрака перехода). */
+function currentScreenName() {
+  var el = document.querySelector('div[id^="screen-"]:not(.hidden):not(.screen-ghost)');
+  return el ? el.id.replace("screen-", "") : null;
 }
+
+/** Возврат на экран, из которого пришли; из корня — во встречающее меню. */
+function screenBack() {
+  showScreen(_screenStack.length ? _screenStack[_screenStack.length - 1] : "home");
+}
+
+/** Кнопка «←» в шапке — тот же возврат по стеку. */
+function headerBack() {
+  screenBack();
+}
+
+// Escape на странице сервиса возвращает назад — раньше это делал обработчик
+// модалки настроек. Модалки поверх страницы ловят Escape своими обработчиками
+// и до этого не доходит: у них он вызывается раньше и закрывает верхний слой.
+document.addEventListener("keydown", function (e) {
+  if (e.key !== "Escape") return;
+  // Проверяем именно ВИДИМУЮ модалку: класс .active может остаться на скрытом
+  // элементе, и тогда Escape на странице переставал бы работать вовсе.
+  var m = document.querySelectorAll('.modal.active, .confirm-modal-overlay.active');
+  for (var i = 0; i < m.length; i++) if (m[i].offsetParent !== null) return;
+  if (PAGE_SCREENS.indexOf(currentScreenName()) >= 0) screenBack();
+});
 
 // ── MOTION: переход между экранами ──────────────────────────────
 // Уходящий экран улетает в сторону, входящий приезжает навстречу: вперёд
@@ -398,27 +420,33 @@ const statusBar = $("status-bar");
 const hamburger = $("nav-hamburger");
 const headerBack = $("header-back");
 
-// Запоминаем, откуда уходим на лист, — до переключения экранов.
-if (screenName === "character") {
-  var visible = document.querySelector('div[id^="screen-"]:not(.hidden):not(.screen-ghost)');
-  if (visible && visible.id === "screen-characters") _screenPrev = "characters";
-  else if (visible && visible.id === "screen-home") _screenPrev = "home";
-}
-
 // Кто уходит и в какую сторону — считаем ДО того, как экраны спрятаны.
 var _leaving = document.querySelector('div[id^="screen-"]:not(.hidden):not(.screen-ghost)');
+var _fromName = _leaving ? _leaving.id.replace("screen-", "") : null;
 var _back = false;
 if (_leaving) {
-  var _fromName = _leaving.id.replace("screen-", "");
   if (_fromName === screenName || !_screenMotionOk()) _leaving = null;
   else _back = (SCREEN_DEPTH[screenName] || 0) < (SCREEN_DEPTH[_fromName] || 0);
 }
+
+// Стек возврата: вперёд — запоминаем, откуда ушли; назад — срезаем до цели.
+// Переход на РАВНОЙ глубине (одна страница сервиса сменила другую) стек не
+// трогает: иначе он обнулялся бы и «←» уводил в меню вместо экрана входа.
+if (_fromName && _fromName !== screenName) {
+  var _dTo = SCREEN_DEPTH[screenName] || 0, _dFrom = SCREEN_DEPTH[_fromName] || 0;
+  if (_dTo > _dFrom) {
+    _screenStack.push(_fromName);
+  } else if (_dTo < _dFrom) {
+    var _si = _screenStack.lastIndexOf(screenName);
+    _screenStack.length = _si >= 0 ? _si : 0;
+  }
+}
+
 // Замер только пока экран на виду: у display:none размеры нулевые.
 if (_leaving) _screenGhostStart(_leaving, _back);
 
-if (homeScreen) homeScreen.classList.add("hidden");
-if (charactersScreen) charactersScreen.classList.add("hidden");
-if (characterScreen) characterScreen.classList.add("hidden");
+var _all = document.querySelectorAll('div[id^="screen-"]');
+for (var _i = 0; _i < _all.length; _i++) _all[_i].classList.add("hidden");
 // Три строки выше спрятали бы и призрака — возвращаем его на время полёта.
 if (_screenGhost) _screenGhost.classList.remove("hidden");
 if (characterTabs) characterTabs.classList.add("hidden");
@@ -431,8 +459,23 @@ if (headerBack) headerBack.classList.add("hidden");
 document.body.classList.toggle("no-character", screenName !== "character");
 // Встречающий экран занимает всё окно — на нём прячется и шапка.
 document.body.classList.toggle("screen-home", screenName === "home");
+// Экран выбора персонажа тоже читается как меню — шапка и сайдбар на нём
+// скрыты, возврат несёт строка «← Назад» внутри страницы.
+document.body.classList.toggle("screen-page", PAGE_SCREENS.indexOf(screenName) >= 0 || screenName === "characters");
 
-if (screenName === "home" || screenName === "characters") {
+if (PAGE_SCREENS.indexOf(screenName) >= 0) {
+// Страница сервиса: персонаж не сбрасывается — на неё заходят и с листа.
+var pageEl = $("screen-" + screenName);
+if (pageEl) pageEl.classList.remove("hidden");
+if (headerBack) headerBack.classList.remove("hidden");
+closeDrawer();
+updateHeaderTitle();
+try {
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  document.documentElement.scrollTop = 0;
+  if (document.body) document.body.scrollTop = 0;
+} catch(e) { window.__catchLog && window.__catchLog('core:showScreen-scroll', e); }
+} else if (screenName === "home" || screenName === "characters") {
 if (screenName === "home" && homeScreen) homeScreen.classList.remove("hidden");
 if (screenName === "characters") {
   if (charactersScreen) charactersScreen.classList.remove("hidden");
@@ -467,15 +510,22 @@ updateStatusBar();
 }
 
 if (_leaving) {
-  _screenEnter(screenName === "home" ? homeScreen
-             : screenName === "characters" ? charactersScreen
-             : characterScreen, _back);
+  _screenEnter($("screen-" + screenName), _back);
 }
 }
 function updateHeaderTitle() {
 var avatarEl = $("header-avatar");
 var subtitleEl = $("header-subtitle");
 var AVATAR_FALLBACK_HTML = '<img class="header-avatar-fallback" src="assets/avatar-fallback.webp" alt="">';
+// STYLE-8M-2: на странице сервиса в шапке стоит её название — персонаж при
+// этом может быть открыт (в «Настройки» заходят и с листа).
+var _page = currentScreenName();
+if (PAGE_TITLES[_page]) {
+  $("header-title").textContent = PAGE_TITLES[_page];
+  if (avatarEl) avatarEl.innerHTML = AVATAR_FALLBACK_HTML;
+  if (subtitleEl) subtitleEl.textContent = "";
+  return;
+}
 if (!currentId) {
   // MENU-8: шапка вне листа видна только на экране выбора персонажа —
   // на встречающем она скрыта (body.screen-home), поэтому заголовок именно про выбор.
@@ -928,6 +978,7 @@ if (typeof renderHomeHero === "function") renderHomeHero();
 const list = $("character-list");
 if (!list) return;
 list.innerHTML = "";
+_charPlateId = null;   // список перерисован — плашку рисуем заново даже для того же героя
 updateCharCounter();
 var filtered = characters.filter(function(c) {
   if (!charSearchQuery) return true;
@@ -943,56 +994,102 @@ filtered = filtered.slice().sort(function(a, b) {
 });
 if (filtered.length === 0) {
   list.innerHTML = characters.length === 0
-    ? "<div class=\"empty-list\">" + dndIcoHtml("inbox", 22) + " Список пуст. Создайте персонажа!</div>"
-    : "<div class=\"empty-list\">" + dndIcoHtml("search", 22) + " Ничего не найдено</div>";
+    ? "<li class=\"empty-list\">" + dndIcoHtml("inbox", 22) + " Список пуст. Создайте персонажа!</li>"
+    : "<li class=\"empty-list\">" + dndIcoHtml("search", 22) + " Ничего не найдено</li>";
+  renderCharPlate(null);
   return;
 }
+// STYLE-8M-2: персонаж — строка меню, как на встречающем экране: ромб цвета
+// класса + имя + «класс · N ур.» справа. Подробности (хиты, КД, состояния,
+// действия) переехали в плашку справа, чтобы строка осталась строкой.
 filtered.forEach(function(char, _idx) {
-const div = document.createElement("div");
-div.className = "char-card rise";
-div.style.setProperty("--i", Math.min(_idx, 10)); // Дымка v5: stagger-появление (кап 10)
-div.draggable = true;
-div.addEventListener("dragstart", function(e) { onDragStart(e, char.id); div.style.opacity="0.5"; });
-div.addEventListener("dragend", function() { div.style.opacity="1"; });
-div.addEventListener("dragover", onDragOver);
-div.addEventListener("drop", function(e) { onDrop(e, char.id); });
-div.onclick = function() { loadCharacter(char.id); };
-const conditionsCount = (char.conditions ? char.conditions.length : 0) + (char.effects ? char.effects.length : 0);
-const hpCurrent = char.combat.hpCurrent || 0;
-const hpMax = char.combat.hpMax || 0;
-const hpPercent = hpMax > 0 ? Math.min(100, Math.round((hpCurrent / hpMax) * 100)) : 100;
-const hpColor = hpPercent > 60 ? "#4da843" : hpPercent > 30 ? "#e67e22" : "#e74c3c";
-const classColor = getClassColor(char.class);
-const classIcon = getClassIcon(char.class);
-const timeAgo = char.updatedAt ? "<span class=\"char-time-ago\">" + formatTimeAgo(char.updatedAt) + "</span>" : "";
-div.style.borderLeftColor = classColor;
-div.innerHTML = "<div class=\"char-card-header\">" +
-  (char.avatar
-    ? "<div class=\"char-card-class-icon char-card-avatar\" style=\"background:" + classColor + "22;\"><img src=\"" + char.avatar + "\" alt=\"\"></div>"
-    : "<div class=\"char-card-class-icon\" style=\"background:" + classColor + "22;\">" + classIcon + "</div>") +
-  "<div class=\"char-card-title\">" +
-    "<h4 class=\"char-card-name\">" + escapeHtml(char.name || "Без имени") + "</h4>" +
-    "<div class=\"char-card-sub\">" + escapeHtml((char.classes && char.classes.length > 1 ? getClassLabel(char) : char.class) || "Класс не указан") + (char.race ? " · " + escapeHtml(char.race) : "") + (char.subclass && (!char.classes || char.classes.length <= 1) ? " · " + escapeHtml(char.subclass) : "") + "</div>" +
-    (char.background ? "<div class=\"char-card-bg\">" + dndIcoHtml("scroll", 12) + " " + escapeHtml(char.background) + "</div>" : "") +
-  "</div>" +
-"</div>" +
-"<div class=\"char-card-stats\">" +
-  "<span class=\"char-stat-badge\">" + dndIcoHtml("star", 12) + " " + (char.level || 1) + " ур.</span>" +
-  (char.edition === "2024" ? "<span class=\"char-stat-badge char-edition-tag\" title=\"Редакция правил 2024\">2024</span>" : "") +
-  "<span class=\"char-stat-badge-hp\" style=\"color:" + hpColor + "; border-color:" + hpColor + "55; background:" + hpColor + "18;\">" + dndIcoHtml("heart", 12) + " " + hpCurrent + "/" + hpMax + "</span>" +
-  "<span class=\"char-stat-badge\">" + dndIcoHtml("shield", 12) + " " + (char.combat.ac || 10) + "</span>" +
-  (conditionsCount > 0 ? "<span class=\"char-stat-badge\" style=\"background:var(--condition-active);border-color:var(--condition-border);\">" + dndIcoHtml("alert", 12) + " " + conditionsCount + "</span>" : "") +
-  "<span class=\"char-alignment" + (char.alignment ? "" : " char-alignment-empty") + "\">" + escapeHtml(char.alignment || "Мировоззрение не выбрано") + "</span>" +
-  timeAgo +
-"</div>" +
-"<div class=\"char-card-actions\">" +
-  "<button class=\"char-copy-btn\" onclick=\"exportOneCharacter(" + char.id + ", event)\" title=\"Экспорт JSON\">↓</button>" +
-  "<button class=\"char-copy-btn\" onclick=\"exportCharacterPDF(" + char.id + ", event)\" title=\"Экспорт PDF\">" + dndIcoHtml("file", 14) + "</button>" +
-  "<button class=\"char-copy-btn\" onclick=\"duplicateCharacter(" + char.id + ", event)\" title=\"Дублировать\">⧉</button>" +
-  "<button class=\"char-delete-btn\" onclick=\"event.stopPropagation(); deleteCharacter(" + char.id + ")\">✕</button>" +
-"</div>";
-list.appendChild(div);
+const li = document.createElement("li");
+li.className = "home-menu-row char-menu-row rise";
+li.style.setProperty("--i", Math.min(_idx, 10)); // Дымка v5: stagger-появление (кап 10)
+li.draggable = true;
+li.addEventListener("dragstart", function(e) { onDragStart(e, char.id); li.style.opacity = "0.5"; });
+li.addEventListener("dragend", function() { li.style.opacity = "1"; });
+li.addEventListener("dragover", onDragOver);
+li.addEventListener("drop", function(e) { onDrop(e, char.id); });
+li.style.setProperty("--home-accent", getClassColor(char.class));
+var btn = document.createElement("button");
+btn.type = "button";
+btn.className = "home-menu-item";
+btn.onclick = function() { loadCharacter(char.id); };
+// Плашка следует за курсором и фокусом — на клавиатуре список читается так же.
+btn.addEventListener("mouseenter", function() { renderCharPlate(char); });
+btn.addEventListener("focus", function() { renderCharPlate(char); });
+btn.innerHTML = "<span class=\"home-bullet\" aria-hidden=\"true\"></span>" +
+  "<span class=\"home-menu-label\">" + escapeHtml(char.name || "Без имени") + "</span>" +
+  "<span class=\"home-menu-hint\">" +
+    escapeHtml((char.classes && char.classes.length > 1 ? getClassLabel(char) : char.class) || "класс не указан") +
+    " · " + (char.level || 1) + " ур." +
+  "</span>";
+li.appendChild(btn);
+list.appendChild(li);
 });
+// По умолчанию в плашке — первый в текущей сортировке (при «Изменён» это
+// последний изменённый герой, как «Последний герой» на встречающем экране).
+renderCharPlate(filtered[0]);
+}
+
+/** Плашка героя на экране выбора: эмблема, имя, сводка, чипы и действия. */
+var _charPlateId = null;
+function renderCharPlate(char) {
+var hero = $("char-hero");
+if (!hero) return;
+if (char && _charPlateId === char.id) return;
+_charPlateId = char ? char.id : null;
+var emblem = $("char-hero-emblem");
+var capEl = $("char-hero-cap");
+var nameEl = $("char-hero-name");
+var subEl = $("char-hero-sub");
+var chipEl = $("char-hero-chips");
+var actEl = $("char-hero-actions");
+if (!char) {
+  hero.style.removeProperty("--home-accent");
+  if (emblem) emblem.innerHTML = "<img class=\"home-hero-img\" src=\"assets/avatar-fallback.webp\" alt=\"\" aria-hidden=\"true\">";
+  if (capEl) { capEl.textContent = ""; capEl.hidden = true; }
+  if (nameEl) nameEl.textContent = "Героев пока нет";
+  if (subEl) subEl.textContent = "Создайте первого — с нуля или по готовому билду";
+  if (chipEl) chipEl.innerHTML = "";
+  if (actEl) actEl.innerHTML = "";
+  return;
+}
+if (typeof getClassColor === "function" && char.class) {
+  hero.style.setProperty("--home-accent", getClassColor(char.class));
+} else {
+  hero.style.removeProperty("--home-accent");
+}
+if (emblem) {
+  if (char.avatar) {
+    emblem.innerHTML = "<img class=\"home-hero-img\" src=\"" + char.avatar + "\" alt=\"\" aria-hidden=\"true\">";
+  } else if (char.class && typeof getClassIcon === "function") {
+    emblem.innerHTML = "<span class=\"home-hero-img\">" + getClassIcon(char.class) + "</span>";
+  } else {
+    emblem.innerHTML = "<img class=\"home-hero-img\" src=\"assets/avatar-fallback.webp\" alt=\"\" aria-hidden=\"true\">";
+  }
+}
+if (capEl) {
+  capEl.textContent = char.edition === "2024" ? "Редакция 2024" : "";
+  capEl.hidden = char.edition !== "2024";
+}
+if (nameEl) nameEl.textContent = char.name || "Без имени";
+if (subEl) subEl.textContent = (typeof _homeHeroSubtitle === "function") ? _homeHeroSubtitle(char) : (char.class || "");
+if (chipEl && typeof _homeHeroChips === "function") {
+  chipEl.innerHTML = _homeHeroChips(char).map(function(c) {
+    return "<span class=\"home-chip\" aria-label=\"" + escapeHtml(c.aria) + "\">" +
+           "<i class=\"home-chip-ico\" aria-hidden=\"true\">" + c.ico + "</i>" +
+           escapeHtml(c.text) + "</span>";
+  }).join("");
+}
+if (actEl) {
+  actEl.innerHTML =
+    "<button type=\"button\" class=\"char-hero-act\" onclick=\"exportOneCharacter(" + char.id + ", event)\">" + dndIcoHtml("download", 14) + " Экспорт</button>" +
+    "<button type=\"button\" class=\"char-hero-act\" onclick=\"exportCharacterPDF(" + char.id + ", event)\">" + dndIcoHtml("file", 14) + " PDF</button>" +
+    "<button type=\"button\" class=\"char-hero-act\" onclick=\"duplicateCharacter(" + char.id + ", event)\">⧉ Дублировать</button>" +
+    "<button type=\"button\" class=\"char-hero-act char-hero-act-del\" onclick=\"event.stopPropagation(); deleteCharacter(" + char.id + ")\">✕ Удалить</button>";
+}
 }
 function deleteCharacter(id) {
 var char = characters.find(function(c) { return c.id === id; });

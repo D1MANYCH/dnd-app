@@ -563,32 +563,15 @@ html.glass-adjusting *::after {
    Override'ы для блоков с захардкоженным rgba(255,255,255,*)
    ============================================================ */
 
-/* ----- Карточки персонажей в списке ----- */
-:root[data-theme="light"] .char-card {
-  background: var(--bg-1) !important;
-  border: 1px solid var(--border-soft) !important;
-  box-shadow: var(--sh-1);
-  color: var(--text);
-  position: relative;
-  transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), border-color 0.18s;
-}
-:root[data-theme="light"] .char-card::before {
-  content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px;
-  background: linear-gradient(180deg, var(--accent-hi), var(--accent-lo));
-  border-radius: 999px;
-}
-:root[data-theme="light"] .char-card:hover {
-  background: var(--bg-1) !important;
-  border-color: var(--accent) !important;
-  box-shadow: var(--sh-2);
-}
-:root[data-theme="light"] .char-card * { color: inherit; }
-:root[data-theme="light"] .char-card-actions { border-top-color: var(--border-soft); }
+/* STYLE-8M-2: пять светлых перебивок карточки персонажа удалены (4 !important).
+   Они возвращали в светлой теме коробку, полосу-градиент слева и `* { color:
+   inherit }` — последнее гасило цвет хитов и счётчика состояний. Плоская
+   строка собрана на токенах и работает в обеих темах. */
 
 /* ----- Поиск персонажей ----- */
 :root[data-theme="light"] .char-search-inp {
-  background: var(--bg-2) !important;
-  border: 1px solid var(--border) !important;
+  background: none !important;
+  border: 1px solid var(--home-rule) !important;
   color: var(--text) !important;
 }
 :root[data-theme="light"] .char-search-inp::placeholder {
@@ -746,8 +729,7 @@ html.glass-adjusting *::after {
 /* ----- PNG-иконки классов на светлом — drop-shadow + подложка ----- */
 /* STYLE-8L: пункт сайдбара из списка убран — первым потомком там теперь ромб,
    а иконка вкладки рисуется линейным SVG (icons.js), тень ей не нужна. */
-:root[data-theme="light"] .header-avatar img,
-:root[data-theme="light"] .char-card img {
+:root[data-theme="light"] .header-avatar img {
   filter: drop-shadow(0 1px 1px rgba(20,40,30,0.30));
 }
 /* Тёмный диск под PNG-иконки классов: line-art рисован светлым под тёмную тему
@@ -1023,91 +1005,131 @@ html.glass-adjusting *::after {
   margin-top: auto;
 }
 
-/* UI-5: модалка настроек оформления */
-.settings-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--overlay);
-  z-index: 400;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-.settings-modal-overlay.open { opacity: 1; }
-.settings-modal-overlay.hidden { display: none; }
-
-.settings-modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.96);
-  width: 92%;
-  max-width: 460px;
-  max-height: 85vh;
-  /* Дымка v5: уровень 3 стекла — поповер (самый плотный, самый сильный blur) */
-  background: var(--surface-pop, var(--surface-modal));
-  backdrop-filter: blur(var(--pop-blur, 30px));
-  -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-xl, 26px);
-  z-index: 401;
+/* ============================================================
+   STYLE-8M-2: СТРАНИЦА-ЭКРАН.
+   «Данные», «Настройки» и «О версии» перестали быть модалками и стали
+   экранами в языке встречающего меню: та же ширина колонки, тот же serif-
+   заголовок с ромбом, тот же въезд, что у «Продолжить». Оболочки модалок
+   (оверлей, поповер по центру, bottom-sheet, крестик) удалены — навигацию
+   несут «←» в шапке, Escape и браузерный Back.
+============================================================ */
+.page-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
-  flex-direction: column;
-  box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
-  opacity: 0;
-  /* Дымка v5: открытие пружиной --t3, закрытие быстрее --t2 */
-  transition: opacity var(--t2, 240ms) var(--ez-out, ease), transform var(--t3, 420ms) var(--ez-spring, ease);
+  justify-content: center;
 }
-.settings-modal.open {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+.page-stage {
+  width: 100%;
+  max-width: 680px;
+  padding: clamp(20px, 4vw, 56px);
+  /* запас под сдвиг строки на hover, как у .home-menu */
+  padding-right: calc(clamp(20px, 4vw, 56px) + var(--home-shift));
 }
-.settings-modal.hidden { display: none; }
-/* Дымка v5: на телефоне настройки — bottom-sheet с ручкой */
-@media (max-width: 767px) {
-  .settings-modal {
-    top: auto; bottom: 0; left: 0; right: 0;
-    width: 100%; max-width: none; max-height: 92vh;
-    transform: translateY(40px);
-    border-radius: var(--r-xl) var(--r-xl) 0 0;
-    border-left: none; border-right: none; border-bottom: none;
-  }
-  .settings-modal.open { transform: translateY(0); }
-  .settings-modal::before {
-    content: ""; display: block; width: 36px; height: 4px; border-radius: 999px;
-    background: var(--border); margin: 8px auto 0; flex-shrink: 0;
-  }
-}
-
-.settings-modal-header {
+.page-head {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--home-rule);
+  align-items: baseline;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+  padding-left: 12px;
+}
+/* Возврат — текстовое действие в самой странице: шапка приложения здесь
+   скрыта, как на встречающем экране. */
+.page-back {
+  width: auto;
+  margin: 0;
+  padding: var(--sp-2) 2px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--home-sub);
   font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: color var(--t1) var(--ez-out);
+}
+.page-back:hover,
+.page-back:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
+.page-title {
+  position: relative;
+  margin: 0;
+  padding-left: calc(var(--home-bullet) + var(--sp-3));
+  font-family: var(--font-display);
+  font-size: calc(var(--fs-lg) * 1.05);
   font-weight: 700;
-  font-size: var(--fs-lg);
+  line-height: 1.1;
   color: var(--text);
 }
-.settings-modal-close {
-  background: transparent;
-  border: none;
-  color: var(--text-dim);
-  font-size: 18px;
-  cursor: pointer;
-  padding: 4px 10px;
-  border-radius: var(--r-sm);
-  width: auto;
-  line-height: 1;
+.page-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.35em;
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--home-accent);
 }
-.settings-modal-close:hover { background: none; color: var(--text); }
+/* Ромб у заголовка страницы даёт .page-title::before — общий маркер .card h2
+   здесь не нужен (страница не карточка). */
+.page-body { min-width: 0; }
+.page-body > *:first-child { border-top: 0; }
+
+/* Экран выбора персонажа — две колонки встречающего экрана: меню слева,
+   плашка героя справа. Вертикально не центрируем: список длиннее меню. */
+.page-stage--split {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(24px, 4vw, 64px);
+  max-width: 1240px;
+}
+.page-stage--split .home-menu { flex: 1 1 auto; max-width: 680px; }
+.char-menu-actions { margin-top: var(--sp-5); border-top: 1px solid var(--home-rule); }
+/* Ромб строки красится цветом класса: --home-accent ставит renderCharacterList
+   на саму строку, как renderHomeHero делает для плашки. */
+.char-menu-row .home-menu-item { cursor: pointer; }
+.char-controls { margin-bottom: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); }
+/* Действия героя в плашке — текстовые, проявляются целиком (плашка одна,
+   прятать их не за чем). */
+.char-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--sp-4);
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--home-rule);
+}
+.char-hero-act {
+  width: auto;
+  margin: 0;
+  padding: var(--sp-2) 2px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--home-sub);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: color var(--t1) var(--ez-out);
+}
+.char-hero-act:hover,
+.char-hero-act:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
+.char-hero-act-del:hover,
+.char-hero-act-del:focus-visible { color: var(--danger); }
+/* На планшете и телефоне плашка уходит под список */
+@media (max-width: 900px) {
+  .page-stage--split { flex-direction: column; }
+  .page-stage--split .home-menu,
+  .page-stage--split .home-hero { width: 100%; max-width: none; }
+}
 
 .settings-modal-body {
-  overflow-y: auto;
   overscroll-behavior: contain;
   padding-bottom: var(--sp-3);
 }
-/* В модалке убираем top-border у первой строки (есть у драйверной .theme-picker-row) */
+/* У первой строки страницы верхняя граница лишняя — её роль играет .page-head */
 .settings-modal-body .theme-picker-row:first-child { border-top: none; }
 
 /* STYLE-8M: каскад появления строк. Перезапускается сам — у закрытой модалки
@@ -1584,7 +1606,6 @@ body.no-character .drawer-nav { display: none; }
 
   /* Main контент центрирован, ограничен по ширине */
   .container,
-  #screen-characters,
   #screen-character,
   #screen-character > .scroll {
     max-width: 1100px;
@@ -3695,42 +3716,12 @@ border: 1px solid var(--border-color);
 .passive-wisdom .value { font-size: 2.2em; font-weight: bold; color: var(--accent-color); }
 
 
-@keyframes cardFadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.char-card {
-background: #1e1e2a;
-border: 1px solid rgba(255,255,255,0.07);
-border-left: 3px solid var(--accent-color);
-border-radius: 12px;
-padding: 14px 16px;
-margin-bottom: 10px;
-cursor: pointer;
-transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
-overflow: hidden;
-animation: cardFadeIn 0.28s ease both;
-/* UI-fix: flex-колонка → ряд кнопок прижимается к низу (margin-top:auto),
-   а в сетке align-items:stretch уравнивает высоту соседних карточек. */
-display: flex;
-flex-direction: column;
-}
-.char-card:nth-child(1) { animation-delay: 0.04s; }
-.char-card:nth-child(2) { animation-delay: 0.08s; }
-.char-card:nth-child(3) { animation-delay: 0.12s; }
-.char-card:nth-child(4) { animation-delay: 0.16s; }
-.char-card:nth-child(5) { animation-delay: 0.20s; }
-.char-card:hover {
-background: #232330;
-transform: translateX(3px);
-box-shadow: var(--sh-2);
-}
-.char-card-header {
-display: flex;
-align-items: center;
-gap: 12px;
-margin-bottom: 10px;
-}
+/* STYLE-8M-2: экран выбора персонажа — обёртка-карточка потеряла коробку,
+   список стоит прямо на фоне экрана. Специфичность (1,1,0) бьёт и базовый
+   .card, и групповое правило STYLE-5 в конце файла. */
+/* STYLE-8M-2: обёртки .card на экране выбора персонажа больше нет — экран
+   собран из меню и плашки, как встречающий. */
+
 .char-card-class-icon {
 width: 52px;
 height: 52px;
@@ -3777,84 +3768,8 @@ flex-shrink: 0; margin-right: 10px; overflow: hidden;
   height: 100%;
   border-radius: 50%;
 }
-/* Карточка персонажа в списке — fallback вписывается в квадрат с радиусом 10px */
-.char-card-class-icon .class-icon-fallback-img {
-  border-radius: var(--r-md);
-}
 .bp-card-class-icon .class-icon-fallback-img {
   border-radius: var(--r-md);
-}
-.char-card-title {
-flex: 1;
-min-width: 0;
-}
-.char-card-name {
-font-size: 1.05em;
-font-weight: 700;
-margin: 0 0 3px 0;
-/* UI-fix: имя полностью видно (переносится), а не обрезается «…» в узкой 2-кол карточке */
-white-space: normal;
-overflow-wrap: anywhere;
-word-break: break-word;
-line-height: 1.2;
-color: var(--text);
-letter-spacing: 0.01em;
-}
-.char-card-sub {
-font-size: 0.73em;
-color: var(--text-mute);
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
-}
-/* Предыстория — показывается только когда задана (доп. строка под классом/расой). */
-.char-card-bg {
-font-size: 0.7em;
-color: var(--text-mute);
-margin-top: 2px;
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
-}
-.char-card-stats { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-/* UI-fix: действия вынесены из шапки в отдельный нижний ряд — имя получает
-   полную ширину карточки и больше не обрезается/ужимается соседними кнопками. */
-.char-card-actions {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  /* auto → прижимает кнопки к низу карточки (при равной высоте в сетке);
-     padding-top сохраняет отступ от контента, когда свободного места нет. */
-  margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-.char-stat-badge {
-background: rgba(255,255,255,0.06);
-padding: 5px 10px;
-border-radius: var(--r-sm);
-font-size: 0.78em;
-color: var(--text-dim);
-border: 1px solid rgba(255,255,255,0.09);
-}
-.char-stat-badge-hp {
-padding: 5px 10px;
-border-radius: var(--r-sm);
-font-size: 0.78em;
-border: 1px solid;
-font-weight: 700;
-}
-/* E24-0: бейдж редакции 2024. В списке (.char-edition-tag поверх .char-stat-badge)
-   и в шапке листа (.char-edition-badge). Показывается только для 2024-персонажей —
-   2014 это дефолт. Акцентные токены → тема-совместимо (как .home-edition-btn.active). */
-.char-edition-tag {
-  background: var(--accent-fill);
-  border-color: var(--accent-lo);
-  color: var(--on-accent);
-  font-weight: 700;
-  letter-spacing: 0.02em;
 }
 .char-edition-badge {
   display: inline-block;
@@ -3869,15 +3784,14 @@ font-weight: 700;
   border-radius: var(--r-sm);
   line-height: 1.5;
 }
-.char-time-ago { margin-left: auto; font-size: 0.7em; color: var(--text-mute); }
 .char-controls { margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px; }
 .char-search-wrap { position: relative; }
 .char-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.85em; pointer-events: none; }
 .char-search-inp {
 width: 100%;
-background: var(--bg-2);
-border: 1px solid var(--border-soft);
-border-radius: 8px;
+background: none;
+border: 1px solid var(--home-rule);
+border-radius: var(--r-sm);
 padding: 8px 12px 8px 32px;
 color: var(--text);
 font-size: 0.85em;
@@ -3887,22 +3801,41 @@ transition: border-color 0.2s;
 }
 .char-search-inp:focus { border-color: var(--accent-color); }
 .char-search-inp::placeholder { color: var(--text-mute); }
-.char-sort-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.char-sort-label { font-size: 0.72em; color: var(--text-mute); flex-shrink: 0; }
+.char-sort-row { display: flex; align-items: center; gap: 0 var(--sp-4); flex-wrap: wrap; }
+.char-sort-label { font-size: 0.72em; color: var(--home-sub); flex-shrink: 0; }
+/* STYLE-8M-2: сортировка — подписи с растущим подчёркиванием, активная без
+   заливки (заливка роняет контраст — гоча 8L). */
 .sort-btn {
-background: transparent;
-border: 1px solid var(--border);
-color: var(--text-mute);
-padding: 4px 10px;
-border-radius: var(--r-sm);
-font-size: 0.72em;
+position: relative;
+background: none;
+border: 0;
+border-radius: 0;
+box-shadow: none;
+color: var(--text-dim);
+padding: var(--sp-2) 2px;
+font-family: var(--font-display);
+font-size: var(--fs-sm);
+font-weight: 500;
 cursor: pointer;
-transition: all 0.18s;
+transition: color var(--t1) var(--ez-out);
 width: auto;
 margin: 0;
 }
-.sort-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
-.sort-btn.active { background: var(--accent-fill); border-color: var(--accent-lo); color: var(--on-accent); font-weight: 600; }
+.sort-btn::after {
+content: "";
+position: absolute;
+left: 2px;
+bottom: 0;
+width: 0;
+height: 2px;
+background: var(--accent);
+transition: width var(--t2) var(--ez-out);
+}
+.sort-btn:hover { background: none; box-shadow: none; color: var(--accent-lo); }
+.sort-btn:hover::after,
+.sort-btn:focus-visible::after { width: calc(100% - 4px); }
+.sort-btn.active { background: none; color: var(--accent-lo); font-weight: 700; }
+.sort-btn.active::after { width: calc(100% - 4px); }
 /* UI6-3: переключатель редакции на главной (по образцу .char-sort-row/.sort-btn).
    Префикс home-edition-, чтобы не коллидить с .edition-btn фильтра заклинаний. */
 .home-edition-row {
@@ -3935,58 +3868,9 @@ margin: 0;
 .home-edition-btn.is-soon { border-style: dashed; color: var(--text-mute); cursor: default; }
 .home-edition-btn.is-soon:hover { border-color: var(--border-soft); color: var(--text-mute); }
 .home-edition-soon-tag { font-size: 0.85em; opacity: 0.7; margin-left: 5px; }
-.char-copy-btn {
-background: var(--bg-2);
-border: 1px solid var(--border-soft);
-color: var(--text-dim);
-padding: 0;
-width: 34px;
-height: 34px;
-border-radius: 8px;
-cursor: pointer;
-font-size: 1em;
-display: flex;
-align-items: center;
-justify-content: center;
-transition: all 0.18s;
-margin: 0;
-}
-.char-copy-btn:hover { background: var(--accent-color); color: #000; border-color: var(--accent-color); }
-.char-delete-btn {
-background: rgba(231,76,60,0.08);
-border: 1px solid rgba(231,76,60,0.25);
-color: rgba(231,76,60,0.7);
-padding: 0;
-width: 34px;
-height: 34px;
-border-radius: 8px;
-cursor: pointer;
-font-size: 0.95em;
-display: flex;
-align-items: center;
-justify-content: center;
-margin: 0;
-transition: all 0.18s;
-}
-.char-delete-btn:hover { background: var(--danger-color); color: white; border-color: var(--danger-color); }
-@media (max-width: 640px) { /* UI5-6: единый мобильный порог 640 (было 600) */
-  .char-copy-btn, .char-delete-btn { width: 38px; height: 38px; font-size: 1.05em; }
-  .char-card-actions { gap: 8px; }
-  .char-stat-badge, .char-stat-badge-hp { padding: 6px 11px; font-size: 0.8em; }
-  .char-card-name { font-size: 1.05em; }
-  .char-card-class-icon { width: 52px; height: 52px; font-size: 1.6em; }
-}
 
-/* ============================================
-   UI6-2: Главная — компактные действия + сетка персонажей на desktop.
-   Глобальный button{width:100%/margin-bottom} НЕ трогаем (UI6-5) — здесь
-   только scoped-сетки; вертикальный отступ в grid даёт gap, поэтому
-   margin-bottom от глоб. button{}/.char-card обнуляем внутри сеток.
-============================================ */
-.home-actions-primary { display: grid; gap: 10px; }
-/* UI-fix: визуально отделяем действия от списка персонажей (раньше лепились вплотную) */
-.home-actions-primary { grid-template-columns: 1fr; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-color); }
-.home-actions-primary > button { margin: 0; }
+/* STYLE-8M-2: сетка .home-actions-primary удалена — на экране выбора
+   персонажа «Новый персонаж» и «По готовому билду» стали строками меню. */
 
 /* STYLE-8M: «Данные» — шесть действий были кнопками-коробками в сетке 2–3
    колонки. Класс .home-utils остался только в этом окне (сетка утилит с
@@ -4139,53 +4023,36 @@ transition: all 0.18s;
 .backup-item:focus-within .backup-restore-btn { opacity: 1; }
 .backup-restore-btn:hover { background: none; color: var(--accent); opacity: 1; }
 
-/* STYLE-8M: заголовок окна — serif по левому краю с волосяным разделителем,
-   как шапка «Настроек». Точечно по id: остальные .party-modal-box (NPC,
-   соратник, монстр SRD) сводятся отдельно, их h4 остаётся по центру.
-   #data-modal h4 (1,0,1) бьёт .party-modal-box h4 (0,1,1). */
-#data-modal h4,
-#about-modal h4 {
-  margin: 0 0 var(--sp-3);
-  padding-bottom: var(--sp-3);
-  border-bottom: 1px solid var(--home-rule);
-  text-align: left;
-  font-family: var(--font-display);
-  font-size: var(--fs-lg);
-  font-weight: 700;
-  color: var(--text);
-}
+/* STYLE-8M-2: правило заголовков #data-modal h4 / #about-modal h4 удалено —
+   окна стали экранами, заголовок несёт .page-title. */
 
-/* Дымка v5: сетка персонажей 1 / 2 / 3 / 4 колонки на 620 / 1000 / 1560px */
-@media (min-width: 620px) {
-  #character-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: stretch; }
-  #character-list .char-card { margin-bottom: 0; }
-  #character-list .empty-list { grid-column: 1 / -1; }
-}
-@media (min-width: 768px) {
-  .home-actions-primary { grid-template-columns: 1fr 1fr; }
-}
-@media (min-width: 1000px) {
-  /* Максимум 3 колонки — 4 слишком сжимали карточки (фидбек юзера) */
-  #character-list { grid-template-columns: repeat(3, 1fr); }
-}
-@media (min-width: 1560px) {
-  /* Шире контейнер главной — 3 колонки получают крупные карточки */
-  #screen-characters { max-width: 1400px; }
-}
+/* STYLE-8M-2: сетка карточек 2–3 колонки снята — список стал одноколоночным
+   меню, как на встречающем экране. */
+/* STYLE-8M-2: cap 1400px для #screen-characters снят — ширину держит
+   .page-stage--split (1240px), как на встречающем экране. */
 
 /* ============================================
    MENU-8/9: встречающий экран во всё окно.
    Шапка, сайдбар и правая панель на нём скрыты — экран должен читаться как
    заставка, а не как страница приложения.
 ============================================ */
+/* STYLE-8M-2: страницы сервиса читаются так же — без шапки, сайдбара и
+   правой панели; возврат несёт строка «← Назад» в самой странице. */
 body.screen-home > header,
 body.screen-home .status-bar,
 body.screen-home .app-right-rail,
 body.screen-home .side-drawer,
-body.screen-home #character-tabs { display: none !important; }
+body.screen-home #character-tabs,
+body.screen-page > header,
+body.screen-page .status-bar,
+body.screen-page .app-right-rail,
+body.screen-page .side-drawer,
+body.screen-page #character-tabs { display: none !important; }
 /* Контейнер на этом экране не ограничивает ширину и не даёт своих полей —
    раскладку целиком держит .home-stage. */
 body.screen-home .container { max-width: none; margin: 0; padding: 0; }
+body.screen-page .container { max-width: none; margin: 0; padding: 0; }
+body.screen-page { padding: 0 !important; overflow-x: hidden; }
 /* Поля body зарезервированы под шапку (72px сверху), сайдбар (240px слева) и
    right-rail (320px справа) — на этом экране все три скрыты, а поля остались бы
    и сдвинули блок высотой 100vh вниз, давая ~72px скролла в пустоту.
@@ -7565,19 +7432,6 @@ color: var(--danger-color);
   cursor: pointer;
 }
 .hph-clear-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-.char-alignment {
-margin-left: auto;
-font-size: 0.68em;
-color: var(--text-mute);
-padding: 4px 8px;
-border-radius: var(--r-sm);
-background: transparent;
-border: none;
-}
-/* Плейсхолдер, когда мировоззрение не задано — приглушённо и курсивом,
-   чтобы реальные значения визуально выделялись. */
-.char-alignment-empty { color: var(--text-mute); font-style: italic; }
-:root[data-theme="light"] .char-alignment-empty { color: var(--text-muted); opacity: 0.65; }
 
 /* ===== Confirm Modal ===== */
 .confirm-modal-overlay {
@@ -10420,62 +10274,97 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   padding-right: 44px;       /* место под кнопку × */
   flex-shrink: 0;
 }
+/* STYLE-8M-2: под-таб справки — не коробка, а подпись с растущим
+   подчёркиванием (рецепт «Журнала» и «О версии»). Десять !important сняты: с
+   STYLE-4 база button{} вида и ширины не задаёт, перебивать больше нечего. */
 .help-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 14px;
+  gap: 0 var(--sp-4);
+  margin-bottom: var(--sp-4);
   flex-shrink: 0;
 }
 .help-tab {
+  position: relative;
   flex: 0 0 auto;
-  padding: 6px 10px !important;
-  border-radius: 8px !important;
-  border: 1px solid var(--border-color) !important;
-  background: var(--input-bg) !important;
-  color: var(--text-muted) !important;
-  font-size: 0.82em !important;
-  font-weight: 600;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--text-dim);
+  padding: var(--sp-2) 2px;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 500;
   cursor: pointer;
-  width: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  box-shadow: none !important;
-  transition: all 0.15s;
+  width: auto;
+  margin: 0;
+  transform: none;
   white-space: nowrap;
+  transition: color var(--t1) var(--ez-out);
 }
-.help-tab.active {
-  background: var(--accent-color) !important;
-  color: #000 !important;
-  border-color: var(--accent-color) !important;
+.help-tab::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
 }
+/* Активный раздел без заливки: подложка роняет контраст (гоча 8L), вес несут
+   цвет и подчёркивание. */
+.help-tab.active { background: none; color: var(--accent-lo); font-weight: 700; }
+.help-tab.active::after { width: calc(100% - 4px); }
 .help-tab:hover:not(.active) {
-  border-color: var(--accent-color) !important;
-  color: var(--text-color) !important;
-  transform: none !important;
-  box-shadow: none !important;
+  background: none;
+  color: var(--accent-lo);
+  transform: none;
+  box-shadow: none;
 }
+.help-tab:hover::after,
+.help-tab:focus-visible::after { width: calc(100% - 4px); }
+.help-tab [data-ico] { opacity: 0.75; }
 .help-body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
 }
-.help-section { display: flex; flex-direction: column; gap: 12px; }
+.help-section { display: flex; flex-direction: column; gap: 0; }
 .help-section.hidden { display: none; }
+/* Блок справки — плоская строка: коробка снята, границу держит волосяной
+   разделитель, тему блока кодирует ромб. Ромб висит на подписи, а не на
+   строке: у высокого блока (список на 4 пункта) якорь на строке уехал бы
+   к верхнему краю (гоча 8M-1). */
 .help-block {
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-sm);
-  padding: 12px 14px;
+  position: relative;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: var(--sp-4) var(--sp-2) var(--sp-4) calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
 }
+.help-block + .help-block { border-top: 1px solid var(--home-rule); }
 .help-block-title {
-  font-size: 0.78em;
+  position: relative;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
   font-weight: 700;
-  color: var(--accent-color);
+  color: var(--text);
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  margin-bottom: 8px;
+  margin-bottom: var(--sp-2);
+}
+.help-block-title::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * (var(--home-bullet) + var(--sp-3)));
+  top: 0.3em;
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--home-accent);
 }
 .help-block p {
   margin: 0 0 8px;
@@ -10497,23 +10386,50 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   color: var(--text-color);
 }
 .help-block b { color: var(--text-color); font-weight: 700; }
+/* Внешняя ссылка — текстовое действие на --accent-lo: --accent на белом даёт
+   3.55 (гоча 8e). Подчёркивание растёт ::after, а не border-bottom. */
 .help-link {
+  position: relative;
   display: inline-block;
-  margin-top: 4px;
-  color: var(--accent-color);
-  font-weight: 600;
+  margin-top: var(--sp-2);
+  color: var(--accent-lo);
+  font-family: var(--font-display);
+  font-weight: 500;
   text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.15s;
+  transition: color var(--t1) var(--ez-out);
 }
-.help-link:hover { border-bottom-color: var(--accent-color); }
+.help-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 0;
+  height: 1.5px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
+}
+.help-link:hover { color: var(--accent); }
+.help-link:hover::after,
+.help-link:focus-visible::after { width: 100%; }
 
 /* Help-центр всегда поверх контента (как item-ref) */
 #help-modal { z-index: 400; }
 
+/* Каскад появления раздела: секции переключаются классом .hidden, display:none
+   не крутит анимаций — вход перезапускается сам, JS не нужен. */
+.help-section:not(.hidden) > * { animation: rise var(--t3) var(--ez-out) both; }
+.help-section:not(.hidden) > *:nth-child(1) { animation-delay: 0ms; }
+.help-section:not(.hidden) > *:nth-child(2) { animation-delay: 40ms; }
+.help-section:not(.hidden) > *:nth-child(3) { animation-delay: 80ms; }
+.help-section:not(.hidden) > *:nth-child(4) { animation-delay: 120ms; }
+.help-section:not(.hidden) > *:nth-child(n+5) { animation-delay: 160ms; }
+@media (prefers-reduced-motion: reduce) {
+  .help-section:not(.hidden) > * { animation: none; }
+}
+
 @media (max-width: 600px) {
   .help-content { max-height: 92vh; }
-  .help-tab { font-size: 0.78em !important; padding: 5px 8px !important; }
+  .help-tabs { gap: 0 var(--sp-3); }
 }
 
 /* HELP-2 — контекстная «?»-кнопка справки у заголовка каждой вкладки.
@@ -10775,23 +10691,37 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   .welcome-title { font-size: 1.2em; }
 }
 
-/* Кнопка «Пройти интерактивный тур» в help-центре (раздел «С чего начать»). */
+/* Кнопка «Пройти интерактивный тур» в help-центре (раздел «С чего начать»).
+   STYLE-8M-2: сплошная заливка снята — это строка с рельсой слева, как
+   «Продолжить» на встречающем экране. */
 .help-tour-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
   width: 100%;
-  margin: 0 0 4px;
-  padding: 11px 14px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--accent-color);
-  background: var(--accent-color);
-  color: #000;
-  font-size: 0.95em;
-  font-weight: 700;
+  margin: 0 0 var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border: 0;
+  border-left: var(--home-rail-w) solid var(--accent);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--accent-lo);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  text-align: left;
   cursor: pointer;
-  transition: filter 0.15s, transform 0.1s;
+  transition: color var(--t1) var(--ez-out), padding-left var(--t2) var(--ez-out);
 }
 .help-tour-btn:hover,
-.help-tour-btn:focus-visible { filter: brightness(1.08); }
-.help-tour-btn:active { transform: translateY(1px); }
+.help-tour-btn:focus-visible {
+  background: none;
+  box-shadow: none;
+  color: var(--accent);
+  padding-left: calc(var(--sp-4) + var(--sp-2));
+}
+.help-tour-btn:active { transform: none; }
 
 /* =============================================
    HELP-4 — Движок интерактивного тура (подсветка).
@@ -11949,27 +11879,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .conc-details-end:hover { background: color-mix(in srgb, var(--magic) 30%, transparent) !important; transform: none !important; }
 
-/* ══ АВАТАР ПЕРСОНАЖА ══════════════════════════════════════════════ */
-
-/* Шапка листа */
-/* Карточка в списке */
-.char-card-avatar {
-  overflow: hidden;
-  width: 52px !important;
-  height: 52px !important;
-  border-radius: var(--r-md);
-}
-.char-card-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: var(--r-md);
-  display: block;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: smooth;
-  -webkit-backface-visibility: hidden;
-  transform: translateZ(0);
-}
 
 /* Модалка аватара */
 .avatar-modal-content {
@@ -13460,23 +13369,6 @@ mark.notes-hl {
    BUGFIX-6: мобильная вёрстка (≤540px)
 ============================================= */
 @media (max-width: 540px) {
-  /* (а) Карточка персонажа: имя обрезалось до 1-2 букв из-за слишком крупных
-        action-кнопок + иконки. Уменьшаем их и разрешаем имени переноситься. */
-  .char-card-header { gap: 8px; }
-  .char-card-class-icon { width: 44px; height: 44px; font-size: 1.4em; }
-  .char-card-name {
-    font-size: 1em;
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
-    line-height: 1.15;
-    word-break: break-word;
-  }
-  .char-card-sub { font-size: 0.7em; }
-  .char-card-actions { gap: 4px; }
-  /* Переопределяем правило для 600px, где кнопки увеличены до 38×38 */
-  .char-copy-btn, .char-delete-btn { width: 32px; height: 32px; font-size: 0.9em; }
-
   /* (б) Урон / Лечение: на узком экране 1fr 1fr сжимало кнопку "Вылечить"
         до обрезания текста. Складываем в один столбец. */
   .hp-two-col { grid-template-columns: 1fr; gap: 8px; }
@@ -13919,16 +13811,6 @@ textarea:focus-visible {
   border: 1px solid var(--border) !important;
 }
 
-/* Светлая тема: главные CTA на домашнем экране — мягкий градиент вместо
-   плоской заливки акцентом (на светлом фоне сплошной акцент слишком кричит). */
-:root[data-theme="light"] .home-actions-primary > button {
-  background: linear-gradient(180deg, var(--accent-hi), var(--accent)) !important;
-  border: 1px solid var(--accent-lo) !important;
-  color: #fff !important;
-}
-:root[data-theme="light"] .home-actions-primary > button:hover {
-  filter: brightness(1.06);
-}
 
 /* THEME-4: дублирующий light-override сопротивлений удалён (см. токены --res-*). */
 
@@ -14001,9 +13883,7 @@ textarea:focus-visible {
 .abil-card,
 .accordion-card-inner,
 .ac-calc-section,
-.bp-card,
 .cc-card,
-.char-card,
 .lu-stat-card,
 .party-section-card,
 .resource-card,
@@ -14011,7 +13891,9 @@ textarea:focus-visible {
   /* STYLE-8R: .rr-card из группы убран — правого rail как набора карточек
      больше нет, там плоские строки.
      STYLE-8f: .notes-entry-card и .feat-taken-card убраны по той же причине —
-     запись и взятая черта стали плоскими строками с ромбом. */
+     запись и взятая черта стали плоскими строками с ромбом.
+     STYLE-8M-2: .char-card и .bp-card убраны — персонаж в списке и билд в
+     пикере тоже стали плоскими строками. */
   border-radius: var(--r-lg);
   border: 1px solid var(--border-soft);
   box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-card);
@@ -15092,14 +14974,12 @@ textarea:focus-visible {
 .screen-enter-fwd  { animation: screen-in-right  var(--t3) var(--ez-out) both; }
 .screen-enter-back { animation: screen-in-left   var(--t3) var(--ez-out) both; }
 
-/* Пункты меню, открывающие модалку («Данные», «Настройки», «О версии»), —
-   тоже под-меню: панель приезжает справа, а само меню отъезжает влево и
-   притухает, оставаясь фоном. body.modal-open ставит _syncModalOpenFlag.
-   До 768px модалки — bottom-sheet (едут снизу), там въезд справа не трогаем.
-   Паттернов модалки в проекте три, и каждый анимируется по-своему:
-   .modal-content и .confirm-modal-box — анимацией, .settings-modal — переходом
-   на своём же transform (у него центрирование через translate(-50%,-50%),
-   любая посторонняя анимация сбила бы позицию). */
+/* Модалки, открытые со встречающего экрана, — под-меню: панель приезжает
+   справа, а само меню отъезжает влево и притухает, оставаясь фоном.
+   body.modal-open ставит _syncModalOpenFlag. До 768px модалки — bottom-sheet
+   (едут снизу), там въезд справа не трогаем.
+   STYLE-8M-2: «Данные», «Настройки» и «О версии» из этого правила выбыли —
+   они стали экранами и едут общим переходом экранов. */
 @media (min-width: 768px) {
   body.screen-home .modal.active .modal-content,
   body.screen-home .confirm-modal-overlay.active .confirm-modal-box {
@@ -15108,8 +14988,6 @@ textarea:focus-visible {
   body.screen-home .modal.active.closing .modal-content {
     animation: screen-out-right var(--t2) var(--ez-out) forwards;
   }
-  body.screen-home .settings-modal { transform: translate(-32%, -50%) scale(1); }
-  body.screen-home .settings-modal.open { transform: translate(-50%, -50%) scale(1); }
 }
 body.screen-home .home-stage {
   transition: transform var(--t3) var(--ez-out), opacity var(--t3) var(--ez-out);
@@ -15127,6 +15005,4 @@ body.screen-home.modal-open .home-stage {
   body.screen-home.modal-open .home-stage { transform: none; opacity: 1; }
   body.screen-home .modal.active .modal-content,
   body.screen-home .confirm-modal-overlay.active .confirm-modal-box { animation: none; }
-  body.screen-home .settings-modal,
-  body.screen-home .settings-modal.open { transform: translate(-50%, -50%) scale(1); }
 }
