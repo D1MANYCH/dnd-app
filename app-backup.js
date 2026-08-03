@@ -177,24 +177,24 @@ function renderBackupList() {
   list.innerHTML = "";
   listBackupSnapshots().then(function(rows) {
     if (!rows.length) {
-      list.innerHTML = '<div style="font-size:0.8em;color:var(--text-muted);padding:4px 0">Пока нет ни одной копии</div>';
+      list.innerHTML = '<div class="backup-empty">Пока нет ни одной копии</div>';
       return;
     }
     rows.forEach(function(row) {
       var item = document.createElement("div");
-      item.style.cssText = "display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-soft)";
+      item.className = "backup-item";
       var info = document.createElement("div");
-      info.style.cssText = "flex:1;min-width:0;font-size:0.85em";
+      info.className = "backup-info";
       var line1 = document.createElement("div");
+      line1.className = "backup-when";
       line1.textContent = _backupFmtDate(row.createdAt);
       var line2 = document.createElement("div");
-      line2.style.cssText = "font-size:0.85em;color:var(--text-muted)";
+      line2.className = "backup-meta";
       line2.textContent = "Персонажей: " + (row.charCount != null ? row.charCount : "?") + " · " + (BACKUP_REASON_LABELS[row.reason] || row.reason || "—");
       info.appendChild(line1);
       info.appendChild(line2);
       var btn = document.createElement("button");
-      btn.className = "secondary";
-      btn.style.cssText = "width:auto;margin:0;padding:6px 10px;font-size:0.8em;flex-shrink:0;min-height:var(--control-h,44px)";
+      btn.className = "backup-restore-btn";
       btn.textContent = "Восстановить";
       btn.onclick = function() { restoreBackupSnapshot(row.id); };
       item.appendChild(info);
@@ -203,6 +203,6 @@ function renderBackupList() {
     });
   }).catch(function(e) {
     _backupLog("error", "list: " + ((e && e.message) || e));
-    list.innerHTML = '<div style="font-size:0.8em;color:var(--text-muted);padding:4px 0">Не удалось прочитать копии (IndexedDB недоступен)</div>';
+    list.innerHTML = '<div class="backup-empty">Не удалось прочитать копии (IndexedDB недоступен)</div>';
   });
 }

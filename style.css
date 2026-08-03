@@ -608,18 +608,9 @@ html.glass-adjusting *::after {
    базовые .sort-btn / .home-edition-* на токенах --border / --accent-fill /
    --on-accent. Активная кнопка в светлой получает градиент через --accent-fill. */
 
-/* ----- Info-чипы внизу ----- */
-:root[data-theme="light"] .app-info-item {
-  background: var(--bg-1) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-dim) !important;
-}
-:root[data-theme="light"] .cl-version,
-:root[data-theme="light"] .cl-version-latest {
-  background: var(--bg-1) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text);
-}
+/* STYLE-8M: две светлые перебивки окна «О версии» (5 !important) удалены —
+   коробок у info-чипов и записей чейнджлога больше нет, плоские правила
+   собраны на токенах и работают в обеих темах. */
 
 /* UI4-glass LT-1: светлые кнопочные override УДАЛЕНЫ. Базовые .btn- и button
    правила на токенах (--accent/--bg-1/--border/--text) дают корректную светлую
@@ -776,24 +767,9 @@ html.glass-adjusting *::after {
 /* STYLE-8L: четыре светлые перебивки пунктов сняты — базовый блок сайдбара
    собран на токенах и работает в обеих темах без коробок и !important. */
 
-/* ----- Theme picker в drawer (light variant) ----- */
-:root[data-theme="light"] .theme-picker-btn {
-  background: var(--bg-2) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text) !important;
-}
-:root[data-theme="light"] .theme-picker-btn:hover {
-  background: var(--bg-3) !important;
-  border-color: var(--accent) !important;
-}
-:root[data-theme="light"] .theme-picker-btn.is-active {
-  /* UI4-glass LT-2: было accent-soft(0.13)+gold-текст — почти не видно на
-     светлом стекле. Делаем явную золотую заливку как «выбрано». */
-  background: linear-gradient(180deg, var(--accent-hi), var(--accent)) !important;
-  border-color: var(--accent-lo) !important;
-  color: #ffffff !important;
-  font-weight: 600;
-}
+/* STYLE-8M: три светлые перебивки вариантов настроек (8 !important) удалены —
+   коробки у них больше нет, базовый блок собран на токенах и работает в обеих
+   темах: --accent-lo даёт 5.03 на светлой и 6.37 на тёмной. */
 
 /* UI4-glass LT-1: гигантский blocklist-override `button:not(...)` и светлые
    дубли button.secondary/.success/.danger/.info УДАЛЕНЫ. Базовые правила
@@ -946,57 +922,96 @@ html.glass-adjusting *::after {
 /* ----- Status-chip default бордер (был слишком тусклый) ----- */
 :root[data-theme="light"] .status-chip { border-width: 1.5px !important; }
 
-/* Theme picker в drawer (общие стили — для обеих тем) */
+/* STYLE-8M: строки настроек в языке встречающего экрана — ни одной коробки.
+   Класс остался только в модалке настроек (в сайдбаре от него живёт одна
+   кнопка-открывашка), поэтому правила переписаны по месту: строка = ромб +
+   serif-подпись слева + выбор справа, между строками волосяной --home-rule. */
 .theme-picker-row {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-4);
-  border-top: 1px solid var(--border);
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-4);
+  /* Жёлоб под ромб считается от его размера: на узком экране шкала отступов
+     сжимается и подпись прилипала бы к ромбу (гоча 8f). */
+  padding: var(--sp-3) var(--sp-4) var(--sp-3) calc(var(--sp-4) + var(--home-bullet) + var(--sp-3));
+  border-top: 1px solid var(--home-rule);
 }
 .theme-picker-label {
-  font-size: var(--fs-sm);
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  position: relative;
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--text);
+}
+/* Ромб — псевдоэлементом самой подписи, а не строки: подпись держит внутри
+   иконку STYLE-7, лишний span сдвинул бы её, а якорь на строке разъезжался с
+   текстом на высоких строках (чипы акцента — два ряда, подпись по центру). */
+.theme-picker-label::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * (var(--home-bullet) + var(--sp-3)));
+  top: 0.35em;
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--home-accent);
 }
 .theme-picker-btns {
   display: flex;
-  gap: var(--sp-2);
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0 var(--sp-4);
+  margin-left: auto;
 }
+/* Вариант выбора — подпись с растущим подчёркиванием, как фильтры «Журнала».
+   Цвет --accent-lo, а не --accent: у плоского текста весь вес несёт цвет,
+   --accent на белом даёт 3.55 (гоча 8e). */
 .theme-picker-btn {
-  flex: 1;
-  padding: 8px 10px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  background: var(--bg-2);
-  color: var(--text);
+  position: relative;
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0;
+  padding: var(--sp-2) 2px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--text-dim);
+  font-family: var(--font-display);
   font-size: var(--fs-sm);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.theme-picker-btn:hover { background: var(--bg-3); border-color: var(--accent); }
-.theme-picker-btn.is-active {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-/* UI-4: density-picker — 3 кнопки в столбец (русские слова не помещаются в ряд на узком drawer) */
-.density-picker-btns {
-  display: flex !important;
-  flex-direction: column;
-  gap: var(--sp-2);
-}
-.density-picker-btns .theme-picker-btn {
-  width: 100% !important;
-  flex: 0 0 auto !important;
-  margin: 0 !important;
-  min-height: 0 !important;
-  padding: 8px 12px !important;
+  font-weight: 500;
   white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--t1) var(--ez-out);
 }
+.theme-picker-btn::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
+}
+.theme-picker-btn:hover { background: none; border-color: transparent; color: var(--accent-lo); }
+.theme-picker-btn:hover::after,
+.theme-picker-btn:focus-visible::after { width: calc(100% - 4px); }
+/* Выбранный вариант — та же подсветка без подложки, что у пункта сайдбара:
+   заливка роняла контраст (гоча 8L), вес несут цвет и подчёркивание. */
+/* Кнопки редакции помечаются классом .active (_syncEditionButtons в
+   app-settings.js), остальные — .is-active: обе метки красим одинаково. */
+.theme-picker-btn.is-active,
+.theme-picker-btn.active { background: none; color: var(--accent-lo); font-weight: 700; }
+.theme-picker-btn.is-active::after,
+.theme-picker-btn.active::after { width: calc(100% - 4px); }
+.theme-picker-btn [data-ico] { opacity: 0.75; }
+
+/* UI-4: density-picker раскладывал 3 кнопки в столбец — русские слова не
+   помещались в ряд коробками. Подписями помещаются, столбец и пять
+   !important сняты. */
 
 /* UI-5: кнопка «Настройки оформления» в drawer.
    STYLE-8L: коробки у неё больше нет — вид и движение общие с .drawer-item
@@ -1068,10 +1083,11 @@ html.glass-adjusting *::after {
   justify-content: space-between;
   align-items: center;
   padding: 14px 18px;
-  border-bottom: 1px solid var(--border);
-  font-weight: 600;
+  border-bottom: 1px solid var(--home-rule);
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: var(--fs-lg);
-  color: var(--accent);
+  color: var(--text);
 }
 .settings-modal-close {
   background: transparent;
@@ -1084,7 +1100,7 @@ html.glass-adjusting *::after {
   width: auto;
   line-height: 1;
 }
-.settings-modal-close:hover { background: var(--bg-3); color: var(--text); }
+.settings-modal-close:hover { background: none; color: var(--text); }
 
 .settings-modal-body {
   overflow-y: auto;
@@ -1094,15 +1110,37 @@ html.glass-adjusting *::after {
 /* В модалке убираем top-border у первой строки (есть у драйверной .theme-picker-row) */
 .settings-modal-body .theme-picker-row:first-child { border-top: none; }
 
+/* STYLE-8M: каскад появления строк. Перезапускается сам — у закрытой модалки
+   .hidden даёт display:none, анимации на скрытом не крутятся. */
+.settings-modal-body > .theme-picker-row { animation: rise var(--t3) var(--ez-out) both; }
+.settings-modal-body > .theme-picker-row:nth-child(1) { animation-delay:   0ms; }
+.settings-modal-body > .theme-picker-row:nth-child(2) { animation-delay:  40ms; }
+.settings-modal-body > .theme-picker-row:nth-child(3) { animation-delay:  80ms; }
+.settings-modal-body > .theme-picker-row:nth-child(4) { animation-delay: 120ms; }
+.settings-modal-body > .theme-picker-row:nth-child(5) { animation-delay: 160ms; }
+.settings-modal-body > .theme-picker-row:nth-child(6) { animation-delay: 200ms; }
+.settings-modal-body > .theme-picker-row:nth-child(7) { animation-delay: 240ms; }
+.settings-modal-body > .theme-picker-row:nth-child(8) { animation-delay: 280ms; }
+.settings-modal-body > .theme-picker-row:nth-child(n+9) { animation-delay: 320ms; }
+/* В reduce глобальный блок обнуляет длительности, но не задержки: с fill-mode
+   both строка висела бы невидимой всю задержку — снимаем появление целиком. */
+@media (prefers-reduced-motion: reduce) {
+  .settings-modal-body > .theme-picker-row { animation: none; }
+}
+
 /* UI-5: слайдер размера шрифта */
 .fs-scale-head {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
 }
+/* Строка со слайдером двухэтажная: шапка (подпись + значение + сброс) занимает
+   всю ширину строки настроек, дорожка встаёт под ней. */
+.fs-scale-head { flex: 1 0 100%; }
 .fs-scale-head .theme-picker-label { flex: 1; margin: 0; }
 .fs-scale-slider {
   display: block;
+  flex: 1 0 100%;
   width: 100%;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -1153,27 +1191,32 @@ html.glass-adjusting *::after {
   min-width: 40px;
   text-align: right;
   font-variant-numeric: tabular-nums;
-  color: var(--accent);
+  color: var(--accent-lo);
   font-weight: 600;
   font-size: var(--fs-sm);
 }
+/* STYLE-8M: сброс был кружком-коробкой — стал приглушённым глифом, как
+   действия строки на вкладках («Записи», «Журнал»). */
 .fs-scale-reset {
   flex: 0 0 auto;
-  width: 28px; height: 28px;
+  width: 24px; height: 24px;
   padding: 0;
-  background: transparent;
-  border: 1px solid var(--border);
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
   color: var(--text-dim);
-  border-radius: 50%;
-  font-size: 14px;
+  opacity: 0.4;
+  font-size: 15px;
   line-height: 1;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: opacity var(--t1) var(--ez-out), color var(--t1) var(--ez-out);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
-.fs-scale-reset:hover { color: var(--accent); border-color: var(--accent); }
+.fs-scale-reset:hover,
+.fs-scale-reset:focus-visible { background: none; color: var(--accent-lo); opacity: 1; }
 
 /* UI-2: чипы выбора акцента — равномерная сетка 4×2 */
 .accent-picker-chips {
@@ -1181,6 +1224,9 @@ html.glass-adjusting *::after {
   grid-template-columns: repeat(4, 1fr);
   justify-items: center;
   gap: var(--sp-2);
+  /* STYLE-8M: чипы — это сам образец цвета, а не коробка вокруг подписи,
+     поэтому они остаются кружками; строке они отдают правую половину. */
+  margin-left: auto;
 }
 .accent-chip {
   width: 32px; height: 32px;
@@ -1220,17 +1266,19 @@ html.glass-adjusting *::after {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+  flex: 1 0 100%;
   margin-top: var(--sp-2);
-  padding: 6px 8px;
-  border-radius: var(--r-md);
-  background: var(--bg-2);
-  border: 1px solid var(--border);
+  padding: 6px 0 0;
+  border-radius: 0;
+  background: none;
+  border: 0;
   font-size: var(--fs-sm);
-  color: var(--text);
+  color: var(--home-sub);
   cursor: pointer;
   user-select: none;
+  transition: color var(--t1) var(--ez-out);
 }
-.auto-accent-row:hover { border-color: var(--accent); }
+.auto-accent-row:hover { color: var(--text); }
 .auto-accent-row input[type="checkbox"] {
   width: 16px; height: 16px;
   accent-color: var(--accent);
@@ -3935,13 +3983,177 @@ transition: all 0.18s;
    только scoped-сетки; вертикальный отступ в grid даёт gap, поэтому
    margin-bottom от глоб. button{}/.char-card обнуляем внутри сеток.
 ============================================ */
-.home-actions-primary,
-.home-utils { display: grid; gap: 10px; }
+.home-actions-primary { display: grid; gap: 10px; }
 /* UI-fix: визуально отделяем действия от списка персонажей (раньше лепились вплотную) */
 .home-actions-primary { grid-template-columns: 1fr; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-color); }
-.home-utils { grid-template-columns: 1fr 1fr; margin-top: 10px; }
-.home-actions-primary > button,
-.home-utils > button { margin: 0; }
+.home-actions-primary > button { margin: 0; }
+
+/* STYLE-8M: «Данные» — шесть действий были кнопками-коробками в сетке 2–3
+   колонки. Класс .home-utils остался только в этом окне (сетка утилит с
+   главной уехала в модалку в MENU-10), поэтому правило переписано по месту:
+   действие = плоская строка с ромбом, как пункт бокового меню.
+   Порядок решает вместо специфичности: button.secondary (0,1,1) объявлена
+   выше (style.css ~3035), .home-utils > button — та же специфичность ниже. */
+.home-utils { display: flex; flex-direction: column; margin-top: var(--sp-2); }
+.home-utils > button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  /* Жёлоб под ромб — от его размера, а не от --sp-*: узкая шкала сжимается. */
+  padding: var(--sp-3) var(--sp-2) var(--sp-3) calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
+  min-height: var(--control-h, 44px);
+  /* Без flex-shrink:0 строка в колоночном флексе прижимается прокруткой окна
+     до 42px — меньше пальца (гоча 8L про min-height строки). */
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--text);
+  font-size: var(--fs-md);
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--t2) var(--ez-out), color var(--t1) var(--ez-out);
+}
+.home-utils > button + button { border-top: 1px solid var(--home-rule); }
+.home-utils > button::before {
+  content: "";
+  position: absolute;
+  left: var(--sp-2);
+  top: calc(50% - var(--home-bullet) / 2);
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--home-accent);
+  transition: transform var(--t2) var(--ez-out), background var(--t2) var(--ez-out);
+}
+.home-utils > button [data-ico] { opacity: 0.75; flex: 0 0 auto; }
+.home-utils-label { position: relative; font-family: var(--font-display); }
+.home-utils-label::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 0;
+  height: 1.5px;
+  background: var(--accent-hi);
+  transition: width var(--t2) var(--ez-out);
+}
+/* Клавиатурная половина ВНЕ media (hover:hover): планшет с клавиатурой обязан
+   получать ту же отдачу, что курсор. */
+.home-utils > button:focus-visible { color: var(--accent-lo); transform: translateX(var(--home-shift)); }
+.home-utils > button:focus-visible::before { transform: rotate(135deg); background: var(--home-accent); }
+.home-utils > button:focus-visible .home-utils-label::after { width: 100%; }
+@media (hover: hover) {
+  .home-utils > button:hover { background: none; color: var(--accent-lo); transform: translateX(var(--home-shift)); }
+  .home-utils > button:hover::before { transform: rotate(135deg); background: var(--home-accent); }
+  .home-utils > button:hover .home-utils-label::after { width: 100%; }
+}
+
+/* Панель резервных копий: инлайновые стили из app-backup.js переехали сюда,
+   строка копии собрана по тому же рецепту — дата serif, причина подстрочником,
+   «Восстановить» приглушённым действием справа. */
+.backup-storage-status { margin-top: var(--sp-2); font-size: var(--fs-sm); color: var(--home-sub); }
+.backup-panel-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--home-rule);
+}
+.backup-panel-hint { flex: 1; font-size: var(--fs-sm); color: var(--home-sub); }
+.backup-create-btn {
+  position: relative;
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0;
+  padding: var(--sp-2) 2px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--accent-lo);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--t1) var(--ez-out);
+}
+.backup-create-btn::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  bottom: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
+}
+.backup-create-btn:hover { background: none; color: var(--accent); }
+.backup-create-btn:hover::after,
+.backup-create-btn:focus-visible::after { width: calc(100% - 4px); }
+.backup-empty { padding: var(--sp-3) 0; font-size: var(--fs-sm); color: var(--home-sub); }
+.backup-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) 2px var(--sp-3) calc(var(--home-bullet) + var(--sp-3));
+}
+.backup-item + .backup-item { border-top: 1px solid var(--home-rule); }
+.backup-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc(50% - var(--home-bullet) / 2);
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--home-accent);
+}
+.backup-info { flex: 1; min-width: 0; }
+.backup-when { font-family: var(--font-display); font-size: var(--fs-sm); color: var(--text); }
+.backup-meta { font-size: var(--fs-sm); color: var(--home-sub); }
+/* Действие строки проявляется на наведении и с клавиатуры — как ✎/🗑 в «Записях». */
+.backup-restore-btn {
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0;
+  padding: var(--sp-2) 2px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--accent-lo);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  opacity: 0.4;
+  cursor: pointer;
+  transition: opacity var(--t1) var(--ez-out), color var(--t1) var(--ez-out);
+}
+.backup-item:hover .backup-restore-btn,
+.backup-item:focus-within .backup-restore-btn { opacity: 1; }
+.backup-restore-btn:hover { background: none; color: var(--accent); opacity: 1; }
+
+/* STYLE-8M: заголовок окна — serif по левому краю с волосяным разделителем,
+   как шапка «Настроек». Точечно по id: остальные .party-modal-box (NPC,
+   соратник, монстр SRD) сводятся отдельно, их h4 остаётся по центру.
+   #data-modal h4 (1,0,1) бьёт .party-modal-box h4 (0,1,1). */
+#data-modal h4,
+#about-modal h4 {
+  margin: 0 0 var(--sp-3);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--home-rule);
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--text);
+}
 
 /* Дымка v5: сетка персонажей 1 / 2 / 3 / 4 колонки на 620 / 1000 / 1560px */
 @media (min-width: 620px) {
@@ -3951,7 +4163,6 @@ transition: all 0.18s;
 }
 @media (min-width: 768px) {
   .home-actions-primary { grid-template-columns: 1fr 1fr; }
-  .home-utils { grid-template-columns: repeat(3, 1fr); }
 }
 @media (min-width: 1000px) {
   /* Максимум 3 колонки — 4 слишком сжимали карточки (фидбек юзера) */
@@ -9111,36 +9322,28 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 
 /* ========== APP VERSION ========== */
+/* STYLE-8M: полоса версии была коробкой с зелёной заливкой и бейджем-пилюлей.
+   Стала строкой окна: номер версии serif слева, состояние подписью следом;
+   появление обновления кодирует цвет, а не подложка. */
 .app-version-row {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 10px;
   flex-wrap: wrap;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: rgba(87,179,109,0.06);
-  border: 1px solid rgba(87,179,109,0.15);
-  transition: all 0.3s;
-}
-.app-version-row.has-update {
-  background: rgba(212,168,67,0.1);
-  border-color: rgba(212,168,67,0.35);
+  padding: 0 0 var(--sp-3);
+  border-radius: 0;
+  background: none;
+  border: 0;
+  transition: color 0.3s;
 }
 .app-version-badge {
-  font-size: 0.75em;
-  background: rgba(87,179,109,0.15);
-  border: 1px solid rgba(87,179,109,0.3);
-  color: var(--success-color);
-  padding: 3px 10px;
-  border-radius: var(--r-md);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  color: var(--success);
   font-weight: 700;
   flex-shrink: 0;
 }
-.app-version-row.has-update .app-version-badge {
-  background: rgba(212,168,67,0.15);
-  border-color: rgba(212,168,67,0.4);
-  color: var(--accent-color);
-}
+.app-version-row.has-update .app-version-badge { color: var(--accent-lo); }
 .app-version-status {
   font-size: 0.78em;
   color: var(--text-muted);
@@ -9416,109 +9619,133 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 
 /* ========== PROFILES TABS (Чейнджлог) ========== */
 .profiles-bottom-card { padding: 14px 16px 16px !important; }
+/* STYLE-8M: под-табы «О приложении» / «Изменения» — подписи с растущим
+   подчёркиванием вместо пилюль (тот же рецепт, что под-табы «Записей»). */
 .profiles-tabs-row {
   display: flex;
-  gap: 6px;
+  gap: 0 var(--sp-5);
   margin-bottom: 14px;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 10px;
+  border-bottom: 1px solid var(--home-rule);
+  padding-bottom: 0;
 }
 .ptab-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.82em;
-  font-weight: 600;
+  position: relative;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 500;
   cursor: pointer;
-  padding: 5px 12px;
-  border-radius: var(--r-sm);
+  padding: var(--sp-2) 2px;
   width: auto;
   margin: 0;
-  transition: all 0.18s;
+  transition: color var(--t1) var(--ez-out);
 }
-.ptab-btn:hover { color: var(--text-color); background: rgba(255,255,255,0.05); transform: none; box-shadow: none; }
-.ptab-btn.active {
-  background: rgba(212,168,67,0.12);
-  color: var(--accent-color);
-  border: 1px solid rgba(212,168,67,0.25);
+.ptab-btn::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  bottom: -1px;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
 }
+.ptab-btn:hover { color: var(--accent-lo); background: none; transform: none; box-shadow: none; }
+.ptab-btn:hover::after,
+.ptab-btn:focus-visible::after { width: calc(100% - 4px); }
+.ptab-btn.active { background: none; border: 0; color: var(--accent-lo); font-weight: 700; }
+.ptab-btn.active::after { width: calc(100% - 4px); }
+.ptab-btn [data-ico] { opacity: 0.75; }
 .ptab-content { animation: fadeIn 0.18s ease; }
 
+/* Четыре факта о приложении — плоский список с мелким ромбом вместо коробок. */
 .app-info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
   margin-top: 10px;
 }
 .app-info-item {
-  font-size: 0.75em;
-  color: var(--text-mute);
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: var(--r-sm);
-  padding: 7px 10px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0 2px calc(6px + var(--sp-3));
+  font-size: var(--fs-sm);
+  color: var(--home-sub);
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+.app-info-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc(50% - 3px);
+  width: 6px;
+  height: 6px;
+  transform: rotate(45deg);
+  border: 1px solid var(--home-accent);
 }
 
+/* Три внешние ссылки были коробками в бренд-цветах (9 сырых hex/rgba, у tg и
+   boosty контраст на светлой темe 2.5–3.2). Бренд здесь — украшение, а не
+   данные: ссылки стали такими же текстовыми действиями, как везде, а различает
+   их иконка STYLE-7. */
 .app-links-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
   margin-top: 10px;
 }
 .app-link-btn {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  padding: 9px 12px;
-  font-size: 0.8em;
+  padding: var(--sp-3) 2px;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
   font-weight: 500;
+  color: var(--accent-lo);
   text-decoration: none;
-  border-radius: var(--r-sm);
-  border: 1px solid;
-  transition: background 0.15s, border-color 0.15s, filter 0.15s;
+  border-radius: 0;
+  border: 0;
+  background: none;
+  transition: color var(--t1) var(--ez-out);
 }
-.app-link-btn:hover { filter: brightness(1.1); }
-.app-link-btn-tg {
-  color: #2aabee;
-  background: rgba(42,171,238,0.08);
-  border-color: rgba(42,171,238,0.25);
+.app-link-btn + .app-link-btn { border-top: 1px solid var(--home-rule); }
+.app-link-btn::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  bottom: var(--sp-2);
+  width: 0;
+  height: 1.5px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
 }
-.app-link-btn-tg:hover {
-  background: rgba(42,171,238,0.16);
-  border-color: rgba(42,171,238,0.5);
-}
-.app-link-btn-donate {
-  color: #d4a843;
-  background: rgba(212,168,67,0.08);
-  border-color: rgba(212,168,67,0.25);
-}
-.app-link-btn-donate:hover {
-  background: rgba(212,168,67,0.16);
-  border-color: rgba(212,168,67,0.5);
-}
-.app-link-btn-boosty {
-  color: #f15f2c;
-  background: rgba(241,95,44,0.08);
-  border-color: rgba(241,95,44,0.25);
-}
-.app-link-btn-boosty:hover {
-  background: rgba(241,95,44,0.16);
-  border-color: rgba(241,95,44,0.5);
-}
+.app-link-btn:hover { filter: none; color: var(--accent); }
+.app-link-btn:hover::after,
+.app-link-btn:focus-visible::after { width: calc(100% - 4px); }
+.app-link-btn [data-ico] { opacity: 0.75; }
 
 /* ── Changelog entries ── */
 #changelog-list { display: flex; flex-direction: column; gap: 12px; max-height: 420px; overflow-y: auto; }
+/* STYLE-8M: запись версии была коробкой; стала плоской записью — номер serif,
+   дата значением справа, между версиями волосяной разделитель. Свежесть
+   кодирует цвет номера (.cl-version-latest ниже), а не подложка. */
 .cl-version {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: var(--r-md);
-  padding: 10px 13px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0 2px var(--sp-3);
 }
-.cl-version-latest {
-  border-color: rgba(212,168,67,0.25);
-  background: rgba(212,168,67,0.04);
-}
+.cl-version + .cl-version { border-top: 1px solid var(--home-rule); padding-top: var(--sp-3); }
 .cl-version-header {
   display: flex;
   align-items: center;
@@ -9527,11 +9754,12 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   flex-wrap: wrap;
 }
 .cl-version-num {
-  font-size: 0.95em;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 700;
   color: var(--text-color);
 }
-.cl-version-latest .cl-version-num { color: var(--accent-color); }
+.cl-version-latest .cl-version-num { color: var(--accent-lo); }
 .cl-version-date {
   font-size: 0.7em;
   color: var(--text-muted);
@@ -9540,15 +9768,15 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .cl-badge {
   font-size: 0.6em;
   font-weight: 700;
-  padding: 2px 7px;
-  border-radius: var(--r-sm);
+  padding: 0;
+  border-radius: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 .cl-badge-new {
-  background: rgba(77,168,67,0.15);
-  color: #4da843;
-  border: 1px solid rgba(77,168,67,0.3);
+  background: none;
+  border: 0;
+  color: var(--success);
 }
 .cl-items { display: flex; flex-direction: column; gap: 4px; }
 .cl-item {
@@ -9603,18 +9831,35 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   margin-bottom: 10px;
 }
 .cl-toolbar-hint { font-size: 0.72em; color: var(--text-muted); }
+/* STYLE-8M: переход в полный лог был кнопкой-коробкой — стал подписью с
+   растущим подчёркиванием, как остальные действия окна. */
 .cl-full-log {
-  font-size: 0.75em;
-  font-weight: 700;
-  color: var(--text-color);
+  position: relative;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--accent-lo);
   text-decoration: none;
-  padding: 5px 10px;
-  border: 1px solid var(--accent-lo);
-  border-radius: var(--r-sm);
-  background: var(--accent-soft);
+  padding: var(--sp-2) 2px;
+  border: 0;
+  border-radius: 0;
+  background: none;
   white-space: nowrap;
+  transition: color var(--t1) var(--ez-out);
 }
-.cl-full-log:hover { border-color: var(--accent-color); background: var(--accent-glow); }
+.cl-full-log::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  bottom: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
+}
+.cl-full-log:hover { background: none; color: var(--accent); }
+.cl-full-log:hover::after,
+.cl-full-log:focus-visible::after { width: calc(100% - 4px); }
 
 /* ========== TAKEN FEATS ========== */
 .taken-feats-header {
@@ -10492,19 +10737,37 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .welcome-back:hover { color: var(--text-color); }
 
 /* Строка «Показать обучение заново» в настройках */
+/* STYLE-8M: единственное действие среди строк-настроек — подпись с растущим
+   подчёркиванием, как «＋ Событие» в «Журнале». */
 .onboarding-restart-btn {
-  width: 100%;
-  margin: 0;
-  padding: 8px 10px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  background: var(--bg-2);
-  color: var(--text);
+  position: relative;
+  width: auto;
+  margin: 0 0 0 auto;
+  padding: var(--sp-2) 2px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--accent-lo);
+  font-family: var(--font-display);
   font-size: var(--fs-sm);
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color var(--t1) var(--ez-out);
 }
-.onboarding-restart-btn:hover { background: var(--bg-3); border-color: var(--accent); }
+.onboarding-restart-btn::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  bottom: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--accent);
+  transition: width var(--t2) var(--ez-out);
+}
+.onboarding-restart-btn:hover { background: none; box-shadow: none; color: var(--accent); }
+.onboarding-restart-btn:hover::after,
+.onboarding-restart-btn:focus-visible::after { width: calc(100% - 4px); }
 
 @media (max-width: 600px) {
   /* На телефоне модалка и так во всю ширину (.modal-content margin:10px auto) — особый cap не нужен. */
@@ -13618,7 +13881,6 @@ textarea:focus-visible {
 :root[data-theme="light"] .hp-preset-heal { color: var(--success); }
 :root[data-theme="light"] .res-btn-use { color: var(--danger); }
 :root[data-theme="light"] .res-btn-reset { color: var(--success); }
-:root[data-theme="light"] .app-link-btn-tg { color: #1272ad; }
 :root[data-theme="light"] .notes-modal-pin-label { color: var(--accent-lo); }
 :root[data-theme="light"] .wf-chip.active { color: #fff; }
 

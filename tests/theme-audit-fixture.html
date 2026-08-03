@@ -149,6 +149,23 @@ f.addEventListener('load', () => {
       if (modal === 'settings') w.openSettingsModal();
       else if (modal === 'whatsnew') w.showWhatsNewModal('3.42.0', (w.APP_VERSION || '3.43.3'));
       else if (modal === 'levelup') w.openLevelUpModal();
+      // STYLE-8M: окна встречающего экрана. &backup=1 разворачивает панель
+      // резервных копий и кладёт в неё одну свежую (иначе список пуст).
+      else if (modal === 'data') {
+        w.openDataModal();
+        if (q.get('backup')) {
+          try { await w.createBackupNow(); } catch (e) { beacon('ERR backup ' + e.message); }
+          try { w.toggleBackupPanel(); } catch (e) {}
+        }
+      }
+      else if (modal === 'about') {
+        w.openAboutModal();
+        // &ptab=changelog — вторая вкладка окна (список версий).
+        if (q.get('ptab') === 'changelog') {
+          const b = w.document.querySelectorAll('.ptab-btn')[1];
+          if (b) w.switchProfilesTab('changelog', b);
+        }
+      }
       setTimeout(() => {
         const sc = parseInt(q.get('scroll') || '0', 10);
         if (sc) { try { w.scrollTo(0, sc); w.document.documentElement.scrollTop = sc; } catch (e) {} }
