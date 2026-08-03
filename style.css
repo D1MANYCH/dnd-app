@@ -778,12 +778,12 @@ html.glass-adjusting *::after {
    исключение в самом блоке дешевле перебивки. */
 :root[data-theme="light"] .notes-modal-textarea,
 :root[data-theme="light"] textarea:not(.notes-section-input),
-:root[data-theme="light"] input[type="text"],
+:root[data-theme="light"] input[type="text"]:not(.bp-search),
 :root[data-theme="light"] input[type="number"]:not(.inv-coin-big-inp),
 :root[data-theme="light"] input[type="search"]:not(.notes-search),
 :root[data-theme="light"] input[type="url"],
 :root[data-theme="light"] input[type="email"],
-:root[data-theme="light"] select {
+:root[data-theme="light"] select:not(.bp-select) {
   background: var(--bg-1) !important;
   border: 1px solid var(--border) !important;
   color: var(--text) !important;
@@ -791,8 +791,8 @@ html.glass-adjusting *::after {
 :root[data-theme="light"] textarea::placeholder,
 :root[data-theme="light"] input::placeholder { color: var(--text-mute) !important; }
 :root[data-theme="light"] textarea:focus:not(.notes-section-input),
-:root[data-theme="light"] input:focus:not(.inv-coin-big-inp):not(.notes-search),
-:root[data-theme="light"] select:focus {
+:root[data-theme="light"] input:focus:not(.inv-coin-big-inp):not(.notes-search):not(.bp-search),
+:root[data-theme="light"] select:focus:not(.bp-select) {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 3px var(--accent-soft) !important;
   background: var(--bg-1) !important;
@@ -3743,15 +3743,8 @@ filter: brightness(1.7) saturate(1.3) contrast(1.15);
 .pcard-icon,
 .battle-setup-icon,
 .tracker-icon,
-.bp-card-class-icon,
 .avatar-modal-placeholder,
 #tinfo-icon { padding: 0; overflow: hidden; }
-.bp-card-class-icon {
-width: 52px; height: 52px; border-radius: var(--r-md);
-display: inline-flex; align-items: center; justify-content: center;
-flex-shrink: 0; margin-right: 10px; overflow: hidden;
-}
-.bp-card-class-icon .class-icon-svg { width: 100%; height: 100%; object-fit: contain; }
 
 /* Fallback-аватар (фигура в плаще) — заменяет эмодзи 🎭 когда нет билда и нет класса */
 .header-avatar-fallback,
@@ -3767,9 +3760,6 @@ flex-shrink: 0; margin-right: 10px; overflow: hidden;
   width: 100%;
   height: 100%;
   border-radius: 50%;
-}
-.bp-card-class-icon .class-icon-fallback-img {
-  border-radius: var(--r-md);
 }
 .char-edition-badge {
   display: inline-block;
@@ -10260,20 +10250,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 
 /* =============================================
    HELP / ONBOARDING (HELP-1) — табовый help-центр.
-   Опирается на .item-ref-* и базовый .modal-content.
+   STYLE-8M-2b: справка стала экраном-страницей (.page-screen/.page-stage);
+   оболочка модалки, крестик и внутренний скролл сняты — страницу скроллит окно.
 ============================================= */
-.help-content {
-  max-width: 680px;
-  max-height: 88vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;          /* скролл уходит в .help-body, табы остаются на месте */
-}
-.help-content > h3 {
-  margin: 0 0 14px;
-  padding-right: 44px;       /* место под кнопку × */
-  flex-shrink: 0;
-}
 /* STYLE-8M-2: под-таб справки — не коробка, а подпись с растущим
    подчёркиванием (рецепт «Журнала» и «О версии»). Десять !important сняты: с
    STYLE-4 база button{} вида и ширины не задаёт, перебивать больше нечего. */
@@ -10326,12 +10305,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .help-tab:hover::after,
 .help-tab:focus-visible::after { width: calc(100% - 4px); }
 .help-tab [data-ico] { opacity: 0.75; }
-.help-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 4px;
-}
+.help-body { min-width: 0; }
 .help-section { display: flex; flex-direction: column; gap: 0; }
 .help-section.hidden { display: none; }
 /* Блок справки — плоская строка: коробка снята, границу держит волосяной
@@ -10412,9 +10386,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .help-link:hover::after,
 .help-link:focus-visible::after { width: 100%; }
 
-/* Help-центр всегда поверх контента (как item-ref) */
-#help-modal { z-index: 400; }
-
 /* Каскад появления раздела: секции переключаются классом .hidden, display:none
    не крутит анимаций — вход перезапускается сам, JS не нужен. */
 .help-section:not(.hidden) > * { animation: rise var(--t3) var(--ez-out) both; }
@@ -10428,7 +10399,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 
 @media (max-width: 600px) {
-  .help-content { max-height: 92vh; }
   .help-tabs { gap: 0 var(--sp-3); }
 }
 
@@ -13127,64 +13097,122 @@ mark.notes-hl {
 }
 
 
-/* ── BUILD-2: Build picker modal ───────────────────────────────────────────── */
-.bp-modal { max-width: 640px; }
-.bp-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; padding-right:30px; }
-.bp-title { font-size:1.15em; font-weight:600; color:var(--accent); }
+/* ── BUILD-2: пикер билдов ─────────────────────────────────────────────────
+   STYLE-8M-2b: экран в языке встречающего меню — ни одной коробки. Билд =
+   строка меню: ромб цвета класса, serif-название, роль значением справа,
+   между строками волосяной разделитель. Скроллит страницу окно, поэтому
+   внутреннего max-height у списка больше нет. */
 /* flex-wrap: на телефоне поиск занимает первую строку, пары «подпись+селект»
    переносятся на вторую целиком; без переноса селекты сжимались до нуля (виден
    только шеврон), а подпись отрывалась от своего селекта. */
-.bp-filter-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-.bp-filter-group { display:flex; align-items:center; gap:8px; flex:1 1 140px; min-width:130px; }
-.bp-filter-label { font-size:0.9em; color:var(--text-muted); }
-.bp-select { flex:1; min-width:80px; padding:6px 10px; background:var(--bg-3); color:var(--text-color); border:1px solid var(--border); border-radius:var(--r-sm,8px); }
-.bp-list { display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow-y:auto; }
-.bp-empty { text-align:center; color:var(--text-muted); padding:20px; }
-.bp-card { background:var(--bg-3); border:1px solid var(--border); border-radius:var(--r-md,10px); padding:12px 14px; cursor:pointer; transition:transform .12s, border-color .12s, box-shadow .12s; }
-.bp-card:hover { border-color:var(--accent); box-shadow:var(--sh-1, 0 2px 8px rgba(0,0,0,.25)); }
-.bp-card-head { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px; }
-.bp-card-title { font-weight:600; color:var(--text-color); }
-.bp-role-badge { font-size:0.75em; padding:2px 8px; border-radius:999px; background:var(--bg-2); border:1px solid var(--border); color:var(--text-muted); }
-.bp-role-DPS { color:#e74c3c; border-color:#e74c3c; }
-.bp-role-Tank { color:#2980b9; border-color:#2980b9; }
-.bp-role-Control { color:#8e44ad; border-color:#8e44ad; }
-.bp-role-Support { color:#27ae60; border-color:#27ae60; }
-.bp-role-Utility { color:#f39c12; border-color:#f39c12; }
-.bp-card-sub { font-size:0.85em; color:var(--accent); margin-bottom:6px; }
-.bp-card-summary { font-size:0.88em; color:var(--text-muted); margin-bottom:8px; line-height:1.4; }
-/* BUILD-DESC-2: мини-гайд (pitch + плюсы/минусы) в карточке пикера */
-.bp-card-guide { margin: 4px 0 8px; padding: 8px 10px; background: var(--list-solid); border-left: 2px solid var(--accent, #c9a24a); border-radius: 4px; }
-.bp-pitch { font-size: 0.88em; line-height: 1.45; color: var(--text, #e8e2d4); margin-bottom: 6px; font-weight: 500; }
+.bp-filter-row { display:flex; align-items:baseline; gap: var(--sp-3); margin-bottom: var(--sp-4); flex-wrap:wrap; }
+.bp-filter-group { display:flex; align-items:baseline; gap: var(--sp-2); flex:1 1 140px; min-width:130px; }
+.bp-filter-label {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--home-sub);
+}
+/* Поле остаётся полем (это ввод, а не действие) — но без заливки и радиуса:
+   вес держит одна нижняя линия. */
+/* Тег в селекторе обязателен: базовое `input[type="text"]` (0,1,1) бьёт голый
+   класс (0,1,0) и возвращает полю рамку с заливкой. */
+select.bp-select,
+input.bp-search {
+  flex: 1;
+  min-width: 80px;
+  -webkit-appearance: none;
+  appearance: none;
+  padding: var(--sp-2) 2px;
+  background: none;
+  color: var(--text-color);
+  border: 0;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  transition: border-color var(--t1) var(--ez-out);
+}
+input.bp-search { flex: 1 1 220px; min-width: 180px; }
+select.bp-select:focus,
+input.bp-search:focus {
+  outline: none;
+  background: none;
+  border-bottom-color: var(--accent);
+  box-shadow: none;
+}
+/* appearance:none снимает и нативный шеврон — возвращаем его подписью группы. */
+.bp-filter-group { position: relative; }
+.bp-filter-group::after {
+  content: "▾";
+  position: absolute;
+  right: 2px;
+  bottom: var(--sp-2);
+  color: var(--home-sub);
+  pointer-events: none;
+}
+select.bp-select { padding-right: var(--sp-4); }
+.bp-list { display:flex; flex-direction:column; }
+.bp-empty { color: var(--home-sub); padding: var(--sp-4) 0; }
+.bp-card {
+  position: relative;
+  padding: var(--sp-3) 0 var(--sp-3) calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
+  border-top: 1px solid var(--home-rule);
+  background: none;
+  cursor: pointer;
+  transition: padding-left var(--t2) var(--ez-out);
+}
+.bp-list > .bp-card:first-child { border-top: 0; }
+/* Ромб красится цветом класса: --home-accent строке ставит renderBuildPicker. */
+.bp-card::before {
+  content: "";
+  position: absolute;
+  left: var(--sp-2);
+  top: calc(var(--sp-3) + 0.4em);
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--home-accent, var(--accent));
+  transition: background var(--t1) var(--ez-out);
+}
+.bp-card:hover::before,
+.bp-card:focus::before,
+.bp-card:focus-visible::before { background: var(--home-accent, var(--accent)); }
+.bp-card:hover,
+.bp-card:focus-visible { padding-left: calc(var(--sp-2) + var(--home-bullet) + var(--sp-3) + var(--home-shift)); }
+.bp-card:focus { outline: none; }
+.bp-card:focus-visible { outline: none; }
+.bp-card-head { display:flex; justify-content:space-between; align-items:baseline; gap: var(--sp-3); margin-bottom: 2px; }
+.bp-card-title { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; color: var(--text-color); }
+/* Роль — значение справа строки, без пилюли; цвет остаётся кодировкой. */
+.bp-role-badge { flex-shrink: 0; font-family: var(--font-display); font-size: var(--fs-xs); color: var(--home-sub); }
+.bp-role-DPS { color: var(--danger); }
+.bp-role-Tank { color: var(--info); }
+.bp-role-Control { color: var(--magic); }
+.bp-role-Support { color: var(--success); }
+.bp-role-Utility { color: var(--slot-gold); }
+.bp-card-sub { font-size: var(--fs-sm); color: var(--accent-lo); margin-bottom: 4px; }
+.bp-card-summary { font-size: var(--fs-sm); color: var(--home-sub); margin-bottom: var(--sp-2); line-height:1.4; }
+/* BUILD-DESC-2: мини-гайд (pitch + плюсы/минусы) — тоже без коробки. */
+.bp-card-guide { margin: 0 0 var(--sp-2); }
+.bp-pitch { font-size: var(--fs-sm); line-height: 1.45; color: var(--text-color); margin-bottom: 4px; }
 .bp-bullets { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; }
-.bp-bullets li { font-size: 0.82em; line-height: 1.35; color: var(--text-muted); }
+.bp-bullets li { font-size: var(--fs-xs); line-height: 1.35; color: var(--home-sub); }
 .bp-bullets .bp-pro { color: var(--pro-color); }
 .bp-bullets .bp-con { color: var(--con-color); }
-.bp-card-meta { display:flex; gap:12px; flex-wrap:wrap; font-size:0.8em; color:var(--text-muted); }
+/* Мета — текст через точку-разделитель, как чипы на «Мире». */
+.bp-card-meta { display:flex; flex-wrap:wrap; gap: 0 var(--sp-2); font-size: var(--fs-xs); color: var(--home-sub); }
+.bp-card-meta > * + *::before { content: "·"; margin-right: var(--sp-2); color: var(--home-sub); }
 .bp-diff { letter-spacing:2px; }
 .bp-diff-1 { color:var(--diff-1); }
 .bp-diff-2 { color:var(--diff-2); }
 .bp-diff-3 { color:var(--diff-3); }
-.bp-search { flex:1 1 220px; min-width:180px; background:var(--bg-3); color:var(--text-color); border:1px solid var(--border); border-radius:var(--r-sm,8px); padding:6px 10px; font-size:0.9em; }
-.bp-search:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(201,162,39,.25); }
-.bp-card:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(201,162,39,.3); }
-.bp-footer { margin-top:14px; display:flex; justify-content:flex-end; }
 
-/* UI4-glass: читаемость карточек билдов в светлой теме — глобальные цвета
-   (--text-muted, светлый #7fc08a/#d68a8a, rgba(255,255,255,.03)) блёкнут на
-   светлом стекле. Усиливаем контраст для light и auto+OS-light. */
-:root[data-theme="light"] .bp-card-sub {
-  color: var(--accent-lo); font-weight: 600;
-}
-:root[data-theme="light"] .bp-card-summary,
-:root[data-theme="light"] .bp-bullets li,
-:root[data-theme="light"] .bp-card-meta,
-:root[data-theme="light"] .bp-role-badge {
-  color: var(--text-dim);
-}
-:root[data-theme="light"] .bp-card-guide {
-  background: var(--bg-2);
-  border-left-color: var(--accent);
-}
+/* STYLE-8M-2b: перебивки светлой темы для строк пикера сняты — коробок больше
+   нет, а цвета строки взяты из палитры встречающего экрана (--home-sub,
+   --accent-lo), она читаема в обеих темах. Остались только pro/con — их
+   перебивает `.bp-bullets li` по специфичности. */
 /* THEME-5: диф-цвета .bp-diff-1/2/3 / .bg-mark / .bg-diff-dots переведены на
    токены diff / pro-color / con-color (light-пары в теме) — хардкод-дубли
    удалены. .bp-pro/.bp-con остаются под light/auto-override на ТЕХ ЖЕ токенах:
@@ -13192,12 +13220,6 @@ mark.notes-hl {
 :root[data-theme="light"] .bp-bullets .bp-pro { color: var(--pro-color); }
 :root[data-theme="light"] .bp-bullets .bp-con { color: var(--con-color); }
 @media (prefers-color-scheme: light) {
-  :root[data-theme="auto"] .bp-card-sub { color: var(--accent-lo); font-weight: 600; }
-  :root[data-theme="auto"] .bp-card-summary,
-  :root[data-theme="auto"] .bp-bullets li,
-  :root[data-theme="auto"] .bp-card-meta,
-  :root[data-theme="auto"] .bp-role-badge { color: var(--text-dim); }
-  :root[data-theme="auto"] .bp-card-guide { background: var(--bg-2); border-left-color: var(--accent); }
   :root[data-theme="auto"] .bp-bullets .bp-pro { color: var(--pro-color); }
   :root[data-theme="auto"] .bp-bullets .bp-con { color: var(--con-color); }
 }
@@ -13210,17 +13232,39 @@ mark.notes-hl {
 .char-build-badge:hover { background:var(--accent); color:var(--bg-1, #000); }
 .char-build-badge:active { transform: scale(0.97); }
 /* BUILD-DESC-3: модалка гайда по билду */
-.bg-modal { max-width: 720px; max-height: 88vh; display:flex; flex-direction:column; }
-.bg-header { display:flex; align-items:center; justify-content:space-between; padding: 12px 16px; border-bottom: 1px solid var(--border, rgba(255,255,255,0.08)); }
-.bg-title { font-size: 1.1em; font-weight: 600; color: var(--accent); }
-.bg-body { padding: 14px 18px; overflow-y: auto; flex: 1; line-height: 1.5; }
-.bg-meta { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; font-size:0.88em; color:var(--text-muted); }
-.bg-meta .bg-cls { font-weight:600; color:var(--accent); }
-.bg-meta .bg-role { padding:1px 8px; background:rgba(255,255,255,0.06); border-radius:4px; }
-.bg-pitch { font-size:1em; font-weight:500; padding:10px 12px; background:rgba(201,162,74,0.08); border-left:3px solid var(--accent); border-radius:4px; margin-bottom:14px; line-height:1.45; }
-.bg-section { margin: 14px 0; }
-.bg-section h3 { margin: 0 0 6px; font-size: 0.98em; color: var(--accent); font-weight: 600; }
-.bg-section p { margin: 0; color: var(--text); font-size: 0.92em; }
+/* STYLE-8M-2b: гайд и план развития — экраны-страницы. Оболочка модалки
+   (шапка с крестиком, футер «Понятно», внутренний скролл) снята: раздел =
+   плоская строка с ромбом у заголовка, между разделами волосяной разделитель. */
+.bg-body { min-width: 0; line-height: 1.5; }
+/* Мета — текст через точку-разделитель, как в пикере. */
+.bg-meta { display:flex; flex-wrap:wrap; gap: 0 var(--sp-2); margin-bottom: var(--sp-3); font-size: var(--fs-sm); color: var(--home-sub); }
+.bg-meta > * + *::before { content: "·"; margin-right: var(--sp-2); color: var(--home-sub); }
+.bg-meta .bg-cls { font-family: var(--font-display); font-weight: 700; color: var(--text-color); }
+.bg-meta .bg-role { color: var(--home-sub); }
+/* Питч билда — строка с рельсой, как «Продолжить» на встречающем экране. */
+.bg-pitch {
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-2) 0 var(--sp-2) var(--sp-4);
+  border-left: var(--home-rail-w) solid var(--accent);
+  font-size: var(--fs-md);
+  line-height: 1.45;
+  color: var(--text-color);
+}
+.bg-section { margin: 0; padding: var(--sp-4) 0; border-top: 1px solid var(--home-rule); }
+/* Ромба у заголовка раздела нет намеренно: STYLE-7 уже поставила туда иконку
+   раздела, ромб был бы вторым маркером в одной строке (гоча 8M-1). */
+.bg-section h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-2);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--text-color);
+}
+.bg-section h3 .dico { opacity: .75; }
+.bg-section p { margin: 0; color: var(--text); font-size: var(--fs-sm); }
 .bg-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:4px; }
 .bg-list li { font-size: 0.9em; line-height:1.4; padding-left:4px; }
 .bg-list .bg-mark { display:inline-block; min-width:14px; font-weight:700; }
@@ -13235,22 +13279,27 @@ mark.notes-hl {
 .bg-diff-legend b { color:var(--text); }
 .bg-diff-dots { letter-spacing:1px; margin-right:2px; }
 .bg-diff-dots.bg-diff-1 { color:var(--pro-color); }
-.bg-diff-dots.bg-diff-2 { color:#d8b24a; }
+.bg-diff-dots.bg-diff-2 { color:var(--diff-2); }
 .bg-diff-dots.bg-diff-3 { color:var(--con-color); }
 .bg-legend { margin-top: 4px; }
+/* Подписи «хрупкий … живучий» должны стоять ровно под краями шкалы — общая
+   ширина у обоих рядов, иначе правая подпись висит посреди строки. */
+.bg-hpscale,
+.bg-hp-ends { max-width: 240px; }
 .bg-hpscale { display:flex; align-items:center; gap:6px; margin:4px 0 2px; flex-wrap:wrap; }
+/* Шкала живучести — подписи, а не пилюли: кость класса несёт цвет и вес. */
 .bg-hp-chip {
-  min-width:34px; text-align:center; padding:4px 9px; border-radius:8px;
-  font-size:0.82em; font-weight:700; color:var(--text-muted);
-  background:var(--bg-3); border:1px solid var(--border, rgba(255,255,255,0.08));
-  transition: color .12s, background .12s, border-color .12s;
+  min-width: 30px; text-align: center; padding: 2px 0;
+  font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 600;
+  color: var(--home-sub);
+  transition: color var(--t1) var(--ez-out);
 }
 .bg-hp-chip.is-active {
-  color:#fff; background:var(--accent); border-color:var(--accent);
-  box-shadow:0 0 0 2px rgba(201,162,74,0.25);
+  color: var(--accent-lo); font-weight: 700;
+  border-bottom: 2px solid var(--accent);
 }
 .bg-hp-arrow { color:var(--text-muted); font-size:0.9em; }
-.bg-hp-ends { display:flex; justify-content:space-between; max-width:204px; font-size:0.72em; color:var(--text-muted); }
+.bg-hp-ends { display:flex; justify-content:space-between; font-size: var(--fs-xs); color: var(--home-sub); }
 .bg-legend-note { margin:6px 0 0; font-size:0.86em; color:var(--text); line-height:1.45; }
 
 /* UX-4: глоссарий-термины + поповер-расшифровка */
@@ -13303,26 +13352,32 @@ mark.notes-hl {
 .dice-reset-btn { width: 100%; }
 .add-spell-form button.success,
 .item-form button.success { width: 100%; }
-.avatar-modal-footer > .btn,
-.bp-footer > .btn,
-.bg-footer > .btn { flex: 1; }
-.bp-plan-body { display: flex; flex-direction: column; gap: 4px; }
-.bp-plan-meta { font-size: 0.85em; color: var(--text-muted); margin-bottom: 8px; }
-.bp-plan-row { display: flex; gap: 10px; align-items: flex-start; padding: 7px 8px; border-radius: 8px; border: 1px solid transparent; }
-.bp-plan-lv {
-  flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%;
-  background: var(--border); color: var(--text);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 13px;
+.avatar-modal-footer > .btn { flex: 1; }
+/* STYLE-8M-2b: план развития — плоские строки. Кружок уровня стал цифрой в
+   жёлобе, текущий и следующий уровень кодируются рельсой слева и цветом, а не
+   подложкой с рамкой (подложка роняет контраст, гоча 8L). */
+.bp-plan-body { display: flex; flex-direction: column; }
+.bp-plan-meta { font-size: var(--fs-sm); color: var(--home-sub); margin-bottom: var(--sp-3); }
+.bp-plan-row {
+  display: flex; gap: var(--sp-3); align-items: baseline;
+  padding: var(--sp-3) 0 var(--sp-3) var(--sp-3);
+  border-top: 1px solid var(--home-rule);
+  border-left: var(--home-rail-w) solid transparent;
 }
-.bp-plan-head { font-weight: 600; font-size: 0.95em; line-height: 1.35; }
-.bp-plan-why { color: var(--text-muted); font-size: 0.88em; margin-top: 2px; line-height: 1.4; }
+.bp-plan-body > .bp-plan-row:first-of-type { border-top: 0; }
+.bp-plan-lv {
+  flex: 0 0 auto; min-width: 26px; text-align: right;
+  font-family: var(--font-display); font-weight: 700; font-size: var(--fs-sm);
+  color: var(--home-sub);
+}
+.bp-plan-head { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-sm); line-height: 1.35; color: var(--text-color); }
+.bp-plan-why { color: var(--home-sub); font-size: var(--fs-sm); margin-top: 2px; line-height: 1.4; }
 .bp-plan-row.past { opacity: 0.5; }
-.bp-plan-row.current { border-color: var(--accent); background: var(--surface-modal, rgba(255,255,255,0.05)); }
-.bp-plan-row.current .bp-plan-lv { background: var(--accent); color: #fff; }
-.bp-plan-row.next { border-color: var(--border); border-style: dashed; }
-.bp-plan-tag { display: inline-block; margin-left: 8px; font-size: 0.7em; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); vertical-align: middle; }
-.bp-plan-tag.next { color: var(--text-muted); }
+.bp-plan-row.current { border-left-color: var(--accent); }
+.bp-plan-row.current .bp-plan-lv { color: var(--accent-lo); }
+.bp-plan-row.next { border-left-color: var(--home-rule); }
+.bp-plan-tag { display: inline-block; margin-left: var(--sp-2); font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent-lo); vertical-align: middle; }
+.bp-plan-tag.next { color: var(--home-sub); }
 .lu-build-hint-next { font-size: 12px; opacity: 0.82; margin-top: 5px; }
 .lu-build-hint-plan { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--accent); cursor: pointer; text-decoration: underline; background: none; border: none; padding: 0; }
 
@@ -13361,7 +13416,6 @@ mark.notes-hl {
 .lu-apply-all-btn:hover { filter: brightness(1.08); }
 /* Пикеры, запускаемые с экрана выборов, должны лежать выше модалки повышения (z 1000) */
 #class-choice-modal.modal, #spell-search-modal.modal { z-index: 10001; }
-.bg-footer { padding: 10px 16px; border-top: 1px solid var(--border, rgba(255,255,255,0.08)); display:flex; justify-content:flex-end; gap: 10px; }
 .char-build-unlink { background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:var(--r-sm,8px); padding:3px 8px; font-size:0.78em; cursor:pointer; transition:color .12s, border-color .12s; }
 .char-build-unlink:hover { color:#e74c3c; border-color:#e74c3c; }
 
@@ -13803,7 +13857,6 @@ textarea:focus-visible {
 :root[data-theme="light"] .pcard-icon,
 :root[data-theme="light"] .battle-setup-icon,
 :root[data-theme="light"] .tracker-icon,
-:root[data-theme="light"] .bp-card-class-icon,
 :root[data-theme="light"] #tinfo-icon,
 :root[data-theme="light"] .avatar-modal-placeholder,
 :root[data-theme="light"] .sheet-avatar .avatar-icon-btn {

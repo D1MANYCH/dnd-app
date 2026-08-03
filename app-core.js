@@ -318,11 +318,16 @@ if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.e
 // Страницы сервиса стоят ГЛУБЖЕ листа: в них заходят и с меню, и с листа
 // («Настройки оформления» в сайдбаре), и возврат обязан вести туда, откуда
 // пришли, — при равной с листом глубине переход считался бы движением назад.
-var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3 };
+// STYLE-8M-2b: гайд билда и план развития стоят ещё глубже (4) — в них заходят
+// со «Справки»-глубины и с листа, и возврат обязан вести на экран входа.
+var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3,
+                     help: 3, builds: 3, buildguide: 4, buildplan: 4 };
 // Экраны-страницы: у них нет своего персонажа, currentId не трогаем — иначе
 // «Настройки» с листа выбрасывали бы из персонажа.
-var PAGE_SCREENS = ["data", "settings", "about"];
-var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О версии" };
+var PAGE_SCREENS = ["data", "settings", "about", "help", "builds", "buildguide", "buildplan"];
+var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О версии",
+                    help: "Справка", builds: "Готовые билды",
+                    buildguide: "Гайд по билду", buildplan: "План развития" };
 // Стек экранов, из которых уходили вперёд. Не персистится — в рамках сессии.
 var _screenStack = [];
 
@@ -335,6 +340,23 @@ function currentScreenName() {
 /** Возврат на экран, из которого пришли; из корня — во встречающее меню. */
 function screenBack() {
   showScreen(_screenStack.length ? _screenStack[_screenStack.length - 1] : "home");
+}
+
+/**
+ * STYLE-8M-2b: закрыть видимые модалки перед уходом на экран-страницу.
+ * Модалка `fixed` и осталась бы висеть поверх нового экрана: справка
+ * открывается из дайс-модалки, план развития — из окна повышения уровня,
+ * гайд билда — сразу после применения билда из пикера.
+ * Видимость проверяем через offsetParent: класс .active остаётся и на
+ * спрятанных элементах (гоча 8M-2a).
+ */
+function _closeOpenModals() {
+  var m = document.querySelectorAll('.modal.active');
+  for (var i = m.length - 1; i >= 0; i--) {
+    if (m[i].offsetParent === null) continue;
+    if (typeof closeModal === "function") closeModal(m[i].id);
+    else m[i].classList.remove("active");
+  }
 }
 
 /** Кнопка «←» в шапке — тот же возврат по стеку. */

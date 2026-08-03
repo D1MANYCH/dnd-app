@@ -84,7 +84,9 @@
   // STYLE-8M-2: копия глубин из app-core.js — страницы сервиса («Данные»,
   // «Настройки», «О версии») стали экранами и обязаны пушить слой истории,
   // иначе браузерный Back с них уводил бы сразу из приложения.
-  var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3 };
+  // STYLE-8M-2b: справка, пикер билдов, гайд и план развития — тоже экраны.
+  var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3,
+                       help: 3, builds: 3, buildguide: 4, buildplan: 4 };
   function wrapShowScreen() {
     var orig = window.showScreen;
     if (typeof orig !== "function") return false;

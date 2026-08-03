@@ -1,22 +1,23 @@
 // ============================================================
 // app-help.js — Обучение, справка и контекстные подсказки.
-// HELP-1: статичная табовая модалка #help-modal (зеркало item-ref-modal /
-//          openItemRef из app-ui.js). Разделы переключаются через .hidden.
+// HELP-1: статичный табовый экран #screen-help (STYLE-8M-2b: был модалкой
+//          #help-modal). Разделы переключаются через .hidden.
 // Сюда же в следующих фазах HELP лягут контекстные «?», приветствие
 // и движок интерактивного тура.
 // ============================================================
 
-/** Открыть help-центр на нужном разделе (по умолчанию «С чего начать»). */
+/** Открыть help-центр на нужном разделе (по умолчанию «С чего начать»).
+ *  STYLE-8M-2b: справка — экран, а не модалка; вход из дайс-модалки сначала
+ *  закрывает её, иначе она осталась бы висеть поверх страницы. */
 function openHelp(section) {
-  var modal = document.getElementById("help-modal");
-  if (modal) modal.classList.add("active");
+  if (typeof _closeOpenModals === "function") _closeOpenModals();
+  if (typeof showScreen === "function") showScreen("help");
   switchHelpSection(section || 'start', null);
 }
 
-/** Закрыть help-центр. */
+/** Уйти со справки на экран, с которого пришли. */
 function closeHelp() {
-  var modal = document.getElementById("help-modal");
-  if (modal) modal.classList.remove("active");
+  if (typeof screenBack === "function") screenBack();
 }
 
 /**
@@ -26,10 +27,10 @@ function closeHelp() {
  * @param {HTMLElement|null} btnEl кнопка-таб, по которой кликнули (если есть)
  */
 function switchHelpSection(section, btnEl) {
-  document.querySelectorAll("#help-modal .help-section").forEach(function(el) {
+  document.querySelectorAll("#screen-help .help-section").forEach(function(el) {
     el.classList.add("hidden");
   });
-  document.querySelectorAll("#help-modal .help-tab").forEach(function(b) {
+  document.querySelectorAll("#screen-help .help-tab").forEach(function(b) {
     b.classList.remove("active");
   });
   var sec = document.getElementById("help-" + section);
@@ -38,11 +39,11 @@ function switchHelpSection(section, btnEl) {
   if (sec) sec.classList.remove("hidden");
   if (btnEl) btnEl.classList.add("active");
   else {
-    var btn = document.querySelector("#help-modal .help-tab[onclick*=\"'" + section + "'\"]");
+    var btn = document.querySelector("#screen-help .help-tab[onclick*=\"'" + section + "'\"]");
     if (btn) btn.classList.add("active");
   }
   // Прокрутка тела к началу при смене раздела
-  var body = document.querySelector("#help-modal .help-body");
+  var body = document.querySelector("#screen-help .help-body");
   if (body) body.scrollTop = 0;
 }
 
@@ -279,7 +280,14 @@ function _tourFirstVisible(selectors) {
  *  тур листа при создании по билду: гайд авто-открывается через 250мс,
  *  а тур стартовал через 450мс прямо поверх него). */
 function _tourModalOpen() {
-  return !!document.querySelector('.modal.active');
+  // STYLE-8M-2b: класс .active остаётся и на спрятанной модалке — проверяем
+  // видимость, иначе тур не стартовал бы уже никогда. Экран-страница (справка,
+  // гайд билда) тоже перекрывает лист: пока пользователь на ней, тура нет.
+  var m = document.querySelectorAll('.modal.active');
+  for (var i = 0; i < m.length; i++) if (m[i].offsetParent !== null) return true;
+  return typeof currentScreenName === "function" &&
+         typeof PAGE_SCREENS !== "undefined" &&
+         PAGE_SCREENS.indexOf(currentScreenName()) >= 0;
 }
 
 /** Дождаться закрытия всех модалок и вызвать cb (проверка каждые 600мс,
@@ -340,8 +348,12 @@ function maybeStartSheetTour() {
 /** Перезапустить тур из help-центра по текущему экрану. */
 function restartTour() {
   closeHelp();
-  if (window.currentId) startSheetTour();
-  else startListTour();
+  // STYLE-8M-2b: уход со справки — переход между экранами (300 мс). Стартовать
+  // тур сразу нельзя: прожектор целился бы в экран посреди полёта.
+  setTimeout(function () {
+    if (window.currentId) startSheetTour();
+    else startListTour();
+  }, 320);
 }
 
 // ── TOUR-1+: туры по вкладкам (кроме листа и списка) ─────────
@@ -362,9 +374,11 @@ function startTabTour(tab) {
   var entry = TOUR_TABS[tab];
   if (!entry) return;
   closeHelp();
-  if (typeof switchTab === 'function') switchTab(tab);
-  setHelpFlag(entry.flag, '1');
-  startTour(entry.build(), tab);
+  setTimeout(function () {
+    if (typeof switchTab === 'function') switchTab(tab);
+    setHelpFlag(entry.flag, '1');
+    startTour(entry.build(), tab);
+  }, 320);
 }
 
 /** Авто-старт тура при первом заходе на вкладку (хук в switchTab).

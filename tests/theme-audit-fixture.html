@@ -46,9 +46,7 @@ f.addEventListener('load', () => {
       c.inventory.scroll.push({ name: 'Свиток огненного шара', qty: 1, weight: 0, location: 'backpack', desc: 'Огненный шар, 3 ур.' });
       c.inventory.tool.push({ name: 'Воровские инструменты', qty: 1, weight: 1, location: 'backpack', desc: 'Набор инструментов' });
       w.saveToLocal();
-      if (typeof w.closeModal === 'function') { try { w.closeModal('build-guide-modal'); } catch (e) {} }
-      const bg = w.document.getElementById('build-guide-modal');
-      if (bg) { bg.classList.remove('show', 'active'); bg.style.display = 'none'; }
+      // STYLE-8M-2b: гайд билда стал экраном — глушить его модалку больше не надо.
       w.loadCharacter(c.id);
       // STYLE-8e: отряд для вкладки «Мир» — по одному объекту каждого вида,
       // с описанием, тактикой и SRD-бейджами (иначе секции пустые и смотреть нечего).
@@ -180,8 +178,9 @@ f.addEventListener('load', () => {
           try { w.toggleBackupPanel(); } catch (e) {}
         }
       }
-      // STYLE-8M-2: контентные окна. &helptab=<раздел> открывает нужный раздел
-      // справки (по умолчанию «С чего начать» — там кнопка тура).
+      // STYLE-8M-2b: справка, пикер билдов, гайд и план — уже не модалки, а
+      // экраны; параметр &modal=… оставлен прежним, меняются только функции.
+      // &helptab=<раздел> открывает нужный раздел справки.
       else if (modal === 'help') {
         w.openHelp(q.get('helptab') || 'start');
       }

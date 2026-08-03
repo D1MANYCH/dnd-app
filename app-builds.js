@@ -20,8 +20,11 @@ function openBuildPicker() {
   }
   var s = $("bp-search"); if (s) s.value = "";
   renderBuildPicker();
-  openModal("build-picker-modal");
-  setTimeout(function(){ var el = $("bp-search"); if (el) el.focus(); }, 50);
+  // STYLE-8M-2b: пикер — экран. Фокус в поиск даём после перехода (300 мс),
+  // иначе браузер доскроллит уезжающий экран к полю.
+  if (typeof _closeOpenModals === "function") _closeOpenModals();
+  if (typeof showScreen === "function") showScreen("builds");
+  setTimeout(function(){ var el = $("bp-search"); if (el) el.focus(); }, 320);
 }
 
 var BP_ROLE_ICONS = { DPS:"⚔️", Tank:"🛡️", Support:"✨", Control:"🌀", Utility:"🧰" };
@@ -57,8 +60,6 @@ function renderBuildPicker() {
   list.innerHTML = builds.map(function(b){
     var d = b.difficulty || 1;
     var diff = "●".repeat(d) + "○".repeat(3 - d);
-    var roleIcon = BP_ROLE_ICONS[b.role] || "";
-    var clsIcon = getClassIcon(b.className);
     var clsColor = getClassColor(b.className);
     // BUILD-DESC-2: мини-гайд под summary — pitch + 2 strengths + 1 weakness.
     var guideHtml = "";
@@ -76,11 +77,12 @@ function renderBuildPicker() {
         '</div>';
     }
     return (
-      '<div class="bp-card" tabindex="0" role="button" aria-label="' + escapeHtml(b.title) + '" onclick="applyBuild(\'' + b.id + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();applyBuild(\'' + b.id + '\')}">' +
+      // STYLE-8M-2b: строка меню, а не карточка. Класс кодирует ромб — цвет
+      // отдаём строке переменной, как renderCharacterList на экране выбора.
+      '<div class="bp-card" tabindex="0" role="button" style="--home-accent:' + clsColor + '" aria-label="' + escapeHtml(b.title) + '" onclick="applyBuild(\'' + b.id + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();applyBuild(\'' + b.id + '\')}">' +
         '<div class="bp-card-head">' +
-          '<span class="bp-card-class-icon" style="background:' + clsColor + '22;color:' + clsColor + '">' + clsIcon + '</span>' +
           '<span class="bp-card-title">' + highlightMatch(b.title, q) + '</span>' +
-          '<span class="bp-role-badge bp-role-' + escapeHtml(b.role || "") + '">' + roleIcon + ' ' + escapeHtml(b.role || "") + '</span>' +
+          '<span class="bp-role-badge bp-role-' + escapeHtml(b.role || "") + '">' + escapeHtml(b.role || "") + '</span>' +
         '</div>' +
         '<div class="bp-card-sub">' + highlightMatch(b.className, q) + (b.subclass ? ' · ' + highlightMatch(b.subclass, q) : '') + '</div>' +
         '<div class="bp-card-summary">' + highlightMatch(b.summary || "", q) + '</div>' +
@@ -138,16 +140,8 @@ function unlinkBuild() {
   if (typeof showToast === "function") showToast("Билд отвязан", "success");
 }
 
-// BUILD-6: ESC + focus trap for build picker
-(function(){
-  document.addEventListener("keydown", function(ev){
-    if (ev.key !== "Escape") return;
-    var m = document.getElementById("build-picker-modal");
-    if (m && m.classList.contains("active")) {
-      closeModal("build-picker-modal");
-    }
-  });
-})();
+// BUILD-6: Escape в пикере — STYLE-8M-2b: пикер стал экраном, клавишу ловит
+// общий обработчик экранов-страниц (app-core.js), свой больше не нужен.
 
 // PERF-2: build-notes-data.js (~530 КБ) грузится лениво — гарантируем заметки ДО
 // создания персонажа; если загрузка упала, билд применяется с базовыми текстами.
@@ -896,7 +890,7 @@ function _applyBuildCore(buildId) {
   newChar.updatedAt = Date.now();
   characters.push(newChar);
   saveToLocal();
-  closeModal("build-picker-modal");
+  // Пикер закрывать не нужно: loadCharacter сам уводит на экран листа.
   loadCharacter(newChar.id);
   if (typeof showToast === "function") showToast("Билд применён: " + b.title, "success");
   // BUILD-DESC-3: открыть модалку с гайдом по билду сразу после применения.
@@ -1044,7 +1038,9 @@ function openBuildGuide(buildId) {
   var g = b.guide;
   var titleEl = document.getElementById("bg-title-h");
   var bodyEl = document.getElementById("bg-body");
-  if (titleEl) titleEl.innerHTML = (typeof dndIcon === "function" ? '<span class="dico">' + dndIcon("book", 18) + "</span> " : "📘 ") + escapeHtml("Гайд: " + (b.title || b.className || ""));
+  // STYLE-8M-2b: заголовок страницы — свой ромб .page-title::before, иконка
+  // рядом с ним была бы вторым маркером.
+  if (titleEl) titleEl.textContent = "Гайд: " + (b.title || b.className || "");
   // UX-4: gx() = экранирование + обёртка терминов глоссария. seen — первое вхождение
   // термина в гайде подсвечивается, повторы остаются простым текстом (без шума).
   var seen = {};
@@ -1104,7 +1100,10 @@ function openBuildGuide(buildId) {
   if (bodyEl) bodyEl.innerHTML = html;
   hideGlossPopover();
   _glossBindOnce();
-  openModal("build-guide-modal");
+  // STYLE-8M-2b: гайд — экран. Вход бывает сразу после применения билда из
+  // пикера, поэтому висящие модалки закрываем.
+  if (typeof _closeOpenModals === "function") _closeOpenModals();
+  if (typeof showScreen === "function") showScreen("buildguide");
 }
 
 // BUILD-LVL-3: рекомендации билда в точках выбора (для баннеров/подсветки).
@@ -1502,7 +1501,7 @@ function openBuildPlan(buildId) {
   // Текущий уровень подсвечиваем только если план открыт для билда текущего персонажа.
   var curLevel = (ch && ch.buildId === b.id) ? (ch.level || 1) : 0;
   var titleEl = document.getElementById("bp-plan-title-h");
-  if (titleEl) titleEl.innerHTML = (typeof dndIcon === "function" ? '<span class="dico">' + dndIcon("trend", 18) + "</span> " : "📈 ") + escapeHtml("План развития: " + (b.title || b.className || ""));
+  if (titleEl) titleEl.textContent = "План развития: " + (b.title || b.className || "");
   var rows = [];
   for (var lv = 1; lv <= 20; lv++) {
     var s = b.levelUp[lv];
@@ -1527,7 +1526,9 @@ function openBuildPlan(buildId) {
       (curLevel ? ' · текущий уровень: ' + curLevel : '') + '</div>' +
       rows.join("");
   }
-  openModal("build-plan-modal");
+  // Вход бывает из окна повышения уровня — модалку закрываем (см. openHelp).
+  if (typeof _closeOpenModals === "function") _closeOpenModals();
+  if (typeof showScreen === "function") showScreen("buildplan");
   if (curLevel && bodyEl) {
     setTimeout(function(){
       var el = bodyEl.querySelector(".bp-plan-row.current");
@@ -1553,7 +1554,7 @@ function openClassPlan() {
   var sub = (ch.subclass && typeof SUBCLASS_FEATURES !== "undefined") ? SUBCLASS_FEATURES[ch.subclass] : null;
   var curLevel = ch.level || 1;
   var titleEl = document.getElementById("bp-plan-title-h");
-  if (titleEl) titleEl.innerHTML = (typeof dndIcon === "function" ? '<span class="dico">' + dndIcon("trend", 18) + "</span> " : "📈 ") + escapeHtml("План класса: " + ch.class);
+  if (titleEl) titleEl.textContent = "План класса: " + ch.class;
   var rows = [];
   for (var lv = 1; lv <= 20; lv++) {
     var feats = [];
@@ -1579,7 +1580,8 @@ function openClassPlan() {
       ' · текущий уровень: ' + curLevel;
     bodyEl.innerHTML = '<div class="bp-plan-meta">' + meta + '</div>' + rows.join("");
   }
-  openModal("build-plan-modal");
+  if (typeof _closeOpenModals === "function") _closeOpenModals();
+  if (typeof showScreen === "function") showScreen("buildplan");
   if (bodyEl) {
     setTimeout(function(){
       var el = bodyEl.querySelector(".bp-plan-row.current");

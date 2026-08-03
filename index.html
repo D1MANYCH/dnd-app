@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v337">
+<link rel="stylesheet" href="style.css?v=v338">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -1602,11 +1602,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 
-<!-- Modal: Help / Справка (HELP-1) — табовый help-центр по образцу item-ref-modal -->
-<div id="help-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="help-title">
-<div class="modal-content help-content">
-  <button type="button" class="modal-close" onclick="closeHelp()" aria-label="Закрыть">✕</button>
-  <h3 id="help-title">Справка</h3>
+<!-- Screen: Help / Справка (HELP-1 → STYLE-8M-2b: экран, а не модалка) -->
+<div id="screen-help" class="page-screen hidden">
+<div class="page-stage">
+  <div class="page-head"><h2 class="page-title" id="help-title">Справка</h2><button type="button" class="page-back" onclick="closeHelp()">← Назад</button></div>
   <div class="help-tabs" role="tablist">
     <button class="help-tab" onclick="switchHelpSection('about',this)"><span data-ico="bulb" data-ico-size="16">🐉</span> Что такое D&amp;D</button>
     <button class="help-tab" onclick="switchHelpSection('start',this)"><span data-ico="play" data-ico-size="16">🚀</span> С чего начать</button>
@@ -3047,13 +3046,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
-<!-- BUILD-2: Build picker modal -->
-<div id="build-picker-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="bp-title-h">
-  <div class="modal-content bp-modal">
-    <div class="bp-header">
-      <span class="bp-title" id="bp-title-h"><span data-ico="grad" data-ico-size="18">📘</span> Готовые билды</span>
-      <button type="button" class="modal-close" onclick="closeModal('build-picker-modal')" aria-label="Закрыть">✕</button>
-    </div>
+<!-- BUILD-2: Build picker (STYLE-8M-2b: экран, а не модалка) -->
+<div id="screen-builds" class="page-screen hidden">
+  <div class="page-stage">
+    <div class="page-head"><h2 class="page-title" id="bp-title-h">Готовые билды</h2><button type="button" class="page-back" onclick="screenBack()">← Назад</button></div>
     <div class="bp-filter-row">
       <input type="text" id="bp-search" class="bp-search" placeholder="🔍 Поиск по названию, классу, подклассу..." oninput="renderBuildPicker()" aria-label="Поиск по билдам">
       <span class="bp-filter-group">
@@ -3075,37 +3071,22 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       </span>
     </div>
     <div id="bp-list" class="bp-list"></div>
-    <div class="bp-footer">
-      <button class="btn secondary" onclick="closeModal('build-picker-modal')">Отмена</button>
-    </div>
   </div>
 </div>
 
-<!-- BUILD-DESC-3: Build guide modal -->
-<div id="build-guide-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="bg-title-h">
-  <div class="modal-content bg-modal">
-    <div class="bg-header">
-      <span class="bg-title" id="bg-title-h"><span data-ico="book" data-ico-size="18">📘</span> Гайд по билду</span>
-      <button type="button" class="modal-close" onclick="closeModal('build-guide-modal')" aria-label="Закрыть">✕</button>
-    </div>
+<!-- BUILD-DESC-3: гайд по билду (STYLE-8M-2b: экран, а не модалка) -->
+<div id="screen-buildguide" class="page-screen hidden">
+  <div class="page-stage">
+    <div class="page-head"><h2 class="page-title" id="bg-title-h">Гайд по билду</h2><button type="button" class="page-back" onclick="screenBack()">← Назад</button></div>
     <div id="bg-body" class="bg-body"></div>
-    <div class="bg-footer">
-      <button class="btn btn-primary" onclick="closeModal('build-guide-modal')">Понятно</button>
-    </div>
   </div>
 </div>
 
-<!-- BUILD-LVL-2: модалка плана развития 1–20 (подсветка текущего уровня) -->
-<div id="build-plan-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="bp-plan-title-h">
-  <div class="modal-content bg-modal">
-    <div class="bg-header">
-      <span class="bg-title" id="bp-plan-title-h"><span data-ico="trend" data-ico-size="18">📈</span> План развития</span>
-      <button type="button" class="modal-close" onclick="closeModal('build-plan-modal')" aria-label="Закрыть">✕</button>
-    </div>
+<!-- BUILD-LVL-2: план развития 1–20 (подсветка текущего уровня) -->
+<div id="screen-buildplan" class="page-screen hidden">
+  <div class="page-stage">
+    <div class="page-head"><h2 class="page-title" id="bp-plan-title-h">План развития</h2><button type="button" class="page-back" onclick="screenBack()">← Назад</button></div>
     <div id="bp-plan-body" class="bg-body bp-plan-body"></div>
-    <div class="bg-footer">
-      <button class="btn btn-primary" onclick="closeModal('build-plan-modal')">Понятно</button>
-    </div>
   </div>
 </div>
 
@@ -3133,57 +3114,57 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v337"></script>
+<script src="app-log.js?v=v338"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v337"></script>
-<script src="bg-space.js?v=v337"></script>
-<script src="dice-arena-bg.js?v=v337"></script>
-<script src="data.js?v=v337"></script>
+<script src="icons.js?v=v338"></script>
+<script src="bg-space.js?v=v338"></script>
+<script src="dice-arena-bg.js?v=v338"></script>
+<script src="data.js?v=v338"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v337"></script>
+<script src="character-builds.js?v=v338"></script>
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v337"></script>
-<script src="spells.js?v=v337"></script>
-<script src="spell-effects.js?v=v337"></script>
+<script src="glossary-data.js?v=v338"></script>
+<script src="spells.js?v=v338"></script>
+<script src="spell-effects.js?v=v338"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v337"></script>
-<script src="app-migrate.js?v=v337"></script>
-<script src="app-builds.js?v=v337"></script>
-<script src="app-core.js?v=v337"></script>
-<script src="app-io.js?v=v337"></script>
-<script src="app-backup.js?v=v337"></script>
-<script src="app-combat.js?v=v337"></script>
-<script src="app-conditions.js?v=v337"></script>
-<script src="app-cast-effects.js?v=v337"></script>
-<script src="app-proficiencies.js?v=v337"></script>
-<script src="app-hp.js?v=v337"></script>
-<script src="app-spells.js?v=v337"></script>
-<script src="app-inventory.js?v=v337"></script>
+<script src="rules.js?v=v338"></script>
+<script src="app-migrate.js?v=v338"></script>
+<script src="app-builds.js?v=v338"></script>
+<script src="app-core.js?v=v338"></script>
+<script src="app-io.js?v=v338"></script>
+<script src="app-backup.js?v=v338"></script>
+<script src="app-combat.js?v=v338"></script>
+<script src="app-conditions.js?v=v338"></script>
+<script src="app-cast-effects.js?v=v338"></script>
+<script src="app-proficiencies.js?v=v338"></script>
+<script src="app-hp.js?v=v338"></script>
+<script src="app-spells.js?v=v338"></script>
+<script src="app-inventory.js?v=v338"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v337"></script>
-<script src="class-choices.js?v=v337"></script>
-<script src="subclass-choices-data.js?v=v337"></script>
+<script src="app-party.js?v=v338"></script>
+<script src="class-choices.js?v=v338"></script>
+<script src="subclass-choices-data.js?v=v338"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v337";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v338";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-dice.js?v=v337"></script>
-<script src="app-settings.js?v=v337"></script>
-<script src="app-ui.js?v=v337"></script>
-<script src="app-home.js?v=v337"></script>
-<script src="app-asi.js?v=v337"></script>
-<script src="app-notes.js?v=v337"></script>
-<script src="app-desktop.js?v=v337"></script>
-<script src="history-stack.js?v=v337"></script>
-<script src="app-help.js?v=v337"></script>
+<script src="app-dice.js?v=v338"></script>
+<script src="app-settings.js?v=v338"></script>
+<script src="app-ui.js?v=v338"></script>
+<script src="app-home.js?v=v338"></script>
+<script src="app-asi.js?v=v338"></script>
+<script src="app-notes.js?v=v338"></script>
+<script src="app-desktop.js?v=v338"></script>
+<script src="history-stack.js?v=v338"></script>
+<script src="app-help.js?v=v338"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3196,9 +3177,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v337",
-    "vendor/jspdf/roboto-base64.js?v=v337",
-    "app-pdf.js?v=v337"
+    "vendor/jspdf/jspdf.umd.min.js?v=v338",
+    "vendor/jspdf/roboto-base64.js?v=v338",
+    "app-pdf.js?v=v338"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3222,7 +3203,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v337").then(function () {
+    return loadScript("build-notes-data.js?v=v338").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -3230,26 +3211,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v337"),
-      loadScript("npc-srd.js?v=v337")
+      loadScript("monsters-srd.js?v=v338"),
+      loadScript("npc-srd.js?v=v338")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v337");
+    return loadScript("magic-items.js?v=v338");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v337");
+    return loadScript("gear-catalog.js?v=v338");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v337").then(function () {
+    return loadScript("data-2024.js?v=v338").then(function () {
       window.__edition2024Loaded = true;
     });
   };
