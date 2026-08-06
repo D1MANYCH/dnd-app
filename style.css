@@ -55,6 +55,19 @@
 --divin: #4fc0c0;
 --charm: #e884ad;
 
+/* Восемь школ заклинаний — бейдж на вкладке «Заклинания». Раньше эти оттенки были
+   захардкожены правилами .school-<slug> ниже по файлу; светлого варианта у них не было,
+   и в светлой теме подписи давали контраст 1.24–2.23. Тёмные значения — те же, что
+   показывались всегда; светлые получены затемнением того же оттенка до WCAG 4.6. */
+--school-abjur: #6cb6ff;
+--school-conj: #ffb86c;
+--school-divin: #b5bdc8;
+--school-ench: #ff9ec7;
+--school-evoc: #ff7a59;
+--school-illus: #c39bff;
+--school-necro: #8be39b;
+--school-trans: #f7d56e;
+
 /* Дымка v5: золото ячеек заклинаний — НЕ зависит от акцента класса
    (свободная ячейка всегда золотая, потраченная — серая) */
 --slot-gold: #d6b25e;
@@ -313,6 +326,18 @@ html.glass-adjusting *::after {
   --divin: #1c7b7b;
   --charm: #b74778;
 
+  /* Школы заклинаний: тот же оттенок, затемнённый до WCAG 4.6. Мерить надо не на фоне
+     страницы, а на ПОДЛОЖКЕ бейджа — она сама сделана из этого же цвета (13% поверх
+     страницы) и потому темнее фона: на странице выходит 5.45–5.53, на подложке 4.58–4.62. */
+  --school-abjur: #3b638a;
+  --school-conj: #7b5934;
+  --school-divin: #5c6066;
+  --school-ench: #835166;
+  --school-evoc: #974835;
+  --school-illus: #6c558d;
+  --school-necro: #406948;
+  --school-trans: #6e5f31;
+
   /* Золото ячеек заклинаний на светлом — приглушённое */
   --slot-gold: #a8823a;
   --slot-gold-hi: #c09a50;
@@ -387,6 +412,8 @@ html.glass-adjusting *::after {
     --tour-dim: rgba(24, 26, 34, 0.5); /* THEME-1: 0.55→0.5 — швов больше нет, затемнение чуть мягче; ниже 0.45 нельзя (0.38 не читалось) */
     --danger: #c53a2e; --success: #2a7e4c; --info: #2c6fbd; /* THEME-6: success до 4.5 */
     --magic: #7a5cd0; --necro: #607730; --divin: #1c7b7b; --charm: #b74778; /* THEME-6: школы до 4.5 */
+    --school-abjur: #3b638a; --school-conj: #7b5934; --school-divin: #5c6066; --school-ench: #835166;
+    --school-evoc: #974835; --school-illus: #6c558d; --school-necro: #406948; --school-trans: #6e5f31;
     --slot-gold: #a8823a; --slot-gold-hi: #c09a50; --slot-gold-glow: rgba(168, 130, 58, 0.35);
     --sh-1: 0 1px 3px rgba(22,26,38,0.05), 0 6px 22px rgba(22,26,38,0.06);
     --sh-2: 0 10px 28px rgba(22,26,38,0.12), 0 32px 80px rgba(22,26,38,0.20);
@@ -6244,8 +6271,11 @@ transition: all 0.2s;
 .spell-item .spell-meta { display: flex; gap: 8px; font-size: 0.75em; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px; }
 .spell-item .spell-meta span { background: var(--card-bg); padding: 3px 7px; border-radius: 4px; border: 1px solid var(--border-color); color: var(--text-color); }
 .source-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.7em; font-weight: 600; margin-left: 8px; }
-.source-ph14 { background: #5b9bd5; color: white; }
-.source-ph24 { background: #e06c75; color: white; }
+/* Заливки затемнены до WCAG 4.6 под белый текст: было #5b9bd5 → 2.96 и #e06c75 → 3.20
+   (метка набрана 0.7em, это обычный текст, порог 4.5). Оттенок сохранён, тема на бейдж
+   не влияет — заливка непрозрачная и одна на обе. */
+.source-ph14 { background: #4779a6; color: white; }
+.source-ph24 { background: #b7585f; color: white; }
 /* HB-1: бейдж «своё» соседствует с бейджем редакции (source не заменяется —
    это разные оси: кто автор и под какую книгу написано). Только токены —
    ратчет хардкодов THEME-6 держит базу 1025. */
@@ -6369,14 +6399,18 @@ transition: all 0.2s;
   border: 1px solid color-mix(in srgb, var(--sc, var(--accent)) 30%, transparent);
   text-transform: capitalize;
 }
-.school-badge.school-abjuration    { --sc: var(--success); }
-.school-badge.school-conjuration   { --sc: var(--info); }
-.school-badge.school-divination    { --sc: var(--divin); }
-.school-badge.school-enchantment   { --sc: var(--charm); }
-.school-badge.school-evocation     { --sc: var(--danger); }
-.school-badge.school-illusion      { --sc: var(--magic); }
-.school-badge.school-necromancy    { --sc: var(--necro); }
-.school-badge.school-transmutation { --sc: var(--accent); }
+/* Карта школа → цвет. Раньше вела на семантические токены (--success/--info/…),
+   но её перебивал лежавший ниже блок .school-<slug> с захардкоженной тёмной палитрой,
+   так что на экране всегда были ЕГО оттенки, а в светлой теме — нечитаемые.
+   Теперь обе системы сведены в одну: карта ведёт на токены школ, блока-перебивки нет. */
+.school-badge.school-abjuration    { --sc: var(--school-abjur); }
+.school-badge.school-conjuration   { --sc: var(--school-conj); }
+.school-badge.school-divination    { --sc: var(--school-divin); }
+.school-badge.school-enchantment   { --sc: var(--school-ench); }
+.school-badge.school-evocation     { --sc: var(--school-evoc); }
+.school-badge.school-illusion      { --sc: var(--school-illus); }
+.school-badge.school-necromancy    { --sc: var(--school-necro); }
+.school-badge.school-transmutation { --sc: var(--school-trans); }
 .school-icon-svg > svg { display: block; }
 .school-icon-svg {
   width: 24px;
@@ -6443,14 +6477,10 @@ transition: all 0.2s;
     line-height: 1.25;
   }
 }
-.school-abjuration     { color: #6cb6ff; border-color: rgba(108,182,255,0.45); background: rgba(108,182,255,0.10); }
-.school-conjuration    { color: #ffb86c; border-color: rgba(255,184,108,0.45); background: rgba(255,184,108,0.10); }
-.school-divination     { color: #b5bdc8; border-color: rgba(181,189,200,0.45); background: rgba(181,189,200,0.10); }
-.school-enchantment    { color: #ff9ec7; border-color: rgba(255,158,199,0.45); background: rgba(255,158,199,0.10); }
-.school-evocation      { color: #ff7a59; border-color: rgba(255,122,89,0.45);  background: rgba(255,122,89,0.10); }
-.school-illusion       { color: #c39bff; border-color: rgba(195,155,255,0.45); background: rgba(195,155,255,0.10); }
-.school-necromancy     { color: #8be39b; border-color: rgba(139,227,155,0.45); background: rgba(139,227,155,0.10); }
-.school-transmutation  { color: #f7d56e; border-color: rgba(247,213,110,0.45); background: rgba(247,213,110,0.10); }
+/* Блок .school-<slug> с захардкоженной тёмной палитрой удалён: он дублировал
+   .school-badge (тот же цвет/рамка/подложка, но мимо тем) и, лёжа ниже по файлу при
+   равной специфичности, побеждал токенную карту выше. Цвет, рамка и подложка бейджа
+   считаются из --sc через color-mix в правиле .school-badge. */
 
 /* Class filter (grouped by source of magic) — модалка поиска заклинаний */
 .spell-class-filter-grouped {

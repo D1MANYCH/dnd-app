@@ -24,6 +24,16 @@
     { "fg": "--divin", "bg": ["--bg-1"], "min": 4.5, "minDark": 6.0 },
     { "fg": "--charm", "bg": ["--bg-1"], "min": 4.5, "minDark": 6.0 },
 
+    { "fg": "--school-abjur", "bg": ["--bg-1"], "min": 4.5, "minDark": 5.0,
+      "note": "Подписи школ на бейдже вкладки «Заклинания». До введения токенов цвета были захардкожены тёмной палитрой мимо тем: в светлой давали 1.24–2.23 (некромантия 1.34). Светлые значения — тот же оттенок, затемнённый бинпоиском; факт на подложке бейджа 5.13–5.17, dark 5.46–8.12." },
+    { "fg": "--school-conj", "bg": ["--bg-1"], "min": 4.5, "minDark": 5.0 },
+    { "fg": "--school-divin", "bg": ["--bg-1"], "min": 4.5, "minDark": 5.0 },
+    { "fg": "--school-ench", "bg": ["--bg-1"], "min": 4.5, "minDark": 5.0 },
+    { "fg": "--school-evoc", "bg": ["--bg-1"], "min": 4.5, "minDark": 5.0 },
+    { "fg": "--school-illus", "bg": ["--bg-1"], "min": 4.5, "minDark": 5.0 },
+    { "fg": "--school-necro", "bg": ["--bg-1"], "min": 4.5, "minDark": 5.0 },
+    { "fg": "--school-trans", "bg": ["--bg-1"], "min": 4.5, "minDark": 5.0 },
+
     { "fg": "--home-sub", "bg": [], "min": 4.5, "minDark": 8.0,
       "note": "STYLE-8: подпись строки меню и вся вторичка плоского языка. Факт light 4.82, dark 9.3" },
     { "fg": "--home-sub", "bg": ["--home-plate"], "min": 4.5, "minDark": 8.0 },
