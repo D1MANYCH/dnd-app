@@ -817,12 +817,12 @@ html.glass-adjusting *::after {
 }
 :root[data-theme="light"] .cw-step-hint { color: var(--text-dim) !important; }
 :root[data-theme="light"] .cw-step-title { color: var(--accent-lo) !important; }
-:root[data-theme="light"] .cw-step-num { color: #fff !important; }
-:root[data-theme="light"] .cw-lock-btn { color: #fff !important; }
-:root[data-theme="light"] .cw-lock-btn:disabled {
-  background: var(--bg-2) !important;
-  color: var(--text-mute) !important;
-}
+/* STYLE-8a2: баннер создания перешёл на плоский рецепт (без заливок, подписи на
+   --accent-lo). Светлые перебивки коробочного вида сняты — они красили белым текст,
+   под которым заливки уже нет, и он ложился прямо на --bg-0 #eceff5:
+   .cw-lock-btn давал контраст 1.15 (кнопку не видно), :disabled возвращал коробку
+   --bg-2, .cw-step-num — 1.15 (пустой кружок вместо номера шага).
+   Оба узла берут цвета из блока 8a2: 6.39 в светлой, 4.95 в тёмной. */
 :root[data-theme="light"] .cw-validation { color: var(--danger) !important; }
 :root[data-theme="light"] .basic-locked-bar {
   background: rgba(44,138,82,0.10) !important;
