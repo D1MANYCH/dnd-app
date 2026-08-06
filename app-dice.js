@@ -20,15 +20,22 @@ try { var _fh = document.getElementById('dice-file-hint'); if (_fh) _fh.hidden =
 // Триггерим resize event после показа модалки чтобы сцена подстроилась.
 setTimeout(function() {
   try { window.dispatchEvent(new Event('resize')); } catch (e) {}
-  // v3.17: запуск космо-арены (canvas#diceArenaBg) после того как модалка получила размер
+  // v3.17: подготовка космо-арены (canvas#diceArenaBg) после того как модалка получила размер.
+  // PERF: раньше RAF арены крутился всё время, пока открыта модалка, хотя оверлей
+  // броска скрыт (opacity 0) — кадры рисовались в никуда. Теперь здесь только
+  // размер + один статичный кадр, а цикл поднимает showDiceRollOverlay().
   try {
     if (window.DiceArenaBg) {
       var arenaCv = document.getElementById('diceArenaBg');
-      if (arenaCv) window.DiceArenaBg.start(arenaCv);
+      if (arenaCv) { window.DiceArenaBg.start(arenaCv); window.DiceArenaBg.stop(); }
       // UX-3: применить сохранённый вариант фона арены
-      try { if (DiceArenaBg.setVariant) DiceArenaBg.setVariant(_getDiceBg()); } catch (e) {}
+      try { if (DiceArenaBg.setVariant) DiceArenaBg.setVariant(_getDiceBg()); if (DiceArenaBg.stop) DiceArenaBg.stop(); } catch (e) {}
     }
   } catch (e) {}
+  // PERF: прогреваем DiceBox заранее — первая инициализация (Babylon + физика +
+  // загрузка темы) занимает сотни миллисекунд и раньше приходилась ровно на кадры
+  // появления оверлея, отчего вход в бросок шёл рывками.
+  try { _initDiceBox(); } catch (e) {}
 }, 60);
 // UX-5: пока модалка открыта — лента последних бросков прячется (избыточна).
 try { updateQuickRollStripVisibility(); } catch (e) {}
@@ -57,11 +64,21 @@ function _diceModalActive() {
 function showDiceRollOverlay() {
   if (!_diceModalActive()) return;
   var m = document.getElementById('dice-modal');
-  if (m) m.classList.add('dice-rolling');
+  if (!m) return;
+  if (m.classList.contains('dice-rolling')) return;
+  m.classList.add('dice-rolling');
+  // Цикл арены поднимаем только на время самого броска (см. openDiceModal).
+  try {
+    if (window.DiceArenaBg) {
+      var cv = document.getElementById('diceArenaBg');
+      if (cv) window.DiceArenaBg.start(cv);
+    }
+  } catch (e) {}
 }
 function hideDiceRollOverlay() {
   var m = document.getElementById('dice-modal');
   if (m) m.classList.remove('dice-rolling');
+  try { if (window.DiceArenaBg) window.DiceArenaBg.stop(); } catch (e) {}
 }
 
 // v3.18: поповеры в шапке модалки — настройки и история бросков
@@ -560,6 +577,11 @@ function _initDiceBox() {
     // assetPath строим от каталога приложения — корректно работает и в корне домена,
     // и в подпапке (GitHub Pages). В dice-box путь собирается как origin+assetPath.
     var basePath = location.pathname.replace(/[^/]*$/, '');
+    // PERF: на слабой машине тени — самая дорогая часть кадра WebGL (второй проход
+    // сцены в shadow map). Тариф берём у арены (DiceArenaBg.isLowFx): слабое железо
+    // определяется до первого броска, адаптивная деградация — после.
+    var _lowFx = false;
+    try { _lowFx = !!(window.DiceArenaBg && DiceArenaBg.isLowFx && DiceArenaBg.isLowFx()); } catch (e) {}
     var box = new window.DiceBox({
       container: '#dsvg-container',
       assetPath: basePath + 'vendor/dice-box/assets/',
@@ -572,7 +594,7 @@ function _initDiceBox() {
       // оседание костей → onRollComplete не зовётся → таймаут 10с на КАЖДЫЙ бросок
       // (видно в логах прода). onscreen-режим (world.onscreen.js) надёжнее.
       offscreen: false,
-      enableShadows: true,
+      enableShadows: !_lowFx,
       shadowTransparency: 0.7,
       lightIntensity: 1
     });
@@ -789,6 +811,25 @@ function animateDice3d(sides, result, callback, opts) {
       try { if (_diceDbg()) console.log('[DiceBox] roll resolved', { sides: sides, qty: qty, v1: v1, v2: v2, diag: diag }); } catch (e) {}
       _applyDiceCritGlow(sides, v1, v2);
       callback(v1, v2);
+    }).catch(function(err) {
+      // Промис roll() может отвалиться внутри библиотеки (тема не догрузилась,
+      // потерянный контекст — в проде видели «Cannot read properties of undefined
+      // (reading 'setValue')»). Без этой ветки бросок висел до 10-секундного
+      // таймаута, а наверх уходил unhandled rejection с тостом ошибки.
+      if (roll.done) return;
+      roll.done = true;
+      clearTimeout(roll.timer);
+      if (_dice3dActiveRoll === roll) _dice3dActiveRoll = null;
+      console.warn('[DiceBox] roll rejected — отдаём precomputed:', err && err.message ? err.message : err);
+      // Инстанс после такой ошибки считаем мёртвым: следующий бросок поднимет чистый.
+      try {
+        var _cv2 = _diceBoxInstance && _diceBoxInstance.canvas;
+        if (_cv2 && _cv2.parentNode) _cv2.parentNode.removeChild(_cv2);
+      } catch (e) {}
+      _diceBoxInstance = null;
+      _diceBoxInitPromise = null;
+      _applyDiceCritGlow(sides, result);
+      try { callback(); } catch (e) {}
     });
   }).catch(function() {
     if (roll.done) return;

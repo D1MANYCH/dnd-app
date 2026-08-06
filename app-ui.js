@@ -273,13 +273,15 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 }
 
 // ── Блок Telegram-канала для окон обновления (анонсы + новости) ──
+// STYLE: язык встречающего экрана — плоская строка с ромбом, без коробки и
+// без бренд-цветов Telegram (они не проходили контраст на светлой теме).
 function swTelegramBlock() {
   var tgUrl = (typeof APP_TELEGRAM_URL === 'string' && APP_TELEGRAM_URL) ? APP_TELEGRAM_URL : 'https://t.me/dndlistru';
   return '<a class="sw-update-tg" href="' + escapeHtml(tgUrl) + '" target="_blank" rel="noopener">' +
-      '<span class="sw-update-tg-icon">' + dndIcoHtml("chat", 16) + '</span>' +
+      '<span class="home-bullet home-bullet--sm" aria-hidden="true"></span>' +
       '<span class="sw-update-tg-text"><b>Telegram-канал @dndlistru</b>' +
         '<span class="sw-update-tg-sub">Анонсы обновлений, опросы, новости</span></span>' +
-      '<span class="sw-update-tg-arrow">→</span>' +
+      '<span class="sw-update-tg-arrow" aria-hidden="true">→</span>' +
     '</a>';
 }
 
@@ -293,13 +295,12 @@ function showUpdateModal(worker) {
   modal.innerHTML =
     '<div class="sw-update-box">' +
       '<div class="sw-update-header">' +
-        '<div class="sw-update-icon">' + dndIcoHtml("dice", 28) + '</div>' +
-        '<div class="sw-update-title">Доступно обновление!</div>' +
-        '<div class="sw-update-version">Текущая версия: v' + escapeHtml(ver) + '</div>' +
+        '<div class="sw-update-title">Доступно обновление</div>' +
+        '<div class="sw-update-version">Текущая версия · v' + escapeHtml(ver) + '</div>' +
       '</div>' +
-      '<div class="sw-update-safe">' + dndIcoHtml("lock", 13) + ' <b>Персонажи и данные сохранятся</b> — обновление меняет только код приложения, данные хранятся отдельно в браузере</div>' +
+      '<div class="sw-update-safe">Персонажи и данные сохранятся — обновление меняет только код приложения, данные хранятся отдельно в браузере.</div>' +
       swTelegramBlock() +
-      '<div class="sw-update-btns"><button id="sw-update-later">Позже</button><button id="sw-update-now">' + dndIcoHtml("zap", 14) + ' Установить обновление</button></div>' +
+      '<div class="sw-update-btns"><button class="sw-act" id="sw-update-later">Позже</button><button class="sw-act sw-act--go" id="sw-update-now">Установить обновление</button></div>' +
     '</div>';
   document.body.appendChild(modal);
   requestAnimationFrame(function() { modal.classList.add('sw-update-visible'); });
@@ -331,26 +332,26 @@ function checkWhatsNew() {
 function showWhatsNewModal(prevVer, newVer) {
   if ($('sw-update-modal')) return;
   var latest = (typeof APP_CHANGELOG !== 'undefined' && APP_CHANGELOG.length > 0) ? APP_CHANGELOG[0] : null;
-  var typeIcon  = { feat:'✨', fix:'🐛', improve:'⚡', data:'📦', chore:'🔧' };
-  var typeColor = { feat:'#4da843', fix:'#e74c3c', improve:'#5b9bd5', data:'#d4a843', chore:'#9a9ab0' };
+  // STYLE: тип записи кодирует залитый ромб цветом токена (как в «Журнале»),
+  // а не эмодзи с хардкод-цветом — иначе на светлой теме половина не читалась.
+  var typeVar = { feat:'var(--success)', fix:'var(--danger)', improve:'var(--info)', data:'var(--accent)', chore:'var(--text-mute)' };
   var changesList = latest ? latest.changes.map(function(c) {
-    return '<div class="sw-change-item"><span class="sw-change-icon" style="color:' + (typeColor[c.type] || '#9a9ab0') + '">' + (typeIcon[c.type] || '•') + '</span><span class="sw-change-text">' + escapeHtml(c.text) + '</span></div>';
-  }).join('') : '<div class="sw-change-item">Улучшения и исправления</div>';
+    return '<div class="sw-change-item"><span class="home-bullet home-bullet--sm sw-change-dia" style="--home-accent:' + (typeVar[c.type] || 'var(--text-mute)') + '" aria-hidden="true"></span><span class="sw-change-text">' + escapeHtml(c.text) + '</span></div>';
+  }).join('') : '<div class="sw-change-item"><span class="sw-change-text">Улучшения и исправления</span></div>';
   var modal = document.createElement('div');
   modal.id = 'sw-update-modal';
   modal.innerHTML =
     '<div class="sw-update-box">' +
       '<div class="sw-update-header">' +
-        '<div class="sw-update-icon">' + dndIcoHtml("star", 28) + '</div>' +
-        '<div class="sw-update-title">Обновлено!</div>' +
+        '<div class="sw-update-title">Обновлено</div>' +
         '<div class="sw-update-version">v' + escapeHtml(prevVer) + ' → v' + escapeHtml(newVer) + (latest ? ' · ' + escapeHtml(latest.date) : '') + '</div>' +
       '</div>' +
-      '<div class="sw-update-changes"><div class="sw-changes-title">' + dndIcoHtml("sheet", 14) + ' Что нового (' + (latest ? latest.changes.length : 0) + '):</div>' + changesList +
-        (latest ? '<a class="cl-version-link" style="display:inline-block;margin-top:8px" href="' + RELEASES_URL + '#v' + encodeURIComponent(latest.version) + '" target="_blank" rel="noopener">подробно: что менялось в коде ↗</a>' : '') +
+      '<div class="sw-update-changes"><div class="sw-changes-title">Что нового<span class="sw-changes-count">' + (latest ? latest.changes.length : 0) + '</span></div>' + changesList +
+        (latest ? '<a class="sw-update-more" href="' + RELEASES_URL + '#v' + encodeURIComponent(latest.version) + '" target="_blank" rel="noopener">Что менялось в коде →</a>' : '') +
       '</div>' +
-      '<div class="sw-update-safe">' + dndIcoHtml("lock", 13) + ' <b>Все данные сохранены</b> — ваши персонажи и заклинания на месте</div>' +
+      '<div class="sw-update-safe">Все данные сохранены — ваши персонажи и заклинания на месте.</div>' +
       swTelegramBlock() +
-      '<div class="sw-update-btns"><button id="sw-update-now" style="flex:1">' + dndIcoHtml("check", 14) + ' Отлично!</button></div>' +
+      '<div class="sw-update-btns"><button class="sw-act sw-act--go" id="sw-update-now">Отлично</button></div>' +
     '</div>';
   document.body.appendChild(modal);
   requestAnimationFrame(function() { modal.classList.add('sw-update-visible'); });

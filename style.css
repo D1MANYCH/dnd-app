@@ -9852,19 +9852,22 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   gap: 8px;
 }
 
-/* ========== SW UPDATE MODAL ========== */
+/* ========== SW UPDATE MODAL ==========
+   STYLE: язык встречающего экрана — ни одной коробки внутри. Заголовок с ромбом,
+   строки через волосяной --home-rule, тип записи кодирует залитый ромб, действия —
+   текстовые подписи на --accent-lo с растущим подчёркиванием. Зелёная шапка,
+   салатовый текст и бренд-цвета Telegram (2.5–3.2 контраста на светлой) убраны. */
 #sw-update-modal {
   position: fixed;
   inset: 0;
   z-index: 99999;
-  background: rgba(0,0,0,0.75);
+  background: rgba(0,0,0,0.72);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
   opacity: 0;
-  transition: opacity 0.3s ease;
-  backdrop-filter: blur(4px);
+  transition: opacity var(--t2, 240ms) var(--ez-out);
 }
 #sw-update-modal.sw-update-visible {
   opacity: 1;
@@ -9875,163 +9878,176 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   background: var(--surface-modal, var(--card-bg));
   backdrop-filter: blur(var(--pop-blur, 30px));
   -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
-  border: 1.5px solid var(--accent-color);
-  border-radius: 16px;
-  max-width: 440px;
+  border: 1px solid var(--home-rule);
+  border-radius: var(--r-md, 10px);
+  max-width: 460px;
   width: 100%;
+  padding: var(--sp-5, 20px) var(--sp-5, 20px) var(--sp-4, 16px);
   overflow: hidden;
   box-shadow: var(--sh-2);
-  transform: translateY(20px);
-  transition: transform 0.3s ease;
+  transform: translateY(12px);
+  transition: transform var(--t2, 240ms) var(--ez-out);
 }
 #sw-update-modal.sw-update-visible .sw-update-box {
   transform: translateY(0);
 }
 .sw-update-header {
-  background: #1a2410;
-  border-bottom: 1px solid rgba(77,168,67,0.3);
-  padding: 20px;
-  text-align: center;
+  padding: 0 0 var(--sp-4, 16px);
 }
-/* Светлая тема: тёмно-зелёный хедер и салатовые тексты не читаются на светлом —
-   заменяем на мягкую зелёную подложку и семантические токены темы */
-:root[data-theme="light"] .sw-update-header {
-  background: rgba(46, 138, 84, 0.10);
-  border-bottom-color: rgba(46, 138, 84, 0.28);
-}
-:root[data-theme="light"] .sw-update-title { color: var(--success, #2e8a54); }
-:root[data-theme="light"] .sw-update-safe { color: var(--success, #2e8a54); }
-:root[data-theme="light"] .sw-update-tg-text b,
-:root[data-theme="light"] .sw-update-tg-arrow { color: var(--info, #2c6fbd); }
-.sw-update-icon {
-  font-size: 40px;
-  margin-bottom: 8px;
-}
+/* Заголовок с ромбом — та же конструкция, что у .page-title экранов */
 .sw-update-title {
-  font-size: 1.2em;
-  font-weight: 800;
-  color: #7ed940;
-  margin-bottom: 4px;
+  position: relative;
+  padding-left: calc(var(--home-bullet, 9px) + var(--sp-3, 12px));
+  font-family: var(--font-display);
+  font-size: calc(var(--fs-lg, 17px) * 1.05);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text);
+}
+.sw-update-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: var(--home-bullet, 9px);
+  height: var(--home-bullet, 9px);
+  margin-top: calc(var(--home-bullet, 9px) / -2);
+  border: 1.5px solid var(--accent);
+  transform: rotate(45deg);
 }
 .sw-update-version {
-  font-size: 0.8em;
-  color: var(--text-muted);
+  margin-top: var(--sp-2, 6px);
+  padding-left: calc(var(--home-bullet, 9px) + var(--sp-3, 12px));
+  font-size: var(--fs-sm, 13px);
+  color: var(--home-sub);
 }
 .sw-update-changes {
-  padding: 16px 20px;
-  max-height: 260px;
+  padding: var(--sp-3, 12px) 0;
+  border-top: 1px solid var(--home-rule);
+  max-height: 46vh;
   overflow-y: auto;
 }
 .sw-changes-title {
-  font-size: 0.85em;
-  font-weight: 700;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: var(--sp-2, 6px);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm, 13px);
+  color: var(--home-sub);
 }
+.sw-changes-count { color: var(--text-mute); font-variant-numeric: tabular-nums; }
 .sw-change-item {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 8px;
-  font-size: 0.88em;
-  color: var(--text-color);
-  line-height: 1.4;
+  gap: 10px;
+  padding: var(--sp-2, 6px) 0;
+  font-size: var(--fs-sm, 13px);
+  color: var(--text);
+  line-height: 1.45;
 }
-.sw-change-icon {
-  font-size: 14px;
-  flex-shrink: 0;
-  margin-top: 1px;
+.sw-change-item + .sw-change-item { border-top: 1px solid var(--home-rule); }
+/* Ромб типа записи — залитый, цвет приходит инлайном в --home-accent */
+.sw-change-dia {
+  margin-top: 6px;
+  background: var(--home-accent);
+  border-color: var(--home-accent);
 }
-.sw-change-text {
-  flex: 1;
+.sw-change-text { flex: 1; min-width: 0; }
+.sw-update-safe,
+.sw-update-tg {
+  padding: var(--sp-3, 12px) 0;
+  border-top: 1px solid var(--home-rule);
 }
 .sw-update-safe {
-  margin: 0 20px 16px;
-  background: rgba(77,168,67,0.08);
-  border: 1px solid rgba(77,168,67,0.25);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 0.82em;
-  color: #7ed940;
-  line-height: 1.4;
+  font-size: var(--fs-sm, 13px);
+  color: var(--home-sub);
+  line-height: 1.45;
 }
 .sw-update-tg {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 0 20px 16px;
-  background: rgba(42,171,238,0.08);
-  border: 1px solid rgba(42,171,238,0.3);
-  border-radius: 8px;
-  padding: 10px 14px;
   text-decoration: none;
-  transition: background 0.2s, border-color 0.2s;
+  color: inherit;
 }
-.sw-update-tg:hover {
-  background: rgba(42,171,238,0.16);
-  border-color: rgba(42,171,238,0.55);
-}
-.sw-update-tg-icon {
-  font-size: 20px;
-  flex-shrink: 0;
-}
+.sw-update-tg .home-bullet { background: var(--accent); border-color: var(--accent); }
 .sw-update-tg-text {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   line-height: 1.3;
 }
 .sw-update-tg-text b {
-  color: #2aabee;
-  font-size: 0.9em;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--fs-md, 15px);
+  font-weight: 600;
 }
 .sw-update-tg-sub {
-  color: var(--text-muted);
-  font-size: 0.78em;
+  color: var(--home-sub);
+  font-size: var(--fs-sm, 13px);
   margin-top: 2px;
 }
 .sw-update-tg-arrow {
-  color: #2aabee;
-  font-size: 1.1em;
-  font-weight: 700;
   flex-shrink: 0;
+  color: var(--accent-lo);
+  transition: transform var(--t1, 140ms) var(--ez-out);
 }
+.sw-update-tg:hover .sw-update-tg-text b { color: var(--accent-lo); }
+.sw-update-tg:hover .sw-update-tg-arrow { transform: translateX(4px); }
+/* Ссылка «Что менялось в коде» — текстовое действие, не коробка */
+.sw-update-more {
+  display: inline-block;
+  margin-top: var(--sp-2, 6px);
+  color: var(--accent-lo);
+  font-size: var(--fs-sm, 13px);
+  text-decoration: none;
+}
+.sw-update-more:hover { text-decoration: underline; }
 .sw-update-btns {
   display: flex;
-  gap: 10px;
-  padding: 0 20px 20px;
+  justify-content: flex-end;
+  gap: var(--sp-5, 20px);
+  padding: var(--sp-3, 12px) 0 0;
+  border-top: 1px solid var(--home-rule);
 }
-#sw-update-later {
-  flex: 1;
-  background: transparent;
-  border: 1.5px solid var(--border-color);
-  color: var(--text-muted);
-  border-radius: var(--r-md);
-  padding: 12px;
-  font-size: 0.9em;
+/* Действия — подписи с растущим подчёркиванием, без заливки и рамки */
+.sw-act {
+  position: relative;
+  margin: 0;
+  padding: var(--sp-2, 6px) 2px;
+  min-height: var(--control-h, 44px);
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--home-sub);
+  font-family: var(--font-display);
+  font-size: var(--fs-md, 15px);
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition: color var(--t1, 140ms) var(--ez-out);
 }
-#sw-update-later:hover {
-  border-color: var(--text-muted);
-  color: var(--text-color);
+.sw-act--go { color: var(--accent-lo); font-weight: 600; }
+.sw-act::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: calc(var(--sp-2, 6px) - 2px);
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--t1, 140ms) var(--ez-out);
 }
-#sw-update-now {
-  flex: 2;
-  background: #4da843;
-  border: none;
-  color: #fff;
-  border-radius: var(--r-md);
-  padding: 12px;
-  font-size: 0.95em;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-#sw-update-now:hover { opacity: 0.9; }
-#sw-update-now:disabled { opacity: 0.6; cursor: default; }
+.sw-act:hover,
+.sw-act:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
+.sw-act:hover::after,
+.sw-act:focus-visible::after { transform: scaleX(1); }
+.sw-act:disabled { opacity: 0.55; cursor: default; }
+.sw-act:disabled::after { transform: scaleX(0); }
 
 /* ========== УНИВЕРСАЛЬНЫЕ TOAST-УВЕДОМЛЕНИЯ ========== */
 .app-toast { display:flex; align-items:center; font-size:14px; font-weight:600; max-width:320px; white-space:normal; text-align:left; }
@@ -11138,18 +11154,24 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   padding: 0;
   gap: 0;
   background: rgba(6, 8, 18, 0.62);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  /* PERF: backdrop-filter здесь был бесполезен — космо-канвас арены непрозрачен и
+     перекрывает бэкдроп целиком, — зато на каждый кадр появления браузер размывал
+     весь экран. Именно он и делал вход в бросок «в несколько кадров» на слабом GPU.
+     Без него переход считает только композитор (opacity + transform). */
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  /* плавный вход/выход оверлея (кнопки → бросок) */
-  transition: opacity 0.28s ease, visibility 0.28s ease;
+  /* Вход/выход оверлея — только композиторные свойства. visibility переключается
+     мгновенно на входе и с задержкой на выходе, чтобы не съедать затухание. */
+  transition: opacity 0.34s var(--ez-out, cubic-bezier(0.22, 1, 0.36, 1)),
+              visibility 0s linear 0.34s;
 }
 #dice-modal.dice-rolling .dice-arena-col {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+  transition: opacity 0.34s var(--ez-out, cubic-bezier(0.22, 1, 0.36, 1)),
+              visibility 0s linear 0s;
 }
 /* Космо-фон + 3D-кубик заполняют весь экран */
 .dice-arena-col .dsvg-container {
@@ -11160,10 +11182,34 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   max-width: none;
   border-radius: 0;
   box-shadow: inset 0 0 60px 10px rgba(0, 0, 0, 0.6);
-  /* лёгкий зум космо-арены при проявлении оверлея */
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  /* Наплыв космо-арены при проявлении оверлея. Отдельный слой композитора,
+     иначе кадр перехода пересчитывается вместе с WebGL-сценой поверх. */
+  transform: translateZ(0) scale(1.06);
+  transition: transform 0.62s var(--ez-out, cubic-bezier(0.22, 1, 0.36, 1));
+  will-change: transform;
 }
-#dice-modal:not(.dice-rolling) .dice-arena-col .dsvg-container { transform: scale(1.05); }
+#dice-modal.dice-rolling .dice-arena-col .dsvg-container { transform: translateZ(0) scale(1); }
+/* Число результата и подсказка догоняют фон — вход читается как одно движение,
+   а не как одновременная вспышка всех слоёв. */
+.dice-arena-col .dice3d-result {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s var(--ez-out, cubic-bezier(0.22, 1, 0.36, 1)) 0.14s,
+              transform 0.3s var(--ez-out, cubic-bezier(0.22, 1, 0.36, 1)) 0.14s;
+}
+#dice-modal.dice-rolling .dice-arena-col .dice3d-result {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Подсказка-закрытие живёт только в состоянии броска (::after ниже), поэтому
+   ей нужен не переход, а собственное появление. */
+@keyframes diceHintIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .dice-arena-col,
+  .dice-arena-col .dsvg-container,
+  .dice-arena-col .dice3d-result { transition: none; }
+  .dice-arena-col .dsvg-container { transform: none; }
+}
 /* Зона физики 3D-кубика — компактный квадрат (~360) для быстрого устаканивания:
    в большой/вытянутой арене кость долго скачет, тут устаканивается быстро */
 .dice-arena-col .dice-arena {
@@ -11212,6 +11258,10 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   font-size: 0.8em;
   letter-spacing: 0.3px;
   pointer-events: none;
+  animation: diceHintIn 0.3s var(--ez-out, cubic-bezier(0.22, 1, 0.36, 1)) 0.2s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  #dice-modal.dice-rolling .dice-arena-col::after { animation: none; }
 }
 
 /* ПК/планшет: модалка кубиков — компактный центрированный диалог с кнопками */

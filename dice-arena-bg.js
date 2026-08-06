@@ -24,6 +24,41 @@
 
   let bgStars = [], nebulae = [], orbits = [], dustParticles = [], shockwaves = [];
 
+  // PERF: арена — фикс-оверлей во весь экран, поэтому на ПК это 2–8 Мп на кадр.
+  // Три меры против «куртки кубиков» на слабой машине:
+  //   1) настоящий dpr под площадь (см. effectiveDpr) — на 1440×900 переход
+  //      с dpr 2 на кап даёт 1.21 → 0.51 мс на кадр, это главный выигрыш;
+  //   2) статичные слои (фон + туманности) и градиенты свечения/планет печём
+  //      один раз на размер/вариант/тему, а не пересобираем каждый кадр —
+  //      на GPU-канвасе это нейтрально, на программном рендере заметно;
+  //   3) тариф lowFx — меньше звёзд/пыли, dpr=1, без хвостов орбит. Включается
+  //      по слабому железу сразу и адаптивно, если кадры реально не укладываются.
+  let staticLayer = null, staticKey = '';
+  let glowGrad = null, glowKey = '';
+  let planetCache = {};
+  let lowFx = false;
+  let slowFrames = 0, lastFrameT = 0;
+
+  function detectLowFx() {
+    try {
+      if (localStorage.getItem('dnd_dice_lowfx') === '1') return true;
+      if (localStorage.getItem('dnd_dice_lowfx') === '0') return false;
+    } catch (e) {}
+    try {
+      if (navigator.deviceMemory && navigator.deviceMemory <= 4) return true;
+      if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) return true;
+    } catch (e) {}
+    return false;
+  }
+  function rememberLowFx() {
+    try { localStorage.setItem('dnd_dice_lowfx', '1'); } catch (e) {}
+  }
+  function invalidateCaches() {
+    staticLayer = null; staticKey = '';
+    glowGrad = null; glowKey = '';
+    planetCache = {};
+  }
+
   // UX-3: варианты фона арены. Палитра + флаги (орбиты/плотность звёзд).
   // cosmos — исходный космос (орбиты + тёплое золото); aurora — холодное
   // сияние (бирюза + фиолет); starfield — плотное звёздное поле без орбит.
@@ -89,7 +124,7 @@
 
   function initScene() {
     // Звёзды — 3 слоя, локальные координаты (внутри арены 0..W, 0..H)
-    const sc = V().starScale || 1;
+    const sc = (V().starScale || 1) * (lowFx ? 0.45 : 1);
     const starCounts = (isMobile ? [35, 20, 8] : [70, 40, 15]).map(function (n) { return Math.round(n * sc); });
     bgStars = starCounts.map((count, layerIdx) => {
       const arr = [];
@@ -143,7 +178,7 @@
 
     // Дуст — ~40 частиц
     dustParticles = [];
-    const dCount = isMobile ? 22 : 40;
+    const dCount = lowFx ? 10 : (isMobile ? 22 : 40);
     for (let i = 0; i < dCount; i++) {
       dustParticles.push({
         x: rand(0, W),
@@ -159,6 +194,17 @@
     }
   }
 
+  // PERF: реальный dpr под площадь арены. Оверлей полноэкранный, и dpr=2 на
+  // 1920×1080 — это 8 Мп заливок каждый кадр; выше ~2.2 Мп выигрыш в резкости
+  // уже незаметен, а стоимость растёт линейно.
+  function effectiveDpr() {
+    if (lowFx || isMobile) return 1;
+    let d = Math.min(window.devicePixelRatio || 1, 2);
+    const px = W * H;
+    if (px * d * d > 2200000) d = Math.max(1, Math.sqrt(2200000 / Math.max(1, px)));
+    return d;
+  }
+
   function resize() {
     if (!canvas || !ctx) return;
     const rect = canvas.getBoundingClientRect();
@@ -166,21 +212,67 @@
     H = Math.max(1, Math.floor(rect.height));
     cx = W / 2;
     cy = H / 2;
+    dpr = effectiveDpr();
 
     canvas.width = Math.floor(W * dpr);
     canvas.height = Math.floor(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+    invalidateCaches();
     initScene();
     initedSize = true;
   }
 
+  // Статичные слои (фон-градиент + туманности) — в offscreen. Туманности
+  // радиально симметричны, их вращение на экране неотличимо, так что печь их
+  // один раз безопасно; пересборка — только при смене размера/варианта/темы.
+  function getStaticLayer() {
+    const key = variant + '|' + (isLightTheme() ? 'l' : 'd') + '|' + W + 'x' + H + '@' + dpr.toFixed(2);
+    if (staticLayer && staticKey === key) return staticLayer;
+    const off = document.createElement('canvas');
+    off.width = Math.max(1, Math.floor(W * dpr));
+    off.height = Math.max(1, Math.floor(H * dpr));
+    const octx = off.getContext('2d');
+    if (!octx) return null;
+    octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const v = V();
+    const bgg = octx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.7);
+    bgg.addColorStop(0, v.bg[0]);
+    bgg.addColorStop(0.55, v.bg[1]);
+    bgg.addColorStop(1, v.bg[2]);
+    octx.fillStyle = bgg;
+    octx.fillRect(0, 0, W, H);
+    octx.save(); octx.translate(cx, cy);
+    nebulae.forEach(n => {
+      const ng = octx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.radius);
+      const nc = n.warm ? v.nebWarm : v.nebCool;
+      ng.addColorStop(0, col(nc, n.alpha));
+      ng.addColorStop(1, col(nc, 0));
+      octx.fillStyle = ng;
+      octx.fillRect(n.x - n.radius, n.y - n.radius, n.radius * 2, n.radius * 2);
+    });
+    octx.restore();
+    staticLayer = off;
+    staticKey = key;
+    return off;
+  }
+
   function drawGlow(x, y, radius, r, g, b, alpha) {
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
-    grad.addColorStop(0, `rgba(${r},${g},${b},${alpha})`);
-    grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
-    ctx.fillStyle = grad;
-    ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+    const key = radius.toFixed(1) + '|' + r + ',' + g + ',' + b;
+    if (!glowGrad || glowKey !== key) {
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+      grad.addColorStop(0, `rgba(${r},${g},${b},1)`);
+      grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      glowGrad = grad; glowKey = key;
+    }
+    // Прозрачность дышит от pulse() — берём её через globalAlpha, чтобы
+    // не пересобирать градиент каждый кадр.
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x, y);
+    ctx.fillStyle = glowGrad;
+    ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
+    ctx.restore();
   }
 
   function drawPlanet(x, y, radius, type) {
@@ -194,26 +286,33 @@
     else if (type === 'cool') { r = 120; g = 150; b = 220; }
     else { r = 150; g = 210; b = 240; }
 
-    // outer glow
-    const gg = ctx.createRadialGradient(x, y, 0, x, y, radius * 2.5);
-    gg.addColorStop(0, `rgba(${r},${g},${b},0.12)`);
-    gg.addColorStop(1, `rgba(${r},${g},${b},0)`);
-    ctx.fillStyle = gg;
-    ctx.beginPath(); ctx.arc(x, y, radius * 2.5, 0, Math.PI * 2); ctx.fill();
+    // PERF: три градиента на планету × 2 планеты × 60 кадров — собираем один раз
+    // в локальных координатах и рисуем со сдвигом.
+    const key = type + '@' + radius.toFixed(1) + (isLightTheme() ? 'l' : 'd');
+    let p = planetCache[key];
+    if (!p) {
+      const gg = ctx.createRadialGradient(0, 0, 0, 0, 0, radius * 2.5);
+      gg.addColorStop(0, `rgba(${r},${g},${b},0.12)`);
+      gg.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      const bg = ctx.createRadialGradient(-radius * 0.3, -radius * 0.3, 0, 0, 0, radius);
+      bg.addColorStop(0, `rgba(${Math.min(255, r + 40)},${Math.min(255, g + 40)},${Math.min(255, b + 40)},0.9)`);
+      bg.addColorStop(0.6, `rgba(${r},${g},${b},0.85)`);
+      bg.addColorStop(1, `rgba(${Math.floor(r * 0.4)},${Math.floor(g * 0.4)},${Math.floor(b * 0.4)},0.75)`);
+      const sg = ctx.createLinearGradient(-radius, 0, radius, 0);
+      sg.addColorStop(0, 'rgba(0,0,0,0)');
+      sg.addColorStop(1, 'rgba(0,0,0,0.3)');
+      p = planetCache[key] = { glow: gg, body: bg, shade: sg };
+    }
 
-    // body
-    const bg = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, 0, x, y, radius);
-    bg.addColorStop(0, `rgba(${Math.min(255, r + 40)},${Math.min(255, g + 40)},${Math.min(255, b + 40)},0.9)`);
-    bg.addColorStop(0.6, `rgba(${r},${g},${b},0.85)`);
-    bg.addColorStop(1, `rgba(${Math.floor(r * 0.4)},${Math.floor(g * 0.4)},${Math.floor(b * 0.4)},0.75)`);
-    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fillStyle = bg; ctx.fill();
-
-    // shadow
-    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2);
-    const sg = ctx.createLinearGradient(x - radius, y, x + radius, y);
-    sg.addColorStop(0, 'rgba(0,0,0,0)');
-    sg.addColorStop(1, 'rgba(0,0,0,0.3)');
-    ctx.fillStyle = sg; ctx.fill();
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = p.glow;
+    ctx.beginPath(); ctx.arc(0, 0, radius * 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fillStyle = p.body; ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fillStyle = p.shade; ctx.fill();
+    ctx.restore();
   }
 
   function render() {
@@ -223,30 +322,17 @@
     // плавный возврат скорости к 1
     speedMultiplier += (targetSpeed - speedMultiplier) * 0.05;
 
-    ctx.clearRect(0, 0, W, H);
     const v = V();
 
-    // Фон — радиальный градиент (палитра активной темы, см. V())
-    const bgg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.7);
-    bgg.addColorStop(0, v.bg[0]);
-    bgg.addColorStop(0.55, v.bg[1]);
-    bgg.addColorStop(1, v.bg[2]);
-    ctx.fillStyle = bgg;
-    ctx.fillRect(0, 0, W, H);
-
-    // Туманности
-    ctx.save(); ctx.translate(cx, cy);
-    nebulae.forEach(n => {
-      n.rotation += n.rotSpeed * speedMultiplier;
-      ctx.save(); ctx.translate(n.x, n.y); ctx.rotate(n.rotation);
-      const ng = ctx.createRadialGradient(0, 0, 0, 0, 0, n.radius);
-      const nc = n.warm ? v.nebWarm : v.nebCool;
-      ng.addColorStop(0, col(nc, n.alpha));
-      ng.addColorStop(1, col(nc, 0));
-      ctx.fillStyle = ng; ctx.fillRect(-n.radius, -n.radius, n.radius * 2, n.radius * 2);
-      ctx.restore();
-    });
-    ctx.restore();
+    // Фон + туманности — один drawImage вместо 3 радиальных градиентов на кадр.
+    // Слой непрозрачный, поэтому clearRect не нужен вовсе.
+    const layer = getStaticLayer();
+    if (layer) ctx.drawImage(layer, 0, 0, W, H);
+    else {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = v.bg[1];
+      ctx.fillRect(0, 0, W, H);
+    }
 
     // Звёзды (мерцание)
     bgStars.forEach(layer => {
@@ -285,12 +371,14 @@
     if (v.orbits) orbits.forEach(orbit => {
       orbit.angle += orbit.speed * orbit.dir * speedMultiplier * 0.008;
 
-      // тонкое базовое кольцо
-      ctx.beginPath();
-      ctx.arc(cx, cy, orbit.radius, 0, Math.PI * 2);
-      ctx.strokeStyle = col(v.orbit, orbit.alpha * 0.18);
-      ctx.lineWidth = 0.4;
-      ctx.stroke();
+      // тонкое базовое кольцо (в lowFx не рисуем — на глаз почти не видно)
+      if (!lowFx) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, orbit.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = col(v.orbit, orbit.alpha * 0.18);
+        ctx.lineWidth = 0.4;
+        ctx.stroke();
+      }
 
       // светящаяся дуга
       const arcStart = orbit.angle;
@@ -314,8 +402,8 @@
       ctx.fillStyle = col(v.lead, Math.min(1, orbit.alpha * 3));
       ctx.fill();
 
-      // хвост (точки)
-      for (let d = 0; d < 6; d++) {
+      // хвост (точки) — 6 дуг на орбиту × 5 орбит, в lowFx опускаем
+      if (!lowFx) for (let d = 0; d < 6; d++) {
         const da = orbit.angle + (d / 6) * orbit.arcLen;
         const dx = cx + orbit.radius * Math.cos(da);
         const dy = cy + orbit.radius * Math.sin(da);
@@ -353,8 +441,26 @@
   }
 
   function loop() {
-    if (!running()) { rafId = 0; return; }
+    if (!running()) { rafId = 0; lastFrameT = 0; return; }
     render();
+    // Адаптивный тариф: если кадры стабильно не укладываются в бюджет (>26мс,
+    // т.е. ниже ~38 fps), переходим на lowFx и запоминаем — на этой машине
+    // полный набор эффектов не тянется, второй раз мерить незачем.
+    if (!lowFx) {
+      const now = (window.performance && performance.now) ? performance.now() : Date.now();
+      if (lastFrameT) {
+        const dt = now - lastFrameT;
+        if (dt > 26) slowFrames++;
+        else if (slowFrames > 0) slowFrames--;
+        if (slowFrames >= 24) {
+          lowFx = true;
+          rememberLowFx();
+          resize();
+          try { window.dispatchEvent(new Event('dicearena:lowfx')); } catch (e) {}
+        }
+      }
+      lastFrameT = now;
+    }
     rafId = requestAnimationFrame(loop);
   }
 
@@ -365,7 +471,8 @@
       ctx = canvas.getContext('2d');
       if (!ctx) { canvas = null; return; }
       isMobile = window.innerWidth < 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      dpr = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+      lowFx = detectLowFx();
+      dpr = 1;  // настоящее значение считает effectiveDpr() внутри resize()
       reduce = !!(rmMQ && rmMQ.matches);
       initedSize = false;
       // ResizeObserver реагирует на изменения размера контейнера
@@ -423,6 +530,7 @@
     if (!VARIANTS[name]) return;
     variant = name;
     if (canvas && ctx && initedSize) {
+      invalidateCaches();
       initScene();
       if (reduce || document.hidden) { render(); }
       else if (!rafId) { rafId = requestAnimationFrame(loop); }
@@ -430,5 +538,7 @@
   }
   function getVariant() { return variant; }
 
-  window.DiceArenaBg = { start: start, stop: stop, pulse: pulse, setVariant: setVariant, getVariant: getVariant };
+  // isLowFx() читает app-dice.js: на слабой машине WebGL-кубик тоже идёт без теней.
+  function isLowFx() { return lowFx || detectLowFx(); }
+  window.DiceArenaBg = { start: start, stop: stop, pulse: pulse, setVariant: setVariant, getVariant: getVariant, isLowFx: isLowFx };
 })();
