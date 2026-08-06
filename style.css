@@ -293,7 +293,7 @@ html.glass-adjusting *::after {
   /* Accent — приглушённое золото на голубоватом воздухе */
   --accent: #a8823a;
   --accent-hi: #c09a50;
-  --accent-lo: #8a6a2c;
+  --accent-lo: #86672b; /* STYLE-9: 4.36 → 4.60 на --bg-0 (плоский текст) */
   --accent-soft: rgba(168, 130, 58, 0.12);
   --accent-glow: rgba(168, 130, 58, 0.30);
   --accent-glow-token: rgba(168, 130, 58, 0.30);
@@ -378,7 +378,7 @@ html.glass-adjusting *::after {
     --glass-hi: rgba(255, 255, 255, 0.65);
     --border: rgba(24, 26, 36, 0.10); --border-soft: rgba(24, 26, 36, 0.065);
     --text: #1b1c20; --text-dim: #55575f; --text-mute: #67686f; /* THEME-6: 4.5 */
-    --accent: #a8823a; --accent-hi: #c09a50; --accent-lo: #8a6a2c;
+    --accent: #a8823a; --accent-hi: #c09a50; --accent-lo: #86672b;
     --accent-soft: rgba(168, 130, 58, 0.12);
     --accent-glow: rgba(168, 130, 58, 0.30);
     --accent-glow-token: rgba(168, 130, 58, 0.30);
@@ -435,7 +435,7 @@ html.glass-adjusting *::after {
 */
 /* Изумруд */
 :root[data-accent="emerald"] {
-  --accent: #4caf80; --accent-hi: #66c595; --accent-lo: #3a8a64;
+  --accent: #4caf80; --accent-hi: #66c595; --accent-lo: #408d69;
   --accent-soft: rgba(76,175,128,0.13);
   --accent-glow: rgba(76,175,128,0.30);
   --accent-glow-token: rgba(76,175,128,0.30);
@@ -448,7 +448,7 @@ html.glass-adjusting *::after {
 }
 /* Рубин */
 :root[data-accent="ruby"] {
-  --accent: #e0586c; --accent-hi: #ec7283; --accent-lo: #c44456;
+  --accent: #e0586c; --accent-hi: #ec7283; --accent-lo: #cb5b6b;
   --accent-soft: rgba(224,88,108,0.13);
   --accent-glow: rgba(224,88,108,0.30);
   --accent-glow-token: rgba(224,88,108,0.30);
@@ -461,7 +461,7 @@ html.glass-adjusting *::after {
 }
 /* Аметист */
 :root[data-accent="amethyst"] {
-  --accent: #b078e0; --accent-hi: #c293ed; --accent-lo: #9259c4;
+  --accent: #b078e0; --accent-hi: #c293ed; --accent-lo: #9c68c9;
   --accent-soft: rgba(176,120,224,0.13);
   --accent-glow: rgba(176,120,224,0.30);
   --accent-glow-token: rgba(176,120,224,0.30);
@@ -474,7 +474,7 @@ html.glass-adjusting *::after {
 }
 /* Сапфир */
 :root[data-accent="sapphire"] {
-  --accent: #5a9de0; --accent-hi: #76b3ec; --accent-lo: #4180c4;
+  --accent: #5a9de0; --accent-hi: #76b3ec; --accent-lo: #4482c5;
   --accent-soft: rgba(90,157,224,0.13);
   --accent-glow: rgba(90,157,224,0.30);
   --accent-glow-token: rgba(90,157,224,0.30);
@@ -487,7 +487,7 @@ html.glass-adjusting *::after {
 }
 /* Медь */
 :root[data-accent="copper"] {
-  --accent: #cc7a40; --accent-hi: #de9258; --accent-lo: #aa6230;
+  --accent: #cc7a40; --accent-hi: #de9258; --accent-lo: #b17042;
   --accent-soft: rgba(204,122,64,0.13);
   --accent-glow: rgba(204,122,64,0.30);
   --accent-glow-token: rgba(204,122,64,0.30);
@@ -513,7 +513,7 @@ html.glass-adjusting *::after {
 }
 /* Графит */
 :root[data-accent="graphite"] {
-  --accent: #8a8d96; --accent-hi: #a0a3ac; --accent-lo: #6e7178;
+  --accent: #8a8d96; --accent-hi: #a0a3ac; --accent-lo: #7d7f86;
   --accent-soft: rgba(138,141,150,0.16);
   --accent-glow: rgba(138,141,150,0.30);
   --accent-glow-token: rgba(138,141,150,0.30);
@@ -751,7 +751,7 @@ html.glass-adjusting *::after {
 
 /* STYLE-8M: три светлые перебивки вариантов настроек (8 !important) удалены —
    коробки у них больше нет, базовый блок собран на токенах и работает в обеих
-   темах: --accent-lo даёт 5.03 на светлой и 6.37 на тёмной. */
+   темах: --accent-lo даёт 4.79 на светлой (--bg-1) и 6.63 на тёмной. */
 
 /* UI4-glass LT-1: гигантский blocklist-override `button:not(...)` и светлые
    дубли button.secondary/.success/.danger/.info УДАЛЕНЫ. Базовые правила
@@ -6685,9 +6685,10 @@ button.edition-btn {
 }
 .spell-edit-btn:hover { background: var(--accent-soft); }
 /* В светлой теме --accent-hi (#c09a50 у золота) на стекле карточки даёт 2.63:1 —
-   ниже WCAG 4.5 для обычного текста. --accent-lo (#8a6a2c) даёт 5.03:1 и по
-   определению самый тёмный из акцентной тройки, т.е. держит порог на всех
-   8 пресетах акцента. В тёмной теме --accent-hi остаётся: там он светлее фона. */
+   ниже WCAG 4.5 для обычного текста. --accent-lo (#86672b) даёт 4.60:1 на самом
+   тяжёлом фоне (--bg-0) и по определению самый тёмный из акцентной тройки.
+   Порог на всех 8 пресетах держит чек accentPairs (STYLE-9), раньше эта зона
+   не проверялась. В тёмной теме --accent-hi остаётся: там он светлее фона. */
 :root[data-theme="light"] .spell-edit-btn { color: var(--accent-lo); }
 /* Ряд действий карточки поиска. До HB-3 кнопка была одна и жила на inline
    margin-top; теперь у хомбрю их три, и без флекса глобальное

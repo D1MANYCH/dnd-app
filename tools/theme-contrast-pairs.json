@@ -22,7 +22,19 @@
     { "fg": "--magic", "bg": ["--bg-1"], "min": 4.5, "minDark": 6.0, "note": "школы магии как текст меток. THEME-6: light все ≥4.5. dark факт 6.6–9.3, лок 6.0" },
     { "fg": "--necro", "bg": ["--bg-1"], "min": 4.5, "minDark": 6.0 },
     { "fg": "--divin", "bg": ["--bg-1"], "min": 4.5, "minDark": 6.0 },
-    { "fg": "--charm", "bg": ["--bg-1"], "min": 4.5, "minDark": 6.0 }
+    { "fg": "--charm", "bg": ["--bg-1"], "min": 4.5, "minDark": 6.0 },
+
+    { "fg": "--home-sub", "bg": [], "min": 4.5, "minDark": 8.0,
+      "note": "STYLE-8: подпись строки меню и вся вторичка плоского языка. Факт light 4.82, dark 9.3" },
+    { "fg": "--home-sub", "bg": ["--home-plate"], "min": 4.5, "minDark": 8.0 },
+    { "fg": "--text", "bg": ["--home-plate"], "min": 4.5, "minDark": 14.0,
+      "note": "STYLE-8: заголовок строки на плашке героя" }
+  ],
+  "accentPairs": [
+    { "fg": "--accent-lo", "bg": [], "min": 4.5,
+      "note": "STYLE-9: плоский текст языка STYLE-8 лежит ПРЯМО на --bg-0 (экраны-страницы, встречающее меню) — самый тяжёлый фон. До STYLE-9 не проверялось: light/gold давал 4.36, dark/graphite 4.05, dark/ruby 4.06, dark/copper 3.94, dark/amethyst 3.89 — все ниже AA. Значения --accent-lo подняты до worst >= 4.60." },
+    { "fg": "--accent-lo", "bg": ["--bg-1"], "min": 4.5 },
+    { "fg": "--accent-lo", "bg": ["--home-plate"], "min": 4.5 }
   ],
   "accents": {
     "fg": "--on-accent",

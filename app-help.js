@@ -227,7 +227,7 @@ function _ensureTourDom() {
     '<div class="tour-corner" id="tour-corner-br"></div>' +
     '<div class="tour-ring" id="tour-ring"></div>' +
     '<div id="tour-coach" class="tour-coach" role="dialog" aria-modal="true" aria-live="polite">' +
-      '<button type="button" class="tour-x" id="tour-x" aria-label="Пропустить тур">&times;</button>' +
+      '<button type="button" class="tour-x" id="tour-x" aria-label="Пропустить тур">✕</button>' +
       // Дымка v5: шапка «ШАГ N ИЗ M» + точки-прогресс вместо текстового счётчика
       '<div class="tour-coach-step" id="tour-step-label" aria-live="polite"></div>' +
       '<div class="tour-coach-title" id="tour-coach-title"></div>' +

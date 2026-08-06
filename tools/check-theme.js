@@ -444,6 +444,27 @@ function checkContrast(maps, pairsCfg, out) {
     });
   }
 
+  // STYLE-9: пары, которые гоняются по КАЖДОМУ пресету акцента в обеих темах.
+  // --accent-lo несёт весь плоский текст языка STYLE-8 (кнопки без заливки,
+  // строки меню) — до STYLE-9 эта зона чекером не покрывалась вовсе.
+  (pairsCfg.accentPairs || []).forEach(function (p) {
+    const names = ['gold'].concat(Array.from(maps.darkAccents.keys()));
+    names.forEach(function (name) {
+      (p.themes || ['dark', 'light']).forEach(function (theme) {
+        const accMap = name === 'gold' ? null
+          : (theme === 'dark' ? maps.darkAccents.get(name) : maps.lightAccents.get(name));
+        if (name !== 'gold' && !accMap) return;
+        const map = themeResolvedMap(maps, theme, accMap);
+        const label = theme + '/' + name + ': ' + p.fg + ' на ' +
+          (p.bg && p.bg.length ? p.bg.join('→') : '--bg-0');
+        let min = pairMin(p, theme);
+        const ov = p.overrides && p.overrides[theme + ':' + name];
+        if (typeof ov === 'number') min = ov;
+        evalOne(map, p.fg, p.bg, label, min);
+      });
+    });
+  });
+
   out.result('WCAG-контраст', errors, checked + ' пар проверено' +
     (warnings.length ? ', ' + warnings.length + ' skip' : ''));
   warnings.forEach(function (w) { out.warn(w); });

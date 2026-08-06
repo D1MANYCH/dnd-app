@@ -17,6 +17,8 @@
 //   &modal=cast|castdamage|castvariant (чузер ячейки · пикер цели урона · чузер варианта)
 //   &castdebuff=1 (CAST-10: трекер с чипами дебаффов) · &modal=castdebuff (+ пикер целей)
 //   &set=--token:value;--token:value (A/B-инъекция токенов без правки файлов)
+//   &accent=gold|emerald|ruby|amethyst|sapphire|copper|silver|graphite (STYLE-9:
+//     фиксирует пресет акцента вместо авто-акцента по классу героя)
 // Диагностика: HTTP-маячок GET /__diag?... в stdout сервера (см. skills/verify-ui п.6).
 const q = new URLSearchParams(location.search);
 const beacon = m => { try { fetch('/__diag?' + encodeURIComponent(m)).catch(()=>{}); } catch (e) {} };
@@ -26,6 +28,13 @@ try {
     .forEach(k => localStorage.setItem('dnd_help_' + k, '1'));
   localStorage.setItem('dnd_help_level', 'known');
   localStorage.setItem('dnd_theme', q.get('theme') || 'dark');
+  // STYLE-9: &accent=gold|emerald|ruby|amethyst|sapphire|copper|silver|graphite —
+  // без него авто-акцент красит интерфейс по классу героя (у волшебника sapphire),
+  // и правки остальных семи пресетов на снимках просто не видно.
+  if (q.get('accent')) {
+    localStorage.setItem('dnd_accent', q.get('accent'));
+    localStorage.setItem('dnd_auto_accent', '0');
+  }
 } catch (e) { beacon('ERR seed ' + e.message); }
 const f = document.getElementById('f');
 f.src = '/index.html';
@@ -144,6 +153,8 @@ f.addEventListener('load', () => {
       // STYLE-8M-2: экран выбора персонажа. &screen=characters сеет ещё двух
       // героев (раненого и почти умирающего) — иначе в списке одна строка и не
       // видно ни разделителей, ни сетки колонок.
+      // STYLE-9: &screen=home — встречающий экран (эталон языка всего STYLE-плана);
+      // до этого снять его фикстурой было нечем.
       if (q.get('screen') === 'characters') {
         try {
           const base = w.characters[0];
@@ -159,10 +170,18 @@ f.addEventListener('load', () => {
             mk('Сестра Аэлин', 'Жрец', 'Человек', 38, 6, '2024', 'Нейтрально-добрая')
           );
           w.saveToLocal();
-          w.showScreen('characters');
           w.renderCharacterList();
         } catch (e) { beacon('ERR chars ' + e.message); }
       }
+      // STYLE-9: applyBuild через 250 мс уводит на ЭКРАН гайда билда (8M-2b).
+      // Пока экран не выставлен ПОСЛЕ этой задержки, любой снимок — что вкладки,
+      // что &screen=characters — показывает гайд, а не запрошенное.
+      await new Promise(r => setTimeout(r, 400));
+      try {
+        const want = q.get('screen') || 'character';
+        if (!w.currentScreenName || w.currentScreenName() !== want) w.showScreen(want);
+        if (want === 'characters') w.renderCharacterList();
+      } catch (e) { beacon('ERR screen ' + e.message); }
       const tab = q.get('tab') || 'sheet';
       if (tab !== 'sheet') w.switchTab(tab);
       const modal = q.get('modal') || '';
