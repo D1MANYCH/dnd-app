@@ -3574,7 +3574,12 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 .drawer-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 6px 0;
+  /* Пункт на hover уезжает вправо на --home-shift и вылезал за правый край:
+     при overflow-y:auto соседний overflow-x:visible вычисляется в auto, и в
+     сайдбаре появлялась горизонтальная полоса прокрутки. Резервируем сдвиг
+     полем и глушим ось X явно. */
+  overflow-x: hidden;
+  padding: 6px var(--home-shift) 6px 0;
 }
 /* Группа пунктов — капитель вместо разделительной линейки */
 .drawer-group {
@@ -4084,7 +4089,11 @@ align-items: center;
 text-align: center;
 gap: var(--sp-3);
 }
-/* Ромб-эмблема: поворот на 45° у контейнера, обратный — у картинки внутри. */
+/* Аватар плашки — круг, как .sheet-avatar на листе персонажа: в ромб
+   произвольная картинка не вписывалась (кадр обрезался углами по диагонали, и
+   лицо уезжало под них), а круг режет предсказуемо при любых пропорциях.
+   Рамка держит цвет класса через --home-accent, как и раньше. Поворота больше
+   нет — значит layout-бокс совпал с видимым, и запас под углы не нужен. */
 .home-hero-emblem {
 flex: 0 0 auto;
 width: var(--home-hero-size);
@@ -4092,17 +4101,22 @@ height: var(--home-hero-size);
 display: grid;
 place-items: center;
 overflow: hidden;
-transform: rotate(45deg);
-border: 1px solid var(--home-accent);
-border-radius: var(--r-sm);
+border: 2px solid var(--home-accent);
+border-radius: 50%;
 background: color-mix(in srgb, var(--home-accent) 16%, transparent);
 }
 .home-hero-img {
 display: block;
-width: 78%;
-height: 78%;
+width: 100%;
+height: 100%;
 object-fit: cover;
-transform: rotate(-45deg);
+border-radius: 50%;
+}
+/* Классовая SVG-иконка (герой без аватара) остаётся вписанной: её глиф от
+   обрезки по кругу потерял бы половину силуэта. */
+span.home-hero-img {
+width: 64%;
+height: 64%;
 }
 .home-hero-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
 

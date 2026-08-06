@@ -93,7 +93,7 @@
         var payload = {
           savedAt: Date.now(),
           sessionStart: sessionStart,
-          version: (typeof window !== 'undefined' && window.APP_VERSION) || '?',
+          version: appVersion(),
           entries: buffer.slice(-LS_MAX)
         };
         localStorage.setItem(LS_KEY, JSON.stringify(payload));
@@ -123,9 +123,17 @@
     try { return JSON.stringify(d); } catch (e) { return String(d); }
   }
 
+  // APP_VERSION объявлен в data.js как const — на window его нет, и в шапке
+  // выгрузки стояло «v?» ровно там, где версия нужнее всего (баг-репорт).
+  function appVersion() {
+    try { if (typeof APP_VERSION !== 'undefined' && APP_VERSION) return APP_VERSION; } catch (e) {}
+    if (typeof window !== 'undefined' && window.APP_VERSION) return window.APP_VERSION;
+    return '?';
+  }
+
   function exportText() {
     var header = '=== DnD App Log ===\n' +
-      'version: v' + ((typeof window !== 'undefined' && window.APP_VERSION) || '?') + '\n' +
+      'version: v' + appVersion() + '\n' +
       'session: ' + new Date(sessionStart).toLocaleString() + '\n' +
       'entries: ' + buffer.length + '\n' +
       'url: ' + (typeof location !== 'undefined' ? location.href : '?') + '\n' +
@@ -157,6 +165,10 @@
     fmtTime: fmtTime,
     lineToText: lineToText,
     exportText: exportText,
+    // Выгрузка .txt — не только кнопкой внутри панели: строка «Логи сессии»
+    // на экране «Данные» зовёт её напрямую, чтобы баг-репорт можно было
+    // приложить файлом, не открывая панель Ctrl+Shift+L.
+    download: function () { downloadAll(); },
     loadPrevious: loadPrevious,
     openPanel: openPanel,
     closePanel: closePanel,

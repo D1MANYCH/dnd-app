@@ -366,3 +366,21 @@ reader.onerror = function() { showToast("Ошибка чтения файла", 
 reader.readAsText(file);
 }
 
+/**
+ * Выгрузить журнал текущей сессии в .txt — чтобы баг-репорт присылали файлом.
+ * Сам файл собирает app-log.js (AppLog.download), здесь только строка «Данных»:
+ * проверка, что журнал вообще есть, и понятный тост вместо тихого ничего.
+ */
+function exportSessionLog() {
+  if (typeof AppLog === "undefined" || !AppLog || typeof AppLog.download !== "function") {
+    showToast("Журнал сессии недоступен", "error");
+    return;
+  }
+  var n = (typeof AppLog.entries === "function") ? AppLog.entries().length : 0;
+  if (!n) {
+    showToast("Журнал сессии пуст", "info");
+    return;
+  }
+  AppLog.download();
+  showToast("Журнал сессии выгружен: " + n + " записей", "success");
+}
