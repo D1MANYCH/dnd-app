@@ -21,14 +21,26 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Страховка сверху: сам deploy-pages ждёт 20 минут (см. timeout ниже).
+    timeout-minutes: 30
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/configure-pages@v6
+      # Имя артефакта уникально по попытке запуска: deploy-pages ищет артефакты по всему
+      # прогону, включая прошлые попытки, и на «Re-run jobs» с общим именем падает
+      # с «Multiple artifacts named "github-pages" … count is 2».
       - uses: actions/upload-pages-artifact@v5
         with:
           path: .
+          name: github-pages-${{ github.run_attempt }}
       - id: deployment
         uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
+          # Деплой на стороне GitHub иногда стоит в очереди дольше дефолтных 10 минут
+          # (06.08.2026: «Timeout reached, aborting!» на deployment_queued, при этом
+          # деплой доехал сам). 20 минут — чтобы очередь не красила прогон.
+          timeout: 1200000
