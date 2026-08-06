@@ -219,16 +219,10 @@ function _applyStatsLayout(name) {
   // Атрибут выставляется всегда (оба режима имеют свои правила в CSS).
   document.documentElement.setAttribute('data-stats-layout', name);
 }
-// UI-fix: на телефоне (≤767px) вид 2024 делает карточки компактными в 2 колонки,
-// а спасброски/навыки выносит в отдельные сворачиваемые секции (legacy-аккордеоны) —
-// внутри узкой карточки им не хватает места. На ПК 2024 оставляет их в карточке.
-var STATS_NARROW_MQ = '(max-width: 767px)';
-function _isNarrowStats() {
-  try { return window.matchMedia && window.matchMedia(STATS_NARROW_MQ).matches; }
-  catch (e) { return false; }
-}
-// Карточки 2024 держат строки внутри только на «широком» 2024; иначе — в legacy.
-function _statsInCards() { return _getStatsLayout() === '2024' && !_isNarrowStats(); }
+// STYLE-8a2: вид 2024 — реестр в один столбец, строка характеристики одинакова
+// на ПК и на телефоне. Прежняя ветка «≤767px выносим спасброски/навыки в
+// legacy-аккордеоны» была нужна двухколоночным карточкам и снята вместе с ними.
+function _statsInCards() { return _getStatsLayout() === '2024'; }
 // Контейнер-дом для строки спасброска/навыка в текущем layout.
 //  kind='save', key=ключ характеристики (str…cha);
 //  kind='skill', key=характеристика навыка (skills[i].stat).
@@ -249,15 +243,6 @@ function _statsRowTarget(kind, key) {
   }
   return null;
 }
-// Перенос строк при пересечении брейкпоинта «телефон» (2024: карточки ↔ legacy-аккордеоны).
-(function _watchStatsNarrow() {
-  try {
-    var mq = window.matchMedia(STATS_NARROW_MQ);
-    var handler = function () { if (typeof _placeStatRows === 'function') _placeStatRows(); };
-    if (mq.addEventListener) mq.addEventListener('change', handler);
-    else if (mq.addListener) mq.addListener(handler);
-  } catch (e) {}
-})();
 // Перенос уже отрисованных строк в дом текущего layout (без перерисовки → состояние сохраняется).
 function _placeStatRows() {
   if (typeof SAVES_DATA !== 'undefined' && SAVES_DATA && SAVES_DATA.forEach) {

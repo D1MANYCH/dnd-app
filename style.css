@@ -776,40 +776,43 @@ html.glass-adjusting *::after {
    плоские поля (рамка --home-rule, без заливки), а блок ниже обрамлял бы их
    коробкой через !important. Приём тот же, что у .inv-coin-big-inp (8c):
    исключение в самом блоке дешевле перебивки. */
+/* STYLE-8a2: .flat-field — поля «Листа», ставшие плоскими строками (нижняя
+   линия вместо рамки). Исключение в самом блоке, а не перебивка: иначе на
+   каждое поле пришлось бы по !important и ратчет светлой темы вырос бы. */
 :root[data-theme="light"] .notes-modal-textarea,
-:root[data-theme="light"] textarea:not(.notes-section-input),
-:root[data-theme="light"] input[type="text"]:not(.bp-search),
-:root[data-theme="light"] input[type="number"]:not(.inv-coin-big-inp),
-:root[data-theme="light"] input[type="search"]:not(.notes-search),
+:root[data-theme="light"] textarea:not(.notes-section-input):not(.flat-field),
+:root[data-theme="light"] input[type="text"]:not(.bp-search):not(.flat-field),
+:root[data-theme="light"] input[type="number"]:not(.inv-coin-big-inp):not(.flat-field),
+:root[data-theme="light"] input[type="search"]:not(.notes-search):not(.flat-field),
 :root[data-theme="light"] input[type="url"],
 :root[data-theme="light"] input[type="email"],
-:root[data-theme="light"] select:not(.bp-select) {
+:root[data-theme="light"] select:not(.bp-select):not(.flat-field) {
   background: var(--bg-1) !important;
   border: 1px solid var(--border) !important;
   color: var(--text) !important;
 }
 :root[data-theme="light"] textarea::placeholder,
 :root[data-theme="light"] input::placeholder { color: var(--text-mute) !important; }
-:root[data-theme="light"] textarea:focus:not(.notes-section-input),
-:root[data-theme="light"] input:focus:not(.inv-coin-big-inp):not(.notes-search):not(.bp-search),
-:root[data-theme="light"] select:focus:not(.bp-select) {
+:root[data-theme="light"] textarea:focus:not(.notes-section-input):not(.flat-field),
+:root[data-theme="light"] input:focus:not(.inv-coin-big-inp):not(.notes-search):not(.bp-search):not(.flat-field),
+:root[data-theme="light"] select:focus:not(.bp-select):not(.flat-field) {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 3px var(--accent-soft) !important;
   background: var(--bg-1) !important;
 }
 
 /* ----- .field (общий класс инпутов) ----- */
-:root[data-theme="light"] .field {
+:root[data-theme="light"] .field:not(.flat-field) {
   background: var(--bg-1) !important;
   border-color: var(--border) !important;
   color: var(--text) !important;
 }
 
-/* ----- Creation wizard banner (карточка «Заполни основу») ----- */
+/* ----- Creation wizard banner («Заполни основу») — плоская секция с 8a2 ----- */
 :root[data-theme="light"] .creation-wizard-banner {
-  background: var(--accent-soft) !important;
-  border-color: var(--accent) !important;
-  box-shadow: 0 4px 18px var(--accent-glow-token);
+  background: none !important;
+  border-color: var(--home-rule) !important;
+  box-shadow: none;
   color: var(--text);
 }
 :root[data-theme="light"] .cw-step-hint { color: var(--text-dim) !important; }
@@ -892,12 +895,13 @@ html.glass-adjusting *::after {
 :root[data-theme="light"] .hp-bar.hp-bar-low { background: var(--danger) !important; }
 :root[data-theme="light"] .hp-bar.hp-bar-medium { background: var(--accent) !important; }
 
-/* ----- HP-display-block / hd-block / другие модули с хардкодом ----- */
+/* ----- HP-display-block / hd-block -----
+   STYLE-8a2: оба блока живут только на «Листе» и стали плоскими строками —
+   светлая тема больше не возвращает им коробку, остаётся волосяная линия. */
 :root[data-theme="light"] .hp-display-block,
 :root[data-theme="light"] .hd-block {
-  background: var(--bg-1) !important;
+  background: none !important;
   background-image: none !important;
-  border: 1px solid var(--border) !important;
   color: var(--text);
 }
 
@@ -3684,18 +3688,12 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 }
 /* UI5-1: геометрию даёт .btn; здесь — только раскладка (равная ширина в ряду). */
 .hp-rest-btn { flex: 1; }
-.hp-rest-short {
-  background: rgba(74, 139, 201, 0.15) !important;
-  color: #4a8bc9 !important;
-  border-color: #4a8bc9 !important;
-}
-.hp-rest-short:hover { background: rgba(74,139,201,0.3) !important; transform: none !important; }
-.hp-rest-long {
-  background: rgba(77,168,67,0.12) !important;
-  color: var(--accent-color) !important;
-  border-color: var(--accent-color) !important;
-}
-.hp-rest-long:hover { background: rgba(77,168,67,0.25) !important; transform: none !important; }
+/* STYLE-8a2: отдых — текстовые действия (заливки и 6 !important сняты,
+   сырые цвета сведены к --info / --success). */
+.hp-rest-short { color: var(--info); }
+.hp-rest-short:hover { color: var(--info); transform: none; }
+.hp-rest-long { color: var(--success); }
+.hp-rest-long:hover { color: var(--success); transform: none; }
 
 .tab-content { display: none; }
 /* Дымка v5: появление экрана — fade + translateY(7px), --t2 240ms */
@@ -5971,10 +5969,8 @@ border-top: 1px solid var(--home-rule);
   margin-top: 6px;
 }
 .prof-choice-pending .prof-cat-hint { color: var(--accent-color); font-weight: bold; }
-.weapon-row {
-padding: 12px;
-margin-bottom: 10px;
-}
+/* STYLE-8a2: второе объявление .weapon-row (ниже по файлу) тихо перебивало это —
+   как .battle-setup-row на 8d. Свойства сведены туда, здесь остался h4. */
 .weapon-row h4 {
 margin: 0 0 8px 0;
 color: var(--weapon-color);
@@ -11453,15 +11449,12 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 /* =============================================
    WEAPON CARDS WITH ROLL BUTTONS
 ============================================= */
+/* STYLE-8a2: строка атаки — плоская, с волосяным разделителем вместо коробки */
 .weapon-row {
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-md);
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  transition: border-color 0.2s;
+  border-bottom: 1px solid var(--home-rule);
+  padding: 10px 0;
+  margin-bottom: 0;
 }
-.weapon-row:hover { border-color: rgba(77,168,67,0.4); }
 .weapon-row-top {
   display: flex;
   align-items: center;
@@ -11470,58 +11463,67 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .weapon-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
 .weapon-name { font-weight: 700; font-size: 0.92em; color: var(--text-color); }
-.weapon-no-prof { font-size: 0.7em; font-weight: 400; color: #e74c3c; opacity: 0.8; margin-left: 4px; }
+.weapon-no-prof { font-size: 0.7em; font-weight: 400; color: var(--danger); opacity: 0.8; margin-left: 4px; }
 .weapon-meta { font-size: 0.75em; color: var(--text-muted); }
+/* STYLE-8a2: правка и удаление — приглушённые глифы, проявляются на строке */
 .weapon-delete-btn {
   background: transparent !important;
-  border: 1px solid var(--border-color) !important;
+  border: none !important;
   color: var(--text-muted) !important;
-  border-radius: var(--r-sm);
-  padding: 3px 8px !important;
+  padding: 3px 4px !important;
   font-size: 0.75em !important;
   cursor: pointer;
   width: auto !important;
   margin: 0 !important;
   transform: none !important;
   box-shadow: none !important;
-  transition: all 0.15s;
+  opacity: 0.4;
+  transition: opacity var(--t2) var(--ez-out), color var(--t2) var(--ez-out);
 }
-.weapon-delete-btn:hover { border-color: var(--danger-color) !important; color: var(--danger-color) !important; transform: none !important; }
+.weapon-row:hover .weapon-delete-btn,
+.weapon-delete-btn:focus-visible { opacity: 1; }
+.weapon-delete-btn:hover { color: var(--danger) !important; transform: none !important; }
 /* HB-6: ✏️ правка строки атаки рядом с ✕. Плоская специфичность класса (0,1,0)
    перебивает глобальный button{width:100%} без !important — как .spell-edit-btn
    (HB-3); ратчет хардкодов/!important не растёт. */
 .weapon-row-actions { display: flex; gap: 6px; align-items: center; }
 .weapon-edit-btn {
   background: transparent;
-  border: 1px solid var(--border-color);
+  border: none;
   color: var(--text-muted);
-  border-radius: var(--r-sm);
-  padding: 3px 8px;
+  padding: 3px 4px;
   font-size: 0.75em;
   cursor: pointer;
   width: auto;
   margin: 0;
-  transition: all 0.15s;
+  opacity: 0.4;
+  transition: opacity var(--t2) var(--ez-out), color var(--t2) var(--ez-out);
 }
-.weapon-edit-btn:hover { border-color: var(--accent); color: var(--accent-hi); }
+.weapon-row:hover .weapon-edit-btn,
+.weapon-edit-btn:focus-visible { opacity: 1; }
+.weapon-edit-btn:hover { color: var(--accent-hi); }
 :root[data-theme="light"] .weapon-edit-btn:hover { color: var(--accent-lo); }
-.weapon-roll-row { display: flex; gap: 8px; }
+/* STYLE-8a2: «Атака» и «Урон» — текстовые действия вместо двух заливок */
+.weapon-roll-row { display: flex; gap: var(--sp-4); }
 .weapon-roll-btn {
-  flex: 1;
-  padding: 7px 10px !important;
-  border-radius: 8px;
-  font-size: 0.82em !important;
+  flex: 0 0 auto;
+  background: none;
+  padding: 4px 0 !important;
+  font-family: var(--font-display);
+  font-size: 0.85em !important;
   font-weight: 600;
   cursor: pointer;
   width: auto !important;
   margin: 0 !important;
   transform: none !important;
   border: none !important;
-  transition: all 0.15s;
+  transition: color var(--t2) var(--ez-out);
 }
-.weapon-roll-btn:hover { filter: brightness(1.15); transform: none !important; box-shadow: none !important; }
-.weapon-roll-atk { background: var(--accent-color) !important; color: black !important; }
-.weapon-roll-dmg { background: var(--danger-color) !important; color: white !important; }
+.weapon-roll-btn:hover { filter: none; transform: none !important; box-shadow: none !important; }
+.weapon-roll-atk { color: var(--accent-lo); }
+.weapon-roll-atk:hover { color: var(--accent); }
+.weapon-roll-dmg { color: var(--danger); }
+.weapon-roll-dmg:hover { color: color-mix(in srgb, var(--danger) 80%, var(--text-color)); }
 .weapon-notes { font-size: 0.75em; color: var(--text-muted); margin-top: 6px; }
 
 /* Spell card actions row. flex-wrap обязателен: на телефоне 4-5 кнопок
@@ -14092,9 +14094,10 @@ textarea:focus-visible {
    с каждого и заданы здесь одной строкой; в самих правилах остались отступы.
    Блок в конце файла по той же причине, что STYLE-5/STYLE-7: при равной
    специфичности выигрывает последнее правило. */
+/* STYLE-8a2: .weapon-row вынута из группы — строка атаки переехала на «Бой»
+   и стала плоской, подложка контейнера ей больше не нужна. */
 .hp-display-block,
-.hd-block,
-.weapon-row {
+.hd-block {
   background: var(--input-bg);
   border: 1px solid var(--border-soft);
   border-radius: var(--r-md);
@@ -15123,4 +15126,595 @@ body.screen-home.modal-open .home-stage {
   body.screen-home.modal-open .home-stage { transform: none; opacity: 1; }
   body.screen-home .modal.active .modal-content,
   body.screen-home .confirm-modal-overlay.active .confirm-modal-box { animation: none; }
+}
+
+/* ============================================
+   STYLE-8a2 · «Лист»: блок характеристик — реестр
+   Раскладка М3: шапка колонок капителью, характеристика = строка
+   «имя · счёт · модификатор · спасбросок», навыки раскрываются кликом
+   по имени. Ни одной коробки: карточка-контейнер, шесть карточек,
+   коробка модификатора и коробка спасброска сняты.
+   Блок стоит в конце файла — бьёт медиа-правила выше при равной
+   специфичности (media специфичность не добавляет).
+   ============================================ */
+html[data-stats-layout="2024"] .stats-card-2024 {
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+html[data-stats-layout="2024"] .abilities-region {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;   /* базовое align-items:start в колонке резало строки по контенту */
+  gap: 0;
+}
+html[data-stats-layout="2024"] .abil-col { display: contents; }
+
+/* Полоса «бонус мастерства / вдохновение» — плоская строка над реестром */
+html[data-stats-layout="2024"] .abil-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin: 0 0 var(--sp-2);
+}
+html[data-stats-layout="2024"] .abil-mini {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+html[data-stats-layout="2024"] .abil-mini-label { color: var(--home-sub); font-weight: 600; }
+html[data-stats-layout="2024"] .abil-mini-value { font-size: 1em; font-weight: 700; color: var(--accent-lo); }
+html[data-stats-layout="2024"] .abil-mini-insp.active { background: none; }
+html[data-stats-layout="2024"] .abil-mini-insp.active .abil-mini-label { color: var(--home-sub); }
+html[data-stats-layout="2024"] .abil-mini-insp.active .abil-mini-state::before { color: var(--accent-lo); }
+
+/* Шапка колонок */
+.abil-cols { display: none; }
+html[data-stats-layout="2024"] .abil-cols {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--home-rule);
+  font-size: 0.66em;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--home-sub);
+}
+.abil-cols .ac-nm { flex: 1 1 auto; min-width: 0; }
+.abil-cols .ac-sc { flex: 0 0 96px; text-align: center; }
+.abil-cols .ac-md { flex: 0 0 62px; text-align: right; }
+.abil-cols .ac-sv { flex: 0 0 78px; text-align: right; }
+
+/* ── Строка характеристики ── */
+html[data-stats-layout="2024"] .abil-card {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 10px;
+  background: none;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--home-rule);
+  padding: 4px 0;
+  min-height: 44px;
+  text-align: left;
+}
+html[data-stats-layout="2024"] .abil-card:hover { border-bottom-color: var(--home-rule); }
+
+html[data-stats-layout="2024"] .abil-card-head {
+  order: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+html[data-stats-layout="2024"] .abil-card-head::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  transform: rotate(45deg);
+  border: 1px solid var(--accent);
+  transition: background var(--t2) var(--ez-out);
+}
+html[data-stats-layout="2024"] .abil-card.is-open .abil-card-head::before { background: var(--accent); }
+html[data-stats-layout="2024"] .abil-card-name {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: 1.05em;
+  font-weight: 700;
+}
+html[data-stats-layout="2024"] .abil-card-name::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -2px;
+  height: 1px;
+  background: var(--accent);
+  transition: right var(--t2) var(--ez-out);
+}
+html[data-stats-layout="2024"] .abil-card-head:hover .abil-card-name::after,
+html[data-stats-layout="2024"] .abil-card-head:focus-visible .abil-card-name::after { right: 0; }
+html[data-stats-layout="2024"] .abil-card-head:focus-visible { outline: none; }
+
+html[data-stats-layout="2024"] .abil-card-score {
+  order: 2;
+  flex: 0 0 96px;
+  justify-content: center;
+  gap: 2px;
+}
+/* Цифра центрируется в таком же 30px-боксе, как символы в кнопках ±: у голого
+   line-box центр приходится выше визуального центра цифры, и знаки казались
+   поднятыми над числом. */
+html[data-stats-layout="2024"] .abil-card-score .stat-compact-val {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  line-height: 1;
+}
+html[data-stats-layout="2024"] .abil-card-score .stat-btn-sm {
+  width: 30px !important;
+  min-width: 30px !important;
+  height: 30px !important;
+  border: none;
+  background: none;
+  color: var(--home-sub);
+}
+html[data-stats-layout="2024"] .abil-card-score .stat-btn-sm:hover { color: var(--accent-lo); background: none; }
+
+html[data-stats-layout="2024"] .abil-card-mod {
+  order: 3;
+  flex: 0 0 62px;
+  align-self: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 0;
+  font-family: var(--font-display);
+  font-size: 1.25em;
+  font-weight: 700;
+  color: var(--accent-lo);
+  justify-content: flex-end;
+  gap: 3px;
+}
+html[data-stats-layout="2024"] .abil-card-mod:hover { color: var(--accent); }
+/* Значок броска: у голого числа абсолютный бейдж повис бы в пустоте — ставим инлайн */
+html[data-stats-layout="2024"] .abil-card-mod::after {
+  position: static;
+  font-size: 9px;
+  opacity: 0.45;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+/* ── Спасбросок: число в строке, «Владение» — в раскрытии ──
+   Три уровня display:contents поднимают детей .save-item прямо во флекс
+   строки: число встаёт колонкой, чекбокс уезжает под строку — и всё это
+   без правки JS-шаблона (он общий с классическим видом). */
+html[data-stats-layout="2024"] .abil-save-slot,
+html[data-stats-layout="2024"] .abil-save-slot .save-item,
+html[data-stats-layout="2024"] .abil-save-slot .save-value { display: contents; }
+/* Подпись «Спасбросок» скрыта — колонка уже подписана в шапке реестра.
+   Отметка владения переносится под строку целиком (flex-basis:100%): рядом со
+   значением она вклинивалась между колонок и ломала их выравнивание. */
+html[data-stats-layout="2024"] .abil-save-slot .save-label-2024 { display: none; }
+html[data-stats-layout="2024"] .abil-save-slot .save-bonus {
+  order: 4;
+  flex: 0 0 78px;
+  text-align: right;
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--home-sub);
+  padding: 4px 0;
+}
+html[data-stats-layout="2024"] .abil-save-slot .save-item.proficient .save-bonus {
+  color: var(--accent-lo);
+  font-weight: 700;
+}
+html[data-stats-layout="2024"] .abil-save-slot .save-bonus-clickable:hover {
+  background: none;
+  color: var(--accent);
+  transform: none;
+}
+html[data-stats-layout="2024"] .abil-save-slot .save-proficiency {
+  order: 5;
+  flex: 1 0 100%;
+  padding: 4px 0 4px 15px;
+  font-size: 0.82em;
+}
+
+/* ── Навыки: раскрываемая область строки ── */
+html[data-stats-layout="2024"] .abil-skills-slot {
+  order: 6;
+  flex: 1 0 100%;
+  border-top: none;
+  padding: 0 0 6px 15px;
+  margin-top: 0;
+  gap: 0;
+}
+html[data-stats-layout="2024"] .abil-card:not(.is-open) .abil-skills-slot,
+html[data-stats-layout="2024"] .abil-card:not(.is-open) .save-proficiency { display: none; }
+html[data-stats-layout="2024"] .abil-skills-slot .skill-row-compact {
+  gap: 8px;
+  padding: 3px 0;
+  min-height: 30px;
+}
+html[data-stats-layout="2024"] .abil-skills-slot .skill-name-compact { font-size: 0.85em; }
+html[data-stats-layout="2024"] .abil-skills-slot .skill-bonus-compact {
+  border: none;
+  background: none;
+  padding: 5px 0;
+  min-width: 40px;
+  text-align: right;
+  color: var(--accent-lo);
+}
+/* Значок броска у навыка: без коробки абсолютный бейдж повисал над числом */
+html[data-stats-layout="2024"] .abil-skills-slot .skill-bonus-compact::after {
+  position: static;
+  margin-left: 4px;
+  font-size: 9px;
+  opacity: 0.45;
+}
+html[data-stats-layout="2024"] .abil-skills-slot .skill-bonus-compact:hover {
+  border-color: transparent;
+  background: none;
+  color: var(--accent);
+  transform: none;
+}
+html[data-stats-layout="2024"] .abil-skills-slot .skill-expertise-btn {
+  border: none;
+  opacity: 0.4;
+  transition: opacity var(--t2) var(--ez-out), color var(--t2) var(--ez-out);
+}
+html[data-stats-layout="2024"] .abil-skills-slot .skill-row-compact:hover .skill-expertise-btn,
+html[data-stats-layout="2024"] .abil-skills-slot .skill-expertise-btn:focus-visible { opacity: 1; }
+
+/* Реестр держит спасброски и навыки внутри строк на любой ширине (см. _statsInCards),
+   поэтому мобильное правило, показывавшее legacy-аккордеоны, больше не нужно. */
+html[data-stats-layout="2024"] .legacy-saves-card,
+html[data-stats-layout="2024"] .legacy-skills-card { display: none; }
+
+/* Телефон: подписи колонок убираются (места нет — на 375px они распирали
+   строку на 20px), тап-таргеты ± держат высоту 44px при ширине 32. */
+@media (max-width: 640px) {
+  html[data-stats-layout="2024"] .abil-cols { display: none; }
+  html[data-stats-layout="2024"] .abil-card { gap: 0 6px; }
+  html[data-stats-layout="2024"] .abil-card-score { flex: 0 0 96px; }
+  html[data-stats-layout="2024"] .abil-card-score .stat-btn-sm {
+    width: 32px !important;
+    min-width: 32px !important;
+    height: 44px !important;
+  }
+  html[data-stats-layout="2024"] .abil-card-mod { flex: 0 0 40px; }
+  html[data-stats-layout="2024"] .abil-save-slot .save-bonus { flex: 0 0 42px; }
+  /* «Телосложение» — самое длинное имя: при 16.5px оно выталкивало колонки на
+     вторую строку. Кегль ниже, плюс многоточие как страховка. */
+  html[data-stats-layout="2024"] .abil-card-name {
+    font-size: 0.95em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+}
+
+/* Пассивная внимательность — сводка под реестром */
+html[data-stats-layout="2024"] .abil-passive {
+  order: 7;
+  padding-top: 10px;
+  color: var(--home-sub);
+}
+html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
+
+/* ============================================
+   STYLE-8a2 · остальной «Лист» в языке встречающего экрана
+   Секция = serif-заголовок с ромбом и волосяной линией под ним,
+   строка = подпись слева + значение справа, действия — текстом.
+   Карточки сняты только у прямых потомков вкладки и колонок:
+   внутри модалок листа .card остаётся коробкой.
+   ============================================ */
+#tab-sheet > .card,
+#tab-sheet > .sheet-col > .card {
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: var(--sp-6);
+}
+#tab-sheet > .card > h3,
+#tab-sheet > .sheet-col > .card > h3,
+#tab-sheet .ac-calc-section > h4 {
+  border-bottom: 1px solid var(--home-rule);
+  padding-bottom: 6px;
+  margin-bottom: var(--sp-3);
+  color: var(--text-color);
+}
+
+/* ── A1: мастер создания и плашка «основа зафиксирована» ── */
+.creation-wizard-banner {
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0 0 var(--sp-4);
+  margin-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--home-rule);
+}
+.cw-step-num {
+  background: none;
+  border: 1px solid var(--accent);
+  color: var(--accent-lo);
+  width: 26px;
+  height: 26px;
+  font-size: 0.9em;
+}
+.cw-step-title {
+  font-family: var(--font-display);
+  font-size: 1.05em;
+  color: var(--text-color);
+}
+.cw-step-hint { color: var(--home-sub); }
+.cw-lock-btn {
+  background: none;
+  color: var(--accent-lo);
+  border-left: var(--home-rail-w) solid var(--accent);
+  border-radius: 0;
+  font-family: var(--font-display);
+  padding: 8px 0 8px 12px;
+  text-align: left;
+  width: 100%;
+}
+.cw-lock-btn:disabled {
+  background: none;
+  border-left-color: var(--home-rule);
+  color: var(--home-sub);
+}
+.cw-lock-btn:not(:disabled):hover { opacity: 1; color: var(--accent); }
+.basic-locked-bar {
+  background: none;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--home-rule);
+  padding: 0 0 var(--sp-3);
+  color: var(--home-sub);
+}
+.basic-unlock-btn {
+  background: none;
+  border: none;
+  color: var(--accent-lo);
+  opacity: 0.55;
+  transition: opacity var(--t2) var(--ez-out);
+}
+.basic-locked-bar:hover .basic-unlock-btn,
+.basic-unlock-btn:focus-visible { opacity: 1; }
+
+/* ── A2: карточка основы — поля плоскими строками ── */
+#tab-sheet .identity-card label,
+#tab-sheet .sheet-small-field label,
+#tab-sheet .proficiencies-section > h4 {
+  font-size: 0.68em;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--home-sub);
+}
+#tab-sheet .identity-card input.field,
+#tab-sheet .identity-card select.field,
+#tab-sheet .identity-card textarea.field {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+#tab-sheet .identity-card input.field:focus,
+#tab-sheet .identity-card select.field:focus,
+#tab-sheet .identity-card textarea.field:focus {
+  border-bottom-color: var(--accent);
+  box-shadow: none;
+}
+/* у select нижняя линия оставляет шеврон без места — возвращаем правый отступ */
+#tab-sheet .identity-card select.field { padding-right: 24px; }
+
+/* ── A4: аккордеоны листа — шеврон заменён ромбом ── */
+#tab-sheet .accordion-card,
+#tab-sheet .accordion-card-inner {
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+#tab-sheet .accordion-toggle {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+  padding-left: 0;
+  font-family: var(--font-display);
+  color: var(--text-color);
+}
+#tab-sheet .accordion-toggle::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  margin-right: 9px;
+  transform: rotate(45deg);
+  border: 1px solid var(--accent);
+  transition: background var(--t2) var(--ez-out);
+}
+#tab-sheet .accordion-toggle[aria-expanded="true"]::before { background: var(--accent); }
+#tab-sheet .accordion-arrow { display: none; }
+#tab-sheet .accordion-body { padding-left: 15px; }
+
+/* ── A5–A7: здоровье и бой, спасброски от смерти, класс доспеха ── */
+#tab-sheet .death-saves-card {
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+#tab-sheet .ac-calc-section {
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+#tab-sheet .ac-display {
+  background: none;
+  border: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+#tab-sheet .hp-display-block,
+#tab-sheet .hd-block {
+  background: none;
+  border: none;
+  border-top: 1px solid var(--home-rule);
+  border-radius: 0;
+}
+
+/* поля вне карточки основы — та же нижняя линия вместо рамки */
+#tab-sheet > .sheet-col > .card input.field,
+#tab-sheet > .sheet-col > .card select.field,
+#tab-sheet .hp-side-inp,
+#tab-sheet .prof-add-row select,
+#tab-sheet .prof-add-row input[type="text"] {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+  padding-left: 0;
+}
+#tab-sheet > .sheet-col > .card input.field:focus,
+#tab-sheet > .sheet-col > .card select.field:focus,
+#tab-sheet .hp-side-inp:focus,
+#tab-sheet .prof-add-row select:focus,
+#tab-sheet .prof-add-row input[type="text"]:focus {
+  border-bottom-color: var(--accent);
+  box-shadow: none;
+}
+
+/* Урон / Лечение / отдых / пресеты — текстовые действия вместо коробок */
+#tab-sheet .hp-side {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+#tab-sheet .hp-side-label {
+  font-family: var(--font-display);
+  font-size: 0.85em;
+}
+#tab-sheet .hp-preset {
+  background: none;
+  border: none;
+  color: var(--home-sub);
+  padding: 4px 6px;
+}
+#tab-sheet .hp-preset-dmg:hover { color: var(--danger); background: none; }
+#tab-sheet .hp-preset-heal:hover { color: var(--success); background: none; }
+#tab-sheet .hp-rest-btn {
+  background: none;
+  border: none;
+  border-left: var(--home-rail-w) solid var(--home-rule);
+  border-radius: 0;
+  color: var(--accent-lo);
+  font-family: var(--font-display);
+  padding-left: 10px;
+  text-align: left;
+  transition: border-color var(--t2) var(--ez-out), color var(--t2) var(--ez-out);
+}
+#tab-sheet .hp-rest-btn:hover { border-left-color: var(--accent); color: var(--accent); background: none; }
+#tab-sheet .hp-side-btn,
+#tab-sheet #roll-hd-btn {
+  background: none;
+  border: none;
+  border-radius: 0;
+  font-family: var(--font-display);
+  padding: 5px 0;
+}
+#tab-sheet .hp-side-dmg .hp-side-btn { color: var(--danger); }
+#tab-sheet .hp-side-heal .hp-side-btn { color: var(--success); }
+#tab-sheet #roll-hd-btn { color: var(--accent-lo); text-align: left; }
+#tab-sheet .hp-side-btn,
+#tab-sheet #roll-hd-btn { box-shadow: none; }
+#tab-sheet .hp-side-btn:hover,
+#tab-sheet #roll-hd-btn:hover { background: none; border: none; box-shadow: none; }
+/* поля максимума и временных ХП: рамки читались коробками среди плоских строк */
+#tab-sheet .hp-max-manual-inp {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+}
+#tab-sheet .hp-max-manual-inp:focus { border-bottom-color: var(--accent); box-shadow: none; }
+#tab-sheet .hp-temp-inp {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+}
+#tab-sheet .hp-temp-inp:focus { border-bottom-color: var(--info); box-shadow: none; }
+
+/* ── A8: владения — чипы текстом через «·», цвет остаётся кодировкой источника ── */
+#tab-sheet .prof-chips { gap: 0 4px; }
+#tab-sheet .prof-chip {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 2px 0;
+  color: var(--text-color);
+}
+#tab-sheet .prof-chip + .prof-chip::before {
+  content: "·";
+  color: var(--home-sub);
+  padding-right: 4px;
+}
+#tab-sheet .prof-chip[data-source="race"]       { color: var(--success); }
+#tab-sheet .prof-chip[data-source="class"]      { color: var(--danger); }
+#tab-sheet .prof-chip[data-source="subclass"]   { color: var(--magic); }
+#tab-sheet .prof-chip[data-source="background"] { color: var(--slot-gold); }
+#tab-sheet .prof-chip[data-source="custom"]     { color: var(--info); }
+#tab-sheet .prof-chip-src { background: none; padding: 0; }
+#tab-sheet .prof-chip-remove { color: var(--danger); opacity: 0.4; }
+#tab-sheet .prof-chip:hover .prof-chip-remove { opacity: 1; }
+#tab-sheet .prof-empty-hint {
+  background: none;
+  border-radius: 0;
+  border-left-width: var(--home-rail-w);
+}
+#tab-sheet .prof-add-row button {
+  background: none;
+  color: var(--accent-lo);
+  font-family: var(--font-display);
+  padding: 5px 0;
+}
+#tab-sheet .prof-add-row button:hover { filter: none; color: var(--accent); }
+
+/* ── A9: прихвостни на листе (на «Мире» их сплющила 8e, здесь остались коробкой) ── */
+#tab-sheet .pcard {
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--home-rule);
 }

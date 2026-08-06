@@ -237,6 +237,17 @@ const target = (typeof _statsRowTarget === "function" ? _statsRowTarget("skill",
 if (target) target.appendChild(row);
 });
 }
+// STYLE-8a2: строка характеристики в реестре раскрывает свои навыки и отметку
+// владения спасброском. Состояние только в DOM (класс is-open) — в схему
+// персонажа не пишется, это вид, а не данные.
+function toggleAbilOpen(key) {
+var card = document.getElementById("stat-block-" + key);
+if (!card) return;
+var open = !card.classList.contains("is-open");
+card.classList.toggle("is-open", open);
+var head = card.querySelector(".abil-card-head");
+if (head) head.setAttribute("aria-expanded", open ? "true" : "false");
+}
 function toggleExpertise(index) {
 var char = getCurrentChar();
 if (!char) return;
