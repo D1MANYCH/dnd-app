@@ -174,7 +174,6 @@ return;
 }
 allItems.forEach(function(data, _idx) {
 const item = data.item;
-const icon = ITEM_ICONS[data.category];
 const totalWeight = (item.weight * (item.qty || 1)).toFixed(1);
 const catName = CATEGORY_NAMES[data.category];
 var _slotsEach = (item.slots !== undefined && item.slots !== null && item.slots !== "")
@@ -185,10 +184,10 @@ var slotsLabel = itemSlots % 1 !== 0 ? itemSlots.toFixed(1) + " сл." : itemSlo
 // BUILD-FIX-9 (rev3): тег местоположения и приглушение если рюкзак снят и предмет в нём
 var _locKey = item.location || "";
 var _locMeta = LOCATION_META[_locKey];
-var _locTagHtml = _locMeta ? '<span class="inv-meta-tag inv-loc-tag" title="' + _locMeta.label + '">' + _locMeta.icon + " " + _locMeta.label + '</span>' : '';
+var _locTagHtml = _locMeta ? '<span class="inv-meta-tag inv-loc-tag" title="' + _locMeta.label + '">' + _locMeta.label + '</span>' : '';
 // FIN-6: бейдж настройки для магпредметов (attunable) — «⚙ настроен» / «⚙ не настроен»
 var _attuneTagHtml = item.attunable
-  ? '<span class="inv-meta-tag inv-attune-tag' + (item.attuned ? ' on' : '') + '" title="Настройка магического предмета">' + dndIcoHtml("settings", 12) + ' ' + (item.attuned ? 'настроен' : 'не настроен') + '</span>'
+  ? '<span class="inv-meta-tag inv-attune-tag' + (item.attuned ? ' on' : '') + '" title="Настройка магического предмета">' + (item.attuned ? 'настроен' : 'не настроен') + '</span>'
   : '';
 var _attuneBtnHtml = item.attunable
   ? '<button class="inv-attune-btn' + (item.attuned ? ' attuned' : '') + '" onclick="event.stopPropagation(); toggleAttuned(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("settings", 13) + ' ' + (item.attuned ? 'Снять настройку' : 'Настроить') + '</button>'
@@ -197,7 +196,7 @@ var _attuneBtnHtml = item.attunable
 var _maxCh = parseInt(item.maxCharges, 10) || 0;
 var _curCh = _maxCh > 0 ? Math.max(0, Math.min(_maxCh, parseInt(item.charges, 10) || 0)) : 0;
 var _chargesTagHtml = _maxCh > 0
-  ? '<span class="inv-meta-tag inv-charges-tag' + (_curCh === 0 ? ' empty' : '') + '" title="Заряды' + (item.recharge === "none" ? " — не восстанавливаются" : " — восстанавливаются на длинном отдыхе") + '">' + dndIcoHtml("zap", 12) + ' ' + _curCh + '/' + _maxCh + '</span>'
+  ? '<span class="inv-meta-tag inv-charges-tag' + (_curCh === 0 ? ' empty' : '') + '" title="Заряды' + (item.recharge === "none" ? " — не восстанавливаются" : " — восстанавливаются на длинном отдыхе") + '">заряды ' + _curCh + ' / ' + _maxCh + '</span>'
   : '';
 var _chargesCtrlHtml = _maxCh > 0
   ? '<span class="inv-charges-ctrl">' +
@@ -215,12 +214,10 @@ div.dataset.category = data.category;
 div.dataset.index = data.index;
 div.innerHTML =
   '<div class="inv-item-main" onclick="toggleInvItem(this)">' +
-    '<div class="inv-item-icon">' + icon + '</div>' +
     '<div class="inv-item-info">' +
       '<div class="inv-item-name">' + escapeHtml(item.name) + (_stowed ? ' <span style="color:var(--muted);font-size:11px;">(в снятом рюкзаке)</span>' : '') + '</div>' +
       '<div class="inv-item-meta">' +
-        '<span class="inv-meta-tag">' + (item.qty || 1) + ' шт.</span>' +
-        '<span class="inv-meta-tag">' + dndIcoHtml("scale", 12) + ' ' + totalWeight + ' фнт</span>' +
+        '<span class="inv-meta-tag">' + totalWeight + ' фнт</span>' +
         '<span class="inv-meta-tag inv-cat-tag">' + catName + '</span>' +
         '<span class="inv-meta-tag inv-slot-tag">' + slotsLabel + '</span>' +
         _locTagHtml +
@@ -228,6 +225,7 @@ div.innerHTML =
         _chargesTagHtml +
       '</div>' +
     '</div>' +
+    '<span class="inv-item-qty" title="Количество">×' + (item.qty || 1) + '</span>' +
     '<span class="inv-drag-handle" title="Перетащите, чтобы переместить предмет">⠿</span>' +
     '<span class="inv-item-arrow">▶</span>' +
   '</div>' +
@@ -260,8 +258,8 @@ var _btn = document.getElementById("inv-backpack-toggle");
 if (_btn) {
   var _off = _isBackpackOff(char);
   _btn.innerHTML = (typeof dndIcon === "function" ? '<span class="dico">' + dndIcon("inventory", 16) + "</span> " : "🎒 ") + (_off ? "Снят" : "Надет");
-  _btn.style.background = _off ? "var(--danger,#c0392b)" : "transparent";
-  _btn.style.color = _off ? "#fff" : "var(--text)";
+  // STYLE-8c2: состояние кодирует класс (цвет текста), а не инлайновая заливка
+  _btn.classList.toggle("inv-backpack-off", _off);
 }
 }
 function toggleInvItem(mainEl) {

@@ -4439,196 +4439,265 @@ animation: rise var(--t3) var(--ez-out) both;
 /* ========================================
    INVENTORY — WEIGHT BAR
 ======================================== */
+/* STYLE-8c2: перегруз — красный текст в строке слотов, а не залитая пилюля. */
 .inv-overweight-badge {
-  background: var(--overweight-color, #e74c3c);
-  color: white;
-  font-size: 0.75em;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: var(--r-pill);
+  background: none;
+  color: var(--danger-color);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  padding: 0;
+  border-radius: 0;
   gap: 4px;
   animation: overweightPulse 1s ease-in-out infinite;
 }
+/* Трек нагрузки — волосяная линия во всю ширину раздела, а не полоса-прогрессбар. */
 .inv-weight-track {
-  height: 8px;
-  background: var(--border-color);
-  border-radius: 4px;
+  height: 2px;
+  background: var(--home-rule);
+  border-radius: 0;
   overflow: hidden;
 }
 .inv-weight-fill {
   height: 100%;
-  background: var(--accent-color);
-  border-radius: 4px;
+  background: var(--accent);
+  border-radius: 0;
   transition: width 0.4s ease, background 0.3s;
 }
-.inv-weight-fill.warning { background: #f39c12; }
+.inv-weight-fill.warning { background: var(--slot-gold); }
 .inv-weight-fill.overweight { background: var(--overweight-color, #e74c3c); animation: overweightPulse 1s ease-in-out infinite; }
 @keyframes overweightPulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
 
 /* ========================================
    INVENTORY — BACKPACK HEADER
 ======================================== */
+/* STYLE-8c2: шапка раздела — строка с волосяным разделителем, как заголовок
+   секции на «Мире»: ромб у h4 рисует общее правило .card h4::before. */
 .inv-backpack-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) 0;
+  margin-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--home-rule);
 }
 .inv-backpack-header h4 { margin: 0; }
+/* Добавление и «снять рюкзак» — текстовые действия на --accent-lo: у кнопки не
+   осталось ни рамки, ни заливки, весь вес несёт цвет (гоча 8e). */
 .inv-add-btn {
-  background: transparent !important;
-  color: var(--success) !important;
-  border: 1px solid color-mix(in srgb, var(--success) 50%, transparent) !important;
-  border-radius: 8px;
-  padding: 7px 14px !important;
-  font-size: 0.82em !important;
-  font-weight: 600;
+  background: none !important;
+  color: var(--accent-lo) !important;
+  border: 0 !important;
+  border-radius: 0;
+  padding: 0 !important;
+  font-size: 0.88em !important;
+  font-weight: 500;
   cursor: pointer;
   width: auto !important;
   margin: 0 !important;
   transform: none !important;
-  transition: filter 0.2s;
+  transition: color 0.2s;
 }
-.inv-add-btn:hover { background: color-mix(in srgb, var(--success) 14%, transparent) !important; border-color: var(--success) !important; filter: none; transform: none !important; box-shadow: none !important; }
+.inv-add-btn:hover { background: none !important; color: var(--accent) !important; filter: none; transform: none !important; box-shadow: none !important; }
+/* Снятый рюкзак — красный текст вместо красной заливки (JS вешает класс). */
+#inv-backpack-toggle { color: var(--text-muted) !important; }
+#inv-backpack-toggle:hover { color: var(--text-color) !important; }
+#inv-backpack-toggle.inv-backpack-off { color: var(--danger-color) !important; }
 
 /* ========================================
    INVENTORY — FILTERS
 ======================================== */
-.inventory-filters { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+/* STYLE-8c2: фильтры из чипов-пилюль — строка слов через точку-разделитель;
+   активный не залит акцентом, а подчёркнут им. */
+.inventory-filters { display: flex; gap: 0; margin: 0 0 var(--sp-2); flex-wrap: wrap; align-items: baseline; padding: var(--sp-3) 0; }
 .inventory-filters button {
   flex: 0 0 auto;
   margin: 0 !important;
-  padding: 6px 12px !important;
-  font-size: 0.78em !important;
-  border-radius: var(--r-pill);
-  background: transparent !important;
-  border: 1px solid var(--border-soft) !important;
+  padding: 2px 0 !important;
+  font-size: 0.88em !important;
+  border-radius: 0;
+  background: none !important;
+  border: 0 !important;
   width: auto !important;
   color: var(--text-muted) !important;
   transform: none !important;
   box-shadow: none !important;
-  transition: all 0.15s;
+  text-underline-offset: 5px;
+  transition: color 0.15s;
 }
-.inventory-filters button:hover { border-color: var(--accent-color) !important; color: var(--text-color) !important; transform: none !important; box-shadow: none !important; }
-.inventory-filters button.active { background: var(--accent-color) !important; color: var(--on-accent) !important; border-color: var(--accent-color) !important; }
+/* Иконка категории в фильтре лишняя: строка держится на словах. */
+.inventory-filters button [data-ico] { display: none; }
+/* Разделитель — inline-block: подчёркивание активного пункта в него не заходит
+   (декорация не пробивается в атомарный инлайн-бокс). */
+.inventory-filters button:not(:last-child)::after {
+  content: "·";
+  display: inline-block;
+  color: var(--text-muted);
+  margin: 0 var(--sp-3);
+  text-decoration: none;
+}
+.inventory-filters button:hover { color: var(--text-color) !important; transform: none !important; box-shadow: none !important; }
+.inventory-filters button.active {
+  background: none !important;
+  color: var(--text-color) !important;
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1px;
+}
 
 /* ========================================
    INVENTORY — ITEM CARDS
 ======================================== */
-.inventory-list { display: flex; flex-direction: column; gap: 5px; }
-.inventory-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-style: italic; }
+/* STYLE-8c2: список — не колонка коробок, а полоса строк, разделённых волосяной
+   линией. Зазор снят: строки стыкуются, разделитель рисует .inv-item + .inv-item. */
+.inventory-list { display: flex; flex-direction: column; }
+.inventory-empty { text-align: left; padding: var(--sp-4) var(--sp-3); color: var(--text-muted); }
 
+/* STYLE-8c2: вещь — плоская строка с ромбом категории слева (цвет берётся из
+   data-category, поэтому JS не трогали). overflow:hidden убран — он обрезал бы
+   ромб, вынесенный в padding строки. */
 .inv-item {
-  overflow: hidden;
-  transition: border-color 0.2s;
+  position: relative;
+  padding-left: calc(var(--home-bullet) + var(--sp-4));
 }
+.inv-item + .inv-item { border-top: 1px solid var(--home-rule); }
+.inv-item::before {
+  content: "";
+  position: absolute;
+  left: var(--sp-2);
+  top: 21px;
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--accent);
+}
+.inv-item[data-category="weapon"]::before   { border-color: var(--weapon-color); }
+.inv-item[data-category="armor"]::before    { border-color: var(--armor-color); }
+.inv-item[data-category="potion"]::before   { border-color: var(--potion-color); }
+.inv-item[data-category="scroll"]::before   { border-color: var(--scroll-color); }
+.inv-item[data-category="tool"]::before     { border-color: var(--tool-color); }
+.inv-item[data-category="material"]::before { border-color: var(--material-color); }
+.inv-item.expanded { background: color-mix(in srgb, var(--accent) 6%, transparent); }
 
 .inv-item-main {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: var(--sp-3);
+  padding: 10px 12px 10px 0;
   cursor: pointer;
   user-select: none;
 }
-.inv-item-icon {
-  font-size: 1.4em;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
 .inv-item-info { flex: 1; min-width: 0; }
-.inv-item-name { font-weight: 600; color: var(--text-color); font-size: 0.92em; margin-bottom: 3px; }
+.inv-item-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: var(--fs-lg);
+  margin-bottom: 2px;
+}
 .inv-item.expanded .inv-item-name { color: var(--accent-color); }
-.inv-item-meta { display: flex; gap: 5px; flex-wrap: wrap; }
+/* STYLE-8c2: количество ушло правым краем строки — оно есть у каждой вещи и
+   читается столбцом, в отличие от остальных признаков. */
+.inv-item-qty {
+  flex-shrink: 0;
+  color: var(--text-dim);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+}
+/* Признаки вещи — текст через точку-разделитель, как чипы на «Мире». */
+.inv-item-meta { display: flex; gap: 0; flex-wrap: wrap; align-items: baseline; }
 .inv-meta-tag {
   background: transparent;
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-sm);
-  padding: 1px 6px;
-  font-size: 0.7em;
+  border: 0;
+  padding: 0;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
 }
-.inv-cat-tag { color: var(--accent-color); border-color: color-mix(in srgb, var(--accent) 32%, transparent); }
+.inv-meta-tag + .inv-meta-tag::before {
+  content: "·";
+  color: var(--text-muted);
+  margin: 0 7px;
+}
+.inv-cat-tag { color: var(--accent-lo); }
 .inv-item-arrow {
   font-size: 0.65em;
   color: var(--text-muted);
   flex-shrink: 0;
+  opacity: 0.5;
   transition: color 0.2s;
 }
-.inv-item.expanded .inv-item-arrow { color: var(--accent-color); }
+.inv-item.expanded .inv-item-arrow { color: var(--accent-color); opacity: 1; }
 
 .inv-item-body {
   display: none;
-  padding: 10px 12px 12px 58px;
-  border-top: 1px solid var(--home-rule);
+  padding: 0 12px 12px 0;
 }
 .inv-item.expanded .inv-item-body { display: block; }
 .inv-item-desc {
-  font-size: 0.82em;
-  color: var(--text-muted);
+  font-size: 0.85em;
+  color: var(--text-dim);
   line-height: 1.6;
   margin-bottom: 10px;
   white-space: pre-line;
 }
-.inv-item-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+/* STYLE-8c2: действия раскрытой вещи — текст, а не обведённые кнопки. Рамка и
+   заливка сняты там же, где стояли: одно место вместо базового правила плюс
+   перебивки. !important остались — их требует базовый button{} выше по файлу. */
+.inv-item-actions { display: flex; gap: var(--sp-5); flex-wrap: wrap; }
 .inv-edit-btn, .inv-del-btn {
-  padding: 5px 12px !important;
-  border-radius: var(--r-sm);
-  font-size: 0.78em !important;
-  font-weight: 600;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0;
+  font-size: 0.85em !important;
+  font-weight: 500;
   cursor: pointer;
   width: auto !important;
   margin: 0 !important;
   transform: none !important;
-  transition: all 0.15s;
+  transition: color 0.15s;
 }
 .inv-edit-btn {
-  background: transparent !important;
-  border: 1px solid color-mix(in srgb, var(--info) 55%, transparent) !important;
-  color: var(--info) !important;
+  background: none !important;
+  color: var(--accent-lo) !important;
 }
-.inv-edit-btn:hover { background: color-mix(in srgb, var(--info) 14%, transparent) !important; border-color: var(--info) !important; transform: none !important; box-shadow: none !important; }
+.inv-edit-btn:hover { background: none !important; color: var(--accent) !important; transform: none !important; box-shadow: none !important; }
 .inv-del-btn {
-  background: transparent !important;
-  border: 1px solid color-mix(in srgb, var(--danger) 55%, transparent) !important;
-  color: var(--danger-color) !important;
+  background: none !important;
+  color: var(--text-muted) !important;
 }
-.inv-del-btn:hover { background: color-mix(in srgb, var(--danger) 14%, transparent) !important; border-color: var(--danger) !important; transform: none !important; box-shadow: none !important; }
+.inv-del-btn:hover { background: none !important; color: var(--danger-color) !important; transform: none !important; box-shadow: none !important; }
 
 /* FIN-6: настройка магпредметов — бейдж, кнопка, счётчик N/3 */
-.inv-attune-tag { color: var(--accent-lo); border-color: color-mix(in srgb, var(--accent-lo) 40%, transparent); }
-.inv-attune-tag.on { color: var(--on-accent); background: var(--accent-lo); border-color: var(--accent-lo); }
+/* STYLE-8c2: «настроен» — цвет, а не залитая плашка (заливка --accent-lo под
+   --on-accent была последней «таблеткой» в строке вещи). */
+.inv-attune-tag { color: var(--text-muted); border: 0; }
+.inv-attune-tag.on { color: var(--magic); background: none; border: 0; }
 .inv-attune-btn {
-  padding: 5px 12px !important;
-  border-radius: var(--r-sm);
-  font-size: 0.78em !important;
-  font-weight: 600;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0;
+  font-size: 0.85em !important;
+  font-weight: 500;
   cursor: pointer;
   width: auto !important;
   margin: 0 !important;
   transform: none !important;
-  transition: all 0.15s;
-  background: transparent !important;
-  border: 1px solid color-mix(in srgb, var(--accent-lo) 55%, transparent) !important;
+  transition: color 0.15s;
+  background: none !important;
   color: var(--accent-lo) !important;
 }
-.inv-attune-btn:hover { background: color-mix(in srgb, var(--accent-lo) 14%, transparent) !important; border-color: var(--accent-lo) !important; transform: none !important; box-shadow: none !important; }
-.inv-attune-btn.attuned { background: color-mix(in srgb, var(--accent-lo) 18%, transparent) !important; border-color: var(--accent-lo) !important; }
-.inv-attune-btn.attuned:hover { background: transparent !important; }
+.inv-attune-btn:hover { background: none !important; color: var(--accent) !important; transform: none !important; box-shadow: none !important; }
+.inv-attune-btn.attuned { background: none !important; color: var(--magic) !important; }
+.inv-attune-btn.attuned:hover { background: none !important; }
 .inv-attune-count {
-  font-size: 0.72em;
+  font-size: var(--fs-sm);
   color: var(--accent-lo);
   background: transparent;
-  border: 1px solid color-mix(in srgb, var(--accent-lo) 45%, transparent);
-  border-radius: var(--r-sm);
-  padding: 2px 8px;
+  border: 0;
+  padding: 0;
   white-space: nowrap;
 }
-.inv-attune-count.over { color: #fff; background: var(--danger-color); border-color: var(--danger-color); }
+.inv-attune-count.over { color: var(--danger-color); background: none; }
 .item-attune-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .item-attune-label input[type="checkbox"] { width: auto; margin: 0; }
 
@@ -4637,26 +4706,26 @@ animation: rise var(--t3) var(--ez-out) both;
 .item-charges-row input[type="number"] { width: auto; flex: 1 1 0; min-width: 0; margin: 0; }
 .item-charges-row .item-charges-sep { flex: 0 0 auto; color: var(--text-muted); font-weight: 700; }
 .item-charges-row select { width: auto; flex: 1.6 1 0; min-width: 0; margin: 0; }
-.inv-charges-tag { color: var(--magic); border-color: color-mix(in srgb, var(--magic) 40%, transparent); }
-.inv-charges-tag.empty { color: var(--text-muted); border-color: var(--border-soft); }
-.inv-charges-ctrl { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; }
-.inv-charges-ctrl .inv-charges-label { font-size: 0.78em; font-weight: 600; color: var(--magic); white-space: nowrap; }
+.inv-charges-tag { color: var(--magic); border: 0; }
+.inv-charges-tag.empty { color: var(--text-muted); border: 0; }
+.inv-charges-ctrl { display: inline-flex; align-items: center; gap: var(--sp-3); margin-right: auto; }
+.inv-charges-ctrl .inv-charges-label { font-size: 0.85em; font-weight: 600; color: var(--magic); white-space: nowrap; }
 .inv-charge-btn {
-  padding: 3px 10px !important;
-  border-radius: var(--r-sm);
-  font-size: 0.9em !important;
+  padding: 0 4px !important;
+  border-radius: 0;
+  font-size: 1.05em !important;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
   width: auto !important;
   margin: 0 !important;
   transform: none !important;
-  transition: all 0.15s;
-  background: transparent !important;
-  border: 1px solid color-mix(in srgb, var(--magic) 55%, transparent) !important;
+  transition: color 0.15s;
+  background: none !important;
+  border: 0 !important;
   color: var(--magic) !important;
 }
-.inv-charge-btn:hover { background: color-mix(in srgb, var(--magic) 14%, transparent) !important; border-color: var(--magic) !important; transform: none !important; box-shadow: none !important; }
+.inv-charge-btn:hover { background: none !important; color: var(--accent) !important; transform: none !important; box-shadow: none !important; }
 .inv-charge-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .inv-charge-btn:disabled:hover { background: transparent !important; }
 
@@ -4667,79 +4736,70 @@ animation: rise var(--t3) var(--ez-out) both;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) 0;
+  margin-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--home-rule);
 }
 .inv-coins-header h4 { margin: 0; }
-.inv-coins-weight { font-size: 0.75em; color: var(--text-muted); }
+.inv-coins-weight { font-size: var(--fs-sm); color: var(--text-muted); }
 
-.inv-coins-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-/* Last 2 cards span wider to fill the row evenly */
-/* 2nd row: 2 items — make them each 1.5 wide visually */
-.inv-coin-card:nth-child(4),
-.inv-coin-card:nth-child(5) {
-  /* handled via separate row trick below */
-}
-/* Put last 2 in their own row stretched */
-.inv-coins-grid {
-  grid-template-areas:
-    "a b c"
-    "d d e e";
-}
-/* Can't do fractional in 3-col for 2 items — use separate row */
+/* STYLE-8c2: кошель — пять строк вместо сетки карточек, порядок по ценности
+   (задан разметкой). Обёртки строк .inv-coins-row остались в разметке, но
+   раскладку больше не задают: display:contents отдаёт монеты общему столбцу. */
 .inv-coins-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
 }
-.inv-coins-row {
-  display: grid;
-  gap: 8px;
-}
-.inv-coins-row-3 { grid-template-columns: repeat(3, 1fr); }
-.inv-coins-row-2 { grid-template-columns: repeat(2, 1fr); }
+.inv-coins-row { display: contents; }
 
 .inv-coin-card {
-  padding: 12px 10px 10px;
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 6px;
-  transition: border-color 0.2s;
+  gap: var(--sp-3);
+  transition: color 0.2s;
 }
+.inv-coin-card + .inv-coin-card { border-top: 1px solid var(--home-rule); }
 
 .inv-coin-card-top {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--sp-3);
+  flex: 0 0 auto;
 }
+/* Точка номинала — ромб, как маркер пункта на встречающем экране. */
 .inv-coin-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  border-radius: 0;
+  transform: rotate(45deg);
   flex-shrink: 0;
 }
 .inv-coin-lbl {
-  font-size: 0.65em;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+  font-family: var(--font-display);
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--text-color);
+  text-transform: none;
+  letter-spacing: 0;
   white-space: nowrap;
 }
 .inv-coin-big-inp {
-  width: 100%;
-  text-align: center;
-  padding: 4px 2px;
-  font-size: 1.5em;
-  font-weight: 800;
+  width: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: right;
+  padding: 2px 4px;
+  font-family: var(--font-display);
+  font-size: 1.35em;
+  font-weight: 700;
   border: none;
   background: transparent;
   color: var(--text-color);
-  line-height: 1;
+  line-height: 1.2;
 }
 .inv-coin-big-inp:focus { outline: none; color: var(--accent-color); }
 
@@ -4816,12 +4876,12 @@ animation: rise var(--t3) var(--ez-out) both;
 .gci-cost { font-size: 0.78em; color: var(--text-muted); margin-top: 2px; }
 
 .inv-exch-open-btn {
-  background: transparent !important;
-  border: 1px solid var(--border-soft) !important;
-  color: var(--text-muted) !important;
-  border-radius: var(--r-sm);
-  padding: 5px 12px !important;
-  font-size: 0.78em !important;
+  background: none !important;
+  border: 0 !important;
+  color: var(--accent-lo) !important;
+  border-radius: 0;
+  padding: 0 !important;
+  font-size: 0.88em !important;
   cursor: pointer;
   width: auto !important;
   margin: 0 !important;
@@ -4832,7 +4892,7 @@ animation: rise var(--t3) var(--ez-out) both;
   flex-shrink: 0;
 }
 .inv-exch-open-btn:hover {
-  border-color: var(--accent-color) !important;
+  background: none !important;
   color: var(--accent-color) !important;
   transform: none !important;
   box-shadow: none !important;
@@ -4940,39 +5000,41 @@ animation: rise var(--t3) var(--ez-out) both;
 .coin-exch-preview-error { border-color: var(--danger-color); background: rgba(231,76,60,0.08); color: var(--danger-color); }
 .coin-exch-confirm { margin-bottom: 0 !important; }
 
+/* STYLE-8c2: ± у монеты — два знака справа от числа, без рамок и заливки. */
 .inv-coin-card-btns {
   display: flex;
-  gap: 5px;
-  width: 100%;
+  gap: var(--sp-4);
+  width: auto;
+  flex: 0 0 auto;
 }
 .inv-coin-btn {
-  flex: 1;
-  height: 28px;
-  border-radius: var(--r-sm) !important;
-  border: 1px solid var(--border-color) !important;
-  background: var(--card-bg) !important;
+  flex: 0 0 auto;
+  height: auto;
+  border-radius: 0 !important;
+  border: 0 !important;
+  background: none !important;
   color: var(--text-muted) !important;
-  font-size: 1em !important;
+  font-size: 1.1em !important;
   font-weight: bold;
+  line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   width: auto !important;
   margin: 0 !important;
-  padding: 0 !important;
-  transition: all 0.15s;
+  padding: 2px 4px !important;
+  transition: color 0.15s;
   transform: none !important;
   box-shadow: none !important;
 }
 .inv-coin-btn:hover {
-  border-color: var(--accent-color) !important;
+  background: none !important;
   color: var(--accent-color) !important;
   transform: none !important;
   box-shadow: none !important;
 }
 .inv-coin-btn-plus:hover {
-  border-color: var(--success-color) !important;
   color: var(--success-color) !important;
 }
 
@@ -10110,94 +10172,105 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 /* =============================================
    INVENTORY SLOTS SYSTEM
 ============================================= */
-.inv-slots-card { padding-bottom: 10px; }
+/* STYLE-8c2: слоты — одна строка «7 / 10 слотов», справа настройка и СИЛ
+   текстом; под строкой волосяной трек, ниже легенда словами. */
+.inv-slots-card { padding-bottom: 0; }
 .inv-slots-top {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 8px;
-  gap: 8px;
+  margin-bottom: var(--sp-3);
+  gap: var(--sp-3);
+  flex-wrap: wrap;
 }
-.inv-slots-left { display: flex; align-items: baseline; gap: 4px; }
+.inv-slots-left { display: flex; align-items: baseline; gap: 6px; }
 .inv-slots-label {
-  font-size: 0.7em;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.18em;
   margin-right: 4px;
 }
 .inv-slots-used {
+  font-family: var(--font-display);
   font-size: 1.5em;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--accent-color);
   line-height: 1;
 }
 .inv-slots-used.inv-slots-over { color: var(--danger-color); }
-.inv-slots-sep { font-size: 0.85em; color: var(--text-muted); margin: 0 2px; }
-.inv-slots-total { font-size: 0.95em; font-weight: 600; color: var(--text-color); }
-.inv-slots-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.inv-slots-sep { font-size: 0.95em; color: var(--text-muted); margin: 0 2px; }
+.inv-slots-total { font-family: var(--font-display); font-size: 1.05em; font-weight: 600; color: var(--text-color); }
+.inv-slots-right { display: flex; align-items: baseline; gap: var(--sp-4); flex-shrink: 0; }
 .inv-slots-str-hint {
-  font-size: 0.72em;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   background: transparent;
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-sm);
-  padding: 2px 8px;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 .inv-slots-legend {
   display: flex;
-  gap: 10px;
-  margin-top: 8px;
+  gap: 0;
+  margin-top: var(--sp-3);
   flex-wrap: wrap;
+  align-items: baseline;
 }
 .inv-slots-legend span {
-  font-size: 0.72em;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   background: transparent;
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-sm);
-  padding: 2px 8px;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
   cursor: default;
+}
+.inv-slots-legend span + span::before {
+  content: "·";
+  color: var(--text-muted);
+  margin: 0 var(--sp-3);
 }
 
 /* ── Pouches ── */
-.inv-pouches { margin-bottom: 12px; }
+/* STYLE-8c2: мешочки — не четыре коробки, а строка из четырёх колонок текста:
+   иконка мешочка остаётся кодировкой доступности (👝 / 🔒). */
+.inv-pouches { margin-bottom: var(--sp-3); }
 .inv-pouches-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 7px;
-  margin-bottom: 8px;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-2);
 }
 .inv-pouch {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 8px 4px;
-  text-align: center;
-  transition: border-color 0.2s;
+  align-items: baseline;
+  gap: 6px;
+  padding: var(--sp-2) 0;
+  text-align: left;
+  transition: color 0.2s;
 }
 .inv-pouch-locked { opacity: 0.4; }
-.inv-pouch-icon { font-size: 1.3em; }
-.inv-pouch-req { font-size: 0.65em; font-weight: 700; color: var(--text-muted); }
-.inv-pouch-cap { font-size: 0.62em; color: var(--accent-color); }
+.inv-pouch-icon { font-size: 1em; }
+.inv-pouch-req { font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted); }
+.inv-pouch-cap { font-size: var(--fs-sm); color: var(--accent-lo); }
 .inv-pouches-hint {
-  font-size: 0.78em;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
-  padding: 6px 10px;
+  padding: var(--sp-2) 0;
   line-height: 1.5;
 }
-.inv-pouches-hint strong { color: var(--accent-color); font-weight: 700; }
+.inv-pouches-hint strong { color: var(--accent-lo); font-weight: 700; }
 
 /* slot tag on item */
 .inv-slot-tag {
   background: transparent;
-  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
-  border-radius: var(--r-sm);
-  padding: 1px 6px;
-  font-size: 0.7em;
-  color: var(--accent-color);
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
 }
 
 /* ── Item Reference Modal ── */
@@ -14165,25 +14238,14 @@ textarea:focus-visible {
    --r-sm. .inv-coin-card стояла в группе STYLE-5 и получала оформление
    карточки-контейнера, хотя лежит ВНУТРИ карточки «Кошель» — перенесена сюда.
    Модификаторы (наведение, раскрытая вещь, доступный кошель, золотая монета)
-   стоят НИЖЕ группового правила: специфичность равная, решает порядок. */
-.inv-item,
-.inv-item-icon,
-.inv-coin-card,
-.inv-pouch,
-.inv-pouches-hint {
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-md);
-  box-shadow: inset 0 1px 0 var(--glass-hi);
-}
-.inv-item:hover,
-.inv-coin-card:hover { border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
-.inv-item.expanded { border-color: var(--accent-color); }
-.inv-pouch:not(.inv-pouch-locked) {
-  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
-  background: color-mix(in srgb, var(--accent) 7%, transparent);
-}
-.inv-coin-card-gold { border-color: color-mix(in srgb, var(--accent) 32%, transparent); }
+   стоят НИЖЕ группового правила: специфичность равная, решает порядок.
+
+   STYLE-8c2: группа снята целиком — «Сумка» перешла в язык встречающего экрана,
+   и подложек здесь не осталось ни у вещи, ни у монеты, ни у мешочка (.inv-item-icon
+   вместе с иконкой категории убран из разметки). Доступный мешочек и золото
+   кодируются цветом текста, раскрытая вещь — лёгкой заливкой строки. */
+.inv-pouch:not(.inv-pouch-locked) .inv-pouch-req { color: var(--text-dim); }
+.inv-coin-card-gold .inv-coin-lbl { color: var(--accent-lo); }
 /* Крупная цифра монеты задумана плоской (border:none, фон карточки) и в тёмной
    теме плоская. В светлой её обрамлял общий override input[type="number"]
    (~строка 826, через !important) — вместо ещё одной перебивки поле исключено
@@ -15747,4 +15809,81 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   box-shadow: none;
   border-radius: 0;
   border-bottom: 1px solid var(--home-rule);
+}
+
+/* ══ STYLE-8c2: вкладка «Сумка» в языке встречающего экрана ═══════════════
+   Последняя вкладка, остававшаяся в коробочном рецепте 8c. Правило то же, что
+   на «Мире» (8e) и «Записях» (8f): ни одной карточки — полосы-заголовки с
+   волосяным разделителем, плоские строки, ромб как кодировка типа, чипы текстом
+   через точку, действия текстом на --accent-lo. Основная часть рецепта стоит
+   не здесь, а на месте старых правил выше по файлу: коробка снята там, где
+   объявлялась, поэтому перебивок и !important не прибавилось. Здесь — только
+   то, что снимает обрамление у самой вкладки и собирает раскладку.
+
+   Разметка почти не тронута: убрана иконка категории в строке вещи (её роль
+   взял ромб), количество вынесено из мета-строки правым краем, монеты
+   переставлены по ценности, легенда слотов переписана словами. Инлайновые
+   onclick, drag-and-drop и селекторы туров на месте. */
+
+/* Три карточки вкладки перестают быть карточками. */
+#tab-inventory > .card {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0 0 var(--sp-6) 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+#tab-inventory > .card:hover { box-shadow: none; border-color: transparent; }
+#tab-inventory .card h4 {
+  font-family: var(--font-display);
+  font-size: calc(var(--fs-lg) * 1.05);
+  font-weight: 700;
+}
+/* Слоты — первая строка вкладки: заголовок ей не положен, разделитель тоже
+   (его роль играет сам трек нагрузки). */
+#tab-inventory .inv-slots-card { padding: var(--sp-3) 0 0; }
+#tab-inventory .inv-slots-top { padding: 0 var(--sp-3) 0 0; }
+
+/* Ручка перетаскивания — как правка и удаление на «Мире»: приглушена, пока
+   строка не под курсором. На тач-устройствах hover не наступает, поэтому там
+   она видна всегда (перетаскивание пальцем — единственный способ сортировки). */
+@media (hover: hover) {
+  #tab-inventory .inv-drag-handle { opacity: 0.25; transition: opacity var(--t1) var(--ez-out); }
+  #tab-inventory .inv-item:hover .inv-drag-handle,
+  #tab-inventory .inv-item:focus-within .inv-drag-handle { opacity: 1; }
+}
+/* Цель перетаскивания в фильтрах: пунктирная рамка вокруг слова вместо
+   заливки чипа, которой больше нет. */
+#tab-inventory .inventory-filters button.inv-cat-target {
+  outline: 1px dashed var(--accent);
+  outline-offset: 4px;
+  background: none;
+}
+/* display:contents не склеивает соседство: первая монета второй строки-обёртки
+   не попадает под .inv-coin-card + .inv-coin-card и осталась бы без линии. */
+#tab-inventory .inv-coins-row + .inv-coins-row .inv-coin-card:first-child {
+  border-top: 1px solid var(--home-rule);
+}
+/* Курс обмена и «Разменять» — последняя строка кошелька. */
+#tab-inventory .inv-coin-total {
+  margin-top: 0;
+  padding: var(--sp-3) var(--sp-3) 0 0;
+  border-top: 1px solid var(--home-rule);
+}
+
+/* Широкий экран: вещи раскладываются в две колонки — ширина занята
+   содержимым, а не воздухом справа от строки (приём 8e). Волосяная линия в
+   сетке обрывалась бы по ширине колонки, поэтому строки разделяет пустота. */
+@media (min-width: 1100px) {
+  #tab-inventory .inventory-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 0 var(--sp-5);
+    align-items: start;
+  }
+  #tab-inventory .inv-item + .inv-item { border-top: 0; }
+  #tab-inventory .inv-item { padding-top: var(--sp-2); padding-bottom: var(--sp-2); }
 }
