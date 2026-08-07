@@ -3,7 +3,11 @@
 # headless-тесты и сверку версий (см. CLAUDE.md «Версионирование»).
 name: tests
 
-on: [push, pull_request]
+# workflow_dispatch — ручной запуск из вкладки Actions или `gh workflow run tests.yml`.
+# Нужен на случай аварий GitHub: 06–07.08.2026 throttling вебхуков (проходило ~15%
+# событий) оставил четыре релизных коммита вовсе без прогонов, при этом ручной запуск
+# идёт через API мимо вебхуков и работал — так был доставлен деплой pages.
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   tests:
