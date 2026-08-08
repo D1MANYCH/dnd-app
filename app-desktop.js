@@ -11,16 +11,29 @@
       <div class="rr-group">Хиты</div>
       <div class="rr-hp-big"><span id="rr-hp-current">10</span><span class="rr-hp-big-sep">/</span><span id="rr-hp-max">10</span></div>
       <div class="rr-hp-bar"><div id="rr-hp-bar-fill" class="rr-hp-bar-fill" style="width:100%"></div></div>
-      <div class="rr-hp-quick">
-        <button type="button" class="btn btn-secondary btn-sm" data-hp="-5">−5</button>
-        <button type="button" class="btn btn-secondary btn-sm" data-hp="-1">−1</button>
-        <button type="button" class="btn btn-secondary btn-sm" data-hp="1">+1</button>
-        <button type="button" class="btn btn-secondary btn-sm" data-hp="5">+5</button>
-      </div>
-      <input type="number" id="rr-hp-input" class="rr-hp-input" placeholder="0" min="1" autocomplete="off">
-      <div class="rr-hp-buttons">
-        <button type="button" class="btn btn-danger" id="rr-btn-dmg">− Урон</button>
-        <button type="button" class="btn btn-success" id="rr-btn-heal">+ Лечение</button>
+      <!-- STYLE-8R2: тот же рецепт, что у раздела «Здоровье и Бой» на листе —
+           строка с ромбом, пресеты урона прямо в ней, поле и два текстовых
+           действия в раскрытии. Классы hp-step / hp-inp / hp-act общие с листом. -->
+      <div class="rr-rows rr-rows-hp">
+        <div class="rr-line">
+          <button type="button" class="rr-row" id="rr-hp-toggle" data-rr-toggle="rr-panel-hp" aria-controls="rr-panel-hp" aria-expanded="false">
+            <span class="home-bullet home-bullet--sm"></span>
+            <span class="rr-row-label hp-row-name--dmg" id="rr-hp-row-name">Урон</span>
+          </button>
+          <span class="hp-steps" id="rr-hp-steps">
+            <button type="button" class="hp-step" data-hp="-1">1</button>
+            <button type="button" class="hp-step" data-hp="-5">5</button>
+            <button type="button" class="hp-step" data-hp="-10">10</button>
+            <button type="button" class="hp-step" data-hp="-20">20</button>
+          </span>
+        </div>
+        <div class="rr-panel" id="rr-panel-hp" hidden>
+          <div class="hp-row-line">
+            <input type="number" id="rr-hp-input" class="hp-inp flat-field" placeholder="0" min="1" inputmode="numeric" autocomplete="off">
+            <button type="button" class="hp-act hp-act--dmg" id="rr-btn-dmg">Нанести</button>
+            <button type="button" class="hp-act hp-act--heal" id="rr-btn-heal">Вылечить</button>
+          </div>
+        </div>
       </div>
     </div>
     <div class="rr-rows">
@@ -91,13 +104,16 @@
     if (cur && rrCur) rrCur.textContent = cur.textContent;
     if (max && rrMax) rrMax.textContent = max.textContent;
 
+    const cv = parseInt(cur && cur.textContent, 10) || 0;
+    const mv = parseInt(max && max.textContent, 10) || 1;
     const fill = document.getElementById('rr-hp-bar-fill');
     if (fill) {
-      const cv = parseInt(cur && cur.textContent, 10) || 0;
-      const mv = parseInt(max && max.textContent, 10) || 1;
       const pct = Math.max(0, Math.min(100, (cv / mv) * 100));
       fill.style.width = pct + '%';
+      fill.classList.toggle('is-low', pct <= 25);
+      fill.classList.toggle('is-medium', pct > 25 && pct <= 50);
     }
+    updateRailHpRow(cv, mv);
 
     const cnt = document.getElementById('conditions-btn-count');
     const condBtn = document.getElementById('status-conditions-btn');
@@ -245,6 +261,25 @@
   }
   window.refreshRailSlots = renderRailSlots;
 
+  // Строка урона в rail живёт по правилам листа (updateHPRows в app-hp.js):
+  // при 0 ХП становится «Лечение» без пресетов, раскрывается сама, пока герой
+  // ранен, и уважает ручное сворачивание до полного здоровья.
+  var rrHpRowManual = false;
+  function updateRailHpRow(hpCurrent, hpMax) {
+    var toggle = document.getElementById('rr-hp-toggle');
+    if (!toggle) return;
+    var dying = hpCurrent <= 0;
+    var nameEl = document.getElementById('rr-hp-row-name');
+    var stepsEl = document.getElementById('rr-hp-steps');
+    if (nameEl) {
+      nameEl.textContent = dying ? 'Лечение' : 'Урон';
+      nameEl.className = 'rr-row-label ' + (dying ? 'hp-row-name--heal' : 'hp-row-name--dmg');
+    }
+    if (stepsEl) stepsEl.style.display = dying ? 'none' : '';
+    if (hpCurrent >= hpMax) rrHpRowManual = false;
+    if (!rrHpRowManual) setRowExpanded(toggle, dying || hpCurrent < hpMax);
+  }
+
   function rrApplyHP(mode) {
     const inp = document.getElementById('rr-hp-input');
     if (!inp) return;
@@ -310,6 +345,7 @@
     // STYLE-8R: раскрытие строк-сводок (кубики, ячейки, состояния)
     rail.querySelectorAll('[data-rr-toggle]').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (btn.id === 'rr-hp-toggle') rrHpRowManual = true;
         setRowExpanded(btn, btn.getAttribute('aria-expanded') !== 'true');
       });
     });
