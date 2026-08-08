@@ -1271,8 +1271,101 @@ if (deathSavesSection) {
 deathSavesSection.style.display = hpCurrent <= 0 ? "block" : "none";
 }
 
+// HP2: шапка со сводкой + поведение строк раздела
+updateHPSummary();
+updateHPRows(hpCurrent, hpMax);
+
 updateStatusBar();
 syncSelfBattleStatus();
+}
+
+// ============================================
+// HP2 · РАЗДЕЛ «ЗДОРОВЬЕ И БОЙ» — строки и шапка
+// Раздел собран из плоских строк с ромбом раскрытия (рецепт DISC-1).
+// Свёрнутая строка урона несёт пресеты и применяет их сразу — иначе каждый
+// удар в бою стоил бы лишнего тапа по раскрытию.
+// ============================================
+
+// Пользователь свернул/раскрыл строку урона сам — уважаем его выбор, пока
+// герой не вылечится до максимума (тогда автоматика включается заново).
+var hpDmgRowManual = false;
+
+function hpToggleRow(rowEl) {
+  if (!rowEl) return;
+  var open = rowEl.classList.toggle("is-open");
+  var body = rowEl.nextElementSibling;
+  if (body && body.classList.contains("hp-row-body")) body.classList.toggle("is-open", open);
+  if (rowEl.id === "hp-dmg-row") hpDmgRowManual = true;
+  return open;
+}
+
+function hpSetRowOpen(rowEl, open) {
+  if (!rowEl) return;
+  rowEl.classList.toggle("is-open", !!open);
+  var body = rowEl.nextElementSibling;
+  if (body && body.classList.contains("hp-row-body")) body.classList.toggle("is-open", !!open);
+}
+
+// Шапка: максимум ХП дробью и сводка боя одной строкой; мета строки брони.
+function updateHPSummary() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var hpCurrent = char.combat.hpCurrent || 0;
+  var hpMax = char.combat.hpMax || 10;
+  var hpTemp = char.combat.hpTemp || 0;
+
+  var maxEl = $("hp-head-max");
+  if (maxEl) maxEl.textContent = hpMax;
+
+  var tailEl = $("hp-head-tail");
+  if (tailEl) {
+    if (hpCurrent <= 0) {
+      tailEl.textContent = "при смерти";
+      tailEl.className = "hp-head-tail hp-head-tail--dying";
+    } else {
+      var parts = [];
+      if (hpTemp > 0) parts.push("врем. <b>" + hpTemp + "</b>");
+      var acVal = $("combat-ac") ? $("combat-ac").value : char.combat.ac;
+      parts.push("КД <b>" + (acVal || 10) + "</b>");
+      var initVal = $("combat-init") ? $("combat-init").value : "";
+      if (initVal) parts.push("иниц. <b>" + escapeHtml(initVal) + "</b>");
+      parts.push(escapeHtml(char.combat.speed || "30 фт"));
+      tailEl.innerHTML = parts.join("<span class=\"hp-dot\">·</span>");
+      tailEl.className = "hp-head-tail";
+    }
+  }
+
+  var armorMeta = $("hp-armor-meta");
+  var armorSel = $("char-armor");
+  // BUILD-LVL-7: у DOM-стаба тестов нет .options — обращение к нему роняет весь
+  // updateHPDisplay, поэтому наличие списка проверяем явно.
+  if (armorMeta && armorSel && armorSel.options && armorSel.options.length) {
+    // Название доспеха без эмодзи и без «(КД …)» — КД показываем отдельно.
+    var label = armorSel.options[armorSel.selectedIndex] ? armorSel.options[armorSel.selectedIndex].text : "";
+    label = label.replace(/^[^\wА-Яа-яЁё]+/, "").replace(/\s*\(.*\)\s*$/, "").trim();
+    var bits = [label || "Без доспехов"];
+    if ($("char-shield") && $("char-shield").checked) bits.push("щит");
+    armorMeta.innerHTML = bits.map(escapeHtml).join("<span class=\"hp-dot\">·</span>") +
+      "<span class=\"hp-dot\">·</span><b>КД " + ($("combat-ac") ? $("combat-ac").value || 10 : 10) + "</b>";
+  }
+}
+
+// Строка урона: при 0 ХП становится «Лечение» без пресетов (лечат по своему
+// числу), раскрывается сама, пока герой ранен, и уступает место спасброскам.
+function updateHPRows(hpCurrent, hpMax) {
+  var row = $("hp-dmg-row");
+  if (!row) return;
+  var dying = hpCurrent <= 0;
+  var nameEl = $("hp-dmg-row-name");
+  var stepsEl = $("hp-dmg-steps");
+  if (nameEl) {
+    nameEl.textContent = dying ? "Лечение" : "Урон";
+    nameEl.className = "hp-row-name " + (dying ? "hp-row-name--heal" : "hp-row-name--dmg");
+  }
+  if (stepsEl) stepsEl.style.display = dying ? "none" : "";
+  if (hpCurrent >= hpMax) hpDmgRowManual = false;
+  if (!hpDmgRowManual) hpSetRowOpen(row, dying || hpCurrent < hpMax);
 }
 
 // ============================================
@@ -1408,18 +1501,8 @@ else quickHP(val, "Лечение");
 if (input) input.value = "";
 }
 
-function applyHealInput() {
-const input = $("hp-heal-input");
-const val = parseInt(input?.value, 10) || 0;
-if (val <= 0) return;
-quickHP(val, "Лечение");
-if (input) input.value = "";
-}
-
-function setHPInput(inputId, val) {
-const input = $(inputId);
-if (input) input.value = val;
-}
+// HP2: applyHealInput/setHPInput удалены вместе со второй коробкой «Лечение» —
+// поле изменения ХП теперь одно (#hp-custom-input), режим задаёт кнопка.
 
 function saveTempHP() {
 if (!currentId) return;
@@ -1469,9 +1552,10 @@ if (!row) return;
 row.innerHTML = "";
 const show = Math.min(total, 20);
 for (let i = 0; i < show; i++) {
-const d = document.createElement("div");
+const d = document.createElement("span");
+// HP2: пипс — ромб на CSS (как ячейка заклинания), а не символ ◆/◇: в строке
+// он стоит рядом с ромбом раскрытия и должен быть с ним одного рисунка.
 d.className = "hd-die-icon" + (i < avail ? " hd-die-avail" : " hd-die-spent");
-d.textContent = i < avail ? "◆" : "◇";
 row.appendChild(d);
 }
 }

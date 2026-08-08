@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v348">
+<link rel="stylesheet" href="style.css?v=v349">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -869,12 +869,82 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- UI5-4: Колонка 1 — Здоровье/Бой · повышение уровня · класс доспеха -->
 <div class="sheet-col sheet-col-1">
 
-<div class="card">
+<div class="card hp-card">
 <h3>Здоровье и Бой</h3>
-<!-- Armor selector -->
-<div class="armor-select-row">
-<div class="armor-select-left">
-<label><span data-ico="shield" data-ico-size="16">🛡️</span> Броня</label>
+
+<!-- HP2: шапка — число ХП, максимум и сводка боя одной строкой -->
+<div class="hp-head">
+<span class="hp-big-num" id="hp-display-current">—</span>
+<span class="hp-head-sep">/</span>
+<span class="hp-head-max" id="hp-head-max">—</span>
+<span class="hp-head-tail" id="hp-head-tail"></span>
+</div>
+<div class="hp-bar-wrap"><div class="hp-bar-ghost" id="hp-bar-ghost"></div><div class="hp-bar" id="hp-bar"></div></div>
+
+<div class="hp-rows">
+
+<!-- Урон: пресеты применяются прямо из свёрнутой строки; при 0 ХП строка
+     становится «Лечение» и пресеты убираются (лечат по своему числу) -->
+<div class="hp-row" id="hp-dmg-row" onclick="hpToggleRow(this)">
+<span class="disc-diamond"></span>
+<span class="hp-row-name hp-row-name--dmg" id="hp-dmg-row-name">Урон</span>
+<span class="hp-steps" id="hp-dmg-steps">
+<button type="button" class="hp-step" onclick="event.stopPropagation(); quickHP(-1,'Урон')">1</button>
+<button type="button" class="hp-step" onclick="event.stopPropagation(); quickHP(-5,'Урон')">5</button>
+<button type="button" class="hp-step" onclick="event.stopPropagation(); quickHP(-10,'Урон')">10</button>
+<button type="button" class="hp-step" onclick="event.stopPropagation(); quickHP(-20,'Урон')">20</button>
+</span>
+</div>
+<div class="hp-row-body" id="hp-dmg-body">
+<div class="hp-row-line">
+<input type="number" id="hp-custom-input" class="hp-inp flat-field" placeholder="0" min="1" inputmode="numeric">
+<button type="button" class="hp-act hp-act--dmg" onclick="applyCustomHP('dmg')">Нанести</button>
+<button type="button" class="hp-act hp-act--heal" onclick="applyCustomHP('heal')">Вылечить</button>
+</div>
+<div class="hp-row-line">
+<label class="hp-sub-lbl" for="hp-temp"><span data-ico="zap" data-ico-size="14">⚡</span> Врем. ХП</label>
+<input type="number" id="hp-temp" class="hp-inp flat-field" value="0" min="0" onchange="saveTempHP()">
+<label class="hp-sub-lbl" for="hp-max-manual">Максимум</label>
+<input type="number" id="hp-max-manual" class="hp-inp flat-field" min="1" onchange="onManualMaxHP()" placeholder="—">
+<button type="button" class="hp-act" onclick="recalculateHP()">Пересчитать</button>
+</div>
+</div>
+
+<!-- Спасброски на смерть — встают на место строки урона при 0 ХП -->
+<div id="death-saves-section" class="hp-death" style="display:none">
+<div class="hp-row hp-row--static">
+<span class="hp-row-name ds-success-lbl">Успехи</span>
+<span class="ds-boxes">
+<span class="ds-box ds-success-box" id="ds-s0" onclick="toggleDeathSave('success',0)"></span>
+<span class="ds-box ds-success-box" id="ds-s1" onclick="toggleDeathSave('success',1)"></span>
+<span class="ds-box ds-success-box" id="ds-s2" onclick="toggleDeathSave('success',2)"></span>
+</span>
+<button type="button" class="hp-act" onclick="rollDeathSave()">Бросить к20</button>
+</div>
+<div class="hp-row hp-row--static">
+<span class="hp-row-name ds-fail-lbl">Провалы</span>
+<span class="ds-boxes">
+<span class="ds-box ds-fail-box" id="ds-f0" onclick="toggleDeathSave('failure',0)"></span>
+<span class="ds-box ds-fail-box" id="ds-f1" onclick="toggleDeathSave('failure',1)"></span>
+<span class="ds-box ds-fail-box" id="ds-f2" onclick="toggleDeathSave('failure',2)"></span>
+</span>
+<span class="ds-roll-result" id="ds-roll-result"></span>
+</div>
+<div class="hp-row hp-row--static">
+<span class="ds-status" id="ds-status"></span>
+<button type="button" class="hp-act" onclick="resetDeathSaves()">Сбросить</button>
+</div>
+<p class="hp-row-hint">10+ успех · ниже 10 провал · 1 = два провала · 20 = стабилизация и 1 ХП. Любое лечение поднимает на ноги.</p>
+</div>
+
+<!-- Броня -->
+<div class="hp-row" onclick="hpToggleRow(this)">
+<span class="disc-diamond"></span>
+<span class="hp-row-name">Броня</span>
+<span class="hp-row-meta" id="hp-armor-meta">—</span>
+</div>
+<div class="hp-row-body" id="hp-armor-body">
+<label class="hp-sub-lbl" for="char-armor"><span data-ico="shield" data-ico-size="16">🛡️</span> Доспех</label>
 <select id="char-armor" class="field flat-field" onchange="updateChar(); onArmorChange()">
 <option value="none">👤 Без доспехов</option>
 <optgroup label="Лёгкий доспех">
@@ -897,84 +967,46 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </optgroup>
 <option value="custom">✏️ Вручную</option>
 </select>
-</div>
-<div class="armor-select-right">
-<label>Щит (+2)</label>
-<input type="checkbox" id="char-shield" onchange="updateChar(); onArmorChange()" style="width:auto; margin-top:var(--sp-2);">
-</div>
-</div>
-<div class="row">
-<div class="col"><label>КД (AC)</label><input type="number" id="combat-ac" class="field flat-field" oninput="onManualAC()" style="color: var(--armor-color); font-weight: bold;"></div>
-<div class="col"><label>Инициатива</label><input type="text" id="combat-init" class="field flat-field" readonly></div>
-<div class="col"><label>Скорость</label><input type="text" id="combat-speed" class="field flat-field" value="30 фт" oninput="updateChar()"></div>
-</div>
-
-<!-- Дисплей HP + полоска -->
-<div class="hp-display-block">
-<div class="hp-numbers">
-<div class="hp-col">
-<div class="hp-lbl">Текущие ХП</div>
-<div class="hp-big-num" id="hp-display-current">—</div>
-</div>
-<div class="hp-divider">/</div>
-<div class="hp-col hp-max-col">
-<div class="hp-lbl">Максимум <button class="hp-recalc-btn" onclick="recalculateHP()" title="Пересчитать по классу/уровню/ТЕЛ"><span data-ico="reset">🔄</span></button></div>
-<input type="number" id="hp-max-manual" class="hp-max-manual-inp flat-field" min="1" onchange="onManualMaxHP()" placeholder="—">
-</div>
-<div class="hp-col hp-temp-col">
-<div class="hp-lbl"><span data-ico="zap" data-ico-size="14">⚡</span> Врем. ХП</div>
-<input type="number" id="hp-temp" class="hp-temp-inp flat-field" value="0" min="0" onchange="saveTempHP()">
-</div>
-</div>
-<div class="hp-bar-wrap"><div class="hp-bar-ghost" id="hp-bar-ghost"></div><div class="hp-bar" id="hp-bar"></div></div>
-<div class="hp-toast-anchor">
-<button class="btn btn-ghost btn-sm" onclick="openHPHistory()"><span data-ico="history" data-ico-size="16">📋</span> История ХП</button>
-</div>
-<div class="hp-rest-row">
-  <button class="btn hp-rest-btn hp-rest-short" onclick="openRestModal(); showShortRestInfo()"><span data-ico="coffee" data-ico-size="16">☕</span> Короткий отдых</button>
-  <button class="btn hp-rest-btn hp-rest-long" onclick="openRestModal(); showLongRestInfo()"><span data-ico="bed" data-ico-size="16">🛏️</span> Долгий отдых</button>
+<label class="hp-check"><input type="checkbox" id="char-shield" onchange="updateChar(); onArmorChange()"> Щит (+2)</label>
+<div class="hp-row-line">
+<label class="hp-sub-lbl" for="combat-ac">КД</label>
+<input type="number" id="combat-ac" class="hp-inp hp-inp--ac flat-field" oninput="onManualAC()">
+<label class="hp-sub-lbl" for="combat-init">Инициатива</label>
+<input type="text" id="combat-init" class="hp-inp flat-field" readonly>
+<label class="hp-sub-lbl" for="combat-speed">Скорость</label>
+<input type="text" id="combat-speed" class="hp-inp hp-inp--wide flat-field" value="30 фт" oninput="updateChar()">
 </div>
 </div>
 
-<!-- Урон / Лечение -->
-<div class="hp-two-col">
-<div class="hp-side hp-side-dmg">
-<div class="hp-side-label"><span data-ico="sword" data-ico-size="16">⚔️</span> Урон</div>
-<div class="hp-side-row">
-<input type="number" id="hp-custom-input" class="hp-side-inp flat-field" placeholder="0" min="1">
-<button class="btn btn-danger hp-side-btn" onclick="applyCustomHP('dmg')">Нанести</button>
+<!-- Кости хитов: пипсы-ромбы видны в свёрнутой строке -->
+<div class="hp-row" onclick="hpToggleRow(this)">
+<span class="disc-diamond"></span>
+<span class="hp-row-name">Кости хитов</span>
+<span class="hp-row-meta"><strong id="hd-type-display">—</strong> <span id="hd-avail-display">—</span></span>
+<span class="hd-dice-row" id="hd-dice-row"></span>
 </div>
-<div class="hp-presets">
-<button class="hp-preset hp-preset-dmg" onclick="setHPInput('hp-custom-input',1)">1</button>
-<button class="hp-preset hp-preset-dmg" onclick="setHPInput('hp-custom-input',5)">5</button>
-<button class="hp-preset hp-preset-dmg" onclick="setHPInput('hp-custom-input',10)">10</button>
-<button class="hp-preset hp-preset-dmg" onclick="setHPInput('hp-custom-input',20)">20</button>
-</div>
-</div>
-<div class="hp-side hp-side-heal">
-<div class="hp-side-label"><span data-ico="heart" data-ico-size="16">💚</span> Лечение</div>
-<div class="hp-side-row">
-<input type="number" id="hp-heal-input" class="hp-side-inp flat-field" placeholder="0" min="1">
-<button class="btn btn-success hp-side-btn" onclick="applyHealInput()">Вылечить</button>
-</div>
-<div class="hp-presets">
-<button class="hp-preset hp-preset-heal" onclick="setHPInput('hp-heal-input',1)">1</button>
-<button class="hp-preset hp-preset-heal" onclick="setHPInput('hp-heal-input',5)">5</button>
-<button class="hp-preset hp-preset-heal" onclick="setHPInput('hp-heal-input',10)">10</button>
-<button class="hp-preset hp-preset-heal" onclick="setHPInput('hp-heal-input',20)">20</button>
-</div>
-</div>
-</div>
-
-<!-- Кость хитов -->
-<div class="hd-block">
-<div class="hd-top-row">
-<span class="hd-label"><span data-ico="dice" data-ico-size="16">🎲</span> Кости хитов: <strong id="hd-type-display">—</strong></span>
-<span class="hd-avail-badge" id="hd-avail-display">—</span>
+<div class="hp-row-body" id="hp-hd-body">
+<div class="hp-row-line">
+<button type="button" class="hp-act" id="roll-hd-btn" onclick="rollHitDieQuick()">Бросить кость хитов</button>
 <span class="hd-result" id="hd-result"></span>
 </div>
-<div class="hd-dice-row" id="hd-dice-row"></div>
-<button class="btn btn-secondary btn-block" id="roll-hd-btn" onclick="rollHitDieQuick()">Бросить кость хитов</button>
+<p class="hp-row-hint">Тратятся на коротком отдыхе, лечат на бросок + модификатор ТЕЛ. Половина восстанавливается на долгом отдыхе.</p>
+</div>
+
+<!-- Отдых -->
+<div class="hp-row" onclick="hpToggleRow(this)">
+<span class="disc-diamond"></span>
+<span class="hp-row-name">Отдых</span>
+<span class="hp-row-meta">короткий · долгий</span>
+</div>
+<div class="hp-row-body" id="hp-rest-body">
+<div class="hp-row-line">
+<button type="button" class="hp-act" onclick="openRestModal(); showShortRestInfo()"><span data-ico="coffee" data-ico-size="16">☕</span> Короткий отдых</button>
+<button type="button" class="hp-act" onclick="openRestModal(); showLongRestInfo()"><span data-ico="bed" data-ico-size="16">🛏️</span> Долгий отдых</button>
+<button type="button" class="hp-act" onclick="openHPHistory()"><span data-ico="history" data-ico-size="16">📋</span> История ХП</button>
+</div>
+</div>
+
 </div>
 
 <!-- Скрытые поля (нужны для updateChar/loadCharacter) -->
@@ -988,37 +1020,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 </div>
 
-<!-- СПАСБРОСКИ НА СМЕРТЬ — только при HP = 0 -->
-<div class="card death-saves-card" id="death-saves-section" style="display:none">
-<div class="ds-header">
-<span class="ds-title"><span data-ico="skull" data-ico-size="16">💀</span> Спасброски на Смерть</span>
-<span class="ds-hint">10+ успех · ниже 10 провал · 1 = 2 провала · 20 = стаб.</span>
-</div>
-<div class="ds-rows">
-<div class="ds-row">
-<span class="ds-lbl ds-success-lbl">Успехи</span>
-<div class="ds-boxes">
-<div class="ds-box ds-success-box" id="ds-s0" onclick="toggleDeathSave('success',0)"><span class="ds-icon"></span></div>
-<div class="ds-box ds-success-box" id="ds-s1" onclick="toggleDeathSave('success',1)"><span class="ds-icon"></span></div>
-<div class="ds-box ds-success-box" id="ds-s2" onclick="toggleDeathSave('success',2)"><span class="ds-icon"></span></div>
-</div>
-</div>
-<div class="ds-row">
-<span class="ds-lbl ds-fail-lbl">Провалы</span>
-<div class="ds-boxes">
-<div class="ds-box ds-fail-box" id="ds-f0" onclick="toggleDeathSave('failure',0)"><span class="ds-icon"></span></div>
-<div class="ds-box ds-fail-box" id="ds-f1" onclick="toggleDeathSave('failure',1)"><span class="ds-icon"></span></div>
-<div class="ds-box ds-fail-box" id="ds-f2" onclick="toggleDeathSave('failure',2)"><span class="ds-icon"></span></div>
-</div>
-</div>
-</div>
-<div class="ds-roll-row">
-<button class="btn btn-secondary" onclick="rollDeathSave()"><span data-ico="dice" data-ico-size="16">🎲</span> Бросить d20</button>
-<div class="ds-roll-result" id="ds-roll-result"></div>
-</div>
-<div class="ds-status" id="ds-status"></div>
-<button class="btn btn-ghost btn-sm" onclick="resetDeathSaves()">Сбросить</button>
-</div>
+<!-- HP2: спасброски на смерть переехали внутрь карточки «Здоровье и Бой»
+     (#death-saves-section) — при 0 ХП они встают на место строки урона. -->
 
 <div class="level-actions">
 <button class="btn btn-primary" onclick="openLevelUpModal()"><span data-ico="arrowUp" data-ico-size="16">⬆️</span> Повысить уровень</button>
@@ -3161,57 +3164,57 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v348"></script>
+<script src="app-log.js?v=v349"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v348"></script>
-<script src="bg-space.js?v=v348"></script>
-<script src="dice-arena-bg.js?v=v348"></script>
-<script src="data.js?v=v348"></script>
+<script src="icons.js?v=v349"></script>
+<script src="bg-space.js?v=v349"></script>
+<script src="dice-arena-bg.js?v=v349"></script>
+<script src="data.js?v=v349"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v348"></script>
+<script src="character-builds.js?v=v349"></script>
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v348"></script>
-<script src="spells.js?v=v348"></script>
-<script src="spell-effects.js?v=v348"></script>
+<script src="glossary-data.js?v=v349"></script>
+<script src="spells.js?v=v349"></script>
+<script src="spell-effects.js?v=v349"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v348"></script>
-<script src="app-migrate.js?v=v348"></script>
-<script src="app-builds.js?v=v348"></script>
-<script src="app-core.js?v=v348"></script>
-<script src="app-io.js?v=v348"></script>
-<script src="app-backup.js?v=v348"></script>
-<script src="app-combat.js?v=v348"></script>
-<script src="app-conditions.js?v=v348"></script>
-<script src="app-cast-effects.js?v=v348"></script>
-<script src="app-proficiencies.js?v=v348"></script>
-<script src="app-hp.js?v=v348"></script>
-<script src="app-spells.js?v=v348"></script>
-<script src="app-inventory.js?v=v348"></script>
+<script src="rules.js?v=v349"></script>
+<script src="app-migrate.js?v=v349"></script>
+<script src="app-builds.js?v=v349"></script>
+<script src="app-core.js?v=v349"></script>
+<script src="app-io.js?v=v349"></script>
+<script src="app-backup.js?v=v349"></script>
+<script src="app-combat.js?v=v349"></script>
+<script src="app-conditions.js?v=v349"></script>
+<script src="app-cast-effects.js?v=v349"></script>
+<script src="app-proficiencies.js?v=v349"></script>
+<script src="app-hp.js?v=v349"></script>
+<script src="app-spells.js?v=v349"></script>
+<script src="app-inventory.js?v=v349"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v348"></script>
-<script src="class-choices.js?v=v348"></script>
-<script src="subclass-choices-data.js?v=v348"></script>
+<script src="app-party.js?v=v349"></script>
+<script src="class-choices.js?v=v349"></script>
+<script src="subclass-choices-data.js?v=v349"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v348";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v349";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-dice.js?v=v348"></script>
-<script src="app-settings.js?v=v348"></script>
-<script src="app-ui.js?v=v348"></script>
-<script src="app-home.js?v=v348"></script>
-<script src="app-asi.js?v=v348"></script>
-<script src="app-notes.js?v=v348"></script>
-<script src="app-desktop.js?v=v348"></script>
-<script src="history-stack.js?v=v348"></script>
-<script src="app-help.js?v=v348"></script>
+<script src="app-dice.js?v=v349"></script>
+<script src="app-settings.js?v=v349"></script>
+<script src="app-ui.js?v=v349"></script>
+<script src="app-home.js?v=v349"></script>
+<script src="app-asi.js?v=v349"></script>
+<script src="app-notes.js?v=v349"></script>
+<script src="app-desktop.js?v=v349"></script>
+<script src="history-stack.js?v=v349"></script>
+<script src="app-help.js?v=v349"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3224,9 +3227,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v348",
-    "vendor/jspdf/roboto-base64.js?v=v348",
-    "app-pdf.js?v=v348"
+    "vendor/jspdf/jspdf.umd.min.js?v=v349",
+    "vendor/jspdf/roboto-base64.js?v=v349",
+    "app-pdf.js?v=v349"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3250,7 +3253,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v348").then(function () {
+    return loadScript("build-notes-data.js?v=v349").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -3258,26 +3261,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v348"),
-      loadScript("npc-srd.js?v=v348")
+      loadScript("monsters-srd.js?v=v349"),
+      loadScript("npc-srd.js?v=v349")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v348");
+    return loadScript("magic-items.js?v=v349");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v348");
+    return loadScript("gear-catalog.js?v=v349");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v348").then(function () {
+    return loadScript("data-2024.js?v=v349").then(function () {
       window.__edition2024Loaded = true;
     });
   };

@@ -1,0 +1,594 @@
+<meta charset="utf-8">
+<title>Мокапы — раздел «Здоровье и Бой»</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Стенд. Живой style.css не трогаем — вся вёрстка мокапов только здесь.
+     Язык — встречающий экран: ни одной коробки, плоские строки, волосяные
+     разделители, действия текстом на --accent-lo, ромб-маркер раскрытия. */
+  body { margin: 0; background: var(--bg-0); color: var(--text); font-family: var(--font); }
+  .mk-page { max-width: 1240px; margin: 0 auto; padding: 28px 22px 90px; }
+  .mk-h1 { font-family: var(--font-display); font-size: 26px; margin: 0 0 6px; }
+  .mk-lead { color: var(--home-sub); font-size: 13px; line-height: 1.5; margin: 0 0 30px; max-width: 78ch; }
+  .mk-sec { margin: 0 0 46px; }
+  .mk-sec > h2 { font-family: var(--font-display); font-size: 18px; font-weight: 500; color: var(--accent-lo); margin: 0 0 4px; }
+  .mk-sec > .mk-sub { color: var(--home-sub); font-size: 12.5px; line-height: 1.5; margin: 0 0 18px; max-width: 80ch; }
+  .mk-grid { display: flex; flex-wrap: wrap; gap: 0; align-items: flex-start; }
+  .mk-col { width: 340px; flex: 0 0 auto; padding: 0 20px 0 0; margin-right: 20px; border-right: 1px solid var(--border-soft); }
+  .mk-col:last-child { border-right: 0; }
+  .mk-cap { font-family: var(--font-display); font-size: 14px; color: var(--accent-lo); margin: 0 0 4px; }
+  .mk-note { font-size: 11.5px; color: var(--home-sub); line-height: 1.45; margin: 0 0 14px; min-height: 58px; }
+  .mk-h { font-size: 11px; color: var(--home-sub); margin: 10px 0 0; font-variant-numeric: tabular-nums; }
+
+  /* ---------- общий рецепт строки ---------- */
+  .dz { flex: 0 0 auto; width: 9px; height: 9px; border: 1.5px solid var(--accent); box-sizing: border-box;
+        transform: rotate(45deg); transition: transform var(--t2) var(--ez-out); }
+  .dz--half { background: linear-gradient(45deg, transparent 50%, var(--accent) 50%); }
+  .dz--mute { border-color: var(--home-sub); background: none; }
+  .row.open > .dz--half { transform: rotate(135deg); }
+
+  .list { border-bottom: 1px solid var(--home-rule); }
+  .row { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 2px;
+         border-top: 1px solid var(--home-rule); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .row--static { cursor: default; }
+  .row-name { font-family: var(--font-display); font-size: 15px; }
+  .row-meta { margin-left: auto; color: var(--home-sub); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .row-meta b { color: var(--text); font-weight: 600; }
+  .row-body { display: none; padding: 2px 2px 14px 19px; font-size: 13px; line-height: 1.55; color: var(--home-sub); }
+  .row-body.open { display: block; }
+  .row-body p { margin: 0 0 8px; }
+
+  .act { all: unset; cursor: pointer; font-family: var(--font-display); font-size: 13px; color: var(--accent-lo);
+         min-height: 44px; display: inline-flex; align-items: center; }
+  .act:hover { text-decoration: underline; }
+  .act--dmg { color: var(--hp-low); }
+  .act--heal { color: var(--hp-high); }
+  .acts { display: flex; gap: 22px; border-top: 1px solid var(--home-rule); padding: 0 2px; }
+  .dot { color: var(--home-sub); margin: 0 6px; }
+
+  /* ---------- ХП ---------- */
+  .hp-line { display: flex; align-items: baseline; gap: 8px; padding: 6px 2px 8px; }
+  .hp-cur { font-size: 34px; font-weight: 700; line-height: 1; color: var(--hp-high); font-variant-numeric: tabular-nums; }
+  .hp-sep { color: var(--home-sub); font-size: 18px; }
+  .hp-max { font-size: 18px; color: var(--home-sub); font-variant-numeric: tabular-nums; }
+  .hp-tail { margin-left: auto; font-size: 12.5px; color: var(--home-sub); }
+  .hp-tail b { color: var(--accent-lo); font-weight: 600; }
+  .hair { height: 1px; background: var(--home-rule); position: relative; margin: 0 2px 2px; }
+  .hair > i { position: absolute; inset: 0 auto 0 0; background: var(--hp-high); display: block; }
+  .hair--thick { height: 2px; }
+
+  /* поле ввода как строка, без коробки */
+  .inp { all: unset; width: 3.2em; font-size: 15px; color: var(--text); text-align: right;
+         border-bottom: 1px solid var(--home-rule); padding: 4px 2px; font-variant-numeric: tabular-nums; }
+  .inp:focus { border-bottom-color: var(--accent); }
+  .steps { display: flex; gap: 14px; margin-left: auto; }
+  .step { all: unset; cursor: pointer; font-size: 12.5px; color: var(--home-sub); min-height: 44px;
+          display: inline-flex; align-items: center; font-variant-numeric: tabular-nums; }
+  .step:hover { color: var(--accent-lo); }
+
+  /* сводка боя в строку */
+  .stat-strip { display: flex; align-items: baseline; gap: 0; padding: 10px 2px; border-top: 1px solid var(--home-rule); }
+  .stat { display: flex; align-items: baseline; gap: 6px; }
+  .stat-lbl { font-size: 11px; letter-spacing: .5px; text-transform: uppercase; color: var(--home-sub); }
+  .stat-val { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat-val--ac { color: var(--armor-color, var(--accent-lo)); }
+  .stat + .stat { margin-left: auto; }
+
+  /* кость хитов пипсами */
+  .pips { display: flex; gap: 6px; margin-left: auto; }
+  .pip { width: 9px; height: 9px; border: 1.5px solid var(--accent); box-sizing: border-box; transform: rotate(45deg); }
+  .pip--used { border-color: var(--home-sub); opacity: .45; }
+  .pip--full { background: var(--accent); }
+
+  .mk-idea { border-top: 1px solid var(--home-rule); padding: 12px 0; font-size: 13px; line-height: 1.6; max-width: 86ch; }
+  .mk-idea b { font-family: var(--font-display); font-weight: 500; }
+  .mk-idea span { color: var(--home-sub); }
+</style>
+
+<div class="mk-page">
+  <h1 class="mk-h1">Мокапы: раздел «Здоровье и Бой»</h1>
+  <p class="mk-lead">Сейчас блок занимает почти два экрана телефона: селект брони, три поля-колонки, крупный ХП-дисплей,
+     полоса, «История ХП», две кнопки отдыха, две коробки «Урон» / «Лечение» с восемью пресетами и блок костей хитов —
+     всё развёрнуто одновременно, хотя в бою нужны две вещи: <b>текущие ХП</b> и <b>снять/вернуть число</b>.
+     Ниже — три сборки целиком и разбор по узлам; выбран <b>В2</b>, его доработка — в разделах 5–6.
+     Строки кликабельны, можно потыкать.</p>
+  <p class="mk-lead" style="margin-top:-18px"><a href="#v2plus" style="color:var(--accent-lo)">→ сразу к доработке В2</a></p>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>1 · Сборка целиком</h2>
+    <p class="mk-sub">Одна колонка = ширина телефона. Под каждой — примерная высота против нынешних ~980 px.</p>
+    <div class="mk-grid">
+
+      <!-- ---------- В1 ---------- -->
+      <div class="mk-col">
+        <div class="mk-cap">В1 — «Всё строками»</div>
+        <p class="mk-note">Ничего не прячем, но всё плоское: ХП сверху крупно, полоса — волосок,
+           сводка боя в одну строку, урон и лечение — одно поле и два текстовых действия,
+           отдых и кости хитов — строки. Самый предсказуемый вариант: ни один элемент не переехал, изменилась только подача.</p>
+
+        <div class="hp-line">
+          <span class="hp-cur">8</span><span class="hp-sep">/</span><span class="hp-max">8</span>
+          <span class="hp-tail">врем. <b>0</b></span>
+        </div>
+        <div class="hair"><i style="width:100%"></i></div>
+
+        <div class="stat-strip">
+          <span class="stat"><span class="stat-lbl">КД</span><span class="stat-val stat-val--ac">10</span></span>
+          <span class="stat"><span class="stat-lbl">Иниц.</span><span class="stat-val">+0</span></span>
+          <span class="stat"><span class="stat-lbl">Скор.</span><span class="stat-val">30</span></span>
+        </div>
+
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Броня</span><span class="row-meta">Без доспехов</span></div>
+          <div class="row-body"><p>Тут — список доспехов и щит. Выбор оставляем нативным, но живёт он в раскрытии, а не в шапке.</p></div>
+
+          <div class="row row--static">
+            <span class="row-name">Урон</span>
+            <input class="inp" value="0" inputmode="numeric">
+            <span class="steps"><button class="step">1</button><button class="step">5</button><button class="step">10</button><button class="step">20</button></span>
+            <button class="act act--dmg" style="margin-left:14px">Нанести</button>
+          </div>
+          <div class="row row--static">
+            <span class="row-name">Лечение</span>
+            <input class="inp" value="0" inputmode="numeric">
+            <span class="steps"><button class="step">1</button><button class="step">5</button><button class="step">10</button><button class="step">20</button></span>
+            <button class="act act--heal" style="margin-left:14px">Вылечить</button>
+          </div>
+
+          <div class="row row--static">
+            <span class="row-name">Кости хитов</span>
+            <span class="row-meta">1к8</span>
+            <span class="pips"><i class="pip"></i></span>
+            <button class="act" style="margin-left:16px">Бросить</button>
+          </div>
+        </div>
+
+        <div class="acts">
+          <button class="act">Короткий отдых</button>
+          <button class="act">Долгий отдых</button>
+          <button class="act">История</button>
+        </div>
+        <p class="mk-h">высота ≈ 420 px · было ≈ 980 px</p>
+      </div>
+
+      <!-- ---------- В2 ---------- -->
+      <div class="mk-col">
+        <div class="mk-cap">В2 — «Свёрнуто по умолчанию»</div>
+        <p class="mk-note">В покое видно четыре строки. Урон/лечение, броня и кости хитов раскрываются ромбом —
+           тем же знаком, что уже стоит в состояниях и эффектах. Самый компактный, но за каждое действие — лишний тап.</p>
+
+        <div class="hp-line">
+          <span class="hp-cur">8</span><span class="hp-sep">/</span><span class="hp-max">8</span>
+          <span class="hp-tail">КД <b>10</b><span class="dot">·</span>иниц. <b>+0</b><span class="dot">·</span>30 фт</span>
+        </div>
+        <div class="hair"><i style="width:100%"></i></div>
+
+        <div class="list">
+          <div class="row open" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Изменить ХП</span><span class="row-meta">урон · лечение · врем.</span></div>
+          <div class="row-body open">
+            <div style="display:flex;align-items:center;gap:12px">
+              <input class="inp" value="0" inputmode="numeric" style="margin-left:0">
+              <button class="act act--dmg">Урон</button>
+              <button class="act act--heal">Лечение</button>
+              <button class="act">Врем.</button>
+            </div>
+            <div class="steps" style="margin:0;gap:18px"><button class="step">1</button><button class="step">5</button><button class="step">10</button><button class="step">20</button></div>
+          </div>
+
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Броня</span><span class="row-meta">Без доспехов<span class="dot">·</span>КД 10</span></div>
+          <div class="row-body"><p>Селект доспеха, щит (+2), ручной КД.</p></div>
+
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Кости хитов</span><span class="row-meta">1к8<span class="dot">·</span>1 из 1</span></div>
+          <div class="row-body"><p>Пипсы по количеству костей, бросок, восстановление на долгом отдыхе.</p></div>
+
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Отдых</span><span class="row-meta">короткий · долгий</span></div>
+          <div class="row-body"><p>Что восстанавливается, кнопки запуска, «История ХП».</p></div>
+        </div>
+        <p class="mk-h">высота ≈ 230 px свёрнуто · было ≈ 980 px</p>
+      </div>
+
+      <!-- ---------- В3 ---------- -->
+      <div class="mk-col">
+        <div class="mk-cap">В3 — «Одно поле, знак решает»</div>
+        <p class="mk-note">Урон и лечение перестают быть двумя блоками: одно число, слева «−», справа «+».
+           Пресеты — четыре цифры, они меняют число, а не применяют его. Вдвое меньше элементов, но требует привычки:
+           первый раз надо понять, что «−» это урон.</p>
+
+        <div class="hp-line">
+          <span class="hp-cur">8</span><span class="hp-sep">/</span><span class="hp-max">8</span>
+          <span class="hp-tail">врем. <b>0</b></span>
+        </div>
+        <div class="hair hair--thick"><i style="width:100%"></i></div>
+
+        <div class="list">
+          <div class="row row--static" style="gap:18px">
+            <button class="act act--dmg" style="font-size:20px">−</button>
+            <input class="inp" value="5" inputmode="numeric" style="width:2.6em;text-align:center">
+            <button class="act act--heal" style="font-size:20px">+</button>
+            <span class="steps"><button class="step">1</button><button class="step">5</button><button class="step">10</button><button class="step">20</button></span>
+          </div>
+
+          <div class="row row--static">
+            <span class="row-name">КД</span>
+            <span class="row-meta"><b>10</b><span class="dot">·</span>без доспехов<span class="dot">·</span>без щита</span>
+          </div>
+          <div class="row row--static">
+            <span class="row-name">Инициатива</span><span class="row-meta"><b>+0</b></span>
+          </div>
+          <div class="row row--static">
+            <span class="row-name">Скорость</span><span class="row-meta"><b>30</b> фт</span>
+          </div>
+          <div class="row row--static">
+            <span class="row-name">Кости хитов</span><span class="row-meta">1к8</span>
+            <span class="pips"><i class="pip"></i></span>
+            <button class="act" style="margin-left:16px">Бросить</button>
+          </div>
+        </div>
+
+        <div class="acts">
+          <button class="act">Короткий</button>
+          <button class="act">Долгий</button>
+          <button class="act">История</button>
+        </div>
+        <p class="mk-h">высота ≈ 360 px · было ≈ 980 px</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>2 · Узел: шапка ХП</h2>
+    <p class="mk-sub">Сейчас три подписи в верхнем регистре, число 48 px, поле максимума в рамке, поле врем. ХП и кнопка пересчёта —
+       шесть смысловых единиц там, где нужна одна.</p>
+    <div class="mk-grid">
+
+      <div class="mk-col">
+        <div class="mk-cap">Ш1 — число и дробь</div>
+        <p class="mk-note">Максимум перестаёт быть полем ввода: он редактируется в раскрытии («Максимум ХП» → пересчитать / задать вручную).
+           Полоса — волосок под числом.</p>
+        <div class="hp-line"><span class="hp-cur">8</span><span class="hp-sep">/</span><span class="hp-max">8</span><span class="hp-tail">врем. <b>0</b></span></div>
+        <div class="hair"><i style="width:100%"></i></div>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Максимум ХП</span><span class="row-meta">8<span class="dot">·</span>по классу</span></div>
+          <div class="row-body"><p>Пересчитать по классу/уровню/ТЕЛ · задать вручную · бонусы (Дварфийская выносливость и т.п.).</p></div>
+        </div>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">Ш2 — с процентом</div>
+        <p class="mk-note">Полоса заменена процентом словом справа — на узком экране полоса всё равно читается хуже цифры.
+           Раненое состояние показываем цветом числа, как «наложено» у состояний.</p>
+        <div class="hp-line"><span class="hp-cur" style="color:var(--hp-medium)">5</span><span class="hp-sep">/</span><span class="hp-max">8</span><span class="hp-tail">62%<span class="dot">·</span>ранен</span></div>
+        <div class="list">
+          <div class="row row--static"><span class="row-name">Врем. ХП</span><span class="row-meta">0</span></div>
+        </div>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">Ш3 — полоса под числом, врем. ХП поверх</div>
+        <p class="mk-note">Полоса остаётся, но волоском и с накладкой врем. ХП другим цветом — видно, что щит временных хитов «сверх» максимума.
+           Ближе к нынешнему, менее рискованно.</p>
+        <div class="hp-line"><span class="hp-cur">8</span><span class="hp-sep">/</span><span class="hp-max">8</span><span class="hp-tail">врем. <b>4</b></span></div>
+        <div class="hair hair--thick"><i style="width:74%"></i><i style="left:74%;width:26%;background:var(--accent-lo)"></i></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>3 · Узел: урон и лечение</h2>
+    <p class="mk-sub">Сегодня это две коробки-близнеца: подпись, поле, кнопка и четыре пресета в каждой — 14 целей на одном экране.</p>
+    <div class="mk-grid">
+
+      <div class="mk-col">
+        <div class="mk-cap">У1 — общее поле, два действия</div>
+        <p class="mk-note">Одно число, два текстовых действия цветом. Пресеты общие. Минус 7 элементов, смысл прежний.</p>
+        <div class="list">
+          <div class="row row--static" style="gap:14px">
+            <input class="inp" value="0" inputmode="numeric" style="margin-left:0">
+            <button class="act act--dmg">Нанести урон</button>
+            <button class="act act--heal">Вылечить</button>
+          </div>
+          <div class="row row--static"><span class="steps" style="margin-left:0;gap:22px"><button class="step">1</button><button class="step">5</button><button class="step">10</button><button class="step">20</button><button class="step">максимум</button></span></div>
+        </div>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">У2 — только пресеты, поле по требованию</div>
+        <p class="mk-note">В бою чаще всего вводят конкретное число — но одним тапом хочется снять «пачку».
+           Пресеты сразу применяют урон; «Другое число» раскрывает поле. Быстрее всего в реальном бою.</p>
+        <div class="list">
+          <div class="row row--static"><span class="row-name act--dmg" style="color:var(--hp-low)">Урон</span>
+            <span class="steps"><button class="step">1</button><button class="step">5</button><button class="step">10</button><button class="step">20</button></span></div>
+          <div class="row row--static"><span class="row-name" style="color:var(--hp-high)">Лечение</span>
+            <span class="steps"><button class="step">1</button><button class="step">5</button><button class="step">10</button><button class="step">20</button></span></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Другое число</span></div>
+          <div class="row-body">
+            <div style="display:flex;align-items:center;gap:14px">
+              <input class="inp" value="0" inputmode="numeric" style="margin-left:0">
+              <button class="act act--dmg">Урон</button><button class="act act--heal">Лечение</button><button class="act">Врем. ХП</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">У3 — знак вместо слов</div>
+        <p class="mk-note">Как в В3 сборки. Самый компактный, но «−» рядом с ХП можно спутать с кнопкой характеристики (там уже есть − / +).
+           Если берём — знаки нужно развести цветом и размером.</p>
+        <div class="list">
+          <div class="row row--static" style="gap:18px">
+            <button class="act act--dmg" style="font-size:20px">−</button>
+            <input class="inp" value="5" inputmode="numeric" style="width:2.6em;text-align:center">
+            <button class="act act--heal" style="font-size:20px">+</button>
+            <span class="steps"><button class="step">1</button><button class="step">5</button><button class="step">10</button><button class="step">20</button></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>4 · Узел: кости хитов и отдых</h2>
+    <p class="mk-sub">Кнопка «Бросить кость хитов» во всю ширину и две кнопки отдыха — три крупных прямоугольника подряд,
+       хотя пользуются ими раз в игровую сессию.</p>
+    <div class="mk-grid">
+
+      <div class="mk-col">
+        <div class="mk-cap">К1 — пипсы-ромбы</div>
+        <p class="mk-note">Каждая кость — ромб; потраченная гаснет. Считается взглядом, число дублировать не надо.
+           Тот же знак, что в ячейках заклинаний.</p>
+        <div class="list">
+          <div class="row row--static"><span class="row-name">Кости хитов</span><span class="row-meta">1к8</span>
+            <span class="pips"><i class="pip pip--full"></i><i class="pip pip--full"></i><i class="pip pip--used"></i><i class="pip pip--used"></i></span>
+            <button class="act" style="margin-left:16px">Бросить</button></div>
+        </div>
+        <div class="acts"><button class="act">Короткий отдых</button><button class="act">Долгий отдых</button></div>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">К2 — внутри отдыха</div>
+        <p class="mk-note">Кости хитов тратятся почти только на коротком отдыхе — можно убрать их в раскрытие «Отдых»
+           и не держать на виду. Минус целая строка из основного вида.</p>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Отдых</span><span class="row-meta">кости 2 из 4</span></div>
+          <div class="row-body">
+            <p>Короткий — тратятся кости хитов, восстанавливаются умения «до короткого отдыха».<br>
+               Долгий — все ХП, половина костей, ячейки.</p>
+            <div style="display:flex;align-items:center;gap:16px">
+              <span class="pips" style="margin:0"><i class="pip pip--full"></i><i class="pip pip--full"></i><i class="pip pip--used"></i><i class="pip pip--used"></i></span>
+              <button class="act">Бросить 1к8</button>
+            </div>
+            <div style="display:flex;gap:20px"><button class="act">Короткий</button><button class="act">Долгий</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">К3 — строка-подвал</div>
+        <p class="mk-note">Всё редкое — одной строкой мелким шрифтом внизу раздела, через точку-разделитель.
+           Как строка признаков у вещи в «Сумке».</p>
+        <div class="acts" style="border-bottom:1px solid var(--home-rule);flex-wrap:wrap;gap:14px">
+          <button class="act">Короткий отдых</button><span class="dot">·</span>
+          <button class="act">Долгий отдых</button><span class="dot">·</span>
+          <button class="act">Кость хитов 1к8 (1)</button><span class="dot">·</span>
+          <button class="act">История ХП</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec" id="v2plus">
+    <h2>5 · Доработка В2 <span style="color:var(--home-sub);font-size:13px">(выбранный вариант)</span></h2>
+    <p class="mk-sub">У В2 ровно одна слабость: за каждый урон в бою — лишний тап по раскрытию.
+       Четыре доработки ниже её снимают, не ломая компактность. Дальше — итоговая сборка <b>В2+</b>, в которой они собраны вместе.</p>
+    <div class="mk-grid">
+
+      <div class="mk-col">
+        <div class="mk-cap">Д1 — пресеты живут в строке</div>
+        <p class="mk-note">Числа 1 · 5 · 10 · 20 стоят прямо в свёрнутой строке и <b>сразу снимают</b> ХП.
+           Раскрытие нужно только под своё число, лечение и врем. ХП. Типовой урон — один тап, как раньше.</p>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name" style="color:var(--hp-low)">Урон</span>
+            <span class="steps"><button class="step" onclick="event.stopPropagation()">1</button><button class="step" onclick="event.stopPropagation()">5</button><button class="step" onclick="event.stopPropagation()">10</button><button class="step" onclick="event.stopPropagation()">20</button></span></div>
+          <div class="row-body">
+            <div style="display:flex;align-items:center;gap:14px">
+              <input class="inp" value="0" inputmode="numeric" style="margin-left:0">
+              <button class="act act--dmg">Нанести</button>
+              <button class="act act--heal">Вылечить</button>
+              <button class="act">Врем.</button>
+            </div>
+          </div>
+        </div>
+        <p class="mk-h">урон в один тап · раскрытие только под «другое»</p>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">Д2 — раскрытие по состоянию</div>
+        <p class="mk-note">Строка «Изменить ХП» раскрыта, пока герой <b>ранен</b> (ХП меньше максимума) или идёт бой,
+           и свёрнута, когда всё цело. Компактно в покое, развёрнуто ровно тогда, когда нужно — без памяти
+           раскрытого состояния, которая нам уже мешала в состояниях.</p>
+        <div class="list">
+          <div class="row row--static" style="opacity:.6"><i class="dz dz--half"></i><span class="row-name">Изменить ХП</span><span class="row-meta">8/8 — свёрнуто</span></div>
+        </div>
+        <p class="mk-h" style="margin-bottom:10px">полное здоровье</p>
+        <div class="list">
+          <div class="row open" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Изменить ХП</span><span class="row-meta" style="color:var(--hp-medium)">5/8 — ранен</span></div>
+          <div class="row-body open">
+            <div style="display:flex;align-items:center;gap:14px">
+              <input class="inp" value="0" inputmode="numeric" style="margin-left:0">
+              <button class="act act--dmg">Урон</button><button class="act act--heal">Лечение</button>
+            </div>
+          </div>
+        </div>
+        <p class="mk-h">после первого урона</p>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">Д3 — говорящий хвост строки</div>
+        <p class="mk-note">Свёрнутая строка не должна быть пустой обещалкой: справа — то же, что показало бы раскрытие.
+           Кости хитов пипсами, отдых — чем закончился прошлый, броня — доспех и щит через точку.
+           Часто раскрывать вообще не понадобится.</p>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Кости хитов</span>
+            <span class="row-meta">1к8</span><span class="pips"><i class="pip pip--full"></i><i class="pip pip--full"></i><i class="pip pip--used"></i><i class="pip pip--used"></i></span></div>
+          <div class="row-body"><p>Бросок, восстановление половины на долгом отдыхе.</p></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Броня</span>
+            <span class="row-meta">Кольчуга<span class="dot">·</span>щит<span class="dot">·</span><b>КД 18</b></span></div>
+          <div class="row-body"><p>Селект доспеха, щит (+2), ручной КД.</p></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Отдых</span>
+            <span class="row-meta">долгий был 2 дня назад</span></div>
+          <div class="row-body"><p>Короткий · Долгий · История ХП.</p></div>
+        </div>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">Д4 — 0 ХП раскрывает само</div>
+        <p class="mk-note">При нуле строка «Изменить ХП» уступает место спасброскам на смерть — прямо здесь, без отдельной карточки ниже.
+           Успехи и провалы — те же ромбы, а не квадраты-коробки. Раздел сам показывает то, что сейчас важно.</p>
+        <div class="hp-line">
+          <span class="hp-cur" style="color:var(--hp-low)">0</span><span class="hp-sep">/</span><span class="hp-max">8</span>
+          <span class="hp-tail" style="color:var(--hp-low)">при смерти</span>
+        </div>
+        <div class="hair"><i style="width:0"></i></div>
+        <div class="list">
+          <div class="row row--static"><span class="row-name">Успехи</span>
+            <span class="pips"><i class="pip pip--full"></i><i class="pip"></i><i class="pip"></i></span>
+            <button class="act" style="margin-left:16px">Бросить к20</button></div>
+          <div class="row row--static"><span class="row-name">Провалы</span>
+            <span class="pips"><i class="pip pip--full" style="background:var(--hp-low);border-color:var(--hp-low)"></i><i class="pip" style="border-color:var(--hp-low)"></i><i class="pip" style="border-color:var(--hp-low)"></i></span></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Лечение</span><span class="row-meta">поднимет на ногах</span></div>
+          <div class="row-body"><p>Любое лечение — 1 ХП и конец спасбросков. Стабилизация — без ХП, но броски прекращаются.</p></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>6 · Итог: сборка В2+</h2>
+    <p class="mk-sub">Д1 + Д2 + Д3 + Д4 вместе. В покое — пять строк и ни одной коробки; в бою типовой урон снимается одним тапом
+       из свёрнутой строки, а панель раскрыта сама, пока герой ранен.</p>
+    <div class="mk-grid">
+
+      <div class="mk-col">
+        <div class="mk-cap">В2+ · покой, полное здоровье</div>
+        <p class="mk-note">Всё свёрнуто, хвосты строк отвечают на вопросы без раскрытия.</p>
+        <div class="hp-line">
+          <span class="hp-cur">8</span><span class="hp-sep">/</span><span class="hp-max">8</span>
+          <span class="hp-tail">КД <b>10</b><span class="dot">·</span>иниц. <b>+0</b><span class="dot">·</span>30 фт</span>
+        </div>
+        <div class="hair"><i style="width:100%"></i></div>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name" style="color:var(--hp-low)">Урон</span>
+            <span class="steps"><button class="step" onclick="event.stopPropagation()">1</button><button class="step" onclick="event.stopPropagation()">5</button><button class="step" onclick="event.stopPropagation()">10</button><button class="step" onclick="event.stopPropagation()">20</button></span></div>
+          <div class="row-body">
+            <div style="display:flex;align-items:center;gap:14px">
+              <input class="inp" value="0" inputmode="numeric" style="margin-left:0">
+              <button class="act act--dmg">Нанести</button><button class="act act--heal">Вылечить</button><button class="act">Врем.</button>
+            </div>
+          </div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Броня</span>
+            <span class="row-meta">Без доспехов<span class="dot">·</span><b>КД 10</b></span></div>
+          <div class="row-body"><p>Селект доспеха, щит (+2), ручной КД.</p></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Кости хитов</span>
+            <span class="row-meta">1к8</span><span class="pips"><i class="pip pip--full"></i></span></div>
+          <div class="row-body"><p>Бросить · восстановление на долгом отдыхе.</p></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Отдых</span>
+            <span class="row-meta">короткий · долгий</span></div>
+          <div class="row-body"><p>Что восстанавливается + «История ХП».</p></div>
+        </div>
+        <p class="mk-h">≈ 250 px · было ≈ 980 px</p>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">В2+ · бой, герой ранен</div>
+        <p class="mk-note">Панель урона раскрылась сама после первого попадания. Число ХП сменило цвет,
+           полоса показывает долю. Пресеты остаются в строке — тап по «10» снимает 10, не сворачивая ничего.</p>
+        <div class="hp-line">
+          <span class="hp-cur" style="color:var(--hp-medium)">5</span><span class="hp-sep">/</span><span class="hp-max">8</span>
+          <span class="hp-tail">врем. <b>4</b><span class="dot">·</span>КД <b>10</b></span>
+        </div>
+        <div class="hair hair--thick"><i style="width:62%;background:var(--hp-medium)"></i><i style="left:62%;width:38%;background:var(--accent-lo)"></i></div>
+        <div class="list">
+          <div class="row open" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name" style="color:var(--hp-low)">Урон</span>
+            <span class="steps"><button class="step" onclick="event.stopPropagation()">1</button><button class="step" onclick="event.stopPropagation()">5</button><button class="step" onclick="event.stopPropagation()">10</button><button class="step" onclick="event.stopPropagation()">20</button></span></div>
+          <div class="row-body open">
+            <div style="display:flex;align-items:center;gap:14px">
+              <input class="inp" value="0" inputmode="numeric" style="margin-left:0">
+              <button class="act act--dmg">Нанести</button><button class="act act--heal">Вылечить</button><button class="act">Врем.</button>
+            </div>
+            <p style="margin:0">Врем. ХП уходят первыми — полоса показывает их отдельным цветом.</p>
+          </div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Кости хитов</span>
+            <span class="row-meta">1к8</span><span class="pips"><i class="pip pip--full"></i></span></div>
+          <div class="row-body"><p>Бросить · восстановление на долгом отдыхе.</p></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Броня</span>
+            <span class="row-meta">Без доспехов<span class="dot">·</span><b>КД 10</b></span></div>
+          <div class="row-body"><p>Селект доспеха, щит (+2), ручной КД.</p></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Отдых</span>
+            <span class="row-meta">короткий · долгий</span></div>
+          <div class="row-body"><p>Что восстанавливается + «История ХП».</p></div>
+        </div>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">В2+ · 0 ХП</div>
+        <p class="mk-note">Спасброски встают на место строки урона, отдельная карточка внизу больше не нужна.
+           Ромбы вместо квадратов — тот же знак, что в ячейках заклинаний и костях хитов.</p>
+        <div class="hp-line">
+          <span class="hp-cur" style="color:var(--hp-low)">0</span><span class="hp-sep">/</span><span class="hp-max">8</span>
+          <span class="hp-tail" style="color:var(--hp-low)">при смерти</span>
+        </div>
+        <div class="hair"><i style="width:0"></i></div>
+        <div class="list">
+          <div class="row row--static"><span class="row-name">Успехи</span>
+            <span class="pips"><i class="pip pip--full"></i><i class="pip"></i><i class="pip"></i></span>
+            <button class="act" style="margin-left:16px">Бросить к20</button></div>
+          <div class="row row--static"><span class="row-name">Провалы</span>
+            <span class="pips"><i class="pip pip--full" style="background:var(--hp-low);border-color:var(--hp-low)"></i><i class="pip" style="border-color:var(--hp-low)"></i><i class="pip" style="border-color:var(--hp-low)"></i></span></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name" style="color:var(--hp-high)">Лечение</span>
+            <span class="steps"><button class="step" onclick="event.stopPropagation()">1</button><button class="step" onclick="event.stopPropagation()">5</button><button class="step" onclick="event.stopPropagation()">10</button></span></div>
+          <div class="row-body"><p>Любое лечение — 1 ХП и конец спасбросков. Стабилизация — броски прекращаются без ХП.</p></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Отдых</span><span class="row-meta">короткий · долгий</span></div>
+          <div class="row-body"><p>Что восстанавливается + «История ХП».</p></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>7 · Что решить перед работой</h2>
+    <div class="mk-idea"><b>Пресеты в свёрнутой строке применяют урон сразу.</b>
+      <span>Это ускорение ценой необратимого тапа. Отмена — «История ХП» уже умеет откатывать, но, возможно, стоит держать
+      пресеты только на урон, а лечение оставить в раскрытии (лечение почти всегда «своё» число из кубов).</span></div>
+    <div class="mk-idea"><b>Правило авто-раскрытия.</b>
+      <span>Предлагаю простое: раскрыто, пока текущие ХП меньше максимума. Без запоминания состояния — ровно потому,
+      что память раскрытого нам уже мешала в состояниях. Альтернатива — привязать к активному бою (есть инициатива).</span></div>
+    <div class="mk-idea"><b>Спасброски переезжают внутрь.</b>
+      <span>Сейчас это отдельная карточка <code>#death-saves-section</code>. В В2+ она растворяется в разделе — плюс одна карточка
+      с листа, но правка задевает <code>toggleDeathSave</code> и показ/скрытие по нулю ХП.</span></div>
+    <div class="mk-idea"><b>Правый rail.</b>
+      <span>Кнопки хитов там висят хвостом STYLE-9 с 02.08.2026. Если делаем этот раздел — логично тем же заходом
+      сплющить их до текстовых действий, чтобы язык совпадал.</span></div>
+    <div class="mk-idea"><b>Ратчет тем.</b>
+      <span>Уходят боксы, заливки и рамки — хардкоды и <code>!important</code> должны просесть, как на «Сумке» и состояниях.</span></div>
+  </section>
+</div>
+
+<script>
+function tg(el) {
+  el.classList.toggle('open');
+  var b = el.nextElementSibling;
+  if (b && b.classList.contains('row-body')) b.classList.toggle('open');
+}
+</script>

@@ -446,6 +446,7 @@ if (acRes.mode === "preset") {
     }
     $("status-ac").textContent = ac;
     char.combat.ac = ac;
+    if (typeof updateHPSummary === "function") updateHPSummary();
     return;
 }
 
@@ -455,6 +456,7 @@ if (acRes.mode === "manual") {
   var _cf = $("ac-formula"); if (_cf) _cf.textContent = formulaParts.join(" ");
   var _ci = $("combat-ac"); if (_ci) _ci.value = ac;
   var _cs = $("status-ac"); if (_cs) _cs.textContent = ac;
+  if (typeof updateHPSummary === "function") updateHPSummary();
   return;
 }
 // Update concentration display
@@ -473,6 +475,7 @@ modifiersContainer.appendChild(modDiv);
 });
 }
 var _statusAcEl = $("status-ac"); if (_statusAcEl) _statusAcEl.textContent = ac;
+if (typeof updateHPSummary === "function") updateHPSummary();
 char.combat.ac = ac;
 }
 

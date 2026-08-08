@@ -12,6 +12,7 @@
 //     "http://localhost:3017/tests/theme-audit-fixture.html?tab=spells&scroll=1100"
 // Параметры: ?tab=sheet|spells|inventory|battle|notes|party|journal · &theme=dark|light
 //   &modal=settings|levelup · &scroll=N · &keepbg=1 (не прятать космо-канвас)
+//   &hp=N (HP2: текущие ХП; 0 — раздел «Здоровье и Бой» со спасбросками)
 //   &battle=N (CAST-2: активный бой на раунде N + каст «Ускорения» — трекер/бейдж раундов)
 //   &castrepeat=1 (CAST-9: + каст «Раскалённого металла» — полоса повторов и чип концентрации)
 //   &modal=cast|castdamage|castvariant (чузер ячейки · пикер цели урона · чузер варианта)
@@ -46,7 +47,8 @@ f.addEventListener('load', () => {
       await w.applyBuild('wizard-evoker');
       const c = w.characters[0];
       c.level = 5; c.classes[0].level = 5;
-      c.combat.hpMax = 32; c.combat.hpCurrent = 19; c.combat.hpTemp = 4;
+      // HP2: &hp=N задаёт текущие ХП (0 — снимок раздела со спасбросками).
+      c.combat.hpMax = 32; c.combat.hpCurrent = q.has('hp') ? parseInt(q.get('hp'), 10) : 19; c.combat.hpTemp = 4;
       c.spells.slots['1'] = 4; c.spells.slots['2'] = 3; c.spells.slots['3'] = 2;
       c.spells.slotsUsed['1'] = 2; c.spells.slotsUsed['2'] = 1;
       c.conditions = ['poisoned', 'frightened'];

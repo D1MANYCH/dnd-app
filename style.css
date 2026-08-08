@@ -903,10 +903,9 @@ html.glass-adjusting *::after {
 /* ----- Полоска здоровья — трек var(--card-bg)/--bg-2 (стекло) почти
    невидим на светлой карточке. Делаем непрозрачный трек с границей,
    заливку — насыщенной (не зависит от слайдера). ----- */
-:root[data-theme="light"] .hp-bar-wrap {
-  background: #dfe6e1 !important;
-  border: 1px solid var(--border) !important;
-}
+/* HP2: подложка полосы больше не коробка — жёлоб задан волосяной --home-rule
+   в секции HP2 и одинаково читается в обеих темах, светлой перебивки
+   (сырой #dfe6e1 + рамка, два !important) он не требует. */
 :root[data-theme="light"] .hp-bar {
   background: var(--success) !important;
   border: 1px solid var(--border-soft) !important;
@@ -914,16 +913,6 @@ html.glass-adjusting *::after {
 }
 :root[data-theme="light"] .hp-bar.hp-bar-low { background: var(--danger) !important; }
 :root[data-theme="light"] .hp-bar.hp-bar-medium { background: var(--accent) !important; }
-
-/* ----- HP-display-block / hd-block -----
-   STYLE-8a2: оба блока живут только на «Листе» и стали плоскими строками —
-   светлая тема больше не возвращает им коробку, остаётся волосяная линия. */
-:root[data-theme="light"] .hp-display-block,
-:root[data-theme="light"] .hd-block {
-  background: none !important;
-  background-image: none !important;
-  color: var(--text);
-}
 
 /* ----- Status-chip default бордер (был слишком тусклый) ----- */
 :root[data-theme="light"] .status-chip { border-width: 1.5px !important; }
@@ -3710,14 +3699,8 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 .drawer-item-active [data-ico] { color: var(--accent-lo); }
 .drawer-item-active .home-bullet { background: var(--home-accent); }
 
-/* Rest buttons in HP block */
-.hp-rest-row {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-/* UI5-1: геометрию даёт .btn; здесь — только раскладка (равная ширина в ряду). */
-.hp-rest-btn { flex: 1; }
+/* HP2: .hp-rest-row / .hp-rest-btn сняты — отдых стал текстовыми действиями
+   в раскрытии строки «Отдых». */
 /* STYLE-8a2: отдых — текстовые действия (заливки и 6 !important сняты,
    сырые цвета сведены к --info / --success). */
 .hp-rest-short { color: var(--info); }
@@ -6878,30 +6861,8 @@ button.edition-btn {
 /* ============================================================
    HP DISPLAY BLOCK
 ============================================================ */
-/* STYLE-8a: фон/рамка/радиус — из группы вложенных подложек в конце файла */
-.hp-display-block {
-padding: 15px;
-margin: 12px 0;
-}
-.hp-numbers {
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 10px;
-margin-bottom: 12px;
-}
-.hp-col {
-display: flex;
-flex-direction: column;
-align-items: center;
-gap: 4px;
-}
-.hp-lbl {
-font-size: 0.7em;
-color: var(--text-muted);
-text-transform: uppercase;
-letter-spacing: 0.5px;
-}
+/* HP2: коробка .hp-display-block с подписями-капителью и центрированной
+   колонкой убрана — шапка раздела собрана строкой (.hp-head в конце файла). */
 .hp-big-num {
 font-size: 2.6em;
 font-weight: bold;
@@ -6913,24 +6874,6 @@ text-align: center;
 .hp-big-num.hp-zero { color: var(--danger-color); animation: hpPulse 1s ease-in-out infinite; }
 .hp-big-num.hp-low { color: var(--hp-low); }
 .hp-big-num.hp-medium { color: var(--hp-medium); }
-.hp-divider {
-font-size: 2em;
-color: var(--border-color);
-margin: 0 4px;
-align-self: center;
-}
-.hp-temp-col { margin-left: 10px; }
-.hp-temp-inp {
-width: 64px;
-text-align: center;
-padding: 8px;
-font-size: 1.1em;
-font-weight: bold;
-color: var(--info-color);
-border: 1px solid var(--info-color);
-border-radius: var(--r-sm);
-background: var(--card-bg);
-}
 .hp-bar-wrap {
 position: relative; /* Дымка v5: ghost-слой позиционируется внутри */
 width: 100%;
@@ -6980,105 +6923,9 @@ transition: width var(--t3, 420ms) var(--ez-spring, ease), background 0.4s;
   100% { box-shadow: 0 0 0 0 rgba(44,138,82,0); }
 }
 
-/* ========== HIT DIE QUICK BLOCK ========== */
-.hd-avail-badge {
-background: var(--info-color);
-color: white;
-padding: 3px 10px;
-border-radius: var(--r-pill);
-font-size: 0.8em;
-font-weight: bold;
-}
-.roll-hd-btn {
-background: var(--info-color);
-color: white;
-border: none;
-border-radius: 8px;
-padding: 10px;
-width: 100%;
-font-weight: 600;
-cursor: pointer;
-font-size: 0.9em;
-margin: 0;
-transition: all 0.2s;
-}
-.roll-hd-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-.roll-hd-btn:not(:disabled):hover { filter: brightness(1.06); }
-.hd-result {
-margin-top: 8px;
-font-size: 0.85em;
-color: var(--success-color);
-text-align: center;
-font-weight: 600;
-display: none;
-}
-
-/* ========== DEATH SAVES CARD ========== */
-.death-saves-card {
-border-color: var(--danger-color);
-background: rgba(224,108,117,0.06);
-}
-.death-saves-card h3 { color: var(--danger-color); }
-.ds-hint {
-font-size: 0.78em;
-color: var(--text-muted);
-margin: 0 0 14px 0;
-}
-.ds-rows { display: flex; flex-direction: column; gap: 0; }
-.ds-row {
-display: flex;
-align-items: center;
-gap: 12px;
-}
-.ds-lbl {
-font-size: 0.8em;
-font-weight: 600;
-min-width: 80px;
-}
-.ds-success-lbl { color: var(--success-color); }
-.ds-fail-lbl { color: var(--danger-color); }
-.ds-boxes { display: flex; gap: 10px; }
-.ds-box {
-width: 40px;
-height: 40px;
-border: 2px solid var(--border-color);
-border-radius: 8px;
-cursor: pointer;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 1.1em;
-transition: all 0.2s;
-background: var(--input-bg);
-}
-.ds-box:hover { border-color: var(--success-color); transform: scale(1.05); }
-.ds-fail-box:hover { border-color: var(--danger-color); }
-.ds-box.ds-filled-s {
-border-color: var(--success-color);
-background: rgba(87, 179, 109, 0.2);
-}
-.ds-box.ds-filled-f {
-border-color: var(--danger-color);
-background: rgba(224, 108, 117, 0.2);
-}
-.ds-status {
-margin-top: 12px;
-text-align: center;
-font-size: 0.9em;
-font-weight: 600;
-padding: 8px;
-border-radius: 8px;
-background: var(--input-bg);
-color: var(--text-muted);
-}
-.ds-status.ds-stable {
-background: rgba(87, 179, 109, 0.2);
-color: var(--success-color);
-}
-.ds-status.ds-dead {
-background: rgba(224, 108, 117, 0.2);
-color: var(--danger-color);
-}
+/* HP2: коробочные рецепты быстрого блока костей хитов (.hd-avail-badge,
+   .roll-hd-btn) и карточки спасбросков (.death-saves-card, .ds-box 40×40
+   с заливкой) сняты — строки и ромбы-пипсы описаны в секции HP2 в конце. */
 
 /* ========== MOBILE OPTIMIZATION ========== */
 /* UI5-6: единый мобильный порог 640 (было 600). Узкие refinements ≤540/≤380 ниже. */
@@ -7104,90 +6951,8 @@ color: var(--danger-color);
 .saves-grid { grid-template-columns: 1fr !important; }
 }
 
-/* ========== HP SECTION REDESIGN ========== */
-.hp-two-col {
-  display: grid;
-  /* UI5-4: Урон/Лечение — 2-в-ряд пока влезают (вкл. мобайл ~375), и в 1 колонку
-     только когда карточка совсем узкая → не обрезаются. */
-  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
-  gap: var(--sp-2);
-  margin: var(--sp-3) 0;
-}
-.hp-side {
-  border-radius: var(--r-md);
-  padding: 10px 12px;
-}
-/* STYLE-8a: панели «Урон»/«Лечение» были двумя сплошными заливками во всю ширину
-   карточки — та же пестрота, из-за которой 31.07 кнопки перевели на контур.
-   Здесь то же решение: контур + цветная подпись, литералы → color-mix от токенов. */
-.hp-side-dmg {
-  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
-}
-.hp-side-heal {
-  border: 1px solid color-mix(in srgb, var(--success) 35%, transparent);
-}
-.hp-side-label {
-  font-size: 12px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  letter-spacing: 0.02em;
-}
-.hp-side-dmg .hp-side-label { color: var(--danger); }
-.hp-side-heal .hp-side-label { color: var(--success); }
-.hp-side-row {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 8px;
-  align-items: center;
-}
-.hp-side-inp {
-  width: 64px;
-  flex-shrink: 0;
-  padding: 7px 6px;
-  font-size: 18px;
-  font-weight: 700;
-  border-radius: var(--r-sm);
-  border: 2px solid var(--border-color);
-  background: var(--input-bg, var(--card-bg));
-  color: var(--text);
-  text-align: center;
-}
-.hp-side-dmg .hp-side-inp { border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
-.hp-side-heal .hp-side-inp { border-color: color-mix(in srgb, var(--success) 40%, transparent); }
-/* UI5-1: геометрию даёт .btn; здесь — только раскладка. */
-.hp-side-btn { flex: 1; }
-.hp-presets {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
-}
-.hp-preset {
-  padding: 5px 4px;
-  font-size: 14px;
-  font-weight: 700;
-  border-radius: var(--r-sm);
-  cursor: pointer;
-  border: 1px solid;
-  background: transparent;
-  text-align: center;
-  line-height: 1;
-}
-.hp-preset-dmg {
-  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
-  color: var(--danger);
-}
-.hp-preset-dmg:hover {
-  background: color-mix(in srgb, var(--danger) 14%, transparent);
-  border-color: var(--danger);
-}
-.hp-preset-heal {
-  border-color: color-mix(in srgb, var(--success) 45%, transparent);
-  color: var(--success);
-}
-.hp-preset-heal:hover {
-  background: color-mix(in srgb, var(--success) 14%, transparent);
-  border-color: var(--success);
-}
+/* HP2: блок «Урон/Лечение» из двух зеркальных коробок с восемью пресетами
+   убран — осталась строка урона с пресетами и раскрытие с общим полем. */
 
 /* ========== LEVEL UP MODAL ========== */
 /* UX-fix: панель прокручивается целиком (было overflow:hidden → низ с кнопками
@@ -7339,106 +7104,7 @@ color: var(--danger-color);
   border: 1px solid var(--border-color);
 }
 
-/* ========== HIT DICE BLOCK ========== */
-.hd-block {
-  padding: 10px 14px;
-  margin-top: 10px;
-}
-.hd-top-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
-}
-.hd-label { font-size: 13px; color: var(--text-muted); }
-.hd-result {
-  margin-left: auto;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--success);
-}
-.hd-dice-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: 8px;
-  min-height: 20px;
-}
-.hd-die-icon {
-  font-size: 16px;
-  line-height: 1;
-  transition: opacity 0.2s;
-}
-.hd-die-avail { color: #5a9e1e; opacity: 1; }
-.hd-die-spent { color: var(--text-muted); opacity: 0.35; }
-
-/* ========== DEATH SAVES ========== */
-.death-saves-card { padding: 16px 18px; }
-.ds-header {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
-}
-.ds-title { font-size: 15px; font-weight: 700; }
-.ds-hint { font-size: 11px; color: var(--text-muted); }
-.ds-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
-.ds-row { display: flex; align-items: center; gap: 12px; }
-.ds-lbl { font-size: 12px; font-weight: 600; min-width: 62px; }
-.ds-success-lbl { color: #5a9e1e; }
-.ds-fail-lbl { color: #e24b4a; }
-.ds-boxes { display: flex; gap: 8px; }
-.ds-box {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  border: 2px solid;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 18px;
-  font-weight: 700;
-  transition: background 0.15s, transform 0.1s;
-  user-select: none;
-}
-.ds-box:active { transform: scale(0.92); }
-.ds-success-box { border-color: rgba(90,158,30,0.5); background: rgba(90,158,30,0.08); color: transparent; }
-.ds-fail-box    { border-color: rgba(226,75,74,0.5); background: rgba(226,75,74,0.08); color: transparent; }
-.ds-success-box.ds-filled-s { background: rgba(90,158,30,0.3); border-color: #5a9e1e; color: #5a9e1e; }
-.ds-fail-box.ds-filled-f    { background: rgba(226,75,74,0.3); border-color: #e24b4a; color: #e24b4a; }
-.ds-roll-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.ds-roll-result {
-  font-size: 14px;
-  font-weight: 700;
-}
-.ds-result-ok   { color: #5a9e1e; }
-.ds-result-fail { color: #e24b4a; }
-.ds-status {
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  text-align: center;
-  margin-bottom: 10px;
-}
-.ds-stable { background: rgba(90,158,30,0.15); color: #5a9e1e; border: 1px solid rgba(90,158,30,0.3); }
-.ds-dead   { background: rgba(226,75,74,0.15); color: #e24b4a; border: 1px solid rgba(226,75,74,0.3); }
-
 /* ========== HP TOAST (snackbar) ========== */
-.hp-toast-anchor {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: 8px;
-}
 #hp-toast-container {
   position: fixed;
   bottom: 80px;
@@ -8220,64 +7886,8 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   color: var(--accent-color);
 }
 
-/* ========== ARMOR SELECTOR ROW ========== */
-.armor-select-row {
-  display: flex;
-  gap: 12px;
-  align-items: flex-end;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
-.armor-select-left { flex: 1; min-width: 180px; }
-.armor-select-right {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-.armor-select-right label { font-size: 0.8em; color: var(--text-muted); margin: 0; }
-.armor-select-right input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--accent-color);
-  cursor: pointer;
-}
-
-/* ========== HP MAX MANUAL INPUT ========== */
-.hp-max-col { position: relative; }
-.hp-max-manual-inp {
-  font-size: 1.6em !important;
-  font-weight: 700 !important;
-  text-align: center !important;
-  padding: 4px 8px !important;
-  width: 80px !important;
-  background: rgba(255,255,255,0.05) !important;
-  border: 1px solid rgba(255,255,255,0.15) !important;
-  border-radius: var(--r-sm) !important;
-  color: var(--text-dim) !important;
-  margin-top: 4px;
-}
-.hp-max-manual-inp:focus {
-  border-color: var(--accent-color) !important;
-  background: rgba(212,168,67,0.08) !important;
-  color: var(--accent-color) !important;
-  outline: none !important;
-}
-.hp-recalc-btn {
-  background: transparent;
-  border: none;
-  font-size: 0.85em;
-  cursor: pointer;
-  padding: 0 2px;
-  width: auto;
-  margin: 0;
-  opacity: 0.5;
-  transition: opacity 0.2s;
-  display: inline;
-  vertical-align: middle;
-}
-.hp-recalc-btn:hover { opacity: 1; transform: none; box-shadow: none; }
+/* HP2: строка-селектор брони, поле максимума ХП в рамке и кнопка-пересчёт
+   с эмодзи убраны — доспех и максимум живут в раскрытиях строк раздела. */
 
 /* ========== COMPACT STATS GRID ========== */
 .section-header-row {
@@ -8926,9 +8536,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   /* — Характеристики ± — */
   .stats-compact-grid button.stat-btn-sm,
   .stat-btn-sm { height: 44px !important; font-size: 20px !important; }
-
-  /* — HP-пресеты 1/5/10/20 — */
-  .hp-preset { min-height: 44px; padding: 8px 4px; }
 
   /* — Вложенные аккордеоны (Умения/Условия/Эффекты/Сопротивления) — */
   .accordion-toggle-sm { min-height: 44px; }
@@ -13591,12 +13198,6 @@ select.bp-select { padding-right: var(--sp-4); }
    BUGFIX-6: мобильная вёрстка (≤540px)
 ============================================= */
 @media (max-width: 540px) {
-  /* (б) Урон / Лечение: на узком экране 1fr 1fr сжимало кнопку "Вылечить"
-        до обрезания текста. Складываем в один столбец. */
-  .hp-two-col { grid-template-columns: 1fr; gap: 8px; }
-  .hp-side { padding: 10px 12px; }
-  .hp-side-btn { font-size: 13px; padding: 9px 8px; }
-
   /* (в) Фильтр классов в модалке заклинаний: ряды cf-row сжимались до
         неразличимых иконок. Разрешаем wrap и увеличиваем минимальную ширину
         кнопок, чтобы было >=64px на кнопку. */
@@ -13992,7 +13593,6 @@ textarea:focus-visible {
    переведены на токены --text/--text-dim/--text-mute и в
    отдельных правилах не нуждаются).
 ============================================================ */
-:root[data-theme="light"] .hp-preset-heal { color: var(--success); }
 :root[data-theme="light"] .res-btn-use { color: var(--danger); }
 :root[data-theme="light"] .res-btn-reset { color: var(--success); }
 :root[data-theme="light"] .notes-modal-pin-label { color: var(--accent-lo); }
@@ -14197,12 +13797,8 @@ textarea:focus-visible {
    специфичности выигрывает последнее правило. */
 /* STYLE-8a2: .weapon-row вынута из группы — строка атаки переехала на «Бой»
    и стала плоской, подложка контейнера ей больше не нужна. */
-.hp-display-block,
-.hd-block {
-  background: var(--input-bg);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-md);
-}
+/* HP2: .hp-display-block и .hd-block ушли вместе с разметкой — раздел
+   здоровья собран плоскими строками, коробок в нём не осталось. */
 
 /* ══ STYLE-8b: вкладка «Заклинания» — та же вложенная подложка ════════════
    Продолжение блока выше: .sc-stat-block жил на --input-bg/--border-color,
@@ -15756,14 +15352,9 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 #tab-sheet .accordion-arrow { display: none; }
 #tab-sheet .accordion-body { padding-left: 15px; }
 
-/* ── A5–A7: здоровье и бой, спасброски от смерти, класс доспеха ── */
-#tab-sheet .death-saves-card {
-  background: none;
-  border: none;
-  box-shadow: none;
-  border-radius: 0;
-  padding: 0;
-}
+/* ── A5–A7: здоровье и бой, класс доспеха ──
+   HP2: раздел здоровья переписан на строки, поэтому здесь остались только
+   класс доспеха и общий рецепт полей карточки; всё про ХП — в секции HP2. */
 #tab-sheet .ac-calc-section {
   background: none;
   border: none;
@@ -15776,18 +15367,10 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   padding-left: 0;
   padding-right: 0;
 }
-#tab-sheet .hp-display-block,
-#tab-sheet .hd-block {
-  background: none;
-  border: none;
-  border-top: 1px solid var(--home-rule);
-  border-radius: 0;
-}
 
 /* поля вне карточки основы — та же нижняя линия вместо рамки */
 #tab-sheet > .sheet-col > .card input.field,
 #tab-sheet > .sheet-col > .card select.field,
-#tab-sheet .hp-side-inp,
 #tab-sheet .prof-add-row select,
 #tab-sheet .prof-add-row input[type="text"] {
   background: none;
@@ -15798,74 +15381,11 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 }
 #tab-sheet > .sheet-col > .card input.field:focus,
 #tab-sheet > .sheet-col > .card select.field:focus,
-#tab-sheet .hp-side-inp:focus,
 #tab-sheet .prof-add-row select:focus,
 #tab-sheet .prof-add-row input[type="text"]:focus {
   border-bottom-color: var(--accent);
   box-shadow: none;
 }
-
-/* Урон / Лечение / отдых / пресеты — текстовые действия вместо коробок */
-#tab-sheet .hp-side {
-  background: none;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-}
-#tab-sheet .hp-side-label {
-  font-family: var(--font-display);
-  font-size: 0.85em;
-}
-#tab-sheet .hp-preset {
-  background: none;
-  border: none;
-  color: var(--home-sub);
-  padding: 4px 6px;
-}
-#tab-sheet .hp-preset-dmg:hover { color: var(--danger); background: none; }
-#tab-sheet .hp-preset-heal:hover { color: var(--success); background: none; }
-#tab-sheet .hp-rest-btn {
-  background: none;
-  border: none;
-  border-left: var(--home-rail-w) solid var(--home-rule);
-  border-radius: 0;
-  color: var(--accent-lo);
-  font-family: var(--font-display);
-  padding-left: 10px;
-  text-align: left;
-  transition: border-color var(--t2) var(--ez-out), color var(--t2) var(--ez-out);
-}
-#tab-sheet .hp-rest-btn:hover { border-left-color: var(--accent); color: var(--accent); background: none; }
-#tab-sheet .hp-side-btn,
-#tab-sheet #roll-hd-btn {
-  background: none;
-  border: none;
-  border-radius: 0;
-  font-family: var(--font-display);
-  padding: 5px 0;
-}
-#tab-sheet .hp-side-dmg .hp-side-btn { color: var(--danger); }
-#tab-sheet .hp-side-heal .hp-side-btn { color: var(--success); }
-#tab-sheet #roll-hd-btn { color: var(--accent-lo); text-align: left; }
-#tab-sheet .hp-side-btn,
-#tab-sheet #roll-hd-btn { box-shadow: none; }
-#tab-sheet .hp-side-btn:hover,
-#tab-sheet #roll-hd-btn:hover { background: none; border: none; box-shadow: none; }
-/* поля максимума и временных ХП: рамки читались коробками среди плоских строк */
-#tab-sheet .hp-max-manual-inp {
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
-}
-#tab-sheet .hp-max-manual-inp:focus { border-bottom-color: var(--accent); box-shadow: none; }
-#tab-sheet .hp-temp-inp {
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
-}
-#tab-sheet .hp-temp-inp:focus { border-bottom-color: var(--info); box-shadow: none; }
 
 /* ── A8: владения — чипы текстом через «·», цвет остаётся кодировкой источника ── */
 #tab-sheet .prof-chips { gap: 0 4px; }
@@ -15987,3 +15507,211 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   #tab-inventory .inv-item + .inv-item { border-top: 0; }
   #tab-inventory .inv-item { padding-top: var(--sp-2); padding-bottom: var(--sp-2); }
 }
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   HP2 · Раздел «Здоровье и Бой» — сборка В2+
+   Раньше здесь стояло шесть коробок подряд: селектор брони, три поля-колонки,
+   ХП-дисплей с полями максимума и врем. ХП, две зеркальные панели «Урон» и
+   «Лечение» с восемью пресетами и блок костей хитов с кнопкой во всю ширину —
+   почти два экрана телефона на то, ради чего в бою нужны две вещи: текущие ХП
+   и снять/вернуть число.
+   Теперь это шапка + плоские строки в языке встречающего экрана. Свёрнутая
+   строка урона несёт пресеты и применяет их сразу — иначе каждый удар стоил бы
+   лишнего тапа по раскрытию; лечение пресетов не получает (лечат по броску
+   кубов, своим числом). Ромб раскрытия — общий рецепт DISC-1.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Шапка: число, максимум и сводка боя одной строкой ── */
+.hp-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) 0;
+}
+.hp-card .hp-big-num {
+  font-size: 2.1em;
+  min-width: 0;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+.hp-head-sep { color: var(--home-sub); font-size: 1.2em; }
+.hp-head-max {
+  font-size: 1.15em;
+  color: var(--home-sub);
+  font-variant-numeric: tabular-nums;
+}
+.hp-head-tail {
+  margin-left: auto;
+  text-align: right;
+  font-size: var(--fs-sm);
+  color: var(--home-sub);
+}
+.hp-head-tail b {
+  color: var(--text-color);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.hp-head-tail--dying { color: var(--danger); }
+.hp-dot { color: var(--home-sub); padding: 0 5px; }
+
+/* Полоса — волосяная линия, а не капсула с рамкой */
+.hp-card .hp-bar-wrap {
+  height: 2px;
+  border: none;
+  border-radius: 0;
+  background: var(--home-rule);
+}
+.hp-card .hp-bar,
+.hp-card .hp-bar-ghost { border-radius: 0; }
+
+/* ── Строки раздела ── */
+.hp-rows { margin-top: var(--sp-3); border-bottom: 1px solid var(--home-rule); }
+.hp-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  border-top: 1px solid var(--home-rule);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.hp-row--static { cursor: default; }
+.hp-row-name { font-family: var(--font-display); font-size: var(--fs-md); }
+.hp-row-name--dmg { color: var(--danger); }
+.hp-row-name--heal { color: var(--success); }
+.hp-row-meta {
+  margin-left: auto;
+  color: var(--home-sub);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+}
+.hp-row-meta b,
+.hp-row-meta strong { color: var(--text-color); font-weight: 600; }
+
+/* Пресеты урона: тач-цель 44px, применяются прямо из свёрнутой строки */
+.hp-steps { margin-left: auto; display: flex; gap: 2px; }
+.hp-step {
+  all: unset;
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-sm);
+  color: var(--home-sub);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--t2) var(--ez-out);
+}
+.hp-step:hover { color: var(--danger); }
+.hp-step:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ── Раскрытие строки ── */
+.hp-row-body { display: none; padding: 2px 0 var(--sp-3) 17px; }
+.hp-row-body.is-open { display: block; }
+.hp-row-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+.hp-sub-lbl {
+  margin: 0;
+  font-size: 0.68em;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--home-sub);
+}
+.hp-inp {
+  width: 64px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+  padding: 4px 0;
+  color: var(--text-color);
+  font-size: var(--fs-md);
+  font-variant-numeric: tabular-nums;
+}
+.hp-inp:focus { outline: none; border-bottom-color: var(--accent); }
+.hp-inp--ac { color: var(--armor-color); font-weight: 700; }
+.hp-inp--wide { width: 84px; }
+.hp-act {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  color: var(--accent-lo);
+}
+.hp-act:hover { text-decoration: underline; }
+.hp-act:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.hp-act--dmg { color: var(--danger); }
+.hp-act--heal { color: var(--success); }
+.hp-act[disabled] { color: var(--home-sub); opacity: 0.5; cursor: not-allowed; text-decoration: none; }
+.hp-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: var(--fs-sm);
+  color: var(--home-sub);
+  cursor: pointer;
+}
+.hp-check input { width: 18px; height: 18px; accent-color: var(--accent); }
+.hp-row-hint {
+  margin: var(--sp-2) 0 0;
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  color: var(--home-sub);
+}
+
+/* ── Кости хитов: пипс = ромб, как ячейка заклинания ── */
+.hd-dice-row { display: flex; gap: 5px; margin-left: 10px; }
+.hd-die-icon {
+  width: 8px;
+  height: 8px;
+  box-sizing: border-box;
+  border: 1px solid var(--accent);
+  transform: rotate(45deg);
+}
+.hd-die-avail { background: var(--accent); }
+.hd-die-spent { border-color: var(--home-sub); background: none; opacity: 0.5; }
+.hd-result { font-size: var(--fs-sm); font-weight: 600; color: var(--success); }
+
+/* ── Спасброски на смерть: живут внутри раздела и встают на место строки
+      урона при 0 ХП. Ромбы вместо квадратов 40×40; сам ромб мелкий, поэтому
+      зону нажатия расширяет прозрачный ::after. ── */
+.ds-boxes { display: flex; gap: 14px; margin-left: auto; }
+.ds-box {
+  position: relative;
+  width: 11px;
+  height: 11px;
+  box-sizing: border-box;
+  border: 1px solid var(--success);
+  transform: rotate(45deg);
+  cursor: pointer;
+  transition: background var(--t2) var(--ez-out);
+}
+.ds-box::after { content: ""; position: absolute; inset: -16px; }
+.ds-box.ds-filled-s { background: var(--success); }
+.ds-fail-box { border-color: var(--danger); }
+.ds-box.ds-filled-f { background: var(--danger); }
+.ds-success-lbl { color: var(--success); }
+.ds-fail-lbl { color: var(--danger); }
+.ds-roll-result {
+  margin-left: var(--sp-3);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--home-sub);
+}
+.ds-result-ok { color: var(--success); }
+.ds-result-fail { color: var(--danger); }
+.ds-status { font-size: var(--fs-sm); color: var(--home-sub); }
+.ds-status.ds-stable { color: var(--success); }
+.ds-status.ds-dead { color: var(--danger); }
