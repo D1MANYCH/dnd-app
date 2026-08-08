@@ -730,7 +730,7 @@ function renderBattleSetup() {
     }).join("") : "";
     return '<div class="battle-section">' +
       '<div class="battle-section-title" style="color:' + sec.color + '" onclick="toggleBattleSection(\'' + sec.type + '\')">' +
-        '<span class="battle-section-arrow">' + (open ? "▾" : "▸") + "</span>" +
+        '<span class="battle-section-arrow' + (open ? " is-open" : "") + '" aria-hidden="true"></span>' +
         sec.label + ' <span class="battle-section-count">(' + items.length + (checkedCount > 0 ? ", выбрано: " + checkedCount : "") + ")</span>" +
       "</div>" +
       rows +

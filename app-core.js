@@ -321,10 +321,10 @@ if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.e
 // STYLE-8M-2b: гайд билда и план развития стоят ещё глубже (4) — в них заходят
 // со «Справки»-глубины и с листа, и возврат обязан вести на экран входа.
 var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3,
-                     help: 3, builds: 3, buildguide: 4, buildplan: 4 };
+                     help: 3, builds: 3, buildguide: 4, buildplan: 4, abilityinfo: 3 };
 // Экраны-страницы: у них нет своего персонажа, currentId не трогаем — иначе
 // «Настройки» с листа выбрасывали бы из персонажа.
-var PAGE_SCREENS = ["data", "settings", "about", "help", "builds", "buildguide", "buildplan"];
+var PAGE_SCREENS = ["data", "settings", "about", "help", "builds", "buildguide", "buildplan", "abilityinfo"];
 var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О версии",
                     help: "Справка", builds: "Готовые билды",
                     buildguide: "Гайд по билду", buildplan: "План развития" };

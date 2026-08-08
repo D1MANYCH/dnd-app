@@ -227,7 +227,6 @@ div.innerHTML =
     '</div>' +
     '<span class="inv-item-qty" title="Количество">×' + (item.qty || 1) + '</span>' +
     '<span class="inv-drag-handle" title="Перетащите, чтобы переместить предмет">⠿</span>' +
-    '<span class="inv-item-arrow">▶</span>' +
   '</div>' +
   '<div class="inv-item-body">' +
     (item.desc ? '<div class="inv-item-desc">' + escapeHtml(item.desc) + '</div>' : '') +
@@ -266,8 +265,6 @@ function toggleInvItem(mainEl) {
 const item = mainEl.closest(".inv-item");
 if (!item) return;
 item.classList.toggle("expanded");
-const arrow = mainEl.querySelector(".inv-item-arrow");
-if (arrow) arrow.textContent = item.classList.contains("expanded") ? "▼" : "▶";
 }
 function editItemDirect(category, index) { openItemModal(category, index); }
 function deleteItemDirect(category, index) {

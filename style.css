@@ -4561,6 +4561,10 @@ animation: rise var(--t3) var(--ez-out) both;
   padding-left: calc(var(--home-bullet) + var(--sp-4));
 }
 .inv-item + .inv-item { border-top: 1px solid var(--home-rule); }
+/* DISC-4: ведущий ромб строки был маркером категории (цвет = категория), и
+   рядом висел второй знак раскрытия справа — два ромба в одной строке с разным
+   смыслом. Теперь знак один: тот же ромб, но полузакрашенный в цвет категории,
+   и раскрытие уводит заливку вниз. Цвет ведёт --dz-c. */
 .inv-item::before {
   content: "";
   position: absolute;
@@ -4568,15 +4572,19 @@ animation: rise var(--t3) var(--ez-out) both;
   top: 21px;
   width: var(--home-bullet);
   height: var(--home-bullet);
+  box-sizing: border-box;
   transform: rotate(45deg);
-  border: 1.5px solid var(--accent);
+  border: 1.5px solid var(--dz-c, var(--accent));
+  background: linear-gradient(45deg, transparent 50%, var(--dz-c, var(--accent)) 50%);
+  transition: transform var(--t2) var(--ez-out);
 }
-.inv-item[data-category="weapon"]::before   { border-color: var(--weapon-color); }
-.inv-item[data-category="armor"]::before    { border-color: var(--armor-color); }
-.inv-item[data-category="potion"]::before   { border-color: var(--potion-color); }
-.inv-item[data-category="scroll"]::before   { border-color: var(--scroll-color); }
-.inv-item[data-category="tool"]::before     { border-color: var(--tool-color); }
-.inv-item[data-category="material"]::before { border-color: var(--material-color); }
+.inv-item.expanded::before { transform: rotate(135deg); }
+.inv-item[data-category="weapon"]   { --dz-c: var(--weapon-color); }
+.inv-item[data-category="armor"]    { --dz-c: var(--armor-color); }
+.inv-item[data-category="potion"]   { --dz-c: var(--potion-color); }
+.inv-item[data-category="scroll"]   { --dz-c: var(--scroll-color); }
+.inv-item[data-category="tool"]     { --dz-c: var(--tool-color); }
+.inv-item[data-category="material"] { --dz-c: var(--material-color); }
 .inv-item.expanded { background: color-mix(in srgb, var(--accent) 6%, transparent); }
 
 .inv-item-main {
@@ -4619,14 +4627,7 @@ animation: rise var(--t3) var(--ez-out) both;
   margin: 0 7px;
 }
 .inv-cat-tag { color: var(--accent-lo); }
-.inv-item-arrow {
-  font-size: 0.65em;
-  color: var(--text-muted);
-  flex-shrink: 0;
-  opacity: 0.5;
-  transition: color 0.2s;
-}
-.inv-item.expanded .inv-item-arrow { color: var(--accent-color); opacity: 1; }
+/* DISC-4: знак раскрытия — общий ромб (рецепт в конце файла) */
 
 .inv-item-body {
   display: none;
@@ -6413,14 +6414,7 @@ transition: all 0.2s;
   flex: 1;
   min-width: 0;
 }
-.spell-card-arrow {
-  font-size: 0.65em;
-  color: var(--text-muted);
-  flex-shrink: 0;
-  transition: transform 0.2s;
-  width: 12px;
-}
-.my-spell-item.expanded .spell-card-arrow { color: var(--accent-color); }
+/* DISC-4: знак раскрытия — общий ромб (рецепт в конце файла) */
 .spell-card-name {
   font-weight: 600;
   color: var(--text-color);
@@ -7894,7 +7888,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 /* Battle sections with collapse */
 .battle-section { margin-bottom: 8px; }
 .battle-section-title { font-size: 0.8em; font-weight: 700; padding: 8px 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none; transition: background 0.18s, border-color 0.18s; }
-.battle-section-arrow { font-size: 0.9em; }
+/* DISC-4: знак раскрытия — общий ромб (рецепт в конце файла) */
 .battle-section-count { font-weight: 400; opacity: 0.6; }
 .battle-search-wrap { position: relative; margin-bottom: 10px; }
 /* Tracker */
@@ -8792,14 +8786,9 @@ html[data-stats-layout="classic"] .abil-card-score .stat-btn-sm {
 
 /* Сворачивание секции «Характеристики» (кнопка-заголовок + стрелка) */
 .stats-collapse-header { cursor: pointer; user-select: none; }
-.stats-collapse-arrow {
-  margin-left: auto;
-  color: var(--text-muted);
-  font-size: 0.9em;
-  transition: transform 0.2s var(--ease);
-  flex-shrink: 0;
-}
-html[data-stats-collapsed="1"] .stats-collapse-arrow { transform: rotate(-90deg); }
+/* DISC-4: знак раскрытия — общий ромб (рецепт в конце файла); свёрнутая
+   секция держит заливку справа, раскрытая уводит её вниз. */
+.stats-collapse-arrow { margin-left: auto; }
 html[data-stats-collapsed="1"] #abilities-region { display: none; }
 
 /* ========== COMPACT SKILLS ========== */
@@ -14658,7 +14647,6 @@ textarea:focus-visible {
   color: var(--accent-lo);
   transform: translateX(var(--home-shift));
 }
-.rr-row:not(.rr-row-static):focus-visible .home-bullet { transform: rotate(135deg); background: var(--home-accent); }
 .rr-row:not(.rr-row-static):focus-visible .rr-row-label::after { width: 100%; }
 @media (hover: hover) and (pointer: fine) {
   .rr-row:not(.rr-row-static):hover {
@@ -14666,11 +14654,16 @@ textarea:focus-visible {
     color: var(--accent-lo);
     transform: translateX(var(--home-shift));
   }
-  .rr-row:not(.rr-row-static):hover .home-bullet { transform: rotate(135deg); background: var(--home-accent); }
   .rr-row:not(.rr-row-static):hover .rr-row-label::after { width: 100%; }
 }
-/* Раскрытая строка — повёрнутый залитый ромб (состояние, а не наведение) */
-.rr-row[aria-expanded="true"] .home-bullet { transform: rotate(135deg); background: var(--home-accent); }
+/* DISC-4: строка, которая раскрывается, носит полузакрашенный ромб; раскрытие
+   уводит заливку вниз поворотом. Поворот на наведении снят — он читался как
+   «уже раскрыто». Полная заливка тут больше не используется: она значит
+   потраченную ячейку заклинания. */
+.rr-row[aria-expanded] .home-bullet {
+  background: linear-gradient(45deg, transparent 50%, var(--home-accent) 50%);
+}
+.rr-row[aria-expanded="true"] .home-bullet { transform: rotate(135deg); }
 /* Вдохновение живёт ромбом строки «Уровень»: залит — есть, пуст — нет */
 #rr-insp-mini:not(.is-empty) .home-bullet { background: var(--home-accent); }
 
@@ -14895,11 +14888,10 @@ textarea:focus-visible {
 /* Шеврон ▾/▸ заменён ромбом (JS): у строки главной ведущий знак именно такой,
    а состояние «раскрыто» кодируется поворотом и заливкой, как у .rr-row. */
 #tab-notes .notes-section-toggle { width: var(--home-bullet); opacity: 1; }
-#tab-notes .notes-section-head:hover .home-bullet,
-#tab-notes .notes-section-head[aria-expanded="true"] .home-bullet {
-  transform: rotate(135deg);
-  background: var(--home-accent);
+#tab-notes .notes-section-head[aria-expanded] .home-bullet {
+  background: linear-gradient(45deg, transparent 50%, var(--home-accent) 50%);
 }
+#tab-notes .notes-section-head[aria-expanded="true"] .home-bullet { transform: rotate(135deg); }
 #tab-notes .notes-section-meta {
   font-family: var(--font);
   font-size: var(--fs-sm);
@@ -15311,16 +15303,115 @@ html[data-stats-layout="2024"] .abil-card-head {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+html[data-stats-layout="2024"] .abil-card-head::before { content: ""; }
+
+/* ============================================
+   DISC-1 · Ромб раскрытия
+   Знак «у строки есть продолжение». Ромб — квадрат под rotate(45deg), как
+   .home-bullet; половина закрашена градиентом в ЛОКАЛЬНЫХ координатах, из-за
+   чего смена состояния это один поворот на 90°, а не подмена фона:
+   45deg держит заливку справа (свёрнуто), 135deg уводит её вниз (раскрыто).
+   Пустой ромб = продолжения нет. Полный не занимаем — он уже значит
+   потраченную ячейку заклинания (.spell-diamond.used).
+   ============================================ */
+.disc-diamond,
+.spell-card-arrow,
+.battle-section-arrow,
+.stats-collapse-arrow,
+.condition-expand::before,
 html[data-stats-layout="2024"] .abil-card-head::before {
-  content: "";
   flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
-  transform: rotate(45deg);
+  /* Пустой span в нефлексовой строке остаётся inline и игнорирует размеры —
+     без этого знак не рисуется вовсе (так пропал ромб секций «Мира»). */
+  display: inline-block;
+  vertical-align: middle;
+  width: 7px;
+  height: 7px;
+  box-sizing: border-box;
   border: 1px solid var(--accent);
-  transition: background var(--t2) var(--ez-out);
+  background: linear-gradient(45deg, transparent 50%, var(--accent) 50%);
+  transform: rotate(45deg);
+  transition: transform var(--t2) var(--ez-out);
 }
-html[data-stats-layout="2024"] .abil-card.is-open .abil-card-head::before { background: var(--accent); }
+.disc-diamond--plain { background: none; border-color: var(--home-sub); }
+/* DISC-4: знак ставится на все раскрытия приложения. Ромб — только про
+   «строка раскрывается»; нативные <select> остаются с системным шевроном
+   (решение юзера 08.08.2026), их этот рецепт не касается. */
+.condition-expand::before { content: ""; display: inline-block; margin-right: 6px; vertical-align: middle; }
+.is-open > .disc-diamond,
+.my-spell-item.expanded .spell-card-arrow,
+.battle-section-arrow.is-open,
+.condition-item.expanded .condition-expand::before,
+html:not([data-stats-collapsed="1"]) .stats-collapse-arrow,
+html[data-stats-layout="2024"] .abil-card.is-open .abil-card-head::before { transform: rotate(135deg); }
+
+/* ── DISC-2 · «О характеристике» ──
+   Действие живёт в раскрытии строки: свёрнутая строка остаётся однострочной. */
+.abil-about-slot { display: none; }
+html[data-stats-layout="2024"] .abil-card.is-open .abil-about-slot {
+  display: block;
+  flex: 1 1 100%;
+  order: 9;
+  padding: 4px 0 6px;
+}
+.abil-about {
+  all: unset;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  color: var(--accent-lo);
+}
+.abil-about:hover { text-decoration: underline; }
+.abil-about:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* ── DISC-3 · Легенда знаков в справке ── */
+.marks-legend { margin-top: var(--sp-3); }
+.marks-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  padding: var(--sp-3) 0;
+  border-top: 1px solid var(--home-rule);
+}
+.marks-mark { flex: 0 0 22px; display: flex; justify-content: center; padding-top: 5px; }
+.marks-txt { line-height: 1.55; color: var(--home-sub); }
+.marks-txt b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--text-color);
+  margin-bottom: 2px;
+}
+
+/* Экран описания — плоские блоки без коробок, как страницы справки. */
+.ai-lead { font-size: var(--fs-lg); line-height: 1.45; margin: 0 0 var(--sp-3); }
+.ai-mine {
+  margin: 0 0 var(--sp-4);
+  padding-left: var(--sp-4);
+  border-left: var(--home-rail-w) solid var(--accent);
+  font-size: var(--fs-md);
+  color: var(--home-sub);
+  font-variant-numeric: tabular-nums;
+}
+.ai-block { padding: var(--sp-3) 0; border-top: 1px solid var(--home-rule); }
+.ai-block-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--home-sub);
+  margin-bottom: 4px;
+}
+.ai-block p { margin: 0 0 6px; line-height: 1.55; }
+.ai-block p:last-child { margin-bottom: 0; }
+.ai-formula { color: var(--home-sub); font-size: var(--fs-sm); }
+/* Глобальный reduce-блок обнуляет длительность, но поворот всё равно остаётся
+   скачком через промежуточные кадры — гасим сам переход, конечное положение
+   выставляется сразу (тот же приём, что у меню встречающего экрана). */
+@media (prefers-reduced-motion: reduce) {
+  .disc-diamond,
+  html[data-stats-layout="2024"] .abil-card-head::before { transition: none; }
+}
 html[data-stats-layout="2024"] .abil-card-name {
   position: relative;
   font-family: var(--font-display);

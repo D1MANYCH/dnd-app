@@ -248,6 +248,36 @@ card.classList.toggle("is-open", open);
 var head = card.querySelector(".abil-card-head");
 if (head) head.setAttribute("aria-expanded", open ? "true" : "false");
 }
+// DISC-2: экран описания характеристики. Текст — ABILITY_INFO (PHB 2014,
+// «Использование характеристик»), числа — у текущего персонажа; без персонажа
+// экран всё равно открывается, просто без строки со значением.
+function openAbilityInfo(key) {
+  var info = (typeof ABILITY_INFO !== "undefined") ? ABILITY_INFO[key] : null;
+  var abil = abilities.find(function(a) { return a.key === key; });
+  if (!info || !abil) return;
+  var char = getCurrentChar();
+  var title = $("ai-title-h");
+  if (title) title.textContent = abil.name;
+  var own = skills.filter(function(s) { return s.stat === key; })
+                  .map(function(s) { return s.name; });
+  var html = '<p class="ai-lead">' + info.lead + "</p>";
+  if (char) {
+    var score = char.stats[key];
+    var mod = getMod(score);
+    html += '<p class="ai-mine">' + (char.name || "Персонаж") + " — " + score +
+            " · модификатор " + (mod >= 0 ? "+" : "") + mod + "</p>";
+  }
+  html += '<div class="ai-block"><div class="ai-block-title">Проверки</div><p>' + info.checks + "</p>" +
+          '<p class="ai-formula">Проверка — d20 + модификатор характеристики; при владении навыком прибавляется бонус мастерства, при компетентности — удвоенный.</p></div>';
+  html += '<div class="ai-block"><div class="ai-block-title">Навыки</div><p>' +
+          (own.length ? own.join(" · ") : "Навыков нет — эта характеристика пассивна.") + "</p></div>";
+  html += '<div class="ai-block"><div class="ai-block-title">Спасбросок</div><p>' + info.save + "</p></div>";
+  html += '<div class="ai-block"><div class="ai-block-title">За что ещё отвечает</div><p>' + info.uses + "</p></div>";
+  var body = $("ai-body");
+  if (body) body.innerHTML = html;
+  showScreen("abilityinfo");
+}
+
 function toggleExpertise(index) {
 var char = getCurrentChar();
 if (!char) return;

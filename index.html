@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v345">
+<link rel="stylesheet" href="style.css?v=v346">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -735,7 +735,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="section-header-row stats-collapse-header" id="stats-collapse-btn" role="button" tabindex="0" aria-controls="abilities-region" aria-expanded="true" title="Свернуть / развернуть характеристики" onclick="toggleStatsCollapsed()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleStatsCollapsed();}">
 <h3>Характеристики</h3>
 <span class="prof-bonus-inline">Мастерство: <strong id="proficiency-bonus">+2</strong></span>
-<span class="stats-collapse-arrow" aria-hidden="true">▾</span>
+<span class="stats-collapse-arrow" aria-hidden="true"></span>
 </div>
 <!-- UI6-4: лист 2024 — спасброски и навыки сгруппированы внутри карточки характеристики.
      Тумблер «Классический» (настройки) → data-stats-layout="classic": регион эмулирует
@@ -768,6 +768,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="abil-save-slot" id="abil-save-slot-str"></div>
 <div class="abil-skills-slot" id="abil-skills-slot-str"></div>
+<div class="abil-about-slot"><button type="button" class="abil-about" onclick="openAbilityInfo('str')">О характеристике →</button></div>
 </div>
 <div class="abil-card" data-abil="dex" id="stat-block-dex">
 <div class="abil-card-head" role="button" tabindex="0" aria-expanded="false" onclick="toggleAbilOpen('dex')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleAbilOpen('dex');}"><span class="abil-card-name">Ловкость</span><span class="abil-card-label">ЛОВ</span></div>
@@ -780,6 +781,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="abil-save-slot" id="abil-save-slot-dex"></div>
 <div class="abil-skills-slot" id="abil-skills-slot-dex"></div>
+<div class="abil-about-slot"><button type="button" class="abil-about" onclick="openAbilityInfo('dex')">О характеристике →</button></div>
 </div>
 <div class="abil-card" data-abil="int" id="stat-block-int">
 <div class="abil-card-head" role="button" tabindex="0" aria-expanded="false" onclick="toggleAbilOpen('int')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleAbilOpen('int');}"><span class="abil-card-name">Интеллект</span><span class="abil-card-label">ИНТ</span></div>
@@ -792,6 +794,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="abil-save-slot" id="abil-save-slot-int"></div>
 <div class="abil-skills-slot" id="abil-skills-slot-int"></div>
+<div class="abil-about-slot"><button type="button" class="abil-about" onclick="openAbilityInfo('int')">О характеристике →</button></div>
 </div>
 </div>
 <div class="abil-col" id="abil-col-2">
@@ -806,6 +809,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="abil-save-slot" id="abil-save-slot-con"></div>
 <div class="abil-skills-slot" id="abil-skills-slot-con"></div>
+<div class="abil-about-slot"><button type="button" class="abil-about" onclick="openAbilityInfo('con')">О характеристике →</button></div>
 </div>
 <div class="abil-card" data-abil="wis" id="stat-block-wis">
 <div class="abil-card-head" role="button" tabindex="0" aria-expanded="false" onclick="toggleAbilOpen('wis')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleAbilOpen('wis');}"><span class="abil-card-name">Мудрость</span><span class="abil-card-label">МУД</span></div>
@@ -818,6 +822,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="abil-save-slot" id="abil-save-slot-wis"></div>
 <div class="abil-skills-slot" id="abil-skills-slot-wis"></div>
+<div class="abil-about-slot"><button type="button" class="abil-about" onclick="openAbilityInfo('wis')">О характеристике →</button></div>
 </div>
 <div class="abil-card" data-abil="cha" id="stat-block-cha">
 <div class="abil-card-head" role="button" tabindex="0" aria-expanded="false" onclick="toggleAbilOpen('cha')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleAbilOpen('cha');}"><span class="abil-card-name">Харизма</span><span class="abil-card-label">ХАР</span></div>
@@ -830,6 +835,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="abil-save-slot" id="abil-save-slot-cha"></div>
 <div class="abil-skills-slot" id="abil-skills-slot-cha"></div>
+<div class="abil-about-slot"><button type="button" class="abil-about" onclick="openAbilityInfo('cha')">О характеристике →</button></div>
 </div>
 </div>
 <div class="abil-mini abil-passive">Пассивная внимательность <strong id="passive-perception-2024">10</strong></div>
@@ -1630,6 +1636,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <button class="help-tab" onclick="switchHelpSection('dice',this)"><span data-ico="dice" data-ico-size="16">🎲</span> Кубики</button>
     <button class="help-tab" onclick="switchHelpSection('edition2024',this)"><span data-ico="book" data-ico-size="16">📕</span> Редакция 2024</button>
     <button class="help-tab" onclick="switchHelpSection('data',this)"><span data-ico="save" data-ico-size="16">💾</span> Данные</button>
+    <button class="help-tab" onclick="switchHelpSection('marks',this)"><span data-ico="info" data-ico-size="16">◆</span> Условные знаки</button>
   </div>
 
   <div class="help-body">
@@ -1855,6 +1862,28 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="help-block">
         <div class="help-block-title">Экспорт и импорт</div>
         <p>Персонажа можно сохранить в файл и загрузить обратно — для переноса между устройствами или резервной копии. Доступен экспорт листа в PDF.</p>
+      </div>
+    </div>
+
+    <!-- ◆ Условные знаки (DISC-3). Ромбы живые, а не картинки: знак в легенде
+         и знак в интерфейсе рисуются одним рецептом и не разъедутся по темам. -->
+    <div id="help-marks" class="help-section hidden">
+      <div class="help-block">
+        <div class="help-block-title">Ромб слева от строки</div>
+        <p>Ромб показывает, есть ли у строки продолжение. Закрашенная половина значит «нажми — раскроется».</p>
+        <div class="marks-legend">
+          <div class="marks-item"><span class="marks-mark"><i class="disc-diamond disc-diamond--plain"></i></span><span class="marks-txt"><b>Пустой</b> Продолжения нет: всё значение показано в самой строке.</span></div>
+          <div class="marks-item"><span class="marks-mark"><i class="disc-diamond"></i></span><span class="marks-txt"><b>Закрашена правая половина</b> Строка раскрывается — внутри подробности, справка и броски.</span></div>
+          <div class="marks-item"><span class="marks-mark is-open"><i class="disc-diamond"></i></span><span class="marks-txt"><b>Заливка ушла вниз</b> Строка раскрыта. Нажмите ещё раз, чтобы свернуть.</span></div>
+        </div>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Ряд ромбов у круга заклинаний</div>
+        <p>Это ячейки заклинаний, а не раскрытие: <b>полный</b> ромб — потраченная ячейка, <b>пустой</b> — свободная. Нажатие тратит и возвращает ячейку.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">Слово цветом</div>
+        <p>Действия в приложении набраны словами, а не кнопками-плашками: выделенное цветом слово — нажимаемое. Например «Проверка», «Разменять», «О характеристике →».</p>
       </div>
     </div>
   </div>
@@ -3100,6 +3129,14 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
+<!-- DISC-2: описание характеристики — экран, а не модалка (как справка и билды) -->
+<div id="screen-abilityinfo" class="page-screen hidden">
+  <div class="page-stage">
+    <div class="page-head"><h2 class="page-title" id="ai-title-h">Характеристика</h2><button type="button" class="page-back" onclick="screenBack()">← Назад</button></div>
+    <div id="ai-body" class="bg-body ai-body"></div>
+  </div>
+</div>
+
 <!-- FEAT-LOG: панель журнала сессии (Ctrl+Shift+L / дровер → «Логи сессии») -->
 <div id="app-log-panel" class="app-log-panel" hidden>
   <div class="app-log-header">
@@ -3124,57 +3161,57 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v345"></script>
+<script src="app-log.js?v=v346"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v345"></script>
-<script src="bg-space.js?v=v345"></script>
-<script src="dice-arena-bg.js?v=v345"></script>
-<script src="data.js?v=v345"></script>
+<script src="icons.js?v=v346"></script>
+<script src="bg-space.js?v=v346"></script>
+<script src="dice-arena-bg.js?v=v346"></script>
+<script src="data.js?v=v346"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v345"></script>
+<script src="character-builds.js?v=v346"></script>
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v345"></script>
-<script src="spells.js?v=v345"></script>
-<script src="spell-effects.js?v=v345"></script>
+<script src="glossary-data.js?v=v346"></script>
+<script src="spells.js?v=v346"></script>
+<script src="spell-effects.js?v=v346"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v345"></script>
-<script src="app-migrate.js?v=v345"></script>
-<script src="app-builds.js?v=v345"></script>
-<script src="app-core.js?v=v345"></script>
-<script src="app-io.js?v=v345"></script>
-<script src="app-backup.js?v=v345"></script>
-<script src="app-combat.js?v=v345"></script>
-<script src="app-conditions.js?v=v345"></script>
-<script src="app-cast-effects.js?v=v345"></script>
-<script src="app-proficiencies.js?v=v345"></script>
-<script src="app-hp.js?v=v345"></script>
-<script src="app-spells.js?v=v345"></script>
-<script src="app-inventory.js?v=v345"></script>
+<script src="rules.js?v=v346"></script>
+<script src="app-migrate.js?v=v346"></script>
+<script src="app-builds.js?v=v346"></script>
+<script src="app-core.js?v=v346"></script>
+<script src="app-io.js?v=v346"></script>
+<script src="app-backup.js?v=v346"></script>
+<script src="app-combat.js?v=v346"></script>
+<script src="app-conditions.js?v=v346"></script>
+<script src="app-cast-effects.js?v=v346"></script>
+<script src="app-proficiencies.js?v=v346"></script>
+<script src="app-hp.js?v=v346"></script>
+<script src="app-spells.js?v=v346"></script>
+<script src="app-inventory.js?v=v346"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v345"></script>
-<script src="class-choices.js?v=v345"></script>
-<script src="subclass-choices-data.js?v=v345"></script>
+<script src="app-party.js?v=v346"></script>
+<script src="class-choices.js?v=v346"></script>
+<script src="subclass-choices-data.js?v=v346"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v345";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v346";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-dice.js?v=v345"></script>
-<script src="app-settings.js?v=v345"></script>
-<script src="app-ui.js?v=v345"></script>
-<script src="app-home.js?v=v345"></script>
-<script src="app-asi.js?v=v345"></script>
-<script src="app-notes.js?v=v345"></script>
-<script src="app-desktop.js?v=v345"></script>
-<script src="history-stack.js?v=v345"></script>
-<script src="app-help.js?v=v345"></script>
+<script src="app-dice.js?v=v346"></script>
+<script src="app-settings.js?v=v346"></script>
+<script src="app-ui.js?v=v346"></script>
+<script src="app-home.js?v=v346"></script>
+<script src="app-asi.js?v=v346"></script>
+<script src="app-notes.js?v=v346"></script>
+<script src="app-desktop.js?v=v346"></script>
+<script src="history-stack.js?v=v346"></script>
+<script src="app-help.js?v=v346"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3187,9 +3224,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v345",
-    "vendor/jspdf/roboto-base64.js?v=v345",
-    "app-pdf.js?v=v345"
+    "vendor/jspdf/jspdf.umd.min.js?v=v346",
+    "vendor/jspdf/roboto-base64.js?v=v346",
+    "app-pdf.js?v=v346"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3213,7 +3250,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v345").then(function () {
+    return loadScript("build-notes-data.js?v=v346").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -3221,26 +3258,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v345"),
-      loadScript("npc-srd.js?v=v345")
+      loadScript("monsters-srd.js?v=v346"),
+      loadScript("npc-srd.js?v=v346")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v345");
+    return loadScript("magic-items.js?v=v346");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v345");
+    return loadScript("gear-catalog.js?v=v346");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v345").then(function () {
+    return loadScript("data-2024.js?v=v346").then(function () {
       window.__edition2024Loaded = true;
     });
   };

@@ -1,0 +1,263 @@
+<meta charset="utf-8">
+<title>STYLE-8R2 — мокапы блока хитов в правом rail</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Стенд: четыре rail рядом. Живой style.css не трогаем — только раскладка. */
+  body { margin: 0; background: var(--bg-0); color: var(--text); font-family: var(--font); }
+  .mk-wrap { display: flex; gap: 0; align-items: flex-start; }
+  .mk-col { width: 330px; flex: 0 0 auto; border-right: 1px solid var(--border-soft); }
+  .mk-cap {
+    padding: 14px 18px 6px; font-family: var(--font-display); font-size: 15px;
+    color: var(--accent-lo);
+  }
+  .mk-note { padding: 0 18px 10px; font-size: 12px; color: var(--home-sub); line-height: 1.4; }
+  /* rail в потоке, а не fixed */
+  .mk-col .app-right-rail {
+    position: static; width: auto; height: auto; inset: auto;
+    display: flex; border-left: 0; backdrop-filter: none; -webkit-backdrop-filter: none;
+  }
+
+  /* ---------- М1: быстрые ± текстовыми подписями ---------- */
+  .m1 .rr-hp-quick { display: flex; gap: var(--sp-5); padding: 0 4px; margin-bottom: var(--sp-4); }
+  .m1 .rr-hp-quick .btn {
+    all: unset; cursor: pointer;
+    font-family: var(--font-display); font-size: var(--fs-md); font-weight: 500;
+    color: var(--accent-lo); font-variant-numeric: tabular-nums;
+  }
+  .m1 .rr-hp-input {
+    width: 100%; height: 34px; padding: 0 2px; margin-bottom: var(--sp-3);
+    border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0;
+    background: none; text-align: left; font-weight: 600;
+  }
+  .m1 .rr-hp-buttons { display: flex; gap: var(--sp-5); padding: 0 4px; }
+  .m1 .rr-hp-buttons .btn {
+    all: unset; cursor: pointer;
+    font-family: var(--font-display); font-size: var(--fs-md); font-weight: 500;
+  }
+  .m1 #rr-btn-dmg { color: var(--danger-color); }
+  .m1 #rr-btn-heal { color: var(--success-color); }
+  .m1 .rr-hp-bar { height: 2px; border-radius: 0; background: var(--home-rule); }
+
+  /* ---------- М2: ± вокруг числа, одна строка действий ---------- */
+  .m2 .rr-hp-head { display: flex; align-items: baseline; gap: var(--sp-3); padding: 0 4px; }
+  .m2 .rr-hp-big { margin-bottom: 0; padding-left: 0; }
+  .m2 .rr-hp-quick {
+    display: flex; gap: var(--sp-4); margin-left: auto; margin-bottom: 0;
+  }
+  .m2 .rr-hp-quick .btn {
+    all: unset; cursor: pointer;
+    font-family: var(--font); font-size: 13px; font-weight: 600;
+    color: var(--accent-lo); font-variant-numeric: tabular-nums;
+  }
+  .m2 .rr-hp-bar { height: 2px; border-radius: 0; background: var(--home-rule); margin-top: 10px; }
+  .m2 .rr-hp-row { display: flex; align-items: center; gap: var(--sp-4); padding: 4px 4px 0; }
+  .m2 .rr-hp-input {
+    width: 62px; height: 34px; padding: 0 2px; margin: 0;
+    border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0;
+    background: none; text-align: left; font-weight: 600;
+  }
+  .m2 .rr-hp-buttons { display: flex; gap: var(--sp-4); }
+  .m2 .rr-hp-buttons .btn {
+    all: unset; cursor: pointer;
+    font-family: var(--font-display); font-size: var(--fs-md); font-weight: 500;
+  }
+  .m2 #rr-btn-dmg { color: var(--danger-color); }
+  .m2 #rr-btn-heal { color: var(--success-color); }
+
+  /* ---------- М3: минимум, всё лишнее в раскрытии ---------- */
+  .m3 .rr-hp-bar { height: 2px; border-radius: 0; background: var(--home-rule); margin-bottom: 0; }
+  .m3 .rr-hp { padding-bottom: 0; border-bottom: 0; }
+  .m3 .rr-hp-panel { padding: 0 4px var(--sp-4); border-bottom: 1px solid var(--home-rule); }
+  .m3 .rr-hp-quick { display: flex; gap: var(--sp-5); margin: 0 0 var(--sp-3); }
+  .m3 .rr-hp-quick .btn {
+    all: unset; cursor: pointer;
+    font-family: var(--font-display); font-size: var(--fs-md); font-weight: 500;
+    color: var(--accent-lo); font-variant-numeric: tabular-nums;
+  }
+  .m3 .rr-hp-row { display: flex; align-items: center; gap: var(--sp-4); }
+  .m3 .rr-hp-input {
+    width: 58px; height: 32px; padding: 0 2px; margin: 0;
+    border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0;
+    background: none; text-align: left; font-weight: 600;
+  }
+  .m3 .rr-hp-buttons { display: flex; gap: var(--sp-4); }
+  .m3 .rr-hp-buttons .btn {
+    all: unset; cursor: pointer;
+    font-family: var(--font-display); font-size: var(--fs-md); font-weight: 500;
+  }
+  .m3 #rr-btn-dmg { color: var(--danger-color); }
+  .m3 #rr-btn-heal { color: var(--success-color); }
+</style>
+
+<div class="mk-wrap">
+
+  <!-- ============ СЕЙЧАС ============ -->
+  <div class="mk-col">
+    <div class="mk-cap">Сейчас (v3.79.0)</div>
+    <div class="mk-note">Четыре контурные кнопки, поле с рамкой и заливкой, две залитые кнопки — единственные коробки в rail.</div>
+    <aside class="app-right-rail">
+      <div class="rr-hp">
+        <div class="rr-group">Хиты</div>
+        <div class="rr-hp-big"><span>27</span><span class="rr-hp-big-sep">/</span><span>38</span></div>
+        <div class="rr-hp-bar"><div class="rr-hp-bar-fill" style="width:71%"></div></div>
+        <div class="rr-hp-quick">
+          <button type="button" class="btn btn-secondary btn-sm">−5</button>
+          <button type="button" class="btn btn-secondary btn-sm">−1</button>
+          <button type="button" class="btn btn-secondary btn-sm">+1</button>
+          <button type="button" class="btn btn-secondary btn-sm">+5</button>
+        </div>
+        <input type="number" class="rr-hp-input" placeholder="0">
+        <div class="rr-hp-buttons">
+          <button type="button" class="btn btn-danger">− Урон</button>
+          <button type="button" class="btn btn-success">+ Лечение</button>
+        </div>
+      </div>
+      <div class="rr-rows">
+        <div class="rr-line rr-line-primary">
+          <button type="button" class="rr-row"><span class="home-bullet home-bullet--sm"></span><span class="rr-row-label">Бросок d20</span></button>
+          <button type="button" class="rr-more">d4–d12</button>
+        </div>
+        <div class="rr-line">
+          <button type="button" class="rr-row"><span class="home-bullet home-bullet--sm"></span><span class="rr-row-label">Класс доспеха</span><span class="rr-row-val">16</span></button>
+        </div>
+        <div class="rr-line">
+          <button type="button" class="rr-row"><span class="home-bullet home-bullet--sm"></span><span class="rr-row-label">Уровень</span><span class="rr-row-val">5</span></button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ============ М1 ============ -->
+  <div class="mk-col m1">
+    <div class="mk-cap">М1 — плоские действия</div>
+    <div class="mk-note">Рецепт 8a2/8c2 дословно: ± — подписи на <code>--accent-lo</code> в ряд, поле с нижней линией, «Урон»/«Лечение» текстом цветом смысла. Полоса хитов волосяная.</div>
+    <aside class="app-right-rail">
+      <div class="rr-hp">
+        <div class="rr-group">Хиты</div>
+        <div class="rr-hp-big"><span>27</span><span class="rr-hp-big-sep">/</span><span>38</span></div>
+        <div class="rr-hp-bar"><div class="rr-hp-bar-fill" style="width:71%"></div></div>
+        <div class="rr-hp-quick">
+          <button type="button" class="btn">−5</button>
+          <button type="button" class="btn">−1</button>
+          <button type="button" class="btn">+1</button>
+          <button type="button" class="btn">+5</button>
+        </div>
+        <input type="number" class="rr-hp-input" placeholder="Своё число">
+        <div class="rr-hp-buttons">
+          <button type="button" class="btn" id="rr-btn-dmg">− Урон</button>
+          <button type="button" class="btn" id="rr-btn-heal">+ Лечение</button>
+        </div>
+      </div>
+      <div class="rr-rows">
+        <div class="rr-line rr-line-primary">
+          <button type="button" class="rr-row"><span class="home-bullet home-bullet--sm"></span><span class="rr-row-label">Бросок d20</span></button>
+          <button type="button" class="rr-more">d4–d12</button>
+        </div>
+        <div class="rr-line">
+          <button type="button" class="rr-row"><span class="home-bullet home-bullet--sm"></span><span class="rr-row-label">Класс доспеха</span><span class="rr-row-val">16</span></button>
+        </div>
+        <div class="rr-line">
+          <button type="button" class="rr-row"><span class="home-bullet home-bullet--sm"></span><span class="rr-row-label">Уровень</span><span class="rr-row-val">5</span></button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ============ М2 ============ -->
+  <div class="mk-col m2">
+    <div class="mk-cap">М2 — ± к числу, действия в строку</div>
+    <div class="mk-note">Быстрые ± уезжают вправо к самому числу (это его правка), ниже одна строка: поле + «Урон» + «Лечение». Блок хитов сжимается на ~40px.</div>
+    <aside class="app-right-rail">
+      <div class="rr-hp">
+        <div class="rr-group">Хиты</div>
+        <div class="rr-hp-head">
+          <div class="rr-hp-big"><span>27</span><span class="rr-hp-big-sep">/</span><span>38</span></div>
+          <div class="rr-hp-quick">
+            <button type="button" class="btn">−5</button>
+            <button type="button" class="btn">−1</button>
+            <button type="button" class="btn">+1</button>
+            <button type="button" class="btn">+5</button>
+          </div>
+        </div>
+        <div class="rr-hp-bar"><div class="rr-hp-bar-fill" style="width:71%"></div></div>
+        <div class="rr-hp-row">
+          <input type="number" class="rr-hp-input" placeholder="0">
+          <div class="rr-hp-buttons">
+            <button type="button" class="btn" id="rr-btn-dmg">Урон</button>
+            <button type="button" class="btn" id="rr-btn-heal">Лечение</button>
+          </div>
+        </div>
+      </div>
+      <div class="rr-rows">
+        <div class="rr-line rr-line-primary">
+          <button type="button" class="rr-row"><span class="home-bullet home-bullet--sm"></span><span class="rr-row-label">Бросок d20</span></button>
+          <button type="button" class="rr-more">d4–d12</button>
+        </div>
+        <div class="rr-line">
+          <button type="button" class="rr-row"><span class="home-bullet home-bullet--sm"></span><span class="rr-row-label">Класс доспеха</span><span class="rr-row-val">16</span></button>
+        </div>
+        <div class="rr-line">
+          <button type="button" class="rr-row"><span class="home-bullet home-bullet--sm"></span><span class="rr-row-label">Уровень</span><span class="rr-row-val">5</span></button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ============ М3 ============ -->
+  <div class="mk-col m3">
+    <div class="mk-cap">М3 — минимум + раскрытие</div>
+    <div class="mk-note">Всегда видны только число и полоса. Правка хитов — строка «Изменить хиты» с ромбом, раскрывается на месте, как «d4–d12» и «Ячейки» (показано раскрытой).</div>
+    <aside class="app-right-rail">
+      <div class="rr-hp">
+        <div class="rr-group">Хиты</div>
+        <div class="rr-hp-big"><span>27</span><span class="rr-hp-big-sep">/</span><span>38</span></div>
+        <div class="rr-hp-bar"><div class="rr-hp-bar-fill" style="width:71%"></div></div>
+      </div>
+      <div class="rr-rows" style="margin-top:0">
+        <div class="rr-line">
+          <button type="button" class="rr-row" aria-expanded="true"><span class="home-bullet home-bullet--sm"></span><span class="rr-row-label">Изменить хиты</span><span class="rr-row-val">▴</span></button>
+        </div>
+      </div>
+      <div class="rr-hp-panel">
+        <div class="rr-hp-quick">
+          <button type="button" class="btn">−5</button>
+          <button type="button" class="btn">−1</button>
+          <button type="button" class="btn">+1</button>
+          <button type="button" class="btn">+5</button>
+        </div>
+        <div class="rr-hp-row">
+          <input type="number" class="rr-hp-input" placeholder="0">
+          <div class="rr-hp-buttons">
+            <button type="button" class="btn" id="rr-btn-dmg">Урон</button>
+            <button type="button" class="btn" id="rr-btn-heal">Лечение</button>
+          </div>
+        </div>
+      </div>
+      <div class="rr-rows">
+        <div class="rr-line rr-line-primary">
+          <button type="button" class="rr-row"><span class="home-bullet home-bullet--sm"></span><span class="rr-row-label">Бросок d20</span></button>
+          <button type="button" class="rr-more">d4–d12</button>
+        </div>
+        <div class="rr-line">
+          <button type="button" class="rr-row"><span class="home-bullet home-bullet--sm"></span><span class="rr-row-label">Класс доспеха</span><span class="rr-row-val">16</span></button>
+        </div>
+        <div class="rr-line">
+          <button type="button" class="rr-row"><span class="home-bullet home-bullet--sm"></span><span class="rr-row-label">Уровень</span><span class="rr-row-val">5</span></button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+</div>
+
+<script>
+  // Тема и акцент — параметрами, как в theme-audit-fixture.html
+  (function () {
+    var q = new URLSearchParams(location.search);
+    document.documentElement.setAttribute('data-theme', q.get('theme') || 'dark');
+    var acc = q.get('accent');
+    if (acc) document.documentElement.setAttribute('data-accent', acc);
+    // каскад rise на стенде мешает снимку — гасим
+    document.documentElement.style.setProperty('--t2', '0s');
+  })();
+</script>

@@ -701,8 +701,6 @@ function toggleSpellCard(header) {
   var card = header.closest(".my-spell-item");
   if (!card) return;
   card.classList.toggle("expanded");
-  var arrow = header.querySelector(".spell-card-arrow");
-  if (arrow) arrow.textContent = card.classList.contains("expanded") ? "▼" : "▶";
 }
 function renderMySpells() {
 if (!currentId) return;
@@ -779,7 +777,7 @@ card.dataset.spellName = spell.name; // CAST-6: ключ для updateSpellActiv
 card.innerHTML =
   '<div class="spell-card-header" onclick="toggleSpellCard(this)">' +
     '<div class="spell-card-title">' +
-      '<span class="spell-card-arrow">▶</span>' +
+      '<span class="spell-card-arrow" aria-hidden="true"></span>' +
       '<span class="spell-card-name">' + escapeHtml(spell.name) + '</span>' +
       (isRitual ? '<span class="ritual-badge" title="Ритуал">' + dndIcoHtml("history", 12) + '<span class="ritual-badge-text"> Ритуал</span></span>' : '') +
       (activeCast[spell.name] ? _spellActiveBadgeHtml(activeCast[spell.name]) : '') +

@@ -1,0 +1,300 @@
+<meta charset="utf-8">
+<title>Мокапы — ромб-раскрытие, описание характеристик, легенда знаков</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Стенд. Живой style.css не трогаем — вся вёрстка мокапов только здесь. */
+  body { margin: 0; background: var(--bg-0); color: var(--text); font-family: var(--font); }
+  .mk-page { max-width: 1180px; margin: 0 auto; padding: 28px 22px 80px; }
+  .mk-h1 { font-family: var(--font-display); font-size: 26px; margin: 0 0 6px; }
+  .mk-lead { color: var(--home-sub); font-size: 13px; line-height: 1.5; margin: 0 0 30px; max-width: 70ch; }
+  .mk-sec { margin: 0 0 42px; }
+  .mk-sec > h2 {
+    font-family: var(--font-display); font-size: 18px; font-weight: 500;
+    color: var(--accent-lo); margin: 0 0 4px;
+  }
+  .mk-sec > .mk-sub { color: var(--home-sub); font-size: 12.5px; line-height: 1.5; margin: 0 0 18px; max-width: 74ch; }
+  .mk-grid { display: flex; flex-wrap: wrap; gap: 0; align-items: flex-start; }
+  .mk-col { width: 360px; flex: 0 0 auto; padding: 0 20px 0 0; margin-right: 20px; border-right: 1px solid var(--border-soft); }
+  .mk-col:last-child { border-right: 0; }
+  .mk-cap { font-family: var(--font-display); font-size: 14px; color: var(--accent-lo); margin: 0 0 4px; }
+  .mk-note { font-size: 11.5px; color: var(--home-sub); line-height: 1.45; margin: 0 0 14px; min-height: 46px; }
+
+  /* ================= ОБЩИЙ РЕЦЕПТ: строка + ромб-раскрытие =================
+     Ромб — тот же квадрат под rotate(45deg), что и .home-bullet.
+     Половинная заливка задаётся градиентом В ЛОКАЛЬНЫХ координатах:
+       45deg  → на экране закрашена ПРАВАЯ половина (свёрнуто)
+       поворот ещё на 90° → та же заливка едет ВНИЗ (раскрыто)
+     То есть смена состояния — это одна анимируемая transform, а не две
+     разные картинки. Ромб остаётся ромбом в обоих положениях. */
+  .dz {
+    flex: 0 0 auto; width: 10px; height: 10px;
+    border: 1.5px solid var(--accent); box-sizing: border-box;
+    transform: rotate(45deg);
+    transition: transform var(--t2) var(--ez-out), background var(--t2) var(--ez-out);
+  }
+  .dz--half { background: linear-gradient(45deg, transparent 50%, var(--accent) 50%); }
+  .dz--full { background: var(--accent); }
+  .dz--mute { border-color: var(--home-sub); }
+  .row.open > .dz--half { transform: rotate(135deg); }
+
+  .row {
+    display: flex; align-items: center; gap: var(--sp-3, 10px);
+    padding: 11px 2px; border-top: 1px solid var(--home-rule);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .list > .row:last-of-type { }
+  .list { border-bottom: 1px solid var(--home-rule); }
+  .row:hover .row-name { color: var(--accent-lo); }
+  .row-name { font-family: var(--font-display); font-size: var(--fs-md, 15px); }
+  .row-meta { margin-left: auto; color: var(--home-sub); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .row-body {
+    display: none; padding: 2px 2px 14px calc(10px + var(--sp-3, 10px));
+    font-size: 13px; line-height: 1.55; color: var(--home-sub);
+  }
+  .row-body.open { display: block; }
+  .row-body p { margin: 0 0 8px; }
+  .row-body b { color: var(--text); font-weight: 600; }
+  .act {
+    all: unset; cursor: pointer; font-family: var(--font-display);
+    font-size: 13px; color: var(--accent-lo);
+  }
+  .act:hover { text-decoration: underline; }
+  .acts { display: flex; gap: 18px; margin-top: 4px; }
+
+  /* --- В2: ромб-«книжка» — заливка растёт слева направо --- */
+  .v2 .dz--half { background: linear-gradient(45deg, var(--accent) 50%, transparent 50%); }
+  .v2 .row.open > .dz--half { transform: rotate(-45deg); }
+
+  /* --- В3: заливка + утолщение линии строки (без поворота) --- */
+  .v3 .dz--half { background: linear-gradient(45deg, transparent 50%, var(--accent) 50%); }
+  .v3 .row.open > .dz--half { background: var(--accent); transform: rotate(45deg); }
+  .v3 .row.open { border-top-color: var(--accent); }
+
+  /* ================= 2. Характеристики ================= */
+  .ab-row { display: flex; align-items: baseline; gap: var(--sp-3, 10px); padding: 12px 2px; border-top: 1px solid var(--home-rule); cursor: pointer; }
+  .ab-name { font-family: var(--font-display); font-size: 16px; }
+  .ab-abbr { font-size: 10.5px; letter-spacing: 1px; color: var(--home-sub); text-transform: uppercase; }
+  .ab-mod { margin-left: auto; font-size: 20px; font-weight: 700; color: var(--accent-lo); font-variant-numeric: tabular-nums; }
+  .ab-score { color: var(--home-sub); font-size: 13px; font-variant-numeric: tabular-nums; width: 22px; text-align: right; }
+  .ab-body { display: none; padding: 0 2px 16px calc(10px + var(--sp-3, 10px)); }
+  .ab-body.open { display: block; }
+  .ab-what { font-size: 13px; line-height: 1.6; color: var(--home-sub); margin: 0 0 10px; max-width: 60ch; }
+  .ab-what b { color: var(--text); font-weight: 600; }
+  .ab-skills { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; margin: 0 0 10px; }
+  .ab-skills span { color: var(--text); }
+  .ab-skills span i { font-style: normal; color: var(--home-sub); font-variant-numeric: tabular-nums; }
+  .ab-formula {
+    font-size: 12.5px; color: var(--home-sub); line-height: 1.6;
+    border-left: 1px solid var(--home-rule); padding-left: 12px; margin: 0 0 12px; max-width: 62ch;
+  }
+  /* В2 характеристик: описание не в строке, а отдельным текстовым действием */
+  .ab-help { all: unset; cursor: pointer; font-size: 12px; color: var(--accent-lo); margin-left: 10px; }
+  .ab-help:hover { text-decoration: underline; }
+
+  /* ================= 3. Легенда знаков ================= */
+  .lg { border-top: 1px solid var(--home-rule); }
+  .lg-item { display: flex; align-items: flex-start; gap: 14px; padding: 13px 2px; border-bottom: 1px solid var(--home-rule); }
+  .lg-mark { width: 26px; display: flex; justify-content: center; padding-top: 5px; }
+  .lg-txt { font-size: 13px; line-height: 1.55; }
+  .lg-txt b { font-family: var(--font-display); font-weight: 500; display: block; margin-bottom: 2px; }
+  .lg-txt span { color: var(--home-sub); }
+  .coach {
+    position: relative; margin-top: 18px; padding: 14px 0 0;
+    border-top: 1px solid var(--home-rule); max-width: 420px;
+  }
+  .coach-t { font-family: var(--font-display); font-size: 14px; margin: 0 0 6px; }
+  .coach-b { font-size: 12.5px; color: var(--home-sub); line-height: 1.55; margin: 0 0 12px; }
+
+  .mk-idea { border-top: 1px solid var(--home-rule); padding: 12px 0; font-size: 13px; line-height: 1.55; max-width: 80ch; }
+  .mk-idea b { font-family: var(--font-display); font-weight: 500; }
+  .mk-idea span { color: var(--home-sub); }
+</style>
+
+<div class="mk-page">
+  <h1 class="mk-h1">Мокапы: ромб-раскрытие · описание характеристик · легенда знаков</h1>
+  <p class="mk-lead">Всё в языке встречающего экрана: ни одной коробки, плоские строки, волосяные разделители,
+     действия — текстом на <code>--accent-lo</code>. Строки кликабельны — можно потыкать.</p>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>1 · Ромб как признак «здесь есть раскрытие»</h2>
+    <p class="mk-sub">Ромб — уже существующий маркер (<code>.home-bullet</code>, <code>rotate(45deg)</code>).
+       Половинная заливка добавляет ему смысл: <b>пустой</b> — строка без продолжения,
+       <b>полузакрашенный</b> — раскрывается, <b>полный</b> — раскрыт/активен.</p>
+    <div class="mk-grid">
+
+      <div class="mk-col v1">
+        <div class="mk-cap">В1 — заливка едет по кругу</div>
+        <p class="mk-note">Свёрнуто — закрашена правая половина, раскрыто — нижняя.
+           Технически это <b>один поворот на 90°</b>: та же заливка, тот же ромб, движение читается как «легло вниз».
+           Ближе всего к просьбе.</p>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Раса</span><span class="row-meta">Дварф · холмовой</span></div>
+          <div class="row-body"><p>Скорость 25 фт · тёмное зрение 60 фт · устойчивость к яду.<br>Владение: боевой топор, ручной топор, лёгкий молот, метательный молот.</p><div class="acts"><button class="act">Подробнее</button><button class="act">Сменить</button></div></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Предыстория</span><span class="row-meta">Солдат</span></div>
+          <div class="row-body"><p>Навыки: Атлетика, Запугивание. Умение: «Воинское звание».</p></div>
+          <div class="row"><i class="dz dz--mute"></i><span class="row-name">Мировоззрение</span><span class="row-meta">Законно-добрый</span></div>
+        </div>
+      </div>
+
+      <div class="mk-col v2">
+        <div class="mk-cap">В2 — «книжка»</div>
+        <p class="mk-note">Закрашена левая половина, при раскрытии ромб доворачивается против часовой и заливка уходит вверх —
+           как открывающаяся обложка. Отличается направлением; на быстрых кликах чуть менее очевидно, куда «поехало».</p>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Раса</span><span class="row-meta">Дварф · холмовой</span></div>
+          <div class="row-body"><p>Скорость 25 фт · тёмное зрение 60 фт · устойчивость к яду.</p></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Предыстория</span><span class="row-meta">Солдат</span></div>
+          <div class="row-body"><p>Навыки: Атлетика, Запугивание.</p></div>
+          <div class="row"><i class="dz dz--mute"></i><span class="row-name">Мировоззрение</span><span class="row-meta">Законно-добрый</span></div>
+        </div>
+      </div>
+
+      <div class="mk-col v3">
+        <div class="mk-cap">В3 — половина → целиком</div>
+        <p class="mk-note">Раскрытая строка заливает ромб полностью и подсвечивает свою линию.
+           Состояние видно даже боковым зрением и при прокрутке длинного списка, но «полный ромб»
+           уже занят ячейками заклинаний — значение придётся разводить контекстом.</p>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Раса</span><span class="row-meta">Дварф · холмовой</span></div>
+          <div class="row-body"><p>Скорость 25 фт · тёмное зрение 60 фт · устойчивость к яду.</p></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Предыстория</span><span class="row-meta">Солдат</span></div>
+          <div class="row-body"><p>Навыки: Атлетика, Запугивание.</p></div>
+          <div class="row"><i class="dz dz--mute"></i><span class="row-name">Мировоззрение</span><span class="row-meta">Законно-добрый</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>2 · Описание характеристики</h2>
+    <p class="mk-sub">Что делает характеристика, какие навыки на ней сидят и как считается проверка —
+       по тому же ромбу, без второй кнопки-«?».</p>
+    <div class="mk-grid">
+
+      <div class="mk-col">
+        <div class="mk-cap">В1 — описание в раскрытии строки</div>
+        <p class="mk-note">Один жест на всё: тот же полузакрашенный ромб раскрывает справку.
+           Ничего нового учить не нужно, кнопок не прибавляется.</p>
+        <div class="list">
+          <div class="ab-row" onclick="tg(this)"><i class="dz dz--half"></i><span class="ab-name">Сила</span><span class="ab-abbr">сил</span><span class="ab-score">16</span><span class="ab-mod">+3</span></div>
+          <div class="row-body">
+            <p class="ab-what"><b>Сила</b> — телесная мощь и то, что ей двигают: лазание, прыжки, плавание, борьба, вес переносимого груза и урон оружием ближнего боя.</p>
+            <div class="ab-skills"><span>Атлетика <i>+5</i></span></div>
+            <p class="ab-formula">Проверка = d20 + модификатор (+3) + бонус мастерства (+2, если владеешь навыком).<br>
+               Спасбросок Силы — против того, что толкает, роняет и удерживает на месте.</p>
+            <div class="acts"><button class="act">Проверка</button><button class="act">Спасбросок</button><button class="act">Атлетика</button></div>
+          </div>
+          <div class="ab-row" onclick="tg(this)"><i class="dz dz--half"></i><span class="ab-name">Ловкость</span><span class="ab-abbr">лов</span><span class="ab-score">14</span><span class="ab-mod">+2</span></div>
+          <div class="row-body">
+            <p class="ab-what"><b>Ловкость</b> — точность, реакция и равновесие. Держит КД, инициативу и дальнобойные атаки.</p>
+            <div class="ab-skills"><span>Акробатика <i>+2</i></span><span>Ловкость рук <i>+2</i></span><span>Скрытность <i>+4</i></span></div>
+          </div>
+          <div class="ab-row" onclick="tg(this)"><i class="dz dz--half"></i><span class="ab-name">Телосложение</span><span class="ab-abbr">тел</span><span class="ab-score">15</span><span class="ab-mod">+2</span></div>
+          <div class="row-body"><p class="ab-what"><b>Телосложение</b> — выносливость и запас сил. Даёт хиты и держит концентрацию.</p></div>
+        </div>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">В2 — раскрытие для механики, «о характеристике» отдельно</div>
+        <p class="mk-note">Ромб раскрывает то, что нужно за столом (навыки, броски), а длинный текст правил
+           уходит на экран справки текстовым действием. Раскрытие остаётся коротким.</p>
+        <div class="list">
+          <div class="ab-row" onclick="tg(this)"><i class="dz dz--half"></i><span class="ab-name">Сила</span><span class="ab-abbr">сил</span><span class="ab-score">16</span><span class="ab-mod">+3</span></div>
+          <div class="row-body">
+            <div class="ab-skills"><span>Атлетика <i>+5</i></span><span>Спасбросок <i>+3</i></span><span>Груз <i>240 фнт</i></span></div>
+            <div class="acts"><button class="act">Проверка</button><button class="act">Спасбросок</button><button class="act">О характеристике →</button></div>
+          </div>
+          <div class="ab-row" onclick="tg(this)"><i class="dz dz--half"></i><span class="ab-name">Ловкость</span><span class="ab-abbr">лов</span><span class="ab-score">14</span><span class="ab-mod">+2</span></div>
+          <div class="row-body">
+            <div class="ab-skills"><span>Акробатика <i>+2</i></span><span>Скрытность <i>+4</i></span><span>Инициатива <i>+2</i></span></div>
+            <div class="acts"><button class="act">Проверка</button><button class="act">О характеристике →</button></div>
+          </div>
+        </div>
+        <div class="coach">
+          <p class="coach-t">Экран «Сила»</p>
+          <p class="coach-b">Заголовок · абзац правил · список навыков · «как считается проверка» ·
+             примеры ситуаций («сломать дверь — Сл 15»). Тот же экран, что Справка и Билды — не модалка.</p>
+        </div>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">В3 — подстрочник всегда виден</div>
+        <p class="mk-note">Под именем — одна строка «за что отвечает», раскрытие оставлено под механику.
+           Новичку понятно без единого клика, но список из шести характеристик становится вдвое длиннее.</p>
+        <div class="list">
+          <div class="ab-row" style="flex-wrap:wrap" onclick="tg(this)">
+            <i class="dz dz--half"></i><span class="ab-name">Сила</span><span class="ab-abbr">сил</span><span class="ab-score">16</span><span class="ab-mod">+3</span>
+            <span style="flex:0 0 100%;padding-left:20px;font-size:12px;color:var(--home-sub);margin-top:3px">ломать, толкать, лазать · урон в ближнем бою · переносимый вес</span>
+          </div>
+          <div class="row-body"><div class="ab-skills"><span>Атлетика <i>+5</i></span><span>Спасбросок <i>+3</i></span></div></div>
+          <div class="ab-row" style="flex-wrap:wrap" onclick="tg(this)">
+            <i class="dz dz--half"></i><span class="ab-name">Ловкость</span><span class="ab-abbr">лов</span><span class="ab-score">14</span><span class="ab-mod">+2</span>
+            <span style="flex:0 0 100%;padding-left:20px;font-size:12px;color:var(--home-sub);margin-top:3px">уворот и точность · КД · инициатива · стрельба</span>
+          </div>
+          <div class="row-body"><div class="ab-skills"><span>Акробатика <i>+2</i></span><span>Скрытность <i>+4</i></span></div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>3 · Легенда знаков в обучении</h2>
+    <p class="mk-sub">Отдельная страница в Справке + один короткий шаг тура при первом заходе.</p>
+    <div class="mk-grid">
+
+      <div class="mk-col" style="width:420px">
+        <div class="mk-cap">Страница «Условные знаки» в Справке</div>
+        <p class="mk-note">Живые ромбы, а не картинки: знак в легенде и знак в интерфейсе не разъедутся при смене темы.</p>
+        <div class="lg">
+          <div class="lg-item"><span class="lg-mark"><i class="dz dz--mute"></i></span><span class="lg-txt"><b>Пустой ромб</b><span>Просто пункт. Значение показано справа, разворачивать нечего.</span></span></div>
+          <div class="lg-item"><span class="lg-mark"><i class="dz dz--half"></i></span><span class="lg-txt"><b>Половина закрашена</b><span>Строка раскрывается: подробности, справка и броски внутри. Нажмите на строку.</span></span></div>
+          <div class="lg-item"><span class="lg-mark"><i class="dz dz--half" style="transform:rotate(135deg)"></i></span><span class="lg-txt"><b>Заливка снизу</b><span>Строка раскрыта. Нажмите ещё раз, чтобы свернуть.</span></span></div>
+          <div class="lg-item"><span class="lg-mark"><i class="dz dz--full"></i></span><span class="lg-txt"><b>Полный ромб</b><span>В заклинаниях — потраченная ячейка. Ряд ромбов у круга = ваши ячейки: полные потрачены, пустые свободны.</span></span></div>
+          <div class="lg-item"><span class="lg-mark"><span style="font-family:var(--font-display);font-size:12.5px;color:var(--accent-lo)">Aa</span></span><span class="lg-txt"><b>Слово цветом</b><span>Это кнопка. Действия в приложении — текстом, а не плашками.</span></span></div>
+        </div>
+      </div>
+
+      <div class="mk-col" style="width:420px">
+        <div class="mk-cap">Шаг тура при первом заходе</div>
+        <p class="mk-note">Один coach-шаг у первой раскрывающейся строки вкладки — движок туров уже это умеет
+           (<code>app-help.js</code>, флаги <code>dnd_help_*</code>).</p>
+        <div class="list" style="opacity:.5">
+          <div class="row"><i class="dz dz--half"></i><span class="row-name">Раса</span><span class="row-meta">Дварф · холмовой</span></div>
+        </div>
+        <div class="coach">
+          <p class="coach-t">Ромб слева — тут есть продолжение</p>
+          <p class="coach-b">Половина закрашена — строка раскрывается по нажатию. Когда откроете, заливка ляжет вниз.
+             Пустой ромб значит, что раскрывать нечего.</p>
+          <div class="acts"><button class="act">Понятно</button><button class="act">Все знаки →</button></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>4 · Что напрашивается заодно</h2>
+    <div class="mk-idea"><b>Раскрытое состояние переживает перезаход.</b> <span>Что раскрыл — то и осталось: <code>char.ui.open</code> или <code>localStorage</code>. Иначе на каждом заходе снова щёлкать шесть характеристик.</span></div>
+    <div class="mk-idea"><b>«Раскрыть всё» текстовым действием в шапке списка.</b> <span>Для распечатки, скриншота партии и просто «покажи всё разом».</span></div>
+    <div class="mk-idea"><b>Ромб — часть кнопки, а не украшение.</b> <span>Строка = <code>role="button"</code> + <code>aria-expanded</code>, фокус с клавиатуры, Enter/Пробел. Сейчас в <code>.abil-card-head</code> это уже так — переносим рецепт на все раскрытия.</span></div>
+    <div class="mk-idea"><b>Reduce-motion.</b> <span>При отключённой анимации ромб не доворачивается плавно, а сразу встаёт в конечное положение — как уже сделано для меню встречающего экрана.</span></div>
+    <div class="mk-idea"><b>Один и тот же ромб — на всех вкладках сразу.</b> <span>Если знак вводится, он должен значить одно и то же в «Листе», «Сумке», «Бое» и «Мире». Иначе легенда врёт.</span></div>
+    <div class="mk-idea"><b>Кто ещё просит описания, кроме характеристик.</b> <span>Навыки (какая характеристика, когда кидать), состояния (что именно отнимает «Отравление»), школы заклинаний, типы урона. Одинаковое раскрытие покрывает всё это одним механизмом.</span></div>
+    <div class="mk-idea"><b>Тексты описаний — из книги, а не свои.</b> <span>Формулировки характеристик и навыков берём с эталона 2014 (и <code>edData</code> для 2024), чтобы не разъезжались со справкой и глоссарием.</span></div>
+  </section>
+</div>
+
+<script>
+  // Стенд: строка + следующий за ней .row-body/.ab-body.
+  function tg(el) {
+    el.classList.toggle('open');
+    var b = el.nextElementSibling;
+    if (b && (b.classList.contains('row-body') || b.classList.contains('ab-body'))) b.classList.toggle('open');
+  }
+</script>
