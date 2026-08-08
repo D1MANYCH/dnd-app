@@ -718,16 +718,9 @@ html.glass-adjusting *::after {
 }
 
 /* ----- Условия / popup ----- */
-:root[data-theme="light"] .condition-badge {
-  background: var(--bg-2) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text) !important;
-}
-:root[data-theme="light"] .condition-badge.active {
-  background: var(--condition-active) !important;
-  border-color: var(--danger) !important;
-  color: var(--danger) !important;
-}
+/* DISC-5: плашки стали словами — светлые перебивки заливок сняты, остался
+   цвет. Он же держит контраст: --danger на светлом фоне читается. */
+:root[data-theme="light"] .condition-badge.active { color: var(--danger); }
 :root[data-theme="light"] .conditions-popup {
   background: var(--bg-1) !important;
   border: 1px solid var(--border) !important;
@@ -1776,9 +1769,16 @@ body.no-character .drawer-nav { display: none; }
   .rr-cond-list:empty { display: none; }
   .rr-cond-list .condition-badge {
     font-size: 11px;
-    padding: 2px 6px;
+    padding: 0;
     cursor: pointer;
     line-height: 1.4;
+  }
+  /* Слова вместо плашек нуждаются в разделителе — точка, как в остальных
+     перечислениях приложения. */
+  .rr-cond-list .condition-badge + .condition-badge::before {
+    content: "·";
+    margin-right: 4px;
+    color: var(--home-sub);
   }
   .rr-cond-empty {
     color: var(--text-muted);
@@ -2126,32 +2126,23 @@ border-color: var(--armor-color, #5b9bd5);
 color: var(--armor-color, #5b9bd5);
 }
 /* status-conditions теперь рендерится в попапе */
+/* DISC-5: наложенное состояние — слово цветом, а не залитая плашка.
+   Категория читается цветом текста; там, где бейджи стоят рядами, их делит
+   точка-разделитель (см. .rr-cond-list). */
 .condition-badge {
-background: var(--condition-active);
-border: 1px solid var(--condition-border);
+background: none;
+border: 0;
+border-radius: 0;
 color: var(--danger-color);
-padding: 3px 8px;
-border-radius: 4px;
-font-size: 0.7em;
-font-weight: bold;
+padding: 0;
+font-size: 0.72em;
+font-weight: 600;
 white-space: nowrap;
 flex-shrink: 0;
 }
-.condition-badge.poison {
-background: rgba(155, 89, 182, 0.3);
-border-color: var(--poison-color);
-color: var(--poison-color);
-}
-.condition-badge.buff {
-background: var(--buff-color);
-border-color: var(--success-color);
-color: var(--success-color);
-}
-.condition-badge.debuff {
-background: var(--debuff-color);
-border-color: var(--danger-color);
-color: var(--danger-color);
-}
+.condition-badge.poison { color: var(--poison-color); }
+.condition-badge.buff { color: var(--success-color); }
+.condition-badge.debuff { color: var(--danger-color); }
 
 /* ========== HEADER (R5: back + name + hamburger) ========== */
 header {
@@ -2512,36 +2503,32 @@ margin-top: 4px;
 .effect-type.debuff { background: var(--danger-color); color: #fff; }
 
 /* ========== УСЛОВИЯ ========== */
+/* DISC-5: список состояний — колонка строк; от 1100px в две колонки, чтобы
+   14 состояний не растягивали лист. */
 .conditions-grid {
 display: grid;
-grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-gap: var(--sp-2);
+grid-template-columns: 1fr;
+gap: 0;
+}
+@media (min-width: 1100px) {
+  .conditions-grid { grid-template-columns: 1fr 1fr; column-gap: var(--sp-5); }
 }
 .condition-item {
-background: var(--card-bg);
-border: 1px solid var(--border-color);
-border-radius: 8px;
-padding: 10px;
+background: none;
+border: 0;
+border-top: 1px solid var(--home-rule);
+border-radius: 0;
+padding: 9px 2px;
+min-height: 40px;
 cursor: pointer;
-transition: all 0.2s;
 display: flex;
-flex-direction: column;
-gap: 6px;
+flex-wrap: wrap;
+align-items: center;
+gap: var(--sp-3);
+text-align: left;
 }
-.condition-item:hover {
-border-color: var(--accent-color);
-box-shadow: var(--sh-1);
-}
-/* FB-3: смягчённые заливки активных категорий (было 0.3+glow — «резало глаз»);
-   цветная рамка остаётся для идентификации категории. */
-.condition-item.active {
-background: rgba(224, 108, 117, 0.13);
-border-color: var(--condition-border);
-}
-.condition-item.active.poison {
-background: rgba(155, 89, 182, 0.13);
-border-color: var(--poison-color);
-}
+.condition-item:hover { box-shadow: none; }
+.condition-item:hover .condition-name { color: var(--accent-lo); }
 .condition-name {
 font-size: 0.85em;
 font-weight: 600;
@@ -2555,15 +2542,17 @@ color: var(--text-muted);
 line-height: 1.4;
 white-space: pre-wrap;
 }
+/* DISC-5: счётчик наложенных — число цветом, а не залитый кружок */
 .conditions-active-count {
 display: inline-block;
-background: var(--danger-color);
-color: white;
-padding: 2px 8px;
-border-radius: var(--r-md);
-font-size: 0.7em;
-font-weight: bold;
+background: none;
+color: var(--danger-color);
+padding: 0;
+border-radius: 0;
+font-size: 0.72em;
+font-weight: 700;
 margin-left: 8px;
+font-variant-numeric: tabular-nums;
 }
 /* ── Блок истощения ── */
 .exhaustion-block {
@@ -2650,18 +2639,18 @@ margin-left: 8px;
 .popup-group-label.buff { color: var(--success-color); }
 .popup-group-label.debuff { color: var(--danger-color); }
 .condition-badge.exhaustion {
-  background: rgba(230,126,34,0.2);
-  border-color: #e67e22;
+  background: none;
+  border-color: transparent;
   color: #e67e22;
 }
 .condition-badge.buff {
-  background: rgba(87,179,109,0.15);
-  border-color: rgba(87,179,109,0.4);
+  background: none;
+  border-color: transparent;
   color: var(--success-color);
 }
 .condition-badge.debuff {
-  background: rgba(224,108,117,0.15);
-  border-color: rgba(224,108,117,0.4);
+  background: none;
+  border-color: transparent;
   color: var(--danger-color);
 }
 .badge-duration {
@@ -2730,45 +2719,33 @@ gap: 8px;
   margin-right: 6px;
   border-radius: 4px;
 }
-/* FB-2: карточка состояния — иконка крупно сверху по центру, текст под ней,
-   равная высота (flex-column из базового правила + line-clamp описания). */
-.condition-item { align-items: center; text-align: center; }
-.condition-item > .condition-icon-svg {
-  float: none;
-  width: 88px; height: 88px;
-  margin: 2px 0;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.35);
+/* ── DISC-5 · Состояния: плитки с картинкой 88px → плоские строки ──
+   Строка накладывает и снимает состояние, ромб слева раскрывает описание.
+   Наложенное кодируется цветом названия и словом справа — заливок нет.
+   Иконки из списка убраны (решение юзера 08.08.2026); в блоке истощения
+   и на бейджах они остались. */
+.condition-item > .condition-icon-svg { display: none; }
+.condition-mark { cursor: pointer; }
+.condition-mark:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.condition-item .condition-name {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 500;
 }
-.condition-item .condition-name { display: block; margin-bottom: 0; }
+.condition-state {
+  margin-left: auto;
+  font-size: var(--fs-sm);
+  color: var(--danger-color);
+}
+.condition-item.active.poison .condition-state { color: var(--poison-color); }
 .condition-item .condition-desc {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
-  overflow: hidden;
-  text-align: left;
-  width: 100%;
-}
-.condition-item.expanded .condition-desc { -webkit-line-clamp: 999; line-clamp: 999; }
-.condition-expand {
   display: none;
-  width: auto;
-  margin: auto 0 0;
-  align-self: center;
-  padding: 3px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-sm);
-  font-size: 0.7em;
-  font-weight: 600;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: color .12s, border-color .12s;
+  flex: 0 0 100%;
+  padding: 2px 0 6px calc(7px + var(--sp-3));
+  text-align: left;
+  font-size: var(--fs-sm);
 }
-.condition-item.has-more .condition-expand,
-.condition-item.expanded .condition-expand { display: inline-block; }
-.condition-expand:hover { border-color: var(--accent-color); color: var(--accent-color); transform: none; box-shadow: none; }
+.condition-item.expanded .condition-desc { display: block; }
 .condition-badge { display: inline-flex; align-items: center; gap: 0; }
 .exhaustion-title { display: inline-flex; align-items: center; gap: 8px; font-size: 1.1em; }
 .exhaustion-title .condition-icon-svg { width: 56px; height: 56px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.35); margin: 0; }
@@ -15318,7 +15295,6 @@ html[data-stats-layout="2024"] .abil-card-head::before { content: ""; }
 .spell-card-arrow,
 .battle-section-arrow,
 .stats-collapse-arrow,
-.condition-expand::before,
 html[data-stats-layout="2024"] .abil-card-head::before {
   flex: 0 0 auto;
   /* Пустой span в нефлексовой строке остаётся inline и игнорирует размеры —
@@ -15337,11 +15313,10 @@ html[data-stats-layout="2024"] .abil-card-head::before {
 /* DISC-4: знак ставится на все раскрытия приложения. Ромб — только про
    «строка раскрывается»; нативные <select> остаются с системным шевроном
    (решение юзера 08.08.2026), их этот рецепт не касается. */
-.condition-expand::before { content: ""; display: inline-block; margin-right: 6px; vertical-align: middle; }
 .is-open > .disc-diamond,
 .my-spell-item.expanded .spell-card-arrow,
 .battle-section-arrow.is-open,
-.condition-item.expanded .condition-expand::before,
+.condition-item.expanded .condition-mark,
 html:not([data-stats-collapsed="1"]) .stats-collapse-arrow,
 html[data-stats-layout="2024"] .abil-card.is-open .abil-card-head::before { transform: rotate(135deg); }
 

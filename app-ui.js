@@ -377,9 +377,6 @@ function toggleAccordion(btn) {
   } else {
     body.style.display = "";
     btn.setAttribute("aria-expanded", "true");
-    // FB-2: line-clamp-детект состояний требует видимой секции (scrollHeight) —
-    // повторяем при раскрытии любого аккордеона (дёшево, no-op если состояний нет).
-    if (typeof detectConditionOverflow === "function") setTimeout(detectConditionOverflow, 50);
   }
 }
 

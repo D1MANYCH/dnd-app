@@ -136,14 +136,18 @@ function renderConditionsGrid() {
     item.className = "condition-item" + (condition.type ? " " + condition.type : "") + (isActive ? " active" : "");
     item.id = "condition-" + condition.id;
     item.onclick = function() { toggleCondition(condition.id); };
-    item.innerHTML = getConditionIcon(condition.id) + "<div class=\"condition-name\"><span>" + escapeHtml(stripLeadingEmoji(condition.name)) + "</span></div><div class=\"condition-desc\">" + escapeHtml(condition.desc) + "</div><button type=\"button\" class=\"condition-expand\" onclick=\"toggleConditionDesc(event,this)\">Подробнее</button>";
+    // DISC-5: строка вместо плитки. Клик по строке по-прежнему накладывает и
+    // снимает состояние, описание раскрывает ромб — поэтому у него своя зона
+    // клика со stopPropagation внутри toggleConditionDesc.
+    item.innerHTML =
+      "<span class=\"condition-mark disc-diamond\" role=\"button\" tabindex=\"0\" aria-label=\"Описание состояния\"" +
+      " onclick=\"toggleConditionDesc(event,this)\"" +
+      " onkeydown=\"if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleConditionDesc(event,this);}\"></span>" +
+      "<span class=\"condition-name\">" + escapeHtml(stripLeadingEmoji(condition.name)) + "</span>" +
+      (isActive ? "<span class=\"condition-state\">наложено</span>" : "") +
+      "<div class=\"condition-desc\">" + escapeHtml(condition.desc) + "</div>";
     grid.appendChild(item);
   });
-  // FB-2: «Подробнее» только у карточек с реально обрезанным (line-clamp) описанием.
-  // scrollHeight требует, чтобы секция была не display:none — детект повторяется
-  // при switchTab('sheet') и при раскрытии аккордеона (off-screen карточки меряются нормально).
-  // setTimeout, а не rAF: rAF приостанавливается в фоновой вкладке → детект бы не сработал.
-  setTimeout(detectConditionOverflow, 50);
   if (!any) {
     var empty = document.createElement("div");
     empty.className = "filter-empty";
@@ -151,25 +155,14 @@ function renderConditionsGrid() {
     grid.appendChild(empty);
   }
 }
-// FB-2: раскрыть/свернуть длинное описание (stopPropagation — клик по карточке = toggleCondition)
+// Раскрыть/свернуть описание (stopPropagation — клик по строке = toggleCondition).
+// DISC-5: знак раскрытия — ромб, надписи «Подробнее»/«Свернуть» больше нет.
 function toggleConditionDesc(e, btn) {
   if (e) e.stopPropagation();
   var item = btn.closest(".condition-item");
   if (!item) return;
   var expanded = item.classList.toggle("expanded");
-  btn.textContent = expanded ? "Свернуть" : "Подробнее";
-}
-// FB-2: помечаем .has-more карточки, чьё описание реально обрезано line-clamp.
-// Add-only + пропуск раскрытых (clamp снят → мерить нельзя). scrollHeight валиден и для
-// off-screen карточек — важно лишь чтобы секция была не display:none (видимая вкладка + открытый аккордеон).
-function detectConditionOverflow() {
-  var grid = document.getElementById("conditions-grid");
-  if (!grid) return;
-  grid.querySelectorAll(".condition-item").forEach(function(it) {
-    if (it.classList.contains("expanded")) return;
-    var d = it.querySelector(".condition-desc");
-    if (d && d.scrollHeight - d.clientHeight > 2) it.classList.add("has-more");
-  });
+  btn.setAttribute("aria-expanded", expanded ? "true" : "false");
 }
 function initConditions() {
 const grid = $("conditions-grid");
