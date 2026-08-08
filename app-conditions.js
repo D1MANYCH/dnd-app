@@ -135,16 +135,22 @@ function renderConditionsGrid() {
     const item = document.createElement("div");
     item.className = "condition-item" + (condition.type ? " " + condition.type : "") + (isActive ? " active" : "");
     item.id = "condition-" + condition.id;
-    item.onclick = function() { toggleCondition(condition.id); };
-    // DISC-5: строка вместо плитки. Клик по строке по-прежнему накладывает и
-    // снимает состояние, описание раскрывает ромб — поэтому у него своя зона
-    // клика со stopPropagation внутри toggleConditionDesc.
+    // DISC-6: раскрывает ВСЯ строка (в ромб на телефоне не попасть), а наложение
+    // переехало на отдельное действие справа — два разных исхода не должны
+    // висеть на одном касании.
+    item.setAttribute("role", "button");
+    item.setAttribute("tabindex", "0");
+    item.setAttribute("aria-expanded", "false");
+    item.onclick = function(e) { toggleConditionDesc(e, item); };
+    item.onkeydown = function(e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleConditionDesc(e, item); }
+    };
     item.innerHTML =
-      "<span class=\"condition-mark disc-diamond\" role=\"button\" tabindex=\"0\" aria-label=\"Описание состояния\"" +
-      " onclick=\"toggleConditionDesc(event,this)\"" +
-      " onkeydown=\"if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleConditionDesc(event,this);}\"></span>" +
+      "<span class=\"condition-mark disc-diamond\" aria-hidden=\"true\"></span>" +
       "<span class=\"condition-name\">" + escapeHtml(stripLeadingEmoji(condition.name)) + "</span>" +
-      (isActive ? "<span class=\"condition-state\">наложено</span>" : "") +
+      "<button type=\"button\" class=\"condition-apply" + (isActive ? " on" : "") + "\"" +
+      " onclick=\"event.stopPropagation(); toggleCondition('" + condition.id + "')\">" +
+      (isActive ? "Снять" : "Наложить") + "</button>" +
       "<div class=\"condition-desc\">" + escapeHtml(condition.desc) + "</div>";
     grid.appendChild(item);
   });
@@ -162,7 +168,15 @@ function toggleConditionDesc(e, btn) {
   var item = btn.closest(".condition-item");
   if (!item) return;
   var expanded = item.classList.toggle("expanded");
-  btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+  item.setAttribute("aria-expanded", expanded ? "true" : "false");
+}
+// DISC-6: то же для временных эффектов
+function toggleEffectDesc(e, btn) {
+  if (e) e.stopPropagation();
+  var item = btn.closest(".effect-item");
+  if (!item) return;
+  var expanded = item.classList.toggle("expanded");
+  item.setAttribute("aria-expanded", expanded ? "true" : "false");
 }
 function initConditions() {
 const grid = $("conditions-grid");
@@ -361,15 +375,27 @@ function renderEffectsGrid() {
       var item = document.createElement("div");
       item.className = "effect-item" + (effect.type ? " " + effect.type : "") + (isActive ? " active" : "");
       item.id = "effect-" + effect.id;
-      item.onclick = function() { toggleEffect(effect.id); };
+      // DISC-6: эффекты собраны так же, как состояния — строка раскрывает
+      // описание, включение живёт отдельным действием справа.
+      item.setAttribute("role", "button");
+      item.setAttribute("tabindex", "0");
+      item.setAttribute("aria-expanded", "false");
+      item.onclick = function(e) { toggleEffectDesc(e, item); };
+      item.onkeydown = function(e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleEffectDesc(e, item); }
+      };
       var durText = effect.duration;
       if (isActive && _castVar[effect.id]) durText += " · " + dndIcoHtml("sparkle", 12) + " " + _castVar[effect.id];
       if (isActive && _castLeft[effect.id] != null) durText += " · ⏳ осталось " + _castLeft[effect.id] + " рд";
       item.innerHTML =
-        "<div class=\"effect-name\">" + escapeHtml(effect.name) + "</div>" +
+        "<span class=\"effect-mark disc-diamond\" aria-hidden=\"true\"></span>" +
+        "<span class=\"effect-name\">" + escapeHtml(effect.name) + "</span>" +
+        "<span class=\"effect-type " + effect.type + "\">" + (effect.type === 'buff' ? 'Бафф' : 'Дебафф') + "</span>" +
+        "<button type=\"button\" class=\"effect-apply" + (isActive ? " on" : "") + "\"" +
+        " onclick=\"event.stopPropagation(); toggleEffect('" + effect.id + "')\">" +
+        (isActive ? "Выключить" : "Включить") + "</button>" +
         "<div class=\"effect-desc\">" + escapeHtml(effect.desc) + "</div>" +
-        "<div class=\"effect-duration\">" + escapeHtml(durText) + "</div>" +
-        "<span class=\"effect-type " + effect.type + "\">" + (effect.type === 'buff' ? '' + dndIcoHtml("sparkle", 12) + ' Бафф' : '' + dndIcoHtml("skull", 12) + ' Дебафф') + "</span>";
+        "<div class=\"effect-duration\">" + durText + "</div>";
       grid.appendChild(item);
     });
   });

@@ -2439,68 +2439,74 @@ color: var(--danger-color);
   box-shadow: 0 2px 6px rgba(0,0,0,.35);
   object-fit: cover;
 }
-.effect-item { display: block !important; }
-.effect-item::after { content: ""; display: block; clear: both; }
+/* DISC-6: display:block !important и clearfix жили ради обтекания картинкой,
+   которой в строке больше нет — снято, иначе флекс-раскладка не работает. */
 
 /* ========== ВРЕМЕННЫЕ ЭФФЕКТЫ ========== */
+/* DISC-6: эффекты собраны как состояния — плоские строки, а не плитки с
+   заливкой; от 1100px в две колонки. */
 .effects-grid {
 display: grid;
-grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-gap: 8px;
+grid-template-columns: 1fr;
+gap: 0;
+}
+@media (min-width: 1100px) {
+  .effects-grid { grid-template-columns: 1fr 1fr; column-gap: var(--sp-5); }
 }
 .effect-item {
-background: var(--card-bg);
-border: 1px solid var(--border-color);
-border-radius: 8px;
-padding: 10px;
+background: none;
+border: 0;
+border-top: 1px solid var(--home-rule);
+border-radius: 0;
+padding: 2px;
+min-height: 44px;
 cursor: pointer;
-transition: all 0.2s;
 display: flex;
-flex-direction: column;
-gap: 6px;
+flex-wrap: wrap;
+align-items: center;
+gap: var(--sp-3);
+text-align: left;
 }
-.effect-item:hover {
-border-color: var(--accent-color);
-box-shadow: var(--sh-1);
-}
-.effect-item.active.buff {
-background: var(--buff-color);
-border-color: var(--success-color);
-box-shadow: 0 0 10px rgba(87, 179, 109, 0.4);
-}
-.effect-item.active.debuff {
-background: var(--debuff-color);
-border-color: var(--danger-color);
-box-shadow: 0 0 10px rgba(224, 108, 117, 0.4);
-}
+.effect-item:hover { box-shadow: none; }
+.effect-item:hover .effect-name { color: var(--accent-lo); }
+.effect-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .effect-name {
-font-size: 0.85em;
-font-weight: 600;
+font-family: var(--font-display);
+font-size: var(--fs-md);
+font-weight: 500;
 color: var(--text-color);
 }
 .effect-item.active.buff .effect-name { color: var(--success-color); }
 .effect-item.active.debuff .effect-name { color: var(--danger-color); }
 .effect-desc {
-font-size: 0.65em;
+display: none;
+flex: 0 0 100%;
+padding: 2px 0 4px calc(8px + var(--sp-3));
+font-size: var(--fs-sm);
 color: var(--text-muted);
-line-height: 1.4;
+line-height: 1.5;
 white-space: pre-wrap;
 }
+.effect-item.expanded .effect-desc { display: block; }
 .effect-duration {
-font-size: 0.6em;
-color: var(--accent-color);
-margin-top: 4px;
+display: none;
+flex: 0 0 100%;
+padding: 0 0 6px calc(8px + var(--sp-3));
+font-size: var(--fs-sm);
+color: var(--home-sub);
 }
+.effect-item.expanded .effect-duration { display: block; }
+/* DISC-6: тип эффекта — слово цветом, залитая плашка снята */
 .effect-type {
 display: inline-block;
-padding: 2px 6px;
-border-radius: 4px;
-font-size: 0.6em;
-font-weight: bold;
-margin-top: 4px;
+padding: 0;
+border-radius: 0;
+background: none;
+font-size: var(--fs-sm);
+font-weight: 600;
 }
-.effect-type.buff { background: var(--success-color); color: #000; }
-.effect-type.debuff { background: var(--danger-color); color: #fff; }
+.effect-type.buff { color: var(--success-color); }
+.effect-type.debuff { color: var(--danger-color); }
 
 /* ========== УСЛОВИЯ ========== */
 /* DISC-5: список состояний — колонка строк; от 1100px в две колонки, чтобы
@@ -2518,8 +2524,9 @@ background: none;
 border: 0;
 border-top: 1px solid var(--home-rule);
 border-radius: 0;
-padding: 9px 2px;
-min-height: 40px;
+padding: 2px;
+/* DISC-6: 44px — минимальная тач-цель; строка целиком раскрывает описание */
+min-height: 44px;
 cursor: pointer;
 display: flex;
 flex-wrap: wrap;
@@ -2529,6 +2536,7 @@ text-align: left;
 }
 .condition-item:hover { box-shadow: none; }
 .condition-item:hover .condition-name { color: var(--accent-lo); }
+.condition-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .condition-name {
 font-size: 0.85em;
 font-weight: 600;
@@ -2725,19 +2733,37 @@ gap: 8px;
    Иконки из списка убраны (решение юзера 08.08.2026); в блоке истощения
    и на бейджах они остались. */
 .condition-item > .condition-icon-svg { display: none; }
-.condition-mark { cursor: pointer; }
-.condition-mark:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .condition-item .condition-name {
   font-family: var(--font-display);
   font-size: var(--fs-md);
   font-weight: 500;
 }
-.condition-state {
+/* DISC-6: наложение — отдельное действие с полноценной тач-целью (44px),
+   раскрытие описания висит на самой строке. Раньше оба исхода делили одно
+   касание, и на телефоне попасть в 7-пиксельный ромб было нельзя. */
+.condition-apply,
+.effect-apply {
+  all: unset;
   margin-left: auto;
+  padding: 13px 2px 13px 14px;
+  min-height: 44px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-family: var(--font-display);
   font-size: var(--fs-sm);
-  color: var(--danger-color);
+  color: var(--accent-lo);
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 }
-.condition-item.active.poison .condition-state { color: var(--poison-color); }
+.condition-apply:hover,
+.effect-apply:hover { text-decoration: underline; }
+.condition-apply:focus-visible,
+.effect-apply:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.condition-apply.on { color: var(--danger-color); }
+.condition-item.poison .condition-apply.on { color: var(--poison-color); }
+.effect-apply.on { color: var(--danger-color); }
 .condition-item .condition-desc {
   display: none;
   flex: 0 0 100%;
@@ -4258,7 +4284,9 @@ transform: rotate(45deg);
 border: 1.5px solid var(--home-accent);
 transition: transform var(--t2) var(--ez-out), background var(--t2) var(--ez-out);
 }
-.home-bullet--sm { width: 6px; height: 6px; border-width: 1px; }
+/* DISC-6: 6px терялись на строках правого rail — знак раскрытия должен
+   читаться так же, как везде (8px). */
+.home-bullet--sm { width: 8px; height: 8px; border-width: 1px; }
 
 /* Выделенный пункт («Новая кампания») — полоса слева + подложка, как в макете */
 .home-menu-row--primary > .home-menu-item {
@@ -7056,7 +7084,9 @@ color: var(--danger-color);
 /* UI5-6: единый мобильный порог 640 (было 600). Узкие refinements ≤540/≤380 ниже. */
 @media (max-width: 640px) {
 .modal-content { margin: 10px auto; padding: 15px; }
-.conditions-grid { grid-template-columns: repeat(2, 1fr); }
+/* DISC-6: две колонки на телефоне остались от плиток — строке с действием
+   справа нужна вся ширина, иначе «Наложить» переносится под название. */
+.conditions-grid { grid-template-columns: 1fr; }
 .effects-grid { grid-template-columns: 1fr; }
 .features-grid { grid-template-columns: 1fr; }
 /* Stats specific */
@@ -9598,9 +9628,11 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   content: "";
   position: absolute;
   left: 0;
-  top: calc(50% - 3px);
-  width: 6px;
-  height: 6px;
+  /* DISC-6: 6px → 8px, как остальные знаки; пустой ромб = раскрывать нечего */
+  top: calc(50% - 4px);
+  width: 8px;
+  height: 8px;
+  box-sizing: border-box;
   transform: rotate(45deg);
   border: 1px solid var(--home-accent);
 }
@@ -15295,14 +15327,17 @@ html[data-stats-layout="2024"] .abil-card-head::before { content: ""; }
 .spell-card-arrow,
 .battle-section-arrow,
 .stats-collapse-arrow,
+#tab-sheet .accordion-toggle::before,
 html[data-stats-layout="2024"] .abil-card-head::before {
   flex: 0 0 auto;
   /* Пустой span в нефлексовой строке остаётся inline и игнорирует размеры —
      без этого знак не рисуется вовсе (так пропал ромб секций «Мира»). */
   display: inline-block;
   vertical-align: middle;
-  width: 7px;
-  height: 7px;
+  /* DISC-6: размер ведёт --dz-size. У заголовков разделов знак крупнее строчного,
+     иначе на телефоне он теряется в пыли (жалоба юзера 08.08.2026). */
+  width: var(--dz-size, 8px);
+  height: var(--dz-size, 8px);
   box-sizing: border-box;
   border: 1px solid var(--accent);
   background: linear-gradient(45deg, transparent 50%, var(--accent) 50%);
@@ -15317,6 +15352,8 @@ html[data-stats-layout="2024"] .abil-card-head::before {
 .my-spell-item.expanded .spell-card-arrow,
 .battle-section-arrow.is-open,
 .condition-item.expanded .condition-mark,
+.effect-item.expanded .effect-mark,
+#tab-sheet .accordion-toggle[aria-expanded="true"]::before,
 html:not([data-stats-collapsed="1"]) .stats-collapse-arrow,
 html[data-stats-layout="2024"] .abil-card.is-open .abil-card-head::before { transform: rotate(135deg); }
 
@@ -15707,18 +15744,15 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   padding-left: 0;
   font-family: var(--font-display);
   color: var(--text-color);
+  /* DISC-6: базовое space-between осталось от времён, когда справа стояла
+     стрелка ▸. Стрелка скрыта — и заголовок уезжал к правому краю, а знак
+     оставался у левого: строка читалась как два несвязанных элемента.
+     Плюс тач-цель: 44px — минимум, в который попадают пальцем. */
+  justify-content: flex-start;
+  gap: 9px;
+  min-height: 44px;
 }
-#tab-sheet .accordion-toggle::before {
-  content: "";
-  flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
-  margin-right: 9px;
-  transform: rotate(45deg);
-  border: 1px solid var(--accent);
-  transition: background var(--t2) var(--ez-out);
-}
-#tab-sheet .accordion-toggle[aria-expanded="true"]::before { background: var(--accent); }
+#tab-sheet .accordion-toggle::before { content: ""; --dz-size: 9px; }
 #tab-sheet .accordion-arrow { display: none; }
 #tab-sheet .accordion-body { padding-left: 15px; }
 
