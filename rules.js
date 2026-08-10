@@ -24,9 +24,81 @@ const additionalHP = (level - 1) * (avgPerLevel + conMod);
 return level1HP + additionalHP;
 }
 
+// ── Классы и мультикласс ────────────────────────────────────
+// Мультикласс живёт в char.classes[]; char.class и char.level — legacy-поля,
+// где class всегда ПЕРВЫЙ класс, а level — СУММА уровней всех классов.
+// Умения, подклассы и заряды зависят от уровня класса, а не от суммарного.
+
+/** Уровень конкретного класса персонажа (0, если класса нет) */
+function charClassLevel(char, className) {
+  if (!char || !className) return 0;
+  if (char.classes && char.classes.length > 0) {
+    var entry = char.classes.find(function(c) { return c && c.class === className; });
+    return entry ? (entry.level || 0) : 0;
+  }
+  return char.class === className ? (char.level || 0) : 0;
+}
+
+/** Есть ли у персонажа такой класс — без оглядки на его уровень */
+function charHasClass(char, className) {
+  if (!char || !className) return false;
+  if (char.classes && char.classes.length > 0) {
+    return char.classes.some(function(c) { return c && c.class === className; });
+  }
+  return char.class === className;
+}
+
+/** Уровень класса с оглядкой на legacy-вызов: у одноклассового переданный
+ *  level и есть уровень класса (так зовут тесты и старый код листа). */
+function charClassLevelOr(char, className, level) {
+  if (!char) return 0;
+  if (char.classes && char.classes.length > 0) return charClassLevel(char, className);
+  if (char.class !== className) return 0;
+  return level || char.level || 0;
+}
+
+/** Заработанные АСИ по каждому классу: [{cls, level}].
+ *  Расписание ASI_LEVELS отсчитывается от уровня КЛАССА (PHB, «Мультиклассирование»). */
+function charAsiSlots(char) {
+  var out = [];
+  if (!char || typeof ASI_LEVELS === "undefined") return out;
+  getCharClassPairs(char).forEach(function(p) {
+    var lvl = charClassLevel(char, p.cls);
+    var sched = ASI_LEVELS[p.cls] || ASI_LEVELS["default"] || [];
+    sched.forEach(function(l) {
+      if (l <= lvl) out.push({ cls: p.cls, level: l });
+    });
+  });
+  return out;
+}
+
+/** Классы, доросшие до выбора подкласса, у которых он не выбран: [{cls, at}] */
+function charSubclassPending(char) {
+  var out = [];
+  if (!char || typeof SUBCLASS_LEVEL === "undefined") return out;
+  getCharClassPairs(char).forEach(function(p) {
+    var at = SUBCLASS_LEVEL[p.cls];
+    if (!at || p.sub) return;
+    if (charClassLevel(char, p.cls) >= at) out.push({ cls: p.cls, at: at });
+  });
+  return out;
+}
+
+/** Порог опыта до следующего уровня (PHB 2014, гл. 1) → {level, need, have, canLevel}.
+ *  Показывать строку опыта или нет — решает UI по char.exp, здесь расчёт чистый. */
+function charXpNext(char) {
+  var have = (char && char.exp) || 0;
+  var next = ((char && char.level) || 1) + 1;
+  if (typeof XP_THRESHOLDS === "undefined" || next > 20) {
+    return { level: null, need: 0, have: have, left: 0, canLevel: false };
+  }
+  var need = XP_THRESHOLDS[next] || 0;
+  return { level: next, need: need, have: have, left: Math.max(0, need - have), canLevel: have >= need };
+}
+
 // ── Навыки, спасброски, инициатива ──────────────────────────
 function rulesJackOfAllTrades(char, level) {
-  return !!(char && char.class === "Бард" && level >= 2);
+  return charClassLevelOr(char, "Бард", level) >= 2;
 }
 
 function rulesHasExpertise(char, skillIndex) {
@@ -39,7 +111,8 @@ function getInitiativeMod(char, level) {
   if (!char) return 0;
   var lvl = level || char.level || 1;
   var mod = char.stats ? getMod(char.stats.dex) : 0;
-  if (char.class === "Бард" && lvl >= 2) mod += Math.floor(getProficiencyBonus(lvl) / 2);
+  // Пол-БМ Барда: порог 2 — по уровню Барда, сам БМ — по суммарному уровню (PHB)
+  if (charClassLevelOr(char, "Бард", level) >= 2) mod += Math.floor(getProficiencyBonus(lvl) / 2);
   if (char.bonuses && char.bonuses.initiative) mod += char.bonuses.initiative;
   return mod;
 }
@@ -143,8 +216,21 @@ function rulesAC(char) {
   var hasMageArmor = char.effects && char.effects.includes('mage_armor');
   var hasMonkUnarmored = char.effects && char.effects.includes('monk_unarmored');
   var hasBarbarianUnarmored = char.effects && char.effects.includes('barbarian_unarmored');
-  var isBarbarian = char.class === "Варвар";
-  var isMonk = char.class === "Монах";
+  // PHB 2014 стр. 164: «Защиту без доспехов» нельзя получить второй раз от другого
+  // класса — работает версия того класса, который дал её ПЕРВЫМ (порядок в classes[]).
+  var udClass = "";
+  if (char.classes && char.classes.length) {
+    for (var udI = 0; udI < char.classes.length; udI++) {
+      var udName = char.classes[udI] && char.classes[udI].class;
+      if (udName === "Варвар" || udName === "Монах") { udClass = udName; break; }
+    }
+  } else if (char.class === "Варвар" || char.class === "Монах") {
+    udClass = char.class;
+  }
+  var isBarbarian = udClass === "Варвар";
+  // Варвар щит разрешает явно (стр. 48), монаху щит отключает умение целиком (стр. 77).
+  var isMonk = udClass === "Монах" && !hasShieldSelected;
+  if (hasMonkUnarmored && hasShieldSelected) hasMonkUnarmored = false;
   if (hasBarbarianUnarmored || isBarbarian) {
     ac = 10 + dexMod + conMod;
     formulaParts = ["10 (база)", (dexMod>=0?"+":"") + dexMod + " (ЛОВ)", (conMod>=0?"+":"") + conMod + " (ТЕЛ)"];

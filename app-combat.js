@@ -378,26 +378,25 @@ classList.forEach(function(entry) {
     }
   }
 });
-// ASI levels for class (Fighter gets more)
-var classAsiLevels = (char.class === "Воин")   ? [4,6,8,12,14,16,19] :
-                     (char.class === "Плут")    ? [4,8,10,12,16,19]   :
-                     [4,8,12,16,19];
-// Which levels have been earned so far
-var earnedASI = classAsiLevels.filter(function(l) { return l <= level; });
-// Which have already been spent
-if (!char.asiUsedLevels) char.asiUsedLevels = [];
-// Unused = earned but not yet spent
-var unusedASI = earnedASI.filter(function(l) {
-  return !char.asiUsedLevels.includes(l);
+// LVL-1: АСИ даёт КАЖДЫЙ класс на своих уровнях (PHB, «Мультиклассирование»).
+// Раньше бралось расписание первого класса и сравнивалось с СУММАРНЫМ уровнем:
+// у Воин 3 / Плут 2 всплывало АСИ «4 ур.», которого воин ещё не заработал.
+var earnedASI = (typeof charAsiSlots === "function") ? charAsiSlots(char) : [];
+if (!char.asiUsed || typeof char.asiUsed !== "object" || Array.isArray(char.asiUsed)) char.asiUsed = {};
+var unusedASI = earnedASI.filter(function(slot) {
+  var used = char.asiUsed[slot.cls];
+  return !(Array.isArray(used) && used.indexOf(slot.level) !== -1);
 });
+var asiShowClass = classList.length > 1;
 
 if (unusedASI.length > 0) {
   asiContainer.innerHTML =
     '<div class="asi-available-wrap">' +
-    unusedASI.map(function(l) {
-      return '<button class="asi-button asi-level-btn" onclick="openASIModalForLevel(' + l + ')">' +
+    unusedASI.map(function(slot) {
+      var where = (asiShowClass ? escapeHtml(slot.cls) + " " : "") + slot.level + " ур.";
+      return '<button class="asi-button asi-level-btn" onclick="openASIModalForLevel(' + slot.level + ', \'' + escapeHtml(slot.cls) + '\')">' +
         '<div class="asi-btn-left">' +
-          '<span class="asi-btn-title">' + dndIcoHtml("trend", 14) + ' Увеличение характеристик · ' + l + ' ур.</span>' +
+          '<span class="asi-btn-title">' + dndIcoHtml("trend", 14) + ' Увеличение характеристик · ' + where + '</span>' +
           '<span class="asi-btn-hint">+2 к одной характеристике, +1+1 к двум или черта PHB</span>' +
         '</div>' +
         '<span class="asi-btn-arrow">›</span>' +
@@ -406,8 +405,16 @@ if (unusedASI.length > 0) {
     '</div>';
 } else if (earnedASI.length > 0) {
   // All used — show greyed out summary
+  var asiByClass = {}, asiOrder = [];
+  earnedASI.forEach(function(slot) {
+    if (!asiByClass[slot.cls]) { asiByClass[slot.cls] = []; asiOrder.push(slot.cls); }
+    asiByClass[slot.cls].push(slot.level);
+  });
+  var asiSummary = asiOrder.map(function(cls) {
+    return (asiShowClass ? escapeHtml(cls) + " " : "ур. ") + asiByClass[cls].join(", ");
+  }).join(" · ");
   asiContainer.innerHTML =
-    '<div class="asi-all-used">' + dndIcoHtml("check", 14) + ' Все АСИ применены (ур. ' + earnedASI.join(", ") + ')</div>';
+    '<div class="asi-all-used">' + dndIcoHtml("check", 14) + ' Все АСИ применены (' + asiSummary + ')</div>';
 } else {
   asiContainer.innerHTML = "";
 }

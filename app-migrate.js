@@ -813,6 +813,38 @@ function migrateCharacter(char) {
     if (!Array.isArray(char.customWeapons)) char.customWeapons = [];
     char.schemaVersion = 33;
   }
+  if (v < 34) {
+    // LVL-1: АСИ считались по расписанию ПЕРВОГО класса против СУММАРНОГО уровня,
+    // хотя по PHB каждый класс даёт АСИ на своих уровнях. Плоский asiUsedLevels
+    // (суммарные уровни) раскладываем по классам: одноклассовому — уровень в
+    // уровень, мультиклассу — по расписанию первого (он же стартовый) класса.
+    // Старое поле НЕ удаляем — это исторические данные, читать его перестаём.
+    if (!char.asiUsed || typeof char.asiUsed !== 'object' || Array.isArray(char.asiUsed)) char.asiUsed = {};
+    var _asiOld = Array.isArray(char.asiUsedLevels) ? char.asiUsedLevels : [];
+    var _asiCls = (Array.isArray(char.classes) && char.classes.length && char.classes[0])
+      ? char.classes[0].class : char.class;
+    if (_asiOld.length && _asiCls) {
+      var _asiSched = (typeof ASI_LEVELS !== 'undefined')
+        ? (ASI_LEVELS[_asiCls] || ASI_LEVELS['default'] || []) : [];
+      var _asiClsLvl = (Array.isArray(char.classes) && char.classes.length && char.classes[0])
+        ? (char.classes[0].level || 0) : (char.level || 0);
+      if (!Array.isArray(char.asiUsed[_asiCls])) char.asiUsed[_asiCls] = [];
+      var _asiOff = [], _asiAhead = [];
+      _asiOld.forEach(function(lv) {
+        if (_asiSched.indexOf(lv) === -1) { _asiOff.push(lv); return; }
+        if (char.asiUsed[_asiCls].indexOf(lv) === -1) char.asiUsed[_asiCls].push(lv);
+        if (lv > _asiClsLvl) _asiAhead.push(lv);
+      });
+      char.asiUsed[_asiCls].sort(function(a, b) { return a - b; });
+      if ((_asiOff.length || _asiAhead.length) && typeof window !== 'undefined' && window.AppLog) {
+        window.AppLog.warn('migrate', 'АСИ разложены по классам не полностью: ' + (char.name || '?'), {
+          класс: _asiCls, уровеньКласса: _asiClsLvl,
+          внеРасписания: _asiOff, вышеУровняКласса: _asiAhead
+        });
+      }
+    }
+    char.schemaVersion = 34;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

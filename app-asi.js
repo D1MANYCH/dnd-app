@@ -9,10 +9,25 @@
 var asiSelectedStats = [];
 var asiPendingPoints = 0; // сколько осталось распределить
 
-var asiCurrentLevel = null; // уровень для которого применяется АСИ
+var asiCurrentLevel = null; // уровень КЛАССА, для которого применяется АСИ
+var asiCurrentClass = null; // LVL-1: класс, давший это АСИ (у мультикласса своё расписание)
 
-function openASIModalForLevel(level) {
+// LVL-1: отметка о потраченном АСИ живёт в char.asiUsed[класс] = [уровни класса].
+// Класс не передан (старый вызов) — берём первый, как было до мультикласса.
+function asiMarkUsed(char, level, className) {
+  if (!char || !level) return;
+  var cls = className || asiCurrentClass ||
+    ((Array.isArray(char.classes) && char.classes.length && char.classes[0]) ? char.classes[0].class : char.class);
+  if (!cls) return;
+  if (!char.asiUsed || typeof char.asiUsed !== "object" || Array.isArray(char.asiUsed)) char.asiUsed = {};
+  if (!Array.isArray(char.asiUsed[cls])) char.asiUsed[cls] = [];
+  if (char.asiUsed[cls].indexOf(level) === -1) char.asiUsed[cls].push(level);
+  char.asiUsed[cls].sort(function(a, b) { return a - b; });
+}
+
+function openASIModalForLevel(level, className) {
   asiCurrentLevel = level;
+  asiCurrentClass = className || null;
   openASIModal();
 }
 
@@ -62,6 +77,7 @@ function closeASIModal() {
   asiSelectedStats = [];
   asiFeatSelected = null;
   asiCurrentLevel = null;
+  asiCurrentClass = null;
   // BUILD-LVL-4: обновить чек-лист guided level-up, если он открыт
   if (typeof luRefreshChoices === "function") luRefreshChoices();
 }
@@ -250,11 +266,9 @@ function applyASI() {
     });
     var msg = "📈 АСИ (ур." + (asiCurrentLevel||"?") + "): " + asiSelectedStats.map(function(k) { return statNames2[k] + " +" + bonus; }).join(", ");
     // Mark ASI level as used
-    if (asiCurrentLevel) {
-      if (!char.asiUsedLevels) char.asiUsedLevels = [];
-      if (!char.asiUsedLevels.includes(asiCurrentLevel)) char.asiUsedLevels.push(asiCurrentLevel);
-    }
+    asiMarkUsed(char, asiCurrentLevel);
     asiCurrentLevel = null;
+    asiCurrentClass = null;
     addJournalEntry("stat", msg);
     saveToLocal(); calcStats(); recalculateHP(); calculateAC();
     closeASIModal();
@@ -344,11 +358,9 @@ function applyASI() {
   addJournalEntry("feat", "Черта: " + feat.name, appliedDesc.length > 0 ? "Применено: " + appliedDesc.join(", ") : feat.desc.slice(0, 80));
 
   // Расовые черты НЕ занимают слот ASI
-  if (asiCurrentLevel && !isRaceFeat) {
-    if (!char.asiUsedLevels) char.asiUsedLevels = [];
-    if (!char.asiUsedLevels.includes(asiCurrentLevel)) char.asiUsedLevels.push(asiCurrentLevel);
-  }
+  if (!isRaceFeat) asiMarkUsed(char, asiCurrentLevel);
   asiCurrentLevel = null;
+  asiCurrentClass = null;
   closeASIModal();
   asiFeatSelected = null;
   showHPToast(0, "🎯 Черта «" + feat.name + "» получена!" + (appliedDesc.length ? " " + appliedDesc.join(", ") : ""));

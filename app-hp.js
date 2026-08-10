@@ -763,6 +763,12 @@ function _ccDefsFor(cn, char) {
   return defs;
 }
 
+// LVL-1: потрачено ли АСИ — ключ теперь класс + уровень КЛАССА (char.asiUsed),
+// а не суммарный уровень персонажа: у каждого класса своё расписание АСИ.
+function _luAsiDone(char, cn, clvl) {
+  return !!(char && char.asiUsed && Array.isArray(char.asiUsed[cn]) && char.asiUsed[cn].indexOf(clvl) >= 0);
+}
+
 // BUILD-LVL-4: применить ВСЕ рекомендации билда для текущего уровня разом.
 function luApplyAllRecommendations() {
   var char = getCurrentChar();
@@ -798,7 +804,8 @@ function luApplyAllRecommendations() {
   var isAsiLevel = (typeof CLASS_FEATURES !== "undefined" && CLASS_FEATURES[cn] && CLASS_FEATURES[cn][clvl]) &&
     CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; });
   if (isAsiLevel) {
-    var asiDone = Array.isArray(char.asiUsedLevels) && char.asiUsedLevels.indexOf(newLevel) >= 0;
+    // LVL-1: АСИ отмечается по классу и его уровню, а не по суммарному уровню
+    var asiDone = _luAsiDone(char, cn, clvl);
     if (!asiDone && rec) {
       var did = null;
       // приоритет: явный feat → явный asi → парсинг headline (feat → asi)
@@ -807,8 +814,7 @@ function luApplyAllRecommendations() {
       if (featId) { var fn = luApplyFeatById(char, featId, newLevel); if (fn) did = "черта «" + fn + "»"; }
       else if (asiObj) { var ad = luApplyAsi(char, asiObj); if (ad) did = "характеристики (" + ad + ")"; }
       if (did) {
-        if (!char.asiUsedLevels) char.asiUsedLevels = [];
-        if (char.asiUsedLevels.indexOf(newLevel) < 0) char.asiUsedLevels.push(newLevel);
+        if (typeof asiMarkUsed === "function") asiMarkUsed(char, clvl, cn);
         applied.push(did);
       }
     }
@@ -926,12 +932,12 @@ function luBuildChoicesScreen() {
   var isAsiLevel = (typeof CLASS_FEATURES !== "undefined" && CLASS_FEATURES[cn] && CLASS_FEATURES[cn][clvl]) &&
     CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; });
   if (isAsiLevel) {
-    var asiDone = Array.isArray(char.asiUsedLevels) && char.asiUsedLevels.indexOf(newLevel) >= 0;
+    var asiDone = _luAsiDone(char, cn, clvl);
     var recAsi = (b && b.levelUp && b.levelUp[newLevel]) ? b.levelUp[newLevel] : null;
     blocks.push('<div class="lu-choice-block' + (asiDone ? ' done' : '') + '">' +
       '<div class="lu-choice-title">' + dndIcoHtml("trend", 14) + ' Увеличение характеристик или черта' + (asiDone ? ' ✓' : '') + '</div>' +
       (recAsi && recAsi.headline ? '<div class="lu-choice-sub">' + recBadge('Совет') + ' ' + escapeHtml(recAsi.headline) + '</div>' : '') +
-      (asiDone ? '' : '<button class="lu-choice-launch" onclick="openASIModalForLevel(' + newLevel + ')">Выбрать →</button>') +
+      (asiDone ? '' : '<button class="lu-choice-launch" onclick="openASIModalForLevel(' + clvl + ', \'' + cn.replace(/'/g,"\\'") + '\')">Выбрать →</button>') +
       '</div>');
   }
 
@@ -976,7 +982,7 @@ function luBuildChoicesScreen() {
   if (b) {
     var asiOpen = (typeof CLASS_FEATURES !== "undefined" && CLASS_FEATURES[cn] && CLASS_FEATURES[cn][clvl] &&
       CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; })) &&
-      !(Array.isArray(char.asiUsedLevels) && char.asiUsedLevels.indexOf(newLevel) >= 0) &&
+      !_luAsiDone(char, cn, clvl) &&
       !!(b.levelUp && b.levelUp[newLevel] && (b.levelUp[newLevel].feat || b.levelUp[newLevel].asi ||
          (typeof parseAsiFromHeadline === "function" && parseAsiFromHeadline(b.levelUp[newLevel].headline)) ||
          (typeof parseFeatFromHeadline === "function" && parseFeatFromHeadline(b.levelUp[newLevel].headline))));

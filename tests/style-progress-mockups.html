@@ -1,0 +1,704 @@
+<meta charset="utf-8">
+<title>Мокапы — развитие персонажа (LVL-0)</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Стенд LVL-0. Живой style.css не трогаем — вся вёрстка мокапов только здесь.
+     Язык — встречающий экран: ни одной коробки, плоские строки, волосяные
+     разделители, действия текстом на --accent-lo, ромб-маркер раскрытия.
+     Классы намеренно повторяют рецепт из tests/style-hp-mockups.html. */
+  body { margin: 0; background: var(--bg-0); color: var(--text); font-family: var(--font); }
+  .mk-page { max-width: 1240px; margin: 0 auto; padding: 28px 22px 90px; }
+  .mk-h1 { font-family: var(--font-display); font-size: 26px; margin: 0 0 6px; }
+  .mk-lead { color: var(--home-sub); font-size: 13px; line-height: 1.55; margin: 0 0 26px; max-width: 82ch; }
+  .mk-lead b { color: var(--text); font-weight: 600; }
+  .mk-sec { margin: 0 0 46px; }
+  .mk-sec > h2 { font-family: var(--font-display); font-size: 18px; font-weight: 500; color: var(--accent-lo); margin: 0 0 4px; }
+  .mk-sec > .mk-sub { color: var(--home-sub); font-size: 12.5px; line-height: 1.5; margin: 0 0 18px; max-width: 84ch; }
+  .mk-grid { display: flex; flex-wrap: wrap; gap: 0; align-items: flex-start; }
+  .mk-col { width: 340px; flex: 0 0 auto; padding: 0 20px 0 0; margin-right: 20px; border-right: 1px solid var(--border-soft); }
+  .mk-col:last-child { border-right: 0; margin-right: 0; }
+  .mk-col--wide { width: 420px; }
+  .mk-cap { font-family: var(--font-display); font-size: 14px; color: var(--accent-lo); margin: 0 0 4px; }
+  .mk-note { font-size: 11.5px; color: var(--home-sub); line-height: 1.45; margin: 0 0 14px; min-height: 72px; }
+  .mk-h { font-size: 11px; color: var(--home-sub); margin: 10px 0 0; font-variant-numeric: tabular-nums; }
+  .mk-idea { border-top: 1px solid var(--home-rule); padding: 12px 0; font-size: 13px; line-height: 1.6; max-width: 88ch; }
+  .mk-idea b { font-family: var(--font-display); font-weight: 500; }
+  .mk-idea span { color: var(--home-sub); }
+  .mk-bad { color: var(--hp-low); }
+
+  /* ---------- общий рецепт строки ---------- */
+  .dz { flex: 0 0 auto; width: 9px; height: 9px; border: 1.5px solid var(--accent); box-sizing: border-box;
+        transform: rotate(45deg); transition: transform var(--t2) var(--ez-out); }
+  .dz--half { background: linear-gradient(45deg, transparent 50%, var(--accent) 50%); }
+  .dz--mute { border-color: var(--home-sub); background: none; }
+  .row.open > .dz--half { transform: rotate(135deg); }
+
+  .list { border-bottom: 1px solid var(--home-rule); }
+  .row { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 2px;
+         border-top: 1px solid var(--home-rule); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .row--static { cursor: default; }
+  .row-name { font-family: var(--font-display); font-size: 15px; }
+  .row-meta { margin-left: auto; color: var(--home-sub); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .row-meta b { color: var(--text); font-weight: 600; }
+  .row-meta--warn { color: var(--accent-lo); }
+  .row-body { display: none; padding: 2px 2px 14px 19px; font-size: 13px; line-height: 1.55; color: var(--home-sub); }
+  .row-body.open { display: block; }
+  .row-body p { margin: 0 0 8px; }
+  .row-body p:last-child { margin-bottom: 0; }
+
+  .act { all: unset; cursor: pointer; font-family: var(--font-display); font-size: 13px; color: var(--accent-lo);
+         min-height: 44px; display: inline-flex; align-items: center; }
+  .act:hover { text-decoration: underline; }
+  .act--sm { min-height: 32px; font-size: 12.5px; }
+  .acts { display: flex; gap: 22px; flex-wrap: wrap; border-top: 1px solid var(--home-rule); padding: 0 2px; }
+  .dot { color: var(--home-sub); margin: 0 5px; }
+
+  /* ---------- шапка раздела ---------- */
+  .hd { padding: 4px 2px 10px; }
+  .hd-cls { font-family: var(--font-display); font-size: 24px; line-height: 1.15; }
+  .hd-cls i { font-style: normal; color: var(--home-sub); font-size: 18px; }
+  .hd-meta { margin-top: 5px; font-size: 12.5px; color: var(--home-sub); }
+  .hd-meta b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .hair { height: 1px; background: var(--home-rule); margin: 0 2px; }
+
+  .grp { font-size: 11px; letter-spacing: .6px; text-transform: uppercase; color: var(--home-sub);
+         padding: 18px 2px 2px; }
+
+  /* ---------- строка умения внутри раскрытия ---------- */
+  .feat { display: flex; align-items: baseline; gap: 10px; min-height: 32px; padding: 3px 0; cursor: pointer; }
+  .feat:hover .feat-n { color: var(--accent-lo); }
+  .feat-lv { flex: 0 0 40px; font-size: 11.5px; color: var(--home-sub); font-variant-numeric: tabular-nums; }
+  .feat-n { font-size: 13.5px; color: var(--text); }
+  .feat-n u { text-decoration: none; color: var(--home-sub); }
+  .feat--new .feat-n { color: var(--accent-lo); }
+
+  /* ---------- пипсы ресурса ---------- */
+  .pips { display: flex; gap: 7px; margin-left: auto; }
+  .pip { width: 10px; height: 10px; border: 1.5px solid var(--accent); box-sizing: border-box;
+         transform: rotate(45deg); cursor: pointer; }
+  .pip--full { background: var(--accent); }
+  .pip--used { border-color: var(--home-sub); opacity: .45; background: none; }
+
+  /* ---------- «требует внимания» ---------- */
+  .attn { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 2px;
+          border-top: 1px solid var(--home-rule); }
+  .attn-n { font-size: 13.5px; }
+  .attn-n u { text-decoration: none; color: var(--home-sub); }
+  .attn .act { margin-left: auto; }
+
+  /* ---------- лента уровней (В3) ---------- */
+  .tl-row { display: flex; gap: 12px; min-height: 40px; padding: 5px 2px; border-top: 1px solid var(--home-rule); }
+  .tl-lv { flex: 0 0 30px; font-size: 15px; font-variant-numeric: tabular-nums; color: var(--home-sub); }
+  .tl-lv b { color: var(--accent-lo); font-weight: 600; }
+  .tl-txt { font-size: 13px; line-height: 1.5; }
+  .tl-txt u { text-decoration: none; color: var(--home-sub); }
+  .tl-row--now { background: var(--accent-soft, transparent); }
+  .tl-row--now .tl-txt { color: var(--text); }
+  .tl-row--fut .tl-txt { color: var(--home-sub); }
+
+  /* ---------- «как сейчас» ---------- */
+  .old { border: 1px solid var(--border-soft); border-radius: 10px; padding: 10px; margin: 0 0 10px;
+         background: var(--bg-1); }
+  .old-t { font-size: 12px; font-family: var(--font-display); margin: 0 0 6px; }
+  .old-b { display: inline-block; border: 1px solid var(--border-soft); border-radius: 8px;
+           padding: 6px 10px; font-size: 12px; margin: 0 4px 4px 0; background: var(--bg-2, var(--bg-1)); }
+
+  /* ---------- добавлено в доработке ---------- */
+  .res-num { margin-left: auto; font-size: 13.5px; color: var(--text); font-variant-numeric: tabular-nums; }
+  .res-num i { font-style: normal; color: var(--home-sub); }
+  .src { font-size: 11.5px; color: var(--home-sub); }
+  .warn { color: var(--hp-low); }
+  .opt { border-left: 2px solid var(--accent-lo); padding-left: 10px; margin: 12px 0 0; }
+  .opt-t { font-size: 11px; letter-spacing: .5px; text-transform: uppercase; color: var(--accent-lo); margin-bottom: 2px; }
+</style>
+
+<div class="mk-page">
+  <h1 class="mk-h1">Мокапы: развитие персонажа</h1>
+  <p class="mk-lead">Фаза <b>LVL-0</b>. Сейчас развитие размазано по трём блокам листа: кнопка «Повысить уровень», коробки
+     ресурсов класса с залитыми кнопками «Использовать»/«Сброс» и аккордеон «Классовые умения», где каждая фича с первого
+     уровня до текущего — отдельная карточка с рамкой и полным описанием. У воина 3 уровня это уже 6 карточек, у мультикласса —
+     вдвое больше. При этом <b>мультикласс на листе не виден вообще</b>: и шапка, и ресурсы, и АСИ, и «План класса» читают
+     только первый класс, а уровень берут суммарный.</p>
+  <p class="mk-lead" style="margin-top:-14px">Ниже: сборки экрана «Развитие» целиком (раздел 1), строка-сводка, которая
+     останется на листе (раздел 2), разбор узлов (раздел 3), кейс подписчика «до/после» (раздел 4) и вопросы к решению
+     (раздел 6). <b>Строки кликабельны</b> — раскрытия работают, можно потыкать.</p>
+  <p class="mk-lead" style="margin-top:-14px">Выбраны <b>В2</b> и <b>Л2</b>; их доработка — <a href="#plus" style="color:var(--accent-lo)">раздел 5</a>.</p>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>1 · Экран «Развитие» целиком</h2>
+    <p class="mk-sub">Одна колонка = ширина телефона (390 px). Персонаж-образец: <b>Воин 3 (Чемпион) / Плут 2</b>,
+       суммарный 5 уровень. У плута подкласс открывается на 3-м уровне класса — то есть ещё рано, и это надо сказать прямо.</p>
+    <div class="mk-grid">
+
+      <!-- ---------- В1 ---------- -->
+      <div class="mk-col">
+        <div class="mk-cap">В1 — «Плоский список»</div>
+        <p class="mk-note">Ничего не сворачиваем: классы, умения, выборы — один сплошной поток строк.
+           Максимально предсказуемо, всё на виду с первого взгляда, но экран длинный: у 5 уровня это 14 строк,
+           у 12-го — за тридцать. Новичку читаемо, ветерану — прокрутка.</p>
+
+        <div class="hd">
+          <div class="hd-cls">Воин 3 <i>/</i> Плут 2</div>
+          <div class="hd-meta">5 уровень <span class="dot">·</span> мастерство <b>+3</b> <span class="dot">·</span> 3к10 + 2к8</div>
+        </div>
+        <div class="hair"></div>
+
+        <div class="grp">Воин · 3 ур. · Чемпион</div>
+        <div class="list">
+          <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Боевой стиль <u>· Сражение большим оружием</u></span></div>
+          <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Второе дыхание</span></div>
+          <div class="feat"><span class="feat-lv">2 ур.</span><span class="feat-n">Всплеск действий</span></div>
+          <div class="feat feat--new"><span class="feat-lv">3 ур.</span><span class="feat-n">Улучшенный критический удар <u>· Чемпион</u></span></div>
+        </div>
+
+        <div class="grp">Плут · 2 ур.</div>
+        <div class="list">
+          <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Компетентность <u>· Скрытность, Ловкость рук</u></span></div>
+          <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Скрытая атака <u>· 1к6</u></span></div>
+          <div class="feat feat--new"><span class="feat-lv">2 ур.</span><span class="feat-n">Хитрое действие</span></div>
+          <div class="feat"><span class="feat-lv">3 ур.</span><span class="feat-n" style="color:var(--home-sub)">Архетип плута — откроется на 3 ур. класса</span></div>
+        </div>
+
+        <div class="acts" style="margin-top:16px">
+          <button class="act">Повысить уровень →</button>
+          <button class="act">План класса 1–20 →</button>
+        </div>
+        <p class="mk-h">≈ 620 px на 5 уровне · ≈ 1400 px на 12-м</p>
+      </div>
+
+      <!-- ---------- В2 ---------- -->
+      <div class="mk-col">
+        <div class="mk-cap">В2 — «Класс = строка с раскрытием» ★</div>
+        <p class="mk-note">Каждый класс — одна строка: имя, уровень класса, подкласс. Умения живут в раскрытии.
+           Сверху — то, что требует действия, и только если требует. Высота не растёт с уровнем: на 20-м уровне
+           экран такой же короткий, как на 5-м. Это тот же приём, что в «Здоровье и Бой» после v3.83.0.</p>
+
+        <div class="hd">
+          <div class="hd-cls">Воин 3 <i>/</i> Плут 2</div>
+          <div class="hd-meta">5 уровень <span class="dot">·</span> мастерство <b>+3</b> <span class="dot">·</span> 3к10 + 2к8</div>
+        </div>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half dz--mute"></i><span class="row-name" style="color:var(--home-sub)">Что это значит</span></div>
+          <div class="row-body">
+            <p><b>Уровень персонажа</b> — сумма уровней всех классов. От него считается бонус мастерства, он же один
+               на все классы: +3 на 5–8 уровнях.</p>
+            <p><b>Уровень класса</b> — сколько уровней взято именно в этом классе. От него зависят умения, подкласс
+               и заряды: у плута 2 уровня, значит скрытая атака 1к6, а не 3к6.</p>
+          </div>
+        </div>
+
+        <div class="grp">Требует внимания</div>
+        <div class="list">
+          <div class="attn"><span class="attn-n">Боевой стиль <u>· Воин 1 ур.</u></span><button class="act act--sm">Выбрать →</button></div>
+        </div>
+
+        <div class="grp">Классы</div>
+        <div class="list">
+          <div class="row open" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Воин</span>
+            <span class="row-meta">3 ур. <span class="dot">·</span> Чемпион</span></div>
+          <div class="row-body open" style="padding-left:19px">
+            <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Боевой стиль <u>· не выбран</u></span></div>
+            <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Второе дыхание</span></div>
+            <div class="feat"><span class="feat-lv">2 ур.</span><span class="feat-n">Всплеск действий</span></div>
+            <div class="feat feat--new"><span class="feat-lv">3 ур.</span><span class="feat-n">Улучшенный критический удар</span></div>
+            <div style="padding-top:6px"><button class="act act--sm">План класса 1–20 →</button></div>
+          </div>
+
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Плут</span>
+            <span class="row-meta">2 ур. <span class="dot">·</span> подкласс с 3 ур.</span></div>
+          <div class="row-body">
+            <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Компетентность</span></div>
+            <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Скрытая атака <u>· 1к6</u></span></div>
+            <div class="feat feat--new"><span class="feat-lv">2 ур.</span><span class="feat-n">Хитрое действие</span></div>
+            <div style="padding-top:6px"><button class="act act--sm">План класса 1–20 →</button></div>
+          </div>
+        </div>
+
+        <div class="acts" style="margin-top:16px">
+          <button class="act">Повысить уровень →</button>
+          <button class="act">Откатить →</button>
+        </div>
+        <p class="mk-h">≈ 330 px на любом уровне</p>
+      </div>
+
+      <!-- ---------- В3 ---------- -->
+      <div class="mk-col">
+        <div class="mk-cap">В3 — «Лента уровней»</div>
+        <p class="mk-note">Не по классам, а по пути персонажа: 1, 2, 3… с отметкой «ты здесь» и заглядыванием вперёд.
+           Отлично объясняет новичку, что будет дальше, и честно показывает порядок взятия классов. Но при мультиклассе
+           каждый уровень надо подписывать классом, и «сколько у меня уровней плута» приходится считать глазами.</p>
+
+        <div class="hd">
+          <div class="hd-cls">Воин 3 <i>/</i> Плут 2</div>
+          <div class="hd-meta">5 уровень <span class="dot">·</span> мастерство <b>+3</b></div>
+        </div>
+        <div class="list">
+          <div class="tl-row"><span class="tl-lv">1</span><span class="tl-txt"><u>Воин 1 ·</u> Боевой стиль, Второе дыхание</span></div>
+          <div class="tl-row"><span class="tl-lv">2</span><span class="tl-txt"><u>Воин 2 ·</u> Всплеск действий</span></div>
+          <div class="tl-row"><span class="tl-lv">3</span><span class="tl-txt"><u>Воин 3 ·</u> Чемпион, Улучшенный крит</span></div>
+          <div class="tl-row"><span class="tl-lv">4</span><span class="tl-txt"><u>Плут 1 ·</u> Компетентность, Скрытая атака</span></div>
+          <div class="tl-row tl-row--now"><span class="tl-lv"><b>5</b></span><span class="tl-txt"><u>Плут 2 ·</u> Хитрое действие <span class="dot">·</span> <span style="color:var(--accent-lo)">ты здесь</span></span></div>
+          <div class="tl-row tl-row--fut"><span class="tl-lv">6</span><span class="tl-txt">дальше: плут 3 — архетип, или воин 4 — увеличение характеристик</span></div>
+        </div>
+
+        <div class="acts" style="margin-top:16px">
+          <button class="act">Повысить уровень →</button>
+        </div>
+        <p class="mk-h">≈ 400 px на 5 уровне · ≈ 900 px на 20-м</p>
+      </div>
+
+    </div>
+
+    <div class="mk-idea" style="margin-top:8px"><b>Предлагаю В2 как основу.</b>
+      <span>Он единственный не растёт с уровнем, повторяет уже принятый рецепт строк из «Здоровье и Бой», и в нём
+      естественно живёт секция «Требует внимания» — то, ради чего новичок сюда и заходит. Ленту из В3 не выбрасываем:
+      она становится содержимым действия «План класса 1–20 →» (там уже есть готовый экран <code>#screen-buildplan</code>
+      с метками «ты здесь» / «дальше»), только чинится под уровень класса вместо суммарного.</span></div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>2 · Что остаётся на листе</h2>
+    <p class="mk-sub">Лист теряет три блока и получает один раздел. Вопрос только в том, сколько от развития оставить
+       на виду — ресурсы класса тратятся каждый бой, а список умений открывают раз в несколько сессий.</p>
+    <div class="mk-grid">
+
+      <div class="mk-col">
+        <div class="mk-cap">Л1 — «Только сводка»</div>
+        <p class="mk-note">На листе — две строки и действие. Всё остальное на экране «Развитие».
+           Самый чистый лист, но ресурсы (второе дыхание, ярость, ци) уезжают в два тапа, а они нужны в бою.</p>
+        <div class="grp">Класс и развитие</div>
+        <div class="list">
+          <div class="row row--static"><span class="row-name">Воин 3 / Плут 2</span>
+            <span class="row-meta">5 ур. <span class="dot">·</span> +3</span></div>
+          <div class="attn"><span class="attn-n" style="color:var(--accent-lo)">1 выбор не сделан</span>
+            <button class="act act--sm">Развитие →</button></div>
+        </div>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">Л2 — «Сводка + ресурсы» ★</div>
+        <p class="mk-note">Ресурсы класса остаются строками с ромбами-пипсами: тап по ромбу тратит заряд, раскрытие —
+           описание, восстановление и «Сброс». Умения и выборы — на экране «Развитие». Это то, что реально нужно за столом.</p>
+        <div class="grp">Класс и развитие</div>
+        <div class="list">
+          <div class="row row--static"><span class="row-name">Воин 3 / Плут 2</span>
+            <span class="row-meta">5 ур. <span class="dot">·</span> мастерство <b>+3</b></span></div>
+
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Второе дыхание</span>
+            <span class="pips"><i class="pip pip--full" onclick="pp(event,this)"></i></span></div>
+          <div class="row-body"><p>Бонусное действие: восстановить 1к10 + уровень воина ХП.
+            <span class="dot">·</span> короткий отдых</p><button class="act act--sm">Сброс</button></div>
+
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Всплеск действий</span>
+            <span class="pips"><i class="pip pip--full" onclick="pp(event,this)"></i></span></div>
+          <div class="row-body"><p>В свой ход можно совершить одно дополнительное действие.
+            <span class="dot">·</span> короткий отдых</p><button class="act act--sm">Сброс</button></div>
+
+          <div class="row row--static"><span class="row-name">Скрытая атака</span><span class="row-meta">1к6</span></div>
+
+          <div class="attn"><span class="attn-n" style="color:var(--accent-lo)">1 выбор не сделан</span>
+            <button class="act act--sm">Развитие →</button></div>
+        </div>
+        <div class="acts"><button class="act">Повысить уровень →</button></div>
+      </div>
+
+      <div class="mk-col">
+        <div class="mk-cap">Л3 — «Сводка + ресурсы + умения»</div>
+        <p class="mk-note">То же, что Л2, плюс свёрнутая строка «Умения · 8» с раскрытием прямо на листе.
+           Экран «Развитие» тогда нужен только для повышения уровня и выборов — и половина его смысла теряется.</p>
+        <div class="grp">Класс и развитие</div>
+        <div class="list">
+          <div class="row row--static"><span class="row-name">Воин 3 / Плут 2</span>
+            <span class="row-meta">5 ур. <span class="dot">·</span> +3</span></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Второе дыхание</span>
+            <span class="pips"><i class="pip pip--full" onclick="pp(event,this)"></i></span></div>
+          <div class="row-body"><p>Бонусное действие: 1к10 + уровень воина ХП.</p></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Умения</span>
+            <span class="row-meta">8</span></div>
+          <div class="row-body">
+            <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Боевой стиль</span></div>
+            <div class="feat"><span class="feat-lv">2 ур.</span><span class="feat-n">Всплеск действий</span></div>
+            <div class="feat"><span class="feat-lv">…</span><span class="feat-n" style="color:var(--home-sub)">и ещё 6</span></div>
+          </div>
+          <div class="attn"><span class="attn-n">Развитие</span><button class="act act--sm">Открыть →</button></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>3 · Узлы крупно</h2>
+    <p class="mk-sub">Четыре элемента, из которых собраны обе сборки. Слева — как выглядит сейчас, справа — предложение.</p>
+    <div class="mk-grid">
+
+      <div class="mk-col mk-col--wide">
+        <div class="mk-cap">Ресурс класса</div>
+        <p class="mk-note">Сейчас — коробка с рамкой, цветной иконкой, залитой кнопкой «Использовать», счётчиком «1 / 1»,
+           залитой кнопкой «Сброс», рядом пипсов и описанием. Четыре элемента управления на один заряд.</p>
+        <div class="old">
+          <div class="old-t">❤️ Второе дыхание <span style="float:right;font-size:11px;color:var(--home-sub)">⏱ Кор.</span></div>
+          <span class="old-b" style="color:var(--hp-low)">Использовать</span>
+          <span class="old-b" style="border:0;background:none">1 / 1</span>
+          <span class="old-b" style="color:var(--hp-high)">Сброс</span>
+          <div style="font-size:11.5px;color:var(--home-sub);margin-top:4px">Бонусное действие. Восст. 1к10 + уровень ХП.</div>
+        </div>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Второе дыхание</span>
+            <span class="pips"><i class="pip pip--full" onclick="pp(event,this)"></i></span></div>
+          <div class="row-body"><p>Бонусное действие: восстановить 1к10 + уровень воина ХП.</p>
+            <p>Восстанавливается на коротком отдыхе.</p><button class="act act--sm">Сброс</button></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Ци</span>
+            <span class="pips"><i class="pip pip--full" onclick="pp(event,this)"></i><i class="pip pip--used" onclick="pp(event,this)"></i></span></div>
+          <div class="row-body"><p>Очки ци тратятся на «Шквал ударов», «Терпеливую оборону» и «Шаг ветра».</p>
+            <p>2 очка — по уровню <b>монаха</b>, не по суммарному уровню персонажа.</p></div>
+        </div>
+        <p class="mk-h">Тап по ромбу тратит и возвращает заряд. Один жест вместо трёх кнопок.</p>
+      </div>
+
+      <div class="mk-col mk-col--wide">
+        <div class="mk-cap">Умение и «Требует внимания»</div>
+        <p class="mk-note">Сейчас каждая фича — карточка с рамкой, бейджем уровня и полным текстом описания, все
+           от 1 уровня до текущего сразу. Предложение: строка с уровнем и названием, описание — по тапу на отдельном
+           экране «Об умении» (тот же приём, что «О характеристике»).</p>
+        <div class="old">
+          <div class="old-b" style="font-size:11px">1 ур.</div>
+          <div class="old-t" style="margin:6px 0 2px">Второе дыхание</div>
+          <div style="font-size:11.5px;color:var(--home-sub)">Бонусное действие: восстановить 1к10 + уровень ХП (1 раз, восст. после короткого отдыха).</div>
+        </div>
+        <div class="list">
+          <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Второе дыхание</span></div>
+          <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Боевой стиль <u>· Сражение большим оружием</u></span></div>
+          <div class="feat feat--new"><span class="feat-lv">3 ур.</span><span class="feat-n">Улучшенный критический удар</span></div>
+        </div>
+        <div class="grp">Требует внимания</div>
+        <div class="list">
+          <div class="attn"><span class="attn-n">Увеличение характеристик <u>· Воин 4 ур.</u></span><button class="act act--sm">Выбрать →</button></div>
+          <div class="attn"><span class="attn-n">Боевой стиль <u>· Воин</u></span><button class="act act--sm">Выбрать →</button></div>
+          <div class="attn"><span class="attn-n">Архетип плута <u>· Плут 3 ур.</u></span><button class="act act--sm">Выбрать →</button></div>
+        </div>
+        <p class="mk-h">Секции нет вовсе, когда выбирать нечего. Ноль пустых состояний.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>4 · Кейс подписчика: Плут 2 / Монах 2</h2>
+    <p class="mk-sub">Ровно тот персонаж, на котором сломалось. Слева — что приложение показывает сегодня,
+       справа — что должно.</p>
+    <div class="mk-grid">
+
+      <div class="mk-col mk-col--wide">
+        <div class="mk-cap mk-bad">Сейчас</div>
+        <p class="mk-note">Шапка листа и поле «Класс» показывают только плута. Ресурсов монаха нет вовсе — очки ци
+           не появляются, потому что берётся <code>CLASS_RESOURCES[classes[0]]</code>. «План класса» открывает таблицу
+           плута и ставит «ты здесь» на 4 уровень — где архетип давно позади. Отсюда и вывод «пора, но нельзя».</p>
+        <div class="old">
+          <div class="old-t">Плут <span style="color:var(--home-sub);font-size:11px">· 4 ур.</span></div>
+          <div class="old-b">Класс: Плут ▾</div><div class="old-b">Подкласс: — ▾</div>
+          <div style="font-size:11.5px;color:var(--home-sub);margin-top:6px">Ресурсы класса: <i>блок скрыт</i></div>
+          <div style="font-size:11.5px;margin-top:8px" class="mk-bad">План класса → Плут, «ты здесь» на 4 ур.<br>
+            <span style="color:var(--home-sub)">3 ур. — Архетип плута · пройдено</span></div>
+        </div>
+      </div>
+
+      <div class="mk-col mk-col--wide">
+        <div class="mk-cap">После LVL-1…3</div>
+        <p class="mk-note">Уровень класса и уровень персонажа разведены и подписаны. Ци считается по уровню монаха.
+           Статус архетипа сказан словами вместо намёка. «План класса» открывается для выбранного класса.</p>
+        <div class="hd">
+          <div class="hd-cls">Плут 2 <i>/</i> Монах 2</div>
+          <div class="hd-meta">4 уровень <span class="dot">·</span> мастерство <b>+2</b> <span class="dot">·</span> 2к8 + 2к8</div>
+        </div>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Плут</span>
+            <span class="row-meta">2 ур. <span class="dot">·</span> архетип с 3 ур.</span></div>
+          <div class="row-body">
+            <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Компетентность, Скрытая атака 1к6</span></div>
+            <div class="feat"><span class="feat-lv">2 ур.</span><span class="feat-n">Хитрое действие</span></div>
+            <p style="margin-top:8px">Архетип выбирается на <b>3 уровне плута</b>. Сейчас у персонажа их два —
+               значит, ещё рано. Суммарный уровень (4) на это не влияет.</p>
+          </div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Монах</span>
+            <span class="row-meta">2 ур. <span class="dot">·</span> путь с 3 ур.</span></div>
+          <div class="row-body">
+            <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Боевые искусства, Безоружная защита</span></div>
+            <div class="feat"><span class="feat-lv">2 ур.</span><span class="feat-n">Ци, Небывалая скорость</span></div>
+          </div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Ци</span>
+            <span class="pips"><i class="pip pip--full" onclick="pp(event,this)"></i><i class="pip pip--full" onclick="pp(event,this)"></i></span></div>
+          <div class="row-body"><p>2 очка — по уровню монаха. Восстанавливаются на коротком отдыхе.</p></div>
+        </div>
+        <p class="mk-h">Ни одной строки «пора выбрать» там, где выбирать нечего.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec" id="plus">
+    <h2>5 · Доработка выбранных В2 и Л2</h2>
+    <p class="mk-sub">Шесть правок по итогам первого прохода. Три содержательные — «Дальше», ячейки заклинаний
+       и добавление класса из раздела; три — точность формулировок и честные максимумы у ресурсов.</p>
+    <div class="mk-grid">
+
+      <!-- ---------- В2+ ---------- -->
+      <div class="mk-col mk-col--wide">
+        <div class="mk-cap">В2+ — экран «Развитие»</div>
+        <p class="mk-note"><b>1.</b> «Требует внимания» → «Осталось выбрать»: глагол вместо канцелярита, сразу ясно, чего от тебя хотят.
+           <b>2.</b> Новая секция «Дальше» — что даст следующий уровень по каждому классу, <i>до</i> нажатия «Повысить».
+           Сейчас это можно узнать, только начав повышение и увидев превью. <b>3.</b> «Добавить класс →» переезжает
+           из модалки level-up сюда, с проверкой требований на месте. <b>4.</b> Класс, выросший последним, раскрыт
+           по правилу (не по памяти) — как строка урона в хитах.</p>
+
+        <div class="hd">
+          <div class="hd-cls">Воин 3 <i>/</i> Плут 2</div>
+          <div class="hd-meta">5 уровень <span class="dot">·</span> мастерство <b>+3</b> <span class="dot">·</span> 3к10 + 2к8</div>
+        </div>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half dz--mute"></i><span class="row-name" style="color:var(--home-sub)">Что это значит</span></div>
+          <div class="row-body">
+            <p><b>Уровень персонажа</b> — сумма уровней всех классов. От него бонус мастерства, один на все классы.</p>
+            <p><b>Уровень класса</b> — сколько взято именно в этом классе. От него умения, подкласс и заряды.</p>
+          </div>
+        </div>
+
+        <div class="grp">Осталось выбрать</div>
+        <div class="list">
+          <div class="attn"><span class="attn-n">Боевой стиль <u>· Воин 1 ур.</u></span><button class="act act--sm">Выбрать →</button></div>
+        </div>
+
+        <div class="grp">Классы</div>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Воин</span>
+            <span class="row-meta">3 ур. <span class="dot">·</span> Чемпион</span></div>
+          <div class="row-body">
+            <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Боевой стиль <u>· не выбран</u></span></div>
+            <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Второе дыхание</span></div>
+            <div class="feat"><span class="feat-lv">2 ур.</span><span class="feat-n">Всплеск действий</span></div>
+            <div class="feat feat--new"><span class="feat-lv">3 ур.</span><span class="feat-n">Улучшенный критический удар</span></div>
+            <div style="padding-top:6px"><button class="act act--sm">План класса 1–20 →</button></div>
+          </div>
+          <div class="row open" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Плут</span>
+            <span class="row-meta">2 ур. <span class="dot">·</span> архетип с 3 ур.</span></div>
+          <div class="row-body open">
+            <div class="feat"><span class="feat-lv">1 ур.</span><span class="feat-n">Компетентность, Скрытая атака 1к6</span></div>
+            <div class="feat feat--new"><span class="feat-lv">2 ур.</span><span class="feat-n">Хитрое действие</span></div>
+            <p style="margin-top:8px">Архетип выбирается на 3 уровне плута — сейчас взято 2.</p>
+            <div><button class="act act--sm">План класса 1–20 →</button></div>
+          </div>
+        </div>
+
+        <div class="grp">Дальше</div>
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name" style="font-size:14px">Воин 4</span>
+            <span class="row-meta">увеличение характеристик</span></div>
+          <div class="row-body"><p>+2 к одной характеристике, +1 и +1 к двум разным или черта.
+             Хиты: +1к10 (в среднем 6) + модификатор ТЕЛ.</p></div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name" style="font-size:14px">Плут 3</span>
+            <span class="row-meta">архетип <span class="dot">·</span> скрытая атака 2к6</span></div>
+          <div class="row-body"><p>Открывается выбор архетипа: Вор, Убийца, Мистический ловкач.
+             Хиты: +1к8 (в среднем 5) + модификатор ТЕЛ.</p></div>
+          <div class="attn"><span class="attn-n" style="color:var(--home-sub)">Третий класс</span>
+            <button class="act act--sm">Добавить →</button></div>
+        </div>
+
+        <div class="acts" style="margin-top:16px">
+          <button class="act">Повысить уровень →</button>
+          <button class="act">Откатить →</button>
+        </div>
+        <p class="mk-h">≈ 430 px свёрнутым · «Дальше» отвечает на вопрос новичка до тапа</p>
+      </div>
+
+      <!-- ---------- Л2+ ---------- -->
+      <div class="mk-col mk-col--wide">
+        <div class="mk-cap">Л2+ — строка на листе</div>
+        <p class="mk-note"><b>5.</b> Вместо безличного «1 выбор не сделан» — конкретное имя и действие прямо на листе:
+           «Боевой стиль не выбран → Выбрать». Один тап вместо двух, и новичок узнаёт, чего ему не хватает,
+           не уходя с листа. <b>6.</b> В раскрытии ресурса подписан источник и восстановление —
+           «Воин · короткий отдых»: при мультиклассе иначе не понять, чей это заряд.</p>
+
+        <div class="grp">Класс и развитие</div>
+        <div class="list">
+          <div class="row row--static"><span class="row-name">Воин 3 / Плут 2</span>
+            <span class="row-meta">5 ур. <span class="dot">·</span> мастерство <b>+3</b></span></div>
+
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Второе дыхание</span>
+            <span class="pips"><i class="pip pip--full" onclick="pp(event,this)"></i></span></div>
+          <div class="row-body"><p>Бонусное действие: восстановить 1к10 + уровень воина ХП.</p>
+            <p><span class="src">Воин <span class="dot">·</span> короткий отдых</span></p>
+            <button class="act act--sm">Сброс</button></div>
+
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Всплеск действий</span>
+            <span class="pips"><i class="pip pip--full" onclick="pp(event,this)"></i></span></div>
+          <div class="row-body"><p>В свой ход можно совершить одно дополнительное действие.</p>
+            <p><span class="src">Воин <span class="dot">·</span> короткий отдых</span></p>
+            <button class="act act--sm">Сброс</button></div>
+
+          <div class="row row--static"><span class="row-name">Скрытая атака</span><span class="row-meta">1к6</span></div>
+
+          <div class="attn"><span class="attn-n" style="color:var(--accent-lo)">Боевой стиль не выбран</span>
+            <button class="act act--sm">Выбрать →</button></div>
+        </div>
+        <div class="acts">
+          <button class="act">Повысить уровень →</button>
+          <button class="act">Развитие →</button>
+        </div>
+        <p class="mk-h">≈ 300 px · всё, что нужно за столом, и ничего сверх</p>
+
+        <div class="opt">
+          <div class="opt-t">Принято · порог опыта</div>
+          <p class="mk-note" style="min-height:0;margin:0 0 8px">Таблицы порогов в проекте нет: <code>char.exp</code> —
+             свободное число, и приложение никогда не говорит, когда можно повышаться. Заводим <code>XP_THRESHOLDS</code>
+             в <code>data.js</code> — 20 строк из PHB 2014. Строка показывается, <b>только если опыт больше нуля</b>:
+             партии на вехах её не увидят вовсе.</p>
+          <div class="list">
+            <div class="row row--static"><span class="row-name" style="font-size:14px">Опыт</span>
+              <span class="row-meta"><b>14000</b> <i style="font-style:normal;color:var(--home-sub)">/ 14000</i>
+                <span class="dot">·</span> <span style="color:var(--accent-lo)">можно повысить</span></span></div>
+            <div class="row row--static"><span class="row-name" style="font-size:14px">Опыт</span>
+              <span class="row-meta"><b>6500</b> <i style="font-style:normal;color:var(--home-sub)">/ 14000</i>
+                <span class="dot">·</span> до 6 уровня 7500</span></div>
+          </div>
+          <p class="mk-h">Две формы одной строки: порог взят и порог не взят. При <code>exp = 0</code> строки нет.</p>
+        </div>
+      </div>
+
+      <!-- ---------- заклинатель ---------- -->
+      <div class="mk-col">
+        <div class="mk-cap">Мультикласс-заклинатель</div>
+        <p class="mk-note">Самое непонятное место в правилах мультикласса, и сейчас оно не объяснено нигде:
+           у Волшебника 3 / Жреца 2 ячейки <b>не</b> «3 уровня плюс 2 уровня», а как у заклинателя 5 уровня —
+           4 ячейки 1-го круга и 3 ячейки 2-го. Заклинания при этом готовятся раздельно, каждым классом по своему уровню.
+           Строка появляется только у заклинателей.</p>
+
+        <div class="hd">
+          <div class="hd-cls">Волшебник 3 <i>/</i> Жрец 2</div>
+          <div class="hd-meta">5 уровень <span class="dot">·</span> мастерство <b>+3</b></div>
+        </div>
+        <div class="list">
+          <div class="row open" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Ячейки заклинаний</span>
+            <span class="row-meta">как заклинатель 5 ур.</span></div>
+          <div class="row-body open">
+            <p>1 круг — <b>4</b> <span class="dot">·</span> 2 круг — <b>3</b> <span class="dot">·</span> 3 круг — <b>2</b></p>
+            <p>Уровни всех классов-заклинателей складываются в один общий пул ячеек: полные заклинатели целиком,
+               паладин и следопыт — половина, мистический рыцарь и ловкач — треть.</p>
+            <p>Готовятся заклинания раздельно: волшебник по своим 3 уровням, жрец по своим 2.
+               Ячейки при этом общие — можно потратить общую ячейку на любое подготовленное заклинание.</p>
+          </div>
+          <div class="row" onclick="tg(this)"><i class="dz dz--half dz--mute"></i>
+            <span class="row-name" style="color:var(--home-sub);font-size:14px">Колдун считается отдельно</span></div>
+          <div class="row-body"><p>Ячейки договора не смешиваются с общим пулом и восстанавливаются на коротком отдыхе.
+             В приложении они уже считаются отдельно.</p></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ---------- 5.1 максимумы ---------- -->
+    <h2 style="margin-top:34px">5.1 · Четыре вида максимума у ресурсов <span style="font-size:12px;color:var(--home-sub)">· порог ромбов 6</span></h2>
+    <p class="mk-sub">Ромбы-пипсы из Л2 годятся не для всего: у «Наложения рук» максимум — уровень × 5 (до 100 ХП),
+       у Ярости на 20 уровне он безлимитный, у «Ци» равен уровню монаха (до 20). Рисовать 100 ромбов нельзя,
+       поэтому строка выбирает подачу по величине максимума. <b>Порог — 6</b>, и он не произвольный: в данных нет
+       ни одного ресурса с фиксированным максимумом 7 или 8. Пики — 1, 2, 3, «до 6» у Ярости, «по ХАР» (5–6)
+       у вдохновения барда и божественного чувства; всё остальное растёт с уровнем до 20 и любой порог перерастает.
+       То есть 6 — это ровно потолок всех <i>ограниченных</i> ресурсов: они показывают ромбы всегда, а растущие
+       переключаются на число. По ширине то же: 8 ромбов дают хвост 129 px, и «Магическое восстановление»
+       вылезает за 390 px на 4 px; 6 ромбов дают 95 px и 30 px запаса.</p>
+    <div class="mk-grid">
+      <div class="mk-col mk-col--wide">
+        <div class="list">
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Ярость</span>
+            <span class="pips"><i class="pip pip--full" onclick="pp(event,this)"></i><i class="pip pip--full" onclick="pp(event,this)"></i><i class="pip pip--used" onclick="pp(event,this)"></i></span></div>
+          <div class="row-body"><p><b>Заряды до 6</b> — ромбы, тап тратит и возвращает. Варвар 3 ур., длинный отдых.</p></div>
+
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Ци</span>
+            <span class="res-num">9 <i>/ 12</i></span></div>
+          <div class="row-body"><p><b>Заряды больше 6</b> — число: 12 ромбов в строку не влезают и не считываются.
+             В раскрытии — действия «Потратить» и «Сброс».</p>
+             <button class="act act--sm">Потратить</button><span class="dot"> </span><button class="act act--sm">Сброс</button></div>
+
+          <div class="row" onclick="tg(this)"><i class="dz dz--half"></i><span class="row-name">Наложение рук</span>
+            <span class="res-num">25 <i>/ 25</i></span></div>
+          <div class="row-body"><p><b>Пул ХП</b> (уровень паладина × 5) — тратится произвольная сумма, а не заряд.
+             В раскрытии — поле и действие, как урон в хитах.</p>
+             <button class="act act--sm">− 5</button><span class="dot"> </span><button class="act act--sm">Сброс</button></div>
+
+          <div class="row row--static"><span class="row-name">Ярость <span class="src">· 20 ур.</span></span>
+            <span class="res-num">∞</span></div>
+        </div>
+        <p class="mk-h">Порог 6 — предел, на котором ромбы ещё читаются с телефона одним взглядом.</p>
+      </div>
+      <div class="mk-col mk-col--wide">
+        <div class="mk-cap">Почему это важно проговорить</div>
+        <p class="mk-note" style="min-height:0">Сейчас в коде <code>getResourceMax()</code> уже умеет все четыре формы
+           (<code>число</code>, <code>"level"</code>, <code>"cha"</code>, <code>"level5"</code>, <code>99</code>),
+           а рендер честно рисует пипсы только до 20 и молча отключает их дальше. Если строка не будет выбирать подачу
+           сама, у паладина на листе появится ряд из 25 ромбов, а у варвара 20 уровня — пустое место.</p>
+        <p class="mk-note" style="min-height:0">Второй повод: <b>все эти максимумы считаются по уровню класса</b>,
+           а сейчас берутся от суммарного. У Паладина 2 / Воина 3 наложение рук сегодня даёт 25 ХП вместо положенных 10 —
+           это чинится в LVL-1 вместе с остальным.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mk-sec">
+    <h2>6 · Что решить перед LVL-1</h2>
+    <div class="mk-idea"><b>Ресурсы: тап по ромбу тратит сразу.</b>
+      <span>Как пресеты урона в строке хитов — быстро, но необратимо одним касанием. Повторный тап по тому же ромбу
+      возвращает заряд, отдельная «Отмена» не нужна. Альтернатива — тратить только из раскрытия, но тогда каждая
+      ярость это три тапа.</span></div>
+    <div class="mk-idea"><b>Какой класс считается первым.</b>
+      <span>В D&amp;D 5e «основного» класса нет — есть <b>стартовый</b>, от которого достались начальные владения и снаряжение.
+      Сейчас <code>classes[0]</code> молча работает и тем, и другим. Предлагаю называть его в интерфейсе «первый класс»
+      и больше нигде на него не опираться. Порядок классов при этом менять не даём — иначе поедут стартовые владения.</span></div>
+    <div class="mk-idea"><b>Поле «Класс» на листе при мультиклассе.</b>
+      <span>Один <code>&lt;select&gt;</code> физически не может показать два класса. Предлагаю: у одноклассового всё
+      остаётся как есть, у мультикласса поле превращается в строку «Воин 3 / Плут 2 → Развитие». Смена класса задним
+      числом остаётся только через откат уровня.</span></div>
+    <div class="mk-idea"><b>Миграция АСИ.</b>
+      <span><code>char.asiUsedLevels</code> хранит суммарные уровни, а надо по классам. Одноклассовым перенос точный,
+      мультиклассовым — раскладываем по расписанию первого класса. Персонажей с мультиклассом и потраченными АСИ
+      единицы, но факт разложения запишем в лог, чтобы было видно.</span></div>
+    <div class="mk-idea"><b>Монах с щитом.</b>
+      <span>Нашлось попутно: сейчас <code>rulesAC()</code> даёт монаху и безбронную защиту, и +2 от щита.
+      По PHB 2014 безбронная защита монаха требует отсутствия щита. Правим по вердикту сабагента <code>dnd-rules</code>
+      в LVL-1 — это заденет КД существующих персонажей-монахов со щитом.</span></div>
+    <div class="mk-idea"><b>Порог опыта — решено, берём.</b>
+      <span>Заводим <code>XP_THRESHOLDS</code> в <code>data.js</code> (20 строк PHB 2014) и показываем строку опыта
+      в шапке раздела, <b>только если <code>char.exp</code> больше нуля</b> — партии на вехах её не увидят.
+      Строка знает две формы: порог взят («можно повысить») и не взят («до 6 уровня 3300»).</span></div>
+    <div class="mk-idea"><b>Порог ромбов — решено, 6.</b>
+      <span>Не произвольное число: в данных нет ни одного ресурса с фиксированным максимумом 7 или 8. Пики — 1, 2, 3,
+      «до 6» у Ярости, «по ХАР» (5–6) у вдохновения барда и божественного чувства; всё остальное («Ци», «Единицы
+      чародейства», «Наложение рук») растёт с уровнем до 20 и любой порог перерастает. 6 = потолок всех ограниченных
+      ресурсов. Ширина подтверждает: при 8 ромбах хвост 129 px и «Магическое восстановление» вылезает за 390 px на 4 px,
+      при 6 — хвост 95 px и 30 px запаса.</span></div>
+    <div class="mk-idea"><b>«Дальше» показывает и хиты.</b>
+      <span>В превью следующего уровня пишу «+1к10 (в среднем 6) + модификатор ТЕЛ». Это то самое место, где новичок
+      обычно спрашивает «а кидать кубик или брать среднее» — стоит объяснить прямо там, что приложение берёт среднее,
+      и это законный вариант по книге.</span></div>
+    <div class="mk-idea"><b>Ратчет тем.</b>
+      <span>Уходят <code>.resource-card</code>, <code>.feature-item</code>, залитые кнопки и пипсы-кружки — хардкоды и
+      <code>!important</code> должны просесть, как на «Сумке» и состояниях. База: 537 / 102.</span></div>
+  </section>
+</div>
+
+<script>
+function tg(el) {
+  el.classList.toggle('open');
+  var b = el.nextElementSibling;
+  if (b && b.classList.contains('row-body')) b.classList.toggle('open');
+}
+function pp(e, el) {
+  e.stopPropagation();
+  el.classList.toggle('pip--full');
+  el.classList.toggle('pip--used');
+}
+</script>

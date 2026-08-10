@@ -389,9 +389,14 @@ function initCharResources(char) {
   if (!char.resources) char.resources = {};
 }
 
-// Вычислить максимум ресурса по уровню и характеристикам
+// Вычислить максимум ресурса по уровню и характеристикам.
+// LVL-1: уровень берётся у КЛАССА, давшего ресурс (_clsLevel проставляет
+// getCharResourceDefs), а не у персонажа. Иначе у Плут 2 / Монах 2 ци считалось
+// по суммарным 4, а «Наложение рук» Паладина 2 давало пул как на 5 уровне.
+// Фолбэк на char.level — для прямых вызовов с сырым ресурсом из константы.
 function getResourceMax(res, char) {
-  var level = char.level || 1;
+  var level = (res && typeof res._clsLevel === "number" && res._clsLevel > 0)
+    ? res._clsLevel : (char.level || 1);
   var raw = res.maxByLevel ? (res.maxByLevel[level] !== undefined ? res.maxByLevel[level] : 0) : 0;
   if (raw === "level")       return level;
   if (raw === "cha")         return Math.max(1, getMod(char.stats.cha));
@@ -402,24 +407,36 @@ function getResourceMax(res, char) {
 }
 
 // SDR-1: объединить ресурсы класса и подкласса в один список.
-// Базовые ресурсы — CLASS_RESOURCES[char.class]; ресурсы подкласса (если есть запись
-// в SUBCLASS_RESOURCES[char.subclass]) добавляются следом. Одноклассовый кейс — как и весь
-// resource-код. Возвращает {resources, passive} либо null, если ресурсов нет вовсе.
+// LVL-1: перебираются ВСЕ классы персонажа, а не только char.class (= первый).
+// Каждому ресурсу проставляются _cls и _clsLevel — от них getResourceMax считает
+// лимит. Записи копируются: CLASS_RESOURCES/SUBCLASS_RESOURCES — константы.
+// Возвращает {resources, passives[], subclassSpells[]} либо null, если ресурсов нет.
 function getCharResourceDefs(char) {
   if (!char) return null;
-  var cls = char.class || "";
-  var base = (typeof CLASS_RESOURCES !== "undefined" && CLASS_RESOURCES[cls]) ? CLASS_RESOURCES[cls] : null;
-  var resources = (base && Array.isArray(base.resources)) ? base.resources.slice() : [];
-  var sub = char.subclass || "";
-  if (sub && typeof SUBCLASS_RESOURCES !== "undefined" && SUBCLASS_RESOURCES[sub] &&
-      Array.isArray(SUBCLASS_RESOURCES[sub].resources)) {
-    resources = resources.concat(SUBCLASS_RESOURCES[sub].resources);
-  }
-  // SDR-2: списки заклинаний подкласса (домены/клятвы/покровители) — для отображения
-  var subSpells = (sub && typeof SUBCLASS_RESOURCES !== "undefined" && SUBCLASS_RESOURCES[sub] &&
-      SUBCLASS_RESOURCES[sub].passive) ? SUBCLASS_RESOURCES[sub].passive.subclassSpells : null;
-  if (!resources.length && !subSpells) return null;
-  return { resources: resources, passive: base ? base.passive : null, subclassSpells: subSpells };
+  var pairs = (typeof getCharClassPairs === "function")
+    ? getCharClassPairs(char)
+    : (char.class ? [{ cls: char.class, sub: char.subclass || "" }] : []);
+  var resources = [], passives = [], subclassSpells = [];
+  pairs.forEach(function(p) {
+    var lvl = (typeof charClassLevel === "function") ? charClassLevel(char, p.cls) : (char.level || 1);
+    if (!lvl) lvl = char.level || 1;
+    var base = (typeof CLASS_RESOURCES !== "undefined" && CLASS_RESOURCES[p.cls]) ? CLASS_RESOURCES[p.cls] : null;
+    var own = (base && Array.isArray(base.resources)) ? base.resources.slice() : [];
+    var subDef = (p.sub && typeof SUBCLASS_RESOURCES !== "undefined") ? SUBCLASS_RESOURCES[p.sub] : null;
+    if (subDef && Array.isArray(subDef.resources)) own = own.concat(subDef.resources);
+    own.forEach(function(r) {
+      var copy = Object.assign({}, r);
+      copy._cls = p.cls;
+      copy._clsLevel = lvl;
+      resources.push(copy);
+    });
+    if (base && base.passive && base.passive.notes) passives.push({ cls: p.cls, notes: base.passive.notes });
+    // SDR-2: списки заклинаний подкласса (домены/клятвы/покровители) — для отображения
+    var ss = (subDef && subDef.passive) ? subDef.passive.subclassSpells : null;
+    if (ss) subclassSpells.push({ cls: p.cls, level: lvl, ss: ss });
+  });
+  if (!resources.length && !subclassSpells.length) return null;
+  return { resources: resources, passives: passives, subclassSpells: subclassSpells };
 }
 
 // SDR-1: текущий размер кости ресурса по dieSizeByLevel (ближайшее значение ≤ уровня).
@@ -444,10 +461,10 @@ function renderClassResources() {
   var grid = $("class-resources-grid");
   if (!section || !grid) return;
 
-  var cls = char.class || "";
   var data = getCharResourceDefs(char);
 
-  if (!data || ((!data.resources || data.resources.length === 0) && !data.subclassSpells)) {
+  if (!data || ((!data.resources || data.resources.length === 0) &&
+                (!data.subclassSpells || data.subclassSpells.length === 0))) {
     section.style.display = "none";
     return;
   }
@@ -455,22 +472,23 @@ function renderClassResources() {
   section.style.display = "block";
   grid.innerHTML = "";
 
-  // Passive notes card
-  if (data.passive && data.passive.notes) {
+  // Passive notes card — по одной на класс (LVL-1: мультикласс даёт несколько)
+  (data.passives || []).forEach(function(p) {
     var notesEl = document.createElement("div");
     notesEl.className = "resource-passive-card";
-    notesEl.innerHTML = '<div class="resource-passive-title">' + dndIcoHtml("book", 14) + ' Пассивные умения ' + escapeHtml(cls) + '</div>' +
-      '<pre class="resource-passive-text">' + escapeHtml(data.passive.notes) + '</pre>';
+    notesEl.innerHTML = '<div class="resource-passive-title">' + dndIcoHtml("book", 14) + ' Пассивные умения ' + escapeHtml(p.cls) + '</div>' +
+      '<pre class="resource-passive-text">' + escapeHtml(p.notes) + '</pre>';
     grid.appendChild(notesEl);
-  }
+  });
 
-  // SDR-2: карточка заклинаний подкласса (домены/клятвы/покровители) — открытые по уровню
-  if (data.subclassSpells && data.subclassSpells.byLevel) {
-    var ss = data.subclassSpells;
-    var lvl = char.level || 1;
+  // SDR-2: карточка заклинаний подкласса (домены/клятвы/покровители) — открытые по уровню КЛАССА
+  (data.subclassSpells || []).forEach(function(entry) {
+    var ss = entry.ss;
+    if (!ss || !ss.byLevel) return;
+    var lvl = entry.level || 1;
     var ssLines = [];
     Object.keys(ss.byLevel).map(Number).sort(function(a, b){ return a - b; }).forEach(function(k){
-      if (lvl < k) return; // ещё не открыто на текущем уровне
+      if (lvl < k) return; // ещё не открыто на текущем уровне класса
       var names = ss.byLevel[k].map(function(s){ return s.replace(/\s*\([^)]*\)\s*$/, ""); }).join(", ");
       ssLines.push(k + " ур.: " + names);
     });
@@ -481,7 +499,7 @@ function renderClassResources() {
         '<pre class="resource-passive-text">' + escapeHtml(ssLines.join("\n")) + '</pre>';
       grid.appendChild(ssEl);
     }
-  }
+  });
 
   // Resource cards
   data.resources.forEach(function(res) {

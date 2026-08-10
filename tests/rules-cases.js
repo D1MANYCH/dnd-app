@@ -301,6 +301,47 @@ function rulesCases(t, group) {
     return true;
   });
 
+  // LVL-1 + вердикт dnd-rules. ЛОВ 16 (+3), ТЕЛ 14 (+2), МУД 14 (+2).
+  // Стат-блок общий: обе безбронные защиты дают одинаковые 15, поэтому кейсы
+  // различают их по формуле (ТЕЛ или МУД), а не только по числу.
+  function acUd(classes, shield) {
+    var c = fixture({
+      class: classes[0].class, level: 0, classes: classes,
+      stats: { str: 10, dex: 16, con: 14, int: 10, wis: 14, cha: 10 },
+      combat: { armorId: "none", hasShield: !!shield }
+    });
+    classes.forEach(function(e) { c.level += e.level; });
+    return rulesAC(c);
+  }
+  function acHas(res, part) { return res.formula.join(" ").indexOf(part) !== -1; }
+
+  t("Безбронная защита работает, даже если класс не первый (PHB 164)", function() {
+    var barb = acUd([{ class: "Воин", level: 1 }, { class: "Варвар", level: 4 }], false);
+    if (barb.ac !== 15 || !acHas(barb, "(ТЕЛ)")) return "Воин 1 / Варвар 4: " + barb.ac + " [" + barb.formula.join(" ") + "]";
+    var monk = acUd([{ class: "Плут", level: 2 }, { class: "Монах", level: 2 }], false);
+    if (monk.ac !== 15 || !acHas(monk, "(МУД)")) return "Плут 2 / Монах 2: " + monk.ac + " [" + monk.formula.join(" ") + "]";
+    return true;
+  });
+
+  t("Монаху щит отключает безбронную защиту, варвару — нет (PHB 77 / 48)", function() {
+    var monkShield = acUd([{ class: "Монах", level: 5 }], true);
+    if (acHas(monkShield, "(МУД)")) return "монах со щитом сохранил МУД: [" + monkShield.formula.join(" ") + "]";
+    if (monkShield.ac !== 15) return "монах со щитом: " + monkShield.ac + ", ожидал 15 (10 + ЛОВ 3 + щит 2)";
+    var monkBare = acUd([{ class: "Монах", level: 5 }], false);
+    if (monkBare.ac !== 15 || !acHas(monkBare, "(МУД)")) return "монах без щита: " + monkBare.ac;
+    var barbShield = acUd([{ class: "Варвар", level: 5 }], true);
+    if (barbShield.ac !== 17 || !acHas(barbShield, "(ТЕЛ)")) return "варвар со щитом: " + barbShield.ac + ", ожидал 17";
+    return true;
+  });
+
+  t("Варвар + Монах: действует умение класса, взятого первым (PHB 164)", function() {
+    var monkFirst = acUd([{ class: "Монах", level: 1 }, { class: "Варвар", level: 1 }], false);
+    if (!acHas(monkFirst, "(МУД)")) return "монах первым, а посчитано: [" + monkFirst.formula.join(" ") + "]";
+    var barbFirst = acUd([{ class: "Варвар", level: 1 }, { class: "Монах", level: 1 }], false);
+    if (!acHas(barbFirst, "(ТЕЛ)")) return "варвар первым, а посчитано: [" + barbFirst.formula.join(" ") + "]";
+    return true;
+  });
+
   group("Концентрация");
 
   t("СЛ спасброска концентрации: половина урона, но не ниже 10", function() {
@@ -632,6 +673,124 @@ function rulesCases(t, group) {
     }
     var fixed = parseBackgroundToolEntry("Воровские инструменты");
     if (fixed.type !== "fixed" || fixed.name !== "Воровские инструменты") return "фиксированный инструмент разобран как " + JSON.stringify(fixed);
+    return true;
+  });
+
+  group("Мультикласс: уровень класса против суммарного");
+
+  // Персонаж-мультикласс: char.level — СУММА, char.class — первый класс.
+  // Именно так их хранит приложение (syncClassFields).
+  function mcFixture(list, over) {
+    var total = 0;
+    list.forEach(function(e){ total += e.level; });
+    var c = fixture({ class: list[0].class, subclass: list[0].subclass || "", level: total, classes: list });
+    if (over) Object.keys(over).forEach(function(k){ c[k] = over[k]; });
+    return c;
+  }
+
+  t("charClassLevel: Плут 2 / Монах 2 — суммарный 4, но у каждого класса свои 2", function() {
+    var c = mcFixture([{class:"Плут", level:2}, {class:"Монах", level:2}]);
+    if (c.level !== 4) return "суммарный уровень " + c.level + ", ожидал 4";
+    if (charClassLevel(c, "Плут") !== 2) return "уровень плута " + charClassLevel(c, "Плут");
+    if (charClassLevel(c, "Монах") !== 2) return "уровень монаха " + charClassLevel(c, "Монах");
+    if (charClassLevel(c, "Воин") !== 0) return "чужой класс дал уровень " + charClassLevel(c, "Воин");
+    return true;
+  });
+
+  t("charClassLevel: одноклассовый без classes[] считается по legacy-полям", function() {
+    var c = fixture({ class: "Воин", level: 7 });
+    if (charClassLevel(c, "Воин") !== 7) return "уровень воина " + charClassLevel(c, "Воин");
+    if (charClassLevel(c, "Плут") !== 0) return "чужой класс дал уровень";
+    if (charClassLevel(null, "Воин") !== 0) return "падение на пустом персонаже";
+    return true;
+  });
+
+  t("charSubclassPending: Плут 2 / Монах 2 — подкласс ещё НЕ пора выбирать", function() {
+    var c = mcFixture([{class:"Плут", level:2}, {class:"Монах", level:2}]);
+    var p = charSubclassPending(c);
+    if (p.length !== 0) return "предложено выбрать подкласс раньше срока: " + JSON.stringify(p);
+    return true;
+  });
+
+  t("charSubclassPending: Плут 3 / Монах 2 — пора только плуту", function() {
+    var c = mcFixture([{class:"Плут", level:3}, {class:"Монах", level:2}]);
+    var p = charSubclassPending(c);
+    if (p.length !== 1) return "ожидал один класс, получил " + JSON.stringify(p);
+    if (p[0].cls !== "Плут" || p[0].at !== 3) return "не тот класс/уровень: " + JSON.stringify(p[0]);
+    return true;
+  });
+
+  t("charSubclassPending: выбранный подкласс больше не просит выбора", function() {
+    var c = mcFixture([{class:"Плут", level:3, subclass:"Вор"}, {class:"Монах", level:2}]);
+    if (charSubclassPending(c).length !== 0) return "просит выбрать при уже выбранном подклассе";
+    return true;
+  });
+
+  t("charAsiSlots: расписание считается от уровня КЛАССА, а не от суммарного", function() {
+    // Воин 3 / Плут 2 = суммарный 5. Ни один класс не дорос до своего АСИ (4).
+    var a = charAsiSlots(mcFixture([{class:"Воин", level:3}, {class:"Плут", level:2}]));
+    if (a.length !== 0) return "АСИ выдано раньше срока: " + JSON.stringify(a);
+    // Воин 1 / Варвар 4 = суммарный 5. Варвар дорос до своего 4-го — один слот.
+    var b = charAsiSlots(mcFixture([{class:"Воин", level:1}, {class:"Варвар", level:4}]));
+    if (b.length !== 1) return "ожидал один слот, получил " + JSON.stringify(b);
+    if (b[0].cls !== "Варвар" || b[0].level !== 4) return "не тот слот: " + JSON.stringify(b[0]);
+    return true;
+  });
+
+  t("charAsiSlots: у Воина расширенное расписание 4, 6, 8", function() {
+    var a = charAsiSlots(fixture({ class: "Воин", level: 8 }));
+    if (a.map(function(s){ return s.level; }).join() !== "4,6,8") return "слоты: " + JSON.stringify(a);
+    return true;
+  });
+
+  t("Мастер на все руки и инициатива работают, когда Бард НЕ первый класс", function() {
+    var c = mcFixture([{class:"Воин", level:3}, {class:"Бард", level:2}], { stats: {str:10,dex:14,con:10,int:10,wis:10,cha:10} });
+    if (rulesJackOfAllTrades(c, c.level) !== true) return "JoaT не сработал у Воин 3 / Бард 2";
+    // ЛОВ 14 → +2, суммарный 5 ур. → БМ +3, половина → +1
+    if (getInitiativeMod(c, c.level) !== 3) return "инициатива " + getInitiativeMod(c, c.level) + ", ожидал +3";
+    var d = mcFixture([{class:"Воин", level:4}, {class:"Бард", level:1}], { stats: {str:10,dex:14,con:10,int:10,wis:10,cha:10} });
+    if (rulesJackOfAllTrades(d, d.level) !== false) return "JoaT достался Барду 1 уровня";
+    return true;
+  });
+
+  t("Безбронная защита срабатывает, когда Варвар/Монах не первый класс", function() {
+    var stats = { str:10, dex:14, con:14, int:10, wis:14, cha:10 };
+    var barb = mcFixture([{class:"Воин", level:1}, {class:"Варвар", level:4}], { stats: stats });
+    if (rulesAC(barb).ac !== 14) return "Варвар вторым классом: КД " + rulesAC(barb).ac + ", ожидал 14 (10+ЛОВ2+ТЕЛ2)";
+    var monk = mcFixture([{class:"Плут", level:2}, {class:"Монах", level:2}], { stats: stats });
+    if (rulesAC(monk).ac !== 14) return "Монах вторым классом: КД " + rulesAC(monk).ac + ", ожидал 14 (10+ЛОВ2+МУД2)";
+    return true;
+  });
+
+  group("Пороги опыта");
+
+  t("charXpNext: пороги PHB 2014 и остаток до следующего уровня", function() {
+    var a = charXpNext({ level: 4, exp: 2700 });
+    if (a.level !== 5 || a.need !== 6500) return "с 4 ур.: " + JSON.stringify(a);
+    if (a.left !== 3800) return "остаток " + a.left + ", ожидал 3800";
+    if (a.canLevel !== false) return "2700 опыта не хватает на 5 ур., но canLevel=true";
+    var b = charXpNext({ level: 4, exp: 6500 });
+    if (b.canLevel !== true) return "6500 опыта хватает на 5 ур., но canLevel=false";
+    if (b.left !== 0) return "остаток при достигнутом пороге: " + b.left;
+    return true;
+  });
+
+  t("charXpNext: на 20 уровне следующего порога нет", function() {
+    var a = charXpNext({ level: 20, exp: 999999 });
+    if (a.level !== null || a.canLevel !== false) return JSON.stringify(a);
+    return true;
+  });
+
+  t("Таблица порогов: 20 уровней, строго возрастает, 5 ур. = 6500", function() {
+    if (typeof XP_THRESHOLDS === "undefined") return "нет таблицы XP_THRESHOLDS";
+    var keys = Object.keys(XP_THRESHOLDS).map(Number).sort(function(a,b){ return a - b; });
+    if (keys.length !== 20) return "уровней в таблице: " + keys.length;
+    if (XP_THRESHOLDS[1] !== 0) return "1 уровень должен требовать 0 опыта";
+    if (XP_THRESHOLDS[5] !== 6500) return "5 уровень: " + XP_THRESHOLDS[5] + ", по книге 6500";
+    if (XP_THRESHOLDS[20] !== 355000) return "20 уровень: " + XP_THRESHOLDS[20] + ", по книге 355000";
+    for (var i = 1; i < keys.length; i++) {
+      if (XP_THRESHOLDS[keys[i]] <= XP_THRESHOLDS[keys[i-1]]) return "порог " + keys[i] + " не больше предыдущего";
+    }
     return true;
   });
 

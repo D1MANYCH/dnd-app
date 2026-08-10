@@ -188,6 +188,7 @@ function ccGetChar() {
 }
 
 function ccGetClassLevel(char, className) {
+  if (typeof charClassLevel === "function") return charClassLevel(char, className);
   if (char.classes && char.classes.length > 0) {
     var entry = char.classes.find(function(c) { return c.class === className; });
     return entry ? entry.level : 0;

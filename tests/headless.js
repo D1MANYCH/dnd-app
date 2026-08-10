@@ -1661,6 +1661,66 @@
       var ids = d.resources.map(function(x){ return x.id; });
       return (ids.indexOf("superiority_dice") === -1) || ("ids=" + JSON.stringify(ids));
     });
+
+    // LVL-1: ресурсы берутся у ВСЕХ классов, а лимит считается по уровню
+    // класса-владельца, а не по суммарному уровню персонажа.
+    function _lvlMc(list) {
+      var c = { class: list[0].class, subclass: list[0].subclass || "", level: 0, classes: list,
+        stats: { str:10, dex:14, con:14, int:10, wis:14, cha:16 } };
+      list.forEach(function(e){ c.level += e.level; });
+      return c;
+    }
+
+    t("[lvl-1] ресурсы второго класса не теряются: Плут 2 / Монах 2 → очки ци есть", function(){
+      var ch = _lvlMc([{class:"Плут", level:2}, {class:"Монах", level:2}]);
+      var d = getCharResourceDefs(ch);
+      if (!d) return "getCharResourceDefs вернул null";
+      var ki = d.resources.filter(function(r){ return r.id === "ki"; })[0];
+      if (!ki) return "ресурса ци нет: " + JSON.stringify(d.resources.map(function(r){ return r.id; }));
+      if (ki._cls !== "Монах") return "ци приписана классу " + ki._cls;
+      var max = getResourceMax(ki, ch);
+      if (max !== 2) return "ци = " + max + " (по уровню монаха 2), ожидал 2";
+      return true;
+    });
+
+    t("[lvl-1] лимит по уровню класса: Паладин 2 / Воин 3 → наложение рук 10, не 25", function(){
+      var ch = _lvlMc([{class:"Паладин", level:2}, {class:"Воин", level:3}]);
+      var d = getCharResourceDefs(ch);
+      var loh = d.resources.filter(function(r){ return r.id === "lay_on_hands"; })[0];
+      if (!loh) return "нет наложения рук";
+      var max = getResourceMax(loh, ch);
+      if (max !== 10) return "пул = " + max + " (уровень паладина 2 × 5), ожидал 10";
+      var sw = d.resources.filter(function(r){ return r.id === "second_wind"; })[0];
+      if (!sw) return "ресурсы воина потерялись";
+      return true;
+    });
+
+    t("[lvl-1] Воин 1 / Варвар 4 → ярость по уровню варвара, оба класса в пассивных", function(){
+      var ch = _lvlMc([{class:"Воин", level:1}, {class:"Варвар", level:4}]);
+      var d = getCharResourceDefs(ch);
+      var rage = d.resources.filter(function(r){ return r.id === "rage"; })[0];
+      if (!rage) return "нет ярости";
+      if (getResourceMax(rage, ch) !== 3) return "ярость = " + getResourceMax(rage, ch) + ", ожидал 3";
+      var clss = (d.passives || []).map(function(p){ return p.cls; });
+      if (clss.indexOf("Воин") === -1 || clss.indexOf("Варвар") === -1) return "пассивные не по всем классам: " + JSON.stringify(clss);
+      return true;
+    });
+
+    t("[lvl-1] одноклассовый не изменился: Монах 5 → ци 5", function(){
+      var ch = { class:"Монах", level:5, subclass:"", stats:{ cha:10 } };
+      var d = getCharResourceDefs(ch);
+      var ki = d.resources.filter(function(r){ return r.id === "ki"; })[0];
+      if (!ki || getResourceMax(ki, ch) !== 5) return "ци = " + (ki ? getResourceMax(ki, ch) : "нет");
+      return true;
+    });
+
+    t("[lvl-1] константа CLASS_RESOURCES не мутируется (записи копируются)", function(){
+      var ch = _lvlMc([{class:"Монах", level:2}]);
+      getCharResourceDefs(ch);
+      var raw = CLASS_RESOURCES["Монах"].resources.filter(function(r){ return r.id === "ki"; })[0];
+      if (raw._cls !== undefined || raw._clsLevel !== undefined) return "в константу просочились служебные поля";
+      return true;
+    });
   }
   if (typeof getResourceMax === "function" && typeof SUBCLASS_RESOURCES !== "undefined") {
     t("[SDR-1] костей превосходства по уровням: 1→0, 3→4, 7→5, 15→6", function(){
@@ -5884,8 +5944,7 @@
   // дубликат получают его даром — characters сериализуется целиком. Книжный каталог
   // остаётся константой на 37 позиций, слияние идёт только при чтении.
   if (typeof SCHEMA_VERSION !== "undefined" && typeof DEFAULT_CHARACTER !== "undefined") {
-    t("[hb-5] SCHEMA_VERSION = 33, customWeapons — пустой массив в шаблоне персонажа", function(){
-      if (SCHEMA_VERSION !== 33) return "SCHEMA_VERSION = " + SCHEMA_VERSION;
+    t("[hb-5] customWeapons — пустой массив в шаблоне персонажа", function(){
       if (!Array.isArray(DEFAULT_CHARACTER.customWeapons)) return "нет customWeapons в DEFAULT_CHARACTER";
       if (DEFAULT_CHARACTER.customWeapons.length !== 0) return "шаблон не пуст";
       return true;
@@ -5893,11 +5952,11 @@
   }
 
   if (typeof migrateCharacter === "function") {
-    t("[hb-5] миграция v<33: старый сейв получает customWeapons массивом, схема → 33", function(){
+    t("[hb-5] миграция v<33: старый сейв получает customWeapons массивом, схема → текущая", function(){
       var c = migrateCharacter({ id: 95001, class: "Воин", level: 4, schemaVersion: 32 });
       if (!Array.isArray(c.customWeapons)) return "customWeapons не массив: " + typeof c.customWeapons;
       if (c.customWeapons.length !== 0) return "непустой список у старого сейва";
-      if (c.schemaVersion !== 33) return "schemaVersion = " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion = " + c.schemaVersion;
       return true;
     });
 
@@ -5908,6 +5967,39 @@
       var again = migrateCharacter(JSON.parse(JSON.stringify(c)));
       if (again.customWeapons.length !== 1) return "повторный прогон испортил список";
       if (again.customWeapons[0].name !== "Клинок бездны") return "имя потеряно: " + again.customWeapons[0].name;
+      return true;
+    });
+
+    // LVL-1: АСИ переехали из плоского asiUsedLevels (СУММАРНЫЕ уровни) в
+    // char.asiUsed по классам (уровни КЛАССА). Старое поле не удаляем.
+    t("[lvl-1] миграция v<34: АСИ одноклассового раскладываются уровень в уровень", function(){
+      var c = migrateCharacter({ id: 95010, class: "Воин", level: 8, schemaVersion: 33, asiUsedLevels: [4, 6] });
+      if (!c.asiUsed || !Array.isArray(c.asiUsed["Воин"])) return "нет asiUsed.Воин: " + JSON.stringify(c.asiUsed);
+      if (c.asiUsed["Воин"].join() !== "4,6") return "разложено неверно: " + JSON.stringify(c.asiUsed);
+      if (!Array.isArray(c.asiUsedLevels) || c.asiUsedLevels.join() !== "4,6") return "старое поле затёрто";
+      return true;
+    });
+
+    t("[lvl-1] миграция v<34: уровень вне расписания класса не присваивается", function(){
+      var c = migrateCharacter({ id: 95011, class: "Варвар", level: 9, schemaVersion: 33, asiUsedLevels: [4, 5] });
+      if (c.asiUsed["Варвар"].join() !== "4") return "5 ур. нет в расписании варвара, но попал: " + JSON.stringify(c.asiUsed);
+      return true;
+    });
+
+    t("[lvl-1] миграция v<34: мультикласс раскладывается по первому классу и не дублирует", function(){
+      var c = migrateCharacter({ id: 95012, class: "Воин", level: 5, schemaVersion: 33, asiUsedLevels: [4],
+        classes: [{ class: "Воин", level: 3, subclass: "" }, { class: "Плут", level: 2, subclass: "" }] });
+      if (c.asiUsed["Воин"].join() !== "4") return "не разложено: " + JSON.stringify(c.asiUsed);
+      var again = migrateCharacter(JSON.parse(JSON.stringify(c)));
+      if (again.asiUsed["Воин"].join() !== "4") return "повторный прогон продублировал: " + JSON.stringify(again.asiUsed);
+      return true;
+    });
+
+    t("[lvl-1] миграция v<34: персонаж без класса и без АСИ не падает", function(){
+      var c = migrateCharacter({ id: 95013, schemaVersion: 33 });
+      if (!c.asiUsed || typeof c.asiUsed !== "object") return "asiUsed не создан: " + JSON.stringify(c.asiUsed);
+      if (Object.keys(c.asiUsed).length !== 0) return "пустому персонажу что-то присвоено: " + JSON.stringify(c.asiUsed);
+      if (c.schemaVersion !== SCHEMA_VERSION) return "схема не доехала: " + c.schemaVersion;
       return true;
     });
   }
