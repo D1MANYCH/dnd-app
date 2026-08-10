@@ -320,14 +320,19 @@ if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.e
 // пришли, — при равной с листом глубине переход считался бы движением назад.
 // STYLE-8M-2b: гайд билда и план развития стоят ещё глубже (4) — в них заходят
 // со «Справки»-глубины и с листа, и возврат обязан вести на экран входа.
+// LVL-2: «Развитие» открывается с листа (3), «Об умении» и «План класса» —
+// уже из него (4), чтобы «←» возвращал на «Развитие», а не на лист.
 var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3,
-                     help: 3, builds: 3, buildguide: 4, buildplan: 4, abilityinfo: 3 };
+                     help: 3, builds: 3, buildguide: 4, buildplan: 4, abilityinfo: 3,
+                     progress: 3, featureinfo: 4 };
 // Экраны-страницы: у них нет своего персонажа, currentId не трогаем — иначе
 // «Настройки» с листа выбрасывали бы из персонажа.
-var PAGE_SCREENS = ["data", "settings", "about", "help", "builds", "buildguide", "buildplan", "abilityinfo"];
+var PAGE_SCREENS = ["data", "settings", "about", "help", "builds", "buildguide", "buildplan", "abilityinfo",
+                    "progress", "featureinfo"];
 var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О версии",
                     help: "Справка", builds: "Готовые билды",
-                    buildguide: "Гайд по билду", buildplan: "План развития" };
+                    buildguide: "Гайд по билду", buildplan: "План развития",
+                    progress: "Развитие", featureinfo: "Умение" };
 // Стек экранов, из которых уходили вперёд. Не персистится — в рамках сессии.
 var _screenStack = [];
 

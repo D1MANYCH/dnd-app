@@ -762,6 +762,91 @@ function rulesCases(t, group) {
     return true;
   });
 
+  t("charCasterLevel: уровни заклинателей складываются в общий пул (PHB стр. 164)", function() {
+    var a = charCasterLevel(mcFixture([{class:"Волшебник", level:3}, {class:"Жрец", level:2}]));
+    if (a.level !== 5) return "Волшебник 3 / Жрец 2: уровень заклинателя " + a.level + ", ожидал 5";
+    var b = charCasterLevel(mcFixture([{class:"Паладин", level:3}, {class:"Воин", level:3}]));
+    if (b.level !== 1) return "Паладин 3 (половина) / Воин 3 без мистика: " + b.level + ", ожидал 1";
+    var c = charCasterLevel(mcFixture([{class:"Воин", level:6, subclass:"Мистический рыцарь"}, {class:"Плут", level:3}]));
+    if (c.level !== 2) return "Мистический рыцарь 6 (треть): " + c.level + ", ожидал 2";
+    var d = charCasterLevel(mcFixture([{class:"Варвар", level:5}, {class:"Монах", level:3}]));
+    if (d.level !== 0 || d.casters.length !== 0) return "не-заклинатели дали пул: " + JSON.stringify(d);
+    return true;
+  });
+
+  t("charCasterLevel: пакт-магия Колдуна считается отдельно от общего пула", function() {
+    var c = charCasterLevel(mcFixture([{class:"Колдун", level:3}, {class:"Бард", level:2}]));
+    if (c.level !== 2) return "общий пул " + c.level + ", ожидал 2 (только бард)";
+    if (!c.pact || c.pact.cls !== "Колдун" || c.pact.level !== 3) return "пакт: " + JSON.stringify(c.pact);
+    return true;
+  });
+
+  t("Ячейки: один класс-заклинатель среди нескольких считается по своей таблице", function() {
+    // PHB стр. 164: общий пул — только когда «Использование заклинаний» у двух
+    // и более классов. У Паладина 5 / Воина 3 (Чемпион) заклинатель один.
+    var c = mcFixture([{class:"Паладин", level:5}, {class:"Воин", level:3, subclass:"Чемпион"}]);
+    var s = getMulticlassSpellSlots(c);
+    var want = SPELL_SLOTS_BY_LEVEL["Паладин"][5];
+    if (s.slice(1, 4).join() !== want.slice(1, 4).join()) {
+      return "ячейки " + s.slice(1,4).join() + ", по таблице паладина " + want.slice(1,4).join();
+    }
+    return true;
+  });
+
+  t("Ячейки: мистический рыцарь считается по своей таблице (PHB стр. 75)", function() {
+    // Уровни НЕ кратные трём как раз и расходятся с общим пулом: на 7 ур. воина
+    // таблица подкласса даёт 4 и 2, а пул по уровню заклинателя 2 — только 3.
+    var c = mcFixture([{class:"Воин", level:7, subclass:"Мистический рыцарь"}, {class:"Плут", level:3}]);
+    var s = getMulticlassSpellSlots(c);
+    if (s[1] !== 4 || s[2] !== 2) return "Воин 7 (МР): " + s.slice(1,4).join() + ", по книге 4,2";
+    // Одноклассовый мистический ловкач раньше не получал ячеек вовсе.
+    var t2 = getMulticlassSpellSlots(mcFixture([{class:"Плут", level:5, subclass:"Мистический ловкач"}]));
+    if (t2[1] !== 3) return "Плут 5 (МЛ): " + JSON.stringify(t2) + ", по книге 3 ячейки 1 круга";
+    // Воин без подкласса-заклинателя ячеек не получает.
+    var t3 = getMulticlassSpellSlots(mcFixture([{class:"Воин", level:7, subclass:"Чемпион"}]));
+    for (var i = 1; i <= 9; i++) if (t3[i]) return "Чемпион получил ячейки: " + JSON.stringify(t3);
+    return true;
+  });
+
+  t("Таблица THIRD_CASTER_SLOTS: 18 строк 3–20, максимум 4 круга с 19 ур.", function() {
+    if (typeof THIRD_CASTER_SLOTS === "undefined") return "нет таблицы THIRD_CASTER_SLOTS";
+    var keys = Object.keys(THIRD_CASTER_SLOTS).map(Number).sort(function(a,b){ return a - b; });
+    if (keys[0] !== 3 || keys[keys.length-1] !== 20 || keys.length !== 18) return "уровни: " + keys.join(",");
+    if ((THIRD_CASTER_SLOTS[3][1]) !== 2) return "3 ур.: " + JSON.stringify(THIRD_CASTER_SLOTS[3]);
+    if ((THIRD_CASTER_SLOTS[13][3]) !== 2) return "13 ур. (3 круг): " + JSON.stringify(THIRD_CASTER_SLOTS[13]);
+    if ((THIRD_CASTER_SLOTS[18][4] || 0) !== 0) return "4 круг раньше 19 ур.: " + JSON.stringify(THIRD_CASTER_SLOTS[18]);
+    if ((THIRD_CASTER_SLOTS[19][4]) !== 1) return "19 ур. (4 круг): " + JSON.stringify(THIRD_CASTER_SLOTS[19]);
+    return true;
+  });
+
+  t("Ячейки: два заклинателя дают общий пул по сумме (Волшебник 3 / Жрец 2)", function() {
+    var c = mcFixture([{class:"Волшебник", level:3}, {class:"Жрец", level:2}]);
+    var s = getMulticlassSpellSlots(c);
+    if (s[1] !== 4 || s[2] !== 3 || s[3] !== 2) return "ячейки " + s.slice(1,4).join() + ", ожидал 4,3,2";
+    return true;
+  });
+
+  t("Ячейки: Колдун в общий пул не входит (Колдун 3 / Бард 2)", function() {
+    var c = mcFixture([{class:"Колдун", level:3}, {class:"Бард", level:2}]);
+    var s = getMulticlassSpellSlots(c);
+    var want = SPELL_SLOTS_BY_LEVEL["Бард"][2];
+    if (s.slice(1, 4).join() !== want.slice(1, 4).join()) {
+      return "ячейки " + s.slice(1,4).join() + ", по таблице барда 2 ур. " + want.slice(1,4).join();
+    }
+    return true;
+  });
+
+  t("Ячейки: у Колдуна с не-заклинателем общего пула нет вовсе", function() {
+    // Пакт-магия — отдельный ресурс (PHB стр. 164): в общий пул Колдун не входит,
+    // а классов с «Использованием заклинаний» тут нет ни одного.
+    var c = mcFixture([{class:"Колдун", level:3}, {class:"Варвар", level:2}]);
+    var s = getMulticlassSpellSlots(c);
+    for (var i = 1; i <= 9; i++) if (s[i]) return "появились обычные ячейки: " + JSON.stringify(s);
+    var cl = charCasterLevel(c);
+    if (!cl.pact || cl.pact.level !== 3) return "пакт потерялся: " + JSON.stringify(cl.pact);
+    return true;
+  });
+
   group("Пороги опыта");
 
   t("charXpNext: пороги PHB 2014 и остаток до следующего уровня", function() {

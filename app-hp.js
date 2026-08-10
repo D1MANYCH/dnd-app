@@ -372,10 +372,17 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
   var slotsCard = $("lu-slots-card");
   var slotsInfo = $("lu-slots-info");
   if (!isNewClass && !isMulticlass(char)) {
-    // Одноклассовый — стандартная логика
-    if (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][newTotalLevel]) {
-      var newSlots = SPELL_SLOTS_BY_LEVEL[className][newTotalLevel];
-      var oldSlots = SPELL_SLOTS_BY_LEVEL[className][totalLevel] || [];
+    // Одноклассовый — таблица класса, у мистиков своя (LVL-2: тот же хелпер,
+    // что и в записи ячеек ниже, иначе предпросмотр молчит там, где запись верна)
+    var _luSub = char.subclass || "";
+    var _luRow = (typeof classSpellSlotRow === "function")
+      ? classSpellSlotRow(className, _luSub, newTotalLevel)
+      : ((SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][newTotalLevel]) || null);
+    if (_luRow) {
+      var newSlots = _luRow;
+      var oldSlots = ((typeof classSpellSlotRow === "function")
+        ? classSpellSlotRow(className, _luSub, totalLevel)
+        : (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][totalLevel])) || [];
       var slotParts = [];
       for (var i = 1; i <= 9; i++) {
         var n = newSlots[i] || 0;
@@ -486,6 +493,9 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
 function closeLevelUpModal() {
 const modal = $("levelup-modal");
 if (modal) modal.classList.remove("active");
+// LVL-2: повышение и откат заканчиваются на листе — если их начали с экрана
+// «Развитие», возвращаем туда же.
+if (typeof pgAfterLevelModal === "function") pgAfterLevelModal();
 }
 function confirmLevelUp() {
 if (!currentId) return;
@@ -597,11 +607,18 @@ if (isMulticlass(char)) {
       char.spells.slots[jw] = 0;
       char.spells.slotsUsed[jw] = 0;
     }
-  } else if (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][newTotalLevel]) {
-    var slots = SPELL_SLOTS_BY_LEVEL[className][newTotalLevel];
-    for (var j = 1; j <= 9; j++) {
-      char.spells.slots[j] = slots[j] || 0;
-      char.spells.slotsUsed[j] = 0;
+  } else {
+    // LVL-2: строку берёт classSpellSlotRow — у мистического рыцаря и ловкача
+    // своя таблица (PHB стр. 75 и 98), в SPELL_SLOTS_BY_LEVEL её нет, и
+    // одноклассовый мистик оставался вообще без ячеек.
+    var slots = (typeof classSpellSlotRow === "function")
+      ? classSpellSlotRow(className, char.subclass || "", newTotalLevel)
+      : (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][newTotalLevel]) || null;
+    if (slots) {
+      for (var j = 1; j <= 9; j++) {
+        char.spells.slots[j] = slots[j] || 0;
+        char.spells.slotsUsed[j] = 0;
+      }
     }
   }
 }

@@ -1540,21 +1540,51 @@ function openBuildPlan(buildId) {
 // REQ-3: общий план класса 1–20 для ЛЮБОГО персонажа (не только из билда).
 // Данные — CLASS_FEATURES + SUBCLASS_FEATURES (data.js), те же, что в level-up.
 // openBuildPlan показывает нарратив билда; этот — официальные фичи класса/подкласса.
-function openClassPlan() {
+/** Подкласс именно этого класса, а не classes[0] */
+function _cpSubclassOf(ch, cname) {
+  if (ch.classes && ch.classes.length) {
+    for (var i = 0; i < ch.classes.length; i++) {
+      if (ch.classes[i] && ch.classes[i].class === cname) return ch.classes[i].subclass || "";
+    }
+    return "";
+  }
+  return ch.class === cname ? (ch.subclass || "") : "";
+}
+
+/** Строка-переключатель классов над планом — только у мультикласса */
+function _cpClassSwitch(ch, cname) {
+  if (!ch.classes || ch.classes.length < 2) return "";
+  var links = ch.classes.map(function(c) {
+    if (!c || !c.class) return "";
+    if (c.class === cname) return '<b class="bp-plan-cls is-cur">' + escapeHtml(c.class) + " " + (c.level || 0) + "</b>";
+    return '<button type="button" class="bp-plan-cls" onclick="openClassPlan(\'' +
+      escapeHtml(c.class) + '\')">' + escapeHtml(c.class) + " " + (c.level || 0) + "</button>";
+  }).join('<span class="bp-plan-cls-sep">·</span>');
+  return '<div class="bp-plan-switch">' + links + "</div>";
+}
+
+// LVL-2: план строится для ПЕРЕДАННОГО класса, «ты здесь» стоит на уровне
+// класса. Раньше бралась таблица classes[0] и суммарный уровень: у Плут 2 /
+// Монах 2 метка вставала на 4 уровень плута, где архетип давно позади —
+// ровно это подписчик и прочитал как «пора выбрать, но нельзя».
+function openClassPlan(className) {
   var ch = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
   if (!ch || !ch.class) {
     if (typeof showToast === "function") showToast("Сначала выберите класс", "warn");
     return;
   }
-  if (typeof CLASS_FEATURES === "undefined" || !CLASS_FEATURES[ch.class]) {
+  var cname = className || ch.class;
+  if (typeof CLASS_FEATURES === "undefined" || !CLASS_FEATURES[cname]) {
     if (typeof showToast === "function") showToast("Нет данных по этому классу", "warn");
     return;
   }
-  var cls = CLASS_FEATURES[ch.class];
-  var sub = (ch.subclass && typeof SUBCLASS_FEATURES !== "undefined") ? SUBCLASS_FEATURES[ch.subclass] : null;
-  var curLevel = ch.level || 1;
+  var subName = _cpSubclassOf(ch, cname);
+  var cls = CLASS_FEATURES[cname];
+  var sub = (subName && typeof SUBCLASS_FEATURES !== "undefined") ? SUBCLASS_FEATURES[subName] : null;
+  var curLevel = (typeof charClassLevel === "function") ? charClassLevel(ch, cname) : (ch.level || 1);
+  if (!curLevel) curLevel = ch.level || 1;
   var titleEl = document.getElementById("bp-plan-title-h");
-  if (titleEl) titleEl.textContent = "План класса: " + ch.class;
+  if (titleEl) titleEl.textContent = "План класса: " + cname;
   var rows = [];
   for (var lv = 1; lv <= 20; lv++) {
     var feats = [];
@@ -1573,12 +1603,14 @@ function openClassPlan() {
   }
   var bodyEl = document.getElementById("bp-plan-body");
   if (bodyEl) {
-    var subSrc = (ch.subclass && typeof subclassSourceShort === "function") ? subclassSourceShort(ch.subclass) : "";
-    var meta = escapeHtml(ch.class) +
-      (ch.subclass ? ' · ' + escapeHtml(ch.subclass) + (subSrc ? ' (' + escapeHtml(subSrc) + ')' : '')
-                   : ' · подкласс не выбран (фичи архетипа появятся после выбора)') +
-      ' · текущий уровень: ' + curLevel;
-    bodyEl.innerHTML = '<div class="bp-plan-meta">' + meta + '</div>' + rows.join("");
+    var subSrc = (subName && typeof subclassSourceShort === "function") ? subclassSourceShort(subName) : "";
+    var meta = escapeHtml(cname) +
+      (subName ? ' · ' + escapeHtml(subName) + (subSrc ? ' (' + escapeHtml(subSrc) + ')' : '')
+               : ' · подкласс не выбран (фичи архетипа появятся после выбора)') +
+      ' · уровень класса: ' + curLevel;
+    // При мультиклассе уровень класса и уровень персонажа расходятся — говорим
+    // об этом прямо и даём переключиться на таблицу второго класса.
+    bodyEl.innerHTML = '<div class="bp-plan-meta">' + meta + _cpClassSwitch(ch, cname) + '</div>' + rows.join("");
   }
   if (typeof _closeOpenModals === "function") _closeOpenModals();
   if (typeof showScreen === "function") showScreen("buildplan");

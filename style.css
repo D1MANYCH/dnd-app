@@ -15703,3 +15703,95 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .ds-status { font-size: var(--fs-sm); color: var(--home-sub); }
 .ds-status.ds-stable { color: var(--success); }
 .ds-status.ds-dead { color: var(--danger); }
+
+/* ============================================
+   LVL-2 · Экран «Развитие» (#screen-progress)
+   Сборка В2+ из мокапа: класс — строка с раскрытием, поэтому высота экрана
+   не растёт с уровнем. Сами строки, действия и ромб раскрытия общие с
+   разделом «Здоровье и Бой» (.hp-row* / .hp-act / .disc-diamond) — здесь
+   заводится только то, чего там нет: шапка, метка секции, строка умения
+   и строка «осталось выбрать».
+   ============================================ */
+.pg-head { padding: 2px 0 var(--sp-3); }
+.pg-head-cls {
+  font-family: var(--font-display);
+  font-size: calc(var(--fs-xl) * 1.2);
+  line-height: 1.15;
+  color: var(--text-color);
+}
+.pg-head-cls i { font-style: normal; color: var(--home-sub); font-size: 0.75em; }
+.pg-head-meta { margin-top: 5px; font-size: var(--fs-sm); color: var(--home-sub); }
+.pg-head-meta b { color: var(--text-color); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Метка секции — та же типографика, что у заголовков блоков «О характеристике» */
+.pg-grp {
+  padding: var(--sp-4) 0 2px;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--home-sub);
+}
+/* Мета здесь длиннее, чем в хитах («Монастырская традиция, Отражение снарядов»):
+   строке разрешён перенос, мете — сжатие и выравнивание по правому краю, иначе
+   на узком экране или крупном масштабе шрифта её нечем ужать. */
+.pg-body .hp-row { flex-wrap: wrap; padding: 4px 0; }
+.pg-body .hp-row-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: right;
+  line-height: 1.4;
+}
+.pg-body .pg-name--mute { color: var(--home-sub); }
+.pg-body .pg-meta--warn { color: var(--accent-lo); }
+.pg-body .hp-row-meta i { font-style: normal; color: var(--home-sub); }
+
+/* Строка умения внутри раскрытия класса: уровень слева, название — вход
+   на экран «Об умении». Коробок и полных описаний тут нет. */
+.pg-feat {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  min-height: 32px;
+  padding: 3px 0;
+  cursor: pointer;
+}
+.pg-feat-lv {
+  flex: 0 0 42px;
+  font-size: var(--fs-sm);
+  color: var(--home-sub);
+  font-variant-numeric: tabular-nums;
+}
+.pg-feat-n { font-size: var(--fs-md); color: var(--text-color); line-height: 1.4; }
+.pg-feat-n u { text-decoration: none; color: var(--home-sub); }
+.pg-feat:hover .pg-feat-n { color: var(--accent-lo); }
+.pg-feat--new .pg-feat-n { color: var(--accent-lo); }
+
+/* «Осталось выбрать»: текст слева, текстовое действие справа, тач-цель 44px */
+.pg-attn-n { font-size: var(--fs-md); color: var(--text-color); }
+.pg-attn-n u { text-decoration: none; color: var(--home-sub); }
+.pg-attn-act { margin-left: auto; }
+
+.pg-body-acts { padding-top: var(--sp-1); }
+.pg-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-5);
+  margin-top: var(--sp-4);
+  border-top: 1px solid var(--home-rule);
+}
+.pg-sub-select { margin: var(--sp-2) 0; max-width: 320px; }
+
+/* Переключатель классов над «Планом класса» — появляется только у мультикласса */
+.bp-plan-switch { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); margin-top: 6px; }
+.bp-plan-cls {
+  all: unset;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  color: var(--accent-lo);
+  font-variant-numeric: tabular-nums;
+}
+.bp-plan-cls:hover { text-decoration: underline; }
+.bp-plan-cls.is-cur { color: var(--text-color); cursor: default; }
+.bp-plan-cls-sep { color: var(--home-sub); }

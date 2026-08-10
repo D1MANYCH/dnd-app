@@ -1,5 +1,9 @@
 <!doctype html>
 <meta charset="utf-8">
+<!-- Без этого мета-тега страница-обёртка раскладывается по десктопному фолбэку
+     980 px, iframe наследует его ширину, и снимок «на 390» показывает обрезанный
+     справа десктоп — тот самый мнимый вылет вёрстки из skills/verify-ui. -->
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>theme-audit-fixture</title>
 <style>html,body{margin:0;height:100%;background:#050a14}iframe{position:fixed;inset:0;width:100vw;height:100vh;border:0}</style>
 <iframe id="f"></iframe>
@@ -152,6 +156,21 @@ f.addEventListener('load', () => {
           }
         } catch (e) { beacon('ERR battle ' + e.message); }
       }
+      // LVL-2: &mc=1 — герой становится мультиклассовым (Плут 3 / Монах 2, опыт
+      // 6500). Нужен экрану «Развитие»: на одноклассовом не видно ни уровня
+      // класса против уровня персонажа, ни статуса подкласса.
+      if (q.get('mc')) {
+        try {
+          c.classes = [
+            { class: 'Плут', level: 3, subclass: '', hitDie: 8 },
+            { class: 'Монах', level: 2, subclass: '', hitDie: 8 }
+          ];
+          c.exp = 6500;
+          w.syncClassFields(c);
+          w.saveToLocal();
+          w.loadCharacter(c.id);
+        } catch (e) { beacon('ERR mc ' + e.message); }
+      }
       // STYLE-8M-2: экран выбора персонажа. &screen=characters сеет ещё двух
       // героев (раненого и почти умирающего) — иначе в списке одна строка и не
       // видно ни разделителей, ни сетки колонок.
@@ -181,7 +200,9 @@ f.addEventListener('load', () => {
       await new Promise(r => setTimeout(r, 400));
       try {
         const want = q.get('screen') || 'character';
-        if (!w.currentScreenName || w.currentScreenName() !== want) w.showScreen(want);
+        // LVL-2: тело «Развития» собирает openProgress(), голый showScreen дал бы пустой экран.
+        if (want === 'progress' && w.openProgress) w.openProgress();
+        else if (!w.currentScreenName || w.currentScreenName() !== want) w.showScreen(want);
         if (want === 'characters') w.renderCharacterList();
       } catch (e) { beacon('ERR screen ' + e.message); }
       const tab = q.get('tab') || 'sheet';

@@ -276,37 +276,82 @@ function rulesAC(char) {
 }
 
 // ── Ячейки заклинаний ───────────────────────────────────────
+/** Уровень заклинателя (PHB стр. 164): полные классы входят целиком, паладин и
+ *  следопыт — половиной, мистический рыцарь и ловкач — третью. Пакт-магия
+ *  Колдуна в общий пул не входит и возвращается отдельным полем.
+ *  ВАЖНО: `level` осмыслен, только когда «Использование заклинаний» есть у ДВУХ
+ *  и более классов — у одноклассового паладина 5 ур. он даёт 2, а по книге такой
+ *  персонаж считается по таблице своего класса. Кому нужен признак «считать по
+ *  общему пулу» — смотреть casters без типа "pact", а не level.
+ *  LVL-2: расчёт вынут из getMulticlassSpellSlots — его же читает строка
+ *  «Ячейки заклинаний» на экране «Развитие». */
+function charCasterLevel(char) {
+  var out = { level: 0, casters: [], pact: null };
+  if (!char) return out;
+  var list = (char.classes && char.classes.length)
+    ? char.classes
+    : (char.class ? [{ class: char.class, level: char.level || 0, subclass: char.subclass || "" }] : []);
+  list.forEach(function(entry) {
+    if (!entry || !entry.class) return;
+    var ct = (typeof CASTER_TYPE !== "undefined") ? CASTER_TYPE[entry.class] : "none";
+    var lv = entry.level || 0;
+    if (ct === "third") {
+      // Воин и Плут — заклинатели только с подклассом мистика.
+      if (typeof THIRD_CASTER_SUBCLASSES === "undefined" ||
+          THIRD_CASTER_SUBCLASSES.indexOf(entry.subclass) === -1) return;
+      out.level += Math.floor(lv / 3);
+    } else if (ct === "full") {
+      out.level += lv;
+    } else if (ct === "half") {
+      out.level += Math.floor(lv / 2);
+    } else if (ct === "pact") {
+      out.pact = { cls: entry.class, level: lv };
+      out.casters.push({ cls: entry.class, level: lv, sub: entry.subclass || "", type: ct });
+      return;
+    } else {
+      return;
+    }
+    out.casters.push({ cls: entry.class, level: lv, sub: entry.subclass || "", type: ct });
+  });
+  return out;
+}
+
+/** Ячейки ОДНОГО класса по его уровню: обычная таблица класса, а у мистического
+ *  рыцаря и мистического ловкача — своя (PHB стр. 75 и 98), её в
+ *  SPELL_SLOTS_BY_LEVEL нет. Возвращает копию строки или null. */
+function classSpellSlotRow(cls, sub, level) {
+  if (!cls || !level) return null;
+  if (typeof SPELL_SLOTS_BY_LEVEL !== "undefined" && SPELL_SLOTS_BY_LEVEL[cls] && SPELL_SLOTS_BY_LEVEL[cls][level]) {
+    return SPELL_SLOTS_BY_LEVEL[cls][level].slice();
+  }
+  if (typeof THIRD_CASTER_SUBCLASSES !== "undefined" && typeof THIRD_CASTER_SLOTS !== "undefined" &&
+      THIRD_CASTER_SUBCLASSES.indexOf(sub) !== -1 && THIRD_CASTER_SLOTS[level]) {
+    return THIRD_CASTER_SLOTS[level].slice();
+  }
+  return null;
+}
+
 /** Рассчитать ячейки заклинаний для мультикласса (PHB p.164-165) */
 function getMulticlassSpellSlots(char) {
   if (!char.classes || char.classes.length <= 1) {
-    // Одноклассовый — используем стандартную таблицу
-    var cn = char.class;
-    var lv = char.level;
-    if (typeof SPELL_SLOTS_BY_LEVEL !== "undefined" && SPELL_SLOTS_BY_LEVEL[cn] && SPELL_SLOTS_BY_LEVEL[cn][lv]) {
-      return SPELL_SLOTS_BY_LEVEL[cn][lv].slice();
-    }
-    return [0,0,0,0,0,0,0,0,0,0];
+    // Одноклассовый — своя таблица класса (у мистиков — таблица подкласса)
+    var only = (char.classes && char.classes[0]) ? char.classes[0] : { class: char.class, level: char.level, subclass: char.subclass };
+    var row = classSpellSlotRow(only.class, only.subclass || "", only.level || char.level);
+    return row || [0,0,0,0,0,0,0,0,0,0];
   }
-  // Мультикласс — рассчитываем caster level
-  var casterLevel = 0;
-  var hasPact = false;
-  var pactLevel = 0;
-  char.classes.forEach(function(entry) {
-    var ct = (typeof CASTER_TYPE !== "undefined") ? CASTER_TYPE[entry.class] : "none";
-    // Воин/Плут — 1/3 только если правильный подкласс
-    if (ct === "third") {
-      if (typeof THIRD_CASTER_SUBCLASSES !== "undefined" && THIRD_CASTER_SUBCLASSES.indexOf(entry.subclass) !== -1) {
-        casterLevel += Math.floor(entry.level / 3);
-      }
-    } else if (ct === "full") {
-      casterLevel += entry.level;
-    } else if (ct === "half") {
-      casterLevel += Math.floor(entry.level / 2);
-    } else if (ct === "pact") {
-      hasPact = true;
-      pactLevel = entry.level;
-    }
-  });
+  var cl = charCasterLevel(char);
+  // PHB стр. 164: общий пул считается, только если «Использование заклинаний»
+  // есть у ДВУХ и более классов. Если класс-заклинатель один — работает его
+  // собственная таблица: у Паладина 5 / Воина 3 это 4 ячейки 1 круга и 2 второго,
+  // а не 3 ячейки заклинателя 2 уровня, как считалось раньше (вердикт dnd-rules).
+  var casting = cl.casters.filter(function(c) { return c.type !== "pact"; });
+  if (casting.length === 1) {
+    var one = casting[0];
+    var row = classSpellSlotRow(one.cls, one.sub || "", one.level);
+    if (row) return row;
+  }
+  // Мультикласс — caster level считает charCasterLevel (там же правило третей)
+  var casterLevel = cl.level;
   // Ячейки из таблицы мультикласса
   var slots = [0,0,0,0,0,0,0,0,0,0];
   if (casterLevel > 0 && typeof MULTICLASS_SPELL_SLOTS !== "undefined" && MULTICLASS_SPELL_SLOTS[casterLevel]) {

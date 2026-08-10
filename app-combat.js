@@ -325,6 +325,9 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 if (typeof migrateToMulticlass === "function") migrateToMulticlass(char);
+// LVL-2: экран «Развитие» перерисовывается тем же сигналом, что список умений
+// на листе — эта функция идёт следом за повышением, откатом, АСИ и выборами.
+if (typeof pgRefresh === "function") pgRefresh();
 const className = char.class;
 const level = char.level;
 const featuresSection = $("class-features-section");

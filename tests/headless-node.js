@@ -51,6 +51,7 @@ const files = [
   'app-ui.js',               // UI6-1: настройки оформления — _getAutoAccent/CLASS_ACCENT_MAP/setAccent (БЛОК 13); позже layout/edition (БЛОК 14)
   'app-home.js',             // MENU-7: главный экран — getLastCharacter/_homeHeroChips (БЛОК 51); после app-ui (как в index.html)
   'app-asi.js',              // SETUP-6: АСИ и черты — после app-ui (как в index.html)
+  'app-progress.js',         // LVL-2: экран «Развитие» — после app-asi (как в index.html); в тестах даёт проверку загрузки
   'app-help.js',             // THEME-1: геометрия прожектора тура — _computeTourBoxes (БЛОК 31)
   'app-notes.js',            // FIN-12: notesV2 — _mdToHtml/_notesReorderPinned/notesSaveEntryModal/notesExport* (БЛОК 30)
   'history-stack.js',        // FIN-12: pushHistoryLayer/syncCloseLayer/getHistoryLayers (нужен history-шим ниже) (БЛОК 30)
