@@ -66,12 +66,16 @@ var HELP_FLAG_BATTLE_SEEN    = 'dnd_help_battle_seen';
 var HELP_FLAG_NOTES_SEEN     = 'dnd_help_notes_seen';
 var HELP_FLAG_PARTY_SEEN     = 'dnd_help_party_seen';
 var HELP_FLAG_JOURNAL_SEEN   = 'dnd_help_journal_seen';
+// LVL-4: «Развитие» — не вкладка, а экран, поэтому в реестр TOUR_TABS не входит:
+// свой флаг, свой авто-старт из openProgress().
+var HELP_FLAG_PROGRESS_SEEN  = 'dnd_help_progress_seen';
 // Все флаги онбординга — «Показать обучение заново» чистит их разом, чтобы
 // весь онбординг повторился по мере захода на вкладки.
 var TOUR_ALL_FLAGS = [
   HELP_FLAG_SEEN, HELP_FLAG_SHEET_SEEN,
   HELP_FLAG_SPELLS_SEEN, HELP_FLAG_INVENTORY_SEEN, HELP_FLAG_BATTLE_SEEN,
-  HELP_FLAG_NOTES_SEEN, HELP_FLAG_PARTY_SEEN, HELP_FLAG_JOURNAL_SEEN
+  HELP_FLAG_NOTES_SEEN, HELP_FLAG_PARTY_SEEN, HELP_FLAG_JOURNAL_SEEN,
+  HELP_FLAG_PROGRESS_SEEN
 ];
 
 /** Прочитать флаг онбординга (строка или null). */
@@ -279,12 +283,20 @@ function _tourFirstVisible(selectors) {
  *  подсветка остаётся за окном, карточка тура конфликтует с ним (так «слетал»
  *  тур листа при создании по билду: гайд авто-открывается через 250мс,
  *  а тур стартовал через 450мс прямо поверх него). */
-function _tourModalOpen() {
-  // STYLE-8M-2b: класс .active остаётся и на спрятанной модалке — проверяем
-  // видимость, иначе тур не стартовал бы уже никогда. Экран-страница (справка,
-  // гайд билда) тоже перекрывает лист: пока пользователь на ней, тура нет.
+/** Видна ли хоть одна модалка. STYLE-8M-2b: класс .active остаётся и на
+ *  спрятанной модалке — проверяем видимость, иначе тур не стартовал бы уже
+ *  никогда. LVL-4: вынесено из _tourModalOpen отдельно — туру ЭКРАНА мешают
+ *  только модалки, сам экран-страница для него законная сцена. */
+function _tourAnyModalVisible() {
   var m = document.querySelectorAll('.modal.active');
   for (var i = 0; i < m.length; i++) if (m[i].offsetParent !== null) return true;
+  return false;
+}
+
+function _tourModalOpen() {
+  // Экран-страница (справка, гайд билда) тоже перекрывает лист: пока
+  // пользователь на ней, тура по листу и вкладкам нет.
+  if (_tourAnyModalVisible()) return true;
   return typeof currentScreenName === "function" &&
          typeof PAGE_SCREENS !== "undefined" &&
          PAGE_SCREENS.indexOf(currentScreenName()) >= 0;
@@ -343,6 +355,52 @@ function maybeStartSheetTour() {
       startSheetTour();
     });
   }, 450);
+}
+
+// ── LVL-4: тур по экрану «Развитие» ──────────────────────────
+// Экран, а не вкладка: реестр TOUR_TABS завязан на switchTab, поэтому старт
+// и авто-старт здесь свои. Флаг ставится в момент фактического старта.
+
+/** Ручной запуск из статьи справки: уйти со справки, открыть «Развитие», стартовать. */
+function startProgressTour() {
+  closeHelp();
+  // Уход со справки — переход между экранами (300 мс): раньше стартовать нельзя,
+  // прожектор целился бы в экран посреди полёта.
+  setTimeout(function () {
+    if (typeof openProgress !== 'function') return;
+    openProgress();
+    setTimeout(function () {
+      // Без открытого персонажа openProgress() показывает тост и никуда не ведёт:
+      // стартовать тур там нечем — все шаги с целями отсеются, и от тура
+      // останется пара карточек ни о чём.
+      if (typeof currentScreenName === 'function' && currentScreenName() !== 'progress') return;
+      setHelpFlag(HELP_FLAG_PROGRESS_SEEN, '1');
+      startTour(_buildProgressSteps(), 'progress');
+    }, 320);
+  }, 320);
+}
+
+/** Авто-старт при первом открытии «Развития» (хук в openProgress). */
+function maybeStartProgressTour() {
+  if (getHelpFlag(HELP_FLAG_PROGRESS_SEEN)) return;
+  if (_tour) return;
+  var w = document.getElementById('welcome-modal');
+  if (w && w.classList.contains('active')) return;
+  // Ждём только закрытия модалок: _tourStartWhenClear здесь не годится —
+  // он считает любой экран-страницу помехой, а «Развитие» само такой экран.
+  var tries = 0;
+  setTimeout(function poll() {
+    if (_tour || getHelpFlag(HELP_FLAG_PROGRESS_SEEN)) return;
+    if (_tourAnyModalVisible()) {
+      if (++tries > 200) return;
+      setTimeout(poll, 600);
+      return;
+    }
+    // Пока ждали закрытия модалок, экран могли сменить — целиться некуда.
+    if (typeof currentScreenName === 'function' && currentScreenName() !== 'progress') return;
+    setHelpFlag(HELP_FLAG_PROGRESS_SEEN, '1');
+    startTour(_buildProgressSteps(), 'progress');
+  }, 350);
 }
 
 /** Перезапустить тур из help-центра по текущему экрану. */
@@ -806,6 +864,65 @@ function _buildSheetSteps() {
     {
       title: 'Готово',
       text: 'Это всё. Подробности — в «Справке» (боковое меню и каждый раздел), повторить обучение можно в «Настройки → Показать обучение заново».'
+    }
+  ];
+}
+
+/** LVL-4: тур по экрану «Развитие». Шаги с requireTarget выпадают сами:
+ *  у одноклассового нет «Осталось выбрать», у незаклинателя — ячеек. */
+function _buildProgressSteps() {
+  return [
+    {
+      title: 'Развитие персонажа',
+      text: 'Здесь собрано всё про уровни: что уже взято, что осталось выбрать и что даст следующий уровень. Листать — «Назад»/«Далее» или стрелками ←/→, закрыть — крестиком или Esc.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return document.querySelector('#pg-body .pg-head'); },
+      title: 'Уровень персонажа и уровень класса',
+      text: 'Крупно — классы с их уровнями, ниже — уровень персонажа, бонус мастерства и кости хитов. Это разные числа: уровень персонажа складывается из уровней классов.',
+      novice: 'Умения, заряды и подкласс открываются по уровню КЛАССА. Бонус мастерства один на все классы и растёт по уровню персонажа.'
+    },
+    {
+      requireTarget: true,
+      target: function () {
+        var el = document.querySelector('#pg-body .pg-attn-n');
+        return el && el.closest ? el.closest('.hp-row') : el;
+      },
+      title: 'Осталось выбрать',
+      text: 'Всё несделанное названо именем — подкласс, боевой стиль, увеличение характеристик, — и рядом стоит класс с его уровнем. Действие справа ведёт прямо к выбору. Секции нет, когда выбирать нечего.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return document.querySelector('#pg-body .hp-row[data-pg-cls]'); },
+      title: 'Класс — строка с раскрытием',
+      text: 'Строка на каждый класс: уровень и подкласс либо честный статус «подкласс с 3 ур.». Раскройте — внутри умения по уровням, тап по умению открывает его описание, там же вход в план класса 1–20.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return document.querySelector('#pg-body .hp-row[data-pg-row="slots"]'); },
+      title: 'Ячейки заклинаний',
+      text: 'У заклинателя-мультикласса ячейки считаются по общему пулу, а не складываются по классам. Раскрытие объясняет правило и показывает, сколько ячеек каждого круга получилось.',
+      novice: 'Полные заклинатели идут в пул целиком, паладин и следопыт — половиной уровня, мистический рыцарь и ловкач — третью.'
+    },
+    {
+      requireTarget: true,
+      target: function () {
+        var el = document.querySelector('#pg-body [data-pg-grp="next"]');
+        return el && el.nextElementSibling ? el.nextElementSibling : el;
+      },
+      title: 'Дальше',
+      text: 'Что даст следующий уровень каждого класса — до того, как вы нажали «Повысить»: новые умения, рост бонуса мастерства и прибавка хитов. Здесь же добавляется новый класс, если требования выполнены.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return document.querySelector('#pg-body .pg-acts'); },
+      title: 'Действия',
+      text: 'Повышение уровня, откат последнего повышения и план билда. После повышения приложение вернёт вас сюда.'
+    },
+    {
+      title: 'Готово',
+      text: 'Правила уровней, мультикласса и ячеек словами — в «Справке» → «Развитие»; кнопка «?» вверху экрана ведёт туда же.'
     }
   ];
 }

@@ -95,8 +95,53 @@ function _pgAboutRow() {
     "и он один на все классы.</p>" +
     "<p><b>Уровень класса</b> — сколько уровней взято именно в этом классе. От него зависят умения, " +
     "заряды и уровень, на котором открывается подкласс.</p>" +
-    "<p>Кость хитов у каждого класса своя, поэтому хиты растут той костью, чей класс вы повышаете.</p>";
+    "<p>Кость хитов у каждого класса своя, поэтому хиты растут той костью, чей класс вы повышаете. " +
+    "Прибавка — среднее по кости (у к10 это 6) плюс модификатор Телосложения; кидать кубик " +
+    "не обязательно, среднее по книге законно.</p>" +
+    _pgActRow('<button type="button" class="hp-act" onclick="openHelp(\'progress\')">Подробно в справке →</button>');
   return _pgDisc("Что это значит", "", body, false, { mute: true });
+}
+
+// LVL-4: бонус мастерства — величина, которую мультикласс путает чаще всего:
+// он считается от уровня ПЕРСОНАЖА и второй раз за второй класс не даётся.
+function _pgProfRow(char) {
+  var lvl = char.level || 1;
+  var prof = (typeof getProficiencyBonus === "function") ? getProficiencyBonus(lvl) : 2;
+  var next = 0, at = 0, steps = [5, 9, 13, 17];
+  for (var i = 0; i < steps.length; i++) {
+    if (lvl < steps[i]) { at = steps[i]; next = prof + 1; break; }
+  }
+  var body =
+    "<p>Один на все классы и растёт по уровню персонажа: +2 на 1–4, +3 на 5–8, +4 на 9–12, " +
+    "+5 на 13–16, +6 на 17–20. Взяв второй класс, второй бонус мастерства вы не получаете.</p>" +
+    "<p>Прибавляется к броскам, которыми персонаж владеет: атаки, спасброски классов, навыки " +
+    "и инструменты. При компетентности он удваивается.</p>" +
+    (at ? "<p>Следующий рост — на " + at + " уровне персонажа, до +" + next + ".</p>" : "");
+  return _pgDisc("Бонус мастерства", "<b>+" + prof + "</b>", body, false, { mute: true });
+}
+
+// LVL-4: расписание АСИ у каждого класса своё и считается по уровню КЛАССА —
+// именно здесь мультикласс обещает лишние увеличения, если считать по сумме.
+function _pgAsiRow(char, list) {
+  if (!list.length) return "";
+  var table = (typeof ASI_LEVELS !== "undefined") ? ASI_LEVELS : null;
+  if (!table) return "";
+  var lines = list.map(function(e) {
+    var sched = table[e.cls] || table["default"] || [];
+    var got = sched.filter(function(l) { return e.level >= l; }).length;
+    return "<p><b>" + escapeHtml(e.cls) + "</b> — " + sched.join(", ") +
+      " уровни класса; заработано " + got + " из " + sched.length + ".</p>";
+  }).join("");
+  var earned = (typeof charAsiSlots === "function") ? charAsiSlots(char).length : 0;
+  var used = 0;
+  var map = (char.asiUsed && typeof char.asiUsed === "object" && !Array.isArray(char.asiUsed)) ? char.asiUsed : {};
+  Object.keys(map).forEach(function(k) { if (Array.isArray(map[k])) used += map[k].length; });
+  var body =
+    "<p>Каждое увеличение — это +2 к одной характеристике, +1 к двум разным либо черта вместо " +
+    "прибавки. Выше 20 характеристику поднять нельзя.</p>" + lines +
+    "<p>Уровни считаются по классу, а не по сумме: Воин 3 / Плут 2 увеличения «на 4 уровне» не получает.</p>";
+  var meta = earned ? "<b>" + Math.min(used, earned) + "</b> <i>/ " + earned + "</i> использовано" : "пока нет";
+  return _pgDisc("Увеличение характеристик", meta, body, false, { mute: true });
 }
 
 // Строка опыта — только при char.exp > 0: партии на вехах порогов не ведут.
@@ -141,7 +186,7 @@ function _pgSlotRows(char) {
         "<p>Заклинания при этом готовятся раздельно, каждым классом по своему уровню. Ячейка общая — " +
         "потратить её можно на любое подготовленное заклинание.</p>";
     }
-    out += _pgDisc("Ячейки заклинаний", meta, body, false);
+    out += _pgDisc("Ячейки заклинаний", meta, body, false, { attr: ' data-pg-row="slots"' });
   }
   if (cl.pact) {
     out += _pgDisc("Ячейки договора", escapeHtml(cl.pact.cls) + " " + cl.pact.level + " ур.",
@@ -177,7 +222,7 @@ function _pgAttention(char) {
     });
   }
   if (!rows.length) return "";
-  return '<div class="pg-grp">Осталось выбрать</div><div class="hp-rows">' + rows.join("") + "</div>";
+  return '<div class="pg-grp" data-pg-grp="attn">Осталось выбрать</div><div class="hp-rows">' + rows.join("") + "</div>";
 }
 
 // ── «Классы» ────────────────────────────────────────────────
@@ -248,7 +293,7 @@ function _pgClasses(char, list) {
       return _pgClassRow(char, e, list.length === 1 || e.cls === grown);
     }).join("");
   }
-  return '<div class="pg-grp">Классы</div><div class="hp-rows">' + rows + "</div>";
+  return '<div class="pg-grp" data-pg-grp="classes">Классы</div><div class="hp-rows">' + rows + "</div>";
 }
 
 // ── «Дальше» ────────────────────────────────────────────────
@@ -311,7 +356,7 @@ function _pgNext(char, list) {
     rows += _pgDisc("Новый класс", ok.length ? "доступно " + ok.length : "требования не выполнены", nbody, false, { mute: true });
   }
 
-  return rows ? '<div class="pg-grp">Дальше</div><div class="hp-rows">' + rows + "</div>" : "";
+  return rows ? '<div class="pg-grp" data-pg-grp="next">Дальше</div><div class="hp-rows">' + rows + "</div>" : "";
 }
 
 function _pgActions(char) {
@@ -328,7 +373,7 @@ function _pgActions(char) {
 // ── Сборка и открытие ───────────────────────────────────────
 function _pgBuild(char) {
   var list = _pgClassList(char);
-  var top = _pgXpRow(char) + _pgAboutRow() + _pgSlotRows(char);
+  var top = _pgXpRow(char) + _pgAboutRow() + _pgProfRow(char) + _pgAsiRow(char, list) + _pgSlotRows(char);
   return _pgHead(char, list) +
     '<div class="hp-rows">' + top + "</div>" +
     _pgAttention(char) +
@@ -348,6 +393,9 @@ function openProgress() {
   if (body) body.innerHTML = _pgBuild(char);
   if (typeof _closeOpenModals === "function") _closeOpenModals();
   showScreen("progress");
+  // LVL-4: тур по экрану — при первом заходе, по флагу dnd_help_progress_seen.
+  // Сам ждёт закрытия модалок и проверяет, что экран всё ещё открыт.
+  if (typeof maybeStartProgressTour === "function") maybeStartProgressTour();
 }
 
 /** Перерисовать, если экран открыт. Зовётся из updateClassFeatures() — она
@@ -430,10 +478,33 @@ function renderClassDev() {
   var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
   if (!char) return;
   if (typeof migrateToMulticlass === "function") migrateToMulticlass(char);
-  head.innerHTML = _pgHeadInner(char, _pgClassList(char));
+  var list = _pgClassList(char);
+  head.innerHTML = _pgHeadInner(char, list);
   var attn = $("cd-attn");
   if (attn) attn.innerHTML = _pgAttention(char);
+  // LVL-4: то же объяснение, что на экране, но короче — новичку хватает его,
+  // не уходя с листа; за подробностями строка ведёт в справку.
+  var about = $("cd-about");
+  if (about) about.innerHTML = _pgSheetAboutRow(char, list);
   syncClassFieldUI(char);
+}
+
+/** Раскрытие «что это значит» в разделе листа: три величины, которые
+ *  мультикласс путает чаще всего, — уровень, бонус мастерства, кость хитов. */
+function _pgSheetAboutRow(char, list) {
+  var lvl = char.level || 1;
+  var prof = (typeof getProficiencyBonus === "function") ? getProficiencyBonus(lvl) : 2;
+  var multi = list.length > 1;
+  var body =
+    "<p><b>Уровень персонажа</b> — " + lvl + ", это сумма уровней всех классов. От него считается " +
+    "бонус мастерства <b>+" + prof + "</b>, один на все классы.</p>" +
+    "<p><b>Уровень класса</b> — сколько уровней взято в этом классе. От него зависят умения, " +
+    "заряды и уровень, на котором открывается подкласс" +
+    (multi ? ": " + list.map(function(e) { return escapeHtml(e.cls) + " " + e.level; }).join(", ") : "") + ".</p>" +
+    "<p>Кость хитов у каждого класса своя, поэтому хиты растут костью того класса, чей уровень вы повышаете.</p>" +
+    _pgActRow('<button type="button" class="hp-act" onclick="openProgress()">Развитие →</button>' +
+      '<button type="button" class="hp-act" onclick="openHelp(\'progress\')">Подробно в справке →</button>');
+  return _pgDisc("Что это значит", "", body, false, { mute: true });
 }
 
 /** Поле «Класс» на листе: у мультикласса <select> умеет только первый класс,
@@ -470,9 +541,53 @@ function openFeatureInfo(cls, sub, level, name) {
     var s = subclassSourceShort(sub);
     if (s) srcLabel += ' <span class="hp-dot">·</span> ' + escapeHtml(s);
   }
+  // LVL-4: описание проходит через глоссарий — термины становятся нажимаемыми
+  // с поповером, а найденные в тексте объясняются ещё и блоком ниже, чтобы
+  // новичку не нужно было догадываться, что слово можно нажать.
+  var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  var ed = (char && char.edition === "2024") ? "2024" : "2014";
+  var descEsc = escapeHtml(found.desc || "");
+  var descHtml = descEsc;
+  if (typeof glossarizeHtml === "function") {
+    try { descHtml = glossarizeHtml(descEsc, {}, ed); } catch (e) { descHtml = descEsc; }
+  }
   var html = '<p class="ai-mine">' + srcLabel + "</p>" +
-    '<p class="ai-lead">' + escapeHtml(found.desc || "") + "</p>";
+    '<p class="ai-lead">' + descHtml + "</p>" + _fiRuleNotes(found.desc || "", ed);
   var body = $("fi-body");
   if (body) body.innerHTML = html;
+  if (typeof _glossBindOnce === "function") _glossBindOnce();
   showScreen("featureinfo");
+}
+
+/** Блок «По правилам»: до трёх терминов глоссария, встреченных в описании
+ *  умения, с их определениями. Термин ищется по границе слова — «ки» внутри
+ *  «броски» сработать не должен. */
+function _fiRuleNotes(desc, ed) {
+  var list = (typeof window !== "undefined" && Array.isArray(window.GLOSSARY)) ? window.GLOSSARY.slice() : [];
+  if (ed === "2024" && typeof window !== "undefined" && Array.isArray(window.GLOSSARY_2024)) {
+    list = window.GLOSSARY_2024.concat(list);
+  }
+  if (!list.length || !desc) return "";
+  var text = String(desc).toLowerCase();
+  var hits = [], seen = {};
+  list.forEach(function(entry) {
+    if (hits.length >= 3 || !entry || !entry.terms || seen[entry.term]) return;
+    var found = entry.terms.some(function(form) {
+      var f = String(form).toLowerCase();
+      var at = text.indexOf(f);
+      while (at !== -1) {
+        var before = at === 0 ? " " : text.charAt(at - 1);
+        var after = text.charAt(at + f.length) || " ";
+        if (!/[а-яёa-z0-9]/.test(before) && !/[а-яёa-z0-9]/.test(after)) return true;
+        at = text.indexOf(f, at + 1);
+      }
+      return false;
+    });
+    if (found) { seen[entry.term] = true; hits.push(entry); }
+  });
+  if (!hits.length) return "";
+  return '<div class="ai-block"><div class="ai-block-title">По правилам ' + ed + "</div>" +
+    hits.map(function(e) {
+      return "<p><b>" + escapeHtml(e.term) + "</b> — " + escapeHtml(e.def) + "</p>";
+    }).join("") + "</div>";
 }
