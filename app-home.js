@@ -238,6 +238,26 @@ function closeDataModal() {
   if (typeof screenBack === "function") screenBack();
 }
 
+/**
+ * «Печать / PDF» на экране «Данные»: печатает лист открытого героя, а если с
+ * главного экрана никто не открыт — последнего правленого (того же, кого
+ * предлагает «Продолжить»). Сам PDF-стек ленивый: window.exportCharacterPDF —
+ * заглушка из index.html, она догружает jsPDF и app-pdf.js по первому клику.
+ */
+function homeExportPdf(ev) {
+  var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  if (!char) char = getLastCharacter();
+  if (!char) {
+    if (typeof showToast === "function") showToast("Нет персонажа для печати", "error");
+    return;
+  }
+  if (typeof window.exportCharacterPDF !== "function") {
+    if (typeof showToast === "function") showToast("PDF-модуль недоступен", "error");
+    return;
+  }
+  window.exportCharacterPDF(char.id, ev);
+}
+
 function openAboutModal() {
   // Полоса версии живёт внутри экрана, поэтому наполняем её перед показом
   // (в т.ч. кнопкой «Установить», если SW принёс обновление).
