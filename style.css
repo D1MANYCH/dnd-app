@@ -2791,46 +2791,10 @@ display: -webkit-box;
 -webkit-box-orient: vertical;
 }
 
-/* ========== CLASS FEATURES ========== */
-.class-features-section {
-background: var(--input-bg);
-border: 1px solid var(--accent-color);
-border-radius: var(--r-md);
-padding: 15px;
-margin-top: 15px;
-}
-.class-features-section h4 {
-color: var(--accent-color);
-font-size: 0.9em;
-margin: 0 0 12px 0;
-display: flex;
-align-items: center;
-gap: 8px;
-}
-.features-grid {
-display: grid;
-grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-gap: 10px;
-}
-.feature-item {
-background: var(--card-bg);
-border: 1px solid var(--border-color);
-border-radius: 8px;
-padding: 12px;
-transition: all 0.2s;
-}
-/* Отметки «новое умение» / «умение подкласса» — только цветной левой рамкой
-   (как у карточек ресурсов): сплошная зелёная/золотая заливка на 1 уровне
-   красила ВСЮ секцию и выбивалась из единого стиля карточек листа. */
-.feature-item.new {
-border-left: 3px solid var(--success-color);
-}
-.feature-item.subclass-feature {
-border-left: 3px solid var(--accent-color);
-}
-.feature-item.subclass-feature.new {
-border-left: 3px solid var(--success-color);
-}
+/* ========== CLASS FEATURES ==========
+   LVL-3: аккордеон «Классовые умения» с сеткой карточек-фич уехал с листа на
+   экран «Развитие» (.pg-feat) — от блока остался только бейдж подкласса, он
+   же стоит в модалке повышения уровня. */
 .subclass-badge {
 display: inline-block;
 background: rgba(255, 215, 0, 0.2);
@@ -2960,61 +2924,10 @@ vertical-align: middle;
 .lu-feature-profs {
   border-left: 3px solid #5a9;
 }
-.feature-class-header {
-  grid-column: 1 / -1;
-  padding: 10px 12px;
-  margin-top: 8px;
-  background: linear-gradient(90deg, rgba(255,215,0,0.12), transparent);
-  border-left: 4px solid var(--accent-color);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.feature-class-name {
-  font-weight: 700;
-  color: var(--accent-color);
-}
-.feature-level {
-display: inline-block;
-background: var(--accent-color);
-color: #000;
-padding: 2px 8px;
-border-radius: 4px;
-font-size: 0.7em;
-font-weight: bold;
-margin-bottom: 6px;
-}
-.feature-name {
-font-weight: 600;
-color: var(--text-color);
-font-size: 0.85em;
-margin-bottom: 4px;
-}
-.feature-desc {
-font-size: 0.65em;
-color: var(--text-muted);
-line-height: 1.4;
-}
-
-/* ========== ASI BUTTON ========== */
-.asi-button {
-background: var(--info-color);
-color: white;
-border: none;
-padding: 12px 20px;
-border-radius: 8px;
-font-weight: 600;
-cursor: pointer;
-width: 100%;
-margin-top: 10px;
-transition: all 0.2s;
-font-size: 0.9em;
-}
-.asi-button:hover {
-filter: brightness(1.06);
-box-shadow: 0 2px 10px rgba(91, 155, 213, 0.3);
-}
+/* LVL-3: заголовок класса, бейдж уровня и описание фичи в списке умений листа
+   сняты вместе с самим списком — на «Развитии» это строка .pg-feat.
+   Синяя кнопка .asi-button ушла туда же: непотраченное АСИ теперь строка
+   «Осталось выбрать» с текстовым действием. */
 
 /* ========== УБИРАЕМ СТРЕЛКИ ========== */
 input[type="number"]::-webkit-inner-spin-button,
@@ -5092,12 +5005,8 @@ max-height: 90vh;
 overflow-y: auto;
 cursor: default;
 }
-/* UI-9: контейнер «Повысить / Откатить уровень» */
-.level-actions { display: flex; gap: var(--sp-2); flex-wrap: wrap; align-items: stretch; margin: var(--sp-2) 0 var(--sp-3); }
-.level-actions > button { flex: 1 1 auto; min-width: 0; }
-.level-actions > .btn { height: var(--control-h); }
-.level-down-btn { opacity: 0.92; }
-.level-down-btn:hover { opacity: 1; }
+/* LVL-3: три залитые кнопки «Повысить / Развитие / Откатить» стали текстовыми
+   действиями в подвале раздела «Класс и развитие» (.pg-acts + .hp-act). */
 
 /* BUGFIX-5: button-сброс для span→button конвертированных кликабельных элементов */
 button.modal-close,
@@ -6914,7 +6823,6 @@ transition: width var(--t3, 420ms) var(--ez-spring, ease), background 0.4s;
    справа нужна вся ширина, иначе «Наложить» переносится под название. */
 .conditions-grid { grid-template-columns: 1fr; }
 .effects-grid { grid-template-columns: 1fr; }
-.features-grid { grid-template-columns: 1fr; }
 /* Stats specific */
 .stat-compact-mod { font-size: 1.15em !important; }
 .stat-compact-label { font-size: 0.6em !important; letter-spacing: 0.5px !important; }
@@ -8602,86 +8510,11 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   color: var(--text-color);
 }
 
-/* ========== CLASS RESOURCES ========== */
-.resource-passive-card {
-  background: var(--bg-1);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-md);
-  padding: 10px 13px;
-  margin-bottom: 8px;
-}
-.resource-passive-title {
-  font-size: 0.78em;
-  font-weight: 700;
-  color: var(--accent-color);
-  margin-bottom: 5px;
-}
-.resource-passive-text {
-  font-family: inherit;
-  font-size: 0.73em;
-  color: var(--text-dim);
-  white-space: pre-wrap;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.resource-card {
-  /* var(--bg-1) вместо rgba(255,255,255,0.03): на светлой теме белая плёнка
-     была невидима — блок «парил» без карточки, выбиваясь из стиля листа */
-  background: var(--bg-1);
-  border: 1px solid rgba(var(--res-color, 201,162,39), 0.25);
-  border-left: 3px solid var(--res-color, var(--accent-color));
-  border-radius: var(--r-md);
-  padding: 11px 13px;
-  margin-bottom: 8px;
-  transition: background 0.2s;
-}
-.resource-card:hover { background: var(--bg-2); }
-
-.resource-header {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-bottom: 8px;
-}
-.resource-icon { font-size: 1.2em; flex-shrink: 0; }
-.resource-name {
-  flex: 1;
-  font-size: 0.9em;
-  font-weight: 700;
-  color: var(--text);
-}
-/* SDR-1: размер кости ресурса (к8/к10/к12) рядом с названием */
-.resource-die {
-  font-weight: 600;
-  font-size: 0.82em;
-  color: var(--res-color, #c9a227);
-  opacity: 0.95;
-}
-.resource-restore-badge {
-  font-size: 0.68em;
-  color: var(--text-mute);
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: var(--r-sm);
-  padding: 2px 7px;
-  white-space: nowrap;
-}
-
-/* Counter row */
-.resource-counter-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 7px;
-}
-.resource-count {
-  font-size: 1.1em;
-  font-weight: 700;
-  color: var(--res-color, var(--accent-color));
-  min-width: 50px;
-  text-align: center;
-}
+/* ========== CLASS RESOURCES ==========
+   LVL-3: карточки ресурсов, пассивок и заклинаний подкласса сняты — ресурс
+   стал строкой раздела «Класс и развитие» (.hp-row* + .cr-* в конце файла),
+   и та же разметка стоит на вкладке «Бой». Здесь остаётся только .res-btn:
+   его использует блок прихвостней. */
 .res-btn {
   padding: 5px 12px;
   border-radius: var(--r-sm);
@@ -8700,64 +8533,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .res-btn:hover { background: var(--bg-3); border-color: var(--border); }
 .res-btn:active { transform: scale(0.93); }
 .res-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.res-btn-use {
-  background: rgba(231,76,60,0.12);
-  border-color: rgba(231,76,60,0.35);
-  color: #e07060;
-}
-.res-btn-use:hover { background: rgba(231,76,60,0.22); }
-.res-btn-reset {
-  background: rgba(87,179,109,0.1);
-  border-color: rgba(87,179,109,0.3);
-  color: #57b36d;
-}
-.res-btn-reset:hover { background: rgba(87,179,109,0.2); }
-
-/* Pool row (Lay on Hands) */
-.resource-pool-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 7px;
-}
-.resource-pool-val {
-  font-size: 1.15em;
-  font-weight: 700;
-  color: var(--res-color, var(--accent-color));
-  flex: 1;
-}
-.resource-pool-btns { display: flex; gap: 5px; }
-
-/* Pips */
-.resource-pips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: 7px;
-}
-.resource-pip {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.05);
-  cursor: pointer;
-  transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.resource-pip.full {
-  background: var(--res-color, var(--accent-color));
-  border-color: var(--res-color, var(--accent-color));
-  box-shadow: 0 0 5px var(--res-color, var(--accent-color));
-}
-.resource-pip:hover { transform: scale(1.2); }
-
-.resource-desc {
-  font-size: 0.68em;
-  color: var(--text-mute);
-  line-height: 1.4;
-  margin-top: 3px;
-}
 
 /* ========== ASI MODAL ========== */
 .asi-modal-box {
@@ -9467,76 +9242,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   overflow: hidden;
 }
 
-/* ========== ASI LEVEL BUTTONS ========== */
-.asi-available-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 14px;
-}
-.asi-level-btn {
-  /* Full-width card-style button */
-  width: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  padding: 14px 18px !important;
-  font-size: 0.88em !important;
-  font-weight: 700 !important;
-  border-radius: 12px !important;
-  background: rgba(212,168,67,0.10) !important;
-  border: 1.5px solid rgba(212,168,67,0.4) !important;
-  color: var(--text) !important;
-  cursor: pointer !important;
-  transition: all 0.2s !important;
-  text-align: left !important;
-  box-sizing: border-box !important;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-.asi-level-btn:hover {
-  background: rgba(212,168,67,0.18) !important;
-  border-color: var(--accent-color) !important;
-  box-shadow: 0 2px 12px rgba(212,168,67,0.16) !important;
-}
-.asi-level-btn:active {
-  transform: scale(0.98) !important;
-}
-.asi-btn-left {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.asi-btn-title {
-  font-size: 1em;
-  font-weight: 800;
-  color: var(--accent-color);
-}
-.asi-btn-hint {
-  font-size: 0.72em;
-  color: var(--text-mute);
-  font-weight: 400;
-}
-.asi-btn-arrow {
-  font-size: 1.3em;
-  color: var(--accent-color);
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-.asi-all-used {
-  font-size: 0.8em;
-  color: var(--success-color);
-  background: rgba(77,168,67,0.08);
-  border: 1px solid rgba(77,168,67,0.2);
-  border-radius: var(--r-md);
-  padding: 10px 16px;
-  margin-top: 10px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
+/* LVL-3: карточки-кнопки непотраченного АСИ (20 !important) сняты — на листе
+ и на «Развитии» это строка «Осталось выбрать» с текстовым действием, а сводку
+ «все АСИ применены» заменило само отсутствие строки. */
 
 /* ========== SW UPDATE MODAL ==========
    STYLE: язык встречающего экрана — ни одной коробки внутри. Заголовок с ромбом,
@@ -15809,3 +15517,68 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .bp-plan-cls:hover { text-decoration: underline; }
 .bp-plan-cls.is-cur { color: var(--text-color); cursor: default; }
 .bp-plan-cls-sep { color: var(--home-sub); }
+
+/* ============================================
+   LVL-3 · Раздел «Класс и развитие» на листе и дубль ресурсов в «Бою»
+   Строки, ромб раскрытия и текстовые действия — общие с «Здоровьем и Боем»
+   (.hp-row* / .hp-act / .disc-diamond) и экраном «Развитие» (.pg-*). Своё
+   здесь только заряды ресурса: ромбы-пипсы в свёрнутой строке и строка
+   мультикласса на месте <select> класса.
+   ============================================ */
+.cd-card .pg-head { padding-top: 0; }
+.cd-card .pg-acts { gap: var(--sp-4); }
+
+/* Заряды: ромб того же рисунка, что пипс кости хитов, но крупнее — по нему
+   тапают. Саму зону нажатия расширяет прозрачный ::after (рецепт .ds-box). */
+.cr-pips {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.cr-pip {
+  position: relative;
+  width: 11px;
+  height: 11px;
+  box-sizing: border-box;
+  border: 1px solid var(--accent);
+  transform: rotate(45deg);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cr-pip::after {
+  content: "";
+  position: absolute;
+  inset: -14px;
+}
+.cr-pip--full { background: var(--accent); }
+.cr-pip:not(.cr-pip--full) { border-color: var(--home-sub); opacity: 0.5; }
+
+/* Размер кости ресурса (к8/к10/к12) — приглушённой припиской к названию */
+.cr-die { font-style: normal; font-size: 0.85em; color: var(--home-sub); }
+
+/* Пассивные умения и заклинания подкласса: текст как есть, без коробки */
+.cr-pre {
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  color: var(--home-sub);
+  white-space: pre-wrap;
+}
+
+/* Мультикласс на месте <select>: строка со всеми классами и входом в раздел */
+.cd-class-mc {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: 44px;
+  border-bottom: 1px solid var(--home-rule);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  color: var(--text-color);
+  cursor: pointer;
+}
+.cd-class-mc-act { margin-left: auto; font-size: var(--fs-sm); color: var(--accent-lo); }
+.cd-class-mc:hover .cd-class-mc-act { text-decoration: underline; }

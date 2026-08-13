@@ -578,8 +578,11 @@ if (avatarEl) {
   }
 }
 if (subtitleEl && char) {
+  // LVL-3: в шапке стоял char.class — то есть ПЕРВЫЙ класс. У Плут 2 / Монах 2
+  // второго класса не было видно нигде на экране, с этого и началась жалоба.
   var parts = [];
-  if (char.class) parts.push(char.class);
+  var _cls = getClassLabel(char);
+  if (_cls) parts.push(_cls);
   if (char.race) parts.push(char.race);
   subtitleEl.textContent = parts.join(" · ");
 } else if (subtitleEl) {
@@ -597,7 +600,8 @@ var subEl = $("drawer-char-sub");
 if (nameEl) nameEl.textContent = name;
 if (subEl) {
   var parts = [];
-  if (char && char.class) parts.push(char.class);
+  var cls = char ? getClassLabel(char) : "";
+  if (cls) parts.push(cls);
   if (char && char.race) parts.push(char.race);
   subEl.textContent = parts.join(" · ");
 }

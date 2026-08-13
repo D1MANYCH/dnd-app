@@ -328,103 +328,10 @@ if (typeof migrateToMulticlass === "function") migrateToMulticlass(char);
 // LVL-2: экран «Развитие» перерисовывается тем же сигналом, что список умений
 // на листе — эта функция идёт следом за повышением, откатом, АСИ и выборами.
 if (typeof pgRefresh === "function") pgRefresh();
-const className = char.class;
-const level = char.level;
-const featuresSection = $("class-features-section");
-const featuresGrid = $("features-grid");
-const asiContainer = $("asi-container");
-if (!className || !CLASS_FEATURES[className]) {
-featuresSection.style.display = "none";
-return;
-}
-featuresSection.style.display = "block";
-featuresGrid.innerHTML = "";
-
-// Список (класс, уровень, подкласс) для рендеринга — поддержка мультикласса
-var classList = (char.classes && char.classes.length > 0)
-  ? char.classes
-  : [{class: className, level: level, subclass: char.subclass || ""}];
-
-classList.forEach(function(entry) {
-  var cls = entry.class;
-  var clsLevel = entry.level;
-  var subName = entry.subclass || "";
-  var clsFeats = CLASS_FEATURES[cls];
-  if (!clsFeats) return;
-  var subFeats = (typeof SUBCLASS_FEATURES !== "undefined" && subName) ? SUBCLASS_FEATURES[subName] : null;
-
-  // Заголовок класса (только если мультикласс)
-  if (classList.length > 1) {
-    var header = document.createElement("div");
-    header.className = "feature-class-header";
-    header.innerHTML = "<span class='feature-class-name'>" + dndIcoHtml("combat", 14) + " " + escapeHtml(cls) + " " + clsLevel + "</span>" +
-      (subName ? "<span class='subclass-badge'>" + escapeHtml(subName) + "</span>" : "");
-    featuresGrid.appendChild(header);
-  }
-
-  for (var l = 1; l <= clsLevel; l++) {
-    if (clsFeats[l]) {
-      clsFeats[l].forEach(function(feature) {
-        var featureDiv = document.createElement("div");
-        featureDiv.className = "feature-item" + (l === clsLevel ? " new" : "");
-        featureDiv.innerHTML = "<span class=\"feature-level\">" + l + " ур.</span><div class=\"feature-name\">" + escapeHtml(feature.name) + "</div><div class=\"feature-desc\">" + escapeHtml(feature.desc) + "</div>";
-        featuresGrid.appendChild(featureDiv);
-      });
-    }
-    if (subFeats && subFeats[l]) {
-      subFeats[l].forEach(function(feature) {
-        var featureDiv = document.createElement("div");
-        featureDiv.className = "feature-item subclass-feature" + (l === clsLevel ? " new" : "");
-        featureDiv.innerHTML = "<span class=\"feature-level\">" + l + " ур.</span><span class=\"subclass-badge\">" + escapeHtml(subName) + "</span><div class=\"feature-name\">" + escapeHtml(feature.name) + "</div><div class=\"feature-desc\">" + escapeHtml(feature.desc) + "</div>";
-        featuresGrid.appendChild(featureDiv);
-      });
-    }
-  }
-});
-// LVL-1: АСИ даёт КАЖДЫЙ класс на своих уровнях (PHB, «Мультиклассирование»).
-// Раньше бралось расписание первого класса и сравнивалось с СУММАРНЫМ уровнем:
-// у Воин 3 / Плут 2 всплывало АСИ «4 ур.», которого воин ещё не заработал.
-var earnedASI = (typeof charAsiSlots === "function") ? charAsiSlots(char) : [];
-if (!char.asiUsed || typeof char.asiUsed !== "object" || Array.isArray(char.asiUsed)) char.asiUsed = {};
-var unusedASI = earnedASI.filter(function(slot) {
-  var used = char.asiUsed[slot.cls];
-  return !(Array.isArray(used) && used.indexOf(slot.level) !== -1);
-});
-var asiShowClass = classList.length > 1;
-
-if (unusedASI.length > 0) {
-  asiContainer.innerHTML =
-    '<div class="asi-available-wrap">' +
-    unusedASI.map(function(slot) {
-      var where = (asiShowClass ? escapeHtml(slot.cls) + " " : "") + slot.level + " ур.";
-      return '<button class="asi-button asi-level-btn" onclick="openASIModalForLevel(' + slot.level + ', \'' + escapeHtml(slot.cls) + '\')">' +
-        '<div class="asi-btn-left">' +
-          '<span class="asi-btn-title">' + dndIcoHtml("trend", 14) + ' Увеличение характеристик · ' + where + '</span>' +
-          '<span class="asi-btn-hint">+2 к одной характеристике, +1+1 к двум или черта PHB</span>' +
-        '</div>' +
-        '<span class="asi-btn-arrow">›</span>' +
-        '</button>';
-    }).join("") +
-    '</div>';
-} else if (earnedASI.length > 0) {
-  // All used — show greyed out summary
-  var asiByClass = {}, asiOrder = [];
-  earnedASI.forEach(function(slot) {
-    if (!asiByClass[slot.cls]) { asiByClass[slot.cls] = []; asiOrder.push(slot.cls); }
-    asiByClass[slot.cls].push(slot.level);
-  });
-  var asiSummary = asiOrder.map(function(cls) {
-    return (asiShowClass ? escapeHtml(cls) + " " : "ур. ") + asiByClass[cls].join(", ");
-  }).join(" · ");
-  asiContainer.innerHTML =
-    '<div class="asi-all-used">' + dndIcoHtml("check", 14) + ' Все АСИ применены (' + asiSummary + ')</div>';
-} else {
-  asiContainer.innerHTML = "";
-}
-// Классовые выборы (стили боя, метамагия, воззвания, экспертиза, и т.д.)
-if (typeof renderClassChoices === "function") {
-  renderClassChoices(char, asiContainer);
-}
+// LVL-3: список умений, кнопки АСИ и карточки классовых выборов уехали с листа
+// на экран «Развитие» — здесь остались сводка раздела «Класс и развитие»,
+// строки ресурсов (лист + вкладка «Бой») и невыбранное именем.
+if (typeof renderClassDev === "function") renderClassDev();
 renderClassResources();
 }
 // 🔧 ИСПРАВЛЕНИЕ: Защита от undefined в calculateAC()

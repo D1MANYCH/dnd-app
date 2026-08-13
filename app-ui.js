@@ -450,111 +450,150 @@ function currentDieSize(res, level) {
   return best;
 }
 
-// Рендер блока ресурсов
+// LVL-3: строка ресурса по рецепту «Здоровье и Бой» — ромб раскрытия, имя,
+// справа заряды. Коробок (.resource-card), залитых «Использовать»/«Сброс» и
+// счётчика между ними больше нет.
+function crRow(name, meta, body, opts) {
+  opts = opts || {};
+  return '<div class="hp-row" onclick="hpToggleRow(this)">' +
+    '<span class="disc-diamond' + (opts.mute ? " disc-diamond--plain" : "") + '"></span>' +
+    '<span class="hp-row-name' + (opts.mute ? " pg-name--mute" : "") + '">' + name + '</span>' +
+    (meta || "") +
+    '</div><div class="hp-row-body">' + body + '</div>';
+}
+
+// Восстановление — словами, а не бейджем-пилюлей: подпись читается в раскрытии
+// вместе с классом-источником («Варвар · долгий отдых»).
+function crRestoreLabel(res) {
+  if (res.restoreOn === "short") return "короткий отдых";
+  if (res.restoreOn === "long" || res.restoreOn === "long_once") return "долгий отдых";
+  if (res.restoreOn === "turn") return "каждый ход";
+  return "";
+}
+
+// LVL-3: подача зависит от величины максимума. Порог ромбов — 6: фиксированных
+// максимумов 7–8 в данных нет вовсе, а на 390 px шесть ромбов оставляют запас
+// под самое длинное имя ресурса, восемь — вылезают за строку.
+var CR_PIP_LIMIT = 6;
+
+function crResourceRow(res, char) {
+  var max = getResourceMax(res, char);
+  if (max === 0) return ""; // ещё не открыт на этом уровне класса
+  var used = char.resources[res.id] || 0;
+  if (used > max) { used = max; char.resources[res.id] = used; }
+  var remaining = max - used;
+  // SDR-1: размер кости — по уровню КЛАССА-источника (LVL-1), иначе кости
+  // превосходства мистического рыцаря росли бы от суммарного уровня.
+  var dieSize = currentDieSize(res, res._clsLevel || char.level || 1);
+  var id = escapeHtml(res.id);
+  var spend = function(label, delta) {
+    return '<button type="button" class="hp-act" onclick="spendResource(\'' + id + '\',' + delta + ')">' + label + '</button>';
+  };
+
+  var meta, acts;
+  if (res.isPool) {
+    // Пул хитов («Наложение рук») — не заряды: число и шаг в 5 ХП
+    meta = '<span class="hp-row-meta"><b>' + remaining + '</b> / ' + max + '</span>';
+    acts = spend("− 5", 5) + spend("− 1", 1) + spend("+ 1", -1);
+  } else if (max === 99) {
+    meta = '<span class="hp-row-meta">∞</span>';
+    acts = "";
+  } else if (max <= CR_PIP_LIMIT) {
+    var pips = "";
+    for (var p = 0; p < max; p++) {
+      pips += '<span class="cr-pip' + (p < remaining ? " cr-pip--full" : "") +
+        '" onclick="event.stopPropagation(); toggleResourcePip(\'' + id + '\',' + p + ')"></span>';
+    }
+    meta = '<span class="cr-pips">' + pips + '</span>';
+    acts = "";
+  } else {
+    meta = '<span class="hp-row-meta"><b>' + remaining + '</b> / ' + max + '</span>';
+    acts = spend("− 1", 1) + spend("+ 1", -1);
+  }
+
+  var src = escapeHtml(res._cls || "");
+  var rest = crRestoreLabel(res);
+  if (rest) src += (src ? ' <span class="hp-dot">·</span> ' : "") + rest;
+
+  var body = '<p class="hp-row-hint">' + escapeHtml(res.desc || "") + "</p>" +
+    (src ? '<p class="hp-row-hint">' + src + "</p>" : "") +
+    '<div class="hp-row-line">' + acts +
+      (used > 0 ? '<button type="button" class="hp-act" onclick="resetResource(\'' + id + '\')">Сброс</button>' : "") +
+    "</div>";
+
+  var name = escapeHtml(res.name) + (dieSize ? ' <i class="cr-die">(' + escapeHtml(dieSize) + ")</i>" : "");
+  return crRow(name, meta, body);
+}
+
+/** Строки ресурсов, пассивок и заклинаний подкласса одной разметкой —
+ *  она уходит и на лист, и на вкладку «Бой». */
+function crRowsHtml(char) {
+  var data = getCharResourceDefs(char);
+  if (!data) return "";
+  var html = "";
+
+  (data.resources || []).forEach(function(res) { html += crResourceRow(res, char); });
+
+  // Пассивные умения класса — по одной строке на класс (мультикласс даёт несколько)
+  (data.passives || []).forEach(function(p) {
+    html += crRow("Пассивные умения", '<span class="hp-row-meta">' + escapeHtml(p.cls) + "</span>",
+      '<pre class="cr-pre">' + escapeHtml(p.notes) + "</pre>", { mute: true });
+  });
+
+  // SDR-2: заклинания подкласса (домены/клятвы/покровители) — открытые по уровню КЛАССА
+  (data.subclassSpells || []).forEach(function(entry) {
+    var ss = entry.ss;
+    if (!ss || !ss.byLevel) return;
+    var lvl = entry.level || 1;
+    var lines = [];
+    Object.keys(ss.byLevel).map(Number).sort(function(a, b){ return a - b; }).forEach(function(k){
+      if (lvl < k) return; // ещё не открыто на текущем уровне класса
+      var names = ss.byLevel[k].map(function(s){ return s.replace(/\s*\([^)]*\)\s*$/, ""); }).join(", ");
+      lines.push(k + " ур.: " + names);
+    });
+    if (!lines.length) return;
+    html += crRow(escapeHtml(ss.label || "Заклинания подкласса"),
+      '<span class="hp-row-meta">' + escapeHtml(entry.cls) + "</span>",
+      '<pre class="cr-pre">' + escapeHtml(lines.join("\n")) + "</pre>", { mute: true });
+  });
+
+  return html;
+}
+
+// Трата заряда перерисовывает весь блок, а действия «− 1» и «Сброс» лежат
+// В РАСКРЫТИИ — без этого строка захлопывалась бы под пальцем. Раскрытое
+// состояние восстанавливается по позиции строки, в памяти персонажа не живёт.
+function crSetRows(box, html) {
+  if (!box) return;
+  var open = [], rows = box.querySelectorAll(".hp-row"), i;
+  for (i = 0; i < rows.length; i++) {
+    if (rows[i].classList.contains("is-open")) open.push(i);
+  }
+  box.innerHTML = html;
+  var fresh = box.querySelectorAll(".hp-row");
+  open.forEach(function(idx) {
+    if (fresh[idx] && typeof hpSetRowOpen === "function") hpSetRowOpen(fresh[idx], true);
+  });
+}
+
+// Рендер строк ресурсов — сразу в два места: раздел «Класс и развитие» на листе
+// и карточка на вкладке «Бой» (ресурсы тратят в бою, а не на листе).
 function renderClassResources() {
   if (!currentId) return;
   var char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
 
-  var section = $("class-resources-section");
-  var grid = $("class-resources-grid");
-  if (!section || !grid) return;
+  var sheet = $("cd-res");
+  var battle = $("battle-res-rows");
+  var battleCard = $("battle-res-card");
+  if (!sheet && !battle) return;
 
-  var data = getCharResourceDefs(char);
-
-  if (!data || ((!data.resources || data.resources.length === 0) &&
-                (!data.subclassSpells || data.subclassSpells.length === 0))) {
-    section.style.display = "none";
-    return;
-  }
-
-  section.style.display = "block";
-  grid.innerHTML = "";
-
-  // Passive notes card — по одной на класс (LVL-1: мультикласс даёт несколько)
-  (data.passives || []).forEach(function(p) {
-    var notesEl = document.createElement("div");
-    notesEl.className = "resource-passive-card";
-    notesEl.innerHTML = '<div class="resource-passive-title">' + dndIcoHtml("book", 14) + ' Пассивные умения ' + escapeHtml(p.cls) + '</div>' +
-      '<pre class="resource-passive-text">' + escapeHtml(p.notes) + '</pre>';
-    grid.appendChild(notesEl);
-  });
-
-  // SDR-2: карточка заклинаний подкласса (домены/клятвы/покровители) — открытые по уровню КЛАССА
-  (data.subclassSpells || []).forEach(function(entry) {
-    var ss = entry.ss;
-    if (!ss || !ss.byLevel) return;
-    var lvl = entry.level || 1;
-    var ssLines = [];
-    Object.keys(ss.byLevel).map(Number).sort(function(a, b){ return a - b; }).forEach(function(k){
-      if (lvl < k) return; // ещё не открыто на текущем уровне класса
-      var names = ss.byLevel[k].map(function(s){ return s.replace(/\s*\([^)]*\)\s*$/, ""); }).join(", ");
-      ssLines.push(k + " ур.: " + names);
-    });
-    if (ssLines.length) {
-      var ssEl = document.createElement("div");
-      ssEl.className = "resource-passive-card";
-      ssEl.innerHTML = '<div class="resource-passive-title">' + escapeHtml((ss.icon ? ss.icon + " " : "") + (ss.label || "Заклинания подкласса")) + '</div>' +
-        '<pre class="resource-passive-text">' + escapeHtml(ssLines.join("\n")) + '</pre>';
-      grid.appendChild(ssEl);
-    }
-  });
-
-  // Resource cards
-  data.resources.forEach(function(res) {
-    var max = getResourceMax(res, char);
-    if (max === 0) return; // не доступно на этом уровне
-
-    var used = char.resources[res.id] || 0;
-    if (used > max) { used = max; char.resources[res.id] = used; }
-    var remaining = max - used;
-    var dieSize = currentDieSize(res, char.level || 1); // SDR-1: к8/к10/к12 у костей превосходства
-
-    var card = document.createElement("div");
-    card.className = "resource-card";
-    card.style.setProperty("--res-color", res.color || "#c9a227");
-
-    var isPool = res.isPool; // Наложение рук — пул ХП а не заряды
-
-    // Build pips (max 20, beyond that just show number)
-    var pipsHtml = "";
-    if (!isPool && max <= 20) {
-      pipsHtml = '<div class="resource-pips">';
-      for (var p = 0; p < max; p++) {
-        pipsHtml += '<div class="resource-pip' + (p < remaining ? ' full' : '') + '" onclick="toggleResourcePip(\'' + res.id + '\',' + p + ')"></div>';
-      }
-      pipsHtml += '</div>';
-    }
-
-    var restLabel = res.restoreOn === "short" ? "" + dndIcoHtml("coffee", 12) + " Кор." : res.restoreOn === "long" || res.restoreOn === "long_once" ? "" + dndIcoHtml("bed", 12) + " Длин." : res.restoreOn === "turn" ? "" + dndIcoHtml("reset", 12) + " Каждый ход" : "–";
-
-    card.innerHTML =
-      '<div class="resource-header">' +
-        '<span class="resource-icon">' + res.icon + '</span>' +
-        '<span class="resource-name">' + escapeHtml(res.name) +
-          (dieSize ? ' <span class="resource-die">(' + escapeHtml(dieSize) + ')</span>' : '') + '</span>' +
-        '<span class="resource-restore-badge">' + restLabel + '</span>' +
-      '</div>' +
-      (isPool
-        ? '<div class="resource-pool-row">' +
-            '<div class="resource-pool-val" id="res-pool-' + res.id + '">' + (max - used) + ' / ' + max + '</div>' +
-            '<div class="resource-pool-btns">' +
-              '<button class="res-btn" onclick="spendResource(\'' + res.id + '\',1)">−1</button>' +
-              '<button class="res-btn" onclick="spendResource(\'' + res.id + '\',-1)">+1</button>' +
-            '</div>' +
-          '</div>'
-        : '<div class="resource-counter-row">' +
-            '<button class="res-btn res-btn-use" onclick="spendResource(\'' + res.id + '\',1)" ' + (remaining <= 0 ? 'disabled' : '') + '>Использовать</button>' +
-            '<span class="resource-count" id="res-count-' + res.id + '">' + remaining + ' / ' + (max === 99 ? '∞' : max) + '</span>' +
-            '<button class="res-btn res-btn-reset" onclick="resetResource(\'' + res.id + '\')">Сброс</button>' +
-          '</div>'
-      ) +
-      pipsHtml +
-      '<div class="resource-desc">' + escapeHtml(res.desc) + '</div>';
-
-    grid.appendChild(card);
-  });
+  var html = crRowsHtml(char);
+  crSetRows(sheet, html);
+  if (sheet) sheet.style.display = html ? "" : "none";
+  crSetRows(battle, html);
+  if (battleCard) battleCard.style.display = html ? "" : "none";
 }
 
 function spendResource(id, delta) {

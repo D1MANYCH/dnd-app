@@ -68,7 +68,9 @@ function _pgFeat(cls, sub, level, name, isNew) {
 function _pgActRow(html) { return '<div class="pg-body-acts">' + html + '</div>'; }
 
 // ── Шапка ───────────────────────────────────────────────────
-function _pgHead(char, list) {
+// LVL-3: внутренность шапки нужна и разделу на листе — там обёртка .pg-head
+// стоит в разметке (#cd-head), поэтому сборка разведена на две функции.
+function _pgHeadInner(char, list) {
   var label = list.length
     ? list.map(function(e) { return escapeHtml(e.cls) + (list.length > 1 ? " " + e.level : ""); }).join(' <i>/</i> ')
     : "Класс не выбран";
@@ -77,8 +79,12 @@ function _pgHead(char, list) {
   var meta = lvl + ' уровень <span class="hp-dot">·</span> мастерство <b>+' + prof + "</b>";
   var dice = list.map(function(e) { return e.level + "к" + e.die; }).join(" + ");
   if (dice) meta += ' <span class="hp-dot">·</span> ' + dice;
-  return '<div class="pg-head"><div class="pg-head-cls">' + label + '</div>' +
-    '<div class="pg-head-meta">' + meta + '</div></div>';
+  return '<div class="pg-head-cls">' + label + '</div>' +
+    '<div class="pg-head-meta">' + meta + '</div>';
+}
+
+function _pgHead(char, list) {
+  return '<div class="pg-head">' + _pgHeadInner(char, list) + '</div>';
 }
 
 // Раскрытие для новичка: главное различие всего раздела — уровень персонажа
@@ -367,8 +373,11 @@ function pgSetSubclass(idx, name) {
   openProgress();
 }
 
-/** Из строки «Осталось выбрать» — раскрыть класс и подвести к выбору подкласса */
+/** Из строки «Осталось выбрать» — раскрыть класс и подвести к выбору подкласса.
+ *  LVL-3: та же строка есть на листе, поэтому экран сначала открывается. */
 function pgFocusSubclass(cls) {
+  var screen = $("screen-progress");
+  if (!screen || screen.classList.contains("hidden")) openProgress();
   var body = $("pg-body");
   if (!body) return;
   var row = body.querySelector('.hp-row[data-pg-cls="' + cls + '"]');
@@ -409,6 +418,34 @@ function pgAddClass() {
   if (typeof openLevelUpModal !== "function") return;
   openLevelUpModal();
   if (typeof openMulticlassNewClass === "function") openMulticlassNewClass();
+}
+
+// ── LVL-3 · Раздел «Класс и развитие» на листе ──────────────
+// Сводка и «Осталось выбрать» — те же кирпичи, что на экране: список умений
+// с листа уехал, здесь остаются только сводка, ресурсы (рендерит app-ui.js),
+// невыбранное ИМЕНЕМ и текстовые действия.
+function renderClassDev() {
+  var head = $("cd-head");
+  if (!head) return;
+  var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  if (!char) return;
+  if (typeof migrateToMulticlass === "function") migrateToMulticlass(char);
+  head.innerHTML = _pgHeadInner(char, _pgClassList(char));
+  var attn = $("cd-attn");
+  if (attn) attn.innerHTML = _pgAttention(char);
+  syncClassFieldUI(char);
+}
+
+/** Поле «Класс» на листе: у мультикласса <select> умеет только первый класс,
+ *  поэтому вместо него встаёт строка со всеми классами и входом в «Развитие».
+ *  Сам select остаётся в разметке — его значение читает updateChar(). */
+function syncClassFieldUI(char) {
+  var sel = $("char-class"), mc = $("char-class-mc"), lbl = $("char-class-mc-label");
+  if (!sel || !mc) return;
+  var multi = !!(char && char.classes && char.classes.length > 1);
+  sel.style.display = multi ? "none" : "";
+  mc.style.display = multi ? "" : "none";
+  if (multi && lbl && typeof getClassLabel === "function") lbl.textContent = getClassLabel(char);
 }
 
 // ── Экран «Об умении» ───────────────────────────────────────
