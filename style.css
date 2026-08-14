@@ -3035,6 +3035,12 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 }
 .tab-btn:active { background: var(--accent-glow) !important; }
 .tab-btn:hover { color: var(--text-color) !important; transform: none !important; box-shadow: none !important; }
+/* LVL-6: вкладок стало пять, на каждую приходится ~64px при 390px ширины.
+   Ниже 370px самая длинная подпись («Развитие») перестаёт помещаться —
+   отдаём ей шрифт и горизонтальные отступы, высота хитбокса не меняется. */
+@media (max-width: 370px) {
+  .tab-btn { font-size: 0.58em !important; padding: 8px 3px !important; }
+}
 
 /* FAB dice — золотой d20 «парит» в таб-баре. Без круглого фона —
    сам полиэдр и есть кнопка. Сверху раскачивается hover. */
@@ -14656,7 +14662,9 @@ html[data-stats-layout="2024"] .abil-card-head::before {
   transform: rotate(45deg);
   transition: transform var(--t2) var(--ez-out);
 }
-.disc-diamond--plain { background: none; border-color: var(--home-sub); }
+/* Пустой ромб (.disc-diamond--plain) убран: он значил «продолжения нет», но
+   стоял только на раскрывающихся строках через флаг mute и потому всегда врал.
+   Строки без продолжения идут без знака вовсе. */
 /* DISC-4: знак ставится на все раскрытия приложения. Ромб — только про
    «строка раскрывается»; нативные <select> остаются с системным шевроном
    (решение юзера 08.08.2026), их этот рецепт не касается. */
@@ -15509,6 +15517,9 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   border-top: 1px solid var(--home-rule);
 }
 .pg-sub-select { margin: var(--sp-2) 0; max-width: 320px; }
+/* LVL-6: вкладка вместо экрана — обёртки .page-stage с её 680px больше нет,
+   а на ПК .container тянется до 1100px и строки расползаются. */
+#tab-progress .pg-body { max-width: 680px; }
 
 /* Переключатель классов над «Планом класса» — появляется только у мультикласса */
 .bp-plan-switch { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); margin-top: 6px; }
@@ -15588,3 +15599,20 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 }
 .cd-class-mc-act { margin-left: auto; font-size: var(--fs-sm); color: var(--accent-lo); }
 .cd-class-mc:hover .cd-class-mc-act { text-decoration: underline; }
+
+/* LVL-5: уровень у мультикласса — не своё значение, а сумма уровней классов */
+.cd-level-mc {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  min-height: 44px;
+  border-bottom: 1px solid var(--home-rule);
+  cursor: pointer;
+}
+.cd-level-mc-val {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  color: var(--text-color);
+}
+.cd-level-mc-hint { font-size: var(--fs-sm); color: var(--home-sub); }
+#char-subclass-mc .cd-class-mc:last-child { border-bottom: none; }

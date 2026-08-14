@@ -66,8 +66,8 @@ var HELP_FLAG_BATTLE_SEEN    = 'dnd_help_battle_seen';
 var HELP_FLAG_NOTES_SEEN     = 'dnd_help_notes_seen';
 var HELP_FLAG_PARTY_SEEN     = 'dnd_help_party_seen';
 var HELP_FLAG_JOURNAL_SEEN   = 'dnd_help_journal_seen';
-// LVL-4: «Развитие» — не вкладка, а экран, поэтому в реестр TOUR_TABS не входит:
-// свой флаг, свой авто-старт из openProgress().
+// LVL-6: «Развитие» стало вкладкой и вошло в TOUR_TABS. Имя флага прежнее —
+// у прошедших тур до переезда он уже проставлен, второй раз тур не пойдёт.
 var HELP_FLAG_PROGRESS_SEEN  = 'dnd_help_progress_seen';
 // Все флаги онбординга — «Показать обучение заново» чистит их разом, чтобы
 // весь онбординг повторился по мере захода на вкладки.
@@ -285,8 +285,8 @@ function _tourFirstVisible(selectors) {
  *  а тур стартовал через 450мс прямо поверх него). */
 /** Видна ли хоть одна модалка. STYLE-8M-2b: класс .active остаётся и на
  *  спрятанной модалке — проверяем видимость, иначе тур не стартовал бы уже
- *  никогда. LVL-4: вынесено из _tourModalOpen отдельно — туру ЭКРАНА мешают
- *  только модалки, сам экран-страница для него законная сцена. */
+ *  никогда. Вынесено из _tourModalOpen отдельным примитивом (LVL-4, когда
+ *  «Развитие» было экраном и экран-страница была для него законной сценой). */
 function _tourAnyModalVisible() {
   var m = document.querySelectorAll('.modal.active');
   for (var i = 0; i < m.length; i++) if (m[i].offsetParent !== null) return true;
@@ -357,52 +357,6 @@ function maybeStartSheetTour() {
   }, 450);
 }
 
-// ── LVL-4: тур по экрану «Развитие» ──────────────────────────
-// Экран, а не вкладка: реестр TOUR_TABS завязан на switchTab, поэтому старт
-// и авто-старт здесь свои. Флаг ставится в момент фактического старта.
-
-/** Ручной запуск из статьи справки: уйти со справки, открыть «Развитие», стартовать. */
-function startProgressTour() {
-  closeHelp();
-  // Уход со справки — переход между экранами (300 мс): раньше стартовать нельзя,
-  // прожектор целился бы в экран посреди полёта.
-  setTimeout(function () {
-    if (typeof openProgress !== 'function') return;
-    openProgress();
-    setTimeout(function () {
-      // Без открытого персонажа openProgress() показывает тост и никуда не ведёт:
-      // стартовать тур там нечем — все шаги с целями отсеются, и от тура
-      // останется пара карточек ни о чём.
-      if (typeof currentScreenName === 'function' && currentScreenName() !== 'progress') return;
-      setHelpFlag(HELP_FLAG_PROGRESS_SEEN, '1');
-      startTour(_buildProgressSteps(), 'progress');
-    }, 320);
-  }, 320);
-}
-
-/** Авто-старт при первом открытии «Развития» (хук в openProgress). */
-function maybeStartProgressTour() {
-  if (getHelpFlag(HELP_FLAG_PROGRESS_SEEN)) return;
-  if (_tour) return;
-  var w = document.getElementById('welcome-modal');
-  if (w && w.classList.contains('active')) return;
-  // Ждём только закрытия модалок: _tourStartWhenClear здесь не годится —
-  // он считает любой экран-страницу помехой, а «Развитие» само такой экран.
-  var tries = 0;
-  setTimeout(function poll() {
-    if (_tour || getHelpFlag(HELP_FLAG_PROGRESS_SEEN)) return;
-    if (_tourAnyModalVisible()) {
-      if (++tries > 200) return;
-      setTimeout(poll, 600);
-      return;
-    }
-    // Пока ждали закрытия модалок, экран могли сменить — целиться некуда.
-    if (typeof currentScreenName === 'function' && currentScreenName() !== 'progress') return;
-    setHelpFlag(HELP_FLAG_PROGRESS_SEEN, '1');
-    startTour(_buildProgressSteps(), 'progress');
-  }, 350);
-}
-
 /** Перезапустить тур из help-центра по текущему экрану. */
 function restartTour() {
   closeHelp();
@@ -419,6 +373,7 @@ function restartTour() {
 // (их туры — startSheetTour / startListTour). Наборы шагов добавляются
 // по фазам TOUR-2..6; движок (startTour/_layoutTour/…) уже готов из HELP-4.
 var TOUR_TABS = {
+  progress:  { flag: HELP_FLAG_PROGRESS_SEEN,  build: _buildProgressSteps },
   spells:    { flag: HELP_FLAG_SPELLS_SEEN,    build: _buildSpellsSteps },
   inventory: { flag: HELP_FLAG_INVENTORY_SEEN, build: _buildInventorySteps },
   battle:    { flag: HELP_FLAG_BATTLE_SEEN,    build: _buildBattleSteps },
@@ -433,6 +388,9 @@ function startTabTour(tab) {
   if (!entry) return;
   closeHelp();
   setTimeout(function () {
+    // Без открытого персонажа вкладка пуста: все шаги с целями отсеются, и от
+    // тура останется пара карточек ни о чём (LVL-4, было в startProgressTour).
+    if (!window.currentId) return;
     if (typeof switchTab === 'function') switchTab(tab);
     setHelpFlag(entry.flag, '1');
     startTour(entry.build(), tab);
@@ -868,7 +826,7 @@ function _buildSheetSteps() {
   ];
 }
 
-/** LVL-4: тур по экрану «Развитие». Шаги с requireTarget выпадают сами:
+/** LVL-4/6: тур по вкладке «Развитие». Шаги с requireTarget выпадают сами:
  *  у одноклассового нет «Осталось выбрать», у незаклинателя — ячеек. */
 function _buildProgressSteps() {
   return [
@@ -918,11 +876,11 @@ function _buildProgressSteps() {
       requireTarget: true,
       target: function () { return document.querySelector('#pg-body .pg-acts'); },
       title: 'Действия',
-      text: 'Повышение уровня, откат последнего повышения и план билда. После повышения приложение вернёт вас сюда.'
+      text: 'Повышение уровня, взятие второго класса, откат последнего повышения и план билда. После повышения приложение вернёт вас сюда.'
     },
     {
       title: 'Готово',
-      text: 'Правила уровней, мультикласса и ячеек словами — в «Справке» → «Развитие»; кнопка «?» вверху экрана ведёт туда же.'
+      text: 'Правила уровней, мультикласса и ячеек словами — в «Справке» → «Развитие»; кнопка «?» вверху вкладки ведёт туда же.'
     }
   ];
 }

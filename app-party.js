@@ -117,7 +117,7 @@ function renderMyChar() {
       '<div class="pcard-icon" style="background:' + color + '22;color:' + color + '">' + icon + '</div>' +
       '<div class="pcard-body">' +
         '<div class="pcard-name">' + escapeHtml(char.name || "Мой персонаж") + '<span class="pcard-self-badge">я</span></div>' +
-        '<div class="pcard-sub">' + escapeHtml((char.class||"") + (char.subclass ? " · "+char.subclass : "") + " · " + (char.level||1) + " ур.") + '</div>' +
+        '<div class="pcard-sub">' + escapeHtml(getClassLine(char)) + '</div>' +
         '<div class="pcard-badges">' +
           '<span class="pcard-badge" style="color:' + hpColor + ';border-color:color-mix(in srgb, ' + hpColor + ' 45%, transparent)">' + dndIcoHtml("heart", 13) + ' ' + hpCurrent + '/' + hpMax + '</span>' +
           '<span class="pcard-badge">' + dndIcoHtml("shield", 13) + ' ' + (char.combat ? (char.combat.ac||10) : 10) + '</span>' +
@@ -886,7 +886,7 @@ function getParticipantDesc(p) {
   }
   if (p.type === "self") {
     var char = getCurrentChar();
-    return char ? (char.class || "") + (char.subclass ? " · " + char.subclass : "") + " · " + (char.level||1) + " ур." : "";
+    return char ? getClassLine(char) : "";
   }
   return "";
 }

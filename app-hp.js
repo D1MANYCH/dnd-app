@@ -653,7 +653,6 @@ _luChoicesCtx = {
   resultTitle: classLabel + " · Уровень " + newTotalLevel + "!"
 };
 _luMulticlassChoice = null;
-updateLevelDownVisibility();
 
 $("lu-screen-multiclass").style.display = "none";
 $("lu-screen-preview").style.display = "none";
@@ -1073,15 +1072,10 @@ function luGoToSpellsTab() {
 
 // ============================================
 // UI-9: Откат последнего повышения уровня (одношаговый undo)
+// LVL-7: кнопка отката ушла с листа на вкладку «Развитие» — её показывает
+// _pgActions() по тому же условию (level > 1 и есть снимок), а отдельная
+// updateLevelDownVisibility() стала не нужна.
 // ============================================
-function updateLevelDownVisibility() {
-  var btn = $("level-down-btn");
-  if (!btn) return;
-  var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
-  var canRollback = !!(char && char.level > 1 && char._prevLevelSnapshot);
-  btn.style.display = canRollback ? "" : "none";
-}
-
 function openLevelDownConfirm() {
   if (!currentId) return;
   var char = getCurrentChar();
@@ -1156,7 +1150,6 @@ function confirmLevelDown() {
   renderJournal();
   showToast("Уровень откатан: " + (char.level||1) + " → " + (restored.level||1), "success");
   closeLevelUpModal();
-  updateLevelDownVisibility();
 }
 
 // ============================================

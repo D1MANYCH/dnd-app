@@ -1,8 +1,9 @@
 // ============================================================
-// LVL-2 · Экран «Развитие» (#screen-progress) и «Об умении» (#screen-featureinfo)
+// LVL-2/6 · Вкладка «Развитие» (#tab-progress) и экран «Об умении»
+// (#screen-featureinfo)
 //
 // Сборка В2+ из мокапа tests/style-progress-mockups.html: класс — строка с
-// раскрытием, поэтому высота экрана не растёт с уровнем. Ни одной коробки:
+// раскрытием, поэтому высота не растёт с уровнем. Ни одной коробки:
 // строки, действия и ромб раскрытия переиспользуют рецепт «Здоровье и Бой»
 // (.hp-row* / .hp-act / .disc-diamond, v3.83.0), своего тут только шапка,
 // метки секций и строка умения.
@@ -40,8 +41,11 @@ function _pgClassList(char) {
 // ── Кирпичи строк ───────────────────────────────────────────
 function _pgDisc(name, meta, body, open, opts) {
   opts = opts || {};
+  // mute приглушает только ИМЯ строки. Знак трогать нельзя: пустой ромб по
+  // легенде (Справка → «Условные знаки») значит «продолжения нет», а строка
+  // здесь как раз раскрывается.
   return '<div class="hp-row' + (open ? " is-open" : "") + '"' + (opts.attr || "") + ' onclick="hpToggleRow(this)">' +
-    '<span class="disc-diamond' + (opts.mute ? " disc-diamond--plain" : "") + '"></span>' +
+    '<span class="disc-diamond"></span>' +
     '<span class="hp-row-name' + (opts.mute ? " pg-name--mute" : "") + '">' + name + '</span>' +
     (meta ? '<span class="hp-row-meta' + (opts.warn ? " pg-meta--warn" : "") + '">' + meta + '</span>' : "") +
     '</div><div class="hp-row-body' + (open ? " is-open" : "") + '">' + body + '</div>';
@@ -338,14 +342,7 @@ function _pgNext(char, list) {
   });
 
   if (typeof checkMulticlassPrereqs === "function") {
-    var have = list.map(function(e) { return e.cls; });
-    var ok = [];
-    ["Варвар", "Бард", "Воин", "Волшебник", "Друид", "Жрец", "Колдун", "Монах", "Паладин", "Плут", "Следопыт", "Чародей"]
-      .forEach(function(c) {
-        if (have.indexOf(c) !== -1) return;
-        var chk = checkMulticlassPrereqs(char, c);
-        if (chk && chk.ok) ok.push(c);
-      });
+    var ok = _pgAvailableClasses(char, list);
     var nbody = ok.length
       ? "<p>Требования выполнены: " + escapeHtml(ok.join(", ")) + ".</p>"
       : '<p class="hp-row-hint">Ни один класс сейчас недоступен: для входа нужна характеристика 13 и выше ' +
@@ -359,9 +356,29 @@ function _pgNext(char, list) {
   return rows ? '<div class="pg-grp" data-pg-grp="next">Дальше</div><div class="hp-rows">' + rows + "</div>" : "";
 }
 
-function _pgActions(char) {
+/** Классы, доступные для взятия: ещё не взятые и с выполненными требованиями
+ *  (PHB, «Мультиклассирование» — характеристика 13 на вход и на выход). */
+function _pgAvailableClasses(char, list) {
+  var out = [];
+  if (typeof checkMulticlassPrereqs !== "function") return out;
+  var have = (list || []).map(function(e) { return e.cls; });
+  ["Варвар", "Бард", "Воин", "Волшебник", "Друид", "Жрец", "Колдун", "Монах", "Паладин", "Плут", "Следопыт", "Чародей"]
+    .forEach(function(c) {
+      if (have.indexOf(c) !== -1) return;
+      var chk = checkMulticlassPrereqs(char, c);
+      if (chk && chk.ok) out.push(c);
+    });
+  return out;
+}
+
+function _pgActions(char, list) {
   var acts = '<button type="button" class="hp-act" onclick="pgLevelUp()">Повысить уровень →</button>';
-  if (char._prevLevelSnapshot) {
+  // LVL-7: раньше единственный вход в мультикласс был спрятан в свёрнутой
+  // строке «Новый класс» внизу — подписчик его попросту не нашёл.
+  if (list && list.length && (char.level || 0) < 20 && _pgAvailableClasses(char, list).length) {
+    acts += '<button type="button" class="hp-act" onclick="pgAddClass()">Добавить класс →</button>';
+  }
+  if ((char.level || 0) > 1 && char._prevLevelSnapshot) {
     acts += '<button type="button" class="hp-act" onclick="pgLevelDown()">Откатить →</button>';
   }
   if (char.buildId) {
@@ -379,30 +396,41 @@ function _pgBuild(char) {
     _pgAttention(char) +
     _pgClasses(char, list) +
     _pgNext(char, list) +
-    _pgActions(char);
+    _pgActions(char, list);
 }
 
+/** Наполнить вкладку. Зовётся из switchTab при каждом заходе — тап по кнопке
+ *  вкладки идёт мимо openProgress(), поэтому сборка живёт здесь. */
+function openProgressTab() {
+  var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  if (!char) return;
+  if (typeof migrateToMulticlass === "function") migrateToMulticlass(char);
+  var body = $("pg-body");
+  if (body) body.innerHTML = _pgBuild(char);
+}
+
+/** Вход «Развитие →» с листа и из строк-сводок. Тур стартует сам —
+ *  через maybeStartTabTour() в конце switchTab. */
 function openProgress() {
   var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
   if (!char) {
     if (typeof showToast === "function") showToast("Сначала выберите персонажа", "warn");
     return;
   }
-  if (typeof migrateToMulticlass === "function") migrateToMulticlass(char);
-  var body = $("pg-body");
-  if (body) body.innerHTML = _pgBuild(char);
   if (typeof _closeOpenModals === "function") _closeOpenModals();
-  showScreen("progress");
-  // LVL-4: тур по экрану — при первом заходе, по флагу dnd_help_progress_seen.
-  // Сам ждёт закрытия модалок и проверяет, что экран всё ещё открыт.
-  if (typeof maybeStartProgressTour === "function") maybeStartProgressTour();
+  if (typeof switchTab === "function") switchTab("progress", null);
 }
 
-/** Перерисовать, если экран открыт. Зовётся из updateClassFeatures() — она
+/** Открыта ли вкладка «Развитие» прямо сейчас. */
+function pgTabActive() {
+  var tab = $("tab-progress");
+  return !!(tab && tab.classList.contains("active"));
+}
+
+/** Перерисовать, если вкладка открыта. Зовётся из updateClassFeatures() — она
  *  идёт следом за повышением уровня, откатом, АСИ и классовыми выборами. */
 function pgRefresh() {
-  var screen = $("screen-progress");
-  if (!screen || screen.classList.contains("hidden")) return;
+  if (!pgTabActive()) return;
   var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
   var body = $("pg-body");
   if (char && body) body.innerHTML = _pgBuild(char);
@@ -422,10 +450,9 @@ function pgSetSubclass(idx, name) {
 }
 
 /** Из строки «Осталось выбрать» — раскрыть класс и подвести к выбору подкласса.
- *  LVL-3: та же строка есть на листе, поэтому экран сначала открывается. */
+ *  LVL-3: та же строка есть на листе, поэтому вкладка сначала открывается. */
 function pgFocusSubclass(cls) {
-  var screen = $("screen-progress");
-  if (!screen || screen.classList.contains("hidden")) openProgress();
+  if (!pgTabActive()) openProgress();
   var body = $("pg-body");
   if (!body) return;
   var row = body.querySelector('.hp-row[data-pg-cls="' + cls + '"]');
@@ -436,8 +463,9 @@ function pgFocusSubclass(cls) {
   if (sel && sel.focus) sel.focus();
 }
 
-// Повышение и откат общие с листом и заканчиваются на нём (loadCharacter
-// возвращает экран персонажа). Пришедшего сюда с «Развития» возвращаем назад.
+// Повышение и откат общие с листом и заканчиваются на нём: confirmLevelUp зовёт
+// loadCharacter, а та переключает вкладку на «Лист». Пришедшего с «Развития»
+// возвращаем назад.
 var _pgFromProgress = false;
 
 function pgLevelUp() {
@@ -454,7 +482,7 @@ function pgLevelDown() {
 function pgAfterLevelModal() {
   if (!_pgFromProgress) return;
   _pgFromProgress = false;
-  if (typeof currentScreenName === "function" && currentScreenName() === "progress") {
+  if (pgTabActive()) {
     pgRefresh();
     return;
   }
@@ -464,6 +492,7 @@ function pgAfterLevelModal() {
 /** «Добавить класс →» — сразу к блоку нового класса в модалке повышения */
 function pgAddClass() {
   if (typeof openLevelUpModal !== "function") return;
+  _pgFromProgress = true;
   openLevelUpModal();
   if (typeof openMulticlassNewClass === "function") openMulticlassNewClass();
 }
@@ -507,9 +536,33 @@ function _pgSheetAboutRow(char, list) {
   return _pgDisc("Что это значит", "", body, false, { mute: true });
 }
 
-/** Поле «Класс» на листе: у мультикласса <select> умеет только первый класс,
- *  поэтому вместо него встаёт строка со всеми классами и входом в «Развитие».
- *  Сам select остаётся в разметке — его значение читает updateChar(). */
+/** Подкласс по каждому классу строками: выбранный, ожидающий выбора и ещё
+ *  не открытый по уровню класса. */
+function _pgSubclassRows(list) {
+  var out = "";
+  list.forEach(function(e) {
+    var at = (typeof SUBCLASS_LEVEL !== "undefined" && SUBCLASS_LEVEL[e.cls]) || 3;
+    var val, act, go;
+    if (e.sub) {
+      val = e.sub; act = "Развитие →"; go = "openProgress()";
+    } else if (e.level >= at) {
+      val = "не выбран"; act = "Выбрать →"; go = "pgFocusSubclass('" + _pgArg(e.cls) + "')";
+    } else {
+      val = "с " + at + " уровня класса"; act = ""; go = "openProgress()";
+    }
+    out += '<div class="cd-class-mc" onclick="' + go + '">' +
+      "<span>" + escapeHtml(e.cls) + " — " + escapeHtml(val) + "</span>" +
+      (act ? '<span class="cd-class-mc-act">' + act + "</span>" : "") +
+      "</div>";
+  });
+  return out;
+}
+
+/** Поля «Класс», «Уровень» и «Подкласс» на листе: каждое умеет только первый
+ *  класс (а уровень — и вовсе сумма), поэтому у мультикласса они прячутся, и на
+ *  их месте встают строки со всеми классами и входом в «Развитие».
+ *  Сами поля остаются в разметке — их значения читают updateChar() и calcStats(),
+ *  поэтому скрывать можно только через display, но не disabled. */
 function syncClassFieldUI(char) {
   var sel = $("char-class"), mc = $("char-class-mc"), lbl = $("char-class-mc-label");
   if (!sel || !mc) return;
@@ -517,6 +570,28 @@ function syncClassFieldUI(char) {
   sel.style.display = multi ? "none" : "";
   mc.style.display = multi ? "" : "none";
   if (multi && lbl && typeof getClassLabel === "function") lbl.textContent = getClassLabel(char);
+
+  var list = multi ? _pgClassList(char) : [];
+
+  var lvlInp = $("char-level"), lvlMc = $("char-level-mc");
+  if (lvlInp && lvlMc) {
+    lvlInp.style.display = multi ? "none" : "";
+    lvlMc.style.display = multi ? "" : "none";
+    if (multi) {
+      lvlMc.innerHTML = '<span class="cd-level-mc-val">' + (char.level || 1) + "</span>" +
+        '<span class="cd-level-mc-hint">сумма классов</span>';
+    }
+  }
+
+  var subSel = $("char-subclass"), subRec = $("char-subclass-rec"), subMc = $("char-subclass-mc");
+  if (subSel && subMc) {
+    subSel.style.display = multi ? "none" : "";
+    subMc.style.display = multi ? "" : "none";
+    if (multi) {
+      if (subRec) subRec.style.display = "none";
+      subMc.innerHTML = _pgSubclassRows(list);
+    }
+  }
 }
 
 // ── Экран «Об умении» ───────────────────────────────────────

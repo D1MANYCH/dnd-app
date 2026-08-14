@@ -91,6 +91,15 @@ function getClassLabel(char) {
   return char.classes.map(function(c) { return c.class + " " + c.level; }).join(" / ");
 }
 
+/** Подпись для карточек и списков. У мультикласса getClassLabel уже несёт уровни
+ *  по классам, поэтому подкласс первого класса в строку не идёт — он там врал бы. */
+function getClassLine(char) {
+  if (!char || !char.class) return "";
+  var lvl = char.level || 1;
+  if (isMulticlass(char)) return getClassLabel(char) + " · " + lvl + " ур.";
+  return char.class + (char.subclass ? " · " + char.subclass : "") + " · " + lvl + " ур.";
+}
+
 /** Проверить выполнение требований для мультикласса */
 function checkMulticlassPrereqs(char, targetClass) {
   if (typeof MULTICLASS_PREREQUISITES === "undefined") return { ok: true, missing: [] };
@@ -320,19 +329,20 @@ if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.e
 // пришли, — при равной с листом глубине переход считался бы движением назад.
 // STYLE-8M-2b: гайд билда и план развития стоят ещё глубже (4) — в них заходят
 // со «Справки»-глубины и с листа, и возврат обязан вести на экран входа.
-// LVL-2: «Развитие» открывается с листа (3), «Об умении» и «План класса» —
-// уже из него (4), чтобы «←» возвращал на «Развитие», а не на лист.
+// LVL-6: «Развитие» стало вкладкой листа и из карты экранов ушло. «Об умении»
+// и «План класса» открываются уже из него и остаются экранами глубины 4, чтобы
+// «←» возвращал на вкладку «Развитие» (лист — глубина 2, стек это переживает).
 var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3,
                      help: 3, builds: 3, buildguide: 4, buildplan: 4, abilityinfo: 3,
-                     progress: 3, featureinfo: 4 };
+                     featureinfo: 4 };
 // Экраны-страницы: у них нет своего персонажа, currentId не трогаем — иначе
 // «Настройки» с листа выбрасывали бы из персонажа.
 var PAGE_SCREENS = ["data", "settings", "about", "help", "builds", "buildguide", "buildplan", "abilityinfo",
-                    "progress", "featureinfo"];
+                    "featureinfo"];
 var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О версии",
                     help: "Справка", builds: "Готовые билды",
                     buildguide: "Гайд по билду", buildplan: "План развития",
-                    progress: "Развитие", featureinfo: "Умение" };
+                    featureinfo: "Умение" };
 // Стек экранов, из которых уходили вперёд. Не персистится — в рамках сессии.
 var _screenStack = [];
 
@@ -627,6 +637,7 @@ function switchTab(tabName, btnEl) {
     document.documentElement.scrollTop = 0;
     if (document.body) document.body.scrollTop = 0;
   } catch(e) { window.__catchLog && window.__catchLog('core:switchTab-scroll', e); }
+  if (tabName === "progress") { if (typeof openProgressTab === "function") openProgressTab(); }
   if (tabName === "party")   { openPartyTab(); }
   if (tabName === "battle")  { openBattleTab(); }
   if (tabName === "journal") { renderJournal(); }
@@ -680,7 +691,7 @@ function hideCharacterNav() {
 // UI-6: Свайпы — горизонтальные жесты между вкладками + edge-swipe для drawer.
 // Порядок вкладок в нижней панели: sheet → spells → inventory → battle.
 (function() {
-  var SWIPE_TABS = ["sheet", "spells", "inventory", "battle"];
+  var SWIPE_TABS = ["sheet", "progress", "spells", "inventory", "battle"];
   var TAB_THRESHOLD = 60;   // px по X для смены вкладки
   var Y_TOLERANCE   = 50;   // px по Y — иначе считаем вертикальным скроллом
   var EDGE_ZONE     = 24;   // px от правого края — зона активации drawer
@@ -1328,7 +1339,6 @@ renderAllies();
 renderNPCs();
 renderMonsters();
 renderSheetAvatar();
-if (typeof updateLevelDownVisibility === 'function') updateLevelDownVisibility();
 showScreen("character");
 // Вход в персонажа всегда открывает «Лист персонажа». switchTab()
 // централизованно сбрасывает .active у tab-content, кнопок нижнего

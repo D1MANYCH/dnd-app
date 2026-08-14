@@ -455,8 +455,10 @@ function currentDieSize(res, level) {
 // счётчика между ними больше нет.
 function crRow(name, meta, body, opts) {
   opts = opts || {};
+  // mute приглушает только ИМЯ: пустой ромб по легенде значит «продолжения
+  // нет», а эта строка раскрывается (внутри заметки и описание ресурса).
   return '<div class="hp-row" onclick="hpToggleRow(this)">' +
-    '<span class="disc-diamond' + (opts.mute ? " disc-diamond--plain" : "") + '"></span>' +
+    '<span class="disc-diamond"></span>' +
     '<span class="hp-row-name' + (opts.mute ? " pg-name--mute" : "") + '">' + name + '</span>' +
     (meta || "") +
     '</div><div class="hp-row-body">' + body + '</div>';

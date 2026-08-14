@@ -200,9 +200,8 @@ f.addEventListener('load', () => {
       await new Promise(r => setTimeout(r, 400));
       try {
         const want = q.get('screen') || 'character';
-        // LVL-2: тело «Развития» собирает openProgress(), голый showScreen дал бы пустой экран.
-        if (want === 'progress' && w.openProgress) w.openProgress();
-        else if (!w.currentScreenName || w.currentScreenName() !== want) w.showScreen(want);
+        // LVL-6: «Развитие» больше не экран, а вкладка — снимается через &tab=progress.
+        if (!w.currentScreenName || w.currentScreenName() !== want) w.showScreen(want);
         if (want === 'characters') w.renderCharacterList();
       } catch (e) { beacon('ERR screen ' + e.message); }
       const tab = q.get('tab') || 'sheet';

@@ -6477,6 +6477,219 @@
     setChars(_charsBackup);
   })();
 
+  // ────────── БЛОК 52 (LVL-5): мультикласс на листе ──────────
+  // Чистые хелперы без DOM: подпись для карточек «Мира» и строки-заместители
+  // полей «Уровень»/«Подкласс», которые у мультикласса знают только первый класс.
+  (function(){
+    if (typeof getClassLine !== "function") return; // app-core.js не загружен
+
+    function mk(classes){
+      var c = { name: "Тест", classes: classes.slice(), stats: {} };
+      syncClassFields(c);
+      return c;
+    }
+
+    t("[lvl5] getClassLine: одноклассовый — класс, подкласс, уровень", function(){
+      var got = getClassLine(mk([{class:"Плут", level:4, subclass:"Мошенник", hitDie:8}]));
+      return got === "Плут · Мошенник · 4 ур." || got;
+    });
+
+    t("[lvl5] getClassLine: без подкласса — без лишнего разделителя", function(){
+      var got = getClassLine(mk([{class:"Плут", level:2, subclass:"", hitDie:8}]));
+      return got === "Плут · 2 ур." || got;
+    });
+
+    t("[lvl5] getClassLine: мультикласс — уровни по классам, сумма отдельно", function(){
+      var got = getClassLine(mk([
+        {class:"Плут",  level:2, subclass:"Мошенник", hitDie:8},
+        {class:"Монах", level:2, subclass:"",         hitDie:8}
+      ]));
+      return got === "Плут 2 / Монах 2 · 4 ур." || got;
+    });
+
+    t("[lvl5] getClassLine: без класса — пустая строка", function(){
+      return (getClassLine({}) === "" && getClassLine(null) === "") || "вернул непустую строку";
+    });
+
+    // Поле «Уровень» на листе правится руками, но у мультикласса его значение
+    // производное: syncClassFields обязана вернуть сумму, что бы ни было в поле.
+    t("[lvl5] syncClassFields: char.level — сумма классов, а не набранное в поле", function(){
+      var c = { classes:[{class:"Плут", level:2},{class:"Монах", level:2}], level: 7 };
+      syncClassFields(c);
+      return c.level === 4 || ("получено " + c.level);
+    });
+
+    t("[lvl5] charClassLevel: уровень своего класса, а не суммарный", function(){
+      var c = mk([{class:"Плут", level:2, subclass:"", hitDie:8},
+                  {class:"Монах", level:2, subclass:"", hitDie:8}]);
+      if (c.level !== 4) return "сумма: " + c.level;
+      var got = charClassLevel(c, "Плут");
+      return got === 2 || ("Плут: " + got);
+    });
+
+    t("[lvl5] _pgClassList: legacy-персонаж без classes[] подхватывается", function(){
+      var list = _pgClassList({ class:"Воин", level:5, subclass:"Чемпион" });
+      if (list.length !== 1) return "строк " + list.length;
+      return (list[0].cls === "Воин" && list[0].level === 5 && list[0].die === 10)
+        || JSON.stringify(list[0]);
+    });
+
+    // LVL-6: «Развитие» переехало с экрана на вкладку. Половина переезда —
+    // разрегистрация экрана; забытая запись оставила бы мёртвую ветку в
+    // screenBack() и лишний заголовок страницы.
+    t("[lvl6] экран «Развитие» разрегистрирован", function(){
+      if (typeof SCREEN_DEPTH === "undefined") return "нет SCREEN_DEPTH";
+      if (typeof SCREEN_DEPTH.progress !== "undefined") return "SCREEN_DEPTH.progress остался";
+      if (PAGE_SCREENS.indexOf("progress") !== -1) return "progress остался в PAGE_SCREENS";
+      if (typeof PAGE_TITLES.progress !== "undefined") return "PAGE_TITLES.progress остался";
+      return true;
+    });
+
+    t("[lvl6] «Об умении» остаётся экраном глубже листа", function(){
+      return (SCREEN_DEPTH.featureinfo > SCREEN_DEPTH.character &&
+              PAGE_SCREENS.indexOf("featureinfo") !== -1)
+        || ("featureinfo: " + SCREEN_DEPTH.featureinfo + " vs character " + SCREEN_DEPTH.character);
+    });
+
+    t("[lvl6] тур «Развития» — в реестре вкладок, флаг прежний", function(){
+      if (typeof TOUR_TABS === "undefined") return "нет TOUR_TABS";
+      var e = TOUR_TABS.progress;
+      if (!e) return "нет записи progress";
+      if (e.flag !== "dnd_help_progress_seen") return "флаг: " + e.flag;
+      if (typeof e.build !== "function") return "build не функция";
+      if (e.build().length < 8) return "шагов " + e.build().length;
+      return true;
+    });
+
+    t("[lvl6] собственный старт тура экрана удалён", function(){
+      return (typeof startProgressTour === "undefined" &&
+              typeof maybeStartProgressTour === "undefined")
+        || "startProgressTour/maybeStartProgressTour ещё живы";
+    });
+
+    t("[lvl6] openProgressTab наполняет вкладку, openProgress остаётся входом", function(){
+      return (typeof openProgressTab === "function" && typeof openProgress === "function" &&
+              typeof pgTabActive === "function")
+        || "нет openProgressTab/openProgress/pgTabActive";
+    });
+
+    // LVL-7: действия повышения ушли с листа на вкладку, «Добавить класс →»
+    // поднялось из свёрнутой строки в подвал — это его единственный заметный вход.
+    t("[lvl7] _pgAvailableClasses: без 13 в характеристиках не доступен никто", function(){
+      var c = mk([{class:"Плут", level:3, subclass:"Мошенник", hitDie:8}]);
+      c.stats = { str:10, dex:10, con:10, int:10, wis:10, cha:10 };
+      var got = _pgAvailableClasses(c, _pgClassList(c));
+      return got.length === 0 || ("доступны: " + got.join(","));
+    });
+
+    t("[lvl7] _pgAvailableClasses: взятый класс не предлагается снова", function(){
+      var c = mk([{class:"Плут", level:3, subclass:"Мошенник", hitDie:8}]);
+      c.stats = { str:10, dex:16, con:12, int:10, wis:10, cha:16 };
+      var got = _pgAvailableClasses(c, _pgClassList(c));
+      if (got.indexOf("Плут") !== -1) return "Плут предложен повторно";
+      if (got.indexOf("Бард") === -1) return "Бард недоступен при ЛОВ 16 / ХАР 16";
+      return true;
+    });
+
+    t("[lvl7] действия: «Добавить класс» есть, когда есть кого взять", function(){
+      var c = mk([{class:"Плут", level:3, subclass:"Мошенник", hitDie:8}]);
+      c.stats = { str:10, dex:16, con:12, int:10, wis:10, cha:16 };
+      var html = _pgActions(c, _pgClassList(c));
+      if (html.indexOf("pgLevelUp()") === -1) return "нет «Повысить уровень»";
+      if (html.indexOf("pgAddClass()") === -1) return "нет «Добавить класс»";
+      return true;
+    });
+
+    t("[lvl7] действия: на 20 уровне «Добавить класс» не предлагается", function(){
+      var c = mk([{class:"Плут", level:20, subclass:"Мошенник", hitDie:8}]);
+      c.stats = { str:10, dex:16, con:12, int:10, wis:10, cha:16 };
+      // openLevelUpModal на 20-м отказывает тостом — кнопка вела бы в тупик.
+      return _pgActions(c, _pgClassList(c)).indexOf("pgAddClass()") === -1
+        || "кнопка осталась на 20 уровне";
+    });
+
+    t("[lvl7] действия: «Откатить» требует и снимок, и уровень выше 1", function(){
+      var c = mk([{class:"Плут", level:1, subclass:"", hitDie:8}]);
+      c._prevLevelSnapshot = { level: 1 };
+      if (_pgActions(c, _pgClassList(c)).indexOf("pgLevelDown()") !== -1) {
+        return "откат предложен на 1 уровне";
+      }
+      var c2 = mk([{class:"Плут", level:3, subclass:"Мошенник", hitDie:8}]);
+      c2._prevLevelSnapshot = { level: 2 };
+      return _pgActions(c2, _pgClassList(c2)).indexOf("pgLevelDown()") !== -1
+        || "откат не предложен при снимке и уровне 3";
+    });
+
+    // DISC: пустой ромб по легенде (Справка → «Условные знаки») значит
+    // «продолжения нет». Флаг mute приглушает имя второстепенной строки и
+    // знака касаться не должен — иначе раскрывающаяся строка говорит обратное.
+    t("[disc] раскрывающаяся строка всегда с половинным ромбом", function(){
+      var html = _pgDisc("Что это значит", "", "<p>тело</p>", false, { mute: true });
+      if (html.indexOf("disc-diamond--plain") !== -1) return "пустой ромб у раскрытия";
+      if (html.indexOf('class="disc-diamond"') === -1) return "ромба нет вовсе";
+      if (html.indexOf("pg-name--mute") === -1) return "mute перестал глушить имя";
+      return true;
+    });
+
+    t("[disc] то же для строки ресурса (crRow)", function(){
+      if (typeof crRow !== "function") return true; // app-ui.js не загружен
+      var html = crRow("Заметки", "", "<pre>текст</pre>", { mute: true });
+      return html.indexOf("disc-diamond--plain") === -1 || "пустой ромб у раскрытия";
+    });
+
+    // Разметка: в браузерном runner.html __indexHtmlSource нет → пропускается.
+    if (typeof window !== "undefined" && typeof window.__indexHtmlSource === "string") {
+      t("[lvl6] разметка: вкладка есть, экрана нет, id тела прежний", function(){
+        var html = window.__indexHtmlSource;
+        if (html.indexOf('id="tab-progress"') === -1) return "нет #tab-progress";
+        if (html.indexOf('id="screen-progress"') !== -1) return "#screen-progress остался";
+        // На #pg-body целятся 6 из 8 шагов тура — переименование тихо срежет их.
+        if (html.indexOf('id="pg-body"') === -1) return "нет #pg-body";
+        return true;
+      });
+
+      t("[lvl6] нижняя навигация: пять вкладок и кнопка «Развитие»", function(){
+        var html = window.__indexHtmlSource;
+        var nav = html.slice(html.indexOf('id="character-tabs"'));
+        nav = nav.slice(0, nav.indexOf("</div>"));
+        var n = (nav.match(/class="tab-btn/g) || []).length;
+        if (n !== 5) return "кнопок " + n;
+        if (nav.indexOf("switchTab('progress'") === -1) return "нет кнопки «Развитие»";
+        return true;
+      });
+
+      t("[lvl6] «Развитие» есть в боковом меню", function(){
+        return window.__indexHtmlSource.indexOf('data-drawer-tab="progress"') !== -1
+          || "нет пункта в drawer";
+      });
+
+      t("[lvl7] с листа ушли действия повышения", function(){
+        var html = window.__indexHtmlSource;
+        var sec = html.slice(html.indexOf('id="class-dev-section"'));
+        sec = sec.slice(0, sec.indexOf("ac-calc-section"));
+        if (sec.indexOf('id="level-down-btn"') !== -1) return "кнопка отката осталась";
+        if (sec.indexOf("openLevelUpModal()") !== -1) return "кнопка повышения осталась";
+        // Сводка, ресурсы и «осталось выбрать» — остаются: нужны за столом.
+        if (sec.indexOf('id="cd-res"') === -1) return "пропали ресурсы класса";
+        if (sec.indexOf('id="cd-attn"') === -1) return "пропало «Осталось выбрать»";
+        return true;
+      });
+    }
+
+    t("[lvl5] _pgSubclassRows: выбранный, ожидающий выбора и ещё не открытый", function(){
+      var html = _pgSubclassRows([
+        { cls:"Плут",       level:3, sub:"Мошенник", die:8,  idx:0 },
+        { cls:"Воин",       level:3, sub:"",         die:10, idx:1 },
+        { cls:"Волшебник",  level:1, sub:"",         die:6,  idx:2 }
+      ]);
+      if (html.indexOf("Плут — Мошенник") === -1) return "нет выбранного подкласса";
+      if (html.indexOf("Воин — не выбран") === -1) return "нет ожидающего выбора";
+      if (html.indexOf("pgFocusSubclass('Воин')") === -1) return "ожидающий не ведёт к выбору";
+      if (html.indexOf("Волшебник — с 2 уровня класса") === -1) return "нет ещё не открытого";
+      return true;
+    });
+  })();
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
