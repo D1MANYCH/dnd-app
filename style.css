@@ -11881,6 +11881,12 @@ body {
   align-items: center;
   margin-bottom: 10px;
   flex-wrap: wrap;
+  /* Анимация появления вкладки вешает на шапку transform — он создаёт стековый
+     контекст, и z-index выпадашки «⋯» запирается внутри него. Без своего
+     z-index шапка лежит на уровне auto, а соседние #notes-subtabs и
+     #notes-main идут позже в документе и накрывают меню: пункты не кликались. */
+  position: relative;
+  z-index: 30;
 }
 .notes-search {
   flex: 1 1 180px;
