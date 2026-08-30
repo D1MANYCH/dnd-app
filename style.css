@@ -6694,31 +6694,28 @@ button.edition-btn {
   display: flex;
   gap: 8px;
 }
+/* STYLE-8b3: действия шапки списка — текстом. Коробка снята здесь же, где
+   объявлялась (приём 8c2): перебивок не прибавилось, а пять !important ушли. */
 .spell-find-btn, .spell-add-btn {
-  padding: 7px 14px !important;
-  border-radius: 8px;
+  padding: 0 !important;
+  border-radius: 0;
   border: none;
+  background: none !important;
+  box-shadow: none;
+  font-family: var(--font-display);
   font-size: 0.82em;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: color var(--t1) var(--ez-out);
   white-space: nowrap;
   width: auto !important;
   margin-bottom: 0 !important;
   transform: none !important;
 }
-.spell-find-btn {
-  background: transparent !important;
-  color: var(--accent) !important;
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent) !important;
-}
-.spell-find-btn:hover { background: color-mix(in srgb, var(--accent) 14%, transparent) !important; border-color: var(--accent) !important; filter: none; transform: none !important; box-shadow: none !important; }
-.spell-add-btn {
-  background: transparent !important;
-  color: var(--text-muted) !important;
-  border: 1px solid color-mix(in srgb, var(--text-muted) 40%, transparent) !important;
-}
-.spell-add-btn:hover { background: color-mix(in srgb, var(--text-muted) 12%, transparent) !important; border-color: var(--text-muted) !important; color: var(--text-color) !important; filter: none; transform: none !important; box-shadow: none !important; }
+.spell-find-btn { color: var(--accent-lo); }
+.spell-find-btn:hover { color: var(--accent); text-decoration: underline; filter: none; transform: none !important; box-shadow: none !important; }
+.spell-add-btn { color: var(--accent-lo); }
+.spell-add-btn:hover { color: var(--accent); text-decoration: underline; filter: none; transform: none !important; box-shadow: none !important; }
 
 /* UI-5/полировка: на узких экранах (iPhone XR ~414px и меньше) кнопки
    «Найти заклинание» / «Добавить своё» вылетают за правую границу из-за
@@ -15616,3 +15613,511 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 }
 .cd-level-mc-hint { font-size: var(--fs-sm); color: var(--home-sub); }
 #char-subclass-mc .cd-class-mc:last-child { border-bottom: none; }
+
+
+/* == STYLE-8b3: список «Мои заклинания» — рецепт «Сумки» + чип действия =====
+   Предыдущая попытка (откачена) провалилась потому, что я снял якоря: иконки,
+   цвет школы, границу объекта — и список стал полотном текста. Здесь якорь
+   возвращён, и он бесплатный: цвет ромба и слово школы берут токены
+   --school-* (style.css:62 / 332 / 415), которыми приложение уже красит бейдж
+   школы. Цвет школы — ДАННЫЕ, ровно как категория вещи в «Сумке»; правило
+   «акцент только у действий» отменено — оно и сломало прошлый заход.
+
+   Подача действий — вариант В2: главное действие видно в свёрнутой строке
+   чипом с заливкой (иначе новый игрок его не находит), остальные — чипами в
+   раскрытии. Надпись чипа идёт --text-color, а не акцентом: акцент на
+   акцентной подложке дал в СВЕТЛОЙ теме контраст 2.64 при норме 4.5
+   (в тёмной 7.78, поэтому на глаз дефект не виден). Цвет несут заливка и
+   иконка, читаемость несёт текст.
+
+   Тронут ТОЛЬКО список: две другие карточки вкладки (характеристика и ячейки)
+   остаются коробочными намеренно — их рецепт ещё не согласован. */
+
+#tab-spells > .spells-list-card {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0 0 var(--sp-6) 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+#tab-spells > .spells-list-card:hover { box-shadow: none; border-color: transparent; }
+
+#tab-spells .spells-header-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  margin: 0 0 1px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--home-rule);
+}
+#tab-spells .spells-header-row h3 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: calc(var(--fs-lg) * 1.05);
+  font-weight: 700;
+}
+#tab-spells .spell-action-btns { margin-left: auto; display: flex; gap: 16px; align-items: baseline; }
+
+#tab-spells .prep-counter {
+  margin: 0 0 2px;
+  padding: 9px 0;
+  border: 0;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+  background: none;
+}
+
+#tab-spells .spell-level-group { margin: 0 0 var(--sp-4); border-bottom: 1px solid var(--home-rule); }
+#tab-spells .spell-group-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  padding: 14px 0 5px;
+  border: 0;
+  background: none;
+}
+#tab-spells .spell-group-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent-lo);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+#tab-spells .spell-group-count {
+  margin-left: auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+#tab-spells .my-spell-item {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--home-rule);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+#tab-spells .spell-level-group .my-spell-item:first-of-type { border-top: 0; }
+#tab-spells .my-spell-item:hover { box-shadow: none; border-color: var(--home-rule); }
+#tab-spells .my-spell-item.expanded { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+
+#tab-spells .my-spell-item[data-school="abjuration"]    { --dz-c: var(--school-abjur); }
+#tab-spells .my-spell-item[data-school="conjuration"]   { --dz-c: var(--school-conj); }
+#tab-spells .my-spell-item[data-school="divination"]    { --dz-c: var(--school-divin); }
+#tab-spells .my-spell-item[data-school="enchantment"]   { --dz-c: var(--school-ench); }
+#tab-spells .my-spell-item[data-school="evocation"]     { --dz-c: var(--school-evoc); }
+#tab-spells .my-spell-item[data-school="illusion"]      { --dz-c: var(--school-illus); }
+#tab-spells .my-spell-item[data-school="necromancy"]    { --dz-c: var(--school-necro); }
+#tab-spells .my-spell-item[data-school="transmutation"] { --dz-c: var(--school-trans); }
+#tab-spells .spell-card-arrow {
+  --dz-size: 10px;
+  border-color: var(--dz-c, var(--accent));
+  background: linear-gradient(45deg, transparent 50%, var(--dz-c, var(--accent)) 50%);
+}
+
+#tab-spells .spell-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 9px 0 2px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+#tab-spells .spell-card-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+#tab-spells .spell-card-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-lg);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#tab-spells .spell-card-badges { display: none; }
+
+#tab-spells .spell-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0;
+  margin: 0;
+  padding: 0 0 9px calc(10px + var(--sp-3));
+  border: 0;
+  background: none;
+}
+#tab-spells .spell-card-meta span {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+#tab-spells .spell-card-meta span + span::before {
+  content: "·";
+  color: var(--text-muted);
+  margin: 0 7px;
+}
+/* Специфичность: общее правило .spell-card-meta span (1,2,0) перебивало
+   одиночный класс, и слово школы оставалось серым. */
+#tab-spells .spell-card-meta .spell-meta-school { color: var(--dz-c, var(--accent)); }
+#tab-spells .spell-card-body { padding-left: calc(10px + var(--sp-3)); }
+
+#tab-spells .my-spell-item.spell-unprepared { opacity: 0.75; }
+#tab-spells .spell-unprepared .spell-card-name { text-decoration: none; }
+
+#tab-spells .spell-lead-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  width: auto;
+  margin: 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  box-shadow: none;
+  color: var(--text-color);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+#tab-spells .spell-lead-btn .dico { color: var(--accent-color); }
+#tab-spells .spell-lead-btn:hover {
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
+  color: var(--text-color);
+  transform: none;
+  filter: none;
+}
+#tab-spells .spell-lead-prep { background: color-mix(in srgb, var(--text-muted) 16%, transparent); }
+#tab-spells .spell-lead-prep:hover { background: color-mix(in srgb, var(--text-muted) 26%, transparent); }
+
+#tab-spells .spell-card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+#tab-spells .spell-card-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  width: auto;
+  margin: 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--text-muted) 16%, transparent);
+  box-shadow: none;
+  color: var(--text-color);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+}
+#tab-spells .spell-card-actions button:hover {
+  background: color-mix(in srgb, var(--text-muted) 26%, transparent);
+  transform: none;
+  filter: none;
+}
+#tab-spells .spell-remove-btn { background: color-mix(in srgb, var(--danger) 18%, transparent); }
+#tab-spells .spell-remove-btn:hover { background: color-mix(in srgb, var(--danger) 28%, transparent); }
+#tab-spells .spell-remove-btn .dico { color: var(--danger); }
+#tab-spells .spell-prep-btn.spell-prep-active { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+#tab-spells .spell-prep-btn.spell-prep-active .dico { color: var(--accent-color); }
+
+/* == STYLE-8b3-fix: срезанный ромб ==========================================
+   .my-spell-item несёт overflow:hidden (style.css:6275). Ромб повёрнут на 45°,
+   поэтому при стороне 10px его габарит 14.1px и он выступает влево на 2.1px —
+   ровно их и срезало. Та же ловушка уже ловилась на 8c2 у вещей в «Сумке».
+   Лечим двумя строками: снимаем обрезку и даём ромбу жёлоб. */
+#tab-spells .my-spell-item {
+  overflow: visible;
+  padding-left: 3px;
+}
+
+/* == STYLE-8b3b: два оставшихся блока «Магии» ================================
+   Рецепт тот же. Строки характеристик раскрываются — значит ромб им положен
+   (DISC-4). Строкам ячеек раскрывать нечего, знака у них нет, но жёлоб
+   сохранён, иначе «1 ур.» не встанет под «Модификатор».
+
+   Ячейки — вариант A5, согласованный ранее: бусина НЕ переопределяется
+   (17px, золотой градиент, свечение — style.css:6099), прогал лечится
+   расположением: бусины прижаты к счётчику, ширина окна на них не влияет.
+   Шаги стоят ПЕРЕД остатком, иначе счётчик уходит из общей колонки величин. */
+
+#tab-spells { --sp-mark: 22px; }
+
+#tab-spells > .card:not(.spells-list-card) {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0 0 var(--sp-6) 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+#tab-spells > .card:not(.spells-list-card):hover { box-shadow: none; border-color: transparent; }
+
+/* Заголовки этих карточек — такие же полосы, как у списка. Одиночный h3
+   гридом делать нельзя: у него есть ромб ::before, он забрал бы долю 1fr и
+   утолкал название вправо. Поэтому flex. */
+#tab-spells .card > h3 {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin: 0 0 1px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--home-rule);
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: calc(var(--fs-lg) * 1.05);
+  font-weight: 700;
+}
+#tab-spells .spell-slots-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  margin: 0 0 1px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--home-rule);
+}
+#tab-spells .spell-slots-header h3 {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  text-align: left;
+}
+#tab-spells .ssl-restore-btn {
+  margin-left: auto;
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--accent-lo);
+}
+#tab-spells .ssl-restore-btn:hover {
+  background: none;
+  color: var(--accent);
+  transform: none;
+  text-decoration: underline;
+}
+
+/* Заклинательная характеристика */
+#tab-spells .sc-stat-selector {
+  display: flex;
+  gap: 0;
+  margin: 0;
+  padding: 10px 0 8px var(--sp-mark);
+  border: 0;
+  background: none;
+}
+#tab-spells .sc-stat-btn {
+  flex: 1;
+  display: block;
+  min-width: 0;
+  margin: 0;
+  padding: 5px 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  text-align: center;
+  font-family: var(--font-display);
+  color: var(--text-muted);
+}
+#tab-spells .sc-stat-btn:hover { background: none; color: var(--accent-lo); transform: none; }
+#tab-spells .sc-stat-btn.active {
+  background: none;
+  color: var(--text-color);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+#tab-spells .sc-stat-abbr { display: none; }
+#tab-spells .sc-stat-name {
+  display: block;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+#tab-spells .sc-stat-btn.active .sc-stat-name { color: var(--text-color); }
+
+#tab-spells .sc-stats-row {
+  display: block;
+  gap: 0;
+  margin: 0;
+  border-bottom: 1px solid var(--home-rule);
+}
+#tab-spells .sc-stat-block {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--sp-mark) minmax(0, 1fr) minmax(44px, auto);
+  align-items: baseline;
+  row-gap: 4px;
+  margin: 0;
+  padding: 10px 0;
+  border: 0;
+  border-top: 1px solid var(--home-rule);
+  cursor: pointer;
+}
+#tab-spells .sc-stats-row > .sc-stat-block:first-child { border-top: 0; }
+#tab-spells .sc-stat-block::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 15px;
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  box-sizing: border-box;
+  transform: rotate(45deg);
+  border: 1.5px solid var(--accent);
+  background: linear-gradient(45deg, transparent 50%, var(--accent) 50%);
+  transition: transform var(--t2) var(--ez-out);
+}
+#tab-spells .sc-stat-block.expanded::before { transform: rotate(135deg); }
+#tab-spells .sc-stat-block:hover .sc-stat-label { color: var(--accent-lo); }
+#tab-spells .sc-stat-label {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-lg);
+  color: var(--text-color);
+}
+#tab-spells .sc-stat-value {
+  grid-column: 3;
+  grid-row: 1;
+  margin: 0;
+  text-align: right;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-lg);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-color);
+}
+#tab-spells .sc-stat-block--main .sc-stat-value { color: var(--accent-color); }
+#tab-spells .sc-stat-block.expanded .sc-stat-label { color: var(--accent-color); }
+#tab-spells .sc-stat-body {
+  grid-column: 2 / 4;
+  grid-row: 2;
+  display: none;
+  padding: 4px 0 2px;
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+#tab-spells .sc-stat-block.expanded .sc-stat-body { display: block; }
+
+/* Ячейки: вариант A5 */
+#tab-spells .spell-slots-visual {
+  display: block;
+  gap: 0;
+  margin: 0;
+  border-bottom: 1px solid var(--home-rule);
+}
+#tab-spells .spell-slot-row {
+  display: grid;
+  grid-template-columns: var(--sp-mark) minmax(0, 1fr) auto auto minmax(44px, auto);
+  align-items: center;
+  margin: 0;
+  padding: 8px 0;
+  border: 0;
+  border-top: 1px solid var(--home-rule);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+#tab-spells .spell-slots-visual > .spell-slot-row:first-child { border-top: 0; }
+#tab-spells .spell-slot-row:hover,
+#tab-spells .spell-slot-empty:hover { background: none; border-color: var(--home-rule); opacity: 1; }
+#tab-spells .ssl-label {
+  grid-column: 2;
+  grid-row: 1;
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-lg);
+  color: var(--text-color);
+}
+#tab-spells .ssl-lvl { font-size: inherit; color: var(--accent-color); background: none; padding: 0; }
+#tab-spells .ssl-ur {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 5px;
+}
+#tab-spells .ssl-diamonds {
+  grid-column: 3;
+  grid-row: 1;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+#tab-spells .ssl-controls {
+  grid-column: 4;
+  grid-row: 1;
+  display: flex;
+  gap: 11px;
+  margin: 0 12px;
+}
+#tab-spells .ssl-counter {
+  grid-column: 5;
+  grid-row: 1;
+  justify-content: flex-end;
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-variant-numeric: tabular-nums;
+}
+#tab-spells .ssl-btn {
+  width: auto;
+  height: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--accent-lo);
+}
+#tab-spells .ssl-btn:hover { background: none; color: var(--accent); transform: none; text-decoration: underline; }
+#tab-spells .ssl-btn:active { transform: none; }
+/* Уровень без ячеек — одна строка: счётчик 0/0 говорит то же, что подпись. */
+#tab-spells .spell-slot-empty .ssl-diamonds { display: none; }
+#tab-spells .ssl-none { font-size: var(--fs-sm); color: var(--text-muted); font-style: italic; }

@@ -1,0 +1,359 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Мокапы — «Магия» на рецепте «Сумки»: подача действий</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Стенд. Живой style.css не трогаем.
+
+     БАЗА ОДНА И ТА ЖЕ ВО ВСЕХ ЧЕТЫРЁХ ВАРИАНТАХ — рецепт «Сумки»
+     (style.css:4442): цветной ромб типа слева, антиква для названия, признаки
+     текстом через точку, величина справа, раскрытие по нажатию на строку.
+     Цвет ромба берётся из токенов школ (--school-evoc и т.д., style.css:62),
+     они уже есть в обеих темах — как --weapon-color у вещей.
+
+     РАЗЛИЧАЮТСЯ ВАРИАНТЫ ТОЛЬКО ОДНИМ: как показаны действия. Вопрос,
+     который решаем, — чтобы новый пользователь не терял кнопки. Сила сигнала
+     «сюда можно нажать» растёт так:
+        цветной текст  <  текст с иконкой на подложке  <  обводка  <  заливка
+     Варианты идут ровно в этом порядке. */
+
+  body { padding: 0 !important; max-width: none !important; }
+  body { margin: 0; background: var(--bg-0); color: var(--text); font-family: var(--font); }
+  .mk-page { max-width: 1760px; margin: 0 auto; padding: 26px 22px 90px; }
+  .mk-h1 { font-family: var(--font-display); font-size: 25px; margin: 0 0 6px; }
+  .mk-lead { color: var(--home-sub); font-size: 13px; line-height: 1.55; margin: 0 0 10px; max-width: 82ch; }
+  .mk-rule { border: 0; border-top: 1px solid var(--border-soft); margin: 18px 0 24px; }
+  .mk-grid { display: flex; flex-wrap: wrap; align-items: flex-start; }
+  .mk-col { width: 372px; flex: 0 0 auto; padding: 0 20px 0 0; margin: 0 20px 30px 0; border-right: 1px solid var(--border-soft); }
+  .mk-col:last-child { border-right: 0; }
+  .mk-cap { font-family: var(--font-display); font-size: 15px; color: var(--accent-lo); margin: 0 0 3px; }
+  .mk-sig { font-size: 11px; color: var(--text-muted); margin: 0 0 6px; letter-spacing: .3px; }
+  .mk-note { font-size: 11.5px; color: var(--home-sub); line-height: 1.5; margin: 0 0 14px; min-height: 88px; }
+  .mk-verdict { font-size: 12px; color: var(--accent-lo); font-family: var(--font-display); margin: 12px 0 0; }
+  .mk-sub { font-size: 11.5px; color: var(--text-muted); margin: 14px 0 4px; font-family: var(--font-display); }
+
+  /* ── ОБЩАЯ БАЗА: строка заклинания (рецепт «Сумки») ───────────────────── */
+  .list { border-bottom: 1px solid var(--home-rule); }
+  .sp {
+    position: relative;
+    padding-left: calc(var(--home-bullet) + var(--sp-4));
+    border-top: 1px solid var(--home-rule);
+  }
+  .list > .sp:first-child { border-top: 0; }
+  .sp::before {
+    content: ""; position: absolute; left: var(--sp-2); top: 17px;
+    width: var(--home-bullet); height: var(--home-bullet); box-sizing: border-box;
+    transform: rotate(45deg);
+    border: 1.5px solid var(--dz-c, var(--accent));
+    background: linear-gradient(45deg, transparent 50%, var(--dz-c, var(--accent)) 50%);
+    transition: transform var(--t2) var(--ez-out);
+  }
+  .sp.open::before { transform: rotate(135deg); }
+  .sp.open { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+  /* Школы — те же токены, что использует бейдж школы в приложении. */
+  .sp[data-school="evoc"]  { --dz-c: var(--school-evoc); }
+  .sp[data-school="abjur"] { --dz-c: var(--school-abjur); }
+  .sp[data-school="divin"] { --dz-c: var(--school-divin); }
+  .sp[data-school="ench"]  { --dz-c: var(--school-ench); }
+  .sp[data-school="necro"] { --dz-c: var(--school-necro); }
+
+  .sp-main { display: flex; align-items: center; gap: var(--sp-3); padding: 9px 2px 9px 0; cursor: pointer; }
+  .sp-info { flex: 1; min-width: 0; }
+  .sp-name { font-family: var(--font-display); font-weight: 600; font-size: var(--fs-lg); margin-bottom: 2px; }
+  .sp.open .sp-name { color: var(--accent-color); }
+  .sp-meta { display: flex; flex-wrap: wrap; align-items: baseline; }
+  .sp-tag { font-size: var(--fs-sm); color: var(--text-muted); }
+  .sp-tag + .sp-tag::before { content: "·"; color: var(--text-muted); margin: 0 7px; }
+  /* Школа окрашена — ровно как категория вещи в «Сумке» (.inv-cat-tag). */
+  .sp-school { color: var(--dz-c); }
+  .sp-lvl { flex-shrink: 0; color: var(--text-dim); font-size: var(--fs-sm); white-space: nowrap; }
+  .sp-body { display: none; padding: 0 2px 12px 0; }
+  .sp.open .sp-body { display: block; }
+  .sp-desc { font-size: var(--fs-sm); color: var(--text-dim); line-height: 1.55; margin-bottom: 10px; }
+  .sp-unprep .sp-name { color: var(--text-muted); }
+
+  /* ── В1: цветной текст (как действия вещи в «Сумке» сегодня) ── */
+  .acts { display: flex; flex-wrap: wrap; gap: var(--sp-5); align-items: center; }
+  .a-text {
+    all: unset; cursor: pointer; font-family: var(--font-display);
+    font-size: 13px; color: var(--accent-lo);
+  }
+  .a-text:hover { text-decoration: underline; color: var(--accent); }
+
+  /* ── В2: чип с заливкой — иконка + слово ── */
+  .acts2 { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .a-chip {
+    all: unset; cursor: pointer; box-sizing: border-box;
+    display: inline-flex; align-items: center; gap: 6px;
+    min-height: 34px; padding: 0 12px; border-radius: 8px;
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    /* Метка — обычным текстовым цветом, а не акцентом. Акцентная надпись на
+       акцентной подложке дала в СВЕТЛОЙ теме контраст 2.64 при норме 4.5
+       (в тёмной 7.78 — потому дефект и не виден на первом снимке).
+       Цвет теперь несут заливка и иконка, читаемость несёт текст. */
+    color: var(--text-color);
+    font-family: var(--font-display); font-weight: 600; font-size: 13px;
+  }
+  .a-chip:hover { background: color-mix(in srgb, var(--accent) 26%, transparent); }
+  .a-chip--mute { background: color-mix(in srgb, var(--text-muted) 16%, transparent); color: var(--text-color); }
+  .a-chip--danger { background: color-mix(in srgb, var(--danger) 18%, transparent); color: var(--text-color); }
+  .a-ico { font-size: 13px; line-height: 1; color: var(--accent-color); }
+  .a-chip--mute .a-ico { color: var(--text-muted); }
+  .a-chip--danger .a-ico { color: var(--danger); }
+
+  /* ── В3: обведённая пилюля ── */
+  .a-pill {
+    all: unset; cursor: pointer; box-sizing: border-box;
+    display: inline-flex; align-items: center; gap: 6px;
+    min-height: 34px; padding: 0 12px; border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    color: var(--accent-color);
+    font-family: var(--font-display); font-weight: 600; font-size: 13px;
+  }
+  .a-pill:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .a-pill--mute { border-color: var(--border-soft); color: var(--text-muted); }
+
+  /* ── В4: сплошная кнопка у главного действия ── */
+  .a-solid {
+    all: unset; cursor: pointer; box-sizing: border-box;
+    display: inline-flex; align-items: center; gap: 6px;
+    min-height: 34px; padding: 0 14px; border-radius: 8px;
+    background: var(--accent); color: var(--bg-0);
+    font-family: var(--font-display); font-weight: 700; font-size: 13px;
+  }
+  .a-solid:hover { filter: brightness(1.08); }
+
+  /* Главное действие, живущее в самой строке (В2–В4) */
+  .sp-lead { flex-shrink: 0; }
+  /* Настоящий компромисс варианта со встроенной кнопкой: она съедает ширину,
+     и третий признак переносится на вторую строку с ведущей точкой. Значит
+     строка с кнопкой вмещает на один признак меньше — дистанция уходит в
+     раскрытие. Правило само находит такие строки, а не проставляется руками. */
+  .sp-main:has(.sp-lead) .sp-tag:nth-child(3) { display: none; }
+</style>
+
+<div class="mk-page">
+  <h1 class="mk-h1">«Магия» на рецепте «Сумки»: как подать действия</h1>
+  <p class="mk-lead">
+    База во всех четырёх вариантах <b>одна и та же</b> — рецепт «Сумки»: цветной ромб типа слева,
+    антиква для названия, признаки текстом через точку, величина справа, раскрытие по нажатию.
+    Цвет ромба и слово школы берут токены <code>--school-*</code>, они уже есть в обеих темах —
+    ровно как <code>--weapon-color</code> у вещей. Это и есть тот якорь, из-за отсутствия
+    которого прошлая попытка превратилась в полотно текста.
+  </p>
+  <p class="mk-lead">
+    Различается только одно: <b>как показаны действия</b>. Сила сигнала «сюда можно нажать»
+    растёт в порядке: цветной текст → текст с иконкой на подложке → обводка → заливка.
+    Варианты идут ровно в этом порядке. У каждого показаны две свёрнутые строки и одна раскрытая.
+  </p>
+  <hr class="mk-rule">
+
+  <div class="mk-grid">
+
+    <!-- ══════════ В1 ══════════ -->
+    <div class="mk-col">
+      <p class="mk-cap">В1 · цветной текст</p>
+      <p class="mk-sig">как действия вещи в «Сумке» сегодня</p>
+      <p class="mk-note">
+        Самый тихий вариант и текущее поведение «Сумки». В свёрнутой строке нет ни одного признака,
+        что тут вообще что-то можно нажать, а раскрытые действия — просто цветные слова.
+        Именно это вы и назвали «теряю кнопки».
+      </p>
+      <div class="list">
+        <div class="sp" data-school="evoc">
+          <div class="sp-main">
+            <div class="sp-info">
+              <div class="sp-name">Огненный снаряд</div>
+              <div class="sp-meta"><span class="sp-tag sp-school">воплощение</span><span class="sp-tag">1 действие</span><span class="sp-tag">120 фт</span></div>
+            </div>
+            <span class="sp-lvl">заговор</span>
+          </div>
+        </div>
+        <div class="sp open" data-school="evoc">
+          <div class="sp-main">
+            <div class="sp-info">
+              <div class="sp-name">Волшебная стрела</div>
+              <div class="sp-meta"><span class="sp-tag sp-school">воплощение</span><span class="sp-tag">1 действие</span><span class="sp-tag">120 фт</span></div>
+            </div>
+            <span class="sp-lvl">1 ур.</span>
+          </div>
+          <div class="sp-body">
+            <div class="sp-desc">Три светящиеся стрелы бьют по цели автоматически, каждая наносит 1к4+1 урона силовым полем.</div>
+            <div class="acts">
+              <button class="a-text">Использовать</button>
+              <button class="a-text">Подготовить</button>
+              <button class="a-text">Удалить</button>
+            </div>
+          </div>
+        </div>
+        <div class="sp sp-unprep" data-school="abjur">
+          <div class="sp-main">
+            <div class="sp-info">
+              <div class="sp-name">Щит</div>
+              <div class="sp-meta"><span class="sp-tag sp-school">ограждение</span><span class="sp-tag">реакция</span><span class="sp-tag">на себя</span></div>
+            </div>
+            <span class="sp-lvl">не готово</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ В2 ══════════ -->
+    <div class="mk-col">
+      <p class="mk-cap">В2 · чип с заливкой</p>
+      <p class="mk-sig">иконка + слово на подложке</p>
+      <p class="mk-note">
+        Главное действие «Использовать» вынесено в саму строку и видно всегда — искать нечего.
+        Заливка без рамки читается как кнопка, но весит легче обводки и не спорит с ромбом.
+        Высота 34px — палец попадает. Остальные действия — в раскрытии такими же чипами.
+      </p>
+      <div class="list">
+        <div class="sp" data-school="evoc">
+          <div class="sp-main">
+            <div class="sp-info">
+              <div class="sp-name">Огненный снаряд</div>
+              <div class="sp-meta"><span class="sp-tag sp-school">воплощение</span><span class="sp-tag">1 действие</span><span class="sp-tag">120 фт</span></div>
+            </div>
+            <span class="sp-lead"><button class="a-chip"><span class="a-ico">✦</span>Использовать</button></span>
+          </div>
+        </div>
+        <div class="sp open" data-school="evoc">
+          <div class="sp-main">
+            <div class="sp-info">
+              <div class="sp-name">Волшебная стрела</div>
+              <div class="sp-meta"><span class="sp-tag sp-school">воплощение</span><span class="sp-tag">1 действие</span><span class="sp-tag">120 фт</span></div>
+            </div>
+            <span class="sp-lead"><button class="a-chip"><span class="a-ico">✦</span>Использовать</button></span>
+          </div>
+          <div class="sp-body">
+            <div class="sp-desc">Три светящиеся стрелы бьют по цели автоматически, каждая наносит 1к4+1 урона силовым полем.</div>
+            <div class="acts2">
+              <button class="a-chip a-chip--mute"><span class="a-ico">○</span>Подготовить</button>
+              <button class="a-chip a-chip--danger"><span class="a-ico">✕</span>Удалить</button>
+            </div>
+          </div>
+        </div>
+        <div class="sp sp-unprep" data-school="abjur">
+          <div class="sp-main">
+            <div class="sp-info">
+              <div class="sp-name">Щит</div>
+              <div class="sp-meta"><span class="sp-tag sp-school">ограждение</span><span class="sp-tag">реакция</span><span class="sp-tag">на себя</span></div>
+            </div>
+            <span class="sp-lead"><button class="a-chip a-chip--mute"><span class="a-ico">○</span>Подготовить</button></span>
+          </div>
+        </div>
+      </div>
+      <p class="mk-verdict">Рекомендую этот.</p>
+    </div>
+
+    <!-- ══════════ В3 ══════════ -->
+    <div class="mk-col">
+      <p class="mk-cap">В3 · обведённая пилюля</p>
+      <p class="mk-sig">рамка вместо заливки</p>
+      <p class="mk-note">
+        Сигнал «кнопка» ещё чётче, но рамка возвращает в строку прямоугольник — тот самый элемент,
+        от которого уходил весь плоский язык. На списке из тридцати заклинаний тридцать обводок
+        снова дадут решётку.
+      </p>
+      <div class="list">
+        <div class="sp" data-school="evoc">
+          <div class="sp-main">
+            <div class="sp-info">
+              <div class="sp-name">Огненный снаряд</div>
+              <div class="sp-meta"><span class="sp-tag sp-school">воплощение</span><span class="sp-tag">1 действие</span><span class="sp-tag">120 фт</span></div>
+            </div>
+            <span class="sp-lead"><button class="a-pill"><span class="a-ico">✦</span>Использовать</button></span>
+          </div>
+        </div>
+        <div class="sp open" data-school="evoc">
+          <div class="sp-main">
+            <div class="sp-info">
+              <div class="sp-name">Волшебная стрела</div>
+              <div class="sp-meta"><span class="sp-tag sp-school">воплощение</span><span class="sp-tag">1 действие</span><span class="sp-tag">120 фт</span></div>
+            </div>
+            <span class="sp-lead"><button class="a-pill"><span class="a-ico">✦</span>Использовать</button></span>
+          </div>
+          <div class="sp-body">
+            <div class="sp-desc">Три светящиеся стрелы бьют по цели автоматически, каждая наносит 1к4+1 урона силовым полем.</div>
+            <div class="acts2">
+              <button class="a-pill a-pill--mute"><span class="a-ico">○</span>Подготовить</button>
+              <button class="a-pill a-pill--mute"><span class="a-ico">✕</span>Удалить</button>
+            </div>
+          </div>
+        </div>
+        <div class="sp sp-unprep" data-school="abjur">
+          <div class="sp-main">
+            <div class="sp-info">
+              <div class="sp-name">Щит</div>
+              <div class="sp-meta"><span class="sp-tag sp-school">ограждение</span><span class="sp-tag">реакция</span><span class="sp-tag">на себя</span></div>
+            </div>
+            <span class="sp-lead"><button class="a-pill a-pill--mute"><span class="a-ico">○</span>Подготовить</button></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ В4 ══════════ -->
+    <div class="mk-col">
+      <p class="mk-cap">В4 · сплошная кнопка</p>
+      <p class="mk-sig">заливка акцентом</p>
+      <p class="mk-note">
+        Потерять невозможно. Но на каждой строке списка сплошная акцентная плашка перетягивает
+        внимание на себя, и список читается как набор кнопок, а не как список заклинаний.
+        Годится, если «Использовать» оставить только у раскрытой строки.
+      </p>
+      <div class="list">
+        <div class="sp" data-school="evoc">
+          <div class="sp-main">
+            <div class="sp-info">
+              <div class="sp-name">Огненный снаряд</div>
+              <div class="sp-meta"><span class="sp-tag sp-school">воплощение</span><span class="sp-tag">1 действие</span><span class="sp-tag">120 фт</span></div>
+            </div>
+            <span class="sp-lead"><button class="a-solid"><span class="a-ico">✦</span>Использовать</button></span>
+          </div>
+        </div>
+        <div class="sp open" data-school="evoc">
+          <div class="sp-main">
+            <div class="sp-info">
+              <div class="sp-name">Волшебная стрела</div>
+              <div class="sp-meta"><span class="sp-tag sp-school">воплощение</span><span class="sp-tag">1 действие</span><span class="sp-tag">120 фт</span></div>
+            </div>
+            <span class="sp-lead"><button class="a-solid"><span class="a-ico">✦</span>Использовать</button></span>
+          </div>
+          <div class="sp-body">
+            <div class="sp-desc">Три светящиеся стрелы бьют по цели автоматически, каждая наносит 1к4+1 урона силовым полем.</div>
+            <div class="acts2">
+              <button class="a-chip a-chip--mute"><span class="a-ico">○</span>Подготовить</button>
+              <button class="a-chip a-chip--danger"><span class="a-ico">✕</span>Удалить</button>
+            </div>
+          </div>
+        </div>
+        <div class="sp sp-unprep" data-school="abjur">
+          <div class="sp-main">
+            <div class="sp-info">
+              <div class="sp-name">Щит</div>
+              <div class="sp-meta"><span class="sp-tag sp-school">ограждение</span><span class="sp-tag">реакция</span><span class="sp-tag">на себя</span></div>
+            </div>
+            <span class="sp-lead"><button class="a-solid"><span class="a-ico">○</span>Подготовить</button></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <hr class="mk-rule">
+  <p class="mk-lead">
+    Общее для всех четырёх, если рецепт примем: цвет ромба и слово школы — это <b>данные</b>,
+    а не украшение, ровно как категория вещи в «Сумке». Правило «акцент только у действий»,
+    которое я выдумал в прошлый заход, отменяется — оно и сломало прошлую попытку.
+  </p>
+</div>
+
+<script>
+// ?light — посмотреть стенд в светлой теме. Чипы В2 залиты через color-mix от
+// --accent с прозрачностью, и на светлой подложке их надо проверять отдельно.
+if (location.search.indexOf('light') !== -1) {
+  document.documentElement.setAttribute('data-theme', 'light');
+}
+</script>

@@ -3,6 +3,14 @@
 // добавление/удаление, отображение заклинаний
 // ============================================================
 
+// STYLE-8b3b: раскрытие строки заклинательной характеристики. Ромб слева -
+// знак «строка раскрывается» (DISC-4), поэтому у строк должно быть что
+// раскрывать; текст объяснений лежит в разметке (index.html).
+function toggleSpellStatRow(el) {
+  if (!el) return;
+  el.classList.toggle("expanded");
+}
+
 function renderSpellSlots() {
 if (!currentId) return;
 const char = getCurrentChar();
@@ -751,19 +759,26 @@ var classNamesRu = spellClassArr2.map(function(c){
 }).join(", ");
 var schoolRu = schoolName ? schoolName.charAt(0).toUpperCase() + schoolName.slice(1) : "";
 var sourceRu = srcRaw === "PH14" ? "Книга игрока 2014" : (srcRaw === "PH24" ? "Книга игрока 2024" : srcRaw);
+// STYLE-8b3: компоненты и длительность переехали сюда из свёрнутой строки —
+// в ней они переносили признаки на вторую линию, а место рядом заняло
+// действие «Использовать». Ничего не потеряно: раскрытие показывает всё.
 var taxonomyLine = '<div class="spell-card-taxonomy">' +
   (schoolRu ? '<span>' + dndIcoHtml("grad", 12) + ' Школа: <b>' + escapeHtml(schoolRu) + '</b></span>' : '') +
+  (spell.components ? '<span>' + dndIcoHtml("flask", 12) + ' Компоненты: <b>' + escapeHtml(spell.components) + '</b></span>' : '') +
+  (spell.duration ? '<span>⏱ Длительность: <b>' + escapeHtml(spell.duration) + '</b></span>' : '') +
   '<span>' + dndIcoHtml("user", 12) + ' Классы: <b>' + escapeHtml(classNamesRu) + '</b></span>' +
   (sourceRu ? '<span>' + dndIcoHtml("book", 12) + ' <b>' + escapeHtml(sourceRu) + '</b></span>' : '') +
   '</div>';
 var isRitual = !!(spell.time && spell.time.includes("(ритуал)"));
 var canCastRitual = isRitual && ritualClasses.includes(char.class);
 var isFamiliarSpell = /фамильяр/i.test(spell.name || "");
+// STYLE-8b3: признаки — текст через точку (её ставит CSS). Школа идёт первой
+// и красится цветом своей школы — это ДАННЫЕ, ровно как категория вещи в
+// «Сумке», а не украшение.
 var metaParts = [];
-if (spell.time) metaParts.push('<span>' + dndIcoHtml("zap", 12) + ' ' + escapeHtml(spell.time) + '</span>');
-if (spell.range) metaParts.push('<span>' + dndIcoHtml("ruler", 12) + ' ' + escapeHtml(spell.range) + '</span>');
-if (spell.components) metaParts.push('<span>' + escapeHtml(spell.components) + '</span>');
-if (spell.duration) metaParts.push('<span>⏱ ' + escapeHtml(spell.duration) + '</span>');
+if (schoolRu) metaParts.push('<span class="spell-meta-school">' + escapeHtml(schoolRu.toLowerCase()) + '</span>');
+if (spell.time) metaParts.push('<span>' + escapeHtml(spell.time) + '</span>');
+if (spell.range) metaParts.push('<span>' + escapeHtml(spell.range) + '</span>');
 var prepClass = isPrepClass(char);
 var prepared = isSpellPrepared(char, spell.id);
 var isCantrip = spell.level === 0;
@@ -774,6 +789,14 @@ card.className = cardClass + " rise";
 card.style.setProperty("--i", Math.min(_idx, 10)); // Дымка v5: stagger-появление
 card.dataset.spellId = spell.id;
 card.dataset.spellName = spell.name; // CAST-6: ключ для updateSpellActiveBadges
+// STYLE-8b3: слаг школы красит ромб строки (см. #tab-spells .my-spell-item в
+// конце style.css). Токены --school-* уже есть во всех трёх темах.
+card.dataset.school = getSchoolSlug(schoolName) || '';
+// Главное действие видно в свёрнутой строке — иначе новый игрок его не найдёт.
+// У неподготовленного заклинания главное другое: сначала подготовить.
+var _leadHtml = (prepClass && !isCantrip && !prepared)
+  ? '<button class="spell-lead-btn spell-lead-prep" onclick="event.stopPropagation();toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">○ Подготовить</button>'
+  : '<button class="spell-lead-btn" onclick="event.stopPropagation();castSpell(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("sparkle", 13) + ' Использовать</button>';
 card.innerHTML =
   '<div class="spell-card-header" onclick="toggleSpellCard(this)">' +
     '<div class="spell-card-title">' +
@@ -788,6 +811,7 @@ card.innerHTML =
       (schoolName ? '<span class="school-badge school-' + getSchoolSlug(schoolName) + '">' + getSchoolIcon(schoolName) + '<span class="school-badge-text">' + escapeHtml(schoolName) + '</span></span>' : '') +
       '<span class="class-icons-row">' + classIcons + '</span>' +
     '</div>' +
+    _leadHtml +
   '</div>' +
   '<div class="spell-card-meta">' + metaParts.join("") + '</div>' +
   '<div class="spell-card-body">' +
@@ -797,7 +821,9 @@ card.innerHTML =
     '<div class="spell-card-actions">' +
     // HB-3: id через _spellIdArg — у легаси-импорта он бывает строкой, и «голая»
     // подстановка давала битый идентификатор в onclick (кнопка роняла SyntaxError).
-    '<button class="spell-cast-btn" onclick="castSpell(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("sparkle", 13) + ' Использовать</button>' +
+    // «Использовать» переехало в саму строку (_leadHtml), здесь его больше нет —
+    // две одинаковые кнопки на карточке читались бы как разные действия.
+
     (spell.duration && spell.duration.toLowerCase().includes('концентрац') ? '<button class="spell-conc-btn" onclick="setConcentration(this.dataset.name)" data-name="' + escapeHtml(spell.name) + '">' + dndIcoHtml("focus", 13) + ' Концентрация</button>' : '') +
     (canCastRitual ? '<button class="spell-ritual-btn" onclick="castRitual(\'' + escapeHtml(spell.name).replace(/'/g,"&#39;") + '\')">" + dndIcoHtml("history", 13) + " Ритуал</button>' : '') +
     (prepClass && !isCantrip ? '<button class="spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">' + (prepared ? '' + dndIcoHtml("check", 13) + ' Подготовлено' : '○ Подготовить') + '</button>' : '') +

@@ -1,0 +1,459 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Мокапы — ячейки, список заклинаний, поиск</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Стенд. Живой style.css не трогаем. Колонки «Сейчас» собраны на НАСТОЯЩИХ
+     классах приложения, поэтому показывают сегодняшнюю сборку как есть.
+
+     Часть A — варианты строки ячеек (жалоба: «ячейки не очень»).
+     Часть B — «Мои заклинания»: вкладка переехала на сетку, а список остался
+               коробочным.
+     Часть C — окно поиска заклинаний, тоже коробочное. */
+
+  body { padding: 0 !important; max-width: none !important; }
+  body { margin: 0; background: var(--bg-0); color: var(--text); font-family: var(--font); }
+  .mk-page { max-width: 1240px; margin: 0 auto; padding: 28px 22px 90px; }
+  .mk-h1 { font-family: var(--font-display); font-size: 26px; margin: 0 0 6px; }
+  .mk-lead { color: var(--home-sub); font-size: 13px; line-height: 1.55; margin: 0 0 12px; max-width: 78ch; }
+  .mk-sec { margin: 0 0 46px; }
+  .mk-sec > h2 { font-family: var(--font-display); font-size: 18px; font-weight: 500; color: var(--accent-lo); margin: 0 0 4px; }
+  .mk-sec > .mk-sub { color: var(--home-sub); font-size: 12.5px; line-height: 1.55; margin: 0 0 18px; max-width: 82ch; }
+  .mk-grid { display: flex; flex-wrap: wrap; align-items: flex-start; }
+  .mk-col { width: 372px; flex: 0 0 auto; padding: 0 20px 0 0; margin: 0 20px 26px 0; border-right: 1px solid var(--border-soft); }
+  .mk-col:last-child { border-right: 0; }
+  .mk-cap { font-family: var(--font-display); font-size: 14px; color: var(--accent-lo); margin: 0 0 4px; }
+  .mk-note { font-size: 11.5px; color: var(--home-sub); line-height: 1.5; margin: 0 0 14px; min-height: 62px; }
+  .mk-rule { border: 0; border-top: 1px solid var(--border-soft); margin: 0 0 26px; }
+  .mk-verdict { font-size: 12px; color: var(--accent-lo); font-family: var(--font-display); margin: 10px 0 0; }
+
+  /* ── Общая сетка вкладки (та же, что уже в бою: маркер · содержание · величина) ── */
+  .body { --c-mark: 22px; --c-val: 104px; }
+  .h {
+    display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: baseline;
+    gap: var(--sp-3); margin: 0 0 1px; padding: 0 0 8px;
+    border-bottom: 1px solid var(--home-rule);
+  }
+  .h h4 { margin: 0; font-family: var(--font-display); font-size: calc(var(--fs-lg) * 1.05); font-weight: 700; }
+  .act { all: unset; cursor: pointer; font-family: var(--font-display); font-size: 13px; color: var(--accent-lo); white-space: nowrap; }
+  .act:hover { text-decoration: underline; color: var(--accent); }
+  .act + .act { margin-left: 12px; }
+
+  .r {
+    position: relative; display: grid;
+    grid-template-columns: var(--c-mark) minmax(0,1fr) var(--c-val);
+    align-items: baseline; row-gap: 4px; padding: 9px 0;
+    border-top: 1px solid var(--home-rule);
+  }
+  .list > .r:first-child { border-top: 0; }
+  .list { border-bottom: 1px solid var(--home-rule); }
+  .r-name { grid-column: 2; font-family: var(--font-display); font-weight: 600; font-size: var(--fs-lg); }
+  .r-val { grid-column: 3; text-align: right; font-family: var(--font-display); font-weight: 700; font-size: var(--fs-lg); font-variant-numeric: tabular-nums; }
+  .r-val small { font-weight: 600; color: var(--text-dim); }
+  .r-val--mute { font-weight: 600; font-size: var(--fs-sm); color: var(--text-muted); }
+  .r-sub { grid-column: 2; font-size: var(--fs-sm); color: var(--text-muted); line-height: 1.5; }
+  .r-act { grid-column: 3; text-align: right; }
+  .dz {
+    grid-column: 1; align-self: center; display: block;
+    width: var(--home-bullet); height: var(--home-bullet); box-sizing: border-box;
+    transform: rotate(45deg); border: 1.5px solid var(--dz-c, var(--accent));
+    background: linear-gradient(45deg, transparent 50%, var(--dz-c, var(--accent)) 50%);
+  }
+  .grp { display: grid; grid-template-columns: var(--c-mark) minmax(0,1fr) var(--c-val); padding: 14px 0 4px; }
+  .grp b { grid-column: 2; font-family: var(--font-display); font-weight: 500; font-size: 12px; color: var(--accent-lo); text-transform: uppercase; letter-spacing: .4px; }
+  .grp span { grid-column: 3; text-align: right; font-size: 12px; color: var(--text-muted); }
+
+  /* ── Части ячеек ── */
+  .track { display: flex; gap: 4px; }
+  .seg { flex: 1; height: 10px; border-radius: 2px; background: var(--slot-gold); }
+  .seg.used { background: transparent; box-shadow: inset 0 0 0 1.5px var(--border-soft); }
+  /* A2: дискретные пипсы, прижатые вправо */
+  .pips { display: flex; gap: 5px; justify-content: flex-end; }
+  .pip { width: 11px; height: 11px; box-sizing: border-box; transform: rotate(45deg); background: var(--slot-gold); }
+  .pip.used { background: transparent; box-shadow: inset 0 0 0 1.5px var(--border-soft); }
+  .r--a2 { grid-template-columns: var(--c-mark) minmax(0,1fr) auto var(--c-val); align-items: center; }
+  .r--a2 .pips { grid-column: 3; margin-right: 14px; }
+  .r--a2 .r-val { grid-column: 4; }
+  /* A4: все уровни одним полем */
+  .field-lv { display: flex; flex-wrap: wrap; gap: 18px 26px; padding: 12px 0 10px calc(var(--c-mark)); }
+  .lv { display: flex; flex-direction: column; gap: 5px; }
+  .lv-pips { display: flex; gap: 4px; }
+  .lv-cap { font-size: 11.5px; color: var(--text-muted); font-family: var(--font-display); }
+  .lv-cap b { color: var(--accent); font-weight: 700; }
+
+  /* ── Поиск ── */
+  .field {
+    display: flex; align-items: center; gap: 8px; margin: 12px 0 2px;
+    padding: 9px 12px; border: 1px solid var(--border-soft); border-radius: var(--r-2, 8px);
+    background: var(--bg-1, rgba(255,255,255,0.03));
+  }
+  .field input { all: unset; flex: 1; font-family: var(--font); font-size: 14px; color: var(--text); }
+  .chooser { padding: 8px 0 2px calc(var(--c-mark)); }
+  .chooser-lab { font-size: 11.5px; color: var(--text-muted); font-family: var(--font-display); margin-bottom: 3px; }
+  .chooser-row { display: flex; flex-wrap: wrap; }
+  .chooser-row button {
+    all: unset; cursor: pointer; font-family: var(--font-display);
+    font-size: var(--fs-md, 15px); color: var(--text-muted); padding: 3px 0;
+  }
+  .chooser-row button + button::before { content: "·"; color: var(--text-muted); margin: 0 9px; }
+  .chooser-row button.on { color: var(--text-color); font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent); }
+  .mk-shot { width: 100%; border: 1px solid var(--border-soft); border-radius: 6px; display: block; }
+
+  /* A5 — бусины у правого края. Ключ в том, что .spell-diamond здесь берётся
+     ИЗ ЖИВОГО style.css без перебивок (элементы вне #tab-spells), то есть это
+     ровно та исходная бусина: 17px, золотой градиент, свечение, отклик. */
+  .mk-wide { max-width: 820px; }
+  /* Последняя колонка — auto, а не var(--c-val): её правый край и так совпадает
+     с краем контейнера, поэтому число всё равно встаёт под «+3 / 14 / +6»
+     характеристик. Жёсткие 104px здесь только съедали место у имени, и на
+     375px «1 уровень» переносилось на вторую строку. */
+  .r--bead {
+    grid-template-columns: var(--c-mark) minmax(0,1fr) auto auto minmax(44px, auto);
+    align-items: center;
+  }
+  .beads { grid-column: 3; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  /* Шаги стоят ПЕРЕД счётчиком, а не после: иначе счётчик уезжает из общей
+     колонки величин и перестаёт стоять под «+3 / 14 / +6» характеристик. */
+  .steps { grid-column: 4; display: flex; gap: 11px; margin: 0 12px; }
+  .r--bead .r-val { grid-column: 5; }
+</style>
+
+<div class="mk-page">
+  <h1 class="mk-h1">Ячейки · список заклинаний · поиск</h1>
+  <p class="mk-lead">
+    Вкладка «Магия» переехала на сетку, но переехала не вся: строка ячеек вызвала нарекания,
+    а список «Мои заклинания» и окно поиска остались в коробочном рецепте — там до сих пор
+    карточка с рамкой, ряд бейджей и пять пилюль-чипов на заклинание.
+    Слева везде настоящие классы приложения, справа предложение.
+  </p>
+  <hr class="mk-rule">
+
+  <!-- ══════════════ A. ЯЧЕЙКИ ══════════════ -->
+  <section class="mk-sec">
+    <h2>A · Ячейки заклинаний — четыре варианта</h2>
+    <p class="mk-sub">
+      Что не так с нынешним: сплошная золотая полоса во всю ширину читается как «шкала чего-то
+      непрерывного», хотя ячейки — штучные. Плюс строка занимает две линии, и на пять-шесть
+      уровней это половина экрана. Варианты идут по возрастанию плотности.
+    </p>
+    <div class="mk-grid body">
+
+      <div class="mk-col">
+        <p class="mk-cap">A1 · как сейчас</p>
+        <p class="mk-note">Трек во всю ширину. Заполняет строку, но выглядит непрерывной шкалой и требует двух линий на уровень.</p>
+        <div class="h"><h4>Ячейки</h4><button class="act">Отдых</button></div>
+        <div class="list">
+          <div class="r">
+            <span class="r-name">1 уровень</span>
+            <span class="r-val">2<small>/4</small></span>
+            <span class="r-sub"><span class="track"><i class="seg"></i><i class="seg"></i><i class="seg used"></i><i class="seg used"></i></span></span>
+            <span class="r-act"><button class="act">−</button><button class="act">+</button></span>
+          </div>
+          <div class="r">
+            <span class="r-name">2 уровень</span>
+            <span class="r-val">2<small>/3</small></span>
+            <span class="r-sub"><span class="track"><i class="seg"></i><i class="seg"></i><i class="seg used"></i></span></span>
+            <span class="r-act"><button class="act">−</button><button class="act">+</button></span>
+          </div>
+          <div class="r">
+            <span class="r-name">3 уровень</span>
+            <span class="r-val">2<small>/2</small></span>
+            <span class="r-sub"><span class="track"><i class="seg"></i><i class="seg"></i></span></span>
+            <span class="r-act"><button class="act">−</button><button class="act">+</button></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mk-col">
+        <p class="mk-cap">A2 · пипсы у правого края</p>
+        <p class="mk-note">Ячейки снова штучные, но стоят не посреди строки, а вплотную к счётчику — прогала нет. Одна линия на уровень вместо двух: блок вдвое ниже.</p>
+        <div class="h"><h4>Ячейки</h4><button class="act">Отдых</button></div>
+        <div class="list">
+          <div class="r r--a2">
+            <span class="r-name">1 уровень</span>
+            <span class="pips"><i class="pip"></i><i class="pip"></i><i class="pip used"></i><i class="pip used"></i></span>
+            <span class="r-val">2<small>/4</small></span>
+          </div>
+          <div class="r r--a2">
+            <span class="r-name">2 уровень</span>
+            <span class="pips"><i class="pip"></i><i class="pip"></i><i class="pip used"></i></span>
+            <span class="r-val">2<small>/3</small></span>
+          </div>
+          <div class="r r--a2">
+            <span class="r-name">3 уровень</span>
+            <span class="pips"><i class="pip"></i><i class="pip"></i></span>
+            <span class="r-val">2<small>/2</small></span>
+          </div>
+          <div class="r r--a2">
+            <span class="r-name" style="color:var(--text-muted)">4 уровень</span>
+            <span class="pips"></span>
+            <span class="r-val r-val--mute">нет</span>
+          </div>
+        </div>
+        <p class="mk-verdict">Рекомендую этот.</p>
+      </div>
+
+      <div class="mk-col">
+        <p class="mk-cap">A3 · только число</p>
+        <p class="mk-note">Предельно тихо: ячейка тратится нажатием на число, возвращается долгим нажатием. Ничего лишнего, но остаток перестаёт считываться «на глаз», без чтения цифр.</p>
+        <div class="h"><h4>Ячейки</h4><button class="act">Отдых</button></div>
+        <div class="list">
+          <div class="r"><span class="r-name">1 уровень</span><span class="r-val">2<small>/4</small></span></div>
+          <div class="r"><span class="r-name">2 уровень</span><span class="r-val">2<small>/3</small></span></div>
+          <div class="r"><span class="r-name">3 уровень</span><span class="r-val">2<small>/2</small></span></div>
+          <div class="r"><span class="r-name" style="color:var(--text-muted)">4 уровень</span><span class="r-val r-val--mute">нет</span></div>
+        </div>
+      </div>
+
+      <div class="mk-col">
+        <p class="mk-cap">A4 · одним полем</p>
+        <p class="mk-note">Не список, а поле: все уровни разом, пустые не показываются вовсе. Занимает три строки вместо девяти — но цели нажатия мельче, и на телефоне в это труднее попасть.</p>
+        <div class="h"><h4>Ячейки</h4><button class="act">Отдых</button></div>
+        <div class="field-lv">
+          <span class="lv">
+            <span class="lv-pips"><i class="pip"></i><i class="pip"></i><i class="pip used"></i><i class="pip used"></i></span>
+            <span class="lv-cap"><b>1</b> ур. · 2/4</span>
+          </span>
+          <span class="lv">
+            <span class="lv-pips"><i class="pip"></i><i class="pip"></i><i class="pip used"></i></span>
+            <span class="lv-cap"><b>2</b> ур. · 2/3</span>
+          </span>
+          <span class="lv">
+            <span class="lv-pips"><i class="pip"></i><i class="pip"></i></span>
+            <span class="lv-cap"><b>3</b> ур. · 2/2</span>
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── A5: возврат бусины ── -->
+    <h2 style="margin-top:26px">A5 · бусины у правого края — предложение</h2>
+    <p class="mk-sub">
+      Разбор ошибки. Круглая бусина никогда не была проблемой: 17px, золотой градиент, свечение
+      <code>0 0 8px</code>, отклик на нажатие — вещь тактильная и понятная. Мешал только прогал
+      посреди строки, и я вылечил его растяжением, что на ПК разносит полосы во всю широкую
+      колонку. Правильное лечение — не тянуть бусины, а <b>прижать их к счётчику</b>: размер
+      фиксированный, значит ширина окна на них не влияет вовсе.
+      Ниже одно и то же на ширине ПК и телефона.
+    </p>
+    <div class="mk-wide body">
+      <p class="mk-cap">Ширина ПК — сейчас</p>
+      <p class="mk-note" style="min-height:0">Полосы растянуты на всю колонку. Чем шире экран, тем хуже.</p>
+      <div class="list" style="margin-bottom:22px">
+        <div class="r">
+          <span class="r-name">1 уровень</span><span class="r-val">2<small>/4</small></span>
+          <span class="r-sub"><span class="track"><i class="seg"></i><i class="seg"></i><i class="seg used"></i><i class="seg used"></i></span></span>
+          <span class="r-act"><button class="act">−</button><button class="act">+</button></span>
+        </div>
+        <div class="r">
+          <span class="r-name">2 уровень</span><span class="r-val">2<small>/3</small></span>
+          <span class="r-sub"><span class="track"><i class="seg"></i><i class="seg"></i><i class="seg used"></i></span></span>
+          <span class="r-act"><button class="act">−</button><button class="act">+</button></span>
+        </div>
+      </div>
+
+      <p class="mk-cap">Ширина ПК — предложение</p>
+      <p class="mk-note" style="min-height:0">Бусины фиксированного размера стоят вплотную к счётчику. Ширина окна на них не влияет. Одна линия на уровень.</p>
+      <div class="list">
+        <div class="r r--bead">
+          <span class="r-name">1 уровень</span>
+          <span class="beads"><i class="spell-diamond"></i><i class="spell-diamond"></i><i class="spell-diamond used"></i><i class="spell-diamond used"></i></span>
+          <span class="steps"><button class="act">−</button><button class="act">+</button></span>
+          <span class="r-val">2<small>/4</small></span>
+        </div>
+        <div class="r r--bead">
+          <span class="r-name">2 уровень</span>
+          <span class="beads"><i class="spell-diamond"></i><i class="spell-diamond"></i><i class="spell-diamond used"></i></span>
+          <span class="steps"><button class="act">−</button><button class="act">+</button></span>
+          <span class="r-val">2<small>/3</small></span>
+        </div>
+        <div class="r r--bead">
+          <span class="r-name">3 уровень</span>
+          <span class="beads"><i class="spell-diamond"></i><i class="spell-diamond"></i></span>
+          <span class="steps"><button class="act">−</button><button class="act">+</button></span>
+          <span class="r-val">2<small>/2</small></span>
+        </div>
+        <div class="r r--bead">
+          <span class="r-name" style="color:var(--text-muted)">4 уровень</span>
+          <span class="beads"></span>
+          <span class="steps"><button class="act">+</button></span>
+          <span class="r-val r-val--mute">нет</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mk-grid body" style="margin-top:22px">
+      <div class="mk-col">
+        <p class="mk-cap">Ширина телефона — предложение</p>
+        <p class="mk-note">375px: четыре бусины, шаги и счётчик умещаются в одну линию, имени остаётся с запасом.</p>
+        <div class="list">
+          <div class="r r--bead">
+            <span class="r-name">1 уровень</span>
+            <span class="beads"><i class="spell-diamond"></i><i class="spell-diamond"></i><i class="spell-diamond used"></i><i class="spell-diamond used"></i></span>
+            <span class="steps"><button class="act">−</button><button class="act">+</button></span>
+            <span class="r-val">2<small>/4</small></span>
+          </div>
+          <div class="r r--bead">
+            <span class="r-name">2 уровень</span>
+            <span class="beads"><i class="spell-diamond"></i><i class="spell-diamond"></i><i class="spell-diamond used"></i></span>
+            <span class="steps"><button class="act">−</button><button class="act">+</button></span>
+            <span class="r-val">2<small>/3</small></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ B. СПИСОК ══════════════ -->
+  <section class="mk-sec">
+    <h2>B · «Мои заклинания»</h2>
+    <p class="mk-sub">
+      Сегодня на одно заклинание приходится карточка с рамкой, бейдж редакции, бейдж школы,
+      иконки классов и четыре пилюли-чипа — до девяти обведённых объектов в одной записи.
+      Справа это та же строка, что уже стоит на «Магии» и «Бое»: ромб (карточка раскрывается —
+      значит знак законный), имя, уровень в колонке величин, признаки текстом через точку.
+    </p>
+    <div class="mk-grid">
+      <div class="mk-col">
+        <p class="mk-cap">Сейчас</p>
+        <p class="mk-note">Девять обведённых объектов на запись. Неподготовленное заклинание отличается только приглушённостью.</p>
+        <div class="card">
+          <div class="spell-card-level-group"><h4 style="color:var(--accent-lo)">ЗАГОВОРЫ</h4></div>
+          <div class="my-spell-item">
+            <div class="spell-card-header">
+              <div class="spell-card-title">
+                <span class="spell-card-arrow" aria-hidden="true"></span>
+                <span class="spell-card-name">Огненный снаряд</span>
+              </div>
+              <div class="spell-card-badges">
+                <span class="source-badge">PH14</span>
+                <span class="school-badge school-evocation">🔥<span class="school-badge-text">Воплощение</span></span>
+              </div>
+            </div>
+            <div class="spell-card-meta">
+              <span>⚡ 1 действие</span><span>📏 120 фт</span><span>V,S</span><span>⏱ Мгновенно</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mk-col body">
+        <p class="mk-cap">Предложение</p>
+        <p class="mk-note">Одна строка на заклинание. Уровень встаёт в общую колонку величин, признаки — текстом. Неподготовленное помечено словом, а не только цветом.</p>
+        <!-- Оба действия — в одной ячейке сетки, иначе второе уезжает на свою
+             колонку и заголовок разрывается на две строки. -->
+        <div class="h"><h4>Мои заклинания</h4><span><button class="act">Найти</button><button class="act">Своё</button></span></div>
+        <div class="grp"><b>Заговоры</b><span>3</span></div>
+        <div class="list">
+          <div class="r">
+            <i class="dz"></i>
+            <span class="r-name">Огненный снаряд</span>
+            <span class="r-val r-val--mute">заговор</span>
+            <span class="r-sub">воплощение · 1 действие · 120 фт · V,S · мгновенно</span>
+          </div>
+          <div class="r">
+            <i class="dz"></i>
+            <span class="r-name">Луч холода</span>
+            <span class="r-val r-val--mute">заговор</span>
+            <span class="r-sub">воплощение · 1 действие · 60 фт · V,S · мгновенно</span>
+          </div>
+        </div>
+        <div class="grp"><b>1 уровень</b><span>6</span></div>
+        <div class="list">
+          <div class="r">
+            <i class="dz"></i>
+            <span class="r-name">Волшебная стрела</span>
+            <span class="r-val r-val--mute">1 ур.</span>
+            <span class="r-sub">воплощение · 1 действие · 120 фт · V,S · мгновенно</span>
+          </div>
+          <div class="r">
+            <i class="dz"></i>
+            <span class="r-name" style="color:var(--text-muted)">Щит</span>
+            <span class="r-val r-val--mute">не готово</span>
+            <span class="r-sub">ограждение · реакция · на себя · V,S · 1 раунд</span>
+            <span class="r-act"><button class="act">Подготовить</button></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ C. ПОИСК ══════════════ -->
+  <section class="mk-sec">
+    <h2>C · Поиск заклинаний</h2>
+    <p class="mk-sub">
+      В окне поиска сейчас двенадцать кнопок классов с портретами, три кнопки редакции и подписи
+      групп — фильтр занимает больше места, чем результаты. Справа фильтры стали строками выбора
+      (тот же приём, что у заклинательной характеристики), поле ввода осталось полем, а выбор
+      уровня — нативным «селектом»: по решению от 08.08.2026 нативные селекты знака не получают
+      и остаются с системным шевроном.
+    </p>
+    <div class="mk-grid">
+      <div class="mk-col">
+        <p class="mk-cap">Сейчас</p>
+        <p class="mk-note">Фильтр из двенадцати портретов плюс три кнопки редакции. До результатов надо долистать.</p>
+        <div class="card">
+          <h3>Поиск заклинаний</h3>
+          <div class="class-filter-group">
+            <span class="class-filter-label">📖 Редакция</span>
+            <div class="class-filter-row cf-equal">
+              <button class="version-btn edition-btn active">Все</button>
+              <button class="version-btn edition-btn">PH'14</button>
+              <button class="version-btn edition-btn">PH'24</button>
+            </div>
+          </div>
+          <div class="class-filter-group" style="margin-top:10px">
+            <span class="class-filter-label">🔵 Тайная магия</span>
+            <div class="class-filter-row cf-equal">
+              <button class="class-filter-btn"><span class="cf-name">Волшебник</span></button>
+              <button class="class-filter-btn"><span class="cf-name">Чародей</span></button>
+              <button class="class-filter-btn"><span class="cf-name">Колдун</span></button>
+              <button class="class-filter-btn"><span class="cf-name">Бард</span></button>
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <div class="col"><input type="text" placeholder="Поиск по названию..."></div>
+          </div>
+        </div>
+      </div>
+      <div class="mk-col body">
+        <p class="mk-cap">Предложение</p>
+        <p class="mk-note">Поле сверху — с него всё и начинается. Фильтры — строки выбора, свёрнутые до одной пока их не тронули. Результаты — те же строки, что в списке.</p>
+        <div class="h"><h4>Поиск заклинаний</h4><button class="act">Закрыть</button></div>
+        <div class="field"><span>🔍</span><input type="text" placeholder="Название заклинания..."></div>
+        <div class="chooser">
+          <div class="chooser-lab">Редакция</div>
+          <div class="chooser-row"><button class="on">Все</button><button>PH'14</button><button>PH'24</button></div>
+        </div>
+        <div class="chooser">
+          <div class="chooser-lab">Класс</div>
+          <div class="chooser-row"><button class="on">Волшебник</button><button>Все</button><button>Другой класс</button></div>
+        </div>
+        <div class="grp"><b>Найдено</b><span>24</span></div>
+        <div class="list">
+          <div class="r">
+            <i class="dz"></i>
+            <span class="r-name">Волшебная стрела</span>
+            <span class="r-val r-val--mute">1 ур.</span>
+            <span class="r-sub">воплощение · PH14 · 120 фт</span>
+            <span class="r-act"><button class="act">Добавить</button></span>
+          </div>
+          <div class="r">
+            <i class="dz"></i>
+            <span class="r-name">Волна грома</span>
+            <span class="r-val r-val--mute">1 ур.</span>
+            <span class="r-sub">воплощение · PH14 · на себя</span>
+            <span class="r-act"><button class="act">Добавить</button></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="mk-rule">
+  <p class="mk-lead">
+    По части A нужно только ваше слово — какой вариант. Части B и C потребуют правок в
+    <code>app-spells.js</code> (сборка карточки и результатов поиска) и разметки окна поиска
+    в <code>index.html</code>: чипы и бейджи там собираются в JS, одним CSS их в текст не превратить.
+  </p>
+</div>

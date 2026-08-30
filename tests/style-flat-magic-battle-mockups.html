@@ -1,0 +1,490 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Мокапы — «Магия» и «Бой»: одна сетка</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Стенд. Живой style.css не трогаем — вся вёрстка мокапов только здесь.
+     Левая колонка использует НАСТОЯЩИЕ классы приложения: «Сейчас» — это
+     буквально сегодняшняя сборка.
+
+     ТРЕТЬЯ РЕДАКЦИЯ. Первая была слишком разрежённой: строки обрывались
+     посередине. Вторая заполнила ширину, но каждый блок держал СВОЮ геометрию —
+     три равные доли у выбора, свои пропорции у трека, свои у оружия. Ничто не
+     выравнивалось между блоками по вертикали, и это читалось как случайность.
+     Здесь введена ОДНА сетка на обе вкладки, и в неё загнано всё без исключений. */
+
+  body { padding: 0 !important; max-width: none !important; }
+  body { margin: 0; background: var(--bg-0); color: var(--text); font-family: var(--font); }
+  .mk-page { max-width: 1180px; margin: 0 auto; padding: 28px 22px 90px; }
+  .mk-h1 { font-family: var(--font-display); font-size: 26px; margin: 0 0 6px; }
+  .mk-lead { color: var(--home-sub); font-size: 13px; line-height: 1.55; margin: 0 0 12px; max-width: 76ch; }
+  .mk-sec { margin: 0 0 44px; }
+  .mk-sec > h2 { font-family: var(--font-display); font-size: 18px; font-weight: 500; color: var(--accent-lo); margin: 0 0 4px; }
+  .mk-sec > .mk-sub { color: var(--home-sub); font-size: 12.5px; line-height: 1.55; margin: 0 0 18px; max-width: 80ch; }
+  .mk-grid { display: flex; flex-wrap: wrap; align-items: flex-start; }
+  .mk-col { width: 372px; flex: 0 0 auto; padding: 0 22px 0 0; margin-right: 22px; border-right: 1px solid var(--border-soft); }
+  .mk-col:last-child { border-right: 0; }
+  .mk-cap { font-family: var(--font-display); font-size: 14px; color: var(--accent-lo); margin: 0 0 4px; }
+  .mk-note { font-size: 11.5px; color: var(--home-sub); line-height: 1.5; margin: 0 0 14px; min-height: 52px; }
+  .mk-rule { border: 0; border-top: 1px solid var(--border-soft); margin: 0 0 26px; }
+
+  /* ═══════════════════════ СЕТКА ═══════════════════════
+     Три колонки, одинаковые на КАЖДОЙ строке КАЖДОГО блока обеих вкладок:
+
+       [ маркер 22 ] [ содержание 1fr ] [ величина 96 ]
+
+     Маркеры выстраиваются в столбец. Имена начинаются с одного x. Величины
+     стоят колонкой у правого края и делят его с действиями заголовка.
+     Именно это выравнивание сквозь всю вкладку и есть закономерность,
+     которой не хватало: глазу не нужно заново искать структуру в каждом блоке.
+
+     Строка — одна на всё: две линии, обе тянутся до правого края.
+       линия 1:  маркер · имя ················ величина
+       линия 2:          подпись или трек ···· действия
+     Второй линии может не быть. Больше архетипов нет. */
+  .mk-body {
+    --c-mark: 22px;
+    --c-val: 96px;
+    --step: 4px;
+  }
+  .r, .h {
+    display: grid;
+    grid-template-columns: var(--c-mark) minmax(0, 1fr) var(--c-val);
+    align-items: baseline;
+    row-gap: var(--step);
+  }
+  /* Заголовок блока — та же сетка. Название занимает маркер и содержание,
+     действие встаёт в колонку величин, поэтому правый край общий со строками. */
+  .h {
+    padding: 0 0 calc(var(--step) * 2);
+    margin: 0 0 1px;
+    border-bottom: 1px solid var(--home-rule);
+  }
+  .h h4 {
+    grid-column: 1 / 3; margin: 0;
+    font-family: var(--font-display); font-weight: 700;
+    font-size: calc(var(--fs-lg) * 1.05); color: var(--text-color);
+  }
+  .h .act { grid-column: 3; text-align: right; }
+
+  .r { padding: calc(var(--step) * 2.5) 0; border-top: 1px solid var(--home-rule); }
+  .list > .r:first-child { border-top: 0; }
+  .list { border-bottom: 1px solid var(--home-rule); }
+
+  /* Маркер: ромб, полузакрашенный в цвет типа (рецепт DISC-4). */
+  .r-mark { grid-column: 1; align-self: center; }
+  .dz {
+    /* display обязателен: к инлайновому <i> не применяются ни width/height,
+       ни transform — ромб вырождается в вертикальную полоску. */
+    display: block;
+    width: var(--home-bullet); height: var(--home-bullet); box-sizing: border-box;
+    transform: rotate(45deg); border: 1.5px solid var(--dz-c, var(--accent));
+    background: linear-gradient(45deg, transparent 50%, var(--dz-c, var(--accent)) 50%);
+  }
+  .r--weapon { --dz-c: var(--weapon-color); }
+  .r--armor  { --dz-c: var(--armor-color); }
+
+  .r-name { grid-column: 2; font-family: var(--font-display); font-weight: 600; font-size: var(--fs-lg); }
+  .r-val  { grid-column: 3; text-align: right; font-family: var(--font-display); font-weight: 700; font-size: var(--fs-lg); font-variant-numeric: tabular-nums; }
+  .r-val--main { color: var(--accent); }
+  .r-val--mute { color: var(--text-dim); font-weight: 600; font-size: var(--fs-sm); }
+  .r-sub  { grid-column: 2; font-size: var(--fs-sm); color: var(--text-muted); }
+  .r-act  { grid-column: 3; text-align: right; }
+
+  .act {
+    all: unset; cursor: pointer; font-family: var(--font-display);
+    font-size: 13px; color: var(--accent-lo); white-space: nowrap;
+  }
+  .act:hover { text-decoration: underline; color: var(--accent); }
+  .act + .act { margin-left: 12px; }
+  .hint { grid-column: 2 / 4; font-size: 11.5px; color: var(--text-muted); line-height: 1.45; padding: 6px 0 2px; }
+
+  /* Трек: живёт во второй линии, поэтому занимает ровно колонку содержания —
+     ту же, что и все подписи. Ширина у всех треков вкладки одинаковая. */
+  .track { display: flex; gap: 4px; padding: 3px 0 1px; }
+  .seg { flex: 1; height: 10px; border-radius: 2px; background: var(--slot-gold); }
+  .seg.used { background: transparent; box-shadow: inset 0 0 0 1.5px var(--border-soft); }
+  .track--short { justify-content: flex-start; }
+  .track--short .seg { flex: 0 0 22px; }
+
+  .chk {
+    width: 16px; height: 16px; box-sizing: border-box;
+    border: 1.5px solid var(--border-soft); border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; line-height: 1; color: var(--bg-0);
+  }
+  .chk.on { background: var(--accent); border-color: var(--accent); }
+  .chk.on::after { content: "✓"; font-weight: 700; }
+
+  /* Групповая подпись — тоже по сетке: имя в содержании, счёт в величинах. */
+  /* .grp несёт и класс .r, поэтому сетку берёт оттуда — subgrid не нужен
+     (и не сработал бы: родитель .list не грид). */
+  .grp { padding: 14px 0 4px; }
+  .grp b { grid-column: 2; font-family: var(--font-display); font-weight: 500; font-size: 12px; color: var(--accent-lo); }
+  .grp span { grid-column: 3; text-align: right; font-size: 12px; color: var(--text-muted); }
+
+  /* Две рамки, остающиеся осознанно: поле ввода и главное действие. */
+  .field {
+    display: flex; align-items: center; gap: 8px; margin: 12px 0 2px;
+    padding: 9px 12px; border: 1px solid var(--border-soft); border-radius: var(--r-2, 8px);
+    background: var(--bg-1, rgba(255,255,255,0.03));
+  }
+  .field input { all: unset; flex: 1; font-family: var(--font); font-size: 14px; color: var(--text); }
+  .primary {
+    display: block; box-sizing: border-box; width: 100%; margin-top: 14px;
+    padding: 12px 0; border: 0; border-radius: var(--r-2, 8px); cursor: pointer;
+    background: var(--accent); color: var(--bg-0); text-align: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 15px;
+  }
+
+  /* ── Показ сетки. Тумблер внизу страницы. ── */
+  body.show-grid .mk-body { position: relative; }
+  body.show-grid .r, body.show-grid .h, body.show-grid .grp { outline: 1px dashed rgba(120,170,255,0.28); outline-offset: -1px; }
+  body.show-grid .r-mark, body.show-grid .r-name, body.show-grid .r-val,
+  body.show-grid .r-sub, body.show-grid .r-act, body.show-grid .h h4 {
+    background: rgba(120,170,255,0.10); box-shadow: inset 0 0 0 1px rgba(120,170,255,0.35);
+  }
+  .mk-toggle {
+    position: fixed; right: 18px; bottom: 18px; z-index: 50;
+    padding: 9px 14px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--border-soft); background: var(--bg-1, #131a26);
+    color: var(--accent-lo); font-family: var(--font-display); font-size: 13px;
+  }
+</style>
+
+<div class="mk-page">
+  <h1 class="mk-h1">«Магия» и «Бой»: одна сетка</h1>
+  <p class="mk-lead">
+    Третья редакция. Претензия к предыдущей была верной: пустота справа — это симптом, а болезнь в том,
+    что <b>каждый блок строился по своей геометрии</b>. У выбора характеристики — три равные доли,
+    у трека ячеек — свои пропорции, у оружия — свои. Между блоками ничто не выравнивалось,
+    и это читается как случайность.
+  </p>
+  <p class="mk-lead">
+    Здесь одна сетка на обе вкладки: <b>маркер 22 · содержание 1fr · величина 96</b>. Маркеры выстроены
+    в столбец, имена начинаются с одного x, все величины стоят колонкой у правого края и делят его
+    с действиями заголовков. Строка ровно одна на всё — две линии, обе доходят до правого края;
+    вторая линия может отсутствовать. Других архетипов нет. Нажмите тумблер внизу справа —
+    сетка подсветится, и её видно насквозь через все блоки.
+  </p>
+  <hr class="mk-rule">
+
+  <!-- ════════════════ 1. Заклинательная характеристика ════════════════ -->
+  <section class="mk-sec">
+    <h2>Магия · Заклинательная характеристика</h2>
+    <p class="mk-sub">
+      Во второй редакции это был отдельный виджет — полоса из трёх долей, ни с чем на вкладке
+      не совпадавшая. Теперь три числа — три обычные строки, те же самые, что у оружия и ресурсов.
+      Виджет исчез, вкладка стала одним связным списком, а СЛ спасброска выделена не рамкой,
+      а акцентом на величине.
+    </p>
+    <div class="mk-grid">
+      <div class="mk-col">
+        <p class="mk-cap">Сейчас</p>
+        <p class="mk-note">Шесть рамок. Выбранная характеристика и главное число различаются только оттенком обводки.</p>
+        <div class="card">
+          <h3>Заклинательная характеристика</h3>
+          <div class="sc-stat-selector">
+            <button class="sc-stat-btn active"><span class="sc-stat-abbr">ИНТ</span><span class="sc-stat-name">Интеллект</span></button>
+            <button class="sc-stat-btn"><span class="sc-stat-abbr">МУД</span><span class="sc-stat-name">Мудрость</span></button>
+            <button class="sc-stat-btn"><span class="sc-stat-abbr">ХАР</span><span class="sc-stat-name">Харизма</span></button>
+          </div>
+          <div class="sc-stats-row">
+            <div class="sc-stat-block"><div class="sc-stat-value">+3</div><div class="sc-stat-label">Модификатор</div></div>
+            <div class="sc-stat-block sc-stat-block--main"><div class="sc-stat-value">14</div><div class="sc-stat-label">СЛ спасброска</div></div>
+            <div class="sc-stat-block"><div class="sc-stat-value">+6</div><div class="sc-stat-label">Бонус атаки</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="mk-col mk-body">
+        <p class="mk-cap">Предложение</p>
+        <p class="mk-note">Ни одного особого элемента: три величины — три строки общего вида. Выбор характеристики — тоже строка.</p>
+        <div class="h"><h4>Заклинательная характеристика</h4><button class="act">Сменить</button></div>
+        <div class="list">
+          <div class="r">
+            <span class="r-mark"><i class="dz"></i></span>
+            <span class="r-name">Интеллект</span>
+            <span class="r-val r-val--mute">характеристика</span>
+          </div>
+          <div class="r">
+            <span class="r-mark"><i class="dz"></i></span>
+            <span class="r-name">Модификатор</span>
+            <span class="r-val">+3</span>
+          </div>
+          <div class="r">
+            <span class="r-mark"><i class="dz"></i></span>
+            <span class="r-name">СЛ спасброска</span>
+            <span class="r-val r-val--main">14</span>
+            <span class="r-sub">пассивная защита от заклинаний</span>
+          </div>
+          <div class="r">
+            <span class="r-mark"><i class="dz"></i></span>
+            <span class="r-name">Бонус атаки</span>
+            <span class="r-val">+6</span>
+            <span class="r-sub">к атакам заклинаниями</span>
+            <span class="r-act"><button class="act">Бросить</button></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════ 2. Ячейки заклинаний ════════════════ -->
+  <section class="mk-sec">
+    <h2>Магия · Ячейки заклинаний</h2>
+    <p class="mk-sub">
+      Трек переехал во вторую линию строки, поэтому занимает ровно колонку содержания — ту же,
+      что и все подписи на вкладке. Ширина у всех треков одинаковая, счётчики стоят в общей
+      колонке величин. Ни одной собственной пропорции у блока не осталось.
+    </p>
+    <div class="mk-grid">
+      <div class="mk-col">
+        <p class="mk-cap">Сейчас</p>
+        <p class="mk-note">Карточка, обведённая кнопка отдыха, у каждой строки своя подложка со скруглением.</p>
+        <div class="card">
+          <div class="spell-slots-header">
+            <h3>Ячейки заклинаний</h3>
+            <button class="ssl-restore-btn">🛏️ Длинный отдых</button>
+          </div>
+          <div class="spell-slots-visual">
+            <div class="spell-slot-row">
+              <div class="ssl-label"><span class="ssl-lvl">1</span><span class="ssl-ur">ур.</span></div>
+              <div class="ssl-diamonds"><div class="spell-diamond"></div><div class="spell-diamond"></div><div class="spell-diamond used"></div><div class="spell-diamond used"></div></div>
+              <div class="ssl-counter"><span class="ssl-free">2</span><span class="ssl-sep">/</span><span class="ssl-total">4</span></div>
+              <div class="ssl-controls"><button class="ssl-btn">−</button><button class="ssl-btn">+</button></div>
+            </div>
+            <div class="spell-slot-row">
+              <div class="ssl-label"><span class="ssl-lvl">2</span><span class="ssl-ur">ур.</span></div>
+              <div class="ssl-diamonds"><div class="spell-diamond"></div><div class="spell-diamond"></div><div class="spell-diamond used"></div></div>
+              <div class="ssl-counter"><span class="ssl-free">2</span><span class="ssl-sep">/</span><span class="ssl-total">3</span></div>
+              <div class="ssl-controls"><button class="ssl-btn">−</button><button class="ssl-btn">+</button></div>
+            </div>
+            <div class="spell-slot-row spell-slot-empty">
+              <div class="ssl-label"><span class="ssl-lvl">4</span><span class="ssl-ur">ур.</span></div>
+              <div class="ssl-diamonds"><span class="ssl-none">нет ячеек</span></div>
+              <div class="ssl-counter"><span class="ssl-free">0</span><span class="ssl-sep">/</span><span class="ssl-total">0</span></div>
+              <div class="ssl-controls"><button class="ssl-btn">−</button><button class="ssl-btn">+</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mk-col mk-body">
+        <p class="mk-cap">Предложение</p>
+        <p class="mk-note">Имя строки — уровень, величина — остаток, трек — во второй линии. Ровно тот же каркас, что у характеристик выше.</p>
+        <div class="h"><h4>Ячейки заклинаний</h4><button class="act">Отдых</button></div>
+        <div class="list">
+          <div class="r">
+            <span class="r-mark"><i class="dz"></i></span>
+            <span class="r-name">1 уровень</span>
+            <span class="r-val">2<span style="color:var(--text-dim);font-weight:600">/4</span></span>
+            <span class="r-sub"><span class="track"><i class="seg"></i><i class="seg"></i><i class="seg used"></i><i class="seg used"></i></span></span>
+            <span class="r-act"><button class="act">−</button><button class="act">+</button></span>
+          </div>
+          <div class="r">
+            <span class="r-mark"><i class="dz"></i></span>
+            <span class="r-name">2 уровень</span>
+            <span class="r-val">2<span style="color:var(--text-dim);font-weight:600">/3</span></span>
+            <span class="r-sub"><span class="track"><i class="seg"></i><i class="seg"></i><i class="seg used"></i></span></span>
+            <span class="r-act"><button class="act">−</button><button class="act">+</button></span>
+          </div>
+          <div class="r">
+            <span class="r-mark"><i class="dz"></i></span>
+            <span class="r-name">3 уровень</span>
+            <span class="r-val">2<span style="color:var(--text-dim);font-weight:600">/2</span></span>
+            <span class="r-sub"><span class="track"><i class="seg"></i><i class="seg"></i></span></span>
+            <span class="r-act"><button class="act">−</button><button class="act">+</button></span>
+          </div>
+          <div class="r">
+            <span class="r-mark"><i class="dz" style="opacity:.35"></i></span>
+            <span class="r-name" style="color:var(--text-muted)">4 уровень</span>
+            <span class="r-val r-val--mute">нет</span>
+            <span class="r-sub">ячеек этого уровня пока нет</span>
+            <span class="r-act"><button class="act">Добавить</button></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════ 3. Оружие ════════════════ -->
+  <section class="mk-sec">
+    <h2>Бой · Оружие</h2>
+    <p class="mk-sub">
+      Та же строка, что у ячеек и характеристик: имя слева, бонус атаки в колонке величин,
+      признаки и броски — второй линией. Бонусы всех видов оружия встают друг под друга и
+      сравниваются взглядом, чего в нынешнем варианте сделать нельзя.
+    </p>
+    <div class="mk-grid">
+      <div class="mk-col">
+        <p class="mk-cap">Сейчас</p>
+        <p class="mk-note">Зелёная кнопка во всю ширину задаёт блоку тон, которого он не заслуживает: добавление оружия — редкое действие.</p>
+        <div class="card weapons-card">
+          <h3>Оружие</h3>
+          <button class="btn btn-success btn-block">+ Добавить оружие</button>
+          <div>
+            <div class="weapon-row">
+              <div class="weapon-row-top">
+                <div class="weapon-info">
+                  <span class="weapon-name">Кинжал</span>
+                  <span class="weapon-meta">1к4 · ЛОВ +5</span>
+                </div>
+                <div class="weapon-row-actions">
+                  <button class="weapon-edit-btn">✎</button>
+                  <button class="weapon-delete-btn">✕</button>
+                </div>
+              </div>
+              <div class="weapon-roll-row">
+                <button class="weapon-roll-btn weapon-roll-atk">🎲 Атака</button>
+                <button class="weapon-roll-btn weapon-roll-dmg">⚔ Урон</button>
+              </div>
+              <div class="weapon-notes">Лёгкое, метательное, фехтовальное</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mk-col mk-body">
+        <p class="mk-cap">Предложение</p>
+        <p class="mk-note">Бонусы атаки выстроены в ту же колонку, что и остатки ячеек выше. Броски — в колонке действий.</p>
+        <div class="h"><h4>Оружие</h4><button class="act">+ Добавить</button></div>
+        <div class="list">
+          <div class="r r--weapon">
+            <span class="r-mark"><i class="dz"></i></span>
+            <span class="r-name">Кинжал</span>
+            <span class="r-val">+5</span>
+            <span class="r-sub">1к4 · лёгкое · фехтовальное</span>
+            <span class="r-act"><button class="act">Атака</button><button class="act">Урон</button></span>
+          </div>
+          <div class="r r--weapon">
+            <span class="r-mark"><i class="dz"></i></span>
+            <span class="r-name">Посох</span>
+            <span class="r-val">+1</span>
+            <span class="r-sub">1к6 · двуручное · <span style="color:var(--danger)">без владения</span></span>
+            <span class="r-act"><button class="act">Атака</button><button class="act">Урон</button></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════ 4. Ресурсы класса ════════════════ -->
+  <section class="mk-sec">
+    <h2>Бой · Ресурсы класса</h2>
+    <p class="mk-sub">
+      Ресурс — это ячейка под другим именем, поэтому и строка у него ровно та же: остаток в колонке
+      величин, трек второй линией, трата в колонке действий. Одинаковые вещи выглядят одинаково —
+      это и есть та закономерность, которой не хватало.
+    </p>
+    <div class="mk-grid">
+      <div class="mk-col">
+        <p class="mk-cap">Сейчас</p>
+        <p class="mk-note">Коробка вокруг двух строк; остаток читается словами, хотя рядом на этой же вкладке та же величина показана кружками.</p>
+        <div class="card cd-card">
+          <h3>Ресурсы класса</h3>
+          <div class="hp-rows">
+            <div class="hp-row"><span>◆ Магическое восстановление</span></div>
+            <div class="hp-row"><span>◆ Пассивные умения</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="mk-col mk-body">
+        <p class="mk-cap">Предложение</p>
+        <p class="mk-note">Неотличимо по каркасу от ячеек заклинаний — потому что это одно и то же по смыслу.</p>
+        <div class="h"><h4>Ресурсы класса</h4></div>
+        <div class="list">
+          <div class="r">
+            <span class="r-mark"><i class="dz"></i></span>
+            <span class="r-name">Магическое восстановление</span>
+            <span class="r-val">1<span style="color:var(--text-dim);font-weight:600">/1</span></span>
+            <span class="r-sub"><span class="track track--short"><i class="seg"></i></span></span>
+            <span class="r-act"><button class="act">Потратить</button></span>
+          </div>
+          <div class="r">
+            <span class="r-mark"><i class="dz"></i></span>
+            <span class="r-name">Искусство воплощения</span>
+            <span class="r-val">2<span style="color:var(--text-dim);font-weight:600">/3</span></span>
+            <span class="r-sub"><span class="track track--short"><i class="seg"></i><i class="seg"></i><i class="seg used"></i></span></span>
+            <span class="r-act"><button class="act">Потратить</button></span>
+          </div>
+          <div class="r">
+            <span class="r-mark"><i class="dz"></i></span>
+            <span class="r-name">Пассивные умения</span>
+            <span class="r-val r-val--mute">всегда</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════ 5. Выбор участников ════════════════ -->
+  <section class="mk-sec">
+    <h2>Бой · Выбор участников</h2>
+    <p class="mk-sub">
+      Чекбокс встаёт в колонку маркера — на место ромба, потому что играет ту же роль. Величины
+      участников продолжают ту же правую колонку. Две рамки оставлены сознательно: поле ввода
+      остаётся полем, а «Начать бой» — главное действие экрана и единственная сплошная кнопка.
+    </p>
+    <div class="mk-grid">
+      <div class="mk-col">
+        <p class="mk-cap">Сейчас</p>
+        <p class="mk-note">Карточка, внутри неё поле, внутри — строки участников с подложками. Три уровня вложенных прямоугольников.</p>
+        <div class="card">
+          <div class="battle-setup-header"><h3>Выбор участников</h3></div>
+          <div class="battle-search-wrap">
+            <span class="char-search-icon">🔍</span>
+            <input type="text" class="char-search-inp" placeholder="Поиск по имени...">
+          </div>
+          <div style="margin-top:10px">
+            <div class="bs-group-label">◆ Я (1)</div>
+            <label class="bs-row"><input type="checkbox" checked> <span>Волшебник-эвокер</span></label>
+            <div class="bs-group-label">◆ Союзники (2)</div>
+            <label class="bs-row"><input type="checkbox"> <span>Гончая</span></label>
+            <label class="bs-row"><input type="checkbox" checked> <span>Торин</span></label>
+          </div>
+          <button class="battle-start-btn" style="margin-top:12px">▶ Начать бой</button>
+        </div>
+      </div>
+      <div class="mk-col mk-body">
+        <p class="mk-cap">Предложение</p>
+        <p class="mk-note">Чекбокс занял колонку маркера, КД и хиты — колонку величин. Каркас тот же, что у оружия.</p>
+        <div class="h"><h4>Выбор участников</h4></div>
+        <div class="field"><span>🔍</span><input type="text" placeholder="Поиск по имени..."></div>
+        <div class="list">
+          <div class="grp r"><b>Я</b><span>1</span></div>
+          <div class="r">
+            <span class="r-mark"><i class="chk on"></i></span>
+            <span class="r-name">Волшебник-эвокер</span>
+            <span class="r-val r-val--mute">волшебник 5</span>
+          </div>
+          <div class="grp r"><b>Союзники</b><span>2</span></div>
+          <div class="r">
+            <span class="r-mark"><i class="chk"></i></span>
+            <span class="r-name">Гончая</span>
+            <span class="r-val r-val--mute">КД 13 · 11 хп</span>
+          </div>
+          <div class="r">
+            <span class="r-mark"><i class="chk on"></i></span>
+            <span class="r-name">Торин</span>
+            <span class="r-val r-val--mute">КД 18 · 42 хп</span>
+          </div>
+        </div>
+        <button class="primary">Начать бой</button>
+      </div>
+    </div>
+  </section>
+
+  <hr class="mk-rule">
+  <p class="mk-lead">
+    Что меняется в коде: правило снятия коробки для <code>#tab-spells &gt; .card</code> и
+    <code>#tab-battle &gt; .card</code> по образцу <code>style.css:15173</code>, общий класс строки
+    на сетке вместо <code>.sc-stat-*</code>, <code>.spell-slot-row</code>, <code>.weapon-row</code>,
+    <code>.battle-*</code>, и разбор акцента: метаданные (<code>.inv-cat-tag</code>,
+    <code>style.css:4515</code>) уходят в <code>--text-muted</code>, акцент остаётся действиям.
+    Разметку придётся тронуть в трёх местах — там, где строка собирается из ячеек сетки.
+  </p>
+</div>
+
+<button class="mk-toggle" onclick="document.body.classList.toggle('show-grid')">Показать сетку</button>
+<script>
+  // ?grid — открыть сразу с подсвеченной сеткой (удобно для ссылки и снимков).
+  if (location.search.indexOf('grid') !== -1) document.body.classList.add('show-grid');
+</script>

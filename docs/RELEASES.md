@@ -3,30 +3,81 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v3.90.0**.
+Актуальная версия — **v3.91.0**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v3.91.0"></a>
+## v3.91.0 — 30 августа 2026
+
+✨ Вкладка «Магия» переоформлена в строки: действие «Использовать» (у неподготовленного заклинания — «Подготовить») переехало в саму строку, ромб строки красится цветом школы, признаки идут текстом через точку — школа, время, дистанция. Компоненты и длительность показывает раскрытие карточки, блоки заклинательной характеристики раскрываются пояснением формулы, коробки списка заклинаний и ячеек сняты.
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/7389db02...main) · 30 файлов, +2352 −517
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (1):**
+
+- [`517b86b6`](https://github.com/D1MANYCH/dnd-app/commit/517b86b6) chore(claude): контекстная гигиена — сжатие служебных файлов и агент verifier
+
+**Файлы (30):**
+
+- `style.css` +520 −15
+- `tests/style-flat-magic-battle-mockups.html` +490 −0
+- `tests/style-flat-spells-list-mockups.html` +459 −0
+- `.claude/skills/verify-ui/SKILL.md` +140 −296
+- `tests/style-magic-anchored-mockups.html` +359 −0
+- `CLAUDE.md` +114 −112
+- `index.html` +63 −50
+- `.claude/agents/verifier.md` +80 −0
+- `.claude/commands/carry.md` +44 −0
+- `app-spells.js` +31 −5
+- `data.js` +11 −3
+- `CHANGELOG.md` +6 −1
+- `.claude/agents/content.md` +2 −2
+- `.claude/agents/dnd-rules.md` +2 −2
+- `.claude/agents/releaser.md` +2 −2
+- `.claude/agents/relpost.md` +2 −2
+- `.claude/commands/bump.md` +2 −2
+- `.claude/commands/done.md` +2 −2
+- `.claude/commands/phase.md` +2 −2
+- `.claude/commands/preflight.md` +2 −2
+- `.claude/commands/relpost.md` +2 −2
+- `.claude/commands/rules.md` +2 −2
+- `.claude/commands/ship.md` +2 −2
+- `.claude/commands/test.md` +2 −2
+- `.claude/skills/add-content/SKILL.md` +2 −2
+- `.claude/skills/dice-3d/SKILL.md` +2 −2
+- `.claude/skills/faza/SKILL.md` +2 −2
+- `.claude/skills/release/SKILL.md` +2 −2
+- `.claude/skills/tours/SKILL.md` +2 −2
+- `sw.js` +1 −1
+
+</details>
+
 <a id="v3.90.0"></a>
 ## v3.90.0 — 14 августа 2026
 
 ✨ Развитие персонажа переехало из полноэкранного раздела в пятую вкладку нижней навигации; повышение уровня и откат ушли с листа туда же, рядом с ними встала кнопка «Добавить класс» — прежде единственный вход в мультикласс был спрятан в свёрнутой строке внизу раздела. У мультикласса на листе поля «Уровень» и «Подкласс» заменены сводками: поле уровня оставалось редактируемым и расходилось с суммой уровней классов, а список подклассов знал только первый класс; подпись персонажа в «Мире» теперь показывает все классы. Ромб раскрытия у второстепенных строк перестал быть пустым: пустой знак по легенде означает «продолжения нет», хотя такие строки раскрываются.
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/c06de3a4...main) · 13 файлов, +473 −179
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/c06de3a4...7389db02) · 14 файлов, +510 −184
 
-<details><summary>Файлы</summary>
+<details><summary>Коммиты и файлы</summary>
 
-_Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
+**Коммиты (1):**
 
-**Файлы (13):**
+- [`7389db02`](https://github.com/D1MANYCH/dnd-app/commit/7389db02) v3.90.0: feat(progress): развитие персонажа переехало в нижнюю навигацию, мультикласс на листе показывает сводки, ромб раскрытия у второстепенных строк
+
+**Файлы (14):**
 
 - `tests/headless.js` +213 −0
 - `app-progress.js` +108 −33
 - `index.html` +68 −65
 - `app-help.js` +11 −53
+- `docs/RELEASES.md` +37 −5
 - `style.css` +29 −1
 - `app-core.js` +17 −7
 - `app-hp.js` +3 −10
