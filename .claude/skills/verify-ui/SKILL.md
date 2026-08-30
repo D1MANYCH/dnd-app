@@ -7,6 +7,14 @@ description: Verifying dnd-app edits in the browser preview — Service Worker c
 
 The app is a PWA with an aggressive Service Worker and continuous WebGL. Naive preview checks give FALSE results. Tools: `javascript_tool` (page JS), `read_page`, `computer` (clicks, screenshot), `read_console_messages`, `read_network_requests`.
 
+## 0. Run it in the `verifier` subagent, not in the main chat
+
+Preview checks are the dirtiest source of main-context growth: a screenshot costs ~1.5k tokens, a `read_page` dump or console log a few hundred — and every one of them stays in context to the end of the session and is re-sent with every later request. Measured on this repo: 459 images and ~130M carried tokens, while the `verifier` agent was used twice.
+
+Default: hand the whole check to `verifier` (task = what changed, what to look at, what counts as a pass) and take back only its verdict. Anything it read dies with it.
+
+Inline in the main chat only when: the check is a single `javascript_tool` call whose answer is one line, or the page already holds mid-flow state that a fresh agent cannot reproduce. Screenshots are never inline — always through `verifier`.
+
 ## 1. The SW serves stale code ("my edit is invisible")
 
 `sw.js` precaches files under the current `CACHE_NAME` and matches with `ignoreSearch:true` — even `?nocache=` does not help. Editing `style.css`/JS and looking at preview without a new `CACHE_NAME` shows the OLD copy.
