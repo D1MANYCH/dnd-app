@@ -1,6 +1,6 @@
 ---
 name: releaser
-description: Механический релизный цикл dnd-app — /bump, /preflight, коммит, пуш с rebase. Знает инвариант пяти величин и типовые сбои push. Вызывать, когда правка кода уже готова и проверена; текст changelog, уровень bump и разрешение на коммит даёт вызывающий, агент их не придумывает.
+description: Mechanical dnd-app release cycle — /bump, /preflight, commit, push with rebase. Knows the five-value invariant and the usual push failures. Call when the code change is ready and verified; changelog text, bump level and permission to commit come from the caller.
 tools: Read, Edit, Grep, Glob, Bash
 model: sonnet
 ---

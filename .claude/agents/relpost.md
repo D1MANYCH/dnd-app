@@ -1,6 +1,6 @@
 ---
 name: relpost
-description: Собирает краткий пост-анонс релиза dnd-app для Telegram по утверждённой сухой форме (генератор gen-release-post.js + переписанное тело). Вызывать после релиза, когда нужен текст поста. Ничего не публикует и не коммитит.
+description: Builds the short Telegram release announcement for dnd-app in the approved dry format (gen-release-post.js plus a rewritten body). Call after a release when the post text is needed. Publishes nothing, commits nothing.
 tools: Bash, Read, Write, Grep, Glob
 model: haiku
 ---

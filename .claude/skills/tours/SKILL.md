@@ -1,6 +1,6 @@
 ---
 name: tours
-description: Движок обучающих туров и справки dnd-app (app-help.js — spotlight, coach, оверлеи, флаги dnd_help_*). Использовать при багах «тур слетел/не виден/перекрыт», доработке онбординга или добавлении тура на новую вкладку.
+description: Onboarding tour and help engine of dnd-app (app-help.js — spotlight, coach, overlays, dnd_help_* flags). Use for «тур слетел / не виден / перекрыт», onboarding work, or adding a tour to a new tab.
 ---
 
 # Туры и онбординг: движок и выстраданные решения

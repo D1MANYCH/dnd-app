@@ -1,6 +1,6 @@
 ---
 name: release
-description: Полный релизный цикл dnd-app — от готовой правки кода до пуша. Использовать при словах «релиз», «выпусти версию», «bump», «закоммить и запушь», а также перед любым коммитом, меняющим js/css.
+description: Full dnd-app release cycle from a finished code edit to push. Триггеры: «релиз», «выпусти версию», «bump», «закоммить и запушь», and before any commit that touches js or css.
 ---
 
 # Релиз dnd-app: пошаговая процедура

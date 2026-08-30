@@ -1,5 +1,5 @@
 ---
-description: Релиз одной командой — сам разбирает изменения, bump, тесты, коммит, пуш, CI, ТГ-пост, отчёт с хвостами
+description: Release in one command — reads the diff, bump, tests, commit, push, CI, TG post, report with loose ends
 argument-hint: [patch|minor|major] ["<changelog>"] [--no-post]
 ---
 Аргументы: `$ARGUMENTS` — **все необязательные**. Пустой вызов означает «разберись сам

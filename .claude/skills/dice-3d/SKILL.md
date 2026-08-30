@@ -1,6 +1,6 @@
 ---
 name: dice-3d
-description: Устройство 3D-дайс-подсистемы dnd-app (quickRoll, animateDice3d, гонки бросков, вендоренный @3d-dice/dice-box). Использовать при любых багах бросков, «кубик завис/не тот результат», доработках бросалки или интеграции нового источника бросков.
+description: The 3D dice subsystem of dnd-app (quickRoll, animateDice3d, roll races, the vendored @3d-dice/dice-box). Use for any roll bug, «кубик завис / не тот результат», dice UI work, or wiring a new roll source.
 ---
 
 # Дайс-подсистема: архитектура и известные грабли

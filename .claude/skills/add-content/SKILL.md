@@ -1,6 +1,6 @@
 ---
 name: add-content
-description: Добавление игрового контента dnd-app — заклинания, классы/подклассы, билды, магпредметы, черты, оружие/доспехи. Какие файлы править, эталон названий, миграции schemaVersion, как верифицировать. Использовать при любой задаче «добавь/поправь заклинание/класс/билд/предмет/черту».
+description: Adding dnd-app game content — spells, classes/subclasses, builds, magic items, feats, weapons/armor. Which files to touch, naming canon, schemaVersion migrations, how to verify. Триггеры: «добавь/поправь заклинание, класс, билд, предмет, черту».
 ---
 
 # Добавление контента: файлы, эталон, верификация

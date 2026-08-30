@@ -1,6 +1,6 @@
 ---
 name: content
-description: Добавляет и правит игровой контент dnd-app по шаблону — заклинания, магпредметы, черты, оружие/снаряжение, подклассы, билды. Работает по скиллу add-content в больших файлах данных (spells.js, data.js, magic-items.js). Вызывать, когда состав контента уже решён вызывающим; версию не бампит, коммитов не делает.
+description: Adds or edits dnd-app game content — spells, magic items, feats, weapons, subclasses, builds — following skill add-content in the big data files. Composition is decided by the caller; bumps nothing, commits nothing.
 tools: Read, Edit, Write, Grep, Glob, Bash
 model: sonnet
 ---

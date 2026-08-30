@@ -1,5 +1,5 @@
 ---
-description: Проверить готовность к релизному коммиту (тесты + версии + CACHE_NAME)
+description: Check release readiness — tests, versions, CACHE_NAME
 ---
 Запусти параллельно:
 1. `node tests/headless-node.js` — показать итог одной строкой.

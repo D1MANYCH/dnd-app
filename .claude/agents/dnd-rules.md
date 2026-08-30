@@ -1,6 +1,6 @@
 ---
 name: dnd-rules
-description: Судья правил D&D 5e. Сверяет изменённую математику правил (rules.js; КД, спасброски, навыки, ячейки, отдых, концентрация, ХП, владения в app-*.js; таблицы в data.js) с «Книгой Игрока» 2014, а ветки за char.edition/edData — с «Книгой Игрока» 2024. Возвращает только вердикт со ссылками на страницы книги, файлы не правит. Звать перед сдачей фазы или релизом, если менялись расчёты.
+description: D&D 5e rules judge. Checks changed rules math (rules.js; AC, saves, slots, rest, concentration; data.js tables) against the 2014 PHB, and char.edition/edData branches against the 2024 PHB. Returns a verdict with page references and edits no files. Call before closing a phase or a release when calculations changed.
 tools: Read, Grep, Glob, Bash
 model: opus
 ---

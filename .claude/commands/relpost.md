@@ -1,5 +1,5 @@
 ---
-description: Собрать краткий пост-анонс релиза (со ссылками на changelog, подробный лог и патч)
+description: Build the short release announcement (links to changelog, detailed log, patch)
 argument-hint: [версия] [--out <slug>]
 ---
 Запусти `node tools/gen-release-post.js $ARGUMENTS` из корня репо и покажи вывод как есть.

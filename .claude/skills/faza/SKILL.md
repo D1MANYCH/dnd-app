@@ -1,6 +1,6 @@
 ---
 name: faza
-description: Процедура работы над фазой плана dnd-app — ветка, план, работа по пунктам, превью, тесты, коммит, закрытие. Использовать при словах «фаза», «начать фазу X-N», «закрыть фазу», а также если непонятно, что делать после `/phase`.
+description: Phase workflow for a dnd-app plan — branch, plan, work item by item, preview, tests, commit, close. Триггеры: «фаза», «начать фазу X-N», «закрыть фазу», and whenever it is unclear what to do after /phase.
 ---
 
 # Работа над фазой: процедура
