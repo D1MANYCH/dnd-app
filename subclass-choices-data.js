@@ -752,5 +752,38 @@ var SUBCLASS_RESOURCES = {
       7: ["Призыв духа конструкта (Summon Construct)", "Свобода перемещения (Freedom of Movement)"],
       9: ["Высшее восстановление (Greater Restoration)", "Силовая стена (Wall of Force)"]
     } } }
+  },
+
+  // ═══ ЖРЕЦ: Домен смерти — заклинания домена ═══ (SUB-5, DMG)
+  "Домен смерти": {
+    passive: { subclassSpells: { label: "Заклинания домена смерти", icon: "💀", byLevel: {
+      1: ["Луч болезни (Ray of Sickness)", "Псевдожизнь (False Life)"],
+      3: ["Глухота/слепота (Blindness/Deafness)", "Луч слабости (Ray of Enfeeblement)"],
+      5: ["Восставший труп (Animate Dead)", "Прикосновение вампира (Vampiric Touch)"],
+      7: ["Защита от смерти (Death Ward)", "Усыхание (Blight)"],
+      9: ["Облако смерти (Cloudkill)", "Преграда жизни (Antilife Shell)"]
+    } } }
+  },
+
+  // ═══ ПАЛАДИН: Клятва короны — заклинания клятвы ═══ (SUB-5, SCAG)
+  "Клятва короны": {
+    passive: { subclassSpells: { label: "Заклинания клятвы короны", icon: "👑", byLevel: {
+      3: ["Приказ (Command)", "Вызов на дуэль (Compelled Duel)"],
+      5: ["Охраняющая связь (Warding Bond)", "Область истины (Zone of Truth)"],
+      9: ["Аура живучести (Aura of Vitality)", "Духовные стражи (Spirit Guardians)"],
+      13: ["Изгнание (Banishment)", "Страж веры (Guardian of Faith)"],
+      17: ["Круг силы (Circle of Power)", "Обет (Geas)"]
+    } } }
+  },
+
+  // ═══ КОЛДУН: Бессмертный — расширенный список заклинаний ═══ (SUB-5, SCAG)
+  "Бессмертный": {
+    passive: { subclassSpells: { label: "Заклинания покровителя-бессмертного", icon: "⚰️", byLevel: {
+      1: ["Псевдожизнь (False Life)", "Луч болезни (Ray of Sickness)"],
+      3: ["Глухота/слепота (Blindness/Deafness)", "Тишина (Silence)"],
+      5: ["Притворная смерть (Feign Death)", "Разговор с мёртвыми (Speak with Dead)"],
+      7: ["Аура жизни (Aura of Life)", "Защита от смерти (Death Ward)"],
+      9: ["Заражение (Contagion)", "Знание легенд (Legend Lore)"]
+    } } }
   }
 };
