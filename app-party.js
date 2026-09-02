@@ -703,12 +703,12 @@ function renderBattleSetup() {
   }
   // STYLE-8d: цвет заголовка секции — токеном темы, а не литералом: старый
   // зелёный #4da843 на светлой подложке давал контраст 2.9. Цвет участника
-  // (p.color) остаётся hex — к нему конкатенируется альфа "22" для диска иконки.
+  // (p.color) остаётся hex: STYLE-8d2 снял диск под глифом, цвет идёт в color.
   var sections = [
-    { type: "self",    label: "🟢 Я",          color: "var(--success-color)" },
-    { type: "ally",    label: "🟢 Союзники",   color: "var(--success-color)" },
-    { type: "npc",     label: "🟡 Персонажи",  color: "var(--slot-gold)" },
-    { type: "monster", label: "🔴 Враги",      color: "var(--danger-color)" }
+    { type: "self",    label: "Я",          color: "var(--success-color)" },
+    { type: "ally",    label: "Союзники",   color: "var(--success-color)" },
+    { type: "npc",     label: "Персонажи",  color: "var(--slot-gold)" },
+    { type: "monster", label: "Враги",      color: "var(--danger-color)" }
   ];
   var q = battleSearchQuery;
   container.innerHTML = sections.map(function(sec) {
@@ -724,7 +724,7 @@ function renderBattleSetup() {
         '<label class="battle-check-wrap" onclick="event.stopPropagation()">' +
           '<input type="checkbox" class="battle-checkbox"' + (p.checked ? " checked" : "") + ' onchange="toggleBattleCheck(' + gi + ',this.checked)">' +
         "</label>" +
-        '<div class="battle-setup-icon" style="background:' + p.color + '22;color:' + p.color + '">' + p.icon + "</div>" +
+        '<div class="battle-setup-icon" style="color:' + p.color + '">' + p.icon + "</div>" +
         '<div class="battle-setup-name">' + escapeHtml(p.name) + "</div>" +
       "</div>";
     }).join("") : "";
@@ -980,7 +980,7 @@ function renderBattleTracker() {
     // UX-6: строка инициативы (число редактируется, ⟳ — переброс d20+ЛОВ)
     var initVal = (p.initiative != null) ? p.initiative : 0;
     var initBlock = '<div class="tracker-init" title="Инициатива">' +
-      '<input type="number" class="tracker-init-inp" value="' + initVal + '" onchange="setBattleInitiative(' + i + ',this.value)" aria-label="Инициатива">' +
+      '<input type="number" class="tracker-init-inp flat-field" value="' + initVal + '" onchange="setBattleInitiative(' + i + ',this.value)" aria-label="Инициатива">' +
       '<button type="button" class="tracker-init-roll" onclick="rerollInitiative(' + i + ')" title="Перебросить инициативу (d20+ЛОВ)">⟳</button>' +
     '</div>';
     // UX-6: инлайн-ХП (−/+ и тек/макс). Контейнер рендерим всегда (пустым для
@@ -991,9 +991,9 @@ function renderBattleTracker() {
       (showHP
         ? '<span class="tracker-hp-heart">' + dndIcoHtml("heart", 13) + '</span>' +
           '<button type="button" class="tracker-hp-btn tracker-hp-minus" onclick="adjustBattleHP(' + i + ',-1)" title="−1 ХП">−</button>' +
-          '<input type="number" class="tracker-hp-cur" value="' + hp.hp + '" onchange="setBattleHP(' + i + ',this.value)" aria-label="Текущие ХП">' +
+          '<input type="number" class="tracker-hp-cur flat-field" value="' + hp.hp + '" onchange="setBattleHP(' + i + ',this.value)" aria-label="Текущие ХП">' +
           '<span class="tracker-hp-sep">/</span>' +
-          '<input type="number" class="tracker-hp-max" value="' + hp.hpMax + '"' + (isSelf ? ' readonly title="Макс. ХП — на вкладке ХП"' : ' onchange="setBattleHPMax(' + i + ',this.value)" aria-label="Макс. ХП"') + '>' +
+          '<input type="number" class="tracker-hp-max flat-field" value="' + hp.hpMax + '"' + (isSelf ? ' readonly title="Макс. ХП — на вкладке ХП"' : ' onchange="setBattleHPMax(' + i + ',this.value)" aria-label="Макс. ХП"') + '>' +
           '<button type="button" class="tracker-hp-btn tracker-hp-plus" onclick="adjustBattleHP(' + i + ',1)" title="+1 ХП">+</button>'
         : '') +
     '</div>';
@@ -1005,11 +1005,11 @@ function renderBattleTracker() {
     var removeSlot = isSelf
       ? '<span class="tracker-slot"></span>'
       : '<button type="button" class="tracker-remove-btn" onclick="removeBattleParticipant(' + i + ')" title="Убрать из боя">✕</button>';
-    return '<div class="tracker-row' + (isCurrent ? " tracker-row-active" : "") + (isSelf ? " tracker-row-self" : "") + '" style="border-left:3px solid ' + fcolor + '">' +
+    return '<div class="tracker-row' + (isCurrent ? " tracker-row-active" : "") + (isSelf ? " tracker-row-self" : "") + '">' +
       '<div class="tracker-main">' +
         '<div class="tracker-num" style="color:' + fcolor + '">' + (i + 1) + "</div>" +
         initBlock +
-        '<div class="tracker-icon" style="background:' + fcolor + '22;color:' + fcolor + '">' + (p.icon || "🎭") + "</div>" +
+        '<div class="tracker-icon" style="color:' + fcolor + '">' + (p.icon || "🎭") + "</div>" +
         '<div class="tracker-name">' +
           '<span class="tracker-name-text">' + escapeHtml(p.name || "?") + '</span>' +
           _battleCondDots(p) +
@@ -1024,7 +1024,7 @@ function renderBattleTracker() {
         hpBlock +
         (isSelf
           ? '<span class="tracker-self-status">' + statusText + '</span>'
-          : '<select class="party-status-sel tracker-status" onchange="setBattleStatus(' + i + ',this.value)">' + opts + "</select>"
+          : '<select class="party-status-sel tracker-status flat-field" onchange="setBattleStatus(' + i + ',this.value)">' + opts + "</select>"
         ) +
       '</div>' +
       // CAST-10: чипы дебаффов — отдельной строкой под ХП/статусом. В .tracker-name

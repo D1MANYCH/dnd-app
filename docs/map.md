@@ -11,10 +11,10 @@
 
 | Раздел | Строки в map.md |
 |---|---|
-| style.css — секции | 20–130 |
-| index.html — блоки верхнего уровня (`#id:строки`) | 131–168 |
-| Функции по файлам (`имя:строка`) | 169–242 |
-| Данные — константы верхнего уровня (`имя:строка`) | 243–259 |
+| style.css — секции | 20–131 |
+| index.html — блоки верхнего уровня (`#id:строки`) | 132–169 |
+| Функции по файлам (`имя:строка`) | 170–243 |
+| Данные — константы верхнего уровня (`имя:строка`) | 244–260 |
 
 
 ## style.css — секции
@@ -33,49 +33,49 @@
 | 555–571 | Body — атмосферный cream-фон + warm radial + SVG-noise |
 | 572–579 | UI4-glass: декоративные «лозы» светлой темы убраны |
 | 580–588 | Заголовки |
-| 589–1020 | Override'ы для блоков с захардкоженным rgba(255,255,255,*) |
-| 1021–1322 | STYLE-8M-2: СТРАНИЦА-ЭКРАН. |
-| 1323–1328 | R2. Базовые компоненты |
-| 1329–1487 | UI-2. Кнопки v3 + анимации (общая секция, обе темы) |
-| 1488–1761 | UI-3. Desktop/tablet layout (≥1024px) |
-| 1762–1864 | UI5-4: ПК — многоколоночная раскладка листа |
-| 1865–1940 | /R2 |
-| 1941–2114 | ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА (R5: компактная одна строка) |
-| 2115–2276 | HEADER (R5: back + name + hamburger) |
-| 2277–2342 | КД АВТО-РАСЧЁТ |
-| 2343–2412 | ФИЛЬТР-БАР (состояния и эффекты) |
-| 2413–2478 | ВРЕМЕННЫЕ ЭФФЕКТЫ |
-| 2479–2638 | УСЛОВИЯ |
-| 2639–2793 | СПАСБРОСКИ |
-| 2794–2931 | CLASS FEATURES |
-| 2932–2971 | УБИРАЕМ СТРЕЛКИ |
-| 2972–3076 | TAB NAV — 5 tabs + centered FAB dice |
-| 3077–3199 | UX-5: лента последних бросков вне модалки |
-| 3200–3376 | Плавающий чип активных эффектов заклинаний (char.activeSpellEffects). |
-| 3377–3396 | HAMBURGER BUTTON |
-| 3397–3438 | SIDE DRAWER |
-| 3439–3937 | STYLE-8L: сайдбар в языке встречающего экрана |
-| 3938–3985 | MENU-8/9: встречающий экран во всё окно. |
-| 3986–4077 | MENU-2: плашка последнего героя. |
-| 4078–4252 | MENU-3: меню приключения. |
-| 4253–4323 | MENU-11: адаптив встречающего экрана, доступность, спокойное движение. |
-| 4324–4324 | INVENTORY |
-| 4325–4355 | INVENTORY — WEIGHT BAR |
-| 4356–4392 | INVENTORY — BACKPACK HEADER |
-| 4393–4433 | INVENTORY — FILTERS |
-| 4434–4618 | INVENTORY — ITEM CARDS |
-| 4619–4956 | COINS — BIG NUMBER CARD GRID |
-| 4957–5219 | MODALS |
-| 5220–5254 | DICE |
-| 5255–5835 | v3.18: DICE MODAL — новый UX (header tools + 2-col body + popovers) |
-| 5836–6751 | OTHER STYLES |
-| 6752–6820 | HP DISPLAY BLOCK |
-| 6821–6846 | MOBILE OPTIMIZATION |
-| 6847–6996 | LEVEL UP MODAL |
-| 6997–7035 | HP TOAST (snackbar) |
-| 7036–7085 | HP HISTORY MODAL |
-| 7086–7139 | Confirm Modal |
-| 7140–7542 | ⚔️ ОТРЯД & БОЙ |
+| 589–1015 | Override'ы для блоков с захардкоженным rgba(255,255,255,*) |
+| 1016–1317 | STYLE-8M-2: СТРАНИЦА-ЭКРАН. |
+| 1318–1323 | R2. Базовые компоненты |
+| 1324–1482 | UI-2. Кнопки v3 + анимации (общая секция, обе темы) |
+| 1483–1756 | UI-3. Desktop/tablet layout (≥1024px) |
+| 1757–1859 | UI5-4: ПК — многоколоночная раскладка листа |
+| 1860–1935 | /R2 |
+| 1936–2109 | ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА (R5: компактная одна строка) |
+| 2110–2271 | HEADER (R5: back + name + hamburger) |
+| 2272–2337 | КД АВТО-РАСЧЁТ |
+| 2338–2407 | ФИЛЬТР-БАР (состояния и эффекты) |
+| 2408–2473 | ВРЕМЕННЫЕ ЭФФЕКТЫ |
+| 2474–2633 | УСЛОВИЯ |
+| 2634–2788 | СПАСБРОСКИ |
+| 2789–2926 | CLASS FEATURES |
+| 2927–2966 | УБИРАЕМ СТРЕЛКИ |
+| 2967–3071 | TAB NAV — 5 tabs + centered FAB dice |
+| 3072–3194 | UX-5: лента последних бросков вне модалки |
+| 3195–3371 | Плавающий чип активных эффектов заклинаний (char.activeSpellEffects). |
+| 3372–3391 | HAMBURGER BUTTON |
+| 3392–3433 | SIDE DRAWER |
+| 3434–3932 | STYLE-8L: сайдбар в языке встречающего экрана |
+| 3933–3980 | MENU-8/9: встречающий экран во всё окно. |
+| 3981–4072 | MENU-2: плашка последнего героя. |
+| 4073–4247 | MENU-3: меню приключения. |
+| 4248–4318 | MENU-11: адаптив встречающего экрана, доступность, спокойное движение. |
+| 4319–4319 | INVENTORY |
+| 4320–4350 | INVENTORY — WEIGHT BAR |
+| 4351–4387 | INVENTORY — BACKPACK HEADER |
+| 4388–4428 | INVENTORY — FILTERS |
+| 4429–4613 | INVENTORY — ITEM CARDS |
+| 4614–4951 | COINS — BIG NUMBER CARD GRID |
+| 4952–5214 | MODALS |
+| 5215–5249 | DICE |
+| 5250–5830 | v3.18: DICE MODAL — новый UX (header tools + 2-col body + popovers) |
+| 5831–6746 | OTHER STYLES |
+| 6747–6815 | HP DISPLAY BLOCK |
+| 6816–6841 | MOBILE OPTIMIZATION |
+| 6842–6991 | LEVEL UP MODAL |
+| 6992–7030 | HP TOAST (snackbar) |
+| 7031–7080 | HP HISTORY MODAL |
+| 7081–7134 | Confirm Modal |
+| 7135–7542 | ⚔️ ОТРЯД & БОЙ |
 | 7543–7781 | RACIAL BONUS BAR |
 | 7782–7928 | COMPACT STATS GRID |
 | 7929–8199 | UI6-4: ЛИСТ ХАРАКТЕРИСТИК — режимы «2024» / «Классический». |
@@ -117,16 +117,17 @@
 | 13273–13299 | UI5-6: ПОЛИРОВКА — единый фокус клавиатуры + шевроны аккордеонов |
 | 13300–13347 | Светлая тема: цветные акценты, подобранные под тёмный фон и |
 | 13348–13400 | Дымка v5: чипы состояний, мини-индикаторы, SVG-иконки |
-| 13401–14482 | STYLE-5: одна поверхность для всех карточек-контейнеров. |
-| 14483–14538 | MOTION: переходы между экранами и под-меню встречающего экрана. |
-| 14539–14631 | STYLE-8a2 · «Лист»: блок характеристик — реестр |
-| 14632–14935 | DISC-1 · Ромб раскрытия |
-| 14936–15439 | STYLE-8a2 · остальной «Лист» в языке встречающего экрана |
-| 15440–15534 | LVL-2 · Экран «Развитие» (#screen-progress) |
-| 15535–15617 | LVL-3 · Раздел «Класс и развитие» на листе и дубль ресурсов в «Бою» |
-| 15618–15848 | STYLE-8b3: список «Мои заклинания» — рецепт «Сумки» + чип действия |
-| 15849–15858 | STYLE-8b3-fix: срезанный ромб |
-| 15859–16124 | STYLE-8b3b: два оставшихся блока «Магии» |
+| 13401–14490 | STYLE-5: одна поверхность для всех карточек-контейнеров. |
+| 14491–14546 | MOTION: переходы между экранами и под-меню встречающего экрана. |
+| 14547–14639 | STYLE-8a2 · «Лист»: блок характеристик — реестр |
+| 14640–14943 | DISC-1 · Ромб раскрытия |
+| 14944–15447 | STYLE-8a2 · остальной «Лист» в языке встречающего экрана |
+| 15448–15542 | LVL-2 · Экран «Развитие» (#screen-progress) |
+| 15543–15625 | LVL-3 · Раздел «Класс и развитие» на листе и дубль ресурсов в «Бою» |
+| 15626–15856 | STYLE-8b3: список «Мои заклинания» — рецепт «Сумки» + чип действия |
+| 15857–15866 | STYLE-8b3-fix: срезанный ромб |
+| 15867–16133 | STYLE-8b3b: два оставшихся блока «Магии» |
+| 16134–16213 | STYLE-8d2 · Вкладка «Бой» в языке встречающего экрана |
 
 ## index.html — блоки верхнего уровня (`#id:строки`)
 
@@ -146,25 +147,25 @@
 #tools-container:1104-1107 #languages-container:1108-1115 #companions-list-sheet:1116-1128 #tab-progress:1129-1130 #pg-body:1131-1132 #tab-spells:1133-1156 #spell-mod-display:1157-1162 #spell-dc-display:1163-1168  
 #spell-attack-display:1169-1191 #spell-slots-visual:1192-1197 #concentration-block:1198-1214 #prep-counter:1215-1215 #my-spells-list:1216-1218 #tab-inventory:1219-1238 #weight-fill:1239-1273 #inventory-list:1274-1283  
 #inv-pouches:1284-1338 #coin-exchange-modal:1339-1377 #exch-preview:1378-1385 #tab-notes:1386-1411 #notes-subtabs:1412-1413 #notes-main:1414-1415 #taken-feats-section:1416-1420 #taken-feats-list:1421-1424  
-#tab-party:1425-1434 #my-char-card:1435-1450 #allies-list:1451-1467 #npcs-list:1468-1484 #monsters-list:1485-1497 #companions-list-world:1498-1508 #tab-battle:1509-1515 #weapons-list:1516-1519  
-#battle-res-card:1520-1521 #battle-res-rows:1522-1523 #battle-setup-screen:1524-1532 #battle-setup-list:1533-1536 #battle-tracker-screen:1537-1541 #battle-turn-info:1542-1547 #battle-repeat-strip:1548-1548 #battle-tracker-list:1549-1558  
-#tab-journal:1559-1573 #journal-list:1574-1579 #item-ref-modal:1580-1583 #item-ref-tabs:1584-1589 #item-ref-weight:1590-1628 #item-ref-slots:1629-1660 #screen-help:1661-1683 #help-about:1684-1707  
-#help-start:1708-1732 #help-sheet:1733-1748 #help-progress:1749-1788 #help-spells:1789-1805 #help-inventory:1806-1818 #help-battle:1819-1835 #help-party:1836-1848 #help-notes:1849-1857  
-#help-journal:1858-1866 #help-planes:1867-1894 #help-dice:1895-1906 #help-edition2024:1907-1936 #help-data:1937-1949 #help-marks:1950-1972 #conc-details-modal:1973-1983 #conc-detail-duration-row:1984-1991  
-#conc-detail-desc-row:1992-2001 #add-journal-modal:2002-2024 #add-npc-modal:2025-2053 #add-ally-modal:2054-2087 #srd-monster-modal:2088-2099 #srd-monster-count:2100-2100 #srd-monster-results:2101-2108 #srd-npc-modal:2109-2117  
-#srd-npc-count:2118-2118 #srd-npc-results:2119-2126 #add-monster-modal:2127-2184 #rest-modal:2185-2188 #rest-main-screen:2189-2206 #rest-info-screen:2207-2211 #hit-dice-section:2212-2223 #rest-food-section:2224-2232  
-#rest-result-screen:2233-2235 #rest-result-details:2236-2242 #levelup-modal:2243-2250 #lu-screen-multiclass:2251-2252 #lu-mc-current-classes:2253-2255 #lu-mc-new-class:2256-2260 #lu-mc-prereq-warn:2261-2261 #lu-mc-subclass-row:2262-2270  
-#lu-screen-preview:2271-2303 #lu-slots-card:2304-2305 #lu-slots-info:2306-2309 #lu-build-hint:2310-2310 #lu-features-container:2311-2319 #lu-screen-choices:2320-2321 #lu-choices-body:2322-2328 #lu-screen-result:2329-2330  
-#lu-result-title:2331-2331 #lu-result-body:2332-2337 #hp-history-modal:2338-2343 #hp-history-list:2344-2349 #asi-modal:2350-2353 #asi-build-hint:2354-2368 #asi-feat-list:2369-2369 #asi-stat-grid:2370-2370  
-#asi-preview:2371-2379 #class-choice-modal:2380-2394 #dice-modal:2395-2441 #dice-file-hint:2442-2442 #dice3d-result:2443-2451 #dice-result-display:2452-2455 #dice-mode-segment:2456-2527 #dice-popover-settings:2528-2574  
-#dice-popover-history:2575-2586 #dice-history:2587-2594 #spell-search-modal:2595-2598 #spell-class-filter:2599-2642 #class-filter-legend:2643-2664 #spell-search-count:2665-2665 #spell-search-results:2666-2670 #cast-spell-modal:2671-2675  
-#cast-spell-options:2676-2678 #add-spell-modal:2679-2722 #new-spell-class-chips:2723-2768 #new-spell-mech-fields:2769-2773 #new-spell-mech-dmg-row:2774-2793 #new-spell-mech-half-row:2794-2796 #new-spell-mech-mod-row:2797-2807 #item-modal:2808-2871  
-#magic-catalog-modal:2872-2900 #magic-catalog-count:2901-2901 #magic-catalog-list:2902-2905 #gear-catalog-modal:2906-2911 #gear-packs-list:2912-2925 #gear-catalog-count:2926-2926 #gear-catalog-list:2927-2930 #item-view-modal:2931-2934  
-#view-item-icon:2935-2935 #view-item-name:2936-2939 #view-item-qty:2940-2943 #view-item-weight:2944-2947 #view-item-category:2948-2951 #view-item-total-weight:2952-2954 #view-item-desc:2955-2963 #weapon-modal:2964-2967  
-#weapon-picker-section:2968-2970 #weapon-filter-chips:2971-2980 #weapon-presets-list:2981-3043 #character-tabs:3044-3055 #quick-roll-strip:3056-3061 #qrs-list:3062-3072 #active-effects-panel:3073-3077 #aef-list:3078-3084  
-#hp-toast-container:3085-3087 #add-companion-modal:3088-3103 #companion-familiar-row:3104-3123 #confirm-modal:3124-3136 #avatar-modal:3137-3140 #avatar-modal-preview:3141-3168 #screen-builds:3169-3191 #bp-list:3192-3196  
-#screen-buildguide:3197-3199 #bg-body:3200-3204 #screen-buildplan:3205-3207 #bp-plan-body:3208-3212 #screen-abilityinfo:3213-3215 #ai-body:3216-3220 #screen-featureinfo:3221-3223 #fi-body:3224-3228  
-#app-log-panel:3229-3248 #app-log-list:3249-3389 #notes-entry-modal:3390-3438  
+#tab-party:1425-1434 #my-char-card:1435-1450 #allies-list:1451-1467 #npcs-list:1468-1484 #monsters-list:1485-1497 #companions-list-world:1498-1508 #tab-battle:1509-1514 #weapons-list:1515-1518  
+#battle-res-card:1519-1520 #battle-res-rows:1521-1522 #battle-setup-screen:1523-1531 #battle-setup-list:1532-1535 #battle-tracker-screen:1536-1540 #battle-turn-info:1541-1546 #battle-repeat-strip:1547-1547 #battle-tracker-list:1548-1557  
+#tab-journal:1558-1572 #journal-list:1573-1578 #item-ref-modal:1579-1582 #item-ref-tabs:1583-1588 #item-ref-weight:1589-1627 #item-ref-slots:1628-1659 #screen-help:1660-1682 #help-about:1683-1706  
+#help-start:1707-1731 #help-sheet:1732-1747 #help-progress:1748-1787 #help-spells:1788-1804 #help-inventory:1805-1817 #help-battle:1818-1834 #help-party:1835-1847 #help-notes:1848-1856  
+#help-journal:1857-1865 #help-planes:1866-1893 #help-dice:1894-1905 #help-edition2024:1906-1935 #help-data:1936-1948 #help-marks:1949-1971 #conc-details-modal:1972-1982 #conc-detail-duration-row:1983-1990  
+#conc-detail-desc-row:1991-2000 #add-journal-modal:2001-2023 #add-npc-modal:2024-2052 #add-ally-modal:2053-2086 #srd-monster-modal:2087-2098 #srd-monster-count:2099-2099 #srd-monster-results:2100-2107 #srd-npc-modal:2108-2116  
+#srd-npc-count:2117-2117 #srd-npc-results:2118-2125 #add-monster-modal:2126-2183 #rest-modal:2184-2187 #rest-main-screen:2188-2205 #rest-info-screen:2206-2210 #hit-dice-section:2211-2222 #rest-food-section:2223-2231  
+#rest-result-screen:2232-2234 #rest-result-details:2235-2241 #levelup-modal:2242-2249 #lu-screen-multiclass:2250-2251 #lu-mc-current-classes:2252-2254 #lu-mc-new-class:2255-2259 #lu-mc-prereq-warn:2260-2260 #lu-mc-subclass-row:2261-2269  
+#lu-screen-preview:2270-2302 #lu-slots-card:2303-2304 #lu-slots-info:2305-2308 #lu-build-hint:2309-2309 #lu-features-container:2310-2318 #lu-screen-choices:2319-2320 #lu-choices-body:2321-2327 #lu-screen-result:2328-2329  
+#lu-result-title:2330-2330 #lu-result-body:2331-2336 #hp-history-modal:2337-2342 #hp-history-list:2343-2348 #asi-modal:2349-2352 #asi-build-hint:2353-2367 #asi-feat-list:2368-2368 #asi-stat-grid:2369-2369  
+#asi-preview:2370-2378 #class-choice-modal:2379-2393 #dice-modal:2394-2440 #dice-file-hint:2441-2441 #dice3d-result:2442-2450 #dice-result-display:2451-2454 #dice-mode-segment:2455-2526 #dice-popover-settings:2527-2573  
+#dice-popover-history:2574-2585 #dice-history:2586-2593 #spell-search-modal:2594-2597 #spell-class-filter:2598-2641 #class-filter-legend:2642-2663 #spell-search-count:2664-2664 #spell-search-results:2665-2669 #cast-spell-modal:2670-2674  
+#cast-spell-options:2675-2677 #add-spell-modal:2678-2721 #new-spell-class-chips:2722-2767 #new-spell-mech-fields:2768-2772 #new-spell-mech-dmg-row:2773-2792 #new-spell-mech-half-row:2793-2795 #new-spell-mech-mod-row:2796-2806 #item-modal:2807-2870  
+#magic-catalog-modal:2871-2899 #magic-catalog-count:2900-2900 #magic-catalog-list:2901-2904 #gear-catalog-modal:2905-2910 #gear-packs-list:2911-2924 #gear-catalog-count:2925-2925 #gear-catalog-list:2926-2929 #item-view-modal:2930-2933  
+#view-item-icon:2934-2934 #view-item-name:2935-2938 #view-item-qty:2939-2942 #view-item-weight:2943-2946 #view-item-category:2947-2950 #view-item-total-weight:2951-2953 #view-item-desc:2954-2962 #weapon-modal:2963-2966  
+#weapon-picker-section:2967-2969 #weapon-filter-chips:2970-2979 #weapon-presets-list:2980-3042 #character-tabs:3043-3054 #quick-roll-strip:3055-3060 #qrs-list:3061-3071 #active-effects-panel:3072-3076 #aef-list:3077-3083  
+#hp-toast-container:3084-3086 #add-companion-modal:3087-3102 #companion-familiar-row:3103-3122 #confirm-modal:3123-3135 #avatar-modal:3136-3139 #avatar-modal-preview:3140-3167 #screen-builds:3168-3190 #bp-list:3191-3195  
+#screen-buildguide:3196-3198 #bg-body:3199-3203 #screen-buildplan:3204-3206 #bp-plan-body:3207-3211 #screen-abilityinfo:3212-3214 #ai-body:3215-3219 #screen-featureinfo:3220-3222 #fi-body:3223-3227  
+#app-log-panel:3228-3247 #app-log-list:3248-3388 #notes-entry-modal:3389-3437  
 
 ## Функции по файлам (`имя:строка`)
 
@@ -242,8 +243,8 @@ getLastCharacter:22 _homeCantripCount:34 _homeHeroChips:48 _homePlural:68 _homeH
 
 ## Данные — константы верхнего уровня (`имя:строка`)
 
-**data.js** (5479 строк)  
-_ASI:7 _FEAT:8 SCHEMA_VERSION:21 DAMAGE_TYPES:24 DEFAULT_CHARACTER:31 FAMILIAR_FORMS:103 SAVES_DATA:125 CONDITIONS:134 EFFECTS_DATA:157 CLASS_FEATURES:208 SPELL_PREP_CLASSES:490 SPELL_SLOTS_BY_LEVEL:497 CLASS_HIT_DICE:572 SUBCLASSES:578 SOURCE_LABELS:597 SUBCLASS_SOURCE:605 SUBCLASS_LEVEL:666 SUBCLASS_FEATURES:682 WEAPON_PRESETS:1289 ITEM_ICONS:1333 CATEGORY_NAMES:1334 GEAR_PACKS:1343 RACE_DATA:1438 BACKGROUND_SKILLS:1569 BACKGROUND_ALIASES:1606 DEITY_ALIGN_LABELS:1619 DEITIES_DATA:1624 LANGUAGE_CATALOG:1692 RACE_LANGUAGES:1721 CLASS_LANGUAGES:1747 TOOL_CATALOG:1753 RACE_TOOLS:1808 CLASS_TOOLS:1815 SUBCLASS_LANGUAGES:1823 SUBCLASS_TOOLS:1836 RACE_ARMOR:1858 RACE_WEAPONS_SPECIFIC:1862 CLASS_WEAPONS_SPECIFIC:1875 RACE_NAME_POOLS:1885 RACE_NAME_GROUP:1927 SUBCLASS_ARMOR:1941 ARMOR_PRESETS:1967 skills:1984 ABILITY_INFO:1997 CLASS_SKILL_OPTIONS:2037 CLASS_ARMOR_PROFS:2053 CLASS_RESOURCES:2073 ASI_LEVELS:2227 XP_THRESHOLDS:2235 APP_VERSION:2245 APP_VERSION_DATE:2246 APP_TELEGRAM_URL:2252 APP_DONATE_URL:2253 APP_BOOSTY_URL:2254 FEATS_DATA:2270 APP_CHANGELOG:2589 CASTER_TYPE:5321 THIRD_CASTER_SUBCLASSES:5330 THIRD_CASTER_SLOTS:5337 MULTICLASS_SPELL_SLOTS:5348 MULTICLASS_PREREQUISITES:5373 MULTICLASS_PROFICIENCIES:5389 EDITION_DATA:5418
+**data.js** (5615 строк)  
+_ASI:7 _FEAT:8 SCHEMA_VERSION:21 DAMAGE_TYPES:24 DEFAULT_CHARACTER:31 FAMILIAR_FORMS:103 SAVES_DATA:125 CONDITIONS:134 EFFECTS_DATA:157 CLASS_FEATURES:208 SPELL_PREP_CLASSES:490 SPELL_SLOTS_BY_LEVEL:497 CLASS_HIT_DICE:572 SUBCLASSES:578 SOURCE_LABELS:597 SUBCLASS_SOURCE:605 SUBCLASS_LEVEL:674 SUBCLASS_FEATURES:690 WEAPON_PRESETS:1405 ITEM_ICONS:1449 CATEGORY_NAMES:1450 GEAR_PACKS:1459 RACE_DATA:1554 BACKGROUND_SKILLS:1685 BACKGROUND_ALIASES:1722 DEITY_ALIGN_LABELS:1735 DEITIES_DATA:1740 LANGUAGE_CATALOG:1808 RACE_LANGUAGES:1837 CLASS_LANGUAGES:1863 TOOL_CATALOG:1869 RACE_TOOLS:1924 CLASS_TOOLS:1931 SUBCLASS_LANGUAGES:1939 SUBCLASS_TOOLS:1952 RACE_ARMOR:1974 RACE_WEAPONS_SPECIFIC:1978 CLASS_WEAPONS_SPECIFIC:1991 RACE_NAME_POOLS:2001 RACE_NAME_GROUP:2043 SUBCLASS_ARMOR:2057 ARMOR_PRESETS:2087 skills:2104 ABILITY_INFO:2117 CLASS_SKILL_OPTIONS:2157 CLASS_ARMOR_PROFS:2173 CLASS_RESOURCES:2193 ASI_LEVELS:2347 XP_THRESHOLDS:2355 APP_VERSION:2365 APP_VERSION_DATE:2366 APP_TELEGRAM_URL:2372 APP_DONATE_URL:2373 APP_BOOSTY_URL:2374 FEATS_DATA:2390 APP_CHANGELOG:2709 CASTER_TYPE:5457 THIRD_CASTER_SUBCLASSES:5466 THIRD_CASTER_SLOTS:5473 MULTICLASS_SPELL_SLOTS:5484 MULTICLASS_PREREQUISITES:5509 MULTICLASS_PROFICIENCIES:5525 EDITION_DATA:5554
 
 **spells.js** (12518 строк)  
 SPELLS_BASE:7
@@ -254,6 +255,6 @@ SPELL_EFFECTS:71
 **class-choices.js** (680 строк)  
 FIGHTING_STYLES:10 SORCERER_METAMAGIC:20 WARLOCK_PACT_BOONS:32 WARLOCK_INVOCATIONS:40 FAVORED_ENEMIES:76 FAVORED_TERRAINS:94 CLASS_CHOICES:114 ccModalState:437
 
-**subclass-choices-data.js** (713 строк)  
+**subclass-choices-data.js** (790 строк)  
 BATTLE_MASTER_MANEUVERS:6 HUNTER_PREY:26 HUNTER_DEFENSIVE:32 HUNTER_MULTIATTACK:38 HUNTER_SUPERIOR:43 TOTEM_SPIRIT:50 TOTEM_ASPECT:56 TOTEM_ATTUNEMENT:62 DRACONIC_ANCESTRY:69 ELEMENTAL_DISCIPLINES:83 STORM_HERALD_AURA:103 ARCANE_SHOTS:110 KENSEI_WEAPONS:122 RUNE_KNIGHT_RUNES:134 SUBCLASS_CHOICES:144 SUBCLASS_RESOURCES:333
 
