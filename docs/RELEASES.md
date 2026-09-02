@@ -3,57 +3,88 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v3.91.0**.
+Актуальная версия — **v3.91.1**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
-<a id="v3.91.0"></a>
-## v3.91.0 — 30 августа 2026
+<a id="v3.91.1"></a>
+## v3.91.1 — 2 сентября 2026
 
-✨ Вкладка «Магия» переоформлена в строки: действие «Использовать» (у неподготовленного заклинания — «Подготовить») переехало в саму строку, ромб строки красится цветом школы, признаки идут текстом через точку — школа, время, дистанция. Компоненты и длительность показывает раскрытие карточки, блоки заклинательной характеристики раскрываются пояснением формулы, коробки списка заклинаний и ячеек сняты.
+✨ Девять подклассов из «Котла всякой всячины Таши»: Путь астрального Я (монах), Клятва славы (паладин), Повелитель роя (следопыт), Душеклинок (плут), Аберрантный разум и Часовая душа (чародей), Глубинный (колдун), Певец меча и Орден переписчиков (волшебник) — фичи по уровням, заклинания подкласса у клятвы славы, глубинного, аберрантного разума и часовой души, лёгкие доспехи у певца меча. Всего подклассов в приложении 100.
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/7389db02...main) · 30 файлов, +2352 −517
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/a317cf4e...main) · 11 файлов, +1213 −62
 
 <details><summary>Коммиты и файлы</summary>
 
 **Коммиты (1):**
 
-- [`517b86b6`](https://github.com/D1MANYCH/dnd-app/commit/517b86b6) chore(claude): контекстная гигиена — сжатие служебных файлов и агент verifier
+- [`e3212abd`](https://github.com/D1MANYCH/dnd-app/commit/e3212abd) chore(claude): контекстная гигиена — лимит сессии в правилах и Stop-хуке, карта кода docs/map.md, проверка превью через verifier
 
-**Файлы (30):**
+**Файлы (11):**
+
+- `docs/map.md` +518 −0
+- `tools/gen-map.js` +328 −0
+- `tools/check-session-size-hook.js` +142 −0
+- `data.js` +88 −10
+- `index.html` +46 −46
+- `subclass-choices-data.js` +44 −0
+- `CLAUDE.md` +14 −4
+- `.claude/skills/verify-ui/SKILL.md` +16 −0
+- `.claude/settings.json` +10 −0
+- `CHANGELOG.md` +6 −1
+- `sw.js` +1 −1
+
+</details>
+
+<a id="v3.91.0"></a>
+## v3.91.0 — 30 августа 2026
+
+✨ Вкладка «Магия» переоформлена в строки: действие «Использовать» (у неподготовленного заклинания — «Подготовить») переехало в саму строку, ромб строки красится цветом школы, признаки идут текстом через точку — школа, время, дистанция. Компоненты и длительность показывает раскрытие карточки, блоки заклинательной характеристики раскрываются пояснением формулы, коробки списка заклинаний и ячеек сняты.
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/7389db02...a317cf4e) · 31 файлов, +2202 −301
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (2):**
+
+- [`517b86b6`](https://github.com/D1MANYCH/dnd-app/commit/517b86b6) chore(claude): контекстная гигиена — сжатие служебных файлов и агент verifier
+- [`a317cf4e`](https://github.com/D1MANYCH/dnd-app/commit/a317cf4e) v3.91.0: feat(spells): вкладка «Магия» переоформлена в строки — действие в строке, ромб цвета школы, признаки через точку, раскрытие у заклинательной характеристики
+
+**Файлы (31):**
 
 - `style.css` +520 −15
 - `tests/style-flat-magic-battle-mockups.html` +490 −0
 - `tests/style-flat-spells-list-mockups.html` +459 −0
-- `.claude/skills/verify-ui/SKILL.md` +140 −296
 - `tests/style-magic-anchored-mockups.html` +359 −0
-- `CLAUDE.md` +114 −112
+- `.claude/skills/verify-ui/SKILL.md` +70 −148
+- `CLAUDE.md` +57 −56
 - `index.html` +63 −50
-- `.claude/agents/verifier.md` +80 −0
-- `.claude/commands/carry.md` +44 −0
+- `docs/RELEASES.md` +56 −5
+- `.claude/agents/verifier.md` +40 −0
 - `app-spells.js` +31 −5
+- `.claude/commands/carry.md` +22 −0
 - `data.js` +11 −3
 - `CHANGELOG.md` +6 −1
-- `.claude/agents/content.md` +2 −2
-- `.claude/agents/dnd-rules.md` +2 −2
-- `.claude/agents/releaser.md` +2 −2
-- `.claude/agents/relpost.md` +2 −2
-- `.claude/commands/bump.md` +2 −2
-- `.claude/commands/done.md` +2 −2
-- `.claude/commands/phase.md` +2 −2
-- `.claude/commands/preflight.md` +2 −2
-- `.claude/commands/relpost.md` +2 −2
-- `.claude/commands/rules.md` +2 −2
-- `.claude/commands/ship.md` +2 −2
-- `.claude/commands/test.md` +2 −2
-- `.claude/skills/add-content/SKILL.md` +2 −2
-- `.claude/skills/dice-3d/SKILL.md` +2 −2
-- `.claude/skills/faza/SKILL.md` +2 −2
-- `.claude/skills/release/SKILL.md` +2 −2
-- `.claude/skills/tours/SKILL.md` +2 −2
+- `.claude/agents/content.md` +1 −1
+- `.claude/agents/dnd-rules.md` +1 −1
+- `.claude/agents/releaser.md` +1 −1
+- `.claude/agents/relpost.md` +1 −1
+- `.claude/commands/bump.md` +1 −1
+- `.claude/commands/done.md` +1 −1
+- `.claude/commands/phase.md` +1 −1
+- `.claude/commands/preflight.md` +1 −1
+- `.claude/commands/relpost.md` +1 −1
+- `.claude/commands/rules.md` +1 −1
+- `.claude/commands/ship.md` +1 −1
+- `.claude/commands/test.md` +1 −1
+- `.claude/skills/add-content/SKILL.md` +1 −1
+- `.claude/skills/dice-3d/SKILL.md` +1 −1
+- `.claude/skills/faza/SKILL.md` +1 −1
+- `.claude/skills/release/SKILL.md` +1 −1
+- `.claude/skills/tours/SKILL.md` +1 −1
 - `sw.js` +1 −1
 
 </details>

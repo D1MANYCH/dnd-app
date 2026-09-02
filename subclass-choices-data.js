@@ -708,5 +708,49 @@ var SUBCLASS_RESOURCES = {
       7: ["Воображаемый убийца (Phantasmal Killer)", "Оглушающая кара (Staggering Smite)"],
       9: ["Изгоняющая кара (Banishing Smite)", "Конус холода (Cone of Cold)"]
     } } }
+  },
+
+  // ═══ ПАЛАДИН: Клятва славы — заклинания клятвы ═══ (SUB-4, TCoE)
+  "Клятва славы": {
+    passive: { subclassSpells: { label: "Заклинания клятвы славы", icon: "🏆", byLevel: {
+      3: ["Героизм (Heroism)", "Направленный снаряд (Guiding Bolt)"],
+      5: ["Магическое оружие (Magic Weapon)", "Улучшение характеристики (Enhance Ability)"],
+      9: ["Защита от энергии (Protection from Energy)", "Ускорение (Haste)"],
+      13: ["Свобода перемещения (Freedom of Movement)", "Принуждение (Compulsion)"],
+      17: ["Небесный огонь (Flame Strike)", "Общение (Commune)"]
+    } } }
+  },
+
+  // ═══ КОЛДУН: Глубинный — расширенный список заклинаний ═══ (SUB-4, TCoE)
+  "Глубинный": {
+    passive: { subclassSpells: { label: "Заклинания глубинного покровителя", icon: "🐙", byLevel: {
+      1: ["Волна грома (Thunderwave)", "Сотворение или уничтожение воды (Create or Destroy Water)"],
+      3: ["Порыв ветра (Gust of Wind)", "Тишина (Silence)"],
+      5: ["Метель (Sleet Storm)", "Молния (Lightning Bolt)"],
+      7: ["Власть над водами (Control Water)", "Призыв духа элементаля (Summon Elemental)"],
+      9: ["Длань Бигби (Bigby's Hand)", "Конус холода (Cone of Cold)"]
+    } } }
+  },
+
+  // ═══ ЧАРОДЕЙ: Аберрантный разум — псионические заклинания ═══ (SUB-4, TCoE)
+  "Аберрантный разум": {
+    passive: { subclassSpells: { label: "Псионические заклинания", icon: "🧠", byLevel: {
+      1: ["Диссонирующий шёпот (Dissonant Whispers)", "Расщепление разума (Mind Sliver)", "Руки Хадара (Arms of Hadar)"],
+      3: ["Обнаружение мыслей (Detect Thoughts)", "Умиротворение (Calm Emotions)"],
+      5: ["Голод Хадара (Hunger of Hadar)", "Послание (Sending)"],
+      7: ["Призыв духа аберрации (Summon Aberration)", "Эвардовы чёрные щупальца (Evard's Black Tentacles)"],
+      9: ["Ментальная связь Рэри (Rary's Telepathic Bond)", "Телекинез (Telekinesis)"]
+    } } }
+  },
+
+  // ═══ ЧАРОДЕЙ: Часовая душа — часовые заклинания ═══ (SUB-4, TCoE)
+  "Часовая душа": {
+    passive: { subclassSpells: { label: "Часовые заклинания", icon: "⚙️", byLevel: {
+      1: ["Защита от добра и зла (Protection from Evil and Good)", "Сигнал тревоги (Alarm)"],
+      3: ["Малое восстановление (Lesser Restoration)", "Подмога (Aid)"],
+      5: ["Защита от энергии (Protection from Energy)", "Рассеивание магии (Dispel Magic)"],
+      7: ["Призыв духа конструкта (Summon Construct)", "Свобода перемещения (Freedom of Movement)"],
+      9: ["Высшее восстановление (Greater Restoration)", "Силовая стена (Wall of Force)"]
+    } } }
   }
 };
