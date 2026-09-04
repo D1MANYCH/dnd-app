@@ -114,7 +114,7 @@ function renderMyChar() {
   var conds     = (char.conditions && char.conditions.length) ? "" + dndIcoHtml("alert", 13) + " " + char.conditions.length + " статус" : "";
   container.innerHTML =
     '<div class="pcard pcard-self">' +
-      '<div class="pcard-icon" style="background:' + color + '22;color:' + color + '">' + icon + '</div>' +
+      '<div class="pcard-icon" style="color:' + color + '">' + icon + '</div>' +
       '<div class="pcard-body">' +
         '<div class="pcard-name">' + escapeHtml(char.name || "Мой персонаж") + '<span class="pcard-self-badge">я</span></div>' +
         '<div class="pcard-sub">' + escapeHtml(getClassLine(char)) + '</div>' +
@@ -138,7 +138,7 @@ function renderAllies() {
     var icon  = getClassIcon(a.cls);
     var color = getClassColor(a.cls);
     return '<div class="pcard">' +
-      '<div class="pcard-icon" style="background:' + color + '22;color:' + color + '">' + icon + '</div>' +
+      '<div class="pcard-icon" style="color:' + color + '">' + icon + '</div>' +
       '<div class="pcard-body">' +
         '<div class="pcard-name">' + escapeHtml(a.name) + '</div>' +
         '<div class="pcard-sub">' + escapeHtml(a.cls || "Класс не указан") + '</div>' +

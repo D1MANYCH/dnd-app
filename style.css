@@ -7137,13 +7137,9 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
    ============================================================ */
 
 /* Section wrapper */
-.party-section-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-md);
-  padding: 14px 14px 10px 14px;
-  margin-bottom: 12px;
-}
+/* STYLE-8e2: коробка раздела снята здесь, а не перебита ниже: рецепт вкладки
+   плоский с 8e, объявлять карточку, чтобы тут же её отменить, незачем.
+   Отступы и margin раздела задаёт #tab-party .party-section-card. */
 .party-section-title-row {
   display: flex;
   align-items: center;
@@ -7151,7 +7147,6 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   margin-bottom: 12px;
   flex-wrap: wrap;
 }
-.party-section-icon { font-size: 1.15em; flex-shrink: 0; }
 .party-section-label {
   flex: 1;
   font-size: 0.95em;
@@ -7222,8 +7217,9 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   font-size: 1.35em;
   flex-shrink: 0;
 }
-.pcard-icon-npc     { background: color-mix(in srgb, var(--slot-gold) 16%, transparent); color: var(--slot-gold); }
-.pcard-icon-monster { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); }
+/* STYLE-8e2: диска под глифом больше нет — цвет несёт сам глиф (как на 8d2). */
+.pcard-icon-npc     { color: var(--slot-gold); }
+.pcard-icon-monster { color: var(--danger); }
 
 /* Body */
 .pcard-body { flex: 1; min-width: 0; }
@@ -13332,9 +13328,9 @@ textarea:focus-visible {
 /* Светлая тема: тёмный диск под иконки классов (см. .header-avatar выше) —
    перебивает инline-подложку classColor+22, которая на светлом не видна. */
 :root[data-theme="light"] .char-card-class-icon,
-:root[data-theme="light"] .pcard-icon,
 /* STYLE-8d2: .battle-setup-icon / .tracker-icon убраны — диска под глифом
-   больше нет, цвет фракции несёт сам глиф. */
+   больше нет, цвет фракции несёт сам глиф.
+   STYLE-8e2: .pcard-icon убран по той же причине. */
 :root[data-theme="light"] #tinfo-icon,
 :root[data-theme="light"] .avatar-modal-placeholder,
 :root[data-theme="light"] .sheet-avatar .avatar-icon-btn {
@@ -13415,14 +13411,14 @@ textarea:focus-visible {
 .accordion-card-inner,
 .ac-calc-section,
 .cc-card,
-.lu-stat-card,
-.party-section-card {
+.lu-stat-card {
   /* STYLE-8R: .rr-card из группы убран — правого rail как набора карточек
      больше нет, там плоские строки.
      STYLE-8f: .notes-entry-card и .feat-taken-card убраны по той же причине —
      запись и взятая черта стали плоскими строками с ромбом.
      STYLE-8M-2: .char-card и .bp-card убраны — персонаж в списке и билд в
-     пикере тоже стали плоскими строками. */
+     пикере тоже стали плоскими строками.
+     STYLE-8e2: .party-section-card убрана — раздел «Мира» не карточка с 8e. */
   border-radius: var(--r-lg);
   border: 1px solid var(--border-soft);
   box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-card);
@@ -13473,27 +13469,8 @@ textarea:focus-visible {
   box-shadow: none;
 }
 .btn-primary:hover { background: var(--accent-hi); box-shadow: none; filter: none; }
-/* вкладка «Мир»: добавление — контур акцентом, каталоги — нейтраль */
-.party-add-btn {
-  background: transparent;
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-  color: var(--accent);
-}
-.party-add-btn:hover {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.party-add-btn-srd {
-  background: transparent;
-  border-color: color-mix(in srgb, var(--text-muted) 40%, transparent);
-  color: var(--text-muted);
-}
-.party-add-btn-srd:hover {
-  background: color-mix(in srgb, var(--text-muted) 12%, transparent);
-  border-color: var(--text-muted);
-  color: var(--text-color);
-}
+/* STYLE-8e2: контурные варианты .party-add-btn / -srd удалены — с 8e обе
+   кнопки «Мира» текстовые (правила #tab-party ниже), рамку отменять нечему. */
 .rr-slot-fill { background: color-mix(in srgb, var(--accent) 45%, transparent); }
 
 /* ══ STYLE-8a: вкладка «Лист» — одна вложенная подложка ═══════════════════
@@ -13724,12 +13701,13 @@ textarea:focus-visible {
   margin: 0 0 var(--sp-6) 0;
 }
 #tab-party .party-section-title-row {
-  padding: var(--sp-3) var(--sp-3);
+  /* STYLE-8e2: слева 0 — заголовок стоит по краю вкладки, как .inv-backpack-header
+     и .bt-head; отступ строки участника оставлен ромбу, а не шапке. */
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) 0;
   margin-bottom: var(--sp-2);
   border-bottom: 1px solid var(--home-rule);
   gap: var(--sp-3);
 }
-#tab-party .party-section-icon { color: var(--accent); opacity: 0.85; }
 #tab-party .party-section-label {
   font-family: var(--font-display);
   font-size: calc(var(--fs-lg) * 1.05);

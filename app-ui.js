@@ -822,7 +822,7 @@ function renderCompanions() {
       // теме литералы давали контраст ниже 4.5 на белой подложке).
       var hpColor = hpPct > 60 ? "var(--success-color)" : hpPct > 30 ? "var(--slot-gold)" : "var(--danger-color)";
       return '<div class="pcard pcard-companion">' +
-        '<div class="pcard-icon" style="background:color-mix(in srgb, var(--magic) 16%, transparent);color:var(--magic)">' + icon + '</div>' +
+        '<div class="pcard-icon" style="color:var(--magic)">' + icon + '</div>' +
         '<div class="pcard-body">' +
           '<div class="pcard-name">' + escapeHtml(c.name) + '</div>' +
           '<div class="pcard-sub">' + escapeHtml(COMPANION_TYPE_NAMES[c.type] || c.type) + ' · КД ' + (c.ac || 10) + '</div>' +
