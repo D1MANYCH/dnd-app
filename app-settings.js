@@ -524,6 +524,22 @@ window.__spaceBg = {
   resume: function () { if (_spaceDestroy && _spaceDestroy.resume) _spaceDestroy.resume(); },
   refresh: _applySpaceBg
 };
+
+// PERF: на время прокрутки фон замирает. Он position:fixed — его движения во время
+// скролла всё равно не разглядеть, а каждый его кадр заставляет композитор
+// пересчитать backdrop-filter всех стеклянных поверхностей — ровно в самый
+// нагруженный момент. Каптура нужна: scroll не всплывает из вложенных списков.
+var _spaceScrollT = 0;
+var _spaceScrolling = false;
+function _spaceOnScroll() {
+  if (!_spaceScrolling) { _spaceScrolling = true; window.__spaceBg.pause(); }
+  clearTimeout(_spaceScrollT);
+  _spaceScrollT = setTimeout(function () {
+    _spaceScrolling = false;
+    window.__spaceBg.resume();
+  }, 180);
+}
+window.addEventListener('scroll', _spaceOnScroll, { passive: true, capture: true });
 document.addEventListener('DOMContentLoaded', function () {
   _applySpaceBg();
   _syncSpaceButtons();

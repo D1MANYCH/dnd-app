@@ -12,6 +12,8 @@ if (modal) {
 }
 // v3.19: обновить бейдж количества записей в истории
 try { _updateDiceHistoryBadge(); } catch (e) {}
+// DICE-UI: веер костей — одноразовая сборка при первом открытии модалки.
+try { renderDiceFan(); } catch (e) {}
 // FB-7: подсказка про file:// — 3D-движок dice-box (ES-модуль) не грузится по файловому протоколу
 try { var _fh = document.getElementById('dice-file-hint'); if (_fh) _fh.hidden = (location.protocol !== 'file:'); } catch (e) {}
 // FIX: DiceBox canvas сохраняет внутренний буфер 300×150 (default) если init
@@ -26,10 +28,19 @@ setTimeout(function() {
   // размер + один статичный кадр, а цикл поднимает showDiceRollOverlay().
   try {
     if (window.DiceArenaBg) {
+      // Бросок с листа открывает модалку и сразу же зовёт showDiceRollOverlay(),
+      // который запускает арену. Этот отложенный код приходил позже и глушил
+      // её stop()'ом — фон броска терялся именно при броске с листа.
+      // Глушим только если оверлей броска ещё не поднят.
+      var _rolling = false;
+      try { _rolling = !!(modal && modal.classList.contains('dice-rolling')); } catch (e) {}
       var arenaCv = document.getElementById('diceArenaBg');
-      if (arenaCv) { window.DiceArenaBg.start(arenaCv); window.DiceArenaBg.stop(); }
+      if (arenaCv) { window.DiceArenaBg.start(arenaCv); if (!_rolling) window.DiceArenaBg.stop(); }
       // UX-3: применить сохранённый вариант фона арены
-      try { if (DiceArenaBg.setVariant) DiceArenaBg.setVariant(_getDiceBg()); if (DiceArenaBg.stop) DiceArenaBg.stop(); } catch (e) {}
+      try {
+        if (DiceArenaBg.setVariant) DiceArenaBg.setVariant(_getDiceBg());
+        if (!_rolling && DiceArenaBg.stop) DiceArenaBg.stop();
+      } catch (e) {}
     }
   } catch (e) {}
   // PERF: прогреваем DiceBox заранее — первая инициализация (Babylon + физика +
@@ -40,13 +51,30 @@ setTimeout(function() {
 // UX-5: пока модалка открыта — лента последних бросков прячется (избыточна).
 try { updateQuickRollStripVisibility(); } catch (e) {}
 }
+// Вход в бросок с листа шёл рывками: quickRoll() открывает модалку и тут же
+// кидает, так что первая инициализация DiceBox (Babylon + физика + текстуры темы,
+// сотни миллисекунд основного потока) приходится ровно на кадры появления оверлея.
+// Греем её заранее, в простое время после первого действия пользователя. На FPS
+// это не влияет: dice-box сам глушит render loop, как только кости осели.
+var _dicePrewarmed = false;
+function _prewarmDiceBox() {
+  if (_dicePrewarmed) return;
+  _dicePrewarmed = true;
+  if (location.protocol === 'file:' || typeof window.DiceBox !== 'function') return;
+  var run = function () { try { _initDiceBox(); } catch (e) {} };
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(run, { timeout: 4000 });
+  else setTimeout(run, 1200);
+}
+document.addEventListener('pointerdown', _prewarmDiceBox, { once: true, passive: true });
+document.addEventListener('keydown', _prewarmDiceBox, { once: true });
+
 function closeDiceModal() {
 // v3.17: ставим RAF космо-арены на паузу — экономия CPU/батареи когда модалка закрыта
 try { if (window.DiceArenaBg) window.DiceArenaBg.stop(); } catch (e) {}
 // v3.18: закрываем поповеры если были открыты
 try { closeDicePopovers(); } catch (e) {}
 const modal = $("dice-modal");
-if (modal) modal.classList.remove("active", "dice-rolling");
+if (modal) modal.classList.remove("active", "dice-rolling", "dice-settled");
 const display = $("dice-result-display");
 if (display) display.classList.remove("crit-success", "crit-fail", "normal");
 // UX-5: модалка закрыта — показать ленту последних бросков на листе.
@@ -77,7 +105,7 @@ function showDiceRollOverlay() {
 }
 function hideDiceRollOverlay() {
   var m = document.getElementById('dice-modal');
-  if (m) m.classList.remove('dice-rolling');
+  if (m) m.classList.remove('dice-rolling', 'dice-settled');
   try { if (window.DiceArenaBg) window.DiceArenaBg.stop(); } catch (e) {}
 }
 
@@ -269,6 +297,8 @@ animateDice3d(sides, result, function(v1, v2) {
     setTimeout(function(){ if(resultBox) resultBox.classList.remove("pop"); }, 400);
   }
   diceHistory.unshift({ sides: sides, result: result, mode: mode || 'normal', time: timestamp, r1: r1, r2: r2 });
+  _setSettledDice(sides, (mode === 'adv' || mode === 'dis') ? [r1, r2] : [result]);
+  _emitDiceRolled({ sides: sides, result: result, natural: result, mode: mode || 'normal', label: 'd' + sides });
   if (diceHistory.length > 10) diceHistory.pop();
   renderDiceHistory();
   try { _updateDiceHistoryBadge(); } catch (e) {}
@@ -305,6 +335,42 @@ function _quickRollModStr(mod) {
   if (!mod) return '';
   return mod > 0 ? ' + ' + mod : ' − ' + Math.abs(mod);
 }
+// STYLE-8R3: единое событие о готовом броске — правый рельс показывает по нему
+// число в строке. В try/catch: ошибка потребителя не должна ронять бросок.
+function _emitDiceRolled(rec) {
+  try { window.dispatchEvent(new CustomEvent('dice:rolled', { detail: rec })); } catch (e) {}
+  try { _setDiceSettled(true); } catch (e) {}
+}
+
+// Класс «результат готов» на модалке: по нему CSS подводит осевшие кости
+// к камере (как в Baldur's Gate 3). Снимается на старте следующего броска
+// и при закрытии оверлея.
+function _setDiceSettled(on) {
+  var m = document.getElementById('dice-modal');
+  if (!m) return;
+  if (on && !m.classList.contains('dice-rolling')) return;
+  m.classList.toggle('dice-settled', !!on);
+  if (!on) _setSettledDice(null, null);
+}
+
+// Кости в 3D ложатся кучей и могут закрывать друг друга — физика на то и физика.
+// После остановки выкладываем выпавшее рядом перед сценой, в порядке броска.
+function _setSettledDice(sides, values) {
+  var row = document.getElementById('dice-settled-row');
+  if (!row) return;
+  if (!values || !values.length) { row.innerHTML = ''; return; }
+  var html = '';
+  for (var i = 0; i < values.length; i++) {
+    var v = values[i];
+    if (typeof v !== 'number' || isNaN(v)) continue;
+    var cls = 'dice-settled-die';
+    if (sides === 20 && v === sides) cls += ' is-crit';
+    else if (sides === 20 && v === 1) cls += ' is-fail';
+    html += '<span class="' + cls + '" style="--d-i:' + i + '">' + v + '</span>';
+  }
+  row.innerHTML = html;
+}
+
 // Запись для общего diceHistory (renderDiceHistory покажет label вместо «d20»).
 function _quickRollRecord(label, sides, mod, comp, r1, r2, time) {
   return {
@@ -378,6 +444,8 @@ function quickRoll(opts) {
     }
     try { showToast(_quickRollToastText(label, comp, mod), comp.isCrit ? 'success' : comp.isFail ? 'error' : 'info'); } catch (e) {}
     diceHistory.unshift(_quickRollRecord(label, sides, mod, comp, rr1, rr2, time));
+    _setSettledDice(sides, (comp.mode === 'adv' || comp.mode === 'dis') ? [rr1, rr2] : [comp.natural]);
+    _emitDiceRolled({ sides: sides, result: comp.total, natural: comp.natural, mode: comp.mode, label: label });
     if (diceHistory.length > 10) diceHistory.pop();
     try { renderDiceHistory(); } catch (e) {}
     try { _updateDiceHistoryBadge(); } catch (e) {}
@@ -588,7 +656,13 @@ function _initDiceBox() {
       origin: location.origin,
       theme: _getDiceTheme(),
       themeColor: _getDiceThemeColor(),
-      scale: 16,
+      // Поле арены расширено до 560px, но при scale 16 кость всё равно занимала
+      // полэкрана. Подлёт по готовому результату (.dice-settled) возвращает ей размер.
+      scale: 5,
+      // Кости спавнятся через setTimeout(i * config.delay) — при дефолтных 10мс
+      // вторая появлялась практически в той же точке и кости пронизывали друг друга
+      // (видно на преимуществе/помехе). Разносим броски во времени.
+      delay: 240,
       // FB-7: физика в ОСНОВНОМ потоке (не OffscreenCanvas-воркер). Дефолтный
       // offscreen-воркер на части окружений (напр. GitHub Pages) не рапортует
       // оседание костей → onRollComplete не зовётся → таймаут 10с на КАЖДЫЙ бросок
@@ -661,6 +735,7 @@ function animateDice3d(sides, result, callback, opts) {
   var qty = (opts && opts.qty) ? opts.qty : 1;
   var reduced = prefersReducedMotion();
   // UX-3: открыть полноэкранный оверлей с броском (телефон и ПК)
+  try { _setDiceSettled(false); } catch (e) {}
   try { showDiceRollOverlay(); } catch (e) {}
   // v3.17: импульс космо-арены (shockwave + ускорение орбит на 1с)
   try { if (window.DiceArenaBg) window.DiceArenaBg.pulse(); } catch (e) {}
@@ -789,11 +864,14 @@ function animateDice3d(sides, result, callback, opts) {
       clearTimeout(roll.timer);
       if (_dice3dActiveRoll === roll) _dice3dActiveRoll = null;
       _diceBoxConsecutiveTimeouts = 0;
-      var v1, v2;
+      var v1, v2, vAll;
       try {
         v1 = rolls && rolls[0] ? rolls[0].value : undefined;
         v2 = rolls && rolls[1] ? rolls[1].value : undefined;
-      } catch (e) { v1 = undefined; v2 = undefined; }
+        // DICE-UI: третьим аргументом отдаём ВСЕ значения физики. Сигнатура
+        // callback(v1, v2) сохранена — на неё завязан app-inventory.js.
+        vAll = (rolls || []).map(function (r) { return r && r.value; });
+      } catch (e) { v1 = undefined; v2 = undefined; vAll = undefined; }
       // 3D-only: поведение НЕ меняем (никакого 2D-фолбэка) — только диагностика.
       // Если кость пропала, этот лог покажет значение, размеры canvas (буфер vs CSS),
       // подключён ли он к DOM и не потерян ли WebGL-контекст — чтобы починить точечно.
@@ -810,7 +888,7 @@ function animateDice3d(sides, result, callback, opts) {
       } catch (e) { diag.err = e.message; }
       try { if (_diceDbg()) console.log('[DiceBox] roll resolved', { sides: sides, qty: qty, v1: v1, v2: v2, diag: diag }); } catch (e) {}
       _applyDiceCritGlow(sides, v1, v2);
-      callback(v1, v2);
+      callback(v1, v2, vAll);
     }).catch(function(err) {
       // Промис roll() может отвалиться внутри библиотеки (тема не догрузилась,
       // потерянный контекст — в проде видели «Cannot read properties of undefined
@@ -1096,14 +1174,23 @@ function rollFormula(formula, opts) {
   if (resultInfo) resultInfo.textContent = 'Бросок ' + (label ? label + ' · ' : '') + canon + '…';
   if (window.AppLog) AppLog.action('dice', 'формула ' + canon + (label ? ' (' + label + ')' : '') + ' — старт', { sides: primary.sides });
 
-  animateDice3d(primary.sides, precompPrimarySum, function(v1, v2) {
-    // Сверка основной группы с физикой, где это возможно: 1 кубик → v1, 2 → v1,v2.
-    if (primary.count === 1 && typeof v1 === 'number' && !isNaN(v1)) {
+  animateDice3d(primary.sides, precompPrimarySum, function(v1, v2, vAll) {
+    // Сверка основной группы с физикой. Раньше сверялись только 1 и 2 кубика, а
+    // при трёх и больше в разбивке оставались предрасчитанные числа — на столе
+    // лежало одно, в тексте стояло другое. Пока кости лежали кучей, этого никто
+    // не читал; после подачи лицом к игроку расхождение стало очевидным.
+    var okAll = Array.isArray(vAll) && vAll.length === primary.count &&
+      vAll.every(function (n) { return typeof n === 'number' && !isNaN(n); });
+    if (okAll) {
+      rollsByGroup[primaryIdx] = vAll.slice();
+    } else if (primary.count === 1 && typeof v1 === 'number' && !isNaN(v1)) {
       rollsByGroup[primaryIdx] = [v1];
     } else if (primary.count === 2 && typeof v1 === 'number' && !isNaN(v1) && typeof v2 === 'number' && !isNaN(v2)) {
       rollsByGroup[primaryIdx] = [v1, v2];
     }
     var res = _renderFormulaResult(groups, rollsByGroup, mod);
+    _setSettledDice(primary.sides, rollsByGroup[primaryIdx]);
+    try { _setDiceSettled(true); } catch (e) {}
     if (label) {
       var ri = $("dice-result-info");
       if (ri) ri.textContent = label + ' · ' + ri.textContent;
@@ -1173,3 +1260,119 @@ setTimeout(() => particle.remove(), 1000);
 }
 }
 
+
+// ============================================================
+// DICE-UI «Веер» — выбор кости в модалке броска.
+// Модалка только выбирает: сам бросок как и раньше уходит в полноэкранную
+// 3D-арену (rollDice / rollDiceWithSelectedMode → animateDice3d).
+// ============================================================
+
+// Порядок = раскладка дуги: края ниже, выбранная d20 в вершине.
+var DICE_FAN_ORDER = [4, 6, 8, 20, 10, 12, 100];
+// Высота каждой позиции дуги в процентах — симметрична относительно центра.
+var DICE_FAN_LIFT  = [0, 26, 42, 48, 42, 26, 0];
+var DICE_FAN_SHAPE = {
+  4:   '<polygon points="12,3 22,21 2,21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  6:   '<rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  8:   '<polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  10:  '<polygon points="12,3 20,9 18,21 6,21 4,9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  12:  '<polygon points="12,2 21,8 19,19 5,19 3,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  20:  '<path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 6.6 17.4 15.9H6.6z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
+  100: '<polygon points="12,3 22,12 12,21 2,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/>'
+};
+var _selectedDie = 20;
+
+function _diceShapeSvg(sides, size) {
+  var d = DICE_FAN_SHAPE[sides] || DICE_FAN_SHAPE[20];
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" aria-hidden="true"' +
+         ' style="display:block">' + d + '</svg>';
+}
+
+// Веер собираем один раз при инициализации модалки.
+function renderDiceFan() {
+  var fan = document.getElementById('dice-fan');
+  if (!fan || fan.childElementCount) return;
+  var html = '';
+  for (var i = 0; i < DICE_FAN_ORDER.length; i++) {
+    var s = DICE_FAN_ORDER[i];
+    html += '<button type="button" class="dice-fan-item' + (s === _selectedDie ? ' is-sel' : '') + '"' +
+      ' role="tab" aria-selected="' + (s === _selectedDie) + '" data-sides="' + s + '"' +
+      ' style="--fan-lift:' + DICE_FAN_LIFT[i] + 'px"' +
+      ' onclick="selectDie(' + s + ')" aria-label="Выбрать d' + s + '">' +
+      '<span class="dice-fan-glyph">' + _diceShapeSvg(s, 19) + '</span>' +
+      '<span class="dice-fan-label">d' + s + '</span>' +
+      '</button>';
+  }
+  fan.innerHTML = html;
+  _paintSelectedDie(true);
+}
+
+// Крупная кость сверху + подпись действия. instant=true — без анимации
+// (первая отрисовка), иначе проигрываем «представление» новой кости.
+function _paintSelectedDie(instant) {
+  var glyph = document.getElementById('dice-pick-glyph');
+  var label = document.getElementById('dice-pick-label');
+  var goLbl = document.getElementById('dice-roll-go-label');
+  if (glyph) {
+    glyph.innerHTML = _diceShapeSvg(_selectedDie, 88);
+    if (!instant && !prefersReducedMotion()) {
+      glyph.classList.remove('is-swap');
+      void glyph.offsetWidth;   // рестарт анимации
+      glyph.classList.add('is-swap');
+    }
+  }
+  if (label) label.textContent = 'd' + _selectedDie;
+  if (goLbl) goLbl.textContent = 'Бросить d' + _selectedDie;
+  // Преимущество и помеха есть только у d20 — на остальных костях сегмент
+  // прячем целиком. Выбранный режим не сбрасываем: вернёшься к d20 — он на месте.
+  var seg = document.getElementById('dice-mode-segment');
+  if (seg) seg.hidden = (_selectedDie !== 20);
+}
+
+// Выбор кости в веере. Бросок не запускает — только меняет выбранную.
+function selectDie(sides) {
+  if (!DICE_FAN_SHAPE[sides] || sides === _selectedDie) return;
+  _selectedDie = sides;
+  var items = document.querySelectorAll('#dice-fan .dice-fan-item');
+  for (var i = 0; i < items.length; i++) {
+    var on = parseInt(items[i].getAttribute('data-sides'), 10) === sides;
+    items[i].classList.toggle('is-sel', on);
+    items[i].setAttribute('aria-selected', on ? 'true' : 'false');
+    if (on && !prefersReducedMotion()) {
+      items[i].classList.remove('is-pick');
+      void items[i].offsetWidth;
+      items[i].classList.add('is-pick');
+    }
+  }
+  _paintSelectedDie(false);
+}
+
+// Главное действие модалки. Для d20 идём через режим (преимущество/помеха),
+// у остальных костей режима нет — обычный бросок.
+function rollSelectedDie() {
+  if (_selectedDie === 20 && typeof rollDiceWithSelectedMode === 'function') {
+    rollDiceWithSelectedMode(20);
+  } else if (typeof rollDice === 'function') {
+    rollDice(_selectedDie);
+  }
+}
+
+// Формула переехала под отдельную кнопку: в покое её на экране нет.
+function toggleDiceFormulaPanel() {
+  var btn = document.getElementById('dice-formula-toggle');
+  var panel = document.getElementById('dice-formula-panel');
+  if (!btn || !panel) return;
+  var open = panel.hasAttribute('hidden');
+  panel.hidden = !open;
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  btn.classList.toggle('is-open', open);
+  if (open) {
+    var inp = document.getElementById('dice-custom-input-main');
+    if (inp) { try { inp.focus(); } catch (e) {} }
+  }
+}
+
+window.renderDiceFan = renderDiceFan;
+window.selectDie = selectDie;
+window.rollSelectedDie = rollSelectedDie;
+window.toggleDiceFormulaPanel = toggleDiceFormulaPanel;

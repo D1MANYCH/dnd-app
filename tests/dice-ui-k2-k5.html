@@ -1,0 +1,436 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DICE-UI — К2 и К5 в деталях</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Стенд. Живой style.css не трогаем: разметка своя, классы боевой модалки
+     не используются. Состояния показаны классами на рамке (.st-roll / .st-done /
+     .st-crit / .st-fail) — в коде это будет один класс на контейнере. */
+  body { margin: 0; background: var(--bg-0); color: var(--text); font-family: var(--font); }
+  .kb {
+    position: sticky; top: 0; z-index: 30; display: flex; align-items: center;
+    gap: 16px; flex-wrap: wrap; padding: 11px 20px;
+    background: var(--bg-1); border-bottom: 1px solid var(--home-rule);
+  }
+  .kb h1 { margin: 0; font-family: var(--font-display); font-size: 15px; font-weight: 500; }
+  .kb button { all: unset; cursor: pointer; padding: 4px 2px; font-family: var(--font-display); font-size: 13px; color: var(--accent-lo); }
+  .kb button:hover { color: var(--accent-hi); }
+  .kb i { font-style: normal; font-size: 12px; color: var(--home-sub); }
+
+  .sec { border-bottom: 1px solid var(--home-rule); padding-bottom: 26px; }
+  .sec h2 { margin: 0; padding: 22px 20px 4px; font-family: var(--font-display); font-size: 19px; font-weight: 500; color: var(--accent); }
+  .sec .lead { max-width: 900px; padding: 0 20px 16px; font-size: 13px; line-height: 1.6; color: var(--home-sub); }
+  .strip { display: flex; flex-wrap: wrap; gap: 20px; padding: 0 20px; align-items: flex-start; }
+  .cell { flex: 0 0 auto; }
+  .cell > h3 { margin: 0 0 8px; font-family: var(--font-display); font-size: 12px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--home-sub); }
+
+  /* Рамка «окна». Подложка непрозрачная — прозрачная плашка и была причиной
+     провала светлой темы на живом экране. */
+  .f {
+    position: relative; width: 400px; height: 452px; overflow: hidden;
+    background: linear-gradient(var(--surface-pop), var(--surface-pop)) var(--bg-0);
+    border: 1px solid var(--home-rule); border-radius: var(--r-lg);
+  }
+  .f.phone { width: 320px; height: 500px; }
+
+  .hd { display: flex; align-items: center; gap: 12px; padding: 13px 15px 11px; border-bottom: 1px solid var(--home-rule); }
+  .hd .tools { display: flex; gap: 13px; margin-right: auto; color: var(--accent-lo); }
+  .hd .tt { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--home-sub); }
+  .hd .xx { color: var(--home-sub); font-size: 15px; }
+  .modes { display: flex; justify-content: center; gap: 24px; padding: 13px 0 0; }
+  .modes span { position: relative; font-family: var(--font-display); font-size: 13.5px; color: var(--home-sub); cursor: pointer; padding-bottom: 5px; }
+  .modes span.on { color: var(--text); }
+  .modes span.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--accent); }
+  .modes span.on.adv { color: var(--success-color); }
+  .modes span.on.adv::after { background: var(--success-color); }
+  .g { color: var(--accent); }
+
+  .fm { position: absolute; left: 15px; right: 15px; bottom: 13px; display: flex; align-items: center; gap: 12px; }
+  .fm input {
+    flex: 1 1 auto; min-width: 0; margin: 0; padding: 8px 2px; background: none;
+    border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0;
+    color: var(--text); font-size: 13px;
+  }
+  .fm b { font-family: var(--font-display); font-weight: 500; font-size: 13px; color: var(--accent-lo); cursor: pointer; }
+
+  /* ── К2 · колесо ─────────────────────────────────────────────────────
+     Ступица — и кнопка броска, и табло результата: колесо не уступает
+     место другому экрану, число появляется прямо в центре. */
+  .wheel { position: relative; width: 268px; height: 268px; margin: 10px auto 0; }
+  .f.phone .wheel { width: 246px; height: 246px; }
+  .hub {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    width: 118px; height: 118px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    border: 1px solid var(--accent); color: var(--accent); cursor: pointer;
+  }
+  .hub b { font-family: var(--font-display); font-size: 27px; font-weight: 600; line-height: 1.1; }
+  .hub i { font-style: normal; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--home-sub); }
+  .ring { position: absolute; left: 50%; top: 50%; width: 138px; height: 138px; margin: -69px 0 0 -69px; }
+  .ring circle { fill: none; stroke: var(--home-rule); stroke-width: 1.5; }
+  .ring .arc { stroke: var(--accent); stroke-linecap: round; stroke-dasharray: 110 320; opacity: 0; }
+  .spoke {
+    position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    font-family: var(--font-display); font-size: 12px; color: var(--text); cursor: pointer;
+  }
+  .spoke.sel { color: var(--accent); }
+  .spoke.sel .g { color: var(--accent-hi); }
+  .k2hint { text-align: center; padding: 6px 20px 0; font-size: 11.5px; color: var(--home-sub); }
+
+  /* состояния К2 */
+  .st-roll .hub b { color: var(--home-sub); }
+  .st-roll .ring .arc { opacity: 1; }
+  .st-roll .spoke { opacity: 0.35; }
+  .st-done .hub b, .st-crit .hub b, .st-fail .hub b { font-size: 42px; }
+  .st-crit .hub { border-color: var(--success-color); color: var(--success-color); }
+  .st-fail .hub { border-color: var(--danger-color); color: var(--danger-color); }
+
+  /* ── К5 · одна кость ─────────────────────────────────────────────────
+     Быстрый путь: ромбы под костью кликабельны — это прямой переход к любой
+     кости без листания, а стрелки и свайп остаются для «соседней». */
+  .stage { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 26px 0 6px; }
+  .f.phone .stage { padding-top: 18px; }
+  .arw { font-size: 25px; color: var(--home-sub); cursor: pointer; user-select: none; }
+  .arw:hover { color: var(--accent); }
+  .one { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .one > b { font-family: var(--font-display); font-size: 31px; font-weight: 600; color: var(--accent); }
+  .one .res {
+    position: absolute; left: 0; right: 0; top: 22px; text-align: center;
+    font-family: var(--font-display); font-size: 56px; font-weight: 600; color: var(--text);
+    text-shadow: 0 2px 16px var(--bg-0); display: none;
+  }
+  .faces { text-align: center; font-size: 11.5px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--home-sub); }
+  .dots { display: flex; justify-content: center; gap: 13px; padding: 16px 0 0; }
+  .dots i { width: 8px; height: 8px; border: 1px solid var(--accent-lo); transform: rotate(45deg); cursor: pointer; }
+  .dots i.on { background: var(--accent); border-color: var(--accent); }
+  .go {
+    margin: 22px 15px 0; padding: 15px 0 15px 13px; border-left: 3px solid var(--accent);
+    font-family: var(--font-display); font-size: 18px; color: var(--accent); cursor: pointer;
+  }
+  .go .sub { float: right; padding-right: 4px; font-family: var(--font); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--home-sub); line-height: 26px; }
+
+  /* состояния К5 */
+  .st-roll .one > svg { opacity: 0.4; }
+  .st-roll .one > b { color: var(--home-sub); }
+  .st-roll .go { color: var(--home-sub); border-left-color: var(--home-rule); }
+  .st-done .one > svg, .st-crit .one > svg, .st-fail .one > svg { opacity: 0.16; }
+  .st-done .one > b, .st-crit .one > b, .st-fail .one > b { opacity: 0.5; font-size: 20px; }
+  .st-done .res, .st-crit .res, .st-fail .res { display: block; }
+  .st-crit .res { color: var(--success-color); }
+  .st-fail .res { color: var(--danger-color); }
+
+  /* ── Гибрид: колесо выбирает, кость показывает ───────────────────────── */
+  .hy-top { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 16px 0 0; }
+  .hy-die { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .hy-die b { font-family: var(--font-display); font-size: 26px; font-weight: 600; color: var(--accent); }
+  .hy-res { font-family: var(--font-display); font-size: 50px; font-weight: 600; color: var(--text); line-height: 1; }
+  .hy-arc { position: relative; height: 128px; margin: 4px 12px 0; }
+  .hy-spoke {
+    position: absolute; bottom: 0; width: 52px; margin-left: -26px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-family: var(--font-display); font-size: 11.5px; color: var(--text); cursor: pointer;
+  }
+  .hy-spoke.sel { color: var(--accent); }
+  .hy-go {
+    margin: 8px 15px 0; padding: 14px 0 14px 13px; border-left: 3px solid var(--accent);
+    font-family: var(--font-display); font-size: 17px; color: var(--accent); cursor: pointer;
+  }
+
+  @media (max-width: 460px) { .f, .f.phone { width: 100%; } }
+</style>
+
+<div class="kb">
+  <h1>DICE-UI — К2 и К5 в деталях</h1>
+  <button onclick="document.documentElement.setAttribute('data-theme','dark')">тёмная</button>
+  <button onclick="document.documentElement.setAttribute('data-theme','light')">светлая</button>
+  <i>слева ПК (400px), справа телефон (320px); дальше — состояния броска</i>
+</div>
+
+<!-- ═══════════════ К2 ═══════════════ -->
+<div class="sec">
+  <h2>К2 · Колесо</h2>
+  <div class="lead">
+    Против эскиза изменилось одно, зато важное: <b>ступица стала и кнопкой броска, и табло результата</b>. Колесо никуда не уходит и ни на что не уступает место — число появляется прямо в центре, вокруг него бежит дуга, пока крутится кость. Быстрый путь к «не-d20»: луч не только выбирает кость, но сразу её и кидает, одним касанием, а не двумя.
+  </div>
+  <div class="strip">
+
+    <div class="cell"><h3>ПК · покой</h3>
+      <div class="f">
+        <div class="hd"><span class="tools">⚙ ↺ ?</span><span class="tt">Бросок кубиков</span><span class="xx">✕</span></div>
+        <div class="modes"><span class="on">Обычный</span><span>▲ Преим.</span><span>▼ Помеха</span></div>
+        <div class="wheel">
+          <div class="spoke" style="transform:translate(0,-100px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d4</div>
+          <div class="spoke" style="transform:translate(87px,-50px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>d6</div>
+          <div class="spoke" style="transform:translate(87px,50px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d8</div>
+          <div class="spoke" style="transform:translate(0,100px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,3 20,9 18,21 6,21 4,9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d10</div>
+          <div class="spoke" style="transform:translate(-87px,50px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,2 21,8 19,19 5,19 3,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d12</div>
+          <div class="spoke" style="transform:translate(-87px,-50px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,3 22,12 12,21 2,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>d100</div>
+          <svg class="ring" viewBox="0 0 138 138"><circle cx="69" cy="69" r="68"/><circle class="arc" cx="69" cy="69" r="68"/></svg>
+          <div class="hub"><b>d20</b><i>бросить</i></div>
+        </div>
+        <div class="k2hint">Луч — сразу бросок этой костью</div>
+        <div class="fm"><input placeholder="Формула — 2к6+3"><b>Бросить</b></div>
+      </div>
+    </div>
+
+    <div class="cell"><h3>Телефон · покой</h3>
+      <div class="f phone">
+        <div class="hd"><span class="tools">⚙ ↺ ?</span><span class="tt">Бросок кубиков</span><span class="xx">✕</span></div>
+        <div class="modes"><span class="on">Обычный</span><span>▲ Преим.</span><span>▼ Помеха</span></div>
+        <div class="wheel">
+          <div class="spoke" style="transform:translate(0,-92px)"><svg class="g" width="20" height="20" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d4</div>
+          <div class="spoke" style="transform:translate(80px,-46px)"><svg class="g" width="20" height="20" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>d6</div>
+          <div class="spoke" style="transform:translate(80px,46px)"><svg class="g" width="20" height="20" viewBox="0 0 24 24"><polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d8</div>
+          <div class="spoke" style="transform:translate(0,92px)"><svg class="g" width="20" height="20" viewBox="0 0 24 24"><polygon points="12,3 20,9 18,21 6,21 4,9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d10</div>
+          <div class="spoke" style="transform:translate(-80px,46px)"><svg class="g" width="20" height="20" viewBox="0 0 24 24"><polygon points="12,2 21,8 19,19 5,19 3,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d12</div>
+          <div class="spoke" style="transform:translate(-80px,-46px)"><svg class="g" width="20" height="20" viewBox="0 0 24 24"><polygon points="12,3 22,12 12,21 2,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>d100</div>
+          <svg class="ring" viewBox="0 0 138 138"><circle cx="69" cy="69" r="68"/><circle class="arc" cx="69" cy="69" r="68"/></svg>
+          <div class="hub"><b>d20</b><i>бросить</i></div>
+        </div>
+        <div class="k2hint">Луч — сразу бросок этой костью</div>
+        <div class="fm"><input placeholder="2к6+3"><b>Бросить</b></div>
+      </div>
+    </div>
+
+    <div class="cell"><h3>Крутится</h3>
+      <div class="f st-roll">
+        <div class="hd"><span class="tools">⚙ ↺ ?</span><span class="tt">Бросок кубиков</span><span class="xx">✕</span></div>
+        <div class="modes"><span class="on adv">▲ Преим.</span><span>Обычный</span><span>▼ Помеха</span></div>
+        <div class="wheel">
+          <div class="spoke" style="transform:translate(0,-100px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d4</div>
+          <div class="spoke" style="transform:translate(87px,-50px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>d6</div>
+          <div class="spoke" style="transform:translate(87px,50px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d8</div>
+          <div class="spoke" style="transform:translate(0,100px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,3 20,9 18,21 6,21 4,9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d10</div>
+          <div class="spoke" style="transform:translate(-87px,50px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,2 21,8 19,19 5,19 3,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d12</div>
+          <div class="spoke" style="transform:translate(-87px,-50px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,3 22,12 12,21 2,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>d100</div>
+          <svg class="ring" viewBox="0 0 138 138"><circle cx="69" cy="69" r="68"/><circle class="arc" cx="69" cy="69" r="68"/></svg>
+          <div class="hub"><b>…</b><i>кидаем</i></div>
+        </div>
+        <div class="k2hint">Дуга по кругу — пока кость не осела</div>
+        <div class="fm"><input placeholder="Формула — 2к6+3"><b>Бросить</b></div>
+      </div>
+    </div>
+
+    <div class="cell"><h3>Результат · крит · провал</h3>
+      <div class="f st-done">
+        <div class="hd"><span class="tools">⚙ ↺ ?</span><span class="tt">Бросок кубиков</span><span class="xx">✕</span></div>
+        <div class="modes"><span class="on">Обычный</span><span>▲ Преим.</span><span>▼ Помеха</span></div>
+        <div class="wheel">
+          <div class="spoke" style="transform:translate(0,-100px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d4</div>
+          <div class="spoke" style="transform:translate(87px,-50px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>d6</div>
+          <div class="spoke" style="transform:translate(87px,50px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d8</div>
+          <div class="spoke" style="transform:translate(0,100px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,3 20,9 18,21 6,21 4,9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d10</div>
+          <div class="spoke" style="transform:translate(-87px,50px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,2 21,8 19,19 5,19 3,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d12</div>
+          <div class="spoke" style="transform:translate(-87px,-50px)"><svg class="g" width="21" height="21" viewBox="0 0 24 24"><polygon points="12,3 22,12 12,21 2,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>d100</div>
+          <svg class="ring" viewBox="0 0 138 138"><circle cx="69" cy="69" r="68"/><circle class="arc" cx="69" cy="69" r="68"/></svg>
+          <div class="hub"><b>17</b><i>d20 · 14 + 3</i></div>
+        </div>
+        <div class="k2hint">Ещё раз — тап по ступице</div>
+        <div class="fm"><input placeholder="Формула — 2к6+3"><b>Бросить</b></div>
+      </div>
+    </div>
+
+    <div class="cell"><h3>&nbsp;</h3>
+      <div class="f st-crit" style="height:246px">
+        <div class="wheel" style="margin-top:-16px"><svg class="ring" viewBox="0 0 138 138"><circle cx="69" cy="69" r="68"/></svg><div class="hub"><b>20</b><i>критический успех</i></div></div>
+      </div>
+      <div class="f st-fail" style="height:246px;margin-top:14px">
+        <div class="wheel" style="margin-top:-16px"><svg class="ring" viewBox="0 0 138 138"><circle cx="69" cy="69" r="68"/></svg><div class="hub"><b>1</b><i>критический провал</i></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ К5 ═══════════════ -->
+<div class="sec">
+  <h2>К5 · Одна кость</h2>
+  <div class="lead">
+    Против эскиза добавлен быстрый путь: <b>ромбы под костью кликабельны</b> — это прямой переход к любой из семи, без листания. Стрелки и свайп остаются для соседней. Результат печатается поверх самой кости, а не отдельной строкой: кость гаснет до контура, число выходит на первый план — экран не перестраивается.
+  </div>
+  <div class="strip">
+
+    <div class="cell"><h3>ПК · покой</h3>
+      <div class="f">
+        <div class="hd"><span class="tools">⚙ ↺ ?</span><span class="tt">Бросок кубиков</span><span class="xx">✕</span></div>
+        <div class="modes"><span class="on">Обычный</span><span>▲ Преим.</span><span>▼ Помеха</span></div>
+        <div class="stage">
+          <span class="arw">‹</span>
+          <div class="one">
+            <svg class="g" width="128" height="128" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.85" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/><path d="M12 6.6V2.2M6.6 15.9 3.5 17M17.4 15.9l3.1 1.1"/></svg>
+            <b>d20</b><span class="res">17</span>
+          </div>
+          <span class="arw">›</span>
+        </div>
+        <div class="faces">Двадцать граней</div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div>
+        <div class="go">Бросить d20 <span class="sub">пробел</span></div>
+        <div class="fm"><input placeholder="Формула — 2к6+3"><b>Бросить</b></div>
+      </div>
+    </div>
+
+    <div class="cell"><h3>Телефон · покой</h3>
+      <div class="f phone">
+        <div class="hd"><span class="tools">⚙ ↺ ?</span><span class="tt">Бросок кубиков</span><span class="xx">✕</span></div>
+        <div class="modes"><span class="on">Обычный</span><span>▲ Преим.</span><span>▼ Помеха</span></div>
+        <div class="stage">
+          <span class="arw">‹</span>
+          <div class="one">
+            <svg class="g" width="112" height="112" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.85" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/><path d="M12 6.6V2.2M6.6 15.9 3.5 17M17.4 15.9l3.1 1.1"/></svg>
+            <b>d20</b><span class="res">17</span>
+          </div>
+          <span class="arw">›</span>
+        </div>
+        <div class="faces">Свайп — соседняя кость</div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div>
+        <div class="go">Бросить d20</div>
+        <div class="fm"><input placeholder="2к6+3"><b>Бросить</b></div>
+      </div>
+    </div>
+
+    <div class="cell"><h3>Крутится</h3>
+      <div class="f st-roll">
+        <div class="hd"><span class="tools">⚙ ↺ ?</span><span class="tt">Бросок кубиков</span><span class="xx">✕</span></div>
+        <div class="modes"><span class="on adv">▲ Преим.</span><span>Обычный</span><span>▼ Помеха</span></div>
+        <div class="stage">
+          <span class="arw">‹</span>
+          <div class="one">
+            <svg class="g" width="128" height="128" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.85" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/><path d="M12 6.6V2.2M6.6 15.9 3.5 17M17.4 15.9l3.1 1.1"/></svg>
+            <b>d20</b>
+          </div>
+          <span class="arw">›</span>
+        </div>
+        <div class="faces">Кидаем…</div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div>
+        <div class="go">Бросить d20</div>
+        <div class="fm"><input placeholder="Формула — 2к6+3"><b>Бросить</b></div>
+      </div>
+    </div>
+
+    <div class="cell"><h3>Результат</h3>
+      <div class="f st-done">
+        <div class="hd"><span class="tools">⚙ ↺ ?</span><span class="tt">Бросок кубиков</span><span class="xx">✕</span></div>
+        <div class="modes"><span class="on">Обычный</span><span>▲ Преим.</span><span>▼ Помеха</span></div>
+        <div class="stage">
+          <span class="arw">‹</span>
+          <div class="one">
+            <svg class="g" width="128" height="128" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.85" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/><path d="M12 6.6V2.2M6.6 15.9 3.5 17M17.4 15.9l3.1 1.1"/></svg>
+            <b>d20</b><span class="res">17</span>
+          </div>
+          <span class="arw">›</span>
+        </div>
+        <div class="faces">d20 · 14 + 3</div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div>
+        <div class="go">Бросить ещё раз</div>
+        <div class="fm"><input placeholder="Формула — 2к6+3"><b>Бросить</b></div>
+      </div>
+    </div>
+
+    <div class="cell"><h3>Крит · провал</h3>
+      <div class="f st-crit" style="height:219px">
+        <div class="stage" style="padding-top:16px">
+          <div class="one">
+            <svg class="g" width="112" height="112" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.85" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/></svg>
+            <b>d20</b><span class="res">20</span>
+          </div>
+        </div>
+        <div class="faces" style="color:var(--success-color)">Критический успех</div>
+      </div>
+      <div class="f st-fail" style="height:219px;margin-top:14px">
+        <div class="stage" style="padding-top:16px">
+          <div class="one">
+            <svg class="g" width="112" height="112" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.85" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/></svg>
+            <b>d20</b><span class="res">1</span>
+          </div>
+        </div>
+        <div class="faces" style="color:var(--danger-color)">Критический провал</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ Гибрид ═══════════════ -->
+<div class="sec" style="border-bottom:0">
+  <h2>К2+К5 · Веер</h2>
+  <div class="lead">
+    Скрещивание, если ни один из двух не победит начисто: <b>от колеса — выбор дугой, от «одной кости» — крупный объект и число поверх него</b>. Кости разложены веером понизу, все семь видны и достижимы одним касанием (минус К5 снят), а верх занимает выбранная кость во всю величину (минус К2 — мелкие лучи — тоже снят). Модалка при этом ниже обоих.
+  </div>
+  <div class="strip">
+
+    <div class="cell"><h3>ПК · покой</h3>
+      <div class="f" style="height:400px">
+        <div class="hd"><span class="tools">⚙ ↺ ?</span><span class="tt">Бросок кубиков</span><span class="xx">✕</span></div>
+        <div class="modes"><span class="on">Обычный</span><span>▲ Преим.</span><span>▼ Помеха</span></div>
+        <div class="hy-top">
+          <div class="hy-die">
+            <svg class="g" width="86" height="86" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.95" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/><path d="M12 6.6V2.2M6.6 15.9 3.5 17M17.4 15.9l3.1 1.1"/></svg>
+            <b>d20</b>
+          </div>
+        </div>
+        <div class="hy-arc">
+          <div class="hy-spoke" style="left:10%;bottom:14px"><svg class="g" width="19" height="19" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d4</div>
+          <div class="hy-spoke" style="left:24%;bottom:40px"><svg class="g" width="19" height="19" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>d6</div>
+          <div class="hy-spoke" style="left:38%;bottom:56px"><svg class="g" width="19" height="19" viewBox="0 0 24 24"><polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d8</div>
+          <div class="hy-spoke sel" style="left:52%;bottom:62px"><svg class="g" width="19" height="19" viewBox="0 0 24 24" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>d20</div>
+          <div class="hy-spoke" style="left:66%;bottom:56px"><svg class="g" width="19" height="19" viewBox="0 0 24 24"><polygon points="12,3 20,9 18,21 6,21 4,9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d10</div>
+          <div class="hy-spoke" style="left:80%;bottom:40px"><svg class="g" width="19" height="19" viewBox="0 0 24 24"><polygon points="12,2 21,8 19,19 5,19 3,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d12</div>
+          <div class="hy-spoke" style="left:94%;bottom:14px"><svg class="g" width="19" height="19" viewBox="0 0 24 24"><polygon points="12,3 22,12 12,21 2,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>d100</div>
+        </div>
+        <div class="hy-go">Бросить d20</div>
+        <div class="fm"><input placeholder="Формула — 2к6+3"><b>Бросить</b></div>
+      </div>
+    </div>
+
+    <div class="cell"><h3>ПК · результат</h3>
+      <div class="f" style="height:400px">
+        <div class="hd"><span class="tools">⚙ ↺ ?</span><span class="tt">Бросок кубиков</span><span class="xx">✕</span></div>
+        <div class="modes"><span class="on">Обычный</span><span>▲ Преим.</span><span>▼ Помеха</span></div>
+        <div class="hy-top">
+          <div class="hy-die" style="opacity:0.18">
+            <svg class="g" width="86" height="86" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.95" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/></svg>
+          </div>
+          <span class="hy-res" style="position:absolute">17</span>
+        </div>
+        <div class="faces" style="padding-top:6px">d20 · 14 + 3</div>
+        <div class="hy-arc">
+          <div class="hy-spoke" style="left:10%;bottom:14px"><svg class="g" width="19" height="19" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d4</div>
+          <div class="hy-spoke" style="left:24%;bottom:40px"><svg class="g" width="19" height="19" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>d6</div>
+          <div class="hy-spoke" style="left:38%;bottom:56px"><svg class="g" width="19" height="19" viewBox="0 0 24 24"><polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d8</div>
+          <div class="hy-spoke sel" style="left:52%;bottom:62px"><svg class="g" width="19" height="19" viewBox="0 0 24 24" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>d20</div>
+          <div class="hy-spoke" style="left:66%;bottom:56px"><svg class="g" width="19" height="19" viewBox="0 0 24 24"><polygon points="12,3 20,9 18,21 6,21 4,9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d10</div>
+          <div class="hy-spoke" style="left:80%;bottom:40px"><svg class="g" width="19" height="19" viewBox="0 0 24 24"><polygon points="12,2 21,8 19,19 5,19 3,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d12</div>
+          <div class="hy-spoke" style="left:94%;bottom:14px"><svg class="g" width="19" height="19" viewBox="0 0 24 24"><polygon points="12,3 22,12 12,21 2,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>d100</div>
+        </div>
+        <div class="hy-go">Бросить ещё раз</div>
+        <div class="fm"><input placeholder="Формула — 2к6+3"><b>Бросить</b></div>
+      </div>
+    </div>
+
+    <div class="cell"><h3>Телефон</h3>
+      <div class="f phone" style="height:440px">
+        <div class="hd"><span class="tools">⚙ ↺ ?</span><span class="tt">Бросок кубиков</span><span class="xx">✕</span></div>
+        <div class="modes"><span class="on">Обычный</span><span>▲ Преим.</span><span>▼ Помеха</span></div>
+        <div class="hy-top">
+          <div class="hy-die">
+            <svg class="g" width="92" height="92" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.95" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/><path d="M12 6.6V2.2M6.6 15.9 3.5 17M17.4 15.9l3.1 1.1"/></svg>
+            <b>d20</b>
+          </div>
+        </div>
+        <div class="hy-arc" style="height:120px">
+          <div class="hy-spoke" style="left:9%;bottom:10px"><svg class="g" width="18" height="18" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d4</div>
+          <div class="hy-spoke" style="left:23%;bottom:34px"><svg class="g" width="18" height="18" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>d6</div>
+          <div class="hy-spoke" style="left:37%;bottom:50px"><svg class="g" width="18" height="18" viewBox="0 0 24 24"><polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d8</div>
+          <div class="hy-spoke sel" style="left:51%;bottom:56px"><svg class="g" width="18" height="18" viewBox="0 0 24 24" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>d20</div>
+          <div class="hy-spoke" style="left:65%;bottom:50px"><svg class="g" width="18" height="18" viewBox="0 0 24 24"><polygon points="12,3 20,9 18,21 6,21 4,9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d10</div>
+          <div class="hy-spoke" style="left:79%;bottom:34px"><svg class="g" width="18" height="18" viewBox="0 0 24 24"><polygon points="12,2 21,8 19,19 5,19 3,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d12</div>
+          <div class="hy-spoke" style="left:93%;bottom:10px"><svg class="g" width="18" height="18" viewBox="0 0 24 24"><polygon points="12,3 22,12 12,21 2,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>d100</div>
+        </div>
+        <div class="hy-go">Бросить d20</div>
+        <div class="fm"><input placeholder="2к6+3"><b>Бросить</b></div>
+      </div>
+    </div>
+
+  </div>
+</div>

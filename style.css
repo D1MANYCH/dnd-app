@@ -1720,7 +1720,6 @@ body.no-character .drawer-nav { display: none; }
     grid-template-columns: repeat(5, 1fr); /* STYLE-8R: d20 уехал в строку */
     gap: 6px;
   }
-  .rr-dice-grid .btn { padding: 0 4px; }
 
   /* Inline-баджи активных состояний в right-rail */
   .rr-cond-list {
@@ -10557,7 +10556,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   margin: 0;
   padding: 0;
   gap: 0;
-  background: rgba(6, 8, 18, 0.62);
+  background: rgba(6, 8, 18, 0.82);
   /* PERF: backdrop-filter здесь был бесполезен — космо-канвас арены непрозрачен и
      перекрывает бэкдроп целиком, — зато на каждый кадр появления браузер размывал
      весь экран. Именно он и делал вход в бросок «в несколько кадров» на слабом GPU.
@@ -10614,13 +10613,32 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   .dice-arena-col .dice3d-result { transition: none; }
   .dice-arena-col .dsvg-container { transform: none; }
 }
-/* Зона физики 3D-кубика — компактный квадрат (~360) для быстрого устаканивания:
-   в большой/вытянутой арене кость долго скачет, тут устаканивается быстро */
+/* Зона физики 3D-кубика. Раньше была 360×360 — кость занимала её целиком
+   и упиралась в границы. Поле расширено; чтобы кость не стала от этого
+   мелкой, по готовому результату сцена подводится к камере (класс .dice-settled
+   ставит _setDiceSettled в app-dice.js) — как в Baldur's Gate 3. */
 .dice-arena-col .dice-arena {
   top: 46%;
   left: 50%;
-  width: min(84vw, 360px);
-  height: min(54vh, 360px);
+  width: min(94vw, 820px);
+  height: min(76vh, 620px);
+  transform: translate(-50%, -50%) scale(1);
+  transform-origin: 50% 50%;
+  transition: transform 0.78s cubic-bezier(0.16, 0.84, 0.3, 1);
+  will-change: transform;
+}
+#dice-modal.dice-rolling.dice-settled .dice-arena-col .dice-arena {
+  /* Подлёт теперь делает сама сцена: по осадке кости выезжают к камере
+     и выстраиваются в ряд (патч в vendor/dice-box/world.onscreen.js, искать
+     «dnd-app PRESENT»). CSS-зум поверх него удваивал движение и резал края
+     кадра, поэтому снят; класс .dice-settled остался ради ряда значений. */
+  transform: translate(-50%, -50%) scale(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dice-arena-col .dice-arena { transition: none; }
+  #dice-modal.dice-rolling.dice-settled .dice-arena-col .dice-arena {
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 /* Число результата — крупный оверлей в верхней части */
 .dice-arena-col .dice3d-result {
@@ -13977,6 +13995,55 @@ textarea:focus-visible {
 /* Вдохновение живёт ромбом строки «Уровень»: залит — есть, пуст — нет */
 #rr-insp-mini:not(.is-empty) .home-bullet { background: var(--home-accent); }
 
+/* ── STYLE-8R3: строка броска читается как действие ──────────────────────
+   До этого она несла тот же ромб и тот же цвет, что строки-сводки
+   ниже (КД, Уровень, Состояния) — бросок не читался как кликабельный.
+   Отличия три, все в языке строк: глиф d20 вместо ромба (без подложки),
+   лейбл акцентным цветом текстового действия и слот результата справа. */
+.rr-die {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--home-bullet);
+  color: var(--accent);
+  transition: transform var(--t2) var(--ez-out), color var(--t1) var(--ez-out);
+}
+.rr-row-roll .rr-row-label { color: var(--accent-lo); }
+.rr-line-primary .rr-row.rr-row-roll { color: var(--accent-lo); }
+.rr-row-roll:hover .rr-die,
+.rr-row-roll:focus-visible .rr-die { transform: rotate(72deg); color: var(--accent-hi); }
+.rr-row-roll:hover .rr-row-label,
+.rr-row-roll:focus-visible .rr-row-label { color: var(--accent-hi); }
+/* Число последнего броска — тот же слот, что у КД и уровня */
+.rr-roll-val { color: var(--text); font-weight: 700; font-size: var(--fs-md); }
+.rr-roll-val:empty { display: none; }
+.rr-roll-val.is-crit { color: var(--success-color); }
+.rr-roll-val.is-fail { color: var(--danger-color); }
+.rr-roll-val.is-fresh { animation: rrRollPop var(--t2) var(--ez-out); }
+@keyframes rrRollPop {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+/* d4–d12 — текстовые чипы, а не коробки .btn-secondary */
+.rr-die-btn {
+  width: auto;
+  margin: 0;
+  padding: 6px 2px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--accent-lo);
+  font-family: var(--font);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--t1) var(--ez-out);
+}
+.rr-die-btn:hover { background: transparent; color: var(--accent-hi); }
+.rr-die-btn:focus-visible { outline: none; color: var(--accent-hi); box-shadow: var(--sh-glow); }
+
 /* Кнопка раскрытия остальных кубиков — приглушённый подстрочник строки d20 */
 .rr-more {
   flex: 0 0 auto;
@@ -16188,3 +16255,409 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 #tab-battle .battle-section:first-child .battle-section-title,
 #tab-battle #battle-tracker-list .tracker-row:first-child { border-top: 0; }
 #tab-battle .party-empty { text-align: left; padding: var(--sp-4) 0; }
+
+/* ══ STYLE-8DICE: модалка броска — строки вместо коробок ══════════════════
+   Последний островок старого языка: сегмент-пилюля режима, золотая плашка
+   «Быстрый бросок», шесть плиток с рамками, круглые tool-кнопки в шапке и
+   чипы-коробочки формулы. Переводим в общий язык: волосяные линии, текстовые
+   действия на --accent-lo, рельс слева у главного действия. Блок скоуплен
+   на #dice-modal и стоит последним — бьёт и базу, и старые медиа-перебивки. */
+
+/* Два дефекта, видные на скриншотах, общие для любого оформления.
+   1) Подложка. .modal-content берёт --surface-pop (альфа 0.84) и глушит
+      фон backdrop-filter'ом, но у модалки кубиков размытие снято (иначе оно
+      создаёт containing block и арена перестаёт быть полноэкранной) — и
+      сквозь полупрозрачную плашку читался экран под ней, особенно в светлой
+      теме. Кладём тот же токен на непрозрачный --bg-0 — цвет тот же, сквозняка нет.
+   2) Прокрутка. При overflow-y:auto соседний overflow-x:visible вычисляется в auto,
+      и внизу модалки висела горизонтальная полоса. .dice-modal-content не
+      containing block для fixed, поэтому hidden не обрежет оверлей арены. */
+#dice-modal .dice-modal-content {
+  background: linear-gradient(var(--surface-pop), var(--surface-pop)) var(--bg-0);
+  overflow-x: hidden;
+}
+
+#dice-modal .dice-body { padding: var(--sp-4) var(--sp-4) 8px; gap: var(--sp-3); }
+
+/* Шапка: глифы без круглой подложки, заголовок капителью без значка */
+#dice-modal .dice-modal-header {
+  padding: var(--sp-4) var(--sp-4) 10px;
+  border-bottom: 1px solid var(--home-rule);
+  gap: var(--sp-3);
+}
+#dice-modal .dice-modal-header h3 {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--home-sub);
+}
+#dice-modal .dice-tool-btn {
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  color: var(--accent-lo);
+  transition: color var(--t1) var(--ez-out);
+}
+#dice-modal .dice-tool-btn:hover { background: none; border: 0; color: var(--accent-hi); }
+#dice-modal .dice-tool-btn.is-active { background: none; border: 0; color: var(--accent); }
+#dice-modal .dice-tool-badge { box-shadow: none; top: -2px; right: -6px; }
+#dice-modal .dice-modal-header .modal-close {
+  background: none;
+  border: 0;
+  color: var(--home-sub);
+  transition: color var(--t1) var(--ez-out);
+}
+#dice-modal .dice-modal-header .modal-close:hover { background: none; border: 0; color: var(--danger-color); }
+
+/* Режим броска: три текстовых действия на волосяной линии, активное —
+   подчёркнуто цветом смысла (преимущество зелёным, помеха красным) */
+#dice-modal .dice-mode-segment {
+  display: flex;
+  gap: 0;
+  padding: 0;
+  margin-bottom: var(--sp-3);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+}
+#dice-modal .dice-mode-seg-btn {
+  position: relative;
+  flex: 1 1 0;
+  width: auto;
+  margin: 0;
+  padding: 12px 4px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  color: var(--home-sub);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  transition: color var(--t1) var(--ez-out);
+}
+#dice-modal .dice-mode-seg-btn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1.5px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform var(--t2) var(--ez-out);
+}
+#dice-modal .dice-mode-segment[hidden] { display: none; }
+#dice-modal .dice-mode-seg-btn:hover { background: none; color: var(--accent-lo); }
+#dice-modal .dice-mode-seg-btn.active { background: none; color: var(--accent); }
+#dice-modal .dice-mode-seg-btn.active::after { transform: scaleX(1); }
+#dice-modal .dice-mode-seg-btn.active.adv { background: none; color: var(--success-color); }
+#dice-modal .dice-mode-seg-btn.active.adv::after { background: var(--success-color); }
+#dice-modal .dice-mode-seg-btn.active.dis { background: none; color: var(--danger-color); }
+#dice-modal .dice-mode-seg-btn.active.dis::after { background: var(--danger-color); }
+
+/* Арена — position: fixed, поэтому ЛЮБОЙ transform на .dice-modal-content делает
+   её containing block, и полноэкранный оверлей схлопывается до размеров модалки:
+   замер дал 423×595 при экране 1440×900. Отсюда же росла и «обрезка» — поле
+   min(94vw, 820px) считается от вьюпорта и просто не влезало в эти 423px.
+   Transform приходил из общей анимации .modal.active .modal-content
+   (dymka-modal-in двигает translateY) и оставался единичной матрицей, а единичная
+   матрица containing block создаёт ровно так же, как любая другая.
+   Появление листа кубиков анимируем только прозрачностью — opacity containing
+   block не создаёт, и арена всегда во весь экран с первого кадра. */
+#dice-modal.modal.active .dice-modal-content {
+  animation: diceSheetIn var(--t3, 420ms) var(--ez-out, ease-out);
+  transform: none;
+  transition-property: opacity;
+}
+#dice-modal.modal.active.closing .dice-modal-content {
+  animation: diceSheetOut var(--t2, 240ms) var(--ez-out, ease-out) forwards;
+}
+@keyframes diceSheetIn { from { opacity: 0; } }
+@keyframes diceSheetOut { to { opacity: 0; } }
+
+/* Ряд выпавших значений после остановки костей. В 3D они ложатся как лягут —
+   могут столкнуться, сдвинуть друг друга и частично перекрыться. Поэтому выпавшее
+   выкладывается отдельным рядом перед сценой, в порядке броска, с набеганием
+   по одной. Одиночный бросок ряд не показывает — число уже стоит крупно сверху. */
+.dice-settled-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t1) var(--ez-out);
+}
+.dice-settled-row:has(.dice-settled-die:only-child) { display: none; }
+#dice-modal.dice-settled .dice-settled-row { opacity: 1; }
+.dice-settled-die {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  height: 46px;
+  padding: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  background: none;
+  /* Арена — постоянно тёмная поверхность в обеих темах, поэтому светлый
+     текст задан литералом — как у соседнего .dice3d-label. */
+  color: #f0ecf6;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.dice-settled-die.is-crit { border-color: var(--success-color); color: var(--success-color); }
+.dice-settled-die.is-fail { border-color: var(--danger-color); color: var(--danger-color); }
+#dice-modal.dice-settled .dice-settled-die {
+  animation: diceSettledIn 0.34s var(--ez-out) both;
+  animation-delay: calc(var(--d-i, 0) * 90ms);
+}
+@keyframes diceSettledIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.82); }
+  to   { opacity: 1; transform: none; }
+}
+@media (max-width: 640px) {
+  .dice-settled-die { min-width: 38px; height: 38px; font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #dice-modal.dice-settled .dice-settled-die { animation: none; }
+}
+
+/* Плоский 2D-фолбэк (открытие через file:// — браузер блокирует ES-модуль
+   dice-box) растягивался на всю арену: .dice2d-svg идёт 100%×100% контейнера,
+   а контейнер теперь 560px и по готовому результату ещё и подлетает ×1.34 —
+   многоугольник вырастал во весь экран. Ограничиваем и центрируем; подлёт
+   для плоской кости снимаем — без перспективы это просто «стало больше».
+   :has() трогает только 2D-ветку — WebGL-канвас 3D остаётся как был. */
+#dice-modal .dice-arena-col .dice-arena:has(.dice2d-svg) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+#dice-modal .dice-arena-col .dice2d-svg {
+  flex: 0 0 auto;
+  width: min(34vh, 210px);
+  height: min(34vh, 210px);
+}
+#dice-modal.dice-rolling.dice-settled .dice-arena-col .dice-arena:has(.dice2d-svg) {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* ── DICE-UI «Веер»: выбранная кость крупно, остальные дугой ─────────────
+   Разметку веера строит renderDiceFan() (app-dice.js), подъём каждой позиции
+   приходит инлайновой переменной --fan-lift. Модалка только выбирает кость —
+   бросок по-прежнему уходит в полноэкранную 3D-арену. */
+#dice-modal .dice-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 0 4px;
+}
+#dice-modal .dice-pick-glyph { color: var(--accent); line-height: 0; }
+#dice-modal .dice-pick-label {
+  font-family: var(--font-display);
+  font-size: 1.5em;
+  font-weight: 600;
+  color: var(--accent);
+}
+/* Представление новой кости: прилетает с поворотом, как будто её положили
+   на стол. Рестарт анимации — через смену класса в _paintSelectedDie. */
+#dice-modal .dice-pick-glyph.is-swap { animation: dicePickIn 0.42s var(--ez-out) both; }
+@keyframes dicePickIn {
+  from { opacity: 0; transform: scale(0.62) rotate(-32deg); }
+  to   { opacity: 1; transform: none; }
+}
+
+#dice-modal .dice-fan {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2px;
+  min-height: 96px;
+  padding: 0 2px 6px;
+  border-bottom: 1px solid var(--home-rule);
+}
+#dice-modal .dice-fan-item {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+  margin: 0;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--home-sub);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transform: translateY(calc(var(--fan-lift, 0px) * -1));
+  transition: color var(--t1) var(--ez-out), transform var(--t2) var(--ez-out);
+}
+#dice-modal .dice-fan-glyph { line-height: 0; }
+#dice-modal .dice-fan-item:hover {
+  background: none;
+  color: var(--accent-hi);
+  transform: translateY(calc(var(--fan-lift, 0px) * -1 - 4px));
+}
+#dice-modal .dice-fan-item:focus-visible { outline: none; color: var(--accent-hi); box-shadow: var(--sh-glow); }
+/* Выделение выбранной: цвет, вес и ромб-указатель под подписью */
+#dice-modal .dice-fan-item.is-sel { color: var(--accent); font-weight: 600; }
+#dice-modal .dice-fan-item.is-sel .dice-fan-label { position: relative; }
+#dice-modal .dice-fan-item.is-sel .dice-fan-label::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  background: var(--accent);
+  transform: rotate(45deg);
+}
+/* Отклик на сам выбор — короткий подскок */
+#dice-modal .dice-fan-item.is-pick { animation: diceFanPick 0.36s var(--ez-out); }
+@keyframes diceFanPick {
+  0%   { transform: translateY(calc(var(--fan-lift, 0px) * -1)); }
+  45%  { transform: translateY(calc(var(--fan-lift, 0px) * -1 - 9px)) scale(1.12); }
+  100% { transform: translateY(calc(var(--fan-lift, 0px) * -1)); }
+}
+
+/* Главное действие — строка с рельсом, как «Продолжить» на главной */
+#dice-modal .dice-roll-go {
+  width: auto;
+  margin: 0;
+  padding: 16px 4px 16px 12px;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-left: var(--home-rail-w) solid var(--accent);
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--accent-lo);
+  font-family: var(--font-display);
+  font-size: 1.25em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--t1) var(--ez-out), transform var(--t2) var(--ez-out);
+}
+#dice-modal .dice-roll-go:hover { background: none; color: var(--accent-hi); transform: translateX(var(--home-shift)); }
+#dice-modal .dice-roll-go:focus-visible { outline: none; box-shadow: var(--sh-glow); color: var(--accent-hi); }
+
+/* Формула спрятана под отдельную кнопку — в покое её на экране нет */
+#dice-modal .dice-formula-toggle {
+  width: auto;
+  margin: 0;
+  padding: 12px 4px;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--home-rule);
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--home-sub);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  cursor: pointer;
+  transition: color var(--t1) var(--ez-out);
+}
+#dice-modal .dice-formula-toggle::after { content: " ▾"; font-size: 0.85em; }
+#dice-modal .dice-formula-toggle.is-open { color: var(--accent); }
+#dice-modal .dice-formula-toggle.is-open::after { content: " ▴"; }
+#dice-modal .dice-formula-toggle:hover { background: none; color: var(--accent-hi); }
+#dice-modal .dice-formula-panel { padding-bottom: 4px; }
+#dice-modal .dice-formula-panel[hidden] { display: none; }
+#dice-modal .dice-formula-panel > * { animation: rise var(--t2) var(--ez-out) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  #dice-modal .dice-pick-glyph.is-swap,
+  #dice-modal .dice-fan-item.is-pick,
+  #dice-modal .dice-formula-panel > * { animation: none; }
+  #dice-modal .dice-fan-item:hover { transform: translateY(calc(var(--fan-lift, 0px) * -1)); }
+}
+
+/* Формула — поле на нижней линии и текстовое действие */
+#dice-modal .dice-formula-row { margin-top: var(--sp-4); align-items: center; gap: var(--sp-3); }
+#dice-modal .dice-formula-inp {
+  padding: 10px 2px;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+  color: var(--text);
+}
+#dice-modal .dice-formula-inp:focus { border-bottom-color: var(--accent); }
+#dice-modal .dice-formula-btn {
+  padding: 10px 2px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  color: var(--accent-lo);
+  font-family: var(--font-display);
+  font-weight: 500;
+  transition: color var(--t1) var(--ez-out);
+}
+#dice-modal .dice-formula-btn:hover { background: none; border: 0; color: var(--accent-hi); }
+
+/* Чипы вставки — текстом, без коробочек */
+#dice-modal .dice-controls-col .dice-chips { gap: 0; margin-top: 6px; }
+#dice-modal .dice-controls-col .dice-chip {
+  padding: 10px 2px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  color: var(--home-sub);
+  font-family: var(--font);
+  font-weight: 600;
+  transition: color var(--t1) var(--ez-out);
+}
+#dice-modal .dice-controls-col .dice-chip:hover { background: none; border: 0; color: var(--accent-hi); }
+#dice-modal .dice-controls-col .dice-chip:active { transform: none; }
+#dice-modal .dice-controls-col .dice-chip-op { color: var(--accent-lo); }
+
+/* Подвал — текстовое действие на волосяной линии */
+#dice-modal .dice-modal-footer {
+  padding: 10px var(--sp-4) var(--sp-4);
+  border-top: 1px solid var(--home-rule);
+}
+#dice-modal .dice-reset-btn {
+  width: auto;
+  padding: 6px 2px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  color: var(--home-sub);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  transition: color var(--t1) var(--ez-out);
+}
+#dice-modal .dice-reset-btn:hover { background: none; border: 0; color: var(--accent-hi); }
+
+@media (max-width: 640px) {
+  #dice-modal .dice-body { padding: var(--sp-3) var(--sp-3) 6px; }
+  #dice-modal .dice-modal-header { padding: var(--sp-3) var(--sp-3) 8px; }
+  #dice-modal .dice-modal-footer { padding: 8px var(--sp-3) var(--sp-3); }
+  #dice-modal .dice-fan { min-height: 86px; }
+  #dice-modal .dice-fan-item { font-size: 12px; }
+  #dice-modal .dice-pick { padding: 10px 0 2px; }
+  #dice-modal .dice-roll-go { padding: 13px 4px 13px 10px; font-size: 1.12em; }
+  /* Лист броска на телефоне полноэкранный, и .dice-body центрировала содержимое:
+     короткая колонка веера висела посередине. Кость и веер уходят вверх,
+     действие и формула — вниз, под большой палец. */
+  #dice-modal .dice-body { justify-content: flex-start; }
+  #dice-modal .dice-controls-col { flex: 1 1 auto; min-height: 0; }
+  #dice-modal .dice-roll-go { margin-top: auto; }
+}

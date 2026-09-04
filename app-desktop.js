@@ -37,20 +37,24 @@
       </div>
     </div>
     <div class="rr-rows">
+      <!-- STYLE-8R3: строка броска не читалась как действие: ромб и цвет были те же,
+           что у сводок ниже. Теперь у неё глиф d20 вместо ромба, глагол в лейбле
+           и слот результата справа — тот же .rr-row-val, что у КД и уровня. -->
       <div class="rr-line rr-line-primary">
-        <button type="button" class="rr-row" id="rr-btn-d20" aria-label="Бросить d20">
-          <span class="home-bullet home-bullet--sm"></span>
-          <span class="rr-row-label">Бросок d20</span>
+        <button type="button" class="rr-row rr-row-roll" id="rr-btn-d20" aria-label="Бросить d20">
+          <span class="rr-die" data-ico="d20" data-ico-size="15">🎲</span>
+          <span class="rr-row-label">Бросить d20</span>
+          <span class="rr-row-val rr-roll-val" id="rr-d20-val" aria-live="polite"></span>
         </button>
         <button type="button" class="rr-more" data-rr-toggle="rr-panel-dice" aria-controls="rr-panel-dice" aria-expanded="false">d4–d12</button>
       </div>
       <div class="rr-panel" id="rr-panel-dice" hidden>
         <div class="rr-dice-grid">
-          <button type="button" class="btn btn-secondary btn-sm" data-dice="4">d4</button>
-          <button type="button" class="btn btn-secondary btn-sm" data-dice="6">d6</button>
-          <button type="button" class="btn btn-secondary btn-sm" data-dice="8">d8</button>
-          <button type="button" class="btn btn-secondary btn-sm" data-dice="10">d10</button>
-          <button type="button" class="btn btn-secondary btn-sm" data-dice="12">d12</button>
+          <button type="button" class="rr-die-btn" data-dice="4">d4</button>
+          <button type="button" class="rr-die-btn" data-dice="6">d6</button>
+          <button type="button" class="rr-die-btn" data-dice="8">d8</button>
+          <button type="button" class="rr-die-btn" data-dice="10">d10</button>
+          <button type="button" class="rr-die-btn" data-dice="12">d12</button>
         </div>
       </div>
 
@@ -297,6 +301,9 @@
     const rail = document.getElementById('app-right-rail');
     if (!rail) return;
     rail.innerHTML = RAIL_HTML;
+    // Глиф d20 в строке броска — разметка собрана в JS, общая подстановка
+    // на DOMContentLoaded её не застала — зовём точечно.
+    if (typeof window._applyDymkaIcons === 'function') window._applyDymkaIcons(rail);
 
     const btnDmg = document.getElementById('rr-btn-dmg');
     const btnHeal = document.getElementById('rr-btn-heal');
@@ -304,6 +311,21 @@
     const btnCond = document.getElementById('rr-btn-cond');
     if (btnDmg) btnDmg.addEventListener('click', () => rrApplyHP('dmg'));
     if (btnHeal) btnHeal.addEventListener('click', () => rrApplyHP('heal'));
+    // STYLE-8R3: результат последнего броска остаётся в строке и после закрытия
+    // арены: рельс — единственное место, где число видно без модалки.
+    window.addEventListener('dice:rolled', (e) => {
+      const val = document.getElementById('rr-d20-val');
+      const d = e && e.detail;
+      if (!val || !d || typeof d.result !== 'number') return;
+      val.textContent = d.result;
+      val.classList.remove('is-crit', 'is-fail');
+      if (d.sides === 20 && d.natural === 20) val.classList.add('is-crit');
+      else if (d.sides === 20 && d.natural === 1) val.classList.add('is-fail');
+      val.classList.remove('is-fresh');
+      void val.offsetWidth;
+      val.classList.add('is-fresh');
+    });
+
     if (btnD20) btnD20.addEventListener('click', () => {
       if (typeof window.openDiceModal === 'function') window.openDiceModal();
       if (typeof window.rollDiceWithSelectedMode === 'function') window.rollDiceWithSelectedMode(20);

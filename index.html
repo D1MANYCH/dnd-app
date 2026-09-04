@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v362">
+<link rel="stylesheet" href="style.css?v=v363">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -2413,14 +2413,6 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </button>
   </div>
   <h3>
-    <svg class="d20-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="vertical-align:-3px;margin-right:6px">
-      <g fill="var(--accent, #e0b358)" stroke="rgba(0,0,0,0.4)" stroke-width="0.6" stroke-linejoin="round">
-        <polygon points="12,2 21,7 19,12 12,11 5,12 3,7"/>
-        <polygon points="3,7 5,12 7,20 12,22 4,17" opacity="0.85"/>
-        <polygon points="21,7 19,12 17,20 12,22 20,17" opacity="0.7"/>
-        <polygon points="5,12 12,11 19,12 17,20 12,14 7,20" opacity="0.9"/>
-      </g>
-    </svg>
     Бросок кубиков
   </h3>
   <button type="button" class="modal-close" onclick="closeDiceModal()" aria-label="Закрыть">✕</button>
@@ -2442,6 +2434,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
         <span class="dice-dual-die dice-dual-discarded" id="dice-dual-discarded"></span>
       </div>
       <span class="dice3d-label" id="dice-result-info">Выберите кубик</span>
+      <!-- Ряд выпавших значений — появляется после остановки костей, в порядке
+           броска. Сами 3D-кости могут лежать кучей — читается этот ряд. -->
+      <div class="dice-settled-row" id="dice-settled-row" aria-live="polite"></div>
     </div>
     <div class="dice-result-display normal" id="dice-result-display" style="display:none"></div>
   </div>
@@ -2452,60 +2447,36 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <button type="button" class="dice-mode-seg-btn adv" data-mode="adv" onclick="setDiceMode(this,'adv')">▲ Преим.</button>
       <button type="button" class="dice-mode-seg-btn dis" data-mode="dis" onclick="setDiceMode(this,'dis')">▼ Помеха</button>
     </div>
-    <button class="dice-btn-quick" onclick="rollDiceWithSelectedMode(20)" aria-label="Быстрый бросок d20">
-      <span class="dice-btn-superlabel">Быстрый бросок</span>
-      <span class="dice-btn-quick-label">
-        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-          <g fill="currentColor" stroke="rgba(0,0,0,0.35)" stroke-width="0.6" stroke-linejoin="round">
-            <polygon points="12,2 21,7 19,12 12,11 5,12 3,7"/>
-            <polygon points="3,7 5,12 7,20 12,22 4,17" opacity="0.85"/>
-            <polygon points="21,7 19,12 17,20 12,22 20,17" opacity="0.7"/>
-          </g>
-        </svg>
-        d20
-      </span>
+    <!-- DICE-UI «Веер»: выбранная кость крупно, остальные — дугой снизу.
+         Сам бросок по-прежнему уходит в полноэкранную 3D-арену — здесь только выбор.
+         Веер и глиф рисует renderDiceFan() из app-dice.js. -->
+    <div class="dice-pick" id="dice-pick">
+      <span class="dice-pick-glyph" id="dice-pick-glyph" aria-hidden="true"></span>
+      <span class="dice-pick-label" id="dice-pick-label">d20</span>
+    </div>
+    <div class="dice-fan" id="dice-fan" role="tablist" aria-label="Выбор кости"></div>
+    <button type="button" class="dice-roll-go" id="dice-roll-go" onclick="rollSelectedDie()">
+      <span id="dice-roll-go-label">Бросить d20</span>
     </button>
-    <div class="dice-grid">
-      <button class="dice-btn" onclick="rollDice(4)" aria-label="Бросить d4">
-        <svg class="dice-btn-icon" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12,3 22,21 2,21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-        <span class="dice-btn-label">d4</span>
-      </button>
-      <button class="dice-btn" onclick="rollDice(6)" aria-label="Бросить d6">
-        <svg class="dice-btn-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
-        <span class="dice-btn-label">d6</span>
-      </button>
-      <button class="dice-btn" onclick="rollDice(8)" aria-label="Бросить d8">
-        <svg class="dice-btn-icon" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-        <span class="dice-btn-label">d8</span>
-      </button>
-      <button class="dice-btn" onclick="rollDice(10)" aria-label="Бросить d10">
-        <svg class="dice-btn-icon" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12,3 20,9 18,21 6,21 4,9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-        <span class="dice-btn-label">d10</span>
-      </button>
-      <button class="dice-btn" onclick="rollDice(12)" aria-label="Бросить d12">
-        <svg class="dice-btn-icon" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12,2 21,8 19,19 5,19 3,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-        <span class="dice-btn-label">d12</span>
-      </button>
-      <button class="dice-btn" onclick="rollDice(100)" aria-label="Бросить d100">
-        <svg class="dice-btn-icon" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12,3 22,12 12,21 2,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
-        <span class="dice-btn-label">d100</span>
-      </button>
-    </div>
-    <div class="dice-formula-row">
-      <input type="text" id="dice-custom-input-main" class="dice-formula-inp" placeholder="Формула (например, 2к6+3)" onkeydown="if(event.key==='Enter')rollCustomFormulaFromMain()">
-      <button class="dice-formula-btn" onclick="rollCustomFormulaFromMain()">Бросить</button>
-    </div>
-    <!-- UX-2: быстрые вставки токенов в поле формулы -->
-    <div class="dice-chips" role="group" aria-label="Быстрая вставка в формулу">
-      <button type="button" class="dice-chip" onclick="diceInsertToken('к4')">к4</button>
-      <button type="button" class="dice-chip" onclick="diceInsertToken('к6')">к6</button>
-      <button type="button" class="dice-chip" onclick="diceInsertToken('к8')">к8</button>
-      <button type="button" class="dice-chip" onclick="diceInsertToken('к10')">к10</button>
-      <button type="button" class="dice-chip" onclick="diceInsertToken('к12')">к12</button>
-      <button type="button" class="dice-chip" onclick="diceInsertToken('к20')">к20</button>
-      <button type="button" class="dice-chip dice-chip-op" onclick="diceInsertToken('+')">+</button>
-      <button type="button" class="dice-chip dice-chip-op" onclick="diceInsertToken('-')">−</button>
-      <button type="button" class="dice-chip dice-chip-op" onclick="diceFormulaBackspace()" aria-label="Удалить символ">⌫</button>
+    <button type="button" class="dice-formula-toggle" id="dice-formula-toggle"
+            aria-controls="dice-formula-panel" aria-expanded="false"
+            onclick="toggleDiceFormulaPanel()">Формула</button>
+    <div class="dice-formula-panel" id="dice-formula-panel" hidden>
+      <div class="dice-formula-row">
+        <input type="text" id="dice-custom-input-main" class="dice-formula-inp" placeholder="2к6+3" onkeydown="if(event.key==='Enter')rollCustomFormulaFromMain()">
+        <button type="button" class="dice-formula-btn" onclick="rollCustomFormulaFromMain()">Бросить</button>
+      </div>
+      <div class="dice-chips" role="group" aria-label="Быстрая вставка в формулу">
+        <button type="button" class="dice-chip" onclick="diceInsertToken('к4')">к4</button>
+        <button type="button" class="dice-chip" onclick="diceInsertToken('к6')">к6</button>
+        <button type="button" class="dice-chip" onclick="diceInsertToken('к8')">к8</button>
+        <button type="button" class="dice-chip" onclick="diceInsertToken('к10')">к10</button>
+        <button type="button" class="dice-chip" onclick="diceInsertToken('к12')">к12</button>
+        <button type="button" class="dice-chip" onclick="diceInsertToken('к20')">к20</button>
+        <button type="button" class="dice-chip dice-chip-op" onclick="diceInsertToken('+')">+</button>
+        <button type="button" class="dice-chip dice-chip-op" onclick="diceInsertToken('-')">−</button>
+        <button type="button" class="dice-chip dice-chip-op" onclick="diceFormulaBackspace()" aria-label="Удалить символ">⌫</button>
+      </div>
     </div>
   </div>
 </div>
@@ -3243,58 +3214,58 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v362"></script>
+<script src="app-log.js?v=v363"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v362"></script>
-<script src="bg-space.js?v=v362"></script>
-<script src="dice-arena-bg.js?v=v362"></script>
-<script src="data.js?v=v362"></script>
+<script src="icons.js?v=v363"></script>
+<script src="bg-space.js?v=v363"></script>
+<script src="dice-arena-bg.js?v=v363"></script>
+<script src="data.js?v=v363"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v362"></script>
+<script src="character-builds.js?v=v363"></script>
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v362"></script>
-<script src="spells.js?v=v362"></script>
-<script src="spell-effects.js?v=v362"></script>
+<script src="glossary-data.js?v=v363"></script>
+<script src="spells.js?v=v363"></script>
+<script src="spell-effects.js?v=v363"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v362"></script>
-<script src="app-migrate.js?v=v362"></script>
-<script src="app-builds.js?v=v362"></script>
-<script src="app-core.js?v=v362"></script>
-<script src="app-io.js?v=v362"></script>
-<script src="app-backup.js?v=v362"></script>
-<script src="app-combat.js?v=v362"></script>
-<script src="app-conditions.js?v=v362"></script>
-<script src="app-cast-effects.js?v=v362"></script>
-<script src="app-proficiencies.js?v=v362"></script>
-<script src="app-hp.js?v=v362"></script>
-<script src="app-spells.js?v=v362"></script>
-<script src="app-inventory.js?v=v362"></script>
+<script src="rules.js?v=v363"></script>
+<script src="app-migrate.js?v=v363"></script>
+<script src="app-builds.js?v=v363"></script>
+<script src="app-core.js?v=v363"></script>
+<script src="app-io.js?v=v363"></script>
+<script src="app-backup.js?v=v363"></script>
+<script src="app-combat.js?v=v363"></script>
+<script src="app-conditions.js?v=v363"></script>
+<script src="app-cast-effects.js?v=v363"></script>
+<script src="app-proficiencies.js?v=v363"></script>
+<script src="app-hp.js?v=v363"></script>
+<script src="app-spells.js?v=v363"></script>
+<script src="app-inventory.js?v=v363"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v362"></script>
-<script src="class-choices.js?v=v362"></script>
-<script src="subclass-choices-data.js?v=v362"></script>
+<script src="app-party.js?v=v363"></script>
+<script src="class-choices.js?v=v363"></script>
+<script src="subclass-choices-data.js?v=v363"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v362";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v363";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-dice.js?v=v362"></script>
-<script src="app-settings.js?v=v362"></script>
-<script src="app-ui.js?v=v362"></script>
-<script src="app-home.js?v=v362"></script>
-<script src="app-asi.js?v=v362"></script>
-<script src="app-progress.js?v=v362"></script>
-<script src="app-notes.js?v=v362"></script>
-<script src="app-desktop.js?v=v362"></script>
-<script src="history-stack.js?v=v362"></script>
-<script src="app-help.js?v=v362"></script>
+<script src="app-dice.js?v=v363"></script>
+<script src="app-settings.js?v=v363"></script>
+<script src="app-ui.js?v=v363"></script>
+<script src="app-home.js?v=v363"></script>
+<script src="app-asi.js?v=v363"></script>
+<script src="app-progress.js?v=v363"></script>
+<script src="app-notes.js?v=v363"></script>
+<script src="app-desktop.js?v=v363"></script>
+<script src="history-stack.js?v=v363"></script>
+<script src="app-help.js?v=v363"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3307,9 +3278,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v362",
-    "vendor/jspdf/roboto-base64.js?v=v362",
-    "app-pdf.js?v=v362"
+    "vendor/jspdf/jspdf.umd.min.js?v=v363",
+    "vendor/jspdf/roboto-base64.js?v=v363",
+    "app-pdf.js?v=v363"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3333,7 +3304,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v362").then(function () {
+    return loadScript("build-notes-data.js?v=v363").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -3341,26 +3312,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v362"),
-      loadScript("npc-srd.js?v=v362")
+      loadScript("monsters-srd.js?v=v363"),
+      loadScript("npc-srd.js?v=v363")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v362");
+    return loadScript("magic-items.js?v=v363");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v362");
+    return loadScript("gear-catalog.js?v=v363");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v362").then(function () {
+    return loadScript("data-2024.js?v=v363").then(function () {
       window.__edition2024Loaded = true;
     });
   };

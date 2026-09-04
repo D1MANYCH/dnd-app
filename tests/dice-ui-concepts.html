@@ -1,0 +1,313 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DICE-UI — концепты К1–К6</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Стенд концептов. Живой style.css не трогаем: вся разметка своя, классы
+     боевой модалки не используются — правки стенда никуда не утекают. */
+  body { margin: 0; background: var(--bg-0); color: var(--text); font-family: var(--font); }
+  .kb {
+    position: sticky; top: 0; z-index: 30;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    padding: 12px 20px; background: var(--bg-1); border-bottom: 1px solid var(--home-rule);
+  }
+  .kb h1 { margin: 0; font-family: var(--font-display); font-size: 15px; font-weight: 500; }
+  .kb button { all: unset; cursor: pointer; padding: 4px 2px; font-family: var(--font-display); font-size: 13px; color: var(--accent-lo); }
+  .kb button:hover { color: var(--accent-hi); }
+  .kb span { font-size: 12px; color: var(--home-sub); }
+
+  .kwrap { display: flex; flex-wrap: wrap; }
+  .kcol { width: 420px; flex: 0 0 auto; border-right: 1px solid var(--home-rule); border-bottom: 1px solid var(--home-rule); }
+  .kcap { padding: 20px 20px 4px; font-family: var(--font-display); font-size: 17px; color: var(--accent); }
+  .knote { padding: 0 20px 14px; font-size: 12px; color: var(--home-sub); line-height: 1.55; }
+  .kframe {
+    position: relative; margin: 0 20px 24px; height: 470px;
+    background: var(--bg-1); border: 1px solid var(--home-rule);
+    border-radius: var(--r-lg); overflow: hidden;
+  }
+  .kglyph { color: var(--accent); }
+  .kdim { color: var(--home-sub); }
+  .kact { font-family: var(--font-display); color: var(--accent-lo); cursor: pointer; }
+  .kact:hover { color: var(--accent-hi); }
+
+  /* ══ К1 — модалки нет: всё внутри полноэкранной арены ═════════════════ */
+  .k1 .kframe { background: radial-gradient(circle at 50% 44%, #0d1b31 0%, #070f21 55%, #03070f 100%); border-color: #14203a; }
+  .k1-modes { display: flex; justify-content: center; gap: 34px; padding: 18px 0 0; }
+  .k1-modes span { font-family: var(--font-display); font-size: 14px; color: rgba(255,255,255,0.42); cursor: pointer; }
+  .k1-modes span.on { color: #fff; border-bottom: 2px solid var(--accent); padding-bottom: 4px; }
+  .k1-num { position: absolute; top: 74px; left: 0; right: 0; text-align: center; }
+  .k1-num b { display: block; font-family: var(--font-display); font-size: 64px; font-weight: 600; color: #fff; line-height: 1; }
+  .k1-num i { display: block; margin-top: 8px; font-style: normal; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+  .k1-die { position: absolute; top: 210px; left: 0; right: 0; display: flex; justify-content: center; }
+  .k1-bar {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom,0px));
+    background: linear-gradient(to top, rgba(3,7,15,0.92), rgba(3,7,15,0));
+  }
+  .k1-dice { display: flex; justify-content: space-between; gap: 6px; padding-bottom: 12px; }
+  .k1-dice span { font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.55); cursor: pointer; }
+  .k1-dice span.on { color: var(--accent); }
+  .k1-foot { display: flex; align-items: center; gap: 16px; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 12px; }
+  .k1-foot input {
+    flex: 1 1 auto; min-width: 0; margin: 0; padding: 6px 2px; background: none;
+    border: 0; border-bottom: 1px solid rgba(255,255,255,0.16); border-radius: 0;
+    color: #fff; font-size: 13px;
+  }
+  .k1-foot b { font-family: var(--font-display); font-weight: 500; font-size: 13px; color: var(--accent); cursor: pointer; }
+  .k1-foot .k1-close { font-size: 13px; color: rgba(255,255,255,0.45); cursor: pointer; }
+
+  /* ══ К2 — колесо ═════════════════════════════════════════════════════ */
+  .k2-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px 12px; border-bottom: 1px solid var(--home-rule); }
+  .k2-title { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--home-sub); margin-right: auto; }
+  .k2-modes { display: flex; justify-content: center; gap: 26px; padding: 16px 0 4px; }
+  .k2-modes span { font-family: var(--font-display); font-size: 14px; color: var(--home-sub); cursor: pointer; }
+  .k2-modes span.on { color: var(--text); border-bottom: 2px solid var(--accent); padding-bottom: 3px; }
+  .k2-wheel { position: relative; width: 290px; height: 290px; margin: 8px auto 0; }
+  .k2-hub {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    width: 116px; height: 116px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    border: 1px solid var(--accent); color: var(--accent); cursor: pointer;
+  }
+  .k2-hub b { font-family: var(--font-display); font-size: 26px; font-weight: 600; }
+  .k2-hub i { font-style: normal; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--home-sub); }
+  .k2-spoke {
+    position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    font-family: var(--font-display); font-size: 12px; color: var(--text); cursor: pointer;
+  }
+  .k2-spoke:hover { color: var(--accent); }
+  .k2-formula { display: flex; align-items: center; gap: 12px; padding: 6px 20px 0; }
+  .k2-formula input {
+    flex: 1 1 auto; min-width: 0; margin: 0; padding: 8px 2px; background: none;
+    border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0; color: var(--text); font-size: 13px;
+  }
+
+  /* ══ К3 — формула главная ════════════════════════════════════════════ */
+  .k3-field {
+    display: flex; align-items: baseline; gap: 10px;
+    margin: 22px 18px 0; padding-bottom: 12px; border-bottom: 2px solid var(--accent);
+  }
+  .k3-field b { font-family: var(--font-display); font-size: 40px; font-weight: 600; color: var(--text); }
+  .k3-field i { font-style: normal; font-size: 40px; color: var(--home-sub); }
+  .k3-sub { padding: 8px 18px 0; font-size: 12px; color: var(--home-sub); }
+  .k3-pads { display: grid; grid-template-columns: repeat(4, 1fr); margin: 18px 0 0; border-top: 1px solid var(--home-rule); }
+  .k3-pad {
+    display: flex; align-items: center; justify-content: center; min-height: 56px;
+    border-bottom: 1px solid var(--home-rule); border-right: 1px solid var(--home-rule);
+    font-family: var(--font-display); font-size: 16px; color: var(--text); cursor: pointer;
+  }
+  .k3-pad:nth-child(4n) { border-right: 0; }
+  .k3-pad:hover { color: var(--accent); }
+  .k3-pad.op { color: var(--accent-lo); }
+  .k3-go {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin: 0; padding: 18px 0; border-left: 3px solid var(--accent);
+    font-family: var(--font-display); font-size: 20px; color: var(--accent); cursor: pointer;
+  }
+  .k3-modes { display: flex; justify-content: center; gap: 26px; padding: 12px 0 0; }
+  .k3-modes span { font-family: var(--font-display); font-size: 13px; color: var(--home-sub); cursor: pointer; }
+  .k3-modes span.on { color: var(--text); border-bottom: 2px solid var(--accent); padding-bottom: 3px; }
+
+  /* ══ К4 — недавние броски ════════════════════════════════════════════ */
+  .k4-cap { padding: 16px 18px 6px; font-family: var(--font-display); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--home-sub); }
+  .k4-row {
+    display: flex; align-items: center; gap: 12px; padding: 13px 18px;
+    border-bottom: 1px solid var(--home-rule); cursor: pointer;
+  }
+  .k4-row:hover { color: var(--accent); }
+  .k4-name { font-family: var(--font-display); font-size: 15px; }
+  .k4-what { margin-left: auto; font-size: 12px; color: var(--home-sub); }
+  .k4-val { min-width: 34px; text-align: right; font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--text); }
+  .k4-val.crit { color: var(--success-color); }
+  .k4-val.fail { color: var(--danger-color); }
+  .k4-again { color: var(--accent-lo); font-size: 15px; }
+  .k4-new {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 12px 18px calc(12px + env(safe-area-inset-bottom,0px));
+    border-top: 1px solid var(--home-rule); background: var(--bg-1);
+  }
+  .k4-new-cap { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--home-sub); padding-bottom: 10px; }
+  .k4-dice { display: flex; justify-content: space-between; gap: 6px; }
+  .k4-dice span { font-size: 15px; font-weight: 600; color: var(--accent-lo); cursor: pointer; }
+  .k4-dice span.on { color: var(--accent); font-size: 17px; }
+
+  /* ══ К5 — одна кость ═════════════════════════════════════════════════ */
+  .k5-modes { display: flex; justify-content: center; gap: 26px; padding: 18px 0 0; }
+  .k5-modes span { font-family: var(--font-display); font-size: 14px; color: var(--home-sub); cursor: pointer; }
+  .k5-modes span.on { color: var(--text); border-bottom: 2px solid var(--accent); padding-bottom: 3px; }
+  .k5-stage { display: flex; align-items: center; justify-content: center; gap: 24px; padding: 34px 0 10px; }
+  .k5-arrow { font-size: 26px; color: var(--home-sub); cursor: pointer; }
+  .k5-arrow:hover { color: var(--accent); }
+  .k5-die { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .k5-die b { font-family: var(--font-display); font-size: 34px; font-weight: 600; color: var(--accent); }
+  .k5-faces { text-align: center; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--home-sub); }
+  .k5-dots { display: flex; justify-content: center; gap: 8px; padding: 18px 0 0; }
+  .k5-dots i { width: 7px; height: 7px; border: 1px solid var(--accent-lo); transform: rotate(45deg); }
+  .k5-dots i.on { background: var(--accent); border-color: var(--accent); }
+  .k5-go {
+    margin: 26px 18px 0; padding: 16px 0 16px 14px; border-left: 3px solid var(--accent);
+    font-family: var(--font-display); font-size: 19px; color: var(--accent); cursor: pointer;
+  }
+  .k5-alt { padding: 16px 18px 0; font-size: 12px; color: var(--home-sub); }
+
+  /* ══ К6 — док снизу поверх листа ═════════════════════════════════════ */
+  .k6-sheet { padding: 16px 18px 0; }
+  .k6-h { font-family: var(--font-display); font-size: 15px; color: var(--text); padding-bottom: 10px; }
+  .k6-line { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--home-rule); font-size: 13px; color: var(--home-sub); }
+  .k6-line b { margin-left: auto; font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--text); }
+  .k6-dock {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom,0px));
+    background: var(--bg-2, var(--bg-1));
+    border-top: 1px solid var(--accent);
+    box-shadow: 0 -10px 26px -14px rgba(0,0,0,0.6);
+  }
+  .k6-top { display: flex; align-items: center; gap: 14px; padding-bottom: 11px; }
+  .k6-d20 { display: flex; align-items: center; gap: 9px; font-family: var(--font-display); font-size: 19px; font-weight: 600; color: var(--accent); cursor: pointer; }
+  .k6-modes { margin-left: auto; display: flex; gap: 16px; }
+  .k6-modes span { font-size: 12px; color: var(--home-sub); cursor: pointer; }
+  .k6-modes span.on { color: var(--text); }
+  .k6-dice { display: flex; justify-content: space-between; gap: 6px; border-top: 1px solid var(--home-rule); padding-top: 11px; }
+  .k6-dice span { font-size: 14px; font-weight: 600; color: var(--accent-lo); cursor: pointer; }
+  .k6-grip { width: 34px; height: 3px; border-radius: 2px; background: var(--home-rule); margin: 0 auto 10px; }
+
+  @media (max-width: 470px) { .kcol { width: 100%; } }
+</style>
+
+<div class="kb">
+  <h1>DICE-UI — концепты К1–К6</h1>
+  <button onclick="document.documentElement.setAttribute('data-theme','dark')">тёмная</button>
+  <button onclick="document.documentElement.setAttribute('data-theme','light')">светлая</button>
+  <span>рамка 420×470 — примерно окно модалки на ПК; сузьте окно для мобильной раскладки</span>
+</div>
+
+<div class="kwrap">
+
+<!-- ═══════════ К1 ═══════════ -->
+<div class="kcol k1">
+  <div class="kcap">К1 · Модалки нет</div>
+  <div class="knote">Пусковое окно исчезает совсем. Клик по кости открывает сразу арену, а выбор режима и кости живёт внутри неё поверх 3D: режим сверху, число по центру, ряд костей снизу. Перекинуть можно не выходя — сейчас для этого приходится закрывать арену и снова лезть в модалку.</div>
+  <div class="kframe">
+    <div class="k1-modes"><span class="on">Обычный</span><span>▲ Преим.</span><span>▼ Помеха</span></div>
+    <div class="k1-num"><b>17</b><i>Ловкость · 14 + 3</i></div>
+    <div class="k1-die">
+      <svg width="112" height="112" viewBox="0 0 24 24" fill="none" stroke="#e0c07a" stroke-width="0.9" stroke-linejoin="round" opacity="0.95"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/><path d="M12 6.6V2.2M6.6 15.9 3.5 17M17.4 15.9l3.1 1.1"/></svg>
+    </div>
+    <div class="k1-bar">
+      <div class="k1-dice"><span>d4</span><span>d6</span><span>d8</span><span>d10</span><span>d12</span><span class="on">d20</span><span>d100</span></div>
+      <div class="k1-foot"><input placeholder="2к6+3"><b>Бросить</b><span class="k1-close">Закрыть</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ К2 ═══════════ -->
+<div class="kcol k2">
+  <div class="kcap">К2 · Колесо</div>
+  <div class="knote">Кости по кругу вокруг центрального d20 — как колесо выбора в играх. Списка нет вообще: тап в центр кидает d20, тап по лучу — свою кость. Все цели крупные и на одинаковом расстоянии от большого пальца, поэтому на телефоне работает лучше сетки.</div>
+  <div class="kframe">
+    <div class="k2-head"><span class="k2-title">Бросок кубиков</span><span class="kdim">✕</span></div>
+    <div class="k2-modes"><span class="on">Обычный</span><span>▲ Преим.</span><span>▼ Помеха</span></div>
+    <div class="k2-wheel">
+      <div class="k2-spoke" style="transform:translate(0,-108px)"><svg class="kglyph" width="22" height="22" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d4</div>
+      <div class="k2-spoke" style="transform:translate(94px,-54px)"><svg class="kglyph" width="22" height="22" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>d6</div>
+      <div class="k2-spoke" style="transform:translate(94px,54px)"><svg class="kglyph" width="22" height="22" viewBox="0 0 24 24"><polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d8</div>
+      <div class="k2-spoke" style="transform:translate(0,108px)"><svg class="kglyph" width="22" height="22" viewBox="0 0 24 24"><polygon points="12,3 20,9 18,21 6,21 4,9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d10</div>
+      <div class="k2-spoke" style="transform:translate(-94px,54px)"><svg class="kglyph" width="22" height="22" viewBox="0 0 24 24"><polygon points="12,2 21,8 19,19 5,19 3,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d12</div>
+      <div class="k2-spoke" style="transform:translate(-94px,-54px)"><svg class="kglyph" width="22" height="22" viewBox="0 0 24 24"><polygon points="12,3 22,12 12,21 2,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>d100</div>
+      <div class="k2-hub"><b>d20</b><i>бросить</i></div>
+    </div>
+    <div class="k2-formula"><input placeholder="Формула — 2к6+3"><b class="kact">Бросить</b></div>
+  </div>
+</div>
+
+<!-- ═══════════ К3 ═══════════ -->
+<div class="kcol k3">
+  <div class="kcap">К3 · Формула главная</div>
+  <div class="knote">Всё есть формула. Сверху крупная строка броска, под ней клавиатура из костей и операторов, снизу одно большое действие. d20 перестаёт быть отдельной кнопкой — это просто пресет «1к20». Сильно для тех, кто постоянно кидает 2к6+3 и 4к8, и убирает разделение «быстрый бросок / формула».</div>
+  <div class="kframe">
+    <div class="k2-head"><span class="k2-title">Бросок</span><span class="kdim">✕</span></div>
+    <div class="k3-field"><b>1к20</b><i>+ 3</i></div>
+    <div class="k3-sub">Средний результат 13,5 · максимум 23</div>
+    <div class="k3-modes"><span class="on">Обычный</span><span>▲ Преим.</span><span>▼ Помеха</span></div>
+    <div class="k3-pads">
+      <div class="k3-pad">к4</div><div class="k3-pad">к6</div><div class="k3-pad">к8</div><div class="k3-pad">к10</div>
+      <div class="k3-pad">к12</div><div class="k3-pad">к20</div><div class="k3-pad">к100</div><div class="k3-pad op">⌫</div>
+      <div class="k3-pad op">+</div><div class="k3-pad op">−</div><div class="k3-pad op">2×</div><div class="k3-pad op">3×</div>
+    </div>
+    <div class="k3-go">
+      <svg class="kglyph" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/></svg>
+      Бросить
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ К4 ═══════════ -->
+<div class="kcol k4">
+  <div class="kcap">К4 · Недавние броски</div>
+  <div class="knote">Смена логики, а не только вида. За игру кидают одно и то же: атаку, спасбросок, урон. Главный экран — история с перебросом в один тап, новая кость уходит в полосу снизу. Единственный вариант, который экономит действия, а не только место.</div>
+  <div class="kframe">
+    <div class="k4-cap">Недавние</div>
+    <div class="k4-row"><span class="k4-name">Атака длинным мечом</span><span class="k4-what">к20+5</span><span class="k4-val crit">20</span><span class="k4-again">⟳</span></div>
+    <div class="k4-row"><span class="k4-name">Урон</span><span class="k4-what">к8+3</span><span class="k4-val">9</span><span class="k4-again">⟳</span></div>
+    <div class="k4-row"><span class="k4-name">Ловкость</span><span class="k4-what">к20+3</span><span class="k4-val">17</span><span class="k4-again">⟳</span></div>
+    <div class="k4-row"><span class="k4-name">Спасбросок ТЕЛ</span><span class="k4-what">к20+1</span><span class="k4-val fail">1</span><span class="k4-again">⟳</span></div>
+    <div class="k4-row"><span class="k4-name">Скрытность</span><span class="k4-what">к20+7</span><span class="k4-val">14</span><span class="k4-again">⟳</span></div>
+    <div class="k4-new">
+      <div class="k4-new-cap">Новый бросок</div>
+      <div class="k4-dice"><span>d4</span><span>d6</span><span>d8</span><span>d10</span><span>d12</span><span class="on">d20</span><span>d100</span><span class="kact">формула</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ К5 ═══════════ -->
+<div class="kcol k5">
+  <div class="kcap">К5 · Одна кость</div>
+  <div class="knote">Никакого списка: на экране всегда ровно одна кость, тип листается стрелками или свайпом. Минимум элементов, крупный объект, всё внимание на кубике. Расплата — до d100 нужно долистать, поэтому под стрелками ромбы-позиции, чтобы понимать, где находишься.</div>
+  <div class="kframe">
+    <div class="k2-head"><span class="k2-title">Бросок кубиков</span><span class="kdim">✕</span></div>
+    <div class="k5-modes"><span class="on">Обычный</span><span>▲ Преим.</span><span>▼ Помеха</span></div>
+    <div class="k5-stage">
+      <span class="k5-arrow">‹</span>
+      <div class="k5-die">
+        <svg class="kglyph" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.9" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/><path d="M12 6.6V2.2M6.6 15.9 3.5 17M17.4 15.9l3.1 1.1"/></svg>
+        <b>d20</b>
+      </div>
+      <span class="k5-arrow">›</span>
+    </div>
+    <div class="k5-faces">Двадцать граней</div>
+    <div class="k5-dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div>
+    <div class="k5-go">Бросить d20</div>
+    <div class="k5-alt">или <span class="kact">введите формулу</span></div>
+  </div>
+</div>
+
+<!-- ═══════════ К6 ═══════════ -->
+<div class="kcol k6">
+  <div class="kcap">К6 · Док снизу</div>
+  <div class="knote">Не окно, а тонкая панель, прилипшая к низу поверх листа персонажа. Лист остаётся виден и прокручивается — бросок перестаёт быть уходом на другой экран. Тянешь за грип — панель раскрывается до формулы и истории, отпускаешь — сворачивается в одну строку.</div>
+  <div class="kframe">
+    <div class="k6-sheet">
+      <div class="k6-h">Характеристики</div>
+      <div class="k6-line">Сила <b>+2</b></div>
+      <div class="k6-line">Ловкость <b>+3</b></div>
+      <div class="k6-line">Телосложение <b>+1</b></div>
+      <div class="k6-line">Интеллект <b>−1</b></div>
+      <div class="k6-line">Мудрость <b>+0</b></div>
+      <div class="k6-line">Харизма <b>+4</b></div>
+    </div>
+    <div class="k6-dock">
+      <div class="k6-grip"></div>
+      <div class="k6-top">
+        <span class="k6-d20">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/></svg>
+          Бросить d20
+        </span>
+        <span class="k6-modes"><span class="on">обычный</span><span>▲</span><span>▼</span></span>
+      </div>
+      <div class="k6-dice"><span>d4</span><span>d6</span><span>d8</span><span>d10</span><span>d12</span><span>d100</span><span class="kact">формула</span></div>
+    </div>
+  </div>
+</div>
+
+</div>

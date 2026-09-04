@@ -1,0 +1,379 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DICE-UI — мокапы модалки броска</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* Стенд. Живой style.css не трогаем — только раскладка и локальные правила
+     мокапов. Каждый вариант нарисован своей разметкой, без классов боевой
+     модалки, чтобы правки стенда не утекали в приложение. */
+  body { margin: 0; background: var(--bg-0); color: var(--text); font-family: var(--font); }
+  .mk-bar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 18px;
+    padding: 12px 20px;
+    background: var(--bg-1); border-bottom: 1px solid var(--home-rule);
+  }
+  .mk-bar h1 { margin: 0; font-family: var(--font-display); font-size: 15px; font-weight: 500; }
+  .mk-bar button {
+    all: unset; cursor: pointer; padding: 4px 2px;
+    font-family: var(--font-display); font-size: 13px; color: var(--accent-lo);
+  }
+  .mk-bar button:hover { color: var(--accent-hi); }
+  .mk-wrap { display: flex; flex-wrap: wrap; gap: 0; align-items: flex-start; }
+  .mk-col { width: 400px; flex: 0 0 auto; border-right: 1px solid var(--home-rule); border-bottom: 1px solid var(--home-rule); }
+  .mk-cap { padding: 18px 20px 4px; font-family: var(--font-display); font-size: 16px; color: var(--accent); }
+  .mk-note { padding: 0 20px 14px; font-size: 12px; color: var(--home-sub); line-height: 1.5; }
+
+  /* Рамка «модалки»: плотная подложка без прозрачности — на скриншотах светлой
+     темы именно она и провалилась, сквозь неё читался экран под ней. */
+  .mk-sheet {
+    margin: 0 20px 24px;
+    background: var(--bg-1);
+    border: 1px solid var(--home-rule);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+
+  /* ── общая механика всех вариантов ───────────────────────────────────── */
+  .mk-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--home-rule);
+  }
+  .mk-head .mk-tools { display: flex; gap: 14px; margin-right: auto; color: var(--accent-lo); }
+  .mk-head svg { display: block; }
+  .mk-title {
+    font-family: var(--font-display); font-size: 12px; font-weight: 500;
+    letter-spacing: 0.4px; text-transform: uppercase; color: var(--home-sub);
+  }
+  .mk-x { color: var(--home-sub); font-size: 17px; line-height: 1; }
+  .mk-body { padding: 4px 16px 16px; }
+  .mk-foot {
+    padding: 10px 16px 14px; border-top: 1px solid var(--home-rule);
+    font-family: var(--font-display); font-size: var(--fs-sm); color: var(--home-sub);
+  }
+
+  /* Режим броска — общий для всех мокапов, кроме М3 */
+  .mk-modes { display: flex; border-bottom: 1px solid var(--home-rule); }
+  .mk-mode {
+    position: relative; flex: 1 1 0; padding: 12px 4px;
+    font-family: var(--font-display); font-size: var(--fs-md);
+    color: var(--home-sub); text-align: center; cursor: pointer;
+  }
+  .mk-mode::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+    background: var(--accent); transform: scaleX(0);
+  }
+  .mk-mode.on { color: var(--text); }
+  .mk-mode.on::after { transform: scaleX(1); }
+
+  .mk-glyph { color: var(--accent); }
+  .mk-dim { color: var(--home-sub); }
+
+  /* ══ М1 — Строгий лист ═══════════════════════════════════════════════
+     Всё вертикальными строками, как правый рельс. На экране всегда только
+     главное; остальные кости и формула — в раскрытии. */
+  .m1 .m1-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 15px 4px; border-bottom: 1px solid var(--home-rule);
+    font-family: var(--font-display); font-size: var(--fs-md);
+    color: var(--text); cursor: pointer;
+  }
+  .m1 .m1-row--main {
+    border-left: 3px solid var(--accent); padding-left: 12px;
+    font-size: 1.35em; color: var(--accent);
+  }
+  .m1 .m1-row .m1-val { margin-left: auto; font-family: var(--font); font-size: var(--fs-sm); color: var(--home-sub); }
+  .m1 .m1-dice { display: flex; flex-wrap: wrap; gap: 20px; padding: 14px 4px; border-bottom: 1px solid var(--home-rule); }
+  .m1 .m1-dice span { font-family: var(--font); font-size: 15px; font-weight: 600; color: var(--accent-lo); cursor: pointer; }
+  .m1 .m1-formula { display: flex; align-items: center; gap: 12px; padding: 10px 4px 0; }
+  .m1 .m1-formula input {
+    flex: 1 1 auto; min-width: 0; margin: 0; padding: 9px 2px;
+    background: none; border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0;
+    color: var(--text); font-family: var(--font); font-size: 14px;
+  }
+  .m1 .m1-formula b { font-family: var(--font-display); font-weight: 500; font-size: 14px; color: var(--accent-lo); cursor: pointer; }
+
+  /* ══ М2 — Витрина костей ═════════════════════════════════════════════
+     Кости — главный объект: крупная сетка с решёткой волосяных линий,
+     подписи контрастные (--text), а не приглушённые. */
+  .m2 .m2-main {
+    display: flex; align-items: center; gap: 12px;
+    margin: 4px 0 0; padding: 16px 12px;
+    border-left: 3px solid var(--accent);
+    font-family: var(--font-display); color: var(--accent); cursor: pointer;
+  }
+  .m2 .m2-main .m2-d20 { font-size: 1.55em; font-weight: 600; }
+  .m2 .m2-main .m2-hint {
+    margin-left: auto; font-family: var(--font); font-size: var(--fs-sm);
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--home-sub);
+  }
+  .m2 .m2-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--home-rule); }
+  .m2 .m2-cell {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    min-height: 84px; padding: 12px 4px;
+    border-bottom: 1px solid var(--home-rule); border-right: 1px solid var(--home-rule);
+    font-family: var(--font-display); font-size: 15px; color: var(--text); cursor: pointer;
+  }
+  .m2 .m2-cell:nth-child(3n) { border-right: 0; }
+  .m2 .m2-cell:hover { color: var(--accent); }
+  .m2 .m2-cell:hover .mk-glyph { color: var(--accent-hi); }
+  .m2 .m2-formula { display: flex; align-items: center; gap: 12px; padding: 14px 4px 0; }
+  .m2 .m2-formula input {
+    flex: 1 1 auto; min-width: 0; margin: 0; padding: 9px 2px;
+    background: none; border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0;
+    color: var(--text); font-family: var(--font); font-size: 14px;
+  }
+  .m2 .m2-formula b { font-family: var(--font-display); font-weight: 500; font-size: 14px; color: var(--accent-lo); cursor: pointer; }
+  .m2 .m2-chips { display: flex; justify-content: space-between; gap: 4px; padding: 12px 2px 0; }
+  .m2 .m2-chips span { font-size: 13px; font-weight: 600; color: var(--home-sub); cursor: pointer; }
+  .m2 .m2-chips span:hover { color: var(--accent); }
+
+  /* ══ М3 — Герой d20 ══════════════════════════════════════════════════
+     Кубик — главный объект экрана. Режим тремя текстами над ним, остальные
+     кости мелкой строкой под ним, формула — в подвале. */
+  .m3 .m3-hero {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 30px 12px 26px; cursor: pointer;
+  }
+  .m3 .m3-hero .mk-glyph { color: var(--accent); }
+  .m3 .m3-hero:hover .mk-glyph { color: var(--accent-hi); }
+  .m3 .m3-hero-label { font-family: var(--font-display); font-size: 1.7em; font-weight: 600; color: var(--accent); }
+  .m3 .m3-hero-sub {
+    font-family: var(--font); font-size: var(--fs-sm); letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--home-sub);
+  }
+  .m3 .m3-rest {
+    display: flex; justify-content: space-between; gap: 6px;
+    padding: 14px 4px; border-top: 1px solid var(--home-rule); border-bottom: 1px solid var(--home-rule);
+  }
+  .m3 .m3-rest span { font-family: var(--font); font-size: 15px; font-weight: 600; color: var(--accent-lo); cursor: pointer; }
+  .m3 .m3-rest span:hover { color: var(--accent-hi); }
+  .m3 .m3-formula { display: flex; align-items: center; gap: 12px; padding: 12px 4px 0; }
+  .m3 .m3-formula input {
+    flex: 1 1 auto; min-width: 0; margin: 0; padding: 9px 2px;
+    background: none; border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0;
+    color: var(--text); font-family: var(--font); font-size: 14px;
+  }
+  .m3 .m3-formula b { font-family: var(--font-display); font-weight: 500; font-size: 14px; color: var(--accent-lo); cursor: pointer; }
+
+  /* ══ М4 — Две колонки ════════════════════════════════════════════════
+     Плотнее по вертикали: слева режим и d20, справа кости столбиком.
+     На узком экране колонки складываются стопкой (см. медиа ниже). */
+  .m4 .m4-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .m4 .m4-left { padding: 4px 14px 4px 0; border-right: 1px solid var(--home-rule); }
+  .m4 .m4-modes { display: flex; flex-direction: column; }
+  .m4 .m4-mode {
+    padding: 11px 4px; border-bottom: 1px solid var(--home-rule);
+    font-family: var(--font-display); font-size: var(--fs-md); color: var(--home-sub); cursor: pointer;
+  }
+  .m4 .m4-mode.on { color: var(--text); border-left: 3px solid var(--accent); padding-left: 10px; }
+  .m4 .m4-d20 {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+    padding: 20px 4px 6px; cursor: pointer;
+  }
+  .m4 .m4-d20 .m4-d20-label { font-family: var(--font-display); font-size: 1.5em; font-weight: 600; color: var(--accent); }
+  .m4 .m4-d20 .m4-d20-sub {
+    font-family: var(--font); font-size: var(--fs-sm); letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--home-sub);
+  }
+  .m4 .m4-right { display: flex; flex-direction: column; }
+  .m4 .m4-die {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 4px 12px 14px; border-bottom: 1px solid var(--home-rule);
+    font-family: var(--font-display); font-size: var(--fs-md); color: var(--text); cursor: pointer;
+  }
+  .m4 .m4-die:last-child { border-bottom: 0; }
+  .m4 .m4-die:hover { color: var(--accent); }
+  .m4 .m4-formula { display: flex; align-items: center; gap: 12px; padding: 14px 4px 0; }
+  .m4 .m4-formula input {
+    flex: 1 1 auto; min-width: 0; margin: 0; padding: 9px 2px;
+    background: none; border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0;
+    color: var(--text); font-family: var(--font); font-size: 14px;
+  }
+  .m4 .m4-formula b { font-family: var(--font-display); font-weight: 500; font-size: 14px; color: var(--accent-lo); cursor: pointer; }
+
+  @media (max-width: 460px) {
+    .mk-col { width: 100%; }
+    .m4 .m4-cols { grid-template-columns: 1fr; }
+    .m4 .m4-left { border-right: 0; border-bottom: 1px solid var(--home-rule); padding: 4px 0; }
+    .m4 .m4-die { padding-left: 4px; }
+  }
+</style>
+
+<div class="mk-bar">
+  <h1>DICE-UI — мокапы модалки броска</h1>
+  <button onclick="document.documentElement.setAttribute('data-theme','dark')">тёмная</button>
+  <button onclick="document.documentElement.setAttribute('data-theme','light')">светлая</button>
+  <span class="mk-dim" style="font-size:12px">ширина колонки 400px — как модалка на ПК; сузьте окно, чтобы увидеть мобильную раскладку</span>
+</div>
+
+<div class="mk-wrap">
+
+<!-- ══════════ М1 ══════════ -->
+<div class="mk-col m1">
+  <div class="mk-cap">М1 · Строгий лист</div>
+  <div class="mk-note">Ровно тот же язык, что у правого рельса и главного экрана: вертикальные строки, главное действие с рельсом слева. Кости и формула — в раскрытии, на экране всегда только нужное. Самый спокойный и самый низкий по высоте.</div>
+  <div class="mk-sheet">
+    <div class="mk-head">
+      <span class="mk-tools">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.3"/><path d="M12 17h.01"/></svg>
+      </span>
+      <span class="mk-title">Бросок кубиков</span>
+      <span class="mk-x">✕</span>
+    </div>
+    <div class="mk-modes">
+      <div class="mk-mode on">Обычный</div>
+      <div class="mk-mode">▲ Преим.</div>
+      <div class="mk-mode">▼ Помеха</div>
+    </div>
+    <div class="mk-body">
+      <div class="m1-row m1-row--main">
+        <svg class="mk-glyph" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/></svg>
+        Бросить d20
+        <span class="m1-val">17</span>
+      </div>
+      <div class="m1-row">
+        <svg width="9" height="9" viewBox="0 0 10 10" style="color:var(--accent)"><rect x="1.5" y="1.5" width="7" height="7" transform="rotate(45 5 5)" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+        Другие кости
+        <span class="m1-val">d4 – d100</span>
+      </div>
+      <div class="m1-dice">
+        <span>d4</span><span>d6</span><span>d8</span><span>d10</span><span>d12</span><span>d100</span>
+      </div>
+      <div class="m1-formula">
+        <input placeholder="Формула — 2к6+3"><b>Бросить</b>
+      </div>
+    </div>
+    <div class="mk-foot">Сбросить результат</div>
+  </div>
+</div>
+
+<!-- ══════════ М2 ══════════ -->
+<div class="mk-col m2">
+  <div class="mk-cap">М2 · Витрина костей</div>
+  <div class="mk-note">Развитие того, что стоит сейчас, с починенным контрастом и ритмом: подписи костей полноцветные, а не приглушённые, решётка волосяных линий и по вертикали тоже, ячейки выше. Все кости видны сразу, без раскрытий.</div>
+  <div class="mk-sheet">
+    <div class="mk-head">
+      <span class="mk-tools">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.3"/><path d="M12 17h.01"/></svg>
+      </span>
+      <span class="mk-title">Бросок кубиков</span>
+      <span class="mk-x">✕</span>
+    </div>
+    <div class="mk-modes">
+      <div class="mk-mode on">Обычный</div>
+      <div class="mk-mode">▲ Преим.</div>
+      <div class="mk-mode">▼ Помеха</div>
+    </div>
+    <div class="mk-body">
+      <div class="m2-main">
+        <svg class="mk-glyph" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/></svg>
+        <span class="m2-d20">d20</span>
+        <span class="m2-hint">Быстрый бросок</span>
+      </div>
+      <div class="m2-grid">
+        <div class="m2-cell"><svg class="mk-glyph" width="26" height="26" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>d4</div>
+        <div class="m2-cell"><svg class="mk-glyph" width="26" height="26" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>d6</div>
+        <div class="m2-cell"><svg class="mk-glyph" width="26" height="26" viewBox="0 0 24 24"><polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>d8</div>
+        <div class="m2-cell"><svg class="mk-glyph" width="26" height="26" viewBox="0 0 24 24"><polygon points="12,3 20,9 18,21 6,21 4,9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>d10</div>
+        <div class="m2-cell"><svg class="mk-glyph" width="26" height="26" viewBox="0 0 24 24"><polygon points="12,2 21,8 19,19 5,19 3,8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>d12</div>
+        <div class="m2-cell"><svg class="mk-glyph" width="26" height="26" viewBox="0 0 24 24"><polygon points="12,3 22,12 12,21 2,12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>d100</div>
+      </div>
+      <div class="m2-formula">
+        <input placeholder="Формула — 2к6+3"><b>Бросить</b>
+      </div>
+      <div class="m2-chips">
+        <span>к4</span><span>к6</span><span>к8</span><span>к10</span><span>к12</span><span>к20</span><span>+</span><span>−</span><span>⌫</span>
+      </div>
+    </div>
+    <div class="mk-foot">Сбросить результат</div>
+  </div>
+</div>
+
+<!-- ══════════ М3 ══════════ -->
+<div class="mk-col m3">
+  <div class="mk-cap">М3 · Герой d20</div>
+  <div class="mk-note">Кубик — главный объект экрана, а не пункт списка. В D&D девять бросков из десяти — это d20, остальные кости уходят в тонкую строку под ним. Самый «игровой» вариант и самый заметный акцент.</div>
+  <div class="mk-sheet">
+    <div class="mk-head">
+      <span class="mk-tools">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.3"/><path d="M12 17h.01"/></svg>
+      </span>
+      <span class="mk-title">Бросок кубиков</span>
+      <span class="mk-x">✕</span>
+    </div>
+    <div class="mk-modes">
+      <div class="mk-mode on">Обычный</div>
+      <div class="mk-mode">▲ Преим.</div>
+      <div class="mk-mode">▼ Помеха</div>
+    </div>
+    <div class="mk-body" style="padding-top:0">
+      <div class="m3-hero">
+        <svg class="mk-glyph" width="76" height="76" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/><path d="M12 6.6V2.2M6.6 15.9 3.5 17M17.4 15.9l3.1 1.1"/></svg>
+        <span class="m3-hero-label">d20</span>
+        <span class="m3-hero-sub">Нажмите, чтобы бросить</span>
+      </div>
+      <div class="m3-rest">
+        <span>d4</span><span>d6</span><span>d8</span><span>d10</span><span>d12</span><span>d100</span>
+      </div>
+      <div class="m3-formula">
+        <input placeholder="Формула — 2к6+3"><b>Бросить</b>
+      </div>
+    </div>
+    <div class="mk-foot">Сбросить результат</div>
+  </div>
+</div>
+
+<!-- ══════════ М4 ══════════ -->
+<div class="mk-col m4">
+  <div class="mk-cap">М4 · Две колонки</div>
+  <div class="mk-note">Самый плотный: режим и d20 слева, остальные кости строками справа — модалка становится вдвое ниже и на телефоне почти не требует прокрутки. На узком экране колонки складываются стопкой.</div>
+  <div class="mk-sheet">
+    <div class="mk-head">
+      <span class="mk-tools">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.3"/><path d="M12 17h.01"/></svg>
+      </span>
+      <span class="mk-title">Бросок кубиков</span>
+      <span class="mk-x">✕</span>
+    </div>
+    <div class="mk-body">
+      <div class="m4-cols">
+        <div class="m4-left">
+          <div class="m4-modes">
+            <div class="m4-mode on">Обычный</div>
+            <div class="m4-mode">▲ Преим.</div>
+            <div class="m4-mode">▼ Помеха</div>
+          </div>
+          <div class="m4-d20">
+            <svg class="mk-glyph" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z"/><path d="M12 6.6 17.4 15.9H6.6z"/></svg>
+            <span class="m4-d20-label">d20</span>
+            <span class="m4-d20-sub">Быстрый бросок</span>
+          </div>
+        </div>
+        <div class="m4-right">
+          <div class="m4-die"><svg class="mk-glyph" width="18" height="18" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d4</div>
+          <div class="m4-die"><svg class="mk-glyph" width="18" height="18" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>d6</div>
+          <div class="m4-die"><svg class="mk-glyph" width="18" height="18" viewBox="0 0 24 24"><polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d8</div>
+          <div class="m4-die"><svg class="mk-glyph" width="18" height="18" viewBox="0 0 24 24"><polygon points="12,3 20,9 18,21 6,21 4,9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d10</div>
+          <div class="m4-die"><svg class="mk-glyph" width="18" height="18" viewBox="0 0 24 24"><polygon points="12,2 21,8 19,19 5,19 3,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>d12</div>
+          <div class="m4-die"><svg class="mk-glyph" width="18" height="18" viewBox="0 0 24 24"><polygon points="12,3 22,12 12,21 2,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>d100</div>
+        </div>
+      </div>
+      <div class="m4-formula">
+        <input placeholder="Формула — 2к6+3"><b>Бросить</b>
+      </div>
+    </div>
+    <div class="mk-foot">Сбросить результат</div>
+  </div>
+</div>
+
+</div>

@@ -13005,15 +13005,204 @@ class da {
   }
   // all this does is start the render engine.
   render(e) {
+    this._ddPresenting = false;
     C(this, oe).runRenderLoop(this.renderLoop.bind(this)), C(this, ne).postMessage({
       action: "resumeSimulation",
       newStartPoint: e
     });
   }
   renderLoop() {
-    C(this, me) && C(this, me) === Object.keys(C(this, Z)).length ? (C(this, oe).stopRenderLoop(), C(this, ne).postMessage({
-      action: "stopSimulation"
-    }), this.onRollComplete()) : C(this, K).render();
+    // dnd-app PRESENT: раньше сцена глохла в момент осадки и кости оставались
+    // лежать кучей там, где упали, частично закрывая друг друга. Теперь по
+    // осадке идёт короткая фаза подачи: кости выезжают к камере (она смотрит
+    // сверху вниз из (0, 36.5, 0), поэтому «вперёд» = вверх по Y), выстраиваются
+    // в ряд в порядке броска и ужимаются так, чтобы ряд целиком влезал в кадр.
+    // Вращение не трогаем: сверху камера видит ровно ту грань, что выпала.
+    // onRollComplete зовётся сразу — результат в UI не ждёт конца анимации.
+    if (this._ddPresenting) {
+      if (this._ddPresentStep()) return;
+      C(this, oe).stopRenderLoop();
+      return;
+    }
+    if (C(this, me) && C(this, me) === Object.keys(C(this, Z)).length) {
+      C(this, ne).postMessage({ action: "stopSimulation" });
+      this.onRollComplete();
+      if (this._ddPresentBegin() !== true) C(this, oe).stopRenderLoop();
+      return;
+    }
+    C(this, K).render();
+  }
+  // dnd-app PRESENT: геометрия выпавшей грани. Возвращает локальную нормаль грани
+  // и локальное опорное направление внутри неё — по ним считается доворот на игрока.
+  // Верхняя грань ищется без карт тем: у осевшей кости её вершины лежат на
+  // максимальной мировой высоте, а набор этих вершин один и тот же для данной
+  // грани при любом положении кости — поэтому «первая по индексу» из них даёт
+  // устойчивую опорную точку для поворота цифры.
+  _ddFaceBasis(mesh) {
+    var pos = mesh.getVerticesData("position");
+    if (!pos || pos.length < 9) return null;
+    var wm = mesh.computeWorldMatrix(true);
+    var VEC = mesh.position.constructor;
+    var radius = 1;
+    try { radius = mesh.getBoundingInfo().boundingSphere.radiusWorld || 1; } catch (err) {}
+    var i, maxY = -Infinity, wy = [];
+    for (i = 0; i < pos.length; i += 3) {
+      var w = VEC.TransformCoordinates(new VEC(pos[i], pos[i + 1], pos[i + 2]), wm);
+      wy.push(w.y);
+      if (w.y > maxY) maxY = w.y;
+    }
+    var eps = Math.max(1e-4, radius * 0.06);
+    var cx = 0, cy = 0, cz = 0, n = 0, firstIdx = -1;
+    for (i = 0; i < wy.length; i++) {
+      if (wy[i] < maxY - eps) continue;
+      if (firstIdx < 0) firstIdx = i;
+      cx += pos[i * 3]; cy += pos[i * 3 + 1]; cz += pos[i * 3 + 2];
+      n++;
+    }
+    if (n < 3 || firstIdx < 0) return null;
+    cx /= n; cy /= n; cz /= n;
+    var nl = new VEC(cx, cy, cz);
+    if (nl.length() < 1e-6) return null;
+    nl.normalize();
+    // Опора внутри плоскости грани: от центра грани к её «первой» вершине,
+    // с вычетом составляющей вдоль нормали.
+    // Опора внутри плоскости грани. Раньше бралась «первая вершина грани» — из-за
+    // фасок в кластер попадали вершины соседних граней, набор плавал, и цифра
+    // доворачивалась на случайный угол (замеры: 0°, 10°, 60°). Куда у цифры «низ»,
+    // знает модель кости, а не геометрия, вывести это из треугольника нельзя.
+    // Поэтому свой угол не выдумываем: берём любую устойчивую ось, а её мировое
+    // направление сохраняем как есть — грань выравнивается на камеру, а поворот
+    // цифры в плоскости остаётся тем, что дала физика.
+    var ax = Math.abs(nl.x) < 0.9 ? new VEC(1, 0, 0) : new VEC(0, 0, 1);
+    var dot = ax.x * nl.x + ax.y * nl.y + ax.z * nl.z;
+    var rl = new VEC(ax.x - nl.x * dot, ax.y - nl.y * dot, ax.z - nl.z * dot);
+    if (rl.length() < 1e-6) return null;
+    rl.normalize();
+    return { n: nl, r: rl, VEC: VEC, MAT: wm.constructor, wm: wm };
+  }
+  // dnd-app PRESENT: расчёт целей подачи. false — подавать нечего, глушим сцену.
+  _ddPresentBegin() {
+    try {
+      var dice = Object.values(C(this, Z)).filter(function (d) { return d && d.mesh; });
+      if (dice.length === 0) return false;
+      // d100 — пара мешей (d10 + d10Instance) в двух записях коллекции; разводить
+      // их по разным местам ряда нельзя, поэтому подачу для d100 пропускаем.
+      if (dice.some(function (d) { return d.d10Instance; })) return false;
+      var cam = C(this, at), eng = C(this, oe);
+      if (cam === undefined || eng === undefined) return false;
+      var camY = cam.position.y;
+      var y = Math.min(camY - cam.minZ * 2.2, camY * 0.42);
+      var dist = Math.max(1, camY - y);
+      var halfH = Math.tan(cam.fov / 2) * dist;
+      var aspect = (eng.getRenderWidth() || 1) / (eng.getRenderHeight() || 1);
+      var halfW = halfH * aspect;
+      var n = dice.length;
+      var step = halfW * 2 * 0.86 / n;
+      var size = Math.min(step * 0.8, halfH * 1.4);
+      var self = this;
+      this._ddPresent = dice.map(function (d, i) {
+        var m = d.mesh;
+        var dia = 1;
+        try {
+          dia = Math.max(0.001, m.getBoundingInfo().boundingSphere.radiusWorld * 2);
+        } catch (err) {}
+        var s0 = m.scaling.x || 1;
+        // Доворот: выпавшая грань должна смотреть точно в камеру (нормаль → +Y),
+        // а цифра — стоять ровно (опора грани → «вверх экрана», это мировое −Z,
+        // потому что камера висит над сценой и смотрит вниз).
+        // dnd-app PRESENT: доворот грани на камеру ВЫКЛЮЧЕН. Способ поиска
+        // выпавшей грани по кластеру вершин на максимальной высоте оказался
+        // неверным: замер мировой нормали такой «грани» у осевшей кости дал
+        // [-0.35, 0.907, 0.233] вместо ожидаемых [0, 1, 0] — отклонение 25°,
+        // то есть на камеру доворачивалась не та плоскость. Из-за фасок и
+        // рельефа цифр центр кластера уезжает. Правильный путь — брать грань
+        // из коллайдера и colliderFaceMap, как это делает сам dice-box в
+        // Dice.getRollResult (лучом вверх из центра кости): там грань
+        // определяется однозначно, а порядок вершин устойчив.
+        // _ddFaceBasis и _ddAimQuat оставлены — основа для этой доработки.
+        var q0 = null, q1 = null;
+        return {
+          mesh: m,
+          p0: { x: m.position.x, y: m.position.y, z: m.position.z },
+          s0: s0,
+          q0: q0,
+          q1: q1,
+          x: (i - (n - 1) / 2) * step,
+          y: y,
+          z: 0,
+          s1: Math.max(s0 * 0.05, s0 * (size / dia))
+        };
+      });
+      this._ddPresentT = 0;
+      this._ddPresentLast = performance.now();
+      this._ddPresenting = true;
+      return true;
+    } catch (err) {
+      this._ddPresenting = false;
+      return false;
+    }
+  }
+  // dnd-app PRESENT: целевой кватернион «грань на игрока». Строится матрицей
+  // перехода из локального базиса грани (нормаль, опора, их векторное) в мировой
+  // (+Y, −Z, +X). DD_FACE_SPIN — доводка поворота цифры в плоскости грани:
+  // модель кости знает, где у цифры «низ», а геометрия — нет, поэтому константа.
+  _ddAimQuat(basis, QUAT) {
+    var VEC = basis.VEC, MAT = basis.MAT;
+    var a1 = basis.n, a2 = basis.r;
+    var a3 = VEC.Cross(a1, a2);
+    // Нормаль грани уводим точно в камеру (+Y). Опору переносим в её ТЕКУЩЕЕ
+    // мировое направление, спроецированное на плоскость экрана: так грань
+    // выравнивается, а кость не подкручивается вокруг своей оси на ровном месте.
+    var b1 = new VEC(0, 1, 0);
+    var cur = VEC.TransformNormal(a2, basis.wm);
+    var b2 = new VEC(cur.x, 0, cur.z);
+    if (b2.length() < 1e-6) b2 = new VEC(0, 0, -1);
+    b2.normalize();
+    var b3 = VEC.Cross(b1, b2);
+    var r11 = a1.x * b1.x + a2.x * b2.x + a3.x * b3.x;
+    var r12 = a1.x * b1.y + a2.x * b2.y + a3.x * b3.y;
+    var r13 = a1.x * b1.z + a2.x * b2.z + a3.x * b3.z;
+    var r21 = a1.y * b1.x + a2.y * b2.x + a3.y * b3.x;
+    var r22 = a1.y * b1.y + a2.y * b2.y + a3.y * b3.y;
+    var r23 = a1.y * b1.z + a2.y * b2.z + a3.y * b3.z;
+    var r31 = a1.z * b1.x + a2.z * b2.x + a3.z * b3.x;
+    var r32 = a1.z * b1.y + a2.z * b2.y + a3.z * b3.y;
+    var r33 = a1.z * b1.z + a2.z * b2.z + a3.z * b3.z;
+    var mtx = MAT.FromValues(r11, r12, r13, 0, r21, r22, r23, 0, r31, r32, r33, 0, 0, 0, 0, 1);
+    return QUAT.FromRotationMatrix(mtx);
+  }
+  // dnd-app PRESENT: один кадр подачи. true — анимация ещё идёт.
+  _ddPresentStep() {
+    try {
+      var now = performance.now();
+      var dt = Math.min(64, now - this._ddPresentLast);
+      this._ddPresentLast = now;
+      this._ddPresentT = Math.min(1, this._ddPresentT + dt / 640);
+      var t = this._ddPresentT;
+      var e = 1 - Math.pow(1 - t, 3);
+      for (var i = 0; i < this._ddPresent.length; i++) {
+        var it = this._ddPresent[i];
+        if (it.mesh === undefined || it.mesh.isDisposed()) continue;
+        it.mesh.position.set(
+          it.p0.x + (it.x - it.p0.x) * e,
+          it.p0.y + (it.y - it.p0.y) * e,
+          it.p0.z + (it.z - it.p0.z) * e
+        );
+        var s = it.s0 + (it.s1 - it.s0) * e;
+        it.mesh.scaling.set(s, s, s);
+        if (it.q0 && it.q1 && it.mesh.rotationQuaternion) {
+          var QUAT = it.q0.constructor;
+          QUAT.SlerpToRef(it.q0, it.q1, e, it.mesh.rotationQuaternion);
+        }
+      }
+      C(this, K).render();
+      if (t < 1) return true;
+      this._ddPresenting = false;
+      return false;
+    } catch (err) {
+      this._ddPresenting = false;
+      return false;
+    }
   }
   async loadTheme(e) {
     const { theme: t, basePath: i, material: r, meshFilePath: s, meshName: n } = e;
@@ -13033,6 +13222,7 @@ class da {
     this.onThemeLoaded({ id: t });
   }
   clear() {
+    this._ddPresenting = false;
     !Object.keys(C(this, Z)).length && !C(this, me) || (this.diceBufferView.byteLength && this.diceBufferView.fill(0), C(this, Ve).forEach((e) => clearTimeout(e)), C(this, oe).stopRenderLoop(), Object.values(C(this, Z)).forEach((e) => {
       e.mesh && e.mesh.dispose();
     }), ie(this, Z, {}), ie(this, Be, 0), ie(this, me, 0), C(this, K).render());

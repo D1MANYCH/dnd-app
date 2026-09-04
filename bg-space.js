@@ -30,6 +30,10 @@
 
     var W = 0, H = 0, cx = 0, cy = 0, minDim = 0;
     var raf = 0, resizeT = 0, killed = false, time = 0;
+    // PERF: df — длина кадра в единицах 1/60 с. Сцена рисуется реже 60 гц,
+    // поэтому всё, что раньше шагало «на кадр», умножается на df — иначе
+    // пыль и падающие звёзды поехали бы вдвое медленнее.
+    var df = 1;
     var stars = [], nebulae = [], orbits = [], arcs = [], dust = [], comets = [], shots = [];
     var nextShot = 8;
     var mx = 0, my = 0, tmx = 0, tmy = 0;
@@ -153,7 +157,7 @@
     };
 
     var draw = () => {
-      mx += (tmx - mx) * 0.03; my += (tmy - my) * 0.03;
+      mx += (tmx - mx) * 0.03 * df; my += (tmy - my) * 0.03 * df;
       var px = mx * 8, py = my * 8;
 
       // Фон-виньетка
@@ -181,7 +185,7 @@
 
       // Пыль
       for (var d of dust) {
-        d.x += d.vx; d.y += d.vy;
+        d.x += d.vx * df; d.y += d.vy * df;
         if (d.x < -110) d.x = W + 100; if (d.x > W + 110) d.x = -100;
         if (d.y < -110) d.y = H + 100; if (d.y > H + 110) d.y = -100;
         var tw = 0.55 + 0.45 * Math.sin(time * d.om + d.ph);
@@ -250,7 +254,7 @@
           nextShot = time + rand(6, 14);
         }
         for (var sh of shots) {
-          sh.x += sh.vx * 2; sh.y += sh.vy * 2; sh.life -= 0.016;
+          sh.x += sh.vx * 2 * df; sh.y += sh.vy * 2 * df; sh.life -= 0.016 * df;
           if (sh.life <= 0) continue;
           var a = Math.max(0, sh.life * (1 - sh.life) * 4) * (dark ? 0.75 : 0.4);
           var lg = ctx.createLinearGradient(sh.x, sh.y, sh.x - sh.vx * 12, sh.y - sh.vy * 12);
@@ -262,11 +266,26 @@
       }
     };
 
-    var loop = () => {
+    // PERF: фон рисуется 30 кадров в секунду, а не 60. Звёздное поле движется
+    // медленно — разницы не видно, но каждый кадр канваса заставляет
+    // композитор заново считать backdrop-filter всех стеклянных поверхностей
+    // поверх него (#bgGlass, .card, .hp-card и пр.) — именно это съедало плавность
+    // прокрутки и переходов.
+    var FRAME_MS = 1000 / 30;
+    var lastT = 0;
+    var loop = (now) => {
       if (killed) return;
-      time += 0.016;
-      draw();
       raf = requestAnimationFrame(loop);
+      if (typeof now !== 'number') now = performance.now();
+      if (!lastT) { lastT = now; return; }
+      var dt = now - lastT;
+      if (dt < FRAME_MS) return;
+      lastT = now;
+      // после свёрнутой вкладки dt бывает в секунды — ограничиваем, иначе сцена дёргается
+      if (dt > 100) dt = 100;
+      df = dt / 16.67;
+      time += dt / 1000;
+      draw();
     };
 
     init();
@@ -292,6 +311,7 @@
     var onVis = () => {
       if (!animate) return;
       cancelAnimationFrame(raf);
+      lastT = 0;
       if (!document.hidden && !killed) raf = requestAnimationFrame(loop);
     };
     document.addEventListener('visibilitychange', onVis);
@@ -310,6 +330,7 @@
     destroy.resume = function () {
       if (killed || !animate) return;
       cancelAnimationFrame(raf);
+      lastT = 0;
       raf = requestAnimationFrame(loop);
     };
     return destroy;
