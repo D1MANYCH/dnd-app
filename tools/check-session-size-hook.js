@@ -13,6 +13,10 @@ const HARD_REQ = 150;   // жёсткий: резать сессию
 const WARN_CTX = 150000;
 const HARD_CTX = 200000;
 
+// $/Mtok, Opus 5 — чтобы печатать цену сессии, а не только её размер.
+// Запись в кеш тарифицируется по TTL: 5m — 1.25 базового входа, 1h — 2.
+const PRICE = { in: 5, out: 25, read: 0.5, write5m: 6.25, write1h: 10 };
+
 function readStdin() {
   return new Promise((resolve) => {
     let buf = '';
@@ -39,12 +43,25 @@ function readStdin() {
   // Считаем только основную сессию: строки сабагентов (isSidechain) в том же
   // файле, но их контекст живёт отдельно и на цену главной сессии не влияет.
   const lines = text.split(String.fromCharCode(10));
-  let req = 0, ctx = 0;
+  let req = 0, ctx = 0, cost = 0;
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
     if (l.indexOf('"cache_read_input_tokens"') === -1) continue;
     if (l.indexOf('"isSidechain":true') !== -1) continue;
     req++;
+    // Размер сессии — это ещё не её цена: запись в кеш даёт треть счёта при
+    // доле в токенах меньше процента. Считаем деньги, а не токены.
+    try {
+      const u = JSON.parse(l).message.usage;
+      const cc = u.cache_creation || {};
+      const w1h = cc.ephemeral_1h_input_tokens || 0;
+      const w5m = cc.ephemeral_5m_input_tokens || 0;
+      const wRest = Math.max(0, (u.cache_creation_input_tokens || 0) - w1h - w5m);
+      cost += ((u.cache_read_input_tokens || 0) * PRICE.read +
+        (u.input_tokens || 0) * PRICE.in +
+        (u.output_tokens || 0) * PRICE.out +
+        w1h * PRICE.write1h + (w5m + wRest) * PRICE.write5m) / 1e6;
+    } catch (e) { /* строка не разобралась — цену по ней не считаем */ }
   }
   for (let i = lines.length - 1; i >= 0 && !ctx; i--) {
     const l = lines[i];
@@ -60,7 +77,8 @@ function readStdin() {
   const warn = req >= WARN_REQ || ctx >= WARN_CTX;
   if (!warn) process.exit(0);
 
-  const size = req + ' запросов, контекст ' + Math.round(ctx / 1000) + 'k';
+  const size = req + ' запросов, контекст ' + Math.round(ctx / 1000) + 'k' +
+    (cost >= 0.5 ? ', ≈$' + cost.toFixed(2) + ' по тарифам API' : '');
   const msg = hard
     ? '⛔ Сессия разрослась: ' + size + '. Закрыть: /carry → /clear. Дальше каждый вызов дорожает.'
     : '⚠ Сессия: ' + size + '. Подходит порог ' + HARD_REQ + ' запросов — планируй /carry и /clear.';
