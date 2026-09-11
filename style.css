@@ -2631,12 +2631,11 @@ font-variant-numeric: tabular-nums;
 }
 
 /* ========== СПАСБРОСКИ ========== */
+/* STYLE-8a3: классический режим — спасброски плоскими строками, коробка секции
+   и коробки .save-item сняты там, где объявлялись; владение кодирует цвет имени. */
 .saves-section {
-background: var(--input-bg);
-border: 1px solid var(--border-color);
-border-radius: var(--r-md);
-padding: 15px;
-margin-top: 15px;
+padding: 0;
+margin-top: var(--sp-2);
 }
 .saves-section h4 {
 color: var(--accent-color);
@@ -2654,18 +2653,11 @@ grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 gap: var(--sp-2);
 }
 .save-item {
-background: var(--card-bg);
-border: 1px solid var(--border-color);
-border-radius: 8px;
-padding: 9px 10px;
+padding: 6px 0;
+border-bottom: 1px solid var(--home-rule);
 display: flex;
 flex-direction: column;
 gap: 5px;
-transition: all 0.2s;
-}
-.save-item.proficient {
-border-color: var(--accent-color);
-background: var(--accent-soft);
 }
 .save-header {
 display: flex;
@@ -2743,7 +2735,7 @@ font-weight: 600;
 color: var(--text-color);
 font-size: 0.9em;
 }
-.save-item.proficient .save-name { color: var(--accent-color); }
+.save-item.proficient .save-name { color: var(--accent-lo); } /* STYLE-8a3: акцент на --bg-0 в светлой давал 4.43 */
 .save-value {
 display: flex;
 justify-content: space-between;
@@ -3613,15 +3605,17 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
 .hidden { display: none !important; }
 .empty-list { text-align: center; padding: 40px 20px; color: var(--text-muted); font-style: italic; }
 
+/* STYLE-8a3: пассивная внимательность — строка «подпись · значение», не плитка */
 .passive-wisdom {
-background: var(--input-bg);
-padding: 15px;
-border-radius: var(--r-md);
-text-align: center;
+display: flex;
+align-items: baseline;
+justify-content: space-between;
+gap: var(--sp-2);
+padding: 6px 0;
 margin-top: 10px;
-border: 1px solid var(--border-color);
+border-bottom: 1px solid var(--home-rule);
 }
-.passive-wisdom .value { font-size: 2.2em; font-weight: bold; color: var(--accent-color); }
+.passive-wisdom .value { font-size: 1.15em; font-weight: 600; color: var(--accent-lo); }
 
 
 /* STYLE-8M-2: экран выбора персонажа — обёртка-карточка потеряла коробку,
@@ -7987,19 +7981,16 @@ html[data-stats-layout="2024"] .abil-strip { column-span: all; margin-bottom: va
 .abil-passive strong { color: var(--accent-color); font-weight: 800; }
 html[data-stats-layout="2024"] .abil-passive { column-span: all; }
 
-/* ── Карточка характеристики (вид 2024) ── */
+/* ── Карточка характеристики (вид 2024) ──
+   STYLE-8a3: коробка снята здесь, а не перебивкой — в реестре 2024 её и так
+   гасил блок 8a2, в классическом режиме она оставалась последней коробкой листа. */
 .abil-card {
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-md);
   padding: 10px 12px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-width: 0;
-  transition: border-color 0.2s;
 }
-.abil-card:hover { border-color: var(--accent-color); }
 .abil-card-head {
   display: flex;
   align-items: baseline;
@@ -8199,6 +8190,9 @@ html[data-stats-layout="2024"] .abil-card-label { display: none; }
 html[data-stats-layout="classic"] .abilities-region {
   grid-template-columns: repeat(6, 1fr);
   gap: var(--sp-1);
+  /* STYLE-8a3: ячейки без коробок — сетку замыкает одна волосяная линия */
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--home-rule);
 }
 @media (max-width: 540px) {
   html[data-stats-layout="classic"] .abilities-region {
@@ -13425,7 +13419,6 @@ textarea:focus-visible {
    (--card-bg зависит от --glass-alpha, --glass-blur) — их не трогаем.
 ============================================================ */
 .card,
-.abil-card,
 .accordion-card-inner,
 .ac-calc-section,
 .cc-card,
@@ -13436,7 +13429,8 @@ textarea:focus-visible {
      запись и взятая черта стали плоскими строками с ромбом.
      STYLE-8M-2: .char-card и .bp-card убраны — персонаж в списке и билд в
      пикере тоже стали плоскими строками.
-     STYLE-8e2: .party-section-card убрана — раздел «Мира» не карточка с 8e. */
+     STYLE-8e2: .party-section-card убрана — раздел «Мира» не карточка с 8e.
+     STYLE-8a3: .abil-card убрана — характеристика плоская и в реестре, и в классике. */
   border-radius: var(--r-lg);
   border: 1px solid var(--border-soft);
   box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-card);
@@ -13589,27 +13583,11 @@ textarea:focus-visible {
    с подсветкой текущего хода две складывались в мутный третий цвет. */
 .tracker-row-self { background: none; }
 
-/* ══ STYLE-8e: вкладка «Мир» — та же вложенная подложка ═══════════════════
-   Продолжение блоков выше. .pcard стояла в группе STYLE-5 и получала оформление
-   карточки-контейнера, хотя лежит ВНУТРИ .party-section-card — тот же случай,
-   что .inv-coin-card на 8c. Своя коробка была на двух сырых rgba
-   (фон .03, рамка .07); цитаты .pcard-desc и .pcard-tactics держали радиус
-   литералом (0 4px 4px 0) и полосу слева на --border / сыром rgba.
-   Полоса слева у .pcard — индикация типа участника (я / персонаж / монстр /
-   прихвостень), она остаётся, но объявлена НИЖЕ группового правила: иначе
-   border: 1px из него её срезает. */
-.pcard {
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-md);
-  box-shadow: inset 0 1px 0 var(--glass-hi);
-  border-left: 3px solid var(--accent-color);
-}
-.pcard:hover { border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
-.pcard-self      { border-left-color: var(--success); }
-.pcard-npc       { border-left-color: var(--slot-gold); }
-.pcard-monster   { border-left-color: var(--danger); }
-.pcard-companion { border-left-color: var(--magic); }
+/* ══ STYLE-8e: вкладка «Мир» ═══════════════════════════════════════════════
+   STYLE-8a3: базовая коробка .pcard (фон, рамка, полоса типа слева, :hover)
+   удалена как мёртвая — на «Мире» её гасил #tab-party .pcard, на «Листе»
+   #tab-sheet .pcard (A9), а больше .pcard нигде не рендерится. Тип участника
+   кодирует ромб ::before ниже. */
 /* Цитаты внутри карточки — плоские: карточка уже стоит на --bg-2, вторая такая
    же подложка внутри неё не читалась бы. Оставлена только планка слева;
    у тактики монстра она красная — это кодировка данных, а не декор. */
@@ -15196,7 +15174,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 }
 #tab-sheet .prof-add-row button:hover { filter: none; color: var(--accent); }
 
-/* ── A9: прихвостни на листе (на «Мире» их сплющила 8e, здесь остались коробкой) ── */
+/* ── A9: прихвостни на листе — строки с волосяной линией, как на «Мире» после 8e ── */
 #tab-sheet .pcard {
   background: none;
   border: none;
