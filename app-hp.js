@@ -5,13 +5,12 @@
 
 function openRestModal() {
 if (!currentId) { showToast("Сначала выберите персонажа!", "warn"); return; }
-const modal = $("rest-modal");
-if (modal) modal.classList.add("active");
 showRestMain();
+if (typeof showScreen === "function") showScreen("rest");
 }
 function closeRestModal() {
-const modal = $("rest-modal");
-if (modal) modal.classList.remove("active");
+// STYLE-8M-3: «Отдых» — экран; уходим только если он и открыт.
+if (typeof currentScreenName === "function" && currentScreenName() === "rest") screenBack();
 currentRestType = null;
 hitDiceToSpend = 0;
 }
@@ -217,8 +216,7 @@ if (char.classes && char.classes.length > 0 && char.class) {
   _showLevelUpPreview(char, char.class, CLASS_HIT_DICE[char.class] || 8, false);
 }
 
-const modal = $("levelup-modal");
-if (modal) modal.classList.add("active");
+if (typeof showScreen === "function") showScreen("levelup");
 }
 
 function _showMulticlassScreen(char) {
@@ -491,8 +489,9 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
   }
 }
 function closeLevelUpModal() {
-const modal = $("levelup-modal");
-if (modal) modal.classList.remove("active");
+// STYLE-8M-3: «Повышение уровня» — экран; зовётся и после отката с листа,
+// поэтому уходим назад только когда экран действительно открыт.
+if (typeof currentScreenName === "function" && currentScreenName() === "levelup") screenBack();
 // LVL-2: повышение и откат заканчиваются на листе — если их начали с экрана
 // «Развитие», возвращаем туда же.
 if (typeof pgAfterLevelModal === "function") pgAfterLevelModal();

@@ -210,6 +210,10 @@ f.addEventListener('load', () => {
       if (modal === 'settings') w.openSettingsModal();
       else if (modal === 'whatsnew') w.showWhatsNewModal('3.42.0', (w.APP_VERSION || '3.43.3'));
       else if (modal === 'levelup') w.openLevelUpModal();
+      // STYLE-8M-3: отдых и каталоги — экраны; каталоги грузят данные лениво.
+      else if (modal === 'rest') { w.openRestModal(); if (q.get('rest')) (q.get('rest') === 'long' ? w.showLongRestInfo : w.showShortRestInfo)(); }
+      else if (modal === 'magiccatalog') { w.openMagicCatalog(); await new Promise(r => setTimeout(r, 600)); }
+      else if (modal === 'gearcatalog') { w.openGearCatalog(); await new Promise(r => setTimeout(r, 600)); }
       // STYLE-8M: окна встречающего экрана. &backup=1 разворачивает панель
       // резервных копий и кладёт в неё одну свежую (иначе список пуст).
       else if (modal === 'data') {

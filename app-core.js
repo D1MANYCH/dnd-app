@@ -334,15 +334,20 @@ if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.e
 // «←» возвращал на вкладку «Развитие» (лист — глубина 2, стек это переживает).
 var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3,
                      help: 3, builds: 3, buildguide: 4, buildplan: 4, abilityinfo: 3,
-                     featureinfo: 4 };
+                     featureinfo: 4, levelup: 3, rest: 3, magiccatalog: 3, gearcatalog: 3 };
 // Экраны-страницы: у них нет своего персонажа, currentId не трогаем — иначе
 // «Настройки» с листа выбрасывали бы из персонажа.
 var PAGE_SCREENS = ["data", "settings", "about", "help", "builds", "buildguide", "buildplan", "abilityinfo",
-                    "featureinfo"];
+                    "featureinfo", "levelup", "rest", "magiccatalog", "gearcatalog"];
 var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О версии",
                     help: "Справка", builds: "Готовые билды",
                     buildguide: "Гайд по билду", buildplan: "План развития",
-                    featureinfo: "Умение" };
+                    featureinfo: "Умение", levelup: "Повышение уровня", rest: "Отдых",
+                    magiccatalog: "Каталог магических предметов", gearcatalog: "Каталог снаряжения" };
+// STYLE-8M-3: повышение уровня и отдых — экраны поверх листа: они зовут
+// loadCharacter посреди своего сценария, и лист перерисовывается под ними,
+// не переключая экран (иначе результат пропадал бы до кнопки «Готово»).
+var SHEET_FLOW_SCREENS = ["levelup", "rest"];
 // Стек экранов, из которых уходили вперёд. Не персистится — в рамках сессии.
 var _screenStack = [];
 
@@ -362,13 +367,18 @@ function screenBack() {
  * Модалка `fixed` и осталась бы висеть поверх нового экрана: справка
  * открывается из дайс-модалки, план развития — из окна повышения уровня,
  * гайд билда — сразу после применения билда из пикера.
- * Видимость проверяем через offsetParent: класс .active остаётся и на
- * спрятанных элементах (гоча 8M-2a).
+ * Видимость проверяем по getClientRects: класс .active остаётся и на
+ * спрятанных элементах (гоча 8M-2a), а offsetParent у position:fixed
+ * (форма предмета) всегда null — по нему видимая модалка читалась бы как
+ * скрытая (гоча 8M-3).
  */
+function _modalVisible(el) {
+  return !!el && el.getClientRects().length > 0;
+}
 function _closeOpenModals() {
   var m = document.querySelectorAll('.modal.active');
   for (var i = m.length - 1; i >= 0; i--) {
-    if (m[i].offsetParent === null) continue;
+    if (!_modalVisible(m[i])) continue;
     if (typeof closeModal === "function") closeModal(m[i].id);
     else m[i].classList.remove("active");
   }
@@ -387,8 +397,13 @@ document.addEventListener("keydown", function (e) {
   // Проверяем именно ВИДИМУЮ модалку: класс .active может остаться на скрытом
   // элементе, и тогда Escape на странице переставал бы работать вовсе.
   var m = document.querySelectorAll('.modal.active, .confirm-modal-overlay.active');
-  for (var i = 0; i < m.length; i++) if (m[i].offsetParent !== null) return;
-  if (PAGE_SCREENS.indexOf(currentScreenName()) >= 0) screenBack();
+  for (var i = 0; i < m.length; i++) if (_modalVisible(m[i])) return;
+  var _cur = currentScreenName();
+  if (PAGE_SCREENS.indexOf(_cur) < 0) return;
+  // Escape ≡ «← Назад» самой страницы: у каталогов возврат восстанавливает
+  // форму предмета, у повышения уровня — довершает сценарий «Развития».
+  var _pb = document.querySelector("#screen-" + _cur + " .page-back");
+  if (_pb) _pb.click(); else screenBack();
 });
 
 // ── MOTION: переход между экранами ──────────────────────────────
@@ -1339,7 +1354,7 @@ renderAllies();
 renderNPCs();
 renderMonsters();
 renderSheetAvatar();
-showScreen("character");
+if (SHEET_FLOW_SCREENS.indexOf(currentScreenName()) < 0) showScreen("character");
 // Вход в персонажа всегда открывает «Лист персонажа». switchTab()
 // централизованно сбрасывает .active у tab-content, кнопок нижнего
 // таб-бара И пунктов сайдбара/drawer (.drawer-item-active), плюс

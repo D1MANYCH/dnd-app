@@ -11,10 +11,10 @@
 
 | Раздел | Строки в map.md |
 |---|---|
-| style.css — секции | 20–131 |
-| index.html — блоки верхнего уровня (`#id:строки`) | 132–169 |
-| Функции по файлам (`имя:строка`) | 170–243 |
-| Данные — константы верхнего уровня (`имя:строка`) | 244–260 |
+| style.css — секции | 20–132 |
+| index.html — блоки верхнего уровня (`#id:строки`) | 133–170 |
+| Функции по файлам (`имя:строка`) | 171–244 |
+| Данные — константы верхнего уровня (`имя:строка`) | 245–261 |
 
 
 ## style.css — секции
@@ -37,97 +37,98 @@
 | 1016–1317 | STYLE-8M-2: СТРАНИЦА-ЭКРАН. |
 | 1318–1323 | R2. Базовые компоненты |
 | 1324–1482 | UI-2. Кнопки v3 + анимации (общая секция, обе темы) |
-| 1483–1756 | UI-3. Desktop/tablet layout (≥1024px) |
-| 1757–1859 | UI5-4: ПК — многоколоночная раскладка листа |
-| 1860–1935 | /R2 |
-| 1936–2109 | ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА (R5: компактная одна строка) |
-| 2110–2271 | HEADER (R5: back + name + hamburger) |
-| 2272–2337 | КД АВТО-РАСЧЁТ |
-| 2338–2407 | ФИЛЬТР-БАР (состояния и эффекты) |
-| 2408–2473 | ВРЕМЕННЫЕ ЭФФЕКТЫ |
-| 2474–2633 | УСЛОВИЯ |
-| 2634–2788 | СПАСБРОСКИ |
-| 2789–2926 | CLASS FEATURES |
-| 2927–2966 | УБИРАЕМ СТРЕЛКИ |
-| 2967–3071 | TAB NAV — 5 tabs + centered FAB dice |
-| 3072–3194 | UX-5: лента последних бросков вне модалки |
-| 3195–3371 | Плавающий чип активных эффектов заклинаний (char.activeSpellEffects). |
-| 3372–3391 | HAMBURGER BUTTON |
-| 3392–3433 | SIDE DRAWER |
-| 3434–3932 | STYLE-8L: сайдбар в языке встречающего экрана |
-| 3933–3980 | MENU-8/9: встречающий экран во всё окно. |
-| 3981–4072 | MENU-2: плашка последнего героя. |
-| 4073–4247 | MENU-3: меню приключения. |
-| 4248–4318 | MENU-11: адаптив встречающего экрана, доступность, спокойное движение. |
-| 4319–4319 | INVENTORY |
-| 4320–4350 | INVENTORY — WEIGHT BAR |
-| 4351–4387 | INVENTORY — BACKPACK HEADER |
-| 4388–4428 | INVENTORY — FILTERS |
-| 4429–4613 | INVENTORY — ITEM CARDS |
-| 4614–4951 | COINS — BIG NUMBER CARD GRID |
-| 4952–5214 | MODALS |
-| 5215–5249 | DICE |
-| 5250–5830 | v3.18: DICE MODAL — новый UX (header tools + 2-col body + popovers) |
-| 5831–6746 | OTHER STYLES |
-| 6747–6815 | HP DISPLAY BLOCK |
-| 6816–6841 | MOBILE OPTIMIZATION |
-| 6842–6991 | LEVEL UP MODAL |
-| 6992–7030 | HP TOAST (snackbar) |
-| 7031–7080 | HP HISTORY MODAL |
-| 7081–7134 | Confirm Modal |
-| 7135–7542 | ⚔️ ОТРЯД & БОЙ |
-| 7543–7781 | RACIAL BONUS BAR |
-| 7782–7928 | COMPACT STATS GRID |
-| 7929–8199 | UI6-4: ЛИСТ ХАРАКТЕРИСТИК — режимы «2024» / «Классический». |
-| 8200–8249 | Режим «Классический»: регион эмулирует сетку 6/3, карточки — |
-| 8250–8300 | UI-fix: телефон (≤767px) + вид 2024 — компактные карточки в 2 колонки. |
-| 8301–8400 | COMPACT SKILLS |
-| 8401–8443 | UI5-5: МОБИЛЬНЫЕ ТАЧ-ТАРГЕТЫ (≥44px) |
-| 8444–8515 | ACCORDION |
-| 8516–8539 | CLASS RESOURCES |
-| 8540–8630 | ASI MODAL |
-| 8631–8876 | APP VERSION |
-| 8877–8886 | COMPANIONS |
-| 8887–8926 | FEATS LIST IN ASI |
-| 8927–9172 | PROFILES TABS (Чейнджлог) |
-| 9173–9251 | TAKEN FEATS |
-| 9252–9448 | SW UPDATE MODAL |
-| 9449–9455 | УНИВЕРСАЛЬНЫЕ TOAST-УВЕДОМЛЕНИЯ |
-| 9456–9466 | SPELL CLASS FILTER COMPACT |
-| 9467–9675 | INVENTORY SLOTS SYSTEM |
-| 9676–9871 | HELP / ONBOARDING (HELP-1) — табовый help-центр. |
-| 9872–10120 | HELP-3 — Приветствие первого запуска (#welcome-modal) |
-| 10121–10293 | HELP-4 — Движок интерактивного тура (подсветка). |
-| 10294–10363 | 3D DICE CUBE |
-| 10364–10715 | FEAT-LOG: панель журнала сессии (выезжает справа) |
-| 10716–10785 | DESKTOP LAYOUT — centered max-width |
-| 10786–10806 | INSPIRATION |
-| 10807–10846 | CONCENTRATION |
-| 10847–11531 | WEAPON CARDS WITH ROLL BUTTONS |
-| 11532–11639 | ПОПАП РЕЖИМА БРОСКА (Преимущество / Помеха) |
-| 11640–11702 | СОПРОТИВЛЕНИЯ / ИММУНИТЕТЫ / УЯЗВИМОСТИ |
-| 11703–11729 | БОЙ ДВУМЯ ОРУЖИЯМИ (Two-Weapon Fighting) |
-| 11730–11850 | КЛАССОВЫЕ ВЫБОРЫ — карточки в asi-container |
-| 11851–11877 | R6: Ассеты (декор) |
-| 11878–12829 | 📝 Вкладка «Записи по персонажу» — фаза N2 |
-| 12830–12906 | STYLE-4b: кнопки, которым ширину давал элементный button{width:100%}. |
-| 12907–12927 | BUGFIX-6: мобильная вёрстка (≤540px) |
-| 12928–12997 | UI-13: доступ к настройкам и усиление back-кнопки |
-| 12998–13272 | UI-10. Skeleton-лоадеры + подсветка совпадений поиска |
-| 13273–13299 | UI5-6: ПОЛИРОВКА — единый фокус клавиатуры + шевроны аккордеонов |
-| 13300–13347 | Светлая тема: цветные акценты, подобранные под тёмный фон и |
-| 13348–13400 | Дымка v5: чипы состояний, мини-индикаторы, SVG-иконки |
-| 13401–14490 | STYLE-5: одна поверхность для всех карточек-контейнеров. |
-| 14491–14546 | MOTION: переходы между экранами и под-меню встречающего экрана. |
-| 14547–14639 | STYLE-8a2 · «Лист»: блок характеристик — реестр |
-| 14640–14943 | DISC-1 · Ромб раскрытия |
-| 14944–15447 | STYLE-8a2 · остальной «Лист» в языке встречающего экрана |
-| 15448–15542 | LVL-2 · Экран «Развитие» (#screen-progress) |
-| 15543–15625 | LVL-3 · Раздел «Класс и развитие» на листе и дубль ресурсов в «Бою» |
-| 15626–15856 | STYLE-8b3: список «Мои заклинания» — рецепт «Сумки» + чип действия |
-| 15857–15866 | STYLE-8b3-fix: срезанный ромб |
-| 15867–16133 | STYLE-8b3b: два оставшихся блока «Магии» |
-| 16134–16213 | STYLE-8d2 · Вкладка «Бой» в языке встречающего экрана |
+| 1483–1755 | UI-3. Desktop/tablet layout (≥1024px) |
+| 1756–1858 | UI5-4: ПК — многоколоночная раскладка листа |
+| 1859–1934 | /R2 |
+| 1935–2108 | ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА (R5: компактная одна строка) |
+| 2109–2270 | HEADER (R5: back + name + hamburger) |
+| 2271–2336 | КД АВТО-РАСЧЁТ |
+| 2337–2406 | ФИЛЬТР-БАР (состояния и эффекты) |
+| 2407–2472 | ВРЕМЕННЫЕ ЭФФЕКТЫ |
+| 2473–2632 | УСЛОВИЯ |
+| 2633–2779 | СПАСБРОСКИ |
+| 2780–2930 | CLASS FEATURES |
+| 2931–2970 | УБИРАЕМ СТРЕЛКИ |
+| 2971–3075 | TAB NAV — 5 tabs + centered FAB dice |
+| 3076–3198 | UX-5: лента последних бросков вне модалки |
+| 3199–3375 | Плавающий чип активных эффектов заклинаний (char.activeSpellEffects). |
+| 3376–3395 | HAMBURGER BUTTON |
+| 3396–3437 | SIDE DRAWER |
+| 3438–3938 | STYLE-8L: сайдбар в языке встречающего экрана |
+| 3939–3986 | MENU-8/9: встречающий экран во всё окно. |
+| 3987–4078 | MENU-2: плашка последнего героя. |
+| 4079–4253 | MENU-3: меню приключения. |
+| 4254–4324 | MENU-11: адаптив встречающего экрана, доступность, спокойное движение. |
+| 4325–4325 | INVENTORY |
+| 4326–4356 | INVENTORY — WEIGHT BAR |
+| 4357–4393 | INVENTORY — BACKPACK HEADER |
+| 4394–4434 | INVENTORY — FILTERS |
+| 4435–4619 | INVENTORY — ITEM CARDS |
+| 4620–4985 | COINS — BIG NUMBER CARD GRID |
+| 4986–5276 | MODALS |
+| 5277–5311 | DICE |
+| 5312–5892 | v3.18: DICE MODAL — новый UX (header tools + 2-col body + popovers) |
+| 5893–6808 | OTHER STYLES |
+| 6809–6877 | HP DISPLAY BLOCK |
+| 6878–6903 | MOBILE OPTIMIZATION |
+| 6904–7032 | LEVEL UP (STYLE-8M-3: экран, а не модалка) |
+| 7033–7071 | HP TOAST (snackbar) |
+| 7072–7121 | HP HISTORY MODAL |
+| 7122–7175 | Confirm Modal |
+| 7176–7579 | ⚔️ ОТРЯД & БОЙ |
+| 7580–7818 | RACIAL BONUS BAR |
+| 7819–7965 | COMPACT STATS GRID |
+| 7966–8233 | UI6-4: ЛИСТ ХАРАКТЕРИСТИК — режимы «2024» / «Классический». |
+| 8234–8286 | Режим «Классический»: регион эмулирует сетку 6/3, карточки — |
+| 8287–8337 | UI-fix: телефон (≤767px) + вид 2024 — компактные карточки в 2 колонки. |
+| 8338–8437 | COMPACT SKILLS |
+| 8438–8480 | UI5-5: МОБИЛЬНЫЕ ТАЧ-ТАРГЕТЫ (≥44px) |
+| 8481–8552 | ACCORDION |
+| 8553–8576 | CLASS RESOURCES |
+| 8577–8667 | ASI MODAL |
+| 8668–8913 | APP VERSION |
+| 8914–8923 | COMPANIONS |
+| 8924–8963 | FEATS LIST IN ASI |
+| 8964–9209 | PROFILES TABS (Чейнджлог) |
+| 9210–9288 | TAKEN FEATS |
+| 9289–9485 | SW UPDATE MODAL |
+| 9486–9492 | УНИВЕРСАЛЬНЫЕ TOAST-УВЕДОМЛЕНИЯ |
+| 9493–9503 | SPELL CLASS FILTER COMPACT |
+| 9504–9712 | INVENTORY SLOTS SYSTEM |
+| 9713–9908 | HELP / ONBOARDING (HELP-1) — табовый help-центр. |
+| 9909–10157 | HELP-3 — Приветствие первого запуска (#welcome-modal) |
+| 10158–10330 | HELP-4 — Движок интерактивного тура (подсветка). |
+| 10331–10400 | 3D DICE CUBE |
+| 10401–10771 | FEAT-LOG: панель журнала сессии (выезжает справа) |
+| 10772–10841 | DESKTOP LAYOUT — centered max-width |
+| 10842–10862 | INSPIRATION |
+| 10863–10902 | CONCENTRATION |
+| 10903–11587 | WEAPON CARDS WITH ROLL BUTTONS |
+| 11588–11695 | ПОПАП РЕЖИМА БРОСКА (Преимущество / Помеха) |
+| 11696–11758 | СОПРОТИВЛЕНИЯ / ИММУНИТЕТЫ / УЯЗВИМОСТИ |
+| 11759–11785 | БОЙ ДВУМЯ ОРУЖИЯМИ (Two-Weapon Fighting) |
+| 11786–11906 | КЛАССОВЫЕ ВЫБОРЫ — карточки в asi-container |
+| 11907–11933 | R6: Ассеты (декор) |
+| 11934–12885 | 📝 Вкладка «Записи по персонажу» — фаза N2 |
+| 12886–12965 | STYLE-4b: кнопки, которым ширину давал элементный button{width:100%}. |
+| 12966–12986 | BUGFIX-6: мобильная вёрстка (≤540px) |
+| 12987–13056 | UI-13: доступ к настройкам и усиление back-кнопки |
+| 13057–13331 | UI-10. Skeleton-лоадеры + подсветка совпадений поиска |
+| 13332–13358 | UI5-6: ПОЛИРОВКА — единый фокус клавиатуры + шевроны аккордеонов |
+| 13359–13406 | Светлая тема: цветные акценты, подобранные под тёмный фон и |
+| 13407–13459 | Дымка v5: чипы состояний, мини-индикаторы, SVG-иконки |
+| 13460–14564 | STYLE-5: одна поверхность для всех карточек-контейнеров. |
+| 14565–14620 | MOTION: переходы между экранами и под-меню встречающего экрана. |
+| 14621–14713 | STYLE-8a2 · «Лист»: блок характеристик — реестр |
+| 14714–15017 | DISC-1 · Ромб раскрытия |
+| 15018–15521 | STYLE-8a2 · остальной «Лист» в языке встречающего экрана |
+| 15522–15616 | LVL-2 · Экран «Развитие» (#screen-progress) |
+| 15617–15699 | LVL-3 · Раздел «Класс и развитие» на листе и дубль ресурсов в «Бою» |
+| 15700–15930 | STYLE-8b3: список «Мои заклинания» — рецепт «Сумки» + чип действия |
+| 15931–15940 | STYLE-8b3-fix: срезанный ромб |
+| 15941–16207 | STYLE-8b3b: два оставшихся блока «Магии» |
+| 16208–16694 | STYLE-8d2 · Вкладка «Бой» в языке встречающего экрана |
+| 16695–16728 | STYLE-8M-3: ОКНА-ЭКРАНЫ, ДОЗАХОД — «Повышение уровня», «Отдых», |
 
 ## index.html — блоки верхнего уровня (`#id:строки`)
 
@@ -147,33 +148,33 @@
 #tools-container:1104-1107 #languages-container:1108-1115 #companions-list-sheet:1116-1128 #tab-progress:1129-1130 #pg-body:1131-1132 #tab-spells:1133-1156 #spell-mod-display:1157-1162 #spell-dc-display:1163-1168  
 #spell-attack-display:1169-1191 #spell-slots-visual:1192-1197 #concentration-block:1198-1214 #prep-counter:1215-1215 #my-spells-list:1216-1218 #tab-inventory:1219-1238 #weight-fill:1239-1273 #inventory-list:1274-1283  
 #inv-pouches:1284-1338 #coin-exchange-modal:1339-1377 #exch-preview:1378-1385 #tab-notes:1386-1411 #notes-subtabs:1412-1413 #notes-main:1414-1415 #taken-feats-section:1416-1420 #taken-feats-list:1421-1424  
-#tab-party:1425-1434 #my-char-card:1435-1450 #allies-list:1451-1467 #npcs-list:1468-1484 #monsters-list:1485-1497 #companions-list-world:1498-1508 #tab-battle:1509-1514 #weapons-list:1515-1518  
-#battle-res-card:1519-1520 #battle-res-rows:1521-1522 #battle-setup-screen:1523-1531 #battle-setup-list:1532-1535 #battle-tracker-screen:1536-1540 #battle-turn-info:1541-1546 #battle-repeat-strip:1547-1547 #battle-tracker-list:1548-1557  
-#tab-journal:1558-1572 #journal-list:1573-1578 #item-ref-modal:1579-1582 #item-ref-tabs:1583-1588 #item-ref-weight:1589-1627 #item-ref-slots:1628-1659 #screen-help:1660-1682 #help-about:1683-1706  
-#help-start:1707-1731 #help-sheet:1732-1747 #help-progress:1748-1787 #help-spells:1788-1804 #help-inventory:1805-1817 #help-battle:1818-1834 #help-party:1835-1847 #help-notes:1848-1856  
-#help-journal:1857-1865 #help-planes:1866-1893 #help-dice:1894-1905 #help-edition2024:1906-1935 #help-data:1936-1948 #help-marks:1949-1971 #conc-details-modal:1972-1982 #conc-detail-duration-row:1983-1990  
-#conc-detail-desc-row:1991-2000 #add-journal-modal:2001-2023 #add-npc-modal:2024-2052 #add-ally-modal:2053-2086 #srd-monster-modal:2087-2098 #srd-monster-count:2099-2099 #srd-monster-results:2100-2107 #srd-npc-modal:2108-2116  
-#srd-npc-count:2117-2117 #srd-npc-results:2118-2125 #add-monster-modal:2126-2183 #rest-modal:2184-2187 #rest-main-screen:2188-2205 #rest-info-screen:2206-2210 #hit-dice-section:2211-2222 #rest-food-section:2223-2231  
-#rest-result-screen:2232-2234 #rest-result-details:2235-2241 #levelup-modal:2242-2249 #lu-screen-multiclass:2250-2251 #lu-mc-current-classes:2252-2254 #lu-mc-new-class:2255-2259 #lu-mc-prereq-warn:2260-2260 #lu-mc-subclass-row:2261-2269  
-#lu-screen-preview:2270-2302 #lu-slots-card:2303-2304 #lu-slots-info:2305-2308 #lu-build-hint:2309-2309 #lu-features-container:2310-2318 #lu-screen-choices:2319-2320 #lu-choices-body:2321-2327 #lu-screen-result:2328-2329  
-#lu-result-title:2330-2330 #lu-result-body:2331-2336 #hp-history-modal:2337-2342 #hp-history-list:2343-2348 #asi-modal:2349-2352 #asi-build-hint:2353-2367 #asi-feat-list:2368-2368 #asi-stat-grid:2369-2369  
-#asi-preview:2370-2378 #class-choice-modal:2379-2393 #dice-modal:2394-2440 #dice-file-hint:2441-2441 #dice3d-result:2442-2450 #dice-result-display:2451-2454 #dice-mode-segment:2455-2526 #dice-popover-settings:2527-2573  
-#dice-popover-history:2574-2585 #dice-history:2586-2593 #spell-search-modal:2594-2597 #spell-class-filter:2598-2641 #class-filter-legend:2642-2663 #spell-search-count:2664-2664 #spell-search-results:2665-2669 #cast-spell-modal:2670-2674  
-#cast-spell-options:2675-2677 #add-spell-modal:2678-2721 #new-spell-class-chips:2722-2767 #new-spell-mech-fields:2768-2772 #new-spell-mech-dmg-row:2773-2792 #new-spell-mech-half-row:2793-2795 #new-spell-mech-mod-row:2796-2806 #item-modal:2807-2870  
-#magic-catalog-modal:2871-2899 #magic-catalog-count:2900-2900 #magic-catalog-list:2901-2904 #gear-catalog-modal:2905-2910 #gear-packs-list:2911-2924 #gear-catalog-count:2925-2925 #gear-catalog-list:2926-2929 #item-view-modal:2930-2933  
-#view-item-icon:2934-2934 #view-item-name:2935-2938 #view-item-qty:2939-2942 #view-item-weight:2943-2946 #view-item-category:2947-2950 #view-item-total-weight:2951-2953 #view-item-desc:2954-2962 #weapon-modal:2963-2966  
-#weapon-picker-section:2967-2969 #weapon-filter-chips:2970-2979 #weapon-presets-list:2980-3042 #character-tabs:3043-3054 #quick-roll-strip:3055-3060 #qrs-list:3061-3071 #active-effects-panel:3072-3076 #aef-list:3077-3083  
-#hp-toast-container:3084-3086 #add-companion-modal:3087-3102 #companion-familiar-row:3103-3122 #confirm-modal:3123-3135 #avatar-modal:3136-3139 #avatar-modal-preview:3140-3167 #screen-builds:3168-3190 #bp-list:3191-3195  
-#screen-buildguide:3196-3198 #bg-body:3199-3203 #screen-buildplan:3204-3206 #bp-plan-body:3207-3211 #screen-abilityinfo:3212-3214 #ai-body:3215-3219 #screen-featureinfo:3220-3222 #fi-body:3223-3227  
-#app-log-panel:3228-3247 #app-log-list:3248-3388 #notes-entry-modal:3389-3437  
+#tab-party:1425-1433 #my-char-card:1434-1448 #allies-list:1449-1464 #npcs-list:1465-1480 #monsters-list:1481-1492 #companions-list-world:1493-1503 #tab-battle:1504-1509 #weapons-list:1510-1513  
+#battle-res-card:1514-1515 #battle-res-rows:1516-1517 #battle-setup-screen:1518-1526 #battle-setup-list:1527-1530 #battle-tracker-screen:1531-1535 #battle-turn-info:1536-1541 #battle-repeat-strip:1542-1542 #battle-tracker-list:1543-1552  
+#tab-journal:1553-1567 #journal-list:1568-1573 #item-ref-modal:1574-1577 #item-ref-tabs:1578-1583 #item-ref-weight:1584-1622 #item-ref-slots:1623-1654 #screen-help:1655-1677 #help-about:1678-1701  
+#help-start:1702-1726 #help-sheet:1727-1742 #help-progress:1743-1782 #help-spells:1783-1799 #help-inventory:1800-1812 #help-battle:1813-1829 #help-party:1830-1842 #help-notes:1843-1851  
+#help-journal:1852-1860 #help-planes:1861-1888 #help-dice:1889-1900 #help-edition2024:1901-1930 #help-data:1931-1943 #help-marks:1944-1966 #conc-details-modal:1967-1977 #conc-detail-duration-row:1978-1985  
+#conc-detail-desc-row:1986-1995 #add-journal-modal:1996-2018 #add-npc-modal:2019-2047 #add-ally-modal:2048-2081 #srd-monster-modal:2082-2093 #srd-monster-count:2094-2094 #srd-monster-results:2095-2102 #srd-npc-modal:2103-2111  
+#srd-npc-count:2112-2112 #srd-npc-results:2113-2120 #add-monster-modal:2121-2178 #screen-rest:2179-2181 #rest-main-screen:2182-2188 #rest-info-screen:2189-2193 #hit-dice-section:2194-2204 #rest-food-section:2205-2213  
+#rest-result-screen:2214-2216 #rest-result-details:2217-2225 #screen-levelup:2226-2230 #lu-screen-multiclass:2231-2232 #lu-mc-current-classes:2233-2235 #lu-mc-new-class:2236-2240 #lu-mc-prereq-warn:2241-2241 #lu-mc-subclass-row:2242-2250  
+#lu-screen-preview:2251-2283 #lu-slots-card:2284-2285 #lu-slots-info:2286-2289 #lu-build-hint:2290-2290 #lu-features-container:2291-2298 #lu-screen-choices:2299-2300 #lu-choices-body:2301-2307 #lu-screen-result:2308-2309  
+#lu-result-title:2310-2310 #lu-result-body:2311-2316 #hp-history-modal:2317-2322 #hp-history-list:2323-2328 #asi-modal:2329-2332 #asi-build-hint:2333-2347 #asi-feat-list:2348-2348 #asi-stat-grid:2349-2349  
+#asi-preview:2350-2358 #class-choice-modal:2359-2373 #dice-modal:2374-2412 #dice-file-hint:2413-2413 #dice3d-result:2414-2425 #dice-result-display:2426-2429 #dice-mode-segment:2430-2437 #dice-pick:2438-2441  
+#dice-fan:2442-2448 #dice-formula-panel:2449-2477 #dice-popover-settings:2478-2524 #dice-popover-history:2525-2536 #dice-history:2537-2544 #spell-search-modal:2545-2548 #spell-class-filter:2549-2592 #class-filter-legend:2593-2614  
+#spell-search-count:2615-2615 #spell-search-results:2616-2620 #cast-spell-modal:2621-2625 #cast-spell-options:2626-2628 #add-spell-modal:2629-2672 #new-spell-class-chips:2673-2718 #new-spell-mech-fields:2719-2723 #new-spell-mech-dmg-row:2724-2743  
+#new-spell-mech-half-row:2744-2746 #new-spell-mech-mod-row:2747-2757 #item-modal:2758-2821 #screen-magiccatalog:2822-2849 #magic-catalog-count:2850-2850 #magic-catalog-list:2851-2854 #screen-gearcatalog:2855-2859 #gear-packs-list:2860-2873  
+#gear-catalog-count:2874-2874 #gear-catalog-list:2875-2878 #item-view-modal:2879-2882 #view-item-icon:2883-2883 #view-item-name:2884-2887 #view-item-qty:2888-2891 #view-item-weight:2892-2895 #view-item-category:2896-2899  
+#view-item-total-weight:2900-2902 #view-item-desc:2903-2911 #weapon-modal:2912-2915 #weapon-picker-section:2916-2918 #weapon-filter-chips:2919-2928 #weapon-presets-list:2929-2991 #character-tabs:2992-3003 #quick-roll-strip:3004-3009  
+#qrs-list:3010-3020 #active-effects-panel:3021-3025 #aef-list:3026-3032 #hp-toast-container:3033-3035 #add-companion-modal:3036-3051 #companion-familiar-row:3052-3071 #confirm-modal:3072-3084 #avatar-modal:3085-3088  
+#avatar-modal-preview:3089-3116 #screen-builds:3117-3139 #bp-list:3140-3144 #screen-buildguide:3145-3147 #bg-body:3148-3152 #screen-buildplan:3153-3155 #bp-plan-body:3156-3160 #screen-abilityinfo:3161-3163  
+#ai-body:3164-3168 #screen-featureinfo:3169-3171 #fi-body:3172-3176 #app-log-panel:3177-3196 #app-log-list:3197-3337 #notes-entry-modal:3338-3386  
 
 ## Функции по файлам (`имя:строка`)
 
 **rules.js** (815 строк, 44 функций)  
 getProficiencyBonus:8 getMod:15 formatMod:16 calculateMaxHP:19 charClassLevel:33 charHasClass:43 charClassLevelOr:53 charAsiSlots:62 charSubclassPending:76 charXpNext:89 rulesJackOfAllTrades:100 rulesHasExpertise:104 getInitiativeMod:110 rulesSaveBonus:120 rulesSkillBonus:126 rulesPassivePerception:140 rulesSpellStats:144 armorPenalties:159 rulesAC:170 charCasterLevel:288 classSpellSlotRow:322 getMulticlassSpellSlots:335 resolvePactSlots:367 restoreItemCharges:377 rulesHitDieSides:394 rulesShortRest:400 rulesLongRestBlockReason:446 rulesLongRest:459 concSaveParams:519 getCharClassPairs:536 findLangInCatalog:548 ensureLanguagesArray:560 recalcLanguagesFromSources:576 add:581 findToolInCatalog:625 ensureToolsArray:637 parseBackgroundToolEntry:653 recalcToolsFromSources:663 add:668 ensureArmorWeaponFields:732 recalcArmorWeaponFromSources:745 addArmor:751 addWeapon:752 addSpec:795
 
-**app-core.js** (1435 строк, 66 функций)  
-$:8 getCurrentChar:10 openModal:12 _syncModalOpenFlag:21 closeModal:30 debounce:41 migrateToMulticlass:60 syncClassFields:74 isMulticlass:82 getClassLabel:87 getClassLine:96 checkMulticlassPrereqs:104 autoFillItemWeight:177 setItemQty:194 saveToLocal:258 initPersistentStorage:272 _formatStorageBytes:293 updateStorageStatus:301 currentScreenName:350 screenBack:356 _closeOpenModals:368 headerBack:378 _screenMotionOk:406 _screenGhostDrop:412 _screenGhostStart:424 _screenEnter:442 showScreen:451 updateHeaderTitle:553 syncDrawerHeader:607 switchTab:619 openDrawer:649 closeDrawer:662 showCharacterNav:674 hideCharacterNav:682 isInteractive:702 currentActiveTab:725 createNewCharacter:783 getClassColor:801 getClassIcon:816 getAbilityIcon:823 getConditionIcon:838 getConditionChipIcon:862 getSpellClassIcon:880 getSchoolSlug:897 getSchoolIcon:901 stripLeadingEmoji:914 formatTimeAgo:918 setCharSort:932 setCharSearch:939 duplicateCharacter:943 exportOneCharacter:955 updateCharCounter:981 onDragStart:998 onDragOver:999 onDrop:1000 renderCharacterList:1011 renderCharPlate:1078 deleteCharacter:1134 showConfirmModal:1147 safeSet:1180 safeSetChecked:1184 loadCharacter:1192 showToast:1360 openHPHistory:1373 closeHPHistory:1401 updateVersionBlock:1407
+**app-core.js** (1445 строк, 66 функций)  
+$:8 getCurrentChar:10 openModal:12 _syncModalOpenFlag:21 closeModal:30 debounce:41 migrateToMulticlass:60 syncClassFields:74 isMulticlass:82 getClassLabel:87 getClassLine:96 checkMulticlassPrereqs:104 autoFillItemWeight:177 setItemQty:194 saveToLocal:258 initPersistentStorage:272 _formatStorageBytes:293 updateStorageStatus:301 currentScreenName:355 screenBack:361 _closeOpenModals:373 headerBack:383 _screenMotionOk:416 _screenGhostDrop:422 _screenGhostStart:434 _screenEnter:452 showScreen:461 updateHeaderTitle:563 syncDrawerHeader:617 switchTab:629 openDrawer:659 closeDrawer:672 showCharacterNav:684 hideCharacterNav:692 isInteractive:712 currentActiveTab:735 createNewCharacter:793 getClassColor:811 getClassIcon:826 getAbilityIcon:833 getConditionIcon:848 getConditionChipIcon:872 getSpellClassIcon:890 getSchoolSlug:907 getSchoolIcon:911 stripLeadingEmoji:924 formatTimeAgo:928 setCharSort:942 setCharSearch:949 duplicateCharacter:953 exportOneCharacter:965 updateCharCounter:991 onDragStart:1008 onDragOver:1009 onDrop:1010 renderCharacterList:1021 renderCharPlate:1088 deleteCharacter:1144 showConfirmModal:1157 safeSet:1190 safeSetChecked:1194 loadCharacter:1202 showToast:1370 openHPHistory:1383 closeHPHistory:1411 updateVersionBlock:1417
 
 **app-migrate.js** (886 строк, 2 функций)  
 migrateCharacter:6 _backfillHomebrewFlag:878
@@ -196,11 +197,11 @@ _revertCastInstanceBody:11 removeCastEffectsForSpell:31 clearAllCastEffects:74 e
 **app-proficiencies.js** (626 строк, 20 функций)  
 profSourceLabel:19 getLanguageChoiceSlots:30 renderLanguages:63 addChoiceLanguage:147 addCustomLanguage:162 removeCustomLanguage:188 getToolChoiceSlots:212 buildToolOptionsHtml:278 renderTools:299 addChoiceTool:371 addCustomTool:386 removeCustomTool:412 renderArmorProf:430 renderWeaponProf:480 addCustomArmorType:544 removeCustomArmorType:559 addCustomWeaponType:570 removeCustomWeaponType:584 addCustomSpecificWeapon:594 removeCustomSpecificWeapon:614
 
-**app-hp.js** (1623 строк, 47 функций)  
-openRestModal:6 closeRestModal:12 showRestMain:18 showShortRestInfo:26 showLongRestInfo:48 showRestResult:77 adjustHitDice:89 updateHitDiceInfo:100 confirmRest:115 openLevelUpModal:201 _showMulticlassScreen:224 openMulticlassNewClass:267 confirmMulticlassNewClass:317 _showLevelUpPreview:328 closeLevelUpModal:493 confirmLevelUp:500 _luShowResult:669 luFinishChoices:693 luRefreshChoices:700 luSetSubclass:707 luApplyFeatById:724 luApplyAsi:756 _ccDefsFor:773 _luAsiDone:784 luApplyAllRecommendations:789 luBuildChoicesScreen:910 recBadge:918 luAddRecommendedSpells:1039 luGoToSpellsTab:1067 openLevelDownConfirm:1079 confirmLevelDown:1123 loadDeathSaves:1160 toggleDeathSave:1199 resetDeathSaves:1216 updateHPDisplay:1229 hpToggleRow:1309 hpSetRowOpen:1318 updateHPSummary:1326 updateHPRows:1372 quickHP:1390 addHPHistory:1476 showHPToast:1487 applyCustomHP:1511 saveTempHP:1523 rollHitDieQuick:1536 renderHitDiceIcons:1565 rollDeathSave:1579
+**app-hp.js** (1622 строк, 47 функций)  
+openRestModal:6 closeRestModal:11 showRestMain:17 showShortRestInfo:25 showLongRestInfo:47 showRestResult:76 adjustHitDice:88 updateHitDiceInfo:99 confirmRest:114 openLevelUpModal:200 _showMulticlassScreen:222 openMulticlassNewClass:265 confirmMulticlassNewClass:315 _showLevelUpPreview:326 closeLevelUpModal:491 confirmLevelUp:499 _luShowResult:668 luFinishChoices:692 luRefreshChoices:699 luSetSubclass:706 luApplyFeatById:723 luApplyAsi:755 _ccDefsFor:772 _luAsiDone:783 luApplyAllRecommendations:788 luBuildChoicesScreen:909 recBadge:917 luAddRecommendedSpells:1038 luGoToSpellsTab:1066 openLevelDownConfirm:1078 confirmLevelDown:1122 loadDeathSaves:1159 toggleDeathSave:1198 resetDeathSaves:1215 updateHPDisplay:1228 hpToggleRow:1308 hpSetRowOpen:1317 updateHPSummary:1325 updateHPRows:1371 quickHP:1389 addHPHistory:1475 showHPToast:1486 applyCustomHP:1510 saveTempHP:1522 rollHitDieQuick:1535 renderHitDiceIcons:1564 rollDeathSave:1578
 
-**app-inventory.js** (1629 строк, 72 функций)  
-filterInventory:6 _isBackpackOff:26 _isItemActive:29 toggleBackpackOff:34 getSlotsTotal:48 calcUsedSlots:58 updateSlotsDisplay:74 renderPouches:113 renderInventory:152 toggleInvItem:264 editItemDirect:269 deleteItemDirect:270 updateInventoryWeight:289 countAttuned:340 _hasAttunable:350 toggleAttuned:357 updateAttuneCount:377 adjustItemCharges:388 openItemModal:404 closeItemModal:461 submitItem:465 openMagicCatalog:529 closeMagicCatalog:545 renderMagicCatalog:549 fillFromMagicItem:581 openGearCatalog:631 closeGearCatalog:647 renderGearPacks:651 renderGearCatalog:661 fillFromGearItem:689 addPackToInventory:711 rollTrinket:733 viewItem:758 closeItemView:781 editItemFromView:786 deleteItemFromView:791 _weaponCatalog:818 renderWeaponPresets:831 filterWeaponPresets:889 toggleWeaponFilter:893 fillWeaponPreset:900 _resetWeaponForm:929 openWeaponModal:948 closeWeaponModal:958 editWeapon:966 deleteCustomWeapon:995 _weaponPresetByName:1020 checkWeaponProficiency:1027 submitWeapon:1055 renderWeapons:1139 isLightWeapon:1210 toggleTWFStyle:1215 rollTWFAttack:1223 rollTWFDamage:1271 rollWeaponAttack:1300 rollWeaponDamage:1349 removeWeapon:1395 _invDndInit:1429 _invClearIndicators:1458 _invSetIndicator:1467 _invCleanup:1472 _invCancelDrag:1479 _invMoveItem:1487 _invCommitDrop:1504 invDragStart:1525 invDragOver:1535 invDragLeave:1552 invDrop:1556 invDragEnd:1562 invTouchStart:1569 invTouchMove:1585 invTouchEnd:1617
+**app-inventory.js** (1632 строк, 72 функций)  
+filterInventory:6 _isBackpackOff:26 _isItemActive:29 toggleBackpackOff:34 getSlotsTotal:48 calcUsedSlots:58 updateSlotsDisplay:74 renderPouches:113 renderInventory:152 toggleInvItem:264 editItemDirect:269 deleteItemDirect:270 updateInventoryWeight:289 countAttuned:340 _hasAttunable:350 toggleAttuned:357 updateAttuneCount:377 adjustItemCharges:388 openItemModal:404 closeItemModal:461 submitItem:465 openMagicCatalog:529 closeMagicCatalog:546 renderMagicCatalog:551 fillFromMagicItem:583 openGearCatalog:633 closeGearCatalog:649 renderGearPacks:654 renderGearCatalog:664 fillFromGearItem:692 addPackToInventory:714 rollTrinket:736 viewItem:761 closeItemView:784 editItemFromView:789 deleteItemFromView:794 _weaponCatalog:821 renderWeaponPresets:834 filterWeaponPresets:892 toggleWeaponFilter:896 fillWeaponPreset:903 _resetWeaponForm:932 openWeaponModal:951 closeWeaponModal:961 editWeapon:969 deleteCustomWeapon:998 _weaponPresetByName:1023 checkWeaponProficiency:1030 submitWeapon:1058 renderWeapons:1142 isLightWeapon:1213 toggleTWFStyle:1218 rollTWFAttack:1226 rollTWFDamage:1274 rollWeaponAttack:1303 rollWeaponDamage:1352 removeWeapon:1398 _invDndInit:1432 _invClearIndicators:1461 _invSetIndicator:1470 _invCleanup:1475 _invCancelDrag:1482 _invMoveItem:1490 _invCommitDrop:1507 invDragStart:1528 invDragOver:1538 invDragLeave:1555 invDrop:1559 invDragEnd:1565 invTouchStart:1572 invTouchMove:1588 invTouchEnd:1620
 
 **app-spells.js** (1567 строк, 72 функций)  
 toggleSpellStatRow:9 renderSpellSlots:14 togglePactSlot:83 adjustPactSlots:94 updateSpellSlots:108 toggleSpellSlot:119 adjustSpellSlots:130 restoreAllSlots:148 setSpellVersion:159 setSpellClass:167 _charSpellClassKey:176 _charMaxCastableLevel:187 openSpellSearch:194 markCharOwnClassFilter:208 closeSpellSearch:238 _parseSpellClassList:259 _syncNewSpellClassChips:263 toggleNewSpellClass:270 _fillNewSpellDamageTypes:295 _toggleHidden:302 updateNewSpellMechFields:310 _hbFormulaCheck:325 _collectHbEffect:334 _spellIdArg:372 _findHomebrewSpell:378 openAddSpellForm:386 _syncCustomSpellAcrossChars:465 _purgeCustomSpellFromChars:483 deleteCustomSpell:502 _deleteCustomSpellConfirmed:511 closeAddSpellForm:525 submitNewSpell:529 renderSpellSearch:619 addSpell:683 removeSpell:697 toggleSpellCard:708 renderMySpells:713 _spellActiveBadgeText:848 _spellActiveBadgeHtml:852 updateSpellActiveBadges:855 calcMaxPrepared:873 isPrepClass:890 isSpellPrepared:894 toggleSpellPrepared:900 renderPrepCounter:929 _castableSlotOptions:955 castSpell:969 _castSpellWithSlot:990 _finishCast:1012 applyCastEffects:1052 openCastVariantChooser:1093 pickCastVariant:1131 closeCastVariantChooser:1141 _applyCastSummon:1154 _nextCastInstanceId:1188 _replaceCastInstance:1196 _ensureCastInstance:1226 _applyCastDamage:1246 _rollCastDamage:1262 _startCastRepeat:1326 castRepeatDamage:1340 _applyCastDebuff:1365 castSpellAttackMod:1406 castStatMod:1412 _applyCastHeal:1425 _applyCastTempHp:1446 applyCastTempHp:1463 _applyCastHpMaxBonus:1477 openCastChooser:1497 closeCastChooser:1518 castRitual:1527 cancelRitual:1556
@@ -214,11 +215,11 @@ renderNotes:43 _renderNotesSubtabs:61 notesSwitchTab:83 _renderNotesMain:95 _fin
 **app-ui.js** (1107 строк, 63 функций)  
 injectSkeletons:12 firstLoadSkeleton:28 highlightMatch:39 renderDeityDatalist:52 openAvatarModal:70 closeAvatarModal:89 handleAvatarFile:92 applyAvatarFromUrl:118 applyAvatar:126 removeAvatar:144 renderSheetAvatar:163 prefersReducedMotion:178 animateCountUp:184 tick:192 _reportError:215 swTelegramBlock:278 showUpdateModal:289 checkWhatsNew:320 showWhatsNewModal:332 toggleAccordion:368 initCharResources:388 getResourceMax:397 getCharResourceDefs:414 currentDieSize:444 crRow:456 crRestoreLabel:469 crResourceRow:481 crRowsHtml:532 crSetRows:568 renderClassResources:583 spendResource:601 resetResource:619 toggleResourcePip:629 resetResourcesByRest:654 getJournal:688 addJournalEntry:693 filterJournal:715 renderJournal:722 deleteJournalEntry:759 openAddJournalEntry:768 closeAddJournalEntry:772 saveJournalEntry:775 getCompanions:795 renderCompanions:800 companionHP:845 buildFamiliarFormOptions:858 onCompanionTypeChange:870 applyFamiliarForm:878 openAddCompanionModal:890 summonFamiliar:906 openPrefilledCompanionModal:916 openEditCompanionModal:927 closeAddCompanionModal:946 saveCompanion:949 deleteCompanion:974 switchProfilesTab:990 clipChangelogText:1005 expandChangelogItem:1016 renderChangelog:1022 openItemRef:1066 closeItemRef:1071 switchItemRef:1075 _syncHeaderHeight:1093
 
-**app-dice.js** (1176 строк, 51 функций)  
-openDiceModal:6 closeDiceModal:43 _diceModalActive:58 showDiceRollOverlay:64 hideDiceRollOverlay:78 toggleDicePopover:85 closeDicePopovers:108 clearDiceHistory:118 resetDiceResult:128 _updateDiceHistoryBadge:140 rollCustomFormulaFromMain:153 diceInsertToken:157 diceFormulaBackspace:163 setDiceMode:182 rollDiceWithSelectedMode:188 rollDice:192 _quickRollCompute:285 _quickRollModStr:304 _quickRollRecord:309 _quickRollInfoText:316 _quickRollToastText:323 quickRoll:339 renderQuickRollStrip:395 updateQuickRollStripVisibility:417 dismissQuickRollStrip:432 openDiceRollHistory:437 drawDiceSVG:450 _waitDiceBoxModule:469 _getAccentColor:487 _getDiceTheme:506 _getDiceThemeColor:513 setDiceTheme:516 _syncDiceThemeButtons:522 _getDiceBg:532 setDiceBg:539 _syncDiceBgButtons:545 _diceDbg:555 _initDiceBox:560 animateDice3d:660 animateDice2d:847 buildDie:873 tick:941 _applyDiceCritGlow:964 parseDiceFormula:985 _formulaCanon:1020 _renderFormulaResult:1032 rollFormula:1067 _rollFormulaFrom:1124 rollCustomFormula:1137 renderDiceHistory:1140 createParticles:1162
+**app-dice.js** (1379 строк, 61 функций)  
+openDiceModal:6 _prewarmDiceBox:60 closeDiceModal:71 _diceModalActive:86 showDiceRollOverlay:92 hideDiceRollOverlay:106 toggleDicePopover:113 closeDicePopovers:136 clearDiceHistory:146 resetDiceResult:156 _updateDiceHistoryBadge:168 rollCustomFormulaFromMain:181 diceInsertToken:185 diceFormulaBackspace:191 setDiceMode:210 rollDiceWithSelectedMode:216 rollDice:220 _quickRollCompute:315 _quickRollModStr:334 _emitDiceRolled:340 _setDiceSettled:348 _setSettledDice:358 _quickRollRecord:375 _quickRollInfoText:382 _quickRollToastText:389 quickRoll:405 renderQuickRollStrip:463 updateQuickRollStripVisibility:485 dismissQuickRollStrip:500 openDiceRollHistory:505 drawDiceSVG:518 _waitDiceBoxModule:537 _getAccentColor:555 _getDiceTheme:574 _getDiceThemeColor:581 setDiceTheme:584 _syncDiceThemeButtons:590 _getDiceBg:600 setDiceBg:607 _syncDiceBgButtons:613 _diceDbg:623 _initDiceBox:628 animateDice3d:734 animateDice2d:925 buildDie:951 tick:1019 _applyDiceCritGlow:1042 parseDiceFormula:1063 _formulaCanon:1098 _renderFormulaResult:1110 rollFormula:1145 _rollFormulaFrom:1211 rollCustomFormula:1224 renderDiceHistory:1227 createParticles:1249 _diceShapeSvg:1285 renderDiceFan:1292 _paintSelectedDie:1312 selectDie:1333 rollSelectedDie:1352 toggleDiceFormulaPanel:1361
 
-**app-settings.js** (610 строк, 56 функций)  
-_getTheme:8 _isEffectiveLight:15 _resolveTheme:22 _applyTheme:27 setTheme:40 _syncThemeButtons:46 _getAccent:56 _applyAccent:63 setAccent:70 _syncAccentButtons:81 _getAutoAccent:111 _accentForClass:122 _applyClassAccent:125 _refreshAccent:128 setAutoAccent:136 _syncAutoAccentToggle:141 _e24BetaEnabled:158 getEdition:161 setEdition:171 _syncEditionButtons:184 _getStatsLayout:211 _applyStatsLayout:218 _statsInCards:225 _statsRowTarget:229 _placeStatRows:247 setStatsLayout:263 _syncStatsLayoutButtons:270 _getStatsCollapsed:283 _applyStatsCollapsed:286 toggleStatsCollapsed:291 _getStoredDensity:305 _getDefaultDensity:313 _getDensity:320 _applyDensity:323 setDensity:327 _syncDensityButtons:333 _onViewportDensityChange:341 _getFontScale:359 _applyFontScale:366 setFontScale:377 _syncFontScaleUi:388 _getGlassAlpha:403 _getGlassBlur:410 _applyGlassAlpha:417 _applyGlassBlur:418 setGlassAlpha:419 setGlassBlur:429 _syncGlassUi:438 _getSpaceMode:487 _applySpaceBg:494 setSpaceMode:509 _syncSpaceButtons:515 _applyDymkaIcons:546 _initAppLinks:559 openSettingsModal:588 closeSettingsModal:597
+**app-settings.js** (626 строк, 57 функций)  
+_getTheme:8 _isEffectiveLight:15 _resolveTheme:22 _applyTheme:27 setTheme:40 _syncThemeButtons:46 _getAccent:56 _applyAccent:63 setAccent:70 _syncAccentButtons:81 _getAutoAccent:111 _accentForClass:122 _applyClassAccent:125 _refreshAccent:128 setAutoAccent:136 _syncAutoAccentToggle:141 _e24BetaEnabled:158 getEdition:161 setEdition:171 _syncEditionButtons:184 _getStatsLayout:211 _applyStatsLayout:218 _statsInCards:225 _statsRowTarget:229 _placeStatRows:247 setStatsLayout:263 _syncStatsLayoutButtons:270 _getStatsCollapsed:283 _applyStatsCollapsed:286 toggleStatsCollapsed:291 _getStoredDensity:305 _getDefaultDensity:313 _getDensity:320 _applyDensity:323 setDensity:327 _syncDensityButtons:333 _onViewportDensityChange:341 _getFontScale:359 _applyFontScale:366 setFontScale:377 _syncFontScaleUi:388 _getGlassAlpha:403 _getGlassBlur:410 _applyGlassAlpha:417 _applyGlassBlur:418 setGlassAlpha:419 setGlassBlur:429 _syncGlassUi:438 _getSpaceMode:487 _applySpaceBg:494 setSpaceMode:509 _syncSpaceButtons:515 _spaceOnScroll:534 _applyDymkaIcons:562 _initAppLinks:575 openSettingsModal:604 closeSettingsModal:613
 
 **app-asi.js** (429 строк, 14 функций)  
 asiMarkUsed:17 openASIModalForLevel:28 openASIModal:34 closeASIModal:74 buildASIStatGrid:85 getASIMode:106 toggleASIStat:111 updateASIPreview:127 buildFeatList:201 filterFeatList:229 selectFeat:237 applyASI:253 renderTakenFeats:376 removeFeat:414
@@ -226,8 +227,8 @@ asiMarkUsed:17 openASIModalForLevel:28 openASIModal:34 closeASIModal:74 buildASI
 **app-progress.js** (669 строк, 38 функций)  
 _pgArg:19 _pgClassList:24 _pgDisc:42 _pgStatic:54 _pgAttn:60 _pgFeat:65 _pgActRow:72 _pgHeadInner:77 _pgHead:90 _pgAboutRow:96 _pgProfRow:111 _pgAsiRow:129 _pgXpRow:152 _pgSlotRows:164 _pgAttention:205 _pgGrownLast:235 _pgClassRow:248 _pgClasses:290 _pgNext:306 _pgAvailableClasses:361 _pgActions:374 _pgBuild:391 openProgressTab:404 openProgress:414 pgTabActive:425 pgRefresh:432 pgSetSubclass:440 pgFocusSubclass:454 pgLevelUp:471 pgLevelDown:476 pgAfterLevelModal:482 pgAddClass:493 renderClassDev:504 _pgSheetAboutRow:523 _pgSubclassRows:541 syncClassFieldUI:566 openFeatureInfo:598 _fiRuleNotes:640
 
-**app-desktop.js** (376 строк, 11 функций)  
-syncFromStatusBar:99 _esc:154 _stripEmoji:160 _condIcon:164 setRowExpanded:170 collapseRow:176 renderRrConditions:178 renderRailSlots:224 updateRailHpRow:268 rrApplyHP:283 init:296
+**app-desktop.js** (398 строк, 11 функций)  
+syncFromStatusBar:103 _esc:158 _stripEmoji:164 _condIcon:168 setRowExpanded:174 collapseRow:180 renderRrConditions:182 renderRailSlots:228 updateRailHpRow:272 rrApplyHP:287 init:300
 
 **app-help.js** (1122 строк, 52 функций)  
 openHelp:12 closeHelp:19 switchHelpSection:29 getHelpFlag:82 setHelpFlag:86 welcomeGoStep:92 showWelcome:102 closeWelcome:109 welcomeContinue:115 welcomeSkipExperienced:121 welcomeBack:127 welcomeFinish:134 dismissWelcome:167 maybeShowWelcome:170 restartOnboarding:175 _tourWide:211 _ensureTourDom:214 _resolveTarget:255 _tourFirstVisible:270 _tourAnyModalVisible:290 _tourModalOpen:296 _tourStartWhenClear:308 startTour:320 startListTour:333 startSheetTour:337 maybeStartSheetTour:343 restartTour:361 startTabTour:386 maybeStartTabTour:404 tourNext:426 tourPrev:431 endTour:437 _showTourStep:447 _setBox:510 _computeTourBoxes:526 snap:528 corner:541 _layoutTourCorners:563 _layoutTour:580 _onTourKey:683 _onTourReflow:689 _bindTourGlobal:693 _unbindTourGlobal:698 _buildListSteps:709 _buildSheetSteps:759 _buildProgressSteps:831 _buildSpellsSteps:889 _buildInventorySteps:926 _buildBattleSteps:966 _buildNotesSteps:998 _buildPartySteps:1033 _buildJournalSteps:1091
@@ -243,8 +244,8 @@ getLastCharacter:22 _homeCantripCount:34 _homeHeroChips:48 _homePlural:68 _homeH
 
 ## Данные — константы верхнего уровня (`имя:строка`)
 
-**data.js** (5615 строк)  
-_ASI:7 _FEAT:8 SCHEMA_VERSION:21 DAMAGE_TYPES:24 DEFAULT_CHARACTER:31 FAMILIAR_FORMS:103 SAVES_DATA:125 CONDITIONS:134 EFFECTS_DATA:157 CLASS_FEATURES:208 SPELL_PREP_CLASSES:490 SPELL_SLOTS_BY_LEVEL:497 CLASS_HIT_DICE:572 SUBCLASSES:578 SOURCE_LABELS:597 SUBCLASS_SOURCE:605 SUBCLASS_LEVEL:674 SUBCLASS_FEATURES:690 WEAPON_PRESETS:1405 ITEM_ICONS:1449 CATEGORY_NAMES:1450 GEAR_PACKS:1459 RACE_DATA:1554 BACKGROUND_SKILLS:1685 BACKGROUND_ALIASES:1722 DEITY_ALIGN_LABELS:1735 DEITIES_DATA:1740 LANGUAGE_CATALOG:1808 RACE_LANGUAGES:1837 CLASS_LANGUAGES:1863 TOOL_CATALOG:1869 RACE_TOOLS:1924 CLASS_TOOLS:1931 SUBCLASS_LANGUAGES:1939 SUBCLASS_TOOLS:1952 RACE_ARMOR:1974 RACE_WEAPONS_SPECIFIC:1978 CLASS_WEAPONS_SPECIFIC:1991 RACE_NAME_POOLS:2001 RACE_NAME_GROUP:2043 SUBCLASS_ARMOR:2057 ARMOR_PRESETS:2087 skills:2104 ABILITY_INFO:2117 CLASS_SKILL_OPTIONS:2157 CLASS_ARMOR_PROFS:2173 CLASS_RESOURCES:2193 ASI_LEVELS:2347 XP_THRESHOLDS:2355 APP_VERSION:2365 APP_VERSION_DATE:2366 APP_TELEGRAM_URL:2372 APP_DONATE_URL:2373 APP_BOOSTY_URL:2374 FEATS_DATA:2390 APP_CHANGELOG:2709 CASTER_TYPE:5457 THIRD_CASTER_SUBCLASSES:5466 THIRD_CASTER_SLOTS:5473 MULTICLASS_SPELL_SLOTS:5484 MULTICLASS_PREREQUISITES:5509 MULTICLASS_PROFICIENCIES:5525 EDITION_DATA:5554
+**data.js** (5647 строк)  
+_ASI:7 _FEAT:8 SCHEMA_VERSION:21 DAMAGE_TYPES:24 DEFAULT_CHARACTER:31 FAMILIAR_FORMS:103 SAVES_DATA:125 CONDITIONS:134 EFFECTS_DATA:157 CLASS_FEATURES:208 SPELL_PREP_CLASSES:490 SPELL_SLOTS_BY_LEVEL:497 CLASS_HIT_DICE:572 SUBCLASSES:578 SOURCE_LABELS:597 SUBCLASS_SOURCE:605 SUBCLASS_LEVEL:674 SUBCLASS_FEATURES:690 WEAPON_PRESETS:1405 ITEM_ICONS:1449 CATEGORY_NAMES:1450 GEAR_PACKS:1459 RACE_DATA:1554 BACKGROUND_SKILLS:1685 BACKGROUND_ALIASES:1722 DEITY_ALIGN_LABELS:1735 DEITIES_DATA:1740 LANGUAGE_CATALOG:1808 RACE_LANGUAGES:1837 CLASS_LANGUAGES:1863 TOOL_CATALOG:1869 RACE_TOOLS:1924 CLASS_TOOLS:1931 SUBCLASS_LANGUAGES:1939 SUBCLASS_TOOLS:1952 RACE_ARMOR:1974 RACE_WEAPONS_SPECIFIC:1978 CLASS_WEAPONS_SPECIFIC:1991 RACE_NAME_POOLS:2001 RACE_NAME_GROUP:2043 SUBCLASS_ARMOR:2057 ARMOR_PRESETS:2087 skills:2104 ABILITY_INFO:2117 CLASS_SKILL_OPTIONS:2157 CLASS_ARMOR_PROFS:2173 CLASS_RESOURCES:2193 ASI_LEVELS:2347 XP_THRESHOLDS:2355 APP_VERSION:2365 APP_VERSION_DATE:2366 APP_TELEGRAM_URL:2372 APP_DONATE_URL:2373 APP_BOOSTY_URL:2374 FEATS_DATA:2390 APP_CHANGELOG:2709 CASTER_TYPE:5489 THIRD_CASTER_SUBCLASSES:5498 THIRD_CASTER_SLOTS:5505 MULTICLASS_SPELL_SLOTS:5516 MULTICLASS_PREREQUISITES:5541 MULTICLASS_PROFICIENCIES:5557 EDITION_DATA:5586
 
 **spells.js** (12518 строк)  
 SPELLS_BASE:7

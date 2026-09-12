@@ -530,8 +530,9 @@ function openMagicCatalog() {
   if (typeof showToast === "function") showToast("Загружаем каталог…", "info");
   var ensure = (typeof window.ensureMagicItems === "function") ? window.ensureMagicItems() : Promise.resolve();
   ensure.then(function () {
-    var modal = document.getElementById("magic-catalog-modal");
-    if (modal) modal.classList.add("active");
+    // STYLE-8M-3: каталог — экран; форма предмета закрывается и вернётся из closeMagicCatalog.
+    if (typeof _closeOpenModals === "function") _closeOpenModals();
+    if (typeof showScreen === "function") showScreen("magiccatalog");
     var s = document.getElementById("magic-catalog-search"); if (s) s.value = "";
     var t = document.getElementById("magic-catalog-type"); if (t) t.value = "";
     var r = document.getElementById("magic-catalog-rarity"); if (r) r.value = "";
@@ -543,8 +544,9 @@ function openMagicCatalog() {
   });
 }
 function closeMagicCatalog() {
-  var modal = document.getElementById("magic-catalog-modal");
-  if (modal) modal.classList.remove("active");
+  if (typeof currentScreenName !== "function" || currentScreenName() !== "magiccatalog") return;
+  screenBack();
+  openModal("item-modal");
 }
 function renderMagicCatalog() {
   var items = window.MAGIC_ITEMS || [];
@@ -570,9 +572,9 @@ function renderMagicCatalog() {
   if (!filtered.length) { listEl.innerHTML = '<div class="magic-catalog-empty">Ничего не найдено</div>'; return; }
   listEl.innerHTML = filtered.map(function (it) {
     var attune = it.attune ? ' · ' + dndIcoHtml("settings", 12) + ' настройка' : '';
-    return '<button type="button" class="magic-catalog-item" onclick="fillFromMagicItem(\'' + it.id + '\')">' +
+    return '<button type="button" class="magic-catalog-item rarity-' + it.rarity + '" onclick="fillFromMagicItem(\'' + it.id + '\')">' +
       '<div class="mci-top"><span class="mci-name">' + escapeHtml(it.name) + '</span>' +
-      '<span class="mci-rarity rarity-' + it.rarity + '">' + escapeHtml(R[it.rarity] || it.rarity) + '</span></div>' +
+      '<span class="mci-rarity">' + escapeHtml(R[it.rarity] || it.rarity) + '</span></div>' +
       '<div class="mci-meta">' + escapeHtml(T[it.type] || it.type) + attune + ' · ' + escapeHtml(it.nameEn || '') + '</div>' +
       '<div class="mci-desc">' + escapeHtml(it.desc || '') + '</div>' +
       '</button>';
@@ -632,8 +634,8 @@ function openGearCatalog() {
   if (typeof showToast === "function") showToast("Загружаем каталог…", "info");
   var ensure = (typeof window.ensureGearCatalog === "function") ? window.ensureGearCatalog() : Promise.resolve();
   ensure.then(function () {
-    var modal = document.getElementById("gear-catalog-modal");
-    if (modal) modal.classList.add("active");
+    if (typeof _closeOpenModals === "function") _closeOpenModals();
+    if (typeof showScreen === "function") showScreen("gearcatalog");
     var s = document.getElementById("gear-catalog-search"); if (s) s.value = "";
     var c = document.getElementById("gear-catalog-cat"); if (c) c.value = "";
     renderGearPacks();
@@ -645,8 +647,9 @@ function openGearCatalog() {
   });
 }
 function closeGearCatalog() {
-  var modal = document.getElementById("gear-catalog-modal");
-  if (modal) modal.classList.remove("active");
+  if (typeof currentScreenName !== "function" || currentScreenName() !== "gearcatalog") return;
+  screenBack();
+  openModal("item-modal");
 }
 function renderGearPacks() {
   var el = document.getElementById("gear-packs-list");

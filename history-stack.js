@@ -85,8 +85,10 @@
   // «Настройки», «О версии») стали экранами и обязаны пушить слой истории,
   // иначе браузерный Back с них уводил бы сразу из приложения.
   // STYLE-8M-2b: справка, пикер билдов, гайд и план развития — тоже экраны.
+  // STYLE-8M-3: повышение уровня, отдых и два каталога — тоже экраны.
   var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3,
-                       help: 3, builds: 3, buildguide: 4, buildplan: 4 };
+                       help: 3, builds: 3, buildguide: 4, buildplan: 4, abilityinfo: 3,
+                       featureinfo: 4, levelup: 3, rest: 3, magiccatalog: 3, gearcatalog: 3 };
   function wrapShowScreen() {
     var orig = window.showScreen;
     if (typeof orig !== "function") return false;
@@ -134,7 +136,6 @@
       ["drawer",        "openDrawer",          "closeDrawer"],
       ["dice",          "openDiceModal",       "closeDiceModal"],
       ["spellSearch",   "openSpellSearch",     "closeSpellSearch"],
-      ["rest",          "openRestModal",       "closeRestModal"],
       ["hpHistory",     "openHPHistory",       "closeHPHistory"]
     ].forEach(function(p){
       if (wrapPair(p[0], p[1], p[2])) applied.push(p[1]);
