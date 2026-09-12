@@ -214,6 +214,10 @@ f.addEventListener('load', () => {
       else if (modal === 'rest') { w.openRestModal(); if (q.get('rest')) (q.get('rest') === 'long' ? w.showLongRestInfo : w.showShortRestInfo)(); }
       else if (modal === 'magiccatalog') { w.openMagicCatalog(); await new Promise(r => setTimeout(r, 600)); }
       else if (modal === 'gearcatalog') { w.openGearCatalog(); await new Promise(r => setTimeout(r, 600)); }
+      // STYLE-8M-4: история ХП, поиск заклинаний и справка по предметам — экраны.
+      else if (modal === 'hphistory') w.openHPHistory();
+      else if (modal === 'spellsearch') w.openSpellSearch();
+      else if (modal === 'itemref') { w.openItemModal('other'); w.openItemRef(q.get('ref') || 'weight'); }
       // STYLE-8M: окна встречающего экрана. &backup=1 разворачивает панель
       // резервных копий и кладёт в неё одну свежую (иначе список пуст).
       else if (modal === 'data') {

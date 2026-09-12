@@ -1062,26 +1062,28 @@ function renderChangelog() {
   renderChangelog();
 })();
 
-// ── Item Reference Modal ──
+// ── Item Reference (STYLE-8M-4: экран по рецепту каталогов) ──
+// Открывается из формы предмета: форма закрывается и возвращается из closeItemRef.
 function openItemRef(tab) {
-  var modal = $("item-ref-modal");
-  if (modal) modal.classList.add("active");
+  if (typeof _closeOpenModals === "function") _closeOpenModals();
+  if (typeof showScreen === "function") showScreen("itemref");
   switchItemRef(tab || 'weight', null);
 }
 function closeItemRef() {
-  var modal = $("item-ref-modal");
-  if (modal) modal.classList.remove("active");
+  if (typeof currentScreenName !== "function" || currentScreenName() !== "itemref") return;
+  screenBack();
+  openModal("item-modal");
 }
 function switchItemRef(tab, btnEl) {
   [$("item-ref-weight"), $("item-ref-slots")].forEach(function(el) {
     if (el) el.classList.add("hidden");
   });
-  document.querySelectorAll(".item-ref-tab").forEach(function(b) { b.classList.remove("active"); });
+  document.querySelectorAll("#item-ref-tabs .help-tab").forEach(function(b) { b.classList.remove("active"); });
   var section = $("item-ref-" + tab);
   if (section) section.classList.remove("hidden");
   if (btnEl) btnEl.classList.add("active");
   else {
-    var btn = document.querySelector(".item-ref-tab[onclick*=\"'" + tab + "'\"]");
+    var btn = document.querySelector("#item-ref-tabs .help-tab[onclick*=\"'" + tab + "'\"]");
     if (btn) btn.classList.add("active");
   }
 }

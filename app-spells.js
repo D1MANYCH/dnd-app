@@ -158,7 +158,7 @@ showToast("Ячейки заклинаний восстановлены!", "succ
 }
 function setSpellVersion(version) {
 currentSpellVersion = version;
-document.querySelectorAll(".version-btn").forEach(function(btn) { btn.classList.remove("active"); });
+document.querySelectorAll(".edition-btn").forEach(function(btn) { btn.classList.remove("active"); });
 if(version === "all") $("btn-ver-all")?.classList.add("active");
 if(version === "PH14") $("btn-ver-ph14")?.classList.add("active");
 if(version === "PH24") $("btn-ver-ph24")?.classList.add("active");
@@ -192,8 +192,9 @@ function _charMaxCastableLevel(char) {
   return m;
 }
 function openSpellSearch() {
-const modal = $("spell-search-modal");
-if (modal) modal.classList.add("active");
+// STYLE-8M-4: поиск — экран. Открывается и с вкладки, и с экрана повышения
+// уровня (luGoToSpellsTab сначала уводит на лист), стек возврата это переживает.
+if (typeof showScreen === "function") showScreen("spellsearch");
 safeSet("spell-search-input", "");
 safeSet("spell-search-level", "");
 // BUILD-LVL: по умолчанию сужаем поиск до класса персонажа (чужие классы скрыты до явного выбора).
@@ -236,8 +237,7 @@ function markCharOwnClassFilter() {
   }
 }
 function closeSpellSearch() {
-const modal = $("spell-search-modal");
-if (modal) modal.classList.remove("active");
+if (typeof currentScreenName === "function" && currentScreenName() === "spellsearch") screenBack();
 // BUILD-LVL-4: обновить чек-лист guided level-up, если он открыт
 if (typeof luRefreshChoices === "function") luRefreshChoices();
 }

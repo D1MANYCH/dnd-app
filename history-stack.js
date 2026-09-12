@@ -134,9 +134,8 @@
     [
       // STYLE-8M-2: пара настроек снята — это экран, слой пушит wrapShowScreen.
       ["drawer",        "openDrawer",          "closeDrawer"],
-      ["dice",          "openDiceModal",       "closeDiceModal"],
-      ["spellSearch",   "openSpellSearch",     "closeSpellSearch"],
-      ["hpHistory",     "openHPHistory",       "closeHPHistory"]
+      // STYLE-8M-4: поиск заклинаний и история ХП — тоже экраны.
+      ["dice",          "openDiceModal",       "closeDiceModal"]
     ].forEach(function(p){
       if (wrapPair(p[0], p[1], p[2])) applied.push(p[1]);
     });

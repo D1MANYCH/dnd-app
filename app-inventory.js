@@ -758,60 +758,6 @@ function rollTrinket() {
   });
 }
 
-function viewItem(category, index) {
-if (!currentId) return;
-const char = getCurrentChar();
-if (!char) return;
-const item = char.inventory[category][index];
-currentViewItem = { category: category, index: index };
-const iconEl = $("view-item-icon");
-const nameEl = $("view-item-name");
-const qtyEl = $("view-item-qty");
-const weightEl = $("view-item-weight");
-const totalWeightEl = $("view-item-total-weight");
-const categoryEl = $("view-item-category");
-const descEl = $("view-item-desc");
-if (iconEl) iconEl.textContent = ITEM_ICONS[category];
-if (nameEl) nameEl.textContent = item.name || "Без названия";
-if (qtyEl) qtyEl.textContent = (item.qty || 1) + " шт.";
-if (weightEl) weightEl.textContent = (item.weight || 0) + " фнт";
-if (totalWeightEl) totalWeightEl.textContent = ((item.weight || 0) * (item.qty || 1)).toFixed(1) + " фнт";
-if (categoryEl) categoryEl.textContent = CATEGORY_NAMES[category];
-if (descEl) descEl.textContent = item.desc || "Нет описания";
-const modal = $("item-view-modal");
-if (modal) modal.classList.add("active");
-}
-function closeItemView() {
-const modal = $("item-view-modal");
-if (modal) modal.classList.remove("active");
-currentViewItem = null;
-}
-function editItemFromView() {
-if (!currentViewItem) return;
-closeItemView();
-openItemModal(currentViewItem.category, currentViewItem.index);
-}
-function deleteItemFromView() {
-if (!currentViewItem || !currentId) return;
-const char = getCurrentChar();
-if (!char) return;
-const item = char.inventory[currentViewItem.category] && char.inventory[currentViewItem.category][currentViewItem.index];
-const name = item ? item.name : "предмет";
-const capturedItem = { category: currentViewItem.category, index: currentViewItem.index };
-closeItemView();
-showConfirmModal(
-  "Удалить предмет?",
-  "«" + name + "» будет удалён без возможности восстановления.",
-  function() {
-    const c = characters.find(function(ch) { return ch.id === currentId; });
-    if (!c) return;
-    c.inventory[capturedItem.category].splice(capturedItem.index, 1);
-    if (window.AppLog) AppLog.action("inventory", "предмет удалён: " + name, { cat: capturedItem.category });
-    saveToLocal();
-    renderInventory();
-  }
-);
-}
 // HB-5: каталог оружия = книжные пресеты + своё оружие персонажа (char.customWeapons).
 // Слияние строго НА ЧТЕНИИ: WEAPON_PRESETS остаётся константой на 37 позиций (её длину
 // держит тест FIN-2), а хомбрю живёт в персонаже и уезжает вместе с ним в экспорт.

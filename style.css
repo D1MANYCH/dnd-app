@@ -382,8 +382,10 @@ html.glass-adjusting *::after {
   --cf-group: rgba(255,255,255,0.95);
   --cf-btn: rgba(255,255,255,0.96);
   --cf-legend: rgba(255,255,255,0.93);
-  --cf-own-bd: rgba(44,138,82,0.45); --cf-own-bg: rgba(44,138,82,0.12); --cf-own-tx: var(--success);
-  --cf-foreign-bd: rgba(199,58,44,0.35); --cf-foreign-bg: rgba(199,58,44,0.08); --cf-foreign-tx: var(--danger);
+  /* STYLE-8M-4: свой/чужой класс на экране поиска лежат на фоне страницы, а не
+     на белой кнопке — --success (4.35) и --danger (4.5 впритык) → 5.26 / 5.09. */
+  --cf-own-bd: rgba(44,138,82,0.45); --cf-own-bg: rgba(44,138,82,0.12); --cf-own-tx: #25703f;
+  --cf-foreign-bd: rgba(199,58,44,0.35); --cf-foreign-bg: rgba(199,58,44,0.08); --cf-foreign-tx: #b8352a;
   --pro-color: #1f7a3a; --con-color: #b23a2c;
   --diff-1: #1f8a4c; --diff-2: #c47a12; --diff-3: #c0392b;
 
@@ -444,8 +446,8 @@ html.glass-adjusting *::after {
     --cf-group: rgba(255,255,255,0.95);
     --cf-btn: rgba(255,255,255,0.96);
     --cf-legend: rgba(255,255,255,0.93);
-    --cf-own-bd: rgba(44,138,82,0.45); --cf-own-bg: rgba(44,138,82,0.12); --cf-own-tx: var(--success);
-    --cf-foreign-bd: rgba(199,58,44,0.35); --cf-foreign-bg: rgba(199,58,44,0.08); --cf-foreign-tx: var(--danger);
+    --cf-own-bd: rgba(44,138,82,0.45); --cf-own-bg: rgba(44,138,82,0.12); --cf-own-tx: #25703f;
+    --cf-foreign-bd: rgba(199,58,44,0.35); --cf-foreign-bg: rgba(199,58,44,0.08); --cf-foreign-tx: #b8352a;
     --pro-color: #1f7a3a; --con-color: #b23a2c;
     --diff-1: #1f8a4c; --diff-2: #c47a12; --diff-3: #c0392b;
 
@@ -866,21 +868,8 @@ html.glass-adjusting *::after {
    .edition-btn / .class-filter-legend / .class-filter-all на токенах
    --cf-wrap/group/btn/legend + --cf-own-x / --cf-foreign-x + --accent-soft
    работают в обеих темах. */
-/* .version-btn — база = прозрачная пилюля (глобальный button красит её в --accent),
-   переключатель редакции в модалках. В тёмной оставляем как есть (dark-only не
-   трогаем), светлый surface — компонентный токен --cf-btn. */
-:root[data-theme="light"] .version-btn {
-  background: var(--cf-btn) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-dim) !important;
-}
-:root[data-theme="light"] .version-btn:hover { border-color: var(--accent) !important; }
-:root[data-theme="light"] .version-btn.active {
-  background: var(--accent-soft) !important;
-  border-color: var(--accent) !important;
-  color: var(--accent-lo) !important;
-}
-
+/* STYLE-8M-4: .version-btn удалён — переключатель редакции в поиске
+   заклинаний стал словами через «·» (см. .edition-btn). */
 /* THEME-4: light-override строк боя/трекера удалён — базовые .battle-setup-row /
    .tracker-row / .tracker-row-active / .battle-nav-* на токенах --list-solid /
    --accent-soft / --chip-bg / --accent-fill. Ниже — только UX-6 тонкая настройка
@@ -5196,15 +5185,6 @@ font-family: var(--font-display);
 .rest-comparison .before { color: var(--home-sub); }
 .rest-comparison .arrow { color: var(--home-sub); }
 .rest-comparison .after { color: var(--success-color); font-weight: 700; }
-.version-btn { flex: 1; padding: 9px; font-size: 0.8em; opacity: 0.5; border-radius: var(--r-sm); margin: 0; border: 1.5px solid transparent; transition: all 0.15s ease; }
-.version-btn.active {
-  opacity: 1;
-  background: var(--accent-color) !important;
-  color: #000 !important;
-  border-color: var(--accent-color);
-  font-weight: 700;
-  box-shadow: 0 0 8px var(--accent-glow);
-}
 .weapon-presets { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 15px; max-height: 260px; overflow-y: auto; }
 @media (min-width: 700px) {
   .weapon-presets { grid-template-columns: repeat(2, 1fr); }
@@ -6264,16 +6244,31 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent-c
 .hb-form-hint { margin: 0; font-size: 0.75em; color: var(--text-muted); line-height: 1.4; }
 .item-form label { margin-top: 10px; }
 .item-form input:first-child { margin-top: 0; }
+/* STYLE-8M-4: результат поиска — строка экрана: ромб, serif-название, метрики
+   текстом через «·». Добавленное заклинание — залитый ромб, без рамки. */
+.spell-search-results { display: flex; flex-direction: column; }
 .spell-item {
-padding: 12px;
-margin-bottom: 10px;
-transition: all 0.2s;
+  position: relative;
+  padding: var(--sp-3) 0 var(--sp-3) calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
+  border-top: 1px solid var(--home-rule);
 }
-.spell-item:hover { border-color: var(--accent-color); }
-.spell-item h4 { margin: 0 0 6px 0; color: var(--accent-color); font-size: 0.95em; }
-.spell-item p { margin: 6px 0; font-size: 0.8em; color: var(--text-muted); line-height: 1.5; }
-.spell-item .spell-meta { display: flex; gap: 8px; font-size: 0.75em; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px; }
-.spell-item .spell-meta span { background: var(--card-bg); padding: 3px 7px; border-radius: 4px; border: 1px solid var(--border-color); color: var(--text-color); }
+.spell-search-results > .spell-item:first-child { border-top: 0; }
+.spell-item::before {
+  content: "";
+  position: absolute;
+  left: var(--sp-2);
+  top: calc(var(--sp-3) + 0.4em);
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--home-sub);
+  transition: background var(--t1) var(--ez-out);
+}
+.spell-item.spell-added::before { border-color: var(--success-color); background: var(--success-color); }
+.spell-item h4 { margin: 0 0 4px; font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; color: var(--text-color); }
+.spell-item p { margin: 6px 0; font-size: var(--fs-sm); color: var(--home-sub); line-height: 1.5; }
+.spell-item .spell-meta { display: flex; flex-wrap: wrap; gap: 0 var(--sp-2); margin-bottom: 4px; font-size: var(--fs-sm); color: var(--accent-lo); }
+.spell-item .spell-meta span + span::before { content: "·"; margin-right: var(--sp-2); color: var(--home-sub); }
 .source-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.7em; font-weight: 600; margin-left: 8px; }
 /* Заливки затемнены до WCAG 4.6 под белый текст: было #5b9bd5 → 2.96 и #e06c75 → 3.20
    (метка набрана 0.7em, это обычный текст, порог 4.5). Оттенок сохранён, тема на бейдж
@@ -6480,171 +6475,125 @@ transition: all 0.2s;
    считаются из --sc через color-mix в правиле .school-badge. */
 
 /* Class filter (grouped by source of magic) — модалка поиска заклинаний */
+/* STYLE-8M-4: фильтр классов на экране поиска — без коробок. Группа = подпись
+   капителью и ряд; редакция и «Все классы» — слова через «·», класс — иконка
+   с именем, приглушён до выбора, активный держит подчёркивание (без заливки).
+   Свой/чужой класс — только цветом имени, как в легенде. */
 .spell-class-filter-grouped {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 8px;
-  background: var(--cf-wrap);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  margin-bottom: 8px;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--home-rule);
 }
-.cf-row { display: flex; gap: 8px; width: 100%; }
+.cf-row { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); width: 100%; }
 .cf-row > .class-filter-group { flex: 1 1 0; min-width: 0; }
-.cf-row-top > [data-group="edition"] { flex: 2 1 0; }
-.cf-row-top > [data-group="all"]     { flex: 1 1 0; }
 .class-filter-group.cf-fullspan { flex: 1 1 100%; }
-.class-filter-row.cf-equal { display: flex; gap: 6px; }
-.class-filter-row.cf-equal > .class-filter-btn,
-.class-filter-row.cf-equal > .edition-btn,
-.class-filter-row.cf-equal > .class-filter-all { flex: 1 1 0; min-width: 0; }
-.class-filter-all {
-  flex: 1 1 100%;
-  width: 100%;
-  padding: 10px 12px;
-  font-weight: 700;
-  font-size: 0.85em;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: var(--accent-soft);
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  cursor: pointer;
-  transition: background 0.12s, box-shadow 0.12s;
-  letter-spacing: 0.02em;
-}
-.class-filter-all:hover { box-shadow: var(--sh-1); }
-.class-filter-all.active { box-shadow: 0 0 0 2px rgba(212,168,75,0.55); }
-.class-filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 4px 8px;
-  border-left: 2px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--cf-group);
-}
-.class-filter-group[data-group="edition"] { border-left-color: #d4a84b; margin-right: 4px; }
-.class-filter-group[data-group="edition"] .class-filter-row { flex-direction: row; flex-wrap: nowrap; }
-.class-filter-group[data-group="arcane"]  { border-left-color: #6e9bff; }
-.class-filter-group[data-group="divine"]  { border-left-color: #f7d56e; }
-.class-filter-group[data-group="primal"]  { border-left-color: #8be39b; }
-/* Компактные кнопки выбора редакции внутри group */
-.spell-class-filter-grouped .edition-btn,
-button.edition-btn {
-  width: auto !important;
-  display: inline-block !important;
-  padding: 8px 10px;
-  font-size: 0.78em;
-  font-weight: 700;
-  border-radius: var(--r-sm);
-  border: 1.5px solid var(--border-color);
-  background: var(--cf-btn);
-  color: var(--text-muted);
-  cursor: pointer;
-  opacity: 0.65;
-  transition: all 0.15s ease;
-  margin: 0;
-  min-width: auto;
-  height: auto;
-  letter-spacing: 0.02em;
-}
-.edition-btn:hover { opacity: 1; border-color: var(--accent); }
-.edition-btn.active {
-  opacity: 1;
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(212,168,75,0.30);
-}
+.class-filter-group { display: flex; flex-direction: column; gap: var(--sp-1); }
 .class-filter-label {
-  font-size: 0.65em;
-  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  letter-spacing: .08em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 700;
+  color: var(--home-sub);
 }
-.class-filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
-.class-filter-btn {
+.class-filter-label [data-ico] { display: none; }
+.class-filter-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--sp-3); }
+/* перебиваем глобальный button{width:100%} (ловушка FIN-2) */
+.edition-btn,
+.class-filter-all {
   width: auto;
-  min-width: 0;
-  padding: 6px 4px;
-  background: var(--cf-btn);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: var(--sp-1) 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text-dim);
   cursor: pointer;
+  transition: color var(--t1) var(--ez-out);
+}
+.edition-btn + .edition-btn::before { content: "·"; margin-right: var(--sp-3); color: var(--home-sub); }
+.edition-btn:hover,
+.edition-btn:focus-visible,
+.class-filter-all:hover,
+.class-filter-all:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
+.edition-btn.active,
+.class-filter-all.active {
+  color: var(--accent-lo);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 2px;
+}
+.class-filter-btn {
+  position: relative;
+  width: auto;
+  flex: 0 0 auto;
+  min-width: 0;
+  margin: 0;
+  padding: var(--sp-1) 0 var(--sp-2);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  transition: border-color 0.12s, background 0.12s, box-shadow 0.12s, opacity 0.12s;
-  position: relative;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity var(--t1) var(--ez-out);
 }
-.class-filter-btn img { width: 38px; height: 38px; object-fit: contain; }
+.class-filter-btn img { width: 36px; height: 36px; object-fit: contain; }
 .cf-name {
-  font-size: 0.62em;
-  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
   line-height: 1.1;
   text-align: center;
-  letter-spacing: 0.02em;
+  color: var(--text-dim);
+  transition: color var(--t1) var(--ez-out);
 }
-.class-filter-btn:hover { border-color: var(--accent); box-shadow: var(--sh-1); }
-.class-filter-btn:hover .cf-name { color: var(--text); }
-.class-filter-btn.active {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(212,168,75,0.35);
+.class-filter-btn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform var(--t2) var(--ez-out);
 }
-.class-filter-btn.active .cf-name { color: var(--accent); }
-/* Свой класс — зелёный */
-.class-filter-btn.cf-own {
-  border-color: var(--cf-own-bd);
-  background: var(--cf-own-bg);
-}
-.class-filter-btn.cf-own .cf-name { color: var(--cf-own-tx); }
-.class-filter-btn.cf-own.active {
-  border-color: var(--cf-own-tx);
-  box-shadow: 0 0 0 2px rgba(139,227,155,0.45);
-}
-/* Чужой класс — приглушённый красный (но кликабельный) */
-.class-filter-btn.cf-foreign {
-  border-color: var(--cf-foreign-bd);
-  background: var(--cf-foreign-bg);
-  opacity: 0.75;
-}
+.class-filter-btn:hover,
+.class-filter-btn:focus-visible { opacity: 1; background: none; box-shadow: none; outline: none; }
+.class-filter-btn.active { opacity: 1; }
+.class-filter-btn.active .cf-name { color: var(--accent-lo); font-weight: 700; }
+.class-filter-btn.active::after { transform: scaleX(1); }
+/* Свой класс — зелёный, чужой — приглушённый красный (но кликабельный) */
+.class-filter-btn.cf-own .cf-name,
+.class-filter-btn.cf-own.active .cf-name { color: var(--cf-own-tx); }
+.class-filter-btn.cf-own.active::after { background: var(--cf-own-tx); }
 .class-filter-btn.cf-foreign img { filter: saturate(0.55); }
-.class-filter-btn.cf-foreign .cf-name { color: var(--cf-foreign-tx); }
-.class-filter-btn.cf-foreign:hover { opacity: 1; }
-.class-filter-btn.cf-foreign.active {
-  border-color: var(--cf-foreign-tx);
-  background: rgba(229,99,99,0.18);
-  opacity: 1;
-  box-shadow: 0 0 0 2px rgba(229,99,99,0.35);
-}
-/* Легенда — растягивается на всю ширину контейнера */
+.class-filter-btn.cf-foreign .cf-name,
+.class-filter-btn.cf-foreign.active .cf-name { color: var(--cf-foreign-tx); }
+.class-filter-btn.cf-foreign.active::after { background: var(--cf-foreign-tx); }
 .class-filter-legend {
-  flex: 1 0 100%;
-  width: 100%;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 10px;
-  margin-top: 4px;
-  font-size: 0.72em;
-  color: var(--text-muted);
-  background: var(--cf-legend);
-  border-top: 1px solid var(--border-color);
-  border-radius: 0 0 var(--r-sm) var(--r-sm);
+  gap: var(--sp-1) var(--sp-4);
+  font-size: var(--fs-xs);
+  color: var(--home-sub);
 }
-.class-filter-legend > span { flex: 1 1 auto; }
 .cf-legend-own     { color: var(--cf-own-tx); }
 .cf-legend-foreign { color: var(--cf-foreign-tx); }
-.cf-legend-hint    { color: var(--text-muted); font-style: italic; }
+.cf-legend-hint    { color: var(--home-sub); font-style: italic; }
 
 /* Meta row — always visible */
 .spell-card-meta {
@@ -6798,15 +6747,6 @@ button.edition-btn {
     line-height: 1.15;
   }
 }
-.item-detail-icon { font-size: 4em; text-align: center; margin: 20px 0; opacity: 0.8; }
-.item-detail-name { font-size: 1.4em; font-weight: bold; color: var(--accent-color); text-align: center; margin-bottom: 20px; }
-.item-detail-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-.item-detail-stat { background: var(--input-bg); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border-color); }
-.item-detail-stat .label { font-size: 0.7em; color: var(--text-muted); margin-bottom: 5px; }
-.item-detail-stat .value { font-size: 1.1em; font-weight: bold; color: var(--text-color); }
-.item-detail-desc { background: var(--input-bg); padding: 15px; border-radius: 8px; margin-bottom: 20px; line-height: 1.6; font-size: 0.9em; border: 1px solid var(--border-color); max-height: 200px; overflow-y: auto; }
-.item-detail-actions { display: flex; gap: 10px; }
-.item-detail-actions button { flex: 1; margin: 0; }
 
 /* ============================================================
    HP DISPLAY BLOCK
@@ -7071,55 +7011,57 @@ transition: width var(--t3, 420ms) var(--ez-spring, ease), background 0.4s;
   transform: translateY(10px);
 }
 
-/* ========== HP HISTORY MODAL ========== */
-.hph-modal { max-width: 400px; padding: 0; overflow: hidden; }
-.hph-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px 12px;
-  border-bottom: 1px solid var(--border-color);
-}
-.hph-title { font-size: 15px; font-weight: 700; }
-.hph-list {
-  max-height: 360px;
-  overflow-y: auto;
-  padding: 10px 16px;
-}
-.hph-empty {
-  text-align: center;
-  color: var(--text-muted);
-  padding: 30px 0;
-  font-size: 14px;
-}
+/* ========== HP HISTORY (STYLE-8M-4: экран, а не модалка) ========== */
+/* Оболочка .hph-modal/.hph-header снята. Запись = строка с ромбом цвета
+   события (лечение/урон), время и «было → стало» приглушены, дельта справа. */
+.hph-list { display: flex; flex-direction: column; }
+.hph-empty { color: var(--home-sub); padding: var(--sp-4) 0; }
 .hph-row {
+  position: relative;
   display: grid;
-  grid-template-columns: 40px 1fr auto auto;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  font-size: 13px;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0 var(--sp-2) calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
+  border-top: 1px solid var(--home-rule);
+  font-size: var(--fs-sm);
 }
-.hph-row:last-child { border-bottom: none; }
-.hph-time { color: var(--text-muted); font-size: 11px; }
-.hph-source { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hph-nums { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
-.hph-delta { font-weight: 800; font-size: 14px; text-align: right; min-width: 40px; }
-.hph-heal { color: #5a9e1e; }
-.hph-dmg  { color: #e24b4a; }
+.hph-list > .hph-row:first-child { border-top: 0; }
+.hph-row::before {
+  content: "";
+  position: absolute;
+  left: var(--sp-2);
+  top: calc(var(--sp-2) + 0.4em);
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--home-accent, var(--home-sub));
+}
+.hph-row--heal { --home-accent: var(--success-color); }
+.hph-row--dmg  { --home-accent: var(--danger-color); }
+.hph-time { color: var(--home-sub); font-size: var(--fs-xs); white-space: nowrap; }
+.hph-source { color: var(--text-color); font-family: var(--font-display); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hph-nums { color: var(--home-sub); font-size: var(--fs-xs); white-space: nowrap; }
+.hph-delta { font-family: var(--font-display); font-weight: 700; text-align: right; min-width: 40px; }
+.hph-heal { color: var(--success-color); }
+.hph-dmg  { color: var(--danger-color); }
+.hph-actions { margin-top: var(--sp-4); padding-top: var(--sp-3); border-top: 1px solid var(--home-rule); }
 .hph-clear-btn {
-  width: calc(100% - 32px);
-  margin: 0 16px 14px;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 13px;
+  width: auto;
+  margin: 0;
+  padding: var(--sp-2) 2px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--home-sub);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
   cursor: pointer;
+  transition: color var(--t1) var(--ez-out);
 }
-.hph-clear-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.hph-clear-btn:hover,
+.hph-clear-btn:focus-visible { background: none; box-shadow: none; color: var(--danger-color); }
 
 /* ===== Confirm Modal ===== */
 .confirm-modal-overlay {
@@ -9492,17 +9434,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .app-toast-warn    { background:#2e2510; color:#f0c040; border:1.5px solid rgba(212,168,67,0.6); }
 .app-toast-info    { background:#101a2e; color:#7eb8f0; border:1.5px solid rgba(91,155,213,0.6); }
 
-/* ========== SPELL CLASS FILTER COMPACT ========== */
-.spell-class-filter {
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.spell-class-filter .version-btn {
-  min-width: 36px;
-  padding: 6px 8px;
-  font-size: 16px;
-}
-
 /* =============================================
    INVENTORY SLOTS SYSTEM
 ============================================= */
@@ -9636,81 +9567,40 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   box-shadow: none !important;
 }
 
-.item-ref-content { max-height: 80vh; overflow-y: auto; }
-
-.item-ref-tabs {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 14px;
-}
-.item-ref-tab {
-  flex: 1;
-  padding: 7px 10px !important;
-  border-radius: 8px !important;
-  border: 1px solid var(--border-color) !important;
-  background: var(--input-bg) !important;
-  color: var(--text-muted) !important;
-  font-size: 0.85em !important;
-  font-weight: 600;
-  cursor: pointer;
-  width: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  box-shadow: none !important;
-  transition: all 0.15s;
-}
-.item-ref-tab.active {
-  background: var(--accent-color) !important;
-  color: black !important;
-  border-color: var(--accent-color) !important;
-}
-.item-ref-tab:hover:not(.active) {
-  border-color: var(--accent-color) !important;
-  color: var(--text-color) !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-.item-ref-section { display: flex; flex-direction: column; gap: 14px; }
-.item-ref-group {
-  background: var(--input-bg);
-  border-radius: var(--r-sm);
-  overflow: hidden;
-  border: 1px solid var(--border-color);
-}
+/* STYLE-8M-4: справка по весу и слотам — экран. Вкладки — .help-tabs справки,
+   группа = подпись капителью и строки «название · значение» на волосяной линии
+   (как сводка повышения уровня), примечание — рельса слева. */
+.item-ref-section { display: flex; flex-direction: column; gap: var(--sp-4); }
+.item-ref-group { display: flex; flex-direction: column; }
 .item-ref-group-title {
-  font-size: 0.75em;
-  font-weight: 700;
-  color: var(--accent-color);
+  margin-bottom: var(--sp-1);
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  letter-spacing: .08em;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  padding: 7px 12px;
-  background: rgba(77,168,67,0.08);
-  border-bottom: 1px solid var(--border-color);
+  color: var(--home-sub);
 }
+.item-ref-group-title [data-ico] { display: none; }
 .item-ref-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 7px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  font-size: 0.85em;
+  align-items: baseline;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  border-top: 1px solid var(--home-rule);
+  font-size: var(--fs-sm);
 }
-.item-ref-row:last-child { border-bottom: none; }
+.item-ref-group-title + .item-ref-row { border-top: 0; }
 .item-ref-row span:first-child { color: var(--text-color); }
-.item-ref-row span:last-child { color: var(--accent-color); font-weight: 600; font-size: 0.95em; }
+.item-ref-row span:last-child { color: var(--accent-lo); font-family: var(--font-display); font-weight: 600; white-space: nowrap; }
 .item-ref-note {
-  font-size: 0.78em;
-  color: var(--text-muted);
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-sm);
-  padding: 8px 12px;
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-3);
+  border-left: 2px solid var(--accent);
+  font-size: var(--fs-sm);
+  color: var(--home-sub);
   line-height: 1.5;
 }
-
-/* Reference modal always on top */
-#item-ref-modal { z-index: 400; }
+.item-ref-note [data-ico] { display: none; }
 
 /* =============================================
    HELP / ONBOARDING (HELP-1) — табовый help-центр.
@@ -12960,8 +12850,8 @@ select.bp-select { padding-right: var(--sp-4); }
 .lu-choice-alt:hover { background: none; color: var(--accent-lo); }
 .lu-apply-all-btn { width: auto; margin: 0 0 var(--sp-2); padding: var(--sp-2) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-md); font-weight: 700; color: var(--rec); cursor: pointer; }
 .lu-apply-all-btn:hover { filter: none; background: none; text-decoration: underline; text-underline-offset: 3px; }
-/* Пикеры, запускаемые с экрана выборов, должны лежать выше модалки повышения (z 1000) */
-#class-choice-modal.modal, #spell-search-modal.modal { z-index: 10001; }
+/* Пикер класса запускается с экрана выборов повышения — держим выше модалок */
+#class-choice-modal.modal { z-index: 10001; }
 .char-build-unlink { background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:var(--r-sm,8px); padding:3px 8px; font-size:0.78em; cursor:pointer; transition:color .12s, border-color .12s; }
 .char-build-unlink:hover { color:#e74c3c; border-color:#e74c3c; }
 
@@ -12969,21 +12859,9 @@ select.bp-select { padding-right: var(--sp-4); }
    BUGFIX-6: мобильная вёрстка (≤540px)
 ============================================= */
 @media (max-width: 540px) {
-  /* (в) Фильтр классов в модалке заклинаний: ряды cf-row сжимались до
-        неразличимых иконок. Разрешаем wrap и увеличиваем минимальную ширину
-        кнопок, чтобы было >=64px на кнопку. */
-  .cf-row { flex-wrap: wrap; }
-  .class-filter-group { padding: 6px 8px; }
-  .class-filter-row.cf-equal { flex-wrap: wrap; gap: 4px; }
-  .class-filter-row.cf-equal > .class-filter-btn,
-  .class-filter-row.cf-equal > .edition-btn,
-  .class-filter-row.cf-equal > .class-filter-all { flex: 1 1 64px; min-width: 64px; }
-  .class-filter-btn { padding: 5px 3px; }
-  .class-filter-btn img { width: 32px; height: 32px; }
-  .cf-name { font-size: 0.68em; }
-  .spell-class-filter-grouped .edition-btn,
-  button.edition-btn { padding: 7px 8px; font-size: 0.72em; }
-  .class-filter-all { padding: 9px 10px; font-size: 0.8em; }
+  /* (в) Фильтр классов на экране поиска: иконки чуть меньше, чтобы четыре
+        класса тайной магии вставали в один ряд. */
+  .class-filter-btn img { width: 30px; height: 30px; }
 }
 
 /* =============================================
@@ -13552,13 +13430,12 @@ textarea:focus-visible {
 
 /* ══ STYLE-8b: вкладка «Заклинания» — та же вложенная подложка ════════════
    Продолжение блока выше: .sc-stat-block жил на --input-bg/--border-color,
-   .spell-item — на радиусе 8 литералом, .my-spell-item — на --r-md,
+   .my-spell-item — на --r-md (STYLE-8M-4: .spell-item ушёл на экран поиска),
    .prep-counter — на rgba(--accent-rgb) с собственным радиусом. Эталон уже
    был в этой же вкладке (.spell-slot-row: --bg-2 + --border-soft + блик),
    к нему всё и сведено. Модификаторы (--main, .spell-added) стоят НИЖЕ
    группового правила: специфичность у них равная, решает порядок. */
 .sc-stat-block,
-.spell-item,
 .my-spell-item,
 .prep-counter {
   background: var(--bg-2);
@@ -13569,10 +13446,6 @@ textarea:focus-visible {
 .sc-stat-block--main {
   border-color: var(--accent-color);
   background: color-mix(in srgb, var(--accent) 8%, transparent);
-}
-.spell-added {
-  border-color: var(--success-color);
-  background: color-mix(in srgb, var(--success) 12%, transparent);
 }
 
 /* ══ STYLE-8c: вкладка «Сумка» — та же вложенная подложка ═════════════════
@@ -16727,3 +16600,81 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   #screen-magiccatalog .page-stage > *,
   #screen-gearcatalog .page-stage > * { animation: none; }
 }
+
+
+/* ============================================================
+   STYLE-8M-4: ОКНА-ЭКРАНЫ, ДОЗАХОД II — «История здоровья»,
+   «Поиск заклинаний», «Справка по предметам».
+   Три модалки стали экранами-страницами (каркас 8M-2); «Просмотр предмета»
+   был мёртв (viewItem никто не звал) и удалён. Содержимое переписано по
+   месту (HP HISTORY, фильтр классов, .spell-item, item-ref) — здесь каскад
+   въезда и то, что в поиске делят с вкладкой «Заклинания»: бейджи и кнопки
+   там остаются чипами, на экране — текст.
+============================================================ */
+#screen-hphistory .page-stage > *,
+#screen-spellsearch .page-stage > *,
+#screen-itemref .page-stage > * { animation: rise var(--t3) var(--ez-out) both; }
+#screen-hphistory .page-stage > :nth-child(2),
+#screen-spellsearch .page-stage > :nth-child(2),
+#screen-itemref .page-stage > :nth-child(2) { animation-delay: 40ms; }
+#screen-hphistory .page-stage > :nth-child(3),
+#screen-spellsearch .page-stage > :nth-child(3),
+#screen-itemref .page-stage > :nth-child(3) { animation-delay: 80ms; }
+#screen-spellsearch .page-stage > :nth-child(4),
+#screen-itemref .page-stage > :nth-child(4) { animation-delay: 120ms; }
+#screen-spellsearch .page-stage > :nth-child(5) { animation-delay: 160ms; }
+@media (prefers-reduced-motion: reduce) {
+  #screen-hphistory .page-stage > *,
+  #screen-spellsearch .page-stage > *,
+  #screen-itemref .page-stage > * { animation: none; }
+}
+/* Бейджи редакции/класса/«своё» в заголовке результата — текст капителью */
+#screen-spellsearch .source-badge,
+#screen-spellsearch .class-badge {
+  padding: 0;
+  margin-left: var(--sp-2);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--home-sub);
+}
+#screen-spellsearch .class-badge .spell-class-icon { width: 16px; height: 16px; vertical-align: -3px; }
+/* «На больших уровнях» — рельса вместо подложки */
+#screen-spellsearch .spell-higher {
+  margin: var(--sp-2) 0;
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-3);
+  border-left: 2px solid var(--accent);
+  border-radius: 0;
+  background: none;
+  color: var(--accent-lo);
+}
+/* Действия строки — слова через «·», проявляются на hover строки */
+#screen-spellsearch .spell-item-actions { gap: 0 var(--sp-3); margin-top: var(--sp-1); opacity: 0.55; transition: opacity var(--t1) var(--ez-out); }
+#screen-spellsearch .spell-item:hover .spell-item-actions,
+#screen-spellsearch .spell-item:focus-within .spell-item-actions { opacity: 1; }
+#screen-spellsearch .spell-item-actions button {
+  width: auto;
+  margin: 0;
+  padding: var(--sp-1) 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--accent-lo);
+  cursor: pointer;
+  transition: color var(--t1) var(--ez-out);
+}
+#screen-spellsearch .spell-item-actions button + button::before { content: "·"; margin-right: var(--sp-3); color: var(--home-sub); }
+#screen-spellsearch .spell-item-actions button:hover,
+#screen-spellsearch .spell-item-actions button:focus-visible { background: none; box-shadow: none; color: var(--accent); }
+#screen-spellsearch .spell-item-actions button.secondary { color: var(--home-sub); }
+#screen-spellsearch .spell-item-actions .spell-remove-btn { color: var(--danger-color); }
+#screen-spellsearch .spell-item-actions .spell-remove-btn:hover { color: var(--danger-color); text-decoration: underline; text-underline-offset: 3px; }

@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v365">
+<link rel="stylesheet" href="style.css?v=v366">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -1571,13 +1571,13 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 </div>
 <!-- Modal: Item Reference -->
-<div id="item-ref-modal" class="modal">
-<div class="modal-content item-ref-content">
-  <button type="button" class="modal-close" onclick="closeItemRef()" aria-label="Закрыть">✕</button>
-  <h3 id="item-ref-title">Справка</h3>
-  <div id="item-ref-tabs" class="item-ref-tabs">
-    <button class="item-ref-tab active" onclick="switchItemRef('weight',this)"><span data-ico="scale" data-ico-size="16">⚖️</span> Вес</button>
-    <button class="item-ref-tab" onclick="switchItemRef('slots',this)"><span data-ico="box" data-ico-size="16">📦</span> Слоты</button>
+<!-- Screen: Item Reference / Справка по весу и слотам (STYLE-8M-4: экран, а не модалка) -->
+<div id="screen-itemref" class="page-screen hidden">
+<div class="page-stage">
+  <div class="page-head"><h2 class="page-title" id="item-ref-title">Справка</h2><button type="button" class="page-back" onclick="closeItemRef()">← Назад</button></div>
+  <div id="item-ref-tabs" class="help-tabs">
+    <button class="help-tab active" onclick="switchItemRef('weight',this)"><span data-ico="scale" data-ico-size="16">⚖️</span> Вес</button>
+    <button class="help-tab" onclick="switchItemRef('slots',this)"><span data-ico="box" data-ico-size="16">📦</span> Слоты</button>
   </div>
 
   <!-- Weight reference -->
@@ -2314,14 +2314,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <!-- Modal: HP History -->
-<div id="hp-history-modal" class="modal">
-<div class="modal-content hph-modal">
-<div class="hph-header">
-<span class="hph-title"><span data-ico="history" data-ico-size="18">📋</span> История здоровья</span>
-<button type="button" class="modal-close" onclick="closeHPHistory()" aria-label="Закрыть">✕</button>
-</div>
+<!-- Screen: HP History / История здоровья (STYLE-8M-4: экран, а не модалка) -->
+<div id="screen-hphistory" class="page-screen hidden">
+<div class="page-stage">
+<div class="page-head"><h2 class="page-title">История здоровья</h2><button type="button" class="page-back" onclick="closeHPHistory()">← Назад</button></div>
 <div id="hp-history-list" class="hph-list"></div>
-<button class="hph-clear-btn" onclick="hpHistory=[];openHPHistory()">Очистить историю</button>
+<div class="hph-actions"><button type="button" class="hph-clear-btn" onclick="hpHistory=[];openHPHistory()">Очистить историю</button></div>
 </div>
 </div>
 
@@ -2542,62 +2540,13 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <!-- Modal: Spell Search -->
-<div id="spell-search-modal" class="modal">
-<div class="modal-content">
-<button type="button" class="modal-close" onclick="closeSpellSearch()" aria-label="Закрыть">✕</button>
-<h3>Поиск заклинаний</h3>
-<div class="spell-class-filter-grouped" id="spell-class-filter">
-  <div class="cf-row cf-row-top">
-    <div class="class-filter-group" data-group="edition">
-      <span class="class-filter-label" title="Редакция Player's Handbook"><span data-ico="book" data-ico-size="14">📖</span> Редакция</span>
-      <div class="class-filter-row cf-equal">
-        <button class="version-btn edition-btn active" onclick="setSpellVersion('all')"  id="btn-ver-all">Все</button>
-        <button class="version-btn edition-btn"        onclick="setSpellVersion('PH14')" id="btn-ver-ph14">PH'14</button>
-        <button class="version-btn edition-btn"        onclick="setSpellVersion('PH24')" id="btn-ver-ph24">PH'24</button>
-      </div>
-    </div>
-    <div class="class-filter-group cf-allbox" data-group="all">
-      <span class="class-filter-label"><span data-ico="star" data-ico-size="14">✦</span> Любой класс</span>
-      <div class="class-filter-row">
-        <button class="class-filter-all active" onclick="setSpellClass('all')" id="btn-class-all">Все классы</button>
-      </div>
-    </div>
-  </div>
-  <div class="cf-row">
-    <div class="class-filter-group cf-fullspan" data-group="arcane">
-      <span class="class-filter-label" title="Заклинания, питаемые знанием и волей">🔵 Тайная магия</span>
-      <div class="class-filter-row cf-equal">
-        <button class="class-filter-btn" data-class="wizard"   onclick="setSpellClass('wizard')"   id="btn-class-wizard"><img src="assets/classes/wizard.webp?v=2"     alt=""><span class="cf-name">Волшебник</span></button>
-        <button class="class-filter-btn" data-class="sorcerer" onclick="setSpellClass('sorcerer')" id="btn-class-sorcerer"><img src="assets/classes/sorcerer.webp?v=2" alt=""><span class="cf-name">Чародей</span></button>
-        <button class="class-filter-btn" data-class="warlock"  onclick="setSpellClass('warlock')"  id="btn-class-warlock"><img src="assets/classes/warlock.webp?v=2"   alt=""><span class="cf-name">Колдун</span></button>
-        <button class="class-filter-btn" data-class="bard"     onclick="setSpellClass('bard')"     id="btn-class-bard"><img src="assets/classes/bard.webp?v=2"         alt=""><span class="cf-name">Бард</span></button>
-      </div>
-    </div>
-  </div>
-  <div class="cf-row">
-    <div class="class-filter-group" data-group="divine">
-      <span class="class-filter-label" title="Заклинания, дарованные божеством или клятвой">🟡 Божественная</span>
-      <div class="class-filter-row cf-equal">
-        <button class="class-filter-btn" data-class="cleric"  onclick="setSpellClass('cleric')"  id="btn-class-cleric"><img src="assets/classes/cleric.webp?v=2"   alt=""><span class="cf-name">Жрец</span></button>
-        <button class="class-filter-btn" data-class="paladin" onclick="setSpellClass('paladin')" id="btn-class-paladin"><img src="assets/classes/paladin.webp?v=2" alt=""><span class="cf-name">Паладин</span></button>
-      </div>
-    </div>
-    <div class="class-filter-group" data-group="primal">
-      <span class="class-filter-label" title="Заклинания, исходящие из природы">🟢 Природная</span>
-      <div class="class-filter-row cf-equal">
-        <button class="class-filter-btn" data-class="druid"  onclick="setSpellClass('druid')"  id="btn-class-druid"><img src="assets/classes/druid.webp?v=2"   alt=""><span class="cf-name">Друид</span></button>
-        <button class="class-filter-btn" data-class="ranger" onclick="setSpellClass('ranger')" id="btn-class-ranger"><img src="assets/classes/ranger.webp?v=2" alt=""><span class="cf-name">Следопыт</span></button>
-      </div>
-    </div>
-  </div>
-  <div class="class-filter-legend" id="class-filter-legend"></div>
-</div>
-<div class="row">
-<div class="col">
-<input type="text" id="spell-search-input" placeholder="Поиск по названию..." oninput="renderSpellSearch()">
-</div>
-<div class="col" style="flex:0.5;">
-<select id="spell-search-level" onchange="renderSpellSearch()">
+<!-- Screen: Spell Search / Поиск заклинаний (STYLE-8M-4: экран, а не модалка) -->
+<div id="screen-spellsearch" class="page-screen hidden">
+<div class="page-stage">
+<div class="page-head"><h2 class="page-title">Поиск заклинаний</h2><button type="button" class="page-back" onclick="closeSpellSearch()">← Назад</button></div>
+<div class="bp-filter-row catalog-filters">
+  <input type="text" id="spell-search-input" class="bp-search" placeholder="Поиск по названию…" oninput="renderSpellSearch()">
+  <div class="bp-filter-group"><select id="spell-search-level" class="bp-select" onchange="renderSpellSearch()">
 <option value="">Все уровни</option>
 <option value="0">Заговор</option>
 <option value="1">1</option>
@@ -2609,12 +2558,56 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <option value="7">7</option>
 <option value="8">8</option>
 <option value="9">9</option>
-</select>
+</select></div>
 </div>
+<div class="spell-class-filter-grouped" id="spell-class-filter">
+  <div class="cf-row cf-row-top">
+    <div class="class-filter-group" data-group="edition">
+      <span class="class-filter-label" title="Редакция Player's Handbook"><span data-ico="book" data-ico-size="14">📖</span> Редакция</span>
+      <div class="class-filter-row cf-equal">
+        <button class="edition-btn active" onclick="setSpellVersion('all')"  id="btn-ver-all">Все</button>
+        <button class="edition-btn" onclick="setSpellVersion('PH14')" id="btn-ver-ph14">PH'14</button>
+        <button class="edition-btn" onclick="setSpellVersion('PH24')" id="btn-ver-ph24">PH'24</button>
+      </div>
+    </div>
+    <div class="class-filter-group cf-allbox" data-group="all">
+      <span class="class-filter-label"><span data-ico="star" data-ico-size="14">✦</span> Любой класс</span>
+      <div class="class-filter-row">
+        <button class="class-filter-all active" onclick="setSpellClass('all')" id="btn-class-all">Все классы</button>
+      </div>
+    </div>
+  </div>
+  <div class="cf-row">
+    <div class="class-filter-group cf-fullspan" data-group="arcane">
+      <span class="class-filter-label" title="Заклинания, питаемые знанием и волей">Тайная магия</span>
+      <div class="class-filter-row cf-equal">
+        <button class="class-filter-btn" data-class="wizard"   onclick="setSpellClass('wizard')"   id="btn-class-wizard"><img src="assets/classes/wizard.webp?v=2"     alt=""><span class="cf-name">Волшебник</span></button>
+        <button class="class-filter-btn" data-class="sorcerer" onclick="setSpellClass('sorcerer')" id="btn-class-sorcerer"><img src="assets/classes/sorcerer.webp?v=2" alt=""><span class="cf-name">Чародей</span></button>
+        <button class="class-filter-btn" data-class="warlock"  onclick="setSpellClass('warlock')"  id="btn-class-warlock"><img src="assets/classes/warlock.webp?v=2"   alt=""><span class="cf-name">Колдун</span></button>
+        <button class="class-filter-btn" data-class="bard"     onclick="setSpellClass('bard')"     id="btn-class-bard"><img src="assets/classes/bard.webp?v=2"         alt=""><span class="cf-name">Бард</span></button>
+      </div>
+    </div>
+  </div>
+  <div class="cf-row">
+    <div class="class-filter-group" data-group="divine">
+      <span class="class-filter-label" title="Заклинания, дарованные божеством или клятвой">Божественная</span>
+      <div class="class-filter-row cf-equal">
+        <button class="class-filter-btn" data-class="cleric"  onclick="setSpellClass('cleric')"  id="btn-class-cleric"><img src="assets/classes/cleric.webp?v=2"   alt=""><span class="cf-name">Жрец</span></button>
+        <button class="class-filter-btn" data-class="paladin" onclick="setSpellClass('paladin')" id="btn-class-paladin"><img src="assets/classes/paladin.webp?v=2" alt=""><span class="cf-name">Паладин</span></button>
+      </div>
+    </div>
+    <div class="class-filter-group" data-group="primal">
+      <span class="class-filter-label" title="Заклинания, исходящие из природы">Природная</span>
+      <div class="class-filter-row cf-equal">
+        <button class="class-filter-btn" data-class="druid"  onclick="setSpellClass('druid')"  id="btn-class-druid"><img src="assets/classes/druid.webp?v=2"   alt=""><span class="cf-name">Друид</span></button>
+        <button class="class-filter-btn" data-class="ranger" onclick="setSpellClass('ranger')" id="btn-class-ranger"><img src="assets/classes/ranger.webp?v=2" alt=""><span class="cf-name">Следопыт</span></button>
+      </div>
+    </div>
+  </div>
+  <div class="class-filter-legend" id="class-filter-legend"></div>
 </div>
-<div id="spell-search-count" style="font-size:0.75em;color:var(--text-muted);margin-bottom:4px;"></div>
-<div id="spell-search-results" style="max-height:350px; overflow-y:auto; margin-top:8px;"></div>
-<button class="secondary modal-close-bottom" onclick="closeSpellSearch()">Закрыть</button>
+<div id="spell-search-count" class="magic-catalog-count"></div>
+<div id="spell-search-results" class="spell-search-results"></div>
 </div>
 </div>
 <!-- Modal: Add Spell -->
@@ -2876,38 +2869,6 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </div>
 <!-- Modal: Item View -->
-<div id="item-view-modal" class="modal">
-<div class="modal-content">
-<button type="button" class="modal-close" onclick="closeItemView()" aria-label="Закрыть">✕</button>
-<h3>Предмет</h3>
-<div class="item-detail-icon" id="view-item-icon">🎒</div>
-<div class="item-detail-name" id="view-item-name">Название</div>
-<div class="item-detail-stats">
-<div class="item-detail-stat">
-<div class="label">Количество</div>
-<div class="value" id="view-item-qty">1 шт.</div>
-</div>
-<div class="item-detail-stat">
-<div class="label">Вес за шт.</div>
-<div class="value" id="view-item-weight">0 фнт</div>
-</div>
-<div class="item-detail-stat">
-<div class="label">Категория</div>
-<div class="value" id="view-item-category">-</div>
-</div>
-<div class="item-detail-stat">
-<div class="label">Общий вес</div>
-<div class="value" id="view-item-total-weight">0 фнт</div>
-</div>
-</div>
-<div class="item-detail-desc" id="view-item-desc">Описание предмета...</div>
-<div class="item-detail-actions">
-<button class="info" onclick="editItemFromView()"><span data-ico="edit" data-ico-size="16">✏️</span> Редактировать</button>
-<button class="danger" onclick="deleteItemFromView()"><span data-ico="trash" data-ico-size="16">🗑️</span> Удалить</button>
-</div>
-<button class="secondary modal-close-bottom" onclick="closeItemView()">Закрыть</button>
-</div>
-</div>
 <!-- Modal: Weapon -->
 <div id="weapon-modal" class="modal">
 <div class="modal-content">
@@ -3197,58 +3158,58 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v365"></script>
+<script src="app-log.js?v=v366"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v365"></script>
-<script src="bg-space.js?v=v365"></script>
-<script src="dice-arena-bg.js?v=v365"></script>
-<script src="data.js?v=v365"></script>
+<script src="icons.js?v=v366"></script>
+<script src="bg-space.js?v=v366"></script>
+<script src="dice-arena-bg.js?v=v366"></script>
+<script src="data.js?v=v366"></script>
 <!-- PERF-2: build-notes-data.js (~530 КБ) грузится лениво — см. ensureBuildNotes ниже -->
-<script src="character-builds.js?v=v365"></script>
+<script src="character-builds.js?v=v366"></script>
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v365"></script>
-<script src="spells.js?v=v365"></script>
-<script src="spell-effects.js?v=v365"></script>
+<script src="glossary-data.js?v=v366"></script>
+<script src="spells.js?v=v366"></script>
+<script src="spell-effects.js?v=v366"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v365"></script>
-<script src="app-migrate.js?v=v365"></script>
-<script src="app-builds.js?v=v365"></script>
-<script src="app-core.js?v=v365"></script>
-<script src="app-io.js?v=v365"></script>
-<script src="app-backup.js?v=v365"></script>
-<script src="app-combat.js?v=v365"></script>
-<script src="app-conditions.js?v=v365"></script>
-<script src="app-cast-effects.js?v=v365"></script>
-<script src="app-proficiencies.js?v=v365"></script>
-<script src="app-hp.js?v=v365"></script>
-<script src="app-spells.js?v=v365"></script>
-<script src="app-inventory.js?v=v365"></script>
+<script src="rules.js?v=v366"></script>
+<script src="app-migrate.js?v=v366"></script>
+<script src="app-builds.js?v=v366"></script>
+<script src="app-core.js?v=v366"></script>
+<script src="app-io.js?v=v366"></script>
+<script src="app-backup.js?v=v366"></script>
+<script src="app-combat.js?v=v366"></script>
+<script src="app-conditions.js?v=v366"></script>
+<script src="app-cast-effects.js?v=v366"></script>
+<script src="app-proficiencies.js?v=v366"></script>
+<script src="app-hp.js?v=v366"></script>
+<script src="app-spells.js?v=v366"></script>
+<script src="app-inventory.js?v=v366"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v365"></script>
-<script src="class-choices.js?v=v365"></script>
-<script src="subclass-choices-data.js?v=v365"></script>
+<script src="app-party.js?v=v366"></script>
+<script src="class-choices.js?v=v366"></script>
+<script src="subclass-choices-data.js?v=v366"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v365";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v366";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-dice.js?v=v365"></script>
-<script src="app-settings.js?v=v365"></script>
-<script src="app-ui.js?v=v365"></script>
-<script src="app-home.js?v=v365"></script>
-<script src="app-asi.js?v=v365"></script>
-<script src="app-progress.js?v=v365"></script>
-<script src="app-notes.js?v=v365"></script>
-<script src="app-desktop.js?v=v365"></script>
-<script src="history-stack.js?v=v365"></script>
-<script src="app-help.js?v=v365"></script>
+<script src="app-dice.js?v=v366"></script>
+<script src="app-settings.js?v=v366"></script>
+<script src="app-ui.js?v=v366"></script>
+<script src="app-home.js?v=v366"></script>
+<script src="app-asi.js?v=v366"></script>
+<script src="app-progress.js?v=v366"></script>
+<script src="app-notes.js?v=v366"></script>
+<script src="app-desktop.js?v=v366"></script>
+<script src="history-stack.js?v=v366"></script>
+<script src="app-help.js?v=v366"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3261,9 +3222,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v365",
-    "vendor/jspdf/roboto-base64.js?v=v365",
-    "app-pdf.js?v=v365"
+    "vendor/jspdf/jspdf.umd.min.js?v=v366",
+    "vendor/jspdf/roboto-base64.js?v=v366",
+    "app-pdf.js?v=v366"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3287,7 +3248,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v365").then(function () {
+    return loadScript("build-notes-data.js?v=v366").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -3295,26 +3256,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v365"),
-      loadScript("npc-srd.js?v=v365")
+      loadScript("monsters-srd.js?v=v366"),
+      loadScript("npc-srd.js?v=v366")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v365");
+    return loadScript("magic-items.js?v=v366");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v365");
+    return loadScript("gear-catalog.js?v=v366");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v365").then(function () {
+    return loadScript("data-2024.js?v=v366").then(function () {
       window.__edition2024Loaded = true;
     });
   };

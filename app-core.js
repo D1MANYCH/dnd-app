@@ -199,7 +199,6 @@ var characters = [];
 var currentId = null;
 var currentSpellVersion = "all";
 var currentSpellClass = "all";
-var currentViewItem = null;
 var currentFilterCategory = "all";
 var diceHistory = [];
 var currentRestType = null;
@@ -334,16 +333,19 @@ if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.e
 // «←» возвращал на вкладку «Развитие» (лист — глубина 2, стек это переживает).
 var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3,
                      help: 3, builds: 3, buildguide: 4, buildplan: 4, abilityinfo: 3,
-                     featureinfo: 4, levelup: 3, rest: 3, magiccatalog: 3, gearcatalog: 3 };
+                     featureinfo: 4, levelup: 3, rest: 3, magiccatalog: 3, gearcatalog: 3,
+                     hphistory: 3, spellsearch: 3, itemref: 3 };
 // Экраны-страницы: у них нет своего персонажа, currentId не трогаем — иначе
 // «Настройки» с листа выбрасывали бы из персонажа.
 var PAGE_SCREENS = ["data", "settings", "about", "help", "builds", "buildguide", "buildplan", "abilityinfo",
-                    "featureinfo", "levelup", "rest", "magiccatalog", "gearcatalog"];
+                    "featureinfo", "levelup", "rest", "magiccatalog", "gearcatalog",
+                    "hphistory", "spellsearch", "itemref"];
 var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О версии",
                     help: "Справка", builds: "Готовые билды",
                     buildguide: "Гайд по билду", buildplan: "План развития",
                     featureinfo: "Умение", levelup: "Повышение уровня", rest: "Отдых",
-                    magiccatalog: "Каталог магических предметов", gearcatalog: "Каталог снаряжения" };
+                    magiccatalog: "Каталог магических предметов", gearcatalog: "Каталог снаряжения",
+                    hphistory: "История здоровья", spellsearch: "Поиск заклинаний", itemref: "Справка по предметам" };
 // STYLE-8M-3: повышение уровня и отдых — экраны поверх листа: они зовут
 // loadCharacter посреди своего сценария, и лист перерисовывается под ними,
 // не переключая экран (иначе результат пропадал бы до кнопки «Готово»).
@@ -1386,8 +1388,6 @@ function showToast(msg, type) {
 }
 
 function openHPHistory() {
-const modal = $("hp-history-modal");
-if (!modal) return;
 const list = $("hp-history-list");
 if (!list) return;
 // История только текущего персонажа. Унаследованные записи без charId
@@ -1402,7 +1402,7 @@ list.innerHTML = "<div class=\"hph-empty\">История пуста</div>";
 list.innerHTML = rows.map(function(e) {
 const cls = e.delta > 0 ? "hph-heal" : "hph-dmg";
 const sign = e.delta > 0 ? "+" : "";
-return "<div class=\"hph-row\">" +
+return "<div class=\"hph-row " + (e.delta > 0 ? "hph-row--heal" : "hph-row--dmg") + "\">" +
 "<span class=\"hph-time\">" + e.time + "</span>" +
 "<span class=\"hph-source\">" + escapeHtml(e.source) + "</span>" +
 "<span class=\"hph-nums\">" + e.from + " → " + e.to + "</span>" +
@@ -1410,12 +1410,13 @@ return "<div class=\"hph-row\">" +
 "</div>";
 }).join("");
 }
-modal.classList.add("active");
+// STYLE-8M-4: история — экран; «Очистить» зовёт openHPHistory повторно,
+// showScreen на том же экране только перерисует список.
+if (typeof showScreen === "function") showScreen("hphistory");
 }
 
 function closeHPHistory() {
-const modal = $("hp-history-modal");
-if (modal) modal.classList.remove("active");
+if (typeof currentScreenName === "function" && currentScreenName() === "hphistory") screenBack();
 }
 
 // ── Блок статуса версии ──
