@@ -3445,12 +3445,12 @@
       return true;
     });
 
-    t("[e24] registry '2014' полон: 16 таблиц определены и непусты", function(){
+    t("[e24] registry '2014' полон: 17 таблиц определены и непусты", function(){
       var d = edData({ edition: "2014" });
       var keys = ["CLASS_FEATURES","SUBCLASS_FEATURES","SPELL_SLOTS_BY_LEVEL","BACKGROUND_SKILLS",
         "CLASS_HIT_DICE","FEATS_DATA","CLASS_CHOICES","SUBCLASS_CHOICES","SUBCLASSES","CONDITIONS",
         "SUBCLASS_LEVEL","CLASS_RESOURCES","MULTICLASS_PREREQUISITES","MULTICLASS_PROFICIENCIES",
-        "RACE_DATA","CASTER_TYPE"];
+        "RACE_DATA","CASTER_TYPE","SPELL_PREP_CLASSES"];
       for (var i = 0; i < keys.length; i++) {
         var v = d[keys[i]];
         if (v === undefined || v === null) return "ключ отсутствует: " + keys[i];
@@ -6848,6 +6848,138 @@
       if (html.indexOf("Воин — не выбран") === -1) return "нет ожидающего выбора";
       if (html.indexOf("pgFocusSubclass('Воин')") === -1) return "ожидающий не ведёт к выбору";
       if (html.indexOf("Волшебник — с 2 уровня класса") === -1) return "нет ещё не открытого";
+      return true;
+    });
+  })();
+
+  // ────────── БЛОК 53 (E24-2): заклинания PH24 = книга, prepared-модель 2024 ──────────
+  // Инварианты БД: 391 записей PH24 = гл.7 PHB 2024 плюс 8 записей других книг
+  // (XGE/TCE/SCC/FTD), помеченных PH24 ещё до E24-2 — их id перечислены явно, чтобы
+  // случайная запись не прошла под их видом. PH14 — 361 (не меняется в E24).
+  (function(){
+    if (typeof SPELLS_BASE === "undefined" || typeof edData !== "function") return;
+    var PH24_EXTRA_IDS = [131, 158, 173, 237, 277, 283, 539, 628];
+    var ph24 = SPELLS_BASE.filter(function(s){ return s.source === "PH24"; });
+    var ph14 = SPELLS_BASE.filter(function(s){ return s.source === "PH14"; });
+    function norm(n){ return String(n || "").toLowerCase().replace(/ё/g, "е").trim(); }
+
+    t("[e24-2] PH24 = 391 (книга) + 8 записей других книг; PH14 = 361", function(){
+      var book = ph24.filter(function(s){ return PH24_EXTRA_IDS.indexOf(s.id) === -1; });
+      if (book.length !== 391) return "PH24 без extra: " + book.length;
+      var extra = ph24.length - book.length;
+      if (extra !== PH24_EXTRA_IDS.length) return "extra найдено " + extra;
+      if (ph14.length !== 361) return "PH14: " + ph14.length;
+      return true;
+    });
+
+    t("[e24-2] PH24 по уровням = книга: 34/64/63/52/41/48/34/21/18/16", function(){
+      var want = [34,64,63,52,41,48,34,21,18,16];
+      var book = ph24.filter(function(s){ return PH24_EXTRA_IDS.indexOf(s.id) === -1; });
+      for (var lv = 0; lv <= 9; lv++) {
+        var n = book.filter(function(s){ return s.level === lv; }).length;
+        if (n !== want[lv]) return "L" + lv + ": " + n + " вместо " + want[lv];
+      }
+      return true;
+    });
+
+    t("[e24-2] у каждой PH24-записи непустой classes из базовых классов", function(){
+      var ok = ["bard","cleric","druid","paladin","ranger","sorcerer","warlock","wizard"];
+      for (var i = 0; i < ph24.length; i++) {
+        var c = ph24[i].classes;
+        if (!Array.isArray(c) || !c.length) return "пустой classes: " + ph24[i].name;
+        for (var k = 0; k < c.length; k++) if (ok.indexOf(c[k]) === -1) return ph24[i].name + ": класс " + c[k];
+      }
+      return true;
+    });
+
+    t("[e24-2] дублей имён внутри редакции нет; id уникальны", function(){
+      var seen = {};
+      for (var i = 0; i < SPELLS_BASE.length; i++) {
+        var key = SPELLS_BASE[i].source + "|" + norm(SPELLS_BASE[i].name);
+        if (seen[key]) return "дубль: " + key;
+        seen[key] = 1;
+      }
+      var ids = {};
+      for (var j = 0; j < SPELLS_BASE.length; j++) {
+        if (ids[SPELLS_BASE[j].id]) return "дубль id " + SPELLS_BASE[j].id;
+        ids[SPELLS_BASE[j].id] = 1;
+      }
+      return true;
+    });
+
+    t("[e24-2] edData('2014').SPELL_PREP_CLASSES === SPELL_PREP_CLASSES (4 класса, формула)", function(){
+      var d = edData({ edition: "2014" });
+      if (d.SPELL_PREP_CLASSES !== SPELL_PREP_CLASSES) return "не та же ссылка";
+      if (Object.keys(d.SPELL_PREP_CLASSES).length !== 4) return "классов: " + Object.keys(d.SPELL_PREP_CLASSES).length;
+      return true;
+    });
+
+    t("[e24-2] SPELL_PREP_2024: 8 заклинателей × 20 уровней, заговоры у 6, незаклинателей нет", function(){
+      var d = edData({ edition: "2024" });
+      var T = d.SPELL_PREP_CLASSES;
+      if (!T || T === SPELL_PREP_CLASSES) return "2024 не переопределил SPELL_PREP_CLASSES";
+      var casters = ["Бард","Волшебник","Друид","Жрец","Колдун","Паладин","Следопыт","Чародей"];
+      if (Object.keys(T).length !== 8) return "классов: " + Object.keys(T).length;
+      for (var i = 0; i < casters.length; i++) {
+        var e = T[casters[i]];
+        if (!e) return "нет " + casters[i];
+        if (!e.stat) return casters[i] + ": нет stat";
+        if (!Array.isArray(e.prepared) || e.prepared.length !== 20) return casters[i] + ": prepared не 20";
+        for (var k = 1; k < 20; k++) if (e.prepared[k] < e.prepared[k-1]) return casters[i] + ": prepared убывает на " + (k+1);
+        var half = casters[i] === "Паладин" || casters[i] === "Следопыт";
+        if (half && e.cantrips) return casters[i] + ": заговоров быть не должно";
+        if (!half && (!Array.isArray(e.cantrips) || e.cantrips.length !== 20)) return casters[i] + ": cantrips не 20";
+      }
+      var non = ["Варвар","Воин","Монах","Плут"];
+      for (var j = 0; j < non.length; j++) if (T[non[j]]) return non[j] + " не заклинатель";
+      return true;
+    });
+
+    t("[e24-2] calcMaxPrepared/calcMaxCantrips 2024 — из таблицы, не формула; кламп 1–20", function(){
+      if (typeof calcMaxPrepared !== "function" || typeof calcMaxCantrips !== "function") return "нет функций";
+      // Волшебник 5 ур., ИНТ 20: 2014 → 5+5 = 10; 2024 → таблица 9
+      var w14 = calcMaxPrepared({ edition: "2014", class: "Волшебник", level: 5, stats: { int: 20 } });
+      var w24 = calcMaxPrepared({ edition: "2024", class: "Волшебник", level: 5, stats: { int: 20 } });
+      if (w14 !== 10) return "2014 волшебник: " + w14;
+      if (w24 !== 9) return "2024 волшебник: " + w24;
+      if (calcMaxPrepared({ edition: "2024", class: "Волшебник", level: 20 }) !== 25) return "волшебник 20 ≠ 25";
+      if (calcMaxPrepared({ edition: "2024", class: "Волшебник", level: 99 }) !== 25) return "кламп 20 не сработал";
+      if (calcMaxPrepared({ edition: "2024", class: "Паладин", level: 1 }) !== 2) return "паладин 1 ≠ 2";
+      if (calcMaxPrepared({ edition: "2024", class: "Колдун", level: 3 }) !== 4) return "колдун 3 ≠ 4";
+      if (calcMaxCantrips({ edition: "2024", class: "Чародей", level: 1 }) !== 4) return "чародей заговоры ≠ 4";
+      if (calcMaxCantrips({ edition: "2024", class: "Паладин", level: 5 }) !== null) return "паладин заговоры не null";
+      if (calcMaxCantrips({ edition: "2014", class: "Жрец", level: 5 }) !== null) return "2014 заговоры не null";
+      return true;
+    });
+
+    // PHB 2024 стр. 43: при мультиклассе подготовка считается по уровню В КЛАССЕ.
+    t("[e24-2] calcMaxPrepared при мультиклассе — уровень в классе, не сумма (Следопыт 4 / Чародей 3)", function(){
+      var c = { edition: "2024", class: "Следопыт", level: 7,
+                classes: [{ class: "Следопыт", level: 4 }, { class: "Чародей", level: 3 }] };
+      var got = calcMaxPrepared(c);
+      if (got !== 5) return "следопыт 4: " + got;
+      // 2014: жрец 3 / воин 2, МУД 16 → 3 + 3 = 6, не 3 + 5
+      var c14 = { edition: "2014", class: "Жрец", level: 5, stats: { wis: 16 },
+                  classes: [{ class: "Жрец", level: 3 }, { class: "Воин", level: 2 }] };
+      got = calcMaxPrepared(c14);
+      return got === 6 || ("2014 жрец 3: " + got);
+    });
+
+    t("[e24-2] isPrepClass: 2024 — все 8 заклинателей (в т.ч. Колдун, Бард, Чародей); Воин — нет", function(){
+      if (typeof isPrepClass !== "function") return "нет isPrepClass";
+      var casters = ["Бард","Волшебник","Друид","Жрец","Колдун","Паладин","Следопыт","Чародей"];
+      for (var i = 0; i < casters.length; i++) if (!isPrepClass({ edition: "2024", class: casters[i] })) return casters[i] + " должен готовить";
+      if (isPrepClass({ edition: "2024", class: "Воин" })) return "Воин не готовит";
+      if (isPrepClass({ edition: "2014", class: "Колдун" })) return "2014 Колдун не готовит";
+      return true;
+    });
+
+    t("[e24-2] _defaultSpellVersion: 2024 → PH24, 2014 → PH14, null → all", function(){
+      if (typeof _defaultSpellVersion !== "function") return "нет _defaultSpellVersion";
+      if (_defaultSpellVersion({ edition: "2024" }) !== "PH24") return "2024";
+      if (_defaultSpellVersion({ edition: "2014" }) !== "PH14") return "2014";
+      if (_defaultSpellVersion({}) !== "PH14") return "без edition";
+      if (_defaultSpellVersion(null) !== "all") return "null";
       return true;
     });
   })();

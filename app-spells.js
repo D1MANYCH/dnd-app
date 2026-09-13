@@ -156,13 +156,13 @@ saveToLocal();
 renderSpellSlots();
 showToast("Ячейки заклинаний восстановлены!", "success");
 }
-function setSpellVersion(version) {
+function setSpellVersion(version, skipRender) {
 currentSpellVersion = version;
 document.querySelectorAll(".edition-btn").forEach(function(btn) { btn.classList.remove("active"); });
 if(version === "all") $("btn-ver-all")?.classList.add("active");
 if(version === "PH14") $("btn-ver-ph14")?.classList.add("active");
 if(version === "PH24") $("btn-ver-ph24")?.classList.add("active");
-renderSpellSearch();
+if (!skipRender) renderSpellSearch();
 }
 function setSpellClass(cls) {
 currentSpellClass = cls;
@@ -191,6 +191,10 @@ function _charMaxCastableLevel(char) {
   if ((char.spells.pactLevel || 0) > m) m = char.spells.pactLevel;
   return m;
 }
+// E24-2: редакция гримуара по умолчанию — из персонажа (2024 → PH'24, иначе PH'14); без персонажа — «Все».
+function _defaultSpellVersion(char) {
+  return !char ? "all" : (char.edition === "2024" ? "PH24" : "PH14");
+}
 function openSpellSearch() {
 // STYLE-8M-4: поиск — экран. Открывается и с вкладки, и с экрана повышения
 // уровня (luGoToSpellsTab сначала уводит на лист), стек возврата это переживает.
@@ -199,6 +203,8 @@ safeSet("spell-search-input", "");
 safeSet("spell-search-level", "");
 // BUILD-LVL: по умолчанию сужаем поиск до класса персонажа (чужие классы скрыты до явного выбора).
 var _char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+// E24-2: фильтр редакции по умолчанию = редакция персонажа; переключить можно всегда.
+setSpellVersion(_defaultSpellVersion(_char), true);
 var _ownKey = _charSpellClassKey(_char);
 if (_ownKey) { setSpellClass(_ownKey); }            // setSpellClass уже вызывает renderSpellSearch
 else { currentSpellClass = "all"; renderSpellSearch(); }
@@ -643,7 +649,7 @@ return;
 var countEl = $("spell-search-count");
 if (countEl) countEl.textContent = "Найдено: " + filtered.length;
 
-if (!search.trim() && level === "" && currentSpellVersion === "all" && currentSpellClass === "all") {
+if (!search.trim() && level === "" && (currentSpellVersion === "all" || currentSpellVersion === _defaultSpellVersion(char)) && currentSpellClass === "all") {
 container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px 0;">' + dndIcoHtml("search", 20) + ' Введите название или выберите класс/уровень</p>';
 return;
 }
@@ -688,6 +694,8 @@ if (!spell) return;
 if (!char.spells.mySpells) char.spells.mySpells = [];
 if (!char.spells.mySpells.some(function(s) { return s.id === spellId; })) {
 char.spells.mySpells.push(spell);
+// E24-2: запись другой редакции — предупреждение, не блок (смешанные гримуары штатны).
+if (spell.source === "PH14" && char.edition === "2024") showToast("Это версия 2014 — у персонажа редакция 2024", "warn");
 if (window.AppLog) AppLog.action("spells", "заклинание добавлено: " + spell.name, { id: spell.id, level: spell.level });
 saveToLocal();
 renderSpellSearch();
@@ -871,14 +879,35 @@ function updateSpellActiveBadges() {
   if (typeof renderActiveEffectsFab === "function") renderActiveEffectsFab();
 }
 // ── Подготовка заклинаний ────────────────────────────────────
-function calcMaxPrepared(char) {
+// E24-2: таблица prepared-классов по редакции персонажа. 2014 — 4 класса с формулой
+// «мод + уровень» / «мод + ½ уровня»; 2024 — все 8 заклинателей, лимит и число
+// заговоров из таблицы класса (массивы prepared/cantrips, индекс = уровень − 1).
+function _spellPrepEntry(char) {
   if (!char || !char.class) return null;
-  var prep = SPELL_PREP_CLASSES[char.class];
+  var table = (typeof edData === "function") ? edData(char).SPELL_PREP_CLASSES : SPELL_PREP_CLASSES;
+  return (table && table[char.class]) || null;
+}
+
+// Уровень В КЛАССЕ char.class (PHB: «уровень жреца», не сумма уровней при мультиклассе);
+// без массива classes — общий уровень листа.
+function _prepClassLevel(char) {
+  var lvl = char.level || 1;
+  if (Array.isArray(char.classes)) {
+    for (var i = 0; i < char.classes.length; i++) {
+      if (char.classes[i] && char.classes[i].class === char.class && char.classes[i].level) { lvl = char.classes[i].level; break; }
+    }
+  }
+  return Math.max(1, Math.min(20, lvl));
+}
+
+function calcMaxPrepared(char) {
+  var prep = _spellPrepEntry(char);
   if (!prep) return null;
+  var level = _prepClassLevel(char);
+  if (prep.prepared) return prep.prepared[level - 1];
   var statKey = prep.stat; // "wis", "cha", "int"
   var statVal = char.stats ? (char.stats[statKey] || 10) : 10;
   var mod = Math.floor((statVal - 10) / 2);
-  var level = char.level || 1;
   var max;
   if (prep.formula === "mod+halfLevel") {
     max = mod + Math.floor(level / 2);
@@ -888,8 +917,15 @@ function calcMaxPrepared(char) {
   return Math.max(1, max);
 }
 
+// Лимит известных заговоров по таблице класса (только 2024; 2014 — null, без лимита).
+function calcMaxCantrips(char) {
+  var prep = _spellPrepEntry(char);
+  if (!prep || !prep.cantrips) return null;
+  return prep.cantrips[_prepClassLevel(char) - 1];
+}
+
 function isPrepClass(char) {
-  return !!(char && char.class && SPELL_PREP_CLASSES[char.class]);
+  return !!_spellPrepEntry(char);
 }
 
 function isSpellPrepared(char, spellId) {
@@ -942,12 +978,20 @@ function renderPrepCounter() {
     var sp = char.spells.mySpells ? char.spells.mySpells.find(function(s){ return s.id === id; }) : null;
     return sp && sp.level > 0;
   }).length;
-  var prep = SPELL_PREP_CLASSES[char.class];
+  var prep = _spellPrepEntry(char);
   var statName = { wis: "МУД", cha: "ХАР", int: "ИНТ" }[prep.stat] || "";
   // PHB 2014: жрец/друид/волшебник готовят «мод + уровень», паладин — «мод + ½ уровня».
-  var lvlLabel = prep.formula === "mod+halfLevel" ? "½ ур." : "ур.";
+  // PHB 2024: число из таблицы класса; рядом — лимит заговоров, если он есть у класса.
+  var hint;
+  if (prep.prepared) {
+    var maxCantrips = calcMaxCantrips(char);
+    var cantripCount = (char.spells.mySpells || []).filter(function(s) { return s && s.level === 0; }).length;
+    hint = "(таблица класса" + (maxCantrips !== null ? " · заговоров " + cantripCount + "/" + maxCantrips : "") + ")";
+  } else {
+    hint = "(" + statName + " + " + (prep.formula === "mod+halfLevel" ? "½ ур." : "ур.") + ")";
+  }
   el.style.display = "";
-  el.innerHTML = '<span class="prep-icon">' + dndIcoHtml("sheet", 13) + '</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span><span class="prep-hint">(' + statName + ' + ' + lvlLabel + ')</span>';
+  el.innerHTML = '<span class="prep-icon">' + dndIcoHtml("sheet", 13) + '</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span><span class="prep-hint">' + hint + '</span>';
 }
 
 // ── Использование заклинания (трата ячейки из карточки) ─────

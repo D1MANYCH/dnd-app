@@ -628,7 +628,33 @@ const SPELL_EFFECTS = {
       desc: "Выберите небожителя с ПО не выше 4 — статблок в Бестиарии. Дружественен вам и союзникам." },
       byLevel: { 9: { name: "Небожитель (ПО до 5)" } } },
     duration: { value: 1, unit: "hour" },
-    bySource: { PH24: { summon: null } } }
+    bySource: { PH24: { summon: null } } },
+
+  // ── E24-2: новые заклинания PHB 2024 (только PH24-записи) ───────────────────
+  "Расщепление разума":  { damage: { formula: "1к6", cantripTiers: { 5: "2к6", 11: "3к6", 17: "4к6" }, save: "int" } },
+  "Погребальный звон":   { damage: { formula: "1к8", cantripTiers: { 5: "2к8", 11: "3к8", 17: "4к8" }, save: "wis" } },
+  "Раскат грома":        { damage: { formula: "1к6", cantripTiers: { 5: "2к6", 11: "3к6", 17: "4к6" }, save: "con" } },
+  "Слово сияния":        { damage: { formula: "1к6", cantripTiers: { 5: "2к6", 11: "3к6", 17: "4к6" }, save: "con" } },
+  // Божественная кара 2024 — заклинание бонусным действием сразу после попадания: урон в момент каста.
+  "Божественная кара":   { damage: { formula: "2к8", upcast: "1к8" } },
+  // Ледяной кинжал: атака 1к10 колющим, затем взрыв 2к6 холодом (испытание ЛОВ) — покрыта атака.
+  "Ледяной кинжал":      { damage: { formula: "1к10", attack: true } },
+  "Дыхание дракона":     { repeat: { formula: "3к6", upcast: "1к6", save: "dex", halfOnSave: true,
+                             hint: "цель выдыхает конус 15 фт — действием, каждый ход" },
+                           duration: { value: 1, unit: "minute" } },
+  "Пронзание разума":    { damage: { formula: "3к8", upcast: "1к8", save: "wis", halfOnSave: true },
+                           duration: { value: 1, unit: "hour" } },
+  "Цепкая лоза":         { repeat: { formula: "4к8", upcast: "1к8", attack: true,
+                             hint: "бонусным действием — атака лозы, цель подтягивается на 30 фт" },
+                           duration: { value: 1, unit: "minute" } },
+  "Величественное присутствие Йоланды": { repeat: { formula: "4к6", upcast: "1к6", save: "wis",
+                             hint: "бонусным действием — эманация 10 фт; провал: сбит с ног и недееспособен до конца хода" },
+                           duration: { value: 1, unit: "minute" } },
+  "Сияющий шторм Джалларзи": { repeat: { formula: "4к10", upcast: "2к10", save: "con", halfOnSave: true,
+                             hint: "начало хода существа в цилиндре — 2к10 излучением + 2к10 звуком" },
+                           duration: { value: 1, unit: "minute" } },
+  "Синаптический разряд": { damage: { formula: "8к6", save: "int", halfOnSave: true } },
+  "Удар стального ветра": { damage: { formula: "6к10", attack: true } }
 
   // ── Хвост CAST-11: осознанно НЕ покрыто (23 заклинания с кубами в desc) ──────
   // План CAST закрыт на этом; ключи ниже не добавлены не по недосмотру, а

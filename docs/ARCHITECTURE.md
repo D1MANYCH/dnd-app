@@ -14,7 +14,7 @@ dnd-app/
 │   # Данные (статические БД, грузятся как глобалы)
 ├── data.js                 — классы, расы, черты, состояния/эффекты, навыки, APP_VERSION + changelog
 ├── data-2024.js            — edition-слой редакции 2024 (EDITION_DATA) — ленивый, грузится при переключении редакции (E24-0)
-├── spells.js               — база заклинаний D&D 5e: 719 заклинаний PH14/PH24 (~12300 строк)
+├── spells.js               — база заклинаний D&D 5e: 760 заклинаний — 361 PH14 + 399 PH24 (391 = PHB 2024 + 8 из XGE/TCE) (~13300 строк)
 ├── spell-effects.js        — механика кнопки «Использовать»: 164 ключа SPELL_EFFECTS (CAST)
 ├── magic-items.js          — магические предметы — ленивый
 ├── gear-catalog.js         — каталог снаряжения — ленивый
@@ -62,7 +62,7 @@ dnd-app/
 ├── icons/                  — icon-192.png, icon-512.png
 ├── assets/                 — иконки классов/школ/состояний, фоны (webp, ~3.5 МБ)
 ├── vendor/                 — dice-box (3D-кубики, WebGL) + jspdf (PDF, ленивый стек)
-├── tools/                  — bump-version.js, gen-changelog.js, gen-release-log.js, gen-release-post.js, check-invariant.js, check-theme.js, run-tests-hook.js, check-syntax-hook.js, check-sw-hook.js, phb-search.py
+├── tools/                  — bump-version.js, gen-changelog.js, gen-release-log.js, gen-release-post.js, check-invariant.js, check-theme.js, run-tests-hook.js, check-syntax-hook.js, check-sw-hook.js, phb-search.py, spell-book24-extract.py + spell-book24-diff.js (сверка PH24 с книгой 2024: индекс tests/_spell-book24-index.json)
 ├── .github/workflows/      — tests.yml: CI (headless-тесты + check-invariant + check-theme) на каждый push/PR
 └── tests/                  — headless-node.js (Node), runner.html + headless.js (браузер), fixtures.js, rules-cases.js
 ```

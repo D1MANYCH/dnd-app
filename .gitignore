@@ -21,3 +21,6 @@ docs/spell-audit/
 docs/phases/
 docs/naming-audit.md
 docs/css-usage-report.md
+
+# E24-2: выгрузки сверки с книгой 2024 (генерятся tools/spell-book24-diff.js)
+tests/_spell-book24-*.txt
