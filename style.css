@@ -7705,6 +7705,11 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 #tab-notes.sheet-locked .feat-taken-del { display: none; }
 #tab-spells.sheet-locked .sc-stat-btn { pointer-events: none; }
 #tab-spells.sheet-locked .sc-stat-btn:not(.active) { opacity: 0.65; filter: grayscale(0.3); }
+/* ЗАМОК-3: снаряжение — правка предмета/оружия и личный каталог спрятаны */
+#tab-inventory.sheet-locked .inv-edit-btn,
+#tab-battle.sheet-locked .weapon-edit-btn,
+#weapon-modal.sheet-locked .wp-del,
+#weapon-modal.sheet-locked #weapon-save-catalog-row { display: none; }
 #tab-sheet.sheet-locked .stat-compact-inp:disabled,
 #tab-sheet.sheet-locked #hp-max-manual:disabled,
 #tab-sheet.sheet-locked #combat-speed:disabled,

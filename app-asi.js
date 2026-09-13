@@ -250,6 +250,14 @@ function selectFeat(id) {
   }
 }
 
+function _asiUnlockSheet(char) {
+  if (!char || !char.sheetLocked) return;
+  var wasLocked = typeof isSheetLocked === "function" && isSheetLocked(char);
+  char.sheetLocked = false;
+  if (typeof applySheetLockUI === "function") applySheetLockUI();
+  if (wasLocked) showToast("🔓 Лист открыт — выберите новые заклинания и умения, затем нажмите «Персонаж готов»", "info");
+}
+
 function applyASI() {
   var mode = getASIMode();
   if (mode !== "feat") {
@@ -270,6 +278,7 @@ function applyASI() {
     asiCurrentLevel = null;
     asiCurrentClass = null;
     addJournalEntry("stat", msg);
+    _asiUnlockSheet(char);
     saveToLocal(); calcStats(); recalculateHP(); calculateAC();
     closeASIModal();
     updateClassFeatures();
@@ -346,6 +355,7 @@ function applyASI() {
   }
   char.feats.push(featRecord);
 
+  _asiUnlockSheet(char);
   saveToLocal();
   calcStats();
   recalculateHP();

@@ -1284,7 +1284,7 @@ function applySheetLockUI() {
   if (!char) return;
   var enabled = typeof _getSheetLock !== "function" || _getSheetLock();
   var locked = isSheetLocked(char);
-  ["tab-sheet", "tab-spells", "tab-notes"].forEach(function(id) {
+  ["tab-sheet", "tab-spells", "tab-notes", "tab-inventory", "tab-battle", "weapon-modal"].forEach(function(id) {
     var tab = $(id);
     if (tab) tab.classList.toggle("sheet-locked", locked);
   });
@@ -1321,7 +1321,7 @@ function unlockSheet() {
   if (!char) return;
   showConfirmModal(
     "Открыть лист для правок?",
-    "Характеристики, спасброски, навыки, владения, максимум хитов, скорость и размер, заклинательная характеристика, удаление заклинаний и черт снова станут доступны. Когда закончите — нажмите «Персонаж готов».",
+    "Характеристики, спасброски, навыки, владения, максимум хитов, скорость и размер, заклинательная характеристика, удаление заклинаний и черт, правка предметов снова станут доступны. Когда закончите — нажмите «Персонаж готов».",
     function() {
       char.sheetLocked = false;
       saveToLocal();

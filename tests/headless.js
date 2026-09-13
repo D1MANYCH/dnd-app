@@ -544,6 +544,83 @@
       } finally { env.restore(); }
     });
 
+    // ЗАМОК-3: снаряжение под замком; авто-снятие при повышении уровня и АСИ.
+    t("[замок] под замком editWeapon/editItemDirect/deleteCustomWeapon не открывают форму и дают тост", function(){
+      if (typeof editWeapon !== "function" || typeof editItemDirect !== "function" || typeof deleteCustomWeapon !== "function") return true;
+      var env = _lockEnv(true);
+      var savedOW = window.openWeaponModal, savedOI = window.openItemModal, opened = 0;
+      window.openWeaponModal = function(){ opened++; }; window.openItemModal = function(){ opened++; };
+      env.char.weapons = [{ name: "Кинжал" }]; env.char.customWeapons = [{ name: "Своё копьё", homebrew: true }];
+      env.char.inventory = { weapon: [{ name: "Кинжал", qty: 1 }] };
+      try {
+        editWeapon(0); editItemDirect("weapon", 0); deleteCustomWeapon("Своё копьё");
+        if (opened !== 0) return "форма открылась под замком: " + opened;
+        if (env.char.customWeapons.length !== 1 || env.confirms !== 0) return "каталог изменён под замком";
+        if (env.toasts.length !== 3 || env.toasts.some(function(x){ return x.msg.indexOf("Лист зафиксирован") === -1; }))
+          return "ожидал 3 тоста «Лист зафиксирован», получено " + env.toasts.length;
+        env.char.sheetLocked = false; env.toasts.length = 0;
+        editWeapon(0); editItemDirect("weapon", 0);
+        if (opened !== 2) return "без замка форма не открылась: " + opened;
+        if (env.toasts.length) return "без замка лишний тост";
+        return true;
+      } finally { env.restore(); window.openWeaponModal = savedOW; window.openItemModal = savedOI; }
+    });
+    t("[замок] _asiUnlockSheet: снимает замок и даёт тост; без замка или при выкл. настройке — без тоста", function(){
+      if (typeof _asiUnlockSheet !== "function") return true;
+      var env = _lockEnv(true);
+      var savedUI = window.applySheetLockUI; window.applySheetLockUI = function(){};
+      try {
+        _asiUnlockSheet(env.char);
+        if (env.char.sheetLocked !== false) return "замок не снят";
+        if (env.toasts.length !== 1 || env.toasts[0].msg.indexOf("Персонаж готов") === -1) return "ожидал тост про «Персонаж готов»";
+        _asiUnlockSheet(env.char);
+        if (env.toasts.length !== 1) return "повторный вызов без замка дал тост";
+        env.char.sheetLocked = true; localStorage.setItem("dnd_sheet_lock", "0");
+        _asiUnlockSheet(env.char);
+        if (env.char.sheetLocked !== false || env.toasts.length !== 1) return "при выкл. настройке: ожидал снятие флага без тоста";
+        return true;
+      } finally { env.restore(); window.applySheetLockUI = savedUI; }
+    });
+    t("[замок] сценарий: «Персонаж готов» → confirmLevelUp снимает замок и подсказывает → снова «Персонаж готов»", function(){
+      if (typeof confirmLevelUp !== "function" || typeof lockSheet !== "function") return true;
+      if (!document.getElementById("lu-screen-multiclass")) return true; // нет DOM экранов повышения (минимальный браузерный runner)
+      var env = _lockEnv(false);
+      var saved = { load: window.loadCharacter, ucf: window.updateClassFeatures, ui: window.applySheetLockUI,
+        ctx: _luChoicesCtx, mc: _luMulticlassChoice, unl: _luSheetUnlocked };
+      window.loadCharacter = function(){}; window.updateClassFeatures = function(){}; window.applySheetLockUI = function(){};
+      try {
+        env.char = { id: "tlock3", class: "Воин", subclass: "Чемпион",
+          classes: [{ class: "Воин", level: 3, subclass: "Чемпион", hitDie: 10 }], level: 3,
+          basicLocked: true, sheetLocked: false,
+          stats: { str:16, dex:12, con:14, int:8, wis:10, cha:14 },
+          combat: { hpMax: 28, hpCurrent: 28, hpDice: "1d10", hpDiceSpent: 0 },
+          saves: {}, skills: {}, classChoices: {}, asiUsedLevels: [], feats: [],
+          proficiencies: { armor: [], weapon: [], languages: [] },
+          spells: { stat:"ИНТ", slots:{}, slotsUsed:{}, mySpells:[], prepared:[] } };
+        window.characters = [env.char]; window.currentId = "tlock3";
+        lockSheet();
+        if (env.char.sheetLocked !== true || !isSheetLocked(env.char)) return "после lockSheet лист не заперт";
+        _luMulticlassChoice = null; _luSheetUnlocked = false;
+        confirmLevelUp();
+        if (env.char.level !== 4) return "уровень: ожидал 4, получено " + env.char.level;
+        if (env.char.sheetLocked !== false) return "confirmLevelUp не снял замок";
+        if (!_luSheetUnlocked) return "флаг подсказки не выставлен";
+        var lines = (_luChoicesCtx && _luChoicesCtx.resultLines || []).join("\n");
+        if (lines.indexOf("Лист открыт") === -1) return "в итоге апа нет строки «Лист открыт»";
+        env.toasts.length = 0;
+        closeLevelUpModal();
+        if (_luSheetUnlocked) return "флаг подсказки не сброшен";
+        if (!env.toasts.some(function(x){ return x.msg.indexOf("Уровень 4") !== -1 && x.msg.indexOf("Персонаж готов") !== -1; }))
+          return "нет тоста «Уровень 4 … Персонаж готов»";
+        lockSheet();
+        if (!isSheetLocked(env.char)) return "повторный lockSheet не запер лист";
+        return true;
+      } finally {
+        env.restore(); window.loadCharacter = saved.load; window.updateClassFeatures = saved.ucf; window.applySheetLockUI = saved.ui;
+        _luChoicesCtx = saved.ctx; _luMulticlassChoice = saved.mc; _luSheetUnlocked = saved.unl;
+      }
+    });
+
     t("[import] _isValidImportedChar: минимальный валиден, мусор режется", function(){
       if (typeof _isValidImportedChar !== "function") return "нет _isValidImportedChar";
       if (!_isValidImportedChar({ class: "Плут", level: 5 })) return "минимальный должен проходить";

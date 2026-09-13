@@ -266,7 +266,7 @@ const item = mainEl.closest(".inv-item");
 if (!item) return;
 item.classList.toggle("expanded");
 }
-function editItemDirect(category, index) { openItemModal(category, index); }
+function editItemDirect(category, index) { if (sheetLockGuard()) return; openItemModal(category, index); }
 function deleteItemDirect(category, index) {
 if (!currentId) return;
 const char = getCurrentChar();
@@ -914,6 +914,7 @@ _resetWeaponForm();
 // подпись «или вручную» прячем — правится конкретная запись, а не создаётся новая.
 function editWeapon(index) {
 if (!currentId) return;
+if (sheetLockGuard()) return;
 const char = getCurrentChar();
 if (!char || !Array.isArray(char.weapons)) return;
 var w = char.weapons[index];
@@ -943,6 +944,7 @@ var manLbl = $("weapon-manual-label"); if (manLbl) manLbl.classList.add("hidden"
 // уже добавленные в лист записи char.weapons — там своя корзина (removeWeapon).
 function deleteCustomWeapon(name) {
 if (!currentId) return;
+if (sheetLockGuard()) return;
 const char = getCurrentChar();
 if (!char || !Array.isArray(char.customWeapons)) return;
 var idx = char.customWeapons.findIndex(function(w) { return w && w.name === name; });

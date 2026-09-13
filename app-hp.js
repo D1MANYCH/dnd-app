@@ -196,6 +196,7 @@ showRestResult(resultTitle, resultDetails);
 // ── Мультикласс: переменная для выбранного класса при level-up ──
 var _luMulticlassChoice = null; // {class, subclass, hitDie, isNew}
 var _luChoicesCtx = null; // BUILD-LVL-4: контекст guided level-up (для экрана результата после выборов)
+var _luSheetUnlocked = false;
 
 function openLevelUpModal() {
 if (!currentId) { showToast("Сначала выберите персонажа!", "warn"); return; }
@@ -489,6 +490,11 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
   }
 }
 function closeLevelUpModal() {
+if (_luSheetUnlocked) {
+  _luSheetUnlocked = false;
+  var luCh = getCurrentChar();
+  showToast("🔓 Уровень " + (luCh && luCh.level || "") + " — выберите новые заклинания и умения, затем нажмите «Персонаж готов»", "info");
+}
 // STYLE-8M-3: «Повышение уровня» — экран; зовётся и после отката с листа,
 // поэтому уходим назад только когда экран действительно открыт.
 if (typeof currentScreenName === "function" && currentScreenName() === "levelup") screenBack();
@@ -622,6 +628,9 @@ if (isMulticlass(char)) {
   }
 }
 
+var luWasLocked = !!char.sheetLocked && typeof isSheetLocked === "function" && isSheetLocked(char);
+char.sheetLocked = false;
+if (luWasLocked) _luSheetUnlocked = true;
 saveToLocal();
 loadCharacter(currentId);
 updateClassFeatures();
@@ -644,6 +653,7 @@ if (subclassName && typeof SUBCLASS_FEATURES !== "undefined" && SUBCLASS_FEATURE
   resultLines.push("" + dndIcoHtml("focus", 13) + " " + subclassName + ": " + subNames.join(", "));
 }
 if (isNewClass) resultLines.push("" + dndIcoHtml("plus", 13) + " Новый класс: " + className);
+if (luWasLocked) resultLines.push("" + dndIcoHtml("lock", 13) + " Лист открыт — выберите новые заклинания и умения, затем нажмите «Персонаж готов»");
 
 // BUILD-LVL-4: сохраняем контекст и решаем — показать экран выборов или сразу результат.
 _luChoicesCtx = {
