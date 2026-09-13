@@ -174,7 +174,10 @@
   }
 
   function verifyAllBuilds() {
-    // PERF-2: после ensureBuildNotes внутренние verifyBuild идут синхронной веткой.
+    // PERF-2/PERF-4: после ensureBuilds/ensureBuildNotes внутренние verifyBuild идут синхронной веткой.
+    if (!window.CHARACTER_BUILDS && typeof window.ensureBuilds === "function") {
+      return window.ensureBuilds().then(verifyAllBuilds);
+    }
     if (!window.BUILD_NOTES && typeof window.ensureBuildNotes === "function") {
       return window.ensureBuildNotes().then(verifyAllBuilds);
     }
@@ -309,6 +312,9 @@
   }
 
   function verifyAllLevelUpData() {
+    if (!window.CHARACTER_BUILDS && typeof window.ensureBuilds === "function") {
+      return window.ensureBuilds().then(verifyAllLevelUpData);
+    }
     var ids = (window.CHARACTER_BUILDS || []).map(function(b){ return b.id; });
     var results = ids.map(verifyLevelUpData);
     var ok = results.filter(function(r){ return !r.error && (r.failed||[]).length === 0; });
@@ -437,6 +443,9 @@
   }
 
   function simulateAllBuilds() {
+    if (!window.CHARACTER_BUILDS && typeof window.ensureBuilds === "function") {
+      return window.ensureBuilds().then(simulateAllBuilds);
+    }
     var ids = (window.CHARACTER_BUILDS || []).map(function(b){ return b.id; });
     var results = ids.map(simulateBuildLevelUp);
     var ok = results.filter(function(r){ return !r.error && (r.failed||[]).length === 0; });

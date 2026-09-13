@@ -252,6 +252,16 @@ try {
     window.ensureEdition2024().catch(function(){ /* фолбэк '2014' в edData */ });
   }
 } catch (e) {}
+// PERF-4: билды ленивые; если у кого-то из персонажей есть buildId — грузим сразу,
+// иначе синхронные подсказки левел-апа (getBuildLevelRec/getBuildRecSubclass) молчат.
+try {
+  if (Array.isArray(characters) && characters.some(function(c){ return c && c.buildId; }) &&
+      typeof window !== "undefined" && typeof window.ensureBuilds === "function") {
+    window.ensureBuilds().then(function(){
+      if (typeof renderBuildBadge === "function") renderBuildBadge();
+    }).catch(function(){});
+  }
+} catch (e) {}
 };
 
 function saveToLocal() {

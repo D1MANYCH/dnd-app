@@ -3,8 +3,19 @@
 // гайд с глоссарием-тултипами, рекомендации по уровням, планы билда и класса
 // ============================================================
 
+// PERF-4: character-builds.js ленивый — точки входа ждут загрузки, затем зовут себя заново.
+function _withBuilds(fn) {
+  if (window.CHARACTER_BUILDS || typeof window.ensureBuilds !== "function") return false;
+  window.ensureBuilds().then(fn).catch(function (e) {
+    if (window.__catchLog) window.__catchLog("builds:lazy-load", e);
+    if (typeof showToast === "function") showToast("Билды не загрузились — проверьте сеть", "warn");
+  });
+  return true;
+}
+
 // ── BUILD-2: Build picker ─────────────────────────────────────────────────────
 function openBuildPicker() {
+  if (_withBuilds(openBuildPicker)) return;
   var sel = $("bp-class-filter");
   if (sel && sel.options.length <= 1) {
     var classes = [];
@@ -207,6 +218,9 @@ function _findArmorPreset(text) {
 }
 
 function applyBuild(buildId) {
+  if (!window.CHARACTER_BUILDS && typeof window.ensureBuilds === "function") {
+    return window.ensureBuilds().then(function () { return applyBuild(buildId); });
+  }
   if (!window.BUILD_NOTES && typeof window.ensureBuildNotes === "function") {
     return window.ensureBuildNotes().catch(function (e) {
       if (window.__catchLog) window.__catchLog("build-notes:lazy-load", e);
@@ -1024,6 +1038,7 @@ function _glossBindOnce() {
 // BUILD-DESC-3: модалка с полным гайдом по билду.
 // Вызов: openBuildGuide() — для текущего персонажа; openBuildGuide(buildId) — по id.
 function openBuildGuide(buildId) {
+  if (_withBuilds(function () { openBuildGuide(buildId); })) return;
   var b = null;
   if (buildId) {
     b = window.getBuildById && window.getBuildById(buildId);
@@ -1490,6 +1505,7 @@ function getBuildRecSpellObjs(b, level) {
 // BUILD-LVL-2: модалка плана развития 1–20 с подсветкой текущего уровня.
 // openBuildPlan() — для текущего персонажа; openBuildPlan(buildId) — по id билда.
 function openBuildPlan(buildId) {
+  if (_withBuilds(function () { openBuildPlan(buildId); })) return;
   var ch = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
   var b = null;
   if (buildId) b = window.getBuildById && window.getBuildById(buildId);
