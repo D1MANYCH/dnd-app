@@ -865,6 +865,7 @@ if (charForUpdate) { charForUpdate.updatedAt = Date.now(); }
 saveToLocal();
 }
 function setSpellStat(stat) {
+if (sheetLockGuard()) return;
 const char = getCurrentChar();
 if (!char) return;
 char.spells.stat = stat;
@@ -1283,8 +1284,10 @@ function applySheetLockUI() {
   if (!char) return;
   var enabled = typeof _getSheetLock !== "function" || _getSheetLock();
   var locked = isSheetLocked(char);
-  var tab = $("tab-sheet");
-  if (tab) tab.classList.toggle("sheet-locked", locked);
+  ["tab-sheet", "tab-spells", "tab-notes"].forEach(function(id) {
+    var tab = $(id);
+    if (tab) tab.classList.toggle("sheet-locked", locked);
+  });
   SHEET_LOCK_FIELD_IDS.forEach(function(id) {
     var el = $(id);
     if (el) el.disabled = locked;
@@ -1309,7 +1312,7 @@ function lockSheet() {
   char.sheetLocked = true;
   saveToLocal();
   applySheetLockUI();
-  showToast("🔒 Лист зафиксирован. Характеристики и владения откроются при повышении уровня или по кнопке «Изменить».", "success");
+  showToast("🔒 Лист зафиксирован. Характеристики, владения, заклинания и черты откроются при повышении уровня или по кнопке «Изменить».", "success");
 }
 
 function unlockSheet() {
@@ -1318,7 +1321,7 @@ function unlockSheet() {
   if (!char) return;
   showConfirmModal(
     "Открыть лист для правок?",
-    "Характеристики, спасброски, навыки, владения, максимум хитов, скорость и размер снова станут редактируемыми. Когда закончите — нажмите «Персонаж готов».",
+    "Характеристики, спасброски, навыки, владения, максимум хитов, скорость и размер, заклинательная характеристика, удаление заклинаний и черт снова станут доступны. Когда закончите — нажмите «Персонаж готов».",
     function() {
       char.sheetLocked = false;
       saveToLocal();

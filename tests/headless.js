@@ -490,6 +490,60 @@
       return true;
     });
 
+    // ЗАМОК-2: под замком заклинания (удаление, заклинательная характеристика) и черты.
+    // Свежий персонаж с зафиксированной основой; настройка dnd_sheet_lock — по умолчанию (вкл).
+    function _lockEnv(locked) {
+      var saved = { chars: window.characters, id: window.currentId, toast: window.showToast,
+        save: window.saveToLocal, rs: window.renderSpellSearch, rm: window.renderMySpells,
+        calc: window.calcSpellStats, feats: window.renderTakenFeats, confirm: window.showConfirmModal,
+        setting: localStorage.getItem("dnd_sheet_lock") };
+      var env = { toasts: [], confirms: 0 };
+      env.char = { id: "tlock2", level: 3, basicLocked: true, sheetLocked: locked,
+        stats: { str: 10, dex: 10, con: 10, int: 16, wis: 10, cha: 10 },
+        spells: { stat: "ИНТ", mySpells: [{ id: "s1", name: "Огненный снаряд", level: 1 }] },
+        feats: [{ id: "alert", name: "Бдительный" }] };
+      window.characters = [env.char]; window.currentId = "tlock2";
+      localStorage.removeItem("dnd_sheet_lock");
+      window.showToast = function(msg, kind){ env.toasts.push({ msg: msg, kind: kind }); };
+      window.saveToLocal = function(){};
+      window.renderSpellSearch = function(){}; window.renderMySpells = function(){};
+      window.calcSpellStats = function(){}; window.renderTakenFeats = function(){};
+      window.showConfirmModal = function(t, m, onOk){ env.confirms++; onOk(); };
+      env.restore = function(){
+        window.characters = saved.chars; window.currentId = saved.id; window.showToast = saved.toast;
+        window.saveToLocal = saved.save; window.renderSpellSearch = saved.rs; window.renderMySpells = saved.rm;
+        window.calcSpellStats = saved.calc; window.renderTakenFeats = saved.feats; window.showConfirmModal = saved.confirm;
+        if (saved.setting === null) localStorage.removeItem("dnd_sheet_lock"); else localStorage.setItem("dnd_sheet_lock", saved.setting);
+      };
+      return env;
+    }
+    t("[замок] под замком removeSpell/setSpellStat/removeFeat ничего не меняют и дают тост", function(){
+      var env = _lockEnv(true);
+      try {
+        removeSpell("s1");
+        if (env.char.spells.mySpells.length !== 1) return "removeSpell: заклинание удалено под замком";
+        setSpellStat("ХАР");
+        if (env.char.spells.stat !== "ИНТ") return "setSpellStat: характеристика изменена под замком";
+        removeFeat(0);
+        if (env.char.feats.length !== 1 || env.confirms !== 0) return "removeFeat: черта удалена под замком";
+        if (env.toasts.length !== 3 || env.toasts.some(function(x){ return x.msg.indexOf("Лист зафиксирован") === -1; }))
+          return "ожидал 3 тоста «Лист зафиксирован», получено " + env.toasts.length;
+        return true;
+      } finally { env.restore(); }
+    });
+    t("[замок] без замка removeSpell/setSpellStat/removeFeat работают как раньше", function(){
+      var env = _lockEnv(false);
+      try {
+        removeSpell("s1");
+        if (env.char.spells.mySpells.length !== 0) return "removeSpell: заклинание не удалено";
+        setSpellStat("ХАР");
+        if (env.char.spells.stat !== "ХАР") return "setSpellStat: характеристика не изменена";
+        removeFeat(0);
+        if (env.char.feats.length !== 0 || env.confirms !== 1) return "removeFeat: черта не удалена";
+        return true;
+      } finally { env.restore(); }
+    });
+
     t("[import] _isValidImportedChar: минимальный валиден, мусор режется", function(){
       if (typeof _isValidImportedChar !== "function") return "нет _isValidImportedChar";
       if (!_isValidImportedChar({ class: "Плут", level: 5 })) return "минимальный должен проходить";

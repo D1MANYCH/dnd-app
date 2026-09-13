@@ -413,6 +413,7 @@ function renderTakenFeats() {
 
 function removeFeat(i) {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char || !char.feats) return;
   var name = char.feats[i] ? char.feats[i].name : "черту";

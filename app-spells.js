@@ -695,6 +695,7 @@ renderMySpells();
 }
 }
 function removeSpell(spellId) {
+if (sheetLockGuard()) return;
 const char = getCurrentChar();
 if (!char) return;
 if (!char.spells.mySpells) return;
