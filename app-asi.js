@@ -137,7 +137,7 @@ function updateASIPreview() {
     if (featListEl) { featListEl.style.display = "block"; buildFeatList(); }
     if (preview) {
       if (asiFeatSelected) {
-        var feat = typeof FEATS_DATA !== "undefined" && FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
+        var feat = getFeatDef(getCurrentChar(), asiFeatSelected);
         preview.textContent = "✅ Черта: " + (feat ? feat.name : asiFeatSelected);
         preview.className = "asi-preview ready";
       } else {
@@ -198,19 +198,52 @@ function updateASIPreview() {
 // asiFeatSelected и feat-режим обрабатываются в updateASIPreview ниже
 var asiFeatSelected = null;
 
+// E24-3: справочник черт — по редакции персонажа (2024 → FEATS_2024), с фолбэком на
+// глобальный 2014-список (черта могла быть взята до появления 2024-набора).
+function getFeatDef(char, id) {
+  if (!id) return null;
+  var list = (typeof edData === "function") ? edData(char).FEATS_DATA
+    : (typeof FEATS_DATA !== "undefined" ? FEATS_DATA : []);
+  var def = (list || []).find(function(f) { return f.id === id; });
+  if (!def && typeof FEATS_DATA !== "undefined" && list !== FEATS_DATA) {
+    def = FEATS_DATA.find(function(f) { return f.id === id; });
+  }
+  return def || null;
+}
+
+// E24-3: подписи категорий 2024 в списке взятых черт (general — без подписи).
+var FEAT_CATEGORY_LABELS = { origin: "происхождение", style: "боевой стиль", epic: "эпический дар" };
+
+// E24-3: какие черты 2024 предлагает пикер по поводу: обычный АСИ-уровень → general,
+// 19+ → epic + general, «раса» → origin. Запись «Улучшение характеристик» (asi) скрыта —
+// её представляют режимы +2/+1+1 модалки. origin/style выдаются не отсюда: предыстория
+// (E24-5) и CLASS_CHOICES (E24-8+).
+function _featPickerList(char) {
+  var list = (typeof edData === "function") ? edData(char).FEATS_DATA : FEATS_DATA;
+  if (!char || char.edition !== "2024") return list;
+  var lvl = asiCurrentLevel;
+  return list.filter(function(f) {
+    if (f.asi) return false;
+    if (lvl === "race") return f.category === "origin";
+    if (f.category === "general") return true;
+    return f.category === "epic" && typeof lvl === "number" && lvl >= 19;
+  });
+}
+
 function buildFeatList() {
   var el = $("asi-feat-list");
   if (!el || typeof FEATS_DATA === "undefined") return;
   if (!currentId) return;
   var char = getCurrentChar();
   var takenFeats = char ? (char.feats || []) : [];
+  var featList = _featPickerList(char);
   // BUILD-LVL-3: id черты, рекомендованной билдом для текущего ASI-уровня.
   var recFeatId = (typeof getBuildRecFeat === "function" && char) ? getBuildRecFeat(char, asiCurrentLevel) : null;
 
   el.innerHTML = '<div class="feat-search-wrap"><input type="text" class="feat-search-inp" placeholder="🔍 Поиск черты..." oninput="filterFeatList(this.value)"></div>' +
     '<div class="feat-list" id="feat-list-items">' +
-    FEATS_DATA.map(function(feat) {
-      var taken = takenFeats.some(function(f) { return f.id === feat.id; });
+    featList.map(function(feat) {
+      var taken = !feat.repeatable && takenFeats.some(function(f) { return f.id === feat.id; });
       var selected = asiFeatSelected === feat.id;
       var isRec = recFeatId && feat.id === recFeatId;
       return '<div class="feat-item' + (selected ? " selected" : "") + (taken ? " taken" : "") + (isRec ? " is-rec" : "") + '" onclick="selectFeat(\'' + feat.id + '\')" data-name="' + escapeHtml(feat.name.toLowerCase()) + '">' +
@@ -240,7 +273,7 @@ function selectFeat(id) {
   var preview = $("asi-preview");
   var applyBtn = $("asi-apply-btn");
   if (asiFeatSelected) {
-    var feat = FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
+    var feat = getFeatDef(getCurrentChar(), asiFeatSelected);
     if (!feat) return;
     if (preview) { preview.textContent = "✅ Черта: " + feat.name; preview.className = "asi-preview ready"; }
     if (applyBtn) applyBtn.disabled = false;
@@ -291,7 +324,7 @@ function applyASI() {
   var char = getCurrentChar();
   if (!char) return;
 
-  var feat = FEATS_DATA.find(function(f) { return f.id === asiFeatSelected; });
+  var feat = getFeatDef(char, asiFeatSelected);
   if (!feat) return;
 
   if (!char.feats) char.feats = [];
@@ -301,17 +334,19 @@ function applyASI() {
   var appliedDesc = [];
 
   (feat.effects || []).forEach(function(eff) {
+    // E24-3: eff.max — потолок характеристики (эпические дары 2024 — 30), по умолчанию 20
+    var cap = eff.max || 20;
     if (eff.type === "stat") {
-      char.stats[eff.key] = Math.min(20, (char.stats[eff.key] || 10) + eff.value);
+      char.stats[eff.key] = Math.min(cap, (char.stats[eff.key] || 10) + eff.value);
       safeSet("val-" + eff.key, char.stats[eff.key]);
       updateStatDisplay(eff.key);
       appliedDesc.push("+" + eff.value + " " + statNames[eff.key]);
     }
     else if (eff.type === "stat_choice" || eff.type === "stat_choice_save") {
-      // Pick first available stat that isn't at 20
-      var picked = eff.keys.find(function(k) { return (char.stats[k] || 10) < 20; });
+      // Pick first available stat that isn't at cap
+      var picked = eff.keys.find(function(k) { return (char.stats[k] || 10) < cap; });
       if (picked) {
-        char.stats[picked] = Math.min(20, (char.stats[picked] || 10) + eff.value);
+        char.stats[picked] = Math.min(cap, (char.stats[picked] || 10) + eff.value);
         safeSet("val-" + picked, char.stats[picked]);
         updateStatDisplay(picked);
         appliedDesc.push("+" + eff.value + " " + statNames[picked]);
@@ -342,6 +377,21 @@ function applyASI() {
       char.bonuses.initiative = (char.bonuses.initiative || 0) + eff.value;
       appliedDesc.push("+" + eff.value + " к Инициативе");
     }
+    else if (eff.type === "initiative_prof") {
+      // E24-3: Бдительный 2024 — БМ к инициативе, считает getInitiativeMod (rules.js)
+      if (!char.bonuses) char.bonuses = {};
+      char.bonuses.initiativeProf = true;
+      appliedDesc.push("БМ к Инициативе");
+    }
+    else if (eff.type === "weapon") {
+      // E24-3: Владение воинским оружием — источник «черта» в recalcArmorWeaponFromSources
+      if (!char.proficiencies.weapon) char.proficiencies.weapon = [];
+      if (!char.proficiencies.weapon.includes(eff.value)) {
+        char.proficiencies.weapon.push(eff.value);
+        var weaponLabel = (typeof WEAPON_TYPE_LABELS !== "undefined" && WEAPON_TYPE_LABELS[eff.value]) ? WEAPON_TYPE_LABELS[eff.value] : eff.value;
+        appliedDesc.push("Владение: " + weaponLabel + " оружие");
+      }
+    }
   });
 
   // Record feat — расовая черта помечается отдельно
@@ -363,6 +413,7 @@ function applyASI() {
   updateHPDisplay();
   // FIN-1: черты — источник владения бронёй (recalcArmorWeaponFromSources), обновить панель
   if (typeof renderArmorProf === "function") renderArmorProf();
+  if (typeof renderWeaponProf === "function") renderWeaponProf();
 
   // Journal entry
   addJournalEntry("feat", "Черта: " + feat.name, appliedDesc.length > 0 ? "Применено: " + appliedDesc.join(", ") : feat.desc.slice(0, 80));
@@ -404,11 +455,12 @@ function renderTakenFeats() {
 
   list.innerHTML = feats.map(function(f, i) {
     // Find feat data for description
-    var data = typeof FEATS_DATA !== "undefined"
-      ? FEATS_DATA.find(function(d) { return d.id === f.id; })
-      : null;
+    var data = getFeatDef(char, f.id);
     var desc = data ? data.desc : "";
     var lvlBadge = f.level ? '<span class="feat-taken-lvl">ур. ' + f.level + '</span>' : "";
+    // E24-3: пометка категории 2024 (происхождение / боевой стиль / эпический дар)
+    var catLabel = data && data.category && FEAT_CATEGORY_LABELS[data.category];
+    if (catLabel) lvlBadge += '<span class="feat-taken-lvl">' + catLabel + '</span>';
     return '<div class="feat-taken-card">' +
       '<div class="feat-taken-row">' +
         '<span class="feat-taken-icon">' + dndIcoHtml("target", 14) + '</span>' +

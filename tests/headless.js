@@ -3484,7 +3484,7 @@
       // переопределена в E24-1 — её паритет проверяется в БЛОКЕ 33).
       if (d24.CLASS_FEATURES !== d14.CLASS_FEATURES) return "CLASS_FEATURES 2024 ≠ 2014";
       if (d24.SPELL_SLOTS_BY_LEVEL !== d14.SPELL_SLOTS_BY_LEVEL) return "слоты 2024 ≠ 2014";
-      if (d24.FEATS_DATA !== d14.FEATS_DATA) return "FEATS_DATA 2024 ≠ 2014";
+      if (d24.CLASS_HIT_DICE !== d14.CLASS_HIT_DICE) return "CLASS_HIT_DICE 2024 ≠ 2014";
       return true;
     });
 
@@ -6980,6 +6980,191 @@
       if (_defaultSpellVersion({ edition: "2014" }) !== "PH14") return "2014";
       if (_defaultSpellVersion({}) !== "PH14") return "без edition";
       if (_defaultSpellVersion(null) !== "all") return "null";
+      return true;
+    });
+  })();
+
+  // ────────── БЛОК 54 (E24-3): черты 2024 — FEATS_2024, категории, пикер, применители ──────────
+  // Инварианты: 75 черт = гл.5 PHB 2024 (10 origin + 43 general + 10 style + 12 epic);
+  // id с префиксом f24- не пересекаются с 2014; повторяемых ровно 4; 2014-набор не тронут.
+  (function(){
+    if (typeof FEATS_2024 === "undefined" || typeof edData !== "function") return;
+    var STATS = ["str","dex","con","int","wis","cha"];
+    var KNOWN = ["stat","stat_choice","stat_choice_save","armor","weapon","hp_per_level","initiative_bonus","initiative_prof","passive"];
+    function byCat(c){ return FEATS_2024.filter(function(f){ return f.category === c; }); }
+    function mk24(o){
+      var c = { edition:"2024", stats:{str:10,dex:10,con:10,int:10,wis:10,cha:10}, level:4,
+        combat:{hpMax:30,hpCurrent:30}, proficiencies:{}, feats:[] };
+      Object.keys(o || {}).forEach(function(k){ c[k] = o[k]; });
+      return c;
+    }
+
+    t("[e24-3] FEATS_2024: 75 черт = 10 origin + 43 general + 10 style + 12 epic", function(){
+      if (FEATS_2024.length !== 75) return "всего " + FEATS_2024.length;
+      var got = [byCat("origin").length, byCat("general").length, byCat("style").length, byCat("epic").length].join("/");
+      return got === "10/43/10/12" || "категории " + got;
+    });
+
+    t("[e24-3] id уникальны, все с префиксом f24-, не пересекаются с 2014", function(){
+      var seen = {}, ids14 = {};
+      FEATS_DATA.forEach(function(f){ ids14[f.id] = 1; });
+      for (var i = 0; i < FEATS_2024.length; i++) {
+        var id = FEATS_2024[i].id;
+        if (!id || id.indexOf("f24-") !== 0) return "id без префикса: " + id;
+        if (seen[id]) return "дубль id " + id;
+        if (ids14[id]) return "совпадает с 2014: " + id;
+        seen[id] = 1;
+        if (!FEATS_2024[i].name || !FEATS_2024[i].desc) return "пустое имя/описание: " + id;
+        if (FEATS_2024[i].source !== "PHB24") return "source " + id + ": " + FEATS_2024[i].source;
+      }
+      return true;
+    });
+
+    t("[e24-3] повторяемых ровно 4 (Одарённый, Посвящённый в магию, Стихийный адепт, Улучшение характеристик); asi — одна", function(){
+      var rep = FEATS_2024.filter(function(f){ return f.repeatable; }).map(function(f){ return f.id; }).sort();
+      var want = ["f24-asi","f24-elemental_adept","f24-magic_initiate","f24-skilled"];
+      if (rep.join(",") !== want.join(",")) return "repeatable: " + rep.join(",");
+      var asi = FEATS_2024.filter(function(f){ return f.asi; });
+      if (asi.length !== 1 || asi[0].id !== "f24-asi") return "asi: " + asi.map(function(f){ return f.id; }).join(",");
+      if (asi[0].category !== "general") return "asi не general";
+      return true;
+    });
+
+    t("[e24-3] minLevel: general → 4, epic → 19, origin/style — без; у стилей prereq «Боевой стиль»", function(){
+      for (var i = 0; i < FEATS_2024.length; i++) {
+        var f = FEATS_2024[i];
+        if (f.category === "general" && f.minLevel !== 4) return f.id + ": minLevel " + f.minLevel;
+        if (f.category === "epic" && f.minLevel !== 19) return f.id + ": minLevel " + f.minLevel;
+        if ((f.category === "origin" || f.category === "style") && f.minLevel !== undefined) return f.id + ": лишний minLevel";
+        if (f.category === "style" && !(f.prereq && /Боевой стиль/.test(f.prereq))) return f.id + ": prereq " + f.prereq;
+        if (f.prereq && /уровень|уровня/i.test(f.prereq)) return f.id + ": уровень в prereq (должен быть в minLevel)";
+      }
+      return true;
+    });
+
+    t("[e24-3] effects: типы известны, ключи валидны; general/epic — с бонусом характеристики, epic — max 30", function(){
+      for (var i = 0; i < FEATS_2024.length; i++) {
+        var f = FEATS_2024[i], hasStat = false;
+        if (!Array.isArray(f.effects) || !f.effects.length) return f.id + ": нет effects";
+        for (var j = 0; j < f.effects.length; j++) {
+          var e = f.effects[j];
+          if (KNOWN.indexOf(e.type) === -1) return f.id + ": тип " + e.type;
+          if (e.type === "stat" && STATS.indexOf(e.key) === -1) return f.id + ": key " + e.key;
+          if ((e.type === "stat_choice" || e.type === "stat_choice_save") &&
+              !(Array.isArray(e.keys) && e.keys.length && e.keys.every(function(k){ return STATS.indexOf(k) !== -1; }))) return f.id + ": keys";
+          if (e.type === "stat" || e.type === "stat_choice" || e.type === "stat_choice_save") {
+            hasStat = true;
+            if (f.category === "epic" && e.max !== 30) return f.id + ": max " + e.max;
+            if (f.category !== "epic" && e.max !== undefined) return f.id + ": лишний max";
+          }
+          if (e.type === "armor" && ["light","medium","heavy","shield"].indexOf(e.value) === -1) return f.id + ": armor " + e.value;
+          if (e.type === "weapon" && ["simple","martial"].indexOf(e.value) === -1) return f.id + ": weapon " + e.value;
+        }
+        if ((f.category === "general" && !f.asi) || f.category === "epic") {
+          if (!hasStat) return f.id + ": general/epic без бонуса характеристики";
+        }
+      }
+      return true;
+    });
+
+    t("[e24-3] опорные записи: Бдительный → initiative_prof, Крепкий → hp_per_level 2, Владение воинским оружием → weapon martial, Устойчивый → stat_choice_save", function(){
+      function has(id, type, value){
+        var f = FEATS_2024.find(function(x){ return x.id === id; });
+        if (!f) return id + " не найдена";
+        var ok = (f.effects || []).some(function(e){ return e.type === type && (value === undefined || e.value === value); });
+        return ok || (id + ": нет " + type);
+      }
+      var checks = [has("f24-alert","initiative_prof"), has("f24-tough","hp_per_level",2),
+        has("f24-martial_weapon_training","weapon","martial"), has("f24-resilient","stat_choice_save"),
+        has("f24-heavily_armored","armor","heavy"), has("f24-lightly_armored","armor","light")];
+      for (var i = 0; i < checks.length; i++) if (checks[i] !== true) return checks[i];
+      return true;
+    });
+
+    t("[e24-3] edData: 2024 → FEATS_2024, 2014 → глобальный FEATS_DATA (42, не тронут)", function(){
+      if (edData({ edition: "2024" }).FEATS_DATA !== FEATS_2024) return "2024 не FEATS_2024";
+      if (edData({ edition: "2014" }).FEATS_DATA !== FEATS_DATA) return "2014 не глобальный";
+      if (FEATS_DATA.length !== 42) return "2014: " + FEATS_DATA.length;
+      if (FEATS_DATA.some(function(f){ return f.category || f.minLevel || f.repeatable; })) return "поля 2024 просочились в 2014";
+      return true;
+    });
+
+    t("[e24-3] getFeatDef: по редакции + фолбэк на 2014 для персонажа 2024; 2014-персонаж f24- не видит", function(){
+      if (typeof getFeatDef !== "function") return "нет getFeatDef";
+      var d = getFeatDef({ edition: "2024" }, "f24-alert");
+      if (!d || d.category !== "origin") return "f24-alert для 2024";
+      var fb = getFeatDef({ edition: "2024" }, "alert");
+      if (!fb || fb.id !== "alert") return "фолбэк на 2014 для 2024-персонажа";
+      if (getFeatDef({ edition: "2014" }, "f24-alert") !== null) return "2014 видит f24-alert";
+      if (getFeatDef({ edition: "2014" }, "alert") === null) return "2014 не видит alert";
+      if (getFeatDef({ edition: "2014" }, null) !== null) return "null id";
+      return true;
+    });
+
+    t("[e24-3] luApplyFeatById 2024: Бдительный → initiativeProf, getInitiativeMod прибавляет БМ", function(){
+      var c = mk24({ level: 5 });
+      if (luApplyFeatById(c, "f24-alert", 1) !== "Бдительный") return "имя";
+      if (c.bonuses.initiativeProf !== true) return "initiativeProf";
+      if (typeof getInitiativeMod === "function" && getInitiativeMod(c) !== 3) return "инициатива " + getInitiativeMod(c) + " (ожидал БМ 3)";
+      return true;
+    });
+
+    t("[e24-3] luApplyFeatById 2024: Крепкий +2 ХП/ур., эпический дар до 30, повторяемая дважды, 2014-id через фолбэк", function(){
+      var c = mk24({ level: 4 });
+      luApplyFeatById(c, "f24-tough", 1);
+      if (c.combat.hpMax !== 38) return "hpMax " + c.combat.hpMax;
+      var e = mk24({ level: 19, stats:{str:20,dex:20,con:20,int:20,wis:20,cha:20} });
+      if (!luApplyFeatById(e, "f24-boon_combat_prowess", 19)) return "дар не применился";
+      if (e.stats.str !== 21) return "СИЛ " + e.stats.str + " (ожидал 21, max 30)";
+      var r = mk24();
+      if (!luApplyFeatById(r, "f24-skilled", 1)) return "Одарённый #1";
+      if (!luApplyFeatById(r, "f24-skilled", 4)) return "Одарённый #2 (повторяемая) заблокирован";
+      if (r.feats.length !== 2) return "feats " + r.feats.length;
+      if (luApplyFeatById(r, "f24-alert", 4) === null) return "неповторяемая #1";
+      if (luApplyFeatById(r, "f24-alert", 8) !== null) return "неповторяемая #2 не заблокирована";
+      var g = mk24();
+      if (luApplyFeatById(g, "alert", 1) !== "Бдительный" || g.bonuses.initiative !== 5) return "2014 alert через фолбэк";
+      return true;
+    });
+
+    t("[e24-3] Владение воинским оружием: proficiencies.weapon + источник «feat» в recalcArmorWeaponFromSources", function(){
+      var c = mk24();
+      if (!luApplyFeatById(c, "f24-martial_weapon_training", 4)) return "не применилась";
+      if ((c.proficiencies.weapon || []).indexOf("martial") === -1) return "нет martial";
+      if (typeof recalcArmorWeaponFromSources !== "function") return true;
+      recalcArmorWeaponFromSources(c);
+      var src = c.proficiencies.weaponSources && c.proficiencies.weaponSources.martial;
+      if (!src || src.indexOf("feat") === -1) return "weaponSources.martial: " + JSON.stringify(src);
+      if (c.proficiencies.weapon.indexOf("martial") === -1) return "martial стёрт пересчётом";
+      return true;
+    });
+
+    t("[e24-3] пикер: 2024 ур.4 → только general без «Улучшения»; 19 → + epic; «раса» → origin; 2014 → все 42", function(){
+      if (typeof _featPickerList !== "function") return "нет _featPickerList";
+      var saved = asiCurrentLevel;
+      try {
+        asiCurrentLevel = 4;
+        var l4 = _featPickerList({ edition: "2024" });
+        if (l4.length !== 42) return "ур.4: " + l4.length + " (ожидал 42 general без asi)";
+        if (l4.some(function(f){ return f.category !== "general" || f.asi; })) return "ур.4: чужая категория/asi";
+        asiCurrentLevel = 19;
+        var l19 = _featPickerList({ edition: "2024" });
+        if (l19.length !== 54) return "ур.19: " + l19.length + " (ожидал 42 + 12)";
+        asiCurrentLevel = "race";
+        var lr = _featPickerList({ edition: "2024" });
+        if (lr.length !== 10 || lr.some(function(f){ return f.category !== "origin"; })) return "раса: " + lr.length;
+        asiCurrentLevel = 4;
+        if (_featPickerList({ edition: "2014" }) !== FEATS_DATA) return "2014 не глобальный список";
+      } finally { asiCurrentLevel = saved; }
+      return true;
+    });
+
+    t("[e24-3] applyASI/luApplyFeatById: у 2014-«Бдительного» по-прежнему +5, потолок 20 без max", function(){
+      var c = { edition:"2014", stats:{str:19,dex:10,con:10,int:10,wis:10,cha:10}, level:4, combat:{hpMax:20,hpCurrent:20}, proficiencies:{}, feats:[] };
+      luApplyFeatById(c, "heavy_armor_master", 4);
+      if (c.stats.str !== 20) return "СИЛ " + c.stats.str;
+      luApplyFeatById(c, "athlete", 8);
+      if (c.stats.str !== 20 || c.stats.dex !== 11) return "stat_choice при СИЛ 20 → ЛОВ: " + c.stats.str + "/" + c.stats.dex;
       return true;
     });
   })();

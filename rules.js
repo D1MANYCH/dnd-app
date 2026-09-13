@@ -114,6 +114,8 @@ function getInitiativeMod(char, level) {
   // Пол-БМ Барда: порог 2 — по уровню Барда, сам БМ — по суммарному уровню (PHB)
   if (charClassLevelOr(char, "Бард", level) >= 2) mod += Math.floor(getProficiencyBonus(lvl) / 2);
   if (char.bonuses && char.bonuses.initiative) mod += char.bonuses.initiative;
+  // E24-3: «Бдительный» 2024 — БМ к инициативе (char.bonuses.initiativeProf)
+  if (char.bonuses && char.bonuses.initiativeProf) mod += getProficiencyBonus(lvl);
   return mod;
 }
 
@@ -772,11 +774,16 @@ function recalcArmorWeaponFromSources(char) {
   });
   // Черты (FIN-1): effects type:"armor" — Знаток лёгких/средних/тяжёлых доспехов.
   // Без этого владение от черты стиралось бы при каждом пересчёте из источников.
+  // E24-3: справочник по редакции (2024 — FEATS_2024) с фолбэком на 2014; type:"weapon" —
+  // «Владение воинским оружием» 2024.
   if (Array.isArray(char.feats) && typeof FEATS_DATA !== "undefined") {
+    var featDefs = (typeof edData === "function") ? edData(char).FEATS_DATA : FEATS_DATA;
     char.feats.forEach(function(f) {
-      var def = f && FEATS_DATA.find(function(d){ return d.id === f.id; });
+      var def = f && featDefs.find(function(d){ return d.id === f.id; });
+      if (!def && featDefs !== FEATS_DATA) def = f && FEATS_DATA.find(function(d){ return d.id === f.id; });
       ((def && def.effects) || []).forEach(function(eff) {
         if (eff.type === "armor") addArmor(eff.value, "feat");
+        else if (eff.type === "weapon") addWeapon(eff.value, "feat");
       });
     });
   }

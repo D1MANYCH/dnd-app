@@ -731,18 +731,20 @@ function luSetSubclass(name) {
 
 // BUILD-LVL-4: применить черту по id (эффекты + запись), без модалки. Возвращает имя или null.
 function luApplyFeatById(char, featId, level) {
-  if (typeof FEATS_DATA === "undefined") return null;
-  var feat = FEATS_DATA.find(function(f){ return f.id === featId; });
+  // E24-3: справочник по редакции персонажа (getFeatDef, app-asi.js); фолбэк — глобальный 2014
+  var feat = (typeof getFeatDef === "function") ? getFeatDef(char, featId)
+    : (typeof FEATS_DATA !== "undefined" ? FEATS_DATA.find(function(f){ return f.id === featId; }) : null);
   if (!feat) return null;
   if (!char.feats) char.feats = [];
-  if (char.feats.some(function(f){ return f.id === featId; })) return null; // уже взята
+  if (!feat.repeatable && char.feats.some(function(f){ return f.id === featId; })) return null; // уже взята (повторяемые 2024 — можно снова)
   (feat.effects || []).forEach(function(eff){
+    var cap = eff.max || 20; // E24-3: потолок характеристики (эпические дары — 30)
     if (eff.type === "stat") {
-      char.stats[eff.key] = Math.min(20, (char.stats[eff.key] || 10) + eff.value);
+      char.stats[eff.key] = Math.min(cap, (char.stats[eff.key] || 10) + eff.value);
     } else if (eff.type === "stat_choice" || eff.type === "stat_choice_save") {
-      var picked = eff.keys.find(function(k){ return (char.stats[k] || 10) < 20; });
+      var picked = eff.keys.find(function(k){ return (char.stats[k] || 10) < cap; });
       if (picked) {
-        char.stats[picked] = Math.min(20, (char.stats[picked] || 10) + eff.value);
+        char.stats[picked] = Math.min(cap, (char.stats[picked] || 10) + eff.value);
         if (eff.type === "stat_choice_save") { if (!char.saves) char.saves = {}; char.saves[picked] = true; }
       }
     } else if (eff.type === "armor") {
@@ -755,6 +757,12 @@ function luApplyFeatById(char, featId, level) {
     } else if (eff.type === "initiative_bonus") {
       if (!char.bonuses) char.bonuses = {};
       char.bonuses.initiative = (char.bonuses.initiative || 0) + eff.value;
+    } else if (eff.type === "initiative_prof") {
+      if (!char.bonuses) char.bonuses = {};
+      char.bonuses.initiativeProf = true;
+    } else if (eff.type === "weapon") {
+      if (!char.proficiencies.weapon) char.proficiencies.weapon = [];
+      if (char.proficiencies.weapon.indexOf(eff.value) === -1) char.proficiencies.weapon.push(eff.value);
     }
   });
   char.feats.push({ id: feat.id, name: feat.name, level: level });
