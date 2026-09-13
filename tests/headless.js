@@ -459,6 +459,37 @@
       return true;
     });
 
+    // ЗАМОК-1: замок листа поверх замка основы
+    t("[замок] миграция: легаси-персонаж → sheetLocked true (как basicLocked)", function(){
+      var c = migrateCharacter({ id: 5, class: "Воин", level: 3 });
+      if (c.basicLocked !== true) return "basicLocked: ожидал true, получено " + c.basicLocked;
+      if (c.sheetLocked !== true) return "sheetLocked: ожидал true, получено " + c.sheetLocked;
+      return true;
+    });
+
+    t("[замок] новый персонаж из шаблона → basicLocked и sheetLocked false", function(){
+      var c = migrateCharacter(JSON.parse(JSON.stringify(DEFAULT_CHARACTER)));
+      if (c.basicLocked !== false) return "basicLocked: ожидал false, получено " + c.basicLocked;
+      if (c.sheetLocked !== false) return "sheetLocked: ожидал false, получено " + c.sheetLocked;
+      return true;
+    });
+
+    t("[замок] isSheetLocked: оба флага и настройка вкл → true; без основы или при выкл → false", function(){
+      if (typeof isSheetLocked !== "function") return "нет isSheetLocked";
+      var saved = localStorage.getItem("dnd_sheet_lock");
+      try {
+        localStorage.removeItem("dnd_sheet_lock");
+        if (isSheetLocked({ basicLocked: true, sheetLocked: true }) !== true) return "вкл + оба флага: ожидал true";
+        if (isSheetLocked({ basicLocked: false, sheetLocked: true }) !== false) return "без basicLocked: ожидал false";
+        if (isSheetLocked({ basicLocked: true, sheetLocked: false }) !== false) return "без sheetLocked: ожидал false";
+        localStorage.setItem("dnd_sheet_lock", "0");
+        if (isSheetLocked({ basicLocked: true, sheetLocked: true }) !== false) return "настройка выкл: ожидал false";
+      } finally {
+        if (saved === null) localStorage.removeItem("dnd_sheet_lock"); else localStorage.setItem("dnd_sheet_lock", saved);
+      }
+      return true;
+    });
+
     t("[import] _isValidImportedChar: минимальный валиден, мусор режется", function(){
       if (typeof _isValidImportedChar !== "function") return "нет _isValidImportedChar";
       if (!_isValidImportedChar({ class: "Плут", level: 5 })) return "минимальный должен проходить";

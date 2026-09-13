@@ -278,6 +278,24 @@ document.addEventListener('DOMContentLoaded', function() {
   _syncStatsLayoutButtons();
 });
 
+// ЗАМОК-1: замок листа после создания (ключ dnd_sheet_lock, по умолчанию вкл.).
+// Выкл. → isSheetLocked() всегда false, кнопки и плашка замка скрыты.
+function _getSheetLock() {
+  try { return localStorage.getItem('dnd_sheet_lock') !== '0'; } catch (e) {}
+  return true;
+}
+function setSheetLock(on) {
+  try { localStorage.setItem('dnd_sheet_lock', on ? '1' : '0'); } catch (e) {}
+  _syncSheetLockButtons();
+  if (typeof applySheetLockUI === 'function') applySheetLockUI();
+}
+function _syncSheetLockButtons() {
+  var active = _getSheetLock() ? 'on' : 'off';
+  document.querySelectorAll('[data-sheet-lock-btn]').forEach(function (b) {
+    b.classList.toggle('is-active', b.getAttribute('data-sheet-lock-btn') === active);
+  });
+}
+
 // UI-fix: сворачивание секции «Характеристики». Атрибут data-stats-collapsed на <html>;
 // по умолчанию развёрнуто. Состояние в localStorage (dnd_stats_collapsed).
 function _getStatsCollapsed() {
@@ -608,6 +626,7 @@ function openSettingsModal() {
   try { if (typeof _syncThemeButtons === 'function') _syncThemeButtons(); } catch (e) {}
   try { if (typeof _syncAccentButtons === 'function') _syncAccentButtons(); } catch (e) {}
   try { if (typeof _syncSpaceButtons === 'function') _syncSpaceButtons(); } catch (e) {}
+  try { _syncSheetLockButtons(); } catch (e) {}
   if (typeof showScreen === 'function') showScreen('settings');
 }
 function closeSettingsModal() {

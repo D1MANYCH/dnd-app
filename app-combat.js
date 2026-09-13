@@ -279,6 +279,7 @@ function openAbilityInfo(key) {
 }
 
 function toggleExpertise(index) {
+if (sheetLockGuard()) return;
 var char = getCurrentChar();
 if (!char) return;
 if (!char.expertiseSkills) char.expertiseSkills = [];
@@ -485,6 +486,7 @@ function updateAllStatDisplays() {
 }
 
 function adjustStat(stat, delta) {
+if (sheetLockGuard()) return;
 const input = $("val-" + stat);
 if (!input) return;
 let value = parseInt(input.value, 10) || 10;
@@ -1190,6 +1192,7 @@ function applyBasicLockUI() {
   if (lockedBar) lockedBar.style.display = locked ? "flex" : "none";
 
   if (!locked) updateLockButtonState();
+  applySheetLockUI();
 }
 
 function updateLockButtonState() {
@@ -1251,6 +1254,78 @@ function unlockBasicInfo() {
       showToast("🔓 Основа разблокирована", "info");
     },
     "Разблокировать",
+    { danger: false, icon: "lock" }
+  );
+}
+
+// ============================================
+// ЗАМОК ЛИСТА (ЗАМОК-1): всё, что меняется только при создании или повышении
+// уровня, закрыто, пока char.sheetLocked. Настройка dnd_sheet_lock выключает
+// механизм целиком; замок листа требует зафиксированной основы.
+// ============================================
+var SHEET_LOCK_FIELD_IDS = ["val-str", "val-dex", "val-con", "val-int", "val-wis", "val-cha", "hp-max-manual", "combat-speed", "char-size"];
+
+function isSheetLocked(char) {
+  if (typeof _getSheetLock === "function" && !_getSheetLock()) return false;
+  if (!char) char = getCurrentChar();
+  return !!(char && char.basicLocked && char.sheetLocked);
+}
+
+function sheetLockGuard() {
+  if (!isSheetLocked()) return false;
+  showToast("🔒 Лист зафиксирован — нажмите «Изменить», чтобы редактировать", "info");
+  return true;
+}
+
+function applySheetLockUI() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var enabled = typeof _getSheetLock !== "function" || _getSheetLock();
+  var locked = isSheetLocked(char);
+  var tab = $("tab-sheet");
+  if (tab) tab.classList.toggle("sheet-locked", locked);
+  SHEET_LOCK_FIELD_IDS.forEach(function(id) {
+    var el = $(id);
+    if (el) el.disabled = locked;
+  });
+  document.querySelectorAll('input[id^="save-prof-"], input[id^="skill-prof-"]').forEach(function(cb) {
+    cb.disabled = locked;
+  });
+  var text = $("basic-locked-text");
+  if (text) text.textContent = locked ? "Лист зафиксирован" : "Основа персонажа зафиксирована";
+  var readyBtn = $("sheet-lock-btn");
+  var editBtn = $("sheet-unlock-btn");
+  var basicBtn = $("basic-unlock-btn");
+  if (readyBtn) readyBtn.style.display = (enabled && char.basicLocked && !locked) ? "" : "none";
+  if (editBtn) editBtn.style.display = locked ? "" : "none";
+  if (basicBtn) basicBtn.style.display = locked ? "none" : "";
+}
+
+function lockSheet() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char || !char.basicLocked) return;
+  char.sheetLocked = true;
+  saveToLocal();
+  applySheetLockUI();
+  showToast("🔒 Лист зафиксирован. Характеристики и владения откроются при повышении уровня или по кнопке «Изменить».", "success");
+}
+
+function unlockSheet() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  showConfirmModal(
+    "Открыть лист для правок?",
+    "Характеристики, спасброски, навыки, владения, максимум хитов, скорость и размер снова станут редактируемыми. Когда закончите — нажмите «Персонаж готов».",
+    function() {
+      char.sheetLocked = false;
+      saveToLocal();
+      applySheetLockUI();
+      showToast("🔓 Лист открыт для правок", "info");
+    },
+    "Открыть",
     { danger: false, icon: "lock" }
   );
 }
@@ -1346,6 +1421,7 @@ function onManualAC() {
 
 function onManualMaxHP() {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   var val = parseInt($("hp-max-manual")?.value, 10) || 0;

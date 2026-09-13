@@ -845,6 +845,13 @@ function migrateCharacter(char) {
     }
     char.schemaVersion = 34;
   }
+  if (v < 35) {
+    // ЗАМОК-1: замок листа поверх замка основы. Существующие персонажи с
+    // зафиксированной основой считаются готовыми — лист закрыт; открыть можно
+    // кнопкой «Изменить». Новые (шаблон) явно несут sheetLocked = false.
+    if (char.sheetLocked === undefined) char.sheetLocked = !!char.basicLocked;
+    char.schemaVersion = 35;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

@@ -7694,6 +7694,23 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   filter: grayscale(0.3);
 }
 
+/* ЗАМОК-1: лист зафиксирован — поля создания/апа закрыты до «Изменить» или повышения уровня */
+#tab-sheet.sheet-locked .stat-btn-sm { visibility: hidden; }
+#tab-sheet.sheet-locked .prof-add-row,
+#tab-sheet.sheet-locked .prof-chip-remove,
+#tab-sheet.sheet-locked .skill-expertise-btn:not(.active) { display: none; }
+#tab-sheet.sheet-locked .skill-expertise-btn.active { pointer-events: none; }
+#tab-sheet.sheet-locked .stat-compact-inp:disabled,
+#tab-sheet.sheet-locked #hp-max-manual:disabled,
+#tab-sheet.sheet-locked #combat-speed:disabled,
+#tab-sheet.sheet-locked #char-size:disabled,
+#tab-sheet.sheet-locked .skill-cb:disabled,
+#tab-sheet.sheet-locked input[id^="save-prof-"]:disabled {
+  opacity: 0.65;
+  filter: grayscale(0.3);
+  cursor: default;
+}
+
 /* Заблокированный подкласс — серый со значком замка */
 #char-subclass.subclass-locked {
   color: var(--text-mute);

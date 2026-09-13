@@ -146,6 +146,7 @@ function renderLanguages() {
 
 function addChoiceLanguage(key) {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   var sel = $("lang-choice-" + key);
@@ -161,6 +162,7 @@ function addChoiceLanguage(key) {
 
 function addCustomLanguage() {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   ensureLanguagesArray(char);
@@ -187,6 +189,7 @@ function addCustomLanguage() {
 
 function removeCustomLanguage(name) {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   ensureLanguagesArray(char);
@@ -370,6 +373,7 @@ function renderTools() {
 
 function addChoiceTool(slotKey) {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   var sel = $("tool-choice-" + slotKey);
@@ -385,6 +389,7 @@ function addChoiceTool(slotKey) {
 
 function addCustomTool() {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   ensureToolsArray(char);
@@ -411,6 +416,7 @@ function addCustomTool() {
 
 function removeCustomTool(name) {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   ensureToolsArray(char);
@@ -543,6 +549,7 @@ function renderWeaponProf() {
 
 function addCustomArmorType() {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   ensureArmorWeaponFields(char);
@@ -558,6 +565,7 @@ function addCustomArmorType() {
 
 function removeCustomArmorType(type) {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   ensureArmorWeaponFields(char);
@@ -569,6 +577,7 @@ function removeCustomArmorType(type) {
 
 function addCustomWeaponType() {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   ensureArmorWeaponFields(char);
@@ -583,6 +592,7 @@ function addCustomWeaponType() {
 
 function removeCustomWeaponType(type) {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   ensureArmorWeaponFields(char);
@@ -593,6 +603,7 @@ function removeCustomWeaponType(type) {
 
 function addCustomSpecificWeapon() {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   ensureArmorWeaponFields(char);
@@ -613,6 +624,7 @@ function addCustomSpecificWeapon() {
 
 function removeCustomSpecificWeapon(name) {
   if (!currentId) return;
+  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   ensureArmorWeaponFields(char);
