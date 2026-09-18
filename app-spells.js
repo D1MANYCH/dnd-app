@@ -708,6 +708,7 @@ const char = getCurrentChar();
 if (!char) return;
 if (!char.spells.mySpells) return;
 var _rm = char.spells.mySpells.find(function(s) { return s.id === spellId; });
+if (_rm && _rm.grantedBy) { showToast("Заклинание даёт " + _rm.grantedBy + " — снимается сменой вида или его выбора", "info"); return; }
 char.spells.mySpells = char.spells.mySpells.filter(function(s) { return s.id !== spellId; });
 if (window.AppLog) AppLog.action("spells", "заклинание удалено" + (_rm ? ": " + _rm.name : ""), { id: spellId });
 saveToLocal();
@@ -788,6 +789,7 @@ var metaParts = [];
 if (schoolRu) metaParts.push('<span class="spell-meta-school">' + escapeHtml(schoolRu.toLowerCase()) + '</span>');
 if (spell.time) metaParts.push('<span>' + escapeHtml(spell.time) + '</span>');
 if (spell.range) metaParts.push('<span>' + escapeHtml(spell.range) + '</span>');
+if (spell.grantedBy) metaParts.push('<span>' + escapeHtml(spell.grantedBy) + '</span>'); // E24-4: источник — вид
 var prepClass = isPrepClass(char);
 var prepared = isSpellPrepared(char, spell.id);
 var isCantrip = spell.level === 0;
@@ -930,6 +932,9 @@ function isPrepClass(char) {
 
 function isSpellPrepared(char, spellId) {
   if (!isPrepClass(char)) return true; // для не-prep классов все заклинания "подготовлены"
+  // E24-4: заклинания от вида всегда подготовлены и в лимит не входят
+  var _gr = char.spells.mySpells && char.spells.mySpells.find(function(s){ return s.id === spellId; });
+  if (_gr && _gr.grantedBy) return true;
   if (!char.spells.prepared) char.spells.prepared = [];
   return char.spells.prepared.includes(spellId);
 }
@@ -985,7 +990,7 @@ function renderPrepCounter() {
   var hint;
   if (prep.prepared) {
     var maxCantrips = calcMaxCantrips(char);
-    var cantripCount = (char.spells.mySpells || []).filter(function(s) { return s && s.level === 0; }).length;
+    var cantripCount = (char.spells.mySpells || []).filter(function(s) { return s && s.level === 0 && !s.grantedBy; }).length;
     hint = "(таблица класса" + (maxCantrips !== null ? " · заговоров " + cantripCount + "/" + maxCantrips : "") + ")";
   } else {
     hint = "(" + statName + " + " + (prep.formula === "mod+halfLevel" ? "½ ур." : "ур.") + ")";

@@ -924,7 +924,11 @@ function onRaceChange() {
   var displayEl = $("race-bonus-display");
   if (!raceEl || !displayEl) return;
   var race = raceEl.value;
-  var data = (typeof RACE_DATA !== "undefined") && RACE_DATA[race];
+  var _rch = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  var _rtbl = (typeof edData === "function") ? edData(_rch).RACE_DATA : ((typeof RACE_DATA !== "undefined") ? RACE_DATA : {});
+  var data = _rtbl[race];
+  var is24 = !!(_rch && _rch.edition === "2024");
+  var raceChanged = false;
 
   // === Применяем расовые бонусы к характеристикам ===
   // Делаем это только когда раса реально сменилась (или при миграции
@@ -935,6 +939,7 @@ function onRaceChange() {
     if (charApply) {
       var appliedRace = charApply.appliedRace;
       if (appliedRace !== race) {
+        raceChanged = true;
         // 1) Откатываем ранее применённые расовые бонусы
         var prev = charApply.appliedRaceBonus || {};
         Object.keys(prev).forEach(function(k) {
@@ -972,8 +977,12 @@ function onRaceChange() {
   // === /применение расовых бонусов ===
 
   if (!data) { displayEl.style.display = "none"; return; }
+  var eff = is24 ? _speciesEffective(_rch, data) : data;
+  if (is24) {
+    displayEl.innerHTML = _renderSpeciesBar(race, data, eff);
+  } else {
   var statNames = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
-  var bonuses = Object.keys(data.stats).map(function(k) {
+  var bonuses = Object.keys(data.stats || {}).map(function(k) {
     var v = data.stats[k];
     return '<span class="race-bonus-badge">' + (v > 0 ? "+" : "") + v + " " + statNames[k] + '</span>';
   }).join("");
@@ -983,10 +992,11 @@ function onRaceChange() {
   displayEl.innerHTML =
     '<span class="race-bonus-label">' + dndIcoHtml("zap", 12) + ' ' + escapeHtml(race) + ':</span>' + bonuses + speedBadge +
     '<span class="race-bonus-traits">' + escapeHtml(data.traits) + '</span>';
+  }
   displayEl.style.display = "flex";
 
   // Обновляем ОБА поля скорости
-  var speedVal = data.speed + " фт";
+  var speedVal = eff.speed + " фт";
   var charSpeedEl  = $("char-speed");
   var combatSpeedEl = $("combat-speed");
   if (charSpeedEl)   charSpeedEl.value  = speedVal;
@@ -997,14 +1007,24 @@ function onRaceChange() {
     if (char) {
       char.speed        = speedVal;
       char.combat.speed = speedVal;
-      // Очистить расовый выбор языков и инструментов — раса сменилась
-      if (char.proficiencies && char.proficiencies.languageChoices) {
-        char.proficiencies.languageChoices.race = [];
+      // E24-4: фиксированный размер вида (у аасимара/человека/тифлинга выбор — не трогаем)
+      if (is24 && typeof data.size === "string") {
+        char.size = data.size;
+        safeSet("char-size", data.size);
       }
-      if (char.proficiencies && char.proficiencies.toolChoices) {
-        Object.keys(char.proficiencies.toolChoices).forEach(function(k) {
-          if (k.indexOf("race_") === 0) delete char.proficiencies.toolChoices[k];
-        });
+      if (raceChanged) {
+        if (is24) char.speciesChoices = {};
+        // Очистить расовый выбор языков и инструментов — раса сменилась
+        if (char.proficiencies && char.proficiencies.languageChoices) {
+          char.proficiencies.languageChoices.race = [];
+        }
+        if (char.proficiencies && char.proficiencies.toolChoices) {
+          Object.keys(char.proficiencies.toolChoices).forEach(function(k) {
+            if (k.indexOf("race_") === 0) delete char.proficiencies.toolChoices[k];
+          });
+        }
+        // заклинания прежнего вида снимаем сразу, не дожидаясь фиксации основы
+        if (is24) syncSpeciesSpells(char);
       }
       saveToLocal();
     }
@@ -1015,6 +1035,127 @@ function onRaceChange() {
   if (typeof renderArmorProf === "function") renderArmorProf();
   if (typeof renderWeaponProf === "function") renderWeaponProf();
   if (typeof calculateAC === "function") calculateAC();
+}
+
+// ============================================
+// E24-4: ВИДЫ 2024 — селект, панель, выборы, заклинания вида
+// ============================================
+var _raceSelect2014Html = null;
+
+// Селект расы: для 2024-персонажа — 10 видов из edData(char).RACE_DATA, для 2014 —
+// исходная разметка index.html (кэшируется при первом вызове).
+function populateRaceSelect(char) {
+  var sel = $("char-race");
+  if (!sel) return;
+  if (_raceSelect2014Html === null) _raceSelect2014Html = sel.innerHTML;
+  var is24 = !!(char && char.edition === "2024" && typeof edData === "function");
+  if (!is24) {
+    if (sel.dataset.edition === "2024") { sel.innerHTML = _raceSelect2014Html; delete sel.dataset.edition; }
+    return;
+  }
+  var tbl = edData(char).RACE_DATA || {};
+  var html = '<option value="">Выберите вид</option>';
+  Object.keys(tbl).forEach(function(name) {
+    var d = tbl[name];
+    var hint = [];
+    if (Array.isArray(d.size)) hint.push(d.size.join("/"));
+    else if (d.size && d.size !== "Средний") hint.push(d.size);
+    if (d.speed && d.speed !== 30) hint.push(d.speed + " фт");
+    html += '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + (hint.length ? " (" + escapeHtml(hint.join(", ")) + ")" : "") + '</option>';
+  });
+  sel.innerHTML = html;
+  sel.dataset.edition = "2024";
+}
+
+// Скорость и тёмное зрение вида с учётом выбранной опции (лесной эльф 35 фт, дроу 120 фт).
+function _speciesEffective(char, data) {
+  var out = { speed: data.speed, darkvision: data.darkvision || 0 };
+  var picks = (char && char.speciesChoices) || {};
+  (data.choices || []).forEach(function(ch) {
+    if (ch.type !== "single") return;
+    var opt = (ch.options || []).find(function(o) { return o.id === picks[ch.id]; });
+    if (!opt) return;
+    if (opt.speed) out.speed = opt.speed;
+    if (opt.darkvision) out.darkvision = opt.darkvision;
+  });
+  return out;
+}
+
+function _renderSpeciesBar(race, data, eff) {
+  var sizeTxt = Array.isArray(data.size) ? data.size.join(" или ") : (data.size || "Средний");
+  var badges = '<span class="race-bonus-badge">' + escapeHtml(sizeTxt) + '</span>' +
+    '<span class="race-bonus-badge race-speed">' + eff.speed + ' фт</span>' +
+    (eff.darkvision ? '<span class="race-bonus-badge race-speed">Тёмное зрение ' + eff.darkvision + ' фт</span>' : '');
+  var traits = (data.traits || []).map(function(t) {
+    return '<div class="race-trait-row"><span class="race-trait-name">' + escapeHtml(t.name) + '</span> — ' + escapeHtml(t.desc) + '</div>';
+  }).join("");
+  return '<span class="race-bonus-label">' + dndIcoHtml("zap", 12) + ' ' + escapeHtml(race) + ':</span>' + badges +
+    '<div class="race-bonus-traits">' + traits + '</div>';
+}
+
+var SPECIES_STAT_SHORT = { int: "ИНТ", wis: "МУД", cha: "ХАР" };
+
+function _speciesChoiceOptions(ch) {
+  if (ch.type === "stat") {
+    return (ch.keys || []).map(function(k) { return { id: k, name: SPECIES_STAT_SHORT[k] || k }; });
+  }
+  return ch.options || [];
+}
+
+function toggleSpeciesChoice(choiceId, optId) {
+  if (!currentId) return;
+  if (sheetLockGuard()) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  if (!char.speciesChoices) char.speciesChoices = {};
+  char.speciesChoices[choiceId] = (char.speciesChoices[choiceId] === optId) ? "" : optId;
+  saveToLocal();
+  // onRaceChange пересчитает скорость/тёмное зрение и вызовет renderRaceExtras → syncSpeciesSpells
+  onRaceChange();
+}
+
+// Заклинания вида (базовые + от выбранной опции) в гримуаре: добавляются копией записи
+// PH24 с меткой grantedBy, снимаются при смене вида/опции, растут с уровнем (minLevel).
+function syncSpeciesSpells(char) {
+  if (!char || char.edition !== "2024" || typeof edData !== "function" || typeof SPELL_DATABASE === "undefined") return false;
+  if (!char.spells) return false;
+  if (!Array.isArray(char.spells.mySpells)) char.spells.mySpells = [];
+  var data = edData(char).RACE_DATA[char.race];
+  var want = [];
+  if (data) {
+    var picks = char.speciesChoices || {};
+    var lists = [data.spells || []];
+    (data.choices || []).forEach(function(ch) {
+      var opt = (ch.options || []).find(function(o) { return o.id === picks[ch.id]; });
+      if (opt && opt.spells) lists.push(opt.spells);
+    });
+    lists.forEach(function(arr) {
+      arr.forEach(function(sp) {
+        if ((sp.minLevel || 1) <= (char.level || 1)) want.push(sp.name);
+      });
+    });
+  }
+  var label = "Вид · " + (char.race || "");
+  var changed = false;
+  var before = char.spells.mySpells.length;
+  char.spells.mySpells = char.spells.mySpells.filter(function(s) {
+    return !s.grantedBy || (s.grantedBy === label && want.indexOf(s.name) !== -1);
+  });
+  if (char.spells.mySpells.length !== before) changed = true;
+  want.forEach(function(name) {
+    if (char.spells.mySpells.some(function(s) { return s.name === name; })) return;
+    var src = SPELL_DATABASE.find(function(s) { return s.name === name && s.source === "PH24"; }) ||
+              SPELL_DATABASE.find(function(s) { return s.name === name; });
+    if (!src) return;
+    var copy = Object.assign({}, src, { grantedBy: label });
+    char.spells.mySpells.push(copy);
+    changed = true;
+  });
+  if (changed) {
+    if (typeof saveToLocal === "function") saveToLocal();
+    if (typeof renderMySpells === "function") renderMySpells();
+  }
+  return changed;
 }
 
 // ============================================
@@ -1094,6 +1235,28 @@ function renderRaceExtras() {
     html += '<span style="margin-left:auto;color:rgba(255,255,255,0.55);font-size:0.85em;">' +
       'Выбрано: ' + chosen.length + '/2</span>';
     html += '</div>';
+  }
+
+  // E24-4: видовые выборы 2024 (родословная, происхождение, характеристика заклинаний)
+  if (char.edition === "2024" && typeof edData === "function") {
+    var sp = edData(char).RACE_DATA[race];
+    if (sp && Array.isArray(sp.choices)) {
+      if (!char.speciesChoices) char.speciesChoices = {};
+      sp.choices.forEach(function(ch) {
+        var cur = char.speciesChoices[ch.id] || "";
+        var opts = _speciesChoiceOptions(ch);
+        html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' ' + escapeHtml(ch.name) + '</div>';
+        html += '<div class="race-extras-row">';
+        opts.forEach(function(o) {
+          html += '<span class="race-extras-stat-pick' + (cur === o.id ? " selected" : "") +
+            '" onclick="toggleSpeciesChoice(\'' + ch.id + '\',\'' + o.id + '\')">' + escapeHtml(o.name) + '</span>';
+        });
+        html += '</div>';
+        var curOpt = opts.find(function(o) { return o.id === cur; });
+        if (curOpt && curOpt.desc) html += '<div class="race-trait-row">' + escapeHtml(curOpt.desc) + '</div>';
+      });
+    }
+    syncSpeciesSpells(char);
   }
 
   if (html) {

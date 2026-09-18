@@ -7562,6 +7562,9 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   width: 100%;
   margin-top: 2px;
 }
+/* E24-4: черты вида 2024 — плоские строки, имя черты выделено */
+.race-trait-row { padding: 2px 0; }
+.race-trait-name { font-weight: 700; color: var(--text); }
 /* FIN-4: панель «умение предыстории» */
 .bg-feature-bar {
   display: flex;

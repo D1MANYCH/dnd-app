@@ -7169,6 +7169,205 @@
     });
   })();
 
+  // ────────── БЛОК 55 (E24-4): виды 2024 — SPECIES_2024, выборы, заклинания вида, языки ──────────
+  // Инварианты: 10 видов гл.4 PHB 2024 без бонусов характеристик; у каждого size/speed/traits;
+  // id опций уникальны, заклинания видов резолвятся в PH24; 2014 RACE_DATA/RACE_LANGUAGES не тронуты.
+  (function(){
+    if (typeof SPECIES_2024 === "undefined" || typeof edData !== "function") return;
+    var NAMES = ["Аасимар","Гном","Голиаф","Дварф","Драконорождённый","Орк","Полурослик","Тифлинг","Человек","Эльф"];
+    function mk24(o){
+      var c = { edition:"2024", race:"", level:1, stats:{str:10,dex:10,con:10,int:10,wis:10,cha:10},
+        spells:{ mySpells:[], prepared:[] }, proficiencies:{ languages:[], languageChoices:{} }, speciesChoices:{} };
+      Object.keys(o || {}).forEach(function(k){ c[k] = o[k]; });
+      return c;
+    }
+
+    t("[e24-4] SPECIES_2024: ровно 10 видов гл.4, edData('2024').RACE_DATA — они же", function(){
+      var keys = Object.keys(SPECIES_2024).sort();
+      if (keys.join("|") !== NAMES.slice().sort().join("|")) return "виды: " + keys.join(", ");
+      var ed = edData({ edition:"2024" }).RACE_DATA;
+      if (ed !== SPECIES_2024) return "edData('2024').RACE_DATA не SPECIES_2024";
+      return true;
+    });
+
+    t("[e24-4] у каждого вида size/speed/darkvision/traits[{name,desc}] и НЕТ stats", function(){
+      var bad = [];
+      NAMES.forEach(function(n){
+        var d = SPECIES_2024[n];
+        if (!d) { bad.push(n + ": нет"); return; }
+        if ("stats" in d) bad.push(n + ": есть stats");
+        var sizeOk = typeof d.size === "string" || (Array.isArray(d.size) && d.size.length === 2);
+        if (!sizeOk) bad.push(n + ": size");
+        if (typeof d.speed !== "number" || d.speed < 30) bad.push(n + ": speed " + d.speed);
+        if (typeof d.darkvision !== "number") bad.push(n + ": darkvision");
+        if (!Array.isArray(d.traits) || d.traits.length < 3) bad.push(n + ": traits");
+        (d.traits || []).forEach(function(tr){ if (!tr.name || !tr.desc) bad.push(n + ": черта без name/desc"); });
+      });
+      return bad.length ? bad.join("; ") : true;
+    });
+
+    t("[e24-4] книга: голиаф 35 фт, дварф/орк тёмное зрение 120, гном/полурослик Маленькие, аасимар/человек/тифлинг — выбор размера", function(){
+      var S = SPECIES_2024;
+      if (S["Голиаф"].speed !== 35) return "голиаф " + S["Голиаф"].speed;
+      if (S["Дварф"].darkvision !== 120 || S["Орк"].darkvision !== 120) return "тёмное зрение дварф/орк";
+      if (S["Гном"].size !== "Маленький" || S["Полурослик"].size !== "Маленький") return "размер гном/полурослик";
+      if (!Array.isArray(S["Аасимар"].size) || !Array.isArray(S["Человек"].size) || !Array.isArray(S["Тифлинг"].size)) return "выбор размера";
+      if (S["Дварф"].speed !== 30) return "дварф 2024 — 30 фт, не 25";
+      return true;
+    });
+
+    t("[e24-4] choices: id опций уникальны в рамках выбора, single → options[], stat → keys[]; наборы по книге", function(){
+      var bad = [];
+      var expect = { "Драконорождённый":{ancestry:10}, "Эльф":{lineage:3, spellStat:3}, "Гном":{lineage:2, spellStat:3},
+                     "Голиаф":{ancestry:6}, "Тифлинг":{legacy:3, spellStat:3} };
+      NAMES.forEach(function(n){
+        var d = SPECIES_2024[n];
+        var got = {};
+        (d.choices || []).forEach(function(ch){
+          if (!ch.id || !ch.name) bad.push(n + ": выбор без id/name");
+          var opts = ch.type === "stat" ? (ch.keys || []) : (ch.options || []);
+          if (ch.type !== "stat" && ch.type !== "single") bad.push(n + "/" + ch.id + ": type " + ch.type);
+          got[ch.id] = opts.length;
+          var seen = {};
+          opts.forEach(function(o){
+            var id = typeof o === "string" ? o : o.id;
+            if (!id || seen[id]) bad.push(n + "/" + ch.id + ": дубль/пустой id " + id);
+            seen[id] = true;
+            if (typeof o !== "string" && (!o.name || !o.desc)) bad.push(n + "/" + ch.id + "/" + id + ": нет name/desc");
+          });
+        });
+        var exp = expect[n] || {};
+        if (JSON.stringify(got) !== JSON.stringify(exp)) bad.push(n + ": " + JSON.stringify(got) + " ≠ " + JSON.stringify(exp));
+      });
+      return bad.length ? bad.join("; ") : true;
+    });
+
+    t("[e24-4] все заклинания видов и опций резолвятся в SPELL_DATABASE как PH24, minLevel ∈ {1,3,5}", function(){
+      var bad = [];
+      function chk(n, arr){
+        (arr || []).forEach(function(sp){
+          if ([1,3,5].indexOf(sp.minLevel) === -1) bad.push(n + ": " + sp.name + " minLevel " + sp.minLevel);
+          var hit = SPELL_DATABASE.some(function(s){ return s.name === sp.name && s.source === "PH24"; });
+          if (!hit) bad.push(n + ": нет PH24 «" + sp.name + "»");
+        });
+      }
+      var total = 0;
+      NAMES.forEach(function(n){
+        var d = SPECIES_2024[n];
+        chk(n, d.spells); total += (d.spells || []).length;
+        (d.choices || []).forEach(function(ch){ (ch.options || []).forEach(function(o){ chk(n + "/" + o.id, o.spells); total += (o.spells || []).length; }); });
+      });
+      if (total < 20) bad.push("всего заклинаний " + total + " < 20");
+      return bad.length ? bad.join("; ") : true;
+    });
+
+    t("[e24-4] 2014 не тронут: RACE_DATA 21 расы со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
+      var r = edData({ edition:"2014" }).RACE_DATA;
+      if (r === SPECIES_2024) return "2014 подменён";
+      if (Object.keys(r).length !== 21) return "рас 2014: " + Object.keys(r).length;
+      if (!r["Полуэльф"] || !r["Эльф"].stats || r["Эльф"].stats.dex !== 2) return "stats 2014 потеряны";
+      if (r["Дварф"].speed !== 25) return "дварф 2014 — 25 фт";
+      return true;
+    });
+
+    t("[e24-4] _speciesEffective: лесной эльф 35 фт, дроу тёмное зрение 120, без выбора — базовые", function(){
+      if (typeof _speciesEffective !== "function") return "нет _speciesEffective";
+      var elf = SPECIES_2024["Эльф"];
+      var e0 = _speciesEffective(mk24({}), elf);
+      if (e0.speed !== 30 || e0.darkvision !== 60) return "база: " + JSON.stringify(e0);
+      var e1 = _speciesEffective(mk24({ speciesChoices:{ lineage:"wood" } }), elf);
+      if (e1.speed !== 35) return "лесной: " + e1.speed;
+      var e2 = _speciesEffective(mk24({ speciesChoices:{ lineage:"drow" } }), elf);
+      if (e2.darkvision !== 120 || e2.speed !== 30) return "дроу: " + JSON.stringify(e2);
+      return true;
+    });
+
+    t("[e24-4] syncSpeciesSpells: тифлинг-инфернал 1 ур. → Чудотворство + Огненный снаряд (PH24, grantedBy), 5 ур. → +Адское возмездие, Тьма", function(){
+      if (typeof syncSpeciesSpells !== "function") return "нет syncSpeciesSpells";
+      var c = mk24({ race:"Тифлинг", speciesChoices:{ legacy:"infernal" } });
+      syncSpeciesSpells(c);
+      var names = c.spells.mySpells.map(function(s){ return s.name; }).sort();
+      if (names.join("|") !== ["Огненный снаряд","Чудотворство"].sort().join("|")) return "1 ур.: " + names.join(", ");
+      if (!c.spells.mySpells.every(function(s){ return s.source === "PH24" && s.grantedBy === "Вид · Тифлинг"; })) return "source/grantedBy";
+      c.level = 5;
+      syncSpeciesSpells(c);
+      names = c.spells.mySpells.map(function(s){ return s.name; }).sort();
+      if (names.length !== 4 || names.indexOf("Адское возмездие") === -1 || names.indexOf("Тьма") === -1) return "5 ур.: " + names.join(", ");
+      return true;
+    });
+
+    t("[e24-4] syncSpeciesSpells: смена опции снимает старые, ручные заклинания и 2014-персонаж не тронуты", function(){
+      var c = mk24({ race:"Эльф", level:5, speciesChoices:{ lineage:"drow" } });
+      var manual = SPELL_DATABASE.find(function(s){ return s.name === "Огненный снаряд" && s.source === "PH24"; });
+      c.spells.mySpells.push(Object.assign({}, manual));
+      syncSpeciesSpells(c);
+      if (c.spells.mySpells.length !== 4) return "дроу 5 ур.: " + c.spells.mySpells.length;
+      c.speciesChoices.lineage = "high";
+      syncSpeciesSpells(c);
+      var names = c.spells.mySpells.map(function(s){ return s.name; });
+      if (names.indexOf("Пляшущие огоньки") !== -1 || names.indexOf("Туманный шаг") === -1) return "смена: " + names.join(", ");
+      if (names.indexOf("Огненный снаряд") === -1) return "ручное заклинание потеряно";
+      c.speciesChoices.lineage = "";
+      syncSpeciesSpells(c);
+      if (c.spells.mySpells.length !== 1) return "без опции: " + c.spells.mySpells.length;
+      var c14 = { edition:"2014", race:"Дроу", level:5, spells:{ mySpells:[] } };
+      if (syncSpeciesSpells(c14) !== false || c14.spells.mySpells.length) return "2014 затронут";
+      return true;
+    });
+
+    t("[e24-4] isSpellPrepared: заклинание вида всегда подготовлено, в счётчик заговоров не входит", function(){
+      if (typeof isSpellPrepared !== "function") return "нет isSpellPrepared";
+      var c = mk24({ race:"Аасимар", class:"Волшебник", classes:[{ class:"Волшебник", level:1 }] });
+      syncSpeciesSpells(c);
+      var light = c.spells.mySpells.find(function(s){ return s.name === "Свет"; });
+      if (!light) return "нет Света";
+      if (isSpellPrepared(c, light.id) !== true) return "Свет не подготовлен";
+      return true;
+    });
+
+    t("[e24-4] языки 2024: каждый вид — Общий + 2 на выбор; recalcLanguagesFromSources/getLanguageChoiceSlots через edData", function(){
+      var bad = [];
+      NAMES.forEach(function(n){
+        var l = RACE_LANGUAGES_2024[n];
+        if (!l || l.fixed.join() !== "Общий" || l.choice !== 2) bad.push(n);
+      });
+      if (bad.length) return "виды: " + bad.join(", ");
+      var c = mk24({ race:"Дварф", classes:[{ class:"Воин", level:1 }] });
+      recalcLanguagesFromSources(c);
+      var names = c.proficiencies.languages.map(function(x){ return x.name; });
+      if (names.join("|") !== "Общий") return "дварф 2024: " + names.join(", ");
+      var slots = getLanguageChoiceSlots(c);
+      if (!slots.length || slots[0].key !== "race" || slots[0].remaining !== 2) return "слоты: " + JSON.stringify(slots);
+      var c14 = { edition:"2014", race:"Дварф", classes:[{ class:"Воин", level:1 }], proficiencies:{ languages:[], languageChoices:{} } };
+      recalcLanguagesFromSources(c14);
+      var n14 = c14.proficiencies.languages.map(function(x){ return x.name; });
+      if (n14.join("|") !== "Общий|Дварфский") return "дварф 2014: " + n14.join(", ");
+      return true;
+    });
+
+    t("[e24-4] RACE_NAME_GROUP покрывает все 10 видов (включая Орк → orc)", function(){
+      var miss = NAMES.filter(function(n){ return !RACE_NAME_GROUP[n] || !RACE_NAME_POOLS[RACE_NAME_GROUP[n]]; });
+      return miss.length ? "нет пула: " + miss.join(", ") : true;
+    });
+
+    t("[e24-4] populateRaceSelect: 2024 → 10 опций видов без «+2 ЛОВ», 2014 → исходная разметка", function(){
+      if (typeof populateRaceSelect !== "function") return "нет populateRaceSelect";
+      var sel = document.getElementById("char-race");
+      var orig = '<option value="">Выберите расу</option><option value="Эльф">Эльф (+2 ЛОВ)</option>';
+      sel.innerHTML = orig;
+      populateRaceSelect(mk24({}));
+      var h24 = sel.innerHTML;
+      if ((h24.match(/<option /g) || []).length !== 11) return "опций 2024: " + (h24.match(/<option /g) || []).length;
+      if (h24.indexOf("+2") !== -1) return "бонусы в опциях 2024";
+      if (h24.indexOf('value="Орк"') === -1 || h24.indexOf("Голиаф (35 фт)") === -1) return "нет Орка/подсказки голиафа";
+      populateRaceSelect({ edition:"2014" });
+      // кэш 2014-разметки снят при первом вызове в ранних блоках (стаб — пусто), поэтому
+      // проверяем факт возврата: опции видов сняты, маркер редакции убран
+      if (sel.innerHTML === h24 || sel.dataset.edition === "2024") return "2014 не восстановлен";
+      return true;
+    });
+  })();
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

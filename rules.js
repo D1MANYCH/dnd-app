@@ -587,8 +587,9 @@ function recalcLanguagesFromSources(char) {
     result.push({ name: name, source: source, category: info ? info.category : "custom" });
   }
   // Раса
-  if (char.race && typeof RACE_LANGUAGES !== "undefined" && RACE_LANGUAGES[char.race]) {
-    var r = RACE_LANGUAGES[char.race];
+  var _raceLangs = (typeof edData === "function") ? edData(char).RACE_LANGUAGES : (typeof RACE_LANGUAGES !== "undefined" ? RACE_LANGUAGES : null);
+  if (char.race && _raceLangs && _raceLangs[char.race]) {
+    var r = _raceLangs[char.race];
     (r.fixed || []).forEach(function(n){ add(n, "race"); });
     var rPicks = (char.proficiencies.languageChoices.race) || [];
     rPicks.slice(0, r.choice || 0).forEach(function(n){ add(n, "race"); });
