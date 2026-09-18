@@ -457,16 +457,18 @@ function renderTakenFeats() {
     // Find feat data for description
     var data = getFeatDef(char, f.id);
     var desc = data ? data.desc : "";
-    var lvlBadge = f.level ? '<span class="feat-taken-lvl">ур. ' + f.level + '</span>' : "";
+    var lvlBadge = f.origin ? '<span class="feat-taken-lvl">предыстория</span>'
+      : (f.level ? '<span class="feat-taken-lvl">ур. ' + f.level + '</span>' : "");
     // E24-3: пометка категории 2024 (происхождение / боевой стиль / эпический дар)
     var catLabel = data && data.category && FEAT_CATEGORY_LABELS[data.category];
     if (catLabel) lvlBadge += '<span class="feat-taken-lvl">' + catLabel + '</span>';
+    // E24-5: черта происхождения от предыстории — без кнопки удаления, следует за предысторией
+    var delBtn = f.origin ? '' : '<button class="feat-taken-del" onclick="removeFeat(' + i + ')" title="Убрать черту">✕</button>';
     return '<div class="feat-taken-card">' +
       '<div class="feat-taken-row">' +
         '<span class="feat-taken-icon">' + dndIcoHtml("target", 14) + '</span>' +
         '<span class="feat-taken-name">' + escapeHtml(f.name || f.id) + '</span>' +
-        lvlBadge +
-        '<button class="feat-taken-del" onclick="removeFeat(' + i + ')" title="Убрать черту">✕</button>' +
+        lvlBadge + delBtn +
       '</div>' +
       (desc ? '<div class="feat-taken-desc">' + escapeHtml(desc) + '</div>' : '') +
     '</div>';
@@ -479,6 +481,8 @@ function removeFeat(i) {
   var char = getCurrentChar();
   if (!char || !char.feats) return;
   var name = char.feats[i] ? char.feats[i].name : "черту";
+  // E24-5: черта происхождения привязана к предыстории — снимается только сменой предыстории
+  if (char.feats[i] && char.feats[i].origin) { showToast("Черта происхождения идёт от предыстории — смените предысторию.", "warning"); return; }
   showConfirmModal("Убрать черту?",
     "«" + name + "» будет удалена из списка. Бонусы к характеристикам НЕ откатятся.",
     function() {

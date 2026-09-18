@@ -686,7 +686,14 @@ const hitDie = CLASS_HIT_DICE[className] || 8;
 // при экспирации уводит hpMax НИЖЕ базы. Инвариант: hpMax = авто-база + бонусы.
 var castHpBonus = 0;
 (char.activeSpellEffects || []).forEach(function(i) { if (i.hpMaxBonus) castHpBonus += i.hpMaxBonus; });
-const newMaxHP = calculateMaxHP(level, conMod, hitDie) + castHpBonus;
+// E24-5: бонусы черт к максимуму («Крепкий» — +2 за уровень) — тоже поверх авто-базы,
+// иначе любой пересчёт (смена ТЕЛ, уровень, выдача черты происхождения) стирал их.
+var featHpBonus = 0;
+(char.feats || []).forEach(function(f) {
+  var def = (typeof getFeatDef === "function") ? getFeatDef(char, f.id) : null;
+  (def && def.effects || []).forEach(function(eff) { if (eff.type === "hp_per_level") featHpBonus += eff.value * level; });
+});
+const newMaxHP = calculateMaxHP(level, conMod, hitDie) + castHpBonus + featHpBonus;
 if (hpMaxEl) hpMaxEl.value = newMaxHP;
 // Also update the visible manual field (only if not actively editing it)
 const hpMaxManualEl = $("hp-max-manual");
@@ -1400,6 +1407,7 @@ function lockBasicInfo() {
   saveToLocal();
   applyBasicLockUI();
   renderRaceExtras();
+  renderBackgroundExtras();
   showToast("🔒 Основа персонажа зафиксирована. Теперь можно настраивать детали.", "success");
 }
 
@@ -1415,6 +1423,7 @@ function unlockBasicInfo() {
       saveToLocal();
       applyBasicLockUI();
       renderRaceExtras();
+      renderBackgroundExtras();
       showToast("🔓 Основа разблокирована", "info");
     },
     "Разблокировать",
@@ -1509,17 +1518,18 @@ function onBackgroundChange() {
   if (char.proficiencies && char.proficiencies.languageChoices) {
     char.proficiencies.languageChoices.background = [];
   }
-  var bgData = (typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bg];
-  if (!bgData) { if (typeof renderLanguages === "function") renderLanguages(); return; }
+  // E24-5: смена предыстории 2024 откатывает распределённые от неё характеристики,
+  // «своя» предыстория получает пустой черновик (характеристики/навыки/черта выбираются на панели)
+  if (char.edition === "2024") {
+    _bgRevertStatChoice(char);
+    if (bg === CUSTOM_BACKGROUND_KEY && !char.bgCustom) char.bgCustom = { abilities: [], skills: [], featId: "", tool: "" };
+  }
+  var bgData = (typeof getBackgroundDef === "function") ? getBackgroundDef(char, bg)
+    : ((typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bg]);
+  if (!bgData) { if (typeof renderLanguages === "function") renderLanguages(); renderBackgroundFeature(); renderBackgroundExtras(); return; }
   // Support both old format (array) and new format (object)
   var skillList = Array.isArray(bgData) ? bgData : (bgData.skills || []);
-  skillList.forEach(function(skillName) {
-    var idx = skills.findIndex(function(s) { return s.name === skillName; });
-    if (idx !== -1) {
-      var cb = $("skill-prof-" + idx);
-      if (cb && !cb.checked) { cb.checked = true; }
-    }
-  });
+  _bgCheckSkills(skillList);
   // Сброс выбора инструментов от предыстории при смене
   if (char.proficiencies && char.proficiencies.toolChoices) {
     Object.keys(char.proficiencies.toolChoices).forEach(function(k) {
@@ -1534,6 +1544,18 @@ function onBackgroundChange() {
   if (typeof renderArmorProf === "function") renderArmorProf();
   if (typeof renderWeaponProf === "function") renderWeaponProf();
   renderBackgroundFeature();
+  renderBackgroundExtras();
+}
+
+// Отметить навыки предыстории (чекбоксы листа). Общий для 2014/2024/«своей».
+function _bgCheckSkills(skillList) {
+  (skillList || []).forEach(function(skillName) {
+    var idx = skills.findIndex(function(s) { return s.name === skillName; });
+    if (idx !== -1) {
+      var cb = $("skill-prof-" + idx);
+      if (cb && !cb.checked) { cb.checked = true; }
+    }
+  });
 }
 
 // FIN-4: панель «умение предыстории» под селектом (образец — race-bonus-display).
@@ -1543,13 +1565,330 @@ function renderBackgroundFeature() {
   if (!el) return;
   var bgEl = $("char-background");
   var bg = bgEl ? bgEl.value : "";
-  var data = (typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bg];
+  var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  var data = (typeof getBackgroundDef === "function") ? getBackgroundDef(char, bg)
+    : ((typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bg]);
+  // E24-5: у предыстории 2024 нет умения — строка показывает характеристики, черту и снаряжение
+  if (char && char.edition === "2024") {
+    if (!data) { el.style.display = "none"; el.innerHTML = ""; return; }
+    var parts = [];
+    if (data.custom) parts.push("своя: 3 характеристики, 2 навыка и черта происхождения на выбор");
+    else {
+      parts.push((data.abilities || []).map(_bgStatShort).join(" · "));
+      var fdef = (typeof getFeatDef === "function") ? getFeatDef(char, data.featId) : null;
+      if (fdef) parts.push("черта: " + fdef.name + (data.featOpt ? " (" + data.featOpt + ")" : ""));
+      if (data.desc) parts.push(data.desc);
+    }
+    el.innerHTML =
+      '<span class="bg-feature-label">' + dndIcoHtml("scroll", 13) + ' ' + escapeHtml(bg) + '</span>' +
+      '<span class="bg-feature-text">' + escapeHtml(parts.join(" · ")) + '</span>';
+    el.style.display = "flex";
+    return;
+  }
   var feat = data && data.feature;
   if (!feat || !feat.name) { el.style.display = "none"; el.innerHTML = ""; return; }
   el.innerHTML =
     '<span class="bg-feature-label">' + dndIcoHtml("scroll", 13) + ' ' + escapeHtml(feat.name) + '</span>' +
     '<span class="bg-feature-text">' + escapeHtml(feat.desc || "") + '</span>';
   el.style.display = "flex";
+}
+
+// ============================================
+// E24-5: ПРЕДЫСТОРИИ 2024 — селект, характеристики, черта происхождения,
+// стартовое снаряжение, «своя» предыстория
+// ============================================
+var _bgSelect2014Html = null;
+var _BG_STAT_SHORT = { str:"СИЛ", dex:"ЛОВ", con:"ТЕЛ", int:"ИНТ", wis:"МУД", cha:"ХАР" };
+function _bgStatShort(k) { return _BG_STAT_SHORT[k] || k; }
+
+// Селект предыстории: 2024 — 16 предысторий edData + «Своя»; 2014 — исходная разметка.
+function populateBackgroundSelect(char) {
+  var sel = $("char-background");
+  if (!sel) return;
+  if (_bgSelect2014Html === null) _bgSelect2014Html = sel.innerHTML;
+  var is24 = !!(char && char.edition === "2024" && typeof edData === "function");
+  if (!is24) {
+    if (sel.dataset.edition === "2024") { sel.innerHTML = _bgSelect2014Html; delete sel.dataset.edition; }
+    return;
+  }
+  var tbl = edData(char).BACKGROUND_SKILLS || {};
+  var html = '<option value="">Выберите предысторию</option>';
+  Object.keys(tbl).forEach(function(name) {
+    var d = tbl[name];
+    var hint = (d.abilities || []).map(_bgStatShort).join("/");
+    html += '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + (hint ? " (" + hint + ")" : "") + '</option>';
+  });
+  html += '<option value="' + CUSTOM_BACKGROUND_KEY + '">Своя предыстория</option>';
+  sel.innerHTML = html;
+  sel.dataset.edition = "2024";
+}
+
+// Откат бонусов от предыстории из char.stats (смена предыстории, смена режима, снятие выбора).
+function _bgRevertStatChoice(char) {
+  if (!char.bgStatChoice || typeof char.bgStatChoice !== "object") char.bgStatChoice = { mode: "2+1", alloc: {} };
+  var alloc = char.bgStatChoice.alloc || {};
+  Object.keys(alloc).forEach(function(k) {
+    char.stats[k] = Math.max(1, (char.stats[k] || 10) - alloc[k]);
+    safeSet("val-" + k, char.stats[k]);
+    if (typeof updateStatDisplay === "function") updateStatDisplay(k);
+  });
+  char.bgStatChoice.alloc = {};
+}
+
+function _bgApplyStat(char, k, v) {
+  char.bgStatChoice.alloc[k] = v;
+  char.stats[k] = Math.min(20, (char.stats[k] || 10) + v);
+  safeSet("val-" + k, char.stats[k]);
+  if (typeof updateStatDisplay === "function") updateStatDisplay(k);
+}
+
+// Переключение режима +2/+1 ↔ +1+1+1. В режиме 1+1+1 все три характеристики
+// получают +1 сразу — выбирать нечего.
+function setBgStatMode(mode) {
+  if (!currentId || sheetLockGuard()) return;
+  var char = getCurrentChar();
+  var def = char && getBackgroundDef(char);
+  if (!def) return;
+  _bgRevertStatChoice(char);
+  char.bgStatChoice.mode = mode;
+  if (mode === "1+1+1" && (def.abilities || []).length === 3) def.abilities.forEach(function(k) { _bgApplyStat(char, k, 1); });
+  _bgAfterStats(char);
+}
+
+// Клик по характеристике в режиме 2+1: пусто → +2 (если свободно) иначе +1; занято → снять.
+function toggleBgStat(k) {
+  if (!currentId || sheetLockGuard()) return;
+  var char = getCurrentChar();
+  var def = char && getBackgroundDef(char);
+  if (!def || (def.abilities || []).indexOf(k) === -1) return;
+  if (!char.bgStatChoice || typeof char.bgStatChoice !== "object") char.bgStatChoice = { mode: "2+1", alloc: {} };
+  if (char.bgStatChoice.mode !== "2+1") return;
+  var alloc = char.bgStatChoice.alloc;
+  if (alloc[k]) {
+    char.stats[k] = Math.max(1, (char.stats[k] || 10) - alloc[k]);
+    safeSet("val-" + k, char.stats[k]);
+    if (typeof updateStatDisplay === "function") updateStatDisplay(k);
+    delete alloc[k];
+  } else {
+    var has2 = Object.keys(alloc).some(function(x) { return alloc[x] === 2; });
+    var has1 = Object.keys(alloc).some(function(x) { return alloc[x] === 1; });
+    if (has2 && has1) { showToast("Уже распределено +2 и +1. Снимите одно.", "warning"); return; }
+    _bgApplyStat(char, k, has2 ? 1 : 2);
+  }
+  _bgAfterStats(char);
+}
+
+function _bgAfterStats(char) {
+  saveToLocal();
+  calcStats();
+  if (typeof recalculateHP === "function") recalculateHP();
+  if (typeof calculateAC === "function") calculateAC();
+  renderBackgroundExtras();
+}
+
+// Откат эффектов черты происхождения при её замене (origin-черты 2024:
+// Бдительный — БМ к инициативе, Крепкий — +2 ХП/уровень; остальные пассивны).
+function _bgRevertFeatEffects(char, def) {
+  (def && def.effects || []).forEach(function(eff) {
+    if (eff.type === "hp_per_level") {
+      var bonus = eff.value * (char.level || 1);
+      char.combat.hpMax = Math.max(1, (char.combat.hpMax || 10) - bonus);
+      char.combat.hpCurrent = Math.min(char.combat.hpCurrent, char.combat.hpMax);
+    } else if (eff.type === "initiative_prof") {
+      if (char.bonuses) char.bonuses.initiativeProf = false;
+    } else if (eff.type === "initiative_bonus") {
+      if (char.bonuses) char.bonuses.initiative = (char.bonuses.initiative || 0) - eff.value;
+    } else if (eff.type === "armor" || eff.type === "weapon") {
+      var list = char.proficiencies && char.proficiencies[eff.type];
+      if (Array.isArray(list)) { var i = list.indexOf(eff.value); if (i !== -1) list.splice(i, 1); }
+    }
+  });
+}
+
+// Черта происхождения выдаётся автоматически после фиксации основы и следует за
+// предысторией: смена предыстории (или выбор черты у «своей») заменяет её.
+// Запись в char.feats помечена origin:true — removeFeat её не трогает.
+function syncOriginFeat(char) {
+  if (!char || char.edition !== "2024" || !char.basicLocked) return;
+  if (!Array.isArray(char.feats)) char.feats = [];
+  var def = getBackgroundDef(char);
+  var wantId = def ? (def.featId || "") : "";
+  var wantOpt = def ? (def.featOpt || "") : "";
+  var idx = -1;
+  for (var i = 0; i < char.feats.length; i++) if (char.feats[i].origin) { idx = i; break; }
+  var cur = idx !== -1 ? char.feats[idx] : null;
+  if (cur && cur.id === wantId && (cur.opt || "") === wantOpt) return;
+  if (cur) {
+    _bgRevertFeatEffects(char, (typeof getFeatDef === "function") ? getFeatDef(char, cur.id) : null);
+    char.feats.splice(idx, 1);
+  }
+  if (wantId && typeof luApplyFeatById === "function") {
+    var name = luApplyFeatById(char, wantId, "предыстория");
+    if (name) {
+      var rec = char.feats[char.feats.length - 1];
+      rec.origin = true;
+      if (wantOpt) { rec.opt = wantOpt; rec.name = name + " (" + wantOpt + ")"; }
+    }
+  }
+  saveToLocal();
+  if (typeof renderTakenFeats === "function") renderTakenFeats();
+  if (typeof recalculateHP === "function") recalculateHP();
+  if (typeof updateHPDisplay === "function") updateHPDisplay();
+}
+
+// «Своя» предыстория: 3 характеристики, 2 навыка, черта происхождения.
+function toggleBgCustom(field, value) {
+  if (!currentId || sheetLockGuard()) return;
+  var char = getCurrentChar();
+  if (!char || char.background !== CUSTOM_BACKGROUND_KEY) return;
+  if (!char.bgCustom) char.bgCustom = { abilities: [], skills: [], featId: "", tool: "" };
+  var c = char.bgCustom;
+  if (field === "featId") {
+    c.featId = (c.featId === value) ? "" : value;
+  } else {
+    var limit = field === "abilities" ? 3 : 2;
+    if (!Array.isArray(c[field])) c[field] = [];
+    var pos = c[field].indexOf(value);
+    if (pos !== -1) {
+      c[field].splice(pos, 1);
+      if (field === "abilities") _bgRevertStatChoice(char);
+      if (field === "skills") {
+        var si = skills.findIndex(function(s) { return s.name === value; });
+        var cb = si !== -1 && $("skill-prof-" + si);
+        if (cb) cb.checked = false;
+      }
+    } else {
+      if (c[field].length >= limit) { showToast("Уже выбрано " + limit + ". Снимите одно.", "warning"); return; }
+      c[field].push(value);
+      if (field === "skills") _bgCheckSkills([value]);
+    }
+    if (field === "abilities" && char.bgStatChoice && char.bgStatChoice.mode === "1+1+1") {
+      _bgRevertStatChoice(char);
+      if (c.abilities.length === 3) c.abilities.forEach(function(k) { _bgApplyStat(char, k, 1); });
+    }
+  }
+  saveToLocal();
+  calcStats();
+  if (typeof updateSkillProfCount === "function") updateSkillProfCount();
+  renderBackgroundExtras();
+}
+
+// Стартовое снаряжение предыстории: вариант А — предметы + монеты, Б — 50 зм. Один раз.
+function giveBackgroundEquipment(variant) {
+  if (!currentId || sheetLockGuard()) return;
+  var char = getCurrentChar();
+  var def = char && getBackgroundDef(char);
+  if (!def || char.bgEquipGiven) return;
+  var eq = def.equipment || {};
+  if (!char.coins) char.coins = { cp:0, sp:0, ep:0, gp:0, pp:0 };
+  if (!char.inventory) char.inventory = { weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[], other:[] };
+  var given = [];
+  if (variant === "a") {
+    (eq.a || []).forEach(function(it) {
+      var w = (typeof WEAPON_PRESETS !== "undefined") && WEAPON_PRESETS.find(function(x) { return x.name === it.name; });
+      if (w) {
+        char.inventory.weapon.push({ name: w.name, qty: it.qty || 1, weight: 0, location: "belt",
+          desc: (w.damage ? w.damage + " " + w.type + ". " : "") + (w.notes || "") });
+      } else {
+        var g = (typeof window !== "undefined" && Array.isArray(window.GEAR_CATALOG))
+          ? window.GEAR_CATALOG.find(function(x) { return x.name === it.name; }) : null;
+        var cat = (g && char.inventory[g.cat]) ? g.cat : "other";
+        char.inventory[cat].push({ name: it.name, qty: it.qty || 1, weight: g ? (g.weight || 0) : 0,
+          slots: g ? g.slots : undefined, location: "backpack", desc: g ? (g.desc || "") : "" });
+      }
+      given.push(it.name + ((it.qty || 1) > 1 ? " ×" + it.qty : ""));
+    });
+    char.coins.gp = (char.coins.gp || 0) + (eq.aGold || 0);
+    if (eq.aGold) given.push(eq.aGold + " зм");
+  } else {
+    char.coins.gp = (char.coins.gp || 0) + (eq.bGold || 50);
+    given.push((eq.bGold || 50) + " зм");
+  }
+  char.bgEquipGiven = true;
+  saveToLocal();
+  if (typeof renderInventory === "function") renderInventory();
+  if (typeof updateInventoryWeight === "function") updateInventoryWeight();
+  safeSet("coin-gp", char.coins.gp);
+  if (typeof calcCoinWeight === "function") calcCoinWeight();
+  showToast("Снаряжение предыстории: " + given.join(", "), "success");
+  renderBackgroundExtras();
+}
+
+// Панель предыстории 2024 под селектом: показывается после фиксации основы
+// (как видовые выборы), правки — пока лист не зафиксирован.
+function renderBackgroundExtras() {
+  var panel = $("bg-extras-panel");
+  if (!panel) return;
+  var char = currentId ? getCurrentChar() : null;
+  if (!char || char.edition !== "2024" || !char.basicLocked) { panel.style.display = "none"; panel.innerHTML = ""; return; }
+  var def = getBackgroundDef(char);
+  if (!def) { panel.style.display = "none"; panel.innerHTML = ""; return; }
+  syncOriginFeat(char);
+  if (!char.bgStatChoice || typeof char.bgStatChoice !== "object") char.bgStatChoice = { mode: "2+1", alloc: {} };
+  var locked = isSheetLocked(char);
+  var html = "";
+
+  if (def.custom) {
+    var c = char.bgCustom || { abilities: [], skills: [], featId: "" };
+    html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' Характеристики своей предыстории (3)</div><div class="race-extras-row">';
+    Object.keys(_BG_STAT_SHORT).forEach(function(k) {
+      html += '<span class="race-extras-stat-pick' + (c.abilities.indexOf(k) !== -1 ? " selected" : "") +
+        '" onclick="toggleBgCustom(\'abilities\',\'' + k + '\')">' + _BG_STAT_SHORT[k] + '</span>';
+    });
+    html += '</div>';
+    html += '<div class="race-extras-title">' + dndIcoHtml("check", 14) + ' Навыки (2)</div><div class="race-extras-row">';
+    skills.forEach(function(sk) {
+      html += '<span class="race-extras-stat-pick' + (c.skills.indexOf(sk.name) !== -1 ? " selected" : "") +
+        '" onclick="toggleBgCustom(\'skills\',\'' + escapeHtml(sk.name) + '\')">' + escapeHtml(sk.name) + '</span>';
+    });
+    html += '</div>';
+    html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' Черта происхождения</div><div class="race-extras-row">';
+    (edData(char).FEATS_DATA || []).filter(function(f) { return f.category === "origin"; }).forEach(function(f) {
+      html += '<span class="race-extras-stat-pick' + (c.featId === f.id ? " selected" : "") +
+        '" onclick="toggleBgCustom(\'featId\',\'' + f.id + '\')">' + escapeHtml(f.name) + '</span>';
+    });
+    html += '</div>';
+  }
+
+  var abilities = def.abilities || [];
+  if (abilities.length === 3) {
+    var mode = char.bgStatChoice.mode;
+    var alloc = char.bgStatChoice.alloc || {};
+    var v = (typeof validateBgStatChoice === "function") ? validateBgStatChoice(def, char.bgStatChoice) : { complete: true };
+    html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' Характеристики от предыстории</div>';
+    html += '<div class="race-extras-row">' +
+      '<span class="race-extras-stat-pick' + (mode === "2+1" ? " selected" : "") + '" onclick="setBgStatMode(\'2+1\')">+2 / +1</span>' +
+      '<span class="race-extras-stat-pick' + (mode === "1+1+1" ? " selected" : "") + '" onclick="setBgStatMode(\'1+1+1\')">+1 / +1 / +1</span>' +
+      '</div>';
+    html += '<div class="race-extras-row">';
+    abilities.forEach(function(k) {
+      html += '<span class="race-extras-stat-pick' + (alloc[k] ? " selected" : "") +
+        '" onclick="toggleBgStat(\'' + k + '\')">' + _bgStatShort(k) + (alloc[k] ? " +" + alloc[k] : "") + '</span>';
+    });
+    html += '<span style="margin-left:auto;color:rgba(255,255,255,0.55);font-size:0.85em;">' +
+      (v.complete ? dndIcoHtml("check", 13) + " распределено" : "не распределено") + '</span></div>';
+  }
+
+  var of = (char.feats || []).find(function(f) { return f.origin; });
+  html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' Черта происхождения</div><div class="race-extras-row">' +
+    (of ? '<span class="race-extras-btn done">' + dndIcoHtml("check", 13) + ' ' + escapeHtml(of.name) + '</span>'
+        : '<span style="color:rgba(255,255,255,0.55);font-size:0.85em;">не выбрана</span>') + '</div>';
+
+  if (def.equipment && !def.custom) {
+    var eq = def.equipment;
+    html += '<div class="race-extras-title">' + dndIcoHtml("box", 14) + ' Стартовое снаряжение</div><div class="race-extras-row">';
+    if (char.bgEquipGiven) {
+      html += '<span class="race-extras-btn done">' + dndIcoHtml("check", 13) + ' Снаряжение выдано</span>';
+    } else if (!locked) {
+      var listA = (eq.a || []).map(function(it) { return it.name + ((it.qty || 1) > 1 ? " ×" + it.qty : ""); }).join(", ");
+      html += '<button class="race-extras-btn" onclick="giveBackgroundEquipment(\'a\')" title="' + escapeHtml(listA) + '">Вариант А: набор + ' + (eq.aGold || 0) + ' зм</button>' +
+        '<button class="race-extras-btn" onclick="giveBackgroundEquipment(\'b\')">Вариант Б: ' + (eq.bGold || 50) + ' зм</button>';
+    }
+    html += '</div>';
+  }
+
+  panel.innerHTML = html;
+  panel.style.display = html ? "flex" : "none";
 }
 
 // ============================================

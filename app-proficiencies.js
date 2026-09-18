@@ -50,8 +50,8 @@ function getLanguageChoiceSlots(char) {
       }
     }
   });
-  if (char.background && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[char.background]) {
-    var bg = BACKGROUND_SKILLS[char.background];
+  var bg = (typeof getBackgroundDef === "function") ? getBackgroundDef(char) : null; // E24-5: по редакции
+  if (bg) {
     if (bg.languages > 0) {
       var bgPicks = (char.proficiencies.languageChoices.background) || [];
       var rem = bg.languages - bgPicks.length;
@@ -260,8 +260,8 @@ function getToolChoiceSlots(char) {
     }
   });
   // Предыстория
-  if (char.background && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[char.background]) {
-    var bg = BACKGROUND_SKILLS[char.background];
+  var bg = (typeof getBackgroundDef === "function") ? getBackgroundDef(char) : null; // E24-5: по редакции
+  if (bg) {
     var entries = (!Array.isArray(bg) && bg.tools) || [];
     entries.forEach(function(entry, idx) {
       var parsed = parseBackgroundToolEntry(entry);

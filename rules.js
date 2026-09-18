@@ -610,8 +610,8 @@ function recalcLanguagesFromSources(char) {
     }
   });
   // Предыстория
-  if (char.background && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[char.background]) {
-    var bg = BACKGROUND_SKILLS[char.background];
+  var bg = getBackgroundDef(char); // E24-5: по редакции (2024 — override / «Своя»)
+  if (bg) {
     var bgPicks = (char.proficiencies.languageChoices.background) || [];
     bgPicks.slice(0, bg.languages || 0).forEach(function(n){ add(n, "background"); });
   }
@@ -650,6 +650,49 @@ function ensureToolsArray(char) {
   }
   if (!Array.isArray(char.proficiencies.tools)) char.proficiencies.tools = [];
   if (!char.proficiencies.toolChoices) char.proficiencies.toolChoices = {};
+}
+
+// ── E24-5: предыстория по редакции ──────────────────────────
+// Запись предыстории персонажа: 2014 — BACKGROUND_SKILLS, 2024 — override из
+// edData (16 предысторий с abilities/featId/equipment). «Своя» предыстория 2024
+// (стр. 36) собирается из char.bgCustom в ту же форму, чтобы потребители
+// (навыки, инструменты, языки, панель) не различали её.
+var CUSTOM_BACKGROUND_KEY = "Своя";
+function getBackgroundDef(char, bgName) {
+  if (!char) return null;
+  var bg = (bgName !== undefined) ? bgName : char.background;
+  if (!bg) return null;
+  if (char.edition === "2024" && bg === CUSTOM_BACKGROUND_KEY) {
+    var c = char.bgCustom || {};
+    return { skills: Array.isArray(c.skills) ? c.skills : [], tools: c.tool ? [c.tool] : [], languages: 0,
+      abilities: Array.isArray(c.abilities) ? c.abilities : [], featId: c.featId || "", custom: true };
+  }
+  var tbl = (typeof edData === "function") ? edData(char).BACKGROUND_SKILLS
+    : (typeof BACKGROUND_SKILLS !== "undefined" ? BACKGROUND_SKILLS : null);
+  return (tbl && tbl[bg]) || null;
+}
+
+// Валидатор распределения характеристик от предыстории 2024 (стр. 36):
+// режим "2+1" — +2 одной и +1 другой, "1+1+1" — по +1 всем трём; только из
+// abilities предыстории, сумма ровно +3. Пустое alloc — «не распределено» (ok,
+// complete: false). Возвращает { ok, complete, error }.
+function validateBgStatChoice(bgDef, choice) {
+  var abilities = (bgDef && Array.isArray(bgDef.abilities)) ? bgDef.abilities : [];
+  var mode = (choice && choice.mode) || "2+1";
+  var alloc = (choice && choice.alloc) || {};
+  var keys = Object.keys(alloc).filter(function(k){ return alloc[k]; });
+  if (mode !== "2+1" && mode !== "1+1+1") return { ok:false, complete:false, error:"режим " + mode };
+  if (!keys.length) return { ok:true, complete:false, error:"" };
+  var outside = keys.filter(function(k){ return abilities.indexOf(k) === -1; });
+  if (outside.length) return { ok:false, complete:false, error:"вне предыстории: " + outside.join(",") };
+  var sum = keys.reduce(function(a,k){ return a + alloc[k]; }, 0);
+  var vals = keys.map(function(k){ return alloc[k]; }).sort().join("");
+  if (mode === "2+1") {
+    if (vals !== "2" && vals !== "1" && vals !== "12") return { ok:false, complete:false, error:"2+1: неверные значения" };
+    return { ok:true, complete: sum === 3 && keys.length === 2, error:"" };
+  }
+  if (keys.length > 3 || vals.replace(/1/g,"").length) return { ok:false, complete:false, error:"1+1+1: неверные значения" };
+  return { ok:true, complete: sum === 3, error:"" };
 }
 
 // Является ли строка из BACKGROUND_SKILLS.tools слотом-выбором
@@ -708,8 +751,8 @@ function recalcToolsFromSources(char) {
     }
   });
   // Предыстория
-  if (char.background && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[char.background]) {
-    var bg = BACKGROUND_SKILLS[char.background];
+  var bg = getBackgroundDef(char); // E24-5: по редакции
+  if (bg) {
     var entries = (!Array.isArray(bg) && bg.tools) || [];
     entries.forEach(function(entry, idx) {
       var parsed = parseBackgroundToolEntry(entry);

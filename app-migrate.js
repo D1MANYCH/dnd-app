@@ -852,6 +852,17 @@ function migrateCharacter(char) {
     if (char.sheetLocked === undefined) char.sheetLocked = !!char.basicLocked;
     char.schemaVersion = 35;
   }
+  if (v < 36) {
+    // E24-5: характеристики от предыстории 2024 (+2/+1 или +1+1+1 из трёх
+    // характеристик предыстории), «своя» предыстория и флаг выданного стартового
+    // снаряжения. Для 2014-персонажей поля нейтральны (alloc пуст).
+    if (!char.bgStatChoice || typeof char.bgStatChoice !== "object") char.bgStatChoice = { mode: "2+1", alloc: {} };
+    if (!char.bgStatChoice.alloc || typeof char.bgStatChoice.alloc !== "object") char.bgStatChoice.alloc = {};
+    if (char.bgStatChoice.mode !== "1+1+1") char.bgStatChoice.mode = "2+1";
+    if (char.bgCustom === undefined) char.bgCustom = null;
+    if (char.bgEquipGiven === undefined) char.bgEquipGiven = false;
+    char.schemaVersion = 36;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

@@ -7368,6 +7368,151 @@
     });
   })();
 
+  // ────────── БЛОК 56 (E24-5): предыстории 2024 — BACKGROUNDS_2024, характеристики от предыстории, черта происхождения ──────────
+  // Инварианты: 16 предысторий гл.4 PHB 2024; у каждой 3 характеристики, origin-черта, 2 навыка,
+  // инструмент из TOOL_CATALOG/слот; валидатор bgStatChoice (сумма +3, только из abilities);
+  // getBackgroundDef по редакции и «своя»; миграция v36; 2014 BACKGROUND_SKILLS не тронут.
+  (function(){
+    if (typeof BACKGROUNDS_2024 === "undefined" || typeof edData !== "function") return;
+    var NAMES = ["Послушник","Ремесленник","Шарлатан","Преступник","Артист","Фермер","Стражник","Путешественник",
+      "Отшельник","Торговец","Благородный","Мудрец","Моряк","Писарь","Солдат","Странник"];
+    var STATS = ["str","dex","con","int","wis","cha"];
+
+    t("[e24-5] BACKGROUNDS_2024: ровно 16 предысторий гл.4, edData('2024').BACKGROUND_SKILLS — они же", function(){
+      var keys = Object.keys(BACKGROUNDS_2024).sort();
+      if (keys.join("|") !== NAMES.slice().sort().join("|")) return "предыстории: " + keys.join(", ");
+      if (edData({ edition:"2024" }).BACKGROUND_SKILLS !== BACKGROUNDS_2024) return "edData('2024').BACKGROUND_SKILLS не BACKGROUNDS_2024";
+      if (edData({ edition:"2014" }).BACKGROUND_SKILLS !== BACKGROUND_SKILLS) return "2014 подменён";
+      return true;
+    });
+
+    t("[e24-5] у каждой: 3 разные характеристики, 2 навыка из каталога, languages 0, нет feature", function(){
+      var names = {}; skills.forEach(function(s){ names[s.name] = true; });
+      var bad = [];
+      NAMES.forEach(function(n){
+        var d = BACKGROUNDS_2024[n];
+        if (!d) { bad.push(n + ": нет"); return; }
+        var ab = d.abilities;
+        if (!Array.isArray(ab) || ab.length !== 3) bad.push(n + ": abilities");
+        else {
+          if (ab.some(function(k){ return STATS.indexOf(k) === -1; })) bad.push(n + ": ключ вне str..cha");
+          if (ab[0] === ab[1] || ab[1] === ab[2] || ab[0] === ab[2]) bad.push(n + ": повтор характеристики");
+        }
+        if (!Array.isArray(d.skills) || d.skills.length !== 2) bad.push(n + ": skills");
+        else d.skills.forEach(function(sk){ if (!names[sk]) bad.push(n + ": навык «" + sk + "»"); });
+        if (d.languages !== 0) bad.push(n + ": languages");
+        if (d.feature) bad.push(n + ": feature (в 2024 нет умения)");
+        if (!d.desc) bad.push(n + ": desc");
+      });
+      return bad.length === 0 || bad.join("; ");
+    });
+
+    t("[e24-5] featId — существующая origin-черта FEATS_2024; featOpt только у Посвящённого в магию", function(){
+      var bad = [];
+      var ch24 = { edition:"2024" };
+      NAMES.forEach(function(n){
+        var d = BACKGROUNDS_2024[n];
+        var f = getFeatDef(ch24, d.featId);
+        if (!f) { bad.push(n + ": нет черты " + d.featId); return; }
+        if (f.category !== "origin") bad.push(n + ": " + f.name + " не origin");
+        if (f.id === "f24-magic_initiate" && !/^(Жрец|Друид|Волшебник)$/.test(d.featOpt || "")) bad.push(n + ": featOpt");
+        if (f.id !== "f24-magic_initiate" && d.featOpt) bad.push(n + ": лишний featOpt");
+      });
+      return bad.length === 0 || bad.join("; ");
+    });
+
+    t("[e24-5] инструмент: ровно 1, из TOOL_CATALOG или слот-выбор; снаряжение А/Б с монетами", function(){
+      var bad = [];
+      NAMES.forEach(function(n){
+        var d = BACKGROUNDS_2024[n];
+        if (!Array.isArray(d.tools) || d.tools.length !== 1) { bad.push(n + ": tools"); }
+        else {
+          var p = parseBackgroundToolEntry(d.tools[0]);
+          if (p.type !== "slot" && !findToolInCatalog(d.tools[0])) bad.push(n + ": «" + d.tools[0] + "» вне TOOL_CATALOG");
+        }
+        var eq = d.equipment;
+        if (!eq || !Array.isArray(eq.a) || !eq.a.length) bad.push(n + ": equipment.a");
+        else if (eq.a.some(function(it){ return !it.name || !(it.qty >= 1); })) bad.push(n + ": позиция без name/qty");
+        if (typeof eq.aGold !== "number" || eq.bGold !== 50) bad.push(n + ": монеты");
+      });
+      return bad.length === 0 || bad.join("; ");
+    });
+
+    t("[e24-5] validateBgStatChoice: 2+1 и 1+1+1 из abilities, сумма +3, чужая характеристика — ошибка", function(){
+      var def = BACKGROUNDS_2024["Солдат"]; // str,dex,con
+      var v;
+      v = validateBgStatChoice(def, { mode:"2+1", alloc:{} });
+      if (!v.ok || v.complete) return "пустой alloc: ok без complete";
+      v = validateBgStatChoice(def, { mode:"2+1", alloc:{ str:2, con:1 } });
+      if (!v.ok || !v.complete) return "2+1 полный: " + v.error;
+      v = validateBgStatChoice(def, { mode:"2+1", alloc:{ str:2 } });
+      if (!v.ok || v.complete) return "2+1 половина должна быть ok/не complete";
+      v = validateBgStatChoice(def, { mode:"2+1", alloc:{ str:2, dex:2 } });
+      if (v.ok) return "два +2 приняты";
+      v = validateBgStatChoice(def, { mode:"2+1", alloc:{ str:2, wis:1 } });
+      if (v.ok) return "МУД вне предыстории Солдата принята";
+      v = validateBgStatChoice(def, { mode:"1+1+1", alloc:{ str:1, dex:1, con:1 } });
+      if (!v.ok || !v.complete) return "1+1+1: " + v.error;
+      v = validateBgStatChoice(def, { mode:"1+1+1", alloc:{ str:2, dex:1 } });
+      if (v.ok) return "1+1+1 с +2 принят";
+      v = validateBgStatChoice(def, { mode:"3", alloc:{} });
+      if (v.ok) return "неизвестный режим принят";
+      return true;
+    });
+
+    t("[e24-5] getBackgroundDef: 2014 → BACKGROUND_SKILLS, 2024 → override, «Своя» → из bgCustom", function(){
+      var d14 = getBackgroundDef({ edition:"2014", background:"Солдат" });
+      if (d14 !== BACKGROUND_SKILLS["Солдат"]) return "2014 Солдат";
+      var d24 = getBackgroundDef({ edition:"2024", background:"Солдат" });
+      if (d24 !== BACKGROUNDS_2024["Солдат"]) return "2024 Солдат";
+      if (getBackgroundDef({ edition:"2014", background:"Странник" })) return "2014 видит предысторию 2024";
+      var c = getBackgroundDef({ edition:"2024", background: CUSTOM_BACKGROUND_KEY,
+        bgCustom:{ abilities:["int","wis","cha"], skills:["Магия","История"], featId:"f24-lucky", tool:"Воровские инструменты" } });
+      if (!c || !c.custom) return "своя не собрана";
+      if (c.abilities.length !== 3 || c.skills.length !== 2 || c.featId !== "f24-lucky" || c.tools[0] !== "Воровские инструменты" || c.languages !== 0) return "своя: форма";
+      if (!getBackgroundDef({ edition:"2024", background: CUSTOM_BACKGROUND_KEY })) return "своя без bgCustom должна дать пустой черновик";
+      return true;
+    });
+
+    t("[e24-5] навыки/инструменты предыстории 2024 через recalc*FromSources (rules.js)", function(){
+      var c = migrateCharacter({ id: 9561, class:"Воин", level:1, edition:"2024", background:"Преступник" });
+      recalcToolsFromSources(c);
+      var tools = c.proficiencies.tools.filter(function(t){ return t.source === "background"; }).map(function(t){ return t.name; });
+      if (tools.indexOf("Воровские инструменты") === -1) return "инструмент предыстории 2024 не попал: " + tools.join(",");
+      return true;
+    });
+
+    t("[e24-5] миграция v36: bgStatChoice {mode,alloc}, bgCustom null, bgEquipGiven false; SCHEMA_VERSION 36", function(){
+      if (SCHEMA_VERSION !== 36) return "SCHEMA_VERSION " + SCHEMA_VERSION;
+      var c = migrateCharacter({ id: 9562, class:"Плут", level:1, schemaVersion: 35 });
+      if (!c.bgStatChoice || c.bgStatChoice.mode !== "2+1" || typeof c.bgStatChoice.alloc !== "object") return "bgStatChoice";
+      if (c.bgCustom !== null || c.bgEquipGiven !== false) return "bgCustom/bgEquipGiven";
+      if (c.schemaVersion !== 36) return "schemaVersion " + c.schemaVersion;
+      var d = migrateCharacter({ id: 9563, class:"Плут", level:1, schemaVersion: 35, bgStatChoice:{ mode:"1+1+1", alloc:{ str:1 } } });
+      if (d.bgStatChoice.mode !== "1+1+1" || d.bgStatChoice.alloc.str !== 1) return "существующий bgStatChoice перезаписан";
+      if (!DEFAULT_CHARACTER.bgStatChoice || DEFAULT_CHARACTER.bgEquipGiven !== false) return "DEFAULT_CHARACTER";
+      return true;
+    });
+
+    t("[e24-5] populateBackgroundSelect: 2024 — 16 + «Своя», 2014 — исходная разметка восстанавливается", function(){
+      if (typeof populateBackgroundSelect !== "function") return "нет populateBackgroundSelect";
+      var sel = document.getElementById("char-background");
+      if (!sel) return "нет #char-background";
+      var orig = '<option value="">Выберите предысторию</option><option value="Солдат">Солдат</option>';
+      sel.innerHTML = orig;
+      populateBackgroundSelect({ edition:"2024" });
+      var h24 = sel.innerHTML;
+      var n = (h24.match(/<option /g) || []).length;
+      if (n !== 18 || h24.indexOf('value="' + CUSTOM_BACKGROUND_KEY + '"') === -1) return "2024 опций: " + n;
+      if (h24.indexOf("Странник (ЛОВ/МУД/ХАР)") === -1) return "нет подсказки характеристик";
+      if (sel.dataset.edition !== "2024") return "нет data-edition";
+      populateBackgroundSelect({ edition:"2014" });
+      // кэш 2014-разметки снят при первом вызове в ранних блоках — проверяем факт возврата
+      if (sel.innerHTML === h24 || sel.dataset.edition === "2024") return "2014 не восстановлен";
+      return true;
+    });
+  })();
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

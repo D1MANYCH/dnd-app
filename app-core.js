@@ -1269,6 +1269,7 @@ updateSubclassOptions();
 safeSet("char-subclass", savedSubclass);
 if (typeof populateRaceSelect === "function") populateRaceSelect(char); // E24-4: виды 2024 / расы 2014
 safeSet("char-race", char.race);
+if (typeof populateBackgroundSelect === "function") populateBackgroundSelect(char); // E24-5: предыстории 2024 / 2014
 safeSet("char-background", char.background || "");
 if (typeof renderBuildBadge === "function") renderBuildBadge();
 if (typeof renderEditionBadge === "function") renderEditionBadge();
@@ -1341,6 +1342,7 @@ setTimeout(function() {
   onRaceChange();
   if (typeof renderRaceExtras === "function") renderRaceExtras();
   if (typeof renderBackgroundFeature === "function") renderBackgroundFeature(); // FIN-4: умение предыстории
+  if (typeof renderBackgroundExtras === "function") renderBackgroundExtras(); // E24-5: панель предыстории 2024
 }, 0);
 // Обновить состояние селектора подкласса (с учётом текущего уровня)
 setTimeout(updateSubclassOptions, 0);
