@@ -7482,12 +7482,12 @@
       return true;
     });
 
-    t("[e24-5] миграция v36: bgStatChoice {mode,alloc}, bgCustom null, bgEquipGiven false; SCHEMA_VERSION 36", function(){
-      if (SCHEMA_VERSION !== 36) return "SCHEMA_VERSION " + SCHEMA_VERSION;
+    t("[e24-5] миграция v36: bgStatChoice {mode,alloc}, bgCustom null, bgEquipGiven false; SCHEMA_VERSION ≥ 36", function(){
+      if (SCHEMA_VERSION < 36) return "SCHEMA_VERSION " + SCHEMA_VERSION;
       var c = migrateCharacter({ id: 9562, class:"Плут", level:1, schemaVersion: 35 });
       if (!c.bgStatChoice || c.bgStatChoice.mode !== "2+1" || typeof c.bgStatChoice.alloc !== "object") return "bgStatChoice";
       if (c.bgCustom !== null || c.bgEquipGiven !== false) return "bgCustom/bgEquipGiven";
-      if (c.schemaVersion !== 36) return "schemaVersion " + c.schemaVersion;
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion " + c.schemaVersion;
       var d = migrateCharacter({ id: 9563, class:"Плут", level:1, schemaVersion: 35, bgStatChoice:{ mode:"1+1+1", alloc:{ str:1 } } });
       if (d.bgStatChoice.mode !== "1+1+1" || d.bgStatChoice.alloc.str !== 1) return "существующий bgStatChoice перезаписан";
       if (!DEFAULT_CHARACTER.bgStatChoice || DEFAULT_CHARACTER.bgEquipGiven !== false) return "DEFAULT_CHARACTER";
@@ -7510,6 +7510,135 @@
       // кэш 2014-разметки снят при первом вызове в ранних блоках — проверяем факт возврата
       if (sel.innerHTML === h24 || sel.dataset.edition === "2024") return "2014 не восстановлен";
       return true;
+    });
+  })();
+
+  // ────────── БЛОК 57 (E24-6): мастерство оружия 2024 — mastery24/w24, MASTERY_PROPS_2024, каталог 2024, char.weaponMastery ──────────
+  // Инварианты: 8 приёмов гл.6 PHB 2024; у каждого из 37 пресетов либо mastery24 из enum-8, либо
+  // w24.removed (Сеть); w24 только с известными ключами; каталог 2024 = 36 + 2 (мушкет, пистоль)
+  // с наложенными диффами; 2014-каталог не тронут; термины приёмов резолвятся в глоссарии 2024;
+  // миграция v37; toggleWeaponMastery упирается в лимит и замок листа.
+  (function(){
+    if (typeof MASTERY_PROPS_2024 === "undefined" || typeof WEAPON_PRESETS === "undefined" || typeof _weaponCatalog !== "function") return;
+    var IDS = ["cleave","graze","nick","push","sap","slow","topple","vex"];
+
+    t("[e24-6] MASTERY_PROPS_2024: ровно 8 приёмов с уникальными id, name, desc; edData('2024').MASTERY_PROPS — они же, у 2014 нет", function(){
+      if (MASTERY_PROPS_2024.length !== 8) return "приёмов: " + MASTERY_PROPS_2024.length;
+      var ids = MASTERY_PROPS_2024.map(function(m){ return m.id; }).sort();
+      if (ids.join("|") !== IDS.slice().sort().join("|")) return "id: " + ids.join(", ");
+      var bad = MASTERY_PROPS_2024.filter(function(m){ return !m.name || !m.desc || m.desc.length < 40; });
+      if (bad.length) return "пустые: " + bad.map(function(m){ return m.id; }).join(", ");
+      if (edData({ edition:"2024" }).MASTERY_PROPS !== MASTERY_PROPS_2024) return "edData('2024').MASTERY_PROPS";
+      if (edData({ edition:"2014" }).MASTERY_PROPS !== undefined) return "у 2014 появился MASTERY_PROPS";
+      return true;
+    });
+
+    t("[e24-6] WEAPON_PRESETS: у всех 37 mastery24 из enum-8 либо w24.removed (только Сеть); w24 — только damage/notes/weight/removed", function(){
+      if (WEAPON_PRESETS.length !== 37) return "длина " + WEAPON_PRESETS.length;
+      var bad = [], removed = [];
+      WEAPON_PRESETS.forEach(function(w){
+        if (w.w24 && w.w24.removed) { removed.push(w.name); if (w.mastery24) bad.push(w.name + ": removed + mastery24"); return; }
+        if (IDS.indexOf(w.mastery24) === -1) bad.push(w.name + ": mastery24=" + w.mastery24);
+        if (w.w24) Object.keys(w.w24).forEach(function(k){ if (["damage","notes","weight","removed"].indexOf(k) === -1) bad.push(w.name + ": w24." + k); });
+      });
+      if (bad.length) return bad.join("; ");
+      if (removed.join("|") !== "Сеть") return "removed: " + removed.join(", ");
+      // Выборочная сверка со стр. 207 PHB 2024
+      var byName = {}; WEAPON_PRESETS.forEach(function(w){ byName[w.name] = w; });
+      if (byName["Секира"].mastery24 !== "cleave" || byName["Двуручный меч"].mastery24 !== "graze" || byName["Кинжал"].mastery24 !== "nick" ||
+          byName["Пика"].mastery24 !== "push" || byName["Длинный меч"].mastery24 !== "sap" || byName["Дубинка"].mastery24 !== "slow" ||
+          byName["Боевой посох"].mastery24 !== "topple" || byName["Рапира"].mastery24 !== "vex") return "приёмы не по таблице стр. 207";
+      if (!byName["Трезубец"].w24 || byName["Трезубец"].w24.damage !== "1к8") return "Трезубец 2024 — 1к8";
+      if (!byName["Длинное копьё"].w24 || byName["Длинное копьё"].w24.damage !== "1к10") return "Длинное копьё 2024 — 1к10";
+      return true;
+    });
+
+    t("[e24-6] _weaponCatalog: 2024 — 38 позиций (без Сети, + Мушкет/Пистоль), диффы наложены, w24 не протекает; 2014 — WEAPON_PRESETS как есть", function(){
+      var c14 = _weaponCatalog({ edition:"2014" });
+      if (c14 !== WEAPON_PRESETS) return "2014-каталог подменён";
+      var c24 = _weaponCatalog({ edition:"2024" });
+      if (c24.length !== 38) return "2024-каталог: " + c24.length;
+      var names = c24.map(function(w){ return w.name; });
+      if (names.indexOf("Сеть") !== -1) return "Сеть осталась в 2024";
+      if (names.indexOf("Мушкет") === -1 || names.indexOf("Пистоль") === -1) return "нет мушкета/пистоля";
+      var tr = c24.find(function(w){ return w.name === "Трезубец"; });
+      if (tr.damage !== "1к8" || tr.notes.indexOf("1к10") === -1 || tr.w24) return "Трезубец: " + tr.damage + " / " + tr.notes;
+      var wh = c24.find(function(w){ return w.name === "Боевой молот"; });
+      if (wh.weight !== 5) return "Боевой молот вес " + wh.weight;
+      var mace = c24.find(function(w){ return w.name === "Булава"; });
+      if (mace !== WEAPON_PRESETS.find(function(w){ return w.name === "Булава"; })) return "запись без w24 скопирована зря";
+      if (WEAPON_PRESETS.find(function(w){ return w.name === "Трезубец"; }).damage !== "1к6") return "WEAPON_PRESETS мутирован";
+      if (c24.some(function(w){ return IDS.indexOf(w.mastery24) === -1; })) return "в 2024-каталоге оружие без приёма";
+      // хомбрю дописывается после книжных и в 2024
+      var c24hb = _weaponCatalog({ edition:"2024", customWeapons:[{ name:"Свой клинок", damage:"1к6" }] });
+      if (c24hb.length !== 39 || c24hb[38].name !== "Свой клинок") return "хомбрю в 2024: " + c24hb.length;
+      return true;
+    });
+
+    t("[e24-6] getWeaponMasteryProp: 2024 — приём по пресету (и алиасу), 2014 — null; лимит пока 0", function(){
+      var ch24 = { edition:"2024", weaponMastery:[] };
+      var p = getWeaponMasteryProp(ch24, { name:"Секира" });
+      if (!p || p.id !== "cleave") return "Секира → " + (p && p.id);
+      var p2 = getWeaponMasteryProp(ch24, { name:"Двуручный топор" });
+      if (!p2 || p2.id !== "cleave") return "алиас не резолвится";
+      if (getWeaponMasteryProp({ edition:"2014" }, { name:"Секира" }) !== null) return "2014 получил приём";
+      if (getWeaponMasteryProp(ch24, { name:"Сеть" }) !== null) return "Сеть получила приём";
+      if (getWeaponMasteryLimit(ch24) !== 0 || getWeaponMasteryLimit({ edition:"2014" }) !== 0) return "лимит не 0 до классов 2024";
+      return true;
+    });
+
+    t("[e24-6] глоссарий 2024: термины 8 приёмов + «Мастерство оружия» резолвятся, в 2014 их нет", function(){
+      if (typeof glossarizeHtml !== "function") return true;
+      var bad = [];
+      MASTERY_PROPS_2024.forEach(function(m){
+        var html = glossarizeHtml(m.name, null, "2024");
+        if (html.indexOf('class="gloss"') === -1 || html.indexOf('data-gloss-ed="2024"') === -1) bad.push(m.name);
+        if (glossarizeHtml(m.name, null, "2014").indexOf('class="gloss"') !== -1) bad.push(m.name + " (в 2014)");
+      });
+      if (glossarizeHtml("Мастерство оружия", null, "2024").indexOf('class="gloss"') === -1) bad.push("Мастерство оружия");
+      return bad.length ? "не резолвятся: " + bad.join(", ") : true;
+    });
+
+    t("[e24-6] миграция v37: weaponMastery [] (существующий массив не трогается); DEFAULT_CHARACTER; SCHEMA_VERSION 37", function(){
+      if (SCHEMA_VERSION !== 37) return "SCHEMA_VERSION " + SCHEMA_VERSION;
+      var c = migrateCharacter({ id: 9571, class:"Воин", level:1, schemaVersion: 36 });
+      if (!Array.isArray(c.weaponMastery) || c.weaponMastery.length) return "weaponMastery";
+      if (c.schemaVersion !== 37) return "schemaVersion " + c.schemaVersion;
+      var d = migrateCharacter({ id: 9572, class:"Воин", level:1, schemaVersion: 36, weaponMastery:["Секира"] });
+      if (d.weaponMastery.length !== 1 || d.weaponMastery[0] !== "Секира") return "существующий weaponMastery перезаписан";
+      if (!Array.isArray(DEFAULT_CHARACTER.weaponMastery)) return "DEFAULT_CHARACTER";
+      return true;
+    });
+
+    t("[e24-6] toggleWeaponMastery: лимит 0 — не добавляет; снятие работает; замок листа блокирует", function(){
+      if (typeof toggleWeaponMastery !== "function" || typeof getCurrentChar !== "function") return true;
+      var savedChars = window.characters, savedId = window.currentId;
+      var savedLimit = window.getWeaponMasteryLimit;
+      try {
+        var ch = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));
+        ch.id = "test-e24-6"; ch.edition = "2024"; ch.class = "Воин"; ch.level = 1;
+        ch.weapons = [{ name:"Секира", damage:"1к12", stat:"str" }, { name:"Кинжал", damage:"1к4", stat:"dex" }];
+        ch.weaponMastery = ["Кинжал"];
+        window.characters = [ch]; window.currentId = ch.id;
+        toggleWeaponMastery(0);
+        if (ch.weaponMastery.indexOf("Секира") !== -1) return "добавлено при лимите 0";
+        toggleWeaponMastery(1);
+        if (ch.weaponMastery.length !== 0) return "снятие не сработало";
+        // с лимитом от класса (имитация E24-8) — добавляется, второе упирается в лимит
+        window.getWeaponMasteryLimit = function(){ return 1; };
+        toggleWeaponMastery(0);
+        if (ch.weaponMastery.join() !== "Секира") return "не добавилось при лимите 1: " + ch.weaponMastery.join();
+        toggleWeaponMastery(1);
+        if (ch.weaponMastery.join() !== "Секира") return "лимит 1 пробит: " + ch.weaponMastery.join();
+        // замок листа
+        ch.basicLocked = true; ch.sheetLocked = true;
+        toggleWeaponMastery(0);
+        if (typeof isSheetLocked === "function" && isSheetLocked(ch) && ch.weaponMastery.join() !== "Секира") return "замок не блокирует";
+        return true;
+      } finally {
+        window.getWeaponMasteryLimit = savedLimit;
+        window.characters = savedChars; window.currentId = savedId;
+      }
     });
   })();
 

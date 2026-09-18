@@ -18,7 +18,7 @@ function escapeHtml(text) {
 }
 
 // ── Версия схемы персонажа — увеличивать при изменении структуры ──────────────
-const SCHEMA_VERSION = 36;
+const SCHEMA_VERSION = 37;
 
 // ── Типы урона PHB 5e ──────────────────────────────────────────────────────────
 const DAMAGE_TYPES = [
@@ -73,6 +73,7 @@ const DEFAULT_CHARACTER = {
   bgStatChoice: { mode: "2+1", alloc: {} },
   bgCustom: null,
   bgEquipGiven: false,
+  weaponMastery: [],
   buildId: null,
   notesV2: {
     sections: {
@@ -1406,48 +1407,53 @@ const SUBCLASS_FEATURES = {
 // Имена, урон, свойства, цена и вес — по книге. kind: melee|ranged; weight — фунты.
 // aliases — старые имена приложения и словоформы билдов: участвуют в матчинге
 // startingEquipment (_findWeapon, app-core.js) и в checkWeaponProficiency по сейвам.
+// E24-6: массив плоский — поля 2024 живут в 2014-записи и читаются только для
+// 2024-персонажа (_weaponCatalog, app-inventory.js): mastery24 — приём мастерства
+// (id из MASTERY_PROPS_2024, стр. 207 PHB 2024), w24 — точечные отличия таблицы 2024
+// (damage/notes/weight) или removed:true, если оружия в 2024 нет (Сеть).
+// Оружие, которого нет в 2014 (мушкет, пистоль), — WEAPONS_EXTRA_2024 в data-2024.js.
 const WEAPON_PRESETS = [
   // ── Простое рукопашное ────────────────────────────────────────────────────
-  {name:"Боевой посох",     stat:"str", bonus:"+3", damage:"1к6",  type:"Дробящий", range:"Ближний",          notes:"Универсальное (1к8)",                 category:"simple",  kind:"melee",  cost:"2 см",  weight:4,    aliases:["Посох"]},
-  {name:"Булава",           stat:"str", bonus:"+3", damage:"1к6",  type:"Дробящий", range:"Ближний",          notes:"",                                    category:"simple",  kind:"melee",  cost:"5 зм",  weight:4},
-  {name:"Дубинка",          stat:"str", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"Ближний",          notes:"Лёгкое",                              category:"simple",  kind:"melee",  cost:"1 см",  weight:2,    aliases:["Дубина"]},
-  {name:"Кинжал",           stat:"dex", bonus:"+2", damage:"1к4",  type:"Колющий",  range:"Ближний/20/60 фт", notes:"Лёгкое, метательное, фехтовальное",   category:"simple",  kind:"melee",  cost:"2 зм",  weight:1},
-  {name:"Копьё",            stat:"str", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний/20/60 фт", notes:"Метательное, универсальное (1к8)",    category:"simple",  kind:"melee",  cost:"1 зм",  weight:3},
-  {name:"Лёгкий молот",     stat:"str", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"Ближний/20/60 фт", notes:"Лёгкое, метательное",                 category:"simple",  kind:"melee",  cost:"2 зм",  weight:2},
-  {name:"Метательное копьё",stat:"str", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний/30/120 фт",notes:"Метательное",                         category:"simple",  kind:"melee",  cost:"5 см",  weight:2,    aliases:["Метательные копья"]},
-  {name:"Палица",           stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний",          notes:"Двуручное",                           category:"simple",  kind:"melee",  cost:"2 см",  weight:10},
-  {name:"Ручной топор",     stat:"str", bonus:"+3", damage:"1к6",  type:"Рубящий",  range:"Ближний/20/60 фт", notes:"Лёгкое, метательное",                 category:"simple",  kind:"melee",  cost:"5 зм",  weight:2,    aliases:["Метательный топор"]},
-  {name:"Серп",             stat:"str", bonus:"+3", damage:"1к4",  type:"Рубящий",  range:"Ближний",          notes:"Лёгкое",                              category:"simple",  kind:"melee",  cost:"1 зм",  weight:2},
+  {name:"Боевой посох",     stat:"str", bonus:"+3", damage:"1к6",  type:"Дробящий", range:"Ближний",          notes:"Универсальное (1к8)",                 mastery24:"topple", category:"simple",  kind:"melee",  cost:"2 см",  weight:4,    aliases:["Посох"]},
+  {name:"Булава",           stat:"str", bonus:"+3", damage:"1к6",  type:"Дробящий", range:"Ближний",          notes:"",                                    mastery24:"sap", category:"simple",  kind:"melee",  cost:"5 зм",  weight:4},
+  {name:"Дубинка",          stat:"str", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"Ближний",          notes:"Лёгкое",                              mastery24:"slow", category:"simple",  kind:"melee",  cost:"1 см",  weight:2,    aliases:["Дубина"]},
+  {name:"Кинжал",           stat:"dex", bonus:"+2", damage:"1к4",  type:"Колющий",  range:"Ближний/20/60 фт", notes:"Лёгкое, метательное, фехтовальное",   mastery24:"nick", category:"simple",  kind:"melee",  cost:"2 зм",  weight:1},
+  {name:"Копьё",            stat:"str", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний/20/60 фт", notes:"Метательное, универсальное (1к8)",    mastery24:"sap", category:"simple",  kind:"melee",  cost:"1 зм",  weight:3},
+  {name:"Лёгкий молот",     stat:"str", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"Ближний/20/60 фт", notes:"Лёгкое, метательное",                 mastery24:"nick", category:"simple",  kind:"melee",  cost:"2 зм",  weight:2},
+  {name:"Метательное копьё",stat:"str", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний/30/120 фт",notes:"Метательное",                         mastery24:"slow", category:"simple",  kind:"melee",  cost:"5 см",  weight:2,    aliases:["Метательные копья"]},
+  {name:"Палица",           stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний",          notes:"Двуручное",                           mastery24:"push", category:"simple",  kind:"melee",  cost:"2 см",  weight:10},
+  {name:"Ручной топор",     stat:"str", bonus:"+3", damage:"1к6",  type:"Рубящий",  range:"Ближний/20/60 фт", notes:"Лёгкое, метательное",                 mastery24:"vex", category:"simple",  kind:"melee",  cost:"5 зм",  weight:2,    aliases:["Метательный топор"]},
+  {name:"Серп",             stat:"str", bonus:"+3", damage:"1к4",  type:"Рубящий",  range:"Ближний",          notes:"Лёгкое",                              mastery24:"nick", category:"simple",  kind:"melee",  cost:"1 зм",  weight:2},
   // ── Простое дальнобойное ──────────────────────────────────────────────────
-  {name:"Лёгкий арбалет",   stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"80/320 фт",        notes:"Боеприпас, двуручное, перезарядка",   category:"simple",  kind:"ranged", cost:"25 зм", weight:5,    aliases:["Арбалет лёгкий"]},
-  {name:"Дротик",           stat:"dex", bonus:"+3", damage:"1к4",  type:"Колющий",  range:"20/60 фт",         notes:"Метательное, фехтовальное",           category:"simple",  kind:"ranged", cost:"5 мм",  weight:0.25},
-  {name:"Короткий лук",     stat:"dex", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"80/320 фт",        notes:"Боеприпас, двуручное",                category:"simple",  kind:"ranged", cost:"25 зм", weight:2},
-  {name:"Праща",            stat:"dex", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"30/120 фт",        notes:"Боеприпас",                           category:"simple",  kind:"ranged", cost:"1 см",  weight:0},
+  {name:"Лёгкий арбалет",   stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"80/320 фт",        notes:"Боеприпас, двуручное, перезарядка",   mastery24:"slow", category:"simple",  kind:"ranged", cost:"25 зм", weight:5,    aliases:["Арбалет лёгкий"]},
+  {name:"Дротик",           stat:"dex", bonus:"+3", damage:"1к4",  type:"Колющий",  range:"20/60 фт",         notes:"Метательное, фехтовальное",           mastery24:"vex", category:"simple",  kind:"ranged", cost:"5 мм",  weight:0.25},
+  {name:"Короткий лук",     stat:"dex", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"80/320 фт",        notes:"Боеприпас, двуручное",                mastery24:"vex", category:"simple",  kind:"ranged", cost:"25 зм", weight:2},
+  {name:"Праща",            stat:"dex", bonus:"+3", damage:"1к4",  type:"Дробящий", range:"30/120 фт",        notes:"Боеприпас",                           mastery24:"slow", category:"simple",  kind:"ranged", cost:"1 см",  weight:0},
   // ── Воинское рукопашное ───────────────────────────────────────────────────
-  {name:"Алебарда",         stat:"str", bonus:"+3", damage:"1к10", type:"Рубящий",  range:"Ближний",          notes:"Двуручное, досягаемость, тяжёлое",    category:"martial", kind:"melee",  cost:"20 зм", weight:6},
-  {name:"Боевая кирка",     stat:"str", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"Ближний",          notes:"",                                    category:"martial", kind:"melee",  cost:"5 зм",  weight:2},
-  {name:"Боевой молот",     stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний",          notes:"Универсальное (1к10)",                category:"martial", kind:"melee",  cost:"15 зм", weight:2},
-  {name:"Боевой топор",     stat:"str", bonus:"+3", damage:"1к8",  type:"Рубящий",  range:"Ближний",          notes:"Универсальное (1к10)",                category:"martial", kind:"melee",  cost:"10 зм", weight:4},
-  {name:"Глефа",            stat:"str", bonus:"+3", damage:"1к10", type:"Рубящий",  range:"Ближний",          notes:"Двуручное, досягаемость, тяжёлое",    category:"martial", kind:"melee",  cost:"20 зм", weight:6},
-  {name:"Двуручный меч",    stat:"str", bonus:"+3", damage:"2к6",  type:"Рубящий",  range:"Ближний",          notes:"Двуручное, тяжёлое",                  category:"martial", kind:"melee",  cost:"50 зм", weight:6,    aliases:["Большой меч"]},
-  {name:"Длинное копьё",    stat:"str", bonus:"+3", damage:"1к12", type:"Колющий",  range:"Ближний",          notes:"Досягаемость, особое (для конного)",  category:"martial", kind:"melee",  cost:"10 зм", weight:6},
-  {name:"Длинный меч",      stat:"str", bonus:"+3", damage:"1к8",  type:"Рубящий",  range:"Ближний",          notes:"Универсальное (1к10)",                category:"martial", kind:"melee",  cost:"15 зм", weight:3},
-  {name:"Кнут",             stat:"dex", bonus:"+3", damage:"1к4",  type:"Рубящий",  range:"Ближний",          notes:"Досягаемость, фехтовальное",          category:"martial", kind:"melee",  cost:"2 зм",  weight:3},
-  {name:"Короткий меч",     stat:"dex", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний",          notes:"Лёгкое, фехтовальное",                category:"martial", kind:"melee",  cost:"10 зм", weight:2,    aliases:["Коротких меча"]},
-  {name:"Молот",            stat:"str", bonus:"+3", damage:"2к6",  type:"Дробящий", range:"Ближний",          notes:"Двуручное, тяжёлое",                  category:"martial", kind:"melee",  cost:"10 зм", weight:10,   aliases:["Тяжёлый молот"]},
-  {name:"Моргенштерн",      stat:"str", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"Ближний",          notes:"",                                    category:"martial", kind:"melee",  cost:"15 зм", weight:4},
-  {name:"Пика",             stat:"str", bonus:"+3", damage:"1к10", type:"Колющий",  range:"Ближний",          notes:"Двуручное, досягаемость, тяжёлое",    category:"martial", kind:"melee",  cost:"5 зм",  weight:18},
-  {name:"Рапира",           stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"Ближний",          notes:"Фехтовальное",                        category:"martial", kind:"melee",  cost:"25 зм", weight:2},
-  {name:"Секира",           stat:"str", bonus:"+3", damage:"1к12", type:"Рубящий",  range:"Ближний",          notes:"Двуручное, тяжёлое",                  category:"martial", kind:"melee",  cost:"30 зм", weight:7,    aliases:["Двуручный топор"]},
-  {name:"Скимитар",         stat:"dex", bonus:"+3", damage:"1к6",  type:"Рубящий",  range:"Ближний",          notes:"Лёгкое, фехтовальное",                category:"martial", kind:"melee",  cost:"25 зм", weight:3,    aliases:["Сабля"]},
-  {name:"Трезубец",         stat:"str", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний/20/60 фт", notes:"Метательное, универсальное (1к8)",    category:"martial", kind:"melee",  cost:"5 зм",  weight:4},
-  {name:"Цеп",              stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний",          notes:"",                                    category:"martial", kind:"melee",  cost:"10 зм", weight:2,    aliases:["Кистень"]},
+  {name:"Алебарда",         stat:"str", bonus:"+3", damage:"1к10", type:"Рубящий",  range:"Ближний",          notes:"Двуручное, досягаемость, тяжёлое",    mastery24:"cleave", category:"martial", kind:"melee",  cost:"20 зм", weight:6},
+  {name:"Боевая кирка",     stat:"str", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"Ближний",          notes:"",                                    mastery24:"sap", w24:{notes:"Универсальное (1к10)"}, category:"martial", kind:"melee",  cost:"5 зм",  weight:2},
+  {name:"Боевой молот",     stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний",          notes:"Универсальное (1к10)",                mastery24:"push", w24:{weight:5}, category:"martial", kind:"melee",  cost:"15 зм", weight:2},
+  {name:"Боевой топор",     stat:"str", bonus:"+3", damage:"1к8",  type:"Рубящий",  range:"Ближний",          notes:"Универсальное (1к10)",                mastery24:"topple", category:"martial", kind:"melee",  cost:"10 зм", weight:4},
+  {name:"Глефа",            stat:"str", bonus:"+3", damage:"1к10", type:"Рубящий",  range:"Ближний",          notes:"Двуручное, досягаемость, тяжёлое",    mastery24:"graze", category:"martial", kind:"melee",  cost:"20 зм", weight:6},
+  {name:"Двуручный меч",    stat:"str", bonus:"+3", damage:"2к6",  type:"Рубящий",  range:"Ближний",          notes:"Двуручное, тяжёлое",                  mastery24:"graze", category:"martial", kind:"melee",  cost:"50 зм", weight:6,    aliases:["Большой меч"]},
+  {name:"Длинное копьё",    stat:"str", bonus:"+3", damage:"1к12", type:"Колющий",  range:"Ближний",          notes:"Досягаемость, особое (для конного)",  mastery24:"topple", w24:{damage:"1к10", notes:"Двуручное (если не верхом), досягаемость, тяжёлое"}, category:"martial", kind:"melee",  cost:"10 зм", weight:6},
+  {name:"Длинный меч",      stat:"str", bonus:"+3", damage:"1к8",  type:"Рубящий",  range:"Ближний",          notes:"Универсальное (1к10)",                mastery24:"sap", category:"martial", kind:"melee",  cost:"15 зм", weight:3},
+  {name:"Кнут",             stat:"dex", bonus:"+3", damage:"1к4",  type:"Рубящий",  range:"Ближний",          notes:"Досягаемость, фехтовальное",          mastery24:"slow", category:"martial", kind:"melee",  cost:"2 зм",  weight:3},
+  {name:"Короткий меч",     stat:"dex", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний",          notes:"Лёгкое, фехтовальное",                mastery24:"vex", category:"martial", kind:"melee",  cost:"10 зм", weight:2,    aliases:["Коротких меча"]},
+  {name:"Молот",            stat:"str", bonus:"+3", damage:"2к6",  type:"Дробящий", range:"Ближний",          notes:"Двуручное, тяжёлое",                  mastery24:"topple", category:"martial", kind:"melee",  cost:"10 зм", weight:10,   aliases:["Тяжёлый молот"]},
+  {name:"Моргенштерн",      stat:"str", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"Ближний",          notes:"",                                    mastery24:"sap", category:"martial", kind:"melee",  cost:"15 зм", weight:4},
+  {name:"Пика",             stat:"str", bonus:"+3", damage:"1к10", type:"Колющий",  range:"Ближний",          notes:"Двуручное, досягаемость, тяжёлое",    mastery24:"push", category:"martial", kind:"melee",  cost:"5 зм",  weight:18},
+  {name:"Рапира",           stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"Ближний",          notes:"Фехтовальное",                        mastery24:"vex", category:"martial", kind:"melee",  cost:"25 зм", weight:2},
+  {name:"Секира",           stat:"str", bonus:"+3", damage:"1к12", type:"Рубящий",  range:"Ближний",          notes:"Двуручное, тяжёлое",                  mastery24:"cleave", category:"martial", kind:"melee",  cost:"30 зм", weight:7,    aliases:["Двуручный топор"]},
+  {name:"Скимитар",         stat:"dex", bonus:"+3", damage:"1к6",  type:"Рубящий",  range:"Ближний",          notes:"Лёгкое, фехтовальное",                mastery24:"nick", category:"martial", kind:"melee",  cost:"25 зм", weight:3,    aliases:["Сабля"]},
+  {name:"Трезубец",         stat:"str", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"Ближний/20/60 фт", notes:"Метательное, универсальное (1к8)",    mastery24:"topple", w24:{damage:"1к8", notes:"Метательное, универсальное (1к10)"}, category:"martial", kind:"melee",  cost:"5 зм",  weight:4},
+  {name:"Цеп",              stat:"str", bonus:"+3", damage:"1к8",  type:"Дробящий", range:"Ближний",          notes:"",                                    mastery24:"sap", category:"martial", kind:"melee",  cost:"10 зм", weight:2,    aliases:["Кистень"]},
   // ── Воинское дальнобойное ─────────────────────────────────────────────────
-  {name:"Ручной арбалет",   stat:"dex", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"30/120 фт",        notes:"Боеприпас, лёгкое, перезарядка",      category:"martial", kind:"ranged", cost:"75 зм", weight:3},
-  {name:"Тяжёлый арбалет",  stat:"dex", bonus:"+3", damage:"1к10", type:"Колющий",  range:"100/400 фт",       notes:"Боеприпас, двуручное, перезарядка, тяжёлое", category:"martial", kind:"ranged", cost:"50 зм", weight:18},
-  {name:"Длинный лук",      stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"150/600 фт",       notes:"Боеприпас, двуручное, тяжёлое",       category:"martial", kind:"ranged", cost:"50 зм", weight:2},
-  {name:"Духовая трубка",   stat:"dex", bonus:"+3", damage:"1",    type:"Колющий",  range:"25/100 фт",        notes:"Боеприпас, перезарядка",              category:"martial", kind:"ranged", cost:"10 зм", weight:1},
-  {name:"Сеть",             stat:"dex", bonus:"+3", damage:"",     type:"",         range:"5/15 фт",          notes:"Метательное, особое (опутывает)",     category:"martial", kind:"ranged", cost:"1 зм",  weight:3}
+  {name:"Ручной арбалет",   stat:"dex", bonus:"+3", damage:"1к6",  type:"Колющий",  range:"30/120 фт",        notes:"Боеприпас, лёгкое, перезарядка",      mastery24:"vex", category:"martial", kind:"ranged", cost:"75 зм", weight:3},
+  {name:"Тяжёлый арбалет",  stat:"dex", bonus:"+3", damage:"1к10", type:"Колющий",  range:"100/400 фт",       notes:"Боеприпас, двуручное, перезарядка, тяжёлое", mastery24:"push", category:"martial", kind:"ranged", cost:"50 зм", weight:18},
+  {name:"Длинный лук",      stat:"dex", bonus:"+3", damage:"1к8",  type:"Колющий",  range:"150/600 фт",       notes:"Боеприпас, двуручное, тяжёлое",       mastery24:"slow", category:"martial", kind:"ranged", cost:"50 зм", weight:2},
+  {name:"Духовая трубка",   stat:"dex", bonus:"+3", damage:"1",    type:"Колющий",  range:"25/100 фт",        notes:"Боеприпас, перезарядка",              mastery24:"vex", category:"martial", kind:"ranged", cost:"10 зм", weight:1},
+  {name:"Сеть",             stat:"dex", bonus:"+3", damage:"",     type:"",         range:"5/15 фт",          notes:"Метательное, особое (опутывает)",     w24:{removed:true}, category:"martial", kind:"ranged", cost:"1 зм",  weight:3}
 ];
 
 const ITEM_ICONS    = {weapon:"⚔️", armor:"🛡️", potion:"🧪", scroll:"📜", tool:"🔧", material:"📦", other:"📝"};
@@ -2366,7 +2372,7 @@ const XP_THRESHOLDS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.102.0";
+const APP_VERSION = "3.103.0";
 const APP_VERSION_DATE = "2026-09-18";
 
 // ============================================================
@@ -2716,9 +2722,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.102.0",
+    version: "3.103.0",
     date: "18 сентября 2026",
     badge: "new",
+    changes: [
+      { type: "feat", text: "Мастерство оружия 2024 — приём мастерства у каждого из 37 видов оружия (8 приёмов: Прорубание, Задевание, Выпад, Толкание, Изнурение, Замедление, Опрокидывание, Подавление), бейдж приёма с расшифровкой в строке оружия вкладки «Бой» у персонажа редакции 2024, каталог оружия 2024 (трезубец 1к8, длинное копьё 1к10, боевая кирка универсальная, мушкет и пистоль, без сети), термины приёмов в глоссарии, поле выбранного мастерства в персонаже (схема 37)" }
+    ]
+  },
+  {
+    version: "3.102.0",
+    date: "18 сентября 2026",
+    badge: "old",
     changes: [
       { type: "feat", text: "Предыстории 2024 — 16 предысторий PHB 2024 (характеристики, черта происхождения, навыки, инструмент, стартовое снаряжение А/Б), распределение +2/+1 или +1/+1/+1 из характеристик предыстории, черта происхождения выдаётся автоматически и следует за предысторией, своя предыстория (3 характеристики, 2 навыка, черта). Бонус черты «Крепкий» к максимуму хитов больше не теряется при пересчёте." }
     ]

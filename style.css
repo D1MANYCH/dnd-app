@@ -10841,6 +10841,11 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .weapon-name { font-weight: 700; font-size: 0.92em; color: var(--text-color); }
 .weapon-no-prof { font-size: 0.7em; font-weight: 400; color: var(--danger); opacity: 0.8; margin-left: 4px; }
 .weapon-meta { font-size: 0.75em; color: var(--text-muted); }
+/* E24-6: приём мастерства оружия (2024) — выбранное оружие подсвечено акцентом,
+   выбор — текст-действие на --accent-lo (без рамок, в духе STYLE) */
+.weapon-mastery.is-on { color: var(--accent); }
+.weapon-mastery-btn { background: none; border: 0; padding: 0 2px; font: inherit; color: var(--accent-lo); cursor: pointer; }
+.weapon-mastery-btn:hover, .weapon-mastery-btn:focus-visible { color: var(--accent); outline: none; }
 /* STYLE-8a2: правка и удаление — приглушённые глифы, проявляются на строке */
 .weapon-delete-btn {
   background: transparent !important;

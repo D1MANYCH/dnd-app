@@ -863,6 +863,12 @@ function migrateCharacter(char) {
     if (char.bgEquipGiven === undefined) char.bgEquipGiven = false;
     char.schemaVersion = 36;
   }
+  if (v < 37) {
+    // E24-6: мастерство оружия 2024 — имена оружия, выбранного для приёмов
+    // мастерства (лимит даёт классовая фича). Для 2014 поле нейтрально (пусто).
+    if (!Array.isArray(char.weaponMastery)) char.weaponMastery = [];
+    char.schemaVersion = 37;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

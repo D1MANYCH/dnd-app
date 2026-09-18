@@ -764,8 +764,64 @@ function rollTrinket() {
 // Книжные идут ПЕРВЫМИ — своё оружие с именем книжного не перехватывает матчинг.
 // Признак «своё» проставляется на месте: элемент char.customWeapons по определению
 // пользовательский (тот же приём, что _backfillHomebrewFlag у заклинаний, HB-1).
+// E24-6: для 2024-персонажа книжные пресеты пропускаются через таблицу 2024:
+// w24 (damage/notes/weight) накладывается поверх 2014-записи, removed — выкидывает
+// (Сеть), WEAPONS_EXTRA_2024 (мушкет, пистоль) дописываются. Кэш строится один раз,
+// но только когда data-2024.js уже загружен — иначе экстра-оружие потерялось бы.
+var _WEAPONS_2024_CACHE = null;
+function _weaponPresets2024(base) {
+if (_WEAPONS_2024_CACHE) return _WEAPONS_2024_CACHE;
+var out = [];
+base.forEach(function(w) {
+  if (w.w24 && w.w24.removed) return;
+  if (!w.w24) { out.push(w); return; }
+  var c = {};
+  Object.keys(w).forEach(function(k) { if (k !== "w24") c[k] = w[k]; });
+  Object.keys(w.w24).forEach(function(k) { c[k] = w.w24[k]; });
+  out.push(c);
+});
+if (typeof WEAPONS_EXTRA_2024 === "undefined") return out;
+_WEAPONS_2024_CACHE = out.concat(WEAPONS_EXTRA_2024);
+return _WEAPONS_2024_CACHE;
+}
+// E24-6: лимит оружия мастерства — от классовой фичи «Оружейные приёмы» (классы
+// 2024, E24-8+). Пока лимит 0: кнопка выбора скрыта, бейджи приёмов видны.
+function getWeaponMasteryLimit(char) {
+if (!char || char.edition !== "2024") return 0;
+return 0;
+}
+// Приём мастерства оружия персонажа 2024 (запись MASTERY_PROPS_2024) или null.
+function getWeaponMasteryProp(char, weapon) {
+if (!char || char.edition !== "2024" || !weapon || typeof MASTERY_PROPS_2024 === "undefined") return null;
+var preset = _weaponPresetByName(weapon.name, char);
+var id = preset && preset.mastery24;
+if (!id) return null;
+return MASTERY_PROPS_2024.find(function(m) { return m.id === id; }) || null;
+}
+function isWeaponMastered(char, weapon) {
+return !!(char && weapon && Array.isArray(char.weaponMastery) && char.weaponMastery.indexOf(weapon.name) !== -1);
+}
+function toggleWeaponMastery(index) {
+var char = getCurrentChar();
+if (!char) return;
+var w = char.weapons && char.weapons[index];
+if (!w) return;
+if (typeof sheetLockGuard === "function" && sheetLockGuard()) return;
+if (!Array.isArray(char.weaponMastery)) char.weaponMastery = [];
+var i = char.weaponMastery.indexOf(w.name);
+if (i !== -1) {
+  char.weaponMastery.splice(i, 1);
+} else {
+  var limit = getWeaponMasteryLimit(char);
+  if (char.weaponMastery.length >= limit) { showToast("Мастерство оружия: не больше " + limit, "warn"); return; }
+  char.weaponMastery.push(w.name);
+}
+saveToLocal();
+renderWeapons();
+}
 function _weaponCatalog(char) {
 var base = (typeof WEAPON_PRESETS !== "undefined") ? WEAPON_PRESETS : [];
+if (char && char.edition === "2024") base = _weaponPresets2024(base);
 if (!char || !Array.isArray(char.customWeapons) || !char.customWeapons.length) return base;
 // Безымянные записи (мусор из чужого импорта) отсекаем — рендер и матчинг идут по name
 var hb = char.customWeapons.filter(function(w) { return w && w.name; });
@@ -816,9 +872,14 @@ var hbBadge = preset.homebrew ? ' <span class="wp-hb">' + dndIcoHtml("home", 12)
 // HB-6: у своего оружия — 🗑 «убрать из каталога», прямо в карточке (нельзя вложить
 // <button> в <button>: делаем span-действие, клик по нему ловим в onclick по e.target).
 var hbDel = preset.homebrew ? ' <span class="wp-del" role="button" tabindex="0" title="Убрать из каталога" aria-label="Убрать из каталога">' + dndIcoHtml("trash", 13) + '</span>' : "";
+var masteryTag = "";
+if (_pickChar && _pickChar.edition === "2024" && preset.mastery24 && typeof MASTERY_PROPS_2024 !== "undefined") {
+  var mp = MASTERY_PROPS_2024.find(function(m) { return m.id === preset.mastery24; });
+  if (mp) masteryTag = " · " + escapeHtml(mp.name);
+}
 btn.innerHTML = "<b>" + escapeHtml(preset.name) + "</b> <span class=\"wp-tag\">" + tag + "</span>" + hbBadge + profBadge + hbDel + "<br>" +
   escapeHtml(preset.damage ? preset.damage + " " + (preset.type || "") : "—") +
-  (preset.notes ? " · " + escapeHtml(preset.notes) : "") + "<br>" +
+  (preset.notes ? " · " + escapeHtml(preset.notes) : "") + masteryTag + "<br>" +
   "<span class=\"wp-meta\">" + escapeHtml(preset.cost || "—") + " · " + (preset.weight ? preset.weight + " фнт." : "—") + " · " + escapeHtml(preset.range || "") + "</span>";
 btn.onclick = function(e) {
   if (e && e.target && e.target.classList && e.target.classList.contains("wp-del")) {
@@ -1113,11 +1174,23 @@ var profBonus = getProficiencyBonus(parseInt($("char-level")?.value, 10) || 1);
 var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
 var attackStr = (attackBonus >= 0 ? "+" : "") + attackBonus;
 var profTag = weapon.proficient ? '' : ' <span class="weapon-no-prof">без влад.</span>';
+// E24-6: приём мастерства (только 2024) — термин глоссария; «◆» = оружие выбрано
+// для мастерства; текст-действие выбора появляется, когда класс даёт лимит и лист открыт.
+var masteryHtml = '';
+var mprop = getWeaponMasteryProp(char, weapon);
+if (mprop) {
+  var mOn = isWeaponMastered(char, weapon);
+  var mPick = getWeaponMasteryLimit(char) > 0 && !(typeof isSheetLocked === "function" && isSheetLocked(char));
+  if (typeof _glossBindOnce === "function") _glossBindOnce();
+  masteryHtml = ' · <span class="weapon-mastery' + (mOn ? ' is-on' : '') + '">' + (mOn ? '◆ ' : '') +
+    glossarizeHtml(escapeHtml(mprop.name), null, "2024") + '</span>' +
+    (mPick ? ' <button type="button" class="weapon-mastery-btn" onclick="toggleWeaponMastery(' + index + ')">' + (mOn ? 'снять' : 'мастерство') + '</button>' : '');
+}
 div.innerHTML =
   '<div class="weapon-row-top">' +
     '<div class="weapon-info">' +
       '<span class="weapon-name">' + escapeHtml(weapon.name) + profTag + '</span>' +
-      '<span class="weapon-meta">' + escapeHtml(weapon.damage || "—") + ' · ' + escapeHtml(weapon.statName || "") + ' ' + attackStr + '</span>' +
+      '<span class="weapon-meta">' + escapeHtml(weapon.damage || "—") + ' · ' + escapeHtml(weapon.statName || "") + ' ' + attackStr + masteryHtml + '</span>' +
     '</div>' +
     '<div class="weapon-row-actions">' +
       '<button class="weapon-edit-btn" onclick="editWeapon(' + index + ')" title="Редактировать оружие" aria-label="Редактировать оружие">' + dndIcoHtml("edit", 14) + '</button>' +
