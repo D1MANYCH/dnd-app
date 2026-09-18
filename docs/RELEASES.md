@@ -3,30 +3,65 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v3.103.0**.
+Актуальная версия — **v3.103.1**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
-<a id="v3.103.0"></a>
-## v3.103.0 — 18 сентября 2026
+<a id="v3.103.1"></a>
+## v3.103.1 — 18 сентября 2026
 
-✨ Мастерство оружия 2024 — приём мастерства у каждого из 37 видов оружия (8 приёмов: Прорубание, Задевание, Выпад, Толкание, Изнурение, Замедление, Опрокидывание, Подавление), бейдж приёма с расшифровкой в строке оружия вкладки «Бой» у персонажа редакции 2024, каталог оружия 2024 (трезубец 1к8, длинное копьё 1к10, боевая кирка универсальная, мушкет и пистоль, без сети), термины приёмов в глоссарии, поле выбранного мастерства в персонаже (схема 37)
+🔧 Мост классовых таблиц (E24-7): все обращения к CLASS_FEATURES, SUBCLASS_FEATURES, SUBCLASSES, SUBCLASS_LEVEL, CLASS_RESOURCES, CLASS_CHOICES, SUBCLASS_CHOICES, ASI_LEVELS, CASTER_TYPE, CLASS_HIT_DICE, SPELL_SLOTS_BY_LEVEL, MULTICLASS_* в app-hp, app-progress, app-builds, app-combat, app-core, app-ui, app-proficiencies и rules.js идут через edData(char); в registry добавлены SUBCLASS_SOURCE, SUBCLASS_RESOURCES, SUBCLASS_ARMOR, SUBCLASS_TOOLS, SUBCLASS_LANGUAGES; _mergeByClass в data-2024.js; секция «Edition-слой» в ARCHITECTURE.md. Поведение 2014 не меняется, тесты 800.
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/7e43a300...main) · 10 файлов, +375 −96
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/ec3a81f0...main) · 16 файлов, +412 −243
 
 <details><summary>Файлы</summary>
 
 _Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
 
-**Файлы (10):**
+**Файлы (16):**
+
+- `docs/map.md` +71 −71
+- `app-hp.js` +55 −55
+- `tests/headless.js` +103 −0
+- `index.html` +46 −46
+- `rules.js` +16 −16
+- `app-progress.js` +16 −14
+- `data.js` +23 −7
+- `docs/ARCHITECTURE.md` +25 −0
+- `app-combat.js` +13 −10
+- `app-builds.js` +11 −11
+- `data-2024.js` +17 −1
+- `app-proficiencies.js` +4 −4
+- `app-core.js` +3 −4
+- `CHANGELOG.md` +6 −1
+- `app-ui.js` +2 −2
+- `sw.js` +1 −1
+
+</details>
+
+<a id="v3.103.0"></a>
+## v3.103.0 — 18 сентября 2026
+
+✨ Мастерство оружия 2024 — приём мастерства у каждого из 37 видов оружия (8 приёмов: Прорубание, Задевание, Выпад, Толкание, Изнурение, Замедление, Опрокидывание, Подавление), бейдж приёма с расшифровкой в строке оружия вкладки «Бой» у персонажа редакции 2024, каталог оружия 2024 (трезубец 1к8, длинное копьё 1к10, боевая кирка универсальная, мушкет и пистоль, без сети), термины приёмов в глоссарии, поле выбранного мастерства в персонаже (схема 37)
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/7e43a300...ec3a81f0) · 11 файлов, +409 −101
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (1):**
+
+- [`ec3a81f0`](https://github.com/D1MANYCH/dnd-app/commit/ec3a81f0) v3.103.0: feat(weapons): мастерство оружия 2024 — приёмы 37 видов оружия, каталог 2024, глоссарий приёмов, схема 37
+
+**Файлы (11):**
 
 - `tests/headless.js` +132 −3
 - `data.js` +54 −40
 - `index.html` +46 −46
 - `app-inventory.js` +75 −2
+- `docs/RELEASES.md` +34 −5
 - `data-2024.js` +29 −2
 - `glossary-data.js` +21 −1
 - `CHANGELOG.md` +6 −1

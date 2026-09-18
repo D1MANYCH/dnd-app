@@ -17,7 +17,7 @@
 //   E24-4  SPECIES_2024           — виды 10 (без бонусов характеристик) (сделано)
 //   E24-5  BACKGROUNDS_2024       — предыстории 16 + характеристики от предыстории (сделано)
 //   E24-6  MASTERY_PROPS_2024 / WEAPONS_EXTRA_2024 — мастерство оружия (8 приёмов), мушкет и пистоль (сделано)
-//   E24-7  мост: классовые таблицы через edData + _mergeByClass (поведение 2014 не меняется)
+//   E24-7  мост: классовые таблицы через edData + _mergeByClass (поведение 2014 не меняется) (сделано)
 //   E24-8…13  CLASS_FEATURES_2024 / SUBCLASS_FEATURES_2024 / SUBCLASSES_2024 /
 //             SUBCLASS_LEVEL_2024 / CLASS_RESOURCES_2024 / CLASS_CHOICES_2024 /
 //             SUBCLASS_CHOICES_2024 — по 2 класса на фазу
@@ -26,6 +26,21 @@
 // ============================================================
 
 (function () {
+
+  // ── E24-7: слияние классовой таблицы по классам ─────────────────────────────
+  // Override классовой таблицы (CLASS_FEATURES, CLASS_RESOURCES, SUBCLASSES,
+  // SUBCLASS_LEVEL, CLASS_CHOICES…) = копия 2014-таблицы с подменёнными классами:
+  // overrides.CLASS_FEATURES = {Воин, Варвар} без слияния оставил бы 2024-волшебника
+  // без фич. Для таблиц по имени подкласса (SUBCLASS_FEATURES, SUBCLASS_CHOICES,
+  // SUBCLASS_SOURCE…) — 2014-записи + 2024-записи, при совпадении имени побеждает
+  // 2024. Пока класс не переведён (E24-8…13), 2024-персонаж этого класса временно
+  // видит его 2014-подклассы и фичи — это ожидаемо и снимается фазой класса.
+  function _mergeByClass(base2014, part2024) {
+    var out = {};
+    Object.keys(base2014 || {}).forEach(function (k) { out[k] = base2014[k]; });
+    Object.keys(part2024 || {}).forEach(function (k) { out[k] = part2024[k]; });
+    return out;
+  }
 
   // ── E24-1: Состояния 2024 (гл.1 «Состояния» + Прил. В «Глоссарий правил») ──
   // Те же id, что у CONDITIONS 2014 (id-паритет — обязателен: вкладка Бой ищет
@@ -685,6 +700,7 @@
     window.MASTERY_PROPS_2024 = MASTERY_PROPS_2024;
     window.WEAPONS_EXTRA_2024 = WEAPONS_EXTRA_2024;
     window.EDITION_2024_OVERRIDES = overrides;
+    window._mergeByClass = _mergeByClass;
   }
 
   if (typeof registerEdition2024 === 'function') {

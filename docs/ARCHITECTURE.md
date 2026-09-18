@@ -161,6 +161,31 @@ dnd-app/
 
 ---
 
+## Edition-слой (редакции 2014 / 2024)
+
+Редакция — свойство персонажа (`char.edition`, `'2014'` | `'2024'`), не приложения. Тумблер в настройках задаёт только дефолт для новых персонажей. Конвертера 2014→2024 нет.
+
+| Элемент | Где | Что делает |
+|---|---|---|
+| `EDITION_DATA` | `data.js` (E24-0) | `{ '2014': набор, '2024': набор }` — наборы игровых таблиц по редакции |
+| `_buildEdition2014()` / `_ensureEdition2014()` | `data.js` | Собирает набор `'2014'` из глобалов **лениво**, при первом вызове `edData` — `CLASS_CHOICES`/`SUBCLASS_CHOICES` живут в файлах, которые грузятся после `data.js` |
+| `edData(char)` | `data.js` | Резолвер: `EDITION_DATA[char.edition]`; нет `char`/`edition`/незарегистрированная `'2024'` → `'2014'` |
+| `registerEdition2024(overrides)` | `data.js`, зовётся из `data-2024.js` | `'2024'` = копия `'2014'` + переопределённые ключи; недостающие ключи наследуются |
+| `_mergeByClass(base2014, part2024)` | `data-2024.js` (E24-7) | Override классовой таблицы = копия 2014-таблицы с подменёнными классами (для таблиц по имени подкласса — 2014-записи + 2024-записи, при совпадении имени побеждает 2024). Без него `overrides.CLASS_FEATURES = {Воин, Варвар}` оставил бы 2024-волшебника без фич |
+| `data-2024.js` | ленивый, `ensureEdition2024()` в `index.html` | Хранит только 2024-таблицы (`*_2024`), собирает `overrides` и регистрирует их; экспортирует `window.EDITION_2024_OVERRIDES` для тестов-мутаторов |
+
+**Таблицы в registry** (22): `CLASS_FEATURES`, `SUBCLASS_FEATURES`, `SPELL_SLOTS_BY_LEVEL`, `BACKGROUND_SKILLS`, `CLASS_HIT_DICE`, `FEATS_DATA`, `CLASS_CHOICES`, `SUBCLASS_CHOICES`, `SUBCLASSES`, `CONDITIONS`, `SUBCLASS_LEVEL`, `ASI_LEVELS`, `XP_THRESHOLDS`, `CLASS_RESOURCES`, `MULTICLASS_PREREQUISITES`, `MULTICLASS_PROFICIENCIES`, `RACE_DATA`, `RACE_LANGUAGES`, `CASTER_TYPE`, `SPELL_PREP_CLASSES`, а также (E24-7) словари по подклассу `SUBCLASS_SOURCE`, `SUBCLASS_RESOURCES`, `SUBCLASS_ARMOR`, `SUBCLASS_TOOLS`, `SUBCLASS_LANGUAGES`. Плюс 2024-only ключи `MASTERY_PROPS`, `WEAPONS_EXTRA`.
+
+**Правило call-site.** Таблица читается как `edData(char).X[...]`, не как глобал `X[...]`. После E24-7 так читаются **все классовые таблицы** во всех модулях (`app-hp`, `app-progress`, `app-asi`, `app-proficiencies`, `app-builds`, `app-combat`, `app-core`, `app-ui`, `rules.js`); чистые функции `rules.js` берут `char` параметром (`classSpellSlotRow(cls, sub, level, char)`), `subclassSourceShort(name, char)` — с необязательным `char`. Где `char` нет в скоупе — `edData(currentId ? getCurrentChar() : null)`. Исключение — `app-migrate.js`: миграции старых схем — исторические данные 2014, глобалы там намеренно. Имена подклассов совпадают между редакциями («Чемпион», «Берсерк»…) — словари по имени подкласса читать **только** через `edData`.
+
+**Порядок загрузки.** `data.js` → `class-choices.js` → `subclass-choices-data.js` → … → `data-2024.js` (лениво). В `tests/headless-node.js` `data-2024.js` подключён явно после `subclass-choices-data.js` — иначе ленивый снапшот `'2014'` закэширует пустые `CHOICES`. Не звать `edData` на верхнем уровне data-файлов. `window.__pendingEdition2024` — страховка при нарушении порядка.
+
+**Три несвязанные системы «2024»** — не путать при grep: `char.edition` (редакция персонажа), `currentSpellVersion` (фильтр гримуара PH14/PH24, кнопки `.edition-btn`), `data-stats-layout` (раскладка карточек характеристик, `STATS_LAYOUTS = ['2024','classic']`).
+
+Тесты: БЛОК 32 (registry, миграция, тумблер), БЛОК 58 (мост: 2014-регрессия, наследование, `_mergeByClass`, функции моста у 2024-персонажа); мутирующие `EDITION_DATA['2024']` тесты обязаны восстановить его через `registerEdition2024(window.EDITION_2024_OVERRIDES)`.
+
+---
+
 ## Миграции схемы данных
 
 При изменении структуры персонажа (добавление нового поля) нужно:

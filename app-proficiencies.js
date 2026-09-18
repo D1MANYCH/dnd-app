@@ -40,8 +40,8 @@ function getLanguageChoiceSlots(char) {
   }
   // Подклассы
   getCharClassPairs(char).forEach(function(p) {
-    if (p.sub && typeof SUBCLASS_LANGUAGES !== "undefined" && SUBCLASS_LANGUAGES[p.cls] && SUBCLASS_LANGUAGES[p.cls][p.sub]) {
-      var sd = SUBCLASS_LANGUAGES[p.cls][p.sub];
+    if (p.sub && edData(char).SUBCLASS_LANGUAGES[p.cls] && edData(char).SUBCLASS_LANGUAGES[p.cls][p.sub]) {
+      var sd = edData(char).SUBCLASS_LANGUAGES[p.cls][p.sub];
       if (sd.choice > 0) {
         var subKey = "subclass_" + p.cls + "_" + p.sub;
         var subPicks = (char.proficiencies.languageChoices[subKey]) || [];
@@ -245,8 +245,8 @@ function getToolChoiceSlots(char) {
         });
       });
     }
-    if (p.sub && typeof SUBCLASS_TOOLS !== "undefined" && SUBCLASS_TOOLS[cn] && SUBCLASS_TOOLS[cn][p.sub]) {
-      var sc = SUBCLASS_TOOLS[cn][p.sub];
+    if (p.sub && edData(char).SUBCLASS_TOOLS[cn] && edData(char).SUBCLASS_TOOLS[cn][p.sub]) {
+      var sc = edData(char).SUBCLASS_TOOLS[cn][p.sub];
       (sc.choices || []).forEach(function(slot, idx) {
         var key = "subclass_" + cn + "_" + p.sub + "_" + idx;
         var picks = (char.proficiencies.toolChoices[key]) || [];

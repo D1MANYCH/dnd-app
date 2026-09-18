@@ -2,12 +2,17 @@
 
 Полная история версий DnD-Листа. Сгенерировано автоматически из `data.js` — не редактировать вручную (правки затрутся при следующем релизе).
 
-Актуальная версия — **v3.103.0**. В приложении: меню → «📜 История версий».
+Актуальная версия — **v3.103.1**. В приложении: меню → «📜 История версий».
 
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 🔍 [Подробный лог релизов](docs/RELEASES.md) — коммиты, изменённые файлы и полный патч каждой версии.
 
 ---
+
+<a id="v3.103.1"></a>
+## v3.103.1 — 18 сентября 2026
+
+- 🔧 Мост классовых таблиц (E24-7): все обращения к CLASS_FEATURES, SUBCLASS_FEATURES, SUBCLASSES, SUBCLASS_LEVEL, CLASS_RESOURCES, CLASS_CHOICES, SUBCLASS_CHOICES, ASI_LEVELS, CASTER_TYPE, CLASS_HIT_DICE, SPELL_SLOTS_BY_LEVEL, MULTICLASS_* в app-hp, app-progress, app-builds, app-combat, app-core, app-ui, app-proficiencies и rules.js идут через edData(char); в registry добавлены SUBCLASS_SOURCE, SUBCLASS_RESOURCES, SUBCLASS_ARMOR, SUBCLASS_TOOLS, SUBCLASS_LANGUAGES; _mergeByClass в data-2024.js; секция «Edition-слой» в ARCHITECTURE.md. Поведение 2014 не меняется, тесты 800.
 
 <a id="v3.103.0"></a>
 ## v3.103.0 — 18 сентября 2026

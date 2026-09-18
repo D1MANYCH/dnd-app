@@ -7642,6 +7642,109 @@
     });
   })();
 
+  // ────────── БЛОК 58 (E24-7): мост классовых таблиц — edData вместо глобалов, registry +5, _mergeByClass ──────────
+  // Инварианты: для 2014-персонажа каждая классовая таблица edData(char).X === X (регрессии нет);
+  // '2024' без override классовых таблиц наследует их от '2014'; _mergeByClass подменяет один класс
+  // и не трогает остальные; функции моста (classSpellSlotRow/charAsiSlots/checkMulticlassPrereqs/
+  // subclassSourceShort) дают 2014-результат и читают подменённую таблицу у 2024-персонажа.
+  (function(){
+    if (typeof edData !== "function" || typeof CLASS_FEATURES === "undefined") return;
+    var CLASS_KEYS = ["CLASS_FEATURES","SUBCLASS_FEATURES","SUBCLASSES","SUBCLASS_LEVEL","CLASS_RESOURCES",
+      "CLASS_CHOICES","SUBCLASS_CHOICES","ASI_LEVELS","CASTER_TYPE","CLASS_HIT_DICE","SPELL_SLOTS_BY_LEVEL",
+      "MULTICLASS_PREREQUISITES","MULTICLASS_PROFICIENCIES",
+      "SUBCLASS_SOURCE","SUBCLASS_RESOURCES","SUBCLASS_ARMOR","SUBCLASS_TOOLS","SUBCLASS_LANGUAGES"];
+    var GLOB = {
+      CLASS_FEATURES: CLASS_FEATURES, SUBCLASS_FEATURES: SUBCLASS_FEATURES, SUBCLASSES: SUBCLASSES,
+      SUBCLASS_LEVEL: SUBCLASS_LEVEL, CLASS_RESOURCES: CLASS_RESOURCES,
+      CLASS_CHOICES: (typeof CLASS_CHOICES !== "undefined") ? CLASS_CHOICES : null,
+      SUBCLASS_CHOICES: (typeof SUBCLASS_CHOICES !== "undefined") ? SUBCLASS_CHOICES : null,
+      ASI_LEVELS: ASI_LEVELS, CASTER_TYPE: CASTER_TYPE, CLASS_HIT_DICE: CLASS_HIT_DICE,
+      SPELL_SLOTS_BY_LEVEL: SPELL_SLOTS_BY_LEVEL, MULTICLASS_PREREQUISITES: MULTICLASS_PREREQUISITES,
+      MULTICLASS_PROFICIENCIES: MULTICLASS_PROFICIENCIES, SUBCLASS_SOURCE: SUBCLASS_SOURCE,
+      SUBCLASS_RESOURCES: (typeof SUBCLASS_RESOURCES !== "undefined") ? SUBCLASS_RESOURCES : null,
+      SUBCLASS_ARMOR: SUBCLASS_ARMOR, SUBCLASS_TOOLS: SUBCLASS_TOOLS, SUBCLASS_LANGUAGES: SUBCLASS_LANGUAGES
+    };
+
+    t("[e24-7] registry '2014': 18 классовых таблиц — те же объекты, что глобалы (регрессии для 2014 нет)", function(){
+      var d = edData({ edition: "2014" });
+      for (var i = 0; i < CLASS_KEYS.length; i++) {
+        var k = CLASS_KEYS[i];
+        if (GLOB[k] === null) continue;                 // файл не подключён в этом окружении
+        if (d[k] !== GLOB[k]) return k + ": edData(2014) !== глобал";
+      }
+      if (edData(null).CLASS_FEATURES !== CLASS_FEATURES) return "edData(null) не 2014";
+      if (edData({}).CLASS_HIT_DICE !== CLASS_HIT_DICE) return "edData({}) не 2014";
+      return true;
+    });
+
+    t("[e24-7] '2024' без override классовых таблиц наследует их от '2014' (те же объекты)", function(){
+      var d = edData({ edition: "2024" });
+      var ov = (typeof window !== "undefined" && window.EDITION_2024_OVERRIDES) || {};
+      for (var i = 0; i < CLASS_KEYS.length; i++) {
+        var k = CLASS_KEYS[i];
+        if (GLOB[k] === null || ov[k]) continue;
+        if (d[k] !== GLOB[k]) return k + ": у 2024 не унаследован от 2014";
+      }
+      return true;
+    });
+
+    t("[e24-7] _mergeByClass: подмена одного класса не трогает остальные; по имени подкласса — 2014 + 2024, 2024 побеждает", function(){
+      var mb = (typeof window !== "undefined") ? window._mergeByClass : null;
+      if (typeof mb !== "function") return "нет _mergeByClass (data-2024.js не подключён?)";
+      var part = { "Воин": { 1: [{ name: "Тест-2024", desc: "" }] } };
+      var m = mb(CLASS_FEATURES, part);
+      if (m === CLASS_FEATURES) return "вернул исходный объект, а не копию";
+      if (m["Воин"] !== part["Воин"]) return "Воин не подменён";
+      if (m["Волшебник"] !== CLASS_FEATURES["Волшебник"]) return "Волшебник изменился";
+      if (Object.keys(m).length !== Object.keys(CLASS_FEATURES).length) return "число классов изменилось: " + Object.keys(m).length;
+      if (CLASS_FEATURES["Воин"][1][0].name === "Тест-2024") return "мутировал 2014-глобал";
+      var sub = mb(SUBCLASS_FEATURES, { "Чемпион": { 3: [] }, "Новый-2024": { 3: [] } });
+      if (Object.keys(sub).length !== Object.keys(SUBCLASS_FEATURES).length + 1) return "по имени подкласса: неверное число записей";
+      if (sub["Чемпион"] === SUBCLASS_FEATURES["Чемпион"]) return "совпадающее имя: 2024 не победил";
+      if (mb(null, part)["Воин"] !== part["Воин"] || Object.keys(mb(CLASS_FEATURES, null)).length !== Object.keys(CLASS_FEATURES).length) return "null-аргументы";
+      return true;
+    });
+
+    t("[e24-7] мост читает подменённую таблицу: classSpellSlotRow/charAsiSlots/charSubclassPending/checkMulticlassPrereqs/subclassSourceShort у 2024, 2014 не задет", function(){
+      if (typeof registerEdition2024 !== "function" || typeof window === "undefined") return "нет registerEdition2024";
+      var ov = window.EDITION_2024_OVERRIDES || {};
+      var mb = window._mergeByClass;
+      if (typeof mb !== "function") return "нет _mergeByClass";
+      var fake = {};
+      Object.keys(ov).forEach(function(k){ fake[k] = ov[k]; });
+      fake.SPELL_SLOTS_BY_LEVEL = mb(SPELL_SLOTS_BY_LEVEL, { "Волшебник": { 1: [0, 9, 0, 0, 0, 0, 0, 0, 0, 0] } });
+      fake.ASI_LEVELS = mb(ASI_LEVELS, { "Волшебник": [1] });
+      fake.SUBCLASS_LEVEL = mb(SUBCLASS_LEVEL, { "Волшебник": 1 });
+      fake.MULTICLASS_PREREQUISITES = mb(MULTICLASS_PREREQUISITES, { "Воин": { int: 20 } });
+      fake.SUBCLASS_SOURCE = mb(SUBCLASS_SOURCE, { "Чемпион": "HB" });
+      registerEdition2024(fake);
+      try {
+        var c24 = { edition: "2024", class: "Волшебник", level: 1, subclass: "", classes: [{ class: "Волшебник", level: 1, subclass: "" }], stats: { str: 10, dex: 10, con: 10, int: 13, wis: 10, cha: 10 } };
+        var c14 = { edition: "2014", class: "Волшебник", level: 1, subclass: "", classes: [{ class: "Волшебник", level: 1, subclass: "" }], stats: { str: 10, dex: 10, con: 10, int: 13, wis: 10, cha: 10 } };
+        var r24 = classSpellSlotRow("Волшебник", "", 1, c24), r14 = classSpellSlotRow("Волшебник", "", 1, c14);
+        if (!r24 || r24[1] !== 9) return "classSpellSlotRow 2024: " + JSON.stringify(r24);
+        if (!r14 || r14[1] !== 2) return "classSpellSlotRow 2014 задет: " + JSON.stringify(r14);
+        if (classSpellSlotRow("Волшебник", "", 1)[1] !== 2) return "classSpellSlotRow без char не 2014";
+        if (charAsiSlots(c24).length !== 1) return "charAsiSlots 2024: " + charAsiSlots(c24).length;
+        if (charAsiSlots(c14).length !== 0) return "charAsiSlots 2014 задет";
+        if (charSubclassPending(c24).length !== 1) return "charSubclassPending 2024 не видит SUBCLASS_LEVEL=1";
+        if (charSubclassPending(c14).length !== 0) return "charSubclassPending 2014 задет";
+        if (typeof checkMulticlassPrereqs === "function") {
+          c24.stats.str = 13; c14.stats.str = 13;
+          if (checkMulticlassPrereqs(c24, "Воин").ok) return "checkMulticlassPrereqs 2024 не читает int:20";
+          if (!checkMulticlassPrereqs(c14, "Воин").ok) return "checkMulticlassPrereqs 2014 задет";
+        }
+        if (subclassSourceShort("Чемпион", c24) === subclassSourceShort("Чемпион", c14)) return "subclassSourceShort не различает редакции";
+        if (subclassSourceShort("Чемпион") !== subclassSourceShort("Чемпион", c14)) return "subclassSourceShort без char не 2014";
+      } finally {
+        registerEdition2024(ov);
+      }
+      if (edData({ edition: "2024" }).SPELL_SLOTS_BY_LEVEL !== SPELL_SLOTS_BY_LEVEL) return "восстановление 2024 не вернуло наследование";
+      return true;
+    });
+  })();
+
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

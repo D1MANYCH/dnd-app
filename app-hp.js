@@ -214,7 +214,7 @@ if (char.classes && char.classes.length > 0 && char.class) {
   _showMulticlassScreen(char);
 } else {
   // Нет класса — прямо к стандартному preview
-  _showLevelUpPreview(char, char.class, CLASS_HIT_DICE[char.class] || 8, false);
+  _showLevelUpPreview(char, char.class, edData(char).CLASS_HIT_DICE[char.class] || 8, false);
 }
 
 if (typeof showScreen === "function") showScreen("levelup");
@@ -241,8 +241,8 @@ function _showMulticlassScreen(char) {
       btn.title = "Максимальный уровень класса";
     }
     btn.onclick = function() {
-      _luMulticlassChoice = { class: entry.class, subclass: entry.subclass, hitDie: entry.hitDie || CLASS_HIT_DICE[entry.class] || 8, isNew: false, classIndex: idx };
-      _showLevelUpPreview(char, entry.class, entry.hitDie || CLASS_HIT_DICE[entry.class] || 8, false, entry);
+      _luMulticlassChoice = { class: entry.class, subclass: entry.subclass, hitDie: entry.hitDie || edData(char).CLASS_HIT_DICE[entry.class] || 8, isNew: false, classIndex: idx };
+      _showLevelUpPreview(char, entry.class, entry.hitDie || edData(char).CLASS_HIT_DICE[entry.class] || 8, false, entry);
     };
     container.appendChild(btn);
   });
@@ -297,11 +297,11 @@ document.addEventListener("DOMContentLoaded", function() {
     // Подклассы (подкласс выбирается на 1 уровне только у некоторых классов: Жрец, Чародей, Колдун)
     var subRow = $("lu-mc-subclass-row");
     var subSel = $("lu-mc-subclass-select");
-    var earlySubclassClasses = ["Жрец", "Чародей", "Колдун"];
-    if (earlySubclassClasses.indexOf(cls) !== -1 && typeof SUBCLASSES !== "undefined" && SUBCLASSES[cls]) {
+    // E24-7: подкласс на 1 уровне — по SUBCLASS_LEVEL редакции (2014: Жрец, Чародей, Колдун; 2024: никто).
+    if (edData(char).SUBCLASS_LEVEL[cls] === 1 && edData(char).SUBCLASSES[cls]) {
       subRow.style.display = "";
       subSel.innerHTML = '<option value="">—</option>';
-      SUBCLASSES[cls].forEach(function(sc) {
+      edData(char).SUBCLASSES[cls].forEach(function(sc) {
         var o = document.createElement("option");
         o.value = sc; o.textContent = sc;
         subSel.appendChild(o);
@@ -319,7 +319,7 @@ function confirmMulticlassNewClass() {
   var char = getCurrentChar();
   if (!char) return;
   var subclass = $("lu-mc-subclass-select") ? $("lu-mc-subclass-select").value : "";
-  var hitDie = CLASS_HIT_DICE[cls] || 8;
+  var hitDie = edData(char).CLASS_HIT_DICE[cls] || 8;
   _luMulticlassChoice = { class: cls, subclass: subclass, hitDie: hitDie, isNew: true };
   _showLevelUpPreview(char, cls, hitDie, true, null);
 }
@@ -375,13 +375,13 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
     // что и в записи ячеек ниже, иначе предпросмотр молчит там, где запись верна)
     var _luSub = char.subclass || "";
     var _luRow = (typeof classSpellSlotRow === "function")
-      ? classSpellSlotRow(className, _luSub, newTotalLevel)
-      : ((SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][newTotalLevel]) || null);
+      ? classSpellSlotRow(className, _luSub, newTotalLevel, char)
+      : ((edData(char).SPELL_SLOTS_BY_LEVEL[className] && edData(char).SPELL_SLOTS_BY_LEVEL[className][newTotalLevel]) || null);
     if (_luRow) {
       var newSlots = _luRow;
       var oldSlots = ((typeof classSpellSlotRow === "function")
-        ? classSpellSlotRow(className, _luSub, totalLevel)
-        : (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][totalLevel])) || [];
+        ? classSpellSlotRow(className, _luSub, totalLevel, char)
+        : (edData(char).SPELL_SLOTS_BY_LEVEL[className] && edData(char).SPELL_SLOTS_BY_LEVEL[className][totalLevel])) || [];
       var slotParts = [];
       for (var i = 1; i <= 9; i++) {
         var n = newSlots[i] || 0;
@@ -452,8 +452,8 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
   // Фичи
   var featuresContainer = $("lu-features-container");
   featuresContainer.innerHTML = "";
-  if (CLASS_FEATURES[className] && CLASS_FEATURES[className][classLevel]) {
-    CLASS_FEATURES[className][classLevel].forEach(function(f) {
+  if (edData(char).CLASS_FEATURES[className] && edData(char).CLASS_FEATURES[className][classLevel]) {
+    edData(char).CLASS_FEATURES[className][classLevel].forEach(function(f) {
       var div = document.createElement("div");
       div.className = "lu-feature-item";
       if (buildRec && buildRec.headline && buildRec.headline.toLowerCase().indexOf(f.name.toLowerCase()) !== -1) {
@@ -465,8 +465,8 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
   }
   // Фичи подкласса
   var subName = isNewClass ? (_luMulticlassChoice ? _luMulticlassChoice.subclass : "") : (classEntry ? classEntry.subclass : char.subclass);
-  if (subName && typeof SUBCLASS_FEATURES !== "undefined" && SUBCLASS_FEATURES[subName] && SUBCLASS_FEATURES[subName][classLevel]) {
-    SUBCLASS_FEATURES[subName][classLevel].forEach(function(f) {
+  if (subName && edData(char).SUBCLASS_FEATURES[subName] && edData(char).SUBCLASS_FEATURES[subName][classLevel]) {
+    edData(char).SUBCLASS_FEATURES[subName][classLevel].forEach(function(f) {
       var div = document.createElement("div");
       div.className = "lu-feature-item lu-feature-subclass";
       div.innerHTML = "<span class='subclass-badge'>" + escapeHtml(subName) + "</span><div class=\"lu-feature-name\">" + escapeHtml(f.name) + "</div><div class=\"lu-feature-desc\">" + escapeHtml(f.desc) + "</div>";
@@ -475,8 +475,8 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
   }
 
   // Если мультикласс-новый — показать какие владения получает
-  if (isNewClass && typeof MULTICLASS_PROFICIENCIES !== "undefined" && MULTICLASS_PROFICIENCIES[className]) {
-    var profs = MULTICLASS_PROFICIENCIES[className];
+  if (isNewClass && edData(char).MULTICLASS_PROFICIENCIES[className]) {
+    var profs = edData(char).MULTICLASS_PROFICIENCIES[className];
     var profParts = [];
     if (profs.armor && profs.armor.length) profParts.push("Броня: " + profs.armor.join(", "));
     if (profs.weapons && profs.weapons.length) profParts.push("Оружие: " + profs.weapons.join(", "));
@@ -533,8 +533,8 @@ if (choice && choice.isNew) {
   char.classes.push({ class: className, level: 1, subclass: subclassName, hitDie: hitDie });
   classLevel = 1;
   // Добавляем владения от мультикласса
-  if (typeof MULTICLASS_PROFICIENCIES !== "undefined" && MULTICLASS_PROFICIENCIES[className]) {
-    var profs = MULTICLASS_PROFICIENCIES[className];
+  if (edData(char).MULTICLASS_PROFICIENCIES[className]) {
+    var profs = edData(char).MULTICLASS_PROFICIENCIES[className];
     if (!char.proficiencies) char.proficiencies = { armor:[], weapon:[], tools:"", languages:"" };
     if (profs.armor) profs.armor.forEach(function(a) {
       var key = a.toLowerCase();
@@ -545,7 +545,7 @@ if (choice && choice.isNew) {
   // Повышаем существующий класс
   var entry = char.classes[choice.classIndex];
   className = entry.class;
-  hitDie = entry.hitDie || CLASS_HIT_DICE[className] || 8;
+  hitDie = entry.hitDie || edData(char).CLASS_HIT_DICE[className] || 8;
   subclassName = entry.subclass || "";
   entry.level += 1;
   classLevel = entry.level;
@@ -553,7 +553,7 @@ if (choice && choice.isNew) {
 } else {
   // Одноклассовый (без мультикласса)
   className = char.class;
-  hitDie = CLASS_HIT_DICE[className] || 8;
+  hitDie = edData(char).CLASS_HIT_DICE[className] || 8;
   subclassName = char.subclass || "";
   isNewClass = false;
   if (char.classes.length > 0) {
@@ -597,15 +597,15 @@ if (isMulticlass(char)) {
   }
   // BUGFIX-1: пакт-ячейки Колдуна хранятся отдельно (PHB p.165, восст. на коротком отдыхе)
   var warlockEntry = char.classes.find(function(c) { return c.class === "Колдун"; });
-  if (warlockEntry && SPELL_SLOTS_BY_LEVEL["Колдун"] && SPELL_SLOTS_BY_LEVEL["Колдун"][warlockEntry.level]) {
-    var pact = resolvePactSlots(SPELL_SLOTS_BY_LEVEL["Колдун"][warlockEntry.level]);
+  if (warlockEntry && edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"] && edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"][warlockEntry.level]) {
+    var pact = resolvePactSlots(edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"][warlockEntry.level]);
     char.spells.pactSlots = pact.cnt;
     char.spells.pactLevel = pact.lvl;
   }
 } else {
   // Одноклассовый Колдун: всё в пакт-ячейках, обычные слоты пустые
-  if (className === "Колдун" && SPELL_SLOTS_BY_LEVEL["Колдун"] && SPELL_SLOTS_BY_LEVEL["Колдун"][newTotalLevel]) {
-    var pactSingle = resolvePactSlots(SPELL_SLOTS_BY_LEVEL["Колдун"][newTotalLevel]);
+  if (className === "Колдун" && edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"] && edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"][newTotalLevel]) {
+    var pactSingle = resolvePactSlots(edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"][newTotalLevel]);
     char.spells.pactSlots = pactSingle.cnt;
     char.spells.pactLevel = pactSingle.lvl;
     for (var jw = 1; jw <= 9; jw++) {
@@ -617,8 +617,8 @@ if (isMulticlass(char)) {
     // своя таблица (PHB стр. 75 и 98), в SPELL_SLOTS_BY_LEVEL её нет, и
     // одноклассовый мистик оставался вообще без ячеек.
     var slots = (typeof classSpellSlotRow === "function")
-      ? classSpellSlotRow(className, char.subclass || "", newTotalLevel)
-      : (SPELL_SLOTS_BY_LEVEL[className] && SPELL_SLOTS_BY_LEVEL[className][newTotalLevel]) || null;
+      ? classSpellSlotRow(className, char.subclass || "", newTotalLevel, char)
+      : (edData(char).SPELL_SLOTS_BY_LEVEL[className] && edData(char).SPELL_SLOTS_BY_LEVEL[className][newTotalLevel]) || null;
     if (slots) {
       for (var j = 1; j <= 9; j++) {
         char.spells.slots[j] = slots[j] || 0;
@@ -644,12 +644,12 @@ renderJournal();
 var resultLines = ["" + dndIcoHtml("heart", 13) + " ХП: " + oldMaxHP + " → " + newMaxHP + " (+" + hpGain + ")", "" + dndIcoHtml("dice", 13) + " Костей хитов: " + newTotalLevel];
 if (isMulticlass(char)) resultLines.push("" + dndIcoHtml("sheet", 13) + " " + getClassLabel(char));
 if (newProf !== oldProf) resultLines.push("" + dndIcoHtml("zap", 13) + " Бонус мастерства: +" + oldProf + " → +" + newProf);
-if (CLASS_FEATURES[className] && CLASS_FEATURES[className][classLevel]) {
-  var names = CLASS_FEATURES[className][classLevel].map(function(f) { return f.name; });
+if (edData(char).CLASS_FEATURES[className] && edData(char).CLASS_FEATURES[className][classLevel]) {
+  var names = edData(char).CLASS_FEATURES[className][classLevel].map(function(f) { return f.name; });
   resultLines.push("" + dndIcoHtml("sparkle", 13) + " Новые умения: " + names.join(", "));
 }
-if (subclassName && typeof SUBCLASS_FEATURES !== "undefined" && SUBCLASS_FEATURES[subclassName] && SUBCLASS_FEATURES[subclassName][classLevel]) {
-  var subNames = SUBCLASS_FEATURES[subclassName][classLevel].map(function(f) { return f.name; });
+if (subclassName && edData(char).SUBCLASS_FEATURES[subclassName] && edData(char).SUBCLASS_FEATURES[subclassName][classLevel]) {
+  var subNames = edData(char).SUBCLASS_FEATURES[subclassName][classLevel].map(function(f) { return f.name; });
   resultLines.push("" + dndIcoHtml("focus", 13) + " " + subclassName + ": " + subNames.join(", "));
 }
 if (isNewClass) resultLines.push("" + dndIcoHtml("plus", 13) + " Новый класс: " + className);
@@ -681,9 +681,9 @@ function _luShowResult() {
   // BUILD-LVL-4: подкласс мог быть выбран во время guided-шага → добавить его фичи в итог.
   var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
   if (char && char.subclass && !ctx.subclassName && ctx.classLevel &&
-      typeof SUBCLASS_FEATURES !== "undefined" && SUBCLASS_FEATURES[char.subclass] &&
-      SUBCLASS_FEATURES[char.subclass][ctx.classLevel]) {
-    var sn = SUBCLASS_FEATURES[char.subclass][ctx.classLevel].map(function(f){ return f.name; });
+      edData(char).SUBCLASS_FEATURES[char.subclass] &&
+      edData(char).SUBCLASS_FEATURES[char.subclass][ctx.classLevel]) {
+    var sn = edData(char).SUBCLASS_FEATURES[char.subclass][ctx.classLevel].map(function(f){ return f.name; });
     lines.push("" + dndIcoHtml("focus", 13) + " " + char.subclass + ": " + sn.join(", "));
   }
   $("lu-screen-choices").style.display = "none";
@@ -789,9 +789,9 @@ function luApplyAsi(char, asi) {
 // хранилище выбора в обоих случаях по имени класса (cn) — как в ccGetStored/ccSetStored.
 function _ccDefsFor(cn, char) {
   var defs = [];
-  if (typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[cn]) defs = defs.concat(CLASS_CHOICES[cn]);
-  if (char && char.subclass && typeof SUBCLASS_CHOICES !== "undefined" && SUBCLASS_CHOICES[char.subclass]) {
-    defs = defs.concat(SUBCLASS_CHOICES[char.subclass]);
+  if (edData(char).CLASS_CHOICES[cn]) defs = defs.concat(edData(char).CLASS_CHOICES[cn]);
+  if (char && char.subclass && edData(char).SUBCLASS_CHOICES[char.subclass]) {
+    defs = defs.concat(edData(char).SUBCLASS_CHOICES[char.subclass]);
   }
   return defs;
 }
@@ -815,10 +815,10 @@ function luApplyAllRecommendations() {
 
   // 1) Подкласс
   var subMinLevel = null;
-  if (typeof SUBCLASSES !== "undefined" && SUBCLASSES[cn] && typeof SUBCLASS_FEATURES !== "undefined") {
-    SUBCLASSES[cn].forEach(function(s){
-      if (SUBCLASS_FEATURES[s]) {
-        var mn = Math.min.apply(null, Object.keys(SUBCLASS_FEATURES[s]).map(Number));
+  if (edData(char).SUBCLASSES[cn]) {
+    edData(char).SUBCLASSES[cn].forEach(function(s){
+      if (edData(char).SUBCLASS_FEATURES[s]) {
+        var mn = Math.min.apply(null, Object.keys(edData(char).SUBCLASS_FEATURES[s]).map(Number));
         if (subMinLevel === null || mn < subMinLevel) subMinLevel = mn;
       }
     });
@@ -834,8 +834,8 @@ function luApplyAllRecommendations() {
   }
 
   // 2) ASI / черта
-  var isAsiLevel = (typeof CLASS_FEATURES !== "undefined" && CLASS_FEATURES[cn] && CLASS_FEATURES[cn][clvl]) &&
-    CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; });
+  var isAsiLevel = (edData(char).CLASS_FEATURES[cn] && edData(char).CLASS_FEATURES[cn][clvl]) &&
+    edData(char).CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; });
   if (isAsiLevel) {
     // LVL-1: АСИ отмечается по классу и его уровню, а не по суммарному уровню
     var asiDone = _luAsiDone(char, cn, clvl);
@@ -936,20 +936,20 @@ function luBuildChoicesScreen() {
 
   // 1) ВЫБОР ПОДКЛАССА — если открывается на этом уровне класса.
   var subMinLevel = null;
-  if (typeof SUBCLASSES !== "undefined" && SUBCLASSES[cn] && typeof SUBCLASS_FEATURES !== "undefined") {
-    SUBCLASSES[cn].forEach(function(s){
-      if (SUBCLASS_FEATURES[s]) {
-        var mn = Math.min.apply(null, Object.keys(SUBCLASS_FEATURES[s]).map(Number));
+  if (edData(char).SUBCLASSES[cn]) {
+    edData(char).SUBCLASSES[cn].forEach(function(s){
+      if (edData(char).SUBCLASS_FEATURES[s]) {
+        var mn = Math.min.apply(null, Object.keys(edData(char).SUBCLASS_FEATURES[s]).map(Number));
         if (subMinLevel === null || mn < subMinLevel) subMinLevel = mn;
       }
     });
   }
   if (subMinLevel === clvl && !char.subclass) {
     var recSub = b ? b.subclass : null;
-    var optsHtml = SUBCLASSES[cn].map(function(s){
+    var optsHtml = edData(char).SUBCLASSES[cn].map(function(s){
       var isRec = (s === recSub);
       // SUB-0: приписка источника подкласса на кнопке выбора level-up.
-      var src = (typeof subclassSourceShort === "function") ? subclassSourceShort(s) : "";
+      var src = (typeof subclassSourceShort === "function") ? subclassSourceShort(s, char) : "";
       var srcHtml = src ? ' <span class="lu-src-tag">' + escapeHtml(src) + '</span>' : '';
       return '<button class="lu-choice-opt' + (isRec ? ' is-rec' : '') + '" onclick="luSetSubclass(\'' + s.replace(/'/g,"\\'") + '\')">' +
         escapeHtml(s) + srcHtml + (isRec ? ' ' + recBadge('совет') : '') + '</button>';
@@ -962,8 +962,8 @@ function luBuildChoicesScreen() {
   }
 
   // 2) ASI / ЧЕРТА — если на этом уровне класса есть «Увеличение характеристик».
-  var isAsiLevel = (typeof CLASS_FEATURES !== "undefined" && CLASS_FEATURES[cn] && CLASS_FEATURES[cn][clvl]) &&
-    CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; });
+  var isAsiLevel = (edData(char).CLASS_FEATURES[cn] && edData(char).CLASS_FEATURES[cn][clvl]) &&
+    edData(char).CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; });
   if (isAsiLevel) {
     var asiDone = _luAsiDone(char, cn, clvl);
     var recAsi = (b && b.levelUp && b.levelUp[newLevel]) ? b.levelUp[newLevel] : null;
@@ -1013,8 +1013,8 @@ function luBuildChoicesScreen() {
   // BUILD-LVL-4: кнопка «применить рекомендации билда разом» — если есть билд и незакрытые рек-выборы.
   var hasOpenRec = false;
   if (b) {
-    var asiOpen = (typeof CLASS_FEATURES !== "undefined" && CLASS_FEATURES[cn] && CLASS_FEATURES[cn][clvl] &&
-      CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; })) &&
+    var asiOpen = (edData(char).CLASS_FEATURES[cn] && edData(char).CLASS_FEATURES[cn][clvl] &&
+      edData(char).CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; })) &&
       !_luAsiDone(char, cn, clvl) &&
       !!(b.levelUp && b.levelUp[newLevel] && (b.levelUp[newLevel].feat || b.levelUp[newLevel].asi ||
          (typeof parseAsiFromHeadline === "function" && parseAsiFromHeadline(b.levelUp[newLevel].headline)) ||
@@ -1126,8 +1126,8 @@ function openLevelDownConfirm() {
       }
       if (diffEntry) { cn = diffEntry.class; clvl = diffEntry.level; }
     }
-    if (typeof CLASS_FEATURES !== "undefined" && CLASS_FEATURES[cn] && CLASS_FEATURES[cn][clvl]) {
-      var names = CLASS_FEATURES[cn][clvl].map(function(f){ return f.name; });
+    if (edData(char).CLASS_FEATURES[cn] && edData(char).CLASS_FEATURES[cn][clvl]) {
+      var names = edData(char).CLASS_FEATURES[cn][clvl].map(function(f){ return f.name; });
       if (names.length) lostLines.push("Умения " + cn + " " + clvl + " ур.: " + names.join(", "));
     }
   } catch(e) { console.error("[UI-9] features diff failed:", e); }

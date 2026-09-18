@@ -65,7 +65,7 @@ function migrateToMulticlass(char) {
       class: char.class,
       level: char.level || 1,
       subclass: char.subclass || "",
-      hitDie: (typeof CLASS_HIT_DICE !== "undefined" ? CLASS_HIT_DICE[char.class] : 8) || 8
+      hitDie: edData(char).CLASS_HIT_DICE[char.class] || 8
     });
   }
 }
@@ -102,11 +102,10 @@ function getClassLine(char) {
 
 /** Проверить выполнение требований для мультикласса */
 function checkMulticlassPrereqs(char, targetClass) {
-  if (typeof MULTICLASS_PREREQUISITES === "undefined") return { ok: true, missing: [] };
   // Проверяем требования выхода из текущего класса (основного)
   var missing = [];
   // Проверяем требования входа в новый класс
-  var reqs = MULTICLASS_PREREQUISITES[targetClass];
+  var reqs = edData(char).MULTICLASS_PREREQUISITES[targetClass];
   if (reqs) {
     Object.keys(reqs).forEach(function(stat) {
       var val = char.stats[stat] || 10;
@@ -122,7 +121,7 @@ function checkMulticlassPrereqs(char, targetClass) {
   }
   // Проверяем требования выхода из текущего основного класса
   if (char.class) {
-    var exitReqs = MULTICLASS_PREREQUISITES[char.class];
+    var exitReqs = edData(char).MULTICLASS_PREREQUISITES[char.class];
     if (exitReqs) {
       Object.keys(exitReqs).forEach(function(stat) {
         var val = char.stats[stat] || 10;

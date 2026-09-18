@@ -658,13 +658,14 @@ const SUBCLASS_SOURCE = {
   "Потусторонний рыцарь":"HB","Договор с Безгласным":"HB"
 };
 // Короткая метка источника для UI («PHB» / «XGtE» / «авторский»…). "" если неизвестен.
-function subclassSourceShort(name) {
-  var code = SUBCLASS_SOURCE[name];
+// E24-7: char необязателен — с ним источник берётся из таблицы редакции персонажа.
+function subclassSourceShort(name, char) {
+  var code = (char ? edData(char).SUBCLASS_SOURCE : SUBCLASS_SOURCE)[name];
   return (code && SOURCE_LABELS[code]) ? SOURCE_LABELS[code].short : "";
 }
 // Полное имя книги-источника (для title/тултипа).
-function subclassSourceFull(name) {
-  var code = SUBCLASS_SOURCE[name];
+function subclassSourceFull(name, char) {
+  var code = (char ? edData(char).SUBCLASS_SOURCE : SUBCLASS_SOURCE)[name];
   return (code && SOURCE_LABELS[code]) ? SOURCE_LABELS[code].full : "";
 }
 if (typeof window !== "undefined") {
@@ -2372,7 +2373,7 @@ const XP_THRESHOLDS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.103.0";
+const APP_VERSION = "3.103.1";
 const APP_VERSION_DATE = "2026-09-18";
 
 // ============================================================
@@ -2722,9 +2723,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "3.103.0",
+    version: "3.103.1",
     date: "18 сентября 2026",
     badge: "new",
+    changes: [
+      { type: "chore", text: "Мост классовых таблиц (E24-7): все обращения к CLASS_FEATURES, SUBCLASS_FEATURES, SUBCLASSES, SUBCLASS_LEVEL, CLASS_RESOURCES, CLASS_CHOICES, SUBCLASS_CHOICES, ASI_LEVELS, CASTER_TYPE, CLASS_HIT_DICE, SPELL_SLOTS_BY_LEVEL, MULTICLASS_* в app-hp, app-progress, app-builds, app-combat, app-core, app-ui, app-proficiencies и rules.js идут через edData(char); в registry добавлены SUBCLASS_SOURCE, SUBCLASS_RESOURCES, SUBCLASS_ARMOR, SUBCLASS_TOOLS, SUBCLASS_LANGUAGES; _mergeByClass в data-2024.js; секция «Edition-слой» в ARCHITECTURE.md. Поведение 2014 не меняется, тесты 800." }
+    ]
+  },
+  {
+    version: "3.103.0",
+    date: "18 сентября 2026",
+    badge: "old",
     changes: [
       { type: "feat", text: "Мастерство оружия 2024 — приём мастерства у каждого из 37 видов оружия (8 приёмов: Прорубание, Задевание, Выпад, Толкание, Изнурение, Замедление, Опрокидывание, Подавление), бейдж приёма с расшифровкой в строке оружия вкладки «Бой» у персонажа редакции 2024, каталог оружия 2024 (трезубец 1к8, длинное копьё 1к10, боевая кирка универсальная, мушкет и пистоль, без сети), термины приёмов в глоссарии, поле выбранного мастерства в персонаже (схема 37)" }
     ]
@@ -5711,7 +5720,14 @@ function _buildEdition2014() {
     RACE_DATA:                 (typeof RACE_DATA                !== 'undefined') ? RACE_DATA                : {},
     RACE_LANGUAGES:            (typeof RACE_LANGUAGES           !== 'undefined') ? RACE_LANGUAGES           : {},
     CASTER_TYPE:               (typeof CASTER_TYPE              !== 'undefined') ? CASTER_TYPE              : {},
-    SPELL_PREP_CLASSES:        (typeof SPELL_PREP_CLASSES       !== 'undefined') ? SPELL_PREP_CLASSES       : {}
+    SPELL_PREP_CLASSES:        (typeof SPELL_PREP_CLASSES       !== 'undefined') ? SPELL_PREP_CLASSES       : {},
+    // E24-7: словари по имени подкласса и по классу→подклассу (имена подклассов
+    // совпадают между редакциями — читать только через edData).
+    SUBCLASS_SOURCE:           (typeof SUBCLASS_SOURCE          !== 'undefined') ? SUBCLASS_SOURCE          : {},
+    SUBCLASS_RESOURCES:        (typeof SUBCLASS_RESOURCES       !== 'undefined') ? SUBCLASS_RESOURCES       : {},
+    SUBCLASS_ARMOR:            (typeof SUBCLASS_ARMOR           !== 'undefined') ? SUBCLASS_ARMOR           : {},
+    SUBCLASS_TOOLS:            (typeof SUBCLASS_TOOLS           !== 'undefined') ? SUBCLASS_TOOLS           : {},
+    SUBCLASS_LANGUAGES:        (typeof SUBCLASS_LANGUAGES       !== 'undefined') ? SUBCLASS_LANGUAGES       : {}
   };
 }
 

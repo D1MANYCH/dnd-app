@@ -284,7 +284,7 @@ function _applyBuildCore(buildId) {
   // BUILD-FIX-1: HP на 1 уровне = max(hitDie) + conMod, AC = 10 + dexMod (база, calculateAC уточнит)
   var _conMod = Math.floor(((newChar.stats.con || 10) - 10) / 2);
   var _dexMod = Math.floor(((newChar.stats.dex || 10) - 10) / 2);
-  var _hd = (typeof CLASS_HIT_DICE !== "undefined" && CLASS_HIT_DICE[b.className]) || 8;
+  var _hd = edData(newChar).CLASS_HIT_DICE[b.className] || 8;
   newChar.combat.hpMax = _hd + _conMod;
   newChar.combat.hpCurrent = newChar.combat.hpMax;
   newChar.combat.hpDice = "1к" + _hd;
@@ -311,7 +311,7 @@ function _applyBuildCore(buildId) {
   // FIN-2: конкретные владения класса (recalcArmorWeaponFromSources пересоберёт их же)
   var _cw = (typeof CLASS_WEAPONS_SPECIFIC !== "undefined") && CLASS_WEAPONS_SPECIFIC[b.className];
   if (Array.isArray(_cw)) _cw.forEach(function(w){ _addProf(newChar.proficiencies.specificWeapons, w); });
-  var _sa = (typeof SUBCLASS_ARMOR !== "undefined") && SUBCLASS_ARMOR[b.className] && SUBCLASS_ARMOR[b.className][b.subclass];
+  var _sa = edData(newChar).SUBCLASS_ARMOR[b.className] && edData(newChar).SUBCLASS_ARMOR[b.className][b.subclass];
   if (_sa) {
     (_sa.armor||[]).forEach(function(t){ _addProf(newChar.proficiencies.armor, t); });
     (_sa.weapon||[]).forEach(function(t){ _addProf(newChar.proficiencies.weapon, t); });
@@ -424,8 +424,8 @@ function _applyBuildCore(buildId) {
   var _spellAb = _spellAbilityByClass[b.className] || "";
   if (_spellAb) newChar.spells.stat = _spellAb;
   // BUILD-FIX-3: ячейки заклинаний 1-го уровня (включая пактовые слоты колдуна)
-  if (typeof SPELL_SLOTS_BY_LEVEL !== "undefined" && SPELL_SLOTS_BY_LEVEL[b.className]) {
-    var _slotsRow = SPELL_SLOTS_BY_LEVEL[b.className][1] || [];
+  if (edData(newChar).SPELL_SLOTS_BY_LEVEL[b.className]) {
+    var _slotsRow = edData(newChar).SPELL_SLOTS_BY_LEVEL[b.className][1] || [];
     for (var _li = 1; _li <= 9; _li++) {
       newChar.spells.slots[_li] = _slotsRow[_li] || 0;
       newChar.spells.slotsUsed[_li] = 0;
@@ -885,10 +885,10 @@ function _applyBuildCore(buildId) {
   });
   // BUILD-LVL-3/5: авто-применить рекомендованные выборы 1-го уровня
   // (стиль боя воина — single; экспертиза плута — multi, до getCount навыков).
-  if (b.recommendedChoices && typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[b.className]) {
+  if (b.recommendedChoices && edData(newChar).CLASS_CHOICES[b.className]) {
     newChar.classChoices = newChar.classChoices || {};
     newChar.classChoices[b.className] = newChar.classChoices[b.className] || {};
-    CLASS_CHOICES[b.className].forEach(function(cc){
+    edData(newChar).CLASS_CHOICES[b.className].forEach(function(cc){
       if (cc.minLevel > 1) return;
       var rec = b.recommendedChoices[cc.id];
       if (!rec) return;
@@ -1078,7 +1078,7 @@ function openBuildGuide(buildId) {
     escapeHtml(BP_DIFF_LABELS[_diff] || "") + '</b> — ' + escapeHtml(BP_DIFF_DESC[_diff] || "") + '</div>';
   if (g.pitch) html += '<div class="bg-pitch">' + dndIcoHtml("target", 13) + ' ' + gx(g.pitch) + '</div>';
   // UX-4: шкала живучести d6→d12 с подсветкой кости хитов класса.
-  var _hd = (typeof CLASS_HIT_DICE !== "undefined" && CLASS_HIT_DICE[b.className]) || 0;
+  var _hd = edData(b).CLASS_HIT_DICE[b.className] || 0;  // E24-7: b.edition (билды 2024 — E24-15), без поля → 2014
   if (_hd) {
     var _HD_DESC = {
       6:  "Самая малая кость хитов — мало здоровья, держись подальше от ближнего боя.",
@@ -1590,13 +1590,13 @@ function openClassPlan(className) {
     return;
   }
   var cname = className || ch.class;
-  if (typeof CLASS_FEATURES === "undefined" || !CLASS_FEATURES[cname]) {
+  if (!edData(ch).CLASS_FEATURES[cname]) {
     if (typeof showToast === "function") showToast("Нет данных по этому классу", "warn");
     return;
   }
   var subName = _cpSubclassOf(ch, cname);
-  var cls = CLASS_FEATURES[cname];
-  var sub = (subName && typeof SUBCLASS_FEATURES !== "undefined") ? SUBCLASS_FEATURES[subName] : null;
+  var cls = edData(ch).CLASS_FEATURES[cname];
+  var sub = subName ? edData(ch).SUBCLASS_FEATURES[subName] : null;
   var curLevel = (typeof charClassLevel === "function") ? charClassLevel(ch, cname) : (ch.level || 1);
   if (!curLevel) curLevel = ch.level || 1;
   var titleEl = document.getElementById("bp-plan-title-h");
@@ -1619,7 +1619,7 @@ function openClassPlan(className) {
   }
   var bodyEl = document.getElementById("bp-plan-body");
   if (bodyEl) {
-    var subSrc = (subName && typeof subclassSourceShort === "function") ? subclassSourceShort(subName) : "";
+    var subSrc = (subName && typeof subclassSourceShort === "function") ? subclassSourceShort(subName, ch) : "";
     var meta = escapeHtml(cname) +
       (subName ? ' · ' + escapeHtml(subName) + (subSrc ? ' (' + escapeHtml(subSrc) + ')' : '')
                : ' · подкласс не выбран (фичи архетипа появятся после выбора)') +

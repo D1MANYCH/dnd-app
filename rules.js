@@ -61,10 +61,10 @@ function charClassLevelOr(char, className, level) {
  *  Расписание ASI_LEVELS отсчитывается от уровня КЛАССА (PHB, «Мультиклассирование»). */
 function charAsiSlots(char) {
   var out = [];
-  if (!char || typeof ASI_LEVELS === "undefined") return out;
+  if (!char) return out;
   getCharClassPairs(char).forEach(function(p) {
     var lvl = charClassLevel(char, p.cls);
-    var sched = ASI_LEVELS[p.cls] || ASI_LEVELS["default"] || [];
+    var sched = edData(char).ASI_LEVELS[p.cls] || edData(char).ASI_LEVELS["default"] || [];
     sched.forEach(function(l) {
       if (l <= lvl) out.push({ cls: p.cls, level: l });
     });
@@ -75,9 +75,9 @@ function charAsiSlots(char) {
 /** Классы, доросшие до выбора подкласса, у которых он не выбран: [{cls, at}] */
 function charSubclassPending(char) {
   var out = [];
-  if (!char || typeof SUBCLASS_LEVEL === "undefined") return out;
+  if (!char) return out;
   getCharClassPairs(char).forEach(function(p) {
-    var at = SUBCLASS_LEVEL[p.cls];
+    var at = edData(char).SUBCLASS_LEVEL[p.cls];
     if (!at || p.sub) return;
     if (charClassLevel(char, p.cls) >= at) out.push({ cls: p.cls, at: at });
   });
@@ -295,7 +295,7 @@ function charCasterLevel(char) {
     : (char.class ? [{ class: char.class, level: char.level || 0, subclass: char.subclass || "" }] : []);
   list.forEach(function(entry) {
     if (!entry || !entry.class) return;
-    var ct = (typeof CASTER_TYPE !== "undefined") ? CASTER_TYPE[entry.class] : "none";
+    var ct = edData(char).CASTER_TYPE[entry.class] || "none";
     var lv = entry.level || 0;
     if (ct === "third") {
       // Воин и Плут — заклинатели только с подклассом мистика.
@@ -321,10 +321,10 @@ function charCasterLevel(char) {
 /** Ячейки ОДНОГО класса по его уровню: обычная таблица класса, а у мистического
  *  рыцаря и мистического ловкача — своя (PHB стр. 75 и 98), её в
  *  SPELL_SLOTS_BY_LEVEL нет. Возвращает копию строки или null. */
-function classSpellSlotRow(cls, sub, level) {
+function classSpellSlotRow(cls, sub, level, char) {
   if (!cls || !level) return null;
-  if (typeof SPELL_SLOTS_BY_LEVEL !== "undefined" && SPELL_SLOTS_BY_LEVEL[cls] && SPELL_SLOTS_BY_LEVEL[cls][level]) {
-    return SPELL_SLOTS_BY_LEVEL[cls][level].slice();
+  if (edData(char).SPELL_SLOTS_BY_LEVEL[cls] && edData(char).SPELL_SLOTS_BY_LEVEL[cls][level]) {
+    return edData(char).SPELL_SLOTS_BY_LEVEL[cls][level].slice();
   }
   if (typeof THIRD_CASTER_SUBCLASSES !== "undefined" && typeof THIRD_CASTER_SLOTS !== "undefined" &&
       THIRD_CASTER_SUBCLASSES.indexOf(sub) !== -1 && THIRD_CASTER_SLOTS[level]) {
@@ -338,7 +338,7 @@ function getMulticlassSpellSlots(char) {
   if (!char.classes || char.classes.length <= 1) {
     // Одноклассовый — своя таблица класса (у мистиков — таблица подкласса)
     var only = (char.classes && char.classes[0]) ? char.classes[0] : { class: char.class, level: char.level, subclass: char.subclass };
-    var row = classSpellSlotRow(only.class, only.subclass || "", only.level || char.level);
+    var row = classSpellSlotRow(only.class, only.subclass || "", only.level || char.level, char);
     return row || [0,0,0,0,0,0,0,0,0,0];
   }
   var cl = charCasterLevel(char);
@@ -349,7 +349,7 @@ function getMulticlassSpellSlots(char) {
   var casting = cl.casters.filter(function(c) { return c.type !== "pact"; });
   if (casting.length === 1) {
     var one = casting[0];
-    var row = classSpellSlotRow(one.cls, one.sub || "", one.level);
+    var row = classSpellSlotRow(one.cls, one.sub || "", one.level, char);
     if (row) return row;
   }
   // Мультикласс — caster level считает charCasterLevel (там же правило третей)
@@ -601,8 +601,8 @@ function recalcLanguagesFromSources(char) {
       (CLASS_LANGUAGES[p.cls].fixed || []).forEach(function(n){ add(n, "class"); });
     }
     // Подкласс
-    if (p.sub && typeof SUBCLASS_LANGUAGES !== "undefined" && SUBCLASS_LANGUAGES[p.cls] && SUBCLASS_LANGUAGES[p.cls][p.sub]) {
-      var sd = SUBCLASS_LANGUAGES[p.cls][p.sub];
+    if (p.sub && edData(char).SUBCLASS_LANGUAGES[p.cls] && edData(char).SUBCLASS_LANGUAGES[p.cls][p.sub]) {
+      var sd = edData(char).SUBCLASS_LANGUAGES[p.cls][p.sub];
       (sd.fixed || []).forEach(function(n){ add(n, "subclass"); });
       var subKey = "subclass_" + p.cls + "_" + p.sub;
       var subPicks = (char.proficiencies.languageChoices[subKey]) || [];
@@ -740,8 +740,8 @@ function recalcToolsFromSources(char) {
       });
     }
     // Подкласс
-    if (p.sub && typeof SUBCLASS_TOOLS !== "undefined" && SUBCLASS_TOOLS[cn] && SUBCLASS_TOOLS[cn][p.sub]) {
-      var sc = SUBCLASS_TOOLS[cn][p.sub];
+    if (p.sub && edData(char).SUBCLASS_TOOLS[cn] && edData(char).SUBCLASS_TOOLS[cn][p.sub]) {
+      var sc = edData(char).SUBCLASS_TOOLS[cn][p.sub];
       (sc.fixed || []).forEach(function(n){ add(n, "subclass"); });
       (sc.choices || []).forEach(function(slot, idx) {
         var key = "subclass_" + cn + "_" + p.sub + "_" + idx;
@@ -810,8 +810,8 @@ function recalcArmorWeaponFromSources(char) {
       (ca.armor  || []).forEach(function(t){ addArmor(t,  "class"); });
       (ca.weapon || []).forEach(function(t){ addWeapon(t, "class"); });
     }
-    if (pair.sub && typeof SUBCLASS_ARMOR !== "undefined" && SUBCLASS_ARMOR[pair.cls] && SUBCLASS_ARMOR[pair.cls][pair.sub]) {
-      var sa = SUBCLASS_ARMOR[pair.cls][pair.sub];
+    if (pair.sub && edData(char).SUBCLASS_ARMOR[pair.cls] && edData(char).SUBCLASS_ARMOR[pair.cls][pair.sub]) {
+      var sa = edData(char).SUBCLASS_ARMOR[pair.cls][pair.sub];
       (sa.armor  || []).forEach(function(t){ addArmor(t,  "subclass"); });
       (sa.weapon || []).forEach(function(t){ addWeapon(t, "subclass"); });
     }

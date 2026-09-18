@@ -25,7 +25,7 @@ function _pgClassList(char) {
   var out = [];
   if (!char) return out;
   var die = function(cls, own) {
-    return own || ((typeof CLASS_HIT_DICE !== "undefined" && CLASS_HIT_DICE[cls]) || 8);
+    return own || edData(char).CLASS_HIT_DICE[cls] || 8;
   };
   if (char.classes && char.classes.length) {
     char.classes.forEach(function(c, i) {
@@ -128,7 +128,7 @@ function _pgProfRow(char) {
 // именно здесь мультикласс обещает лишние увеличения, если считать по сумме.
 function _pgAsiRow(char, list) {
   if (!list.length) return "";
-  var table = (typeof ASI_LEVELS !== "undefined") ? ASI_LEVELS : null;
+  var table = edData(char).ASI_LEVELS;
   if (!table) return "";
   var lines = list.map(function(e) {
     var sched = table[e.cls] || table["default"] || [];
@@ -246,7 +246,7 @@ function _pgGrownLast(char, list) {
 }
 
 function _pgClassRow(char, e, open) {
-  var at = (typeof SUBCLASS_LEVEL !== "undefined") ? SUBCLASS_LEVEL[e.cls] : 0;
+  var at = edData(char).SUBCLASS_LEVEL[e.cls] || 0;
   var meta = e.level + " ур.", warn = false;
   if (e.sub) {
     meta += ' <span class="hp-dot">·</span> ' + escapeHtml(e.sub);
@@ -258,8 +258,8 @@ function _pgClassRow(char, e, open) {
   }
 
   var body = "";
-  var cf = (typeof CLASS_FEATURES !== "undefined") ? CLASS_FEATURES[e.cls] : null;
-  var sf = (typeof SUBCLASS_FEATURES !== "undefined" && e.sub) ? SUBCLASS_FEATURES[e.sub] : null;
+  var cf = edData(char).CLASS_FEATURES[e.cls] || null;
+  var sf = e.sub ? edData(char).SUBCLASS_FEATURES[e.sub] : null;
   for (var l = 1; l <= e.level; l++) {
     var isNew = (l === e.level);
     if (cf && cf[l]) cf[l].forEach(function(f) { body += _pgFeat(e.cls, "", l, f.name, isNew); });
@@ -270,9 +270,9 @@ function _pgClassRow(char, e, open) {
   if (!e.sub && at) {
     if (e.level >= at) {
       var opts = '<option value="">Выберите подкласс</option>';
-      var all = (typeof SUBCLASSES !== "undefined" && SUBCLASSES[e.cls]) ? SUBCLASSES[e.cls] : [];
+      var all = edData(char).SUBCLASSES[e.cls] || [];
       all.forEach(function(s) {
-        var src = (typeof subclassSourceShort === "function") ? subclassSourceShort(s) : "";
+        var src = (typeof subclassSourceShort === "function") ? subclassSourceShort(s, char) : "";
         opts += '<option value="' + escapeHtml(s) + '">' + escapeHtml(src ? s + " · " + src : s) + "</option>";
       });
       body += '<select class="field flat-field pg-sub-select" onchange="pgSetSubclass(' + e.idx + ', this.value)">' +
@@ -314,8 +314,8 @@ function _pgNext(char, list) {
     if (e.level >= 20) return;
     var nl = e.level + 1;
     var names = [], body = "";
-    var cf = (typeof CLASS_FEATURES !== "undefined") ? CLASS_FEATURES[e.cls] : null;
-    var sf = (typeof SUBCLASS_FEATURES !== "undefined" && e.sub) ? SUBCLASS_FEATURES[e.sub] : null;
+    var cf = edData(char).CLASS_FEATURES[e.cls] || null;
+    var sf = e.sub ? edData(char).SUBCLASS_FEATURES[e.sub] : null;
     var add = function(f) {
       names.push(f.name);
       body += "<p><b>" + escapeHtml(f.name) + "</b> — " + escapeHtml(f.desc || "") + "</p>";
@@ -324,7 +324,7 @@ function _pgNext(char, list) {
     if (sf && sf[nl]) sf[nl].forEach(add);
     // Умение подкласса стоит в таблице класса своим именем («Архетип плута»),
     // поэтому вторым чипом его не дублируем — только поясняем в раскрытии.
-    var at = (typeof SUBCLASS_LEVEL !== "undefined") ? SUBCLASS_LEVEL[e.cls] : 0;
+    var at = edData(char).SUBCLASS_LEVEL[e.cls] || 0;
     if (at === nl && !e.sub) {
       body += "<p>На этом уровне класса впервые выбирается подкласс.</p>";
     }
@@ -540,8 +540,9 @@ function _pgSheetAboutRow(char, list) {
  *  не открытый по уровню класса. */
 function _pgSubclassRows(list) {
   var out = "";
+  var _ed = edData((typeof getCurrentChar === "function") ? getCurrentChar() : null);  // E24-7
   list.forEach(function(e) {
-    var at = (typeof SUBCLASS_LEVEL !== "undefined" && SUBCLASS_LEVEL[e.cls]) || 3;
+    var at = _ed.SUBCLASS_LEVEL[e.cls] || 3;
     var val, act, go;
     if (e.sub) {
       val = e.sub; act = "Развитие →"; go = "openProgress()";
@@ -597,14 +598,15 @@ function syncClassFieldUI(char) {
 // ── Экран «Об умении» ───────────────────────────────────────
 function openFeatureInfo(cls, sub, level, name) {
   var found = null, src = "";
+  var _ed = edData((typeof getCurrentChar === "function") ? getCurrentChar() : null);  // E24-7
   var pick = function(table, label) {
     if (found || !table || !table[level]) return;
     table[level].forEach(function(f) {
       if (!found && f.name === name) { found = f; src = label; }
     });
   };
-  if (sub && typeof SUBCLASS_FEATURES !== "undefined") pick(SUBCLASS_FEATURES[sub], sub);
-  if (typeof CLASS_FEATURES !== "undefined") pick(CLASS_FEATURES[cls], cls);
+  if (sub) pick(_ed.SUBCLASS_FEATURES[sub], sub);
+  pick(_ed.CLASS_FEATURES[cls], cls);
   if (!found) {
     if (typeof showToast === "function") showToast("Нет описания этого умения", "warn");
     return;
@@ -613,7 +615,7 @@ function openFeatureInfo(cls, sub, level, name) {
   if (title) title.textContent = found.name;
   var srcLabel = escapeHtml(src) + " <span class=\"hp-dot\">·</span> " + level + " ур.";
   if (sub && src === sub && typeof subclassSourceShort === "function") {
-    var s = subclassSourceShort(sub);
+    var s = subclassSourceShort(sub, (typeof getCurrentChar === "function") ? getCurrentChar() : null);
     if (s) srcLabel += ' <span class="hp-dot">·</span> ' + escapeHtml(s);
   }
   // LVL-4: описание проходит через глоссарий — термины становятся нажимаемыми

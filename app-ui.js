@@ -420,9 +420,9 @@ function getCharResourceDefs(char) {
   pairs.forEach(function(p) {
     var lvl = (typeof charClassLevel === "function") ? charClassLevel(char, p.cls) : (char.level || 1);
     if (!lvl) lvl = char.level || 1;
-    var base = (typeof CLASS_RESOURCES !== "undefined" && CLASS_RESOURCES[p.cls]) ? CLASS_RESOURCES[p.cls] : null;
+    var base = edData(char).CLASS_RESOURCES[p.cls] || null;
     var own = (base && Array.isArray(base.resources)) ? base.resources.slice() : [];
-    var subDef = (p.sub && typeof SUBCLASS_RESOURCES !== "undefined") ? SUBCLASS_RESOURCES[p.sub] : null;
+    var subDef = p.sub ? edData(char).SUBCLASS_RESOURCES[p.sub] : null;
     if (subDef && Array.isArray(subDef.resources)) own = own.concat(subDef.resources);
     own.forEach(function(r) {
       var copy = Object.assign({}, r);

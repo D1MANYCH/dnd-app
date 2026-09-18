@@ -607,12 +607,14 @@ function updateSubclassOptions() {
   const selectedClass = classSelect.value;
   const levelEl = $("char-level");
   const level = Math.max(1, parseInt(levelEl && levelEl.value, 10) || 1);
-  const unlockLevel = (typeof SUBCLASS_LEVEL !== "undefined" && SUBCLASS_LEVEL[selectedClass]) || 3;
+  var _uch = currentId ? getCurrentChar() : null;
+  var _ed = edData(_uch);  // E24-7: классовые таблицы по редакции персонажа
+  const unlockLevel = _ed.SUBCLASS_LEVEL[selectedClass] || 3;
 
   subclassSelect.innerHTML = "";
   subclassSelect.classList.remove("subclass-locked");
 
-  if (!selectedClass || !SUBCLASSES[selectedClass]) {
+  if (!selectedClass || !_ed.SUBCLASSES[selectedClass]) {
     subclassSelect.appendChild(new Option("Сначала выберите класс", ""));
     subclassSelect.disabled = true;
     updateSubclassRecHint();
@@ -631,9 +633,9 @@ function updateSubclassOptions() {
 
   subclassSelect.disabled = false;
   subclassSelect.appendChild(new Option("Выберите подкласс", ""));
-  SUBCLASSES[selectedClass].forEach(function(subclass) {
+  _ed.SUBCLASSES[selectedClass].forEach(function(subclass) {
     // SUB-0: приписка источника в подписи опции (значение = чистое имя подкласса).
-    var src = (typeof subclassSourceShort === "function") ? subclassSourceShort(subclass) : "";
+    var src = (typeof subclassSourceShort === "function") ? subclassSourceShort(subclass, _uch) : "";
     var opt = new Option(src ? subclass + " · " + src : subclass, subclass);
     var full = (typeof subclassSourceFull === "function") ? subclassSourceFull(subclass) : "";
     if (full) opt.title = full;
@@ -642,7 +644,7 @@ function updateSubclassOptions() {
 
   if (currentId) {
     var char = getCurrentChar();
-    if (char && char.subclass && SUBCLASSES[selectedClass].indexOf(char.subclass) !== -1) {
+    if (char && char.subclass && _ed.SUBCLASSES[selectedClass].indexOf(char.subclass) !== -1) {
       subclassSelect.value = char.subclass;
     }
   }
@@ -680,7 +682,7 @@ if (!levelEl || !conEl || !classEl) return;
 const level = parseInt(levelEl.value, 10) || 1;
 const conMod = getMod(parseInt(conEl.value, 10) || 10);
 const className = classEl.value;
-const hitDie = CLASS_HIT_DICE[className] || 8;
+const hitDie = edData(char).CLASS_HIT_DICE[className] || 8;
 // CAST-3: живые бонусы максимума от кастов («Подмога») — поверх авто-расчёта,
 // иначе перезагрузка/переключение персонажа молча съедает бонус, а реверт
 // при экспирации уводит hpMax НИЖЕ базы. Инвариант: hpMax = авто-база + бонусы.
@@ -725,13 +727,13 @@ if (_scEl && !_scEl.disabled) char.subclass = _scEl.value || "";
 // Синхронизируем char.classes[0] с UI (только если не мультикласс)
 if (typeof migrateToMulticlass === "function") migrateToMulticlass(char);
 if (!char.classes || char.classes.length === 0) {
-  char.classes = [{class: char.class, level: char.level, subclass: char.subclass, hitDie: (typeof CLASS_HIT_DICE !== "undefined" ? CLASS_HIT_DICE[char.class] : 8) || 8}];
+  char.classes = [{class: char.class, level: char.level, subclass: char.subclass, hitDie: edData(char).CLASS_HIT_DICE[char.class] || 8}];
 } else if (char.classes.length === 1) {
   // Одноклассовый — обновляем primary class из UI
   char.classes[0].class = char.class;
   char.classes[0].subclass = char.subclass;
   char.classes[0].level = char.level;
-  char.classes[0].hitDie = (typeof CLASS_HIT_DICE !== "undefined" ? CLASS_HIT_DICE[char.class] : 8) || 8;
+  char.classes[0].hitDie = edData(char).CLASS_HIT_DICE[char.class] || 8;
 } else {
   // Мультикласс — обновляем только подкласс primary (класс и уровень управляются level-up UI)
   char.classes[0].class = char.class;
@@ -1384,8 +1386,9 @@ function updateLockButtonState() {
   if (!(levelVal >= 1 && levelVal <= 20)) missing.push("уровень");
 
   // Подкласс обязателен только если уже открыт по уровню
-  if (cls && typeof SUBCLASS_LEVEL !== "undefined") {
-    var unlock = SUBCLASS_LEVEL[cls] || 3;
+  var _ed = edData(currentId ? getCurrentChar() : null);  // E24-7: классовые таблицы по редакции персонажа
+  if (cls) {
+    var unlock = _ed.SUBCLASS_LEVEL[cls] || 3;
     if (levelVal >= unlock) {
       var sub = ($("char-subclass") && $("char-subclass").value || "").trim();
       if (!sub) missing.push("подкласс");
