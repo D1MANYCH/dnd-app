@@ -42,7 +42,7 @@ Line-level map for ranged reads (CSS sections, markup blocks, function and data-
 
 ## Run and test
 - Preview — the `dnd-app` config in `.claude/launch.json` (`preview_start`, port 3017), or any static server from the repo root; the PWA needs `https` or `localhost`. Browser verification goes through the `verifier` subagent (skill `verify-ui`).
-- `/test` (= `node tests/headless-node.js`) — logic; `tests/runner.html` — same in a browser; `tests.html` in the root — `rules.js` cases only; `verifyAllBuilds()` in the DevTools console — builds, currently 36/36 fullPass.
+- `/test` (= `node tests/headless-node.js`) — logic; `tests/runner.html` — same in a browser; `tests.html` in the root — `rules.js` cases only; `verifyAllBuilds()` in the DevTools console — builds; since AUD-3 it also checks point buy / race / class spell lists: 19/36 fullPass until AUD-12 fixes P23–P26.
 
 ## Versioning
 Release invariant — five values change together in one command:

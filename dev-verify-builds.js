@@ -26,6 +26,26 @@
   };
   // Классы, у которых заклинания/слоты появляются только с 2-го уровня — на 1 ур. slots[1]=0 норма.
   var SPELLS_FROM_LVL_2 = { "Паладин":1, "Следопыт":1 };
+  // AUD-3 (P27): законность билда. b.stats — база покупки очков ДО расового бонуса (PHB 13).
+  var POINT_BUY_COST = { 8:0, 9:1, 10:2, 11:3, 12:4, 13:5, 14:7, 15:9 };
+  var SPELL_LIST_KEY = {
+    "Бард":"bard", "Жрец":"cleric", "Друид":"druid", "Паладин":"paladin", "Следопыт":"ranger",
+    "Чародей":"sorcerer", "Колдун":"warlock", "Волшебник":"wizard"
+  };
+  // Подклассы-заклинатели «чужого» класса берут список волшебника (PHB 75, 98).
+  var SUBCLASS_LIST_KEY = { "Мистический рыцарь":"wizard", "Мистический ловкач":"wizard" };
+  // Заклинания домена / расширенный список покровителя 1 ур. (PHB 60–63, 109–110) — вне классового списка законны.
+  var SUBCLASS_SPELLS_LVL1 = {
+    "Домен бури":["Волна грома","Туманное облако"], "Домен войны":["Божественное благоволение","Щит веры"],
+    "Домен жизни":["Благословение","Лечение ран"],
+    "Договор с феей":["Огонь фей","Усыпление"], "Договор с исчадием":["Огненные ладони","Приказ"]
+  };
+  // Заговоры и известные заклинания на 1 ур. по таблицам классов PHB 2014.
+  var CANTRIPS_LVL1 = { "Бард":2, "Жрец":3, "Друид":2, "Чародей":4, "Колдун":2, "Волшебник":3 };
+  var KNOWN_LVL1 = { "Бард":4, "Чародей":2, "Колдун":2, "Волшебник":6 };
+  // Расовые заговоры: не входят в классовый лимит и список (PHB 23, 24, 37, 43).
+  var RACE_CANTRIPS = { "Тифлинг":["Чудотворство"], "Дроу":["Пляшущие огоньки"], "Лесной гном":["Малая иллюзия"] };
+  var RACE_ANY_WIZARD_CANTRIP = { "Высший эльф":1 };
 
   function _check(name, ok, value, expected) {
     return { field: name, ok: !!ok, value: value, expected: expected };
@@ -159,6 +179,40 @@
       });
     } else {
       checks.push(_check("notes object exists", false, "(missing)", "object"));
+    }
+
+    // === ЗАКОННОСТЬ (AUD-3, P27): покупка очков, раса, списки классов ===
+    var pbCost = 0, pbBad = [];
+    ["str","dex","con","int","wis","cha"].forEach(function(k){
+      var v = (b.stats || {})[k];
+      if (POINT_BUY_COST[v] === undefined) pbBad.push(k + "=" + v); else pbCost += POINT_BUY_COST[v];
+    });
+    checks.push(_check("point buy 8..15", pbBad.length === 0, pbBad.join(",") || "ok", "8..15"));
+    checks.push(_check("point buy <=27", pbCost <= 27, pbCost, "<=27"));
+    var raceData = (typeof RACE_DATA !== "undefined") ? RACE_DATA : {};
+    checks.push(_check("race in RACE_DATA", !!raceData[b.race], b.race, "RACE_DATA key"));
+
+    var listKey = SUBCLASS_LIST_KEY[b.subclass] || SPELL_LIST_KEY[b.className];
+    var raceFixed = RACE_CANTRIPS[b.race] || [];
+    var raceAny = RACE_ANY_WIZARD_CANTRIP[b.race] || 0;
+    var foreign = [], classCantrips = 0, classKnown = 0;
+    (ch.spells.mySpells || []).forEach(function(s){
+      var lvl0 = !s.level;
+      if (lvl0 && raceFixed.indexOf(s.name) >= 0) return;
+      var inList = (!!listKey && (s.classes || []).indexOf(listKey) >= 0) ||
+        (!lvl0 && (SUBCLASS_SPELLS_LVL1[b.subclass] || []).indexOf(s.name) >= 0);
+      if (lvl0 && raceAny > 0 && (s.classes || []).indexOf("wizard") >= 0 && (!inList || classCantrips >= (CANTRIPS_LVL1[b.className] || 0))) {
+        raceAny--; return;
+      }
+      if (!inList) foreign.push(s.name);
+      if (lvl0) classCantrips++; else classKnown++;
+    });
+    checks.push(_check("spells in class list", foreign.length === 0, foreign.join(", ") || "ok", listKey || "(no list)"));
+    if (CANTRIPS_LVL1[b.className] !== undefined) {
+      checks.push(_check("cantrips @lvl1", classCantrips === CANTRIPS_LVL1[b.className], classCantrips, CANTRIPS_LVL1[b.className]));
+    }
+    if (KNOWN_LVL1[b.className] !== undefined) {
+      checks.push(_check("known spells @lvl1", classKnown === KNOWN_LVL1[b.className], classKnown, KNOWN_LVL1[b.className]));
     }
 
     var failed = checks.filter(function(c){ return !c.ok; });

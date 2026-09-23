@@ -3,8 +3,12 @@
 # Сайт статический (vanilla, без сборки) — артефакт = корень репозитория как есть, без Jekyll.
 name: pages
 
+# AUD-3 (W2): деплой только после зелёного tests на main (push или ручной запуск tests),
+# красные тесты в прод не уходят. Ручной запуск pages остаётся аварийным обходом.
 on:
-  push:
+  workflow_run:
+    workflows: [tests]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -20,6 +24,10 @@ concurrency:
 
 jobs:
   deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event != 'pull_request')
     runs-on: ubuntu-latest
     # Страховка сверху: сам deploy-pages ждёт 20 минут (см. timeout ниже).
     timeout-minutes: 30
@@ -27,17 +35,20 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/configure-pages@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Деплоим ровно тот коммит, который прошёл tests.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       # Имя артефакта уникально по попытке запуска: deploy-pages ищет артефакты по всему
       # прогону, включая прошлые попытки, и на «Re-run jobs» с общим именем падает
       # с «Multiple artifacts named "github-pages" … count is 2».
-      - uses: actions/upload-pages-artifact@v5
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: .
           name: github-pages-${{ github.run_attempt }}
       - id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
           artifact_name: github-pages-${{ github.run_attempt }}
           # Деплой на стороне GitHub иногда стоит в очереди дольше дефолтных 10 минут

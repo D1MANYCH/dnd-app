@@ -9,14 +9,21 @@ name: tests
 # идёт через API мимо вебхуков и работал — так был доставлен деплой pages.
 on: [push, pull_request, workflow_dispatch]
 
+# AUD-3 (W9): только чтение репозитория.
+permissions:
+  contents: read
+
 jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 24
+      # AUD-3 (W8): синтаксис всех js вне vendor/, включая не загружаемые тестами (app-desktop, app-pdf, фоны, build-notes-data).
+      - name: Синтаксис (node --check всех *.js)
+        run: git ls-files '*.js' ':!:vendor/**' | xargs -n1 node --check
       - name: Headless-тесты
         run: node tests/headless-node.js
       - name: Инвариант релиза (APP_VERSION ↔ APP_CHANGELOG ↔ CACHE_NAME ↔ ?v= ↔ CHANGELOG.md, подключения ↔ FILES_TO_CACHE)
