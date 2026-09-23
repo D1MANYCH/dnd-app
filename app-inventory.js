@@ -1290,12 +1290,13 @@ function rollTWFAttack(index) {
   if (!char) return;
   var weapon = char.weapons[index];
   if (!weapon) return;
+  var hint = rulesConditionRollMods(char, "attack");
   showRollModePopup(function(mode) {
     var statKey = weapon.stat || "str";
     var statVal = char.stats[statKey] || 10;
     var statMod = getMod(statVal);
     var profBonus = getProficiencyBonus(parseInt($("char-level")?.value, 10) || 1);
-    var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
+    var attackBonus = statMod + (weapon.proficient ? profBonus : 0) + hint.penalty;
     var d = rollD20WithMode(mode);
     openDiceModal();
     var qty = (mode === 'adv' || mode === 'dis') ? 2 : 1;
@@ -1329,7 +1330,7 @@ function rollTWFAttack(index) {
       renderDiceHistory();
       rollTWFDamage(index);
     }, { qty: qty });
-  });
+  }, hint);
 }
 
 function rollTWFDamage(index) {
@@ -1367,12 +1368,13 @@ const char = getCurrentChar();
 if (!char) return;
 const weapon = char.weapons[index];
 if (!weapon) return;
+var hint = rulesConditionRollMods(char, "attack");
 showRollModePopup(function(mode) {
   var statKey = weapon.stat || "str";
   var statVal = char.stats[statKey] || 10;
   var statMod = getMod(statVal);
   var profBonus = getProficiencyBonus(parseInt($("char-level")?.value, 10) || 1);
-  var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
+  var attackBonus = statMod + (weapon.proficient ? profBonus : 0) + hint.penalty;
   var d = rollD20WithMode(mode);
   openDiceModal();
   var qty = (mode === 'adv' || mode === 'dis') ? 2 : 1;
@@ -1407,7 +1409,7 @@ showRollModePopup(function(mode) {
     if (diceHistory.length > 10) diceHistory.pop();
     renderDiceHistory();
   }, { qty: qty });
-});
+}, hint);
 }
 
 function rollWeaponDamage(index) {

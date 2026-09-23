@@ -943,9 +943,11 @@ function getSelfStatusFromHP() {
   if (!char) return "healthy";
   var hp  = char.combat.hpCurrent || 0;
   var max = char.combat.hpMax    || 1;
+  // AUD-6 (L31): мёртв только по спасброскам/истощению 6; 0 ХП — «при смерти»
+  if (rulesIsDead(char)) return "dead";
   if (max <= 0) return "healthy";
   var pct = Math.round(hp / max * 100);
-  if (pct <= 0)  return "dead";
+  if (pct <= 0)  return "dying";
   if (pct <= 15) return "dying";
   if (pct <= 35) return "heavy";
   if (pct <= 60) return "wounded";

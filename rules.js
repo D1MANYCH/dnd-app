@@ -690,14 +690,156 @@ function rulesLongRest(char, opts) {
   }
   char.effects = [];
   char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
+  // AUD-6: истощение 4+ (2014) держит максимум ХП вдвое ниже
+  char.combat.hpCurrent = Math.min(char.combat.hpCurrent, rulesEffectiveHpMax(char));
   // FIN-8: восстановить заряды предметов (палочки/посохи/жезлы)
   var chargesRestored = restoreItemCharges(char);
   return {
     blocked: false, reason: null,
-    hpBefore: hpBefore, hpAfter: maxHp, hitDiceRestored: hitDiceRestored,
+    hpBefore: hpBefore, hpAfter: char.combat.hpCurrent, hitDiceRestored: hitDiceRestored,
     exhaustionReduced: exhaustionReduced, exhaustionHeld: exhaustionHeld,
     chargesRestored: chargesRestored
   };
+}
+
+// ── 0 ХП, спасброски от смерти, состояния (AUD-6, PHB стр.197, 290–292) ──
+function rulesExhaustionLevel(char) {
+  var c = (char && char.conditions) || [];
+  for (var i = 6; i >= 1; i--) { if (c.indexOf("exhaustion_" + i) !== -1) return i; }
+  return 0;
+}
+// Максимум ХП с учётом истощения 4+ (2014: вдвое; в 2024 истощение максимум не трогает)
+function rulesEffectiveHpMax(char) {
+  var max = parseInt(char && char.combat ? char.combat.hpMax : 0, 10) || 10;
+  if (char && char.edition !== "2024" && rulesExhaustionLevel(char) >= 4) return Math.max(1, Math.floor(max / 2));
+  return max;
+}
+function _dsReset(char) { char.deathSaves = { successes: [false, false, false], failures: [false, false, false] }; }
+function _dsCount(arr) { return (arr || []).filter(Boolean).length; }
+function _dsFill(arr, n) { for (var i = 0; i < 3 && n > 0; i++) { if (!arr[i]) { arr[i] = true; n--; } } }
+function _condAdd(char, id) { if (!char.conditions) char.conditions = []; if (char.conditions.indexOf(id) === -1) char.conditions.push(id); }
+function _condRemove(char, id) { var i = char.conditions ? char.conditions.indexOf(id) : -1; if (i !== -1) char.conditions.splice(i, 1); }
+// Погиб: три провала (в т.ч. мгновенная смерть) или истощение 6
+function rulesIsDead(char) {
+  var ds = char && char.deathSaves;
+  return !!(ds && _dsCount(ds.failures) >= 3) || rulesExhaustionLevel(char) >= 6;
+}
+function rulesIsStable(char) {
+  var ds = char && char.deathSaves;
+  return !!(ds && _dsCount(ds.successes) >= 3) && !rulesIsDead(char);
+}
+// Вернулся с 0 ХП: отметки сбрасываются, «без сознания» от 0 ХП снимается
+function rulesRegainFromZero(char) {
+  _dsReset(char);
+  _condRemove(char, "unconscious");
+}
+// Сопротивление/иммунитет/уязвимость по типу; окаменение — сопротивление всему урону.
+// Порядок: сначала сопротивление (вниз), затем уязвимость (PHB 2014 стр.197, PHB 2024 стр.26)
+function rulesDamageAfterDefenses(char, dmg, type) {
+  dmg = Math.max(0, dmg || 0);
+  if (type && char.immunities && char.immunities.indexOf(type) !== -1) return 0;
+  var resist = !!(type && char.resistances && char.resistances.indexOf(type) !== -1) ||
+    !!(char.conditions && char.conditions.indexOf("petrified") !== -1);
+  if (resist) dmg = Math.floor(dmg / 2);
+  if (type && char.vulnerabilities && char.vulnerabilities.indexOf(type) !== -1) dmg *= 2;
+  return dmg;
+}
+// Урон: сначала временные ХП, затем хиты. Падение до 0 — «без сознания» или мгновенная
+// смерть (остаток ≥ максимума ХП). Урон на 0 ХП — провал спасброска (крит — два),
+// урон ≥ максимума — смерть; стабилизированный снова начинает бросать.
+function rulesApplyDamage(char, dmg, opts) {
+  opts = opts || {};
+  var c = char.combat;
+  var hpBefore = c.hpCurrent || 0;
+  var rest = Math.max(0, dmg || 0);
+  var temp = c.hpTemp || 0;
+  if (temp > 0) { var abs = Math.min(temp, rest); c.hpTemp = temp - abs; rest -= abs; }
+  var r = { hpBefore: hpBefore, hpAfter: hpBefore, toHp: rest, droppedToZero: false, instantDeath: false, failuresAdded: 0, wasStable: false, dead: false };
+  if (!char.deathSaves) _dsReset(char);
+  if (rest <= 0) return r;
+  var max = rulesEffectiveHpMax(char);
+  if (hpBefore > 0) {
+    c.hpCurrent = Math.max(0, hpBefore - rest);
+    r.hpAfter = c.hpCurrent;
+    if (c.hpCurrent === 0) {
+      r.droppedToZero = true;
+      _dsReset(char);
+      if (rest - hpBefore >= max) { r.instantDeath = true; _dsFill(char.deathSaves.failures, 3); }
+      else _condAdd(char, "unconscious");
+    }
+    r.dead = rulesIsDead(char);
+    return r;
+  }
+  if (rulesIsDead(char)) { r.dead = true; return r; }
+  if (rest >= max) {
+    r.instantDeath = true;
+    _dsFill(char.deathSaves.failures, 3);
+  } else {
+    if (_dsCount(char.deathSaves.successes) >= 3) { r.wasStable = true; _dsReset(char); }
+    var before = _dsCount(char.deathSaves.failures);
+    _dsFill(char.deathSaves.failures, opts.crit ? 2 : 1);
+    r.failuresAdded = _dsCount(char.deathSaves.failures) - before;
+    _condAdd(char, "unconscious");
+  }
+  r.dead = rulesIsDead(char);
+  return r;
+}
+function rulesDeathSaveBlockReason(char) {
+  if ((char.combat.hpCurrent || 0) > 0) return "Хитов больше 0 — спасбросок от смерти не нужен";
+  if (rulesIsDead(char)) return "Персонаж погиб";
+  if (rulesIsStable(char)) return "Персонаж стабилизирован";
+  return null;
+}
+// Спасбросок от смерти по выпавшему к20: 20 — 1 хит и сброс отметок, 1 — два провала
+function rulesDeathSave(char, roll) {
+  if (!char.deathSaves) _dsReset(char);
+  var blocked = rulesDeathSaveBlockReason(char);
+  if (blocked) return { blocked: blocked, outcome: null };
+  var ds = char.deathSaves, outcome;
+  if (roll === 20) {
+    char.combat.hpCurrent = 1;
+    rulesRegainFromZero(char);
+    outcome = "revive";
+  } else if (roll === 1) { _dsFill(ds.failures, 2); outcome = "fail2"; }
+  else if (roll >= 10) { _dsFill(ds.successes, 1); outcome = "success"; }
+  else { _dsFill(ds.failures, 1); outcome = "fail"; }
+  return { blocked: null, outcome: outcome, stable: rulesIsStable(char), dead: rulesIsDead(char) };
+}
+// Состояния, которые делают недееспособным и срывают концентрацию (PHB стр.203)
+var CONC_BREAK_CONDITIONS = ["incapacitated", "paralyzed", "petrified", "stunned", "unconscious"];
+// Что состояния и истощение делают с броском к20: kind — "attack" | "check" | "save",
+// ability — ключ характеристики спасброска. dis / autoFail — id состояний-причин,
+// penalty — штраф истощения 2024 (−2 за степень к любому к20).
+function rulesConditionRollMods(char, kind, ability) {
+  var c = (char && char.conditions) || [];
+  var has = function(id) { return c.indexOf(id) !== -1; };
+  var out = { dis: [], autoFail: [], penalty: 0 };
+  var addIf = function(list, ids) { ids.forEach(function(id) { if (has(id)) list.push(id); }); };
+  if (kind === "attack") addIf(out.dis, ["blinded", "frightened", "poisoned", "prone", "restrained"]);
+  if (kind === "check") addIf(out.dis, ["frightened", "poisoned"]);
+  if (kind === "save" && ability === "dex") addIf(out.dis, ["restrained"]);
+  if (kind === "save" && (ability === "str" || ability === "dex")) addIf(out.autoFail, ["paralyzed", "petrified", "stunned", "unconscious"]);
+  var exh = rulesExhaustionLevel(char);
+  if (exh > 0) {
+    if (char.edition === "2024") out.penalty = -2 * exh;
+    else if (kind === "check" || exh >= 3) out.dis.push("exhaustion_" + exh);
+  }
+  return out;
+}
+// Скорость с учётом состояний и истощения: base — число футов; reasons — id причин
+function rulesEffectiveSpeed(char, base) {
+  var c = (char && char.conditions) || [];
+  var reasons = [];
+  // ошеломлённый 2024 двигаться может (PHB 2024 стр.356)
+  var zero = ["grappled", "restrained", "paralyzed", "petrified", "unconscious"];
+  if (!char || char.edition !== "2024") zero.push("stunned");
+  zero.forEach(function(id) { if (c.indexOf(id) !== -1) reasons.push(id); });
+  var exh = rulesExhaustionLevel(char);
+  if (reasons.length) return { speed: 0, reasons: reasons };
+  if (exh > 0 && char.edition === "2024") return { speed: Math.max(0, base - 5 * exh), reasons: ["exhaustion_" + exh] };
+  if (exh >= 5) return { speed: 0, reasons: ["exhaustion_" + exh] };
+  if (exh >= 2) return { speed: Math.floor(base / 2), reasons: ["exhaustion_" + exh] };
+  return { speed: base, reasons: [] };
 }
 
 // ── Концентрация ────────────────────────────────────────────

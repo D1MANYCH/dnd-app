@@ -1160,7 +1160,10 @@ const failures = char.deathSaves.failures.filter(Boolean).length;
 const statusEl = $("ds-status");
 if (statusEl) {
 statusEl.className = "ds-status";
-if (successes >= 3) {
+if (rulesIsDead(char)) {
+statusEl.textContent = "💀 Персонаж погиб";
+statusEl.classList.add("ds-dead");
+} else if (successes >= 3) {
 statusEl.textContent = "✅ Стабилизирован";
 statusEl.classList.add("ds-stable");
 } else if (failures >= 3) {
@@ -1170,6 +1173,8 @@ statusEl.classList.add("ds-dead");
 statusEl.textContent = "⚠️ При смерти (" + successes + "/3 успехов, " + failures + "/3 провалов)";
 }
 }
+const dsRollBtn = $("ds-roll-btn");
+if (dsRollBtn) dsRollBtn.disabled = !!rulesDeathSaveBlockReason(char);
 }
 
 function toggleDeathSave(type, index) {
@@ -1208,6 +1213,7 @@ const char = getCurrentChar();
 if (!char) return;
 const hpCurrent = char.combat.hpCurrent || 0;
 const hpMax = char.combat.hpMax || 10;
+const hpMaxEff = rulesEffectiveHpMax(char);
 const hpTemp = char.combat.hpTemp || 0;
 
 // Скрытые поля
@@ -1221,7 +1227,7 @@ const dispMax = $("hp-max-manual");
 if (dispCurrent) {
 dispCurrent.textContent = hpCurrent;
 dispCurrent.className = "hp-big-num";
-const pct = hpMax > 0 ? (hpCurrent / hpMax) * 100 : 0;
+const pct = hpMaxEff > 0 ? (hpCurrent / hpMaxEff) * 100 : 0;
 if (hpCurrent <= 0) dispCurrent.classList.add("hp-zero");
 else if (pct <= 25) dispCurrent.classList.add("hp-low");
 else if (pct <= 50) dispCurrent.classList.add("hp-medium");
@@ -1231,7 +1237,7 @@ if (dispMax && document.activeElement !== dispMax) dispMax.value = hpMax;
 // Полоска ХП
 const hpBar = $("hp-bar");
 if (hpBar) {
-const pct = hpMax > 0 ? Math.max(0, Math.min(100, (hpCurrent / hpMax) * 100)) : 0;
+const pct = hpMaxEff > 0 ? Math.max(0, Math.min(100, (hpCurrent / hpMaxEff) * 100)) : 0;
 hpBar.style.width = pct + "%";
 hpBar.className = "hp-bar";
 if (pct === 0) hpBar.classList.add("hp-bar-empty");
@@ -1265,7 +1271,7 @@ deathSavesSection.style.display = hpCurrent <= 0 ? "block" : "none";
 
 // HP2: шапка со сводкой + поведение строк раздела
 updateHPSummary();
-updateHPRows(hpCurrent, hpMax);
+updateHPRows(hpCurrent, hpMaxEff);
 
 updateStatusBar();
 syncSelfBattleStatus();
@@ -1306,14 +1312,26 @@ function updateHPSummary() {
   var hpCurrent = char.combat.hpCurrent || 0;
   var hpMax = char.combat.hpMax || 10;
   var hpTemp = char.combat.hpTemp || 0;
+  // AUD-6 (L16): истощение 4+ режет максимум вдвое
+  var hpMaxEff = rulesEffectiveHpMax(char);
 
   var maxEl = $("hp-head-max");
-  if (maxEl) maxEl.textContent = hpMax;
+  if (maxEl) {
+    maxEl.textContent = hpMaxEff;
+    maxEl.title = hpMaxEff < hpMax ? "Истощение: максимум " + hpMax + " уменьшен вдвое" : "";
+  }
+  var typeSel = $("hp-dmg-type");
+  if (typeSel && typeSel.options && typeSel.options.length === 1 && typeof DAMAGE_TYPES !== "undefined") {
+    DAMAGE_TYPES.forEach(function(dt) { var o = document.createElement("option"); o.value = dt; o.textContent = dt; typeSel.appendChild(o); });
+  }
 
   var tailEl = $("hp-head-tail");
   if (tailEl) {
-    if (hpCurrent <= 0) {
-      tailEl.textContent = "при смерти";
+    if (rulesIsDead(char)) {
+      tailEl.textContent = "погиб";
+      tailEl.className = "hp-head-tail hp-head-tail--dying";
+    } else if (hpCurrent <= 0) {
+      tailEl.textContent = rulesIsStable(char) ? "стабилизирован" : "при смерти";
       tailEl.className = "hp-head-tail hp-head-tail--dying";
     } else {
       var parts = [];
@@ -1322,7 +1340,13 @@ function updateHPSummary() {
       parts.push("КД <b>" + (acVal || 10) + "</b>");
       var initVal = $("combat-init") ? $("combat-init").value : "";
       if (initVal) parts.push("иниц. <b>" + escapeHtml(initVal) + "</b>");
-      parts.push(escapeHtml(char.combat.speed || "30 фт"));
+      var speedTxt = char.combat.speed || "30 фт";
+      var speedBase = parseInt(speedTxt, 10);
+      var sp = isNaN(speedBase) ? null : rulesEffectiveSpeed(char, speedBase);
+      if (sp && sp.speed !== speedBase) {
+        var spWhy = sp.reasons.map(function(id) { return conditionShortName(char, id); }).join(", ");
+        parts.push("<span title=\"" + escapeHtml(spWhy) + "\">" + escapeHtml(speedTxt) + " → <b>" + sp.speed + " фт</b></span>");
+      } else parts.push(escapeHtml(speedTxt));
       tailEl.innerHTML = parts.join("<span class=\"hp-dot\">·</span>");
       tailEl.className = "hp-head-tail";
     }
@@ -1363,32 +1387,40 @@ function updateHPRows(hpCurrent, hpMax) {
 // ============================================
 // БЫСТРОЕ ИЗМЕНЕНИЕ ХП
 // ============================================
-function quickHP(delta, source) {
+function quickHP(delta, source, opts) {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
-const hpTemp = char.combat.hpTemp || 0;
+opts = opts || {};
 const hpBefore = char.combat.hpCurrent || 0;
 let hpCurrent = hpBefore;
-if (delta < 0 && hpTemp > 0) {
-const dmg = Math.abs(delta);
-if (dmg <= hpTemp) {
-char.combat.hpTemp = hpTemp - dmg;
+// AUD-6 (L2, L5): урон — через сопротивления и правила 0 ХП (rules.js)
+let dmgRes = null;
+if (delta < 0) {
+  const dmgIn = rulesDamageAfterDefenses(char, -delta, opts.type);
+  if (dmgIn <= 0) { showToast("🛡️ Иммунитет" + (opts.type ? " к урону «" + opts.type + "»" : "") + " — урон 0", "info"); return; }
+  delta = -dmgIn;
+  dmgRes = rulesApplyDamage(char, dmgIn, { crit: !!opts.crit });
+  hpCurrent = char.combat.hpCurrent;
+  if (dmgRes.instantDeath) showToast("💀 Мгновенная смерть: урон не меньше максимума хитов", "error");
+  else if (dmgRes.failuresAdded) showToast("💔 Урон на 0 ХП: " + (dmgRes.failuresAdded > 1 ? "два провала" : "провал") + " спасброска от смерти" + (dmgRes.dead ? " — персонаж погиб" : ""), "error");
+  else if (dmgRes.droppedToZero) showToast("💤 0 ХП — без сознания", "error");
+  if (dmgRes.droppedToZero || dmgRes.failuresAdded || dmgRes.instantDeath) {
+    loadDeathSaves();
+    if (typeof loadConditions === "function") loadConditions();
+  }
 } else {
-char.combat.hpTemp = 0;
-hpCurrent -= (dmg - hpTemp);
+  if (delta > 0 && rulesIsDead(char)) { showToast("💀 Персонаж погиб — лечение не действует", "error"); return; }
+  hpCurrent = Math.max(0, Math.min(hpBefore + delta, rulesEffectiveHpMax(char)));
+  char.combat.hpCurrent = hpCurrent;
+  // лечение с 0 ХП: отметки сбрасываются, «без сознания» снимается
+  if (hpBefore <= 0 && hpCurrent > 0) {
+    rulesRegainFromZero(char);
+    loadDeathSaves();
+    if (typeof loadConditions === "function") loadConditions();
+  }
 }
-} else {
-hpCurrent += delta;
-}
-hpCurrent = Math.max(0, Math.min(hpCurrent, char.combat.hpMax));
 const actualDelta = hpCurrent - hpBefore;
-char.combat.hpCurrent = hpCurrent;
-// FIX: reset death saves when healed from 0 HP
-if (hpBefore <= 0 && hpCurrent > 0 && delta > 0) {
-  char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
-  loadDeathSaves && loadDeathSaves();
-}
 safeSet("hp-current", hpCurrent);
 safeSet("hp-temp", char.combat.hpTemp);
 if (actualDelta !== 0) {
@@ -1488,7 +1520,12 @@ function applyCustomHP(mode) {
 const input = $("hp-custom-input");
 const val = parseInt(input?.value, 10) || 0;
 if (val <= 0) return;
-if (mode === "dmg") quickHP(-val, "Урон");
+if (mode === "dmg") {
+  const type = $("hp-dmg-type")?.value || "";
+  const crit = !!$("hp-dmg-crit")?.checked;
+  quickHP(-val, "Урон" + (type ? " (" + type + ")" : "") + (crit ? ", крит" : ""), { type: type, crit: crit });
+  if ($("hp-dmg-crit")) $("hp-dmg-crit").checked = false;
+}
 else quickHP(val, "Лечение");
 if (input) input.value = "";
 }
@@ -1556,36 +1593,21 @@ function rollDeathSave() {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
+// AUD-6 (L17, L36): правило — в rules.js; лишний бросок заблокирован
+const blocked = rulesDeathSaveBlockReason(char);
+if (blocked) { showToast(blocked, "info"); loadDeathSaves(); return; }
 const roll = Math.floor(Math.random() * 20) + 1;
 const resultEl = $("ds-roll-result");
-let msg = "";
-let isSuccess = false;
-if (roll === 20) {
-char.combat.hpCurrent = 1;
-saveToLocal();
-updateHPDisplay();
-msg = "20 — стабилизирован! (+1 ХП)";
-isSuccess = true;
-} else if (roll === 1) {
-// 2 провала
-for (let i = 0; i < 3; i++) {
-if (!char.deathSaves.failures[i]) { char.deathSaves.failures[i] = true; break; }
-}
-for (let i = 0; i < 3; i++) {
-if (!char.deathSaves.failures[i]) { char.deathSaves.failures[i] = true; break; }
-}
-msg = "1 — 2 провала!";
-} else if (roll >= 10) {
-for (let i = 0; i < 3; i++) {
-if (!char.deathSaves.successes[i]) { char.deathSaves.successes[i] = true; break; }
-}
-msg = roll + " — успех!";
-isSuccess = true;
-} else {
-for (let i = 0; i < 3; i++) {
-if (!char.deathSaves.failures[i]) { char.deathSaves.failures[i] = true; break; }
-}
-msg = roll + " — провал!";
+const res = rulesDeathSave(char, roll);
+const isSuccess = res.outcome === "revive" || res.outcome === "success";
+let msg = res.outcome === "revive" ? "20 — приходит в себя с 1 ХП!"
+  : res.outcome === "fail2" ? "1 — 2 провала!"
+  : res.outcome === "success" ? roll + " — успех!" : roll + " — провал!";
+if (res.stable) msg += " Стабилизирован.";
+if (res.dead) msg += " Персонаж погиб.";
+if (res.outcome === "revive") {
+  updateHPDisplay();
+  if (typeof loadConditions === "function") loadConditions();
 }
 if (window.AppLog) AppLog.action("hp", "бросок спасброска смерти: " + msg, { roll: roll });
 if (resultEl) {

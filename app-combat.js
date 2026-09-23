@@ -6,7 +6,8 @@
 // ============================================
 // ПОПАП ВЫБОРА РЕЖИМА БРОСКА (Преимущество / Помеха)
 // ============================================
-function showRollModePopup(callback) {
+// hint — rulesConditionRollMods(): помеха/автопровал/штраф от состояний и истощения (AUD-6)
+function showRollModePopup(callback, hint) {
   var existing = document.getElementById("roll-mode-popup-overlay");
   if (existing) existing.remove();
   var overlay = document.createElement("div");
@@ -19,7 +20,9 @@ function showRollModePopup(callback) {
     '<div class="roll-mode-title">Режим броска</div>' +
     '<button class="roll-mode-btn roll-mode-normal" data-mode="normal">' + dndIcoHtml("dice", 14) + ' Обычный</button>' +
     '<button class="roll-mode-btn roll-mode-adv" data-mode="adv">' + dndIcoHtml("arrowUp", 14) + ' Преимущество</button>' +
-    '<button class="roll-mode-btn roll-mode-dis" data-mode="dis">' + dndIcoHtml("arrowDown", 14) + ' Помеха</button>';
+    '<button class="roll-mode-btn roll-mode-dis' + (hint && hint.dis.length ? ' roll-mode-suggested' : '') + '" data-mode="dis">' + dndIcoHtml("arrowDown", 14) + ' Помеха</button>';
+  var note = rollHintText(hint);
+  if (note) popup.insertAdjacentHTML("beforeend", '<div class="roll-mode-note">' + escapeHtml(note) + '</div>');
   popup.querySelectorAll(".roll-mode-btn").forEach(function(btn) {
     btn.onclick = function() {
       overlay.remove();
@@ -28,6 +31,18 @@ function showRollModePopup(callback) {
   });
   overlay.appendChild(popup);
   document.body.appendChild(overlay);
+}
+
+// Подпись подсказки: «Помеха: отравлен, истощение 3 · Автопровал: парализован · −4 истощение»
+function rollHintText(hint) {
+  if (!hint) return "";
+  var char = getCurrentChar();
+  var names = function(ids) { return ids.map(function(id) { return conditionShortName(char, id); }).join(", "); };
+  var parts = [];
+  if (hint.autoFail.length) parts.push("Автопровал: " + names(hint.autoFail));
+  if (hint.dis.length) parts.push("Помеха: " + names(hint.dis));
+  if (hint.penalty) parts.push(hint.penalty + " к броску: истощение");
+  return parts.join(" · ");
 }
 
 // Бросок d20 с поддержкой adv/dis, возвращает {roll, r1, r2, mode, isCrit, isFail}
@@ -104,13 +119,14 @@ function rollSavingThrow(saveKey) {
   if (!char) return;
   var save = SAVES_DATA.find(function(s) { return s.key === saveKey; });
   if (!save) return;
+  var hint = rulesConditionRollMods(char, "save", saveKey);
   showRollModePopup(function(mode) {
     var statMod = getMod(char.stats[saveKey]);
     var profBonus = getProficiencyBonus(parseInt($("char-level")?.value, 10) || 1);
     var checkbox = $("save-prof-" + saveKey);
-    var bonus = statMod + (checkbox && checkbox.checked ? profBonus : 0);
+    var bonus = statMod + (checkbox && checkbox.checked ? profBonus : 0) + hint.penalty;
     quickRoll({ label: "Спас. " + save.name, sides: 20, mod: bonus, mode: mode });
-  });
+  }, hint);
 }
 
 // ── Бросок проверки характеристики (UI6-4: клик по крупному модификатору карточки) ──
@@ -119,10 +135,11 @@ function rollAbilityCheck(abilKey) {
   if (!char) return;
   var abil = abilities.find(function(a) { return a.key === abilKey; });
   if (!abil) return;
+  var hint = rulesConditionRollMods(char, "check");
   showRollModePopup(function(mode) {
-    var bonus = getMod(char.stats[abilKey]);
+    var bonus = getMod(char.stats[abilKey]) + hint.penalty;
     quickRoll({ label: "Проверка " + abil.name, sides: 20, mod: bonus, mode: mode });
-  });
+  }, hint);
 }
 
 // ── Бросок проверки навыка ──
@@ -131,12 +148,13 @@ function rollSkillCheck(skillIndex) {
   if (!char) return;
   var skill = skills[skillIndex];
   if (!skill) return;
+  var hint = rulesConditionRollMods(char, "check");
   showRollModePopup(function(mode) {
     var bonusEl = $("skill-bonus-" + skillIndex);
     var bonus = bonusEl ? parseInt(bonusEl.innerText, 10) : 0;
     if (isNaN(bonus)) bonus = 0;
-    quickRoll({ label: skill.name, sides: 20, mod: bonus, mode: mode });
-  });
+    quickRoll({ label: skill.name, sides: 20, mod: bonus + hint.penalty, mode: mode });
+  }, hint);
 }
 
 // ============================================

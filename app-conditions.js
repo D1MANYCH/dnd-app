@@ -87,14 +87,20 @@ function removeResistance(category, index) {
   renderResistances();
 }
 
-// Применить сопротивление/иммунитет/уязвимость к урону
+// Применить сопротивление/иммунитет/уязвимость к урону (AUD-6: расчёт — rules.js)
 function applyDamageResistance(damage, damageType) {
   var char = getCurrentChar();
   if (!char) return damage;
-  if (char.immunities && char.immunities.indexOf(damageType) !== -1) return 0;
-  if (char.resistances && char.resistances.indexOf(damageType) !== -1) return Math.floor(damage / 2);
-  if (char.vulnerabilities && char.vulnerabilities.indexOf(damageType) !== -1) return damage * 2;
-  return damage;
+  return rulesDamageAfterDefenses(char, damage, damageType);
+}
+
+// AUD-6: имя состояния без эмодзи по id — для подсказок «почему помеха/скорость»
+function conditionShortName(char, id) {
+  var m = /^exhaustion_(\d)$/.exec(id);
+  if (m) return "истощение " + m[1];
+  var set = (typeof edData === "function") ? edData(char).CONDITIONS : CONDITIONS;
+  var c = set.find(function(x) { return x.id === id; });
+  return c ? stripLeadingEmoji(c.name).toLowerCase() : id;
 }
 
 var _condFilter = { q: "", activeOnly: false };
@@ -232,6 +238,11 @@ for (var i = 1; i <= 6; i++) {
 // Ставим новый уровень
 if (next > 0) char.conditions.push("exhaustion_" + next);
 if (window.AppLog && next !== current) AppLog.action("combat", "истощение: " + current + " → " + next);
+// AUD-6 (L16): 4+ — максимум ХП вдвое (2014), 6 — смерть
+if (char.combat && char.combat.hpCurrent > rulesEffectiveHpMax(char)) char.combat.hpCurrent = rulesEffectiveHpMax(char);
+if (next === 6 && current < 6) showToast("💀 Истощение 6 — персонаж погиб", "error");
+if (typeof updateHPDisplay === "function") updateHPDisplay();
+if (typeof loadDeathSaves === "function") loadDeathSaves();
 updateExhaustionDisplay();
 updateConditionsCount();
 updateStatusBar();
@@ -272,6 +283,12 @@ if (conditionEl) conditionEl.classList.remove("active");
 } else {
 char.conditions.push(conditionId);
 if (conditionEl) conditionEl.classList.add("active");
+// AUD-6 (L15): недееспособность прерывает концентрацию (PHB стр.203)
+if (char.concentration && CONC_BREAK_CONDITIONS.indexOf(conditionId) !== -1) {
+  var _concName = char.concentration;
+  endConcentration();
+  showToast("💔 Концентрация «" + _concName + "» прервана: " + conditionShortName(char, conditionId), "error");
+}
 }
 if (window.AppLog) AppLog.action("combat", "состояние " + conditionId + (index > -1 ? ": снято" : ": добавлено"));
 updateConditionsCount();

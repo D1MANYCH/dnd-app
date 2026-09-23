@@ -1474,19 +1474,22 @@
     t("[party] app-party.js загружен", function(){ return true; }); // noop в минимальной среде
   } else {
 
-    t("[party] getSelfStatusFromHP: пороги 0/15/35/60% → dead/dying/heavy/wounded/healthy", function(){
+    t("[party][L31] getSelfStatusFromHP: пороги 0/15/35/60%; 0 ХП — dying, dead — по трём провалам", function(){
       var savedChars = window.characters, savedId = window.currentId;
       try {
         window.characters = [{ id: "test-pt-hp", combat: { hpCurrent: 100, hpMax: 100 } }];
         window.currentId = "test-pt-hp";
         var c = window.characters[0].combat;
         var cases = [[100,"healthy"],[61,"healthy"],[60,"wounded"],[36,"wounded"],[35,"heavy"],
-                     [16,"heavy"],[15,"dying"],[1,"dying"],[0,"dead"],[-5,"dead"]];
+                     [16,"heavy"],[15,"dying"],[1,"dying"],[0,"dying"],[-5,"dying"]];
         for (var i = 0; i < cases.length; i++) {
           c.hpCurrent = cases[i][0];
           var got = getSelfStatusFromHP();
           if (got !== cases[i][1]) return "HP " + cases[i][0] + "/100: ожидал " + cases[i][1] + ", получено " + got;
         }
+        c.hpCurrent = 0;
+        window.characters[0].deathSaves = { successes: [false,false,false], failures: [true,true,true] };
+        if (getSelfStatusFromHP() !== "dead") return "три провала: ожидал dead";
         return true;
       } finally { window.characters = savedChars; window.currentId = savedId; }
     });

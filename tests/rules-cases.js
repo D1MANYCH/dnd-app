@@ -952,6 +952,114 @@ function rulesCases(t, group) {
     if (r.hpHealed !== 2) return "лечение " + r.hpHealed + ", ожидал 2 (упор в максимум)";
     return c.combat.hpCurrent === 20 ? true : "ХП " + c.combat.hpCurrent;
   });
+
+  group("AUD-6: 0 ХП, смерть и состояния");
+
+  function dying(over) {
+    var c = fixture(over);
+    c.combat.hpCurrent = 0; c.combat.hpMax = 20;
+    return c;
+  }
+
+  t("[L2] падение до 0: «без сознания», отметки чистые; остаток ≥ максимума — мгновенная смерть", function() {
+    var c = fixture(); c.combat.hpCurrent = 5; c.combat.hpMax = 20;
+    var r = rulesApplyDamage(c, 10);
+    if (!r.droppedToZero || c.combat.hpCurrent !== 0) return "не упал до 0";
+    if (c.conditions.indexOf("unconscious") === -1) return "нет «без сознания»";
+    if (r.instantDeath || rulesIsDead(c)) return "ложная мгновенная смерть";
+    var d = fixture(); d.combat.hpCurrent = 5; d.combat.hpMax = 20;
+    var r2 = rulesApplyDamage(d, 25);
+    if (!r2.instantDeath || !rulesIsDead(d)) return "5 ХП, урон 25, максимум 20 — должна быть смерть";
+    var e = fixture(); e.combat.hpCurrent = 5; e.combat.hpMax = 20;
+    if (rulesApplyDamage(e, 24).instantDeath) return "остаток 19 < 20 — смерти быть не должно";
+    return true;
+  });
+
+  t("[L2] урон на 0 ХП: провал, крит — два, ≥ максимума — смерть; временные ХП поглощают", function() {
+    var c = dying();
+    var r = rulesApplyDamage(c, 3);
+    if (r.failuresAdded !== 1 || _dsCount(c.deathSaves.failures) !== 1) return "обычный урон: провалов " + _dsCount(c.deathSaves.failures);
+    rulesApplyDamage(c, 3, { crit: true });
+    if (_dsCount(c.deathSaves.failures) !== 3 || !rulesIsDead(c)) return "крит должен добавить два провала и убить";
+    var d = dying();
+    if (!rulesApplyDamage(d, 20).instantDeath) return "урон 20 при максимуме 20 на 0 ХП — смерть";
+    var t0 = dying(); t0.combat.hpTemp = 5;
+    if (rulesApplyDamage(t0, 4).failuresAdded !== 0) return "урон ушёл во временные ХП, провала быть не должно";
+    return true;
+  });
+
+  t("[L2] стабилизированный при уроне снова начинает бросать", function() {
+    var c = dying({ deathSaves: { successes: [true, true, true], failures: [true, false, false] } });
+    var r = rulesApplyDamage(c, 1);
+    if (!r.wasStable) return "не отмечено снятие стабилизации";
+    if (_dsCount(c.deathSaves.successes) !== 0 || _dsCount(c.deathSaves.failures) !== 1) return "отметки " + JSON.stringify(c.deathSaves);
+    return true;
+  });
+
+  t("[L5] сопротивление, иммунитет, уязвимость по типу; окаменение — половина любого урона", function() {
+    var c = fixture({ resistances: ["Огненный"], immunities: ["Яд"], vulnerabilities: ["Холод"] });
+    if (rulesDamageAfterDefenses(c, 11, "Огненный") !== 5) return "сопротивление";
+    if (rulesDamageAfterDefenses(c, 11, "Яд") !== 0) return "иммунитет";
+    if (rulesDamageAfterDefenses(c, 11, "Холод") !== 22) return "уязвимость";
+    if (rulesDamageAfterDefenses(c, 11, "") !== 11) return "без типа";
+    var p = fixture({ conditions: ["petrified"] });
+    if (rulesDamageAfterDefenses(p, 11, "") !== 5) return "окаменение без типа";
+    var pv = fixture({ conditions: ["petrified"], vulnerabilities: ["Холод"] });
+    if (rulesDamageAfterDefenses(pv, 23, "Холод") !== 22) return "окаменение + уязвимость: сначала ½ (11), затем ×2 = 22, получено " + rulesDamageAfterDefenses(pv, 23, "Холод");
+    return true;
+  });
+
+  t("[L17, L36] спасбросок от смерти: 20 — 1 ХП и сброс; блок при ХП > 0, смерти, стабилизации", function() {
+    var c = dying({ deathSaves: { successes: [true, false, false], failures: [true, true, false] }, conditions: ["unconscious"] });
+    var r = rulesDeathSave(c, 20);
+    if (r.outcome !== "revive" || c.combat.hpCurrent !== 1) return "нат. 20 не поднял";
+    if (_dsCount(c.deathSaves.successes) || _dsCount(c.deathSaves.failures)) return "отметки не сброшены";
+    if (c.conditions.indexOf("unconscious") !== -1) return "«без сознания» не снято";
+    if (!rulesDeathSave(c, 5).blocked) return "бросок при 1 ХП не заблокирован";
+    var d = dying({ deathSaves: { successes: [false, false, false], failures: [true, true, true] } });
+    if (!rulesDeathSave(d, 15).blocked) return "бросок мёртвого не заблокирован";
+    var s = dying({ deathSaves: { successes: [true, true, true], failures: [false, false, false] } });
+    if (!rulesDeathSave(s, 15).blocked) return "бросок стабилизированного не заблокирован";
+    var f = dying();
+    rulesDeathSave(f, 1);
+    return _dsCount(f.deathSaves.failures) === 2 ? true : "нат. 1 — два провала";
+  });
+
+  t("[L16] состояния: помеха, автопровал, штраф 2024; истощение 4 — ½ максимума, 6 — смерть", function() {
+    var c = fixture({ conditions: ["poisoned", "restrained", "exhaustion_3"] });
+    var a = rulesConditionRollMods(c, "attack");
+    if (a.dis.join(",") !== "poisoned,restrained,exhaustion_3") return "атака: " + a.dis.join(",");
+    if (rulesConditionRollMods(c, "save", "dex").dis.join(",") !== "restrained,exhaustion_3") return "спас ЛОВ";
+    if (rulesConditionRollMods(fixture({ conditions: ["exhaustion_1"] }), "save", "wis").dis.length) return "истощение 1 не даёт помехи на спасброски";
+    var u = fixture({ conditions: ["unconscious"] });
+    if (rulesConditionRollMods(u, "save", "str").autoFail.join(",") !== "unconscious") return "автопровал СИЛ";
+    if (rulesConditionRollMods(u, "save", "con").autoFail.length) return "автопровал ТЕЛ лишний";
+    var e24 = fixture({ edition: "2024", conditions: ["exhaustion_2"] });
+    var m = rulesConditionRollMods(e24, "check");
+    if (m.penalty !== -4 || m.dis.length) return "2024: штраф " + m.penalty;
+    var h = fixture({ conditions: ["exhaustion_4"] }); h.combat.hpMax = 21;
+    if (rulesEffectiveHpMax(h) !== 10) return "½ максимума: " + rulesEffectiveHpMax(h);
+    h.edition = "2024";
+    if (rulesEffectiveHpMax(h) !== 21) return "2024 не режет максимум";
+    if (!rulesIsDead(fixture({ conditions: ["exhaustion_6"] }))) return "истощение 6 — смерть";
+    return true;
+  });
+
+  t("[L16] скорость: схвачен — 0, истощение 2 — ½, 5 — 0, 2024 — −5 фт за степень", function() {
+    if (rulesEffectiveSpeed(fixture({ conditions: ["grappled"] }), 30).speed !== 0) return "схвачен";
+    if (rulesEffectiveSpeed(fixture({ conditions: ["exhaustion_2"] }), 30).speed !== 15) return "истощение 2";
+    if (rulesEffectiveSpeed(fixture({ conditions: ["exhaustion_5"] }), 30).speed !== 0) return "истощение 5";
+    if (rulesEffectiveSpeed(fixture({ edition: "2024", conditions: ["exhaustion_3"] }), 30).speed !== 15) return "2024";
+    if (rulesEffectiveSpeed(fixture({ conditions: ["stunned"] }), 30).speed !== 0) return "ошеломлён 2014 — 0";
+    if (rulesEffectiveSpeed(fixture({ edition: "2024", conditions: ["stunned"] }), 30).speed !== 30) return "ошеломлён 2024 двигается";
+    return rulesEffectiveSpeed(fixture(), 30).speed === 30 ? true : "без состояний";
+  });
+
+  t("[L16] длинный отдых при истощении 5 → 4: ХП не выше половины максимума", function() {
+    var c = fixture({ conditions: ["exhaustion_5"] }); c.combat.hpCurrent = 3; c.combat.hpMax = 20;
+    rulesLongRest(c);
+    return c.combat.hpCurrent === 10 ? true : "ХП " + c.combat.hpCurrent;
+  });
 }
 
 if (typeof window !== "undefined") window.rulesCases = rulesCases;
