@@ -327,7 +327,7 @@ function renderTools() {
       var info = findToolInCatalog(t.name);
       var title = info ? info.desc : "";
       var rmBtn = (t.source === "custom")
-        ? '<button type="button" class="prof-chip-remove" aria-label="Убрать" onclick="removeCustomTool(\'' + escapeHtml(t.name).replace(/'/g,"\\'") + '\')">×</button>'
+        ? '<button type="button" class="prof-chip-remove" aria-label="Убрать" data-name="' + escapeHtml(t.name) + '" onclick="removeCustomTool(this.dataset.name)">×</button>'
         : '';
       html += '<span class="prof-chip" data-source="' + t.source + '" title="' + escapeHtml(title) + '">' +
         escapeHtml(t.name) +
@@ -519,7 +519,7 @@ function renderWeaponProf() {
     html += '<div class="prof-cat-group"><div class="prof-cat-title">Конкретные оружия</div><div class="prof-chips">';
     specs.forEach(function(w) {
       var rmBtn = (w.source === "custom")
-        ? '<button type="button" class="prof-chip-remove" aria-label="Убрать" onclick="removeCustomSpecificWeapon(\'' + escapeHtml(w.name).replace(/'/g,"\\'") + '\')">×</button>'
+        ? '<button type="button" class="prof-chip-remove" aria-label="Убрать" data-name="' + escapeHtml(w.name) + '" onclick="removeCustomSpecificWeapon(this.dataset.name)">×</button>'
         : '';
       html += '<span class="prof-chip" data-source="' + w.source + '">' +
         escapeHtml(w.name) +

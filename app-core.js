@@ -605,8 +605,8 @@ if (char && char.name) {
   $("header-title").textContent = "Мой Персонаж D&D 5e";
 }
 if (avatarEl) {
-  if (char && char.avatar) {
-    avatarEl.innerHTML = "<img src=\"" + char.avatar + "\" alt=\"\">";
+  if (char && safeImageSrc(char.avatar)) {
+    avatarEl.innerHTML = "<img src=\"" + escapeHtml(safeImageSrc(char.avatar)) + "\" alt=\"\">";
   } else if (char && char.class) {
     avatarEl.innerHTML = getClassIcon(char.class);
   } else {
@@ -1128,8 +1128,8 @@ if (typeof getClassColor === "function" && char.class) {
   hero.style.removeProperty("--home-accent");
 }
 if (emblem) {
-  if (char.avatar) {
-    emblem.innerHTML = "<img class=\"home-hero-img\" src=\"" + char.avatar + "\" alt=\"\" aria-hidden=\"true\">";
+  if (safeImageSrc(char.avatar)) {
+    emblem.innerHTML = "<img class=\"home-hero-img\" src=\"" + escapeHtml(safeImageSrc(char.avatar)) + "\" alt=\"\" aria-hidden=\"true\">";
   } else if (char.class && typeof getClassIcon === "function") {
     emblem.innerHTML = "<span class=\"home-hero-img\">" + getClassIcon(char.class) + "</span>";
   } else {
@@ -1151,10 +1151,10 @@ if (chipEl && typeof _homeHeroChips === "function") {
 }
 if (actEl) {
   actEl.innerHTML =
-    "<button type=\"button\" class=\"char-hero-act\" onclick=\"exportOneCharacter(" + char.id + ", event)\">" + dndIcoHtml("download", 14) + " Экспорт</button>" +
-    "<button type=\"button\" class=\"char-hero-act\" onclick=\"exportCharacterPDF(" + char.id + ", event)\">" + dndIcoHtml("file", 14) + " PDF</button>" +
-    "<button type=\"button\" class=\"char-hero-act\" onclick=\"duplicateCharacter(" + char.id + ", event)\">⧉ Дублировать</button>" +
-    "<button type=\"button\" class=\"char-hero-act char-hero-act-del\" onclick=\"event.stopPropagation(); deleteCharacter(" + char.id + ")\">✕ Удалить</button>";
+    "<button type=\"button\" class=\"char-hero-act\" data-id=\"" + escapeHtml(char.id) + "\" onclick=\"exportOneCharacter(Number(this.dataset.id), event)\">" + dndIcoHtml("download", 14) + " Экспорт</button>" +
+    "<button type=\"button\" class=\"char-hero-act\" data-id=\"" + escapeHtml(char.id) + "\" onclick=\"exportCharacterPDF(Number(this.dataset.id), event)\">" + dndIcoHtml("file", 14) + " PDF</button>" +
+    "<button type=\"button\" class=\"char-hero-act\" data-id=\"" + escapeHtml(char.id) + "\" onclick=\"duplicateCharacter(Number(this.dataset.id), event)\">⧉ Дублировать</button>" +
+    "<button type=\"button\" class=\"char-hero-act char-hero-act-del\" data-id=\"" + escapeHtml(char.id) + "\" onclick=\"event.stopPropagation(); deleteCharacter(Number(this.dataset.id))\">✕ Удалить</button>";
 }
 }
 function deleteCharacter(id) {
@@ -1415,10 +1415,10 @@ list.innerHTML = rows.map(function(e) {
 const cls = e.delta > 0 ? "hph-heal" : "hph-dmg";
 const sign = e.delta > 0 ? "+" : "";
 return "<div class=\"hph-row " + (e.delta > 0 ? "hph-row--heal" : "hph-row--dmg") + "\">" +
-"<span class=\"hph-time\">" + e.time + "</span>" +
+"<span class=\"hph-time\">" + escapeHtml(e.time) + "</span>" +
 "<span class=\"hph-source\">" + escapeHtml(e.source) + "</span>" +
-"<span class=\"hph-nums\">" + e.from + " → " + e.to + "</span>" +
-"<span class=\"hph-delta " + cls + "\">" + sign + e.delta + "</span>" +
+"<span class=\"hph-nums\">" + escapeHtml(e.from) + " → " + escapeHtml(e.to) + "</span>" +
+"<span class=\"hph-delta " + cls + "\">" + sign + escapeHtml(e.delta) + "</span>" +
 "</div>";
 }).join("");
 }

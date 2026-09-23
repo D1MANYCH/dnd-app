@@ -757,6 +757,55 @@
       } finally { window.characters = savedChars; window.hpHistory = savedHist; window.SPELL_DATABASE = savedDB; }
     });
 
+    t("[AUD-1] safeImageSrc: base64-картинка и https проходят, остальное режется", function(){
+      if (safeImageSrc("data:image/jpeg;base64,/9j/4AAQ==") !== "data:image/jpeg;base64,/9j/4AAQ==") return "base64 jpeg отрезан";
+      if (safeImageSrc("https://example.com/a.png?x=1&y=2") === "") return "https отрезан";
+      var bad = ['x" onerror="alert(1)', "javascript:alert(1)", "http://example.com/a.png",
+                 "data:image/svg+xml;base64,PHN2Zz4=", 'https://e.com/a.png" onerror="x', 5, null];
+      for (var i = 0; i < bad.length; i++) if (safeImageSrc(bad[i]) !== "") return "пропущен: " + bad[i];
+      return true;
+    });
+
+    t("[AUD-1] _applyFullRestore: санитайзер типов, id персонажа и записей, история ХП", function(){
+      var savedChars = window.characters, savedHist = window.hpHistory, savedDB = window.SPELL_DATABASE;
+      try {
+        var envelope = { characters: [
+          { id: "1);alert(1);//", name: 5, class: "Плут", level: 3, avatar: 'x" onerror="alert(1)',
+            companions: [{ name: "Кот", ac: "<b>", hpCurrent: "1", hpMax: 4 }, null],
+            journal: [{ id: "1);alert(1", level: "<i>", text: "т" }],
+            inventory: { weapons: [{ name: "Кинжал", qty: "<x>" }] },
+            spells: { mySpells: [{ id: 1, name: "С", source: { a: 1 } }] },
+            notesV2: { entries: [{ id: "e1');alert(1);//", title: 7, tags: ["a'b", 3] }] } },
+          { id: 42, name: "Второй", class: "Воин", level: 1 },
+          { id: 42, name: "Дубль", class: "Воин", level: 1 } ],
+          hpHistory: [{ charId: 42, from: "<b>", to: 5, delta: -1, source: "т", time: "12:00" }] };
+        _applyFullRestore(envelope, envelope.characters.filter(_isValidImportedChar));
+        var c = window.characters;
+        if (c.some(function(x){ return typeof x.id !== "number" || !isFinite(x.id); })) return "id не число";
+        if (c[1].id !== 42) return "валидный id не сохранён";
+        if (c[2].id === 42) return "дубль id не перевыдан";
+        if (c[0].name !== "5") return "name не приведён к строке";
+        if (c[0].avatar !== null) return "плохой аватар не снят";
+        if (c[0].companions.length !== 1 || c[0].companions[0].ac !== 10 || c[0].companions[0].hpCurrent !== 1) return "прихвостни не приведены";
+        if (typeof c[0].journal[0].id !== "number" || c[0].journal[0].level !== 1) return "журнал не приведён";
+        if (c[0].inventory.weapons[0].qty !== 1) return "qty не приведён";
+        if (c[0].spells.mySpells[0].source !== "PH14") return "source не приведён";
+        var en = c[0].notesV2.entries[0];
+        if (!/^[\w-]+$/.test(en.id) || en.title !== "7" || en.tags[1] !== "3") return "запись заметок не приведена: " + en.id;
+        if (window.hpHistory.length !== 1 || window.hpHistory[0].from !== 0 || window.hpHistory[0].charId !== 42) return "история ХП не приведена";
+        return true;
+      } finally { window.characters = savedChars; window.hpHistory = savedHist; window.SPELL_DATABASE = savedDB; }
+    });
+
+    t("[AUD-1] разметка: id заметки и теги только в data-*, без инъекции в onclick", function(){
+      if (typeof _renderEntryCard !== "function") return "нет _renderEntryCard";
+      var html = _renderEntryCard({ id: "e1", title: "т", body: "", tags: ["a'b\"c"], pinned: true });
+      if (html.indexOf("this.dataset.tag") < 0 || html.indexOf("this.dataset.id") < 0 || html.indexOf("this.dataset.entryId") < 0) return "нет dataset в обработчиках";
+      if (html.indexOf("a'b") >= 0 || html.indexOf('b"c') >= 0) return "тег не экранирован";
+      if (html.indexOf("'e1'") >= 0) return "id в onclick как литерал";
+      return true;
+    });
+
     t("[rt] миграция v0→12: легаси-Колдун L5 — языки/инструменты/заметки/пакт-ячейки", function(){
       var legacy = {
         id: 9301, name: "Легаси", class: "Колдун", level: 5,

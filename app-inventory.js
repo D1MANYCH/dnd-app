@@ -225,7 +225,7 @@ div.innerHTML =
         _chargesTagHtml +
       '</div>' +
     '</div>' +
-    '<span class="inv-item-qty" title="Количество">×' + (item.qty || 1) + '</span>' +
+    '<span class="inv-item-qty" title="Количество">×' + (Number(item.qty) || 1) + '</span>' +
     '<span class="inv-drag-handle" title="Перетащите, чтобы переместить предмет">⠿</span>' +
   '</div>' +
   '<div class="inv-item-body">' +

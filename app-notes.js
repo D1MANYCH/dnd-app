@@ -593,7 +593,7 @@ function _renderEntriesView(tab) {
     html += '<button class="notes-tag-chip' + (!_notesTagFilter ? ' active' : '') + '" onclick="notesSetTagFilter(null)">Все</button>';
     for (var k = 0; k < allTags.length; k++) {
       var tg = allTags[k];
-      html += '<button class="notes-tag-chip' + (_notesTagFilter === tg ? ' active' : '') + '" onclick="notesSetTagFilter(\'' + escapeHtml(tg).replace(/'/g, "\\'") + '\')">' + escapeHtml(tg) + '</button>';
+      html += '<button class="notes-tag-chip' + (_notesTagFilter === tg ? ' active' : '') + '" data-tag="' + escapeHtml(tg) + '" onclick="notesSetTagFilter(this.dataset.tag)">' + escapeHtml(tg) + '</button>';
     }
     html += '</div>';
   }
@@ -629,7 +629,7 @@ function _renderEntryCard(e) {
   if (e.tags && e.tags.length) {
     tagsHtml = '<div class="notes-entry-tags">';
     for (var i = 0; i < e.tags.length; i++) {
-      tagsHtml += '<button type="button" class="notes-tag-chip small" onclick="notesSetTagFilter(\'' + escapeHtml(e.tags[i]).replace(/'/g, "\\'") + '\')">' + escapeHtml(e.tags[i]) + '</button>';
+      tagsHtml += '<button type="button" class="notes-tag-chip small" data-tag="' + escapeHtml(e.tags[i]) + '" onclick="notesSetTagFilter(this.dataset.tag)">' + escapeHtml(e.tags[i]) + '</button>';
     }
     tagsHtml += '</div>';
   }
@@ -637,21 +637,21 @@ function _renderEntryCard(e) {
   // N6: закреплённые карточки — draggable для ручной сортировки
   var dndAttrs = e.pinned
     ? ' draggable="true"' +
-      ' ondragstart="notesPinDragStart(event,\'' + e.id + '\')"' +
+      ' ondragstart="notesPinDragStart(event,this.dataset.entryId)"' +
       ' ondragover="notesPinDragOver(event)"' +
       ' ondragleave="notesPinDragLeave(event)"' +
-      ' ondrop="notesPinDrop(event,\'' + e.id + '\')"' +
+      ' ondrop="notesPinDrop(event,this.dataset.entryId)"' +
       ' ondragend="notesPinDragEnd(event)"'
     : '';
 
-  return '<div class="notes-entry-card' + (e.pinned ? ' pinned' : '') + '" data-entry-id="' + e.id + '"' + dndAttrs + '>' +
+  return '<div class="notes-entry-card' + (e.pinned ? ' pinned' : '') + '" data-entry-id="' + escapeHtml(e.id) + '"' + dndAttrs + '>' +
     (e.pinned ? '<span class="notes-entry-drag-handle" title="Потяните, чтобы изменить порядок">⋮⋮</span>' : '') +
     '<div class="notes-entry-header">' +
       '<span class="notes-entry-title">' + escapeHtml(e.title || '(без названия)') + '</span>' +
       '<div class="notes-entry-actions">' +
-        '<button class="notes-entry-btn" title="' + (e.pinned ? 'Открепить' : 'Закрепить') + '" onclick="notesTogglePin(\'' + e.id + '\')">' + (e.pinned ? '★' : '☆') + '</button>' +
-        '<button class="notes-entry-btn" title="Редактировать" onclick="notesOpenEntryModal(\'' + e.id + '\')">✎</button>' +
-        '<button class="notes-entry-btn danger" title="Удалить" onclick="notesDeleteEntry(\'' + e.id + '\')">🗑</button>' +
+        '<button class="notes-entry-btn" title="' + (e.pinned ? 'Открепить' : 'Закрепить') + '" data-id="' + escapeHtml(e.id) + '" onclick="notesTogglePin(this.dataset.id)">' + (e.pinned ? '★' : '☆') + '</button>' +
+        '<button class="notes-entry-btn" title="Редактировать" data-id="' + escapeHtml(e.id) + '" onclick="notesOpenEntryModal(this.dataset.id)">✎</button>' +
+        '<button class="notes-entry-btn danger" title="Удалить" data-id="' + escapeHtml(e.id) + '" onclick="notesDeleteEntry(this.dataset.id)">🗑</button>' +
       '</div>' +
     '</div>' +
     (bodyPreview ? '<div class="notes-entry-body">' + bodyPreview + '</div>' : '') +
@@ -813,7 +813,7 @@ function _notesRenderModalTags() {
   for (var i = 0; i < _notesModalTags.length; i++) {
     var t = _notesModalTags[i];
     html += '<span class="notes-tag-chip small removable">' + escapeHtml(t) +
-            '<button type="button" class="notes-tag-remove" onclick="notesRemoveModalTag(\'' + escapeHtml(t).replace(/'/g, "\\'") + '\')">×</button></span>';
+            '<button type="button" class="notes-tag-remove" data-tag="' + escapeHtml(t) + '" onclick="notesRemoveModalTag(this.dataset.tag)">×</button></span>';
   }
   host.innerHTML = html;
 }
@@ -1192,6 +1192,17 @@ function notesExportJson() {
 
 // ── N5: Импорт ───────────────────────────────────────────────
 
+// AUD-1 (S2): запись из импорта — id только [\w-] (иначе новый), текстовые поля строками.
+function _notesSanitizeEntry(en) {
+  if (!en || typeof en !== 'object') return null;
+  var id = (typeof en.id === 'number' && isFinite(en.id)) ? String(en.id) : en.id;
+  en.id = (typeof id === 'string' && /^[\w-]+$/.test(id)) ? id : createEntry().id;
+  if (en.title != null) en.title = String(en.title);
+  if (en.body != null) en.body = String(en.body);
+  en.tags = Array.isArray(en.tags) ? en.tags.filter(function(t) { return t != null; }).map(String) : [];
+  return en;
+}
+
 function notesHandleImportJson(input) {
   var file = input && input.files && input.files[0];
   if (!file) return;
@@ -1224,8 +1235,8 @@ function notesHandleImportJson(input) {
         var existIds = {};
         for (var i = 0; i < char.notesV2.entries.length; i++) existIds[char.notesV2.entries[i].id] = true;
         for (var j = 0; j < incoming.entries.length; j++) {
-          var en = incoming.entries[j];
-          if (en && en.id && !existIds[en.id]) {
+          var en = _notesSanitizeEntry(incoming.entries[j]);
+          if (en && !existIds[en.id]) {
             char.notesV2.entries.push(en);
             existIds[en.id] = true;
           }

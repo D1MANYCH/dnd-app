@@ -664,7 +664,7 @@ const classBadge = "class-" + (primaryClass || "both");
 const classText = spellClassArr.length > 1 ? spellClassArr.map(function(c){return getSpellClassIcon(c);}).join("") : getSpellClassIcon(primaryClass);
 // HB-1: source может отсутствовать у импортированной записи — без фолбэка
 // toLowerCase() роняет весь рендер поиска.
-const srcRaw = spell.source || "PH14";
+const srcRaw = String(spell.source || "PH14");
 const hbBadge = spell.homebrew ? " <span class=\"source-badge hb-badge\" title=\"Ваше заклинание\">" + dndIcoHtml("home", 12) + " Своё</span>" : "";
 // HB-3: своё заклинание правится и удаляется прямо из базы — карточка поиска
 // и есть вид на базу. У книжных кнопок нет: они переживают перезагрузку из
@@ -676,7 +676,7 @@ var hbActions = spell.homebrew
   : "";
 var div = document.createElement("div");
 div.className = "spell-item" + (isAdded ? " spell-added" : "");
-div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase() + "\">" + escapeHtml(srcRaw) + "</span>" + hbBadge + " <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<div class=\"spell-item-actions\"><button class=\"" + (isAdded ? "secondary" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + idArg + ")" : "addSpell(" + idArg + ")") + "\">" + (isAdded ? "Добавлено" : "+ Добавить") + "</button>" + hbActions + "</div>";
+div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase().replace(/[^\w-]/g, "") + "\">" + escapeHtml(srcRaw) + "</span>" + hbBadge + " <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<div class=\"spell-item-actions\"><button class=\"" + (isAdded ? "secondary" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + idArg + ")" : "addSpell(" + idArg + ")") + "\">" + (isAdded ? "Добавлено" : "+ Добавить") + "</button>" + hbActions + "</div>";
 container.appendChild(div);
 });
 if (filtered.length > LIMIT) {
@@ -760,8 +760,8 @@ if (spellClassArr2.length > 4) {
 } else {
   classIcons = spellClassArr2.map(function(c){ return getSpellClassIcon(c); }).join("");
 }
-const srcRaw = spell.source || "PH14"; // HB-1: у импортированной записи source может отсутствовать
-const sourceClass = "source-" + srcRaw.toLowerCase();
+const srcRaw = String(spell.source || "PH14"); // HB-1: у импортированной записи source может отсутствовать
+const sourceClass = "source-" + srcRaw.toLowerCase().replace(/[^\w-]/g, "");
 const schoolName = spell.school || "";
 // Подписи для новичков: школа/классы/источник текстом в раскрытой карточке.
 var classNamesRu = spellClassArr2.map(function(c){

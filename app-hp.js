@@ -1518,7 +1518,7 @@ if (existing) { clearTimeout(existing._fadeTimer); clearTimeout(existing._remove
 var toast = document.createElement("div");
 if (customMsg !== undefined) {
   toast.className = "hp-toast hp-toast-heal";
-  toast.innerHTML = "<span style='font-size:14px;font-weight:700;'>" + customMsg + "</span>";
+  toast.innerHTML = "<span style='font-size:14px;font-weight:700;'>" + escapeHtml(customMsg) + "</span>";
   container.appendChild(toast);
   toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 2500);
   toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 3000);

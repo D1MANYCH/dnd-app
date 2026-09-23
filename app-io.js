@@ -42,6 +42,40 @@ function _isValidImportedChar(c) {
   var lvl = (typeof c.level === 'number' && c.level >= 1 && c.level <= 20);
   return hasClass && lvl;
 }
+// AUD-1 (S1, S3, S10): приведение типов импортированного персонажа (после migrateCharacter).
+function _importNum(v, def) { v = Number(v); return isFinite(v) ? v : def; }
+function _sanitizeImportedChar(c) {
+  ["name", "class", "race", "subclass", "background", "alignment"].forEach(function(k) {
+    if (c[k] != null && typeof c[k] !== "string") c[k] = String(c[k]);
+  });
+  c.avatar = safeImageSrc(c.avatar) || null;
+  var obj = function(x) { return x && typeof x === "object"; };
+  if (Array.isArray(c.companions)) c.companions = c.companions.filter(obj).map(function(m) {
+    m.ac = _importNum(m.ac, 10); m.hpCurrent = _importNum(m.hpCurrent, 0); m.hpMax = _importNum(m.hpMax, 0);
+    return m;
+  });
+  if (Array.isArray(c.journal)) c.journal = c.journal.filter(obj).map(function(j, i) {
+    j.id = _importNum(j.id, Date.now() + i); j.level = _importNum(j.level, 1);
+    return j;
+  });
+  if (obj(c.inventory)) Object.keys(c.inventory).forEach(function(cat) {
+    if (!Array.isArray(c.inventory[cat])) return;
+    c.inventory[cat] = c.inventory[cat].filter(obj);
+    c.inventory[cat].forEach(function(it) { if (it.qty != null) it.qty = _importNum(it.qty, 1); });
+  });
+  if (c.spells && Array.isArray(c.spells.mySpells)) c.spells.mySpells = c.spells.mySpells.filter(obj).map(function(s) {
+    if (s.source != null && typeof s.source !== "string") s.source = "PH14";
+    return s;
+  });
+  if (c.notesV2 && Array.isArray(c.notesV2.entries) && typeof _notesSanitizeEntry === "function") {
+    c.notesV2.entries = c.notesV2.entries.map(_notesSanitizeEntry).filter(Boolean);
+  }
+  return c;
+}
+function _sanitizeHpEntry(h, charId) {
+  return { from: _importNum(h.from, 0), to: _importNum(h.to, 0), delta: _importNum(h.delta, 0),
+           source: h.source == null ? "" : String(h.source), time: h.time == null ? "" : String(h.time), charId: charId };
+}
 // HB-7: нормализация импортируемого заклинания. Возвращает пригодную КОПИЮ
 // (глубокий клон — чтобы не делить ссылку с mySpells/чужим конвертом) или null.
 // Отличие от прежней голой валидации: level вне 0..9 не отбраковывается, а
@@ -134,13 +168,24 @@ function _extractCharsFromImport(parsed) {
 // Заменяет персонажей, HP-историю и пользовательские заклинания. Конверты без
 // userSpells (бэкапы до v3.25) текущие заклинания не трогают.
 function _applyFullRestore(imported, validChars) {
-  characters = validChars.map(migrateCharacter);
+  // AUD-1 (S4): id — положительное уникальное число, иначе новый; история идёт за ним.
+  var _ids = {}, _nextId = Date.now();
+  characters = validChars.map(migrateCharacter).map(_sanitizeImportedChar).map(function(c) {
+    var oldId = c.id, n = Number(oldId);
+    if (!(isFinite(n) && n > 0) || _ids.hasOwnProperty(n)) {
+      while (_ids.hasOwnProperty(_nextId)) _nextId++;
+      n = _nextId++;
+    }
+    c.id = n;
+    _ids[n] = true;
+    if (!_ids.hasOwnProperty("old:" + oldId)) _ids["old:" + oldId] = n;
+    return c;
+  });
   // FEAT-1 доработка: «Заменить всё» сохраняет id персонажей, поэтому
   // HP-историю из конверта восстанавливаем как есть (только для импортируемых).
   if (imported && Array.isArray(imported.hpHistory)) {
-    var _ids = {};
-    characters.forEach(function(c){ _ids[c.id] = true; });
-    hpHistory = imported.hpHistory.filter(function(h){ return h && _ids[h.charId]; }).slice(0, 300);
+    hpHistory = imported.hpHistory.filter(function(h){ return h && typeof h === "object" && _ids.hasOwnProperty("old:" + h.charId); })
+      .map(function(h){ return _sanitizeHpEntry(h, _ids["old:" + h.charId]); }).slice(0, 300);
   }
   if (imported && Array.isArray(imported.userSpells)) {
     // HB-7: через нормализатор — кламп level и фикс source прямо при загрузке.
@@ -241,7 +286,7 @@ showConfirmModal("Импорт персонажа", msg, function() {
   var addedChars = [];
   valid.forEach(function(c) {
     var oldId = c.id;
-    var nc = migrateCharacter(JSON.parse(JSON.stringify(c)));
+    var nc = _sanitizeImportedChar(migrateCharacter(JSON.parse(JSON.stringify(c))));
     while (characters.some(function(x) { return x.id === nextId; })) nextId++;
     nc.id = nextId++;
     nc.updatedAt = Date.now();
@@ -258,7 +303,7 @@ showConfirmModal("Импорт персонажа", msg, function() {
       var mapped = idMap.hasOwnProperty(h.charId) ? idMap[h.charId] : null;
       if (mapped == null && valid.length === 1) mapped = idMap[valid[0].id];
       if (mapped == null) return;
-      hpHistory.push({ from: h.from, to: h.to, delta: h.delta, source: h.source, time: h.time, charId: mapped });
+      hpHistory.push(_sanitizeHpEntry(h, mapped));
       addedHp++;
     });
     if (addedHp && hpHistory.length > 300) hpHistory = hpHistory.slice(0, 300);

@@ -141,8 +141,8 @@ function renderHomeHero() {
   }
 
   if (emblem) {
-    if (char.avatar) {
-      emblem.innerHTML = '<img class="home-hero-img" src="' + char.avatar + '" alt="" aria-hidden="true">';
+    if (safeImageSrc(char.avatar)) {
+      emblem.innerHTML = '<img class="home-hero-img" src="' + escapeHtml(safeImageSrc(char.avatar)) + '" alt="" aria-hidden="true">';
     } else if (char.class && typeof getClassIcon === "function") {
       emblem.innerHTML = '<span class="home-hero-img">' + getClassIcon(char.class) + '</span>';
     } else {

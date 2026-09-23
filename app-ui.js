@@ -75,8 +75,8 @@ function openAvatarModal(event) {
   // Показать текущий аватар в превью
   const preview = $("avatar-modal-preview");
   if (preview) {
-    if (char.avatar) {
-      preview.innerHTML = "<img src=\"" + char.avatar + "\" alt=\"Аватар\">";
+    if (safeImageSrc(char.avatar)) {
+      preview.innerHTML = "<img src=\"" + escapeHtml(safeImageSrc(char.avatar)) + "\" alt=\"Аватар\">";
     } else {
       preview.innerHTML = char.class ? ("<span class=\"avatar-modal-placeholder\">" + getClassIcon(char.class) + "</span>") : AVATAR_FALLBACK_IMG;
     }
@@ -118,6 +118,7 @@ function handleAvatarFile(input) {
 function applyAvatarFromUrl() {
   const url = ($("avatar-url-input")?.value || "").trim();
   if (!url) { showToast("Введите ссылку на изображение", "warn"); return; }
+  if (!safeImageSrc(url)) { showToast("Нужна ссылка, начинающаяся с https://", "warn"); return; }
   // Проверяем что ссылка похожа на картинку
   applyAvatar(url);
 }
@@ -132,7 +133,7 @@ function applyAvatar(src) {
   saveToLocal();
   // Обновить превью в модалке
   const preview = $("avatar-modal-preview");
-  if (preview) preview.innerHTML = "<img src=\"" + src + "\" alt=\"Аватар\">";
+  if (preview) preview.innerHTML = "<img src=\"" + escapeHtml(safeImageSrc(src)) + "\" alt=\"Аватар\">";
   // Обновить аватар в шапке листа
   renderSheetAvatar();
   // Перерисовать карточку в списке
@@ -164,8 +165,8 @@ function renderSheetAvatar() {
   const el = $("sheet-avatar");
   if (!el) return;
   const char = getCurrentChar();
-  if (char && char.avatar) {
-    el.innerHTML = "<img src=\"" + char.avatar + "\" alt=\"Аватар\" onclick=\"openAvatarModal(event)\">";
+  if (char && safeImageSrc(char.avatar)) {
+    el.innerHTML = "<img src=\"" + escapeHtml(safeImageSrc(char.avatar)) + "\" alt=\"Аватар\" onclick=\"openAvatarModal(event)\">";
     el.classList.add("has-avatar");
   } else {
     const inner = (char && char.class) ? getClassIcon(char.class) : AVATAR_FALLBACK_IMG;
@@ -753,8 +754,8 @@ function renderJournal() {
       '<div class="journal-entry-header">' +
         '<span class="journal-icon">' + icon + '</span>' +
         '<span class="journal-text">' + escapeHtml(entry.text) + '</span>' +
-        '<span class="journal-meta">' + escapeHtml(entry.date) + ' ' + escapeHtml(entry.time) + ' · ' + (entry.level || 1) + ' ур.</span>' +
-        '<button class="journal-del-btn" onclick="deleteJournalEntry(' + entry.id + ')">✕</button>' +
+        '<span class="journal-meta">' + escapeHtml(entry.date) + ' ' + escapeHtml(entry.time) + ' · ' + (Number(entry.level) || 1) + ' ур.</span>' +
+        '<button class="journal-del-btn" data-id="' + escapeHtml(entry.id) + '" onclick="deleteJournalEntry(Number(this.dataset.id))">✕</button>' +
       '</div>' +
       (entry.details ? '<div class="journal-details">' + escapeHtml(entry.details) + '</div>' : '') +
     '</div>';
@@ -830,10 +831,10 @@ function renderCompanions() {
         '<div class="pcard-icon" style="color:var(--magic)">' + icon + '</div>' +
         '<div class="pcard-body">' +
           '<div class="pcard-name">' + escapeHtml(c.name) + '</div>' +
-          '<div class="pcard-sub">' + escapeHtml(COMPANION_TYPE_NAMES[c.type] || c.type) + ' · КД ' + (c.ac || 10) + '</div>' +
+          '<div class="pcard-sub">' + escapeHtml(COMPANION_TYPE_NAMES[c.type] || c.type) + ' · КД ' + (Number(c.ac) || 10) + '</div>' +
           (c.attack ? '<div class="pcard-desc">' + dndIcoHtml("sword", 12) + ' ' + escapeHtml(c.attack) + '</div>' : '') +
           '<div class="companion-hp-row">' +
-            '<span style="color:' + hpColor + ';font-size:0.8em;font-weight:700;">' + dndIcoHtml("heart", 12) + ' ' + c.hpCurrent + '/' + c.hpMax + '</span>' +
+            '<span style="color:' + hpColor + ';font-size:0.8em;font-weight:700;">' + dndIcoHtml("heart", 12) + ' ' + (Number(c.hpCurrent) || 0) + '/' + (Number(c.hpMax) || 0) + '</span>' +
             '<button class="res-btn" style="padding:2px 8px;font-size:0.72em" onclick="companionHP(' + i + ',-1)">-1</button>' +
             '<button class="res-btn" style="padding:2px 8px;font-size:0.72em" onclick="companionHP(' + i + ',1)">+1</button>' +
           '</div>' +
