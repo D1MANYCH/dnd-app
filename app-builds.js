@@ -296,7 +296,7 @@ function _applyBuildCore(buildId) {
     if (!val) return;
     if (arr.indexOf(val) === -1) arr.push(val);
   };
-  var _ca = (typeof CLASS_ARMOR_PROFS !== "undefined") && CLASS_ARMOR_PROFS[b.className];
+  var _ca = edData(newChar).CLASS_ARMOR_PROFS[b.className];
   if (_ca) {
     (_ca.armor||[]).forEach(function(t){ _addProf(newChar.proficiencies.armor, t); });
     (_ca.weapon||[]).forEach(function(t){ _addProf(newChar.proficiencies.weapon, t); });
@@ -309,7 +309,7 @@ function _applyBuildCore(buildId) {
   var _rw = (typeof RACE_WEAPONS_SPECIFIC !== "undefined") && RACE_WEAPONS_SPECIFIC[b.race];
   if (Array.isArray(_rw)) _rw.forEach(function(w){ _addProf(newChar.proficiencies.specificWeapons, w); });
   // FIN-2: конкретные владения класса (recalcArmorWeaponFromSources пересоберёт их же)
-  var _cw = (typeof CLASS_WEAPONS_SPECIFIC !== "undefined") && CLASS_WEAPONS_SPECIFIC[b.className];
+  var _cw = edData(newChar).CLASS_WEAPONS_SPECIFIC[b.className];
   if (Array.isArray(_cw)) _cw.forEach(function(w){ _addProf(newChar.proficiencies.specificWeapons, w); });
   var _sa = edData(newChar).SUBCLASS_ARMOR[b.className] && edData(newChar).SUBCLASS_ARMOR[b.className][b.subclass];
   if (_sa) {

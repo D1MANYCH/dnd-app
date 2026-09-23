@@ -991,7 +991,16 @@
     SUBCLASS_RESOURCES: _mergeByClass((typeof SUBCLASS_RESOURCES !== 'undefined') ? SUBCLASS_RESOURCES : {}, SUBCLASS_RESOURCES_2024),
     WEAPON_MASTERY:     WEAPON_MASTERY_2024,
     CLASS_SKILL_OPTIONS: _mergeByClass((typeof CLASS_SKILL_OPTIONS !== 'undefined') ? CLASS_SKILL_OPTIONS : {}, CLASS_SKILL_OPTIONS_2024),
-    SPELL_SLOTS_BY_LEVEL: _mergeByClass((typeof SPELL_SLOTS_BY_LEVEL !== 'undefined') ? SPELL_SLOTS_BY_LEVEL : {}, SPELL_SLOTS_2024)
+    SPELL_SLOTS_BY_LEVEL: _mergeByClass((typeof SPELL_SLOTS_BY_LEVEL !== 'undefined') ? SPELL_SLOTS_BY_LEVEL : {}, SPELL_SLOTS_2024),
+    // AUD-7 (R7): в 2024 друид, чародей и волшебник владеют всем простым оружием (PH24 гл. 3)
+    CLASS_ARMOR_PROFS: _mergeByClass((typeof CLASS_ARMOR_PROFS !== 'undefined') ? CLASS_ARMOR_PROFS : {}, {
+      "Друид":     {armor:["light","shield"], weapon:["simple"]},
+      "Чародей":   {armor:[], weapon:["simple"]},
+      "Волшебник": {armor:[], weapon:["simple"]}
+    }),
+    CLASS_WEAPONS_SPECIFIC: _mergeByClass((typeof CLASS_WEAPONS_SPECIFIC !== 'undefined') ? CLASS_WEAPONS_SPECIFIC : {}, {
+      "Друид": [], "Чародей": [], "Волшебник": []
+    })
   };
 
   // Экспорт для тестов/справки: набор состояний 2024 и полный объект overrides

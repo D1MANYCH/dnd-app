@@ -115,49 +115,26 @@ function getClassLine(char) {
   return char.class + (char.subclass ? " · " + char.subclass : "") + " · " + lvl + " ур.";
 }
 
-/** Проверить выполнение требований для мультикласса */
+/** Проверить выполнение требований для мультикласса.
+ *  AUD-7 (R8): нужны требования нового класса и КАЖДОГО текущего (PHB стр. 163);
+ *  у воина СИЛ 13 можно заменить ЛОВ 13. */
 function checkMulticlassPrereqs(char, targetClass) {
-  // Проверяем требования выхода из текущего класса (основного)
   var missing = [];
-  // Проверяем требования входа в новый класс
-  var reqs = edData(char).MULTICLASS_PREREQUISITES[targetClass];
-  if (reqs) {
+  var names = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
+  function check(cls, suffix) {
+    var reqs = edData(char).MULTICLASS_PREREQUISITES[cls];
+    if (!reqs) return;
     Object.keys(reqs).forEach(function(stat) {
       var val = char.stats[stat] || 10;
-      if (val < reqs[stat]) {
-        var names = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
-        missing.push((names[stat]||stat) + " " + val + " (нужно " + reqs[stat] + ")");
-      }
+      if (val >= reqs[stat]) return;
+      if (cls === "Воин" && stat === "str" && (char.stats.dex || 10) >= 13) return;
+      var msg = (names[stat]||stat) + " " + val + " (нужно " + reqs[stat] + suffix + ")";
+      if (missing.indexOf(msg) === -1) missing.push(msg);
     });
   }
-  // Для Воина: альтернативное требование — dex ≥ 13 вместо str
-  if (targetClass === "Воин" && missing.length > 0) {
-    if ((char.stats.dex || 10) >= 13) missing = [];
-  }
-  // Проверяем требования выхода из текущего основного класса
-  if (char.class) {
-    var exitReqs = edData(char).MULTICLASS_PREREQUISITES[char.class];
-    if (exitReqs) {
-      Object.keys(exitReqs).forEach(function(stat) {
-        var val = char.stats[stat] || 10;
-        if (val < exitReqs[stat]) {
-          var names = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
-          var msg = (names[stat]||stat) + " " + val + " (нужно " + exitReqs[stat] + " для выхода из " + char.class + ")";
-          if (missing.indexOf(msg) === -1) missing.push(msg);
-        }
-      });
-      // Воин — альтернативное требование для выхода тоже
-      if (char.class === "Воин" && missing.length > 0) {
-        var exitMissing = [];
-        Object.keys(exitReqs).forEach(function(stat) {
-          if (stat === "str" && (char.stats.dex || 10) >= 13) return;
-          var val = char.stats[stat] || 10;
-          if (val < exitReqs[stat]) exitMissing.push(stat);
-        });
-        if (exitMissing.length === 0) missing = missing.filter(function(m) { return m.indexOf("для выхода") === -1; });
-      }
-    }
-  }
+  check(targetClass, "");
+  var pairs = (typeof getCharClassPairs === "function") ? getCharClassPairs(char) : (char.class ? [{ cls: char.class }] : []);
+  pairs.forEach(function(p) { if (p.cls !== targetClass) check(p.cls, " для выхода из " + p.cls); });
   return { ok: missing.length === 0, missing: missing };
 }
 

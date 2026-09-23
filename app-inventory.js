@@ -1201,10 +1201,8 @@ container.innerHTML = "";
 char.weapons.forEach(function(weapon, index) {
 const div = document.createElement("div");
 div.className = "weapon-row";
-// Auto-detect proficiency if not set
-if (weapon.proficient === undefined) {
-  weapon.proficient = checkWeaponProficiency(char, weapon.name);
-}
+// AUD-7 (L22): владение пересчитывается каждый раз — после новых владений (мультикласс, черта)
+weapon.proficient = checkWeaponProficiency(char, weapon.name);
 // Calculate attack bonus for display
 var statKey = weapon.stat || "str";
 var statVal = char.stats[statKey] || 10;

@@ -470,8 +470,12 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
   if (isNewClass && edData(char).MULTICLASS_PROFICIENCIES[className]) {
     var profs = edData(char).MULTICLASS_PROFICIENCIES[className];
     var profParts = [];
-    if (profs.armor && profs.armor.length) profParts.push("Броня: " + profs.armor.join(", "));
-    if (profs.weapons && profs.weapons.length) profParts.push("Оружие: " + profs.weapons.join(", "));
+    var _lbl = { light:"лёгкие доспехи", medium:"средние доспехи", heavy:"тяжёлые доспехи", shield:"щиты", simple:"простое оружие", martial:"воинское оружие" };
+    var _map = function(arr) { return (arr || []).map(function(k) { return _lbl[k] || k; }); };
+    if (profs.armor && profs.armor.length) profParts.push("Броня: " + _map(profs.armor).join(", "));
+    var _wp = _map(profs.weapon).concat(profs.specific || []);
+    if (_wp.length) profParts.push("Оружие: " + _wp.join(", "));
+    if (profs.tools) profParts.push("Инструменты: " + (profs.tools.fixed || []).concat((profs.tools.choices || []).map(function(c) { return c.label; })).join(", "));
     if (profs.skills) profParts.push("Навыки: " + profs.skills + " на выбор");
     if (profParts.length > 0) {
       var profDiv = document.createElement("div");
@@ -525,15 +529,9 @@ if (choice && choice.isNew) {
   isNewClass = true;
   char.classes.push({ class: className, level: 1, subclass: subclassName, hitDie: hitDie });
   classLevel = 1;
-  // Добавляем владения от мультикласса
-  if (edData(char).MULTICLASS_PROFICIENCIES[className]) {
-    var profs = edData(char).MULTICLASS_PROFICIENCIES[className];
-    if (!char.proficiencies) char.proficiencies = { armor:[], weapon:[], tools:"", languages:"" };
-    if (profs.armor) profs.armor.forEach(function(a) {
-      var key = a.toLowerCase();
-      if (char.proficiencies.armor.indexOf(key) === -1) char.proficiencies.armor.push(key);
-    });
-  }
+  // AUD-7 (R5): владения нового класса — по таблице мультикласса, из источников
+  if (typeof recalcArmorWeaponFromSources === "function") recalcArmorWeaponFromSources(char);
+  if (typeof recalcToolsFromSources === "function") recalcToolsFromSources(char);
 } else if (choice && !choice.isNew && typeof choice.classIndex === "number") {
   // Повышаем существующий класс
   var entry = char.classes[choice.classIndex];
@@ -666,11 +664,13 @@ function luRefreshChoices() {
 function luSetSubclass(name) {
   var char = getCurrentChar();
   if (!char || !_luChoicesCtx) return;
-  char.subclass = name;
   if (Array.isArray(char.classes) && char.classes.length) {
     var idx = 0;
     for (var i = 0; i < char.classes.length; i++) { if (char.classes[i].class === _luChoicesCtx.className) { idx = i; break; } }
     char.classes[idx].subclass = name;
+    syncClassFields(char);
+  } else {
+    char.subclass = name;
   }
   saveToLocal();
   loadCharacter(currentId);
@@ -680,19 +680,22 @@ function luSetSubclass(name) {
 }
 
 // BUILD-LVL-4: применить черту по id (эффекты + запись), без модалки. Возвращает имя или null.
-function luApplyFeatById(char, featId, level) {
+function luApplyFeatById(char, featId, level, statPick) {
   // E24-3: справочник по редакции персонажа (getFeatDef, app-asi.js); фолбэк — глобальный 2014
   var feat = (typeof getFeatDef === "function") ? getFeatDef(char, featId)
     : (typeof FEATS_DATA !== "undefined" ? FEATS_DATA.find(function(f){ return f.id === featId; }) : null);
   if (!feat) return null;
   if (!char.feats) char.feats = [];
   if (!feat.repeatable && char.feats.some(function(f){ return f.id === featId; })) return null; // уже взята (повторяемые 2024 — можно снова)
+  if (rulesFeatPrereqMissing(char, feat)) return null; // AUD-7 (L25): требование не выполнено
   (feat.effects || []).forEach(function(eff){
     var cap = eff.max || 20; // E24-3: потолок характеристики (эпические дары — 30)
     if (eff.type === "stat") {
       char.stats[eff.key] = Math.min(cap, (char.stats[eff.key] || 10) + eff.value);
     } else if (eff.type === "stat_choice" || eff.type === "stat_choice_save") {
-      var picked = eff.keys.find(function(k){ return (char.stats[k] || 10) < cap; });
+      // AUD-7 (L8): выбранная характеристика; без выбора — первая допустимая
+      var opts = rulesFeatStatOptions(char, eff);
+      var picked = opts.indexOf(statPick) !== -1 ? statPick : opts[0];
       if (picked) {
         char.stats[picked] = Math.min(cap, (char.stats[picked] || 10) + eff.value);
         if (eff.type === "stat_choice_save") { if (!char.saves) char.saves = {}; char.saves[picked] = true; }

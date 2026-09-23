@@ -2224,7 +2224,7 @@
   }
   if (typeof luApplyFeatById === "function") {
     t("[FIN-1] luApplyFeatById(heavy_armor_master): СИЛ +1 и запись; повтор → null", function(){
-      var char = { stats:{str:15,dex:10,con:10,int:10,wis:10,cha:10}, level:4, combat:{hpMax:30,hpCurrent:30}, proficiencies:{}, feats:[] };
+      var char = { stats:{str:15,dex:10,con:10,int:10,wis:10,cha:10}, level:4, combat:{hpMax:30,hpCurrent:30}, proficiencies:{armor:["heavy"]}, feats:[] };
       var name = luApplyFeatById(char, "heavy_armor_master", 4);
       if (!name) return "черта не применилась";
       if (char.stats.str !== 16) return "СИЛ " + char.stats.str + " (ожидал 16)";
@@ -2239,7 +2239,7 @@
       return got === 5 || "bonuses.initiative = " + got;
     });
     t("[FIN-1] luApplyFeatById(moderately_armored): владение средними + щитами", function(){
-      var char = { stats:{str:10,dex:10,con:10,int:10,wis:10,cha:10}, level:4, combat:{hpMax:20,hpCurrent:20}, proficiencies:{}, feats:[] };
+      var char = { stats:{str:10,dex:10,con:10,int:10,wis:10,cha:10}, level:4, combat:{hpMax:20,hpCurrent:20}, proficiencies:{armor:["light"]}, feats:[] };
       luApplyFeatById(char, "moderately_armored", 4);
       var a = char.proficiencies.armor || [];
       return (a.indexOf("medium") > -1 && a.indexOf("shield") > -1) || "armor: " + a.join(",");
@@ -7362,7 +7362,7 @@
     });
 
     t("[e24-3] applyASI/luApplyFeatById: у 2014-«Бдительного» по-прежнему +5, потолок 20 без max", function(){
-      var c = { edition:"2014", stats:{str:19,dex:10,con:10,int:10,wis:10,cha:10}, level:4, combat:{hpMax:20,hpCurrent:20}, proficiencies:{}, feats:[] };
+      var c = { edition:"2014", stats:{str:19,dex:10,con:10,int:10,wis:10,cha:10}, level:4, combat:{hpMax:20,hpCurrent:20}, proficiencies:{armor:["heavy"]}, feats:[] };
       luApplyFeatById(c, "heavy_armor_master", 4);
       if (c.stats.str !== 20) return "СИЛ " + c.stats.str;
       luApplyFeatById(c, "athlete", 8);
@@ -8215,36 +8215,6 @@
     });
   })();
 
-  // ────────── РЕЗУЛЬТАТЫ ──────────
-  window.__testResults = {pass, fail, total: pass+fail, results};
-
-  var summary = document.getElementById("summary");
-  summary.className = "summary " + (fail === 0 ? "ok" : "fail");
-  summary.textContent = "Итого: "+pass+" OK / "+fail+" FAIL из "+(pass+fail);
-
-  var box = document.getElementById("results");
-  // Показываем только фейлы сначала + компактный список остального
-  var failed = results.filter(function(r){return !r.ok;});
-  var passed = results.filter(function(r){return r.ok;});
-  var html = "";
-  if (failed.length) {
-    html += '<div class="section"><b>FAILS ('+failed.length+'):</b><pre>';
-    failed.forEach(function(r){ html += '<span class="fail">✗ '+escapeHtml(r.desc)+'</span>  '+escapeHtml(r.msg||"")+"\n"; });
-    html += '</pre></div>';
-  }
-  html += '<div class="section"><b>PASSED ('+passed.length+'):</b><pre>';
-  passed.forEach(function(r){ html += '<span class="ok">✓ '+escapeHtml(r.desc)+'</span>\n'; });
-  html += '</pre></div>';
-  box.innerHTML = html;
-
-  // TEST-2: возвращаем localStorage как было до тестов (см. снапшот в начале IIFE).
-  _lsKeys.forEach(function(k){
-    try {
-      if (_lsSnapshot[k] === null || _lsSnapshot[k] === undefined) localStorage.removeItem(k);
-      else localStorage.setItem(k, _lsSnapshot[k]);
-    } catch(e) { /* localStorage недоступен — нечего восстанавливать */ }
-  });
-
   // ────────── AUD-4: хиты при повышении, ручной максимум, кости и врем. ХП ──────────
   if (typeof confirmLevelUp === "function" && typeof rulesMaxHPBase === "function") {
     t("[AUD-4 L1] Волшебник 4→5 с «Крепким», ТЕЛ 10: 26 → 32 (+4 кость +2 черта)", function(){
@@ -8300,6 +8270,129 @@
       return c.schemaVersion >= 38 ? true : "schemaVersion " + c.schemaVersion;
     });
   }
+
+  // ── AUD-7: мультикласс и черты ──
+  function aud7(o) {
+    var c = { edition: "2014", race: "", level: 2, stats: { str:10, dex:14, con:10, int:14, wis:10, cha:10 },
+      classes: [], feats: [], saves: {}, proficiencies: {} };
+    Object.keys(o || {}).forEach(function(k) { c[k] = o[k]; });
+    if (c.classes.length) { c.class = c.classes[0].class; c.subclass = c.classes[0].subclass || ""; }
+    return c;
+  }
+  if (typeof recalcArmorWeaponFromSources === "function") {
+    t("[AUD-7 R5] Волшебник → Воин: владения по таблице мультикласса, без тяжёлых доспехов", function(){
+      var c = aud7({ classes: [{ class: "Волшебник", level: 1 }, { class: "Воин", level: 1 }] });
+      recalcArmorWeaponFromSources(c);
+      var a = c.proficiencies.armor, w = c.proficiencies.weapon;
+      if (a.indexOf("heavy") !== -1) return "тяжёлые доспехи от второго класса";
+      if (["light","medium","shield"].some(function(k) { return a.indexOf(k) === -1; })) return "броня " + a.join(",");
+      return (w.indexOf("martial") !== -1 && w.indexOf("simple") !== -1) || "оружие " + w.join(",");
+    });
+    t("[AUD-7 R6] Волшебник → Плут: лёгкие доспехи и воровские инструменты, без мечей плута", function(){
+      var c = aud7({ classes: [{ class: "Волшебник", level: 1 }, { class: "Плут", level: 1 }] });
+      recalcArmorWeaponFromSources(c);
+      recalcToolsFromSources(c);
+      if (c.proficiencies.armor.join(",") !== "light") return "броня " + c.proficiencies.armor.join(",");
+      if (c.proficiencies.specificWeapons.some(function(s) { return s.name === "Рапира"; })) return "рапира от мультикласса";
+      return c.proficiencies.tools.some(function(t) { return t.name === "Воровские инструменты"; }) || "нет воровских инструментов";
+    });
+    t("[AUD-7 R6] Плут → Бард: 1 музыкальный инструмент на выбор, не 3", function(){
+      var slot = MULTICLASS_PROFICIENCIES["Бард"].tools.choices[0];
+      return (slot.count === 1 && slot.from === "musical") || JSON.stringify(slot);
+    });
+    t("[AUD-7 R7] волшебник 2014: кинжал да, булава нет; 2024 — всё простое", function(){
+      var c = aud7({ classes: [{ class: "Волшебник", level: 1 }] });
+      recalcArmorWeaponFromSources(c);
+      if (c.proficiencies.weapon.indexOf("simple") !== -1) return "всё простое оружие у волшебника 2014";
+      if (!checkWeaponProficiency(c, "Кинжал")) return "нет кинжала";
+      if (checkWeaponProficiency(c, "Булава")) return "булава с владением";
+      var d = aud7({ classes: [{ class: "Друид", level: 1 }] });
+      recalcArmorWeaponFromSources(d);
+      if (!checkWeaponProficiency(d, "Серп") || checkWeaponProficiency(d, "Лёгкий арбалет")) return "список друида";
+      var ed24 = edData({ edition: "2024" });
+      if (ed24 !== edData({ edition: "2014" }) && ed24.CLASS_ARMOR_PROFS["Волшебник"].weapon.indexOf("simple") === -1) return "2024 волшебник без простого";
+      return true;
+    });
+    t("[AUD-7 C5] Домен жизни даёт тяжёлые доспехи", function(){
+      var c = aud7({ classes: [{ class: "Жрец", level: 1, subclass: "Домен жизни" }] });
+      recalcArmorWeaponFromSources(c);
+      return c.proficiencies.armor.indexOf("heavy") !== -1 || "броня " + c.proficiencies.armor.join(",");
+    });
+  }
+  if (typeof checkMulticlassPrereqs === "function") {
+    t("[AUD-7 R8] требования проверяются у всех текущих классов", function(){
+      var c = aud7({ stats: { str:14, dex:14, con:10, int:8, wis:10, cha:10 },
+        classes: [{ class: "Воин", level: 1 }, { class: "Волшебник", level: 1 }] });
+      var r = checkMulticlassPrereqs(c, "Плут");
+      if (r.ok) return "ИНТ 8 у волшебника пропущен";
+      if (!r.missing.some(function(m) { return m.indexOf("Волшебник") !== -1; })) return r.missing.join("; ");
+      c.stats.int = 13;
+      if (!checkMulticlassPrereqs(c, "Плут").ok) return "ложный отказ";
+      c.stats.str = 8;
+      return checkMulticlassPrereqs(c, "Плут").ok || "воин с ЛОВ 13 должен проходить";
+    });
+  }
+  if (typeof rulesFeatPrereqMissing === "function") {
+    t("[AUD-7 L25] требования черт: характеристика, «или», доспехи, заклинания", function(){
+      var c = aud7({ stats: { str:12, dex:10, con:10, int:10, wis:13, cha:10 }, classes: [{ class: "Воин", level: 4 }] });
+      if (!rulesFeatPrereqMissing(c, { prereq: "Сила 13+" })) return "СИЛ 12 прошла";
+      if (rulesFeatPrereqMissing(c, { prereq: "ИНТ или МУД 13+" })) return "МУД 13 не засчитана";
+      if (!rulesFeatPrereqMissing(c, { prereq: "Владение тяжёлыми доспехами" })) return "нет владения — прошло";
+      if (!rulesFeatPrereqMissing(c, { prereq: "Умение накладывать заклинания" })) return "воин без мистика — заклинатель";
+      c.classes[0].subclass = "Мистический рыцарь";
+      if (rulesFeatPrereqMissing(c, { prereq: "Умение накладывать заклинания" })) return "мистический рыцарь не заклинатель";
+      c.feats = [{ id: "grappler" }];
+      c.stats.str = 13;
+      return luApplyFeatById(c, "grappler", 8) === null || "повтор черты не заблокирован";
+    });
+  }
+  if (typeof rulesFeatStatOptions === "function") {
+    t("[AUD-7 L8] stat_choice: выбранная характеристика; «Устойчивый» без имеющегося спасброска", function(){
+      var c = aud7({ stats: { str:10, dex:14, con:10, int:10, wis:10, cha:10 }, level: 4, combat: { hpMax: 20, hpCurrent: 20 } });
+      luApplyFeatById(c, "athlete", 4, "dex");
+      if (c.stats.dex !== 15 || c.stats.str !== 10) return "Атлетичный: СИЛ " + c.stats.str + ", ЛОВ " + c.stats.dex;
+      c.saves = { con: true, wis: false };
+      var opts = rulesFeatStatOptions(c, rulesFeatStatChoice(getFeatDef(c, "resilient")));
+      if (opts.indexOf("con") !== -1) return "ТЕЛ со спасброском в выборе";
+      luApplyFeatById(c, "resilient", 8, "wis");
+      return (c.saves.wis === true && c.stats.wis === 11) || "Устойчивый: МУД " + c.stats.wis;
+    });
+  }
+  t("[AUD-7] L6/L22/L26: подкласс второго класса, пересчёт владения оружием, потолок 20", function(){
+    if (String(luSetSubclass).indexOf("syncClassFields") === -1) return "luSetSubclass пишет в char.subclass";
+    if (String(renderWeapons).indexOf("proficient === undefined") !== -1) return "владение оружием не пересчитывается";
+    return String(toggleASIStat).indexOf("> 20") !== -1 || "toggleASIStat без потолка 20";
+  });
+
+  // ────────── РЕЗУЛЬТАТЫ ──────────
+  window.__testResults = {pass, fail, total: pass+fail, results};
+
+  var summary = document.getElementById("summary");
+  summary.className = "summary " + (fail === 0 ? "ok" : "fail");
+  summary.textContent = "Итого: "+pass+" OK / "+fail+" FAIL из "+(pass+fail);
+
+  var box = document.getElementById("results");
+  // Показываем только фейлы сначала + компактный список остального
+  var failed = results.filter(function(r){return !r.ok;});
+  var passed = results.filter(function(r){return r.ok;});
+  var html = "";
+  if (failed.length) {
+    html += '<div class="section"><b>FAILS ('+failed.length+'):</b><pre>';
+    failed.forEach(function(r){ html += '<span class="fail">✗ '+escapeHtml(r.desc)+'</span>  '+escapeHtml(r.msg||"")+"\n"; });
+    html += '</pre></div>';
+  }
+  html += '<div class="section"><b>PASSED ('+passed.length+'):</b><pre>';
+  passed.forEach(function(r){ html += '<span class="ok">✓ '+escapeHtml(r.desc)+'</span>\n'; });
+  html += '</pre></div>';
+  box.innerHTML = html;
+
+  // TEST-2: возвращаем localStorage как было до тестов (см. снапшот в начале IIFE).
+  _lsKeys.forEach(function(k){
+    try {
+      if (_lsSnapshot[k] === null || _lsSnapshot[k] === undefined) localStorage.removeItem(k);
+      else localStorage.setItem(k, _lsSnapshot[k]);
+    } catch(e) { /* localStorage недоступен — нечего восстанавливать */ }
+  });
 
   console.log("[TESTS]", window.__testResults);
 })();

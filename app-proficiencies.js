@@ -230,10 +230,12 @@ function getToolChoiceSlots(char) {
     });
   }
   // Класс и подкласс
-  getCharClassPairs(char).forEach(function(p) {
+  getCharClassPairs(char).forEach(function(p, pi) {
     var cn = p.cls;
-    if (typeof CLASS_TOOLS !== "undefined" && CLASS_TOOLS[cn]) {
-      var c = CLASS_TOOLS[cn];
+    // AUD-7: второй и следующие классы — инструменты по таблице мультикласса
+    var c = pi > 0 ? (edData(char).MULTICLASS_PROFICIENCIES[cn] || {}).tools
+      : (typeof CLASS_TOOLS !== "undefined" ? CLASS_TOOLS[cn] : null);
+    if (c) {
       (c.choices || []).forEach(function(slot, idx) {
         var key = "class_" + cn + "_" + idx;
         var picks = (char.proficiencies.toolChoices[key]) || [];

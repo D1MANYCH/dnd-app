@@ -842,6 +842,53 @@ function rulesEffectiveSpeed(char, base) {
   return { speed: base, reasons: [] };
 }
 
+// ── Черты: требования и выбор характеристики (AUD-7, PHB стр. 165) ──
+// Невыполненное требование черты (строка prereq) или null. Незнакомая формулировка не блокирует.
+function rulesFeatPrereqMissing(char, feat) {
+  var pr = feat && feat.prereq;
+  if (!pr || !char) return null;
+  var st = char.stats || {};
+  var abil = {"Сила":"str","Ловкость":"dex","Телосложение":"con","Интеллект":"int","Мудрость":"wis","Харизма":"cha",
+    "СИЛ":"str","ЛОВ":"dex","ТЕЛ":"con","ИНТ":"int","МУД":"wis","ХАР":"cha"};
+  var m = pr.match(/^(.+?)\s+(\d+)\+?$/);
+  if (m) {
+    var keys = m[1].split(/\s+или\s+/).map(function(w) { return abil[w.trim()]; });
+    if (keys.every(Boolean)) {
+      var need = parseInt(m[2], 10);
+      return keys.some(function(k) { return (st[k] || 10) >= need; }) ? null : pr;
+    }
+  }
+  var armor = {"лёгкими":"light","средними":"medium","тяжёлыми":"heavy"};
+  var am = pr.match(/^Владение (\S+) доспехами$/);
+  if (am && armor[am[1]]) {
+    var have = (char.proficiencies && char.proficiencies.armor) || [];
+    return have.indexOf(armor[am[1]]) !== -1 ? null : pr;
+  }
+  if (/накладывать заклинания/.test(pr)) {
+    var cl = charCasterLevel(char);
+    return (cl.level > 0 || cl.pact) ? null : pr;
+  }
+  return null;
+}
+// Эффект черты с выбором характеристики (stat_choice / stat_choice_save) или null
+function rulesFeatStatChoice(feat) {
+  var effs = (feat && feat.effects) || [];
+  for (var i = 0; i < effs.length; i++) {
+    if (effs[i] && (effs[i].type === "stat_choice" || effs[i].type === "stat_choice_save")) return effs[i];
+  }
+  return null;
+}
+// Какие характеристики можно выбрать: ниже потолка; для «Устойчивого» — без владения спасброском
+function rulesFeatStatOptions(char, eff) {
+  if (!eff) return [];
+  var cap = eff.max || 20;
+  return (eff.keys || []).filter(function(k) {
+    if (((char.stats || {})[k] || 10) >= cap) return false;
+    if (eff.type === "stat_choice_save" && char.saves && char.saves[k]) return false;
+    return true;
+  });
+}
+
 // ── Концентрация ────────────────────────────────────────────
 // FIN-7: чистые параметры спасброска концентрации (PHB стр.203–204).
 // СЛ = max(10, урон/2 округл. вниз); модификатор = ТЕЛ-мод (+ мастерство при
@@ -1056,11 +1103,12 @@ function recalcToolsFromSources(char) {
       picks.slice(0, slot.count || 1).forEach(function(n){ add(n, "race"); });
     });
   }
-  // Классы и подклассы
-  getCharClassPairs(char).forEach(function(p) {
+  // Классы и подклассы; второй и следующие классы — по таблице мультикласса (AUD-7)
+  getCharClassPairs(char).forEach(function(p, pi) {
     var cn = p.cls;
-    if (typeof CLASS_TOOLS !== "undefined" && CLASS_TOOLS[cn]) {
-      var c = CLASS_TOOLS[cn];
+    var c = pi > 0 ? (edData(char).MULTICLASS_PROFICIENCIES[cn] || {}).tools
+      : (typeof CLASS_TOOLS !== "undefined" ? CLASS_TOOLS[cn] : null);
+    if (c) {
       (c.fixed || []).forEach(function(n){ add(n, "class"); });
       (c.choices || []).forEach(function(slot, idx) {
         var key = "class_" + cn + "_" + idx;
@@ -1133,8 +1181,9 @@ function recalcArmorWeaponFromSources(char) {
     (r.weapon || []).forEach(function(t){ addWeapon(t, "race"); });
   }
   // Класс(ы) и подкласс(ы)
-  getCharClassPairs(char).forEach(function(pair) {
-    var ca = (typeof CLASS_ARMOR_PROFS !== "undefined") && CLASS_ARMOR_PROFS[pair.cls];
+  // AUD-7 (R5): второй и следующие классы дают только владения из таблицы мультикласса
+  getCharClassPairs(char).forEach(function(pair, pi) {
+    var ca = pi > 0 ? edData(char).MULTICLASS_PROFICIENCIES[pair.cls] : edData(char).CLASS_ARMOR_PROFS[pair.cls];
     if (ca) {
       (ca.armor  || []).forEach(function(t){ addArmor(t,  "class"); });
       (ca.weapon || []).forEach(function(t){ addWeapon(t, "class"); });
@@ -1181,11 +1230,11 @@ function recalcArmorWeaponFromSources(char) {
     RACE_WEAPONS_SPECIFIC[char.race].forEach(function(n){ addSpec(n, "race"); });
   }
   // FIN-2: конкретные владения классов (скимитар друида, короткий меч монаха…)
-  if (typeof CLASS_WEAPONS_SPECIFIC !== "undefined") {
-    getCharClassPairs(char).forEach(function(pair) {
-      (CLASS_WEAPONS_SPECIFIC[pair.cls] || []).forEach(function(n){ addSpec(n, "class"); });
-    });
-  }
+  getCharClassPairs(char).forEach(function(pair, pi) {
+    var list = pi > 0 ? (edData(char).MULTICLASS_PROFICIENCIES[pair.cls] || {}).specific
+      : edData(char).CLASS_WEAPONS_SPECIFIC[pair.cls];
+    (list || []).forEach(function(n){ addSpec(n, "class"); });
+  });
   // Custom specifics — сохранены в самом массиве
   (p.specificWeapons || []).forEach(function(w){
     if (w && w.source === "custom") addSpec(w.name, "custom");

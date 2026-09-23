@@ -7,6 +7,7 @@
 // АСИ — модалка выбора характеристик
 // ============================================================
 var asiSelectedStats = [];
+var asiFeatStat = null; // AUD-7 (L8): характеристика, выбранная для черты со stat_choice
 var asiPendingPoints = 0; // сколько осталось распределить
 
 var asiCurrentLevel = null; // уровень КЛАССА, для которого применяется АСИ
@@ -37,6 +38,7 @@ function openASIModal() {
   if (!char) return;
   asiSelectedStats = [];
   asiFeatSelected = null;
+  asiFeatStat = null;
   var modal = $("asi-modal");
   if (!modal) { showToast("Ошибка: АСИ модалка не найдена", "error"); return; }
 
@@ -78,6 +80,7 @@ function closeASIModal() {
   if (modal) modal.classList.remove("active");
   asiSelectedStats = [];
   asiFeatSelected = null;
+  asiFeatStat = null;
   asiCurrentLevel = null;
   asiCurrentClass = null;
   // BUILD-LVL-4: обновить чек-лист guided level-up, если он открыт
@@ -115,6 +118,12 @@ function toggleASIStat(statKey) {
   var maxPicks = mode === "plus2" ? 1 : 2;
 
   var idx = asiSelectedStats.indexOf(statKey);
+  // AUD-7 (L26): характеристику выше 20 не поднять (PHB стр. 15)
+  var char = getCurrentChar();
+  if (idx === -1 && char && (char.stats[statKey] || 10) + (mode === "plus2" ? 2 : 1) > 20) {
+    showToast("Характеристику нельзя поднять выше 20", "warn");
+    return;
+  }
   if (idx > -1) {
     asiSelectedStats.splice(idx, 1);
   } else {
@@ -147,7 +156,7 @@ function updateASIPreview() {
         preview.className = "asi-preview";
       }
     }
-    if (applyBtn) applyBtn.disabled = !asiFeatSelected;
+    if (applyBtn) applyBtn.disabled = !_asiFeatReady();
     return;
   }
 
@@ -158,10 +167,14 @@ function updateASIPreview() {
 
   var maxPicks = mode === "plus2" ? 1 : 2;
   var bonus = mode === "plus2" ? 2 : 1;
+  // AUD-7 (L26): при смене режима снять выбор, который ушёл бы выше 20
+  var capChar = getCurrentChar();
+  if (capChar) asiSelectedStats = asiSelectedStats.filter(function(k) { return (capChar.stats[k] || 10) + bonus <= 20; });
 
   if (statGrid) {
     statGrid.querySelectorAll(".asi-stat-item").forEach(function(el) {
       el.classList.remove("selected");
+      el.classList.toggle("is-capped", !!capChar && (capChar.stats[el.id.replace("asi-stat-","")] || 10) + bonus > 20);
       var deltaEl = $("asi-delta-" + el.id.replace("asi-stat-",""));
       if (deltaEl) deltaEl.textContent = "";
     });
@@ -246,16 +259,18 @@ function buildFeatList() {
     '<div class="feat-list" id="feat-list-items">' +
     featList.map(function(feat) {
       var taken = !feat.repeatable && takenFeats.some(function(f) { return f.id === feat.id; });
+      var prereqMiss = !taken && char ? rulesFeatPrereqMissing(char, feat) : null;
       var selected = asiFeatSelected === feat.id;
       var isRec = recFeatId && feat.id === recFeatId;
-      return '<div class="feat-item' + (selected ? " selected" : "") + (taken ? " taken" : "") + (isRec ? " is-rec" : "") + '" onclick="selectFeat(\'' + feat.id + '\')" data-name="' + escapeHtml(feat.name.toLowerCase()) + '">' +
+      return '<div class="feat-item' + (selected ? " selected" : "") + (taken || prereqMiss ? " taken" : "") + (isRec ? " is-rec" : "") + '" onclick="selectFeat(\'' + feat.id + '\')" data-name="' + escapeHtml(feat.name.toLowerCase()) + '">' +
         '<div class="feat-item-header">' +
           '<span class="feat-item-name">' + escapeHtml(feat.name) + '</span>' +
           (isRec ? '<span class="rec-badge">' + dndIcoHtml("bulb", 12) + ' совет билда</span>' : '') +
-          (feat.prereq ? '<span class="feat-prereq">' + escapeHtml(feat.prereq) + '</span>' : '') +
+          (feat.prereq ? '<span class="feat-prereq">' + escapeHtml(feat.prereq) + (prereqMiss ? ' · не выполнено' : '') + '</span>' : '') +
           (taken ? '<span class="feat-taken-badge">Уже взята</span>' : '') +
         '</div>' +
         '<div class="feat-item-desc">' + escapeHtml(feat.desc) + '</div>' +
+        (selected ? _featStatPickHtml(char, feat) : '') +
       '</div>';
     }).join("") +
     '</div>';
@@ -269,8 +284,45 @@ function filterFeatList(query) {
   });
 }
 
+// AUD-7 (L25): черту нельзя взять повторно (кроме повторяемых) и без выполненного требования
+function _asiFeatBlocked(char, feat) {
+  if (!char || !feat) return null;
+  if (!feat.repeatable && (char.feats || []).some(function(f) { return f.id === feat.id; })) return "Черта уже взята";
+  var miss = rulesFeatPrereqMissing(char, feat);
+  return miss ? "Требование не выполнено: " + miss : null;
+}
+// AUD-7 (L8): выбор характеристики для черты со stat_choice
+function _featStatPickHtml(char, feat) {
+  var eff = rulesFeatStatChoice(feat);
+  if (!eff || !char) return '';
+  var abbr = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
+  var opts = rulesFeatStatOptions(char, eff);
+  return '<div class="feat-stat-pick"><span class="feat-stat-pick-lbl">+' + eff.value + ' к</span>' +
+    eff.keys.map(function(k) {
+      var ok = opts.indexOf(k) !== -1;
+      return '<button type="button" class="feat-stat-opt' + (asiFeatStat === k ? ' selected' : '') + '" data-k="' + k + '"' +
+        (ok ? '' : ' disabled') + ' onclick="event.stopPropagation();selectFeatStat(this.dataset.k)">' +
+        abbr[k] + ' ' + (char.stats[k] || 10) + '</button>';
+    }).join('') + '</div>';
+}
+function _asiFeatReady() {
+  if (!asiFeatSelected) return false;
+  return !rulesFeatStatChoice(getFeatDef(getCurrentChar(), asiFeatSelected)) || !!asiFeatStat;
+}
+function selectFeatStat(k) {
+  asiFeatStat = k;
+  buildFeatList();
+  var applyBtn = $("asi-apply-btn");
+  if (applyBtn) applyBtn.disabled = !_asiFeatReady();
+}
+
 function selectFeat(id) {
+  if (asiFeatSelected !== id) {
+    var blocked = _asiFeatBlocked(getCurrentChar(), getFeatDef(getCurrentChar(), id));
+    if (blocked) { showToast(blocked, "warn"); return; }
+  }
   asiFeatSelected = asiFeatSelected === id ? null : id;
+  asiFeatStat = null;
   buildFeatList();
   var preview = $("asi-preview");
   var applyBtn = $("asi-apply-btn");
@@ -278,7 +330,7 @@ function selectFeat(id) {
     var feat = getFeatDef(getCurrentChar(), asiFeatSelected);
     if (!feat) return;
     if (preview) { preview.textContent = "✅ Черта: " + feat.name; preview.className = "asi-preview ready"; }
-    if (applyBtn) applyBtn.disabled = false;
+    if (applyBtn) applyBtn.disabled = !_asiFeatReady();
   } else {
     if (preview) { preview.textContent = "Выберите черту"; preview.className = "asi-preview"; }
     if (applyBtn) applyBtn.disabled = true;
@@ -328,6 +380,8 @@ function applyASI() {
 
   var feat = getFeatDef(char, asiFeatSelected);
   if (!feat) return;
+  var blocked = _asiFeatBlocked(char, feat);
+  if (blocked) { showToast(blocked, "warn"); return; }
 
   if (!char.feats) char.feats = [];
 
@@ -345,8 +399,8 @@ function applyASI() {
       appliedDesc.push("+" + eff.value + " " + statNames[eff.key]);
     }
     else if (eff.type === "stat_choice" || eff.type === "stat_choice_save") {
-      // Pick first available stat that isn't at cap
-      var picked = eff.keys.find(function(k) { return (char.stats[k] || 10) < cap; });
+      // AUD-7 (L8): характеристика из выбора в окне черты
+      var picked = rulesFeatStatOptions(char, eff).indexOf(asiFeatStat) !== -1 ? asiFeatStat : null;
       if (picked) {
         char.stats[picked] = Math.min(cap, (char.stats[picked] || 10) + eff.value);
         safeSet("val-" + picked, char.stats[picked]);
