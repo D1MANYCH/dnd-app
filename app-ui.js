@@ -520,6 +520,8 @@ function crResourceRow(res, char) {
     acts = spend("− 1", 1) + spend("+ 1", -1);
   }
 
+  if (res.slotRecovery) acts = crSlotRecoveryActs(res, char);
+
   var src = escapeHtml(res._cls || "");
   var rest = crRestoreLabel(res);
   if (rest) src += (src ? ' <span class="hp-dot">·</span> ' : "") + rest;
@@ -532,6 +534,52 @@ function crResourceRow(res, char) {
 
   var name = escapeHtml(res.name) + (dieSize ? ' <i class="cr-die">(' + escapeHtml(dieSize) + ")</i>" : "");
   return crRow(name, meta, body);
+}
+
+// AUD-9 (L35): «Магическое» и «Естественное восстановление» — ячейки суммарным
+// уровнем ≤ ½ уровня класса (вверх), ни одна не выше 5-го (PHB стр. 115, 69).
+// Потраченные уровни — в char.resources[id + "_lv"]; при снятом заряде бюджет свежий.
+function crSlotRecoveryBudget(res) {
+  return Math.ceil((res._clsLevel || 1) / 2);
+}
+
+function crSlotRecoveryActs(res, char) {
+  var used = char.resources[res.id] || 0;
+  var spent = used ? (char.resources[res.id + "_lv"] || 0) : 0;
+  if (used && !spent) return "";
+  var left = crSlotRecoveryBudget(res) - spent;
+  var su = (char.spells && char.spells.slotsUsed) || {};
+  var id = escapeHtml(res.id), btns = "";
+  for (var l = 1; l <= Math.min(5, left); l++) {
+    if ((su[l] || 0) > 0) {
+      btns += '<button type="button" class="hp-act" onclick="recoverSlotByResource(\'' + id + '\',' + l + ')">+ ячейка ' + l + ' ур.</button>';
+    }
+  }
+  return '<span class="hp-row-hint">Можно вернуть: ' + left + ' ур.</span>' + btns;
+}
+
+function recoverSlotByResource(id, lvl) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char || !char.spells) return;
+  initCharResources(char);
+  var data = getCharResourceDefs(char);
+  if (!data) return;
+  var res = data.resources.find(function(r) { return r.id === id && r.slotRecovery; });
+  if (!res || getResourceMax(res, char) === 0) return;
+  var used = char.resources[id] || 0;
+  var spent = used ? (char.resources[id + "_lv"] || 0) : 0;
+  if (used && !spent) return;
+  if (lvl < 1 || lvl > 5 || spent + lvl > crSlotRecoveryBudget(res)) return;
+  var su = char.spells.slotsUsed || {};
+  if (!((su[lvl] || 0) > 0)) return;
+  su[lvl]--;
+  char.resources[id + "_lv"] = spent + lvl;
+  char.resources[id] = 1;
+  if (window.AppLog) AppLog.action("spells", res.name + ": ячейка " + lvl + " ур. восстановлена");
+  saveToLocal();
+  renderClassResources();
+  if (typeof renderSpellSlots === "function") renderSpellSlots();
 }
 
 /** Строки ресурсов, пассивок и заклинаний подкласса одной разметкой —

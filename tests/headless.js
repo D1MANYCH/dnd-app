@@ -7070,7 +7070,7 @@
       if (calcMaxPrepared({ edition: "2024", class: "Колдун", level: 3 }) !== 4) return "колдун 3 ≠ 4";
       if (calcMaxCantrips({ edition: "2024", class: "Чародей", level: 1 }) !== 4) return "чародей заговоры ≠ 4";
       if (calcMaxCantrips({ edition: "2024", class: "Паладин", level: 5 }) !== null) return "паладин заговоры не null";
-      if (calcMaxCantrips({ edition: "2014", class: "Жрец", level: 5 }) !== null) return "2014 заговоры не null";
+      if (calcMaxCantrips({ edition: "2014", class: "Жрец", level: 5 }) !== 4) return "2014 заговоры жреца 5 ≠ 4 (AUD-9 C38)";
       return true;
     });
 
@@ -8373,6 +8373,75 @@
     if (String(luSetSubclass).indexOf("syncClassFields") === -1) return "luSetSubclass пишет в char.subclass";
     if (String(renderWeapons).indexOf("proficient === undefined") !== -1) return "владение оружием не пересчитывается";
     return String(toggleASIStat).indexOf("> 20") !== -1 || "toggleASIStat без потолка 20";
+  });
+
+  // ── AUD-9: контент классов PHB 2014 ──
+  function aud9Names(cls, lvl) { return (CLASS_FEATURES[cls][lvl] || []).map(function(f) { return f.name; }).join("|"); }
+  t("[AUD-9 C3] заглушки «Особенность …» только на уровнях умений подкласса", function(){
+    var want = { "Волшебник":[6,10,14], "Жрец":[6,8,17], "Друид":[6,10,14], "Бард":[6,14], "Паладин":[7,15,20],
+      "Чародей":[6,14,18], "Монах":[6,11,17], "Воин":[7,10,15,18], "Плут":[9,13,17], "Варвар":[6,10,14], "Следопыт":[7,11,15], "Колдун":[6,10,14] };
+    for (var cls in want) {
+      for (var l = 1; l <= 20; l++) {
+        var has = (CLASS_FEATURES[cls][l] || []).some(function(f) { return /^Особенность /.test(f.name); });
+        if (has !== (want[cls].indexOf(l) !== -1)) return cls + " " + l + ": заглушка " + (has ? "лишняя" : "пропала");
+      }
+    }
+    return true;
+  });
+  t("[AUD-9 C1/C2] воин 17 — Всплеск (2) + Упорный (3), 20 — четыре атаки; варвар 16 — ярость +4, 17 — три кости крита", function(){
+    if (aud9Names("Воин", 17).indexOf("Упорный (3)") === -1 || aud9Names("Воин", 17).indexOf("Четыре атаки") !== -1) return "воин 17: " + aud9Names("Воин", 17);
+    if (aud9Names("Воин", 20) !== "Четыре атаки") return "воин 20: " + aud9Names("Воин", 20);
+    if (aud9Names("Варвар", 16).indexOf("+4") === -1) return "варвар 16: " + aud9Names("Варвар", 16);
+    return aud9Names("Варвар", 17).indexOf("3 кости") !== -1 || "варвар 17: " + aud9Names("Варвар", 17);
+  });
+  t("[AUD-9 C4/C31/C35] избранный враг 1/2/3; «Потусторонний прыжок» с 9 ур.; колдун 3 без «2 слота»", function(){
+    var fe = CLASS_CHOICES["Следопыт"].find(function(c) { return c.id === "favored-enemy"; });
+    if (fe.getCount(1) !== 1 || fe.getCount(6) !== 2 || fe.getCount(14) !== 3) return "избранный враг: " + [fe.getCount(1), fe.getCount(6), fe.getCount(14)];
+    if (!WARLOCK_INVOCATIONS["otherworldly-leap"].req || WARLOCK_INVOCATIONS["otherworldly-leap"].req.level !== 9) return "прыжок без 9 ур.";
+    return aud9Names("Колдун", 3).indexOf("слот") === -1 || "колдун 3: " + aud9Names("Колдун", 3);
+  });
+  t("[AUD-9 C33/C37] навыки волшебника, друида, следопыта; ресурсы «Упорный» 9/13/17 и канал паладина", function(){
+    var o = CLASS_SKILL_OPTIONS;
+    if (o["Волшебник"].indexOf("Анализ") === -1 || o["Волшебник"].indexOf("Природа") !== -1) return "волшебник";
+    if (o["Друид"].indexOf("Проницательность") === -1 || o["Следопыт"].indexOf("Проницательность") === -1) return "друид/следопыт";
+    var ind = CLASS_RESOURCES["Воин"].resources.find(function(r) { return r.id === "indomitable"; });
+    if (!ind || ind.maxByLevel[8] !== 0 || ind.maxByLevel[9] !== 1 || ind.maxByLevel[13] !== 2 || ind.maxByLevel[17] !== 3) return "упорный";
+    var cd = CLASS_RESOURCES["Паладин"].resources.find(function(r) { return r.id === "channel_divinity"; });
+    return (cd && cd.maxByLevel[2] === 0 && cd.maxByLevel[3] === 1 && cd.restoreOn === "short") || "канал паладина";
+  });
+  t("[AUD-9 C38] 2014: известные заговоры и заклинания по таблице класса", function(){
+    if (calcMaxKnownSpells({ class: "Бард", level: 10 }) !== 14) return "бард 10";
+    if (calcMaxKnownSpells({ class: "Следопыт", level: 1 }) !== 0) return "следопыт 1";
+    if (calcMaxKnownSpells({ class: "Колдун", level: 20, classes: [{ class: "Колдун", level: 3 }, { class: "Чародей", level: 2 }] }) !== 7) return "колдун 3 + чародей 2";
+    if (calcMaxKnownSpells({ edition: "2024", class: "Бард", level: 5 }) !== null) return "2024 не null";
+    if (calcMaxCantrips({ class: "Чародей", level: 10 }) !== 6) return "чародей заговоры 10";
+    if (calcMaxKnownSpells({ class: "Жрец", level: 5 }) !== null) return "жрец не знающий";
+    var sp = function(lv) { return { level: lv }; };
+    var wc = { class: "Колдун", level: 18, classes: [{ class: "Колдун", level: 13 }, { class: "Чародей", level: 5 }],
+      spells: { mySpells: [sp(1), sp(3), sp(6), sp(7), sp(0)] } };
+    return _knownSpellCount(wc) === 2 || "арканум колдуна 13 в мультиклассе: " + _knownSpellCount(wc);
+  });
+  if (typeof crSlotRecoveryActs === "function") {
+    t("[AUD-9 L35] восстановление ячеек: бюджет ½ уровня вверх, не выше 5-го, только потраченные ячейки", function(){
+      var res = { id: "arcane_recovery", slotRecovery: true, _clsLevel: 5 };
+      if (crSlotRecoveryBudget(res) !== 3) return "бюджет 5 ур. ≠ 3";
+      var c = { resources: {}, spells: { slotsUsed: { 1: 1, 2: 0, 3: 1 } } };
+      var html = crSlotRecoveryActs(res, c);
+      if (html.indexOf(",1)") === -1 || html.indexOf(",2)") !== -1 || html.indexOf(",3)") === -1) return "кнопки: " + html;
+      c.resources.arcane_recovery = 1; c.resources.arcane_recovery_lv = 2;
+      html = crSlotRecoveryActs(res, c);
+      if (html.indexOf(",3)") !== -1 || html.indexOf(",1)") === -1) return "остаток 1: " + html;
+      c.resources.arcane_recovery_lv = 0;
+      if (crSlotRecoveryActs(res, c) !== "") return "заряд снят без траты — кнопки остались";
+      res._clsLevel = 20; c.resources = {}; c.spells.slotsUsed = { 6: 1 };
+      return crSlotRecoveryActs(res, c).indexOf(",6)") === -1 || "ячейка 6 ур.";
+    });
+  }
+  t("[AUD-9 C36] глоссарий: названия как в данных", function(){
+    var g = (window.GLOSSARY || []).map(function(e) { return e.term; });
+    var need = ["Компетентность", "Скрытая атака", "Всплеск действий", "Вдохновение барда", "Ци"];
+    for (var i = 0; i < need.length; i++) if (g.indexOf(need[i]) === -1) return "нет «" + need[i] + "»";
+    return true;
   });
 
   // ────────── РЕЗУЛЬТАТЫ ──────────

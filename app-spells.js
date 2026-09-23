@@ -940,8 +940,41 @@ function calcMaxPrepared(char) {
   return e.reduce(function(sum, x) { return sum + _prepLimit(char, x); }, 0);
 }
 
-// Лимит известных заговоров по таблице класса (только 2024; 2014 — null, без лимита).
+// AUD-9 (C38): сумма по таблице класса PHB 2014 для всех классов персонажа; null — ни один класс не в таблице.
+function _known2014(char, table) {
+  if (!char || char.edition === "2024" || !table) return null;
+  var list = (Array.isArray(char.classes) && char.classes.length) ? char.classes
+    : (char.class ? [{ class: char.class, level: char.level }] : []);
+  var sum = null;
+  list.forEach(function(c) {
+    if (!c || !table[c.class]) return;
+    var lv = Math.max(1, Math.min(20, c.level || char.level || 1));
+    sum = (sum || 0) + table[c.class][lv - 1];
+  });
+  return sum;
+}
+
+// Лимит известных заклинаний 2014 (бард, чародей, колдун, следопыт); 2024 — null.
+function calcMaxKnownSpells(char) {
+  return (typeof SPELLS_KNOWN_2014 !== "undefined") ? _known2014(char, SPELLS_KNOWN_2014) : null;
+}
+
+// Известные заклинания 1+ уровня. Таинственный арканум (6–9 ур., по одному на 11/13/15/17 ур.
+// колдуна) в лимит не входит: из счёта вычитается до стольких заклинаний 6+ уровня (PHB стр. 108).
+function _knownSpellCount(char) {
+  var wl = (typeof charClassLevel === "function") ? charClassLevel(char, "Колдун")
+    : (char.class === "Колдун" ? char.level : 0);
+  var arcana = [11, 13, 15, 17].filter(function(l) { return (wl || 0) >= l; }).length;
+  var all = (char.spells.mySpells || []).filter(function(s) { return s && (s.level || 0) > 0 && !s.grantedBy; });
+  var high = all.filter(function(s) { return s.level >= 6; }).length;
+  return all.length - Math.min(high, arcana);
+}
+
+// Лимит известных заговоров по таблице класса (2024 — SPELL_PREP_2024, 2014 — CANTRIPS_KNOWN_2014).
 function calcMaxCantrips(char) {
+  if (char && char.edition !== "2024") {
+    return (typeof CANTRIPS_KNOWN_2014 !== "undefined") ? _known2014(char, CANTRIPS_KNOWN_2014) : null;
+  }
   var e = _prepEntries(char).filter(function(x) { return x.prep.cantrips; });
   if (!e.length) return null;
   return e.reduce(function(sum, x) { return sum + x.prep.cantrips[x.level - 1]; }, 0);
@@ -1038,8 +1071,22 @@ function renderPrepCounter() {
   const char = getCurrentChar();
   const el = $("prep-counter");
   if (!el) return;
+  var cantripMax = char ? calcMaxCantrips(char) : null;
+  var cantripHint = "";
+  if (cantripMax !== null) {
+    var cantripHave = (char.spells.mySpells || []).filter(function(s) { return s && s.level === 0 && !s.grantedBy; }).length;
+    cantripHint = " · заговоров " + cantripHave + "/" + cantripMax;
+  }
   if (!char || !isPrepClass(char)) {
-    el.style.display = "none";
+    // AUD-9 (C38): «знающие» классы 2014 — счётчик известных заклинаний по таблице класса
+    var kMax = char ? calcMaxKnownSpells(char) : null;
+    var kHave = kMax !== null ? _knownSpellCount(char) : 0;
+    if (kMax === null || (!kMax && !kHave)) {
+      el.style.display = "none";
+      return;
+    }
+    el.style.display = "";
+    el.innerHTML = '<span class="prep-icon">' + dndIcoHtml("sheet", 13) + '</span><span class="prep-label">Известно:</span><span class="prep-count' + (kHave >= kMax ? " prep-full" : "") + '">' + kHave + '</span><span class="prep-sep">/</span><span class="prep-max">' + kMax + '</span><span class="prep-hint">(таблица класса' + cantripHint + ')</span>';
     return;
   }
   if (!char.spells.prepared) char.spells.prepared = [];
@@ -1055,11 +1102,9 @@ function renderPrepCounter() {
   if (_pe.length > 1) {
     hint = "(" + _pe.map(function(x) { return x.cls + " " + _prepLimit(char, x); }).join(" + ") + ")";
   } else if (prep.prepared) {
-    var maxCantrips = calcMaxCantrips(char);
-    var cantripCount = (char.spells.mySpells || []).filter(function(s) { return s && s.level === 0 && !s.grantedBy; }).length;
-    hint = "(таблица класса" + (maxCantrips !== null ? " · заговоров " + cantripCount + "/" + maxCantrips : "") + ")";
+    hint = "(таблица класса" + cantripHint + ")";
   } else {
-    hint = "(" + statName + " + " + (prep.formula === "mod+halfLevel" ? "½ ур." : "ур.") + ")";
+    hint = "(" + statName + " + " + (prep.formula === "mod+halfLevel" ? "½ ур." : "ур.") + cantripHint + ")";
   }
   el.style.display = "";
   el.innerHTML = '<span class="prep-icon">' + dndIcoHtml("sheet", 13) + '</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span><span class="prep-hint">' + hint + '</span>';

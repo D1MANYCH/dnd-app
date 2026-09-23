@@ -252,7 +252,7 @@ row.innerHTML =
   '<input type="checkbox" id="skill-prof-' + index + '" class="skill-cb" onchange="calcStats(); updateSkillProfCount()">' +
   '<label for="skill-prof-' + index + '" class="skill-name-compact">' + escapeHtml(skill.name) + '</label>' +
   '<span class="skill-stat-compact">' + escapeHtml(skill.stat.toUpperCase().slice(0,3)) + '</span>' +
-  '<button type="button" class="skill-expertise-btn" id="skill-exp-' + index + '" title="Экспертиза (×2 бонус)" onclick="toggleExpertise(' + index + ')">E</button>' +
+  '<button type="button" class="skill-expertise-btn" id="skill-exp-' + index + '" title="Компетентность (×2 бонус)" onclick="toggleExpertise(' + index + ')">E</button>' +
   '<button type="button" class="skill-bonus-compact skill-bonus-clickable" id="skill-bonus-' + index + '" onclick="rollSkillCheck(' + index + ')" title="Бросить проверку навыка">+0</button>';
 const target = (typeof _statsRowTarget === "function" ? _statsRowTarget("skill", skill.stat) : null) || legacyContainer;
 if (target) target.appendChild(row);
