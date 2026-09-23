@@ -875,6 +875,18 @@ function migrateCharacter(char) {
     if (!Array.isArray(char.weaponMastery)) char.weaponMastery = [];
     char.schemaVersion = 37;
   }
+  if (v < 38) {
+    // AUD-4: ручная база максимума ХП (null — авто) и потраченные кости хитов
+    // по размеру; «мульти» в hpDice заменяется подписью пула.
+    if (char.combat && typeof char.combat === "object") {
+      if (char.combat.hpMaxManual === undefined) char.combat.hpMaxManual = null;
+      if (typeof rulesHitDiceSpentBy === "function" && char.stats) {
+        rulesHitDiceSpentBy(char);
+        char.combat.hpDice = rulesHitDiceLabel(char);
+      }
+    }
+    char.schemaVersion = 38;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

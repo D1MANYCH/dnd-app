@@ -24,6 +24,117 @@ const additionalHP = (level - 1) * (avgPerLevel + conMod);
 return level1HP + additionalHP;
 }
 
+// AUD-4: классы для расчёта ХП и костей — char.classes, иначе legacy char.class/level
+function _hpClassEntries(char) {
+  var ed = (typeof edData === "function") ? edData(char) : null;
+  var list = (char.classes && char.classes.length) ? char.classes
+    : [{ class: char.class, level: char.level || 1, hitDie: ((char.combat && char.combat.hpDice) || "").match(/[кK](\d+)/)?.[1] }];
+  return list.map(function(c) {
+    var die = (ed && ed.CLASS_HIT_DICE && ed.CLASS_HIT_DICE[c.class]) || parseInt(c.hitDie, 10) || 8;
+    return { class: c.class, level: parseInt(c.level, 10) || 0, subclass: c.subclass || "", hitDie: die };
+  });
+}
+
+// AUD-4 (R2, R10, R11): авто-база максимума ХП без бонусов черт и кастов.
+// PHB стр.15/163: первый класс — полная кость на 1 уровне, дальше среднее + ТЕЛ
+// по кости каждого класса. Холмовой дварф: +1 за уровень (PHB стр.20).
+// «Драконья устойчивость»: +1 за уровень чародея (PHB стр.102).
+function rulesMaxHPBase(char, conMod) {
+  var entries = _hpClassEntries(char);
+  var total = 0, level = 0;
+  entries.forEach(function(c, i) {
+    if (c.level < 1) return;
+    level += c.level;
+    total += (i === 0) ? calculateMaxHP(c.level, conMod, c.hitDie) : c.level * (Math.floor(c.hitDie / 2) + 1 + conMod);
+    if (c.class === "Чародей" && c.subclass === "Драконья кровь") total += c.level;
+  });
+  if (char.race === "Холмовой дварф") total += level;
+  return total;
+}
+
+// AUD-4 (R12): пул костей хитов по размеру {10:1, 6:2} (PHB стр.163)
+function rulesHitDicePool(char) {
+  var pool = {};
+  _hpClassEntries(char).forEach(function(c) {
+    if (c.level > 0) pool[c.hitDie] = (pool[c.hitDie] || 0) + c.level;
+  });
+  return pool;
+}
+
+function _hdSizesDesc(pool) {
+  return Object.keys(pool).map(Number).sort(function(a, b) { return b - a; });
+}
+
+// Потраченные кости по размеру. Нет разбивки или она расходится с hpDiceSpent
+// (старые сохранения) — раскладываем общее число, начиная с крупных костей.
+function rulesHitDiceSpentBy(char) {
+  var pool = rulesHitDicePool(char);
+  var by = char.combat.hpDiceSpentBy;
+  var total = Math.max(0, parseInt(char.combat.hpDiceSpent, 10) || 0);
+  var out = {}, sum = 0;
+  if (by && typeof by === "object") {
+    _hdSizesDesc(pool).forEach(function(d) {
+      var n = Math.min(pool[d], Math.max(0, parseInt(by[d], 10) || 0));
+      if (n) { out[d] = n; sum += n; }
+    });
+  }
+  if (sum !== total) {
+    out = {}; sum = 0;
+    _hdSizesDesc(pool).forEach(function(d) {
+      var n = Math.min(pool[d], total - sum);
+      if (n > 0) { out[d] = n; sum += n; }
+    });
+  }
+  char.combat.hpDiceSpentBy = out;
+  char.combat.hpDiceSpent = sum;
+  return out;
+}
+
+// Подпись пула: «1к8» для одного класса, «1к10 + 2к6» для мультикласса
+function rulesHitDiceLabel(char) {
+  var pool = rulesHitDicePool(char);
+  var sizes = _hdSizesDesc(pool);
+  if (sizes.length <= 1) return "1к" + (sizes[0] || 8);
+  return sizes.map(function(d) { return pool[d] + "к" + d; }).join(" + ");
+}
+
+// Какие кости тратятся следующими (крупные первыми), не больше доступных
+function rulesPickHitDice(char, count) {
+  var pool = rulesHitDicePool(char);
+  var by = rulesHitDiceSpentBy(char);
+  var picked = [];
+  _hdSizesDesc(pool).forEach(function(d) {
+    var left = pool[d] - (by[d] || 0);
+    while (left > 0 && picked.length < count) { picked.push(d); left--; }
+  });
+  return picked;
+}
+
+// AUD-4 (L19): одна формула кости хитов — бросок + ТЕЛ, не меньше 0 (PHB стр.186)
+function rulesHitDieHeal(roll, conMod) {
+  return Math.max(0, roll + conMod);
+}
+
+// Тратит кости: rolls[i] — бросок кости dice[i] (из rulesPickHitDice).
+// Мутирует ХП и потраченные кости, возвращает сводку.
+function rulesSpendHitDice(char, dice, rolls) {
+  var conMod = getMod(char.stats.con);
+  var by = rulesHitDiceSpentBy(char);
+  var hpBefore = parseInt(char.combat.hpCurrent, 10) || 0;
+  var hpHealed = 0, rollLog = [];
+  dice.forEach(function(d, i) {
+    var r = rolls[i] || 0;
+    var t = rulesHitDieHeal(r, conMod);
+    hpHealed += t;
+    rollLog.push(r + ((conMod >= 0 ? "+" : "") + conMod) + "=" + t);
+    by[d] = (by[d] || 0) + 1;
+  });
+  char.combat.hpDiceSpentBy = by;
+  char.combat.hpDiceSpent = (char.combat.hpDiceSpent || 0) + dice.length;
+  char.combat.hpCurrent = Math.min(hpBefore + hpHealed, parseInt(char.combat.hpMax, 10) || 0);
+  return { hpBefore: hpBefore, hpAfter: char.combat.hpCurrent, hpHealed: char.combat.hpCurrent - hpBefore, rollLog: rollLog, conMod: conMod };
+}
+
 // ── Классы и мультикласс ────────────────────────────────────
 // Мультикласс живёт в char.classes[]; char.class и char.level — legacy-поля,
 // где class всегда ПЕРВЫЙ класс, а level — СУММА уровней всех классов.
@@ -425,22 +536,11 @@ function rulesShortRest(char, opts) {
   // PHB стр.186: запас костей хитов равен уровню, потраченные возвращает только
   // продолжительный отдых — потратить больше, чем осталось, нельзя. В UI предел держит
   // adjustHitDice, здесь тот же предел на уровне правил: лишние броски не считаются.
-  var availableDice = Math.max(0, (char.level || 1) - (char.combat.hpDiceSpent || 0));
-  if (spent < 0) spent = 0;
-  if (spent > availableDice) spent = availableDice;
+  var dice = rulesPickHitDice(char, Math.max(0, spent));
+  spent = dice.length;
   if (rolls.length > spent) rolls = rolls.slice(0, spent);
-  var conMod = getMod(char.stats.con);
-  var hpBefore = parseInt(char.combat.hpCurrent, 10);
-  var hpHealed = 0;
-  var rollLog = [];
-  rolls.forEach(function(_roll) {
-    var _total = Math.max(0, _roll + conMod);
-    hpHealed += _total;
-    rollLog.push(_roll + ((conMod >= 0 ? "+" : "") + conMod) + "=" + _total);
-  });
-  hpHealed = Math.max(0, hpHealed);
-  char.combat.hpCurrent = Math.min((parseInt(char.combat.hpCurrent, 10) || 0) + hpHealed, parseInt(char.combat.hpMax, 10) || 0);
-  char.combat.hpDiceSpent = (char.combat.hpDiceSpent || 0) + spent;
+  var _sp = rulesSpendHitDice(char, dice, rolls);
+  var conMod = _sp.conMod, hpBefore = _sp.hpBefore, hpHealed = _sp.hpHealed, rollLog = _sp.rollLog;
   // FIX: Warlock recovers spell slots on short rest
   var isWarlock = (char.class === "Колдун") || (char.classes && char.classes.some(function(c){return c.class === "Колдун";}));
   var isMulticlassChar = !!(char.classes && char.classes.length > 1);
@@ -496,8 +596,13 @@ function rulesLongRest(char, opts) {
   for (var i = 1; i <= 9; i++) { if (char.spells.slots[i]) char.spells.slotsUsed[i] = 0; }
   if (char.spells.pactSlots) char.spells.pactUsed = 0;
   // PHB стр.186: восстанавливается половина костей, но не меньше одной и не больше потраченных
+  var _by = rulesHitDiceSpentBy(char);
   var hitDiceSpentBefore = char.combat.hpDiceSpent || 0;
   var hitDiceRestored = Math.min(hitDiceSpentBefore, Math.max(1, Math.floor((char.level || 1) / 2)));
+  // AUD-4: у мультикласса возвращаются сначала крупные кости
+  var _left = hitDiceRestored;
+  _hdSizesDesc(_by).forEach(function(d) { var n = Math.min(_by[d], _left); _by[d] -= n; _left -= n; if (!_by[d]) delete _by[d]; });
+  char.combat.hpDiceSpentBy = _by;
   char.combat.hpDiceSpent = Math.max(0, hitDiceSpentBefore - hitDiceRestored);
   // PHB стр.291: продолжительный отдых снижает степень истощения на 1 — но только если
   // существо «что-нибудь съест и выпьет». Остальные состояния не снимаются автоматически.

@@ -888,6 +888,70 @@ function rulesCases(t, group) {
     if (skills[3].stat !== "wis") return "Внимательность должна считаться от МУД, а не от " + skills[3].stat;
     return true;
   });
+
+  group("Хиты и кости хитов (AUD-4)");
+
+  t("[R2] Воин 1 / Волшебник 1, ТЕЛ 10 → 10 + 4 = 14 (кость каждого класса)", function() {
+    var c = fixture({ class: "Воин", level: 2, classes: [{ class: "Воин", level: 1 }, { class: "Волшебник", level: 1 }] });
+    var hp = rulesMaxHPBase(c, 0);
+    return hp === 14 ? true : "получено " + hp + ", ожидал 14";
+  });
+
+  t("[R2] Волшебник 1 / Воин 1: первый класс даёт полную к6 → 6 + 6 = 12", function() {
+    var c = fixture({ class: "Волшебник", level: 2, classes: [{ class: "Волшебник", level: 1 }, { class: "Воин", level: 1 }] });
+    var hp = rulesMaxHPBase(c, 0);
+    return hp === 12 ? true : "получено " + hp + ", ожидал 12";
+  });
+
+  t("[R11] Холмовой дварф воин 3, ТЕЛ +2: 12 + 2×8 + 3 = 31", function() {
+    var c = fixture({ class: "Воин", level: 3, race: "Холмовой дварф", classes: [{ class: "Воин", level: 3 }] });
+    var hp = rulesMaxHPBase(c, 2);
+    return hp === 31 ? true : "получено " + hp + ", ожидал 31";
+  });
+
+  t("[R10] Драконья кровь: воин 1 / чародей 2 → +2 ХП только за уровни чародея", function() {
+    var base = fixture({ class: "Воин", level: 3, classes: [{ class: "Воин", level: 1 }, { class: "Чародей", level: 2, subclass: "" }] });
+    var drac = fixture({ class: "Воин", level: 3, classes: [{ class: "Воин", level: 1 }, { class: "Чародей", level: 2, subclass: "Драконья кровь" }] });
+    var d = rulesMaxHPBase(drac, 0) - rulesMaxHPBase(base, 0);
+    return d === 2 ? true : "разница " + d + ", ожидал 2";
+  });
+
+  t("[R12] пул мультикласса по размерам: Воин 1 / Волшебник 2 → {10:1, 6:2}, «1к10 + 2к6»", function() {
+    var c = fixture({ class: "Воин", level: 3, classes: [{ class: "Воин", level: 1 }, { class: "Волшебник", level: 2 }] });
+    var pool = rulesHitDicePool(c);
+    if (pool[10] !== 1 || pool[6] !== 2) return "пул " + JSON.stringify(pool);
+    var lbl = rulesHitDiceLabel(c);
+    return lbl === "1к10 + 2к6" ? true : "подпись «" + lbl + "»";
+  });
+
+  t("[R12] короткий отдых тратит сначала к10, потом к6; длинный возвращает крупные первыми", function() {
+    var c = fixture({ class: "Воин", level: 3, classes: [{ class: "Воин", level: 1 }, { class: "Волшебник", level: 2 }] });
+    c.combat.hpCurrent = 1; c.combat.hpMax = 30;
+    if (rulesPickHitDice(c, 3).join(",") !== "10,6,6") return "порядок " + rulesPickHitDice(c, 3).join(",");
+    rulesShortRest(c, { hitDiceSpent: 2, rolls: [5, 3] });
+    if (c.combat.hpDiceSpentBy[10] !== 1 || c.combat.hpDiceSpentBy[6] !== 1) return "потрачено " + JSON.stringify(c.combat.hpDiceSpentBy);
+    if (rulesPickHitDice(c, 5).join(",") !== "6") return "осталось " + rulesPickHitDice(c, 5).join(",");
+    rulesLongRest(c);
+    if (c.combat.hpDiceSpent !== 1 || c.combat.hpDiceSpentBy[10] || c.combat.hpDiceSpentBy[6] !== 1) return "после длинного " + JSON.stringify(c.combat.hpDiceSpentBy);
+    return true;
+  });
+
+  t("[R12] старое сохранение: hpDiceSpent 2 без разбивки раскладывается с крупных", function() {
+    var c = fixture({ class: "Воин", level: 3, classes: [{ class: "Воин", level: 1 }, { class: "Волшебник", level: 2 }] });
+    c.combat.hpDiceSpent = 2;
+    var by = rulesHitDiceSpentBy(c);
+    return (by[10] === 1 && by[6] === 1) ? true : JSON.stringify(by);
+  });
+
+  t("[L19] кость хитов: бросок + ТЕЛ, минимум 0; hpBefore до потолка, лечение — реальное", function() {
+    if (rulesHitDieHeal(1, -3) !== 0) return "1−3 → " + rulesHitDieHeal(1, -3);
+    var c = fixture({ class: "Воин", level: 2 });
+    c.stats.con = 14; c.combat.hpCurrent = 18; c.combat.hpMax = 20;
+    var r = rulesSpendHitDice(c, [10], [6]);
+    if (r.hpBefore !== 18) return "hpBefore " + r.hpBefore;
+    if (r.hpHealed !== 2) return "лечение " + r.hpHealed + ", ожидал 2 (упор в максимум)";
+    return c.combat.hpCurrent === 20 ? true : "ХП " + c.combat.hpCurrent;
+  });
 }
 
 if (typeof window !== "undefined") window.rulesCases = rulesCases;

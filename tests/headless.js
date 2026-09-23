@@ -7707,10 +7707,10 @@
     });
 
     t("[e24-6] миграция v37: weaponMastery [] (существующий массив не трогается); DEFAULT_CHARACTER; SCHEMA_VERSION 37", function(){
-      if (SCHEMA_VERSION !== 37) return "SCHEMA_VERSION " + SCHEMA_VERSION;
+      if (SCHEMA_VERSION < 37) return "SCHEMA_VERSION " + SCHEMA_VERSION;
       var c = migrateCharacter({ id: 9571, class:"Воин", level:1, schemaVersion: 36 });
       if (!Array.isArray(c.weaponMastery) || c.weaponMastery.length) return "weaponMastery";
-      if (c.schemaVersion !== 37) return "schemaVersion " + c.schemaVersion;
+      if (c.schemaVersion < 37) return "schemaVersion " + c.schemaVersion;
       var d = migrateCharacter({ id: 9572, class:"Воин", level:1, schemaVersion: 36, weaponMastery:["Секира"] });
       if (d.weaponMastery.length !== 1 || d.weaponMastery[0] !== "Секира") return "существующий weaponMastery перезаписан";
       if (!Array.isArray(DEFAULT_CHARACTER.weaponMastery)) return "DEFAULT_CHARACTER";
@@ -8149,6 +8149,62 @@
       else localStorage.setItem(k, _lsSnapshot[k]);
     } catch(e) { /* localStorage недоступен — нечего восстанавливать */ }
   });
+
+  // ────────── AUD-4: хиты при повышении, ручной максимум, кости и врем. ХП ──────────
+  if (typeof confirmLevelUp === "function" && typeof rulesMaxHPBase === "function") {
+    t("[AUD-4 L1] Волшебник 4→5 с «Крепким», ТЕЛ 10: 26 → 32 (+4 кость +2 черта)", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      var savedMC = (typeof _luMulticlassChoice !== "undefined") ? _luMulticlassChoice : null;
+      var realLoad = window.loadCharacter, realUCF = window.updateClassFeatures;
+      window.loadCharacter = function(){}; window.updateClassFeatures = function(){};
+      try {
+        window.characters = [{
+          id: "aud4-l1", class: "Волшебник", subclass: "", classes: [{ class: "Волшебник", level: 4, subclass: "", hitDie: 6 }],
+          level: 4, stats: { str:10, dex:10, con:10, int:16, wis:10, cha:10 },
+          combat: { hpMax: 26, hpCurrent: 26, hpDice: "1к6", hpDiceSpent: 0 },
+          saves: {}, skills: {}, classChoices: {}, asiUsedLevels: [], feats: [{ id: "tough" }],
+          proficiencies: { armor: [], weapon: [], languages: [] },
+          spells: { stat:"ИНТ", slots:{}, slotsUsed:{}, mySpells:[], prepared:[] }
+        }];
+        window.currentId = "aud4-l1";
+        _luMulticlassChoice = null;
+        confirmLevelUp();
+        var hp = window.characters[0].combat.hpMax;
+        return hp === 32 ? true : "hpMax " + hp + ", ожидал 32";
+      } finally {
+        window.characters = savedChars; window.currentId = savedId;
+        window.loadCharacter = realLoad; window.updateClassFeatures = realUCF;
+        if (typeof _luMulticlassChoice !== "undefined") _luMulticlassChoice = savedMC;
+      }
+    });
+  }
+
+  t("[AUD-4 L3] updateChar не читает скрытое #hp-dice-spent (потраченные кости не возвращаются)", function(){
+    return String(updateChar).indexOf("hp-dice-spent") === -1 ? true : "updateChar всё ещё читает hp-dice-spent";
+  });
+
+  t("[AUD-4 L38] временные ХП не уходят в минус (updateChar и saveTempHP)", function(){
+    var a = String(updateChar).indexOf('Math.max(0, parseInt($("hp-temp")') !== -1;
+    var b = String(saveTempHP).indexOf('Math.max(0, parseInt($("hp-temp")') !== -1;
+    return (a && b) ? true : "нет Math.max(0) в " + (a ? "" : "updateChar ") + (b ? "" : "saveTempHP");
+  });
+
+  t("[AUD-4 R3] ручной максимум: recalculateHP берёт hpMaxManual, onManualMaxHP его сохраняет", function(){
+    if (String(recalculateHP).indexOf("hpMaxManual") === -1) return "recalculateHP не знает hpMaxManual";
+    if (String(onManualMaxHP).indexOf("hpMaxManual") === -1) return "onManualMaxHP не сохраняет hpMaxManual";
+    return true;
+  });
+
+  if (typeof migrateCharacter === "function") {
+    t("[AUD-4] миграция v38: «мульти» → подпись пула, разбивка потраченных, hpMaxManual null", function(){
+      var c = migrateCharacter({ schemaVersion: 37, class: "Воин", level: 3, classes: [{ class: "Воин", level: 1, hitDie: 10 }, { class: "Волшебник", level: 2, hitDie: 6 }],
+        stats: { str:10, dex:10, con:10, int:10, wis:10, cha:10 }, combat: { hpMax: 20, hpCurrent: 20, hpDice: "мульти", hpDiceSpent: 1 } });
+      if (c.combat.hpDice !== "1к10 + 2к6") return "hpDice «" + c.combat.hpDice + "»";
+      if (!c.combat.hpDiceSpentBy || c.combat.hpDiceSpentBy[10] !== 1) return "разбивка " + JSON.stringify(c.combat.hpDiceSpentBy);
+      if (c.combat.hpMaxManual !== null) return "hpMaxManual " + c.combat.hpMaxManual;
+      return c.schemaVersion >= 38 ? true : "schemaVersion " + c.schemaVersion;
+    });
+  }
 
   console.log("[TESTS]", window.__testResults);
 })();

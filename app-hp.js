@@ -101,11 +101,9 @@ const char = getCurrentChar();
 if (!char) return;
 const maxHitDice = char.level || 1;
 const availableHitDice = maxHitDice - (char.combat.hpDiceSpent || 0);
-const hitDiceMatch = char.combat.hpDice.match(/(\d+)[кK](\d+)/);
-const hitDiceValue = hitDiceMatch ? parseInt(hitDiceMatch[2], 10) : 8;
-const avgHeal = Math.floor(hitDiceValue / 2) + 1;
 const conMod = getMod(char.stats.con);
-const totalHeal = hitDiceToSpend * (avgHeal + conMod);
+var totalHeal = 0;
+rulesPickHitDice(char, hitDiceToSpend).forEach(function(d) { totalHeal += rulesHitDieHeal(Math.floor(d / 2) + 1, conMod); });
 const availableEl = $("hit-dice-available-rest");
 const healEl = $("hit-dice-heal");
 if (availableEl) availableEl.textContent = availableHitDice;
@@ -119,12 +117,8 @@ let resultTitle = "";
 let resultDetails = "";
 const oldHp = parseInt(char.combat.hpCurrent, 10);
 if (currentRestType === "short") {
-var _hitDie = rulesHitDieSides(char);
-// FIX: roll each die individually instead of using average
-var _rolls = [];
-for (var _i = 0; _i < hitDiceToSpend; _i++) {
-  _rolls.push(Math.floor(Math.random() * _hitDie) + 1);
-}
+// AUD-4 (R12): каждая кость бросается своим размером
+var _rolls = rulesPickHitDice(char, hitDiceToSpend).map(function(d) { return Math.floor(Math.random() * d) + 1; });
 var _short = rulesShortRest(char, { hitDiceSpent: hitDiceToSpend, rolls: _rolls });
 var hpHealed = _short.hpHealed;
 var rollLog = _short.rollLog;
@@ -333,17 +327,15 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
   var classLevel = isNewClass ? 1 : (classEntry ? classEntry.level + 1 : totalLevel + 1);
 
   var conMod = getMod(char.stats.con);
-  // HP gain for multiclass: hit die average + CON mod (not calculateMaxHP which assumes single class)
-  var hpGain;
-  if (isMulticlass(char) || isNewClass) {
-    // Мультикласс: средний бросок кости хитов + мод.ТЕЛ
-    hpGain = Math.floor(hitDie / 2) + 1 + conMod;
-    if (hpGain < 1) hpGain = 1;
-  } else {
-    var currentMaxHP = calculateMaxHP(totalLevel, conMod, hitDie);
-    var newMaxHP = calculateMaxHP(newTotalLevel, conMod, hitDie);
-    hpGain = newMaxHP - currentMaxHP;
+  // AUD-4 (L1): та же прибавка, что в confirmLevelUp — разница авто-базы на копии классов + черты
+  var simBefore = { classes: (char.classes && char.classes.length) ? char.classes : [{ class: char.class, level: totalLevel, subclass: char.subclass }], race: char.race, edition: char.edition, combat: char.combat };
+  var simAfter = JSON.parse(JSON.stringify(simBefore));
+  if (isNewClass) simAfter.classes.push({ class: className, level: 1, hitDie: hitDie });
+  else {
+    var simEntry = simAfter.classes.find(function(c) { return c.class === className; }) || simAfter.classes[0];
+    simEntry.level = (simEntry.level || totalLevel) + 1;
   }
+  var hpGain = rulesMaxHPBase(simAfter, conMod) - rulesMaxHPBase(simBefore, conMod) + (typeof featHpPerLevel === "function" ? featHpPerLevel(char) : 0);
   var currentHP = parseInt(char.combat.hpMax, 10) || 0;
   var newHP = currentHP + hpGain;
 
@@ -519,6 +511,7 @@ try {
 const oldMaxHP = parseInt(char.combat.hpMax, 10) || 0;
 const oldProf = getProficiencyBonus(oldLevel);
 const conMod = getMod(char.stats.con);
+var oldHpBase = rulesMaxHPBase(char, conMod);
 
 // Определяем какой класс повышаем
 var choice = _luMulticlassChoice;
@@ -569,20 +562,17 @@ syncClassFields(char);
 var newTotalLevel = char.level;
 
 // HP gain
-var hpGain;
-if (isMulticlass(char) || isNewClass) {
-  hpGain = Math.floor(hitDie / 2) + 1 + conMod;
-  if (hpGain < 1) hpGain = 1;
-} else {
-  var newMaxHPCalc = calculateMaxHP(newTotalLevel, conMod, hitDie);
-  hpGain = newMaxHPCalc - oldMaxHP;
-}
+// AUD-4 (L1): прибавка = разница авто-базы (кость, дварф, драконья устойчивость) + черты за уровень
+var baseGain = rulesMaxHPBase(char, conMod) - oldHpBase;
+if (parseInt(char.combat.hpMaxManual, 10) > 0) char.combat.hpMaxManual = parseInt(char.combat.hpMaxManual, 10) + baseGain;
+var hpGain = baseGain + (typeof featHpPerLevel === "function" ? featHpPerLevel(char) : 0);
 var newMaxHP = oldMaxHP + hpGain;
 var newProf = getProficiencyBonus(newTotalLevel);
 
 char.combat.hpMax = newMaxHP;
 char.combat.hpCurrent = Math.min(char.combat.hpCurrent + hpGain, newMaxHP);
-char.combat.hpDice = isMulticlass(char) ? "мульти" : "1к" + hitDie;
+char.combat.hpDice = rulesHitDiceLabel(char);
+rulesHitDiceSpentBy(char);
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 
 // Ячейки заклинаний
@@ -1550,7 +1540,8 @@ function saveTempHP() {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
-char.combat.hpTemp = parseInt($("hp-temp")?.value, 10) || 0;
+char.combat.hpTemp = Math.max(0, parseInt($("hp-temp")?.value, 10) || 0);
+safeSet("hp-temp", char.combat.hpTemp);
 if (window.AppLog) AppLog.action("hp", "временные ХП: " + char.combat.hpTemp);
 saveToLocal();
 updateHPDisplay();
@@ -1570,20 +1561,19 @@ if (spent >= total) {
 if (resultEl) { resultEl.textContent = "Нет костей!"; }
 return;
 }
-const match = (char.combat.hpDice || "1к8").match(/(\d+)[кK](\d+)/);
-const sides = match ? parseInt(match[2], 10) : 8;
-const roll = Math.floor(Math.random() * sides) + 1;
-const conMod = getMod(char.stats.con);
-const heal = Math.max(1, roll + conMod);
-char.combat.hpCurrent = Math.min(char.combat.hpCurrent + heal, char.combat.hpMax);
-char.combat.hpDiceSpent = spent + 1;
+// AUD-4 (L19, R12): та же формула, что на коротком отдыхе; кость — крупнейшая из оставшихся
+const dice = rulesPickHitDice(char, 1);
+if (!dice.length) { if (resultEl) resultEl.textContent = "Нет костей!"; return; }
+const roll = Math.floor(Math.random() * dice[0]) + 1;
+const res = rulesSpendHitDice(char, dice, [roll]);
+const conMod = res.conMod;
+const heal = res.hpHealed;
 saveToLocal();
 updateHPDisplay();
 if (resultEl) {
 const conStr = conMod === 0 ? "" : (conMod > 0 ? " +" + conMod : " " + conMod);
 resultEl.textContent = roll + conStr + " = +" + heal + " ХП";
-const hpBefore = char.combat.hpCurrent - heal;
-addHPHistory(hpBefore < 0 ? 0 : hpBefore, char.combat.hpCurrent, heal, "Кость хитов (" + roll + conStr + ")");
+addHPHistory(res.hpBefore, char.combat.hpCurrent, heal, "Кость хитов (" + roll + conStr + ")");
 showHPToast(heal);
 }
 }

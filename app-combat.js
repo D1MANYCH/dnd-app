@@ -668,7 +668,17 @@ function updateSubclassRecHint() {
     (matched ? ' <span class="subclass-rec-ok">✓ выбран</span>' : '');
   el.style.display = "";
 }
-function recalculateHP() {
+// Бонусы максимума от черт («Крепкий» — +2 за уровень): сумма за один уровень
+function featHpPerLevel(char) {
+var sum = 0;
+(char.feats || []).forEach(function(f) {
+  var def = (typeof getFeatDef === "function") ? getFeatDef(char, f.id) : null;
+  (def && def.effects || []).forEach(function(eff) { if (eff.type === "hp_per_level") sum += eff.value; });
+});
+return sum;
+}
+// AUD-4 (R3): resetManual — кнопка «Пересчитать» сбрасывает ручной максимум
+function recalculateHP(resetManual) {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
@@ -682,7 +692,9 @@ if (!levelEl || !conEl || !classEl) return;
 const level = parseInt(levelEl.value, 10) || 1;
 const conMod = getMod(parseInt(conEl.value, 10) || 10);
 const className = classEl.value;
-const hitDie = edData(char).CLASS_HIT_DICE[className] || 8;
+if (resetManual === true) char.combat.hpMaxManual = null;
+// AUD-4 (R2): одноклассовый — класс и уровень из формы, мультикласс — char.classes
+var hpSrc = (char.classes && char.classes.length > 1) ? char : { classes: [{ class: className, level: level, subclass: char.subclass }], race: char.race, edition: char.edition, combat: char.combat };
 // CAST-3: живые бонусы максимума от кастов («Подмога») — поверх авто-расчёта,
 // иначе перезагрузка/переключение персонажа молча съедает бонус, а реверт
 // при экспирации уводит hpMax НИЖЕ базы. Инвариант: hpMax = авто-база + бонусы.
@@ -690,20 +702,20 @@ var castHpBonus = 0;
 (char.activeSpellEffects || []).forEach(function(i) { if (i.hpMaxBonus) castHpBonus += i.hpMaxBonus; });
 // E24-5: бонусы черт к максимуму («Крепкий» — +2 за уровень) — тоже поверх авто-базы,
 // иначе любой пересчёт (смена ТЕЛ, уровень, выдача черты происхождения) стирал их.
-var featHpBonus = 0;
-(char.feats || []).forEach(function(f) {
-  var def = (typeof getFeatDef === "function") ? getFeatDef(char, f.id) : null;
-  (def && def.effects || []).forEach(function(eff) { if (eff.type === "hp_per_level") featHpBonus += eff.value * level; });
-});
-const newMaxHP = calculateMaxHP(level, conMod, hitDie) + castHpBonus + featHpBonus;
+var featHpBonus = featHpPerLevel(char) * level;
+var manualBase = parseInt(char.combat.hpMaxManual, 10);
+var hpBase = manualBase > 0 ? manualBase : rulesMaxHPBase(hpSrc, conMod);
+const newMaxHP = hpBase + castHpBonus + featHpBonus;
 if (hpMaxEl) hpMaxEl.value = newMaxHP;
 // Also update the visible manual field (only if not actively editing it)
 const hpMaxManualEl = $("hp-max-manual");
 if (hpMaxManualEl && document.activeElement !== hpMaxManualEl) hpMaxManualEl.value = newMaxHP;
-if (hpDiceEl) hpDiceEl.value = "1к" + hitDie;
+var hdLabel = rulesHitDiceLabel(hpSrc);
+rulesHitDiceSpentBy(hpSrc);
+if (hpDiceEl) hpDiceEl.value = hdLabel;
 if (hpDiceAvailableEl) hpDiceAvailableEl.value = (level - (char.combat.hpDiceSpent || 0)) + "/" + level;
 char.combat.hpMax = newMaxHP;
-char.combat.hpDice = "1к" + hitDie;
+char.combat.hpDice = hdLabel;
 if (char.combat.hpCurrent > newMaxHP) {
 char.combat.hpCurrent = newMaxHP;
 safeSet("hp-current", newMaxHP);
@@ -751,8 +763,7 @@ char.combat.ac = parseInt($("combat-ac")?.value, 10) || 10;
 char.combat.armorId   = $("char-armor")?.value || "none";
 char.combat.hasShield = $("char-shield")?.checked || false;
 char.combat.hpCurrent = parseInt($("hp-current")?.value, 10) || 0;
-char.combat.hpTemp = parseInt($("hp-temp")?.value, 10) || 0;
-char.combat.hpDiceSpent = parseInt($("hp-dice-spent")?.value, 10) || 0;
+char.combat.hpTemp = Math.max(0, parseInt($("hp-temp")?.value, 10) || 0);
 char.combat.speed = $("combat-speed")?.value || "30 фт";
 // Языки и инструменты управляются через renderLanguages/renderTools — не переопределяем
 char.coins.cp = parseInt($("coin-cp")?.value, 10) || 0;
@@ -1934,6 +1945,10 @@ function onManualMaxHP() {
   if (!char) return;
   var val = parseInt($("hp-max-manual")?.value, 10) || 0;
   if (val < 1) return;
+  // AUD-4 (R3): ручная база переживает загрузку; бонусы черт и кастов остаются поверх
+  var castB = 0;
+  (char.activeSpellEffects || []).forEach(function(i) { if (i.hpMaxBonus) castB += i.hpMaxBonus; });
+  char.combat.hpMaxManual = Math.max(1, val - castB - featHpPerLevel(char) * (char.level || 1));
   char.combat.hpMax = val;
   // also sync hidden field
   safeSet("hp-max", val);
