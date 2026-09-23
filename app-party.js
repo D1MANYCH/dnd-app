@@ -251,7 +251,7 @@ function _pentExport(type) {
   if (window.AppLog) AppLog.action("party", "экспорт " + type + " (" + _PENT[type].list().length + ")");
   var a = document.createElement("a");
   a.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_PENT[type].list(), null, 2));
-  a.download = type + "_" + new Date().toISOString().slice(0,10) + ".json"; a.click();
+  a.download = type + "_" + localDateStamp() + ".json"; a.click();
 }
 // BUGFIX-3: валидация party-импорта (имя обязательно, размер файла лимитирован)
 function _isValidPentry(e) {
@@ -274,11 +274,22 @@ function _pentImport(type, input) {
     var valid = d.filter(_isValidPentry);
     var skipped = d.length - valid.length;
     if (valid.length === 0) { showToast("В файле нет валидных записей", "error"); input.value = ""; return; }
-    PARTY_DATA[type === "ally" ? "allies" : type+"s"] = valid;
-    if (window.AppLog) AppLog.action("party", "импорт " + type + ": " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""));
-    saveParty();
-    _PENT[type].render();
-    showToast("Загружено: " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
+    var key = type === "ally" ? "allies" : type+"s";
+    var cur = PARTY_DATA[key] || [];
+    // AUD-2 (S8): не заменять список молча — спросить «добавить/заменить», перед заменой снимок
+    var apply = function(replace) {
+      if (replace && cur.length && typeof createBackupSnapshot === "function") createBackupSnapshot("party-import").catch(function(){});
+      PARTY_DATA[key] = replace ? valid : cur.concat(valid);
+      if (window.AppLog) AppLog.action("party", "импорт " + type + (replace ? " (замена)" : " (добавление)") + ": " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""));
+      saveParty();
+      _PENT[type].render();
+      showToast("Загружено: " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
+    };
+    if (!cur.length) { apply(false); return; }
+    showConfirmModal("Импорт: " + valid.length + " из файла",
+      "В списке уже " + cur.length + ". Добавить записи из файла к ним или заменить список целиком?",
+      function() { apply(false); }, "Добавить",
+      { danger: false, icon: "import", altLabel: "Заменить", onAlt: function() { apply(true); } });
   };
   reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
   reader.readAsText(file); input.value = "";

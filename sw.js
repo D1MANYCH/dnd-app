@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v378';
+const CACHE_NAME = 'dnd-sheet-v379';
 
 const FILES_TO_CACHE = [
   './',
@@ -42,6 +42,48 @@ const FILES_TO_CACHE = [
   './assets/schools/illusion.webp',
   './assets/schools/necromancy.webp',
   './assets/schools/transmutation.webp',
+  './assets/abilities/cha.webp',
+  './assets/abilities/constitution.webp',
+  './assets/abilities/dex.webp',
+  './assets/abilities/int.webp',
+  './assets/abilities/str.webp',
+  './assets/abilities/wis.webp',
+  './assets/avatar-fallback.webp',
+  './assets/bg-body.webp',
+  './assets/classes/barbarian.webp',
+  './assets/classes/bard.webp',
+  './assets/classes/cleric.webp',
+  './assets/classes/druid.webp',
+  './assets/classes/fighter.webp',
+  './assets/classes/monk.webp',
+  './assets/classes/paladin.webp',
+  './assets/classes/ranger.webp',
+  './assets/classes/rogue.webp',
+  './assets/classes/sorcerer.webp',
+  './assets/classes/warlock.webp',
+  './assets/classes/wizard.webp',
+  './assets/conditions/blinded.webp',
+  './assets/conditions/charmed.webp',
+  './assets/conditions/deafened.webp',
+  './assets/conditions/exhaustion_1.webp',
+  './assets/conditions/exhaustion_2.webp',
+  './assets/conditions/exhaustion_3.webp',
+  './assets/conditions/exhaustion_4.webp',
+  './assets/conditions/exhaustion_5.webp',
+  './assets/conditions/exhaustion_6.webp',
+  './assets/conditions/frightened.webp',
+  './assets/conditions/grappled.webp',
+  './assets/conditions/incapacitated.webp',
+  './assets/conditions/invisible.webp',
+  './assets/conditions/paralyzed.webp',
+  './assets/conditions/petrified.webp',
+  './assets/conditions/poisoned.webp',
+  './assets/conditions/prone.webp',
+  './assets/conditions/restrained.webp',
+  './assets/conditions/stunned.webp',
+  './assets/conditions/unconscious.webp',
+  './assets/d20-fab.webp',
+  './assets/textures/dice-tray.jpg',
   './app-inventory.js',
   './magic-items.js',
   './gear-catalog.js',
@@ -75,8 +117,33 @@ const FILES_TO_CACHE = [
   './vendor/dice-box/assets/themes/default/diffuse-dark.png',
   './vendor/dice-box/assets/themes/default/diffuse-light.png',
   './vendor/dice-box/assets/themes/default/normal.png',
-  './vendor/dice-box/assets/themes/default/specular.jpg'
+  './vendor/dice-box/assets/themes/default/specular.jpg',
+  // AUD-2 (W5): выбираемые темы костей (по умолчанию steel)
+  './vendor/dice-box/assets/themes/steel/default.json',
+  './vendor/dice-box/assets/themes/steel/diffuse-dark.png',
+  './vendor/dice-box/assets/themes/steel/diffuse-light.png',
+  './vendor/dice-box/assets/themes/steel/normal.png',
+  './vendor/dice-box/assets/themes/steel/specular.jpg',
+  './vendor/dice-box/assets/themes/steel/theme.config.json',
+  './vendor/dice-box/assets/themes/rock/diffuse-dark.png',
+  './vendor/dice-box/assets/themes/rock/diffuse-light.png',
+  './vendor/dice-box/assets/themes/rock/normal.png',
+  './vendor/dice-box/assets/themes/rock/smoothDice.json',
+  './vendor/dice-box/assets/themes/rock/specularity.jpg',
+  './vendor/dice-box/assets/themes/rock/theme.config.json',
+  './vendor/dice-box/assets/themes/wooden/diffuse.jpg',
+  './vendor/dice-box/assets/themes/wooden/normal.png',
+  './vendor/dice-box/assets/themes/wooden/smoothDice.json',
+  './vendor/dice-box/assets/themes/wooden/specularity.jpg',
+  './vendor/dice-box/assets/themes/wooden/theme.config.json',
+  './vendor/dice-box/assets/themes/smooth/diffuse-dark.png',
+  './vendor/dice-box/assets/themes/smooth/diffuse-light.png',
+  './vendor/dice-box/assets/themes/smooth/normal.png',
+  './vendor/dice-box/assets/themes/smooth/smoothDice.json',
+  './vendor/dice-box/assets/themes/smooth/theme.config.json'
 ];
+
+const OPTIONAL_RE = /^\.\/(assets|icons|vendor\/dice-box\/assets\/themes)\//;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -85,12 +152,16 @@ self.addEventListener('install', (event) => {
       // {cache:'reload'} обходит HTTP-кеш браузера: при бампе CACHE_NAME
       // в кеш SW попадают РЕАЛЬНО свежие файлы. Иначе addAll берёт
       // устаревшие копии из disk-cache и клиент не получает новый код
-      // после релиза. Per-file .catch — один отсутствующий ассет не
-      // должен срывать установку всего SW.
+      // после релиза. AUD-2 (W4): код обязателен — недокачанный файл срывает
+      // установку, прежний SW и его полный кеш остаются. Картинки и темы
+      // костей необязательны — их сбой установку не срывает.
       return Promise.all(FILES_TO_CACHE.map((u) =>
         fetch(new Request(u, { cache: 'reload' }))
-          .then((resp) => (resp && resp.ok) ? cache.put(u, resp) : null)
-          .catch(() => null)
+          .then((resp) => {
+            if (!resp || !resp.ok) throw new Error('[SW] не скачан ' + u);
+            return cache.put(u, resp);
+          })
+          .catch((err) => { if (OPTIONAL_RE.test(u)) return null; throw err; })
       ));
     })
   );
@@ -102,7 +173,8 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keyList) => {
       return Promise.all(
         keyList.map((key) => {
-          if (key !== CACHE_NAME) {
+          // AUD-2 (W7): только свои кеши — на origin живут и другие PWA
+          if (key !== CACHE_NAME && key.indexOf('dnd-sheet-') === 0) {
             console.log('[SW] Удаляем старый кеш:', key);
             return caches.delete(key);
           }
@@ -140,7 +212,9 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        return caches.match('./index.html');
+        // AUD-2 (W3): index.html — только для навигации, не вместо JS/картинок
+        if (event.request.mode === 'navigate') return caches.match('./index.html');
+        return Response.error();
       });
     })
   );

@@ -39,17 +39,32 @@ function closeModal(id) {
 }
 /** Debounce — откладывает вызов fn на delay мс после последнего вызова */
 function debounce(fn, delay) {
-  var timer;
-  return function() {
-    var args = arguments;
+  var timer, pending = null;
+  var d = function() {
+    pending = arguments;
     clearTimeout(timer);
-    timer = setTimeout(function() { fn.apply(null, args); }, delay);
+    timer = setTimeout(function() { var a = pending; pending = null; fn.apply(null, a); }, delay);
   };
+  // AUD-2 (S12): немедленно выполнить отложенный вызов, если он есть
+  d.flush = function() {
+    if (!pending) return;
+    clearTimeout(timer);
+    var a = pending; pending = null; fn.apply(null, a);
+  };
+  return d;
 }
 /** Отложенное сохранение — не чаще одного раза в 300мс */
 var saveToLocalDebounced = debounce(function() { saveToLocal(); }, 300);
 /** BUGFIX-9: тегированный логгер для catch-блоков. Тихо в проде, видно при window.__DEBUG = true. */
-window.__catchLog = function(tag, e) { if (window.__DEBUG) { try { console.warn('[' + tag + ']', e); } catch (_) {} } };
+window.__catchLog = function(tag, e) {
+  try { if (window.AppLog && AppLog.warn) AppLog.warn('catch', tag + ': ' + ((e && e.message) || e)); } catch (_) {}
+  if (window.__DEBUG) { try { console.warn('[' + tag + ']', e); } catch (_) {} }
+};
+/** AUD-2 (S15): локальная дата ГГГГ-ММ-ДД для имён файлов экспорта */
+function localDateStamp(d) {
+  d = d || new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
 // SPELL_DATABASE — объединение встроенной базы (spells.js) и пользовательских добавлений из localStorage
 // SPELLS_BASE определён в spells.js и загружается до app-core.js
 var SPELL_DATABASE = (typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.slice() : [];
@@ -213,7 +228,7 @@ try {
 const saved = localStorage.getItem("dnd_chars");
 const savedSpells = localStorage.getItem("dnd_spells");
 const savedHpHistory = localStorage.getItem("dnd_hp_history");
-if (saved) characters = JSON.parse(saved).map(migrateCharacter);
+if (saved) characters = _loadCharsSafe(saved);
 if (savedSpells) {
   // Пользовательские заклинания (добавленные через UI) — храним отдельно
   // и объединяем с базой, избегая дублей по id
@@ -227,7 +242,7 @@ if (savedSpells) {
   _backfillHomebrewFlag(characters, new Set(extra.map(function(s) { return s && s.id; })));
 }
 if (savedHpHistory) hpHistory = JSON.parse(savedHpHistory);
-} catch(e) { console.error("Ошибка загрузки:", e); showToast("Ошибка загрузки данных!", "error"); }
+} catch(e) { console.error("Ошибка загрузки:", e); _blockSaving("load", e); }
 initSaves();
 initSkills();
 initConditions();
@@ -240,7 +255,7 @@ if (typeof renderDeityDatalist === "function") renderDeityDatalist();
 updateVersionBlock(false);
 initPersistentStorage();
 // DATA-2: авто-снапшот в IndexedDB (app-backup.js), не чаще 1 раза в день
-if (typeof initAutoBackup === "function") initAutoBackup();
+if (!_saveBlocked && typeof initAutoBackup === "function") initAutoBackup();
 // E24-0: если есть хоть один 2024-персонаж или дефолт-редакция = 2024 — подгружаем
 // данные 2024 (fire-and-forget). Без загрузки 2024-персонаж всё равно рендерится
 // (edData падает на фолбэк '2014'), но при бете держим данные наготове.
@@ -263,7 +278,57 @@ try {
 } catch (e) {}
 };
 
+// AUD-2 (S6/S7): запрет записи в localStorage — после сбоя загрузки (иначе
+// следующий save перезапишет данные урезанным списком) или после записи из
+// другой вкладки (иначе вкладки перетирают друг друга).
+var _saveBlocked = null;
+function _blockSaving(reason, err) {
+  if (_saveBlocked) return;
+  _saveBlocked = reason;
+  if (window.AppLog) AppLog.error("storage", "сохранение отключено: " + reason + (err ? " — " + ((err && err.message) || err) : ""));
+  if (reason === "tab") {
+    try { showConfirmModal("Данные изменены в другой вкладке",
+      "Сохранение в этой вкладке отключено, чтобы не затереть изменения. Перезагрузить вкладку?",
+      function() { window.location.reload(); }, "Перезагрузить", { danger: false, icon: "reset" }); }
+    catch (e) { showToast("Данные изменены в другой вкладке — перезагрузите страницу", "error"); }
+  } else {
+    showToast("Ошибка загрузки данных! Сохранение отключено, копия данных — в dnd_chars_corrupt. Сделайте экспорт.", "error");
+  }
+}
+/** AUD-2 (S6): разбор dnd_chars по одному персонажу; сбой — сырая копия и блок сохранения */
+function _loadCharsSafe(raw) {
+  var list = null, bad = 0, out = [];
+  try { list = JSON.parse(raw); } catch (e) { list = null; }
+  if (!Array.isArray(list)) bad = 1;
+  else list.forEach(function(c) {
+    try { out.push(migrateCharacter(c)); }
+    catch (e) { bad++; window.__catchLog("load:char " + (c && c.id), e); }
+  });
+  if (bad) {
+    try { localStorage.setItem("dnd_chars_corrupt", raw); } catch (e) {}
+    _blockSaving("load", "не прочитано персонажей: " + bad);
+  }
+  return out;
+}
+var _STORAGE_KEYS = { dnd_chars: 1, dnd_spells: 1, dnd_hp_history: 1 };
+function _onStorageChange(e) {
+  if (!e || !_STORAGE_KEYS[e.key] || _saveBlocked) return;
+  if (e.key === "dnd_chars") {
+    try { if (e.newValue === JSON.stringify(characters)) return; } catch (_) {}
+  }
+  _blockSaving("tab");
+}
+if (typeof window !== "undefined" && window.addEventListener) {
+  window.addEventListener("storage", _onStorageChange);
+  // AUD-2 (S12): не терять отложенное сохранение при закрытии/сворачивании
+  window.addEventListener("pagehide", function() { saveToLocalDebounced.flush(); });
+  document.addEventListener("visibilitychange", function() {
+    if (document.visibilityState === "hidden") saveToLocalDebounced.flush();
+  });
+}
+
 function saveToLocal() {
+if (_saveBlocked) return;
 try {
 localStorage.setItem("dnd_chars", JSON.stringify(characters));
 // Сохраняем только заклинания добавленные пользователем (не из базы spells.js)
@@ -1192,6 +1257,16 @@ newConfirm.classList.toggle("confirm-btn-ok--safe", !!(opts && opts.danger === f
 confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
 var newCancel = cancelBtn.cloneNode(true);
 cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+// AUD-2 (S8): необязательная третья кнопка (opts.altLabel + opts.onAlt)
+var oldAlt = modal.querySelector(".confirm-modal-alt");
+if (oldAlt) oldAlt.remove();
+if (opts && opts.altLabel && typeof opts.onAlt === "function") {
+  var altBtn = document.createElement("button");
+  altBtn.className = "confirm-btn-cancel confirm-modal-alt";
+  altBtn.textContent = opts.altLabel;
+  altBtn.addEventListener("click", function() { modal.classList.remove("active"); opts.onAlt(); });
+  newConfirm.parentNode.insertBefore(altBtn, newConfirm);
+}
 $("confirm-modal-ok").addEventListener("click", function() {
   modal.classList.remove("active");
   onConfirm();

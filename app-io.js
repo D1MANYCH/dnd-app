@@ -26,7 +26,7 @@ function exportData() {
 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_buildExportPayload()));
 const downloadAnchorNode = document.createElement("a");
 downloadAnchorNode.setAttribute("href", dataStr);
-downloadAnchorNode.setAttribute("download", "dnd_backup_" + new Date().toISOString().slice(0,10) + ".json");
+downloadAnchorNode.setAttribute("download", "dnd_backup_" + localDateStamp() + ".json");
 document.body.appendChild(downloadAnchorNode);
 downloadAnchorNode.click();
 downloadAnchorNode.remove();
@@ -338,7 +338,7 @@ function exportSpells() {
 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(SPELL_DATABASE));
 const downloadAnchorNode = document.createElement("a");
 downloadAnchorNode.setAttribute("href", dataStr);
-downloadAnchorNode.setAttribute("download", "dnd_spells_" + new Date().toISOString().slice(0,10) + ".json");
+downloadAnchorNode.setAttribute("download", "dnd_spells_" + localDateStamp() + ".json");
 document.body.appendChild(downloadAnchorNode);
 downloadAnchorNode.click();
 downloadAnchorNode.remove();

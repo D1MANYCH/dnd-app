@@ -806,6 +806,63 @@
       return true;
     });
 
+    t("[AUD-2] загрузка: сбой одного персонажа или JSON — сырая копия и запрет сохранения", function(){
+      var savedChars = window.characters, savedLs = localStorage.getItem("dnd_chars");
+      try {
+        _saveBlocked = null;
+        var ok = _loadCharsSafe(JSON.stringify([{ id: 1, name: "А", class: "Воин", level: 1 }]));
+        if (ok.length !== 1 || _saveBlocked) return "целый список: " + ok.length + " / " + _saveBlocked;
+        var part = _loadCharsSafe(JSON.stringify([{ id: 1, name: "А", class: "Воин", level: 1 }, null]));
+        if (part.length !== 1) return "битый персонаж не отброшен";
+        if (_saveBlocked !== "load") return "сохранение не заблокировано";
+        if (localStorage.getItem("dnd_chars_corrupt") !== JSON.stringify([{ id: 1, name: "А", class: "Воин", level: 1 }, null])) return "нет сырой копии";
+        localStorage.setItem("dnd_chars", "ОРИГИНАЛ");
+        window.characters = [];
+        saveToLocal();
+        if (localStorage.getItem("dnd_chars") !== "ОРИГИНАЛ") return "saveToLocal перезаписал при блоке";
+        _saveBlocked = null;
+        if (_loadCharsSafe("{битый").length !== 0 || _saveBlocked !== "load") return "битый JSON не заблокировал";
+        return true;
+      } finally {
+        _saveBlocked = null; window.characters = savedChars; localStorage.removeItem("dnd_chars_corrupt");
+        if (savedLs === null) localStorage.removeItem("dnd_chars"); else localStorage.setItem("dnd_chars", savedLs);
+      }
+    });
+
+    t("[AUD-2] вкладки: запись dnd_chars из другой вкладки блокирует сохранение, своя — нет", function(){
+      var savedChars = window.characters;
+      try {
+        _saveBlocked = null;
+        window.characters = [{ id: 7, name: "Б" }];
+        _onStorageChange({ key: "dnd_chars", newValue: JSON.stringify(window.characters) });
+        if (_saveBlocked) return "то же значение заблокировало";
+        _onStorageChange({ key: "diceTheme", newValue: "rock" });
+        if (_saveBlocked) return "чужой ключ заблокировал";
+        _onStorageChange({ key: "dnd_chars", newValue: "[]" });
+        if (_saveBlocked !== "tab") return "другое значение не заблокировало";
+        return true;
+      } finally { _saveBlocked = null; window.characters = savedChars; }
+    });
+
+    t("[AUD-2] debounce.flush, локальная дата, новая схема, лимит заметок, ключи костей", function(){
+      var n = 0, d = debounce(function(){ n++; }, 10000);
+      d.flush(); if (n !== 0) return "flush без вызова сработал";
+      d(); d.flush(); if (n !== 1) return "flush не выполнил отложенный вызов";
+      d.flush(); if (n !== 1) return "повторный flush";
+      if (localDateStamp(new Date(2026, 0, 5, 23, 30)) !== "2026-01-05") return "дата: " + localDateStamp(new Date(2026, 0, 5, 23, 30));
+      migrateCharacter._newerWarned = false;
+      var c = migrateCharacter({ id: 1, name: "Н", class: "Воин", level: 1, schemaVersion: SCHEMA_VERSION + 5 });
+      if (!migrateCharacter._newerWarned) return "новая схема без предупреждения";
+      if (c.schemaVersion !== SCHEMA_VERSION + 5) return "схема понижена";
+      if (!_notesFileTooBig({ size: 11 * 1024 * 1024 }, null) || _notesFileTooBig({ size: 100 }, null)) return "лимит заметок";
+      if (typeof _diceLsGet === "function") {
+        localStorage.removeItem("dnd_diceBg"); localStorage.setItem("diceBg", "aurora");
+        if (_diceLsGet("diceBg") !== "aurora" || localStorage.getItem("dnd_diceBg") !== "aurora" || localStorage.getItem("diceBg") !== null) return "ключ костей не перенесён";
+        localStorage.removeItem("dnd_diceBg");
+      }
+      return true;
+    });
+
     t("[rt] миграция v0→12: легаси-Колдун L5 — языки/инструменты/заметки/пакт-ячейки", function(){
       var legacy = {
         id: 9301, name: "Легаси", class: "Колдун", level: 5,

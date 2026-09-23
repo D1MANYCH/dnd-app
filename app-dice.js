@@ -552,9 +552,18 @@ function _waitDiceBoxModule() {
 
 // DICE2-5: тема кубиков. Приоритет: пользовательский diceColor (localStorage) →
 // --accent → fallback. Изменение цвета применяется к новым броскам сразу.
+// AUD-2 (W7): ключи костей с префиксом dnd_; старый ключ без префикса переносится
+function _diceLsGet(name) {
+  var v = localStorage.getItem('dnd_' + name);
+  if (v === null) {
+    v = localStorage.getItem(name);
+    if (v !== null) { localStorage.setItem('dnd_' + name, v); localStorage.removeItem(name); }
+  }
+  return v;
+}
 function _getAccentColor() {
   try {
-    var custom = localStorage.getItem('diceColor');
+    var custom = _diceLsGet('diceColor');
     if (custom && /^#[0-9a-f]{6}$/i.test(custom)) return custom;
   } catch (e) {}
   try {
@@ -573,7 +582,7 @@ var DICE_THEME_COLORS = {
 };
 function _getDiceTheme() {
   try {
-    var t = localStorage.getItem('diceTheme');
+    var t = _diceLsGet('diceTheme');
     if (t && DICE_THEMES.indexOf(t) !== -1) return t;
   } catch (e) {}
   return 'steel';
@@ -583,7 +592,7 @@ function _getDiceThemeColor() {
 }
 function setDiceTheme(name) {
   if (DICE_THEMES.indexOf(name) === -1) return;
-  try { localStorage.setItem('diceTheme', name); } catch (e) {}
+  try { localStorage.setItem('dnd_diceTheme', name); localStorage.removeItem('diceTheme'); } catch (e) {}
   _syncDiceThemeButtons();
   if (_diceBoxInstance) _diceBoxInstance.updateConfig({ theme: name, themeColor: DICE_THEME_COLORS[name] });
 }
@@ -599,14 +608,14 @@ document.addEventListener('DOMContentLoaded', _syncDiceThemeButtons);
 var DICE_BGS = ['cosmos', 'aurora', 'starfield'];
 function _getDiceBg() {
   try {
-    var b = localStorage.getItem('diceBg');
+    var b = _diceLsGet('diceBg');
     if (b && DICE_BGS.indexOf(b) !== -1) return b;
   } catch (e) {}
   return 'cosmos';
 }
 function setDiceBg(name) {
   if (DICE_BGS.indexOf(name) === -1) return;
-  try { localStorage.setItem('diceBg', name); } catch (e) {}
+  try { localStorage.setItem('dnd_diceBg', name); localStorage.removeItem('diceBg'); } catch (e) {}
   _syncDiceBgButtons();
   try { if (window.DiceArenaBg && DiceArenaBg.setVariant) DiceArenaBg.setVariant(name); } catch (e) {}
 }

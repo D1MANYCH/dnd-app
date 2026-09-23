@@ -1176,7 +1176,7 @@ function notesExportMd() {
     }
   }
 
-  var ts = new Date().toISOString().slice(0,10);
+  var ts = localDateStamp();
   if (window.AppLog) AppLog.action('notes', 'экспорт заметок в MD');
   _notesTriggerDownload(lines.join('\n'), _notesCharName() + '-notes-' + ts + '.md', 'text/markdown;charset=utf-8');
 }
@@ -1185,7 +1185,7 @@ function notesExportJson() {
   var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
   if (!char) return;
   var payload = { charName: _notesCharName(), exportedAt: new Date().toISOString(), notesV2: char.notesV2 || {} };
-  var ts = new Date().toISOString().slice(0,10);
+  var ts = localDateStamp();
   if (window.AppLog) AppLog.action('notes', 'экспорт заметок в JSON');
   _notesTriggerDownload(JSON.stringify(payload, null, 2), _notesCharName() + '-notes-' + ts + '.json', 'application/json;charset=utf-8');
 }
@@ -1203,15 +1203,25 @@ function _notesSanitizeEntry(en) {
   return en;
 }
 
+// AUD-2 (S9): тот же лимит размера, что у импорта персонажей
+function _notesFileTooBig(file, input) {
+  var MAX = (typeof IMPORT_MAX_BYTES !== 'undefined') ? IMPORT_MAX_BYTES : 10 * 1024 * 1024;
+  if (file.size <= MAX) return false;
+  showToast('Файл слишком большой (макс. ' + Math.round(MAX / 1024 / 1024) + ' МБ)', 'error');
+  if (input) input.value = '';
+  return true;
+}
+
 function notesHandleImportJson(input) {
   var file = input && input.files && input.files[0];
   if (!file) return;
+  if (_notesFileTooBig(file, input)) return;
   var reader = new FileReader();
   reader.onload = function(ev) {
     try {
       var data = JSON.parse(ev.target.result);
       var incoming = data.notesV2 || data; // поддержка raw notesV2
-      if (!incoming || typeof incoming !== 'object') throw new Error('Неверный формат');
+      if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) throw new Error('Неверный формат');
       if (!confirm('Импортировать записи из «' + file.name + '»?\nДанные будут слиты с текущими (записи добавятся, секции — перезапишутся).')) return;
       var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
       if (!char) return;
@@ -1220,13 +1230,13 @@ function notesHandleImportJson(input) {
       if (incoming.sections && typeof incoming.sections === 'object') {
         char.notesV2.sections = char.notesV2.sections || {};
         for (var k in incoming.sections) {
-          if (Object.prototype.hasOwnProperty.call(incoming.sections, k) && incoming.sections[k]) {
+          if (Object.prototype.hasOwnProperty.call(incoming.sections, k) && incoming.sections[k] && typeof incoming.sections[k] === 'string') {
             char.notesV2.sections[k] = incoming.sections[k];
           }
         }
       }
       // BUILD-NOTES-5: variants — перезаписываем целиком, если присутствуют (это снапшот билда).
-      if (incoming.variants && typeof incoming.variants === 'object') {
+      if (incoming.variants && typeof incoming.variants === 'object' && !Array.isArray(incoming.variants)) {
         char.notesV2.variants = incoming.variants;
       }
       // Entries: добавить новые (по id)
@@ -1257,6 +1267,7 @@ function notesHandleImportJson(input) {
 function notesHandleImportMd(input) {
   var file = input && input.files && input.files[0];
   if (!file) return;
+  if (_notesFileTooBig(file, input)) return;
   var reader = new FileReader();
   reader.onload = function(ev) {
     var text = ev.target.result || '';

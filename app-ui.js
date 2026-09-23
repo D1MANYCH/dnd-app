@@ -265,7 +265,11 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
         updateVersionBlock(false);
       });
     var refreshing = false;
+    // AUD-2 (W1): первый визит — clients.claim() даёт controllerchange без смены
+    // версии; перезагружаем только при замене уже работавшего контроллера.
+    var hadController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener('controllerchange', function() {
+      if (!hadController) { hadController = true; return; }
       if (!refreshing) { refreshing = true; window.location.reload(); }
     });
   });

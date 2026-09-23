@@ -131,6 +131,27 @@ function checkInvariant(root) {
       problems.push('sw.js: ' + notCached.length + ' файл(ов) из index.html нет в FILES_TO_CACHE' +
         ' — офлайн-режим их не получит: ' + notCached.join(', '));
     }
+    // AUD-2 (W6): каждый путь прекеша существует, каждая картинка assets/ в прекеше
+    const missing = cacheList.filter(function (f) { return f && f !== '' && !fs.existsSync(path.join(root, f)); });
+    if (missing.length) {
+      problems.push('sw.js: ' + missing.length + ' путь(ей) FILES_TO_CACHE нет на диске: ' + missing.join(', '));
+    }
+    const ASSETS_NOT_CACHED = ['assets/og-cover.png', 'assets/empty-state.webp'];
+    const assetFiles = [];
+    (function walk(dir) {
+      if (!dir) return;
+      fs.readdirSync(path.join(root, dir), { withFileTypes: true }).forEach(function (d) {
+        const rel = dir + '/' + d.name;
+        if (d.isDirectory()) walk(rel);
+        else if (/\.(webp|png|jpe?g)$/i.test(d.name)) assetFiles.push(rel);
+      });
+    })(fs.existsSync(path.join(root, 'assets')) ? 'assets' : null);
+    const assetsOut = assetFiles.filter(function (f) {
+      return ASSETS_NOT_CACHED.indexOf(f) === -1 && cacheList.indexOf(f) === -1;
+    });
+    if (assetsOut.length) {
+      problems.push('sw.js: ' + assetsOut.length + ' картинок assets/ нет в FILES_TO_CACHE — офлайн их не будет: ' + assetsOut.join(', '));
+    }
   }
 
   // 7. CHANGELOG.md: первый заголовок ## vX.Y.Z === APP_VERSION

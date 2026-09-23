@@ -5,6 +5,12 @@
 
 function migrateCharacter(char) {
   var v = char.schemaVersion || 0;
+  // AUD-2 (S11): данные из более новой версии приложения — предупредить (раз за сессию)
+  if (typeof SCHEMA_VERSION !== 'undefined' && v > SCHEMA_VERSION && !migrateCharacter._newerWarned) {
+    migrateCharacter._newerWarned = true;
+    if (window.AppLog) AppLog.warn('migrate', 'schemaVersion ' + v + ' новее ' + SCHEMA_VERSION);
+    if (typeof showToast === 'function') showToast('Данные из более новой версии приложения — обновите приложение, часть полей может не отобразиться', 'warn');
+  }
   if (v < 1) {
     if (char.alignment    === undefined) char.alignment    = "";
     if (char.size         === undefined) char.size         = "Средний";
