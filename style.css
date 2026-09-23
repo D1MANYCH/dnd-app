@@ -11544,7 +11544,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .roll-mode-dis { background: #3a1a1a; border-color: #e74c3c; color: #e74c3c; }
 .roll-mode-dis:hover { background: #e74c3c; color: #fff; }
 /* AUD-6: подсказка режима по состояниям и истощению */
-.roll-mode-note { font-size: 0.85em; color: var(--text-color, #eee); opacity: 0.8; text-align: center; line-height: 1.35; }
+.roll-mode-note { font-size: 0.85em; color: var(--text-color); opacity: 0.8; text-align: center; line-height: 1.35; }
 .roll-mode-btn.roll-mode-suggested { box-shadow: 0 0 0 2px currentColor; }
 
 /* Двойные кубики при преимуществе/помехе */
