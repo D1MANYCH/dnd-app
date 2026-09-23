@@ -1066,7 +1066,7 @@ function _applyDiceCritGlow(sides, v1, v2) {
 // Грамматика: последовательность термов со знаком ±, где терм =
 //   NdX | dX (=1dX) | целое-модификатор. Несколько кубиковых групп
 //   складываются. Нормализация: к→d, нижний регистр, без пробелов.
-// Клампы: count 1..50, грань ≥2 (до 1000). Итог ≥1 — на стадии подсчёта.
+// Границы: count 1..50, грань 2..1000, вне них — ошибка. Итог ≥0 — на стадии подсчёта.
 // Возврат: { ok:true, groups:[{count,sides,sign}], mod } | { ok:false, error }
 // ============================================================
 function parseDiceFormula(raw) {
@@ -1087,8 +1087,9 @@ function parseDiceFormula(raw) {
       var count = dm[1] === '' ? 1 : parseInt(dm[1], 10);
       var sides = dm[2] === '' ? 0 : parseInt(dm[2], 10);
       if (!sides || sides < 2) return { ok: false, error: 'Грань кубика ≥ 2 (пример: к6, к20)' };
-      count = Math.max(1, Math.min(count, 50));
-      sides = Math.min(sides, 1000);
+      // AUD-8 (L27): вне границ — ошибка, а не молчаливая подмена («0к6» → 1к6)
+      if (count < 1 || count > 50) return { ok: false, error: 'Кубиков от 1 до 50' };
+      if (sides > 1000) return { ok: false, error: 'Грань кубика не больше 1000' };
       groups.push({ count: count, sides: sides, sign: sign });
       hasDice = true;
     } else if (/^\d+$/.test(body)) {
@@ -1116,7 +1117,7 @@ function _formulaCanon(groups, mod) {
 
 // UX-2: подсчёт суммы по группам + модификатор, разбивка в #dice-result-info.
 // rollsByGroup — массив массивов выпавших значений (по группе). Возвращает {total}.
-function _renderFormulaResult(groups, rollsByGroup, mod) {
+function _renderFormulaResult(groups, rollsByGroup, mod, noMin) {
   var total = 0, parts = [], multi = (groups.length > 1) || (mod !== 0);
   groups.forEach(function(g, i) {
     var rolls = rollsByGroup[i];
@@ -1129,7 +1130,8 @@ function _renderFormulaResult(groups, rollsByGroup, mod) {
   });
   if (mod !== 0) parts.push((mod < 0 ? ' − ' : ' + ') + Math.abs(mod));
   total += mod;
-  total = Math.max(1, total);
+  // AUD-8 (L27): урон и лечение не ниже 0; своя формула («1к20−5») — как выпало
+  if (!noMin) total = Math.max(0, total);
   var resultBig = $("dice-result-big");
   var resultInfo = $("dice-result-info");
   var resultBox = $("dice3d-result");
@@ -1197,7 +1199,7 @@ function rollFormula(formula, opts) {
     } else if (primary.count === 2 && typeof v1 === 'number' && !isNaN(v1) && typeof v2 === 'number' && !isNaN(v2)) {
       rollsByGroup[primaryIdx] = [v1, v2];
     }
-    var res = _renderFormulaResult(groups, rollsByGroup, mod);
+    var res = _renderFormulaResult(groups, rollsByGroup, mod, !!opts.noMin);
     _setSettledDice(primary.sides, rollsByGroup[primaryIdx]);
     try { _setDiceSettled(true); } catch (e) {}
     if (label) {
@@ -1220,7 +1222,7 @@ window.rollFormula = rollFormula;
 function _rollFormulaFrom(inputId) {
   var input = document.getElementById(inputId) || document.getElementById('dice-custom-input');
   if (!input) return;
-  var parsed = rollFormula(input.value);
+  var parsed = rollFormula(input.value, { noMin: true });
   if (parsed && !parsed.ok) {
     var resultBig = $("dice-result-big");
     var resultInfo = $("dice-result-info");

@@ -98,6 +98,8 @@ function applyDamageResistance(damage, damageType) {
 function conditionShortName(char, id) {
   var m = /^exhaustion_(\d)$/.exec(id);
   if (m) return "истощение " + m[1];
+  if (id === "armor_heavy") return "тяжёлый доспех";
+  if (id === "armor_stealth") return "доспех";
   var set = (typeof edData === "function") ? edData(char).CONDITIONS : CONDITIONS;
   var c = set.find(function(x) { return x.id === id; });
   return c ? stripLeadingEmoji(c.name).toLowerCase() : id;

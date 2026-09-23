@@ -1205,10 +1205,11 @@
         if (String(capEl.textContent) !== "150") return "carry-capacity-num: ожидал 150 (СИЛ 10 × 15), получено " + capEl.textContent;
         // подпись «Вес:» обязательна — без неё число читают как денежную сумму (фидбек с DTF)
         if (String(coinEl.textContent) !== "Вес: 1.00 фнт") return "coin-weight: ожидал 'Вес: 1.00 фнт', получено '" + coinEl.textContent + "'";
-        // перегруз: 170 + 1 фнт монет = 171 при грузоподъёмности 150 → бейдж 21.0
+        // AUD-8 (L29): бейдж перегруза принадлежит модели слотов — вес его не трогает
+        owAmt.textContent = "x";
         window.characters[0].inventory.weapon[0] = { name: "Наковальня", weight: 170, qty: 1 };
         updateInventoryWeight();
-        if (String(owAmt.textContent) !== "21.0") return "overweight-amount: ожидал 21.0, получено " + owAmt.textContent;
+        if (String(owAmt.textContent) !== "x") return "overweight-amount перезаписан весовой моделью: " + owAmt.textContent;
         return true;
       } finally { window.characters = savedChars; window.currentId = savedId; }
     });
@@ -2075,9 +2076,17 @@
       var p = parseDiceFormula("  2 к 6 + 3 ");
       return (p.ok && p.groups[0].count===2 && p.groups[0].sides===6 && p.mod===3) || JSON.stringify(p);
     });
-    t("[UX-2] клампа count ≤ 50 (99d6)", function(){
+    t("[UX-2] count > 50 (99d6) и 0к6 — ошибка, а не подмена (AUD-8 L27)", function(){
       var p = parseDiceFormula("99d6");
-      return (p.ok && p.groups[0].count===50) || JSON.stringify(p);
+      if (p.ok) return "99d6 принят: " + JSON.stringify(p);
+      if (parseDiceFormula("0к6").ok) return "0к6 принят";
+      if (parseDiceFormula("1к1001").ok) return "1к1001 принят";
+      return parseDiceFormula("50к1000").ok || "50к1000 отклонён";
+    });
+    if (typeof coinExchangeCalc === "function") t("[AUD-8 L28] размен монет в медных: 30 ММ → 3 СМ, 3 ЭМ → 1 ЗМ + 1 ЭМ", function(){
+      var a = coinExchangeCalc("cp", "sp", 30), b = coinExchangeCalc("ep", "gp", 3);
+      if (a.result !== 3 || a.leftover !== 0) return "30 ММ: " + JSON.stringify(a);
+      return (b.result === 1 && b.leftover === 1) || "3 ЭМ: " + JSON.stringify(b);
     });
     t("[UX-2] мусор 'abc' → ошибка", function(){
       return parseDiceFormula("abc").ok === false || "принял мусор";
@@ -2881,7 +2890,7 @@
     });
   }
   if (typeof toggleAttuned === "function") {
-    t("[FIN-6] toggleAttuned: переключает attuned, 4-я настройка РАЗРЕШЕНА (не блок)", function(){
+    t("[FIN-6] toggleAttuned: переключает attuned, 4-я настройка заблокирована (AUD-8 L30)", function(){
       var savedChars = window.characters, savedId = window.currentId;
       try {
         window.characters = [{
@@ -2902,12 +2911,14 @@
         if (!char.inventory.other[0].attuned) return "1-я настройка не включилась";
         try { toggleAttuned("other", 1); } catch(e) {}
         try { toggleAttuned("other", 2); } catch(e) {}
-        try { toggleAttuned("other", 3); } catch(e) {}   // 4-я — разрешена
-        if (!char.inventory.other[3].attuned) return "4-я настройка заблокирована (должна быть разрешена)";
-        if (countAttuned(char) !== 4) return "ожидал 4 настройки, получено " + countAttuned(char);
+        try { toggleAttuned("other", 3); } catch(e) {}   // 4-я — запрещена (DMG стр.138)
+        if (char.inventory.other[3].attuned) return "4-я настройка разрешена (должна быть заблокирована)";
+        if (countAttuned(char) !== 3) return "ожидал 3 настройки, получено " + countAttuned(char);
         try { toggleAttuned("other", 0); } catch(e) {}   // снять первую
         if (char.inventory.other[0].attuned) return "снятие настройки не сработало";
-        if (countAttuned(char) !== 3) return "после снятия ожидал 3, получено " + countAttuned(char);
+        if (countAttuned(char) !== 2) return "после снятия ожидал 2, получено " + countAttuned(char);
+        try { toggleAttuned("other", 3); } catch(e) {}
+        if (!char.inventory.other[3].attuned) return "после снятия слот не освободился";
         return true;
       } finally { window.characters = savedChars; window.currentId = savedId; }
     });

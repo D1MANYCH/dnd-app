@@ -137,7 +137,8 @@ function rollAbilityCheck(abilKey) {
   if (!abil) return;
   var hint = rulesConditionRollMods(char, "check");
   showRollModePopup(function(mode) {
-    var bonus = getMod(char.stats[abilKey]) + hint.penalty;
+    // AUD-8 (L33): «Мастер на все руки» / «Выдающийся атлет» — к проверкам без владения
+    var bonus = getMod(char.stats[abilKey]) + rulesUntrainedCheckBonus(char, char.level || 1, abilKey) + hint.penalty;
     quickRoll({ label: "Проверка " + abil.name, sides: 20, mod: bonus, mode: mode });
   }, hint);
 }
@@ -149,6 +150,8 @@ function rollSkillCheck(skillIndex) {
   var skill = skills[skillIndex];
   if (!skill) return;
   var hint = rulesConditionRollMods(char, "check");
+  // AUD-8 (L34): доспех с помехой Скрытности — подсказка в окне режима броска
+  if (skill && skill.name === "Скрытность" && rulesArmorStealthDisadv(char)) hint.dis.push("armor_stealth");
   showRollModePopup(function(mode) {
     var bonusEl = $("skill-bonus-" + skillIndex);
     var bonus = bonusEl ? parseInt(bonusEl.innerText, 10) : 0;
@@ -543,8 +546,8 @@ function updateCoinTotal() {
 renderPouches();
 }
 
-// Coin rates in GP
-var COIN_RATES = { cp: 0.01, sp: 0.1, ep: 0.5, gp: 1, pp: 10 };
+// Coin rates in CP
+var COIN_RATES = { cp: 1, sp: 10, ep: 50, gp: 100, pp: 1000 };
 var COIN_NAMES = { cp: "ММ", sp: "СМ", ep: "ЭМ", gp: "ЗМ", pp: "ПМ" };
 
 function openCoinExchange() {
@@ -568,29 +571,26 @@ function previewExchange() {
   if (availEl) availEl.textContent = avail;
   if (from === to) { preview.textContent = "Выберите разные монеты"; preview.className = "coin-exch-preview coin-exch-preview-warn"; return; }
   if (amt <= 0) { preview.textContent = "Введите количество"; preview.className = "coin-exch-preview"; return; }
-  // Calculate
-  var valueInGP = amt * COIN_RATES[from];
-  var result = valueInGP / COIN_RATES[to];
-  if (!Number.isInteger(result) && Math.round(result) !== result) {
-    // Check if it divides evenly
-    var rounded = Math.floor(result);
-    var leftover = valueInGP - rounded * COIN_RATES[to];
-    var leftoverCoin = Math.round(leftover / COIN_RATES[from]);
-    if (leftoverCoin > 0) {
-      preview.textContent = amt + " " + COIN_NAMES[from] + " → " + rounded + " " + COIN_NAMES[to] + " + " + leftoverCoin + " " + COIN_NAMES[from] + " сдача";
-    } else {
-      preview.textContent = amt + " " + COIN_NAMES[from] + " → " + result.toFixed(2) + " " + COIN_NAMES[to] + " (нецелое, округлится до " + rounded + ")";
-    }
+  var ex = coinExchangeCalc(from, to, amt);
+  if (avail < amt) {
+    preview.textContent = "⚠️ Недостаточно " + COIN_NAMES[from] + " (есть " + avail + ")";
+    preview.className = "coin-exch-preview coin-exch-preview-error";
+  } else if (ex.result <= 0) {
+    preview.textContent = "Меньше одной " + COIN_NAMES[to];
+    preview.className = "coin-exch-preview coin-exch-preview-warn";
+  } else if (ex.leftover > 0) {
+    preview.textContent = amt + " " + COIN_NAMES[from] + " → " + ex.result + " " + COIN_NAMES[to] + " + " + ex.leftover + " " + COIN_NAMES[from] + " сдача";
     preview.className = "coin-exch-preview coin-exch-preview-warn";
   } else {
-    if (avail < amt) {
-      preview.textContent = "⚠️ Недостаточно " + COIN_NAMES[from] + " (есть " + avail + ")";
-      preview.className = "coin-exch-preview coin-exch-preview-error";
-    } else {
-      preview.textContent = amt + " " + COIN_NAMES[from] + " → " + Math.round(result) + " " + COIN_NAMES[to];
-      preview.className = "coin-exch-preview coin-exch-preview-ok";
-    }
+    preview.textContent = amt + " " + COIN_NAMES[from] + " → " + ex.result + " " + COIN_NAMES[to];
+    preview.className = "coin-exch-preview coin-exch-preview-ok";
   }
+}
+// AUD-8 (L28): размен считается в медных — целыми, без плавающей точки
+function coinExchangeCalc(from, to, amt) {
+  var valueCp = amt * COIN_RATES[from];
+  var result = Math.floor(valueCp / COIN_RATES[to]);
+  return { result: result, leftover: Math.floor((valueCp - result * COIN_RATES[to]) / COIN_RATES[from]) };
 }
 function confirmExchange() {
   var from = $("exch-from")?.value;
@@ -599,13 +599,10 @@ function confirmExchange() {
   if (!from || !to || from === to || amt <= 0) { showToast("Проверьте параметры обмена", "warn"); return; }
   var avail = parseInt($("coin-" + from)?.value, 10) || 0;
   if (avail < amt) { showToast("Недостаточно " + COIN_NAMES[from], "error"); return; }
-  var valueInGP = amt * COIN_RATES[from];
-  var result = Math.floor(valueInGP / COIN_RATES[to]);
+  var ex = coinExchangeCalc(from, to, amt);
+  var result = ex.result;
   if (result <= 0) { showToast("Нельзя обменять — результат 0", "warn"); return; }
-  // Leftover back
-  var usedGP = result * COIN_RATES[to];
-  var leftoverGP = valueInGP - usedGP;
-  var leftoverAmt = Math.round(leftoverGP / COIN_RATES[from]);
+  var leftoverAmt = ex.leftover;
   var fromEl = $("coin-" + from);
   var toEl = $("coin-" + to);
   fromEl.value = avail - amt + leftoverAmt;
@@ -1951,6 +1948,12 @@ function onArmorChange() {
     if (pen.slowed) warns.push("СИЛ < " + preset.strReq + " → скорость −10 фт");
     if (pen.stealthDisadv) warns.push("помеха на Скрытность");
     if (warns.length) showToast("⚠️ " + preset.name + ": " + warns.join(", "), "warn");
+  }
+  // AUD-8 (L34): щит занимает руку — двуручное оружие в руках с ним не держится (PHB стр.147)
+  if (hasShield && typeof showToast === "function") {
+    var inHand = ((char.inventory && char.inventory.weapon) || []).filter(function(it) { return it && it.location === "wielded"; }).map(function(it) { return it.name; });
+    var twoH = (char.weapons || []).find(function(w) { return w && inHand.indexOf(w.name) !== -1 && String(w.notes || "").toLowerCase().indexOf("двуручн") !== -1; });
+    if (twoH) showToast("⚠️ Щит и двуручное оружие (" + twoH.name + ") вместе не держатся — уберите одно из рук", "warn");
   }
   saveToLocal();
   updateStatusBar();

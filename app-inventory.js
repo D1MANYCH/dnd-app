@@ -314,24 +314,8 @@ if (capNumEl) capNumEl.textContent = carryCapacity;
 // Legacy element for compatibility
 const carryCapacityEl = $("carry-capacity");
 if (carryCapacityEl) carryCapacityEl.textContent = "Грузоподъёмность: " + carryCapacity + " фнт";
-// Progress bar
-const fillEl = $("weight-fill");
-if (fillEl) {
-  const pct = Math.min(100, (totalWeight / carryCapacity) * 100);
-  fillEl.style.width = pct + "%";
-  fillEl.className = "inv-weight-fill" + (totalWeight > carryCapacity ? " overweight" : totalWeight > carryCapacity * 0.75 ? " warning" : "");
-}
-// Overweight badge
-const owEl = $("overweight-warning");
-const owAmtEl = $("overweight-amount");
-if (owEl) {
-  if (totalWeight > carryCapacity) {
-    owEl.style.display = "flex";
-    if (owAmtEl) owAmtEl.textContent = (totalWeight - carryCapacity).toFixed(1);
-  } else {
-    owEl.style.display = "none";
-  }
-}
+// AUD-8 (L29): полоса и бейдж перегруза — только у модели слотов (updateSlotsDisplay),
+// иначе две модели перетирали один индикатор
 // Coin weight — подпись «Вес:» обязательна: без неё число читается как сумма
 const cwEl = $("coin-weight");
 if (cwEl) cwEl.textContent = "Вес: " + coinWeight.toFixed(2) + " фнт";
@@ -353,7 +337,7 @@ function _hasAttunable(char) {
     return Array.isArray(char.inventory[cat]) && char.inventory[cat].some(function(it){ return it && it.attunable; });
   });
 }
-// Переключить настройку предмета. 4-ю НЕ блокируем — только красный тост (правило-напоминание).
+// Переключить настройку предмета. AUD-8 (L30): больше трёх настроиться нельзя (DMG стр.138).
 function toggleAttuned(category, index) {
   if (!currentId) return;
   var char = getCurrentChar();
@@ -361,10 +345,10 @@ function toggleAttuned(category, index) {
   var item = char.inventory[category] && char.inventory[category][index];
   if (!item || !item.attunable) return;
   if (!item.attuned) {
+    if (countAttuned(char) >= 3) { showToast("⚠ Уже настроено 3 предмета — сначала снимите настройку с одного", "error"); return; }
     item.attuned = true;
     var n = countAttuned(char);
-    if (n > 3) showToast("⚠ Лимит настройки 3 превышен (" + n + "/3)", "error");
-    else showToast("⚙ Настроен: " + item.name + " (" + n + "/3)", "success");
+    showToast("⚙ Настроен: " + item.name + " (" + n + "/3)", "success");
   } else {
     item.attuned = false;
     showToast("⚙ Настройка снята: " + item.name, "info");
@@ -959,19 +943,8 @@ safeSet("new-weapon-category", preset.category || "simple");
 safeSet("new-weapon-kind", preset.kind || "melee");
 safeSet("new-weapon-weight", (preset.weight != null) ? preset.weight : "");
 safeSet("new-weapon-cost", preset.cost || "");
-if (currentId) {
-const char = getCurrentChar();
-if (char) {
-const proficiencyBonus = getProficiencyBonus(char.level);
-let statMod = 0;
-if (preset.stat === "str") statMod = getMod(char.stats.str);
-else if (preset.stat === "dex") statMod = getMod(char.stats.dex);
-// FIN-2: бонус мастерства только при владении — как считает список оружия
-var prof = checkWeaponProficiency(char, preset.name);
-var atk = statMod + (prof ? proficiencyBonus : 0);
-safeSet("new-weapon-bonus", (atk >= 0 ? "+" : "") + atk);
-}
-}
+// AUD-8 (L10): поле — магический бонус оружия; атака считается в списке сама
+safeSet("new-weapon-bonus", preset.magicBonus ? (preset.magicBonus > 0 ? "+" : "") + preset.magicBonus : "");
 }
 // HB-6: полный сброс формы к режиму «добавить» — чистит все поля, снимает edit-index,
 // возвращает заголовок и показывает пикер (правка его прячет). Зовётся из open/close.
@@ -1022,7 +995,7 @@ if (!w) return;
 openWeaponModal();
 safeSet("new-weapon-name", w.name || "");
 safeSet("new-weapon-stat", w.stat || "str");
-safeSet("new-weapon-bonus", w.bonus || "");
+safeSet("new-weapon-bonus", w.magicBonus ? (w.magicBonus > 0 ? "+" : "") + w.magicBonus : "");
 safeSet("new-weapon-damage", w.damage || "");
 safeSet("new-weapon-type", w.type || "");
 safeSet("new-weapon-range", w.range || "");
@@ -1125,6 +1098,12 @@ if (damage && typeof parseDiceFormula === "function") {
   var dchk = parseDiceFormula(damage);
   if (!dchk.ok) { showToast("Урон: " + dchk.error, "warn"); return; }
 }
+// AUD-8 (L10): магический бонус — целое от −3 до +3 либо пусто
+var magicRaw = ($("new-weapon-bonus")?.value || "").trim().replace("−", "-");
+if (magicRaw && !/^[+-]?[0-3]$/.test(magicRaw)) {
+  showToast("Магический бонус: целое от −3 до +3, напр. «+1»", "warn"); return;
+}
+var magicBonus = parseInt(magicRaw, 10) || 0;
 // Цена — число + монета (мм/см/зм/эм/пм) либо пусто.
 if (cost && !/^\d+\s+(мм|см|зм|эм|пм)$/.test(cost)) {
   showToast("Цена: число и монета, напр. «10 зм»", "warn"); return;
@@ -1138,7 +1117,7 @@ var saveCatEl = $("new-weapon-save-catalog");
 var saveCat = saveCatEl ? !!saveCatEl.checked : false;
 if (saveCat) {
   if (!Array.isArray(char.customWeapons)) char.customWeapons = [];
-  var catEntry = { name: name, stat: stat, bonus: $("new-weapon-bonus")?.value || "",
+  var catEntry = { name: name, stat: stat, magicBonus: magicBonus,
     damage: damage, type: type, range: range, notes: notes,
     category: category, kind: kind, cost: cost, weight: weight, homebrew: true };
   var ci = char.customWeapons.findIndex(function(w) { return w && w.name === name; });
@@ -1147,7 +1126,7 @@ if (saveCat) {
 var proficient = checkWeaponProficiency(char, name);
 var weaponEntry = {
   name: name, stat: stat, statName: statName,
-  bonus: $("new-weapon-bonus")?.value || "",
+  magicBonus: magicBonus,
   damage: damage, type: type, range: range, notes: notes,
   category: category, kind: kind, weight: weight, cost: cost,   // HB-6: раньше терялись
   proficient: proficient
@@ -1204,11 +1183,8 @@ div.className = "weapon-row";
 // AUD-7 (L22): владение пересчитывается каждый раз — после новых владений (мультикласс, черта)
 weapon.proficient = checkWeaponProficiency(char, weapon.name);
 // Calculate attack bonus for display
-var statKey = weapon.stat || "str";
-var statVal = char.stats[statKey] || 10;
-var statMod = getMod(statVal);
-var profBonus = getProficiencyBonus(parseInt($("char-level")?.value, 10) || 1);
-var attackBonus = statMod + (weapon.proficient ? profBonus : 0);
+var wmods = rulesWeaponMods(char, weapon, parseInt($("char-level")?.value, 10) || 1);
+var attackBonus = wmods.attack;
 var attackStr = (attackBonus >= 0 ? "+" : "") + attackBonus;
 var profTag = weapon.proficient ? '' : ' <span class="weapon-no-prof">без влад.</span>';
 // E24-6: приём мастерства (только 2024) — термин глоссария; «◆» = оружие выбрано
@@ -1228,7 +1204,7 @@ div.innerHTML =
   '<div class="weapon-row-top">' +
     '<div class="weapon-info">' +
       '<span class="weapon-name">' + escapeHtml(weapon.name) + profTag + '</span>' +
-      '<span class="weapon-meta">' + escapeHtml(weapon.damage || "—") + ' · ' + escapeHtml(weapon.statName || "") + ' ' + attackStr + masteryHtml + '</span>' +
+      '<span class="weapon-meta">' + escapeHtml(weapon.damage || "—") + ' · ' + (wmods.statKey === "dex" ? "ЛОВ" : "СИЛ") + ' ' + attackStr + masteryHtml + '</span>' +
     '</div>' +
     '<div class="weapon-row-actions">' +
       '<button class="weapon-edit-btn" onclick="editWeapon(' + index + ')" title="Редактировать оружие" aria-label="Редактировать оружие">' + dndIcoHtml("edit", 14) + '</button>' +
@@ -1290,11 +1266,7 @@ function rollTWFAttack(index) {
   if (!weapon) return;
   var hint = rulesConditionRollMods(char, "attack");
   showRollModePopup(function(mode) {
-    var statKey = weapon.stat || "str";
-    var statVal = char.stats[statKey] || 10;
-    var statMod = getMod(statVal);
-    var profBonus = getProficiencyBonus(parseInt($("char-level")?.value, 10) || 1);
-    var attackBonus = statMod + (weapon.proficient ? profBonus : 0) + hint.penalty;
+    var attackBonus = rulesWeaponMods(char, weapon, parseInt($("char-level")?.value, 10) || 1).attack + hint.penalty;
     var d = rollD20WithMode(mode);
     openDiceModal();
     var qty = (mode === 'adv' || mode === 'dis') ? 2 : 1;
@@ -1326,38 +1298,45 @@ function rollTWFAttack(index) {
       diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: weapon.name + " бонус.атака" });
       if (diceHistory.length > 10) diceHistory.pop();
       renderDiceHistory();
-      rollTWFDamage(index);
+      rollTWFDamage(index, d.isCrit);
     }, { qty: qty });
   }, hint);
 }
 
-function rollTWFDamage(index) {
+// AUD-8 (L11, L12): урон оружия по любой формуле («1к8+2к6»), на крите кости ×2
+// (PHB стр.196). extraMod — модификатор характеристики и магический бонус.
+var _weaponCritPending = -1;
+function _weaponDamageRoll(formula, extraMod, crit) {
+  var f = (crit && typeof critFormula === "function") ? critFormula(formula) : String(formula || "");
+  var p = (typeof parseDiceFormula === "function") ? parseDiceFormula(f) : { ok: false };
+  var sgn = function(v) { return v ? (v > 0 ? "+" : "") + v : ""; };
+  if (!p.ok) {
+    // FIN-2: фиксированный урон без кости (Духовая трубка: «1»)
+    var flat = f.replace(/\s/g, "");
+    var base = /^\d+$/.test(flat) ? parseInt(flat, 10) : 0;
+    return { total: Math.max(0, base + extraMod), rollStr: (base ? String(base) + sgn(extraMod) : (sgn(extraMod) || "0")), sides: 6, qty: 1, label: "?" };
+  }
+  var total = p.mod + extraMod, parts = [], sides = p.groups[0].sides, qty = 0;
+  p.groups.forEach(function(g) {
+    var rolls = [];
+    for (var i = 0; i < g.count; i++) rolls.push(Math.floor(Math.random() * g.sides) + 1);
+    total += g.sign * rolls.reduce(function(a, b) { return a + b; }, 0);
+    parts.push((g.sign < 0 ? "−" : (parts.length ? "+" : "")) + "[" + rolls.join("+") + "]");
+    if (g.count > qty) { qty = g.count; sides = g.sides; }
+  });
+  return { total: Math.max(0, total), rollStr: parts.join("") + sgn(p.mod + extraMod), sides: sides, qty: Math.max(1, Math.min(qty, 8)), label: f };
+}
+
+function rollTWFDamage(index, isCrit) {
   var char = getCurrentChar();
   if (!char) return;
   var weapon = char.weapons[index];
   if (!weapon || !weapon.damage) return;
-  var statKey = weapon.stat || "str";
-  var statVal = char.stats[statKey] || 10;
-  var statMod = getMod(statVal);
-  var addMod = char.twoWeaponFighting ? statMod : 0; // Without style — no stat mod to damage
-  var dmg = weapon.damage.toLowerCase().replace(/к/g, "d").replace(/\s/g, "");
-  var match = dmg.match(/^(\d+)d(\d+)([+-]\d+)?$/);
-  var total = 0;
-  var rollStr = "";
-  if (match) {
-    var num = parseInt(match[1], 10);
-    var sides = parseInt(match[2], 10);
-    var mod = match[3] ? parseInt(match[3], 10) : 0;
-    var rolls = [];
-    for (var i = 0; i < num; i++) rolls.push(Math.floor(Math.random() * sides) + 1);
-    total = rolls.reduce(function(a,b){return a+b;}, 0) + mod + addMod;
-    rollStr = "[" + rolls.join("+") + "]" + (mod ? (mod>0?"+":"")+mod : "") + (addMod ? (addMod>0?"+":"")+addMod : "");
-  } else {
-    total = addMod;
-    rollStr = addMod ? "+" + addMod : "0";
-  }
+  var wm = rulesWeaponMods(char, weapon, char.level);
+  var addMod = rulesOffhandDamageMod(wm.statMod, char.twoWeaponFighting) + wm.magic;
+  var r = _weaponDamageRoll(weapon.damage, addMod, !!isCrit);
   var styleNote = char.twoWeaponFighting ? "" : " (без мод.)";
-  showToast("🗡️ " + escapeHtml(weapon.name) + " бонусный урон" + styleNote + ": " + rollStr + " = " + total, "info");
+  showToast("🗡️ " + escapeHtml(weapon.name) + " бонусный урон" + (isCrit ? " (крит)" : "") + styleNote + ": " + r.rollStr + " = " + r.total, "info");
 }
 
 function rollWeaponAttack(index) {
@@ -1368,11 +1347,7 @@ const weapon = char.weapons[index];
 if (!weapon) return;
 var hint = rulesConditionRollMods(char, "attack");
 showRollModePopup(function(mode) {
-  var statKey = weapon.stat || "str";
-  var statVal = char.stats[statKey] || 10;
-  var statMod = getMod(statVal);
-  var profBonus = getProficiencyBonus(parseInt($("char-level")?.value, 10) || 1);
-  var attackBonus = statMod + (weapon.proficient ? profBonus : 0) + hint.penalty;
+  var attackBonus = rulesWeaponMods(char, weapon, parseInt($("char-level")?.value, 10) || 1).attack + hint.penalty;
   var d = rollD20WithMode(mode);
   openDiceModal();
   var qty = (mode === 'adv' || mode === 'dis') ? 2 : 1;
@@ -1387,6 +1362,7 @@ showRollModePopup(function(mode) {
       }
       d.isCrit = (d.roll === 20); d.isFail = (d.roll === 1);
     }
+    _weaponCritPending = d.isCrit ? index : -1;
     var total = d.roll + attackBonus;
     var modeLabel = formatRollModeLabel(d);
     var rollInfo = formatRollMode(d, attackBonus);
@@ -1416,41 +1392,23 @@ const char = getCurrentChar();
 if (!char) return;
 const weapon = char.weapons[index];
 if (!weapon || !weapon.damage) return;
-const statKey = weapon.stat || "str";
-const statVal = char.stats[statKey] || 10;
-const statMod = getMod(statVal);
-// Parse damage formula e.g. "1к8+3", "2к6", "1к4"
-const dmg = weapon.damage.toLowerCase().replace(/к/g, "d").replace(/\s/g, "");
-const match = dmg.match(/^(\d+)d(\d+)([+-]\d+)?$/);
-let total = 0;
-let rollStr = "";
-if (match) {
-  const num = parseInt(match[1], 10);
-  const sides = parseInt(match[2], 10);
-  const mod = match[3] ? parseInt(match[3], 10) : 0;
-  const rolls = [];
-  for (var i = 0; i < num; i++) rolls.push(Math.floor(Math.random() * sides) + 1);
-  total = rolls.reduce(function(a,b){return a+b;}, 0) + mod + statMod;
-  rollStr = "[" + rolls.join("+") + "]" + (mod ? (mod>0?"+":"")+mod : "") + (statMod ? (statMod>0?"+":"")+statMod : "");
-} else if (/^\d+$/.test(dmg)) {
-  // FIN-2: фиксированный урон без кости (Духовая трубка: «1»)
-  total = parseInt(dmg, 10) + statMod;
-  rollStr = dmg + (statMod ? (statMod > 0 ? "+" : "") + statMod : "");
-} else {
-  total = statMod;
-  rollStr = "+" + statMod;
-}
-if (window.AppLog) AppLog.action("combat", "урон «" + weapon.name + "»: " + total, { formula: weapon.damage, detail: rollStr });
-showToast("🗡️ " + escapeHtml(weapon.name) + " урон: " + rollStr + " = " + total, "info");
+// AUD-8 (L12): крит последней атаки этим оружием удваивает кости урона
+var isCrit = _weaponCritPending === index;
+_weaponCritPending = -1;
+var wm = rulesWeaponMods(char, weapon, char.level);
+var r = _weaponDamageRoll(weapon.damage, wm.damageMod, isCrit);
+var total = r.total, rollStr = r.rollStr;
+if (window.AppLog) AppLog.action("combat", "урон «" + weapon.name + "»: " + total + (isCrit ? " (крит)" : ""), { formula: weapon.damage, detail: rollStr });
+showToast("🗡️ " + escapeHtml(weapon.name) + " урон" + (isCrit ? " (крит)" : "") + ": " + rollStr + " = " + total, "info");
 openDiceModal();
 var resultBig = $("dice-result-big");
 var resultInfo = $("dice-result-info");
 var resultBox = $("dice3d-result");
 if (resultBig) resultBig.textContent = total;
-if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · урон · " + (match ? match[1]+"d"+match[2] : "?");
+if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · урон" + (isCrit ? " (крит)" : "") + " · " + r.label;
 if (resultBox) resultBox.className = "dice3d-result normal";
-var sides = match ? parseInt(match[2], 10) : 6;
-var qty = match ? Math.max(1, Math.min(parseInt(match[1], 10) || 1, 8)) : 1;
+var sides = r.sides;
+var qty = r.qty;
 animateDice3d(sides, total, function() {}, { qty: qty });
 diceHistory.unshift({ sides:sides, result:total, mode:"normal", time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:total, r2:null, label: weapon.name + " урон" });
 if (diceHistory.length > 10) diceHistory.pop();

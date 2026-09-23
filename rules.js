@@ -231,6 +231,51 @@ function rulesJackOfAllTrades(char, level) {
   return charClassLevelOr(char, "Бард", level) >= 2;
 }
 
+/** Подкласс конкретного класса персонажа ("" — нет) */
+function charClassSubclass(char, className) {
+  if (!char || !className) return "";
+  if (char.classes && char.classes.length > 0) {
+    var entry = char.classes.find(function(c) { return c && c.class === className; });
+    return (entry && entry.subclass) || "";
+  }
+  return char.class === className ? (char.subclass || "") : "";
+}
+
+function rulesHasFeat(char, featId) {
+  return !!(char && Array.isArray(char.feats) && char.feats.some(function(f) { return f && (f.id === featId || f === featId); }));
+}
+
+/** AUD-8: выбран ли боевой стиль у любого класса (classChoices[класс]["fighting-style"]) */
+function rulesHasFightingStyle(char, styleId) {
+  if (!char) return false;
+  // 2024: боевой стиль — черта «f24-style_<id>» (PHB 2024 гл.5)
+  if (rulesHasFeat(char, "f24-style_" + styleId)) return true;
+  if (!char.classChoices) return false;
+  return Object.keys(char.classChoices).some(function(cls) {
+    var cc = char.classChoices[cls];
+    return !!(cc && cc["fighting-style"] === styleId && charHasClass(char, cls));
+  });
+}
+
+/** AUD-8 (R10): «Драконья устойчивость» чародея «Драконья кровь» (PHB 2014 стр.102) */
+function rulesHasDraconicResilience(char) {
+  return !!char && char.edition !== "2024" && charClassLevel(char, "Чародей") >= 1 && charClassSubclass(char, "Чародей") === "Драконья кровь";
+}
+
+/** AUD-8 (R15): «Выдающийся атлет» Чемпиона 7 ур. (PHB 2014 стр.73) */
+function rulesRemarkableAthlete(char) {
+  return !!char && char.edition !== "2024" && charClassLevel(char, "Воин") >= 7 && charClassSubclass(char, "Воин") === "Чемпион";
+}
+
+/** AUD-8 (R15, L33): бонус к проверке без владения — пол-БМ «Мастера на все руки» или
+ *  пол-БМ вверх «Выдающегося атлета» для СИЛ/ЛОВ/ТЕЛ; не складываются, берётся больший. */
+function rulesUntrainedCheckBonus(char, level, stat) {
+  var pb = getProficiencyBonus(level || (char && char.level) || 1);
+  var b = rulesJackOfAllTrades(char, level) ? Math.floor(pb / 2) : 0;
+  if ((stat === "str" || stat === "dex" || stat === "con") && rulesRemarkableAthlete(char)) b = Math.max(b, Math.ceil(pb / 2));
+  return b;
+}
+
 function rulesHasExpertise(char, skillIndex) {
   return !!(char && Array.isArray(char.expertiseSkills) && char.expertiseSkills.indexOf(skillIndex) !== -1);
 }
@@ -242,7 +287,8 @@ function getInitiativeMod(char, level) {
   var lvl = level || char.level || 1;
   var mod = char.stats ? getMod(char.stats.dex) : 0;
   // Пол-БМ Барда: порог 2 — по уровню Барда, сам БМ — по суммарному уровню (PHB)
-  if (charClassLevelOr(char, "Бард", level) >= 2) mod += Math.floor(getProficiencyBonus(lvl) / 2);
+  // AUD-8 (R15): у Чемпиона 7 ур. — пол-БМ вверх («Выдающийся атлет»), не складывается
+  mod += rulesUntrainedCheckBonus(char, lvl, "dex");
   if (char.bonuses && char.bonuses.initiative) mod += char.bonuses.initiative;
   // E24-3: «Бдительный» 2024 — БМ к инициативе (char.bonuses.initiativeProf)
   if (char.bonuses && char.bonuses.initiativeProf) mod += getProficiencyBonus(lvl);
@@ -263,14 +309,15 @@ function rulesSkillBonus(char, skillIndex, level, isProficient) {
   var bonus = getMod(char.stats[skill.stat]);
   if (isProficient) {
     bonus += rulesHasExpertise(char, skillIndex) ? pb * 2 : pb;
-  } else if (rulesJackOfAllTrades(char, level)) {
-    bonus += Math.floor(pb / 2);
+  } else {
+    bonus += rulesUntrainedCheckBonus(char, level, skill.stat);
   }
   return bonus;
 }
 
+// AUD-8 (R13): черта «Внимательный» (2014) — +5 к пассивной Внимательности (PHB стр.168)
 function rulesPassivePerception(char, level, isProficient) {
-  return 10 + rulesSkillBonus(char, 3, level, isProficient);
+  return 10 + rulesSkillBonus(char, 3, level, isProficient) + (char && char.edition !== "2024" && rulesHasFeat(char, "observant") ? 5 : 0);
 }
 
 function rulesSpellStats(char, level) {
@@ -316,6 +363,29 @@ function rulesSpellStatsByClass(char, level, spell) {
   return out;
 }
 
+// ── Оружие ──────────────────────────────────────────────────
+// AUD-8 (L10, L21): модификаторы атаки и урона оружия. Фехтовальное — лучшая из
+// СИЛ и ЛОВ (PHB стр.147), магический бонус (+1…+3) — и к атаке, и к урону (DMG).
+function rulesWeaponMods(char, weapon, level) {
+  var stats = (char && char.stats) || {};
+  var statKey = (weapon && weapon.stat) || "str";
+  if (weapon && String(weapon.notes || "").toLowerCase().indexOf("фехтовальн") !== -1) {
+    statKey = getMod(stats.dex || 10) > getMod(stats.str || 10) ? "dex" : "str";
+  }
+  var statMod = getMod(stats[statKey] || 10);
+  var magic = parseInt(weapon && weapon.magicBonus, 10) || 0;
+  var pb = getProficiencyBonus(level || (char && char.level) || 1);
+  return { statKey: statKey, statMod: statMod, magic: magic,
+    attack: statMod + (weapon && weapon.proficient ? pb : 0) + magic,
+    damageMod: statMod + magic };
+}
+
+// AUD-8 (L20): модификатор урона атаки второй рукой — без стиля «Бой двумя оружиями»
+// положительный модификатор не добавляется, отрицательный остаётся (PHB стр.195).
+function rulesOffhandDamageMod(statMod, hasStyle) {
+  return hasStyle ? statMod : Math.min(0, statMod);
+}
+
 // ── Броня ───────────────────────────────────────────────────
 // FIN-3: чистый расчёт помех брони по книге PHB 2014.
 // slowed — СИЛ ниже strReq доспеха → скорость −10 фт (только тяжёлые с «Сил 13/15»).
@@ -327,6 +397,8 @@ function armorPenalties(char, preset) {
   }
   var strScore = (char && char.stats && typeof char.stats.str === "number") ? char.stats.str : 10;
   var slowed = !!(preset.strReq && strScore < preset.strReq);
+  // AUD-8: дварфа тяжёлый доспех не замедляет (PHB 2014 стр.20)
+  if (slowed && char && char.edition !== "2024" && String(char.race || "").toLowerCase().indexOf("дварф") !== -1) slowed = false;
   return { slowed: slowed, stealthDisadv: !!preset.stealthDisadv };
 }
 
@@ -342,12 +414,15 @@ function rulesAC(char) {
   if (armorId && armorId !== "none" && armorId !== "custom" && typeof ARMOR_PRESETS !== "undefined") {
     var preset = ARMOR_PRESETS.find(function(a) { return a.id === armorId; });
     if (preset) {
-      var dexBonus = preset.dexCap >= 99 ? dexMod : Math.min(dexMod, preset.dexCap);
+      // AUD-8 (R1): тяжёлый доспех не учитывает ЛОВ совсем — ни плюс, ни минус (PHB стр.145)
+      var dexBonus = preset.type === "heavy" ? 0 : (preset.dexCap >= 99 ? dexMod : Math.min(dexMod, preset.dexCap));
       var pAc = preset.baseAC + dexBonus;
       var pFormula = [preset.name + " (" + preset.baseAC + ")"];
       if (dexBonus !== 0) pFormula.push((dexBonus > 0 ? "+" : "") + dexBonus + " (ЛОВ)");
       var pMods = [];
       if (hasShieldSelected) { pAc += 2; pFormula.push("+2 (щит)"); pMods.push({name:"Щит",value:2,type:"active"}); }
+      // AUD-8 (R9): боевой стиль «Защита» — +1 КД в доспехе (PHB стр.72)
+      if (rulesHasFightingStyle(char, "defense")) { pAc += 1; pFormula.push("+1 (Защита)"); pMods.push({name:"Защита",value:1,type:"active"}); }
       // Apply magic effects on top
       if (char.effects) {
         char.effects.forEach(function(effectId) {
@@ -396,25 +471,27 @@ function rulesAC(char) {
   // Варвар щит разрешает явно (стр. 48), монаху щит отключает умение целиком (стр. 77).
   var isMonk = udClass === "Монах" && !hasShieldSelected;
   if (hasMonkUnarmored && hasShieldSelected) hasMonkUnarmored = false;
+  // AUD-8 (R10, R16): способы расчёта КД не складываются — берём лучший из доступных
+  // (PHB стр.14). «Драконья устойчивость» чародея: 13 + ЛОВ (стр.102).
+  var sgn = function(v) { return (v >= 0 ? "+" : "") + v; };
+  var ways = [{ ac: 10 + dexMod, formula: ["Без брони — КД 10", sgn(dexMod) + " (ЛОВ)"], mod: null }];
   if (hasBarbarianUnarmored || isBarbarian) {
-    ac = 10 + dexMod + conMod;
-    formulaParts = ["10 (база)", (dexMod>=0?"+":"") + dexMod + " (ЛОВ)", (conMod>=0?"+":"") + conMod + " (ТЕЛ)"];
-    modifiers.push({name: "Без доспехов варвара", value: ac - 10, type: "active"});
+    ways.push({ ac: 10 + dexMod + conMod, formula: ["10 (база)", sgn(dexMod) + " (ЛОВ)", sgn(conMod) + " (ТЕЛ)"], mod: "Без доспехов варвара" });
   }
-  else if (hasMonkUnarmored || isMonk) {
-    ac = 10 + dexMod + wisMod;
-    formulaParts = ["10 (база)", (dexMod>=0?"+":"") + dexMod + " (ЛОВ)", (wisMod>=0?"+":"") + wisMod + " (МУД)"];
-    modifiers.push({name: "Без доспехов монаха", value: ac - 10, type: "active"});
+  if (hasMonkUnarmored || isMonk) {
+    ways.push({ ac: 10 + dexMod + wisMod, formula: ["10 (база)", sgn(dexMod) + " (ЛОВ)", sgn(wisMod) + " (МУД)"], mod: "Без доспехов монаха" });
   }
-  else if (hasMageArmor) {
-    ac = 13 + dexMod;
-    formulaParts = ["13 (магия)", (dexMod>=0?"+":"") + dexMod + " (ЛОВ)"];
-    modifiers.push({name: "Доспех мага", value: 3, type: "active"});
+  if (rulesHasDraconicResilience(char)) {
+    ways.push({ ac: 13 + dexMod, formula: ["13 (драконья чешуя)", sgn(dexMod) + " (ЛОВ)"], mod: "Драконья устойчивость" });
   }
-  else {
-    ac = 10 + dexMod;
-    formulaParts = ["Без брони — КД 10", (dexMod>=0?"+":"") + dexMod + " (ЛОВ)"];
+  if (hasMageArmor) {
+    ways.push({ ac: 13 + dexMod, formula: ["13 (магия)", sgn(dexMod) + " (ЛОВ)"], mod: "Доспех мага" });
   }
+  var best = ways[0];
+  ways.forEach(function(w) { if (w.ac > best.ac) best = w; });
+  ac = best.ac;
+  formulaParts = best.formula;
+  if (best.mod) modifiers.push({name: best.mod, value: ac - 10, type: "active"});
   if (hasShieldSelected) {
     ac += 2;
     formulaParts.push("+2 (щит)");
@@ -836,10 +913,23 @@ function rulesEffectiveSpeed(char, base) {
   zero.forEach(function(id) { if (c.indexOf(id) !== -1) reasons.push(id); });
   var exh = rulesExhaustionLevel(char);
   if (reasons.length) return { speed: 0, reasons: reasons };
-  if (exh > 0 && char.edition === "2024") return { speed: Math.max(0, base - 5 * exh), reasons: ["exhaustion_" + exh] };
+  // AUD-8 (L34): тяжёлый доспех при СИЛ ниже требования — скорость −10 фт (PHB стр.144)
+  var pre = [];
+  var armorId = char && char.combat && char.combat.armorId;
+  var preset = (armorId && typeof ARMOR_PRESETS !== "undefined") ? ARMOR_PRESETS.find(function(a) { return a.id === armorId; }) : null;
+  if (preset && armorPenalties(char, preset).slowed) { base = Math.max(0, base - 10); pre.push("armor_heavy"); }
+  if (exh > 0 && char.edition === "2024") return { speed: Math.max(0, base - 5 * exh), reasons: pre.concat(["exhaustion_" + exh]) };
   if (exh >= 5) return { speed: 0, reasons: ["exhaustion_" + exh] };
-  if (exh >= 2) return { speed: Math.floor(base / 2), reasons: ["exhaustion_" + exh] };
-  return { speed: base, reasons: [] };
+  if (exh >= 2) return { speed: Math.floor(base / 2), reasons: pre.concat(["exhaustion_" + exh]) };
+  return { speed: base, reasons: pre };
+}
+
+// AUD-8 (L34): помеха на Скрытность от доспеха (PHB стр.144)
+function rulesArmorStealthDisadv(char) {
+  var armorId = char && char.combat && char.combat.armorId;
+  if (!armorId || typeof ARMOR_PRESETS === "undefined") return false;
+  var preset = ARMOR_PRESETS.find(function(a) { return a.id === armorId; });
+  return !!(preset && armorPenalties(char, preset).stealthDisadv);
 }
 
 // ── Черты: требования и выбор характеристики (AUD-7, PHB стр. 165) ──

@@ -442,12 +442,13 @@ function _pdfAttacks(doc, y, char) {
   for (var i = 0; i < weapons.length; i++) {
     var w = weapons[i];
     y = _pdfNeed(doc, y, 5);
-    var statKey = (w.stat || 'str').toLowerCase();
-    var statMod = Math.floor(((stats[statKey] || 10) - 10) / 2);
-    var atk = statMod + (w.proficient ? profBonus : 0);
+    // AUD-8 (L10, L21): фехтовальное и магический бонус — как в листе
+    var wm = rulesWeaponMods(char, w, char.level);
+    var statKey = wm.statKey;
+    var atk = wm.attack;
     doc.text(String(w.name || '—'), 19, y);
     doc.text(_pdfFormatMod(atk), 110, y);
-    var dmgStr = (w.damage || '—') + (statMod ? ' ' + _pdfFormatMod(statMod) : '');
+    var dmgStr = (w.damage || '—') + (wm.damageMod ? ' ' + _pdfFormatMod(wm.damageMod) : '');
     doc.text(dmgStr, 135, y);
     doc.text((w.statName || statKey.toUpperCase().slice(0, 3)) + (w.proficient ? ' ✓' : ''), 175, y);
     y += 4.8;

@@ -1060,6 +1060,76 @@ function rulesCases(t, group) {
     rulesLongRest(c);
     return c.combat.hpCurrent === 10 ? true : "ХП " + c.combat.hpCurrent;
   });
+
+  // ── AUD-8: КД и бой ──
+  t("[R1] латы при ЛОВ 8 — КД 18, отрицательная ЛОВ не учитывается", function() {
+    var c = fixture({ stats: { str: 15, dex: 8, con: 10, int: 10, wis: 10, cha: 10 } });
+    c.combat.armorId = "plate";
+    return rulesAC(c).ac === 18 ? true : "КД " + rulesAC(c).ac;
+  });
+
+  t("[R9] стиль «Защита» +1 в доспехе, без доспеха — нет", function() {
+    var c = fixture({ class: "Воин", classChoices: { "Воин": { "fighting-style": "defense" } } });
+    c.combat.armorId = "chain_mail";
+    if (rulesAC(c).ac !== 17) return "в кольчуге " + rulesAC(c).ac;
+    c.combat.armorId = "none";
+    if (rulesAC(c).ac !== 10) return "без доспеха " + rulesAC(c).ac;
+    var g = fixture({ edition: "2024", class: "Воин", feats: [{ id: "f24-style_defense" }] });
+    g.combat.armorId = "chain_mail";
+    return rulesAC(g).ac === 17 ? true : "2024: " + rulesAC(g).ac;
+  });
+
+  t("[R10/R16] драконья устойчивость 13+ЛОВ; способы КД не складываются — лучший", function() {
+    var c = fixture({ class: "Чародей", subclass: "Драконья кровь", stats: { str: 10, dex: 14, con: 10, int: 10, wis: 10, cha: 10 } });
+    if (rulesAC(c).ac !== 15) return "драконья " + rulesAC(c).ac;
+    c.effects = ["mage_armor"];
+    if (rulesAC(c).ac !== 15) return "с доспехом мага " + rulesAC(c).ac;
+    var m = fixture({ class: "Монах", stats: { str: 10, dex: 14, con: 10, int: 10, wis: 10, cha: 10 }, effects: ["mage_armor"] });
+    return rulesAC(m).ac === 15 ? true : "монах МУД 10 + доспех мага: " + rulesAC(m).ac + ", ожидал 15";
+  });
+
+  t("[R13] «Внимательный» +5 к пассивной Внимательности (2014)", function() {
+    var c = fixture({ feats: [{ id: "observant" }] });
+    return rulesPassivePerception(c, 1, false) === 15 ? true : "пассивная " + rulesPassivePerception(c, 1, false);
+  });
+
+  t("[R15/L33] «Выдающийся атлет»: ⌈БМ/2⌉ к СИЛ/ЛОВ/ТЕЛ без владения, не к ИНТ", function() {
+    var c = fixture({ class: "Воин", subclass: "Чемпион", level: 7 });
+    if (rulesSkillBonus(c, 2, 7, false) !== 2) return "Атлетика " + rulesSkillBonus(c, 2, 7, false);
+    if (rulesSkillBonus(c, 5, 7, false) !== 0) return "Магия (ИНТ) " + rulesSkillBonus(c, 5, 7, false);
+    if (getInitiativeMod(c, 7) !== 2) return "инициатива " + getInitiativeMod(c, 7);
+    return rulesUntrainedCheckBonus(c, 7, "con") === 2 ? true : "проверка ТЕЛ";
+  });
+
+  t("[L10/L21] оружие: фехтовальное берёт лучшую из СИЛ/ЛОВ, магический бонус к атаке и урону", function() {
+    var c = fixture({ stats: { str: 16, dex: 12, con: 10, int: 10, wis: 10, cha: 10 } });
+    var w = rulesWeaponMods(c, { stat: "dex", notes: "Фехтовальное", proficient: true, magicBonus: 1 }, 1);
+    if (w.statKey !== "str") return "характеристика " + w.statKey;
+    return (w.attack === 6 && w.damageMod === 4) ? true : "атака " + w.attack + ", урон " + w.damageMod;
+  });
+
+  t("[L20] вторая рука без стиля: отрицательный модификатор остаётся", function() {
+    if (rulesOffhandDamageMod(3, false) !== 0) return "+3 без стиля";
+    if (rulesOffhandDamageMod(-1, false) !== -1) return "−1 без стиля";
+    return rulesOffhandDamageMod(3, true) === 3 ? true : "+3 со стилем";
+  });
+
+  t("[L34] тяжёлый доспех при СИЛ ниже требования — скорость −10 фт, помеха Скрытности", function() {
+    var c = fixture({ stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 } });
+    c.combat.armorId = "plate";
+    if (rulesEffectiveSpeed(c, 30).speed !== 20) return "скорость " + rulesEffectiveSpeed(c, 30).speed;
+    if (!rulesArmorStealthDisadv(c)) return "нет помехи Скрытности";
+    var d = fixture({ race: "Холмовой дварф" }); d.combat.armorId = "plate";
+    if (rulesEffectiveSpeed(d, 25).speed !== 25) return "дварф замедлен: " + rulesEffectiveSpeed(d, 25).speed;
+    c.stats.str = 15;
+    return rulesEffectiveSpeed(c, 30).speed === 30 ? true : "СИЛ 15: " + rulesEffectiveSpeed(c, 30).speed;
+  });
+
+  t("[R15] Бард 2 / Чемпион 7: бонусы не складываются — берётся больший", function() {
+    var c = fixture({ class: "Воин", level: 9, classes: [{ class: "Воин", level: 7, subclass: "Чемпион" }, { class: "Бард", level: 2, subclass: "" }] });
+    if (rulesSkillBonus(c, 2, 9, false) !== 2) return "Атлетика " + rulesSkillBonus(c, 2, 9, false) + ", ожидал 2 (⌈4/2⌉)";
+    return rulesSkillBonus(c, 5, 9, false) === 2 ? true : "Магия " + rulesSkillBonus(c, 5, 9, false) + ", ожидал 2 (⌊4/2⌋)";
+  });
 }
 
 if (typeof window !== "undefined") window.rulesCases = rulesCases;
