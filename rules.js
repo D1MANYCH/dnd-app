@@ -283,6 +283,39 @@ function rulesSpellStats(char, level) {
   return { stat: stat, mod: statMod, dc: 8 + pb + statMod, attack: pb + statMod };
 }
 
+// AUD-5 (R17): у мультикласса своя заклинательная характеристика у каждого класса
+// (PHB стр. 164). Мистики (воин/плут) берут список и ИНТ волшебника.
+var CLASS_SPELL_STAT = {
+  "Волшебник": "ИНТ", "Жрец": "МУД", "Друид": "МУД", "Бард": "ХАР", "Паладин": "ХАР",
+  "Следопыт": "МУД", "Чародей": "ХАР", "Колдун": "ХАР", "Воин": "ИНТ", "Плут": "ИНТ"
+};
+var CLASS_SPELL_LIST_KEY = {
+  "Волшебник": "wizard", "Жрец": "cleric", "Друид": "druid", "Бард": "bard", "Паладин": "paladin",
+  "Следопыт": "ranger", "Чародей": "sorcerer", "Колдун": "warlock", "Воин": "wizard", "Плут": "wizard"
+};
+function _spellStatMod(char, stat) {
+  if (stat === "ИНТ") return getMod(char.stats.int);
+  if (stat === "МУД") return getMod(char.stats.wis);
+  if (stat === "ХАР") return getMod(char.stats.cha);
+  return 0;
+}
+/** Строки {cls, stat, mod, dc, attack} по классам-заклинателям персонажа; со spell —
+ *  только классы, в чьём списке оно есть (spell.classes без массива — все). */
+function rulesSpellStatsByClass(char, level, spell) {
+  var out = [];
+  if (!char || !char.stats) return out;
+  var pb = getProficiencyBonus(level || char.level || 1);
+  var spellCls = (spell && Array.isArray(spell.classes)) ? spell.classes : null;
+  charCasterLevel(char).casters.forEach(function(c) {
+    var stat = CLASS_SPELL_STAT[c.cls];
+    if (!stat) return;
+    if (spellCls && spellCls.indexOf(CLASS_SPELL_LIST_KEY[c.cls]) === -1 && spellCls.indexOf("both") === -1) return;
+    var mod = _spellStatMod(char, stat);
+    out.push({ cls: c.cls, stat: stat, mod: mod, dc: 8 + pb + mod, attack: pb + mod });
+  });
+  return out;
+}
+
 // ── Броня ───────────────────────────────────────────────────
 // FIN-3: чистый расчёт помех брони по книге PHB 2014.
 // slowed — СИЛ ниже strReq доспеха → скорость −10 фт (только тяжёлые с «Сил 13/15»).
@@ -435,7 +468,14 @@ function charCasterLevel(char) {
     } else if (ct === "full") {
       out.level += lv;
     } else if (ct === "half") {
-      out.level += Math.floor(lv / 2);
+      // AUD-5: 2014 — «Использование заклинаний» у паладина/следопыта со 2 уровня,
+      // половина вниз (PHB стр. 164); 2024 — с 1 уровня, половина вверх (PH24 стр. 43).
+      if (char.edition === "2024") {
+        out.level += Math.ceil(lv / 2);
+      } else {
+        if (lv < 2) return;
+        out.level += Math.floor(lv / 2);
+      }
     } else if (ct === "pact") {
       out.pact = { cls: entry.class, level: lv };
       out.casters.push({ cls: entry.class, level: lv, sub: entry.subclass || "", type: ct });
@@ -492,6 +532,29 @@ function getMulticlassSpellSlots(char) {
   // Ячейки пакта (Колдун) добавляются отдельно — они не объединяются
   // Их обрабатывает существующая система
   return slots;
+}
+
+/** AUD-5 (L4, L18): максимум ячеек и пакт-ячеек по классам персонажа. Потраченные
+ *  не обнуляются — только обрезаются до нового максимума. Колдун — всегда в пакт. */
+function rulesApplySpellSlots(char) {
+  if (!char) return;
+  if (!char.spells) char.spells = {};
+  var sp = char.spells;
+  if (!sp.slots) sp.slots = {};
+  if (!sp.slotsUsed) sp.slotsUsed = {};
+  var cl = charCasterLevel(char);
+  var hasCasting = cl.casters.some(function(c) { return c.type !== "pact"; });
+  var row = hasCasting ? getMulticlassSpellSlots(char) : [];
+  for (var i = 1; i <= 9; i++) {
+    sp.slots[i] = row[i] || 0;
+    sp.slotsUsed[i] = Math.min(sp.slotsUsed[i] || 0, sp.slots[i]);
+  }
+  var pact = { cnt: 0, lvl: 0 };
+  var table = edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"];
+  if (cl.pact && table && table[cl.pact.level]) pact = resolvePactSlots(table[cl.pact.level]);
+  sp.pactSlots = pact.cnt;
+  sp.pactLevel = pact.lvl;
+  sp.pactUsed = Math.min(sp.pactUsed || 0, pact.cnt);
 }
 
 // BUGFIX-1: пакт-ячейки Колдуна — последняя непустая колонка строки таблицы

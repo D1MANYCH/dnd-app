@@ -575,48 +575,8 @@ char.combat.hpDice = rulesHitDiceLabel(char);
 rulesHitDiceSpentBy(char);
 char.deathSaves = { successes: [false, false, false], failures: [false, false, false] };
 
-// Ячейки заклинаний
-char.spells.pactSlots = 0;
-char.spells.pactLevel = 0;
-char.spells.pactUsed = 0;
-if (isMulticlass(char)) {
-  var mcSlots = getMulticlassSpellSlots(char);
-  for (var i = 1; i <= 9; i++) {
-    char.spells.slots[i] = mcSlots[i] || 0;
-    char.spells.slotsUsed[i] = 0;
-  }
-  // BUGFIX-1: пакт-ячейки Колдуна хранятся отдельно (PHB p.165, восст. на коротком отдыхе)
-  var warlockEntry = char.classes.find(function(c) { return c.class === "Колдун"; });
-  if (warlockEntry && edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"] && edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"][warlockEntry.level]) {
-    var pact = resolvePactSlots(edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"][warlockEntry.level]);
-    char.spells.pactSlots = pact.cnt;
-    char.spells.pactLevel = pact.lvl;
-  }
-} else {
-  // Одноклассовый Колдун: всё в пакт-ячейках, обычные слоты пустые
-  if (className === "Колдун" && edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"] && edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"][newTotalLevel]) {
-    var pactSingle = resolvePactSlots(edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"][newTotalLevel]);
-    char.spells.pactSlots = pactSingle.cnt;
-    char.spells.pactLevel = pactSingle.lvl;
-    for (var jw = 1; jw <= 9; jw++) {
-      char.spells.slots[jw] = 0;
-      char.spells.slotsUsed[jw] = 0;
-    }
-  } else {
-    // LVL-2: строку берёт classSpellSlotRow — у мистического рыцаря и ловкача
-    // своя таблица (PHB стр. 75 и 98), в SPELL_SLOTS_BY_LEVEL её нет, и
-    // одноклассовый мистик оставался вообще без ячеек.
-    var slots = (typeof classSpellSlotRow === "function")
-      ? classSpellSlotRow(className, char.subclass || "", newTotalLevel, char)
-      : (edData(char).SPELL_SLOTS_BY_LEVEL[className] && edData(char).SPELL_SLOTS_BY_LEVEL[className][newTotalLevel]) || null;
-    if (slots) {
-      for (var j = 1; j <= 9; j++) {
-        char.spells.slots[j] = slots[j] || 0;
-        char.spells.slotsUsed[j] = 0;
-      }
-    }
-  }
-}
+// Ячейки заклинаний (AUD-5: потраченные не восстанавливаются повышением)
+rulesApplySpellSlots(char);
 
 var luWasLocked = !!char.sheetLocked && typeof isSheetLocked === "function" && isSheetLocked(char);
 char.sheetLocked = false;

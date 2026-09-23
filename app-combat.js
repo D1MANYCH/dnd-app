@@ -922,6 +922,13 @@ var atkEl = $("spell-attack-display");
 if (modEl) modEl.textContent = stat ? formatMod(statMod) : "—";
 if (dcEl) dcEl.textContent = stat ? dc : "—";
 if (atkEl) atkEl.textContent = stat ? formatMod(attack) : "—";
+// AUD-5 (R17): у мультикласса — СЛ и атака по каждому классу-заклинателю
+var byClsEl = $("spell-stats-by-class");
+if (byClsEl) {
+  var byCls = (isMulticlass(char) && typeof rulesSpellStatsByClass === "function") ? rulesSpellStatsByClass(char, level) : [];
+  byClsEl.style.display = byCls.length > 1 ? "" : "none";
+  byClsEl.textContent = byCls.length > 1 ? byCls.map(function(r) { return r.cls + " (" + r.stat + "): СЛ " + r.dc + " · атака " + formatMod(r.attack); }).join("  ·  ") : "";
+}
 // Highlight active stat button
 ["int","wis","cha"].forEach(function(s) {
   var btn = $("sc-btn-" + s);

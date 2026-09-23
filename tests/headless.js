@@ -1280,7 +1280,7 @@
     t("[spells] isPrepClass: Жрец/Друид/Паладин/Волшебник готовят, Воин/Колдун/null — нет", function(){
       var prep = ["Жрец", "Друид", "Паладин", "Волшебник"];
       for (var i = 0; i < prep.length; i++) {
-        if (!isPrepClass({ class: prep[i] })) return prep[i] + " должен готовить заклинания";
+        if (!isPrepClass({ class: prep[i], level: 2 })) return prep[i] + " должен готовить заклинания";
       }
       if (isPrepClass({ class: "Воин" })) return "Воин не готовит";
       if (isPrepClass({ class: "Колдун" })) return "Колдун знает заклинания, а не готовит";
@@ -3590,7 +3590,8 @@
       // переопределена в E24-1 — её паритет проверяется в БЛОКЕ 33). CLASS_FEATURES с E24-8
       // сливается по классам (_mergeByClass) — непереведённый класс наследуется по ссылке.
       if (d24.CLASS_FEATURES["Волшебник"] !== d14.CLASS_FEATURES["Волшебник"]) return "CLASS_FEATURES Волшебник 2024 ≠ 2014";
-      if (d24.SPELL_SLOTS_BY_LEVEL !== d14.SPELL_SLOTS_BY_LEVEL) return "слоты 2024 ≠ 2014";
+      // AUD-5: у паладина/следопыта 2024 своя строка 1 ур., остальные классы — по ссылке
+      if (d24.SPELL_SLOTS_BY_LEVEL["Волшебник"] !== d14.SPELL_SLOTS_BY_LEVEL["Волшебник"]) return "слоты 2024 ≠ 2014";
       if (d24.CLASS_HIT_DICE !== d14.CLASS_HIT_DICE) return "CLASS_HIT_DICE 2024 ≠ 2014";
       return true;
     });
@@ -7060,11 +7061,102 @@
     });
 
     // PHB 2024 стр. 43: при мультиклассе подготовка считается по уровню В КЛАССЕ.
+    // ── AUD-5: ячейки и заклинательство ──
+    t("[aud-5] R4: 2014 — паладин 5 / следопыт 1 → таблица паладина (4/2), не пул 2 ур.", function(){
+      var c = { edition: "2014", class: "Паладин", level: 6, classes: [{ class: "Паладин", level: 5 }, { class: "Следопыт", level: 1 }] };
+      var s = getMulticlassSpellSlots(c);
+      return (s[1] === 4 && s[2] === 2) || ("ячейки " + s.slice(1, 4).join("/"));
+    });
+    t("[aud-5] R4: мистический рыцарь 4 / паладин 1 (2014) → 3 ячейки 1 круга", function(){
+      var c = { edition: "2014", class: "Воин", level: 5, classes: [{ class: "Воин", level: 4, subclass: "Мистический рыцарь" }, { class: "Паладин", level: 1 }] };
+      var s = getMulticlassSpellSlots(c);
+      return s[1] === 3 || ("ячейки 1 круга: " + s[1]);
+    });
+    t("[aud-5] E2: 2024 — паладин 3 / следопыт 3 → уровень заклинателя 4 (половины вверх)", function(){
+      var c = { edition: "2024", class: "Паладин", level: 6, classes: [{ class: "Паладин", level: 3 }, { class: "Следопыт", level: 3 }] };
+      var cl = charCasterLevel(c).level;
+      return cl === 4 || ("уровень заклинателя " + cl);
+    });
+    t("[aud-5] E3: паладин и следопыт 2024 1 ур. — 2 ячейки 1 круга; 2014 — 0", function(){
+      var p24 = getMulticlassSpellSlots({ edition: "2024", class: "Паладин", level: 1 });
+      var r24 = getMulticlassSpellSlots({ edition: "2024", class: "Следопыт", level: 1 });
+      var p14 = getMulticlassSpellSlots({ edition: "2014", class: "Паладин", level: 1 });
+      if (p24[1] !== 2 || r24[1] !== 2) return "2024: " + p24[1] + "/" + r24[1];
+      return p14[1] === 0 || ("2014: " + p14[1]);
+    });
+    t("[aud-5] L4/L18: rulesApplySpellSlots — максимум по таблице, потраченные обрезаются, не обнуляются", function(){
+      var c = { edition: "2014", class: "Жрец", level: 3, classes: [{ class: "Жрец", level: 3 }],
+                spells: { slots: {}, slotsUsed: { 1: 3, 2: 1 } } };
+      rulesApplySpellSlots(c);
+      if (c.spells.slots[1] !== 4 || c.spells.slots[2] !== 2) return "максимум " + c.spells.slots[1] + "/" + c.spells.slots[2];
+      if (c.spells.slotsUsed[1] !== 3 || c.spells.slotsUsed[2] !== 1) return "потраченные сброшены";
+      c.classes[0].level = 1; c.level = 1;
+      rulesApplySpellSlots(c);
+      if (c.spells.slotsUsed[1] !== 2 || c.spells.slotsUsed[2] !== 0) return "не обрезано до максимума";
+      var w = { edition: "2014", class: "Колдун", level: 5, classes: [{ class: "Колдун", level: 5 }], spells: { pactUsed: 1 } };
+      rulesApplySpellSlots(w);
+      if (w.spells.pactSlots !== 2 || w.spells.pactLevel !== 3 || w.spells.pactUsed !== 1) return "пакт " + w.spells.pactSlots + "/" + w.spells.pactLevel + "/" + w.spells.pactUsed;
+      return w.spells.slots[1] === 0 || "у колдуна обычные ячейки";
+    });
+    t("[aud-5] R17: rulesSpellStatsByClass — жрец МУД, чародей ХАР, фильтр по списку заклинания", function(){
+      var c = { edition: "2014", class: "Жрец", level: 6, stats: { wis: 16, cha: 18, int: 10 },
+                classes: [{ class: "Жрец", level: 3 }, { class: "Чародей", level: 3 }] };
+      var rows = rulesSpellStatsByClass(c, 6);
+      if (rows.length !== 2) return "строк " + rows.length;
+      if (rows[0].dc !== 14 || rows[1].dc !== 15) return "СЛ " + rows[0].dc + "/" + rows[1].dc;
+      var only = rulesSpellStatsByClass(c, 6, { classes: ["cleric"] });
+      return (only.length === 1 && only[0].cls === "Жрец") || "фильтр по списку";
+    });
+    if (typeof spellNeedsPrep === "function") {
+      t("[aud-5] L9: заклинания домена открытого уровня всегда подготовлены и не в лимите", function(){
+        var bless = { id: 9001, name: "Благословение", level: 1, classes: ["cleric", "paladin"] };
+        var c = { edition: "2014", class: "Жрец", level: 1, subclass: "Домен жизни", stats: { wis: 14 },
+                  classes: [{ class: "Жрец", level: 1, subclass: "Домен жизни" }],
+                  spells: { mySpells: [bless], prepared: [] } };
+        if (spellNeedsPrep(c, bless)) return "домен требует подготовки";
+        if (!isSpellPrepared(c, 9001)) return "домен не подготовлен";
+        var sw = { id: 9002, name: "Божественное оружие", level: 2, classes: ["cleric"] };
+        return spellNeedsPrep(c, sw) || "3 ур. домена открыт на 1 ур.";
+      });
+      t("[aud-5] R14: жрец 3 / бард 3 — заклинание из списка барда без подготовки, лимит только жреца", function(){
+        var c = { edition: "2014", class: "Воин", level: 6, stats: { wis: 16 },
+                  classes: [{ class: "Воин", level: 3 }, { class: "Жрец", level: 3 }] };
+        if (!isPrepClass(c)) return "жрец вторым классом не готовит";
+        if (calcMaxPrepared(c) !== 6) return "лимит " + calcMaxPrepared(c);
+        var b = { edition: "2014", class: "Жрец", level: 6, stats: { wis: 16 },
+                  classes: [{ class: "Жрец", level: 3 }, { class: "Бард", level: 3 }] };
+        if (spellNeedsPrep(b, { name: "Лечение ран", level: 1, classes: ["bard", "cleric"] })) return "бардовское требует подготовки";
+        return spellNeedsPrep(b, { name: "Оберег", level: 1, classes: ["cleric"] }) || "жреческое без подготовки";
+      });
+      t("[aud-5] L24: ритуал — 2014 жрец только подготовленное, волшебник из книги, воин — нет", function(){
+        var sp = { id: 9003, name: "Обнаружение магии", level: 1, time: "1 действие (ритуал)", classes: ["cleric", "wizard"] };
+        var cl = { edition: "2014", class: "Жрец", level: 3, stats: { wis: 14 }, classes: [{ class: "Жрец", level: 3 }], spells: { mySpells: [sp], prepared: [] } };
+        if (canCastAsRitual(cl, sp)) return "неподготовленный ритуал у жреца";
+        cl.spells.prepared = [9003];
+        if (!canCastAsRitual(cl, sp)) return "подготовленный ритуал у жреца";
+        var wz = { edition: "2014", class: "Воин", level: 4, classes: [{ class: "Воин", level: 2 }, { class: "Волшебник", level: 2 }], spells: { mySpells: [sp], prepared: [] } };
+        if (!canCastAsRitual(wz, sp)) return "волшебник вторым классом";
+        var f = { edition: "2014", class: "Воин", level: 3, classes: [{ class: "Воин", level: 3 }], spells: { mySpells: [sp] } };
+        return !canCastAsRitual(f, sp) || "воин кастует ритуал";
+      });
+      t("[aud-5] L13: арканум колдуна 11 — вариант каста 6 круга без ячейки, 7 круг закрыт", function(){
+        var s6 = { id: 9004, name: "Круг смерти", level: 6, classes: ["warlock", "wizard"] };
+        var s7 = { id: 9005, name: "Перст смерти", level: 7, classes: ["warlock"] };
+        var c = { edition: "2014", class: "Колдун", level: 11, classes: [{ class: "Колдун", level: 11 }], resources: {},
+                  spells: { slots: {}, slotsUsed: {}, pactSlots: 3, pactUsed: 0, pactLevel: 5, mySpells: [s6, s7] } };
+        var o = _castableSlotOptions(c, s6);
+        if (!o.some(function(x) { return x.type === "arcanum" && x.level === 6; })) return "нет арканума 6";
+        if (_castableSlotOptions(c, s7).length) return "7 круг доступен на 11 ур.";
+        c.resources.mystic_arcanum_6 = 1;
+        return !_castableSlotOptions(c, s6).length || "арканум не тратится";
+      });
+    }
     t("[e24-2] calcMaxPrepared при мультиклассе — уровень в классе, не сумма (Следопыт 4 / Чародей 3)", function(){
       var c = { edition: "2024", class: "Следопыт", level: 7,
                 classes: [{ class: "Следопыт", level: 4 }, { class: "Чародей", level: 3 }] };
       var got = calcMaxPrepared(c);
-      if (got !== 5) return "следопыт 4: " + got;
+      // AUD-5 (R14): лимиты готовящих классов складываются — следопыт 4 (5) + чародей 3 (6)
+      if (got !== 11) return "следопыт 4 + чародей 3: " + got;
       // 2014: жрец 3 / воин 2, МУД 16 → 3 + 3 = 6, не 3 + 5
       var c14 = { edition: "2014", class: "Жрец", level: 5, stats: { wis: 16 },
                   classes: [{ class: "Жрец", level: 3 }, { class: "Воин", level: 2 }] };
@@ -7848,7 +7940,7 @@
       } finally {
         registerEdition2024(ov);
       }
-      if (edData({ edition: "2024" }).SPELL_SLOTS_BY_LEVEL !== SPELL_SLOTS_BY_LEVEL) return "восстановление 2024 не вернуло наследование";
+      if (edData({ edition: "2024" }).SPELL_SLOTS_BY_LEVEL["Волшебник"] !== SPELL_SLOTS_BY_LEVEL["Волшебник"]) return "восстановление 2024 не вернуло наследование";
       return true;
     });
   })();

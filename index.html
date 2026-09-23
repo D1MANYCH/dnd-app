@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v380">
+<link rel="stylesheet" href="style.css?v=v381">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -595,7 +595,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <div class="sheet-top-small-row">
       <!-- LVL-5: у мультикласса поле прячется — уровень персонажа там не своё
            значение, а сумма уровней классов, и правится только повышением. -->
-      <div class="sheet-small-field"><label>Уровень</label><input type="number" id="char-level" class="field flat-field" min="1" max="20" oninput="calcStats(); updateSubclassOptions(); updateClassFeatures(); updateLockButtonState()"><div class="cd-level-mc" id="char-level-mc" style="display:none" onclick="openProgress()"></div></div>
+      <div class="sheet-small-field"><label>Уровень</label><input type="number" id="char-level" class="field flat-field" min="1" max="20" oninput="calcStats(); syncSpellSlotsFromClass(); updateSubclassOptions(); updateClassFeatures(); updateLockButtonState()"><div class="cd-level-mc" id="char-level-mc" style="display:none" onclick="openProgress()"></div></div>
       <div class="sheet-small-field"><label>Опыт</label><input type="number" id="char-exp" class="field flat-field" value="0" oninput="updateChar()"></div>
       <!-- E24-0: бейдж редакции; renderEditionBadge() показывает только для 2024 -->
       <span id="char-edition-badge" class="char-edition-badge" title="Редакция правил 2024" style="display:none">2024</span>
@@ -616,7 +616,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
      на его месте встаёт строка со всеми классами и входом в «Развитие».
      Сам select остаётся в DOM — его читают updateChar/recalculateHP/владения. -->
 <div class="cd-class-mc" id="char-class-mc" style="display:none" onclick="openProgress()"><span id="char-class-mc-label"></span><span class="cd-class-mc-act">Развитие →</span></div>
-<select id="char-class" class="field flat-field" onchange="updateChar(); updateSubclassOptions(); recalculateHP(); autoSelectProficiencies(); updateClassFeatures(); calculateAC(); updateLockButtonState(); if (typeof _refreshAccent==='function') _refreshAccent()">
+<select id="char-class" class="field flat-field" onchange="updateChar(); updateSubclassOptions(); syncSpellSlotsFromClass(); recalculateHP(); autoSelectProficiencies(); updateClassFeatures(); calculateAC(); updateLockButtonState(); if (typeof _refreshAccent==='function') _refreshAccent()">
 <option value="">Выберите класс</option>
 <option value="Волшебник">Волшебник</option>
 <option value="Чародей">Чародей</option>
@@ -636,7 +636,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <label>Подкласс</label>
 <!-- LVL-5: <select> знает подкласс только первого класса, поэтому у мультикласса
      он прячется, а вместо него встают строки по каждому классу. -->
-<select id="char-subclass" class="field flat-field" onchange="updateChar(); updateClassFeatures(); updateLockButtonState(); if(typeof updateSubclassRecHint==='function') updateSubclassRecHint(); if(typeof renderLanguages==='function') renderLanguages(); if(typeof renderTools==='function') renderTools(); if(typeof renderArmorProf==='function') renderArmorProf(); if(typeof renderWeaponProf==='function') renderWeaponProf(); if(typeof calculateAC==='function') calculateAC()">
+<select id="char-subclass" class="field flat-field" onchange="updateChar(); syncSpellSlotsFromClass(); updateClassFeatures(); updateLockButtonState(); if(typeof updateSubclassRecHint==='function') updateSubclassRecHint(); if(typeof renderLanguages==='function') renderLanguages(); if(typeof renderTools==='function') renderTools(); if(typeof renderArmorProf==='function') renderArmorProf(); if(typeof renderWeaponProf==='function') renderWeaponProf(); if(typeof calculateAC==='function') calculateAC()">
 <option value="">Сначала выберите класс</option>
 </select>
 <div id="char-subclass-rec" class="subclass-rec-hint" style="display:none"></div>
@@ -1184,6 +1184,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <div class="sc-stat-body">Прибавляется к броску атаки заклинанием: бонус мастерства + модификатор заклинательной характеристики. Нужен там, где заклинание требует попасть.</div>
   </div>
 </div>
+<div id="spell-stats-by-class" class="prep-counter" style="display:none"></div>
 <!-- hidden inputs for compatibility -->
 <input type="hidden" id="spell-dc">
 <input type="hidden" id="spell-attack">
@@ -3174,57 +3175,57 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v380"></script>
+<script src="app-log.js?v=v381"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v380"></script>
-<script src="bg-space.js?v=v380"></script>
-<script src="dice-arena-bg.js?v=v380"></script>
-<script src="data.js?v=v380"></script>
+<script src="icons.js?v=v381"></script>
+<script src="bg-space.js?v=v381"></script>
+<script src="dice-arena-bg.js?v=v381"></script>
+<script src="data.js?v=v381"></script>
 <!-- PERF-2/PERF-4: build-notes-data.js (~530 КБ) и character-builds.js (~200 КБ) грузятся лениво — см. ensureBuildNotes/ensureBuilds ниже -->
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v380"></script>
-<script src="spells.js?v=v380"></script>
-<script src="spell-effects.js?v=v380"></script>
+<script src="glossary-data.js?v=v381"></script>
+<script src="spells.js?v=v381"></script>
+<script src="spell-effects.js?v=v381"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v380"></script>
-<script src="app-migrate.js?v=v380"></script>
-<script src="app-builds.js?v=v380"></script>
-<script src="app-core.js?v=v380"></script>
-<script src="app-io.js?v=v380"></script>
-<script src="app-backup.js?v=v380"></script>
-<script src="app-combat.js?v=v380"></script>
-<script src="app-conditions.js?v=v380"></script>
-<script src="app-cast-effects.js?v=v380"></script>
-<script src="app-proficiencies.js?v=v380"></script>
-<script src="app-hp.js?v=v380"></script>
-<script src="app-spells.js?v=v380"></script>
-<script src="app-inventory.js?v=v380"></script>
+<script src="rules.js?v=v381"></script>
+<script src="app-migrate.js?v=v381"></script>
+<script src="app-builds.js?v=v381"></script>
+<script src="app-core.js?v=v381"></script>
+<script src="app-io.js?v=v381"></script>
+<script src="app-backup.js?v=v381"></script>
+<script src="app-combat.js?v=v381"></script>
+<script src="app-conditions.js?v=v381"></script>
+<script src="app-cast-effects.js?v=v381"></script>
+<script src="app-proficiencies.js?v=v381"></script>
+<script src="app-hp.js?v=v381"></script>
+<script src="app-spells.js?v=v381"></script>
+<script src="app-inventory.js?v=v381"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v380"></script>
-<script src="class-choices.js?v=v380"></script>
-<script src="subclass-choices-data.js?v=v380"></script>
+<script src="app-party.js?v=v381"></script>
+<script src="class-choices.js?v=v381"></script>
+<script src="subclass-choices-data.js?v=v381"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v380";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v381";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-dice.js?v=v380"></script>
-<script src="app-settings.js?v=v380"></script>
-<script src="app-ui.js?v=v380"></script>
-<script src="app-home.js?v=v380"></script>
-<script src="app-asi.js?v=v380"></script>
-<script src="app-progress.js?v=v380"></script>
-<script src="app-notes.js?v=v380"></script>
-<script src="app-desktop.js?v=v380"></script>
-<script src="history-stack.js?v=v380"></script>
-<script src="app-help.js?v=v380"></script>
+<script src="app-dice.js?v=v381"></script>
+<script src="app-settings.js?v=v381"></script>
+<script src="app-ui.js?v=v381"></script>
+<script src="app-home.js?v=v381"></script>
+<script src="app-asi.js?v=v381"></script>
+<script src="app-progress.js?v=v381"></script>
+<script src="app-notes.js?v=v381"></script>
+<script src="app-desktop.js?v=v381"></script>
+<script src="history-stack.js?v=v381"></script>
+<script src="app-help.js?v=v381"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3237,9 +3238,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v380",
-    "vendor/jspdf/roboto-base64.js?v=v380",
-    "app-pdf.js?v=v380"
+    "vendor/jspdf/jspdf.umd.min.js?v=v381",
+    "vendor/jspdf/roboto-base64.js?v=v381",
+    "app-pdf.js?v=v381"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3262,13 +3263,13 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // PERF-4: сами билды нужны пикеру, гайду, плану и подсказкам левел-апа — грузим по требованию.
   window.ensureBuilds = function () {
     if (window.CHARACTER_BUILDS) return Promise.resolve();
-    return loadScript("character-builds.js?v=v380");
+    return loadScript("character-builds.js?v=v381");
   };
   // PERF-2: заметки билдов нужны только applyBuild — грузим по требованию.
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v380").then(function () {
+    return loadScript("build-notes-data.js?v=v381").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -3276,26 +3277,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v380"),
-      loadScript("npc-srd.js?v=v380")
+      loadScript("monsters-srd.js?v=v381"),
+      loadScript("npc-srd.js?v=v381")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v380");
+    return loadScript("magic-items.js?v=v381");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v380");
+    return loadScript("gear-catalog.js?v=v381");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v380").then(function () {
+    return loadScript("data-2024.js?v=v381").then(function () {
       window.__edition2024Loaded = true;
     });
   };

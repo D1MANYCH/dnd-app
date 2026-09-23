@@ -105,6 +105,16 @@ if (window.AppLog) AppLog.action("spells", "пакт-слотов → " + newVal
 saveToLocal();
 renderSpellSlots();
 }
+// AUD-5 (L4): смена класса/уровня/подкласса на листе пересчитывает ячейки по таблице
+function syncSpellSlotsFromClass() {
+if (!currentId) return;
+const char = getCurrentChar();
+if (!char) return;
+updateChar();
+rulesApplySpellSlots(char);
+saveToLocal();
+renderSpellSlots();
+}
 function updateSpellSlots(level, value) {
 if (!currentId) return;
 const char = getCurrentChar();
@@ -734,6 +744,7 @@ return;
 // CAST-6: живые экземпляры каста по имени заклинания — бейдж «Активно · ⏳N рд»
 var activeCast = {};
 (char.activeSpellEffects || []).forEach(function(inst) { activeCast[inst.spellName] = inst; });
+var alwaysPrep = _subclassSpellNames(char);
 const byLevel = {};
 char.spells.mySpells.forEach(function(spell) {
 const lvl = spell.level;
@@ -748,7 +759,6 @@ const groupDiv = document.createElement("div");
 groupDiv.className = "spell-level-group";
 groupDiv.innerHTML = '<div class="spell-group-header"><span class="spell-group-title">' + escapeHtml(levelTitle) + '</span><span class="spell-group-count">' + count + '</span></div>';
 container.appendChild(groupDiv);
-var ritualClasses = ["Волшебник", "Жрец", "Друид", "Бард"];
 byLevel[level].forEach(function(spell, _idx) {
 const spellClassArr2 = Array.isArray(spell.classes) ? spell.classes : [spell.class || "both"];
 // Больше 4 классов не влезают на телефоне и вытесняют название — первые 3 + счётчик «+N».
@@ -780,7 +790,7 @@ var taxonomyLine = '<div class="spell-card-taxonomy">' +
   (sourceRu ? '<span>' + dndIcoHtml("book", 12) + ' <b>' + escapeHtml(sourceRu) + '</b></span>' : '') +
   '</div>';
 var isRitual = !!(spell.time && spell.time.includes("(ритуал)"));
-var canCastRitual = isRitual && ritualClasses.includes(char.class);
+var canCastRitual = isRitual && canCastAsRitual(char, spell);
 var isFamiliarSpell = /фамильяр/i.test(spell.name || "");
 // STYLE-8b3: признаки — текст через точку (её ставит CSS). Школа идёт первой
 // и красится цветом своей школы — это ДАННЫЕ, ровно как категория вещи в
@@ -793,6 +803,8 @@ if (spell.grantedBy) metaParts.push('<span>' + escapeHtml(spell.grantedBy) + '</
 var prepClass = isPrepClass(char);
 var prepared = isSpellPrepared(char, spell.id);
 var isCantrip = spell.level === 0;
+var needsPrep = prepClass && spellNeedsPrep(char, spell);
+if (prepClass && !isCantrip && !spell.grantedBy && alwaysPrep[spell.name]) metaParts.push('<span>всегда подготовлено</span>'); // AUD-5 (L9)
 var cardClass = "my-spell-item";
 if (prepClass && !isCantrip && !prepared) cardClass += " spell-unprepared";
 var card = document.createElement("div");
@@ -836,8 +848,8 @@ card.innerHTML =
     // две одинаковые кнопки на карточке читались бы как разные действия.
 
     (spell.duration && spell.duration.toLowerCase().includes('концентрац') ? '<button class="spell-conc-btn" onclick="setConcentration(this.dataset.name)" data-name="' + escapeHtml(spell.name) + '">' + dndIcoHtml("focus", 13) + ' Концентрация</button>' : '') +
-    (canCastRitual ? '<button class="spell-ritual-btn" onclick="castRitual(\'' + escapeHtml(spell.name).replace(/'/g,"&#39;") + '\')">" + dndIcoHtml("history", 13) + " Ритуал</button>' : '') +
-    (prepClass && !isCantrip ? '<button class="spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">' + (prepared ? '' + dndIcoHtml("check", 13) + ' Подготовлено' : '○ Подготовить') + '</button>' : '') +
+    (canCastRitual ? '<button class="spell-ritual-btn" onclick="castRitual(\'' + escapeHtml(spell.name).replace(/'/g,"&#39;") + '\')">' + dndIcoHtml("history", 13) + ' Ритуал</button>' : '') +
+    (needsPrep ? '<button class="spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">' + (prepared ? '' + dndIcoHtml("check", 13) + ' Подготовлено' : '○ Подготовить') + '</button>' : '') +
     (isFamiliarSpell ? '<button class="spell-summon-btn" onclick="summonFamiliar()">' + dndIcoHtml("wolf", 13) + ' Призвать фамильяра</button>' : '') +
     // HB-3: правка своего заклинания прямо из списка. Удаления из базы здесь нет
     // намеренно — рядом уже стоит «🗑 Удалить», и две корзины с разным смыслом
@@ -884,28 +896,30 @@ function updateSpellActiveBadges() {
 // E24-2: таблица prepared-классов по редакции персонажа. 2014 — 4 класса с формулой
 // «мод + уровень» / «мод + ½ уровня»; 2024 — все 8 заклинателей, лимит и число
 // заговоров из таблицы класса (массивы prepared/cantrips, индекс = уровень − 1).
-function _spellPrepEntry(char) {
-  if (!char || !char.class) return null;
+// AUD-5 (R14): готовящие классы персонажа — каждый со своим уровнем В КЛАССЕ
+// (PHB: «уровень жреца», не сумма уровней). 2014: паладин 1 ур. ещё не заклинатель.
+function _prepEntries(char) {
+  var out = [];
+  if (!char) return out;
   var table = (typeof edData === "function") ? edData(char).SPELL_PREP_CLASSES : SPELL_PREP_CLASSES;
-  return (table && table[char.class]) || null;
+  var list = (Array.isArray(char.classes) && char.classes.length) ? char.classes
+    : (char.class ? [{ class: char.class, level: char.level }] : []);
+  list.forEach(function(c) {
+    if (!c || !c.class || !table || !table[c.class]) return;
+    var lv = Math.max(1, Math.min(20, c.level || char.level || 1));
+    if (char.edition !== "2024" && edData(char).CASTER_TYPE[c.class] === "half" && lv < 2) return;
+    out.push({ cls: c.class, level: lv, prep: table[c.class] });
+  });
+  return out;
 }
 
-// Уровень В КЛАССЕ char.class (PHB: «уровень жреца», не сумма уровней при мультиклассе);
-// без массива classes — общий уровень листа.
-function _prepClassLevel(char) {
-  var lvl = char.level || 1;
-  if (Array.isArray(char.classes)) {
-    for (var i = 0; i < char.classes.length; i++) {
-      if (char.classes[i] && char.classes[i].class === char.class && char.classes[i].level) { lvl = char.classes[i].level; break; }
-    }
-  }
-  return Math.max(1, Math.min(20, lvl));
+function _spellPrepEntry(char) {
+  var e = _prepEntries(char);
+  return e.length ? e[0].prep : null;
 }
 
-function calcMaxPrepared(char) {
-  var prep = _spellPrepEntry(char);
-  if (!prep) return null;
-  var level = _prepClassLevel(char);
+function _prepLimit(char, e) {
+  var prep = e.prep, level = e.level;
   if (prep.prepared) return prep.prepared[level - 1];
   var statKey = prep.stat; // "wis", "cha", "int"
   var statVal = char.stats ? (char.stats[statKey] || 10) : 10;
@@ -919,15 +933,69 @@ function calcMaxPrepared(char) {
   return Math.max(1, max);
 }
 
+// Мультикласс: сумма лимитов готовящих классов (упрощение — класс-источник заклинания не хранится).
+function calcMaxPrepared(char) {
+  var e = _prepEntries(char);
+  if (!e.length) return null;
+  return e.reduce(function(sum, x) { return sum + _prepLimit(char, x); }, 0);
+}
+
 // Лимит известных заговоров по таблице класса (только 2024; 2014 — null, без лимита).
 function calcMaxCantrips(char) {
-  var prep = _spellPrepEntry(char);
-  if (!prep || !prep.cantrips) return null;
-  return prep.cantrips[_prepClassLevel(char) - 1];
+  var e = _prepEntries(char).filter(function(x) { return x.prep.cantrips; });
+  if (!e.length) return null;
+  return e.reduce(function(sum, x) { return sum + x.prep.cantrips[x.level - 1]; }, 0);
 }
 
 function isPrepClass(char) {
-  return !!_spellPrepEntry(char);
+  return _prepEntries(char).length > 0;
+}
+
+// AUD-5 (L9): открытые по уровню класса заклинания подкласса (домен, клятва, круг,
+// покровитель) — всегда подготовлены и в лимит не входят (PHB стр. 58, 85, 108).
+function _subclassSpellNames(char) {
+  var out = {};
+  if (!char || typeof edData !== "function") return out;
+  var list = (Array.isArray(char.classes) && char.classes.length) ? char.classes
+    : [{ class: char.class, level: char.level, subclass: char.subclass }];
+  var prepTable = edData(char).SPELL_PREP_CLASSES || {};
+  list.forEach(function(c) {
+    // Покровитель колдуна 2014 лишь расширяет список (PHB стр. 109) — не «подготовлено»
+    if (!c || !c.subclass || !prepTable[c.class]) return;
+    var def = edData(char).SUBCLASS_RESOURCES[c.subclass];
+    var ss = def && def.passive && def.passive.subclassSpells;
+    if (!ss || !ss.byLevel) return;
+    Object.keys(ss.byLevel).forEach(function(k) {
+      if ((c.level || 1) < Number(k)) return;
+      ss.byLevel[k].forEach(function(n) { out[String(n).replace(/\s*\([^)]*\)\s*$/, "")] = true; });
+    });
+  });
+  return out;
+}
+
+// Нужна ли заклинанию подготовка. У мультикласса со «знающим» классом (бард, чародей,
+// колдун…) заклинание из его списка считается известным, а не подготовленным.
+function spellNeedsPrep(char, spell) {
+  if (!spell || (spell.level || 0) === 0 || spell.grantedBy) return false;
+  if (!isPrepClass(char)) return false;
+  if (_subclassSpellNames(char)[spell.name]) return false;
+  var table = edData(char).SPELL_PREP_CLASSES || {};
+  // Мистики (1/3) исключены: их список — волшебника, иначе волшебник терял бы подготовку.
+  var known = charCasterLevel(char).casters.filter(function(c) { return !table[c.cls] && c.type !== "third"; })
+    .map(function(c) { return CLASS_SPELL_LIST_KEY[c.cls]; });
+  if (known.length) {
+    var sc = Array.isArray(spell.classes) ? spell.classes : null;
+    if (!sc || sc.indexOf("both") !== -1) return false;
+    for (var i = 0; i < known.length; i++) if (sc.indexOf(known[i]) !== -1) return false;
+  }
+  return true;
+}
+
+function _preparedCount(char) {
+  return (char.spells.prepared || []).filter(function(id) {
+    var sp = (char.spells.mySpells || []).find(function(s){ return s.id === id; });
+    return sp && spellNeedsPrep(char, sp);
+  }).length;
 }
 
 function isSpellPrepared(char, spellId) {
@@ -935,6 +1003,7 @@ function isSpellPrepared(char, spellId) {
   // E24-4: заклинания от вида всегда подготовлены и в лимит не входят
   var _gr = char.spells.mySpells && char.spells.mySpells.find(function(s){ return s.id === spellId; });
   if (_gr && _gr.grantedBy) return true;
+  if (_gr && (_gr.level || 0) > 0 && !spellNeedsPrep(char, _gr)) return true;
   if (!char.spells.prepared) char.spells.prepared = [];
   return char.spells.prepared.includes(spellId);
 }
@@ -948,10 +1017,7 @@ function toggleSpellPrepared(spellId) {
     char.spells.prepared.splice(idx, 1);
   } else {
     var max = calcMaxPrepared(char);
-    var nonCantripPrepared = char.spells.prepared.filter(function(id) {
-      var sp = char.spells.mySpells.find(function(s){ return s.id === id; });
-      return sp && sp.level > 0;
-    }).length;
+    var nonCantripPrepared = _preparedCount(char);
     if (max !== null && nonCantripPrepared >= max) {
       if (window.AppLog) AppLog.warn("spells", "лимит подготовленных заклинаний (" + max + ")");
       showToast("Достигнут лимит подготовленных заклинаний (" + max + ")", "warn");
@@ -979,16 +1045,16 @@ function renderPrepCounter() {
   if (!char.spells.prepared) char.spells.prepared = [];
   var max = calcMaxPrepared(char);
   // Считаем только не-заговоры
-  var prepCount = char.spells.prepared.filter(function(id) {
-    var sp = char.spells.mySpells ? char.spells.mySpells.find(function(s){ return s.id === id; }) : null;
-    return sp && sp.level > 0;
-  }).length;
+  var prepCount = _preparedCount(char);
   var prep = _spellPrepEntry(char);
+  var _pe = _prepEntries(char);
   var statName = { wis: "МУД", cha: "ХАР", int: "ИНТ" }[prep.stat] || "";
   // PHB 2014: жрец/друид/волшебник готовят «мод + уровень», паладин — «мод + ½ уровня».
   // PHB 2024: число из таблицы класса; рядом — лимит заговоров, если он есть у класса.
   var hint;
-  if (prep.prepared) {
+  if (_pe.length > 1) {
+    hint = "(" + _pe.map(function(x) { return x.cls + " " + _prepLimit(char, x); }).join(" + ") + ")";
+  } else if (prep.prepared) {
     var maxCantrips = calcMaxCantrips(char);
     var cantripCount = (char.spells.mySpells || []).filter(function(s) { return s && s.level === 0 && !s.grantedBy; }).length;
     hint = "(таблица класса" + (maxCantrips !== null ? " · заговоров " + cantripCount + "/" + maxCantrips : "") + ")";
@@ -1013,7 +1079,21 @@ function _castableSlotOptions(char, spell) {
   var pactFree = (char.spells.pactSlots || 0) - (char.spells.pactUsed || 0);
   var pactLvl = char.spells.pactLevel || 0;
   if (pactFree > 0 && pactLvl >= minLvl) opts.push({ type: "pact", level: pactLvl, free: pactFree });
+  // AUD-5 (L13): таинственный арканум — заклинание колдуна 6–9 круга раз за длинный отдых без ячейки
+  var arcId = _arcanumResId(char, spell);
+  if (arcId && !((char.resources && char.resources[arcId]) || 0)) opts.push({ type: "arcanum", level: spell.level, free: 1 });
   return opts;
+}
+
+// Порог уровня колдуна для арканума круга N (PHB стр. 108): 6 → 11, 7 → 13, 8 → 15, 9 → 17.
+function _arcanumResId(char, spell) {
+  var lv = spell ? (spell.level || 0) : 0;
+  if (lv < 6 || lv > 9) return null;
+  var wl = (typeof charClassLevel === "function") ? charClassLevel(char, "Колдун") : 0;
+  if (wl < 11 + (lv - 6) * 2) return null;
+  var cls = Array.isArray(spell.classes) ? spell.classes : null;
+  if (cls && cls.indexOf("warlock") === -1 && cls.indexOf("both") === -1) return null;
+  return "mystic_arcanum_" + lv;
 }
 
 function castSpell(spellId) {
@@ -1042,7 +1122,14 @@ function _castSpellWithSlot(spellId, slotType, level) {
   if (!char) return;
   var spell = (char.spells.mySpells || []).find(function(s){ return s.id === spellId; });
   if (!spell) return;
-  if (slotType === "pact") {
+  if (slotType === "arcanum") {
+    var arcId = _arcanumResId(char, spell);
+    if (!arcId || (char.resources && char.resources[arcId])) {
+      showToast("Арканум " + level + " ур. уже использован до длинного отдыха", "warn"); return;
+    }
+    if (!char.resources) char.resources = {};
+    char.resources[arcId] = 1;
+  } else if (slotType === "pact") {
     if ((char.spells.pactSlots || 0) - (char.spells.pactUsed || 0) <= 0) {
       showToast("Нет свободных пакт-ячеек", "warn"); return;
     }
@@ -1056,12 +1143,17 @@ function _castSpellWithSlot(spellId, slotType, level) {
   closeCastChooser();
   saveToLocal();
   renderSpellSlots();
+  if (slotType === "arcanum" && typeof renderClassResources === "function") renderClassResources();
   _finishCast(char, spell, { type: slotType, level: level });
 }
 
 function _finishCast(char, spell, slot) {
   var note;
-  if (slot) {
+  if (slot && slot.type === "arcanum") {
+    note = " — таинственный арканум " + slot.level + " ур.";
+  } else if (slot && slot.type === "ritual") {
+    note = " (ритуал, без ячейки)";
+  } else if (slot) {
     var freeLeft = slot.type === "pact"
       ? (char.spells.pactSlots || 0) - (char.spells.pactUsed || 0)
       : (char.spells.slots[slot.level] || 0) - (char.spells.slotsUsed[slot.level] || 0);
@@ -1314,12 +1406,13 @@ function _rollCastDamage(char, o) {
   if (!formula || typeof rollFormula !== "function") return;
   var dmg = o.dmg || {};
   if (dmg.addSpellMod) {
-    var sm = castStatMod(char);
+    var sm = castStatMod(char, o.spellName);
     if (sm) formula += (sm > 0 ? "+" + sm : String(sm));
   }
   if (dmg.save) {
     var saveName = _SAVE_LABELS[dmg.save] || String(dmg.save).toUpperCase();
     var dc = char.spells && char.spells.dc;
+    if (isMulticlass(char)) dc = 8 + castSpellAttackMod(char, o.spellName);
     var saveNote = "спасбросок " + saveName + (dc ? ", СЛ " + dc : "") +
       (dmg.halfOnSave ? " — половина урона при успехе" : " — при успехе урона нет");
     showToast("🎯 " + saveNote.charAt(0).toUpperCase() + saveNote.slice(1), "info");
@@ -1351,7 +1444,7 @@ function _rollCastDamage(char, o) {
     quickRoll({
       label: "🎯 Атака: " + o.spellName,
       sides: 20,
-      mod: castSpellAttackMod(char),
+      mod: castSpellAttackMod(char, o.spellName),
       onResult: function(comp) {
         if (comp.isFail) {
           showToast("💨 Натуральная 1 — промах, урон не бросается", "warn");
@@ -1435,7 +1528,7 @@ function _applyCastDebuff(char, spell, d, slot, variant) {
     quickRoll({
       label: "🎯 Атака: " + spell.name,
       sides: 20,
-      mod: castSpellAttackMod(char),
+      mod: castSpellAttackMod(char, spell),
       onResult: function(comp) {
         if (comp.isFail) {
           showToast("💨 Натуральная 1 — промах, цель не помечена", "warn");
@@ -1453,14 +1546,21 @@ function _applyCastDebuff(char, spell, d, slot, variant) {
 // CAST-7a: бонус атаки заклинаниями — всегда живой расчёт (мастерство + мод
 // заклинательной характеристики), как в calcSpellStats (app-combat.js), но без
 // чтения DOM: char.spells.attack мог не пересчитаться с прошлого уровня.
-function castSpellAttackMod(char) {
+function castSpellAttackMod(char, spell) {
   var prof = (typeof getProficiencyBonus === "function") ? getProficiencyBonus(char.level || 1) : 0;
-  return prof + castStatMod(char);
+  return prof + castStatMod(char, spell);
 }
 
 // CAST-3: модификатор заклинательной характеристики (char.spells.stat — «ИНТ»/«МУД»/«ХАР»).
-function castStatMod(char) {
+// AUD-5 (R17): у мультикласса с заклинанием — лучшая характеристика из классов,
+// в чьём списке оно есть (упрощение: класс-источник заклинания не хранится).
+function castStatMod(char, spell) {
   if (!char || !char.stats || !char.spells) return 0;
+  if (typeof spell === "string") spell = (char.spells.mySpells || []).find(function(s) { return s.name === spell; });
+  if (spell && typeof isMulticlass === "function" && isMulticlass(char) && typeof rulesSpellStatsByClass === "function") {
+    var rows = rulesSpellStatsByClass(char, char.level, spell);
+    if (rows.length) return Math.max.apply(null, rows.map(function(r) { return r.mod; }));
+  }
   var stat = char.spells.stat || "";
   if (stat === "ИНТ") return getMod(char.stats.int);
   if (stat === "МУД") return getMod(char.stats.wis);
@@ -1475,7 +1575,7 @@ function castStatMod(char) {
 function _applyCastHeal(char, spell, d, slot) {
   var castLevel = slot ? slot.level : (spell.level || 0);
   var formula = scaleFormula(d.heal.formula, d.heal.upcast, spell.level || 0, castLevel);
-  var mod = d.heal.addSpellMod ? castStatMod(char) : 0;
+  var mod = d.heal.addSpellMod ? castStatMod(char, spell) : 0;
   var flat = (typeof flatFormulaTotal === "function") ? flatFormulaTotal(formula) : null;
   if (flat != null) {
     if (typeof quickHP === "function") quickHP(Math.max(0, flat + mod), spell.name);
@@ -1557,7 +1657,7 @@ function openCastChooser(spell, opts) {
   opts.forEach(function(o) {
     var b = document.createElement("button");
     b.className = "cast-slot-option";
-    b.innerHTML = '<span class="cso-lvl">' + o.level + ' ур.' + (o.type === "pact" ? ' · ПАКТ' : '') + '</span>' +
+    b.innerHTML = '<span class="cso-lvl">' + o.level + ' ур.' + (o.type === "pact" ? ' · ПАКТ' : (o.type === "arcanum" ? ' · АРКАНУМ' : '')) + '</span>' +
       '<span class="cso-free">свободно: ' + o.free + '</span>';
     b.onclick = function(){ _castSpellWithSlot(spell.id, o.type, o.level); };
     box.appendChild(b);
@@ -1574,9 +1674,34 @@ var _ritualTimer = null;
 var _ritualEndTime = 0;
 // BUGFIX-8: экспонируем на window для clear-all в loadCharacter().
 if (typeof window !== 'undefined') window._ritualTimer = null;
+// AUD-5 (L24): ритуал — любой класс персонажа с «Ритуальным колдовством», в чьём списке
+// есть заклинание. 2014: волшебник — из книги без подготовки; жрец/друид — только
+// подготовленное; бард — известное (PHB стр. 201). 2024: любой заклинатель, заклинание
+// подготовлено; волшебник — из книги (PH24 «Ритуалы», «Адепт ритуалов»).
+function canCastAsRitual(char, spell) {
+  if (!char || !spell || !(spell.time && spell.time.indexOf("(ритуал)") !== -1)) return false;
+  var is2024 = char.edition === "2024";
+  var casters = charCasterLevel(char).casters.map(function(c) { return c.cls; });
+  var spellCls = Array.isArray(spell.classes) ? spell.classes : null;
+  var list = (char.classes && char.classes.length) ? char.classes.map(function(c) { return c && c.class; }) : [char.class];
+  var prepTable = edData(char).SPELL_PREP_CLASSES || {};
+  for (var i = 0; i < list.length; i++) {
+    var cls = list[i];
+    if (!cls) continue;
+    if (!is2024 && ["Волшебник", "Жрец", "Друид", "Бард"].indexOf(cls) === -1) continue;
+    if (is2024 && casters.indexOf(cls) === -1) continue;
+    if (spellCls && spellCls.indexOf(CLASS_SPELL_LIST_KEY[cls]) === -1 && spellCls.indexOf("both") === -1) continue;
+    if (cls === "Волшебник") return true;
+    if (!prepTable[cls]) return true;
+    if (isSpellPrepared(char, spell.id)) return true;
+  }
+  return false;
+}
+
 function castRitual(spellName) {
 // Если уже идёт ритуал — отменить старый
 if (_ritualTimer) cancelRitual(true);
+var _ritCharId = currentId;
 _ritualEndTime = Date.now() + 10 * 60 * 1000; // 10 минут
 var nameEl = $("status-ritual-name");
 var timerEl = $("status-ritual-timer");
@@ -1594,7 +1719,11 @@ _ritualTimer = setInterval(function() {
     if (typeof window !== 'undefined') window._ritualTimer = null;
     if (container) container.classList.add("hidden");
     if (window.AppLog) AppLog.info("spells", "ритуал завершён: " + spellName);
-    showToast("✅ Ритуал «" + spellName + "» завершён!", "success");
+    // AUD-5 (L24): по завершении — концентрация и эффекты заклинания, как при обычном касте
+    var _rc = (currentId === _ritCharId) ? getCurrentChar() : null;
+    var _rs = _rc && (_rc.spells.mySpells || []).find(function(s) { return s.name === spellName; });
+    if (_rs) { saveToLocal(); _finishCast(_rc, _rs, { type: "ritual", level: _rs.level || 1 }); saveToLocal(); }
+    else showToast("✅ Ритуал «" + spellName + "» завершён!", "success");
     return;
   }
   var min = Math.floor(left / 60000);
