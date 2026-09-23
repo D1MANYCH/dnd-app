@@ -47,8 +47,10 @@ function openASIModal() {
   // Show level info in title if level is set
   var title = modal.querySelector("h4");
   if (title) {
+    // E24-8: на 19 ур. у 2024-персонажа выбор называется «Эпический дар» (пикер отдаёт epic-черты)
+    var isEpic = char.edition === "2024" && typeof asiCurrentLevel === "number" && asiCurrentLevel >= 19;
     title.textContent = asiCurrentLevel
-      ? "📈 Увеличение характеристик · " + asiCurrentLevel + " ур."
+      ? (isEpic ? "📈 Эпический дар · " : "📈 Увеличение характеристик · ") + asiCurrentLevel + " ур."
       : "📈 Увеличение характеристик";
   }
 

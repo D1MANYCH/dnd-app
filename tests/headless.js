@@ -3481,8 +3481,9 @@
       var d24 = edData({ edition: "2024" });
       var d14 = edData({ edition: "2014" });
       // Ещё не наполненные фазами таблицы наследуются от 2014 по ссылке (CONDITIONS уже
-      // переопределена в E24-1 — её паритет проверяется в БЛОКЕ 33).
-      if (d24.CLASS_FEATURES !== d14.CLASS_FEATURES) return "CLASS_FEATURES 2024 ≠ 2014";
+      // переопределена в E24-1 — её паритет проверяется в БЛОКЕ 33). CLASS_FEATURES с E24-8
+      // сливается по классам (_mergeByClass) — непереведённый класс наследуется по ссылке.
+      if (d24.CLASS_FEATURES["Волшебник"] !== d14.CLASS_FEATURES["Волшебник"]) return "CLASS_FEATURES Волшебник 2024 ≠ 2014";
       if (d24.SPELL_SLOTS_BY_LEVEL !== d14.SPELL_SLOTS_BY_LEVEL) return "слоты 2024 ≠ 2014";
       if (d24.CLASS_HIT_DICE !== d14.CLASS_HIT_DICE) return "CLASS_HIT_DICE 2024 ≠ 2014";
       return true;
@@ -7613,10 +7614,11 @@
     t("[e24-6] toggleWeaponMastery: лимит 0 — не добавляет; снятие работает; замок листа блокирует", function(){
       if (typeof toggleWeaponMastery !== "function" || typeof getCurrentChar !== "function") return true;
       var savedChars = window.characters, savedId = window.currentId;
-      var savedLimit = window.getWeaponMasteryLimit;
+      var savedLimit = window.getWeaponMasteryLimit, savedCan = window.canMasterWeapon;
       try {
         var ch = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));
-        ch.id = "test-e24-6"; ch.edition = "2024"; ch.class = "Воин"; ch.level = 1;
+        // E24-8: у Воина лимит теперь от класса (3) — для «лимита 0» берём класс без «Оружейных приёмов»
+        ch.id = "test-e24-6"; ch.edition = "2024"; ch.class = "Волшебник"; ch.level = 1;
         ch.weapons = [{ name:"Секира", damage:"1к12", stat:"str" }, { name:"Кинжал", damage:"1к4", stat:"dex" }];
         ch.weaponMastery = ["Кинжал"];
         window.characters = [ch]; window.currentId = ch.id;
@@ -7626,6 +7628,7 @@
         if (ch.weaponMastery.length !== 0) return "снятие не сработало";
         // с лимитом от класса (имитация E24-8) — добавляется, второе упирается в лимит
         window.getWeaponMasteryLimit = function(){ return 1; };
+        window.canMasterWeapon = function(){ return true; };
         toggleWeaponMastery(0);
         if (ch.weaponMastery.join() !== "Секира") return "не добавилось при лимите 1: " + ch.weaponMastery.join();
         toggleWeaponMastery(1);
@@ -7636,7 +7639,7 @@
         if (typeof isSheetLocked === "function" && isSheetLocked(ch) && ch.weaponMastery.join() !== "Секира") return "замок не блокирует";
         return true;
       } finally {
-        window.getWeaponMasteryLimit = savedLimit;
+        window.getWeaponMasteryLimit = savedLimit; window.canMasterWeapon = savedCan;
         window.characters = savedChars; window.currentId = savedId;
       }
     });
@@ -7744,6 +7747,272 @@
     });
   })();
 
+
+  // ────────── БЛОК 59 (E24-8): классы 2024 — Воин и Варвар: фичи 1–20, 4 подкласса на 3 ур., ресурсы, выборы, мастерство ──────────
+  // Инварианты: у каждого переведённого класса фичи на всех 20 уровнях; «Увеличение характеристик»
+  // стоит буквально и только на АСИ-уровнях (сканы app-hp.js ищут по имени), 19 — «Эпический дар»;
+  // ровно 4 подкласса на классе, все на 3 ур., фичи подкласса по уровням книги, источник PH24;
+  // слияние с 2014 по классу / по имени подкласса; 2014-глобалы не тронуты; ресурсы по таблицам,
+  // короткий отдых возвращает одно использование (restoreShortOne); стили боя = style-черты;
+  // getWeaponMasteryLimit по столбцу «Оружейные приёмы».
+  (function(){
+    if (typeof edData !== "function" || typeof window === "undefined" || !window.CLASS_FEATURES_2024) return;
+    var CF24 = window.CLASS_FEATURES_2024, SUB24 = window.SUBCLASSES_2024, SF24 = window.SUBCLASS_FEATURES_2024;
+    var ASI24 = window.ASI_LEVELS_2024, SRC24 = window.SUBCLASS_SOURCE_2024, CR24 = window.CLASS_RESOURCES_2024;
+    var CLASSES = ["Воин", "Варвар"];
+    var SUB_LEVELS = { "Воин": [3, 7, 10, 15, 18], "Варвар": [3, 6, 10, 14] };
+    function mk(ed, cls, lvl, sub) {
+      var st = { str: 16, dex: 14, con: 14, int: 10, wis: 10, cha: 10 };
+      return { edition: ed, class: cls, level: lvl, subclass: sub || "", classes: [{ class: cls, level: lvl, subclass: sub || "" }], stats: st, resources: {}, weaponMastery: [], classChoices: {} };
+    }
+    function has(arr, name) { return (arr || []).some(function(f){ return f && f.name === name; }); }
+
+    t("[e24-8] Воин/Варвар 2024: фичи 1–20 без дыр, «Увеличение характеристик» только на АСИ-уровнях, 19 — «Эпический дар», «Оружейные приёмы» на 1", function(){
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var cls = CLASSES[ci], tbl = CF24[cls];
+        if (!tbl) return cls + ": нет в CLASS_FEATURES_2024";
+        var asi = ASI24[cls];
+        if (!Array.isArray(asi) || !asi.length) return cls + ": нет ASI_LEVELS_2024";
+        if (asi.indexOf(19) !== -1) return cls + ": 19 в ASI_LEVELS_2024 (там эпический дар)";
+        for (var l = 1; l <= 20; l++) {
+          if (!Array.isArray(tbl[l]) || !tbl[l].length) return cls + " " + l + ": нет фич";
+          for (var i = 0; i < tbl[l].length; i++) {
+            if (!tbl[l][i] || !tbl[l][i].name || !tbl[l][i].desc) return cls + " " + l + ": фича без name/desc";
+          }
+          var isAsi = has(tbl[l], "Увеличение характеристик");
+          if (isAsi !== (asi.indexOf(l) !== -1)) return cls + " " + l + ": АСИ " + (isAsi ? "есть, но не в расписании" : "в расписании, но фичи нет");
+        }
+        if (!has(tbl[19], "Эпический дар")) return cls + " 19: нет «Эпический дар»";
+        if (!has(tbl[1], "Оружейные приёмы")) return cls + " 1: нет «Оружейные приёмы»";
+        if (!tbl[3].some(function(f){ return /подкласс/i.test(f.name) || /подкласс/i.test(f.desc); })) return cls + " 3: нет фичи выбора подкласса";
+      }
+      if (CF24["Воин"] && !has(CF24["Воин"][5], "Дополнительная атака")) return "Воин 5: нет доп. атаки";
+      if (CF24["Варвар"] && !has(CF24["Варвар"][1], "Ярость")) return "Варвар 1: нет Ярости";
+      var w = ASI24["Воин"].join(), b = ASI24["Варвар"].join();
+      if (w !== "4,6,8,12,14,16") return "ASI Воина: " + w;
+      if (b !== "4,8,12,16") return "ASI Варвара: " + b;
+      return true;
+    });
+
+    t("[e24-8] подклассы 2024: ровно 4 на класс, SUBCLASS_LEVEL 3, фичи по уровням книги (Воин 3/7/10/15/18, Варвар 3/6/10/14), источник PH24 с меткой", function(){
+      var seen = {};
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var cls = CLASSES[ci], list = SUB24[cls];
+        if (!Array.isArray(list) || list.length !== 4) return cls + ": подклассов " + (list && list.length);
+        if (window.SUBCLASS_LEVEL_2024[cls] !== 3) return cls + ": SUBCLASS_LEVEL_2024 не 3";
+        for (var i = 0; i < list.length; i++) {
+          var name = list[i];
+          if (seen[name]) return name + ": дубль";
+          seen[name] = 1;
+          var f = SF24[name];
+          if (!f) return name + ": нет в SUBCLASS_FEATURES_2024";
+          var lv = Object.keys(f).map(Number).sort(function(a, b){ return a - b; }).join();
+          if (lv !== SUB_LEVELS[cls].join()) return name + ": уровни " + lv;
+          for (var k in f) { if (!Array.isArray(f[k]) || !f[k].length || !f[k][0].name || !f[k][0].desc) return name + " " + k + ": пустая фича"; }
+          if (SRC24[name] !== "PH24") return name + ": источник " + SRC24[name];
+        }
+      }
+      if (Object.keys(seen).length !== 8) return "всего подклассов " + Object.keys(seen).length;
+      if (!SOURCE_LABELS.PH24 || !SOURCE_LABELS.PH24.short) return "нет SOURCE_LABELS.PH24";
+      var c24 = mk("2024", "Воин", 3), c14 = mk("2014", "Воин", 3);
+      if (subclassSourceShort("Чемпион", c24) !== SOURCE_LABELS.PH24.short) return "subclassSourceShort 2024: " + subclassSourceShort("Чемпион", c24);
+      if (subclassSourceShort("Чемпион", c14) !== "PHB") return "subclassSourceShort 2014 задет: " + subclassSourceShort("Чемпион", c14);
+      return true;
+    });
+
+    t("[e24-8] слияние: edData(2024) — Воин/Варвар из 2024, остальные классы и чужие подклассы из 2014; 2014-глобалы не тронуты", function(){
+      var d24 = edData({ edition: "2024" }), d14 = edData({ edition: "2014" });
+      if (d24.CLASS_FEATURES["Воин"] !== CF24["Воин"]) return "CLASS_FEATURES Воин не из 2024";
+      if (d24.CLASS_FEATURES["Волшебник"] !== CLASS_FEATURES["Волшебник"]) return "Волшебник у 2024 не унаследован";
+      if (d24.SUBCLASSES["Воин"].length !== 4 || d14.SUBCLASSES["Воин"].length < 8) return "SUBCLASSES: 2024 " + d24.SUBCLASSES["Воин"].length + ", 2014 " + d14.SUBCLASSES["Воин"].length;
+      if (d24.SUBCLASS_FEATURES["Чемпион"] === SUBCLASS_FEATURES["Чемпион"]) return "Чемпион у 2024 — 2014-запись";
+      if (d24.SUBCLASS_FEATURES["Кавалерист"] !== SUBCLASS_FEATURES["Кавалерист"]) return "Кавалерист у 2024 не унаследован";
+      if (d24.CLASS_RESOURCES["Воин"] !== CR24["Воин"] || d24.CLASS_RESOURCES["Монах"] !== CLASS_RESOURCES["Монах"]) return "CLASS_RESOURCES слиты неверно";
+      if (d24.SUBCLASS_SOURCE["Чемпион"] !== "PH24" || d24.SUBCLASS_SOURCE["Кавалерист"] !== SUBCLASS_SOURCE["Кавалерист"]) return "SUBCLASS_SOURCE слит неверно";
+      if (d24.ASI_LEVELS["Воин"].length !== 6 || d14.ASI_LEVELS["Воин"].length !== 7) return "ASI_LEVELS: 2024 " + d24.ASI_LEVELS["Воин"].length + ", 2014 " + d14.ASI_LEVELS["Воин"].length;
+      if (Object.keys(d24.CLASS_FEATURES).length !== Object.keys(CLASS_FEATURES).length) return "число классов у 2024 изменилось";
+      // 2014 не тронут
+      if (CLASS_FEATURES["Воин"][19][0].name !== "Увеличение характеристик") return "2014 Воин 19 изменился";
+      if (SUBCLASSES["Воин"].indexOf("Кавалерист") === -1) return "2014 SUBCLASSES Воин изменился";
+      if (SUBCLASS_SOURCE["Чемпион"] !== "PHB") return "2014 SUBCLASS_SOURCE Чемпион изменился";
+      if (d14.CLASS_FEATURES !== CLASS_FEATURES || d14.SUBCLASS_CHOICES !== SUBCLASS_CHOICES) return "edData(2014) не глобалы";
+      // мост читает 2024: charAsiSlots — 6 у Воина 20, charSubclassPending — 3 ур.
+      if (charAsiSlots(mk("2024", "Воин", 20)).length !== 6) return "charAsiSlots 2024 Воин 20: " + charAsiSlots(mk("2024", "Воин", 20)).length;
+      if (charAsiSlots(mk("2014", "Воин", 20)).length !== 7) return "charAsiSlots 2014 задет";
+      if (charSubclassPending(mk("2024", "Варвар", 3)).length !== 1 || charSubclassPending(mk("2024", "Варвар", 2)).length !== 0) return "charSubclassPending 2024 Варвар";
+      return true;
+    });
+
+    t("[e24-8] ресурсы 2024: Ярость 2…6 (без безлимита), Второе дыхание 2/3/4, Всплеск 1→2 (17), Упорный 0/1/2/3; кости превосходства и психической энергии; getResourceMax по уровню класса", function(){
+      var rage = CR24["Варвар"].resources.filter(function(r){ return r.id === "rage"; })[0];
+      if (!rage) return "нет rage";
+      var exp = [2,2,3,3,3,4,4,4,4,4,4,5,5,5,5,5,6,6,6,6];
+      for (var l = 1; l <= 20; l++) if (rage.maxByLevel[l] !== exp[l - 1]) return "Ярость " + l + ": " + rage.maxByLevel[l];
+      if (rage.restoreOn !== "long" || !rage.restoreShortOne) return "Ярость: восстановление " + rage.restoreOn + "/" + rage.restoreShortOne;
+      if (!CR24["Варвар"].passive || CR24["Варвар"].passive.unarmoredDefense !== "barbarian") return "Варвар: нет unarmoredDefense";
+      var byId = {};
+      CR24["Воин"].resources.forEach(function(r){ byId[r.id] = r; });
+      var sw = byId.second_wind, as = byId.action_surge, ind = byId.indomitable;
+      if (!sw || !as || !ind) return "Воин: нет second_wind/action_surge/indomitable";
+      if (sw.maxByLevel[1] !== 2 || sw.maxByLevel[3] !== 2 || sw.maxByLevel[4] !== 3 || sw.maxByLevel[9] !== 3 || sw.maxByLevel[10] !== 4 || sw.maxByLevel[20] !== 4) return "Второе дыхание по уровням";
+      if (!sw.restoreShortOne || sw.restoreOn !== "long") return "Второе дыхание: восстановление";
+      if (as.maxByLevel[1] !== 0 || as.maxByLevel[2] !== 1 || as.maxByLevel[16] !== 1 || as.maxByLevel[17] !== 2 || as.restoreOn !== "short") return "Всплеск действий по уровням";
+      if (ind.maxByLevel[8] !== 0 || ind.maxByLevel[9] !== 1 || ind.maxByLevel[13] !== 2 || ind.maxByLevel[17] !== 3 || ind.restoreOn !== "long") return "Упорный по уровням";
+      var SR = window.SUBCLASS_RESOURCES_2024;
+      var sd = SR["Боевой мастер"] && SR["Боевой мастер"].resources[0];
+      if (!sd || sd.maxByLevel[3] !== 4 || sd.maxByLevel[7] !== 5 || sd.maxByLevel[15] !== 6 || !sd.dieSizeByLevel || sd.dieSizeByLevel[18] !== "к12") return "кости превосходства";
+      var pd = SR["Псионический воин"] && SR["Псионический воин"].resources[0];
+      if (!pd || pd.maxByLevel[3] !== 4 || pd.maxByLevel[5] !== 6 || pd.maxByLevel[9] !== 8 || pd.maxByLevel[13] !== 10 || pd.maxByLevel[17] !== 12 || !pd.restoreShortOne) return "кости психической энергии";
+      // через getCharResourceDefs/getResourceMax: Воин 10 → второе дыхание 4, всплеск 1; Варвар 12 → 5 ярости
+      var defs = getCharResourceDefs(mk("2024", "Воин", 10, "Боевой мастер"));
+      var m = {}; defs.resources.forEach(function(r){ m[r.id] = getResourceMax(r, mk("2024", "Воин", 10)); });
+      if (m.second_wind !== 4 || m.action_surge !== 1 || m.indomitable !== 1 || m.superiority_dice !== 5) return "getResourceMax Воин 10: " + JSON.stringify(m);
+      var bd = getCharResourceDefs(mk("2024", "Варвар", 12));
+      if (getResourceMax(bd.resources[0], mk("2024", "Варвар", 12)) !== 5) return "getResourceMax Варвар 12";
+      if (getResourceMax(getCharResourceDefs(mk("2014", "Варвар", 20)).resources[0], mk("2014", "Варвар", 20)) !== 99) return "2014 Ярость 20 не безлимит";
+      if (crRestoreLabel(rage).indexOf("короткий") === -1 || crRestoreLabel({ restoreOn: "long" }) !== "долгий отдых") return "crRestoreLabel: " + crRestoreLabel(rage);
+      return true;
+    });
+
+    t("[e24-8] resetResourcesByRest('short'): restoreShortOne возвращает одно использование, long — все; ресурсы short — как прежде", function(){
+      if (typeof resetResourcesByRest !== "function" || typeof getCurrentChar !== "function") return true;
+      var savedChars = window.characters, savedId = window.currentId;
+      try {
+        var ch = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));
+        ch.id = "test-e24-8"; ch.edition = "2024"; ch.class = "Воин"; ch.level = 17;
+        ch.classes = [{ class: "Воин", level: 17, subclass: "" }];
+        ch.resources = { second_wind: 4, action_surge: 2, indomitable: 3 };
+        window.characters = [ch]; window.currentId = ch.id;
+        resetResourcesByRest("short");
+        if (ch.resources.second_wind !== 3) return "второе дыхание после короткого: " + ch.resources.second_wind;
+        if (ch.resources.action_surge !== 0) return "всплеск после короткого: " + ch.resources.action_surge;
+        if (ch.resources.indomitable !== 3) return "упорный после короткого: " + ch.resources.indomitable;
+        resetResourcesByRest("short"); resetResourcesByRest("short"); resetResourcesByRest("short");
+        if (ch.resources.second_wind !== 0) return "ниже нуля: " + ch.resources.second_wind;
+        ch.resources.second_wind = 2;
+        resetResourcesByRest("long");
+        if (ch.resources.second_wind !== 0 || ch.resources.indomitable !== 0) return "долгий не сбросил";
+        return true;
+      } finally {
+        window.characters = savedChars; window.currentId = savedId;
+      }
+    });
+
+    t("[e24-8] выборы 2024: стиль боя Воина = style-черты FEATS_2024, Варвар без выборов; манёвры 3/5/7/9, второй стиль Чемпиона на 7, аспект на 6; ccFindChoice/ccGetAllChoicesFor читают 2024, у 2014 — 6 стилей", function(){
+      if (typeof ccGetAllChoicesFor !== "function") return "нет class-choices.js";
+      var FS = window.FIGHTING_STYLES_2024;
+      var styleFeats = FEATS_2024.filter(function(f){ return f.category === "style"; });
+      if (!FS || Object.keys(FS).length !== styleFeats.length || styleFeats.length < 8) return "FIGHTING_STYLES_2024: " + (FS && Object.keys(FS).length);
+      var CC24 = window.CLASS_CHOICES_2024, SC24 = window.SUBCLASS_CHOICES_2024;
+      if (!Array.isArray(CC24["Варвар"]) || CC24["Варвар"].length !== 0) return "у Варвара 2024 есть выборы";
+      // все options всех выборов 2024 резолвятся в optionsDict
+      var all = [];
+      Object.keys(CC24).forEach(function(k){ all = all.concat(CC24[k]); });
+      Object.keys(SC24).forEach(function(k){ all = all.concat(SC24[k]); });
+      for (var i = 0; i < all.length; i++) {
+        var c = all[i];
+        if (!c.id || !c.name || !c.type || !c.minLevel) return "выбор без id/name/type/minLevel: " + JSON.stringify(c).slice(0, 60);
+        if (c.options) {
+          if (!c.optionsDict) return c.id + ": options без optionsDict";
+          for (var j = 0; j < c.options.length; j++) if (!c.optionsDict[c.options[j]] || !c.optionsDict[c.options[j]].name) return c.id + ": опция " + c.options[j] + " не в словаре";
+        }
+      }
+      var w1 = ccGetAllChoicesFor(mk("2024", "Воин", 1));
+      if (w1.length !== 1 || w1[0].choice.id !== "fighting-style" || w1[0].count !== 1) return "Воин 1 (2024): " + w1.length + " выборов";
+      if (w1[0].choice.options.length !== styleFeats.length) return "стилей у Воина 2024: " + w1[0].choice.options.length;
+      var w14 = ccGetAllChoicesFor(mk("2014", "Воин", 1));
+      if (w14.length !== 1 || w14[0].choice.options.length !== 6) return "Воин 1 (2014) задет: " + JSON.stringify(w14.map(function(x){ return x.choice.options.length; }));
+      var bm = function(lvl){ return ccGetAllChoicesFor(mk("2024", "Воин", lvl, "Боевой мастер")).filter(function(x){ return x.choice.id === "maneuvers"; })[0]; };
+      if (!bm(3) || bm(3).count !== 3 || bm(7).count !== 5 || bm(10).count !== 7 || bm(15).count !== 9) return "манёвры 2024: " + [bm(3) && bm(3).count, bm(7) && bm(7).count, bm(10) && bm(10).count, bm(15) && bm(15).count].join("/");
+      if (bm(3).choice.options.length < 16) return "манёвров 2024 мало: " + bm(3).choice.options.length;
+      var bm14 = ccGetAllChoicesFor(mk("2014", "Воин", 3, "Боевой мастер")).filter(function(x){ return x.choice.id === "maneuvers"; })[0];
+      if (!bm14 || bm14.choice === bm(3).choice) return "манёвры 2014 задеты / совпадают с 2024";
+      var ch7 = ccGetAllChoicesFor(mk("2024", "Воин", 7, "Чемпион")).filter(function(x){ return x.choice.id === "additional-fighting-style"; })[0];
+      var ch6 = ccGetAllChoicesFor(mk("2024", "Воин", 6, "Чемпион")).filter(function(x){ return x.choice.id === "additional-fighting-style"; })[0];
+      if (!ch7 || ch6) return "второй стиль Чемпиона: на 7 " + !!ch7 + ", на 6 " + !!ch6;
+      var wh = ccGetAllChoicesFor(mk("2024", "Варвар", 6, "Путь дикого сердца")).filter(function(x){ return x.choice.id === "aspect-of-the-wilds"; })[0];
+      if (!wh || wh.choice.options.length !== 3) return "аспект диких земель";
+      if (ccGetAllChoicesFor(mk("2024", "Варвар", 5, "Путь дикого сердца")).length !== 0) return "у Варвара 5 (дикое сердце) есть выборы";
+      var f = ccFindChoice(mk("2024", "Воин", 3, "Боевой мастер"), "Воин", "maneuvers");
+      if (!f || f !== bm(3).choice) return "ccFindChoice не читает 2024";
+      if (ccFindChoice(mk("2014", "Воин", 3, "Боевой мастер"), "Воин", "maneuvers") !== bm14.choice) return "ccFindChoice 2014 задет";
+      return true;
+    });
+
+    t("[e24-8] getWeaponMasteryLimit: Воин 3/4/5/6 (1/4/10/16), Варвар 2/3/4 (1/4/10), мультикласс — максимум, 2014 и класс без фичи — 0", function(){
+      var f = function(ed, cls, lvl){ return getWeaponMasteryLimit(mk(ed, cls, lvl)); };
+      var w = [f("2024", "Воин", 1), f("2024", "Воин", 3), f("2024", "Воин", 4), f("2024", "Воин", 9), f("2024", "Воин", 10), f("2024", "Воин", 16), f("2024", "Воин", 20)].join();
+      if (w !== "3,3,4,4,5,6,6") return "Воин: " + w;
+      var b = [f("2024", "Варвар", 1), f("2024", "Варвар", 4), f("2024", "Варвар", 10), f("2024", "Варвар", 20)].join();
+      if (b !== "2,3,4,4") return "Варвар: " + b;
+      if (f("2014", "Воин", 20) !== 0) return "2014 не 0";
+      if (f("2024", "Волшебник", 20) !== 0) return "Волшебник 2024 не 0";
+      var mc = mk("2024", "Воин", 4); mc.level = 8;
+      mc.classes = [{ class: "Воин", level: 4, subclass: "" }, { class: "Варвар", level: 4, subclass: "" }];
+      if (getWeaponMasteryLimit(mc) !== 4) return "мультикласс Воин 4 + Варвар 4: " + getWeaponMasteryLimit(mc) + " (ожидался максимум 4)";
+      var ov = window.EDITION_2024_OVERRIDES || {};
+      var need = ["CLASS_FEATURES","CLASS_RESOURCES","SUBCLASSES","SUBCLASS_LEVEL","ASI_LEVELS","CLASS_CHOICES","SUBCLASS_FEATURES","SUBCLASS_SOURCE","SUBCLASS_CHOICES","SUBCLASS_RESOURCES","WEAPON_MASTERY","CLASS_SKILL_OPTIONS"];
+      for (var i = 0; i < need.length; i++) if (!ov[need[i]]) return "EDITION_2024_OVERRIDES без " + need[i];
+      return true;
+    });
+
+    // Аудит 23.09.2026: E16 — варвар берёт приёмы только для рукопашного оружия (стр. 59)
+    t("[e24-8/E16] canMasterWeapon: варвар — только рукопашное (лук/арбалет нельзя), воин — любое; мультикласс снимает ограничение, 2014 — false", function(){
+      if (typeof canMasterWeapon !== "function") return "нет canMasterWeapon";
+      var barb = mk("2024", "Варвар", 5), figh = mk("2024", "Воин", 5);
+      if (!canMasterWeapon(barb, { name: "Секира" })) return "варвар: рукопашное запрещено";
+      if (canMasterWeapon(barb, { name: "Длинный лук" })) return "варвар: дальнобойное разрешено";
+      if (canMasterWeapon(barb, { name: "Тяжёлый арбалет" })) return "варвар: арбалет разрешён";
+      if (!canMasterWeapon(figh, { name: "Длинный лук" })) return "воин: дальнобойное запрещено";
+      if (canMasterWeapon(mk("2014", "Воин", 5), { name: "Секира" })) return "2014 разрешено";
+      if (canMasterWeapon(mk("2024", "Волшебник", 20), { name: "Посох" })) return "класс без приёмов разрешён";
+      // мультикласс Воин 4 (4 приёма, любое) + Варвар 4 (3, рукопашное) → ограничения нет
+      var mc = mk("2024", "Воин", 4); mc.level = 8;
+      mc.classes = [{ class: "Воин", level: 4, subclass: "" }, { class: "Варвар", level: 4, subclass: "" }];
+      if (!canMasterWeapon(mc, { name: "Длинный лук" })) return "мультикласс: ограничение не снято";
+      // Варвар 10 (4) + Воин 1 (3): максимум даёт варвар → только рукопашное
+      var mc2 = mk("2024", "Варвар", 10); mc2.level = 11;
+      mc2.classes = [{ class: "Варвар", level: 10, subclass: "" }, { class: "Воин", level: 1, subclass: "" }];
+      if (canMasterWeapon(mc2, { name: "Длинный лук" })) return "варвар-мультикласс: ограничение снято";
+      if (getWeaponMasteryLimit(mc2) !== 4) return "варвар-мультикласс лимит: " + getWeaponMasteryLimit(mc2);
+      return true;
+    });
+
+    // Аудит 23.09.2026: E6 — 19 уровень 2024 даёт выбор эпического дара (ASI_LEVELS его не содержит)
+    t("[e24-8/E6] эпический дар 19 ур.: charEpicSlots видит его у 2024 и не видит у 2014; _luFeatChoiceAt различает asi/epic", function(){
+      if (typeof charEpicSlots !== "function") return "нет charEpicSlots";
+      var f19 = charEpicSlots(mk("2024", "Воин", 19));
+      if (f19.length !== 1 || f19[0].level !== 19 || f19[0].cls !== "Воин") return "Воин 2024 19: " + JSON.stringify(f19);
+      if (charEpicSlots(mk("2024", "Воин", 18)).length !== 0) return "Воин 2024 18: слот есть";
+      if (charEpicSlots(mk("2024", "Варвар", 20)).length !== 1) return "Варвар 2024 20";
+      if (charEpicSlots(mk("2014", "Воин", 20)).length !== 0) return "2014 получил эпический дар";
+      if (charEpicSlots(mk("2024", "Волшебник", 20)).length !== 0) return "непереведённый класс 2024 получил дар";
+      if (charAsiSlots(mk("2024", "Воин", 19)).length !== 6) return "charAsiSlots 19 задет";
+      if (typeof _luFeatChoiceAt === "function") {
+        var c = mk("2024", "Воин", 19);
+        if (_luFeatChoiceAt(c, "Воин", 19) !== "epic") return "_luFeatChoiceAt 19: " + _luFeatChoiceAt(c, "Воин", 19);
+        if (_luFeatChoiceAt(c, "Воин", 16) !== "asi") return "_luFeatChoiceAt 16 не asi";
+        if (_luFeatChoiceAt(c, "Воин", 11) !== null) return "_luFeatChoiceAt 11 не null";
+        if (_luFeatChoiceAt(mk("2014", "Воин", 19), "Воин", 19) !== "asi") return "2014 19 не asi";
+      }
+      return true;
+    });
+
+    // Аудит 23.09.2026: E7 — CLASS_SKILL_OPTIONS в реестре, у воина 2024 есть Убеждение
+    t("[e24-8/E7] CLASS_SKILL_OPTIONS в registry: воин 2024 — 9 навыков с Убеждением, варвар и прочие классы наследуют 2014", function(){
+      var d24 = edData({ edition: "2024" }), d14 = edData({ edition: "2014" });
+      if (!d14.CLASS_SKILL_OPTIONS || d14.CLASS_SKILL_OPTIONS !== CLASS_SKILL_OPTIONS) return "2014 не глобал";
+      var w24 = d24.CLASS_SKILL_OPTIONS["Воин"];
+      if (!w24 || w24.length !== 9 || w24.indexOf("Убеждение") === -1) return "воин 2024: " + (w24 && w24.length);
+      if (d14.CLASS_SKILL_OPTIONS["Воин"].indexOf("Убеждение") !== -1) return "2014 воин задет";
+      if (d24.CLASS_SKILL_OPTIONS["Варвар"] !== CLASS_SKILL_OPTIONS["Варвар"]) return "варвар 2024 не унаследован";
+      if (d24.CLASS_SKILL_OPTIONS["Бард"] !== CLASS_SKILL_OPTIONS["Бард"]) return "бард 2024 не унаследован";
+      var all = d24.CLASS_SKILL_OPTIONS;
+      var skillNames = skills.map(function(sk){ return sk.name; });
+      for (var k in all) { for (var i = 0; i < all[k].length; i++) if (skillNames.indexOf(all[k][i]) === -1) return k + ": неизвестный навык " + all[k][i]; }
+      return true;
+    });
+  })();
 
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};

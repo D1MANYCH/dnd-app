@@ -787,6 +787,18 @@ function luApplyAsi(char, asi) {
 // SDR-2: объединённый список выборов класса и подкласса для уровень-апа.
 // Манёвры Боевого мастера и подобные живут в SUBCLASS_CHOICES[char.subclass];
 // хранилище выбора в обоих случаях по имени класса (cn) — как в ccGetStored/ccSetStored.
+// E24-8: уровень с выбором «характеристики или черта». В 2014 это всегда фича
+// «Увеличение характеристик», в 2024 к ней добавляется «Эпический дар» на 19 ур.
+// (у него свой набор черт в пикере — категория epic, _featPickerList).
+// Возвращает "asi" | "epic" | null; путь применения у обоих один (applyASI).
+function _luFeatChoiceAt(char, cn, clvl) {
+  var row = edData(char).CLASS_FEATURES[cn] && edData(char).CLASS_FEATURES[cn][clvl];
+  if (!Array.isArray(row)) return null;
+  if (row.some(function(f){ return f && f.name === "Увеличение характеристик"; })) return "asi";
+  if (row.some(function(f){ return f && f.name === "Эпический дар"; })) return "epic";
+  return null;
+}
+
 function _ccDefsFor(cn, char) {
   var defs = [];
   if (edData(char).CLASS_CHOICES[cn]) defs = defs.concat(edData(char).CLASS_CHOICES[cn]);
@@ -834,8 +846,7 @@ function luApplyAllRecommendations() {
   }
 
   // 2) ASI / черта
-  var isAsiLevel = (edData(char).CLASS_FEATURES[cn] && edData(char).CLASS_FEATURES[cn][clvl]) &&
-    edData(char).CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; });
+  var isAsiLevel = !!_luFeatChoiceAt(char, cn, clvl);
   if (isAsiLevel) {
     // LVL-1: АСИ отмечается по классу и его уровню, а не по суммарному уровню
     var asiDone = _luAsiDone(char, cn, clvl);
@@ -961,14 +972,13 @@ function luBuildChoicesScreen() {
     blocks.push('<div class="lu-choice-block done"><div class="lu-choice-title">' + dndIcoHtml("focus", 14) + ' Подкласс: ' + escapeHtml(char.subclass) + ' ✓</div></div>');
   }
 
-  // 2) ASI / ЧЕРТА — если на этом уровне класса есть «Увеличение характеристик».
-  var isAsiLevel = (edData(char).CLASS_FEATURES[cn] && edData(char).CLASS_FEATURES[cn][clvl]) &&
-    edData(char).CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; });
-  if (isAsiLevel) {
+  // 2) ASI / ЧЕРТА — «Увеличение характеристик», в 2024 на 19 ур. «Эпический дар».
+  var featKind = _luFeatChoiceAt(char, cn, clvl);
+  if (featKind) {
     var asiDone = _luAsiDone(char, cn, clvl);
     var recAsi = (b && b.levelUp && b.levelUp[newLevel]) ? b.levelUp[newLevel] : null;
     blocks.push('<div class="lu-choice-block' + (asiDone ? ' done' : '') + '">' +
-      '<div class="lu-choice-title">' + dndIcoHtml("trend", 14) + ' Увеличение характеристик или черта' + (asiDone ? ' ✓' : '') + '</div>' +
+      '<div class="lu-choice-title">' + dndIcoHtml("trend", 14) + (featKind === "epic" ? ' Эпический дар' : ' Увеличение характеристик или черта') + (asiDone ? ' ✓' : '') + '</div>' +
       (recAsi && recAsi.headline ? '<div class="lu-choice-sub">' + recBadge('Совет') + ' ' + escapeHtml(recAsi.headline) + '</div>' : '') +
       (asiDone ? '' : '<button class="lu-choice-launch" onclick="openASIModalForLevel(' + clvl + ', \'' + cn.replace(/'/g,"\\'") + '\')">Выбрать →</button>') +
       '</div>');
@@ -1013,8 +1023,7 @@ function luBuildChoicesScreen() {
   // BUILD-LVL-4: кнопка «применить рекомендации билда разом» — если есть билд и незакрытые рек-выборы.
   var hasOpenRec = false;
   if (b) {
-    var asiOpen = (edData(char).CLASS_FEATURES[cn] && edData(char).CLASS_FEATURES[cn][clvl] &&
-      edData(char).CLASS_FEATURES[cn][clvl].some(function(f){ return f && f.name === "Увеличение характеристик"; })) &&
+    var asiOpen = !!_luFeatChoiceAt(char, cn, clvl) &&
       !_luAsiDone(char, cn, clvl) &&
       !!(b.levelUp && b.levelUp[newLevel] && (b.levelUp[newLevel].feat || b.levelUp[newLevel].asi ||
          (typeof parseAsiFromHeadline === "function" && parseAsiFromHeadline(b.levelUp[newLevel].headline)) ||

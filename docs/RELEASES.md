@@ -3,30 +3,64 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v3.103.1**.
+Актуальная версия — **v3.104.0**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
-<a id="v3.103.1"></a>
-## v3.103.1 — 18 сентября 2026
+<a id="v3.104.0"></a>
+## v3.104.0 — 23 сентября 2026
 
-🔧 Мост классовых таблиц (E24-7): все обращения к CLASS_FEATURES, SUBCLASS_FEATURES, SUBCLASSES, SUBCLASS_LEVEL, CLASS_RESOURCES, CLASS_CHOICES, SUBCLASS_CHOICES, ASI_LEVELS, CASTER_TYPE, CLASS_HIT_DICE, SPELL_SLOTS_BY_LEVEL, MULTICLASS_* в app-hp, app-progress, app-builds, app-combat, app-core, app-ui, app-proficiencies и rules.js идут через edData(char); в registry добавлены SUBCLASS_SOURCE, SUBCLASS_RESOURCES, SUBCLASS_ARMOR, SUBCLASS_TOOLS, SUBCLASS_LANGUAGES; _mergeByClass в data-2024.js; секция «Edition-слой» в ARCHITECTURE.md. Поведение 2014 не меняется, тесты 800.
+✨ Классы 2024 — Воин и Варвар: умения всех 20 уровней по таблицам «Книги игрока 2024», по 4 подкласса на класс на 3 уровне (Боевой мастер, Чемпион, Мистический рыцарь, Псионический воин; Путь берсерка, Путь дикого сердца, Путь мирового древа, Путь зилота) с пометкой источника «PHB 2024»; ресурсы по таблицам класса — ярость 2…6 с уроном +2/+3/+4, второе дыхание 2/3/4, всплеск действий, упорный, кости превосходства и кости психической энергии; ярость, второе дыхание и кости психической энергии возвращают одно использование за короткий отдых; боевой стиль воина выбирается из десяти черт боевого стиля 2024, манёвры боевого мастера — 3/5/7/9 из двадцати, аспект диких земель у пути дикого сердца; мастерство оружия ограничено столбцом «Оружейные приёмы» таблицы класса (воин 3→6, варвар 2→4, варвар — только рукопашное оружие), при мультиклассе берётся больший лимит; на 19 уровне вместо увеличения характеристик предлагается эпический дар — строка на вкладке «Развитие» и в предпросмотре повышения уровня; у воина 2024 в списке классовых навыков появилось Убеждение. Всё под бета-флагом редакции 2024; классы 2014 не изменились.
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/ec3a81f0...main) · 16 файлов, +412 −243
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/54877db5...main) · 15 файлов, +783 −95
 
 <details><summary>Файлы</summary>
 
 _Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
 
-**Файлы (16):**
+**Файлы (15):**
+
+- `data-2024.js` +308 −2
+- `tests/headless.js` +274 −5
+- `index.html` +46 −46
+- `app-inventory.js` +45 −5
+- `class-choices.js` +24 −11
+- `app-hp.js` +18 −9
+- `rules.js` +19 −0
+- `data.js` +13 −3
+- `docs/map.md` +8 −8
+- `app-progress.js` +8 −0
+- `docs/ARCHITECTURE.md` +5 −3
+- `CHANGELOG.md` +6 −1
+- `app-ui.js` +5 −0
+- `app-asi.js` +3 −1
+- `sw.js` +1 −1
+
+</details>
+
+<a id="v3.103.1"></a>
+## v3.103.1 — 18 сентября 2026
+
+🔧 Мост классовых таблиц (E24-7): все обращения к CLASS_FEATURES, SUBCLASS_FEATURES, SUBCLASSES, SUBCLASS_LEVEL, CLASS_RESOURCES, CLASS_CHOICES, SUBCLASS_CHOICES, ASI_LEVELS, CASTER_TYPE, CLASS_HIT_DICE, SPELL_SLOTS_BY_LEVEL, MULTICLASS_* в app-hp, app-progress, app-builds, app-combat, app-core, app-ui, app-proficiencies и rules.js идут через edData(char); в registry добавлены SUBCLASS_SOURCE, SUBCLASS_RESOURCES, SUBCLASS_ARMOR, SUBCLASS_TOOLS, SUBCLASS_LANGUAGES; _mergeByClass в data-2024.js; секция «Edition-слой» в ARCHITECTURE.md. Поведение 2014 не меняется, тесты 800.
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/ec3a81f0...54877db5) · 17 файлов, +452 −248
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (1):**
+
+- [`54877db5`](https://github.com/D1MANYCH/dnd-app/commit/54877db5) v3.103.1: chore(edition): мост классовых таблиц E24-7 — edData вместо глобалов, registry +5, _mergeByClass
+
+**Файлы (17):**
 
 - `docs/map.md` +71 −71
 - `app-hp.js` +55 −55
 - `tests/headless.js` +103 −0
 - `index.html` +46 −46
+- `docs/RELEASES.md` +40 −5
 - `rules.js` +16 −16
 - `app-progress.js` +16 −14
 - `data.js` +23 −7

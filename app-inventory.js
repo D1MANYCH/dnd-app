@@ -784,11 +784,49 @@ if (typeof WEAPONS_EXTRA_2024 === "undefined") return out;
 _WEAPONS_2024_CACHE = out.concat(WEAPONS_EXTRA_2024);
 return _WEAPONS_2024_CACHE;
 }
-// E24-6: лимит оружия мастерства — от классовой фичи «Оружейные приёмы» (классы
-// 2024, E24-8+). Пока лимит 0: кнопка выбора скрыта, бейджи приёмов видны.
+// E24-6/E24-8: лимит оружия мастерства — столбец «Оружейные приёмы» таблицы класса
+// (edData(char).WEAPON_MASTERY: класс → {byLevel: {порог уровня: число}, meleeOnly}).
+// При мультиклассе берётся максимум по классам, не сумма: прямой нормы в PHB 2024 нет
+// (гл.2 оговаривает только Доп. атаку, заклинания и КД) — решение приложения,
+// консервативное. Класс без фичи (или ещё не переведённый) даёт 0: кнопка выбора
+// скрыта, бейджи приёмов видны. Возвращает {limit, meleeOnly} по классу-победителю.
+function _weaponMasteryGrant(char) {
+var none = { limit: 0, meleeOnly: false };
+if (!char || char.edition !== "2024") return none;
+var table = edData(char).WEAPON_MASTERY;
+if (!table) return none;
+var pairs = (typeof getCharClassPairs === "function")
+  ? getCharClassPairs(char)
+  : (char.class ? [{ cls: char.class }] : []);
+var best = none;
+pairs.forEach(function(p) {
+  var row = table[p.cls];
+  if (!row || !row.byLevel) return;
+  var lvl = (typeof charClassLevel === "function") ? charClassLevel(char, p.cls) : (char.level || 1);
+  if (!lvl) lvl = char.level || 1;
+  var n = 0;
+  Object.keys(row.byLevel).map(Number).sort(function(a, b) { return a - b; }).forEach(function(th) {
+    if (lvl >= th) n = row.byLevel[th];
+  });
+  // Ограничение «только рукопашное» снимается, если столько же приёмов даёт класс без него
+  if (n > best.limit || (n === best.limit && best.meleeOnly && !row.meleeOnly)) {
+    best = { limit: n, meleeOnly: !!row.meleeOnly };
+  }
+});
+return best;
+}
 function getWeaponMasteryLimit(char) {
-if (!char || char.edition !== "2024") return 0;
-return 0;
+return _weaponMasteryGrant(char).limit;
+}
+// E24-8: варвар выбирает приёмы только для рукопашного оружия (стр. 59) — у воина
+// ограничения нет. Оружие без пресета (своё) считается рукопашным, если не дальнобойное.
+function canMasterWeapon(char, weapon) {
+var grant = _weaponMasteryGrant(char);
+if (!grant.limit || !weapon) return false;
+if (!grant.meleeOnly) return true;
+var preset = _weaponPresetByName(weapon.name, char);
+var kind = (preset && preset.kind) || weapon.kind || "melee";
+return kind !== "ranged";
 }
 // Приём мастерства оружия персонажа 2024 (запись MASTERY_PROPS_2024) или null.
 function getWeaponMasteryProp(char, weapon) {
@@ -813,6 +851,7 @@ if (i !== -1) {
   char.weaponMastery.splice(i, 1);
 } else {
   var limit = getWeaponMasteryLimit(char);
+  if (!canMasterWeapon(char, w)) { showToast("Мастерство оружия: только рукопашное", "warn"); return; }
   if (char.weaponMastery.length >= limit) { showToast("Мастерство оружия: не больше " + limit, "warn"); return; }
   char.weaponMastery.push(w.name);
 }
@@ -1180,7 +1219,8 @@ var masteryHtml = '';
 var mprop = getWeaponMasteryProp(char, weapon);
 if (mprop) {
   var mOn = isWeaponMastered(char, weapon);
-  var mPick = getWeaponMasteryLimit(char) > 0 && !(typeof isSheetLocked === "function" && isSheetLocked(char));
+  var mPick = (isWeaponMastered(char, weapon) || canMasterWeapon(char, weapon)) &&
+    !(typeof isSheetLocked === "function" && isSheetLocked(char));
   if (typeof _glossBindOnce === "function") _glossBindOnce();
   masteryHtml = ' · <span class="weapon-mastery' + (mOn ? ' is-on' : '') + '">' + (mOn ? '◆ ' : '') +
     glossarizeHtml(escapeHtml(mprop.name), null, "2024") + '</span>' +

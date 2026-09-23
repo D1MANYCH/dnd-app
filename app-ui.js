@@ -468,6 +468,8 @@ function crRow(name, meta, body, opts) {
 // вместе с классом-источником («Варвар · долгий отдых»).
 function crRestoreLabel(res) {
   if (res.restoreOn === "short") return "короткий отдых";
+  // E24-8: Ярость/Второе дыхание 2024 — все за долгий, одно за короткий отдых
+  if (res.restoreOn === "long" && res.restoreShortOne) return "долгий отдых · 1 за короткий";
   if (res.restoreOn === "long" || res.restoreOn === "long_once") return "долгий отдых";
   if (res.restoreOn === "turn") return "каждый ход";
   return "";
@@ -663,6 +665,9 @@ function resetResourcesByRest(restType) {
       char.resources[res.id] = 0;
     } else if (restType === "short" && (res.restoreOn === "short")) {
       char.resources[res.id] = 0;
+    } else if (restType === "short" && res.restoreShortOne) {
+      // E24-8: одно использование за короткий отдых (Ярость, Второе дыхание 2024)
+      char.resources[res.id] = Math.max(0, (char.resources[res.id] || 0) - 1);
     }
   });
   saveToLocal();

@@ -215,27 +215,38 @@ function ccSetStored(char, className, choiceId, value) {
   char.classChoices[className][choiceId] = value;
 }
 
+// E24-8: таблицы выборов по редакции персонажа (CLASS_CHOICES/SUBCLASS_CHOICES
+// у 2024-персонажа приходят из data-2024.js через edData); без edData — глобалы.
+function ccTables(char) {
+  var ed = (typeof edData === "function") ? edData(char) : null;
+  return {
+    CC: (ed && ed.CLASS_CHOICES) || CLASS_CHOICES,
+    SC: (ed && ed.SUBCLASS_CHOICES) || ((typeof SUBCLASS_CHOICES !== "undefined") ? SUBCLASS_CHOICES : null)
+  };
+}
+
 // Находит определение выбора в CLASS_CHOICES[className] или SUBCLASS_CHOICES[subclass]
 function ccFindChoice(char, className, choiceId) {
-  var defs = CLASS_CHOICES[className];
+  var T = ccTables(char);
+  var defs = T.CC[className];
   if (defs) {
     var c = defs.find(function(x){ return x.id === choiceId; });
     if (c) return c;
   }
-  if (typeof SUBCLASS_CHOICES !== "undefined" && char && char.classes) {
+  if (T.SC && char && char.classes) {
     for (var i = 0; i < char.classes.length; i++) {
       if (char.classes[i].class === className) {
         var sub = char.classes[i].subclass;
-        if (sub && SUBCLASS_CHOICES[sub]) {
-          var c2 = SUBCLASS_CHOICES[sub].find(function(x){ return x.id === choiceId; });
+        if (sub && T.SC[sub]) {
+          var c2 = T.SC[sub].find(function(x){ return x.id === choiceId; });
           if (c2) return c2;
         }
         break;
       }
     }
   }
-  if (typeof SUBCLASS_CHOICES !== "undefined" && char && char.subclass && SUBCLASS_CHOICES[char.subclass]) {
-    var c3 = SUBCLASS_CHOICES[char.subclass].find(function(x){ return x.id === choiceId; });
+  if (T.SC && char && char.subclass && T.SC[char.subclass]) {
+    var c3 = T.SC[char.subclass].find(function(x){ return x.id === choiceId; });
     if (c3) return c3;
   }
   return null;
@@ -288,8 +299,9 @@ function ccAvailableOptions(choice, char, className) {
 function ccGetAllChoicesFor(char) {
   var result = [];
   var active = ccGetActiveClasses(char);
+  var T = ccTables(char);
   active.forEach(function(cls) {
-    var defs = CLASS_CHOICES[cls];
+    var defs = T.CC[cls];
     if (!defs) return;
     var classLevel = ccGetClassLevel(char, cls);
     defs.forEach(function(choice) {
@@ -311,7 +323,7 @@ function ccGetAllChoicesFor(char) {
   });
 
   // Subclass choices (SUBCLASS_CHOICES keyed by subclass name)
-  if (typeof SUBCLASS_CHOICES !== "undefined") {
+  if (T.SC) {
     active.forEach(function(cls) {
       var subclass = "";
       if (char.classes && Array.isArray(char.classes)) {
@@ -322,7 +334,7 @@ function ccGetAllChoicesFor(char) {
         subclass = char.subclass || "";
       }
       if (!subclass) return;
-      var defs = SUBCLASS_CHOICES[subclass];
+      var defs = T.SC[subclass];
       if (!defs) return;
       var classLevel = ccGetClassLevel(char, cls);
       defs.forEach(function(choice) {
@@ -358,10 +370,11 @@ function renderClassChoices(char, container) {
   var useAccordion = items.length > 4;
   var groups = {};
   var groupOrder = [];
+  var SC = ccTables(char).SC;
   items.forEach(function(it){
     var sub = ccGetSubclass(char, it.className);
-    var isSubChoice = (typeof SUBCLASS_CHOICES !== "undefined") && sub && SUBCLASS_CHOICES[sub] &&
-      SUBCLASS_CHOICES[sub].some(function(x){ return x.id === it.choice.id; });
+    var isSubChoice = SC && sub && SC[sub] &&
+      SC[sub].some(function(x){ return x.id === it.choice.id; });
     var key = isSubChoice ? (it.className + " — " + sub) : it.className;
     if (!groups[key]) { groups[key] = []; groupOrder.push(key); }
     groups[key].push(it);

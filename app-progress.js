@@ -212,6 +212,14 @@ function _pgAttention(char) {
     rows.push(_pgAttn("Увеличение характеристик <u>· " + escapeHtml(slot.cls) + " " + slot.level + " ур.</u>",
       "Выбрать →", "openASIModalForLevel(" + slot.level + ", '" + _pgArg(slot.cls) + "')"));
   });
+  // E24-8: эпический дар 19 ур. (2024) — тот же пикер, ASI_LEVELS его не содержит
+  var epic = (typeof charEpicSlots === "function") ? charEpicSlots(char) : [];
+  epic.forEach(function(slot) {
+    var ue = used[slot.cls];
+    if (Array.isArray(ue) && ue.indexOf(slot.level) !== -1) return;
+    rows.push(_pgAttn("Эпический дар <u>· " + escapeHtml(slot.cls) + " " + slot.level + " ур.</u>",
+      "Выбрать →", "openASIModalForLevel(" + slot.level + ", '" + _pgArg(slot.cls) + "')"));
+  });
   var pending = (typeof charSubclassPending === "function") ? charSubclassPending(char) : [];
   pending.forEach(function(p) {
     rows.push(_pgAttn("Подкласс <u>· " + escapeHtml(p.cls) + " " + p.at + " ур.</u>",

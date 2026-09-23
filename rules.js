@@ -72,6 +72,25 @@ function charAsiSlots(char) {
   return out;
 }
 
+/** E24-8: уровни эпического дара (2024, 19 ур.) — фича «Эпический дар» в таблице класса.
+ *  Отдельно от charAsiSlots: ASI_LEVELS 19 не содержит, а выбор на этом уровне такой же. */
+function charEpicSlots(char) {
+  var out = [];
+  if (!char) return out;
+  var CF = edData(char).CLASS_FEATURES;
+  getCharClassPairs(char).forEach(function(p) {
+    var lvl = charClassLevel(char, p.cls);
+    var tbl = CF[p.cls];
+    if (!tbl) return;
+    for (var l = 1; l <= lvl; l++) {
+      if (Array.isArray(tbl[l]) && tbl[l].some(function(f){ return f && f.name === "Эпический дар"; })) {
+        out.push({ cls: p.cls, level: l });
+      }
+    }
+  });
+  return out;
+}
+
 /** Классы, доросшие до выбора подкласса, у которых он не выбран: [{cls, at}] */
 function charSubclassPending(char) {
   var out = [];

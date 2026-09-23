@@ -605,6 +605,7 @@ const SOURCE_LABELS = {
   "XGtE": { short: "XGtE",     full: "Всё о Ксанафаре",                 dlc: true  },
   "TCoE": { short: "Tasha's",  full: "Котёл всякой всячины Таши",       dlc: true  },
   "SCAG": { short: "SCAG",     full: "Путеводитель по Побережью Мечей", dlc: true  },
+  "PH24": { short: "PHB 2024", full: "Книга игрока 2024",                dlc: false },
   "HB":   { short: "авторский",full: "Не из официальных книг (хоумбрю)", dlc: false }
 };
 const SUBCLASS_SOURCE = {
@@ -2373,8 +2374,8 @@ const XP_THRESHOLDS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "3.103.1";
-const APP_VERSION_DATE = "2026-09-18";
+const APP_VERSION = "3.104.0";
+const APP_VERSION_DATE = "2026-09-23";
 
 // ============================================================
 // ВНЕШНИЕ ССЫЛКИ (TG-канал, донаты, Boosty)
@@ -2723,9 +2724,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
+    version: "3.104.0",
+    date: "23 сентября 2026",
+    badge: "new",
+    changes: [
+      { type: "feat", text: "Классы 2024 — Воин и Варвар: умения всех 20 уровней по таблицам «Книги игрока 2024», по 4 подкласса на класс на 3 уровне (Боевой мастер, Чемпион, Мистический рыцарь, Псионический воин; Путь берсерка, Путь дикого сердца, Путь мирового древа, Путь зилота) с пометкой источника «PHB 2024»; ресурсы по таблицам класса — ярость 2…6 с уроном +2/+3/+4, второе дыхание 2/3/4, всплеск действий, упорный, кости превосходства и кости психической энергии; ярость, второе дыхание и кости психической энергии возвращают одно использование за короткий отдых; боевой стиль воина выбирается из десяти черт боевого стиля 2024, манёвры боевого мастера — 3/5/7/9 из двадцати, аспект диких земель у пути дикого сердца; мастерство оружия ограничено столбцом «Оружейные приёмы» таблицы класса (воин 3→6, варвар 2→4, варвар — только рукопашное оружие), при мультиклассе берётся больший лимит; на 19 уровне вместо увеличения характеристик предлагается эпический дар — строка на вкладке «Развитие» и в предпросмотре повышения уровня; у воина 2024 в списке классовых навыков появилось Убеждение. Всё под бета-флагом редакции 2024; классы 2014 не изменились." }
+    ]
+  },
+  {
     version: "3.103.1",
     date: "18 сентября 2026",
-    badge: "new",
+    badge: "old",
     changes: [
       { type: "chore", text: "Мост классовых таблиц (E24-7): все обращения к CLASS_FEATURES, SUBCLASS_FEATURES, SUBCLASSES, SUBCLASS_LEVEL, CLASS_RESOURCES, CLASS_CHOICES, SUBCLASS_CHOICES, ASI_LEVELS, CASTER_TYPE, CLASS_HIT_DICE, SPELL_SLOTS_BY_LEVEL, MULTICLASS_* в app-hp, app-progress, app-builds, app-combat, app-core, app-ui, app-proficiencies и rules.js идут через edData(char); в registry добавлены SUBCLASS_SOURCE, SUBCLASS_RESOURCES, SUBCLASS_ARMOR, SUBCLASS_TOOLS, SUBCLASS_LANGUAGES; _mergeByClass в data-2024.js; секция «Edition-слой» в ARCHITECTURE.md. Поведение 2014 не меняется, тесты 800." }
     ]
@@ -5721,6 +5730,7 @@ function _buildEdition2014() {
     RACE_LANGUAGES:            (typeof RACE_LANGUAGES           !== 'undefined') ? RACE_LANGUAGES           : {},
     CASTER_TYPE:               (typeof CASTER_TYPE              !== 'undefined') ? CASTER_TYPE              : {},
     SPELL_PREP_CLASSES:        (typeof SPELL_PREP_CLASSES       !== 'undefined') ? SPELL_PREP_CLASSES       : {},
+    CLASS_SKILL_OPTIONS:       (typeof CLASS_SKILL_OPTIONS      !== 'undefined') ? CLASS_SKILL_OPTIONS      : {},
     // E24-7: словари по имени подкласса и по классу→подклассу (имена подклассов
     // совпадают между редакциями — читать только через edData).
     SUBCLASS_SOURCE:           (typeof SUBCLASS_SOURCE          !== 'undefined') ? SUBCLASS_SOURCE          : {},
