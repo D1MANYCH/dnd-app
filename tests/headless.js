@@ -7474,10 +7474,10 @@
       return bad.length ? bad.join("; ") : true;
     });
 
-    t("[e24-4] 2014 не тронут: RACE_DATA 21 расы со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
+    t("[e24-4] 2014 не тронут: RACE_DATA 22 расы со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
       var r = edData({ edition:"2014" }).RACE_DATA;
       if (r === SPECIES_2024) return "2014 подменён";
-      if (Object.keys(r).length !== 21) return "рас 2014: " + Object.keys(r).length;
+      if (Object.keys(r).length !== 22) return "рас 2014: " + Object.keys(r).length;
       if (!r["Полуэльф"] || !r["Эльф"].stats || r["Эльф"].stats.dex !== 2) return "stats 2014 потеряны";
       if (r["Дварф"].speed !== 25) return "дварф 2014 — 25 фт";
       return true;
@@ -8442,6 +8442,40 @@
     var need = ["Компетентность", "Скрытая атака", "Всплеск действий", "Вдохновение барда", "Ци"];
     for (var i = 0; i < need.length; i++) if (g.indexOf(need[i]) === -1) return "нет «" + need[i] + "»";
     return true;
+  });
+
+  // ── AUD-10: контент TCE и рас ──
+  t("[AUD-10 C30] человек: +1 ко всем без черты; вариант — +1/+1 на выбор и черта; в 2024 черта у человека", function(){
+    var h = RACE_DATA["Человек"], v = RACE_DATA["Человек (вариант)"];
+    if (!v || Object.keys(v.stats).length) return "нет варианта или у него фиксированные бонусы";
+    if (h.stats.cha !== 1 || /черта/.test(h.traits)) return "обычный человек: " + h.traits;
+    if (typeof RACE_BONUS_FEATS === "undefined") return true;
+    if (RACE_BONUS_FEATS["Человек"] || RACE_BONUS_FEATS["Человек (вариант)"] !== 1) return "черта 2014";
+    if (RACE_BONUS_FEATS_2024["Человек"] !== 1) return "черта 2024";
+    return (RACE_STAT_PICKS["Человек (вариант)"].length === 6 && RACE_STAT_PICKS["Полуэльф"].indexOf("cha") === -1) || "выбор характеристик";
+  });
+  t("[AUD-10 C22] подклассы TCE: умения и уровни по книге", function(){
+    var want = { "Фантом": [3,9,13,17], "Путь дикой магии": [3,6,10,14], "Круг спор": [2,6,10,14], "Круг звёзд": [2,6,10,14],
+      "Круг пламени": [2,6,10,14], "Договор с Гением": [1,6,10,14], "Клятва смотрителя": [3,7,15,20], "Фейский странник": [3,7,11,15] };
+    var gone = ["Жетоны мёртвых", "Нестабильные чары", "Полная звёздная форма", "Огненный дух", "Поглощение пламени"];
+    for (var k in want) {
+      var sf = SUBCLASS_FEATURES[k];
+      if (!sf) return "нет " + k;
+      if (Object.keys(sf).map(Number).join() !== want[k].join()) return k + ": уровни " + Object.keys(sf).join();
+      for (var lv in sf) for (var i = 0; i < sf[lv].length; i++) if (gone.indexOf(sf[lv][i].name) !== -1) return k + ": " + sf[lv][i].name;
+    }
+    return true;
+  });
+  t("[AUD-10 C23–C29] расы, окаменение и короткий отдых по книге", function(){
+    if (!/2к6.*5к6/.test(RACE_DATA["Драконорождённый"].traits) || /8к6/.test(RACE_DATA["Драконорождённый"].traits)) return "C23 дыхание";
+    if (!/владение навыком Внимательность/.test(RACE_DATA["Эльф"].traits)) return "C24 эльф";
+    if (/спасброски МУД|спасброски МДР/.test(RACE_DATA["Холмовой дварф"].traits)) return "C25 холмовой дварф";
+    if (/ремесленными инструментами/.test(RACE_DATA["Каменный гном"].traits)) return "C26 каменный гном";
+    if (!/Атлетика/.test(RACE_DATA["Голиаф"].traits) || /×2/.test(RACE_DATA["Голиаф"].traits)) return "C27 голиаф";
+    var p = CONDITIONS.find(function(c) { return c.id === "petrified"; });
+    if (/критический/.test(p.desc)) return "C28 окаменение";
+    var sr = (window.GLOSSARY || []).find(function(e) { return e.term === "Короткий отдых"; });
+    return !sr || /тратить кости хитов/.test(sr.def) || "C29 короткий отдых";
   });
 
   // ────────── РЕЗУЛЬТАТЫ ──────────

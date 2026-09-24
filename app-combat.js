@@ -988,7 +988,7 @@ function onRaceChange() {
           charApply.stats[k] = Math.max(1, (charApply.stats[k] || 10) - prev[k]);
         });
         // 2) Если меняем расу с Полуэльфа — откатываем его +1/+1 выбор
-        if (appliedRace === "Полуэльф" && Array.isArray(charApply.raceStatChoice) && charApply.raceStatChoice.length) {
+        if (RACE_STAT_PICKS[appliedRace] && Array.isArray(charApply.raceStatChoice) && charApply.raceStatChoice.length) {
           charApply.raceStatChoice.forEach(function(k) {
             charApply.stats[k] = Math.max(1, (charApply.stats[k] || 10) - 1);
           });
@@ -1229,9 +1229,14 @@ function rollRandomName() {
 }
 
 // ============================================
-// РАСОВЫЕ ДОП. ВЫБОРЫ — Человек (черта), Полуэльф (+1+1)
+// РАСОВЫЕ ДОП. ВЫБОРЫ — Человек (вариант): черта и +1+1, Полуэльф (+1+1)
 // ============================================
-var RACE_BONUS_FEATS = { "Человек": 1 };
+var RACE_BONUS_FEATS = { "Человек (вариант)": 1 };
+var RACE_BONUS_FEATS_2024 = { "Человек": 1 };
+var RACE_STAT_PICKS = {
+  "Полуэльф": ["str","dex","con","int","wis"],
+  "Человек (вариант)": ["str","dex","con","int","wis","cha"]
+};
 
 function renderRaceExtras() {
   var panel = $("race-extras-panel");
@@ -1244,8 +1249,8 @@ function renderRaceExtras() {
   var race = char.race || ($("char-race") && $("char-race").value) || "";
   var html = "";
 
-  // Человек: 1 расовая черта
-  var featAllowance = RACE_BONUS_FEATS[race] || 0;
+  // Человек (вариант), в 2024 — человек: 1 расовая черта
+  var featAllowance = (char.edition === "2024" ? RACE_BONUS_FEATS_2024 : RACE_BONUS_FEATS)[race] || 0;
   if (featAllowance > 0) {
     if (!Array.isArray(char.raceFeats)) char.raceFeats = [];
     var taken = char.raceFeats.length;
@@ -1262,17 +1267,17 @@ function renderRaceExtras() {
       '</div>';
   }
 
-  // Полуэльф: +1 к двум характеристикам (кроме ХАР)
-  if (race === "Полуэльф") {
+  // Полуэльф: +1 к двум характеристикам (кроме ХАР); Человек (вариант): +1 к двум любым
+  if (RACE_STAT_PICKS[race] && char.edition !== "2024") {
     if (!Array.isArray(char.raceStatChoice)) char.raceStatChoice = [];
-    var halfElfStats = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД"};
+    var statLabels = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
     var chosen = char.raceStatChoice;
-    html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' Полуэльф: +1 к двум характеристикам (кроме ХАР)</div>';
+    html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' ' + escapeHtml(race) + ': +1 к двум характеристикам' + (race === "Полуэльф" ? ' (кроме ХАР)' : '') + '</div>';
     html += '<div class="race-extras-row">';
-    Object.keys(halfElfStats).forEach(function(k) {
+    RACE_STAT_PICKS[race].forEach(function(k) {
       var sel = chosen.indexOf(k) !== -1;
       html += '<span class="race-extras-stat-pick' + (sel ? " selected" : "") +
-        '" onclick="toggleHalfElfStat(\'' + k + '\')">' + halfElfStats[k] + '</span>';
+        '" onclick="toggleHalfElfStat(\'' + k + '\')">' + statLabels[k] + '</span>';
     });
     html += '<span style="margin-left:auto;color:rgba(255,255,255,0.55);font-size:0.85em;">' +
       'Выбрано: ' + chosen.length + '/2</span>';
