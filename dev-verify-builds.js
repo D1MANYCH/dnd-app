@@ -95,7 +95,9 @@
     // === HP / AC ===
     var hd = CLASS_HD[b.className] || 8;
     var conMod = Math.floor(((ch.stats.con||10)-10)/2);
-    checks.push(_check("hpMax == hd + conMod", ch.combat.hpMax === hd + conMod, ch.combat.hpMax, hd + conMod));
+    // AUD-4: +1 холмовому дварфу (PHB 20) и «Драконьей устойчивости» (PHB 102).
+    var hpExp = hd + conMod + (b.race === "Холмовой дварф" ? 1 : 0) + (b.subclass === "Драконья кровь" ? 1 : 0);
+    checks.push(_check("hpMax == hd + conMod", ch.combat.hpMax === hpExp, ch.combat.hpMax, hpExp));
     checks.push(_check("hpCurrent == hpMax", ch.combat.hpCurrent === ch.combat.hpMax, ch.combat.hpCurrent, ch.combat.hpMax));
     checks.push(_check("ac >= 10", ch.combat.ac >= 10, ch.combat.ac, ">=10"));
 
@@ -414,8 +416,8 @@
   //   • рост HP монотонный (прибавка за уровень ≥1, средние PHB + мод ВЫН);
   //   • слоты заклинаний (касторы) монотонно не убывают 1→20;
   //   • нет повторных черт; нет повторных заклинаний.
-  // NB: расовые бонусы applyBuild здесь не моделируются — старт со статов билда
-  // (консервативно: ловит только заведомые ошибки «бамп уже максимального стата»).
+  // AUD-12: старт со статов билда + расовый бонус RACE_DATA; перелёт прибавки за 20
+  // (даже частичный) — холостая ASI.
   // ════════════════════════════════════════════════════════════════════════
   function _hpStep(hd) { return Math.floor(hd / 2) + 1; } // средняя прибавка ХП за уровень (PHB)
 
@@ -430,6 +432,9 @@
 
     var stats = {};
     Object.keys(b.stats || {}).forEach(function(k){ stats[k] = b.stats[k]; });
+    // AUD-12 (P25): старт с расовым бонусом (PHB 15); +1/+1 полуэльфа — на выбор, не моделируется.
+    var raceStats = ((typeof RACE_DATA !== "undefined" && RACE_DATA[b.race]) || {}).stats || {};
+    Object.keys(raceStats).forEach(function(k){ stats[k] = (stats[k] == null ? 10 : stats[k]) + raceStats[k]; });
 
     var feats = {};        // featId → счётчик
     var spells = {};       // ключ заклинания → счётчик
@@ -444,7 +449,7 @@
         if (asi) {
           Object.keys(asi).forEach(function(k){
             var before = (stats[k] == null ? 10 : stats[k]);
-            if (before >= 20) wastedAsi.push("L" + lv + ":" + k);
+            if (before + asi[k] > 20) wastedAsi.push("L" + lv + ":" + k + "(" + before + "+" + asi[k] + ")");
             stats[k] = Math.min(20, before + asi[k]); // cap 20 как в игре
           });
         } else if (feat) {
@@ -466,7 +471,7 @@
 
     Object.keys(stats).forEach(function(k){ if (stats[k] > 20) overCap.push(k + "=" + stats[k]); });
     checks.push(_check("статы ≤20", overCap.length === 0, overCap.join(",") || "ok", "≤20"));
-    checks.push(_check("нет холостых ASI (стат уже 20)", wastedAsi.length === 0, wastedAsi.join(",") || "нет", "нет"));
+    checks.push(_check("нет холостых ASI (перелёт за 20)", wastedAsi.length === 0, wastedAsi.join(",") || "нет", "нет"));
     checks.push(_check("HP растёт 1→20", hpDrops.length === 0,
       hpDrops.length ? "не растёт на: " + hpDrops.join(",") : (hpSeq[0] + "→" + hpSeq[19]), "монотонно"));
 

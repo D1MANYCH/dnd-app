@@ -288,7 +288,7 @@ window.MONSTERS_SRD = [
     ]
   },
   {
-    slug: "specter", name: "Призрак", nameEn: "Specter",
+    slug: "specter", name: "Спектр", nameEn: "Specter",
     type: "Нежить", edition: "PHB'14", cr: "1", xp: 200, size: "Средний",
     ac: 12, hp: 22, hpDice: "5к8", speed: "0 фт, полёт 50 фт (парит)",
     stats: { str:1, dex:14, con:11, int:10, wis:10, cha:11 },
@@ -635,7 +635,7 @@ window.MONSTERS_SRD = [
   {
     slug: "young-blue-dragon", name: "Молодой синий дракон", nameEn: "Young Blue Dragon",
     type: "Дракон", edition: "PHB'14", cr: "9", xp: 5000, size: "Большой",
-    ac: 18, hp: 152, hpDice: "16к10+64", speed: "40 фт, рытьё 30 фт, полёт 80 фт",
+    ac: 18, hp: 152, hpDice: "16к10+64", speed: "40 фт, рытьё 20 фт, полёт 80 фт",
     stats: { str:21, dex:10, con:19, int:14, wis:13, cha:17 },
     saves: "Лов +4, Тел +8, Муд +5, Хар +7",
     skills: "Восприятие +9, Скрытность +4",

@@ -8543,6 +8543,55 @@
     return (/к20/.test(e.desc) && /11\+/.test(e.desc) && !/к8/.test(e.desc)) || e.desc;
   });
 
+  // ── AUD-12: предметы, монстры, готовые билды ──
+  t("[AUD-12 P19–P22] предметы и монстры по книгам", function(){
+    var mi = function(id) { return MAGIC_ITEMS.find(function(x) { return x.id === id; }); };
+    var mo = function(slug) { return MONSTERS_SRD.find(function(x) { return x.slug === slug; }); };
+    if (mi("periapt-proof-poison").attune) return "P19";
+    if (/Сл/.test(mi("staff-power").desc) || /Сл/.test(mi("staff-magi").desc) || /лёгкой/.test(mi("elven-chain").desc) ||
+        !/действием/.test(mi("rod-pact-keeper-1").desc) || !/Преимущество/.test(mi("rod-alertness").desc)) return "P20";
+    if (!/рытьё 20 фт/.test(mo("young-blue-dragon").speed)) return "P21";
+    if (mo("specter").name !== "Спектр") return "P22";
+    return true;
+  });
+  t("[AUD-12 P23, P24, P26] билды: очки ≤27, заклинания существуют, у друида 2 заговора", function(){
+    var COST = { 8:0, 9:1, 10:2, 11:3, 12:4, 13:5, 14:7, 15:9 };
+    for (var i = 0; i < CHARACTER_BUILDS.length; i++) {
+      var b = CHARACTER_BUILDS[i], sum = 0;
+      for (var k in b.stats) { if (COST[b.stats[k]] === undefined) return b.id + " " + k; sum += COST[b.stats[k]]; }
+      if (sum > 27) return b.id + " очков " + sum;
+      var ss = b.startingSpells || {}, names = (ss.cantrips || []).concat(ss.known || []);
+      for (var j = 0; j < names.length; j++)
+        if (!window.resolveSpellByName(names[j]) || /громовержец|стрелы грома|удар грома/i.test(names[j])) return b.id + ": " + names[j];
+      if (b.className === "Чародей" && names.indexOf("Указание") >= 0) return b.id + ": Указание";
+      if (b.className === "Друид" && (ss.cantrips || []).length !== 2) return b.id + " заговоров " + ss.cantrips.length;
+    }
+    return true;
+  });
+  t("[AUD-12 P25] прибавки билдов с расовым бонусом не уходят за 20", function(){
+    for (var i = 0; i < CHARACTER_BUILDS.length; i++) {
+      var b = CHARACTER_BUILDS[i], st = {}, rs = (RACE_DATA[b.race] || {}).stats || {}, cf = CLASS_FEATURES[b.className];
+      for (var k in b.stats) st[k] = b.stats[k] + (rs[k] || 0);
+      for (var lv = 1; lv <= 20; lv++) {
+        if (!(cf[lv] || []).some(function(f) { return f && f.name === "Увеличение характеристик"; })) continue;
+        var hl = (b.levelUp[lv] || {}).headline, asi = parseAsiFromHeadline(hl);
+        var MAPK = { "СИЛ":"str", "ЛОВ":"dex", "ТЕЛ":"con", "ВЫН":"con", "ИНТ":"int", "МУД":"wis", "ХАР":"cha" };
+        var re = /\+(\d) (СИЛ|ЛОВ|ТЕЛ|ВЫН|ИНТ|МУД|ХАР) \((\d+)→(\d+)\)/g, m;
+        while (asi && (m = re.exec(hl)))
+          if (+m[3] !== st[MAPK[m[2]]] || +m[4] !== +m[3] + +m[1]) return b.id + " " + lv + " ур.: подпись " + m[0] + " при " + st[MAPK[m[2]]];
+        for (var a in asi || {}) { st[a] += asi[a]; if (st[a] > 20) return b.id + " " + lv + " ур.: " + a + "=" + st[a]; }
+      }
+    }
+    return true;
+  });
+  if (typeof applyBuild === "function" && typeof characters !== "undefined") {
+    t("[AUD-12] билд холмового дварфа начинает с полными ХП", function(){
+      try { applyBuild("cleric-life-healer"); } catch (e) { /* побочка loadCharacter в шиме — ок */ }
+      var ch = characters.filter(function(c) { return c.buildId === "cleric-life-healer"; }).pop();
+      return (ch && ch.combat.hpMax === 11 && ch.combat.hpCurrent === ch.combat.hpMax) || (ch && ch.combat.hpCurrent + "/" + ch.combat.hpMax);
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

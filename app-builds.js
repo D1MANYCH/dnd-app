@@ -906,6 +906,17 @@ function _applyBuildCore(buildId) {
   saveToLocal();
   // Пикер закрывать не нужно: loadCharacter сам уводит на экран листа.
   loadCharacter(newChar.id);
+  // AUD-12: раса (+ТЕЛ) ложится в setTimeout(onRaceChange) из loadCharacter и поднимает
+  // только максимум — новый персонаж из билда начинает с полными ХП.
+  var _syncHp = function() {
+    var c = getCurrentChar();
+    if (!c || c.id !== newChar.id || c.combat.hpCurrent === c.combat.hpMax) return;
+    c.combat.hpCurrent = c.combat.hpMax;
+    if (typeof updateHPDisplay === "function") updateHPDisplay();
+    saveToLocal();
+  };
+  _syncHp();
+  setTimeout(_syncHp, 0);
   if (typeof showToast === "function") showToast("Билд применён: " + b.title, "success");
   // BUILD-DESC-3: открыть модалку с гайдом по билду сразу после применения.
   if (b.guide) setTimeout(function(){ openBuildGuide(b.id); }, 250);
