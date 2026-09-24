@@ -4843,7 +4843,7 @@
         // «Распад» — успех отменяет урон целиком: save есть, halfOnSave нет
         var dis = getSpellEffect("Распад").damage;
         if (dis.save !== "dex" || dis.halfOnSave) return "Распад: save=" + dis.save + " half=" + dis.halfOnSave;
-        if (damageFormulaFor(dis, 6, 7, 13) !== "10к6+40+3к6+10") return "Распад апкаст: " + damageFormulaFor(dis, 6, 7, 13);
+        if (damageFormulaFor(dis, 6, 7, 13) !== "10к6+40+3к6") return "Распад апкаст: " + damageFormulaFor(dis, 6, 7, 13);
         // «Солнечный луч» — 6 круг без апкаста: ячейка 8 не меняет формулу
         var beam = getSpellEffect("Солнечный луч").damage;
         if (damageFormulaFor(beam, 6, 8, 13) !== "6к8") return "Солнечный луч: " + damageFormulaFor(beam, 6, 8, 13);
@@ -8476,6 +8476,71 @@
     if (/критический/.test(p.desc)) return "C28 окаменение";
     var sr = (window.GLOSSARY || []).find(function(e) { return e.term === "Короткий отдых"; });
     return !sr || /тратить кости хитов/.test(sr.def) || "C29 короткий отдых";
+  });
+
+  // ── AUD-11: заклинания и эффекты ──
+  function aud11sp(name, src) {
+    return SPELLS_BASE.find(function(s) { return s.name === name && s.source === src; });
+  }
+  t("[AUD-11 P1–P3, P18] флаги атаки, апкаст и длительность по редакциям", function(){
+    if (!getSpellEffect("Направленный снаряд", "PH14").damage.attack) return "P1 атака";
+    var v14 = getSpellEffect("Цепкая лоза", "PH14"), v24 = getSpellEffect("Цепкая лоза", "PH24");
+    if (v14.repeat || v14.damage) return "P2 урон у лозы PH14";
+    if (!v24.repeat.attack || v24.repeat.upcast) return "P2 лоза PH24";
+    var noUp = ["Призыв заграждения", "Гневная кара", "Громовая кара", "Ослепляющая кара", "Оглушающая кара", "Голод Хадара"];
+    for (var i = 0; i < noUp.length; i++) {
+      var a = getSpellEffect(noUp[i], "PH14"), b = getSpellEffect(noUp[i], "PH24");
+      if ((a.damage || a.repeat).upcast) return "P3 апкаст PH14: " + noUp[i];
+      if (!(b.damage || b.repeat).upcast) return "P3 нет апкаста PH24: " + noUp[i];
+    }
+    if (getSpellEffect("Призыв заграждения", "PH24").damage.formula !== "5к8") return "P3 заграждение PH24";
+    if (getSpellEffect("Призыв небожителя", "PH24").duration.unit !== "hour") return "P18 небожитель PH24 — 1 час";
+    var sum = ["Призыв животных", "Призыв лесных обитателей", "Призыв малых элементалей", "Призыв феи"];
+    for (var j = 0; j < sum.length; j++) {
+      if (getSpellEffect(sum[j], "PH24").duration.value !== 10) return "P18 " + sum[j];
+      if (getSpellEffect(sum[j], "PH14").duration.unit !== "hour") return "P18 база " + sum[j];
+    }
+    if (getSpellEffect("Распад", "PH14").damage.upcast !== "3к6") return "P7 эффект";
+    if (getSpellEffect("Воспламеняющая туча", "PH14").duration.value !== 1) return "P6 эффект";
+    if (getSpellEffect("Слабоумие", "PH14").damage.formula !== "4к6") return "P15 слабоумие";
+    return getSpellEffect("Охранные руны", "PH14").damage.upcast === "1к8" || "P15 руны";
+  });
+  t("[AUD-11 P4–P16] концентрация, школы, классы, компоненты и тексты по книге", function(){
+    var both = ["PH14", "PH24"];
+    for (var i = 0; i < 2; i++) {
+      var s = both[i];
+      if (aud11sp("Демиплан", s).components !== "S" || /Концентрация/.test(aud11sp("Демиплан", s).duration)) return "P4/P5 демиплан " + s;
+      if (aud11sp("Воспламеняющая туча", s).duration !== "Концентрация, до 1 минуты") return "P6 " + s;
+      if (/\+10/.test(aud11sp("Распад", s).higherLevel)) return "P7 " + s;
+      if (aud11sp("Находчивость", s).school !== (s === "PH14" ? "преобразование" : "очарование")) return "P8 " + s;
+      if (aud11sp("Неудержимая пляска Отто", s).classes.indexOf("sorcerer") !== -1) return "P9 " + s;
+      if (/схвачен/.test(aud11sp("Паутина", s).desc)) return "P11 паутина " + s;
+      if (aud11sp("Предвидение", s).components !== "V,S,M(перо колибри)") return "P12 " + s;
+      if (aud11sp("Открывание", s).components !== "V" || aud11sp("Слово Силы: исцеление", s).components !== (s === "PH14" ? "V,S" : "V")) return "P13 " + s;
+      if (aud11sp("Падение пёрышком", s).higherLevel || !/1к8/.test(aud11sp("Охранные руны", s).higherLevel) ||
+          !/9-го/.test(aud11sp("Подчинение чудовища", s).higherLevel) || /испытание Харизмы/.test(aud11sp("Врата", s).desc)) return "P15 " + s;
+      if (aud11sp("Цунами", s).range !== (s === "PH14" ? "В пределах видимости" : "1 миля") || !/линия/.test(aud11sp("Порыв ветра", s).range)) return "P16 " + s;
+    }
+    if (/Концентрация/.test(aud11sp("Божественное благоволение", "PH24").duration)) return "P5 благоволение";
+    if (aud11sp("Предосторожность", "PH14").school !== "воплощение") return "P8 предосторожность";
+    if (!/Огромный: 80 хитов/.test(aud11sp("Оживление вещей", "PH14").desc)) return "P10";
+    if (/плавно/.test(aud11sp("Полёт", "PH14").desc)) return "P11 полёт";
+    if (/расходуем/.test(aud11sp("Нетленные останки", "PH14").components) || !/расходуем/.test(aud11sp("Необнаружимость", "PH14").components) ||
+        /опал/.test(aud11sp("Планарные узы", "PH14").components) || !/расходуем/.test(aud11sp("Нетленные останки", "PH24").components)) return "P12";
+    if (!/4к6/.test(aud11sp("Слабоумие", "PH14").desc) || /испытание Ловкости/.test(aud11sp("Движение почвы", "PH14").desc)) return "P15";
+    if (aud11sp("Древесный путь", "PH14").range !== "На себя" || !/5 зм/.test(aud11sp("Проекция", "PH14").components)) return "P16";
+    return true;
+  });
+  t("[AUD-11 P17] расширенные списки TCE внесены полностью (PH14)", function(){
+    var pairs = [["bard", "Радужная стена"], ["cleric", "Аура жизни"], ["paladin", "Охраняющая связь"], ["ranger", "Высшее восстановление"],
+      ["sorcerer", "Демиплан"], ["warlock", "Смертный ужас"], ["druid", "Воспламеняющая туча"], ["wizard", "Разговор с мёртвыми"]];
+    for (var i = 0; i < pairs.length; i++)
+      if (aud11sp(pairs[i][1], "PH14").classes.indexOf(pairs[i][0]) === -1) return pairs[i][0] + ": " + pairs[i][1];
+    return true;
+  });
+  t("[AUD-11 P14] карточка «Зеркальное отражение»: к20 6+/8+/11+", function(){
+    var e = EFFECTS_DATA.find(function(x) { return x.id === "mirror_image"; });
+    return (/к20/.test(e.desc) && /11\+/.test(e.desc) && !/к8/.test(e.desc)) || e.desc;
   });
 
   // ────────── РЕЗУЛЬТАТЫ ──────────

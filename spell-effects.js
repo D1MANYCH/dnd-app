@@ -177,7 +177,7 @@ const SPELL_EFFECTS = {
   // Добивка CAST-11
   "Паутина":  { debuff: { id: "web", name: "Паутина", icon: "🕸️", color: "#7f8c8d",
                   save: "dex", targets: 6,
-                  hint: "Цель схвачена; действием проходит проверку СИЛ, чтобы вырваться. Зона труднопроходима, вспыхивает на 2к4 огня" },
+                  hint: "Цель опутана; действием проходит проверку СИЛ, чтобы вырваться. Зона труднопроходима, вспыхивает на 2к4 огня" },
                 duration: { value: 1, unit: "hour" } },
   "Смятение": { debuff: { id: "confusion", name: "Смятение", icon: "🌀", color: "#af7ac5",
                   save: "wis", targets: 6,
@@ -257,7 +257,7 @@ const SPELL_EFFECTS = {
   "Волшебная стрела":    { damage: { formula: "3к4+3", upcast: "1к4+1" } },
   "Огненные ладони":     { damage: { formula: "3к6",  upcast: "1к6",  save: "dex", halfOnSave: true } },
   "Волна грома":         { damage: { formula: "2к8",  upcast: "1к8",  save: "con", halfOnSave: true } },
-  "Направленный снаряд": { damage: { formula: "4к6",  upcast: "1к6" } },
+  "Направленный снаряд": { damage: { formula: "4к6",  upcast: "1к6", attack: true } },
   "Луч болезни":         { damage: { formula: "2к8",  upcast: "1к8", attack: true } },
   "Нанесение ран":       { damage: { formula: "3к10", upcast: "1к10", attack: true },
                            bySource: { PH24: { damage: { formula: "2к10", upcast: "1к10", attack: true } } } },
@@ -337,9 +337,10 @@ const SPELL_EFFECTS = {
                                  hint: "вход в зону или начало хода в ней" },
                        duration: { value: 10, unit: "minute" } },
   // CAST-11
-  "Призыв заграждения": { damage: { formula: "3к8", upcast: "1к8", save: "dex", halfOnSave: true } },
+  "Призыв заграждения": { damage: { formula: "3к8", save: "dex", halfOnSave: true },
+                          bySource: { PH24: { damage: { formula: "5к8", upcast: "1к8", save: "dex", halfOnSave: true } } } },
   // Взрыв руны при активации; сохранённое внутрь заклинание — вручную
-  "Охранные руны":      { damage: { formula: "5к8", save: "dex", halfOnSave: true } },
+  "Охранные руны":      { damage: { formula: "5к8", upcast: "1к8", save: "dex", halfOnSave: true } },
 
   // 4 уровень
   "Град":     { damage: { formula: "2к8+4к6", upcast: "1к8", save: "dex", halfOnSave: true } },
@@ -382,7 +383,7 @@ const SPELL_EFFECTS = {
   // 6 уровень
   "Круг смерти":     { damage: { formula: "8к6",  upcast: "2к6", save: "con", halfOnSave: true } },
   // Успешное испытание отменяет урон целиком — halfOnSave нет
-  "Распад":          { damage: { formula: "10к6+40", upcast: "3к6+10", save: "dex" } },
+  "Распад":          { damage: { formula: "10к6+40", upcast: "3к6", save: "dex" } },
   "Солнечный луч":   { damage: { formula: "6к8",  save: "con", halfOnSave: true } }, // 6 круг, апкаста нет
   "Пляшущая молния": { damage: { formula: "10к8", save: "dex", halfOnSave: true } }, // апкаст = +1 цель, формула та же
   "Поражение":       { damage: { formula: "14к6", save: "con", halfOnSave: true } },
@@ -412,9 +413,10 @@ const SPELL_EFFECTS = {
   "Солнечный ожог": { damage: { formula: "12к6", save: "con", halfOnSave: true } },
   "Цунами":         { damage: { formula: "6к10", save: "str", halfOnSave: true },
                       duration: { value: 6, unit: "round" } },
-  // PH24 переработал в «Помутнение разума» с уроном; в PH14 урона нет — там
-  // работает только чип дебаффа (см. секцию дебаффов)
-  "Слабоумие": { debuff: { id: "feeblemind", name: "Слабоумие", icon: "🫥", color: "#5d6d7e",
+  // PH24 переработал в «Помутнение разума» с уроном 10к12; в PH14 — 4к6 без
+  // испытания плюс чип дебаффа (см. секцию дебаффов)
+  "Слабоумие": { damage: { formula: "4к6" },
+                 debuff: { id: "feeblemind", name: "Слабоумие", icon: "🫥", color: "#5d6d7e",
                    save: "int",
                    hint: "PH14: ИНТ и ХАР цели становятся 1, она не колдует и не говорит внятно. PH24: не может колдовать и совершать действие Магия" },
                  duration: { value: 1, unit: "hour" },
@@ -435,24 +437,33 @@ const SPELL_EFFECTS = {
   // Упрощение: кнопка живёт до конца длительности, хотя по правилам кара
   // тратится первым же попаданием — лишний тик снимает сам игрок (конец
   // концентрации) или истечение раундов.
-  "Гневная кара":     { repeat: { formula: "1к6", upcast: "1к6", icon: "⚔️", label: "по попаданию",
+  // Апкаст у Гневной, Громовой, Ослепляющей и Оглушающей кары — только в PH24
+  "Гневная кара":     { repeat: { formula: "1к6", icon: "⚔️", label: "по попаданию",
                           hint: "следующее попадание: +1к6 психического (PH24 — некротического); испытание МУД или цель испугана" },
-                        duration: { value: 1, unit: "minute" } },
-  "Громовая кара":    { repeat: { formula: "2к6", upcast: "1к6", icon: "⚔️", label: "по попаданию",
+                        duration: { value: 1, unit: "minute" },
+                        bySource: { PH24: { repeat: { formula: "1к6", upcast: "1к6", icon: "⚔️", label: "по попаданию",
+                          hint: "следующее попадание: +1к6 некротического; испытание МУД или цель испугана" } } } },
+  "Громовая кара":    { repeat: { formula: "2к6", icon: "⚔️", label: "по попаданию",
                           hint: "следующее попадание: +2к6 звуком; испытание СИЛ или отбрасывание на 10 фт и ничком" },
-                        duration: { value: 1, unit: "minute" } },
+                        duration: { value: 1, unit: "minute" },
+                        bySource: { PH24: { repeat: { formula: "2к6", upcast: "1к6", icon: "⚔️", label: "по попаданию",
+                          hint: "следующее попадание: +2к6 звуком; испытание СИЛ или отбрасывание на 10 фт и ничком" } } } },
   "Палящая кара":     { repeat: { formula: "1к6", upcast: "1к6", icon: "⚔️", label: "по попаданию",
                           hint: "следующее попадание: +1к6 огнём, цель горит — ещё 1к6 в начале каждого её хода" },
                         duration: { value: 1, unit: "minute" } },
   "Клеймящая кара":   { repeat: { formula: "2к6", upcast: "1к6", icon: "⚔️", label: "по попаданию",
                           hint: "следующее попадание: +2к6 излучением; цель светится и не может стать невидимой" },
                         duration: { value: 1, unit: "minute" } },
-  "Ослепляющая кара": { repeat: { formula: "3к8", upcast: "1к8", icon: "⚔️", label: "по попаданию",
+  "Ослепляющая кара": { repeat: { formula: "3к8", icon: "⚔️", label: "по попаданию",
                           hint: "следующее попадание: +3к8 излучением; испытание ТЕЛ или цель ослеплена" },
-                        duration: { value: 1, unit: "minute" } },
-  "Оглушающая кара":  { repeat: { formula: "4к6", upcast: "1к6", icon: "⚔️", label: "по попаданию",
+                        duration: { value: 1, unit: "minute" },
+                        bySource: { PH24: { repeat: { formula: "3к8", upcast: "1к8", icon: "⚔️", label: "по попаданию",
+                          hint: "следующее попадание: +3к8 излучением; испытание ТЕЛ или цель ослеплена" } } } },
+  "Оглушающая кара":  { repeat: { formula: "4к6", icon: "⚔️", label: "по попаданию",
                           hint: "следующее попадание: +4к6 психического; испытание МУД или помеха на атаки и без реакций" },
-                        duration: { value: 1, unit: "minute" } },
+                        duration: { value: 1, unit: "minute" },
+                        bySource: { PH24: { repeat: { formula: "4к6", upcast: "1к6", icon: "⚔️", label: "по попаданию",
+                          hint: "следующее попадание: +4к6 психического; испытание МУД или помеха на атаки и без реакций" } } } },
   "Изгоняющая кара":  { repeat: { formula: "5к10", icon: "⚔️", label: "по попаданию",
                           hint: "следующее попадание: +5к10 силовым; при ХП цели ≤50 — изгнание на родной план" },
                         duration: { value: 1, unit: "minute" } },
@@ -503,9 +514,11 @@ const SPELL_EFFECTS = {
   "Шипы":           { repeat: { formula: "2к4",
                         hint: "за каждые 5 фт передвижения существа по зоне радиусом 20 фт" },
                       duration: { value: 10, unit: "minute" } },
-  "Голод Хадара":   { repeat: { formula: "2к6", upcast: "1к6",
+  "Голод Хадара":   { repeat: { formula: "2к6",
                         hint: "начало хода в зоне — 2к6 холодом без испытания; конец хода — испытание ЛОВ или 2к6 кислотой" },
-                      duration: { value: 1, unit: "minute" } },
+                      duration: { value: 1, unit: "minute" },
+                      bySource: { PH24: { repeat: { formula: "2к6", upcast: "1к6",
+                        hint: "начало хода в зоне — 2к6 холодом без испытания; конец хода — испытание ЛОВ или 2к6 кислотой" } } } },
   "Стена ветров":   { repeat: { formula: "3к8",
                         hint: "существо проходит сквозь стену 50×15 фт" },
                       duration: { value: 1, unit: "minute" } },
@@ -530,7 +543,7 @@ const SPELL_EFFECTS = {
                       duration: { value: 1, unit: "minute" } },
   "Воспламеняющая туча": { repeat: { formula: "10к8", save: "dex", halfOnSave: true,
                         hint: "вход в сферу 20 фт или начало хода внутри; облако дрейфует на 10 фт за раунд" },
-                      duration: { value: 10, unit: "minute" } },
+                      duration: { value: 1, unit: "minute" } },
   "Смертный ужас":  { repeat: { formula: "4к10", save: "wis",
                         hint: "начало хода существа, провалившего испытание МУД (сфера 30 фт)" },
                       duration: { value: 1, unit: "minute" } },
@@ -604,17 +617,17 @@ const SPELL_EFFECTS = {
       prefill: { name: "Волк ×8" },
       byLevel: { 5: { name: "Волк ×16" }, 7: { name: "Волк ×24" }, 9: { name: "Волк ×32" } } },
     duration: { value: 1, unit: "hour" },
-    bySource: { PH24: { summon: null } } },
+    bySource: { PH24: { summon: null, duration: { value: 10, unit: "minute" } } } },
   "Призыв лесных обитателей": { summon: { companionType: "summoned", srdSlug: "satyr",
       prefill: { name: "Сатир ×4" },
       byLevel: { 6: { name: "Сатир ×8" }, 8: { name: "Сатир ×12" } } },
     duration: { value: 1, unit: "hour" },
-    bySource: { PH24: { summon: null } } },
+    bySource: { PH24: { summon: null, duration: { value: 10, unit: "minute" } } } },
   "Призыв малых элементалей": { summon: { companionType: "summoned", prefill: {
       name: "Малые элементали (ПО до 2)",
       desc: "Выберите элементалей суммарным ПО до 2: один ПО 2, два ПО 1, четыре ПО 1/2 или восемь ПО 1/4 — статблоки в Бестиарии. Дружественны и подчиняются командам." } },
     duration: { value: 1, unit: "hour" },
-    bySource: { PH24: { summon: null } } },
+    bySource: { PH24: { summon: null, duration: { value: 10, unit: "minute" } } } },
   "Призыв элементаля": { summon: { companionType: "summoned", srdSlug: "air-elemental" },
     duration: { value: 1, unit: "hour" },
     bySource: { PH24: { summon: null } } },
@@ -622,7 +635,7 @@ const SPELL_EFFECTS = {
       name: "Фея (ПО до 6)",
       desc: "Выберите фею с ПО не выше 6 — статблок в Бестиарии. При потере концентрации призванная фея может стать враждебной." } },
     duration: { value: 1, unit: "hour" },
-    bySource: { PH24: { summon: null } } },
+    bySource: { PH24: { summon: null, duration: { value: 10, unit: "minute" } } } },
   "Призыв небожителя": { summon: { companionType: "summoned", prefill: {
       name: "Небожитель (ПО до 4)",
       desc: "Выберите небожителя с ПО не выше 4 — статблок в Бестиарии. Дружественен вам и союзникам." },
@@ -644,9 +657,11 @@ const SPELL_EFFECTS = {
                            duration: { value: 1, unit: "minute" } },
   "Пронзание разума":    { damage: { formula: "3к8", upcast: "1к8", save: "wis", halfOnSave: true },
                            duration: { value: 1, unit: "hour" } },
-  "Цепкая лоза":         { repeat: { formula: "4к8", upcast: "1к8", attack: true,
+  // PH14 — без урона: испытание ЛОВ и подтягивание, механики нет. PH24 — атака
+  // 4к8, апкаст добавляет цель, а не урон
+  "Цепкая лоза":         { bySource: { PH24: { repeat: { formula: "4к8", attack: true,
                              hint: "бонусным действием — атака лозы, цель подтягивается на 30 фт" },
-                           duration: { value: 1, unit: "minute" } },
+                           duration: { value: 1, unit: "minute" } } } },
   "Величественное присутствие Йоланды": { repeat: { formula: "4к6", upcast: "1к6", save: "wis",
                              hint: "бонусным действием — эманация 10 фт; провал: сбит с ног и недееспособен до конца хода" },
                            duration: { value: 1, unit: "minute" } },
