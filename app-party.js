@@ -1237,14 +1237,22 @@ function offerCastDamageToBattle(spellName, total, opts) {
     spellName: spellName,
     full: Math.max(0, parseInt(total, 10) || 0),
     half: !!opts.half,
-    useHalf: false
+    useHalf: false,
+    chosen: {}
   };
   _renderCastDamageModal(targets);
 }
 
-function _castDamageAmount() {
+function _castDamageTargets() {
+  return BATTLE_DATA.participants
+    .map(function(p, i) { return { p: p, i: i }; })
+    .filter(function(x) { return x.p.type !== "self" && (x.p.type === "monster" || (x.p.hpMax || 0) > 0); });
+}
+
+function _castDamageAmount(useHalf) {
   if (!_castDamagePending) return 0;
-  return _castDamagePending.useHalf ? Math.floor(_castDamagePending.full / 2) : _castDamagePending.full;
+  if (useHalf === undefined) useHalf = _castDamagePending.useHalf;
+  return useHalf ? Math.floor(_castDamagePending.full / 2) : _castDamagePending.full;
 }
 
 function _renderCastDamageModal(targets) {
@@ -1261,6 +1269,7 @@ function _renderCastDamageModal(targets) {
         '<div id="cast-damage-targets" class="cast-damage-targets"></div>' +
         '<div class="confirm-modal-btns" style="margin-top:14px">' +
           '<button class="confirm-btn-cancel" onclick="closeCastDamageModal()">Не применять</button>' +
+          '<button class="confirm-btn-ok" id="cast-damage-apply" onclick="applyCastDamageTargets()"></button>' +
         '</div>' +
       '</div>';
     document.body.appendChild(modal);
@@ -1276,48 +1285,84 @@ function _renderCastDamageModal(targets) {
     halfRow.innerHTML =
       '<button type="button" class="cast-damage-amt' + (!pend.useHalf ? " active" : "") + '" onclick="setCastDamageHalf(false)">Провал спас.: ' + fullN + '</button>' +
       '<button type="button" class="cast-damage-amt' + (pend.useHalf ? " active" : "") + '" onclick="setCastDamageHalf(true)">Успех (½): ' + halfN + '</button>';
+    halfRow.title = "Повторный клик по выбранной цели переключает её исход: провал ↔ успех";
   } else {
     halfRow.style.display = "none";
     halfRow.innerHTML = "";
   }
-  var amount = _castDamageAmount();
+  // AUD-14 (L32): несколько целей (урон по площади) — клик отмечает цель,
+  // у спасброска с половиной повторный клик меняет её исход, третий снимает.
   var box = $("cast-damage-targets");
+  var n = 0;
   box.innerHTML = targets.map(function(x) {
     var p = x.p;
+    var on = pend.chosen.hasOwnProperty(x.i);
+    if (on) n++;
     var hp = _battleParticipantHP(p);
-    var after = Math.max(0, (hp.hp || 0) - amount);
+    var amt = _castDamageAmount(on ? pend.chosen[x.i] : pend.useHalf);
+    var after = Math.max(0, (hp.hp || 0) - amt);
     var fcolor = getFactionColor(p.type);
-    return '<button type="button" class="cast-damage-target" onclick="applyCastDamageToTarget(' + x.i + ')">' +
+    return '<button type="button" class="cast-damage-target' + (on ? " chosen" : "") + '" onclick="toggleCastDamageTarget(' + x.i + ')">' +
       '<span class="cdt-icon" style="background:' + fcolor + '22;color:' + fcolor + '">' + (p.icon || "🎭") + '</span>' +
       '<span class="cdt-name">' + escapeHtml(p.name || "?") + '</span>' +
       '<span class="cdt-hp">' + (hp.hp || 0) + ' → <b>' + after + '</b> / ' + (hp.hpMax || 0) + '</span>' +
+      '<span class="cdt-mark">' + (on ? (pend.chosen[x.i] ? "½" : "✓") : "") + '</span>' +
     '</button>';
   }).join("");
+  var applyBtn = $("cast-damage-apply");
+  if (applyBtn) {
+    applyBtn.textContent = "Нанести (" + n + ")";
+    applyBtn.disabled = !n;
+  }
   modal.classList.add("active");
 }
 
 function setCastDamageHalf(useHalf) {
   if (!_castDamagePending) return;
   _castDamagePending.useHalf = !!useHalf;
-  var targets = BATTLE_DATA.participants
-    .map(function(p, i) { return { p: p, i: i }; })
-    .filter(function(x) { return x.p.type !== "self" && (x.p.type === "monster" || (x.p.hpMax || 0) > 0); });
-  _renderCastDamageModal(targets);
+  var ch = _castDamagePending.chosen;
+  Object.keys(ch).forEach(function(k) { ch[k] = !!useHalf; });
+  _renderCastDamageModal(_castDamageTargets());
 }
 
-function applyCastDamageToTarget(i) {
+function toggleCastDamageTarget(i) {
+  var pend = _castDamagePending;
+  if (!pend) return;
+  var ch = pend.chosen;
+  if (!ch.hasOwnProperty(i)) ch[i] = pend.useHalf;
+  else if (pend.half && ch[i] === pend.useHalf) ch[i] = !ch[i];
+  else delete ch[i];
+  _renderCastDamageModal(_castDamageTargets());
+}
+
+function _castDamageHit(i, useHalf) {
   var p = BATTLE_DATA.participants[i];
-  if (!p || !_castDamagePending) { closeCastDamageModal(); return; }
-  var amount = _castDamageAmount();
+  if (!p) return null;
+  var amount = _castDamageAmount(useHalf);
   var before = (p.hp != null) ? p.hp : 0;
   p.hp = Math.max(0, before - amount);
   var st = _battleStatusFromHp(p.hp, p.hpMax);
   if (st) p.status = st;
-  var name = _castDamagePending.spellName;
-  if (window.AppLog) AppLog.action("battle", "«" + name + "»: −" + amount + " ХП " + (p.name || "?") +
+  if (window.AppLog) AppLog.action("battle", "«" + _castDamagePending.spellName + "»: −" + amount + " ХП " + (p.name || "?") +
     " (" + before + "→" + p.hp + ")" + (p.hp <= 0 ? " — повержен(а)" : ""));
-  showToast("💥 " + (p.name || "Цель") + ": −" + amount + " ХП" + (p.hp <= 0 ? " (повержен!)" : " → " + p.hp + " ХП"),
-    p.hp <= 0 ? "success" : "info");
+  return (p.name || "Цель") + ": −" + amount + (p.hp <= 0 ? " (повержен!)" : " → " + p.hp);
+}
+
+function applyCastDamageToTarget(i) {
+  if (!_castDamagePending) { closeCastDamageModal(); return; }
+  var line = _castDamageHit(i);
+  if (!line) { closeCastDamageModal(); return; }
+  showToast("💥 " + line + " ХП", "info");
+  closeCastDamageModal();
+  saveBattle();
+  renderBattleTracker();
+}
+
+function applyCastDamageTargets() {
+  var pend = _castDamagePending;
+  if (!pend) return;
+  var lines = Object.keys(pend.chosen).map(function(k) { return _castDamageHit(+k, pend.chosen[k]); }).filter(Boolean);
+  if (lines.length) showToast("💥 " + lines.join(" · "), "info");
   closeCastDamageModal();
   saveBattle();
   renderBattleTracker();
@@ -1327,6 +1372,102 @@ function closeCastDamageModal() {
   var modal = $("cast-damage-modal");
   if (modal) modal.classList.remove("active");
   _castDamagePending = null;
+}
+
+// AUD-14 (L14): цель лечения. В бою — выбор «я» и/или участников с полоской ХП
+// (массовое лечение — несколько целей), вне боя или без кандидатов — себе.
+var _castHealPending = null;
+function _castHealTargets() {
+  return BATTLE_DATA.participants
+    .map(function(p, i) { return { p: p, i: i }; })
+    .filter(function(x) { return x.p.type !== "self" && (x.p.hpMax || 0) > 0; });
+}
+
+function offerCastHealToBattle(spellName, total) {
+  var amount = Math.max(0, parseInt(total, 10) || 0);
+  var targets = BATTLE_DATA.active ? _castHealTargets() : [];
+  if (!targets.length) { if (typeof quickHP === "function") quickHP(amount, spellName); return; }
+  _castHealPending = { spellName: spellName, amount: amount, chosen: { "-1": true } };
+  _renderCastHealModal();
+}
+
+function _renderCastHealModal() {
+  var modal = $("cast-heal-modal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "cast-heal-modal";
+    modal.className = "confirm-modal-overlay";
+    modal.innerHTML =
+      '<div class="confirm-modal-box cast-damage-box">' +
+        '<div class="confirm-modal-icon">' + dndIcoHtml("heart", 28) + '</div>' +
+        '<h4 id="cast-heal-title"></h4>' +
+        '<div id="cast-heal-targets" class="cast-damage-targets"></div>' +
+        '<div class="confirm-modal-btns" style="margin-top:14px">' +
+          '<button class="confirm-btn-cancel" onclick="closeCastHealModal()">Не применять</button>' +
+          '<button class="confirm-btn-ok confirm-btn-ok--safe" id="cast-heal-apply" onclick="applyCastHealTargets()"></button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener("click", function(e) { if (e.target === modal) closeCastHealModal(); });
+  }
+  var pend = _castHealPending;
+  $("cast-heal-title").textContent = "«" + pend.spellName + "»: кого лечить на " + pend.amount + "?";
+  var char = getCurrentChar();
+  var rows = [{ i: -1, p: { name: (char && char.name) || "Я", icon: "🧙", type: "self" } }].concat(_castHealTargets());
+  var n = 0;
+  $("cast-heal-targets").innerHTML = rows.map(function(x) {
+    var p = x.p;
+    var on = pend.chosen.hasOwnProperty(x.i);
+    if (on) n++;
+    var hp = _battleParticipantHP(p);
+    var after = Math.min(hp.hpMax || 0, (hp.hp || 0) + pend.amount);
+    var fcolor = getFactionColor(p.type);
+    return '<button type="button" class="cast-damage-target' + (on ? " chosen" : "") + '" onclick="toggleCastHealTarget(' + x.i + ')">' +
+      '<span class="cdt-icon" style="background:' + fcolor + '22;color:' + fcolor + '">' + (p.icon || "🎭") + '</span>' +
+      '<span class="cdt-name">' + escapeHtml(p.name || "?") + '</span>' +
+      '<span class="cdt-hp">' + (hp.hp || 0) + ' → <b>' + after + '</b> / ' + (hp.hpMax || 0) + '</span>' +
+      '<span class="cdt-mark">' + (on ? "✓" : "") + '</span>' +
+    '</button>';
+  }).join("");
+  var applyBtn = $("cast-heal-apply");
+  applyBtn.textContent = "Лечить (" + n + ")";
+  applyBtn.disabled = !n;
+  modal.classList.add("active");
+}
+
+function toggleCastHealTarget(i) {
+  var pend = _castHealPending;
+  if (!pend) return;
+  if (pend.chosen.hasOwnProperty(i)) delete pend.chosen[i]; else pend.chosen[i] = true;
+  _renderCastHealModal();
+}
+
+function applyCastHealTargets() {
+  var pend = _castHealPending;
+  if (!pend) return;
+  var names = [];
+  Object.keys(pend.chosen).forEach(function(k) {
+    var i = +k;
+    if (i === -1) { if (typeof quickHP === "function") quickHP(pend.amount, pend.spellName); return; }
+    var p = BATTLE_DATA.participants[i];
+    if (!p) return;
+    var before = p.hp || 0;
+    p.hp = Math.min(p.hpMax || 0, before + pend.amount);
+    var st = _battleStatusFromHp(p.hp, p.hpMax);
+    if (st) p.status = st;
+    names.push((p.name || "?") + " → " + p.hp);
+    if (window.AppLog) AppLog.action("battle", "«" + pend.spellName + "»: +" + (p.hp - before) + " ХП " + (p.name || "?") + " (" + before + "→" + p.hp + ")");
+  });
+  if (names.length) showToast("💚 " + names.join(" · "), "success");
+  closeCastHealModal();
+  saveBattle();
+  renderBattleTracker();
+}
+
+function closeCastHealModal() {
+  var modal = $("cast-heal-modal");
+  if (modal) modal.classList.remove("active");
+  _castHealPending = null;
 }
 
 // ── CAST-10: дебаффы чипом на участнике трекера ─────────────────────────────

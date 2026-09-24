@@ -7659,6 +7659,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 
 .basic-locked-bar {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
@@ -7675,7 +7676,9 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
   flex-shrink: 0;
+  max-width: 100%;
 }
 .basic-unlock-btn {
   background: rgba(255,255,255,0.06);
@@ -10974,10 +10977,12 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .cast-damage-target {
   display: flex; align-items: center; gap: 10px; width: 100%;
   padding: 9px 12px; border-radius: var(--r-sm); text-align: left;
-  background: var(--accent-soft); border: 1px solid var(--accent);
-  color: var(--text); cursor: pointer; transition: background 0.18s;
+  background: var(--bg-2); border: 1px solid var(--border);
+  color: var(--text); cursor: pointer; transition: background 0.18s, border-color 0.18s;
 }
 .cast-damage-target:hover { background: var(--accent-glow); }
+.cast-damage-target.chosen { background: var(--accent-soft); border-color: var(--accent); }
+.cast-damage-target .cdt-mark { min-width: 18px; text-align: center; color: var(--accent-hi); font-weight: 700; }
 .cast-damage-target .cdt-icon {
   width: 30px; height: 30px; flex: none; border-radius: 8px;
   display: flex; align-items: center; justify-content: center; font-size: 1.05em;

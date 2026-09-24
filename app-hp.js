@@ -1093,7 +1093,8 @@ function openLevelDownConfirm() {
       if (names.length) lostLines.push("Умения " + cn + " " + clvl + " ур.: " + names.join(", "));
     }
   } catch(e) { console.error("[UI-9] features diff failed:", e); }
-  var text = "Будет утеряно:\n• " + lostLines.join("\n• ");
+  var text = "Будет утеряно:\n• " + lostLines.join("\n• ") +
+    "\n\nИнвентарь, монеты, заметки, журнал, текущие хиты и потраченные ячейки не меняются.";
   showConfirmModal("Откатить последнее повышение?", text, function() {
     confirmLevelDown();
   });
@@ -1107,27 +1108,23 @@ function confirmLevelDown() {
     return;
   }
   var snap = char._prevLevelSnapshot;
-  // Восстанавливаем все поля из снимка
   var idx = characters.findIndex(function(c){ return c.id === currentId; });
   if (idx === -1) return;
-  // Сохраняем id и schemaVersion (защита от downgrade)
-  var preservedSchema = Math.max(snap.schemaVersion || 0, char.schemaVersion || 0);
-  var restored = JSON.parse(JSON.stringify(snap));
-  restored.id = char.id;
-  restored.schemaVersion = preservedSchema;
-  delete restored._prevLevelSnapshot;
-  delete restored._snapshotAt;
-  characters[idx] = restored;
+  var fromLvl = char.level || 1;
+  // AUD-14 (L7): из снимка возвращаются только поля уровня; ХП, инвентарь,
+  // монеты, заметки и журнал остаются текущими.
+  rulesRestoreLevelFields(char, snap);
+  var restored = char;
   saveToLocal();
   loadCharacter(currentId);
   updateClassFeatures();
   renderClassResources();
   renderSpellSlots();
-  if (window.AppLog) AppLog.action("character", "откат уровня: " + (char.level||1) + " → " + (restored.level||1));
-  addJournalEntry("levelup", "Откат уровня: " + (char.level||1) + " → " + (restored.level||1),
-    "Состояние возвращено к снимку перед последним повышением");
+  if (window.AppLog) AppLog.action("character", "откат уровня: " + fromLvl + " → " + (restored.level||1));
+  addJournalEntry("levelup", "Откат уровня: " + fromLvl + " → " + (restored.level||1),
+    "Уровень, классы, характеристики, черты и выборы возвращены к снимку перед последним повышением");
   renderJournal();
-  showToast("Уровень откатан: " + (char.level||1) + " → " + (restored.level||1), "success");
+  showToast("Уровень откатан: " + fromLvl + " → " + (restored.level||1), "success");
   closeLevelUpModal();
 }
 

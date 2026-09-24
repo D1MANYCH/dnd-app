@@ -239,7 +239,7 @@ showConfirmModal("Импорт персонажей", msg, function() {
   }
   _applyFullRestore(imported, valid);
   showToast("Загружено: " + characters.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
-});
+}, "Заменить всё", { icon: "import" });
 input.value = "";
 };
 reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
@@ -328,7 +328,7 @@ showConfirmModal("Импорт персонажа", msg, function() {
   showToast("Добавлено: " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : "") +
             (addedHp ? " · HP-история: " + addedHp : "") +
             (addedSpells ? " · свои заклинания: " + addedSpells : ""), "success");
-});
+}, "Импортировать", { danger: false, icon: "import" });
 input.value = "";
 };
 reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
@@ -404,7 +404,7 @@ showConfirmModal("Импорт заклинаний", msgSp, function() {
   _backfillHomebrewFlag(characters, mergeIds);
   saveToLocal();
   showToast("Добавлено: " + mergeable.length + (skippedSpells > 0 ? " (пропущено " + skippedSpells + ")" : ""), "success");
-});
+}, "Импортировать", { danger: false, icon: "import" });
 input.value = "";
 };
 reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };

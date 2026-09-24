@@ -1623,7 +1623,7 @@ function _applyCastHeal(char, spell, d, slot) {
   var mod = d.heal.addSpellMod ? castStatMod(char, spell) : 0;
   var flat = (typeof flatFormulaTotal === "function") ? flatFormulaTotal(formula) : null;
   if (flat != null) {
-    if (typeof quickHP === "function") quickHP(Math.max(0, flat + mod), spell.name);
+    _castHealApply(Math.max(0, flat + mod), spell.name);
     return;
   }
   if (typeof rollFormula !== "function") return;
@@ -1632,9 +1632,15 @@ function _applyCastHeal(char, spell, d, slot) {
     label: "💚 " + spell.name,
     openArena: true,
     onResult: function(res) {
-      if (typeof quickHP === "function") quickHP(res.total, spell.name);
+      _castHealApply(res.total, spell.name);
     }
   });
+}
+
+// AUD-14 (L14): в бою — выбор цели лечения (app-party.js), иначе себе.
+function _castHealApply(amount, spellName) {
+  if (typeof offerCastHealToBattle === "function") offerCastHealToBattle(spellName, amount);
+  else if (typeof quickHP === "function") quickHP(amount, spellName);
 }
 
 // CAST-3: временные ХП — бросок формулы (плоские — сразу), итог в applyCastTempHp.

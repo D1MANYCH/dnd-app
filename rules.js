@@ -614,6 +614,29 @@ function getMulticlassSpellSlots(char) {
 
 /** AUD-5 (L4, L18): максимум ячеек и пакт-ячеек по классам персонажа. Потраченные
  *  не обнуляются — только обрезаются до нового максимума. Колдун — всегда в пакт. */
+// AUD-14 (L7): откат повышения — из снимка берутся только поля, которые меняет
+// повышение уровня; игровое состояние (ХП, инвентарь, заметки…) остаётся текущим.
+var RULES_LEVEL_FIELDS = ["level", "class", "subclass", "classes", "stats", "saves", "skills",
+  "feats", "raceFeats", "asiUsed", "classChoices", "bonuses", "proficiencies", "sheetLocked"];
+function rulesRestoreLevelFields(char, snap) {
+  if (!char || !snap) return char;
+  var copy = JSON.parse(JSON.stringify(snap));
+  RULES_LEVEL_FIELDS.forEach(function(k) {
+    if (copy.hasOwnProperty(k)) char[k] = copy[k]; else delete char[k];
+  });
+  if (!char.spells) char.spells = {};
+  if (copy.spells && Array.isArray(copy.spells.mySpells)) char.spells.mySpells = copy.spells.mySpells;
+  var sc = copy.combat || {};
+  char.combat.hpMax = sc.hpMax;
+  if (sc.hasOwnProperty("hpMaxManual")) char.combat.hpMaxManual = sc.hpMaxManual; else delete char.combat.hpMaxManual;
+  char.combat.hpCurrent = Math.min(parseInt(char.combat.hpCurrent, 10) || 0, parseInt(sc.hpMax, 10) || 0);
+  char.combat.hpDice = rulesHitDiceLabel(char);
+  rulesHitDiceSpentBy(char);
+  rulesApplySpellSlots(char);
+  delete char._prevLevelSnapshot;
+  return char;
+}
+
 function rulesApplySpellSlots(char) {
   if (!char) return;
   if (!char.spells) char.spells = {};

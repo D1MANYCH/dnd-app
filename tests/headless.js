@@ -8624,6 +8624,50 @@
     });
   }
 
+  // ── AUD-14: UI и мелочи ──
+  if (typeof rulesRestoreLevelFields === "function") {
+    t("[AUD-14 L7] откат уровня возвращает только поля уровня", function(){
+      var snap = { level: 1, class: "Воин", classes: [{ class: "Воин", level: 1, hitDie: 10 }], stats: { str: 16, con: 14 },
+        feats: [], combat: { hpMax: 12, hpCurrent: 12 }, coins: { gp: 5 }, inventory: [], spells: { mySpells: [] } };
+      var c = JSON.parse(JSON.stringify(snap));
+      c.level = 2; c.classes[0].level = 2; c.stats.str = 17; c.feats = [{ id: "x" }];
+      c.combat = { hpMax: 20, hpCurrent: 18, hpDiceSpent: 2 };
+      c.coins = { gp: 50 }; c.inventory = [{ name: "Верёвка" }]; c._prevLevelSnapshot = snap;
+      rulesRestoreLevelFields(c, snap);
+      if (c.level !== 1 || c.classes[0].level !== 1 || c.stats.str !== 16 || c.feats.length) return "поля уровня не вернулись";
+      if (c.coins.gp !== 50 || c.inventory.length !== 1) return "игровое состояние затёрто";
+      if (c.combat.hpMax !== 12 || c.combat.hpCurrent !== 12) return "ХП " + c.combat.hpCurrent + "/" + c.combat.hpMax;
+      if (c.combat.hpDiceSpent !== 1) return "потрачено костей " + c.combat.hpDiceSpent;
+      return !c._prevLevelSnapshot || "снимок не удалён";
+    });
+  }
+  if (typeof toggleCastDamageTarget === "function" && typeof offerCastHealToBattle === "function") {
+    t("[AUD-14 L32, L14] урон по нескольким целям со своим исходом, лечение союзника", function(){
+      var savedBattle = BATTLE_DATA, savedId = window.currentId;
+      try {
+        window.currentId = null;
+        BATTLE_DATA = { active: true, currentTurn: 0, round: 1, participants: [
+          { id: "m1", name: "Гоблин", type: "monster", hp: 20, hpMax: 20 },
+          { id: "m2", name: "Орк", type: "monster", hp: 20, hpMax: 20 },
+          { id: "a1", name: "Союзник", type: "ally", hp: 5, hpMax: 30 }
+        ] };
+        offerCastDamageToBattle("Огненный шар", 9, { half: true });
+        toggleCastDamageTarget(0); toggleCastDamageTarget(1); toggleCastDamageTarget(1);
+        applyCastDamageTargets();
+        var p = BATTLE_DATA.participants;
+        if (p[0].hp !== 11 || p[1].hp !== 16) return "урон " + p[0].hp + "/" + p[1].hp;
+        offerCastHealToBattle("Лечение ран", 40);
+        toggleCastHealTarget(-1); toggleCastHealTarget(2);
+        applyCastHealTargets();
+        return p[2].hp === 30 || ("лечение союзника: " + p[2].hp);
+      } finally {
+        BATTLE_DATA = savedBattle; window.currentId = savedId;
+        if (typeof closeCastDamageModal === "function") closeCastDamageModal();
+        if (typeof closeCastHealModal === "function") closeCastHealModal();
+      }
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
