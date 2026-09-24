@@ -260,7 +260,7 @@ const SPELL_EFFECTS = {
   "Направленный снаряд": { damage: { formula: "4к6",  upcast: "1к6", attack: true } },
   "Луч болезни":         { damage: { formula: "2к8",  upcast: "1к8", attack: true } },
   "Нанесение ран":       { damage: { formula: "3к10", upcast: "1к10", attack: true },
-                           bySource: { PH24: { damage: { formula: "2к10", upcast: "1к10", attack: true } } } },
+                           bySource: { PH24: { damage: { formula: "2к10", upcast: "1к10", save: "con", halfOnSave: true } } } },
   "Адское возмездие":    { damage: { formula: "2к10", upcast: "1к10", save: "dex", halfOnSave: true } },
   "Диссонирующий шёпот": { damage: { formula: "3к6",  upcast: "1к6",  save: "wis", halfOnSave: true } },
   // CAST-9a: начальное попадание — атака; повтор бонусным действием бьёт
@@ -309,7 +309,12 @@ const SPELL_EFFECTS = {
   "Божественное оружие": { damage: { formula: "1к8", upcast: "1к8", upcastEvery: 2, attack: true, addSpellMod: true },
                           repeat: { formula: "1к8", upcast: "1к8", upcastEvery: 2, attack: true, addSpellMod: true,
                                     hint: "бонусное действие: переместить и атаковать" },
-                          duration: { value: 1, unit: "minute" } },
+                          duration: { value: 1, unit: "minute" },
+                          // AUD-13 (E9): в PH24 +1к8 за КАЖДЫЙ уровень выше 2-го
+                          bySource: { PH24: {
+                            damage: { formula: "1к8", upcast: "1к8", attack: true, addSpellMod: true },
+                            repeat: { formula: "1к8", upcast: "1к8", attack: true, addSpellMod: true,
+                                      hint: "бонусное действие: переместить и атаковать" } } } },
   // CAST-11: клинок-конструкт — каст сразу даёт атаку, дальше атака каждый ход.
   // «Горящий клинок» растёт за КАЖДЫЕ ДВА уровня выше 2-го (upcastEvery): 4-й
   // круг — 4к6, 6-й — 5к6, 8-й — 6к6.

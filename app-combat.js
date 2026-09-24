@@ -692,6 +692,15 @@ var sum = 0;
 });
 return sum;
 }
+// AUD-13 (E11): плоская прибавка к максимуму («Дар стойкости» 2024 — +40)
+function featHpFlat(char) {
+var sum = 0;
+(char.feats || []).forEach(function(f) {
+  var def = (typeof getFeatDef === "function") ? getFeatDef(char, f.id) : null;
+  (def && def.effects || []).forEach(function(eff) { if (eff.type === "hp_flat") sum += eff.value; });
+});
+return sum;
+}
 // AUD-4 (R3): resetManual — кнопка «Пересчитать» сбрасывает ручной максимум
 function recalculateHP(resetManual) {
 if (!currentId) return;
@@ -717,7 +726,7 @@ var castHpBonus = 0;
 (char.activeSpellEffects || []).forEach(function(i) { if (i.hpMaxBonus) castHpBonus += i.hpMaxBonus; });
 // E24-5: бонусы черт к максимуму («Крепкий» — +2 за уровень) — тоже поверх авто-базы,
 // иначе любой пересчёт (смена ТЕЛ, уровень, выдача черты происхождения) стирал их.
-var featHpBonus = featHpPerLevel(char) * level;
+var featHpBonus = featHpPerLevel(char) * level + featHpFlat(char);
 var manualBase = parseInt(char.combat.hpMaxManual, 10);
 var hpBase = manualBase > 0 ? manualBase : rulesMaxHPBase(hpSrc, conMod);
 const newMaxHP = hpBase + castHpBonus + featHpBonus;
@@ -1669,16 +1678,26 @@ function _bgRevertStatChoice(char) {
   if (!char.bgStatChoice || typeof char.bgStatChoice !== "object") char.bgStatChoice = { mode: "2+1", alloc: {} };
   var alloc = char.bgStatChoice.alloc || {};
   Object.keys(alloc).forEach(function(k) {
-    char.stats[k] = Math.max(1, (char.stats[k] || 10) - alloc[k]);
+    char.stats[k] = Math.max(1, (char.stats[k] || 10) - _bgAppliedStat(char, k));
     safeSet("val-" + k, char.stats[k]);
     if (typeof updateStatDisplay === "function") updateStatDisplay(k);
   });
   char.bgStatChoice.alloc = {};
+  char.bgStatChoice.applied = {};
+}
+
+// AUD-13 (E12): фактическая прибавка (после потолка 20); у старых персонажей — alloc
+function _bgAppliedStat(char, k) {
+  var ap = char.bgStatChoice.applied;
+  return (ap && typeof ap[k] === "number") ? ap[k] : (char.bgStatChoice.alloc[k] || 0);
 }
 
 function _bgApplyStat(char, k, v) {
   char.bgStatChoice.alloc[k] = v;
-  char.stats[k] = Math.min(20, (char.stats[k] || 10) + v);
+  var before = char.stats[k] || 10;
+  char.stats[k] = Math.min(20, before + v);
+  if (!char.bgStatChoice.applied) char.bgStatChoice.applied = {};
+  char.bgStatChoice.applied[k] = Math.max(0, char.stats[k] - before);
   safeSet("val-" + k, char.stats[k]);
   if (typeof updateStatDisplay === "function") updateStatDisplay(k);
 }
@@ -1706,10 +1725,11 @@ function toggleBgStat(k) {
   if (char.bgStatChoice.mode !== "2+1") return;
   var alloc = char.bgStatChoice.alloc;
   if (alloc[k]) {
-    char.stats[k] = Math.max(1, (char.stats[k] || 10) - alloc[k]);
+    char.stats[k] = Math.max(1, (char.stats[k] || 10) - _bgAppliedStat(char, k));
     safeSet("val-" + k, char.stats[k]);
     if (typeof updateStatDisplay === "function") updateStatDisplay(k);
     delete alloc[k];
+    if (char.bgStatChoice.applied) delete char.bgStatChoice.applied[k];
   } else {
     var has2 = Object.keys(alloc).some(function(x) { return alloc[x] === 2; });
     var has1 = Object.keys(alloc).some(function(x) { return alloc[x] === 1; });

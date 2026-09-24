@@ -7203,7 +7203,7 @@
   (function(){
     if (typeof FEATS_2024 === "undefined" || typeof edData !== "function") return;
     var STATS = ["str","dex","con","int","wis","cha"];
-    var KNOWN = ["stat","stat_choice","stat_choice_save","armor","weapon","hp_per_level","initiative_bonus","initiative_prof","passive"];
+    var KNOWN = ["stat","stat_choice","stat_choice_save","armor","weapon","hp_per_level","hp_flat","initiative_bonus","initiative_prof","passive"];
     function byCat(c){ return FEATS_2024.filter(function(f){ return f.category === c; }); }
     function mk24(o){
       var c = { edition:"2024", stats:{str:10,dex:10,con:10,int:10,wis:10,cha:10}, level:4,
@@ -8589,6 +8589,38 @@
       try { applyBuild("cleric-life-healer"); } catch (e) { /* побочка loadCharacter в шиме — ок */ }
       var ch = characters.filter(function(c) { return c.buildId === "cleric-life-healer"; }).pop();
       return (ch && ch.combat.hpMax === 11 && ch.combat.hpCurrent === ch.combat.hpMax) || (ch && ch.combat.hpCurrent + "/" + ch.combat.hpMax);
+    });
+  }
+
+  // ── AUD-13: редакция 2024 ──
+  t("[AUD-13 E8, E9, E14] заклинания PH24: «Нанесение ран», «Божественное оружие», «Сглаз»", function(){
+    var iw = getSpellEffect("Нанесение ран", "PH24").damage;
+    if (iw.attack || iw.save !== "con" || !iw.halfOnSave) return "E8 нанесение ран";
+    if (!getSpellEffect("Нанесение ран", "PH14").damage.attack) return "E8 PH14 атака";
+    var sw = getSpellEffect("Божественное оружие", "PH24");
+    if (sw.damage.upcastEvery || sw.repeat.upcastEvery) return "E9 апкаст PH24";
+    if (getSpellEffect("Божественное оружие", "PH14").damage.upcastEvery !== 2) return "E9 PH14";
+    var hex = SPELLS_BASE.find(function(x) { return x.name === "Сглаз" && x.source === "PH24"; });
+    return /Ячейка 2 уровня: 4 часа/.test(hex.higherLevel) || "E14 сглаз";
+  });
+  t("[AUD-13 E10, E11, E15] эльф 2024, «Дар стойкости», «Использование двух оружий»", function(){
+    var elf = SPECIES_2024["Эльф"];
+    if (!elf.traits.some(function(x) { return x.name === "Обострённые чувства"; })) return "E10 эльф";
+    var feats = FEATS_2024;
+    var boon = feats.find(function(f) { return f.id === "f24-boon_fortitude"; });
+    if (!boon.effects.some(function(e) { return e.type === "hp_flat" && e.value === 40; })) return "E11 эффект";
+    var c = { edition: "2024", level: 19, feats: [{ id: "f24-boon_fortitude" }] };
+    if (typeof featHpFlat === "function" && featHpFlat(c) !== 40) return "E11 featHpFlat " + featHpFlat(c);
+    var dw = feats.find(function(f) { return f.id === "f24-dual_wielder"; });
+    return (dw.desc.indexOf("нелёгким") === -1 && /не добавляется/.test(dw.desc)) || "E15 текст";
+  });
+  if (typeof _bgApplyStat === "function") {
+    t("[AUD-13 E12] откат бонуса предыстории — только фактическая прибавка", function(){
+      var c = { stats: { str: 19, dex: 10 }, bgStatChoice: { mode: "2+1", alloc: {} } };
+      _bgApplyStat(c, "str", 2); _bgApplyStat(c, "dex", 1);
+      if (c.stats.str !== 20 || c.stats.dex !== 11) return "применение " + c.stats.str + "/" + c.stats.dex;
+      _bgRevertStatChoice(c);
+      return (c.stats.str === 19 && c.stats.dex === 10) || ("откат " + c.stats.str + "/" + c.stats.dex);
     });
   }
 

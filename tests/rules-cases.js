@@ -530,6 +530,36 @@ function rulesCases(t, group) {
     return true;
   });
 
+  // AUD-13 (E1, E5): в 2024 длинный отдых возвращает все кости и снимает истощение без еды
+  t("[AUD-13 E1, E5] длинный отдых 2024: все кости хитов, истощение без условия «ел и пил»", function() {
+    var c = restChar({ edition: "2024", conditions: ["exhaustion_2"],
+      combat: { armorId: "none", hasShield: false, hpCurrent: 4, hpMax: 44, hpTemp: 0, hpDiceSpent: 5, hpDice: "1к10" } });
+    var r = rulesLongRest(c, { foodAndDrink: false });
+    if (r.hitDiceRestored !== 5 || c.combat.hpDiceSpent !== 0) return "кости: " + r.hitDiceRestored + ", осталось " + c.combat.hpDiceSpent;
+    if (!r.exhaustionReduced || c.conditions.indexOf("exhaustion_1") === -1) return "истощение: " + JSON.stringify(c.conditions);
+    var c14 = restChar({ conditions: ["exhaustion_2"] });
+    var r14 = rulesLongRest(c14, { foodAndDrink: false });
+    return (r14.exhaustionHeld && c14.conditions.indexOf("exhaustion_2") !== -1) || "2014 без еды снизил истощение";
+  });
+
+  // AUD-13 (E4, E13): «Боевой заклинатель» 2024 и потолок СЛ 30
+  t("[AUD-13 E4, E13] концентрация: черта f24-war_caster, СЛ не выше 30 в 2024", function() {
+    var p = concSaveParams({ edition: "2024", stats: { con: 10 }, saves: {}, level: 5, feats: [{ id: "f24-war_caster" }] }, 100);
+    if (p.mode !== "adv") return "нет преимущества от f24-war_caster";
+    if (p.dc !== 30) return "СЛ 2024: " + p.dc;
+    var p14 = concSaveParams({ stats: { con: 10 }, saves: {}, level: 5 }, 100);
+    return p14.dc === 50 || "СЛ 2014: " + p14.dc;
+  });
+
+  // AUD-13 (E18): «Мастер на все руки» 2024 — только навыки, к инициативе не идёт
+  t("[AUD-13 E18] инициатива барда 2024 без пол-БМ", function() {
+    var a = getInitiativeMod({ stats: { dex: 14 }, class: "Бард" }, 9);
+    var b = getInitiativeMod({ edition: "2024", stats: { dex: 14 }, class: "Бард" }, 9);
+    if (a !== 4 || b !== 2) return "бард: 2014 " + a + ", 2024 " + b;
+    var ch = getInitiativeMod({ edition: "2024", stats: { dex: 14 }, class: "Воин", subclass: "Чемпион" }, 9);
+    return ch === 2 || "Чемпион 2024: " + ch;
+  });
+
   t("Длинный отдых: истощение −1 уровень, прочие состояния остаются", function() {
     var c3 = restChar({ conditions: ["exhaustion_3", "poisoned"] });
     var r3 = rulesLongRest(c3);

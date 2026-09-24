@@ -288,7 +288,8 @@ function getInitiativeMod(char, level) {
   var mod = char.stats ? getMod(char.stats.dex) : 0;
   // Пол-БМ Барда: порог 2 — по уровню Барда, сам БМ — по суммарному уровню (PHB)
   // AUD-8 (R15): у Чемпиона 7 ур. — пол-БМ вверх («Выдающийся атлет»), не складывается
-  mod += rulesUntrainedCheckBonus(char, lvl, "dex");
+  // AUD-13 (E18): в 2024 «Мастер на все руки» — только к проверкам навыков, инициатива не навык
+  if (char.edition !== "2024") mod += rulesUntrainedCheckBonus(char, lvl, "dex");
   if (char.bonuses && char.bonuses.initiative) mod += char.bonuses.initiative;
   // E24-3: «Бдительный» 2024 — БМ к инициативе (char.bonuses.initiativeProf)
   if (char.bonuses && char.bonuses.initiativeProf) mod += getProficiencyBonus(lvl);
@@ -719,7 +720,8 @@ function rulesLongRestBlockReason(char) {
 // но истощение не снижается (PHB стр.291). По умолчанию считаем, что ел и пил.
 function rulesLongRest(char, opts) {
   opts = opts || {};
-  var foodAndDrink = (opts.foodAndDrink !== false);
+  // AUD-13 (E5): в 2024 истощение снимается без условия «ел и пил» (PHB24 стр.352, 359)
+  var foodAndDrink = (opts.foodAndDrink !== false) || char.edition === "2024";
   var blockReason = rulesLongRestBlockReason(char);
   if (blockReason) {
     var hpNow = parseInt(char.combat.hpCurrent, 10) || 0;
@@ -738,7 +740,9 @@ function rulesLongRest(char, opts) {
   // PHB стр.186: восстанавливается половина костей, но не меньше одной и не больше потраченных
   var _by = rulesHitDiceSpentBy(char);
   var hitDiceSpentBefore = char.combat.hpDiceSpent || 0;
-  var hitDiceRestored = Math.min(hitDiceSpentBefore, Math.max(1, Math.floor((char.level || 1) / 2)));
+  // AUD-13 (E1): в 2024 возвращаются все потраченные кости (PHB24 стр.359)
+  var hitDiceRestored = char.edition === "2024" ? hitDiceSpentBefore
+    : Math.min(hitDiceSpentBefore, Math.max(1, Math.floor((char.level || 1) / 2)));
   // AUD-4: у мультикласса возвращаются сначала крупные кости
   var _left = hitDiceRestored;
   _hdSizesDesc(_by).forEach(function(d) { var n = Math.min(_by[d], _left); _by[d] -= n; _left -= n; if (!_by[d]) delete _by[d]; });
@@ -992,10 +996,13 @@ function concSaveParams(char, dmg) {
     mod += getProficiencyBonus(char.level || 1);
   }
   var mode = "normal";
-  if (Array.isArray(char.feats) && char.feats.some(function(f){ return f && f.id === "war_caster"; })) {
+  if (Array.isArray(char.feats) && char.feats.some(function(f){ return f && (f.id === "war_caster" || f.id === "f24-war_caster"); })) {
     mode = "adv";
   }
-  return { dc: Math.max(10, Math.floor((Math.abs(dmg) || 0) / 2)), mod: mod, mode: mode };
+  var dc = Math.max(10, Math.floor((Math.abs(dmg) || 0) / 2));
+  // AUD-13 (E13): в 2024 СЛ концентрации не выше 30 (PHB24 стр.353)
+  if (char.edition === "2024") dc = Math.min(30, dc);
+  return { dc: dc, mod: mod, mode: mode };
 }
 window.concSaveParams = concSaveParams;
 

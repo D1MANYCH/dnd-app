@@ -62,13 +62,13 @@ if (title) title.innerHTML = dndIcoHtml("bed", 16) + " Долгий отдых (
 const char = getCurrentChar();
 const blockReason = char ? rulesLongRestBlockReason(char) : null;
 const blockNote = blockReason ? "<li style='color:var(--danger); font-weight:600;'>" + dndIcoHtml("alert", 13) + " " + escapeHtml(blockReason) + "</li>" : "";
-if (list) list.innerHTML = blockNote + "<li>Восстанавливаются ВСЕ ХП</li><li>Восстанавливаются ВСЕ ячейки заклинаний</li><li>Восстанавливаются кости хитов (до половины уровня)</li><li>Сбрасываются потраченные кости хитов</li><li>Восстанавливаются все классовые умения</li><li>" + dndIcoHtml("check", 13) + " Снимаются большинство условий</li>";
+if (list) list.innerHTML = blockNote + "<li>Восстанавливаются ВСЕ ХП</li><li>Восстанавливаются ВСЕ ячейки заклинаний</li><li>Восстанавливаются кости хитов (" + (char && char.edition === "2024" ? "все" : "до половины уровня") + ")</li><li>Сбрасываются потраченные кости хитов</li><li>Восстанавливаются все классовые умения</li><li>" + dndIcoHtml("check", 13) + " Снимаются большинство условий</li>";
 if (hitDiceSection) hitDiceSection.classList.add("hidden");
 // PHB стр.291: истощение снижает только тот отдых, в котором персонаж поел и попил.
 // Спрашиваем, только если истощение есть — иначе флажок в окне ни на что не влияет.
 const foodSection = $("rest-food-section");
 const foodBox = $("rest-food-drink");
-const hasExhaustion = !!(char && char.conditions && char.conditions.some(function(c) { return String(c).indexOf("exhaustion_") === 0; }));
+const hasExhaustion = !!(char && char.edition !== "2024" && char.conditions && char.conditions.some(function(c) { return String(c).indexOf("exhaustion_") === 0; }));
 if (foodBox) foodBox.checked = true;
 if (foodSection) foodSection.classList.toggle("hidden", !hasExhaustion);
 if (confirmBtn) { confirmBtn.textContent = "Долгий отдых"; confirmBtn.disabled = !!blockReason; }
@@ -703,8 +703,8 @@ function luApplyFeatById(char, featId, level, statPick) {
     } else if (eff.type === "armor") {
       if (!char.proficiencies.armor) char.proficiencies.armor = [];
       if (char.proficiencies.armor.indexOf(eff.value) === -1) char.proficiencies.armor.push(eff.value);
-    } else if (eff.type === "hp_per_level") {
-      var bonus = eff.value * (char.level || 1);
+    } else if (eff.type === "hp_per_level" || eff.type === "hp_flat") {
+      var bonus = eff.type === "hp_flat" ? eff.value : eff.value * (char.level || 1);
       char.combat.hpMax = (char.combat.hpMax || 10) + bonus;
       char.combat.hpCurrent = Math.min(char.combat.hpCurrent + bonus, char.combat.hpMax);
     } else if (eff.type === "initiative_bonus") {

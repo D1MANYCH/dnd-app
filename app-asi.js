@@ -421,12 +421,12 @@ function applyASI() {
         appliedDesc.push("Владение: " + armorLabel);
       }
     }
-    else if (eff.type === "hp_per_level") {
+    else if (eff.type === "hp_per_level" || eff.type === "hp_flat") {
       // Крепкий — +2 ХП за уровень ретроактивно
-      var bonus = eff.value * (char.level || 1);
+      var bonus = eff.type === "hp_flat" ? eff.value : eff.value * (char.level || 1);
       char.combat.hpMax = (char.combat.hpMax || 10) + bonus;
       char.combat.hpCurrent = Math.min(char.combat.hpCurrent + bonus, char.combat.hpMax);
-      appliedDesc.push("+" + bonus + " ХП (×" + (char.level||1) + " ур.)");
+      appliedDesc.push("+" + bonus + " ХП" + (eff.type === "hp_flat" ? "" : " (×" + (char.level||1) + " ур.)"));
     }
     else if (eff.type === "initiative_bonus") {
       if (!char.bonuses) char.bonuses = {};
