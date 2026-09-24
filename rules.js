@@ -110,6 +110,25 @@ function rulesPickHitDice(char, count) {
   return picked;
 }
 
+// AUD-15 (L1): ручной выбор — запрошенные размеры костей, не больше оставшихся каждого размера
+function rulesClampHitDice(char, dice) {
+  var pool = rulesHitDicePool(char);
+  var by = rulesHitDiceSpentBy(char);
+  var left = {};
+  Object.keys(pool).forEach(function(d) { left[d] = pool[d] - (by[d] || 0); });
+  return (dice || []).filter(function(d) {
+    if (left[d] > 0) { left[d]--; return true; }
+    return false;
+  });
+}
+
+// AUD-15 (R14): ритуал — время накладывания + 10 минут (PHB стр. 202), в минутах
+function rulesRitualMinutes(time) {
+  var m = String(time || "").match(/(\d+)\s*(минут|час)/);
+  var cast = m ? parseInt(m[1], 10) * (m[2] === "час" ? 60 : 1) : 0;
+  return cast + 10;
+}
+
 // AUD-4 (L19): одна формула кости хитов — бросок + ТЕЛ, не меньше 0 (PHB стр.186)
 function rulesHitDieHeal(roll, conMod) {
   return Math.max(0, roll + conMod);
@@ -700,7 +719,7 @@ function rulesShortRest(char, opts) {
   // PHB стр.186: запас костей хитов равен уровню, потраченные возвращает только
   // продолжительный отдых — потратить больше, чем осталось, нельзя. В UI предел держит
   // adjustHitDice, здесь тот же предел на уровне правил: лишние броски не считаются.
-  var dice = rulesPickHitDice(char, Math.max(0, spent));
+  var dice = Array.isArray(opts.dice) ? rulesClampHitDice(char, opts.dice) : rulesPickHitDice(char, Math.max(0, spent));
   spent = dice.length;
   if (rolls.length > spent) rolls = rolls.slice(0, spent);
   var _sp = rulesSpendHitDice(char, dice, rolls);

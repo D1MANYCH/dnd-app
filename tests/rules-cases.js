@@ -966,6 +966,20 @@ function rulesCases(t, group) {
     return true;
   });
 
+  t("[AUD-15 L1] короткий отдых: выбранные вручную к6, к10 не тронута; сверх остатка не тратится", function() {
+    var c = fixture({ class: "Воин", level: 3, classes: [{ class: "Воин", level: 1 }, { class: "Волшебник", level: 2 }] });
+    c.combat.hpCurrent = 1; c.combat.hpMax = 30;
+    var r = rulesShortRest(c, { dice: [6, 6, 6], rolls: [4, 4, 4] });
+    if (c.combat.hpDiceSpentBy[10] || c.combat.hpDiceSpentBy[6] !== 2) return "потрачено " + JSON.stringify(c.combat.hpDiceSpentBy);
+    if (c.combat.hpDiceSpent !== 2) return "всего " + c.combat.hpDiceSpent;
+    return r.rollLog.length === 2 ? true : "бросков " + r.rollLog.length;
+  });
+
+  t("[AUD-15 R14] ритуал: время накладывания + 10 минут", function() {
+    var got = [rulesRitualMinutes("1 действие (ритуал)"), rulesRitualMinutes("1 минута (ритуал)"), rulesRitualMinutes("10 минут (ритуал)"), rulesRitualMinutes("1 час (ритуал)")].join(",");
+    return got === "10,11,20,70" ? true : got;
+  });
+
   t("[R12] старое сохранение: hpDiceSpent 2 без разбивки раскладывается с крупных", function() {
     var c = fixture({ class: "Воин", level: 3, classes: [{ class: "Воин", level: 1 }, { class: "Волшебник", level: 2 }] });
     c.combat.hpDiceSpent = 2;

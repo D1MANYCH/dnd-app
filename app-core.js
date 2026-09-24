@@ -194,6 +194,7 @@ var currentFilterCategory = "all";
 var diceHistory = [];
 var currentRestType = null;
 var hitDiceToSpend = 0;
+var hitDiceBySize = {};
 var hpHistory = [];
 var abilities = [
 {key: "str", name: "Сила"}, {key: "dex", name: "Ловкость"}, {key: "con", name: "Телосложение"},

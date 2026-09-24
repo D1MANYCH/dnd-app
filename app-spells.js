@@ -848,7 +848,7 @@ card.innerHTML =
     // две одинаковые кнопки на карточке читались бы как разные действия.
 
     (spell.duration && spell.duration.toLowerCase().includes('концентрац') ? '<button class="spell-conc-btn" onclick="setConcentration(this.dataset.name)" data-name="' + escapeHtml(spell.name) + '">' + dndIcoHtml("focus", 13) + ' Концентрация</button>' : '') +
-    (canCastRitual ? '<button class="spell-ritual-btn" onclick="castRitual(\'' + escapeHtml(spell.name).replace(/'/g,"&#39;") + '\')">' + dndIcoHtml("history", 13) + ' Ритуал</button>' : '') +
+    (canCastRitual ? '<button class="spell-ritual-btn" onclick="castRitual(\'' + escapeHtml(spell.name).replace(/'/g,"&#39;") + '\', ' + rulesRitualMinutes(spell.time) + ')">' + dndIcoHtml("history", 13) + ' Ритуал</button>' : '') +
     (needsPrep ? '<button class="spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">' + (prepared ? '' + dndIcoHtml("check", 13) + ' Подготовлено' : '○ Подготовить') + '</button>' : '') +
     (isFamiliarSpell ? '<button class="spell-summon-btn" onclick="summonFamiliar()">' + dndIcoHtml("wolf", 13) + ' Призвать фамильяра</button>' : '') +
     // HB-3: правка своего заклинания прямо из списка. Удаления из базы здесь нет
@@ -1732,6 +1732,8 @@ if (typeof window !== 'undefined') window._ritualTimer = null;
 function canCastAsRitual(char, spell) {
   if (!char || !spell || !(spell.time && spell.time.indexOf("(ритуал)") !== -1)) return false;
   var is2024 = char.edition === "2024";
+  // AUD-15 (R14): договор цепи — «Поиск фамильяра» ритуалом (PHB стр. 108)
+  if (!is2024 && spell.name === "Поиск фамильяра" && typeof ccGetStored === "function" && ccGetStored(char, "Колдун", "pact-boon") === "chain") return true;
   var casters = charCasterLevel(char).casters.map(function(c) { return c.cls; });
   var spellCls = Array.isArray(spell.classes) ? spell.classes : null;
   var list = (char.classes && char.classes.length) ? char.classes.map(function(c) { return c && c.class; }) : [char.class];
@@ -1749,19 +1751,21 @@ function canCastAsRitual(char, spell) {
   return false;
 }
 
-function castRitual(spellName) {
+function castRitual(spellName, minutes) {
 // Если уже идёт ритуал — отменить старый
 if (_ritualTimer) cancelRitual(true);
 var _ritCharId = currentId;
-_ritualEndTime = Date.now() + 10 * 60 * 1000; // 10 минут
+// AUD-15 (R14): время накладывания + 10 минут
+var _ritMin = minutes > 0 ? minutes : 10;
+_ritualEndTime = Date.now() + _ritMin * 60 * 1000;
 var nameEl = $("status-ritual-name");
 var timerEl = $("status-ritual-timer");
 var container = $("status-ritual");
 if (nameEl) nameEl.textContent = spellName;
-if (timerEl) timerEl.textContent = "10:00";
+if (timerEl) timerEl.textContent = _ritMin + ":00";
 if (container) container.classList.remove("hidden");
-if (window.AppLog) AppLog.action("spells", "ритуал начат: " + spellName);
-showToast("🕐 Ритуал: " + spellName + " — 10 минут", "info");
+if (window.AppLog) AppLog.action("spells", "ритуал начат: " + spellName + ", " + _ritMin + " мин");
+showToast("🕐 Ритуал: " + spellName + " — " + _ritMin + " мин", "info");
 _ritualTimer = setInterval(function() {
   var left = _ritualEndTime - Date.now();
   if (left <= 0) {

@@ -7153,6 +7153,13 @@
         var f = { edition: "2014", class: "Воин", level: 3, classes: [{ class: "Воин", level: 3 }], spells: { mySpells: [sp] } };
         return !canCastAsRitual(f, sp) || "воин кастует ритуал";
       });
+      t("[aud-15] R14: колдун с договором цепи — «Поиск фамильяра» ритуалом, без договора — нет", function(){
+        var sp = { id: 9010, name: "Поиск фамильяра", level: 1, time: "1 час (ритуал)", classes: ["wizard"] };
+        var wl = { edition: "2014", class: "Колдун", level: 3, stats: { cha: 16 }, classes: [{ class: "Колдун", level: 3 }], spells: { mySpells: [sp] }, classChoices: { "Колдун": { "pact-boon": "tome" } } };
+        if (canCastAsRitual(wl, sp)) return "договор гримуара";
+        wl.classChoices["Колдун"]["pact-boon"] = "chain";
+        return canCastAsRitual(wl, sp) || "договор цепи";
+      });
       t("[aud-5] L13: арканум колдуна 11 — вариант каста 6 круга без ячейки, 7 круг закрыт", function(){
         var s6 = { id: 9004, name: "Круг смерти", level: 6, classes: ["warlock", "wizard"] };
         var s7 = { id: 9005, name: "Перст смерти", level: 7, classes: ["warlock"] };

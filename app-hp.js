@@ -13,6 +13,7 @@ function closeRestModal() {
 if (typeof currentScreenName === "function" && currentScreenName() === "rest") screenBack();
 currentRestType = null;
 hitDiceToSpend = 0;
+hitDiceBySize = {};
 }
 function showRestMain() {
 const main = $("rest-main-screen");
@@ -96,14 +97,46 @@ if (hitDiceToSpend > availableHitDice) hitDiceToSpend = availableHitDice;
 safeSet("hit-dice-to-spend", hitDiceToSpend);
 updateHitDiceInfo();
 }
+// AUD-15 (L1): у мультикласса кости выбираются по размеру, иначе — крупные первыми
+function _restHitDiceChosen(char) {
+var sizes = Object.keys(rulesHitDicePool(char)).map(Number).sort(function(a, b) { return b - a; });
+if (sizes.length <= 1) return rulesPickHitDice(char, hitDiceToSpend);
+var out = [];
+sizes.forEach(function(d) { for (var i = 0; i < (hitDiceBySize[d] || 0); i++) out.push(d); });
+return rulesClampHitDice(char, out);
+}
+function adjustHitDiceSize(d, delta) {
+var char = getCurrentChar();
+if (!char) return;
+var left = (rulesHitDicePool(char)[d] || 0) - (rulesHitDiceSpentBy(char)[d] || 0);
+hitDiceBySize[d] = Math.max(0, Math.min(left, (hitDiceBySize[d] || 0) + delta));
+updateHitDiceInfo();
+}
 function updateHitDiceInfo() {
 const char = getCurrentChar();
 if (!char) return;
 const maxHitDice = char.level || 1;
 const availableHitDice = maxHitDice - (char.combat.hpDiceSpent || 0);
 const conMod = getMod(char.stats.con);
+var _pool = rulesHitDicePool(char), _by = rulesHitDiceSpentBy(char);
+var _sizes = Object.keys(_pool).map(Number).sort(function(a, b) { return b - a; });
+var _multi = _sizes.length > 1;
+var _totalEl = $("hit-dice-controls-total"), _bySizeEl = $("hit-dice-by-size");
+if (_totalEl) _totalEl.classList.toggle("hidden", _multi);
+if (_bySizeEl) {
+  _bySizeEl.classList.toggle("hidden", !_multi);
+  _bySizeEl.innerHTML = _multi ? _sizes.map(function(d) {
+    var left = _pool[d] - (_by[d] || 0);
+    return '<div class="hit-dice-controls"><button type="button" class="hit-dice-step" onclick="adjustHitDiceSize(' + d + ', -1)" aria-label="Меньше к' + d + '">−</button>' +
+      '<input type="number" value="' + Math.min(hitDiceBySize[d] || 0, left) + '" readonly aria-label="Кости к' + d + '">' +
+      '<button type="button" class="hit-dice-step" onclick="adjustHitDiceSize(' + d + ', 1)" aria-label="Больше к' + d + '">+</button>' +
+      '<span class="hit-dice-info">к' + d + ' · осталось ' + left + '</span></div>';
+  }).join("") : "";
+}
+var _chosen = _restHitDiceChosen(char);
+if (_multi) hitDiceToSpend = _chosen.length;
 var totalHeal = 0;
-rulesPickHitDice(char, hitDiceToSpend).forEach(function(d) { totalHeal += rulesHitDieHeal(Math.floor(d / 2) + 1, conMod); });
+_chosen.forEach(function(d) { totalHeal += rulesHitDieHeal(Math.floor(d / 2) + 1, conMod); });
 const availableEl = $("hit-dice-available-rest");
 const healEl = $("hit-dice-heal");
 if (availableEl) availableEl.textContent = availableHitDice;
@@ -118,8 +151,9 @@ let resultDetails = "";
 const oldHp = parseInt(char.combat.hpCurrent, 10);
 if (currentRestType === "short") {
 // AUD-4 (R12): каждая кость бросается своим размером
-var _rolls = rulesPickHitDice(char, hitDiceToSpend).map(function(d) { return Math.floor(Math.random() * d) + 1; });
-var _short = rulesShortRest(char, { hitDiceSpent: hitDiceToSpend, rolls: _rolls });
+var _dice = _restHitDiceChosen(char);
+var _rolls = _dice.map(function(d) { return Math.floor(Math.random() * d) + 1; });
+var _short = rulesShortRest(char, { dice: _dice, rolls: _rolls });
 var hpHealed = _short.hpHealed;
 var rollLog = _short.rollLog;
 var _isWarlock = _short.isWarlock;
