@@ -8046,7 +8046,7 @@
       if (d24.SUBCLASSES["Воин"].length !== 4 || d14.SUBCLASSES["Воин"].length < 8) return "SUBCLASSES: 2024 " + d24.SUBCLASSES["Воин"].length + ", 2014 " + d14.SUBCLASSES["Воин"].length;
       if (d24.SUBCLASS_FEATURES["Чемпион"] === SUBCLASS_FEATURES["Чемпион"]) return "Чемпион у 2024 — 2014-запись";
       if (d24.SUBCLASS_FEATURES["Кавалерист"] !== SUBCLASS_FEATURES["Кавалерист"]) return "Кавалерист у 2024 не унаследован";
-      if (d24.CLASS_RESOURCES["Воин"] !== CR24["Воин"] || d24.CLASS_RESOURCES["Монах"] !== CLASS_RESOURCES["Монах"]) return "CLASS_RESOURCES слиты неверно";
+      if (d24.CLASS_RESOURCES["Воин"] !== CR24["Воин"] || d24.CLASS_RESOURCES["Жрец"] !== CLASS_RESOURCES["Жрец"]) return "CLASS_RESOURCES слиты неверно";
       if (d24.SUBCLASS_SOURCE["Чемпион"] !== "PH24" || d24.SUBCLASS_SOURCE["Кавалерист"] !== SUBCLASS_SOURCE["Кавалерист"]) return "SUBCLASS_SOURCE слит неверно";
       if (d24.ASI_LEVELS["Воин"].length !== 6 || d14.ASI_LEVELS["Воин"].length !== 7) return "ASI_LEVELS: 2024 " + d24.ASI_LEVELS["Воин"].length + ", 2014 " + d14.ASI_LEVELS["Воин"].length;
       if (Object.keys(d24.CLASS_FEATURES).length !== Object.keys(CLASS_FEATURES).length) return "число классов у 2024 изменилось";
@@ -8229,6 +8229,95 @@
       var all = d24.CLASS_SKILL_OPTIONS;
       var skillNames = skills.map(function(sk){ return sk.name; });
       for (var k in all) { for (var i = 0; i < all[k].length; i++) if (skillNames.indexOf(all[k][i]) === -1) return k + ": неизвестный навык " + all[k][i]; }
+      return true;
+    });
+  })();
+
+  // ────────── БЛОК 60 (E24-9): классы 2024 — Плут и Монах: фичи 1–20, 4 подкласса на 3 ур., ресурсы, мастерство плута ──────────
+  (function(){
+    if (typeof edData !== "function" || typeof window === "undefined" || !window.CLASS_FEATURES_2024) return;
+    var CF24 = window.CLASS_FEATURES_2024, SUB24 = window.SUBCLASSES_2024, SF24 = window.SUBCLASS_FEATURES_2024;
+    var ASI24 = window.ASI_LEVELS_2024, SRC24 = window.SUBCLASS_SOURCE_2024, CR24 = window.CLASS_RESOURCES_2024;
+    var CLASSES = ["Плут", "Монах"];
+    var ASI = { "Плут": "4,8,10,12,16", "Монах": "4,8,12,16" };
+    var SUB_LEVELS = { "Плут": "3,9,13,17", "Монах": "3,6,11,17" };
+    function mk(ed, cls, lvl, sub) {
+      var st = { str: 10, dex: 16, con: 14, int: 10, wis: 14, cha: 10 };
+      return { edition: ed, class: cls, level: lvl, subclass: sub || "", classes: [{ class: cls, level: lvl, subclass: sub || "" }], stats: st, resources: {}, weaponMastery: [], classChoices: {} };
+    }
+    function has(arr, name) { return (arr || []).some(function(f){ return f && f.name === name; }); }
+
+    t("[e24-9] Плут/Монах 2024: фичи 1–20 без дыр, АСИ по расписанию (плут 4/8/10/12/16), 19 — «Эпический дар», подкласс на 3", function(){
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var cls = CLASSES[ci], tbl = CF24[cls];
+        if (!tbl) return cls + ": нет в CLASS_FEATURES_2024";
+        if (!ASI24[cls] || ASI24[cls].join() !== ASI[cls]) return cls + ": ASI " + (ASI24[cls] && ASI24[cls].join());
+        for (var l = 1; l <= 20; l++) {
+          if (!Array.isArray(tbl[l]) || !tbl[l].length) return cls + " " + l + ": нет фич";
+          for (var i = 0; i < tbl[l].length; i++) if (!tbl[l][i] || !tbl[l][i].name || !tbl[l][i].desc) return cls + " " + l + ": фича без name/desc";
+          if (has(tbl[l], "Увеличение характеристик") !== (ASI24[cls].indexOf(l) !== -1)) return cls + " " + l + ": АСИ не по расписанию";
+        }
+        if (!has(tbl[19], "Эпический дар")) return cls + " 19: нет «Эпический дар»";
+        if (!tbl[3].some(function(f){ return /подкласс/i.test(f.name) || /подкласс/i.test(f.desc); })) return cls + " 3: нет выбора подкласса";
+      }
+      if (!has(CF24["Плут"][1], "Оружейные приёмы")) return "Плут 1: нет «Оружейные приёмы»";
+      if (has(CF24["Монах"][1], "Оружейные приёмы")) return "у Монаха 2024 есть «Оружейные приёмы»";
+      if (charAsiSlots(mk("2024", "Плут", 20)).length !== 5 || charAsiSlots(mk("2014", "Плут", 20)).length !== 6) return "charAsiSlots плута";
+      if (charEpicSlots(mk("2024", "Монах", 19)).length !== 1) return "эпический дар монаха";
+      return true;
+    });
+
+    t("[e24-9] подклассы 2024: по 4, SUBCLASS_LEVEL 3, фичи плута 3/9/13/17, монаха 3/6/11/17, источник PH24; 2014-подклассы не тронуты", function(){
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var cls = CLASSES[ci], list = SUB24[cls];
+        if (!Array.isArray(list) || list.length !== 4) return cls + ": подклассов " + (list && list.length);
+        if (window.SUBCLASS_LEVEL_2024[cls] !== 3) return cls + ": SUBCLASS_LEVEL_2024 не 3";
+        for (var i = 0; i < list.length; i++) {
+          var f = SF24[list[i]];
+          if (!f) return list[i] + ": нет фич";
+          var lv = Object.keys(f).map(Number).sort(function(a, b){ return a - b; }).join();
+          if (lv !== SUB_LEVELS[cls]) return list[i] + ": уровни " + lv;
+          for (var k in f) if (!Array.isArray(f[k]) || !f[k].length || !f[k][0].name || !f[k][0].desc) return list[i] + " " + k + ": пустая фича";
+          if (SRC24[list[i]] !== "PH24") return list[i] + ": источник " + SRC24[list[i]];
+        }
+      }
+      var d24 = edData({ edition: "2024" });
+      if (d24.SUBCLASSES["Плут"].length !== 4 || SUBCLASSES["Плут"].length < 8) return "SUBCLASSES плута: 2024 " + d24.SUBCLASSES["Плут"].length + ", 2014 " + SUBCLASSES["Плут"].length;
+      if (d24.SUBCLASS_FEATURES["Вор"] === SUBCLASS_FEATURES["Вор"]) return "Вор у 2024 — 2014-запись";
+      if (SUBCLASS_SOURCE["Вор"] !== "PHB") return "2014 SUBCLASS_SOURCE Вор изменился";
+      if (charSubclassPending(mk("2024", "Монах", 3)).length !== 1 || charSubclassPending(mk("2024", "Монах", 2)).length !== 0) return "charSubclassPending монах";
+      return true;
+    });
+
+    t("[e24-9] ресурсы 2024: очки монаха = уровень с 2, короткий отдых; метаболизм 1 с 2 ур.; Удача плута на 20; кости Душеклинка; защита без доспехов монаха", function(){
+      var mon = {}; CR24["Монах"].resources.forEach(function(r){ mon[r.id] = r; });
+      if (!mon.focus || mon.focus.maxByLevel[1] !== 0 || mon.focus.restoreOn !== "short") return "очки монаха";
+      if (getResourceMax(mon.focus, mk("2024", "Монах", 7)) !== 7) return "очки монаха 7 ур.: " + getResourceMax(mon.focus, mk("2024", "Монах", 7));
+      if (!mon.uncanny_metabolism || mon.uncanny_metabolism.maxByLevel[1] !== 0 || mon.uncanny_metabolism.maxByLevel[2] !== 1 || mon.uncanny_metabolism.restoreOn !== "long") return "метаболизм";
+      if (!CR24["Монах"].passive || CR24["Монах"].passive.unarmoredDefense !== "monk") return "монах: нет unarmoredDefense";
+      var rog = {}; CR24["Плут"].resources.forEach(function(r){ rog[r.id] = r; });
+      if (!rog.cunning_action || !rog.uncanny_dodge || !rog.stroke_of_luck) return "ресурсы плута: " + Object.keys(rog).join();
+      if (rog.stroke_of_luck.maxByLevel[19] !== 0 || rog.stroke_of_luck.maxByLevel[20] !== 1) return "Удача по уровням";
+      var sk = window.SUBCLASS_RESOURCES_2024["Душеклинок"];
+      var pd = sk && sk.resources[0];
+      if (!pd || pd.maxByLevel[3] !== 4 || pd.maxByLevel[5] !== 6 || pd.maxByLevel[17] !== 12 || !pd.restoreShortOne) return "кости Душеклинка";
+      var d24 = edData({ edition: "2024" });
+      if (d24.CLASS_RESOURCES["Монах"] !== CR24["Монах"] || CLASS_RESOURCES["Монах"].resources[0].id !== "ki") return "слияние ресурсов монаха / 2014 задет";
+      return true;
+    });
+
+    t("[e24-9] мастерство плута: 2 приёма на всех уровнях, любое оружие (короткий лук, рапира — стр. 137); монах 0; владения плута 2024 без длинного меча", function(){
+      if (typeof canMasterWeapon !== "function") return "нет canMasterWeapon";
+      var r = mk("2024", "Плут", 5);
+      if (getWeaponMasteryLimit(r) !== 2 || getWeaponMasteryLimit(mk("2024", "Плут", 20)) !== 2) return "лимит плута: " + getWeaponMasteryLimit(r);
+      if (getWeaponMasteryLimit(mk("2024", "Монах", 20)) !== 0) return "у монаха есть мастерство";
+      var ok = ["Рапира", "Кинжал", "Короткий лук", "Ручной арбалет"];
+      for (var i = 0; i < ok.length; i++) if (!canMasterWeapon(r, { name: ok[i] })) return "плуту запрещено: " + ok[i];
+      if (canMasterWeapon(mk("2024", "Монах", 20), { name: "Короткий меч" })) return "монаху разрешено";
+      var d24 = edData({ edition: "2024" });
+      if (d24.CLASS_WEAPONS_SPECIFIC["Плут"].indexOf("Длинный меч") !== -1 || d24.CLASS_WEAPONS_SPECIFIC["Плут"].indexOf("Скимитар") === -1) return "владения плута 2024";
+      if (CLASS_WEAPONS_SPECIFIC["Плут"].indexOf("Длинный меч") === -1) return "владения плута 2014 задеты";
+      if (d24.CLASS_SKILL_OPTIONS["Плут"].indexOf("Выступление") !== -1) return "у плута 2024 есть Выступление";
       return true;
     });
   })();
