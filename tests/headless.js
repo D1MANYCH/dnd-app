@@ -8046,7 +8046,7 @@
       if (d24.SUBCLASSES["Воин"].length !== 4 || d14.SUBCLASSES["Воин"].length < 8) return "SUBCLASSES: 2024 " + d24.SUBCLASSES["Воин"].length + ", 2014 " + d14.SUBCLASSES["Воин"].length;
       if (d24.SUBCLASS_FEATURES["Чемпион"] === SUBCLASS_FEATURES["Чемпион"]) return "Чемпион у 2024 — 2014-запись";
       if (d24.SUBCLASS_FEATURES["Кавалерист"] !== SUBCLASS_FEATURES["Кавалерист"]) return "Кавалерист у 2024 не унаследован";
-      if (d24.CLASS_RESOURCES["Воин"] !== CR24["Воин"] || d24.CLASS_RESOURCES["Жрец"] !== CLASS_RESOURCES["Жрец"]) return "CLASS_RESOURCES слиты неверно";
+      if (d24.CLASS_RESOURCES["Воин"] !== CR24["Воин"] || d24.CLASS_RESOURCES["Друид"] !== CLASS_RESOURCES["Друид"]) return "CLASS_RESOURCES слиты неверно";
       if (d24.SUBCLASS_SOURCE["Чемпион"] !== "PH24" || d24.SUBCLASS_SOURCE["Кавалерист"] !== SUBCLASS_SOURCE["Кавалерист"]) return "SUBCLASS_SOURCE слит неверно";
       if (d24.ASI_LEVELS["Воин"].length !== 6 || d14.ASI_LEVELS["Воин"].length !== 7) return "ASI_LEVELS: 2024 " + d24.ASI_LEVELS["Воин"].length + ", 2014 " + d14.ASI_LEVELS["Воин"].length;
       if (Object.keys(d24.CLASS_FEATURES).length !== Object.keys(CLASS_FEATURES).length) return "число классов у 2024 изменилось";
@@ -8318,6 +8318,123 @@
       if (d24.CLASS_WEAPONS_SPECIFIC["Плут"].indexOf("Длинный меч") !== -1 || d24.CLASS_WEAPONS_SPECIFIC["Плут"].indexOf("Скимитар") === -1) return "владения плута 2024";
       if (CLASS_WEAPONS_SPECIFIC["Плут"].indexOf("Длинный меч") === -1) return "владения плута 2014 задеты";
       if (d24.CLASS_SKILL_OPTIONS["Плут"].indexOf("Выступление") !== -1) return "у плута 2024 есть Выступление";
+      return true;
+    });
+  })();
+
+  // ────────── БЛОК 61 (E24-10): классы 2024 — Жрец и Паладин: фичи 1–20, 4 подкласса на 3 ур., ресурсы, выборы, заклинания подкласса ──────────
+  (function(){
+    if (typeof edData !== "function" || typeof window === "undefined" || !window.CLASS_FEATURES_2024 || !window.CLASS_FEATURES_2024["Жрец"]) return;
+    var CF24 = window.CLASS_FEATURES_2024, SUB24 = window.SUBCLASSES_2024, SF24 = window.SUBCLASS_FEATURES_2024;
+    var ASI24 = window.ASI_LEVELS_2024, SRC24 = window.SUBCLASS_SOURCE_2024, CR24 = window.CLASS_RESOURCES_2024;
+    var CLASSES = ["Жрец", "Паладин"];
+    function mk(ed, cls, lvl, sub) {
+      var st = { str: 16, dex: 10, con: 14, int: 10, wis: 16, cha: 14 };
+      return { edition: ed, class: cls, level: lvl, subclass: sub || "", classes: [{ class: cls, level: lvl, subclass: sub || "" }], stats: st, resources: {}, weaponMastery: [], classChoices: {} };
+    }
+    function has(arr, name) { return (arr || []).some(function(f){ return f && f.name === name; }); }
+    function res(cls) { var o = {}; CR24[cls].resources.forEach(function(r){ o[r.id] = r; }); return o; }
+
+    t("[e24-10] Жрец/Паладин 2024: фичи 1–20 без дыр, АСИ 4/8/12/16, 19 — «Эпический дар», подкласс на 3", function(){
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var cls = CLASSES[ci], tbl = CF24[cls];
+        if (!ASI24[cls] || ASI24[cls].join() !== "4,8,12,16") return cls + ": ASI " + (ASI24[cls] && ASI24[cls].join());
+        for (var l = 1; l <= 20; l++) {
+          if (!Array.isArray(tbl[l]) || !tbl[l].length) return cls + " " + l + ": нет фич";
+          for (var i = 0; i < tbl[l].length; i++) if (!tbl[l][i] || !tbl[l][i].name || !tbl[l][i].desc) return cls + " " + l + ": фича без name/desc";
+          if (has(tbl[l], "Увеличение характеристик") !== (ASI24[cls].indexOf(l) !== -1)) return cls + " " + l + ": АСИ не по расписанию";
+        }
+        if (!has(tbl[19], "Эпический дар")) return cls + " 19: нет «Эпический дар»";
+        if (!tbl[3].some(function(f){ return /подкласс/i.test(f.name) || /подкласс/i.test(f.desc); })) return cls + " 3: нет выбора подкласса";
+      }
+      if (!has(CF24["Паладин"][1], "Оружейные приёмы")) return "Паладин 1: нет «Оружейные приёмы»";
+      if (has(CF24["Жрец"][1], "Оружейные приёмы")) return "у Жреца 2024 есть «Оружейные приёмы»";
+      if (charAsiSlots(mk("2024", "Жрец", 20)).length !== 4) return "charAsiSlots жреца";
+      if (charEpicSlots(mk("2024", "Паладин", 19)).length !== 1) return "эпический дар паладина";
+      return true;
+    });
+
+    t("[e24-10] подклассы 2024: по 4, SUBCLASS_LEVEL 3, фичи есть и начинаются с 3, источник PH24; 2014 не тронут", function(){
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var cls = CLASSES[ci], list = SUB24[cls];
+        if (!Array.isArray(list) || list.length !== 4) return cls + ": подклассов " + (list && list.length);
+        if (window.SUBCLASS_LEVEL_2024[cls] !== 3) return cls + ": SUBCLASS_LEVEL_2024 не 3";
+        for (var i = 0; i < list.length; i++) {
+          var f = SF24[list[i]];
+          if (!f) return list[i] + ": нет фич";
+          var lv = Object.keys(f).map(Number).sort(function(a, b){ return a - b; });
+          if (lv[0] !== 3) return list[i] + ": первая фича на " + lv[0];
+          for (var k in f) if (!Array.isArray(f[k]) || !f[k].length || !f[k][0].name || !f[k][0].desc) return list[i] + " " + k + ": пустая фича";
+          for (var j = 0; j < lv.length; j++) if (!has(CF24[cls][lv[j]], "Умение подкласса") && lv[j] !== 3) return cls + " " + lv[j] + ": нет «Умение подкласса» под фичу " + list[i];
+          if (SRC24[list[i]] !== "PH24") return list[i] + ": источник " + SRC24[list[i]];
+        }
+      }
+      var d24 = edData({ edition: "2024" });
+      if (d24.SUBCLASSES["Жрец"].length !== 4 || SUBCLASSES["Жрец"].length < 8) return "SUBCLASSES жреца: 2024 " + d24.SUBCLASSES["Жрец"].length + ", 2014 " + SUBCLASSES["Жрец"].length;
+      if (SUBCLASS_LEVEL["Жрец"] !== 1 || SUBCLASS_LEVEL["Паладин"] !== 3) return "SUBCLASS_LEVEL 2014 задет";
+      if (charSubclassPending(mk("2024", "Жрец", 2)).length !== 0 || charSubclassPending(mk("2024", "Жрец", 3)).length !== 1) return "charSubclassPending жрец";
+      return true;
+    });
+
+    t("[e24-10] заклинания подкласса 2024: уровни жреца 3/5/7/9, паладина 3/5/9/13/17, имена есть в spells.js; 2014-домены не тронуты", function(){
+      var names = {};
+      (typeof SPELLS_BASE !== "undefined" ? SPELLS_BASE : []).forEach(function(s){ names[s.name] = true; });
+      var LV = { "Жрец": "3,5,7,9", "Паладин": "3,5,9,13,17" };
+      var d24 = edData({ edition: "2024" });
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var list = SUB24[CLASSES[ci]];
+        for (var i = 0; i < list.length; i++) {
+          var def = d24.SUBCLASS_RESOURCES[list[i]], ss = def && def.passive && def.passive.subclassSpells;
+          if (!ss || !ss.byLevel) return list[i] + ": нет subclassSpells";
+          var lv = Object.keys(ss.byLevel).map(Number).sort(function(a, b){ return a - b; }).join();
+          if (lv !== LV[CLASSES[ci]]) return list[i] + ": уровни " + lv;
+          for (var k in ss.byLevel) for (var j = 0; j < ss.byLevel[k].length; j++) {
+            var n = String(ss.byLevel[k][j]).replace(/\s*\([^)]*\)\s*$/, "");
+            if (Object.keys(names).length && !names[n]) return list[i] + ": нет в spells.js «" + n + "»";
+          }
+        }
+      }
+      var life14 = SUBCLASS_RESOURCES["Домен жизни"];
+      if (!life14 || !life14.passive.subclassSpells.byLevel[1]) return "2014 Домен жизни задет";
+      return true;
+    });
+
+    t("[e24-10] ресурсы 2024: канал жреца 2/3/4 (2, 6, 18), паладина 2/3 (3, 11), 1 за короткий; наложение рук 5×ур.; «wis» = мод. Мудрости", function(){
+      var cl = res("Жрец"), pl = res("Паладин");
+      var cd = cl.channel_divinity;
+      if (!cd || cd.maxByLevel[1] !== 0 || cd.maxByLevel[2] !== 2 || cd.maxByLevel[6] !== 3 || cd.maxByLevel[18] !== 4 || cd.restoreOn !== "long" || !cd.restoreShortOne) return "канал жреца";
+      var pd = pl.channel_divinity;
+      if (!pd || pd.maxByLevel[2] !== 0 || pd.maxByLevel[3] !== 2 || pd.maxByLevel[11] !== 3 || pd.restoreOn !== "long" || !pd.restoreShortOne) return "канал паладина";
+      if (!pl.lay_on_hands || getResourceMax(pl.lay_on_hands, mk("2024", "Паладин", 7)) !== 35) return "наложение рук";
+      if (pl.divine_sense) return "у паладина 2024 отдельное Божественное чувство";
+      if (getResourceMax({ maxByLevel: { 3: "wis" } }, mk("2024", "Жрец", 3)) !== 3) return "maxByLevel wis";
+      var SR = window.SUBCLASS_RESOURCES_2024;
+      function sr(sub, id) { return ((SR[sub] && SR[sub].resources) || []).filter(function(r){ return r.id === id; })[0]; }
+      var wp = sr("Домен войны", "war_priest"), wf = sr("Домен света", "warding_flare");
+      if (!wp || wp.maxByLevel[3] !== "wis" || wp.restoreOn !== "short") return "Боевой священник";
+      if (!wf || wf.shortFromLevel !== 6 || !sr("Домен света", "corona_of_light")) return "Домен света: вспышка/корона";
+      var caps = { "Клятва преданности": "holy_nimbus", "Клятва славы": "living_legend", "Клятва древних": "elder_champion", "Клятва возмездия": "avenging_angel" };
+      for (var k in caps) { var c = sr(k, caps[k]); if (!c || c.maxByLevel[19] !== 0 || c.maxByLevel[20] !== 1) return k + ": счётчик 20 ур."; }
+      var d24 = edData({ edition: "2024" });
+      if (d24.CLASS_RESOURCES["Жрец"] !== CR24["Жрец"] || CLASS_RESOURCES["Жрец"].resources[0].maxByLevel[2] !== 1) return "слияние ресурсов жреца / 2014 задет";
+      return true;
+    });
+
+    t("[e24-10] выборы и мастерство: божественный порядок жреца (1), благословенные удары (7), стиль боя паладина (2) с «Благословенным воином»; паладин 2 приёма", function(){
+      var cc = window.CLASS_CHOICES_2024;
+      function ch(cls, id) { return (cc[cls] || []).filter(function(c){ return c.id === id; })[0]; }
+      var dord = ch("Жрец", "divine-order"), bs = ch("Жрец", "blessed-strikes"), fs = ch("Паладин", "fighting-style");
+      if (!dord || dord.minLevel !== 1 || dord.options.length !== 2) return "божественный порядок";
+      if (!bs || bs.minLevel !== 7 || bs.options.length !== 2) return "благословенные удары";
+      if (!fs || fs.minLevel !== 2 || fs.options.length !== Object.keys(window.FIGHTING_STYLES_2024 || {}).length + 1) return "стиль боя паладина";
+      var all = [dord, bs, fs];
+      for (var i = 0; i < all.length; i++) for (var j = 0; j < all[i].options.length; j++) {
+        var o = all[i].optionsDict[all[i].options[j]];
+        if (!o || !o.name || !o.desc) return all[i].id + ": опция " + all[i].options[j];
+      }
+      if (!fs.options.some(function(k){ return /Благословенный воин/.test(fs.optionsDict[k].name); })) return "нет «Благословенный воин»";
+      if (getWeaponMasteryLimit(mk("2024", "Паладин", 1)) !== 2 || getWeaponMasteryLimit(mk("2024", "Паладин", 20)) !== 2) return "мастерство паладина";
+      if (getWeaponMasteryLimit(mk("2024", "Жрец", 20)) !== 0) return "у жреца есть мастерство";
       return true;
     });
   })();

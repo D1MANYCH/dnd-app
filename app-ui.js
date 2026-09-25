@@ -406,6 +406,7 @@ function getResourceMax(res, char) {
   if (raw === "level")       return level;
   if (raw === "cha")         return Math.max(1, getMod(char.stats.cha));
   if (raw === "cha_plus1")   return Math.max(1, getMod(char.stats.cha) + 1);
+  if (raw === "wis")         return Math.max(1, getMod(char.stats.wis));
   if (raw === "level5")      return level * 5;  // Наложение рук — пул ХП
   if (raw === 99)            return 99; // Безлимит (Ярость 20 ур.)
   return parseInt(raw, 10) || 0;
@@ -475,6 +476,7 @@ function crRestoreLabel(res) {
   if (res.restoreOn === "short") return "короткий отдых";
   // E24-8: Ярость/Второе дыхание 2024 — все за долгий, одно за короткий отдых
   if (res.restoreOn === "long" && res.restoreShortOne) return "долгий отдых · 1 за короткий";
+  if (res.restoreOn === "long" && res.shortFromLevel) return "долгий отдых · короткий с " + res.shortFromLevel + " ур.";
   if (res.restoreOn === "long" || res.restoreOn === "long_once") return "долгий отдых";
   if (res.restoreOn === "turn") return "каждый ход";
   return "";
@@ -716,7 +718,7 @@ function resetResourcesByRest(restType) {
   data.resources.forEach(function(res) {
     if (restType === "long") {
       char.resources[res.id] = 0;
-    } else if (restType === "short" && (res.restoreOn === "short")) {
+    } else if (restType === "short" && (res.restoreOn === "short" || (res.shortFromLevel && (res._clsLevel || char.level || 1) >= res.shortFromLevel))) {
       char.resources[res.id] = 0;
     } else if (restType === "short" && res.restoreShortOne) {
       // E24-8: одно использование за короткий отдых (Ярость, Второе дыхание 2024)
