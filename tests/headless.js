@@ -8046,7 +8046,7 @@
       if (d24.SUBCLASSES["Воин"].length !== 4 || d14.SUBCLASSES["Воин"].length < 8) return "SUBCLASSES: 2024 " + d24.SUBCLASSES["Воин"].length + ", 2014 " + d14.SUBCLASSES["Воин"].length;
       if (d24.SUBCLASS_FEATURES["Чемпион"] === SUBCLASS_FEATURES["Чемпион"]) return "Чемпион у 2024 — 2014-запись";
       if (d24.SUBCLASS_FEATURES["Кавалерист"] !== SUBCLASS_FEATURES["Кавалерист"]) return "Кавалерист у 2024 не унаследован";
-      if (d24.CLASS_RESOURCES["Воин"] !== CR24["Воин"] || d24.CLASS_RESOURCES["Друид"] !== CLASS_RESOURCES["Друид"]) return "CLASS_RESOURCES слиты неверно";
+      if (d24.CLASS_RESOURCES["Воин"] !== CR24["Воин"] || d24.CLASS_RESOURCES["Волшебник"] !== CLASS_RESOURCES["Волшебник"]) return "CLASS_RESOURCES слиты неверно";
       if (d24.SUBCLASS_SOURCE["Чемпион"] !== "PH24" || d24.SUBCLASS_SOURCE["Кавалерист"] !== SUBCLASS_SOURCE["Кавалерист"]) return "SUBCLASS_SOURCE слит неверно";
       if (d24.ASI_LEVELS["Воин"].length !== 6 || d14.ASI_LEVELS["Воин"].length !== 7) return "ASI_LEVELS: 2024 " + d24.ASI_LEVELS["Воин"].length + ", 2014 " + d14.ASI_LEVELS["Воин"].length;
       if (Object.keys(d24.CLASS_FEATURES).length !== Object.keys(CLASS_FEATURES).length) return "число классов у 2024 изменилось";
@@ -8435,6 +8435,132 @@
       if (!fs.options.some(function(k){ return /Благословенный воин/.test(fs.optionsDict[k].name); })) return "нет «Благословенный воин»";
       if (getWeaponMasteryLimit(mk("2024", "Паладин", 1)) !== 2 || getWeaponMasteryLimit(mk("2024", "Паладин", 20)) !== 2) return "мастерство паладина";
       if (getWeaponMasteryLimit(mk("2024", "Жрец", 20)) !== 0) return "у жреца есть мастерство";
+      return true;
+    });
+  })();
+
+  // ────────── БЛОК 62 (E24-11): классы 2024 — Друид и Следопыт: фичи 1–20, 4 подкласса на 3 ур., ресурсы, выборы, заклинания подкласса ──────────
+  (function(){
+    if (typeof edData !== "function" || typeof window === "undefined" || !window.CLASS_FEATURES_2024 || !window.CLASS_FEATURES_2024["Друид"]) return;
+    var CF24 = window.CLASS_FEATURES_2024, SUB24 = window.SUBCLASSES_2024, SF24 = window.SUBCLASS_FEATURES_2024;
+    var ASI24 = window.ASI_LEVELS_2024, SRC24 = window.SUBCLASS_SOURCE_2024, CR24 = window.CLASS_RESOURCES_2024;
+    var CLASSES = ["Друид", "Следопыт"];
+    function mk(ed, cls, lvl, sub) {
+      var st = { str: 12, dex: 16, con: 14, int: 10, wis: 16, cha: 8 };
+      return { edition: ed, class: cls, level: lvl, subclass: sub || "", classes: [{ class: cls, level: lvl, subclass: sub || "" }], stats: st, resources: {}, weaponMastery: [], classChoices: {} };
+    }
+    function has(arr, name) { return (arr || []).some(function(f){ return f && f.name === name; }); }
+    function res(cls) { var o = {}; CR24[cls].resources.forEach(function(r){ o[r.id] = r; }); return o; }
+
+    t("[e24-11] Друид/Следопыт 2024: фичи 1–20 без дыр, АСИ 4/8/12/16, 19 — «Эпический дар», подкласс на 3", function(){
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var cls = CLASSES[ci], tbl = CF24[cls];
+        if (!ASI24[cls] || ASI24[cls].join() !== "4,8,12,16") return cls + ": ASI " + (ASI24[cls] && ASI24[cls].join());
+        for (var l = 1; l <= 20; l++) {
+          if (!Array.isArray(tbl[l]) || !tbl[l].length) return cls + " " + l + ": нет фич";
+          for (var i = 0; i < tbl[l].length; i++) if (!tbl[l][i] || !tbl[l][i].name || !tbl[l][i].desc) return cls + " " + l + ": фича без name/desc";
+          if (has(tbl[l], "Увеличение характеристик") !== (ASI24[cls].indexOf(l) !== -1)) return cls + " " + l + ": АСИ не по расписанию";
+        }
+        if (!has(tbl[19], "Эпический дар")) return cls + " 19: нет «Эпический дар»";
+        if (!tbl[3].some(function(f){ return /подкласс/i.test(f.name) || /подкласс/i.test(f.desc); })) return cls + " 3: нет выбора подкласса";
+      }
+      if (!has(CF24["Следопыт"][1], "Оружейные приёмы")) return "Следопыт 1: нет «Оружейные приёмы»";
+      if (has(CF24["Друид"][1], "Оружейные приёмы")) return "у Друида 2024 есть «Оружейные приёмы»";
+      if (charAsiSlots(mk("2024", "Друид", 20)).length !== 4) return "charAsiSlots друида";
+      if (charEpicSlots(mk("2024", "Следопыт", 19)).length !== 1) return "эпический дар следопыта";
+      return true;
+    });
+
+    t("[e24-11] подклассы 2024: по 4, SUBCLASS_LEVEL 3, фичи есть и начинаются с 3, источник PH24; 2014 не тронут", function(){
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var cls = CLASSES[ci], list = SUB24[cls];
+        if (!Array.isArray(list) || list.length !== 4) return cls + ": подклассов " + (list && list.length);
+        if (window.SUBCLASS_LEVEL_2024[cls] !== 3) return cls + ": SUBCLASS_LEVEL_2024 не 3";
+        for (var i = 0; i < list.length; i++) {
+          var f = SF24[list[i]];
+          if (!f) return list[i] + ": нет фич";
+          var lv = Object.keys(f).map(Number).sort(function(a, b){ return a - b; });
+          if (lv[0] !== 3) return list[i] + ": первая фича на " + lv[0];
+          for (var k in f) if (!Array.isArray(f[k]) || !f[k].length || !f[k][0].name || !f[k][0].desc) return list[i] + " " + k + ": пустая фича";
+          for (var j = 0; j < lv.length; j++) if (!has(CF24[cls][lv[j]], "Умение подкласса") && lv[j] !== 3) return cls + " " + lv[j] + ": нет «Умение подкласса» под фичу " + list[i];
+          if (SRC24[list[i]] !== "PH24") return list[i] + ": источник " + SRC24[list[i]];
+        }
+      }
+      var d24 = edData({ edition: "2024" });
+      if (d24.SUBCLASSES["Друид"].length !== 4 || SUBCLASSES["Друид"].length < 7) return "SUBCLASSES друида: 2024 " + d24.SUBCLASSES["Друид"].length + ", 2014 " + SUBCLASSES["Друид"].length;
+      if (SUBCLASS_LEVEL["Друид"] !== 2 || SUBCLASS_LEVEL["Следопыт"] !== 3) return "SUBCLASS_LEVEL 2014 задет";
+      if (d24.SUBCLASS_FEATURES["Круг луны"] === SUBCLASS_FEATURES["Круг луны"]) return "Круг луны у 2024 — 2014-запись";
+      if (charSubclassPending(mk("2024", "Друид", 2)).length !== 0 || charSubclassPending(mk("2024", "Друид", 3)).length !== 1) return "charSubclassPending друид";
+      return true;
+    });
+
+    t("[e24-11] заклинания подкласса 2024: кругов луны/моря 3/5/7/9, фейского странника и сумрачного охотника 3/5/9/13/17, имена есть в spells.js; круг земли — выбор типа земли", function(){
+      var names = {};
+      (typeof SPELLS_BASE !== "undefined" ? SPELLS_BASE : []).forEach(function(s){ names[s.name] = true; });
+      var LV = { "Круг луны": "3,5,7,9", "Круг моря": "3,5,7,9", "Фейский странник": "3,5,9,13,17", "Сумрачный охотник": "3,5,9,13,17" };
+      var d24 = edData({ edition: "2024" });
+      for (var sub in LV) {
+        var def = d24.SUBCLASS_RESOURCES[sub], ss = def && def.passive && def.passive.subclassSpells;
+        if (!ss || !ss.byLevel) return sub + ": нет subclassSpells";
+        var lv = Object.keys(ss.byLevel).map(Number).sort(function(a, b){ return a - b; }).join();
+        if (lv !== LV[sub]) return sub + ": уровни " + lv;
+        for (var k in ss.byLevel) for (var j = 0; j < ss.byLevel[k].length; j++) {
+          var n = String(ss.byLevel[k][j]).replace(/\s*\([^)]*\)\s*$/, "");
+          if (Object.keys(names).length && !names[n]) return sub + ": нет в spells.js «" + n + "»";
+        }
+      }
+      var land = (window.SUBCLASS_CHOICES_2024["Круг земли"] || []).filter(function(c){ return c.id === "land-type"; })[0];
+      if (!land || land.minLevel !== 3 || land.options.length !== 4) return "Круг земли: выбор типа земли";
+      for (var i = 0; i < land.options.length; i++) { var o = land.optionsDict[land.options[i]]; if (!o || !o.name || !o.desc) return "тип земли " + land.options[i]; }
+      if (!SUBCLASS_RESOURCES["Круг земли"] || !SUBCLASS_RESOURCES["Круг земли"].resources) return "2014 Круг земли задет";
+      return true;
+    });
+
+    t("[e24-11] ресурсы 2024: дикий облик 2/3/4 (2, 6, 17), 1 за короткий; избранный враг по таблице; неутомимость и покров природы = мод. Мудрости", function(){
+      var dr = res("Друид"), rg = res("Следопыт");
+      var ws = dr.wild_shape;
+      if (!ws || ws.maxByLevel[1] !== 0 || ws.maxByLevel[2] !== 2 || ws.maxByLevel[6] !== 3 || ws.maxByLevel[17] !== 4 || ws.restoreOn !== "long" || !ws.restoreShortOne) return "дикий облик";
+      var fe = rg.favored_enemy;
+      if (!fe || fe.maxByLevel[1] !== 2 || fe.maxByLevel[5] !== 3 || fe.maxByLevel[9] !== 4 || fe.maxByLevel[13] !== 5 || fe.maxByLevel[17] !== 6 || fe.restoreOn !== "long") return "избранный враг";
+      var r = mk("2024", "Следопыт", 14);
+      if (!rg.tireless || rg.tireless.maxByLevel[9] !== 0 || getResourceMax(rg.tireless, r) !== 3) return "неутомимость";
+      if (!rg.natures_veil || rg.natures_veil.maxByLevel[13] !== 0 || getResourceMax(rg.natures_veil, r) !== 3) return "покров природы";
+      var SR = window.SUBCLASS_RESOURCES_2024;
+      function sr(sub, id) { return ((SR[sub] && SR[sub].resources) || []).filter(function(x){ return x.id === id; })[0]; }
+      var WIS = { "Круг звёзд": ["star_map", 3], "Сумрачный охотник": ["dread_ambusher", 3], "Круг луны": ["moon_step", 10], "Фейский странник": ["misty_wanderer", 15] };
+      for (var s in WIS) { var c = sr(s, WIS[s][0]); if (!c || c.maxByLevel[WIS[s][1] - 1] !== 0 || c.maxByLevel[WIS[s][1]] !== "wis" || c.restoreOn !== "long") return s + ": " + WIS[s][0]; }
+      var om = sr("Круг звёзд", "cosmic_omen"), nr = sr("Круг земли", "natural_recovery"), nc = sr("Круг земли", "natural_recovery_cast"), fr = sr("Фейский странник", "fey_reinforcements");
+      if (!om || om.maxByLevel[5] !== 0 || om.maxByLevel[6] !== "wis") return "Космическое знамение";
+      if (!nr || !nr.slotRecovery || nr.maxByLevel[5] !== 0 || nr.maxByLevel[6] !== 1 || !nc || nc.maxByLevel[6] !== 1) return "Естественное восстановление: два счётчика";
+      if (!fr || fr.maxByLevel[10] !== 0 || fr.maxByLevel[11] !== 1) return "Подкрепление фей";
+      if (!dr.wild_resurgence || dr.wild_resurgence.maxByLevel[4] !== 0 || dr.wild_resurgence.maxByLevel[5] !== 1) return "дикое возрождение";
+      for (var ci = 0; ci < CLASSES.length; ci++) CR24[CLASSES[ci]].resources.forEach(function(x){ for (var l = 1; l <= 20; l++) if (x.maxByLevel[l] === undefined) throw new Error(x.id + ": нет maxByLevel[" + l + "]"); });
+      var d24 = edData({ edition: "2024" });
+      if (d24.CLASS_RESOURCES["Друид"] !== CR24["Друид"] || CLASS_RESOURCES["Друид"].resources[0].restoreOn !== "short") return "слияние ресурсов друида / 2014 задет";
+      if (CLASS_RESOURCES["Следопыт"].resources[0].restoreOn !== "none") return "2014 избранный враг задет";
+      return true;
+    });
+
+    t("[e24-11] выборы и мастерство: первобытный порядок (1), стихийная ярость (7), стиль боя следопыта (2) с «Друидическим воином», компетентность 1→3; следопыт 2 приёма", function(){
+      var cc = window.CLASS_CHOICES_2024;
+      function ch(cls, id) { return (cc[cls] || []).filter(function(c){ return c.id === id; })[0]; }
+      var po = ch("Друид", "primal-order"), ef = ch("Друид", "elemental-fury"), fs = ch("Следопыт", "fighting-style"), ex = ch("Следопыт", "expertise");
+      if (!po || po.minLevel !== 1 || po.options.length !== 2) return "первобытный порядок";
+      if (!ef || ef.minLevel !== 7 || ef.options.length !== 2) return "стихийная ярость";
+      if (!fs || fs.minLevel !== 2 || fs.options.length !== Object.keys(window.FIGHTING_STYLES_2024 || {}).length + 1) return "стиль боя следопыта";
+      if (!ex || ex.minLevel !== 2 || ex.pool !== "skills" || ex.getCount(2) !== 1 || ex.getCount(8) !== 1 || ex.getCount(9) !== 3) return "компетентность следопыта";
+      if (ch("Следопыт", "favored-enemy") || ch("Следопыт", "natural-explorer")) return "у следопыта 2024 выборы 2014";
+      var all = [po, ef, fs];
+      var sc = window.SUBCLASS_CHOICES_2024;
+      ["Охотник", "Повелитель зверей"].forEach(function(s){ (sc[s] || []).forEach(function(c){ all.push(c); }); });
+      if (all.length < 6) return "выборы Охотника/Повелителя зверей";
+      for (var i = 0; i < all.length; i++) for (var j = 0; j < all[i].options.length; j++) {
+        var o = all[i].optionsDict[all[i].options[j]];
+        if (!o || !o.name || !o.desc) return all[i].id + ": опция " + all[i].options[j];
+      }
+      if (!fs.options.some(function(k){ return /Друидический воин/.test(fs.optionsDict[k].name); })) return "нет «Друидический воин»";
+      if (getWeaponMasteryLimit(mk("2024", "Следопыт", 1)) !== 2 || getWeaponMasteryLimit(mk("2024", "Следопыт", 20)) !== 2) return "мастерство следопыта";
+      if (getWeaponMasteryLimit(mk("2024", "Друид", 20)) !== 0) return "у друида есть мастерство";
       return true;
     });
   })();
