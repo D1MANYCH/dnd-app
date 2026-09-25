@@ -281,6 +281,11 @@ function rulesHasDraconicResilience(char) {
   return !!char && charClassLevel(char, "Чародей") >= 1 && charClassSubclass(char, "Чародей") === "Драконья кровь";
 }
 
+/** E24-13: «Блистательная подтанцовка» барда «Коллегия танца» (PHB 2024 стр.54) — без доспехов и щита */
+function rulesHasDazzlingFootwork(char) {
+  return !!char && char.edition === "2024" && charClassLevel(char, "Бард") >= 3 && charClassSubclass(char, "Бард") === "Коллегия танца";
+}
+
 /** AUD-8 (R15): «Выдающийся атлет» Чемпиона 7 ур. (PHB 2014 стр.73) */
 function rulesRemarkableAthlete(char) {
   return !!char && char.edition !== "2024" && charClassLevel(char, "Воин") >= 7 && charClassSubclass(char, "Воин") === "Чемпион";
@@ -508,6 +513,10 @@ function rulesAC(char) {
     } else {
       ways.push({ ac: 13 + dexMod, formula: ["13 (драконья чешуя)", sgn(dexMod) + " (ЛОВ)"], mod: "Драконья устойчивость" });
     }
+  }
+  if (rulesHasDazzlingFootwork(char) && !hasShieldSelected) {
+    var chaModDance = getMod(char.stats.cha);
+    ways.push({ ac: 10 + dexMod + chaModDance, formula: ["10 (база)", sgn(dexMod) + " (ЛОВ)", sgn(chaModDance) + " (ХАР)"], mod: "Блистательная подтанцовка" });
   }
   if (hasMageArmor) {
     ways.push({ ac: 13 + dexMod, formula: ["13 (магия)", sgn(dexMod) + " (ЛОВ)"], mod: "Доспех мага" });

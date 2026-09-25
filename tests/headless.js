@@ -3603,7 +3603,8 @@
       // Ещё не наполненные фазами таблицы наследуются от 2014 по ссылке (CONDITIONS уже
       // переопределена в E24-1 — её паритет проверяется в БЛОКЕ 33). CLASS_FEATURES с E24-8
       // сливается по классам (_mergeByClass) — непереведённый класс наследуется по ссылке.
-      if (d24.CLASS_FEATURES["Колдун"] !== d14.CLASS_FEATURES["Колдун"]) return "CLASS_FEATURES Колдун 2024 ≠ 2014";
+      // E24-13: все 12 классов переведены — 2014 остаётся своей таблицей, 2024 берёт класс из override
+      if (d14.CLASS_FEATURES["Колдун"] !== CLASS_FEATURES["Колдун"] || d24.CLASS_FEATURES["Колдун"] === d14.CLASS_FEATURES["Колдун"]) return "CLASS_FEATURES Колдун: 2014/2024 перепутаны";
       // AUD-5: у паладина/следопыта 2024 своя строка 1 ур., остальные классы — по ссылке
       if (d24.SPELL_SLOTS_BY_LEVEL["Волшебник"] !== d14.SPELL_SLOTS_BY_LEVEL["Волшебник"]) return "слоты 2024 ≠ 2014";
       if (d24.CLASS_HIT_DICE !== d14.CLASS_HIT_DICE) return "CLASS_HIT_DICE 2024 ≠ 2014";
@@ -8042,11 +8043,11 @@
     t("[e24-8] слияние: edData(2024) — Воин/Варвар из 2024, остальные классы и чужие подклассы из 2014; 2014-глобалы не тронуты", function(){
       var d24 = edData({ edition: "2024" }), d14 = edData({ edition: "2014" });
       if (d24.CLASS_FEATURES["Воин"] !== CF24["Воин"]) return "CLASS_FEATURES Воин не из 2024";
-      if (d24.CLASS_FEATURES["Колдун"] !== CLASS_FEATURES["Колдун"]) return "Колдун у 2024 не унаследован";
+      if (d24.CLASS_FEATURES["Колдун"] !== window.CLASS_FEATURES_2024["Колдун"]) return "Колдун у 2024 не из override";
       if (d24.SUBCLASSES["Воин"].length !== 4 || d14.SUBCLASSES["Воин"].length < 8) return "SUBCLASSES: 2024 " + d24.SUBCLASSES["Воин"].length + ", 2014 " + d14.SUBCLASSES["Воин"].length;
       if (d24.SUBCLASS_FEATURES["Чемпион"] === SUBCLASS_FEATURES["Чемпион"]) return "Чемпион у 2024 — 2014-запись";
       if (d24.SUBCLASS_FEATURES["Кавалерист"] !== SUBCLASS_FEATURES["Кавалерист"]) return "Кавалерист у 2024 не унаследован";
-      if (d24.CLASS_RESOURCES["Воин"] !== CR24["Воин"] || d24.CLASS_RESOURCES["Колдун"] !== CLASS_RESOURCES["Колдун"]) return "CLASS_RESOURCES слиты неверно";
+      if (d24.CLASS_RESOURCES["Воин"] !== CR24["Воин"] || d24.CLASS_RESOURCES["Колдун"] !== window.CLASS_RESOURCES_2024["Колдун"]) return "CLASS_RESOURCES слиты неверно";
       if (d24.SUBCLASS_SOURCE["Чемпион"] !== "PH24" || d24.SUBCLASS_SOURCE["Кавалерист"] !== SUBCLASS_SOURCE["Кавалерист"]) return "SUBCLASS_SOURCE слит неверно";
       if (d24.ASI_LEVELS["Воин"].length !== 6 || d14.ASI_LEVELS["Воин"].length !== 7) return "ASI_LEVELS: 2024 " + d24.ASI_LEVELS["Воин"].length + ", 2014 " + d14.ASI_LEVELS["Воин"].length;
       if (Object.keys(d24.CLASS_FEATURES).length !== Object.keys(CLASS_FEATURES).length) return "число классов у 2024 изменилось";
@@ -8205,7 +8206,7 @@
       if (charEpicSlots(mk("2024", "Воин", 18)).length !== 0) return "Воин 2024 18: слот есть";
       if (charEpicSlots(mk("2024", "Варвар", 20)).length !== 1) return "Варвар 2024 20";
       if (charEpicSlots(mk("2014", "Воин", 20)).length !== 0) return "2014 получил эпический дар";
-      if (charEpicSlots(mk("2024", "Колдун", 20)).length !== 0) return "непереведённый класс 2024 получил дар";
+      if (charEpicSlots(mk("2024", "Колдун", 20)).length !== 1) return "Колдун 2024 20: нет эпического дара";
       if (charAsiSlots(mk("2024", "Воин", 19)).length !== 6) return "charAsiSlots 19 задет";
       if (typeof _luFeatChoiceAt === "function") {
         var c = mk("2024", "Воин", 19);
@@ -8681,6 +8682,132 @@
       if (meta.getCount(2) !== 2 || meta.getCount(9) !== 2 || meta.getCount(10) !== 4 || meta.getCount(16) !== 4 || meta.getCount(17) !== 6) return "метамагия: getCount";
       for (var j = 0; j < meta.options.length; j++) { var m = meta.optionsDict[meta.options[j]]; if (!m || !m.name || !m.desc) return "метамагия " + meta.options[j]; }
       if (SORCERER_METAMAGIC["twinned"].name !== "Удвоенное заклинание" || Object.keys(SORCERER_METAMAGIC).length !== 8) return "2014 метамагия задета";
+      return true;
+    });
+  })();
+
+  // ────────── БЛОК 64 (E24-13): классы 2024 — Колдун и Бард: фичи 1–20, 4 подкласса на 3 ур., ресурсы, воззвания, КД Коллегии танца ──────────
+  (function(){
+    if (typeof edData !== "function" || typeof window === "undefined" || !window.CLASS_FEATURES_2024 || !window.CLASS_FEATURES_2024["Колдун"]) return;
+    var CF24 = window.CLASS_FEATURES_2024, SUB24 = window.SUBCLASSES_2024, SF24 = window.SUBCLASS_FEATURES_2024;
+    var ASI24 = window.ASI_LEVELS_2024, SRC24 = window.SUBCLASS_SOURCE_2024, CR24 = window.CLASS_RESOURCES_2024;
+    var CLASSES = ["Колдун", "Бард"];
+    function mk(ed, cls, lvl, sub) {
+      var st = { str: 8, dex: 14, con: 14, int: 10, wis: 10, cha: 16 };
+      return { edition: ed, class: cls, level: lvl, subclass: sub || "", classes: [{ class: cls, level: lvl, subclass: sub || "" }], stats: st, resources: {}, weaponMastery: [], classChoices: {} };
+    }
+    function has(arr, name) { return (arr || []).some(function(f){ return f && f.name === name; }); }
+    function res(cls) { var o = {}; CR24[cls].resources.forEach(function(r){ o[r.id] = r; }); return o; }
+
+    t("[e24-13] Колдун/Бард 2024: фичи 1–20 без дыр, АСИ 4/8/12/16, 19 — «Эпический дар», подкласс на 3", function(){
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var cls = CLASSES[ci], tbl = CF24[cls];
+        if (!ASI24[cls] || ASI24[cls].join() !== "4,8,12,16") return cls + ": ASI " + (ASI24[cls] && ASI24[cls].join());
+        for (var l = 1; l <= 20; l++) {
+          if (!Array.isArray(tbl[l]) || !tbl[l].length) return cls + " " + l + ": нет фич";
+          for (var i = 0; i < tbl[l].length; i++) if (!tbl[l][i] || !tbl[l][i].name || !tbl[l][i].desc) return cls + " " + l + ": фича без name/desc";
+          if (has(tbl[l], "Увеличение характеристик") !== (ASI24[cls].indexOf(l) !== -1)) return cls + " " + l + ": АСИ не по расписанию";
+        }
+        if (!has(tbl[19], "Эпический дар")) return cls + " 19: нет «Эпический дар»";
+        if (!tbl[3].some(function(f){ return /подкласс/i.test(f.name); })) return cls + " 3: нет выбора подкласса";
+      }
+      if (!has(CF24["Колдун"][1], "Таинственные воззвания")) return "воззвания колдуна не с 1 ур.";
+      if (charAsiSlots(mk("2024", "Бард", 20)).length !== 4) return "charAsiSlots барда";
+      if (charEpicSlots(mk("2024", "Колдун", 19)).length !== 1) return "эпический дар колдуна";
+      if (getWeaponMasteryLimit(mk("2024", "Бард", 20)) !== 0 || getWeaponMasteryLimit(mk("2024", "Колдун", 20)) !== 0) return "мастерство оружия у барда/колдуна";
+      return true;
+    });
+
+    t("[e24-13] подклассы 2024: по 4, SUBCLASS_LEVEL 3 (в 2014 колдун — 1), фичи с 3, источник PH24; коллегии — имена 2014", function(){
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var cls = CLASSES[ci], list = SUB24[cls];
+        if (!Array.isArray(list) || list.length !== 4) return cls + ": подклассов " + (list && list.length);
+        if (window.SUBCLASS_LEVEL_2024[cls] !== 3) return cls + ": SUBCLASS_LEVEL_2024 не 3";
+        for (var i = 0; i < list.length; i++) {
+          var f = SF24[list[i]];
+          if (!f) return list[i] + ": нет фич";
+          var lv = Object.keys(f).map(Number).sort(function(a, b){ return a - b; });
+          if (lv[0] !== 3) return list[i] + ": первая фича на " + lv[0];
+          for (var k in f) if (!Array.isArray(f[k]) || !f[k].length || !f[k][0].name || !f[k][0].desc) return list[i] + " " + k + ": пустая фича";
+          for (var j = 0; j < lv.length; j++) if (lv[j] !== 3 && !has(CF24[cls][lv[j]], "Умение подкласса")) return cls + " " + lv[j] + ": нет «Умение подкласса» под фичу " + list[i];
+          if (SRC24[list[i]] !== "PH24") return list[i] + ": источник " + SRC24[list[i]];
+        }
+      }
+      var names14 = ["Коллегия знаний", "Коллегия доблести", "Коллегия гламура"];
+      for (var n = 0; n < names14.length; n++) if (SUB24["Бард"].indexOf(names14[n]) === -1) return "нет " + names14[n];
+      if (SUBCLASS_LEVEL["Колдун"] !== 1 || SUBCLASS_LEVEL["Бард"] !== 3) return "SUBCLASS_LEVEL 2014 задет";
+      var d24 = edData({ edition: "2024" });
+      if (d24.SUBCLASS_FEATURES["Коллегия знаний"] === SUBCLASS_FEATURES["Коллегия знаний"]) return "Коллегия знаний у 2024 — 2014-запись";
+      if (!d24.CLASS_CHOICES["Колдун"].every(function(c){ return c.id !== "pact-boon"; })) return "у 2024 колдуна остался выбор предмета договора 2014";
+      if (charSubclassPending(mk("2024", "Колдун", 2)).length !== 0 || charSubclassPending(mk("2024", "Колдун", 3)).length !== 1) return "charSubclassPending колдун";
+      return true;
+    });
+
+    t("[e24-13] заклинания покровителей 3/5/7/9, имена есть в spells.js", function(){
+      var names = {};
+      (typeof SPELLS_BASE !== "undefined" ? SPELLS_BASE : []).forEach(function(s){ names[s.name] = true; });
+      var d24 = edData({ edition: "2024" });
+      for (var i = 0; i < SUB24["Колдун"].length; i++) {
+        var sub = SUB24["Колдун"][i], def = d24.SUBCLASS_RESOURCES[sub], ss = def && def.passive && def.passive.subclassSpells;
+        if (!ss || !ss.byLevel) return sub + ": нет subclassSpells";
+        var lv = Object.keys(ss.byLevel).map(Number).sort(function(a, b){ return a - b; }).join();
+        if (lv !== "3,5,7,9") return sub + ": уровни " + lv;
+        for (var k in ss.byLevel) for (var j = 0; j < ss.byLevel[k].length; j++) {
+          var n = String(ss.byLevel[k][j]).replace(/\s*\([^)]*\)\s*$/, "");
+          if (Object.keys(names).length && !names[n]) return sub + ": нет в spells.js «" + n + "»";
+        }
+      }
+      return true;
+    });
+
+    t("[e24-13] воззвания 2024: 3 договора среди воззваний, число 1/3/5/6/7/8/9/10 на 1/2/5/7/9/12/15/18, фильтр по уровню", function(){
+      var inv = window.WARLOCK_INVOCATIONS_2024;
+      var ch = (window.CLASS_CHOICES_2024["Колдун"] || []).filter(function(c){ return c.id === "invocations"; })[0];
+      if (!ch || ch.minLevel !== 1 || ch.optionsDict !== inv || !ch.filterByReq) return "выбор воззваний";
+      var pacts = ["pact-of-the-blade", "pact-of-the-chain", "pact-of-the-tome"];
+      for (var p = 0; p < pacts.length; p++) if (!inv[pacts[p]]) return "нет " + pacts[p];
+      var exp = {1:1, 2:3, 4:3, 5:5, 6:5, 7:6, 8:6, 9:7, 11:7, 12:8, 14:8, 15:9, 17:9, 18:10, 20:10};
+      for (var l in exp) if (ch.getCount(+l) !== exp[l]) return "getCount(" + l + ") = " + ch.getCount(+l);
+      for (var id in inv) {
+        var o = inv[id];
+        if (!o.name || !o.desc) return id + ": без name/desc";
+        if (o.req && o.req.pact) return id + ": req.pact 2014 в воззвании 2024";
+      }
+      var avail = ccAvailableOptions(ch, mk("2024", "Колдун", 1), "Колдун");
+      if (avail.indexOf("witch-sight") !== -1) return "15-уровневое воззвание доступно на 1";
+      if (avail.indexOf("pact-of-the-blade") === -1) return "договор недоступен на 1";
+      var bard = (window.CLASS_CHOICES_2024["Бард"] || []).filter(function(c){ return c.id === "expertise"; })[0];
+      if (!bard || bard.minLevel !== 2 || bard.getCount(8) !== 2 || bard.getCount(9) !== 4) return "компетентность барда";
+      if (Object.keys(WARLOCK_INVOCATIONS).length < 20 || !WARLOCK_PACT_BOONS.blade) return "2014 воззвания задеты";
+      return true;
+    });
+
+    t("[e24-13] ресурсы 2024: вдохновение = мод.ХАР, короткий отдых с 5; арканум 11/13/15/17; хитрость с 2, связь с покровителем с 9", function(){
+      var wl = res("Колдун"), bd = res("Бард");
+      var bi = bd.bardic_inspiration;
+      if (!bi || bi.maxStat !== "cha" || bi.maxByLevel[1] !== "cha" || bi.shortFromLevel !== 5) return "вдохновение барда";
+      var lv = { mystic_arcanum_6: 11, mystic_arcanum_7: 13, mystic_arcanum_8: 15, mystic_arcanum_9: 17, magical_cunning: 2, contact_patron: 9 };
+      for (var id in lv) {
+        var r = wl[id];
+        if (!r) return "нет " + id;
+        if (r.maxByLevel[lv[id] - 1] !== 0 || r.maxByLevel[lv[id]] !== 1) return id + ": не с " + lv[id] + " ур.";
+      }
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var rs = CR24[CLASSES[ci]].resources;
+        for (var x = 0; x < rs.length; x++) for (var l = 1; l <= 20; l++) if (rs[x].maxByLevel[l] === undefined) return rs[x].id + ": нет maxByLevel[" + l + "]";
+      }
+      if (CLASS_RESOURCES["Колдун"].resources.length !== 4) return "2014 колдун задет";
+      if (edData({ edition: "2024" }).CLASS_WEAPONS_SPECIFIC["Бард"].length !== 0 || CLASS_WEAPONS_SPECIFIC["Бард"].length !== 4) return "оружие барда 2024/2014";
+      return true;
+    });
+
+    t("[e24-13] Коллегия танца: КД без доспехов 10 + ЛОВ + ХАР, со щитом — нет; у 2014 и другой коллегии — нет", function(){
+      function bd(ed, sub, shield) { return { edition: ed, class: "Бард", level: 3, subclass: sub, classes: [{ class: "Бард", level: 3, subclass: sub }], stats: { str: 8, dex: 16, con: 12, int: 10, wis: 10, cha: 16 }, combat: { armorId: "none", hasShield: !!shield }, resources: {} }; }
+      function ac(c) { var a = rulesAC(c); return (a && typeof a === "object") ? a.ac : a; }
+      if (ac(bd("2024", "Коллегия танца")) !== 16) return "КД танца: " + ac(bd("2024", "Коллегия танца"));
+      if (ac(bd("2024", "Коллегия знаний")) !== 13) return "КД знаний: " + ac(bd("2024", "Коллегия знаний"));
+      if (ac(bd("2014", "Коллегия танца")) !== 13) return "КД 2014: " + ac(bd("2014", "Коллегия танца"));
+      if (ac(bd("2024", "Коллегия танца", true)) !== 15) return "КД танца со щитом: " + ac(bd("2024", "Коллегия танца", true));
       return true;
     });
   })();

@@ -557,6 +557,7 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
       var bits = [];
       if (opt.req.level) bits.push("ур." + opt.req.level);
       if (opt.req.pact)  bits.push(WARLOCK_PACT_BOONS[opt.req.pact] ? WARLOCK_PACT_BOONS[opt.req.pact].name : opt.req.pact);
+      if (opt.req.text)  bits.push(opt.req.text);
       if (bits.length) reqText = '<span class="cc-opt-req">' + bits.join(" · ") + "</span>";
     }
     bodyHtml +=
