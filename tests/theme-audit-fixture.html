@@ -29,7 +29,7 @@ const q = new URLSearchParams(location.search);
 const beacon = m => { try { fetch('/__diag?' + encodeURIComponent(m)).catch(()=>{}); } catch (e) {} };
 try {
   localStorage.clear();
-  ['seen','sheet_seen','spells_seen','inventory_seen','battle_seen','notes_seen','party_seen','journal_seen']
+  ['seen','sheet_seen','spells_seen','inventory_seen','battle_seen','notes_seen','party_seen','journal_seen','progress_seen']
     .forEach(k => localStorage.setItem('dnd_help_' + k, '1'));
   localStorage.setItem('dnd_help_level', 'known');
   localStorage.setItem('dnd_theme', q.get('theme') || 'dark');
@@ -49,6 +49,9 @@ f.addEventListener('load', () => {
     try {
       w.requestAnimationFrame = () => 0;
       await w.applyBuild('wizard-evoker');
+      // AUD-12: applyBuild через setTimeout(_syncHp, 0) выравнивает ХП до максимума —
+      // хиты сеем после него, иначе &hp=N и 19/32 молча становятся 32/32.
+      await new Promise(r => setTimeout(r, 50));
       const c = w.characters[0];
       c.level = 5; c.classes[0].level = 5;
       // HP2: &hp=N задаёт текущие ХП (0 — снимок раздела со спасбросками).
