@@ -801,23 +801,24 @@ html.glass-adjusting *::after {
 /* STYLE-8a2: .flat-field — поля «Листа», ставшие плоскими строками (нижняя
    линия вместо рамки). Исключение в самом блоке, а не перебивка: иначе на
    каждое поле пришлось бы по !important и ратчет светлой темы вырос бы. */
-:root[data-theme="light"] .notes-modal-textarea,
-:root[data-theme="light"] textarea:not(.notes-section-input):not(.flat-field),
-:root[data-theme="light"] input[type="text"]:not(.bp-search):not(.flat-field),
-:root[data-theme="light"] input[type="number"]:not(.inv-coin-big-inp):not(.flat-field),
-:root[data-theme="light"] input[type="search"]:not(.notes-search):not(.flat-field),
+/* UNI-3: поля коротких форм — плоские в обеих темах (блок UNI-3 в конце
+   файла), исключены тем же приёмом: :not(окно формы *). */
+:root[data-theme="light"] textarea:not(.notes-section-input):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *),
+:root[data-theme="light"] input[type="text"]:not(.bp-search):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *),
+:root[data-theme="light"] input[type="number"]:not(.inv-coin-big-inp):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *),
+:root[data-theme="light"] input[type="search"]:not(.notes-search):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *),
 :root[data-theme="light"] input[type="url"],
 :root[data-theme="light"] input[type="email"],
-:root[data-theme="light"] select:not(.bp-select):not(.flat-field) {
+:root[data-theme="light"] select:not(.bp-select):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *) {
   background: var(--bg-1) !important;
   border: 1px solid var(--border) !important;
   color: var(--text) !important;
 }
 :root[data-theme="light"] textarea::placeholder,
 :root[data-theme="light"] input::placeholder { color: var(--text-mute) !important; }
-:root[data-theme="light"] textarea:focus:not(.notes-section-input):not(.flat-field),
-:root[data-theme="light"] input:focus:not(.inv-coin-big-inp):not(.notes-search):not(.bp-search):not(.flat-field),
-:root[data-theme="light"] select:focus:not(.bp-select):not(.flat-field) {
+:root[data-theme="light"] textarea:focus:not(.notes-section-input):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *),
+:root[data-theme="light"] input:focus:not(.inv-coin-big-inp):not(.notes-search):not(.bp-search):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *),
+:root[data-theme="light"] select:focus:not(.bp-select):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *) {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 3px var(--accent-soft) !important;
   background: var(--bg-1) !important;
@@ -5057,15 +5058,15 @@ button.avatar-icon-btn {
 }
 .modal-close {
 position: absolute;
-top: 10px;
-right: 12px;
+top: 6px;
+right: 6px;
 /* width:auto/left:auto — перебиваем глобальный button{width:100%},
    из-за которого × растягивалась на всю ширину и уезжала влево.
-   Полноценная тач-кнопка 40×40 с крупным ×, поверх контента. */
-width: 40px;
+   UNI-3: тач-зона 44×44 — одна геометрия у всех крестиков форм. */
+width: 44px;
 left: auto;
-height: 40px;
-min-width: 40px;
+height: 44px;
+min-width: 44px;
 padding: 0;
 margin: 0;
 display: flex;
@@ -5076,7 +5077,7 @@ line-height: 1;
 z-index: 5;
 /* !important — перебиваем глобальный сброс button.modal-close{font:inherit},
    иначе × наследует мелкий размер родителя (≈16px в кнопке 40px). */
-font-size: 28px !important;
+font-size: 20px !important;
 cursor: pointer;
 color: var(--text-muted);
 background: transparent;
@@ -7094,29 +7095,29 @@ text-align: center;
 animation: dymka-modal-in var(--t3, 420ms) var(--ez-spring, ease-out);
 }
 .confirm-modal-overlay.active { animation: dymka-ovl-in var(--t2, 240ms) var(--ez-out, ease-out); }
-.confirm-modal-icon { font-size: 2em; margin-bottom: 10px; }
-.confirm-modal-box h4 { font-size: 1.1em; color: var(--text); margin: 0 0 8px; }
+/* UNI-3: ромб в шапке заменил иконку над заголовком — шапка у всех форм одна */
+.confirm-modal-box > .confirm-modal-icon { display: none; }
 .confirm-modal-box p { font-size: 0.82em; color: var(--text-dim); margin: 0 0 20px; line-height: 1.5; }
-.confirm-modal-btns { display: flex; gap: 10px; }
+/* UNI-3: подвал — «Отмена» текстом + одна заливка. Заливка по умолчанию —
+   акцент: красной «Сохранить/Добавить» больше нет, красит только --danger. */
+.confirm-modal-btns { display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2); margin-top: var(--sp-4); }
 .confirm-btn-cancel {
-flex: 1; padding: 10px; border-radius: 8px;
-background: var(--bg-2);
-border: 1px solid var(--border);
-color: var(--text-dim);
-font-size: 0.9em; cursor: pointer; width: auto; margin: 0;
+flex: 0 0 auto; min-height: 44px; padding: 0 var(--sp-3);
+background: none; border: none; border-radius: 0; box-shadow: none;
+color: var(--home-sub);
+font-size: 0.95em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 }
 .confirm-btn-ok {
-flex: 1; padding: 10px; border-radius: 8px;
-background: var(--danger);
-border: 1px solid var(--danger);
-color: #fff;
-font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
+flex: 0 0 auto; min-height: 44px; padding: 0 var(--sp-5); border-radius: var(--r-md);
+background: var(--accent);
+border: none;
+color: var(--on-accent, #fff);
+font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
 }
-.confirm-btn-cancel:hover { background: var(--bg-3); }
-.confirm-btn-ok:hover { background: #e74c3c; }
-/* FB-1: не-деструктивное подтверждение (напр. «Разблокировать») — не красная */
-.confirm-btn-ok--safe { background: var(--accent); border-color: var(--accent); color: #000; }
-.confirm-btn-ok--safe:hover { background: var(--accent); filter: brightness(1.08); }
+.confirm-btn-cancel:hover { background: none; box-shadow: none; filter: none; color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.confirm-btn-ok:hover { background: var(--accent-hi); box-shadow: none; filter: none; }
+.confirm-btn-ok--danger { background: var(--danger); color: #fff; }
+.confirm-btn-ok--danger:hover { background: var(--danger); filter: brightness(1.08); }
 
 /* ============================================================
    ⚔️ ОТРЯД & БОЙ
@@ -7332,7 +7333,7 @@ font-size: 0.9em; font-weight: 600; cursor: pointer; width: auto; margin: 0;
 
 /* Party modal */
 .party-modal-box { max-width: 400px !important; text-align: left !important; }
-.party-modal-box h4 { text-align: center; margin-bottom: 16px; }
+.party-modal-box h4 { margin-bottom: 16px; }
 .party-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
 .party-form label { font-size: 0.75em; color: var(--text-dim); }
 .party-form input, .party-form select, .party-form textarea {
@@ -11258,20 +11259,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   font-weight: 700;
   color: var(--magic);
 }
-.conc-details-close {
-  background: transparent !important;
-  border: none !important;
-  color: var(--text-muted) !important;
-  font-size: 1em !important;
-  padding: 4px 8px !important;
-  width: auto !important;
-  margin: 0 !important;
-  cursor: pointer;
-  border-radius: var(--r-sm);
-  transform: none !important;
-  box-shadow: none !important;
-}
-.conc-details-close:hover { color: var(--text-color) !important; transform: none !important; }
 
 .conc-details-body {
   padding: 14px 16px;
@@ -16734,3 +16721,210 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 #screen-spellsearch .spell-item-actions button.secondary { color: var(--home-sub); }
 #screen-spellsearch .spell-item-actions .spell-remove-btn { color: var(--danger-color); }
 #screen-spellsearch .spell-item-actions .spell-remove-btn:hover { color: var(--danger-color); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ══ UNI-3: единая короткая форма ═════════════════════════════════════════
+   Три шаблона окон — .modal-content (8), .confirm-modal-box (11 + собранные
+   в JS) и .notes-modal (1) — плюс попап концентрации собраны в одну форму:
+   на телефоне шторка снизу с ручкой, на ПК диалог по центру; шапка — ромб +
+   serif + ✕ в зоне 44px; поля плоские с нижней линией --home-rule; подвал —
+   «Отмена» текстом + одна заливка. Классы не переименованы: на них висят
+   inline-onclick и селекторы туров. Блок в конце файла — он сводит правила
+   трёх разделов, при равной специфичности выигрывает последнее. */
+.confirm-modal-box { position: relative; text-align: left; }
+.conc-details-box {
+  background: var(--surface-pop, var(--surface-modal));
+  backdrop-filter: blur(var(--pop-blur, 30px));
+  -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-xl);
+  box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
+}
+
+/* Шапка: ромб + serif. Место справа — под абсолютный ✕. */
+.confirm-modal-box > h4,
+.modal-content:not(.dice-modal-content) > h3,
+.notes-modal-title,
+.conc-details-name {
+  margin: 0 0 var(--sp-3);
+  padding-right: 44px;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text);
+  text-align: left;
+}
+.notes-modal-title, .conc-details-name { margin: 0; padding-right: 0; }
+.confirm-modal-box > h4::before,
+.modal-content:not(.dice-modal-content) > h3::before,
+.notes-modal-title::before,
+.conc-details-name::before {
+  content: "";
+  display: inline-block;
+  width: var(--home-bullet, 9px);
+  height: var(--home-bullet, 9px);
+  margin-right: 10px;
+  vertical-align: 0.1em;
+  transform: rotate(45deg);
+  border: 1.5px solid var(--accent);
+}
+.notes-modal-header,
+.conc-details-header {
+  background: none;
+  border-bottom: 1px solid var(--home-rule);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4);
+}
+.conc-details-icon { display: none; }
+.conc-details-label { color: var(--home-sub); }
+.conc-detail-row { background: none; border-radius: 0; padding: var(--sp-2) 0; border-bottom: 1px solid var(--home-rule); }
+
+/* Крестики: одна геометрия. .modal-close — в своём правиле (MODALS), тут
+   остальные пять; в потоке строки поля тач-зоны уходят в отрицательный отступ,
+   чтобы шапки и полосы не выросли. */
+button.notes-modal-close,
+button.conc-details-close,
+button.qrs-close,
+button.aef-close,
+button.conditions-popup-close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  margin: -10px -10px -10px 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--t1, 140ms), background var(--t1, 140ms);
+}
+button.notes-modal-close:hover,
+button.conc-details-close:hover,
+button.qrs-close:hover,
+button.aef-close:hover,
+button.conditions-popup-close:hover {
+  color: var(--text);
+  background: var(--bg-3);
+  box-shadow: none;
+  filter: none;
+  transform: none;
+}
+
+/* Поля — плоские строки с нижней линией, как на «Листе». Светлая тема
+   исключает их из коробочного блока (см. «Notes / textarea»). */
+:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) :where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), select, textarea) {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+  box-shadow: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) :where(select) { padding-right: 24px; }
+:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) :where(input, select, textarea):focus {
+  background: none;
+  border-bottom-color: var(--accent);
+  box-shadow: none;
+}
+
+/* Подвал: «Закрыть» у форм .modal — текстом, как «Отмена» у подтверждений;
+   у записей — .btn-secondary текстом, заливка одна (.btn-primary). */
+button.modal-close-bottom,
+.notes-modal-footer .btn-secondary {
+  display: block;
+  width: auto;
+  min-height: 44px;
+  margin: var(--sp-4) 0 0 auto;
+  padding: 0 var(--sp-3);
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--home-sub);
+  font-size: 0.95em;
+  font-weight: 600;
+}
+.notes-modal-footer .btn-secondary { margin: 0; }
+button.modal-close-bottom:hover,
+.notes-modal-footer .btn-secondary:hover {
+  background: none;
+  box-shadow: none;
+  filter: none;
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.notes-modal-footer { border-top-color: var(--home-rule); align-items: center; }
+
+/* Цель урона/лечения на «Бое» — плоская строка с ромбом вместо коробки;
+   выбранная — ромб залит акцентом. */
+.cast-damage-targets { gap: 0; }
+.cast-damage-target {
+  min-height: 44px;
+  margin: 0;
+  padding: var(--sp-2) 0;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+  box-shadow: none;
+}
+.cast-damage-target:hover { background: none; filter: none; box-shadow: none; }
+.cast-damage-target:hover .cdt-name { color: var(--accent-lo); }
+.cast-damage-target::before {
+  content: "";
+  flex: 0 0 auto;
+  width: var(--home-bullet, 9px);
+  height: var(--home-bullet, 9px);
+  margin: 0 var(--sp-1);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--home-sub);
+}
+.cast-damage-target.chosen { background: none; border-color: var(--home-rule); }
+.cast-damage-target.chosen::before { background: var(--accent); border-color: var(--accent); }
+
+/* Телефон: все короткие формы — шторка снизу, как .modal (MODALS).
+   !important — против инлайн-max-width и !important у .party-modal-box и
+   .asi-modal-box / .tracker-info-box. */
+@media (max-width: 767px) {
+  .confirm-modal-overlay.active,
+  .notes-modal-overlay { align-items: flex-end; }
+  .confirm-modal-box,
+  .conc-details-box,
+  .notes-modal {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: 92dvh;
+    overflow-y: auto;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    animation: dymka-sheet-in var(--t3, 420ms) var(--ez-spring, ease-out);
+  }
+  .confirm-modal-box { padding: 10px var(--sp-4) calc(var(--sp-4) + env(safe-area-inset-bottom, 0px)); }
+  .notes-modal { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .confirm-modal-box::before,
+  .conc-details-box::before,
+  .notes-modal::before {
+    content: "";
+    display: block;
+    flex-shrink: 0;
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border);
+    margin: 0 auto 12px;
+  }
+  .conc-details-box::before,
+  .notes-modal::before { margin: 8px auto 0; }
+  .confirm-modal-box > .modal-close { top: 14px; }
+}

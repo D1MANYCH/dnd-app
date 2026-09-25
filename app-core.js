@@ -1229,7 +1229,7 @@ if (iconEl) iconEl.innerHTML = dndIcoHtml((opts && opts.icon) || "trash", 28);
 modal.classList.add("active");
 var newConfirm = confirmBtn.cloneNode(true);
 newConfirm.textContent = confirmLabel || "Удалить";
-newConfirm.classList.toggle("confirm-btn-ok--safe", !!(opts && opts.danger === false));
+newConfirm.classList.toggle("confirm-btn-ok--danger", !(opts && opts.danger === false));
 confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
 var newCancel = cancelBtn.cloneNode(true);
 cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);

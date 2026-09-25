@@ -916,12 +916,13 @@ function showTrackerInfo(i) {
     modal.className = "confirm-modal-overlay";
     modal.innerHTML =
       '<div class="confirm-modal-box tracker-info-box">' +
+        '<button type="button" class="modal-close" onclick="$(\'tracker-info-modal\').classList.remove(\'active\')" aria-label="Закрыть">✕</button>' +
         '<div class="tracker-info-icon" id="tinfo-icon"></div>' +
         '<div class="tracker-info-name" id="tinfo-name"></div>' +
         '<div class="tracker-info-type" id="tinfo-type"></div>' +
         '<div class="tracker-info-desc" id="tinfo-desc"></div>' +
-        '<div class="confirm-modal-btns" style="margin-top:16px">' +
-          '<button class="confirm-btn-ok" onclick="$(\'tracker-info-modal\').classList.remove(\'active\')">Закрыть</button>' +
+        '<div class="confirm-modal-btns">' +
+          '<button class="confirm-btn-cancel" onclick="$(\'tracker-info-modal\').classList.remove(\'active\')">Закрыть</button>' +
         '</div>' +
       '</div>';
     document.body.appendChild(modal);
@@ -1264,11 +1265,12 @@ function _renderCastDamageModal(targets) {
     modal.className = "confirm-modal-overlay";
     modal.innerHTML =
       '<div class="confirm-modal-box cast-damage-box">' +
+        '<button type="button" class="modal-close" onclick="closeCastDamageModal()" aria-label="Закрыть">✕</button>' +
         '<div class="confirm-modal-icon">' + dndIcoHtml("zap", 28) + '</div>' +
         '<h4 id="cast-damage-title"></h4>' +
         '<div id="cast-damage-half-row" class="cast-damage-half-row"></div>' +
         '<div id="cast-damage-targets" class="cast-damage-targets"></div>' +
-        '<div class="confirm-modal-btns" style="margin-top:14px">' +
+        '<div class="confirm-modal-btns">' +
           '<button class="confirm-btn-cancel" onclick="closeCastDamageModal()">Не применять</button>' +
           '<button class="confirm-btn-ok" id="cast-damage-apply" onclick="applyCastDamageTargets()"></button>' +
         '</div>' +
@@ -1400,10 +1402,11 @@ function _renderCastHealModal() {
     modal.className = "confirm-modal-overlay";
     modal.innerHTML =
       '<div class="confirm-modal-box cast-damage-box">' +
+        '<button type="button" class="modal-close" onclick="closeCastHealModal()" aria-label="Закрыть">✕</button>' +
         '<div class="confirm-modal-icon">' + dndIcoHtml("heart", 28) + '</div>' +
         '<h4 id="cast-heal-title"></h4>' +
         '<div id="cast-heal-targets" class="cast-damage-targets"></div>' +
-        '<div class="confirm-modal-btns" style="margin-top:14px">' +
+        '<div class="confirm-modal-btns">' +
           '<button class="confirm-btn-cancel" onclick="closeCastHealModal()">Не применять</button>' +
           '<button class="confirm-btn-ok confirm-btn-ok--safe" id="cast-heal-apply" onclick="applyCastHealTargets()"></button>' +
         '</div>' +
@@ -1516,11 +1519,12 @@ function _renderCastDebuffModal(targets) {
     modal.className = "confirm-modal-overlay";
     modal.innerHTML =
       '<div class="confirm-modal-box cast-debuff-box">' +
+        '<button type="button" class="modal-close" onclick="closeCastDebuffModal()" aria-label="Закрыть">✕</button>' +
         '<div class="confirm-modal-icon">' + dndIcoHtml("target", 28) + '</div>' +
         '<h4 id="cast-debuff-title"></h4>' +
         '<div id="cast-debuff-hint" class="cast-debuff-hint"></div>' +
         '<div id="cast-debuff-targets" class="cast-debuff-targets"></div>' +
-        '<div class="confirm-modal-btns" style="margin-top:14px">' +
+        '<div class="confirm-modal-btns">' +
           '<button class="confirm-btn-cancel" onclick="closeCastDebuffModal()">Не отмечать</button>' +
           '<button class="confirm-btn-ok" id="cast-debuff-apply" onclick="applyCastDebuffTargets()"></button>' +
         '</div>' +

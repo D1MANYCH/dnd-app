@@ -1286,11 +1286,12 @@ function openCastVariantChooser(spell, slot, d) {
     modal.className = "confirm-modal-overlay";
     modal.innerHTML =
       '<div class="confirm-modal-box cast-variant-box">' +
+        '<button type="button" class="modal-close" onclick="pickCastVariant(-1)" aria-label="Закрыть">✕</button>' +
         '<div class="confirm-modal-icon">' + dndIcoHtml("sparkle", 28) + '</div>' +
         '<h4 id="cast-variant-title"></h4>' +
         '<div id="cast-variant-hint" class="cast-variant-hint"></div>' +
         '<div id="cast-variant-options" class="cast-variant-options"></div>' +
-        '<div class="confirm-modal-btns" style="margin-top:14px">' +
+        '<div class="confirm-modal-btns">' +
           '<button class="confirm-btn-cancel" onclick="pickCastVariant(-1)">Без выбора</button>' +
         '</div>' +
       '</div>';
