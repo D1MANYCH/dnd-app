@@ -276,9 +276,9 @@ function rulesHasFightingStyle(char, styleId) {
   });
 }
 
-/** AUD-8 (R10): «Драконья устойчивость» чародея «Драконья кровь» (PHB 2014 стр.102) */
+/** AUD-8 (R10): «Драконья устойчивость» чародея «Драконья кровь» (PHB 2014 стр.102; 2024 стр.166) */
 function rulesHasDraconicResilience(char) {
-  return !!char && char.edition !== "2024" && charClassLevel(char, "Чародей") >= 1 && charClassSubclass(char, "Чародей") === "Драконья кровь";
+  return !!char && charClassLevel(char, "Чародей") >= 1 && charClassSubclass(char, "Чародей") === "Драконья кровь";
 }
 
 /** AUD-8 (R15): «Выдающийся атлет» Чемпиона 7 ур. (PHB 2014 стр.73) */
@@ -502,7 +502,12 @@ function rulesAC(char) {
     ways.push({ ac: 10 + dexMod + wisMod, formula: ["10 (база)", sgn(dexMod) + " (ЛОВ)", sgn(wisMod) + " (МУД)"], mod: "Без доспехов монаха" });
   }
   if (rulesHasDraconicResilience(char)) {
-    ways.push({ ac: 13 + dexMod, formula: ["13 (драконья чешуя)", sgn(dexMod) + " (ЛОВ)"], mod: "Драконья устойчивость" });
+    if (char.edition === "2024") {
+      var chaMod = getMod(char.stats.cha);
+      ways.push({ ac: 10 + dexMod + chaMod, formula: ["10 (база)", sgn(dexMod) + " (ЛОВ)", sgn(chaMod) + " (ХАР)"], mod: "Драконья устойчивость" });
+    } else {
+      ways.push({ ac: 13 + dexMod, formula: ["13 (драконья чешуя)", sgn(dexMod) + " (ЛОВ)"], mod: "Драконья устойчивость" });
+    }
   }
   if (hasMageArmor) {
     ways.push({ ac: 13 + dexMod, formula: ["13 (магия)", sgn(dexMod) + " (ЛОВ)"], mod: "Доспех мага" });

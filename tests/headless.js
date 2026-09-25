@@ -3603,7 +3603,7 @@
       // Ещё не наполненные фазами таблицы наследуются от 2014 по ссылке (CONDITIONS уже
       // переопределена в E24-1 — её паритет проверяется в БЛОКЕ 33). CLASS_FEATURES с E24-8
       // сливается по классам (_mergeByClass) — непереведённый класс наследуется по ссылке.
-      if (d24.CLASS_FEATURES["Волшебник"] !== d14.CLASS_FEATURES["Волшебник"]) return "CLASS_FEATURES Волшебник 2024 ≠ 2014";
+      if (d24.CLASS_FEATURES["Колдун"] !== d14.CLASS_FEATURES["Колдун"]) return "CLASS_FEATURES Колдун 2024 ≠ 2014";
       // AUD-5: у паладина/следопыта 2024 своя строка 1 ур., остальные классы — по ссылке
       if (d24.SPELL_SLOTS_BY_LEVEL["Волшебник"] !== d14.SPELL_SLOTS_BY_LEVEL["Волшебник"]) return "слоты 2024 ≠ 2014";
       if (d24.CLASS_HIT_DICE !== d14.CLASS_HIT_DICE) return "CLASS_HIT_DICE 2024 ≠ 2014";
@@ -8042,11 +8042,11 @@
     t("[e24-8] слияние: edData(2024) — Воин/Варвар из 2024, остальные классы и чужие подклассы из 2014; 2014-глобалы не тронуты", function(){
       var d24 = edData({ edition: "2024" }), d14 = edData({ edition: "2014" });
       if (d24.CLASS_FEATURES["Воин"] !== CF24["Воин"]) return "CLASS_FEATURES Воин не из 2024";
-      if (d24.CLASS_FEATURES["Волшебник"] !== CLASS_FEATURES["Волшебник"]) return "Волшебник у 2024 не унаследован";
+      if (d24.CLASS_FEATURES["Колдун"] !== CLASS_FEATURES["Колдун"]) return "Колдун у 2024 не унаследован";
       if (d24.SUBCLASSES["Воин"].length !== 4 || d14.SUBCLASSES["Воин"].length < 8) return "SUBCLASSES: 2024 " + d24.SUBCLASSES["Воин"].length + ", 2014 " + d14.SUBCLASSES["Воин"].length;
       if (d24.SUBCLASS_FEATURES["Чемпион"] === SUBCLASS_FEATURES["Чемпион"]) return "Чемпион у 2024 — 2014-запись";
       if (d24.SUBCLASS_FEATURES["Кавалерист"] !== SUBCLASS_FEATURES["Кавалерист"]) return "Кавалерист у 2024 не унаследован";
-      if (d24.CLASS_RESOURCES["Воин"] !== CR24["Воин"] || d24.CLASS_RESOURCES["Волшебник"] !== CLASS_RESOURCES["Волшебник"]) return "CLASS_RESOURCES слиты неверно";
+      if (d24.CLASS_RESOURCES["Воин"] !== CR24["Воин"] || d24.CLASS_RESOURCES["Колдун"] !== CLASS_RESOURCES["Колдун"]) return "CLASS_RESOURCES слиты неверно";
       if (d24.SUBCLASS_SOURCE["Чемпион"] !== "PH24" || d24.SUBCLASS_SOURCE["Кавалерист"] !== SUBCLASS_SOURCE["Кавалерист"]) return "SUBCLASS_SOURCE слит неверно";
       if (d24.ASI_LEVELS["Воин"].length !== 6 || d14.ASI_LEVELS["Воин"].length !== 7) return "ASI_LEVELS: 2024 " + d24.ASI_LEVELS["Воин"].length + ", 2014 " + d14.ASI_LEVELS["Воин"].length;
       if (Object.keys(d24.CLASS_FEATURES).length !== Object.keys(CLASS_FEATURES).length) return "число классов у 2024 изменилось";
@@ -8205,7 +8205,7 @@
       if (charEpicSlots(mk("2024", "Воин", 18)).length !== 0) return "Воин 2024 18: слот есть";
       if (charEpicSlots(mk("2024", "Варвар", 20)).length !== 1) return "Варвар 2024 20";
       if (charEpicSlots(mk("2014", "Воин", 20)).length !== 0) return "2014 получил эпический дар";
-      if (charEpicSlots(mk("2024", "Волшебник", 20)).length !== 0) return "непереведённый класс 2024 получил дар";
+      if (charEpicSlots(mk("2024", "Колдун", 20)).length !== 0) return "непереведённый класс 2024 получил дар";
       if (charAsiSlots(mk("2024", "Воин", 19)).length !== 6) return "charAsiSlots 19 задет";
       if (typeof _luFeatChoiceAt === "function") {
         var c = mk("2024", "Воин", 19);
@@ -8561,6 +8561,126 @@
       if (!fs.options.some(function(k){ return /Друидический воин/.test(fs.optionsDict[k].name); })) return "нет «Друидический воин»";
       if (getWeaponMasteryLimit(mk("2024", "Следопыт", 1)) !== 2 || getWeaponMasteryLimit(mk("2024", "Следопыт", 20)) !== 2) return "мастерство следопыта";
       if (getWeaponMasteryLimit(mk("2024", "Друид", 20)) !== 0) return "у друида есть мастерство";
+      return true;
+    });
+  })();
+
+  // ────────── БЛОК 63 (E24-12): классы 2024 — Волшебник и Чародей: фичи 1–20, 4 подкласса на 3 ур., ресурсы, выборы, заклинания подкласса ──────────
+  (function(){
+    if (typeof edData !== "function" || typeof window === "undefined" || !window.CLASS_FEATURES_2024 || !window.CLASS_FEATURES_2024["Волшебник"]) return;
+    var CF24 = window.CLASS_FEATURES_2024, SUB24 = window.SUBCLASSES_2024, SF24 = window.SUBCLASS_FEATURES_2024;
+    var ASI24 = window.ASI_LEVELS_2024, SRC24 = window.SUBCLASS_SOURCE_2024, CR24 = window.CLASS_RESOURCES_2024;
+    var CLASSES = ["Волшебник", "Чародей"];
+    function mk(ed, cls, lvl, sub) {
+      var st = { str: 8, dex: 14, con: 14, int: 16, wis: 10, cha: 16 };
+      return { edition: ed, class: cls, level: lvl, subclass: sub || "", classes: [{ class: cls, level: lvl, subclass: sub || "" }], stats: st, resources: {}, weaponMastery: [], classChoices: {} };
+    }
+    function has(arr, name) { return (arr || []).some(function(f){ return f && f.name === name; }); }
+    function res(cls) { var o = {}; CR24[cls].resources.forEach(function(r){ o[r.id] = r; }); return o; }
+
+    t("[e24-12] Волшебник/Чародей 2024: фичи 1–20 без дыр, АСИ 4/8/12/16, 19 — «Эпический дар», подкласс на 3, без оружейных приёмов", function(){
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var cls = CLASSES[ci], tbl = CF24[cls];
+        if (!ASI24[cls] || ASI24[cls].join() !== "4,8,12,16") return cls + ": ASI " + (ASI24[cls] && ASI24[cls].join());
+        for (var l = 1; l <= 20; l++) {
+          if (!Array.isArray(tbl[l]) || !tbl[l].length) return cls + " " + l + ": нет фич";
+          for (var i = 0; i < tbl[l].length; i++) if (!tbl[l][i] || !tbl[l][i].name || !tbl[l][i].desc) return cls + " " + l + ": фича без name/desc";
+          if (has(tbl[l], "Увеличение характеристик") !== (ASI24[cls].indexOf(l) !== -1)) return cls + " " + l + ": АСИ не по расписанию";
+          if (has(tbl[l], "Оружейные приёмы")) return cls + " " + l + ": лишние оружейные приёмы";
+        }
+        if (!has(tbl[19], "Эпический дар")) return cls + " 19: нет «Эпический дар»";
+        if (!tbl[3].some(function(f){ return /подкласс/i.test(f.name) || /подкласс/i.test(f.desc); })) return cls + " 3: нет выбора подкласса";
+      }
+      if (charAsiSlots(mk("2024", "Волшебник", 20)).length !== 4) return "charAsiSlots волшебника";
+      if (charEpicSlots(mk("2024", "Чародей", 19)).length !== 1) return "эпический дар чародея";
+      if (getWeaponMasteryLimit(mk("2024", "Волшебник", 20)) !== 0 || getWeaponMasteryLimit(mk("2024", "Чародей", 1)) !== 0) return "мастерство оружия у волшебника/чародея";
+      return true;
+    });
+
+    t("[e24-12] подклассы 2024: по 4, SUBCLASS_LEVEL 3, фичи есть и начинаются с 3, источник PH24; 2014 не тронут", function(){
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var cls = CLASSES[ci], list = SUB24[cls];
+        if (!Array.isArray(list) || list.length !== 4) return cls + ": подклассов " + (list && list.length);
+        if (window.SUBCLASS_LEVEL_2024[cls] !== 3) return cls + ": SUBCLASS_LEVEL_2024 не 3";
+        for (var i = 0; i < list.length; i++) {
+          var f = SF24[list[i]];
+          if (!f) return list[i] + ": нет фич";
+          var lv = Object.keys(f).map(Number).sort(function(a, b){ return a - b; });
+          if (lv[0] !== 3) return list[i] + ": первая фича на " + lv[0];
+          for (var k in f) if (!Array.isArray(f[k]) || !f[k].length || !f[k][0].name || !f[k][0].desc) return list[i] + " " + k + ": пустая фича";
+          for (var j = 0; j < lv.length; j++) if (!has(CF24[cls][lv[j]], "Умение подкласса") && lv[j] !== 3) return cls + " " + lv[j] + ": нет «Умение подкласса» под фичу " + list[i];
+          if (SRC24[list[i]] !== "PH24") return list[i] + ": источник " + SRC24[list[i]];
+        }
+      }
+      var d24 = edData({ edition: "2024" });
+      if (d24.SUBCLASSES["Волшебник"].length !== 4 || SUBCLASSES["Волшебник"].length < 8) return "SUBCLASSES волшебника: 2024 " + d24.SUBCLASSES["Волшебник"].length + ", 2014 " + SUBCLASSES["Волшебник"].length;
+      if (SUBCLASS_LEVEL["Волшебник"] !== 2 || SUBCLASS_LEVEL["Чародей"] !== 1) return "SUBCLASS_LEVEL 2014 задет";
+      if (d24.SUBCLASS_FEATURES["Драконья кровь"] === SUBCLASS_FEATURES["Драконья кровь"]) return "Драконья кровь у 2024 — 2014-запись";
+      if (!SUBCLASS_FEATURES["Драконья кровь"]) return "2014 Драконья кровь задета (удалена)";
+      if (charSubclassPending(mk("2024", "Волшебник", 2)).length !== 0 || charSubclassPending(mk("2024", "Волшебник", 3)).length !== 1) return "charSubclassPending волшебник";
+      return true;
+    });
+
+    t("[e24-12] заклинания подкласса чародея 3/5/7/9, имена есть в spells.js; Дикая магия без фиксированного списка; Драконья кровь — выбор стихии", function(){
+      var names = {};
+      (typeof SPELLS_BASE !== "undefined" ? SPELLS_BASE : []).forEach(function(s){ names[s.name] = true; });
+      var subs = ["Аберрантный разум", "Заводная душа", "Драконья кровь"];
+      var d24 = edData({ edition: "2024" });
+      for (var i = 0; i < subs.length; i++) {
+        var sub = subs[i], def = d24.SUBCLASS_RESOURCES[sub], ss = def && def.passive && def.passive.subclassSpells;
+        if (!ss || !ss.byLevel) return sub + ": нет subclassSpells";
+        var lv = Object.keys(ss.byLevel).map(Number).sort(function(a, b){ return a - b; }).join();
+        if (lv !== "3,5,7,9") return sub + ": уровни " + lv;
+        for (var k in ss.byLevel) for (var j = 0; j < ss.byLevel[k].length; j++) {
+          var n = String(ss.byLevel[k][j]).replace(/\s*\([^)]*\)\s*$/, "");
+          if (Object.keys(names).length && !names[n]) return sub + ": нет в spells.js «" + n + "»";
+        }
+      }
+      var wm = d24.SUBCLASS_RESOURCES["Дикая магия"];
+      if (wm && wm.passive && wm.passive.subclassSpells) return "у Дикой магии не должно быть фиксированного списка заклинаний";
+      var aff = (window.SUBCLASS_CHOICES_2024["Драконья кровь"] || []).filter(function(c){ return c.id === "draconic-affinity"; })[0];
+      if (!aff || aff.minLevel !== 6 || aff.options.length !== 5) return "Драконья кровь: выбор стихии";
+      for (var a = 0; a < aff.options.length; a++) { var o = aff.optionsDict[aff.options[a]]; if (!o || !o.name || !o.desc) return "стихия " + aff.options[a]; }
+      return true;
+    });
+
+    t("[e24-12] Драконья кровь: КД без доспехов 2024 = 10 + ЛОВ + ХАР, 2014 = 13 + ЛОВ; ХП +уровень чародея", function(){
+      function dc(ed) { return { edition: ed, class: "Чародей", level: 3, subclass: "Драконья кровь", classes: [{ class: "Чародей", level: 3, subclass: "Драконья кровь" }], stats: { str: 8, dex: 14, con: 12, int: 10, wis: 10, cha: 18 }, combat: { armorId: "none" }, resources: {} }; }
+      var a24 = rulesAC(dc("2024")), a14 = rulesAC(dc("2014"));
+      var v24 = (a24 && typeof a24 === "object") ? a24.ac : a24, v14 = (a14 && typeof a14 === "object") ? a14.ac : a14;
+      if (v24 !== 16) return "КД 2024: " + v24;
+      if (v14 !== 15) return "КД 2014: " + v14;
+      if (rulesMaxHPBase(dc("2024"), 1) !== rulesMaxHPBase({ class: "Чародей", level: 3, classes: [{ class: "Чародей", level: 3, subclass: "" }] }, 1) + 3) return "ХП 2024 без +3";
+      return true;
+    });
+
+    t("[e24-12] ресурсы 2024: очки чародейства = уровень с 2, врождённое чародейство 2 с 1 ур., восстановление магии с 5; магическое восстановление волшебника — восстановление ячеек", function(){
+      var wz = res("Волшебник"), sc = res("Чародей");
+      var ar = wz.arcane_recovery;
+      if (!ar || !ar.slotRecovery || ar.maxByLevel[1] !== 1 || ar.maxByLevel[20] !== 1) return "магическое восстановление волшебника";
+      var sp = sc.sorcery_points;
+      if (!sp || sp.maxByLevel[1] !== 0 || sp.maxByLevel[2] !== "level" || sp.maxByLevel[20] !== "level" || sp.restoreOn !== "long") return "очки чародейства";
+      var innate = sc.innate_sorcery;
+      if (!innate || innate.maxByLevel[1] !== 2 || innate.restoreOn !== "long") return "врождённое чародейство";
+      var fom = sc.font_of_magic;
+      if (!fom || fom.maxByLevel[4] !== 0 || fom.maxByLevel[5] !== 1) return "восстановление магии чародея";
+      for (var ci = 0; ci < CLASSES.length; ci++) CR24[CLASSES[ci]].resources.forEach(function(x){ for (var l = 1; l <= 20; l++) if (x.maxByLevel[l] === undefined) throw new Error(x.id + ": нет maxByLevel[" + l + "]"); });
+      var d24 = edData({ edition: "2024" });
+      if (d24.CLASS_RESOURCES["Волшебник"] !== CR24["Волшебник"]) return "слияние ресурсов волшебника задето";
+      if (CLASS_RESOURCES["Чародей"].resources[0].id !== "sorcery_points") return "2014 чародей задет";
+      return true;
+    });
+
+    t("[e24-12] выборы: «Учёный» волшебника — одиночный выбор из 6 навыков с 2 ур.; метамагия чародея — 10 вариантов, 2 ур., 2→4→6", function(){
+      var cc = window.CLASS_CHOICES_2024;
+      function ch(cls, id) { return (cc[cls] || []).filter(function(c){ return c.id === id; })[0]; }
+      var scholar = ch("Волшебник", "scholar"), meta = ch("Чародей", "metamagic");
+      if (!scholar || scholar.minLevel !== 2 || scholar.type !== "single" || scholar.options.length !== 6) return "Учёный волшебника";
+      for (var i = 0; i < scholar.options.length; i++) { var o = scholar.optionsDict[scholar.options[i]]; if (!o || !o.name || !o.desc) return "навык учёного " + scholar.options[i]; }
+      if (!meta || meta.minLevel !== 2 || meta.options.length !== 10) return "метамагия чародея";
+      if (meta.getCount(2) !== 2 || meta.getCount(9) !== 2 || meta.getCount(10) !== 4 || meta.getCount(16) !== 4 || meta.getCount(17) !== 6) return "метамагия: getCount";
+      for (var j = 0; j < meta.options.length; j++) { var m = meta.optionsDict[meta.options[j]]; if (!m || !m.name || !m.desc) return "метамагия " + meta.options[j]; }
+      if (SORCERER_METAMAGIC["twinned"].name !== "Удвоенное заклинание" || Object.keys(SORCERER_METAMAGIC).length !== 8) return "2014 метамагия задета";
       return true;
     });
   })();
