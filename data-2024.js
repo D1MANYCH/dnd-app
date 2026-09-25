@@ -23,7 +23,7 @@
 //             SUBCLASS_CHOICES_2024 — по 2 класса на фазу:
 //             E24-8 Воин + Варвар (сделано) · E24-9 Плут + Монах · E24-10 Жрец + Паладин ·
 //             E24-11 Друид + Следопыт (сделано) · E24-12 Волшебник + Чародей (сделано) · E24-13 Колдун + Бард (сделано)
-//   E24-14 MULTICLASS_PREREQUISITES_2024 / MULTICLASS_PROFICIENCIES_2024, эпические дары
+//   E24-14 MULTICLASS_PREREQUISITES_2024 / MULTICLASS_PROFICIENCIES_2024, эпические дары (сделано)
 //   E24-15 билды 2024 ×12;  E24-16 открытие тумблера (v4.0.0)
 // ============================================================
 
@@ -2353,6 +2353,33 @@
       ]
     }
   };
+  // ── E24-14: мультикласс 2024 (PH24 стр. 42 — 13 в основной характеристике нового
+  // и каждого текущего класса; у воина СИЛ или ЛОВ — развилка в checkMulticlassPrereqs).
+  var MULTICLASS_PREREQUISITES_2024 = {
+    "Варвар":    { str: 13 },
+    "Бард":      { cha: 13 },
+    "Жрец":      { wis: 13 },
+    "Друид":     { wis: 13 },
+    "Воин":      { str: 13 },
+    "Монах":     { dex: 13, wis: 13 },
+    "Паладин":   { str: 13, cha: 13 },
+    "Плут":      { dex: 13 },
+    "Чародей":   { cha: 13 },
+    "Колдун":    { cha: 13 },
+    "Волшебник": { int: 13 },
+    "Следопыт":  { dex: 13, wis: 13 }
+  };
+  // Владения «Как мультикласс» из описаний классов (гл. 3); отличаются от 2014 только
+  // эти шесть классов, остальные (бард, варвар, волшебник, жрец, плут, чародей) — как в 2014.
+  var MULTICLASS_PROFICIENCIES_2024 = {
+    "Воин":     { armor: ["light","medium","shield"], weapon: ["martial"] },   // стр. 67
+    "Друид":    { armor: ["light","shield"], weapon: [] },                     // стр. 89
+    "Колдун":   { armor: ["light"], weapon: [] },                              // стр. 110
+    "Монах":    { armor: [], weapon: [] },                                     // стр. 121
+    "Паладин":  { armor: ["light","medium","shield"], weapon: ["martial"] },   // стр. 129
+    "Следопыт": { armor: ["light","medium","shield"], weapon: ["martial"], skills: 1 } // стр. 147
+  };
+
   // ═══ КОНЕЦ ДАННЫХ КЛАССОВ ═══
 
   // Собираем 2024-переопределения. По мере наполнения фазами сюда добавляются
@@ -2380,6 +2407,8 @@
     WEAPON_MASTERY:     WEAPON_MASTERY_2024,
     CLASS_SKILL_OPTIONS: _mergeByClass((typeof CLASS_SKILL_OPTIONS !== 'undefined') ? CLASS_SKILL_OPTIONS : {}, CLASS_SKILL_OPTIONS_2024),
     SPELL_SLOTS_BY_LEVEL: _mergeByClass((typeof SPELL_SLOTS_BY_LEVEL !== 'undefined') ? SPELL_SLOTS_BY_LEVEL : {}, SPELL_SLOTS_2024),
+    MULTICLASS_PREREQUISITES: MULTICLASS_PREREQUISITES_2024,
+    MULTICLASS_PROFICIENCIES: _mergeByClass((typeof MULTICLASS_PROFICIENCIES !== 'undefined') ? MULTICLASS_PROFICIENCIES : {}, MULTICLASS_PROFICIENCIES_2024),
     // AUD-7 (R7): в 2024 друид, чародей и волшебник владеют всем простым оружием (PH24 гл. 3)
     CLASS_ARMOR_PROFS: _mergeByClass((typeof CLASS_ARMOR_PROFS !== 'undefined') ? CLASS_ARMOR_PROFS : {}, {
       "Друид":     {armor:["light","shield"], weapon:["simple"]},
@@ -2435,6 +2464,8 @@
     window.SUBCLASS_SOURCE_2024 = SUBCLASS_SOURCE_2024;
     window.SUBCLASS_CHOICES_2024 = SUBCLASS_CHOICES_2024;
     window.SUBCLASS_RESOURCES_2024 = SUBCLASS_RESOURCES_2024;
+    window.MULTICLASS_PREREQUISITES_2024 = MULTICLASS_PREREQUISITES_2024;
+    window.MULTICLASS_PROFICIENCIES_2024 = MULTICLASS_PROFICIENCIES_2024;
     window.EDITION_2024_OVERRIDES = overrides;
     window._mergeByClass = _mergeByClass;
   }

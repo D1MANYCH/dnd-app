@@ -197,6 +197,24 @@ function _applyFullRestore(imported, validChars) {
   saveToLocal();
   renderCharacterList();
 }
+// E24-14: после импорта — тост, если подкласс не из редакции персонажа. 2024-таблицы
+// ленивые: сначала догружаем data-2024.js, иначе edData('2024') даст зеркало 2014.
+function _warnEditionMix(chars) {
+  function run() {
+    var bad = chars.filter(function(c) { return charEditionMismatch(c).length > 0; });
+    if (!bad.length) return;
+    showToast("Подкласс не из редакции персонажа: " + bad.map(function(c) {
+      return "«" + (c.name || "без имени") + "» (" + charEditionMismatch(c).map(function(p) { return p.sub; }).join(", ") + ")";
+    }).join("; ") + " — проверьте лист", "warn");
+  }
+  var need24 = chars.some(function(c) { return c && c.edition === "2024"; });
+  if (need24 && !EDITION_DATA["2024"] && typeof window.ensureEdition2024 === "function") {
+    window.ensureEdition2024().then(run, function() {});
+  } else {
+    run();
+  }
+}
+
 function importData(input) {
 const file = input?.files?.[0];
 if (!file) return;
@@ -239,6 +257,7 @@ showConfirmModal("Импорт персонажей", msg, function() {
   }
   _applyFullRestore(imported, valid);
   showToast("Загружено: " + characters.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
+  _warnEditionMix(characters);
 }, "Заменить всё", { icon: "import" });
 input.value = "";
 };
@@ -328,6 +347,7 @@ showConfirmModal("Импорт персонажа", msg, function() {
   showToast("Добавлено: " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : "") +
             (addedHp ? " · HP-история: " + addedHp : "") +
             (addedSpells ? " · свои заклинания: " + addedSpells : ""), "success");
+  _warnEditionMix(addedChars);
 }, "Импортировать", { danger: false, icon: "import" });
 input.value = "";
 };

@@ -1076,6 +1076,16 @@ function getCharClassPairs(char) {
   return out;
 }
 
+/** E24-14: подклассы персонажа, которых нет в таблице его редакции (импорт чужого файла
+ *  со смешением 2014/2024). [{cls, sub}]; пустой подкласс не считается. */
+function charEditionMismatch(char) {
+  if (!char) return [];
+  var SC = edData(char).SUBCLASSES || {};
+  return getCharClassPairs(char).filter(function(p) {
+    return p.sub && Array.isArray(SC[p.cls]) && SC[p.cls].indexOf(p.sub) === -1;
+  });
+}
+
 function findLangInCatalog(name) {
   if (typeof LANGUAGE_CATALOG === "undefined") return null;
   var cats = ["standard","exotic","secret"];

@@ -8812,6 +8812,102 @@
     });
   })();
 
+  // ────────── БЛОК 65 (E24-14): мультикласс 2024, эпический дар на 19, guard редакции, прогон 12 классов 1–20 ──────────
+  (function(){
+    if (typeof edData !== "function" || typeof window === "undefined" || !window.MULTICLASS_PROFICIENCIES_2024) return;
+    var ALL = ["Варвар","Бард","Воин","Волшебник","Друид","Жрец","Колдун","Монах","Паладин","Плут","Следопыт","Чародей"];
+    var d24 = edData({ edition: "2024" }), d14 = edData({ edition: "2014" });
+    function mc(ed, list, st) {
+      var lv = list.reduce(function(s, e){ return s + e[1]; }, 0);
+      return { edition: ed, class: list[0][0], level: lv, subclass: list[0][2] || "",
+        classes: list.map(function(e){ return { class: e[0], level: e[1], subclass: e[2] || "" }; }),
+        stats: st || { str: 12, dex: 12, con: 12, int: 12, wis: 12, cha: 12 }, resources: {}, weaponMastery: [], classChoices: {}, feats: [] };
+    }
+
+    t("[e24-14] требования мультикласса 2024: 13 в основной характеристике нового и текущих классов (PH24 стр. 42)", function(){
+      for (var i = 0; i < ALL.length; i++) if (!d24.MULTICLASS_PREREQUISITES[ALL[i]]) return "нет требований: " + ALL[i];
+      var low = mc("2024", [["Бард", 3]]);
+      var r = checkMulticlassPrereqs(low, "Монах");
+      if (r.ok || r.missing.length !== 3) return "Бард→Монах без 13: " + JSON.stringify(r.missing);
+      var ok = mc("2024", [["Бард", 3]], { str: 8, dex: 13, con: 12, int: 10, wis: 13, cha: 13 });
+      if (!checkMulticlassPrereqs(ok, "Монах").ok) return "Бард→Монах с 13";
+      var fdex = mc("2024", [["Плут", 3]], { str: 8, dex: 14, con: 12, int: 10, wis: 10, cha: 10 });
+      if (!checkMulticlassPrereqs(fdex, "Воин").ok) return "Воин: ЛОВ 13 вместо СИЛ";
+      return true;
+    });
+
+    t("[e24-14] владения мультикласса 2024 по главе 3; 2014 не задет", function(){
+      var P = d24.MULTICLASS_PROFICIENCIES;
+      if (P["Воин"].weapon.join() !== "martial" || P["Паладин"].weapon.join() !== "martial" || P["Следопыт"].weapon.join() !== "martial") return "воинское без простого";
+      if (P["Следопыт"].skills !== 1) return "навык следопыта";
+      if (P["Друид"].armor.join() !== "light,shield") return "друид: " + P["Друид"].armor.join();
+      if (P["Колдун"].weapon.length || P["Монах"].weapon.length || (P["Монах"].specific || []).length) return "колдун/монах без оружия";
+      if (P["Бард"] !== MULTICLASS_PROFICIENCIES["Бард"] || P["Плут"] !== MULTICLASS_PROFICIENCIES["Плут"]) return "бард/плут — как в 2014";
+      for (var i = 0; i < ALL.length; i++) if (!P[ALL[i]]) return "нет владений: " + ALL[i];
+      if (d14.MULTICLASS_PROFICIENCIES["Монах"].specific.join() !== "Короткий меч" || MULTICLASS_PROFICIENCIES["Друид"].armor.indexOf("medium") === -1) return "2014 задет";
+      return true;
+    });
+
+    t("[e24-14] ячейки мультикласса 2024: паладин/следопыт — половина вверх, с 1 уровня", function(){
+      if (charCasterLevel(mc("2024", [["Паладин", 3], ["Волшебник", 1]])).level !== 3) return "2024 Паладин 3 / Волшебник 1";
+      if (charCasterLevel(mc("2014", [["Паладин", 3], ["Волшебник", 1]])).level !== 2) return "2014 Паладин 3 / Волшебник 1";
+      if (charCasterLevel(mc("2024", [["Следопыт", 1], ["Жрец", 1]])).level !== 2) return "2024 Следопыт 1 / Жрец 1";
+      return true;
+    });
+
+    t("[e24-14] эпический дар на 19 у всех 12 классов 2024 (в 2014 — АСИ)", function(){
+      for (var i = 0; i < ALL.length; i++) {
+        var c = mc("2024", [[ALL[i], 19]]);
+        if (_luFeatChoiceAt(c, ALL[i], 19) !== "epic") return ALL[i] + ": 19 не epic";
+        if (charEpicSlots(c).length !== 1) return ALL[i] + ": charEpicSlots";
+        if (_luFeatChoiceAt(mc("2014", [[ALL[i], 19]]), ALL[i], 19) !== "asi") return ALL[i] + ": 2014 на 19 не АСИ";
+      }
+      var two = mc("2024", [["Воин", 19], ["Плут", 1]]);
+      if (charEpicSlots(two).length !== 1) return "мультикласс: эпик по уровню класса";
+      return true;
+    });
+
+    t("[e24-14] guard редакции: подкласс 2014 у 2024-персонажа ловится, свой — нет", function(){
+      if (charEditionMismatch(mc("2024", [["Жрец", 3, "Домен знаний"]])).length !== 1) return "Домен знаний в 2024 не пойман";
+      if (charEditionMismatch(mc("2014", [["Жрец", 3, "Домен знаний"]])).length) return "2014 ложно";
+      if (charEditionMismatch(mc("2024", [["Жрец", 3, "Домен жизни"], ["Воин", 3]])).length) return "2024 ложно";
+      var mix = charEditionMismatch(mc("2024", [["Воин", 3, "Чемпион"], ["Колдун", 3, "Клинок ведьмы"]]));
+      if (mix.length !== 1 || mix[0].cls !== "Колдун") return "смешение: " + JSON.stringify(mix);
+      return true;
+    });
+
+    t("[e24-14] прогон 12 классов 2024 × подклассы × 1–20: расчёты листа без исключений и дыр", function(){
+      var KNOWN = ["level", "cha", "cha_plus1", "wis", "level5"];
+      for (var i = 0; i < ALL.length; i++) {
+        var cls = ALL[i], subs = [""].concat(d24.SUBCLASSES[cls] || []);
+        for (var s = 0; s < subs.length; s++) {
+          for (var l = 1; l <= 20; l++) {
+            var sub = l >= d24.SUBCLASS_LEVEL[cls] ? subs[s] : "";
+            var c = mc("2024", [[cls, l, sub]], { str: 14, dex: 14, con: 14, int: 14, wis: 14, cha: 14 });
+            var where = cls + (sub ? " (" + sub + ")" : "") + " " + l + ": ";
+            try {
+              var ac = rulesAC(c); ac = (ac && typeof ac === "object") ? ac.ac : ac;
+              if (!isFinite(ac) || ac < 10) return where + "КД " + ac;
+              getMulticlassSpellSlots(c); rulesSpellStats(c, l); charSubclassPending(c);
+              if (charAsiSlots(c).length !== d24.ASI_LEVELS[cls].filter(function(x){ return x <= l; }).length) return where + "charAsiSlots";
+              if (charEpicSlots(c).length !== (l >= 19 ? 1 : 0)) return where + "charEpicSlots";
+              if (!isFinite(getWeaponMasteryLimit(c))) return where + "мастерство";
+              var defs = getCharResourceDefs(c);
+              var rs = (defs && defs.resources) || [];
+              for (var k = 0; k < rs.length; k++) {
+                var raw = rs[k].maxByLevel ? rs[k].maxByLevel[l] : undefined;
+                if (typeof raw === "string" && KNOWN.indexOf(raw) === -1 && !/^\d+$/.test(raw)) return where + rs[k].id + ": неизвестный ключ «" + raw + "»";
+                var mx = getResourceMax(rs[k], c);
+                if (!isFinite(mx) || mx < 0) return where + rs[k].id + " = " + mx;
+              }
+            } catch (e) { return where + (e && e.message); }
+          }
+        }
+      }
+      return true;
+    });
+  })();
+
   // ────────── AUD-4: хиты при повышении, ручной максимум, кости и врем. ХП ──────────
   if (typeof confirmLevelUp === "function" && typeof rulesMaxHPBase === "function") {
     t("[AUD-4 L1] Волшебник 4→5 с «Крепким», ТЕЛ 10: 26 → 32 (+4 кость +2 черта)", function(){
