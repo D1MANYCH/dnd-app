@@ -253,6 +253,8 @@ async function _pdfHeader(doc, char, classRgb) {
   if (char.background) sub.push(char.background);
   if (char.alignment) sub.push(char.alignment);
   if (char.deity) sub.push(char.deity);
+  // E24-16: бейдж редакции
+  if (char.edition === '2024') sub.push('Редакция 2024');
   doc.setFontSize(9.5);
   doc.setTextColor(240);
   if (sub.length) doc.text(sub.join(' · '), cx + r + 4, cy + 5);
@@ -325,7 +327,7 @@ function _pdfStatsAndCombat(doc, y, char) {
     'Инициатива: ' + _pdfFormatMod(combat.init || Math.floor(((stats.dex || 10) - 10) / 2)),
     'Скорость: ' + (combat.speed || char.speed || '—'),
     'Бонус мастерства: ' + _pdfFormatMod(profBonus),
-    'Вдохновение: ' + (char.inspiration ? 'да' : 'нет')
+    (char.edition === '2024' ? 'Героическое вдохновение: ' : 'Вдохновение: ') + (char.inspiration ? 'да' : 'нет')
   ];
   for (var j = 0; j < combatRows.length; j++) {
     doc.text(combatRows[j], rx + 3, ry + 6 + j * 4.6);
@@ -422,6 +424,38 @@ function _pdfSkills(doc, y, char) {
   return y + perCol * 4.6 + 2;
 }
 
+// E24-16: происхождение 2024 — вид, предыстория с прибавками характеристик,
+// черта происхождения и оружие мастерства.
+function _pdfOrigin2024(doc, y, char) {
+  if (char.edition !== '2024') return y;
+  var abbr = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
+  var rows = [];
+  if (char.race) rows.push('Вид: ' + char.race);
+  if (char.background) {
+    var bsc = char.bgStatChoice || {};
+    var src = bsc.applied || bsc.alloc || {};
+    var inc = Object.keys(abbr).filter(function(k) { return src[k] > 0; })
+      .map(function(k) { return abbr[k] + ' +' + src[k]; });
+    rows.push('Предыстория: ' + char.background + (inc.length ? ' (' + inc.join(', ') + ')' : ''));
+  }
+  var of = (char.feats || []).find(function(f) { return f && f.origin; });
+  if (of) rows.push('Черта происхождения: ' + of.name);
+  var wm = Array.isArray(char.weaponMastery) ? char.weaponMastery : [];
+  if (wm.length) {
+    rows.push('Мастерство оружия: ' + wm.map(function(n) {
+      var p = (typeof getWeaponMasteryProp === 'function') ? getWeaponMasteryProp(char, { name: n }) : null;
+      return n + (p ? ' (' + p.name + ')' : '');
+    }).join(', '));
+  }
+  if (!rows.length) return y;
+  y = _pdfSection(doc, y, 'Происхождение (2024)');
+  for (var i = 0; i < rows.length; i++) {
+    y = _pdfNeed(doc, y, 5);
+    y = _pdfMultiline(doc, y, rows[i], { size: 9, x: 19, maxW: 176, lineH: 4.2 });
+  }
+  return y + 1;
+}
+
 function _pdfAttacks(doc, y, char) {
   var weapons = char.weapons || [];
   if (!weapons.length) return y;
@@ -446,7 +480,10 @@ function _pdfAttacks(doc, y, char) {
     var wm = rulesWeaponMods(char, w, char.level);
     var statKey = wm.statKey;
     var atk = wm.attack;
-    doc.text(String(w.name || '—'), 19, y);
+    // E24-16: приём мастерства выбранного оружия
+    var mProp = (typeof isWeaponMastered === 'function' && isWeaponMastered(char, w) && typeof getWeaponMasteryProp === 'function')
+      ? getWeaponMasteryProp(char, w) : null;
+    doc.text(String(w.name || '—') + (mProp ? ' · ' + mProp.name : ''), 19, y);
     doc.text(_pdfFormatMod(atk), 110, y);
     var dmgStr = (w.damage || '—') + (wm.damageMod ? ' ' + _pdfFormatMod(wm.damageMod) : '');
     doc.text(dmgStr, 135, y);
@@ -678,6 +715,7 @@ async function exportCharacterPDF(id, event) {
     y = _pdfStatsAndCombat(doc, y, char);
     y = _pdfSaves(doc, y, char);
     y = _pdfSkills(doc, y, char);
+    y = _pdfOrigin2024(doc, y, char);
     y = _pdfAttacks(doc, y, char);
     y = _pdfSpells(doc, y, char);
     y = _pdfInventory(doc, y, char);

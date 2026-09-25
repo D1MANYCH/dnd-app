@@ -151,29 +151,16 @@ document.addEventListener('DOMContentLoaded', function() {
 // для новых персонажей (createNewCharacter читает getEdition()), не глобальный
 // режим приложения. Каждый персонаж хранит свою char.edition.
 //
-// Гейт публичности (E24-0…E24-13): пока механика 2024 не достроена, выбор 2024
-// доступен только с dev-флагом localStorage.dnd_e24_beta='1'. Без флага кнопка
-// 2024 остаётся заглушкой «в разработке» (тост, редакция не меняется). Публичное
-// открытие — E24-14 (снятие гейта, major bump v4.0.0).
-function _e24BetaEnabled() {
-  try { return localStorage.getItem('dnd_e24_beta') === '1'; } catch (e) { return false; }
-}
+// E24-16: бета-гейт снят — редакция 2024 выбирается всеми.
 function getEdition() {
   try {
     var e = localStorage.getItem('dnd_edition');
-    // '2024' как дефолт уважаем только при активной бете (иначе — залипший флаг
-    // не должен молча создавать 2024-персонажей у обычного пользователя).
-    if (e === '2024') return _e24BetaEnabled() ? '2024' : '2014';
+    if (e === '2024') return '2024';
     if (e === '2014') return '2014';
   } catch (e) {}
   return '2014';
 }
 function setEdition(ed) {
-  if (ed === '2024' && !_e24BetaEnabled()) {
-    // Бета выключена — 2024 ещё «в разработке»: тост, активной остаётся 2014.
-    if (typeof showToast === 'function') showToast('Редакция 2024 — в разработке', 'info');
-    return;
-  }
   var val = (ed === '2024') ? '2024' : '2014';
   try { localStorage.setItem('dnd_edition', val); } catch (e) {}
   _syncEditionButtons();
@@ -183,20 +170,10 @@ function setEdition(ed) {
 }
 function _syncEditionButtons() {
   var ed = getEdition();
-  var beta = _e24BetaEnabled();
   var b14 = document.getElementById('edition-btn-2014');
   var b24 = document.getElementById('edition-btn-2024');
   if (b14) b14.classList.toggle('active', ed === '2014');
-  if (b24) {
-    b24.classList.toggle('active', ed === '2024');
-    // При активной бете кнопка 2024 становится полноценно выбираемой: снимаем
-    // визуальную заглушку и aria-disabled, прячем тег «в разработке».
-    b24.classList.toggle('is-soon', !beta);
-    if (beta) b24.removeAttribute('aria-disabled');
-    else b24.setAttribute('aria-disabled', 'true');
-    var soonTag = b24.querySelector('.home-edition-soon-tag');
-    if (soonTag) soonTag.style.display = beta ? 'none' : '';
-  }
+  if (b24) b24.classList.toggle('active', ed === '2024');
 }
 document.addEventListener('DOMContentLoaded', _syncEditionButtons);
 

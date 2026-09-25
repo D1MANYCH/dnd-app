@@ -30,10 +30,8 @@ function openBuildPicker() {
     });
   }
   var s = $("bp-search"); if (s) s.value = "";
-  // E24-15: фильтр редакции виден только при бете 2024; дефолт — редакция тумблера
-  var _edSel = $("bp-edition-filter"), _edGrp = $("bp-edition-group");
-  var _beta = (typeof _e24BetaEnabled === "function") && _e24BetaEnabled();
-  if (_edGrp) _edGrp.style.display = _beta ? "" : "none";
+  // E24-15: фильтр редакции; дефолт — редакция тумблера
+  var _edSel = $("bp-edition-filter");
   if (_edSel) _edSel.value = (typeof getEdition === "function") ? getEdition() : "2014";
   renderBuildPicker();
   // STYLE-8M-2b: пикер — экран. Фокус в поиск даём после перехода (300 мс),
@@ -60,8 +58,7 @@ function renderBuildPicker() {
   var roleFilter = ($("bp-role-filter") && $("bp-role-filter").value) || "";
   var searchInp = $("bp-search");
   var q = (searchInp && searchInp.value || "").trim().toLowerCase();
-  var _beta = (typeof _e24BetaEnabled === "function") && _e24BetaEnabled();
-  var edFilter = (_beta && $("bp-edition-filter") && $("bp-edition-filter").value) || "2014";
+  var edFilter = ($("bp-edition-filter") && $("bp-edition-filter").value) || "2014";
   var builds = (window.CHARACTER_BUILDS || []).filter(function(b){
     if ((b.edition || "2014") !== edFilter) return false;
     if (filter && b.className !== filter) return false;
@@ -133,9 +130,7 @@ function renderBuildBadge() {
 }
 
 // E24-0: мелкий бейдж редакции в шапке листа. Показывается ТОЛЬКО для 2024 —
-// 2014 это дефолт (у 100% текущих персонажей), бейдж «2014» был бы шумом. До
-// публичного открытия (E24-14) 2024 доступна лишь в бете, так что бейдж видят
-// только бета-тестеры — это и есть нужный маркер нестандартной редакции.
+// 2014 это дефолт, бейдж «2014» был бы шумом.
 function renderEditionBadge() {
   var badge = $("char-edition-badge");
   if (!badge) return;

@@ -3760,9 +3760,6 @@ transition: width var(--t2) var(--ez-out);
 }
 .home-edition-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
 .home-edition-btn.active { background: var(--accent-fill); border-color: var(--accent-lo); color: var(--on-accent); font-weight: 600; }
-.home-edition-btn.is-soon { border-style: dashed; color: var(--text-mute); cursor: default; }
-.home-edition-btn.is-soon:hover { border-color: var(--border-soft); color: var(--text-mute); }
-.home-edition-soon-tag { font-size: 0.85em; opacity: 0.7; margin-left: 5px; }
 
 /* STYLE-8M-2: сетка .home-actions-primary удалена — на экране выбора
    персонажа «Новый персонаж» и «По готовому билду» стали строками меню. */

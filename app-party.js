@@ -122,6 +122,7 @@ function renderMyChar() {
           '<span class="pcard-badge" style="color:' + hpColor + ';border-color:color-mix(in srgb, ' + hpColor + ' 45%, transparent)">' + dndIcoHtml("heart", 13) + ' ' + hpCurrent + '/' + hpMax + '</span>' +
           '<span class="pcard-badge">' + dndIcoHtml("shield", 13) + ' ' + (char.combat ? (char.combat.ac||10) : 10) + '</span>' +
           (conds ? '<span class="pcard-badge pcard-badge-warn">' + conds + '</span>' : '') +
+          (char.edition === "2024" ? '<span class="pcard-badge" title="Редакция 2024">2024</span>' : '') +
         '</div>' +
       '</div>' +
     '</div>';

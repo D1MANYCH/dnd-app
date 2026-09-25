@@ -855,8 +855,6 @@ const newChar = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));
 newChar.id = Date.now();
 newChar.schemaVersion = (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : 2;
 // E24-0: новый персонаж наследует редакцию по умолчанию с тумблера главной.
-// getEdition() возвращает '2024' только если тумблер реально переключён (доступно
-// лишь при dnd_e24_beta='1'); иначе всегда '2014'.
 newChar.edition = (typeof getEdition === 'function') ? getEdition() : '2014';
 // Инициализируем ячейки заклинаний
 for (let i = 1; i <= 9; i++) {

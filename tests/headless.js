@@ -3660,23 +3660,13 @@
         return true;
       });
 
-      t("[e24][тумблер] бета выкл: setEdition('2024') НЕ сохраняет '2024'", function(){
+      t("[e24][тумблер] E24-16: гейта нет — _e24BetaEnabled удалён", function(){
+        if (typeof _e24BetaEnabled !== "undefined") return "_e24BetaEnabled ещё определён";
+        return true;
+      });
+
+      t("[e24][тумблер] без флага: setEdition('2024') сохраняет, getEdition → '2024'", function(){
         try { localStorage.removeItem("dnd_e24_beta"); } catch(e){}
-        setEdition("2024");
-        var stored = null; try { stored = localStorage.getItem("dnd_edition"); } catch(e){}
-        if (stored === "2024") return "2024 сохранён без беты";
-        if (getEdition() !== "2014") return "getEdition вернул не 2014";
-        return true;
-      });
-
-      t("[e24][тумблер] залипший '2024' без беты → getEdition '2014'", function(){
-        try { localStorage.setItem("dnd_edition", "2024"); localStorage.removeItem("dnd_e24_beta"); } catch(e){}
-        if (getEdition() !== "2014") return "залипший 2024 не сброшен: " + getEdition();
-        return true;
-      });
-
-      t("[e24][тумблер] бета вкл: setEdition('2024') сохраняет, getEdition → '2024'", function(){
-        try { localStorage.setItem("dnd_e24_beta", "1"); } catch(e){}
         setEdition("2024");
         if (getEdition() !== "2024") return "getEdition: " + getEdition();
         setEdition("2014");
