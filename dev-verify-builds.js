@@ -51,6 +51,59 @@
     return { field: name, ok: !!ok, value: value, expected: expected };
   }
 
+  // E24-15: законность полей билда 2024 по таблицам edData(b) — подкласс, предыстория и её
+  // характеристики, выборы вида, мастерство, выборы класса 1 ур., черты плана (general/epic).
+  function _checks2024(b, ed, ch, checks) {
+    var cls = b.className;
+    var subs = (ed.SUBCLASSES && ed.SUBCLASSES[cls]) || [];
+    checks.push(_check("2024: subclass в SUBCLASSES", subs.indexOf(b.subclass) >= 0, b.subclass, subs.join("/")));
+    var bg = ed.BACKGROUND_SKILLS && ed.BACKGROUND_SKILLS[b.background];
+    checks.push(_check("2024: background в BACKGROUND_SKILLS", !!bg, b.background, "ключ 2024"));
+    var ab = (bg && bg.abilities) || [];
+    var bsc = b.bgStatChoice || {}, alloc = bsc.alloc || {}, keys = Object.keys(alloc);
+    var vals = keys.map(function(k){ return alloc[k]; }).sort().join(",");
+    var inAb = keys.every(function(k){ return ab.indexOf(k) >= 0; });
+    var shapeOk = (bsc.mode === "1+1+1") ? (vals === "1,1,1") : (vals === "1,2");
+    checks.push(_check("2024: bgStatChoice", inAb && shapeOk, (bsc.mode || "?") + " " + JSON.stringify(alloc), "+2/+1 или +1+1+1 из " + ab.join(",")));
+    checks.push(_check("2024: bgStatChoice на персонаже", JSON.stringify((ch.bgStatChoice || {}).alloc || {}) === JSON.stringify(alloc),
+      JSON.stringify((ch.bgStatChoice || {}).alloc || {}), JSON.stringify(alloc)));
+    var sp = ed.RACE_DATA && ed.RACE_DATA[b.race];
+    var badSc = [];
+    Object.keys(b.speciesChoices || {}).forEach(function(cid){
+      var cdef = ((sp && sp.choices) || []).filter(function(c){ return c.id === cid; })[0];
+      var v = b.speciesChoices[cid];
+      var ok = !!cdef && (cdef.type === "stat" ? (cdef.keys || []).indexOf(v) >= 0
+        : (cdef.options || []).some(function(o){ return o.id === v; }));
+      if (!ok) badSc.push(cid + "=" + v);
+    });
+    checks.push(_check("2024: speciesChoices", badSc.length === 0, badSc.join(",") || "ok", "id выбора и опции вида"));
+    checks.push(_check("2024: speciesChoices на персонаже", JSON.stringify(ch.speciesChoices || {}) === JSON.stringify(b.speciesChoices || {}),
+      JSON.stringify(ch.speciesChoices || {}), JSON.stringify(b.speciesChoices || {})));
+    var wm = ed.WEAPON_MASTERY && ed.WEAPON_MASTERY[cls];
+    var wmN = (wm && wm.byLevel && wm.byLevel[1]) || 0;
+    var wmB = b.weaponMastery || [];
+    var wmUnknown = wmB.filter(function(n){ return typeof _findWeapon === "function" && !_findWeapon(n); });
+    checks.push(_check("2024: weaponMastery count", wmB.length === wmN, wmB.length, wmN));
+    checks.push(_check("2024: weaponMastery оружие известно", wmUnknown.length === 0, wmUnknown.join(",") || "ok", "WEAPON_PRESETS"));
+    checks.push(_check("2024: weaponMastery на персонаже", (ch.weaponMastery || []).length === wmB.length, (ch.weaponMastery || []).length, wmB.length));
+    var badRc = [];
+    Object.keys(b.recommendedChoices || {}).forEach(function(cid){
+      var cc = ((ed.CLASS_CHOICES && ed.CLASS_CHOICES[cls]) || []).filter(function(c){ return c.id === cid; })[0];
+      var ids = [].concat(b.recommendedChoices[cid]);
+      if (!cc || ids.some(function(id){ return (cc.options || []).indexOf(id) < 0; })) badRc.push(cid);
+    });
+    checks.push(_check("2024: recommendedChoices", badRc.length === 0, badRc.join(",") || "ok", "id из CLASS_CHOICES 2024"));
+    var badFeat = [];
+    Object.keys(b.levelUp || {}).forEach(function(lv){
+      var fid = b.levelUp[lv] && b.levelUp[lv].feat;
+      if (!fid) return;
+      var f = typeof getFeatDef === "function" ? getFeatDef(b, fid) : null;
+      var want = (+lv === 19) ? "epic" : "general";
+      if (!f || f.category !== want) badFeat.push(lv + ":" + fid);
+    });
+    checks.push(_check("2024: черты плана", badFeat.length === 0, badFeat.join(",") || "ok", "general на АСИ, epic на 19"));
+  }
+
   function verifyBuild(buildId) {
     // PERF-2: build-notes-data.js лениво — догружаем перед синхронной проверкой.
     if (!window.BUILD_NOTES && typeof window.ensureBuildNotes === "function") {
@@ -59,6 +112,12 @@
     if (typeof applyBuild !== "function") return { buildId: buildId, error: "applyBuild not defined" };
     var b = window.getBuildById && window.getBuildById(buildId);
     if (!b) return { buildId: buildId, error: "build not found" };
+    // E24-15: билд 2024 — сверка по таблицам 2024 (edData(b)); набор 2024 грузим заранее
+    var is24 = b.edition === "2024";
+    if (is24 && !EDITION_DATA["2024"] && typeof window.ensureEdition2024 === "function") {
+      return window.ensureEdition2024().then(function () { return verifyBuild(buildId); });
+    }
+    var ed = edData(b);
     applyBuild(buildId);
     var ch = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
     if (!ch) return { buildId: buildId, error: "no current char after applyBuild" };
@@ -79,7 +138,10 @@
     }
 
     // === STATS ===
-    var expectedStats = b.stats || {};
+    var expectedStats = Object.assign({}, b.stats || {});
+    if (is24) Object.keys((b.bgStatChoice && b.bgStatChoice.alloc) || {}).forEach(function(k){
+      expectedStats[k] = Math.min(20, (expectedStats[k] || 10) + b.bgStatChoice.alloc[k]);
+    });
     Object.keys(expectedStats).forEach(function(k){
       checks.push(_check("stats." + k, ch.stats[k] === expectedStats[k], ch.stats[k], expectedStats[k]));
     });
@@ -96,7 +158,8 @@
     var hd = CLASS_HD[b.className] || 8;
     var conMod = Math.floor(((ch.stats.con||10)-10)/2);
     // AUD-4: +1 холмовому дварфу (PHB 20) и «Драконьей устойчивости» (PHB 102).
-    var hpExp = hd + conMod + (b.race === "Холмовой дварф" ? 1 : 0) + (b.subclass === "Драконья кровь" ? 1 : 0);
+    // E24-15: у 2024 бонусы вида/подкласса к ХП приходят после фиксации основы и с 3 ур.
+    var hpExp = hd + conMod + (is24 ? 0 : (b.race === "Холмовой дварф" ? 1 : 0) + (b.subclass === "Драконья кровь" ? 1 : 0));
     checks.push(_check("hpMax == hd + conMod", ch.combat.hpMax === hpExp, ch.combat.hpMax, hpExp));
     checks.push(_check("hpCurrent == hpMax", ch.combat.hpCurrent === ch.combat.hpMax, ch.combat.hpCurrent, ch.combat.hpMax));
     checks.push(_check("ac >= 10", ch.combat.ac >= 10, ch.combat.ac, ">=10"));
@@ -113,7 +176,7 @@
       checks.push(_check("spell-attack computed", !!atk && atk !== "+0", atk, "non-zero"));
       var slot1 = (ch.spells.slots && ch.spells.slots[1]) || 0;
       // Паладин/Следопыт получают первые слоты только с 2 ур (PHB) — допускается 0.
-      if (SPELLS_FROM_LVL_2[b.className]) {
+      if (!is24 && SPELLS_FROM_LVL_2[b.className]) {
         checks.push(_check("slots[1] (lvl 2+ class)", true, slot1, "0 ok @lvl 1"));
       } else {
         checks.push(_check("slots[1] >= 1", slot1 >= 1, slot1, ">=1"));
@@ -191,18 +254,20 @@
     });
     checks.push(_check("point buy 8..15", pbBad.length === 0, pbBad.join(",") || "ok", "8..15"));
     checks.push(_check("point buy <=27", pbCost <= 27, pbCost, "<=27"));
-    var raceData = (typeof RACE_DATA !== "undefined") ? RACE_DATA : {};
+    var raceData = ed.RACE_DATA || {};
     checks.push(_check("race in RACE_DATA", !!raceData[b.race], b.race, "RACE_DATA key"));
+    if (is24) _checks2024(b, ed, ch, checks);
 
     var listKey = SUBCLASS_LIST_KEY[b.subclass] || SPELL_LIST_KEY[b.className];
-    var raceFixed = RACE_CANTRIPS[b.race] || [];
-    var raceAny = RACE_ANY_WIZARD_CANTRIP[b.race] || 0;
+    // заговоры вида 2024 приходят только после фиксации основы — в 1-уровневой сверке их нет
+    var raceFixed = is24 ? [] : (RACE_CANTRIPS[b.race] || []);
+    var raceAny = is24 ? 0 : (RACE_ANY_WIZARD_CANTRIP[b.race] || 0);
     var foreign = [], classCantrips = 0, classKnown = 0;
     (ch.spells.mySpells || []).forEach(function(s){
       var lvl0 = !s.level;
       if (lvl0 && raceFixed.indexOf(s.name) >= 0) return;
       var inList = (!!listKey && (s.classes || []).indexOf(listKey) >= 0) ||
-        (!lvl0 && (SUBCLASS_SPELLS_LVL1[b.subclass] || []).indexOf(s.name) >= 0);
+        (!is24 && !lvl0 && (SUBCLASS_SPELLS_LVL1[b.subclass] || []).indexOf(s.name) >= 0);
       if (lvl0 && raceAny > 0 && (s.classes || []).indexOf("wizard") >= 0 && (!inList || classCantrips >= (CANTRIPS_LVL1[b.className] || 0))) {
         raceAny--; return;
       }
@@ -210,10 +275,19 @@
       if (lvl0) classCantrips++; else classKnown++;
     });
     checks.push(_check("spells in class list", foreign.length === 0, foreign.join(", ") || "ok", listKey || "(no list)"));
-    if (CANTRIPS_LVL1[b.className] !== undefined) {
+    var prep24 = is24 && ed.SPELL_PREP_CLASSES && ed.SPELL_PREP_CLASSES[b.className];
+    if (prep24) {
+      // 2024: все заклинатели готовят; волшебник — 6 в книге, prepared по таблице
+      var expC = prep24.cantrips ? prep24.cantrips[0] : 0, expP = prep24.prepared[0];
+      checks.push(_check("cantrips @lvl1", classCantrips === expC, classCantrips, expC));
+      var expK = b.className === "Волшебник" ? 6 : expP;
+      checks.push(_check("known spells @lvl1", classKnown === expK, classKnown, expK));
+      var prepN = (ch.spells.prepared || []).length;
+      checks.push(_check("prepared @lvl1", prepN === expP, prepN, expP));
+    } else if (CANTRIPS_LVL1[b.className] !== undefined) {
       checks.push(_check("cantrips @lvl1", classCantrips === CANTRIPS_LVL1[b.className], classCantrips, CANTRIPS_LVL1[b.className]));
     }
-    if (KNOWN_LVL1[b.className] !== undefined) {
+    if (!prep24 && KNOWN_LVL1[b.className] !== undefined) {
       checks.push(_check("known spells @lvl1", classKnown === KNOWN_LVL1[b.className], classKnown, KNOWN_LVL1[b.className]));
     }
 
@@ -236,6 +310,10 @@
     }
     if (!window.BUILD_NOTES && typeof window.ensureBuildNotes === "function") {
       return window.ensureBuildNotes().then(verifyAllBuilds);
+    }
+    if (!EDITION_DATA["2024"] && typeof window.ensureEdition2024 === "function" &&
+        (window.CHARACTER_BUILDS || []).some(function(b){ return b.edition === "2024"; })) {
+      return window.ensureEdition2024().then(verifyAllBuilds);
     }
     var ids = (window.CHARACTER_BUILDS || []).map(function(b){ return b.id; });
     var results = ids.map(verifyBuild);
@@ -288,18 +366,20 @@
   function _asiLevelsPHB(className) { return (ASI_LEVELS_PHB[className] || []).slice(); }
   // ASI-уровни как закодированы в CLASS_FEATURES (фича "Увеличение характеристик") —
   // для отдельной проверки целостности данных класса. null, если CLASS_FEATURES недоступен.
-  function _asiLevelsCF(className) {
-    if (typeof CLASS_FEATURES === "undefined" || !CLASS_FEATURES[className]) return null;
+  function _asiLevelsCF(className, b) {
+    var CF = b ? edData(b).CLASS_FEATURES : ((typeof CLASS_FEATURES !== "undefined") ? CLASS_FEATURES : null);
+    if (!CF || !CF[className]) return null;
     var lv = [];
-    Object.keys(CLASS_FEATURES[className]).forEach(function(k){
-      var arr = CLASS_FEATURES[className][k] || [];
+    Object.keys(CF[className]).forEach(function(k){
+      var arr = CF[className][k] || [];
       if (arr.some(function(f){ return f && f.name === "Увеличение характеристик"; })) lv.push(parseInt(k,10));
     });
     return lv.sort(function(a,b){ return a-b; });
   }
 
   // Уровень открытия подкласса: предпочитаем min-ключ SUBCLASS_FEATURES[subclass], иначе PHB по классу.
-  function _subclassOpenLevel(className, subclass) {
+  function _subclassOpenLevel(className, subclass, b) {
+    if (b && b.edition === "2024") return 3; // PH24: подкласс у всех 12 классов на 3 ур.
     if (subclass && typeof SUBCLASS_FEATURES !== "undefined" && SUBCLASS_FEATURES[subclass]) {
       var ks = Object.keys(SUBCLASS_FEATURES[subclass]).map(function(k){ return parseInt(k,10); }).filter(function(n){ return n>0; });
       if (ks.length) return Math.min.apply(null, ks);
@@ -329,7 +409,8 @@
       noWhy.length ? "no why @ " + noWhy.join(",") : "all have why", "all have why"));
 
     // 3. ASI: на уровнях ASI класса (PHB) headline должен упоминать ASI/характеристики/черту.
-    var asiLevels = _asiLevelsPHB(b.className);
+    var is24 = b.edition === "2024";
+    var asiLevels = is24 ? (_asiLevelsCF(b.className, b) || []) : _asiLevelsPHB(b.className);
     var asiRe = /ASI|характеристик|\bчерт/i;
     var asiMiss = [];
     asiLevels.forEach(function(lv){
@@ -340,14 +421,22 @@
       asiMiss.length ? "нет ASI-текста @ " + asiMiss.join(",") + " (ASI-уровни: " + asiLevels.join(",") + ")" : asiLevels.join(","),
       "ASI @ " + asiLevels.join(",")));
 
+    // E24-15: 19 ур. 2024 — эпический дар (черта категории epic), не ASI
+    if (is24) {
+      var e19 = lu[19] || {};
+      var e19def = e19.feat && typeof getFeatDef === "function" ? getFeatDef(b, e19.feat) : null;
+      checks.push(_check("эпический дар @19", !!(e19def && e19def.category === "epic"), e19.feat || "(нет feat)", "черта epic"));
+    }
+
     // 4. Подкласс: упоминается на уровне открытия.
     if (b.subclass) {
       // 4a. имя подкласса существует в SUBCLASS_FEATURES (ловит опечатки/несовпадения).
-      if (typeof SUBCLASS_FEATURES !== "undefined") {
-        var hasKey = !!SUBCLASS_FEATURES[b.subclass];
+      var _SF = edData(b).SUBCLASS_FEATURES;
+      if (_SF) {
+        var hasKey = !!_SF[b.subclass];
         checks.push(_check("subclass в SUBCLASS_FEATURES", hasKey, hasKey ? b.subclass : "(нет ключа) " + b.subclass, "ключ есть"));
       }
-      var openLv = _subclassOpenLevel(b.className, b.subclass);
+      var openLv = _subclassOpenLevel(b.className, b.subclass, b);
       if (openLv) {
         var hh = (lu[openLv] && lu[openLv].headline) || "";
         var hLow = hh.toLowerCase();
@@ -427,13 +516,17 @@
     var cls = b.className;
     var hd = CLASS_HD[cls] || 8;
     var char = { buildId: b.id, class: cls };
-    var asiLevels = _asiLevelsCF(cls) || _asiLevelsPHB(cls);
+    var is24 = b.edition === "2024";
+    var asiLevels = _asiLevelsCF(cls, b) || _asiLevelsPHB(cls);
+    if (is24) asiLevels = asiLevels.concat([19]); // эпический дар — черта из плана
     var checks = [];
 
     var stats = {};
     Object.keys(b.stats || {}).forEach(function(k){ stats[k] = b.stats[k]; });
     // AUD-12 (P25): старт с расовым бонусом (PHB 15); +1/+1 полуэльфа — на выбор, не моделируется.
-    var raceStats = ((typeof RACE_DATA !== "undefined" && RACE_DATA[b.race]) || {}).stats || {};
+    // E24-15: у 2024 бонус не от вида, а от предыстории (bgStatChoice.alloc)
+    var raceStats = is24 ? ((b.bgStatChoice && b.bgStatChoice.alloc) || {})
+      : ((typeof RACE_DATA !== "undefined" && RACE_DATA[b.race]) || {}).stats || {};
     Object.keys(raceStats).forEach(function(k){ stats[k] = (stats[k] == null ? 10 : stats[k]) + raceStats[k]; });
 
     var feats = {};        // featId → счётчик
@@ -475,10 +568,11 @@
     checks.push(_check("HP растёт 1→20", hpDrops.length === 0,
       hpDrops.length ? "не растёт на: " + hpDrops.join(",") : (hpSeq[0] + "→" + hpSeq[19]), "монотонно"));
 
-    if (SPELL_SLOTS_BY_LEVEL[cls]) {
+    var _SLOTS = edData(b).SPELL_SLOTS_BY_LEVEL;
+    if (_SLOTS[cls]) {
       var slotDrops = [], prevTotal = -1;
       for (var sl = 1; sl <= 20; sl++) {
-        var row = SPELL_SLOTS_BY_LEVEL[cls][sl];
+        var row = _SLOTS[cls][sl];
         if (!row) { if (prevTotal > 0) slotDrops.push("L" + sl + ":нет строки"); continue; }
         var total = 0; for (var z = 1; z < row.length; z++) total += row[z];
         if (total < prevTotal) slotDrops.push("L" + sl);

@@ -46,7 +46,8 @@ function rulesMaxHPBase(char, conMod) {
     if (c.level < 1) return;
     level += c.level;
     total += (i === 0) ? calculateMaxHP(c.level, conMod, c.hitDie) : c.level * (Math.floor(c.hitDie / 2) + 1 + conMod);
-    if (c.class === "Чародей" && c.subclass === "Драконья кровь") total += c.level;
+    // E24-15: в 2024 «Драконья устойчивость» — умение 3 ур. (+3, далее +1 за уровень чародея)
+    if (c.class === "Чародей" && c.subclass === "Драконья кровь" && (char.edition !== "2024" || c.level >= 3)) total += c.level;
   });
   if (char.race === "Холмовой дварф") total += level;
   return total;
@@ -278,7 +279,7 @@ function rulesHasFightingStyle(char, styleId) {
 
 /** AUD-8 (R10): «Драконья устойчивость» чародея «Драконья кровь» (PHB 2014 стр.102; 2024 стр.166) */
 function rulesHasDraconicResilience(char) {
-  return !!char && charClassLevel(char, "Чародей") >= 1 && charClassSubclass(char, "Чародей") === "Драконья кровь";
+  return !!char && charClassLevel(char, "Чародей") >= (char.edition === "2024" ? 3 : 1) && charClassSubclass(char, "Чародей") === "Драконья кровь";
 }
 
 /** E24-13: «Блистательная подтанцовка» барда «Коллегия танца» (PHB 2024 стр.54) — без доспехов и щита */

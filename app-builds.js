@@ -30,6 +30,11 @@ function openBuildPicker() {
     });
   }
   var s = $("bp-search"); if (s) s.value = "";
+  // E24-15: фильтр редакции виден только при бете 2024; дефолт — редакция тумблера
+  var _edSel = $("bp-edition-filter"), _edGrp = $("bp-edition-group");
+  var _beta = (typeof _e24BetaEnabled === "function") && _e24BetaEnabled();
+  if (_edGrp) _edGrp.style.display = _beta ? "" : "none";
+  if (_edSel) _edSel.value = (typeof getEdition === "function") ? getEdition() : "2014";
   renderBuildPicker();
   // STYLE-8M-2b: пикер — экран. Фокус в поиск даём после перехода (300 мс),
   // иначе браузер доскроллит уезжающий экран к полю.
@@ -55,7 +60,10 @@ function renderBuildPicker() {
   var roleFilter = ($("bp-role-filter") && $("bp-role-filter").value) || "";
   var searchInp = $("bp-search");
   var q = (searchInp && searchInp.value || "").trim().toLowerCase();
+  var _beta = (typeof _e24BetaEnabled === "function") && _e24BetaEnabled();
+  var edFilter = (_beta && $("bp-edition-filter") && $("bp-edition-filter").value) || "2014";
   var builds = (window.CHARACTER_BUILDS || []).filter(function(b){
+    if ((b.edition || "2014") !== edFilter) return false;
     if (filter && b.className !== filter) return false;
     if (roleFilter && b.role !== roleFilter) return false;
     if (q) {
@@ -221,6 +229,17 @@ function applyBuild(buildId) {
   if (!window.CHARACTER_BUILDS && typeof window.ensureBuilds === "function") {
     return window.ensureBuilds().then(function () { return applyBuild(buildId); });
   }
+  // E24-15: билд 2024 применяется только поверх загруженного набора 2024 (data-2024.js ленивый)
+  var _b24 = window.getBuildById && window.getBuildById(buildId);
+  if (_b24 && _b24.edition === "2024" && !EDITION_DATA["2024"] && typeof window.ensureEdition2024 === "function") {
+    return window.ensureEdition2024().then(function () {
+      if (!EDITION_DATA["2024"]) throw new Error("EDITION_DATA['2024'] не заполнен");
+      return applyBuild(buildId);
+    }).catch(function (e) {
+      if (window.__catchLog) window.__catchLog("builds:edition2024", e);
+      if (typeof showToast === "function") showToast("Данные редакции 2024 не загрузились — проверьте сеть", "warn");
+    });
+  }
   if (!window.BUILD_NOTES && typeof window.ensureBuildNotes === "function") {
     return window.ensureBuildNotes().catch(function (e) {
       if (window.__catchLog) window.__catchLog("build-notes:lazy-load", e);
@@ -235,7 +254,9 @@ function _applyBuildCore(buildId) {
   var newChar = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));
   newChar.id = Date.now();
   newChar.schemaVersion = (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : 11;
-  newChar.edition = '2014';  // E24-0: 36 готовых билдов — контент PHB 2014, редакция явно (не с тумблера)
+  // E24-0/E24-15: редакция — из билда (без поля — PHB 2014), не с тумблера
+  var _is24 = b.edition === "2024";
+  newChar.edition = _is24 ? '2024' : '2014';
   newChar.buildId = b.id;
   newChar.name = b.title || newChar.name;
   newChar.class = b.className || "";
@@ -244,6 +265,23 @@ function _applyBuildCore(buildId) {
   newChar.background = b.background || "";
   if (b.stats) {
     newChar.stats = Object.assign({str:10,dex:10,con:10,int:10,wis:10,cha:10}, b.stats);
+  }
+  if (_is24) {
+    // E24-15: у вида 2024 нет бонусов к характеристикам — вид считается уже применённым,
+    // иначе onRaceChange при загрузке обнулит выборы вида и языки
+    newChar.appliedRace = b.race || "";
+    newChar.appliedRaceBonus = {};
+    newChar.speciesChoices = Object.assign({}, b.speciesChoices || {});
+    // характеристики предыстории: та же запись, что оставляет панель (alloc + applied, потолок 20)
+    var _bsc = b.bgStatChoice || {};
+    newChar.bgStatChoice = { mode: _bsc.mode === "1+1+1" ? "1+1+1" : "2+1", alloc: {}, applied: {} };
+    Object.keys(_bsc.alloc || {}).forEach(function(k){
+      var v = _bsc.alloc[k] || 0, before = newChar.stats[k] || 10;
+      newChar.stats[k] = Math.min(20, before + v);
+      newChar.bgStatChoice.alloc[k] = v;
+      newChar.bgStatChoice.applied[k] = newChar.stats[k] - before;
+    });
+    newChar.weaponMastery = Array.isArray(b.weaponMastery) ? b.weaponMastery.slice() : [];
   }
   for (var i = 1; i <= 9; i++) {
     newChar.spells.slots[i] = 0;
@@ -266,9 +304,9 @@ function _applyBuildCore(buildId) {
   // Алиасы названий предысторий (старые переводы билдов → ключи BACKGROUND_SKILLS
   // и опции <select>). Таблица одна на всё приложение — BACKGROUND_ALIASES в data.js;
   // её же читает валидатор BUILD-FIX-6 в character-builds.js.
-  var _bgAliases = (typeof BACKGROUND_ALIASES !== "undefined") ? BACKGROUND_ALIASES : {};
+  var _bgAliases = (!_is24 && typeof BACKGROUND_ALIASES !== "undefined") ? BACKGROUND_ALIASES : {};
   var _bgKey = _bgAliases[b.background] || b.background;
-  var _bgEntry = (typeof BACKGROUND_SKILLS !== "undefined") ? BACKGROUND_SKILLS[_bgKey] : null;
+  var _bgEntry = edData(newChar).BACKGROUND_SKILLS ? edData(newChar).BACKGROUND_SKILLS[_bgKey] : null;
   if (_bgEntry && Array.isArray(_bgEntry.skills)) {
     _bgEntry.skills.forEach(function(n){ var si = _skillIdxByName(n); if (si >= 0) newChar.skills[si] = true; });
   }
@@ -301,12 +339,13 @@ function _applyBuildCore(buildId) {
     (_ca.armor||[]).forEach(function(t){ _addProf(newChar.proficiencies.armor, t); });
     (_ca.weapon||[]).forEach(function(t){ _addProf(newChar.proficiencies.weapon, t); });
   }
-  var _ra = (typeof RACE_ARMOR !== "undefined") && RACE_ARMOR[b.race];
+  // E24-15: у видов 2024 нет владений бронёй/оружием/инструментами — таблицы 2014 не читаем
+  var _ra = !_is24 && (typeof RACE_ARMOR !== "undefined") && RACE_ARMOR[b.race];
   if (_ra) {
     (_ra.armor||[]).forEach(function(t){ _addProf(newChar.proficiencies.armor, t); });
     (_ra.weapon||[]).forEach(function(t){ _addProf(newChar.proficiencies.weapon, t); });
   }
-  var _rw = (typeof RACE_WEAPONS_SPECIFIC !== "undefined") && RACE_WEAPONS_SPECIFIC[b.race];
+  var _rw = !_is24 && (typeof RACE_WEAPONS_SPECIFIC !== "undefined") && RACE_WEAPONS_SPECIFIC[b.race];
   if (Array.isArray(_rw)) _rw.forEach(function(w){ _addProf(newChar.proficiencies.specificWeapons, w); });
   // FIN-2: конкретные владения класса (recalcArmorWeaponFromSources пересоберёт их же)
   var _cw = edData(newChar).CLASS_WEAPONS_SPECIFIC[b.className];
@@ -321,7 +360,7 @@ function _applyBuildCore(buildId) {
   // BUILD-FIX-2: языки — заполняем languageChoices, recalcLanguagesFromSources соберёт массив
   var _stdLangs = ["Общий","Дварфский","Эльфийский","Великаний","Гномий","Гоблинский","Орочий","Полуросликов"];
   var _knownLangs = {};
-  var _rl = (typeof RACE_LANGUAGES !== "undefined") && RACE_LANGUAGES[b.race];
+  var _rl = edData(newChar).RACE_LANGUAGES && edData(newChar).RACE_LANGUAGES[b.race];
   if (_rl) (_rl.fixed||[]).forEach(function(n){ _knownLangs[n] = true; });
   var _cl = (typeof CLASS_LANGUAGES !== "undefined") && CLASS_LANGUAGES[b.className];
   if (_cl) (_cl.fixed||[]).forEach(function(n){ _knownLangs[n] = true; });
@@ -375,7 +414,7 @@ function _applyBuildCore(buildId) {
     });
   }
   // Раса: choices → автозаполнение
-  var _rt = (typeof RACE_TOOLS !== "undefined") && RACE_TOOLS[b.race];
+  var _rt = !_is24 && (typeof RACE_TOOLS !== "undefined") && RACE_TOOLS[b.race];
   if (_rt) {
     (_rt.choices||[]).forEach(function(ch, idx){
       var picks = [];
@@ -443,7 +482,9 @@ function _applyBuildCore(buildId) {
         var _snk = _sp.name.toLowerCase().trim();
         // Билды = PHB 2014: при дубле имени (PH14+PH24 версии в БД) в карту идёт PH14,
         // иначе «последний побеждает» отдавал билдам PH24-версии заклинаний.
-        if (!_spellByName[_snk] || (_sp.source === "PH14" && _spellByName[_snk].source !== "PH14")) {
+        // E24-15: билды 2024 — наоборот, PH24-версии.
+        var _wantSrc = _is24 ? "PH24" : "PH14";
+        if (!_spellByName[_snk] || (_sp.source === _wantSrc && _spellByName[_snk].source !== _wantSrc)) {
           _spellByName[_snk] = _sp;
         }
       }
@@ -663,7 +704,9 @@ function _applyBuildCore(buildId) {
     // BUILD-FIX-3/13: для подготовленных классов (волшебник/жрец/друид/паладин) —
     // если в билде не указан prepared, авто-подготавливаем известные заклинания.
     // Заговоры в prepared не нужны — они всегда подготовлены. Имена канонизируем.
-    var _preparedCasters = { "Волшебник":1, "Жрец":1, "Друид":1, "Паладин":1 };
+    // E24-15: в 2024 готовят все 8 заклинателей (у волшебника prepared в билде задан явно)
+    var _preparedCasters = _is24 ? { "Волшебник":1, "Жрец":1, "Друид":1, "Паладин":1, "Бард":1, "Следопыт":1, "Чародей":1, "Колдун":1 }
+      : { "Волшебник":1, "Жрец":1, "Друид":1, "Паладин":1 };
     if (_preparedCasters[b.className] &&
         (!Array.isArray(b.startingSpells.prepared) || b.startingSpells.prepared.length === 0) &&
         Array.isArray(b.startingSpells.known)) {
@@ -1470,9 +1513,11 @@ window.resolveSpellByName = (function(){
     "кошмарное видение": "смертный ужас", "массовое исцеление": "множественное полное исцеление",
     "призматическая стена": "радужная стена"
   };
-  return function(n){
+  // E24-15: edition '2024' — наоборот, PH24-версия при дубле имени
+  return function(n, edition){
     if (!n) return null;
     if (typeof n === "object") return n;
+    var want = (edition === "2024") ? "PH24" : "PH14";
     if (typeof SPELL_DATABASE === "undefined" || !Array.isArray(SPELL_DATABASE)) return null;
     var key = String(n).toLowerCase().trim();
     var alt = key.replace(/ё/g, "е").replace(/\s*\([^)]*\)\s*$/, "").trim();
@@ -1485,7 +1530,7 @@ window.resolveSpellByName = (function(){
       if (!sp || !sp.name) continue;
       var nm = sp.name.toLowerCase().trim();
       if (nm === key || nm === alt || (aliased && nm === aliased)) {
-        if (sp.source === "PH14") return sp;
+        if (sp.source === want) return sp;
         if (!found) found = sp;
       }
     }
@@ -1506,7 +1551,7 @@ function getBuildRecSpellObjs(b, level) {
   }
   var out = [], seen = {};
   names.forEach(function(n){
-    var sp = (typeof window.resolveSpellByName === "function") ? window.resolveSpellByName(n) : null;
+    var sp = (typeof window.resolveSpellByName === "function") ? window.resolveSpellByName(n, b.edition) : null;
     var key = sp && (sp.id || sp.name);
     if (sp && key && !seen[key]) { seen[key] = 1; out.push(sp); }
   });

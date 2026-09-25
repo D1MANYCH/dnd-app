@@ -228,11 +228,13 @@
 
   // ASI-уровни класса по CLASS_FEATURES (фича «Увеличение характеристик») — источник истины приложения,
   // тот же приём, что в dev-verify-builds.js (_asiLevelsCF) и в guided level-up (app-hp.js).
-  function _asiLevelsForClass(cls){
+  // E24-15: b — билд; у билда 2024 таблица фич 2024 (edData(b)), без поля — 2014.
+  function _asiLevelsForClass(cls, b){
     var out = [];
-    if (typeof CLASS_FEATURES === "undefined" || !CLASS_FEATURES[cls]) return out;
-    Object.keys(CLASS_FEATURES[cls]).forEach(function(k){
-      var arr = CLASS_FEATURES[cls][k] || [];
+    var CF = (b && typeof edData === "function") ? edData(b).CLASS_FEATURES : ((typeof CLASS_FEATURES !== "undefined") ? CLASS_FEATURES : null);
+    if (!CF || !CF[cls]) return out;
+    Object.keys(CF[cls]).forEach(function(k){
+      var arr = CF[cls][k] || [];
       if (arr.some(function(f){ return f && f.name === "Увеличение характеристик"; })) out.push(parseInt(k,10));
     });
     return out.sort(function(a,b){ return a-b; });
@@ -245,7 +247,7 @@
     CHARACTER_BUILDS.forEach(function(b){
       t("[lvl-asi] " + b.id, function(){
         var char = { buildId: b.id, class: b.className };
-        var asiLevels = _asiLevelsForClass(b.className);
+        var asiLevels = _asiLevelsForClass(b.className, b);
         if (!asiLevels.length) return "нет ASI-уровней в CLASS_FEATURES для «" + b.className + "»";
         var gaps = [];
         asiLevels.forEach(function(lv){
@@ -264,9 +266,10 @@
       if (!b.recommendedChoices) return;
       t("[lvl-rec] " + b.id, function(){
         // SDR-2: выборы билда могут жить и в SUBCLASS_CHOICES[b.subclass] (напр. манёвры Боевого мастера).
-        var defs = ((typeof CLASS_CHOICES !== "undefined" && CLASS_CHOICES[b.className]) || []).slice();
-        if (b.subclass && typeof SUBCLASS_CHOICES !== "undefined" && SUBCLASS_CHOICES[b.subclass]) {
-          defs = defs.concat(SUBCLASS_CHOICES[b.subclass]);
+        var _ed = (typeof edData === "function") ? edData(b) : { CLASS_CHOICES: CLASS_CHOICES, SUBCLASS_CHOICES: SUBCLASS_CHOICES };
+        var defs = ((_ed.CLASS_CHOICES && _ed.CLASS_CHOICES[b.className]) || []).slice();
+        if (b.subclass && _ed.SUBCLASS_CHOICES && _ed.SUBCLASS_CHOICES[b.subclass]) {
+          defs = defs.concat(_ed.SUBCLASS_CHOICES[b.subclass]);
         }
         var problems = [];
         Object.keys(b.recommendedChoices).forEach(function(choiceId){
@@ -2459,7 +2462,10 @@
           "Набор священника":null, "Набор учёного":null, "Набор фокусника":null, "Набор яда":null,
           "Посох":"Боевой посох", "Рапира":"Рапира", "Ручной топор":"Ручной топор",
           "Символ веры":null, "Скимитар":"Скимитар", "Тотем друида":null,
-          "Тяжёлый арбалет":"Тяжёлый арбалет", "Чешуйчатый доспех":null, "Щит":null
+          "Тяжёлый арбалет":"Тяжёлый арбалет", "Чешуйчатый доспех":null, "Щит":null,
+          // E24-15: новые строки снаряжения билдов редакции 2024
+          "Копьё":"Копьё", "Секира":"Секира", "Игровой набор (кости)":null, "Набор целителя":null,
+          "Одежда путешественника":null, "Костюм":null
         };
         var bad = [];
         var strings = {};
@@ -2757,7 +2763,8 @@
           list.forEach(function(b){
             if (!b.background) return;
             var key = BACKGROUND_ALIASES[b.background] || b.background;
-            if (!BACKGROUND_SKILLS[key]) bad.push(b.id + ": «" + b.background + "» → «" + key + "»");
+            var _bgT = (typeof edData === "function") ? edData(b).BACKGROUND_SKILLS : BACKGROUND_SKILLS;
+            if (!_bgT[key]) bad.push(b.id + ": «" + b.background + "» → «" + key + "»");
           });
           return bad.length === 0 || "не резолвятся: " + bad.join(", ");
         });
@@ -8908,6 +8915,154 @@
     });
   })();
 
+  // ────────── БЛОК 66 (E24-15): билды 2024 ×12 — поле edition, законность по таблицам 2024, applyBuild ──────────
+  (function(){
+    if (typeof CHARACTER_BUILDS === "undefined" || typeof edData !== "function" || !window.SPECIES_2024) return;
+    var ALL = ["Варвар","Бард","Воин","Волшебник","Друид","Жрец","Колдун","Монах","Паладин","Плут","Следопыт","Чародей"];
+    var B24 = CHARACTER_BUILDS.filter(function(b){ return b.edition === "2024"; });
+    var COST = { 8:0, 9:1, 10:2, 11:3, 12:4, 13:5, 14:7, 15:9 };
+    var LIST = { "Бард":"bard", "Жрец":"cleric", "Друид":"druid", "Паладин":"paladin", "Следопыт":"ranger", "Чародей":"sorcerer", "Колдун":"warlock", "Волшебник":"wizard" };
+
+    t("[e24-15] 12 билдов 2024 — по одному на класс; 36 старых без поля edition", function(){
+      if (B24.length !== 12) return "билдов 2024: " + B24.length;
+      var cls = B24.map(function(b){ return b.className; }).sort();
+      if (JSON.stringify(cls) !== JSON.stringify(ALL.slice().sort())) return "классы: " + cls.join(",");
+      var old = CHARACTER_BUILDS.filter(function(b){ return b.edition === undefined; });
+      if (old.length !== 36) return "без edition: " + old.length;
+      var odd = CHARACTER_BUILDS.filter(function(b){ return b.edition !== undefined && b.edition !== "2024"; });
+      if (odd.length) return "странная редакция: " + odd[0].id;
+      if (edData(old[0]) !== edData({ edition: "2014" })) return "билд без поля ≠ 2014";
+      return true;
+    });
+
+    t("[e24-15] билды 2024: вид, предыстория, +2/+1, подкласс, мастерство, выборы 1 ур. — из таблиц 2024", function(){
+      var d = edData({ edition: "2024" });
+      for (var i = 0; i < B24.length; i++) {
+        var b = B24[i], id = b.id;
+        if ((d.SUBCLASSES[b.className] || []).indexOf(b.subclass) < 0) return id + ": подкласс " + b.subclass;
+        var sp = d.RACE_DATA[b.race];
+        if (!sp || !window.SPECIES_2024[b.race]) return id + ": вид " + b.race;
+        var bg = d.BACKGROUND_SKILLS[b.background];
+        if (!bg || !bg.abilities) return id + ": предыстория " + b.background;
+        var sc = b.bgStatChoice || {}, al = sc.alloc || {}, ks = Object.keys(al);
+        var vals = ks.map(function(k){ return al[k]; }).sort().join(",");
+        if (!ks.every(function(k){ return bg.abilities.indexOf(k) >= 0; })) return id + ": +характеристики вне предыстории";
+        if (sc.mode === "1+1+1" ? vals !== "1,1,1" : (sc.mode !== "2+1" || vals !== "1,2")) return id + ": bgStatChoice " + JSON.stringify(sc);
+        var sum = 0;
+        for (var k in b.stats) { if (COST[b.stats[k]] === undefined) return id + ": " + k + "=" + b.stats[k]; sum += COST[b.stats[k]]; }
+        if (sum > 27) return id + ": очков " + sum;
+        for (var c in (b.speciesChoices || {})) {
+          var cd = (sp.choices || []).filter(function(x){ return x.id === c; })[0], v = b.speciesChoices[c];
+          if (!cd || (cd.type === "stat" ? (cd.keys || []).indexOf(v) < 0 : !(cd.options || []).some(function(o){ return o.id === v; })))
+            return id + ": выбор вида " + c + "=" + v;
+        }
+        var wm = d.WEAPON_MASTERY[b.className], wn = (wm && wm.byLevel[1]) || 0;
+        if ((b.weaponMastery || []).length !== wn) return id + ": мастерство " + (b.weaponMastery || []).length + " ≠ " + wn;
+        for (var w = 0; w < (b.weaponMastery || []).length; w++)
+          if (typeof _findWeapon === "function" && !_findWeapon(b.weaponMastery[w])) return id + ": оружие " + b.weaponMastery[w];
+        for (var rc in (b.recommendedChoices || {})) {
+          var cc = (d.CLASS_CHOICES[b.className] || []).filter(function(x){ return x.id === rc; })[0];
+          if (!cc || [].concat(b.recommendedChoices[rc]).some(function(o){ return (cc.options || []).indexOf(o) < 0; })) return id + ": выбор класса " + rc;
+        }
+      }
+      return true;
+    });
+
+    t("[e24-15] билды 2024: черты плана — general на АСИ, epic на 19; прибавки не выше 20", function(){
+      for (var i = 0; i < B24.length; i++) {
+        var b = B24[i], cf = edData(b).CLASS_FEATURES[b.className], st = {};
+        for (var k in b.stats) st[k] = b.stats[k] + ((b.bgStatChoice.alloc || {})[k] || 0);
+        for (var s in st) if (st[s] > 20) return b.id + ": старт " + s + "=" + st[s];
+        var f19 = getFeatDef(b, (b.levelUp[19] || {}).feat);
+        if (!f19 || f19.category !== "epic") return b.id + ": 19 ур. не эпический дар";
+        for (var lv = 1; lv <= 20; lv++) {
+          var rec = b.levelUp[lv];
+          if (!rec || !rec.headline || !rec.why) return b.id + ": нет плана " + lv + " ур.";
+          if (!(cf[lv] || []).some(function(f){ return f && f.name === "Увеличение характеристик"; })) continue;
+          if (rec.feat) {
+            var f = getFeatDef(b, rec.feat);
+            if (!f || f.category !== "general") return b.id + " " + lv + " ур.: черта " + rec.feat;
+            continue;
+          }
+          var asi = parseAsiFromHeadline(rec.headline);
+          if (!asi) return b.id + " " + lv + " ур.: ни черты, ни прибавки";
+          for (var a in asi) { st[a] += asi[a]; if (st[a] > 20) return b.id + " " + lv + " ур.: " + a + "=" + st[a]; }
+        }
+      }
+      return true;
+    });
+
+    t("[e24-15] билды 2024: заклинания 1 ур. — PH24 из списка класса, число по SPELL_PREP_2024", function(){
+      var prep = edData({ edition: "2024" }).SPELL_PREP_CLASSES;
+      for (var i = 0; i < B24.length; i++) {
+        var b = B24[i], p = prep[b.className], ss = b.startingSpells || {};
+        var can = ss.cantrips || [], kn = ss.known || [], pr = ss.prepared || [];
+        if (!p) { if (can.length + kn.length + pr.length) return b.id + ": заклинания у незаклинателя"; continue; }
+        if (can.length !== (p.cantrips ? p.cantrips[0] : 0)) return b.id + ": заговоров " + can.length;
+        if (pr.length !== p.prepared[0]) return b.id + ": подготовлено " + pr.length;
+        if (kn.length !== (b.className === "Волшебник" ? 6 : p.prepared[0])) return b.id + ": известно " + kn.length;
+        var names = can.concat(kn, pr);
+        for (var j = 0; j < names.length; j++) {
+          var sp = window.resolveSpellByName(names[j], "2024");
+          if (!sp) return b.id + ": нет заклинания «" + names[j] + "»";
+          if ((sp.classes || []).indexOf(LIST[b.className]) < 0) return b.id + ": «" + names[j] + "» не в списке класса";
+          if (!!sp.level !== (can.indexOf(names[j]) < 0)) return b.id + ": «" + names[j] + "» не того круга";
+        }
+        if (pr.some(function(n){ return kn.indexOf(n) < 0; })) return b.id + ": подготовлено вне известных";
+      }
+      return true;
+    });
+
+    t("[e24-15] «Драконья устойчивость» 2024 — с 3 ур. (+3), в 2014 — с 1 ур.", function(){
+      function sc(ed, lv) { return { edition: ed, class: "Чародей", subclass: "Драконья кровь", level: lv, stats: { con: 10 },
+        classes: [{ class: "Чародей", level: lv, subclass: "Драконья кровь" }] }; }
+      if (rulesMaxHPBase(sc("2024", 1), 0) !== 6) return "2024 1 ур.: " + rulesMaxHPBase(sc("2024", 1), 0);
+      if (rulesMaxHPBase(sc("2024", 3), 0) !== 17) return "2024 3 ур.: " + rulesMaxHPBase(sc("2024", 3), 0);
+      if (rulesHasDraconicResilience(sc("2024", 2)) || !rulesHasDraconicResilience(sc("2024", 3))) return "КД 2024";
+      return rulesMaxHPBase(sc("2014", 1), 0) === 7 || "2014 1 ур.: " + rulesMaxHPBase(sc("2014", 1), 0);
+    });
+
+    t("[e24-15] resolveSpellByName: без редакции — PH14, с '2024' — PH24 при дубле имени", function(){
+      var dup = null;
+      for (var i = 0; i < SPELL_DATABASE.length && !dup; i++) {
+        var a = SPELL_DATABASE[i];
+        if (a.source !== "PH24") continue;
+        if (SPELL_DATABASE.some(function(x){ return x.name === a.name && x.source === "PH14"; })) dup = a.name;
+      }
+      if (!dup) return "нет дубля PH14/PH24";
+      if (window.resolveSpellByName(dup).source !== "PH14") return "2014: " + dup;
+      return window.resolveSpellByName(dup, "2024").source === "PH24" || "2024: " + dup;
+    });
+
+    if (typeof applyBuild === "function" && typeof characters !== "undefined") {
+      t("[e24-15] applyBuild 2024: редакция, +2/+1 предыстории, выборы вида, мастерство, PH24; 2014 — как прежде", function(){
+        var b = B24.filter(function(x){ return x.weaponMastery && x.weaponMastery.length; })[0];
+        if (!b) return "нет билда с мастерством";
+        try { applyBuild(b.id); } catch (e) { /* побочка loadCharacter в шиме — ок */ }
+        var ch = characters.filter(function(c){ return c.buildId === b.id; }).pop();
+        if (!ch) return "персонаж не создан";
+        if (ch.edition !== "2024") return "edition " + ch.edition;
+        for (var k in b.bgStatChoice.alloc) {
+          var want = Math.min(20, b.stats[k] + b.bgStatChoice.alloc[k]);
+          if (ch.stats[k] !== want) return k + "=" + ch.stats[k] + " ≠ " + want;
+          if (ch.bgStatChoice.applied[k] !== want - b.stats[k]) return "applied " + k;
+        }
+        if (JSON.stringify(ch.weaponMastery) !== JSON.stringify(b.weaponMastery)) return "мастерство " + JSON.stringify(ch.weaponMastery);
+        if (ch.appliedRace !== b.race) return "appliedRace " + ch.appliedRace;
+        if (JSON.stringify(ch.speciesChoices || {}) !== JSON.stringify(b.speciesChoices || {})) return "выборы вида " + JSON.stringify(ch.speciesChoices);
+        var cst = B24.filter(function(x){ return x.startingSpells && (x.startingSpells.known || []).length; })[0];
+        try { applyBuild(cst.id); } catch (e2) { /* побочка loadCharacter в шиме — ок */ }
+        var cc = characters.filter(function(c){ return c.buildId === cst.id; }).pop();
+        if (!cc || !cc.spells.mySpells.length) return "заклинатель без заклинаний";
+        if (cc.spells.mySpells.some(function(s){ return s.source === "PH14"; })) return "у 2024-заклинателя PH14-заклинание";
+        if (cc.spells.prepared.length !== cst.startingSpells.prepared.length) return "подготовлено " + cc.spells.prepared.length;
+        try { applyBuild("fighter-champion-gwm"); } catch (e3) { /* побочка loadCharacter в шиме — ок */ }
+        var old = characters.filter(function(c){ return c.buildId === "fighter-champion-gwm"; }).pop();
+        return (old && old.edition === "2014") || "2014-билд: " + (old && old.edition);
+      });
+    }
+  })();
+
   // ────────── AUD-4: хиты при повышении, ручной максимум, кости и врем. ХП ──────────
   if (typeof confirmLevelUp === "function" && typeof rulesMaxHPBase === "function") {
     t("[AUD-4 L1] Волшебник 4→5 с «Крепким», ТЕЛ 10: 26 → 32 (+4 кость +2 черта)", function(){
@@ -9252,7 +9407,9 @@
   });
   t("[AUD-12 P25] прибавки билдов с расовым бонусом не уходят за 20", function(){
     for (var i = 0; i < CHARACTER_BUILDS.length; i++) {
-      var b = CHARACTER_BUILDS[i], st = {}, rs = (RACE_DATA[b.race] || {}).stats || {}, cf = CLASS_FEATURES[b.className];
+      // E24-15: у билда 2024 прибавка — от предыстории (bgStatChoice), фичи — 2024
+      var b = CHARACTER_BUILDS[i], st = {}, cf = edData(b).CLASS_FEATURES[b.className];
+      var rs = b.edition === "2024" ? ((b.bgStatChoice || {}).alloc || {}) : ((RACE_DATA[b.race] || {}).stats || {});
       for (var k in b.stats) st[k] = b.stats[k] + (rs[k] || 0);
       for (var lv = 1; lv <= 20; lv++) {
         if (!(cf[lv] || []).some(function(f) { return f && f.name === "Увеличение характеристик"; })) continue;
