@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=v402">
+<link rel="stylesheet" href="style.css?v=v403">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -438,7 +438,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="char-controls">
 <div class="char-search-wrap">
 <span class="char-search-icon" data-ico="search" data-ico-size="16">🔍</span>
-<input type="text" class="char-search-inp" placeholder="Поиск по имени, классу, расе..." oninput="setCharSearch(this.value)">
+<input type="text" class="char-search-inp flat-field" placeholder="Поиск по имени, классу, расе..." oninput="setCharSearch(this.value)">
 </div>
 <div class="char-sort-row">
 <span class="char-sort-label">Сортировка:</span>
@@ -602,8 +602,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
     <div id="char-build-badge-wrap" class="char-build-badge-wrap" style="display:none">
       <button type="button" id="char-build-badge" class="char-build-badge" onclick="openBuildGuide()" title="Открыть гайд по билду" aria-label="Открыть гайд по билду"></button>
-      <button type="button" class="char-build-plan-btn" onclick="openBuildPlan()" title="План развития 1–20" aria-label="План развития 1–20"><span data-ico="trend" data-ico-size="16">📈</span> План</button>
-      <button type="button" class="char-build-unlink" onclick="unlinkBuild()" title="Отвязать билд от персонажа" aria-label="Отвязать билд">✕ Отвязать</button>
+      <button type="button" class="char-build-plan-btn" onclick="openBuildPlan()" title="План развития 1–20" aria-label="План развития 1–20">План</button>
+      <button type="button" class="char-build-unlink" onclick="unlinkBuild()" title="Отвязать билд от персонажа" aria-label="Отвязать билд">Отвязать</button>
     </div>
   </div>
 </div>
@@ -1496,7 +1496,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="battle-search-wrap">
 <span class="char-search-icon" data-ico="search" data-ico-size="16">🔍</span>
-<input type="text" class="char-search-inp" placeholder="Поиск по имени..." oninput="setBattleSearch(this.value)">
+<input type="text" class="char-search-inp flat-field" placeholder="Поиск по имени..." oninput="setBattleSearch(this.value)">
 </div>
 <div id="battle-setup-list"></div>
 <button class="battle-start-btn" style="margin-top:12px" onclick="startBattle()">▶ Начать бой</button>
@@ -1533,11 +1533,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="journal-filter-row">
 <button class="jfilter-btn active" onclick="filterJournal('all',this)">Все</button>
-<button class="jfilter-btn" onclick="filterJournal('levelup',this)"><span data-ico="trend" data-ico-size="16">📈</span> Уровни</button>
-<button class="jfilter-btn" onclick="filterJournal('rest',this)"><span data-ico="bed" data-ico-size="16">🛏️</span> Отдых</button>
-<button class="jfilter-btn" onclick="filterJournal('stat',this)"><span data-ico="zap" data-ico-size="16">⚡</span> Статы</button>
-<button class="jfilter-btn" onclick="filterJournal('feat',this)"><span data-ico="target" data-ico-size="16">🎯</span> Черты</button>
-<button class="jfilter-btn" onclick="filterJournal('note',this)"><span data-ico="notes" data-ico-size="16">📝</span> Заметки</button>
+<button class="jfilter-btn" onclick="filterJournal('levelup',this)">Уровни</button>
+<button class="jfilter-btn" onclick="filterJournal('rest',this)">Отдых</button>
+<button class="jfilter-btn" onclick="filterJournal('stat',this)">Статы</button>
+<button class="jfilter-btn" onclick="filterJournal('feat',this)">Черты</button>
+<button class="jfilter-btn" onclick="filterJournal('note',this)">Заметки</button>
 </div>
 <div id="journal-list" class="journal-list"></div>
 </div>
@@ -3209,57 +3209,57 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v402"></script>
+<script src="app-log.js?v=v403"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v402"></script>
-<script src="bg-space.js?v=v402"></script>
-<script src="dice-arena-bg.js?v=v402"></script>
-<script src="data.js?v=v402"></script>
+<script src="icons.js?v=v403"></script>
+<script src="bg-space.js?v=v403"></script>
+<script src="dice-arena-bg.js?v=v403"></script>
+<script src="data.js?v=v403"></script>
 <!-- PERF-2/PERF-4: build-notes-data.js (~530 КБ) и character-builds.js (~200 КБ) грузятся лениво — см. ensureBuildNotes/ensureBuilds ниже -->
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v402"></script>
-<script src="spells.js?v=v402"></script>
-<script src="spell-effects.js?v=v402"></script>
+<script src="glossary-data.js?v=v403"></script>
+<script src="spells.js?v=v403"></script>
+<script src="spell-effects.js?v=v403"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v402"></script>
-<script src="app-migrate.js?v=v402"></script>
-<script src="app-builds.js?v=v402"></script>
-<script src="app-core.js?v=v402"></script>
-<script src="app-io.js?v=v402"></script>
-<script src="app-backup.js?v=v402"></script>
-<script src="app-combat.js?v=v402"></script>
-<script src="app-conditions.js?v=v402"></script>
-<script src="app-cast-effects.js?v=v402"></script>
-<script src="app-proficiencies.js?v=v402"></script>
-<script src="app-hp.js?v=v402"></script>
-<script src="app-spells.js?v=v402"></script>
-<script src="app-inventory.js?v=v402"></script>
+<script src="rules.js?v=v403"></script>
+<script src="app-migrate.js?v=v403"></script>
+<script src="app-builds.js?v=v403"></script>
+<script src="app-core.js?v=v403"></script>
+<script src="app-io.js?v=v403"></script>
+<script src="app-backup.js?v=v403"></script>
+<script src="app-combat.js?v=v403"></script>
+<script src="app-conditions.js?v=v403"></script>
+<script src="app-cast-effects.js?v=v403"></script>
+<script src="app-proficiencies.js?v=v403"></script>
+<script src="app-hp.js?v=v403"></script>
+<script src="app-spells.js?v=v403"></script>
+<script src="app-inventory.js?v=v403"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v402"></script>
-<script src="class-choices.js?v=v402"></script>
-<script src="subclass-choices-data.js?v=v402"></script>
+<script src="app-party.js?v=v403"></script>
+<script src="class-choices.js?v=v403"></script>
+<script src="subclass-choices-data.js?v=v403"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js) -->
 <script type="module">
-  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v402";
+  import DiceBox from "./vendor/dice-box/dice-box.es.js?v=v403";
   window.DiceBox = DiceBox;
   window.dispatchEvent(new Event("dicebox:ready"));
 </script>
-<script src="app-dice.js?v=v402"></script>
-<script src="app-settings.js?v=v402"></script>
-<script src="app-ui.js?v=v402"></script>
-<script src="app-home.js?v=v402"></script>
-<script src="app-asi.js?v=v402"></script>
-<script src="app-progress.js?v=v402"></script>
-<script src="app-notes.js?v=v402"></script>
-<script src="app-desktop.js?v=v402"></script>
-<script src="history-stack.js?v=v402"></script>
-<script src="app-help.js?v=v402"></script>
+<script src="app-dice.js?v=v403"></script>
+<script src="app-settings.js?v=v403"></script>
+<script src="app-ui.js?v=v403"></script>
+<script src="app-home.js?v=v403"></script>
+<script src="app-asi.js?v=v403"></script>
+<script src="app-progress.js?v=v403"></script>
+<script src="app-notes.js?v=v403"></script>
+<script src="app-desktop.js?v=v403"></script>
+<script src="history-stack.js?v=v403"></script>
+<script src="app-help.js?v=v403"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3272,9 +3272,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v402",
-    "vendor/jspdf/roboto-base64.js?v=v402",
-    "app-pdf.js?v=v402"
+    "vendor/jspdf/jspdf.umd.min.js?v=v403",
+    "vendor/jspdf/roboto-base64.js?v=v403",
+    "app-pdf.js?v=v403"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3297,13 +3297,13 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // PERF-4: сами билды нужны пикеру, гайду, плану и подсказкам левел-апа — грузим по требованию.
   window.ensureBuilds = function () {
     if (window.CHARACTER_BUILDS) return Promise.resolve();
-    return loadScript("character-builds.js?v=v402");
+    return loadScript("character-builds.js?v=v403");
   };
   // PERF-2: заметки билдов нужны только applyBuild — грузим по требованию.
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v402").then(function () {
+    return loadScript("build-notes-data.js?v=v403").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
@@ -3311,26 +3311,26 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v402"),
-      loadScript("npc-srd.js?v=v402")
+      loadScript("monsters-srd.js?v=v403"),
+      loadScript("npc-srd.js?v=v403")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v402");
+    return loadScript("magic-items.js?v=v403");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v402");
+    return loadScript("gear-catalog.js?v=v403");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v402").then(function () {
+    return loadScript("data-2024.js?v=v403").then(function () {
       window.__edition2024Loaded = true;
     });
   };

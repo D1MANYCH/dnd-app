@@ -795,7 +795,6 @@ function renderJournal() {
     return;
   }
 
-  var typeIcons = { levelup:"📈", rest:"🛏️", stat:"⚡", feat:"🎯", note:"📝", combat:"⚔️", story:"📖", loot:"💎", death:"💀" };
   // STYLE-8g: цвет типа кодирует ромб строки (--jrn-color, см. .journal-entry::before).
   // Значение идёт в свойство целиком, поэтому токен подставляется как var() —
   // конкатенации альфы, ломавшей var() на вкладке «Мир», здесь нет.
@@ -804,11 +803,9 @@ function renderJournal() {
     story:"var(--slot-gold)", loot:"var(--slot-gold-hi)", death:"var(--text-dim)" };
 
   list.innerHTML = filtered.map(function(entry) {
-    var icon = typeIcons[entry.type] || "📝";
     var color = typeColors[entry.type] || "var(--home-sub)";
     return '<div class="journal-entry" style="--jrn-color:' + color + '">' +
       '<div class="journal-entry-header">' +
-        '<span class="journal-icon">' + icon + '</span>' +
         '<span class="journal-text">' + escapeHtml(entry.text) + '</span>' +
         '<span class="journal-meta">' + escapeHtml(entry.date) + ' ' + escapeHtml(entry.time) + ' · ' + (Number(entry.level) || 1) + ' ур.</span>' +
         '<button class="journal-del-btn" data-id="' + escapeHtml(entry.id) + '" onclick="deleteJournalEntry(Number(this.dataset.id))" title="Удалить" aria-label="Удалить">' + dndIcoHtml("trash", 14) + '</button>' +

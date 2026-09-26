@@ -495,7 +495,7 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
   var bodyEl  = modal.querySelector(".cc-modal-body");
   var counterEl = modal.querySelector(".cc-modal-counter");
 
-  if (titleEl) titleEl.textContent = (choice.icon || "⚡") + " " + choice.name + " · " + className;
+  if (titleEl) titleEl.textContent = choice.name + " · " + className;
   if (descEl)  descEl.textContent  = choice.desc || "";
 
   // ── Тип: freeform ────────────────────────────────────────

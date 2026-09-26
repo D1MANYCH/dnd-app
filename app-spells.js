@@ -818,14 +818,14 @@ card.dataset.school = getSchoolSlug(schoolName) || '';
 // Главное действие видно в свёрнутой строке — иначе новый игрок его не найдёт.
 // У неподготовленного заклинания главное другое: сначала подготовить.
 var _leadHtml = (prepClass && !isCantrip && !prepared)
-  ? '<button class="spell-lead-btn spell-lead-prep" onclick="event.stopPropagation();toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">○ Подготовить</button>'
-  : '<button class="spell-lead-btn" onclick="event.stopPropagation();castSpell(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("sparkle", 13) + ' Использовать</button>';
+  ? '<button class="spell-lead-btn spell-lead-prep" onclick="event.stopPropagation();toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">Подготовить</button>'
+  : '<button class="spell-lead-btn" onclick="event.stopPropagation();castSpell(' + _spellIdArg(spell.id) + ')">Использовать</button>';
 card.innerHTML =
   '<div class="spell-card-header" onclick="toggleSpellCard(this)">' +
     '<div class="spell-card-title">' +
       '<span class="spell-card-arrow" aria-hidden="true"></span>' +
       '<span class="spell-card-name">' + escapeHtml(spell.name) + '</span>' +
-      (isRitual ? '<span class="ritual-badge" title="Ритуал">' + dndIcoHtml("history", 12) + '<span class="ritual-badge-text"> Ритуал</span></span>' : '') +
+      (isRitual ? '<span class="ritual-badge" title="Ритуал"><span class="ritual-badge-text">· ритуал</span></span>' : '') +
       (activeCast[spell.name] ? _spellActiveBadgeHtml(activeCast[spell.name]) : '') +
     '</div>' +
     '<div class="spell-card-badges">' +
