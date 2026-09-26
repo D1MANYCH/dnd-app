@@ -981,7 +981,7 @@ function luBuildChoicesScreen() {
       var recIds = (b && typeof getBuildRecChoiceIds === "function") ? getBuildRecChoiceIds(char, cc.id) : [];
       var recNm = recIds.length ? recIds.map(function(rid){ return (cc.optionsDict && cc.optionsDict[rid]) ? cc.optionsDict[rid].name : rid; }).join(", ") : null;
       blocks.push('<div class="lu-choice-block' + (has ? ' done' : '') + '">' +
-        '<div class="lu-choice-title">' + (cc.icon || "⚡") + " " + escapeHtml(cc.name) + (has ? ' ✓' : '') + '</div>' +
+        '<div class="lu-choice-title">' + escapeHtml(cc.name) + (has ? ' ✓' : '') + '</div>' +
         (recNm ? '<div class="lu-choice-sub">' + recBadge(recNm) + '</div>' : '') +
         (has ? '' : '<button class="lu-choice-launch" onclick="openClassChoiceModal(\'' + cn.replace(/'/g,"\\'") + '\',\'' + cc.id + '\')">Выбрать →</button>') +
         '</div>');

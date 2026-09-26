@@ -413,7 +413,7 @@ function renderClassChoices(char, container) {
       ? ' <span class="cc-class-tag">' + escapeHtml(cls) + "</span>" : "";
     return '<button class="' + statusClass + '" onclick="openClassChoiceModal(\'' + cls + '\',\'' + c.id + '\')">' +
         '<div class="cc-card-left">' +
-          '<div class="cc-card-title">' + (c.icon || "⚡") + " " + escapeHtml(c.name) + classLabel + statusBadge + '</div>' +
+          '<div class="cc-card-title">' + escapeHtml(c.name) + classLabel + statusBadge + '</div>' +
           '<div class="cc-card-summary">' + summary + '</div>' +
         '</div>' +
         '<span class="cc-card-arrow">›</span>' +

@@ -511,9 +511,7 @@ function renderSrdMonsterPicker() {
     return;
   }
   box.innerHTML = list.map(function(m) {
-    var icon = getMonsterTypeIcon(m.type);
     return '<div class="srd-mon-row" onclick="addMonsterFromSRD(\'' + m.slug + '\', event)">' +
-      '<div class="srd-mon-icon">' + icon + '</div>' +
       '<div class="srd-mon-body">' +
         '<div class="srd-mon-name">' + escapeHtml(m.name) + ' <span class="srd-mon-en">' + escapeHtml(m.nameEn || "") + '</span></div>' +
         '<div class="srd-mon-meta">' +
@@ -524,7 +522,7 @@ function renderSrdMonsterPicker() {
           (m.edition ? '<span class="srd-mon-badge srd-mon-badge-ed">' + escapeHtml(m.edition) + '</span>' : '') +
         '</div>' +
       '</div>' +
-      '<button class="srd-mon-add" onclick="addMonsterFromSRD(\'' + m.slug + '\', event)" title="Добавить">＋ Добавить</button>' +
+      '<button class="srd-mon-add" onclick="addMonsterFromSRD(\'' + m.slug + '\', event)" title="Добавить">+ Добавить</button>' +
     '</div>';
   }).join("");
 }
@@ -624,15 +622,14 @@ function renderSrdNpcPicker() {
   box.innerHTML = list.map(function(a) {
     var attC = _npcAttColor(a.attitude || "");
     return '<div class="srd-mon-row" onclick="addNpcFromSRD(\'' + a.slug + '\', event)">' +
-      '<div class="srd-mon-icon">' + (a.icon || "🧑") + '</div>' +
       '<div class="srd-mon-body">' +
         '<div class="srd-mon-name">' + escapeHtml(a.name) + '</div>' +
         '<div class="srd-mon-meta">' +
           '<span class="srd-mon-badge">' + dndIcoHtml("mapPin", 13) + ' ' + escapeHtml(a.location || "—") + '</span>' +
-          '<span class="srd-mon-badge" style="color:' + attC + ';border-color:color-mix(in srgb, ' + attC + ' 45%, transparent)">' + escapeHtml(a.attitude || "—") + '</span>' +
+          '<span class="srd-mon-badge" style="color:' + attC + '">' + escapeHtml(a.attitude || "—") + '</span>' +
         '</div>' +
       '</div>' +
-      '<button class="srd-mon-add" onclick="addNpcFromSRD(\'' + a.slug + '\', event)" title="Добавить">＋ Добавить</button>' +
+      '<button class="srd-mon-add" onclick="addNpcFromSRD(\'' + a.slug + '\', event)" title="Добавить">+ Добавить</button>' +
     '</div>';
   }).join("");
 }
@@ -1552,7 +1549,7 @@ function _renderCastDebuffModal(targets) {
     var has = (p.debuffs || []).some(function(db) { return db.spellName === pend.spellName; });
     return '<button type="button" class="cast-debuff-target' + (on ? " chosen" : "") + '"' +
       ' onclick="' + (single ? "pickCastDebuffTarget(" : "toggleCastDebuffTarget(") + x.i + ')">' +
-      '<span class="cdb-icon" style="background:' + fcolor + '22;color:' + fcolor + '">' + (p.icon || "🎭") + '</span>' +
+      '<span class="cdb-icon" style="--row-c:' + fcolor + '" aria-hidden="true"></span>' +
       '<span class="cdb-name">' + escapeHtml(p.name || "?") + '</span>' +
       (has ? '<span class="cdb-note">уже отмечен</span>' : '') +
       (single ? '' : '<span class="cdb-mark">' + (on ? "✓" : "") + '</span>') +

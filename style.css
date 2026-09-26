@@ -5186,26 +5186,44 @@ font-family: var(--font-display);
 .rest-comparison .before { color: var(--home-sub); }
 .rest-comparison .arrow { color: var(--home-sub); }
 .rest-comparison .after { color: var(--success-color); font-weight: 700; }
-.weapon-presets { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 15px; max-height: 260px; overflow-y: auto; }
+.weapon-presets { display: grid; grid-template-columns: 1fr; gap: 0 var(--sp-5); margin-bottom: 15px; max-height: 260px; overflow-y: auto; }
 @media (min-width: 700px) {
   .weapon-presets { grid-template-columns: repeat(2, 1fr); }
 }
+/* UNI-5b: позиция пикера — плоская строка с ромбом; выбранная — ромб залит */
 .weapon-preset-btn {
-background: var(--bg-2);
-border: 1px solid var(--border-color);
-padding: 10px 12px;
-border-radius: 8px;
+position: relative;
+background: none;
+border: 0;
+border-top: 1px solid var(--home-rule);
+padding: var(--sp-3) 0 var(--sp-3) calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
+border-radius: 0;
+box-shadow: none;
 font-size: 0.85em;
 margin: 0;
 text-align: left;
 color: var(--text-color);
 line-height: 1.45;
 }
-.weapon-preset-btn:hover {
-border-color: var(--weapon-color);
-background: var(--card-hover);
-box-shadow: var(--sh-1);
+.weapon-preset-btn::before {
+content: "";
+position: absolute;
+left: var(--sp-2);
+top: calc(var(--sp-3) + 0.45em);
+width: var(--home-bullet);
+height: var(--home-bullet);
+transform: rotate(45deg);
+border: 1.5px solid var(--weapon-color);
+transition: background var(--t1) var(--ez-out);
 }
+.weapon-preset-btn:hover {
+border-color: var(--home-rule);
+background: var(--accent-glow);
+box-shadow: none;
+transform: none;
+}
+.weapon-preset-btn:hover::before,
+.weapon-preset-btn.selected::before { background: var(--weapon-color); }
 .weapon-preset-btn b { color: var(--weapon-color); font-size: 1em; }
 /* FIN-2: пикер оружия — поиск, чипы категорий, метаданные позиции */
 .weapon-search-inp { width: 100%; margin: 8px 0 8px; }
@@ -5233,13 +5251,13 @@ box-shadow: var(--sh-1);
 .wp-tag { font-size: 0.85em; color: var(--text-muted); }
 .wp-meta { font-size: 0.85em; color: var(--text-muted); }
 .weapon-presets-empty { color: var(--text-muted); text-align: center; margin: 10px 0; }
-.weapon-preset-btn.selected { border-color: var(--weapon-color); box-shadow: 0 0 0 1px var(--weapon-color); }
-.wp-prof, .wp-hb { font-size: 0.72em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 1px; }
-.wp-prof.yes { background: rgba(87, 179, 109, 0.15); color: var(--success-color); }
-.wp-prof.no { background: rgba(255, 255, 255, 0.06); color: var(--text-muted); }
-/* HB-5: «своё» в пикере оружия — та же геометрия, что у бейджа владения, цвета
-   из акцентной пары (как .hb-badge у заклинаний): новых хардкодов не появляется. */
-.wp-hb { background: var(--accent-fill); color: var(--on-accent); }
+.weapon-preset-btn.selected { border-color: var(--home-rule); box-shadow: none; }
+/* UNI-5b: владение и «своё» — текстом через «·», не пилюлями */
+.wp-prof, .wp-hb { font-size: 0.85em; white-space: nowrap; }
+.wp-prof::before, .wp-hb::before { content: "· "; color: var(--text-mute); }
+.wp-prof.yes { color: var(--success-color); }
+.wp-prof.no { color: var(--text-muted); }
+.wp-hb { color: var(--accent-lo); font-weight: 700; }
 /* HB-6: 🗑 «убрать из каталога» у своего оружия в пикере. span-действие в самой
    карточке (нельзя вложить <button> в <button>), уводим в правый край строки.
    Токены/без !important → ратчет хардкодов не растёт. */
@@ -11065,19 +11083,23 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 /* ── CAST-10: пикер целей для дебаффа ── */
 .cast-debuff-box { max-width: 360px; }
 .cast-debuff-hint { color: var(--text-mute); font-size: 0.82em; margin: 4px 0 12px; line-height: 1.4; }
-.cast-debuff-targets { display: flex; flex-direction: column; gap: 7px; max-height: 46vh; overflow-y: auto; }
+.cast-debuff-targets { display: flex; flex-direction: column; gap: 0; max-height: 46vh; overflow-y: auto; }
+/* UNI-5b: цель — плоская строка с ромбом цвета фракции; отмеченная — ромб залит */
 .cast-debuff-target {
-  display: flex; align-items: center; gap: 10px; width: 100%;
-  padding: 9px 12px; border-radius: var(--r-sm); text-align: left;
-  background: var(--bg-2); border: 1px solid var(--border);
-  color: var(--text); cursor: pointer; transition: background 0.18s, border-color 0.18s;
+  display: flex; align-items: center; gap: var(--sp-3); width: 100%; margin: 0;
+  padding: var(--sp-3) var(--sp-2); border-radius: 0; text-align: left;
+  background: none; border: 0; border-top: 1px solid var(--home-rule); box-shadow: none;
+  color: var(--text); cursor: pointer; transition: background 0.18s;
 }
-.cast-debuff-target:hover { background: var(--accent-glow); }
-.cast-debuff-target.chosen { background: var(--accent-soft); border-color: var(--accent); }
+.cast-debuff-target:first-child { border-top: 0; }
+.cast-debuff-target:hover { background: var(--accent-glow); transform: none; box-shadow: none; }
+.cast-debuff-target.chosen { background: none; }
 .cast-debuff-target .cdb-icon {
-  width: 30px; height: 30px; flex: none; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center; font-size: 1.05em;
+  width: var(--home-bullet); height: var(--home-bullet); flex: none; transform: rotate(45deg);
+  border: 1.5px solid var(--row-c, var(--accent)); transition: background var(--t1) var(--ez-out);
 }
+.cast-debuff-target:hover .cdb-icon,
+.cast-debuff-target.chosen .cdb-icon { background: var(--row-c, var(--accent)); }
 .cast-debuff-target .cdb-name { flex: 1; font-weight: 600; font-size: 0.9em; }
 .cast-debuff-target .cdb-note { color: var(--text-mute); font-size: 0.75em; white-space: nowrap; }
 .cast-debuff-target .cdb-mark { width: 16px; text-align: center; color: var(--accent-hi); font-weight: 700; }
@@ -11768,7 +11790,7 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
    КЛАССОВЫЕ ВЫБОРЫ — карточки в asi-container
    ============================================================ */
 .class-choices-wrap {
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex; flex-direction: column; gap: 0;
   margin-top: 10px;
 }
 .cc-group {
@@ -11791,29 +11813,32 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
 }
 .cc-group[open] .cc-group-head::before { transform: rotate(90deg); }
 .cc-group-body {
-  padding: 8px; display: flex; flex-direction: column; gap: 6px;
+  padding: 8px; display: flex; flex-direction: column; gap: 0;
 }
+/* UNI-5b: выбор класса — плоская строка с ромбом; статус несёт цвет ромба:
+   ждёт выбора — контур предупреждения, выбрано — залит цветом успеха. */
 .cc-card {
-  display: flex; align-items: center; justify-content: space-between;
-  width: 100%;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-md);
-  padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);
+  width: 100%; margin: 0;
+  background: none;
+  border: 0; border-top: 1px solid var(--home-rule);
+  border-radius: 0; box-shadow: none;
+  padding: var(--sp-3) var(--sp-2);
   cursor: pointer;
   text-align: left;
-  transition: all 0.18s;
+  transition: background 0.18s;
   font-family: inherit;
 }
-.cc-card:hover { border-color: var(--accent-color); box-shadow: var(--sh-1); }
-.cc-card.cc-pending {
-  border-color: rgba(255, 195, 0, 0.45);
-  background: rgba(255, 195, 0, 0.08);
+.cc-card:first-child { border-top: 0; }
+.cc-card::before {
+  content: ""; flex: none; align-self: flex-start; margin-top: 0.45em;
+  width: var(--home-bullet); height: var(--home-bullet); transform: rotate(45deg);
+  border: 1.5px solid var(--row-c, var(--accent));
 }
-.cc-card.cc-complete {
-  border-color: rgba(87, 179, 109, 0.5);
-  background: rgba(87, 179, 109, 0.08);
-}
+.cc-card:hover { background: var(--accent-glow); box-shadow: none; transform: none; }
+.cc-card.cc-pending { --row-c: var(--slot-gold); }
+.cc-card.cc-complete { --row-c: var(--success); }
+.cc-card.cc-complete::before { background: var(--row-c); }
 .cc-card-left { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
 .cc-card-title {
   font-size: 0.95em; font-weight: 700; color: var(--text-color);
@@ -12922,6 +12947,13 @@ select.bp-select { padding-right: var(--sp-4); }
 .lu-choice-block { padding: var(--sp-3) 0; border-top: 1px solid var(--home-rule); }
 .lu-choice-block.done { opacity: 0.6; }
 .lu-choice-title { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-md); margin-bottom: 2px; }
+/* UNI-5b: классовый выбор — ромб вместо эмодзи; сделанный выбор — ромб залит */
+.lu-choice-title::before {
+  content: ""; display: inline-block; vertical-align: 0.1em; margin-right: var(--sp-3);
+  width: var(--home-bullet); height: var(--home-bullet); transform: rotate(45deg);
+  border: 1.5px solid var(--accent);
+}
+.lu-choice-block.done .lu-choice-title::before { background: var(--accent); }
 .lu-choice-sub { font-size: var(--fs-sm); color: var(--home-sub); margin-bottom: var(--sp-2); }
 .lu-choice-opts { display: flex; flex-wrap: wrap; gap: 0 var(--sp-3); }
 .lu-choice-opt { display: inline-flex; align-items: baseline; gap: var(--sp-1); width: auto; margin: 0; padding: var(--sp-1) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--accent-lo); cursor: pointer; }
@@ -13154,28 +13186,31 @@ mark.search-hl {
   margin-bottom: 10px;
   padding-right: 4px;
 }
+/* UNI-5b: строка пикера SRD — плоская, ромб слева, «+ Добавить» текстом */
 .srd-mon-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-2);
+  background: none;
+  border-top: 1px solid var(--home-rule);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  transition: background 0.15s;
 }
-.srd-mon-row:hover {
-  background: color-mix(in srgb, var(--magic) 15%, transparent);
-  border-color: color-mix(in srgb, var(--magic) 50%, transparent);
-}
-.srd-mon-row:active { transform: scale(0.99); }
-.srd-mon-icon {
-  font-size: 1.5em;
-  width: 32px;
-  text-align: center;
+.srd-mon-row:first-child { border-top: 0; }
+.srd-mon-row::before {
+  content: "";
   flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 0.45em;
+  width: var(--home-bullet);
+  height: var(--home-bullet);
+  transform: rotate(45deg);
+  border: 1.5px solid var(--accent);
+  transition: background var(--t1) var(--ez-out);
 }
+.srd-mon-row:hover { background: var(--accent-glow); }
+.srd-mon-row:hover::before { background: var(--accent); }
 .srd-mon-body {
   flex: 1;
   min-width: 0;
@@ -13195,38 +13230,40 @@ mark.search-hl {
 .srd-mon-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 2px 0;
 }
 .srd-mon-badge {
-  font-size: 0.7em;
-  padding: 2px 6px;
-  border-radius: var(--r-sm);
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
+  font-size: 0.75em;
   color: var(--text-dim);
   white-space: nowrap;
 }
+.srd-mon-badge + .srd-mon-badge::before {
+  content: "·";
+  margin: 0 6px;
+  color: var(--text-mute);
+}
 .srd-mon-add {
-  background: var(--magic);
-  color: #fff;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 1.2em;
-  font-weight: 600;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  min-height: 32px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--accent-lo);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.15s, transform 0.1s;
 }
-.srd-mon-add:hover { background: rgba(128, 96, 188, 1); }
-.srd-mon-add:active { transform: scale(0.94); }
+.srd-mon-add:hover { background: none; color: var(--accent); text-decoration: underline; transform: none; box-shadow: none; }
 
 @media (max-width: 540px) {
   .srd-monster-filters { flex-direction: column; gap: 6px; }
   .srd-monster-filters select { flex: 1 1 auto; }
-  .srd-mon-row { padding: 6px 8px; gap: 8px; }
-  .srd-mon-icon { font-size: 1.3em; width: 28px; }
+  .srd-mon-row { gap: 8px; }
 }
 
 /* FEAT-4 расширение: новые элементы форм/карточек */
@@ -13283,18 +13320,7 @@ mark.search-hl {
   padding: 5px 8px;
 }
 
-/* Кнопка «+ Добавить» в строках пикера — теперь с текстом */
-.srd-mon-add {
-  width: auto !important;
-  height: auto !important;
-  border-radius: var(--r-sm) !important;
-  padding: 6px 12px;
-  font-size: 0.82em !important;
-  font-weight: 600;
-  white-space: nowrap;
-}
 @media (max-width: 540px) {
-  .srd-mon-add { padding: 5px 8px; font-size: 0.75em !important; }
   .party-form-row { flex-direction: column; gap: 4px; }
 }
 
@@ -13440,8 +13466,7 @@ textarea:focus-visible {
 ============================================================ */
 .card,
 .accordion-card-inner,
-.ac-calc-section,
-.cc-card {
+.ac-calc-section {
   /* STYLE-8R: .rr-card из группы убран — правого rail как набора карточек
      больше нет, там плоские строки.
      STYLE-8f: .notes-entry-card и .feat-taken-card убраны по той же причине —
