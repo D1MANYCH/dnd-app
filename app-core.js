@@ -1443,11 +1443,25 @@ function showToast(msg, type) {
   var t = type || "info";
   var toast = document.createElement("div");
   toast.className = "hp-toast app-toast app-toast-" + t;
-  var icons = { success:"✅", error:"❌", info:"ℹ️", warn:"⚠️" };
-  toast.innerHTML = "<span style='margin-right:6px'>" + (icons[t] || "ℹ️") + "</span><span>" + escapeHtml(String(msg)) + "</span>";
+  // UNI-4: тип тоста — залитый ромб цвета типа; ведущий эмодзи из текста вызова снимаем
+  var text = String(msg).replace(/^(?:[ℹ←-⯿☀-➿〰〽️‍]|[\uD83C-\uDBFF][\uDC00-\uDFFF])+\s*/, "");
+  toast.innerHTML = "<span class='app-toast-mark' aria-hidden='true'></span><span>" + escapeHtml(text) + "</span>";
   container.appendChild(toast);
   toast._fadeTimer   = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 2200);
   toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 2700);
+}
+
+// UNI-4: единое пустое состояние — SVG + строка serif + подсказка + текстовое действие.
+// extraCls сохраняет старый класс контейнера (party-empty и т. п.) для точечных правил.
+function emptyStateHtml(ico, title, hint, actLabel, actOnclick, extraCls) {
+  return '<div class="empty-state' + (extraCls ? ' ' + extraCls : '') + '">' +
+    '<span class="empty-state-ico" aria-hidden="true">' + dndIcoHtml(ico || "inbox", 22) + '</span>' +
+    '<div class="empty-state-body">' +
+      '<div class="empty-state-title">' + escapeHtml(title) + '</div>' +
+      (hint ? '<div class="empty-state-hint">' + escapeHtml(hint) + '</div>' : '') +
+      (actLabel ? '<button type="button" class="empty-state-act" onclick="' + actOnclick + '">' + escapeHtml(actLabel) + '</button>' : '') +
+    '</div>' +
+  '</div>';
 }
 
 function openHPHistory() {

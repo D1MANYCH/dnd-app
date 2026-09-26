@@ -599,11 +599,7 @@ function _renderEntriesView(tab) {
   }
 
   if (!sorted.length) {
-    html += '<div class="card notes-empty">' +
-              '<div class="notes-empty-ico">' + tab.icon + '</div>' +
-              '<div class="notes-empty-title">Пока пусто</div>' +
-              '<div class="notes-empty-hint">Нажмите «+ Запись», чтобы добавить ' + escapeHtml(tab.label) + '.</div>' +
-            '</div>';
+    html += emptyStateHtml("notes", "Пока пусто", "Раздел «" + tab.label + "» — записей ещё нет.", "+ Запись", "notesOpenEntryModal()", "notes-empty");
     return html;
   }
 
@@ -649,9 +645,9 @@ function _renderEntryCard(e) {
     '<div class="notes-entry-header">' +
       '<span class="notes-entry-title">' + escapeHtml(e.title || '(без названия)') + '</span>' +
       '<div class="notes-entry-actions">' +
-        '<button class="notes-entry-btn" title="' + (e.pinned ? 'Открепить' : 'Закрепить') + '" data-id="' + escapeHtml(e.id) + '" onclick="notesTogglePin(this.dataset.id)">' + (e.pinned ? '★' : '☆') + '</button>' +
-        '<button class="notes-entry-btn" title="Редактировать" data-id="' + escapeHtml(e.id) + '" onclick="notesOpenEntryModal(this.dataset.id)">✎</button>' +
-        '<button class="notes-entry-btn danger" title="Удалить" data-id="' + escapeHtml(e.id) + '" onclick="notesDeleteEntry(this.dataset.id)">🗑</button>' +
+        '<button class="notes-entry-btn" title="' + (e.pinned ? 'Открепить' : 'Закрепить') + '" data-id="' + escapeHtml(e.id) + '" onclick="notesTogglePin(this.dataset.id)" aria-label="' + (e.pinned ? 'Открепить' : 'Закрепить') + '"' + (e.pinned ? ' aria-pressed="true"' : ' aria-pressed="false"') + '>' + dndIcoHtml("star", 14) + '</button>' +
+        '<button class="notes-entry-btn" title="Редактировать" aria-label="Редактировать" data-id="' + escapeHtml(e.id) + '" onclick="notesOpenEntryModal(this.dataset.id)">' + dndIcoHtml("edit", 14) + '</button>' +
+        '<button class="notes-entry-btn danger" title="Удалить" aria-label="Удалить" data-id="' + escapeHtml(e.id) + '" onclick="notesDeleteEntry(this.dataset.id)">' + dndIcoHtml("trash", 14) + '</button>' +
       '</div>' +
     '</div>' +
     (bodyPreview ? '<div class="notes-entry-body">' + bodyPreview + '</div>' : '') +
@@ -1028,9 +1024,7 @@ function _renderSearchResults() {
   }
 
   if (!results.length) {
-    return '<div class="card notes-empty"><div class="notes-empty-ico">🔍</div>' +
-           '<div class="notes-empty-title">Ничего не найдено</div>' +
-           '<div class="notes-empty-hint">По запросу «' + escapeHtml(_notesSearchQuery) + '»</div></div>';
+    return emptyStateHtml("search", "Ничего не найдено", "По запросу «" + _notesSearchQuery + "»", null, null, "notes-empty");
   }
 
   var qRaw = _notesSearchQuery.trim();

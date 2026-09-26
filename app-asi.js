@@ -52,8 +52,8 @@ function openASIModal() {
     // E24-8: на 19 ур. у 2024-персонажа выбор называется «Эпический дар» (пикер отдаёт epic-черты)
     var isEpic = char.edition === "2024" && typeof asiCurrentLevel === "number" && asiCurrentLevel >= 19;
     title.textContent = asiCurrentLevel
-      ? (isEpic ? "📈 Эпический дар · " : "📈 Увеличение характеристик · ") + asiCurrentLevel + " ур."
-      : "📈 Увеличение характеристик";
+      ? (isEpic ? "Эпический дар · " : "Увеличение характеристик · ") + asiCurrentLevel + " ур."
+      : "Увеличение характеристик";
   }
 
   // BUILD-LVL-3: подсказка билда для этого ASI-уровня (использует levelUp[level] — без новых данных).
@@ -519,7 +519,7 @@ function renderTakenFeats() {
     var catLabel = data && data.category && FEAT_CATEGORY_LABELS[data.category];
     if (catLabel) lvlBadge += '<span class="feat-taken-lvl">' + catLabel + '</span>';
     // E24-5: черта происхождения от предыстории — без кнопки удаления, следует за предысторией
-    var delBtn = f.origin ? '' : '<button class="feat-taken-del" onclick="removeFeat(' + i + ')" title="Убрать черту">✕</button>';
+    var delBtn = f.origin ? '' : '<button class="feat-taken-del" onclick="removeFeat(' + i + ')" title="Убрать черту" aria-label="Убрать черту">' + dndIcoHtml("trash", 14) + '</button>';
     return '<div class="feat-taken-card">' +
       '<div class="feat-taken-row">' +
         '<span class="feat-taken-icon">' + dndIcoHtml("target", 14) + '</span>' +

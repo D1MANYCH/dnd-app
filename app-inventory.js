@@ -1208,7 +1208,7 @@ div.innerHTML =
     '</div>' +
     '<div class="weapon-row-actions">' +
       '<button class="weapon-edit-btn" onclick="editWeapon(' + index + ')" title="Редактировать оружие" aria-label="Редактировать оружие">' + dndIcoHtml("edit", 14) + '</button>' +
-      '<button class="weapon-delete-btn" onclick="removeWeapon(' + index + ')" aria-label="Удалить оружие">✕</button>' +
+      '<button class="weapon-delete-btn" onclick="removeWeapon(' + index + ')" title="Удалить оружие" aria-label="Удалить оружие">' + dndIcoHtml("trash", 14) + '</button>' +
     '</div>' +
   '</div>' +
   '<div class="weapon-roll-row">' +

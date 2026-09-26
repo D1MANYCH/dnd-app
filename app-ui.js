@@ -789,7 +789,9 @@ function renderJournal() {
   var filtered = journalFilter === "all" ? journal : journal.filter(function(e) { return e.type === journalFilter; });
 
   if (filtered.length === 0) {
-    list.innerHTML = '<div class="journal-empty">' + dndIcoHtml("inbox", 22) + ' Нет записей' + (journalFilter !== "all" ? " в этой категории" : "") + '</div>';
+    list.innerHTML = journalFilter !== "all"
+      ? emptyStateHtml("inbox", "Нет записей в этой категории", "Смените фильтр выше или добавьте событие.", null, null, "journal-empty")
+      : emptyStateHtml("inbox", "Журнал пуст", "Повышения, отдых и бой попадают сюда сами.", "+ Событие", "openAddJournalEntry()", "journal-empty");
     return;
   }
 
@@ -809,7 +811,7 @@ function renderJournal() {
         '<span class="journal-icon">' + icon + '</span>' +
         '<span class="journal-text">' + escapeHtml(entry.text) + '</span>' +
         '<span class="journal-meta">' + escapeHtml(entry.date) + ' ' + escapeHtml(entry.time) + ' · ' + (Number(entry.level) || 1) + ' ур.</span>' +
-        '<button class="journal-del-btn" data-id="' + escapeHtml(entry.id) + '" onclick="deleteJournalEntry(Number(this.dataset.id))">✕</button>' +
+        '<button class="journal-del-btn" data-id="' + escapeHtml(entry.id) + '" onclick="deleteJournalEntry(Number(this.dataset.id))" title="Удалить" aria-label="Удалить">' + dndIcoHtml("trash", 14) + '</button>' +
       '</div>' +
       (entry.details ? '<div class="journal-details">' + escapeHtml(entry.details) + '</div>' : '') +
     '</div>';
@@ -872,7 +874,7 @@ function renderCompanions() {
     var list = $(elId);
     if (!list) return;
     if (companions.length === 0) {
-      list.innerHTML = '<div class="party-empty">' + dndIcoHtml("inbox", 22) + ' Нет прихвостней</div>';
+      list.innerHTML = emptyStateHtml("wolf", "Нет прихвостней", "Фамильяр, скакун или призванное существо.", "+ Добавить", "openAddCompanionModal()", "party-empty");
       return;
     }
     list.innerHTML = companions.map(function(c, i) {
@@ -895,7 +897,7 @@ function renderCompanions() {
         '</div>' +
         '<div class="pcard-actions">' +
           '<button class="pcard-edit-btn" onclick="openEditCompanionModal(' + i + ')">' + dndIcoHtml("edit", 14) + '</button>' +
-          '<button class="pcard-del-btn" onclick="deleteCompanion(' + i + ')">✕</button>' +
+          '<button class="pcard-del-btn" onclick="deleteCompanion(' + i + ')" title="Удалить" aria-label="Удалить">' + dndIcoHtml("trash", 14) + '</button>' +
         '</div>' +
       '</div>';
     }).join("");

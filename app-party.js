@@ -134,7 +134,7 @@ function renderAllies() {
   var countEl = $("allies-count");
   if (!list) return;
   if (countEl) countEl.textContent = PARTY_DATA.allies.length > 0 ? PARTY_DATA.allies.length : "";
-  if (PARTY_DATA.allies.length === 0) { list.innerHTML = "<div class='party-empty'>" + dndIcoHtml("inbox", 22) + " Нет соратников. Добавьте первого!</div>"; return; }
+  if (PARTY_DATA.allies.length === 0) { list.innerHTML = emptyStateHtml("users", "Нет соратников", "Спутники по отряду — их хиты и состояние.", "+ Добавить", "openAddAllyModal()", "party-empty"); return; }
   list.innerHTML = PARTY_DATA.allies.map(function(a, i) {
     var icon  = getClassIcon(a.cls);
     var color = getClassColor(a.cls);
@@ -150,7 +150,7 @@ function renderAllies() {
       '</div>' +
       '<div class="pcard-actions">' +
         '<button class="pcard-edit-btn" onclick="openEditAllyModal(' + i + ')" title="Редактировать">' + dndIcoHtml("edit", 14) + '</button>' +
-        '<button class="pcard-del-btn"  onclick="deleteAlly(' + i + ')" title="Удалить">✕</button>' +
+        '<button class="pcard-del-btn"  onclick="deleteAlly(' + i + ')" title="Удалить" aria-label="Удалить">' + dndIcoHtml("trash", 14) + '</button>' +
       '</div>' +
     '</div>';
   }).join("");
@@ -337,7 +337,7 @@ function renderNPCs() {
   var countEl = $("npcs-count");
   if (!list) return;
   if (countEl) countEl.textContent = (PARTY_DATA.npcs && PARTY_DATA.npcs.length > 0) ? PARTY_DATA.npcs.length : "";
-  if (!PARTY_DATA.npcs || PARTY_DATA.npcs.length === 0) { list.innerHTML = "<div class='party-empty'>" + dndIcoHtml("inbox", 22) + " Нет персонажей</div>"; return; }
+  if (!PARTY_DATA.npcs || PARTY_DATA.npcs.length === 0) { list.innerHTML = emptyStateHtml("chat", "Нет персонажей", "Встреченные НПС — имя, роль, отношение.", "+ Добавить", "openAddNPCModal()", "party-empty"); return; }
   list.innerHTML = PARTY_DATA.npcs.map(function(n, i) {
     // FEAT-4: бэйджи локации и отношения
     var subBadges = "";
@@ -363,7 +363,7 @@ function renderNPCs() {
       '</div>' +
       '<div class="pcard-actions">' +
         '<button class="pcard-edit-btn" onclick="openEditNPCModal(' + i + ')" title="Редактировать">' + dndIcoHtml("edit", 14) + '</button>' +
-        '<button class="pcard-del-btn"  onclick="deleteNPC(' + i + ')" title="Удалить">✕</button>' +
+        '<button class="pcard-del-btn"  onclick="deleteNPC(' + i + ')" title="Удалить" aria-label="Удалить">' + dndIcoHtml("trash", 14) + '</button>' +
       '</div>' +
     '</div>';
   }).join("");
@@ -378,7 +378,7 @@ function renderMonsters() {
   var countEl = $("monsters-count");
   if (!list) return;
   if (countEl) countEl.textContent = PARTY_DATA.monsters.length > 0 ? PARTY_DATA.monsters.length : "";
-  if (PARTY_DATA.monsters.length === 0) { list.innerHTML = "<div class='party-empty'>" + dndIcoHtml("inbox", 22) + " Нет монстров. Добавьте врага!</div>"; return; }
+  if (PARTY_DATA.monsters.length === 0) { list.innerHTML = emptyStateHtml("skull", "Нет монстров", "Свой противник или готовый из SRD.", "+ Добавить", "openAddMonsterModal()", "party-empty"); return; }
   list.innerHTML = PARTY_DATA.monsters.map(function(m, i) {
     var typeIcon = getMonsterTypeIcon(m.type);
     // FEAT-4: бэйджи SRD-карточки (CR / КД / ХП / редакция), показываем только заполненные
@@ -413,7 +413,7 @@ function renderMonsters() {
       '</div>' +
       '<div class="pcard-actions">' +
         '<button class="pcard-edit-btn" onclick="openEditMonsterModal(' + i + ')" title="Редактировать">' + dndIcoHtml("edit", 14) + '</button>' +
-        '<button class="pcard-del-btn"  onclick="deleteMonster(' + i + ')" title="Удалить">✕</button>' +
+        '<button class="pcard-del-btn"  onclick="deleteMonster(' + i + ')" title="Удалить" aria-label="Удалить">' + dndIcoHtml("trash", 14) + '</button>' +
       '</div>' +
     '</div>';
   }).join("");
@@ -506,7 +506,7 @@ function renderSrdMonsterPicker() {
   var countEl = $("srd-monster-count");
   if (countEl) countEl.textContent = "Найдено: " + list.length;
   if (list.length === 0) {
-    if (ed === "PHB'24") box.innerHTML = '<div class="party-empty">⏳ Раздел PHB\'24 пока пуст — будет наполнен в следующем релизе</div>';
+    if (ed === "PHB'24") box.innerHTML = emptyStateHtml("hourglass", "Раздел PHB'24 пока пуст", "Будет наполнен в следующем релизе.", null, null, "party-empty");
     else box.innerHTML = '<div class="party-empty">Нет монстров под фильтр</div>';
     return;
   }
@@ -1019,7 +1019,7 @@ function renderBattleTracker() {
       : '<span class="tracker-slot"></span>';
     var removeSlot = isSelf
       ? '<span class="tracker-slot"></span>'
-      : '<button type="button" class="tracker-remove-btn" onclick="removeBattleParticipant(' + i + ')" title="Убрать из боя">✕</button>';
+      : '<button type="button" class="tracker-remove-btn" onclick="removeBattleParticipant(' + i + ')" title="Убрать из боя" aria-label="Убрать из боя">' + dndIcoHtml("trash", 14) + '</button>';
     return '<div class="tracker-row' + (isCurrent ? " tracker-row-active" : "") + (isSelf ? " tracker-row-self" : "") + '">' +
       '<div class="tracker-main">' +
         '<div class="tracker-num" style="color:' + fcolor + '">' + (i + 1) + "</div>" +

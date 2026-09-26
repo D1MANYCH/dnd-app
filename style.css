@@ -9475,11 +9475,44 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .sw-act:disabled::after { transform: scaleX(0); }
 
 /* ========== УНИВЕРСАЛЬНЫЕ TOAST-УВЕДОМЛЕНИЯ ========== */
-.app-toast { display:flex; align-items:center; font-size:14px; font-weight:600; max-width:320px; white-space:normal; text-align:left; }
-.app-toast-success { background:#1a2e10; color:#7ed940; border:1.5px solid rgba(90,158,30,0.6); }
-.app-toast-error   { background:#2e1010; color:#ff6b6b; border:1.5px solid rgba(226,75,74,0.6); }
-.app-toast-warn    { background:#2e2510; color:#f0c040; border:1.5px solid rgba(212,168,67,0.6); }
-.app-toast-info    { background:#101a2e; color:#7eb8f0; border:1.5px solid rgba(91,155,213,0.6); }
+/* UNI-4: тип тоста несёт залитый ромб цвета типа, сама плашка нейтральная. */
+.app-toast { display:flex; align-items:center; gap: var(--sp-3); font-size:14px; font-weight:600; max-width:320px; white-space:normal; text-align:left;
+  background: var(--surface-pop); color: var(--text); border: 1px solid var(--home-rule);
+  -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur)); }
+.app-toast-mark { flex-shrink: 0; width: var(--home-bullet); height: var(--home-bullet); transform: rotate(45deg); background: var(--toast-c, var(--info)); }
+.app-toast-success { --toast-c: var(--success); }
+.app-toast-error   { --toast-c: var(--danger); }
+.app-toast-warn    { --toast-c: var(--slot-gold); }
+.app-toast-info    { --toast-c: var(--info); }
+
+/* UNI-4: единое пустое состояние (emptyStateHtml в app-core.js). */
+.empty-state {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  text-align: left;
+  padding: var(--sp-5) var(--sp-2);
+  color: var(--home-sub);
+  font-size: var(--fs-md);
+  font-style: normal;
+}
+.empty-state-ico { flex-shrink: 0; display: inline-flex; color: var(--home-sub); opacity: 0.7; }
+.empty-state-body { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-1); min-width: 0; }
+.empty-state-title { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 600; color: var(--text-color); margin: 0; }
+.empty-state-hint { font-size: var(--fs-sm); font-style: normal; color: var(--home-sub); }
+.empty-state-act {
+  width: auto; margin: var(--sp-1) 0 0; padding: 0;
+  background: none; border: 0; border-radius: 0; box-shadow: none;
+  color: var(--accent-lo); font-size: var(--fs-sm); font-weight: 700; cursor: pointer;
+  min-height: 32px;
+}
+.empty-state-act:hover { background: none; color: var(--accent); text-decoration: underline; transform: none; box-shadow: none; }
+/* UNI-4: SVG-глифы действий строки; закреплённая запись — залитая звезда. */
+.notes-entry-btn .dico, .pcard-del-btn .dico, .journal-del-btn .dico,
+.tracker-remove-btn .dico, .feat-taken-del .dico, .weapon-delete-btn .dico { display: inline-flex; vertical-align: middle; }
+.notes-entry-btn[aria-pressed="true"],
+#tab-notes .notes-entry-btn[aria-pressed="true"] { color: var(--accent-lo); }
+.notes-entry-btn[aria-pressed="true"] svg { fill: currentColor; }
 
 /* =============================================
    INVENTORY SLOTS SYSTEM
