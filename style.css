@@ -16339,86 +16339,106 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 
 #dice-modal .dice-body { padding: var(--sp-4) var(--sp-4) 8px; gap: var(--sp-3); }
 
-/* Шапка: глифы без круглой подложки, заголовок капителью без значка */
+/* Шапка (DICE-UI «Г+»): ромб и заголовок с засечками слева, история,
+   настройки и ✕ справа — все по 44px */
 #dice-modal .dice-modal-header {
-  padding: var(--sp-4) var(--sp-4) 10px;
-  border-bottom: 1px solid var(--home-rule);
-  gap: var(--sp-3);
+  padding: 6px 6px 6px var(--sp-4);
+  border-bottom: 0;
+  gap: 0;
 }
 #dice-modal .dice-modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 auto;
+  text-align: left;
   font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  color: var(--home-sub);
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
 }
+#dice-modal .dice-modal-header h3::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  transform: rotate(45deg);
+}
+#dice-modal .dice-modal-tools { margin-right: 0; gap: 0; }
 #dice-modal .dice-tool-btn {
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   background: none;
   border: 0;
   border-radius: 0;
-  color: var(--accent-lo);
+  color: var(--home-sub);
   transition: color var(--t1) var(--ez-out);
 }
 #dice-modal .dice-tool-btn:hover { background: none; border: 0; color: var(--accent-hi); }
 #dice-modal .dice-tool-btn.is-active { background: none; border: 0; color: var(--accent); }
-#dice-modal .dice-tool-badge { box-shadow: none; top: -2px; right: -6px; }
+#dice-modal .dice-tool-badge {
+  top: 5px;
+  right: 3px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  box-shadow: none;
+  color: var(--on-accent);
+  font-size: 10px;
+  line-height: 16px;
+}
 #dice-modal .dice-modal-header .modal-close {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
   background: none;
   border: 0;
+  border-radius: 0;
   color: var(--home-sub);
   transition: color var(--t1) var(--ez-out);
 }
 #dice-modal .dice-modal-header .modal-close:hover { background: none; border: 0; color: var(--danger-color); }
 
-/* Режим броска: три текстовых действия на волосяной линии, активное —
-   подчёркнуто цветом смысла (преимущество зелёным, помеха красным) */
+/* Режим к20 — строка текста «Обычный · Преимущество · Помеха», выбранный
+   подчёркнут акцентом. У остальных костей строка прячется через visibility:
+   место остаётся, окно не прыгает. */
 #dice-modal .dice-mode-segment {
   display: flex;
-  gap: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   padding: 0;
-  margin-bottom: var(--sp-3);
+  margin: 0;
   background: none;
   border: 0;
-  border-bottom: 1px solid var(--home-rule);
   border-radius: 0;
 }
+#dice-modal .dice-mode-segment.is-off { visibility: hidden; }
+#dice-modal .dice-mode-dot { color: var(--home-sub); }
 #dice-modal .dice-mode-seg-btn {
-  position: relative;
-  flex: 1 1 0;
+  flex: 0 0 auto;
   width: auto;
+  min-height: 44px;
   margin: 0;
-  padding: 12px 4px;
+  padding: 0 7px;
   background: none;
   border: 0;
   border-radius: 0;
   color: var(--home-sub);
-  font-family: var(--font-display);
-  font-size: var(--fs-md);
-  font-weight: 500;
-  transition: color var(--t1) var(--ez-out);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 400;
+  text-decoration: underline transparent 2px;
+  text-underline-offset: 7px;
+  transition: color var(--t1) var(--ez-out), text-decoration-color var(--t1) var(--ez-out);
 }
-#dice-modal .dice-mode-seg-btn::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 1.5px;
-  background: var(--accent);
-  transform: scaleX(0);
-  transition: transform var(--t2) var(--ez-out);
-}
-#dice-modal .dice-mode-segment[hidden] { display: none; }
-#dice-modal .dice-mode-seg-btn:hover { background: none; color: var(--accent-lo); }
-#dice-modal .dice-mode-seg-btn.active { background: none; color: var(--accent); }
-#dice-modal .dice-mode-seg-btn.active::after { transform: scaleX(1); }
-#dice-modal .dice-mode-seg-btn.active.adv { background: none; color: var(--success-color); }
-#dice-modal .dice-mode-seg-btn.active.adv::after { background: var(--success-color); }
-#dice-modal .dice-mode-seg-btn.active.dis { background: none; color: var(--danger-color); }
-#dice-modal .dice-mode-seg-btn.active.dis::after { background: var(--danger-color); }
+#dice-modal .dice-mode-seg-btn:hover { background: none; color: var(--text); }
+#dice-modal .dice-mode-seg-btn.active,
+#dice-modal .dice-mode-seg-btn.active.adv,
+#dice-modal .dice-mode-seg-btn.active.dis { background: none; color: var(--text); text-decoration-color: var(--accent); }
 
 /* Арена — position: fixed, поэтому ЛЮБОЙ transform на .dice-modal-content делает
    её containing block, и полноэкранный оверлей схлопывается до размеров модалки:
@@ -16511,23 +16531,54 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   transform: translate(-50%, -50%) scale(1);
 }
 
-/* ── DICE-UI «Веер»: выбранная кость крупно, остальные дугой ─────────────
-   Разметку веера строит renderDiceFan() (app-dice.js), подъём каждой позиции
-   приходит инлайновой переменной --fan-lift. Модалка только выбирает кость —
-   бросок по-прежнему уходит в полноэкранную 3D-арену. */
+/* ── DICE-UI «Г+»: выбранная кость крупно — сама кнопка броска, остальные
+   прямой строкой снизу. Строку и кость строят renderDiceFan() и
+   _paintSelectedDie() (app-dice.js). Бросок по-прежнему уходит в 3D-арену. */
+#dice-modal .dice-controls-col { gap: 4px; }
 #dice-modal .dice-pick {
+  align-self: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 14px 0 4px;
+  gap: 14px;
+  width: auto;
+  margin: 0;
+  padding: 16px 40px 8px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform var(--t1) var(--ez-out);
 }
-#dice-modal .dice-pick-glyph { color: var(--accent); line-height: 0; }
+#dice-modal .dice-pick:hover { background: none; }
+#dice-modal .dice-pick:active { transform: scale(0.95); }
+#dice-modal .dice-pick:focus-visible { outline: none; box-shadow: var(--sh-glow); }
+#dice-modal .dice-pick-stack { position: relative; display: block; width: 112px; height: 112px; }
+#dice-modal .dice-pick-glyph,
+#dice-modal .dice-pick-ghost { position: absolute; inset: 0; color: var(--accent); line-height: 0; }
+#dice-modal .dice-pick-ghost { transform: translate(20%, -12%); opacity: 0.35; }
+#dice-modal .dice-pick-ghost[hidden] { display: none; }
+#dice-modal .dice-pick-glyph svg,
+#dice-modal .dice-pick-ghost svg { width: 100%; height: 100%; }
+#dice-modal .dice-pick-glyph svg *,
+#dice-modal .dice-pick-ghost svg * { stroke-width: 0.7; }
+#dice-modal .dice-pick-glyph .dice-pick-fill { fill: var(--bg-0); stroke: none; }
+#dice-modal .dice-pick-glyph .dice-pick-fill-top { fill: var(--surface-pop); }
 #dice-modal .dice-pick-label {
   font-family: var(--font-display);
-  font-size: 1.5em;
-  font-weight: 600;
-  color: var(--accent);
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--text);
+}
+#dice-modal .dice-pick-hint {
+  min-height: 18px;
+  margin-top: -4px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--home-sub);
 }
 /* Представление новой кости: прилетает с поворотом, как будто её положили
    на стол. Рестарт анимации — через смену класса в _paintSelectedDie. */
@@ -16538,107 +16589,78 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 }
 
 #dice-modal .dice-fan {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 2px;
-  min-height: 96px;
-  padding: 0 2px 6px;
-  border-bottom: 1px solid var(--home-rule);
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0;
+  min-height: 0;
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
 }
 #dice-modal .dice-fan-item {
-  flex: 1 1 0;
   min-width: 0;
   width: auto;
+  height: 76px;
   margin: 0;
-  padding: 8px 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 8px;
   background: none;
   border: 0;
   border-radius: 0;
   box-shadow: none;
   color: var(--home-sub);
-  font-family: var(--font-display);
-  font-size: var(--fs-sm);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  transform: translateY(calc(var(--fan-lift, 0px) * -1));
-  transition: color var(--t1) var(--ez-out), transform var(--t2) var(--ez-out);
+  transition: color var(--t1) var(--ez-out), transform var(--t1) var(--ez-out);
 }
 #dice-modal .dice-fan-glyph { line-height: 0; }
-#dice-modal .dice-fan-item:hover {
-  background: none;
-  color: var(--accent-hi);
-  transform: translateY(calc(var(--fan-lift, 0px) * -1 - 4px));
-}
+#dice-modal .dice-fan-glyph svg { width: 24px; height: 24px; }
+#dice-modal .dice-fan-item:hover { background: none; color: var(--text); }
+#dice-modal .dice-fan-item:active { transform: scale(0.95); }
 #dice-modal .dice-fan-item:focus-visible { outline: none; color: var(--accent-hi); box-shadow: var(--sh-glow); }
-/* Выделение выбранной: цвет, вес и ромб-указатель под подписью */
-#dice-modal .dice-fan-item.is-sel { color: var(--accent); font-weight: 600; }
-#dice-modal .dice-fan-item.is-sel .dice-fan-label { position: relative; }
-#dice-modal .dice-fan-item.is-sel .dice-fan-label::after {
+#dice-modal .dice-fan-item.is-sel { color: var(--text); }
+#dice-modal .dice-fan-item.is-sel .dice-fan-glyph { color: var(--accent); }
+/* Ромб под подписью есть у всех, залит только у выбранной — строка не прыгает */
+#dice-modal .dice-fan-item::after {
   content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -7px;
-  width: 5px;
-  height: 5px;
-  margin-left: -2.5px;
-  background: var(--accent);
+  width: 6px;
+  height: 6px;
+  background: transparent;
   transform: rotate(45deg);
 }
+#dice-modal .dice-fan-item.is-sel::after { background: var(--accent); }
 /* Отклик на сам выбор — короткий подскок */
 #dice-modal .dice-fan-item.is-pick { animation: diceFanPick 0.36s var(--ez-out); }
 @keyframes diceFanPick {
-  0%   { transform: translateY(calc(var(--fan-lift, 0px) * -1)); }
-  45%  { transform: translateY(calc(var(--fan-lift, 0px) * -1 - 9px)) scale(1.12); }
-  100% { transform: translateY(calc(var(--fan-lift, 0px) * -1)); }
+  0%, 100% { transform: none; }
+  45%      { transform: translateY(-6px) scale(1.08); }
 }
 
-/* Главное действие — строка с рельсом, как «Продолжить» на главной */
-#dice-modal .dice-roll-go {
+/* Формула — текстовая ссылка под строкой костей, в покое панели нет */
+#dice-modal .dice-formula-toggle {
+  align-self: center;
   width: auto;
+  min-height: 44px;
   margin: 0;
-  padding: 16px 4px 16px 12px;
-  text-align: left;
+  padding: 0 8px;
   background: none;
   border: 0;
-  border-left: var(--home-rail-w) solid var(--accent);
   border-radius: 0;
   box-shadow: none;
   color: var(--accent-lo);
-  font-family: var(--font-display);
-  font-size: 1.25em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color var(--t1) var(--ez-out), transform var(--t2) var(--ez-out);
-}
-#dice-modal .dice-roll-go:hover { background: none; color: var(--accent-hi); transform: translateX(var(--home-shift)); }
-#dice-modal .dice-roll-go:focus-visible { outline: none; box-shadow: var(--sh-glow); color: var(--accent-hi); }
-
-/* Формула спрятана под отдельную кнопку — в покое её на экране нет */
-#dice-modal .dice-formula-toggle {
-  width: auto;
-  margin: 0;
-  padding: 12px 4px;
-  text-align: left;
-  background: none;
-  border: 0;
-  border-top: 1px solid var(--home-rule);
-  border-radius: 0;
-  box-shadow: none;
-  color: var(--home-sub);
-  font-family: var(--font-display);
-  font-size: var(--fs-md);
+  font-family: var(--font);
+  font-size: 14px;
   cursor: pointer;
   transition: color var(--t1) var(--ez-out);
 }
-#dice-modal .dice-formula-toggle::after { content: " ▾"; font-size: 0.85em; }
-#dice-modal .dice-formula-toggle.is-open { color: var(--accent); }
-#dice-modal .dice-formula-toggle.is-open::after { content: " ▴"; }
 #dice-modal .dice-formula-toggle:hover { background: none; color: var(--accent-hi); }
-#dice-modal .dice-formula-panel { padding-bottom: 4px; }
+#dice-modal .dice-formula-panel { padding: 0 8px 4px; }
 #dice-modal .dice-formula-panel[hidden] { display: none; }
 #dice-modal .dice-formula-panel > * { animation: rise var(--t2) var(--ez-out) both; }
 
@@ -16646,7 +16668,8 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   #dice-modal .dice-pick-glyph.is-swap,
   #dice-modal .dice-fan-item.is-pick,
   #dice-modal .dice-formula-panel > * { animation: none; }
-  #dice-modal .dice-fan-item:hover { transform: translateY(calc(var(--fan-lift, 0px) * -1)); }
+  #dice-modal .dice-pick:active,
+  #dice-modal .dice-fan-item:active { transform: none; }
 }
 
 /* Формула — поле на нижней линии и текстовое действие */
@@ -16688,38 +16711,36 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 #dice-modal .dice-controls-col .dice-chip:active { transform: none; }
 #dice-modal .dice-controls-col .dice-chip-op { color: var(--accent-lo); }
 
-/* Подвал — текстовое действие на волосяной линии */
-#dice-modal .dice-modal-footer {
-  padding: 10px var(--sp-4) var(--sp-4);
-  border-top: 1px solid var(--home-rule);
-}
-#dice-modal .dice-reset-btn {
+/* «Справка» переехала из шапки в настройки — текстовое действие */
+#dice-modal .dice-popover-help {
+  display: block;
   width: auto;
-  padding: 6px 2px;
+  margin: 4px 0 10px;
+  padding: 10px 0;
   background: none;
   border: 0;
   border-radius: 0;
-  color: var(--home-sub);
-  font-family: var(--font-display);
-  font-size: var(--fs-sm);
-  transition: color var(--t1) var(--ez-out);
+  color: var(--accent-lo);
+  font-family: var(--font);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
 }
-#dice-modal .dice-reset-btn:hover { background: none; border: 0; color: var(--accent-hi); }
+#dice-modal .dice-popover-help:hover { background: none; color: var(--accent-hi); }
 
 @media (max-width: 640px) {
-  #dice-modal .dice-body { padding: var(--sp-3) var(--sp-3) 6px; }
-  #dice-modal .dice-modal-header { padding: var(--sp-3) var(--sp-3) 8px; }
-  #dice-modal .dice-modal-footer { padding: 8px var(--sp-3) var(--sp-3); }
-  #dice-modal .dice-fan { min-height: 86px; }
-  #dice-modal .dice-fan-item { font-size: 12px; }
-  #dice-modal .dice-pick { padding: 10px 0 2px; }
-  #dice-modal .dice-roll-go { padding: 13px 4px 13px 10px; font-size: 1.12em; }
-  /* Лист броска на телефоне полноэкранный, и .dice-body центрировала содержимое:
-     короткая колонка веера висела посередине. Кость и веер уходят вверх,
-     действие и формула — вниз, под большой палец. */
+  #dice-modal .dice-body { padding: var(--sp-3) 8px 6px; }
+  #dice-modal .dice-pick-stack { width: 150px; height: 150px; }
+  #dice-modal .dice-pick-label { font-size: 38px; }
+  #dice-modal .dice-fan-item { height: 88px; font-size: 14px; }
+  #dice-modal .dice-fan-glyph svg { width: 28px; height: 28px; }
+  /* Лист броска на телефоне полноэкранный: кость с режимом — по центру
+     свободного места, строка костей и «Формула» — внизу, под большим пальцем. */
   #dice-modal .dice-body { justify-content: flex-start; }
   #dice-modal .dice-controls-col { flex: 1 1 auto; min-height: 0; }
-  #dice-modal .dice-roll-go { margin-top: auto; }
+  #dice-modal .dice-pick { margin-top: auto; }
+  #dice-modal .dice-mode-segment { margin-bottom: auto; }
+  #dice-modal .dice-formula-toggle { margin-bottom: 8px; }
 }
 
 

@@ -212,6 +212,7 @@ function setDiceMode(btn, mode) {
   var seg = btn && btn.parentElement;
   if (seg) seg.querySelectorAll(".dice-mode-seg-btn").forEach(function(b){ b.classList.remove("active"); });
   if (btn) btn.classList.add("active");
+  try { _paintDiceMode(); } catch (e) {}
 }
 function rollDiceWithSelectedMode(sides) {
   var mode = window.__diceSelectedMode || 'normal';
@@ -1278,16 +1279,14 @@ setTimeout(() => particle.remove(), 1000);
 // 3D-арену (rollDice / rollDiceWithSelectedMode → animateDice3d).
 // ============================================================
 
-// Порядок = раскладка дуги: края ниже, выбранная d20 в вершине.
-var DICE_FAN_ORDER = [4, 6, 8, 20, 10, 12, 100];
-// Высота каждой позиции дуги в процентах — симметрична относительно центра.
-var DICE_FAN_LIFT  = [0, 26, 42, 48, 42, 26, 0];
+// Порядок строки — по числу граней.
+var DICE_FAN_ORDER = [4, 6, 8, 10, 12, 20, 100];
 var DICE_FAN_SHAPE = {
-  4:   '<polygon points="12,3 22,21 2,21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  4:   '<polygon points="12,3 22,20 2,20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 3v17" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
   6:   '<rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/>',
-  8:   '<polygon points="12,3 21,12 12,21 3,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
-  10:  '<polygon points="12,3 20,9 18,21 6,21 4,9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
-  12:  '<polygon points="12,2 21,8 19,19 5,19 3,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  8:   '<polygon points="12,2 21,12 12,22 3,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 12h18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+  10:  '<polygon points="12,2 21,10 12,22 3,10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 10l9 4 9-4M12 14v8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>',
+  12:  '<polygon points="12,2 21,8.5 18.5,20 5.5,20 3,8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polygon points="12,7 16,10 14.5,15 9.5,15 8,10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
   20:  '<path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 6.6 17.4 15.9H6.6z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
   100: '<polygon points="12,3 22,12 12,21 2,12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.3"/>'
 };
@@ -1308,10 +1307,9 @@ function renderDiceFan() {
     var s = DICE_FAN_ORDER[i];
     html += '<button type="button" class="dice-fan-item' + (s === _selectedDie ? ' is-sel' : '') + '"' +
       ' role="tab" aria-selected="' + (s === _selectedDie) + '" data-sides="' + s + '"' +
-      ' style="--fan-lift:' + DICE_FAN_LIFT[i] + 'px"' +
-      ' onclick="selectDie(' + s + ')" aria-label="Выбрать d' + s + '">' +
-      '<span class="dice-fan-glyph">' + _diceShapeSvg(s, 19) + '</span>' +
-      '<span class="dice-fan-label">d' + s + '</span>' +
+      ' onclick="selectDie(' + s + ')" aria-label="Выбрать к' + s + '">' +
+      '<span class="dice-fan-glyph">' + _diceShapeSvg(s, 28) + '</span>' +
+      '<span class="dice-fan-label">к' + s + '</span>' +
       '</button>';
   }
   fan.innerHTML = html;
@@ -1323,21 +1321,49 @@ function renderDiceFan() {
 function _paintSelectedDie(instant) {
   var glyph = document.getElementById('dice-pick-glyph');
   var label = document.getElementById('dice-pick-label');
-  var goLbl = document.getElementById('dice-roll-go-label');
+  var pick = document.getElementById('dice-pick');
   if (glyph) {
-    glyph.innerHTML = _diceShapeSvg(_selectedDie, 88);
+    glyph.innerHTML = _diceHeroSvg(_selectedDie);
     if (!instant && !prefersReducedMotion()) {
       glyph.classList.remove('is-swap');
       void glyph.offsetWidth;   // рестарт анимации
       glyph.classList.add('is-swap');
     }
   }
-  if (label) label.textContent = 'd' + _selectedDie;
-  if (goLbl) goLbl.textContent = 'Бросить d' + _selectedDie;
-  // Преимущество и помеха есть только у d20 — на остальных костях сегмент
-  // прячем целиком. Выбранный режим не сбрасываем: вернёшься к d20 — он на месте.
+  if (label) label.textContent = 'к' + _selectedDie;
+  if (pick) pick.setAttribute('aria-label', 'Бросить к' + _selectedDie);
+  // Преимущество и помеха есть только у d20 — на остальных костях строку режима
+  // прячем через visibility, чтобы окно не прыгало. Выбранный режим не сбрасываем:
+  // вернёшься к d20 — он на месте.
   var seg = document.getElementById('dice-mode-segment');
-  if (seg) seg.hidden = (_selectedDie !== 20);
+  if (seg) seg.classList.toggle('is-off', _selectedDie !== 20);
+  _paintDiceMode();
+}
+
+// Крупная кость: внешний контур дважды залит фоном окна (--bg-0 и поверх
+// --surface-pop, как у .dice-modal-content), чтобы тень второй к20 не просвечивала.
+function _diceHeroSvg(sides) {
+  var d = DICE_FAN_SHAPE[sides] || DICE_FAN_SHAPE[20];
+  var outer = d.match(/^<[^>]*\/>/)[0];
+  return '<svg viewBox="0 0 24 24" aria-hidden="true" style="display:block">' +
+    outer.replace(/^<(\w+)/, '<$1 class="dice-pick-fill"') +
+    outer.replace(/^<(\w+)/, '<$1 class="dice-pick-fill dice-pick-fill-top"') +
+    d + '</svg>';
+}
+
+// Преимущество/помеха у d20: за крупной костью встаёт вторая, подсказка меняется.
+function _paintDiceMode() {
+  var mode = window.__diceSelectedMode || 'normal';
+  var two = _selectedDie === 20 && mode !== 'normal';
+  var ghost = document.getElementById('dice-pick-ghost');
+  if (ghost) {
+    if (two && !ghost.childElementCount) ghost.innerHTML = _diceShapeSvg(20, 24);
+    ghost.hidden = !two;
+  }
+  var hint = document.getElementById('dice-pick-hint');
+  if (hint) hint.textContent = two
+    ? (mode === 'adv' ? 'Два к20, берётся больший' : 'Два к20, берётся меньший')
+    : 'Нажмите на кость, чтобы бросить';
 }
 
 // Выбор кости в веере. Бросок не запускает — только меняет выбранную.
@@ -1377,6 +1403,7 @@ function toggleDiceFormulaPanel() {
   panel.hidden = !open;
   btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   btn.classList.toggle('is-open', open);
+  btn.textContent = open ? 'Скрыть формулу' : 'Формула';
   if (open) {
     var inp = document.getElementById('dice-custom-input-main');
     if (inp) { try { inp.focus(); } catch (e) {} }
