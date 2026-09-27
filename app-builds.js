@@ -31,8 +31,7 @@ function openBuildPicker() {
   }
   var s = $("bp-search"); if (s) s.value = "";
   // E24-15: фильтр редакции; дефолт — редакция тумблера
-  var _edSel = $("bp-edition-filter");
-  if (_edSel) _edSel.value = (typeof getEdition === "function") ? getEdition() : "2014";
+  _bpEdition = (typeof getEdition === "function" && getEdition() === "2024") ? "2024" : "2014";
   renderBuildPicker();
   // STYLE-8M-2b: пикер — экран. Фокус в поиск даём после перехода (300 мс),
   // иначе браузер доскроллит уезжающий экран к полю.
@@ -41,7 +40,14 @@ function openBuildPicker() {
   setTimeout(function(){ var el = $("bp-search"); if (el) el.focus(); }, 320);
 }
 
-var BP_ROLE_ICONS = { DPS:"⚔️", Tank:"🛡️", Support:"✨", Control:"🌀", Utility:"🧰" };
+// UNI-6: редакция в пикере — два слова со счётчиками вместо селекта.
+var _bpEdition = "2014";
+function setBuildEdition(ed) {
+  _bpEdition = ed === "2024" ? "2024" : "2014";
+  renderBuildPicker();
+}
+
+var BP_ROLE_ICONS ={ DPS:"⚔️", Tank:"🛡️", Support:"✨", Control:"🌀", Utility:"🧰" };
 var BP_DIFF_LABELS = { 1:"новичку", 2:"среднее", 3:"сложное" };
 // UX-4: расшифровка точек сложности для легенды в гайде билда.
 var BP_DIFF_DESC = {
@@ -58,16 +64,26 @@ function renderBuildPicker() {
   var roleFilter = ($("bp-role-filter") && $("bp-role-filter").value) || "";
   var searchInp = $("bp-search");
   var q = (searchInp && searchInp.value || "").trim().toLowerCase();
-  var edFilter = ($("bp-edition-filter") && $("bp-edition-filter").value) || "2014";
+  var edFilter = _bpEdition;
+  // Счётчик редакции учитывает остальные фильтры, но не саму редакцию.
+  var edCounts = { "2014": 0, "2024": 0 };
   var builds = (window.CHARACTER_BUILDS || []).filter(function(b){
-    if ((b.edition || "2014") !== edFilter) return false;
     if (filter && b.className !== filter) return false;
     if (roleFilter && b.role !== roleFilter) return false;
     if (q) {
       var hay = ((b.title||"") + " " + (b.className||"") + " " + (b.subclass||"") + " " + (b.race||"") + " " + (b.summary||"")).toLowerCase();
       if (hay.indexOf(q) === -1) return false;
     }
-    return true;
+    var ed = b.edition || "2014";
+    edCounts[ed] = (edCounts[ed] || 0) + 1;
+    return ed === edFilter;
+  });
+  ["2014", "2024"].forEach(function(ed){
+    var btn = $("bp-ed-" + ed);
+    if (!btn) return;
+    btn.setAttribute("aria-pressed", ed === edFilter ? "true" : "false");
+    var n = btn.querySelector(".bp-ed-count");
+    if (n) n.textContent = edCounts[ed] || 0;
   });
   if (!builds.length) {
     list.innerHTML = '<div class="bp-empty">Ничего не найдено. Попробуйте другой фильтр или поиск.</div>';

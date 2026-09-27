@@ -1120,6 +1120,26 @@ html.glass-adjusting *::after {
   .page-stage--split .home-menu,
   .page-stage--split .home-hero { width: 100%; max-width: none; }
 }
+/* UNI-6: экраны-списки (билды, поиск заклинаний, каталоги) на ПК — шире и в
+   две колонки; текстовые экраны остаются в колонке чтения 680px. */
+@media (min-width: 1024px) {
+  .page-stage--wide { max-width: 1120px; }
+  .page-stage--wide .bp-list,
+  .page-stage--wide .spell-search-results,
+  .page-stage--wide .magic-catalog-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 56px;
+    align-content: start;
+  }
+  .page-stage--wide .bp-list > :nth-child(2),
+  .page-stage--wide .spell-search-results > :nth-child(2),
+  .page-stage--wide .magic-catalog-list > :nth-child(2) { border-top: 0; }
+  /* Пустое состояние и «Показано N из M» — на всю ширину */
+  .page-stage--wide .bp-list > :not(.bp-card),
+  .page-stage--wide .spell-search-results > :not(.spell-item),
+  .page-stage--wide .magic-catalog-list > :not(.magic-catalog-item) { grid-column: 1 / -1; }
+}
 
 .settings-modal-body {
   overscroll-behavior: contain;
@@ -12700,6 +12720,27 @@ input.bp-search:focus {
   pointer-events: none;
 }
 select.bp-select { padding-right: var(--sp-4); }
+/* UNI-6: редакция — два слова со счётчиком, выбранное подчёркнуто акцентом */
+.bp-ed-group { flex: 0 0 auto; min-width: 0; gap: var(--sp-3); }
+.bp-ed-group::after { content: none; }
+.bp-ed-btn {
+  width: auto;
+  margin: 0;
+  padding: var(--sp-2) 0 3px;
+  background: none;
+  border: 0;
+  border-bottom: 1.5px solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--home-sub);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: color var(--t1) var(--ez-out), border-color var(--t1) var(--ez-out);
+}
+.bp-ed-btn:hover,
+.bp-ed-btn:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
+.bp-ed-btn[aria-pressed="true"] { color: var(--text-color); border-bottom-color: var(--accent); }
 .bp-list { display:flex; flex-direction:column; }
 .bp-empty { color: var(--home-sub); padding: var(--sp-4) 0; }
 .bp-card {
