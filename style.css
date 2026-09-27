@@ -16660,6 +16660,17 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   transition: color var(--t1) var(--ez-out);
 }
 #dice-modal .dice-formula-toggle:hover { background: none; color: var(--accent-hi); }
+/* DICE-2: подсказка горячих клавиш — только на ПК */
+#dice-modal .dice-keys-hint { display: none; }
+@media (min-width: 1024px) {
+  #dice-modal .dice-keys-hint {
+    display: block;
+    margin-top: 4px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--home-sub);
+  }
+}
 #dice-modal .dice-formula-panel { padding: 0 8px 4px; }
 #dice-modal .dice-formula-panel[hidden] { display: none; }
 #dice-modal .dice-formula-panel > * { animation: rise var(--t2) var(--ez-out) both; }

@@ -1410,6 +1410,38 @@ function toggleDiceFormulaPanel() {
   }
 }
 
+// DICE-2: горячие клавиши окна на ПК — Пробел/Enter бросают выбранную кость,
+// 1–7 выбирают кость в строке. Не мешают полям ввода, поповерам и диалогам поверх.
+// Кнопка в фокусе с клавиатуры (Tab) сохраняет своё Enter/Пробел; после клика
+// мышью фокус остаётся на кнопке, и там Пробел — уже бросок.
+function _diceHotkeys(e) {
+  if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (!_diceModalActive()) return;
+  var t = e.target;
+  if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+  var ps = document.getElementById('dice-popover-settings');
+  var ph = document.getElementById('dice-popover-history');
+  if ((ps && !ps.hidden) || (ph && !ph.hidden)) return;
+  var ov = document.querySelectorAll('.confirm-modal-overlay.active');
+  for (var i = 0; i < ov.length; i++) if (ov[i].offsetParent !== null) return;
+  if (e.key === ' ' || e.key === 'Enter') {
+    var ctl = t && t.closest ? t.closest('button, a, [role="button"]') : null;
+    if (ctl && !ctl.closest('#dice-fan') && ctl.id !== 'dice-pick') {
+      var kb = false;
+      try { kb = ctl.matches(':focus-visible'); } catch (err) {}
+      if (kb) return;
+    }
+    e.preventDefault();
+    if (!e.repeat) rollSelectedDie();
+    return;
+  }
+  if (/^[1-7]$/.test(e.key)) {
+    e.preventDefault();
+    selectDie(DICE_FAN_ORDER[parseInt(e.key, 10) - 1]);
+  }
+}
+document.addEventListener('keydown', _diceHotkeys);
+
 window.renderDiceFan = renderDiceFan;
 window.selectDie = selectDie;
 window.rollSelectedDie = rollSelectedDie;
