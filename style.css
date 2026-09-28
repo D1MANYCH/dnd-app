@@ -7017,7 +7017,7 @@ transition: width var(--t3, 420ms) var(--ez-spring, ease), background 0.4s;
   bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 9999;
+  z-index: 10000; /* PLAY-1: над окном подтверждения (9999) — «Отменить» должна нажиматься */
   pointer-events: none;
   display: flex;
   flex-direction: column;
@@ -9538,6 +9538,14 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .app-toast-error   { --toast-c: var(--danger); }
 .app-toast-warn    { --toast-c: var(--slot-gold); }
 .app-toast-info    { --toast-c: var(--info); }
+/* PLAY-1: действие в тосте («Отменить») — текст на --accent-lo, контейнер кликов не ловит */
+.hp-toast.app-toast--act { display: flex; align-items: center; pointer-events: auto; }
+.app-toast-act { width: auto; margin: 0 0 0 var(--sp-3); padding: var(--sp-2) 2px; min-height: 32px; background: none; box-shadow: none; color: var(--accent-lo); border: 0; border-radius: 0; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.app-toast-act:hover, .app-toast-act:focus-visible { background: none; box-shadow: none; color: var(--accent); text-decoration: underline; transform: none; }
+/* тосты урона/лечения тёмные в обеих темах — действие цвета их текста */
+.hp-toast-dmg .app-toast-act, .hp-toast-heal .app-toast-act,
+.hp-toast-dmg .app-toast-act:hover, .hp-toast-heal .app-toast-act:hover,
+.hp-toast-dmg .app-toast-act:focus-visible, .hp-toast-heal .app-toast-act:focus-visible { color: inherit; text-decoration: underline; }
 
 /* UNI-4: единое пустое состояние (emptyStateHtml в app-core.js). */
 .empty-state {

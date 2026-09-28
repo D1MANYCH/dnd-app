@@ -2996,6 +2996,51 @@
       }
     });
   }
+  if (typeof quickHP === "function" && typeof undoHPChange === "function") {
+    t("[PLAY-1] «Отменить» откатывает ХП, временные ХП, историю и 0 ХП; старая отмена не срабатывает", function(){
+      var savedChars = window.characters, savedId = window.currentId, savedHPToast = window.showHPToast;
+      var act = null;
+      try {
+        _ensureEl("status-level", "span");
+        _ensureEl("status-hp-current", "span");
+        _ensureEl("status-hp-max", "span");
+        window.showHPToast = function(d, m, a){ act = a; };
+        window.characters = [{
+          id: "test-undo-1",
+          combat: { hpTemp: 3, hpCurrent: 10, hpMax: 20, hpDice: "1к8", hpDiceSpent: 0 },
+          stats: { str:10, dex:10, con:10, int:10, wis:10, cha:10 },
+          saves: {}, skills: [], spells: { stat:"", slots:{}, slotsUsed:{} },
+          level: 1, concentration: null, conditions: [],
+          deathSaves: { successes:[false,false,false], failures:[false,false,false] }
+        }];
+        window.currentId = "test-undo-1";
+        var ch = window.characters[0];
+        var histLen = hpHistory.length;
+        quickHP(-8, "Test");                                   // 3 врем. + 5 → 5 ХП
+        if (ch.combat.hpCurrent !== 5 || ch.combat.hpTemp !== 0) return "урон: ожидал 5/0, получено " + ch.combat.hpCurrent + "/" + ch.combat.hpTemp;
+        if (!act) return "тост без действия «Отменить»";
+        act.onClick();
+        if (ch.combat.hpCurrent !== 10 || ch.combat.hpTemp !== 3) return "отмена: ожидал 10/3, получено " + ch.combat.hpCurrent + "/" + ch.combat.hpTemp;
+        if (hpHistory.length !== histLen) return "запись истории не снята: " + hpHistory.length + " ≠ " + histLen;
+        act.onClick();                                         // повторная отмена — ничего
+        if (ch.combat.hpCurrent !== 10) return "повторная отмена изменила ХП";
+        quickHP(-13, "Test");                                  // → 0 ХП, «без сознания»
+        var act0 = act;
+        if (ch.combat.hpCurrent !== 0 || ch.conditions.indexOf("unconscious") === -1) return "ожидал 0 ХП и «без сознания»";
+        quickHP(5, "Test");                                    // новое изменение делает прошлую отмену устаревшей
+        if (undoHPChange({ seq: -1 }) !== false) return "чужой снимок принят";
+        act0.onClick();
+        if (ch.combat.hpCurrent !== 5) return "устаревшая отмена сработала: ХП " + ch.combat.hpCurrent;
+        act.onClick();                                         // отмена лечения → снова 0 ХП и «без сознания»
+        if (ch.combat.hpCurrent !== 0 || ch.conditions.indexOf("unconscious") === -1) return "отмена лечения: ожидал 0 ХП и «без сознания»";
+        return true;
+      } finally {
+        window.characters = savedChars;
+        window.currentId = savedId;
+        window.showHPToast = savedHPToast;
+      }
+    });
+  }
 
   // ────────── БЛОК 27 (FIN-8): заряды предметов ──────────
   if (typeof restoreItemCharges === "function") {

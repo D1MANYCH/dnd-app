@@ -273,6 +273,46 @@ function _syncSheetLockButtons() {
   });
 }
 
+// PLAY-1: «Не гасить экран» (ключ dnd_wake_lock, по умолчанию выкл.). Браузер снимает
+// блокировку, когда вкладка скрыта, — на visibilitychange запрашиваем заново.
+// Где Wake Lock API нет, строка настройки скрыта.
+var _wakeLock = null;
+function _wakeLockSupported() { return !!(navigator.wakeLock && navigator.wakeLock.request); }
+function _getWakeLockOn() {
+  try { return localStorage.getItem('dnd_wake_lock') === '1'; } catch (e) {}
+  return false;
+}
+function _applyWakeLock() {
+  if (!_wakeLockSupported()) return;
+  if (_getWakeLockOn() && document.visibilityState === 'visible') {
+    if (_wakeLock) return;
+    navigator.wakeLock.request('screen').then(function (s) {
+      _wakeLock = s;
+      s.addEventListener('release', function () { if (_wakeLock === s) _wakeLock = null; });
+      if (!_getWakeLockOn()) _applyWakeLock();
+    }).catch(function () { _wakeLock = null; });
+  } else if (_wakeLock) {
+    var s = _wakeLock;
+    _wakeLock = null;
+    try { s.release(); } catch (e) {}
+  }
+}
+function setWakeLock(on) {
+  try { localStorage.setItem('dnd_wake_lock', on ? '1' : '0'); } catch (e) {}
+  _syncWakeLockButtons();
+  _applyWakeLock();
+}
+function _syncWakeLockButtons() {
+  var row = document.getElementById('wake-lock-row');
+  if (row) row.hidden = !_wakeLockSupported();
+  var active = _getWakeLockOn() ? 'on' : 'off';
+  document.querySelectorAll('[data-wake-lock-btn]').forEach(function (b) {
+    b.classList.toggle('is-active', b.getAttribute('data-wake-lock-btn') === active);
+  });
+}
+document.addEventListener('visibilitychange', _applyWakeLock);
+document.addEventListener('DOMContentLoaded', function () { _syncWakeLockButtons(); _applyWakeLock(); });
+
 // UI-fix: сворачивание секции «Характеристики». Атрибут data-stats-collapsed на <html>;
 // по умолчанию развёрнуто. Состояние в localStorage (dnd_stats_collapsed).
 function _getStatsCollapsed() {
@@ -658,6 +698,7 @@ function openSettingsModal() {
   try { if (typeof _syncAccentButtons === 'function') _syncAccentButtons(); } catch (e) {}
   try { if (typeof _syncSpaceButtons === 'function') _syncSpaceButtons(); } catch (e) {}
   try { _syncSheetLockButtons(); } catch (e) {}
+  try { _syncWakeLockButtons(); } catch (e) {}
   if (typeof showScreen === 'function') showScreen('settings');
 }
 function closeSettingsModal() {

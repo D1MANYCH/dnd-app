@@ -1451,7 +1451,7 @@ if (typeof maybeStartSheetTour === 'function') maybeStartSheetTour();
 // УНИВЕРСАЛЬНЫЕ TOAST-УВЕДОМЛЕНИЯ (замена alert)
 // type: 'success' | 'error' | 'warn' | 'info'
 // ============================================================
-function showToast(msg, type) {
+function showToast(msg, type, action) {
   var container = $("hp-toast-container");
   if (!container) return;
   var t = type || "info";
@@ -1460,9 +1460,28 @@ function showToast(msg, type) {
   // UNI-4: тип тоста — залитый ромб цвета типа; ведущий эмодзи из текста вызова снимаем
   var text = String(msg).replace(/^(?:[ℹ←-⯿☀-➿〰〽️‍]|[\uD83C-\uDBFF][\uDC00-\uDFFF])+\s*/, "");
   toast.innerHTML = "<span class='app-toast-mark' aria-hidden='true'></span><span>" + escapeHtml(text) + "</span>";
+  var life = toastAddAction(toast, action, 2700);
   container.appendChild(toast);
-  toast._fadeTimer   = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 2200);
-  toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 2700);
+  toast._fadeTimer   = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, life - 500);
+  toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, life);
+}
+
+// PLAY-1: необязательное действие тоста { label, onClick } — текстовая кнопка справа
+// (напр. «Отменить»). С действием тост живёт дольше. Возвращает время жизни, мс.
+function toastAddAction(toast, action, life) {
+  if (!action || typeof action.onClick !== "function") return life;
+  var btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "app-toast-act";
+  btn.textContent = action.label || "Отменить";
+  btn.addEventListener("click", function() {
+    clearTimeout(toast._fadeTimer); clearTimeout(toast._removeTimer);
+    if (toast.parentNode) toast.remove();
+    action.onClick();
+  });
+  toast.classList.add("app-toast--act");
+  toast.appendChild(btn);
+  return Math.max(life, 6000);
 }
 
 // UNI-4: единое пустое состояние — SVG + строка serif + подсказка + текстовое действие.

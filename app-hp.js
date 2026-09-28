@@ -1428,6 +1428,8 @@ if (!char) return;
 opts = opts || {};
 const hpBefore = char.combat.hpCurrent || 0;
 let hpCurrent = hpBefore;
+// PLAY-1: снимок для «Отменить» в тосте
+const undo = _hpUndoPrepare(char);
 // AUD-6 (L2, L5): урон — через сопротивления и правила 0 ХП (rules.js)
 let dmgRes = null;
 if (delta < 0) {
@@ -1437,7 +1439,7 @@ if (delta < 0) {
   dmgRes = rulesApplyDamage(char, dmgIn, { crit: !!opts.crit });
   hpCurrent = char.combat.hpCurrent;
   if (dmgRes.instantDeath) showToast("💀 Мгновенная смерть: урон не меньше максимума хитов", "error");
-  else if (dmgRes.failuresAdded) showToast("💔 Урон на 0 ХП: " + (dmgRes.failuresAdded > 1 ? "два провала" : "провал") + " спасброска от смерти" + (dmgRes.dead ? " — персонаж погиб" : ""), "error");
+  else if (dmgRes.failuresAdded) showToast("💔 Урон на 0 ХП: " + (dmgRes.failuresAdded > 1 ? "два провала" : "провал") + " спасброска от смерти" + (dmgRes.dead ? " — персонаж погиб" : ""), "error", hpBefore === hpCurrent ? undo.action : null);
   else if (dmgRes.droppedToZero) showToast("💤 0 ХП — без сознания", "error");
   if (dmgRes.droppedToZero || dmgRes.failuresAdded || dmgRes.instantDeath) {
     loadDeathSaves();
@@ -1458,8 +1460,10 @@ const actualDelta = hpCurrent - hpBefore;
 safeSet("hp-current", hpCurrent);
 safeSet("hp-temp", char.combat.hpTemp);
 if (actualDelta !== 0) {
-addHPHistory(hpBefore, hpCurrent, actualDelta, source || (delta < 0 ? "Урон" : "Лечение"));
-showHPToast(actualDelta);
+undo.entry = addHPHistory(hpBefore, hpCurrent, actualDelta, source || (delta < 0 ? "Урон" : "Лечение"));
+showHPToast(actualDelta, undefined, undo.action);
+} else if (delta < 0 && (char.combat.hpTemp || 0) !== undo.snap.temp) {
+showToast("Урон поглотили временные ХП: " + (char.combat.hpTemp || 0) + " осталось", "info", undo.action);
 }
 // FIN-7: спасбросок концентрации при уроне (PHB: СЛ = max(10, урон/2)).
 // 0 ХП — авто-срыв без броска (оставлено). Иначе — модалка подтверждения →
@@ -1473,10 +1477,12 @@ if (delta < 0 && char.concentration) {
     var _cp = concSaveParams(char, _concDmg);
     var _concSpell = char.concentration;
     if (window.AppLog) AppLog.action("combat", "урон " + _concDmg + " → спасбросок концентрации «" + _concSpell + "» СЛ " + _cp.dc);
+    undo.concPrompt = true;
     showConfirmModal(
       "Концентрация под угрозой",
       "«" + _concSpell + "»: спасбросок ТЕЛ, СЛ " + _cp.dc + (_cp.mode === "adv" ? " (с преимуществом)" : ""),
       function() {
+        undo.concPrompt = false;
         quickRoll({
           label: "Концентрация СЛ " + _cp.dc,
           sides: 20,
@@ -1521,12 +1527,62 @@ const now = new Date();
 const time = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0");
 // FEAT-1 доработка: привязка записи к персонажу — чтобы HP-историю можно
 // было выгрузить/восстановить в составе конкретного персонажа.
-hpHistory.unshift({ from: from, to: to, delta: delta, source: source, time: time,
-  charId: (typeof currentId !== 'undefined' ? currentId : null) });
+const entry = { from: from, to: to, delta: delta, source: source, time: time,
+  charId: (typeof currentId !== 'undefined' ? currentId : null) };
+hpHistory.unshift(entry);
 if (hpHistory.length > 30) hpHistory.pop();
+return entry;
 }
 
-function showHPToast(delta, customMsg) {
+// PLAY-1: отмена последнего урона/лечения из тоста. Снимок — ХП, временные ХП,
+// спасброски от смерти и состояния (урон на 0 ХП ставит «без сознания»).
+// Действует только самое свежее изменение и только у того же персонажа.
+var _hpUndoSeq = 0;
+function _hpUndoPrepare(char) {
+  var u = {
+    seq: ++_hpUndoSeq,
+    charId: currentId,
+    snap: {
+      hp: char.combat.hpCurrent || 0,
+      temp: char.combat.hpTemp || 0,
+      deathSaves: char.deathSaves ? JSON.parse(JSON.stringify(char.deathSaves)) : char.deathSaves,
+      conditions: Array.isArray(char.conditions) ? char.conditions.slice() : char.conditions
+    },
+    entry: null,
+    concPrompt: false
+  };
+  u.action = { label: "Отменить", onClick: function() { undoHPChange(u); } };
+  return u;
+}
+function undoHPChange(u) {
+  if (!u || u.seq !== _hpUndoSeq || currentId !== u.charId) return false;
+  var char = getCurrentChar();
+  if (!char) return false;
+  _hpUndoSeq++;
+  char.combat.hpCurrent = u.snap.hp;
+  char.combat.hpTemp = u.snap.temp;
+  char.deathSaves = u.snap.deathSaves;
+  char.conditions = u.snap.conditions;
+  var i = u.entry ? hpHistory.indexOf(u.entry) : -1;
+  if (i !== -1) hpHistory.splice(i, 1);
+  // непрошенный спасбросок концентрации больше не нужен
+  if (u.concPrompt) {
+    u.concPrompt = false;
+    var cm = $("confirm-modal"), ct = $("confirm-modal-title");
+    if (cm && ct && ct.textContent === "Концентрация под угрозой") cm.classList.remove("active");
+  }
+  if (window.AppLog) AppLog.action("hp", "отмена: ХП " + u.snap.hp + ", временные " + u.snap.temp);
+  safeSet("hp-current", u.snap.hp);
+  safeSet("hp-temp", u.snap.temp);
+  if (typeof loadDeathSaves === "function") loadDeathSaves();
+  if (typeof loadConditions === "function") loadConditions();
+  saveToLocal();
+  updateHPDisplay();
+  showToast("Изменение ХП отменено", "info");
+  return true;
+}
+
+function showHPToast(delta, customMsg, action) {
 var container = $("hp-toast-container");
 if (!container) return;
 var existing = container.querySelector(".hp-toast");
@@ -1544,9 +1600,10 @@ var sign = delta > 0 ? "+" : "";
 var label = delta > 0 ? "Восстановлено" : "Получено урона";
 toast.className = "hp-toast " + (delta > 0 ? "hp-toast-heal" : "hp-toast-dmg");
 toast.innerHTML = "<span style='font-size:20px;font-weight:900;'>" + sign + delta + " ХП</span><span style='font-size:12px;opacity:0.75;margin-left:8px;'>" + label + "</span>";
+var life = typeof toastAddAction === "function" ? toastAddAction(toast, action, 2300) : 2300;
 container.appendChild(toast);
-toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 1800);
-toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 2300);
+toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, life - 500);
+toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, life);
 }
 
 
