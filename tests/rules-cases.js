@@ -1174,6 +1174,44 @@ function rulesCases(t, group) {
     if (rulesSkillBonus(c, 2, 9, false) !== 2) return "Атлетика " + rulesSkillBonus(c, 2, 9, false) + ", ожидал 2 (⌈4/2⌉)";
     return rulesSkillBonus(c, 5, 9, false) === 2 ? true : "Магия " + rulesSkillBonus(c, 5, 9, false) + ", ожидал 2 (⌊4/2⌋)";
   });
+
+  group("DM-1: сложность встречи (DMG стр. 82)");
+
+  t("Опыт по CR: 1/4 → 50, 0.5 → 100, 30 → 155000, мусор → 0", function() {
+    var pairs = [["1/4", 50], ["0.5", 100], ["0", 10], [5, 1800], ["30", 155000], ["?", 0], ["", 0]];
+    for (var i = 0; i < pairs.length; i++) {
+      var got = rulesCrToXp(pairs[i][0]);
+      if (got !== pairs[i][1]) return "CR " + pairs[i][0] + " → " + got + ", ожидал " + pairs[i][1];
+    }
+    return true;
+  });
+
+  t("Множитель: число монстров и поправка на размер отряда", function() {
+    var cases = [[1, 4, 1], [2, 4, 1.5], [3, 4, 2], [6, 4, 2], [7, 4, 2.5], [11, 4, 3], [15, 4, 4],
+                 [1, 2, 1.5], [15, 2, 5], [1, 6, 0.5], [3, 6, 1.5], [0, 4, 1]];
+    for (var i = 0; i < cases.length; i++) {
+      var got = rulesEncounterMultiplier(cases[i][0], cases[i][1]);
+      if (got !== cases[i][2]) return cases[i][0] + " монстров, отряд " + cases[i][1] + ": ×" + got + ", ожидал ×" + cases[i][2];
+    }
+    return true;
+  });
+
+  t("4 героя 3 ур. против 200 + 3×100 XP: 1000 скорр. → «Сложная», пороги 300/600/900/1600", function() {
+    var r = rulesEncounterDifficulty([3, 3, 3, 3], [200, 100, 100, 100]);
+    if (r.base !== 500 || r.mult !== 2 || r.adjusted !== 1000) return "база " + r.base + " ×" + r.mult + " = " + r.adjusted;
+    var t0 = r.thresholds;
+    if (t0.easy !== 300 || t0.medium !== 600 || t0.hard !== 900 || t0.deadly !== 1600) return "пороги " + JSON.stringify(t0);
+    if (r.level !== "hard" || r.label !== "Сложная") return "уровень " + r.level;
+    return (r.next && r.next.xp === 1600 && r.next.label === "Смертельная") ? true : "следующий " + JSON.stringify(r.next);
+  });
+
+  t("Одиночка 5 ур. против CR 1/8: ×1,5 → 37 XP, ниже лёгкой; смертельная — без следующего порога", function() {
+    var r = rulesEncounterDifficulty([5], [25]);
+    if (r.adjusted !== 37 || r.level !== "none") return r.adjusted + " XP, " + r.level;
+    if (!r.next || r.next.xp !== 250) return "следующий " + JSON.stringify(r.next);
+    var d = rulesEncounterDifficulty([1, 1, 1, 1], [450]);
+    return (d.level === "deadly" && d.next === null) ? true : "CR 2 против 4×1 ур.: " + d.level;
+  });
 }
 
 if (typeof window !== "undefined") window.rulesCases = rulesCases;

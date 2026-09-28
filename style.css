@@ -13519,6 +13519,36 @@ textarea:focus-visible {
   background: color-mix(in srgb, var(--sc, var(--accent)) 14%, transparent);
   color: var(--sc, var(--accent));
 }
+/* DM-1: значки — кнопка окна состояний; пусто — пунктирный «+» */
+button.tracker-cond-dots {
+  width: auto; min-width: 0; height: auto; flex: none; padding: 3px 0; margin: 0 0 0 6px;
+  background: none; border: 0; border-radius: 0; box-shadow: none; cursor: pointer;
+}
+button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: none; }
+.cond-dot-add {
+  background: none; border: 1px dashed var(--home-rule);
+  color: var(--text-mute); font-weight: 700; font-size: 13px; line-height: 1;
+}
+.battle-cond-exh { cursor: default; }
+.battle-cond-exh:hover { background: none; }
+.battle-cond-exh .cdb-icon:not([data-on]) { background: none !important; }
+.battle-cond-exh .cdb-icon[data-on] { background: var(--row-c); }
+.battle-cond-exh .tracker-hp-btn { flex: none; }
+.battle-cond-exh-val { min-width: 18px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* DM-1: сложность встречи на экране сбора боя — плоская строка с ромбом */
+.battle-difficulty { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--home-rule); }
+.battle-difficulty:empty { display: none; }
+.battle-difficulty .bd-main { display: flex; align-items: center; gap: var(--sp-2); font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.battle-difficulty .bd-sub { color: var(--text-mute); font-size: 0.78em; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.battle-difficulty .bd-main + .bd-sub { padding-left: calc(var(--home-bullet) + var(--sp-2)); }
+.bd-mark { width: var(--home-bullet); height: var(--home-bullet); flex: none; transform: rotate(45deg); background: var(--bd-c); }
+.bd-label { color: var(--bd-c); }
+.bd-none   { --bd-c: var(--text-mute); }
+.bd-easy   { --bd-c: var(--success-color); }
+.bd-medium { --bd-c: var(--slot-gold); }
+.bd-hard   { --bd-c: color-mix(in srgb, var(--danger-color) 55%, var(--slot-gold)); }
+.bd-deadly { --bd-c: var(--danger-color); }
 
 /* Иконки в нижнем таб-баре и drawer — по центру над подписью */
 .tab-btn .dico { margin: 0 auto; }

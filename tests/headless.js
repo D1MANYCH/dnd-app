@@ -1831,6 +1831,45 @@
         return true;
       } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
     });
+
+    t("[party][DM-1] battleEncounterInput: уровень союзника или героя, NPC мимо, монстр без CR — 0 XP в счёт", function(){
+      var savedChars = window.characters, savedId = window.currentId;
+      var savedParty = PARTY_DATA, savedSetup = battleSetupList;
+      try {
+        window.characters = [{ id: "tdm1", name: "Герой", class: "Воин", level: 3, combat: { hpCurrent: 10, hpMax: 10 } }];
+        window.currentId = "tdm1";
+        PARTY_DATA = {
+          allies:   [{ id: 1, name: "Аля", cls: "Бард", lvl: "5" }, { id: 2, name: "Боб", cls: "Плут" }],
+          npcs:     [{ id: 3, name: "Трактирщик" }],
+          monsters: [{ id: 4, name: "Багбир", cr: "1" }, { id: 5, name: "Гоблин", cr: "1/4", xp: 50 }, { id: 6, name: "Тень" }]
+        };
+        battleSetupList = [];
+        buildBattleSetupList();
+        battleSetupList.forEach(function(p) { p.checked = true; });
+        var d = battleEncounterInput();
+        if (d.levels.join(",") !== "3,5,3") return "уровни " + d.levels.join(",");
+        if (d.xps.join(",") !== "200,50,0") return "опыт " + d.xps.join(",");
+        return d.noCr === 1 ? true : "без CR: " + d.noCr;
+      } finally { window.characters = savedChars; window.currentId = savedId; PARTY_DATA = savedParty; battleSetupList = savedSetup; }
+    });
+
+    t("[party][DM-1] состояния участника: переключение и истощение в p.conditions", function(){
+      var savedChars = window.characters, savedId = window.currentId, savedBattle = BATTLE_DATA;
+      try {
+        window.characters = [{ id: "tdm2", name: "Герой", class: "Воин", level: 3, conditions: [], combat: { hpCurrent: 10, hpMax: 10 } }];
+        window.currentId = "tdm2";
+        BATTLE_DATA = { active: true, currentTurn: 0, round: 1, participants: [{ id: "m1", name: "Орк", type: "monster", hp: 15, hpMax: 15 }] };
+        openBattleCondPicker(0);
+        toggleBattleCondition("prone");
+        toggleBattleCondition("poisoned");
+        toggleBattleCondition("prone");
+        adjustBattleExhaustion(1); adjustBattleExhaustion(1);
+        var c = BATTLE_DATA.participants[0].conditions.join(",");
+        closeBattleCondPicker();
+        if (c !== "poisoned,exhaustion_2") return "состояния " + c;
+        return (window.characters[0].conditions.length === 0) ? true : "задело лист героя";
+      } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
+    });
   }
 
   // ────────── БЛОК 13 (UI6-1): авто-акцент по классу (app-ui.js) ──────────

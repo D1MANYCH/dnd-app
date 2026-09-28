@@ -142,7 +142,7 @@ function renderAllies() {
       '<div class="pcard-icon" style="color:' + color + '">' + icon + '</div>' +
       '<div class="pcard-body">' +
         '<div class="pcard-name">' + escapeHtml(a.name) + '</div>' +
-        '<div class="pcard-sub">' + escapeHtml(a.cls || "Класс не указан") + '</div>' +
+        '<div class="pcard-sub">' + escapeHtml((a.cls || "Класс не указан") + (a.lvl ? " · " + a.lvl + " ур." : "")) + '</div>' +
         (a.desc ? '<div class="pcard-desc">' + escapeHtml(a.desc) + '</div>' : '') +
         '<div class="pcard-status-row"><select class="pcard-status-sel" onchange="setAllyStatus(' + i + ',this.value)" onclick="event.stopPropagation()">' +
         CONDITION_STATUSES.map(function(s) { return '<option value="' + s.value + '"' + (s.value === (a.status||"healthy") ? " selected" : "") + '>' + s.label + '</option>'; }).join("") +
@@ -164,7 +164,7 @@ function _pentLabel(pair) {
 }
 var _PENT = {
   ally:    { modal:"add-ally-modal",    title:"ally-modal-title",    idx:"ally-edit-index",
-             fields: [{id:"ally-name-inp",key:"name"},{id:"ally-class-sel",key:"cls"},{id:"ally-desc-inp",key:"desc"}],
+             fields: [{id:"ally-name-inp",key:"name"},{id:"ally-class-sel",key:"cls"},{id:"ally-level-inp",key:"lvl"},{id:"ally-desc-inp",key:"desc"}],
              list: function() { return PARTY_DATA.allies; },
              render: function() { renderAllies(); },
              addLabel:["users","Добавить соратника"], editLabel:["edit","Редактировать соратника"],
@@ -706,6 +706,7 @@ function toggleBattleSection(type) {
 function renderBattleSetup() {
   var container = $("battle-setup-list");
   if (!container) return;
+  renderBattleDifficulty();
   if (battleSetupList.length === 0) {
     container.innerHTML = "<div class='party-empty'>Добавьте участников во вкладке Отряд</div>";
     return;
@@ -745,6 +746,54 @@ function renderBattleSetup() {
       rows +
     "</div>";
   }).join("");
+}
+
+// DM-1: вход расчёта сложности из отмеченных участников. Уровни — «я» и
+// союзники (без уровня — уровень героя); NPC не считаются ни за одну сторону;
+// опыт монстра — поле xp записи отряда, иначе по CR.
+function battleEncounterInput() {
+  var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  var heroLvl = char ? (parseInt(char.level, 10) || 1) : 1;
+  var out = { levels: [], xps: [], noCr: 0 };
+  battleSetupList.forEach(function(p) {
+    if (!p.checked) return;
+    if (p.type === "self") out.levels.push(heroLvl);
+    else if (p.type === "ally") {
+      var a = PARTY_DATA.allies.filter(function(x) { return "ally_" + x.id === p.id; })[0];
+      out.levels.push(parseInt(a && a.lvl, 10) || heroLvl);
+    } else if (p.type === "monster") {
+      var m = _findPartyMonster(p.id);
+      var xp = m ? (parseInt(m.xp, 10) || rulesCrToXp(m.cr)) : 0;
+      // без CR — 0 XP, но в число монстров для множителя входит (DMG стр. 82)
+      out.xps.push(xp);
+      if (!xp) out.noCr++;
+    }
+  });
+  return out;
+}
+function renderBattleDifficulty() {
+  var el = $("battle-difficulty");
+  if (!el) return;
+  var d = battleEncounterInput();
+  if (!d.levels.length || !d.xps.length || d.noCr === d.xps.length) {
+    el.innerHTML = '<div class="bd-sub">' + (d.noCr && d.levels.length
+      ? "У отмеченных врагов не указан CR — сложность не посчитать"
+      : "Отметьте героев и врагов — здесь появится сложность встречи") + '</div>';
+    return;
+  }
+  var r = rulesEncounterDifficulty(d.levels, d.xps);
+  var t = r.thresholds;
+  el.innerHTML =
+    '<div class="bd-main" title="Скорректированный опыт врагов' + (r.next ? " / порог «" + r.next.label + "»" : "") + '">' +
+      '<span class="bd-mark bd-' + r.level + '" aria-hidden="true"></span>' +
+      '<span class="bd-label bd-' + r.level + '">' + r.label + '</span>' +
+      ' · ' + r.adjusted + (r.next ? " / " + r.next.xp : "") + ' XP' +
+    '</div>' +
+    '<div class="bd-sub">' +
+      'Врагов ' + d.xps.length + ': ' + r.base + ' XP × ' + String(r.mult).replace(".", ",") +
+      ' · пороги ' + t.easy + ' / ' + t.medium + ' / ' + t.hard + ' / ' + t.deadly +
+      (d.noCr ? ' · без CR: ' + d.noCr : '') +
+    '</div>';
 }
 
 function toggleBattleCheck(i, val) {
@@ -1024,7 +1073,7 @@ function renderBattleTracker() {
         '<div class="tracker-icon" style="color:' + fcolor + '">' + (p.icon || "🎭") + "</div>" +
         '<div class="tracker-name">' +
           '<span class="tracker-name-text">' + escapeHtml(p.name || "?") + '</span>' +
-          _battleCondDots(p) +
+          _battleCondDots(p, i) +
         "</div>" +
         '<div class="tracker-actions">' +
           infoSlot +
@@ -1095,19 +1144,126 @@ function renderBattleCastPanels() {
 }
 
 // Дымка v5: мини-иконки активных состояний рядом с именем (.cond-dot).
-// Для «себя» — состояния с листа; у остальных участников списка состояний нет.
-function _battleCondDots(p) {
-  if (!p || p.type !== "self" || typeof getConditionChipIcon !== "function") return "";
+// DM-1: для «себя» — состояния с листа, у остальных — p.conditions (уезжает в
+// saveBattle). Значки — кнопка окна выбора; пока пусто — пунктирный «+».
+function _battleCondList(p) {
+  if (!p) return [];
+  if (p.type === "self") {
+    var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+    return (char && char.conditions) || [];
+  }
+  return p.conditions || [];
+}
+function _battleCondSet() {
   var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
-  if (!char || !char.conditions || !char.conditions.length) return "";
-  var names = {};
   // E24-1: имена состояний по редакции персонажа (у 2024 набор тот же по id).
-  var _cs = (typeof edData === "function") ? edData(char).CONDITIONS : (typeof CONDITIONS !== "undefined" ? CONDITIONS : []);
-  _cs.forEach(function(c) { names[c.id] = stripLeadingEmoji(c.name); });
-  return '<span class="tracker-cond-dots">' + char.conditions.slice(0, 6).map(function(id) {
-    var meta = (typeof DYMKA_CONDITION_META !== "undefined") ? DYMKA_CONDITION_META[String(id).indexOf("exhaustion") === 0 ? "exhaustion" : id] : null;
+  return (typeof edData === "function" && char) ? edData(char).CONDITIONS : (typeof CONDITIONS !== "undefined" ? CONDITIONS : []);
+}
+function _battleCondMeta(id) {
+  return (typeof DYMKA_CONDITION_META !== "undefined") ? DYMKA_CONDITION_META[String(id).indexOf("exhaustion") === 0 ? "exhaustion" : id] : null;
+}
+function _battleCondDots(p, i) {
+  if (!p || typeof getConditionChipIcon !== "function") return "";
+  var list = _battleCondList(p);
+  var names = {};
+  _battleCondSet().forEach(function(c) { names[c.id] = stripLeadingEmoji(c.name); });
+  var inner = list.length ? list.slice(0, 6).map(function(id) {
+    var meta = _battleCondMeta(id);
     return '<span class="cond-dot" style="--sc:' + (meta ? meta.color : "var(--accent)") + '" title="' + escapeHtml(names[id] || id) + '">' + getConditionChipIcon(id, 13) + '</span>';
-  }).join('') + '</span>';
+  }).join('') : '<span class="cond-dot cond-dot-add" aria-hidden="true">+</span>';
+  return '<button type="button" class="tracker-cond-dots" onclick="openBattleCondPicker(' + i + ')" title="Состояния" aria-label="Состояния: ' + escapeHtml(p.name || "?") + '">' + inner + '</button>';
+}
+
+// DM-1: окно выбора состояний участника боя (по образцу окна дебаффов CAST-10).
+var _battleCondIdx = -1;
+function openBattleCondPicker(i) {
+  if (!BATTLE_DATA.participants[i]) return;
+  _battleCondIdx = i;
+  _renderBattleCondPicker();
+}
+function closeBattleCondPicker() {
+  var modal = $("battle-cond-modal");
+  if (modal) modal.classList.remove("active");
+  _battleCondIdx = -1;
+}
+function _renderBattleCondPicker() {
+  var p = BATTLE_DATA.participants[_battleCondIdx];
+  if (!p) { closeBattleCondPicker(); return; }
+  var modal = $("battle-cond-modal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "battle-cond-modal";
+    modal.className = "confirm-modal-overlay";
+    modal.innerHTML =
+      '<div class="confirm-modal-box cast-debuff-box">' +
+        '<button type="button" class="modal-close" onclick="closeBattleCondPicker()" aria-label="Закрыть">✕</button>' +
+        '<h4 id="battle-cond-title"></h4>' +
+        '<div id="battle-cond-hint" class="cast-debuff-hint"></div>' +
+        '<div id="battle-cond-list" class="cast-debuff-targets"></div>' +
+        '<div class="confirm-modal-btns">' +
+          '<button class="confirm-btn-ok" onclick="closeBattleCondPicker()">Готово</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener("click", function(e) { if (e.target === modal) closeBattleCondPicker(); });
+  }
+  var list = _battleCondList(p);
+  $("battle-cond-title").textContent = "Состояния: " + (p.name || "?");
+  $("battle-cond-hint").textContent = p.type === "self"
+    ? "Меняются и на листе персонажа."
+    : "Отметка держится до конца боя.";
+  var rows = _battleCondSet().filter(function(c) { return String(c.id).indexOf("exhaustion") !== 0; }).map(function(c) {
+    var on = list.indexOf(c.id) !== -1;
+    var meta = _battleCondMeta(c.id);
+    return '<button type="button" class="cast-debuff-target' + (on ? " chosen" : "") + '" onclick="toggleBattleCondition(\'' + c.id + '\')" aria-pressed="' + on + '">' +
+      '<span class="cdb-icon" style="--row-c:' + (meta ? meta.color : "var(--accent)") + '" aria-hidden="true"></span>' +
+      getConditionChipIcon(c.id, 15) +
+      '<span class="cdb-name">' + escapeHtml(stripLeadingEmoji(c.name)) + '</span>' +
+    '</button>';
+  }).join("");
+  var exh = getExhaustionLevel({ conditions: list });
+  rows += '<div class="cast-debuff-target battle-cond-exh">' +
+    '<span class="cdb-icon" style="--row-c:' + (exh ? "var(--danger)" : "var(--text-mute)") + '"' + (exh ? ' data-on="1"' : '') + ' aria-hidden="true"></span>' +
+    getConditionChipIcon("exhaustion_1", 15) +
+    '<span class="cdb-name">Истощение</span>' +
+    '<button type="button" class="tracker-hp-btn" onclick="adjustBattleExhaustion(-1)" aria-label="Истощение −1">−</button>' +
+    '<span class="battle-cond-exh-val">' + exh + '</span>' +
+    '<button type="button" class="tracker-hp-btn" onclick="adjustBattleExhaustion(1)" aria-label="Истощение +1">+</button>' +
+  '</div>';
+  $("battle-cond-list").innerHTML = rows;
+  modal.classList.add("active");
+}
+function toggleBattleCondition(id) {
+  var p = BATTLE_DATA.participants[_battleCondIdx];
+  if (!p) return;
+  if (p.type === "self") {
+    if (typeof toggleCondition === "function") toggleCondition(id);
+  } else {
+    if (!p.conditions) p.conditions = [];
+    var k = p.conditions.indexOf(id);
+    if (k > -1) p.conditions.splice(k, 1); else p.conditions.push(id);
+    if (window.AppLog) AppLog.action("battle", (p.name || "?") + ": состояние " + id + (k > -1 ? " снято" : " добавлено"));
+    saveBattle();
+  }
+  renderBattleTracker();
+  _renderBattleCondPicker();
+}
+function adjustBattleExhaustion(delta) {
+  var p = BATTLE_DATA.participants[_battleCondIdx];
+  if (!p) return;
+  if (p.type === "self") {
+    if (typeof adjustExhaustion === "function") adjustExhaustion(delta);
+  } else {
+    if (!p.conditions) p.conditions = [];
+    var cur = getExhaustionLevel({ conditions: p.conditions });
+    var next = Math.max(0, Math.min(6, cur + delta));
+    p.conditions = p.conditions.filter(function(id) { return String(id).indexOf("exhaustion_") !== 0; });
+    if (next > 0) p.conditions.push("exhaustion_" + next);
+    if (window.AppLog && next !== cur) AppLog.action("battle", (p.name || "?") + ": истощение " + cur + " → " + next);
+    saveBattle();
+  }
+  renderBattleTracker();
+  _renderBattleCondPicker();
 }
 
 // ── UX-6: действия в строке трекера (ХП / инициатива / броски / удаление) ──

@@ -1063,6 +1063,61 @@ function concSaveParams(char, dmg) {
 }
 window.concSaveParams = concSaveParams;
 
+// DM-1: сложность встречи по DMG 2014 (стр. 82). Пороги опыта на персонажа
+// по уровню: [лёгкая, средняя, сложная, смертельная].
+var ENCOUNTER_XP_THRESHOLDS = [null,
+  [25, 50, 75, 100], [50, 100, 150, 200], [75, 150, 225, 400], [125, 250, 375, 500],
+  [250, 500, 750, 1100], [300, 600, 900, 1400], [350, 750, 1100, 1700], [450, 900, 1400, 2100],
+  [550, 1100, 1600, 2400], [600, 1200, 1900, 2800], [800, 1600, 2400, 3600], [1000, 2000, 3000, 4500],
+  [1100, 2200, 3400, 5100], [1250, 2500, 3800, 5700], [1400, 2800, 4300, 6400], [1600, 3200, 4800, 7200],
+  [2000, 3900, 5900, 8800], [2100, 4200, 6300, 9500], [2400, 4900, 7300, 10900], [2800, 5700, 8500, 12700]
+];
+// Опыт за монстра по показателю опасности (DMG стр. 274–275).
+var CR_XP = {
+  "0": 10, "1/8": 25, "1/4": 50, "1/2": 100, "1": 200, "2": 450, "3": 700, "4": 1100, "5": 1800,
+  "6": 2300, "7": 2900, "8": 3900, "9": 5000, "10": 5900, "11": 7200, "12": 8400, "13": 10000,
+  "14": 11500, "15": 13000, "16": 15000, "17": 18000, "18": 20000, "19": 22000, "20": 25000,
+  "21": 33000, "22": 41000, "23": 50000, "24": 62000, "25": 75000, "26": 90000, "27": 105000,
+  "28": 120000, "29": 135000, "30": 155000
+};
+var ENCOUNTER_LEVEL_LABELS = { none: "Ниже лёгкой", easy: "Лёгкая", medium: "Средняя", hard: "Сложная", deadly: "Смертельная" };
+function rulesCrToXp(cr) {
+  var s = String(cr == null ? "" : cr).trim().replace(",", ".");
+  if (s === "0.125") s = "1/8"; else if (s === "0.25") s = "1/4"; else if (s === "0.5") s = "1/2";
+  return CR_XP.hasOwnProperty(s) ? CR_XP[s] : 0;
+}
+// Множитель по числу монстров; отряд меньше 3 — ступень выше, 6+ — ступень ниже.
+function rulesEncounterMultiplier(monsterCount, partySize) {
+  var steps = [0.5, 1, 1.5, 2, 2.5, 3, 4, 5];
+  if (!monsterCount) return 1;
+  var i = monsterCount === 1 ? 1 : monsterCount === 2 ? 2 : monsterCount <= 6 ? 3 : monsterCount <= 10 ? 4 : monsterCount <= 14 ? 5 : 6;
+  if (partySize > 0 && partySize < 3) i++;
+  else if (partySize >= 6) i--;
+  return steps[i];
+}
+// levels — уровни персонажей отряда, monsterXps — опыт каждого монстра.
+function rulesEncounterDifficulty(levels, monsterXps) {
+  var th = [0, 0, 0, 0];
+  (levels || []).forEach(function(l) {
+    var row = ENCOUNTER_XP_THRESHOLDS[Math.max(1, Math.min(20, parseInt(l, 10) || 1))];
+    for (var k = 0; k < 4; k++) th[k] += row[k];
+  });
+  var xps = monsterXps || [];
+  var base = xps.reduce(function(s, x) { return s + (x || 0); }, 0);
+  var mult = rulesEncounterMultiplier(xps.length, (levels || []).length);
+  var adjusted = Math.floor(base * mult);
+  var keys = ["easy", "medium", "hard", "deadly"];
+  var level = "none";
+  for (var j = 3; j >= 0; j--) { if (adjusted >= th[j]) { level = keys[j]; break; } }
+  var ni = keys.indexOf(level) + 1;
+  return {
+    base: base, mult: mult, adjusted: adjusted, level: level,
+    label: ENCOUNTER_LEVEL_LABELS[level],
+    thresholds: { easy: th[0], medium: th[1], hard: th[2], deadly: th[3] },
+    next: ni < 4 ? { level: keys[ni], label: ENCOUNTER_LEVEL_LABELS[keys[ni]], xp: th[ni] } : null
+  };
+}
+
 // ── Владения из источников (раса / класс / подкласс / предыстория / черты) ──
 // Возвращает массив [{cls, sub}] для всех классов персонажа (с учётом мультикласса)
 function getCharClassPairs(char) {
