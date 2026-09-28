@@ -56,6 +56,7 @@ function renderNotes() {
   }
   _renderNotesSubtabs();
   _renderNotesMain();
+  _notesSyncGenBtn(char);
 }
 
 function _renderNotesSubtabs() {
@@ -114,6 +115,13 @@ function _findTab(key) {
   for (var i = 0; i < NOTES_TABS.length; i++) if (NOTES_TABS[i].key === key) return NOTES_TABS[i];
   return null;
 }
+
+// NGEN-1: родовые формы «прям{ой|ая}» → по полу: "ж" — вторая форма, иначе первая.
+// NGEN-2: живёт здесь, а не в ленивом character-builds.js — нужна и персонажу без билда.
+window.genderize = function(text, g) {
+  if (typeof text !== "string") return text;
+  return text.replace(/\{([^{}|\r\n]*)\|([^{}|\r\n]*)\}/g, function(_, m, f){ return g === "ж" ? f : m; });
+};
 
 // BUILD-NOTES-2: соответствие ключа секции ключу в notesV2.variants.
 var NOTES_VARIANT_KEY = {
@@ -223,7 +231,9 @@ function _renderVariantsPanel(secKey, variants, currentVal) {
   var html = '<div class="notes-variants-panel" id="notes-var-' + secKey + '" role="region"' +
              ' aria-label="Варианты из билда для секции"' +
              (open ? '' : ' style="display:none;"') + '>';
-  html += '<div class="notes-variants-hint">Варианты из билда (' + variants.length + '):</div>';
+  var ch = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+  var fromGen = !!(ch && ch.notesV2 && ch.notesV2.variants && ch.notesV2.variants.gen);
+  html += '<div class="notes-variants-hint">' + (fromGen ? 'Сгенерированные варианты' : 'Варианты из билда') + ' (' + variants.length + '):</div>';
   html += '<div class="notes-variants-list" role="listbox" aria-label="Список вариантов">';
   for (var i = 0; i < variants.length; i++) {
     var v = variants[i];
@@ -321,10 +331,10 @@ function notesRegenerateAll() {
     if (_getSectionVariants(char, keys[i]).length >= 1) available.push(keys[i]);
   }
   if (!available.length) {
-    alert('У текущего персонажа нет вариантов билда для перегенерации.\nПрименён ли готовый билд?');
+    notesGenerate();
     return;
   }
-  if (!confirm('Перегенерировать все секции (' + available.length + ') случайными вариантами из билда?\nТекущий текст этих секций будет заменён.')) return;
+  if (!confirm('Перегенерировать все секции (' + available.length + ') случайными вариантами?\nТекущий текст этих секций будет заменён.')) return;
   char.notesV2 = char.notesV2 || { sections: {}, entries: [], prefs: {} };
   char.notesV2.sections = char.notesV2.sections || {};
   for (var j = 0; j < available.length; j++) {
@@ -340,6 +350,103 @@ function notesRegenerateAll() {
   _notesFlashSaved();
   // Если открыта вкладка Предыстория — перерисуем; иначе ничего видимого.
   if (_notesState.currentTab === 'backstory') _renderNotesMain();
+}
+
+// NGEN-2: генератор текстов для персонажа без билда. Данные — notes-gen-data.js (лениво).
+function _notesHasBuildVariants(char) {
+  var v = char && char.notesV2 && char.notesV2.variants;
+  if (!v || v.gen) return false;
+  return Object.keys(NOTES_VARIANT_KEY).some(function(k){
+    var a = v[NOTES_VARIANT_KEY[k]];
+    return Array.isArray(a) && a.length > 0;
+  });
+}
+
+function _ngRaceKey(race) {
+  var r = String(race || '').toLowerCase();
+  var map = [['полуэльф','halfelf'],['орк','orc'],['дроу','drow'],['эльф','elf'],['дварф','dwarf'],
+             ['полурослик','halfling'],['гном','gnome'],['тифлинг','tiefling'],['драконорожд','dragonborn'],
+             ['голиаф','goliath'],['аасимар','aasimar'],['человек','human']];
+  for (var i = 0; i < map.length; i++) if (r.indexOf(map[i][0]) !== -1) return map[i][1];
+  return 'any';
+}
+
+/** Собрать n вариантов по каждой категории (тексты с маркерами {м|ж}). */
+function _notesGenVariants(char, n) {
+  var D = window.NOTES_GEN;
+  if (!D) return null;
+  n = n || 6;
+  var race = D.races[_ngRaceKey(char.race)] || D.races.any;
+  var cls = D.classes[char.class] || D.classes.any;
+  var theme = D.themes[D.bgTheme[char.background] || 'any'] || D.themes.any;
+  function pick(arr) { return (arr && arr.length) ? arr[Math.floor(Math.random() * arr.length)] : ''; }
+  function join(parts) { return parts.filter(Boolean).join(' '); }
+  function many(make) {
+    var out = [], tries = 0;
+    while (out.length < n && tries < n * 20) {
+      var t = make(); tries++;
+      if (t && out.indexOf(t) === -1) out.push(t);
+    }
+    return out;
+  }
+  function list(arr) {
+    var src = (arr || []).slice(), out = [];
+    while (src.length && out.length < n) out.push(src.splice(Math.floor(Math.random() * src.length), 1)[0]);
+    return out;
+  }
+  return {
+    gen: true,
+    appearance: many(function(){ return join([pick(race.look), pick(cls.look), pick(D.common.look)]); }),
+    personality: many(function(){ return join([pick(theme.trait), pick(cls.trait)]); }),
+    ideals: list(theme.ideals),
+    bonds: list(theme.bonds),
+    flaws: list(theme.flaws),
+    backstories: many(function(){
+      return join([pick(race.origin), pick(theme.origin)]) + '\n\n' +
+             join([pick(theme.turn), pick(cls.calling)]) + '\n\n' +
+             pick(cls.now.concat(D.common.now));
+    })
+  };
+}
+
+/** NGEN-2: «Сгенерировать» — варианты по расе/классу/предыстории, пустые и нетронутые секции заполняются. */
+function notesGenerate() {
+  var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+  if (!char) return;
+  if (!char.race && !char.class && !char.background) {
+    if (typeof showToast === 'function') showToast('Сначала выберите расу, класс или предысторию в «Основном»', 'info');
+    return;
+  }
+  var load = window.ensureNotesGen ? window.ensureNotesGen() : Promise.resolve();
+  load.then(function(){
+    var nv = _notesGenVariants(char, 6);
+    if (!nv) return;
+    char.notesV2 = char.notesV2 || { sections: {}, entries: [], prefs: {} };
+    var secs = char.notesV2.sections = char.notesV2.sections || {};
+    var oldV = char.notesV2.variants || {};
+    var g = char.gender, kept = 0;
+    Object.keys(NOTES_VARIANT_KEY).forEach(function(sk){
+      var vk = NOTES_VARIANT_KEY[sk], cur = secs[sk] || '';
+      var wasOld = Array.isArray(oldV[vk]) && oldV[vk].some(function(x){ return window.genderize(x, g) === cur; });
+      if (cur.trim() && !wasOld) { kept++; return; }
+      if (nv[vk].length) secs[sk] = window.genderize(nv[vk][0], g);
+    });
+    char.notesV2.variants = nv;
+    if (typeof saveToLocalDebounced === 'function') saveToLocalDebounced();
+    _notesFlashSaved();
+    if (_notesState.currentTab === 'backstory') _renderNotesMain();
+    _notesSyncGenBtn(char);
+    if (typeof showToast === 'function') {
+      showToast(kept ? 'Сгенерировано. Свой текст в ' + kept + ' разд. не тронут — варианты под 🎲' : 'Сгенерировано. Другие варианты — под 🎲 в каждом разделе', 'success');
+    }
+  }).catch(function(){
+    if (typeof showToast === 'function') showToast('Не удалось загрузить генератор — проверьте соединение', 'error');
+  });
+}
+
+function _notesSyncGenBtn(char) {
+  var b = document.getElementById('notes-gen-btn');
+  if (b) b.style.display = _notesHasBuildVariants(char) ? 'none' : '';
 }
 
 function notesPickRandomVariant(secKey) {

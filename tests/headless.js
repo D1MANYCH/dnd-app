@@ -479,6 +479,28 @@
       return true;
     });
 
+    t("[NGEN-2] генератор: 6 вариантов на раздел для любых раса/класс/предыстория, маркеры раскрываются", function(){
+      if (typeof _notesGenVariants !== "function" || !window.NOTES_GEN) return "генератор или NOTES_GEN не загружены";
+      var races = ["Человек", "Дроу", "Горный дварф", "Полуорк", "Орк", "Тифлинг", ""];
+      var classes = ["Воин", "Варвар", "Паладин", "Следопыт", "Плут", "Монах", "Бард", "Колдун", "Жрец", "Друид", "Чародей", "Волшебник", ""];
+      var bgs = Object.keys(window.NOTES_GEN.bgTheme).concat([""]);
+      var keys = ["appearance", "personality", "ideals", "bonds", "flaws", "backstories"];
+      var diff = false;
+      for (var i = 0; i < classes.length; i++) for (var j = 0; j < bgs.length; j++) {
+        var v = _notesGenVariants({ race: races[(i + j) % races.length], class: classes[i], background: bgs[j] }, 6);
+        for (var k = 0; k < keys.length; k++) {
+          var arr = v[keys[k]];
+          if (!arr || arr.length !== 6) return classes[i] + "/" + bgs[j] + ": " + keys[k] + " = " + (arr ? arr.length : 0);
+          for (var m = 0; m < arr.length; m++) {
+            var f = window.genderize(arr[m], "ж");
+            if (/[{}|]/.test(f)) return "нераскрытый маркер: " + f;
+            if (f !== window.genderize(arr[m], "")) diff = true;
+          }
+        }
+      }
+      return diff ? true : "женские формы нигде не отличаются";
+    });
+
     // ЗАМОК-1: замок листа поверх замка основы
     t("[замок] миграция: легаси-персонаж → sheetLocked true (как basicLocked)", function(){
       var c = migrateCharacter({ id: 5, class: "Воин", level: 3 });

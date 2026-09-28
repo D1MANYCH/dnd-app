@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v416';
+const CACHE_NAME = 'dnd-sheet-v417';
 
 const FILES_TO_CACHE = [
   './',
@@ -34,6 +34,7 @@ const FILES_TO_CACHE = [
   './class-choices.js',
   './subclass-choices-data.js',
   './app-notes.js',
+  './notes-gen-data.js',
   './assets/schools/abjuration.webp',
   './assets/schools/conjuration.webp',
   './assets/schools/divination.webp',

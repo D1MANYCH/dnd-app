@@ -53,7 +53,8 @@ const files = [
   'app-asi.js',              // SETUP-6: АСИ и черты — после app-ui (как в index.html)
   'app-progress.js',         // LVL-2: экран «Развитие» — после app-asi (как в index.html); в тестах даёт проверку загрузки
   'app-help.js',             // THEME-1: геометрия прожектора тура — _computeTourBoxes (БЛОК 31)
-  'app-notes.js',            // FIN-12: notesV2 — _mdToHtml/_notesReorderPinned/notesSaveEntryModal/notesExport* (БЛОК 30)
+  'notes-gen-data.js',       // NGEN-2: пулы генератора «Записей»
+  'app-notes.js',          // FIN-12: notesV2 — _mdToHtml/_notesReorderPinned/notesSaveEntryModal/notesExport* (БЛОК 30)
   'history-stack.js',        // FIN-12: pushHistoryLayer/syncCloseLayer/getHistoryLayers (нужен history-шим ниже) (БЛОК 30)
   'app-backup.js',           // FIN-12: авто-бэкап IndexedDB — smoke: константы/наличие/чистые хелперы (БЛОК 30)
   'tests/fixtures.js',
