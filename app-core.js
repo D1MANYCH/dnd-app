@@ -1037,27 +1037,8 @@ function exportOneCharacter(id, event) {
 event.stopPropagation();
 var char = characters.find(function(c) { return c.id === id; });
 if (!char) return;
-// FEAT-1 доработка: срез HP-истории именно этого персонажа.
-var charHp = (typeof hpHistory !== 'undefined' && Array.isArray(hpHistory))
-  ? hpHistory.filter(function(h) { return h && h.charId === id; })
-  : [];
-// HB-7: хомбрю-заклинания этого персонажа в конверт — иначе при импорте в чистый
-// профиль их не видно в поиске (в mySpells копия едет, но глобальная база пуста).
-var charSpells = _collectCharUserSpells(char);
-var data = JSON.stringify({
-  app: "dnd-sheet",
-  appVersion: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : "",
-  schemaVersion: (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : (char.schemaVersion || 0),
-  exportedAt: new Date().toISOString(),
-  characters: [char],
-  hpHistory: charHp,
-  userSpells: charSpells
-}, null, 2);
-var blob = new Blob([data], { type: "application/json" });
-var a = document.createElement("a");
-a.href = URL.createObjectURL(blob);
-a.download = (char.name || "персонаж").replace(/[^a-zA-Zа-яА-Я0-9]/g, "_") + ".json";
-a.click();
+// SHARE-1: конверт (история ХП, свои заклинания, ссылки на книжные) — app-io.js.
+_downloadText(_buildCharEnvelope(char), _charExportFileName(char));
 }
 function updateCharCounter() {
 var el = $("char-count");
@@ -1207,6 +1188,9 @@ if (chipEl && typeof _homeHeroChips === "function") {
 if (actEl) {
   actEl.innerHTML =
     "<button type=\"button\" class=\"char-hero-act\" data-id=\"" + escapeHtml(char.id) + "\" onclick=\"exportOneCharacter(Number(this.dataset.id), event)\">" + dndIcoHtml("download", 14) + " Экспорт</button>" +
+    (typeof navigator.canShare === "function"
+      ? "<button type=\"button\" class=\"char-hero-act\" data-id=\"" + escapeHtml(char.id) + "\" onclick=\"shareOneCharacter(Number(this.dataset.id), event)\">" + dndIcoHtml("upload", 14) + " Отправить</button>"
+      : "") +
     "<button type=\"button\" class=\"char-hero-act\" data-id=\"" + escapeHtml(char.id) + "\" onclick=\"exportCharacterPDF(Number(this.dataset.id), event)\">" + dndIcoHtml("file", 14) + " PDF</button>" +
     "<button type=\"button\" class=\"char-hero-act\" data-id=\"" + escapeHtml(char.id) + "\" onclick=\"duplicateCharacter(Number(this.dataset.id), event)\">⧉ Дублировать</button>" +
     "<button type=\"button\" class=\"char-hero-act char-hero-act-del\" data-id=\"" + escapeHtml(char.id) + "\" onclick=\"event.stopPropagation(); deleteCharacter(Number(this.dataset.id))\">✕ Удалить</button>";

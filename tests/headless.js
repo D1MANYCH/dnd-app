@@ -760,6 +760,38 @@
       } finally { window.characters = savedChars; window.hpHistory = savedHist; window.SPELL_DATABASE = savedDB; }
     });
 
+    t("[SHARE-1] конверт персонажа: книжные заклинания ссылкой, раунд-трип байт в байт", function(){
+      function cl(x) { return JSON.parse(JSON.stringify(x)); }
+      var plain = cl(SPELLS_BASE[0]);
+      var granted = cl(SPELLS_BASE[5]); granted.grantedBy = "Тифлинг";
+      var stale = cl(SPELLS_BASE[7]); stale.desc = "старый текст";
+      var noKey = cl(SPELLS_BASE[9]); delete noKey.higherLevel;
+      var hb = { id: "user-sh-1", name: "Своя искра", level: 0, source: "PH14", homebrew: true };
+      var char = migrateCharacter({ id: 7301, name: "Курьер", class: "Волшебник", level: 3 });
+      char.spells.mySpells = [plain, granted, stale, noKey, hb];
+      var before = JSON.stringify(char);
+      var text = _buildCharEnvelope(char);
+      if (JSON.stringify(char) !== before) return "экспорт изменил живого персонажа";
+      var env = JSON.parse(text);
+      if (env.format !== 2) return "format: " + env.format;
+      var packed = env.characters[0].spells.mySpells;
+      if (packed[0]._ref !== plain.id || Object.keys(packed[0]).length !== 1) return "чистое книжное не ссылкой: " + JSON.stringify(packed[0]);
+      if (packed[1]._ref == null || packed[1].grantedBy !== "Тифлинг" || packed[1].name) return "поле персонажа потеряно: " + JSON.stringify(packed[1]);
+      if (packed[2]._ref == null || packed[2].desc !== "старый текст") return "устаревший текст не сохранён";
+      if (packed[3]._ref != null) return "копия без ключа базы должна ехать полной";
+      if (packed[4]._ref != null || packed[4].name !== "Своя искра") return "своё заклинание должно ехать полным";
+      var full = JSON.stringify(char.spells.mySpells).length, small = JSON.stringify(packed).length;
+      if (small >= full / 2) return "сжатие слабое: " + small + " из " + full;
+      var back = _extractCharsFromImport(env);
+      if (JSON.stringify(back[0].spells.mySpells) !== JSON.stringify(char.spells.mySpells)) return "раунд-трип mySpells не байт в байт";
+      if (JSON.stringify(back[0]) !== before) return "раунд-трип персонажа не байт в байт";
+      // старый формат (полные объекты) и неизвестная ссылка
+      var old = { characters: [{ id: 1, class: "Бард", level: 1, spells: { mySpells: [cl(plain), { _ref: -99999 }] } }] };
+      var oldBack = _extractCharsFromImport(old)[0].spells.mySpells;
+      if (oldBack.length !== 1 || JSON.stringify(oldBack[0]) !== JSON.stringify(plain)) return "старый формат или неизвестная ссылка: " + JSON.stringify(oldBack);
+      return true;
+    });
+
     t("[AUD-1] safeImageSrc: base64-картинка и https проходят, остальное режется", function(){
       if (safeImageSrc("data:image/jpeg;base64,/9j/4AAQ==") !== "data:image/jpeg;base64,/9j/4AAQ==") return "base64 jpeg отрезан";
       if (safeImageSrc("https://example.com/a.png?x=1&y=2") === "") return "https отрезан";

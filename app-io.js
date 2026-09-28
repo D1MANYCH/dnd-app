@@ -156,13 +156,142 @@ function _ingestImportedUserSpells(rawSpells, targetChars) {
   }
   return res;
 }
+// SHARE-1: формат конверта одного персонажа. 2 — книжные заклинания mySpells
+// едут ссылкой { _ref: id, <поля, отличные от базы> }; без поля format — версия 1.
+var CHAR_EXPORT_FORMAT = 2;
+var _spellBaseIndex = null;
+function _spellBaseById(id) {
+  if (typeof SPELLS_BASE === 'undefined') return null;
+  if (!_spellBaseIndex) {
+    _spellBaseIndex = {};
+    SPELLS_BASE.forEach(function(s) { if (s && s.id != null) _spellBaseIndex[String(s.id)] = s; });
+  }
+  return _spellBaseIndex[String(id)] || null;
+}
+function _unpackSpell(s) {
+  if (!s || typeof s !== 'object' || s._ref == null) return s;
+  var base = _spellBaseById(s._ref);
+  if (!base) return null;
+  var out = JSON.parse(JSON.stringify(base));
+  Object.keys(s).forEach(function(k) { if (k !== "_ref") out[k] = s[k]; });
+  return out;
+}
+// Своё заклинание, неизвестный id или копия, которую ссылка не восстановит
+// байт в байт (нет ключа базы, другой порядок ключей), — едет полным объектом.
+function _packSpell(s) {
+  if (!s || typeof s !== 'object' || s.homebrew || s._ref != null) return s;
+  var base = _spellBaseById(s.id);
+  if (!base) return s;
+  var out = { _ref: s.id };
+  Object.keys(s).forEach(function(k) {
+    if (k !== "id" && JSON.stringify(s[k]) !== JSON.stringify(base[k])) out[k] = s[k];
+  });
+  return JSON.stringify(_unpackSpell(out)) === JSON.stringify(s) ? out : s;
+}
+// Копия для экспорта — живой персонаж не меняется.
+function _packCharForExport(char) {
+  var list = char && char.spells && char.spells.mySpells;
+  if (!Array.isArray(list)) return char;
+  var out = Object.assign({}, char);
+  out.spells = Object.assign({}, char.spells, { mySpells: list.map(_packSpell) });
+  return out;
+}
+function _unpackCharSpells(c) {
+  var sp = c && typeof c === 'object' && c.spells;
+  if (!sp || !Array.isArray(sp.mySpells)) return;
+  sp.mySpells = sp.mySpells.map(_unpackSpell).filter(function(s) { return s !== null; });
+}
+// Конверт одного персонажа: он сам, срез его истории ХП, его свои заклинания.
+function _buildCharEnvelope(char) {
+  var charHp = (typeof hpHistory !== 'undefined' && Array.isArray(hpHistory))
+    ? hpHistory.filter(function(h) { return h && h.charId === char.id; })
+    : [];
+  return JSON.stringify({
+    app: "dnd-sheet",
+    format: CHAR_EXPORT_FORMAT,
+    appVersion: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : "",
+    schemaVersion: (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : (char.schemaVersion || 0),
+    exportedAt: new Date().toISOString(),
+    characters: [_packCharForExport(char)],
+    hpHistory: charHp,
+    userSpells: _collectCharUserSpells(char)
+  });
+}
+function _charExportFileName(char) {
+  return (char.name || "персонаж").replace(/[^a-zA-Zа-яА-Я0-9]/g, "_") + ".json";
+}
+function _downloadText(text, name) {
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+  a.download = name;
+  a.click();
+}
+// Файл, который браузер согласен отдать в системное «Поделиться»; иначе null.
+function _shareableFile(text, name) {
+  if (typeof navigator === 'undefined' || typeof navigator.canShare !== "function" || typeof File !== "function") return null;
+  var types = ["application/json", "text/plain"];
+  for (var i = 0; i < types.length; i++) {
+    try {
+      var f = new File([text], name, { type: types[i] });
+      if (navigator.canShare({ files: [f] })) return f;
+    } catch (e) {}
+  }
+  return null;
+}
+function shareOneCharacter(id, event) {
+  if (event) event.stopPropagation();
+  var char = characters.find(function(c) { return c.id === id; });
+  if (!char) return;
+  var text = _buildCharEnvelope(char), name = _charExportFileName(char);
+  var file = _shareableFile(text, name);
+  if (!file) {
+    _downloadText(text, name);
+    showToast("«Поделиться» здесь недоступно — файл скачан", "info");
+    return;
+  }
+  navigator.share({ files: [file], title: char.name || "Персонаж" }).catch(function(err) {
+    if (err && err.name === "AbortError") return;
+    _downloadText(text, name);
+    showToast("Отправить не удалось — файл скачан", "info");
+  });
+}
+function copyCharToClipboard() {
+  var char = getCurrentChar() || (typeof getLastCharacter === "function" ? getLastCharacter() : null);
+  if (!char) { showToast("Нет персонажа для копирования", "error"); return; }
+  if (!navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
+    showToast("Браузер не даёт писать в буфер обмена — используйте экспорт", "error");
+    return;
+  }
+  var text = _buildCharEnvelope(char);
+  navigator.clipboard.writeText(text).then(function() {
+    showToast("«" + (char.name || "Без имени") + "» скопирован · " + Math.max(1, Math.round(text.length / 1024)) +
+              " КБ. На другом устройстве: «Данные» → «Вставить из буфера»", "success");
+  }, function() { showToast("Не удалось скопировать в буфер обмена", "error"); });
+}
+function pasteCharFromClipboard() {
+  if (!navigator.clipboard || typeof navigator.clipboard.readText !== "function") {
+    showToast("Браузер не даёт читать буфер обмена — используйте «Импорт персонажа»", "error");
+    return;
+  }
+  navigator.clipboard.readText().then(function(text) {
+    if (!text || !text.trim()) { showToast("Буфер обмена пуст", "info"); return; }
+    if (text.length > IMPORT_MAX_BYTES) {
+      showToast("В буфере слишком много данных (макс. " + Math.round(IMPORT_MAX_BYTES/1024/1024) + " МБ)", "error");
+      return;
+    }
+    _importOneCharText(text);
+  }, function() { showToast("Нет доступа к буферу обмена", "error"); });
+}
 // FEAT-1: схема-толерантный разбор импорта. Принимает голый массив
 // [char,...] (полные бэкапы из exportData) либо обёртку
 // { characters:[...], spells?:[...] } (из exportOneCharacter). Иначе null.
+// SHARE-1: ссылки _ref в mySpells разворачиваются здесь, до миграции.
 function _extractCharsFromImport(parsed) {
-  if (Array.isArray(parsed)) return parsed;
-  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.characters)) return parsed.characters;
-  return null;
+  var list = null;
+  if (Array.isArray(parsed)) list = parsed;
+  else if (parsed && typeof parsed === 'object' && Array.isArray(parsed.characters)) list = parsed.characters;
+  if (list) list.forEach(_unpackCharSpells);
+  return list;
 }
 // DATA-2: применение полного бэкапа (конверт exportData / снапшот app-backup.js).
 // Заменяет персонажей, HP-историю и пользовательские заклинания. Конверты без
@@ -276,25 +405,30 @@ if (file.size > IMPORT_MAX_BYTES) {
 }
 const reader = new FileReader();
 reader.onload = function(e) {
+input.value = "";
+_importOneCharText(e.target.result);
+};
+reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
+reader.readAsText(file);
+}
+// SHARE-1: общий разбор для файла и буфера обмена.
+function _importOneCharText(text) {
 let parsed;
 try {
-  parsed = JSON.parse(e.target.result);
+  parsed = JSON.parse(text);
 } catch (err) {
   showToast("Файл повреждён или это не JSON", "error");
-  input.value = "";
   return;
 }
 var importedChars = _extractCharsFromImport(parsed);
 if (!importedChars) {
   showToast("Неверный формат: ожидался массив или { characters: [...] }", "error");
-  input.value = "";
   return;
 }
 var valid = importedChars.filter(_isValidImportedChar);
 var skipped = importedChars.length - valid.length;
 if (valid.length === 0) {
   showToast("В файле нет валидных персонажей", "error");
-  input.value = "";
   return;
 }
 var msg = "Добавить " + valid.length + " персонаж(а/ей) в список? Текущие не будут затронуты.";
@@ -349,10 +483,6 @@ showConfirmModal("Импорт персонажа", msg, function() {
             (addedSpells ? " · свои заклинания: " + addedSpells : ""), "success");
   _warnEditionMix(addedChars);
 }, "Импортировать", { danger: false, icon: "import" });
-input.value = "";
-};
-reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
-reader.readAsText(file);
 }
 function exportSpells() {
 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(SPELL_DATABASE));
