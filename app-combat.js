@@ -1411,6 +1411,8 @@ function applyBasicLockUI() {
 
   if (banner) banner.style.display = locked ? "none" : "flex";
   if (lockedBar) lockedBar.style.display = locked ? "flex" : "none";
+  var agRow = $("abilgen-row");
+  if (agRow) agRow.style.display = locked ? "none" : "";
 
   if (!locked) updateLockButtonState();
   applySheetLockUI();
