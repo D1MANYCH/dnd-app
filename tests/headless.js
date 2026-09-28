@@ -7066,6 +7066,27 @@
         || "кнопка осталась на 20 уровне";
     });
 
+    // FB-1: раскладка классов до фиксации основы
+    t("[fb1] раскладка: сумма уровней без пустых строк, требование 13 — по каждому классу", function(){
+      if (_mlTotal([{cls:"Воин", level:3}, {cls:"Плут", level:2}, {cls:"", level:4}]) !== 5) return "сумма не 5";
+      var c = mk([{class:"Воин", level:3, subclass:"", hitDie:10}]);
+      c.stats = { str:10, dex:14, con:14, int:10, wis:10, cha:10 };
+      if (_mlMissing(c, "Воин").length) return "Воин с ЛОВ 14 должен проходить (СИЛ 13 заменяется ЛОВ 13)";
+      if (_mlMissing(c, "Плут").length) return "Плут с ЛОВ 14 должен проходить";
+      if (!_mlMissing(c, "Волшебник").length) return "Волшебник с ИНТ 10 не должен проходить";
+      return true;
+    });
+
+    t("[fb1] раскладка Воин 3 / Плут 2: хиты по среднему, кости по классам", function(){
+      var c = mk([{class:"Воин", level:3, subclass:"", hitDie:10}, {class:"Плут", level:2, subclass:"", hitDie:8}]);
+      // ТЕЛ 14: Воин 10+2 + 2×(6+2) = 28, Плут 2×(5+2) = 14
+      var hp = rulesMaxHPBase(c, 2);
+      if (hp !== 42) return "хиты " + hp + ", ожидал 42";
+      var pool = rulesHitDicePool(c);
+      if (pool[10] !== 3 || pool[8] !== 2) return "кости " + JSON.stringify(pool);
+      return true;
+    });
+
     t("[lvl7] действия: «Откатить» требует и снимок, и уровень выше 1", function(){
       var c = mk([{class:"Плут", level:1, subclass:"", hitDie:8}]);
       c._prevLevelSnapshot = { level: 1 };

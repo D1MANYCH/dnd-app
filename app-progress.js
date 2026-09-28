@@ -500,6 +500,9 @@ function pgAfterLevelModal() {
 
 /** «Добавить класс →» — сразу к блоку нового класса в модалке повышения */
 function pgAddClass() {
+  // FB-1: до фиксации основы — раскладка классов сразу, без пошагового повышения
+  var _c = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  if (_c && !_c.basicLocked) { openMcLayout(); return; }
   if (typeof openLevelUpModal !== "function") return;
   _pgFromProgress = true;
   openLevelUpModal();
@@ -581,8 +584,9 @@ function syncClassFieldUI(char) {
   mc.style.display = multi ? "" : "none";
   var addBtn = $("char-add-class");
   if (addBtn) {
-    addBtn.style.display = (char && char.class && (char.level || 1) < 20) ? "" : "none";
-    addBtn.textContent = multi ? "+ Ещё класс (мультикласс) →" : "+ Второй класс (мультикласс) →";
+    var open = !!(char && !char.basicLocked);
+    addBtn.style.display = (char && char.class && (open || (char.level || 1) < 20)) ? "" : "none";
+    addBtn.textContent = (multi && open) ? "Классы и уровни (мультикласс) →" : multi ? "+ Ещё класс (мультикласс) →" : "+ Второй класс (мультикласс) →";
   }
   if (multi && lbl && typeof getClassLabel === "function") lbl.textContent = getClassLabel(char);
 
@@ -681,4 +685,170 @@ function _fiRuleNotes(desc, ed) {
     hits.map(function(e) {
       return "<p><b>" + escapeHtml(e.term) + "</b> — " + escapeHtml(e.def) + "</p>";
     }).join("") + "</div>";
+}
+
+// ── FB-1 · Раскладка классов до фиксации основы (#screen-mclayout) ──
+// Игрок создаёт персонажа сразу нужного уровня: «Воин 3 / Плут 2» задаётся
+// одним экраном, без пошагового повышения. Хиты, кости, ячейки и владения
+// выводятся из char.classes, поэтому экран пишет раскладку и зовёт те же
+// пересчёты, что и лист. Требование 13 — предупреждение, не запрет (NPC,
+// домашние правила); после фиксации основы остаётся обычное повышение.
+var ML_CLASSES = ["Варвар", "Бард", "Воин", "Волшебник", "Друид", "Жрец", "Колдун", "Монах", "Паладин", "Плут", "Следопыт", "Чародей"];
+var _ml = null; // [{ cls, level, sub }]
+
+function _mlTotal(rows) {
+  return rows.reduce(function(s, r) { return s + (r.cls ? r.level : 0); }, 0);
+}
+
+/** Чего не хватает классу раскладки по требованиям мультикласса (PHB стр. 163) */
+function _mlMissing(char, cls) {
+  var probe = { stats: char.stats, edition: char.edition, classes: [], class: "" };
+  var chk = checkMulticlassPrereqs(probe, cls);
+  return chk.ok ? [] : chk.missing;
+}
+
+function openMcLayout() {
+  var char = getCurrentChar();
+  if (!char) return;
+  if (char.basicLocked) { pgAddClass(); return; }
+  migrateToMulticlass(char);
+  _ml = _pgClassList(char).map(function(e) { return { cls: e.cls, level: e.level || 1, sub: e.sub }; });
+  if (!_ml.length) _ml.push({ cls: "", level: 1, sub: "" });
+  if (_ml.length === 1) _ml.push({ cls: "", level: 1, sub: "" });
+  _mlRender();
+  showScreen("mclayout");
+}
+
+function mlSetClass(i, v) {
+  if (!_ml || !_ml[i]) return;
+  _ml[i].cls = v;
+  _ml[i].sub = "";
+  if (v && _mlTotal(_ml) > 20) _ml[i].level = Math.max(1, _ml[i].level - (_mlTotal(_ml) - 20));
+  _mlRender();
+}
+
+function mlLevel(i, d) {
+  if (!_ml || !_ml[i]) return;
+  var nv = _ml[i].level + d;
+  if (nv < 1 || nv > 20) return;
+  if (d > 0 && _ml[i].cls && _mlTotal(_ml) >= 20) return;
+  _ml[i].level = nv;
+  _mlRender();
+}
+
+function mlSetSub(i, v) {
+  if (!_ml || !_ml[i]) return;
+  _ml[i].sub = v;
+}
+
+function mlAdd() {
+  if (!_ml || _ml.length >= ML_CLASSES.length) return;
+  _ml.push({ cls: "", level: 1, sub: "" });
+  _mlRender();
+}
+
+function mlRemove(i) {
+  if (!_ml || _ml.length <= 1) return;
+  _ml.splice(i, 1);
+  _mlRender();
+}
+
+function _mlRender() {
+  var char = getCurrentChar();
+  var body = $("ml-body");
+  if (!char || !_ml || !body) return;
+  var ed = edData(char);
+  var total = _mlTotal(_ml);
+  var filled = _ml.filter(function(r) { return r.cls; });
+  var html = '<p class="ag-lead">Уровни всех классов складываются в уровень персонажа — не больше 20. ' +
+    "Первый класс в списке — начальный: он даёт спасброски и полные владения, остальные — владения по укороченному списку мультикласса.</p>" +
+    '<p class="ag-left">Уровень персонажа: ' + total + " из 20</p>";
+
+  _ml.forEach(function(r, i) {
+    var taken = _ml.map(function(x, j) { return j === i ? "" : x.cls; });
+    var opts = '<option value="">Выберите класс</option>';
+    ML_CLASSES.forEach(function(c) {
+      if (taken.indexOf(c) !== -1) return;
+      opts += '<option value="' + c + '"' + (r.cls === c ? " selected" : "") + ">" + c + "</option>";
+    });
+    var canUp = r.level < 20 && (!r.cls || total < 20);
+    html += '<div class="ml-row">' +
+      '<select class="field flat-field ml-cls" onchange="mlSetClass(' + i + ',this.value)">' + opts + "</select>" +
+      '<span class="ag-ctl">' +
+        '<button type="button" class="stat-btn-sm" onclick="mlLevel(' + i + ',-1)"' + (r.level <= 1 ? " disabled" : "") + ' aria-label="Уменьшить уровень">−</button>' +
+        '<span class="ag-val">' + r.level + "</span>" +
+        '<button type="button" class="stat-btn-sm" onclick="mlLevel(' + i + ',1)"' + (canUp ? "" : " disabled") + ' aria-label="Увеличить уровень">+</button>' +
+      "</span>" +
+      (_ml.length > 1 ? '<button type="button" class="hp-act ml-del" onclick="mlRemove(' + i + ')" aria-label="Убрать класс">Убрать</button>' : "<span></span>");
+    if (r.cls) {
+      var at = ed.SUBCLASS_LEVEL[r.cls] || 0;
+      var subs = ed.SUBCLASSES[r.cls] || [];
+      if (at && r.level >= at && subs.length) {
+        var so = '<option value="">Подкласс — выбрать позже</option>';
+        subs.forEach(function(s) {
+          so += '<option value="' + escapeHtml(s) + '"' + (r.sub === s ? " selected" : "") + ">" + escapeHtml(s) + "</option>";
+        });
+        html += '<select class="field flat-field ml-sub" onchange="mlSetSub(' + i + ',this.value)">' + so + "</select>";
+      } else if (at) {
+        html += '<span class="ag-note ml-sub">Подкласс — с ' + at + " уровня класса</span>";
+      }
+      var miss = filled.length > 1 ? _mlMissing(char, r.cls) : [];
+      if (miss.length) {
+        html += '<span class="ag-note ml-sub ml-warn">Требования мультикласса не выполнены: ' + escapeHtml(miss.join(", ")) + "</span>";
+      }
+    }
+    html += "</div>";
+  });
+
+  if (_ml.length < ML_CLASSES.length && total < 20) {
+    html += '<div class="ag-foot"><button type="button" class="hp-act" onclick="mlAdd()">+ Ещё класс →</button></div>';
+  }
+  html += '<p class="ag-note">Хиты считаются по среднему: полная кость первого класса на 1 уровне, дальше среднее по кости каждого класса плюс модификатор Телосложения. ' +
+    "Требования мультикласса (характеристика 13) здесь только подсказка — для NPC и домашних правил. " +
+    "Увеличения характеристик, умения на выбор и заклинания выбираются после применения — во вкладке «Развитие» в «Осталось выбрать».</p>";
+
+  var why = !filled.length ? "Выберите хотя бы один класс" : "";
+  html += '<div class="ag-foot"><button type="button" class="lu-btn-confirm" onclick="mlApply()"' + (why ? " disabled" : "") + ">Применить</button>" +
+    (why ? '<span class="ag-note">' + why + "</span>" : "") + "</div>";
+  body.innerHTML = html;
+}
+
+function mlApply() {
+  var char = getCurrentChar();
+  if (!char || !_ml || char.basicLocked) return;
+  var ed = edData(char);
+  var rows = _ml.filter(function(r) { return r.cls; });
+  if (!rows.length || _mlTotal(rows) > 20) return;
+  var firstChanged = char.class !== rows[0].cls;
+  char.classes = rows.map(function(r) {
+    var at = ed.SUBCLASS_LEVEL[r.cls] || 0;
+    return { class: r.cls, level: r.level, subclass: (at && r.level >= at) ? (r.sub || "") : "", hitDie: ed.CLASS_HIT_DICE[r.cls] || 8 };
+  });
+  syncClassFields(char);
+  // Раскладка задаётся целиком — снимок пошагового отката к ней не относится
+  delete char._prevLevelSnapshot;
+  if (typeof recalcArmorWeaponFromSources === "function") recalcArmorWeaponFromSources(char);
+  if (typeof recalcToolsFromSources === "function") recalcToolsFromSources(char);
+  char.combat.hpDiceSpent = 0;
+  delete char.combat.hpDiceSpentBy;
+  rulesApplySpellSlots(char);
+  saveToLocal();
+  screenBack();
+  loadCharacter(currentId);
+  if (firstChanged && typeof autoSelectProficiencies === "function") autoSelectProficiencies();
+  recalculateHP(true);
+  char = getCurrentChar();
+  char.combat.hpCurrent = char.combat.hpMax;
+  safeSet("hp-current", char.combat.hpMax);
+  if (typeof updateHPDisplay === "function") updateHPDisplay();
+  if (typeof renderSpellSlots === "function") renderSpellSlots();
+  if (typeof updateClassFeatures === "function") updateClassFeatures();
+  if (typeof renderClassResources === "function") renderClassResources();
+  if (typeof calculateAC === "function") calculateAC();
+  if (typeof updateLockButtonState === "function") updateLockButtonState();
+  saveToLocal();
+  var label = getClassLabel(char) || char.class;
+  if (window.AppLog) AppLog.action("character", "раскладка классов: " + label + " (ур. " + char.level + ")");
+  showToast("Классы: " + label + " · " + char.level + " ур.", "success");
+  _ml = null;
 }

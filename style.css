@@ -15783,7 +15783,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .ag-row--head { min-height: 0; padding-bottom: var(--sp-1); font-size: var(--fs-sm); color: var(--home-sub); }
 .ag-name { font-family: var(--font-display); overflow: hidden; text-overflow: ellipsis; }
 .ag-ctl { display: inline-flex; align-items: center; gap: var(--sp-2); }
-.ag-ctl .stat-btn-sm { min-width: 36px; }
+.ag-ctl .stat-btn-sm { flex: 0 0 auto !important; width: 36px !important; min-width: 36px !important; height: 36px !important; }
 .ag-val { min-width: 2ch; text-align: center; font-weight: 700; }
 .ag-cost { min-width: 3.2em; font-size: var(--fs-sm); color: var(--home-sub); }
 .ag-sel { width: auto; min-width: 5em; }
@@ -15793,6 +15793,19 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .ag-rolls s { color: var(--home-sub); }
 .ag-foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); margin: var(--sp-3) 0; }
 .ag-note { margin: var(--sp-2) 0 0; font-size: var(--fs-sm); color: var(--home-sub); }
+
+/* FB-1: раскладка классов до фиксации основы */
+.ml-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--home-rule);
+}
+.ml-cls { min-width: 0; }
+.ml-sub { grid-column: 1 / -1; margin: 0; }
+.ml-warn { color: var(--accent-lo); }
 
 /* LVL-5: уровень у мультикласса — не своё значение, а сумма уровней классов */
 .cd-level-mc {

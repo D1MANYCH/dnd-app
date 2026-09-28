@@ -1413,6 +1413,7 @@ function applyBasicLockUI() {
   if (lockedBar) lockedBar.style.display = locked ? "flex" : "none";
   var agRow = $("abilgen-row");
   if (agRow) agRow.style.display = locked ? "none" : "";
+  if (typeof syncClassFieldUI === "function") syncClassFieldUI(char);
 
   if (!locked) updateLockButtonState();
   applySheetLockUI();
@@ -1436,8 +1437,14 @@ function updateLockButtonState() {
   if (!(levelVal >= 1 && levelVal <= 20)) missing.push("уровень");
 
   // Подкласс обязателен только если уже открыт по уровню
-  var _ed = edData(currentId ? getCurrentChar() : null);  // E24-7: классовые таблицы по редакции персонажа
-  if (cls) {
+  var _lbChar = currentId ? getCurrentChar() : null;
+  var _ed = edData(_lbChar);  // E24-7: классовые таблицы по редакции персонажа
+  if (_lbChar && _lbChar.classes && _lbChar.classes.length > 1) {
+    // FB-1: у мультикласса подкласс открывается по уровню КЛАССА, а не по сумме
+    _lbChar.classes.forEach(function(c) {
+      if (c.level >= (_ed.SUBCLASS_LEVEL[c.class] || 3) && !c.subclass) missing.push("подкласс (" + c.class + ")");
+    });
+  } else if (cls) {
     var unlock = _ed.SUBCLASS_LEVEL[cls] || 3;
     if (levelVal >= unlock) {
       var sub = ($("char-subclass") && $("char-subclass").value || "").trim();
