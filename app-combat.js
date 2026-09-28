@@ -1254,9 +1254,23 @@ function renderRaceExtras() {
   if (!currentId) { panel.style.display = "none"; return; }
   var char = getCurrentChar();
   if (!char) { panel.style.display = "none"; return; }
-  // Расовые выборы открываются только после фиксации основы
-  if (!char.basicLocked) { panel.style.display = "none"; panel.innerHTML = ""; return; }
   var race = char.race || ($("char-race") && $("char-race").value) || "";
+  // Расовые выборы открываются только после фиксации основы — до неё только подсказка, что они будут
+  if (!char.basicLocked) {
+    var pending = [];
+    if ((char.edition === "2024" ? RACE_BONUS_FEATS_2024 : RACE_BONUS_FEATS)[race]) pending.push("расовая черта");
+    if (RACE_STAT_PICKS[race] && char.edition !== "2024") pending.push("+1 к двум характеристикам");
+    if (char.edition === "2024" && typeof edData === "function") {
+      var sp0 = edData(char).RACE_DATA[race];
+      if (sp0 && Array.isArray(sp0.choices)) sp0.choices.forEach(function(ch) { pending.push(ch.name.toLowerCase()); });
+    }
+    if (pending.length) {
+      panel.innerHTML = '<div class="race-extras-hint">' + dndIcoHtml("lock", 13) + ' ' + escapeHtml(race) + ': ' +
+        escapeHtml(pending.join(", ")) + ' — выбор появится здесь после «Сохранить и зафиксировать основу».</div>';
+      panel.style.display = "flex";
+    } else { panel.style.display = "none"; panel.innerHTML = ""; }
+    return;
+  }
   var html = "";
 
   // Человек (вариант), в 2024 — человек: 1 расовая черта
@@ -1275,6 +1289,7 @@ function renderRaceExtras() {
         ? '<button class="race-extras-btn" onclick="openRaceFeatModal()">+ Выбрать черту</button>'
         : '<span class="race-extras-btn done">' + dndIcoHtml("check", 13) + ' Черта получена</span>') +
       '</div>';
+    if (remaining > 0) html += '<div class="race-extras-warn">Расовая черта не выбрана — нажмите «+ Выбрать черту».</div>';
   }
 
   // Полуэльф: +1 к двум характеристикам (кроме ХАР); Человек (вариант): +1 к двум любым

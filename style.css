@@ -7820,6 +7820,8 @@ font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
   font-size: 0.9em;
 }
 .race-extras-btn:hover { background: rgba(91,155,213,0.30); }
+.race-extras-hint { font-size: 0.85em; color: var(--text-dim); }
+.race-extras-warn { font-size: 0.85em; font-weight: 700; color: var(--danger); }
 .race-extras-btn.done {
   background: rgba(77,168,67,0.18);
   border-color: rgba(77,168,67,0.45);
