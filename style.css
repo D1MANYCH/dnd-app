@@ -15766,6 +15766,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 }
 .cd-class-mc-act { margin-left: auto; font-size: var(--fs-sm); color: var(--accent-lo); }
 .cd-class-mc:hover .cd-class-mc-act { text-decoration: underline; }
+.cd-add-class { margin: calc(-1 * var(--sp-3)) 0 var(--sp-3); }
 
 /* LVL-5: уровень у мультикласса — не своё значение, а сумма уровней классов */
 .cd-level-mc {

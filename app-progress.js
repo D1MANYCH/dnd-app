@@ -357,8 +357,8 @@ function _pgNext(char, list) {
         "(PHB, «Мультиклассирование»).</p>";
     nbody += "<p>Новый класс начинается с 1 уровня класса: умения 1-го уровня, владения по укороченному списку " +
       "мультикласса и своя кость хитов.</p>";
-    nbody += _pgActRow('<button type="button" class="hp-act" onclick="pgAddClass()">Добавить класс →</button>');
-    rows += _pgDisc("Новый класс", ok.length ? "доступно " + ok.length : "требования не выполнены", nbody, false, { mute: true });
+    nbody += _pgActRow('<button type="button" class="hp-act" onclick="pgAddClass()">Добавить класс (мультикласс) →</button>');
+    rows += _pgDisc("Новый класс (мультикласс)",ok.length ? "доступно " + ok.length : "требования не выполнены", nbody, false, { mute: true });
   }
 
   return rows ? '<div class="pg-grp" data-pg-grp="next">Дальше</div><div class="hp-rows">' + rows + "</div>" : "";
@@ -383,8 +383,9 @@ function _pgActions(char, list) {
   var acts = '<button type="button" class="hp-act" onclick="pgLevelUp()">Повысить уровень →</button>';
   // LVL-7: раньше единственный вход в мультикласс был спрятан в свёрнутой
   // строке «Новый класс» внизу — подписчик его попросту не нашёл.
-  if (list && list.length && (char.level || 0) < 20 && _pgAvailableClasses(char, list).length) {
-    acts += '<button type="button" class="hp-act" onclick="pgAddClass()">Добавить класс →</button>';
+  // Кнопка видна всегда: при невыполненных требованиях окно само скажет, чего не хватает.
+  if (list && list.length && (char.level || 0) < 20) {
+    acts += '<button type="button" class="hp-act" onclick="pgAddClass()">Добавить класс (мультикласс) →</button>';
   }
   if ((char.level || 0) > 1 && char._prevLevelSnapshot) {
     acts += '<button type="button" class="hp-act" onclick="pgLevelDown()">Откатить →</button>';
@@ -578,6 +579,11 @@ function syncClassFieldUI(char) {
   var multi = !!(char && char.classes && char.classes.length > 1);
   sel.style.display = multi ? "none" : "";
   mc.style.display = multi ? "" : "none";
+  var addBtn = $("char-add-class");
+  if (addBtn) {
+    addBtn.style.display = (char && char.class && (char.level || 1) < 20) ? "" : "none";
+    addBtn.textContent = multi ? "+ Ещё класс (мультикласс) →" : "+ Второй класс (мультикласс) →";
+  }
   if (multi && lbl && typeof getClassLabel === "function") lbl.textContent = getClassLabel(char);
 
   var list = multi ? _pgClassList(char) : [];

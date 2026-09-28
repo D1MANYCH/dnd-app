@@ -285,7 +285,8 @@ function _showMulticlassScreen(char) {
     if (existingClasses.indexOf(cls) === -1) {
       var opt = document.createElement("option");
       opt.value = cls;
-      opt.textContent = cls;
+      var chk = (typeof checkMulticlassPrereqs === "function") ? checkMulticlassPrereqs(char, cls) : { ok: true };
+      opt.textContent = chk.ok ? cls : cls + " — требования не выполнены";
       sel.appendChild(opt);
     }
   });
@@ -297,6 +298,12 @@ function openMulticlassNewClass() {
   $("lu-mc-prereq-warn").style.display = "none";
   $("lu-mc-subclass-row").style.display = "none";
   $("lu-mc-confirm-new").disabled = true;
+  var char = getCurrentChar();
+  if (char && typeof _pgAvailableClasses === "function" && !_pgAvailableClasses(char, (char.classes || []).map(function(c) { return { cls: c.class }; })).length) {
+    var warnEl = $("lu-mc-prereq-warn");
+    warnEl.style.display = "";
+    warnEl.innerHTML = dndIcoHtml("alert", 13) + " Сейчас ни один класс недоступен: для мультикласса нужна характеристика 13 и выше — и у нового класса, и у текущего. Выберите класс в списке, чтобы увидеть, чего не хватает.";
+  }
 }
 
 // Обработчик выбора нового класса в мультиклассе
