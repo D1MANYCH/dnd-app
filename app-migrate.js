@@ -887,6 +887,11 @@ function migrateCharacter(char) {
     }
     char.schemaVersion = 38;
   }
+  if (v < 39) {
+    // NGEN-1: пол персонажа для родовых форм {м|ж} в текстах «Записей»; пусто = мужские формы.
+    if (typeof char.gender !== "string") char.gender = "";
+    char.schemaVersion = 39;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

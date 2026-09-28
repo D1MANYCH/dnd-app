@@ -882,8 +882,11 @@ function _applyBuildCore(buildId) {
   // BUILD-FIX-11 / BUILD-NOTES-1: персонализированные заметки билда. Поля — массивы вариантов.
   var _bn = (b.notes && typeof b.notes === "object") ? (window.normalizeBuildNotes ? window.normalizeBuildNotes(b.notes) : b.notes) : null;
   var _NS = newChar.notesV2.sections;
-  var _seed = newChar.id || "";
-  function _pick(arr) { return (window.pickBuildVariant ? window.pickBuildVariant(arr, _seed) : (Array.isArray(arr) && arr.length ? arr[0] : "")); }
+  // NGEN-1: вариант выбирается случайно, родовые формы — по полу персонажа.
+  function _pick(arr) {
+    var t = window.pickBuildVariant ? window.pickBuildVariant(arr) : (Array.isArray(arr) && arr.length ? arr[0] : "");
+    return window.genderize ? window.genderize(t, newChar.gender) : t;
+  }
   // Сохраняем все варианты на персонажа — для UI «🎲 вариант» (BUILD-NOTES-2).
   if (_bn) {
     newChar.notesV2.variants = {
@@ -933,7 +936,7 @@ function _applyBuildCore(buildId) {
       id: "build-hooks-" + b.id + "-" + _now,
       type: "hook",
       title: "Сюжетные крючки",
-      body: _bn.hooks.filter(Boolean).map(function(h){ return "- " + h; }).join("\n"),
+      body: _bn.hooks.filter(Boolean).map(function(h){ return "- " + (window.genderize ? window.genderize(h, newChar.gender) : h); }).join("\n"),
       tags: ["билд"],
       pinned: false,
       createdAt: _now,

@@ -778,6 +778,7 @@ if (!char.classes || char.classes.length === 0) {
   if (typeof syncClassFields === "function") syncClassFields(char);
 }
 char.race = $("char-race")?.value || "";
+char.gender = $("char-gender")?.value || "";
 char.background = $("char-background")?.value || "";
 char.alignment = $("char-alignment")?.value || "";
 char.deity = $("char-deity")?.value || "";
@@ -1390,7 +1391,7 @@ function removeRaceFeat(i) {
 // ============================================
 // МАСТЕР СОЗДАНИЯ ПЕРСОНАЖА — фиксация основы
 // ============================================
-var BASIC_FIELD_IDS = ["char-name", "char-class", "char-subclass", "char-race", "char-background", "char-level"];
+var BASIC_FIELD_IDS = ["char-name", "char-class", "char-subclass", "char-race", "char-gender", "char-background", "char-level"];
 
 function applyBasicLockUI() {
   if (!currentId) return;

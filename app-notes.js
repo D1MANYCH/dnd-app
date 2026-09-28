@@ -127,7 +127,35 @@ function _getSectionVariants(char, secKey) {
   if (!vk) return [];
   var v = char && char.notesV2 && char.notesV2.variants;
   if (!v || !Array.isArray(v[vk])) return [];
-  return v[vk].filter(function(x){ return typeof x === 'string' && x.trim(); });
+  var g = char.gender;
+  return v[vk].filter(function(x){ return typeof x === 'string' && x.trim(); })
+    .map(function(x){ return window.genderize ? window.genderize(x, g) : x; });
+}
+
+/** NGEN-1: смена пола — секции, где стоит вариант билда без правок, переписываются в новых формах. */
+function onGenderChange() {
+  var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+  var sel = document.getElementById('char-gender');
+  if (!char || !sel) return;
+  var oldG = char.gender || '', newG = sel.value || '';
+  var v = char.notesV2 && char.notesV2.variants;
+  var secs = char.notesV2 && char.notesV2.sections;
+  var changed = false;
+  if (v && secs && window.genderize && oldG !== newG) {
+    Object.keys(NOTES_VARIANT_KEY).forEach(function(sk){
+      var arr = v[NOTES_VARIANT_KEY[sk]];
+      if (!Array.isArray(arr) || typeof secs[sk] !== 'string' || !secs[sk]) return;
+      for (var i = 0; i < arr.length; i++) {
+        if (typeof arr[i] === 'string' && window.genderize(arr[i], oldG) === secs[sk]) {
+          var nt = window.genderize(arr[i], newG);
+          if (nt !== secs[sk]) { secs[sk] = nt; changed = true; }
+          break;
+        }
+      }
+    });
+  }
+  if (typeof updateChar === 'function') updateChar();
+  if (changed && _notesState.currentTab === 'backstory') _renderNotesMain();
 }
 
 // Какие варианты сейчас открыты (по ключу секции).

@@ -462,6 +462,23 @@
       return true;
     });
 
+    t("[NGEN-1] миграция: gender = \"\" у старых персонажей, заданный пол сохраняется", function(){
+      var c = migrateCharacter({ id: 6, class: "Воин", level: 1, schemaVersion: 38 });
+      if (c.gender !== "") return "gender: ожидал \"\", получено " + c.gender;
+      var d = migrateCharacter({ id: 7, class: "Воин", level: 1, schemaVersion: 38, gender: "ж" });
+      if (d.gender !== "ж") return "gender затёрт: " + d.gender;
+      return true;
+    });
+
+    t("[NGEN-1] genderize: {м|ж} по полу, пусто = мужские формы", function(){
+      if (typeof window.genderize !== "function") return "genderize не определена";
+      var src = "Прям{ой|ая} и упрям{ый|ая}, {он|она} не {сдался|сдалась}.";
+      if (window.genderize(src, "ж") !== "Прямая и упрямая, она не сдалась.") return "ж: " + window.genderize(src, "ж");
+      if (window.genderize(src, "") !== "Прямой и упрямый, он не сдался.") return "пусто: " + window.genderize(src, "");
+      if (window.genderize("{a|b} {c}", "м") !== "a {c}") return "фигурные скобки без | должны остаться";
+      return true;
+    });
+
     // ЗАМОК-1: замок листа поверх замка основы
     t("[замок] миграция: легаси-персонаж → sheetLocked true (как basicLocked)", function(){
       var c = migrateCharacter({ id: 5, class: "Воин", level: 3 });

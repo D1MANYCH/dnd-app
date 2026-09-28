@@ -1327,6 +1327,7 @@ updateSubclassOptions();
 safeSet("char-subclass", savedSubclass);
 if (typeof populateRaceSelect === "function") populateRaceSelect(char); // E24-4: виды 2024 / расы 2014
 safeSet("char-race", char.race);
+safeSet("char-gender", char.gender || "");
 if (typeof populateBackgroundSelect === "function") populateBackgroundSelect(char); // E24-5: предыстории 2024 / 2014
 safeSet("char-background", char.background || "");
 if (typeof renderBuildBadge === "function") renderBuildBadge();

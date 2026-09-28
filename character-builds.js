@@ -2048,6 +2048,12 @@ window.pickBuildVariant = function(arr, seed) {
   return arr[idx];
 };
 
+// NGEN-1: родовые формы «прям{ой|ая}» → по полу: "ж" — вторая форма, иначе первая.
+window.genderize = function(text, g) {
+  if (typeof text !== "string") return text;
+  return text.replace(/\{([^{}|\r\n]*)\|([^{}|\r\n]*)\}/g, function(_, m, f){ return g === "ж" ? f : m; });
+};
+
 // Нормализация: строка → [строка], массив → массив, отсутствие → []. Поля appearance/personality/ideals/bonds/flaws/hooks/backstories.
 window.normalizeBuildNotes = function(n) {
   if (!n || typeof n !== "object") return null;
