@@ -1,12 +1,13 @@
 {
+  "id": "/dnd-app/index.html",
   "name": "D&D 5e — Лист Персонажа",
   "short_name": "D&D Sheet",
-  "description": "Бесплатный лист персонажа D&D 5e на русском: 36 готовых билдов, 719 заклинаний, 3D-кубики, боевой трекер. Офлайн, без регистрации.",
+  "description": "Бесплатный лист персонажа D&D 5e на русском: 48 готовых билдов, 760 заклинаний, 3D-кубики, боевой трекер. Офлайн, без регистрации.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#050a14",
   "theme_color": "#4da843",
-  "orientation": "portrait",
+  "orientation": "any",
   "lang": "ru",
   "icons": [
     {
@@ -16,19 +17,19 @@
       "purpose": "any"
     },
     {
-      "src": "icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -47,14 +48,48 @@
       "sizes": "1903x908",
       "type": "image/webp",
       "form_factor": "wide",
-      "label": "36 готовых билдов"
+      "label": "48 готовых билдов"
     },
     {
       "src": "docs/screenshots/04-spells.webp",
       "sizes": "1884x911",
       "type": "image/webp",
       "form_factor": "wide",
-      "label": "719 заклинаний"
+      "label": "760 заклинаний"
+    },
+    {
+      "src": "docs/screenshots/m01-character-sheet.webp",
+      "sizes": "1170x2532",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Лист персонажа"
+    },
+    {
+      "src": "docs/screenshots/m02-builds-picker.webp",
+      "sizes": "1170x2532",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "48 готовых билдов"
+    },
+    {
+      "src": "docs/screenshots/m04-spells.webp",
+      "sizes": "1170x2532",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "760 заклинаний"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Бросок кубиков",
+      "short_name": "Кубики",
+      "url": "./index.html?open=dice",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Персонажи",
+      "url": "./index.html?open=characters",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96", "type": "image/png" }]
     }
   ],
   "categories": ["games", "utilities"]

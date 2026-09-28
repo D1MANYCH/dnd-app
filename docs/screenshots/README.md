@@ -12,6 +12,9 @@
 | `04-spells.webp` | Вкладка «Заклинания» с открытой карточкой | 712 заклинаний |
 | `05-dice.webp` | Модалка 3D-кубиков (бросок d20) | WebGL-кубики |
 | `06-combat.webp` | Вкладка «Битва» с инициативой и состояниями | Боевой трекер |
+| `m01-character-sheet.webp` | Лист, телефон 390×844 @3x | manifest, `form_factor: narrow` |
+| `m02-builds-picker.webp` | «Готовые билды», телефон | manifest, `form_factor: narrow` |
+| `m04-spells.webp` | «Заклинания» волшебника 7 ур., телефон | manifest, `form_factor: narrow` |
 
 ## Технические требования
 

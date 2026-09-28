@@ -254,7 +254,21 @@ try {
     }).catch(function(){});
   }
 } catch (e) {}
+_openFromLaunchParams();
 };
+
+// INST-1: ярлыки manifest (shortcuts) запускают ./index.html?open=dice|characters.
+// Параметр снимаем из адреса, чтобы перезагрузка не открывала окно заново.
+function _openFromLaunchParams() {
+  var m = /[?&]open=([a-z]+)/.exec(location.search || "");
+  if (!m) return;
+  try {
+    var rest = location.search.replace(/([?&])open=[^&]*&?/, "$1").replace(/[?&]$/, "");
+    history.replaceState(history.state, "", location.pathname + rest + location.hash);
+  } catch (e) {}
+  if (m[1] === "dice" && typeof openDiceModal === "function") openDiceModal();
+  else if (m[1] === "characters") showScreen("characters");
+}
 
 // AUD-2 (S6/S7): запрет записи в localStorage — после сбоя загрузки (иначе
 // следующий save перезапишет данные урезанным списком) или после записи из

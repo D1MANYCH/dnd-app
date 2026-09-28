@@ -10113,7 +10113,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 /* Строка «Показать обучение заново» в настройках */
 /* STYLE-8M: единственное действие среди строк-настроек — подпись с растущим
    подчёркиванием, как «＋ Событие» в «Журнале». */
-.onboarding-restart-btn {
+.onboarding-restart-btn,
+.install-btn {
   position: relative;
   width: auto;
   margin: 0 0 0 auto;
@@ -10129,7 +10130,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   cursor: pointer;
   transition: color var(--t1) var(--ez-out);
 }
-.onboarding-restart-btn::after {
+.onboarding-restart-btn::after,
+.install-btn::after {
   content: "";
   position: absolute;
   left: 2px;
@@ -10139,9 +10141,29 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   background: var(--accent);
   transition: width var(--t2) var(--ez-out);
 }
-.onboarding-restart-btn:hover { background: none; box-shadow: none; color: var(--accent); }
+.onboarding-restart-btn:hover,
+.install-btn:hover { background: none; box-shadow: none; color: var(--accent); }
 .onboarding-restart-btn:hover::after,
-.onboarding-restart-btn:focus-visible::after { width: calc(100% - 4px); }
+.onboarding-restart-btn:focus-visible::after,
+.install-btn:hover::after,
+.install-btn:focus-visible::after { width: calc(100% - 4px); }
+
+/* INST-1: установка PWA — строка в настройках и под меню домашнего экрана.
+   Кнопка только там, где браузер прислал beforeinstallprompt; на iPhone — подсказка. */
+#install-row[hidden],
+.home-install[hidden],
+.install-btn[hidden],
+.install-ios-hint[hidden] { display: none; }
+.install-ios-hint {
+  margin-left: auto;
+  font-size: var(--fs-sm);
+  color: var(--home-sub);
+}
+.home-install {
+  padding: var(--sp-2) 12px 0 calc(12px + var(--home-rail-w) + var(--home-bullet) + 12px);
+}
+.home-install .install-btn,
+.home-install .install-ios-hint { margin: 0; }
 
 @media (max-width: 600px) {
   /* На телефоне модалка и так во всю ширину (.modal-content margin:10px auto) — особый cap не нужен. */

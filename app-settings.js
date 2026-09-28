@@ -592,6 +592,60 @@ function _initAppLinks() {
 }
 document.addEventListener('DOMContentLoaded', _initAppLinks);
 
+// INST-1: своя кнопка «Установить приложение». Chrome/Edge/Android присылают
+// beforeinstallprompt — придерживаем его и показываем строку в настройках и на
+// домашнем экране. На iPhone/iPad события нет — там вместо кнопки подсказка
+// «Поделиться → На экран Домой». В установленном приложении и после
+// appinstalled строки скрыты.
+var _installPrompt = null;
+function _isStandalone() {
+  try {
+    if (window.matchMedia && matchMedia('(display-mode: standalone)').matches) return true;
+  } catch (e) {}
+  return window.navigator.standalone === true;
+}
+function _isIos() {
+  var ua = navigator.userAgent || '';
+  return /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+function _installMode() {
+  if (_isStandalone()) return '';
+  if (_installPrompt) return 'prompt';
+  return _isIos() ? 'ios' : '';
+}
+function _syncInstallUi() {
+  var mode = _installMode();
+  var boxes = [document.getElementById('install-row'), document.getElementById('home-install')];
+  for (var i = 0; i < boxes.length; i++) {
+    var box = boxes[i];
+    if (!box) continue;
+    box.hidden = !mode;
+    var btn = box.querySelector('[data-install-btn]');
+    var hint = box.querySelector('[data-install-ios]');
+    if (btn) btn.hidden = (mode !== 'prompt');
+    if (hint) hint.hidden = (mode !== 'ios');
+  }
+}
+function installApp() {
+  var p = _installPrompt;
+  if (!p) return;
+  // Событие одноразовое: после prompt() браузер пришлёт новое, если откажутся.
+  _installPrompt = null;
+  _syncInstallUi();
+  try { p.prompt(); } catch (e) {}
+}
+window.addEventListener('beforeinstallprompt', function (e) {
+  e.preventDefault();
+  _installPrompt = e;
+  _syncInstallUi();
+});
+window.addEventListener('appinstalled', function () {
+  _installPrompt = null;
+  _syncInstallUi();
+  if (typeof showToast === 'function') showToast('Приложение установлено', 'success');
+});
+document.addEventListener('DOMContentLoaded', _syncInstallUi);
+
 // UI-5: модалка настроек оформления (тема/акцент/плотность/масштаб шрифта)
 // STYLE-8M-2: настройки стали экраном — открытие и закрытие идут через
 // showScreen/screenBack, оверлея и таймеров затухания больше нет. Синхронизацию

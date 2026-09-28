@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v407';
+const CACHE_NAME = 'dnd-sheet-v409';
 
 const FILES_TO_CACHE = [
   './',
@@ -105,6 +105,10 @@ const FILES_TO_CACHE = [
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  './icons/icon-maskable-192.png',
+  './icons/icon-maskable-512.png',
+  './icons/apple-touch-icon.png',
+  './icons/icon-96.png',
   // DICE2-1: @3d-dice/dice-box vendor (ES-модуль + воркеры + ассеты)
   './vendor/dice-box/dice-box.es.js',
   './vendor/dice-box/world.offscreen.js',
