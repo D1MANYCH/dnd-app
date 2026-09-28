@@ -501,6 +501,27 @@
       return diff ? true : "женские формы нигде не отличаются";
     });
 
+    t("[NGEN-3] билды воин/варвар/паладин/следопыт: 6 вариантов на раздел, маркеры {м|ж} раскрываются", function(){
+      if (!window.BUILD_NOTES) return "BUILD_NOTES не загружены";
+      var keys = ["appearance", "personality", "ideals", "bonds", "flaws", "hooks", "backstories"];
+      var ids = Object.keys(window.BUILD_NOTES).filter(function(id){ return /^(fighter|barbarian|paladin|ranger)/.test(id); });
+      if (ids.length !== 16) return "билдов " + ids.length + ", ожидалось 16";
+      for (var i = 0; i < ids.length; i++) {
+        var bn = window.BUILD_NOTES[ids[i]], diff = false;
+        for (var k = 0; k < keys.length; k++) {
+          var arr = bn[keys[k]];
+          if (!arr || arr.length !== 6) return ids[i] + "." + keys[k] + " = " + (arr ? arr.length : 0);
+          for (var m = 0; m < arr.length; m++) {
+            var f = window.genderize(arr[m], "ж");
+            if (/[{}|]/.test(f)) return ids[i] + ": нераскрытый маркер";
+            if (f !== window.genderize(arr[m], "")) diff = true;
+          }
+        }
+        if (!diff) return ids[i] + ": нет родовых форм";
+      }
+      return true;
+    });
+
     // ЗАМОК-1: замок листа поверх замка основы
     t("[замок] миграция: легаси-персонаж → sheetLocked true (как basicLocked)", function(){
       var c = migrateCharacter({ id: 5, class: "Воин", level: 3 });

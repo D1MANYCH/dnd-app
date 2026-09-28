@@ -24,6 +24,7 @@ const files = [
   'data.js',
   'gear-catalog.js',         // FIN-5: window.GEAR_CATALOG — в проде лениво (ensureGearCatalog), в тестах явно (БЛОК 24)
   'magic-items.js',          // FIN-8: window.MAGIC_ITEMS — в проде лениво (ensureMagicItems), в тестах явно (БЛОК 27, проверка charges)
+  'build-notes-data.js',     // NGEN-3: BUILD_NOTES — в проде лениво (ensureBuildNotes), в тестах явно до character-builds
   'character-builds.js',     // BUILD-LVL-7: CHARACTER_BUILDS/getBuildById для тестов данных levelUp
   'glossary-data.js',        // UX-4: window.GLOSSARY для тестов glossarizeHtml (БЛОК 18)
   'spells.js',               // BUILD-LVL-7: SPELLS_BASE → app-core строит SPELL_DATABASE (резолв заклинаний билдов)
