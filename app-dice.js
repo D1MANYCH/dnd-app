@@ -46,7 +46,7 @@ setTimeout(function() {
   // PERF: прогреваем DiceBox заранее — первая инициализация (Babylon + физика +
   // загрузка темы) занимает сотни миллисекунд и раньше приходилась ровно на кадры
   // появления оверлея, отчего вход в бросок шёл рывками.
-  try { _initDiceBox(); } catch (e) {}
+  try { _initDiceBox().catch(function() {}); } catch (e) {}
 }, 60);
 // UX-5: пока модалка открыта — лента последних бросков прячется (избыточна).
 try { updateQuickRollStripVisibility(); } catch (e) {}
@@ -60,8 +60,8 @@ var _dicePrewarmed = false;
 function _prewarmDiceBox() {
   if (_dicePrewarmed) return;
   _dicePrewarmed = true;
-  if (location.protocol === 'file:' || typeof window.DiceBox !== 'function') return;
-  var run = function () { try { _initDiceBox(); } catch (e) {} };
+  if (location.protocol === 'file:' || (typeof window.DiceBox !== 'function' && typeof window.ensureDiceBox !== 'function')) return;
+  var run = function () { try { _initDiceBox().catch(function() {}); } catch (e) {} };
   if (typeof requestIdleCallback === 'function') requestIdleCallback(run, { timeout: 4000 });
   else setTimeout(run, 1200);
 }
@@ -537,6 +537,7 @@ var _dice3dActiveRoll = null;
 
 function _waitDiceBoxModule() {
   if (typeof window.DiceBox === 'function') return Promise.resolve();
+  if (typeof window.ensureDiceBox === 'function') return window.ensureDiceBox();
   return new Promise(function(resolve) {
     var onReady = function() {
       window.removeEventListener('dicebox:ready', onReady);
@@ -754,7 +755,11 @@ function animateDice3d(sides, result, callback, opts) {
     return;
   }
   // Если 3D-модуль вообще не загружен (file:// без HTTP-сервера) — сразу 2D-fallback
+  // PERF-5: модуль ленивый — пока грузится, бросок 2D, а загрузка стартует сейчас
   if (typeof window.DiceBox !== 'function') {
+    if (typeof window.ensureDiceBox === 'function' && location.protocol !== 'file:') {
+      window.ensureDiceBox().catch(function() {});
+    }
     animateDice2d(sides, result, callback, opts);
     return;
   }

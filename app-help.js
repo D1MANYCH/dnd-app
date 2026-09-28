@@ -187,8 +187,8 @@ document.addEventListener('keydown', function (ev) {
   if (modal && modal.classList.contains('active')) dismissWelcome();
 });
 
-// Boot-хук: addEventListener('load') регистрируется ПОСЛЕ window.onload в app-core.js
-// (app-help.js грузится позже), поэтому renderCharacterList() уже отработал к этому моменту.
+// Boot-хук: 'load' приходит после DOMContentLoaded, на котором стартует app-core.js,
+// поэтому renderCharacterList() уже отработал к этому моменту.
 window.addEventListener('load', maybeShowWelcome);
 
 // ============================================================

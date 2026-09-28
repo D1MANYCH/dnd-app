@@ -201,7 +201,10 @@ var abilities = [
 {key: "int", name: "Интеллект"}, {key: "wis", name: "Мудрость"}, {key: "cha", name: "Харизма"}
 ];
 
-window.onload = function() {
+// PERF-5: старт на DOMContentLoaded, не ждём картинок. Слушатель на window, а не на
+// document: событие всплывает до window, поэтому init идёт после всех
+// document.addEventListener('DOMContentLoaded') модулей — порядок как при onload.
+window.addEventListener("DOMContentLoaded", function() {
 try {
 const saved = localStorage.getItem("dnd_chars");
 const savedSpells = localStorage.getItem("dnd_spells");
@@ -255,7 +258,7 @@ try {
   }
 } catch (e) {}
 _openFromLaunchParams();
-};
+});
 
 // INST-1: ярлыки manifest (shortcuts) запускают ./index.html?open=dice|characters.
 // Параметр снимаем из адреса, чтобы перезагрузка не открывала окно заново.
@@ -328,7 +331,14 @@ var baseIds = new Set((typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.map(fun
 var userSpells = SPELL_DATABASE.filter(function(s){ return !baseIds.has(s.id); });
 localStorage.setItem("dnd_spells", JSON.stringify(userSpells));
 localStorage.setItem("dnd_hp_history", JSON.stringify(hpHistory));
-} catch(e) { console.error("Ошибка сохранения:", e); showToast("Ошибка сохранения данных!", "error"); }
+} catch(e) {
+console.error("Ошибка сохранения:", e);
+// PERF-5: переполнение хранилища — отдельное сообщение с тем, что делать
+var quota = e && (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED" || e.code === 22 || e.code === 1014);
+showToast(quota
+  ? "Хранилище браузера переполнено — изменения не сохранены. Сделайте экспорт персонажей и очистите историю хитов или журнал."
+  : "Ошибка сохранения данных!", "error");
+}
 }
 
 // DATA-1: persistent storage — просим браузер не вытеснять localStorage/IndexedDB
