@@ -4037,7 +4037,7 @@ height: 64%;
 }
 .home-hero-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
-.home-hero-text { min-width: 0; flex: 1 1 auto; }
+.home-hero-text { min-width: 0; max-width: 100%; flex: 1 1 auto; }
 .home-hero-cap {
 display: block;
 font-size: var(--fs-sm);
@@ -4297,7 +4297,7 @@ animation: rise var(--t3) var(--ez-out) both;
 @media (min-width: 900px) {
   #screen-home { --home-hero-size: 128px; --home-bullet: 11px; }
   .home-menu-item { padding: 16px 14px; font-size: calc(var(--fs-lg) * 1.15); }
-  .home-hero .home-hero-name { font-size: calc(var(--fs-xl) * 1.35); }
+  .home-hero .home-hero-name { font-size: calc(var(--fs-xl) * 1.35); white-space: normal; }
   .home-hero { padding-left: var(--sp-5); border-left: 1px solid var(--home-rule); }
 }
 

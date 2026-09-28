@@ -223,6 +223,7 @@ window.animateCountUp = animateCountUp;
   }
   window.addEventListener('error', function(e) {
     var msg = (e && e.message) ? String(e.message) : '';
+    if (/ResizeObserver loop/.test(msg)) return;
     if (e && e.error) console.error('[uncaught]', e.error);
     else if (msg) console.error('[uncaught]', msg);
     _reportError('Uncaught', msg.slice(0, 80));
