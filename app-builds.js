@@ -896,47 +896,50 @@ function _applyBuildCore(buildId) {
       backstories: _bn.backstories || []
     };
   }
-  if (!_NS.appearance) _NS.appearance = (_bn && _pick(_bn.appearance))
-      || ((b.race ? b.race + ". " : "") + "Выглядит как опытный «" + (b.title || b.className || "искатель приключений") + "». Заполни внешность под свой образ.");
-  if (!_NS.personality) _NS.personality = (_bn && _pick(_bn.personality)) || (_bgNote && _bgNote.personality) || "Опиши характер своего персонажа: что движет, как держится в обществе, как реагирует на угрозу.";
-  if (!_NS.ideals)      _NS.ideals      = (_bn && _pick(_bn.ideals))      || (_bgNote && _bgNote.ideals)      || "Чему служит твой персонаж — долгу, свободе, знанию, вере?";
-  if (!_NS.bonds)       _NS.bonds       = (_bn && _pick(_bn.bonds))       || (_bgNote && _bgNote.bonds)       || "Что или кого твой персонаж готов защищать ценой жизни?";
-  if (!_NS.flaws)       _NS.flaws       = (_bn && _pick(_bn.flaws))       || (_bgNote && _bgNote.flaws)       || "Какая слабость или порок может однажды его погубить?";
-  // BUILD-FIX-4: стартовая заметка из b.summary + краткий план первых уровней.
-  if (!newChar.notesV2) newChar.notesV2 = { sections:{appearance:"",personality:"",backstory:"",features:"",magicItems:"",bonds:"",flaws:"",ideals:""}, entries:[], prefs:{lastSection:'backstory',lastFilter:'all'} };
+  if (!_NS.appearance)  _NS.appearance  = (_bn && _pick(_bn.appearance))  || "";
+  if (!_NS.personality) _NS.personality = (_bn && _pick(_bn.personality)) || (_bgNote && _bgNote.personality) || "";
+  if (!_NS.ideals)      _NS.ideals      = (_bn && _pick(_bn.ideals))      || (_bgNote && _bgNote.ideals)      || "";
+  if (!_NS.bonds)       _NS.bonds       = (_bn && _pick(_bn.bonds))       || (_bgNote && _bgNote.bonds)       || "";
+  if (!_NS.flaws)       _NS.flaws       = (_bn && _pick(_bn.flaws))       || (_bgNote && _bgNote.flaws)       || "";
+  if (!_NS.backstory)   _NS.backstory   = (_bn && _pick(_bn.backstories)) || "";
+  // BUILD-FIX-4: описание билда и план первых уровней — запись журнала, а не предыстория.
   var _bsLines = [];
-  _bsLines.push("# " + (b.title || ""));
-  if (b.role || b.difficulty) {
-    var _diff = b.difficulty ? (" · сложность " + b.difficulty + "/3") : "";
-    _bsLines.push("_" + (b.role || "") + _diff + "_");
-  }
-  if (b.summary) _bsLines.push("\n" + b.summary);
+  if (b.role || b.difficulty) _bsLines.push((b.role || "") + (b.difficulty ? (b.role ? " · " : "") + "сложность " + b.difficulty + "/3" : ""));
+  if (b.summary) _bsLines.push(b.summary);
   if (b.levelUp) {
-    _bsLines.push("\n## План развития (1–5)");
+    var _plan = [];
     [1,2,3,4,5].forEach(function(lv){
       var step = b.levelUp[lv];
-      if (step && step.headline) _bsLines.push("- **" + lv + ":** " + step.headline + (step.why ? " — " + step.why : ""));
+      if (step && step.headline) _plan.push("- " + lv + " ур.: " + step.headline + (step.why ? " — " + step.why : ""));
     });
+    if (_plan.length) _bsLines.push("План развития (1–5):\n" + _plan.join("\n"));
   }
-  // BUILD-FIX-11: сюжетные крючки в backstory.
-  if (_bn && Array.isArray(_bn.hooks) && _bn.hooks.length) {
-    _bsLines.push("\n## Сюжетные крючки");
-    _bn.hooks.forEach(function(h){ if (h) _bsLines.push("- " + h); });
-  }
-  var _bs = _bsLines.join("\n");
-  if (!newChar.notesV2.sections.backstory) newChar.notesV2.sections.backstory = _bs;
   newChar.notesV2.prefs = newChar.notesV2.prefs || { lastSection:'backstory', lastFilter:'all' };
   newChar.notesV2.entries = newChar.notesV2.entries || [];
+  var _now = Date.now();
   newChar.notesV2.entries.push({
-    id: "build-" + b.id + "-" + Date.now(),
+    id: "build-" + b.id + "-" + _now,
     type: "free",
-    title: "Билд применён: " + (b.title || ""),
-    body: (b.summary || "") + (b.role ? "\n\nРоль: " + b.role : ""),
+    title: "Билд: " + (b.title || ""),
+    body: _bsLines.join("\n\n"),
     tags: ["билд", b.className || ""].filter(Boolean),
     pinned: false,
-    createdAt: Date.now(),
-    updatedAt: Date.now()
+    createdAt: _now,
+    updatedAt: _now
   });
+  // BUILD-FIX-11: сюжетные крючки — отдельная запись типа «Зацепка».
+  if (_bn && Array.isArray(_bn.hooks) && _bn.hooks.length) {
+    newChar.notesV2.entries.push({
+      id: "build-hooks-" + b.id + "-" + _now,
+      type: "hook",
+      title: "Сюжетные крючки",
+      body: _bn.hooks.filter(Boolean).map(function(h){ return "- " + h; }).join("\n"),
+      tags: ["билд"],
+      pinned: false,
+      createdAt: _now,
+      updatedAt: _now
+    });
+  }
   // BUILD-LVL-3/5: авто-применить рекомендованные выборы 1-го уровня
   // (стиль боя воина — single; экспертиза плута — multi, до getCount навыков).
   if (b.recommendedChoices && edData(newChar).CLASS_CHOICES[b.className]) {
