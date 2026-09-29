@@ -13406,6 +13406,52 @@ mark.search-hl {
   .party-form-row { flex-direction: column; gap: 4px; }
 }
 
+/* DM-2: стат-блок своего монстра — форма, окно «!» трекера, «Мои монстры» */
+.mon-cr-note { font-size: 0.75em; color: var(--text-dim); min-height: 1em; }
+.mon-sb { border-top: 1px solid var(--border); padding-top: 6px; }
+.mon-sb > summary { cursor: pointer; font-size: 0.85em; color: var(--accent-lo); padding: 4px 0; }
+.mon-sb[open] { display: flex; flex-direction: column; gap: 8px; }
+.party-form .mon-sb label { margin-top: 2px; }
+.mon-sb-stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.mon-sb-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 1em !important; }
+.mon-sb-stat span { font-size: 0.7em; color: var(--text-dim); letter-spacing: 0.04em; }
+.party-form .mon-sb-stat input { text-align: center; padding: 6px 2px; }
+.mon-sb-stat em { font-style: normal; font-size: 0.75em; color: var(--text); font-variant-numeric: tabular-nums; }
+.mon-sb-saves { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.mon-sb-save, .mon-sb-add, .mon-sbv-btn, .mon-sbv-act {
+  background: none; border: none; padding: 4px 0; font: inherit; font-size: 0.82em;
+  color: var(--text-dim); cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.mon-sb-save.is-on { color: var(--accent-lo); font-weight: 600; }
+.mon-sb-save.is-on::before, .mon-sbv-btn.is-prof::before {
+  content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 5px;
+  transform: rotate(45deg) translateY(-1px); background: var(--accent-lo);
+}
+.mon-sb-add { align-self: flex-start; color: var(--accent-lo); }
+.mon-sb-attacks { display: flex; flex-direction: column; gap: 6px; }
+.mon-sb-attack { display: grid; grid-template-columns: 1fr 52px 76px 1fr 24px; gap: 4px; align-items: center; }
+.party-form .mon-sb-attack input { padding: 6px; }
+.mon-at-del { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 0; }
+.mon-catalog-check { display: flex !important; align-items: center; gap: 8px; font-size: 0.85em !important; color: var(--text) !important; margin-top: 4px; }
+.party-form .mon-catalog-check input { width: auto; }
+
+.mon-sbv { text-align: left; }
+.mon-sbv:empty { display: none; }
+.mon-sbv-title { font-size: 0.7em; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin: 10px 0 2px; }
+.mon-sbv-row { display: flex; flex-wrap: wrap; gap: 0 14px; }
+.mon-sbv-btn { color: var(--text); }
+.mon-sbv-btn b, .mon-sbv-act { color: var(--accent-lo); }
+.mon-sbv-attack { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 14px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+.mon-sbv-at-name { flex: 1 1 100%; font-size: 0.88em; color: var(--text); }
+.srd-mon-del { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; flex-shrink: 0; }
+
+@media (max-width: 540px) {
+  .mon-sb-stats { grid-template-columns: repeat(3, 1fr); }
+  .mon-sb-attack { grid-template-columns: 1fr 52px 76px 24px; }
+  .mon-sb-attack .mon-at-type { grid-column: 1 / 4; grid-row: 2; }
+  .mon-sb-attack .mon-at-del { grid-row: 1; grid-column: 4; }
+}
+
 /* ============================================================
    UI5-6: ПОЛИРОВКА — единый фокус клавиатуры + шевроны аккордеонов
    ============================================================ */

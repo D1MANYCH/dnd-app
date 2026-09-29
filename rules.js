@@ -1086,6 +1086,13 @@ function rulesCrToXp(cr) {
   if (s === "0.125") s = "1/8"; else if (s === "0.25") s = "1/4"; else if (s === "0.5") s = "1/2";
   return CR_XP.hasOwnProperty(s) ? CR_XP[s] : 0;
 }
+// DM-2: бонус мастерства монстра по CR (MM стр. 8): 0–4 → +2, далее +1 за каждые 4 CR.
+function rulesCrToProf(cr) {
+  var s = String(cr == null ? "" : cr).trim().replace(",", ".");
+  if (!rulesCrToXp(s)) return 0;
+  var n = s.indexOf("/") >= 0 ? 0 : parseFloat(s);
+  return n < 5 ? 2 : Math.floor((n - 1) / 4) + 2;
+}
 // Множитель по числу монстров; отряд меньше 3 — ступень выше, 6+ — ступень ниже.
 function rulesEncounterMultiplier(monsterCount, partySize) {
   var steps = [0.5, 1, 1.5, 2, 2.5, 3, 4, 5];

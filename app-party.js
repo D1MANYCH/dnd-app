@@ -206,6 +206,7 @@ function _pentOpen(type, i) {
   $(cfg.idx).value = isEdit ? i : "-1";
   var item = isEdit ? cfg.list()[i] : null;
   cfg.fields.forEach(function(f) { $(f.id).value = item ? (item[f.key] || "") : ""; });
+  if (type === "monster") _monFormFill(item);
   openModal(cfg.modal);
 }
 function _pentClose(type) { closeModal(_PENT[type].modal); }
@@ -230,6 +231,7 @@ function _pentSave(type) {
     if (v) data[f.key] = v;
   });
   if (!data.name) data.name = name;
+  if (type === "monster") _monFormApply(data);
   if (idx >= 0) list[idx] = data; else list.push(data);
   if (window.AppLog) AppLog.action("party", ({ ally: "союзник", npc: "NPC", monster: "монстр" }[type] || type) + (idx >= 0 ? " изменён: " : " добавлен: ") + data.name);
   saveParty(); cfg.render(); _pentClose(type);
@@ -323,6 +325,180 @@ function setMonsterStatus(i, val)  { _pentStatus("monster", i, val); }
 function exportMonsters()          { _pentExport("monster"); }
 function importMonsters(input)     { _pentImport("monster", input); }
 
+// ─── DM-2: стат-блок своего монстра и каталог «Мои монстры» ───
+// Стат-блок живёт в записи монстра (stats / saveProf / attacks), каталог —
+// в персонаже (char.customMonsters), поэтому уезжает с экспортом и бэкапом.
+var MON_ABILS = [["str","СИЛ"],["dex","ЛОВ"],["con","ТЕЛ"],["int","ИНТ"],["wis","МУД"],["cha","ХАР"]];
+var _monSaveProf = {};
+function _monSigned(n) { return (n >= 0 ? "+" : "−") + Math.abs(n); }
+function _monFormFill(item) {
+  var st = (item && item.stats) || {};
+  $("monster-stats").innerHTML = MON_ABILS.map(function(a) {
+    return '<label class="mon-sb-stat"><span>' + a[1] + '</span>' +
+      '<input type="number" id="monster-st-' + a[0] + '" inputmode="numeric" min="1" max="30" placeholder="10" value="' + (st[a[0]] || "") + '" oninput="monsterFormRefresh()">' +
+      '<em id="monster-st-' + a[0] + '-mod"></em></label>';
+  }).join("");
+  _monSaveProf = {};
+  ((item && item.saveProf) || []).forEach(function(k) { _monSaveProf[k] = true; });
+  $("monster-attacks").innerHTML = "";
+  ((item && item.attacks) || []).forEach(monsterAddAttackRow);
+  var hasSb = !!(item && (item.stats || (item.attacks && item.attacks.length)));
+  $("monster-sb").open = hasSb;
+  $("monster-to-catalog").checked = !!(item && _monCatalogIndex(item.name) >= 0);
+  monsterFormRefresh();
+}
+function _monFormStat(k) { var v = parseInt(($("monster-st-" + k) || {}).value, 10); return v > 0 ? v : 0; }
+function monsterFormRefresh() {
+  var cr = ($("monster-cr-inp").value || "").trim();
+  var pb = rulesCrToProf(cr);
+  var note = $("monster-cr-note");
+  if (note) note.textContent = cr ? (pb ? "Бонус мастерства +" + pb + " · " + rulesCrToXp(cr) + " XP" : "CR не из таблицы — опыт не посчитать") : "";
+  MON_ABILS.forEach(function(a) {
+    var m = $("monster-st-" + a[0] + "-mod");
+    if (m) m.textContent = _monSigned(getMod(_monFormStat(a[0]) || 10));
+  });
+  $("monster-saves").innerHTML = MON_ABILS.map(function(a) {
+    var on = !!_monSaveProf[a[0]];
+    var b = getMod(_monFormStat(a[0]) || 10) + (on ? (pb || 2) : 0);
+    return '<button type="button" class="mon-sb-save' + (on ? " is-on" : "") + '" aria-pressed="' + on + '" onclick="toggleMonsterSave(\'' + a[0] + '\')">' +
+      a[1].charAt(0) + a[1].slice(1).toLowerCase() + ' ' + _monSigned(b) + '</button>';
+  }).join("");
+}
+function toggleMonsterSave(k) { _monSaveProf[k] = !_monSaveProf[k]; monsterFormRefresh(); }
+function monsterAddAttackRow(a) {
+  a = a || {};
+  var row = document.createElement("div");
+  row.className = "mon-sb-attack";
+  row.innerHTML =
+    '<input type="text" class="mon-at-name" placeholder="Название" value="' + escapeHtml(a.name || "") + '">' +
+    '<input type="number" class="mon-at-hit" placeholder="+4" value="' + (a.hit != null && a.hit !== "" ? a.hit : "") + '" aria-label="Бонус атаки">' +
+    '<input type="text" class="mon-at-dmg" placeholder="1к6+2" value="' + escapeHtml(a.dmg || "") + '" aria-label="Урон">' +
+    '<input type="text" class="mon-at-type" placeholder="рубящий" value="' + escapeHtml(a.dmgType || "") + '" aria-label="Вид урона">' +
+    '<button type="button" class="mon-at-del" onclick="this.parentNode.remove()" title="Убрать атаку" aria-label="Убрать атаку">✕</button>';
+  $("monster-attacks").appendChild(row);
+}
+function _monFormRead() {
+  var stats = {}, any = false;
+  MON_ABILS.forEach(function(a) { var v = _monFormStat(a[0]); if (v) { stats[a[0]] = Math.min(30, v); any = true; } });
+  var attacks = [];
+  Array.prototype.forEach.call(document.querySelectorAll("#monster-attacks .mon-sb-attack"), function(r) {
+    var name = r.querySelector(".mon-at-name").value.trim();
+    var dmg = r.querySelector(".mon-at-dmg").value.trim();
+    if (!name && !dmg) return;
+    var hit = parseInt(r.querySelector(".mon-at-hit").value, 10);
+    attacks.push({ name: name || "Атака", hit: isNaN(hit) ? 0 : hit, dmg: dmg, dmgType: r.querySelector(".mon-at-type").value.trim() });
+  });
+  var saveProf = MON_ABILS.map(function(a) { return a[0]; }).filter(function(k) { return _monSaveProf[k]; });
+  return { stats: any ? stats : null, saveProf: saveProf, attacks: attacks };
+}
+function _monFormApply(data) {
+  var sb = _monFormRead();
+  if (sb.stats) data.stats = sb.stats;
+  if (sb.saveProf.length) data.saveProf = sb.saveProf;
+  if (sb.attacks.length) data.attacks = sb.attacks;
+  var xp = rulesCrToXp(data.cr);
+  if (xp) data.xp = xp; else delete data.xp;
+  if (data.hp) data.hpMax = data.hp;
+  if ($("monster-to-catalog").checked) _monCatalogPut(data);
+}
+// Бонус спасброска: мод + БМ по CR, если спасбросок отмечен.
+function monsterSaveBonus(m, k) {
+  var mod = getMod((m.stats && m.stats[k]) || 10);
+  return mod + ((m.saveProf || []).indexOf(k) >= 0 ? (rulesCrToProf(m.cr) || 2) : 0);
+}
+// Стат-блок для окна «!» в трекере: проверки, спасброски, атаки — нажатием в бросок.
+function monsterStatBlockHtml(m) {
+  if (!m || !(m.stats || (m.attacks && m.attacks.length))) return "";
+  var h = "";
+  if (m.stats) {
+    h += '<div class="mon-sbv-title">Проверки</div><div class="mon-sbv-row">' + MON_ABILS.map(function(a) {
+      var mod = getMod(m.stats[a[0]] || 10);
+      return '<button type="button" class="mon-sbv-btn" onclick="monsterRoll(\'' + a[1] + '\',' + mod + ')">' + a[1] + ' ' + (m.stats[a[0]] || 10) + ' <b>' + _monSigned(mod) + '</b></button>';
+    }).join("") + '</div>';
+    h += '<div class="mon-sbv-title">Спасброски</div><div class="mon-sbv-row">' + MON_ABILS.map(function(a) {
+      var b = monsterSaveBonus(m, a[0]);
+      var prof = (m.saveProf || []).indexOf(a[0]) >= 0;
+      return '<button type="button" class="mon-sbv-btn' + (prof ? " is-prof" : "") + '" onclick="monsterRoll(\'спасбросок ' + a[1] + '\',' + b + ')">' + a[1] + ' <b>' + _monSigned(b) + '</b></button>';
+    }).join("") + '</div>';
+  }
+  if (m.attacks && m.attacks.length) {
+    h += '<div class="mon-sbv-title">Атаки</div>' + m.attacks.map(function(a, ai) {
+      return '<div class="mon-sbv-attack">' +
+        '<span class="mon-sbv-at-name">' + escapeHtml(a.name) + '</span>' +
+        '<button type="button" class="mon-sbv-act" onclick="monsterAttackRoll(' + ai + ',\'hit\')">' + _monSigned(a.hit || 0) + ' попасть</button>' +
+        (a.dmg ? '<button type="button" class="mon-sbv-act" onclick="monsterAttackRoll(' + ai + ',\'dmg\')">' + escapeHtml(a.dmg) + (a.dmgType ? ' ' + escapeHtml(a.dmgType) : '') + '</button>' : '') +
+      '</div>';
+    }).join("");
+  }
+  return h;
+}
+var _monSbCurrent = null;
+function monsterRoll(what, mod) {
+  var name = _monSbCurrent ? _monSbCurrent.name : "Монстр";
+  if (typeof quickRoll === "function") quickRoll({ label: name + ": " + what, sides: 20, mod: mod });
+}
+function monsterAttackRoll(ai, kind) {
+  var m = _monSbCurrent; var a = m && m.attacks && m.attacks[ai];
+  if (!a) return;
+  var label = (m.name || "Монстр") + ": " + a.name;
+  if (kind === "hit") { if (typeof quickRoll === "function") quickRoll({ label: label, sides: 20, mod: a.hit || 0 }); return; }
+  if (typeof rollFormula !== "function") return;
+  var r = rollFormula(a.dmg, { label: label + " — урон", openArena: true });
+  if (r && r.ok === false) showToast("Формула урона: " + r.error, "warn");
+}
+
+// Каталог «Мои монстры» (char.customMonsters) — шаблоны без боевого состояния.
+function _monCatalog() {
+  var char = currentId ? getCurrentChar() : null;
+  if (!char) return null;
+  if (!Array.isArray(char.customMonsters)) char.customMonsters = [];
+  return char.customMonsters;
+}
+function _monCatalogIndex(name) {
+  var cat = _monCatalog();
+  if (!cat || !name) return -1;
+  for (var i = 0; i < cat.length; i++) if (cat[i] && cat[i].name === name) return i;
+  return -1;
+}
+function _monCatalogPut(data) {
+  var cat = _monCatalog(); if (!cat) return;
+  var tpl = {};
+  ["name","type","cr","xp","ac","hp","hpMax","hpDice","speed","size","edition","tactics","desc","stats","saveProf","attacks","srdSlug"].forEach(function(k) {
+    if (data[k] !== undefined && data[k] !== "") tpl[k] = JSON.parse(JSON.stringify(data[k]));
+  });
+  var i = _monCatalogIndex(data.name);
+  if (i >= 0) cat[i] = tpl; else cat.push(tpl);
+  if (window.AppLog) AppLog.action("party", "«Мои монстры»: " + (i >= 0 ? "обновлён " : "добавлен ") + data.name);
+}
+function deleteCatalogMonster(i, event) {
+  if (event && event.stopPropagation) event.stopPropagation();
+  var cat = _monCatalog(); if (!cat || !cat[i]) return;
+  var name = cat[i].name;
+  showConfirmModal("Убрать из «Мои монстры»?", "«" + name + "» пропадёт из каталога. Монстры отряда и боя не изменятся.", function() {
+    cat.splice(i, 1);
+    if (window.AppLog) AppLog.action("party", "«Мои монстры»: удалён " + name);
+    saveToLocal();
+    renderSrdMonsterPicker();
+  });
+}
+// Добавить из каталога: в идущий бой (пикер «в бой») или в отряд.
+function addMonsterFromCatalog(i, event) {
+  if (event && event.stopPropagation) event.stopPropagation();
+  var cat = _monCatalog(); var t = cat && cat[i];
+  if (!t) return;
+  var copy = JSON.parse(JSON.stringify(t));
+  if (_srdPickerBattleMode && BATTLE_DATA.active) { _addCatalogMonsterToBattle(copy); return; }
+  copy.id = Date.now() + Math.floor(Math.random() * 1000);
+  while (PARTY_DATA.monsters.some(function(x) { return x.id === copy.id; })) copy.id = Date.now() + Math.floor(Math.random() * 10000);
+  copy.status = "healthy";
+  if (copy.hp && !copy.hpMax) copy.hpMax = copy.hp;
+  PARTY_DATA.monsters.push(copy);
+  if (window.AppLog) AppLog.action("party", "из «Мои монстры» добавлен: " + copy.name);
+  saveParty();
+  renderMonsters();
+  showToast(copy.name + " добавлен(а) в монстров", "success");
+}
+
 
 // ─── NPCs ────────────────────────────────────────────────────
 // Цвет бейджа отношения для NPC
@@ -387,6 +563,7 @@ function renderMonsters() {
     if (m.cr)      parts.push('<span class="pcard-srd-badge">CR ' + escapeHtml(String(m.cr)) + '</span>');
     if (m.ac)      parts.push('<span class="pcard-srd-badge">' + dndIcoHtml("shield", 13) + ' ' + escapeHtml(String(m.ac)) + '</span>');
     if (m.hp)      parts.push('<span class="pcard-srd-badge">' + dndIcoHtml("heart", 13) + ' ' + escapeHtml(String(m.hp)) + '</span>');
+    if (m.attacks && m.attacks.length) parts.push('<span class="pcard-srd-badge">' + dndIcoHtml("sword", 13) + ' ' + m.attacks.length + '</span>');
     if (m.edition) parts.push('<span class="pcard-srd-badge pcard-srd-badge-ed">' + escapeHtml(String(m.edition)) + '</span>');
     if (parts.length) srdBadges = '<div class="pcard-srd-badges">' + parts.join("") + '</div>';
     // FEAT-4: тактика отдельным блоком (если есть)
@@ -468,7 +645,7 @@ function _openSrdMonsterPickerCore() {
   // Фильтр редакции (один раз на сессию). Включаем PHB'24 даже если пуст —
   // фильтр покажет «Нет монстров» с подсказкой, что раздел в разработке.
   var edSel = $("srd-monster-edition");
-  if (edSel && edSel.options.length <= 1) {
+  if (edSel && edSel.options.length <= 2) {
     ["PHB'14", "PHB'24"].forEach(function(ed) {
       var opt = document.createElement("option");
       opt.value = ed; opt.textContent = ed;
@@ -490,6 +667,35 @@ function renderSrdMonsterPicker() {
   var box = $("srd-monster-results"); if (!box) return;
   if (!window.MONSTERS_SRD) return; // PERF-3: данные ещё не загружены
   var q = _srdPickerState.q, cr = _srdPickerState.cr, ed = _srdPickerState.edition;
+  // DM-2: «Мои монстры» — сверху списка (или одни при фильтре «Мои монстры»)
+  var mine = (_monCatalog() || []).map(function(m, ci) { return { m: m, ci: ci }; }).filter(function(x) {
+    if (cr && String(x.m.cr || "") !== cr) return false;
+    if (ed && ed !== "mine" && (x.m.edition || "") !== ed) return false;
+    return !q || (x.m.name + " " + (x.m.type || "")).toLowerCase().indexOf(q) !== -1;
+  });
+  var mineHtml = mine.map(function(x) {
+    var m = x.m;
+    return '<div class="srd-mon-row srd-mon-row-mine" onclick="addMonsterFromCatalog(' + x.ci + ', event)">' +
+      '<div class="srd-mon-body">' +
+        '<div class="srd-mon-name">' + escapeHtml(m.name) + ' <span class="srd-mon-en">моё</span></div>' +
+        '<div class="srd-mon-meta">' +
+          (m.cr ? '<span class="srd-mon-badge">CR ' + escapeHtml(String(m.cr)) + '</span>' : '') +
+          (m.ac ? '<span class="srd-mon-badge">' + dndIcoHtml("shield", 13) + ' ' + escapeHtml(String(m.ac)) + '</span>' : '') +
+          (m.hp ? '<span class="srd-mon-badge">' + dndIcoHtml("heart", 13) + ' ' + escapeHtml(String(m.hp)) + '</span>' : '') +
+          (m.type ? '<span class="srd-mon-badge">' + escapeHtml(m.type) + '</span>' : '') +
+          (m.attacks && m.attacks.length ? '<span class="srd-mon-badge">атак: ' + m.attacks.length + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<button class="srd-mon-add" onclick="addMonsterFromCatalog(' + x.ci + ', event)" title="Добавить">+ Добавить</button>' +
+      '<button class="srd-mon-del" onclick="deleteCatalogMonster(' + x.ci + ', event)" title="Убрать из «Мои монстры»" aria-label="Убрать из «Мои монстры»">' + dndIcoHtml("trash", 14) + '</button>' +
+    '</div>';
+  }).join("");
+  if (ed === "mine") {
+    var cEl = $("srd-monster-count");
+    if (cEl) cEl.textContent = "Найдено: " + mine.length;
+    box.innerHTML = mine.length ? mineHtml : emptyStateHtml("skull", "«Мои монстры» пусто", "В форме своего монстра отметьте «Сохранить в «Мои монстры»».", null, null, "party-empty");
+    return;
+  }
   var list = window.MONSTERS_SRD.filter(function(m) {
     if (cr && m.cr !== cr) return false;
     if (ed && (m.edition || "") !== ed) return false;
@@ -504,13 +710,13 @@ function renderSrdMonsterPicker() {
     return d !== 0 ? d : a.name.localeCompare(b.name, "ru");
   });
   var countEl = $("srd-monster-count");
-  if (countEl) countEl.textContent = "Найдено: " + list.length;
-  if (list.length === 0) {
+  if (countEl) countEl.textContent = "Найдено: " + (list.length + mine.length);
+  if (list.length === 0 && !mine.length) {
     if (ed === "PHB'24") box.innerHTML = emptyStateHtml("hourglass", "Раздел PHB'24 пока пуст", "Будет наполнен в следующем релизе.", null, null, "party-empty");
     else box.innerHTML = '<div class="party-empty">Нет монстров под фильтр</div>';
     return;
   }
-  box.innerHTML = list.map(function(m) {
+  box.innerHTML = mineHtml + list.map(function(m) {
     return '<div class="srd-mon-row" onclick="addMonsterFromSRD(\'' + m.slug + '\', event)">' +
       '<div class="srd-mon-body">' +
         '<div class="srd-mon-name">' + escapeHtml(m.name) + ' <span class="srd-mon-en">' + escapeHtml(m.nameEn || "") + '</span></div>' +
@@ -852,7 +1058,8 @@ function _participantCombatMeta(p) {
     if (raw) {
       hpMax = parseInt(raw.hpMax != null ? raw.hpMax : raw.hp, 10) || 0;
       hp = hpMax;
-      if (raw.srdSlug && typeof window.srdMonsterBySlug === "function") {
+      if (raw.stats && raw.stats.dex) dexMod = getMod(raw.stats.dex);
+      else if (raw.srdSlug && typeof window.srdMonsterBySlug === "function") {
         var srd = window.srdMonsterBySlug(raw.srdSlug);
         if (srd && srd.stats) dexMod = getMod(srd.stats.dex);
       }
@@ -886,7 +1093,7 @@ function _battleParticipantHP(p) {
 function _addSrdMonsterToBattle(m) {
   var dexMod = (m.stats ? getMod(m.stats.dex) : 0);
   var hpMax = parseInt(m.hp, 10) || 0;
-  var dup = BATTLE_DATA.participants.filter(function(p) { return p.baseName === m.name; }).length;
+  var dup = BATTLE_DATA.participants.filter(function(p) { return (p.baseName || p.name) === m.name; }).length;
   var name = dup > 0 ? m.name + " " + (dup + 1) : m.name;
   var part = {
     id: "monb_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
@@ -911,6 +1118,37 @@ function _addSrdMonsterToBattle(m) {
   saveBattle();
   renderBattleTracker();
   showToast(name + " добавлен(а) в бой", "success");
+}
+// DM-2: монстр из «Мои монстры» прямо в бой — стат-блок едет на участнике (p.sb).
+function _addCatalogMonsterToBattle(t) {
+  var dexMod = (t.stats && t.stats.dex) ? getMod(t.stats.dex) : 0;
+  var hpMax = parseInt(t.hpMax != null ? t.hpMax : t.hp, 10) || 0;
+  var dup = BATTLE_DATA.participants.filter(function(p) { return (p.baseName || p.name) === t.name; }).length;
+  var name = dup > 0 ? t.name + " " + (dup + 1) : t.name;
+  var part = {
+    id: "monb_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+    baseName: t.name, name: name,
+    icon: getMonsterTypeIcon(t.type), color: "#c0392b", type: "monster", status: "healthy",
+    dexMod: dexMod, hp: hpMax, hpMax: hpMax,
+    initiative: rollInitiativeValue(dexMod),
+    desc: [t.tactics, t.desc].filter(Boolean).join("\n\n"),
+    sb: { name: t.name, cr: t.cr, stats: t.stats, saveProf: t.saveProf, attacks: t.attacks }
+  };
+  var currentP = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
+  BATTLE_DATA.participants.push(part);
+  sortParticipantsByInitiative(BATTLE_DATA.participants);
+  if (currentP) { var ci = BATTLE_DATA.participants.indexOf(currentP); if (ci >= 0) BATTLE_DATA.currentTurn = ci; }
+  if (window.AppLog) AppLog.action("battle", "в бой добавлен монстр: " + name + " (иниц. " + part.initiative + ")");
+  saveBattle();
+  renderBattleTracker();
+  showToast(name + " добавлен(а) в бой", "success");
+}
+// Стат-блок участника: свой (p.sb) или из записи отряда.
+function _participantStatBlock(p) {
+  if (!p || p.type !== "monster") return null;
+  if (p.sb) return p.sb;
+  var m = _findPartyMonster(p.id) || PARTY_DATA.monsters.filter(function(x) { return x.name === p.name; })[0];
+  return (m && (m.stats || (m.attacks && m.attacks.length))) ? m : null;
 }
 
 function startBattle() {
@@ -967,6 +1205,7 @@ function showTrackerInfo(i) {
         '<div class="tracker-info-name" id="tinfo-name"></div>' +
         '<div class="tracker-info-type" id="tinfo-type"></div>' +
         '<div class="tracker-info-desc" id="tinfo-desc"></div>' +
+        '<div class="mon-sbv" id="tinfo-sb"></div>' +
         '<div class="confirm-modal-btns">' +
           '<button class="confirm-btn-cancel" onclick="$(\'tracker-info-modal\').classList.remove(\'active\')">Закрыть</button>' +
         '</div>' +
@@ -980,7 +1219,12 @@ function showTrackerInfo(i) {
   $("tinfo-type").textContent = getFactionLabel(p.type).toUpperCase();
   var descEl = $("tinfo-desc");
   descEl.textContent = desc || "Нет описания.";
-  descEl.style.display = desc ? "block" : "none";
+  var sb = _participantStatBlock(p);
+  _monSbCurrent = sb ? { name: p.name, cr: sb.cr, stats: sb.stats, saveProf: sb.saveProf, attacks: sb.attacks } : null;
+  var sbEl = $("tinfo-sb");
+  if (sbEl) sbEl.innerHTML = monsterStatBlockHtml(_monSbCurrent);
+  descEl.textContent = desc || (sb ? "" : "Нет описания.");
+  descEl.style.display = desc || !sb ? "block" : "none";
   modal.classList.add("active");
 }
 
@@ -1060,7 +1304,7 @@ function renderBattleTracker() {
     '</div>';
     // Кнопки-действия по фиксированным слотам: info / d20 / remove. Отсутствующие
     // (нет описания; self не удаляется) заменяются пустым слотом → колонки ровные.
-    var infoSlot = desc
+    var infoSlot = (desc || _participantStatBlock(p))
       ? '<button type="button" class="tracker-info-btn" onclick="showTrackerInfo(' + i + ')" title="Описание">!</button>'
       : '<span class="tracker-slot"></span>';
     var removeSlot = isSelf
