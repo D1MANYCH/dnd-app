@@ -951,7 +951,7 @@ function luBuildChoicesScreen() {
   }
   if (subMinLevel === clvl && !char.subclass) {
     var recSub = b ? b.subclass : null;
-    var optsHtml = edData(char).SUBCLASSES[cn].map(function(s){
+    var optsHtml = edData(char).SUBCLASSES[cn].filter(function(s){ return subclassInBooks(s, char); }).map(function(s){
       var isRec = (s === recSub);
       // SUB-0: приписка источника подкласса на кнопке выбора level-up.
       var src = (typeof subclassSourceShort === "function") ? subclassSourceShort(s, char) : "";

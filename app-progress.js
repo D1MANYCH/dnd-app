@@ -280,6 +280,7 @@ function _pgClassRow(char, e, open) {
       var opts = '<option value="">Выберите подкласс</option>';
       var all = edData(char).SUBCLASSES[e.cls] || [];
       all.forEach(function(s) {
+        if (!subclassInBooks(s, char)) return;
         var src = (typeof subclassSourceShort === "function") ? subclassSourceShort(s, char) : "";
         opts += '<option value="' + escapeHtml(s) + '">' + escapeHtml(src ? s + " · " + src : s) + "</option>";
       });

@@ -1351,6 +1351,7 @@ safeSet("char-race", char.race);
 safeSet("char-gender", char.gender || "");
 if (typeof populateBackgroundSelect === "function") populateBackgroundSelect(char); // E24-5: предыстории 2024 / 2014
 safeSet("char-background", char.background || "");
+if (typeof renderBooksRow === "function") renderBooksRow();
 if (typeof renderBuildBadge === "function") renderBuildBadge();
 if (typeof renderEditionBadge === "function") renderEditionBadge();
 safeSet("char-alignment", char.alignment || "");

@@ -8259,6 +8259,32 @@
       return true;
     });
 
+    t("[ed-3] метки книг 2014: source у рас — код из SOURCE_LABELS, без поля — PHB; заклинания PH14 только из PHB", function(){
+      var want = { "Голиаф":"VGtM", "Аасимар":"VGtM", "Тифлинг (Кровь Дьявола)":"SCAG" };
+      for (var r in RACE_DATA) {
+        var src = RACE_DATA[r].source || "PHB";
+        if (!SOURCE_LABELS[src]) return r + ": неизвестная книга " + src;
+        if (src !== (want[r] || "PHB")) return r + ": " + src;
+      }
+      var n14 = SPELLS_BASE.filter(function(s){ return s.source === "PH14"; }).length;
+      if (n14 !== 361) return "PH14 заклинаний " + n14;
+      return true;
+    });
+
+    t("[ed-4] книги персонажа: миграция включает все, PHB всегда, выключенная книга скрывает подкласс", function(){
+      var c = migrateCharacter({ id: 41, class: "Воин", level: 3, schemaVersion: 40 });
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion " + c.schemaVersion;
+      if (!Array.isArray(c.books) || c.books.length !== BOOK_CODES.length) return "books " + JSON.stringify(c.books);
+      var kept = migrateCharacter({ id: 42, class: "Воин", level: 3, schemaVersion: 40, books: ["DMG"] });
+      if (kept.books.join() !== "DMG") return "затёрт books: " + kept.books.join();
+      c.books = [];
+      if (!charHasBook(c, "PHB") || !charHasBook(c, "PH24")) return "PHB выключен";
+      if (subclassInBooks("Самурай", c)) return "Самурай (XGtE) виден без книги";
+      if (!subclassInBooks("Чемпион", c)) return "Чемпион скрыт";
+      if (!charHasBook(null, "XGtE") || !charHasBook({}, "XGtE")) return "без books должно быть всё";
+      return true;
+    });
+
     t("[e24-8] слияние: edData(2024) — Воин/Варвар из 2024, остальные классы и чужие подклассы из 2014; 2014-глобалы не тронуты", function(){
       var d24 = edData({ edition: "2024" }), d14 = edData({ edition: "2014" });
       if (d24.CLASS_FEATURES["Воин"] !== CF24["Воин"]) return "CLASS_FEATURES Воин не из 2024";

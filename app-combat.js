@@ -649,9 +649,12 @@ function updateSubclassOptions() {
   subclassSelect.disabled = false;
   subclassSelect.appendChild(new Option("Выберите подкласс", ""));
   _ed.SUBCLASSES[selectedClass].forEach(function(subclass) {
+    // ED-4: подкласс вне книг персонажа скрыт, уже выбранный остаётся с пометкой.
+    var inBooks = subclassInBooks(subclass, _uch);
+    if (!inBooks && !(_uch && _uch.subclass === subclass)) return;
     // SUB-0: приписка источника в подписи опции (значение = чистое имя подкласса).
     var src = (typeof subclassSourceShort === "function") ? subclassSourceShort(subclass, _uch) : "";
-    var opt = new Option(src ? subclass + " · " + src : subclass, subclass);
+    var opt = new Option((src ? subclass + " · " + src : subclass) + (inBooks ? "" : " · вне выбранных книг"), subclass);
     var full = (typeof subclassSourceFull === "function") ? subclassSourceFull(subclass) : "";
     if (full) opt.title = full;
     subclassSelect.appendChild(opt);
@@ -1098,6 +1101,34 @@ function onRaceChange() {
 // ============================================
 var _raceSelect2014Html = null;
 
+// ED-4: «Дополнения» персонажа — чипы книг; PHB всегда, под замком основы не меняются.
+function renderBooksRow() {
+  var box = $("char-books");
+  var char = currentId ? getCurrentChar() : null;
+  if (!box || !char) return;
+  var locked = !!char.basicLocked;
+  box.innerHTML = BOOK_CODES.map(function(code) {
+    var lbl = SOURCE_LABELS[code] || { short: code, full: code };
+    return '<button type="button" class="filter-chip' + (charHasBook(char, code) ? ' active' : '') + '"' +
+      (locked ? ' disabled' : '') + ' title="' + escapeHtml(lbl.full) + '" onclick="toggleCharBook(\'' + code + '\')">' +
+      escapeHtml(lbl.short) + '</button>';
+  }).join("");
+  var col = box.closest && box.closest(".col");
+  if (col) col.classList.toggle("basic-field-locked", locked);
+}
+function toggleCharBook(code) {
+  var char = currentId ? getCurrentChar() : null;
+  if (!char || char.basicLocked) return;
+  if (!Array.isArray(char.books)) char.books = BOOK_CODES.slice();
+  var i = char.books.indexOf(code);
+  if (i === -1) char.books.push(code); else char.books.splice(i, 1);
+  updateSubclassOptions();
+  populateRaceSelect(char);
+  safeSet("char-race", char.race);
+  renderBooksRow();
+  if (typeof updateChar === "function") updateChar();
+}
+
 // Селект расы: для 2024-персонажа — 10 видов из edData(char).RACE_DATA, для 2014 —
 // исходная разметка index.html (кэшируется при первом вызове).
 function populateRaceSelect(char) {
@@ -1106,7 +1137,15 @@ function populateRaceSelect(char) {
   if (_raceSelect2014Html === null) _raceSelect2014Html = sel.innerHTML;
   var is24 = !!(char && char.edition === "2024" && typeof edData === "function");
   if (!is24) {
-    if (sel.dataset.edition === "2024") { sel.innerHTML = _raceSelect2014Html; delete sel.dataset.edition; }
+    if (sel.dataset.edition === "2024" || sel.dataset.books) { sel.innerHTML = _raceSelect2014Html; delete sel.dataset.edition; delete sel.dataset.books; }
+    // ED-4: раса вне книг персонажа скрыта, уже выбранная остаётся с пометкой.
+    Array.prototype.slice.call(sel.options || []).forEach(function(o) {
+      var d = o.value && RACE_DATA[o.value];
+      if (!d || charHasBook(char, d.source)) return;
+      sel.dataset.books = "1";
+      if (char && char.race === o.value) o.textContent += " · вне выбранных книг";
+      else o.remove();
+    });
     return;
   }
   var tbl = edData(char).RACE_DATA || {};
@@ -1506,6 +1545,7 @@ function applyBasicLockUI() {
   if (lockedBar) lockedBar.style.display = locked ? "flex" : "none";
   var agRow = $("abilgen-row");
   if (agRow) agRow.style.display = locked ? "none" : "";
+  renderBooksRow();
   if (typeof syncClassFieldUI === "function") syncClassFieldUI(char);
 
   if (!locked) updateLockButtonState();

@@ -897,6 +897,11 @@ function migrateCharacter(char) {
     if (!Array.isArray(char.raceSkillChoice)) char.raceSkillChoice = [];
     char.schemaVersion = 40;
   }
+  if (v < 41) {
+    // ED-4: книги-дополнения персонажа; у старых включены все — ничего не пропадает.
+    if (!Array.isArray(char.books)) char.books = ["XGtE", "TCoE", "SCAG", "DMG", "VGtM", "HB"];
+    char.schemaVersion = 41;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем
