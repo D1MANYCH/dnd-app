@@ -431,7 +431,9 @@ if (valid.length === 0) {
   showToast("В файле нет валидных персонажей", "error");
   return;
 }
-var msg = "Добавить " + valid.length + " персонаж(а/ей) в список? Текущие не будут затронуты.";
+var msg = valid.length === 1
+  ? "Добавить персонажа «" + (valid[0].name || "без имени") + "» в список? Текущие не будут затронуты."
+  : "Добавить " + valid.length + " персонаж(а/ей) в список? Текущие не будут затронуты.";
 if (skipped > 0) msg += " Пропущено повреждённых: " + skipped + ".";
 showConfirmModal("Импорт персонажа", msg, function() {
   var nextId = Date.now();
@@ -483,6 +485,46 @@ showConfirmModal("Импорт персонажа", msg, function() {
             (addedSpells ? " · свои заклинания: " + addedSpells : ""), "success");
   _warnEditionMix(addedChars);
 }, "Импортировать", { danger: false, icon: "import" });
+}
+// SHARE-2: файл из «Поделиться» (share_target, sw.js кладёт его в кеш и
+// открывает ?share=1) и двойной клик по .json на ПК (file_handlers + launchQueue).
+function _consumeLaunchFiles() {
+  if (/[?&]share=1/.test(location.search || "")) {
+    try {
+      var rest = location.search.replace(/([?&])share=1&?/, "$1").replace(/[?&]$/, "");
+      history.replaceState(history.state, "", location.pathname + rest + location.hash);
+    } catch (e) {}
+    if (window.caches) {
+      caches.open("dnd-share-inbox").then(function(cache) {
+        return cache.match("./share-inbox").then(function(resp) {
+          if (!resp) { showToast("Файл не получен — попробуйте «Импорт персонажа»", "error"); return; }
+          return resp.text().then(function(text) {
+            cache.delete("./share-inbox");
+            _importLaunchText(text);
+          });
+        });
+      }).catch(function() { showToast("Файл не получен — попробуйте «Импорт персонажа»", "error"); });
+    }
+  }
+  if (window.launchQueue && typeof window.launchQueue.setConsumer === "function") {
+    window.launchQueue.setConsumer(function(params) {
+      if (!params || !params.files || !params.files.length) return;
+      params.files[0].getFile().then(function(file) {
+        if (file.size > IMPORT_MAX_BYTES) {
+          showToast("Файл слишком большой (макс. " + Math.round(IMPORT_MAX_BYTES/1024/1024) + " МБ)", "error");
+          return;
+        }
+        return file.text().then(_importLaunchText);
+      }).catch(function() { showToast("Ошибка чтения файла", "error"); });
+    });
+  }
+}
+function _importLaunchText(text) {
+  if (!text || text.length > IMPORT_MAX_BYTES) {
+    showToast(text ? "Файл слишком большой (макс. " + Math.round(IMPORT_MAX_BYTES/1024/1024) + " МБ)" : "Файл пуст", "error");
+    return;
+  }
+  _importOneCharText(text);
 }
 function exportSpells() {
 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(SPELL_DATABASE));

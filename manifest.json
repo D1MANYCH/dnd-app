@@ -92,5 +92,16 @@
       "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96", "type": "image/png" }]
     }
   ],
+  "share_target": {
+    "action": "./share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [{ "name": "file", "accept": ["application/json", "text/plain", "application/octet-stream", ".json"] }]
+    }
+  },
+  "file_handlers": [
+    { "action": "./index.html", "accept": { "application/json": [".json"] } }
+  ],
   "categories": ["games", "utilities"]
 }

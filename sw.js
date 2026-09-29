@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v427';
+const CACHE_NAME = 'dnd-sheet-v429';
 
 const FILES_TO_CACHE = [
   './',
@@ -197,9 +197,25 @@ self.addEventListener('message', (event) => {
   }
 });
 
+// SHARE-2: share_target из manifest — файл из «Поделиться» (Telegram и др.)
+// кладём в отдельный кеш и открываем приложение с ?share=1; забирает app-io.js.
+const SHARE_CACHE = 'dnd-share-inbox';
+function receiveSharedFile(request) {
+  return request.formData().then((form) => {
+    const file = form.get('file');
+    if (!file || typeof file.text !== 'function') return null;
+    return file.text().then((text) => caches.open(SHARE_CACHE).then((cache) =>
+      cache.put('./share-inbox', new Response(text, { headers: { 'Content-Type': 'application/json' } }))));
+  }).catch(() => null).then(() => Response.redirect('./index.html?share=1', 303));
+}
+
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
   if (!url.startsWith('http://') && !url.startsWith('https://')) return;
+  if (event.request.method === 'POST' && new URL(url).pathname.endsWith('/share-target')) {
+    event.respondWith(receiveSharedFile(event.request));
+    return;
+  }
 
   event.respondWith(
     // ignoreSearch: запросы идут с ?v=vN-токенами (index.html), а ключи прекеша —

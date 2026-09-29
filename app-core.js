@@ -258,6 +258,7 @@ try {
   }
 } catch (e) {}
 _openFromLaunchParams();
+if (typeof _consumeLaunchFiles === "function") _consumeLaunchFiles();
 });
 
 // INST-1: ярлыки manifest (shortcuts) запускают ./index.html?open=dice|characters.
