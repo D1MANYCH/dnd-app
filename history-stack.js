@@ -59,19 +59,106 @@
     try { history.pushState({ dndRoot: true, depth: 0 }, ""); } catch(e) {}
   });
 
+  // ── PERF-6: фокус для клавиатуры и экранного диктора ─────────────
+  // При открытии окна фокус уходит внутрь, Tab/Shift+Tab ходят по кругу
+  // внутри верхнего слоя, при закрытии фокус возвращается на кнопку-источник.
+  var openers = [];          // [{ key, el }]
+  var FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex], [contenteditable="true"]';
+
+  function isShown(el) {
+    if (!el || !el.getClientRects().length) return false;
+    var cs = getComputedStyle(el);
+    return cs.visibility !== "hidden" && cs.display !== "none";
+  }
+  function focusables(root) {
+    var all = root.querySelectorAll(FOCUSABLE), out = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.disabled || el.getAttribute("tabindex") === "-1") continue;
+      if (el.tagName === "INPUT" && el.type === "hidden") continue;
+      if (isShown(el)) out.push(el);
+    }
+    return out;
+  }
+  function zOf(el) { var z = parseInt(getComputedStyle(el).zIndex, 10); return isNaN(z) ? 0 : z; }
+  // Верхний слой: видимая модалка с наибольшим z-index (при равенстве —
+  // последняя в DOM), затем открытая шторка, затем страница сервиса.
+  function topLayer() {
+    var m = document.querySelectorAll('.modal.active:not(.closing), .confirm-modal-overlay.active, #dice-modal.active');
+    var best = null;
+    for (var i = 0; i < m.length; i++) {
+      if (!isShown(m[i])) continue;
+      if (!best || zOf(m[i]) >= zOf(best)) best = m[i];
+    }
+    if (best) return best;
+    var d = document.getElementById("side-drawer");
+    if (d && d.classList.contains("open") && isShown(d)) return d;
+    var cur = document.querySelector('div[id^="screen-"]:not(.hidden):not(.screen-ghost)');
+    if (cur && window.PAGE_SCREENS && PAGE_SCREENS.indexOf(cur.id.replace("screen-", "")) >= 0 && isShown(cur)) return cur;
+    return null;
+  }
+  function rememberOpener(key) {
+    for (var i = 0; i < openers.length; i++) if (openers[i].key === key) return;
+    var a = document.activeElement;
+    openers.push({ key: key, el: (a && a !== document.body) ? a : null });
+  }
+  // Первый элемент без клавиатуры на телефоне (не поле ввода), иначе сам контейнер.
+  function focusInto(root) {
+    if (!root) return;
+    setTimeout(function () {
+      if (!isShown(root) || root.contains(document.activeElement)) return;
+      var list = focusables(root), target = null;
+      for (var i = 0; i < list.length; i++) {
+        var t = list[i].tagName;
+        if (t !== "INPUT" && t !== "TEXTAREA" && t !== "SELECT" && !list[i].isContentEditable) { target = list[i]; break; }
+      }
+      if (!target) {
+        if (!root.hasAttribute("tabindex")) root.setAttribute("tabindex", "-1");
+        target = root;
+      }
+      try { target.focus({ preventScroll: true }); } catch (e) {}
+    }, 50);
+  }
+  function restoreOpener(key) {
+    for (var i = openers.length - 1; i >= 0; i--) {
+      if (openers[i].key !== key) continue;
+      var el = openers[i].el;
+      openers.splice(i);
+      if (el && document.contains(el) && isShown(el)) {
+        try { el.focus({ preventScroll: true }); } catch (e) {}
+      }
+      return;
+    }
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Tab" || e.altKey || e.ctrlKey || e.metaKey) return;
+    var root = topLayer();
+    if (!root) return;
+    var list = focusables(root);
+    if (!list.length) { e.preventDefault(); return; }
+    var first = list[0], last = list[list.length - 1], a = document.activeElement;
+    if (!root.contains(a)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
+    if (e.shiftKey && (a === first || a === root)) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
+  });
+
   // ── Обёртки open/close для пар функций ───────────────────────────
-  function wrapPair(name, openFnName, closeFnName) {
+  function wrapPair(name, openFnName, closeFnName, rootId) {
     var origOpen = window[openFnName];
     var origClose = window[closeFnName];
     if (typeof origOpen !== "function" || typeof origClose !== "function") return false;
     window[openFnName] = function() {
+      rememberOpener(name);
       var r = origOpen.apply(this, arguments);
-      pushLayer(name, function(){ try { origClose.call(window); } catch(e){} });
+      pushLayer(name, function(){ try { origClose.call(window); } catch(e){} restoreOpener(name); });
+      focusInto(document.getElementById(rootId));
       return r;
     };
     window[closeFnName] = function() {
       var r = origClose.apply(this, arguments);
       syncCloseLayer(name);
+      restoreOpener(name);
       return r;
     };
     return true;
@@ -96,12 +183,19 @@
       var prev = null;
       var prevEl = document.querySelector('div[id^="screen-"]:not(.hidden):not(.screen-ghost)');
       if (prevEl) prev = prevEl.id.replace("screen-", "");
+      var depth = window.SCREEN_DEPTH || SCREEN_DEPTH;
+      var from = depth[prev], to = depth[name];
+      var fwd = from != null && to != null && to > from;
+      if (fwd) rememberOpener("screen:" + name);
       var r = orig.apply(this, arguments);
-      var from = SCREEN_DEPTH[prev], to = SCREEN_DEPTH[name];
-      if (from != null && to != null && to > from) {
+      if (fwd) {
         pushLayer("screen:" + name, function(){
           try { orig.call(window, prev); } catch(e){}
+          restoreOpener("screen:" + name);
         });
+        focusInto(document.getElementById("screen-" + name));
+      } else if (from != null && to != null && to < from) {
+        restoreOpener("screen:" + prev);
       }
       return r;
     };
@@ -114,13 +208,16 @@
     var origClose = window.closeModal;
     if (typeof origOpen !== "function" || typeof origClose !== "function") return false;
     window.openModal = function(id) {
+      rememberOpener("modal:" + id);
       var r = origOpen.apply(this, arguments);
-      pushLayer("modal:" + id, function(){ try { origClose.call(window, id); } catch(e){} });
+      pushLayer("modal:" + id, function(){ try { origClose.call(window, id); } catch(e){} restoreOpener("modal:" + id); });
+      focusInto(document.getElementById(id));
       return r;
     };
     window.closeModal = function(id) {
       var r = origClose.apply(this, arguments);
       syncCloseLayer("modal:" + id);
+      restoreOpener("modal:" + id);
       return r;
     };
     return true;
@@ -133,11 +230,11 @@
     if (wrapGenericModal()) applied.push("openModal/closeModal");
     [
       // STYLE-8M-2: пара настроек снята — это экран, слой пушит wrapShowScreen.
-      ["drawer",        "openDrawer",          "closeDrawer"],
+      ["drawer",        "openDrawer",          "closeDrawer",    "side-drawer"],
       // STYLE-8M-4: поиск заклинаний и история ХП — тоже экраны.
-      ["dice",          "openDiceModal",       "closeDiceModal"]
+      ["dice",          "openDiceModal",       "closeDiceModal", "dice-modal"]
     ].forEach(function(p){
-      if (wrapPair(p[0], p[1], p[2])) applied.push(p[1]);
+      if (wrapPair(p[0], p[1], p[2], p[3])) applied.push(p[1]);
     });
     window._historyStackApplied = applied;
   }
