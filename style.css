@@ -9764,6 +9764,11 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   line-height: 1.5;
 }
 .item-ref-note [data-ico] { display: none; }
+/* DM-3: шпаргалка мастера — строка «термин над описанием» для длинных текстов. */
+.dm-ref-row { flex-direction: column; align-items: stretch; gap: 2px; }
+.item-ref-row.dm-ref-row span:first-child { font-weight: 600; }
+.item-ref-row.dm-ref-row span:last-child { white-space: pre-line; font-family: inherit; font-weight: 400; color: var(--home-sub); line-height: 1.45; }
+#dm-ref-ed { margin-bottom: var(--sp-3); }
 
 /* =============================================
    HELP / ONBOARDING (HELP-1) — табовый help-центр.
@@ -9924,6 +9929,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .tab-help-row {
   display: flex;
   justify-content: flex-end;
+  gap: 6px;
   margin: 0 0 10px;
 }
 .tab-help-btn {
@@ -9943,6 +9949,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   transition: border-color 0.15s, color 0.15s;
   line-height: 1;
 }
+.tab-help-btn--text { padding: 3px 10px; color: var(--accent-lo); }
 .tab-help-btn:hover,
 .tab-help-btn:focus-visible {
   border-color: var(--accent-color);
