@@ -1004,6 +1004,10 @@ function onRaceChange() {
           });
           charApply.raceStatChoice = [];
         }
+        if (Array.isArray(charApply.raceSkillChoice) && charApply.raceSkillChoice.length) {
+          charApply.raceSkillChoice.forEach(function(n) { _raceSkillSet(charApply, n, false); });
+          charApply.raceSkillChoice = [];
+        }
         // 3) Применяем бонусы новой расы
         var applied = {};
         if (data && data.stats) {
@@ -1247,6 +1251,7 @@ var RACE_STAT_PICKS = {
   "Полуэльф": ["str","dex","con","int","wis"],
   "Человек (вариант)": ["str","dex","con","int","wis","cha"]
 };
+var RACE_SKILL_PICKS = { "Человек (вариант)": 1, "Полуэльф": 2 };
 
 function renderRaceExtras() {
   var panel = $("race-extras-panel");
@@ -1260,6 +1265,7 @@ function renderRaceExtras() {
     var pending = [];
     if ((char.edition === "2024" ? RACE_BONUS_FEATS_2024 : RACE_BONUS_FEATS)[race]) pending.push("расовая черта");
     if (RACE_STAT_PICKS[race] && char.edition !== "2024") pending.push("+1 к двум характеристикам");
+    if (RACE_SKILL_PICKS[race] && char.edition !== "2024") pending.push(RACE_SKILL_PICKS[race] > 1 ? "навыки на выбор" : "навык на выбор");
     if (char.edition === "2024" && typeof edData === "function") {
       var sp0 = edData(char).RACE_DATA[race];
       if (sp0 && Array.isArray(sp0.choices)) sp0.choices.forEach(function(ch) { pending.push(ch.name.toLowerCase()); });
@@ -1307,6 +1313,25 @@ function renderRaceExtras() {
     html += '<span style="margin-left:auto;color:rgba(255,255,255,0.55);font-size:0.85em;">' +
       'Выбрано: ' + chosen.length + '/2</span>';
     html += '</div>';
+  }
+
+  // FB-3: Человек (вариант) — владение 1 навыком на выбор, Полуэльф — 2
+  var skillAllowance = char.edition !== "2024" ? (RACE_SKILL_PICKS[race] || 0) : 0;
+  if (skillAllowance > 0) {
+    if (!Array.isArray(char.raceSkillChoice)) char.raceSkillChoice = [];
+    var skChosen = char.raceSkillChoice;
+    html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' ' + escapeHtml(race) + ': ' +
+      (skillAllowance > 1 ? 'владение ' + skillAllowance + ' навыками на выбор' : 'владение навыком на выбор') + '</div>';
+    html += '<div class="race-extras-row">';
+    skills.forEach(function(s, si) {
+      var sel = skChosen.indexOf(s.name) !== -1;
+      html += '<span class="race-extras-stat-pick' + (sel ? " selected" : "") +
+        '" onclick="toggleRaceSkill(' + si + ')">' + escapeHtml(s.name) + '</span>';
+    });
+    html += '<span style="margin-left:auto;color:rgba(255,255,255,0.55);font-size:0.85em;">' +
+      'Выбрано: ' + skChosen.length + '/' + skillAllowance + '</span>';
+    html += '</div>';
+    if (skChosen.length < skillAllowance) html += '<div class="race-extras-warn">Расовый навык не выбран — отметьте его в списке выше.</div>';
   }
 
   // E24-4: видовые выборы 2024 (родословная, происхождение, характеристика заклинаний)
@@ -1361,6 +1386,38 @@ function toggleHalfElfStat(key) {
   if (typeof updateStatDisplay === "function") updateStatDisplay(key);
   saveToLocal();
   calcStats();
+  renderRaceExtras();
+}
+
+// Отметить/снять владение навыком на листе и в char.skills (по имени из skills[])
+function _raceSkillSet(char, name, on) {
+  var si = skills.findIndex(function(s) { return s.name === name; });
+  if (si === -1) return;
+  var cb = $("skill-prof-" + si);
+  if (cb) cb.checked = on;
+  if (char.skills) char.skills[si] = on;
+}
+
+function toggleRaceSkill(si) {
+  if (!currentId || sheetLockGuard()) return;
+  var char = getCurrentChar();
+  if (!char || !skills[si]) return;
+  var limit = RACE_SKILL_PICKS[char.race] || 0;
+  if (!limit) return;
+  if (!Array.isArray(char.raceSkillChoice)) char.raceSkillChoice = [];
+  var name = skills[si].name;
+  var pos = char.raceSkillChoice.indexOf(name);
+  if (pos !== -1) {
+    char.raceSkillChoice.splice(pos, 1);
+    _raceSkillSet(char, name, false);
+  } else {
+    if (char.raceSkillChoice.length >= limit) { showToast("Уже выбрано " + limit + ". Снимите один навык.", "warning"); return; }
+    char.raceSkillChoice.push(name);
+    _raceSkillSet(char, name, true);
+  }
+  saveToLocal();
+  calcStats();
+  updateSkillProfCount();
   renderRaceExtras();
 }
 

@@ -470,6 +470,15 @@
       return true;
     });
 
+    t("[FB-3] миграция: raceSkillChoice = [] у старых персонажей; навыки расы: вариант человека 1, полуэльф 2", function(){
+      var c = migrateCharacter({ id: 8, class: "Воин", level: 1, schemaVersion: 39 });
+      if (!Array.isArray(c.raceSkillChoice) || c.raceSkillChoice.length) return "raceSkillChoice: " + JSON.stringify(c.raceSkillChoice);
+      var d = migrateCharacter({ id: 9, class: "Воин", level: 1, schemaVersion: 39, raceSkillChoice: ["Атлетика"] });
+      if (d.raceSkillChoice.join() !== "Атлетика") return "выбор затёрт";
+      if (typeof RACE_SKILL_PICKS === "undefined") return true;
+      return (RACE_SKILL_PICKS["Человек (вариант)"] === 1 && RACE_SKILL_PICKS["Полуэльф"] === 2) || "RACE_SKILL_PICKS";
+    });
+
     t("[NGEN-1] genderize: {м|ж} по полу, пусто = мужские формы", function(){
       if (typeof window.genderize !== "function") return "genderize не определена";
       var src = "Прям{ой|ая} и упрям{ый|ая}, {он|она} не {сдался|сдалась}.";

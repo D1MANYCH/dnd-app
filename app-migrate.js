@@ -892,6 +892,11 @@ function migrateCharacter(char) {
     if (typeof char.gender !== "string") char.gender = "";
     char.schemaVersion = 39;
   }
+  if (v < 40) {
+    // FB-3: навыки на выбор от расы (Человек (вариант) — 1, Полуэльф — 2), имена из skills[].
+    if (!Array.isArray(char.raceSkillChoice)) char.raceSkillChoice = [];
+    char.schemaVersion = 40;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем
