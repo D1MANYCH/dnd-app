@@ -158,6 +158,7 @@ function addChoiceLanguage(key) {
     char.proficiencies.languageChoices[key].push(sel.value);
   }
   renderLanguages();
+  if (key === "race" && typeof renderRaceExtras === "function") renderRaceExtras();
   saveToLocal();
 }
 

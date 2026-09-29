@@ -1266,6 +1266,8 @@ function renderRaceExtras() {
     if ((char.edition === "2024" ? RACE_BONUS_FEATS_2024 : RACE_BONUS_FEATS)[race]) pending.push("расовая черта");
     if (RACE_STAT_PICKS[race] && char.edition !== "2024") pending.push("+1 к двум характеристикам");
     if (RACE_SKILL_PICKS[race] && char.edition !== "2024") pending.push(RACE_SKILL_PICKS[race] > 1 ? "навыки на выбор" : "навык на выбор");
+    var rl0 = (typeof edData === "function") && edData(char).RACE_LANGUAGES && edData(char).RACE_LANGUAGES[race];
+    if (rl0 && rl0.choice > 0) pending.push(rl0.choice > 1 ? rl0.choice + " языка на выбор" : "язык на выбор");
     if (char.edition === "2024" && typeof edData === "function") {
       var sp0 = edData(char).RACE_DATA[race];
       if (sp0 && Array.isArray(sp0.choices)) sp0.choices.forEach(function(ch) { pending.push(ch.name.toLowerCase()); });
@@ -1334,6 +1336,17 @@ function renderRaceExtras() {
     if (skChosen.length < skillAllowance) html += '<div class="race-extras-warn">Расовый навык не выбран — отметьте его в списке выше.</div>';
   }
 
+  // FB-4: язык расы на выбор — сам выбор в блоке «Языки»
+  var rl = (typeof edData === "function") && edData(char).RACE_LANGUAGES && edData(char).RACE_LANGUAGES[race];
+  if (rl && rl.choice > 0) {
+    var lnPicks = ((char.proficiencies && char.proficiencies.languageChoices && char.proficiencies.languageChoices.race) || []).slice(0, rl.choice);
+    html += '<div class="race-extras-title">' + dndIcoHtml("scroll", 14) + ' ' + escapeHtml(race) + ': ' +
+      (rl.choice > 1 ? rl.choice + ' языка на выбор' : 'язык на выбор') + '</div>';
+    html += '<div class="race-extras-row">' + lnPicks.map(function(n) { return '<span class="race-bonus-badge">' + escapeHtml(n) + '</span>'; }).join("") +
+      '<button class="race-extras-btn" onclick="raceLangGoto()">К языкам →</button></div>';
+    if (lnPicks.length < rl.choice) html += '<div class="race-extras-warn">Расовый язык не выбран — выберите его в блоке «Языки».</div>';
+  }
+
   // E24-4: видовые выборы 2024 (родословная, происхождение, характеристика заклинаний)
   if (char.edition === "2024" && typeof edData === "function") {
     var sp = edData(char).RACE_DATA[race];
@@ -1396,6 +1409,14 @@ function _raceSkillSet(char, name, on) {
   var cb = $("skill-prof-" + si);
   if (cb) cb.checked = on;
   if (char.skills) char.skills[si] = on;
+}
+
+function raceLangGoto() {
+  var box = $("languages-container");
+  if (!box) return;
+  box.scrollIntoView({ behavior: "smooth", block: "center" });
+  var sel = box.querySelector("#lang-choice-race");
+  if (sel) setTimeout(function() { sel.focus({ preventScroll: true }); }, 400);
 }
 
 function toggleRaceSkill(si) {
