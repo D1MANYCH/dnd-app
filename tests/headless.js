@@ -510,11 +510,11 @@
       return diff ? true : "женские формы нигде не отличаются";
     });
 
-    t("[NGEN-3/4] билды воин/варвар/паладин/следопыт/плут/монах/бард/колдун: 6 вариантов на раздел, маркеры {м|ж} раскрываются", function(){
+    t("[NGEN-3/4/5] все 48 билдов: 6 вариантов на раздел, маркеры {м|ж} раскрываются", function(){
       if (!window.BUILD_NOTES) return "BUILD_NOTES не загружены";
       var keys = ["appearance", "personality", "ideals", "bonds", "flaws", "hooks", "backstories"];
-      var ids = Object.keys(window.BUILD_NOTES).filter(function(id){ return /^(fighter|barbarian|paladin|ranger|rogue|monk|bard|warlock)/.test(id); });
-      if (ids.length !== 32) return "билдов " + ids.length + ", ожидалось 32";
+      var ids = Object.keys(window.BUILD_NOTES).filter(function(id){ return /^(fighter|barbarian|paladin|ranger|rogue|monk|bard|warlock|cleric|druid|sorcerer|wizard)/.test(id); });
+      if (ids.length !== 48) return "билдов " + ids.length + ", ожидалось 48";
       for (var i = 0; i < ids.length; i++) {
         var bn = window.BUILD_NOTES[ids[i]], diff = false;
         for (var k = 0; k < keys.length; k++) {

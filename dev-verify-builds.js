@@ -216,13 +216,13 @@
     var entriesCount = (ch.notesV2 && ch.notesV2.entries||[]).length;
     checks.push(_check("notesV2.entries >=1", entriesCount >= 1, entriesCount, ">=1"));
 
-    // BUILD-NOTES-5: каждая категория вариантов >=3 (appearance/personality/ideals/bonds/flaws/hooks/backstories).
+    // BUILD-NOTES-5 / NGEN-5: каждая категория вариантов >=5 (appearance/personality/ideals/bonds/flaws/hooks/backstories).
     var variantKeys = ["appearance","personality","ideals","bonds","flaws","hooks","backstories"];
     var bn = b.notes || (window.BUILD_NOTES && window.normalizeBuildNotes && window.normalizeBuildNotes(window.BUILD_NOTES[buildId]));
     if (bn) {
       variantKeys.forEach(function(vk){
         var arr = bn[vk] || [];
-        checks.push(_check("notes." + vk + " >=3", arr.length >= 3, arr.length, ">=3"));
+        checks.push(_check("notes." + vk + " >=5", arr.length >= 5, arr.length, ">=5"));
       });
       // BUILD-NOTES-6.6: минимальная длина варианта.
       // 5 текстовых полей >=120 симв., backstories >=400 симв., hooks без проверки длины.
