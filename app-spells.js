@@ -840,6 +840,7 @@ card.innerHTML =
       '<span class="spell-card-arrow" aria-hidden="true"></span>' +
       '<span class="spell-card-name">' + escapeHtml(spell.name) + '</span>' +
       (isRitual ? '<span class="ritual-badge" title="Ритуал"><span class="ritual-badge-text">· ритуал</span></span>' : '') +
+      (isForeignEd ? '<span class="spell-foreign-ed">· редакция ' + escapeHtml(srcRaw) + '</span>' : '') +
       (activeCast[spell.name] ? _spellActiveBadgeHtml(activeCast[spell.name]) : '') +
     '</div>' +
     '<div class="spell-card-badges">' +

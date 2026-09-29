@@ -6329,7 +6329,8 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent-c
    margin-left:8px там сложился бы с гэпом в 13px. В поиске (инлайн-поток) он нужен. */
 .spell-card-badges .hb-badge { margin-left: 0; }
 /* ED-1: запись чужой редакции в «Моих заклинаниях» при разделении редакций */
-.source-badge.source-foreign { opacity: 0.45; text-decoration: line-through; cursor: help; }
+.source-badge.source-foreign { text-decoration: line-through; cursor: help; }
+.spell-foreign-ed { font-size: 0.7em; color: var(--text-dim); margin-left: 4px; vertical-align: middle; white-space: nowrap; flex-shrink: 0; }
 .edition-btn[hidden], .bp-ed-group[hidden] { display: none; }
 .class-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.65em; font-weight: 600; margin-left: 5px; }
 .class-wizard   { background: var(--scroll-color);   color: white; }
@@ -7766,8 +7767,8 @@ font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
 .basic-unlock-btn:hover { background: rgba(255,255,255,0.12); }
 
 /* Заблокированные основные поля */
-.basic-field-locked {
-  pointer-events: none;
+.basic-field-locked { pointer-events: none; }
+.basic-field-locked > :not(label) {
   opacity: 0.65;
   filter: grayscale(0.3);
 }
@@ -7844,7 +7845,7 @@ font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
 .race-extras-btn.done {
   background: rgba(77,168,67,0.18);
   border-color: rgba(77,168,67,0.45);
-  color: #7fdc6f;
+  color: color-mix(in srgb, var(--success-color) 70%, var(--text));
 }
 .race-extras-stat-pick {
   display: inline-flex;
@@ -10187,6 +10188,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 /* INST-1: установка PWA — строка в настройках и под меню домашнего экрана.
    Кнопка только там, где браузер прислал beforeinstallprompt; на iPhone — подсказка. */
 #install-row[hidden],
+#wake-lock-row[hidden],
 .home-install[hidden],
 .install-btn[hidden],
 .install-ios-hint[hidden] { display: none; }
@@ -13262,14 +13264,19 @@ mark.search-hl {
 }
 .srd-monster-filters {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 10px 0 8px;
 }
 .srd-monster-filters input[type="text"] {
-  flex: 1;
+  flex: 1 1 100%;
 }
 .srd-monster-filters select {
-  flex: 0 0 110px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+@media (min-width: 768px) {
+  #add-monster-modal > .confirm-modal-box { max-height: calc(100dvh - 32px); overflow-y: auto; }
 }
 .srd-monster-count {
   font-size: 0.78em;
@@ -15794,6 +15801,8 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 12px;
+  overflow-x: clip;
+  padding-inline: 3px;
 }
 .cr-pip {
   position: relative;

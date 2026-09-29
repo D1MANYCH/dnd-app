@@ -1351,7 +1351,7 @@ function renderRaceExtras() {
       html += '<span class="race-extras-stat-pick' + (sel ? " selected" : "") +
         '" onclick="toggleHalfElfStat(\'' + k + '\')">' + statLabels[k] + '</span>';
     });
-    html += '<span style="margin-left:auto;color:rgba(255,255,255,0.55);font-size:0.85em;">' +
+    html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">' +
       'Выбрано: ' + chosen.length + '/2</span>';
     html += '</div>';
   }
@@ -1369,7 +1369,7 @@ function renderRaceExtras() {
       html += '<span class="race-extras-stat-pick' + (sel ? " selected" : "") +
         '" onclick="toggleRaceSkill(' + si + ')">' + escapeHtml(s.name) + '</span>';
     });
-    html += '<span style="margin-left:auto;color:rgba(255,255,255,0.55);font-size:0.85em;">' +
+    html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">' +
       'Выбрано: ' + skChosen.length + '/' + skillAllowance + '</span>';
     html += '</div>';
     if (skChosen.length < skillAllowance) html += '<div class="race-extras-warn">Расовый навык не выбран — отметьте его в списке выше.</div>';
@@ -2069,14 +2069,14 @@ function renderBackgroundExtras() {
       html += '<span class="race-extras-stat-pick' + (alloc[k] ? " selected" : "") +
         '" onclick="toggleBgStat(\'' + k + '\')">' + _bgStatShort(k) + (alloc[k] ? " +" + alloc[k] : "") + '</span>';
     });
-    html += '<span style="margin-left:auto;color:rgba(255,255,255,0.55);font-size:0.85em;">' +
+    html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">' +
       (v.complete ? dndIcoHtml("check", 13) + " распределено" : "не распределено") + '</span></div>';
   }
 
   var of = (char.feats || []).find(function(f) { return f.origin; });
   html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' Черта происхождения</div><div class="race-extras-row">' +
     (of ? '<span class="race-extras-btn done">' + dndIcoHtml("check", 13) + ' ' + escapeHtml(of.name) + '</span>'
-        : '<span style="color:rgba(255,255,255,0.55);font-size:0.85em;">не выбрана</span>') + '</div>';
+        : '<span style="color:var(--text-dim);font-size:0.85em;">не выбрана</span>') + '</div>';
 
   if (def.equipment && !def.custom) {
     var eq = def.equipment;
