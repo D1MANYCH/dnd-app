@@ -172,7 +172,18 @@ document.querySelectorAll(".edition-btn").forEach(function(btn) { btn.classList.
 if(version === "all") $("btn-ver-all")?.classList.add("active");
 if(version === "PH14") $("btn-ver-ph14")?.classList.add("active");
 if(version === "PH24") $("btn-ver-ph24")?.classList.add("active");
+_syncSpellVersionLock();
 if (!skipRender) renderSpellSearch();
+}
+// ED-1: при разделении редакций кнопки «Все» и чужой редакции скрыты.
+function _syncSpellVersionLock() {
+var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+var lock = !!char && typeof isEditionSplit === "function" && isEditionSplit();
+var own = _defaultSpellVersion(char);
+[["all", "btn-ver-all"], ["PH14", "btn-ver-ph14"], ["PH24", "btn-ver-ph24"]].forEach(function(p) {
+  var b = $(p[1]);
+  if (b) b.hidden = lock && p[0] !== own;
+});
 }
 function setSpellClass(cls) {
 currentSpellClass = cls;
@@ -641,10 +652,12 @@ if (firstLoadSkeleton("spell", "spell-search-results", 6, "list", renderSpellSea
 const char = getCurrentChar();
 // BUILD-LVL: по умолчанию (без явно выбранного уровня) прячем заклинания выше доступного персонажу уровня.
 const maxCastable = _charMaxCastableLevel(char);
+const splitVersion = (char && typeof isEditionSplit === "function" && isEditionSplit()) ? _defaultSpellVersion(char) : null;
 let filtered = SPELL_DATABASE.filter(function(spell) {
 const matchesSearch = spell.name.toLowerCase().includes(search);
 const matchesLevel = level === "" || spell.level.toString() === level;
-const matchesVersion = currentSpellVersion === "all" || spell.source === currentSpellVersion;
+const matchesVersion = splitVersion ? (spell.homebrew || String(spell.source || "PH14") === splitVersion)
+  : (currentSpellVersion === "all" || spell.source === currentSpellVersion);
 const spellClasses = Array.isArray(spell.classes) ? spell.classes : [spell.class || "both"];
 const matchesClass = currentSpellClass === "all" || spellClasses.includes("both") || spellClasses.includes(currentSpellClass);
 const matchesCap = !(level === "" && maxCastable > 0 && spell.level > maxCastable);
@@ -772,6 +785,7 @@ if (spellClassArr2.length > 4) {
 }
 const srcRaw = String(spell.source || "PH14"); // HB-1: у импортированной записи source может отсутствовать
 const sourceClass = "source-" + srcRaw.toLowerCase().replace(/[^\w-]/g, "");
+const isForeignEd = !spell.homebrew && typeof isEditionSplit === "function" && isEditionSplit() && srcRaw !== _defaultSpellVersion(char);
 const schoolName = spell.school || "";
 // Подписи для новичков: школа/классы/источник текстом в раскрытой карточке.
 var classNamesRu = spellClassArr2.map(function(c){
@@ -829,7 +843,7 @@ card.innerHTML =
       (activeCast[spell.name] ? _spellActiveBadgeHtml(activeCast[spell.name]) : '') +
     '</div>' +
     '<div class="spell-card-badges">' +
-      '<span class="source-badge ' + sourceClass + '">' + escapeHtml(srcRaw) + '</span>' +
+      '<span class="source-badge ' + sourceClass + (isForeignEd ? ' source-foreign" title="Другая редакция — у персонажа ' + (char.edition === "2024" ? "2024" : "2014") : '') + '">' + escapeHtml(srcRaw) + '</span>' +
       (spell.homebrew ? '<span class="source-badge hb-badge" title="Ваше заклинание">' + dndIcoHtml("home", 12) + ' Своё</span>' : '') +
       (schoolName ? '<span class="school-badge school-' + getSchoolSlug(schoolName) + '">' + getSchoolIcon(schoolName) + '<span class="school-badge-text">' + escapeHtml(schoolName) + '</span></span>' : '') +
       '<span class="class-icons-row">' + classIcons + '</span>' +

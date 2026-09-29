@@ -326,6 +326,22 @@ function _syncAttackDamageButtons() {
   });
 }
 document.addEventListener('DOMContentLoaded', _syncAttackDamageButtons);
+// ED-1: «Разделять редакции» (ключ dnd_edition_split, по умолчанию вкл.) — гримуар
+// и пикер билдов показывают только редакцию персонажа / редакцию по умолчанию.
+function isEditionSplit() {
+  try { return localStorage.getItem('dnd_edition_split') !== '0'; } catch (e) { return true; }
+}
+function setEditionSplit(on) {
+  try { localStorage.setItem('dnd_edition_split', on ? '1' : '0'); } catch (e) {}
+  _syncEditionSplitButtons();
+}
+function _syncEditionSplitButtons() {
+  var active = isEditionSplit() ? 'on' : 'off';
+  document.querySelectorAll('[data-edition-split-btn]').forEach(function (b) {
+    b.classList.toggle('is-active', b.getAttribute('data-edition-split-btn') === active);
+  });
+}
+document.addEventListener('DOMContentLoaded', _syncEditionSplitButtons);
 document.addEventListener('visibilitychange', _applyWakeLock);
 document.addEventListener('DOMContentLoaded', function () { _syncWakeLockButtons(); _applyWakeLock(); });
 
@@ -716,6 +732,7 @@ function openSettingsModal() {
   try { _syncSheetLockButtons(); } catch (e) {}
   try { _syncWakeLockButtons(); } catch (e) {}
   try { _syncAttackDamageButtons(); } catch (e) {}
+  try { _syncEditionSplitButtons(); } catch (e) {}
   if (typeof showScreen === 'function') showScreen('settings');
 }
 function closeSettingsModal() {

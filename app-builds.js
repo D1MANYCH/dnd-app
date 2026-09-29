@@ -64,7 +64,11 @@ function renderBuildPicker() {
   var roleFilter = ($("bp-role-filter") && $("bp-role-filter").value) || "";
   var searchInp = $("bp-search");
   var q = (searchInp && searchInp.value || "").trim().toLowerCase();
-  var edFilter = _bpEdition;
+  // ED-1: при разделении редакций — только редакция по умолчанию, переключатель скрыт
+  var edSplit = typeof isEditionSplit === "function" && isEditionSplit();
+  var edFilter = edSplit ? getEdition() : _bpEdition;
+  var edGroup = $("bp-edition-group");
+  if (edGroup) edGroup.hidden = edSplit;
   // Счётчик редакции учитывает остальные фильтры, но не саму редакцию.
   var edCounts = { "2014": 0, "2024": 0 };
   var builds = (window.CHARACTER_BUILDS || []).filter(function(b){

@@ -7406,6 +7406,22 @@
       if (_defaultSpellVersion(null) !== "all") return "null";
       return true;
     });
+
+    t("[ed-1] isEditionSplit: по умолчанию вкл, setEditionSplit переключает", function(){
+      if (typeof isEditionSplit !== "function" || typeof setEditionSplit !== "function") return "нет isEditionSplit/setEditionSplit";
+      var prev = null;
+      try { prev = localStorage.getItem("dnd_edition_split"); localStorage.removeItem("dnd_edition_split"); } catch (e) {}
+      try {
+        if (!isEditionSplit()) return "по умолчанию выкл";
+        setEditionSplit(false);
+        if (isEditionSplit()) return "не выключилось";
+        setEditionSplit(true);
+        if (!isEditionSplit()) return "не включилось";
+        return true;
+      } finally {
+        try { if (prev === null) localStorage.removeItem("dnd_edition_split"); else localStorage.setItem("dnd_edition_split", prev); } catch (e) {}
+      }
+    });
   })();
 
   // ────────── БЛОК 54 (E24-3): черты 2024 — FEATS_2024, категории, пикер, применители ──────────

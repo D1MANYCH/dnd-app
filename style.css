@@ -6321,6 +6321,9 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent-c
 /* В карточке бейджи разложены флексом с gap:5px — унаследованный от .source-badge
    margin-left:8px там сложился бы с гэпом в 13px. В поиске (инлайн-поток) он нужен. */
 .spell-card-badges .hb-badge { margin-left: 0; }
+/* ED-1: запись чужой редакции в «Моих заклинаниях» при разделении редакций */
+.source-badge.source-foreign { opacity: 0.45; text-decoration: line-through; cursor: help; }
+.edition-btn[hidden], .bp-ed-group[hidden] { display: none; }
 .class-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.65em; font-weight: 600; margin-left: 5px; }
 .class-wizard   { background: var(--scroll-color);   color: white; }
 .class-druid    { background: var(--material-color); color: black; }
