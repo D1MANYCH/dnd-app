@@ -7471,6 +7471,15 @@ font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
   .tracker-hp-cur, .tracker-hp-max { width: 34px !important; }
   .tracker-status { width: 112px !important; }
 }
+/* PLAY-2: отметки «Действие · Бонусное · Реакция» — текст на --accent-lo, потраченное зачёркнуто */
+.tracker-econ { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding-left: 28px; }
+.tracker-econ-mark, .tracker-econ-reset { all: unset; cursor: pointer; display: inline-flex; align-items: center; min-height: 32px; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--accent-lo); }
+.tracker-econ-mark.is-used { color: var(--text-mute); text-decoration: line-through; }
+.tracker-econ-reset { margin-left: auto; color: var(--home-sub); }
+.tracker-econ-mark:not(.is-used):hover, .tracker-econ-reset:hover { text-decoration: underline; }
+.tracker-econ-mark:focus-visible, .tracker-econ-reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.tracker-econ-sep { color: var(--text-mute); }
+@media (max-width: 500px) { .tracker-econ { padding-left: 8px; } }
 .tracker-icon { width: 22px; display: flex; align-items: center; justify-content: center; font-size: 1em; flex-shrink: 0; }
 .battle-nav { display: flex; gap: 8px; margin-top: 14px; }
 .battle-nav-btn { flex: 1; padding: 12px; border-radius: var(--r-md); background: none; border: 0; color: var(--accent-lo); font-family: var(--font-display); font-size: var(--fs-md); cursor: pointer; width: auto; margin: 0; transition: color var(--t1) var(--ez-out); }

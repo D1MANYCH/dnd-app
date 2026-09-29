@@ -310,6 +310,22 @@ function _syncWakeLockButtons() {
     b.classList.toggle('is-active', b.getAttribute('data-wake-lock-btn') === active);
   });
 }
+// PLAY-2: «Атака и урон одним нажатием» (ключ dnd_attack_damage, по умолчанию выкл.) —
+// после броска атаки оружием сразу бросается урон (rollWeaponAttack, app-inventory.js).
+function _getAttackDamageOn() {
+  try { return localStorage.getItem('dnd_attack_damage') === '1'; } catch (e) { return false; }
+}
+function setAttackDamage(on) {
+  try { localStorage.setItem('dnd_attack_damage', on ? '1' : '0'); } catch (e) {}
+  _syncAttackDamageButtons();
+}
+function _syncAttackDamageButtons() {
+  var active = _getAttackDamageOn() ? 'on' : 'off';
+  document.querySelectorAll('[data-attack-damage-btn]').forEach(function (b) {
+    b.classList.toggle('is-active', b.getAttribute('data-attack-damage-btn') === active);
+  });
+}
+document.addEventListener('DOMContentLoaded', _syncAttackDamageButtons);
 document.addEventListener('visibilitychange', _applyWakeLock);
 document.addEventListener('DOMContentLoaded', function () { _syncWakeLockButtons(); _applyWakeLock(); });
 
@@ -699,6 +715,7 @@ function openSettingsModal() {
   try { if (typeof _syncSpaceButtons === 'function') _syncSpaceButtons(); } catch (e) {}
   try { _syncSheetLockButtons(); } catch (e) {}
   try { _syncWakeLockButtons(); } catch (e) {}
+  try { _syncAttackDamageButtons(); } catch (e) {}
   if (typeof showScreen === 'function') showScreen('settings');
 }
 function closeSettingsModal() {

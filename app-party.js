@@ -1088,6 +1088,7 @@ function renderBattleTracker() {
           : '<select class="party-status-sel tracker-status flat-field" onchange="setBattleStatus(' + i + ',this.value)">' + opts + "</select>"
         ) +
       '</div>' +
+      (isSelf ? _battleEconomyRow() : '') +
       // CAST-10: чипы дебаффов — отдельной строкой под ХП/статусом. В .tracker-name
       // им места нет: там overflow:hidden и имя с многоточием, чип его съедал бы
       // (та же ловушка, что у чипа концентрации в шапке, CAST-9b). Строки нет
@@ -1839,7 +1840,39 @@ function nextTurn() {
     if (window.AppLog) AppLog.action("battle", "раунд " + BATTLE_DATA.round);
     tickCastEffectsRound();
   }
+  // PLAY-2: ход вернулся к своему персонажу — действие, бонусное и реакция снова доступны
+  var cur = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
+  if (cur && cur.type === "self") BATTLE_DATA.economy = null;
   _logTurn(); saveBattle(); renderBattleTracker();
+}
+// PLAY-2: отметки «Действие · Бонусное · Реакция» в строке своего персонажа.
+// BATTLE_DATA.economy = { action, bonus, reaction } (true — потрачено); null — всё свободно.
+var BATTLE_ECONOMY = [
+  { key: "action",   label: "Действие" },
+  { key: "bonus",    label: "Бонусное" },
+  { key: "reaction", label: "Реакция" }
+];
+function _battleEconomyRow() {
+  var e = BATTLE_DATA.economy || {};
+  var any = false;
+  var marks = BATTLE_ECONOMY.map(function(it) {
+    var used = !!e[it.key];
+    if (used) any = true;
+    return '<button type="button" class="tracker-econ-mark' + (used ? ' is-used' : '') + '" aria-pressed="' + used + '" onclick="toggleBattleEconomy(\'' + it.key + '\')" title="' + (used ? 'Потрачено — нажмите, чтобы вернуть' : 'Нажмите, когда потратите') + '">' + it.label + '</button>';
+  }).join('<span class="tracker-econ-sep" aria-hidden="true">·</span>');
+  return '<div class="tracker-econ">' + marks +
+    (any ? '<button type="button" class="tracker-econ-reset" onclick="resetBattleEconomy()">Сбросить</button>' : '') +
+  '</div>';
+}
+function toggleBattleEconomy(key) {
+  var e = BATTLE_DATA.economy || {};
+  e[key] = !e[key];
+  BATTLE_DATA.economy = e;
+  saveBattle(); renderBattleTracker();
+}
+function resetBattleEconomy() {
+  BATTLE_DATA.economy = null;
+  saveBattle(); renderBattleTracker();
 }
 function prevTurn() {
   // CAST-2: шаг назад через границу раунда откатывает счётчик (не ниже 1),

@@ -1346,6 +1346,7 @@ if (!char) return;
 const weapon = char.weapons[index];
 if (!weapon) return;
 var hint = rulesConditionRollMods(char, "attack");
+_attackDamageToken++;
 showRollModePopup(function(mode) {
   var attackBonus = rulesWeaponMods(char, weapon, parseInt($("char-level")?.value, 10) || 1).attack + hint.penalty;
   var d = rollD20WithMode(mode);
@@ -1382,11 +1383,19 @@ showRollModePopup(function(mode) {
     diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: weapon.name + " атака" });
     if (diceHistory.length > 10) diceHistory.pop();
     renderDiceHistory();
+    // PLAY-2: «Атака и урон одним нажатием» — урон следом, кроме естественной 1.
+    // Пауза, чтобы итог атаки успели увидеть до того, как его сменит урон.
+    if (_getAttackDamageOn() && !d.isFail) {
+      var token = ++_attackDamageToken;
+      setTimeout(function() { if (token === _attackDamageToken) rollWeaponDamage(index); }, 900);
+    }
   }, { qty: qty });
 }, hint);
 }
+var _attackDamageToken = 0;
 
 function rollWeaponDamage(index) {
+_attackDamageToken++;
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
