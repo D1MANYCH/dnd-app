@@ -38,6 +38,9 @@
 --accent: #d6b25e;
 --accent-hi: #e2c67e;
 --accent-lo: #b8963f;
+--accent-ink: var(--accent);      /* STYLE-11: акцентный текст-заголовок; в светлой — --accent-lo */
+--accent-hover: var(--accent-hi); /* STYLE-11: hover текстовых действий; в светлой --accent-hi 2.3:1 → --text */
+--nav-next-fill: var(--accent-fill);
 --accent-soft: rgba(214, 178, 94, 0.13);
 --accent-glow-token: rgba(214, 178, 94, 0.32);
 --on-accent: #1d1503;   /* текст на акцентной заливке */
@@ -301,12 +304,13 @@ html.glass-adjusting *::after {
   --text: #1b1c20;
   --text-dim: #55575f;
   /* THEME-6: mute был #898b94 (2.95:1 на cream) → #67686f (≈4.8:1) — порог WCAG 4.5 */
-  --text-mute: #67686f;
+  --text-mute: #5e5f66; /* STYLE-11: на подсветке хода трекера 4.3 → 5.0 */
 
   /* Accent — приглушённое золото на голубоватом воздухе */
   --accent: #a8823a;
   --accent-hi: #c09a50;
   --accent-lo: #86672b; /* STYLE-9: 4.36 → 4.60 на --bg-0 (плоский текст) */
+  --accent-ink: var(--accent-lo); --accent-hover: var(--text); --nav-next-fill: var(--accent-lo); /* STYLE-11 */
   --accent-soft: rgba(168, 130, 58, 0.12);
   --accent-glow: rgba(168, 130, 58, 0.30);
   --accent-glow-token: rgba(168, 130, 58, 0.30);
@@ -315,13 +319,13 @@ html.glass-adjusting *::after {
   /* Semantic */
   --overlay: rgba(24, 26, 34, 0.38);
   --tour-dim: rgba(24, 26, 34, 0.5); /* THEME-1: 0.55→0.5 — швов больше нет, затемнение чуть мягче; ниже 0.45 нельзя (0.38 не читалось) */
-  --danger: #c53a2e;
+  --danger: #b3352a;
   /* THEME-6: success #2e8a54→#2a7e4c до WCAG 4.5 на светлом стекле */
-  --success: #2a7e4c;
+  --success: #277548; /* STYLE-11: 4.35 → 4.90 на --bg-0 */
   --info: #2c6fbd;
 
   /* Школы/состояния — темнее для контраста на светлом (THEME-6: до 4.5) */
-  --magic: #7a5cd0;
+  --magic: #7456ca;
   --necro: #607730;
   --divin: #1c7b7b;
   --charm: #b74778;
@@ -339,7 +343,7 @@ html.glass-adjusting *::after {
   --school-trans: #6e5f31;
 
   /* Золото ячеек заклинаний на светлом — приглушённое */
-  --slot-gold: #a8823a;
+  --slot-gold: #86672b; /* STYLE-11: текстом 3.08 → 4.57 на --bg-0 */
   --slot-gold-hi: #c09a50;
   --slot-gold-glow: rgba(168, 130, 58, 0.35);
 
@@ -404,19 +408,20 @@ html.glass-adjusting *::after {
     --surface-pop: rgba(253, 254, 255, 0.84);
     --glass-hi: rgba(255, 255, 255, 0.65);
     --border: rgba(24, 26, 36, 0.10); --border-soft: rgba(24, 26, 36, 0.065);
-    --text: #1b1c20; --text-dim: #55575f; --text-mute: #67686f; /* THEME-6: 4.5 */
+    --text: #1b1c20; --text-dim: #55575f; --text-mute: #5e5f66; /* THEME-6: 4.5, STYLE-11 */
     --accent: #a8823a; --accent-hi: #c09a50; --accent-lo: #86672b;
+    --accent-ink: var(--accent-lo); --accent-hover: var(--text); --nav-next-fill: var(--accent-lo); /* STYLE-11 */
     --accent-soft: rgba(168, 130, 58, 0.12);
     --accent-glow: rgba(168, 130, 58, 0.30);
     --accent-glow-token: rgba(168, 130, 58, 0.30);
     --on-accent: #ffffff;
     --overlay: rgba(24, 26, 34, 0.38);
     --tour-dim: rgba(24, 26, 34, 0.5); /* THEME-1: 0.55→0.5 — швов больше нет, затемнение чуть мягче; ниже 0.45 нельзя (0.38 не читалось) */
-    --danger: #c53a2e; --success: #2a7e4c; --info: #2c6fbd; /* THEME-6: success до 4.5 */
-    --magic: #7a5cd0; --necro: #607730; --divin: #1c7b7b; --charm: #b74778; /* THEME-6: школы до 4.5 */
+    --danger: #b3352a; --success: #277548; --info: #2c6fbd; /* THEME-6: success до 4.5 */
+    --magic: #7456ca; --necro: #607730; --divin: #1c7b7b; --charm: #b74778; /* THEME-6: школы до 4.5 */
     --school-abjur: #3b638a; --school-conj: #7b5934; --school-divin: #5c6066; --school-ench: #835166;
     --school-evoc: #974835; --school-illus: #6c558d; --school-necro: #406948; --school-trans: #6e5f31;
-    --slot-gold: #a8823a; --slot-gold-hi: #c09a50; --slot-gold-glow: rgba(168, 130, 58, 0.35);
+    --slot-gold: #86672b; --slot-gold-hi: #c09a50; --slot-gold-glow: rgba(168, 130, 58, 0.35);
     --sh-1: 0 1px 3px rgba(22,26,38,0.05), 0 6px 22px rgba(22,26,38,0.06);
     --sh-2: 0 10px 28px rgba(22,26,38,0.12), 0 32px 80px rgba(22,26,38,0.20);
     --sh-card: 0 1px 2px rgba(22,26,38,0.04), 0 3px 10px rgba(22,26,38,0.05);
@@ -464,7 +469,7 @@ html.glass-adjusting *::after {
 */
 /* Изумруд */
 :root[data-accent="emerald"] {
-  --accent: #4caf80; --accent-hi: #66c595; --accent-lo: #408d69;
+  --accent: #4caf80; --accent-hi: #66c595; --accent-lo: #43906c; /* STYLE-11: было #408d69, 4.45 на --surface-modal */
   --accent-soft: rgba(76,175,128,0.13);
   --accent-glow: rgba(76,175,128,0.30);
   --accent-glow-token: rgba(76,175,128,0.30);
@@ -477,7 +482,7 @@ html.glass-adjusting *::after {
 }
 /* Рубин */
 :root[data-accent="ruby"] {
-  --accent: #e0586c; --accent-hi: #ec7283; --accent-lo: #cb5b6b;
+  --accent: #e0586c; --accent-hi: #ec7283; --accent-lo: #ce5e6e; /* STYLE-11: было #cb5b6b, 4.45 на --surface-modal */
   --accent-soft: rgba(224,88,108,0.13);
   --accent-glow: rgba(224,88,108,0.30);
   --accent-glow-token: rgba(224,88,108,0.30);
@@ -490,7 +495,7 @@ html.glass-adjusting *::after {
 }
 /* Аметист */
 :root[data-accent="amethyst"] {
-  --accent: #b078e0; --accent-hi: #c293ed; --accent-lo: #9c68c9;
+  --accent: #b078e0; --accent-hi: #c293ed; --accent-lo: #9f6bcc; /* STYLE-11: было #9c68c9, 4.45 на --surface-modal */
   --accent-soft: rgba(176,120,224,0.13);
   --accent-glow: rgba(176,120,224,0.30);
   --accent-glow-token: rgba(176,120,224,0.30);
@@ -503,7 +508,7 @@ html.glass-adjusting *::after {
 }
 /* Сапфир */
 :root[data-accent="sapphire"] {
-  --accent: #5a9de0; --accent-hi: #76b3ec; --accent-lo: #4482c5;
+  --accent: #5a9de0; --accent-hi: #76b3ec; --accent-lo: #4785c8; /* STYLE-11: было #4482c5, 4.45 на --surface-modal */
   --accent-soft: rgba(90,157,224,0.13);
   --accent-glow: rgba(90,157,224,0.30);
   --accent-glow-token: rgba(90,157,224,0.30);
@@ -516,7 +521,7 @@ html.glass-adjusting *::after {
 }
 /* Медь */
 :root[data-accent="copper"] {
-  --accent: #cc7a40; --accent-hi: #de9258; --accent-lo: #b17042;
+  --accent: #cc7a40; --accent-hi: #de9258; --accent-lo: #b57446; /* STYLE-11: 4.49 → 4.7 на --surface-modal */
   --accent-soft: rgba(204,122,64,0.13);
   --accent-glow: rgba(204,122,64,0.30);
   --accent-glow-token: rgba(204,122,64,0.30);
@@ -542,7 +547,7 @@ html.glass-adjusting *::after {
 }
 /* Графит */
 :root[data-accent="graphite"] {
-  --accent: #8a8d96; --accent-hi: #a0a3ac; --accent-lo: #7d7f86;
+  --accent: #8a8d96; --accent-hi: #a0a3ac; --accent-lo: #808289; /* STYLE-11: было #7d7f86, 4.45 на --surface-modal */
   --accent-soft: rgba(138,141,150,0.16);
   --accent-glow: rgba(138,141,150,0.30);
   --accent-glow-token: rgba(138,141,150,0.30);
@@ -3722,6 +3727,7 @@ outline: none;
 transition: border-color 0.2s;
 }
 .char-search-inp:focus { border-bottom-color: var(--accent-color); }
+input::placeholder, textarea::placeholder { color: var(--text-mute); opacity: 1; }
 .char-search-inp::placeholder { color: var(--text-mute); }
 .char-sort-row { display: flex; align-items: center; gap: 0 var(--sp-4); flex-wrap: wrap; }
 .char-sort-label { font-size: 0.72em; color: var(--home-sub); flex-shrink: 0; }
@@ -4057,6 +4063,7 @@ margin-bottom: 2px;
    правило .card h3 (0,1,1) вешает на него декоративную золотую полосу слева.
    .home-hero .home-hero-name даёт (0,2,0) и перебивает её без !important. */
 .home-hero .home-hero-name {
+color: var(--accent-ink);
 font-family: var(--font-display);
 font-size: calc(var(--fs-xl) * 1.15);
 line-height: 1.15;
@@ -7494,7 +7501,7 @@ font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
 .tracker-icon { width: 22px; display: flex; align-items: center; justify-content: center; font-size: 1em; flex-shrink: 0; }
 .battle-nav { display: flex; gap: 8px; margin-top: 14px; }
 .battle-nav-btn { flex: 1; padding: 12px; border-radius: var(--r-md); background: none; border: 0; color: var(--accent-lo); font-family: var(--font-display); font-size: var(--fs-md); cursor: pointer; width: auto; margin: 0; transition: color var(--t1) var(--ez-out); }
-.battle-nav-next { background: var(--accent-fill); border: 0; color: var(--on-accent); font-weight: 700; }
+.battle-nav-next { background: var(--nav-next-fill); border: 0; color: var(--on-accent); font-weight: 700; }
 .battle-nav-btn:hover:not(.battle-nav-next) { color: var(--accent); text-decoration: underline; }
 
 /* Fix white h3 in party sections */
@@ -13801,6 +13808,8 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
    СВЕТЛОЙ теме 4.19 при норме 4.5 (та же ловушка, что у чипа действия на
    8b3). Цвет несёт заливка строки, читаемость — обычный текст. */
 .tracker-row-active .tracker-init-inp { color: var(--text-color); }
+/* STYLE-11: цвет фракции у номера на той же подложке — 4.19–4.49 в светлой; инлайн из getFactionColor перебивается только !important */
+.tracker-row-active .tracker-num { color: var(--text-color) !important; }
 /* Свой персонаж — только зелёное имя (правило выше). Заливка снята: вместе
    с подсветкой текущего хода две складывались в мутный третий цвет. */
 .tracker-row-self { background: none; }
@@ -16078,8 +16087,9 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 #tab-spells .spell-card-meta .spell-meta-school { color: var(--dz-c, var(--accent)); }
 #tab-spells .spell-card-body { padding-left: calc(10px + var(--sp-3)); }
 
-#tab-spells .my-spell-item.spell-unprepared { opacity: 0.75; }
-#tab-spells .spell-unprepared .spell-card-name { text-decoration: none; }
+/* STYLE-11: opacity .75 роняла мету и школу в светлой до 3.3 — признак несёт приглушённое имя */
+#tab-spells .my-spell-item.spell-unprepared { opacity: 1; }
+#tab-spells .spell-unprepared .spell-card-name { text-decoration: none; color: var(--text-mute); }
 
 /* UNI-5: действие строки — текстом (пересмотр 8b3): «Использовать» с подчёркиванием,
    «Подготовить» приглушённым. */
@@ -16806,7 +16816,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 #dice-modal .dice-fan-glyph svg { width: 24px; height: 24px; }
 #dice-modal .dice-fan-item:hover { background: none; color: var(--text); }
 #dice-modal .dice-fan-item:active { transform: scale(0.95); }
-#dice-modal .dice-fan-item:focus-visible { outline: none; color: var(--accent-hi); box-shadow: var(--sh-glow); }
+#dice-modal .dice-fan-item:focus-visible { outline: none; color: var(--accent-hover); box-shadow: var(--sh-glow); }
 #dice-modal .dice-fan-item.is-sel { color: var(--text); }
 #dice-modal .dice-fan-item.is-sel .dice-fan-glyph { color: var(--accent); }
 /* Ромб под подписью есть у всех, залит только у выбранной — строка не прыгает */
@@ -16842,7 +16852,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   cursor: pointer;
   transition: color var(--t1) var(--ez-out);
 }
-#dice-modal .dice-formula-toggle:hover { background: none; color: var(--accent-hi); }
+#dice-modal .dice-formula-toggle:hover { background: none; color: var(--accent-hover); }
 /* DICE-2: подсказка горячих клавиш — только на ПК */
 #dice-modal .dice-keys-hint { display: none; }
 @media (min-width: 1024px) {
@@ -16887,7 +16897,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   font-weight: 500;
   transition: color var(--t1) var(--ez-out);
 }
-#dice-modal .dice-formula-btn:hover { background: none; border: 0; color: var(--accent-hi); }
+#dice-modal .dice-formula-btn:hover { background: none; border: 0; color: var(--accent-hover); }
 
 /* Чипы вставки — текстом, без коробочек */
 #dice-modal .dice-controls-col .dice-chips { gap: 0; margin-top: 6px; }
@@ -16901,7 +16911,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   font-weight: 600;
   transition: color var(--t1) var(--ez-out);
 }
-#dice-modal .dice-controls-col .dice-chip:hover { background: none; border: 0; color: var(--accent-hi); }
+#dice-modal .dice-controls-col .dice-chip:hover { background: none; border: 0; color: var(--accent-hover); }
 #dice-modal .dice-controls-col .dice-chip:active { transform: none; }
 #dice-modal .dice-controls-col .dice-chip-op { color: var(--accent-lo); }
 
@@ -16920,7 +16930,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   text-align: left;
   cursor: pointer;
 }
-#dice-modal .dice-popover-help:hover { background: none; color: var(--accent-hi); }
+#dice-modal .dice-popover-help:hover { background: none; color: var(--accent-hover); }
 
 @media (max-width: 640px) {
   #dice-modal .dice-body { padding: var(--sp-3) 8px 6px; }

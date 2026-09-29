@@ -70,10 +70,9 @@ function saveBattle() {
 // ─── helpers ─────────────────────────────────────────────────
 function getMonsterIcon(type) { return getMonsterTypeIcon(type); }
 function getFactionColor(type) {
-  if (type === "self")    return "#4da843";
-  if (type === "ally")    return "#27ae60";
-  if (type === "npc")     return "#d4ac0d";
-  return "#c0392b";
+  if (type === "self" || type === "ally") return "var(--success-color)";
+  if (type === "npc")     return "var(--slot-gold)";
+  return "var(--danger-color)";
 }
 function getFactionLabel(type) {
   if (type === "self")    return "я";
@@ -1711,7 +1710,7 @@ function _renderCastDamageModal(targets) {
     var after = Math.max(0, (hp.hp || 0) - amt);
     var fcolor = getFactionColor(p.type);
     return '<button type="button" class="cast-damage-target' + (on ? " chosen" : "") + '" onclick="toggleCastDamageTarget(' + x.i + ')">' +
-      '<span class="cdt-icon" style="background:' + fcolor + '22;color:' + fcolor + '">' + (p.icon || "🎭") + '</span>' +
+      '<span class="cdt-icon" style="background:color-mix(in srgb, ' + fcolor + ' 13%, transparent);color:' + fcolor + '">' + (p.icon || "🎭") + '</span>' +
       '<span class="cdt-name">' + escapeHtml(p.name || "?") + '</span>' +
       '<span class="cdt-hp">' + (hp.hp || 0) + ' → <b>' + after + '</b> / ' + (hp.hpMax || 0) + '</span>' +
       '<span class="cdt-mark">' + (on ? (pend.chosen[x.i] ? "½" : "✓") : "") + '</span>' +
@@ -1832,7 +1831,7 @@ function _renderCastHealModal() {
     var after = Math.min(hp.hpMax || 0, (hp.hp || 0) + pend.amount);
     var fcolor = getFactionColor(p.type);
     return '<button type="button" class="cast-damage-target' + (on ? " chosen" : "") + '" onclick="toggleCastHealTarget(' + x.i + ')">' +
-      '<span class="cdt-icon" style="background:' + fcolor + '22;color:' + fcolor + '">' + (p.icon || "🎭") + '</span>' +
+      '<span class="cdt-icon" style="background:color-mix(in srgb, ' + fcolor + ' 13%, transparent);color:' + fcolor + '">' + (p.icon || "🎭") + '</span>' +
       '<span class="cdt-name">' + escapeHtml(p.name || "?") + '</span>' +
       '<span class="cdt-hp">' + (hp.hp || 0) + ' → <b>' + after + '</b> / ' + (hp.hpMax || 0) + '</span>' +
       '<span class="cdt-mark">' + (on ? "✓" : "") + '</span>' +
