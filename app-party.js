@@ -653,6 +653,13 @@ function _openSrdMonsterPickerCore() {
     });
     edSel.value = "";
   }
+  // ED-2: при разделении редакций у персонажа 2014 — сразу PHB'14
+  // (раздела PHB'24 пока нет, поэтому у 2024 фильтр остаётся «Все редакции»).
+  var _edChar = typeof getCurrentChar === "function" ? getCurrentChar() : null;
+  if (typeof isEditionSplit === "function" && isEditionSplit() && !(_edChar && _edChar.edition === "2024")) {
+    _srdPickerState.edition = "PHB'14";
+  }
+  if (edSel) edSel.value = _srdPickerState.edition;
   renderSrdMonsterPicker();
   openModal("srd-monster-modal");
 }

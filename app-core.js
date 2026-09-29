@@ -1116,7 +1116,25 @@ if (filtered.length === 0) {
 // STYLE-8M-2: персонаж — строка меню, как на встречающем экране: ромб цвета
 // класса + имя + «класс · N ур.» справа. Подробности (хиты, КД, состояния,
 // действия) переехали в плашку справа, чтобы строка осталась строкой.
+// ED-2: при разделении редакций — значок редакции в строке и группы 2014/2024.
+var edSplit = typeof isEditionSplit === "function" && isEditionSplit();
+var edGroups = false;
+if (edSplit) {
+  var ed14 = filtered.filter(function(c) { return c.edition !== "2024"; });
+  var ed24 = filtered.filter(function(c) { return c.edition === "2024"; });
+  edGroups = ed14.length > 0 && ed24.length > 0;
+  filtered = ed14.concat(ed24);
+}
+var _lastEd = null;
 filtered.forEach(function(char, _idx) {
+var charEd = char.edition === "2024" ? "2024" : "2014";
+if (edGroups && charEd !== _lastEd) {
+  var gli = document.createElement("li");
+  gli.className = "char-ed-group";
+  gli.textContent = "Редакция " + charEd;
+  list.appendChild(gli);
+}
+_lastEd = charEd;
 const li = document.createElement("li");
 li.className = "home-menu-row char-menu-row rise";
 li.style.setProperty("--i", Math.min(_idx, 10)); // Дымка v5: stagger-появление (кап 10)
@@ -1138,6 +1156,7 @@ btn.innerHTML = "<span class=\"home-bullet\" aria-hidden=\"true\"></span>" +
   "<span class=\"home-menu-hint\">" +
     escapeHtml((char.classes && char.classes.length > 1 ? getClassLabel(char) : char.class) || "класс не указан") +
     " · " + (char.level || 1) + " ур." +
+    (edSplit ? " · " + charEd : "") +
   "</span>";
 li.appendChild(btn);
 list.appendChild(li);

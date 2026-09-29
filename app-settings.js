@@ -334,6 +334,7 @@ function isEditionSplit() {
 function setEditionSplit(on) {
   try { localStorage.setItem('dnd_edition_split', on ? '1' : '0'); } catch (e) {}
   _syncEditionSplitButtons();
+  if (typeof renderCharacterList === "function") renderCharacterList();
 }
 function _syncEditionSplitButtons() {
   var active = isEditionSplit() ? 'on' : 'off';
