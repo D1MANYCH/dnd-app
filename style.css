@@ -38,6 +38,7 @@
 --accent: #d6b25e;
 --accent-hi: #e2c67e;
 --accent-lo: #b8963f;
+--focus-ring: var(--accent);
 --accent-ink: var(--accent);      /* STYLE-11: акцентный текст-заголовок; в светлой — --accent-lo */
 --accent-hover: var(--accent-hi); /* STYLE-11: hover текстовых действий; в светлой --accent-hi 2.3:1 → --text */
 --nav-next-fill: var(--accent-fill);
@@ -310,6 +311,7 @@ html.glass-adjusting *::after {
   --accent: #a8823a;
   --accent-hi: #c09a50;
   --accent-lo: #86672b; /* STYLE-9: 4.36 → 4.60 на --bg-0 (плоский текст) */
+  --focus-ring: var(--accent-lo);
   --accent-ink: var(--accent-lo); --accent-hover: var(--text); --nav-next-fill: var(--accent-lo); /* STYLE-11 */
   --accent-soft: rgba(168, 130, 58, 0.12);
   --accent-glow: rgba(168, 130, 58, 0.30);
@@ -409,7 +411,7 @@ html.glass-adjusting *::after {
     --glass-hi: rgba(255, 255, 255, 0.65);
     --border: rgba(24, 26, 36, 0.10); --border-soft: rgba(24, 26, 36, 0.065);
     --text: #1b1c20; --text-dim: #55575f; --text-mute: #5e5f66; /* THEME-6: 4.5, STYLE-11 */
-    --accent: #a8823a; --accent-hi: #c09a50; --accent-lo: #86672b;
+    --accent: #a8823a; --accent-hi: #c09a50; --accent-lo: #86672b; --focus-ring: var(--accent-lo);
     --accent-ink: var(--accent-lo); --accent-hover: var(--text); --nav-next-fill: var(--accent-lo); /* STYLE-11 */
     --accent-soft: rgba(168, 130, 58, 0.12);
     --accent-glow: rgba(168, 130, 58, 0.30);
@@ -17265,4 +17267,11 @@ button.modal-close-bottom:hover,
   .conc-details-box::before,
   .notes-modal::before { margin: 8px auto 0; }
   .confirm-modal-box > .modal-close { top: 14px; }
+}
+
+/* STYLE-12: фокус с клавиатуры у полей и строк — контур ≥3:1 вместо свечения.
+   !important — поверх локальных :focus{outline:none} с id-скоупом. */
+:is(input, select, textarea, .home-menu-item, .home-menu-subitem, .notes-section-head, .dice-pick, .dice-fan-item):focus-visible {
+  outline: 2px solid var(--focus-ring) !important;
+  outline-offset: 2px;
 }

@@ -49,6 +49,8 @@
     { "fg": "--accent-lo", "bg": [], "min": 4.5,
       "note": "STYLE-9: плоский текст языка STYLE-8 лежит ПРЯМО на --bg-0 (экраны-страницы, встречающее меню) — самый тяжёлый фон. До STYLE-9 не проверялось: light/gold давал 4.36, dark/graphite 4.05, dark/ruby 4.06, dark/copper 3.94, dark/amethyst 3.89 — все ниже AA. Значения --accent-lo подняты до worst >= 4.60." },
     { "fg": "--accent-lo", "bg": ["--bg-1"], "min": 4.5 },
+    { "fg": "--focus-ring", "bg": [], "min": 3.0, "note": "STYLE-12: контур :focus-visible полей и строк (WCAG 1.4.11)." },
+    { "fg": "--focus-ring", "bg": ["--surface-modal"], "min": 3.0 },
     { "fg": "--accent-lo", "bg": ["--home-plate"], "min": 4.5 },
     { "fg": "--accent-lo", "bg": ["--surface-modal"], "min": 4.5, "note": "STYLE-11: текстовые действия в окнах (добавить монстра, стат-блок) — до STYLE-11 dark/copper 4.49" },
     { "fg": "--accent-ink", "bg": [], "min": 4.5, "note": "STYLE-11: имя героя на главной — до STYLE-11 light 3.08" },
