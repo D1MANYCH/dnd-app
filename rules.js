@@ -1069,6 +1069,53 @@ function rulesFeatStatOptions(char, eff) {
   });
 }
 
+// ── FSP-1: заклинания от черт (поле spellPick у определения черты) ──
+var FEAT_SPELL_CLASS_RU = { bard: "бард", wizard: "волшебник", druid: "друид", cleric: "жрец", warlock: "колдун", sorcerer: "чародей" };
+// Сколько заклинаний даёт слот: число или "pb" (бонус мастерства)
+function rulesFeatSlotCount(slot, char) {
+  if (!slot) return 0;
+  return slot.count === "pb" ? getProficiencyBonus((char && char.level) || 1) : (slot.count || 0);
+}
+// Подходит ли запись БД под слот черты: уровень, ритуал, школа, белый список, класс, редакция
+function rulesFeatSpellFits(spell, slot, cls, rule, source) {
+  if (!spell || !slot || (spell.level || 0) !== slot.level) return false;
+  if (source && !spell.homebrew && String(spell.source || "PH14") !== source) return false;
+  if (slot.ritual && String(spell.time || "").indexOf("(ритуал)") === -1) return false;
+  if (slot.schools && slot.schools.indexOf(spell.school) === -1) return false;
+  if (slot.names && slot.names.indexOf(spell.name) === -1) return false;
+  var allowed = cls ? [cls] : ((rule && rule.classes) || []);
+  if (!allowed.length) return true;
+  var sc = Array.isArray(spell.classes) ? spell.classes : [spell.class];
+  return sc.some(function(c) { return allowed.indexOf(c) !== -1; });
+}
+function rulesFeatSpellCandidates(rule, slot, cls, db, source) {
+  return (db || []).filter(function(s) { return rulesFeatSpellFits(s, slot, cls, rule, source); });
+}
+// Метка grantedBy: «Черта · Имя [· класс]»
+function rulesFeatSpellLabel(def, rec) {
+  var cls = rec && rec.spellClass;
+  return "Черта · " + ((def && def.name) || (rec && rec.name) || "") + (cls ? " · " + (FEAT_SPELL_CLASS_RU[cls] || cls) : "");
+}
+// Прогресс выбора: заклинания с меткой черты раскладываются по слотам по порядку
+function rulesFeatSpellProgress(char, rec, def) {
+  var rule = def && def.spellPick;
+  var out = { need: 0, have: 0, slots: [] };
+  if (!rule) return out;
+  var label = rulesFeatSpellLabel(def, rec);
+  var mine = ((char && char.spells && char.spells.mySpells) || []).filter(function(s) { return s && s.grantedBy === label; });
+  var used = [];
+  (rule.slots || []).forEach(function(slot) {
+    var need = rulesFeatSlotCount(slot, char), have = 0;
+    mine.forEach(function(s, i) {
+      if (have >= need || used[i] || (rule.fixed && rule.fixed.indexOf(s.name) !== -1)) return;
+      if (rulesFeatSpellFits(s, slot, rec && rec.spellClass, rule, null)) { used[i] = true; have++; }
+    });
+    out.slots.push({ level: slot.level, need: need, have: have });
+    out.need += need; out.have += have;
+  });
+  return out;
+}
+
 // ── Концентрация ────────────────────────────────────────────
 // FIN-7: чистые параметры спасброска концентрации (PHB стр.203–204).
 // СЛ = max(10, урон/2 округл. вниз); модификатор = ТЕЛ-мод (+ мастерство при

@@ -629,6 +629,68 @@
         return true;
       } finally { env.restore(); }
     });
+    function _fspDef(id) { return FEATS_DATA.find(function(f){ return f.id === id; }); }
+    t("[fsp-1] Посвящённый в магию: кандидаты волшебника — только его заговоры и 1 ур. PH14", function(){
+      var def = _fspDef("magic_initiate");
+      if (!def || !def.spellPick) return "нет spellPick";
+      var c0 = rulesFeatSpellCandidates(def.spellPick, def.spellPick.slots[0], "wizard", SPELL_DATABASE, "PH14");
+      var c1 = rulesFeatSpellCandidates(def.spellPick, def.spellPick.slots[1], "wizard", SPELL_DATABASE, "PH14");
+      if (!c0.length || !c1.length) return "пусто: " + c0.length + "/" + c1.length;
+      var bad = c0.concat(c1).filter(function(s){ return s.source !== "PH14" || (s.classes || [s.class]).indexOf("wizard") === -1; });
+      if (bad.length) return "чужие: " + bad[0].name;
+      if (c0.some(function(s){ return s.level !== 0; }) || c1.some(function(s){ return s.level !== 1; })) return "уровень";
+      if (!c0.some(function(s){ return s.name === "Огненный снаряд"; })) return "нет Огненного снаряда";
+      if (c0.some(function(s){ return s.name === "Священное пламя"; })) return "заговор жреца у волшебника";
+      return true;
+    });
+    t("[fsp-1] Меткие заклинания: только белый список атакующих заговоров, у жреца — пусто", function(){
+      var def = _fspDef("spell_sniper"), sl = def.spellPick.slots[0];
+      var names = sl.names.filter(function(n){ return !SPELL_DATABASE.some(function(s){ return s.name === n && s.source === "PH14"; }); });
+      if (names.length) return "нет в базе: " + names.join(", ");
+      var w = rulesFeatSpellCandidates(def.spellPick, sl, "wizard", SPELL_DATABASE, "PH14").map(function(s){ return s.name; }).sort();
+      if (w.join("|") !== ["Электрошок","Леденящее прикосновение","Луч холода","Огненный снаряд"].sort().join("|")) return "волшебник: " + w.join(", ");
+      if (rulesFeatSpellCandidates(def.spellPick, sl, "warlock", SPELL_DATABASE, "PH14").every(function(s){ return s.name !== "Мистический заряд"; })) return "колдун без Мистического заряда";
+      return true;
+    });
+    t("[fsp-1] Ритуальный заклинатель: только ритуалы 1 ур.", function(){
+      var def = _fspDef("ritual_caster");
+      var c = rulesFeatSpellCandidates(def.spellPick, def.spellPick.slots[0], "wizard", SPELL_DATABASE, "PH14");
+      if (!c.length) return "пусто";
+      if (c.some(function(s){ return s.level !== 1 || s.time.indexOf("(ритуал)") === -1; })) return "не ритуал";
+      return true;
+    });
+    t("[fsp-1] прогресс и метка: «Черта · Посвящённый в магию · волшебник», 1/3 → 3/3", function(){
+      var def = _fspDef("magic_initiate");
+      var rec = { id: "magic_initiate", name: def.name, spellClass: "wizard" };
+      var lbl = rulesFeatSpellLabel(def, rec);
+      if (lbl !== "Черта · Посвящённый в магию · волшебник") return lbl;
+      var fb = SPELL_DATABASE.find(function(s){ return s.name === "Огненный снаряд" && s.source === "PH14"; });
+      var c = { level: 4, spells: { mySpells: [Object.assign({}, fb, { grantedBy: lbl })] } };
+      var p = rulesFeatSpellProgress(c, rec, def);
+      if (p.need !== 3 || p.have !== 1 || p.slots[0].have !== 1 || p.slots[1].have !== 0) return JSON.stringify(p);
+      var c0 = rulesFeatSpellCandidates(def.spellPick, def.spellPick.slots[0], "wizard", SPELL_DATABASE, "PH14");
+      var c1 = rulesFeatSpellCandidates(def.spellPick, def.spellPick.slots[1], "wizard", SPELL_DATABASE, "PH14");
+      c.spells.mySpells.push(Object.assign({}, c0.find(function(s){ return s.id !== fb.id; }), { grantedBy: lbl }));
+      c.spells.mySpells.push(Object.assign({}, c1[0], { grantedBy: lbl }));
+      c.spells.mySpells.push(Object.assign({}, c1[1], { grantedBy: "Вид · Тифлинг" }));
+      p = rulesFeatSpellProgress(c, rec, def);
+      if (p.have !== 3) return "3/3: " + JSON.stringify(p);
+      return true;
+    });
+    t("[fsp-1] removeFeat снимает заклинания черты, ручные остаются", function(){
+      var env = _lockEnv(false);
+      try {
+        var def = _fspDef("magic_initiate");
+        var rec = { id: "magic_initiate", name: def.name, spellClass: "wizard" };
+        env.char.feats = [rec];
+        env.char.spells.mySpells.push({ id: "f1", name: "Луч холода", level: 0, grantedBy: rulesFeatSpellLabel(def, rec) });
+        removeFeat(0);
+        if (env.char.feats.length !== 0) return "черта не удалена";
+        var ids = env.char.spells.mySpells.map(function(s){ return s.id; });
+        if (ids.join(",") !== "s1") return "осталось: " + ids.join(",");
+        return true;
+      } finally { env.restore(); }
+    });
 
     // ЗАМОК-3: снаряжение под замком; авто-снятие при повышении уровня и АСИ.
     t("[замок] под замком editWeapon/editItemDirect/deleteCustomWeapon не открывают форму и дают тост", function(){
@@ -7795,6 +7857,14 @@
       if (c.spells.mySpells.length !== 1) return "без опции: " + c.spells.mySpells.length;
       var c14 = { edition:"2014", race:"Дроу", level:5, spells:{ mySpells:[] } };
       if (syncSpeciesSpells(c14) !== false || c14.spells.mySpells.length) return "2014 затронут";
+      return true;
+    });
+
+    t("[fsp-1] syncSpeciesSpells не трогает заклинания черт", function(){
+      var c = mk24({ race:"Тифлинг", speciesChoices:{ legacy:"infernal" } });
+      c.spells.mySpells.push({ id: "fx", name: "Луч холода", level: 0, grantedBy: "Черта · Посвящённый в магию · волшебник" });
+      syncSpeciesSpells(c);
+      if (!c.spells.mySpells.some(function(s){ return s.id === "fx"; })) return "заклинание черты стёрто";
       return true;
     });
 

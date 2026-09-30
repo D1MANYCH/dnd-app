@@ -1236,7 +1236,7 @@ function syncSpeciesSpells(char) {
   var changed = false;
   var before = char.spells.mySpells.length;
   char.spells.mySpells = char.spells.mySpells.filter(function(s) {
-    return !s.grantedBy || (s.grantedBy === label && want.indexOf(s.name) !== -1);
+    return !s.grantedBy || String(s.grantedBy).indexOf("Вид · ") !== 0 || (s.grantedBy === label && want.indexOf(s.name) !== -1);
   });
   if (char.spells.mySpells.length !== before) changed = true;
   want.forEach(function(name) {

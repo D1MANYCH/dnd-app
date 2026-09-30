@@ -217,6 +217,7 @@ function _defaultSpellVersion(char) {
   return !char ? "all" : (char.edition === "2024" ? "PH24" : "PH14");
 }
 function openSpellSearch() {
+_featPickIdx = null;
 // STYLE-8M-4: поиск — экран. Открывается и с вкладки, и с экрана повышения
 // уровня (luGoToSpellsTab сначала уводит на лист), стек возврата это переживает.
 if (typeof showScreen === "function") showScreen("spellsearch");
@@ -264,9 +265,129 @@ function markCharOwnClassFilter() {
   }
 }
 function closeSpellSearch() {
+var _wasFeat = _featPickIdx !== null;
+_featPickIdx = null;
+if (_wasFeat && typeof renderTakenFeats === "function") renderTakenFeats();
 if (typeof currentScreenName === "function" && currentScreenName() === "spellsearch") screenBack();
 // BUILD-LVL-4: обновить чек-лист guided level-up, если он открыт
 if (typeof luRefreshChoices === "function") luRefreshChoices();
+}
+// FSP-1: режим черты у экрана поиска — индекс записи char.feats или null.
+// Список сужен правилом черты (spellPick), выбранное идёт копией с меткой grantedBy.
+var _featPickIdx = null;
+function _featPickCtx() {
+  if (_featPickIdx === null) return null;
+  var char = getCurrentChar();
+  var rec = char && char.feats && char.feats[_featPickIdx];
+  var def = (rec && typeof getFeatDef === "function") ? getFeatDef(char, rec.id) : null;
+  if (!def || !def.spellPick) return null;
+  return { char: char, rec: rec, def: def, rule: def.spellPick, label: rulesFeatSpellLabel(def, rec) };
+}
+function openFeatSpellPicker(featIdx) {
+  if (sheetLockGuard()) return;
+  openSpellSearch();
+  _featPickIdx = featIdx;
+  if (!_featPickCtx()) { _featPickIdx = null; return; }
+  renderSpellSearch();
+}
+function _featPickProgressText(fp) {
+  var pr = rulesFeatSpellProgress(fp.char, fp.rec, fp.def);
+  return pr.slots.map(function(sl) {
+    return (sl.level === 0 ? "заговоры" : sl.level + " ур.") + " " + sl.have + "/" + sl.need;
+  }).join(" · ");
+}
+function _renderFeatPickBar(fp) {
+  var bar = $("spell-feat-bar");
+  var filters = $("spell-class-filter");
+  var legend = $("class-filter-legend");
+  if (filters) filters.style.display = fp ? "none" : "";
+  if (legend) legend.style.display = fp ? "none" : "";
+  if (!bar) return;
+  bar.hidden = !fp;
+  if (!fp) { bar.innerHTML = ""; return; }
+  var html = '<div class="lu-choice-title">' + escapeHtml(fp.label.replace(/^Черта · /, "")) + ' — ' + escapeHtml(_featPickProgressText(fp)) + '</div>';
+  var pr = rulesFeatSpellProgress(fp.char, fp.rec, fp.def);
+  if (fp.rule.pickClass && pr.have === 0) {
+    html += '<div class="lu-choice-sub">Список класса:</div><div class="rest-actions">' + (fp.rule.classes || []).map(function(c) {
+      var on = fp.rec.spellClass === c;
+      return '<button type="button" class="rest-act' + (on ? ' rest-act--primary' : '') + '" onclick="featPickSetClass(\'' + c + '\')">' + escapeHtml(FEAT_SPELL_CLASS_RU[c] || c) + '</button>';
+    }).join("") + '</div>';
+  }
+  bar.innerHTML = html;
+}
+function featPickSetClass(cls) {
+  var fp = _featPickCtx();
+  if (!fp || rulesFeatSpellProgress(fp.char, fp.rec, fp.def).have > 0) return;
+  fp.rec.spellClass = cls;
+  saveToLocal();
+  renderSpellSearch();
+}
+function _featPickCandidates(fp) {
+  var src = _defaultSpellVersion(fp.char);
+  var out = [];
+  (fp.rule.slots || []).forEach(function(slot) {
+    rulesFeatSpellCandidates(fp.rule, slot, fp.rec.spellClass, SPELL_DATABASE, src).forEach(function(s) {
+      if (out.indexOf(s) === -1) out.push(s);
+    });
+  });
+  return out;
+}
+function _renderFeatPickList(fp, search, level, container) {
+  container.innerHTML = "";
+  var countEl = $("spell-search-count");
+  if (fp.rule.pickClass && !fp.rec.spellClass) {
+    if (countEl) countEl.textContent = "";
+    container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px 0;">Выберите список класса выше</p>';
+    return;
+  }
+  var mine = fp.char.spells.mySpells || [];
+  var _pr = rulesFeatSpellProgress(fp.char, fp.rec, fp.def);
+  var list = _featPickCandidates(fp).filter(function(s) {
+    return s.name.toLowerCase().includes(search) && (level === "" || String(s.level) === level);
+  });
+  if (countEl) countEl.textContent = "Найдено: " + list.length;
+  if (!list.length) { container.innerHTML = '<p style="color:var(--text-muted); text-align:center;">Не найдено</p>'; return; }
+  list.forEach(function(spell) {
+    var own = mine.find(function(s) { return s.id === spell.id; });
+    var isFeat = !!(own && own.grantedBy === fp.label);
+    var idArg = _spellIdArg(spell.id);
+    var btn = isFeat ? '<button class="secondary" onclick="removeFeatSpell(' + idArg + ')">Выбрано</button>'
+      : own ? '<button class="secondary" disabled>Уже в гримуаре</button>'
+      : !(fp.rule.slots || []).some(function(slot, i) { return _pr.slots[i].have < _pr.slots[i].need && rulesFeatSpellFits(spell, slot, fp.rec.spellClass, fp.rule, null); })
+        ? '<button class="secondary" disabled>Лимит черты</button>'
+      : '<button class="small" onclick="addFeatSpell(' + idArg + ')">+ Выбрать</button>';
+    var srcRaw = String(spell.source || "PH14");
+    var div = document.createElement("div");
+    div.className = "spell-item" + (isFeat ? " spell-added" : "");
+    div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase().replace(/[^\w-]/g, "") + "\">" + escapeHtml(srcRaw) + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p><div class=\"spell-item-actions\">" + btn + "</div>";
+    container.appendChild(div);
+  });
+}
+function addFeatSpell(spellId) {
+  var fp = _featPickCtx();
+  if (!fp) return;
+  var spell = SPELL_DATABASE.find(function(s) { return s.id === spellId; });
+  if (!spell) return;
+  if (!Array.isArray(fp.char.spells.mySpells)) fp.char.spells.mySpells = [];
+  if (fp.char.spells.mySpells.some(function(s) { return s.id === spellId; })) return;
+  var pr = rulesFeatSpellProgress(fp.char, fp.rec, fp.def);
+  var room = (fp.rule.slots || []).some(function(slot, i) {
+    return pr.slots[i].have < pr.slots[i].need && rulesFeatSpellFits(spell, slot, fp.rec.spellClass, fp.rule, null);
+  });
+  if (!room) { showToast("Черта больше не даёт заклинаний этого уровня", "warn"); return; }
+  fp.char.spells.mySpells.push(Object.assign({}, spell, { grantedBy: fp.label }));
+  if (window.AppLog) AppLog.action("spells", "заклинание черты: " + spell.name, { feat: fp.rec.id });
+  saveToLocal();
+  renderSpellSearch();
+  renderMySpells();
+}
+function removeFeatSpell(spellId) {
+  var fp = _featPickCtx();
+  if (!fp) return;
+  fp.char.spells.mySpells = (fp.char.spells.mySpells || []).filter(function(s) { return !(s.id === spellId && s.grantedBy === fp.label); });
+  saveToLocal();
+  renderSpellSearch();
+  renderMySpells();
 }
 // HB-2: справочники и лимиты формы «Добавить своё».
 // Ключи классов — те же, что в SPELL_CLASS_RU (без "both": он не выбирается вручную,
@@ -650,6 +771,9 @@ const container = $("spell-search-results");
 if (!container) return;
 if (firstLoadSkeleton("spell", "spell-search-results", 6, "list", renderSpellSearch)) return;
 const char = getCurrentChar();
+var _fp = _featPickCtx();
+_renderFeatPickBar(_fp);
+if (_fp) { _renderFeatPickList(_fp, search, level, container); return; }
 // BUILD-LVL: по умолчанию (без явно выбранного уровня) прячем заклинания выше доступного персонажу уровня.
 const maxCastable = _charMaxCastableLevel(char);
 const splitVersion = (char && typeof isEditionSplit === "function" && isEditionSplit()) ? _defaultSpellVersion(char) : null;
@@ -731,6 +855,7 @@ const char = getCurrentChar();
 if (!char) return;
 if (!char.spells.mySpells) return;
 var _rm = char.spells.mySpells.find(function(s) { return s.id === spellId; });
+if (_rm && _rm.grantedBy && String(_rm.grantedBy).indexOf("Черта · ") === 0) { showToast("Заклинание даёт " + _rm.grantedBy + " — меняется в выборе заклинаний черты", "info"); return; }
 if (_rm && _rm.grantedBy) { showToast("Заклинание даёт " + _rm.grantedBy + " — снимается сменой вида или его выбора", "info"); return; }
 char.spells.mySpells = char.spells.mySpells.filter(function(s) { return s.id !== spellId; });
 if (window.AppLog) AppLog.action("spells", "заклинание удалено" + (_rm ? ": " + _rm.name : ""), { id: spellId });

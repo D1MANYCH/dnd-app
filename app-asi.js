@@ -498,6 +498,11 @@ function applyASI() {
   renderTakenFeats();
   if (typeof renderRaceExtras === "function") renderRaceExtras();
   updateClassFeatures();
+  // FSP-1: черта со spellPick — сразу предложить выбор заклинаний
+  if (feat.spellPick && typeof openFeatSpellPicker === "function") {
+    var _fi = char.feats.length - 1;
+    showConfirmModal("Черта даёт заклинания", "«" + feat.name + "» даёт заклинания. Выбрать сейчас?", function() { openFeatSpellPicker(_fi); }, "Выбрать");
+  }
 }
 
 // ============================================================
@@ -532,6 +537,11 @@ function renderTakenFeats() {
     var catLabel = data && data.category && FEAT_CATEGORY_LABELS[data.category];
     if (catLabel) lvlBadge += '<span class="feat-taken-lvl">' + catLabel + '</span>';
     // E24-5: черта происхождения от предыстории — без кнопки удаления, следует за предысторией
+    var spBtn = "";
+    if (data && data.spellPick) {
+      var _pr = rulesFeatSpellProgress(char, f, data);
+      spBtn = '<button type="button" class="rest-act rest-act--primary" onclick="openFeatSpellPicker(' + i + ')">Заклинания ' + _pr.have + '/' + _pr.need + '</button>';
+    }
     var delBtn = f.origin ? '' : '<button class="feat-taken-del" onclick="removeFeat(' + i + ')" title="Убрать черту" aria-label="Убрать черту">' + dndIcoHtml("trash", 14) + '</button>';
     return '<div class="feat-taken-card">' +
       '<div class="feat-taken-row">' +
@@ -540,6 +550,7 @@ function renderTakenFeats() {
         lvlBadge + delBtn +
       '</div>' +
       (desc ? '<div class="feat-taken-desc">' + escapeHtml(desc) + '</div>' : '') +
+      spBtn +
     '</div>';
   }).join("");
 }
@@ -552,9 +563,17 @@ function removeFeat(i) {
   var name = char.feats[i] ? char.feats[i].name : "черту";
   // E24-5: черта происхождения привязана к предыстории — снимается только сменой предыстории
   if (char.feats[i] && char.feats[i].origin) { showToast("Черта происхождения идёт от предыстории — смените предысторию.", "warning"); return; }
+  // FSP-1: заклинания черты снимаются вместе с ней
+  var _def = getFeatDef(char, char.feats[i].id);
+  var _lbl = (_def && _def.spellPick) ? rulesFeatSpellLabel(_def, char.feats[i]) : null;
+  var _hasSp = !!(_lbl && char.spells && (char.spells.mySpells || []).some(function(s) { return s && s.grantedBy === _lbl; }));
   showConfirmModal("Убрать черту?",
-    "«" + name + "» будет удалена из списка. Бонусы к характеристикам НЕ откатятся.",
+    "«" + name + "» будет удалена из списка." + (_hasSp ? " Заклинания черты будут сняты." : "") + " Бонусы к характеристикам НЕ откатятся.",
     function() {
+      if (_lbl && char.spells && Array.isArray(char.spells.mySpells)) {
+        char.spells.mySpells = char.spells.mySpells.filter(function(s) { return !s || s.grantedBy !== _lbl; });
+        if (typeof renderMySpells === "function") renderMySpells();
+      }
       char.feats.splice(i, 1);
       saveToLocal();
       renderTakenFeats();

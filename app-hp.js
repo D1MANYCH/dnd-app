@@ -995,6 +995,19 @@ function luBuildChoicesScreen() {
     });
   }
 
+  // FSP-1: черта этого уровня со spellPick — строка выбора её заклинаний
+  (char.feats || []).forEach(function(fr, fi) {
+    if (fr.level !== newLevel) return;
+    var fd = (typeof getFeatDef === "function") ? getFeatDef(char, fr.id) : null;
+    if (!fd || !fd.spellPick) return;
+    var fpr = rulesFeatSpellProgress(char, fr, fd);
+    var fdone = fpr.need > 0 && fpr.have >= fpr.need;
+    blocks.push('<div class="lu-choice-block' + (fdone ? ' done' : '') + '">' +
+      '<div class="lu-choice-title">Заклинания черты «' + escapeHtml(fd.name) + '» ' + fpr.have + '/' + fpr.need + (fdone ? ' ✓' : '') + '</div>' +
+      '<button class="lu-choice-launch" onclick="openFeatSpellPicker(' + fi + ')">Выбрать →</button>' +
+      '</div>');
+  });
+
   // 4) ЗАКЛИНАНИЯ — если класс-заклинатель. Два пути:
   //    (1) рекомендации билда + кнопка их добавить; (2) добавить самому → вкладка «Заклинания».
   var SPELL_CASTERS = ["Волшебник","Жрец","Друид","Бард","Паладин","Следопыт","Чародей","Колдун"];
