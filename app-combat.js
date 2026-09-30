@@ -1517,6 +1517,15 @@ function removeRaceFeat(i) {
     function() {
       char.raceFeats.splice(i, 1);
       if (Array.isArray(char.feats)) {
+        // FSP: заклинания расовой черты снимаются вместе с ней
+        char.feats.forEach(function(f) {
+          if (!(f.racial && f.name === name)) return;
+          var d = (typeof getFeatDef === "function") ? getFeatDef(char, f.id) : null;
+          if (!d || !d.spellPick || !char.spells || !Array.isArray(char.spells.mySpells)) return;
+          var lbl = rulesFeatSpellLabel(d, f);
+          char.spells.mySpells = char.spells.mySpells.filter(function(s) { return !s || s.grantedBy !== lbl; });
+          if (typeof renderMySpells === "function") renderMySpells();
+        });
         char.feats = char.feats.filter(function(f) { return !(f.racial && f.name === name); });
       }
       saveToLocal();

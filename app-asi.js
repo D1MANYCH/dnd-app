@@ -497,15 +497,17 @@ function applyASI() {
   asiCurrentClass = null;
   closeASIModal();
   asiFeatSelected = null;
-  showHPToast(0, "🎯 Черта «" + feat.name + "» получена!" + (appliedDesc.length ? " " + appliedDesc.join(", ") : ""));
+  // FSP: при окне выбора заклинаний тост не показываем — он перекрывал окно на телефоне
+  var _askSpells = !!(feat.spellPick && (feat.spellPick.slots || []).length && typeof openFeatSpellPicker === "function");
+  if (!_askSpells) showHPToast(0, "🎯 Черта «" + feat.name + "» получена!" + (appliedDesc.length ? " " + appliedDesc.join(", ") : ""));
   renderJournal();
   renderTakenFeats();
   if (typeof renderRaceExtras === "function") renderRaceExtras();
   updateClassFeatures();
   // FSP-1: черта со spellPick — сразу предложить выбор заклинаний
-  if (feat.spellPick && (feat.spellPick.slots || []).length && typeof openFeatSpellPicker === "function") {
+  if (_askSpells) {
     var _fi = char.feats.length - 1;
-    showConfirmModal("Черта даёт заклинания", "«" + feat.name + "» даёт заклинания. Выбрать сейчас?", function() { openFeatSpellPicker(_fi); }, "Выбрать");
+    showConfirmModal("Черта «" + feat.name + "» получена", (appliedDesc.length ? "Применено: " + appliedDesc.join(", ") + ". " : "") + "Черта даёт заклинания. Выбрать сейчас?", function() { openFeatSpellPicker(_fi); }, "Выбрать");
   }
 }
 

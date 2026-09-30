@@ -691,6 +691,20 @@
         return true;
       } finally { env.restore(); }
     });
+    t("[fsp] removeRaceFeat снимает заклинания расовой черты (Человек (вариант) + Меткие заклинания)", function(){
+      var env = _lockEnv(false);
+      try {
+        var def = _fspDef("spell_sniper");
+        var rec = { id: "spell_sniper", name: def.name, racial: true, level: "раса", spellClass: "warlock" };
+        env.char.feats = [rec]; env.char.raceFeats = [{ id: "spell_sniper", name: def.name }];
+        env.char.spells.mySpells.push({ id: "f1", name: "Мистический заряд", level: 0, grantedBy: rulesFeatSpellLabel(def, rec) });
+        removeRaceFeat(0);
+        if (env.char.feats.length || env.char.raceFeats.length) return "черта не снята";
+        var ids = env.char.spells.mySpells.map(function(s){ return s.id; });
+        if (ids.join(",") !== "s1") return "осталось: " + ids.join(",");
+        return true;
+      } finally { env.restore(); }
+    });
     function _fsp24(id) { return EDITION_DATA["2024"].FEATS_DATA.find(function(f){ return f.id === id; }); }
     t("[fsp-2] Затронутые: 1 ур. только своих школ PH24, фиксированные есть в базе PH24", function(){
       var cases = { "f24-fey_touched": ["прорицание", "очарование", "Туманный шаг"], "f24-shadow_touched": ["иллюзия", "некромантия", "Невидимость"] };
