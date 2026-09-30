@@ -1109,7 +1109,7 @@ function renderBooksRow() {
   var locked = !!char.basicLocked;
   box.innerHTML = BOOK_CODES.map(function(code) {
     var lbl = SOURCE_LABELS[code] || { short: code, full: code };
-    return '<button type="button" class="filter-chip' + (charHasBook(char, code) ? ' active' : '') + '"' +
+    return '<button type="button" class="book-btn' + (charHasBook(char, code) ? ' active' : '') + '"' +
       (locked ? ' disabled' : '') + ' title="' + escapeHtml(lbl.full) + '" onclick="toggleCharBook(\'' + code + '\')">' +
       escapeHtml(lbl.short) + '</button>';
   }).join("");

@@ -6561,6 +6561,7 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent-c
 .class-filter-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--sp-3); }
 /* перебиваем глобальный button{width:100%} (ловушка FIN-2) */
 .edition-btn,
+.book-btn,
 .class-filter-all {
   width: auto;
   flex: 0 0 auto;
@@ -6578,12 +6579,16 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent-c
   cursor: pointer;
   transition: color var(--t1) var(--ez-out);
 }
-.edition-btn + .edition-btn::before { content: "·"; margin-right: var(--sp-3); color: var(--home-sub); }
+.edition-btn:not([hidden]) ~ .edition-btn:not([hidden])::before,
+.book-btn + .book-btn::before { content: "·"; margin-right: var(--sp-3); color: var(--home-sub); }
 .edition-btn:hover,
 .edition-btn:focus-visible,
+.book-btn:hover,
+.book-btn:focus-visible,
 .class-filter-all:hover,
 .class-filter-all:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
 .edition-btn.active,
+.book-btn.active,
 .class-filter-all.active {
   color: var(--accent-lo);
   font-weight: 700;
@@ -6591,6 +6596,8 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent-c
   text-underline-offset: 4px;
   text-decoration-thickness: 2px;
 }
+.book-btn { padding: var(--sp-2) 0; }
+.book-btn[disabled] { cursor: not-allowed; }
 .class-filter-btn {
   position: relative;
   width: auto;
@@ -7682,13 +7689,14 @@ font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
 }
 /* width:auto/flex — перебиваем глобальный button{width:100%} (ловушка FIN-2/FIN-5) */
 .trinket-roll-btn {
+  display: inline-flex; align-items: center; gap: 5px;
   width: auto; flex: 0 0 auto; margin: 0; cursor: pointer;
-  background: var(--input-bg); border: 1px dashed var(--accent);
-  border-radius: 999px; padding: 6px 14px;
-  font-size: 0.82em; font-weight: 600; color: var(--accent);
-  transition: border-color .12s, background .12s;
+  min-height: 44px; padding: 0;
+  background: none; border: 0; border-radius: 0; box-shadow: none;
+  font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 600;
+  color: var(--accent-lo);
 }
-.trinket-roll-btn:hover { background: var(--bg-3, var(--input-bg)); border-color: var(--accent); }
+.trinket-roll-btn:hover { background: none; box-shadow: none; filter: none; text-decoration: underline; }
 .trinket-roll-hint { font-size: 0.75em; color: var(--text-muted); }
 
 /* ── МАСТЕР СОЗДАНИЯ ПЕРСОНАЖА ────────────────────────────────── */
@@ -7969,43 +7977,40 @@ font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
 }
 .stats-compact-grid button.stat-btn-sm,
 .stat-btn-sm {
-  flex: 1 !important;
-  width: auto !important;
-  min-width: 0 !important;
-  height: 30px !important;
-  border-radius: var(--r-sm) !important;
-  border: 1.5px solid var(--border-color) !important;
-  background: var(--card-bg) !important;
-  color: var(--text-color) !important;
-  font-size: 16px !important;
-  font-weight: 700 !important;
-  line-height: 1 !important;
-  cursor: pointer !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  transition: background 0.12s, border-color 0.12s, transform 0.08s !important;
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  height: 30px;
+  border-radius: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--home-sub);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  transition: color var(--t1) var(--ez-out);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
 }
 .stats-compact-grid button.stat-btn-sm:hover,
-.stat-btn-sm:hover {
-  border-color: var(--accent-color) !important;
-  color: var(--accent-color) !important;
-  background: var(--accent-glow) !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
+.stat-btn-sm:hover,
 .stats-compact-grid button.stat-btn-sm:active,
 .stat-btn-sm:active {
-  transform: scale(0.92) !important;
-  background: var(--accent-glow) !important;
-  border-color: var(--accent-color) !important;
-  color: var(--accent-color) !important;
+  color: var(--accent-lo);
+  background: none;
+  transform: none;
+  box-shadow: none;
+  filter: none;
 }
+.stat-btn-sm[disabled] { color: var(--home-sub); opacity: .4; cursor: not-allowed; }
 
 /* Mobile: taller buttons for comfortable tap */
 @media (max-width: 540px) {
@@ -8019,9 +8024,8 @@ font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
   .stat-compact-val  { font-size: 0.95em; margin-bottom: 6px; }
   .stats-compact-grid button.stat-btn-sm,
   .stat-btn-sm {
-    height: 36px !important;
-    font-size: 18px !important;
-    border-radius: var(--r-sm) !important;
+    height: 36px;
+    font-size: 20px;
   }
 }
 /* ============================================================
@@ -8523,7 +8527,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 
   /* — Характеристики ± — */
   .stats-compact-grid button.stat-btn-sm,
-  .stat-btn-sm { height: 44px !important; font-size: 20px !important; }
+  .stat-btn-sm { height: 44px; font-size: 20px; }
 
   /* — Вложенные аккордеоны (Умения/Условия/Эффекты/Сопротивления) — */
   .accordion-toggle-sm { min-height: 44px; }
@@ -9939,7 +9943,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .tab-help-row {
   display: flex;
   justify-content: flex-end;
-  gap: 6px;
+  gap: var(--sp-4);
   margin: 0 0 10px;
 }
 .tab-help-btn {
@@ -9948,22 +9952,24 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   gap: 5px;
   width: auto;               /* перебить дефолтный button{width:100%} */
   margin: 0;
-  padding: 3px 10px 3px 5px;
-  border-radius: 999px;
-  border: 1px solid var(--border-color);
-  background: var(--input-bg);
-  color: var(--text-muted);
-  font-size: 0.78em;
+  padding: var(--sp-1) 0;
+  border-radius: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--accent-lo);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
   line-height: 1;
 }
-.tab-help-btn--text { padding: 3px 10px; color: var(--accent-lo); }
 .tab-help-btn:hover,
 .tab-help-btn:focus-visible {
-  border-color: var(--accent-color);
-  color: var(--accent-color);
+  background: none;
+  box-shadow: none;
+  filter: none;
+  text-decoration: underline;
 }
 .tab-help-q {
   display: inline-flex;
@@ -15877,10 +15883,21 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .ag-row--head { min-height: 0; padding-bottom: var(--sp-1); font-size: var(--fs-sm); color: var(--home-sub); }
 .ag-name { font-family: var(--font-display); overflow: hidden; text-overflow: ellipsis; }
 .ag-ctl { display: inline-flex; align-items: center; gap: var(--sp-2); }
-.ag-ctl .stat-btn-sm { flex: 0 0 auto !important; width: 36px !important; min-width: 36px !important; height: 36px !important; }
+.ag-ctl .stat-btn-sm { flex: 0 0 auto; width: 36px; min-width: 36px; height: 36px; }
 .ag-val { min-width: 2ch; text-align: center; font-weight: 700; }
 .ag-cost { min-width: 3.2em; font-size: var(--fs-sm); color: var(--home-sub); }
 .ag-sel { width: auto; min-width: 5em; }
+select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) {
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+  box-shadow: none;
+  padding-left: 2px;
+  padding-right: 24px;
+  font-family: var(--font-display);
+}
+select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select):focus { background: none; box-shadow: none; border-bottom-color: var(--accent); }
 .ag-bonus { text-align: right; color: var(--home-sub); }
 .ag-total { text-align: right; font-weight: 700; white-space: nowrap; }
 .ag-rolls { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); margin: 0 0 var(--sp-3); font-size: var(--fs-sm); }
