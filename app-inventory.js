@@ -280,6 +280,7 @@ showConfirmModal(
     const c = characters.find(function(ch) { return ch.id === currentId; });
     if (!c) return;
     c.inventory[category].splice(index, 1);
+    syncWornArmor(c, item, category, null, category);
     if (window.AppLog) AppLog.action("inventory", "предмет удалён: " + name, { cat: category });
     saveToLocal();
     renderInventory();
@@ -393,6 +394,7 @@ if (!category) category = currentFilterCategory !== "all" ? currentFilterCategor
 safeSet("item-category", category);
 safeSet("item-slot-index", slotIndex);
 safeSet("new-item-category", category);
+syncItemArmorFields();
 const titleEl = $("item-modal-title");
 const nameEl = $("new-item-name");
 const qtyEl = $("new-item-qty");
@@ -418,6 +420,19 @@ const chMaxInpEd = $("new-item-maxcharges");
 if (chMaxInpEd) chMaxInpEd.value = _chMaxEd > 0 ? _chMaxEd : "";
 const rechInpEd = $("new-item-recharge");
 if (rechInpEd) rechInpEd.value = item.recharge === "none" ? "none" : "dawn";
+var _arm = rulesItemArmor(item);
+safeSet("new-item-armorbase", _arm.base);
+safeSet("new-item-acbonus", _arm.bonus || "");
+// Доспех, добавленный из каталога до появления поля, — основа и бонус по имени из каталога
+if (category === "armor" && !_arm.base && typeof window.ensureMagicItems === "function") {
+  window.ensureMagicItems().then(function () {
+    var mi = (window.MAGIC_ITEMS || []).find(function (m) { return m.armorBase && m.name === item.name; });
+    if (mi && $("new-item-armorbase") && !$("new-item-armorbase").value) {
+      safeSet("new-item-armorbase", mi.armorBase);
+      safeSet("new-item-acbonus", mi.acBonus || "");
+    }
+  }).catch(function () {});
+}
 if (descEl) descEl.value = item.desc || "";
 } else {
 if (titleEl) titleEl.textContent = "Добавить предмет";
@@ -437,6 +452,8 @@ const chMaxInpNew = $("new-item-maxcharges");
 if (chMaxInpNew) chMaxInpNew.value = "";
 const rechInpNew = $("new-item-recharge");
 if (rechInpNew) rechInpNew.value = "dawn";
+safeSet("new-item-armorbase", "");
+safeSet("new-item-acbonus", "");
 if (descEl) descEl.value = "";
 }
 const modal = $("item-modal");
@@ -445,6 +462,48 @@ if (modal) modal.classList.add("active");
 function closeItemModal() {
 const modal = $("item-modal");
 if (modal) modal.classList.remove("active");
+}
+// Поля «Доспех для КД» в форме предмета — только у категории «Броня».
+function syncItemArmorFields() {
+var sel = $("new-item-armorbase");
+if (sel && sel.options && !sel.options.length && typeof ARMOR_PRESETS !== "undefined") {
+  sel.innerHTML = '<option value="">— не выбрано —</option>' + ARMOR_PRESETS.filter(function (p) { return p.id !== "none"; }).map(function (p) {
+    return '<option value="' + p.id + '">' + escapeHtml(p.name) + ' (КД ' + p.baseAC + ')</option>';
+  }).join("") + '<option value="shield">Щит (+2)</option>';
+}
+var box = $("item-armor-fields");
+if (box) box.style.display = ($("new-item-category")?.value === "armor") ? "" : "none";
+}
+// Надетый доспех или щит из инвентаря ↔ броня на листе (combat.armorId/armorItem, hasShield/shieldItem).
+// prev — запись до правки (null у нового), item — после (null при удалении).
+function syncWornArmor(char, prev, prevCat, item, cat) {
+var c = char.combat;
+if (!c) return;
+var a = (item && cat === "armor") ? rulesItemArmor(item) : { base: "", bonus: 0 };
+var loc = item ? item.location : "";
+var wear = !!a.base && a.base !== "shield" && loc === "worn";
+var hold = a.base === "shield" && (loc === "worn" || loc === "wielded");
+var wasArmor = !!(prev && prevCat === "armor" && c.armorItem && prev.name === c.armorItem);
+var wasShield = !!(prev && prevCat === "armor" && c.shieldItem && prev.name === c.shieldItem);
+// Правка без смены надетости/основы не перебивает броню, выбранную на листе
+var changed = !prev || !item || prevCat !== cat || prev.name !== item.name || prev.location !== loc ||
+  prev.armorBase !== item.armorBase || prev.acBonus !== item.acBonus;
+if (!wasArmor && !wasShield && !((wear || hold) && changed)) return;
+if (wasArmor && !wear) { c.armorId = "none"; c.armorItem = ""; }
+if (wasShield && !hold) { c.hasShield = false; c.shieldItem = ""; }
+if (wear && (wasArmor || changed)) {
+  (char.inventory.armor || []).forEach(function (it) {
+    var b = it && rulesItemArmor(it).base;
+    if (it !== item && it.location === "worn" && b && b !== "shield") it.location = "backpack";
+  });
+  c.armorId = a.base;
+  c.armorItem = item.name;
+}
+if (hold && (wasShield || changed)) { c.hasShield = true; c.shieldItem = item.name; }
+safeSetChecked("char-shield", !!c.hasShield);
+if (typeof renderArmorSelect === "function") renderArmorSelect(char);
+if (typeof calculateAC === "function") calculateAC();
+if (typeof updateStatusBar === "function") updateStatusBar();
 }
 function submitItem() {
 if (!currentId) return;
@@ -480,6 +539,12 @@ var _curChIn = (_curRaw !== undefined && _curRaw !== "" && _curRaw !== null) ? (
 newItem.charges = Math.max(0, Math.min(_maxChIn, _curChIn));
 newItem.recharge = ($("new-item-recharge")?.value === "none") ? "none" : "dawn";
 }
+if (category === "armor") {
+var _armBase = $("new-item-armorbase")?.value || "";
+var _acBonus = parseInt($("new-item-acbonus")?.value, 10) || 0;
+if (_armBase) newItem.armorBase = _armBase;
+if (_acBonus) newItem.acBonus = _acBonus;
+}
 var _isEdit = !!(slotIndex >= 0 && char.inventory[origCategory] && char.inventory[origCategory][slotIndex]);
 if (!char.inventory[category]) char.inventory[category] = [];
 if (slotIndex >= 0 && char.inventory[origCategory] && char.inventory[origCategory][slotIndex]) {
@@ -496,6 +561,7 @@ char.inventory[category].push(newItem);
 } else {
 char.inventory[category].push(newItem);
 }
+syncWornArmor(char, _prevItem, origCategory, newItem, category);
 if (window.AppLog) AppLog.action("inventory", (_isEdit ? "предмет изменён: " : "предмет добавлен: ") + name, { cat: category, qty: newItem.qty });
 saveToLocal();
 closeItemModal();
@@ -577,6 +643,9 @@ function fillFromMagicItem(id) {
   if (nameEl) nameEl.value = it.name;
   if (wEl) wEl.value = (typeof it.weight === "number") ? it.weight : 0;
   if (cEl) cEl.value = MAGIC_TYPE_TO_CATEGORY[it.type] || "other";
+  syncItemArmorFields();
+  safeSet("new-item-armorbase", it.armorBase || "");
+  safeSet("new-item-acbonus", it.acBonus || "");
   // FIN-6: перенос флага настройки из каталога в чекбокс модалки
   var aEl = document.getElementById("new-item-attune");
   if (aEl) aEl.checked = !!it.attune;
@@ -688,6 +757,7 @@ function fillFromGearItem(id) {
   if (wEl) wEl.value = (typeof it.weight === "number") ? it.weight : 0;
   if (sEl && typeof it.slots === "number") sEl.value = it.slots;
   if (cEl) cEl.value = (typeof ITEM_ICONS !== "undefined" && ITEM_ICONS[it.cat]) ? it.cat : "other";
+  syncItemArmorFields();
   // FIN-9: mount/vehicle предзаполняют «Где лежит» = снаружи рюкзака; прочее — сброс.
   if (locEl) locEl.value = it.location || "";
   if (dEl) dEl.value = (it.desc || "") + (it.cost ? "\n(Цена: " + it.cost + ")" : "");

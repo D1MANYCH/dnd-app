@@ -1411,8 +1411,8 @@ updateClassFeatures();
 renderClassResources();
 // Restore armor select
 var armorId = char.combat.armorId || "none";
-safeSet("char-armor", armorId);
 safeSetChecked("char-shield", char.combat.hasShield || false);
+if (typeof renderArmorSelect === "function") renderArmorSelect(char); else safeSet("char-armor", armorId);
 if (armorId !== "custom") { setTimeout(onArmorChange, 0); }
 calculateAC();
 // Restore HP max manual field

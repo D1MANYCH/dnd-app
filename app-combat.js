@@ -788,7 +788,7 @@ char.deity = $("char-deity")?.value || "";
 char.size = $("char-size")?.value || "Средний";
 char.speed = $("char-speed")?.value || "30 фт";
 char.combat.ac = parseInt($("combat-ac")?.value, 10) || 10;
-char.combat.armorId   = $("char-armor")?.value || "none";
+_armorFromSelect(char);
 char.combat.hasShield = $("char-shield")?.checked || false;
 char.combat.hpCurrent = parseInt($("hp-current")?.value, 10) || 0;
 char.combat.hpTemp = Math.max(0, parseInt($("hp-temp")?.value, 10) || 0);
@@ -2247,13 +2247,94 @@ function renderBackgroundExtras() {
 // ============================================
 // БРОНЯ: авто-расчёт КД по выбору брони
 // ============================================
+// Значение селекта брони → combat.armorId; «inv:<имя>» — доспех из инвентаря (+ armorItem).
+function _armorFromSelect(char) {
+  var v = $("char-armor")?.value || "none";
+  if (v.indexOf("inv:") !== 0) { char.combat.armorId = v; char.combat.armorItem = ""; return; }
+  var nm = v.slice(4);
+  var item = ((char.inventory && char.inventory.armor) || []).find(function(it) { return it && it.name === nm; });
+  var base = item ? rulesItemArmor(item).base : "";
+  var ok = !!base && base !== "shield";
+  char.combat.armorId = ok ? base : "none";
+  char.combat.armorItem = ok ? nm : "";
+}
+
+// Селект брони на листе: пресеты + группа «Из инвентаря» (доспехи с известной основой).
+function renderArmorSelect(char) {
+  var c = char.combat || {};
+  var shItem = c.hasShield ? rulesArmorItem(char, c.shieldItem, "shield") : null;
+  var lbl = $("char-shield-lbl");
+  if (lbl) lbl.textContent = shItem ? shItem.name + " (+" + (2 + rulesItemArmor(shItem).bonus) + ")" : "Щит (+2)";
+  var sel = $("char-armor");
+  if (!sel || !sel.querySelector || typeof ARMOR_PRESETS === "undefined") { safeSet("char-armor", c.armorId || "none"); return; }
+  var old = sel.querySelector("optgroup[data-inv]");
+  if (old) old.remove();
+  var seen = {};
+  var opts = ((char.inventory && char.inventory.armor) || []).map(function(it) {
+    if (!it || seen[it.name]) return null;
+    var a = rulesItemArmor(it);
+    var p = a.base && a.base !== "shield" ? ARMOR_PRESETS.find(function(x) { return x.id === a.base; }) : null;
+    if (!p) return null;
+    seen[it.name] = true;
+    return { name: it.name, ac: p.baseAC + a.bonus };
+  }).filter(Boolean);
+  if (opts.length) {
+    var og = document.createElement("optgroup");
+    og.label = "Из инвентаря";
+    og.setAttribute("data-inv", "1");
+    opts.forEach(function(o) {
+      var op = document.createElement("option");
+      op.value = "inv:" + o.name;
+      op.textContent = "🎒 " + o.name + " (КД " + o.ac + ")";
+      og.appendChild(op);
+    });
+    sel.insertBefore(og, sel.querySelector('option[value="custom"]'));
+  }
+  var armItem = rulesArmorItem(char, c.armorItem, c.armorId);
+  sel.value = armItem ? "inv:" + armItem.name : (c.armorId || "none");
+}
+
+// Выбор брони на листе надевает предмет из инвентаря; прежний надетый доспех — в рюкзак.
+function onArmorPick() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var prev = rulesArmorItem(char, char.combat.armorItem, char.combat.armorId);
+  _armorFromSelect(char);
+  var cur = rulesArmorItem(char, char.combat.armorItem, char.combat.armorId);
+  if (prev === cur) return;
+  if (prev && prev.location === "worn") prev.location = "backpack";
+  if (cur) cur.location = "worn";
+  if (typeof renderInventory === "function") renderInventory();
+}
+
+// Щит на листе: включение берёт щит из инвентаря (+N), выключение убирает его в рюкзак.
+function onShieldPick() {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var on = !!($("char-shield") && $("char-shield").checked);
+  var cur = rulesArmorItem(char, char.combat.shieldItem, "shield");
+  if (!on) {
+    if (cur && (cur.location === "worn" || cur.location === "wielded")) cur.location = "backpack";
+    char.combat.shieldItem = "";
+  } else if (!cur) {
+    var list = ((char.inventory && char.inventory.armor) || []).filter(function(it) { return it && rulesItemArmor(it).base === "shield"; });
+    cur = list.find(function(it) { return it.location === "worn" || it.location === "wielded"; }) || list[0] || null;
+    if (cur) { cur.location = "wielded"; char.combat.shieldItem = cur.name; }
+  }
+  char.combat.hasShield = on;
+  renderArmorSelect(char);
+  if (typeof renderInventory === "function") renderInventory();
+}
+
 function onArmorChange() {
   if (!currentId) return;
   var char = getCurrentChar();
   if (!char) return;
-  var armorId = $("char-armor")?.value || "none";
+  _armorFromSelect(char);
+  var armorId = char.combat.armorId;
   var hasShield = $("char-shield")?.checked || false;
-  char.combat.armorId  = armorId;
   char.combat.hasShield = hasShield;
   if (armorId === "custom") { saveToLocal(); return; } // manual mode - don't recalc
   // FIN-3: единый расчёт КД + бейджи помех делает calculateAC (не дублируем формулу).

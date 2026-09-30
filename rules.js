@@ -428,6 +428,29 @@ function armorPenalties(char, preset) {
   return { slowed: slowed, stealthDisadv: !!preset.stealthDisadv };
 }
 
+// Предмет брони из инвентаря: основа — id из ARMOR_PRESETS или "shield"
+// (поле armorBase, иначе точное имя/алиас пресета), bonus — магический +N к КД.
+function rulesItemArmor(item) {
+  if (!item) return { base: "", bonus: 0 };
+  var bonus = parseInt(item.acBonus, 10) || 0;
+  if (item.armorBase) return { base: item.armorBase, bonus: bonus };
+  var lo = String(item.name || "").toLowerCase().trim();
+  if (lo === "щит") return { base: "shield", bonus: bonus };
+  var p = (typeof ARMOR_PRESETS !== "undefined") ? ARMOR_PRESETS.find(function(a) {
+    return a.id !== "none" && [a.name].concat(a.aliases || []).some(function(n) { return String(n).toLowerCase() === lo; });
+  }) : null;
+  return { base: p ? p.id : "", bonus: bonus };
+}
+// Надетый доспех/щит: предмет char.inventory.armor по имени из combat.armorItem/shieldItem.
+function rulesArmorItem(char, name, base) {
+  var list = char && char.inventory && char.inventory.armor;
+  if (!name || !Array.isArray(list)) return null;
+  for (var i = 0; i < list.length; i++) {
+    if (list[i] && list[i].name === name && rulesItemArmor(list[i]).base === base) return list[i];
+  }
+  return null;
+}
+
 // Режимы: "preset" — доспех из ARMOR_PRESETS, "manual" — КД введён вручную,
 // "unarmored" — без доспехов (варвар/монах/доспех мага/база 10+ЛОВ).
 function rulesAC(char) {
@@ -436,17 +459,23 @@ function rulesAC(char) {
   var wisMod = getMod(char.stats.wis);
   var armorId = char.combat && char.combat.armorId;
   var hasShieldSelected = char.combat && char.combat.hasShield;
+  var shieldItem = hasShieldSelected ? rulesArmorItem(char, char.combat.shieldItem, "shield") : null;
+  var shieldAc = 2 + (shieldItem ? rulesItemArmor(shieldItem).bonus : 0);
+  var shieldName = shieldItem ? shieldItem.name : "Щит";
 
   if (armorId && armorId !== "none" && armorId !== "custom" && typeof ARMOR_PRESETS !== "undefined") {
     var preset = ARMOR_PRESETS.find(function(a) { return a.id === armorId; });
     if (preset) {
+      var armItem = rulesArmorItem(char, char.combat.armorItem, armorId);
+      var armBonus = armItem ? rulesItemArmor(armItem).bonus : 0;
       // AUD-8 (R1): тяжёлый доспех не учитывает ЛОВ совсем — ни плюс, ни минус (PHB стр.145)
       var dexBonus = preset.type === "heavy" ? 0 : (preset.dexCap >= 99 ? dexMod : Math.min(dexMod, preset.dexCap));
-      var pAc = preset.baseAC + dexBonus;
-      var pFormula = [preset.name + " (" + preset.baseAC + ")"];
+      var pAc = preset.baseAC + dexBonus + armBonus;
+      var pFormula = [(armItem ? armItem.name : preset.name) + " (" + preset.baseAC + ")"];
       if (dexBonus !== 0) pFormula.push((dexBonus > 0 ? "+" : "") + dexBonus + " (ЛОВ)");
       var pMods = [];
-      if (hasShieldSelected) { pAc += 2; pFormula.push("+2 (щит)"); pMods.push({name:"Щит",value:2,type:"active"}); }
+      if (armBonus) { pFormula.push((armBonus > 0 ? "+" : "") + armBonus + " (магия)"); pMods.push({name:armItem.name,value:armBonus,type:armBonus > 0 ? "active" : "negative"}); }
+      if (hasShieldSelected) { pAc += shieldAc; pFormula.push("+" + shieldAc + " (щит)"); pMods.push({name:shieldName,value:shieldAc,type:"active"}); }
       // AUD-8 (R9): боевой стиль «Защита» — +1 КД в доспехе (PHB стр.72)
       if (rulesHasFightingStyle(char, "defense")) { pAc += 1; pFormula.push("+1 (Защита)"); pMods.push({name:"Защита",value:1,type:"active"}); }
       // Apply magic effects on top
@@ -528,9 +557,9 @@ function rulesAC(char) {
   formulaParts = best.formula;
   if (best.mod) modifiers.push({name: best.mod, value: ac - 10, type: "active"});
   if (hasShieldSelected) {
-    ac += 2;
-    formulaParts.push("+2 (щит)");
-    modifiers.push({name: "Щит", value: 2, type: "active"});
+    ac += shieldAc;
+    formulaParts.push("+" + shieldAc + " (щит)");
+    modifiers.push({name: shieldName, value: shieldAc, type: "active"});
   }
   if (char.effects) {
     char.effects.forEach(function(effectId) {

@@ -1123,6 +1123,22 @@ function rulesCases(t, group) {
     return rulesAC(g).ac === 17 ? true : "2024: " + rulesAC(g).ac;
   });
 
+  t("[ARM-INV] надетая эльфийская кольчуга и щит +1 из инвентаря: 13+ЛОВ(2)+1, щит +3", function() {
+    var c = fixture({ stats: { str: 10, dex: 16, con: 10, int: 10, wis: 10, cha: 10 } });
+    c.inventory = { armor: [
+      { name: "Эльфийская кольчуга", armorBase: "chain_shirt", acBonus: 1, location: "worn" },
+      { name: "Щит +1", armorBase: "shield", acBonus: 1, location: "wielded" }
+    ] };
+    c.combat.armorId = "chain_shirt"; c.combat.armorItem = "Эльфийская кольчуга";
+    if (rulesAC(c).ac !== 16) return "кольчуга " + rulesAC(c).ac;
+    c.combat.hasShield = true; c.combat.shieldItem = "Щит +1";
+    if (rulesAC(c).ac !== 19) return "со щитом " + rulesAC(c).ac;
+    c.combat.armorId = "plate";
+    if (rulesAC(c).ac !== 21) return "основа не совпала — бонус не должен считаться: " + rulesAC(c).ac;
+    if (rulesItemArmor({ name: "Кольчужная рубаха" }).base !== "chain_shirt") return "имя пресета";
+    return rulesItemArmor({ name: "Эльфийская кольчуга" }).base === "" ? true : "подстрока «кольчуга» не должна давать основу";
+  });
+
   t("[R10/R16] драконья устойчивость 13+ЛОВ; способы КД не складываются — лучший", function() {
     var c = fixture({ class: "Чародей", subclass: "Драконья кровь", stats: { str: 10, dex: 14, con: 10, int: 10, wis: 10, cha: 10 } });
     if (rulesAC(c).ac !== 15) return "драконья " + rulesAC(c).ac;
