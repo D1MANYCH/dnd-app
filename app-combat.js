@@ -1440,6 +1440,8 @@ function toggleHalfElfStat(key) {
   if (typeof updateStatDisplay === "function") updateStatDisplay(key);
   saveToLocal();
   calcStats();
+  recalculateHP();
+  calculateAC();
   renderRaceExtras();
 }
 

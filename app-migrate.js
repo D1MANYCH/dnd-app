@@ -907,6 +907,28 @@ function migrateCharacter(char) {
     if (Array.isArray(char.books) && char.books.indexOf("VRGR") === -1) char.books.push("VRGR");
     char.schemaVersion = 42;
   }
+  if (v < 43) {
+    // До 4.18.1 окно «Расовая черта» давало «+2 к одной» / «+1 к двум» прямо в stats (поверх чипов
+    // панели расы) и метку "race" в asiUsed. Снимаем эту прибавку по записи журнала «АСИ (ур.race)».
+    var raceAsiCls = (char.asiUsed && typeof char.asiUsed === "object" && !Array.isArray(char.asiUsed))
+      ? Object.keys(char.asiUsed).filter(function(c) { return Array.isArray(char.asiUsed[c]) && char.asiUsed[c].indexOf("race") !== -1; })
+      : [];
+    if (raceAsiCls.length) {
+      var raceAsiKeys = { "Сила": "str", "Ловкость": "dex", "Телосложение": "con", "Интеллект": "int", "Мудрость": "wis", "Харизма": "cha" };
+      (Array.isArray(char.journal) ? char.journal : []).forEach(function(e) {
+        var at = (e && typeof e.text === "string") ? e.text.indexOf("АСИ (ур.race): ") : -1;
+        if (at === -1 || !char.stats) return;
+        e.text.slice(at + 15).split(", ").forEach(function(part) {
+          var p = part.match(/^(\S+) \+(\d)$/);
+          var k = p && raceAsiKeys[p[1]];
+          if (k) char.stats[k] = Math.max(1, (char.stats[k] || 10) - parseInt(p[2], 10));
+        });
+        e.text += " — отменено: у Человека (вариант) +1 к двум выбирается в панели расы";
+      });
+      raceAsiCls.forEach(function(c) { char.asiUsed[c] = char.asiUsed[c].filter(function(l) { return l !== "race"; }); });
+    }
+    char.schemaVersion = 43;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

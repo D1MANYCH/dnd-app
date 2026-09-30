@@ -479,6 +479,20 @@
       return (RACE_SKILL_PICKS["Человек (вариант)"] === 1 && RACE_SKILL_PICKS["Полуэльф"] === 2) || "RACE_SKILL_PICKS";
     });
 
+    t("[v43] миграция: прибавка из окна «Расовая черта» снимается, метка race убрана", function(){
+      var c = migrateCharacter({ id: 10, class: "Чародей", level: 1, schemaVersion: 42, race: "Человек (вариант)",
+        stats: { str: 8, dex: 12, con: 15, int: 10, wis: 14, cha: 17 }, raceStatChoice: ["con", "cha"],
+        asiUsed: { "Чародей": ["race"] },
+        journal: [{ id: 1, type: "stat", text: "📈 АСИ (ур.race): Телосложение +1, Харизма +1" }] });
+      if (c.stats.con !== 14 || c.stats.cha !== 16 || c.stats.dex !== 12) return "stats: " + JSON.stringify(c.stats);
+      if (c.asiUsed["Чародей"].length) return "asiUsed: " + JSON.stringify(c.asiUsed);
+      if (c.journal[0].text.indexOf("отменено") === -1) return "журнал не помечен";
+      var d = migrateCharacter({ id: 11, class: "Воин", level: 4, schemaVersion: 42, stats: { str: 16 },
+        asiUsed: { "Воин": [4] }, journal: [{ id: 2, type: "stat", text: "📈 АСИ (ур.4): Сила +2" }] });
+      if (d.stats.str !== 16 || d.asiUsed["Воин"].join() !== "4") return "обычное УХ задето";
+      return c.schemaVersion === SCHEMA_VERSION || "schemaVersion " + c.schemaVersion;
+    });
+
     t("[NGEN-1] genderize: {м|ж} по полу, пусто = мужские формы", function(){
       if (typeof window.genderize !== "function") return "genderize не определена";
       var src = "Прям{ой|ая} и упрям{ый|ая}, {он|она} не {сдался|сдалась}.";
@@ -2845,7 +2859,7 @@
       if (charHasBook({ books:["XGtE"] }, BACKGROUND_SKILLS["Придворный"].source)) return "книга SCAG не фильтрует";
       if (BACKGROUND_SKILLS["Преследуемый"].source !== "VRGR" || BOOK_CODES.indexOf("VRGR") === -1) return "VRGR";
       var m = migrateCharacter({ id: 43, class: "Воин", level: 3, schemaVersion: 41, books: ["SCAG"] });
-      if (m.books.join() !== "SCAG,VRGR" || m.schemaVersion !== 42) return "миграция v42: " + m.books.join();
+      if (m.books.join() !== "SCAG,VRGR" || m.schemaVersion !== SCHEMA_VERSION) return "миграция v42: " + m.books.join();
       return true;
     });
     t("[FIN-4] +Шарлатан и +Беспризорник присутствуют", function(){
