@@ -45,6 +45,7 @@ function openASIModal() {
   // Reset radio to plus2
   var r = modal.querySelector('input[value="plus2"]');
   if (r) r.checked = true;
+  _asiShowStatModes(modal, true);
 
   // Show level info in title if level is set
   var title = modal.querySelector("h4");
@@ -345,8 +346,20 @@ function _asiUnlockSheet(char) {
   if (wasLocked) showToast("🔓 Лист открыт — выберите новые заклинания и умения, затем нажмите «Персонаж готов»", "info");
 }
 
+// Режимы «+2 к одной» / «+1 к двум» окна УХ: скрыты для расовой черты.
+function _asiShowStatModes(modal, show) {
+  ["plus2", "plus1each"].forEach(function(v) {
+    var inp = modal && modal.querySelector('input[name="asi-mode"][value="' + v + '"]');
+    var row = inp && inp.closest(".asi-radio-row");
+    if (row) row.style.display = show ? "" : "none";
+  });
+  var desc = modal && modal.querySelector(".asi-desc");
+  if (desc) desc.style.display = show ? "" : "none";
+}
+
 function applyASI() {
   var mode = getASIMode();
+  if (mode !== "feat" && asiCurrentLevel === "race") return;
   if (mode !== "feat") {
     // stat mode
     if (!currentId || asiSelectedStats.length === 0) return;

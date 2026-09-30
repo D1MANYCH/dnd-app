@@ -1494,6 +1494,8 @@ function openRaceFeatModal() {
   if (!modal) { showToast("Ошибка: модалка не найдена", "error"); return; }
   var featRadio = modal.querySelector('input[value="feat"]');
   if (featRadio) featRadio.checked = true;
+  // Расовая черта — только черта: +1 к двум у Человека (вариант) выбирается в панели расы
+  _asiShowStatModes(modal, false);
   var title = modal.querySelector("h4");
   if (title) title.innerHTML = dndIcoHtml("target", 16) + escapeHtml(" Расовая черта · " + (char.race || ""));
   if (typeof buildASIStatGrid === "function") buildASIStatGrid(char);
