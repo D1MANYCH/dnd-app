@@ -473,6 +473,10 @@ function applyASI() {
     char.raceFeats.push({ id: feat.id, name: feat.name });
   }
   char.feats.push(featRecord);
+  // FSP-2: фиксированные заклинания черты (Туманный шаг, Обнаружение мыслей) — сразу в гримуар
+  if (feat.spellPick && typeof featAddFixedSpells === "function" && featAddFixedSpells(char, featRecord, feat)) {
+    if (typeof renderMySpells === "function") renderMySpells();
+  }
 
   _asiUnlockSheet(char);
   saveToLocal();
@@ -499,7 +503,7 @@ function applyASI() {
   if (typeof renderRaceExtras === "function") renderRaceExtras();
   updateClassFeatures();
   // FSP-1: черта со spellPick — сразу предложить выбор заклинаний
-  if (feat.spellPick && typeof openFeatSpellPicker === "function") {
+  if (feat.spellPick && (feat.spellPick.slots || []).length && typeof openFeatSpellPicker === "function") {
     var _fi = char.feats.length - 1;
     showConfirmModal("Черта даёт заклинания", "«" + feat.name + "» даёт заклинания. Выбрать сейчас?", function() { openFeatSpellPicker(_fi); }, "Выбрать");
   }

@@ -760,6 +760,8 @@ function luApplyFeatById(char, featId, level, statPick) {
     }
   });
   char.feats.push({ id: feat.id, name: feat.name, level: level });
+  // FSP-2: фиксированные заклинания черты — сразу в гримуар
+  if (feat.spellPick && typeof featAddFixedSpells === "function") featAddFixedSpells(char, char.feats[char.feats.length - 1], feat);
   return feat.name;
 }
 

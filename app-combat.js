@@ -1947,6 +1947,13 @@ function syncOriginFeat(char) {
   var cur = idx !== -1 ? char.feats[idx] : null;
   if (cur && cur.id === wantId && (cur.opt || "") === wantOpt) return;
   if (cur) {
+    // FSP-2: заклинания прежней черты происхождения уходят вместе с ней
+    var _cd = (typeof getFeatDef === "function") ? getFeatDef(char, cur.id) : null;
+    if (_cd && _cd.spellPick && char.spells && Array.isArray(char.spells.mySpells)) {
+      var _cl = rulesFeatSpellLabel(_cd, cur);
+      char.spells.mySpells = char.spells.mySpells.filter(function(s) { return !s || s.grantedBy !== _cl; });
+      if (typeof renderMySpells === "function") renderMySpells();
+    }
     _bgRevertFeatEffects(char, (typeof getFeatDef === "function") ? getFeatDef(char, cur.id) : null);
     char.feats.splice(idx, 1);
   }

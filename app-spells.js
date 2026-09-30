@@ -281,13 +281,56 @@ function _featPickCtx() {
   var rec = char && char.feats && char.feats[_featPickIdx];
   var def = (rec && typeof getFeatDef === "function") ? getFeatDef(char, rec.id) : null;
   if (!def || !def.spellPick) return null;
+  // FSP-2: черта от предыстории с вариантом («Жрец») — список класса задан сразу
+  if (def.spellPick.pickClass && !rec.spellClass && rec.opt) {
+    var _co = rulesFeatClassOptions(char, rec, def);
+    if (_co.length === 1) rec.spellClass = _co[0];
+  }
   return { char: char, rec: rec, def: def, rule: def.spellPick, label: rulesFeatSpellLabel(def, rec) };
+}
+// FSP-2: фиксированные заклинания черты добавляются сами (запись редакции персонажа).
+// Уже добавленное вручную то же заклинание переходит под метку черты. Возвращает число изменённых.
+function featAddFixedSpells(char, rec, def) {
+  var rule = def && def.spellPick;
+  if (!char || !rule || !(rule.fixed || []).length) return 0;
+  if (!char.spells) return 0;
+  if (!Array.isArray(char.spells.mySpells)) char.spells.mySpells = [];
+  var label = rulesFeatSpellLabel(def, rec), src = _defaultSpellVersion(char), n = 0;
+  rule.fixed.forEach(function(name) {
+    var mine = char.spells.mySpells.filter(function(s) { return s && s.name === name; });
+    if (mine.some(function(s) { return s.grantedBy === label; })) return;
+    var manual = mine.find(function(s) { return !s.grantedBy; });
+    if (manual) {
+      manual.grantedBy = label;
+      if (rule.fixedFree) manual.featFree = true;
+      n++; return;
+    }
+    if (mine.length) return;
+    var db = SPELL_DATABASE.find(function(s) { return s.name === name && String(s.source || "PH14") === src; })
+      || SPELL_DATABASE.find(function(s) { return s.name === name; });
+    if (!db) return;
+    var copy = Object.assign({}, db, { grantedBy: label });
+    if (rule.fixedFree) copy.featFree = true;
+    char.spells.mySpells.push(copy);
+    n++;
+  });
+  return n;
 }
 function openFeatSpellPicker(featIdx) {
   if (sheetLockGuard()) return;
+  _featPickIdx = featIdx;
+  var fp = _featPickCtx();
+  _featPickIdx = null;
+  if (!fp) return;
+  if (featAddFixedSpells(fp.char, fp.rec, fp.def)) {
+    saveToLocal();
+    renderMySpells();
+    if (typeof renderTakenFeats === "function") renderTakenFeats();
+  }
+  // Только фиксированные (Телепат, Телекинетик) — выбирать нечего
+  if (!(fp.rule.slots || []).length) { showToast("Заклинания черты «" + fp.def.name + "» в гримуаре", "success"); return; }
   openSpellSearch();
   _featPickIdx = featIdx;
-  if (!_featPickCtx()) { _featPickIdx = null; return; }
   renderSpellSearch();
 }
 function _featPickProgressText(fp) {
@@ -308,7 +351,7 @@ function _renderFeatPickBar(fp) {
   var html = '<div class="lu-choice-title">' + escapeHtml(fp.label.replace(/^Черта · /, "")) + ' — ' + escapeHtml(_featPickProgressText(fp)) + '</div>';
   var pr = rulesFeatSpellProgress(fp.char, fp.rec, fp.def);
   if (fp.rule.pickClass && pr.have === 0) {
-    html += '<div class="lu-choice-sub">Список класса:</div><div class="rest-actions">' + (fp.rule.classes || []).map(function(c) {
+    html += '<div class="lu-choice-sub">Список класса:</div><div class="rest-actions">' + rulesFeatClassOptions(fp.char, fp.rec, fp.def).map(function(c) {
       var on = fp.rec.spellClass === c;
       return '<button type="button" class="rest-act' + (on ? ' rest-act--primary' : '') + '" onclick="featPickSetClass(\'' + c + '\')">' + escapeHtml(FEAT_SPELL_CLASS_RU[c] || c) + '</button>';
     }).join("") + '</div>';
@@ -318,6 +361,7 @@ function _renderFeatPickBar(fp) {
 function featPickSetClass(cls) {
   var fp = _featPickCtx();
   if (!fp || rulesFeatSpellProgress(fp.char, fp.rec, fp.def).have > 0) return;
+  if (rulesFeatClassOptions(fp.char, fp.rec, fp.def).indexOf(cls) === -1) return;
   fp.rec.spellClass = cls;
   saveToLocal();
   renderSpellSearch();
@@ -371,11 +415,13 @@ function addFeatSpell(spellId) {
   if (!Array.isArray(fp.char.spells.mySpells)) fp.char.spells.mySpells = [];
   if (fp.char.spells.mySpells.some(function(s) { return s.id === spellId; })) return;
   var pr = rulesFeatSpellProgress(fp.char, fp.rec, fp.def);
-  var room = (fp.rule.slots || []).some(function(slot, i) {
+  var room = (fp.rule.slots || []).find(function(slot, i) {
     return pr.slots[i].have < pr.slots[i].need && rulesFeatSpellFits(spell, slot, fp.rec.spellClass, fp.rule, null);
   });
   if (!room) { showToast("Черта больше не даёт заклинаний этого уровня", "warn"); return; }
-  fp.char.spells.mySpells.push(Object.assign({}, spell, { grantedBy: fp.label }));
+  var copy = Object.assign({}, spell, { grantedBy: fp.label });
+  if (room.free) copy.featFree = true; // FSP-2: раз за длинный отдых без ячейки
+  fp.char.spells.mySpells.push(copy);
   if (window.AppLog) AppLog.action("spells", "заклинание черты: " + spell.name, { feat: fp.rec.id });
   saveToLocal();
   renderSpellSearch();
@@ -939,6 +985,8 @@ if (schoolRu) metaParts.push('<span class="spell-meta-school">' + escapeHtml(sch
 if (spell.time) metaParts.push('<span>' + escapeHtml(spell.time) + '</span>');
 if (spell.range) metaParts.push('<span>' + escapeHtml(spell.range) + '</span>');
 if (spell.grantedBy) metaParts.push('<span>' + escapeHtml(spell.grantedBy) + '</span>'); // E24-4: источник — вид
+var _ffId = rulesFeatFreeResId(spell);
+if (_ffId && (spell.level || 0) > 0) metaParts.push('<span>' + ((char.resources && char.resources[_ffId]) ? '1/день без ячейки · потрачено' : '1/день без ячейки') + '</span>'); // FSP-2
 var prepClass = isPrepClass(char);
 var prepared = isSpellPrepared(char, spell.id);
 var isCantrip = spell.level === 0;
@@ -1267,6 +1315,9 @@ function _castableSlotOptions(char, spell) {
   // AUD-5 (L13): таинственный арканум — заклинание колдуна 6–9 круга раз за длинный отдых без ячейки
   var arcId = _arcanumResId(char, spell);
   if (arcId && !((char.resources && char.resources[arcId]) || 0)) opts.push({ type: "arcanum", level: spell.level, free: 1 });
+  // FSP-2: заклинание черты — раз за длинный отдых без ячейки
+  var ffId = rulesFeatFreeResId(spell);
+  if (ffId && !((char.resources && char.resources[ffId]) || 0)) opts.push({ type: "featfree", level: spell.level, free: 1 });
   return opts;
 }
 
@@ -1314,6 +1365,13 @@ function _castSpellWithSlot(spellId, slotType, level) {
     }
     if (!char.resources) char.resources = {};
     char.resources[arcId] = 1;
+  } else if (slotType === "featfree") {
+    var ffId = rulesFeatFreeResId(spell);
+    if (!ffId || (char.resources && char.resources[ffId])) {
+      showToast("«" + spell.name + "» без ячейки уже наложено до длинного отдыха", "warn"); return;
+    }
+    if (!char.resources) char.resources = {};
+    char.resources[ffId] = 1;
   } else if (slotType === "pact") {
     if ((char.spells.pactSlots || 0) - (char.spells.pactUsed || 0) <= 0) {
       showToast("Нет свободных пакт-ячеек", "warn"); return;
@@ -1329,6 +1387,7 @@ function _castSpellWithSlot(spellId, slotType, level) {
   saveToLocal();
   renderSpellSlots();
   if (slotType === "arcanum" && typeof renderClassResources === "function") renderClassResources();
+  if (slotType === "featfree") renderMySpells(); // FSP-2: мета «потрачено»
   _finishCast(char, spell, { type: slotType, level: level });
 }
 
@@ -1336,6 +1395,8 @@ function _finishCast(char, spell, slot) {
   var note;
   if (slot && slot.type === "arcanum") {
     note = " — таинственный арканум " + slot.level + " ур.";
+  } else if (slot && slot.type === "featfree") {
+    note = " — без ячейки (черта, до длинного отдыха)";
   } else if (slot && slot.type === "ritual") {
     note = " (ритуал, без ячейки)";
   } else if (slot) {
@@ -1849,7 +1910,7 @@ function openCastChooser(spell, opts) {
   opts.forEach(function(o) {
     var b = document.createElement("button");
     b.className = "cast-slot-option";
-    b.innerHTML = '<span class="cso-lvl">' + o.level + ' ур.' + (o.type === "pact" ? ' · ПАКТ' : (o.type === "arcanum" ? ' · АРКАНУМ' : '')) + '</span>' +
+    b.innerHTML = '<span class="cso-lvl">' + o.level + ' ур.' + (o.type === "pact" ? ' · ПАКТ' : (o.type === "arcanum" ? ' · АРКАНУМ' : (o.type === "featfree" ? ' · БЕЗ ЯЧЕЙКИ' : ''))) + '</span>' +
       '<span class="cso-free">свободно: ' + o.free + '</span>';
     b.onclick = function(){ _castSpellWithSlot(spell.id, o.type, o.level); };
     box.appendChild(b);

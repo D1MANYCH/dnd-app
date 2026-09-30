@@ -691,6 +691,68 @@
         return true;
       } finally { env.restore(); }
     });
+    function _fsp24(id) { return EDITION_DATA["2024"].FEATS_DATA.find(function(f){ return f.id === id; }); }
+    t("[fsp-2] Затронутые: 1 ур. только своих школ PH24, фиксированные есть в базе PH24", function(){
+      var cases = { "f24-fey_touched": ["прорицание", "очарование", "Туманный шаг"], "f24-shadow_touched": ["иллюзия", "некромантия", "Невидимость"] };
+      for (var id in cases) {
+        var def = _fsp24(id), sp = def && def.spellPick;
+        if (!sp) return id + ": нет spellPick";
+        var c = rulesFeatSpellCandidates(sp, sp.slots[0], null, SPELL_DATABASE, "PH24");
+        if (!c.length) return id + ": пусто";
+        var bad = c.filter(function(s){ return s.level !== 1 || cases[id].indexOf(s.school) === -1 || s.source !== "PH24"; });
+        if (bad.length) return id + ": чужое " + bad[0].name;
+        if (!sp.fixedFree || !sp.slots[0].free) return id + ": нет free";
+        if (!SPELL_DATABASE.some(function(s){ return s.name === cases[id][2] && s.source === "PH24"; })) return id + ": нет " + cases[id][2];
+      }
+      ["f24-telekinetic", "f24-telepathic"].forEach(function(id){ if (!_fsp24(id).spellPick.fixed.length) throw new Error(id); });
+      return true;
+    });
+    t("[fsp-2] фиксированные добавляются сами (PH24, featFree), ручное переходит под метку, повтор не дублирует", function(){
+      var def = _fsp24("f24-fey_touched"), rec = { id: def.id, name: def.name };
+      var c = { edition: "2024", level: 4, spells: { mySpells: [] } };
+      if (featAddFixedSpells(c, rec, def) !== 1) return "не добавлено";
+      var s = c.spells.mySpells[0];
+      if (s.name !== "Туманный шаг" || s.source !== "PH24" || !s.featFree || s.grantedBy !== "Черта · Затронутый феями") return JSON.stringify(s);
+      if (featAddFixedSpells(c, rec, def) !== 0 || c.spells.mySpells.length !== 1) return "дубль";
+      var p = rulesFeatSpellProgress(c, rec, def);
+      if (p.need !== 2 || p.have !== 1) return "прогресс " + JSON.stringify(p);
+      var tp = _fsp24("f24-telepathic"), c2 = { edition: "2024", level: 4, spells: { mySpells: [{ id: "m1", name: "Обнаружение мыслей", level: 2 }] } };
+      featAddFixedSpells(c2, { id: tp.id, name: tp.name }, tp);
+      if (c2.spells.mySpells.length !== 1 || c2.spells.mySpells[0].grantedBy !== "Черта · Телепат" || !c2.spells.mySpells[0].featFree) return "ручное: " + JSON.stringify(c2.spells.mySpells);
+      return true;
+    });
+    t("[fsp-2] Ритуальный заклинатель 2024: число заклинаний = бонус мастерства, без ограничения класса", function(){
+      var def = _fsp24("f24-ritual_caster"), rec = { id: def.id, name: def.name };
+      var p4 = rulesFeatSpellProgress({ level: 4, spells: { mySpells: [] } }, rec, def);
+      var p9 = rulesFeatSpellProgress({ level: 9, spells: { mySpells: [] } }, rec, def);
+      if (p4.need !== 2 || p9.need !== 4) return p4.need + "/" + p9.need;
+      var c = rulesFeatSpellCandidates(def.spellPick, def.spellPick.slots[0], null, SPELL_DATABASE, "PH24");
+      if (!c.some(function(s){ return (s.classes || []).indexOf("wizard") === -1; })) return "только волшебник";
+      return true;
+    });
+    t("[fsp-2] Посвящённый 2024: повторно выбранный список недоступен, вариант предыстории фиксирует список", function(){
+      var def = _fsp24("f24-magic_initiate");
+      var a = { id: def.id, name: def.name, spellClass: "cleric" }, b = { id: def.id, name: def.name };
+      var ch = { feats: [a, b] };
+      var o = rulesFeatClassOptions(ch, b, def);
+      if (o.indexOf("cleric") !== -1 || o.length !== 2) return "повтор: " + o.join(",");
+      if (rulesFeatClassOptions(ch, a, def).indexOf("cleric") === -1) return "свой список пропал";
+      var bg = { id: def.id, name: def.name, opt: "Друид" };
+      if (rulesFeatClassOptions({ feats: [bg] }, bg, def).join(",") !== "druid") return "вариант: " + rulesFeatClassOptions({ feats: [bg] }, bg, def).join(",");
+      return true;
+    });
+    t("[fsp-2] каст без ячейки: опция featfree, списание, сброс feat_free_* на длинном отдыхе", function(){
+      var sp = { id: "x9", name: "Туманный шаг", level: 2, featFree: true };
+      var c = { spells: { slots: {}, slotsUsed: {}, mySpells: [sp] }, resources: { feat_free_x9: 0, rage: 1 } };
+      var o = _castableSlotOptions(c, sp);
+      if (o.length !== 1 || o[0].type !== "featfree") return JSON.stringify(o);
+      c.resources.feat_free_x9 = 1;
+      if (_castableSlotOptions(c, sp).length) return "после траты опция осталась";
+      if (_castableSlotOptions(c, { id: "y", level: 1 }).length) return "обычное заклинание без ячеек";
+      rulesResetFeatFree(c);
+      if ("feat_free_x9" in c.resources || c.resources.rage !== 1) return JSON.stringify(c.resources);
+      return true;
+    });
 
     // ЗАМОК-3: снаряжение под замком; авто-снятие при повышении уровня и АСИ.
     t("[замок] под замком editWeapon/editItemDirect/deleteCustomWeapon не открывают форму и дают тост", function(){

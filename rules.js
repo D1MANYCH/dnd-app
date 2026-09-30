@@ -1104,6 +1104,11 @@ function rulesFeatSpellProgress(char, rec, def) {
   var label = rulesFeatSpellLabel(def, rec);
   var mine = ((char && char.spells && char.spells.mySpells) || []).filter(function(s) { return s && s.grantedBy === label; });
   var used = [];
+  // FSP-2: фиксированные заклинания черты (Туманный шаг у Затронутого феями) — в счётчике, но не в слотах
+  (rule.fixed || []).forEach(function(name) {
+    out.need++;
+    if (mine.some(function(s) { return s.name === name; })) out.have++;
+  });
   (rule.slots || []).forEach(function(slot) {
     var need = rulesFeatSlotCount(slot, char), have = 0;
     mine.forEach(function(s, i) {
@@ -1114,6 +1119,29 @@ function rulesFeatSpellProgress(char, rec, def) {
     out.need += need; out.have += have;
   });
   return out;
+}
+// FSP-2: списки класса на выбор. Вариант предыстории («Жрец») фиксирует список;
+// повторное взятие (Посвящённый 2024) не даёт уже выбранный список.
+function rulesFeatClassOptions(char, rec, def) {
+  var rule = def && def.spellPick;
+  if (!rule || !rule.pickClass) return [];
+  var classes = rule.classes || [];
+  var opt = rec && rec.opt ? String(rec.opt).toLowerCase() : "";
+  var fromOpt = classes.filter(function(c) { return FEAT_SPELL_CLASS_RU[c] === opt; });
+  if (fromOpt.length) return fromOpt;
+  var taken = ((char && char.feats) || []).filter(function(f) {
+    return f && f !== rec && rec && f.id === rec.id && f.spellClass;
+  }).map(function(f) { return f.spellClass; });
+  return classes.filter(function(c) { return taken.indexOf(c) === -1; });
+}
+// FSP-2: раз за длинный отдых без ячейки — ресурс на каждое такое заклинание черты
+function rulesFeatFreeResId(spell) {
+  return spell && spell.featFree ? "feat_free_" + spell.id : null;
+}
+function rulesResetFeatFree(char) {
+  var res = char && char.resources;
+  if (!res) return;
+  Object.keys(res).forEach(function(k) { if (k.indexOf("feat_free_") === 0) delete res[k]; });
 }
 
 // ── Концентрация ────────────────────────────────────────────

@@ -714,8 +714,13 @@ function resetResourcesByRest(restType) {
   var char = getCurrentChar();
   if (!char) return;
   initCharResources(char);
+  // FSP-2: заклинания черт «раз за длинный отдых без ячейки»
+  if (restType === "long") {
+    rulesResetFeatFree(char);
+    if (typeof renderMySpells === "function") renderMySpells();
+  }
   var data = getCharResourceDefs(char);
-  if (!data || !data.resources) return;
+  if (!data || !data.resources) { if (restType === "long") saveToLocal(); return; }
   data.resources.forEach(function(res) {
     if (restType === "long") {
       char.resources[res.id] = 0;
