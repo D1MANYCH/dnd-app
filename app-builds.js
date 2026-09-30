@@ -47,7 +47,6 @@ function setBuildEdition(ed) {
   renderBuildPicker();
 }
 
-var BP_ROLE_ICONS ={ DPS:"⚔️", Tank:"🛡️", Support:"✨", Control:"🌀", Utility:"🧰" };
 var BP_DIFF_LABELS = { 1:"новичку", 2:"среднее", 3:"сложное" };
 // UX-4: расшифровка точек сложности для легенды в гайде билда.
 var BP_DIFF_DESC = {
@@ -142,9 +141,8 @@ function renderBuildBadge() {
   if (!char || !char.buildId) { wrap.style.display = "none"; return; }
   var b = window.getBuildById && window.getBuildById(char.buildId);
   if (!b) { wrap.style.display = "none"; return; }
-  var roleIcon = BP_ROLE_ICONS[b.role] || "📘";
-  // BUILD-DESC-3: badge — кнопка, открывает гайд. Подсказываем «📖 нажми для гайда».
-  badge.textContent = roleIcon + " Билд: " + b.title + (b.guide ? "  📖" : "");
+  // BUILD-DESC-3: badge — кнопка, открывает гайд.
+  badge.textContent = "Билд: " + b.title;
   badge.title = (b.guide ? "Открыть гайд: " : "") + (b.summary || "") + (b.role ? "  [" + b.role + "]" : "");
   wrap.style.display = "";
 }

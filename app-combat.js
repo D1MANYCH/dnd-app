@@ -1294,6 +1294,16 @@ var RACE_STAT_PICKS = {
 };
 var RACE_SKILL_PICKS = { "Человек (вариант)": 1, "Полуэльф": 2 };
 
+// Перерисовка панели выборов без потери фокуса: кнопка с тем же onclick снова в фокусе
+function _setExtrasHtml(panel, html) {
+  var a = document.activeElement;
+  var key = (a && panel.contains(a)) ? a.getAttribute("onclick") : null;
+  panel.innerHTML = html;
+  if (!key) return;
+  var btns = panel.querySelectorAll("button");
+  for (var i = 0; i < btns.length; i++) if (btns[i].getAttribute("onclick") === key) { btns[i].focus(); return; }
+}
+
 function renderRaceExtras() {
   var panel = $("race-extras-panel");
   if (!panel) return;
@@ -1350,8 +1360,8 @@ function renderRaceExtras() {
     html += '<div class="race-extras-row">';
     RACE_STAT_PICKS[race].forEach(function(k) {
       var sel = chosen.indexOf(k) !== -1;
-      html += '<span class="race-extras-stat-pick' + (sel ? " selected" : "") +
-        '" onclick="toggleHalfElfStat(\'' + k + '\')">' + statLabels[k] + '</span>';
+      html += '<button type="button" class="race-extras-stat-pick' + (sel ? " selected" : "") +
+        '" onclick="toggleHalfElfStat(\'' + k + '\')">' + statLabels[k] + '</button>';
     });
     html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">' +
       'Выбрано: ' + chosen.length + '/2</span>';
@@ -1368,8 +1378,8 @@ function renderRaceExtras() {
     html += '<div class="race-extras-row">';
     skills.forEach(function(s, si) {
       var sel = skChosen.indexOf(s.name) !== -1;
-      html += '<span class="race-extras-stat-pick' + (sel ? " selected" : "") +
-        '" onclick="toggleRaceSkill(' + si + ')">' + escapeHtml(s.name) + '</span>';
+      html += '<button type="button" class="race-extras-stat-pick' + (sel ? " selected" : "") +
+        '" onclick="toggleRaceSkill(' + si + ')">' + escapeHtml(s.name) + '</button>';
     });
     html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">' +
       'Выбрано: ' + skChosen.length + '/' + skillAllowance + '</span>';
@@ -1399,8 +1409,8 @@ function renderRaceExtras() {
         html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' ' + escapeHtml(ch.name) + '</div>';
         html += '<div class="race-extras-row">';
         opts.forEach(function(o) {
-          html += '<span class="race-extras-stat-pick' + (cur === o.id ? " selected" : "") +
-            '" onclick="toggleSpeciesChoice(\'' + ch.id + '\',\'' + o.id + '\')">' + escapeHtml(o.name) + '</span>';
+          html += '<button type="button" class="race-extras-stat-pick' + (cur === o.id ? " selected" : "") +
+            '" onclick="toggleSpeciesChoice(\'' + ch.id + '\',\'' + o.id + '\')">' + escapeHtml(o.name) + '</button>';
         });
         html += '</div>';
         var curOpt = opts.find(function(o) { return o.id === cur; });
@@ -1411,7 +1421,7 @@ function renderRaceExtras() {
   }
 
   if (html) {
-    panel.innerHTML = html;
+    _setExtrasHtml(panel, html);
     panel.style.display = "flex";
   } else {
     panel.style.display = "none";
@@ -2103,24 +2113,24 @@ function _renderBgCustom14(char) {
     (d.tools || []).forEach(function(t) { if (toolOpts.indexOf(t) === -1) toolOpts.push(t); });
     if (!d.feature || seenFeat[d.feature.name]) return;
     seenFeat[d.feature.name] = true;
-    html += '<span class="race-extras-stat-pick' + (c.featureFrom === k ? " selected" : "") +
-      '" title="' + escapeHtml(k) + '" onclick="toggleBgCustom(\'featureFrom\',\'' + escapeHtml(k) + '\')">' + escapeHtml(d.feature.name) + '</span>';
+    html += '<button type="button" class="race-extras-stat-pick' + (c.featureFrom === k ? " selected" : "") +
+      '" title="' + escapeHtml(k) + '" onclick="toggleBgCustom(\'featureFrom\',\'' + escapeHtml(k) + '\')">' + escapeHtml(d.feature.name) + '</button>';
   });
   html += '</div>';
   html += '<div class="race-extras-title">' + dndIcoHtml("check", 14) + ' Навыки (2)</div><div class="race-extras-row">';
   skills.forEach(function(sk) {
-    html += '<span class="race-extras-stat-pick' + (picked.indexOf(sk.name) !== -1 ? " selected" : "") +
-      '" onclick="toggleBgCustom(\'skills\',\'' + escapeHtml(sk.name) + '\')">' + escapeHtml(sk.name) + '</span>';
+    html += '<button type="button" class="race-extras-stat-pick' + (picked.indexOf(sk.name) !== -1 ? " selected" : "") +
+      '" onclick="toggleBgCustom(\'skills\',\'' + escapeHtml(sk.name) + '\')">' + escapeHtml(sk.name) + '</button>';
   });
   html += '</div>';
   html += '<div class="race-extras-title">' + dndIcoHtml("box", 14) + ' Инструменты и языки (' + (tools.length + langs) + '/2)</div><div class="race-extras-row">';
   toolOpts.forEach(function(t) {
-    html += '<span class="race-extras-stat-pick' + (tools.indexOf(t) !== -1 ? " selected" : "") +
-      '" onclick="toggleBgCustom(\'tools\',\'' + escapeHtml(t) + '\')">' + escapeHtml(t) + '</span>';
+    html += '<button type="button" class="race-extras-stat-pick' + (tools.indexOf(t) !== -1 ? " selected" : "") +
+      '" onclick="toggleBgCustom(\'tools\',\'' + escapeHtml(t) + '\')">' + escapeHtml(t) + '</button>';
   });
   [1, 2].forEach(function(n) {
-    html += '<span class="race-extras-stat-pick' + (langs === n ? " selected" : "") +
-      '" onclick="toggleBgCustom(\'languages\',' + n + ')">' + (n === 1 ? "Язык" : "Два языка") + '</span>';
+    html += '<button type="button" class="race-extras-stat-pick' + (langs === n ? " selected" : "") +
+      '" onclick="toggleBgCustom(\'languages\',' + n + ')">' + (n === 1 ? "Язык" : "Два языка") + '</button>';
   });
   html += '</div>';
   return html;
@@ -2174,7 +2184,7 @@ function renderBackgroundExtras() {
   if (!panel) return;
   var char = currentId ? getCurrentChar() : null;
   if (char && char.edition !== "2024" && char.basicLocked && char.background === CUSTOM_BACKGROUND_KEY) {
-    panel.innerHTML = _renderBgCustom14(char);
+    _setExtrasHtml(panel, _renderBgCustom14(char));
     panel.style.display = "flex";
     return;
   }
@@ -2184,10 +2194,10 @@ function renderBackgroundExtras() {
     var cnt = d14.skillChoice.count || 1;
     var h14 = '<div class="race-extras-title">' + dndIcoHtml("check", 14) + ' Навыки предыстории на выбор (' + cnt + ')</div><div class="race-extras-row">';
     d14.skillChoice.from.forEach(function(sn) {
-      h14 += '<span class="race-extras-stat-pick' + (sp.indexOf(sn) !== -1 ? " selected" : "") +
-        '" onclick="toggleBgSkillPick(\'' + escapeHtml(sn) + '\')">' + escapeHtml(sn) + '</span>';
+      h14 += '<button type="button" class="race-extras-stat-pick' + (sp.indexOf(sn) !== -1 ? " selected" : "") +
+        '" onclick="toggleBgSkillPick(\'' + escapeHtml(sn) + '\')">' + escapeHtml(sn) + '</button>';
     });
-    panel.innerHTML = h14 + '</div>';
+    _setExtrasHtml(panel, h14 + '</div>');
     panel.style.display = "flex";
     return;
   }
@@ -2203,20 +2213,20 @@ function renderBackgroundExtras() {
     var c = (char.bgCustom && Array.isArray(char.bgCustom.abilities)) ? char.bgCustom : { abilities: [], skills: [], featId: "" };
     html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' Характеристики своей предыстории (3)</div><div class="race-extras-row">';
     Object.keys(_BG_STAT_SHORT).forEach(function(k) {
-      html += '<span class="race-extras-stat-pick' + (c.abilities.indexOf(k) !== -1 ? " selected" : "") +
-        '" onclick="toggleBgCustom(\'abilities\',\'' + k + '\')">' + _BG_STAT_SHORT[k] + '</span>';
+      html += '<button type="button" class="race-extras-stat-pick' + (c.abilities.indexOf(k) !== -1 ? " selected" : "") +
+        '" onclick="toggleBgCustom(\'abilities\',\'' + k + '\')">' + _BG_STAT_SHORT[k] + '</button>';
     });
     html += '</div>';
     html += '<div class="race-extras-title">' + dndIcoHtml("check", 14) + ' Навыки (2)</div><div class="race-extras-row">';
     skills.forEach(function(sk) {
-      html += '<span class="race-extras-stat-pick' + (c.skills.indexOf(sk.name) !== -1 ? " selected" : "") +
-        '" onclick="toggleBgCustom(\'skills\',\'' + escapeHtml(sk.name) + '\')">' + escapeHtml(sk.name) + '</span>';
+      html += '<button type="button" class="race-extras-stat-pick' + (c.skills.indexOf(sk.name) !== -1 ? " selected" : "") +
+        '" onclick="toggleBgCustom(\'skills\',\'' + escapeHtml(sk.name) + '\')">' + escapeHtml(sk.name) + '</button>';
     });
     html += '</div>';
     html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' Черта происхождения</div><div class="race-extras-row">';
     (edData(char).FEATS_DATA || []).filter(function(f) { return f.category === "origin"; }).forEach(function(f) {
-      html += '<span class="race-extras-stat-pick' + (c.featId === f.id ? " selected" : "") +
-        '" onclick="toggleBgCustom(\'featId\',\'' + f.id + '\')">' + escapeHtml(f.name) + '</span>';
+      html += '<button type="button" class="race-extras-stat-pick' + (c.featId === f.id ? " selected" : "") +
+        '" onclick="toggleBgCustom(\'featId\',\'' + f.id + '\')">' + escapeHtml(f.name) + '</button>';
     });
     html += '</div>';
   }
@@ -2228,13 +2238,13 @@ function renderBackgroundExtras() {
     var v = (typeof validateBgStatChoice === "function") ? validateBgStatChoice(def, char.bgStatChoice) : { complete: true };
     html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' Характеристики от предыстории</div>';
     html += '<div class="race-extras-row">' +
-      '<span class="race-extras-stat-pick' + (mode === "2+1" ? " selected" : "") + '" onclick="setBgStatMode(\'2+1\')">+2 / +1</span>' +
-      '<span class="race-extras-stat-pick' + (mode === "1+1+1" ? " selected" : "") + '" onclick="setBgStatMode(\'1+1+1\')">+1 / +1 / +1</span>' +
+      '<button type="button" class="race-extras-stat-pick' + (mode === "2+1" ? " selected" : "") + '" onclick="setBgStatMode(\'2+1\')">+2 / +1</button>' +
+      '<button type="button" class="race-extras-stat-pick' + (mode === "1+1+1" ? " selected" : "") + '" onclick="setBgStatMode(\'1+1+1\')">+1 / +1 / +1</button>' +
       '</div>';
     html += '<div class="race-extras-row">';
     abilities.forEach(function(k) {
-      html += '<span class="race-extras-stat-pick' + (alloc[k] ? " selected" : "") +
-        '" onclick="toggleBgStat(\'' + k + '\')">' + _bgStatShort(k) + (alloc[k] ? " +" + alloc[k] : "") + '</span>';
+      html += '<button type="button" class="race-extras-stat-pick' + (alloc[k] ? " selected" : "") +
+        '" onclick="toggleBgStat(\'' + k + '\')">' + _bgStatShort(k) + (alloc[k] ? " +" + alloc[k] : "") + '</button>';
     });
     html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">' +
       (v.complete ? dndIcoHtml("check", 13) + " распределено" : "не распределено") + '</span></div>';
@@ -2258,7 +2268,7 @@ function renderBackgroundExtras() {
     html += '</div>';
   }
 
-  panel.innerHTML = html;
+  _setExtrasHtml(panel, html);
   panel.style.display = html ? "flex" : "none";
 }
 

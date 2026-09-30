@@ -7435,6 +7435,7 @@ font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
 .battle-check-wrap { display: flex; align-items: center; flex-shrink: 0; cursor: pointer; }
 .battle-checkbox { width: 16px; height: 16px; accent-color: var(--accent-color); cursor: pointer; }
 .battle-setup-icon { width: 22px; display: flex; align-items: center; justify-content: center; font-size: 1em; flex-shrink: 0; }
+.battle-setup-mark { width: 7px; height: 7px; transform: rotate(45deg); background: currentColor; }
 .battle-setup-name { flex: 1; font-size: 0.88em; color: var(--text); display: flex; flex-direction: column; }
 
 /* Battle tracker */
@@ -7604,10 +7605,6 @@ font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
   color: var(--text-dim);
   line-height: 1.55;
   text-align: left;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 8px;
-  padding: 10px 12px;
   white-space: pre-wrap;
 }
 
@@ -7837,7 +7834,7 @@ font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
 .race-extras-title {
   font-weight: 700;
   font-size: 0.85em;
-  color: var(--info-color);
+  color: var(--text);
 }
 .race-extras-row {
   display: flex;
@@ -7846,40 +7843,40 @@ font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
   align-items: center;
   font-size: 0.85em;
 }
-.race-extras-btn {
-  background: rgba(91,155,213,0.20);
-  border: 1px solid rgba(91,155,213,0.45);
-  color: var(--info-color);
-  padding: 5px 12px;
-  border-radius: var(--r-sm);
-  font-weight: 700;
+.race-extras-btn,
+.race-extras-stat-pick {
+  width: auto;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: var(--sp-1) 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0;
   cursor: pointer;
-  font-size: 0.9em;
 }
-.race-extras-btn:hover { background: rgba(91,155,213,0.30); }
+.race-extras-btn { color: var(--accent-lo); }
+.race-extras-btn:hover,
+.race-extras-btn:focus-visible { background: none; box-shadow: none; text-decoration: underline; }
 .race-extras-hint { font-size: 0.85em; color: var(--text-dim); }
 .race-extras-warn { font-size: 0.85em; font-weight: 700; color: var(--danger); }
 .race-extras-btn.done {
-  background: rgba(77,168,67,0.18);
-  border-color: rgba(77,168,67,0.45);
+  cursor: default;
+  text-decoration: none;
   color: color-mix(in srgb, var(--success-color) 70%, var(--text));
 }
-.race-extras-stat-pick {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.12);
-  padding: 3px 8px;
-  border-radius: var(--r-sm);
-  cursor: pointer;
-  font-weight: 600;
-  user-select: none;
-}
+.race-extras-stat-pick { color: var(--text-dim); user-select: none; }
+.race-extras-stat-pick + .race-extras-stat-pick::before { content: "·"; margin-right: 8px; color: var(--home-sub); font-weight: 400; text-decoration: none; display: inline-block; }
+.race-extras-stat-pick:hover,
+.race-extras-stat-pick:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
 .race-extras-stat-pick.selected {
-  background: rgba(212,168,67,0.18);
-  border-color: var(--accent-color);
-  color: var(--accent-color);
+  color: var(--accent-lo);
+  font-weight: 700;
+  text-decoration: underline;
 }
 
 /* HP2: строка-селектор брони, поле максимума ХП в рамке и кнопка-пересчёт
@@ -13447,12 +13444,19 @@ mark.search-hl {
 
 /* DM-2: стат-блок своего монстра — форма, окно «!» трекера, «Мои монстры» */
 .mon-cr-note { font-size: 0.75em; color: var(--text-dim); min-height: 1em; }
-.mon-sb { border-top: 1px solid var(--border); padding-top: 6px; }
-.mon-sb > summary { cursor: pointer; font-size: 0.85em; color: var(--accent-lo); padding: 4px 0; }
+.mon-sb { border-top: 1px solid var(--home-rule); padding-top: 6px; }
+.mon-sb > summary { cursor: pointer; font-size: 0.85em; color: var(--accent-lo); padding: 4px 0; list-style: none; }
+.mon-sb > summary::-webkit-details-marker { display: none; }
+.mon-sb > summary::before {
+  content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 8px;
+  transform: rotate(45deg) translateY(-1px); border: 1px solid var(--accent-lo);
+}
+.mon-sb[open] > summary::before { background: var(--accent-lo); }
 .mon-sb[open] { display: flex; flex-direction: column; gap: 8px; }
 .party-form .mon-sb label { margin-top: 2px; }
 .mon-sb-stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
-.mon-sb-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 1em !important; }
+.mon-sb-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.party-form .mon-sb-stat { font-size: 1em; }
 .mon-sb-stat span { font-size: 0.7em; color: var(--text-dim); letter-spacing: 0.04em; }
 .party-form .mon-sb-stat input { text-align: center; padding: 6px 2px; }
 .mon-sb-stat em { font-style: normal; font-size: 0.75em; color: var(--text); font-variant-numeric: tabular-nums; }
@@ -13471,7 +13475,7 @@ mark.search-hl {
 .mon-sb-attack { display: grid; grid-template-columns: 1fr 52px 76px 1fr 24px; gap: 4px; align-items: center; }
 .party-form .mon-sb-attack input { padding: 6px; }
 .mon-at-del { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 0; }
-.mon-catalog-check { display: flex !important; align-items: center; gap: 8px; font-size: 0.85em !important; color: var(--text) !important; margin-top: 4px; }
+.party-form .mon-catalog-check { display: flex; align-items: center; gap: 8px; font-size: 0.85em; color: var(--text); margin-top: 4px; }
 .party-form .mon-catalog-check input { width: auto; }
 
 .mon-sbv { text-align: left; }
@@ -13480,7 +13484,7 @@ mark.search-hl {
 .mon-sbv-row { display: flex; flex-wrap: wrap; gap: 0 14px; }
 .mon-sbv-btn { color: var(--text); }
 .mon-sbv-btn b, .mon-sbv-act { color: var(--accent-lo); }
-.mon-sbv-attack { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 14px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+.mon-sbv-attack { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 14px; padding: 4px 0; border-bottom: 1px solid var(--home-rule); }
 .mon-sbv-at-name { flex: 1 1 100%; font-size: 0.88em; color: var(--text); }
 .srd-mon-del { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; flex-shrink: 0; }
 
@@ -13615,19 +13619,19 @@ textarea:focus-visible {
   background: color-mix(in srgb, var(--sc, var(--accent)) 14%, transparent);
   color: var(--sc, var(--accent));
 }
-/* DM-1: значки — кнопка окна состояний; пусто — пунктирный «+» */
+/* DM-1: значки — кнопка окна состояний; пусто — «+» текстом */
 button.tracker-cond-dots {
   width: auto; min-width: 0; height: auto; flex: none; padding: 3px 0; margin: 0 0 0 6px;
   background: none; border: 0; border-radius: 0; box-shadow: none; cursor: pointer;
 }
 button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: none; }
 .cond-dot-add {
-  background: none; border: 1px dashed var(--home-rule);
-  color: var(--text-mute); font-weight: 700; font-size: 13px; line-height: 1;
+  background: none;
+  color: var(--accent-lo); font-weight: 700; font-size: 13px; line-height: 1;
 }
 .battle-cond-exh { cursor: default; }
 .battle-cond-exh:hover { background: none; }
-.battle-cond-exh .cdb-icon:not([data-on]) { background: none !important; }
+.battle-cond-exh .cdb-icon:not([data-on]) { background: none; }
 .battle-cond-exh .cdb-icon[data-on] { background: var(--row-c); }
 .battle-cond-exh .tracker-hp-btn { flex: none; }
 .battle-cond-exh-val { min-width: 18px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -14440,7 +14444,6 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   font-weight: 700;
 }
 #tab-notes .notes-pill.active::after { width: calc(100% - 4px); }
-#tab-notes .notes-pill-ico { opacity: 0.75; }
 #tab-notes .notes-subtabs-select {
   background: none;
   border: 0;

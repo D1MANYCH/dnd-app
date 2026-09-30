@@ -946,7 +946,7 @@ function renderBattleSetup() {
         '<label class="battle-check-wrap" onclick="event.stopPropagation()">' +
           '<input type="checkbox" class="battle-checkbox"' + (p.checked ? " checked" : "") + ' onchange="toggleBattleCheck(' + gi + ',this.checked)">' +
         "</label>" +
-        '<div class="battle-setup-icon" style="color:' + p.color + '">' + p.icon + "</div>" +
+        '<div class="battle-setup-icon" style="color:' + p.color + '">' + (/^</.test(p.icon) ? p.icon : '<span class="battle-setup-mark"></span>') + "</div>" +
         '<div class="battle-setup-name">' + escapeHtml(p.name) + "</div>" +
       "</div>";
     }).join("") : "";

@@ -69,7 +69,7 @@ function _renderNotesSubtabs() {
     var active = (t.key === _notesState.currentTab) ? ' active' : '';
     pillsHtml += '<button type="button" class="notes-pill' + active + '" role="tab" data-key="' + t.key + '"' +
             ' onclick="notesSwitchTab(\'' + t.key + '\')">' +
-            '<span class="notes-pill-ico">' + t.icon + '</span> ' + escapeHtml(t.label) +
+            escapeHtml(t.label) +
             '</button>';
     selOpts += '<option value="' + t.key + '"' + (t.key === _notesState.currentTab ? ' selected' : '') + '>' +
                t.icon + ' ' + escapeHtml(t.label) + '</option>';

@@ -535,17 +535,17 @@ function renderWeaponProf() {
   // Добавить категорию вручную
   var allTypes = ["simple","martial"];
   var available = allTypes.filter(function(t){ return (wp[t] || []).indexOf("custom") === -1; });
-  html += '<div class="prof-cat-group"><div class="prof-cat-title">➕ Добавить</div><div class="prof-add-row">';
+  html += '<div class="prof-cat-group"><div class="prof-cat-title">Добавить</div><div class="prof-add-row">';
   if (available.length > 0) {
     html += '<select class="flat-field" id="weapon-custom-pick"><option value="">— тип —</option>';
     available.forEach(function(t) {
       html += '<option value="' + t + '">' + WEAPON_TYPE_LABELS[t] + '</option>';
     });
     html += '</select>';
-    html += '<button onclick="addCustomWeaponType()">➕ Тип</button>';
+    html += '<button onclick="addCustomWeaponType()">+ Тип</button>';
   }
   html += '<input type="text" class="flat-field" id="weapon-spec-name" placeholder="конкретное оружие…">';
-  html += '<button onclick="addCustomSpecificWeapon()">➕ Оружие</button>';
+  html += '<button onclick="addCustomSpecificWeapon()">+ Оружие</button>';
   html += '</div></div>';
 
   box.innerHTML = html;
