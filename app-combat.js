@@ -1125,6 +1125,8 @@ function toggleCharBook(code) {
   updateSubclassOptions();
   populateRaceSelect(char);
   safeSet("char-race", char.race);
+  populateBackgroundSelect(char);
+  safeSet("char-background", char.background);
   renderBooksRow();
   if (typeof updateChar === "function") updateChar();
 }
@@ -1711,11 +1713,14 @@ function onBackgroundChange() {
   if (char.proficiencies && char.proficiencies.languageChoices) {
     char.proficiencies.languageChoices.background = [];
   }
+  char.bgSkillPicks = [];
   // E24-5: смена предыстории 2024 откатывает распределённые от неё характеристики,
   // «своя» предыстория получает пустой черновик (характеристики/навыки/черта выбираются на панели)
   if (char.edition === "2024") {
     _bgRevertStatChoice(char);
-    if (bg === CUSTOM_BACKGROUND_KEY && !char.bgCustom) char.bgCustom = { abilities: [], skills: [], featId: "", tool: "" };
+    if (bg === CUSTOM_BACKGROUND_KEY && (!char.bgCustom || !Array.isArray(char.bgCustom.abilities))) char.bgCustom = { abilities: [], skills: [], featId: "", tool: "" };
+  } else if (bg === CUSTOM_BACKGROUND_KEY && (!char.bgCustom || !Array.isArray(char.bgCustom.tools))) {
+    char.bgCustom = { skills: [], tools: [], languages: 0, featureFrom: "" };
   }
   var bgData = (typeof getBackgroundDef === "function") ? getBackgroundDef(char, bg)
     : ((typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bg]);
@@ -1779,6 +1784,12 @@ function renderBackgroundFeature() {
     return;
   }
   var feat = data && data.feature;
+  if (data && data.custom && !feat) {
+    el.innerHTML = '<span class="bg-feature-label">' + dndIcoHtml("scroll", 13) + ' Своя предыстория</span>' +
+      '<span class="bg-feature-text">умение любой предыстории, 2 навыка, инструменты и языки — в сумме не больше двух</span>';
+    el.style.display = "flex";
+    return;
+  }
   if (!feat || !feat.name) { el.style.display = "none"; el.innerHTML = ""; return; }
   el.innerHTML =
     '<span class="bg-feature-label">' + dndIcoHtml("scroll", 13) + ' ' + escapeHtml(feat.name) + '</span>' +
@@ -1801,7 +1812,16 @@ function populateBackgroundSelect(char) {
   if (_bgSelect2014Html === null) _bgSelect2014Html = sel.innerHTML;
   var is24 = !!(char && char.edition === "2024" && typeof edData === "function");
   if (!is24) {
-    if (sel.dataset.edition === "2024") { sel.innerHTML = _bgSelect2014Html; delete sel.dataset.edition; }
+    if (sel.dataset.edition === "2024" || sel.dataset.books) { sel.innerHTML = _bgSelect2014Html; delete sel.dataset.edition; delete sel.dataset.books; }
+    // Предыстория вне книг персонажа скрыта, уже выбранная остаётся с пометкой (как расы).
+    Array.prototype.slice.call(sel.options || []).forEach(function(o) {
+      var d = o.value && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[o.value];
+      if (!d || charHasBook(char, d.source)) return;
+      sel.dataset.books = "1";
+      if (char && char.background === o.value) o.textContent += " · вне выбранных книг";
+      else o.remove();
+    });
+    Array.prototype.slice.call(sel.querySelectorAll("optgroup")).forEach(function(g) { if (!g.children.length) g.remove(); });
     return;
   }
   var tbl = edData(char).BACKGROUND_SKILLS || {};
@@ -1945,7 +1965,8 @@ function toggleBgCustom(field, value) {
   if (!currentId || sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char || char.background !== CUSTOM_BACKGROUND_KEY) return;
-  if (!char.bgCustom) char.bgCustom = { abilities: [], skills: [], featId: "", tool: "" };
+  if (char.edition !== "2024") { _toggleBgCustom14(char, field, value); return; }
+  if (!char.bgCustom || !Array.isArray(char.bgCustom.abilities)) char.bgCustom = { abilities: [], skills: [], featId: "", tool: "" };
   var c = char.bgCustom;
   if (field === "featId") {
     c.featId = (c.featId === value) ? "" : value;
@@ -1975,6 +1996,114 @@ function toggleBgCustom(field, value) {
   calcStats();
   if (typeof updateSkillProfCount === "function") updateSkillProfCount();
   renderBackgroundExtras();
+}
+
+// «Собственная предыстория» 2014: умение (featureFrom — ключ предыстории-образца),
+// 2 навыка, инструменты + языки в сумме не больше двух.
+function _toggleBgCustom14(char, field, value) {
+  if (!char.bgCustom || !Array.isArray(char.bgCustom.tools)) char.bgCustom = { skills: [], tools: [], languages: 0, featureFrom: "" };
+  var c = char.bgCustom;
+  if (!Array.isArray(c.skills)) c.skills = [];
+  if (field === "featureFrom") {
+    c.featureFrom = (c.featureFrom === value) ? "" : value;
+  } else if (field === "skills") {
+    var pos = c.skills.indexOf(value);
+    if (pos !== -1) {
+      c.skills.splice(pos, 1);
+      var si = skills.findIndex(function(s) { return s.name === value; });
+      var cb = si !== -1 && $("skill-prof-" + si);
+      if (cb) cb.checked = false;
+    } else {
+      if (c.skills.length >= 2) { showToast("Уже выбрано 2. Снимите одно.", "warning"); return; }
+      c.skills.push(value);
+      _bgCheckSkills([value]);
+    }
+  } else if (field === "tools" || field === "languages") {
+    var tools = c.tools.slice(), langs = c.languages || 0;
+    if (field === "tools") {
+      var tp = tools.indexOf(value);
+      if (tp !== -1) tools.splice(tp, 1); else tools.push(value);
+    } else {
+      langs = (langs === value) ? 0 : value;
+    }
+    if (tools.length + langs > 2) { showToast("Инструменты и языки — в сумме не больше двух.", "warning"); return; }
+    c.tools = tools;
+    c.languages = langs;
+    if (char.proficiencies && char.proficiencies.toolChoices) {
+      Object.keys(char.proficiencies.toolChoices).forEach(function(k) {
+        if (k.indexOf("bg_") === 0) delete char.proficiencies.toolChoices[k];
+      });
+    }
+    if (char.proficiencies && char.proficiencies.languageChoices) char.proficiencies.languageChoices.background = [];
+  }
+  saveToLocal();
+  calcStats();
+  if (typeof updateSkillProfCount === "function") updateSkillProfCount();
+  if (typeof renderTools === "function") renderTools();
+  if (typeof renderLanguages === "function") renderLanguages();
+  renderBackgroundFeature();
+  renderBackgroundExtras();
+}
+
+// SCAG: навык предыстории на выбор (skillChoice) — отметка в листе, лимит count.
+function toggleBgSkillPick(name) {
+  if (!currentId || sheetLockGuard()) return;
+  var char = getCurrentChar();
+  var d = char && typeof BACKGROUND_SKILLS !== "undefined" && BACKGROUND_SKILLS[char.background];
+  if (!d || !d.skillChoice || d.skillChoice.from.indexOf(name) === -1) return;
+  if (!Array.isArray(char.bgSkillPicks)) char.bgSkillPicks = [];
+  var pos = char.bgSkillPicks.indexOf(name);
+  if (pos !== -1) {
+    char.bgSkillPicks.splice(pos, 1);
+    var si = skills.findIndex(function(s) { return s.name === name; });
+    var cb = si !== -1 && $("skill-prof-" + si);
+    if (cb) cb.checked = false;
+  } else {
+    var cnt = d.skillChoice.count || 1;
+    if (char.bgSkillPicks.length >= cnt) { showToast("Уже выбрано " + cnt + ". Снимите одно.", "warning"); return; }
+    char.bgSkillPicks.push(name);
+    _bgCheckSkills([name]);
+  }
+  saveToLocal();
+  calcStats();
+  if (typeof updateSkillProfCount === "function") updateSkillProfCount();
+  renderBackgroundExtras();
+}
+
+function _renderBgCustom14(char) {
+  var c = char.bgCustom || {};
+  var picked = Array.isArray(c.skills) ? c.skills : [];
+  var tools = Array.isArray(c.tools) ? c.tools : [];
+  var langs = c.languages || 0;
+  var html = '<div class="race-extras-title">' + dndIcoHtml("scroll", 14) + ' Умение предыстории</div><div class="race-extras-row">';
+  var seenFeat = {}, toolOpts = [];
+  Object.keys(BACKGROUND_SKILLS).forEach(function(k) {
+    var d = BACKGROUND_SKILLS[k];
+    if (!charHasBook(char, d.source)) return;
+    (d.tools || []).forEach(function(t) { if (toolOpts.indexOf(t) === -1) toolOpts.push(t); });
+    if (!d.feature || seenFeat[d.feature.name]) return;
+    seenFeat[d.feature.name] = true;
+    html += '<span class="race-extras-stat-pick' + (c.featureFrom === k ? " selected" : "") +
+      '" title="' + escapeHtml(k) + '" onclick="toggleBgCustom(\'featureFrom\',\'' + escapeHtml(k) + '\')">' + escapeHtml(d.feature.name) + '</span>';
+  });
+  html += '</div>';
+  html += '<div class="race-extras-title">' + dndIcoHtml("check", 14) + ' Навыки (2)</div><div class="race-extras-row">';
+  skills.forEach(function(sk) {
+    html += '<span class="race-extras-stat-pick' + (picked.indexOf(sk.name) !== -1 ? " selected" : "") +
+      '" onclick="toggleBgCustom(\'skills\',\'' + escapeHtml(sk.name) + '\')">' + escapeHtml(sk.name) + '</span>';
+  });
+  html += '</div>';
+  html += '<div class="race-extras-title">' + dndIcoHtml("box", 14) + ' Инструменты и языки (' + (tools.length + langs) + '/2)</div><div class="race-extras-row">';
+  toolOpts.forEach(function(t) {
+    html += '<span class="race-extras-stat-pick' + (tools.indexOf(t) !== -1 ? " selected" : "") +
+      '" onclick="toggleBgCustom(\'tools\',\'' + escapeHtml(t) + '\')">' + escapeHtml(t) + '</span>';
+  });
+  [1, 2].forEach(function(n) {
+    html += '<span class="race-extras-stat-pick' + (langs === n ? " selected" : "") +
+      '" onclick="toggleBgCustom(\'languages\',' + n + ')">' + (n === 1 ? "Язык" : "Два языка") + '</span>';
+  });
+  html += '</div>';
+  return html;
 }
 
 // Стартовое снаряжение предыстории: вариант А — предметы + монеты, Б — 50 зм. Один раз.
@@ -2024,6 +2153,24 @@ function renderBackgroundExtras() {
   var panel = $("bg-extras-panel");
   if (!panel) return;
   var char = currentId ? getCurrentChar() : null;
+  if (char && char.edition !== "2024" && char.basicLocked && char.background === CUSTOM_BACKGROUND_KEY) {
+    panel.innerHTML = _renderBgCustom14(char);
+    panel.style.display = "flex";
+    return;
+  }
+  var d14 = (char && char.edition !== "2024" && char.basicLocked && typeof BACKGROUND_SKILLS !== "undefined") ? BACKGROUND_SKILLS[char.background] : null;
+  if (d14 && d14.skillChoice) {
+    var sp = Array.isArray(char.bgSkillPicks) ? char.bgSkillPicks : [];
+    var cnt = d14.skillChoice.count || 1;
+    var h14 = '<div class="race-extras-title">' + dndIcoHtml("check", 14) + ' Навыки предыстории на выбор (' + cnt + ')</div><div class="race-extras-row">';
+    d14.skillChoice.from.forEach(function(sn) {
+      h14 += '<span class="race-extras-stat-pick' + (sp.indexOf(sn) !== -1 ? " selected" : "") +
+        '" onclick="toggleBgSkillPick(\'' + escapeHtml(sn) + '\')">' + escapeHtml(sn) + '</span>';
+    });
+    panel.innerHTML = h14 + '</div>';
+    panel.style.display = "flex";
+    return;
+  }
   if (!char || char.edition !== "2024" || !char.basicLocked) { panel.style.display = "none"; panel.innerHTML = ""; return; }
   var def = getBackgroundDef(char);
   if (!def) { panel.style.display = "none"; panel.innerHTML = ""; return; }
@@ -2033,7 +2180,7 @@ function renderBackgroundExtras() {
   var html = "";
 
   if (def.custom) {
-    var c = char.bgCustom || { abilities: [], skills: [], featId: "" };
+    var c = (char.bgCustom && Array.isArray(char.bgCustom.abilities)) ? char.bgCustom : { abilities: [], skills: [], featId: "" };
     html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' Характеристики своей предыстории (3)</div><div class="race-extras-row">';
     Object.keys(_BG_STAT_SHORT).forEach(function(k) {
       html += '<span class="race-extras-stat-pick' + (c.abilities.indexOf(k) !== -1 ? " selected" : "") +

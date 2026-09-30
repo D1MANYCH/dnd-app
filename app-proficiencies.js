@@ -274,7 +274,7 @@ function getToolChoiceSlots(char) {
         var rem = (parsed.count || 1) - picks.length;
         if (rem > 0) out.push({
           key: key, label: "" + dndIcoHtml("scroll", 12) + " Предыстория: " + entry,
-          from: parsed.from, remaining: rem, total: parsed.count || 1
+          from: parsed.from, options: parsed.options, remaining: rem, total: parsed.count || 1
         });
       }
     });

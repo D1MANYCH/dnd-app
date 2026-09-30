@@ -2813,11 +2813,40 @@
 
   // ────────── БЛОК 23 (FIN-4): предыстории — сверка 13, инструменты, умение ──────────
   if (typeof BACKGROUND_SKILLS !== "undefined") {
-    t("[FIN-4] BACKGROUND_SKILLS: ровно 13 предысторий, у каждой 2 навыка", function(){
+    t("[FIN-4] BACKGROUND_SKILLS: PHB 13 + 5 разновидностей, SCAG 12 + Сыщик, у каждой 2 навыка", function(){
       var keys = Object.keys(BACKGROUND_SKILLS);
-      if (keys.length !== 13) return "предысторий " + keys.length + ": " + keys.join(",");
-      var bad = keys.filter(function(k){ return !Array.isArray(BACKGROUND_SKILLS[k].skills) || BACKGROUND_SKILLS[k].skills.length !== 2; });
+      var phb = keys.filter(function(k){ return !BACKGROUND_SKILLS[k].variantOf && !BACKGROUND_SKILLS[k].source; });
+      var scag = keys.filter(function(k){ return !BACKGROUND_SKILLS[k].variantOf && BACKGROUND_SKILLS[k].source === "SCAG"; });
+      if (phb.length !== 13 || scag.length !== 12 || keys.length !== 32) return "предысторий " + keys.length + ": " + keys.join(",");
+      var badVar = keys.filter(function(k){ var v = BACKGROUND_SKILLS[k].variantOf; return v && (!BACKGROUND_SKILLS[v] || BACKGROUND_SKILLS[v].variantOf); });
+      if (badVar.length) return "variantOf не на базовую: " + badVar.join(",");
+      var bad = keys.filter(function(k){ var d = BACKGROUND_SKILLS[k];
+        return !Array.isArray(d.skills) || d.skills.length + (d.skillChoice ? d.skillChoice.count : 0) !== 2; });
       return bad.length === 0 || "не 2 навыка: " + bad.join(",");
+    });
+    t("[BG14] «Своя» 2014: getBackgroundDef собирает навыки, инструменты, языки и умение образца", function(){
+      if (typeof getBackgroundDef !== "function") return "нет getBackgroundDef";
+      var d = getBackgroundDef({ edition:"2014", background: CUSTOM_BACKGROUND_KEY,
+        bgCustom:{ skills:["Магия","История"], tools:["Воровские инструменты"], languages:1, featureFrom:"Пират" } });
+      if (!d || !d.custom) return "нет custom";
+      if (d.skills.join(",") !== "Магия,История" || d.tools.join(",") !== "Воровские инструменты" || d.languages !== 1) return "владения";
+      if (!d.feature || d.feature.name !== "Дурная репутация") return "умение";
+      var e = getBackgroundDef({ edition:"2014", background: CUSTOM_BACKGROUND_KEY, bgCustom:null });
+      return (!!e && e.skills.length === 0 && e.feature === null) || "пустой черновик";
+    });
+    t("[BG14] SCAG: навыки на выбор из bgSkillPicks, слоты «или», фильтр книг", function(){
+      var d = getBackgroundDef({ edition:"2014", background:"Учёный-затворник", bgSkillPicks:["Религия","Обман"] });
+      if (d.skills.join(",") !== "История,Религия") return "skillChoice: " + d.skills;
+      if (BACKGROUND_SKILLS["Учёный-затворник"].skills.length !== 1) return "исходная запись мутирована";
+      var p = parseBackgroundToolEntry("Игровой набор или музыкальный инструмент (один)");
+      if (p.type !== "slot" || p.from.join(",") !== "gaming,musical") return "слот или";
+      var q = parseBackgroundToolEntry("Игровой набор, музыкальный инструмент или воровские инструменты (два)");
+      if (q.count !== 2 || !q.options || q.options.indexOf("Воровские инструменты") === -1) return "слот охотника";
+      if (charHasBook({ books:["XGtE"] }, BACKGROUND_SKILLS["Придворный"].source)) return "книга SCAG не фильтрует";
+      if (BACKGROUND_SKILLS["Преследуемый"].source !== "VRGR" || BOOK_CODES.indexOf("VRGR") === -1) return "VRGR";
+      var m = migrateCharacter({ id: 43, class: "Воин", level: 3, schemaVersion: 41, books: ["SCAG"] });
+      if (m.books.join() !== "SCAG,VRGR" || m.schemaVersion !== 42) return "миграция v42: " + m.books.join();
+      return true;
     });
     t("[FIN-4] +Шарлатан и +Беспризорник присутствуют", function(){
       var miss = ["Шарлатан","Беспризорник"].filter(function(k){ return !BACKGROUND_SKILLS[k]; });
@@ -8276,7 +8305,7 @@
       if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion " + c.schemaVersion;
       if (!Array.isArray(c.books) || c.books.length !== BOOK_CODES.length) return "books " + JSON.stringify(c.books);
       var kept = migrateCharacter({ id: 42, class: "Воин", level: 3, schemaVersion: 40, books: ["DMG"] });
-      if (kept.books.join() !== "DMG") return "затёрт books: " + kept.books.join();
+      if (kept.books.join() !== "DMG,VRGR") return "затёрт books: " + kept.books.join();
       c.books = [];
       if (!charHasBook(c, "PHB") || !charHasBook(c, "PH24")) return "PHB выключен";
       if (subclassInBooks("Самурай", c)) return "Самурай (XGtE) виден без книги";

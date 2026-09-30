@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
-<link rel="stylesheet" href="style.css?v=v437">
+<link rel="stylesheet" href="style.css?v=v438">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -748,6 +748,32 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <option value="Моряк">Моряк</option>
 <option value="Шарлатан">Шарлатан</option>
 <option value="Беспризорник">Беспризорник</option>
+<optgroup label="Разновидности">
+<option value="Шпион">Шпион (преступник)</option>
+<option value="Гладиатор">Гладиатор (артист)</option>
+<option value="Гильдейский купец">Гильдейский купец (ремесленник)</option>
+<option value="Рыцарь">Рыцарь (дворянин)</option>
+<option value="Пират">Пират (моряк)</option>
+</optgroup>
+<optgroup label="Побережье Мечей (SCAG)">
+<option value="Городской стражник">Городской стражник</option>
+<option value="Сыщик">Сыщик (городской стражник)</option>
+<option value="Дворянин Глубоководья">Дворянин Глубоководья</option>
+<option value="Клановый ремесленник">Клановый ремесленник</option>
+<option value="Учёный-затворник">Учёный-затворник</option>
+<option value="Придворный">Придворный</option>
+<option value="Представитель фракции">Представитель фракции</option>
+<option value="Дальний путешественник">Дальний путешественник</option>
+<option value="Наследник">Наследник</option>
+<option value="Рыцарь ордена">Рыцарь ордена</option>
+<option value="Ветеран наёмник">Ветеран наёмник</option>
+<option value="Городской охотник за головами">Городской охотник за головами</option>
+<option value="Утгардтский соплеменник">Утгардтский соплеменник</option>
+</optgroup>
+<optgroup label="Равенлофт (VRGR)">
+<option value="Преследуемый">Преследуемый</option>
+</optgroup>
+<option value="Своя">Своя предыстория</option>
 </select>
 </div>
 </div>
@@ -3324,41 +3350,41 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v437"></script>
+<script src="app-log.js?v=v438"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v437"></script>
-<script src="bg-space.js?v=v437"></script>
-<script src="dice-arena-bg.js?v=v437"></script>
-<script src="data.js?v=v437"></script>
+<script src="icons.js?v=v438"></script>
+<script src="bg-space.js?v=v438"></script>
+<script src="dice-arena-bg.js?v=v438"></script>
+<script src="data.js?v=v438"></script>
 <!-- PERF-2/PERF-4: build-notes-data.js (~530 КБ) и character-builds.js (~200 КБ) грузятся лениво — см. ensureBuildNotes/ensureBuilds ниже -->
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v437"></script>
-<script src="spells.js?v=v437"></script>
-<script src="spell-effects.js?v=v437"></script>
+<script src="glossary-data.js?v=v438"></script>
+<script src="spells.js?v=v438"></script>
+<script src="spell-effects.js?v=v438"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v437"></script>
-<script src="app-migrate.js?v=v437"></script>
-<script src="app-builds.js?v=v437"></script>
-<script src="app-core.js?v=v437"></script>
-<script src="app-io.js?v=v437"></script>
-<script src="app-backup.js?v=v437"></script>
-<script src="app-combat.js?v=v437"></script>
-<script src="app-conditions.js?v=v437"></script>
-<script src="app-cast-effects.js?v=v437"></script>
-<script src="app-proficiencies.js?v=v437"></script>
-<script src="app-hp.js?v=v437"></script>
-<script src="app-spells.js?v=v437"></script>
-<script src="app-inventory.js?v=v437"></script>
+<script src="rules.js?v=v438"></script>
+<script src="app-migrate.js?v=v438"></script>
+<script src="app-builds.js?v=v438"></script>
+<script src="app-core.js?v=v438"></script>
+<script src="app-io.js?v=v438"></script>
+<script src="app-backup.js?v=v438"></script>
+<script src="app-combat.js?v=v438"></script>
+<script src="app-conditions.js?v=v438"></script>
+<script src="app-cast-effects.js?v=v438"></script>
+<script src="app-proficiencies.js?v=v438"></script>
+<script src="app-hp.js?v=v438"></script>
+<script src="app-spells.js?v=v438"></script>
+<script src="app-inventory.js?v=v438"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v437"></script>
-<script src="class-choices.js?v=v437"></script>
-<script src="subclass-choices-data.js?v=v437"></script>
+<script src="app-party.js?v=v438"></script>
+<script src="class-choices.js?v=v438"></script>
+<script src="subclass-choices-data.js?v=v438"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js).
      PERF-5: модуль (~200 КБ) грузится лениво — window.ensureDiceBox() из app-dice.js
      при первом действии пользователя или открытии кубиков; пока не загружен — 2D-бросок. -->
@@ -3366,7 +3392,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   var diceBoxP = null;
   window.ensureDiceBox = function () {
     if (!diceBoxP) {
-      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v437").then(function (m) {
+      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v438").then(function (m) {
         window.DiceBox = m.default;
         window.dispatchEvent(new Event("dicebox:ready"));
         return m.default;
@@ -3375,16 +3401,16 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     return diceBoxP;
   };
 </script>
-<script src="app-dice.js?v=v437"></script>
-<script src="app-settings.js?v=v437"></script>
-<script src="app-ui.js?v=v437"></script>
-<script src="app-home.js?v=v437"></script>
-<script src="app-asi.js?v=v437"></script>
-<script src="app-progress.js?v=v437"></script>
-<script src="app-notes.js?v=v437"></script>
-<script src="app-desktop.js?v=v437"></script>
-<script src="history-stack.js?v=v437"></script>
-<script src="app-help.js?v=v437"></script>
+<script src="app-dice.js?v=v438"></script>
+<script src="app-settings.js?v=v438"></script>
+<script src="app-ui.js?v=v438"></script>
+<script src="app-home.js?v=v438"></script>
+<script src="app-asi.js?v=v438"></script>
+<script src="app-progress.js?v=v438"></script>
+<script src="app-notes.js?v=v438"></script>
+<script src="app-desktop.js?v=v438"></script>
+<script src="history-stack.js?v=v438"></script>
+<script src="app-help.js?v=v438"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3397,9 +3423,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v437",
-    "vendor/jspdf/roboto-base64.js?v=v437",
-    "app-pdf.js?v=v437"
+    "vendor/jspdf/jspdf.umd.min.js?v=v438",
+    "vendor/jspdf/roboto-base64.js?v=v438",
+    "app-pdf.js?v=v438"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3422,45 +3448,45 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // PERF-4: сами билды нужны пикеру, гайду, плану и подсказкам левел-апа — грузим по требованию.
   window.ensureBuilds = function () {
     if (window.CHARACTER_BUILDS) return Promise.resolve();
-    return loadScript("character-builds.js?v=v437");
+    return loadScript("character-builds.js?v=v438");
   };
   // PERF-2: заметки билдов нужны только applyBuild — грузим по требованию.
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v437").then(function () {
+    return loadScript("build-notes-data.js?v=v438").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
   // NGEN-2: пулы генератора «Записей» нужны только кнопке «Сгенерировать».
   window.ensureNotesGen = function () {
     if (window.NOTES_GEN) return Promise.resolve();
-    return loadScript("notes-gen-data.js?v=v437");
+    return loadScript("notes-gen-data.js?v=v438");
   };
   // PERF-3: бестиарий SRD нужен только пикерам вкладки отряда — грузим по требованию.
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v437"),
-      loadScript("npc-srd.js?v=v437")
+      loadScript("monsters-srd.js?v=v438"),
+      loadScript("npc-srd.js?v=v438")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v437");
+    return loadScript("magic-items.js?v=v438");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v437");
+    return loadScript("gear-catalog.js?v=v438");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v437").then(function () {
+    return loadScript("data-2024.js?v=v438").then(function () {
       window.__edition2024Loaded = true;
     });
   };

@@ -668,14 +668,14 @@ function rulesCases(t, group) {
     return true;
   });
 
-  t("Все 13 предысторий: по 2 навыка из таблицы навыков, фиксированные инструменты — из каталога", function() {
+  t("Все 32 предыстории (PHB 13 + 5 разновидностей, SCAG 13, VRGR 1): по 2 навыка из таблицы навыков, фиксированные инструменты — из каталога", function() {
     if (typeof BACKGROUND_SKILLS === "undefined") return "нет таблицы BACKGROUND_SKILLS (не загружен data.js)";
     var keys = Object.keys(BACKGROUND_SKILLS);
-    if (keys.length !== 13) return "предысторий: " + keys.length + ", ожидал 13";
+    if (keys.length !== 32) return "предысторий: " + keys.length + ", ожидал 32";
     for (var i = 0; i < keys.length; i++) {
       var bg = BACKGROUND_SKILLS[keys[i]];
-      var list = bg.skills || [];
-      if (list.length !== 2) return keys[i] + ": навыков " + list.length + ", ожидал 2";
+      var list = (bg.skills || []).concat(bg.skillChoice ? bg.skillChoice.from : []);
+      if ((bg.skills || []).length + (bg.skillChoice ? bg.skillChoice.count : 0) !== 2) return keys[i] + ": навыков не 2";
       for (var j = 0; j < list.length; j++) {
         var found = false;
         for (var k = 0; k < skills.length; k++) if (skills[k].name === list[j]) found = true;

@@ -902,6 +902,11 @@ function migrateCharacter(char) {
     if (!Array.isArray(char.books)) char.books = ["XGtE", "TCoE", "SCAG", "DMG", "VGtM", "HB"];
     char.schemaVersion = 41;
   }
+  if (v < 42) {
+    // Книга VRGR (Равенлофт) добавлена в «Дополнения»: у сохранённых персонажей включена.
+    if (Array.isArray(char.books) && char.books.indexOf("VRGR") === -1) char.books.push("VRGR");
+    char.schemaVersion = 42;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

@@ -1269,9 +1269,27 @@ function getBackgroundDef(char, bgName) {
     return { skills: Array.isArray(c.skills) ? c.skills : [], tools: c.tool ? [c.tool] : [], languages: 0,
       abilities: Array.isArray(c.abilities) ? c.abilities : [], featId: c.featId || "", custom: true };
   }
+  // «Собственная предыстория» 2014 (PHB гл.4): умение любой предыстории, 2 любых навыка,
+  // инструменты и языки из образцов — в сумме не больше двух.
+  if (char.edition !== "2024" && bg === CUSTOM_BACKGROUND_KEY) {
+    var c14 = char.bgCustom || {};
+    var src = (typeof BACKGROUND_SKILLS !== "undefined" && c14.featureFrom) ? BACKGROUND_SKILLS[c14.featureFrom] : null;
+    return { skills: Array.isArray(c14.skills) ? c14.skills : [], tools: Array.isArray(c14.tools) ? c14.tools : [],
+      languages: c14.languages || 0, feature: src ? src.feature : null, custom: true };
+  }
   var tbl = (typeof edData === "function") ? edData(char).BACKGROUND_SKILLS
     : (typeof BACKGROUND_SKILLS !== "undefined" ? BACKGROUND_SKILLS : null);
-  return (tbl && tbl[bg]) || null;
+  var d = (tbl && tbl[bg]) || null;
+  // SCAG: навыки на выбор (char.bgSkillPicks) дописываются к фиксированным
+  if (d && d.skillChoice) {
+    var from = d.skillChoice.from || [];
+    var picks = (Array.isArray(char.bgSkillPicks) ? char.bgSkillPicks : []).filter(function(s){ return from.indexOf(s) !== -1; });
+    var out = {};
+    Object.keys(d).forEach(function(k){ out[k] = d[k]; });
+    out.skills = (d.skills || []).concat(picks.slice(0, d.skillChoice.count || 1));
+    return out;
+  }
+  return d;
 }
 
 // Валидатор распределения характеристик от предыстории 2024 (стр. 36):
@@ -1302,6 +1320,11 @@ function parseBackgroundToolEntry(entry) {
   // "Ремесленный инструмент (один)" → slot: artisan x1
   // "Музыкальный инструмент (один)" → slot: musical x1
   // "Игровой набор (один)"           → slot: gaming x1
+  if (/воровские.*\(два\)/i.test(entry)) return { type:"slot", from:["gaming","musical","other"], count:2,
+    options: (typeof TOOL_CATALOG !== "undefined") ? (TOOL_CATALOG.gaming || []).concat(TOOL_CATALOG.musical || [])
+      .map(function(t){ return t.name; }).concat(["Воровские инструменты"]) : null };
+  if (/Игров.*или.*музыкальн.*\(один\)/i.test(entry)) return { type:"slot", from:["gaming","musical"], count:1 };
+  if (/Музыкальн.*или.*ремесленн.*\(один\)/i.test(entry)) return { type:"slot", from:["musical","artisan"], count:1 };
   if (/Ремесленн.*\(один\)/i.test(entry)) return { type:"slot", from:"artisan", count:1 };
   if (/Музыкальн.*\(один\)/i.test(entry)) return { type:"slot", from:"musical", count:1 };
   if (/Игров.*набор.*\(один\)/i.test(entry)) return { type:"slot", from:"gaming", count:1 };
