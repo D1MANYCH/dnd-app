@@ -411,19 +411,22 @@ if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.e
 var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3,
                      help: 3, builds: 3, buildguide: 4, buildplan: 4, abilityinfo: 3,
                      featureinfo: 4, levelup: 3, rest: 3, magiccatalog: 3, gearcatalog: 3,
-                     hphistory: 3, spellsearch: 3, itemref: 3, dmref: 3, abilgen: 3, mclayout: 3 };
+                     hphistory: 3, spellsearch: 3, itemref: 3, dmref: 3, abilgen: 3, mclayout: 3,
+                     monsters: 3, monsterform: 3 };
 // Экраны-страницы: у них нет своего персонажа, currentId не трогаем — иначе
 // «Настройки» с листа выбрасывали бы из персонажа.
 var PAGE_SCREENS = ["data", "settings", "about", "help", "builds", "buildguide", "buildplan", "abilityinfo",
                     "featureinfo", "levelup", "rest", "magiccatalog", "gearcatalog",
-                    "hphistory", "spellsearch", "itemref", "dmref", "abilgen", "mclayout"];
+                    "hphistory", "spellsearch", "itemref", "dmref", "abilgen", "mclayout",
+                    "monsters", "monsterform"];
 var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О версии",
                     help: "Справка", builds: "Готовые билды",
                     buildguide: "Гайд по билду", buildplan: "План развития",
                     featureinfo: "Умение", levelup: "Повышение уровня", rest: "Отдых",
                     magiccatalog: "Каталог магических предметов", gearcatalog: "Каталог снаряжения",
                     hphistory: "История здоровья", spellsearch: "Поиск заклинаний", itemref: "Справка по предметам", dmref: "Шпаргалка мастера",
-                    abilgen: "Характеристики", mclayout: "Классы и уровни" };
+                    abilgen: "Характеристики", mclayout: "Классы и уровни",
+                    monsters: "Бестиарий", monsterform: "Свой монстр" };
 // STYLE-8M-3: повышение уровня и отдых — экраны поверх листа: они зовут
 // loadCharacter посреди своего сценария, и лист перерисовывается под ними,
 // не переключая экран (иначе результат пропадал бы до кнопки «Готово»).

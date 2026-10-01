@@ -182,7 +182,7 @@ var _PENT = {
              addLabel:["user","Добавить персонажа"], editLabel:["edit","Редактировать персонажа"],
              delMsg: "Удалить персонажа?", delKey:"name" },
   // FEAT-4 расширение: монстр получает cr/ac/hp/tactics/edition
-  monster: { modal:"add-monster-modal", title:"monster-modal-title", idx:"monster-edit-index",
+  monster: { screen:"monsterform", title:"monster-modal-title", idx:"monster-edit-index",
              fields: [
                {id:"monster-name-inp",    key:"name"},
                {id:"monster-type-sel",    key:"type", default:"Монстр"},
@@ -206,9 +206,15 @@ function _pentOpen(type, i) {
   var item = isEdit ? cfg.list()[i] : null;
   cfg.fields.forEach(function(f) { $(f.id).value = item ? (item[f.key] || "") : ""; });
   if (type === "monster") _monFormFill(item);
+  // STYLE-15: форма своего монстра — экран, а не модалка
+  if (cfg.screen) { showScreen(cfg.screen); return; }
   openModal(cfg.modal);
 }
-function _pentClose(type) { closeModal(_PENT[type].modal); }
+function _pentClose(type) {
+  var cfg = _PENT[type];
+  if (cfg.screen) { if (currentScreenName() === cfg.screen) screenBack(); return; }
+  closeModal(cfg.modal);
+}
 function _pentSave(type) {
   var cfg = _PENT[type];
   var nameField = cfg.fields[0];
@@ -660,10 +666,13 @@ function _openSrdMonsterPickerCore() {
   }
   if (edSel) edSel.value = _srdPickerState.edition;
   renderSrdMonsterPicker();
-  openModal("srd-monster-modal");
+  showScreen("monsters");
 }
 
-function closeSrdMonsterPicker() { _srdPickerBattleMode = false; closeModal("srd-monster-modal"); }
+function closeSrdMonsterPicker() {
+  _srdPickerBattleMode = false;
+  if (currentScreenName() === "monsters") screenBack();
+}
 
 function setSrdMonsterSearch(val)  { _srdPickerState.q = (val || "").toLowerCase().trim(); renderSrdMonsterPicker(); }
 function setSrdMonsterCr(val)      { _srdPickerState.cr = val || ""; renderSrdMonsterPicker(); }

@@ -13287,9 +13287,8 @@ mark.search-hl {
   flex: 1 1 0;
   min-width: 0;
 }
-@media (min-width: 768px) {
-  #add-monster-modal > .confirm-modal-box { max-height: calc(100dvh - 32px); overflow-y: auto; }
-}
+/* STYLE-15: на экране список идёт в общем потоке страницы, без своей прокрутки */
+#screen-monsters .srd-monster-results { max-height: none; overflow: visible; padding-right: 0; }
 .srd-monster-count {
   font-size: 0.78em;
   color: var(--text-muted);
