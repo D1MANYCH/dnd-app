@@ -291,6 +291,18 @@ function swTelegramBlock() {
     '</a>';
 }
 
+// ── Строка поддержки на Boosty — только в «Что нового», пустой URL → ничего ──
+function swSupportBlock() {
+  var url = (typeof APP_BOOSTY_URL === 'string') ? APP_BOOSTY_URL.trim() : '';
+  if (!url) return '';
+  return '<a class="sw-update-tg sw-update-support" href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' +
+      '<span class="home-bullet home-bullet--sm" aria-hidden="true"></span>' +
+      '<span class="sw-update-tg-text"><b>Поддержать на Boosty</b>' +
+        '<span class="sw-update-tg-sub">Добровольно — приложение остаётся бесплатным</span></span>' +
+      '<span class="sw-update-tg-arrow" aria-hidden="true">→</span>' +
+    '</a>';
+}
+
 // ── Окно "Установить обновление" (до установки — без changelog) ──
 function showUpdateModal(worker) {
   if ($('sw-update-modal')) return;
@@ -357,6 +369,7 @@ function showWhatsNewModal(prevVer, newVer) {
       '</div>' +
       '<div class="sw-update-safe">Все данные сохранены — ваши персонажи и заклинания на месте.</div>' +
       swTelegramBlock() +
+      swSupportBlock() +
       '<div class="sw-update-btns"><button class="sw-act sw-act--go" id="sw-update-now">Отлично</button></div>' +
     '</div>';
   document.body.appendChild(modal);
