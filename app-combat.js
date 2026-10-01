@@ -1295,6 +1295,10 @@ var RACE_BONUS_FEATS = { "Человек (вариант)": 1, "Своё про�
 var RACE_BONUS_FEATS_2024 = { "Человек": 1 };
 var RACE_STAT_PICKS = {
   "Полуэльф": ["str","dex","con","int","wis"],
+  "Полуэльф (лесное происхождение)": ["str","dex","con","int","wis"],
+  "Полуэльф (лунное или солнечное происхождение)": ["str","dex","con","int","wis"],
+  "Полуэльф (происхождение дроу)": ["str","dex","con","int","wis"],
+  "Полуэльф (водное происхождение)": ["str","dex","con","int","wis"],
   "Человек (вариант)": ["str","dex","con","int","wis","cha"]
 };
 var RACE_SKILL_PICKS = { "Человек (вариант)": 1, "Полуэльф": 2, "Дампир": 2, "Ведьмовская кровь": 2, "Возрождённый": 2, "Кенку": 2, "Людоящер": 2, "Гитьянки": 1 };
@@ -1403,7 +1407,7 @@ function renderRaceExtras() {
     if (!Array.isArray(char.raceStatChoice)) char.raceStatChoice = [];
     var statLabels = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
     var chosen = char.raceStatChoice;
-    html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' ' + escapeHtml(race) + ': +1 к двум характеристикам' + (race === "Полуэльф" ? ' (кроме ХАР)' : '') + '</div>';
+    html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' ' + escapeHtml(race) + ': +1 к двум характеристикам' + (race.indexOf("Полуэльф") === 0 ? ' (кроме ХАР)' : '') + '</div>';
     html += '<div class="race-extras-row">';
     RACE_STAT_PICKS[race].forEach(function(k) {
       var sel = chosen.indexOf(k) !== -1;

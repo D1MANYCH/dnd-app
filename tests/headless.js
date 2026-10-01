@@ -7882,10 +7882,10 @@
       return bad.length ? bad.join("; ") : true;
     });
 
-    t("[e24-4] 2014 не тронут: RACE_DATA 49 рас со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
+    t("[e24-4] 2014 не тронут: RACE_DATA 62 рас со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
       var r = edData({ edition:"2014" }).RACE_DATA;
       if (r === SPECIES_2024) return "2014 подменён";
-      if (Object.keys(r).length !== 49) return "рас 2014: " + Object.keys(r).length;
+      if (Object.keys(r).length !== 62) return "рас 2014: " + Object.keys(r).length;
       if (!r["Полуэльф"] || !r["Эльф"].stats || r["Эльф"].stats.dex !== 2) return "stats 2014 потеряны";
       if (r["Дварф"].speed !== 25) return "дварф 2014 — 25 фт";
       return true;
@@ -8454,6 +8454,8 @@
       ["Фирболг","Кенку","Людоящер","Табакси","Тритон","Багбир","Гоблин","Хобгоблин","Кобольд","Орк","Юань-ти чистокровный"].forEach(function(n){ want[n] = "VGtM"; });
       ["Ааракокра","Генази воздуха","Генази земли","Генази огня","Генази воды","Глубинный гном"].forEach(function(n){ want[n] = "EEPC"; });
       ["Эладрин","Морской эльф","Шадар-кай","Дуэргар","Гитьянки","Гитцерай"].forEach(function(n){ want[n] = "MTF"; });
+      ["Вельзевул","Диспатер","Фьёрна","Гласия","Левистус","Маммон","Мефистофель","Зариэль"].forEach(function(n){ want["Тифлинг (" + n + ")"] = "MTF"; });
+      ["Призрачный полурослик","Полуэльф (лесное происхождение)","Полуэльф (лунное или солнечное происхождение)","Полуэльф (происхождение дроу)","Полуэльф (водное происхождение)"].forEach(function(n){ want[n] = "SCAG"; });
       for (var r in RACE_DATA) {
         var src = RACE_DATA[r].source || "PHB";
         if (!SOURCE_LABELS[src]) return r + ": неизвестная книга " + src;
@@ -8526,6 +8528,23 @@
       if (RACE_WEAPONS_SPECIFIC["Гитьянки"].length !== 3 || RACE_WEAPONS_SPECIFIC["Морской эльф"].length !== 4 || !RACE_TOOLS["Дуэргар"]) return "владения";
       if (_raceSkillAllowance({ edition:"2014" }, "Гитьянки") !== 1) return "гитьянки: навык";
       if (RACE_NAME_GROUP["Эладрин"] !== "elf" || RACE_NAME_GROUP["Дуэргар"] !== "dwarf" || RACE_NAME_GROUP["Глубинный гном"] !== "gnome") return "группы имён";
+      return true;
+    });
+
+    t("[dop-7] варианты рас: 8 тифлингов MTF, призрачный полурослик и 4 полуэльфа SCAG", function(){
+      var tf = ["Вельзевул","Диспатер","Фьёрна","Гласия","Левистус","Маммон","Мефистофель","Зариэль"];
+      for (var i = 0; i < tf.length; i++) {
+        var n = "Тифлинг (" + tf[i] + ")", d = RACE_DATA[n];
+        if (!d || d.stats.cha !== 2 || Object.keys(d.stats).length !== 2 || !RACE_LANGUAGES[n] || RACE_NAME_GROUP[n] !== "tiefling") return n;
+      }
+      if (RACE_DATA["Тифлинг (Зариэль)"].stats.str !== 1 || RACE_DATA["Тифлинг (Фьёрна)"].stats.wis !== 1) return "прибавки тифлингов";
+      var g = RACE_DATA["Призрачный полурослик"];
+      if (!g || g.stats.dex !== 2 || g.stats.wis !== 1 || g.speed !== 25 || RACE_NAME_GROUP["Призрачный полурослик"] !== "halfling") return "призрачный полурослик";
+      var he = ["Полуэльф (лесное происхождение)","Полуэльф (лунное или солнечное происхождение)","Полуэльф (происхождение дроу)","Полуэльф (водное происхождение)"];
+      for (var j = 0; j < he.length; j++) {
+        if (!RACE_DATA[he[j]] || RACE_STAT_PICKS[he[j]].join() !== RACE_STAT_PICKS["Полуэльф"].join() || RACE_LANGUAGES[he[j]].choice !== 1) return he[j];
+        if (_raceSkillAllowance({ edition:"2014" }, he[j])) return he[j] + ": навыки вместо Универсальности";
+      }
       return true;
     });
 
