@@ -9254,6 +9254,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   margin-bottom: 10px;
 }
 .cl-toolbar-hint { font-size: 0.72em; color: var(--text-muted); }
+.cl-toolbar-links { display: flex; flex-wrap: wrap; gap: 0 14px; margin-left: auto; }
 /* STYLE-8M: переход в полный лог был кнопкой-коробкой — стал подписью с
    растущим подчёркиванием, как остальные действия окна. */
 .cl-full-log {

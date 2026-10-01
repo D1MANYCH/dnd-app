@@ -661,6 +661,20 @@ function _initAppLinks() {
     }
   }
   row.style.display = anyShown ? '' : 'none';
+  // SUP-3: строка меню и ссылка во вкладке «Изменения» — только при заданном URL Boosty
+  var boosty = (typeof APP_BOOSTY_URL === 'string') ? APP_BOOSTY_URL.trim() : '';
+  var supRow = document.getElementById('home-menu-support-row');
+  if (supRow) supRow.style.display = boosty ? '' : 'none';
+  var clSup = document.getElementById('cl-support-link');
+  if (clSup) {
+    if (boosty) clSup.href = boosty;
+    clSup.style.display = boosty ? '' : 'none';
+  }
+}
+
+function openSupportLink() {
+  var url = (typeof APP_BOOSTY_URL === 'string') ? APP_BOOSTY_URL.trim() : '';
+  if (url) window.open(url, '_blank', 'noopener');
 }
 document.addEventListener('DOMContentLoaded', _initAppLinks);
 
