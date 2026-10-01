@@ -645,7 +645,6 @@ function _initAppLinks() {
   if (!row) return;
   var links = [
     { id: 'app-link-tg',     url: (typeof APP_TELEGRAM_URL === 'string' ? APP_TELEGRAM_URL : '') },
-    { id: 'app-link-donate', url: (typeof APP_DONATE_URL   === 'string' ? APP_DONATE_URL   : '') },
     { id: 'app-link-boosty', url: (typeof APP_BOOSTY_URL   === 'string' ? APP_BOOSTY_URL   : '') },
   ];
   var anyShown = false;
