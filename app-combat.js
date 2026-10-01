@@ -1007,6 +1007,8 @@ function onRaceChange() {
           });
           charApply.raceStatChoice = [];
         }
+        if (charApply.raceFlexStats && Object.keys(charApply.raceFlexStats).length) _raceFlexApply(charApply, {});
+        charApply.raceVariableTrait = "";
         if (Array.isArray(charApply.raceSkillChoice) && charApply.raceSkillChoice.length) {
           charApply.raceSkillChoice.forEach(function(n) { _raceSkillSet(charApply, n, false); });
           charApply.raceSkillChoice = [];
@@ -1148,6 +1150,7 @@ function populateRaceSelect(char) {
       if (char && char.race === o.value) o.textContent += " · вне выбранных книг";
       else o.remove();
     });
+    Array.prototype.slice.call(sel.querySelectorAll("optgroup")).forEach(function(g) { if (!g.children.length) g.remove(); });
     return;
   }
   var tbl = edData(char).RACE_DATA || {};
@@ -1286,13 +1289,48 @@ function rollRandomName() {
 // ============================================
 // РАСОВЫЕ ДОП. ВЫБОРЫ — Человек (вариант): черта и +1+1, Полуэльф (+1+1)
 // ============================================
-var RACE_BONUS_FEATS = { "Человек (вариант)": 1 };
+var RACE_BONUS_FEATS = { "Человек (вариант)": 1, "Своё происхождение": 1 };
 var RACE_BONUS_FEATS_2024 = { "Человек": 1 };
 var RACE_STAT_PICKS = {
   "Полуэльф": ["str","dex","con","int","wis"],
   "Человек (вариант)": ["str","dex","con","int","wis","cha"]
 };
-var RACE_SKILL_PICKS = { "Человек (вариант)": 1, "Полуэльф": 2 };
+var RACE_SKILL_PICKS = { "Человек (вариант)": 1, "Полуэльф": 2, "Дампир": 2, "Ведьмовская кровь": 2, "Возрождённый": 2 };
+// DOP-2: гибкое происхождение — шаблоны прибавок: "21" = +2 и +1, "111" = +1 к трём, "2" = +2 к одной
+var RACE_FLEX_STATS = {
+  "Своё происхождение": ["2"],
+  "Дампир": ["21", "111"], "Ведьмовская кровь": ["21", "111"], "Возрождённый": ["21", "111"]
+};
+// Своё происхождение: выборочная особенность — тёмное зрение 60 фт или навык
+var RACE_VARIABLE_TRAIT = { "Своё происхождение": 1 };
+
+function _raceSkillAllowance(char, race) {
+  if (!char || char.edition === "2024") return 0;
+  if (RACE_VARIABLE_TRAIT[race]) return char.raceVariableTrait === "skill" ? 1 : 0;
+  return RACE_SKILL_PICKS[race] || 0;
+}
+
+function _raceFlexCount(m) {
+  var c = { two: 0, one: 0 };
+  Object.keys(m || {}).forEach(function(k) { if (m[k] === 2) c.two++; else if (m[k] === 1) c.one++; });
+  return c;
+}
+// done=false — частичный выбор, укладывающийся в один из шаблонов; done=true — шаблон заполнен
+function _raceFlexFits(m, modes, done) {
+  var c = _raceFlexCount(m);
+  return (modes || []).some(function(p) {
+    var t = (p.match(/2/g) || []).length, o = (p.match(/1/g) || []).length;
+    return done ? (c.two === t && c.one === o) : (c.two <= t && c.one <= o);
+  });
+}
+function _raceFlexApply(char, next) {
+  var cur = char.raceFlexStats || {};
+  ["str","dex","con","int","wis","cha"].forEach(function(k) {
+    var d = (next[k] || 0) - (cur[k] || 0);
+    if (d) char.stats[k] = Math.max(1, Math.min(30, (char.stats[k] || 10) + d));
+  });
+  char.raceFlexStats = next;
+}
 
 // Перерисовка панели выборов без потери фокуса: кнопка с тем же onclick снова в фокусе
 function _setExtrasHtml(panel, html) {
@@ -1316,6 +1354,8 @@ function renderRaceExtras() {
     var pending = [];
     if ((char.edition === "2024" ? RACE_BONUS_FEATS_2024 : RACE_BONUS_FEATS)[race]) pending.push("расовая черта");
     if (RACE_STAT_PICKS[race] && char.edition !== "2024") pending.push("+1 к двум характеристикам");
+    if (RACE_FLEX_STATS[race] && char.edition !== "2024") pending.push("характеристики на выбор");
+    if (RACE_VARIABLE_TRAIT[race] && char.edition !== "2024") pending.push("тёмное зрение или навык");
     if (RACE_SKILL_PICKS[race] && char.edition !== "2024") pending.push(RACE_SKILL_PICKS[race] > 1 ? "навыки на выбор" : "навык на выбор");
     var rl0 = (typeof edData === "function") && edData(char).RACE_LANGUAGES && edData(char).RACE_LANGUAGES[race];
     if (rl0 && rl0.choice > 0) pending.push(rl0.choice > 1 ? rl0.choice + " языка на выбор" : "язык на выбор");
@@ -1368,8 +1408,37 @@ function renderRaceExtras() {
     html += '</div>';
   }
 
+  // DOP-2: гибкое происхождение — +2/+1 или +1/+1/+1 (VRGR), +2 к одной (Своё происхождение)
+  var flexModes = char.edition !== "2024" ? RACE_FLEX_STATS[race] : null;
+  if (flexModes) {
+    var flex = char.raceFlexStats || {};
+    var fLabels = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
+    var hasOne = flexModes.some(function(p) { return p.indexOf("1") !== -1; });
+    html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' ' + escapeHtml(race) + ': ' +
+      (hasOne ? '+2 к одной характеристике и +1 к другой или +1 к трём разным' : '+2 к одной характеристике') + '</div>';
+    [2, 1].forEach(function(v) {
+      if (v === 1 && !hasOne) return;
+      html += '<div class="race-extras-row"><span style="min-width:2em;color:var(--text-dim);">+' + v + '</span>';
+      Object.keys(fLabels).forEach(function(k) {
+        html += '<button type="button" class="race-extras-stat-pick' + (flex[k] === v ? " selected" : "") +
+          '" onclick="toggleRaceFlexStat(\'' + k + '\',' + v + ')">' + fLabels[k] + '</button>';
+      });
+      html += '</div>';
+    });
+    if (!_raceFlexFits(flex, flexModes, true)) html += '<div class="race-extras-warn">Прибавки к характеристикам не выбраны полностью.</div>';
+  }
+  if (RACE_VARIABLE_TRAIT[race] && char.edition !== "2024") {
+    var vt = char.raceVariableTrait || "";
+    html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' ' + escapeHtml(race) + ': выборочная особенность</div>';
+    html += '<div class="race-extras-row">' +
+      '<button type="button" class="race-extras-stat-pick' + (vt === "darkvision" ? " selected" : "") + '" onclick="setRaceVariableTrait(\'darkvision\')">Тёмное зрение 60 фт</button>' +
+      '<button type="button" class="race-extras-stat-pick' + (vt === "skill" ? " selected" : "") + '" onclick="setRaceVariableTrait(\'skill\')">Владение навыком</button>' +
+      '</div>';
+    if (!vt) html += '<div class="race-extras-warn">Выборочная особенность не выбрана.</div>';
+  }
+
   // FB-3: Человек (вариант) — владение 1 навыком на выбор, Полуэльф — 2
-  var skillAllowance = char.edition !== "2024" ? (RACE_SKILL_PICKS[race] || 0) : 0;
+  var skillAllowance = _raceSkillAllowance(char, race);
   if (skillAllowance > 0) {
     if (!Array.isArray(char.raceSkillChoice)) char.raceSkillChoice = [];
     var skChosen = char.raceSkillChoice;
@@ -1455,6 +1524,51 @@ function toggleHalfElfStat(key) {
   renderRaceExtras();
 }
 
+function toggleRaceFlexStat(key, val) {
+  if (!currentId || sheetLockGuard()) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  var modes = RACE_FLEX_STATS[char.race];
+  if (!modes) return;
+  var cur = char.raceFlexStats || {}, next = {};
+  Object.keys(cur).forEach(function(k) { next[k] = cur[k]; });
+  if (next[key] === val) delete next[key];
+  else {
+    if (val === 2) Object.keys(next).forEach(function(k) { if (next[k] === 2) delete next[k]; });
+    next[key] = val;
+  }
+  if (!_raceFlexFits(next, modes, false)) {
+    showToast(modes.length > 1 ? "Можно +2 к одной и +1 к другой или +1 к трём разным. Снимите лишнее." : "Только +2 к одной характеристике.", "warning");
+    return;
+  }
+  _raceFlexApply(char, next);
+  ["str","dex","con","int","wis","cha"].forEach(function(k) {
+    safeSet("val-" + k, char.stats[k]);
+    if (typeof updateStatDisplay === "function") updateStatDisplay(k);
+  });
+  saveToLocal();
+  calcStats();
+  recalculateHP();
+  calculateAC();
+  renderRaceExtras();
+}
+
+function setRaceVariableTrait(v) {
+  if (!currentId || sheetLockGuard()) return;
+  var char = getCurrentChar();
+  if (!char || !RACE_VARIABLE_TRAIT[char.race]) return;
+  if (char.raceVariableTrait === v) return;
+  if (char.raceVariableTrait === "skill" && Array.isArray(char.raceSkillChoice)) {
+    char.raceSkillChoice.forEach(function(n) { _raceSkillSet(char, n, false); });
+    char.raceSkillChoice = [];
+  }
+  char.raceVariableTrait = v;
+  saveToLocal();
+  calcStats();
+  if (typeof updateSkillProfCount === "function") updateSkillProfCount();
+  renderRaceExtras();
+}
+
 // Отметить/снять владение навыком на листе и в char.skills (по имени из skills[])
 function _raceSkillSet(char, name, on) {
   var si = skills.findIndex(function(s) { return s.name === name; });
@@ -1476,7 +1590,7 @@ function toggleRaceSkill(si) {
   if (!currentId || sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char || !skills[si]) return;
-  var limit = RACE_SKILL_PICKS[char.race] || 0;
+  var limit = _raceSkillAllowance(char, char.race);
   if (!limit) return;
   if (!Array.isArray(char.raceSkillChoice)) char.raceSkillChoice = [];
   var name = skills[si].name;

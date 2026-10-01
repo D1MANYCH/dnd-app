@@ -7882,10 +7882,10 @@
       return bad.length ? bad.join("; ") : true;
     });
 
-    t("[e24-4] 2014 не тронут: RACE_DATA 22 расы со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
+    t("[e24-4] 2014 не тронут: RACE_DATA 26 рас со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
       var r = edData({ edition:"2014" }).RACE_DATA;
       if (r === SPECIES_2024) return "2014 подменён";
-      if (Object.keys(r).length !== 22) return "рас 2014: " + Object.keys(r).length;
+      if (Object.keys(r).length !== 26) return "рас 2014: " + Object.keys(r).length;
       if (!r["Полуэльф"] || !r["Эльф"].stats || r["Эльф"].stats.dex !== 2) return "stats 2014 потеряны";
       if (r["Дварф"].speed !== 25) return "дварф 2014 — 25 фт";
       return true;
@@ -8449,7 +8449,8 @@
     });
 
     t("[ed-3] метки книг 2014: source у рас — код из SOURCE_LABELS, без поля — PHB; заклинания PH14 только из PHB", function(){
-      var want = { "Голиаф":"VGtM", "Аасимар":"VGtM", "Тифлинг (Кровь Дьявола)":"SCAG" };
+      var want = { "Голиаф":"VGtM", "Аасимар":"VGtM", "Тифлинг (Кровь Дьявола)":"SCAG",
+        "Своё происхождение":"TCoE", "Дампир":"VRGR", "Ведьмовская кровь":"VRGR", "Возрождённый":"VRGR" };
       for (var r in RACE_DATA) {
         var src = RACE_DATA[r].source || "PHB";
         if (!SOURCE_LABELS[src]) return r + ": неизвестная книга " + src;
@@ -8457,6 +8458,33 @@
       }
       var n14 = SPELLS_BASE.filter(function(s){ return s.source === "PH14"; }).length;
       if (n14 !== 361) return "PH14 заклинаний " + n14;
+      return true;
+    });
+
+    t("[dop-2] гибкое происхождение: шаблоны +2/+1 и +1/+1/+1, применение и откат прибавок, навыки и черта", function(){
+      if (typeof _raceFlexFits !== "function") return "нет _raceFlexFits";
+      var lin = RACE_FLEX_STATS["Дампир"], cus = RACE_FLEX_STATS["Своё происхождение"];
+      if (!_raceFlexFits({ str:2, dex:1 }, lin, true)) return "+2/+1 не принят";
+      if (!_raceFlexFits({ str:1, dex:1, con:1 }, lin, true)) return "+1/+1/+1 не принят";
+      if (_raceFlexFits({ str:2, dex:1, con:1 }, lin, false)) return "+2/+1/+1 принят";
+      if (_raceFlexFits({ str:2, dex:2 }, lin, false)) return "две +2 приняты";
+      if (!_raceFlexFits({ str:2 }, cus, true) || _raceFlexFits({ str:2, dex:1 }, cus, false)) return "Своё происхождение не +2";
+      var c = { stats: { str:10, dex:10, con:10, int:10, wis:10, cha:10 } };
+      _raceFlexApply(c, { str:2, dex:1 });
+      if (c.stats.str !== 12 || c.stats.dex !== 11) return "применение " + JSON.stringify(c.stats);
+      _raceFlexApply(c, { con:1, wis:1, cha:1 });
+      if (c.stats.str !== 10 || c.stats.dex !== 10 || c.stats.con !== 11 || c.stats.cha !== 11) return "смена " + JSON.stringify(c.stats);
+      _raceFlexApply(c, {});
+      if (c.stats.con !== 10 || Object.keys(c.raceFlexStats).length) return "откат";
+      var c14 = { edition:"2014" };
+      if (_raceSkillAllowance(c14, "Дампир") !== 2) return "Дампир: 2 навыка";
+      if (_raceSkillAllowance(c14, "Своё происхождение") !== 0) return "навык без выбора особенности";
+      c14.raceVariableTrait = "skill";
+      if (_raceSkillAllowance(c14, "Своё происхождение") !== 1) return "навык по особенности";
+      if (_raceSkillAllowance({ edition:"2024", raceVariableTrait:"skill" }, "Своё происхождение") !== 0) return "2024 задет";
+      if (RACE_BONUS_FEATS["Своё происхождение"] !== 1) return "черта";
+      for (var r in RACE_FLEX_STATS) if (!RACE_DATA[r] || !RACE_LANGUAGES[r]) return r + ": нет в RACE_DATA/RACE_LANGUAGES";
+      if (RACE_DATA["Дампир"].speed !== 35) return "Дампир 35 фт";
       return true;
     });
 

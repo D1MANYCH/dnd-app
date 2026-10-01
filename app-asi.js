@@ -600,6 +600,7 @@ var _ag = null; // { mode: "pb"|"std"|"roll", pb: {}, std: {}, rolls: [{ total, 
 function _agBonus(char, k) {
   var b = (char.appliedRaceBonus && char.appliedRaceBonus[k]) || 0;
   if (Array.isArray(char.raceStatChoice) && char.raceStatChoice.indexOf(k) !== -1) b += 1;
+  b += (char.raceFlexStats && char.raceFlexStats[k]) || 0;
   if (char.bgStatChoice && char.bgStatChoice.alloc && typeof _bgAppliedStat === "function") b += _bgAppliedStat(char, k);
   return b;
 }
