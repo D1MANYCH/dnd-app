@@ -475,6 +475,10 @@ function rulesAC(char) {
       if (dexBonus !== 0) pFormula.push((dexBonus > 0 ? "+" : "") + dexBonus + " (ЛОВ)");
       var pMods = [];
       if (armBonus) { pFormula.push((armBonus > 0 ? "+" : "") + armBonus + " (магия)"); pMods.push({name:armItem.name,value:armBonus,type:armBonus > 0 ? "active" : "negative"}); }
+      // DOP-5: людоящер берёт природный доспех, если надетый даёт меньше (VGtM стр.113)
+      if (char.race === "Людоящер" && char.edition !== "2024" && 13 + dexMod > pAc) {
+        pAc = 13 + dexMod; pFormula = ["13 (природный доспех)", (dexMod >= 0 ? "+" : "") + dexMod + " (ЛОВ)"]; pMods = [{name:"Природный доспех",value:pAc - 10,type:"active"}];
+      }
       if (hasShieldSelected) { pAc += shieldAc; pFormula.push("+" + shieldAc + " (щит)"); pMods.push({name:shieldName,value:shieldAc,type:"active"}); }
       // AUD-8 (R9): боевой стиль «Защита» — +1 КД в доспехе (PHB стр.72)
       if (rulesHasFightingStyle(char, "defense")) { pAc += 1; pFormula.push("+1 (Защита)"); pMods.push({name:"Защита",value:1,type:"active"}); }
@@ -543,6 +547,10 @@ function rulesAC(char) {
     } else {
       ways.push({ ac: 13 + dexMod, formula: ["13 (драконья чешуя)", sgn(dexMod) + " (ЛОВ)"], mod: "Драконья устойчивость" });
     }
+  }
+  // DOP-5: «Природный доспех» людоящера — 13 + ЛОВ, щит работает (VGtM стр.113)
+  if (char.race === "Людоящер" && char.edition !== "2024") {
+    ways.push({ ac: 13 + dexMod, formula: ["13 (природный доспех)", sgn(dexMod) + " (ЛОВ)"], mod: "Природный доспех" });
   }
   if (rulesHasDazzlingFootwork(char) && !hasShieldSelected) {
     var chaModDance = getMod(char.stats.cha);

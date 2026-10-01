@@ -7882,10 +7882,10 @@
       return bad.length ? bad.join("; ") : true;
     });
 
-    t("[e24-4] 2014 не тронут: RACE_DATA 26 рас со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
+    t("[e24-4] 2014 не тронут: RACE_DATA 37 рас со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
       var r = edData({ edition:"2014" }).RACE_DATA;
       if (r === SPECIES_2024) return "2014 подменён";
-      if (Object.keys(r).length !== 26) return "рас 2014: " + Object.keys(r).length;
+      if (Object.keys(r).length !== 37) return "рас 2014: " + Object.keys(r).length;
       if (!r["Полуэльф"] || !r["Эльф"].stats || r["Эльф"].stats.dex !== 2) return "stats 2014 потеряны";
       if (r["Дварф"].speed !== 25) return "дварф 2014 — 25 фт";
       return true;
@@ -8451,6 +8451,7 @@
     t("[ed-3] метки книг 2014: source у рас — код из SOURCE_LABELS, без поля — PHB; заклинания PH14 только из PHB", function(){
       var want = { "Голиаф":"VGtM", "Аасимар":"VGtM", "Тифлинг (Кровь Дьявола)":"SCAG",
         "Своё происхождение":"TCoE", "Дампир":"VRGR", "Ведьмовская кровь":"VRGR", "Возрождённый":"VRGR" };
+      ["Фирболг","Кенку","Людоящер","Табакси","Тритон","Багбир","Гоблин","Хобгоблин","Кобольд","Орк","Юань-ти чистокровный"].forEach(function(n){ want[n] = "VGtM"; });
       for (var r in RACE_DATA) {
         var src = RACE_DATA[r].source || "PHB";
         if (!SOURCE_LABELS[src]) return r + ": неизвестная книга " + src;
@@ -8485,6 +8486,27 @@
       if (RACE_BONUS_FEATS["Своё происхождение"] !== 1) return "черта";
       for (var r in RACE_FLEX_STATS) if (!RACE_DATA[r] || !RACE_LANGUAGES[r]) return r + ": нет в RACE_DATA/RACE_LANGUAGES";
       if (RACE_DATA["Дампир"].speed !== 35) return "Дампир 35 фт";
+      return true;
+    });
+
+    t("[dop-5] расы Воло: 11 рас VGtM с языками, навыки из списка, природный доспех людоящера", function(){
+      var vg = ["Фирболг","Кенку","Людоящер","Табакси","Тритон","Багбир","Гоблин","Хобгоблин","Кобольд","Орк","Юань-ти чистокровный"];
+      for (var i = 0; i < vg.length; i++) {
+        var d = RACE_DATA[vg[i]];
+        if (!d || d.source !== "VGtM" || !RACE_LANGUAGES[vg[i]]) return vg[i] + ": нет данных/языков";
+      }
+      if (RACE_DATA["Кобольд"].stats.str !== -2 || RACE_DATA["Орк"].stats.int !== -2) return "штрафы −2";
+      if (_raceSkillAllowance({ edition:"2014" }, "Кенку") !== 2 || _raceSkillAllowance({ edition:"2014" }, "Людоящер") !== 2) return "2 навыка";
+      if (RACE_SKILL_FROM["Кенку"].length !== 4 || RACE_SKILL_FROM["Людоящер"].length !== 5) return "списки навыков";
+      for (var r in RACE_SKILL_FROM) RACE_SKILL_FROM[r].forEach(function(n){ if (!skills.some(function(s){ return s.name === n; })) throw new Error("нет навыка " + n); });
+      var lz = { race:"Людоящер", edition:"2014", stats:{ str:10, dex:14, con:14, int:10, wis:12, cha:10 }, combat:{ armorId:"none" }, effects:[], classes:[{ class:"Воин", level:1 }] };
+      if (rulesAC(lz).ac !== 15) return "КД людоящера " + rulesAC(lz).ac;
+      lz.combat.hasShield = true;
+      if (rulesAC(lz).ac !== 17) return "КД людоящера со щитом " + rulesAC(lz).ac;
+      lz.combat = { armorId:"padded" };
+      if (rulesAC(lz).ac !== 15) return "КД людоящера в стёганом " + rulesAC(lz).ac;
+      if (rulesAC({ race:"Людоящер", edition:"2024", stats:lz.stats, combat:{ armorId:"none" }, effects:[], classes:[{ class:"Воин", level:1 }] }).ac !== 12) return "2024 задет";
+      if (!RACE_ARMOR["Хобгоблин"] || RACE_ARMOR["Хобгоблин"].armor[0] !== "light") return "хобгоблин: лёгкие доспехи";
       return true;
     });
 

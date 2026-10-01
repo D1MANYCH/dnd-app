@@ -1297,7 +1297,12 @@ var RACE_STAT_PICKS = {
   "Полуэльф": ["str","dex","con","int","wis"],
   "Человек (вариант)": ["str","dex","con","int","wis","cha"]
 };
-var RACE_SKILL_PICKS = { "Человек (вариант)": 1, "Полуэльф": 2, "Дампир": 2, "Ведьмовская кровь": 2, "Возрождённый": 2 };
+var RACE_SKILL_PICKS = { "Человек (вариант)": 1, "Полуэльф": 2, "Дампир": 2, "Ведьмовская кровь": 2, "Возрождённый": 2, "Кенку": 2, "Людоящер": 2 };
+// DOP-5: расы Воло выбирают навыки только из своего списка
+var RACE_SKILL_FROM = {
+  "Кенку": ["Акробатика", "Обман", "Скрытность", "Ловкость рук"],
+  "Людоящер": ["Уход за животными", "Природа", "Внимательность", "Скрытность", "Выживание"]
+};
 // DOP-2: гибкое происхождение — шаблоны прибавок: "21" = +2 и +1, "111" = +1 к трём, "2" = +2 к одной
 var RACE_FLEX_STATS = {
   "Своё происхождение": ["2"],
@@ -1448,6 +1453,7 @@ function renderRaceExtras() {
       (skillAllowance > 1 ? 'владение ' + skillAllowance + ' навыками на выбор' : 'владение навыком на выбор') + '</div>';
     html += '<div class="race-extras-row">';
     skills.forEach(function(s, si) {
+      if (RACE_SKILL_FROM[race] && RACE_SKILL_FROM[race].indexOf(s.name) === -1) return;
       var sel = skChosen.indexOf(s.name) !== -1;
       html += '<button type="button" class="race-extras-stat-pick' + (sel ? " selected" : "") +
         '" onclick="toggleRaceSkill(' + si + ')">' + escapeHtml(s.name) + '</button>';
@@ -1596,6 +1602,7 @@ function toggleRaceSkill(si) {
   if (!limit) return;
   if (!Array.isArray(char.raceSkillChoice)) char.raceSkillChoice = [];
   var name = skills[si].name;
+  if (RACE_SKILL_FROM[char.race] && RACE_SKILL_FROM[char.race].indexOf(name) === -1) return;
   var pos = char.raceSkillChoice.indexOf(name);
   if (pos !== -1) {
     char.raceSkillChoice.splice(pos, 1);
