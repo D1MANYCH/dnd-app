@@ -1301,16 +1301,19 @@ var RACE_STAT_PICKS = {
   "Полуэльф (водное происхождение)": ["str","dex","con","int","wis"],
   "Человек (вариант)": ["str","dex","con","int","wis","cha"]
 };
-var RACE_SKILL_PICKS = { "Человек (вариант)": 1, "Полуэльф": 2, "Дампир": 2, "Ведьмовская кровь": 2, "Возрождённый": 2, "Кенку": 2, "Людоящер": 2, "Гитьянки": 1 };
+var RACE_SKILL_PICKS = { "Человек (вариант)": 1, "Полуэльф": 2, "Дампир": 2, "Ведьмовская кровь": 2, "Возрождённый": 2, "Кенку": 2, "Людоящер": 2, "Гитьянки": 1, "Чейнджлинг": 2, "Кованый": 1 };
 // DOP-5: расы Воло выбирают навыки только из своего списка
 var RACE_SKILL_FROM = {
   "Кенку": ["Акробатика", "Обман", "Скрытность", "Ловкость рук"],
-  "Людоящер": ["Уход за животными", "Природа", "Внимательность", "Скрытность", "Выживание"]
+  "Людоящер": ["Уход за животными", "Природа", "Внимательность", "Скрытность", "Выживание"],
+  "Чейнджлинг": ["Запугивание", "Обман", "Проницательность", "Убеждение"]
 };
 // DOP-2: гибкое происхождение — шаблоны прибавок: "21" = +2 и +1, "111" = +1 к трём, "2" = +2 к одной
 var RACE_FLEX_STATS = {
   "Своё происхождение": ["2"],
-  "Дампир": ["21", "111"], "Ведьмовская кровь": ["21", "111"], "Возрождённый": ["21", "111"]
+  "Дампир": ["21", "111"], "Ведьмовская кровь": ["21", "111"], "Возрождённый": ["21", "111"],
+  // DOP-8: Эберрон — фиксированная +2 в RACE_DATA, здесь +1 к одной другой
+  "Чейнджлинг": ["1"], "Кованый": ["1"]
 };
 // Своё происхождение: выборочная особенность — тёмное зрение 60 фт или навык
 var RACE_VARIABLE_TRAIT = { "Своё происхождение": 1 };
@@ -1425,12 +1428,16 @@ function renderRaceExtras() {
     var flex = char.raceFlexStats || {};
     var fLabels = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
     var hasOne = flexModes.some(function(p) { return p.indexOf("1") !== -1; });
+    var hasTwo = flexModes.some(function(p) { return p.indexOf("2") !== -1; });
+    var fixedSt = (RACE_DATA[race] && RACE_DATA[race].stats) || {};
     html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' ' + escapeHtml(race) + ': ' +
-      (hasOne ? '+2 к одной характеристике и +1 к другой или +1 к трём разным' : '+2 к одной характеристике') + '</div>';
+      (!hasTwo ? '+1 к одной другой характеристике' : hasOne ? '+2 к одной характеристике и +1 к другой или +1 к трём разным' : '+2 к одной характеристике') + '</div>';
     [2, 1].forEach(function(v) {
       if (v === 1 && !hasOne) return;
+      if (v === 2 && !hasTwo) return;
       html += '<div class="race-extras-row"><span style="min-width:2em;color:var(--text-dim);">+' + v + '</span>';
       Object.keys(fLabels).forEach(function(k) {
+        if (fixedSt[k]) return;
         html += '<button type="button" class="race-extras-stat-pick' + (flex[k] === v ? " selected" : "") +
           '" onclick="toggleRaceFlexStat(\'' + k + '\',' + v + ')">' + fLabels[k] + '</button>';
       });
@@ -1546,6 +1553,7 @@ function toggleRaceFlexStat(key, val) {
   Object.keys(cur).forEach(function(k) { next[k] = cur[k]; });
   if (next[key] === val) delete next[key];
   else {
+    if (modes.join() === "1") Object.keys(next).forEach(function(k) { delete next[k]; });
     if (val === 2) Object.keys(next).forEach(function(k) { if (next[k] === 2) delete next[k]; });
     next[key] = val;
   }

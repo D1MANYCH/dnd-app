@@ -7882,10 +7882,10 @@
       return bad.length ? bad.join("; ") : true;
     });
 
-    t("[e24-4] 2014 не тронут: RACE_DATA 62 рас со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
+    t("[e24-4] 2014 не тронут: RACE_DATA 69 рас со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
       var r = edData({ edition:"2014" }).RACE_DATA;
       if (r === SPECIES_2024) return "2014 подменён";
-      if (Object.keys(r).length !== 62) return "рас 2014: " + Object.keys(r).length;
+      if (Object.keys(r).length !== 69) return "рас 2014: " + Object.keys(r).length;
       if (!r["Полуэльф"] || !r["Эльф"].stats || r["Эльф"].stats.dex !== 2) return "stats 2014 потеряны";
       if (r["Дварф"].speed !== 25) return "дварф 2014 — 25 фт";
       return true;
@@ -8456,6 +8456,7 @@
       ["Эладрин","Морской эльф","Шадар-кай","Дуэргар","Гитьянки","Гитцерай"].forEach(function(n){ want[n] = "MTF"; });
       ["Вельзевул","Диспатер","Фьёрна","Гласия","Левистус","Маммон","Мефистофель","Зариэль"].forEach(function(n){ want["Тифлинг (" + n + ")"] = "MTF"; });
       ["Призрачный полурослик","Полуэльф (лесное происхождение)","Полуэльф (лунное или солнечное происхождение)","Полуэльф (происхождение дроу)","Полуэльф (водное происхождение)"].forEach(function(n){ want[n] = "SCAG"; });
+      ["Чейнджлинг","Калаштар","Шифтер (зверошкур)","Шифтер (длиннозуб)","Шифтер (быстроног)","Шифтер (дикий охотник)","Кованый"].forEach(function(n){ want[n] = "ERLW"; });
       for (var r in RACE_DATA) {
         var src = RACE_DATA[r].source || "PHB";
         if (!SOURCE_LABELS[src]) return r + ": неизвестная книга " + src;
@@ -8548,6 +8549,23 @@
       return true;
     });
 
+    t("[dop-8] Эберрон: 7 рас, +1 на выбор у чейнджлинга и кованого, КД +1 у кованого", function(){
+      var ns = ["Чейнджлинг","Калаштар","Шифтер (зверошкур)","Шифтер (длиннозуб)","Шифтер (быстроног)","Шифтер (дикий охотник)","Кованый"];
+      for (var i = 0; i < ns.length; i++) if (!RACE_DATA[ns[i]] || !RACE_LANGUAGES[ns[i]]) return ns[i];
+      if (RACE_FLEX_STATS["Чейнджлинг"].join() !== "1" || RACE_FLEX_STATS["Кованый"].join() !== "1") return "flex +1";
+      if (!_raceFlexFits({ dex:1 }, ["1"], true) || _raceFlexFits({ dex:1, str:1 }, ["1"], false)) return "шаблон 1";
+      if (RACE_SKILL_FROM["Чейнджлинг"].length !== 4 || _raceSkillAllowance({ edition:"2014" }, "Чейнджлинг") !== 2) return "навыки чейнджлинга";
+      if (_raceSkillAllowance({ edition:"2014" }, "Кованый") !== 1 || !RACE_TOOLS["Кованый"]) return "конструкция кованого";
+      if (RACE_LANGUAGES["Калаштар"].fixed.indexOf("Квори") === -1) return "Квори";
+      var c = { race:"Кованый", edition:"2014", stats:{ str:10, dex:14, con:14, int:10, wis:10, cha:10 }, combat:{ armorId:"none" } };
+      if (rulesAC(c).ac !== 13) return "без доспеха " + rulesAC(c).ac;
+      c.combat.armorId = "chain_mail";
+      var ac = rulesAC(c).ac;
+      c.race = "Человек";
+      if (ac - rulesAC(c).ac !== 1) return "в доспехе " + ac;
+      return true;
+    });
+
     t("[ed-4] книги персонажа: миграция включает все, PHB всегда, выключенная книга скрывает подкласс", function(){
       var c = migrateCharacter({ id: 41, class: "Воин", level: 3, schemaVersion: 40 });
       if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion " + c.schemaVersion;
@@ -8568,7 +8586,7 @@
       if (DEFAULT_CHARACTER.books.join() !== BOOK_CODES.join()) return "DEFAULT_CHARACTER.books ≠ BOOK_CODES";
       var m = migrateCharacter({ id: 44, class: "Воин", level: 3, schemaVersion: 43, books: ["TCoE"] });
       if (m.books.indexOf("FTD") === -1 || m.books.indexOf("XGtE") !== -1) return "миграция v44: " + m.books.join();
-      if (booksWithContent().indexOf("XGtE") === -1 || booksWithContent().indexOf("ERLW") !== -1) return "booksWithContent " + booksWithContent().join();
+      if (booksWithContent().indexOf("XGtE") === -1 || booksWithContent().indexOf("GGR") !== -1) return "booksWithContent " + booksWithContent().join();
       var prev = booksOff().slice();
       try {
         setBooksOff(["XGtE"]);

@@ -480,6 +480,8 @@ function rulesAC(char) {
         pAc = 13 + dexMod; pFormula = ["13 (природный доспех)", (dexMod >= 0 ? "+" : "") + dexMod + " (ЛОВ)"]; pMods = [{name:"Природный доспех",value:pAc - 10,type:"active"}];
       }
       if (hasShieldSelected) { pAc += shieldAc; pFormula.push("+" + shieldAc + " (щит)"); pMods.push({name:shieldName,value:shieldAc,type:"active"}); }
+      // DOP-8: «Встроенная защита» кованого — +1 КД (ERLW)
+      if (char.race === "Кованый" && char.edition !== "2024") { pAc += 1; pFormula.push("+1 (Встроенная защита)"); pMods.push({name:"Встроенная защита",value:1,type:"active"}); }
       // AUD-8 (R9): боевой стиль «Защита» — +1 КД в доспехе (PHB стр.72)
       if (rulesHasFightingStyle(char, "defense")) { pAc += 1; pFormula.push("+1 (Защита)"); pMods.push({name:"Защита",value:1,type:"active"}); }
       // Apply magic effects on top
@@ -564,6 +566,11 @@ function rulesAC(char) {
   ac = best.ac;
   formulaParts = best.formula;
   if (best.mod) modifiers.push({name: best.mod, value: ac - 10, type: "active"});
+  if (char.race === "Кованый" && char.edition !== "2024") {
+    ac += 1;
+    formulaParts.push("+1 (Встроенная защита)");
+    modifiers.push({name: "Встроенная защита", value: 1, type: "active"});
+  }
   if (hasShieldSelected) {
     ac += shieldAc;
     formulaParts.push("+" + shieldAc + " (щит)");
