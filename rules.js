@@ -479,6 +479,11 @@ function rulesAC(char) {
       if (char.race === "Людоящер" && char.edition !== "2024" && 13 + dexMod > pAc) {
         pAc = 13 + dexMod; pFormula = ["13 (природный доспех)", (dexMod >= 0 ? "+" : "") + dexMod + " (ЛОВ)"]; pMods = [{name:"Природный доспех",value:pAc - 10,type:"active"}];
       }
+      // DOP-9: локсодон — природный доспех 12 + ТЕЛ, если надетый даёт меньше (GGR)
+      var loxCon = getMod(char.stats.con);
+      if (char.race === "Локсодон" && char.edition !== "2024" && 12 + loxCon > pAc) {
+        pAc = 12 + loxCon; pFormula = ["12 (природный доспех)", (loxCon >= 0 ? "+" : "") + loxCon + " (ТЕЛ)"]; pMods = [{name:"Природный доспех",value:pAc - 10,type:"active"}];
+      }
       if (hasShieldSelected) { pAc += shieldAc; pFormula.push("+" + shieldAc + " (щит)"); pMods.push({name:shieldName,value:shieldAc,type:"active"}); }
       // DOP-8: «Встроенная защита» кованого — +1 КД (ERLW)
       if (char.race === "Кованый" && char.edition !== "2024") { pAc += 1; pFormula.push("+1 (Встроенная защита)"); pMods.push({name:"Встроенная защита",value:1,type:"active"}); }
@@ -553,6 +558,11 @@ function rulesAC(char) {
   // DOP-5: «Природный доспех» людоящера — 13 + ЛОВ, щит работает (VGtM стр.113)
   if (char.race === "Людоящер" && char.edition !== "2024") {
     ways.push({ ac: 13 + dexMod, formula: ["13 (природный доспех)", sgn(dexMod) + " (ЛОВ)"], mod: "Природный доспех" });
+  }
+  // DOP-9: «Природный доспех» локсодона — 12 + ТЕЛ, щит работает (GGR)
+  if (char.race === "Локсодон" && char.edition !== "2024") {
+    var loxConMod = getMod(char.stats.con);
+    ways.push({ ac: 12 + loxConMod, formula: ["12 (природный доспех)", sgn(loxConMod) + " (ТЕЛ)"], mod: "Природный доспех" });
   }
   if (rulesHasDazzlingFootwork(char) && !hasShieldSelected) {
     var chaModDance = getMod(char.stats.cha);

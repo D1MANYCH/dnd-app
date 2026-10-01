@@ -7882,10 +7882,10 @@
       return bad.length ? bad.join("; ") : true;
     });
 
-    t("[e24-4] 2014 не тронут: RACE_DATA 69 рас со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
+    t("[e24-4] 2014 не тронут: RACE_DATA 83 рас со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
       var r = edData({ edition:"2014" }).RACE_DATA;
       if (r === SPECIES_2024) return "2014 подменён";
-      if (Object.keys(r).length !== 69) return "рас 2014: " + Object.keys(r).length;
+      if (Object.keys(r).length !== 83) return "рас 2014: " + Object.keys(r).length;
       if (!r["Полуэльф"] || !r["Эльф"].stats || r["Эльф"].stats.dex !== 2) return "stats 2014 потеряны";
       if (r["Дварф"].speed !== 25) return "дварф 2014 — 25 фт";
       return true;
@@ -8457,6 +8457,10 @@
       ["Вельзевул","Диспатер","Фьёрна","Гласия","Левистус","Маммон","Мефистофель","Зариэль"].forEach(function(n){ want["Тифлинг (" + n + ")"] = "MTF"; });
       ["Призрачный полурослик","Полуэльф (лесное происхождение)","Полуэльф (лунное или солнечное происхождение)","Полуэльф (происхождение дроу)","Полуэльф (водное происхождение)"].forEach(function(n){ want[n] = "SCAG"; });
       ["Чейнджлинг","Калаштар","Шифтер (зверошкур)","Шифтер (длиннозуб)","Шифтер (быстроног)","Шифтер (дикий охотник)","Кованый"].forEach(function(n){ want[n] = "ERLW"; });
+      ["Кентавр","Локсодон","Минотавр","Гибрид Симиков","Ведалкен"].forEach(function(n){ want[n] = "GGR"; });
+      ["Леонинец","Сатир"].forEach(function(n){ want[n] = "MOoT"; });
+      ["Бледный эльф","Полурослик Лотосовой лощины","Драконорождённый (драконокровный)","Драконорождённый (равенит)"].forEach(function(n){ want[n] = "EGtW"; });
+      ["хроматический","металлический","самоцветный"].forEach(function(n){ want["Драконорождённый (" + n + ")"] = "FTD"; });
       for (var r in RACE_DATA) {
         var src = RACE_DATA[r].source || "PHB";
         if (!SOURCE_LABELS[src]) return r + ": неизвестная книга " + src;
@@ -8566,6 +8570,22 @@
       return true;
     });
 
+    t("[dop-9] сеттинги: 14 рас, гибкие прибавки FTD и Симиков, навыки по списку, КД локсодона 12 + ТЕЛ", function(){
+      var ns = ["Кентавр","Локсодон","Минотавр","Гибрид Симиков","Ведалкен","Леонинец","Сатир","Бледный эльф","Полурослик Лотосовой лощины","Драконорождённый (драконокровный)","Драконорождённый (равенит)","Драконорождённый (хроматический)","Драконорождённый (металлический)","Драконорождённый (самоцветный)"];
+      for (var i = 0; i < ns.length; i++) if (!RACE_DATA[ns[i]] || !RACE_LANGUAGES[ns[i]] || !RACE_NAME_GROUP[ns[i]] && i > 6) return ns[i];
+      if (RACE_FLEX_STATS["Гибрид Симиков"].join() !== "1" || RACE_FLEX_STATS["Драконорождённый (самоцветный)"].join() !== "21,111") return "flex";
+      if (Object.keys(RACE_DATA["Драконорождённый (хроматический)"].stats).length) return "FTD без фиксированных прибавок";
+      if (_raceSkillAllowance({ edition:"2014" }, "Минотавр") !== 1 || RACE_SKILL_FROM["Ведалкен"].length !== 6) return "навыки";
+      if (!RACE_TOOLS["Ведалкен"] || !RACE_TOOLS["Сатир"]) return "инструменты";
+      var c = { race:"Локсодон", edition:"2014", stats:{ str:10, dex:14, con:16, int:10, wis:10, cha:10 }, combat:{ armorId:"none" } };
+      if (rulesAC(c).ac !== 15) return "без доспеха " + rulesAC(c).ac;
+      c.combat.armorId = "leather";
+      if (rulesAC(c).ac !== 15) return "кожаный " + rulesAC(c).ac;
+      c.combat.armorId = "chain_mail";
+      if (rulesAC(c).ac !== 16) return "кольчуга " + rulesAC(c).ac;
+      return true;
+    });
+
     t("[ed-4] книги персонажа: миграция включает все, PHB всегда, выключенная книга скрывает подкласс", function(){
       var c = migrateCharacter({ id: 41, class: "Воин", level: 3, schemaVersion: 40 });
       if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion " + c.schemaVersion;
@@ -8586,7 +8606,7 @@
       if (DEFAULT_CHARACTER.books.join() !== BOOK_CODES.join()) return "DEFAULT_CHARACTER.books ≠ BOOK_CODES";
       var m = migrateCharacter({ id: 44, class: "Воин", level: 3, schemaVersion: 43, books: ["TCoE"] });
       if (m.books.indexOf("FTD") === -1 || m.books.indexOf("XGtE") !== -1) return "миграция v44: " + m.books.join();
-      if (booksWithContent().indexOf("XGtE") === -1 || booksWithContent().indexOf("GGR") !== -1) return "booksWithContent " + booksWithContent().join();
+      if (booksWithContent().indexOf("XGtE") === -1 || booksWithContent().indexOf("WBtW") !== -1) return "booksWithContent " + booksWithContent().join();
       var prev = booksOff().slice();
       try {
         setBooksOff(["XGtE"]);
