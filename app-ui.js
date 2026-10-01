@@ -421,6 +421,8 @@ function getResourceMax(res, char) {
   if (raw === "cha")         return Math.max(1, getMod(char.stats.cha));
   if (raw === "cha_plus1")   return Math.max(1, getMod(char.stats.cha) + 1);
   if (raw === "wis")         return Math.max(1, getMod(char.stats.wis));
+  if (raw === "con")         return Math.max(1, getMod(char.stats.con));  // DOP-4: Рыцарь Эха
+  if (raw === "int")         return Math.max(1, getMod(char.stats.int));  // DOP-4: хронургия/гравитургия
   if (raw === "level5")      return level * 5;  // Наложение рук — пул ХП
   if (raw === 99)            return 99; // Безлимит (Ярость 20 ур.)
   return parseInt(raw, 10) || 0;

@@ -8508,7 +8508,7 @@
       if (DEFAULT_CHARACTER.books.join() !== BOOK_CODES.join()) return "DEFAULT_CHARACTER.books ≠ BOOK_CODES";
       var m = migrateCharacter({ id: 44, class: "Воин", level: 3, schemaVersion: 43, books: ["TCoE"] });
       if (m.books.indexOf("FTD") === -1 || m.books.indexOf("XGtE") !== -1) return "миграция v44: " + m.books.join();
-      if (booksWithContent().indexOf("XGtE") === -1 || booksWithContent().indexOf("FTD") !== -1) return "booksWithContent " + booksWithContent().join();
+      if (booksWithContent().indexOf("XGtE") === -1 || booksWithContent().indexOf("MTF") !== -1) return "booksWithContent " + booksWithContent().join();
       var prev = booksOff().slice();
       try {
         setBooksOff(["XGtE"]);
