@@ -929,6 +929,17 @@ function migrateCharacter(char) {
     }
     char.schemaVersion = 43;
   }
+  if (v < 44) {
+    // DOP-3: зарегистрированы все книги дополнений — у сохранённых персонажей включены,
+    // дальше контентным фазам миграции не нужны. Выключенные игроком старые книги не трогаем.
+    if (Array.isArray(char.books)) {
+      ["MTF", "EEPC", "FTD", "BGG", "ERLW", "GGR", "MOoT", "EGtW", "SCC", "AAG", "AI",
+       "WBtW", "DSotDQ", "TTP", "OGA", "LR"].forEach(function(c) {
+        if (char.books.indexOf(c) === -1) char.books.push(c);
+      });
+    }
+    char.schemaVersion = 44;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

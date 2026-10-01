@@ -2997,7 +2997,7 @@
       if (charHasBook({ books:["XGtE"] }, BACKGROUND_SKILLS["Придворный"].source)) return "книга SCAG не фильтрует";
       if (BACKGROUND_SKILLS["Преследуемый"].source !== "VRGR" || BOOK_CODES.indexOf("VRGR") === -1) return "VRGR";
       var m = migrateCharacter({ id: 43, class: "Воин", level: 3, schemaVersion: 41, books: ["SCAG"] });
-      if (m.books.join() !== "SCAG,VRGR" || m.schemaVersion !== SCHEMA_VERSION) return "миграция v42: " + m.books.join();
+      if (m.books.slice(0, 2).join() !== "SCAG,VRGR" || m.schemaVersion !== SCHEMA_VERSION) return "миграция v42: " + m.books.join();
       return true;
     });
     t("[FIN-4] +Шарлатан и +Беспризорник присутствуют", function(){
@@ -8493,12 +8493,28 @@
       if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion " + c.schemaVersion;
       if (!Array.isArray(c.books) || c.books.length !== BOOK_CODES.length) return "books " + JSON.stringify(c.books);
       var kept = migrateCharacter({ id: 42, class: "Воин", level: 3, schemaVersion: 40, books: ["DMG"] });
-      if (kept.books.join() !== "DMG,VRGR") return "затёрт books: " + kept.books.join();
+      if (kept.books.slice(0, 2).join() !== "DMG,VRGR" || kept.books.indexOf("XGtE") !== -1) return "затёрт books: " + kept.books.join();
       c.books = [];
       if (!charHasBook(c, "PHB") || !charHasBook(c, "PH24")) return "PHB выключен";
       if (subclassInBooks("Самурай", c)) return "Самурай (XGtE) виден без книги";
       if (!subclassInBooks("Чемпион", c)) return "Чемпион скрыт";
       if (!charHasBook(null, "XGtE") || !charHasBook({}, "XGtE")) return "без books должно быть всё";
+      return true;
+    });
+
+    t("[dop-3] книги: реестр с kind, DEFAULT_CHARACTER = BOOK_CODES, глобальный выкл пересекается с char.books", function(){
+      var kinds = { core: 1, rules: 1, setting: 1, adventure: 1, hb: 1 };
+      for (var k in SOURCE_LABELS) if (!kinds[SOURCE_LABELS[k].kind]) return k + ": нет kind";
+      if (DEFAULT_CHARACTER.books.join() !== BOOK_CODES.join()) return "DEFAULT_CHARACTER.books ≠ BOOK_CODES";
+      var m = migrateCharacter({ id: 44, class: "Воин", level: 3, schemaVersion: 43, books: ["TCoE"] });
+      if (m.books.indexOf("FTD") === -1 || m.books.indexOf("XGtE") !== -1) return "миграция v44: " + m.books.join();
+      if (booksWithContent().indexOf("XGtE") === -1 || booksWithContent().indexOf("FTD") !== -1) return "booksWithContent " + booksWithContent().join();
+      var prev = booksOff().slice();
+      try {
+        setBooksOff(["XGtE"]);
+        if (charHasBook({ books: ["XGtE"] }, "XGtE") || charHasBook(null, "XGtE")) return "глобальный выкл не скрыл XGtE";
+        if (!charHasBook({ books: ["TCoE"] }, "TCoE") || !charHasBook(null, "PHB")) return "лишнее скрыто";
+      } finally { setBooksOff(prev); }
       return true;
     });
 

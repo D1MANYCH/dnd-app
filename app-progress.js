@@ -787,7 +787,10 @@ function _mlRender() {
       if (at && r.level >= at && subs.length) {
         var so = '<option value="">Подкласс — выбрать позже</option>';
         subs.forEach(function(s) {
-          so += '<option value="' + escapeHtml(s) + '"' + (r.sub === s ? " selected" : "") + ">" + escapeHtml(s) + "</option>";
+          // DOP-3: подкласс вне книг скрыт (уже выбранный остаётся), у остальных — метка источника.
+          if (!subclassInBooks(s, char) && r.sub !== s) return;
+          var src = subclassSourceShort(s, char);
+          so += '<option value="' + escapeHtml(s) + '"' + (r.sub === s ? " selected" : "") + ">" + escapeHtml(src ? s + " · " + src : s) + "</option>";
         });
         html += '<select class="field flat-field ml-sub" onchange="mlSetSub(' + i + ',this.value)">' + so + "</select>";
       } else if (at) {

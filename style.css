@@ -1161,6 +1161,18 @@ html.glass-adjusting *::after {
 }
 /* У первой строки страницы верхняя граница лишняя — её роль играет .page-head */
 .settings-modal-body .theme-picker-row:first-child { border-top: none; }
+/* DOP-3: экран «Книги и дополнения» — заголовки групп и короткий код книги */
+.books-group-title {
+  margin: var(--sp-4) 0 var(--sp-1);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--home-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.books-group-title + .theme-picker-row { border-top: none; }
+.books-short { color: var(--home-sub); font-size: var(--fs-sm); }
 
 /* STYLE-8M: каскад появления строк. Перезапускается сам — у закрытой модалки
    .hidden даёт display:none, анимации на скрытом не крутятся. */

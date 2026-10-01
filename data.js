@@ -26,7 +26,7 @@ function safeImageSrc(src) {
 }
 
 // ── Версия схемы персонажа — увеличивать при изменении структуры ──────────────
-const SCHEMA_VERSION = 43;
+const SCHEMA_VERSION = 44;
 
 // ── Типы урона PHB 5e ──────────────────────────────────────────────────────────
 const DAMAGE_TYPES = [
@@ -47,7 +47,8 @@ const DEFAULT_CHARACTER = {
   race:       "",
   gender:     "",
   background: "",
-  books:      ["XGtE", "TCoE", "SCAG", "DMG", "VGtM", "VRGR", "HB"],  // ED-4: включённые дополнения
+  books:      ["DMG", "XGtE", "TCoE", "SCAG", "VGtM", "VRGR", "MTF", "EEPC", "FTD", "BGG", "ERLW", "GGR", "MOoT",
+               "EGtW", "SCC", "AAG", "AI", "WBtW", "DSotDQ", "TTP", "OGA", "LR", "HB"],  // ED-4/DOP-3: = BOOK_CODES
   alignment:  "",
   deity:      "",
   size:       "Средний",
@@ -597,16 +598,33 @@ const SUBCLASSES = {
 // Откуда взят подкласс: базовая книга (PHB) vs дополнение (DMG/XGtE/TCoE/SCAG)
 // vs авторский (HB — нет в официальных книгах). Метка показывается в дропдауне
 // выбора, на экране level-up и в «Плане класса». Ключ = точное имя подкласса.
+// DOP-3: kind — группа на экране «Книги и дополнения»: core / rules / setting / adventure / hb.
 const SOURCE_LABELS = {
-  "PHB":  { short: "PHB",      full: "Книга игрока (базовая)",           dlc: false },
-  "DMG":  { short: "DMG",      full: "Руководство мастера",             dlc: true  },
-  "XGtE": { short: "XGtE",     full: "Всё о Ксанафаре",                 dlc: true  },
-  "TCoE": { short: "Tasha's",  full: "Котёл всякой всячины Таши",       dlc: true  },
-  "SCAG": { short: "SCAG",     full: "Путеводитель по Побережью Мечей", dlc: true  },
-  "VGtM": { short: "Volo",     full: "Путеводитель Воло по монстрам",   dlc: true  },
-  "VRGR": { short: "VRGR",     full: "Путеводитель Ван Рихтена по Равенлофту", dlc: true },
-  "PH24": { short: "PHB 2024", full: "Книга игрока 2024",                dlc: false },
-  "HB":   { short: "авторский",full: "Не из официальных книг (хоумбрю)", dlc: false }
+  "PHB":  { short: "PHB",      full: "Книга игрока (базовая)",           dlc: false, kind: "core" },
+  "DMG":  { short: "DMG",      full: "Руководство мастера",             dlc: true,  kind: "core" },
+  "XGtE": { short: "XGtE",     full: "Всё о Ксанафаре",                 dlc: true,  kind: "rules" },
+  "TCoE": { short: "Tasha's",  full: "Котёл всякой всячины Таши",       dlc: true,  kind: "rules" },
+  "SCAG": { short: "SCAG",     full: "Путеводитель по Побережью Мечей", dlc: true,  kind: "setting" },
+  "VGtM": { short: "Volo",     full: "Путеводитель Воло по монстрам",   dlc: true,  kind: "rules" },
+  "VRGR": { short: "VRGR",     full: "Путеводитель Ван Рихтена по Равенлофту", dlc: true, kind: "setting" },
+  "MTF":  { short: "MTF",      full: "Том врагов Морденкайнена",        dlc: true,  kind: "rules" },
+  "EEPC": { short: "EEPC",     full: "Стихийное зло: Компаньон игрока", dlc: true,  kind: "rules" },
+  "FTD":  { short: "Fizban",   full: "Сокровищница драконов Физбана",   dlc: true,  kind: "rules" },
+  "BGG":  { short: "Bigby",    full: "Бигби представляет: Слава великанов", dlc: true, kind: "rules" },
+  "ERLW": { short: "Eberron",  full: "Эберрон: Восход после Последней войны", dlc: true, kind: "setting" },
+  "GGR":  { short: "GGR",      full: "Путеводитель гильдмастера по Равнике", dlc: true, kind: "setting" },
+  "MOoT": { short: "Theros",   full: "Мифические одиссеи Тероса",       dlc: true,  kind: "setting" },
+  "EGtW": { short: "EGtW",     full: "Путеводитель исследователя по Уайлдмаунту", dlc: true, kind: "setting" },
+  "SCC":  { short: "Strixhaven", full: "Стриксхейвен: Учебный план хаоса", dlc: true, kind: "setting" },
+  "AAG":  { short: "Spelljammer", full: "Spelljammer: Приключения в Астральном море", dlc: true, kind: "setting" },
+  "AI":   { short: "AI",       full: "Корпорация «Приобретения»",       dlc: true,  kind: "setting" },
+  "WBtW": { short: "Witchlight", full: "Дикий мир за Ведьминым Светом", dlc: true,  kind: "adventure" },
+  "DSotDQ": { short: "DSotDQ", full: "Сага о Копье: Тень Королевы драконов", dlc: true, kind: "adventure" },
+  "TTP":  { short: "TTP",      full: "Набор тортла",                    dlc: true,  kind: "adventure" },
+  "OGA":  { short: "OGA",      full: "Грунг на высоте",                 dlc: true,  kind: "adventure" },
+  "LR":   { short: "LR",       full: "Восход локатахов",                dlc: true,  kind: "adventure" },
+  "PH24": { short: "PHB 2024", full: "Книга игрока 2024",                dlc: false, kind: "core" },
+  "HB":   { short: "авторский",full: "Не из официальных книг (хоумбрю)", dlc: false, kind: "hb" }
 };
 const SUBCLASS_SOURCE = {
   // ═══ Базовая книга (PHB) ═══
@@ -673,9 +691,36 @@ function subclassSourceFull(name, char) {
 }
 // ED-4: книги-дополнения персонажа. char.books — включённые коды; PHB/PH24 всегда.
 // Нет массива (или нет персонажа) — доступно всё.
-const BOOK_CODES = ["XGtE", "TCoE", "SCAG", "DMG", "VGtM", "VRGR", "HB"];
+// DOP-3: все коды реестра, кроме PHB/PH24.
+const BOOK_CODES = Object.keys(SOURCE_LABELS).filter(function(c) { return c !== "PHB" && c !== "PH24"; });
+// DOP-3: глобально выключенные книги — ключ dnd_books, JSON-массив выключенных кодов
+// (книга, которой нет в списке, включена). Пересекается с char.books в charHasBook.
+var _booksOffCache = null;
+function booksOff() {
+  if (_booksOffCache) return _booksOffCache;
+  var v = null;
+  try { v = JSON.parse(localStorage.getItem("dnd_books") || "[]"); } catch (e) {}
+  _booksOffCache = Array.isArray(v) ? v : [];
+  return _booksOffCache;
+}
+function setBooksOff(list) {
+  _booksOffCache = list.slice();
+  try { localStorage.setItem("dnd_books", JSON.stringify(_booksOffCache)); } catch (e) {}
+}
+function bookGloballyOn(code) {
+  return !code || code === "PHB" || code === "PH24" || booksOff().indexOf(code) === -1;
+}
+// Коды книг, у которых в данных есть расы, подклассы или предыстории: только их показывает UI.
+function booksWithContent() {
+  var has = {};
+  Object.keys(SUBCLASS_SOURCE).forEach(function(k) { has[SUBCLASS_SOURCE[k]] = true; });
+  Object.keys(RACE_DATA).forEach(function(k) { if (RACE_DATA[k].source) has[RACE_DATA[k].source] = true; });
+  Object.keys(BACKGROUND_SKILLS).forEach(function(k) { if (BACKGROUND_SKILLS[k].source) has[BACKGROUND_SKILLS[k].source] = true; });
+  return BOOK_CODES.filter(function(c) { return has[c]; });
+}
 function charHasBook(char, code) {
   if (!code || code === "PHB" || code === "PH24") return true;
+  if (!bookGloballyOn(code)) return false;
   if (!char || !Array.isArray(char.books)) return true;
   return char.books.indexOf(code) !== -1;
 }
@@ -2502,7 +2547,7 @@ const XP_THRESHOLDS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "4.24.0";
+const APP_VERSION = "4.25.0";
 const APP_VERSION_DATE = "2026-10-02";
 
 // ============================================================
@@ -2855,9 +2900,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "4.24.0",
+    version: "4.25.0",
     date: "2 октября 2026",
     badge: "new",
+    changes: [
+      { type: "feat", text: "feat(books): экран «Книги и дополнения» в настройках — книги сгруппированы (основные, правила и расы, сеттинги, приключения, авторское), у каждой Вкл/Выкл, пресеты «Только PHB» и «Все официальные»; выключенная книга скрывает свои расы, подклассы и предыстории у всех персонажей, ряд «Дополнения» в листе показывает только включённые; зарегистрированы коды книг для следующих дополнений (MTF, EEPC, Fizban, Bigby, Eberron, Равника, Терос, Уайлдмаунт, Стриксхейвен, Spelljammer и др.), у сохранённых персонажей они включены; в раскладке классов и окне мультикласса подклассы фильтруются по книгам и подписаны источником" }
+    ]
+  },
+  {
+    version: "4.24.0",
+    date: "2 октября 2026",
+    badge: "old",
     changes: [
       { type: "feat", text: "races: расы 2014 из дополнений — «Своё происхождение» (Котёл Таши: +2 к одной характеристике на выбор, черта, тёмное зрение 60 фт или навык, язык на выбор) и линии Ван Рихтена «Дампир» (35 фт), «Ведьмовская кровь», «Возрождённый» (+2 и +1 или +1 к трём разным характеристикам на выбор, 2 навыка, язык на выбор); прибавки выбираются в панели расы после фиксации основы и снимаются при смене расы; в списке рас появился «Тифлинг (Кровь Дьявола)»; без книг Tasha's и VRGR новые расы скрыты. Всего рас 2014 — 26" }
     ]

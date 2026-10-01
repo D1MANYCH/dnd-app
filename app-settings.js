@@ -343,6 +343,77 @@ function _syncEditionSplitButtons() {
   });
 }
 document.addEventListener('DOMContentLoaded', _syncEditionSplitButtons);
+// DOP-3: экран «Книги и дополнения» — глобальный выбор книг (ключ dnd_books, data.js).
+// Показываются только книги с контентом; авторское (HB) — отдельной строкой.
+var BOOK_KIND_TITLES = { core: 'Основные книги', rules: 'Правила и расы', setting: 'Сеттинги', adventure: 'Приключения' };
+function openBooksScreen() {
+  _renderBooksScreen();
+  if (typeof showScreen === 'function') showScreen('books');
+}
+function _bookRowHtml(code, label) {
+  var lbl = SOURCE_LABELS[code];
+  var on = bookGloballyOn(code);
+  return '<div class="theme-picker-row">' +
+    '<span class="theme-picker-label">' + escapeHtml(label || lbl.full) + ' <span class="books-short">· ' + escapeHtml(lbl.short) + '</span></span>' +
+    '<div class="theme-picker-btns" role="radiogroup" aria-label="' + escapeHtml(lbl.full) + '">' +
+      '<button type="button" class="theme-picker-btn' + (on ? ' is-active' : '') + '" onclick="setBookOn(\'' + code + '\',true)">Вкл</button>' +
+      '<button type="button" class="theme-picker-btn' + (on ? '' : ' is-active') + '" onclick="setBookOn(\'' + code + '\',false)">Выкл</button>' +
+    '</div></div>';
+}
+function _renderBooksScreen() {
+  var body = document.getElementById('books-body');
+  if (!body) return;
+  var codes = booksWithContent();
+  var html = '<div class="theme-picker-row">' +
+    '<span class="theme-picker-label">Быстрый выбор</span>' +
+    '<div class="theme-picker-btns">' +
+      '<button type="button" class="theme-picker-btn" onclick="setBooksPreset(\'phb\')" title="Только Книга игрока: дополнения скрыты">Только PHB</button>' +
+      '<button type="button" class="theme-picker-btn" onclick="setBooksPreset(\'all\')" title="Все официальные книги; авторское не меняется">Все официальные</button>' +
+    '</div></div>';
+  ['core', 'rules', 'setting', 'adventure'].forEach(function (kind) {
+    var list = codes.filter(function (c) { return SOURCE_LABELS[c].kind === kind; });
+    if (!list.length) return;
+    html += '<h3 class="books-group-title">' + BOOK_KIND_TITLES[kind] + '</h3>';
+    list.forEach(function (c) { html += _bookRowHtml(c); });
+  });
+  if (codes.indexOf('HB') !== -1) {
+    html += '<h3 class="books-group-title">Авторское</h3>' + _bookRowHtml('HB', 'Подклассы не из официальных книг');
+  }
+  html += '<p class="ag-note">Книги персонажа выбираются в листе, ряд «Дополнения». Там показываются только книги, включённые здесь.</p>';
+  body.innerHTML = html;
+}
+function setBookOn(code, on) {
+  var off = booksOff().filter(function (c) { return c !== code; });
+  if (!on) off.push(code);
+  setBooksOff(off);
+  _afterBooksChange();
+}
+function setBooksPreset(which) {
+  var hbOff = !bookGloballyOn('HB');
+  var off = which === 'phb' ? BOOK_CODES.filter(function (c) { return c !== 'HB'; }) : [];
+  if (hbOff) off.push('HB');
+  setBooksOff(off);
+  _afterBooksChange();
+}
+function _afterBooksChange() {
+  _renderBooksScreen();
+  _syncBooksSummary();
+  var char = (typeof currentId !== 'undefined' && currentId && typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+  if (!char || typeof renderBooksRow !== 'function') return;
+  updateSubclassOptions();
+  populateRaceSelect(char);
+  safeSet('char-race', char.race);
+  populateBackgroundSelect(char);
+  safeSet('char-background', char.background);
+  renderBooksRow();
+}
+function _syncBooksSummary() {
+  var btn = document.getElementById('books-summary-btn');
+  if (!btn) return;
+  var codes = booksWithContent();
+  btn.textContent = codes.filter(bookGloballyOn).length + ' из ' + codes.length;
+}
+document.addEventListener('DOMContentLoaded', _syncBooksSummary);
 document.addEventListener('visibilitychange', _applyWakeLock);
 document.addEventListener('DOMContentLoaded', function () { _syncWakeLockButtons(); _applyWakeLock(); });
 

@@ -337,8 +337,11 @@ document.addEventListener("DOMContentLoaded", function() {
       subRow.style.display = "";
       subSel.innerHTML = '<option value="">—</option>';
       edData(char).SUBCLASSES[cls].forEach(function(sc) {
+        // DOP-3: подклассы вне книг скрыты, у остальных — метка источника.
+        if (!subclassInBooks(sc, char)) return;
+        var src = subclassSourceShort(sc, char);
         var o = document.createElement("option");
-        o.value = sc; o.textContent = sc;
+        o.value = sc; o.textContent = src ? sc + " · " + src : sc;
         subSel.appendChild(o);
       });
     } else {

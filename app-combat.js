@@ -1109,14 +1109,16 @@ function renderBooksRow() {
   var char = currentId ? getCurrentChar() : null;
   if (!box || !char) return;
   var locked = !!char.basicLocked;
-  box.innerHTML = BOOK_CODES.map(function(code) {
+  // DOP-3: только книги с контентом и включённые на экране «Книги и дополнения».
+  var codes = booksWithContent().filter(bookGloballyOn);
+  box.innerHTML = codes.map(function(code) {
     var lbl = SOURCE_LABELS[code] || { short: code, full: code };
     return '<button type="button" class="book-btn' + (charHasBook(char, code) ? ' active' : '') + '"' +
       (locked ? ' disabled' : '') + ' title="' + escapeHtml(lbl.full) + '" onclick="toggleCharBook(\'' + code + '\')">' +
       escapeHtml(lbl.short) + '</button>';
   }).join("");
   var col = box.closest && box.closest(".col");
-  if (col) col.classList.toggle("basic-field-locked", locked);
+  if (col) { col.classList.toggle("basic-field-locked", locked); col.style.display = codes.length ? "" : "none"; }
 }
 function toggleCharBook(code) {
   var char = currentId ? getCurrentChar() : null;
