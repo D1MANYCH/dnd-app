@@ -1190,6 +1190,11 @@ function _subclassSpellNames(char) {
       if ((c.level || 1) < Number(k)) return;
       ss.byLevel[k].forEach(function(n) { out[String(n).replace(/\s*\([^)]*\)\s*$/, "")] = true; });
     });
+    // DOP-1: «Мастерство магии» Домена магии (SCAG) — выбранные заклинания 6–9 уровня тоже заклинания домена
+    if (c.subclass === "Домен магии" && (c.level || 1) >= 17) {
+      var picks = (char.classChoices && char.classChoices[c.class]) || {};
+      [6, 7, 8, 9].forEach(function(l) { if (picks["arcane-mastery-" + l]) out[picks["arcane-mastery-" + l]] = true; });
+    }
   });
   return out;
 }

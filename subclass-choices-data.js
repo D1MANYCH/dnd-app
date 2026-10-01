@@ -140,6 +140,18 @@ var RUNE_KNIGHT_RUNES = {
   "storm":  {name:"Штормовая руна", desc:"Пассивно: преимущество на проверки Магии, вас нельзя застать врасплох. Активация (бонусным действием): пророческое состояние на 1 минуту — реакцией меняете бросок атаки, проверку или спасбросок существа в 18 м.", req:{level:7}}
 };
 
+// ── Домен магии (Жрец, SCAG) — заговоры и заклинания 6–9 уровня волшебника (PHB 2014) ──
+function _wizardSpellDict(level) {
+  var out = {};
+  if (typeof SPELLS_BASE === "undefined") return out;
+  SPELLS_BASE.forEach(function(s) {
+    if (s.source === "PH14" && s.level === level && s.classes.indexOf("wizard") !== -1) out[s.name] = {name: s.name, desc: s.desc};
+  });
+  return out;
+}
+var ARCANA_CANTRIPS = _wizardSpellDict(0);
+var ARCANA_MASTERY = {6: _wizardSpellDict(6), 7: _wizardSpellDict(7), 8: _wizardSpellDict(8), 9: _wizardSpellDict(9)};
+
 // ── Подклассовые выборы (параллельно CLASS_CHOICES) ─────────
 var SUBCLASS_CHOICES = {
 
@@ -325,6 +337,56 @@ var SUBCLASS_CHOICES = {
       optionsDict: RUNE_KNIGHT_RUNES,
       filterByReq: true,
       desc: "Выберите руны (2 на 3 ур., +1 на 7/10/15). Холмовая и Штормовая — с 7 ур."
+    }
+  ],
+
+  // ═══ ЖРЕЦ: Домен магии ═══ (DOP-1, SCAG)
+  "Домен магии": [
+    {
+      id: "arcane-initiate",
+      name: "Начинающий маг",
+      type: "multi",
+      minLevel: 1,
+      getCount: function() { return 2; },
+      options: Object.keys(ARCANA_CANTRIPS),
+      optionsDict: ARCANA_CANTRIPS,
+      desc: "Выберите 2 заговора из списка волшебника — для вас это заговоры жреца."
+    },
+    {
+      id: "arcane-mastery-6",
+      name: "Мастерство магии: 6 уровень",
+      type: "single",
+      minLevel: 17,
+      options: Object.keys(ARCANA_MASTERY[6]),
+      optionsDict: ARCANA_MASTERY[6],
+      desc: "Заклинание 6 уровня из списка волшебника: заклинание домена, всегда подготовлено (17 ур.)."
+    },
+    {
+      id: "arcane-mastery-7",
+      name: "Мастерство магии: 7 уровень",
+      type: "single",
+      minLevel: 17,
+      options: Object.keys(ARCANA_MASTERY[7]),
+      optionsDict: ARCANA_MASTERY[7],
+      desc: "Заклинание 7 уровня из списка волшебника: заклинание домена, всегда подготовлено (17 ур.)."
+    },
+    {
+      id: "arcane-mastery-8",
+      name: "Мастерство магии: 8 уровень",
+      type: "single",
+      minLevel: 17,
+      options: Object.keys(ARCANA_MASTERY[8]),
+      optionsDict: ARCANA_MASTERY[8],
+      desc: "Заклинание 8 уровня из списка волшебника: заклинание домена, всегда подготовлено (17 ур.)."
+    },
+    {
+      id: "arcane-mastery-9",
+      name: "Мастерство магии: 9 уровень",
+      type: "single",
+      minLevel: 17,
+      options: Object.keys(ARCANA_MASTERY[9]),
+      optionsDict: ARCANA_MASTERY[9],
+      desc: "Заклинание 9 уровня из списка волшебника: заклинание домена, всегда подготовлено (17 ур.)."
     }
   ]
 };
@@ -794,6 +856,34 @@ var SUBCLASS_RESOURCES = {
       5: ["Притворная смерть (Feign Death)", "Разговор с мёртвыми (Speak with Dead)"],
       7: ["Аура жизни (Aura of Life)", "Защита от смерти (Death Ward)"],
       9: ["Заражение (Contagion)", "Знание легенд (Legend Lore)"]
+    } } }
+  },
+
+  // ═══ ЖРЕЦ: Домен магии — заклинания домена ═══ (DOP-1, SCAG)
+  "Домен магии": {
+    passive: { subclassSpells: { label: "Заклинания домена магии", icon: "🔮", byLevel: {
+      1: ["Обнаружение магии (Detect Magic)", "Волшебная стрела (Magic Missile)"],
+      3: ["Магическое оружие (Magic Weapon)", "Нистулова ложная аура (Nystul's Magic Aura)"],
+      5: ["Рассеивание магии (Dispel Magic)", "Магический круг (Magic Circle)"],
+      7: ["Магический глаз (Arcane Eye)", "Леомундов потайной сундук (Leomund's Secret Chest)"],
+      9: ["Планарные узы (Planar Binding)", "Круг телепортации (Teleportation Circle)"]
+    } } }
+  },
+
+  // ═══ КОЛДУН: Нежить — расширенный список заклинаний, Ужасающий облик ═══ (DOP-1, VRGR)
+  "Нежить": {
+    resources: [
+      { id: "form_of_dread", name: "Ужасающий облик", icon: "💀", color: "#7d3c98",
+        maxByLevel: { 1:2, 2:2, 3:2, 4:2, 5:3, 6:3, 7:3, 8:3, 9:4, 10:4, 11:4, 12:4, 13:5, 14:5, 15:5, 16:5, 17:6, 18:6, 19:6, 20:6 },
+        restoreOn: "long",
+        desc: "Бонусным действием на 1 минуту: временные хиты 1к10 + уровень колдуна, испуг при попадании (спасбросок Мудрости), невосприимчивость к испугу. Число = бонусу мастерства." }
+    ],
+    passive: { subclassSpells: { label: "Заклинания покровителя-нежити", icon: "⚰️", byLevel: {
+      1: ["Порча (Bane)", "Псевдожизнь (False Life)"],
+      3: ["Глухота/слепота (Blindness/Deafness)", "Воображаемая сила (Phantasmal Force)"],
+      5: ["Призрачный скакун (Phantom Steed)", "Разговор с мёртвыми (Speak with Dead)"],
+      7: ["Защита от смерти (Death Ward)", "Высшая невидимость (Greater Invisibility)"],
+      9: ["Преграда жизни (Antilife Shell)", "Облако смерти (Cloudkill)"]
     } } }
   }
 };
