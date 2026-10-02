@@ -543,12 +543,44 @@ if (value < 0) value = 0;
 input.value = value;
 updateChar();
 updateCoinTotal();
+var mob = $("coin-mob-" + coinType);
+if (mob) mob.value = value;
+}
+// MOB-4 С1: кошель на телефоне — строка-сводка и шторка с ± и разменом
+var COIN_ORDER = [["gp", "Золото", "#c9a040"], ["pp", "Платина", "#9b59b6"], ["sp", "Серебро", "#aaa"], ["ep", "Электрум", "#4a8bc9"], ["cp", "Медь", "#a0522d"]];
+function renderCoinMob() {
+  var row = $("coin-mob");
+  if (!row) return;
+  var parts = [];
+  COIN_ORDER.forEach(function(c) {
+    var v = parseInt(($("coin-" + c[0]) || {}).value, 10) || 0;
+    if (v) parts.push(v + " " + COIN_NAMES[c[0]]);
+  });
+  row.textContent = (parts.length ? parts.join(" · ") : "Пусто") + " →";
+}
+function openCoinSheet() {
+  openMobSheet("Кошель", COIN_ORDER.map(function(c) {
+    var v = parseInt(($("coin-" + c[0]) || {}).value, 10) || 0;
+    return '<div class="mob-sheet-row mob-coin-row"><span class="inv-coin-dot" style="background:' + c[2] + '"></span>' +
+      '<span class="mob-coin-lbl">' + c[1] + '</span>' +
+      '<button type="button" class="mob-coin-btn" onclick="adjustCoin(\'' + c[0] + '\',-1)" aria-label="Минус">−</button>' +
+      '<input type="number" inputmode="numeric" min="0" id="coin-mob-' + c[0] + '" class="mob-coin-inp" value="' + v + '" oninput="setCoinFromSheet(\'' + c[0] + '\', this.value)">' +
+      '<button type="button" class="mob-coin-btn" onclick="adjustCoin(\'' + c[0] + '\',1)" aria-label="Плюс">+</button></div>';
+  }).join("") + mobSheetActs([["⇄ Разменять", "openCoinExchange()"]]));
+}
+function setCoinFromSheet(coinType, val) {
+  var input = $("coin-" + coinType);
+  if (!input) return;
+  input.value = Math.max(0, parseInt(val, 10) || 0);
+  updateChar();
+  updateCoinTotal();
 }
 function updateCoinTotal() {
 // Авто-конвертация всех монет в золото убрана намеренно: в игре монеты
 // не разменять мгновенно (медь в глуши, требование платины и т.п.).
 // Кошель показывает только курс обмена (статичная справка + модалка размена).
 renderPouches();
+renderCoinMob();
 }
 
 // Coin rates in CP

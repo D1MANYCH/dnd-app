@@ -15423,7 +15423,19 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   #tab-sheet .abil-card-score .stat-btn-sm { height: 44px !important; }
   #tab-sheet .abil-card-head { min-height: 44px; align-items: center; }
   #tab-sheet .hp-step { min-width: 44px; }
+
+  /* С1: кошель — строка-сводка, ± и размен в шторке */
+  .inv-coins-grid, .inv-coin-total { display: none; }
+  .mob-coin-row { gap: 8px; padding: 0; color: var(--text-color); cursor: default; }
+  .mob-coin-lbl { flex: 1; min-width: 0; }
+  .mob-coin-btn {
+    width: 44px; height: 44px; margin: 0; padding: 0;
+    background: none; border: 0; box-shadow: none;
+    color: var(--accent-lo); font-size: 20px; cursor: pointer;
+  }
+  .mob-coin-inp { width: 72px; margin: 0; text-align: center; }
 }
+.mob-sheet-text { margin: 0; padding: 8px 0; line-height: 1.55; color: var(--text-color); }
 
 /* ── A2: карточка основы — поля плоскими строками ── */
 #tab-sheet .identity-card label,
@@ -16587,6 +16599,28 @@ select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select):focus { ba
 /* Уровень без ячеек — одна строка: счётчик 0/0 говорит то же, что подпись. */
 #tab-spells .spell-slot-empty .ssl-diamonds { display: none; }
 #tab-spells .ssl-none { font-size: var(--fs-sm); color: var(--text-muted); font-style: italic; }
+/* MOB-4: мобильная «Магия» — ниже правил вкладки, иначе их перебивают */
+@media (max-width: 1023px) {
+  /* MOB-4 В1: ± ячеек — 44×44 */
+  #tab-spells .ssl-controls { gap: 0; margin: 0 4px; }
+  #tab-spells .ssl-btn { min-width: 44px; min-height: 44px; font-size: 20px; text-decoration: none; }
+  /* В2: только уровни с ячейками; остальные — по строке #ssl-all-mob */
+  #tab-spells .spell-slots-visual.ssl-has:not(.ssl-all) > .spell-slot-empty { display: none; }
+  #tab-spells .spell-slots-visual:not(.ssl-has):not(.ssl-all) > .spell-slot-empty:not(:first-child) { display: none; }
+  /* В3: «Мод · СЛ · Атака» одной строкой, пояснение — шторка */
+  #tab-spells .sc-stats-row { display: flex; }
+  #tab-spells .sc-stat-block {
+    flex: 1; display: flex; align-items: baseline; justify-content: center; gap: 6px;
+    min-height: 44px; padding: 10px 0; border-top: 0;
+  }
+  #tab-spells .sc-stat-block::before {
+    content: attr(data-short); position: static; width: auto; height: auto;
+    border: 0; background: none; transform: none;
+    color: var(--home-sub); font-family: var(--font-display); font-size: var(--fs-sm);
+  }
+  #tab-spells .sc-stat-block + .sc-stat-block { border-left: 1px solid var(--home-rule); }
+  #tab-spells .sc-stat-label, #tab-spells .sc-stat-block .sc-stat-body { display: none; }
+}
 
 
 /* ============================================

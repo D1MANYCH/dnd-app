@@ -8,7 +8,20 @@
 // раскрывать; текст объяснений лежит в разметке (index.html).
 function toggleSpellStatRow(el) {
   if (!el) return;
+  // MOB-4 В3: на телефоне три значения в одну строку, пояснение — в шторке
+  if (window.matchMedia && window.matchMedia("(max-width: 1023px)").matches && typeof openMobSheet === "function") {
+    var lbl = el.querySelector(".sc-stat-label"), body = el.querySelector(".sc-stat-body");
+    openMobSheet(lbl ? lbl.textContent : "", '<p class="mob-sheet-text">' + escapeHtml(body ? body.textContent : "") + '</p>');
+    return;
+  }
   el.classList.toggle("expanded");
+}
+// MOB-4 В2: на телефоне уровни без ячеек скрыты, строка под списком их показывает
+function toggleEmptySlotLevels() {
+  var c = $("spell-slots-visual"), b = $("ssl-all-mob");
+  if (!c) return;
+  var on = c.classList.toggle("ssl-all");
+  if (b) b.textContent = on ? "Скрыть уровни без ячеек ▴" : "Уровни без ячеек ▾";
 }
 
 function renderSpellSlots() {
@@ -77,6 +90,10 @@ if (container.children.length === 0) {
   // На случай если у не-колдуна без обычных ячеек ничего нет, и у колдуна 0 пактов
   container.innerHTML = '<div class="spell-slot-row spell-slot-empty"><span class="ssl-none">нет ячеек</span></div>';
 }
+var sslAll = $("ssl-all-mob");
+var sslHas = !!container.querySelector(".spell-slot-row:not(.spell-slot-empty)");
+container.classList.toggle("ssl-has", sslHas);
+if (sslAll) sslAll.style.display = container.querySelector(".spell-slot-empty .ssl-controls") ? "" : "none";
 // Дымка v5: зеркало ячеек в правом rail на ПК
 try { if (typeof window.refreshRailSlots === 'function') window.refreshRailSlots(); } catch (e) {}
 }
