@@ -1236,6 +1236,20 @@ saveToLocal();
 closeWeaponModal();
 renderWeapons();
 }
+// MOB-5 Б1: на телефоне тап по оружию — шторка вместо значков правки/удаления 22×21.
+function weaponRowTap(e, index) {
+  if (!(window.matchMedia && window.matchMedia("(max-width: 1023px)").matches)) return;
+  if (e && e.target && e.target.closest && e.target.closest("button, a, .gloss")) return;
+  var char = currentId ? getCurrentChar() : null;
+  var w = char && char.weapons && char.weapons[index];
+  if (!w || typeof openMobSheet !== "function") return;
+  openMobSheet(w.name, mobSheetActs([
+    ["Бросок атаки", "rollWeaponAttack(" + index + ")"],
+    ["Бросок урона", "rollWeaponDamage(" + index + ")"],
+    ["Изменить", "editWeapon(" + index + ")"],
+    ["Удалить", "removeWeapon(" + index + ")"]
+  ]));
+}
 function renderWeapons() {
 if (!currentId) return;
 const char = getCurrentChar();
@@ -1272,7 +1286,7 @@ if (mprop) {
 }
 div.innerHTML =
   '<div class="weapon-row-top">' +
-    '<div class="weapon-info">' +
+    '<div class="weapon-info" onclick="weaponRowTap(event,' + index + ')">' +
       '<span class="weapon-name">' + escapeHtml(weapon.name) + profTag + '</span>' +
       '<span class="weapon-meta">' + escapeHtml(weapon.damage || "—") + ' · ' + (wmods.statKey === "dex" ? "ЛОВ" : "СИЛ") + ' ' + attackStr + masteryHtml + '</span>' +
     '</div>' +

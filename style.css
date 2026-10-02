@@ -16621,6 +16621,31 @@ select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select):focus { ba
   #tab-spells .sc-stat-block + .sc-stat-block { border-left: 1px solid var(--home-rule); }
   #tab-spells .sc-stat-label, #tab-spells .sc-stat-block .sc-stat-body { display: none; }
 }
+/* MOB-5: бой, настройки, справка на телефоне */
+@media (max-width: 1023px) {
+  /* Б1: правка/удаление оружия — шторка по тапу на строку (weaponRowTap) */
+  #weapons-list .weapon-row-actions { display: none; }
+  #weapons-list .weapon-info { cursor: pointer; }
+  /* Б2: ресурсы класса тратят в бою — на листе не дублируем */
+  #cd-res { display: none; }
+  /* Б3: «Выбор участников» — за строкой «Начать бой →» */
+  #battle-setup-screen:not(.is-open) > .card,
+  #battle-setup-screen.is-open > #battle-setup-open { display: none; }
+  /* Н2: цели настроек — 44 px */
+  .settings-modal-body .theme-picker-btn,
+  .settings-modal-body .onboarding-restart-btn,
+  .settings-modal-body .install-btn,
+  .settings-modal-body .auto-accent-row { min-height: 44px; }
+  .settings-modal-body .fs-scale-reset,
+  .settings-modal-body .accent-chip { width: 44px; height: 44px; }
+  .settings-modal-body .auto-accent-row input[type="checkbox"] { width: 20px; height: 20px; }
+  /* Н3: вкладки справки — одна строка с прокруткой */
+  .help-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .help-tabs::-webkit-scrollbar { display: none; }
+  .help-tab { white-space: nowrap; min-height: 44px; }
+}
+/* MOB-5 Н4: «Вести опыт» выкл — поле опыта скрыто */
+.no-xp .xp-field { display: none; }
 
 
 /* ============================================

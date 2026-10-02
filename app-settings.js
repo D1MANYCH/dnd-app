@@ -326,6 +326,26 @@ function _syncHeaderAutohideButtons() {
     b.classList.toggle('is-active', b.getAttribute('data-header-autohide-btn') === active);
   });
 }
+// MOB-5 Н4: «Вести опыт» (ключ dnd_track_xp, по умолчанию вкл.); выкл — игра по вехам,
+// поле «Опыт» и строка до следующего уровня скрыты.
+function _getTrackXpOn() {
+  try { return localStorage.getItem('dnd_track_xp') !== '0'; } catch (e) { return true; }
+}
+function _applyTrackXp() {
+  document.documentElement.classList.toggle('no-xp', !_getTrackXpOn());
+}
+function setTrackXp(on) {
+  try { localStorage.setItem('dnd_track_xp', on ? '1' : '0'); } catch (e) {}
+  _applyTrackXp();
+  _syncTrackXpButtons();
+}
+function _syncTrackXpButtons() {
+  var active = _getTrackXpOn() ? 'on' : 'off';
+  document.querySelectorAll('[data-track-xp-btn]').forEach(function (b) {
+    b.classList.toggle('is-active', b.getAttribute('data-track-xp-btn') === active);
+  });
+}
+_applyTrackXp();
 var _hdrLastY = 0;
 window.addEventListener('scroll', function () {
   var y = window.pageYOffset || document.documentElement.scrollTop || 0;
@@ -845,6 +865,7 @@ function openSettingsModal() {
   try { _syncSheetLockButtons(); } catch (e) {}
   try { _syncWakeLockButtons(); } catch (e) {}
   try { _syncHeaderAutohideButtons(); } catch (e) {}
+  try { _syncTrackXpButtons(); } catch (e) {}
   try { _syncAttackDamageButtons(); } catch (e) {}
   try { _syncEditionSplitButtons(); } catch (e) {}
   if (typeof showScreen === 'function') showScreen('settings');

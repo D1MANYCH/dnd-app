@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
-<link rel="stylesheet" href="style.css?v=v465">
+<link rel="stylesheet" href="style.css?v=v466">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -138,6 +138,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="page-stage">
   <div class="page-head"><h2 class="page-title" id="settings-modal-title">Настройки</h2><button type="button" class="page-back" onclick="screenBack()">← Назад</button></div>
   <div class="page-body settings-modal-body">
+    <h3 class="books-group-title settings-group-title">Вид</h3>
     <div class="theme-picker-row">
       <span class="theme-picker-label"><span data-ico="palette" data-ico-size="16">🎨</span> Тема</span>
       <div class="theme-picker-btns" role="radiogroup" aria-label="Тема оформления">
@@ -220,6 +221,53 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
         <button type="button" class="theme-picker-btn" data-space-btn="lively" onclick="setSpaceMode('lively')" title="Полная сцена: планеты, кометы, падающие звёзды">Живой</button>
       </div>
     </div>
+    <!-- MOB-1: шапка прячется при прокрутке вниз (только мобильная ширина; ключ dnd_header_autohide) -->
+    <div class="theme-picker-row" id="header-autohide-row">
+      <span class="theme-picker-label"><span data-ico="menu" data-ico-size="16">☰</span> Шапка уезжает при прокрутке</span>
+      <div class="theme-picker-btns" role="radiogroup" aria-label="Шапка уезжает при прокрутке">
+        <button type="button" class="theme-picker-btn" data-header-autohide-btn="on"  onclick="setHeaderAutohide(true)"  title="При прокрутке вниз шапка уходит вверх, при прокрутке вверх возвращается">Вкл</button>
+        <button type="button" class="theme-picker-btn" data-header-autohide-btn="off" onclick="setHeaderAutohide(false)" title="Шапка всегда на месте">Выкл</button>
+      </div>
+    </div>
+    <h3 class="books-group-title settings-group-title">Игра</h3>
+    <!-- ЗАМОК-1: замок листа после создания персонажа -->
+    <div class="theme-picker-row">
+      <span class="theme-picker-label"><span data-ico="lock" data-ico-size="16">🔒</span> Замок листа</span>
+      <div class="theme-picker-btns" role="radiogroup" aria-label="Замок листа после создания персонажа">
+        <button type="button" class="theme-picker-btn" data-sheet-lock-btn="on"  onclick="setSheetLock(true)"  title="После «Персонаж готов» характеристики, владения, максимум хитов, заклинания, черты и параметры предметов закрыты до повышения уровня или кнопки «Изменить»">Вкл</button>
+        <button type="button" class="theme-picker-btn" data-sheet-lock-btn="off" onclick="setSheetLock(false)" title="Лист редактируется всегда, замок скрыт">Выкл</button>
+      </div>
+    </div>
+    <!-- PLAY-1: экран не гаснет за столом; строку скрывает _syncWakeLockButtons, если нет Wake Lock API -->
+    <div class="theme-picker-row" id="wake-lock-row" hidden>
+      <span class="theme-picker-label"><span data-ico="sun" data-ico-size="16">☀️</span> Не гасить экран</span>
+      <div class="theme-picker-btns" role="radiogroup" aria-label="Не гасить экран, пока приложение открыто">
+        <button type="button" class="theme-picker-btn" data-wake-lock-btn="on"  onclick="setWakeLock(true)"  title="Экран не гаснет, пока приложение открыто">Вкл</button>
+        <button type="button" class="theme-picker-btn" data-wake-lock-btn="off" onclick="setWakeLock(false)" title="Экран гаснет по настройкам устройства">Выкл</button>
+      </div>
+    </div>
+    <!-- PLAY-2: после броска атаки оружием сразу бросается урон -->
+    <div class="theme-picker-row">
+      <span class="theme-picker-label"><span data-ico="combat" data-ico-size="16">⚔️</span> Атака и урон одним нажатием</span>
+      <div class="theme-picker-btns" role="radiogroup" aria-label="Атака и урон одним нажатием">
+        <button type="button" class="theme-picker-btn" data-attack-damage-btn="on"  onclick="setAttackDamage(true)"  title="После броска атаки оружием сразу бросается урон; при естественной 1 урона нет, при естественной 20 кости урона удваиваются">Вкл</button>
+        <button type="button" class="theme-picker-btn" data-attack-damage-btn="off" onclick="setAttackDamage(false)" title="Урон бросается отдельной кнопкой">Выкл</button>
+      </div>
+    </div>
+    <!-- MOB-5 Н4: игра по вехам — поле «Опыт» скрыто (ключ dnd_track_xp) -->
+    <div class="theme-picker-row">
+      <span class="theme-picker-label"><span data-ico="trend" data-ico-size="16">📈</span> Вести опыт</span>
+      <div class="theme-picker-btns" role="radiogroup" aria-label="Вести опыт">
+        <button type="button" class="theme-picker-btn" data-track-xp-btn="on"  onclick="setTrackXp(true)"  title="Поле «Опыт» на листе и строка до следующего уровня в «Развитии»">Вкл</button>
+        <button type="button" class="theme-picker-btn" data-track-xp-btn="off" onclick="setTrackXp(false)" title="Уровни по вехам: поле «Опыт» скрыто">Выкл</button>
+      </div>
+    </div>
+    <!-- HELP-3: перезапуск онбординга -->
+    <div class="theme-picker-row">
+      <span class="theme-picker-label"><span data-ico="grad" data-ico-size="16">📖</span> Обучение</span>
+      <button type="button" class="onboarding-restart-btn" onclick="restartOnboarding()" title="Показать приветствие и тур заново">↻ Показать обучение заново</button>
+    </div>
+    <h3 class="books-group-title settings-group-title">Книги и данные</h3>
     <!-- MENU-10: редакция правил переехала сюда со встречающего экрана —
          это настройка, ей место рядом с темой и плотностью. -->
     <div class="theme-picker-row" id="edition-row">
@@ -243,43 +291,6 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="theme-picker-btns">
         <button type="button" class="theme-picker-btn" id="books-summary-btn" onclick="openBooksScreen()" title="Какие книги доступны при создании персонажей: расы, подклассы, предыстории">Выбрать</button>
       </div>
-    </div>
-    <!-- ЗАМОК-1: замок листа после создания персонажа -->
-    <div class="theme-picker-row">
-      <span class="theme-picker-label"><span data-ico="lock" data-ico-size="16">🔒</span> Замок листа</span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Замок листа после создания персонажа">
-        <button type="button" class="theme-picker-btn" data-sheet-lock-btn="on"  onclick="setSheetLock(true)"  title="После «Персонаж готов» характеристики, владения, максимум хитов, заклинания, черты и параметры предметов закрыты до повышения уровня или кнопки «Изменить»">Вкл</button>
-        <button type="button" class="theme-picker-btn" data-sheet-lock-btn="off" onclick="setSheetLock(false)" title="Лист редактируется всегда, замок скрыт">Выкл</button>
-      </div>
-    </div>
-    <!-- PLAY-1: экран не гаснет за столом; строку скрывает _syncWakeLockButtons, если нет Wake Lock API -->
-    <div class="theme-picker-row" id="wake-lock-row" hidden>
-      <span class="theme-picker-label"><span data-ico="sun" data-ico-size="16">☀️</span> Не гасить экран</span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Не гасить экран, пока приложение открыто">
-        <button type="button" class="theme-picker-btn" data-wake-lock-btn="on"  onclick="setWakeLock(true)"  title="Экран не гаснет, пока приложение открыто">Вкл</button>
-        <button type="button" class="theme-picker-btn" data-wake-lock-btn="off" onclick="setWakeLock(false)" title="Экран гаснет по настройкам устройства">Выкл</button>
-      </div>
-    </div>
-    <!-- MOB-1: шапка прячется при прокрутке вниз (только мобильная ширина; ключ dnd_header_autohide) -->
-    <div class="theme-picker-row" id="header-autohide-row">
-      <span class="theme-picker-label"><span data-ico="menu" data-ico-size="16">☰</span> Шапка уезжает при прокрутке</span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Шапка уезжает при прокрутке">
-        <button type="button" class="theme-picker-btn" data-header-autohide-btn="on"  onclick="setHeaderAutohide(true)"  title="При прокрутке вниз шапка уходит вверх, при прокрутке вверх возвращается">Вкл</button>
-        <button type="button" class="theme-picker-btn" data-header-autohide-btn="off" onclick="setHeaderAutohide(false)" title="Шапка всегда на месте">Выкл</button>
-      </div>
-    </div>
-    <!-- PLAY-2: после броска атаки оружием сразу бросается урон -->
-    <div class="theme-picker-row">
-      <span class="theme-picker-label"><span data-ico="combat" data-ico-size="16">⚔️</span> Атака и урон одним нажатием</span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Атака и урон одним нажатием">
-        <button type="button" class="theme-picker-btn" data-attack-damage-btn="on"  onclick="setAttackDamage(true)"  title="После броска атаки оружием сразу бросается урон; при естественной 1 урона нет, при естественной 20 кости урона удваиваются">Вкл</button>
-        <button type="button" class="theme-picker-btn" data-attack-damage-btn="off" onclick="setAttackDamage(false)" title="Урон бросается отдельной кнопкой">Выкл</button>
-      </div>
-    </div>
-    <!-- HELP-3: перезапуск онбординга -->
-    <div class="theme-picker-row">
-      <span class="theme-picker-label"><span data-ico="grad" data-ico-size="16">📖</span> Обучение</span>
-      <button type="button" class="onboarding-restart-btn" onclick="restartOnboarding()" title="Показать приветствие и тур заново">↻ Показать обучение заново</button>
     </div>
     <!-- INST-1: установка PWA; строку показывает _syncInstallUi (app-settings.js) -->
     <div class="theme-picker-row" id="install-row" hidden>
@@ -660,7 +671,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <!-- LVL-5: у мультикласса поле прячется — уровень персонажа там не своё
            значение, а сумма уровней классов, и правится только повышением. -->
       <div class="sheet-small-field"><label>Уровень</label><input type="number" id="char-level" class="field flat-field" min="1" max="20" oninput="updateChar(); calcStats(); syncSpellSlotsFromClass(); recalculateHP(); updateSubclassOptions(); updateClassFeatures(); updateLockButtonState()"><div class="cd-level-mc" id="char-level-mc" style="display:none" onclick="openProgress()"></div></div>
-      <div class="sheet-small-field"><label>Опыт</label><input type="number" id="char-exp" class="field flat-field" value="0" oninput="updateChar()"></div>
+      <div class="sheet-small-field xp-field"><label>Опыт</label><input type="number" id="char-exp" class="field flat-field" value="0" oninput="updateChar()"></div>
       <!-- E24-0: бейдж редакции; renderEditionBadge() показывает только для 2024 -->
       <span id="char-edition-badge" class="char-edition-badge" title="Редакция правил 2024" style="display:none">2024</span>
     </div>
@@ -1709,6 +1720,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="hp-rows" id="battle-res-rows"></div>
 </div>
 <div id="battle-setup-screen">
+<!-- MOB-5 Б3: на телефоне выбор участников открывается этой строкой -->
+<button type="button" class="mob-row" id="battle-setup-open" onclick="this.parentNode.classList.add('is-open')">⚔ Начать бой →</button>
 <div class="card">
 <div class="battle-setup-header bt-head">
 <h3>Выбор участников</h3>
@@ -3505,41 +3518,41 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v465"></script>
+<script src="app-log.js?v=v466"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v465"></script>
-<script src="bg-space.js?v=v465"></script>
-<script src="dice-arena-bg.js?v=v465"></script>
-<script src="data.js?v=v465"></script>
+<script src="icons.js?v=v466"></script>
+<script src="bg-space.js?v=v466"></script>
+<script src="dice-arena-bg.js?v=v466"></script>
+<script src="data.js?v=v466"></script>
 <!-- PERF-2/PERF-4: build-notes-data.js (~530 КБ) и character-builds.js (~200 КБ) грузятся лениво — см. ensureBuildNotes/ensureBuilds ниже -->
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v465"></script>
-<script src="spells.js?v=v465"></script>
-<script src="spell-effects.js?v=v465"></script>
+<script src="glossary-data.js?v=v466"></script>
+<script src="spells.js?v=v466"></script>
+<script src="spell-effects.js?v=v466"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v465"></script>
-<script src="app-migrate.js?v=v465"></script>
-<script src="app-builds.js?v=v465"></script>
-<script src="app-core.js?v=v465"></script>
-<script src="app-io.js?v=v465"></script>
-<script src="app-backup.js?v=v465"></script>
-<script src="app-combat.js?v=v465"></script>
-<script src="app-conditions.js?v=v465"></script>
-<script src="app-cast-effects.js?v=v465"></script>
-<script src="app-proficiencies.js?v=v465"></script>
-<script src="app-hp.js?v=v465"></script>
-<script src="app-spells.js?v=v465"></script>
-<script src="app-inventory.js?v=v465"></script>
+<script src="rules.js?v=v466"></script>
+<script src="app-migrate.js?v=v466"></script>
+<script src="app-builds.js?v=v466"></script>
+<script src="app-core.js?v=v466"></script>
+<script src="app-io.js?v=v466"></script>
+<script src="app-backup.js?v=v466"></script>
+<script src="app-combat.js?v=v466"></script>
+<script src="app-conditions.js?v=v466"></script>
+<script src="app-cast-effects.js?v=v466"></script>
+<script src="app-proficiencies.js?v=v466"></script>
+<script src="app-hp.js?v=v466"></script>
+<script src="app-spells.js?v=v466"></script>
+<script src="app-inventory.js?v=v466"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v465"></script>
-<script src="class-choices.js?v=v465"></script>
-<script src="subclass-choices-data.js?v=v465"></script>
+<script src="app-party.js?v=v466"></script>
+<script src="class-choices.js?v=v466"></script>
+<script src="subclass-choices-data.js?v=v466"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js).
      PERF-5: модуль (~200 КБ) грузится лениво — window.ensureDiceBox() из app-dice.js
      при первом действии пользователя или открытии кубиков; пока не загружен — 2D-бросок. -->
@@ -3547,7 +3560,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   var diceBoxP = null;
   window.ensureDiceBox = function () {
     if (!diceBoxP) {
-      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v465").then(function (m) {
+      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v466").then(function (m) {
         window.DiceBox = m.default;
         window.dispatchEvent(new Event("dicebox:ready"));
         return m.default;
@@ -3556,16 +3569,16 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     return diceBoxP;
   };
 </script>
-<script src="app-dice.js?v=v465"></script>
-<script src="app-settings.js?v=v465"></script>
-<script src="app-ui.js?v=v465"></script>
-<script src="app-home.js?v=v465"></script>
-<script src="app-asi.js?v=v465"></script>
-<script src="app-progress.js?v=v465"></script>
-<script src="app-notes.js?v=v465"></script>
-<script src="app-desktop.js?v=v465"></script>
-<script src="history-stack.js?v=v465"></script>
-<script src="app-help.js?v=v465"></script>
+<script src="app-dice.js?v=v466"></script>
+<script src="app-settings.js?v=v466"></script>
+<script src="app-ui.js?v=v466"></script>
+<script src="app-home.js?v=v466"></script>
+<script src="app-asi.js?v=v466"></script>
+<script src="app-progress.js?v=v466"></script>
+<script src="app-notes.js?v=v466"></script>
+<script src="app-desktop.js?v=v466"></script>
+<script src="history-stack.js?v=v466"></script>
+<script src="app-help.js?v=v466"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3578,9 +3591,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v465",
-    "vendor/jspdf/roboto-base64.js?v=v465",
-    "app-pdf.js?v=v465"
+    "vendor/jspdf/jspdf.umd.min.js?v=v466",
+    "vendor/jspdf/roboto-base64.js?v=v466",
+    "app-pdf.js?v=v466"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3603,45 +3616,45 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // PERF-4: сами билды нужны пикеру, гайду, плану и подсказкам левел-апа — грузим по требованию.
   window.ensureBuilds = function () {
     if (window.CHARACTER_BUILDS) return Promise.resolve();
-    return loadScript("character-builds.js?v=v465");
+    return loadScript("character-builds.js?v=v466");
   };
   // PERF-2: заметки билдов нужны только applyBuild — грузим по требованию.
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v465").then(function () {
+    return loadScript("build-notes-data.js?v=v466").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
   // NGEN-2: пулы генератора «Записей» нужны только кнопке «Сгенерировать».
   window.ensureNotesGen = function () {
     if (window.NOTES_GEN) return Promise.resolve();
-    return loadScript("notes-gen-data.js?v=v465");
+    return loadScript("notes-gen-data.js?v=v466");
   };
   // PERF-3: бестиарий SRD нужен только пикерам вкладки отряда — грузим по требованию.
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v465"),
-      loadScript("npc-srd.js?v=v465")
+      loadScript("monsters-srd.js?v=v466"),
+      loadScript("npc-srd.js?v=v466")
     ]);
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v465");
+    return loadScript("magic-items.js?v=v466");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v465");
+    return loadScript("gear-catalog.js?v=v466");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v465").then(function () {
+    return loadScript("data-2024.js?v=v466").then(function () {
       window.__edition2024Loaded = true;
     });
   };

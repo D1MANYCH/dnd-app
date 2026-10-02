@@ -999,7 +999,7 @@ function _buildBattleSteps() {
     },
     {
       requireTarget: true,
-      target: function () { return document.querySelector('#battle-setup-screen .card'); },
+      target: function () { var c = document.querySelector('#battle-setup-screen .card'); return (c && c.offsetParent) ? c : (document.getElementById('battle-setup-open') || c); },
       title: 'Выбор участников',
       text: 'Отметьте, кто участвует в бою: ваш персонаж, соратники, NPC и монстры из раздела «Мир». Поиск по имени вверху помогает быстро найти нужного в длинном списке.'
     },

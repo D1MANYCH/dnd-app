@@ -1175,6 +1175,7 @@ function startBattle() {
   if (window.AppLog) AppLog.action("battle", "бой начат: участников " + selected.length + " (авто-инициатива)");
   saveBattle();
   $("battle-setup-screen").classList.add("hidden");
+  $("battle-setup-screen").classList.remove("is-open");
   $("battle-tracker-screen").classList.remove("hidden");
   renderBattleTracker();
 }

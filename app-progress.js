@@ -152,6 +152,7 @@ function _pgAsiRow(char, list) {
 function _pgXpRow(char) {
   var exp = parseInt(char.exp, 10) || 0;
   if (exp <= 0 || typeof charXpNext !== "function") return "";
+  if (typeof _getTrackXpOn === "function" && !_getTrackXpOn()) return "";
   var x = charXpNext(char);
   if (!x.level) return _pgStatic("Опыт", "<b>" + exp + "</b> <i>· порогов больше нет</i>");
   var meta = "<b>" + x.have + '</b> <i>/ ' + x.need + '</i> <span class="hp-dot">·</span> ' +
