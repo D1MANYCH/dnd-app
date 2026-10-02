@@ -484,6 +484,14 @@ function rulesAC(char) {
       if (char.race === "Локсодон" && char.edition !== "2024" && 12 + loxCon > pAc) {
         pAc = 12 + loxCon; pFormula = ["12 (природный доспех)", (loxCon >= 0 ? "+" : "") + loxCon + " (ТЕЛ)"]; pMods = [{name:"Природный доспех",value:pAc - 10,type:"active"}];
       }
+      // DOP-10: локатах — природный доспех 12 + ЛОВ, если надетый даёт меньше (LR)
+      if (char.race === "Локатах" && char.edition !== "2024" && 12 + dexMod > pAc) {
+        pAc = 12 + dexMod; pFormula = ["12 (природный доспех)", (dexMod >= 0 ? "+" : "") + dexMod + " (ЛОВ)"]; pMods = [{name:"Природный доспех",value:pAc - 10,type:"active"}];
+      }
+      // DOP-10: тортл — доспех не даёт преимуществ, всегда КД 17 (TTP)
+      if (char.race === "Тортл" && char.edition !== "2024") {
+        pAc = 17; pFormula = ["17 (природный доспех)"]; pMods = [{name:"Природный доспех",value:7,type:"active"}];
+      }
       if (hasShieldSelected) { pAc += shieldAc; pFormula.push("+" + shieldAc + " (щит)"); pMods.push({name:shieldName,value:shieldAc,type:"active"}); }
       // DOP-8: «Встроенная защита» кованого — +1 КД (ERLW)
       if (char.race === "Кованый" && char.edition !== "2024") { pAc += 1; pFormula.push("+1 (Встроенная защита)"); pMods.push({name:"Встроенная защита",value:1,type:"active"}); }
@@ -563,6 +571,17 @@ function rulesAC(char) {
   if (char.race === "Локсодон" && char.edition !== "2024") {
     var loxConMod = getMod(char.stats.con);
     ways.push({ ac: 12 + loxConMod, formula: ["12 (природный доспех)", sgn(loxConMod) + " (ТЕЛ)"], mod: "Природный доспех" });
+  }
+  // DOP-10: природный доспех локатаха 12 + ЛОВ (LR), тортла — 17 без ЛОВ (TTP); щит работает
+  if (char.race === "Локатах" && char.edition !== "2024") {
+    ways.push({ ac: 12 + dexMod, formula: ["12 (природный доспех)", sgn(dexMod) + " (ЛОВ)"], mod: "Природный доспех" });
+  }
+  if (char.race === "Тортл" && char.edition !== "2024") {
+    ways.push({ ac: 17, formula: ["17 (природный доспех)"], mod: "Природный доспех" });
+  }
+  // DOP-10: без доспеха 13 + ЛОВ — бронированный корпус автогнома, хамелеонов панцирь три-крина (AAG)
+  if ((char.race === "Автогном" || char.race === "Три-крин") && char.edition !== "2024") {
+    ways.push({ ac: 13 + dexMod, formula: ["13 (панцирь)", sgn(dexMod) + " (ЛОВ)"], mod: char.race === "Автогном" ? "Бронированный корпус" : "Хамелеонов панцирь" });
   }
   if (rulesHasDazzlingFootwork(char) && !hasShieldSelected) {
     var chaModDance = getMod(char.stats.cha);

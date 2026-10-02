@@ -7882,10 +7882,10 @@
       return bad.length ? bad.join("; ") : true;
     });
 
-    t("[e24-4] 2014 не тронут: RACE_DATA 83 рас со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
+    t("[e24-4] 2014 не тронут: RACE_DATA 97 рас со stats, Полуэльф на месте, edData('2014') ≠ SPECIES_2024", function(){
       var r = edData({ edition:"2014" }).RACE_DATA;
       if (r === SPECIES_2024) return "2014 подменён";
-      if (Object.keys(r).length !== 83) return "рас 2014: " + Object.keys(r).length;
+      if (Object.keys(r).length !== 97) return "рас 2014: " + Object.keys(r).length;
       if (!r["Полуэльф"] || !r["Эльф"].stats || r["Эльф"].stats.dex !== 2) return "stats 2014 потеряны";
       if (r["Дварф"].speed !== 25) return "дварф 2014 — 25 фт";
       return true;
@@ -8461,6 +8461,9 @@
       ["Леонинец","Сатир"].forEach(function(n){ want[n] = "MOoT"; });
       ["Бледный эльф","Полурослик Лотосовой лощины","Драконорождённый (драконокровный)","Драконорождённый (равенит)"].forEach(function(n){ want[n] = "EGtW"; });
       ["хроматический","металлический","самоцветный"].forEach(function(n){ want["Драконорождённый (" + n + ")"] = "FTD"; });
+      want["Фея"] = want["Харенгон"] = "WBtW"; want["Совлин"] = "SCC"; want["Кендер"] = "DSotDQ";
+      ["Астральный эльф","Автогном","Гифф","Хадози","Плазмоид","Три-крин"].forEach(function(n){ want[n] = "AAG"; });
+      want["Тортл"] = "TTP"; want["Грунг"] = "OGA"; want["Локатах"] = "LR"; want["Вердан"] = "AI";
       for (var r in RACE_DATA) {
         var src = RACE_DATA[r].source || "PHB";
         if (!SOURCE_LABELS[src]) return r + ": неизвестная книга " + src;
@@ -8586,6 +8589,32 @@
       return true;
     });
 
+    t("[dop-10] малые книги: 14 рас, гибкие прибавки, навык кендера по списку, КД тортла 17, локатаха 12 + ЛОВ, автогнома 13 + ЛОВ", function(){
+      var ns = ["Фея","Харенгон","Совлин","Кендер","Астральный эльф","Автогном","Гифф","Хадози","Плазмоид","Три-крин","Тортл","Грунг","Локатах","Вердан"];
+      for (var i = 0; i < ns.length; i++) {
+        if (!RACE_DATA[ns[i]] || !RACE_LANGUAGES[ns[i]]) return ns[i];
+        if (i < 10 && (Object.keys(RACE_DATA[ns[i]].stats).length || RACE_FLEX_STATS[ns[i]].join() !== "21,111")) return "flex " + ns[i];
+      }
+      if (_raceSkillAllowance({ edition:"2014" }, "Кендер") !== 1 || RACE_SKILL_FROM["Кендер"].length !== 5) return "навыки";
+      if (!RACE_TOOLS["Автогном"] || RACE_TOOLS["Автогном"].choices[0].count !== 2) return "инструменты";
+      var st = { str:10, dex:14, con:10, int:10, wis:10, cha:10 };
+      var c = { race:"Тортл", edition:"2014", stats:st, combat:{ armorId:"none" } };
+      if (rulesAC(c).ac !== 17) return "тортл без доспеха " + rulesAC(c).ac;
+      c.combat.armorId = "plate";
+      if (rulesAC(c).ac !== 17) return "тортл в латах " + rulesAC(c).ac;
+      c = { race:"Локатах", edition:"2014", stats:st, combat:{ armorId:"none" } };
+      if (rulesAC(c).ac !== 14) return "локатах " + rulesAC(c).ac;
+      c.combat.armorId = "chain_mail";
+      if (rulesAC(c).ac !== 16) return "локатах кольчуга " + rulesAC(c).ac;
+      c = { race:"Автогном", edition:"2014", stats:st, combat:{ armorId:"none" } };
+      if (rulesAC(c).ac !== 15) return "автогном " + rulesAC(c).ac;
+      c.combat.armorId = "leather";
+      if (rulesAC(c).ac !== 13) return "автогном в коже " + rulesAC(c).ac;
+      c = { race:"Три-крин", edition:"2014", stats:st, combat:{ armorId:"none" } };
+      if (rulesAC(c).ac !== 15) return "три-крин " + rulesAC(c).ac;
+      return true;
+    });
+
     t("[ed-4] книги персонажа: миграция включает все, PHB всегда, выключенная книга скрывает подкласс", function(){
       var c = migrateCharacter({ id: 41, class: "Воин", level: 3, schemaVersion: 40 });
       if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion " + c.schemaVersion;
@@ -8606,7 +8635,7 @@
       if (DEFAULT_CHARACTER.books.join() !== BOOK_CODES.join()) return "DEFAULT_CHARACTER.books ≠ BOOK_CODES";
       var m = migrateCharacter({ id: 44, class: "Воин", level: 3, schemaVersion: 43, books: ["TCoE"] });
       if (m.books.indexOf("FTD") === -1 || m.books.indexOf("XGtE") !== -1) return "миграция v44: " + m.books.join();
-      if (booksWithContent().indexOf("XGtE") === -1 || booksWithContent().indexOf("WBtW") !== -1) return "booksWithContent " + booksWithContent().join();
+      if (booksWithContent().indexOf("XGtE") === -1 || booksWithContent().indexOf("WBtW") === -1) return "booksWithContent " + booksWithContent().join();
       var prev = booksOff().slice();
       try {
         setBooksOff(["XGtE"]);
