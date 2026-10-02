@@ -1971,6 +1971,7 @@ var container = $("status-ritual");
 if (nameEl) nameEl.textContent = spellName;
 if (timerEl) timerEl.textContent = _ritMin + ":00";
 if (container) container.classList.remove("hidden");
+if (typeof updateStatusCounter === "function") updateStatusCounter();
 if (window.AppLog) AppLog.action("spells", "ритуал начат: " + spellName + ", " + _ritMin + " мин");
 showToast("🕐 Ритуал: " + spellName + " — " + _ritMin + " мин", "info");
 _ritualTimer = setInterval(function() {
@@ -1980,6 +1981,7 @@ _ritualTimer = setInterval(function() {
     _ritualTimer = null;
     if (typeof window !== 'undefined') window._ritualTimer = null;
     if (container) container.classList.add("hidden");
+    if (typeof updateStatusCounter === "function") updateStatusCounter();
     if (window.AppLog) AppLog.info("spells", "ритуал завершён: " + spellName);
     // AUD-5 (L24): по завершении — концентрация и эффекты заклинания, как при обычном касте
     var _rc = (currentId === _ritCharId) ? getCurrentChar() : null;
@@ -1991,6 +1993,7 @@ _ritualTimer = setInterval(function() {
   var min = Math.floor(left / 60000);
   var sec = Math.floor((left % 60000) / 1000);
   if (timerEl) timerEl.textContent = min + ":" + (sec < 10 ? "0" : "") + sec;
+  document.querySelectorAll(".popup-ritual-timer").forEach(function(el) { el.textContent = timerEl ? timerEl.textContent : ""; });
 }, 1000);
 if (typeof window !== 'undefined') window._ritualTimer = _ritualTimer;
 }
@@ -2002,6 +2005,7 @@ if (_ritualTimer) {
 }
 var container = $("status-ritual");
 if (container) container.classList.add("hidden");
+if (typeof updateStatusCounter === "function") updateStatusCounter();
 if (!silent && window.AppLog) AppLog.action("spells", "ритуал отменён");
 if (!silent) showToast("🕐 Ритуал отменён", "warn");
 }

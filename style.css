@@ -642,11 +642,12 @@ html.glass-adjusting *::after {
 }
 
 /* ----- Status bar (закреплённая панель HP/AC/Level) ----- */
+/* MOB-1: статус-бар внутри шапки — своего фона и рамки нет */
 :root[data-theme="light"] .status-bar {
-  background: var(--surface-sticky, var(--bg-1)) !important;
-  border-bottom: 1px solid var(--border-soft) !important;
-  backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
-  -webkit-backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
+  background: none !important;
+  border-bottom: 0 !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 :root[data-theme="light"] .status-chip {
   background: var(--bg-1) !important;
@@ -2213,6 +2214,57 @@ max-width: 100%;
 font-size: 0.72em;
 color: var(--text-muted);
 font-weight: 400;
+}
+/* MOB-1: статус-бар живёт внутри <header> — одна строка
+   «← · имя · ❤ · 🛡 · ✨ · ⚡ · ≡». На ≥1024 статус-бар скрыт целиком (там правая панель). */
+header .status-bar {
+position: static;
+z-index: auto;
+background: none;
+border: 0;
+padding: 0;
+backdrop-filter: none;
+-webkit-backdrop-filter: none;
+flex-wrap: nowrap;
+flex-shrink: 0;
+gap: 4px;
+}
+header .status-bar .status-chip { padding: 4px 7px; }
+header .status-bar .status-level,
+header .status-bar .status-concentration,
+header .status-bar .status-ritual { display: none; }
+header .status-conditions-btn { margin-left: 0; }
+.popup-group-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
+.popup-row-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-color); font-size: 0.9em; }
+.popup-row-act {
+  flex-shrink: 0; width: auto; margin: 0; min-height: 36px; padding: 6px 12px;
+  background: none; box-shadow: none; border: 0; border-radius: 0;
+  color: var(--accent-lo); font-size: 0.85em; font-weight: 600; cursor: pointer;
+}
+.popup-row-act:hover, .popup-row-act:focus-visible { background: none; text-decoration: underline; }
+@media (max-width: 1023px) {
+  header { padding: 4px 8px; min-height: 52px; gap: 6px; transition: transform 0.2s ease; }
+  header .header-avatar,
+  header .header-subtitle { display: none; }
+  /* Ш4: ← и ≡ — цели 44×44 */
+  header .header-back,
+  header .nav-hamburger {
+    width: 44px !important;
+    height: 44px;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  /* Ш7: шапка уезжает при прокрутке (настройка, body.header-hidden ставит app-settings.js) */
+  body.header-hidden > header { transform: translateY(-100%); }
+  /* Ш5: «? Справка» со вкладок убрана — справка по разделу в меню ≡ */
+  .tab-help-row .tab-help-btn:not(.tab-help-btn--text) { display: none; }
+  .tab-help-row:not(:has(.tab-help-btn--text)) { display: none; }
+}
+@media (min-width: 1024px) {
+  #header-autohide-row { display: none; }
 }
 /* STYLE-1: единая гарнитура заголовков — системный serif (--font-display),
    тот же, что на встречающем экране. Вес 700: serif в 600 на части систем

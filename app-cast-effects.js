@@ -217,6 +217,7 @@ if (statusConc) {
     statusConc.classList.add("hidden");
   }
 }
+if (typeof updateStatusCounter === "function") updateStatusCounter(char);
 // CAST-9b: чип остатка концентрации в шапке трекера боя — обновляем здесь,
 // чтобы он ловил любую смену концентрации (постановка, конец, прерывание).
 if (typeof renderBattleCastPanels === "function") renderBattleCastPanels();

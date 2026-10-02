@@ -123,8 +123,7 @@
     const condBtn = document.getElementById('status-conditions-btn');
     const rrC = document.getElementById('rr-cond-count');
     if (rrC) {
-      const hidden = condBtn && condBtn.classList.contains('hidden');
-      rrC.textContent = (hidden || !cnt) ? '0' : (cnt.textContent || '0');
+      rrC.textContent = (condBtn && condBtn.dataset.cond) || '0';
     }
 
     // Перерисовать inline-баджи (на случай переключения персонажа)

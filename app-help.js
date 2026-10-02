@@ -15,6 +15,14 @@ function openHelp(section) {
   switchHelpSection(section || 'start', null);
 }
 
+/** MOB-1: «Справка» в меню ≡ открывает раздел текущей вкладки. */
+function openTabHelp() {
+  var el = document.querySelector(".tab-content.active");
+  var key = el ? el.id.replace(/^tab-/, "") : "";
+  var known = { sheet: 1, progress: 1, spells: 1, inventory: 1, battle: 1, notes: 1, party: 1, journal: 1 };
+  openHelp(known[key] ? key : "start");
+}
+
 /** Уйти со справки на экран, с которого пришли. */
 function closeHelp() {
   if (typeof screenBack === "function") screenBack();
@@ -791,7 +799,7 @@ function _buildSheetSteps() {
           : document.querySelector('.status-bar');
       },
       title: 'Хиты и защита',
-      text: 'Текущие хиты, класс доспеха и уровень всегда на виду; отсюда быстро применяется урон и лечение.',
+      text: 'Текущие хиты и класс доспеха всегда на виду; отсюда быстро применяется урон и лечение.',
       novice: 'Хиты (HP) — запас здоровья: на нуле персонаж при смерти. КД (AC) — класс доспеха: чем выше, тем труднее по персонажу попасть.'
     },
     {

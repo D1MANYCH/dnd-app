@@ -429,6 +429,22 @@ updateStatusBar();
 showToast(char.inspiration ? "✨ Вдохновение получено!" : "✨ Вдохновение использовано", char.inspiration ? "success" : "info");
 }
 
+// MOB-1: один значок-счётчик в шапке — состояния, эффекты, концентрация и ритуал.
+// data-cond — только состояния и эффекты: его читает правая панель десктопа.
+function updateStatusCounter(char) {
+char = char || getCurrentChar();
+var condBtn = $("status-conditions-btn");
+if (!condBtn || !char) return;
+var totalConditions = (char.conditions ? char.conditions.length : 0) + (char.effects ? char.effects.length : 0);
+var rit = $("status-ritual");
+var total = totalConditions + (char.concentration ? 1 : 0) + (rit && !rit.classList.contains("hidden") ? 1 : 0);
+condBtn.dataset.cond = totalConditions;
+var condCount = $("conditions-btn-count");
+if (condCount) condCount.textContent = total;
+condBtn.classList.toggle("hidden", total === 0);
+var popup = $("conditions-popup");
+if (popup && !popup.classList.contains("hidden")) renderConditionsPopup();
+}
 function updateStatusBar() {
 const statusBar = $("status-bar");
 if (!currentId) {
@@ -452,18 +468,7 @@ if (statusHpEl) {
   else if (hpPercent <= 50) statusHpEl.classList.add("hp-low");
   else statusHpEl.classList.add("hp-ok");
 }
-// Счётчик состояний — кнопка в статус-баре
-var totalConditions = (char.conditions ? char.conditions.length : 0) + (char.effects ? char.effects.length : 0);
-var condBtn = $("status-conditions-btn");
-var condCount = $("conditions-btn-count");
-if (condBtn) {
-  if (totalConditions > 0) {
-    condBtn.classList.remove("hidden");
-    if (condCount) condCount.textContent = totalConditions;
-  } else {
-    condBtn.classList.add("hidden");
-  }
-}
+updateStatusCounter(char);
 // Right-rail (десктоп) — синхронизация баджей состояний
 if (typeof window.refreshConditionsRightRail === 'function') {
   window.refreshConditionsRightRail();
@@ -2633,7 +2638,30 @@ function renderConditionsPopup() {
   var exhLevel = data.exhLevel;
   var buffs = data.buffs;
   var debuffs = data.debuffs;
-  if (!baseConditions.length && !exhLevel && !buffs.length && !debuffs.length) {
+  var char = getCurrentChar();
+  var concName = char && char.concentration;
+  var ritEl = $("status-ritual");
+  var ritOn = ritEl && !ritEl.classList.contains("hidden");
+  // MOB-1: концентрация и ритуал — первыми строками, с действием
+  if (concName) {
+    var cGroup = document.createElement("div");
+    cGroup.className = "popup-group";
+    cGroup.innerHTML = '<div class="popup-group-label">' + dndIcoHtml("focus", 13) + ' Концентрация</div>' +
+      '<div class="popup-group-row"><span class="popup-row-name">' + escapeHtml(concName) + '</span>' +
+      '<button type="button" class="popup-row-act" onclick="closeConditionsPopup();openConcDetails()">Подробнее</button></div>';
+    list.appendChild(cGroup);
+  }
+  if (ritOn) {
+    var rGroup = document.createElement("div");
+    rGroup.className = "popup-group";
+    rGroup.innerHTML = '<div class="popup-group-label">' + dndIcoHtml("history", 13) + ' Ритуал</div>' +
+      '<div class="popup-group-row"><span class="popup-row-name">' + escapeHtml($("status-ritual-name").textContent) +
+      ' · <span class="popup-ritual-timer">' + escapeHtml($("status-ritual-timer").textContent) + '</span></span>' +
+      '<button type="button" class="popup-row-act" onclick="cancelRitual()">Отменить</button></div>';
+    list.appendChild(rGroup);
+  }
+  if (concName || ritOn) { /* есть что показать */ }
+  else if (!baseConditions.length && !exhLevel && !buffs.length && !debuffs.length) {
     list.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:12px;">Нет активных состояний</div>';
     return;
   }

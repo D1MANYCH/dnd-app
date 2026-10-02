@@ -310,6 +310,34 @@ function _syncWakeLockButtons() {
     b.classList.toggle('is-active', b.getAttribute('data-wake-lock-btn') === active);
   });
 }
+// MOB-1: «Шапка уезжает при прокрутке» (ключ dnd_header_autohide, по умолчанию выкл.).
+// Только мобильная ширина (<1024): вниз — шапка уходит, вверх — возвращается.
+function _getHeaderAutohideOn() {
+  try { return localStorage.getItem('dnd_header_autohide') === '1'; } catch (e) { return false; }
+}
+function setHeaderAutohide(on) {
+  try { localStorage.setItem('dnd_header_autohide', on ? '1' : '0'); } catch (e) {}
+  if (!on) document.body.classList.remove('header-hidden');
+  _syncHeaderAutohideButtons();
+}
+function _syncHeaderAutohideButtons() {
+  var active = _getHeaderAutohideOn() ? 'on' : 'off';
+  document.querySelectorAll('[data-header-autohide-btn]').forEach(function (b) {
+    b.classList.toggle('is-active', b.getAttribute('data-header-autohide-btn') === active);
+  });
+}
+var _hdrLastY = 0;
+window.addEventListener('scroll', function () {
+  var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+  var hide = false;
+  if (_getHeaderAutohideOn() && window.innerWidth < 1024) {
+    var dy = y - _hdrLastY;
+    if (Math.abs(dy) < 6) return;
+    hide = dy > 0 && y > 60;
+  }
+  document.body.classList.toggle('header-hidden', hide);
+  _hdrLastY = y;
+}, { passive: true });
 // PLAY-2: «Атака и урон одним нажатием» (ключ dnd_attack_damage, по умолчанию выкл.) —
 // после броска атаки оружием сразу бросается урон (rollWeaponAttack, app-inventory.js).
 function _getAttackDamageOn() {
@@ -816,6 +844,7 @@ function openSettingsModal() {
   try { if (typeof _syncSpaceButtons === 'function') _syncSpaceButtons(); } catch (e) {}
   try { _syncSheetLockButtons(); } catch (e) {}
   try { _syncWakeLockButtons(); } catch (e) {}
+  try { _syncHeaderAutohideButtons(); } catch (e) {}
   try { _syncAttackDamageButtons(); } catch (e) {}
   try { _syncEditionSplitButtons(); } catch (e) {}
   if (typeof showScreen === 'function') showScreen('settings');
