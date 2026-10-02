@@ -792,6 +792,7 @@ char.alignment = $("char-alignment")?.value || "";
 char.deity = $("char-deity")?.value || "";
 char.size = $("char-size")?.value || "Средний";
 char.speed = $("char-speed")?.value || "30 фт";
+renderIdentitySummary();
 char.combat.ac = parseInt($("combat-ac")?.value, 10) || 10;
 _armorFromSelect(char);
 char.combat.hasShield = $("char-shield")?.checked || false;
@@ -1761,6 +1762,9 @@ function applyBasicLockUI() {
 
   if (!locked) updateLockButtonState();
   applySheetLockUI();
+  _profOpen = null;
+  renderIdentitySummary();
+  renderProfSummary();
 }
 
 function updateLockButtonState() {
@@ -1889,6 +1893,93 @@ function openLockSheet() {
   var t = $("basic-locked-text");
   openMobSheet(t ? t.textContent : "Замок листа", mobSheetActs(items));
 }
+
+// MOB-3: компактный лист на телефоне. После фиксации основы карточка личности —
+// сводка в две строки, поля по «Подробнее»; «Владения» свёрнуты со сводкой в заголовке;
+// расчёт КД — шторка по тапу на 🛡 в шапке. Десктоп не затронут: всё под @media ≤1023.
+var _idMoreOpen = false, _profOpen = null;
+function _isMobSheet() { return !!(window.matchMedia && window.matchMedia("(max-width: 1023px)").matches); }
+function renderIdentitySummary() {
+  var el = $("id-summary"), card = el && el.closest(".identity-card");
+  var char = currentId ? getCurrentChar() : null;
+  if (!el || !card || !char) return;
+  var locked = !!char.basicLocked;
+  card.classList.toggle("id-compact", locked && !_idMoreOpen);
+  el.style.display = locked ? "" : "none";
+  el.setAttribute("aria-expanded", _idMoreOpen ? "true" : "false");
+  if (!locked) return;
+  var cls = (char.classes && char.classes.length ? char.classes : [{ class: char.class, level: char.level, subclass: char.subclass }]);
+  var l1 = cls.length > 1
+    ? cls.map(function(c) { return c.class + " " + c.level; }).join(" · ") + " · " + char.level + " ур."
+    : [cls[0].class, cls[0].subclass, char.level + " ур."].filter(Boolean).join(" · ");
+  var l2 = [char.race, char.background, char.alignment].filter(Boolean).join(" · ");
+  el.innerHTML = '<span class="id-sum-lines"><span class="id-sum-l1">' + escapeHtml(l1) + '</span>' +
+    '<span class="id-sum-l2">' + escapeHtml(l2) + '</span></span>' +
+    '<span class="id-sum-more">' + (_idMoreOpen ? "Свернуть ▴" : "Подробнее ▾") + '</span>';
+  _mobMarkClamp();
+}
+function toggleIdentityMore() {
+  _idMoreOpen = !_idMoreOpen;
+  renderIdentitySummary();
+}
+function renderProfSummary() {
+  var card = $("prof-card"), sum = $("prof-card-sum");
+  if (!card || !sum) return;
+  var char = currentId ? getCurrentChar() : null;
+  var open = _profOpen === null ? !(char && char.basicLocked) : _profOpen;
+  card.classList.toggle("prof-open", open);
+  var head = card.querySelector(".prof-card-head");
+  if (head) head.setAttribute("aria-expanded", open ? "true" : "false");
+  var parts = [["armor-prof-container", "Доспехи"], ["weapon-prof-container", "Оружие"], ["tools-container", "Инстр."], ["languages-container", "Языки"]];
+  sum.textContent = parts.map(function(p) {
+    var box = $(p[0]);
+    var n = box ? box.querySelectorAll('.prof-chip:not([data-source="empty"])').length : 0;
+    return p[1] + " " + n;
+  }).join(" · ") + (open ? " ▴" : " ▾");
+}
+function toggleProfCard() {
+  if (!_isMobSheet()) return;
+  var card = $("prof-card");
+  _profOpen = !(card && card.classList.contains("prof-open"));
+  renderProfSummary();
+}
+function openAcSheet() {
+  if (!_isMobSheet()) return;
+  var total = $("ac-total"), f = $("ac-formula"), m = $("ac-modifiers");
+  openMobSheet("Класс доспеха " + (total ? total.textContent : ""),
+    '<div class="mob-sheet-ac"><div class="ac-formula">' + escapeHtml(f ? f.textContent : "") + '</div>' +
+    '<div class="ac-modifiers">' + (m ? m.innerHTML : "") + '</div></div>');
+}
+// О6: тексты расы и предыстории — две строки и «ещё»; тап по панели раскрывает.
+function _mobMarkClamp() {
+  ["race-bonus-display", "background-feature-display"].forEach(function(id) {
+    var bar = $(id);
+    var txt = bar && bar.querySelector(".race-bonus-traits, .bg-feature-text");
+    if (!bar) return;
+    bar.classList.toggle("txt-clamped", !!txt && (bar.classList.contains("txt-open") || txt.scrollHeight > txt.clientHeight + 1));
+  });
+}
+(function() {
+  function init() {
+    if (typeof MutationObserver !== "function") return;
+    ["race-bonus-display", "background-feature-display"].forEach(function(id) {
+      var bar = $(id);
+      if (!bar) return;
+      bar.addEventListener("click", function(e) {
+        if (!_isMobSheet() || !bar.classList.contains("txt-clamped") || (e.target.closest && e.target.closest("button, a, input, select"))) return;
+        bar.classList.toggle("txt-open");
+      });
+      new MutationObserver(function() { requestAnimationFrame(_mobMarkClamp); })
+        .observe(bar, { childList: true, subtree: true, attributes: true, attributeFilter: ["style"] });
+    });
+    var mo = new MutationObserver(function() { renderProfSummary(); });
+    ["armor-prof-container", "weapon-prof-container", "tools-container", "languages-container"].forEach(function(id) {
+      var box = $(id);
+      if (box) mo.observe(box, { childList: true, subtree: true });
+    });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
 
 function lockSheet() {
   if (!currentId) return;

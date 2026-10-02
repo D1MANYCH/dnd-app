@@ -15352,7 +15352,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .basic-unlock-btn:focus-visible { opacity: 1; }
 
 /* MOB-2: основа листа на телефоне — строки вместо кнопок + общая шторка #mob-sheet */
-.mob-row, .basic-locked-more { display: none; }
+.mob-row, .basic-locked-more, .prof-card-sum { display: none; }
 .mob-sheet-list { display: flex; flex-direction: column; }
 .mob-sheet-row {
   display: flex; align-items: center; gap: 10px;
@@ -15392,6 +15392,37 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   .char-build-badge::after { content: " ▾"; }
   /* О7: один вход в «Развитие» — строка #char-progress-mob */
   .class-plan-btn, #char-add-class, .cd-class-mc-act { display: none; }
+
+  /* MOB-3 О5: после фиксации основы — сводка в две строки, поля по «Подробнее ▾»;
+     незавершённые расовые выборы (предупреждение) остаются видны */
+  .id-summary { justify-content: space-between; gap: 12px; color: var(--text-color); }
+  .id-sum-lines { display: flex; flex-direction: column; min-width: 0; }
+  .id-sum-l1 { font-weight: 700; }
+  .id-sum-l2 { color: var(--home-sub); font-family: var(--font-body, inherit); }
+  .id-sum-l1, .id-sum-l2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .id-sum-more { flex-shrink: 0; color: var(--accent-lo); }
+  .identity-card.id-compact > :not(#id-summary):not(#char-progress-mob):not(.race-extras-panel:has(.race-extras-warn)) { display: none !important; }
+  /* О6: тексты расы и предыстории — две строки и «ещё» */
+  .race-bonus-traits, .bg-feature-text { max-height: 2.8em; overflow: hidden; }
+  .txt-open .race-bonus-traits, .txt-open .bg-feature-text { max-height: none; }
+  .txt-clamped { cursor: pointer; }
+  .txt-clamped::after { content: "ещё ▾"; width: 100%; color: var(--accent-lo); font-size: 0.85em; }
+  .txt-clamped.txt-open::after { content: "свернуть ▴"; }
+  /* Л1: «Владения» — аккордеон, свёрнут после фиксации, сводка в заголовке */
+  .prof-card-head { display: flex; align-items: center; gap: 8px; min-height: 44px; margin: 0; cursor: pointer; }
+  .prof-card-sum {
+    display: block; margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--home-sub); font-size: var(--fs-sm); font-weight: 400; letter-spacing: 0; text-transform: none;
+  }
+  #prof-card:not(.prof-open) > .proficiencies-section { display: none; }
+  /* Л2: расчёт КД — шторка по тапу на 🛡 в шапке */
+  #tab-sheet .ac-calc-section { display: none; }
+  .status-ac { cursor: pointer; }
+  .mob-sheet-ac .ac-formula { padding: 8px 0; color: var(--text-color); }
+  /* Л3: тап-цели листа — 44 по высоте */
+  #tab-sheet .abil-card-score .stat-btn-sm { height: 44px !important; }
+  #tab-sheet .abil-card-head { min-height: 44px; align-items: center; }
+  #tab-sheet .hp-step { min-width: 44px; }
 }
 
 /* ── A2: карточка основы — поля плоскими строками ── */
