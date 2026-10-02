@@ -8842,10 +8842,10 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   box-shadow: var(--sh-1);
 }
 .app-version-force-btn {
-  background: var(--accent-lo);
-  color: var(--accent);
+  background: none;
+  color: var(--accent-lo);
   border: none;
-  padding: 6px 10px;
+  padding: 6px 4px;
   border-radius: var(--r-sm);
   font-size: 0.8em;
   cursor: pointer;
