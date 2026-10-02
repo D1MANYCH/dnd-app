@@ -32,6 +32,10 @@ const container = $("spell-slots-visual");
 if (!container) return;
 container.innerHTML = "";
 var isSingleWarlock = char.class === "Колдун" && (!Array.isArray(char.classes) || char.classes.length <= 1);
+// MOB-6: на зафиксированном листе − / + тратят и возвращают ячейку, максимум — по уровню
+var sslLocked = typeof isSheetLocked === "function" && isSheetLocked(char);
+var sslTitleMinus = sslLocked ? "Потратить ячейку" : "Убрать ячейку из максимума";
+var sslTitlePlus = sslLocked ? "Вернуть ячейку" : "Добавить ячейку к максимуму";
 // У одноклассового Колдуна обычные ячейки 1..9 пустые — рендерить их бессмысленно
 if (!isSingleWarlock) {
   for(let i=1; i<=9; i++) {
@@ -59,7 +63,7 @@ if (!isSingleWarlock) {
       '<div class="ssl-label"><span class="ssl-lvl">' + i + '</span><span class="ssl-ur">ур.</span></div>' +
       diamHtml +
       '<div class="ssl-counter"><span class="ssl-free' + (free === 0 && total > 0 ? ' ssl-exhausted' : '') + '">' + free + '</span><span class="ssl-sep">/</span><span class="ssl-total">' + total + '</span></div>' +
-      '<div class="ssl-controls"><button class="ssl-btn" onclick="adjustSpellSlots(' + i + ',-1)">−</button><button class="ssl-btn" onclick="adjustSpellSlots(' + i + ',1)">+</button></div>';
+      '<div class="ssl-controls"><button class="ssl-btn" title="' + sslTitleMinus + '" onclick="adjustSpellSlots(' + i + ',-1)">−</button><button class="ssl-btn" title="' + sslTitlePlus + '" onclick="adjustSpellSlots(' + i + ',1)">+</button></div>';
     container.appendChild(row);
   }
 }
@@ -83,7 +87,7 @@ if (pactTotal > 0 && pactLvl > 0) {
     '<div class="ssl-label"><span class="ssl-lvl">' + pactLvl + '</span><span class="ssl-ur">ур.</span><span class="ssl-pact">ПАКТ</span></div>' +
     pDiams +
     '<div class="ssl-counter"><span class="ssl-free' + (pactFree === 0 ? ' ssl-exhausted' : '') + '">' + pactFree + '</span><span class="ssl-sep">/</span><span class="ssl-total">' + pactTotal + '</span></div>' +
-    '<div class="ssl-controls"><button class="ssl-btn" onclick="adjustPactSlots(-1)">−</button><button class="ssl-btn" onclick="adjustPactSlots(1)">+</button></div>';
+    '<div class="ssl-controls"><button class="ssl-btn" title="' + sslTitleMinus + '" onclick="adjustPactSlots(-1)">−</button><button class="ssl-btn" title="' + sslTitlePlus + '" onclick="adjustPactSlots(1)">+</button></div>';
   container.appendChild(pactRow);
 }
 if (container.children.length === 0) {
@@ -112,6 +116,14 @@ function adjustPactSlots(delta) {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
+if (typeof isSheetLocked === "function" && isSheetLocked(char)) {
+  var pUsed = (char.spells.pactUsed || 0) - delta;
+  char.spells.pactUsed = Math.max(0, Math.min(char.spells.pactSlots || 0, pUsed));
+  if (window.AppLog) AppLog.action("spells", "ячейки пакта: использовано " + char.spells.pactUsed + "/" + (char.spells.pactSlots || 0));
+  saveToLocal();
+  renderSpellSlots();
+  return;
+}
 var current = char.spells.pactSlots || 0;
 var newValue = current + delta;
 if (newValue < 0) newValue = 0;
@@ -158,6 +170,14 @@ function adjustSpellSlots(level, delta) {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
+if (typeof isSheetLocked === "function" && isSheetLocked(char)) {
+  var used = (char.spells.slotsUsed[level] || 0) - delta;
+  char.spells.slotsUsed[level] = Math.max(0, Math.min(char.spells.slots[level] || 0, used));
+  if (window.AppLog) AppLog.action("spells", "ячейки " + level + " ур.: использовано " + char.spells.slotsUsed[level] + "/" + (char.spells.slots[level] || 0));
+  saveToLocal();
+  renderSpellSlots();
+  return;
+}
 const input = $('slots-' + level + '-total');
 let current = input ? parseInt(input.value, 10) : (char.spells.slots[level] || 0);
 if (isNaN(current)) current = char.spells.slots[level] || 0;

@@ -1637,6 +1637,20 @@
         if (sp.pactSlots !== 1 || sp.pactUsed !== 1) return "пакт −1: ожидал slots 1 / used 1, получено " + sp.pactSlots + "/" + sp.pactUsed;
         adjustPactSlots(-1); adjustPactSlots(-1);
         if (sp.pactSlots !== 0) return "пакт не клампится в 0: " + sp.pactSlots;
+        // MOB-6: на зафиксированном листе − / + тратят и возвращают, максимум не меняется
+        var ch = window.characters[0];
+        ch.basicLocked = true; ch.sheetLocked = true;
+        sp.slots[3] = 3; sp.slotsUsed[3] = 0; sp.pactSlots = 2; sp.pactUsed = 0;
+        adjustSpellSlots(3, -1); adjustSpellSlots(3, -1);
+        if (sp.slots[3] !== 3 || sp.slotsUsed[3] !== 2) return "замок −1×2: ожидал slots 3 / used 2, получено " + sp.slots[3] + "/" + sp.slotsUsed[3];
+        for (var k = 0; k < 4; k++) adjustSpellSlots(3, 1);
+        if (sp.slots[3] !== 3 || sp.slotsUsed[3] !== 0) return "замок +1×4: ожидал slots 3 / used 0, получено " + sp.slots[3] + "/" + sp.slotsUsed[3];
+        for (var m = 0; m < 4; m++) adjustSpellSlots(3, -1);
+        if (sp.slotsUsed[3] !== 3) return "замок: used не капится максимумом: " + sp.slotsUsed[3];
+        adjustPactSlots(-1);
+        if (sp.pactSlots !== 2 || sp.pactUsed !== 1) return "замок пакт −1: ожидал 2 / 1, получено " + sp.pactSlots + "/" + sp.pactUsed;
+        adjustPactSlots(1); adjustPactSlots(1);
+        if (sp.pactUsed !== 0) return "замок пакт +1: ожидал used 0, получено " + sp.pactUsed;
         return true;
       } finally { window.characters = savedChars; window.currentId = savedId; }
     });

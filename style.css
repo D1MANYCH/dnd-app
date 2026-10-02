@@ -8841,6 +8841,18 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   filter: brightness(1.06);
   box-shadow: var(--sh-1);
 }
+.app-version-force-btn {
+  background: var(--accent-lo);
+  color: var(--accent);
+  border: none;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+  font-size: 0.8em;
+  cursor: pointer;
+  width: auto;
+  margin: 0 0 0 8px;
+  min-height: 44px;
+}
 
 /* ══ JOURNAL ═══════════════════════════════════════════════════════════════
    STYLE-8g: вкладка «Журнал» в языке встречающего экрана — ни одной коробки.

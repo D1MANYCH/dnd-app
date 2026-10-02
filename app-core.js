@@ -1574,7 +1574,28 @@ function updateVersionBlock(hasUpdate, worker) {
     }
   } else {
     row.classList.remove('has-update');
-    status.innerHTML = '<span class="version-ok">Актуальная версия ✓</span>';
+    status.innerHTML = '<span class="version-ok">Актуальная версия ✓</span> <button class="app-version-force-btn" id="version-force-btn" title="Если новая версия не приходит: сбросить кэш приложения и загрузить заново. Персонажи не удаляются">Обновить принудительно</button>';
+    var fbtn = $('version-force-btn');
+    if (fbtn) fbtn.addEventListener('click', function() { forceAppUpdate(fbtn); });
   }
+}
+
+// Принудительное обновление: кэш Service Worker сбрасывается, данные в localStorage не трогаются
+function forceAppUpdate(btn) {
+  if (btn) { btn.textContent = 'Обновляем...'; btn.disabled = true; }
+  if (window.AppLog) AppLog.action("app", "принудительное обновление");
+  var reload = function() { location.reload(); };
+  var tasks = [];
+  if ('serviceWorker' in navigator) {
+    tasks.push(navigator.serviceWorker.getRegistrations().then(function(regs) {
+      return Promise.all(regs.map(function(r) { return r.unregister(); }));
+    }));
+  }
+  if (window.caches && caches.keys) {
+    tasks.push(caches.keys().then(function(keys) {
+      return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+    }));
+  }
+  Promise.all(tasks).then(reload, reload);
 }
 
