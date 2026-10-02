@@ -828,7 +828,7 @@ function _buildSheetSteps() {
     {
       requireTarget: true,
       target: function () {
-        return _tourFirstVisible(['#sheet-lock-btn', '#sheet-unlock-btn']);
+        return _tourFirstVisible(['#sheet-lock-btn', '#sheet-unlock-btn', '#basic-locked-bar']);
       },
       title: 'Персонаж готов',
       text: 'Когда лист собран, нажмите «Персонаж готов» — характеристики, владения, заклинания, черты и параметры предметов закроются от случайных правок. При повышении уровня замок снимется сам; открыть вручную — «Изменить».',

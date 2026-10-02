@@ -161,6 +161,13 @@ function renderEditionBadge() {
   }
 }
 
+// MOB-2: на мобиле значок билда открывает шторку Гайд / План 1–20 / Отвязать.
+function openBuildBadgeMenu() {
+  if (window.innerWidth >= 1024 || typeof openMobSheet !== "function") { openBuildGuide(); return; }
+  var badge = $("char-build-badge");
+  openMobSheet(badge ? badge.textContent : "Билд", mobSheetActs([["Гайд", "openBuildGuide()"], ["План 1–20", "openBuildPlan()"], ["Отвязать", "unlinkBuild()"]]));
+}
+
 function unlinkBuild() {
   var char = getCurrentChar();
   if (!char || !char.buildId) return;

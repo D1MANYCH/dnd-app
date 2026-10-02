@@ -1122,8 +1122,41 @@ function renderBooksRow() {
       (locked ? ' disabled' : '') + ' title="' + escapeHtml(lbl.full) + '" onclick="toggleCharBook(\'' + code + '\')">' +
       escapeHtml(lbl.short) + '</button>';
   }).join("");
+  var mob = $("char-books-mob");
+  if (mob) {
+    var on = codes.filter(function(c) { return c !== "PHB" && c !== "PH24" && charHasBook(char, c); });
+    mob.disabled = locked;
+    mob.textContent = locked
+      ? "Книги · " + ["PHB"].concat(on.map(function(c) { return (SOURCE_LABELS[c] || { short: c }).short; })).join(", ")
+      : "Книги · PHB" + (on.length ? " + " + on.length : "") + " →";
+  }
   var col = box.closest && box.closest(".col");
   if (col) { col.classList.toggle("basic-field-locked", locked); col.style.display = codes.length ? "" : "none"; }
+}
+// MOB-2: общая шторка коротких меню листа (#mob-sheet; на ≤767 .modal выезжает снизу).
+function openMobSheet(title, html) {
+  var t = $("mob-sheet-title"), list = $("mob-sheet-list");
+  if (!list) return;
+  if (t) t.textContent = title;
+  list.innerHTML = html;
+  openModal("mob-sheet");
+}
+function closeMobSheet() { closeModal("mob-sheet"); }
+// items: [[подпись, вызов], ...] → строки-действия, шторка закрывается до вызова.
+function mobSheetActs(items) {
+  return items.map(function(it) {
+    return '<button type="button" class="mob-sheet-row" onclick="closeMobSheet();' + it[1] + '">' + escapeHtml(it[0]) + '</button>';
+  }).join("");
+}
+function openBooksSheet() {
+  var char = currentId ? getCurrentChar() : null;
+  if (!char || char.basicLocked) return;
+  var codes = booksWithContent().filter(bookGloballyOn).filter(function(c) { return c !== "PHB" && c !== "PH24"; });
+  openMobSheet("Книги персонажа", codes.map(function(code) {
+    var lbl = SOURCE_LABELS[code] || { short: code, full: code };
+    return '<label class="mob-sheet-row mob-sheet-check"><input type="checkbox"' + (charHasBook(char, code) ? ' checked' : '') +
+      ' onchange="toggleCharBook(\'' + code + '\')"><span>' + escapeHtml(lbl.full) + '</span></label>';
+  }).join(""));
 }
 function toggleCharBook(code) {
   var char = currentId ? getCurrentChar() : null;
@@ -1846,6 +1879,15 @@ function applySheetLockUI() {
   if (readyBtn) readyBtn.style.display = (enabled && char.basicLocked && !locked) ? "" : "none";
   if (editBtn) editBtn.style.display = locked ? "" : "none";
   if (basicBtn) basicBtn.style.display = locked ? "none" : "";
+}
+
+// MOB-2: на мобиле действия плашки замка — в шторке; набор тот же, что видимые кнопки.
+function openLockSheet() {
+  var acts = [["sheet-lock-btn", "Персонаж готов", "lockSheet()"], ["sheet-unlock-btn", "Изменить лист", "unlockSheet()"], ["basic-unlock-btn", "Изменить основу", "unlockBasicInfo()"]];
+  var items = acts.filter(function(a) { var b = $(a[0]); return b && b.style.display !== "none"; })
+    .map(function(a) { return [a[1], a[2]]; });
+  var t = $("basic-locked-text");
+  openMobSheet(t ? t.textContent : "Замок листа", mobSheetActs(items));
 }
 
 function lockSheet() {

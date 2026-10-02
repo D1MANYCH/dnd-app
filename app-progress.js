@@ -590,6 +590,11 @@ function syncClassFieldUI(char) {
     addBtn.textContent = (multi && open) ? "Классы и уровни (мультикласс) →" : multi ? "+ Ещё класс (мультикласс) →" : "+ Второй класс (мультикласс) →";
   }
   if (multi && lbl && typeof getClassLabel === "function") lbl.textContent = getClassLabel(char);
+  var pgMob = $("char-progress-mob");
+  if (pgMob) {
+    pgMob.style.display = (char && char.class && char.basicLocked) ? "" : "none";
+    if (char && char.class) pgMob.textContent = "Развитие · " + (multi ? getClassLabel(char) : char.class + " " + (char.level || 1)) + " →";
+  }
 
   var list = multi ? _pgClassList(char) : [];
 

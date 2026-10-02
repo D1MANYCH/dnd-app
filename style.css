@@ -15351,6 +15351,49 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .basic-locked-bar:hover .basic-unlock-btn,
 .basic-unlock-btn:focus-visible { opacity: 1; }
 
+/* MOB-2: основа листа на телефоне — строки вместо кнопок + общая шторка #mob-sheet */
+.mob-row, .basic-locked-more { display: none; }
+.mob-sheet-list { display: flex; flex-direction: column; }
+.mob-sheet-row {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; min-height: 44px; margin: 0; padding: 10px 0;
+  background: none; border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0; box-shadow: none;
+  color: var(--accent-lo); font-family: var(--font-display); font-size: 0.95em; text-align: left; cursor: pointer;
+}
+.mob-sheet-row:last-child { border-bottom: 0; }
+.mob-sheet-check { color: var(--text-color); font-family: inherit; }
+.mob-sheet-check input { width: 20px; height: 20px; margin: 0; flex-shrink: 0; accent-color: var(--accent); }
+@media (max-width: 1023px) {
+  .mob-row {
+    display: flex; align-items: center; width: 100%; min-height: 44px; margin: 0; padding: 8px 0;
+    background: none; border: 0; border-radius: 0; box-shadow: none;
+    color: var(--accent-lo); font-family: var(--font-display); font-size: var(--fs-sm); text-align: left; cursor: pointer;
+  }
+  .mob-row:disabled { color: var(--home-sub); cursor: default; opacity: 1; }
+  /* О1: чипы книг → строка «Книги · PHB + N →» */
+  #tab-sheet .char-books-row label, #char-books { display: none; }
+  /* О2: баннер создания — без подсказки, две ссылки в строку; #abilgen-row дублирует баннер */
+  .creation-wizard-banner { flex-flow: row wrap; gap: 0 16px; }
+  .creation-wizard-banner > .cw-step,
+  .creation-wizard-banner > .cw-lock-btn,
+  .creation-wizard-banner > .cw-validation { flex-basis: 100%; }
+  .cw-step { align-items: center; }
+  .cw-step-hint, .cw-long, #abilgen-row { display: none; }
+  /* О3: плашка замка — строка 🔒, действия в шторке; тап по всей строке */
+  .basic-locked-bar { cursor: pointer; }
+  .basic-locked-actions { display: none; }
+  .basic-locked-more {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 32px; margin: 0; padding: 0;
+    background: none; border: 0; box-shadow: none; color: var(--accent-lo); cursor: pointer;
+  }
+  /* О4: билд одной строкой, Гайд / План / Отвязать — в шторке */
+  .char-build-badge-wrap .char-build-plan-btn, .char-build-unlink { display: none; }
+  .char-build-badge::after { content: " ▾"; }
+  /* О7: один вход в «Развитие» — строка #char-progress-mob */
+  .class-plan-btn, #char-add-class, .cd-class-mc-act { display: none; }
+}
+
 /* ── A2: карточка основы — поля плоскими строками ── */
 #tab-sheet .identity-card label,
 #tab-sheet .sheet-small-field label,
