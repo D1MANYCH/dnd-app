@@ -134,6 +134,15 @@
 --fs-md: calc(var(--fs-md-base) * var(--fs-scale));
 --fs-lg: calc(var(--fs-lg-base) * var(--fs-scale));
 --fs-xl: calc(var(--fs-xl-base) * var(--fs-scale));
+/* ПК-2: шкала десктопа 11/12/13/14/16/18/22/28 */
+--fs-11: calc(11px * var(--fs-scale));
+--fs-12: calc(12px * var(--fs-scale));
+--fs-13: calc(13px * var(--fs-scale));
+--fs-14: calc(14px * var(--fs-scale));
+--fs-16: calc(16px * var(--fs-scale));
+--fs-18: calc(18px * var(--fs-scale));
+--fs-22: calc(22px * var(--fs-scale));
+--fs-28: calc(28px * var(--fs-scale));
 
 /* ===== Алиасы старых переменных (совместимость) ===== */
 --bg-color: var(--bg-0);
@@ -17528,4 +17537,72 @@ button.modal-close-bottom:hover,
 :is(input, select, textarea, .home-menu-item, .home-menu-subitem, .notes-section-head, .dice-pick, .dice-fan-item):focus-visible {
   outline: 2px solid var(--focus-ring) !important;
   outline-offset: 2px;
+}
+
+/* ПК-2: типографика десктопа — шкала --fs-11…28 вместо дробных em, один
+   заголовок секции, одна капс-подпись, текст справки и «О версии» 14 px.
+   body:not(#_):not(#_) поднимает специфичность над правилами со скоупом #tab-*. */
+@media (min-width: 1200px) {
+  /* Заголовок страницы и секции */
+  body:not(#_):not(#_) .page-title { font-size: var(--fs-18); }
+  body:not(#_):not(#_) .pg-head-cls { font-size: var(--fs-22); }
+  body:not(#_):not(#_) [id^="tab-"] h3:not(.books-group-title),
+  body:not(#_):not(#_) .notes-section-head,
+  body:not(#_):not(#_) .prof-card-head,
+  body:not(#_):not(#_) #tab-inventory h4 {
+    font-family: var(--font-display);
+    font-size: var(--fs-16);
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+  /* Капс-подпись: группы, разделы, подписи полей */
+  body:not(#_):not(#_) .battle-section-title,
+  body:not(#_):not(#_) .spell-group-title,
+  body:not(#_):not(#_) .books-group-title,
+  body:not(#_):not(#_) .help-block-title,
+  body:not(#_):not(#_) .class-filter-label,
+  body:not(#_):not(#_) .rr-group,
+  body:not(#_):not(#_) .pg-grp,
+  body:not(#_):not(#_) .inv-slots-label,
+  body:not(#_):not(#_) .prof-cat-title,
+  body:not(#_):not(#_) .hp-sub-lbl,
+  body:not(#_):not(#_) .abil-cols,
+  body:not(#_):not(#_) #tab-sheet .identity-card label,
+  body:not(#_):not(#_) #tab-sheet .sheet-small-field label,
+  body:not(#_):not(#_) #tab-sheet .proficiencies-section > h4 {
+    font-family: var(--font-display);
+    font-size: var(--fs-12);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  /* Мелкие метки — 11 */
+  body:not(#_):not(#_) :is(.prof-chip-src, .rec-badge, .prof-cat-hint, .tab-help-q, .race-bonus-traits,
+    .sheet-avatar-hint, #sheet-unlock-btn, .ritual-badge-text, .race-bonus-badge, .bg-feature-text,
+    .source-badge, .ssl-sep) { font-size: var(--fs-11); }
+  /* Вторичный текст — 12 */
+  body:not(#_):not(#_) :is(.char-build-plan-btn, .pcard-sub, .pcard-desc, .prep-hint, .party-section-hint,
+    .abil-mini-label, .prof-empty, .race-bonus-label, .bg-feature-label, .party-add-btn,
+    .version-ok, .abil-passive, #passive-perception-2024, .sc-stat-label, .inv-coin-rate-ref,
+    .pcard-tactics, .bd-sub) { font-size: var(--fs-12); }
+  /* Чипы и подписи — 13 */
+  body:not(#_):not(#_) :is(.prof-chip, .ssl-total, .cw-step-hint, #char-build-badge, .char-build-unlink,
+    .rec-text, .subclass-rec-ok, #basic-locked-text, .spell-add-btn, .spell-find-btn, .prep-label,
+    .prep-sep, .prep-max, .party-empty) { font-size: var(--fs-13); }
+  /* Основной текст — 14 */
+  body:not(#_):not(#_) :is(.party-io-btn, .race-extras-title, .race-extras-warn,
+    .battle-setup-name, .prep-count, .weapon-name,
+    #drawer-char-name, .fs-scale-reset, #cw-lock-btn, .inv-slots-sep,
+    .help-block p, .help-block li, .cl-item, .app-info-item, #inv-backpack-toggle,
+    .battle-start-btn) { font-size: var(--fs-14); }
+  /* Имена строк — 16 */
+  body:not(#_):not(#_) :is(.abil-card-name, .party-section-label, .ssl-free, .stat-compact-val,
+    .sc-stat-value, .spell-card-name, .ssl-lvl, .inv-item-name, .pcard-name) { font-size: var(--fs-16); }
+  /* Крупные значения — 18 / 22 / 28 */
+  body:not(#_):not(#_) :is(.inv-drag-handle, #hp-head-max, .hp-head-sep) { font-size: var(--fs-18); }
+  /* у этих кнопок базовое правило с !important */
+  .inv-coin-btn { font-size: var(--fs-18) !important; }
+  .inv-add-btn, .inv-exch-open-btn, .weapon-roll-btn { font-size: var(--fs-14) !important; }
+  body:not(#_):not(#_) :is(.abil-card-mod, .pcard-icon, #inv-slots-used, #inv-slots-total) { font-size: var(--fs-22); }
+  body:not(#_):not(#_) :is(.hp-big-num, #ac-total, #rr-hp-current) { font-size: var(--fs-28); }
 }
