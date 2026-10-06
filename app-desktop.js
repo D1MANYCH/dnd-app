@@ -6,7 +6,22 @@
   // STYLE-8R: язык встречающего экрана — ни одной коробки. Всегда видны хиты
   // и бросок d20, остальное — четыре строки-сводки со значением справа,
   // раскрывающиеся на месте.
+  // ПК-4: на 1200–1599 панель свёрнута в полосу иконок 48 px; клик раскрывает,
+  // состояние — в dnd_rr_open. Класс на <html>, чтобы --rr-w видели :root-переменные.
+  const RR_OPEN_KEY = 'dnd_rr_open';
+  try { if (localStorage.getItem(RR_OPEN_KEY) === '1') document.documentElement.classList.add('rr-open'); } catch (e) {}
+
   const RAIL_HTML = `
+    <div class="rr-strip">
+      <button type="button" class="rr-strip-btn rr-strip-toggle" data-rr-open="" title="Развернуть панель" aria-label="Развернуть панель">«</button>
+      <button type="button" class="rr-strip-btn" data-rr-open="" title="Хиты"><span data-ico="heart" data-ico-size="18">❤</span><span class="rr-strip-val" id="rr-s-hp">10</span></button>
+      <button type="button" class="rr-strip-btn" id="rr-s-d20-btn" title="Бросить d20"><span data-ico="d20" data-ico-size="18">🎲</span><span class="rr-strip-val" id="rr-s-d20"></span></button>
+      <button type="button" class="rr-strip-btn" data-rr-open="" title="Класс доспеха"><span data-ico="shield" data-ico-size="18">🛡</span><span class="rr-strip-val" id="rr-s-ac">10</span></button>
+      <button type="button" class="rr-strip-btn" data-rr-open="" title="Уровень"><span data-ico="star" data-ico-size="18">★</span><span class="rr-strip-val" id="rr-s-lvl">1</span></button>
+      <button type="button" class="rr-strip-btn" data-rr-open="rr-slots-toggle" id="rr-s-slots-btn" title="Ячейки" style="display:none"><span data-ico="layers" data-ico-size="18">▤</span><span class="rr-strip-val" id="rr-s-slots">0/0</span></button>
+      <button type="button" class="rr-strip-btn" data-rr-open="rr-cond-toggle" title="Состояния"><span data-ico="alert" data-ico-size="18">⚠</span><span class="rr-strip-val" id="rr-s-cond">0</span></button>
+    </div>
+    <button type="button" class="rr-collapse" id="rr-collapse" title="Свернуть панель в полосу">Свернуть »</button>
     <div class="rr-hp">
       <div class="rr-group">Хиты</div>
       <div class="rr-hp-big"><span id="rr-hp-current">10</span><span class="rr-hp-big-sep">/</span><span id="rr-hp-max">10</span></div>
@@ -75,7 +90,7 @@
       </div>
 
       <div class="rr-line" id="rr-slots-line" style="display:none">
-        <button type="button" class="rr-row" data-rr-toggle="rr-panel-slots" aria-controls="rr-panel-slots" aria-expanded="false">
+        <button type="button" class="rr-row" id="rr-slots-toggle" data-rr-toggle="rr-panel-slots" aria-controls="rr-panel-slots" aria-expanded="false">
           <span class="home-bullet home-bullet--sm"></span>
           <span class="rr-row-label">Ячейки</span>
           <span class="rr-row-val" id="rr-slots-sum">0/0</span>
@@ -86,7 +101,7 @@
       </div>
 
       <div class="rr-line">
-        <button type="button" class="rr-row" data-rr-toggle="rr-panel-cond" aria-controls="rr-panel-cond" aria-expanded="false">
+        <button type="button" class="rr-row" id="rr-cond-toggle" data-rr-toggle="rr-panel-cond" aria-controls="rr-panel-cond" aria-expanded="false">
           <span class="home-bullet home-bullet--sm"></span>
           <span class="rr-row-label">Состояния</span>
           <span class="rr-row-val" id="rr-cond-count">0</span>
@@ -152,6 +167,24 @@
       rrInsp.classList.toggle('is-empty', !isOn);
       rrInsp.setAttribute('aria-pressed', isOn ? 'true' : 'false');
     }
+    syncStrip();
+  }
+
+  // ПК-4: значения полосы иконок — копия строк панели
+  function syncStrip() {
+    [['rr-s-hp', 'rr-hp-current'], ['rr-s-ac', 'rr-ac'], ['rr-s-lvl', 'rr-level'],
+     ['rr-s-slots', 'rr-slots-sum'], ['rr-s-cond', 'rr-cond-count'], ['rr-s-d20', 'rr-d20-val']].forEach(function (p) {
+      var dst = document.getElementById(p[0]), src = document.getElementById(p[1]);
+      if (dst && src) dst.textContent = src.textContent;
+    });
+    var slotsLine = document.getElementById('rr-slots-line');
+    var slotsBtn = document.getElementById('rr-s-slots-btn');
+    if (slotsLine && slotsBtn) slotsBtn.style.display = slotsLine.style.display;
+  }
+
+  function setRailOpen(open) {
+    document.documentElement.classList.toggle('rr-open', open);
+    try { localStorage.setItem(RR_OPEN_KEY, open ? '1' : '0'); } catch (e) {}
   }
 
   function _esc(s) {
@@ -261,6 +294,7 @@
     // Строка спряталась (сменили персонажа на неколдующего) — панель под ней
     // обязана свернуться вместе с ней, иначе полоски повиснут без заголовка.
     if (!rows) collapseRow(line.querySelector('[data-rr-toggle]'));
+    syncStrip();
   }
   window.refreshRailSlots = renderRailSlots;
 
@@ -323,13 +357,28 @@
       val.classList.remove('is-fresh');
       void val.offsetWidth;
       val.classList.add('is-fresh');
+      syncStrip();
     });
 
-    if (btnD20) btnD20.addEventListener('click', () => {
+    const rollD20 = () => {
       if (typeof window.openDiceModal === 'function') window.openDiceModal();
       if (typeof window.rollDiceWithSelectedMode === 'function') window.rollDiceWithSelectedMode(20);
       else if (typeof window.rollDice === 'function') window.rollDice(20);
+    };
+    if (btnD20) btnD20.addEventListener('click', rollD20);
+    const stripD20 = document.getElementById('rr-s-d20-btn');
+    if (stripD20) stripD20.addEventListener('click', rollD20);
+
+    // ПК-4: полоса иконок раскрывает панель (и нужную строку), «Свернуть» — обратно
+    rail.querySelectorAll('[data-rr-open]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setRailOpen(true);
+        const row = btn.getAttribute('data-rr-open');
+        if (row) setRowExpanded(document.getElementById(row), true);
+      });
     });
+    const btnCollapse = document.getElementById('rr-collapse');
+    if (btnCollapse) btnCollapse.addEventListener('click', () => setRailOpen(false));
     if (btnCond) btnCond.addEventListener('click', () => {
       if (typeof window.toggleConditionsPopup === 'function') window.toggleConditionsPopup();
       else if (typeof window.openConditionsPopup === 'function') window.openConditionsPopup();

@@ -1665,14 +1665,6 @@ body.no-character .drawer-nav { display: none; }
     padding: 24px 32px;
   }
 }
-/* Дымка v5: на широких экранах лист занимает больше ширины — между контентом
-   и правым rail оставались большие пустые поля (фидбек юзера) */
-@media (min-width: 1600px) {
-  #screen-character,
-  #screen-character > .scroll {
-    max-width: 1400px;
-  }
-}
 @media (min-width: 1024px) {
 
   /* Right-rail — по умолчанию тёмный (под dark и под auto+OS-dark);
@@ -11045,8 +11037,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 @media (min-width: 1200px) {
   body:not(.no-character) header {
     width: auto;
-    padding-left: max(28px, calc((100% - 560px - var(--app-width)) / 2));
-    padding-right: max(28px, calc((100% - 560px - var(--app-width)) / 2 + 320px));
+    padding-left: max(28px, calc((100% - 240px - var(--rr-w) - var(--pk-col)) / 2));
+    padding-right: max(28px, calc((100% - 240px - var(--rr-w) - var(--pk-col)) / 2 + var(--rr-w)));
   }
 }
 
@@ -17717,3 +17709,77 @@ button.modal-close-bottom:hover,
     font-weight: 700;
   }
 }
+
+/* ПК-4: ширина десктопа. Колонка вкладок, «Прогресса» и страниц одна —
+   --pk-col, от свободного места между сайдбаром (240) и правой панелью (--rr-w).
+   --app-width не трогаем: на нём держатся модалки. На 1200–1599 правая
+   панель свёрнута в полосу иконок 48 px (html.rr-open — раскрыта, app-desktop.js). */
+@media (min-width: 1200px) {
+  :root { --rr-w: 320px; --pk-col: min(1400px, calc(100vw - 240px - var(--rr-w) - 48px)); }
+  .container { max-width: var(--pk-col); }
+  #screen-character,
+  #screen-character > .scroll { max-width: none; }
+  #tab-progress .pg-body { max-width: none; }
+  .page-stage,
+  .page-stage--wide { max-width: var(--pk-col); }
+  /* Настройки — группы в две колонки: «Вид» слева, «Игра» и «Книги» справа */
+  .settings-modal-body { column-count: 2; column-gap: 56px; }
+  .settings-modal-body > .theme-picker-row { break-inside: avoid; }
+  .settings-modal-body > .books-group-title { break-after: avoid; }
+  .settings-modal-body > .books-group-title:first-child { margin-top: 0; }
+  .settings-modal-body > h3:nth-of-type(2) { break-before: column; margin-top: 0; }
+}
+.rr-strip, .rr-collapse { display: none; }
+@media (min-width: 1200px) and (max-width: 1599px) {
+  :root { --rr-w: 48px; }
+  :root.rr-open { --rr-w: 320px; }
+  body { padding-right: var(--rr-w) !important; }
+  :root:not(.rr-open) .app-right-rail {
+    width: 48px;
+    padding: 12px 0;
+    gap: 0;
+    align-items: center;
+  }
+  :root:not(.rr-open) .app-right-rail > :not(.rr-strip) { display: none; }
+  :root:not(.rr-open) .rr-strip { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  :root.rr-open .rr-collapse { display: block; }
+}
+.rr-strip-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 6px 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--home-sub);
+  cursor: pointer;
+  transition: color var(--t1) var(--ez-out);
+}
+.rr-strip-btn:hover,
+.rr-strip-btn:focus-visible { background: none; color: var(--accent-lo); }
+.rr-strip-btn:focus-visible { outline: none; box-shadow: var(--sh-glow); }
+.rr-strip-toggle { font-size: var(--fs-18); line-height: 1; border-bottom: 1px solid var(--home-rule); }
+.rr-strip-val { font-family: var(--font-display); font-size: var(--fs-11); font-weight: 600; color: var(--text); line-height: 1.1; }
+.rr-strip-val:empty { display: none; }
+.rr-collapse {
+  align-self: flex-end;
+  width: auto;
+  margin: -8px 0 0;
+  padding: 4px 2px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--home-sub);
+  font-family: var(--font-display);
+  font-size: var(--fs-12);
+  cursor: pointer;
+}
+.rr-collapse:hover,
+.rr-collapse:focus-visible { background: none; color: var(--accent-lo); }
