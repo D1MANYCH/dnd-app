@@ -1149,7 +1149,9 @@ function renderBooksRow() {
   var locked = !!char.basicLocked;
   // DOP-3: только книги с контентом и включённые на экране «Книги и дополнения».
   var codes = booksWithContent().filter(bookGloballyOn);
-  box.innerHTML = codes.map(function(code) {
+  // На зафиксированной основе — только подключённые книги, без выключенных.
+  var shown = locked ? codes.filter(function(c) { return charHasBook(char, c); }) : codes;
+  box.innerHTML = shown.map(function(code) {
     var lbl = SOURCE_LABELS[code] || { short: code, full: code };
     return '<button type="button" class="book-btn' + (charHasBook(char, code) ? ' active' : '') + '"' +
       (locked ? ' disabled' : '') + ' title="' + escapeHtml(lbl.full) + '" onclick="toggleCharBook(\'' + code + '\')">' +

@@ -1837,6 +1837,14 @@ body.no-character .drawer-nav { display: none; }
   #tab-sheet.active > .identity-card > .bg-feature-bar { grid-column: 1 / -1; }
   #tab-sheet.active > .identity-card > .trinket-roll-row { align-self: end; padding-bottom: 4px; }
   #tab-sheet.active > .identity-card > .row { margin-bottom: 0; }
+  /* Класс | Раса в одну строку, мультикласс и «Дополнения» — под ними во всю ширину */
+  #tab-sheet.active > .identity-card > #id-summary,
+  #tab-sheet.active > .identity-card > .sheet-top-row,
+  #tab-sheet.active > .identity-card > .basics-row { order: -1; }
+  #tab-sheet.active > .identity-card > .cd-add-class,
+  #tab-sheet.active > .identity-card > .char-books-row,
+  #tab-sheet.active > .identity-card > .race-extras-panel { grid-column: 1 / -1; }
+  #tab-sheet.active > .identity-card > .cd-add-class { justify-self: start; }
 }
 
 /* --- Чипы / бейджи --- */
@@ -1898,6 +1906,7 @@ body.no-character .drawer-nav { display: none; }
 /* UI4-1: орбитальный canvas-фон. html — сплошной фолбэк (анти-флеш до
    первой отрисовки canvas); токен --bg-0 уже theme-aware (dark/light). */
 html { background-color: var(--bg-0); }
+button, input, select, textarea { font-family: inherit; }
 #bgCanvas {
 position: fixed;
 inset: 0;
@@ -6643,8 +6652,7 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent-c
   cursor: pointer;
   transition: color var(--t1) var(--ez-out);
 }
-.edition-btn:not([hidden]) ~ .edition-btn:not([hidden])::before,
-.book-btn + .book-btn::before { content: "·"; margin-right: var(--sp-3); color: var(--home-sub); }
+.edition-btn:not([hidden]) ~ .edition-btn:not([hidden])::before { content: "·"; margin-right: var(--sp-3); color: var(--home-sub); }
 .edition-btn:hover,
 .edition-btn:focus-visible,
 .book-btn:hover,
@@ -6661,7 +6669,11 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent-c
   text-decoration-thickness: 2px;
 }
 .book-btn { padding: var(--sp-2) 0; }
-.book-btn[disabled] { cursor: not-allowed; }
+.book-btn[disabled] { cursor: default; }
+#char-books { gap: 0 var(--sp-4); }
+.book-btn::before { content: "+"; display: inline-block; width: 1em; color: var(--home-sub); }
+.book-btn.active { text-decoration: none; }
+.book-btn.active::before { content: "✓"; color: var(--accent-lo); }
 .class-filter-btn {
   position: relative;
   width: auto;
@@ -8847,7 +8859,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   border: none;
   padding: 6px 4px;
   border-radius: var(--r-sm);
-  font-size: 0.8em;
+  font-size: 12px;
   cursor: pointer;
   width: auto;
   margin: 0 0 0 8px;
@@ -11014,6 +11026,19 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 
 @media (min-width: 1500px) {
   :root { --app-width: 980px; }
+}
+
+/* ПК-1: шапка — от сайдбара до края экрана, содержимое по колонке контента
+   (100% — ширина окна, 240 — сайдбар, 320 — правая панель) */
+@media (min-width: 1024px) {
+  html { scrollbar-gutter: stable; }
+}
+@media (min-width: 1200px) {
+  body:not(.no-character) header {
+    width: auto;
+    padding-left: max(28px, calc((100% - 560px - var(--app-width)) / 2));
+    padding-right: max(28px, calc((100% - 560px - var(--app-width)) / 2 + 320px));
+  }
 }
 
 /* =============================================
