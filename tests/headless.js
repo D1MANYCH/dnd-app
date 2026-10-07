@@ -10119,6 +10119,126 @@
     });
   }
 
+  // ────────── БЛОК 67 (SYNC-2): движок слияния syncMerge — правки, конфликт, удаление, свои заклинания, упаковка ──────────
+  if (typeof syncMerge === "function") (function(){
+    var NOW = 1800000000000;
+    function C(id, name, extra) { return Object.assign({ id: id, name: name, level: 1 }, extra || {}); }
+    function baseOf(chars, spells) {
+      var b = {};
+      chars.forEach(function(c){ b[String(c.id)] = syncHashChar(c); });
+      (spells || []).forEach(function(s){ b["spell:" + s.id] = syncHashChar(s); });
+      return b;
+    }
+    function M(L, R, base, tombs, rTombs, ls, rs) {
+      return syncMerge({ chars: L, spells: ls || [] },
+        { device: "Android", chars: R.map(_packCharForExport), spells: rs || [], tombstones: rTombs || {} },
+        base, tombs || {}, { now: NOW, device: "ПК" });
+    }
+    function names(res) { return res.chars.map(function(c){ return c.name + ":" + c.level; }).join(","); }
+
+    t("[sync-2] хеш не зависит от порядка ключей и меняется от правки", function(){
+      if (syncHashChar({a:1,b:{c:2,d:3}}) !== syncHashChar({b:{d:3,c:2},a:1})) return "порядок ключей влияет";
+      if (syncHashChar(C(1,"А")) === syncHashChar(C(1,"А",{level:2}))) return "правка не меняет хеш";
+      return true;
+    });
+
+    t("[sync-2] без изменений — ничего не применяем и не пишем", function(){
+      var a = C(1,"А"), r = M([a], [a], baseOf([a]));
+      if (r.changed || r.toUpload || r.conflicts.length) return JSON.stringify({ch:r.changed, up:!!r.toUpload, cf:r.conflicts.length});
+      return true;
+    });
+
+    t("[sync-2] правка только здесь → на Диск, только там → сюда", function(){
+      var a = C(1,"А"), b = baseOf([a]);
+      var r1 = M([C(1,"А",{level:3})], [a], b);
+      if (r1.changed || !r1.toUpload || names(r1) !== "А:3") return "здесь: " + names(r1) + " up=" + !!r1.toUpload;
+      if (r1.toUpload.chars[0].level !== 3) return "в файл ушла старая версия";
+      var r2 = M([a], [C(1,"А",{level:5})], b);
+      if (!r2.changed || r2.toUpload || names(r2) !== "А:5") return "там: " + names(r2) + " up=" + !!r2.toUpload;
+      if (r2.base["1"] !== syncHashChar(C(1,"А",{level:5}))) return "база не обновлена";
+      return true;
+    });
+
+    t("[sync-2] правка с обеих сторон → своя версия + копия «Имя (с устройства)»", function(){
+      var a = C(1,"А"), b = baseOf([a]);
+      var r = M([C(1,"А",{level:2})], [C(1,"А",{level:4})], b);
+      if (r.conflicts.length !== 1) return "конфликтов: " + r.conflicts.length;
+      if (names(r) !== "А:2,А (с Android):4") return names(r);
+      if (r.chars[1].id === 1 || r.conflicts[0].copyId !== r.chars[1].id) return "id копии: " + r.chars[1].id;
+      if (!r.changed || !r.toUpload || r.toUpload.chars.length !== 2) return "не применено/не записано";
+      // второе устройство (Android) получает файл: своё = база → берёт ПК-версию, копию добавляет
+      var r2 = syncMerge({ chars: [C(1,"А",{level:4})], spells: [] }, r.toUpload, baseOf([C(1,"А",{level:4})]), {}, { now: NOW, device: "Android" });
+      if (r2.conflicts.length || names(r2) !== "А:2,А (с Android):4") return "второе устройство: " + names(r2);
+      return true;
+    });
+
+    t("[sync-2] новый персонаж на обоих устройствах — оба остаются", function(){
+      var r = M([C(1,"А")], [C(2,"Б")], {});
+      if (names(r) !== "А:1,Б:1" || !r.changed || !r.toUpload) return names(r);
+      return true;
+    });
+
+    t("[sync-2] удаление: надгробие убирает персонажа на другом устройстве", function(){
+      var a = C(1,"А"), b = baseOf([a]);
+      // удалён здесь, на Диске без правок → остаётся удалённым, надгробие уходит в файл
+      var r1 = M([], [a], b, { 1: NOW - 1000 });
+      if (r1.chars.length || !r1.toUpload || r1.toUpload.chars.length || !r1.toUpload.tombstones["1"]) return "здесь: " + names(r1);
+      // удалён там (надгробие в файле), здесь без правок → удаляем
+      var r2 = M([a], [], b, {}, { 1: NOW - 1000 });
+      if (r2.chars.length || !r2.changed || r2.deleted[0] !== 1) return "там: " + names(r2) + " deleted=" + r2.deleted;
+      return true;
+    });
+
+    t("[sync-2] удаление против правки — правка побеждает, надгробие снимается", function(){
+      var a = C(1,"А"), b = baseOf([a]);
+      var r1 = M([C(1,"А",{level:6})], [], b, {}, { 1: NOW - 1000 });
+      if (names(r1) !== "А:6" || !r1.toUpload || r1.toUpload.tombstones["1"]) return "правка здесь: " + names(r1);
+      var r2 = M([], [C(1,"А",{level:7})], b, { 1: NOW - 1000 });
+      if (names(r2) !== "А:7" || r2.tombstones["1"]) return "правка там: " + names(r2);
+      return true;
+    });
+
+    t("[sync-2] надгробие старше 90 дней отбрасывается", function(){
+      var r = M([], [], {}, { 1: NOW - 91 * 864e5, 2: NOW - 1000 });
+      if ("1" in r.tombstones || !("2" in r.tombstones)) return JSON.stringify(r.tombstones);
+      return true;
+    });
+
+    t("[sync-2] свои заклинания: новое, правка там, удаление здесь, конфликт → своя версия", function(){
+      var s1 = { id: "u1", name: "Искра" }, s2 = { id: "u2", name: "Щит+" }, s3 = { id: "u3", name: "Луч" };
+      var b = baseOf([], [s1, s2, s3]);
+      var r = M([], [], b, {}, {},
+        [s1, { id: "u3", name: "Луч мой" }, { id: "u4", name: "Новое" }],
+        [{ id: "u1", name: "Искра 2" }, s2, { id: "u3", name: "Луч их" }]);
+      var got = r.spells.map(function(s){ return s.name; }).join(",");
+      if (got !== "Искра 2,Луч мой,Новое") return got;
+      if (r.deleted.indexOf("spell:u2") !== -1) return "u2 удалён здесь — не локальное удаление";
+      if (!r.toUpload || r.toUpload.spells.length !== 3) return "в файл: " + (r.toUpload && r.toUpload.spells.length);
+      return true;
+    });
+
+    t("[sync-2] раунд-трип упаковки: персонаж со своими заклинаниями не даёт ложного конфликта", function(){
+      if (typeof SPELL_DATABASE === "undefined" || !SPELL_DATABASE.length) return "нет SPELL_DATABASE";
+      var sp = JSON.parse(JSON.stringify(SPELL_DATABASE[0]));
+      var a = C(1, "А", { spells: { mySpells: [sp] } });
+      var packed = _packCharForExport(a);
+      if (JSON.stringify(packed.spells.mySpells[0]).length >= JSON.stringify(sp).length) return "не упаковано";
+      var r = M([a], [a], baseOf([a]));
+      if (r.changed || r.toUpload || r.conflicts.length) return "ложное изменение";
+      var r2 = M([a], [a], {});
+      if (r2.conflicts.length) return "конфликт без базы при равных версиях";
+      return true;
+    });
+
+    t("[sync-2] первая синхронизация с пустым Диском — всё уходит в файл, входные данные не мутируют", function(){
+      var L = [C(1,"А")], snap = JSON.stringify(L);
+      var r = syncMerge({ chars: L, spells: [] }, null, {}, {}, { now: NOW, device: "ПК" });
+      if (!r.toUpload || r.toUpload.chars.length !== 1 || r.toUpload.device !== "ПК" || r.changed) return "нет записи";
+      if (JSON.stringify(L) !== snap) return "мутация входа";
+      return true;
+    });
+  })();
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

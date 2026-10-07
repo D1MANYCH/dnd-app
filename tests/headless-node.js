@@ -58,6 +58,7 @@ const files = [
   'app-notes.js',          // FIN-12: notesV2 — _mdToHtml/_notesReorderPinned/notesSaveEntryModal/notesExport* (БЛОК 30)
   'history-stack.js',        // FIN-12: pushHistoryLayer/syncCloseLayer/getHistoryLayers (нужен history-шим ниже) (БЛОК 30)
   'app-backup.js',           // FIN-12: авто-бэкап IndexedDB — smoke: константы/наличие/чистые хелперы (БЛОК 30)
+  'app-sync.js',             // SYNC-2: syncMerge/syncHashChar — движок слияния (БЛОК 67)
   'tests/fixtures.js',
   'tests/rules-cases.js',    // SETUP-5.3: кейсы rules.js со страницы tests.html — гоняет БЛОК 50 в headless.js
   'tests/headless.js',
@@ -203,6 +204,7 @@ const sandbox = {
   document,
   navigator,
   history,
+  location: { hash: "", search: "", pathname: "/", origin: "http://localhost" }, // SYNC-2: app-sync.js читает location.hash на загрузке
   localStorage,
   getComputedStyle,
   performance,

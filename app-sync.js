@@ -180,6 +180,155 @@ function syncTestWrite() {
   }).catch(_syncFail);
 }
 
+// SYNC-2: движок слияния — чистая логика, без DOM и сети.
+var SYNC_TOMB_TTL = 90 * 24 * 3600 * 1000;
+
+// JSON с отсортированными ключами — хеш не зависит от порядка полей.
+function _syncStable(v) {
+  if (v === null || typeof v !== "object") return JSON.stringify(v === undefined ? null : v);
+  if (Array.isArray(v)) return "[" + v.map(_syncStable).join(",") + "]";
+  return "{" + Object.keys(v).sort().filter(function(k) { return v[k] !== undefined; }).map(function(k) {
+    return JSON.stringify(k) + ":" + _syncStable(v[k]);
+  }).join(",") + "}";
+}
+
+function _syncHashStr(s) {
+  var h = 0x811c9dc5;
+  for (var i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return h.toString(16) + "." + s.length.toString(36);
+}
+
+function syncHashChar(c) { return _syncHashStr(_syncStable(c)); }
+
+function _syncClone(v) { return JSON.parse(JSON.stringify(v)); }
+
+function _syncUnpackChar(c) {
+  var out = _syncClone(c);
+  if (typeof _unpackCharSpells === "function") _unpackCharSpells(out);
+  return out;
+}
+
+function _syncPackChar(c) {
+  return typeof _packCharForExport === "function" ? _packCharForExport(c) : c;
+}
+
+// Общий проход по id: решает судьбу каждой записи по хешам local / remote / base.
+// onBoth — обе стороны изменили запись; isGone(id, hR) — локально нет записи, удалена ли она здесь.
+function _syncMergeList(L, R, base, prefix, onBoth, isGone, isRemoteGone) {
+  var out = [], newBase = {}, flags = { local: false, remote: false }, deleted = [];
+  var rById = {}, lIds = {};
+  R.forEach(function(x) { if (x && x.id != null) rById[x.id] = x; });
+  L.forEach(function(l) {
+    if (!l || l.id == null) { out.push(l); return; }
+    lIds[l.id] = true;
+    var key = prefix + l.id, b = base[key], hL = syncHashChar(l), r = rById[l.id];
+    if (!r) {
+      if (isRemoteGone(l.id, hL, b)) { deleted.push(l.id); flags.local = true; return; }
+      out.push(l); newBase[key] = hL; flags.remote = true; return;
+    }
+    var hR = syncHashChar(r);
+    if (hL === hR) { out.push(l); newBase[key] = hL; return; }
+    if (hL === b) { out.push(r); newBase[key] = hR; flags.local = true; return; }
+    if (hR === b) { out.push(l); newBase[key] = hL; flags.remote = true; return; }
+    onBoth(l, r, out, newBase, flags);
+  });
+  R.forEach(function(r) {
+    if (!r || r.id == null || lIds[r.id]) return;
+    var key = prefix + r.id, hR = syncHashChar(r);
+    if (isGone(r.id, hR, base[key])) { flags.remote = true; return; }
+    out.push(r); newBase[key] = hR; flags.local = true;
+  });
+  return { list: out, base: newBase, flags: flags, deleted: deleted };
+}
+
+// local  = { chars, spells } — живые данные этого устройства;
+// remote = содержимое файла на Диске { device, chars (упакованы), spells, tombstones } или null;
+// base   = { "<id>": hash, "spell:<id>": hash } — хеши на момент прошлой синхронизации;
+// tombstones = { id: at } — удалённые на этом устройстве персонажи.
+// opts = { now, device, newId } — для детерминизма в тестах.
+function syncMerge(local, remote, base, tombstones, opts) {
+  opts = opts || {};
+  base = base || {};
+  var now = opts.now || Date.now();
+  var device = opts.device || "";
+  var newId = opts.newId || (function(n) { return function() { return now + (++n); }; })(0);
+  remote = remote || {};
+  var rDevice = remote.device || "другого устройства";
+
+  var tombs = {};
+  [tombstones || {}, remote.tombstones || {}].forEach(function(t) {
+    Object.keys(t).forEach(function(id) {
+      var at = Number(t[id]) || 0;
+      if (now - at < SYNC_TOMB_TTL && !(tombs[id] >= at)) tombs[id] = at;
+    });
+  });
+
+  var L = _syncClone((local && local.chars) || []);
+  var R = ((remote && remote.chars) || []).map(_syncUnpackChar);
+  var conflicts = [];
+  var takenIds = {};
+  L.concat(R).forEach(function(c) { if (c && c.id != null) takenIds[c.id] = true; });
+
+  var chars = _syncMergeList(L, R, base, "",
+    function(l, r, out, newBase, flags) {
+      var copy = _syncClone(r);
+      do { copy.id = newId(); } while (takenIds[copy.id]);
+      takenIds[copy.id] = true;
+      copy.name = (r.name || "Без имени") + " (с " + rDevice + ")";
+      out.push(l, copy);
+      newBase[String(l.id)] = syncHashChar(l);
+      newBase[String(copy.id)] = syncHashChar(copy);
+      conflicts.push({ id: l.id, copyId: copy.id, name: copy.name });
+      flags.local = true; flags.remote = true;
+    },
+    // нет здесь: надгробие + на Диске без правок после нашей базы → остаётся удалённым
+    function(id, hR, b) {
+      if (!(id in tombs)) return false;
+      if (hR === b) return true;
+      delete tombs[id];
+      return false;
+    },
+    // нет на Диске: надгробие оттуда + здесь без правок → удаляем
+    function(id, hL, b) {
+      if (!(id in tombs)) return false;
+      if (hL === b) return true;
+      delete tombs[id];
+      return false;
+    });
+
+  var spells = _syncMergeList(_syncClone((local && local.spells) || []), _syncClone(remote.spells || []), base, "spell:",
+    function(l, r, out, newBase, flags) { out.push(l); newBase["spell:" + l.id] = syncHashChar(l); flags.remote = true; },
+    function(id, hR, b) { return b !== undefined && hR === b; },
+    function(id, hL, b) { return b !== undefined && hL === b; });
+
+  chars.list.forEach(function(c) { if (c && c.id != null) delete tombs[c.id]; });
+  var newBase = Object.assign({}, chars.base, spells.base);
+  var doc = {
+    app: "dnd-sheet",
+    format: 1,
+    device: device,
+    updatedAt: now,
+    chars: chars.list.map(_syncPackChar),
+    spells: spells.list,
+    tombstones: tombs
+  };
+  var remoteTombs = _syncStable(remote.tombstones || {});
+  var needUpload = chars.flags.remote || spells.flags.remote || remoteTombs !== _syncStable(tombs) || !remote.chars;
+  return {
+    chars: chars.list,
+    spells: spells.list,
+    tombstones: tombs,
+    base: newBase,
+    changed: chars.flags.local || spells.flags.local,
+    toUpload: needUpload ? doc : null,
+    conflicts: conflicts,
+    deleted: chars.deleted.concat(spells.deleted.map(function(id) { return "spell:" + id; }))
+  };
+}
+
 function _syncBtn(label, fn) {
   var b = document.createElement("button");
   b.type = "button";
