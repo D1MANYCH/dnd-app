@@ -1,13 +1,21 @@
-// SYNC-1: вход через Google и пробная запись в скрытую папку приложения на Диске.
+// SYNC-1/3: вход через Google и синхронизация с файлом в скрытой папке приложения на Диске.
 // Видно только с ?sync=1 (флаг запоминается в localStorage).
 
 var SYNC_CLIENT_ID = "756417920081-9s625rqlg5kv9o2rue4q9sp2831koaiu.apps.googleusercontent.com";
 var SYNC_SCOPE = "https://www.googleapis.com/auth/drive.appdata";
-var SYNC_TEST_FILE = "dnd-sync-test.json";
+var SYNC_FILE = "dnd-sync.json";
+var SYNC_DATA_KEY = "dnd_sync_state";
+var SYNC_DELAY = 5000;
 var SYNC_AUTH_KEY = "dnd_sync_auth";
 var SYNC_STATE_KEY = "dnd_sync_oauth_state";
 var SYNC_FLAG_KEY = "dnd_sync_flag";
 var _syncNotice = "";
+var _syncStatus = "";
+var _syncTimer = null;
+var _syncBusy = false;
+var _syncAgain = false;
+var _syncApplying = false;
+var _syncPaused = false;
 
 function _syncLog(level, msg) {
   try { if (window.AppLog && AppLog[level]) AppLog[level]("sync", msg); } catch (e) {}
@@ -150,34 +158,203 @@ function _driveWrite(name, id, data) {
   }).then(function(r) { return r.json(); });
 }
 
-function _syncFail(e) {
-  if (e && e.auth) {
-    _syncNotice = "Нужно войти снова";
-    showToast("Срок входа истёк — войдите в Google снова", "warn");
-  } else {
-    _syncLog("error", "drive: " + ((e && (e.status || e.message)) || e));
-    showToast(navigator.onLine === false ? "Нет сети" : "Не удалось связаться с Google Диском", "error");
-  }
-  renderSyncRow();
+// SYNC-3: живая синхронизация — файл dnd-sync.json, состояние в dnd_sync_state.
+function _syncLoadState() {
+  try {
+    var s = JSON.parse(localStorage.getItem(SYNC_DATA_KEY) || "null");
+    if (s && typeof s === "object") { s.tombstones = s.tombstones || {}; return s; }
+  } catch (e) {}
+  return { base: null, tombstones: {}, lastAt: 0 };
 }
 
-function syncTestWrite() {
-  var prev = null;
-  var fileId = null;
-  _driveFind(SYNC_TEST_FILE).then(function(f) {
-    if (!f) return null;
-    fileId = f.id;
-    return _driveRead(f.id).catch(function() { return null; });
-  }).then(function(old) {
-    prev = old;
-    return _driveWrite(SYNC_TEST_FILE, fileId, { at: Date.now(), device: _syncDevice() });
-  }).then(function(res) {
-    return _driveRead(res.id);
-  }).then(function(back) {
-    var msg = "Запись на Диск работает (" + back.device + ")";
-    if (prev && prev.at) msg += ". Прошлая запись: " + prev.device + ", " + _backupFmtDate(prev.at);
-    showToast(msg, "success");
-  }).catch(_syncFail);
+function _syncSaveState(s) {
+  try { localStorage.setItem(SYNC_DATA_KEY, JSON.stringify(s)); } catch (e) {}
+}
+
+function syncTombstone(id) {
+  if (id == null || !_syncEnabled()) return;
+  var s = _syncLoadState();
+  s.tombstones[id] = Date.now();
+  _syncSaveState(s);
+}
+
+function syncSchedule() {
+  if (_syncApplying || !_syncEnabled() || !_syncTokenValid(_syncGetAuth())) return;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(function() { _syncTimer = null; syncNow(false); }, SYNC_DELAY);
+}
+
+function _syncUserSpells() {
+  var baseIds = new Set((typeof SPELLS_BASE !== "undefined") ? SPELLS_BASE.map(function(s) { return s.id; }) : []);
+  return SPELL_DATABASE.filter(function(s) { return !baseIds.has(s.id); });
+}
+
+function _syncHashes(list) {
+  var h = {};
+  list.forEach(function(x) { if (x && x.id != null) h[x.id] = syncHashChar(x); });
+  return h;
+}
+
+// Итог слияния поверх того, что игрок успел поменять, пока шёл запрос:
+// правка во время запроса побеждает, удалённое во время запроса не воскресает, новое остаётся.
+function _syncKeepLive(merged, live, before, fix) {
+  var liveById = {}, inMerged = {}, out = [];
+  live.forEach(function(x) { if (x && x.id != null) liveById[x.id] = x; });
+  merged.forEach(function(m) {
+    if (!m || m.id == null) return;
+    inMerged[m.id] = true;
+    var cur = liveById[m.id];
+    if (cur) out.push(before[m.id] !== undefined && syncHashChar(cur) !== before[m.id] ? cur : fix(m));
+    else if (!(m.id in before)) out.push(fix(m));
+  });
+  live.forEach(function(x) {
+    if (!x || x.id == null) { out.push(x); return; }
+    if (!inMerged[x.id] && !(x.id in before)) out.push(x);
+  });
+  return out;
+}
+
+function _syncNameDupes(localChars, remote) {
+  var rIds = {}, rNames = {};
+  (remote.chars || []).forEach(function(c) { if (c) { rIds[c.id] = true; if (c.name) rNames[c.name] = true; } });
+  return localChars.filter(function(c) { return c && c.name && !rIds[c.id] && rNames[c.name]; });
+}
+
+function _syncAskDupes(dupes) {
+  return new Promise(function(resolve, reject) {
+    var names = dupes.map(function(c) { return "«" + c.name + "»"; }).join(", ");
+    showConfirmModal("Одинаковые персонажи",
+      "На Диске и на этом устройстве есть персонажи с одинаковыми именами: " + names +
+      ". «Объединить» — оставить версии с Диска, местные уйдут в резервную копию. «Оставить оба» — будут дубли.",
+      function() { resolve(true); }, "Объединить",
+      { danger: false, icon: "copy", altLabel: "Оставить оба", onAlt: function() { resolve(false); },
+        onCancel: function() { reject({ paused: true }); } });
+  });
+}
+
+function _syncApply(res, before) {
+  var snap = (typeof createBackupSnapshot === "function") ? createBackupSnapshot("sync").catch(function() {}) : Promise.resolve();
+  return snap.then(function() {
+    _syncApplying = true;
+    try {
+      if (typeof saveToLocalDebounced !== "undefined") saveToLocalDebounced.flush();
+      var open = characters.find(function(c) { return c.id === currentId; });
+      var openHash = open ? syncHashChar(open) : null;
+      characters = _syncKeepLive(res.chars, characters, before.chars, function(c) {
+        return _sanitizeImportedChar(migrateCharacter(c));
+      });
+      var spells = _syncKeepLive(res.spells, _syncUserSpells(), before.spells, function(s) { s.homebrew = true; return s; });
+      SPELL_DATABASE = ((typeof SPELLS_BASE !== "undefined") ? SPELLS_BASE.slice() : []).concat(spells);
+      saveToLocal();
+      renderCharacterList();
+      if (open && currentScreenName() === "character") {
+        var now = characters.find(function(c) { return c.id === currentId; });
+        if (!now) {
+          showToast("«" + (open.name || "Персонаж") + "» удалён на другом устройстве", "warn");
+          showScreen("characters");
+        } else if (syncHashChar(now) !== openHash) {
+          var tabEl = document.querySelector(".tab-content.active");
+          var tab = tabEl ? tabEl.id.replace("tab-", "") : "";
+          loadCharacter(currentId);
+          if (tab && tab !== "sheet") switchTab(tab);
+        }
+      }
+    } finally {
+      _syncApplying = false;
+    }
+  });
+}
+
+function _syncRun(attempt, dropDupes) {
+  var file = null;
+  return _driveFind(SYNC_FILE).then(function(f) {
+    file = f;
+    return f ? _driveRead(f.id) : null;
+  }).then(function(doc) {
+    var remote = doc && doc.app === "dnd-sheet" ? doc : null;
+    var state = _syncLoadState();
+    if (!state.base && remote && dropDupes === undefined) {
+      var dupes = _syncNameDupes(characters, remote);
+      if (dupes.length) return _syncAskDupes(dupes).then(function(drop) { return _syncRun(attempt, drop); });
+    }
+    if (typeof saveToLocalDebounced !== "undefined") saveToLocalDebounced.flush();
+    var startAt = Date.now();
+    var dropIds = {};
+    if (dropDupes && remote) _syncNameDupes(characters, remote).forEach(function(c) { dropIds[c.id] = true; });
+    var local = {
+      chars: characters.filter(function(c) { return !(c && dropIds[c.id]); }),
+      spells: _syncUserSpells()
+    };
+    var before = { chars: _syncHashes(characters), spells: _syncHashes(local.spells) };
+    var res = syncMerge(local, remote, state.base || {}, state.tombstones, { device: _syncDevice() });
+    var write = Promise.resolve();
+    if (res.toUpload) {
+      write = _driveFind(SYNC_FILE).then(function(f2) {
+        var same = f2 ? (file && f2.id === file.id && f2.version === file.version) : !file;
+        if (!same) throw { retry: true };
+        return _driveWrite(SYNC_FILE, file && file.id, res.toUpload);
+      });
+    }
+    return write.then(function() {
+      return (res.changed || Object.keys(dropIds).length) ? _syncApply(res, before) : null;
+    }).then(function() {
+      var s = _syncLoadState();
+      Object.keys(s.tombstones).forEach(function(id) {
+        if (s.tombstones[id] >= startAt) res.tombstones[id] = s.tombstones[id];
+      });
+      _syncSaveState({ base: res.base, tombstones: res.tombstones, lastAt: Date.now() });
+      return res;
+    });
+  }).catch(function(e) {
+    if (e && e.retry && attempt < 2) return _syncRun(attempt + 1, dropDupes);
+    throw e;
+  });
+}
+
+function syncNow(manual) {
+  if (!_syncEnabled()) return;
+  if (manual) _syncPaused = false;
+  if (_syncPaused || (typeof _saveBlocked !== "undefined" && _saveBlocked)) return;
+  if (_syncBusy) { _syncAgain = true; return; }
+  if (!_syncTokenValid(_syncGetAuth())) {
+    _syncStatus = "Нужно войти снова";
+    if (manual) showToast("Срок входа истёк — войдите в Google снова", "warn");
+    renderSyncRow();
+    return;
+  }
+  if (navigator.onLine === false) {
+    _syncStatus = "Нет сети";
+    if (manual) showToast("Нет сети — синхронизация после подключения", "warn");
+    renderSyncRow();
+    return;
+  }
+  clearTimeout(_syncTimer);
+  _syncTimer = null;
+  _syncBusy = true;
+  _syncStatus = "Синхронизация…";
+  renderSyncRow();
+  _syncRun(0).then(function(res) {
+    _syncStatus = "";
+    if (res.conflicts.length) {
+      _syncStatus = "Конфликт: создана копия " + res.conflicts.map(function(c) { return "«" + c.name + "»"; }).join(", ");
+      showToast(_syncStatus, "warn");
+    } else if (manual) {
+      showToast("Синхронизировано", "success");
+    }
+    _syncLog("info", "синхронизация: персонажей " + res.chars.length + ", конфликтов " + res.conflicts.length);
+  }).catch(function(e) {
+    if (e && e.paused) { _syncPaused = true; _syncStatus = "Ждёт решения"; return; }
+    if (e && e.auth) _syncStatus = "Нужно войти снова";
+    else if (navigator.onLine === false) _syncStatus = "Нет сети";
+    else if (e && e.retry) _syncStatus = "Файл на Диске менялся одновременно — повторите";
+    else _syncStatus = "Не удалось связаться с Google Диском";
+    _syncLog("error", "синхронизация: " + ((e && (e.status || e.message)) || _syncStatus));
+    if (manual) showToast(_syncStatus, e && e.auth ? "warn" : "error");
+  }).then(function() {
+    _syncBusy = false;
+    renderSyncRow();
+    if (_syncAgain) { _syncAgain = false; syncSchedule(); }
+  });
 }
 
 // SYNC-2: движок слияния — чистая логика, без DOM и сети.
@@ -338,6 +515,13 @@ function _syncBtn(label, fn) {
   return b;
 }
 
+function _syncTimeLabel(at) {
+  if (!at) return "";
+  var d = new Date(at);
+  if (d.toDateString() === new Date().toDateString()) return "Синхронизировано " + d.toTimeString().slice(0, 5);
+  return "Синхронизировано " + _backupFmtDate(at);
+}
+
 function renderSyncRow() {
   var row = $("sync-row");
   if (!row) return;
@@ -348,8 +532,11 @@ function renderSyncRow() {
   actions.innerHTML = "";
   var a = _syncGetAuth();
   if (_syncTokenValid(a)) {
-    status.textContent = "Синхронизация · вошли" + (a.email ? " · " + a.email : "");
-    actions.appendChild(_syncBtn("Проверить запись", syncTestWrite));
+    var st = _syncStatus || _syncTimeLabel(_syncLoadState().lastAt);
+    status.textContent = "Синхронизация" + (a.email ? " · " + a.email : "") + (st ? " · " + st : "");
+    var now = _syncBtn(_syncBusy ? "Синхронизация…" : "Синхронизировать сейчас", function() { syncNow(true); });
+    now.disabled = _syncBusy;
+    actions.appendChild(now);
     actions.appendChild(_syncBtn("Выйти", syncSignOut));
   } else {
     status.textContent = "Синхронизация · " + (_syncNotice || (a ? "Нужно войти снова" : "Google Диск"));
@@ -359,3 +546,12 @@ function renderSyncRow() {
 
 _syncConsumeHash();
 document.addEventListener("DOMContentLoaded", renderSyncRow);
+window.addEventListener("load", function() { setTimeout(function() { syncNow(false); }, 1000); });
+window.addEventListener("online", function() { syncNow(false); });
+document.addEventListener("visibilitychange", function() {
+  if (document.visibilityState === "hidden") {
+    if (_syncTimer) syncNow(false);
+  } else if (Date.now() - (_syncLoadState().lastAt || 0) > 60000) {
+    syncNow(false);
+  }
+});

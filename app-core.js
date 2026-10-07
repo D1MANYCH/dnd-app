@@ -332,6 +332,7 @@ var baseIds = new Set((typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.map(fun
 var userSpells = SPELL_DATABASE.filter(function(s){ return !baseIds.has(s.id); });
 localStorage.setItem("dnd_spells", JSON.stringify(userSpells));
 localStorage.setItem("dnd_hp_history", JSON.stringify(hpHistory));
+if (typeof syncSchedule === "function") syncSchedule();
 } catch(e) {
 console.error("Ошибка сохранения:", e);
 // PERF-5: переполнение хранилища — отдельное сообщение с тем, что делать
@@ -1238,6 +1239,7 @@ showConfirmModal(
   "«" + name + "» будет удалён без возможности восстановления.",
   function() {
     characters = characters.filter(function(c) { return c.id !== id; });
+    if (typeof syncTombstone === "function") syncTombstone(id);
     saveToLocal();
     renderCharacterList();
   }
@@ -1281,9 +1283,13 @@ $("confirm-modal-ok").addEventListener("click", function() {
 });
 $("confirm-modal-cancel").addEventListener("click", function() {
   modal.classList.remove("active");
+  if (opts && typeof opts.onCancel === "function") opts.onCancel();
 });
 modal.addEventListener("click", function(e) {
-  if (e.target === modal) modal.classList.remove("active");
+  if (e.target === modal) {
+    modal.classList.remove("active");
+    if (opts && typeof opts.onCancel === "function") opts.onCancel();
+  }
 }, { once: true });
 }
 function safeSet(id, value) {

@@ -18,7 +18,8 @@ var BACKUP_REASON_LABELS = {
   "auto": "авто",
   "pre-import": "перед импортом",
   "pre-restore": "перед восстановлением",
-  "manual": "вручную"
+  "manual": "вручную",
+  "sync": "перед синхронизацией"
 };
 
 function _backupLog(level, msg, data) {

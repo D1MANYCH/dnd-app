@@ -10237,6 +10237,23 @@
       if (JSON.stringify(L) !== snap) return "мутация входа";
       return true;
     });
+
+    if (typeof _syncKeepLive === "function") t("[sync-3] применение не теряет правки, удаления и новых персонажей, сделанных во время запроса", function(){
+      var a = C(1,"А"), b = C(2,"Б"), d = C(4,"Г");
+      var before = _syncHashes([a, b, d]);
+      var merged = [C(1,"А",{level:5}), C(2,"Б",{level:7}), C(3,"В"), C(4,"Г",{level:9})];
+      var bLive = C(2,"Б",{level:2}), e = C(5,"Д");
+      var out = _syncKeepLive(merged, [a, bLive, e], before, function(x){ return x; });
+      var got = out.map(function(c){ return c.name + ":" + c.level; }).join(",");
+      if (got !== "А:5,Б:2,В:1,Д:1") return got;
+      return true;
+    });
+
+    if (typeof _syncNameDupes === "function") t("[sync-3] одноимённые с разными id находятся, совпавшие по id — нет", function(){
+      var d = _syncNameDupes([C(1,"А"), C(2,"Б"), C(3,"В")], { chars: [C(1,"А"), C(9,"Б")] });
+      if (d.length !== 1 || d[0].id !== 2) return JSON.stringify(d);
+      return true;
+    });
   })();
 
   // ────────── РЕЗУЛЬТАТЫ ──────────
