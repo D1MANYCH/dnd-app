@@ -89,6 +89,14 @@
         </button>
       </div>
 
+      <div class="rr-line" id="rr-conc-line" style="display:none">
+        <button type="button" class="rr-row" id="rr-conc-btn" title="Концентрация — подробности">
+          <span class="home-bullet home-bullet--sm"></span>
+          <span class="rr-row-label">Концентрация</span>
+          <span class="rr-row-val" id="rr-conc-name"></span>
+        </button>
+      </div>
+
       <div class="rr-line" id="rr-slots-line" style="display:none">
         <button type="button" class="rr-row" id="rr-slots-toggle" data-rr-toggle="rr-panel-slots" aria-controls="rr-panel-slots" aria-expanded="false">
           <span class="home-bullet home-bullet--sm"></span>
@@ -144,6 +152,7 @@
     // Перерисовать inline-баджи (на случай переключения персонажа)
     try { renderRrConditions(); } catch (e) { window.__catchLog && window.__catchLog('desktop:renderRr', e); }
     try { renderRailSlots(); } catch (e) { window.__catchLog && window.__catchLog('desktop:renderSlots', e); }
+    try { renderRailConc(); } catch (e) { window.__catchLog && window.__catchLog('desktop:renderConc', e); }
 
     // AC и Level из status-bar
     const ac = document.getElementById('status-ac');
@@ -298,6 +307,18 @@
   }
   window.refreshRailSlots = renderRailSlots;
 
+  // ПК-6: концентрация — строка панели, тот же char.concentration, что и в «Магии»
+  function renderRailConc() {
+    var line = document.getElementById('rr-conc-line');
+    var name = document.getElementById('rr-conc-name');
+    if (!line || !name) return;
+    var char = (typeof window.getCurrentChar === 'function' && window.currentId) ? window.getCurrentChar() : null;
+    var conc = char && char.concentration;
+    name.textContent = conc || '';
+    line.style.display = conc ? '' : 'none';
+  }
+  window.refreshRailConc = renderRailConc;
+
   // Строка урона в rail живёт по правилам листа (updateHPRows в app-hp.js):
   // при 0 ХП становится «Лечение» без пресетов, раскрывается сама, пока герой
   // ранен, и уважает ручное сворачивание до полного здоровья.
@@ -379,6 +400,10 @@
     });
     const btnCollapse = document.getElementById('rr-collapse');
     if (btnCollapse) btnCollapse.addEventListener('click', () => setRailOpen(false));
+    const btnConc = document.getElementById('rr-conc-btn');
+    if (btnConc) btnConc.addEventListener('click', () => {
+      if (typeof window.openConcDetails === 'function') window.openConcDetails();
+    });
     if (btnCond) btnCond.addEventListener('click', () => {
       if (typeof window.toggleConditionsPopup === 'function') window.toggleConditionsPopup();
       else if (typeof window.openConditionsPopup === 'function') window.openConditionsPopup();
@@ -429,6 +454,12 @@
     syncFromStatusBar();
     renderRrConditions();
     renderRailSlots();
+    renderRailConc();
+    // ПК-6: от 1600 места хватает — кубы и ячейки раскрыты сразу
+    if (window.matchMedia && window.matchMedia('(min-width: 1600px)').matches) {
+      setRowExpanded(rail.querySelector('[data-rr-toggle="rr-panel-dice"]'), true);
+      setRowExpanded(document.getElementById('rr-slots-toggle'), true);
+    }
 
     const statusBar = document.querySelector('.status-bar');
     if (statusBar) {

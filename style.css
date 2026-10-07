@@ -17825,3 +17825,29 @@ button.modal-close-bottom:hover,
   #monsters-list:not(:has(> :nth-child(2))),
   #companions-list-world:not(:has(> :nth-child(2))) { display: block; }
 }
+
+/* ПК-6: ≥1600 лист в три колонки (вид 2024): личность на две, характеристики —
+   третья во всю высоту; правая панель — по высоте содержимого. */
+@media (min-width: 1600px) {
+  html[data-stats-layout="2024"] #tab-sheet.active {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto auto auto 1fr;
+    gap: 0 var(--sp-5);
+    align-items: start;
+  }
+  html[data-stats-layout="2024"] #tab-sheet.active > .creation-wizard-banner { grid-area: 1 / 1 / 2 / -1; margin-bottom: var(--sp-5); }
+  html[data-stats-layout="2024"] #tab-sheet.active > .basic-locked-bar { grid-area: 2 / 1 / 3 / -1; margin-bottom: var(--sp-5); }
+  html[data-stats-layout="2024"] #tab-sheet.active > .identity-card { grid-area: 3 / 1 / 4 / 3; margin-bottom: var(--sp-5); }
+  html[data-stats-layout="2024"] #tab-sheet.active > .stats-card-2024 { grid-area: 3 / 3 / 5 / 4; }
+  html[data-stats-layout="2024"] #tab-sheet.active > .sheet-col-1 { grid-area: 4 / 1 / 5 / 2; }
+  html[data-stats-layout="2024"] #tab-sheet.active > .sheet-col-2 { grid-area: 4 / 2 / 5 / 3; }
+
+  .app-right-rail {
+    bottom: auto;
+    max-height: calc(100vh - 72px);
+    border-bottom: 1px solid var(--border-soft);
+    border-bottom-left-radius: var(--r-md);
+  }
+}
+#rr-conc-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
