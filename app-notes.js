@@ -734,7 +734,7 @@ function _renderEntriesView(tab) {
   }
 
   if (!sorted.length) {
-    html += emptyStateHtml("notes", "Пока пусто", "Раздел «" + tab.label + "» — записей ещё нет.", "+ Запись", "notesOpenEntryModal()", "notes-empty");
+    html += emptyStateHtml("notes", "Пока пусто", "Раздел «" + tab.label + "» — записей ещё нет. «+ Запись» вверху добавит первую.", "+ Запись", "notesOpenEntryModal()", "notes-empty");
     return html;
   }
 

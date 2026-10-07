@@ -17783,3 +17783,45 @@ button.modal-close-bottom:hover,
 }
 .rr-collapse:hover,
 .rr-collapse:focus-visible { background: none; color: var(--accent-lo); }
+
+/* ПК-5: плотность десктопа. Сводка личности после фиксации (MOB-3) — но аватар,
+   имя, уровень и опыт остаются; уровни без ячеек — строкой #ssl-all-mob (MOB-4);
+   кошель — пять монет в строку; оружие — одна строка; одиночный участник без сетки. */
+@media (min-width: 1024px) {
+  #id-summary,
+  #ssl-all-mob {
+    display: flex; align-items: center; width: 100%; min-height: 32px; margin: 0; padding: 6px 0;
+    background: none; border: 0; border-radius: 0; box-shadow: none;
+    color: var(--accent-lo); font-family: var(--font-display); font-size: var(--fs-13); text-align: left; cursor: pointer;
+  }
+  #tab-sheet.active > .identity-card > #id-summary { grid-column: 1 / -1; }
+  .id-summary { justify-content: space-between; gap: 16px; color: var(--text-color) !important; }
+  .id-sum-lines { display: flex; align-items: baseline; gap: 16px; min-width: 0; }
+  .id-sum-l1 { font-weight: 700; }
+  .id-sum-l2 { color: var(--home-sub); font-family: var(--font-body, inherit); }
+  .id-sum-l1, .id-sum-l2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .id-sum-more { flex-shrink: 0; color: var(--accent-lo); }
+  .identity-card.id-compact > :not(#id-summary):not(.sheet-top-row):not(.race-extras-panel:has(.race-extras-warn)) { display: none !important; }
+
+  #tab-spells .spell-slots-visual.ssl-has:not(.ssl-all) > .spell-slot-empty { display: none; }
+  #tab-spells .spell-slots-visual:not(.ssl-has):not(.ssl-all) > .spell-slot-empty:not(:first-child) { display: none; }
+
+  #tab-inventory .inv-coins-grid { flex-direction: row; gap: var(--sp-5); }
+  #tab-inventory .inv-coin-card { flex: 1 1 0; min-width: 0; flex-direction: column; align-items: flex-start; gap: 4px; padding: var(--sp-2) 0; }
+  #tab-inventory .inv-coin-card + .inv-coin-card,
+  #tab-inventory .inv-coins-row + .inv-coins-row .inv-coin-card:first-child { border-top: 0; }
+  #tab-inventory .inv-coin-big-inp { width: 100%; flex: 0 0 auto; text-align: left; padding: 2px 0; }
+
+  #weapons-list .weapon-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--sp-4); }
+  #weapons-list .weapon-row-top { display: contents; }
+  #weapons-list .weapon-info { order: 0; min-width: 0; }
+  #weapons-list .weapon-roll-row { order: 1; }
+  #weapons-list .weapon-row-actions { order: 2; }
+  #weapons-list .weapon-notes { order: 3; flex-basis: 100%; margin-top: 0; }
+}
+@media (min-width: 1100px) {
+  #allies-list:not(:has(> :nth-child(2))),
+  #npcs-list:not(:has(> :nth-child(2))),
+  #monsters-list:not(:has(> :nth-child(2))),
+  #companions-list-world:not(:has(> :nth-child(2))) { display: block; }
+}
