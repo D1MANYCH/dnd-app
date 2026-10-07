@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v474';
+const CACHE_NAME = 'dnd-sheet-v475';
 
 const FILES_TO_CACHE = [
   './',
@@ -25,6 +25,7 @@ const FILES_TO_CACHE = [
   './app-core.js',
   './app-io.js',
   './app-backup.js',
+  './app-sync.js',
   './app-combat.js',
   './app-conditions.js',
   './app-cast-effects.js',
@@ -212,6 +213,7 @@ function receiveSharedFile(request) {
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
   if (!url.startsWith('http://') && !url.startsWith('https://')) return;
+  if (/^https:\/\/([a-z0-9-]+\.)*(googleapis\.com|google\.com)\//.test(url)) return;
   if (event.request.method === 'POST' && new URL(url).pathname.endsWith('/share-target')) {
     event.respondWith(receiveSharedFile(event.request));
     return;
