@@ -357,6 +357,13 @@ function _asiShowStatModes(modal, show) {
   if (desc) desc.style.display = show ? "" : "none";
 }
 
+// СОЗД-4: учёт фактического прироста (с потолком) для разбивки характеристики
+function _statGain(char, field, k, d) {
+  if (!d) return;
+  if (!char[field] || typeof char[field] !== "object") char[field] = {};
+  char[field][k] = (char[field][k] || 0) + d;
+}
+
 function applyASI() {
   var mode = getASIMode();
   if (mode !== "feat" && asiCurrentLevel === "race") return;
@@ -368,7 +375,9 @@ function applyASI() {
     var bonus = mode === "plus2" ? 2 : 1;
     var statNames2 = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
     asiSelectedStats.forEach(function(k) {
-      char.stats[k] = Math.min(20, (char.stats[k] || 10) + bonus);
+      var before = char.stats[k] || 10;
+      char.stats[k] = Math.min(20, before + bonus);
+      _statGain(char, "asiStats", k, char.stats[k] - before);
       safeSet("val-" + k, char.stats[k]);
       updateStatDisplay(k);
     });
@@ -406,7 +415,9 @@ function applyASI() {
     // E24-3: eff.max — потолок характеристики (эпические дары 2024 — 30), по умолчанию 20
     var cap = eff.max || 20;
     if (eff.type === "stat") {
-      char.stats[eff.key] = Math.min(cap, (char.stats[eff.key] || 10) + eff.value);
+      var before = char.stats[eff.key] || 10;
+      char.stats[eff.key] = Math.min(cap, before + eff.value);
+      _statGain(char, "featStats", eff.key, char.stats[eff.key] - before);
       safeSet("val-" + eff.key, char.stats[eff.key]);
       updateStatDisplay(eff.key);
       appliedDesc.push("+" + eff.value + " " + statNames[eff.key]);
@@ -415,7 +426,9 @@ function applyASI() {
       // AUD-7 (L8): характеристика из выбора в окне черты
       var picked = rulesFeatStatOptions(char, eff).indexOf(asiFeatStat) !== -1 ? asiFeatStat : null;
       if (picked) {
-        char.stats[picked] = Math.min(cap, (char.stats[picked] || 10) + eff.value);
+        var beforeP = char.stats[picked] || 10;
+        char.stats[picked] = Math.min(cap, beforeP + eff.value);
+        _statGain(char, "featStats", picked, char.stats[picked] - beforeP);
         safeSet("val-" + picked, char.stats[picked]);
         updateStatDisplay(picked);
         appliedDesc.push("+" + eff.value + " " + statNames[picked]);

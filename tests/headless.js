@@ -2926,6 +2926,20 @@
       });
     }
 
+    if (typeof abilityBreakdown === "function") {
+      t("[СОЗД-4] abilityBreakdown: основа + раса + УХ + черты, остаток — «Прочее»", function(){
+        var c = { stats: { str: 17 }, abilGen: { base: { str: 13 } }, appliedRaceBonus: { str: 2 },
+                  asiStats: { str: 1 }, featStats: {}, bgStatChoice: { mode: "2+1", alloc: {} } };
+        var b = abilityBreakdown(c, "str");
+        var s = b.rows.map(function(r){ return r.label + ":" + r.value; }).join(",");
+        if (s !== "Основа:13,Раса:2,Увеличение характеристик:1,Прочее:1") return s;
+        var b2 = abilityBreakdown({ stats: { dex: 16 }, raceFlexStats: { dex: 1 }, featStats: { dex: 1 } }, "dex");
+        var s2 = b2.rows.map(function(r){ return r.label + ":" + r.value; }).join(",");
+        if (s2 !== "Основа:14,Раса:1,Черты:1" || b2.total !== 16) return s2;
+        return true;
+      });
+    }
+
     // armorPenalties (app-combat.js) — чистый расчёт помех по СИЛ
     if (typeof armorPenalties === "function") {
       t("[FIN-3] armorPenalties: СИЛ<13 в Кольчуге → slowed; none/лёгкий → без помех", function(){

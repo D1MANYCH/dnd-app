@@ -270,6 +270,30 @@ card.classList.toggle("is-open", open);
 var head = card.querySelector(".abil-card-head");
 if (head) head.setAttribute("aria-expanded", open ? "true" : "false");
 }
+// СОЗД-4: из чего сложено значение. Основа — из генерации (char.abilGen.base),
+// бонусы — из полей учёта; расхождение с итогом (ручные правки) — «Прочее».
+function abilityBreakdown(char, key) {
+  var score = (char.stats && char.stats[key]) || 0;
+  var race = (char.appliedRaceBonus && char.appliedRaceBonus[key]) || 0;
+  if (Array.isArray(char.raceStatChoice) && char.raceStatChoice.indexOf(key) !== -1) race += 1;
+  race += (char.raceFlexStats && char.raceFlexStats[key]) || 0;
+  var bg = (char.bgStatChoice && char.bgStatChoice.alloc) ? _bgAppliedStat(char, key) : 0;
+  var asi = (char.asiStats && char.asiStats[key]) || 0;
+  var feat = (char.featStats && char.featStats[key]) || 0;
+  var known = race + bg + asi + feat;
+  var gen = char.abilGen && char.abilGen.base;
+  var hasBase = !!(gen && typeof gen[key] === "number");
+  var base = hasBase ? gen[key] : score - known;
+  var rows = [{ label: "Основа", value: base }];
+  if (race) rows.push({ label: "Раса", value: race });
+  if (bg) rows.push({ label: "Предыстория", value: bg });
+  if (asi) rows.push({ label: "Увеличение характеристик", value: asi });
+  if (feat) rows.push({ label: "Черты", value: feat });
+  var other = score - base - known;
+  if (other) rows.push({ label: "Прочее", value: other });
+  return { rows: rows, total: score };
+}
+
 // DISC-2: экран описания характеристики. Текст — ABILITY_INFO (PHB 2014,
 // «Использование характеристик»), числа — у текущего персонажа; без персонажа
 // экран всё равно открывается, просто без строки со значением.
@@ -288,6 +312,13 @@ function openAbilityInfo(key) {
     var mod = getMod(score);
     html += '<p class="ai-mine">' + (char.name || "Персонаж") + " — " + score +
             " · модификатор " + (mod >= 0 ? "+" : "") + mod + "</p>";
+    var bd = abilityBreakdown(char, key);
+    html += '<div class="ai-block ai-breakdown"><div class="ai-block-title">Из чего сложено</div>' +
+      bd.rows.map(function(r, i) {
+        var v = i === 0 ? String(r.value) : (r.value > 0 ? "+" : "−") + Math.abs(r.value);
+        return '<div class="ai-bd-row"><span>' + r.label + '</span><span>' + v + "</span></div>";
+      }).join("") +
+      '<div class="ai-bd-row ai-bd-total"><span>Итог</span><span>' + bd.total + "</span></div></div>";
   }
   html += '<div class="ai-block"><div class="ai-block-title">Проверки</div><p>' + info.checks + "</p>" +
           '<p class="ai-formula">Проверка — d20 + модификатор характеристики; при владении навыком прибавляется бонус мастерства, при компетентности — удвоенный.</p></div>';

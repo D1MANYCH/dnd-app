@@ -15114,6 +15114,16 @@ html[data-stats-layout="2024"] .abil-card.is-open .abil-about-slot {
 .ai-block p { margin: 0 0 6px; line-height: 1.55; }
 .ai-block p:last-child { margin-bottom: 0; }
 .ai-formula { color: var(--home-sub); font-size: var(--fs-sm); }
+.ai-bd-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: 2px 0;
+  font-variant-numeric: tabular-nums;
+}
+.ai-bd-row span:first-child { color: var(--home-sub); }
+.ai-bd-total { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--home-rule); font-weight: 600; }
+.ai-bd-total span:first-child { color: var(--text-color); }
 /* Глобальный reduce-блок обнуляет длительность, но поворот всё равно остаётся
    скачком через промежуточные кадры — гасим сам переход, конечное положение
    выставляется сразу (тот же приём, что у меню встречающего экрана). */
