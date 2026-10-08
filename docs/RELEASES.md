@@ -3,44 +3,76 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v4.33.0**.
+Актуальная версия — **v4.33.1**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v4.33.1"></a>
+## v4.33.1 — 8 октября 2026
+
+🔧 скриншоты приложения пересняты на текущей версии — 6 для компьютера (1920×1080) и 3 для телефона (1170×2532), в manifest.json обновлены размеры снимков для окна установки; README на русском переписан под v4.32: две редакции 2014/2024, 48 готовых билдов, 760 заклинаний, кнопка «Использовать», замок листа, синхронизация через Google Диск, ссылка на Boosty
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/0203cc88...main) · 19 файлов, +149 −81
+
+<details><summary>Файлы</summary>
+
+_Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
+
+**Файлы (19):**
+
+- `index.html` +48 −48
+- `app-combat.js` +56 −2
+- `README.md` +18 −21
+- `data.js` +10 −2
+- `docs/screenshots/README.md` +4 −4
+- `CHANGELOG.md` +6 −1
+- `manifest.json` +2 −2
+- `style.css` +3 −0
+- `sw.js` +1 −1
+- `app-core.js` +1 −0
+- `docs/screenshots/01-character-sheet.webp` +0 −0
+- `docs/screenshots/02-builds-picker.webp` +0 −0
+- `docs/screenshots/03-build-guide.webp` +0 −0
+- `docs/screenshots/04-spells.webp` +0 −0
+- `docs/screenshots/05-dice.webp` +0 −0
+- `docs/screenshots/06-combat.webp` +0 −0
+- `docs/screenshots/m01-character-sheet.webp` +0 −0
+- `docs/screenshots/m02-builds-picker.webp` +0 −0
+- `docs/screenshots/m04-spells.webp` +0 −0
+
+</details>
+
 <a id="v4.33.0"></a>
 ## v4.33.0 — 8 октября 2026
 
 ✨ СОЗД-1: панель «Навыки класса» на листе под панелью расы — после фиксации основы класс выбирает навыки из своего списка: бард и следопыт 3, плут 4, остальные 2; бард, следопыт и плут вторым классом — 1. Счётчик «Выбрано N/M», лимит, предупреждение при недоборе; навыки от расы и предыстории недоступны для выбора. У существующих персонажей уже отмеченные навыки из списка класса засчитываются как выбор. У волшебника редакции 2024 в списке навыков добавлена «Природа» (PHB 2024, стр. 77)
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/b9df6985...main) · 16 файлов, +370 −81
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/b9df6985...0203cc88) · 12 файлов, +328 −60
 
 <details><summary>Коммиты и файлы</summary>
 
-**Коммиты (1):**
+**Коммиты (2):**
 
 - [`15ad1e0b`](https://github.com/D1MANYCH/dnd-app/commit/15ad1e0b) chore(docs): английский README (README.en.md) и ссылка на него из README.md
+- [`0203cc88`](https://github.com/D1MANYCH/dnd-app/commit/0203cc88) v4.33.0: feat(создание): СОЗД-1: панель «Навыки класса» на листе — выбор навыков класса после фиксации основы, счётчик «Выбрано N/M», лимиты по классам; у волшебника 2024 в списке навыков добавлена «Природа»
 
-**Файлы (16):**
+**Файлы (12):**
 
 - `app-combat.js` +133 −0
-- `README.en.md` +122 −0
 - `index.html` +50 −49
-- `README.md` +20 −23
+- `README.en.md` +61 −0
+- `docs/RELEASES.md` +42 −5
 - `tests/headless.js` +16 −0
 - `data.js` +13 −2
-- `docs/screenshots/README.md` +4 −4
 - `CHANGELOG.md` +6 −1
 - `data-2024.js` +3 −1
+- `README.md` +1 −1
 - `sw.js` +1 −1
 - `app-core.js` +1 −0
 - `app-hp.js` +1 −0
-- `docs/screenshots/01-character-sheet.png` +0 −0
-- `docs/screenshots/02-builds-picker.png` +0 −0
-- `docs/screenshots/03-build-guide.png` +0 −0
-- `docs/screenshots/04-spells.png` +0 −0
 
 </details>
 

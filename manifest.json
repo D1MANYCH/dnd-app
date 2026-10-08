@@ -38,14 +38,14 @@
   "screenshots": [
     {
       "src": "docs/screenshots/01-character-sheet.webp",
-      "sizes": "1906x904",
+      "sizes": "1920x1080",
       "type": "image/webp",
       "form_factor": "wide",
       "label": "Лист персонажа"
     },
     {
       "src": "docs/screenshots/02-builds-picker.webp",
-      "sizes": "1903x908",
+      "sizes": "1920x1080",
       "type": "image/webp",
       "form_factor": "wide",
       "label": "48 готовых билдов"
