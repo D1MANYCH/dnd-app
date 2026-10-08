@@ -17,7 +17,8 @@ function _buildExportPayload() {
     exportedAt: new Date().toISOString(),
     characters: characters,
     hpHistory: (typeof hpHistory !== 'undefined' && Array.isArray(hpHistory)) ? hpHistory : [],
-    userSpells: userSpells
+    userSpells: userSpells,
+    booksOff: (typeof booksOff === 'function') ? booksOff().slice() : []
   };
 }
 function exportData() {
@@ -47,9 +48,22 @@ function _importNum(v, def) { v = Number(v); return isFinite(v) ? v : def; }
 function _sanitizeImportedChar(c) {
   ["name", "class", "race", "subclass", "background", "alignment"].forEach(function(k) {
     if (c[k] != null && typeof c[k] !== "string") c[k] = String(c[k]);
+    if (typeof c[k] === "string" && c[k].length > 200) c[k] = c[k].slice(0, 200);
   });
   c.avatar = safeImageSrc(c.avatar) || null;
   var obj = function(x) { return x && typeof x === "object"; };
+  // АУД4-1 (I4): числа листа, редакция из списка
+  var clamp = function(v, def, lo, hi) { v = _importNum(v, def); return Math.max(lo, Math.min(hi, v)); };
+  c.edition = String(c.edition) === "2024" ? "2024" : "2014";
+  c.exp = clamp(c.exp, 0, 0, 1e9);
+  if (obj(c.stats)) ["str", "dex", "con", "int", "wis", "cha"].forEach(function(k) { c.stats[k] = Math.round(clamp(c.stats[k], 10, 1, 30)); });
+  if (obj(c.coins)) ["cp", "sp", "ep", "gp", "pp"].forEach(function(k) { c.coins[k] = clamp(c.coins[k], 0, 0, 1e9); });
+  if (obj(c.combat)) {
+    ["ac", "hpMax", "hpCurrent", "hpTemp", "hpDiceSpent", "init"].forEach(function(k) {
+      if (c.combat[k] != null) c.combat[k] = clamp(c.combat[k], 0, -1e6, 1e6);
+    });
+    if (c.combat.hpMaxManual != null) c.combat.hpMaxManual = clamp(c.combat.hpMaxManual, 0, 0, 1e6);
+  }
   if (Array.isArray(c.companions)) c.companions = c.companions.filter(obj).map(function(m) {
     m.ac = _importNum(m.ac, 10); m.hpCurrent = _importNum(m.hpCurrent, 0); m.hpMax = _importNum(m.hpMax, 0);
     return m;
@@ -171,11 +185,45 @@ function _spellBaseById(id) {
 function _unpackSpell(s) {
   if (!s || typeof s !== 'object' || s._ref == null) return s;
   var base = _spellBaseById(s._ref);
-  if (!base) return null;
+  var stub = Array.isArray(s._unresolved) ? s._unresolved : [];
+  if (!base) {
+    // АУД4-1 (I3, S8): заклинания нет в локальной базе — ссылка остаётся как есть
+    // и уезжает дальше нетронутой; для показа — заглушки, их ключи в _unresolved.
+    if (Array.isArray(s._unresolved)) return s;
+    var raw = JSON.parse(JSON.stringify(s)), added = [];
+    if (typeof raw.name !== "string" || !raw.name) { raw.name = "Неизвестное заклинание #" + s._ref; added.push("name"); }
+    if (typeof raw.level !== "number") { raw.level = 0; added.push("level"); }
+    if (raw.id == null) raw.id = s._ref;
+    raw._unresolved = added;
+    return raw;
+  }
   var out = JSON.parse(JSON.stringify(base));
-  Object.keys(s).forEach(function(k) { if (k !== "_ref") out[k] = s[k]; });
+  Object.keys(s).forEach(function(k) {
+    if (k === "_ref" || k === "_unresolved" || k === "__proto__" || stub.indexOf(k) !== -1) return;
+    out[k] = s[k];
+  });
   return out;
 }
+function _countUnresolvedSpells(chars) {
+  var n = 0;
+  (chars || []).forEach(function(c) {
+    var my = c && c.spells && c.spells.mySpells;
+    if (Array.isArray(my)) my.forEach(function(s) { if (s && Array.isArray(s._unresolved)) n++; });
+  });
+  return n;
+}
+function _unresolvedNote(chars) {
+  var n = _countUnresolvedSpells(chars);
+  return n ? " · заклинаний нет в этой версии: " + n + " (сохранены как есть, обновите приложение)" : "";
+}
+// АУД4-1 (I8): файл из более новой версии — её шаги миграции здесь не пройдут.
+function _importTooNew(parsed, list) {
+  var sv = (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : Infinity;
+  if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) &&
+      (Number(parsed.format) > CHAR_EXPORT_FORMAT || Number(parsed.schemaVersion) > sv)) return true;
+  return (list || []).some(function(c) { return c && Number(c.schemaVersion) > sv; });
+}
+var IMPORT_TOO_NEW_MSG = "Файл из более новой версии приложения — обновите приложение и повторите импорт";
 // Своё заклинание, неизвестный id или копия, которую ссылка не восстановит
 // байт в байт (нет ключа базы, другой порядок ключей), — едет полным объектом.
 function _packSpell(s) {
@@ -199,7 +247,7 @@ function _packCharForExport(char) {
 function _unpackCharSpells(c) {
   var sp = c && typeof c === 'object' && c.spells;
   if (!sp || !Array.isArray(sp.mySpells)) return;
-  sp.mySpells = sp.mySpells.map(_unpackSpell).filter(function(s) { return s !== null; });
+  sp.mySpells = sp.mySpells.map(_unpackSpell);
 }
 // Конверт одного персонажа: он сам, срез его истории ХП, его свои заклинания.
 function _buildCharEnvelope(char) {
@@ -222,9 +270,13 @@ function _charExportFileName(char) {
 }
 function _downloadText(text, name) {
   var a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+  var url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+  a.href = url;
   a.download = name;
+  document.body.appendChild(a);
   a.click();
+  a.remove();
+  setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
 }
 // Файл, который браузер согласен отдать в системное «Поделиться»; иначе null.
 function _shareableFile(text, name) {
@@ -296,10 +348,18 @@ function _extractCharsFromImport(parsed) {
 // DATA-2: применение полного бэкапа (конверт exportData / снапшот app-backup.js).
 // Заменяет персонажей, HP-историю и пользовательские заклинания. Конверты без
 // userSpells (бэкапы до v3.25) текущие заклинания не трогают.
+// АУД4-1 (I2): возвращает число персонажей, на которых миграция упала (они пропущены);
+// если не прошёл ни один — текущие данные не трогаются.
 function _applyFullRestore(imported, validChars) {
+  var failed = 0, migrated = [];
+  validChars.forEach(function(c) {
+    try { migrated.push(_sanitizeImportedChar(migrateCharacter(c))); }
+    catch (e) { failed++; window.__catchLog && window.__catchLog("import:char " + (c && c.id), e); }
+  });
+  if (!migrated.length) return failed;
   // AUD-1 (S4): id — положительное уникальное число, иначе новый; история идёт за ним.
   var _ids = {}, _nextId = Date.now();
-  characters = validChars.map(migrateCharacter).map(_sanitizeImportedChar).map(function(c) {
+  characters = migrated.map(function(c) {
     var oldId = c.id, n = Number(oldId);
     if (!(isFinite(n) && n > 0) || _ids.hasOwnProperty(n)) {
       while (_ids.hasOwnProperty(_nextId)) _nextId++;
@@ -315,6 +375,11 @@ function _applyFullRestore(imported, validChars) {
   if (imported && Array.isArray(imported.hpHistory)) {
     hpHistory = imported.hpHistory.filter(function(h){ return h && typeof h === "object" && _ids.hasOwnProperty("old:" + h.charId); })
       .map(function(h){ return _sanitizeHpEntry(h, _ids["old:" + h.charId]); }).slice(0, 300);
+  } else {
+    hpHistory = []; // АУД4-1 (I5): старая история не должна висеть на новых персонажах
+  }
+  if (imported && Array.isArray(imported.booksOff) && typeof setBooksOff === "function") {
+    setBooksOff(imported.booksOff.filter(function(b) { return typeof b === "string"; }));
   }
   if (imported && Array.isArray(imported.userSpells)) {
     // HB-7: через нормализатор — кламп level и фикс source прямо при загрузке.
@@ -325,6 +390,7 @@ function _applyFullRestore(imported, validChars) {
   }
   saveToLocal();
   renderCharacterList();
+  return failed;
 }
 // E24-14: после импорта — тост, если подкласс не из редакции персонажа. 2024-таблицы
 // ленивые: сначала догружаем data-2024.js, иначе edData('2024') даст зеркало 2014.
@@ -368,6 +434,11 @@ if (!importedChars) {
   input.value = "";
   return;
 }
+if (_importTooNew(imported, importedChars)) {
+  showToast(IMPORT_TOO_NEW_MSG, "error");
+  input.value = "";
+  return;
+}
 var valid = importedChars.filter(_isValidImportedChar);
 var skipped = importedChars.length - valid.length;
 if (valid.length === 0) {
@@ -384,8 +455,11 @@ showConfirmModal("Импорт персонажей", msg, function() {
     try { createBackupSnapshot("pre-import").catch(function(){}); }
     catch(e) { window.__catchLog && window.__catchLog('core:pre-import-backup', e); }
   }
-  _applyFullRestore(imported, valid);
-  showToast("Загружено: " + characters.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
+  var failed = _applyFullRestore(imported, valid);
+  if (failed === valid.length) { showToast("Ни один персонаж не прочитан — текущие данные не тронуты", "error"); return; }
+  skipped += failed;
+  showToast("Загружено: " + characters.length + (skipped > 0 ? " (пропущено " + skipped + ")" : "") +
+            _unresolvedNote(characters), "success");
   _warnEditionMix(characters);
 }, "Заменить всё", { icon: "import" });
 input.value = "";
@@ -425,6 +499,7 @@ if (!importedChars) {
   showToast("Неверный формат: ожидался массив или { characters: [...] }", "error");
   return;
 }
+if (_importTooNew(parsed, importedChars)) { showToast(IMPORT_TOO_NEW_MSG, "error"); return; }
 var valid = importedChars.filter(_isValidImportedChar);
 var skipped = importedChars.length - valid.length;
 if (valid.length === 0) {
@@ -439,9 +514,11 @@ showConfirmModal("Импорт персонажа", msg, function() {
   var nextId = Date.now();
   var idMap = {};
   var addedChars = [];
+  var failed = 0;
   valid.forEach(function(c) {
-    var oldId = c.id;
-    var nc = _sanitizeImportedChar(migrateCharacter(JSON.parse(JSON.stringify(c))));
+    var oldId = c.id, nc;
+    try { nc = _sanitizeImportedChar(migrateCharacter(JSON.parse(JSON.stringify(c)))); }
+    catch (e) { failed++; window.__catchLog && window.__catchLog("import:char " + oldId, e); return; }
     while (characters.some(function(x) { return x.id === nextId; })) nextId++;
     nc.id = nextId++;
     nc.updatedAt = Date.now();
@@ -449,6 +526,8 @@ showConfirmModal("Импорт персонажа", msg, function() {
     characters.push(nc);
     addedChars.push(nc);
   });
+  if (!addedChars.length) { showToast("Персонаж не прочитан — файл повреждён", "error"); return; }
+  skipped += failed;
   // FEAT-1 доработка: восстановить HP-историю импортированных персонажей,
   // перепривязав записи на новые id (защита от коллизий не ломает связь).
   var addedHp = 0;
@@ -480,9 +559,9 @@ showConfirmModal("Импорт персонажа", msg, function() {
   var addedSpells = _ingestImportedUserSpells(rawUserSpells, addedChars).added;
   saveToLocal();
   renderCharacterList();
-  showToast("Добавлено: " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : "") +
+  showToast("Добавлено: " + addedChars.length + (skipped > 0 ? " (пропущено " + skipped + ")" : "") +
             (addedHp ? " · HP-история: " + addedHp : "") +
-            (addedSpells ? " · свои заклинания: " + addedSpells : ""), "success");
+            (addedSpells ? " · свои заклинания: " + addedSpells : "") + _unresolvedNote(addedChars), "success");
   _warnEditionMix(addedChars);
 }, "Импортировать", { danger: false, icon: "import" });
 }
@@ -499,11 +578,13 @@ function _consumeLaunchFiles() {
         return cache.match("./share-inbox").then(function(resp) {
           if (!resp) { showToast("Файл не получен — попробуйте «Импорт персонажа»", "error"); return; }
           return resp.text().then(function(text) {
-            cache.delete("./share-inbox");
             _importLaunchText(text);
+            cache.delete("./share-inbox");
           });
         });
       }).catch(function() { showToast("Файл не получен — попробуйте «Импорт персонажа»", "error"); });
+    } else {
+      showToast("Файл не получен — попробуйте «Импорт персонажа»", "error");
     }
   }
   if (window.launchQueue && typeof window.launchQueue.setConsumer === "function") {

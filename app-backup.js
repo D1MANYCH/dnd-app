@@ -133,7 +133,8 @@ function restoreBackupSnapshot(id) {
         // Текущее состояние тоже страхуем — восстановление так же разрушительно, как импорт
         var pre;
         try { pre = createBackupSnapshot("pre-restore").catch(function() {}); } catch (e) { pre = null; }
-        _applyFullRestore(row.payload, valid);
+        var failed = _applyFullRestore(row.payload, valid);
+        if (failed === valid.length) { showToast("Ни один персонаж не прочитан — текущие данные не тронуты", "error"); return; }
         _backupLog("action", "восстановлен снапшот #" + id + " от " + _backupFmtDate(row.createdAt), { chars: valid.length });
         showToast("Восстановлено: " + valid.length, "success");
         (pre || Promise.resolve()).then(renderBackupList);

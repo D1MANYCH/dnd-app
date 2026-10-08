@@ -1009,7 +1009,7 @@
       // старый формат (полные объекты) и неизвестная ссылка
       var old = { characters: [{ id: 1, class: "Бард", level: 1, spells: { mySpells: [cl(plain), { _ref: -99999 }] } }] };
       var oldBack = _extractCharsFromImport(old)[0].spells.mySpells;
-      if (oldBack.length !== 1 || JSON.stringify(oldBack[0]) !== JSON.stringify(plain)) return "старый формат или неизвестная ссылка: " + JSON.stringify(oldBack);
+      if (oldBack.length !== 2 || JSON.stringify(oldBack[0]) !== JSON.stringify(plain) || oldBack[1]._ref !== -99999) return "старый формат или неизвестная ссылка: " + JSON.stringify(oldBack);
       return true;
     });
 
@@ -1051,6 +1051,72 @@
         if (window.hpHistory.length !== 1 || window.hpHistory[0].from !== 0 || window.hpHistory[0].charId !== 42) return "история ХП не приведена";
         return true;
       } finally { window.characters = savedChars; window.hpHistory = savedHist; window.SPELL_DATABASE = savedDB; }
+    });
+
+    t("[АУД4-1] миграция: битые массивы/объекты → дефолт (I1), PREP-ID по редакции (I6), метка race (I7)", function(){
+      var c = migrateCharacter({ class: "Воин", level: 1, schemaVersion: 44, conditions: null, weapons: "x",
+        spells: { mySpells: {}, prepared: null, slots: [] }, inventory: { weapon: null } });
+      if (!Array.isArray(c.conditions) || !Array.isArray(c.weapons)) return "верхний массив не восстановлен";
+      if (!Array.isArray(c.spells.mySpells) || !Array.isArray(c.spells.prepared)) return "spells.* не восстановлены";
+      if (!c.spells.slots || Array.isArray(c.spells.slots)) return "spells.slots не объект";
+      if (!Array.isArray(c.inventory.weapon)) return "inventory.weapon не массив";
+      var c24 = migrateCharacter({ class: "Жрец", level: 1, schemaVersion: 44, edition: "2024",
+        spells: { mySpells: [{ id: 1, name: "Лечение ран", source: "PH14" }, { id: 2, name: "Лечение ран", source: "PH24" }], prepared: ["Лечение ран"] } });
+      if (c24.spells.prepared[0] !== 2) return "2024 получил id PH14: " + c24.spells.prepared[0];
+      var r = migrateCharacter({ class: "Воин", level: 1, schemaVersion: 42, stats: { str: 16 },
+        asiUsed: { "Воин": ["race"] }, journal: [] });
+      if (r.asiUsed["Воин"].indexOf("race") === -1) return "метка race снята без отмены прибавки";
+      return true;
+    });
+
+    t("[АУД4-1] _unpackSpell: неизвестный _ref сохраняется (I3/S8), __proto__ не копируется (I9)", function(){
+      var u = _unpackSpell({ _ref: 99999991, prepared: true });
+      if (!u || u._ref !== 99999991 || u.id !== 99999991 || typeof u.name !== "string" || u.level !== 0) return "заглушка не построена";
+      if (_packSpell(u) !== u) return "заглушка должна уезжать как есть";
+      if (_unpackSpell(u) !== u) return "повторная распаковка меняет заглушку";
+      if (_countUnresolvedSpells([{ spells: { mySpells: [u, { id: 1 }] } }]) !== 1) return "счётчик";
+      var base = SPELLS_BASE[0];
+      var back = _unpackSpell({ _ref: base.id, name: "Заглушка", level: 0, _unresolved: ["name", "level"] });
+      if (back.name !== base.name || back.level !== base.level || back._unresolved) return "заглушка не снята при найденной базе";
+      var evil = JSON.parse('{"_ref":' + JSON.stringify(base.id) + ',"__proto__":{"polluted":1}}');
+      if (_unpackSpell(evil).polluted) return "__proto__ скопирован";
+      return true;
+    });
+
+    t("[АУД4-1] импорт: санитайзер (I4), сбой миграции (I2), без hpHistory (I5), новая схема (I8), книги (I14)", function(){
+      var savedChars = window.characters, savedHist = window.hpHistory, savedDB = window.SPELL_DATABASE, savedBooks = booksOff().slice();
+      var savedMig = window.migrateCharacter;
+      try {
+        var s = _sanitizeImportedChar(migrateCharacter({ class: "Воин", level: 1, edition: 2024, name: new Array(500).join("я"),
+          exp: "-5", stats: { str: "99", dex: "x" }, coins: { gp: -3 }, combat: { hpCurrent: "abc", ac: "15" } }));
+        if (s.edition !== "2024" || s.name.length !== 200 || s.exp !== 0) return "edition/name/exp";
+        if (s.stats.str !== 30 || s.stats.dex !== 10 || s.coins.gp !== 0 || s.combat.ac !== 15 || s.combat.hpCurrent !== 0) return "числа не приведены";
+        if (_sanitizeImportedChar(migrateCharacter({ class: "Воин", level: 1, edition: "1999" })).edition !== "2014") return "edition вне списка";
+        window.hpHistory = [{ charId: 7, from: 1, to: 2, delta: 1 }];
+        _applyFullRestore([{ id: 7, class: "Воин", level: 1 }], [{ id: 7, class: "Воин", level: 1 }]);
+        if (window.hpHistory.length) return "старая история ХП осталась";
+        window.migrateCharacter = function(c) { if (c.name === "сбой") throw new Error("x"); return savedMig(c); };
+        var list = [{ id: 1, name: "сбой", class: "Воин", level: 1 }, { id: 2, name: "ок", class: "Воин", level: 1 }];
+        if (_applyFullRestore({ characters: list }, list) !== 1 || window.characters.length !== 1) return "сбой одного не пропущен";
+        var keep = window.characters;
+        if (_applyFullRestore({ characters: [list[0]] }, [list[0]]) !== 1 || window.characters !== keep) return "все упали — данные затёрты";
+        window.migrateCharacter = savedMig;
+        if (!_importTooNew({ schemaVersion: SCHEMA_VERSION + 1, characters: [] }, [])) return "будущая схема конверта";
+        if (!_importTooNew({ format: CHAR_EXPORT_FORMAT + 1 }, [])) return "будущий формат";
+        if (!_importTooNew([], [{ schemaVersion: SCHEMA_VERSION + 1 }])) return "будущая схема персонажа";
+        if (_importTooNew({ schemaVersion: SCHEMA_VERSION, format: CHAR_EXPORT_FORMAT }, [{ schemaVersion: SCHEMA_VERSION }])) return "текущая схема отклонена";
+        setBooksOff(["XGtE"]);
+        var p = _buildExportPayload();
+        if (!p.booksOff || p.booksOff[0] !== "XGtE") return "книги не в бэкапе";
+        setBooksOff([]);
+        _applyFullRestore(p, p.characters.filter(_isValidImportedChar));
+        if (booksOff()[0] !== "XGtE") return "книги не восстановлены";
+        if (DEFAULT_CHARACTER.schemaVersion !== SCHEMA_VERSION) return "DEFAULT_CHARACTER.schemaVersion";
+        return true;
+      } finally {
+        window.migrateCharacter = savedMig; setBooksOff(savedBooks);
+        window.characters = savedChars; window.hpHistory = savedHist; window.SPELL_DATABASE = savedDB;
+      }
     });
 
     t("[AUD-1] разметка: id заметки и теги только в data-*, без инъекции в onclick", function(){

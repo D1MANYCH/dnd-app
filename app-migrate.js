@@ -915,17 +915,18 @@ function migrateCharacter(char) {
       : [];
     if (raceAsiCls.length) {
       var raceAsiKeys = { "Сила": "str", "Ловкость": "dex", "Телосложение": "con", "Интеллект": "int", "Мудрость": "wis", "Харизма": "cha" };
+      var raceAsiUndone = false; // АУД4-1 (I7): метку снимаем, только если прибавка снята
       (Array.isArray(char.journal) ? char.journal : []).forEach(function(e) {
         var at = (e && typeof e.text === "string") ? e.text.indexOf("АСИ (ур.race): ") : -1;
         if (at === -1 || !char.stats) return;
         e.text.slice(at + 15).split(", ").forEach(function(part) {
           var p = part.match(/^(\S+) \+(\d)$/);
           var k = p && raceAsiKeys[p[1]];
-          if (k) char.stats[k] = Math.max(1, (char.stats[k] || 10) - parseInt(p[2], 10));
+          if (k) { char.stats[k] = Math.max(1, (char.stats[k] || 10) - parseInt(p[2], 10)); raceAsiUndone = true; }
         });
         e.text += " — отменено: у Человека (вариант) +1 к двум выбирается в панели расы";
       });
-      raceAsiCls.forEach(function(c) { char.asiUsed[c] = char.asiUsed[c].filter(function(l) { return l !== "race"; }); });
+      if (raceAsiUndone) raceAsiCls.forEach(function(c) { char.asiUsed[c] = char.asiUsed[c].filter(function(l) { return l !== "race"; }); });
     }
     char.schemaVersion = 43;
   }
@@ -946,12 +947,14 @@ function migrateCharacter(char) {
     // → id по mySpells; строку без заклинания в mySpells и не-строки (id) не трогаем.
     if (char.spells && Array.isArray(char.spells.prepared)) {
       var _my45 = Array.isArray(char.spells.mySpells) ? char.spells.mySpells : [];
-      var _out45 = [];
+      var _out45 = [], _src45 = char.edition === "2024" ? "PH24" : "PH14";
       char.spells.prepared.forEach(function(p){
         var id = p;
         if (typeof p === "string" && !_my45.some(function(s){ return s && s.id === p; })) {
           var key = p.toLowerCase().trim();
-          var sp = _my45.find(function(s){ return s && s.name && String(s.name).toLowerCase().trim() === key; });
+          // АУД4-1 (I6): при двух версиях заклинания — та, что из редакции персонажа
+          var same = _my45.filter(function(s){ return s && s.name && String(s.name).toLowerCase().trim() === key; });
+          var sp = same.find(function(s){ return s.source === _src45; }) || same[0];
           if (sp) id = sp.id;
         }
         if (_out45.indexOf(id) === -1) _out45.push(id);
@@ -970,14 +973,19 @@ function migrateCharacter(char) {
   if (typeof DEFAULT_CHARACTER !== 'undefined' && char && typeof char === 'object') {
     Object.keys(DEFAULT_CHARACTER).forEach(function(k) {
       var def = DEFAULT_CHARACTER[k];
-      if (char[k] === undefined) {
+      // АУД4-1 (I1): массив по умолчанию, а в данных null/строка/объект — тоже дефолт
+      if (char[k] === undefined || (Array.isArray(def) && !Array.isArray(char[k]))) {
         char[k] = JSON.parse(JSON.stringify(def));
         return;
       }
       if (!def || typeof def !== 'object' || Array.isArray(def)) return;
       if (!char[k] || typeof char[k] !== 'object' || Array.isArray(char[k])) char[k] = {};
       Object.keys(def).forEach(function(sub) {
-        if (char[k][sub] === undefined) char[k][sub] = JSON.parse(JSON.stringify(def[sub]));
+        var ds = def[sub], cs = char[k][sub];
+        if (cs === undefined || (Array.isArray(ds) && !Array.isArray(cs)) ||
+            (ds && typeof ds === 'object' && !Array.isArray(ds) && (!cs || typeof cs !== 'object' || Array.isArray(cs)))) {
+          char[k][sub] = JSON.parse(JSON.stringify(ds));
+        }
       });
     });
   }
