@@ -641,8 +641,10 @@ function openAbilGen() {
   if (char.basicLocked) { showToast("Способ генерации выбирается до фиксации основы", "warn"); return; }
   var saved = char.abilGen || {};
   _ag = { mode: saved.mode || "pb", pb: {}, std: {}, rolls: (saved.rolls || []).slice(), pick: {} };
+  var fresh = !saved.mode && AG_KEYS.every(function(k) { return (char.stats[k] || 10) - _agBonus(char, k) === 10; });
   AG_KEYS.forEach(function(k) {
-    _ag.pb[k] = Math.max(8, Math.min(15, (char.stats[k] || 10) - _agBonus(char, k)));
+    // СОЗД-6: первая генерация — покупка очков с 8 (PHB 2014, стр. 13), а не с 10 из пустого листа
+    _ag.pb[k] = fresh ? 8 : Math.max(8, Math.min(15, (char.stats[k] || 10) - _agBonus(char, k)));
     if (saved.mode === "std" && saved.base) _ag.std[k] = saved.base[k];
     if (saved.mode === "roll" && saved.pick && saved.pick[k] != null) _ag.pick[k] = saved.pick[k];
   });

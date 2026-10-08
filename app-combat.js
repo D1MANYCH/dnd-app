@@ -293,7 +293,10 @@ function abilityBreakdown(char, key) {
   if (feat) rows.push({ label: "Черты", value: feat });
   var other = score - base - known;
   if (other) rows.push({ label: "Прочее", value: other });
-  return { rows: rows, total: score };
+  var how = { pb: "покупка очков", std: "стандартный набор", roll: "броски 4к6" }[hasBase && char.abilGen.mode];
+  var note = how ? "Основа — " + how + " до бонусов расы и предыстории."
+    : "Основа — значение без известных бонусов: характеристики вводились вручную, а не через «Характеристики: покупка очков · набор · 4к6».";
+  return { rows: rows, total: score, note: note };
 }
 
 // DISC-2: экран описания характеристики. Текст — ABILITY_INFO (PHB 2014,
@@ -320,7 +323,8 @@ function openAbilityInfo(key) {
         var v = i === 0 ? String(r.value) : (r.value > 0 ? "+" : "−") + Math.abs(r.value);
         return '<div class="ai-bd-row"><span>' + r.label + '</span><span>' + v + "</span></div>";
       }).join("") +
-      '<div class="ai-bd-row ai-bd-total"><span>Итог</span><span>' + bd.total + "</span></div></div>";
+      '<div class="ai-bd-row ai-bd-total"><span>Итог</span><span>' + bd.total + "</span></div>" +
+      '<p class="ai-formula">' + bd.note + "</p></div>";
   }
   html += '<div class="ai-block"><div class="ai-block-title">Проверки</div><p>' + info.checks + "</p>" +
           '<p class="ai-formula">Проверка — d20 + модификатор характеристики; при владении навыком прибавляется бонус мастерства, при компетентности — удвоенный.</p></div>';
@@ -1321,9 +1325,10 @@ function _renderSpeciesBar(race, data, eff) {
   var badges = '<span class="race-bonus-badge">' + escapeHtml(sizeTxt) + '</span>' +
     '<span class="race-bonus-badge race-speed">' + eff.speed + ' фт</span>' +
     (eff.darkvision ? '<span class="race-bonus-badge race-speed">Тёмное зрение ' + eff.darkvision + ' фт</span>' : '');
-  var traits = (data.traits || []).map(function(t) {
+  // СОЗД-6: у данных 2014 (фолбэк, пока data-2024 не загружен) traits — строка, а не массив
+  var traits = Array.isArray(data.traits) ? data.traits.map(function(t) {
     return '<div class="race-trait-row"><span class="race-trait-name">' + escapeHtml(t.name) + '</span> — ' + escapeHtml(t.desc) + '</div>';
-  }).join("");
+  }).join("") : (data.traits ? '<div class="race-trait-row">' + escapeHtml(String(data.traits)) + '</div>' : "");
   return '<span class="race-bonus-label">' + dndIcoHtml("zap", 12) + ' ' + escapeHtml(race) + ':</span>' + badges +
     '<div class="race-bonus-traits">' + traits + '</div>';
 }
@@ -1559,11 +1564,14 @@ function renderRaceExtras() {
     var chosen = char.raceStatChoice;
     html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' ' + escapeHtml(race) + ': +1 к двум характеристикам' + (race.indexOf("Полуэльф") === 0 ? ' (кроме ХАР)' : '') + '</div>';
     html += '<div class="race-extras-row">';
+    var stHide = _pickHide("racestat", chosen.length >= 2);
     RACE_STAT_PICKS[race].forEach(function(k) {
       var sel = chosen.indexOf(k) !== -1;
+      if (stHide && !sel) return;
       html += '<button type="button" class="race-extras-stat-pick' + (sel ? " selected" : "") +
         '" onclick="toggleHalfElfStat(\'' + k + '\')">' + statLabels[k] + '</button>';
     });
+    if (stHide) html += _pickExpandBtn("racestat");
     html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">' +
       'Выбрано: ' + chosen.length + '/2</span>';
     html += '</div>';
@@ -1611,7 +1619,8 @@ function renderRaceExtras() {
       (skillAllowance > 1 ? 'владение ' + skillAllowance + ' навыками на выбор' : 'владение навыком на выбор') + '</div>';
     html += '<div class="race-extras-row">';
     var skHide = _pickHide("race", skChosen.length >= skillAllowance);
-    skills.forEach(function(s, si) {
+    _skillsByName().forEach(function(s) {
+      var si = s.si;
       if (RACE_SKILL_FROM[race] && RACE_SKILL_FROM[race].indexOf(s.name) === -1) return;
       var sel = skChosen.indexOf(s.name) !== -1;
       if (skHide && !sel) return;
@@ -1824,6 +1833,12 @@ function _skillsFromOtherSources(char) {
   return out;
 }
 
+// СОЗД-6: навыки в панелях выбора — по алфавиту; si — индекс в skills[]
+function _skillsByName() {
+  return skills.map(function(s, si) { return { name: s.name, si: si }; })
+    .sort(function(a, b) { return a.name.localeCompare(b.name, "ru"); });
+}
+
 // СОЗД-5: навык уже дан другим источником (except — "race" | "bg"): второй раз его не выбрать
 function _skillTakenElsewhere(char, name, except) {
   if (except !== "race" && (char.raceSkillChoice || []).indexOf(name) !== -1) return true;
@@ -1898,7 +1913,8 @@ function renderClassSkills() {
       (e.mc ? ' (второй класс)' : '') + ': ' + e.count + (e.count > 1 ? ' навыка' : ' навык') + ' класса на выбор</div>';
     html += '<div class="race-extras-row">';
     var hide = _pickHide("cls" + ci, picks.length >= e.count);
-    skills.forEach(function(s, si) {
+    _skillsByName().forEach(function(s) {
+      var si = s.si;
       if (e.from.indexOf(s.name) === -1) return;
       var sel = picks.indexOf(s.name) !== -1;
       if (hide && !sel) return;
@@ -2225,10 +2241,24 @@ function renderCreationTodo() {
   if (!box) return;
   var char = currentId ? getCurrentChar() : null;
   var rows = (char && !isSheetLocked(char)) ? _creationTodo(char) : [];
-  if (!rows.length) { box.style.display = "none"; box.innerHTML = ""; return; }
-  box.innerHTML = '<div class="pg-grp">Осталось выбрать</div><div class="hp-rows">' +
-    rows.map(function(r) { return _pgAttn(r[0], "Выбрать →", r[1]); }).join("") + '</div>';
+  // СОЗД-6: «Персонаж готов» — в конце блока; на телефоне кнопка иначе спрятана в шторке замка
+  var readyBtn = $("sheet-lock-btn");
+  var ready = !!(readyBtn && readyBtn.style.display !== "none");
+  var mob = _isMobSheet();
+  if (!rows.length && !(ready && mob)) { box.style.display = "none"; box.innerHTML = ""; return; }
+  box.innerHTML = '<div class="pg-grp">' + (rows.length ? "Осталось выбрать" : "Всё выбрано") + '</div><div class="hp-rows">' +
+    rows.map(function(r) { return _pgAttn(r[0], "Выбрать →", r[1]); }).join("") +
+    (ready ? _pgAttn(rows.length ? "Когда закончите" : "Можно закрыть лист до повышения уровня", "Персонаж готов →", "lockSheet()") : "") + '</div>';
   box.style.display = "";
+  // СОЗД-6: на телефоне карточки с незаполненным выбором раскрываются сами (только раскрытие, без сворачивания)
+  if (mob && rows.length) {
+    var go = rows.map(function(r) { return r[1]; }).join(" ");
+    if (!_idMoreOpen && /race-extras-panel|bg-extras-panel|class-skills-panel/.test(go)) {
+      var idPanel = $("race-extras-panel");
+      if (idPanel && idPanel.closest(".identity-card")) { _idMoreOpen = true; renderIdentitySummary(); }
+    }
+    if (_profOpen !== true && /languages-container|tools-container/.test(go)) { _profOpen = true; renderProfSummary(); }
+  }
 }
 
 function creationTodoGo(id) {
