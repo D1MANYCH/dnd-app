@@ -1,5 +1,5 @@
 // SYNC-1/3: вход через Google и синхронизация с файлом в скрытой папке приложения на Диске.
-// Видно только с ?sync=1 (флаг запоминается в localStorage).
+// Включается входом через Google; что хранится — privacy.html.
 
 var SYNC_CLIENT_ID = "756417920081-9s625rqlg5kv9o2rue4q9sp2831koaiu.apps.googleusercontent.com";
 var SYNC_SCOPE = "https://www.googleapis.com/auth/drive.appdata";
@@ -8,7 +8,6 @@ var SYNC_DATA_KEY = "dnd_sync_state";
 var SYNC_DELAY = 5000;
 var SYNC_AUTH_KEY = "dnd_sync_auth";
 var SYNC_STATE_KEY = "dnd_sync_oauth_state";
-var SYNC_FLAG_KEY = "dnd_sync_flag";
 var _syncNotice = "";
 var _syncStatus = "";
 var _syncTimer = null;
@@ -22,10 +21,7 @@ function _syncLog(level, msg) {
 }
 
 function _syncEnabled() {
-  try {
-    if (/[?&]sync=1/.test(location.search || "")) localStorage.setItem(SYNC_FLAG_KEY, "1");
-    return localStorage.getItem(SYNC_FLAG_KEY) === "1";
-  } catch (e) { return false; }
+  return !!_syncGetAuth() || !!_syncLoadState().lastAt;
 }
 
 function _syncRedirectUri() {
@@ -81,6 +77,26 @@ function syncSignOut() {
   }
   renderSyncRow();
   showToast("Вы вышли из Google", "info");
+}
+
+function syncTurnOff() {
+  showConfirmModal("Выключить синхронизацию?",
+    "Файл синхронизации будет удалён с Google Диска, вход на этом устройстве отменён. Персонажи на устройствах останутся. Если другое устройство ещё входит в Google, оно создаст файл заново — выключите синхронизацию и там.",
+    function() {
+      _driveFind(SYNC_FILE).then(function(f) {
+        return f ? _driveFetch("https://www.googleapis.com/drive/v3/files/" + f.id, { method: "DELETE" }) : null;
+      }).then(function() {
+        clearTimeout(_syncTimer);
+        _syncTimer = null;
+        _syncStatus = "";
+        try { localStorage.removeItem(SYNC_DATA_KEY); } catch (e) {}
+        syncSignOut();
+        showToast("Синхронизация выключена, файл на Диске удалён", "success");
+      }).catch(function(e) {
+        showToast(e && e.auth ? "Срок входа истёк — войдите снова и повторите" : "Не удалось удалить файл с Диска", "error");
+        renderSyncRow();
+      });
+    }, "Выключить и удалить");
 }
 
 function _syncConsumeHash() {
@@ -286,7 +302,7 @@ function _syncRun(attempt, dropDupes) {
       spells: _syncUserSpells()
     };
     var before = { chars: _syncHashes(characters), spells: _syncHashes(local.spells) };
-    var res = syncMerge(local, remote, state.base || {}, state.tombstones, { device: _syncDevice() });
+    var res = syncMerge(local, remote, remote ? (state.base || {}) : {}, state.tombstones, { device: _syncDevice() });
     var write = Promise.resolve();
     if (res.toUpload) {
       write = _driveFind(SYNC_FILE).then(function(f2) {
@@ -525,7 +541,6 @@ function _syncTimeLabel(at) {
 function renderSyncRow() {
   var row = $("sync-row");
   if (!row) return;
-  if (!_syncEnabled()) { row.style.display = "none"; return; }
   row.style.display = "";
   var status = $("sync-status");
   var actions = $("sync-actions");
@@ -538,10 +553,18 @@ function renderSyncRow() {
     now.disabled = _syncBusy;
     actions.appendChild(now);
     actions.appendChild(_syncBtn("Выйти", syncSignOut));
+    actions.appendChild(_syncBtn("Выключить и удалить с Диска", syncTurnOff));
   } else {
     status.textContent = "Синхронизация · " + (_syncNotice || (a ? "Нужно войти снова" : "Google Диск"));
     actions.appendChild(_syncBtn(a || _syncNotice ? "Войти снова" : "Войти через Google", syncSignIn));
   }
+  var priv = document.createElement("a");
+  priv.href = "privacy.html";
+  priv.target = "_blank";
+  priv.rel = "noopener";
+  priv.className = "backup-panel-hint";
+  priv.textContent = "Что хранится";
+  actions.appendChild(priv);
 }
 
 _syncConsumeHash();

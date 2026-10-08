@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Конфиденциальность — Лист персонажа D&amp;D</title>
+<style>
+  :root { --bg: #0b1220; --text: #e6e9f0; --muted: #9aa4b8; --accent: #7aa2ff; --line: #24304a; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #f7f8fb; --text: #1b2233; --muted: #5a6478; --accent: #2f5bd8; --line: #d9deea; }
+  }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding: 24px 16px 48px; }
+  main { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 1.5em; margin: 0 0 4px; }
+  h2 { font-size: 1.1em; margin: 28px 0 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+  p, li { margin: 6px 0; }
+  ul { padding-left: 20px; }
+  .muted { color: var(--muted); font-size: 0.9em; }
+  a { color: var(--accent); }
+  code { font-size: 0.95em; }
+</style>
+</head>
+<body>
+<main>
+<h1>Политика конфиденциальности</h1>
+<p class="muted">Лист персонажа D&amp;D 5e · d1manych.github.io/dnd-app · редакция от 8 октября 2026</p>
+
+<h2>Коротко</h2>
+<p>У приложения нет своего сервера и нет аккаунтов. Автор не получает, не видит и не хранит ваши данные. Всё, что вы вводите, остаётся в вашем браузере, а при включённой синхронизации — ещё и на вашем собственном Google Диске.</p>
+
+<h2>Что хранится на устройстве</h2>
+<ul>
+  <li>Персонажи, свои заклинания, заметки, настройки — в хранилище браузера (localStorage и IndexedDB).</li>
+  <li>Автоматические резервные копии — там же, в IndexedDB.</li>
+  <li>Всё это удаляется вместе с данными сайта в настройках браузера.</li>
+</ul>
+
+<h2>Синхронизация через Google Диск</h2>
+<p>Синхронизация необязательна и включается только кнопкой «Войти через Google» на экране «Данные».</p>
+<ul>
+  <li><b>Какой доступ запрашивается:</b> только <code>drive.appdata</code> — скрытая папка приложения на вашем Диске. Приложение не видит остальные файлы Диска, почту, контакты и другие данные Google-аккаунта.</li>
+  <li><b>Что записывается:</b> один файл <code>dnd-sync.json</code> — персонажи, свои заклинания, отметки об удалённых персонажах (хранятся 90 дней) и название типа устройства («ПК», «Android», «iPhone/iPad»).</li>
+  <li><b>Адрес почты</b> аккаунта запрашивается у Google один раз, чтобы показать на экране «Данные», под каким аккаунтом выполнен вход. Он хранится только в вашем браузере.</li>
+  <li><b>Ключ доступа</b> от Google действует около часа и хранится только в вашем браузере. Обмен идёт напрямую между браузером и серверами Google, без посредников.</li>
+  <li>Данные не передаются третьим лицам, не используются для рекламы, аналитики или обучения моделей.</li>
+</ul>
+<p>Использование данных, полученных через API Google, соответствует <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Google API Services User Data Policy</a>, включая требования Limited Use.</p>
+
+<h2>Как удалить данные</h2>
+<ul>
+  <li><b>С Диска:</b> экран «Данные» → «Выключить и удалить с Диска». Файл синхронизации удаляется, вход отменяется. Если синхронизация включена на других устройствах, выключите её и там.</li>
+  <li><b>Отозвать доступ:</b> <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">myaccount.google.com/permissions</a> — после этого Google удалит и скрытую папку приложения.</li>
+  <li><b>С устройства:</b> удалите персонажей в приложении или очистите данные сайта в браузере.</li>
+</ul>
+
+<h2>Контакты</h2>
+<p>Вопросы — через <a href="https://github.com/D1MANYCH/dnd-app/issues" target="_blank" rel="noopener">GitHub Issues</a> проекта.</p>
+
+<p class="muted"><a href="./">← Вернуться в приложение</a></p>
+</main>
+</body>
+</html>
