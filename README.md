@@ -2,7 +2,7 @@
 
 **Лист персонажа D&D 5e для браузера и телефона. На русском, без регистрации, оффлайн, бесплатно.**
 
-🎲 **[Открыть приложение →](https://d1manych.github.io/dnd-app/)** &nbsp;&nbsp; 💬 **[Telegram @dndlistru](https://t.me/dndlistru)**
+🎲 **[Открыть приложение →](https://d1manych.github.io/dnd-app/)** &nbsp;&nbsp; 💬 **[Telegram @dndlistru](https://t.me/dndlistru)** &nbsp;&nbsp; 🇬🇧 [English](README.en.md)
 
 ---
 
