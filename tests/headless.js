@@ -1246,7 +1246,7 @@
         }
       });
       if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
-      if (c.spells.prepared.join("|") !== "Распад|Пляшущая молния|Огненный шар")
+      if (c.spells.prepared.join("|") !== "Распад|Пляшущая молния|405")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
       // Harm «Вред» → «Поражение»; Heal «Исцеление» → «Полное исцеление»; Wall of ice «Стена льда» → «Ледяная стена».
@@ -1265,7 +1265,7 @@
       });
       if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       // Forcecage «Силовая клетка» → «Узилище»; Prismatic spray «Призматический луч» → «Радужные брызги».
-      if (c.spells.prepared.join("|") !== "Узилище|Радужные брызги|Огненный шар")
+      if (c.spells.prepared.join("|") !== "Узилище|Радужные брызги|405")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
       // Symbol «Символ» → «Знак»; Simulacrum «Симулякр» → «Подобие»; Reverse gravity «Обратная гравитация» → «Изменение тяготения».
@@ -1284,7 +1284,7 @@
       });
       if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       // Clone «Клон» → «Двойник»; Antimagic field «Антимагическое поле» → «Преграда магии».
-      if (c.spells.prepared.join("|") !== "Двойник|Преграда магии|Огненный шар")
+      if (c.spells.prepared.join("|") !== "Двойник|Преграда магии|405")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
       // Feeblemind PH14 «Слабоумие» = книга (без изм.); PH24 Befuddlement «Оцепенение» → «Слабоумие»;
@@ -1304,7 +1304,7 @@
       });
       if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
       // Shapechange «Перевоплощение» → «Полное превращение»; Meteor swarm «Рой метеоров» → «Метеоритный дождь».
-      if (c.spells.prepared.join("|") !== "Полное превращение|Метеоритный дождь|Огненный шар")
+      if (c.spells.prepared.join("|") !== "Полное превращение|Метеоритный дождь|405")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
       // Weird «Кошмарное видение» → «Смертный ужас»; Storm of vengeance «Буря мести» → «Гроза гнева»;
@@ -1353,7 +1353,7 @@
         }
       });
       if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion: ожидал " + SCHEMA_VERSION + ", получено " + c.schemaVersion;
-      if (c.spells.prepared.join("|") !== "Облако кинжалов|Огненный шар")
+      if (c.spells.prepared.join("|") !== "Облако кинжалов|405")
         return "prepared не переименован под книгу: " + JSON.stringify(c.spells.prepared);
       var names = c.spells.mySpells.map(function(s){ return s.name; }).join("|");
       if (names !== "Воспламеняющая туча|Огненный шар")
@@ -10271,6 +10271,35 @@
       return true;
     });
   })();
+
+  // ────────── БЛОК 68 (PREP-ID): prepared хранит id заклинаний — applyBuild и миграция v45 ──────────
+  if (typeof applyBuild === "function" && typeof getBuildById === "function" && typeof characters !== "undefined") {
+    t("[prep-id] applyBuild wizard-evoker: prepared — id из mySpells, isSpellPrepared видит их", function(){
+      if (!getBuildById("wizard-evoker")) return "билд wizard-evoker недоступен";
+      try { applyBuild("wizard-evoker"); } catch (e) { /* побочка loadCharacter в шиме — ок */ }
+      var ch = null;
+      for (var i = characters.length - 1; i >= 0; i--) { if (characters[i].buildId === "wizard-evoker") { ch = characters[i]; break; } }
+      if (!ch) return "персонаж не создан applyBuild";
+      var prep = ch.spells.prepared || [];
+      if (!prep.length) return "prepared пуст";
+      var bad = prep.filter(function(id){ return !ch.spells.mySpells.some(function(s){ return s.id === id; }); });
+      if (bad.length) return "в prepared не id из mySpells: " + JSON.stringify(bad);
+      if (typeof isSpellPrepared === "function") {
+        var lvl1 = ch.spells.mySpells.filter(function(s){ return s.level === 1; });
+        var un = lvl1.filter(function(s){ return !isSpellPrepared(ch, s.id); }).map(function(s){ return s.name; });
+        if (un.length) return "не подготовлены: " + un.join(", ");
+      }
+      return true;
+    });
+  }
+  t("[prep-id] миграция v45: имена в prepared → id, сироты и id не тронуты, дубли схлопнуты", function(){
+    var c = migrateCharacter({ id: 9901, class: "Волшебник", level: 7, schemaVersion: 44,
+      spells: { mySpells: [{ id: 5, name: "Волшебная стрела", level: 1 }, { id: 7, name: "Щит", level: 1 }, { id: 9, name: "Огненный шар", level: 3 }],
+                prepared: ["Волшебная стрела", "щит ", 9, "Нет такого", 7] } });
+    if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion " + c.schemaVersion;
+    if (JSON.stringify(c.spells.prepared) !== '[5,7,9,"Нет такого"]') return JSON.stringify(c.spells.prepared);
+    return true;
+  });
 
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};

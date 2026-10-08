@@ -580,7 +580,7 @@ function _pdfSpells(doc, y, char) {
       doc.setTextColor(0);
       y += 4;
       var names = byLevel[l].map(function(sp) {
-        var pref = (l > 0 && prepared.indexOf(sp.name) !== -1) ? '● ' : '○ ';
+        var pref = (l > 0 && prepared.indexOf(sp.id) !== -1) ? '● ' : '○ ';
         var school = sp.school ? ' [' + sp.school + ']' : '';
         return pref + (sp.name || '—') + school;
       });

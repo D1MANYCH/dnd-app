@@ -714,11 +714,12 @@ function _applyBuildCore(buildId) {
     // BUILD-FIX-13: канонизируем имена prepared под SPELL_DATABASE (как mySpells),
     // иначе отметка «подготовлено» не привязывается к объекту заклинания
     // (например prepared "Сонливость" не совпадал с mySpells "Сон").
-    var _canonName = function(n){ var sp = _resolveSpell(n); return (sp && sp.name) ? sp.name : n; };
+    // PREP-ID: вкладка «Магия» сверяет prepared с id заклинания, не с именем.
+    var _canonName = function(n){ var sp = _resolveSpell(n); return sp ? sp.id : null; };
     if (Array.isArray(b.startingSpells.prepared)) {
       b.startingSpells.prepared.forEach(function(n){
         var cn = _canonName(n);
-        if (newChar.spells.prepared.indexOf(cn) === -1) newChar.spells.prepared.push(cn);
+        if (cn != null && newChar.spells.prepared.indexOf(cn) === -1) newChar.spells.prepared.push(cn);
       });
     }
     // BUILD-FIX-3/13: для подготовленных классов (волшебник/жрец/друид/паладин) —
@@ -732,7 +733,7 @@ function _applyBuildCore(buildId) {
         Array.isArray(b.startingSpells.known)) {
       b.startingSpells.known.forEach(function(n){
         var cn = _canonName(n);
-        if (newChar.spells.prepared.indexOf(cn) === -1) newChar.spells.prepared.push(cn);
+        if (cn != null && newChar.spells.prepared.indexOf(cn) === -1) newChar.spells.prepared.push(cn);
       });
     }
     if (_missing.length) {

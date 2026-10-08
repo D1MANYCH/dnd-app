@@ -940,6 +940,26 @@ function migrateCharacter(char) {
     }
     char.schemaVersion = 44;
   }
+  if (v < 45) {
+    // PREP-ID: applyBuild писал в prepared имена заклинаний, а вкладка «Магия»
+    // сверяет id — у персонажей из билда ничего не было подготовлено. Строка-имя
+    // → id по mySpells; строку без заклинания в mySpells и не-строки (id) не трогаем.
+    if (char.spells && Array.isArray(char.spells.prepared)) {
+      var _my45 = Array.isArray(char.spells.mySpells) ? char.spells.mySpells : [];
+      var _out45 = [];
+      char.spells.prepared.forEach(function(p){
+        var id = p;
+        if (typeof p === "string" && !_my45.some(function(s){ return s && s.id === p; })) {
+          var key = p.toLowerCase().trim();
+          var sp = _my45.find(function(s){ return s && s.name && String(s.name).toLowerCase().trim() === key; });
+          if (sp) id = sp.id;
+        }
+        if (_out45.indexOf(id) === -1) _out45.push(id);
+      });
+      char.spells.prepared = _out45;
+    }
+    char.schemaVersion = 45;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем
