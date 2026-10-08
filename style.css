@@ -15970,6 +15970,17 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .pg-attn-n { font-size: var(--fs-md); color: var(--text-color); }
 .pg-attn-n u { text-decoration: none; color: var(--home-sub); }
 .pg-attn-act { margin-left: auto; }
+/* СОЗД-3: «Осталось выбрать» на листе — те же строки, с ромбом */
+.creation-todo { margin: 0 0 var(--sp-3); }
+.creation-todo .hp-rows { margin-top: 0; }
+.creation-todo .hp-row--static::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  transform: rotate(45deg);
+  background: var(--accent-lo);
+}
 
 .pg-body-acts { padding-top: var(--sp-1); }
 .pg-acts {

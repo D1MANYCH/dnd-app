@@ -1470,6 +1470,7 @@ function _setExtrasHtml(panel, html) {
 }
 
 function renderRaceExtras() {
+  scheduleCreationTodo();
   var panel = $("race-extras-panel");
   if (!panel) return;
   if (!currentId) { panel.style.display = "none"; return; }
@@ -1824,6 +1825,7 @@ function _classSkillSync(char) {
 }
 
 function renderClassSkills() {
+  scheduleCreationTodo();
   var panel = $("class-skills-panel");
   if (!panel) return;
   var char = currentId && getCurrentChar();
@@ -2093,6 +2095,97 @@ function applySheetLockUI() {
   if (readyBtn) readyBtn.style.display = (enabled && char.basicLocked && !locked) ? "" : "none";
   if (editBtn) editBtn.style.display = locked ? "" : "none";
   if (basicBtn) basicBtn.style.display = locked ? "none" : "";
+  scheduleCreationTodo();
+}
+
+// СОЗД-3: «Осталось выбрать» на листе — незаполненные выборы создания. Пункт — [текст, onclick к месту выбора].
+function _creationTodo(char) {
+  var out = [];
+  if (!char || !char.basicLocked) return out;
+  var race = char.race || "", bgName = char.background || "", is24 = char.edition === "2024";
+  function add(name, note, go) { out.push([escapeHtml(name) + (note ? " <u>· " + escapeHtml(note) + "</u>" : ""), go, name + (note ? " (" + note + ")" : "")]); }
+  function src(label) { return String(label || "").replace(/<[^>]*>/g, "").trim(); }
+  var goRace = "creationTodoGo('race-extras-panel')", goBg = "creationTodoGo('bg-extras-panel')";
+  if (((is24 ? RACE_BONUS_FEATS_2024 : RACE_BONUS_FEATS)[race] || 0) > (char.raceFeats || []).length) add("Расовая черта", race, goRace);
+  if (!is24) {
+    if (RACE_STAT_PICKS[race] && (char.raceStatChoice || []).length < 2) add("+1 к двум характеристикам", race, goRace);
+    if (RACE_FLEX_STATS[race] && !_raceFlexFits(char.raceFlexStats || {}, RACE_FLEX_STATS[race], true)) add("Прибавки к характеристикам", race, goRace);
+    if (RACE_VARIABLE_TRAIT[race] && !char.raceVariableTrait) add("Выборочная особенность", race, goRace);
+  }
+  var rs = _raceSkillAllowance(char, race) - (char.raceSkillChoice || []).length;
+  if (rs > 0) add("Навыки расы", race + " · осталось " + rs, goRace);
+  if (is24 && typeof edData === "function") {
+    var sp = edData(char).RACE_DATA[race];
+    if (sp && Array.isArray(sp.choices)) sp.choices.forEach(function(ch) {
+      if (!(char.speciesChoices && char.speciesChoices[ch.id])) add(ch.name, race, goRace);
+    });
+  }
+  _classSkillList(char).forEach(function(e) {
+    var n = e.count - ((char.classSkillChoice || {})[e.cls] || []).length;
+    if (n > 0) add("Навыки класса", e.cls + " · осталось " + n, "creationTodoGo('class-skills-panel')");
+  });
+  if (!is24) {
+    var d14 = (typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[bgName];
+    var bn = (d14 && d14.skillChoice) ? (d14.skillChoice.count || 1) - (char.bgSkillPicks || []).length : 0;
+    if (bn > 0) add("Навыки предыстории", bgName + " · осталось " + bn, goBg);
+    if (bgName === CUSTOM_BACKGROUND_KEY) {
+      var c14 = char.bgCustom || {};
+      var cn = 2 - (c14.skills || []).length;
+      if (cn > 0) add("Навыки своей предыстории", "осталось " + cn, goBg);
+      if (!c14.featureFrom) add("Умение своей предыстории", "", goBg);
+    }
+  } else if (typeof getBackgroundDef === "function") {
+    var def = getBackgroundDef(char);
+    if (def) {
+      if (def.custom) {
+        var c = char.bgCustom || {};
+        if ((c.abilities || []).length < 3) add("Характеристики своей предыстории", "", goBg);
+        if ((c.skills || []).length < 2) add("Навыки своей предыстории", "", goBg);
+      }
+      if ((def.abilities || []).length === 3 && typeof validateBgStatChoice === "function" &&
+          !validateBgStatChoice(def, char.bgStatChoice).complete) add("Характеристики от предыстории", def.custom ? "" : bgName, goBg);
+      if (!(char.feats || []).some(function(f) { return f.origin; })) add("Черта происхождения", def.custom ? "" : bgName, goBg);
+    }
+  }
+  var pr = char.proficiencies;
+  if (pr && pr.languageChoices && typeof getLanguageChoiceSlots === "function") getLanguageChoiceSlots(char).forEach(function(s) {
+    add("Языки", src(s.label) + " · осталось " + s.remaining, "creationTodoGo('languages-container')");
+  });
+  if (pr && pr.toolChoices && typeof getToolChoiceSlots === "function") getToolChoiceSlots(char).forEach(function(s) {
+    add("Инструменты", src(s.label) + " · осталось " + s.remaining, "creationTodoGo('tools-container')");
+  });
+  if (typeof ccGetAllChoicesFor === "function") ccGetAllChoicesFor(char).forEach(function(it) {
+    if (it.isComplete || !it.choice) return;
+    add(it.choice.name || it.choice.id, it.className + " " + it.classLevel + " ур.",
+      "openClassChoiceModal('" + _pgArg(it.className) + "', '" + _pgArg(it.choice.id) + "')");
+  });
+  return out;
+}
+
+var _creationTodoTimer = 0;
+function scheduleCreationTodo() {
+  if (_creationTodoTimer) return;
+  _creationTodoTimer = setTimeout(function() { _creationTodoTimer = 0; renderCreationTodo(); }, 0);
+}
+
+function renderCreationTodo() {
+  var box = $("creation-todo");
+  if (!box) return;
+  var char = currentId ? getCurrentChar() : null;
+  var rows = (char && !isSheetLocked(char)) ? _creationTodo(char) : [];
+  if (!rows.length) { box.style.display = "none"; box.innerHTML = ""; return; }
+  box.innerHTML = '<div class="pg-grp">Осталось выбрать</div><div class="hp-rows">' +
+    rows.map(function(r) { return _pgAttn(r[0], "Выбрать →", r[1]); }).join("") + '</div>';
+  box.style.display = "";
+}
+
+function creationTodoGo(id) {
+  var el = $(id);
+  if (!el) return;
+  if (el.closest(".identity-card.id-compact")) { _idMoreOpen = true; renderIdentitySummary(); }
+  var prof = el.closest("#prof-card");
+  if (prof && _isMobSheet() && !prof.classList.contains("prof-open")) { _profOpen = true; renderProfSummary(); }
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 // MOB-2: на мобиле действия плашки замка — в шторке; набор тот же, что видимые кнопки.
@@ -2195,10 +2288,17 @@ function lockSheet() {
   if (!currentId) return;
   var char = getCurrentChar();
   if (!char || !char.basicLocked) return;
-  char.sheetLocked = true;
-  saveToLocal();
-  applySheetLockUI();
-  showToast("🔒 Лист зафиксирован. Характеристики, владения, заклинания и черты откроются при повышении уровня или по кнопке «Изменить».", "success");
+  function doLock() {
+    char.sheetLocked = true;
+    saveToLocal();
+    applySheetLockUI();
+    showToast("🔒 Лист зафиксирован. Характеристики, владения, заклинания и черты откроются при повышении уровня или по кнопке «Изменить».", "success");
+  }
+  // СОЗД-3: незаполненные выборы не блокируют, а предупреждают
+  var todo = _creationTodo(char).map(function(r) { return r[2]; });
+  if (!todo.length) { doLock(); return; }
+  showConfirmModal("Не всё выбрано", "Осталось выбрать: " + todo.join("; ") + ". Выбор можно сделать и позже — по кнопке «Изменить».",
+    doLock, "Всё равно зафиксировать", { danger: false, icon: "lock" });
 }
 
 function unlockSheet() {
@@ -2682,6 +2782,7 @@ function giveBackgroundEquipment(variant) {
 // Панель предыстории 2024 под селектом: показывается после фиксации основы
 // (как видовые выборы), правки — пока лист не зафиксирован.
 function renderBackgroundExtras() {
+  scheduleCreationTodo();
   var panel = $("bg-extras-panel");
   if (!panel) return;
   var char = currentId ? getCurrentChar() : null;

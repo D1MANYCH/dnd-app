@@ -675,6 +675,7 @@ function applyClassChoice() {
   closeClassChoiceModal();
   if (typeof updateClassFeatures === "function") updateClassFeatures();
   if (typeof calcStats === "function") calcStats();
+  if (typeof scheduleCreationTodo === "function") scheduleCreationTodo();
 }
 
 // ============================================================

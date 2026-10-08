@@ -62,6 +62,7 @@ function getLanguageChoiceSlots(char) {
 }
 
 function renderLanguages() {
+  scheduleCreationTodo();
   var box = $("languages-container");
   if (!box) return;
   if (!currentId) { box.innerHTML = ""; return; }
@@ -304,6 +305,7 @@ function buildToolOptionsHtml(slot, alreadyKnown) {
 }
 
 function renderTools() {
+  scheduleCreationTodo();
   var box = $("tools-container");
   if (!box) return;
   if (!currentId) { box.innerHTML = ""; return; }
