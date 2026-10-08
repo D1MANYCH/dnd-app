@@ -520,7 +520,11 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
   var optionIds = ccAvailableOptions(choice, char, className);
   // Для скилл-пула (экспертиза)
   if (choice.pool === "skills") {
-    optionIds = (typeof skills !== "undefined" ? skills.map(function(s) { return s.name; }) : []);
+    // СОЗД-5: компетентность — только из навыков, которыми персонаж владеет (PHB 2014)
+    var ccSel = Array.isArray(ccModalState.selection) ? ccModalState.selection : [];
+    optionIds = (typeof skills !== "undefined" ? skills.filter(function(s, si) {
+      return (char.skills && char.skills[si]) || ccSel.indexOf(s.name) !== -1;
+    }).map(function(s) { return s.name; }) : []);
   }
 
   // BUILD-LVL-3/5: рекомендация билда — баннер сверху + подсветка опции(й). single + multi.
@@ -566,6 +570,7 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
         (opt.desc ? '<div class="cc-opt-desc">' + escapeHtml(opt.desc) + '</div>' : "") +
       '</div>';
   });
+  if (choice.pool === "skills" && !optionIds.length) bodyHtml += '<div class="cc-opt-desc">Сначала отметьте владение навыками — компетентность выбирается из них.</div>';
   bodyHtml += '</div>';
   bodyEl.innerHTML = recBannerHtml + bodyHtml;
 

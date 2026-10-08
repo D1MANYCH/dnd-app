@@ -265,6 +265,8 @@ if (target) target.appendChild(row);
 function toggleAbilOpen(key) {
 var card = document.getElementById("stat-block-" + key);
 if (!card) return;
+// СОЗД-5: в классической сетке раскрывать нечего — название ведёт на экран характеристики
+if (document.documentElement.getAttribute("data-stats-layout") === "classic") { openAbilityInfo(key); return; }
 var open = !card.classList.contains("is-open");
 card.classList.toggle("is-open", open);
 var head = card.querySelector(".abil-card-head");
@@ -1613,8 +1615,10 @@ function renderRaceExtras() {
       if (RACE_SKILL_FROM[race] && RACE_SKILL_FROM[race].indexOf(s.name) === -1) return;
       var sel = skChosen.indexOf(s.name) !== -1;
       if (skHide && !sel) return;
-      html += '<button type="button" class="race-extras-stat-pick' + (sel ? " selected" : "") +
-        '" onclick="toggleRaceSkill(' + si + ')">' + escapeHtml(s.name) + '</button>';
+      var busy = !sel && _skillTakenElsewhere(char, s.name, "race");
+      html += '<button type="button" class="race-extras-stat-pick' + (sel ? " selected" : "") + '"' +
+        (busy ? ' disabled title="Уже есть от класса или предыстории"' : '') +
+        ' onclick="toggleRaceSkill(' + si + ')">' + escapeHtml(s.name) + '</button>';
     });
     if (skHide) html += _pickExpandBtn("race");
     html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">' +
@@ -1784,6 +1788,7 @@ function toggleRaceSkill(si) {
     char.raceSkillChoice.splice(pos, 1);
     _raceSkillSet(char, name, false);
   } else {
+    if (_skillTakenElsewhere(char, name, "race")) { showToast("Этот навык уже есть — выберите другой.", "warning"); return; }
     if (char.raceSkillChoice.length >= limit) { showToast("Уже выбрано " + limit + ". Снимите один навык.", "warning"); return; }
     char.raceSkillChoice.push(name);
     _raceSkillSet(char, name, true);
@@ -1793,6 +1798,7 @@ function toggleRaceSkill(si) {
   updateSkillProfCount();
   renderRaceExtras();
   renderClassSkills();
+  renderBackgroundExtras();
 }
 
 // СОЗД-1: навыки класса. Первый класс даёт CLASS_SKILL_COUNT (по умолчанию 2) из своего списка,
@@ -1816,6 +1822,19 @@ function _skillsFromOtherSources(char) {
     : ((typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[char.background]);
   if (bd) out = out.concat(Array.isArray(bd) ? bd : (bd.skills || []));
   return out;
+}
+
+// СОЗД-5: навык уже дан другим источником (except — "race" | "bg"): второй раз его не выбрать
+function _skillTakenElsewhere(char, name, except) {
+  if (except !== "race" && (char.raceSkillChoice || []).indexOf(name) !== -1) return true;
+  if (except !== "bg") {
+    var bg = [].concat(char.bgSkillPicks || [], (char.bgCustom && char.bgCustom.skills) || []);
+    var bd = (typeof getBackgroundDef === "function") ? getBackgroundDef(char, char.background)
+      : ((typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[char.background]);
+    if (bd) bg = bg.concat(Array.isArray(bd) ? bd : (bd.skills || []));
+    if (bg.indexOf(name) !== -1) return true;
+  }
+  return _classSkillHeld(char.classSkillChoice, name);
 }
 
 function _classSkillHeld(map, name, exceptCls) {
@@ -1921,6 +1940,8 @@ function toggleClassSkill(ci, si) {
   calcStats();
   updateSkillProfCount();
   renderClassSkills();
+  renderRaceExtras();
+  renderBackgroundExtras();
 }
 
 function openRaceFeatModal() {
@@ -2721,6 +2742,7 @@ function toggleBgSkillPick(name) {
     if (cb) cb.checked = false;
   } else {
     var cnt = d.skillChoice.count || 1;
+    if (_skillTakenElsewhere(char, name, "bg")) { showToast("Этот навык уже есть — выберите другой.", "warning"); return; }
     if (char.bgSkillPicks.length >= cnt) { showToast("Уже выбрано " + cnt + ". Снимите одно.", "warning"); return; }
     char.bgSkillPicks.push(name);
     _bgCheckSkills([name]);
@@ -2730,6 +2752,7 @@ function toggleBgSkillPick(name) {
   if (typeof updateSkillProfCount === "function") updateSkillProfCount();
   renderBackgroundExtras();
   renderClassSkills();
+  renderRaceExtras();
 }
 
 function _renderBgCustom14(char) {
@@ -2830,8 +2853,10 @@ function renderBackgroundExtras() {
     var bgHide = _pickHide("bg", sp.length >= cnt);
     d14.skillChoice.from.forEach(function(sn) {
       if (bgHide && sp.indexOf(sn) === -1) return;
-      h14 += '<button type="button" class="race-extras-stat-pick' + (sp.indexOf(sn) !== -1 ? " selected" : "") +
-        '" onclick="toggleBgSkillPick(\'' + escapeHtml(sn) + '\')">' + escapeHtml(sn) + '</button>';
+      var bgBusy = sp.indexOf(sn) === -1 && _skillTakenElsewhere(char, sn, "bg");
+      h14 += '<button type="button" class="race-extras-stat-pick' + (sp.indexOf(sn) !== -1 ? " selected" : "") + '"' +
+        (bgBusy ? ' disabled title="Уже есть от расы или класса"' : '') +
+        ' onclick="toggleBgSkillPick(\'' + escapeHtml(sn) + '\')">' + escapeHtml(sn) + '</button>';
     });
     if (bgHide) h14 += _pickExpandBtn("bg");
     h14 += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">Выбрано: ' + sp.length + '/' + cnt + '</span></div>';

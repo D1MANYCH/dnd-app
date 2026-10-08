@@ -2940,6 +2940,18 @@
       });
     }
 
+    if (typeof _skillTakenElsewhere === "function") {
+      t("[СОЗД-5] _skillTakenElsewhere: навык от класса/расы/предыстории не выбрать вторым источником", function(){
+        var c = { raceSkillChoice: ["Скрытность"], bgSkillPicks: ["Обман"], classSkillChoice: { "Плут": ["Акробатика"] }, background: "" };
+        if (!_skillTakenElsewhere(c, "Акробатика", "bg")) return "класс → предыстория";
+        if (!_skillTakenElsewhere(c, "Обман", "race")) return "предыстория → раса";
+        if (!_skillTakenElsewhere(c, "Скрытность", "bg")) return "раса → предыстория";
+        if (_skillTakenElsewhere(c, "Скрытность", "race")) return "свой выбор расы не блокирует себя";
+        if (_skillTakenElsewhere(c, "Магия", "race")) return "свободный навык";
+        return true;
+      });
+    }
+
     // armorPenalties (app-combat.js) — чистый расчёт помех по СИЛ
     if (typeof armorPenalties === "function") {
       t("[FIN-3] armorPenalties: СИЛ<13 в Кольчуге → slowed; none/лёгкий → без помех", function(){

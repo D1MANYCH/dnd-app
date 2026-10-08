@@ -163,6 +163,7 @@ function getEdition() {
 function setEdition(ed) {
   var val = (ed === '2024') ? '2024' : '2014';
   try { localStorage.setItem('dnd_edition', val); } catch (e) {}
+  if (val === '2024' && typeof window.ensureEdition2024 === 'function') window.ensureEdition2024().catch(function () {});
   _syncEditionButtons();
   if (typeof showToast === 'function') {
     showToast('Редакция по умолчанию: ' + val, 'success');

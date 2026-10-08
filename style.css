@@ -7959,6 +7959,12 @@ font-size: 0.95em; font-weight: 700; cursor: pointer; width: auto; margin: 0;
   font-weight: 700;
   text-decoration: underline;
 }
+.race-extras-stat-pick:disabled,
+.race-extras-stat-pick:disabled:hover {
+  color: var(--text-mute);
+  text-decoration: line-through;
+  cursor: default;
+}
 
 /* HP2: строка-селектор брони, поле максимума ХП в рамке и кнопка-пересчёт
    с эмодзи убраны — доспех и максимум живут в раскрытиях строк раздела. */

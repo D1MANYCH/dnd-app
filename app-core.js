@@ -893,6 +893,11 @@ for (let i = 1; i <= 9; i++) {
 }
 characters.push(newChar);
 saveToLocal();
+// СОЗД-5: данные 2024 подгружаются до открытия листа, иначе выбор расы падает
+if (newChar.edition === '2024' && typeof window.ensureEdition2024 === 'function' && !window.__edition2024Loaded) {
+  window.ensureEdition2024().then(function() { loadCharacter(newChar.id); }, function() { loadCharacter(newChar.id); });
+  return;
+}
 loadCharacter(newChar.id);
 }
 function getClassColor(cls) {
@@ -1394,6 +1399,8 @@ if(_statVal==="ИНТ" && $("sc-btn-int")) $("sc-btn-int").classList.add("active
 if(_statVal==="МУД" && $("sc-btn-wis")) $("sc-btn-wis").classList.add("active");
 if(_statVal==="ХАР" && $("sc-btn-cha")) $("sc-btn-cha").classList.add("active");
 // Доспехи и оружие рендерятся через renderArmorProf()/renderWeaponProf() ниже
+// СОЗД-5: отметки прошлого персонажа не переходят в следующего
+document.querySelectorAll('input[id^="save-prof-"], input[id^="skill-prof-"]').forEach(function(cb) { cb.checked = false; });
 if(char.saves) {
 Object.keys(char.saves).forEach(function(key) {
 safeSetChecked("save-prof-" + key, char.saves[key]);
