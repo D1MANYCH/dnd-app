@@ -1406,6 +1406,7 @@ safeSetChecked("skill-prof-" + key, char.skills[key]);
 }
 calcStats();
 loadExpertise();
+updateSkillProfCount();
 // Рендер языков и инструментов (категории + источники)
 if (typeof renderLanguages === "function") renderLanguages();
 if (typeof renderTools === "function") renderTools();

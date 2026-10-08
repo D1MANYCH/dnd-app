@@ -251,6 +251,7 @@ row.id = "skill-row-" + index;
 row.innerHTML =
   '<input type="checkbox" id="skill-prof-' + index + '" class="skill-cb" onchange="calcStats(); updateSkillProfCount()">' +
   '<label for="skill-prof-' + index + '" class="skill-name-compact">' + escapeHtml(skill.name) + '</label>' +
+  '<span class="prof-chip-src skill-src" id="skill-src-' + index + '"></span>' +
   '<span class="skill-stat-compact">' + escapeHtml(skill.stat.toUpperCase().slice(0,3)) + '</span>' +
   '<button type="button" class="skill-expertise-btn" id="skill-exp-' + index + '" title="Компетентность (×2 бонус)" onclick="toggleExpertise(' + index + ')">E</button>' +
   '<button type="button" class="skill-bonus-compact skill-bonus-clickable" id="skill-bonus-' + index + '" onclick="rollSkillCheck(' + index + ')" title="Бросить проверку навыка">+0</button>';
@@ -341,6 +342,32 @@ for (var i = 0; i < skills.length; i++) {
   if (cb && cb.checked) count++;
 }
 countEl.textContent = count > 0 ? count + " ✓" : "";
+updateSkillSources();
+}
+// СОЗД-2: метка источника у отмеченного навыка — раса, класс, предыстория; остальное «Своё».
+function updateSkillSources() {
+var char = currentId && getCurrentChar();
+var cls = [];
+if (char && char.classSkillChoice) Object.keys(char.classSkillChoice).forEach(function(k) { cls = cls.concat(char.classSkillChoice[k] || []); });
+var bg = char ? [].concat(char.bgSkillPicks || [], (char.bgCustom && char.bgCustom.skills) || []) : [];
+var bd = char && ((typeof getBackgroundDef === "function") ? getBackgroundDef(char, char.background)
+  : ((typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[char.background]));
+if (bd) bg = bg.concat(Array.isArray(bd) ? bd : (bd.skills || []));
+var race = (char && char.raceSkillChoice) || [];
+for (var i = 0; i < skills.length; i++) {
+  var el = $("skill-src-" + i);
+  if (!el) continue;
+  var cb = $("skill-prof-" + i);
+  var n = skills[i].name, src = [];
+  if (char && cb && cb.checked) {
+    if (race.indexOf(n) !== -1) src.push("race");
+    if (cls.indexOf(n) !== -1) src.push("class");
+    if (bg.indexOf(n) !== -1) src.push("background");
+    if (!src.length) src.push("custom");
+  }
+  el.innerHTML = src.map(function(s) { var v = PROF_SOURCE_LABELS[s]; return dndIcoHtml(v[0], 12) + '<span class="skill-src-t"> ' + v[1] + '</span>'; }).join(" ");
+  el.title = src.map(function(s) { return PROF_SOURCE_LABELS[s][1]; }).join(", ");
+}
 }
 function updateClassFeatures() {
 if (!currentId) return;
@@ -1549,12 +1576,15 @@ function renderRaceExtras() {
     html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' ' + escapeHtml(race) + ': ' +
       (skillAllowance > 1 ? 'владение ' + skillAllowance + ' навыками на выбор' : 'владение навыком на выбор') + '</div>';
     html += '<div class="race-extras-row">';
+    var skHide = _pickHide("race", skChosen.length >= skillAllowance);
     skills.forEach(function(s, si) {
       if (RACE_SKILL_FROM[race] && RACE_SKILL_FROM[race].indexOf(s.name) === -1) return;
       var sel = skChosen.indexOf(s.name) !== -1;
+      if (skHide && !sel) return;
       html += '<button type="button" class="race-extras-stat-pick' + (sel ? " selected" : "") +
         '" onclick="toggleRaceSkill(' + si + ')">' + escapeHtml(s.name) + '</button>';
     });
+    if (skHide) html += _pickExpandBtn("race");
     html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">' +
       'Выбрано: ' + skChosen.length + '/' + skillAllowance + '</span>';
     html += '</div>';
@@ -1604,7 +1634,7 @@ function renderRaceExtras() {
 }
 
 function toggleHalfElfStat(key) {
-  if (!currentId) return;
+  if (!currentId || sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
   if (!Array.isArray(char.raceStatChoice)) char.raceStatChoice = [];
@@ -1682,6 +1712,22 @@ function _raceSkillSet(char, name, on) {
   var cb = $("skill-prof-" + si);
   if (cb) cb.checked = on;
   if (char.skills) char.skills[si] = on;
+}
+
+// СОЗД-2: набранный выбор навыков сворачивается до выбранных; «Изменить» раскрывает список.
+var _pickOpen = {};
+function _pickHide(key, full) {
+  if (!full) delete _pickOpen[key];
+  return full && !_pickOpen[key];
+}
+function _pickExpandBtn(key) {
+  return '<button type="button" class="race-extras-btn" onclick="pickExpand(\'' + key + '\')">Изменить</button>';
+}
+function pickExpand(key) {
+  _pickOpen[key] = true;
+  renderRaceExtras();
+  renderClassSkills();
+  renderBackgroundExtras();
 }
 
 function raceLangGoto() {
@@ -1799,14 +1845,17 @@ function renderClassSkills() {
     html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' ' + escapeHtml(e.cls) +
       (e.mc ? ' (второй класс)' : '') + ': ' + e.count + (e.count > 1 ? ' навыка' : ' навык') + ' класса на выбор</div>';
     html += '<div class="race-extras-row">';
+    var hide = _pickHide("cls" + ci, picks.length >= e.count);
     skills.forEach(function(s, si) {
       if (e.from.indexOf(s.name) === -1) return;
       var sel = picks.indexOf(s.name) !== -1;
+      if (hide && !sel) return;
       var busy = !sel && (other.indexOf(s.name) !== -1 || _classSkillHeld(char.classSkillChoice, s.name, e.cls));
       html += '<button type="button" class="race-extras-stat-pick' + (sel ? " selected" : "") + '"' +
         (busy ? ' disabled title="Уже есть от расы, предыстории или другого класса"' : '') +
         ' onclick="toggleClassSkill(' + ci + ',' + si + ')">' + escapeHtml(s.name) + '</button>';
     });
+    if (hide) html += _pickExpandBtn("cls" + ci);
     html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">Выбрано: ' + picks.length + '/' + e.count + '</span>';
     html += '</div>';
     if (picks.length < e.count) html += '<div class="race-extras-warn">Навыки класса выбраны не все — осталось ' + (e.count - picks.length) + '.</div>';
@@ -2646,11 +2695,16 @@ function renderBackgroundExtras() {
     var sp = Array.isArray(char.bgSkillPicks) ? char.bgSkillPicks : [];
     var cnt = d14.skillChoice.count || 1;
     var h14 = '<div class="race-extras-title">' + dndIcoHtml("check", 14) + ' Навыки предыстории на выбор (' + cnt + ')</div><div class="race-extras-row">';
+    var bgHide = _pickHide("bg", sp.length >= cnt);
     d14.skillChoice.from.forEach(function(sn) {
+      if (bgHide && sp.indexOf(sn) === -1) return;
       h14 += '<button type="button" class="race-extras-stat-pick' + (sp.indexOf(sn) !== -1 ? " selected" : "") +
         '" onclick="toggleBgSkillPick(\'' + escapeHtml(sn) + '\')">' + escapeHtml(sn) + '</button>';
     });
-    _setExtrasHtml(panel, h14 + '</div>');
+    if (bgHide) h14 += _pickExpandBtn("bg");
+    h14 += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">Выбрано: ' + sp.length + '/' + cnt + '</span></div>';
+    if (sp.length < cnt) h14 += '<div class="race-extras-warn">Навыки предыстории выбраны не все — осталось ' + (cnt - sp.length) + '.</div>';
+    _setExtrasHtml(panel, h14);
     panel.style.display = "flex";
     return;
   }

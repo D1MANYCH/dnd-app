@@ -8523,6 +8523,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   text-align: center;
   flex-shrink: 0;
 }
+.skill-src { flex-shrink: 0; white-space: nowrap; color: var(--text-muted); }
+.skill-src:empty { display: none; }
+@media (max-width: 600px) { .skill-src-t { display: none; } }
 .skill-bonus-compact {
   font-size: 0.85em;
   font-weight: 700;
