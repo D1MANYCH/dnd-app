@@ -12,6 +12,7 @@
 var BACKUP_DB_NAME = "dnd-backups";
 var BACKUP_STORE = "snapshots";
 var BACKUP_KEEP = 7;
+var BACKUP_KEEP_SYNC = 3;
 var BACKUP_DAY_KEY = "dnd_backup_day";
 
 var BACKUP_REASON_LABELS = {
@@ -82,14 +83,13 @@ function createBackupSnapshot(reason) {
         charCount: snap.characters.length,
         payload: snap
       });
-      // Ротация в той же транзакции: всё старше BACKUP_KEEP последних — удалить
+      // Ротация в той же транзакции: снимки синхронизации — свои BACKUP_KEEP_SYNC, остальные — BACKUP_KEEP
       var all = store.getAll();
       all.onsuccess = function() {
         var rows = all.result || [];
-        if (rows.length > BACKUP_KEEP) {
-          rows.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-          rows.slice(BACKUP_KEEP).forEach(function(r) { store.delete(r.id); });
-        }
+        rows.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+        rows.filter(function(r) { return r.reason === "sync"; }).slice(BACKUP_KEEP_SYNC).forEach(function(r) { store.delete(r.id); });
+        rows.filter(function(r) { return r.reason !== "sync"; }).slice(BACKUP_KEEP).forEach(function(r) { store.delete(r.id); });
       };
       tx.oncomplete = function() {
         db.close();

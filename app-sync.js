@@ -15,6 +15,9 @@ var _syncBusy = false;
 var _syncAgain = false;
 var _syncApplying = false;
 var _syncPaused = false;
+var _syncCorrupt = false;
+var _syncExpiredToast = false;
+var _syncDupeChoice;
 
 function _syncLog(level, msg) {
   try { if (window.AppLog && AppLog[level]) AppLog[level]("sync", msg); } catch (e) {}
@@ -89,7 +92,8 @@ function syncTurnOff() {
         clearTimeout(_syncTimer);
         _syncTimer = null;
         _syncStatus = "";
-        try { localStorage.removeItem(SYNC_DATA_KEY); } catch (e) {}
+        _syncCorrupt = false;
+        _syncSaveState({ base: null, tombstones: _syncLoadState().tombstones, lastAt: 0 });
         syncSignOut();
         showToast("Синхронизация выключена, файл на Диске удалён", "success");
       }).catch(function(e) {
@@ -147,15 +151,35 @@ function _driveFetch(url, opts) {
   });
 }
 
-function _driveFind(name) {
+// Все файлы с этим именем, старый первым: основной — files[0], остальные — дубли от одновременного создания.
+function _driveList(name) {
   var q = encodeURIComponent("name='" + name + "'");
-  return _driveFetch("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=" + q + "&fields=files(id,modifiedTime,version)")
+  return _driveFetch("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&orderBy=createdTime&q=" + q + "&fields=files(id,modifiedTime,version)")
     .then(function(r) { return r.json(); })
-    .then(function(j) { return (j.files && j.files[0]) || null; });
+    .then(function(j) { return (j && Array.isArray(j.files)) ? j.files : []; });
+}
+
+function _driveFind(name) {
+  return _driveList(name).then(function(files) { return files[0] || null; });
 }
 
 function _driveRead(id) {
-  return _driveFetch("https://www.googleapis.com/drive/v3/files/" + id + "?alt=media").then(function(r) { return r.json(); });
+  return _driveFetch("https://www.googleapis.com/drive/v3/files/" + id + "?alt=media")
+    .then(function(r) { return r.text(); })
+    .then(function(t) {
+      try { return JSON.parse(t); } catch (e) { throw { corrupt: true }; }
+    });
+}
+
+// Файл синхронизации: null — пустой/нет; иначе проверенный документ или { corrupt } / { newer }.
+function _syncCheckDoc(doc) {
+  if (doc == null) return null;
+  if (typeof doc !== "object" || doc.app !== "dnd-sheet") throw { corrupt: true };
+  if (typeof doc.format === "number" && doc.format > 1) throw { newer: true };
+  if (doc.format !== 1) throw { corrupt: true };
+  if ((doc.chars != null && !Array.isArray(doc.chars)) || (doc.spells != null && !Array.isArray(doc.spells)) ||
+      (doc.tombstones != null && (typeof doc.tombstones !== "object" || Array.isArray(doc.tombstones)))) throw { corrupt: true };
+  return doc;
 }
 
 function _driveWrite(name, id, data) {
@@ -188,14 +212,22 @@ function _syncSaveState(s) {
 }
 
 function syncTombstone(id) {
-  if (id == null || !_syncEnabled()) return;
-  var s = _syncLoadState();
-  s.tombstones[id] = Date.now();
+  if (id == null) return;
+  var s = _syncLoadState(), now = Date.now();
+  Object.keys(s.tombstones).forEach(function(k) { if (now - (Number(s.tombstones[k]) || 0) >= SYNC_TOMB_TTL) delete s.tombstones[k]; });
+  s.tombstones[id] = now;
   _syncSaveState(s);
 }
 
+function _syncExpired() {
+  _syncStatus = "Нужно войти снова";
+  if (!_syncExpiredToast) { _syncExpiredToast = true; showToast("Срок входа в Google истёк — войдите снова, чтобы продолжить синхронизацию", "warn"); }
+  renderSyncRow();
+}
+
 function syncSchedule() {
-  if (_syncApplying || !_syncEnabled() || !_syncTokenValid(_syncGetAuth())) return;
+  if (_syncApplying || !_syncEnabled()) return;
+  if (!_syncTokenValid(_syncGetAuth())) { _syncExpired(); return; }
   clearTimeout(_syncTimer);
   _syncTimer = setTimeout(function() { _syncTimer = null; syncNow(false); }, SYNC_DELAY);
 }
@@ -213,14 +245,19 @@ function _syncHashes(list) {
 
 // Итог слияния поверх того, что игрок успел поменять, пока шёл запрос:
 // правка во время запроса побеждает, удалённое во время запроса не воскресает, новое остаётся.
-function _syncKeepLive(merged, live, before, fix) {
+// kept — id, где живая правка победила пришедшую с Диска версию: их базу откатываем, чтобы
+// следующая синхронизация увидела правку с обеих сторон и сделала копию, а не затёрла чужую.
+function _syncKeepLive(merged, live, before, fix, kept) {
   var liveById = {}, inMerged = {}, out = [];
   live.forEach(function(x) { if (x && x.id != null) liveById[x.id] = x; });
   merged.forEach(function(m) {
     if (!m || m.id == null) return;
     inMerged[m.id] = true;
     var cur = liveById[m.id];
-    if (cur) out.push(before[m.id] !== undefined && syncHashChar(cur) !== before[m.id] ? cur : fix(m));
+    if (cur && before[m.id] !== undefined && syncHashChar(cur) !== before[m.id]) {
+      if (kept && syncHashChar(m) !== before[m.id]) kept.push(m.id);
+      out.push(cur);
+    } else if (cur) out.push(fix(m));
     else if (!(m.id in before)) out.push(fix(m));
   });
   live.forEach(function(x) {
@@ -236,62 +273,91 @@ function _syncNameDupes(localChars, remote) {
   return localChars.filter(function(c) { return c && c.name && !rIds[c.id] && rNames[c.name]; });
 }
 
+// Вопрос задаётся вне _syncBusy: окно, которое не открылось или закрылось без ответа, ничего не блокирует.
 function _syncAskDupes(dupes) {
-  return new Promise(function(resolve, reject) {
-    var names = dupes.map(function(c) { return "«" + c.name + "»"; }).join(", ");
-    showConfirmModal("Одинаковые персонажи",
-      "На Диске и на этом устройстве есть персонажи с одинаковыми именами: " + names +
-      ". «Объединить» — оставить версии с Диска, местные уйдут в резервную копию. «Оставить оба» — будут дубли.",
-      function() { resolve(true); }, "Объединить",
-      { danger: false, icon: "copy", altLabel: "Оставить оба", onAlt: function() { resolve(false); },
-        onCancel: function() { reject({ paused: true }); } });
-  });
+  var names = dupes.map(function(c) { return "«" + c.name + "»"; }).join(", ");
+  showConfirmModal("Одинаковые персонажи",
+    "На Диске и на этом устройстве есть персонажи с одинаковыми именами: " + names +
+    ". «Объединить» — оставить версии с Диска, местные уйдут в резервную копию. «Оставить оба» — будут дубли.",
+    function() { _syncDupeChoice = true; _syncPaused = false; syncNow(false); }, "Объединить",
+    { danger: false, icon: "copy", altLabel: "Оставить оба",
+      onAlt: function() { _syncDupeChoice = false; _syncPaused = false; syncNow(false); } });
+}
+
+// Применение заменит или удалит что-то из того, что сейчас есть на устройстве.
+function _syncDestructive(res, before) {
+  function lost(list, prev) {
+    var now = {};
+    list.forEach(function(x) { if (x && x.id != null) now[x.id] = syncHashChar(x); });
+    return Object.keys(prev).some(function(id) { return now[id] !== prev[id]; });
+  }
+  return lost(res.chars, before.chars) || lost(res.spells, before.spells);
 }
 
 function _syncApply(res, before) {
-  var snap = (typeof createBackupSnapshot === "function") ? createBackupSnapshot("sync").catch(function() {}) : Promise.resolve();
-  return snap.then(function() {
-    _syncApplying = true;
-    try {
-      if (typeof saveToLocalDebounced !== "undefined") saveToLocalDebounced.flush();
-      var open = characters.find(function(c) { return c.id === currentId; });
-      var openHash = open ? syncHashChar(open) : null;
-      characters = _syncKeepLive(res.chars, characters, before.chars, function(c) {
-        return _sanitizeImportedChar(migrateCharacter(c));
-      });
-      var spells = _syncKeepLive(res.spells, _syncUserSpells(), before.spells, function(s) { s.homebrew = true; return s; });
-      SPELL_DATABASE = ((typeof SPELLS_BASE !== "undefined") ? SPELLS_BASE.slice() : []).concat(spells);
-      saveToLocal();
-      renderCharacterList();
-      if (open && currentScreenName() === "character") {
-        var now = characters.find(function(c) { return c.id === currentId; });
-        if (!now) {
-          showToast("«" + (open.name || "Персонаж") + "» удалён на другом устройстве", "warn");
-          showScreen("characters");
-        } else if (syncHashChar(now) !== openHash) {
-          var tabEl = document.querySelector(".tab-content.active");
-          var tab = tabEl ? tabEl.id.replace("tab-", "") : "";
-          loadCharacter(currentId);
-          if (tab && tab !== "sheet") switchTab(tab);
-        }
+  var kept = { chars: [], spells: [] };
+  _syncApplying = true;
+  try {
+    if (typeof saveToLocalDebounced !== "undefined") saveToLocalDebounced.flush();
+    var open = characters.find(function(c) { return c.id === currentId; });
+    var openHash = open ? syncHashChar(open) : null;
+    characters = _syncKeepLive(res.chars, characters, before.chars, function(c) { return c; }, kept.chars);
+    var spells = _syncKeepLive(res.spells, _syncUserSpells(), before.spells, function(s) { s.homebrew = true; return s; }, kept.spells);
+    SPELL_DATABASE = ((typeof SPELLS_BASE !== "undefined") ? SPELLS_BASE.slice() : []).concat(spells);
+    saveToLocal();
+    renderCharacterList();
+    if (open && currentScreenName() === "character") {
+      var now = characters.find(function(c) { return c.id === currentId; });
+      if (!now) {
+        showToast("«" + (open.name || "Персонаж") + "» удалён на другом устройстве", "warn");
+        showScreen("characters");
+      } else if (syncHashChar(now) !== openHash) {
+        var tabEl = document.querySelector(".tab-content.active");
+        var tab = tabEl ? tabEl.id.replace("tab-", "") : "";
+        loadCharacter(currentId);
+        if (tab && tab !== "sheet") switchTab(tab);
       }
-    } finally {
-      _syncApplying = false;
     }
-  });
+  } finally {
+    _syncApplying = false;
+  }
+  return kept;
 }
 
-function _syncRun(attempt, dropDupes) {
-  var file = null;
-  return _driveFind(SYNC_FILE).then(function(f) {
-    file = f;
-    return f ? _driveRead(f.id) : null;
+function _syncFixChar(c) {
+  return _sanitizeImportedChar(migrateCharacter(c));
+}
+
+// Дубли файла (два устройства создали его одновременно) вливаются в основной; основной — самый старый.
+function _syncMergeExtra(remote, doc) {
+  var x;
+  try { x = _syncCheckDoc(doc); } catch (e) { return remote; }
+  if (!x) return remote;
+  if (!remote) return x;
+  var m = syncMerge({ chars: (x.chars || []).map(_syncUnpackChar), spells: x.spells || [] }, remote, {}, x.tombstones || {},
+    { device: x.device || "", fixChar: _syncFixChar });
+  return m.toUpload || remote;
+}
+
+// overwrite — файл на Диске повреждён, пользователь согласился записать поверх него данные устройства.
+function _syncRun(attempt, dropDupes, overwrite) {
+  var file = null, extras = [], remote = null;
+  return _driveList(SYNC_FILE).then(function(files) {
+    file = files[0] || null;
+    extras = files.slice(1);
+    return file && !overwrite ? _driveRead(file.id) : null;
   }).then(function(doc) {
-    var remote = doc && doc.app === "dnd-sheet" ? doc : null;
+    remote = _syncCheckDoc(doc);
+    return extras.reduce(function(p, f) {
+      return p.then(function() {
+        return _driveRead(f.id).then(function(d) { remote = _syncMergeExtra(remote, d); }, function(e) { if (e && e.auth) throw e; });
+      });
+    }, Promise.resolve());
+  }).then(function() {
     var state = _syncLoadState();
     if (!state.base && remote && dropDupes === undefined) {
       var dupes = _syncNameDupes(characters, remote);
-      if (dupes.length) return _syncAskDupes(dupes).then(function(drop) { return _syncRun(attempt, drop); });
+      if (dupes.length) throw { dupes: dupes };
     }
     if (typeof saveToLocalDebounced !== "undefined") saveToLocalDebounced.flush();
     var startAt = Date.now();
@@ -302,18 +368,33 @@ function _syncRun(attempt, dropDupes) {
       spells: _syncUserSpells()
     };
     var before = { chars: _syncHashes(characters), spells: _syncHashes(local.spells) };
-    var res = syncMerge(local, remote, remote ? (state.base || {}) : {}, state.tombstones, { device: _syncDevice() });
-    var write = Promise.resolve();
-    if (res.toUpload) {
-      write = _driveFind(SYNC_FILE).then(function(f2) {
+    var res;
+    try {
+      res = syncMerge(local, remote, remote ? (state.base || {}) : {}, state.tombstones,
+        { device: _syncDevice(), fixChar: _syncFixChar, force: extras.length > 0 || overwrite });
+    } catch (e) { throw { corrupt: true }; }
+    var apply = res.changed || Object.keys(dropIds).length;
+    var snap = Promise.resolve();
+    if (apply && _syncDestructive(res, before) && typeof createBackupSnapshot === "function") {
+      snap = createBackupSnapshot("sync").catch(function() { throw { backup: true }; });
+    }
+    return snap.then(function() {
+      if (!res.toUpload) return;
+      return _driveList(SYNC_FILE).then(function(files) {
+        var f2 = files[0] || null;
         var same = f2 ? (file && f2.id === file.id && f2.version === file.version) : !file;
         if (!same) throw { retry: true };
         return _driveWrite(SYNC_FILE, file && file.id, res.toUpload);
+      }).then(function() {
+        extras.forEach(function(f) {
+          _driveFetch("https://www.googleapis.com/drive/v3/files/" + f.id, { method: "DELETE" }).catch(function() {});
+        });
       });
-    }
-    return write.then(function() {
-      return (res.changed || Object.keys(dropIds).length) ? _syncApply(res, before) : null;
     }).then(function() {
+      var kept = apply ? _syncApply(res, before) : { chars: [], spells: [] };
+      var old = state.base || {};
+      kept.chars.forEach(function(id) { if (String(id) in old) res.base[String(id)] = old[String(id)]; else delete res.base[String(id)]; });
+      kept.spells.forEach(function(id) { var k = "spell:" + id; if (k in old) res.base[k] = old[k]; else delete res.base[k]; });
       var s = _syncLoadState();
       Object.keys(s.tombstones).forEach(function(id) {
         if (s.tombstones[id] >= startAt) res.tombstones[id] = s.tombstones[id];
@@ -322,20 +403,19 @@ function _syncRun(attempt, dropDupes) {
       return res;
     });
   }).catch(function(e) {
-    if (e && e.retry && attempt < 2) return _syncRun(attempt + 1, dropDupes);
+    if (e && e.retry && attempt < 2) return _syncRun(attempt + 1, dropDupes, overwrite);
     throw e;
   });
 }
 
-function syncNow(manual) {
+function syncNow(manual, overwrite) {
   if (!_syncEnabled()) return;
   if (manual) _syncPaused = false;
   if (_syncPaused || (typeof _saveBlocked !== "undefined" && _saveBlocked)) return;
   if (_syncBusy) { _syncAgain = true; return; }
   if (!_syncTokenValid(_syncGetAuth())) {
-    _syncStatus = "Нужно войти снова";
-    if (manual) showToast("Срок входа истёк — войдите в Google снова", "warn");
-    renderSyncRow();
+    if (manual) { _syncStatus = "Нужно войти снова"; showToast("Срок входа истёк — войдите в Google снова", "warn"); renderSyncRow(); }
+    else _syncExpired();
     return;
   }
   if (navigator.onLine === false) {
@@ -347,10 +427,15 @@ function syncNow(manual) {
   clearTimeout(_syncTimer);
   _syncTimer = null;
   _syncBusy = true;
+  var prevStatus = _syncStatus;
   _syncStatus = "Синхронизация…";
   renderSyncRow();
-  _syncRun(0).then(function(res) {
+  var dropDupes = _syncDupeChoice;
+  _syncDupeChoice = undefined;
+  _syncRun(0, dropDupes, !!overwrite).then(function(res) {
     _syncStatus = "";
+    _syncCorrupt = false;
+    _syncExpiredToast = false;
     if (res.conflicts.length) {
       _syncStatus = "Конфликт: создана копия " + res.conflicts.map(function(c) { return "«" + c.name + "»"; }).join(", ");
       showToast(_syncStatus, "warn");
@@ -359,18 +444,28 @@ function syncNow(manual) {
     }
     _syncLog("info", "синхронизация: персонажей " + res.chars.length + ", конфликтов " + res.conflicts.length);
   }).catch(function(e) {
-    if (e && e.paused) { _syncPaused = true; _syncStatus = "Ждёт решения"; return; }
-    if (e && e.auth) _syncStatus = "Нужно войти снова";
+    _syncCorrupt = false;
+    if (e && e.dupes) { _syncPaused = true; _syncStatus = "Ждёт решения"; _syncAskDupes(e.dupes); return; }
+    if (e && e.auth) { if (!manual) { _syncExpired(); return; } _syncStatus = "Нужно войти снова"; }
+    else if (e && e.corrupt) { _syncCorrupt = true; _syncStatus = "Файл на Диске повреждён — синхронизация остановлена"; }
+    else if (e && e.newer) _syncStatus = "Файл на Диске записан более новой версией — обновите приложение";
+    else if (e && e.backup) _syncStatus = "Не удалось сделать резервную копию — синхронизация остановлена";
     else if (navigator.onLine === false) _syncStatus = "Нет сети";
     else if (e && e.retry) _syncStatus = "Файл на Диске менялся одновременно — повторите";
     else _syncStatus = "Не удалось связаться с Google Диском";
     _syncLog("error", "синхронизация: " + ((e && (e.status || e.message)) || _syncStatus));
-    if (manual) showToast(_syncStatus, e && e.auth ? "warn" : "error");
+    if (manual || (e && (e.corrupt || e.newer || e.backup) && _syncStatus !== prevStatus)) showToast(_syncStatus, e && e.auth ? "warn" : "error");
   }).then(function() {
     _syncBusy = false;
     renderSyncRow();
     if (_syncAgain) { _syncAgain = false; syncSchedule(); }
   });
+}
+
+function syncOverwrite() {
+  showConfirmModal("Перезаписать файл на Диске?",
+    "Файл синхронизации на Google Диске не читается. Он будет заменён персонажами и своими заклинаниями с этого устройства. Старый файл восстановить будет нельзя.",
+    function() { syncNow(true, true); }, "Перезаписать", { icon: "upload" });
 }
 
 // SYNC-2: движок слияния — чистая логика, без DOM и сети.
@@ -431,7 +526,7 @@ function _syncMergeList(L, R, base, prefix, onBoth, isGone, isRemoteGone) {
   R.forEach(function(r) {
     if (!r || r.id == null || lIds[r.id]) return;
     var key = prefix + r.id, hR = syncHashChar(r);
-    if (isGone(r.id, hR, base[key])) { flags.remote = true; return; }
+    if (isGone(r.id, hR, base[key], r)) { flags.remote = true; return; }
     out.push(r); newBase[key] = hR; flags.local = true;
   });
   return { list: out, base: newBase, flags: flags, deleted: deleted };
@@ -461,6 +556,7 @@ function syncMerge(local, remote, base, tombstones, opts) {
 
   var L = _syncClone((local && local.chars) || []);
   var R = ((remote && remote.chars) || []).map(_syncUnpackChar);
+  if (opts.fixChar) R = R.map(opts.fixChar);
   var conflicts = [];
   var takenIds = {};
   L.concat(R).forEach(function(c) { if (c && c.id != null) takenIds[c.id] = true; });
@@ -477,23 +573,36 @@ function syncMerge(local, remote, base, tombstones, opts) {
       conflicts.push({ id: l.id, copyId: copy.id, name: copy.name });
       flags.local = true; flags.remote = true;
     },
-    // нет здесь: надгробие + на Диске без правок после нашей базы → остаётся удалённым
-    function(id, hR, b) {
+    // нет здесь: надгробие + на Диске без правок после нашей базы (или, без базы, правка старше надгробия) → остаётся удалённым
+    function(id, hR, b, r) {
       if (!(id in tombs)) return false;
       if (hR === b) return true;
+      if (b === undefined && (Number(r.updatedAt) || Number(remote.updatedAt) || Infinity) <= tombs[id]) return true;
       delete tombs[id];
       return false;
     },
-    // нет на Диске: надгробие оттуда + здесь без правок → удаляем
+    // нет на Диске: было в базе и здесь без правок → удалено там (надгробие могло истечь); иначе правка побеждает
     function(id, hL, b) {
+      if (b !== undefined && hL === b && remote.chars) return true;
       if (!(id in tombs)) return false;
-      if (hL === b) return true;
       delete tombs[id];
       return false;
     });
 
+  var spellIds = {};
+  ((local && local.spells) || []).concat(remote.spells || []).forEach(function(s) { if (s && s.id != null) spellIds[s.id] = true; });
   var spells = _syncMergeList(_syncClone((local && local.spells) || []), _syncClone(remote.spells || []), base, "spell:",
-    function(l, r, out, newBase, flags) { out.push(l); newBase["spell:" + l.id] = syncHashChar(l); flags.remote = true; },
+    function(l, r, out, newBase, flags) {
+      var copy = _syncClone(r);
+      do { copy.id = newId(); } while (spellIds[copy.id]);
+      spellIds[copy.id] = true;
+      copy.name = (r.name || "Без названия") + " (с " + rDevice + ")";
+      out.push(l, copy);
+      newBase["spell:" + l.id] = syncHashChar(l);
+      newBase["spell:" + copy.id] = syncHashChar(copy);
+      conflicts.push({ id: l.id, copyId: copy.id, name: copy.name, spell: true });
+      flags.local = true; flags.remote = true;
+    },
     function(id, hR, b) { return b !== undefined && hR === b; },
     function(id, hL, b) { return b !== undefined && hL === b; });
 
@@ -509,7 +618,7 @@ function syncMerge(local, remote, base, tombstones, opts) {
     tombstones: tombs
   };
   var remoteTombs = _syncStable(remote.tombstones || {});
-  var needUpload = chars.flags.remote || spells.flags.remote || remoteTombs !== _syncStable(tombs) || !remote.chars;
+  var needUpload = chars.flags.remote || spells.flags.remote || remoteTombs !== _syncStable(tombs) || !remote.chars || !!opts.force;
   return {
     chars: chars.list,
     spells: spells.list,
@@ -552,6 +661,7 @@ function renderSyncRow() {
     var now = _syncBtn(_syncBusy ? "Синхронизация…" : "Синхронизировать сейчас", function() { syncNow(true); });
     now.disabled = _syncBusy;
     actions.appendChild(now);
+    if (_syncCorrupt && !_syncBusy) actions.appendChild(_syncBtn("Перезаписать файл на Диске", syncOverwrite));
     actions.appendChild(_syncBtn("Выйти", syncSignOut));
     actions.appendChild(_syncBtn("Выключить и удалить с Диска", syncTurnOff));
   } else {

@@ -10312,16 +10312,17 @@
       return true;
     });
 
-    t("[sync-2] свои заклинания: новое, правка там, удаление здесь, конфликт → своя версия", function(){
+    t("[sync-2][АУД4-2 S6] свои заклинания: новое, правка там, удаление здесь, конфликт → своя версия + копия", function(){
       var s1 = { id: "u1", name: "Искра" }, s2 = { id: "u2", name: "Щит+" }, s3 = { id: "u3", name: "Луч" };
       var b = baseOf([], [s1, s2, s3]);
       var r = M([], [], b, {}, {},
         [s1, { id: "u3", name: "Луч мой" }, { id: "u4", name: "Новое" }],
         [{ id: "u1", name: "Искра 2" }, s2, { id: "u3", name: "Луч их" }]);
       var got = r.spells.map(function(s){ return s.name; }).join(",");
-      if (got !== "Искра 2,Луч мой,Новое") return got;
+      if (got !== "Искра 2,Луч мой,Луч их (с Android),Новое") return got;
+      if (r.conflicts.length !== 1 || !r.conflicts[0].spell || r.spells[2].id === "u3") return "копия: " + JSON.stringify(r.conflicts);
       if (r.deleted.indexOf("spell:u2") !== -1) return "u2 удалён здесь — не локальное удаление";
-      if (!r.toUpload || r.toUpload.spells.length !== 3) return "в файл: " + (r.toUpload && r.toUpload.spells.length);
+      if (!r.toUpload || r.toUpload.spells.length !== 4) return "в файл: " + (r.toUpload && r.toUpload.spells.length);
       return true;
     });
 
@@ -10362,6 +10363,159 @@
       if (d.length !== 1 || d[0].id !== 2) return JSON.stringify(d);
       return true;
     });
+
+    t("[АУД4-2 S11] был в базе, здесь без правок, на Диске нет и надгробие истекло → удаляется, с правкой — остаётся", function(){
+      var a = C(1,"А"), b = baseOf([a]);
+      var r1 = M([a], [], b);
+      if (r1.chars.length || r1.deleted[0] !== 1) return "не удалён: " + names(r1);
+      var r2 = M([C(1,"А",{level:3})], [], b);
+      if (names(r2) !== "А:3" || !r2.toUpload) return "правка потеряна: " + names(r2);
+      return true;
+    });
+
+    t("[АУД4-2 S12] первая синхронизация: надгробие без базы держит удаление, если на Диске версия старше", function(){
+      var old = C(1,"А",{updatedAt: NOW - 5000}), fresh = C(2,"Б",{updatedAt: NOW - 10});
+      var r = M([], [old, fresh], {}, { 1: NOW - 1000, 2: NOW - 1000 });
+      if (names(r) !== "Б:1") return names(r);
+      return true;
+    });
+
+    t("[АУД4-2 S10] fixChar нормализует пришедших до хеша — нормализованная копия не считается правкой", function(){
+      var a = C(1,"А"), fixed = C(1,"А",{fixed:true});
+      var r = syncMerge({ chars: [fixed], spells: [] }, { chars: [_packCharForExport(a)], spells: [] }, {}, {},
+        { now: NOW, fixChar: function(c){ c.fixed = true; return c; } });
+      if (r.toUpload || r.changed) return "лишняя заливка/применение";
+      return true;
+    });
+
+    if (typeof _syncKeepLive === "function") t("[АУД4-2 S7] правка во время запроса поверх пришедшей версии попадает в kept, своя же — нет", function(){
+      var a = C(1,"А"), b = C(2,"Б");
+      var before = _syncHashes([a, b]);
+      var kept = [];
+      _syncKeepLive([C(1,"А",{level:5}), b], [C(1,"А",{level:2}), C(2,"Б",{level:3})], before, function(x){ return x; }, kept);
+      if (kept.join() !== "1") return "kept=" + kept.join();
+      return true;
+    });
+
+    if (typeof _syncCheckDoc === "function") t("[АУД4-2 S1/S2] файл чужой, повреждённый или новее — не принимается", function(){
+      function err(d) { try { _syncCheckDoc(d); return "принят"; } catch (e) { return e.corrupt ? "corrupt" : e.newer ? "newer" : "?"; } }
+      if (_syncCheckDoc(null) !== null) return "пустой";
+      if (err({ app: "other", format: 1 }) !== "corrupt") return "чужой app";
+      if (err({ app: "dnd-sheet" }) !== "corrupt") return "без format";
+      if (err({ app: "dnd-sheet", format: 2 }) !== "newer") return "новее";
+      if (err({ app: "dnd-sheet", format: 1, chars: {} }) !== "corrupt") return "chars не массив";
+      if (err({ app: "dnd-sheet", format: 1, tombstones: [] }) !== "corrupt") return "tombstones массив";
+      var ok = { app: "dnd-sheet", format: 1, chars: [], spells: [], tombstones: {} };
+      if (_syncCheckDoc(ok) !== ok) return "нормальный не принят";
+      return true;
+    });
+
+    // ── АУД4-2: _syncRun с заглушкой Диска (асинхронно, только headless-node) ──
+    if (window.__asyncTests && typeof _syncRun === "function") (function(){
+      function ta(desc, fn) { window.__asyncTests.push({ desc: desc, fn: fn }); }
+      // files: [{ id, version, doc | raw }]; возвращает журнал записей/удалений
+      function withDrive(files, snapFails, body) {
+        var keep = { list: _driveList, read: _driveRead, write: _driveWrite, fetch: _driveFetch, snap: window.createBackupSnapshot,
+          chars: characters, spells: SPELL_DATABASE, cur: currentId, st: localStorage.getItem(SYNC_DATA_KEY) };
+        var log = { writes: [], deletes: [] };
+        window._driveList = function() { return Promise.resolve(files.map(function(f){ return { id: f.id, version: f.version }; })); };
+        window._driveRead = function(id) {
+          var f = files.filter(function(x){ return x.id === id; })[0];
+          return Promise.resolve().then(function(){ return _syncCheckDoc ? (f.raw !== undefined ? (function(){ try { return JSON.parse(f.raw); } catch (e) { throw { corrupt: true }; } })() : JSON.parse(JSON.stringify(f.doc))) : null; });
+        };
+        window._driveWrite = function(name, id, data) { log.writes.push({ id: id, data: data }); return Promise.resolve({ id: id || "new" }); };
+        window._driveFetch = function(url, o) { if (o && o.method === "DELETE") log.deletes.push(url.split("/").pop()); return Promise.resolve({}); };
+        window.createBackupSnapshot = function() { return snapFails ? Promise.reject(new Error("idb")) : Promise.resolve(true); };
+        currentId = null;
+        function restore() {
+          window._driveList = keep.list; window._driveRead = keep.read; window._driveWrite = keep.write; window._driveFetch = keep.fetch;
+          window.createBackupSnapshot = keep.snap; characters = keep.chars; SPELL_DATABASE = keep.spells; currentId = keep.cur;
+          if (keep.st == null) localStorage.removeItem(SYNC_DATA_KEY); else localStorage.setItem(SYNC_DATA_KEY, keep.st);
+        }
+        return Promise.resolve().then(function(){ return body(log); }).then(function(v){ restore(); return v; }, function(e){ restore(); throw e; });
+      }
+      function doc(chars, extra) { return Object.assign({ app: "dnd-sheet", format: 1, device: "Android", updatedAt: NOW, chars: chars.map(_packCharForExport), spells: [], tombstones: {} }, extra || {}); }
+      function code(e) { return e && (e.corrupt ? "corrupt" : e.newer ? "newer" : e.backup ? "backup" : e.dupes ? "dupes" : e.retry ? "retry" : JSON.stringify(e)); }
+
+      ta("[АУД4-2 S1] чужой файл на Диске — ошибка «повреждён», ничего не пишется", function(){
+        return withDrive([{ id: "f1", version: "1", doc: { hello: 1 } }], false, function(log){
+          characters = [C(1,"А")];
+          return _syncRun(0).then(function(){ return "прошло без ошибки"; }, function(e){
+            if (code(e) !== "corrupt") return "ошибка: " + code(e);
+            return log.writes.length ? "записал поверх" : true;
+          });
+        });
+      });
+
+      ta("[АУД4-2 S2] битый JSON — «повреждён»; перезапись по согласию пишет данные устройства в тот же файл", function(){
+        return withDrive([{ id: "f1", version: "1", raw: "{не json" }], false, function(log){
+          characters = [C(1,"А")];
+          return _syncRun(0).then(function(){ return "прошло"; }, function(e){
+            if (code(e) !== "corrupt" || log.writes.length) return "ошибка: " + code(e);
+            return _syncRun(0, undefined, true).then(function(){
+              if (log.writes.length !== 1 || log.writes[0].id !== "f1" || log.writes[0].data.chars.length !== 1) return "перезапись: " + JSON.stringify(log.writes.map(function(w){ return w.id; }));
+              return true;
+            });
+          });
+        });
+      });
+
+      ta("[АУД4-2 S1] файл более новой версии формата — «newer», ничего не пишется", function(){
+        return withDrive([{ id: "f1", version: "1", doc: { app: "dnd-sheet", format: 2, chars: [] } }], false, function(log){
+          characters = [C(1,"А")];
+          return _syncRun(0).then(function(){ return "прошло"; }, function(e){ return code(e) === "newer" && !log.writes.length ? true : code(e); });
+        });
+      });
+
+      ta("[АУД4-2 S4] два файла на Диске — второй вливается в старший, запись в старший, дубль удаляется", function(){
+        return withDrive([{ id: "f1", version: "1", doc: doc([C(1,"А")]) }, { id: "f2", version: "1", doc: doc([C(2,"Б")]) }], false, function(log){
+          characters = [];
+          localStorage.setItem(SYNC_DATA_KEY, JSON.stringify({ base: { "1": syncHashChar(C(1,"А")) }, tombstones: {}, lastAt: 1 }));
+          return _syncRun(0).then(function(){
+            var got = characters.map(function(c){ return c.name; }).sort().join(",");
+            if (got !== "А,Б") return "персонажи: " + got;
+            if (log.writes.length !== 1 || log.writes[0].id !== "f1") return "запись: " + JSON.stringify(log.writes.map(function(w){ return w.id; }));
+            if (log.deletes.join() !== "f2") return "удаления: " + log.deletes.join();
+            return true;
+          });
+        });
+      });
+
+      ta("[АУД4-2 S3] снимок не создался, а применение заменяет данные — синхронизация прерывается до записи", function(){
+        return withDrive([{ id: "f1", version: "1", doc: doc([C(1,"А",{level:9})]) }], true, function(log){
+          characters = [C(1,"А")];
+          localStorage.setItem(SYNC_DATA_KEY, JSON.stringify({ base: { "1": syncHashChar(C(1,"А")) }, tombstones: {}, lastAt: 1 }));
+          return _syncRun(0).then(function(){ return "прошло"; }, function(e){
+            if (code(e) !== "backup") return "ошибка: " + code(e);
+            if (characters[0].level !== 1 || log.writes.length) return "данные тронуты";
+            return true;
+          });
+        });
+      });
+
+      ta("[АУД4-2 S3] снимок не создался, но применение только добавляет — синхронизация идёт", function(){
+        // живые персонажи уже прошли миграцию и санитайзер, как в приложении
+        var a = _syncFixChar(C(1,"А"));
+        return withDrive([{ id: "f1", version: "1", doc: doc([a, C(2,"Б")]) }], true, function(){
+          characters = [_syncClone(a)];
+          localStorage.setItem(SYNC_DATA_KEY, JSON.stringify({ base: { "1": syncHashChar(a) }, tombstones: {}, lastAt: 1 }));
+          return _syncRun(0).then(function(){ return characters.length === 2 ? true : "персонажей " + characters.length; });
+        });
+      });
+
+      ta("[АУД4-2 S9] одноимённые персонажи — _syncRun завершается с вопросом, а не висит", function(){
+        return withDrive([{ id: "f1", version: "1", doc: doc([C(9,"А")]) }], false, function(log){
+          characters = [C(1,"А")];
+          localStorage.removeItem(SYNC_DATA_KEY);
+          return _syncRun(0).then(function(){ return "прошло без вопроса"; }, function(e){
+            if (code(e) !== "dupes" || e.dupes[0].id !== 1 || log.writes.length) return "ошибка: " + code(e);
+            return _syncRun(0, true).then(function(){
+              return characters.length === 1 && characters[0].id === 9 ? true : "объединение: " + characters.map(function(c){ return c.id; });
+            });
+          });
+        });
+      });
+    })();
   })();
 
   // ────────── БЛОК 68 (PREP-ID): prepared хранит id заклинаний — applyBuild и миграция v45 ──────────

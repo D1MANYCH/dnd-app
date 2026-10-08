@@ -254,6 +254,7 @@ externalStubs.forEach(name => { if (!(name in sandbox)) sandbox[name] = function
 // в браузерном runner.html этого поля нет → соответствующие тесты пропускаются.
 try { sandbox.__indexHtmlSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8'); } catch (e) { /* нет файла — тест пропустится */ }
 
+sandbox.__asyncTests = [];
 vm.createContext(sandbox);
 
 for (const rel of files) {
@@ -267,7 +268,19 @@ for (const rel of files) {
   }
 }
 
+(async () => {
 const r = sandbox.__testResults || { pass: 0, fail: 0, total: 0, results: [] };
+// АУД4-2: асинхронные тесты (ta в headless.js) — по одному, с таймаутом: зависший промис = провал
+for (const at of sandbox.__asyncTests) {
+  let ok = false, msg = '';
+  try {
+    const v = await Promise.race([Promise.resolve().then(at.fn), new Promise((_, rej) => setTimeout(() => rej(new Error('таймаут 3 с')), 3000))]);
+    ok = v === true; if (!ok) msg = v || '!=true';
+  } catch (e) { msg = 'EXC: ' + ((e && e.message) || JSON.stringify(e)); }
+  if (ok) r.pass++; else r.fail++;
+  r.total++;
+  (r.results = r.results || []).push({ desc: at.desc, ok, msg });
+}
 const failed = (r.results || []).filter((x) => !x.ok);
 if (failed.length) {
   console.log(`\nFAILS (${failed.length}):`);
@@ -276,3 +289,4 @@ if (failed.length) {
 console.log(`\nИтого: ${r.pass} OK / ${r.fail} FAIL из ${r.total}`);
 // total === 0 — тесты не выполнились (пустой __testResults) → красный, не ложно-зелёный CI
 process.exit(r.fail === 0 && r.total > 0 ? 0 : 1);
+})();
