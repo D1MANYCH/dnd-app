@@ -1714,6 +1714,131 @@ function toggleRaceSkill(si) {
   calcStats();
   updateSkillProfCount();
   renderRaceExtras();
+  renderClassSkills();
+}
+
+// СОЗД-1: навыки класса. Первый класс даёт CLASS_SKILL_COUNT (по умолчанию 2) из своего списка,
+// бард/следопыт/плут вторым классом — CLASS_SKILL_MC_COUNT. Выбор — char.classSkillChoice { класс: [имена] }.
+function _classSkillList(char) {
+  var cls = (char.classes && char.classes.length) ? char.classes : (char.class ? [{ class: char.class }] : []);
+  var opts = (typeof edData === "function" && edData(char).CLASS_SKILL_OPTIONS) || CLASS_SKILL_OPTIONS;
+  var out = [];
+  cls.forEach(function(c, i) {
+    if (!c || !c.class || !opts[c.class]) return;
+    var n = i === 0 ? (CLASS_SKILL_COUNT[c.class] || 2) : (CLASS_SKILL_MC_COUNT[c.class] || 0);
+    if (n) out.push({ cls: c.class, count: n, from: opts[c.class], mc: i > 0 });
+  });
+  return out;
+}
+
+// Навыки от расы и предыстории: класс их не выбирает и при снятии не трогает
+function _skillsFromOtherSources(char) {
+  var out = [].concat(char.raceSkillChoice || [], char.bgSkillPicks || [], (char.bgCustom && char.bgCustom.skills) || []);
+  var bd = (typeof getBackgroundDef === "function") ? getBackgroundDef(char, char.background)
+    : ((typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[char.background]);
+  if (bd) out = out.concat(Array.isArray(bd) ? bd : (bd.skills || []));
+  return out;
+}
+
+function _classSkillHeld(map, name, exceptCls) {
+  return Object.keys(map || {}).some(function(k) { return k !== exceptCls && (map[k] || []).indexOf(name) !== -1; });
+}
+
+// Приводит char.classSkillChoice к текущим классам. Старый персонаж (поля ещё нет) — уже отмеченные
+// навыки из списка класса, не взятые от расы/предыстории, считаются выбором класса.
+function _classSkillSync(char) {
+  var list = _classSkillList(char);
+  var prev = char.classSkillChoice;
+  var other = _skillsFromOtherSources(char);
+  var next = {};
+  var changed = !prev;
+  list.forEach(function(e) {
+    var picks;
+    if (prev && Array.isArray(prev[e.cls])) {
+      picks = prev[e.cls].filter(function(n) { return e.from.indexOf(n) !== -1; });
+    } else if (!prev) {
+      picks = skills.filter(function(s, si) {
+        return char.skills && char.skills[si] && e.from.indexOf(s.name) !== -1 &&
+          other.indexOf(s.name) === -1 && !_classSkillHeld(next, s.name);
+      }).map(function(s) { return s.name; });
+    } else picks = [];
+    next[e.cls] = picks.slice(0, e.count);
+    if (prev && (!prev[e.cls] || prev[e.cls].length !== next[e.cls].length)) changed = true;
+  });
+  if (prev) Object.keys(prev).forEach(function(k) {
+    (prev[k] || []).forEach(function(n) {
+      if ((next[k] || []).indexOf(n) !== -1) return;
+      changed = true;
+      if (other.indexOf(n) === -1 && !_classSkillHeld(next, n)) _raceSkillSet(char, n, false);
+    });
+  });
+  char.classSkillChoice = next;
+  if (changed && prev) { saveToLocal(); calcStats(); updateSkillProfCount(); }
+  return list;
+}
+
+function renderClassSkills() {
+  var panel = $("class-skills-panel");
+  if (!panel) return;
+  var char = currentId && getCurrentChar();
+  if (!char) { panel.style.display = "none"; return; }
+  var list = char.basicLocked ? _classSkillSync(char) : _classSkillList(char);
+  if (!list.length) { panel.style.display = "none"; panel.innerHTML = ""; return; }
+  var html = "";
+  if (!char.basicLocked) {
+    html = '<div class="race-extras-hint">' + dndIcoHtml("lock", 13) + ' ' + list.map(function(e) {
+      return escapeHtml(e.cls) + ': ' + e.count + (e.count > 1 ? ' навыка' : ' навык') + ' класса на выбор';
+    }).join(", ") + ' — выбор появится здесь после «Сохранить и зафиксировать основу».</div>';
+    panel.innerHTML = html;
+    panel.style.display = "flex";
+    return;
+  }
+  var other = _skillsFromOtherSources(char);
+  list.forEach(function(e, ci) {
+    var picks = char.classSkillChoice[e.cls] || [];
+    html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' ' + escapeHtml(e.cls) +
+      (e.mc ? ' (второй класс)' : '') + ': ' + e.count + (e.count > 1 ? ' навыка' : ' навык') + ' класса на выбор</div>';
+    html += '<div class="race-extras-row">';
+    skills.forEach(function(s, si) {
+      if (e.from.indexOf(s.name) === -1) return;
+      var sel = picks.indexOf(s.name) !== -1;
+      var busy = !sel && (other.indexOf(s.name) !== -1 || _classSkillHeld(char.classSkillChoice, s.name, e.cls));
+      html += '<button type="button" class="race-extras-stat-pick' + (sel ? " selected" : "") + '"' +
+        (busy ? ' disabled title="Уже есть от расы, предыстории или другого класса"' : '') +
+        ' onclick="toggleClassSkill(' + ci + ',' + si + ')">' + escapeHtml(s.name) + '</button>';
+    });
+    html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">Выбрано: ' + picks.length + '/' + e.count + '</span>';
+    html += '</div>';
+    if (picks.length < e.count) html += '<div class="race-extras-warn">Навыки класса выбраны не все — осталось ' + (e.count - picks.length) + '.</div>';
+  });
+  _setExtrasHtml(panel, html);
+  panel.style.display = "flex";
+}
+
+function toggleClassSkill(ci, si) {
+  if (!currentId || sheetLockGuard()) return;
+  var char = getCurrentChar();
+  if (!char || !skills[si]) return;
+  var e = _classSkillSync(char)[ci];
+  if (!e) return;
+  var name = skills[si].name;
+  if (e.from.indexOf(name) === -1) return;
+  var picks = char.classSkillChoice[e.cls];
+  var other = _skillsFromOtherSources(char);
+  var pos = picks.indexOf(name);
+  if (pos !== -1) {
+    picks.splice(pos, 1);
+    if (other.indexOf(name) === -1) _raceSkillSet(char, name, false);
+  } else {
+    if (other.indexOf(name) !== -1 || _classSkillHeld(char.classSkillChoice, name, e.cls)) { showToast("Этот навык уже есть — выберите другой.", "warning"); return; }
+    if (picks.length >= e.count) { showToast("Уже выбрано " + e.count + ". Снимите один навык.", "warning"); return; }
+    picks.push(name);
+    _raceSkillSet(char, name, true);
+  }
+  saveToLocal();
+  calcStats();
+  updateSkillProfCount();
+  renderClassSkills();
 }
 
 function openRaceFeatModal() {
@@ -1850,6 +1975,7 @@ function lockBasicInfo() {
   applyBasicLockUI();
   renderRaceExtras();
   renderBackgroundExtras();
+  renderClassSkills();
   showToast("🔒 Основа персонажа зафиксирована. Теперь можно настраивать детали.", "success");
 }
 
@@ -1866,6 +1992,7 @@ function unlockBasicInfo() {
       applyBasicLockUI();
       renderRaceExtras();
       renderBackgroundExtras();
+      renderClassSkills();
       showToast("🔓 Основа разблокирована", "info");
     },
     "Разблокировать",
@@ -2086,6 +2213,7 @@ function onBackgroundChange() {
   if (typeof renderWeaponProf === "function") renderWeaponProf();
   renderBackgroundFeature();
   renderBackgroundExtras();
+  renderClassSkills();
 }
 
 // Отметить навыки предыстории (чекбоксы листа). Общий для 2014/2024/«своей».
@@ -2251,6 +2379,7 @@ function _bgAfterStats(char) {
   if (typeof recalculateHP === "function") recalculateHP();
   if (typeof calculateAC === "function") calculateAC();
   renderBackgroundExtras();
+  renderClassSkills();
 }
 
 // Откат эффектов черты происхождения при её замене (origin-черты 2024:
@@ -2346,6 +2475,7 @@ function toggleBgCustom(field, value) {
   calcStats();
   if (typeof updateSkillProfCount === "function") updateSkillProfCount();
   renderBackgroundExtras();
+  renderClassSkills();
 }
 
 // «Собственная предыстория» 2014: умение (featureFrom — ключ предыстории-образца),
@@ -2393,6 +2523,7 @@ function _toggleBgCustom14(char, field, value) {
   if (typeof renderLanguages === "function") renderLanguages();
   renderBackgroundFeature();
   renderBackgroundExtras();
+  renderClassSkills();
 }
 
 // SCAG: навык предыстории на выбор (skillChoice) — отметка в листе, лимит count.
@@ -2418,6 +2549,7 @@ function toggleBgSkillPick(name) {
   calcStats();
   if (typeof updateSkillProfCount === "function") updateSkillProfCount();
   renderBackgroundExtras();
+  renderClassSkills();
 }
 
 function _renderBgCustom14(char) {
@@ -2495,6 +2627,7 @@ function giveBackgroundEquipment(variant) {
   if (typeof calcCoinWeight === "function") calcCoinWeight();
   showToast("Снаряжение предыстории: " + given.join(", "), "success");
   renderBackgroundExtras();
+  renderClassSkills();
 }
 
 // Панель предыстории 2024 под селектом: показывается после фиксации основы

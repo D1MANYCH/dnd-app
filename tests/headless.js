@@ -9858,6 +9858,22 @@
     var cd = CLASS_RESOURCES["Паладин"].resources.find(function(r) { return r.id === "channel_divinity"; });
     return (cd && cd.maxByLevel[2] === 0 && cd.maxByLevel[3] === 1 && cd.restoreOn === "short") || "канал паладина";
   });
+  t("[СОЗД-1] навыки класса: плут 4, воин 2, плут вторым классом 1, волшебник вторым 0; старый персонаж — отмеченные навыки становятся выбором", function(){
+    if (typeof _classSkillList !== "function") return "нет _classSkillList";
+    var l = _classSkillList({ class: "Плут", classes: [{ class: "Плут", level: 1 }] });
+    if (l.length !== 1 || l[0].count !== 4) return "плут: " + JSON.stringify(l);
+    l = _classSkillList({ classes: [{ class: "Воин", level: 3 }, { class: "Плут", level: 1 }, { class: "Волшебник", level: 1 }] });
+    if (l.length !== 2 || l[0].count !== 2 || l[1].count !== 1 || !l[1].mc) return "мультикласс: " + JSON.stringify(l);
+    l = _classSkillList({ classes: [{ class: "Бард", level: 1 }, { class: "Следопыт", level: 1 }] });
+    if (l[0].count !== 3 || l[1].count !== 1) return "бард 3 / следопыт вторым 1";
+    if (typeof CLASS_SKILL_OPTIONS_2024 !== "undefined" && CLASS_SKILL_OPTIONS_2024["Волшебник"].indexOf("Природа") === -1) return "волшебник 2024 без Природы";
+    var si = function(n) { return skills.findIndex(function(s) { return s.name === n; }); };
+    var sk = []; ["Скрытность", "Анализ", "Религия"].forEach(function(n) { sk[si(n)] = true; });
+    var c = { class: "Плут", classes: [{ class: "Плут", level: 1 }], skills: sk, raceSkillChoice: ["Анализ"], background: "" };
+    _classSkillSync(c);
+    var p = c.classSkillChoice["Плут"];
+    return (p.length === 1 && p[0] === "Скрытность") || "усыновление: " + JSON.stringify(p);
+  });
   t("[AUD-9 C38] 2014: известные заговоры и заклинания по таблице класса", function(){
     if (calcMaxKnownSpells({ class: "Бард", level: 10 }) !== 14) return "бард 10";
     if (calcMaxKnownSpells({ class: "Следопыт", level: 1 }) !== 0) return "следопыт 1";

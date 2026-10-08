@@ -1433,6 +1433,7 @@ setTimeout(function() {
   if (typeof renderRaceExtras === "function") renderRaceExtras();
   if (typeof renderBackgroundFeature === "function") renderBackgroundFeature(); // FIN-4: умение предыстории
   if (typeof renderBackgroundExtras === "function") renderBackgroundExtras(); // E24-5: панель предыстории 2024
+  if (typeof renderClassSkills === "function") renderClassSkills();
 }, 0);
 // Обновить состояние селектора подкласса (с учётом текущего уровня)
 setTimeout(updateSubclassOptions, 0);

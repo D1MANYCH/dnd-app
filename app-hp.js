@@ -576,6 +576,7 @@ if (choice && choice.isNew) {
   // AUD-7 (R5): владения нового класса — по таблице мультикласса, из источников
   if (typeof recalcArmorWeaponFromSources === "function") recalcArmorWeaponFromSources(char);
   if (typeof recalcToolsFromSources === "function") recalcToolsFromSources(char);
+  if (typeof renderClassSkills === "function") setTimeout(renderClassSkills, 0);
 } else if (choice && !choice.isNew && typeof choice.classIndex === "number") {
   // Повышаем существующий класс
   var entry = char.classes[choice.classIndex];

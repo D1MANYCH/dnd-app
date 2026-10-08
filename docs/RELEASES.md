@@ -3,27 +3,64 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v4.32.2**.
+Актуальная версия — **v4.33.0**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v4.33.0"></a>
+## v4.33.0 — 8 октября 2026
+
+✨ СОЗД-1: панель «Навыки класса» на листе под панелью расы — после фиксации основы класс выбирает навыки из своего списка: бард и следопыт 3, плут 4, остальные 2; бард, следопыт и плут вторым классом — 1. Счётчик «Выбрано N/M», лимит, предупреждение при недоборе; навыки от расы и предыстории недоступны для выбора. У существующих персонажей уже отмеченные навыки из списка класса засчитываются как выбор. У волшебника редакции 2024 в списке навыков добавлена «Природа» (PHB 2024, стр. 77)
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/b9df6985...main) · 16 файлов, +370 −81
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (1):**
+
+- [`15ad1e0b`](https://github.com/D1MANYCH/dnd-app/commit/15ad1e0b) chore(docs): английский README (README.en.md) и ссылка на него из README.md
+
+**Файлы (16):**
+
+- `app-combat.js` +133 −0
+- `README.en.md` +122 −0
+- `index.html` +50 −49
+- `README.md` +20 −23
+- `tests/headless.js` +16 −0
+- `data.js` +13 −2
+- `docs/screenshots/README.md` +4 −4
+- `CHANGELOG.md` +6 −1
+- `data-2024.js` +3 −1
+- `sw.js` +1 −1
+- `app-core.js` +1 −0
+- `app-hp.js` +1 −0
+- `docs/screenshots/01-character-sheet.png` +0 −0
+- `docs/screenshots/02-builds-picker.png` +0 −0
+- `docs/screenshots/03-build-guide.png` +0 −0
+- `docs/screenshots/04-spells.png` +0 −0
+
+</details>
+
 <a id="v4.32.2"></a>
 ## v4.32.2 — 8 октября 2026
 
 🐛 страница privacy.html получила иконку приложения во вкладке браузера (icons/icon-192.png), раньше вкладка была без иконки
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/07c0c9ea...main) · 5 файлов, +66 −52
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/07c0c9ea...b9df6985) · 6 файлов, +95 −57
 
-<details><summary>Файлы</summary>
+<details><summary>Коммиты и файлы</summary>
 
-_Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
+**Коммиты (1):**
 
-**Файлы (5):**
+- [`b9df6985`](https://github.com/D1MANYCH/dnd-app/commit/b9df6985) v4.32.2: fix(privacy): страница privacy.html получила иконку приложения во вкладке браузера (icons/icon-192.png), раньше вкладка была без иконки
+
+**Файлы (6):**
 
 - `index.html` +48 −48
+- `docs/RELEASES.md` +29 −5
 - `data.js` +10 −2
 - `CHANGELOG.md` +6 −1
 - `sw.js` +1 −1
