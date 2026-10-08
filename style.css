@@ -3951,6 +3951,10 @@ transition: width var(--t2) var(--ez-out);
   border-bottom: 1px solid var(--home-rule);
 }
 .backup-panel-hint { flex: 1; font-size: var(--fs-sm); color: var(--home-sub); }
+#sync-row { flex-wrap: wrap; row-gap: 0; }
+#sync-actions { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--sp-4); }
+.sync-privacy { font-size: var(--fs-sm); color: var(--home-sub); text-decoration: none; }
+.sync-privacy:hover { color: var(--accent); text-decoration: underline; }
 .backup-create-btn {
   position: relative;
   flex: 0 0 auto;

@@ -562,7 +562,7 @@ function renderSyncRow() {
   priv.href = "privacy.html";
   priv.target = "_blank";
   priv.rel = "noopener";
-  priv.className = "backup-panel-hint";
+  priv.className = "sync-privacy";
   priv.textContent = "Что хранится";
   actions.appendChild(priv);
 }
