@@ -551,13 +551,52 @@ function rulesCases(t, group) {
     return p14.dc === 50 || "СЛ 2014: " + p14.dc;
   });
 
-  // AUD-13 (E18): «Мастер на все руки» 2024 — только навыки, к инициативе не идёт
-  t("[AUD-13 E18] инициатива барда 2024 без пол-БМ", function() {
+  // АУД4-5 (R3): «Мастер на все руки» 2024 тоже идёт к инициативе (проверка ЛОВ)
+  t("[АУД4-5 R3] инициатива барда 2024 с пол-БМ, Чемпион 2024 — без", function() {
     var a = getInitiativeMod({ stats: { dex: 14 }, class: "Бард" }, 9);
     var b = getInitiativeMod({ edition: "2024", stats: { dex: 14 }, class: "Бард" }, 9);
-    if (a !== 4 || b !== 2) return "бард: 2014 " + a + ", 2024 " + b;
+    if (a !== 4 || b !== 4) return "бард: 2014 " + a + ", 2024 " + b;
+    var al = getInitiativeMod({ edition: "2024", stats: { dex: 14 }, class: "Бард", bonuses: { initiativeProf: true } }, 9);
+    if (al !== 6) return "бард 2024 с «Бдительным»: " + al + ", ожидал 6 (БМ без пол-БМ)";
     var ch = getInitiativeMod({ edition: "2024", stats: { dex: 14 }, class: "Воин", subclass: "Чемпион" }, 9);
     return ch === 2 || "Чемпион 2024: " + ch;
+  });
+
+  // АУД4-5 (R1, R2, R5, R6): дварф и эльф 2024, откат «Бдительного»
+  t("[АУД4-5 R1] «Дварфийская выдержка» 2024: дварф воин 3, ТЕЛ +2 → 31; дварф 2014 без надбавки", function() {
+    var c = fixture({ edition: "2024", class: "Воин", level: 3, race: "Дварф", classes: [{ class: "Воин", level: 3 }] });
+    var hp = rulesMaxHPBase(c, 2);
+    if (hp !== 31) return "2024: " + hp + ", ожидал 31";
+    var c14 = fixture({ class: "Воин", level: 3, race: "Дварф", classes: [{ class: "Воин", level: 3 }] });
+    var hp14 = rulesMaxHPBase(c14, 2);
+    return hp14 === 28 || "2014 «Дварф»: " + hp14 + ", ожидал 28";
+  });
+
+  t("[АУД4-5 R2] дварф и эльф 2024 не получают расовых инструментов и оружия 2014", function() {
+    var d = fixture({ edition: "2024", race: "Дварф", proficiencies: { toolChoices: { race_0: ["Кузнечные инструменты"] } } });
+    recalcToolsFromSources(d);
+    var tools = d.proficiencies.tools.filter(function(x) { return x.source === "race"; });
+    if (tools.length) return "инструменты расы 2024: " + tools.map(function(x) { return x.name; }).join(", ");
+    if (getToolChoiceSlots(d).some(function(s) { return s.key === "race_0"; })) return "слот выбора инструмента расы в 2024";
+    var e = fixture({ edition: "2024", race: "Эльф" });
+    recalcArmorWeaponFromSources(e);
+    var spec = (e.proficiencies.specificWeapons || []).filter(function(w) { return w.source === "race"; });
+    if (spec.length) return "оружие эльфа 2014 у эльфа 2024: " + spec.map(function(w) { return w.name; }).join(", ");
+    var e14 = fixture({ race: "Эльф" });
+    recalcArmorWeaponFromSources(e14);
+    var spec14 = (e14.proficiencies.specificWeapons || []).filter(function(w) { return w.source === "race"; });
+    return spec14.length === 4 || "эльф 2014: оружий расы " + spec14.length + ", ожидал 4";
+  });
+
+  t("[АУД4-5 R5] смена черты происхождения не снимает «Бдительный», взятый ещё и уровнем", function() {
+    var def = getFeatDef({ edition: "2024" }, "f24-alert");
+    if (!def) return "нет f24-alert";
+    var two = fixture({ edition: "2024", bonuses: { initiativeProf: true }, feats: [{ id: "f24-alert", origin: true }, { id: "f24-alert", level: 4 }] });
+    _bgRevertFeatEffects(two, def);
+    if (!two.bonuses.initiativeProf) return "снят при второй черте";
+    var one = fixture({ edition: "2024", bonuses: { initiativeProf: true }, feats: [{ id: "f24-alert", origin: true }] });
+    _bgRevertFeatEffects(one, def);
+    return one.bonuses.initiativeProf === false || "не снят при единственной черте";
   });
 
   t("Длинный отдых: истощение −1 уровень, прочие состояния остаются", function() {

@@ -2648,7 +2648,12 @@ function _bgRevertFeatEffects(char, def) {
       char.combat.hpMax = Math.max(1, (char.combat.hpMax || 10) - bonus);
       char.combat.hpCurrent = Math.min(char.combat.hpCurrent, char.combat.hpMax);
     } else if (eff.type === "initiative_prof") {
-      if (char.bonuses) char.bonuses.initiativeProf = false;
+      // АУД4-5 (R5): «Бдительный» из другого источника (черта уровня) остаётся
+      var _n = (char.feats || []).filter(function(f) {
+        var d = f && typeof getFeatDef === "function" ? getFeatDef(char, f.id) : null;
+        return d && (d.effects || []).some(function(e) { return e.type === "initiative_prof"; });
+      }).length;
+      if (char.bonuses && _n <= 1) char.bonuses.initiativeProf = false;
     } else if (eff.type === "initiative_bonus") {
       if (char.bonuses) char.bonuses.initiative = (char.bonuses.initiative || 0) - eff.value;
     } else if (eff.type === "armor" || eff.type === "weapon") {

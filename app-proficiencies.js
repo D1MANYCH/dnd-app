@@ -218,7 +218,7 @@ var TOOL_CAT_TITLES = {
 function getToolChoiceSlots(char) {
   var out = [];
   // Раса
-  if (char.race && typeof RACE_TOOLS !== "undefined" && RACE_TOOLS[char.race]) {
+  if (char.race && char.edition !== "2024" && typeof RACE_TOOLS !== "undefined" && RACE_TOOLS[char.race]) {
     var r = RACE_TOOLS[char.race];
     (r.choices || []).forEach(function(slot, idx) {
       var key = "race_" + idx;

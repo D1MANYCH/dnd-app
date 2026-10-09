@@ -49,7 +49,8 @@ function rulesMaxHPBase(char, conMod) {
     // E24-15: в 2024 «Драконья устойчивость» — умение 3 ур. (+3, далее +1 за уровень чародея)
     if (c.class === "Чародей" && c.subclass === "Драконья кровь" && (char.edition !== "2024" || c.level >= 3)) total += c.level;
   });
-  if (char.race === "Холмовой дварф") total += level;
+  // АУД4-5 (R1): «Дварфийская выдержка» 2024 — у любого дварфа (PHB24 с.183)
+  if (char.race === "Холмовой дварф" || (char.edition === "2024" && char.race === "Дварф")) total += level;
   return total;
 }
 
@@ -315,11 +316,13 @@ function getInitiativeMod(char, level) {
   var mod = char.stats ? getMod(char.stats.dex) : 0;
   // Пол-БМ Барда: порог 2 — по уровню Барда, сам БМ — по суммарному уровню (PHB)
   // AUD-8 (R15): у Чемпиона 7 ур. — пол-БМ вверх («Выдающийся атлет»), не складывается
-  // AUD-13 (E18): в 2024 «Мастер на все руки» — только к проверкам навыков, инициатива не навык
-  if (char.edition !== "2024") mod += rulesUntrainedCheckBonus(char, lvl, "dex");
+  // АУД4-5 (R3): в 2024 «Мастер на все руки» тоже идёт к инициативе (проверка ЛОВ),
+  // но не вместе с БМ «Бдительного» (PHB24 с.50: только если БМ иначе не используется)
+  var _initProf = !!(char.bonuses && char.bonuses.initiativeProf);
+  if (!_initProf) mod += rulesUntrainedCheckBonus(char, lvl, "dex");
   if (char.bonuses && char.bonuses.initiative) mod += char.bonuses.initiative;
   // E24-3: «Бдительный» 2024 — БМ к инициативе (char.bonuses.initiativeProf)
-  if (char.bonuses && char.bonuses.initiativeProf) mod += getProficiencyBonus(lvl);
+  if (_initProf) mod += getProficiencyBonus(lvl);
   return mod;
 }
 
@@ -1505,7 +1508,7 @@ function recalcToolsFromSources(char) {
     result.push({ name: name, source: source, category: info ? info.category : "custom" });
   }
   // Раса
-  if (char.race && typeof RACE_TOOLS !== "undefined" && RACE_TOOLS[char.race]) {
+  if (char.race && char.edition !== "2024" && typeof RACE_TOOLS !== "undefined" && RACE_TOOLS[char.race]) {
     var r = RACE_TOOLS[char.race];
     (r.fixed || []).forEach(function(n){ add(n, "race"); });
     (r.choices || []).forEach(function(slot, idx) {
@@ -1586,7 +1589,7 @@ function recalcArmorWeaponFromSources(char) {
   function addWeapon(t, src){ if (wp[t] && wp[t].indexOf(src) === -1) wp[t].push(src); }
 
   // Раса
-  if (char.race && typeof RACE_ARMOR !== "undefined" && RACE_ARMOR[char.race]) {
+  if (char.race && char.edition !== "2024" && typeof RACE_ARMOR !== "undefined" && RACE_ARMOR[char.race]) {
     var r = RACE_ARMOR[char.race];
     (r.armor  || []).forEach(function(t){ addArmor(t,  "race"); });
     (r.weapon || []).forEach(function(t){ addWeapon(t, "race"); });
@@ -1637,7 +1640,7 @@ function recalcArmorWeaponFromSources(char) {
     seen[name] = true;
     specs.push({ name: name, source: source });
   }
-  if (char.race && typeof RACE_WEAPONS_SPECIFIC !== "undefined" && RACE_WEAPONS_SPECIFIC[char.race]) {
+  if (char.race && char.edition !== "2024" && typeof RACE_WEAPONS_SPECIFIC !== "undefined" && RACE_WEAPONS_SPECIFIC[char.race]) {
     RACE_WEAPONS_SPECIFIC[char.race].forEach(function(n){ addSpec(n, "race"); });
   }
   // FIN-2: конкретные владения классов (скимитар друида, короткий меч монаха…)
