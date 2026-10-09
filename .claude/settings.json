@@ -58,11 +58,6 @@
             "type": "command",
             "shell": "bash",
             "command": "node tools/check-uncommitted-hook.js"
-          },
-          {
-            "type": "command",
-            "shell": "bash",
-            "command": "node tools/check-session-size-hook.js"
           }
         ]
       }

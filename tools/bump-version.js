@@ -245,6 +245,15 @@ function main() {
   } catch (e) {
     console.warn('WARN: docs/RELEASES.md не перегенерирован (' + String(e.message || e).split('\n')[0] + '). Прогоните вручную: node tools/gen-release-log.js');
   }
+
+  // docs/map.md — построчная карта для чтения диапазонами; устаревшие номера строк
+  // стоят лишних чтений. Soft-fail, как и выше.
+  try {
+    require('child_process').execFileSync(process.execPath, [path.join(__dirname, 'gen-map.js')], { stdio: 'ignore' });
+    console.log('docs/map.md: перегенерирован');
+  } catch (e) {
+    console.warn('WARN: docs/map.md не перегенерирован. Прогоните вручную: node tools/gen-map.js');
+  }
 }
 
 main();
