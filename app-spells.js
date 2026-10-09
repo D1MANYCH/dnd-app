@@ -1261,6 +1261,22 @@ function _preparedCount(char) {
   }).length;
 }
 
+// РОСТ-4: выбор набора для карточек; fromHome — экран «Данные» (открытый герой, иначе последний правленый)
+function openSpellCardsMenu(fromHome) {
+  var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  if (!char && fromHome && typeof getLastCharacter === "function") char = getLastCharacter();
+  if (!char) { if (typeof showToast === "function") showToast("Нет персонажа для печати", "error"); return; }
+  if (typeof window.exportSpellCardsPDF !== "function") { if (typeof showToast === "function") showToast("PDF-модуль недоступен", "error"); return; }
+  var id = JSON.stringify(char.id).replace(/"/g, "&quot;");
+  var ink = false;
+  try { ink = localStorage.getItem("dnd_cards_ink") === "1"; } catch (e) {}
+  openMobSheet("Карточки заклинаний · " + (char.name || "персонаж"), mobSheetActs([
+    ["Подготовленные и заговоры", "exportSpellCardsPDF('prepared'," + id + ")"],
+    ["Все известные", "exportSpellCardsPDF('all'," + id + ")"]
+  ]) + '<label class="mob-sheet-row mob-sheet-check"><input type="checkbox"' + (ink ? " checked" : "") +
+    ' onchange="try{localStorage.setItem(\'dnd_cards_ink\',this.checked?\'1\':\'0\')}catch(e){}"><span>Экономить чернила (без цветных шапок)</span></label>');
+}
+
 function isSpellPrepared(char, spellId) {
   if (!isPrepClass(char)) return true; // для не-prep классов все заклинания "подготовлены"
   // E24-4: заклинания от вида всегда подготовлены и в лимит не входят

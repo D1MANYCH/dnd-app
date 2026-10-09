@@ -57,27 +57,13 @@ function _pdfImgToDataUrl(src, maxSize) {
   });
 }
 
-// Маппинг русских названий школ → имя файла assets/schools/{file}.webp
-var _PDF_SCHOOL_FILE = {
-  'Ограждение':     'abjuration',
-  'Призывание':     'conjuration',
-  'Призыв':         'conjuration',
-  'Прорицание':     'divination',
-  'Очарование':     'enchantment',
-  'Заговаривание':  'enchantment',
-  'Воплощение':     'evocation',
-  'Эвокация':       'evocation',
-  'Иллюзия':        'illusion',
-  'Некромантия':    'necromancy',
-  'Преобразование': 'transmutation'
-};
-
+// Имя файла assets/schools/{slug}.webp — по тем же школам, что и в интерфейсе (getSchoolSlug)
 function _pdfLoadSchoolIcons(schoolsUsed) {
   window.__pdfSchoolIcons = window.__pdfSchoolIcons || {};
   var promises = [];
   schoolsUsed.forEach(function(s) {
     if (Object.prototype.hasOwnProperty.call(window.__pdfSchoolIcons, s)) return;
-    var file = _PDF_SCHOOL_FILE[s];
+    var file = (typeof getSchoolSlug === 'function') ? getSchoolSlug(s) : '';
     if (!file) { window.__pdfSchoolIcons[s] = null; return; }
     var p = _pdfImgToDataUrl('assets/schools/' + file + '.webp', 96).then(function(url) {
       window.__pdfSchoolIcons[s] = url;
@@ -521,7 +507,7 @@ function _pdfSpells(doc, y, char) {
       try { doc.addImage(icons[s], 'PNG', x, y - 3.5, 4.2, 4.2); } catch (e) {}
       doc.setFontSize(8.2);
       doc.setTextColor(70);
-      doc.text(s, x + 5, y);
+      doc.text(s.charAt(0).toUpperCase() + s.slice(1), x + 5, y);
       doc.setTextColor(0);
     });
     y += 4;
@@ -734,5 +720,319 @@ async function exportCharacterPDF(id, event) {
   }
 }
 
+// ─── РОСТ-4: карточки заклинаний 63×88 мм, 3×3 на A4 ─────────
+
+var _SC_W = 63, _SC_H = 88, _SC_PAD = 3.2;
+var _SC_X0 = (210 - 3 * _SC_W) / 2, _SC_Y0 = (297 - 3 * _SC_H) / 2;
+var _SC_SIZES = [9, 8.5, 8, 7.5, 7, 6.5, 6];
+var _SC_CONT_MIN = 700; // карта-продолжение только для своих заклинаний длиннее этого
+var _SC_FRAME = 1;      // отступ рамки от линии реза
+var _SC_FOOT = 4.2;     // высота подвала
+// Печатные цвета школ (CSS-переменные интерфейса в PDF не годятся)
+var _SC_SCHOOL_RGB = {
+  abjuration: '#2f8a57', conjuration: '#2f6fa8', divination: '#23838e', enchantment: '#b8457c',
+  evocation: '#b8432f', illusion: '#7350a8', necromancy: '#4f5560', transmutation: '#a87a22'
+};
+
+function _scLineH(size) { return size * 0.3528 * 1.18; }
+
+function _scColor(school) {
+  var slug = (typeof getSchoolSlug === 'function') ? getSchoolSlug(school) : '';
+  return _hexToRgb(_SC_SCHOOL_RGB[slug] || '#40506e');
+}
+
+// mode: 'prepared' — подготовленные и заговоры, 'all' — все известные. Порядок: круг, затем имя.
+function _spellCardList(char, mode) {
+  var my = (char && char.spells && char.spells.mySpells) || [];
+  var list = my.filter(function(sp) {
+    if (!sp || !sp.name) return false;
+    if (mode === 'all') return true;
+    if ((sp.level || 0) === 0) return true;
+    return typeof isSpellPrepared === 'function' ? isSpellPrepared(char, sp.id) : true;
+  });
+  return list.slice().sort(function(a, b) {
+    return ((a.level || 0) - (b.level || 0)) || String(a.name).localeCompare(String(b.name), 'ru');
+  });
+}
+
+function _spellCardBody(sp) {
+  var t = String(sp.desc || '').trim();
+  if (sp.higherLevel) t += (t ? '\n' : '') + 'На больших уровнях: ' + String(sp.higherLevel).trim();
+  return t;
+}
+
+// Подгонка текста под высоту: 9 → … → 6 pt; не влезло и в 6 — обрезка с «…»,
+// хвост строк в rest (для карты-продолжения). split(text, size) → массив строк.
+function _spellCardFit(text, availH, split) {
+  var size, lines, cap;
+  for (var i = 0; i < _SC_SIZES.length; i++) {
+    size = _SC_SIZES[i];
+    cap = Math.max(1, Math.floor(availH / _scLineH(size) + 1e-6));
+    lines = split(text, size);
+    if (lines.length <= cap) return { size: size, lineH: _scLineH(size), lines: lines, rest: [], overflow: false };
+  }
+  var keep = lines.slice(0, cap);
+  var last = String(keep[cap - 1] || '');
+  keep[cap - 1] = last.slice(0, Math.max(0, last.length - 2)).replace(/\s+$/, '') + '…';
+  return { size: size, lineH: _scLineH(size), lines: keep, rest: lines.slice(cap), overflow: true };
+}
+
+function _scClip(s, max) {
+  s = String(s || '—');
+  return s.length > max ? s.slice(0, max - 1).replace(/\s+$/, '') + '…' : s;
+}
+
+// Белая версия иконки школы для цветной шапки (canvas: source-in)
+function _scWhiteIcon(src) {
+  return new Promise(function(resolve) {
+    if (!src) return resolve(null);
+    var img = new Image();
+    img.onload = function() {
+      try {
+        var c = document.createElement('canvas');
+        c.width = img.width; c.height = img.height;
+        var ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        ctx.globalCompositeOperation = 'source-in';
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/png'));
+      } catch (e) { resolve(null); }
+    };
+    img.onerror = function() { resolve(null); };
+    img.src = src;
+  });
+}
+
+// Метки реза: короткие штрихи на полях напротив каждой линии сетки
+function _scCutMarks(doc) {
+  doc.setDrawColor(120);
+  doc.setLineWidth(0.15);
+  var x1 = _SC_X0 + 3 * _SC_W, y1 = _SC_Y0 + 3 * _SC_H, L = 5, G = 1.5;
+  for (var i = 0; i <= 3; i++) {
+    var x = _SC_X0 + i * _SC_W, y = _SC_Y0 + i * _SC_H;
+    doc.line(x, _SC_Y0 - G - L, x, _SC_Y0 - G);
+    doc.line(x, y1 + G, x, y1 + G + L);
+    doc.line(_SC_X0 - G - L, y, _SC_X0 - G, y);
+    doc.line(x1 + G, y, x1 + G + L, y);
+  }
+  doc.setDrawColor(0);
+}
+
+// Геометрия карты без рисования: шапка, сетка свойств, верх и низ описания (мм от верха карты)
+function _scGeom(doc, sp, cont) {
+  var g = {};
+  var conc = /концентрац/i.test(String(sp.duration || ''));
+  var ritual = /ритуал/i.test(String(sp.time || ''));
+  g.badges = cont ? [] : [conc ? 'К' : '', ritual ? 'Р' : ''].filter(Boolean);
+  var bandW = _SC_W - 2 * _SC_FRAME - 1.6;
+  var nameW = bandW - 2 * 1.6 - 9.1 - 6.5 - g.badges.length * 4.4 - 1;
+  var title = String(sp.name || '—') + (cont ? ' (продолж.)' : '');
+  var size = 9.5, lines;
+  doc.setFontSize(size);
+  lines = doc.splitTextToSize(title, nameW);
+  while (lines.length > 1 && size > 7.5) { size -= 0.5; doc.setFontSize(size); lines = doc.splitTextToSize(title, nameW); }
+  g.nameSize = size; g.nameLines = lines.slice(0, 2);
+  g.bandTop = _SC_FRAME + 0.8;
+  g.bandH = Math.max(10, 3.4 + g.nameLines.length * _scLineH(size));
+  var y = g.bandTop + g.bandH;
+  g.cells = [];
+  if (!cont) {
+    y += 4;                                           // строка «круг · школа · источник»
+    g.metaY = y - 0.9;
+    var cw = (_SC_W - 2 * _SC_PAD - 2) / 2;
+    var vals = [['Время', sp.time], ['Дистанция', sp.range], ['Компоненты', _scClip(sp.components, 80)], ['Длительность', sp.duration]];
+    doc.setFontSize(6.8);
+    g.gridTop = y;
+    for (var r = 0; r < 2; r++) {
+      var top = y + 1.2, rowLines = 1;
+      for (var c = 0; c < 2; c++) {
+        var v = vals[r * 2 + c];
+        var vl = doc.splitTextToSize(String(v[1] || '—'), cw);
+        if (vl.length > 2) { vl = vl.slice(0, 2); vl[1] = vl[1].slice(0, Math.max(0, vl[1].length - 2)).replace(/[s,(]+$/, '') + '…'; }
+        rowLines = Math.max(rowLines, vl.length);
+        g.cells.push({ label: v[0], lines: vl, x: _SC_PAD + c * (cw + 2), y: top });
+      }
+      y = top + _scLineH(5.2) + rowLines * _scLineH(6.8) + 0.4;
+      g['sep' + r] = y;
+    }
+  }
+  g.bodyTop = y + 1.4;
+  g.bodyBottom = _SC_H - _SC_FRAME - _SC_FOOT - 1.2;
+  return g;
+}
+
+function _scDiamond(doc, cx, cy, r, style) {
+  doc.lines([[r, r], [-r, r], [-r, -r]], cx, cy - r, [1, 1], style, true);
+}
+
+// face: {sp, fit, cont}; opts: {ink, footer}
+function _scDrawCard(doc, x, y, face, opts) {
+  var sp = face.sp, ink = opts && opts.ink, col = _scColor(sp.school);
+  var g = _scGeom(doc, sp, face.cont);
+  var fx = x + _SC_FRAME, fy = y + _SC_FRAME, fw = _SC_W - 2 * _SC_FRAME, fh = _SC_H - 2 * _SC_FRAME;
+  // Рамка: внешняя в цвете школы + тонкая внутренняя
+  doc.setDrawColor(col.r, col.g, col.b);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(fx, fy, fw, fh, 2.4, 2.4, 'S');
+  doc.setLineWidth(0.12);
+  doc.roundedRect(fx + 0.8, fy + 0.8, fw - 1.6, fh - 1.6, 1.8, 1.8, 'S');
+  // Шапка
+  var bx = fx + 0.8, by = y + g.bandTop, bw = fw - 1.6, bh = g.bandH;
+  if (!ink) {
+    doc.setFillColor(col.r, col.g, col.b);
+    doc.roundedRect(bx, by, bw, bh, 1.8, 1.8, 'F');
+    doc.rect(bx, by + bh / 2, bw, bh / 2, 'F');
+  } else {
+    doc.setLineWidth(0.3);
+    doc.line(bx, by + bh, bx + bw, by + bh);
+  }
+  // Круг — ромб с цифрой, у заговора 0
+  var lvl = sp.level || 0, dcx = bx + 1.6 + 4.2, dcy = by + bh / 2;
+  doc.setLineWidth(0.35);
+  doc.setDrawColor(col.r, col.g, col.b);
+  if (!ink) { doc.setFillColor(255, 255, 255); _scDiamond(doc, dcx, dcy, 4, 'F'); }
+  else _scDiamond(doc, dcx, dcy, 4, 'S');
+  doc.setTextColor(col.r, col.g, col.b);
+  doc.setFontSize(9);
+  var lt = String(lvl);
+  doc.text(lt, dcx - doc.getTextWidth(lt) / 2, dcy + 1.15);
+  // Название
+  if (!ink) doc.setTextColor(255); else doc.setTextColor(30);
+  doc.setFontSize(g.nameSize);
+  var nlh = _scLineH(g.nameSize), ny = dcy - (g.nameLines.length * nlh) / 2 + nlh * 0.78;
+  for (var i = 0; i < g.nameLines.length; i++) doc.text(g.nameLines[i], bx + 1.6 + 9.1, ny + i * nlh);
+  // Иконка школы и плашки К/Р справа
+  var rx = bx + bw - 1.6;
+  var icons = ink ? window.__pdfSchoolIcons : window.__pdfSchoolIconsW;
+  var icon = sp.school && icons ? icons[sp.school] : null;
+  if (icon) { try { doc.addImage(icon, 'PNG', rx - 5.2, dcy - 2.6, 5.2, 5.2); } catch (e) {} }
+  rx -= 6.5;
+  g.badges.forEach(function(b) {
+    rx -= 4.4;
+    if (!ink) { doc.setFillColor(255, 255, 255); doc.roundedRect(rx, dcy - 1.9, 3.8, 3.8, 0.6, 0.6, 'F'); }
+    else { doc.setDrawColor(col.r, col.g, col.b); doc.setLineWidth(0.25); doc.roundedRect(rx, dcy - 1.9, 3.8, 3.8, 0.6, 0.6, 'S'); }
+    doc.setTextColor(col.r, col.g, col.b);
+    doc.setFontSize(7);
+    doc.text(b, rx + 1.9 - doc.getTextWidth(b) / 2, dcy + 0.9);
+  });
+  doc.setTextColor(0);
+  // Круг · школа · источник, сетка свойств 2×2
+  if (!face.cont) {
+    var school = sp.school ? String(sp.school).charAt(0).toUpperCase() + String(sp.school).slice(1) : '';
+    var meta = [lvl === 0 ? 'Заговор' : lvl + ' круг'];
+    if (school) meta.push(school);
+    meta.push(sp.homebrew ? 'Своё' : String(sp.source || 'PH14'));
+    doc.setFontSize(6.5);
+    doc.setTextColor(col.r, col.g, col.b);
+    doc.text(meta.join(' · '), x + _SC_PAD, y + g.metaY);
+    g.cells.forEach(function(c) {
+      doc.setFontSize(5.2); doc.setTextColor(120);
+      doc.text(c.label.toUpperCase(), x + c.x, y + c.y + _scLineH(5.2) * 0.8);
+      doc.setFontSize(6.8); doc.setTextColor(20);
+      for (var k = 0; k < c.lines.length; k++) doc.text(c.lines[k], x + c.x, y + c.y + _scLineH(5.2) + _scLineH(6.8) * (k + 0.8));
+    });
+    doc.setDrawColor(210); doc.setLineWidth(0.12);
+    doc.line(x + _SC_PAD, y + g.sep0, x + _SC_W - _SC_PAD, y + g.sep0);
+    doc.line(x + _SC_W / 2, y + g.gridTop + 1, x + _SC_W / 2, y + g.sep1 - 0.6);
+    doc.setDrawColor(col.r, col.g, col.b); doc.setLineWidth(0.3);
+    doc.line(x + _SC_PAD, y + g.sep1 + 0.4, x + _SC_W - _SC_PAD, y + g.sep1 + 0.4);
+  }
+  // Описание
+  var f = face.fit, yy = y + g.bodyTop;
+  doc.setFontSize(f.size); doc.setTextColor(20);
+  for (var j = 0; j < f.lines.length && yy + f.lineH <= y + g.bodyBottom + 0.01; j++) {
+    yy += f.lineH;
+    doc.text(f.lines[j], x + _SC_PAD, yy - f.lineH * 0.22);
+  }
+  // Подвал: полоса цвета школы + персонаж
+  var footY = y + _SC_H - _SC_FRAME - _SC_FOOT;
+  doc.setDrawColor(col.r, col.g, col.b); doc.setLineWidth(0.3);
+  doc.line(x + _SC_PAD, footY, x + _SC_W - _SC_PAD, footY);
+  if (opts && opts.footer) {
+    doc.setFontSize(5.5); doc.setTextColor(120);
+    doc.text(_scClip(opts.footer, 60), x + _SC_PAD, footY + 2.7);
+  }
+  doc.setTextColor(0); doc.setDrawColor(0); doc.setLineWidth(0.2);
+}
+
+function _spellCardFaces(doc, spells) {
+  var faces = [];
+  var iw = _SC_W - 2 * _SC_PAD;
+  var split = function(t, size) { doc.setFontSize(size); return doc.splitTextToSize(t, iw); };
+  spells.forEach(function(sp) {
+    var body = _spellCardBody(sp);
+    var g = _scGeom(doc, sp, false);
+    var fit = _spellCardFit(body, g.bodyBottom - g.bodyTop, split);
+    var allowCont = sp.homebrew && body.length > _SC_CONT_MIN;
+    if (fit.overflow && allowCont) {
+      var cap = fit.lines.length;
+      var all = split(body, fit.size);
+      fit.lines = all.slice(0, cap);
+      var rest = all.slice(cap);
+      faces.push({ sp: sp, fit: fit });
+      var cg = _scGeom(doc, sp, true);
+      for (var n = 0; rest.length && n < 3; n++) {
+        var cf = _spellCardFit(rest.join(' '), cg.bodyBottom - cg.bodyTop, split);
+        if (cf.overflow && n < 2) {
+          var cAll = split(rest.join(' '), cf.size);
+          cf.lines = cAll.slice(0, cf.lines.length);
+          rest = cAll.slice(cf.lines.length);
+        } else rest = [];
+        faces.push({ sp: sp, cont: true, fit: cf });
+      }
+    } else faces.push({ sp: sp, fit: fit });
+  });
+  return faces;
+}
+
+async function exportSpellCardsPDF(mode, id) {
+  try {
+    var char = null;
+    if (id && typeof characters !== 'undefined') char = characters.find(function(c) { return c.id === id; });
+    if (!char && typeof getCurrentChar === 'function') char = getCurrentChar();
+    if (!char) {
+      if (typeof showToast === 'function') showToast('Персонаж не найден', 'error');
+      return;
+    }
+    var spells = _spellCardList(char, mode);
+    if (!spells.length) {
+      if (typeof showToast === 'function') showToast(mode === 'all' ? 'Нет известных заклинаний' : 'Нет подготовленных заклинаний и заговоров', 'error');
+      return;
+    }
+    var schools = [], seen = {};
+    spells.forEach(function(sp) { if (sp.school && !seen[sp.school]) { seen[sp.school] = 1; schools.push(sp.school); } });
+    var ink = false;
+    try { ink = localStorage.getItem('dnd_cards_ink') === '1'; } catch (e) {}
+    try {
+      await _pdfLoadSchoolIcons(schools);
+      if (!ink) {
+        window.__pdfSchoolIconsW = window.__pdfSchoolIconsW || {};
+        await Promise.all(schools.map(function(s) {
+          if (Object.prototype.hasOwnProperty.call(window.__pdfSchoolIconsW, s)) return null;
+          return _scWhiteIcon(window.__pdfSchoolIcons[s]).then(function(u) { window.__pdfSchoolIconsW[s] = u; });
+        }));
+      }
+    } catch (e) { if (window.__catchLog) window.__catchLog('pdf:schools', e); }
+
+    var footer = [char.name, char.class ? char.class + (char.level ? ' ' + char.level : '') : ''].filter(Boolean).join(' · ');
+    var doc = _pdfNewDoc();
+    var faces = _spellCardFaces(doc, spells);
+    for (var i = 0; i < faces.length; i++) {
+      var k = i % 9;
+      if (i > 0 && k === 0) doc.addPage();
+      if (k === 0) _scCutMarks(doc);
+      _scDrawCard(doc, _SC_X0 + (k % 3) * _SC_W, _SC_Y0 + Math.floor(k / 3) * _SC_H, faces[i], { ink: ink, footer: footer });
+    }
+    doc.save(_pdfSafeName(char.name) + '_карточки.pdf');
+    if (typeof showToast === 'function') showToast('📄 Карточки готовы: ' + faces.length, 'success');
+  } catch (e) {
+    if (window.__catchLog) window.__catchLog('pdf:cards', e);
+    if (typeof showToast === 'function') showToast('Ошибка PDF: ' + (e && e.message ? e.message : e), 'error');
+    else if (typeof console !== 'undefined') console.error('[pdf]', e);
+  }
+}
+
 // Экспонируем глобально (vanilla, без сборщика)
 window.exportCharacterPDF = exportCharacterPDF;
+window.exportSpellCardsPDF = exportSpellCardsPDF;

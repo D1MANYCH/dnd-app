@@ -10772,6 +10772,37 @@
     return true;
   });
 
+  // ────────── БЛОК 70 (РОСТ-4): карточки заклинаний — отбор и подгонка текста ──────────
+  t("[РОСТ-4] _spellCardList: подготовленные + заговоры по кругу и имени; 'all' — все известные", function(){
+    if (typeof _spellCardList !== "function") return "нет _spellCardList";
+    var c = { class: "Волшебник", level: 5, spells: { prepared: [12], mySpells: [
+      { id: 11, name: "Щит", level: 1 }, { id: 12, name: "Огненный шар", level: 3 },
+      { id: 13, name: "Волшебная стрела", level: 1 }, { id: 14, name: "Луч холода", level: 0 }, { id: 15, name: "", level: 1 }
+    ] } };
+    var p = _spellCardList(c, "prepared").map(function(s){ return s.id; }).join(",");
+    if (p !== "14,12") return "prepared: " + p;
+    var a = _spellCardList(c, "all").map(function(s){ return s.id; }).join(",");
+    if (a !== "14,13,11,12") return "all: " + a;
+    var w = { class: "Колдун", level: 3, spells: { mySpells: [{ id: 1, name: "Адское возмездие", level: 1 }] } };
+    if (_spellCardList(w, "prepared").length !== 1) return "колдун: известные = подготовленные";
+    return true;
+  });
+  t("[РОСТ-4] _spellCardFit: 9 → … → 6 pt, потом обрезка с «…» и хвостом", function(){
+    if (typeof _spellCardFit !== "function") return "нет _spellCardFit";
+    // строка вмещает 10·size символов; вместимость по высоте: 9 pt — 13 строк, 8,5 — 14, 6 — 20
+    var split = function(txt, size) { var n = Math.floor(size * 10), out = []; for (var i = 0; i < txt.length; i += n) out.push(txt.slice(i, i + n)); return out; };
+    var h = 20.5 * _scLineH(6);
+    var f = _spellCardFit(new Array(101).join("a"), h, split);
+    if (f.size !== 9 || f.overflow) return "короткий текст не 9 pt: " + f.size;
+    f = _spellCardFit(new Array(1181).join("a"), h, split);
+    if (f.size !== 8.5 || f.overflow) return "8,5 pt: " + JSON.stringify([f.size, f.lines.length]);
+    f = _spellCardFit(new Array(5001).join("a"), h, split);
+    if (f.size !== 6 || !f.overflow || f.lines.length !== 20) return "обрезка: " + JSON.stringify([f.size, f.lines.length]);
+    if (f.lines[19].slice(-1) !== "…") return "нет «…»";
+    if (f.rest.length + 20 !== Math.ceil(5000 / 60)) return "хвост потерян: " + f.rest.length;
+    return true;
+  });
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
