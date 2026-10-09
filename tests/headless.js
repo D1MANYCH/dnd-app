@@ -10734,6 +10734,44 @@
     return true;
   });
 
+  // РОСТ-3: «Мои броски»
+  t("[РОСТ-3] миграция v<47: savedRolls массивом, схема → текущая, данные не теряются", function(){
+    var c = migrateCharacter({ id: 96001, class: "Воин", level: 1, schemaVersion: 46 });
+    if (!Array.isArray(c.savedRolls) || c.savedRolls.length) return "нет пустого savedRolls: " + JSON.stringify(c.savedRolls);
+    if (c.schemaVersion !== SCHEMA_VERSION) return "схема: " + c.schemaVersion;
+    var d = migrateCharacter({ id: 96002, class: "Воин", level: 1, schemaVersion: 47, savedRolls: [{ id: "a", name: "Удар", formula: "1к8+3" }] });
+    if (d.savedRolls.length !== 1 || d.savedRolls[0].formula !== "1к8+3") return "список затёрт";
+    return true;
+  });
+
+  t("[РОСТ-3] санитайзер: мусор, длины, плохие формулы, дубли id, лимит 20", function(){
+    var long = new Array(62).join("1") + "к6";
+    var list = [null, "строка", { name: 5, formula: "2к6+3" }, { id: "x", name: "Плохо", formula: "2к" },
+                { id: "x", name: new Array(60).join("я"), formula: "1d20+5" }, { id: "x", name: "Дубль", formula: "к4" },
+                { name: "Длинная", formula: long }, { name: "Число", formula: 20 }];
+    var out = _savedRollsClean(list);
+    if (out.length !== 3) return "ожидалось 3, а " + out.length + ": " + JSON.stringify(out);
+    if (out[0].name !== "2к6+3") return "имя по формуле: " + out[0].name;
+    if (out[1].name.length !== 40) return "имя не обрезано: " + out[1].name.length;
+    if (out[1].id === out[2].id) return "дубль id";
+    var many = []; for (var i = 0; i < 25; i++) many.push({ name: "б" + i, formula: "к20" });
+    if (_savedRollsClean(many).length !== 20) return "лимит 20 не держится";
+    var c = _sanitizeImportedChar({ class: "Воин", level: 1, savedRolls: [{ name: "А", formula: "к6" }, { formula: "зло" }] });
+    if (c.savedRolls.length !== 1) return "импорт не фильтрует: " + JSON.stringify(c.savedRolls);
+    return true;
+  });
+
+  t("[РОСТ-3] «−» из канонической записи меняется на «-» и формула читается", function(){
+    var p = parseDiceFormula("1к20−5");
+    if (p.ok) return "парсер стал читать «−» — нормализация больше не нужна?";
+    var f = _savedRollFormula(" 1к20−5 ");
+    if (f !== "1к20-5") return "не нормализовано: " + f;
+    if (!parseDiceFormula(f).ok) return "нормализованная формула не читается";
+    var out = _savedRollsClean([{ name: "Минус", formula: "2к6−1" }]);
+    if (out.length !== 1 || out[0].formula !== "2к6-1") return "санитайзер: " + JSON.stringify(out);
+    return true;
+  });
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

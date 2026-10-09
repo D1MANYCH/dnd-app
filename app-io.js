@@ -81,6 +81,8 @@ function _sanitizeImportedChar(c) {
     if (s.source != null && typeof s.source !== "string") s.source = "PH14";
     return s;
   });
+  // РОСТ-3: «Мои броски» — строки, длины, валидная формула
+  if (c.savedRolls != null && typeof _savedRollsClean === "function") c.savedRolls = _savedRollsClean(c.savedRolls);
   if (c.notesV2 && Array.isArray(c.notesV2.entries) && typeof _notesSanitizeEntry === "function") {
     c.notesV2.entries = c.notesV2.entries.map(_notesSanitizeEntry).filter(Boolean);
   }

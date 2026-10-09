@@ -977,6 +977,11 @@ function migrateCharacter(char) {
     }
     char.schemaVersion = 46;
   }
+  if (v < 47) {
+    // РОСТ-3: «Мои броски» — новое поле, у старых персонажей пусто
+    if (!Array.isArray(char.savedRolls)) char.savedRolls = [];
+    char.schemaVersion = 47;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

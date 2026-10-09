@@ -1460,6 +1460,7 @@ setTimeout(updateSubclassOptions, 0);
 // Применить блокировку основной информации (мастер создания)
 setTimeout(function() { if (typeof applyBasicLockUI === "function") applyBasicLockUI(); }, 0);
 renderWeapons();
+if (typeof renderSavedRolls === "function") renderSavedRolls();
 updateAllStatDisplays();
 renderSpellSlots();
 renderMySpells();

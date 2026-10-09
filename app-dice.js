@@ -1415,6 +1415,155 @@ function toggleDiceFormulaPanel() {
   }
 }
 
+// РОСТ-3: «Мои броски» — заготовки формул персонажа (char.savedRolls) на вкладке «Бой».
+// Храним исходную строку, но «−» из _formulaCanon меняем на «-»: парсер его не читает.
+var SAVED_ROLLS_MAX = 20;
+var _savedRollEditIdx = -1;
+function _savedRollFormula(s) {
+  return String(s == null ? '' : s).replace(/−/g, '-').trim();
+}
+function _savedRollsClean(list) {
+  if (!Array.isArray(list)) return [];
+  var out = [], ids = {};
+  list.forEach(function(r, i) {
+    if (!r || typeof r !== 'object' || out.length >= SAVED_ROLLS_MAX) return;
+    var f = typeof r.formula === 'string' ? _savedRollFormula(r.formula) : '';
+    if (!f || f.length > 60 || !parseDiceFormula(f).ok) return;
+    var n = typeof r.name === 'string' ? r.name.trim().slice(0, 40) : '';
+    var id = (typeof r.id === 'string' || typeof r.id === 'number') ? String(r.id).slice(0, 40) : '';
+    if (!id || ids[id]) id = 'sr' + Date.now().toString(36) + i;
+    ids[id] = 1;
+    out.push({ id: id, name: n || f, formula: f });
+  });
+  return out;
+}
+function _savedRollNewId() {
+  return 'sr' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
+}
+function _savedRollLabel(formula) {
+  var p = parseDiceFormula(formula);
+  return p.ok ? _formulaCanon(p.groups, p.mod) : formula;
+}
+function renderSavedRolls() {
+  var box = $("saved-rolls-list");
+  if (!box) return;
+  var char = currentId ? getCurrentChar() : null;
+  var list = char && Array.isArray(char.savedRolls) ? char.savedRolls : [];
+  if (!list.length) {
+    box.innerHTML = '<div class="hp-row hp-row--static saved-roll-empty">Сохраните формулу, которую бросаете часто, — например, «Скрытая атака · 3к6».</div>';
+    return;
+  }
+  box.innerHTML = list.map(function(r, i) {
+    return '<div class="hp-row saved-roll-row" onclick="savedRollTap(event,' + i + ')">' +
+      '<span class="disc-diamond"></span>' +
+      '<span class="hp-row-name">' + escapeHtml(r.name) + '</span>' +
+      '<span class="hp-row-meta">' + escapeHtml(_savedRollLabel(r.formula)) + '</span>' +
+      '<span class="saved-roll-acts"><button type="button" class="hp-act" onclick="savedRollEdit(' + i + ')">Изменить</button>' +
+      '<span class="hp-dot" aria-hidden="true">·</span>' +
+      '<button type="button" class="hp-act hp-act--dmg" onclick="savedRollDelete(' + i + ')">Удалить</button></span>' +
+      '</div>';
+  }).join('');
+}
+function savedRollRoll(i) {
+  var char = currentId ? getCurrentChar() : null;
+  var r = char && Array.isArray(char.savedRolls) && char.savedRolls[i];
+  if (!r) return;
+  rollFormula(r.formula, { label: r.name, openArena: true, noMin: true });
+}
+// Тап по строке: на ПК — бросок, на телефоне — шторка (по образцу weaponRowTap).
+function savedRollTap(e, i) {
+  if (e && e.target && e.target.closest && e.target.closest("button, a, input")) return;
+  var char = currentId ? getCurrentChar() : null;
+  var r = char && Array.isArray(char.savedRolls) && char.savedRolls[i];
+  if (!r) return;
+  if (window.matchMedia && window.matchMedia("(max-width: 1023px)").matches && typeof openMobSheet === "function") {
+    openMobSheet(r.name, mobSheetActs([
+      ["Бросить · " + _savedRollLabel(r.formula), "savedRollRoll(" + i + ")"],
+      ["Изменить", "savedRollEdit(" + i + ")"],
+      ["Удалить", "savedRollDelete(" + i + ")"]
+    ]));
+    return;
+  }
+  savedRollRoll(i);
+}
+// i = -1 — новый бросок.
+function savedRollEdit(i) {
+  var char = currentId ? getCurrentChar() : null;
+  if (!char) return;
+  var list = Array.isArray(char.savedRolls) ? char.savedRolls : [];
+  var r = i >= 0 ? list[i] : null;
+  if (i >= 0 && !r) return;
+  if (!r && list.length >= SAVED_ROLLS_MAX) { showToast("Не больше " + SAVED_ROLLS_MAX + " бросков", "info"); return; }
+  _savedRollEditIdx = r ? i : -1;
+  var form = $("saved-roll-form"), n = $("saved-roll-name"), f = $("saved-roll-formula"), err = $("saved-roll-err");
+  if (!form || !n || !f) return;
+  n.value = r ? r.name : '';
+  f.value = r ? r.formula : '';
+  if (err) err.textContent = '';
+  form.hidden = false;
+  try { n.focus(); } catch (e) {}
+}
+function savedRollCancel() {
+  _savedRollEditIdx = -1;
+  var form = $("saved-roll-form");
+  if (form) form.hidden = true;
+}
+function savedRollSubmit() {
+  var char = currentId ? getCurrentChar() : null;
+  if (!char) return;
+  var n = $("saved-roll-name"), f = $("saved-roll-formula"), err = $("saved-roll-err");
+  var formula = _savedRollFormula(f ? f.value : '');
+  var p = parseDiceFormula(formula);
+  var msg = !p.ok ? p.error : (formula.length > 60 ? 'Формула длиннее 60 знаков' : '');
+  if (msg) { if (err) err.textContent = msg; return; }
+  var name = (n ? n.value : '').trim().slice(0, 40) || _formulaCanon(p.groups, p.mod);
+  if (!Array.isArray(char.savedRolls)) char.savedRolls = [];
+  var r = _savedRollEditIdx >= 0 ? char.savedRolls[_savedRollEditIdx] : null;
+  if (r) { r.name = name; r.formula = formula; }
+  else {
+    if (char.savedRolls.length >= SAVED_ROLLS_MAX) { if (err) err.textContent = 'Не больше ' + SAVED_ROLLS_MAX + ' бросков'; return; }
+    char.savedRolls.push({ id: _savedRollNewId(), name: name, formula: formula });
+  }
+  if (window.AppLog) AppLog.action('dice', (r ? 'мой бросок изменён: ' : 'мой бросок сохранён: ') + name + ' · ' + formula);
+  saveToLocal();
+  savedRollCancel();
+  renderSavedRolls();
+}
+function savedRollDelete(i) {
+  var char = currentId ? getCurrentChar() : null;
+  var r = char && Array.isArray(char.savedRolls) && char.savedRolls[i];
+  if (!r) return;
+  var id = r.id;
+  showConfirmModal("Удалить бросок?", "«" + r.name + "» исчезнет из ваших бросков.", function() {
+    var c = getCurrentChar();
+    if (!c || !Array.isArray(c.savedRolls)) return;
+    var k = c.savedRolls.findIndex(function(x) { return x && x.id === id; });
+    if (k < 0) return;
+    c.savedRolls.splice(k, 1);
+    if (window.AppLog) AppLog.action('dice', 'мой бросок удалён: ' + r.name);
+    saveToLocal();
+    savedRollCancel();
+    renderSavedRolls();
+  });
+}
+// Ссылка в панели формулы окна кубиков: сохраняет введённую формулу под её же подписью.
+function savedRollFromDice() {
+  var inp = document.getElementById('dice-custom-input-main');
+  var char = currentId ? getCurrentChar() : null;
+  if (!char) { showToast("Сначала откройте персонажа", "info"); return; }
+  var formula = _savedRollFormula(inp ? inp.value : '');
+  var p = parseDiceFormula(formula);
+  if (!p.ok || formula.length > 60) { showToast(p.ok ? 'Формула длиннее 60 знаков' : p.error, "info"); return; }
+  if (!Array.isArray(char.savedRolls)) char.savedRolls = [];
+  if (char.savedRolls.length >= SAVED_ROLLS_MAX) { showToast("Не больше " + SAVED_ROLLS_MAX + " бросков", "info"); return; }
+  var name = _formulaCanon(p.groups, p.mod);
+  char.savedRolls.push({ id: _savedRollNewId(), name: name, formula: formula });
+  if (window.AppLog) AppLog.action('dice', 'мой бросок сохранён из окна кубиков: ' + formula);
+  saveToLocal();
+  renderSavedRolls();
+  showToast("«" + name + "» — в «Моих бросках» на вкладке «Бой»", "success");
+}
+
 // DICE-2: горячие клавиши окна на ПК — Пробел/Enter бросают выбранную кость,
 // 1–7 выбирают кость в строке. Не мешают полям ввода, поповерам и диалогам поверх.
 // Кнопка в фокусе с клавиатуры (Tab) сохраняет своё Enter/Пробел; после клика

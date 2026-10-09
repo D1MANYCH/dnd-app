@@ -17885,3 +17885,26 @@ button.modal-close-bottom:hover,
   }
 }
 #rr-conc-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── РОСТ-3: «Мои броски» (вкладка «Бой») и ссылка в окне кубиков ── */
+.saved-roll-form { padding-top: var(--sp-2); }
+.saved-roll-inp { width: 140px; }
+.saved-roll-err { min-height: 1.2em; color: var(--danger); font-size: var(--fs-sm); }
+.saved-roll-empty { color: var(--home-sub); font-size: var(--fs-sm); }
+.saved-roll-acts { display: inline-flex; align-items: center; }
+.dice-save-roll {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  margin-top: 4px;
+  font-size: var(--fs-sm);
+  color: var(--accent);
+}
+.dice-save-roll:hover { text-decoration: underline; }
+.dice-save-roll:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 1023px) {
+  .saved-roll-acts { display: none; }
+  .saved-roll-inp { width: 120px; }
+}
