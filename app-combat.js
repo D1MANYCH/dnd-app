@@ -220,6 +220,13 @@ if (CLASS_SAVE_PROFICIENCIES[className]) {
     if (char.saves) char.saves[saveKey] = true;
   });
 }
+// АУД4-3 (C4): спасброски от черт («Устойчивый») не зависят от класса
+(char.feats || []).forEach(function(f) {
+  if (!f || !f.saveStat) return;
+  const checkbox = $("save-prof-" + f.saveStat);
+  if (checkbox) checkbox.checked = true;
+  if (char.saves) char.saves[f.saveStat] = true;
+});
 
 calcStats();
 // Сброс выбора инструментов от старого класса (имя класса в ключе)
@@ -1358,6 +1365,7 @@ function toggleSpeciesChoice(choiceId, optId) {
 // PH24 с меткой grantedBy, снимаются при смене вида/опции, растут с уровнем (minLevel).
 function syncSpeciesSpells(char) {
   if (!char || char.edition !== "2024" || typeof edData !== "function" || typeof SPELL_DATABASE === "undefined") return false;
+  if (typeof EDITION_DATA === "undefined" || !EDITION_DATA["2024"]) return false; // АУД4-3 (R4): до загрузки data-2024 виды неизвестны
   if (!char.spells) return false;
   if (!Array.isArray(char.spells.mySpells)) char.spells.mySpells = [];
   var data = edData(char).RACE_DATA[char.race];
@@ -2188,7 +2196,7 @@ function _creationTodo(char) {
       if (!(char.speciesChoices && char.speciesChoices[ch.id])) add(ch.name, race, goRace);
     });
   }
-  _classSkillList(char).forEach(function(e) {
+  _classSkillSync(char).forEach(function(e) { // АУД4-3 (C10): выбор приведён к текущим классам
     var n = e.count - ((char.classSkillChoice || {})[e.cls] || []).length;
     if (n > 0) add("Навыки класса", e.cls + " · осталось " + n, "creationTodoGo('class-skills-panel')");
   });
@@ -2283,6 +2291,8 @@ function openLockSheet() {
 // сводка в две строки, поля по «Подробнее»; «Владения» свёрнуты со сводкой в заголовке;
 // расчёт КД — шторка по тапу на 🛡 в шапке. Десктоп не затронут: всё под @media ≤1023.
 var _idMoreOpen = false, _profOpen = null;
+// АУД4-3 (C9): раскрытие панелей выбора не переносится на другого персонажа (зовёт loadCharacter)
+function _creationUiReset() { _pickOpen = {}; _idMoreOpen = false; _profOpen = null; }
 function _isMobSheet() { return !!(window.matchMedia && window.matchMedia("(max-width: 1023px)").matches); }
 function renderIdentitySummary() {
   var el = $("id-summary"), card = el && el.closest(".identity-card");
@@ -2404,12 +2414,13 @@ function unlockSheet() {
 // ============================================
 // ПРЕДЫСТОРИЯ: авто-навыки
 // ============================================
-function onBackgroundChange() {
+function onBackgroundChange(prevBg) {
   if (!currentId) return;
   var char = getCurrentChar();
   var bgEl = $("char-background");
   if (!bgEl || !char) return;
   var bg = bgEl.value;
+  if (prevBg != null && prevBg !== bg) _bgUncheckOld(char, prevBg, bg);
   // Сброс выбора языков от предыстории при смене
   if (char.proficiencies && char.proficiencies.languageChoices) {
     char.proficiencies.languageChoices.background = [];
@@ -2445,6 +2456,21 @@ function onBackgroundChange() {
   renderBackgroundFeature();
   renderBackgroundExtras();
   renderClassSkills();
+}
+
+// АУД4-3 (C2): при смене предыстории снять её навыки, если их не даёт раса, класс или новая предыстория
+function _bgSkillsOf(char, name) {
+  var d = (typeof getBackgroundDef === "function") ? getBackgroundDef(char, name)
+    : ((typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[name]);
+  var out = d ? (Array.isArray(d) ? d : (d.skills || [])).slice() : [];
+  if (name === CUSTOM_BACKGROUND_KEY && char.bgCustom) out = out.concat(char.bgCustom.skills || []);
+  return out;
+}
+function _bgUncheckOld(char, prevBg, bg) {
+  var old = _bgSkillsOf(char, prevBg).concat(char.bgSkillPicks || []);
+  var keep = _bgSkillsOf(char, bg).concat(char.raceSkillChoice || []);
+  Object.keys(char.classSkillChoice || {}).forEach(function(k) { keep = keep.concat(char.classSkillChoice[k] || []); });
+  old.forEach(function(n) { if (keep.indexOf(n) === -1) _raceSkillSet(char, n, false); });
 }
 
 // Отметить навыки предыстории (чекбоксы листа). Общий для 2014/2024/«своей».

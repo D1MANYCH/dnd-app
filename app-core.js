@@ -1309,6 +1309,7 @@ if (el) el.checked = checked;
 // ============================================
 // 🔧 ИСПРАВЛЕНИЕ: Подкласс сохраняется + hpCurrent как число
 // ============================================
+var _loadCharWait24 = null;
 function loadCharacter(id) {
 if (window.AppLog) AppLog.action('character', 'загрузка персонажа', { id: id });
 // BUGFIX-8: чистим pending-таймеры из других модулей, чтобы они не «дострелили»
@@ -1325,6 +1326,17 @@ try {
     }
   }
 } catch (e) { if (typeof console !== 'undefined') console.error('[loadCharacter] clear-timers:', e); }
+// АУД4-3 (C6): 2024-персонаж открывается после загрузки data-2024.js, иначе лист строится по таблицам 2014
+var _ch24 = characters.find(function(c) { return c.id === id; });
+if (_ch24 && _ch24.edition === '2024' && typeof EDITION_DATA !== 'undefined' && !EDITION_DATA['2024'] &&
+    typeof window !== 'undefined' && typeof window.ensureEdition2024 === 'function' && _loadCharWait24 !== id) {
+  _loadCharWait24 = id;
+  var _go24 = function() { if (_loadCharWait24 === id) loadCharacter(id); };
+  window.ensureEdition2024().then(_go24, _go24);
+  return;
+}
+_loadCharWait24 = null;
+if (id !== currentId && typeof _creationUiReset === 'function') _creationUiReset(); // АУД4-3 (C9)
 currentId = id;
 const char = characters.find(function(c) { return c.id === id; });
 if (!char) return;

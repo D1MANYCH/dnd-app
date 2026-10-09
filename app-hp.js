@@ -733,17 +733,18 @@ function luApplyFeatById(char, featId, level, statPick) {
   if (!char.feats) char.feats = [];
   if (!feat.repeatable && char.feats.some(function(f){ return f.id === featId; })) return null; // уже взята (повторяемые 2024 — можно снова)
   if (rulesFeatPrereqMissing(char, feat)) return null; // AUD-7 (L25): требование не выполнено
+  var saveStat = null;
   (feat.effects || []).forEach(function(eff){
     var cap = eff.max || 20; // E24-3: потолок характеристики (эпические дары — 30)
     if (eff.type === "stat") {
-      char.stats[eff.key] = Math.min(cap, (char.stats[eff.key] || 10) + eff.value);
+      char.stats[eff.key] = Math.max(char.stats[eff.key] || 10, Math.min(cap, (char.stats[eff.key] || 10) + eff.value));
     } else if (eff.type === "stat_choice" || eff.type === "stat_choice_save") {
       // AUD-7 (L8): выбранная характеристика; без выбора — первая допустимая
       var opts = rulesFeatStatOptions(char, eff);
       var picked = opts.indexOf(statPick) !== -1 ? statPick : opts[0];
       if (picked) {
-        char.stats[picked] = Math.min(cap, (char.stats[picked] || 10) + eff.value);
-        if (eff.type === "stat_choice_save") { if (!char.saves) char.saves = {}; char.saves[picked] = true; }
+        char.stats[picked] = Math.max(char.stats[picked] || 10, Math.min(cap, (char.stats[picked] || 10) + eff.value));
+        if (eff.type === "stat_choice_save") { if (!char.saves) char.saves = {}; char.saves[picked] = true; saveStat = picked; }
       }
     } else if (eff.type === "armor") {
       if (!char.proficiencies.armor) char.proficiencies.armor = [];
@@ -763,7 +764,7 @@ function luApplyFeatById(char, featId, level, statPick) {
       if (char.proficiencies.weapon.indexOf(eff.value) === -1) char.proficiencies.weapon.push(eff.value);
     }
   });
-  char.feats.push({ id: feat.id, name: feat.name, level: level });
+  char.feats.push(saveStat ? { id: feat.id, name: feat.name, level: level, saveStat: saveStat } : { id: feat.id, name: feat.name, level: level });
   // FSP-2: фиксированные заклинания черты — сразу в гримуар
   if (feat.spellPick && typeof featAddFixedSpells === "function") featAddFixedSpells(char, char.feats[char.feats.length - 1], feat);
   return feat.name;

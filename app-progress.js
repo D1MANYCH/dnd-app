@@ -823,6 +823,19 @@ function _mlRender() {
   body.innerHTML = html;
 }
 
+// АУД4-3 (C5): отметки АСИ убранных классов и уровней выше нового не остаются
+// (навыки убранного класса снимает _classSkillSync при фиксации основы)
+function _mlPruneAsi(char, rows) {
+  if (!char.asiUsed || typeof char.asiUsed !== "object" || Array.isArray(char.asiUsed)) return;
+  var lvlOf = {};
+  rows.forEach(function(r) { lvlOf[r.cls] = r.level; });
+  Object.keys(char.asiUsed).forEach(function(c) {
+    if (!Array.isArray(char.asiUsed[c])) return;
+    char.asiUsed[c] = char.asiUsed[c].filter(function(l) { return typeof l !== "number" || (lvlOf[c] && l <= lvlOf[c]); });
+    if (!lvlOf[c] && !char.asiUsed[c].length) delete char.asiUsed[c];
+  });
+}
+
 function mlApply() {
   var char = getCurrentChar();
   if (!char || !_ml || char.basicLocked) return;
@@ -835,6 +848,7 @@ function mlApply() {
     return { class: r.cls, level: r.level, subclass: (at && r.level >= at) ? (r.sub || "") : "", hitDie: ed.CLASS_HIT_DICE[r.cls] || 8 };
   });
   syncClassFields(char);
+  _mlPruneAsi(char, rows);
   // Раскладка задаётся целиком — снимок пошагового отката к ней не относится
   delete char._prevLevelSnapshot;
   if (typeof recalcArmorWeaponFromSources === "function") recalcArmorWeaponFromSources(char);

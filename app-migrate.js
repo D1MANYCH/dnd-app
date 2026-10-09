@@ -963,6 +963,20 @@ function migrateCharacter(char) {
     }
     char.schemaVersion = 45;
   }
+  if (v < 46) {
+    // АУД4-3 (C4): «Устойчивый» запоминает характеристику спасброска (feat.saveStat), иначе смена
+    // класса его снимала. Старым записям — спасбросок вне класса, если он определяется однозначно.
+    var _res46 = (Array.isArray(char.feats) ? char.feats : []).filter(function(f) {
+      return f && !f.saveStat && /resilient/.test(String(f.id || ""));
+    });
+    if (_res46.length && char.saves && typeof CLASS_SAVE_PROFICIENCIES !== "undefined") {
+      var _cls46 = (Array.isArray(char.classes) && char.classes[0] && char.classes[0].class) || char.class;
+      var _own46 = CLASS_SAVE_PROFICIENCIES[_cls46] || [];
+      var _extra46 = ["str", "dex", "con", "int", "wis", "cha"].filter(function(k) { return char.saves[k] && _own46.indexOf(k) === -1; });
+      if (_extra46.length === _res46.length) _res46.forEach(function(f, i) { f.saveStat = _extra46[i]; });
+    }
+    char.schemaVersion = 46;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

@@ -290,7 +290,13 @@ function _asiFeatBlocked(char, feat) {
   if (!char || !feat) return null;
   if (!feat.repeatable && (char.feats || []).some(function(f) { return f.id === feat.id; })) return "Черта уже взята";
   var miss = rulesFeatPrereqMissing(char, feat);
-  return miss ? "Требование не выполнено: " + miss : null;
+  if (miss) return "Требование не выполнено: " + miss;
+  var eff = rulesFeatStatChoice(feat);
+  if (eff && !rulesFeatStatOptions(char, eff).length) {
+    return eff.type === "stat_choice_save" ? "Нет характеристики на выбор: у подходящих уже есть спасбросок или значение " + (eff.max || 20)
+      : "Нет характеристики на выбор: все подходящие уже " + (eff.max || 20);
+  }
+  return null;
 }
 // AUD-7 (L8): выбор характеристики для черты со stat_choice
 function _featStatPickHtml(char, feat) {
@@ -376,7 +382,7 @@ function applyASI() {
     var statNames2 = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
     asiSelectedStats.forEach(function(k) {
       var before = char.stats[k] || 10;
-      char.stats[k] = Math.min(20, before + bonus);
+      char.stats[k] = Math.max(before, Math.min(20, before + bonus));
       _statGain(char, "asiStats", k, char.stats[k] - before);
       safeSet("val-" + k, char.stats[k]);
       updateStatDisplay(k);
@@ -410,13 +416,14 @@ function applyASI() {
   // Apply effects
   var statNames = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
   var appliedDesc = [];
+  var saveStat = null;
 
   (feat.effects || []).forEach(function(eff) {
     // E24-3: eff.max — потолок характеристики (эпические дары 2024 — 30), по умолчанию 20
     var cap = eff.max || 20;
     if (eff.type === "stat") {
       var before = char.stats[eff.key] || 10;
-      char.stats[eff.key] = Math.min(cap, before + eff.value);
+      char.stats[eff.key] = Math.max(before, Math.min(cap, before + eff.value));
       _statGain(char, "featStats", eff.key, char.stats[eff.key] - before);
       safeSet("val-" + eff.key, char.stats[eff.key]);
       updateStatDisplay(eff.key);
@@ -427,7 +434,7 @@ function applyASI() {
       var picked = rulesFeatStatOptions(char, eff).indexOf(asiFeatStat) !== -1 ? asiFeatStat : null;
       if (picked) {
         var beforeP = char.stats[picked] || 10;
-        char.stats[picked] = Math.min(cap, beforeP + eff.value);
+        char.stats[picked] = Math.max(beforeP, Math.min(cap, beforeP + eff.value));
         _statGain(char, "featStats", picked, char.stats[picked] - beforeP);
         safeSet("val-" + picked, char.stats[picked]);
         updateStatDisplay(picked);
@@ -435,6 +442,7 @@ function applyASI() {
         if (eff.type === "stat_choice_save") {
           if (!char.saves) char.saves = {};
           char.saves[picked] = true;
+          saveStat = picked;
           safeSetChecked("save-prof-" + picked, true);
         }
       }
@@ -479,6 +487,7 @@ function applyASI() {
   // Record feat — расовая черта помечается отдельно
   var isRaceFeat = (asiCurrentLevel === "race");
   var featRecord = { id: feat.id, name: feat.name, level: char.level };
+  if (saveStat) featRecord.saveStat = saveStat; // АУД4-3 (C4): спасбросок «Устойчивого» переживает смену класса
   if (isRaceFeat) {
     featRecord.racial = true;
     featRecord.level = "раса";
@@ -615,6 +624,8 @@ function _agBonus(char, k) {
   if (Array.isArray(char.raceStatChoice) && char.raceStatChoice.indexOf(k) !== -1) b += 1;
   b += (char.raceFlexStats && char.raceFlexStats[k]) || 0;
   if (char.bgStatChoice && char.bgStatChoice.alloc && typeof _bgAppliedStat === "function") b += _bgAppliedStat(char, k);
+  // АУД4-3 (C1): прибавки от АСИ и черт, применённых в приложении, не стираются генерацией
+  b += ((char.asiStats && char.asiStats[k]) || 0) + ((char.featStats && char.featStats[k]) || 0);
   return b;
 }
 
@@ -761,7 +772,7 @@ function _agRender() {
   });
 
   html += '<p class="ag-note">Бонусы расы' + (char.edition === "2024" ? " и предыстории" : "") + " прибавляются сверху, выбираются в «Основном».</p>";
-  if ((char.level || 1) > 1) html += '<p class="ag-note">Увеличения характеристик за уровни здесь не учтены — после применения добавьте их кнопками ± на листе.</p>';
+  if ((char.level || 1) > 1) html += '<p class="ag-note">Увеличения характеристик и черты, применённые в приложении, входят в «Бонус»; прибавки, поставленные вручную кнопками ±, — нет.</p>';
 
   var why = "";
   if (!_agReady()) why = _ag.mode === "roll" && !_ag.rolls.length ? "Сначала бросьте кубики" : "Распределите все шесть значений";
@@ -773,6 +784,7 @@ function _agRender() {
 function agApply() {
   var char = getCurrentChar();
   if (!char || !_ag || !_agReady()) return;
+  if (char.basicLocked) { showToast("Способ генерации выбирается до фиксации основы", "warn"); return; }
   var base = {};
   AG_KEYS.forEach(function(k) {
     base[k] = _agBase(k);

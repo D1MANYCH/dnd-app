@@ -10547,6 +10547,119 @@
     return true;
   });
 
+  // ────────── АУД4-3: создание персонажа ──────────
+  t("[АУД4-3 C1] генерация характеристик сохраняет прибавки АСИ и черт; после фиксации — запрет", function(){
+    var c = { id: 99301, class: "Воин", level: 4, stats: { str: 17, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+              asiStats: { str: 2 }, featStats: { con: 1 }, saves: {}, skills: [], combat: { hpMax: 30, hpCurrent: 30 } };
+    if (_agBonus(c, "str") !== 2 || _agBonus(c, "con") !== 1) return "бонус " + _agBonus(c, "str") + "/" + _agBonus(c, "con");
+    var saveG = getCurrentChar, saveAg = _ag, saveF = [calcStats, recalculateHP, calculateAC, screenBack, saveToLocal, updateStatDisplay, updateSlotsDisplay];
+    try {
+      getCurrentChar = function () { return c; };
+      calcStats = recalculateHP = calculateAC = screenBack = saveToLocal = updateStatDisplay = updateSlotsDisplay = function () {};
+      _ag = { mode: "pb", pb: { str: 15, dex: 14, con: 13, int: 8, wis: 10, cha: 12 }, std: {}, rolls: [], pick: {} };
+      agApply();
+      if (c.stats.str !== 17 || c.stats.con !== 14) return "после применения СИЛ " + c.stats.str + ", ТЕЛ " + c.stats.con;
+      c.basicLocked = true;
+      _ag = { mode: "pb", pb: { str: 8, dex: 8, con: 8, int: 8, wis: 8, cha: 8 }, std: {}, rolls: [], pick: {} };
+      agApply();
+      if (c.stats.str !== 17) return "после фиксации основа перезаписана";
+    } finally {
+      getCurrentChar = saveG; _ag = saveAg;
+      calcStats = saveF[0]; recalculateHP = saveF[1]; calculateAC = saveF[2]; screenBack = saveF[3]; saveToLocal = saveF[4];
+      updateStatDisplay = saveF[5]; updateSlotsDisplay = saveF[6];
+    }
+    return true;
+  });
+
+  t("[АУД4-3 C7] черта не понижает характеристику выше потолка", function(){
+    var c = { stats: { str: 22, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, level: 4, combat: { hpMax: 30, hpCurrent: 30 }, proficiencies: { armor: ["heavy"] }, feats: [] };
+    luApplyFeatById(c, "heavy_armor_master", 4);
+    return c.stats.str === 22 || "СИЛ " + c.stats.str;
+  });
+
+  t("[АУД4-3 C4] «Устойчивый» запоминает спасбросок; миграция выводит его у старых записей", function(){
+    var c = { stats: { str: 10, dex: 10, con: 10, int: 10, wis: 13, cha: 10 }, level: 4, combat: { hpMax: 30, hpCurrent: 30 }, proficiencies: {}, feats: [], saves: { str: true, con: true } };
+    luApplyFeatById(c, "resilient", 4, "wis");
+    if (!c.feats[0] || c.feats[0].saveStat !== "wis") return "saveStat " + (c.feats[0] && c.feats[0].saveStat);
+    var m = migrateCharacter({ id: 99302, class: "Воин", level: 4, schemaVersion: 45,
+      saves: { str: true, con: true, wis: true }, feats: [{ id: "resilient", name: "Устойчивый", level: 4 }] });
+    if (m.feats[0].saveStat !== "wis") return "миграция: " + m.feats[0].saveStat;
+    var amb = migrateCharacter({ id: 99303, class: "Воин", level: 4, schemaVersion: 45,
+      saves: { str: true, con: true, wis: true, cha: true }, feats: [{ id: "resilient", name: "Устойчивый", level: 4 }] });
+    if (amb.feats[0].saveStat) return "неоднозначный случай угадан";
+    return true;
+  });
+
+  t("[АУД4-3 C8] черта без доступной характеристики объясняет блокировку", function(){
+    var c = { stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, level: 4, feats: [],
+              saves: { str: true, dex: true, con: true, int: true, wis: true, cha: true } };
+    var msg = _asiFeatBlocked(c, getFeatDef(c, "resilient"));
+    return (typeof msg === "string" && msg.indexOf("Нет характеристики") === 0) || "сообщение: " + msg;
+  });
+
+  t("[АУД4-3 R4] syncSpeciesSpells до загрузки data-2024 ничего не удаляет", function(){
+    var saved = EDITION_DATA["2024"];
+    var c = { edition: "2024", race: "Эльф", level: 3, spells: { mySpells: [{ id: 1, name: "Свет", grantedBy: "Вид · Эльф" }] } };
+    try {
+      delete EDITION_DATA["2024"];
+      if (syncSpeciesSpells(c) !== false) return "вернула изменение";
+      if (c.spells.mySpells.length !== 1) return "заклинание вида удалено";
+    } finally { if (saved) EDITION_DATA["2024"] = saved; }
+    return true;
+  });
+
+  t("[АУД4-3 C6] 2024-персонаж открывается только после загрузки данных редакции", function(){
+    var saved = EDITION_DATA["2024"], saveEns = window.ensureEdition2024, saveC = characters, saveId = currentId;
+    var c = { id: 99304, edition: "2024", class: "Воин", level: 1 };
+    try {
+      delete EDITION_DATA["2024"];
+      window.ensureEdition2024 = function () { return new Promise(function () {}); };
+      characters = saveC.concat([c]);
+      loadCharacter(c.id);
+      if (currentId === c.id) return "открыт до загрузки";
+    } finally {
+      if (saved) EDITION_DATA["2024"] = saved;
+      window.ensureEdition2024 = saveEns; characters = saveC; currentId = saveId; _loadCharWait24 = null;
+    }
+    return true;
+  });
+
+  t("[АУД4-3 C2] смена предыстории снимает её навыки, кроме данных другим источником", function(){
+    var iIns = skills.findIndex(function(s){ return s.name === "Проницательность"; });
+    var iRel = skills.findIndex(function(s){ return s.name === "Религия"; });
+    var c = { edition: "2014", skills: [], raceSkillChoice: ["Религия"], classSkillChoice: {} };
+    c.skills[iIns] = true; c.skills[iRel] = true;
+    _bgUncheckOld(c, "Прислужник", "Солдат");
+    if (c.skills[iIns]) return "Проницательность осталась";
+    if (!c.skills[iRel]) return "Религия от расы снята";
+    return true;
+  });
+
+  t("[АУД4-3 C5] раскладка классов чистит АСИ убранных классов и уровней выше", function(){
+    var c = { asiUsed: { "Воин": [4, 8, "race"], "Плут": [4] } };
+    _mlPruneAsi(c, [{ cls: "Воин", level: 6 }]);
+    if (JSON.stringify(c.asiUsed) !== '{"Воин":[4,"race"]}') return JSON.stringify(c.asiUsed);
+    return true;
+  });
+
+  t("[АУД4-3 C9] раскрытие панелей выбора сбрасывается", function(){
+    _pickOpen = { cls0: true }; _idMoreOpen = true; _profOpen = true;
+    _creationUiReset();
+    return (!Object.keys(_pickOpen).length && _idMoreOpen === false && _profOpen === null) || "не сброшено";
+  });
+
+  t("[АУД4-3 C10] «Осталось выбрать» считает навыки класса по синхронизированному выбору", function(){
+    var saveId = currentId;
+    var c = { edition: "2014", class: "Воин", level: 1, classes: [{ class: "Воин", level: 1 }], basicLocked: true,
+              skills: [], classSkillChoice: { "Воин": ["Атлетика", "Магия"] } };
+    try {
+      currentId = null;
+      var todo = _creationTodo(c).map(function(r){ return r[2]; }).join("; ");
+      if (todo.indexOf("Навыки класса (Воин · осталось 1)") === -1) return todo || "пусто";
+    } finally { currentId = saveId; }
+    return true;
+  });
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
