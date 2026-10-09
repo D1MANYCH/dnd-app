@@ -152,6 +152,8 @@ function rulesSpendHitDice(char, dice, rolls) {
   char.combat.hpDiceSpentBy = by;
   char.combat.hpDiceSpent = (char.combat.hpDiceSpent || 0) + dice.length;
   char.combat.hpCurrent = Math.min(hpBefore + hpHealed, parseInt(char.combat.hpMax, 10) || 0);
+  // АУД4-4 (H1): выход из 0 ХП — как при лечении (сброс отметок, снятие «без сознания»)
+  if (hpBefore <= 0 && char.combat.hpCurrent > 0) rulesRegainFromZero(char);
   return { hpBefore: hpBefore, hpAfter: char.combat.hpCurrent, hpHealed: char.combat.hpCurrent - hpBefore, rollLog: rollLog, conMod: conMod };
 }
 
@@ -943,6 +945,18 @@ function rulesIsStable(char) {
 function rulesRegainFromZero(char) {
   _dsReset(char);
   _condRemove(char, "unconscious");
+}
+// АУД4-4 (H6): ХП задано числом (трекер боя) — без временных ХП и правил урона.
+// Выход из 0 — как при лечении; вход в 0 — как при падении до 0 («без сознания»).
+function rulesSetHp(char, n) {
+  var c = char.combat;
+  var hpBefore = c.hpCurrent || 0;
+  var hpAfter = Math.max(0, Math.min(parseInt(n, 10) || 0, rulesEffectiveHpMax(char)));
+  c.hpCurrent = hpAfter;
+  var r = { hpBefore: hpBefore, hpAfter: hpAfter, droppedToZero: false, regained: false };
+  if (hpBefore <= 0 && hpAfter > 0) { rulesRegainFromZero(char); r.regained = true; }
+  else if (hpBefore > 0 && hpAfter === 0) { _dsReset(char); _condAdd(char, "unconscious"); r.droppedToZero = true; }
+  return r;
 }
 // Сопротивление/иммунитет/уязвимость по типу; окаменение — сопротивление всему урону.
 // Порядок: сначала сопротивление (вниз), затем уязвимость (PHB 2014 стр.197, PHB 2024 стр.26)

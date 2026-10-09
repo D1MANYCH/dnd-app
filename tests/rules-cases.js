@@ -997,6 +997,32 @@ function rulesCases(t, group) {
     return c.combat.hpCurrent === 20 ? true : "ХП " + c.combat.hpCurrent;
   });
 
+  t("[АУД4-4 H1] кость хитов на 0 ХП снимает «без сознания» и отметки спасбросков", function() {
+    var c = fixture({ class: "Воин", level: 2 });
+    c.stats.con = 10; c.combat.hpCurrent = 0; c.combat.hpMax = 20;
+    c.conditions = ["unconscious"];
+    c.deathSaves = { successes: [true, false, false], failures: [true, true, false] };
+    rulesSpendHitDice(c, [10], [5]);
+    if (c.combat.hpCurrent !== 5) return "ХП " + c.combat.hpCurrent;
+    if (c.conditions.indexOf("unconscious") !== -1) return "осталось «без сознания»";
+    return (c.deathSaves.failures[0] || c.deathSaves.successes[0]) ? "отметки не сброшены" : true;
+  });
+
+  t("[АУД4-4 H6] rulesSetHp: число ставится напрямую, временные ХП не трогаются; 0 ↔ без сознания", function() {
+    var c = fixture({ class: "Воин", level: 2 });
+    c.combat.hpCurrent = 15; c.combat.hpMax = 20; c.combat.hpTemp = 5; c.conditions = [];
+    var r = rulesSetHp(c, 8);
+    if (c.combat.hpCurrent !== 8 || c.combat.hpTemp !== 5) return "8/5 ожидалось, " + c.combat.hpCurrent + "/" + c.combat.hpTemp;
+    rulesSetHp(c, 99);
+    if (c.combat.hpCurrent !== 20) return "потолок: " + c.combat.hpCurrent;
+    r = rulesSetHp(c, 0);
+    if (!r.droppedToZero || c.conditions.indexOf("unconscious") === -1) return "0 ХП без «без сознания»";
+    c.deathSaves.failures[0] = true;
+    r = rulesSetHp(c, 3);
+    if (!r.regained || c.conditions.indexOf("unconscious") !== -1 || c.deathSaves.failures[0]) return "выход из 0 не сбросил состояние";
+    return true;
+  });
+
   group("AUD-6: 0 ХП, смерть и состояния");
 
   function dying(over) {

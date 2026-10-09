@@ -1548,6 +1548,31 @@ if (actualDelta !== 0) {
 }
 }
 
+// АУД4-4 (H6): поставить ХП числом (поле ХП «я» в трекере боя)
+function setHPAbsolute(n, source) {
+if (!currentId) return;
+const char = getCurrentChar();
+if (!char) return;
+const undo = _hpUndoPrepare(char);
+const r = rulesSetHp(char, n);
+const actualDelta = r.hpAfter - r.hpBefore;
+if (r.regained || r.droppedToZero) {
+  loadDeathSaves();
+  if (typeof loadConditions === "function") loadConditions();
+}
+if (r.droppedToZero) {
+  showToast("💤 0 ХП — без сознания", "error");
+  if (char.concentration) { endConcentration(); showToast("💔 Концентрация потеряна — 0 ХП!", "error"); }
+}
+safeSet("hp-current", r.hpAfter);
+if (actualDelta !== 0) {
+  undo.entry = addHPHistory(r.hpBefore, r.hpAfter, actualDelta, source || "ХП");
+  showHPToast(actualDelta, undefined, undo.action);
+}
+saveToLocal();
+updateHPDisplay();
+}
+
 function addHPHistory(from, to, delta, source) {
 if (window.AppLog) AppLog.action("hp", (delta > 0 ? "+" : "") + delta + " ХП (" + (source || "?") + "): " + from + " → " + to);
 const now = new Date();
@@ -1573,13 +1598,56 @@ function _hpUndoPrepare(char) {
       hp: char.combat.hpCurrent || 0,
       temp: char.combat.hpTemp || 0,
       deathSaves: char.deathSaves ? JSON.parse(JSON.stringify(char.deathSaves)) : char.deathSaves,
-      conditions: Array.isArray(char.conditions) ? char.conditions.slice() : char.conditions
+      conditions: Array.isArray(char.conditions) ? char.conditions.slice() : char.conditions,
+      conc: _hpUndoConcSnap(char)
     },
     entry: null,
     concPrompt: false
   };
   u.action = { label: "Отменить", onClick: function() { undoHPChange(u); } };
   return u;
+}
+// АУД4-4 (H7): урон мог сорвать концентрацию — она снимает эффекты каста, бонус
+// к максимуму ХП и дебаффы на участниках боя; снимок возвращает всё это.
+function _hpUndoConcSnap(char) {
+  if (!char.concentration) return null;
+  var debuffs = {};
+  if (typeof BATTLE_DATA !== "undefined" && BATTLE_DATA && BATTLE_DATA.participants) {
+    BATTLE_DATA.participants.forEach(function(p) {
+      if (p && p.debuffs) debuffs[p.id] = JSON.parse(JSON.stringify(p.debuffs));
+    });
+  }
+  return {
+    name: char.concentration,
+    data: char.concentrationData ? JSON.parse(JSON.stringify(char.concentrationData)) : char.concentrationData,
+    ase: char.activeSpellEffects ? JSON.parse(JSON.stringify(char.activeSpellEffects)) : char.activeSpellEffects,
+    effects: Array.isArray(char.effects) ? char.effects.slice() : char.effects,
+    hpMax: char.combat.hpMax,
+    debuffs: debuffs
+  };
+}
+function _hpUndoConcRestore(char, c) {
+  if (!c || char.concentration === c.name) return;
+  char.concentration = c.name;
+  char.concentrationData = c.data;
+  char.activeSpellEffects = c.ase;
+  char.effects = c.effects;
+  char.combat.hpMax = c.hpMax;
+  var battle = typeof BATTLE_DATA !== "undefined" && BATTLE_DATA && BATTLE_DATA.participants;
+  if (battle) {
+    BATTLE_DATA.participants.forEach(function(p) {
+      if (p && c.debuffs.hasOwnProperty(p.id)) p.debuffs = c.debuffs[p.id];
+    });
+    if (typeof saveBattle === "function") saveBattle();
+  }
+  if (typeof updateConcentrationDisplay === "function") updateConcentrationDisplay();
+  if (typeof calculateAC === "function") calculateAC();
+  if (typeof updateEffectsCount === "function") updateEffectsCount();
+  if (typeof updateStatusBar === "function") updateStatusBar();
+  if (typeof renderEffectsGrid === "function") renderEffectsGrid();
+  if (typeof updateSpellActiveBadges === "function") updateSpellActiveBadges();
+  if (typeof renderBattleCastPanels === "function") renderBattleCastPanels();
+  if (battle && BATTLE_DATA.active && typeof renderBattleTracker === "function") renderBattleTracker();
 }
 function undoHPChange(u) {
   if (!u || u.seq !== _hpUndoSeq || currentId !== u.charId) return false;
@@ -1598,6 +1666,7 @@ function undoHPChange(u) {
     var cm = $("confirm-modal"), ct = $("confirm-modal-title");
     if (cm && ct && ct.textContent === "Концентрация под угрозой") cm.classList.remove("active");
   }
+  _hpUndoConcRestore(char, u.snap.conc);
   if (window.AppLog) AppLog.action("hp", "отмена: ХП " + u.snap.hp + ", временные " + u.snap.temp);
   safeSet("hp-current", u.snap.hp);
   safeSet("hp-temp", u.snap.temp);
@@ -1683,6 +1752,10 @@ const roll = Math.floor(Math.random() * dice[0]) + 1;
 const res = rulesSpendHitDice(char, dice, [roll]);
 const conMod = res.conMod;
 const heal = res.hpHealed;
+if (res.hpBefore <= 0 && res.hpAfter > 0) {
+  loadDeathSaves();
+  if (typeof loadConditions === "function") loadConditions();
+}
 saveToLocal();
 updateHPDisplay();
 if (resultEl) {

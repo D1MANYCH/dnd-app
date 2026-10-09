@@ -265,6 +265,36 @@ function _pentExport(type) {
 function _isValidPentry(e) {
   return e && typeof e === 'object' && typeof e.name === 'string' && e.name.length > 0;
 }
+// АУД4-4 (H4): иконка из файла попадает в innerHTML — допускается только короткий
+// текст без разметки (эмодзи); иначе — значение по умолчанию.
+function _pentSafeIcon(icon, def) {
+  if (typeof icon !== "string" || !icon || /[<>&"']/.test(icon) || Array.from(icon).length > 4) return def;
+  return icon;
+}
+// АУД4-4 (H4, H5): запись из файла — уникальный id, безопасная иконка, статы числами
+function _pentNormalize(e, used) {
+  var id = e.id;
+  if ((typeof id !== "number" && typeof id !== "string") || id === "" || used[String(id)]) {
+    do { id = Date.now() + Math.floor(Math.random() * 100000); } while (used[String(id)]);
+  }
+  e.id = id;
+  used[String(id)] = true;
+  if (e.icon !== undefined) {
+    var ic = _pentSafeIcon(e.icon, null);
+    if (ic) e.icon = ic; else delete e.icon;
+  }
+  if (e.stats !== undefined) {
+    if (e.stats && typeof e.stats === "object") {
+      var st = {};
+      ["str", "dex", "con", "int", "wis", "cha"].forEach(function(k) {
+        var v = parseInt(e.stats[k], 10);
+        if (!isNaN(v)) st[k] = v;
+      });
+      e.stats = st;
+    } else delete e.stats;
+  }
+  return e;
+}
 function _pentImport(type, input) {
   var file = input.files[0]; if (!file) return;
   var MAX = (typeof IMPORT_MAX_BYTES !== 'undefined') ? IMPORT_MAX_BYTES : 10 * 1024 * 1024;
@@ -287,6 +317,9 @@ function _pentImport(type, input) {
     // AUD-2 (S8): не заменять список молча — спросить «добавить/заменить», перед заменой снимок
     var apply = function(replace) {
       if (replace && cur.length && typeof createBackupSnapshot === "function") createBackupSnapshot("party-import").catch(function(){});
+      var used = {};
+      if (!replace) cur.forEach(function(x) { if (x && x.id != null) used[String(x.id)] = true; });
+      valid.forEach(function(x) { _pentNormalize(x, used); });
       PARTY_DATA[key] = replace ? valid : cur.concat(valid);
       if (window.AppLog) AppLog.action("party", "импорт " + type + (replace ? " (замена)" : " (добавление)") + ": " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""));
       saveParty();
@@ -530,7 +563,7 @@ function renderNPCs() {
       if (att) parts.push('<span class="pcard-npc-badge" style="color:' + attC + ';border-color:color-mix(in srgb, ' + attC + ' 45%, transparent)">' + escapeHtml(att) + '</span>');
       subBadges = '<div class="pcard-npc-badges">' + parts.join("") + '</div>';
     }
-    var icon = n.icon || "🧑";
+    var icon = _pentSafeIcon(n.icon, "🧑");
     return '<div class="pcard pcard-npc">' +
       '<div class="pcard-icon pcard-icon-npc">' + icon + '</div>' +
       '<div class="pcard-body">' +
@@ -1044,7 +1077,8 @@ function rollInitiativeValue(dexMod) {
 // современных движках стабилен) — при равенстве сохраняется исходный порядок.
 function sortParticipantsByInitiative(arr) {
   if (!Array.isArray(arr)) return arr;
-  arr.sort(function(a, b) { return (b.initiative || 0) - (a.initiative || 0); });
+  // АУД4-4 (H10): при равной инициативе раньше ходит тот, у кого выше Ловкость
+  arr.sort(function(a, b) { return ((b.initiative || 0) - (a.initiative || 0)) || ((b.dexMod || 0) - (a.dexMod || 0)); });
   return arr;
 }
 // Найти запись отряда по id участника вида "mon_<id>" (для HP/Ловкости монстра).
@@ -1170,6 +1204,14 @@ function startBattle() {
   var selected = battleSetupList.filter(function(p) { return p.checked; });
   if (selected.length === 0) { showToast("Выберите участников боя", "warn"); return; }
   var participants = selected.map(_makeBattleParticipant);
+  // АУД4-4 (H12): одноимённые участники нумеруются, как при добавлении в бой
+  var seen = {};
+  participants.forEach(function(p) {
+    if (p.type === "self") return;
+    p.baseName = p.name;
+    seen[p.name] = (seen[p.name] || 0) + 1;
+    if (seen[p.name] > 1) p.name = p.name + " " + seen[p.name];
+  });
   sortParticipantsByInitiative(participants);
   BATTLE_DATA = { active: true, participants: participants, currentTurn: 0, round: 1 };
   if (window.AppLog) AppLog.action("battle", "бой начат: участников " + selected.length + " (авто-инициатива)");
@@ -1537,6 +1579,7 @@ function adjustBattleHP(i, delta) {
   } else {
     p.hp = Math.max(0, (p.hp || 0) + delta);
     if (p.hpMax > 0) p.hp = Math.min(p.hp, p.hpMax);
+    _battleSyncHpStatus(p);
     saveBattle();
   }
   renderBattleTracker();
@@ -1549,15 +1592,13 @@ function setBattleHP(i, val) {
   if (n < 0) n = 0;
   if (p.type === "self") {
     var char = getCurrentChar();
-    if (char && char.combat) {
-      if (n > (char.combat.hpMax || n)) n = char.combat.hpMax;
-      var delta = n - (char.combat.hpCurrent || 0);
-      if (delta !== 0 && typeof quickHP === "function") quickHP(delta, "Бой");
-      syncSelfBattleStatus();
-    }
+    // АУД4-4 (H6): число — абсолютное значение, не урон/лечение
+    if (char && char.combat && n !== (char.combat.hpCurrent || 0) && typeof setHPAbsolute === "function") setHPAbsolute(n, "Бой");
+    syncSelfBattleStatus();
   } else {
     if (p.hpMax > 0 && n > p.hpMax) n = p.hpMax;
     p.hp = n;
+    _battleSyncHpStatus(p);
     saveBattle();
   }
   renderBattleTracker();
@@ -1613,14 +1654,18 @@ function removeBattleParticipant(i) {
   // Ход остаётся на текущем участнике (если это был он — на следующего по кругу).
   var ci = (currentP && currentP !== p) ? BATTLE_DATA.participants.indexOf(currentP) : -1;
   BATTLE_DATA.currentTurn = ci >= 0 ? ci : (i % BATTLE_DATA.participants.length);
+  // АУД4-4 (H2): убран ходивший последним — ход переходит через границу раунда
+  if (ci < 0 && i >= BATTLE_DATA.participants.length) _battleNewRound();
   saveBattle();
   renderBattleTracker();
 }
 
 
 function setBattleStatus(i, val) {
-  BATTLE_DATA.participants[i].status = val;
-  if (window.AppLog) AppLog.action("battle", "статус " + (BATTLE_DATA.participants[i].name || "?") + " → " + val);
+  var p = BATTLE_DATA.participants[i];
+  if (!p) return; // АУД4-4 (H11)
+  p.status = val;
+  if (window.AppLog) AppLog.action("battle", "статус " + (p.name || "?") + " → " + val);
   saveBattle(); renderBattleTracker();
 }
 
@@ -1634,6 +1679,11 @@ function _battleStatusFromHp(hp, hpMax) {
   if (pct <= 35) return "heavy";
   if (pct <= 60) return "wounded";
   return "healthy";
+}
+// АУД4-4 (H9): правка ХП участника обновляет статус по той же шкале
+function _battleSyncHpStatus(p) {
+  var st = _battleStatusFromHp(p.hp || 0, p.hpMax || 0);
+  if (st) p.status = st;
 }
 
 // Экран выбора цели после броска урона (вызывается из _applyCastDamage,
@@ -2092,14 +2142,20 @@ function _logTurn() {
   var p = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
   AppLog.action("battle", "ход → " + ((p && p.name) || "?") + " (" + (BATTLE_DATA.currentTurn + 1) + "/" + BATTLE_DATA.participants.length + ")");
 }
+// Новый раунд. АУД4-4 (H3): эффекты тикают только в раунде, которого ещё не было
+// (после «Назад» через границу повторный переход вперёд их не тикает).
+function _battleNewRound() {
+  BATTLE_DATA.round = (BATTLE_DATA.round || 1) + 1;
+  if (window.AppLog) AppLog.action("battle", "раунд " + BATTLE_DATA.round);
+  if (BATTLE_DATA.round > (BATTLE_DATA.maxRound || 1)) {
+    BATTLE_DATA.maxRound = BATTLE_DATA.round;
+    tickCastEffectsRound();
+  }
+}
 function nextTurn() {
   BATTLE_DATA.currentTurn = (BATTLE_DATA.currentTurn + 1) % BATTLE_DATA.participants.length;
   // CAST-2: wrap по кругу инициативы = новый раунд → тик длительностей кастов
-  if (BATTLE_DATA.currentTurn === 0) {
-    BATTLE_DATA.round = (BATTLE_DATA.round || 1) + 1;
-    if (window.AppLog) AppLog.action("battle", "раунд " + BATTLE_DATA.round);
-    tickCastEffectsRound();
-  }
+  if (BATTLE_DATA.currentTurn === 0) _battleNewRound();
   // PLAY-2: ход вернулся к своему персонажу — действие, бонусное и реакция снова доступны
   var cur = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
   if (cur && cur.type === "self") BATTLE_DATA.economy = null;

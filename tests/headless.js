@@ -2106,8 +2106,74 @@
         if (BATTLE_DATA.participants[0].hp !== 4) return "setBattleHP: " + BATTLE_DATA.participants[0].hp;
         setBattleHP(0, "99"); // > hpMax → 7
         if (BATTLE_DATA.participants[0].hp !== 7) return "setBattleHP кламп: " + BATTLE_DATA.participants[0].hp;
+        // АУД4-4 (H9): статус следует за ХП
+        setBattleHP(0, "0");
+        if (BATTLE_DATA.participants[0].status !== "dead") return "H9 статус при 0: " + BATTLE_DATA.participants[0].status;
+        adjustBattleHP(0, 7);
+        if (BATTLE_DATA.participants[0].status !== "healthy") return "H9 статус после лечения: " + BATTLE_DATA.participants[0].status;
+        // H11: несуществующий индекс не роняет
+        setBattleStatus(5, "dead");
         return true;
       } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; }
+    });
+
+    t("[АУД4-4] H2/H3: убран последний ходивший → новый раунд; «Назад»/«Вперёд» через границу не тикает повторно", function(){
+      var savedChars = window.characters, savedId = window.currentId, savedBattle = BATTLE_DATA, savedTick = window.tickCastEffectsRound;
+      var ticks = 0;
+      try {
+        _ensureEl("battle-tracker-list");
+        window.characters = [{ id: "tpH", name: "Герой", combat: {} }];
+        window.currentId = "tpH";
+        window.tickCastEffectsRound = function(){ ticks++; };
+        var mk = function(){ return [
+          { id: "self_tpH", name: "Герой", type: "self", status: "healthy", initiative: 20 },
+          { id: "a", name: "A", type: "ally", status: "healthy", initiative: 10 },
+          { id: "b", name: "B", type: "monster", status: "healthy", initiative: 5 }
+        ]; };
+        BATTLE_DATA = { active: true, currentTurn: 2, round: 1, participants: mk() };
+        removeBattleParticipant(2);
+        if (BATTLE_DATA.currentTurn !== 0 || BATTLE_DATA.round !== 2 || ticks !== 1) return "H2: ход " + BATTLE_DATA.currentTurn + ", раунд " + BATTLE_DATA.round + ", тиков " + ticks;
+        ticks = 0;
+        BATTLE_DATA = { active: true, currentTurn: 2, round: 1, participants: mk() };
+        nextTurn();            // → раунд 2, тик
+        prevTurn();            // ← раунд 1
+        nextTurn();            // → раунд 2 снова, без тика
+        if (BATTLE_DATA.round !== 2 || ticks !== 1) return "H3: раунд " + BATTLE_DATA.round + ", тиков " + ticks;
+        nextTurn(); nextTurn(); nextTurn(); // → раунд 3, тик
+        if (BATTLE_DATA.round !== 3 || ticks !== 2) return "H3 раунд 3: " + BATTLE_DATA.round + ", тиков " + ticks;
+        return true;
+      } finally { window.characters = savedChars; window.currentId = savedId; BATTLE_DATA = savedBattle; window.tickCastEffectsRound = savedTick; }
+    });
+
+    t("[АУД4-4] H10/H12: равная инициатива — по Ловкости; одноимённые участники нумеруются", function(){
+      var arr = [{ name: "a", initiative: 12, dexMod: 1 }, { name: "b", initiative: 12, dexMod: 3 }, { name: "c", initiative: 15, dexMod: 0 }];
+      sortParticipantsByInitiative(arr);
+      if (arr.map(function(x){ return x.name; }).join("") !== "cba") return "H10: " + arr.map(function(x){ return x.name; }).join("");
+      var savedList = battleSetupList, savedBattle = BATTLE_DATA, savedParty = PARTY_DATA, savedSave = window.saveBattle;
+      try {
+        _ensureEl("battle-setup-screen"); _ensureEl("battle-tracker-screen"); _ensureEl("battle-tracker-list");
+        window.saveBattle = function(){};
+        PARTY_DATA = { allies: [], npcs: [], monsters: [{ id: 1, name: "Гоблин", hp: 7 }, { id: 2, name: "Гоблин", hp: 7 }] };
+        battleSetupList = [
+          { id: "mon_1", name: "Гоблин", type: "monster", checked: true },
+          { id: "mon_2", name: "Гоблин", type: "monster", checked: true }
+        ];
+        startBattle();
+        var names = BATTLE_DATA.participants.map(function(p){ return p.name; }).sort().join("|");
+        return names === "Гоблин|Гоблин 2" ? true : "H12: " + names;
+      } finally { battleSetupList = savedList; BATTLE_DATA = savedBattle; PARTY_DATA = savedParty; window.saveBattle = savedSave; }
+    });
+
+    t("[АУД4-4] H4/H5: импорт отряда — id, безопасная иконка, статы числами", function(){
+      var used = { "5": true };
+      var e1 = _pentNormalize({ name: "X", icon: "<img src=x onerror=alert(1)>", stats: { dex: "14", str: "<b>" } }, used);
+      var e2 = _pentNormalize({ name: "Y", id: 5, icon: "🐺" }, used);
+      var e3 = _pentNormalize({ name: "Z" }, used);
+      if (e1.icon !== undefined) return "H4: иконка с разметкой осталась";
+      if (e1.stats.dex !== 14 || e1.stats.str !== undefined) return "H4 статы: " + JSON.stringify(e1.stats);
+      if (e2.icon !== "🐺") return "эмодзи потерян";
+      if (e1.id == null || e2.id === 5 || e1.id === e3.id || e2.id === e3.id) return "H5 id: " + [e1.id, e2.id, e3.id].join(",");
+      return _pentSafeIcon("<svg>", "🧑") === "🧑" ? true : "рендер без защиты";
     });
 
     t("[party] rerollInitiative: пересортировка держит ход на текущем участнике", function(){
@@ -3460,6 +3526,14 @@
         if (ch.combat.hpCurrent !== 5) return "устаревшая отмена сработала: ХП " + ch.combat.hpCurrent;
         act.onClick();                                         // отмена лечения → снова 0 ХП и «без сознания»
         if (ch.combat.hpCurrent !== 0 || ch.conditions.indexOf("unconscious") === -1) return "отмена лечения: ожидал 0 ХП и «без сознания»";
+        // АУД4-4 (H7): урон до 0 срывает концентрацию — «Отменить» её возвращает
+        ch.combat.hpCurrent = 10; ch.conditions = [];
+        ch.concentration = "Благословение";
+        ch.activeSpellEffects = [{ spellName: "Благословение", effectIds: [] }];
+        quickHP(-30, "Test");
+        if (ch.concentration) return "концентрация не сорвана на 0 ХП";
+        act.onClick();
+        if (ch.concentration !== "Благословение" || !ch.activeSpellEffects.length) return "H7: концентрация не вернулась";
         return true;
       } finally {
         window.characters = savedChars;
