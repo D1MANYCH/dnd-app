@@ -1258,6 +1258,40 @@ function rulesCrToProf(cr) {
   var n = s.indexOf("/") >= 0 ? 0 : parseFloat(s);
   return n < 5 ? 2 : Math.floor((n - 1) / 4) + 2;
 }
+// РОСТ-5: ПО числом ("1/4" → 0.25); не число — NaN.
+function rulesCrValue(cr) {
+  var s = String(cr == null ? "" : cr).trim().replace(",", ".");
+  if (s === "1/8") return 0.125;
+  if (s === "1/4") return 0.25;
+  if (s === "1/2") return 0.5;
+  return /^\d+(\.\d+)?$/.test(s) ? parseFloat(s) : NaN;
+}
+/** РОСТ-5: ограничения Дикого облика (PHB 2014 стр.66, 69; PHB 2024 стр.90, 96). null — нет 2 ур. друида.
+ *  maxCr — число; noFly/noSwim — запрет скоростей; known — известных обликов (2024), 0 — любой виденный зверь (2014);
+ *  durationH — часы; action — "action" | "bonus"; acFloor — КД не ниже (Круг луны 2024), иначе 0;
+ *  tempHp — временные хиты при входе (2024), в 2014 — 0. */
+function rulesWildShapeLimits(char) {
+  var lvl = char ? charClassLevel(char, "Друид") : 0;
+  if (lvl < 2) return null;
+  var moon = charClassSubclass(char, "Друид") === "Круг луны";
+  var e24 = char.edition === "2024";
+  var r = { maxCr: lvl >= 8 ? 1 : lvl >= 4 ? 0.5 : 0.25, noFly: lvl < 8, noSwim: !e24 && lvl < 4,
+    known: 0, durationH: Math.floor(lvl / 2), action: "action", acFloor: 0, tempHp: 0 };
+  if (e24) {
+    r.known = lvl >= 8 ? 8 : lvl >= 4 ? 6 : 4;
+    r.action = "bonus";
+    r.tempHp = lvl;
+    if (moon && lvl >= 3) {
+      r.maxCr = Math.max(r.maxCr, Math.floor(lvl / 3));
+      r.acFloor = 13 + getMod((char.stats && char.stats.wis) || 10);
+      r.tempHp = lvl * 3;
+    }
+  } else if (moon) {
+    r.action = "bonus";
+    r.maxCr = Math.max(1, Math.floor(lvl / 3));
+  }
+  return r;
+}
 // Множитель по числу монстров; отряд меньше 3 — ступень выше, 6+ — ступень ниже.
 function rulesEncounterMultiplier(monsterCount, partySize) {
   var steps = [0.5, 1, 1.5, 2, 2.5, 3, 4, 5];

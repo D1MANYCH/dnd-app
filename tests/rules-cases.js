@@ -1302,6 +1302,72 @@ function rulesCases(t, group) {
     var d = rulesEncounterDifficulty([1, 1, 1, 1], [450]);
     return (d.level === "deadly" && d.next === null) ? true : "CR 2 против 4×1 ур.: " + d.level;
   });
+
+  group("РОСТ-5: ограничения Дикого облика");
+
+  function druid(lvl, sub, ed, wis) {
+    return fixture({ class: "Друид", subclass: sub || "", level: lvl, edition: ed || "2014",
+      stats: { str: 10, dex: 10, con: 10, int: 10, wis: wis || 10, cha: 10 } });
+  }
+  function limRow(c) {
+    var r = rulesWildShapeLimits(c);
+    return r ? [r.maxCr, r.noFly ? 1 : 0, r.noSwim ? 1 : 0, r.known, r.durationH, r.action, r.acFloor, r.tempHp].join(" ") : "null";
+  }
+  function limTable(rows) {
+    for (var i = 0; i < rows.length; i++) {
+      var got = limRow(rows[i][0]);
+      if (got !== rows[i][1]) return rows[i][2] + ": " + got + ", ожидал " + rows[i][1];
+    }
+    return true;
+  }
+
+  t("ПО числом: 1/8, 1/4, 1/2, 6; мусор — NaN", function() {
+    if (rulesCrValue("1/8") !== 0.125 || rulesCrValue("1/4") !== 0.25 || rulesCrValue("1/2") !== 0.5 || rulesCrValue("6") !== 6) return "дроби/целые";
+    return isNaN(rulesCrValue("x")) && isNaN(rulesCrValue("")) ? true : "мусор не NaN";
+  });
+
+  t("2014: друид 1 — нет облика; 2/4/8 — ¼ без плавания и полёта, ½ без полёта, 1 с полётом; часы = ½ уровня", function() {
+    return limTable([
+      [druid(1), "null", "1 ур."],
+      [druid(2, "Круг земли"), "0.25 1 1 0 1 action 0 0", "2 ур."],
+      [druid(4), "0.5 1 0 0 2 action 0 0", "4 ур."],
+      [druid(7), "0.5 1 0 0 3 action 0 0", "7 ур."],
+      [druid(8), "1 0 0 0 4 action 0 0", "8 ур."],
+      [druid(20), "1 0 0 0 10 action 0 0", "20 ур."],
+      [fixture({ class: "Воин", level: 5 }), "null", "не друид"]
+    ]);
+  });
+
+  t("2014 Круг луны: бонусным действием, ПО 1 до 5 ур., с 6 — уровень/3; запреты скоростей как у друида", function() {
+    return limTable([
+      [druid(2, "Круг луны"), "1 1 1 0 1 bonus 0 0", "2 ур."],
+      [druid(5, "Круг луны"), "1 1 0 0 2 bonus 0 0", "5 ур."],
+      [druid(6, "Круг луны"), "2 1 0 0 3 bonus 0 0", "6 ур."],
+      [druid(9, "Круг луны"), "3 0 0 0 4 bonus 0 0", "9 ур."],
+      [druid(18, "Круг луны"), "6 0 0 0 9 bonus 0 0", "18 ур."]
+    ]);
+  });
+
+  t("2024: известных обликов 4/6/8, плавание сразу, полёт с 8, бонусное действие, временные хиты = уровень", function() {
+    return limTable([
+      [druid(2, "", "2024"), "0.25 1 0 4 1 bonus 0 2", "2 ур."],
+      [druid(4, "", "2024"), "0.5 1 0 6 2 bonus 0 4", "4 ур."],
+      [druid(8, "Круг земли", "2024"), "1 0 0 8 4 bonus 0 8", "8 ур."]
+    ]);
+  });
+
+  t("2024 Круг луны с 3 ур.: ПО уровень/3, КД 13 + МДР, временные хиты ×3", function() {
+    return limTable([
+      [druid(2, "Круг луны", "2024", 16), "0.25 1 0 4 1 bonus 0 2", "2 ур. (круга ещё нет)"],
+      [druid(3, "Круг луны", "2024", 16), "1 1 0 4 1 bonus 16 9", "3 ур."],
+      [druid(9, "Круг луны", "2024", 18), "3 0 0 8 4 bonus 17 27", "9 ур."]
+    ]);
+  });
+
+  t("Мультикласс: считается уровень друида, а не общий", function() {
+    var c = fixture({ classes: [{ class: "Воин", level: 5 }, { class: "Друид", level: 2, subclass: "Круг луны" }], level: 7 });
+    return limRow(c) === "1 1 1 0 1 bonus 0 0" ? true : limRow(c);
+  });
 }
 
 if (typeof window !== "undefined") window.rulesCases = rulesCases;

@@ -45,6 +45,7 @@ const files = [
   'app-inventory.js',        // TEST-2: getSlotsTotal/calcUsedSlots/updateInventoryWeight/renderPouches/_invMoveItem (БЛОК 10)
   'monsters-srd.js',         // TEST-3: в проде лениво (ensureBestiary, PERF-3) — в тестах явно ДО app-party
   'npc-srd.js',              // TEST-3: то же
+  'beast-forms.js',          // РОСТ-5: в проде лениво (ensureBeastForms) — проверка данных зверей (БЛОК 71)
   'app-spells.js',           // TEST-3: подготовка заклинаний + ячейки/пакт (БЛОК 11)
   'app-party.js',            // TEST-3: отряд и трекер боя (БЛОК 12)
   'app-dice.js',             // SETUP-6: броски и dice-box — до app-ui (как в index.html)

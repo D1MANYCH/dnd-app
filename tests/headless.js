@@ -10803,6 +10803,47 @@
     return true;
   });
 
+  // ────────── БЛОК 71 (РОСТ-5): звери для Дикого облика — структура, ПО, формулы атак ──────────
+  t("[РОСТ-5] BEAST_FORMS: поля на месте, slug уникальны, ПО 0…6", function(){
+    var list = window.BEAST_FORMS;
+    if (!Array.isArray(list) || list.length < 60) return "мало зверей: " + (list && list.length);
+    var seen = {}, sizes = ["Крошечный","Маленький","Средний","Большой","Огромный","Громадный"];
+    for (var i = 0; i < list.length; i++) {
+      var b = list[i], id = b && b.slug;
+      if (!id || seen[id]) return "slug пуст/повтор: " + id;
+      seen[id] = true;
+      if (!b.name || !b.nameEn) return id + ": нет названия";
+      var cr = rulesCrValue(b.cr);
+      if (isNaN(cr) || cr > 6 || !rulesCrToXp(b.cr)) return id + ": ПО " + b.cr;
+      if (sizes.indexOf(b.size) < 0) return id + ": размер " + b.size;
+      if (!(b.ac > 0) || !(b.hp > 0)) return id + ": КД/хиты";
+      if (!b.speed || typeof b.speed.walk !== "number" || typeof b.speed.swim !== "number" || typeof b.speed.fly !== "number" || typeof b.speed.climb !== "number") return id + ": скорости";
+      var st = b.stats || {};
+      if (["str","dex","con","int","wis","cha"].some(function(k){ return !(st[k] >= 1 && st[k] <= 30); })) return id + ": характеристики";
+      if (!Array.isArray(b.saveProf) || !Array.isArray(b.traits) || !Array.isArray(b.attacks) || !b.skills) return id + ": массивы";
+    }
+    return true;
+  });
+  t("[РОСТ-5] BEAST_FORMS: каждая атака — бонус числом, урон читается parseDiceFormula или фиксированный", function(){
+    var bad = [];
+    window.BEAST_FORMS.forEach(function(b){
+      b.attacks.forEach(function(a){
+        if (!a.name || typeof a.hit !== "number") bad.push(b.slug + "/" + a.name + ": hit");
+        else if (!/^\d+$/.test(a.dmg) && !parseDiceFormula(a.dmg).ok) bad.push(b.slug + "/" + a.name + ": " + a.dmg);
+      });
+    });
+    return bad.length ? bad.slice(0, 5).join("; ") : true;
+  });
+  t("[РОСТ-5] BEAST_FORMS ∩ ограничения: друиду 2 ур. (2014) доступен волк, но не краб-плаватель и не орёл", function(){
+    var lim = rulesWildShapeLimits({ class: "Друид", level: 2, stats: { wis: 10 } });
+    var ok = function(b){ return rulesCrValue(b.cr) <= lim.maxCr && !(lim.noFly && b.speed.fly) && !(lim.noSwim && b.speed.swim); };
+    var by = {}; window.BEAST_FORMS.forEach(function(b){ by[b.slug] = b; });
+    if (!by.wolf || !ok(by.wolf)) return "волк недоступен";
+    if (by.eagle && ok(by.eagle)) return "орёл доступен";
+    if (by.crab && ok(by.crab)) return "краб доступен";
+    return true;
+  });
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
