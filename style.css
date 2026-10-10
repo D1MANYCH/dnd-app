@@ -13594,6 +13594,12 @@ mark.search-hl {
 .party-form .mon-catalog-check input { width: auto; }
 
 .mon-sbv { text-align: left; }
+/* РОСТ-6: Дикий облик — плашка облика и строки экрана выбора */
+.ws-banner { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; margin: 6px 0; font-size: 0.9em; color: var(--text); }
+.ws-banner .hp-act { margin-left: auto; }
+.ws-pick-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border-soft); }
+.ws-pick-main { flex: 1; min-width: 0; }
+.ws-pick-meta { font-size: 0.8em; color: var(--text-dim); }
 .mon-sbv:empty { display: none; }
 .mon-sbv-title { font-size: 0.7em; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin: 10px 0 2px; }
 .mon-sbv-row { display: flex; flex-wrap: wrap; gap: 0 14px; }

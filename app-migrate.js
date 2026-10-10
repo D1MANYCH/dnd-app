@@ -982,6 +982,12 @@ function migrateCharacter(char) {
     if (!Array.isArray(char.savedRolls)) char.savedRolls = [];
     char.schemaVersion = 47;
   }
+  if (v < 48) {
+    // РОСТ-6: Дикий облик — облика нет, известных обликов нет
+    if (char.form === undefined) char.form = null;
+    if (!Array.isArray(char.formsKnown)) char.formsKnown = [];
+    char.schemaVersion = 48;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

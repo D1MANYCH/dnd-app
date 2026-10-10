@@ -10844,6 +10844,64 @@
     return true;
   });
 
+  // ────────── БЛОК 72 (РОСТ-6): Дикий облик — урон через quickHP, отмена, миграция, импорт ──────────
+  if (typeof quickHP === "function" && typeof rulesFormStart === "function") {
+    t("[РОСТ-6] quickHP в облике 2014: урон по облику, перенос остатка, «Отменить» возвращает облик", function(){
+      var savedChars = window.characters, savedId = window.currentId, savedHPToast = window.showHPToast, savedToast = window.showToast;
+      var act = null;
+      try {
+        window.showHPToast = function(d, m, a){ act = a; };
+        window.showToast = function(m, k, a){ if (a) act = a; };
+        window.characters = [{
+          id: "test-ws-1", class: "Друид", level: 2, edition: "2014",
+          combat: { hpTemp: 0, hpCurrent: 15, hpMax: 15, hpDice: "1к8", hpDiceSpent: 0 },
+          stats: { str:10, dex:10, con:10, int:10, wis:10, cha:10 },
+          saves: {}, skills: [], spells: { stat:"", slots:{}, slotsUsed:{} },
+          concentration: null, conditions: [], form: null,
+          deathSaves: { successes:[false,false,false], failures:[false,false,false] }
+        }];
+        window.currentId = "test-ws-1";
+        var ch = window.characters[0];
+        rulesFormStart(ch, { slug: "wolf", name: "Волк", cr: "1/4", ac: 13, hp: 11, stats: { con: 12 } }, rulesWildShapeLimits(ch));
+        quickHP(-4, "Test");
+        if (!ch.form || ch.form.hpCurrent !== 7 || ch.combat.hpCurrent !== 15) return "урон по облику: " + JSON.stringify(ch.form) + " / " + ch.combat.hpCurrent;
+        if (!act) return "нет «Отменить»";
+        act.onClick();
+        if (!ch.form || ch.form.hpCurrent !== 11) return "отмена урона по облику";
+        act = null;
+        quickHP(-14, "Test");
+        if (ch.form !== null || ch.combat.hpCurrent !== 12) return "перенос: облик " + JSON.stringify(ch.form) + ", персонаж " + ch.combat.hpCurrent;
+        if (!act) return "нет «Отменить» после переноса";
+        act.onClick();
+        if (!ch.form || ch.form.hpCurrent !== 11 || ch.combat.hpCurrent !== 15) return "отмена переноса не вернула облик";
+        quickHP(-3, "Test"); quickHP(10, "Test");
+        if (ch.form.hpCurrent !== 11 || ch.combat.hpCurrent !== 15) return "лечение не в облик: " + ch.form.hpCurrent + "/" + ch.combat.hpCurrent;
+        return true;
+      } finally {
+        window.characters = savedChars;
+        window.currentId = savedId;
+        window.showHPToast = savedHPToast;
+        window.showToast = savedToast;
+      }
+    });
+  }
+  t("[РОСТ-6] миграция 47 → 48: облика нет, известных обликов нет", function(){
+    var c = migrateCharacter({ id: "ws-m", class: "Друид", level: 2, schemaVersion: 47 });
+    if (c.schemaVersion !== SCHEMA_VERSION || SCHEMA_VERSION < 48) return "версия " + c.schemaVersion;
+    return c.form === null && Array.isArray(c.formsKnown) && !c.formsKnown.length ? true : JSON.stringify([c.form, c.formsKnown]);
+  });
+  if (typeof _sanitizeImportedChar === "function") {
+    t("[РОСТ-6] импорт: облик-мусор → null, числа облика в пределах, известные облики — строки", function(){
+      var a = { class: "Друид", level: 2, form: "волк", formsKnown: "x" };
+      _sanitizeImportedChar(a);
+      if (a.form !== null || !Array.isArray(a.formsKnown)) return "мусор: " + JSON.stringify([a.form, a.formsKnown]);
+      var b = { class: "Друид", level: 2, form: { slug: "wolf", hpMax: "11", hpCurrent: 99, ac: "x", durationH: 100 }, formsKnown: ["wolf", 5, {}] };
+      _sanitizeImportedChar(b);
+      if (b.form.hpMax !== 11 || b.form.hpCurrent !== 11 || b.form.ac !== 10 || b.form.durationH !== 24) return JSON.stringify(b.form);
+      return b.formsKnown.length === 1 ? true : JSON.stringify(b.formsKnown);
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

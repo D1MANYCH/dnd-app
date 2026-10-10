@@ -442,7 +442,7 @@ function _monFormApply(data) {
 // Бонус спасброска: мод + БМ по CR, если спасбросок отмечен.
 function monsterSaveBonus(m, k) {
   var mod = getMod((m.stats && m.stats[k]) || 10);
-  return mod + ((m.saveProf || []).indexOf(k) >= 0 ? (rulesCrToProf(m.cr) || 2) : 0);
+  return mod + ((m.saveProf || []).indexOf(k) >= 0 ? (m.profBonus || rulesCrToProf(m.cr) || 2) : 0);
 }
 // Стат-блок для окна «!» в трекере: проверки, спасброски, атаки — нажатием в бросок.
 function monsterStatBlockHtml(m) {
@@ -1133,6 +1133,8 @@ function _makeBattleParticipant(p) {
 function _battleParticipantHP(p) {
   if (p && p.type === "self") {
     var char = getCurrentChar();
+    // РОСТ-6: в облике 2014 — хиты зверя
+    if (char && rulesFormOwnHp(char)) return { hp: char.form.hpCurrent || 0, hpMax: char.form.hpMax || 0 };
     if (char && char.combat) return { hp: char.combat.hpCurrent || 0, hpMax: char.combat.hpMax || 0 };
     return { hp: 0, hpMax: 0 };
   }
@@ -1194,6 +1196,7 @@ function _addCatalogMonsterToBattle(t) {
 }
 // Стат-блок участника: свой (p.sb) или из записи отряда.
 function _participantStatBlock(p) {
+  if (p && p.type === "self" && typeof wildShapeStatBlock === "function") return wildShapeStatBlock();
   if (!p || p.type !== "monster") return null;
   if (p.sb) return p.sb;
   var m = _findPartyMonster(p.id) || PARTY_DATA.monsters.filter(function(x) { return x.name === p.name; })[0];
@@ -1278,9 +1281,10 @@ function showTrackerInfo(i) {
   var descEl = $("tinfo-desc");
   descEl.textContent = desc || "Нет описания.";
   var sb = _participantStatBlock(p);
-  _monSbCurrent = sb ? { name: p.name, cr: sb.cr, stats: sb.stats, saveProf: sb.saveProf, attacks: sb.attacks } : null;
+  _monSbCurrent = sb ? { name: sb.formName || p.name, cr: sb.cr, profBonus: sb.profBonus, stats: sb.stats, saveProf: sb.saveProf, attacks: sb.attacks } : null;
   var sbEl = $("tinfo-sb");
-  if (sbEl) sbEl.innerHTML = monsterStatBlockHtml(_monSbCurrent);
+  var formLine = (p.type === "self" && sb && typeof wsFormLine === "function") ? '<div class="ws-banner">' + wsFormLine(getCurrentChar()) + '</div>' : "";
+  if (sbEl) sbEl.innerHTML = formLine + monsterStatBlockHtml(_monSbCurrent);
   descEl.textContent = desc || (sb ? "" : "Нет описания.");
   descEl.style.display = desc || !sb ? "block" : "none";
   modal.classList.add("active");
@@ -1291,8 +1295,9 @@ function showTrackerInfo(i) {
 function getSelfStatusFromHP() {
   var char = getCurrentChar();
   if (!char) return "healthy";
-  var hp  = char.combat.hpCurrent || 0;
-  var max = char.combat.hpMax    || 1;
+  var own = rulesFormOwnHp(char); // РОСТ-6: в облике 2014 — по хитам зверя
+  var hp  = own ? char.form.hpCurrent || 0 : char.combat.hpCurrent || 0;
+  var max = own ? char.form.hpMax || 1 : char.combat.hpMax    || 1;
   // AUD-6 (L31): мёртв только по спасброскам/истощению 6; 0 ХП — «при смерти»
   if (rulesIsDead(char)) return "dead";
   if (max <= 0) return "healthy";
@@ -1592,8 +1597,15 @@ function setBattleHP(i, val) {
   if (n < 0) n = 0;
   if (p.type === "self") {
     var char = getCurrentChar();
+    // РОСТ-6: в облике 2014 число — хиты зверя; 0 завершает облик без урона по персонажу
+    if (char && rulesFormOwnHp(char)) {
+      char.form.hpCurrent = Math.min(n, char.form.hpMax || n);
+      if (n <= 0) { char.form = null; showToast("🐾 Облик спал", "warn"); }
+      saveToLocal();
+      updateHPDisplay();
+    }
     // АУД4-4 (H6): число — абсолютное значение, не урон/лечение
-    if (char && char.combat && n !== (char.combat.hpCurrent || 0) && typeof setHPAbsolute === "function") setHPAbsolute(n, "Бой");
+    else if (char && char.combat && n !== (char.combat.hpCurrent || 0) && typeof setHPAbsolute === "function") setHPAbsolute(n, "Бой");
     syncSelfBattleStatus();
   } else {
     if (p.hpMax > 0 && n > p.hpMax) n = p.hpMax;

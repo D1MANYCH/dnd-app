@@ -23,7 +23,7 @@
     </div>
     <button type="button" class="rr-collapse" id="rr-collapse" title="Свернуть панель в полосу">Свернуть »</button>
     <div class="rr-hp">
-      <div class="rr-group">Хиты</div>
+      <div class="rr-group">Хиты<span id="rr-hp-form"></span></div>
       <div class="rr-hp-big"><span id="rr-hp-current">10</span><span class="rr-hp-big-sep">/</span><span id="rr-hp-max">10</span></div>
       <div class="rr-hp-bar"><div id="rr-hp-bar-fill" class="rr-hp-bar-fill" style="width:100%"></div></div>
       <!-- STYLE-8R2: тот же рецепт, что у раздела «Здоровье и Бой» на листе —

@@ -197,6 +197,7 @@ if (typeof clearAllCastEffects === "function") {
 var _foodBox = $("rest-food-drink");
 var _foodSection = $("rest-food-section");
 var _ateAndDrank = (_foodBox && _foodSection && !_foodSection.classList.contains("hidden")) ? _foodBox.checked : true;
+char.form = null; // РОСТ-6: долгий отдых завершает облик
 var _long = rulesLongRest(char, { foodAndDrink: _ateAndDrank });
 const maxHp = _long.hpAfter;
 const hitDiceToRestore = _long.hitDiceRestored;
@@ -1276,6 +1277,7 @@ const hpCurrent = char.combat.hpCurrent || 0;
 const hpMax = char.combat.hpMax || 10;
 const hpMaxEff = rulesEffectiveHpMax(char);
 const hpTemp = char.combat.hpTemp || 0;
+if (typeof renderWildShape === "function") renderWildShape();
 
 // Скрытые поля
 safeSet("hp-current", hpCurrent);
@@ -1463,8 +1465,12 @@ if (delta < 0) {
   const dmgIn = rulesDamageAfterDefenses(char, -delta, opts.type);
   if (dmgIn <= 0) { showToast("🛡️ Иммунитет" + (opts.type ? " к урону «" + opts.type + "»" : "") + " — урон 0", "info"); return; }
   delta = -dmgIn;
-  dmgRes = rulesApplyDamage(char, dmgIn, { crit: !!opts.crit });
+  // РОСТ-6: облик 2014 принимает урон первым, остаток — по персонажу
+  var formHit = rulesFormDamage(char, dmgIn);
+  if (formHit.ended) showToast("🐾 Облик спал" + (formHit.overflow ? " — " + formHit.overflow + " урона переходит на персонажа" : ""), "warn");
+  dmgRes = formHit.overflow > 0 ? rulesApplyDamage(char, formHit.overflow, { crit: !!opts.crit }) : {};
   hpCurrent = char.combat.hpCurrent;
+  if (formHit.formDmg && !formHit.ended) showToast("🐾 Облик: −" + formHit.formDmg + " хитов, осталось " + char.form.hpCurrent + "/" + char.form.hpMax, "info", undo.action);
   if (dmgRes.instantDeath) showToast("💀 Мгновенная смерть: урон не меньше максимума хитов", "error");
   else if (dmgRes.failuresAdded) showToast("💔 Урон на 0 ХП: " + (dmgRes.failuresAdded > 1 ? "два провала" : "провал") + " спасброска от смерти" + (dmgRes.dead ? " — персонаж погиб" : ""), "error", hpBefore === hpCurrent ? undo.action : null);
   else if (dmgRes.droppedToZero) showToast("💤 0 ХП — без сознания", "error");
@@ -1474,6 +1480,14 @@ if (delta < 0) {
   }
 } else {
   if (delta > 0 && rulesIsDead(char)) { showToast("💀 Персонаж погиб — лечение не действует", "error"); return; }
+  // РОСТ-6: в облике 2014 лечатся хиты зверя
+  if (delta > 0 && rulesFormOwnHp(char)) {
+    var formHeal = rulesFormHeal(char, delta);
+    showToast("🐾 Облик: +" + formHeal + " хитов, " + char.form.hpCurrent + "/" + char.form.hpMax, "success", undo.action);
+    saveToLocal();
+    updateHPDisplay();
+    return;
+  }
   hpCurrent = Math.max(0, Math.min(hpBefore + delta, rulesEffectiveHpMax(char)));
   char.combat.hpCurrent = hpCurrent;
   // лечение с 0 ХП: отметки сбрасываются, «без сознания» снимается
@@ -1483,13 +1497,15 @@ if (delta < 0) {
     if (typeof loadConditions === "function") loadConditions();
   }
 }
+// РОСТ-6: 0 хитов (без сознания = недееспособен) завершает облик и в 2024
+if (char.form && hpCurrent <= 0) { char.form = null; showToast("🐾 Облик спал — 0 хитов", "warn"); }
 const actualDelta = hpCurrent - hpBefore;
 safeSet("hp-current", hpCurrent);
 safeSet("hp-temp", char.combat.hpTemp);
 if (actualDelta !== 0) {
 undo.entry = addHPHistory(hpBefore, hpCurrent, actualDelta, source || (delta < 0 ? "Урон" : "Лечение"));
 showHPToast(actualDelta, undefined, undo.action);
-} else if (delta < 0 && (char.combat.hpTemp || 0) !== undo.snap.temp) {
+} else if (delta < 0 && !(formHit && formHit.formDmg) && (char.combat.hpTemp || 0) !== undo.snap.temp) {
 showToast("Урон поглотили временные ХП: " + (char.combat.hpTemp || 0) + " осталось", "info", undo.action);
 }
 // FIN-7: спасбросок концентрации при уроне (PHB: СЛ = max(10, урон/2)).
@@ -1562,6 +1578,7 @@ if (r.regained || r.droppedToZero) {
 }
 if (r.droppedToZero) {
   showToast("💤 0 ХП — без сознания", "error");
+  char.form = null;
   if (char.concentration) { endConcentration(); showToast("💔 Концентрация потеряна — 0 ХП!", "error"); }
 }
 safeSet("hp-current", r.hpAfter);
@@ -1599,7 +1616,8 @@ function _hpUndoPrepare(char) {
       temp: char.combat.hpTemp || 0,
       deathSaves: char.deathSaves ? JSON.parse(JSON.stringify(char.deathSaves)) : char.deathSaves,
       conditions: Array.isArray(char.conditions) ? char.conditions.slice() : char.conditions,
-      conc: _hpUndoConcSnap(char)
+      conc: _hpUndoConcSnap(char),
+      form: char.form ? JSON.parse(JSON.stringify(char.form)) : null
     },
     entry: null,
     concPrompt: false
@@ -1658,6 +1676,7 @@ function undoHPChange(u) {
   char.combat.hpTemp = u.snap.temp;
   char.deathSaves = u.snap.deathSaves;
   char.conditions = u.snap.conditions;
+  char.form = u.snap.form ? JSON.parse(JSON.stringify(u.snap.form)) : null;
   var i = u.entry ? hpHistory.indexOf(u.entry) : -1;
   if (i !== -1) hpHistory.splice(i, 1);
   // непрошенный спасбросок концентрации больше не нужен

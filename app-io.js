@@ -64,6 +64,16 @@ function _sanitizeImportedChar(c) {
     });
     if (c.combat.hpMaxManual != null) c.combat.hpMaxManual = clamp(c.combat.hpMaxManual, 0, 0, 1e6);
   }
+  // РОСТ-6: облик — объект с числами в пределах, иначе нет облика; известные облики — строки
+  if (obj(c.form) && c.form.slug) {
+    c.form = { kind: "wild", slug: String(c.form.slug).slice(0, 60), name: String(c.form.name || "").slice(0, 80),
+      ac: Math.round(clamp(c.form.ac, 10, 0, 40)), con: Math.round(clamp(c.form.con, 10, 1, 30)),
+      hpMax: Math.round(clamp(c.form.hpMax, 0, 0, 1000)), hpCurrent: Math.round(clamp(c.form.hpCurrent, 0, 0, 1000)),
+      edition: String(c.form.edition) === "2024" ? "2024" : "2014", startedAt: clamp(c.form.startedAt, 0, 0, 1e15),
+      durationH: Math.round(clamp(c.form.durationH, 0, 0, 24)) };
+    if (c.form.hpCurrent > c.form.hpMax) c.form.hpCurrent = c.form.hpMax;
+  } else c.form = null;
+  c.formsKnown = Array.isArray(c.formsKnown) ? c.formsKnown.filter(function(s) { return typeof s === "string"; }).slice(0, 8) : [];
   if (Array.isArray(c.companions)) c.companions = c.companions.filter(obj).map(function(m) {
     m.ac = _importNum(m.ac, 10); m.hpCurrent = _importNum(m.hpCurrent, 0); m.hpMax = _importNum(m.hpMax, 0);
     return m;

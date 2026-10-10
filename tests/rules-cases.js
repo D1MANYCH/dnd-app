@@ -1368,6 +1368,84 @@ function rulesCases(t, group) {
     var c = fixture({ classes: [{ class: "Воин", level: 5 }, { class: "Друид", level: 2, subclass: "Круг луны" }], level: 7 });
     return limRow(c) === "1 1 1 0 1 bonus 0 0" ? true : limRow(c);
   });
+
+  group("РОСТ-6: механика Дикого облика");
+
+  var wolf = { slug: "wolf", name: "Волк", cr: "1/4", ac: 13, hp: 11, speed: { walk: 40, swim: 0, fly: 0, climb: 0 },
+    stats: { str: 12, dex: 15, con: 12, int: 3, wis: 12, cha: 6 } };
+
+  t("2014: вход — свои хиты зверя, временные хиты не трогаются", function() {
+    var c = druid(2); c.combat.hpTemp = 2;
+    var f = rulesFormStart(c, wolf, rulesWildShapeLimits(c), 5);
+    if (f.hpMax !== 11 || f.hpCurrent !== 11 || f.ac !== 13 || f.edition !== "2014" || f.durationH !== 1 || f.startedAt !== 5) return JSON.stringify(f);
+    return c.combat.hpTemp === 2 && rulesFormOwnHp(c) ? true : "временные/свой запас";
+  });
+
+  t("2014: урон — сначала временные хиты, потом облик; персонаж цел", function() {
+    var c = druid(2); c.combat.hpTemp = 3;
+    rulesFormStart(c, wolf, rulesWildShapeLimits(c));
+    var r = rulesFormDamage(c, 7);
+    if (r.temp !== 3 || r.formDmg !== 4 || r.overflow !== 0 || r.ended) return JSON.stringify(r);
+    return c.form.hpCurrent === 7 && c.combat.hpCurrent === 10 ? true : "облик " + c.form.hpCurrent + ", персонаж " + c.combat.hpCurrent;
+  });
+
+  t("2014: урон больше хитов облика — облик спадает, остаток переходит (PHB стр.67)", function() {
+    var c = druid(2);
+    rulesFormStart(c, wolf, rulesWildShapeLimits(c));
+    var r = rulesFormDamage(c, 15);
+    if (!r.ended || r.overflow !== 4 || c.form !== null) return JSON.stringify(r);
+    rulesApplyDamage(c, r.overflow, {});
+    if (c.combat.hpCurrent !== 6) return "персонаж " + c.combat.hpCurrent;
+    var c2 = druid(2); rulesFormStart(c2, wolf, rulesWildShapeLimits(c2));
+    var r2 = rulesFormDamage(c2, 11);
+    return r2.ended && r2.overflow === 0 ? true : "ровно в ноль: " + JSON.stringify(r2);
+  });
+
+  t("2014: лечение в облике — хитам зверя, не выше максимума", function() {
+    var c = druid(2);
+    rulesFormStart(c, wolf, rulesWildShapeLimits(c));
+    rulesFormDamage(c, 5);
+    var h = rulesFormHeal(c, 10);
+    return h === 5 && c.form.hpCurrent === 11 && c.combat.hpCurrent === 10 ? true : h + " / " + c.form.hpCurrent;
+  });
+
+  t("2024: хиты свои, временные хиты = уровень (не складываются); урон не перехватывается", function() {
+    var c = druid(4, "", "2024"); c.combat.hpTemp = 2;
+    var f = rulesFormStart(c, wolf, rulesWildShapeLimits(c));
+    if (f.hpMax !== 0 || rulesFormOwnHp(c) || c.combat.hpTemp !== 4) return JSON.stringify(f) + " temp " + c.combat.hpTemp;
+    var c2 = druid(4, "", "2024"); c2.combat.hpTemp = 9;
+    rulesFormStart(c2, wolf, rulesWildShapeLimits(c2));
+    if (c2.combat.hpTemp !== 9) return "временные сложились/упали: " + c2.combat.hpTemp;
+    var r = rulesFormDamage(c, 6);
+    return r.overflow === 6 && !r.ended && c.form ? true : JSON.stringify(r);
+  });
+
+  t("2024 Круг луны: КД не ниже 13 + МДР, временные хиты ×3", function() {
+    var c = druid(6, "Круг луны", "2024", 16);
+    var f = rulesFormStart(c, wolf, rulesWildShapeLimits(c));
+    return f.ac === 16 && c.combat.hpTemp === 18 ? true : "КД " + f.ac + ", временные " + c.combat.hpTemp;
+  });
+
+  t("Концентрация в облике: ТЕЛ зверя, владение спасброском своё", function() {
+    var c = druid(5); c.stats.con = 8; c.saves = { con: true };
+    rulesFormStart(c, { slug: "bear", name: "Медведь", cr: "1/2", ac: 11, hp: 19, stats: { con: 16 } }, rulesWildShapeLimits(c));
+    var p = concSaveParams(c, 10);
+    return p.mod === 3 + 3 ? true : "мод " + p.mod;
+  });
+
+  t("Круг луны 2024, 6 ур.: в облике +МДР к спасброску концентрации; без облика — нет", function() {
+    var c = druid(6, "Круг луны", "2024", 16);
+    if (concSaveParams(c, 10).mod !== 0) return "без облика " + concSaveParams(c, 10).mod;
+    rulesFormStart(c, wolf, rulesWildShapeLimits(c));
+    var m = concSaveParams(c, 10).mod;
+    return m === 1 + 3 ? true : "в облике " + m;
+  });
+
+  t("Ограничения: орёл недоступен друиду 2 ур., волк доступен", function() {
+    var lim = rulesWildShapeLimits(druid(2));
+    if (!rulesBeastAllowed(wolf, lim)) return "волк";
+    return rulesBeastAllowed({ cr: "0", speed: { fly: 60 } }, lim) ? "летун" : true;
+  });
 }
 
 if (typeof window !== "undefined") window.rulesCases = rulesCases;

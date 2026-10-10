@@ -539,6 +539,8 @@ function crResourceRow(res, char) {
   }
 
   if (res.slotRecovery) acts = crSlotRecoveryActs(res, char);
+  // РОСТ-6: вход в облик — с экрана выбора зверя
+  if (res.id === "wild_shape" && remaining > 0 && typeof openWildShapePicker === "function") acts += '<button type="button" class="hp-act" onclick="event.stopPropagation();openWildShapePicker()">Принять облик</button>';
 
   var src = escapeHtml(res._cls || "");
   var rest = crRestoreLabel(res);

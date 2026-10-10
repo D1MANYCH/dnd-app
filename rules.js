@@ -1213,7 +1213,11 @@ function rulesResetFeatFree(char) {
 function concSaveParams(char, dmg) {
   char = char || {};
   var stats = char.stats || {};
-  var mod = (typeof getMod === "function") ? getMod(stats.con) : 0;
+  // РОСТ-6: в облике — ТЕЛ зверя, владение спасброском — своё
+  var mod = (typeof getMod === "function") ? getMod(char.form && char.form.con ? char.form.con : stats.con) : 0;
+  // Круг луны 2024, 6 ур. (PHB24 стр.96): в облике +МДР к спасброскам ТЕЛ
+  if (char.form && char.edition === "2024" && typeof charClassLevel === "function" &&
+      charClassLevel(char, "Друид") >= 6 && charClassSubclass(char, "Друид") === "Круг луны") mod += getMod(stats.wis);
   if (char.saves && char.saves.con && typeof getProficiencyBonus === "function") {
     mod += getProficiencyBonus(char.level || 1);
   }
@@ -1291,6 +1295,52 @@ function rulesWildShapeLimits(char) {
     r.maxCr = Math.max(1, Math.floor(lvl / 3));
   }
   return r;
+}
+// РОСТ-6: зверь подходит под ограничения облика.
+function rulesBeastAllowed(beast, lim) {
+  if (!beast || !lim) return false;
+  var sp = beast.speed || {};
+  return rulesCrValue(beast.cr) <= lim.maxCr && !(lim.noFly && sp.fly) && !(lim.noSwim && sp.swim);
+}
+/** РОСТ-6: войти в облик. 2014 — свой запас хитов зверя; 2024 — хиты персонажа,
+ *  временные хиты по ограничениям (не складываются — берётся большее). */
+function rulesFormStart(char, beast, lim, now) {
+  var e24 = char.edition === "2024";
+  var hp = Math.max(1, parseInt(beast.hp, 10) || 1);
+  char.form = { kind: "wild", slug: beast.slug, name: beast.name,
+    ac: Math.max(parseInt(beast.ac, 10) || 10, (lim && lim.acFloor) || 0),
+    con: (beast.stats && beast.stats.con) || 10,
+    hpMax: e24 ? 0 : hp, hpCurrent: e24 ? 0 : hp, edition: e24 ? "2024" : "2014",
+    startedAt: now || 0, durationH: (lim && lim.durationH) || 0 };
+  if (e24 && lim && lim.tempHp > 0) char.combat.hpTemp = Math.max(char.combat.hpTemp || 0, lim.tempHp);
+  return char.form;
+}
+// Облик держит свои хиты (2014).
+function rulesFormOwnHp(char) {
+  return !!(char && char.form && char.form.kind && char.form.edition !== "2024");
+}
+/** РОСТ-6, PHB 2014 стр.67: урон — временные хиты → хиты облика; при 0 облик спадает,
+ *  остаток (overflow) идёт по персонажу. Без облика 2014 весь урон — overflow. */
+function rulesFormDamage(char, dmg) {
+  var r = { temp: 0, formDmg: 0, overflow: dmg, ended: false };
+  if (!rulesFormOwnHp(char) || !(dmg > 0)) return r;
+  var t = Math.min(char.combat.hpTemp || 0, dmg);
+  char.combat.hpTemp = (char.combat.hpTemp || 0) - t;
+  dmg -= t;
+  var f = char.form, take = Math.min(f.hpCurrent || 0, dmg);
+  f.hpCurrent = (f.hpCurrent || 0) - take;
+  dmg -= take;
+  r.temp = t; r.formDmg = take;
+  if (f.hpCurrent <= 0) { char.form = null; r.ended = true; }
+  r.overflow = r.ended ? dmg : 0;
+  return r;
+}
+// РОСТ-6: лечение в облике 2014 — хитам зверя, не выше их максимума. Возвращает прибавку.
+function rulesFormHeal(char, n) {
+  if (!rulesFormOwnHp(char) || !(n > 0)) return 0;
+  var f = char.form, before = f.hpCurrent || 0;
+  f.hpCurrent = Math.min(f.hpMax || 0, before + n);
+  return f.hpCurrent - before;
 }
 // Множитель по числу монстров; отряд меньше 3 — ступень выше, 6+ — ступень ниже.
 function rulesEncounterMultiplier(monsterCount, partySize) {
