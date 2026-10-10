@@ -38,12 +38,18 @@
     "--s2-line:var(--border-soft);color:var(--text);font-size:15px;line-height:1.35;margin:0 0 24px}",
     ":root[data-theme='light'] #sheet2{--s2-action:#1f6fb8;--s2-action-hi:#2a7fcc;--s2-action-lo:#185a96;--s2-on-action:#fff}",
     "body.sheet2-on #tab-sheet>:not(#sheet2):not(#sheet2-bar){display:none!important}",
+    // на ПК #tab-sheet — flex-ряд колонок: демо занимает всю ширину, а не узкую колонку
+    "#tab-sheet>#sheet2,#tab-sheet>#sheet2-bar{flex:0 0 100%;grid-column:1/-1;width:100%;min-width:0}",
+    // хиты/КД/ячейки уже есть в демо — правая панель на вкладке листа их дублирует
+    "body.sheet2-tab .app-right-rail{display:none!important}",
+    "@media (min-width:1024px){body.sheet2-tab{padding-right:0!important}}",
     "#sheet2-bar{display:flex;gap:12px;align-items:center;font-size:13px;color:var(--text-mute);margin:4px 0 12px}",
     "#sheet2-bar button{background:none;border:0;color:var(--accent-ink);cursor:pointer;font:inherit;padding:4px 0;text-decoration:underline}",
     "#sheet2 h2,#sheet2 h3{font-family:var(--font-display);font-weight:600;margin:0}",
     "#sheet2 h3{font-size:19px;margin:22px 0 8px}",
     "#sheet2 .s2-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px 24px;align-items:start;padding-bottom:16px;border-bottom:1px solid var(--s2-line)}",
-    "#sheet2 .s2-ava{width:60px;height:60px;border-radius:50%;background:var(--bg-3) center/cover;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:24px;color:var(--accent-ink)}",
+    "#sheet2 .s2-ava{width:60px;height:60px;border-radius:50%;background:var(--bg-3) center/cover;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:24px;color:var(--accent-ink);overflow:hidden}",
+    "#sheet2 .s2-ava img{width:100%;height:100%;object-fit:cover}",
     "#sheet2 .s2-name{font-size:24px;line-height:1.15;overflow-wrap:anywhere}",
     "#sheet2 .s2-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 24px;margin-top:8px;font-size:14px}",
     "#sheet2 .s2-facts b{font-weight:600;color:var(--text-dim)}",
@@ -59,10 +65,11 @@
     "#sheet2 .s2-link{background:none;border:0;padding:2px 0;color:var(--accent-ink);font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}",
     "#sheet2 .s2-link:hover{color:var(--accent-hover)}",
     "#sheet2 .s2-link:active{color:var(--accent-lo)}",
-    "#sheet2 .s2-body{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:0 32px}",
+    "#sheet2 .s2-body{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 32px}",
     "#sheet2 .s2-line{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;color:var(--text-dim);margin:14px 0 0}",
     "#sheet2 .s2-line b{color:var(--text);font-weight:600}",
-    "#sheet2 .s2-two{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:0 28px}",
+    "#sheet2 .s2-line .s2-link{padding:0}",
+    "#sheet2 .s2-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 28px}",
     "#sheet2 table{width:100%;border-collapse:collapse;font-size:15px}",
     "#sheet2 th{font-weight:400;font-size:12px;color:var(--text-mute);text-align:left;padding:4px 6px;border-bottom:1px solid var(--s2-line)}",
     "#sheet2 td{padding:6px;border-bottom:1px solid var(--s2-line)}",
@@ -70,7 +77,7 @@
     "#sheet2 .s2-row{cursor:pointer;transition:color .12s,background .12s}",
     "#sheet2 .s2-row:hover{color:var(--s2-action-hi)}",
     "#sheet2 .s2-row:active{background:var(--bg-3);color:var(--s2-action)}",
-    "#sheet2 .s2-prof{color:var(--accent);font-size:11px;margin-right:6px}",
+    "#sheet2 .s2-prof{display:inline-block;width:17px;color:var(--accent);font-size:11px}",
     "#sheet2 .s2-noprof{display:inline-block;width:17px}",
     "#sheet2 .s2-skills{columns:2;column-gap:28px}",
     "#sheet2 .s2-sg{break-inside:avoid;margin-bottom:10px}",
@@ -96,6 +103,7 @@
     "#sheet2 .s2-pip.on{color:var(--accent)}",
     "#sheet2 .s2-dice{display:flex;flex-wrap:wrap;gap:4px 12px;margin:6px 0}",
     "#sheet2 .s2-acts{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin:6px 0}",
+    "#sheet2 .s2-acts .s2-kv{margin:0}",
     "@media (max-width:760px){",
     "#sheet2 .s2-head{grid-template-columns:auto minmax(0,1fr)}",
     "#sheet2 .s2-lvl{grid-column:1/-1;text-align:left;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center}",
@@ -139,6 +147,8 @@
     var locked = !!(char && typeof isSheetLocked === "function" && isSheetLocked(char));
     var on = locked && !showOld;
     document.body.classList.toggle("sheet2-on", on);
+    var tabEl = document.getElementById("tab-sheet");
+    document.body.classList.toggle("sheet2-tab", on && tabEl.classList.contains("active"));
     nodes.root.style.display = on ? "" : "none";
     nodes.bar.innerHTML = !char ? "" : !locked
       ? "Демо нового листа: зафиксируйте лист, чтобы увидеть его"
@@ -154,12 +164,13 @@
     var xp = (typeof charXpNext === "function") ? charXpNext(c) : { need: 0, have: c.exp || 0 };
     var xpPct = xp.need ? Math.min(100, Math.round(100 * (xp.have || 0) / xp.need)) : 100;
     var initial = (c.name || "?").trim().charAt(0).toUpperCase();
-    var ava = c.avatar ? " style=\"background-image:url('" + esc(c.avatar) + "')\"" : "";
+    var avaSrc = typeof safeImageSrc === "function" ? safeImageSrc(c.avatar) : "";
+    var avaHtml = avaSrc ? "<img src=\"" + esc(avaSrc) + "\" alt=''>" : (typeof getClassIcon === "function" && c.class ? getClassIcon(c.class) : esc(initial));
     var h = [];
 
     // ── Шапка
     h.push("<div class='s2-head'>");
-    h.push("<div class='s2-ava'" + ava + ">" + (c.avatar ? "" : esc(initial)) + "</div>");
+    h.push("<div class='s2-ava'>" + avaHtml + "</div>");
     h.push("<div><h2 class='s2-name'>" + esc(c.name || "Без имени") + "</h2><div class='s2-facts'>");
     h.push("<div><b>Класс:</b> " + esc(isMulticlass(c) ? getClassLabel(c) : c.class) + "</div>");
     h.push("<div><b>Подкласс:</b> " + esc(c.subclass || "нет") + "</div>");
