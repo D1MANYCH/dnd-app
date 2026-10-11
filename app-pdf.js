@@ -457,7 +457,7 @@ function _pdfAttacks(doc, y, char) {
   doc.text('Атака', 110, y + 3.6);
   doc.text('Урон', 135, y + 3.6);
   doc.text('Хар.', 175, y + 3.6);
-  y += 5.5;
+  y += 9;
 
   for (var i = 0; i < weapons.length; i++) {
     var w = weapons[i];
