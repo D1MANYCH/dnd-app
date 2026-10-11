@@ -11,6 +11,7 @@
   } catch (e) { return; }
 
   var showOld = false;
+  var pool = {}; // кубы, набранные нажатиями: { грани: количество }
   var AB = [
     { k: "str", n: "Сила", s: "Сил" }, { k: "dex", n: "Ловкость", s: "Лов" },
     { k: "con", n: "Телосложение", s: "Тел" }, { k: "int", n: "Интеллект", s: "Инт" },
@@ -34,7 +35,7 @@
   }
 
   var css = [
-    "#sheet2{--s2-action:#3ba0f0;--s2-action-hi:#62b4f4;--s2-action-lo:#1f7fcc;--s2-on-action:#04121f;",
+    "#sheet2{--s2-action:#35a6f2;--s2-action-hi:#5cb8f5;--s2-action-lo:#1f8ad6;--s2-on-action:#04121f;",
     "--s2-line:var(--border-soft);color:var(--text);font-size:15px;line-height:1.35;margin:0 0 24px}",
     ":root[data-theme='light'] #sheet2{--s2-action:#1f6fb8;--s2-action-hi:#2a7fcc;--s2-action-lo:#185a96;--s2-on-action:#fff}",
     "body.sheet2-on #tab-sheet>:not(#sheet2):not(#sheet2-bar){display:none!important}",
@@ -45,7 +46,7 @@
     "@media (min-width:1024px){body.sheet2-tab{padding-right:0!important}}",
     "#sheet2-bar{display:flex;gap:12px;align-items:center;font-size:13px;color:var(--text-mute);margin:4px 0 12px}",
     "#sheet2-bar button{background:none;border:0;color:var(--accent-ink);cursor:pointer;font:inherit;padding:4px 0;text-decoration:underline}",
-    "#sheet2 h2,#sheet2 h3{font-family:var(--font-display);font-weight:600;margin:0}",
+    "#sheet2 h2,#sheet2 h3{font-family:var(--font-display);font-weight:600;margin:0;color:var(--text)}",
     "#sheet2 h3{font-size:19px;margin:22px 0 8px}",
     "#sheet2 .s2-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px 24px;align-items:start;padding-bottom:16px;border-bottom:1px solid var(--s2-line)}",
     "#sheet2 .s2-ava{width:60px;height:60px;border-radius:50%;background:var(--bg-3) center/cover;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:24px;color:var(--accent-ink);overflow:hidden}",
@@ -56,28 +57,32 @@
     "#sheet2 .s2-lvl{text-align:right;min-width:170px}",
     "#sheet2 .s2-lvl .s2-big{font-family:var(--font-display);font-size:20px}",
     "#sheet2 .s2-xp{height:3px;background:var(--bg-3);margin:6px 0 10px;border-radius:2px;overflow:hidden}",
-    "#sheet2 .s2-xp i{display:block;height:100%;background:var(--accent)}",
+    "#sheet2 .s2-xp i{display:block;height:100%;background:var(--text-dim)}",
+    "#sheet2 .s2-num{width:3.2em;background:none;border:0;border-bottom:1px dashed var(--s2-line);color:inherit;font:inherit;text-align:right;padding:0 2px}",
+    "#sheet2 .s2-num:focus{outline:none;border-bottom-color:var(--s2-action)}",
+    "#sheet2 .s2-num.w{width:5em}",
     "#sheet2 .s2-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:0 16px;border:0;border-radius:6px;",
     "background:var(--s2-action);color:var(--s2-on-action);font:600 15px var(--font-display);cursor:pointer;transition:background .12s,transform .06s}",
     "#sheet2 .s2-btn:hover{background:var(--s2-action-hi)}",
     "#sheet2 .s2-btn:active{background:var(--s2-action-lo);transform:translateY(1px) scale(.97)}",
     "#sheet2 .s2-btn:focus-visible,#sheet2 .s2-link:focus-visible,#sheet2 .s2-row:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}",
-    "#sheet2 .s2-link{background:none;border:0;padding:2px 0;color:var(--accent-ink);font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}",
-    "#sheet2 .s2-link:hover{color:var(--accent-hover)}",
-    "#sheet2 .s2-link:active{color:var(--accent-lo)}",
-    "#sheet2 .s2-body{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 32px}",
+    "#sheet2 .s2-link{background:none;border:0;padding:2px 0;color:var(--s2-action);font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}",
+    "#sheet2 .s2-link:hover{color:var(--s2-action-hi)}",
+    "#sheet2 .s2-link:active{color:var(--s2-action-lo)}",
+    "#sheet2 .s2-body{display:grid;grid-template-columns:minmax(0,1fr) 264px;gap:0 32px}",
+    "#sheet2 .s2-head,#sheet2 .s2-main{grid-column:1}",
     "#sheet2 .s2-line{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;color:var(--text-dim);margin:14px 0 0}",
     "#sheet2 .s2-line b{color:var(--text);font-weight:600}",
     "#sheet2 .s2-line .s2-link{padding:0}",
-    "#sheet2 .s2-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 28px}",
+    "#sheet2 .s2-two{display:grid;grid-template-columns:minmax(0,320px) minmax(0,220px);gap:0 72px}",
     "#sheet2 table{width:100%;border-collapse:collapse;font-size:15px}",
     "#sheet2 th{font-weight:400;font-size:12px;color:var(--text-mute);text-align:left;padding:4px 6px;border-bottom:1px solid var(--s2-line)}",
-    "#sheet2 td{padding:6px;border-bottom:1px solid var(--s2-line)}",
+    "#sheet2 td{padding:8px 6px}",
     "#sheet2 td.n{text-align:right;font-variant-numeric:tabular-nums}",
     "#sheet2 .s2-row{cursor:pointer;transition:color .12s,background .12s}",
     "#sheet2 .s2-row:hover{color:var(--s2-action-hi)}",
     "#sheet2 .s2-row:active{background:var(--bg-3);color:var(--s2-action)}",
-    "#sheet2 .s2-prof{display:inline-block;width:17px;color:var(--accent);font-size:11px}",
+    "#sheet2 .s2-prof{display:inline-block;width:17px;color:var(--text);font-size:11px}",
     "#sheet2 .s2-noprof{display:inline-block;width:17px}",
     "#sheet2 .s2-skills{columns:2;column-gap:28px}",
     "#sheet2 .s2-sg{break-inside:avoid;margin-bottom:10px}",
@@ -86,7 +91,7 @@
     "#sheet2 .s2-sk span:last-child{font-variant-numeric:tabular-nums}",
     "#sheet2 .s2-kv{font-size:14px;margin:3px 0;color:var(--text-dim)}",
     "#sheet2 .s2-kv b{color:var(--text);font-weight:600}",
-    "#sheet2 aside{border-left:1px solid var(--s2-line);padding-left:24px}",
+    "#sheet2 aside{grid-column:2;grid-row:1/span 2;border-left:1px solid var(--s2-line);padding-left:24px}",
     "#sheet2 .s2-hp{display:flex;align-items:baseline;justify-content:space-between;margin-top:14px}",
     "#sheet2 .s2-hp .s2-big{font-family:var(--font-display);font-size:28px;font-variant-numeric:tabular-nums}",
     "#sheet2 .s2-hpbar{height:4px;background:var(--bg-3);border-radius:2px;overflow:hidden;margin:4px 0 10px}",
@@ -100,8 +105,12 @@
     "#sheet2 .s2-trio b{font-family:var(--font-display);font-size:20px}",
     "#sheet2 .s2-ds{display:flex;gap:14px;font-size:14px;color:var(--text-dim);margin:8px 0}",
     "#sheet2 .s2-pip{background:none;border:0;padding:2px;cursor:pointer;color:var(--text-mute);font-size:15px}",
-    "#sheet2 .s2-pip.on{color:var(--accent)}",
-    "#sheet2 .s2-dice{display:flex;flex-wrap:wrap;gap:4px 12px;margin:6px 0}",
+    "#sheet2 .s2-pip.on{color:var(--s2-action)}",
+    "#sheet2 .s2-dice{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}",
+    "#sheet2 .s2-die{min-height:36px;border:1px solid var(--s2-action);border-radius:4px;background:none;color:var(--s2-action);font:600 15px var(--font-display);cursor:pointer;transition:background .12s,color .12s}",
+    "#sheet2 .s2-die:hover{border-color:var(--s2-action-hi);color:var(--s2-action-hi)}",
+    "#sheet2 .s2-die.on{background:var(--s2-action);color:var(--s2-on-action)}",
+    "#sheet2 .s2-die:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}",
     "#sheet2 .s2-acts{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin:6px 0}",
     "#sheet2 .s2-acts .s2-kv{margin:0}",
     "@media (max-width:760px){",
@@ -110,7 +119,8 @@
     "#sheet2 .s2-lvl .s2-xp{grid-column:1/-1;margin:0}",
     "#sheet2 .s2-facts{grid-template-columns:1fr}",
     "#sheet2 .s2-body{grid-template-columns:1fr}",
-    "#sheet2 aside{order:-1;border-left:0;padding-left:0;border-bottom:1px solid var(--s2-line);padding-bottom:12px}",
+    "#sheet2 .s2-head{order:-2}",
+    "#sheet2 aside{order:-1;grid-column:1;grid-row:auto;border-left:0;padding-left:0;border-bottom:1px solid var(--s2-line);padding-bottom:12px}",
     "#sheet2 .s2-two{grid-template-columns:1fr}",
     "#sheet2 .s2-skills{columns:1}",
     "}"
@@ -169,7 +179,7 @@
     var h = [];
 
     // ── Шапка
-    h.push("<div class='s2-head'>");
+    h.push("<div class='s2-body'><div class='s2-head'>");
     h.push("<div class='s2-ava'>" + avaHtml + "</div>");
     h.push("<div><h2 class='s2-name'>" + esc(c.name || "Без имени") + "</h2><div class='s2-facts'>");
     h.push("<div><b>Класс:</b> " + esc(isMulticlass(c) ? getClassLabel(c) : c.class) + "</div>");
@@ -181,13 +191,13 @@
     h.push("<div><b>Предыстория:</b> " + esc(c.background || "—") + "</div>");
     h.push("<div><b>Мировоззрение:</b> " + esc(c.alignment || "—") + "</div>");
     h.push("</div></div>");
-    h.push("<div class='s2-lvl'><div class='s2-big'>" + lvl + " уровень</div>");
-    h.push("<div class='s2-kv'>Опыт " + (xp.have || 0) + (xp.need ? " / " + xp.need : "") + "</div>");
+    h.push("<div class='s2-lvl'><div class='s2-big'><input class='s2-num' type='number' min='1' max='20' inputmode='numeric' value='" + lvl + "' onchange=\"sheet2Set('char-level',this.value)\" aria-label='Уровень'> уровень</div>");
+    h.push("<div class='s2-kv'>Опыт <input class='s2-num w' type='number' min='0' inputmode='numeric' value='" + (xp.have || 0) + "' onchange=\"sheet2Set('char-exp',this.value)\" aria-label='Опыт'>" + (xp.need ? " / " + xp.need : "") + "</div>");
     h.push("<div class='s2-xp'><i style='width:" + xpPct + "%'></i></div>");
     h.push("<button type='button' class='s2-btn' onclick='openLevelUpModal()'>↑ Повысить</button></div>");
     h.push("</div>");
 
-    h.push("<div class='s2-body'><div>");
+    h.push("<div class='s2-main'>");
 
     // ── Строка общих чисел
     var pp = rulesPassivePerception(c, lvl, !!(c.skills && c.skills[3]));
@@ -271,7 +281,7 @@
       h.push("<div class='s2-ds'><span>Успехи " + pips(ds.successes || [], "success") + "</span><span>Провалы " + pips(ds.failures || [], "failure") + "</span></div>");
     }
 
-    h.push("<h3>Отдых</h3><div class='s2-acts'><button type='button' class='s2-link' onclick='openRestModal();showShortRestInfo()'>Короткий</button><button type='button' class='s2-link' onclick='openRestModal();showLongRestInfo()'>Длинный</button></div>");
+    h.push("<h3>Отдых</h3><div class='s2-acts'><button type='button' class='s2-btn' onclick='openRestModal();showShortRestInfo()'>Короткий</button><button type='button' class='s2-btn' onclick='openRestModal();showLongRestInfo()'>Длинный</button></div>");
     h.push("<div class='s2-acts'><button type='button' class='s2-btn' onclick='rollHitDieQuick()'" + (hdLeft ? "" : " disabled") + ">Кость хитов</button><span class='s2-kv'>осталось " + hdLeft + " из " + lvl + " (" + esc(rulesHitDiceLabel(c)) + ")</span></div>");
 
     // ── Атаки
@@ -286,8 +296,9 @@
 
     // ── Кубы
     h.push("<h3>Кубы</h3><div class='s2-dice'>");
-    DICE.forEach(function (d) { h.push("<button type='button' class='s2-link' onclick='quickRoll({sides:" + d + "})'>к" + d + "</button>"); });
-    h.push("</div>");
+    DICE.forEach(function (d) { var n = pool[d] || 0; h.push("<button type='button' class='s2-die" + (n ? " on" : "") + "' onclick='sheet2Die(" + d + ")'>" + (n > 1 ? n : "") + "к" + d + "</button>"); });
+    var poolF = poolFormula();
+    h.push("</div><div class='s2-acts'><button type='button' class='s2-btn' onclick='sheet2DiceRoll()'" + (poolF ? "" : " disabled") + ">Бросить" + (poolF ? " " + poolF : "") + "</button>" + (poolF ? "<button type='button' class='s2-link' onclick='sheet2DiceClear()'>Сбросить</button>" : "") + "</div>");
 
     // ── Ячейки
     var sl = (c.spells && c.spells.slots) || {}, su = (c.spells && c.spells.slotsUsed) || {};
@@ -306,6 +317,29 @@
   }
 
   window.sheet2Toggle = function () { showOld = !showOld; render(); };
+  // правка поля старого листа: его oninput пересчитывает и сохраняет
+  window.sheet2Set = function (id, v) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var n = parseInt(v, 10) || 0;
+    if (id === "char-level") n = Math.max(1, Math.min(20, n || 1));
+    el.value = Math.max(0, n);
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    schedule();
+  };
+  function poolFormula() {
+    return DICE.slice().reverse().filter(function (d) { return pool[d]; })
+      .map(function (d) { return pool[d] + "к" + d; }).join("+");
+  }
+  window.sheet2Die = function (d) { pool[d] = Math.min(20, (pool[d] || 0) + 1); render(); };
+  window.sheet2DiceClear = function () { pool = {}; render(); };
+  window.sheet2DiceRoll = function () {
+    var f = poolFormula();
+    if (!f) return;
+    pool = {};
+    render();
+    rollFormula(f, { label: f, openArena: true, noMin: true });
+  };
   window.sheet2HP = function (sign) {
     var el = document.getElementById("s2-hp-n");
     var n = parseInt(el && el.value, 10);
