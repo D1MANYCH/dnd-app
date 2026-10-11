@@ -59,3 +59,9 @@ Architecture, data schema, migrations — [docs/ARCHITECTURE.md](docs/ARCHITECTU
 Run locally with any static server from the repo root (`python3 -m http.server` works). PWA features need `https` or `localhost`.
 
 Tests: `node tests/headless-node.js`.
+
+## License
+
+App code © D1MANYCH, licensed under [GNU AGPL-3.0](LICENSE): you may use, modify and share it, but a modified version — including one run as a website — must stay open under the same license, with attribution.
+
+Game content is not covered: SRD 5.1 text © Wizards of the Coast, [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/); other D&D rules and names belong to Wizards of the Coast. Third-party libraries in `vendor/` keep their own licenses.
