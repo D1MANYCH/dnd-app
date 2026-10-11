@@ -40,8 +40,6 @@
     "--s2-line:var(--border-soft)}",
     "#sheet2{color:var(--text);font-size:15px;line-height:1.35;margin:0 0 24px}",
     "body.sheet2-on #tab-sheet>:not(#sheet2):not(#sheet2-bar){display:none!important}",
-    // результат броска показывается в боковой панели — всплывашка «Последний бросок» не нужна
-    "body.sheet2-tab #quick-roll-strip{display:none!important}",
     // на ПК #tab-sheet — flex-ряд колонок: демо занимает всю ширину, а не узкую колонку
     "#tab-sheet>#sheet2,#tab-sheet>#sheet2-bar{flex:0 0 100%;grid-column:1/-1;width:100%;min-width:0}",
     // хиты/КД/ячейки уже есть в демо — правая панель на вкладке листа их дублирует
@@ -49,7 +47,9 @@
     // ПК: правая колонка — настоящая боковая панель, как .app-right-rail (закреплена, своя граница и фон)
     "@media (min-width:1024px){body.sheet2-tab{padding-right:296px!important}",
     // анимация появления оставляет transform у предков — fixed-панель тогда привязывается к ним, а не к окну
-    "body.sheet2-tab #tab-sheet,body.sheet2-tab #sheet2,body.sheet2-tab #screen-character{animation:none!important;transform:none!important}",
+    "body.sheet2-tab #tab-sheet,body.sheet2-tab #sheet2,body.sheet2-tab #screen-character:not(.screen-ghost){animation:none!important;transform:none!important}",
+    // уходящий экран (призрак перехода) летит вместе с панелью — её fixed тут не нужен
+    ".screen-ghost #sheet2 aside{display:none!important}",
     "#sheet2 .s2-body{grid-template-columns:minmax(0,1fr)!important}",
     "#sheet2 aside{position:fixed;top:72px;right:0;bottom:0;width:296px;box-sizing:border-box;padding:16px 20px 32px!important;overflow-y:auto;overflow-x:hidden;z-index:40;",
     "border-left:1px solid var(--border-soft);background:var(--surface-sticky,rgba(20,22,30,.55));backdrop-filter:blur(var(--sticky-blur,12px));-webkit-backdrop-filter:blur(var(--sticky-blur,12px))}",
@@ -110,7 +110,8 @@
     "#sheet2 .s2-atk .s2-atk-d{color:var(--text-dim);font-variant-numeric:tabular-nums}",
     "#sheet2 .s2-rolls{margin:8px 0 0;font-size:14px}",
     "#sheet2 .s2-roll{display:flex;justify-content:space-between;gap:8px;padding:3px 0;color:var(--text-dim)}",
-    "#sheet2 .s2-roll b{font-family:var(--font-display);font-size:17px;color:var(--text);font-variant-numeric:tabular-nums}",
+    "#sheet2 .s2-roll>span{min-width:0;overflow-wrap:anywhere}",
+    "#sheet2 .s2-roll b{flex:none;font-family:var(--font-display);font-size:17px;color:var(--text);font-variant-numeric:tabular-nums}",
     "#sheet2 .s2-roll:first-child b{font-size:22px}",
     "#sheet2 .s2-roll.crit b{color:var(--success)}",
     "#sheet2 .s2-roll.fail b{color:var(--danger)}",
@@ -207,13 +208,19 @@
     var on = locked && !showOld;
     document.body.classList.toggle("sheet2-on", on);
     var tabEl = document.getElementById("tab-sheet");
-    document.body.classList.toggle("sheet2-tab", on && tabEl.classList.contains("active"));
+    var scr = document.getElementById("screen-character");
+    var scrOn = !scr || (!scr.classList.contains("hidden") && !scr.classList.contains("screen-ghost"));
+    document.body.classList.toggle("sheet2-tab", on && scrOn && tabEl.classList.contains("active"));
     nodes.root.style.display = on ? "" : "none";
     nodes.bar.innerHTML = !char ? "" : !locked
       ? "Демо нового листа: зафиксируйте лист, чтобы увидеть его"
       : "Демо нового листа · <button type='button' onclick='sheet2Toggle()'>" + (showOld ? "Показать новый" : "Показать старый") + "</button>";
     if (!on) return;
+    // правая панель прокручивается сама — перерисовка не должна сбрасывать её наверх
+    var side = nodes.root.querySelector("aside"), sideTop = side ? side.scrollTop : 0;
     nodes.root.innerHTML = build(char);
+    side = nodes.root.querySelector("aside");
+    if (side && sideTop) side.scrollTop = sideTop;
   }
 
   function build(c) {
@@ -564,7 +571,7 @@
     pending = true;
     setTimeout(function () { pending = false; try { render(); } catch (e) { console.error("sheet2", e); } }, 0);
   }
-  ["calcStats", "updateHPDisplay", "loadCharacter", "loadDeathSaves", "toggleInspiration",
+  ["showScreen", "calcStats", "updateHPDisplay", "loadCharacter", "loadDeathSaves", "toggleInspiration",
    "applySheetLockUI", "switchTab", "recalculateHP", "calculateAC", "saveToLocal",
    "renderClassResources", "renderDiceHistory", "renderQuickRollStrip", "setConcentration", "endConcentration"].forEach(function (name) {
     var orig = window[name];

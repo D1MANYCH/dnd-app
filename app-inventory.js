@@ -1379,7 +1379,7 @@ function rollTWFAttack(index) {
       if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
       showDualDice(d);
       if (d.isCrit) createParticles();
-      diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: weapon.name + " бонус.атака" });
+      diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: weapon.name + " бонус.атака", src: (typeof _rollSrc === "function" ? _rollSrc() : undefined) });
       if (diceHistory.length > 10) diceHistory.pop();
       renderDiceHistory();
       rollTWFDamage(index, d.isCrit);
@@ -1464,7 +1464,7 @@ showRollModePopup(function(mode) {
     if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
     showDualDice(d);
     if (d.isCrit) createParticles();
-    diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: weapon.name + " атака" });
+    diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: weapon.name + " атака", src: (typeof _rollSrc === "function" ? _rollSrc() : undefined) });
     if (diceHistory.length > 10) diceHistory.pop();
     renderDiceHistory();
     // PLAY-2: «Атака и урон одним нажатием» — урон следом, кроме естественной 1.
@@ -1503,7 +1503,7 @@ if (resultBox) resultBox.className = "dice3d-result normal";
 var sides = r.sides;
 var qty = r.qty;
 animateDice3d(sides, total, function() {}, { qty: qty });
-diceHistory.unshift({ sides:sides, result:total, mode:"normal", time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:total, r2:null, label: weapon.name + " урон" });
+diceHistory.unshift({ sides:sides, result:total, mode:"normal", time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:total, r2:null, label: weapon.name + " урон", src: (typeof _rollSrc === "function" ? _rollSrc() : undefined) });
 if (diceHistory.length > 10) diceHistory.pop();
 renderDiceHistory();
 }

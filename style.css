@@ -3222,53 +3222,42 @@ button.small { padding: 7px 14px; width: auto; font-size: 0.85em; }
   margin-right: auto;
   white-space: nowrap;
 }
+/* РОСТ-8: недавние броски — плоские строки «подпись — число», без плашек */
 .qrs-list {
   display: flex;
-  align-items: stretch;
-  gap: 6px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+  flex-direction: column;
+  min-width: 220px;
 }
-.qrs-list::-webkit-scrollbar { display: none; }
 .qrs-chip {
-  flex: 0 0 auto;
-  width: auto;            /* сброс глоб. button{width:100%} — иначе чип на всю ширину */
+  width: 100%;            /* строка на всю ширину карточки */
   margin: 0;
-  display: inline-flex;
+  display: flex;
   align-items: baseline;
-  gap: 6px;
-  padding: 5px 10px;
-  border: 1px solid var(--border-soft, rgba(255,255,255,0.1));
-  border-radius: 10px;
-  background: var(--bg-2, rgba(255,255,255,0.04));
-  color: var(--text, #e8e8ef);
-  font-size: 0.74em;
-  line-height: 1.1;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background 0.16s, border-color 0.16s, transform 0.12s;
-}
-.qrs-chip:hover { background: var(--accent-soft, rgba(201,160,64,0.18)); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
-.qrs-chip:active { transform: scale(0.96); }
-.qrs-chip-label { color: var(--text-muted, #a8a8b8); font-weight: 600; max-width: 12ch; overflow: hidden; text-overflow: ellipsis; }
-.qrs-chip-val { font-weight: 800; color: var(--accent-color, #e0b358); font-variant-numeric: tabular-nums; }
-/* Последний бросок (первый чип) — крупный, на всю ширину карточки: метка слева,
-   число золотом справа (строка результата). Остальные (недавние) — компактные. */
-.qrs-chip:first-child {
-  flex: 1 1 auto;
   justify-content: space-between;
   gap: 14px;
-  padding: 6px 13px;
-  background: var(--accent-soft, rgba(214,178,94,0.13));
-  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  padding: 5px 0;
+  border: 0;
+  border-bottom: 1px solid var(--border-soft, rgba(255,255,255,0.1));
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--text, #e8e8ef);
+  font-size: 0.82em;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
 }
-.qrs-chip:first-child .qrs-chip-label { font-size: 0.92em; color: var(--text-dim, #a8a8b8); }
-.qrs-chip:first-child .qrs-chip-val { font-size: 1.55em; line-height: 1; }
-.qrs-chip.qrs-crit { border-color: #4da843; }
-.qrs-chip.qrs-crit .qrs-chip-val { color: #6fd35f; }
-.qrs-chip.qrs-fail { border-color: var(--danger); }
-.qrs-chip.qrs-fail .qrs-chip-val { color: #e8705f; }
+.qrs-chip:last-child { border-bottom: 0; }
+.qrs-chip:hover { background: none; color: var(--text); }
+.qrs-chip:hover .qrs-chip-label { color: var(--text); }
+.qrs-chip-label { color: var(--text-dim, #a8a8b8); min-width: 0; overflow-wrap: anywhere; }
+.qrs-chip-src { display: block; font-size: 0.82em; color: var(--text-mute, var(--text-muted)); }
+.qrs-chip-val { flex: none; font-family: var(--font-display, inherit); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+/* последний бросок — первая строка, число крупно */
+.qrs-chip:first-child .qrs-chip-label { color: var(--text); }
+.qrs-chip:first-child .qrs-chip-val { font-size: 1.7em; line-height: 1; }
+.qrs-chip.qrs-crit .qrs-chip-val { color: var(--success, #6fd35f); }
+.qrs-chip.qrs-fail .qrs-chip-val { color: var(--danger, #e8705f); }
 .qrs-close {
   flex: 0 0 auto;
   width: 20px;

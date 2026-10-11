@@ -297,7 +297,7 @@ animateDice3d(sides, result, function(v1, v2) {
     resultBox.classList.add("pop");
     setTimeout(function(){ if(resultBox) resultBox.classList.remove("pop"); }, 400);
   }
-  diceHistory.unshift({ sides: sides, result: result, mode: mode || 'normal', time: timestamp, r1: r1, r2: r2 });
+  diceHistory.unshift({ sides: sides, result: result, mode: mode || 'normal', time: timestamp, r1: r1, r2: r2, src: 'Кубы' });
   _setSettledDice(sides, (mode === 'adv' || mode === 'dis') ? [r1, r2] : [result]);
   _emitDiceRolled({ sides: sides, result: result, natural: result, mode: mode || 'normal', label: 'd' + sides });
   if (diceHistory.length > 10) diceHistory.pop();
@@ -403,8 +403,18 @@ var _qrsDismissed = false;
 
 // Универсальный быстрый бросок d20(+мод): открывает арену, кидает 3D, пишет
 // в общий diceHistory с подписью, показывает тост. opts: {label, sides=20, mod=0, mode}.
+// Где сделан бросок — вкладка персонажа; запоминается до открытия арены
+var _ROLL_SRC_TABS = { sheet: 'Лист', progress: 'Развитие', spells: 'Магия', inventory: 'Сумка', notes: 'Записи', party: 'Мир', battle: 'Бой', journal: 'Журнал' };
+function _rollSrc() {
+  var scr = document.getElementById('screen-character');
+  if (scr && scr.classList.contains('hidden')) return '';
+  var t = document.querySelector('.tab-content.active');
+  return t ? (_ROLL_SRC_TABS[t.id.replace('tab-', '')] || '') : '';
+}
+window._rollSrc = _rollSrc;
 function quickRoll(opts) {
   opts = opts || {};
+  var src = opts.src || _rollSrc();
   var sides = opts.sides || 20;
   var mod = opts.mod || 0;
   var mode = (opts.mode === 'adv' || opts.mode === 'dis') ? opts.mode : 'normal';
@@ -444,7 +454,9 @@ function quickRoll(opts) {
       try { showDualDice({ mode: mode, roll: comp.natural, r1: rr1, r2: rr2 }); } catch (e) {}
     }
     try { showToast(_quickRollToastText(label, comp, mod), comp.isCrit ? 'success' : comp.isFail ? 'error' : 'info'); } catch (e) {}
-    diceHistory.unshift(_quickRollRecord(label, sides, mod, comp, rr1, rr2, time));
+    var rec = _quickRollRecord(label, sides, mod, comp, rr1, rr2, time);
+    if (src) rec.src = src;
+    diceHistory.unshift(rec);
     _setSettledDice(sides, (comp.mode === 'adv' || comp.mode === 'dis') ? [rr1, rr2] : [comp.natural]);
     _emitDiceRolled({ sides: sides, result: comp.total, natural: comp.natural, mode: comp.mode, label: label });
     if (diceHistory.length > 10) diceHistory.pop();
@@ -477,7 +489,8 @@ function renderQuickRollStrip() {
       else if (nat === 1) critCls = ' qrs-fail';
     }
     return '<button type="button" class="qrs-chip' + critCls + '" onclick="openDiceRollHistory()" title="Открыть историю бросков">' +
-             '<span class="qrs-chip-label">' + escapeHtml(lbl) + (modeTag ? ' ' + modeTag : '') + '</span>' +
+             '<span class="qrs-chip-label">' + escapeHtml(lbl) + (modeTag ? ' ' + modeTag : '') +
+               (r.src ? '<small class="qrs-chip-src">' + escapeHtml(r.src) + '</small>' : '') + '</span>' +
              '<span class="qrs-chip-val">' + escapeHtml(String(r.result)) + '</span>' +
            '</button>';
   }).join('');
@@ -873,20 +886,27 @@ function animateDice3d(sides, result, callback, opts) {
     // резолвится никогда (коллекцию стёр clear() следующего) — guard по roll.done.
     // Синхронный throw из roll() (тема ещё не загружена) уходит во внешний
     // .catch → animateDice2d.
-    box.roll([{ qty: qty, sides: sides }], { theme: _getDiceTheme(), themeColor: _getDiceThemeColor() }).then(function(rolls) {
+    // РОСТ-17: формула катит все свои группы разом (opts.groups), остальное — одну
+    var notation = (opts && opts.groups) ? opts.groups : [{ qty: qty, sides: sides }];
+    box.roll(notation, { theme: _getDiceTheme(), themeColor: _getDiceThemeColor() }).then(function(rolls) {
       if (roll.done) return;
       roll.done = true;
       clearTimeout(roll.timer);
       if (_dice3dActiveRoll === roll) _dice3dActiveRoll = null;
       _diceBoxConsecutiveTimeouts = 0;
-      var v1, v2, vAll;
+      var v1, v2, vAll, byGroup;
       try {
         v1 = rolls && rolls[0] ? rolls[0].value : undefined;
         v2 = rolls && rolls[1] ? rolls[1].value : undefined;
         // DICE-UI: третьим аргументом отдаём ВСЕ значения физики. Сигнатура
         // callback(v1, v2) сохранена — на неё завязан app-inventory.js.
         vAll = (rolls || []).map(function (r) { return r && r.value; });
-      } catch (e) { v1 = undefined; v2 = undefined; vAll = undefined; }
+        // по группам броска: groupId после clear() в roll() идёт с нуля по порядку нотации
+        if (opts && opts.groups) {
+          byGroup = opts.groups.map(function () { return []; });
+          (rolls || []).forEach(function (r) { if (r && byGroup[r.groupId]) byGroup[r.groupId].push(r.value); });
+        }
+      } catch (e) { v1 = undefined; v2 = undefined; vAll = undefined; byGroup = undefined; }
       // 3D-only: поведение НЕ меняем (никакого 2D-фолбэка) — только диагностика.
       // Если кость пропала, этот лог покажет значение, размеры canvas (буфер vs CSS),
       // подключён ли он к DOM и не потерян ли WebGL-контекст — чтобы починить точечно.
@@ -903,7 +923,7 @@ function animateDice3d(sides, result, callback, opts) {
       } catch (e) { diag.err = e.message; }
       try { if (_diceDbg()) console.log('[DiceBox] roll resolved', { sides: sides, qty: qty, v1: v1, v2: v2, diag: diag }); } catch (e) {}
       _applyDiceCritGlow(sides, v1, v2);
-      callback(v1, v2, vAll);
+      callback(v1, v2, vAll, byGroup);
     }).catch(function(err) {
       // Промис roll() может отвалиться внутри библиотеки (тема не догрузилась,
       // потерянный контекст — в проде видели «Cannot read properties of undefined
@@ -1166,6 +1186,7 @@ function rollFormula(formula, opts) {
     if (window.AppLog) AppLog.action('dice', 'формула отклонена: ' + parsed.error);
     return parsed;
   }
+  var src = opts.src || _rollSrc();
   if (opts.openArena) { try { openDiceModal(); } catch (e) {} }
   var label = opts.label || null;
   var groups = parsed.groups, mod = parsed.mod;
@@ -1193,14 +1214,27 @@ function rollFormula(formula, opts) {
   if (dualEl) dualEl.style.display = 'none';
   if (window.AppLog) AppLog.action('dice', 'формула ' + canon + (label ? ' (' + label + ')' : '') + ' — старт', { sides: primary.sides });
 
-  animateDice3d(primary.sides, precompPrimarySum, function(v1, v2, vAll) {
+  // РОСТ-17: на стол идут все группы формулы, не больше 20 костей всего
+  var left3d = 20;
+  var groups3d = groups.map(function (g) {
+    var q = Math.max(0, Math.min(g.count, left3d));
+    left3d -= q;
+    return { qty: q, sides: g.sides };
+  });
+  animateDice3d(primary.sides, precompPrimarySum, function(v1, v2, vAll, byGroup) {
     // Сверка основной группы с физикой. Раньше сверялись только 1 и 2 кубика, а
     // при трёх и больше в разбивке оставались предрасчитанные числа — на столе
     // лежало одно, в тексте стояло другое. Пока кости лежали кучей, этого никто
     // не читал; после подачи лицом к игроку расхождение стало очевидным.
     var okAll = Array.isArray(vAll) && vAll.length === primary.count &&
       vAll.every(function (n) { return typeof n === 'number' && !isNaN(n); });
-    if (okAll) {
+    if (Array.isArray(byGroup)) {
+      groups.forEach(function (g, i) {
+        var got = byGroup[i];
+        if (Array.isArray(got) && got.length === g.count &&
+            got.every(function (n) { return typeof n === 'number' && !isNaN(n); })) rollsByGroup[i] = got.slice();
+      });
+    } else if (okAll) {
       rollsByGroup[primaryIdx] = vAll.slice();
     } else if (primary.count === 1 && typeof v1 === 'number' && !isNaN(v1)) {
       rollsByGroup[primaryIdx] = [v1];
@@ -1208,19 +1242,19 @@ function rollFormula(formula, opts) {
       rollsByGroup[primaryIdx] = [v1, v2];
     }
     var res = _renderFormulaResult(groups, rollsByGroup, mod, !!opts.noMin);
-    _setSettledDice(primary.sides, rollsByGroup[primaryIdx]);
+    _setSettledDice(groups.length === 1 ? primary.sides : null, [].concat.apply([], rollsByGroup));
     try { _setDiceSettled(true); } catch (e) {}
     if (label) {
       var ri = $("dice-result-info");
       if (ri) ri.textContent = label + ' · ' + ri.textContent;
     }
-    diceHistory.unshift({ sides: primary.sides, result: res.total, mode: 'custom', formula: canon, label: label || undefined, time: timestamp });
+    diceHistory.unshift({ sides: primary.sides, result: res.total, mode: 'custom', formula: canon, label: label || undefined, time: timestamp, src: src || undefined });
     if (diceHistory.length > 10) diceHistory.pop();
     renderDiceHistory();
     try { _updateDiceHistoryBadge(); } catch (e) {}
     if (window.AppLog) AppLog.action('dice', 'формула ' + canon + ' = ' + res.total + (label ? ' (' + label + ')' : ''), { total: res.total });
     if (typeof opts.onResult === 'function') { try { opts.onResult(res); } catch (e) {} }
-  }, { qty: Math.min(primary.count, 10) });
+  }, { qty: Math.min(primary.count, 10), groups: groups3d.filter(function (g) { return g.qty > 0; }) });
   return parsed;
 }
 window.rollFormula = rollFormula;
@@ -1230,7 +1264,7 @@ window.rollFormula = rollFormula;
 function _rollFormulaFrom(inputId) {
   var input = document.getElementById(inputId) || document.getElementById('dice-custom-input');
   if (!input) return;
-  var parsed = rollFormula(input.value, { noMin: true });
+  var parsed = rollFormula(input.value, { noMin: true, src: 'Кубы' });
   if (parsed && !parsed.ok) {
     var resultBig = $("dice-result-big");
     var resultInfo = $("dice-result-info");
@@ -1261,7 +1295,7 @@ var label;
 if (record.label) label = escapeHtml(record.label) + modeTag;
 else if (record.mode === 'custom') label = record.formula || "custom";
 else label = "к" + record.sides + modeTag;
-div.innerHTML = "<span>" + label + " (" + record.time + ")</span><span>" + record.result + "</span>";
+div.innerHTML = "<span>" + label + " (" + record.time + (record.src ? " · " + escapeHtml(record.src) : "") + ")</span><span>" + record.result + "</span>";
 container.appendChild(div);
 });
 }
