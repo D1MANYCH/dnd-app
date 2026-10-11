@@ -583,6 +583,8 @@ const SPELL_EFFECTS = {
   // исчезает», сам спутник из списка НЕ удаляется (вычёркивает игрок).
   // PH24 переработал «Призыв …» в бестелесных духов/эманации без статблока
   // существа — там bySource обнуляет summon (мост молчит).
+  // РОСТ-7: только на себя — экран выбора зверя (app-wildshape.js); закрыть экран — каст на другую цель
+  "Превращение": { form: { kind: "poly" }, duration: { value: 1, unit: "hour" } },
   "Поиск фамильяра": { summon: { companionType: "familiar", picker: "familiarForms" } },
   "Невидимый слуга": { summon: { companionType: "other", prefill: {
       name: "Невидимый слуга", hp: 1, ac: 10, attack: "",

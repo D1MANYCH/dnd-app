@@ -1527,6 +1527,15 @@ function applyCastEffects(char, spell, slot, variant) {
   if (d.tempHp) _applyCastTempHp(char, spell, d, slot);
   if (d.hpMaxBonus) _applyCastHpMaxBonus(char, spell, d, slot);
   if (d.summon) _applyCastSummon(char, spell, d, slot);
+  if (d.form) _applyCastForm(char, spell, d, slot);
+}
+
+// РОСТ-7: «Превращение» на себя — экземпляр {form:true} (конец концентрации снимает
+// облик, removeCastEffectsForSpell) и экран выбора зверя.
+function _applyCastForm(char, spell, d, slot) {
+  _replaceCastInstance(char, spell, d, slot, { form: true });
+  saveToLocal();
+  if (typeof openPolymorphPicker === "function") openPolymorphPicker();
 }
 
 // CAST-8a: мини-чузер варианта каста («Защита от энергии» — тип урона, «Огненный

@@ -1600,7 +1600,12 @@ function setBattleHP(i, val) {
     // РОСТ-6: в облике 2014 число — хиты зверя; 0 завершает облик без урона по персонажу
     if (char && rulesFormOwnHp(char)) {
       char.form.hpCurrent = Math.min(n, char.form.hpMax || n);
-      if (n <= 0) { char.form = null; showToast("🐾 Облик спал", "warn"); }
+      if (n <= 0) {
+        var polyOff = char.form.kind === "poly";
+        char.form = null;
+        if (polyOff && typeof polymorphEnd === "function") polymorphEnd(char, "облик спал");
+        showToast("🐾 Облик спал", "warn");
+      }
       saveToLocal();
       updateHPDisplay();
     }

@@ -5052,7 +5052,7 @@
       // смерть» наносит урон лишь в PH24) — проверяем базу и каждый вариант.
       function hasMech(d) {
         return !!(d.effects || d.damage || d.heal || d.tempHp || d.hpMaxBonus ||
-                  d.summon || d.repeat || d.debuff);
+                  d.summon || d.repeat || d.debuff || d.form);
       }
       var empty = keys.filter(function(k){
         var d = SPELL_EFFECTS[k];
@@ -10877,6 +10877,43 @@
         quickHP(-3, "Test"); quickHP(10, "Test");
         if (ch.form.hpCurrent !== 11 || ch.combat.hpCurrent !== 15) return "лечение не в облик: " + ch.form.hpCurrent + "/" + ch.combat.hpCurrent;
         return true;
+      } finally {
+        window.characters = savedChars;
+        window.currentId = savedId;
+        window.showHPToast = savedHPToast;
+        window.showToast = savedToast;
+      }
+    });
+  }
+  if (typeof quickHP === "function" && typeof polymorphEnd === "function") {
+    t("[РОСТ-7] Превращение 2024: 0 временных хитов снимает облик, концентрацию и экземпляр каста", function(){
+      var savedChars = window.characters, savedId = window.currentId, savedHPToast = window.showHPToast, savedToast = window.showToast;
+      try {
+        window.showHPToast = function(){};
+        window.showToast = function(){};
+        window.characters = [{
+          id: "test-poly-1", class: "Волшебник", level: 7, edition: "2024",
+          combat: { hpTemp: 0, hpCurrent: 30, hpMax: 30, hpDice: "1к6", hpDiceSpent: 0 },
+          stats: { str:10, dex:10, con:10, int:16, wis:10, cha:10 },
+          saves: {}, skills: [], spells: { stat:"int", slots:{}, slotsUsed:{} }, effects: [],
+          concentration: "Превращение", conditions: [], form: null,
+          activeSpellEffects: [{ id: 1, spellName: "Превращение", effectIds: [], form: true, concentration: true }],
+          deathSaves: { successes:[false,false,false], failures:[false,false,false] }
+        }];
+        window.currentId = "test-poly-1";
+        var ch = window.characters[0];
+        rulesFormStart(ch, { slug: "wolf", name: "Волк", cr: "1/4", ac: 13, hp: 11, stats: { con: 12 } }, rulesPolymorphLimits(ch));
+        if (ch.combat.hpTemp !== 11) return "временные " + ch.combat.hpTemp;
+        quickHP(-5, "Test");
+        if (!ch.form || ch.combat.hpTemp !== 6 || ch.combat.hpCurrent !== 30) return "частичный урон: " + ch.combat.hpTemp + "/" + ch.combat.hpCurrent;
+        quickHP(-9, "Test");
+        if (ch.form !== null || ch.combat.hpCurrent !== 27) return "облик " + JSON.stringify(ch.form) + ", хиты " + ch.combat.hpCurrent;
+        if (ch.concentration !== null || ch.activeSpellEffects.length) return "концентрация/экземпляр не сняты";
+        ch.concentration = "Превращение";
+        ch.activeSpellEffects = [{ id: 2, spellName: "Превращение", effectIds: [], form: true, concentration: true }];
+        rulesFormStart(ch, { slug: "wolf", name: "Волк", cr: "1/4", ac: 13, hp: 11, stats: { con: 12 } }, rulesPolymorphLimits(ch));
+        removeCastEffectsForSpell(ch, "Превращение", "конец концентрации");
+        return ch.form === null ? true : "конец концентрации не снял облик";
       } finally {
         window.characters = savedChars;
         window.currentId = savedId;

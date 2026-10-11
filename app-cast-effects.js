@@ -41,6 +41,8 @@ function removeCastEffectsForSpell(char, spellName, reason) {
   gone.forEach(function(i) {
     if (_revertCastInstanceBody(char, i)) bodyTouched = true; // CAST-3: врем. ХП / hpMax
     if (i.summon) hadSummon = true; // CAST-5: призыв
+    // РОСТ-7: конец «Превращения» снимает облик
+    if (i.form && char.form && char.form.kind === "poly") { char.form = null; bodyTouched = true; }
     (i.effectIds || []).forEach(function(id) {
       if (held[id]) return;
       var idx = char.effects ? char.effects.indexOf(id) : -1;

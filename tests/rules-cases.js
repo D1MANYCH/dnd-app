@@ -1446,6 +1446,52 @@ function rulesCases(t, group) {
     if (!rulesBeastAllowed(wolf, lim)) return "волк";
     return rulesBeastAllowed({ cr: "0", speed: { fly: 60 } }, lim) ? "летун" : true;
   });
+
+  group("РОСТ-7: Превращение на себя и Круг луны");
+
+  t("Превращение: ПО ≤ уровня, летуны и пловцы разрешены, 1 ч", function() {
+    var c = druid(7); var lim = rulesPolymorphLimits(c);
+    if (lim.maxCr !== 7 || lim.durationH !== 1 || lim.kind !== "poly") return JSON.stringify(lim);
+    if (!rulesBeastAllowed({ cr: "2", speed: { fly: 60, swim: 30 } }, lim)) return "летун 2";
+    return rulesBeastAllowed({ cr: "8", speed: {} }, lim) ? "ПО 8 у 7 ур." : true;
+  });
+
+  t("Превращение 2014: свои хиты зверя, урон с переносом, облик kind=poly", function() {
+    var c = druid(7);
+    var f = rulesFormStart(c, wolf, rulesPolymorphLimits(c));
+    if (f.kind !== "poly" || f.hpMax !== 11 || !rulesFormOwnHp(c)) return JSON.stringify(f);
+    var r = rulesFormDamage(c, 13);
+    return r.ended && r.overflow === 2 ? true : JSON.stringify(r);
+  });
+
+  t("Превращение 2024: временные хиты = хиты зверя (большее), КД зверя без пола Круга луны", function() {
+    var c = druid(8, "Круг луны", "2024", 16); c.combat.hpTemp = 5;
+    var f = rulesFormStart(c, wolf, rulesPolymorphLimits(c));
+    if (c.combat.hpTemp !== 11 || f.ac !== 13 || rulesFormOwnHp(c)) return "врем. " + c.combat.hpTemp + ", КД " + f.ac;
+    var c2 = druid(8, "", "2024"); c2.combat.hpTemp = 20;
+    rulesFormStart(c2, wolf, rulesPolymorphLimits(c2));
+    return c2.combat.hpTemp === 20 ? true : "временные упали: " + c2.combat.hpTemp;
+  });
+
+  t("Превращение: концентрация — ТЕЛ зверя без своих владений и без МДР Круга луны", function() {
+    var c = druid(6, "Круг луны", "2024", 16); c.stats.con = 8; c.saves = { con: true };
+    rulesFormStart(c, { slug: "bear", name: "Медведь", cr: "1/2", ac: 11, hp: 19, stats: { con: 16 } }, rulesPolymorphLimits(c));
+    var m = concSaveParams(c, 10).mod;
+    return m === 3 ? true : "мод " + m;
+  });
+
+  t("Боевой дикий облик: только Круг луны 2014 в Диком облике", function() {
+    var c = druid(2, "Круг луны");
+    if (rulesCombatWildShapeHeal(c)) return "без облика";
+    rulesFormStart(c, wolf, rulesWildShapeLimits(c));
+    if (!rulesCombatWildShapeHeal(c)) return "в облике";
+    var p = druid(7, "Круг луны"); rulesFormStart(p, wolf, rulesPolymorphLimits(p));
+    if (rulesCombatWildShapeHeal(p)) return "в Превращении";
+    var e = druid(2, "Круг луны", "2024"); rulesFormStart(e, wolf, rulesWildShapeLimits(e));
+    if (rulesCombatWildShapeHeal(e)) return "2024";
+    var n = druid(2); rulesFormStart(n, wolf, rulesWildShapeLimits(n));
+    return rulesCombatWildShapeHeal(n) ? "Круг земли" : true;
+  });
 }
 
 if (typeof window !== "undefined") window.rulesCases = rulesCases;

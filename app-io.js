@@ -66,7 +66,7 @@ function _sanitizeImportedChar(c) {
   }
   // РОСТ-6: облик — объект с числами в пределах, иначе нет облика; известные облики — строки
   if (obj(c.form) && c.form.slug) {
-    c.form = { kind: "wild", slug: String(c.form.slug).slice(0, 60), name: String(c.form.name || "").slice(0, 80),
+    c.form = { kind: c.form.kind === "poly" ? "poly" : "wild", slug: String(c.form.slug).slice(0, 60), name: String(c.form.name || "").slice(0, 80),
       ac: Math.round(clamp(c.form.ac, 10, 0, 40)), con: Math.round(clamp(c.form.con, 10, 1, 30)),
       hpMax: Math.round(clamp(c.form.hpMax, 0, 0, 1000)), hpCurrent: Math.round(clamp(c.form.hpCurrent, 0, 0, 1000)),
       edition: String(c.form.edition) === "2024" ? "2024" : "2014", startedAt: clamp(c.form.startedAt, 0, 0, 1e15),

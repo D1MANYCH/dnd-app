@@ -56,6 +56,9 @@ function wildShapeStatBlock() {
   if (!f) return null;
   var b = wsBeast(f.slug);
   if (!b) { wsEnsureBeasts(); return null; }
+  // РОСТ-7: «Превращение» — характеристики, спасброски и мастерство целиком зверя
+  if (f.kind === "poly") return { formName: b.name, name: b.name, cr: b.cr, profBonus: rulesCrToProf(b.cr) || 2,
+    stats: b.stats, saveProf: (b.saveProf || []).slice(), attacks: b.attacks, traits: b.traits, senses: b.senses };
   var st = char.stats || {};
   var stats = { str: b.stats.str, dex: b.stats.dex, con: b.stats.con, int: st.int || 10, wis: st.wis || 10, cha: st.cha || 10 };
   var prof = (b.saveProf || []).slice();
@@ -100,16 +103,20 @@ function renderWildShape() {
   if (!card) return;
   card.style.display = (lim || f) ? "" : "none";
   if (!lim && !f) return;
-  var h = '<div class="bt-head"><h3>Дикий облик</h3>' +
-    (lim ? '<button type="button" class="bt-act" onclick="openWildShapePicker()">' + (f ? "Сменить облик" : "Принять облик") + '</button>' : "") + '</div>';
+  var poly = !!(f && f.kind === "poly");
+  var h = '<div class="bt-head"><h3>' + (poly ? "Превращение" : "Дикий облик") + '</h3>' +
+    (lim && !poly ? '<button type="button" class="bt-act" onclick="openWildShapePicker()">' + (f ? "Сменить облик" : "Принять облик") + '</button>' : "") + '</div>';
   if (!f) {
     h += '<p class="hp-row-hint">' + escapeHtml(wsLimitsText(lim, char)) + '</p>';
   } else {
     var sb = wildShapeStatBlock();
     h += '<div class="ws-banner">' + wsFormLine(char) + '</div>';
     h += '<p class="hp-row-hint">' + (f.durationH ? "До " + f.durationH + " ч · " : "") +
+      (poly ? (f.edition === "2024" ? "временные хиты = хиты зверя, при 0 облик спадает" : "урон снимает хиты облика, остаток переходит на персонажа") +
+        " · все характеристики — зверя, концентрация</p>" :
       (f.edition === "2024" ? "хиты свои, временные хиты при входе" : "урон снимает хиты облика, остаток переходит на персонажа") +
-      " · Инт, Мдр, Хар и владения — свои</p>";
+      " · Инт, Мдр, Хар и владения — свои</p>");
+    if (rulesCombatWildShapeHeal(char)) h += wsSlotHealRow(char);
     if (sb) {
       h += '<div class="mon-sbv" id="ws-sb">' + monsterStatBlockHtml(sb) + '</div>';
       if (sb.senses) h += '<p class="hp-row-hint">' + escapeHtml(sb.senses) + '</p>';
@@ -128,10 +135,57 @@ function renderWildShape() {
   }, true);
 }
 
+// РОСТ-7: Боевой дикий облик (Круг луны 2014) — ячейка → Nк8 хитов облика
+function wsSlotHeal(char) {
+  var sp = char.spells || {}, out = [];
+  for (var l = 1; l <= 9; l++) {
+    var left = ((sp.slots || {})[l] || 0) - ((sp.slotsUsed || {})[l] || 0);
+    if (left > 0) out.push({ level: l, left: left });
+  }
+  return out;
+}
+function wsSlotHealRow(char) {
+  var lv = wsSlotHeal(char);
+  return '<div class="hp-row-line"><span class="hp-row-hint">Ячейка → хиты облика (бонусное действие):</span> ' +
+    (lv.length ? lv.map(function(s) {
+      return '<button type="button" class="hp-act" onclick="wildShapeSlotHeal(' + s.level + ')">' + s.level + ' круг · ' + s.level + 'к8</button>';
+    }).join(" ") : '<span class="hp-row-hint">ячеек нет</span>') + '</div>';
+}
+function wildShapeSlotHeal(lvl) {
+  var char = getCurrentChar();
+  if (!char || !rulesCombatWildShapeHeal(char)) return;
+  var sp = char.spells;
+  if (((sp.slots || {})[lvl] || 0) - ((sp.slotsUsed || {})[lvl] || 0) <= 0) { showToast("Ячеек " + lvl + " круга нет", "warn"); return; }
+  sp.slotsUsed[lvl] = (sp.slotsUsed[lvl] || 0) + 1;
+  if (window.AppLog) AppLog.action("combat", "Боевой дикий облик: ячейка " + lvl + " круга → " + lvl + "к8 хитов");
+  saveToLocal();
+  if (typeof renderSpellSlots === "function") renderSpellSlots();
+  renderWildShape();
+  rollFormula(lvl + "к8", { label: "🐾 Боевой дикий облик", openArena: true,
+    onResult: function(res) { quickHP(res.total, "Боевой дикий облик"); } });
+}
+
 // ── Экран выбора ──
+// _wsMode: "wild" — Дикий облик, "poly" — «Превращение» на себя (РОСТ-7)
+var _wsMode = "wild";
+function wsLimits(char) {
+  return _wsMode === "poly" ? rulesPolymorphLimits(char) : rulesWildShapeLimits(char);
+}
+function openPolymorphPicker() {
+  var char = currentId ? getCurrentChar() : null;
+  if (!char) return;
+  _wsMode = "poly";
+  wsOpenPicker();
+}
 function openWildShapePicker() {
   var char = currentId ? getCurrentChar() : null;
   if (!char || !rulesWildShapeLimits(char)) return;
+  _wsMode = "wild";
+  wsOpenPicker();
+}
+function wsOpenPicker() {
+  var t = $("ws-title");
+  if (t) t.textContent = _wsMode === "poly" ? "Превращение на себя" : "Дикий облик";
   var go = function() { _wsQuery = ""; var s = $("ws-search"); if (s) s.value = ""; renderWildShapePicker(); showScreen("wildshape"); };
   if (window.BEAST_FORMS) return go();
   if (typeof window.ensureBeastForms !== "function") return;
@@ -155,15 +209,16 @@ function renderWildShapePicker() {
   var char = currentId ? getCurrentChar() : null;
   var box = $("ws-results"), limEl = $("ws-limits");
   if (!char || !box) return;
-  var lim = rulesWildShapeLimits(char);
+  var lim = wsLimits(char);
   if (!lim) { box.innerHTML = ""; return; }
-  if (limEl) limEl.textContent = wsLimitsText(lim, char);
+  var poly = _wsMode === "poly";
+  if (limEl) limEl.textContent = poly ? "ПО до " + lim.maxCr + " · до 1 ч, концентрация · закройте экран, если цель — не вы" : wsLimitsText(lim, char);
   var q = _wsQuery;
   var match = function(b) { return !q || b.name.toLowerCase().indexOf(q) >= 0 || String(b.nameEn).toLowerCase().indexOf(q) >= 0; };
   var allowed = (window.BEAST_FORMS || []).filter(function(b) { return rulesBeastAllowed(b, lim); })
     .sort(function(a, b) { return rulesCrValue(a.cr) - rulesCrValue(b.cr) || a.name.localeCompare(b.name, "ru"); });
   var h = "";
-  if (char.edition === "2024") {
+  if (char.edition === "2024" && !poly) {
     if (!Array.isArray(char.formsKnown)) char.formsKnown = [];
     var known = allowed.filter(function(b) { return char.formsKnown.indexOf(b.slug) >= 0; });
     var full = known.length >= lim.known;
@@ -177,7 +232,7 @@ function renderWildShapePicker() {
     }).join("");
   } else {
     var list = allowed.filter(match);
-    h += list.map(function(b) { return wsPickRow(b, wsBtn("Принять", "wildShapeAssume", b.slug)); }).join("");
+    h += list.map(function(b) { return wsPickRow(b, wsBtn("Принять", poly ? "polymorphAssume" : "wildShapeAssume", b.slug)); }).join("");
     if (!list.length) h = '<p class="hp-row-hint">Ничего не найдено.</p>';
   }
   box.innerHTML = h;
@@ -216,9 +271,44 @@ function wildShapeAssume(slug) {
   if (typeof BATTLE_DATA !== "undefined" && BATTLE_DATA.active && typeof renderBattleTracker === "function") renderBattleTracker();
 }
 
+// РОСТ-7: «Превращение» на себя — без зарядов, ПО ≤ уровня
+function polymorphAssume(slug) {
+  var char = getCurrentChar();
+  if (!char) return;
+  var lim = rulesPolymorphLimits(char), b = wsBeast(slug);
+  if (!rulesBeastAllowed(b, lim)) { showToast("Этот зверь недоступен", "warn"); return; }
+  if ((char.combat.hpCurrent || 0) <= 0) { showToast("0 хитов — облик принять нельзя", "warn"); return; }
+  rulesFormStart(char, b, lim, Date.now());
+  if (window.AppLog) AppLog.action("combat", "Превращение: " + b.name);
+  saveToLocal();
+  closeWildShapePicker();
+  updateHPDisplay();
+  showToast("🐾 Превращение: " + b.name + (char.edition === "2024" ? " · временные хиты " + char.combat.hpTemp : ""), "success");
+  if (typeof BATTLE_DATA !== "undefined" && BATTLE_DATA.active && typeof renderBattleTracker === "function") renderBattleTracker();
+}
+
+// РОСТ-7: облик «Превращения» спал или снят — заклинание кончается вместе с концентрацией
+function polymorphEnd(char, reason) {
+  if (char.form && char.form.kind === "poly") char.form = null;
+  if (char.concentration === "Превращение") {
+    char.concentration = null;
+    if (typeof updateConcentrationDisplay === "function") updateConcentrationDisplay();
+  }
+  if (typeof removeCastEffectsForSpell === "function") removeCastEffectsForSpell(char, "Превращение", reason);
+}
+
 function wildShapeExit() {
   var char = getCurrentChar();
   if (!char || !char.form) return;
+  if (char.form.kind === "poly") {
+    if (window.AppLog) AppLog.action("combat", "Превращение: выход из «" + char.form.name + "»");
+    polymorphEnd(char, "выход из облика");
+    saveToLocal();
+    updateHPDisplay();
+    showToast("Облик снят — «Превращение» окончено", "info");
+    if (typeof BATTLE_DATA !== "undefined" && BATTLE_DATA.active && typeof renderBattleTracker === "function") renderBattleTracker();
+    return;
+  }
   if (window.AppLog) AppLog.action("combat", "Дикий облик: выход из «" + char.form.name + "»");
   char.form = null;
   saveToLocal();

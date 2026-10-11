@@ -1215,10 +1215,12 @@ function concSaveParams(char, dmg) {
   var stats = char.stats || {};
   // РОСТ-6: в облике — ТЕЛ зверя, владение спасброском — своё
   var mod = (typeof getMod === "function") ? getMod(char.form && char.form.con ? char.form.con : stats.con) : 0;
+  // РОСТ-7: «Превращение» заменяет все характеристики — своих владений спасбросками нет
+  var poly = !!(char.form && char.form.kind === "poly");
   // Круг луны 2024, 6 ур. (PHB24 стр.96): в облике +МДР к спасброскам ТЕЛ
-  if (char.form && char.edition === "2024" && typeof charClassLevel === "function" &&
+  if (char.form && !poly && char.edition === "2024" && typeof charClassLevel === "function" &&
       charClassLevel(char, "Друид") >= 6 && charClassSubclass(char, "Друид") === "Круг луны") mod += getMod(stats.wis);
-  if (char.saves && char.saves.con && typeof getProficiencyBonus === "function") {
+  if (!poly && char.saves && char.saves.con && typeof getProficiencyBonus === "function") {
     mod += getProficiencyBonus(char.level || 1);
   }
   var mode = "normal";
@@ -1296,6 +1298,17 @@ function rulesWildShapeLimits(char) {
   }
   return r;
 }
+/** РОСТ-7: «Превращение» на себя (PHB 2014 стр.263, PHB 2024 стр.283): зверь с ПО не выше уровня,
+ *  без ограничений скоростей, до 1 ч (концентрация). Временные хиты 2024 = хиты зверя — в rulesFormStart. */
+function rulesPolymorphLimits(char) {
+  return { kind: "poly", maxCr: Math.max(1, (char && char.level) || 1), noFly: false, noSwim: false,
+    known: 0, durationH: 1, action: "action", acFloor: 0, tempHp: 0 };
+}
+/** РОСТ-7: Круг луны 2014 (PHB стр.69) — в Диком облике бонусным действием ячейка → 1к8 хитов за её круг. */
+function rulesCombatWildShapeHeal(char) {
+  return !!(char && char.form && char.form.kind === "wild" && char.edition !== "2024" &&
+    charClassLevel(char, "Друид") >= 2 && charClassSubclass(char, "Друид") === "Круг луны");
+}
 // РОСТ-6: зверь подходит под ограничения облика.
 function rulesBeastAllowed(beast, lim) {
   if (!beast || !lim) return false;
@@ -1307,12 +1320,14 @@ function rulesBeastAllowed(beast, lim) {
 function rulesFormStart(char, beast, lim, now) {
   var e24 = char.edition === "2024";
   var hp = Math.max(1, parseInt(beast.hp, 10) || 1);
-  char.form = { kind: "wild", slug: beast.slug, name: beast.name,
+  var poly = !!(lim && lim.kind === "poly");
+  char.form = { kind: poly ? "poly" : "wild", slug: beast.slug, name: beast.name,
     ac: Math.max(parseInt(beast.ac, 10) || 10, (lim && lim.acFloor) || 0),
     con: (beast.stats && beast.stats.con) || 10,
     hpMax: e24 ? 0 : hp, hpCurrent: e24 ? 0 : hp, edition: e24 ? "2024" : "2014",
     startedAt: now || 0, durationH: (lim && lim.durationH) || 0 };
-  if (e24 && lim && lim.tempHp > 0) char.combat.hpTemp = Math.max(char.combat.hpTemp || 0, lim.tempHp);
+  var temp = e24 ? (poly ? hp : (lim && lim.tempHp) || 0) : 0;
+  if (temp > 0) char.combat.hpTemp = Math.max(char.combat.hpTemp || 0, temp);
   return char.form;
 }
 // Облик держит свои хиты (2014).

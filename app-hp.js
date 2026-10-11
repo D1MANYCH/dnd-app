@@ -1466,10 +1466,16 @@ if (delta < 0) {
   if (dmgIn <= 0) { showToast("🛡️ Иммунитет" + (opts.type ? " к урону «" + opts.type + "»" : "") + " — урон 0", "info"); return; }
   delta = -dmgIn;
   // РОСТ-6: облик 2014 принимает урон первым, остаток — по персонажу
+  var wasPoly = !!(char.form && char.form.kind === "poly");
   var formHit = rulesFormDamage(char, dmgIn);
   if (formHit.ended) showToast("🐾 Облик спал" + (formHit.overflow ? " — " + formHit.overflow + " урона переходит на персонажа" : ""), "warn");
   dmgRes = formHit.overflow > 0 ? rulesApplyDamage(char, formHit.overflow, { crit: !!opts.crit }) : {};
   hpCurrent = char.combat.hpCurrent;
+  // РОСТ-7: «Превращение» кончается при 0 хитов облика (2014) или 0 временных хитов (2024)
+  if (wasPoly && (!char.form || (char.form.edition === "2024" && !(char.combat.hpTemp > 0)))) {
+    if (char.form) showToast("🐾 Облик спал — временные хиты кончились", "warn");
+    polymorphEnd(char, "облик спал");
+  }
   if (formHit.formDmg && !formHit.ended) showToast("🐾 Облик: −" + formHit.formDmg + " хитов, осталось " + char.form.hpCurrent + "/" + char.form.hpMax, "info", undo.action);
   if (dmgRes.instantDeath) showToast("💀 Мгновенная смерть: урон не меньше максимума хитов", "error");
   else if (dmgRes.failuresAdded) showToast("💔 Урон на 0 ХП: " + (dmgRes.failuresAdded > 1 ? "два провала" : "провал") + " спасброска от смерти" + (dmgRes.dead ? " — персонаж погиб" : ""), "error", hpBefore === hpCurrent ? undo.action : null);
@@ -1498,7 +1504,12 @@ if (delta < 0) {
   }
 }
 // РОСТ-6: 0 хитов (без сознания = недееспособен) завершает облик и в 2024
-if (char.form && hpCurrent <= 0) { char.form = null; showToast("🐾 Облик спал — 0 хитов", "warn"); }
+if (char.form && hpCurrent <= 0) {
+  var polyZero = char.form.kind === "poly";
+  char.form = null;
+  if (polyZero) polymorphEnd(char, "0 хитов");
+  showToast("🐾 Облик спал — 0 хитов", "warn");
+}
 const actualDelta = hpCurrent - hpBefore;
 safeSet("hp-current", hpCurrent);
 safeSet("hp-temp", char.combat.hpTemp);
