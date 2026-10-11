@@ -939,6 +939,13 @@ html.glass-adjusting *::after {
   font-weight: 500;
   color: var(--text);
 }
+.sheet2-demo-note {
+  display: block;
+  font-family: var(--font-body, inherit);
+  font-size: var(--fs-xs, 12px);
+  font-weight: 400;
+  color: var(--warning, var(--text-mute));
+}
 /* Ромб — псевдоэлементом самой подписи, а не строки: подпись держит внутри
    иконку STYLE-7, лишний span сдвинул бы её, а якорь на строке разъезжался с
    текстом на высоких строках (чипы акцента — два ряда, подпись по центру). */
@@ -17914,3 +17921,7 @@ button.modal-close-bottom:hover,
   .saved-roll-acts { display: none; }
   .saved-roll-inp { width: 120px; }
 }
+/* РОСТ-8: тонкие полосы прокрутки в цвет темы вместо системных со стрелками */
+* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--text-mute) 45%, transparent) transparent; }
+/* поповеры окна кубов: нижние углы скругляет и прокручиваемое тело */
+.dice-popover-body { border-radius: 0 0 12px 12px; }

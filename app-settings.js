@@ -45,7 +45,7 @@ function setTheme(name) {
 }
 function _syncThemeButtons() {
   var active = _getTheme();
-  document.querySelectorAll('.theme-picker-btn').forEach(function(b) {
+  document.querySelectorAll('.theme-picker-btn[data-theme-btn]').forEach(function(b) {
     b.classList.toggle('is-active', b.getAttribute('data-theme-btn') === active);
   });
 }
@@ -254,7 +254,27 @@ function _syncStatsLayoutButtons() {
 document.addEventListener('DOMContentLoaded', function() {
   _applyStatsLayout(_getStatsLayout());
   _syncStatsLayoutButtons();
+  _syncSheet2DemoButtons();
 });
+
+// РОСТ-8: демо нового листа (ключ dnd_sheet2 читает app-sheet2.js при загрузке — поэтому перезагрузка)
+function _getSheet2Demo() {
+  try { return localStorage.getItem('dnd_sheet2') === '1'; } catch (e) { return false; }
+}
+function _syncSheet2DemoButtons() {
+  var on = _getSheet2Demo() ? '1' : '0';
+  document.querySelectorAll('.theme-picker-btn[data-sheet2-btn]').forEach(function(b) {
+    b.classList.toggle('is-active', b.getAttribute('data-sheet2-btn') === on);
+  });
+}
+function setSheet2Demo(on) {
+  if (on === _getSheet2Demo()) return;
+  try { if (on) localStorage.setItem('dnd_sheet2', '1'); else localStorage.removeItem('dnd_sheet2'); } catch (e) {}
+  _syncSheet2DemoButtons();
+  var u = new URL(location.href);
+  u.searchParams.delete('sheet2');
+  location.replace(u.toString());
+}
 
 // ЗАМОК-1: замок листа после создания (ключ dnd_sheet_lock, по умолчанию вкл.).
 // Выкл. → isSheetLocked() всегда false, кнопки и плашка замка скрыты.

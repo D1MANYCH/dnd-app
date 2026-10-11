@@ -1189,6 +1189,8 @@ function rollFormula(formula, opts) {
   var resultInfo = $("dice-result-info");
   if (resultBig) resultBig.textContent = '…';
   if (resultInfo) resultInfo.textContent = 'Бросок ' + (label ? label + ' · ' : '') + canon + '…';
+  var dualEl = $("dice-dual-display");
+  if (dualEl) dualEl.style.display = 'none';
   if (window.AppLog) AppLog.action('dice', 'формула ' + canon + (label ? ' (' + label + ')' : '') + ' — старт', { sides: primary.sides });
 
   animateDice3d(primary.sides, precompPrimarySum, function(v1, v2, vAll) {
@@ -1258,7 +1260,7 @@ const modeTag = record.mode === 'adv' ? ' ▲' : record.mode === 'dis' ? ' ▼' 
 var label;
 if (record.label) label = escapeHtml(record.label) + modeTag;
 else if (record.mode === 'custom') label = record.formula || "custom";
-else label = "d" + record.sides + modeTag;
+else label = "к" + record.sides + modeTag;
 div.innerHTML = "<span>" + label + " (" + record.time + ")</span><span>" + record.result + "</span>";
 container.appendChild(div);
 });
