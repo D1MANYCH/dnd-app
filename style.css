@@ -934,6 +934,8 @@ html.glass-adjusting *::after {
 }
 .theme-picker-label {
   position: relative;
+  flex: 1 1 10ch; /* PT-022/030: подпись сжимается и переносится, а не выталкивает выбор на вторую строку */
+  min-width: 10ch;
   font-family: var(--font-display);
   font-size: var(--fs-md);
   font-weight: 500;
@@ -12429,11 +12431,14 @@ body {
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.18s;
+  visibility: hidden; /* PT-027: закрытая форма не фокусируется и не читается скринридером */
+  transition: opacity 0.18s, visibility 0s 0.18s;
 }
 .notes-modal-overlay.open {
   opacity: 1;
   pointer-events: auto;
+  visibility: visible;
+  transition: opacity 0.18s, visibility 0s;
 }
 .notes-modal {
   background: var(--surface-pop, var(--surface-modal));
@@ -17918,3 +17923,18 @@ button.modal-close-bottom:hover,
 * { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--text-mute) 45%, transparent) transparent; }
 /* поповеры окна кубов: нижние углы скругляет и прокручиваемое тело */
 .dice-popover-body { border-radius: 0 0 12px 12px; }
+
+/* PLAY-4 (PT-020/021/024/026): тап-цели не меньше 44 px на сенсорных экранах */
+@media (max-width: 640px), (pointer: coarse) {
+  .theme-picker-btn { min-height: 44px; min-width: 44px; padding: 0 var(--sp-3); display: inline-flex; align-items: center; justify-content: center; font-size: var(--fs-md); }
+  .theme-picker-btn::after { left: var(--sp-3); }
+  .theme-picker-btn:hover::after,
+  .theme-picker-btn:focus-visible::after,
+  .theme-picker-btn.is-active::after,
+  .theme-picker-btn.active::after { width: calc(100% - 2 * var(--sp-3)); }
+  .theme-picker-btns { gap: 0 var(--sp-1); }
+  .page-back { min-height: 44px; min-width: 44px; padding: 0 var(--sp-3); display: inline-flex; align-items: center; font-size: var(--fs-md); }
+  .fs-scale-slider { height: 32px; background: transparent; }
+  #sync-status { flex: 1 1 100%; }
+  #sync-actions .backup-create-btn, .sync-privacy { min-height: 44px; display: inline-flex; align-items: center; font-size: var(--fs-md); }
+}
