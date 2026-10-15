@@ -768,7 +768,7 @@ function _agRender() {
     var total = base != null ? base + b : null;
     html += '<div class="ag-row"><span class="ag-name">' + AG_NAMES[k] + '</span><span class="ag-ctl">' + _agCtl(k) + "</span>" +
       '<span class="ag-bonus">' + (b ? (b > 0 ? "+" : "") + b : "") + "</span>" +
-      '<span class="ag-total">' + (total != null ? total + " · " + formatMod(getMod(total)) : "—") + "</span></div>";
+      '<span class="ag-total">' + (total != null ? total + " (" + formatMod(getMod(total)).replace("-", "−") + ")" : "—") + "</span></div>";
   });
 
   html += '<p class="ag-note">Бонусы расы' + (char.edition === "2024" ? " и предыстории" : "") + " прибавляются сверху, выбираются в «Основном».</p>";

@@ -82,10 +82,18 @@
       </div>
 
       <div class="rr-line">
-        <button type="button" class="rr-row is-empty" id="rr-insp-mini" aria-pressed="false" title="Вдохновение (клик — переключить)">
+        <div class="rr-row rr-row-static">
           <span class="home-bullet home-bullet--sm"></span>
           <span class="rr-row-label">Уровень</span>
           <span class="rr-row-val" id="rr-level">1</span>
+        </div>
+      </div>
+
+      <div class="rr-line">
+        <button type="button" class="rr-row is-empty" id="rr-insp-mini" aria-pressed="false" title="Вдохновение (клик — переключить)">
+          <span class="home-bullet home-bullet--sm"></span>
+          <span class="rr-row-label">Вдохновение</span>
+          <span class="rr-row-val" id="rr-insp-val">нет</span>
         </button>
       </div>
 
@@ -175,6 +183,8 @@
       const isOn = insp.classList.contains('active') || insp.classList.contains('is-on') || insp.dataset.on === '1';
       rrInsp.classList.toggle('is-empty', !isOn);
       rrInsp.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+      const rrInspVal = document.getElementById('rr-insp-val');
+      if (rrInspVal) rrInspVal.textContent = isOn ? 'есть' : 'нет';
     }
     syncStrip();
   }

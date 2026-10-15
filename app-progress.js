@@ -360,10 +360,18 @@ function _pgNext(char, list) {
     nbody += "<p>Новый класс начинается с 1 уровня класса: умения 1-го уровня, владения по укороченному списку " +
       "мультикласса и своя кость хитов.</p>";
     nbody += _pgActRow('<button type="button" class="hp-act" onclick="pgAddClass()">Добавить класс (мультикласс) →</button>');
-    rows += _pgDisc("Новый класс (мультикласс)",ok.length ? "доступно " + ok.length : "требования не выполнены", nbody, false, { mute: true });
+    rows += _pgDisc("Новый класс (мультикласс)",ok.length ? "можно взять: " + ok.length + " " + _pgClassWord(ok.length) : "требования не выполнены", nbody, false, { mute: true });
   }
 
   return rows ? '<div class="pg-grp" data-pg-grp="next">Дальше</div><div class="hp-rows">' + rows + "</div>" : "";
+}
+
+/** PLAY-3 (PT-045): «1 класс», «2 класса», «6 классов». */
+function _pgClassWord(n) {
+  var m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return "класс";
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return "класса";
+  return "классов";
 }
 
 /** Классы, доступные для взятия: ещё не взятые и с выполненными требованиями
@@ -390,7 +398,7 @@ function _pgActions(char, list) {
     acts += '<button type="button" class="hp-act" onclick="pgAddClass()">Добавить класс (мультикласс) →</button>';
   }
   if ((char.level || 0) > 1 && char._prevLevelSnapshot) {
-    acts += '<button type="button" class="hp-act" onclick="pgLevelDown()">Откатить →</button>';
+    acts += '<button type="button" class="hp-act" onclick="pgLevelDown()" title="Вернуть уровень ' + ((char.level || 0) - 1) + ' — как было до последнего повышения">Откатить до уровня ' + ((char.level || 0) - 1) + ' →</button>';
   }
   if (char.buildId) {
     acts += '<button type="button" class="hp-act" onclick="openBuildPlan()">План билда 1–20 →</button>';

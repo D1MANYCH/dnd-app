@@ -1087,7 +1087,27 @@ if (stat === "ХАР" && $("sc-btn-cha")) $("sc-btn-cha").classList.add("active"
 char.spells.dc = dc;
 char.spells.attack = attack;
 char.spells.mod = statMod;
+_toggleNonCasterCards(char, stat);
 saveToLocal();
+}
+
+// PLAY-3 (PT-010): у героя без магии (нет характеристики, ячеек и заклинаний)
+// вместо пустых карточек «—» — пояснение; кнопка в нём возвращает карточки.
+var _spellCardsForced = null;
+function _toggleNonCasterCards(char, stat) {
+var sp = char.spells || {};
+var hasSlots = (sp.pactSlots || 0) > 0;
+for (var i = 1; i <= 9 && !hasSlots; i++) if ((sp.slots && sp.slots[i]) > 0) hasSlots = true;
+var nonCaster = !stat && !hasSlots && !(sp.mySpells && sp.mySpells.length) && _spellCardsForced !== char.id;
+var note = $("spells-noncaster-note");
+if (note) note.hidden = !nonCaster;
+["spell-stat-card", "spell-slots-card"].forEach(function(id) {
+  var el = $(id); if (el) el.style.display = nonCaster ? "none" : "";
+});
+}
+function showSpellCasterCards() {
+_spellCardsForced = currentId;
+calcSpellStats();
 }
 
 // ============================================

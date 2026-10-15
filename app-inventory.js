@@ -983,6 +983,9 @@ btn.onclick = function(e) {
   fillWeaponPreset(preset);
   container.querySelectorAll(".weapon-preset-btn.selected").forEach(function(b) { b.classList.remove("selected"); });
   btn.classList.add("selected");
+  // PLAY-3 (PT-036): кнопка «Добавить» сразу под списком — форма ниже лишь для правки
+  var pickName = $("weapon-pick-name"); if (pickName) pickName.textContent = preset.name;
+  var pickBar = $("weapon-pick-bar"); if (pickBar) pickBar.classList.remove("hidden");
 };
 container.appendChild(btn);
 shown++;
@@ -1035,6 +1038,7 @@ safeSetChecked("new-weapon-add-inv", true);
 safeSetChecked("new-weapon-save-catalog", false);
 var title = $("weapon-modal-title"); if (title) title.textContent = "Добавить оружие";
 var picker = $("weapon-picker-section"); if (picker) picker.classList.remove("hidden");
+var pickBar = $("weapon-pick-bar"); if (pickBar) pickBar.classList.add("hidden");
 var manLbl = $("weapon-manual-label"); if (manLbl) manLbl.classList.remove("hidden");
 }
 function openWeaponModal() {

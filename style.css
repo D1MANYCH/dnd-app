@@ -5361,6 +5361,9 @@ transform: none;
 .wp-tag { font-size: 0.85em; color: var(--text-muted); }
 .wp-meta { font-size: 0.85em; color: var(--text-muted); }
 .weapon-presets-empty { color: var(--text-muted); text-align: center; margin: 10px 0; }
+.weapon-pick-bar { display: flex; align-items: center; gap: var(--sp-3, 10px); margin: -6px 0 12px; }
+.weapon-pick-bar > span { flex: 1; min-width: 0; color: var(--text-color); }
+.weapon-pick-bar > button { width: auto; margin: 0; }
 .weapon-preset-btn.selected { border-color: var(--home-rule); box-shadow: none; }
 /* UNI-5b: владение и «своё» — текстом через «·», не пилюлями */
 .wp-prof, .wp-hb { font-size: 0.85em; white-space: nowrap; }
@@ -16111,6 +16114,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .ag-name { font-family: var(--font-display); overflow: hidden; text-overflow: ellipsis; }
 .ag-ctl { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .ag-ctl .stat-btn-sm { flex: 0 0 auto; width: 36px; min-width: 36px; height: 36px; }
+.ag-ctl .stat-btn-sm:not([disabled]) { color: var(--accent); font-size: 24px; }
 .ag-val { min-width: 2ch; text-align: center; font-weight: 700; }
 .ag-cost { min-width: 3.2em; font-size: var(--fs-sm); color: var(--home-sub); }
 .ag-sel { width: auto; min-width: 5em; }

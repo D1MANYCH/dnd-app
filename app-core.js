@@ -323,9 +323,27 @@ if (typeof window !== "undefined" && window.addEventListener) {
   });
 }
 
+// PLAY-3 (PT-035): updatedAt текущего героя — при любом изменении его данных,
+// а не только из updateChar/calcStats. Снимок для сравнения снимается в конце loadCharacter.
+var _curCharSnap = { id: null, json: "" };
+function _stampCurrentCharUpdated() {
+var c = getCurrentChar();
+if (!c) return;
+var u = c.updatedAt, d = c._draft;
+c.updatedAt = 0;
+delete c._draft;
+var json = JSON.stringify(c);
+c.updatedAt = u;
+if (d) c._draft = d;
+if (_curCharSnap.id === c.id && _curCharSnap.json !== json) c.updatedAt = Date.now();
+_curCharSnap.id = c.id;
+_curCharSnap.json = json;
+}
+
 function saveToLocal() {
 if (_saveBlocked) return;
 try {
+_stampCurrentCharUpdated();
 localStorage.setItem("dnd_chars", JSON.stringify(characters));
 // Сохраняем только заклинания добавленные пользователем (не из базы spells.js)
 var baseIds = new Set((typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.map(function(s){return s.id;}) : []);
@@ -483,7 +501,7 @@ document.addEventListener("keydown", function (e) {
   var m = document.querySelectorAll('.modal.active, .confirm-modal-overlay.active');
   for (var i = 0; i < m.length; i++) if (_modalVisible(m[i])) return;
   var _cur = currentScreenName();
-  if (PAGE_SCREENS.indexOf(_cur) < 0) return;
+  if (PAGE_SCREENS.indexOf(_cur) < 0 && _cur !== "characters") return;
   // Escape ≡ «← Назад» самой страницы: у каталогов возврат восстанавливает
   // форму предмета, у повышения уровня — довершает сценарий «Развития».
   var _pb = document.querySelector("#screen-" + _cur + " .page-back");
@@ -547,7 +565,23 @@ function _screenEnter(el, back) {
   setTimeout(function () { el.classList.remove(cls); }, _screenAnimMs);
 }
 
+// PLAY-3 (PT-017): пустой «Новый Герой», которого ни разу не правили,
+// не остаётся в списке после выхода в меню или к списку персонажей.
+function _purgeDraftChars() {
+var drafts = characters.filter(function(c) { return c && c._draft; });
+if (!drafts.length) return;
+drafts.forEach(function(d) {
+  // Пересчёты при открытии листа меняют данные сами, поэтому «тронут» = имя, раса или класс
+  if (d.name !== DEFAULT_CHARACTER.name || d.race || d.class || (d.classes && d.classes.length)) { delete d._draft; return; }
+  characters = characters.filter(function(c) { return c !== d; });
+  if (typeof syncTombstone === "function") syncTombstone(d.id);
+  if (currentId === d.id) currentId = null;
+});
+saveToLocal();
+}
+
 function showScreen(screenName) {
+if (screenName === "home" || screenName === "characters") _purgeDraftChars();
 const homeScreen = $("screen-home");
 const charactersScreen = $("screen-characters");
 const characterScreen = $("screen-character");
@@ -886,6 +920,7 @@ newChar.id = Date.now();
 newChar.schemaVersion = (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : 2;
 // E24-0: новый персонаж наследует редакцию по умолчанию с тумблера главной.
 newChar.edition = (typeof getEdition === 'function') ? getEdition() : '2014';
+newChar._draft = true; // PLAY-3: пустой черновик, см. _purgeDraftChars
 // Инициализируем ячейки заклинаний
 for (let i = 1; i <= 9; i++) {
   newChar.spells.slots[i] = 0;
@@ -1490,6 +1525,8 @@ if (SHEET_FLOW_SCREENS.indexOf(currentScreenName()) < 0) showScreen("character")
 // вкладку (напр. «Заклинания»), хотя контент показывал лист персонажа.
 try { localStorage.removeItem("dnd_last_tab"); } catch(e) { window.__catchLog && window.__catchLog('core:loadCharacter-clearLastTab', e); }
 switchTab("sheet");
+_curCharSnap.id = null;
+_stampCurrentCharUpdated();
 // HELP-4: первый вход в любого персонажа запускает тур по листу (если ещё не пройден).
 if (typeof maybeStartSheetTour === 'function') maybeStartSheetTour();
 }
