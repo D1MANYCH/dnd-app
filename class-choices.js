@@ -351,7 +351,7 @@ function ccGetAllChoicesFor(char) {
           var arr2 = Array.isArray(current) ? current : (current ? [current] : []);
           isComplete = arr2.length >= count;
         }
-        result.push({className:cls, choice:choice, classLevel:classLevel, count:count, current:current, isComplete:isComplete});
+        result.push({className:cls, subclass:subclass, choice:choice, classLevel:classLevel, count:count, current:current, isComplete:isComplete});
       });
     });
   }
@@ -495,7 +495,10 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
   var bodyEl  = modal.querySelector(".cc-modal-body");
   var counterEl = modal.querySelector(".cc-modal-counter");
 
-  if (titleEl) titleEl.textContent = choice.name + " · " + className;
+  // PT-006: выбор подкласса подписан подклассом («Приёмы · Боевой мастер»)
+  var T = ccTables(char);
+  var own = (T.CC[className] || []).indexOf(choice) !== -1;
+  if (titleEl) titleEl.textContent = choice.name + " · " + (own ? className : (ccGetSubclass(char, className) || className));
   if (descEl)  descEl.textContent  = choice.desc || "";
 
   // ── Тип: freeform ────────────────────────────────────────
@@ -541,6 +544,9 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
       '</div>';
   }
 
+  // PT-044: изученные ранее (сохранённые) опции помечены отдельно от новых
+  var stored = ccGetStored(char, className, choice.id);
+  var known = (choice.type === "multi" && Array.isArray(stored)) ? stored : [];
   var bodyHtml = '<div class="cc-options-list">';
   optionIds.forEach(function(id) {
     var opt;
@@ -556,6 +562,7 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
       selected = (ccModalState.selection || []).indexOf(id) !== -1;
     }
     var isRec = (recOptIds.indexOf(id) !== -1);
+    var mark = !selected ? "" : (known.indexOf(id) !== -1 ? "изучено ранее" : (known.length ? "новое" : ""));
     var reqText = "";
     if (opt.req) {
       var bits = [];
@@ -566,7 +573,7 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
     }
     bodyHtml +=
       '<div class="cc-opt' + (selected ? " selected" : "") + (isRec ? " is-rec" : "") + '" onclick="ccToggleOption(\'' + id.replace(/'/g,"\\'") + '\')">' +
-        '<div class="cc-opt-head"><span class="cc-opt-name">' + escapeHtml(opt.name) + '</span>' + (isRec ? ' <span class="rec-badge">💡 совет</span>' : '') + reqText + '</div>' +
+        '<div class="cc-opt-head"><span class="cc-opt-name">' + escapeHtml(opt.name) + '</span>' + (isRec ? ' <span class="rec-badge">💡 совет</span>' : '') + (mark ? ' <span class="cc-opt-req">' + mark + '</span>' : '') + reqText + '</div>' +
         (opt.desc ? '<div class="cc-opt-desc">' + escapeHtml(opt.desc) + '</div>' : "") +
       '</div>';
   });
@@ -676,7 +683,7 @@ function applyClassChoice() {
   }
 
   if (typeof saveToLocal === "function") saveToLocal();
-  if (typeof showToast === "function") showToast(choice.name + " сохранён", "success");
+  if (typeof showToast === "function") showToast("Выбор сохранён: " + choice.name, "success");
   closeClassChoiceModal();
   if (typeof updateClassFeatures === "function") updateClassFeatures();
   if (typeof calcStats === "function") calcStats();

@@ -230,7 +230,7 @@ function _pgAttention(char) {
     ccGetAllChoicesFor(char).forEach(function(it) {
       if (it.isComplete || !it.choice) return;
       rows.push(_pgAttn(escapeHtml(it.choice.name || it.choice.id) +
-        " <u>· " + escapeHtml(it.className) + " " + it.classLevel + " ур.</u>",
+        " <u>· " + escapeHtml(it.subclass || it.className) + " " + it.classLevel + " ур.</u>",
         "Выбрать →", "openClassChoiceModal('" + _pgArg(it.className) + "', '" + _pgArg(it.choice.id) + "')"));
     });
   }

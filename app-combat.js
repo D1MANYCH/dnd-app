@@ -2246,7 +2246,7 @@ function _creationTodo(char) {
   });
   if (typeof ccGetAllChoicesFor === "function") ccGetAllChoicesFor(char).forEach(function(it) {
     if (it.isComplete || !it.choice) return;
-    add(it.choice.name || it.choice.id, it.className + " " + it.classLevel + " ур.",
+    add(it.choice.name || it.choice.id, (it.subclass || it.className) + " " + it.classLevel + " ур.",
       "openClassChoiceModal('" + _pgArg(it.className) + "', '" + _pgArg(it.choice.id) + "')");
   });
   return out;

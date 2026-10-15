@@ -452,7 +452,7 @@ function getCharResourceDefs(char) {
       copy._clsLevel = lvl;
       resources.push(copy);
     });
-    if (base && base.passive && base.passive.notes) passives.push({ cls: p.cls, notes: base.passive.notes });
+    if (base && base.passive && base.passive.notes) passives.push({ cls: p.cls, notes: crPassiveNotes(char, p.cls, base.passive.notes) });
     // SDR-2: списки заклинаний подкласса (домены/клятвы/покровители) — для отображения
     var ss = (subDef && subDef.passive) ? subDef.passive.subclassSpells : null;
     if (ss) subclassSpells.push({ cls: p.cls, level: lvl, ss: ss });
@@ -529,16 +529,18 @@ function crResourceRow(res, char) {
     var pips = "";
     for (var p = 0; p < max; p++) {
       pips += '<span class="cr-pip' + (p < remaining ? " cr-pip--full" : "") +
-        '" onclick="event.stopPropagation(); toggleResourcePip(\'' + id + '\',' + p + ')"></span>';
+        '" title="' + (p < remaining ? "Потратить один" : "Вернуть один") + '" onclick="event.stopPropagation(); toggleResourcePip(\'' + id + '\',' + p + ')"></span>';
     }
     meta = '<span class="cr-pips">' + pips + '</span>';
-    acts = "";
+    acts = '<span class="hp-row-hint">Заполненный ромб — потратить один, пустой — вернуть.</span>';
   } else {
     meta = '<span class="hp-row-meta"><b>' + remaining + '</b> / ' + max + '</span>';
     acts = spend("− 1", 1) + spend("+ 1", -1);
   }
 
   if (res.slotRecovery) acts = crSlotRecoveryActs(res, char);
+  // PT-065/049: кость ресурса (превосходства и т.п.) — потратить и бросить
+  if (dieSize && remaining > 0 && !res.isPool) acts += '<button type="button" class="hp-act" onclick="event.stopPropagation();rollResourceDie(\'' + id + '\')">Бросить ' + escapeHtml(dieSize) + '</button>';
   // РОСТ-6: вход в облик — с экрана выбора зверя
   if (res.id === "wild_shape" && remaining > 0 && typeof openWildShapePicker === "function") acts += '<button type="button" class="hp-act" onclick="event.stopPropagation();openWildShapePicker()">Принять облик</button>';
 
@@ -602,6 +604,50 @@ function recoverSlotByResource(id, lvl) {
   if (typeof renderSpellSlots === "function") renderSpellSlots();
 }
 
+// PT-033: строка «Боевой стиль: выбрать…» в пассивках — выбранным стилем
+function crPassiveNotes(char, cls, notes) {
+  var val = (typeof ccGetStored === "function") ? ccGetStored(char, cls, "fighting-style") : null;
+  var ch = val && typeof ccFindChoice === "function" ? ccFindChoice(char, cls, "fighting-style") : null;
+  if (!ch) return notes;
+  var name = (ch.optionsDict && ch.optionsDict[val]) ? ch.optionsDict[val].name : val;
+  return notes.replace(/Боевой стиль: [^\n]*/, "Боевой стиль: " + name);
+}
+
+// PT-065: трата одной кости ресурса с броском её размера
+function rollResourceDie(id) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  initCharResources(char);
+  var data = getCharResourceDefs(char);
+  var res = data ? data.resources.find(function(r) { return r.id === id; }) : null;
+  if (!res) return;
+  var max = getResourceMax(res, char);
+  var used = char.resources[id] || 0;
+  var sides = parseInt(String(currentDieSize(res, res._clsLevel || char.level || 1)).replace(/\D/g, ""), 10);
+  if (used >= max || !sides) return;
+  char.resources[id] = used + 1;
+  saveToLocal();
+  renderClassResources();
+  if (typeof quickRoll === "function") quickRoll({ sides: sides, label: res.name });
+}
+
+// PT-066/049: выученные приёмы подкласса — отдельной строкой рядом с костями
+function crManeuverRows(char) {
+  if (typeof ccGetAllChoicesFor !== "function") return "";
+  var html = "";
+  ccGetAllChoicesFor(char).forEach(function(it) {
+    if (!it.subclass || it.choice.id !== "maneuvers" || !Array.isArray(it.current) || !it.current.length) return;
+    var dict = it.choice.optionsDict || {};
+    var body = it.current.map(function(k) {
+      var o = dict[k] || { name: k, desc: "" };
+      return '<p class="hp-row-hint"><b>' + escapeHtml(o.name) + "</b>" + (o.desc ? " — " + escapeHtml(o.desc) : "") + "</p>";
+    }).join("");
+    html += crRow(escapeHtml(it.choice.name), '<span class="hp-row-meta">' + it.current.length + "</span>", body);
+  });
+  return html;
+}
+
 /** Строки ресурсов, пассивок и заклинаний подкласса одной разметкой —
  *  она уходит и на лист, и на вкладку «Бой». */
 function crRowsHtml(char) {
@@ -610,6 +656,7 @@ function crRowsHtml(char) {
   var html = "";
 
   (data.resources || []).forEach(function(res) { html += crResourceRow(res, char); });
+  html += crManeuverRows(char);
 
   // Пассивные умения класса — по одной строке на класс (мультикласс даёт несколько)
   (data.passives || []).forEach(function(p) {
@@ -713,12 +760,9 @@ function toggleResourcePip(id, pipIdx) {
   var max = getResourceMax(res, char);
   var used = char.resources[id] || 0;
   var remaining = max - used;
-  // pip 0..remaining-1 = full, click to use; remaining..max-1 = empty, click to restore
-  if (pipIdx < remaining) {
-    used = Math.min(max, used + (remaining - pipIdx));
-  } else {
-    used = Math.max(0, pipIdx);
-  }
+  // PT-038/065: заполненный ромб — потратить один заряд, пустой — вернуть один
+  if (pipIdx < remaining) used = Math.min(max, used + 1);
+  else used = Math.max(0, used - 1);
   char.resources[id] = used;
   if (navigator.vibrate) navigator.vibrate(8);
   saveToLocal();

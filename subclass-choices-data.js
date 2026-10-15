@@ -170,7 +170,7 @@ var SUBCLASS_CHOICES = {
   "Боевой мастер": [
     {
       id: "maneuvers",
-      name: "Манёвры",
+      name: "Приёмы",
       type: "multi",
       minLevel: 3,
       getCount: function(lvl) { return lvl >= 15 ? 9 : lvl >= 10 ? 7 : lvl >= 7 ? 5 : 3; },
