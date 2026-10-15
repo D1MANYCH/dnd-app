@@ -54,6 +54,10 @@ function rulesMaxHPBase(char, conMod) {
   return total;
 }
 
+function rulesHasClass(char) {
+  return !!(char && (char.class || (char.classes || []).some(function(c) { return c && c.class; })));
+}
+
 // AUD-4 (R12): пул костей хитов по размеру {10:1, 6:2} (PHB стр.163)
 function rulesHitDicePool(char) {
   var pool = {};
@@ -94,6 +98,8 @@ function rulesHitDiceSpentBy(char) {
 
 // Подпись пула: «1к8» для одного класса, «1к10 + 2к6» для мультикласса
 function rulesHitDiceLabel(char) {
+  // PLAY-1 (PT-018): без класса кости хитов нет
+  if (!rulesHasClass(char)) return "—";
   var pool = rulesHitDicePool(char);
   var sizes = _hdSizesDesc(pool);
   if (sizes.length <= 1) return "1к" + (sizes[0] || 8);

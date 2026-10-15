@@ -140,7 +140,9 @@ _chosen.forEach(function(d) { totalHeal += rulesHitDieHeal(Math.floor(d / 2) + 1
 const availableEl = $("hit-dice-available-rest");
 const healEl = $("hit-dice-heal");
 if (availableEl) availableEl.textContent = availableHitDice;
-if (healEl) healEl.textContent = totalHeal;
+// PLAY-1 (PT-039): среднее, не выше недостающих хитов
+var hdMissing = Math.max(0, rulesEffectiveHpMax(char) - (char.combat.hpCurrent || 0));
+if (healEl) healEl.textContent = "≈" + Math.min(totalHeal, hdMissing) + " ХП" + (totalHeal > hdMissing ? " (до максимума, костей больше, чем нужно)" : "");
 }
 function confirmRest() {
 if (!currentId || !currentRestType) return;
@@ -237,9 +239,17 @@ if (totalLevel >= 20) { showToast("Максимальный уровень до�
 
 _luMulticlassChoice = null;
 $("lu-screen-result").style.display = "none";
+if ($("lu-mc-switch")) $("lu-mc-switch").style.display = "none";
 
-// Если персонаж уже мультиклассовый ИЛИ у него есть класс — показываем экран выбора
-if (char.classes && char.classes.length > 0 && char.class) {
+// PLAY-1 (PT-046): один класс — сразу к предпросмотру, мультикласс по ссылке под кнопкой
+if (char.classes && char.classes.length === 1 && char.class) {
+  var e0 = char.classes[0];
+  var hd0 = e0.hitDie || edData(char).CLASS_HIT_DICE[e0.class] || 8;
+  _luMulticlassChoice = { class: e0.class, subclass: e0.subclass, hitDie: hd0, isNew: false, classIndex: 0 };
+  _showLevelUpPreview(char, e0.class, hd0, false, e0);
+  if ($("lu-mc-switch")) $("lu-mc-switch").style.display = "";
+} else if (char.classes && char.classes.length > 0 && char.class) {
+  // Мультиклассовый — показываем экран выбора
   _showMulticlassScreen(char);
 } else {
   // Нет класса — прямо к стандартному preview
@@ -253,6 +263,7 @@ function _showMulticlassScreen(char) {
   var mcScreen = $("lu-screen-multiclass");
   $("lu-screen-preview").style.display = "none";
   mcScreen.style.display = "";
+  if ($("lu-mc-switch")) $("lu-mc-switch").style.display = "none";
 
   // Отображаем текущие классы как кнопки
   var container = $("lu-mc-current-classes");
@@ -291,6 +302,13 @@ function _showMulticlassScreen(char) {
       sel.appendChild(opt);
     }
   });
+}
+
+function luPickAnotherClass() {
+  var char = getCurrentChar();
+  if (!char) return;
+  _luMulticlassChoice = null;
+  _showMulticlassScreen(char);
 }
 
 function openMulticlassNewClass() {
@@ -653,6 +671,7 @@ if (luWasLocked) resultLines.push("" + dndIcoHtml("lock", 13) + " Лист от�
 _luChoicesCtx = {
   newTotalLevel: newTotalLevel, className: className, classLevel: classLevel,
   subclassName: subclassName, isNewClass: isNewClass, resultLines: resultLines,
+  hpFrom: oldMaxHP, hpGain: hpGain,
   resultTitle: classLabel + " · Уровень " + newTotalLevel + "!"
 };
 _luMulticlassChoice = null;
@@ -679,6 +698,13 @@ function _luShowResult() {
       edData(char).SUBCLASS_FEATURES[char.subclass][ctx.classLevel]) {
     var sn = edData(char).SUBCLASS_FEATURES[char.subclass][ctx.classLevel].map(function(f){ return f.name; });
     lines.push("" + dndIcoHtml("focus", 13) + " " + char.subclass + ": " + sn.join(", "));
+  }
+  // PLAY-1 (PT-043/052): черта или ТЕЛ из выборов уровня меняют максимум — итог по факту
+  var hpNow = char ? parseInt(char.combat.hpMax, 10) || 0 : 0;
+  if (char && ctx.hpFrom != null && lines.length && hpNow !== ctx.hpFrom + ctx.hpGain) {
+    var hpExtra = hpNow - ctx.hpFrom - ctx.hpGain;
+    lines[0] = "" + dndIcoHtml("heart", 13) + " ХП: " + ctx.hpFrom + " → " + hpNow + " (+" + ctx.hpGain + " за уровень, " +
+      (hpExtra > 0 ? "+" : "") + hpExtra + " черта и характеристики)";
   }
   $("lu-screen-choices").style.display = "none";
   $("lu-screen-multiclass").style.display = "none";
@@ -801,6 +827,12 @@ function _luFeatChoiceAt(char, cn, clvl) {
   return null;
 }
 
+// PLAY-1 (PT-054): выбор появляется на уровне открытия и там, где растёт число опций (манёвры 7/10/15)
+function _luChoiceOpensAt(cc, clvl) {
+  if (cc.minLevel === clvl) return true;
+  return cc.type === "multi" && cc.minLevel < clvl && typeof ccCount === "function" && ccCount(cc, clvl) > ccCount(cc, clvl - 1);
+}
+
 function _ccDefsFor(cn, char) {
   var defs = [];
   if (edData(char).CLASS_CHOICES[cn]) defs = defs.concat(edData(char).CLASS_CHOICES[cn]);
@@ -870,7 +902,7 @@ function luApplyAllRecommendations() {
   // SDR-2: помимо CLASS_CHOICES учитываем SUBCLASS_CHOICES[char.subclass] (манёвры Боевого мастера и т.п.).
   if (b.recommendedChoices) {
     _ccDefsFor(cn, char).forEach(function(cc){
-      if (cc.minLevel !== clvl) return;
+      if (!_luChoiceOpensAt(cc, clvl)) return;
       var recIds = getBuildRecChoiceIds(char, cc.id);
       if (!recIds.length) return;
       var stored = char.classChoices && char.classChoices[cn] && char.classChoices[cn][cc.id];
@@ -989,7 +1021,7 @@ function luBuildChoicesScreen() {
   // 3) КЛАССОВЫЕ/ПОДКЛАССОВЫЕ ВЫБОРЫ, открывающиеся на этом уровне (стиль боя, манёвры и т.п.).
   if (_ccDefsFor(cn, char).length) {                       // SDR-2: + SUBCLASS_CHOICES[char.subclass]
     _ccDefsFor(cn, char).forEach(function(cc){
-      if (cc.minLevel !== clvl) return;
+      if (!_luChoiceOpensAt(cc, clvl)) return;
       var stored = char.classChoices && char.classChoices[cn] && char.classChoices[cn][cc.id];
       var ccN = (typeof ccCount === "function") ? ccCount(cc, clvl) : 1;
       var has = cc.type === "single" ? !!stored : (Array.isArray(stored) && stored.length >= ccN);
@@ -1047,7 +1079,7 @@ function luBuildChoicesScreen() {
     var ccOpen = false;
     if (b.recommendedChoices) {                            // SDR-2: + SUBCLASS_CHOICES[char.subclass]
       ccOpen = _ccDefsFor(cn, char).some(function(cc){
-        if (cc.minLevel !== clvl) return false;
+        if (!_luChoiceOpensAt(cc, clvl)) return false;
         var recIds = getBuildRecChoiceIds(char, cc.id);
         if (!recIds.length) return false;
         var st = char.classChoices && char.classChoices[cn] && char.classChoices[cn][cc.id];
@@ -1296,6 +1328,10 @@ else if (pct <= 25) dispCurrent.classList.add("hp-low");
 else if (pct <= 50) dispCurrent.classList.add("hp-medium");
 }
 if (dispMax && document.activeElement !== dispMax) dispMax.value = hpMax;
+// PLAY-1 (PT-018): без класса хитов ещё нет
+var hpNoClass = !rulesHasClass(char);
+if (hpNoClass && dispCurrent) dispCurrent.textContent = "—";
+if (hpNoClass && dispMax && document.activeElement !== dispMax) dispMax.value = "";
 
 // Полоска ХП
 const hpBar = $("hp-bar");
@@ -1329,7 +1365,7 @@ if (rollHdBtn) rollHdBtn.disabled = hpCurrent <= 0 || avail <= 0;
 // Секция спасбросков смерти — показываем только при HP = 0
 const deathSavesSection = $("death-saves-section");
 if (deathSavesSection) {
-deathSavesSection.style.display = hpCurrent <= 0 ? "block" : "none";
+deathSavesSection.style.display = hpCurrent <= 0 && !hpNoClass ? "block" : "none";
 }
 
 // HP2: шапка со сводкой + поведение строк раздела
@@ -1380,7 +1416,7 @@ function updateHPSummary() {
 
   var maxEl = $("hp-head-max");
   if (maxEl) {
-    maxEl.textContent = hpMaxEff;
+    maxEl.textContent = rulesHasClass(char) ? hpMaxEff : "—";
     maxEl.title = hpMaxEff < hpMax ? "Истощение: максимум " + hpMax + " уменьшен вдвое" : "";
   }
   var typeSel = $("hp-dmg-type");

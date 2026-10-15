@@ -528,8 +528,10 @@ if (statusBar) statusBar.classList.add("visible");
 $("status-level").textContent = char.level || 1;
 const hpCurrent = char.combat.hpCurrent || 0;
 const hpMax = char.combat.hpMax || 10;
-$("status-hp-current").textContent = hpCurrent;
-$("status-hp-max").textContent = hpMax;
+// PLAY-1 (PT-018): без класса хитов ещё нет
+var noClass = !rulesHasClass(char);
+$("status-hp-current").textContent = noClass ? "—" : hpCurrent;
+$("status-hp-max").textContent = noClass ? "—" : hpMax;
 // Динамический цвет ХП
 const hpPercent = hpMax > 0 ? Math.round((hpCurrent / hpMax) * 100) : 100;
 const statusHpEl = document.querySelector(".status-hp");
@@ -849,8 +851,16 @@ var hdLabel = rulesHitDiceLabel(hpSrc);
 rulesHitDiceSpentBy(hpSrc);
 if (hpDiceEl) hpDiceEl.value = hdLabel;
 if (hpDiceAvailableEl) hpDiceAvailableEl.value = (level - (char.combat.hpDiceSpent || 0)) + "/" + level;
+var oldMaxHP = parseInt(char.combat.hpMax, 10) || 0;
 char.combat.hpMax = newMaxHP;
 char.combat.hpDice = hdLabel;
+// PLAY-1: максимум вырос (ТЕЛ из ASI, черта) — текущие растут на ту же разницу.
+// Пока поле ТЕЛ/уровня в фокусе, промежуточные значения при наборе не в счёт.
+var typing = document.activeElement && ["val-con", "char-level", "hp-max-manual"].indexOf(document.activeElement.id) !== -1;
+if (!typing && oldMaxHP > 0 && newMaxHP > oldMaxHP && char.combat.hpCurrent > 0) {
+char.combat.hpCurrent = Math.min(char.combat.hpCurrent + newMaxHP - oldMaxHP, newMaxHP);
+safeSet("hp-current", char.combat.hpCurrent);
+}
 if (char.combat.hpCurrent > newMaxHP) {
 char.combat.hpCurrent = newMaxHP;
 safeSet("hp-current", newMaxHP);
@@ -2098,8 +2108,12 @@ function lockBasicInfo() {
   var btn = $("cw-lock-btn");
   if (btn && btn.disabled) return;
   char.basicLocked = true;
+  // PLAY-1 (PT-001): герой ещё не был в игре (нет записей ХП) — стартует с полными хитами
+  var inPlay = typeof hpHistory !== "undefined" && hpHistory.some(function(e) { return e.charId === currentId; });
+  if (!inPlay && char.combat && char.combat.hpMax > 0) char.combat.hpCurrent = char.combat.hpMax;
   saveToLocal();
   applyBasicLockUI();
+  if (typeof updateHPDisplay === "function") updateHPDisplay();
   renderRaceExtras();
   renderBackgroundExtras();
   renderClassSkills();

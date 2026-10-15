@@ -140,7 +140,7 @@
       fill.classList.toggle('is-low', pct <= 25);
       fill.classList.toggle('is-medium', pct > 25 && pct <= 50);
     }
-    updateRailHpRow(cv, mv);
+    if (!isNaN(parseInt(cur && cur.textContent, 10))) updateRailHpRow(cv, mv);
 
     const cnt = document.getElementById('conditions-btn-count');
     const condBtn = document.getElementById('status-conditions-btn');
