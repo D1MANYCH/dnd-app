@@ -245,6 +245,134 @@ function _findArmorPreset(text) {
   return best;
 }
 
+// PLAY-3б: раскладка одной строки стартового снаряжения в персонажа (наборы,
+// оружие, броня, щит, известное снаряжение, прочее). Общая для applyBuild и
+// стартового снаряжения 2014 (start-equip-2014.js).
+function placeStartingItem(newChar, rawName) {
+  // Развёрнутые описания наборов снаряжения PHB
+  // BUILD-FIX-9 (rev3): формат [name, qty, weight, slots, location, desc].
+    // location: backpack/worn/wielded/belt/outside/stored. Сам рюкзак — worn (на спине).
+    // При снятии рюкзака (toggleBackpackOff) предметы с location:"backpack" выпадают
+    // из расчёта слотов и помечаются (в снятом рюкзаке).
+    // FIN-5: наборы вынесены в data.js (window.GEAR_PACKS) — нужны и пикеру снаряжения.
+    // Ключи-строки не менять: по ним lowercase-подстрочный матч ниже.
+    var _PACKS = (typeof GEAR_PACKS !== "undefined") ? GEAR_PACKS : (window.GEAR_PACKS || {});
+  // Описания и веса для частых одиночных предметов и боеприпасов
+  // BUILD-FIX-9 (rev): добавлено поле slots — сколько слотов рюкзака занимает 1 шт.
+  var _GEAR_DB = {
+    "болты": { cat:"other", weight:1.5, qty:20, slots:0, desc:"Боеприпасы для арбалета." },
+    "стрелы": { cat:"other", weight:1, qty:20, slots:0, desc:"Боеприпасы для лука." },
+    "иглы": { cat:"other", weight:1, qty:20, slots:0, desc:"Боеприпасы для духовой трубки." },
+    "колчан": { cat:"other", weight:1, slots:0, desc:"Хранит до 20 стрел." },
+    "сумка с компонентами": { cat:"material", weight:2, slots:1, desc:"Материальные компоненты для заклинаний." },
+    "мешочек с компонентами": { cat:"material", weight:2, slots:1, desc:"Материальные компоненты для заклинаний." },
+    "компонентный мешочек": { cat:"material", weight:2, slots:1, desc:"Материальные компоненты для заклинаний." },
+    "компонентная сумка": { cat:"material", weight:2, slots:1, desc:"Материальные компоненты для заклинаний." },
+    "магическая фокусировка": { cat:"material", weight:2, slots:1, desc:"Заменяет компоненты без указанной цены." },
+    "фокусировка": { cat:"material", weight:2, slots:1, desc:"Магическая фокусировка для класса." },
+    "книга заклинаний": { cat:"other", weight:3, slots:1, desc:"6 заклинаний 1 уровня. Источник магии волшебника." },
+    "священный символ": { cat:"material", weight:1, slots:0, desc:"Фокусировка жреца/паладина." },
+    "друидическая фокусировка": { cat:"material", weight:1, slots:0, desc:"Омела, тотем, посох — фокусировка друида." },
+    "лютня": { cat:"tool", weight:2, slots:1, desc:"Музыкальный инструмент барда." },
+    "флейта": { cat:"tool", weight:1, slots:0, desc:"Музыкальный инструмент." },
+    "лира": { cat:"tool", weight:2, slots:1, desc:"Музыкальный инструмент." },
+    "воровские инструменты": { cat:"tool", weight:1, slots:1, desc:"Отмычки, щупы. Для замков и ловушек." },
+    "набор травника": { cat:"tool", weight:3, slots:1, desc:"Изготовление зелий и противоядий." },
+    "набор для грима": { cat:"tool", weight:3, slots:1, desc:"Краски, парики, маски." },
+    "ремесленный инструмент": { cat:"tool", weight:5, slots:1, desc:"Инструменты ремесленника." },
+    "молитвенник": { cat:"other", weight:5, slots:1, desc:"Сборник молитв." },
+    "пергамент": { cat:"other", weight:0, slots:0, desc:"Чистые листы." },
+    "чернила": { cat:"other", weight:0, slots:0, desc:"Флакон чернил." },
+    "свеча": { cat:"other", weight:0, slots:0, desc:"Свет 1.5 м на 1 час." },
+    "факел": { cat:"other", weight:1, slots:0, desc:"Свет 6 м на 1 час." },
+    "верёвка": { cat:"other", weight:10, slots:1, desc:"Пеньковая 15 м." },
+    "бурдюк": { cat:"other", weight:5, slots:1, desc:"4 л воды." },
+    "бурдюк с вином": { cat:"other", weight:5, slots:1, desc:"Бурдюк хорошего вина." },
+    "шёлковая верёвка": { cat:"other", weight:5, slots:1, desc:"Шёлковая 15 м." },
+    "лом": { cat:"tool", weight:5, slots:1, desc:"Преимущество на СИЛ при взломе." },
+    "сеть": { cat:"weapon-special", weight:3, slots:1, desc:"Опутывает врага. Бросок 5/15 фт." },
+    "лошадь": { cat:"other", weight:0, slots:0, desc:"Скакун." },
+    "седло": { cat:"other", weight:25, slots:2, desc:"Верховое седло." }
+  };
+  // Парсер количества из имени: "Болты (20)" / "4 метательных топора"
+  var _parseQty = function(nm){
+    var m = nm.match(/\((\d+)\)/);
+    if (m) return parseInt(m[1], 10);
+    m = nm.match(/^(\d+)\s+/);
+    if (m) return parseInt(m[1], 10);
+    return 1;
+  };
+  var _findArmor = _findArmorPreset; // FIN-3: единый матчер имён+алиасов
+  var name = String(rawName || "").trim();
+  if (!name) return;
+  var lo = name.toLowerCase();
+  // 1. Наборы PHB — BUILD-FIX-9 (rev): разворачиваем в детальный список,
+  // НО мелочь (свечи/факелы/рационы пачкой/чернила/перо/пергамент/колышки/масло…)
+  // получает slots:0 — не «съедает» рюкзак. Контейнеры/крупное — slots:1+.
+  var packKey = null;
+  Object.keys(_PACKS).forEach(function(k){ if (lo.indexOf(k) >= 0) packKey = k; });
+  if (packKey) {
+    _PACKS[packKey].forEach(function(p){
+      newChar.inventory.other.push({ name:p[0], qty:p[1], weight:p[2], slots:p[3], location:p[4], desc:p[5] });
+    });
+    return;
+  }
+  // 2. Оружие — основное (1-е) идёт в руку, остальное на поясе
+  var w = _findWeapon(name);
+  if (w) {
+    // PLAY-3б: «4 метательных копья» / повтор строки — одна запись с количеством
+    var _wq = _parseQty(name);
+    var _wPrev = newChar.inventory.weapon.find(function(x){ return x.name === w.name; });
+    if (_wPrev) { _wPrev.qty = (_wPrev.qty || 1) + _wq; return; }
+    var prof = (typeof checkWeaponProficiency === "function") ? checkWeaponProficiency(newChar, w.name) : true;
+    newChar.weapons.push({
+      name: w.name, stat: w.stat, statName: w.stat === "str" ? "СИЛ" : "ЛОВ",
+      bonus: w.bonus, damage: w.damage, type: w.type, range: w.range, notes: w.notes, proficient: prof
+    });
+    var _wLoc = (newChar.inventory.weapon.length === 0) ? "wielded" : "belt";
+    newChar.inventory.weapon.push({
+      name: w.name, qty: _wq, weight: 0, location: _wLoc,
+      desc: (w.damage ? w.damage + " " + w.type + ". " : "") + (w.range ? "Дистанция: " + w.range + ". " : "") + (w.notes || "")
+    });
+    return;
+  }
+  // 3. Броня — надета на тело
+  var a = _findArmor(name);
+  if (a) {
+    newChar.inventory.armor.push({
+      name: a.name, qty: 1, weight: 0, location: "worn",
+      desc: "База КД " + a.baseAC + (a.dexCap < 99 ? ", макс. ЛОВ +" + a.dexCap : ", полный ЛОВ") + ". Тип: " + a.type + "."
+    });
+    return;
+  }
+  // 4. Щит — в руке
+  if (lo.indexOf("щит") >= 0) {
+    newChar.inventory.armor.push({ name:"Щит", qty:1, weight:6, location:"wielded", desc:"+2 КД. Требует одну руку." });
+    return;
+  }
+  // 5. Известное снаряжение из каталога
+  var gearHit = null;
+  Object.keys(_GEAR_DB).forEach(function(k){ if (lo.indexOf(k) >= 0 && (!gearHit || k.length > gearHit.length)) gearHit = k; });
+  if (gearHit) {
+    var g = _GEAR_DB[gearHit];
+    var qty = _parseQty(name) || g.qty || 1;
+    var cat = g.cat === "weapon-special" ? "weapon" : g.cat;
+    var _gSlots = (g.slots !== undefined) ? g.slots : ((g.weight || 0) <= 1 ? 0 : undefined);
+    // BUILD-FIX-9 (rev3): location по типу — фокусировки/символы/инструменты на поясе,
+    // боеприпасы/книги/мелочь в рюкзаке.
+    var _gLoc = g.loc || (
+      (cat === "material" || /символ|фокусировка|воровские|инструмент|лютня|флейта|лира/.test(gearHit)) ? "belt" :
+      (cat === "tool") ? "backpack" :
+      "backpack"
+    );
+    newChar.inventory[cat].push({ name: name.replace(/\s*\(\d+\)/, ""), qty: qty, weight: g.weight || 0, slots: _gSlots, location: _gLoc, desc: g.desc || "" });
+    return;
+  }
+  // 6. Прочее — пачка (qty>1) → slots:0, в рюкзаке.
+  var qty2 = _parseQty(name);
+  newChar.inventory.other.push({ name: name.replace(/^\d+\s+/, "").replace(/\s*\(\d+\)/, ""), qty: qty2, weight: 0, slots: (qty2 > 1 ? 0 : undefined), location: "backpack", desc: "" });
+}
+
 function applyBuild(buildId) {
   if (!window.CHARACTER_BUILDS && typeof window.ensureBuilds === "function") {
     return window.ensureBuilds().then(function () { return applyBuild(buildId); });
@@ -742,124 +870,9 @@ function _applyBuildCore(buildId) {
   }
   // BUILD-FIX-5: умная категоризация startingEquipment
   if (Array.isArray(b.startingEquipment)) {
-    // Развёрнутые описания наборов снаряжения PHB
-    // BUILD-FIX-9 (rev3): формат [name, qty, weight, slots, location, desc].
-      // location: backpack/worn/wielded/belt/outside/stored. Сам рюкзак — worn (на спине).
-      // При снятии рюкзака (toggleBackpackOff) предметы с location:"backpack" выпадают
-      // из расчёта слотов и помечаются (в снятом рюкзаке).
-      // FIN-5: наборы вынесены в data.js (window.GEAR_PACKS) — нужны и пикеру снаряжения.
-      // Ключи-строки не менять: по ним lowercase-подстрочный матч ниже.
-      var _PACKS = (typeof GEAR_PACKS !== "undefined") ? GEAR_PACKS : (window.GEAR_PACKS || {});
-    // Описания и веса для частых одиночных предметов и боеприпасов
-    // BUILD-FIX-9 (rev): добавлено поле slots — сколько слотов рюкзака занимает 1 шт.
-    var _GEAR_DB = {
-      "болты": { cat:"other", weight:1.5, qty:20, slots:0, desc:"Боеприпасы для арбалета." },
-      "стрелы": { cat:"other", weight:1, qty:20, slots:0, desc:"Боеприпасы для лука." },
-      "иглы": { cat:"other", weight:1, qty:20, slots:0, desc:"Боеприпасы для духовой трубки." },
-      "колчан": { cat:"other", weight:1, slots:0, desc:"Хранит до 20 стрел." },
-      "сумка с компонентами": { cat:"material", weight:2, slots:1, desc:"Материальные компоненты для заклинаний." },
-      "мешочек с компонентами": { cat:"material", weight:2, slots:1, desc:"Материальные компоненты для заклинаний." },
-      "компонентный мешочек": { cat:"material", weight:2, slots:1, desc:"Материальные компоненты для заклинаний." },
-      "компонентная сумка": { cat:"material", weight:2, slots:1, desc:"Материальные компоненты для заклинаний." },
-      "магическая фокусировка": { cat:"material", weight:2, slots:1, desc:"Заменяет компоненты без указанной цены." },
-      "фокусировка": { cat:"material", weight:2, slots:1, desc:"Магическая фокусировка для класса." },
-      "книга заклинаний": { cat:"other", weight:3, slots:1, desc:"6 заклинаний 1 уровня. Источник магии волшебника." },
-      "священный символ": { cat:"material", weight:1, slots:0, desc:"Фокусировка жреца/паладина." },
-      "друидическая фокусировка": { cat:"material", weight:1, slots:0, desc:"Омела, тотем, посох — фокусировка друида." },
-      "лютня": { cat:"tool", weight:2, slots:1, desc:"Музыкальный инструмент барда." },
-      "флейта": { cat:"tool", weight:1, slots:0, desc:"Музыкальный инструмент." },
-      "лира": { cat:"tool", weight:2, slots:1, desc:"Музыкальный инструмент." },
-      "воровские инструменты": { cat:"tool", weight:1, slots:1, desc:"Отмычки, щупы. Для замков и ловушек." },
-      "набор травника": { cat:"tool", weight:3, slots:1, desc:"Изготовление зелий и противоядий." },
-      "набор для грима": { cat:"tool", weight:3, slots:1, desc:"Краски, парики, маски." },
-      "ремесленный инструмент": { cat:"tool", weight:5, slots:1, desc:"Инструменты ремесленника." },
-      "молитвенник": { cat:"other", weight:5, slots:1, desc:"Сборник молитв." },
-      "пергамент": { cat:"other", weight:0, slots:0, desc:"Чистые листы." },
-      "чернила": { cat:"other", weight:0, slots:0, desc:"Флакон чернил." },
-      "свеча": { cat:"other", weight:0, slots:0, desc:"Свет 1.5 м на 1 час." },
-      "факел": { cat:"other", weight:1, slots:0, desc:"Свет 6 м на 1 час." },
-      "верёвка": { cat:"other", weight:10, slots:1, desc:"Пеньковая 15 м." },
-      "бурдюк": { cat:"other", weight:5, slots:1, desc:"4 л воды." },
-      "лом": { cat:"tool", weight:5, slots:1, desc:"Преимущество на СИЛ при взломе." },
-      "сеть": { cat:"weapon-special", weight:3, slots:1, desc:"Опутывает врага. Бросок 5/15 фт." },
-      "лошадь": { cat:"other", weight:0, slots:0, desc:"Скакун." },
-      "седло": { cat:"other", weight:25, slots:2, desc:"Верховое седло." }
-    };
-    // Парсер количества из имени: "Болты (20)" / "4 метательных топора"
-    var _parseQty = function(nm){
-      var m = nm.match(/\((\d+)\)/);
-      if (m) return parseInt(m[1], 10);
-      m = nm.match(/^(\d+)\s+/);
-      if (m) return parseInt(m[1], 10);
-      return 1;
-    };
-    var _findArmor = _findArmorPreset; // FIN-3: единый матчер имён+алиасов
-    b.startingEquipment.forEach(function(rawName){
-      var name = String(rawName || "").trim();
-      if (!name) return;
-      var lo = name.toLowerCase();
-      // 1. Наборы PHB — BUILD-FIX-9 (rev): разворачиваем в детальный список,
-      // НО мелочь (свечи/факелы/рационы пачкой/чернила/перо/пергамент/колышки/масло…)
-      // получает slots:0 — не «съедает» рюкзак. Контейнеры/крупное — slots:1+.
-      var packKey = null;
-      Object.keys(_PACKS).forEach(function(k){ if (lo.indexOf(k) >= 0) packKey = k; });
-      if (packKey) {
-        _PACKS[packKey].forEach(function(p){
-          newChar.inventory.other.push({ name:p[0], qty:p[1], weight:p[2], slots:p[3], location:p[4], desc:p[5] });
-        });
-        return;
-      }
-      // 2. Оружие — основное (1-е) идёт в руку, остальное на поясе
-      var w = _findWeapon(name);
-      if (w) {
-        var prof = (typeof checkWeaponProficiency === "function") ? checkWeaponProficiency(newChar, w.name) : true;
-        newChar.weapons.push({
-          name: w.name, stat: w.stat, statName: w.stat === "str" ? "СИЛ" : "ЛОВ",
-          bonus: w.bonus, damage: w.damage, type: w.type, range: w.range, notes: w.notes, proficient: prof
-        });
-        var _wLoc = (newChar.inventory.weapon.length === 0) ? "wielded" : "belt";
-        newChar.inventory.weapon.push({
-          name: w.name, qty: 1, weight: 0, location: _wLoc,
-          desc: (w.damage ? w.damage + " " + w.type + ". " : "") + (w.range ? "Дистанция: " + w.range + ". " : "") + (w.notes || "")
-        });
-        return;
-      }
-      // 3. Броня — надета на тело
-      var a = _findArmor(name);
-      if (a) {
-        newChar.inventory.armor.push({
-          name: a.name, qty: 1, weight: 0, location: "worn",
-          desc: "База КД " + a.baseAC + (a.dexCap < 99 ? ", макс. ЛОВ +" + a.dexCap : ", полный ЛОВ") + ". Тип: " + a.type + "."
-        });
-        return;
-      }
-      // 4. Щит — в руке
-      if (lo.indexOf("щит") >= 0) {
-        newChar.inventory.armor.push({ name:"Щит", qty:1, weight:6, location:"wielded", desc:"+2 КД. Требует одну руку." });
-        return;
-      }
-      // 5. Известное снаряжение из каталога
-      var gearHit = null;
-      Object.keys(_GEAR_DB).forEach(function(k){ if (lo.indexOf(k) >= 0 && (!gearHit || k.length > gearHit.length)) gearHit = k; });
-      if (gearHit) {
-        var g = _GEAR_DB[gearHit];
-        var qty = _parseQty(name) || g.qty || 1;
-        var cat = g.cat === "weapon-special" ? "weapon" : g.cat;
-        var _gSlots = (g.slots !== undefined) ? g.slots : ((g.weight || 0) <= 1 ? 0 : undefined);
-        // BUILD-FIX-9 (rev3): location по типу — фокусировки/символы/инструменты на поясе,
-        // боеприпасы/книги/мелочь в рюкзаке.
-        var _gLoc = g.loc || (
-          (cat === "material" || /символ|фокусировка|воровские|инструмент|лютня|флейта|лира/.test(gearHit)) ? "belt" :
-          (cat === "tool") ? "backpack" :
-          "backpack"
-        );
-        newChar.inventory[cat].push({ name: name.replace(/\s*\(\d+\)/, ""), qty: qty, weight: g.weight || 0, slots: _gSlots, location: _gLoc, desc: g.desc || "" });
-        return;
-      }
-      // 6. Прочее — пачка (qty>1) → slots:0, в рюкзаке.
-      var qty2 = _parseQty(name);
-      newChar.inventory.other.push({ name: name.replace(/^\d+\s+/, "").replace(/\s*\(\d+\)/, ""), qty: qty2, weight: 0, slots: (qty2 > 1 ? 0 : undefined), location: "backpack", desc: "" });
-    });
+    b.startingEquipment.forEach(function(rawName){ placeStartingItem(newChar, rawName); });
+    // PLAY-3б: билд уже выдал снаряжение — блоки стартового снаряжения 2014 не предлагаем
+    if (newChar.edition !== "2024") { newChar.classEquipGiven = true; newChar.bgEquipGiven = true; }
   }
   // BUILD-FIX-5: заметки персонажа из предыстории (внешность/личность/идеалы/связи/слабости).
   var _BG_NOTES = {

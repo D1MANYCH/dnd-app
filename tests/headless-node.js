@@ -43,6 +43,7 @@ const files = [
   'app-proficiencies.js',    // SETUP-6: языки/инструменты/владения — после app-combat (как в index.html)
   'app-hp.js',
   'app-inventory.js',        // TEST-2: getSlotsTotal/calcUsedSlots/updateInventoryWeight/renderPouches/_invMoveItem (БЛОК 10)
+  'start-equip-2014.js',     // PLAY-3б: стартовое снаряжение 2014 (БЛОК 73)
   'monsters-srd.js',         // TEST-3: в проде лениво (ensureBestiary, PERF-3) — в тестах явно ДО app-party
   'npc-srd.js',              // TEST-3: то же
   'beast-forms.js',          // РОСТ-5: в проде лениво (ensureBeastForms) — проверка данных зверей (БЛОК 71)

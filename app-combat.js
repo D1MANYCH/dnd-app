@@ -1966,6 +1966,7 @@ function renderClassSkills() {
     html += '</div>';
     if (picks.length < e.count) html += '<div class="race-extras-warn">Навыки класса выбраны не все — осталось ' + (e.count - picks.length) + '.</div>';
   });
+  if (typeof renderClassEquip14 === "function") html += renderClassEquip14(char);
   _setExtrasHtml(panel, html);
   panel.style.display = "flex";
 }
@@ -2243,6 +2244,11 @@ function _creationTodo(char) {
       var cn = 2 - (c14.skills || []).length;
       if (cn > 0) add("Навыки своей предыстории", "осталось " + cn, goBg);
       if (!c14.featureFrom) add("Умение своей предыстории", "", goBg);
+    }
+    if (!isSheetLocked(char) && typeof _startClassDef === "function") {
+      var sc14 = _startClassDef(char);
+      if (sc14 && !char.classEquipGiven) add("Стартовое снаряжение", sc14.cls, "creationTodoGo('class-skills-panel')");
+      if (_startBgDef(char) && !char.bgEquipGiven) add("Снаряжение предыстории", bgName, goBg);
     }
   } else if (typeof getBackgroundDef === "function") {
     var def = getBackgroundDef(char);
@@ -2956,10 +2962,13 @@ function renderBackgroundExtras() {
     if (bgHide) h14 += _pickExpandBtn("bg");
     h14 += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">Выбрано: ' + sp.length + '/' + cnt + '</span></div>';
     if (sp.length < cnt) h14 += '<div class="race-extras-warn">Навыки предыстории выбраны не все — осталось ' + (cnt - sp.length) + '.</div>';
+    if (typeof renderBgEquip14 === "function") h14 += renderBgEquip14(char);
     _setExtrasHtml(panel, h14);
     panel.style.display = "flex";
     return;
   }
+  var eq14 = (char && char.edition !== "2024" && typeof renderBgEquip14 === "function") ? renderBgEquip14(char) : "";
+  if (eq14) { _setExtrasHtml(panel, eq14); panel.style.display = "flex"; return; }
   if (!char || char.edition !== "2024" || !char.basicLocked) { panel.style.display = "none"; panel.innerHTML = ""; return; }
   var def = getBackgroundDef(char);
   if (!def) { panel.style.display = "none"; panel.innerHTML = ""; return; }

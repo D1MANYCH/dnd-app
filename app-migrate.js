@@ -988,6 +988,14 @@ function migrateCharacter(char) {
     if (!Array.isArray(char.formsKnown)) char.formsKnown = [];
     char.schemaVersion = 48;
   }
+  if (v < 49) {
+    // PLAY-3б: стартовое снаряжение 2014 — у персонажа с вещами считаем его выданным
+    var _inv49 = char.inventory || {};
+    var _has49 = Object.keys(_inv49).some(function(k) { return Array.isArray(_inv49[k]) && _inv49[k].length > 0; });
+    if (char.classEquipGiven === undefined) char.classEquipGiven = _has49;
+    if (char.edition !== "2024" && _has49) char.bgEquipGiven = true;
+    char.schemaVersion = 49;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

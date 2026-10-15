@@ -10939,6 +10939,66 @@
     });
   }
 
+  // ────────── БЛОК 73 (PLAY-3б): стартовое снаряжение 2014 ──────────
+  if (typeof CLASS_START_EQUIP_2014 !== "undefined") {
+    var _se73inv = function(){ return { weapons: [], combat: {}, inventory: { weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[], other:[] } }; };
+    t("[PLAY-3б] 12 классов PHB: у каждого золото и выборы; строки оружия/брони/наборов распознаются", function(){
+      var cls = Object.keys(CLASS_HIT_DICE);
+      for (var i = 0; i < cls.length; i++) {
+        var d = CLASS_START_EQUIP_2014[cls[i]];
+        if (!d || !Array.isArray(d.gold) || d.gold.length !== 3 || !Array.isArray(d.choices)) return "нет данных: " + cls[i];
+        var items = (d.fixed || []).slice();
+        d.choices.forEach(function(opts){ opts.forEach(function(o){ items = items.concat(Array.isArray(o) ? o : o.items); }); });
+        for (var j = 0; j < items.length; j++) {
+          if (typeof items[j] !== "string") continue;
+          var c = _se73inv(); placeStartingItem(c, items[j]);
+          var o = c.inventory.other;
+          if (o.length === 1 && !o[0].desc && !c.inventory.weapon.length && !c.inventory.armor.length) return cls[i] + ": не распознано «" + items[j] + "»";
+        }
+      }
+      return true;
+    });
+    t("[PLAY-3б] предыстории 2014: у каждой (кроме своей) есть снаряжение; выборы из каталогов не пусты", function(){
+      var miss = Object.keys(BACKGROUND_SKILLS).filter(function(k){ return !_startBgDef({ background: k }); });
+      if (miss.length) return "без снаряжения: " + miss.join(", ");
+      var bad = ["simple","simpleMelee","martial","martialMelee","instrument","artisan","gaming"].filter(function(k){ return !_startPickOptions(k).length; });
+      if (_startPickOptions("martialMelee").indexOf("Длинный лук") !== -1) return "дальнобойное в рукопашном";
+      return bad.length ? "пустые списки: " + bad.join(", ") : true;
+    });
+    t("[PLAY-3б] начальное богатство по классу — таблица PHB стр.143", function(){
+      var ref = { "Варвар":"2,4,10", "Бард":"5,4,10", "Жрец":"5,4,10", "Друид":"2,4,10", "Воин":"5,4,10", "Монах":"5,4,1",
+        "Паладин":"5,4,10", "Следопыт":"5,4,10", "Плут":"4,4,10", "Чародей":"3,4,10", "Колдун":"4,4,10", "Волшебник":"4,4,10" };
+      var bad = Object.keys(ref).filter(function(k){ return CLASS_START_EQUIP_2014[k].gold.join(",") !== ref[k]; });
+      return bad.length ? "расходится: " + bad.join(", ") : true;
+    });
+    t("[PLAY-3б] повтор оружия — одна запись с количеством, одна строка атаки", function(){
+      var c = _se73inv();
+      ["Кинжал", "Кинжал", "10 дротиков"].forEach(function(s){ placeStartingItem(c, s); });
+      var k = c.inventory.weapon.find(function(x){ return x.name === "Кинжал"; });
+      var dr = c.inventory.weapon.find(function(x){ return x.name === "Дротик"; });
+      if (!k || k.qty !== 2 || !dr || dr.qty !== 10) return JSON.stringify(c.inventory.weapon);
+      return c.weapons.length === 2 ? true : "атак: " + c.weapons.length;
+    });
+    t("[PLAY-3б] Воин по умолчанию: кольчуга надета, щит в руке, оружие на выбор", function(){
+      _startSel = { charId: "se73", "class": {}, bg: {}, picks: {} };
+      var c = _se73inv(); c.class = "Воин";
+      var cd = _startClassDef(c);
+      var _cur = currentId; currentId = "se73";
+      var list = _startResolve("class", cd.def.choices, cd.def.fixed);
+      currentId = _cur;
+      if (list.indexOf("Кольчуга") === -1 || list.indexOf("Щит") === -1 || list.length < 5) return JSON.stringify(list);
+      _startPlace(c, list);
+      return c.combat.armorId === "chain_mail" && c.combat.hasShield ? true : JSON.stringify(c.combat);
+    });
+    t("[PLAY-3б] миграция 48 → 49: с вещами — снаряжение выдано, без вещей — нет", function(){
+      var a = migrateCharacter({ id: "se-a", class: "Воин", level: 1, schemaVersion: 48, inventory: { weapon: [{ name: "Кинжал" }] } });
+      var b = migrateCharacter({ id: "se-b", class: "Воин", level: 1, schemaVersion: 48, inventory: { weapon: [] } });
+      if (a.schemaVersion !== SCHEMA_VERSION || SCHEMA_VERSION < 49) return "версия " + a.schemaVersion;
+      return a.classEquipGiven === true && a.bgEquipGiven === true && b.classEquipGiven === false && b.bgEquipGiven === false ? true :
+        JSON.stringify([a.classEquipGiven, a.bgEquipGiven, b.classEquipGiven, b.bgEquipGiven]);
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
