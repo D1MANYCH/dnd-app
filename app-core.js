@@ -591,6 +591,9 @@ const hamburger = $("nav-hamburger");
 const headerBack = $("header-back");
 
 // Кто уходит и в какую сторону — считаем ДО того, как экраны спрятаны.
+if (typeof _screenScroll === "undefined") window._screenScroll = {};
+var _leavingEl = document.querySelector('div[id^="screen-"]:not(.hidden):not(.screen-ghost)');
+if (_leavingEl) _screenScroll[_leavingEl.id.replace("screen-", "")] = window.pageYOffset || document.documentElement.scrollTop || 0;
 var _leaving = document.querySelector('div[id^="screen-"]:not(.hidden):not(.screen-ghost)');
 var _fromName = _leaving ? _leaving.id.replace("screen-", "") : null;
 var _back = false;
@@ -641,9 +644,11 @@ if (headerBack) headerBack.classList.remove("hidden");
 closeDrawer();
 updateHeaderTitle();
 try {
-  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  document.documentElement.scrollTop = 0;
-  if (document.body) document.body.scrollTop = 0;
+  // PT-023: возврат на страницу сервиса — на прежнее место, вход вперёд — наверх
+  var _restoreY = (_fromName && (SCREEN_DEPTH[screenName] || 0) < (SCREEN_DEPTH[_fromName] || 0)) ? (_screenScroll[screenName] || 0) : 0;
+  window.scrollTo({ top: _restoreY, left: 0, behavior: "auto" });
+  document.documentElement.scrollTop = _restoreY;
+  if (document.body) document.body.scrollTop = _restoreY;
 } catch(e) { window.__catchLog && window.__catchLog('core:showScreen-scroll', e); }
 } else if (screenName === "home" || screenName === "characters") {
 if (screenName === "home" && homeScreen) homeScreen.classList.remove("hidden");

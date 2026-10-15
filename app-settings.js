@@ -433,11 +433,14 @@ function _renderBooksScreen() {
   var body = document.getElementById('books-body');
   if (!body) return;
   var codes = booksWithContent();
+  var _offNow = booksOff().filter(function (c) { return c !== 'HB'; });
+  var _isAll = _offNow.length === 0;
+  var _isPhb = BOOK_CODES.filter(function (c) { return c !== 'HB'; }).every(function (c) { return _offNow.indexOf(c) !== -1; });
   var html = '<div class="theme-picker-row">' +
     '<span class="theme-picker-label">Быстрый выбор</span>' +
     '<div class="theme-picker-btns">' +
-      '<button type="button" class="theme-picker-btn" onclick="setBooksPreset(\'phb\')" title="Только Книга игрока: дополнения скрыты">Только PHB</button>' +
-      '<button type="button" class="theme-picker-btn" onclick="setBooksPreset(\'all\')" title="Все официальные книги; авторское не меняется">Все официальные</button>' +
+      '<button type="button" class="theme-picker-btn' + (_isPhb ? ' is-active' : '') + '" onclick="setBooksPreset(\'phb\')" title="Только Книга игрока: дополнения скрыты">Только PHB</button>' +
+      '<button type="button" class="theme-picker-btn' + (_isAll ? ' is-active' : '') + '" onclick="setBooksPreset(\'all\')" title="Все официальные книги; авторское не меняется">Все официальные</button>' +
     '</div></div>';
   ['core', 'rules', 'setting', 'adventure'].forEach(function (kind) {
     var list = codes.filter(function (c) { return SOURCE_LABELS[c].kind === kind; });
@@ -480,7 +483,9 @@ function _syncBooksSummary() {
   var btn = document.getElementById('books-summary-btn');
   if (!btn) return;
   var codes = booksWithContent();
-  btn.textContent = codes.filter(bookGloballyOn).length + ' из ' + codes.length;
+  var _t = codes.filter(bookGloballyOn).length + ' из ' + codes.length;
+  btn.textContent = _t + ' ›';
+  btn.setAttribute('aria-label', 'Книги и дополнения: ' + _t);
 }
 document.addEventListener('DOMContentLoaded', _syncBooksSummary);
 document.addEventListener('visibilitychange', _applyWakeLock);

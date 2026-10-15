@@ -365,6 +365,15 @@
     if (lv && !lv._alWired) { lv._alWired = true; lv.addEventListener('change', function () { activeLevel = lv.value || ''; renderAll(); }); }
   }
 
+  // PT-014: Esc закрывает открытую панель журнала раньше остальных обработчиков
+  try {
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var p = document.getElementById('app-log-panel');
+      if (p && p.classList.contains('open')) { e.stopImmediatePropagation(); closePanel(); }
+    });
+  } catch (e) {}
+
   // горячая клавиша Ctrl+Shift+L — открыть/закрыть журнал
   try {
     document.addEventListener('keydown', function (e) {

@@ -348,17 +348,32 @@ function startSheetTour() {
 }
 
 /** Авто-старт тура по листу при первом открытии персонажа (хук в loadCharacter). */
+// PT-003/013: Esc до появления тура отменяет ожидающий авто-старт (и гасит его насовсем),
+// тур не стартует поверх поля, в которое пользователь уже печатает.
+var _tourEscGen = 0;
+document.addEventListener('keydown', function (ev) {
+  if (ev.key === 'Escape' && !_tour) _tourEscGen++;
+});
+function _tourTyping() {
+  var a = document.activeElement;
+  return !!a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable);
+}
+
 function maybeStartSheetTour() {
   if (getHelpFlag(HELP_FLAG_SHEET_SEEN)) return;
   if (_tour) return;
+  var _gen = _tourEscGen;
   var w = document.getElementById('welcome-modal');
   if (w && w.classList.contains('active')) return;  // открыто приветствие — не мешаем
   // Даём листу и right-rail устаканиться после loadCharacter→switchTab.
   setTimeout(function () {
     if (_tour || getHelpFlag(HELP_FLAG_SHEET_SEEN)) return;
+    if (_gen !== _tourEscGen) { setHelpFlag(HELP_FLAG_SHEET_SEEN, '1'); return; }
     // Открыт гайд билда/другая модалка → ждём её закрытия, не стартуем поверх.
     _tourStartWhenClear(function () {
       if (_tour || getHelpFlag(HELP_FLAG_SHEET_SEEN)) return;
+      if (_gen !== _tourEscGen) { setHelpFlag(HELP_FLAG_SHEET_SEEN, '1'); return; }
+      if (_tourTyping()) return;
       if (!window.currentId) return; // пока ждали — вернулись к списку персонажей
       startSheetTour();
     });
@@ -416,13 +431,17 @@ function maybeStartTabTour(tab) {
   if (_tour) return;
   var w = document.getElementById('welcome-modal');
   if (w && w.classList.contains('active')) return;
+  var _gen = _tourEscGen;
   setTimeout(function () {
     if (_tour || getHelpFlag(entry.flag)) return;
+    if (_gen !== _tourEscGen) { setHelpFlag(entry.flag, '1'); return; }
     var w2 = document.getElementById('welcome-modal');
     if (w2 && w2.classList.contains('active')) return;
     // Открыта модалка (пикер, гайд и т.п.) → ждём закрытия, не стартуем поверх.
     _tourStartWhenClear(function () {
       if (_tour || getHelpFlag(entry.flag)) return;
+      if (_gen !== _tourEscGen) { setHelpFlag(entry.flag, '1'); return; }
+      if (_tourTyping()) return;
       var tabEl = document.getElementById('tab-' + tab);
       if (!tabEl || !tabEl.classList.contains('active')) return; // вкладку сменили, пока ждали
       setHelpFlag(entry.flag, '1');

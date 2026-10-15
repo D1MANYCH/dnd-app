@@ -1192,6 +1192,10 @@ html.glass-adjusting *::after {
 }
 .books-group-title + .theme-picker-row { border-top: none; }
 .books-short { color: var(--home-sub); font-size: var(--fs-sm); }
+.theme-picker-row--link { cursor: pointer; }
+/* PT-029: Вкл/Выкл не уходят на вторую строку, подпись сжимается; экран книг — одна колонка */
+#books-body .theme-picker-btns { flex-wrap: nowrap; flex: 0 0 auto; }
+#books-body .theme-picker-btn { white-space: nowrap; }
 
 /* STYLE-8M: каскад появления строк. Перезапускается сам — у закрытой модалки
    .hidden даёт display:none, анимации на скрытом не крутятся. */
@@ -17768,7 +17772,7 @@ button.modal-close-bottom:hover,
   .page-stage,
   .page-stage--wide { max-width: var(--pk-col); }
   /* Настройки — группы в две колонки: «Вид» слева, «Игра» и «Книги» справа */
-  .settings-modal-body { column-count: 2; column-gap: 56px; }
+  .settings-modal-body:not(#books-body) { column-count: 2; column-gap: 56px; }
   .settings-modal-body > .theme-picker-row { break-inside: avoid; }
   .settings-modal-body > .books-group-title { break-after: avoid; }
   .settings-modal-body > .books-group-title:first-child { margin-top: 0; }
