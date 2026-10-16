@@ -2,12 +2,9 @@
 // CLI: node tools/check-theme.js [root] [--report | --update-baseline | --hook]
 // THEME-2: zero-dep автопроверки тем (решение юзера: без Playwright/браузера).
 //
-// 4 чека, exit 1 при провале (кроме --hook — всегда exit 0, warn-only):
-//   1. Синхрон light/auto — карты --токенов блоков :root[data-theme="light"] и
-//      :root[data-theme="auto"] (внутри @media prefers-color-scheme: light) совпадают
-//      в обе стороны, включая значения. Auto-блок — страховка: JS резолвит auto в
-//      dark/light на <html> (index.html preload + app-ui.js _applyTheme), но CSS-дубль
-//      обязан не дрейфовать (дрейф до THEME-2: 8 токенов --weapon-color…--highlight-color).
+// 3 чека, exit 1 при провале (кроме --hook — всегда exit 0, warn-only):
+//   (DS-3а: чек синхрона light/auto снят вместе с auto-блоком — JS всегда резолвит
+//    auto в dark/light на <html> до отрисовки, auto-блок был мёртвым кодом.)
 //   2. Паритет dark↔light — каждый light-токен существует в dark :root (иначе в тёмной
 //      теме токен пуст); каждый dark-токен с цветовым литералом переопределён в light
 //      (иначе тёмный цвет протекает в светлую). Минус документированные исключения.
@@ -40,11 +37,6 @@ const fs = require('fs');
 const path = require('path');
 
 // ---------- Документированные исключения (менять осознанно, с комментарием) ----------
-
-// Чек 1: токены, которым РАЗРЕШЕНО отличаться между light- и auto-блоками.
-const SYNC_EXCEPTIONS = {
-  // (пусто — после фикса дрейфа THEME-2 блоки идентичны)
-};
 
 // Чек 2: light-токены без пары в dark :root.
 const PARITY_LIGHT_ONLY = {
@@ -202,17 +194,15 @@ function isTokenBlockSelector(selector) {
 // ---------- Сбор карт токенов ----------
 
 function collectThemeMaps(rules) {
-  const dark = new Map(), light = new Map(), auto = new Map();
+  const dark = new Map(), light = new Map();
   const darkAccents = new Map(), lightAccents = new Map(); // name → Map(prop→value)
   rules.forEach(function (r) {
     if (!isTokenBlockSelector(r.selector)) return;
     const sel = r.selector;
-    const isLightMedia = /prefers-color-scheme:\s*light/.test(r.media);
     let target = null;
     let mAcc;
     if (sel === ':root' && !r.media) target = dark;
     else if (sel === ':root[data-theme="light"]' && !r.media) target = light;
-    else if (sel === ':root[data-theme="auto"]' && isLightMedia) target = auto;
     else if ((mAcc = sel.match(/^:root\[data-accent="([a-z]+)"\]$/)) && !r.media) {
       if (!darkAccents.has(mAcc[1])) darkAccents.set(mAcc[1], new Map());
       target = darkAccents.get(mAcc[1]);
@@ -225,7 +215,7 @@ function collectThemeMaps(rules) {
       if (d.prop.slice(0, 2) === '--') target.set(d.prop, d.value);
     });
   });
-  return { dark: dark, light: light, auto: auto, darkAccents: darkAccents, lightAccents: lightAccents };
+  return { dark: dark, light: light, darkAccents: darkAccents, lightAccents: lightAccents };
 }
 
 // ---------- Цвета / контраст ----------
@@ -330,22 +320,6 @@ function colorOf(map, token) {
   return c;
 }
 
-// ---------- Чек 1: синхрон light/auto ----------
-
-function checkSync(maps, out) {
-  const errors = [];
-  maps.light.forEach(function (v, k) {
-    if (SYNC_EXCEPTIONS[k]) return;
-    if (!maps.auto.has(k)) errors.push(k + ': есть в light-блоке, НЕТ в auto-блоке');
-    else if (maps.auto.get(k) !== v) errors.push(k + ': light=`' + v + '` != auto=`' + maps.auto.get(k) + '`');
-  });
-  maps.auto.forEach(function (v, k) {
-    if (SYNC_EXCEPTIONS[k]) return;
-    if (!maps.light.has(k)) errors.push(k + ': есть в auto-блоке, НЕТ в light-блоке');
-  });
-  out.result('синхрон light/auto', errors, maps.light.size + ' light-токенов ↔ ' + maps.auto.size + ' auto-токенов');
-  return errors.length === 0;
-}
 
 // ---------- Чек 2: паритет dark↔light + акцент-пресеты ----------
 
@@ -609,9 +583,9 @@ function runChecks(root, opts) {
   const rules = parseCss(css);
   const maps = collectThemeMaps(rules);
 
-  if (maps.dark.size === 0 || maps.light.size === 0 || maps.auto.size === 0) {
+  if (maps.dark.size === 0 || maps.light.size === 0) {
     out.result('sanity', ['не найден один из токен-блоков: dark=' + maps.dark.size +
-      ' light=' + maps.light.size + ' auto=' + maps.auto.size + ' (сломан парсер или селекторы?)'], '');
+      ' light=' + maps.light.size + ' (сломан парсер или селекторы?)'], '');
     return false;
   }
 
@@ -642,11 +616,10 @@ function runChecks(root, opts) {
     out.warn('tools/theme-contrast-pairs.json не прочитан (' + e.message + ') — контраст пропущен');
   }
 
-  const ok1 = checkSync(maps, out);
   const ok2 = checkParity(maps, out);
   const ok3 = checkContrast(maps, pairsCfg, out);
   const ok4 = checkRatchet(counts, baselinePath, out);
-  return ok1 && ok2 && ok3 && ok4;
+  return ok2 && ok3 && ok4;
 }
 
 function readStdin() {

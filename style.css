@@ -254,6 +254,63 @@
 --home-art-z: -3;   /* -3 — под #bgCanvas, арт размывается #bgGlass вместе с космосом;
                        -1 — над стеклом, арт остаётся резким. Переключается числом. */
 --home-art-veil: rgba(5, 10, 20, 0.58);
+
+/* DS-3б: парные токены вместо светлых перебивок [data-theme="light"] .x —
+   компонент берёт значение из токена, светлая тема меняет только токен. */
+--body-bg-image: url('assets/bg-body.webp');
+--font-smoothing: auto; --font-smoothing-moz: auto;
+--char-sort-label: var(--home-sub); --char-sort-label-fw: var(--fw-regular);
+--status-bar-bg: var(--surface-sticky, var(--bg-1));
+--status-bar-edge: 1px solid var(--border);
+--status-bar-blur: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
+--status-chip-bg: var(--bg-2); --status-chip-bw: 1px; --status-chip-hover-sh: none;
+--st-ok-bg: rgba(87,179,109,0.14); --st-ok-edge: var(--success);
+--st-low-fg: var(--accent); --st-low-bg: rgba(212,168,67,0.14); --st-low-edge: var(--accent);
+--st-crit-bg: rgba(224,108,117,0.18); --st-crit-edge: var(--danger);
+--st-ac-fg: var(--armor-color); --st-ac-bg: rgba(91,155,213,0.14); --st-ac-edge: var(--armor-color);
+--st-level-edge: var(--accent);
+--st-insp-fg: var(--text); --st-insp-bg: var(--bg-2); --st-insp-edge: var(--border);
+--st-insp-hover-edge: rgba(255,215,0,0.4);
+--st-insp-on-fg: gold; --st-insp-on-bg: rgba(255,215,0,0.15); --st-insp-on-edge: gold;
+--st-cond-fg: var(--danger); --st-cond-bg: rgba(224,108,117,0.15); --st-cond-hover-bg: rgba(224,108,117,0.3); --st-cond-edge: var(--danger);
+--st-conc-fg: var(--magic); --st-conc-bg: color-mix(in srgb, var(--magic) 15%, transparent);
+--st-conc-edge: color-mix(in srgb, var(--magic) 50%, transparent); --st-conc-pulse-edge: var(--magic);
+--st-rit-fg: #a88ec4; --st-rit-bg: rgba(142,107,191,0.15);
+--st-rit-edge: rgba(142,107,191,0.5); --st-rit-pulse-edge: rgba(142,107,191,1);
+--header-edge: rgba(255,255,255,0.08); --header-sh: none;
+--header-title-fg: var(--accent); --header-title-fw: var(--fw-semibold);
+--hdr-btn-bg: none; --hdr-btn-edge: none;
+--hdr-burger-hover-bg: rgba(255,255,255,0.1); --hdr-back-hover-bg: rgba(255,255,255,0.08);
+--hdr-back-bg-d: rgba(255,255,255,0.07); --hdr-back-edge-d: 1px solid rgba(255,255,255,0.15);
+--hdr-back-hover-bg-d: var(--accent-glow-token, rgba(212,168,75,0.18));
+--hdr-back-hover-edge-d: var(--accent); --hdr-back-hover-fg-d: var(--accent);
+--avatar-disc-bg: rgba(255,255,255,0.05); --avatar-disc-edge: 2px solid var(--accent); --avatar-img-filter: none;
+--avatar-icon-filter: brightness(1.7) saturate(1.3) contrast(1.15);
+--books-title-fw: var(--fw-semibold);
+--field-text-bg: var(--bg-2); --field-focus-bg: var(--bg-3); --field-focus-ring: var(--accent-glow-token);
+--avatar-url-bg: rgba(255,255,255,0.10); --avatar-url-focus-bg: rgba(255,255,255,0.13);
+--avatar-url-edge: rgba(255,255,255,0.25); --avatar-url-ph: var(--text-dim); --notes-search-ph: var(--text-dim);
+--rail-bg: var(--surface-sticky, rgba(20, 22, 30, 0.55));
+--edit-btn-fg: var(--accent-hi); --pin-label-fg: var(--accent); --wf-chip-on-fg: #000;
+--ver-btn-bg: rgba(255,255,255,0.04); --ver-btn-edge: rgba(255,255,255,0.10);
+--class-disc-bg: none; --class-disc-edge: none;
+--dice-arena-bg: rgba(6, 8, 18, 0.82);
+--dice-stage-bg: radial-gradient(circle at 50% 50%, #0a1628 0%, #060e1f 55%, #030812 100%);
+--dice-stage-inset: inset 0 0 60px 10px rgba(0, 0, 0, 0.6);
+--dice-num-glow: 0 2px 18px rgba(0, 0, 0, 0.9), 0 0 32px rgba(0, 0, 0, 0.7);
+--dice-label-fg: #e3dff0; --dice-label-glow: 0 1px 8px rgba(0, 0, 0, 0.95);
+--dice-crit-ok-fg: var(--accent); --dice-crit-fail-fg: var(--danger);
+--dice-close-hint: rgba(255, 255, 255, 0.5);
+--cw-hint-fg: var(--home-sub); --cw-title-fg: var(--text); --cw-err-fg: #ff8a8a;
+--locked-bar-bg: none; --locked-bar-edge: var(--home-rule); --locked-bar-fg: var(--home-sub);
+--hp-bar-fill: linear-gradient(90deg, color-mix(in oklab, var(--success) 88%, black), var(--success));
+--hp-bar-edge: none; --hp-bar-overflow: visible;
+--tabnav-edge: rgba(255,255,255,0.08); --tabnav-sh: none;
+--tab-hover-bg: none; --tab-on-bg: var(--accent-glow-token);
+--cpop-bg: var(--surface-pop, var(--bg-1)); --cpop-edge: var(--border-soft);
+--cpop-close-hover-bg: var(--bg-3); --popup-group-rule: rgba(255,255,255,0.18);
+--overlay-blur: none;
+--drawer-bg: var(--surface-sticky, var(--bg-2)); --drawer-edge-r: none; --drawer-sh: -8px 0 24px rgba(0,0,0,0.34);
 }
 
 /* ========== UI-4. Плотность интерфейса (compact / standard / cozy) ==========
@@ -303,7 +360,7 @@ html.glass-adjusting *::after {
 
 /* ========== UI-1. Светлая тема v3 — адаптив + атмосферный фон ==========
    Тёплая cream-палитра #eef2ef + warm radial + SVG-noise + золотые «лозы».
-   Активируется data-theme="light" (или data-theme="auto" + prefers-color-scheme: light).
+   Активируется data-theme="light" (auto резолвится в light/dark скриптом в index.html).
    Кнопки и анимации — в общей секции UI-2 ниже (применяются к обеим темам).
 */
 :root[data-theme="light"] {
@@ -418,69 +475,64 @@ html.glass-adjusting *::after {
 
   /* MENU-1: вуаль под артом главной (тёмная убила бы кремовый фон светлой темы) */
   --home-art-veil: rgba(236, 239, 245, 0.62);
-}
 
-@media (prefers-color-scheme: light) {
-  :root[data-theme="auto"] {
-    --bg-0: #eceff5;
-    --bg-1: rgba(255, 255, 255, var(--glass-alpha));
-    --bg-2: rgba(255, 255, 255, 0.55);
-    --bg-3: rgba(222, 227, 238, 0.88);
-    --surface-modal: rgba(253, 254, 255, 0.84);
-    --surface-sticky: rgba(255, 255, 255, 0.58);
-    --surface-pop: rgba(253, 254, 255, 0.84);
-    --glass-hi: rgba(255, 255, 255, 0.65);
-    --border: rgba(24, 26, 36, 0.10); --border-soft: rgba(24, 26, 36, 0.065);
-    --text: #1b1c20; --text-dim: #55575f; --text-mute: #5e5f66; /* THEME-6: 4.5, STYLE-11 */
-    --accent: #a8823a; --accent-hi: #c09a50; --accent-lo: #86672b; --focus-ring: var(--accent-lo);
-    --accent-ink: var(--accent-lo); --accent-hover: var(--text); --nav-next-fill: var(--accent-lo); /* STYLE-11 */
-    --accent-soft: rgba(168, 130, 58, 0.12);
-    --accent-glow-token: rgba(168, 130, 58, 0.30);
-    --on-accent: #ffffff;
-    --overlay: rgba(24, 26, 34, 0.38);
-    --tour-dim: rgba(24, 26, 34, 0.5); /* THEME-1: 0.55→0.5 — швов больше нет, затемнение чуть мягче; ниже 0.45 нельзя (0.38 не читалось) */
-    --danger: #b3352a; --success: #277548; --info: #2c6fbd; /* THEME-6: success до 4.5 */
-    --magic: #7456ca; --necro: #607730; --divin: #1c7b7b; --charm: #b74778; /* THEME-6: школы до 4.5 */
-    --school-abjur: #3b638a; --school-conj: #7b5934; --school-divin: #5c6066; --school-ench: #835166;
-    --school-evoc: #974835; --school-illus: #6c558d; --school-necro: #406948; --school-trans: #6e5f31;
-    --slot-gold: #86672b; --slot-gold-hi: #c09a50; --slot-gold-glow: rgba(168, 130, 58, 0.35);
-    --sh-1: 0 1px 3px rgba(22,26,38,0.05), 0 6px 22px rgba(22,26,38,0.06);
-    --sh-2: 0 10px 28px rgba(22,26,38,0.12), 0 32px 80px rgba(22,26,38,0.20);
-    --sh-card: 0 1px 2px rgba(22,26,38,0.04), 0 3px 10px rgba(22,26,38,0.05);
-    --sh-glow: 0 0 0 3px var(--accent-soft), 0 6px 16px var(--accent-glow-token);
-    /* THEME-2: категории предметов — были только в light-блоке (дрейф light/auto) */
-    --weapon-color: #c2433a; --armor-color: #2f6dba; --potion-color: #b04580;
-    --scroll-color: #7a4eb8; --tool-color: #a07820; --material-color: #2f8a52;
-    --other-color: #5b606b;
-    --highlight-color: rgba(44, 138, 82, 0.30);
-    --condition-active: rgba(199, 58, 44, 0.25);
-    --buff-color: rgba(44, 138, 82, 0.24);
-    --debuff-color: rgba(199, 58, 44, 0.24);
-    /* THEME-5: яд/болезнь — светлые пары */
-    --poison-color: #8a3f9e;
-    --disease-color: #1f8a4c;
-    /* THEME-4: компонентные токены базового хрома */
-    --opt-bg: #ffffff; --opt-text: #1a1a1a; --optgroup-bg: #f2efe6; --optgroup-text: var(--accent-lo);
-    --chip-bg: rgba(255,255,255,0.95);
-    --list-solid: rgba(255,255,255,0.96); --list-solid-hover: rgba(255,255,255,1);
-    --accent-fill: linear-gradient(180deg, var(--accent-hi), var(--accent));
-    --res-res: #18696b; --res-res-bg: rgba(31,122,122,0.14); --res-res-bd: rgba(31,122,122,0.45);
-    --res-imm: #235f9e; --res-imm-bg: rgba(44,111,189,0.14); --res-imm-bd: rgba(44,111,189,0.45);
-    --res-vul: #8a4f15; --res-vul-bg: rgba(176,90,20,0.14); --res-vul-bd: rgba(176,90,20,0.45);
-    /* THEME-5: компонентные токены фичевых зон */
-    --pin-bg: rgba(255,210,77,0.18); --pin-edge: var(--accent-lo);
-    --cf-wrap: rgba(255,255,255,0.93);
-    --cf-group: rgba(255,255,255,0.95);
-    --cf-btn: rgba(255,255,255,0.96);
-    --cf-legend: rgba(255,255,255,0.93);
-    --cf-own-bd: rgba(44,138,82,0.45); --cf-own-bg: rgba(44,138,82,0.12); --cf-own-tx: #25703f;
-    --cf-foreign-bd: rgba(199,58,44,0.35); --cf-foreign-bg: rgba(199,58,44,0.08); --cf-foreign-tx: #b8352a;
-    --pro-color: #1f7a3a; --con-color: #b23a2c;
-    --diff-1: #1f8a4c; --diff-2: #c47a12; --diff-3: #c0392b;
-
-    /* MENU-1: вуаль под артом главной (тёмная убила бы кремовый фон светлой темы) */
-    --home-art-veil: rgba(236, 239, 245, 0.62);
-  }
+  /* DS-3б: светлые значения парных токенов (бывшие перебивки) */
+  --body-bg-image: none;
+  --font-smoothing: antialiased; --font-smoothing-moz: grayscale;
+  --char-sort-label: var(--text-dim); --char-sort-label-fw: var(--fw-semibold);
+  --status-bar-bg: none; --status-bar-edge: 0; --status-bar-blur: none;
+  --status-chip-bg: var(--bg-1); --status-chip-bw: 1.5px; --status-chip-hover-sh: var(--sh-1);
+  --st-ok-bg: rgba(42,126,76,0.10); --st-ok-edge: rgba(42,126,76,0.34);
+  /* low-янтарь #8a6510 = 5.07:1 на light bg-1 */
+  --st-low-fg: #8a6510; --st-low-bg: rgba(138,101,16,0.12); --st-low-edge: rgba(138,101,16,0.38);
+  --st-crit-bg: rgba(199,58,44,0.08); --st-crit-edge: rgba(199,58,44,0.32);
+  --st-ac-fg: var(--info); --st-ac-bg: rgba(44,111,189,0.08); --st-ac-edge: rgba(44,111,189,0.32);
+  --st-level-edge: rgba(184,132,31,0.40);
+  --st-insp-fg: var(--accent); --st-insp-bg: var(--accent-soft); --st-insp-edge: rgba(184,132,31,0.40);
+  --st-insp-hover-edge: rgba(184,132,31,0.40);
+  --st-insp-on-fg: var(--accent); --st-insp-on-bg: var(--accent-soft); --st-insp-on-edge: rgba(184,132,31,0.40);
+  /* чипы состояний/концентрации/ритуала в светлой — нейтральные, как чип по умолчанию */
+  --st-cond-fg: var(--text); --st-cond-bg: var(--bg-1); --st-cond-hover-bg: var(--bg-1); --st-cond-edge: var(--border);
+  --st-conc-fg: var(--text); --st-conc-bg: var(--bg-1); --st-conc-edge: var(--border); --st-conc-pulse-edge: var(--border);
+  --st-rit-fg: var(--text); --st-rit-bg: var(--bg-1); --st-rit-edge: var(--border); --st-rit-pulse-edge: var(--border);
+  --header-edge: var(--border-soft); --header-sh: var(--sh-1);
+  --header-title-fg: var(--text); --header-title-fw: var(--fw-bold);
+  /* кнопки шапки (гамбургер, «назад») в светлой — плашка с рамкой при любой ширине */
+  --hdr-btn-bg: var(--bg-2); --hdr-btn-edge: 1px solid var(--border);
+  --hdr-burger-hover-bg: var(--bg-2); --hdr-back-hover-bg: var(--bg-2);
+  --hdr-back-bg-d: var(--bg-2); --hdr-back-edge-d: 1px solid var(--border);
+  --hdr-back-hover-bg-d: var(--bg-2); --hdr-back-hover-edge-d: var(--border); --hdr-back-hover-fg-d: var(--text);
+  /* тёмный диск под PNG-иконки классов: line-art рисован под тёмную тему */
+  --avatar-disc-bg: radial-gradient(circle at 32% 30%, #34324a, #201f2e); --avatar-disc-edge: 1px solid var(--border);
+  --avatar-img-filter: drop-shadow(0 1px 1px rgba(20,40,30,0.30));
+  --avatar-icon-filter: drop-shadow(0 1px 1px rgba(20,40,30,0.30));
+  --books-title-fw: var(--fw-bold);
+  --field-text-bg: var(--bg-1); --field-focus-bg: var(--bg-1); --field-focus-ring: var(--accent-soft);
+  --avatar-url-bg: var(--bg-1); --avatar-url-focus-bg: var(--bg-1);
+  --avatar-url-edge: var(--border); --avatar-url-ph: var(--text-mute); --notes-search-ph: var(--text-mute);
+  --rail-bg: var(--bg-1);
+  /* --accent-hi на светлом ниже 4.5:1 — кнопки правки и метка берут --accent-lo */
+  --edit-btn-fg: var(--accent-lo); --pin-label-fg: var(--accent-lo); --wf-chip-on-fg: #fff;
+  --ver-btn-bg: rgba(0,0,0,0.04); --ver-btn-edge: rgba(0,0,0,0.14);
+  --class-disc-bg: radial-gradient(circle at 32% 30%, #34324a, #201f2e); --class-disc-edge: 1px solid var(--border);
+  /* арена броска: светлая вуаль и светлый «космос» (палитры канваса — dice-arena-bg.js) */
+  --dice-arena-bg: rgba(226, 233, 242, 0.62);
+  --dice-stage-bg: radial-gradient(circle at 50% 50%, #dbe4f2 0%, #c8d4e8 55%, #b2c1da 100%);
+  --dice-stage-inset: inset 0 0 60px 10px rgba(100, 120, 155, 0.28);
+  --dice-num-glow: 0 2px 18px rgba(255, 255, 255, 0.9), 0 0 32px rgba(255, 255, 255, 0.7);
+  --dice-label-fg: var(--text-dim); --dice-label-glow: 0 1px 8px rgba(255, 255, 255, 0.95);
+  --dice-crit-ok-fg: var(--text-dim); --dice-crit-fail-fg: var(--text-dim);
+  --dice-close-hint: rgba(26, 32, 29, 0.55);
+  --cw-hint-fg: var(--text-dim); --cw-title-fg: var(--accent-lo); --cw-err-fg: var(--danger);
+  --locked-bar-bg: rgba(44,138,82,0.10); --locked-bar-edge: rgba(44,138,82,0.40); --locked-bar-fg: var(--success);
+  /* полоса HP в светлой — сплошная заливка и волосяная рамка */
+  --hp-bar-fill: var(--success); --hp-bar-edge: 1px solid var(--border-soft); --hp-bar-overflow: hidden;
+  --tabnav-edge: var(--border-soft); --tabnav-sh: 0 -4px 16px rgba(20,40,30,0.06);
+  --tab-hover-bg: var(--bg-2); --tab-on-bg: var(--accent-soft);
+  --cpop-bg: var(--bg-1); --cpop-edge: var(--border);
+  --cpop-close-hover-bg: rgba(20,30,24,0.06); --popup-group-rule: rgba(20,30,24,0.12);
+  --overlay-blur: blur(2px);
+  --drawer-bg: var(--bg-1); --drawer-edge-r: 1px solid var(--border); --drawer-sh: var(--sh-2);
 }
 
 /* ========== UI-2. Пресеты акцента (8 цветов) ==========
@@ -567,38 +619,6 @@ html.glass-adjusting *::after {
   --accent-glow-token: rgba(74,77,84,0.30);
 }
 
-/* ===== Body — атмосферный cream-фон + warm radial + SVG-noise ===== */
-/* UI4-glass: пергамент светлой темы убран — фон рисует орбитальный canvas
-   (как в тёмной). Остаётся только сглаживание шрифта и его насыщенность. */
-:root[data-theme="light"] body {
-  background-image: none !important;
-  background-color: transparent;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-weight: var(--fw-regular);
-}
-@media (prefers-color-scheme: light) {
-  :root[data-theme="auto"] body {
-    background-image: none !important;
-    background-color: transparent;
-  }
-}
-
-/* ===== UI4-glass: декоративные «лозы» светлой темы убраны ===== */
-:root[data-theme="light"] body::before,
-:root[data-theme="light"] body::after { content: none; }
-@media (prefers-color-scheme: light) {
-  :root[data-theme="auto"] body::before,
-  :root[data-theme="auto"] body::after { content: none; }
-}
-
-/* ===== Заголовки ===== */
-:root[data-theme="light"] h1,
-:root[data-theme="light"] h2,
-:root[data-theme="light"] h3,
-:root[data-theme="light"] h4,
-:root[data-theme="light"] .header-title { font-weight: var(--fw-bold); }
-
 /* prefers-reduced-motion расширен на все темы — см. UI-2 ниже */
 
 /* ============================================================
@@ -609,23 +629,6 @@ html.glass-adjusting *::after {
    Они возвращали в светлой теме коробку, полосу-градиент слева и `* { color:
    inherit }` — последнее гасило цвет хитов и счётчика состояний. Плоская
    строка собрана на токенах и работает в обеих темах. */
-
-/* ----- Поиск персонажей ----- */
-:root[data-theme="light"] .char-search-inp {
-  background: none !important;
-  color: var(--text) !important;
-}
-:root[data-theme="light"] .char-search-inp::placeholder {
-  color: var(--text-mute) !important;
-}
-:root[data-theme="light"] .char-search-inp:focus {
-  border-bottom-color: var(--accent) !important;
-  outline: none;
-}
-:root[data-theme="light"] .char-sort-label {
-  color: var(--text-dim) !important;
-  font-weight: var(--fw-semibold);
-}
 
 /* THEME-4: light-override чипов сортировки и переключателя редакции удалены —
    базовые .sort-btn / .home-edition-* на токенах --border / --accent-fill /
@@ -642,144 +645,12 @@ html.glass-adjusting *::after {
    и т.п. сохраняют свои базовые стили в обеих темах). */
 
 /* ----- Focus ring ----- */
-:root[data-theme="light"] :focus-visible {
+/* DS-3б: кольцо фокуса — одно для обеих тем (было только в светлой). */
+:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* ----- Status bar (закреплённая панель HP/AC/Level) ----- */
-/* MOB-1: статус-бар внутри шапки — своего фона и рамки нет */
-:root[data-theme="light"] .status-bar {
-  background: none !important;
-  border-bottom: 0 !important;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-:root[data-theme="light"] .status-chip {
-  background: var(--bg-1) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text) !important;
-  transition: transform var(--t1) var(--ease), box-shadow var(--t1) var(--ease-out);
-}
-:root[data-theme="light"] .status-chip:hover { box-shadow: var(--sh-1); }
-/* Светлая тема: HP-чип отражает состояние (ok/low/critical), как тёмная.
-   !important нужен, чтобы перебить нейтральный .status-chip выше (тот тоже !important).
-   low-янтарь #8a6510 = 5.07:1 на light bg-1 (WCAG 4.5, проверено check-theme). */
-:root[data-theme="light"] .status-hp.hp-ok {
-  color: var(--success) !important;
-  background: rgba(42,126,76,0.10) !important;
-  border-color: rgba(42,126,76,0.34) !important;
-}
-:root[data-theme="light"] .status-hp.hp-low {
-  color: #8a6510 !important;
-  background: rgba(138,101,16,0.12) !important;
-  border-color: rgba(138,101,16,0.38) !important;
-}
-:root[data-theme="light"] .status-hp.hp-critical {
-  color: var(--danger) !important;
-  background: rgba(199,58,44,0.08) !important;
-  border-color: rgba(199,58,44,0.32) !important;
-}
-:root[data-theme="light"] .status-ac {
-  color: var(--info) !important;
-  background: rgba(44,111,189,0.08) !important;
-  border-color: rgba(44,111,189,0.32) !important;
-}
-:root[data-theme="light"] .status-level,
-:root[data-theme="light"] .status-inspiration {
-  color: var(--accent) !important;
-  background: var(--accent-soft) !important;
-  border-color: rgba(184,132,31,0.40) !important;
-}
-
-/* ----- HP-bar (shimmer-анимация в общей UI-2) ----- */
-:root[data-theme="light"] .hp-bar {
-  background: var(--bg-2) !important;
-  border: 1px solid var(--border-soft) !important;
-  overflow: hidden;
-}
-
-/* ----- Header ----- */
-:root[data-theme="light"] header {
-  background: var(--surface-sticky, var(--bg-1)) !important;
-  border-bottom: 1px solid var(--border-soft) !important;
-  backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
-  -webkit-backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
-  box-shadow: var(--sh-1);
-}
-:root[data-theme="light"] .header-title { color: var(--text) !important; }
-:root[data-theme="light"] .header-subtitle { color: var(--text-dim) !important; }
-:root[data-theme="light"] .nav-hamburger,
-:root[data-theme="light"] .header-back {
-  background: var(--bg-2) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text) !important;
-}
-
-/* ----- Tab nav (нижняя навигация) ----- */
-:root[data-theme="light"] .tab-nav {
-  background: var(--surface-sticky, var(--bg-1)) !important;
-  border-top: 1px solid var(--border-soft) !important;
-  backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
-  -webkit-backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
-  box-shadow: 0 -4px 16px rgba(20,40,30,0.06);
-}
-:root[data-theme="light"] .tab-nav button { color: var(--text-dim) !important; transition: all var(--t2) var(--ease-out); }
-:root[data-theme="light"] .tab-nav button:hover { background: var(--bg-2) !important; color: var(--text) !important; }
-:root[data-theme="light"] .tab-nav button.active {
-  color: var(--accent) !important;
-  background: var(--accent-soft) !important;
-}
-
-/* ----- Условия / popup ----- */
-/* DISC-5: плашки стали словами — светлые перебивки заливок сняты, остался
-   цвет. Он же держит контраст: --danger на светлом фоне читается. */
-:root[data-theme="light"] .condition-badge.active { color: var(--danger); }
-:root[data-theme="light"] .conditions-popup {
-  background: var(--bg-1) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: var(--sh-2);
-}
-:root[data-theme="light"] .conditions-popup-close:hover {
-  background: rgba(20,30,24,0.06) !important;
-  color: var(--text) !important;
-}
-:root[data-theme="light"] .popup-group + .popup-group {
-  border-top-color: rgba(20,30,24,0.12) !important;
-}
-
-/* ----- Модалки ----- */
-/* UI4-glass: .modal — это полноэкранный диммер-оверлей (база: var(--overlay)).
-   Старый override красил его в полупрозрачный --bg-1, из-за чего фон не
-   затемнялся и контент просвечивал. Панель теперь .modal-content на
-   --surface-modal (пол непрозрачности). .confirm-modal — мёртвый селектор
-   (реальный класс .confirm-modal-box). Оверлей оставляем на базовом --overlay. */
-:root[data-theme="light"] .confirm-modal-overlay {
-  background: var(--overlay) !important;
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-}
-
-/* ----- PNG-иконки классов на светлом — drop-shadow + подложка ----- */
-/* STYLE-8L: пункт сайдбара из списка убран — первым потомком там теперь ромб,
-   а иконка вкладки рисуется линейным SVG (icons.js), тень ей не нужна. */
-:root[data-theme="light"] .header-avatar img {
-  filter: drop-shadow(0 1px 1px rgba(20,40,30,0.30));
-}
-/* Тёмный диск под PNG-иконки классов: line-art рисован светлым под тёмную тему
-   (+filter brightness(1.7) у .class-icon-svg) — на светлой подложке он выцветает.
-   На тёмном диске иконки читаются как в тёмной теме. */
-:root[data-theme="light"] .header-avatar {
-  background: radial-gradient(circle at 32% 30%, #34324a, #201f2e) !important;
-  border: 1px solid var(--border) !important;
-}
-
-/* ----- Drawer ----- */
-:root[data-theme="light"] .side-drawer {
-  background: var(--bg-1) !important;
-  border-right: 1px solid var(--border) !important;
-  box-shadow: var(--sh-2);
-}
 /* STYLE-8L: четыре светлые перебивки пунктов сняты — базовый блок сайдбара
    собран на токенах и работает в обеих темах без коробок и !important. */
 
@@ -791,15 +662,6 @@ html.glass-adjusting *::after {
    дубли button.secondary/.success/.danger/.info УДАЛЕНЫ. Базовые правила
    `button` / `button.secondary|danger|success|info` (style.css ~2895+) на
    токенах работают в обеих темах; конец антипаттерна «забыли исключить класс». */
-
-/* ----- Tab nav — захардкожен rgba(23,23,31,0.55), нужен явный override ----- */
-:root[data-theme="light"] .tab-nav {
-  background: var(--surface-sticky, var(--bg-1)) !important;
-  -webkit-backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
-  backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
-}
-:root[data-theme="light"] .tab-btn { color: var(--text-dim) !important; }
-:root[data-theme="light"] .tab-btn.active { color: var(--accent) !important; }
 
 /* ----- Карточки/секции с захардкоженным `background: rgba(255,255,255,*)` ----- */
 /* UI4-glass LT-2: .card убран из этого override — базовый .card (градиент
@@ -815,55 +677,12 @@ html.glass-adjusting *::after {
    каждое поле пришлось бы по !important и ратчет светлой темы вырос бы. */
 /* UNI-3: поля коротких форм — плоские в обеих темах (блок UNI-3 в конце
    файла), исключены тем же приёмом: :not(окно формы *). */
-:root[data-theme="light"] textarea:not(.notes-section-input):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *),
-:root[data-theme="light"] input[type="text"]:not(.bp-search):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *),
-:root[data-theme="light"] input[type="number"]:not(.inv-coin-big-inp):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *),
-:root[data-theme="light"] input[type="search"]:not(.notes-search):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *),
-:root[data-theme="light"] input[type="url"],
-:root[data-theme="light"] input[type="email"],
-:root[data-theme="light"] select:not(.bp-select):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *) {
-  background: var(--bg-1) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text) !important;
-}
-:root[data-theme="light"] textarea::placeholder,
-:root[data-theme="light"] input::placeholder { color: var(--text-mute) !important; }
-:root[data-theme="light"] textarea:focus:not(.notes-section-input):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *),
-:root[data-theme="light"] input:focus:not(.inv-coin-big-inp):not(.notes-search):not(.bp-search):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *),
-:root[data-theme="light"] select:focus:not(.bp-select):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *) {
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 3px var(--accent-soft) !important;
-  background: var(--bg-1) !important;
-}
-
-/* ----- .field (общий класс инпутов) ----- */
-:root[data-theme="light"] .field:not(.flat-field) {
-  background: var(--bg-1) !important;
-  border-color: var(--border) !important;
-  color: var(--text) !important;
-}
-
-/* ----- Creation wizard banner («Заполни основу») — плоская секция с 8a2 ----- */
-:root[data-theme="light"] .creation-wizard-banner {
-  background: none !important;
-  border-color: var(--home-rule) !important;
-  box-shadow: none;
-  color: var(--text);
-}
-:root[data-theme="light"] .cw-step-hint { color: var(--text-dim) !important; }
-:root[data-theme="light"] .cw-step-title { color: var(--accent-lo) !important; }
 /* STYLE-8a2: баннер создания перешёл на плоский рецепт (без заливок, подписи на
    --accent-lo). Светлые перебивки коробочного вида сняты — они красили белым текст,
    под которым заливки уже нет, и он ложился прямо на --bg-0 #eceff5:
    .cw-lock-btn давал контраст 1.15 (кнопку не видно), :disabled возвращал коробку
    --bg-2, .cw-step-num — 1.15 (пустой кружок вместо номера шага).
    Оба узла берут цвета из блока 8a2: 6.39 в светлой, 4.95 в тёмной. */
-:root[data-theme="light"] .cw-validation { color: var(--danger) !important; }
-:root[data-theme="light"] .basic-locked-bar {
-  background: rgba(44,138,82,0.10) !important;
-  border-color: rgba(44,138,82,0.40) !important;
-  color: var(--success) !important;
-}
 
 /* STYLE-8f: светлые перебивки MD-тулбара, превью и панели вариантов удалены
    (12 !important). Они существовали, пока базовые правила держали сырые
@@ -903,16 +722,6 @@ html.glass-adjusting *::after {
 /* HP2: подложка полосы больше не коробка — жёлоб задан волосяной --home-rule
    в секции HP2 и одинаково читается в обеих темах, светлой перебивки
    (сырой #dfe6e1 + рамка, два !important) он не требует. */
-:root[data-theme="light"] .hp-bar {
-  background: var(--success) !important;
-  border: 1px solid var(--border-soft) !important;
-  overflow: hidden;
-}
-:root[data-theme="light"] .hp-bar.hp-bar-low { background: var(--danger) !important; }
-:root[data-theme="light"] .hp-bar.hp-bar-medium { background: var(--accent) !important; }
-
-/* ----- Status-chip default бордер (был слишком тусклый) ----- */
-:root[data-theme="light"] .status-chip { border-width: 1.5px !important; }
 
 /* STYLE-8M: строки настроек в языке встречающего экрана — ни одной коробки.
    Класс остался только в модалке настроек (в сайдбаре от него живёт одна
@@ -1182,7 +991,7 @@ html.glass-adjusting *::after {
   margin: var(--sp-4) 0 var(--sp-1);
   font-family: var(--font-display);
   font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--books-title-fw);
   color: var(--home-sub);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1692,19 +1501,10 @@ body.no-character .drawer-nav { display: none; }
     overflow-y: auto;
     border-left: 1px solid var(--border-soft);
     /* Дымка v5: уровень 1 стекла — хром */
-    background: var(--surface-sticky, rgba(20, 22, 30, 0.55));
+    background: var(--rail-bg);
     backdrop-filter: blur(var(--sticky-blur, 12px));
     -webkit-backdrop-filter: blur(var(--sticky-blur, 12px));
     z-index: var(--z-rail);
-  }
-  :root[data-theme="light"] .app-right-rail {
-    background: var(--bg-1);
-  }
-}
-
-@media (min-width: 1024px) and (prefers-color-scheme: light) {
-  :root[data-theme="auto"] .app-right-rail {
-    background: var(--bg-1);
   }
 }
 
@@ -1900,7 +1700,7 @@ body.no-character .drawer-nav { display: none; }
   width: 100%;
   min-height: var(--control-h);
   padding: var(--sp-3) var(--sp-3);
-  background: var(--bg-2);
+  background: var(--field-text-bg);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: var(--r-4);
@@ -1993,15 +1793,15 @@ overflow-x: hidden;
 position: sticky;
 top: var(--header-h, 59px);
 z-index: calc(var(--z-nav) + 2);
-background: var(--surface-sticky, var(--bg-1, var(--bg-1)));
-border-bottom: 1px solid var(--border, var(--border));
+background: var(--status-bar-bg);
+border-bottom: var(--status-bar-edge);
 padding: var(--sp-2) var(--sp-3, var(--sp-3));
 display: none;
 align-items: center;
 flex-wrap: wrap;
 gap: var(--sp-2, var(--sp-2));
-backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
--webkit-backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
+backdrop-filter: var(--status-bar-blur);
+-webkit-backdrop-filter: var(--status-bar-blur);
 }
 .status-bar.visible { display: flex; }
 
@@ -2015,24 +1815,25 @@ border-radius: var(--r-pill, var(--r-pill));
 font-size: var(--fs-12);
 font-weight: var(--fw-semibold);
 line-height: 1;
-background: var(--bg-2, #1f1f2a);
-border: 1px solid var(--border, #2e2e3c);
+background: var(--status-chip-bg);
+border: var(--status-chip-bw) solid var(--border);
 color: var(--text, var(--text));
 white-space: nowrap;
 user-select: none;
 }
+.status-chip:hover { box-shadow: var(--status-chip-hover-sh); }
 .status-chip.hidden { display: none; }
 /* Кнопка-счётчик условий (унифицирована со .status-chip) */
 .status-conditions-btn {
-  background: rgba(224,108,117,0.15);
-  border-color: var(--danger);
-  color: var(--danger);
+  background: var(--st-cond-bg);
+  border-color: var(--st-cond-edge);
+  color: var(--st-cond-fg);
   cursor: pointer;
   margin-left: auto;
   transition: background var(--t2);
   animation: condBtnPulse 2s ease-in-out infinite;
 }
-.status-conditions-btn:hover { background: rgba(224,108,117,0.3); }
+.status-conditions-btn:hover { background: var(--st-cond-hover-bg); }
 @keyframes condBtnPulse {
   0%,100% { box-shadow: 0 0 0 0 rgba(224,108,117,0); }
   50% { box-shadow: 0 0 8px rgba(224,108,117,0.4); }
@@ -2055,10 +1856,10 @@ user-select: none;
   max-width: 400px;
   max-height: 70vh;
   /* Дымка v5: уровень 3 стекла — поповер */
-  background: var(--surface-pop, var(--bg-1));
+  background: var(--cpop-bg);
   backdrop-filter: blur(var(--pop-blur, 30px));
   -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
-  border: 1px solid var(--border-soft);
+  border: 1px solid var(--cpop-edge);
   box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
   border-radius: var(--r-8);
   z-index: calc(var(--z-popup) + 1);
@@ -2085,7 +1886,7 @@ user-select: none;
   border-radius: var(--r-4);
   width: auto;
 }
-.conditions-popup-close:hover { background: rgba(255,255,255,0.1); }
+.conditions-popup button.conditions-popup-close:hover { background: var(--cpop-close-hover-bg); }
 .conditions-popup-list {
   padding: var(--sp-2) var(--sp-4) var(--sp-3);
   display: flex;
@@ -2101,7 +1902,7 @@ user-select: none;
   padding: var(--sp-3) 0 var(--sp-2);
 }
 .popup-group + .popup-group {
-  border-top: 1px solid rgba(255,255,255,0.18);
+  border-top: 1px solid var(--popup-group-rule);
   margin-top: var(--sp-2);
   padding-top: var(--sp-3);
 }
@@ -2113,23 +1914,23 @@ user-select: none;
 }
 .status-level {
 background: var(--accent-soft, rgba(212,168,67,0.14));
-border-color: var(--accent);
+border-color: var(--st-level-edge);
 color: var(--accent);
 }
 .status-hp { transition: background var(--t3), color var(--t3), border-color var(--t3); }
 .status-hp.hp-ok {
-background: rgba(87,179,109,0.14);
-border-color: var(--success);
+background: var(--st-ok-bg);
+border-color: var(--st-ok-edge);
 color: var(--success);
 }
 .status-hp.hp-low {
-background: rgba(212,168,67,0.14);
-border-color: var(--accent, #d4a843);
-color: var(--accent, #d4a843);
+background: var(--st-low-bg);
+border-color: var(--st-low-edge);
+color: var(--st-low-fg);
 }
 .status-hp.hp-critical {
-background: rgba(224,108,117,0.18);
-border-color: var(--danger);
+background: var(--st-crit-bg);
+border-color: var(--st-crit-edge);
 color: var(--danger);
 animation: hpCriticalPulse 1.5s ease-in-out infinite;
 }
@@ -2139,9 +1940,9 @@ animation: hpCriticalPulse 1.5s ease-in-out infinite;
 }
 .status-hp .hp-max { opacity: 0.7; font-weight: var(--fw-medium); }
 .status-ac {
-background: rgba(91,155,213,0.14);
-border-color: var(--armor-color, #5b9bd5);
-color: var(--armor-color, #5b9bd5);
+background: var(--st-ac-bg);
+border-color: var(--st-ac-edge);
+color: var(--st-ac-fg);
 }
 /* status-conditions теперь рендерится в попапе */
 /* DISC-5: наложенное состояние — слово цветом, а не залитая плашка.
@@ -2169,7 +1970,8 @@ top: 0;
 z-index: calc(var(--z-nav) + 3);
 background: var(--surface-sticky, var(--bg-1));
 padding: var(--sp-2) var(--sp-3, var(--sp-3));
-border-bottom: 1px solid rgba(255,255,255,0.08);
+border-bottom: 1px solid var(--header-edge);
+box-shadow: var(--header-sh);
 backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
 -webkit-backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
 display: flex;
@@ -2178,8 +1980,8 @@ gap: var(--sp-2, var(--sp-3));
 min-height: 52px;
 }
 .header-back {
-background: none;
-border: none;
+background: var(--hdr-btn-bg);
+border: var(--hdr-btn-edge);
 color: var(--text, var(--text));
 font-size: var(--fs-24);
 padding: var(--sp-1) var(--sp-3);
@@ -2191,14 +1993,14 @@ line-height: 1;
 transition: background var(--t2);
 flex-shrink: 0;
 }
-.header-back:hover { background: rgba(255,255,255,0.08); }
+.header-back:hover { background: var(--hdr-back-hover-bg); }
 .header-back.hidden { display: none; }
 .header-avatar {
 width: 42px;
 height: 42px;
 border-radius: 50%;
-border: 2px solid var(--accent);
-background: rgba(255,255,255,0.05);
+border: var(--avatar-disc-edge);
+background: var(--avatar-disc-bg);
 display: flex;
 align-items: center;
 justify-content: center;
@@ -2206,7 +2008,9 @@ font-size: var(--fs-24);
 flex-shrink: 0;
 overflow: hidden;
 }
+.header-avatar img.class-icon-svg { filter: var(--avatar-icon-filter); }
 .header-avatar img {
+filter: var(--avatar-img-filter);
 width: 100%;
 height: 100%;
 object-fit: cover;
@@ -2221,10 +2025,10 @@ gap: 2px;
 min-width: 0;
 }
 .header-title {
-color: var(--accent);
+color: var(--header-title-fg);
 margin: 0;
 font-size: var(--fs-18);
-font-weight: var(--fw-semibold);
+font-weight: var(--header-title-fw);
 text-align: left;
 white-space: nowrap;
 overflow: hidden;
@@ -2350,6 +2154,23 @@ border-color: var(--accent);
 box-shadow: 0 0 0 3px var(--accent-glow-token);
 background-color: var(--bg-3);
 }
+/* DS-3б: текстовые поля (кроме плоских .flat-field и полей форм-окон) —
+   фон и фокус на парных токенах. :where держит специфичность на уровне
+   базового input, поэтому классовые правила компонентов по-прежнему сильнее. */
+textarea:where(:not(.notes-section-input):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)),
+input:where([type="text"]:not(.bp-search):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)),
+input:where([type="number"]:not(.inv-coin-big-inp):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)),
+input:where([type="search"]:not(.notes-search):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)),
+input:where([type="url"], [type="email"]),
+select:where(:not(.bp-select):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)) {
+background-color: var(--field-text-bg);
+}
+textarea:where(:not(.notes-section-input):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)):focus,
+input:where(:not(.inv-coin-big-inp):not(.notes-search):not(.bp-search):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)):focus,
+select:where(:not(.bp-select):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)):focus {
+box-shadow: 0 0 0 3px var(--field-focus-ring);
+background-color: var(--field-focus-bg);
+}
 /* UI-fix: оформление раскрытого списка <select> в тон теме (был системный серый фон + белый текст).
    Заголовки групп — акцентом, пункты — обычным текстом на тёмной подложке. */
 select { accent-color: var(--accent); }
@@ -2458,7 +2279,7 @@ color: var(--danger);
   padding: var(--sp-2) var(--sp-3);
   border-radius: var(--r-8);
   border: 1px solid var(--border);
-  background: var(--bg-2);
+  background: var(--field-text-bg);
   color: var(--text);
   font-size: var(--fs-14);
   outline: none;
@@ -3093,7 +2914,8 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
   align-items: flex-end;
   /* UI-6: safe-area-inset для нижней панели на устройствах с home-indicator (iOS) */
   padding: var(--sp-2) 0 calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid var(--tabnav-edge);
+  box-shadow: var(--tabnav-sh);
   z-index: var(--z-nav);
   backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
   -webkit-backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
@@ -3124,7 +2946,7 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
   -webkit-tap-highlight-color: transparent;
 }
 .tab-btn span { display: block; font-size: var(--fs-24); line-height: 1; }
-.tab-btn.active { color: var(--accent) !important; background: var(--accent-glow-token) !important; }
+.tab-btn.active { color: var(--accent) !important; background: var(--tab-on-bg) !important; }
 /* UI-6: индикатор-полоса сверху активной вкладки */
 .tab-btn.active::before {
   content: "";
@@ -3143,6 +2965,7 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
   from { width: 0; opacity: 0; }
   to   { width: 28px; opacity: 1; }
 }
+.tab-btn:hover, .tab-dice-fab:hover { background: var(--tab-hover-bg) !important; }
 .tab-btn:active { background: var(--accent-glow-token) !important; }
 .tab-btn:hover { color: var(--text) !important; transform: none !important; box-shadow: none !important; }
 /* LVL-6: вкладок стало пять, на каждую приходится ~64px при 390px ширины.
@@ -3477,8 +3300,8 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
    HAMBURGER BUTTON
 ============================================= */
 .nav-hamburger {
-  background: none !important;
-  border: none !important;
+  background: var(--hdr-btn-bg) !important;
+  border: var(--hdr-btn-edge) !important;
   color: var(--text) !important;
   font-size: var(--fs-18) !important;
   padding: var(--sp-1) var(--sp-2) !important;
@@ -3491,7 +3314,7 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
   box-shadow: none !important;
   line-height: 1;
 }
-.nav-hamburger:hover { background: rgba(255,255,255,0.1) !important; transform: none !important; }
+.nav-hamburger:hover { background: var(--hdr-burger-hover-bg) !important; transform: none !important; }
 
 /* =============================================
    SIDE DRAWER
@@ -3517,16 +3340,17 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
   max-width: 300px;
   height: 100%;
   /* Дымка v5: уровень 1 стекла — хром (сайдбар) */
-  background: var(--surface-sticky, var(--bg-2));
+  background: var(--drawer-bg);
   backdrop-filter: blur(var(--sticky-blur, var(--glass-blur)));
   -webkit-backdrop-filter: blur(var(--sticky-blur, var(--glass-blur)));
   border-left: 1px solid var(--border-soft);
+  border-right: var(--drawer-edge-r);
   z-index: var(--z-drawer);
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
   transition: transform var(--t2) cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: -8px 0 24px rgba(0,0,0,0.34);
+  box-shadow: var(--drawer-sh);
   /* UI-5: при больших масштабах (zoom > 1) контент drawer выше вьюпорта —
      нужен скролл по вертикали и аккуратное поведение оверфлоу. */
   overflow-y: auto;
@@ -3809,7 +3633,7 @@ transition: border-color var(--t2);
 input::placeholder, textarea::placeholder { color: var(--text-mute); opacity: 1; }
 .char-search-inp::placeholder { color: var(--text-mute); }
 .char-sort-row { display: flex; align-items: center; gap: 0 var(--sp-4); flex-wrap: wrap; }
-.char-sort-label { font-size: var(--fs-12); color: var(--home-sub); flex-shrink: 0; }
+.char-sort-label { font-size: var(--fs-12); color: var(--char-sort-label); font-weight: var(--char-sort-label-fw); flex-shrink: 0; }
 /* STYLE-8M-2: сортировка — подписи с растущим подчёркиванием, активная без
    заливки (заливка роняет контраст — гоча 8L). */
 .sort-btn {
@@ -5361,7 +5185,7 @@ transform: none;
 .wf-chip.active {
   background: var(--weapon-color);
   border-color: var(--weapon-color);
-  color: #000;
+  color: var(--wf-chip-on-fg);
   font-weight: var(--fw-bold);
 }
 .wf-sep { width: 1px; height: 18px; background: var(--border); margin: 0 2px; }
@@ -5421,7 +5245,7 @@ padding: var(--sp-4);
 .dice-btn.d20:hover { background: var(--accent-hi); }
 .dice-custom-label { font-size: var(--fs-12); color: var(--text-dim); margin-bottom: var(--sp-1); margin-top: 2px; }
 .dice-custom-row { display: grid; grid-template-columns: 1fr auto; gap: var(--sp-2); margin-bottom: var(--sp-4); }
-.dice-custom-inp { width: 100%; background: var(--bg-2); border: 1px solid var(--border); color: var(--text); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-8); font-size: var(--fs-14); box-sizing: border-box; }
+.dice-custom-inp { width: 100%; background: var(--field-text-bg); border: 1px solid var(--border); color: var(--text); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-8); font-size: var(--fs-14); box-sizing: border-box; }
 .dice-custom-inp:focus { outline: none; border-color: var(--accent); }
 .dice-custom-btn { background: var(--accent); color: #000; border: none; padding: var(--sp-2) var(--sp-4); border-radius: var(--r-8); font-weight: var(--fw-bold); cursor: pointer; font-size: var(--fs-14); white-space: nowrap; }
 .dice-custom-btn:hover { background: var(--accent-hi); }
@@ -6813,7 +6637,7 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
 .spell-edit-btn {
   background: transparent;
   border: 1px solid var(--accent);
-  color: var(--accent-hi);
+  color: var(--edit-btn-fg);
   border-radius: var(--r-4);
   padding: var(--sp-1) var(--sp-3);
   font-size: var(--fs-12);
@@ -6828,7 +6652,6 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
    тяжёлом фоне (--bg-0) и по определению самый тёмный из акцентной тройки.
    Порог на всех 8 пресетах держит чек accentPairs (STYLE-9), раньше эта зона
    не проверялась. В тёмной теме --accent-hi остаётся: там он светлее фона. */
-:root[data-theme="light"] .spell-edit-btn { color: var(--accent-lo); }
 /* Ряд действий карточки поиска. До HB-3 кнопка была одна и жила на inline
    margin-top; теперь у хомбрю их три, и без флекса глобальное
    button{width:100%;margin-bottom} растянуло бы их в столбец. */
@@ -6939,7 +6762,9 @@ transition: width 900ms var(--ez-out, ease-out) 250ms;
 position: relative;
 height: 100%;
 width: 100%;
-background: linear-gradient(90deg, color-mix(in oklab, var(--success) 88%, black), var(--success));
+background: var(--hp-bar-fill);
+border: var(--hp-bar-edge);
+overflow: var(--hp-bar-overflow);
 border-radius: var(--r-pill);
 transition: width var(--t3, 420ms) var(--ez-spring, ease), background var(--t3);
 }
@@ -7224,6 +7049,8 @@ inset: 0;
 /* STYLE-6: был хардкод rgba(0,0,0,0.7) — в светлой теме он затемнял
    страницу вдвое сильнее задуманного, мимо токена. */
 background: var(--overlay);
+backdrop-filter: var(--overlay-blur);
+-webkit-backdrop-filter: var(--overlay-blur);
 z-index: calc(var(--z-modal) - 1);
 align-items: center;
 justify-content: center;
@@ -7499,7 +7326,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 .party-form { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-5); }
 .party-form label { font-size: var(--fs-12); color: var(--text-dim); }
 .party-form input, .party-form select, .party-form textarea {
-  background: var(--bg-2);
+  background: var(--field-text-bg);
   border: 1px solid var(--border);
   border-radius: var(--r-4);
   padding: var(--sp-2) var(--sp-3);
@@ -7508,6 +7335,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   width: 100%;
   box-sizing: border-box;
 }
+.party-form input[type="checkbox"] { background: var(--bg-2); }
 .party-form textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
 .party-form input:focus, .party-form select:focus, .party-form textarea:focus { border-color: var(--accent); outline: none; }
 .party-form select option { background: var(--bg-2); color: var(--text); }
@@ -7826,7 +7654,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 .cw-lock-btn:not(:disabled):hover { opacity: 0.92; }
 .cw-validation {
   font-size: var(--fs-12);
-  color: #ff8a8a;
+  color: var(--cw-err-fg);
   min-height: 0;
 }
 .cw-validation:empty { display: none; }
@@ -10550,7 +10378,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   justify-content: center;
   perspective: 500px;
   position: relative;
-  background: radial-gradient(circle at 50% 50%, #0a1628 0%, #060e1f 55%, #030812 100%);
+  background: var(--dice-stage-bg);
   border-radius: var(--r-8);
   box-shadow: inset 0 0 30px 4px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,200,120,0.08);
   overflow: hidden;
@@ -10641,12 +10469,12 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .app-log-filter {
   flex: 1 1 140px; min-width: 110px; height: 30px; margin: 0; width: auto;
   padding: var(--sp-1) var(--sp-2); border-radius: var(--r-4);
-  background: var(--bg-2, #1d1b27); border: 1px solid var(--border, rgba(255,255,255,0.15));
+  background: var(--field-text-bg); border: 1px solid var(--border, rgba(255,255,255,0.15));
   color: var(--text, #e8e4f0); font-size: var(--fs-12);
 }
 .app-log-level {
   height: 30px; margin: 0; padding: 2px var(--sp-2); border-radius: var(--r-4); width: auto;
-  background: var(--bg-2, #1d1b27); border: 1px solid var(--border, rgba(255,255,255,0.15));
+  background: var(--field-text-bg); border: 1px solid var(--border, rgba(255,255,255,0.15));
   color: var(--text, #e8e4f0); font-size: var(--fs-12); flex: 0 0 auto;
 }
 .app-log-btn {
@@ -10807,7 +10635,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   margin: 0;
   padding: 0;
   gap: 0;
-  background: rgba(6, 8, 18, 0.82);
+  background: var(--dice-arena-bg);
   /* PERF: backdrop-filter здесь был бесполезен — космо-канвас арены непрозрачен и
      перекрывает бэкдроп целиком, — зато на каждый кадр появления браузер размывал
      весь экран. Именно он и делал вход в бросок «в несколько кадров» на слабом GPU.
@@ -10835,7 +10663,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   height: 100%;
   max-width: none;
   border-radius: 0;
-  box-shadow: inset 0 0 60px 10px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--dice-stage-inset);
   /* Наплыв космо-арены при проявлении оверлея. Отдельный слой композитора,
      иначе кадр перехода пересчитывается вместе с WebGL-сценой поверх. */
   transform: translateZ(0) scale(1.06);
@@ -10905,13 +10733,15 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .dice-arena-col .dice3d-num {
   font-size: 4.6em;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.9), 0 0 32px rgba(0, 0, 0, 0.7);
+  text-shadow: var(--dice-num-glow);
 }
 .dice-arena-col .dice3d-label {
-  color: #e3dff0;
+  color: var(--dice-label-fg);
   font-size: var(--fs-14);
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95);
+  text-shadow: var(--dice-label-glow);
 }
+.dice-arena-col .dice3d-result.crit-success .dice3d-label { color: var(--dice-crit-ok-fg); }
+.dice-arena-col .dice3d-result.crit-fail .dice3d-label { color: var(--dice-crit-fail-fg); }
 .dice-arena-col .dice3d-divider { display: none; }
 .dice-arena-col .dice-dual-display { justify-content: center; }
 .dice-arena-col .dice-file-hint {
@@ -10927,7 +10757,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   left: 0; right: 0;
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   text-align: center;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--dice-close-hint);
   font-size: var(--fs-12);
   letter-spacing: 0.3px;
   pointer-events: none;
@@ -11031,8 +10861,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
     width: 320px;
     max-width: 320px;
     border-left: 1px solid var(--border);
-    border-right: none;
-    box-shadow: -8px 0 24px rgba(0,0,0,0.34);
+    border-right: var(--drawer-edge-r);
+    box-shadow: var(--drawer-sh);
   }
 
   .modal-content {
@@ -11067,14 +10897,17 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .status-inspiration {
   cursor: pointer;
   opacity: 0.45;
+  color: var(--st-insp-fg);
+  background: var(--st-insp-bg);
+  border-color: var(--st-insp-edge);
   transition: opacity var(--t2), background var(--t2), border-color var(--t2);
 }
-.status-inspiration:hover { opacity: 0.75; border-color: rgba(255,215,0,0.4); }
+.status-inspiration:hover { opacity: 0.75; border-color: var(--st-insp-hover-edge); }
 .status-inspiration.active {
   opacity: 1;
-  border-color: gold;
-  background: rgba(255,215,0,0.15);
-  color: gold;
+  border-color: var(--st-insp-on-edge);
+  background: var(--st-insp-on-bg);
+  color: var(--st-insp-on-fg);
   animation: inspiPulse 2s ease-in-out infinite;
 }
 @keyframes inspiPulse {
@@ -11182,8 +11015,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .weapon-row:hover .weapon-edit-btn,
 .weapon-edit-btn:focus-visible { opacity: 1; }
-.weapon-edit-btn:hover { color: var(--accent-hi); }
-:root[data-theme="light"] .weapon-edit-btn:hover { color: var(--accent-lo); }
+.weapon-edit-btn:hover { color: var(--edit-btn-fg); }
 /* STYLE-8a2: «Атака» и «Урон» — текстовые действия вместо двух заливок */
 .weapon-roll-row { display: flex; gap: var(--sp-4); }
 .weapon-roll-btn {
@@ -11456,16 +11288,16 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 
 /* ── Status bar concentration indicator ── */
 .status-concentration {
-  border-color: color-mix(in srgb, var(--magic) 50%, transparent);
-  background: color-mix(in srgb, var(--magic) 15%, transparent);
-  color: var(--magic);
+  border-color: var(--st-conc-edge);
+  background: var(--st-conc-bg);
+  color: var(--st-conc-fg);
   cursor: pointer;
   animation: concStatusPulse 2.5s ease-in-out infinite;
   max-width: 180px;
 }
 @keyframes concStatusPulse {
-  0%,100% { border-color: color-mix(in srgb, var(--magic) 50%, transparent); }
-  50%      { border-color: var(--magic); box-shadow: 0 0 8px color-mix(in srgb, var(--magic) 40%, transparent); }
+  0%,100% { border-color: var(--st-conc-edge); }
+  50%      { border-color: var(--st-conc-pulse-edge); box-shadow: 0 0 8px color-mix(in srgb, var(--magic) 40%, transparent); }
 }
 .conc-status-name {
   font-size: var(--fs-12);
@@ -11478,16 +11310,16 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 
 /* ── Status bar ritual indicator ── */
 .status-ritual {
-  border-color: rgba(142,107,191,0.5);
-  background: rgba(142,107,191,0.15);
-  color: #a88ec4;
+  border-color: var(--st-rit-edge);
+  background: var(--st-rit-bg);
+  color: var(--st-rit-fg);
   cursor: pointer;
   animation: ritualStatusPulse 3s ease-in-out infinite;
   max-width: 200px;
 }
 @keyframes ritualStatusPulse {
-  0%,100% { border-color: rgba(142,107,191,0.5); }
-  50%      { border-color: rgba(142,107,191,1); box-shadow: 0 0 8px rgba(142,107,191,0.3); }
+  0%,100% { border-color: var(--st-rit-edge); }
+  50%      { border-color: var(--st-rit-pulse-edge); box-shadow: 0 0 8px rgba(142,107,191,0.3); }
 }
 .ritual-status-name {
   font-size: var(--fs-12);
@@ -11729,17 +11561,17 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   min-width: 0;
   padding: var(--sp-2) var(--sp-3);
   border-radius: var(--r-8);
-  border: 1px solid rgba(255,255,255,0.25) !important;
-  background: rgba(255,255,255,0.10) !important;
+  border: 1px solid var(--avatar-url-edge) !important;
+  background: var(--avatar-url-bg) !important;
   color: var(--text) !important;
   font-size: var(--fs-14);
   outline: none;
   -webkit-text-fill-color: var(--text);
 }
-.avatar-url-input::placeholder { color: var(--text-dim) !important; opacity: 1; }
+.avatar-url-input::placeholder { color: var(--avatar-url-ph) !important; opacity: 1; }
 .avatar-url-input:focus {
   border-color: var(--accent) !important;
-  background: rgba(255,255,255,0.13) !important;
+  background: var(--avatar-url-focus-bg) !important;
 }
 
 /* ══ МОДАЛКА АВАТАРА: новая структура секций ═══════════════════════ */
@@ -11954,7 +11786,7 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
 }
 .res-add-select {
   flex: 1; padding: var(--sp-2) var(--sp-2);
-  background: var(--bg-2); border: 1px solid var(--border);
+  background: var(--field-text-bg); border: 1px solid var(--border);
   color: var(--text); border-radius: var(--r-4); font-size: var(--fs-14);
 }
 .res-add-label {
@@ -12129,7 +11961,9 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
    чтобы один раз покрыть viewport и не плодить повторов (и чтобы ✦-маркер
    Gemini в углу не мозолил глаза). */
 body {
-  background-image: url('assets/bg-body.webp');
+  background-image: var(--body-bg-image);
+  -webkit-font-smoothing: var(--font-smoothing);
+  -moz-osx-font-smoothing: var(--font-smoothing-moz);
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
@@ -12177,7 +12011,7 @@ body {
   border-radius: var(--r-4);
   font-size: var(--fs-14);
 }
-.notes-search::placeholder { color: var(--text-dim); }
+.notes-search::placeholder { color: var(--notes-search-ph); }
 .notes-search:disabled { opacity: 0.5; cursor: not-allowed; }
 .notes-new-btn, .notes-menu-btn, .notes-regen-btn {
   background: var(--bg-2);
@@ -12516,7 +12350,7 @@ body {
 .notes-modal-textarea { resize: vertical; font-family: inherit; }
 .notes-modal-pin-label {
   display: flex; align-items: center; gap: var(--sp-1); white-space: nowrap;
-  color: var(--accent); font-size: var(--fs-14); cursor: pointer; flex-shrink: 0;
+  color: var(--pin-label-fg); font-size: var(--fs-14); cursor: pointer; flex-shrink: 0;
 }
 .notes-modal-tags-row { display: flex; flex-direction: column; gap: var(--sp-2); }
 .notes-modal-tags-list { display: flex; flex-wrap: wrap; gap: var(--sp-1); min-height: 20px; }
@@ -13000,14 +12834,8 @@ select.bp-select { padding-right: var(--sp-4); }
    перебивает `.bp-bullets li` по специфичности. */
 /* THEME-5: диф-цвета .bp-diff-1/2/3 / .bg-mark / .bg-diff-dots переведены на
    токены diff / pro-color / con-color (light-пары в теме) — хардкод-дубли
-   удалены. .bp-pro/.bp-con остаются под light/auto-override на ТЕХ ЖЕ токенах:
+   удалены. .bp-pro/.bp-con остаются под light-override на ТЕХ ЖЕ токенах:
    иначе их перебивает `.bp-bullets li {--text-dim}` по специфичности. */
-:root[data-theme="light"] .bp-bullets .bp-pro { color: var(--pro-color); }
-:root[data-theme="light"] .bp-bullets .bp-con { color: var(--con-color); }
-@media (prefers-color-scheme: light) {
-  :root[data-theme="auto"] .bp-bullets .bp-pro { color: var(--pro-color); }
-  :root[data-theme="auto"] .bp-bullets .bp-con { color: var(--con-color); }
-}
 
 /* BUILD-6: build badge on character screen */
 .char-build-badge-wrap { display:flex; align-items:center; gap:var(--sp-2); margin-top:var(--sp-2); flex-wrap:wrap; }
@@ -13229,8 +13057,8 @@ select.bp-select { padding-right: var(--sp-4); }
 /* (а) Кнопка настроек ⚙️ в строке версии на экране списка персонажей */
 .app-version-settings {
   margin-left: auto;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.10);
+  background: var(--ver-btn-bg);
+  border: 1px solid var(--ver-btn-edge);
   color: var(--text);
   width: 32px;
   height: 32px;
@@ -13251,17 +13079,13 @@ select.bp-select { padding-right: var(--sp-4); }
   transform: rotate(20deg);
 }
 .app-version-settings:active { transform: rotate(20deg) scale(0.94); }
-:root[data-theme="light"] .app-version-settings {
-  background: rgba(0,0,0,0.04);
-  border-color: rgba(0,0,0,0.14);
-}
 
 /* (б) Header-back на desktop/tablet (≥1024px) — заметная контрастная кнопка
         с текстом «К персонажам», вместо едва видимой стрелки. */
 @media (min-width: 1024px) {
   .header-back {
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.15);
+    background: var(--hdr-back-bg-d);
+    border: var(--hdr-back-edge-d);
     padding: var(--sp-2) var(--sp-4) var(--sp-2) var(--sp-3);
     font-size: 1em;
     font-weight: var(--fw-semibold);
@@ -13278,18 +13102,10 @@ select.bp-select { padding-right: var(--sp-4); }
     letter-spacing: 0.01em;
   }
   .header-back:hover {
-    background: var(--accent-glow-token, rgba(212,168,75,0.18));
-    border-color: var(--accent);
-    color: var(--accent);
+    background: var(--hdr-back-hover-bg-d);
+    border-color: var(--hdr-back-hover-edge-d);
+    color: var(--hdr-back-hover-fg-d);
     transform: translateX(-2px);
-  }
-  :root[data-theme="light"] .header-back {
-    background: rgba(0,0,0,0.04);
-    border-color: rgba(0,0,0,0.18);
-  }
-  :root[data-theme="light"] .header-back:hover {
-    background: var(--accent-glow-token);
-    border-color: var(--accent);
   }
 }
 
@@ -13658,43 +13474,22 @@ textarea:focus-visible {
    переведены на токены --text/--text-dim/--text-mute и в
    отдельных правилах не нуждаются).
 ============================================================ */
-:root[data-theme="light"] .res-btn-use { color: var(--danger); }
-:root[data-theme="light"] .res-btn-reset { color: var(--success); }
-:root[data-theme="light"] .notes-modal-pin-label { color: var(--accent-lo); }
-:root[data-theme="light"] .wf-chip.active { color: #fff; }
 
 /* Светлая тема: арена броска кубиков — светлая вуаль и светлый «космос»
    (палитры канваса — dice-arena-bg.js, VARIANTS_LIGHT). Цифра результата
    наследует var(--text) (тёмная) и получает светлое гало вместо тёмного. */
-:root[data-theme="light"] .dice-arena-col { background: rgba(226, 233, 242, 0.62); }
-:root[data-theme="light"] .dsvg-container {
-  background: radial-gradient(circle at 50% 50%, #dbe4f2 0%, #c8d4e8 55%, #b2c1da 100%);
-}
-:root[data-theme="light"] .dice-arena-col .dsvg-container {
-  box-shadow: inset 0 0 60px 10px rgba(100, 120, 155, 0.28);
-}
-:root[data-theme="light"] .dice-arena-col .dice3d-num {
-  text-shadow: 0 2px 18px rgba(255, 255, 255, 0.9), 0 0 32px rgba(255, 255, 255, 0.7);
-}
-:root[data-theme="light"] .dice-arena-col .dice3d-label {
-  color: var(--text-dim);
-  text-shadow: 0 1px 8px rgba(255, 255, 255, 0.95);
-}
-:root[data-theme="light"] #dice-modal.dice-rolling .dice-arena-col::after {
-  color: rgba(26, 32, 29, 0.55);
-}
 
 /* Светлая тема: тёмный диск под иконки классов (см. .header-avatar выше) —
    перебивает инline-подложку classColor+22, которая на светлом не видна. */
-:root[data-theme="light"] .char-card-class-icon,
 /* STYLE-8d2: .battle-setup-icon / .tracker-icon убраны — диска под глифом
    больше нет, цвет фракции несёт сам глиф.
    STYLE-8e2: .pcard-icon убран по той же причине. */
-:root[data-theme="light"] #tinfo-icon,
-:root[data-theme="light"] .avatar-modal-placeholder,
-:root[data-theme="light"] .sheet-avatar .avatar-icon-btn {
-  background: radial-gradient(circle at 32% 30%, #34324a, #201f2e) !important;
-  border: 1px solid var(--border) !important;
+.char-card-class-icon,
+#tinfo-icon,
+.avatar-modal-placeholder,
+.sheet-avatar .avatar-icon-btn {
+  background: var(--class-disc-bg);
+  border: var(--class-disc-edge);
 }
 
 
@@ -15390,9 +15185,9 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .cw-step-title {
   font-family: var(--font-display);
   font-size: var(--fs-18);
-  color: var(--text);
+  color: var(--cw-title-fg);
 }
-.cw-step-hint { color: var(--home-sub); }
+.cw-step-hint { color: var(--cw-hint-fg); }
 .cw-lock-btn {
   background: none;
   color: var(--accent-lo);
@@ -15410,12 +15205,12 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 }
 .cw-lock-btn:not(:disabled):hover { opacity: 1; color: var(--accent); }
 .basic-locked-bar {
-  background: none;
+  background: var(--locked-bar-bg);
   border: none;
   border-radius: 0;
-  border-bottom: 1px solid var(--home-rule);
+  border-bottom: 1px solid var(--locked-bar-edge);
   padding: 0 0 var(--sp-3);
-  color: var(--home-sub);
+  color: var(--locked-bar-fg);
 }
 .basic-unlock-btn {
   background: none;
