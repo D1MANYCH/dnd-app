@@ -1174,7 +1174,7 @@ function _renderSearchResults() {
       html += '<div class="notes-entry-card" onclick="notesSwitchTab(\'backstory\')">' +
         '<div class="notes-entry-header">' +
           '<span class="notes-entry-title">' + r.icon + ' ' + escapeHtml(r.label) + '</span>' +
-          '<span style="font-size:0.75em;opacity:0.6">Предыстория</span>' +
+          '<span style="font-size:var(--fs-12);opacity:0.6">Предыстория</span>' +
         '</div>' +
         '<div class="notes-entry-body">' + _hlText(excerpt, qRaw) + '</div>' +
       '</div>';
@@ -1195,7 +1195,7 @@ function _renderSearchResults() {
       html += '<div class="notes-entry-card' + (e2.pinned ? ' pinned' : '') + '" onclick="notesOpenEntryModal(\'' + e2.id + '\')">' +
         '<div class="notes-entry-header">' +
           '<span class="notes-entry-title">' + _hlText(e2.title || '(без названия)', qRaw) + '</span>' +
-          '<span style="font-size:0.75em;opacity:0.6">' + typeLabel + '</span>' +
+          '<span style="font-size:var(--fs-12);opacity:0.6">' + typeLabel + '</span>' +
         '</div>' +
         (bodyExc ? '<div class="notes-entry-body">' + _hlText(bodyExc, qRaw) + '</div>' : '') +
         tagsHtml +

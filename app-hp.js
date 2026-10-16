@@ -1752,7 +1752,7 @@ if (existing) { clearTimeout(existing._fadeTimer); clearTimeout(existing._remove
 var toast = document.createElement("div");
 if (customMsg !== undefined) {
   toast.className = "hp-toast hp-toast-heal";
-  toast.innerHTML = "<span style='font-size:14px;font-weight:700;'>" + escapeHtml(customMsg) + "</span>";
+  toast.innerHTML = "<span style='font-size:var(--fs-14);font-weight:700;'>" + escapeHtml(customMsg) + "</span>";
   container.appendChild(toast);
   toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 2500);
   toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 3000);
@@ -1761,7 +1761,7 @@ if (customMsg !== undefined) {
 var sign = delta > 0 ? "+" : "";
 var label = delta > 0 ? "Восстановлено" : "Получено урона";
 toast.className = "hp-toast " + (delta > 0 ? "hp-toast-heal" : "hp-toast-dmg");
-toast.innerHTML = "<span style='font-size:20px;font-weight:900;'>" + sign + delta + " ХП</span><span style='font-size:12px;opacity:0.75;margin-left:8px;'>" + label + "</span>";
+toast.innerHTML = "<span style='font-size:var(--fs-18);font-weight:900;'>" + sign + delta + " ХП</span><span style='font-size:var(--fs-12);opacity:0.75;margin-left:8px;'>" + label + "</span>";
 var life = typeof toastAddAction === "function" ? toastAddAction(toast, action, 2300) : 2300;
 container.appendChild(toast);
 toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, life - 500);

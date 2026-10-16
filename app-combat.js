@@ -1610,7 +1610,7 @@ function renderRaceExtras() {
         '" onclick="toggleHalfElfStat(\'' + k + '\')">' + statLabels[k] + '</button>';
     });
     if (stHide) html += _pickExpandBtn("racestat");
-    html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">' +
+    html += '<span style="margin-left:auto;color:var(--text-dim);font-size:var(--fs-14);">' +
       'Выбрано: ' + chosen.length + '/2</span>';
     html += '</div>';
   }
@@ -1668,7 +1668,7 @@ function renderRaceExtras() {
         ' onclick="toggleRaceSkill(' + si + ')">' + escapeHtml(s.name) + '</button>';
     });
     if (skHide) html += _pickExpandBtn("race");
-    html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">' +
+    html += '<span style="margin-left:auto;color:var(--text-dim);font-size:var(--fs-14);">' +
       'Выбрано: ' + skChosen.length + '/' + skillAllowance + '</span>';
     html += '</div>';
     if (skChosen.length < skillAllowance) html += '<div class="race-extras-warn">Расовый навык не выбран — отметьте его в списке выше.</div>';
@@ -1962,7 +1962,7 @@ function renderClassSkills() {
         ' onclick="toggleClassSkill(' + ci + ',' + si + ')">' + escapeHtml(s.name) + '</button>';
     });
     if (hide) html += _pickExpandBtn("cls" + ci);
-    html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">Выбрано: ' + picks.length + '/' + e.count + '</span>';
+    html += '<span style="margin-left:auto;color:var(--text-dim);font-size:var(--fs-14);">Выбрано: ' + picks.length + '/' + e.count + '</span>';
     html += '</div>';
     if (picks.length < e.count) html += '<div class="race-extras-warn">Навыки класса выбраны не все — осталось ' + (e.count - picks.length) + '.</div>';
   });
@@ -2960,7 +2960,7 @@ function renderBackgroundExtras() {
         ' onclick="toggleBgSkillPick(\'' + escapeHtml(sn) + '\')">' + escapeHtml(sn) + '</button>';
     });
     if (bgHide) h14 += _pickExpandBtn("bg");
-    h14 += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">Выбрано: ' + sp.length + '/' + cnt + '</span></div>';
+    h14 += '<span style="margin-left:auto;color:var(--text-dim);font-size:var(--fs-14);">Выбрано: ' + sp.length + '/' + cnt + '</span></div>';
     if (sp.length < cnt) h14 += '<div class="race-extras-warn">Навыки предыстории выбраны не все — осталось ' + (cnt - sp.length) + '.</div>';
     if (typeof renderBgEquip14 === "function") h14 += renderBgEquip14(char);
     _setExtrasHtml(panel, h14);
@@ -3014,14 +3014,14 @@ function renderBackgroundExtras() {
       html += '<button type="button" class="race-extras-stat-pick' + (alloc[k] ? " selected" : "") +
         '" onclick="toggleBgStat(\'' + k + '\')">' + _bgStatShort(k) + (alloc[k] ? " +" + alloc[k] : "") + '</button>';
     });
-    html += '<span style="margin-left:auto;color:var(--text-dim);font-size:0.85em;">' +
+    html += '<span style="margin-left:auto;color:var(--text-dim);font-size:var(--fs-14);">' +
       (v.complete ? dndIcoHtml("check", 13) + " распределено" : "не распределено") + '</span></div>';
   }
 
   var of = (char.feats || []).find(function(f) { return f.origin; });
   html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' Черта происхождения</div><div class="race-extras-row">' +
     (of ? '<span class="race-extras-btn done">' + dndIcoHtml("check", 13) + ' ' + escapeHtml(of.name) + '</span>'
-        : '<span style="color:var(--text-dim);font-size:0.85em;">не выбрана</span>') + '</div>';
+        : '<span style="color:var(--text-dim);font-size:var(--fs-14);">не выбрана</span>') + '</div>';
 
   if (def.equipment && !def.custom) {
     var eq = def.equipment;

@@ -954,9 +954,9 @@ function renderCompanions() {
           '<div class="pcard-sub">' + escapeHtml(COMPANION_TYPE_NAMES[c.type] || c.type) + ' · КД ' + (Number(c.ac) || 10) + '</div>' +
           (c.attack ? '<div class="pcard-desc">' + dndIcoHtml("sword", 12) + ' ' + escapeHtml(c.attack) + '</div>' : '') +
           '<div class="companion-hp-row">' +
-            '<span style="color:' + hpColor + ';font-size:0.8em;font-weight:700;">' + dndIcoHtml("heart", 12) + ' ' + (Number(c.hpCurrent) || 0) + '/' + (Number(c.hpMax) || 0) + '</span>' +
-            '<button class="res-btn" style="padding:2px 8px;font-size:0.72em" onclick="companionHP(' + i + ',-1)">-1</button>' +
-            '<button class="res-btn" style="padding:2px 8px;font-size:0.72em" onclick="companionHP(' + i + ',1)">+1</button>' +
+            '<span style="color:' + hpColor + ';font-size:var(--fs-12);font-weight:700;">' + dndIcoHtml("heart", 12) + ' ' + (Number(c.hpCurrent) || 0) + '/' + (Number(c.hpMax) || 0) + '</span>' +
+            '<button class="res-btn" style="padding:2px 8px;font-size:var(--fs-12)" onclick="companionHP(' + i + ',-1)">-1</button>' +
+            '<button class="res-btn" style="padding:2px 8px;font-size:var(--fs-12)" onclick="companionHP(' + i + ',1)">+1</button>' +
           '</div>' +
         '</div>' +
         '<div class="pcard-actions">' +

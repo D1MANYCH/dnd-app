@@ -215,7 +215,7 @@ div.dataset.index = data.index;
 div.innerHTML =
   '<div class="inv-item-main" onclick="toggleInvItem(this)">' +
     '<div class="inv-item-info">' +
-      '<div class="inv-item-name">' + escapeHtml(item.name) + (_stowed ? ' <span style="color:var(--muted);font-size:11px;">(в снятом рюкзаке)</span>' : '') + '</div>' +
+      '<div class="inv-item-name">' + escapeHtml(item.name) + (_stowed ? ' <span style="color:var(--muted);font-size:var(--fs-12);">(в снятом рюкзаке)</span>' : '') + '</div>' +
       '<div class="inv-item-meta">' +
         '<span class="inv-meta-tag">' + totalWeight + ' фнт</span>' +
         '<span class="inv-meta-tag inv-cat-tag">' + catName + '</span>' +
