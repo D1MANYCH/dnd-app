@@ -171,12 +171,18 @@ function openBuildBadgeMenu() {
 function unlinkBuild() {
   var char = getCurrentChar();
   if (!char || !char.buildId) return;
-  if (!confirm("Отвязать билд от\u00a0персонажа? Рекомендации при\u00a0повышении уровня больше не\u00a0будут показываться.")) return;
-  char.buildId = null;
+  // DS-5б: без подтверждения — отвязываем сразу, в тосте «Вернуть»
+  var oldId = char.buildId;
+  _setCharBuildId(char, null);
+  if (typeof showToast === "function") showToast("Билд отвязан, рекомендации при\u00a0повышении уровня больше не\u00a0покажутся", "success", {
+    label: "Вернуть", onClick: function() { _setCharBuildId(char, oldId); }
+  });
+}
+function _setCharBuildId(char, id) {
+  char.buildId = id;
   char.updatedAt = Date.now();
   saveToLocal();
-  renderBuildBadge();
-  if (typeof showToast === "function") showToast("Билд отвязан", "success");
+  if (getCurrentChar() === char) renderBuildBadge();
 }
 
 // BUILD-6: Escape в пикере — STYLE-8M-2b: пикер стал экраном, клавишу ловит

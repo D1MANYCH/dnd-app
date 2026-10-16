@@ -11,6 +11,7 @@
 
   var layers = [];           // [{ name, closeFn }]
   var suppressNext = false;  // ignore следующий popstate (внутренний go)
+  var lastRootBack = 0;      // DS-5б: время первого «Назад» на корне
   var exiting = false;       // флаг подтверждённого выхода
 
   // Добавляем sentinel-state «корень» поверх естественной точки истории.
@@ -50,13 +51,17 @@
       return;
     }
 
-    // 2) Слоёв нет — пользователь нажал Back на корне. Confirm на выход.
-    if (confirm("Выйти из приложения?")) {
+    // 2) Слоёв нет — пользователь нажал Back на корне. DS-5б: вместо confirm —
+    // второе нажатие за 2,5 с выходит, первое показывает подсказку.
+    var now = Date.now();
+    if (now - lastRootBack < 2500) {
       exiting = true;
       return; // даём браузеру выйти (мы уже на entry ниже sentinel-а)
     }
-    // Отмена — пушим sentinel обратно, чтобы следующий Back снова спросил
+    lastRootBack = now;
+    // Пушим sentinel обратно, чтобы следующий Back снова попал сюда
     try { history.pushState({ dndRoot: true, depth: 0 }, ""); } catch(e) {}
+    if (typeof showToast === "function") showToast("Нажмите «Назад» ещё раз, чтобы выйти", "info");
   });
 
   // ── PERF-6: фокус для клавиатуры и экранного диктора ─────────────

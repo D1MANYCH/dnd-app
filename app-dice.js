@@ -144,11 +144,22 @@ function closeDicePopovers() {
   if (hBtn) hBtn.classList.remove('is-active');
 }
 function clearDiceHistory() {
-  if (typeof confirm === 'function' && !confirm('Очистить историю бросков?')) return;
+  // DS-5б: без подтверждения — очищаем сразу, в тосте «Вернуть»
+  var arr = null;
   try {
-    if (Array.isArray(window.diceHistory)) window.diceHistory.length = 0;
-    else if (typeof diceHistory !== 'undefined' && Array.isArray(diceHistory)) diceHistory.length = 0;
+    if (Array.isArray(window.diceHistory)) arr = window.diceHistory;
+    else if (typeof diceHistory !== 'undefined' && Array.isArray(diceHistory)) arr = diceHistory;
   } catch (e) {}
+  if (!arr || !arr.length) return;
+  var saved = arr.slice();
+  arr.length = 0;
+  _diceHistoryRefresh();
+  if (typeof showToast === 'function') showToast('История бросков очищена', 'info', { label: 'Вернуть', onClick: function() {
+    Array.prototype.push.apply(arr, saved);
+    _diceHistoryRefresh();
+  } });
+}
+function _diceHistoryRefresh() {
   try { if (typeof renderDiceHistory === 'function') renderDiceHistory(); } catch (e) {}
   try { _updateDiceHistoryBadge(); } catch (e) {}
 }
