@@ -129,9 +129,11 @@
 --sh-glow: 0 0 0 3px var(--accent-soft), 0 8px 24px var(--accent-glow-token);
 
 /* Дымка v5: система движения — микро 140 / компоненты 240 / крупное 420 */
---t1: 140ms;   /* hover, press, чипы */
+--t1: 200ms;   /* hover, press, чипы; DS-5а: это время возврата, включение мгновенно */
 --t2: 240ms;   /* табы, аккордеоны, списки */
 --t3: 420ms;   /* модалки, шторки, тур */
+/* DS-5а: недоступное — бледнее и без насыщенности, без отклика на наведение */
+--dis-op: 0.45;
 
 /* DS-1: слои. Локальные (0–5 внутри компонента, фон −1…−3) остаются числами */
 --z-rail: 40;      /* правая панель ПК */
@@ -1194,7 +1196,7 @@ html.glass-adjusting *::after {
 
 /* --- Кнопки v3: базовый класс + размеры через CSS-переменные --- */
 .btn {
-  --btn-h: 44px; --btn-px: 18px; --btn-fs: var(--fs-14); --btn-radius: var(--r-4);
+  --btn-h: var(--control-h, 44px); --btn-px: 18px; --btn-fs: var(--fs-14); --btn-radius: var(--r-4);
   position: relative;
   display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
   height: var(--btn-h); padding: 0 var(--btn-px);
@@ -1213,7 +1215,7 @@ html.glass-adjusting *::after {
 }
 .btn:active { transform: scale(0.965); }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; filter: grayscale(0.4); }
+.btn:disabled { opacity: var(--dis-op); cursor: not-allowed; transform: none !important; filter: grayscale(0.4); }
 
 .btn-sm { --btn-h: 36px; --btn-px: 14px; --btn-fs: var(--fs-14); --btn-radius: var(--r-4); }
 
@@ -1316,7 +1318,7 @@ html.glass-adjusting *::after {
 
 /* --- FEAT-2: поле имени + кнопка-генератор --- */
 .name-input-row { display: flex; gap: var(--sp-2); align-items: center; }
-.name-input-row input { flex: 1 1 auto; min-width: 0; }
+.name-input-row input { flex: 1 1 auto; min-width: 0; height: var(--control-h); }
 /* UI5-2: 🎲 рядом с полем имени — одной высоты с .field (--control-h); сброс
    margin от глобального button{} (это .icon-btn, не .btn — UI5-1 его не задел). */
 .name-input-row .name-roll-btn { flex: 0 0 auto; height: var(--control-h); margin: 0; font-size: var(--fs-18); }
@@ -1708,7 +1710,7 @@ body.no-character .drawer-nav { display: none; }
   transition: border-color var(--t1), box-shadow var(--t1), background var(--t1);
 }
 .field:focus { outline: none; border-color: var(--accent); box-shadow: var(--sh-glow); background: var(--bg-3); }
-.field:disabled { opacity: .5; cursor: not-allowed; }
+.field:disabled { opacity: var(--dis-op); cursor: not-allowed; }
 
 /* ========== /R2 ========== */
 
@@ -2781,7 +2783,7 @@ vertical-align: middle;
 }
 .lu-mc-class-btn:hover:not(:disabled)::before { background: var(--accent-lo); }
 .lu-mc-class-btn:disabled {
-  opacity: 0.5;
+  opacity: var(--dis-op);
   cursor: not-allowed;
 }
 .lu-mc-class-name {
@@ -2857,7 +2859,7 @@ vertical-align: middle;
   margin-top: var(--sp-2);
 }
 .lu-mc-confirm:disabled {
-  opacity: 0.5;
+  opacity: var(--dis-op);
   cursor: not-allowed;
 }
 /* LVL-3: заголовок класса, бейдж уровня и описание фичи в списке умений листа
@@ -2893,8 +2895,15 @@ font-size: var(--fs-14);
 /* UI-fix: ховер осветляет ФАКТИЧЕСКИЙ фон кнопки (filter), а не красит его в accent-hi.
    Иначе у прозрачных кнопок-чипов (.sort-btn/.home-edition-btn/фильтры) accent-фон затекал
    под accent-текст → слова сливались. brightness на прозрачном фоне ничего не красит. */
-button:hover { filter: brightness(1.08); box-shadow: 0 2px 10px var(--accent-glow-token); }
-button:active { transform: scale(0.98); }
+button:hover:where(:not(:disabled)) { filter: brightness(1.08); box-shadow: 0 2px 10px var(--accent-glow-token); }
+button:active:where(:not(:disabled)) { transform: scale(0.98); }
+:where(button, select):disabled { opacity: var(--dis-op); filter: saturate(0.4); cursor: not-allowed; box-shadow: none; }
+/* DS-5а: отклик асимметричный — подсветка при наведении, фокусе и нажатии включается сразу,
+   гаснет за время перехода самого элемента. Строки с onclick не входят: подложки окон тоже с onclick. */
+@media (hover: hover) {
+  :where(button, a, summary, label, [role="button"], [role="tab"]):hover { transition-duration: 0s !important; }
+}
+:where(button, a, summary, label, [role="button"], [role="tab"]):is(:focus-visible, :active) { transition-duration: 0s !important; }
 button.secondary {
 background: var(--bg-2);
 color: var(--text);
@@ -4122,7 +4131,7 @@ color: var(--text-dim);
 .home-menu-subitem:hover { color: var(--text); }
 
 /* Пункт без цели (нет героев) — гасим и убираем из tab-order атрибутом disabled */
-.home-menu-item:disabled { opacity: 0.5; cursor: default; background: transparent; }
+.home-menu-item:disabled { opacity: var(--dis-op); cursor: default; background: transparent; }
 .home-menu-item:disabled:hover { transform: none; }
 
 .home-menu-item:focus-visible,
@@ -4551,7 +4560,7 @@ animation: rise var(--t3) var(--ez-out) both;
   color: var(--magic) !important;
 }
 .inv-charge-btn:hover { background: none !important; color: var(--accent) !important; transform: none !important; box-shadow: none !important; }
-.inv-charge-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.inv-charge-btn:disabled { opacity: var(--dis-op); cursor: not-allowed; }
 .inv-charge-btn:disabled:hover { background: transparent !important; }
 
 /* ========================================
@@ -5118,7 +5127,7 @@ font-size: 1em;
 .rest-act--primary { color: var(--accent-lo); font-weight: var(--fw-bold); }
 .rest-act:hover,
 .rest-act:focus-visible { background: none; box-shadow: none; color: var(--accent); }
-.rest-act:disabled { opacity: 0.4; cursor: default; color: var(--accent-lo); }
+.rest-act:disabled { opacity: var(--dis-op); cursor: default; color: var(--accent-lo); }
 .rest-result { padding: var(--sp-3) 0 0; font-weight: var(--fw-regular); }
 .rest-result h3 { margin: 0 0 var(--sp-2); font-family: var(--font-display); font-size: var(--fs-lg); color: var(--success); }
 .rest-result p { margin: var(--sp-1) 0; color: var(--text); }
@@ -6495,7 +6504,7 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
 .edition-btn:not([hidden]) ~ .edition-btn:not([hidden])::before { content: "·"; margin-right: var(--sp-3); color: var(--home-sub); }
 .edition-btn:hover,
 .edition-btn:focus-visible,
-.book-btn:hover,
+.book-btn:hover:where(:not(:disabled)),
 .book-btn:focus-visible,
 .class-filter-all:hover,
 .class-filter-all:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
@@ -6938,7 +6947,7 @@ transition: width var(--t3, 420ms) var(--ez-spring, ease), background var(--t3);
 }
 .lu-btn-confirm:hover,
 .lu-btn-confirm:focus-visible { background: none; box-shadow: none; color: var(--accent); }
-.lu-btn-confirm:disabled { opacity: 0.4; cursor: default; color: var(--accent-lo); }
+.lu-btn-confirm:disabled { opacity: var(--dis-op); cursor: default; color: var(--accent-lo); }
 
 .lu-result-icon { font-size: var(--fs-32); margin-bottom: var(--sp-2); }
 .lu-result-title {
@@ -7098,7 +7107,7 @@ color: var(--on-accent, #fff);
 font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: auto; margin: 0;
 }
 .confirm-btn-cancel:hover { background: none; box-shadow: none; filter: none; color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
-.confirm-btn-ok:hover { background: var(--accent-hi); box-shadow: none; filter: none; }
+.confirm-btn-ok:hover:where(:not(:disabled)) { background: var(--accent-hi); box-shadow: none; filter: none; }
 .confirm-btn-ok--danger { background: var(--danger); color: #fff; }
 .confirm-btn-ok--danger:hover { background: var(--danger); filter: brightness(1.08); }
 
@@ -7923,17 +7932,17 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   touch-action: manipulation;
   user-select: none;
 }
-.stats-compact-grid button.stat-btn-sm:hover,
-.stat-btn-sm:hover,
-.stats-compact-grid button.stat-btn-sm:active,
-.stat-btn-sm:active {
+.stats-compact-grid button.stat-btn-sm:hover:where(:not(:disabled)),
+.stat-btn-sm:hover:where(:not(:disabled)),
+.stats-compact-grid button.stat-btn-sm:active:where(:not(:disabled)),
+.stat-btn-sm:active:where(:not(:disabled)) {
   color: var(--accent-lo);
   background: none;
   transform: none;
   box-shadow: none;
   filter: none;
 }
-.stat-btn-sm[disabled] { color: var(--home-sub); opacity: .4; cursor: not-allowed; }
+.stat-btn-sm[disabled] { color: var(--home-sub); opacity: var(--dis-op); cursor: not-allowed; }
 
 /* Mobile: taller buttons for comfortable tap */
 @media (max-width: 540px) {
@@ -8561,9 +8570,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
-.res-btn:hover { background: var(--bg-3); border-color: var(--border); }
+.res-btn:hover:where(:not(:disabled)) { background: var(--bg-3); border-color: var(--border); }
 .res-btn:active { transform: scale(0.93); }
-.res-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.res-btn:disabled { opacity: var(--dis-op); cursor: not-allowed; }
 
 /* ========== ASI MODAL ========== */
 .asi-modal-box {
@@ -8977,7 +8986,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .feat-stat-pick-lbl { color: var(--text-mute); }
 .feat-stat-opt { background: none; border: none; padding: 2px 0; color: var(--accent-lo); font: inherit; font-weight: var(--fw-semibold); cursor: pointer; }
 .feat-stat-opt.selected { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-.feat-stat-opt:disabled { color: var(--text-mute); opacity: 0.5; cursor: default; }
+.feat-stat-opt:disabled { color: var(--text-mute); opacity: var(--dis-op); cursor: default; }
 
 /* ========== PROFILES TABS (Чейнджлог) ========== */
 .profiles-bottom-card { padding: var(--sp-4) var(--sp-4) var(--sp-4) !important; }
@@ -9495,11 +9504,11 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   transform-origin: left;
   transition: transform var(--t1, 140ms) var(--ez-out);
 }
-.sw-act:hover,
+.sw-act:hover:where(:not(:disabled)),
 .sw-act:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
-.sw-act:hover::after,
+.sw-act:hover:where(:not(:disabled))::after,
 .sw-act:focus-visible::after { transform: scaleX(1); }
-.sw-act:disabled { opacity: 0.55; cursor: default; }
+.sw-act:disabled { opacity: var(--dis-op); cursor: default; }
 .sw-act:disabled::after { transform: scaleX(0); }
 
 /* ========== УНИВЕРСАЛЬНЫЕ TOAST-УВЕДОМЛЕНИЯ ========== */
@@ -10359,14 +10368,14 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   transition: border-color var(--t1), background var(--t1), opacity var(--t1);
 }
 .tour-btn:hover:not(:disabled) { background: var(--bg-2); color: var(--text); }
-.tour-btn:disabled { opacity: 0.4; cursor: default; }
+.tour-btn:disabled { opacity: var(--dis-op); cursor: default; }
 .tour-next {
   background: linear-gradient(180deg, var(--accent-hi), var(--accent));
   border-color: transparent;
   color: var(--on-accent, #000);
   box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.42), 0 4px 14px var(--accent-glow-token);
 }
-.tour-next:hover { filter: brightness(1.07); background: linear-gradient(180deg, var(--accent-hi), var(--accent)); color: var(--on-accent, #000); }
+.tour-next:hover:where(:not(:disabled)) { filter: brightness(1.07); background: linear-gradient(180deg, var(--accent-hi), var(--accent)); color: var(--on-accent, #000); }
 
 /* =============================================
    3D DICE CUBE
@@ -12017,7 +12026,7 @@ body {
   font-size: var(--fs-14);
 }
 .notes-search::placeholder { color: var(--notes-search-ph); }
-.notes-search:disabled { opacity: 0.5; cursor: not-allowed; }
+.notes-search:disabled { opacity: var(--dis-op); cursor: not-allowed; }
 .notes-new-btn, .notes-menu-btn, .notes-regen-btn {
   background: var(--bg-2);
   border: 1px solid var(--border-soft);
@@ -12035,7 +12044,7 @@ body {
 .notes-new-btn:hover:not(:disabled) { filter: brightness(1.08); }
 .notes-menu-btn { padding: var(--sp-2) var(--sp-3); }
 .notes-menu-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-.notes-new-btn:disabled, .notes-menu-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.notes-new-btn:disabled, .notes-menu-btn:disabled { opacity: var(--dis-op); cursor: not-allowed; }
 .notes-regen-btn { padding: var(--sp-2) var(--sp-3); }
 .notes-regen-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .notes-save-ind {
@@ -13035,7 +13044,7 @@ select.bp-select { padding-right: var(--sp-4); }
 .lu-choice-launch { width: auto; margin: 0; padding: var(--sp-2) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--rec); font-weight: var(--fw-bold); cursor: pointer; }
 .lu-choice-launch:hover { background: none; color: var(--rec); text-decoration: underline; text-underline-offset: 3px; }
 /* BUILD-LVL: блок заклинаний на экране повышения — disabled-состояние «уже добавлены» + вторичная кнопка перехода на вкладку */
-.lu-choice-launch:disabled { opacity: 0.5; cursor: default; }
+.lu-choice-launch:disabled { opacity: var(--dis-op); cursor: default; }
 .lu-choice-launch:disabled:hover { background: none; color: var(--rec); text-decoration: none; }
 .lu-choice-alt { display: block; width: auto; margin: var(--sp-1) 0 0; padding: var(--sp-1) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--home-sub); text-align: left; cursor: pointer; }
 .lu-choice-alt:hover { background: none; color: var(--accent-lo); }
@@ -14291,6 +14300,9 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
 #tab-notes .notes-menu-btn,
 #tab-notes .notes-regen-btn {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch; /* DS-5а: высота как у поля поиска рядом */
   background: none;
   border: 0;
   border-radius: 0;
@@ -15671,7 +15683,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .hp-act:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .hp-act--dmg { color: var(--danger); }
 .hp-act--heal { color: var(--success); }
-.hp-act[disabled] { color: var(--home-sub); opacity: 0.5; cursor: not-allowed; text-decoration: none; }
+.hp-act[disabled] { color: var(--home-sub); opacity: var(--dis-op); cursor: not-allowed; text-decoration: none; }
 .hp-check {
   display: flex;
   align-items: center;
