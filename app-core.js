@@ -134,7 +134,7 @@ function checkMulticlassPrereqs(char, targetClass) {
   }
   check(targetClass, "");
   var pairs = (typeof getCharClassPairs === "function") ? getCharClassPairs(char) : (char.class ? [{ cls: char.class }] : []);
-  pairs.forEach(function(p) { if (p.cls !== targetClass) check(p.cls, " для выхода из " + p.cls); });
+  pairs.forEach(function(p) { if (p.cls !== targetClass) check(p.cls, " для\u00a0выхода из " + p.cls); });
   return { ok: missing.length === 0, missing: missing };
 }
 
@@ -283,12 +283,12 @@ function _blockSaving(reason, err) {
   _saveBlocked = reason;
   if (window.AppLog) AppLog.error("storage", "сохранение отключено: " + reason + (err ? " — " + ((err && err.message) || err) : ""));
   if (reason === "tab") {
-    try { showConfirmModal("Данные изменены в другой вкладке",
-      "Сохранение в этой вкладке отключено, чтобы не затереть изменения. Перезагрузить вкладку?",
+    try { showConfirmModal("Данные изменены в\u00a0другой вкладке",
+      "Сохранение в\u00a0этой вкладке отключено, чтобы не\u00a0затереть изменения. Перезагрузить вкладку?",
       function() { window.location.reload(); }, "Перезагрузить", { danger: false, icon: "reset" }); }
-    catch (e) { showToast("Данные изменены в другой вкладке — перезагрузите страницу", "error"); }
+    catch (e) { showToast("Данные изменены в\u00a0другой вкладке — перезагрузите страницу", "error"); }
   } else {
-    showToast("Ошибка загрузки данных! Сохранение отключено, копия данных — в dnd_chars_corrupt. Сделайте экспорт.", "error");
+    showToast("Ошибка загрузки данных! Сохранение отключено, копия данных — в\u00a0dnd_chars_corrupt. Сделайте экспорт.", "error");
   }
 }
 /** AUD-2 (S6): разбор dnd_chars по одному персонажу; сбой — сырая копия и блок сохранения */
@@ -302,7 +302,7 @@ function _loadCharsSafe(raw) {
   });
   if (bad) {
     try { localStorage.setItem("dnd_chars_corrupt", raw); } catch (e) {}
-    _blockSaving("load", "не прочитано персонажей: " + bad);
+    _blockSaving("load", "не\u00a0прочитано персонажей: " + bad);
   }
   return out;
 }
@@ -356,7 +356,7 @@ console.error("Ошибка сохранения:", e);
 // PERF-5: переполнение хранилища — отдельное сообщение с тем, что делать
 var quota = e && (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED" || e.code === 22 || e.code === 1014);
 showToast(quota
-  ? "Хранилище браузера переполнено — изменения не сохранены. Сделайте экспорт персонажей и очистите историю хитов или журнал."
+  ? "Хранилище браузера переполнено — изменения не\u00a0сохранены. Сделайте экспорт персонажей и\u00a0очистите историю хитов или\u00a0журнал."
   : "Ошибка сохранения данных!", "error");
 }
 }
@@ -375,7 +375,7 @@ navigator.storage.persisted()
   .then(function(already) { return already || navigator.storage.persist(); })
   .then(function(granted) {
     storagePersisted = !!granted;
-    if (window.AppLog) AppLog.info("storage", granted ? "хранилище защищено от вытеснения" : "браузер отказал в persistent storage", { persisted: !!granted });
+    if (window.AppLog) AppLog.info("storage", granted ? "хранилище защищено от\u00a0вытеснения" : "браузер отказал в\u00a0persistent storage", { persisted: !!granted });
     updateStorageStatus();
   })
   .catch(function(e) {
@@ -397,8 +397,8 @@ function updateStorageStatus() {
 var el = $("storage-status");
 if (!el) return;
 var parts = [];
-if (storagePersisted === true) parts.push("🔒 защищено от вытеснения");
-else if (storagePersisted === false) parts.push("⚠️ не защищено — браузер может стереть при нехватке места");
+if (storagePersisted === true) parts.push("🔒 защищено от\u00a0вытеснения");
+else if (storagePersisted === false) parts.push("⚠️ не\u00a0защищено — браузер может стереть при\u00a0нехватке места");
 var done = function() {
   if (!parts.length) { el.hidden = true; return; }
   el.textContent = "Хранилище: " + parts.join(" · ");
@@ -438,14 +438,14 @@ var PAGE_SCREENS = ["data", "settings", "about", "help", "builds", "buildguide",
                     "featureinfo", "levelup", "rest", "magiccatalog", "gearcatalog",
                     "hphistory", "spellsearch", "itemref", "dmref", "abilgen", "mclayout",
                     "monsters", "monsterform", "books", "wildshape"];
-var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О версии",
+var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О\u00a0версии",
                     help: "Справка", builds: "Готовые билды",
-                    buildguide: "Гайд по билду", buildplan: "План развития",
+                    buildguide: "Гайд по\u00a0билду", buildplan: "План развития",
                     featureinfo: "Умение", levelup: "Повышение уровня", rest: "Отдых",
                     magiccatalog: "Каталог магических предметов", gearcatalog: "Каталог снаряжения",
-                    hphistory: "История здоровья", spellsearch: "Поиск заклинаний", itemref: "Справка по предметам", dmref: "Шпаргалка мастера",
-                    abilgen: "Характеристики", mclayout: "Классы и уровни",
-                    monsters: "Бестиарий", monsterform: "Свой монстр", books: "Книги и дополнения", wildshape: "Дикий облик" };
+                    hphistory: "История здоровья", spellsearch: "Поиск заклинаний", itemref: "Справка по\u00a0предметам", dmref: "Шпаргалка мастера",
+                    abilgen: "Характеристики", mclayout: "Классы и\u00a0уровни",
+                    monsters: "Бестиарий", monsterform: "Свой монстр", books: "Книги и\u00a0дополнения", wildshape: "Дикий облик" };
 // STYLE-8M-3: повышение уровня и отдых — экраны поверх листа: они зовут
 // loadCharacter посреди своего сценария, и лист перерисовывается под ними,
 // не переключая экран (иначе результат пропадал бы до кнопки «Готово»).
@@ -1088,7 +1088,7 @@ const orig = characters.find(function(c) { return c.id === id; });
 if (!orig) return;
 const copy = JSON.parse(JSON.stringify(orig));
 copy.id = Date.now();
-copy.name = (orig.name || "Без имени") + " (копия)";
+copy.name = (orig.name || "Без\u00a0имени") + " (копия)";
 copy.updatedAt = Date.now();
 characters.push(copy);
 saveToLocal();
@@ -1158,7 +1158,7 @@ filtered = filtered.slice().sort(function(a, b) {
 if (filtered.length === 0) {
   list.innerHTML = characters.length === 0
     ? "<li class=\"empty-list\">" + dndIcoHtml("inbox", 22) + " Список пуст. Создайте персонажа!</li>"
-    : "<li class=\"empty-list\">" + dndIcoHtml("search", 22) + " Ничего не найдено</li>";
+    : "<li class=\"empty-list\">" + dndIcoHtml("search", 22) + " Ничего не\u00a0найдено</li>";
   renderCharPlate(null);
   return;
 }
@@ -1201,9 +1201,9 @@ btn.onclick = function() { loadCharacter(char.id); };
 btn.addEventListener("mouseenter", function() { renderCharPlate(char); });
 btn.addEventListener("focus", function() { renderCharPlate(char); });
 btn.innerHTML = "<span class=\"home-bullet\" aria-hidden=\"true\"></span>" +
-  "<span class=\"home-menu-label\">" + escapeHtml(char.name || "Без имени") + "</span>" +
+  "<span class=\"home-menu-label\">" + escapeHtml(char.name || "Без\u00a0имени") + "</span>" +
   "<span class=\"home-menu-hint\">" +
-    escapeHtml((char.classes && char.classes.length > 1 ? getClassLabel(char) : char.class) || "класс не указан") +
+    escapeHtml((char.classes && char.classes.length > 1 ? getClassLabel(char) : char.class) || "класс не\u00a0указан") +
     " · " + (char.level || 1) + " ур." +
     (edSplit ? " · " + charEd : "") +
   "</span>";
@@ -1233,7 +1233,7 @@ if (!char) {
   if (emblem) emblem.innerHTML = "<img class=\"home-hero-img\" src=\"assets/avatar-fallback.webp\" alt=\"\" aria-hidden=\"true\">";
   if (capEl) { capEl.textContent = ""; capEl.hidden = true; }
   if (nameEl) nameEl.textContent = "Героев пока нет";
-  if (subEl) subEl.textContent = "Создайте первого — с нуля или по готовому билду";
+  if (subEl) subEl.textContent = "Создайте первого — с\u00a0нуля или\u00a0по готовому билду";
   if (chipEl) chipEl.innerHTML = "";
   if (actEl) actEl.innerHTML = "";
   return;
@@ -1256,7 +1256,7 @@ if (capEl) {
   capEl.textContent = char.edition === "2024" ? "Редакция 2024" : "";
   capEl.hidden = char.edition !== "2024";
 }
-if (nameEl) nameEl.textContent = char.name || "Без имени";
+if (nameEl) nameEl.textContent = char.name || "Без\u00a0имени";
 if (subEl) subEl.textContent = (typeof _homeHeroSubtitle === "function") ? _homeHeroSubtitle(char) : (char.class || "");
 if (chipEl && typeof _homeHeroChips === "function") {
   chipEl.innerHTML = _homeHeroChips(char).map(function(c) {
@@ -1281,7 +1281,7 @@ var char = characters.find(function(c) { return c.id === id; });
 var name = char ? (char.name || "этого персонажа") : "этого персонажа";
 showConfirmModal(
   "Удалить персонажа?",
-  "«" + name + "» будет удалён без возможности восстановления.",
+  "«" + name + "» будет удалён без\u00a0возможности восстановления.",
   function() {
     characters = characters.filter(function(c) { return c.id !== id; });
     if (typeof syncTombstone === "function") syncTombstone(id);

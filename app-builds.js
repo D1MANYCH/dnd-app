@@ -8,7 +8,7 @@ function _withBuilds(fn) {
   if (window.CHARACTER_BUILDS || typeof window.ensureBuilds !== "function") return false;
   window.ensureBuilds().then(fn).catch(function (e) {
     if (window.__catchLog) window.__catchLog("builds:lazy-load", e);
-    if (typeof showToast === "function") showToast("Билды не загрузились — проверьте сеть", "warn");
+    if (typeof showToast === "function") showToast("Билды не\u00a0загрузились — проверьте сеть", "warn");
   });
   return true;
 }
@@ -50,9 +50,9 @@ function setBuildEdition(ed) {
 var BP_DIFF_LABELS = { 1:"новичку", 2:"среднее", 3:"сложное" };
 // UX-4: расшифровка точек сложности для легенды в гайде билда.
 var BP_DIFF_DESC = {
-  1: "простое управление, почти нет ресурсов для учёта",
-  2: "есть ресурсы и тайминги, но без сложных комбинаций",
-  3: "много ресурсов и решений в каждый ход"
+  1: "простое управление, почти нет ресурсов для\u00a0учёта",
+  2: "есть ресурсы и\u00a0тайминги, но\u00a0без сложных комбинаций",
+  3: "много ресурсов и\u00a0решений в\u00a0каждый ход"
 };
 
 function renderBuildPicker() {
@@ -89,7 +89,7 @@ function renderBuildPicker() {
     if (n) n.textContent = edCounts[ed] || 0;
   });
   if (!builds.length) {
-    list.innerHTML = '<div class="bp-empty">Ничего не найдено. Попробуйте другой фильтр или поиск.</div>';
+    list.innerHTML = '<div class="bp-empty">Ничего не\u00a0найдено. Попробуйте другой фильтр или\u00a0поиск.</div>';
     return;
   }
   list.innerHTML = builds.map(function(b){
@@ -171,7 +171,7 @@ function openBuildBadgeMenu() {
 function unlinkBuild() {
   var char = getCurrentChar();
   if (!char || !char.buildId) return;
-  if (!confirm("Отвязать билд от персонажа? Рекомендации при повышении уровня больше не будут показываться.")) return;
+  if (!confirm("Отвязать билд от\u00a0персонажа? Рекомендации при\u00a0повышении уровня больше не\u00a0будут показываться.")) return;
   char.buildId = null;
   char.updatedAt = Date.now();
   saveToLocal();
@@ -1141,7 +1141,7 @@ function openBuildGuide(buildId) {
     if (ch && ch.buildId) b = window.getBuildById && window.getBuildById(ch.buildId);
   }
   if (!b || !b.guide) {
-    if (typeof showToast === "function") showToast("У этого билда нет гайда", "warn");
+    if (typeof showToast === "function") showToast("У\u00a0этого билда нет гайда", "warn");
     return;
   }
   var g = b.guide;
@@ -1175,7 +1175,7 @@ function openBuildGuide(buildId) {
   var _hd = edData(b).CLASS_HIT_DICE[b.className] || 0;  // E24-7: b.edition (билды 2024 — E24-15), без поля → 2014
   if (_hd) {
     var _HD_DESC = {
-      6:  "Самая малая кость хитов — мало здоровья, держись подальше от ближнего боя.",
+      6:  "Самая малая кость хитов — мало здоровья, держись подальше от\u00a0ближнего боя.",
       8:  "Кость хитов ниже среднего — здоровья немного, береги дистанцию.",
       10: "Крепкая кость хитов — уверенно держишь первый ряд.",
       12: "Самая большая кость хитов — максимум здоровья, ты танк партии."
@@ -1184,15 +1184,15 @@ function openBuildGuide(buildId) {
       return '<span class="bg-hp-chip' + (d === _hd ? " is-active" : "") + '">d' + d + '</span>';
     }).join('<span class="bg-hp-arrow">›</span>');
     html += '<section class="bg-section bg-legend"><h3>' + dndIcoHtml("heart", 14) + ' Живучесть</h3>' +
-      '<div class="bg-hpscale" role="img" aria-label="Кость хитов d' + _hd + ' из шкалы d6–d12">' + _scale + '</div>' +
+      '<div class="bg-hpscale" role="img" aria-label="Кость хитов d' + _hd + ' из\u00a0шкалы d6–d12">' + _scale + '</div>' +
       '<div class="bg-hp-ends"><span>хрупкий</span><span>живучий</span></div>' +
       '<p class="bg-legend-note">' + gx(_HD_DESC[_hd] || ("Кость хитов d" + _hd + ".")) + '</p></section>';
   }
   if (g.playstyle) html += '<section class="bg-section"><h3>' + dndIcoHtml("combat", 14) + ' Стиль игры</h3><p>' + gx(g.playstyle) + '</p></section>';
   if (Array.isArray(g.strengths) && g.strengths.length) html += '<section class="bg-section"><h3>' + dndIcoHtml("check", 14) + ' Сильные стороны</h3>' + _list(g.strengths, "bg-pros", "✓") + '</section>';
   if (Array.isArray(g.weaknesses) && g.weaknesses.length) html += '<section class="bg-section"><h3>' + dndIcoHtml("alert", 14) + ' Слабости</h3>' + _list(g.weaknesses, "bg-cons", "✗") + '</section>';
-  if (g.synergy) html += '<section class="bg-section"><h3>' + dndIcoHtml("users", 14) + ' Синергия в партии</h3><p>' + gx(g.synergy) + '</p></section>';
-  if (Array.isArray(g.tips) && g.tips.length) html += '<section class="bg-section"><h3>' + dndIcoHtml("bulb", 14) + ' Советы по игре</h3>' + _list(g.tips, "bg-tips", "•") + '</section>';
+  if (g.synergy) html += '<section class="bg-section"><h3>' + dndIcoHtml("users", 14) + ' Синергия в\u00a0партии</h3><p>' + gx(g.synergy) + '</p></section>';
+  if (Array.isArray(g.tips) && g.tips.length) html += '<section class="bg-section"><h3>' + dndIcoHtml("bulb", 14) + ' Советы по\u00a0игре</h3>' + _list(g.tips, "bg-tips", "•") + '</section>';
   // План развития 1–20 из b.levelUp — полный список по возрастанию уровней.
   if (b.levelUp) {
     var lvLines = [];
@@ -1343,7 +1343,7 @@ function parseSpellsFromHeadline(headline) {
   if (!m) return [];
   var seg = m[1].trim()
     .replace(/\s+и\s+(?:пр|т\.?\s*п|т\.?\s*д|прочее)\.?\s*$/i, "") // хвост «и пр./и т.п./и прочее»
-    .replace(/\(\s*или\s+([^)]*)\)/gi, " или $1")                  // «(или X)» → альтернатива
+    .replace(/\(\s*или\s+([^)]*)\)/gi, " или\u00a0$1")                  // «(или X)» → альтернатива
     .replace(/\([^)]*\)/g, " ")                                    // прочие скобки-аннотации «(Лес)»/«(ТЕЛ)» → убрать
     .replace(/[«»"]/g, " ");                                       // кавычки → пробел
   // Разделители: , + / · и слово «или» (с пробелами — \b в JS не работает для кириллицы).
@@ -1607,7 +1607,7 @@ function openBuildPlan(buildId) {
   if (buildId) b = window.getBuildById && window.getBuildById(buildId);
   else if (ch && ch.buildId) b = window.getBuildById && window.getBuildById(ch.buildId);
   if (!b || !b.levelUp) {
-    if (typeof showToast === "function") showToast("У этого билда нет плана развития", "warn");
+    if (typeof showToast === "function") showToast("У\u00a0этого билда нет плана развития", "warn");
     return;
   }
   // Текущий уровень подсвечиваем только если план открыт для билда текущего персонажа.
@@ -1687,7 +1687,7 @@ function openClassPlan(className) {
   }
   var cname = className || ch.class;
   if (!edData(ch).CLASS_FEATURES[cname]) {
-    if (typeof showToast === "function") showToast("Нет данных по этому классу", "warn");
+    if (typeof showToast === "function") showToast("Нет данных по\u00a0этому классу", "warn");
     return;
   }
   var subName = _cpSubclassOf(ch, cname);
@@ -1718,7 +1718,7 @@ function openClassPlan(className) {
     var subSrc = (subName && typeof subclassSourceShort === "function") ? subclassSourceShort(subName, ch) : "";
     var meta = escapeHtml(cname) +
       (subName ? ' · ' + escapeHtml(subName) + (subSrc ? ' (' + escapeHtml(subSrc) + ')' : '')
-               : ' · подкласс не выбран (фичи архетипа появятся после выбора)') +
+               : ' · подкласс не\u00a0выбран (фичи архетипа появятся после выбора)') +
       ' · уровень класса: ' + curLevel;
     // При мультиклассе уровень класса и уровень персонажа расходятся — говорим
     // об этом прямо и даём переключиться на таблицу второго класса.

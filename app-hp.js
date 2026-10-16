@@ -36,7 +36,7 @@ if (main) main.classList.add("hidden");
 if (info) info.classList.remove("hidden");
 if (result) result.classList.add("hidden");
 if (title) title.innerHTML = dndIcoHtml("coffee", 16) + " Короткий отдых (1 час)";
-if (list) list.innerHTML = "<li>Потратьте кости хитов для восстановления ХП</li><li>Восстанавливаются некоторые классовые умения</li><li>Заклинания НЕ восстанавливаются (кроме Колдуна)</li>";
+if (list) list.innerHTML = "<li>Потратьте кости хитов для\u00a0восстановления ХП</li><li>Восстанавливаются некоторые классовые умения</li><li>Заклинания НЕ\u00a0восстанавливаются (кроме Колдуна)</li>";
 if (hitDiceSection) hitDiceSection.classList.remove("hidden");
 const foodSection = $("rest-food-section");
 if (foodSection) foodSection.classList.add("hidden");
@@ -63,7 +63,7 @@ if (title) title.innerHTML = dndIcoHtml("bed", 16) + " Долгий отдых (
 const char = getCurrentChar();
 const blockReason = char ? rulesLongRestBlockReason(char) : null;
 const blockNote = blockReason ? "<li style='color:var(--danger); font-weight:600;'>" + dndIcoHtml("alert", 13) + " " + escapeHtml(blockReason) + "</li>" : "";
-if (list) list.innerHTML = blockNote + "<li>Восстанавливаются ВСЕ ХП</li><li>Восстанавливаются ВСЕ ячейки заклинаний</li><li>Восстанавливаются кости хитов (" + (char && char.edition === "2024" ? "все" : "до половины уровня") + ")</li><li>Сбрасываются потраченные кости хитов</li><li>Восстанавливаются все классовые умения</li><li>" + dndIcoHtml("check", 13) + " Снимаются большинство условий</li>";
+if (list) list.innerHTML = blockNote + "<li>Восстанавливаются ВСЕ ХП</li><li>Восстанавливаются ВСЕ ячейки заклинаний</li><li>Восстанавливаются кости хитов (" + (char && char.edition === "2024" ? "все" : "до\u00a0половины уровня") + ")</li><li>Сбрасываются потраченные кости хитов</li><li>Восстанавливаются все классовые умения</li><li>" + dndIcoHtml("check", 13) + " Снимаются большинство условий</li>";
 if (hitDiceSection) hitDiceSection.classList.add("hidden");
 // PHB стр.291: истощение снижает только тот отдых, в котором персонаж поел и попил.
 // Спрашиваем, только если истощение есть — иначе флажок в окне ни на что не влияет.
@@ -142,7 +142,7 @@ const healEl = $("hit-dice-heal");
 if (availableEl) availableEl.textContent = availableHitDice;
 // PLAY-1 (PT-039): среднее, не выше недостающих хитов
 var hdMissing = Math.max(0, rulesEffectiveHpMax(char) - (char.combat.hpCurrent || 0));
-if (healEl) healEl.textContent = "≈" + Math.min(totalHeal, hdMissing) + " ХП" + (totalHeal > hdMissing ? " (до максимума, костей больше, чем нужно)" : "");
+if (healEl) healEl.textContent = "≈" + Math.min(totalHeal, hdMissing) + " ХП" + (totalHeal > hdMissing ? " (до\u00a0максимума, костей больше, чем нужно)" : "");
 }
 function confirmRest() {
 if (!currentId || !currentRestType) return;
@@ -212,11 +212,11 @@ loadEffects();
 addHPHistory(oldHp, maxHp, maxHp - oldHp, "Долгий отдых");
 if (maxHp - oldHp > 0) showHPToast(maxHp - oldHp);
 resultTitle = dndIcoHtml("check", 16) + " Долгий отдых завершён!";
-if (window.AppLog) AppLog.action("hp", "длинный отдых: ХП " + oldHp + " → " + maxHp + (exhaustionReduced ? ", истощение −1" : "") + (exhaustionHeld ? ", истощение осталось (без еды и питья)" : "") + (chargesRestored ? ", заряды: " + chargesRestored : ""));
+if (window.AppLog) AppLog.action("hp", "длинный отдых: ХП " + oldHp + " → " + maxHp + (exhaustionReduced ? ", истощение −1" : "") + (exhaustionHeld ? ", истощение осталось (без\u00a0еды и\u00a0питья)" : "") + (chargesRestored ? ", заряды: " + chargesRestored : ""));
 addJournalEntry("rest", "Долгий отдых — новая сессия", "Уровень " + (char.level||1) + " · ХП: " + oldHp + " → " + maxHp + " · Ячейки и ресурсы восстановлены");
 renderJournal();
-var exhaustionNote = exhaustionReduced ? "<p>" + dndIcoHtml("dizzy", 13) + " Истощение снижено на 1 уровень</p>"
-  : (exhaustionHeld ? "<p>" + dndIcoHtml("food", 13) + " Истощение осталось прежним: персонаж не ел и не пил (PHB стр. 291)</p>" : "");
+var exhaustionNote = exhaustionReduced ? "<p>" + dndIcoHtml("dizzy", 13) + " Истощение снижено на\u00a01 уровень</p>"
+  : (exhaustionHeld ? "<p>" + dndIcoHtml("food", 13) + " Истощение осталось прежним: персонаж не\u00a0ел и\u00a0не пил (PHB стр. 291)</p>" : "");
 var chargesNote = chargesRestored ? "<p>" + dndIcoHtml("zap", 13) + " Заряды предметов восстановлены: " + chargesRestored + "</p>" : "";
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div><p>" + dndIcoHtml("sparkle", 12) + " Ячейки заклинаний: восстановлены</p><p>" + dndIcoHtml("dice", 12) + " Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + exhaustionNote + chargesNote;
 }
@@ -298,7 +298,7 @@ function _showMulticlassScreen(char) {
       var opt = document.createElement("option");
       opt.value = cls;
       var chk = (typeof checkMulticlassPrereqs === "function") ? checkMulticlassPrereqs(char, cls) : { ok: true };
-      opt.textContent = chk.ok ? cls : cls + " — требования не выполнены";
+      opt.textContent = chk.ok ? cls : cls + " — требования не\u00a0выполнены";
       sel.appendChild(opt);
     }
   });
@@ -321,7 +321,7 @@ function openMulticlassNewClass() {
   if (char && typeof _pgAvailableClasses === "function" && !_pgAvailableClasses(char, (char.classes || []).map(function(c) { return { cls: c.class }; })).length) {
     var warnEl = $("lu-mc-prereq-warn");
     warnEl.style.display = "";
-    warnEl.innerHTML = dndIcoHtml("alert", 13) + " Сейчас ни один класс недоступен: для мультикласса нужна характеристика 13 и выше — и у нового класса, и у текущего. Выберите класс в списке, чтобы увидеть, чего не хватает.";
+    warnEl.innerHTML = dndIcoHtml("alert", 13) + " Сейчас ни\u00a0один класс недоступен: для\u00a0мультикласса нужна характеристика 13 и\u00a0выше — и\u00a0у нового класса, и\u00a0у текущего. Выберите класс в\u00a0списке, чтобы увидеть, чего не\u00a0хватает.";
   }
 }
 
@@ -342,7 +342,7 @@ document.addEventListener("DOMContentLoaded", function() {
     var warnEl = $("lu-mc-prereq-warn");
     if (!check.ok) {
       warnEl.style.display = "";
-      warnEl.innerHTML = "" + dndIcoHtml("alert", 13) + " Не выполнены требования: " + check.missing.join(", ");
+      warnEl.innerHTML = "" + dndIcoHtml("alert", 13) + " Не\u00a0выполнены требования: " + check.missing.join(", ");
       $("lu-mc-confirm-new").disabled = true;
     } else {
       warnEl.style.display = "none";
@@ -539,7 +539,7 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
     var _wp = _map(profs.weapon).concat(profs.specific || []);
     if (_wp.length) profParts.push("Оружие: " + _wp.join(", "));
     if (profs.tools) profParts.push("Инструменты: " + (profs.tools.fixed || []).concat((profs.tools.choices || []).map(function(c) { return c.label; })).join(", "));
-    if (profs.skills) profParts.push("Навыки: " + profs.skills + " на выбор");
+    if (profs.skills) profParts.push("Навыки: " + profs.skills + " на\u00a0выбор");
     if (profParts.length > 0) {
       var profDiv = document.createElement("div");
       profDiv.className = "lu-feature-item lu-feature-profs";
@@ -552,7 +552,7 @@ function closeLevelUpModal() {
 if (_luSheetUnlocked) {
   _luSheetUnlocked = false;
   var luCh = getCurrentChar();
-  showToast("🔓 Уровень " + (luCh && luCh.level || "") + " — выберите новые заклинания и умения, затем нажмите «Персонаж готов»", "info");
+  showToast("🔓 Уровень " + (luCh && luCh.level || "") + " — выберите новые заклинания и\u00a0умения, затем нажмите «Персонаж готов»", "info");
 }
 // STYLE-8M-3: «Повышение уровня» — экран; зовётся и после отката с листа,
 // поэтому уходим назад только когда экран действительно открыт.
@@ -665,7 +665,7 @@ if (subclassName && edData(char).SUBCLASS_FEATURES[subclassName] && edData(char)
   resultLines.push("" + dndIcoHtml("focus", 13) + " " + subclassName + ": " + subNames.join(", "));
 }
 if (isNewClass) resultLines.push("" + dndIcoHtml("plus", 13) + " Новый класс: " + className);
-if (luWasLocked) resultLines.push("" + dndIcoHtml("lock", 13) + " Лист открыт — выберите новые заклинания и умения, затем нажмите «Персонаж готов»");
+if (luWasLocked) resultLines.push("" + dndIcoHtml("lock", 13) + " Лист открыт — выберите новые заклинания и\u00a0умения, затем нажмите «Персонаж готов»");
 
 // BUILD-LVL-4: сохраняем контекст и решаем — показать экран выборов или сразу результат.
 _luChoicesCtx = {
@@ -703,8 +703,8 @@ function _luShowResult() {
   var hpNow = char ? parseInt(char.combat.hpMax, 10) || 0 : 0;
   if (char && ctx.hpFrom != null && lines.length && hpNow !== ctx.hpFrom + ctx.hpGain) {
     var hpExtra = hpNow - ctx.hpFrom - ctx.hpGain;
-    lines[0] = "" + dndIcoHtml("heart", 13) + " ХП: " + ctx.hpFrom + " → " + hpNow + " (+" + ctx.hpGain + " за уровень, " +
-      (hpExtra > 0 ? "+" : "") + hpExtra + " черта и характеристики)";
+    lines[0] = "" + dndIcoHtml("heart", 13) + " ХП: " + ctx.hpFrom + " → " + hpNow + " (+" + ctx.hpGain + " за\u00a0уровень, " +
+      (hpExtra > 0 ? "+" : "") + hpExtra + " черта и\u00a0характеристики)";
   }
   $("lu-screen-choices").style.display = "none";
   $("lu-screen-multiclass").style.display = "none";
@@ -952,7 +952,7 @@ function luApplyAllRecommendations() {
   }
 
   if (!applied.length) {
-    if (typeof showToast === "function") showToast("Рекомендации уже применены или нечего применять", "info");
+    if (typeof showToast === "function") showToast("Рекомендации уже применены или\u00a0нечего применять", "info");
     return;
   }
   saveToLocal();
@@ -1012,7 +1012,7 @@ function luBuildChoicesScreen() {
     var asiDone = _luAsiDone(char, cn, clvl);
     var recAsi = (b && b.levelUp && b.levelUp[newLevel]) ? b.levelUp[newLevel] : null;
     blocks.push('<div class="lu-choice-block' + (asiDone ? ' done' : '') + '">' +
-      '<div class="lu-choice-title">' + dndIcoHtml("trend", 14) + (featKind === "epic" ? ' Эпический дар' : ' Увеличение характеристик или черта') + (asiDone ? ' ✓' : '') + '</div>' +
+      '<div class="lu-choice-title">' + dndIcoHtml("trend", 14) + (featKind === "epic" ? ' Эпический дар' : ' Увеличение характеристик или\u00a0черта') + (asiDone ? ' ✓' : '') + '</div>' +
       (recAsi && recAsi.headline ? '<div class="lu-choice-sub">' + recBadge('Совет') + ' ' + escapeHtml(recAsi.headline) + '</div>' : '') +
       (asiDone ? '' : '<button class="lu-choice-launch" onclick="openASIModalForLevel(' + clvl + ', \'' + cn.replace(/'/g,"\\'") + '\')">Выбрать →</button>') +
       '</div>');
@@ -1061,7 +1061,7 @@ function luBuildChoicesScreen() {
       spParts.push('<button class="lu-choice-launch"' + (allAdded ? ' disabled' : '') + ' onclick="luAddRecommendedSpells()">' +
         (allAdded ? '✓ Рекомендованные добавлены' : '✨ Добавить рекомендованные') + '</button>');
     } else {
-      spParts.push('<div class="lu-choice-sub">Билд не указывает конкретные заклинания этого уровня.</div>');
+      spParts.push('<div class="lu-choice-sub">Билд не\u00a0указывает конкретные заклинания этого уровня.</div>');
     }
     spParts.push('<button class="lu-choice-alt" onclick="luGoToSpellsTab()">Добавить самому — вкладка «Заклинания» →</button>');
     blocks.push('<div class="lu-choice-block">' + spParts.join("") + '</div>');
@@ -1153,7 +1153,7 @@ function openLevelDownConfirm() {
   if (!currentId) return;
   var char = getCurrentChar();
   if (!char || !char._prevLevelSnapshot) {
-    showToast("Нет снимка для отката", "warn");
+    showToast("Нет снимка для\u00a0отката", "warn");
     return;
   }
   var snap = char._prevLevelSnapshot;
@@ -1188,7 +1188,7 @@ function openLevelDownConfirm() {
     }
   } catch(e) { console.error("[UI-9] features diff failed:", e); }
   var text = "Будет утеряно:\n• " + lostLines.join("\n• ") +
-    "\n\nИнвентарь, монеты, заметки, журнал, текущие хиты и потраченные ячейки не меняются.";
+    "\n\nИнвентарь, монеты, заметки, журнал, текущие хиты и\u00a0потраченные ячейки не\u00a0меняются.";
   showConfirmModal("Откатить последнее повышение?", text, function() {
     confirmLevelDown();
   });
@@ -1198,7 +1198,7 @@ function confirmLevelDown() {
   if (!currentId) return;
   var char = getCurrentChar();
   if (!char || !char._prevLevelSnapshot) {
-    showToast("Нет снимка для отката", "warn");
+    showToast("Нет снимка для\u00a0отката", "warn");
     return;
   }
   var snap = char._prevLevelSnapshot;
@@ -1216,7 +1216,7 @@ function confirmLevelDown() {
   renderSpellSlots();
   if (window.AppLog) AppLog.action("character", "откат уровня: " + fromLvl + " → " + (restored.level||1));
   addJournalEntry("levelup", "Откат уровня: " + fromLvl + " → " + (restored.level||1),
-    "Уровень, классы, характеристики, черты и выборы возвращены к снимку перед последним повышением");
+    "Уровень, классы, характеристики, черты и\u00a0выборы возвращены к\u00a0снимку перед последним повышением");
   renderJournal();
   showToast("Уровень откатан: " + fromLvl + " → " + (restored.level||1), "success");
   closeLevelUpModal();
@@ -1264,7 +1264,7 @@ statusEl.classList.add("ds-stable");
 statusEl.textContent = "💀 Персонаж погиб";
 statusEl.classList.add("ds-dead");
 } else {
-statusEl.textContent = "⚠️ При смерти (" + successes + "/3 успехов, " + failures + "/3 провалов)";
+statusEl.textContent = "⚠️ При\u00a0смерти (" + successes + "/3 успехов, " + failures + "/3 провалов)";
 }
 }
 const dsRollBtn = $("ds-roll-btn");
@@ -1430,7 +1430,7 @@ function updateHPSummary() {
       tailEl.textContent = "погиб";
       tailEl.className = "hp-head-tail hp-head-tail--dying";
     } else if (hpCurrent <= 0) {
-      tailEl.textContent = rulesIsStable(char) ? "стабилизирован" : "при смерти";
+      tailEl.textContent = rulesIsStable(char) ? "стабилизирован" : "при\u00a0смерти";
       tailEl.className = "hp-head-tail hp-head-tail--dying";
     } else {
       var parts = [];
@@ -1499,12 +1499,12 @@ const undo = _hpUndoPrepare(char);
 let dmgRes = null;
 if (delta < 0) {
   const dmgIn = rulesDamageAfterDefenses(char, -delta, opts.type);
-  if (dmgIn <= 0) { showToast("🛡️ Иммунитет" + (opts.type ? " к урону «" + opts.type + "»" : "") + " — урон 0", "info"); return; }
+  if (dmgIn <= 0) { showToast("🛡️ Иммунитет" + (opts.type ? " к\u00a0урону «" + opts.type + "»" : "") + " — урон 0", "info"); return; }
   delta = -dmgIn;
   // РОСТ-6: облик 2014 принимает урон первым, остаток — по персонажу
   var wasPoly = !!(char.form && char.form.kind === "poly");
   var formHit = rulesFormDamage(char, dmgIn);
-  if (formHit.ended) showToast("🐾 Облик спал" + (formHit.overflow ? " — " + formHit.overflow + " урона переходит на персонажа" : ""), "warn");
+  if (formHit.ended) showToast("🐾 Облик спал" + (formHit.overflow ? " — " + formHit.overflow + " урона переходит на\u00a0персонажа" : ""), "warn");
   dmgRes = formHit.overflow > 0 ? rulesApplyDamage(char, formHit.overflow, { crit: !!opts.crit }) : {};
   hpCurrent = char.combat.hpCurrent;
   // РОСТ-7: «Превращение» кончается при 0 хитов облика (2014) или 0 временных хитов (2024)
@@ -1513,15 +1513,15 @@ if (delta < 0) {
     polymorphEnd(char, "облик спал");
   }
   if (formHit.formDmg && !formHit.ended) showToast("🐾 Облик: −" + formHit.formDmg + " хитов, осталось " + char.form.hpCurrent + "/" + char.form.hpMax, "info", undo.action);
-  if (dmgRes.instantDeath) showToast("💀 Мгновенная смерть: урон не меньше максимума хитов", "error");
-  else if (dmgRes.failuresAdded) showToast("💔 Урон на 0 ХП: " + (dmgRes.failuresAdded > 1 ? "два провала" : "провал") + " спасброска от смерти" + (dmgRes.dead ? " — персонаж погиб" : ""), "error", hpBefore === hpCurrent ? undo.action : null);
-  else if (dmgRes.droppedToZero) showToast("💤 0 ХП — без сознания", "error");
+  if (dmgRes.instantDeath) showToast("💀 Мгновенная смерть: урон не\u00a0меньше максимума хитов", "error");
+  else if (dmgRes.failuresAdded) showToast("💔 Урон на\u00a00 ХП: " + (dmgRes.failuresAdded > 1 ? "два провала" : "провал") + " спасброска от\u00a0смерти" + (dmgRes.dead ? " — персонаж погиб" : ""), "error", hpBefore === hpCurrent ? undo.action : null);
+  else if (dmgRes.droppedToZero) showToast("💤 0 ХП — без\u00a0сознания", "error");
   if (dmgRes.droppedToZero || dmgRes.failuresAdded || dmgRes.instantDeath) {
     loadDeathSaves();
     if (typeof loadConditions === "function") loadConditions();
   }
 } else {
-  if (delta > 0 && rulesIsDead(char)) { showToast("💀 Персонаж погиб — лечение не действует", "error"); return; }
+  if (delta > 0 && rulesIsDead(char)) { showToast("💀 Персонаж погиб — лечение не\u00a0действует", "error"); return; }
   // РОСТ-6: в облике 2014 лечатся хиты зверя
   if (delta > 0 && rulesFormOwnHp(char)) {
     var formHeal = rulesFormHeal(char, delta);
@@ -1570,7 +1570,7 @@ if (delta < 0 && char.concentration) {
     undo.concPrompt = true;
     showConfirmModal(
       "Концентрация под угрозой",
-      "«" + _concSpell + "»: спасбросок ТЕЛ, СЛ " + _cp.dc + (_cp.mode === "adv" ? " (с преимуществом)" : ""),
+      "«" + _concSpell + "»: спасбросок ТЕЛ, СЛ " + _cp.dc + (_cp.mode === "adv" ? " (с\u00a0преимуществом)" : ""),
       function() {
         undo.concPrompt = false;
         quickRoll({
@@ -1624,7 +1624,7 @@ if (r.regained || r.droppedToZero) {
   if (typeof loadConditions === "function") loadConditions();
 }
 if (r.droppedToZero) {
-  showToast("💤 0 ХП — без сознания", "error");
+  showToast("💤 0 ХП — без\u00a0сознания", "error");
   char.form = null;
   if (char.concentration) { endConcentration(); showToast("💔 Концентрация потеряна — 0 ХП!", "error"); }
 }
@@ -1857,7 +1857,7 @@ const roll = Math.floor(Math.random() * 20) + 1;
 const resultEl = $("ds-roll-result");
 const res = rulesDeathSave(char, roll);
 const isSuccess = res.outcome === "revive" || res.outcome === "success";
-let msg = res.outcome === "revive" ? "20 — приходит в себя с 1 ХП!"
+let msg = res.outcome === "revive" ? "20 — приходит в\u00a0себя с\u00a01 ХП!"
   : res.outcome === "fail2" ? "1 — 2 провала!"
   : res.outcome === "success" ? roll + " — успех!" : roll + " — провал!";
 if (res.stable) msg += " Стабилизирован.";

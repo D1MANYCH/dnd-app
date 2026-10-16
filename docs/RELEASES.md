@@ -3,29 +3,85 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v4.44.8**.
+Актуальная версия — **v4.44.9**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
-<a id="v4.44.8"></a>
-## v4.44.8 — 17 октября 2026
+<a id="v4.44.9"></a>
+## v4.44.9 — 17 октября 2026
 
-🔧 DS-4а: типографика — многоточия «...» заменены на «…» (24 места), неразрывные пробелы после коротких предлогов и союзов и между числом и единицей во всём тексте index.html (770 мест), табличные цифры в статах, хитах, слотах, монетах, весе и бонусах, опыт от 10 000 с разрядами через полупробел (вкладка развития, сложность боя); исправлены веса начертаний EB Garamond 600/700 в @font-face; новый CI-чек tools/check-typo.js
+🔧 DS-4б: неразрывные пробелы в текстах интерфейса из JS — 938 мест в 25 модулях app-*.js (после коротких предлогов и союзов, между числом и единицей), записаны как \u00a0; имена заклинаний, ключи, сравниваемые строки, данные персонажа, журнал и PDF не тронуты; check-typo читает \uXXXX, база nbsp 1246 → 308
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/ac2fa069...main) · 22 файлов, +773 −559
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/9f45ae42...main) · 37 файлов, +655 −641
 
 <details><summary>Файлы</summary>
 
 _Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
 
-**Файлы (22):**
+**Файлы (37):**
+
+- `app-party.js` +78 −78
+- `app-help.js` +76 −76
+- `app-combat.js` +62 −62
+- `app-progress.js` +53 −53
+- `index.html` +52 −52
+- `app-spells.js` +46 −46
+- `app-inventory.js` +36 −36
+- `app-hp.js` +32 −32
+- `app-io.js` +30 −30
+- `app-sync.js` +24 −24
+- `app-core.js` +22 −22
+- `app-notes.js` +19 −19
+- `app-asi.js` +16 −16
+- `app-builds.js` +15 −15
+- `app-wildshape.js` +15 −15
+- `app-ui.js` +13 −13
+- `app-backup.js` +10 −10
+- `app-dice.js` +10 −10
+- `app-settings.js` +6 −6
+- `data.js` +10 −2
+- `app-cast-effects.js` +5 −5
+- `tests/headless.js` +4 −4
+- `CHANGELOG.md` +6 −1
+- `app-conditions.js` +3 −3
+- `app-home.js` +3 −3
+- `app-log.js` +2 −2
+- `app-proficiencies.js` +2 −2
+- `app-sheet2.js` +2 −2
+- `sw.js` +1 −1
+- `tools/typo-baseline.json` +1 −1
+- `tools/check-typo.js` +1 −0
+- `tests/shots/rost6/2014-damage-toast-dark-1024.jpg` +0 −0
+- `tests/shots/rost6/2014-hp-banner-dark-1024.jpg` +0 −0
+- `tests/shots/rost6/2014-wolf-card-dark-1024.jpg` +0 −0
+- `tests/shots/rost6/2024-card-light-375.jpg` +0 −0
+- `tests/shots/rost6/2024-picker-dark-1024.jpg` +0 −0
+- `tests/shots/rost6/2024-picker-dark-375.jpg` +0 −0
+
+</details>
+
+<a id="v4.44.8"></a>
+## v4.44.8 — 17 октября 2026
+
+🔧 DS-4а: типографика — многоточия «...» заменены на «…» (24 места), неразрывные пробелы после коротких предлогов и союзов и между числом и единицей во всём тексте index.html (770 мест), табличные цифры в статах, хитах, слотах, монетах, весе и бонусах, опыт от 10 000 с разрядами через полупробел (вкладка развития, сложность боя); исправлены веса начертаний EB Garamond 600/700 в @font-face; новый CI-чек tools/check-typo.js
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/ac2fa069...9f45ae42) · 17 файлов, +822 −573
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (1):**
+
+- [`9f45ae42`](https://github.com/D1MANYCH/dnd-app/commit/9f45ae42) v4.44.8: chore(стили): DS-4а: типографика — многоточия «...» заменены на «…», неразрывные пробелы после предлогов и между числом и единицей в index.html, табличные цифры, разряды через полупробел, веса EB Garamond 600/700, новый CI-чек check-typo
+
+**Файлы (17):**
 
 - `index.html` +447 −447
-- `docs/map.md` +92 −92
+- `docs/map.md` +94 −94
 - `tools/check-typo.js` +175 −0
+- `docs/RELEASES.md` +47 −12
 - `style.css` +11 −6
 - `data.js` +10 −2
 - `CHANGELOG.md` +6 −1
@@ -39,12 +95,6 @@ _Список собран при подготовке релиза, по раб
 - `app-asi.js` +1 −1
 - `app-ui.js` +1 −1
 - `sw.js` +1 −1
-- `tests/shots/rost6/2014-damage-toast-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2014-hp-banner-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2014-wolf-card-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2024-card-light-375.jpg` +0 −0
-- `tests/shots/rost6/2024-picker-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2024-picker-dark-375.jpg` +0 −0
 
 </details>
 

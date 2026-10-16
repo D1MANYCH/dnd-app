@@ -77,7 +77,7 @@ function _pgActRow(html) { return '<div class="pg-body-acts">' + html + '</div>'
 function _pgHeadInner(char, list) {
   var label = list.length
     ? list.map(function(e) { return escapeHtml(e.cls) + (list.length > 1 ? " " + e.level : ""); }).join(' <i>/</i> ')
-    : "Класс не выбран";
+    : "Класс не\u00a0выбран";
   var lvl = char.level || 1;
   var prof = (typeof getProficiencyBonus === "function") ? getProficiencyBonus(lvl) : 2;
   var meta = lvl + ' уровень <span class="hp-dot">·</span> мастерство <b>+' + prof + "</b>";
@@ -95,14 +95,14 @@ function _pgHead(char, list) {
 // против уровня класса (PHB 2014, «Мультиклассирование», стр. 163–164).
 function _pgAboutRow() {
   var body =
-    "<p><b>Уровень персонажа</b> — сумма уровней всех классов. От него считается бонус мастерства, " +
-    "и он один на все классы.</p>" +
-    "<p><b>Уровень класса</b> — сколько уровней взято именно в этом классе. От него зависят умения, " +
-    "заряды и уровень, на котором открывается подкласс.</p>" +
-    "<p>Кость хитов у каждого класса своя, поэтому хиты растут той костью, чей класс вы повышаете. " +
-    "Прибавка — среднее по кости (у к10 это 6) плюс модификатор Телосложения; кидать кубик " +
-    "не обязательно, среднее по книге законно.</p>" +
-    _pgActRow('<button type="button" class="hp-act" onclick="openHelp(\'progress\')">Подробно в справке →</button>');
+    "<p><b>Уровень персонажа</b> — сумма уровней всех классов. От\u00a0него считается бонус мастерства, " +
+    "и\u00a0он один на\u00a0все классы.</p>" +
+    "<p><b>Уровень класса</b> — сколько уровней взято именно в\u00a0этом классе. От\u00a0него зависят умения, " +
+    "заряды и\u00a0уровень, на\u00a0котором открывается подкласс.</p>" +
+    "<p>Кость хитов у\u00a0каждого класса своя, поэтому хиты растут той костью, чей класс вы повышаете. " +
+    "Прибавка — среднее по\u00a0кости (у\u00a0к10 это 6) плюс модификатор Телосложения; кидать кубик " +
+    "не\u00a0обязательно, среднее по\u00a0книге законно.</p>" +
+    _pgActRow('<button type="button" class="hp-act" onclick="openHelp(\'progress\')">Подробно в\u00a0справке →</button>');
   return _pgDisc("Что это значит", "", body, false, { mute: true });
 }
 
@@ -116,11 +116,11 @@ function _pgProfRow(char) {
     if (lvl < steps[i]) { at = steps[i]; next = prof + 1; break; }
   }
   var body =
-    "<p>Один на все классы и растёт по уровню персонажа: +2 на 1–4, +3 на 5–8, +4 на 9–12, " +
-    "+5 на 13–16, +6 на 17–20. Взяв второй класс, второй бонус мастерства вы не получаете.</p>" +
-    "<p>Прибавляется к броскам, которыми персонаж владеет: атаки, спасброски классов, навыки " +
-    "и инструменты. При компетентности он удваивается.</p>" +
-    (at ? "<p>Следующий рост — на " + at + " уровне персонажа, до +" + next + ".</p>" : "");
+    "<p>Один на\u00a0все классы и\u00a0растёт по\u00a0уровню персонажа: +2 на\u00a01–4, +3 на\u00a05–8, +4 на\u00a09–12, " +
+    "+5 на\u00a013–16, +6 на\u00a017–20. Взяв второй класс, второй бонус мастерства вы не\u00a0получаете.</p>" +
+    "<p>Прибавляется к\u00a0броскам, которыми персонаж владеет: атаки, спасброски классов, навыки " +
+    "и\u00a0инструменты. При\u00a0компетентности он удваивается.</p>" +
+    (at ? "<p>Следующий рост — на " + at + " уровне персонажа, до\u00a0+" + next + ".</p>" : "");
   return _pgDisc("Бонус мастерства", "<b>+" + prof + "</b>", body, false, { mute: true });
 }
 
@@ -141,9 +141,9 @@ function _pgAsiRow(char, list) {
   var map = (char.asiUsed && typeof char.asiUsed === "object" && !Array.isArray(char.asiUsed)) ? char.asiUsed : {};
   Object.keys(map).forEach(function(k) { if (Array.isArray(map[k])) used += map[k].length; });
   var body =
-    "<p>Каждое увеличение — это +2 к одной характеристике, +1 к двум разным либо черта вместо " +
+    "<p>Каждое увеличение — это +2 к\u00a0одной характеристике, +1 к\u00a0двум разным либо черта вместо " +
     "прибавки. Выше 20 характеристику поднять нельзя.</p>" + lines +
-    "<p>Уровни считаются по классу, а не по сумме: Воин 3 / Плут 2 увеличения «на 4 уровне» не получает.</p>";
+    "<p>Уровни считаются по\u00a0классу, а\u00a0не по\u00a0сумме: Воин 3 / Плут 2 увеличения «на\u00a04 уровне» не\u00a0получает.</p>";
   var meta = earned ? "<b>" + Math.min(used, earned) + "</b> <i>/ " + earned + "</i> использовано" : "пока нет";
   return _pgDisc("Увеличение характеристик", meta, body, false, { mute: true });
 }
@@ -186,17 +186,17 @@ function _pgSlotRows(char) {
       : escapeHtml(casting[0].cls) + " " + casting[0].level + " ур.";
     var body = "<p>" + parts.join(' <span class="hp-dot">·</span> ') + "</p>";
     if (multi) {
-      body += "<p>Уровни всех классов-заклинателей складываются в один общий пул ячеек: полные заклинатели " +
-        "целиком, паладин и следопыт — половиной, мистический рыцарь и мистический ловкач — третью.</p>" +
-        "<p>Заклинания при этом готовятся раздельно, каждым классом по своему уровню. Ячейка общая — " +
-        "потратить её можно на любое подготовленное заклинание.</p>";
+      body += "<p>Уровни всех классов-заклинателей складываются в\u00a0один общий пул ячеек: полные заклинатели " +
+        "целиком, паладин и\u00a0следопыт — половиной, мистический рыцарь и\u00a0мистический ловкач — третью.</p>" +
+        "<p>Заклинания при\u00a0этом готовятся раздельно, каждым классом по\u00a0своему уровню. Ячейка общая — " +
+        "потратить её можно на\u00a0любое подготовленное заклинание.</p>";
     }
     out += _pgDisc("Ячейки заклинаний", meta, body, false, { attr: ' data-pg-row="slots"' });
   }
   if (cl.pact) {
     out += _pgDisc("Ячейки договора", escapeHtml(cl.pact.cls) + " " + cl.pact.level + " ур.",
-      "<p>Ячейки договора Колдуна не смешиваются с общим пулом и восстанавливаются на коротком отдыхе. " +
-      "Приложение считает их отдельно — они живут на вкладке «Заклинания».</p>", false, { mute: true });
+      "<p>Ячейки договора Колдуна не\u00a0смешиваются с\u00a0общим пулом и\u00a0восстанавливаются на\u00a0коротком отдыхе. " +
+      "Приложение считает их отдельно — они живут на\u00a0вкладке «Заклинания».</p>", false, { mute: true });
   }
   return out;
 }
@@ -260,7 +260,7 @@ function _pgClassRow(char, e, open) {
   if (e.sub) {
     meta += ' <span class="hp-dot">·</span> ' + escapeHtml(e.sub);
   } else if (at && e.level >= at) {
-    meta += ' <span class="hp-dot">·</span> подкласс не выбран';
+    meta += ' <span class="hp-dot">·</span> подкласс не\u00a0выбран';
     warn = true;
   } else if (at) {
     meta += ' <span class="hp-dot">·</span> подкласс с ' + at + " ур.";
@@ -274,7 +274,7 @@ function _pgClassRow(char, e, open) {
     if (cf && cf[l]) cf[l].forEach(function(f) { body += _pgFeat(e.cls, "", l, f.name, isNew); });
     if (sf && sf[l]) sf[l].forEach(function(f) { body += _pgFeat(e.cls, e.sub, l, f.name, isNew); });
   }
-  if (!body) body = '<p class="hp-row-hint">Умений этого класса в справочнике пока нет.</p>';
+  if (!body) body = '<p class="hp-row-hint">Умений этого класса в\u00a0справочнике пока нет.</p>';
 
   if (!e.sub && at) {
     if (e.level >= at) {
@@ -289,7 +289,7 @@ function _pgClassRow(char, e, open) {
         opts + "</select>";
     } else {
       body += '<p class="hp-row-hint">Подкласс выбирается на ' + at + " уровне класса — сейчас взято " + e.level +
-        ". Суммарный уровень персонажа (" + (char.level || 0) + ") на это не влияет.</p>";
+        ". Суммарный уровень персонажа (" + (char.level || 0) + ") на\u00a0это не\u00a0влияет.</p>";
     }
   }
   body += _pgActRow('<button type="button" class="hp-act" onclick="openClassPlan(\'' + _pgArg(e.cls) + '\')">План класса 1–20 →</button>');
@@ -300,7 +300,7 @@ function _pgClassRow(char, e, open) {
 function _pgClasses(char, list) {
   var rows;
   if (!list.length) {
-    rows = _pgStatic("Класс не выбран", "выберите класс на листе");
+    rows = _pgStatic("Класс не\u00a0выбран", "выберите класс на\u00a0листе");
   } else {
     var grown = _pgGrownLast(char, list);
     rows = list.map(function(e) {
@@ -336,31 +336,31 @@ function _pgNext(char, list) {
     // поэтому вторым чипом его не дублируем — только поясняем в раскрытии.
     var at = edData(char).SUBCLASS_LEVEL[e.cls] || 0;
     if (at === nl && !e.sub) {
-      body += "<p>На этом уровне класса впервые выбирается подкласс.</p>";
+      body += "<p>На\u00a0этом уровне класса впервые выбирается подкласс.</p>";
     }
     var profNow = (typeof getProficiencyBonus === "function") ? getProficiencyBonus(total) : 2;
     var profNext = (typeof getProficiencyBonus === "function") ? getProficiencyBonus(total + 1) : 2;
     if (profNext > profNow) {
       names.push("мастерство +" + profNext);
-      body += "<p><b>Бонус мастерства</b> — вырастет до +" + profNext + ": он считается от уровня персонажа и общий для всех классов.</p>";
+      body += "<p><b>Бонус мастерства</b> — вырастет до\u00a0+" + profNext + ": он считается от\u00a0уровня персонажа и\u00a0общий для\u00a0всех классов.</p>";
     }
     var avg = Math.floor(e.die / 2) + 1;
-    body += '<p class="hp-row-hint">Хиты: +1к' + e.die + " (в среднем " + avg + ") + модификатор ТЕЛ (" +
-      (conMod >= 0 ? "+" : "") + conMod + "). Приложение прибавляет среднее — по книге это законный вариант, " +
-      "кубик кидать не обязательно.</p>";
-    rows += _pgDisc(escapeHtml(e.cls) + " " + nl, names.length ? escapeHtml(names.join(", ")) : "без новых умений", body, false);
+    body += '<p class="hp-row-hint">Хиты: +1к' + e.die + " (в\u00a0среднем " + avg + ") + модификатор ТЕЛ (" +
+      (conMod >= 0 ? "+" : "") + conMod + "). Приложение прибавляет среднее — по\u00a0книге это законный вариант, " +
+      "кубик кидать не\u00a0обязательно.</p>";
+    rows += _pgDisc(escapeHtml(e.cls) + " " + nl, names.length ? escapeHtml(names.join(", ")) : "без\u00a0новых умений", body, false);
   });
 
   if (typeof checkMulticlassPrereqs === "function") {
     var ok = _pgAvailableClasses(char, list);
     var nbody = ok.length
       ? "<p>Требования выполнены: " + escapeHtml(ok.join(", ")) + ".</p>"
-      : '<p class="hp-row-hint">Ни один класс сейчас недоступен: для входа нужна характеристика 13 и выше ' +
+      : '<p class="hp-row-hint">Ни\u00a0один класс сейчас недоступен: для\u00a0входа нужна характеристика 13 и\u00a0выше ' +
         "(PHB, «Мультиклассирование»).</p>";
-    nbody += "<p>Новый класс начинается с 1 уровня класса: умения 1-го уровня, владения по укороченному списку " +
-      "мультикласса и своя кость хитов.</p>";
+    nbody += "<p>Новый класс начинается с\u00a01 уровня класса: умения 1-го уровня, владения по\u00a0укороченному списку " +
+      "мультикласса и\u00a0своя кость хитов.</p>";
     nbody += _pgActRow('<button type="button" class="hp-act" onclick="pgAddClass()">Добавить класс (мультикласс) →</button>');
-    rows += _pgDisc("Новый класс (мультикласс)",ok.length ? "можно взять: " + ok.length + " " + _pgClassWord(ok.length) : "требования не выполнены", nbody, false, { mute: true });
+    rows += _pgDisc("Новый класс (мультикласс)",ok.length ? "можно взять: " + ok.length + " " + _pgClassWord(ok.length) : "требования не\u00a0выполнены", nbody, false, { mute: true });
   }
 
   return rows ? '<div class="pg-grp" data-pg-grp="next">Дальше</div><div class="hp-rows">' + rows + "</div>" : "";
@@ -398,7 +398,7 @@ function _pgActions(char, list) {
     acts += '<button type="button" class="hp-act" onclick="pgAddClass()">Добавить класс (мультикласс) →</button>';
   }
   if ((char.level || 0) > 1 && char._prevLevelSnapshot) {
-    acts += '<button type="button" class="hp-act" onclick="pgLevelDown()" title="Вернуть уровень ' + ((char.level || 0) - 1) + ' — как было до последнего повышения">Откатить до уровня ' + ((char.level || 0) - 1) + ' →</button>';
+    acts += '<button type="button" class="hp-act" onclick="pgLevelDown()" title="Вернуть уровень ' + ((char.level || 0) - 1) + ' — как было до\u00a0последнего повышения">Откатить до\u00a0уровня ' + ((char.level || 0) - 1) + ' →</button>';
   }
   if (char.buildId) {
     acts += '<button type="button" class="hp-act" onclick="openBuildPlan()">План билда 1–20 →</button>';
@@ -547,14 +547,14 @@ function _pgSheetAboutRow(char, list) {
   var prof = (typeof getProficiencyBonus === "function") ? getProficiencyBonus(lvl) : 2;
   var multi = list.length > 1;
   var body =
-    "<p><b>Уровень персонажа</b> — " + lvl + ", это сумма уровней всех классов. От него считается " +
-    "бонус мастерства <b>+" + prof + "</b>, один на все классы.</p>" +
-    "<p><b>Уровень класса</b> — сколько уровней взято в этом классе. От него зависят умения, " +
-    "заряды и уровень, на котором открывается подкласс" +
+    "<p><b>Уровень персонажа</b> — " + lvl + ", это сумма уровней всех классов. От\u00a0него считается " +
+    "бонус мастерства <b>+" + prof + "</b>, один на\u00a0все классы.</p>" +
+    "<p><b>Уровень класса</b> — сколько уровней взято в\u00a0этом классе. От\u00a0него зависят умения, " +
+    "заряды и\u00a0уровень, на\u00a0котором открывается подкласс" +
     (multi ? ": " + list.map(function(e) { return escapeHtml(e.cls) + " " + e.level; }).join(", ") : "") + ".</p>" +
-    "<p>Кость хитов у каждого класса своя, поэтому хиты растут костью того класса, чей уровень вы повышаете.</p>" +
+    "<p>Кость хитов у\u00a0каждого класса своя, поэтому хиты растут костью того класса, чей уровень вы повышаете.</p>" +
     _pgActRow('<button type="button" class="hp-act" onclick="openProgress()">Развитие →</button>' +
-      '<button type="button" class="hp-act" onclick="openHelp(\'progress\')">Подробно в справке →</button>');
+      '<button type="button" class="hp-act" onclick="openHelp(\'progress\')">Подробно в\u00a0справке →</button>');
   return _pgDisc("Что это значит", "", body, false, { mute: true });
 }
 
@@ -569,7 +569,7 @@ function _pgSubclassRows(list) {
     if (e.sub) {
       val = e.sub; act = "Развитие →"; go = "openProgress()";
     } else if (e.level >= at) {
-      val = "не выбран"; act = "Выбрать →"; go = "pgFocusSubclass('" + _pgArg(e.cls) + "')";
+      val = "не\u00a0выбран"; act = "Выбрать →"; go = "pgFocusSubclass('" + _pgArg(e.cls) + "')";
     } else {
       val = "с " + at + " уровня класса"; act = ""; go = "openProgress()";
     }
@@ -596,7 +596,7 @@ function syncClassFieldUI(char) {
   if (addBtn) {
     var open = !!(char && !char.basicLocked);
     addBtn.style.display = (char && char.class && (open || (char.level || 1) < 20)) ? "" : "none";
-    addBtn.textContent = (multi && open) ? "Классы и уровни (мультикласс) →" : multi ? "+ Ещё класс (мультикласс) →" : "+ Второй класс (мультикласс) →";
+    addBtn.textContent = (multi && open) ? "Классы и\u00a0уровни (мультикласс) →" : multi ? "+ Ещё класс (мультикласс) →" : "+ Второй класс (мультикласс) →";
   }
   if (multi && lbl && typeof getClassLabel === "function") lbl.textContent = getClassLabel(char);
   var pgMob = $("char-progress-mob");
@@ -696,7 +696,7 @@ function _fiRuleNotes(desc, ed) {
     if (found) { seen[entry.term] = true; hits.push(entry); }
   });
   if (!hits.length) return "";
-  return '<div class="ai-block"><div class="ai-block-title">По правилам ' + ed + "</div>" +
+  return '<div class="ai-block"><div class="ai-block-title">По\u00a0правилам ' + ed + "</div>" +
     hits.map(function(e) {
       return "<p><b>" + escapeHtml(e.term) + "</b> — " + escapeHtml(e.def) + "</p>";
     }).join("") + "</div>";
@@ -775,9 +775,9 @@ function _mlRender() {
   var ed = edData(char);
   var total = _mlTotal(_ml);
   var filled = _ml.filter(function(r) { return r.cls; });
-  var html = '<p class="ag-lead">Уровни всех классов складываются в уровень персонажа — не больше 20. ' +
-    "Первый класс в списке — начальный: он даёт спасброски и полные владения, остальные — владения по укороченному списку мультикласса.</p>" +
-    '<p class="ag-left">Уровень персонажа: ' + total + " из 20</p>";
+  var html = '<p class="ag-lead">Уровни всех классов складываются в\u00a0уровень персонажа — не\u00a0больше 20. ' +
+    "Первый класс в\u00a0списке — начальный: он даёт спасброски и\u00a0полные владения, остальные — владения по\u00a0укороченному списку мультикласса.</p>" +
+    '<p class="ag-left">Уровень персонажа: ' + total + " из\u00a020</p>";
 
   _ml.forEach(function(r, i) {
     var taken = _ml.map(function(x, j) { return j === i ? "" : x.cls; });
@@ -812,7 +812,7 @@ function _mlRender() {
       }
       var miss = filled.length > 1 ? _mlMissing(char, r.cls) : [];
       if (miss.length) {
-        html += '<span class="ag-note ml-sub ml-warn">Требования мультикласса не выполнены: ' + escapeHtml(miss.join(", ")) + "</span>";
+        html += '<span class="ag-note ml-sub ml-warn">Требования мультикласса не\u00a0выполнены: ' + escapeHtml(miss.join(", ")) + "</span>";
       }
     }
     html += "</div>";
@@ -821,9 +821,9 @@ function _mlRender() {
   if (_ml.length < ML_CLASSES.length && total < 20) {
     html += '<div class="ag-foot"><button type="button" class="hp-act" onclick="mlAdd()">+ Ещё класс →</button></div>';
   }
-  html += '<p class="ag-note">Хиты считаются по среднему: полная кость первого класса на 1 уровне, дальше среднее по кости каждого класса плюс модификатор Телосложения. ' +
-    "Требования мультикласса (характеристика 13) здесь только подсказка — для NPC и домашних правил. " +
-    "Увеличения характеристик, умения на выбор и заклинания выбираются после применения — во вкладке «Развитие» в «Осталось выбрать».</p>";
+  html += '<p class="ag-note">Хиты считаются по\u00a0среднему: полная кость первого класса на\u00a01 уровне, дальше среднее по\u00a0кости каждого класса плюс модификатор Телосложения. ' +
+    "Требования мультикласса (характеристика 13) здесь только подсказка — для\u00a0NPC и\u00a0домашних правил. " +
+    "Увеличения характеристик, умения на\u00a0выбор и\u00a0заклинания выбираются после применения — во\u00a0вкладке «Развитие» в\u00a0«Осталось выбрать».</p>";
 
   var why = !filled.length ? "Выберите хотя бы один класс" : "";
   html += '<div class="ag-foot"><button type="button" class="lu-btn-confirm" onclick="mlApply()"' + (why ? " disabled" : "") + ">Применить</button>" +

@@ -124,7 +124,7 @@ if (char.concentration && char.concentration === spellName) {
 }
 // Если другое заклинание — прервать старое (CAST-1: вместе с его эффектами)
 if (char.concentration && char.concentration !== spellName) {
-  showToast("🔮 Концентрация на «" + char.concentration + "» прервана", "warn");
+  showToast("🔮 Концентрация на\u00a0«" + char.concentration + "» прервана", "warn");
   removeCastEffectsForSpell(char, char.concentration, "смена концентрации");
 }
 // Найти данные заклинания
@@ -185,12 +185,12 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 const name = char.concentration;
-if (window.AppLog && name) AppLog.action("combat", "концентрация на «" + name + "» завершена");
+if (window.AppLog && name) AppLog.action("combat", "концентрация на\u00a0«" + name + "» завершена");
 char.concentration = null;
 if (name) removeCastEffectsForSpell(char, name, "конец концентрации"); // CAST-1
 saveToLocal();
 updateConcentrationDisplay();
-if (name) showToast("🔮 Концентрация на «" + name + "» завершена", "info");
+if (name) showToast("🔮 Концентрация на\u00a0«" + name + "» завершена", "info");
 }
 
 function updateConcentrationDisplay() {
@@ -242,7 +242,7 @@ function _aefRemainingLabel(inst) {
     case "day": return (inst.value || "") + " дн";
     case "minute": return (inst.value || "") + " мин";
     case "round": return (inst.value || "") + " рд";
-    case "untilLongRest": return "до отдыха";
+    case "untilLongRest": return "до\u00a0отдыха";
     case "instant": return "мгновенно";
     case "special": return "особая";
     default: return "—";
@@ -327,7 +327,7 @@ function advanceActiveEffects(count) {
   if (!char || !char.activeSpellEffects) return;
   var hasTicking = char.activeSpellEffects.some(function(i) { return i.roundsLeft != null; });
   if (!hasTicking) {
-    showToast("⏳ Нет эффектов с раундовой длительностью", "info");
+    showToast("⏳ Нет эффектов с\u00a0раундовой длительностью", "info");
     return;
   }
   // tickCastEffectsRound сам снимет истёкшие, обновит бейджи/сетку/чип и сохранит.

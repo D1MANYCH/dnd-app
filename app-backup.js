@@ -67,7 +67,7 @@ function createBackupSnapshot(reason) {
   try {
     snap = JSON.parse(JSON.stringify(_buildExportPayload()));
   } catch (e) {
-    _backupLog("error", "не удалось построить снапшот: " + ((e && e.message) || e));
+    _backupLog("error", "не\u00a0удалось построить снапшот: " + ((e && e.message) || e));
     return Promise.reject(e);
   }
   if ((!snap.characters || !snap.characters.length) && (!snap.userSpells || !snap.userSpells.length)) {
@@ -114,7 +114,7 @@ function initAutoBackup() {
       if (res === null) return; // пустое состояние: ключ не ставим — попробуем при следующем старте
       try { localStorage.setItem(BACKUP_DAY_KEY, today); } catch (e) {}
     }).catch(function(e) {
-      _backupLog("warn", "авто-снапшот не записан: " + ((e && e.message) || e));
+      _backupLog("warn", "авто-снапшот не\u00a0записан: " + ((e && e.message) || e));
     });
   } catch (e) { window.__catchLog && window.__catchLog("backup:init", e); }
 }
@@ -123,25 +123,25 @@ function restoreBackupSnapshot(id) {
   listBackupSnapshots().then(function(rows) {
     var row = null;
     for (var i = 0; i < rows.length; i++) { if (rows[i].id === id) { row = rows[i]; break; } }
-    if (!row || !row.payload) { showToast("Копия не найдена", "error"); return; }
+    if (!row || !row.payload) { showToast("Копия не\u00a0найдена", "error"); return; }
     var chars = _extractCharsFromImport(row.payload);
     var valid = (chars || []).filter(_isValidImportedChar);
-    if (!valid.length) { showToast("В копии нет валидных персонажей", "error"); return; }
+    if (!valid.length) { showToast("В\u00a0копии нет валидных персонажей", "error"); return; }
     showConfirmModal("Восстановление копии",
-      "Восстановить " + valid.length + " персонаж(а/ей) из копии от " + _backupFmtDate(row.createdAt) + "? Все текущие данные будут заменены.",
+      "Восстановить " + valid.length + " персонаж(а/ей) из\u00a0копии от " + _backupFmtDate(row.createdAt) + "? Все текущие данные будут заменены.",
       function() {
         // Текущее состояние тоже страхуем — восстановление так же разрушительно, как импорт
         var pre;
         try { pre = createBackupSnapshot("pre-restore").catch(function() {}); } catch (e) { pre = null; }
         var failed = _applyFullRestore(row.payload, valid);
-        if (failed === valid.length) { showToast("Ни один персонаж не прочитан — текущие данные не тронуты", "error"); return; }
+        if (failed === valid.length) { showToast("Ни\u00a0один персонаж не\u00a0прочитан — текущие данные не\u00a0тронуты", "error"); return; }
         _backupLog("action", "восстановлен снапшот #" + id + " от " + _backupFmtDate(row.createdAt), { chars: valid.length });
         showToast("Восстановлено: " + valid.length, "success");
         (pre || Promise.resolve()).then(renderBackupList);
       }, "Восстановить", { icon: "archive" });
   }).catch(function(e) {
     _backupLog("error", "restore: " + ((e && e.message) || e));
-    showToast("Не удалось прочитать копию", "error");
+    showToast("Не\u00a0удалось прочитать копию", "error");
   });
 }
 
@@ -152,7 +152,7 @@ function createBackupNow() {
     renderBackupList();
   }).catch(function(e) {
     _backupLog("error", "manual: " + ((e && e.message) || e));
-    showToast("Не удалось создать копию", "error");
+    showToast("Не\u00a0удалось создать копию", "error");
   });
 }
 
@@ -179,7 +179,7 @@ function renderBackupList() {
   list.innerHTML = "";
   listBackupSnapshots().then(function(rows) {
     if (!rows.length) {
-      list.innerHTML = '<div class="backup-empty">Пока нет ни одной копии</div>';
+      list.innerHTML = '<div class="backup-empty">Пока нет ни\u00a0одной копии</div>';
       return;
     }
     rows.forEach(function(row) {
@@ -205,6 +205,6 @@ function renderBackupList() {
     });
   }).catch(function(e) {
     _backupLog("error", "list: " + ((e && e.message) || e));
-    list.innerHTML = '<div class="backup-empty">Не удалось прочитать копии (IndexedDB недоступен)</div>';
+    list.innerHTML = '<div class="backup-empty">Не\u00a0удалось прочитать копии (IndexedDB недоступен)</div>';
   });
 }

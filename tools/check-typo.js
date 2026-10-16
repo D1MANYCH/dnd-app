@@ -73,6 +73,7 @@ function jsSegments(src) {
       var start = i, buf = '';
       i++;
       while (i < n && src[i] !== c) {
+        if (src[i] === '\\' && src[i + 1] === 'u' && /^[0-9a-f]{4}$/i.test(src.substr(i + 2, 4))) { buf += String.fromCharCode(parseInt(src.substr(i + 2, 4), 16)); i += 6; continue; }
         if (src[i] === '\\') { buf += src[i + 1] === 'n' ? '\n' : src[i + 1]; i += 2; continue; }
         if (c !== '`' && src[i] === '\n') break;
         buf += src[i]; i++;

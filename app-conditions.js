@@ -165,7 +165,7 @@ function renderConditionsGrid() {
   if (!any) {
     var empty = document.createElement("div");
     empty.className = "filter-empty";
-    empty.textContent = "Ничего не найдено";
+    empty.textContent = "Ничего не\u00a0найдено";
     grid.appendChild(empty);
   }
 }
@@ -317,7 +317,7 @@ updateStatusBar();
 }
 var _fxFilter = { q: "", type: "all", activeOnly: false };
 var EFFECT_CATEGORY_LABELS = {
-  armor: '🛡️ Броня и КД',
+  armor: '🛡️ Броня и\u00a0КД',
   spell: '✨ Заклинания',
   class: '⚡ Классовые умения',
   other: '✨ Прочее'
@@ -421,7 +421,7 @@ function renderEffectsGrid() {
   if (!any) {
     var empty = document.createElement("div");
     empty.className = "filter-empty";
-    empty.textContent = "Ничего не найдено";
+    empty.textContent = "Ничего не\u00a0найдено";
     grid.appendChild(empty);
   }
 }

@@ -842,7 +842,7 @@ function animateDice3d(sides, result, callback, opts) {
     // для adv/dis пробрасываем undefined — rollDice() оставит свои r1/r2.
     // 3D-only (решение юзера — без 2D-фолбэка). Таймаут: отдаём результат в UI,
     // кость может ещё доехать сама; инстанс пересоздаётся выше при 3 таймаутах подряд.
-    console.warn('[DiceBox] roll timeout 10s (sides=' + sides + ') — результат без 3D-кости');
+    console.warn('[DiceBox] roll timeout 10s (sides=' + sides + ') — результат без\u00a03D-кости');
     _applyDiceCritGlow(sides, result);
     try { callback(); } catch (e) {}
   }, 10000);
@@ -1114,8 +1114,8 @@ function parseDiceFormula(raw) {
       var sides = dm[2] === '' ? 0 : parseInt(dm[2], 10);
       if (!sides || sides < 2) return { ok: false, error: 'Грань кубика ≥ 2 (пример: к6, к20)' };
       // AUD-8 (L27): вне границ — ошибка, а не молчаливая подмена («0к6» → 1к6)
-      if (count < 1 || count > 50) return { ok: false, error: 'Кубиков от 1 до 50' };
-      if (sides > 1000) return { ok: false, error: 'Грань кубика не больше 1000' };
+      if (count < 1 || count > 50) return { ok: false, error: 'Кубиков от\u00a01 до\u00a050' };
+      if (sides > 1000) return { ok: false, error: 'Грань кубика не\u00a0больше 1000' };
       groups.push({ count: count, sides: sides, sign: sign });
       hasDice = true;
     } else if (/^\d+$/.test(body)) {
@@ -1404,7 +1404,7 @@ function _paintDiceMode() {
   var hint = document.getElementById('dice-pick-hint');
   if (hint) hint.textContent = two
     ? (mode === 'adv' ? 'Два к20, берётся больший' : 'Два к20, берётся меньший')
-    : 'Нажмите на кость, чтобы бросить';
+    : 'Нажмите на\u00a0кость, чтобы бросить';
 }
 
 // Выбор кости в веере. Бросок не запускает — только меняет выбранную.
@@ -1529,7 +1529,7 @@ function savedRollEdit(i) {
   var list = Array.isArray(char.savedRolls) ? char.savedRolls : [];
   var r = i >= 0 ? list[i] : null;
   if (i >= 0 && !r) return;
-  if (!r && list.length >= SAVED_ROLLS_MAX) { showToast("Не больше " + SAVED_ROLLS_MAX + " бросков", "info"); return; }
+  if (!r && list.length >= SAVED_ROLLS_MAX) { showToast("Не\u00a0больше " + SAVED_ROLLS_MAX + " бросков", "info"); return; }
   _savedRollEditIdx = r ? i : -1;
   var form = $("saved-roll-form"), n = $("saved-roll-name"), f = $("saved-roll-formula"), err = $("saved-roll-err");
   if (!form || !n || !f) return;
@@ -1557,7 +1557,7 @@ function savedRollSubmit() {
   var r = _savedRollEditIdx >= 0 ? char.savedRolls[_savedRollEditIdx] : null;
   if (r) { r.name = name; r.formula = formula; }
   else {
-    if (char.savedRolls.length >= SAVED_ROLLS_MAX) { if (err) err.textContent = 'Не больше ' + SAVED_ROLLS_MAX + ' бросков'; return; }
+    if (char.savedRolls.length >= SAVED_ROLLS_MAX) { if (err) err.textContent = 'Не\u00a0больше ' + SAVED_ROLLS_MAX + ' бросков'; return; }
     char.savedRolls.push({ id: _savedRollNewId(), name: name, formula: formula });
   }
   if (window.AppLog) AppLog.action('dice', (r ? 'мой бросок изменён: ' : 'мой бросок сохранён: ') + name + ' · ' + formula);
@@ -1570,7 +1570,7 @@ function savedRollDelete(i) {
   var r = char && Array.isArray(char.savedRolls) && char.savedRolls[i];
   if (!r) return;
   var id = r.id;
-  showConfirmModal("Удалить бросок?", "«" + r.name + "» исчезнет из ваших бросков.", function() {
+  showConfirmModal("Удалить бросок?", "«" + r.name + "» исчезнет из\u00a0ваших бросков.", function() {
     var c = getCurrentChar();
     if (!c || !Array.isArray(c.savedRolls)) return;
     var k = c.savedRolls.findIndex(function(x) { return x && x.id === id; });
@@ -1591,13 +1591,13 @@ function savedRollFromDice() {
   var p = parseDiceFormula(formula);
   if (!p.ok || formula.length > 60) { showToast(p.ok ? 'Формула длиннее 60 знаков' : p.error, "info"); return; }
   if (!Array.isArray(char.savedRolls)) char.savedRolls = [];
-  if (char.savedRolls.length >= SAVED_ROLLS_MAX) { showToast("Не больше " + SAVED_ROLLS_MAX + " бросков", "info"); return; }
+  if (char.savedRolls.length >= SAVED_ROLLS_MAX) { showToast("Не\u00a0больше " + SAVED_ROLLS_MAX + " бросков", "info"); return; }
   var name = _formulaCanon(p.groups, p.mod);
   char.savedRolls.push({ id: _savedRollNewId(), name: name, formula: formula });
-  if (window.AppLog) AppLog.action('dice', 'мой бросок сохранён из окна кубиков: ' + formula);
+  if (window.AppLog) AppLog.action('dice', 'мой бросок сохранён из\u00a0окна кубиков: ' + formula);
   saveToLocal();
   renderSavedRolls();
-  showToast("«" + name + "» — в «Моих бросках» на вкладке «Бой»", "success");
+  showToast("«" + name + "» — в\u00a0«Моих бросках» на\u00a0вкладке «Бой»", "success");
 }
 
 // DICE-2: горячие клавиши окна на ПК — Пробел/Enter бросают выбранную кость,

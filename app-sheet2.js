@@ -236,7 +236,7 @@
     // ── Шапка
     h.push("<div class='s2-body'><div class='s2-head'>");
     h.push("<div class='s2-ava'>" + avaHtml + "</div>");
-    h.push("<div><h2 class='s2-name'>" + esc(c.name || "Без имени") + "</h2><div class='s2-facts'>");
+    h.push("<div><h2 class='s2-name'>" + esc(c.name || "Без\u00a0имени") + "</h2><div class='s2-facts'>");
     h.push("<div><b>Класс:</b> " + esc(isMulticlass(c) ? getClassLabel(c) : c.class) + "</div>");
     h.push("<div><b>Подкласс:</b> " + esc(c.subclass || "нет") + "</div>");
     h.push("<div><b>Раса:</b> " + esc(c.race || "—") + "</div>");
@@ -381,7 +381,7 @@
     h.push("<h3>Кубы</h3><div class='s2-dice'>");
     DICE.forEach(function (d) { var n = pool[d] || 0; h.push("<button type='button' class='s2-die" + (n ? " on" : "") + "' onclick='sheet2Die(" + d + ")'>" + (n > 1 ? n : "") + "к" + d + "</button>"); });
     var poolF = poolFormula();
-    h.push("</div><div class='s2-kv s2-pool'>" + (poolF ? esc(poolF) : "Нажатия складываются в один бросок") + "</div><div class='s2-acts'><button type='button' class='s2-btn' onclick='sheet2DiceRoll()'" + (poolF ? "" : " disabled") + ">Бросить</button>" + (poolF ? "<button type='button' class='s2-link' onclick='sheet2DiceClear()'>Сбросить</button>" : "") + "</div>");
+    h.push("</div><div class='s2-kv s2-pool'>" + (poolF ? esc(poolF) : "Нажатия складываются в\u00a0один бросок") + "</div><div class='s2-acts'><button type='button' class='s2-btn' onclick='sheet2DiceRoll()'" + (poolF ? "" : " disabled") + ">Бросить</button>" + (poolF ? "<button type='button' class='s2-link' onclick='sheet2DiceClear()'>Сбросить</button>" : "") + "</div>");
     h.push(rollsHtml());
 
     // ── Ячейки: ромб ◆ — свободна (нажать — потратить), ◇ — потрачена (нажать — вернуть)

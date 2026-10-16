@@ -29,10 +29,10 @@ var NOTES_SECTIONS = [
   { key: 'backstory',   icon: '📖', label: 'Предыстория',         rows: 10, placeholder: 'Происхождение, семья, важные события прошлого…' },
   { key: 'appearance',  icon: '👤', label: 'Внешность',            rows: 5,  placeholder: 'Внешность, приметы, манеры…' },
   { key: 'personality', icon: '🎭', label: 'Личность',             rows: 5,  placeholder: 'Характер, привычки, особенности поведения…' },
-  { key: 'ideals',      icon: '✨', label: 'Идеалы',               rows: 3,  placeholder: 'Во что верит персонаж…' },
+  { key: 'ideals',      icon: '✨', label: 'Идеалы',               rows: 3,  placeholder: 'Во\u00a0что верит персонаж…' },
   { key: 'bonds',       icon: '🔗', label: 'Связи',                rows: 3,  placeholder: 'Люди, места, предметы, важные персонажу…' },
   { key: 'flaws',       icon: '⚠️', label: 'Слабости',             rows: 3,  placeholder: 'Недостатки, страхи, уязвимости…' },
-  { key: 'features',    icon: '📖', label: 'Черты и умения',       rows: 7,  placeholder: 'Классовые умения, расовые черты…',             showTakenFeats: true },
+  { key: 'features',    icon: '📖', label: 'Черты и\u00a0умения',       rows: 7,  placeholder: 'Классовые умения, расовые черты…',             showTakenFeats: true },
   { key: 'magicItems',  icon: '🔮', label: 'Магические предметы',  rows: 5,  placeholder: 'Настроенные предметы, свойства…' }
 ];
 
@@ -229,11 +229,11 @@ function _renderSectionsView() {
 function _renderVariantsPanel(secKey, variants, currentVal) {
   var open = !!_notesVariantsOpen[secKey];
   var html = '<div class="notes-variants-panel" id="notes-var-' + secKey + '" role="region"' +
-             ' aria-label="Варианты из билда для секции"' +
+             ' aria-label="Варианты из\u00a0билда для\u00a0секции"' +
              (open ? '' : ' style="display:none;"') + '>';
   var ch = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
   var fromGen = !!(ch && ch.notesV2 && ch.notesV2.variants && ch.notesV2.variants.gen);
-  html += '<div class="notes-variants-hint">' + (fromGen ? 'Сгенерированные варианты' : 'Варианты из билда') + ' (' + variants.length + '):</div>';
+  html += '<div class="notes-variants-hint">' + (fromGen ? 'Сгенерированные варианты' : 'Варианты из\u00a0билда') + ' (' + variants.length + '):</div>';
   html += '<div class="notes-variants-list" role="listbox" aria-label="Список вариантов">';
   for (var i = 0; i < variants.length; i++) {
     var v = variants[i];
@@ -271,7 +271,7 @@ function _renderMdToolbar(key, previewOn, variantsCount) {
   if (variantsCount && variantsCount > 0) {
     var openVar = !!_notesVariantsOpen[key];
     html += '<button type="button" class="notes-md-btn notes-md-variants-toggle' +
-            (openVar ? ' active' : '') + '" title="Варианты из билда"' +
+            (openVar ? ' active' : '') + '" title="Варианты из\u00a0билда"' +
             ' aria-expanded="' + (openVar ? 'true' : 'false') + '"' +
             ' onclick="notesToggleVariants(\'' + key + '\')">' + dndIcoHtml("dice", 13) + ' <span class="notes-md-var-count">' + variantsCount + '</span></button>';
   }
@@ -414,7 +414,7 @@ function notesGenerate() {
   var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
   if (!char) return;
   if (!char.race && !char.class && !char.background) {
-    if (typeof showToast === 'function') showToast('Сначала выберите расу, класс или предысторию в «Основном»', 'info');
+    if (typeof showToast === 'function') showToast('Сначала выберите расу, класс или\u00a0предысторию в\u00a0«Основном»', 'info');
     return;
   }
   var load = window.ensureNotesGen ? window.ensureNotesGen() : Promise.resolve();
@@ -437,10 +437,10 @@ function notesGenerate() {
     if (_notesState.currentTab === 'backstory') _renderNotesMain();
     _notesSyncGenBtn(char);
     if (typeof showToast === 'function') {
-      showToast(kept ? 'Сгенерировано. Свой текст в ' + kept + ' разд. не тронут — варианты под 🎲' : 'Сгенерировано. Другие варианты — под 🎲 в каждом разделе', 'success');
+      showToast(kept ? 'Сгенерировано. Свой текст в ' + kept + ' разд. не\u00a0тронут — варианты под\u00a0🎲' : 'Сгенерировано. Другие варианты — под\u00a0🎲 в\u00a0каждом разделе', 'success');
     }
   }).catch(function(){
-    if (typeof showToast === 'function') showToast('Не удалось загрузить генератор — проверьте соединение', 'error');
+    if (typeof showToast === 'function') showToast('Не\u00a0удалось загрузить генератор — проверьте соединение', 'error');
   });
 }
 
@@ -468,7 +468,7 @@ function _applyVariantToSection(secKey, pick, variants) {
   var current = ta.value || '';
   // Confirm, если текст не пуст и не совпадает ни с одним из вариантов (т.е. отредактирован вручную).
   if (current.trim() && variants.indexOf(current) === -1) {
-    if (!confirm('Заменить текущий текст секции на выбранный вариант? Несохранённые правки будут утеряны.')) return;
+    if (!confirm('Заменить текущий текст секции на\u00a0выбранный вариант? Несохранённые правки будут утеряны.')) return;
   }
   ta.value = pick;
   ta.focus();
@@ -753,7 +753,7 @@ function _renderEntryCard(e) {
 
   // @-упоминания → кликабельные ссылки
   bodyPreview = escapeHtml(bodyPreview).replace(/@([\wА-яЁё\-]+)/g, function(_, name) {
-    return '<button type="button" class="notes-at-ref" onclick="notesJumpToNpc(\'' + name.replace(/'/g, "\\'") + '\')" title="Перейти к NPC ' + name + '">@' + name + '</button>';
+    return '<button type="button" class="notes-at-ref" onclick="notesJumpToNpc(\'' + name.replace(/'/g, "\\'") + '\')" title="Перейти к\u00a0NPC ' + name + '">@' + name + '</button>';
   });
 
   var tagsHtml = '';
@@ -778,7 +778,7 @@ function _renderEntryCard(e) {
   return '<div class="notes-entry-card' + (e.pinned ? ' pinned' : '') + '" data-entry-id="' + escapeHtml(e.id) + '"' + dndAttrs + '>' +
     (e.pinned ? '<span class="notes-entry-drag-handle" title="Потяните, чтобы изменить порядок">⋮⋮</span>' : '') +
     '<div class="notes-entry-header">' +
-      '<span class="notes-entry-title">' + escapeHtml(e.title || '(без названия)') + '</span>' +
+      '<span class="notes-entry-title">' + escapeHtml(e.title || '(без\u00a0названия)') + '</span>' +
       '<div class="notes-entry-actions">' +
         '<button class="notes-entry-btn" title="' + (e.pinned ? 'Открепить' : 'Закрепить') + '" data-id="' + escapeHtml(e.id) + '" onclick="notesTogglePin(this.dataset.id)" aria-label="' + (e.pinned ? 'Открепить' : 'Закрепить') + '"' + (e.pinned ? ' aria-pressed="true"' : ' aria-pressed="false"') + '>' + dndIcoHtml("star", 14) + '</button>' +
         '<button class="notes-entry-btn" title="Редактировать" aria-label="Редактировать" data-id="' + escapeHtml(e.id) + '" onclick="notesOpenEntryModal(this.dataset.id)">' + dndIcoHtml("edit", 14) + '</button>' +
@@ -1071,7 +1071,7 @@ function _notesLogJournal(op, type, title) {
   if (typeof addJournalEntry !== 'function') return;
   var tab = _findTab(type);
   var typeLabel = tab ? tab.label : (type || 'Запись');
-  var name = (title || '').trim() || '(без названия)';
+  var name = (title || '').trim() || '(без\u00a0названия)';
   var opWords = {
     create: 'Создана',
     update: 'Обновлена',
@@ -1159,11 +1159,11 @@ function _renderSearchResults() {
   }
 
   if (!results.length) {
-    return emptyStateHtml("search", "Ничего не найдено", "По запросу «" + _notesSearchQuery + "»", null, null, "notes-empty");
+    return emptyStateHtml("search", "Ничего не\u00a0найдено", "По\u00a0запросу «" + _notesSearchQuery + "»", null, null, "notes-empty");
   }
 
   var qRaw = _notesSearchQuery.trim();
-  var html = '<div class="notes-search-count">' + results.length + ' совп. для «' + escapeHtml(qRaw) + '» · <button class="notes-search-clear" onclick="notesClearSearch()">✕ Очистить</button></div>';
+  var html = '<div class="notes-search-count">' + results.length + ' совп. для\u00a0«' + escapeHtml(qRaw) + '» · <button class="notes-search-clear" onclick="notesClearSearch()">✕ Очистить</button></div>';
   html += '<div class="notes-entries-list">';
 
   for (var k = 0; k < results.length; k++) {
@@ -1194,7 +1194,7 @@ function _renderSearchResults() {
       }
       html += '<div class="notes-entry-card' + (e2.pinned ? ' pinned' : '') + '" onclick="notesOpenEntryModal(\'' + e2.id + '\')">' +
         '<div class="notes-entry-header">' +
-          '<span class="notes-entry-title">' + _hlText(e2.title || '(без названия)', qRaw) + '</span>' +
+          '<span class="notes-entry-title">' + _hlText(e2.title || '(без\u00a0названия)', qRaw) + '</span>' +
           '<span style="font-size:var(--fs-12);opacity:0.6">' + typeLabel + '</span>' +
         '</div>' +
         (bodyExc ? '<div class="notes-entry-body">' + _hlText(bodyExc, qRaw) + '</div>' : '') +
@@ -1298,7 +1298,7 @@ function notesExportMd() {
     lines.push('## ' + tab.icon + ' ' + tab.label, '');
     for (var k = 0; k < list.length; k++) {
       var en = list[k];
-      lines.push('### ' + (en.pinned ? '★ ' : '') + (en.title || '(без названия)'));
+      lines.push('### ' + (en.pinned ? '★ ' : '') + (en.title || '(без\u00a0названия)'));
       if (en.tags && en.tags.length) lines.push('**Теги:** ' + en.tags.join(', '));
       if (en.body) lines.push('', en.body);
       lines.push('');
@@ -1306,7 +1306,7 @@ function notesExportMd() {
   }
 
   var ts = localDateStamp();
-  if (window.AppLog) AppLog.action('notes', 'экспорт заметок в MD');
+  if (window.AppLog) AppLog.action('notes', 'экспорт заметок в\u00a0MD');
   _notesTriggerDownload(lines.join('\n'), _notesCharName() + '-notes-' + ts + '.md', 'text/markdown;charset=utf-8');
 }
 
@@ -1315,7 +1315,7 @@ function notesExportJson() {
   if (!char) return;
   var payload = { charName: _notesCharName(), exportedAt: new Date().toISOString(), notesV2: char.notesV2 || {} };
   var ts = localDateStamp();
-  if (window.AppLog) AppLog.action('notes', 'экспорт заметок в JSON');
+  if (window.AppLog) AppLog.action('notes', 'экспорт заметок в\u00a0JSON');
   _notesTriggerDownload(JSON.stringify(payload, null, 2), _notesCharName() + '-notes-' + ts + '.json', 'application/json;charset=utf-8');
 }
 
@@ -1351,7 +1351,7 @@ function notesHandleImportJson(input) {
       var data = JSON.parse(ev.target.result);
       var incoming = data.notesV2 || data; // поддержка raw notesV2
       if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) throw new Error('Неверный формат');
-      if (!confirm('Импортировать записи из «' + file.name + '»?\nДанные будут слиты с текущими (записи добавятся, секции — перезапишутся).')) return;
+      if (!confirm('Импортировать записи из\u00a0«' + file.name + '»?\nДанные будут слиты с\u00a0текущими (записи добавятся, секции — перезапишутся).')) return;
       var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
       if (!char) return;
       char.notesV2 = char.notesV2 || { sections: {}, entries: [], prefs: {} };

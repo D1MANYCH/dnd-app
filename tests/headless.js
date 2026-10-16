@@ -1553,7 +1553,7 @@
         var locked = (html.match(/🔒/g) || []).length;
         if (open !== 2 || locked !== 2) return "СИЛ 12: ожидал 2 открытых + 2 закрытых, получено " + open + " + " + locked;
         if (html.indexOf(String(POUCH_MAX * 2)) === -1) return "нет ёмкости " + (POUCH_MAX * 2) + " (2 × POUCH_MAX)";
-        if (html.indexOf("не унести 200") === -1) return "нет «не унести 200» (1200 монет при ёмкости 1000)";
+        if (html.indexOf("не\u00a0унести 200") === -1) return "нет «не унести 200» (1200 монет при ёмкости 1000)";
         window.characters[0].stats.str = 6;
         renderPouches();
         if (String(box.innerHTML).indexOf("Нет мешочков") === -1) return "СИЛ 6: ожидал «Нет мешочков»";
@@ -6405,7 +6405,7 @@
       if (!r.spell) return "запись не создана";
       if (r.spell.id === 990501) return "id взят от несуществующей записи";
       var last = r.toasts[r.toasts.length - 1] || {};
-      if (last.kind !== "warn" || last.msg.indexOf("не найден") === -1) return "нет предупреждения: " + last.msg;
+      if (last.kind !== "warn" || last.msg.indexOf("не\u00a0найден") === -1) return "нет предупреждения: " + last.msg;
       return true;
     });
 
@@ -6626,7 +6626,7 @@
         if (!_collectHbEffect().ok) return "плоское лечение отклонено";
         _mechForm({ kind: "damage", formula: "6к8", upcast: "мусор" });
         var bu = _collectHbEffect();
-        if (bu.ok || String(bu.error).indexOf("«За уровень") !== 0) return "апкаст: " + JSON.stringify(bu);
+        if (bu.ok || String(bu.error).indexOf("«За\u00a0уровень") !== 0) return "апкаст: " + JSON.stringify(bu);
         // Апкаст не бросается сам по себе, а конкатенируется в формулу (scaleFormula),
         // поэтому плоская прибавка законна и для урона — так устроена «Ложная жизнь».
         _mechForm({ kind: "tempHp", formula: "1к4+4", upcast: "5" });
@@ -7532,7 +7532,7 @@
         { cls:"Волшебник",  level:1, sub:"",         die:6,  idx:2 }
       ]);
       if (html.indexOf("Плут — Мошенник") === -1) return "нет выбранного подкласса";
-      if (html.indexOf("Воин — не выбран") === -1) return "нет ожидающего выбора";
+      if (html.indexOf("Воин — не\u00a0выбран") === -1) return "нет ожидающего выбора";
       if (html.indexOf("pgFocusSubclass('Воин')") === -1) return "ожидающий не ведёт к выбору";
       if (html.indexOf("Волшебник — с 2 уровня класса") === -1) return "нет ещё не открытого";
       return true;
