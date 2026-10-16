@@ -1637,7 +1637,7 @@ function updateVersionBlock(hasUpdate, worker) {
     var btn = $('version-install-btn');
     if (btn && worker) {
       btn.addEventListener('click', function() {
-        btn.textContent = 'Обновляем...';
+        btn.textContent = 'Обновляем…';
         btn.disabled = true;
         worker.postMessage({ type: 'SKIP_WAITING' });
       });
@@ -1652,7 +1652,7 @@ function updateVersionBlock(hasUpdate, worker) {
 
 // Принудительное обновление: кэш Service Worker сбрасывается, данные в localStorage не трогаются
 function forceAppUpdate(btn) {
-  if (btn) { btn.textContent = 'Обновляем...'; btn.disabled = true; }
+  if (btn) { btn.textContent = 'Обновляем…'; btn.disabled = true; }
   if (window.AppLog) AppLog.action("app", "принудительное обновление");
   var reload = function() { location.reload(); };
   var tasks = [];

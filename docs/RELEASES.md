@@ -3,34 +3,41 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v4.44.7**.
+Актуальная версия — **v4.44.8**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
-<a id="v4.44.7"></a>
-## v4.44.7 — 17 октября 2026
+<a id="v4.44.8"></a>
+## v4.44.8 — 17 октября 2026
 
-🔧 DS-3а/б: в светлой теме больше нет перебивок цвета — удалены мёртвые правила темы «auto», светлые перебивки в style.css и app-sheet2.js заменены ~120 парными токенами для светлой и тёмной темы, текстовые поля используют общий токен --field-text-bg, :focus-visible работает и в тёмной теме; check-theme: 3 проверки, база хардкодов 328/0
+🔧 DS-4а: типографика — многоточия «...» заменены на «…» (24 места), неразрывные пробелы после коротких предлогов и союзов и между числом и единицей во всём тексте index.html (770 мест), табличные цифры в статах, хитах, слотах, монетах, весе и бонусах, опыт от 10 000 с разрядами через полупробел (вкладка развития, сложность боя); исправлены веса начертаний EB Garamond 600/700 в @font-face; новый CI-чек tools/check-typo.js
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/5868ed0f...main) · 15 файлов, +442 −665
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/ac2fa069...main) · 22 файлов, +773 −559
 
 <details><summary>Файлы</summary>
 
 _Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
 
-**Файлы (15):**
+**Файлы (22):**
 
-- `style.css` +257 −462
-- `docs/map.md` +104 −107
-- `index.html` +52 −52
-- `tools/check-theme.js` +8 −35
-- `data.js` +11 −3
+- `index.html` +447 −447
+- `docs/map.md` +92 −92
+- `tools/check-typo.js` +175 −0
+- `style.css` +11 −6
+- `data.js` +10 −2
 - `CHANGELOG.md` +6 −1
-- `tools/theme-baseline.json` +2 −2
-- `app-sheet2.js` +1 −2
+- `tests/rules-cases.js` +7 −0
+- `tools/typo-baseline.json` +7 −0
+- `app-party.js` +3 −3
+- `app-progress.js` +3 −3
+- `rules.js` +5 −0
+- `app-core.js` +2 −2
+- `.github/workflows/tests.yml` +2 −0
+- `app-asi.js` +1 −1
+- `app-ui.js` +1 −1
 - `sw.js` +1 −1
 - `tests/shots/rost6/2014-damage-toast-dark-1024.jpg` +0 −0
 - `tests/shots/rost6/2014-hp-banner-dark-1024.jpg` +0 −0
@@ -38,6 +45,34 @@ _Список собран при подготовке релиза, по раб
 - `tests/shots/rost6/2024-card-light-375.jpg` +0 −0
 - `tests/shots/rost6/2024-picker-dark-1024.jpg` +0 −0
 - `tests/shots/rost6/2024-picker-dark-375.jpg` +0 −0
+
+</details>
+
+<a id="v4.44.7"></a>
+## v4.44.7 — 17 октября 2026
+
+🔧 DS-3а/б: в светлой теме больше нет перебивок цвета — удалены мёртвые правила темы «auto», светлые перебивки в style.css и app-sheet2.js заменены ~120 парными токенами для светлой и тёмной темы, текстовые поля используют общий токен --field-text-bg, :focus-visible работает и в тёмной теме; check-theme: 3 проверки, база хардкодов 328/0
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/5868ed0f...ac2fa069) · 10 файлов, +484 −678
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (1):**
+
+- [`ac2fa069`](https://github.com/D1MANYCH/dnd-app/commit/ac2fa069) v4.44.7: chore(стили): DS-3а/б: в светлой теме больше нет перебивок цвета — удалены мёртвые правила темы «auto», светлые перебивки в style.css и app-sheet2.js заменены ~120 парными токенами для светлой и тёмной темы, текстовые поля используют общий токен --field-text-bg, :focus-visible работает и в тёмной теме; check-theme: 3 проверки, база хардкодов 328/0
+
+**Файлы (10):**
+
+- `style.css` +257 −462
+- `docs/map.md` +106 −109
+- `index.html` +52 −52
+- `docs/RELEASES.md` +40 −11
+- `tools/check-theme.js` +8 −35
+- `data.js` +11 −3
+- `CHANGELOG.md` +6 −1
+- `tools/theme-baseline.json` +2 −2
+- `app-sheet2.js` +1 −2
+- `sw.js` +1 −1
 
 </details>
 

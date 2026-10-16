@@ -14,6 +14,11 @@ return 2;
 }
 function getMod(val) { return Math.floor((val - 10) / 2); }
 function formatMod(val) { return val >= 0 ? "+" + val : "" + val; }
+// DS-4.5: числа от 5 цифр — разряды через полупробел U+202F (10 000), четырёхзначные слитно.
+function fmtNum(n) {
+  var s = String(n);
+  return /^-?\d{5,}$/.test(s) ? s.replace(/\B(?=(\d{3})+$)/g, " ") : s;
+}
 
 // 🔧 ИСПРАВЛЕНИЕ: Правильный расчёт ХП по правилам D&D 5e
 function calculateMaxHP(level, conMod, hitDie) {

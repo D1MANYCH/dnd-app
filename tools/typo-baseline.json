@@ -1,0 +1,7 @@
+{
+  "comment": "Ratchet DS-4: типографика видимых строк. CI падает только при РОСТЕ. Обновлять при снижении: node tools/check-typo.js --update-baseline",
+  "ellipsis": 0,
+  "range": 0,
+  "quote": 0,
+  "nbsp": 1246
+}

@@ -323,7 +323,7 @@ function showUpdateModal(worker) {
   document.body.appendChild(modal);
   requestAnimationFrame(function() { modal.classList.add('sw-update-visible'); });
   $('sw-update-now').addEventListener('click', function() {
-    $('sw-update-now').textContent = '⏳ Обновляем...';
+    $('sw-update-now').textContent = '⏳ Обновляем…';
     $('sw-update-now').disabled = true;
     $('sw-update-later').disabled = true;
     worker.postMessage({ type: 'SKIP_WAITING' });

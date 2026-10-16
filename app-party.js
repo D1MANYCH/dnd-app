@@ -1041,11 +1041,11 @@ function renderBattleDifficulty() {
     '<div class="bd-main" title="Скорректированный опыт врагов' + (r.next ? " / порог «" + r.next.label + "»" : "") + '">' +
       '<span class="bd-mark bd-' + r.level + '" aria-hidden="true"></span>' +
       '<span class="bd-label bd-' + r.level + '">' + r.label + '</span>' +
-      ' · ' + r.adjusted + (r.next ? " / " + r.next.xp : "") + ' XP' +
+      ' · ' + fmtNum(r.adjusted) + (r.next ? " / " + fmtNum(r.next.xp) : "") + ' XP' +
     '</div>' +
     '<div class="bd-sub">' +
-      'Врагов ' + d.xps.length + ': ' + r.base + ' XP × ' + String(r.mult).replace(".", ",") +
-      ' · пороги ' + t.easy + ' / ' + t.medium + ' / ' + t.hard + ' / ' + t.deadly +
+      'Врагов ' + d.xps.length + ': ' + fmtNum(r.base) + ' XP × ' + String(r.mult).replace(".", ",") +
+      ' · пороги ' + fmtNum(t.easy) + ' / ' + fmtNum(t.medium) + ' / ' + fmtNum(t.hard) + ' / ' + fmtNum(t.deadly) +
       (d.noCr ? ' · без CR: ' + d.noCr : '') +
     '</div>';
 }

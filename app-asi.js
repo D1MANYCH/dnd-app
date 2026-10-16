@@ -256,7 +256,7 @@ function buildFeatList() {
   // BUILD-LVL-3: id черты, рекомендованной билдом для текущего ASI-уровня.
   var recFeatId = (typeof getBuildRecFeat === "function" && char) ? getBuildRecFeat(char, asiCurrentLevel) : null;
 
-  el.innerHTML = '<div class="feat-search-wrap"><input type="text" class="feat-search-inp" placeholder="🔍 Поиск черты..." oninput="filterFeatList(this.value)"></div>' +
+  el.innerHTML = '<div class="feat-search-wrap"><input type="text" class="feat-search-inp" placeholder="🔍 Поиск черты…" oninput="filterFeatList(this.value)"></div>' +
     '<div class="feat-list" id="feat-list-items">' +
     featList.map(function(feat) {
       var taken = !feat.repeatable && takenFeats.some(function(f) { return f.id === feat.id; });

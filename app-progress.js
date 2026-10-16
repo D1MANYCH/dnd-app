@@ -154,9 +154,9 @@ function _pgXpRow(char) {
   if (exp <= 0 || typeof charXpNext !== "function") return "";
   if (typeof _getTrackXpOn === "function" && !_getTrackXpOn()) return "";
   var x = charXpNext(char);
-  if (!x.level) return _pgStatic("Опыт", "<b>" + exp + "</b> <i>· порогов больше нет</i>");
-  var meta = "<b>" + x.have + '</b> <i>/ ' + x.need + '</i> <span class="hp-dot">·</span> ' +
-    (x.canLevel ? '<span class="pg-meta--warn">можно повысить</span>' : "до " + x.level + " уровня " + x.left);
+  if (!x.level) return _pgStatic("Опыт", "<b>" + fmtNum(exp) + "</b> <i>· порогов больше нет</i>");
+  var meta = "<b>" + fmtNum(x.have) + '</b> <i>/ ' + fmtNum(x.need) + '</i> <span class="hp-dot">·</span> ' +
+    (x.canLevel ? '<span class="pg-meta--warn">можно повысить</span>' : "до " + x.level + " уровня " + fmtNum(x.left));
   return _pgStatic("Опыт", meta);
 }
 

@@ -3,12 +3,12 @@
 ============================================================ */
 
 /* DS-1: EB Garamond (OFL, vendor/fonts/OFL.txt), локально — латиница + кириллица */
-@font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: var(--fw-regular); font-display: swap; src: url('vendor/fonts/eb-garamond-cyrillic-400-normal.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
-@font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: var(--fw-semibold); font-display: swap; src: url('vendor/fonts/eb-garamond-cyrillic-600-normal.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
-@font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: var(--fw-bold); font-display: swap; src: url('vendor/fonts/eb-garamond-cyrillic-700-normal.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
-@font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: var(--fw-regular); font-display: swap; src: url('vendor/fonts/eb-garamond-latin-400-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: var(--fw-semibold); font-display: swap; src: url('vendor/fonts/eb-garamond-latin-600-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: var(--fw-bold); font-display: swap; src: url('vendor/fonts/eb-garamond-latin-700-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: 400; font-display: swap; src: url('vendor/fonts/eb-garamond-cyrillic-400-normal.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: 600; font-display: swap; src: url('vendor/fonts/eb-garamond-cyrillic-600-normal.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: 700; font-display: swap; src: url('vendor/fonts/eb-garamond-cyrillic-700-normal.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: 400; font-display: swap; src: url('vendor/fonts/eb-garamond-latin-400-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: 600; font-display: swap; src: url('vendor/fonts/eb-garamond-latin-600-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: 700; font-display: swap; src: url('vendor/fonts/eb-garamond-latin-700-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 
 :root {
 /* ===== Design tokens (R1) ===== */
@@ -1718,6 +1718,11 @@ body.no-character .drawer-nav { display: none; }
    первой отрисовки canvas); токен --bg-0 уже theme-aware (dark/light). */
 html { background-color: var(--bg-0); }
 button, input, select, textarea { font-family: inherit; }
+/* DS-4.4: табличные цифры в числовых колонках — статы, хиты, слоты, монеты, вес */
+input[type="number"], .abil-card-score, .abil-card-mod, .stat-compact-val, .stat-compact-mod, .stat-compact-inp, .sc-stat-value,
+.save-bonus, .skill-bonus, .prof-bonus, .ag-val, .ag-bonus, .ag-total, .asi-stat-cur, .cd-level-mc-val,
+.hp-big-num, .hp-head-max, .hp-inp, .tracker-num, .conc-detail-val, .spell-slot-row, .ssl-total, .rr-row-val, .rr-strip-val,
+.inv-coin-big-inp, .inv-coin-total, .inv-coins-weight, .inv-weight, .inv-slots-total { font-variant-numeric: tabular-nums; }
 #bgCanvas {
 position: fixed;
 inset: 0;
