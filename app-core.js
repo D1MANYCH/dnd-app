@@ -1267,7 +1267,7 @@ if (chipEl && typeof _homeHeroChips === "function") {
 }
 if (actEl) {
   actEl.innerHTML =
-    "<button type=\"button\" class=\"char-hero-act\" data-id=\"" + escapeHtml(char.id) + "\" onclick=\"exportOneCharacter(Number(this.dataset.id), event)\">" + dndIcoHtml("download", 14) + " Экспорт</button>" +
+    "<button type=\"button\" class=\"char-hero-act\" data-id=\"" + escapeHtml(char.id) + "\" onclick=\"exportOneCharacter(Number(this.dataset.id), event)\">" + dndIcoHtml("download", 14) + " Выгрузить</button>" +
     (typeof navigator.canShare === "function"
       ? "<button type=\"button\" class=\"char-hero-act\" data-id=\"" + escapeHtml(char.id) + "\" onclick=\"shareOneCharacter(Number(this.dataset.id), event)\">" + dndIcoHtml("upload", 14) + " Отправить</button>"
       : "") +

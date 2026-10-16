@@ -476,7 +476,7 @@ showConfirmModal("Импорт персонажей", msg, function() {
 }, "Заменить всё", { icon: "import" });
 input.value = "";
 };
-reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
+reader.onerror = function() { showToast("Файл не\u00a0прочитан — выберите его ещё раз", "error"); input.value = ""; };
 reader.readAsText(file);
 }
 // FEAT-1: не разрушающий импорт персонажа(ей). Добавляет в текущий список,
@@ -494,7 +494,7 @@ reader.onload = function(e) {
 input.value = "";
 _importOneCharText(e.target.result);
 };
-reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
+reader.onerror = function() { showToast("Файл не\u00a0прочитан — выберите его ещё раз", "error"); input.value = ""; };
 reader.readAsText(file);
 }
 // SHARE-1: общий разбор для файла и буфера обмена.
@@ -608,7 +608,7 @@ function _consumeLaunchFiles() {
           return;
         }
         return file.text().then(_importLaunchText);
-      }).catch(function() { showToast("Ошибка чтения файла", "error"); });
+      }).catch(function() { showToast("Файл не\u00a0прочитан — выберите его ещё раз", "error"); });
     });
   }
 }
@@ -692,7 +692,7 @@ showConfirmModal("Импорт заклинаний", msgSp, function() {
 }, "Импортировать", { danger: false, icon: "import" });
 input.value = "";
 };
-reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
+reader.onerror = function() { showToast("Файл не\u00a0прочитан — выберите его ещё раз", "error"); input.value = ""; };
 reader.readAsText(file);
 }
 

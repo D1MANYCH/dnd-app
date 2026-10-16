@@ -2007,7 +2007,7 @@ function openRaceFeatModal() {
   asiFeatSelected = null;
   asiCurrentLevel = "race";
   var modal = $("asi-modal");
-  if (!modal) { showToast("Ошибка: модалка не\u00a0найдена", "error"); return; }
+  if (!modal) { showToast("Окно не\u00a0открылось — перезагрузите страницу", "error"); return; }
   var featRadio = modal.querySelector('input[value="feat"]');
   if (featRadio) featRadio.checked = true;
   // Расовая черта — только черта: +1 к двум у Человека (вариант) выбирается в панели расы

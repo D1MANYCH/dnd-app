@@ -332,7 +332,7 @@ function _pentImport(type, input) {
       function() { apply(false); }, "Добавить",
       { danger: false, icon: "import", altLabel: "Заменить", onAlt: function() { apply(true); } });
   };
-  reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
+  reader.onerror = function() { showToast("Файл не\u00a0прочитан — выберите его ещё раз", "error"); input.value = ""; };
   reader.readAsText(file); input.value = "";
 }
 // Обёртки — сохраняем старые имена чтобы не менять index.html

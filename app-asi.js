@@ -40,7 +40,7 @@ function openASIModal() {
   asiFeatSelected = null;
   asiFeatStat = null;
   var modal = $("asi-modal");
-  if (!modal) { showToast("Ошибка: АСИ модалка не\u00a0найдена", "error"); return; }
+  if (!modal) { showToast("Окно не\u00a0открылось — перезагрузите страницу", "error"); return; }
 
   // Reset radio to plus2
   var r = modal.querySelector('input[value="plus2"]');

@@ -3,25 +3,60 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v4.44.9**.
+Актуальная версия — **v4.44.10**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
-<a id="v4.44.9"></a>
-## v4.44.9 — 17 октября 2026
+<a id="v4.44.10"></a>
+## v4.44.10 — 17 октября 2026
 
-🔧 DS-4б: неразрывные пробелы в текстах интерфейса из JS — 938 мест в 25 модулях app-*.js (после коротких предлогов и союзов, между числом и единицей), записаны как \u00a0; имена заклинаний, ключи, сравниваемые строки, данные персонажа, журнал и PDF не тронуты; check-typo читает \uXXXX, база nbsp 1246 → 308
+🔧 DS-4в: подписи кнопок — команды глаголом: «Отмена» → «Отменить» (11 кнопок), «Импорт» / «Экспорт» → «Загрузить» / «Выгрузить» (персонаж, заклинания, записи .md/.json), «Печать / PDF» → «Сохранить в PDF», «Сброс» → «Сбросить», «Отлично» → «Понятно» в окне обновления, «Прошлая» → «Прошлая сессия» в логах; ошибки чтения файла, сборки PDF и открытия окна теперь говорят, что делать дальше
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/9f45ae42...main) · 37 файлов, +655 −641
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/6c7c7c89...main) · 17 файлов, +102 −89
 
 <details><summary>Файлы</summary>
 
 _Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
 
-**Файлы (37):**
+**Файлы (17):**
+
+- `index.html` +73 −73
+- `data.js` +10 −2
+- `app-io.js` +4 −4
+- `CHANGELOG.md` +6 −1
+- `app-pdf.js` +2 −2
+- `app-ui.js` +2 −2
+- `app-asi.js` +1 −1
+- `app-combat.js` +1 −1
+- `app-core.js` +1 −1
+- `app-party.js` +1 −1
+- `sw.js` +1 −1
+- `tests/shots/rost6/2014-damage-toast-dark-1024.jpg` +0 −0
+- `tests/shots/rost6/2014-hp-banner-dark-1024.jpg` +0 −0
+- `tests/shots/rost6/2014-wolf-card-dark-1024.jpg` +0 −0
+- `tests/shots/rost6/2024-card-light-375.jpg` +0 −0
+- `tests/shots/rost6/2024-picker-dark-1024.jpg` +0 −0
+- `tests/shots/rost6/2024-picker-dark-375.jpg` +0 −0
+
+</details>
+
+<a id="v4.44.9"></a>
+## v4.44.9 — 17 октября 2026
+
+🔧 DS-4б: неразрывные пробелы в текстах интерфейса из JS — 938 мест в 25 модулях app-*.js (после коротких предлогов и союзов, между числом и единицей), записаны как \u00a0; имена заклинаний, ключи, сравниваемые строки, данные персонажа, журнал и PDF не тронуты; check-typo читает \uXXXX, база nbsp 1246 → 308
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/9f45ae42...6c7c7c89) · 33 файлов, +719 −655
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (1):**
+
+- [`6c7c7c89`](https://github.com/D1MANYCH/dnd-app/commit/6c7c7c89) v4.44.9: chore(стили): DS-4б: неразрывные пробелы в текстах интерфейса из JS — 938 мест в 25 модулях app-*.js, check-typo читает \uXXXX, база nbsp 1246 → 308
+
+**Файлы (33):**
 
 - `app-party.js` +78 −78
 - `app-help.js` +76 −76
@@ -29,6 +64,7 @@ _Список собран при подготовке релиза, по раб
 - `app-progress.js` +53 −53
 - `index.html` +52 −52
 - `app-spells.js` +46 −46
+- `docs/RELEASES.md` +62 −12
 - `app-inventory.js` +36 −36
 - `app-hp.js` +32 −32
 - `app-io.js` +30 −30
@@ -51,15 +87,10 @@ _Список собран при подготовке релиза, по раб
 - `app-log.js` +2 −2
 - `app-proficiencies.js` +2 −2
 - `app-sheet2.js` +2 −2
+- `docs/map.md` +2 −2
 - `sw.js` +1 −1
 - `tools/typo-baseline.json` +1 −1
 - `tools/check-typo.js` +1 −0
-- `tests/shots/rost6/2014-damage-toast-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2014-hp-banner-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2014-wolf-card-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2024-card-light-375.jpg` +0 −0
-- `tests/shots/rost6/2024-picker-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2024-picker-dark-375.jpg` +0 −0
 
 </details>
 

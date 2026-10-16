@@ -370,7 +370,7 @@ function showWhatsNewModal(prevVer, newVer) {
       '<div class="sw-update-safe">Все данные сохранены — ваши персонажи и\u00a0заклинания на\u00a0месте.</div>' +
       swTelegramBlock() +
       swSupportBlock() +
-      '<div class="sw-update-btns"><button class="sw-act sw-act--go" id="sw-update-now">Отлично</button></div>' +
+      '<div class="sw-update-btns"><button class="sw-act sw-act--go" id="sw-update-now">Понятно</button></div>' +
     '</div>';
   document.body.appendChild(modal);
   requestAnimationFrame(function() { modal.classList.add('sw-update-visible'); });
@@ -551,7 +551,7 @@ function crResourceRow(res, char) {
   var body = '<p class="hp-row-hint">' + escapeHtml(res.desc || "") + "</p>" +
     (src ? '<p class="hp-row-hint">' + src + "</p>" : "") +
     '<div class="hp-row-line">' + acts +
-      (used > 0 ? '<button type="button" class="hp-act" onclick="resetResource(\'' + id + '\')">Сброс</button>' : "") +
+      (used > 0 ? '<button type="button" class="hp-act" onclick="resetResource(\'' + id + '\')">Сбросить</button>' : "") +
     "</div>";
 
   var name = escapeHtml(res.name) + (dieSize ? ' <i class="cr-die">(' + escapeHtml(dieSize) + ")</i>" : "");
