@@ -418,7 +418,7 @@ function _renderFeatPickList(fp, search, level, container) {
   var countEl = $("spell-search-count");
   if (fp.rule.pickClass && !fp.rec.spellClass) {
     if (countEl) countEl.textContent = "";
-    container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: 20px 0;">Выберите список класса выше</p>';
+    container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: var(--sp-5) 0;">Выберите список класса выше</p>';
     return;
   }
   var mine = fp.char.spells.mySpells || [];
@@ -880,7 +880,7 @@ var countEl = $("spell-search-count");
 if (countEl) countEl.textContent = "Найдено: " + filtered.length;
 
 if (!search.trim() && level === "" && (currentSpellVersion === "all" || currentSpellVersion === _defaultSpellVersion(char)) && currentSpellClass === "all") {
-container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: 20px 0;">' + dndIcoHtml("search", 20) + ' Введите название или выберите класс/уровень</p>';
+container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: var(--sp-5) 0;">' + dndIcoHtml("search", 20) + ' Введите название или выберите класс/уровень</p>';
 return;
 }
 
@@ -911,7 +911,7 @@ container.appendChild(div);
 });
 if (filtered.length > LIMIT) {
 var more = document.createElement("p");
-more.style.cssText = "text-align:center;color:var(--text-dim);padding:12px 0;";
+more.style.cssText = "text-align:center;color:var(--text-dim);padding:var(--sp-3) 0;";
 more.textContent = "Показано " + LIMIT + " из " + filtered.length + " — уточните поиск";
 container.appendChild(more);
 }
@@ -959,7 +959,7 @@ const container = $("my-spells-list");
 if (!container) return;
 renderPrepCounter();
 if (!char.spells.mySpells || char.spells.mySpells.length === 0) {
-container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: 24px 0;">' + dndIcoHtml("inbox", 22) + ' Нет заклинаний — нажмите «Найти заклинание»</p>';
+container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: var(--sp-5) 0;">' + dndIcoHtml("inbox", 22) + ' Нет заклинаний — нажмите «Найти заклинание»</p>';
 return;
 }
 // CAST-6: живые экземпляры каста по имени заклинания — бейдж «Активно · ⏳N рд»

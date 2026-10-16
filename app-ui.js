@@ -955,8 +955,8 @@ function renderCompanions() {
           (c.attack ? '<div class="pcard-desc">' + dndIcoHtml("sword", 12) + ' ' + escapeHtml(c.attack) + '</div>' : '') +
           '<div class="companion-hp-row">' +
             '<span style="color:' + hpColor + ';font-size:var(--fs-12);font-weight:700;">' + dndIcoHtml("heart", 12) + ' ' + (Number(c.hpCurrent) || 0) + '/' + (Number(c.hpMax) || 0) + '</span>' +
-            '<button class="res-btn" style="padding:2px 8px;font-size:var(--fs-12)" onclick="companionHP(' + i + ',-1)">-1</button>' +
-            '<button class="res-btn" style="padding:2px 8px;font-size:var(--fs-12)" onclick="companionHP(' + i + ',1)">+1</button>' +
+            '<button class="res-btn" style="padding:2px var(--sp-2);font-size:var(--fs-12)" onclick="companionHP(' + i + ',-1)">-1</button>' +
+            '<button class="res-btn" style="padding:2px var(--sp-2);font-size:var(--fs-12)" onclick="companionHP(' + i + ',1)">+1</button>' +
           '</div>' +
         '</div>' +
         '<div class="pcard-actions">' +
