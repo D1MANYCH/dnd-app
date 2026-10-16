@@ -11533,11 +11533,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .sheet-avatar-hint {
   font-size: var(--fs-12);
   color: var(--text-dim);
-  opacity: 0;
-  transition: opacity var(--t2);
   cursor: pointer;
 }
-.sheet-avatar-col:hover .sheet-avatar-hint { opacity: 1; }
 .sheet-top-fields {
   flex: 1;
   min-width: 0;
@@ -13910,7 +13907,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
    порога для мелкого текста. --accent-lo: 5.03 в светлой, 6.37 в тёмной. */
 #tab-party .party-add-btn { color: var(--accent-lo); }
 #tab-party .party-add-btn-srd,
-#tab-party .party-io-btn { color: var(--home-sub); }
+#tab-party .party-io-btn { color: var(--home-sub); width: auto; padding: 0 var(--sp-2); }
 #tab-party .party-add-btn:hover { background: none; color: var(--accent); }
 #tab-party .party-add-btn-srd:hover,
 #tab-party .party-io-btn:hover { background: none; color: var(--text); }
@@ -17754,4 +17751,29 @@ button.modal-close-bottom:hover,
   .fs-scale-slider { height: 32px; background: transparent; }
   #sync-status { flex: 1 1 100%; }
   #sync-actions .backup-create-btn, .sync-privacy { min-height: 44px; display: inline-flex; align-items: center; font-size: var(--fs-md); }
+}
+
+/* DS-5в: на тач-экранах наведения нет — действия, приглушённые до наведения, видны сразу. */
+@media (hover: none) {
+  .backup-restore-btn, .journal-del-btn, .wp-del, .res-tag-x, .notes-tag-remove,
+  #tab-party .pcard-actions, #tab-notes .notes-entry-actions, #tab-sheet .prof-chip-remove,
+  #screen-spellsearch .spell-item-actions { opacity: 1; }
+}
+/* DS-5в: область нажатия мелких кнопок — не меньше --hit (40 ПК / 48 тач), вид не меняется.
+   :where() — нулевая специфичность: position у абсолютно позиционированных кнопок не перебивается. */
+:root { --hit: 40px; }
+@media (pointer: coarse) { :root { --hit: 48px; } }
+:where(.qrs-close, .aef-row-x, .tracker-roll-btn, .tracker-remove-btn, .tracker-hp-btn, .tracker-info-btn,
+  .field-help-btn, .res-add-btn, .res-tag-x, .prof-chip-remove, .notes-tag-remove, .race-bonus-x,
+  .exhaustion-btn, .ssl-btn, .party-io-btn, .pcard-edit-btn, .pcard-del-btn, .app-log-x, .stat-btn-sm,
+  .notes-md-btn) { position: relative; }
+:where(.qrs-close, .aef-row-x, .tracker-roll-btn, .tracker-remove-btn, .tracker-hp-btn, .tracker-info-btn,
+  .field-help-btn, .res-add-btn, .res-tag-x, .prof-chip-remove, .notes-tag-remove, .race-bonus-x,
+  .exhaustion-btn, .ssl-btn, .party-io-btn, .pcard-edit-btn, .pcard-del-btn, .app-log-x, .stat-btn-sm,
+  .notes-md-btn)::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  width: max(100%, var(--hit)); height: max(100%, var(--hit));
+  transform: translate(-50%, -50%);
 }

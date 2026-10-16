@@ -1360,7 +1360,11 @@ if (hdAvailDisplay) hdAvailDisplay.textContent = avail + "/" + total;
 renderHitDiceIcons(avail, total);
 // Кнопка броска кости — заблокировать если 0 ХП или нет костей
 const rollHdBtn = $("roll-hd-btn");
-if (rollHdBtn) rollHdBtn.disabled = hpCurrent <= 0 || avail <= 0;
+if (rollHdBtn) {
+  rollHdBtn.disabled = hpCurrent <= 0 || avail <= 0;
+  // DS-5в: причина недоступности — в самой подписи, а не только в состоянии
+  rollHdBtn.textContent = avail <= 0 ? "Костей хитов не осталось" : hpCurrent <= 0 ? "При 0 хитов кости не бросают" : "Бросить кость хитов";
+}
 
 // Секция спасбросков смерти — показываем только при HP = 0
 const deathSavesSection = $("death-saves-section");

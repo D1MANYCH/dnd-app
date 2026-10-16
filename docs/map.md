@@ -99,33 +99,33 @@
 | 10825–10907 | DESKTOP LAYOUT — centered max-width |
 | 10908–10931 | INSPIRATION |
 | 10932–10971 | CONCENTRATION |
-| 10972–11647 | WEAPON CARDS WITH ROLL BUTTONS |
-| 11648–11758 | ПОПАП РЕЖИМА БРОСКА (Преимущество / Помеха) |
-| 11759–11821 | СОПРОТИВЛЕНИЯ / ИММУНИТЕТЫ / УЯЗВИМОСТИ |
-| 11822–11848 | БОЙ ДВУМЯ ОРУЖИЯМИ (Two-Weapon Fighting) |
-| 11849–11972 | КЛАССОВЫЕ ВЫБОРЫ — карточки в asi-container |
-| 11973–12001 | R6: Ассеты (декор) |
-| 12002–12970 | 📝 Вкладка «Записи по персонажу» — фаза N2 |
-| 12971–13058 | STYLE-4b: кнопки, которым ширину давал элементный button{width:100%}. |
-| 13059–13067 | BUGFIX-6: мобильная вёрстка (≤540px) |
-| 13068–13125 | UI-13: доступ к настройкам и усиление back-кнопки |
-| 13126–13457 | UI-10. Skeleton-лоадеры + подсветка совпадений поиска |
-| 13458–13484 | UI5-6: ПОЛИРОВКА — единый фокус клавиатуры + шевроны аккордеонов |
-| 13485–13511 | Светлая тема: цветные акценты, подобранные под тёмный фон и |
-| 13512–13594 | Дымка v5: чипы состояний, мини-индикаторы, SVG-иконки |
-| 13595–14695 | STYLE-5: одна поверхность для всех карточек-контейнеров. |
-| 14696–14751 | MOTION: переходы между экранами и под-меню встречающего экрана. |
-| 14752–14844 | STYLE-8a2 · «Лист»: блок характеристик — реестр |
-| 14845–15158 | DISC-1 · Ромб раскрытия |
-| 15159–15748 | STYLE-8a2 · остальной «Лист» в языке встречающего экрана |
-| 15749–15854 | LVL-2 · Экран «Развитие» (#screen-progress) |
-| 15855–15991 | LVL-3 · Раздел «Класс и развитие» на листе и дубль ресурсов в «Бою» |
-| 15992–16226 | STYLE-8b3: список «Мои заклинания» — рецепт «Сумки» + чип действия |
-| 16227–16236 | STYLE-8b3-fix: срезанный ромб |
-| 16237–16550 | STYLE-8b3b: два оставшихся блока «Магии» |
-| 16551–17069 | STYLE-8d2 · Вкладка «Бой» в языке встречающего экрана |
-| 17070–17104 | STYLE-8M-3: ОКНА-ЭКРАНЫ, ДОЗАХОД — «Повышение уровня», «Отдых», |
-| 17105–17758 | STYLE-8M-4: ОКНА-ЭКРАНЫ, ДОЗАХОД II — «История здоровья», |
+| 10972–11644 | WEAPON CARDS WITH ROLL BUTTONS |
+| 11645–11755 | ПОПАП РЕЖИМА БРОСКА (Преимущество / Помеха) |
+| 11756–11818 | СОПРОТИВЛЕНИЯ / ИММУНИТЕТЫ / УЯЗВИМОСТИ |
+| 11819–11845 | БОЙ ДВУМЯ ОРУЖИЯМИ (Two-Weapon Fighting) |
+| 11846–11969 | КЛАССОВЫЕ ВЫБОРЫ — карточки в asi-container |
+| 11970–11998 | R6: Ассеты (декор) |
+| 11999–12967 | 📝 Вкладка «Записи по персонажу» — фаза N2 |
+| 12968–13055 | STYLE-4b: кнопки, которым ширину давал элементный button{width:100%}. |
+| 13056–13064 | BUGFIX-6: мобильная вёрстка (≤540px) |
+| 13065–13122 | UI-13: доступ к настройкам и усиление back-кнопки |
+| 13123–13454 | UI-10. Skeleton-лоадеры + подсветка совпадений поиска |
+| 13455–13481 | UI5-6: ПОЛИРОВКА — единый фокус клавиатуры + шевроны аккордеонов |
+| 13482–13508 | Светлая тема: цветные акценты, подобранные под тёмный фон и |
+| 13509–13591 | Дымка v5: чипы состояний, мини-индикаторы, SVG-иконки |
+| 13592–14692 | STYLE-5: одна поверхность для всех карточек-контейнеров. |
+| 14693–14748 | MOTION: переходы между экранами и под-меню встречающего экрана. |
+| 14749–14841 | STYLE-8a2 · «Лист»: блок характеристик — реестр |
+| 14842–15155 | DISC-1 · Ромб раскрытия |
+| 15156–15745 | STYLE-8a2 · остальной «Лист» в языке встречающего экрана |
+| 15746–15851 | LVL-2 · Экран «Развитие» (#screen-progress) |
+| 15852–15988 | LVL-3 · Раздел «Класс и развитие» на листе и дубль ресурсов в «Бою» |
+| 15989–16223 | STYLE-8b3: список «Мои заклинания» — рецепт «Сумки» + чип действия |
+| 16224–16233 | STYLE-8b3-fix: срезанный ромб |
+| 16234–16547 | STYLE-8b3b: два оставшихся блока «Магии» |
+| 16548–17066 | STYLE-8d2 · Вкладка «Бой» в языке встречающего экрана |
+| 17067–17101 | STYLE-8M-3: ОКНА-ЭКРАНЫ, ДОЗАХОД — «Повышение уровня», «Отдых», |
+| 17102–17780 | STYLE-8M-4: ОКНА-ЭКРАНЫ, ДОЗАХОД II — «История здоровья», |
 
 ## index.html — блоки верхнего уровня (`#id:строки`)
 
@@ -199,8 +199,8 @@ _revertCastInstanceBody:11 removeCastEffectsForSpell:31 clearAllCastEffects:76 e
 **app-proficiencies.js** (644 строк, 20 функций)  
 profSourceLabel:19 getLanguageChoiceSlots:30 renderLanguages:64 addChoiceLanguage:149 addCustomLanguage:166 removeCustomLanguage:193 getToolChoiceSlots:218 buildToolOptionsHtml:286 renderTools:307 addChoiceTool:380 addCustomTool:396 removeCustomTool:423 renderArmorProf:442 renderWeaponProf:492 addCustomArmorType:556 removeCustomArmorType:572 addCustomWeaponType:584 removeCustomWeaponType:599 addCustomSpecificWeapon:610 removeCustomSpecificWeapon:631
 
-**app-hp.js** (1878 строк, 57 функций)  
-openRestModal:6 closeRestModal:11 showRestMain:18 showShortRestInfo:26 showLongRestInfo:48 showRestResult:77 adjustHitDice:89 _restHitDiceChosen:101 adjustHitDiceSize:108 updateHitDiceInfo:115 confirmRest:147 openLevelUpModal:232 _showMulticlassScreen:262 luPickAnotherClass:307 openMulticlassNewClass:314 confirmMulticlassNewClass:373 _showLevelUpPreview:384 closeLevelUpModal:551 confirmLevelUp:564 _luShowResult:691 luFinishChoices:722 luRefreshChoices:729 luSetSubclass:736 luApplyFeatById:755 luApplyAsi:801 _luFeatChoiceAt:822 _luChoiceOpensAt:831 _ccDefsFor:836 _luAsiDone:847 luApplyAllRecommendations:852 luBuildChoicesScreen:972 recBadge:980 luAddRecommendedSpells:1112 luGoToSpellsTab:1140 openLevelDownConfirm:1152 confirmLevelDown:1197 loadDeathSaves:1230 toggleDeathSave:1274 resetDeathSaves:1291 updateHPDisplay:1304 hpToggleRow:1390 hpSetRowOpen:1399 updateHPSummary:1407 updateHPRows:1471 quickHP:1489 setHPAbsolute:1615 addHPHistory:1640 _hpUndoPrepare:1657 _hpUndoConcSnap:1677 _hpUndoConcRestore:1694 undoHPChange:1717 showHPToast:1747 applyCustomHP:1772 saveTempHP:1789 rollHitDieQuick:1803 renderHitDiceIcons:1835 rollDeathSave:1849
+**app-hp.js** (1882 строк, 57 функций)  
+openRestModal:6 closeRestModal:11 showRestMain:18 showShortRestInfo:26 showLongRestInfo:48 showRestResult:77 adjustHitDice:89 _restHitDiceChosen:101 adjustHitDiceSize:108 updateHitDiceInfo:115 confirmRest:147 openLevelUpModal:232 _showMulticlassScreen:262 luPickAnotherClass:307 openMulticlassNewClass:314 confirmMulticlassNewClass:373 _showLevelUpPreview:384 closeLevelUpModal:551 confirmLevelUp:564 _luShowResult:691 luFinishChoices:722 luRefreshChoices:729 luSetSubclass:736 luApplyFeatById:755 luApplyAsi:801 _luFeatChoiceAt:822 _luChoiceOpensAt:831 _ccDefsFor:836 _luAsiDone:847 luApplyAllRecommendations:852 luBuildChoicesScreen:972 recBadge:980 luAddRecommendedSpells:1112 luGoToSpellsTab:1140 openLevelDownConfirm:1152 confirmLevelDown:1197 loadDeathSaves:1230 toggleDeathSave:1274 resetDeathSaves:1291 updateHPDisplay:1304 hpToggleRow:1394 hpSetRowOpen:1403 updateHPSummary:1411 updateHPRows:1475 quickHP:1493 setHPAbsolute:1619 addHPHistory:1644 _hpUndoPrepare:1661 _hpUndoConcSnap:1681 _hpUndoConcRestore:1698 undoHPChange:1721 showHPToast:1751 applyCustomHP:1776 saveTempHP:1793 rollHitDieQuick:1807 renderHitDiceIcons:1839 rollDeathSave:1853
 
 **app-inventory.js** (1748 строк, 79 функций)  
 filterInventory:6 _isBackpackOff:26 _isItemActive:29 toggleBackpackOff:34 getSlotsTotal:48 calcUsedSlots:58 updateSlotsDisplay:74 renderPouches:113 renderInventory:152 toggleInvItem:264 editItemDirect:269 deleteItemDirect:270 updateInventoryWeight:290 countAttuned:325 _hasAttunable:335 toggleAttuned:342 updateAttuneCount:362 adjustItemCharges:373 openItemModal:389 closeItemModal:462 syncItemArmorFields:467 syncWornArmor:479 submitItem:508 openMagicCatalog:579 closeMagicCatalog:596 renderMagicCatalog:601 fillFromMagicItem:633 openGearCatalog:686 closeGearCatalog:702 renderGearPacks:707 renderGearCatalog:717 fillFromGearItem:745 addPackToInventory:768 rollTrinket:790 _weaponPresets2024:826 _weaponMasteryGrant:847 getWeaponMasteryLimit:872 canMasterWeapon:877 getWeaponMasteryProp:886 isWeaponMastered:893 toggleWeaponMastery:896 _weaponCatalog:915 renderWeaponPresets:929 filterWeaponPresets:995 toggleWeaponFilter:999 fillWeaponPreset:1006 _resetWeaponForm:1024 openWeaponModal:1044 closeWeaponModal:1054 editWeapon:1062 deleteCustomWeapon:1092 _weaponPresetByName:1118 checkWeaponProficiency:1125 submitWeapon:1153 weaponRowTap:1244 renderWeapons:1257 isLightWeapon:1336 toggleTWFStyle:1341 rollTWFAttack:1349 _weaponDamageRoll:1397 rollTWFDamage:1418 rollWeaponAttack:1430 rollWeaponDamage:1485 removeWeapon:1514 _invDndInit:1548 _invClearIndicators:1577 _invSetIndicator:1586 _invCleanup:1591 _invCancelDrag:1598 _invMoveItem:1606 _invCommitDrop:1623 invDragStart:1644 invDragOver:1654 invDragLeave:1671 invDrop:1675 invDragEnd:1681 invTouchStart:1688 invTouchMove:1704 invTouchEnd:1736
@@ -246,8 +246,8 @@ getLastCharacter:22 _homeCantripCount:34 _homeHeroChips:48 _homePlural:68 _homeH
 
 ## Данные — константы верхнего уровня (`имя:строка`)
 
-**data.js** (7697 строк)  
-_ASI:7 _FEAT:8 SCHEMA_VERSION:29 DAMAGE_TYPES:32 DEFAULT_CHARACTER:39 FAMILIAR_FORMS:127 SAVES_DATA:149 CONDITIONS:158 EFFECTS_DATA:181 CLASS_FEATURES:232 SPELL_PREP_CLASSES:482 CANTRIPS_KNOWN_2014:490 SPELLS_KNOWN_2014:498 SPELL_SLOTS_BY_LEVEL:505 CLASS_HIT_DICE:580 SUBCLASSES:586 SOURCE_LABELS:606 SUBCLASS_SOURCE:633 BOOK_CODES:702 _booksOffCache:705 SUBCLASS_LEVEL:746 SUBCLASS_FEATURES:762 WEAPON_PRESETS:1554 ITEM_ICONS:1598 CATEGORY_NAMES:1599 GEAR_PACKS:1608 RACE_DATA:1703 BACKGROUND_SKILLS:2320 BACKGROUND_ALIASES:2399 DEITY_ALIGN_LABELS:2412 DEITIES_DATA:2417 LANGUAGE_CATALOG:2485 RACE_LANGUAGES:2522 CLASS_LANGUAGES:2624 TOOL_CATALOG:2630 RACE_TOOLS:2685 CLASS_TOOLS:2697 SUBCLASS_LANGUAGES:2705 SUBCLASS_TOOLS:2728 RACE_ARMOR:2750 RACE_WEAPONS_SPECIFIC:2756 CLASS_WEAPONS_SPECIFIC:2772 RACE_NAME_POOLS:2785 RACE_NAME_GROUP:2827 SUBCLASS_ARMOR:2842 ARMOR_PRESETS:2873 skills:2890 ABILITY_INFO:2903 CLASS_SKILL_OPTIONS:2943 CLASS_SKILL_COUNT:2958 CLASS_SKILL_MC_COUNT:2959 CLASS_ARMOR_PROFS:2962 CLASS_RESOURCES:2982 ASI_LEVELS:3144 XP_THRESHOLDS:3152 APP_VERSION:3162 APP_VERSION_DATE:3163 APP_TELEGRAM_URL:3169 APP_BOOSTY_URL:3170 FEATS_DATA:3191 APP_CHANGELOG:3513 CASTER_TYPE:7525 THIRD_CASTER_SUBCLASSES:7534 THIRD_CASTER_SLOTS:7541 MULTICLASS_SPELL_SLOTS:7552 MULTICLASS_PREREQUISITES:7577 MULTICLASS_PROFICIENCIES:7595 EDITION_DATA:7624
+**data.js** (7705 строк)  
+_ASI:7 _FEAT:8 SCHEMA_VERSION:29 DAMAGE_TYPES:32 DEFAULT_CHARACTER:39 FAMILIAR_FORMS:127 SAVES_DATA:149 CONDITIONS:158 EFFECTS_DATA:181 CLASS_FEATURES:232 SPELL_PREP_CLASSES:482 CANTRIPS_KNOWN_2014:490 SPELLS_KNOWN_2014:498 SPELL_SLOTS_BY_LEVEL:505 CLASS_HIT_DICE:580 SUBCLASSES:586 SOURCE_LABELS:606 SUBCLASS_SOURCE:633 BOOK_CODES:702 _booksOffCache:705 SUBCLASS_LEVEL:746 SUBCLASS_FEATURES:762 WEAPON_PRESETS:1554 ITEM_ICONS:1598 CATEGORY_NAMES:1599 GEAR_PACKS:1608 RACE_DATA:1703 BACKGROUND_SKILLS:2320 BACKGROUND_ALIASES:2399 DEITY_ALIGN_LABELS:2412 DEITIES_DATA:2417 LANGUAGE_CATALOG:2485 RACE_LANGUAGES:2522 CLASS_LANGUAGES:2624 TOOL_CATALOG:2630 RACE_TOOLS:2685 CLASS_TOOLS:2697 SUBCLASS_LANGUAGES:2705 SUBCLASS_TOOLS:2728 RACE_ARMOR:2750 RACE_WEAPONS_SPECIFIC:2756 CLASS_WEAPONS_SPECIFIC:2772 RACE_NAME_POOLS:2785 RACE_NAME_GROUP:2827 SUBCLASS_ARMOR:2842 ARMOR_PRESETS:2873 skills:2890 ABILITY_INFO:2903 CLASS_SKILL_OPTIONS:2943 CLASS_SKILL_COUNT:2958 CLASS_SKILL_MC_COUNT:2959 CLASS_ARMOR_PROFS:2962 CLASS_RESOURCES:2982 ASI_LEVELS:3144 XP_THRESHOLDS:3152 APP_VERSION:3162 APP_VERSION_DATE:3163 APP_TELEGRAM_URL:3169 APP_BOOSTY_URL:3170 FEATS_DATA:3191 APP_CHANGELOG:3513 CASTER_TYPE:7533 THIRD_CASTER_SUBCLASSES:7542 THIRD_CASTER_SLOTS:7549 MULTICLASS_SPELL_SLOTS:7560 MULTICLASS_PREREQUISITES:7585 MULTICLASS_PROFICIENCIES:7603 EDITION_DATA:7632
 
 **spells.js** (13330 строк)  
 SPELLS_BASE:7
