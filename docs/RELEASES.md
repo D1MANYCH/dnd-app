@@ -3,47 +3,71 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v4.44.3**.
+Актуальная версия — **v4.44.4**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
-<a id="v4.44.3"></a>
-## v4.44.3 — 16 октября 2026
+<a id="v4.44.4"></a>
+## v4.44.4 — 16 октября 2026
 
-🔧 DS-1: старые алиасы цветов заменены прямыми токенами; слои z-index сведены в шкалу --z-* (9 уровней), 206 длительностей переходов — в --t1/--t2/--t3 (140/240/420 мс); объявлены токены макета --action, --nav, --fs-24, --fs-32, --r-4, --r-8; подключён локальный шрифт EB Garamond 400/600/700 (латиница и кириллица), пока не применён; подписи в каталоге предметов и снаряжения, где размер шрифта был не задан, получили 12 px
+🔧 DS-2а: начертания шрифта сведены к четырём токенам --fw-regular/medium/semibold/bold (400/500/600/700; 800, 900 и bold → 700, 650 → 600, 450 и normal → 400), токены радиусов --r-sm/md/lg/xl удалены, все скругления приведены к шкале макета: 4px — кнопки, поля, ячейки; 8px — модалки, шторки, тосты, попапы; pill — переключатели
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/4f302f02...main) · 25 файлов, +1185 −1065
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/b97bf339...main) · 11 файлов, +737 −722
 
-<details><summary>Коммиты и файлы</summary>
+<details><summary>Файлы</summary>
 
-**Коммиты (1):**
+_Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
 
-- [`39168354`](https://github.com/D1MANYCH/dnd-app/commit/39168354) chore(dev): бюджет verifier — maxTurns 45, не больше 6 пунктов проверки, итог на ~38-м ходе
+**Файлы (11):**
 
-**Файлы (25):**
-
-- `style.css` +979 −979
-- `index.html` +63 −63
-- `vendor/fonts/OFL.txt` +93 −0
-- `app-party.js` +8 −8
-- `app-spells.js` +6 −6
+- `style.css` +668 −666
+- `index.html` +52 −52
 - `data.js` +10 −2
-- `.claude/agents/verifier.md` +8 −0
-- `sw.js` +7 −1
 - `CHANGELOG.md` +6 −1
-- `app-inventory.js` +2 −2
-- `app-combat.js` +1 −1
-- `app-core.js` +1 −1
-- `app-ui.js` +1 −1
+- `sw.js` +1 −1
 - `tests/shots/rost6/2014-damage-toast-dark-1024.jpg` +0 −0
 - `tests/shots/rost6/2014-hp-banner-dark-1024.jpg` +0 −0
 - `tests/shots/rost6/2014-wolf-card-dark-1024.jpg` +0 −0
 - `tests/shots/rost6/2024-card-light-375.jpg` +0 −0
 - `tests/shots/rost6/2024-picker-dark-1024.jpg` +0 −0
 - `tests/shots/rost6/2024-picker-dark-375.jpg` +0 −0
+
+</details>
+
+<a id="v4.44.3"></a>
+## v4.44.3 — 16 октября 2026
+
+🔧 DS-1: старые алиасы цветов заменены прямыми токенами; слои z-index сведены в шкалу --z-* (9 уровней), 206 длительностей переходов — в --t1/--t2/--t3 (140/240/420 мс); объявлены токены макета --action, --nav, --fs-24, --fs-32, --r-4, --r-8; подключён локальный шрифт EB Garamond 400/600/700 (латиница и кириллица), пока не применён; подписи в каталоге предметов и снаряжения, где размер шрифта был не задан, получили 12 px
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/4f302f02...b97bf339) · 21 файлов, +1244 −1088
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (2):**
+
+- [`39168354`](https://github.com/D1MANYCH/dnd-app/commit/39168354) chore(dev): бюджет verifier — maxTurns 45, не больше 6 пунктов проверки, итог на ~38-м ходе
+- [`b97bf339`](https://github.com/D1MANYCH/dnd-app/commit/b97bf339) v4.44.3: chore(стили): DS-1: старые алиасы цветов заменены прямыми токенами, z-index и длительности переходов сведены в шкалы --z-*/--t1-3, объявлены токены макета, подключён локальный EB Garamond
+
+**Файлы (21):**
+
+- `style.css` +979 −979
+- `index.html` +63 −63
+- `vendor/fonts/OFL.txt` +93 −0
+- `docs/RELEASES.md` +52 −12
+- `docs/map.md` +11 −11
+- `app-party.js` +8 −8
+- `app-spells.js` +6 −6
+- `data.js` +10 −2
+- `sw.js` +7 −1
+- `CHANGELOG.md` +6 −1
+- `.claude/agents/verifier.md` +4 −0
+- `app-inventory.js` +2 −2
+- `app-combat.js` +1 −1
+- `app-core.js` +1 −1
+- `app-ui.js` +1 −1
 - `vendor/fonts/eb-garamond-cyrillic-400-normal.woff2` +0 −0
 - `vendor/fonts/eb-garamond-cyrillic-600-normal.woff2` +0 −0
 - `vendor/fonts/eb-garamond-cyrillic-700-normal.woff2` +0 −0
