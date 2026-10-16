@@ -174,7 +174,7 @@ function autoFillItemWeight() {
   for (const key in ITEM_WEIGHTS) {
     if (name.includes(key) || key.includes(name)) {
       weightEl.value = ITEM_WEIGHTS[key];
-      weightEl.style.borderColor = "var(--accent-color)";
+      weightEl.style.borderColor = "var(--accent)";
       setTimeout(function(){ weightEl.style.borderColor = ""; }, 1500);
       const hint = $("weight-hint");
       if (hint) { hint.textContent = "✓ автозаполнено"; setTimeout(function(){ hint.textContent=""; }, 2000); }

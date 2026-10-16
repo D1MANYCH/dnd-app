@@ -70,9 +70,9 @@ function saveBattle() {
 // ─── helpers ─────────────────────────────────────────────────
 function getMonsterIcon(type) { return getMonsterTypeIcon(type); }
 function getFactionColor(type) {
-  if (type === "self" || type === "ally") return "var(--success-color)";
+  if (type === "self" || type === "ally") return "var(--success)";
   if (type === "npc")     return "var(--slot-gold)";
-  return "var(--danger-color)";
+  return "var(--danger)";
 }
 function getFactionLabel(type) {
   if (type === "self")    return "я";
@@ -109,7 +109,7 @@ function renderMyChar() {
   var hpPct     = hpMax > 0 ? Math.min(100, Math.round(hpCurrent / hpMax * 100)) : 100;
   // STYLE-8e: цвет идёт в свойство целиком, поэтому берётся токеном — литерал
   // #4da843 на белой карточке светлой темы давал контраст 3.0.
-  var hpColor   = hpPct > 60 ? "var(--success-color)" : hpPct > 30 ? "var(--slot-gold)" : "var(--danger-color)";
+  var hpColor   = hpPct > 60 ? "var(--success)" : hpPct > 30 ? "var(--slot-gold)" : "var(--danger)";
   var conds     = (char.conditions && char.conditions.length) ? "" + dndIcoHtml("alert", 13) + " " + char.conditions.length + " статус" : "";
   container.innerHTML =
     '<div class="pcard pcard-self">' +
@@ -541,8 +541,8 @@ function addMonsterFromCatalog(i, event) {
 // ─── NPCs ────────────────────────────────────────────────────
 // Цвет бейджа отношения для NPC
 function _npcAttColor(att) {
-  if (att === "дружелюбный") return "var(--success-color)";
-  if (att === "враждебный")  return "var(--danger-color)";
+  if (att === "дружелюбный") return "var(--success)";
+  if (att === "враждебный")  return "var(--danger)";
   if (att === "неизв.")      return "var(--text-dim)";
   return "var(--accent-lo)"; // нейтральный по умолчанию (--slot-gold на белом даёт 3.55)
 }
@@ -969,10 +969,10 @@ function renderBattleSetup() {
   // зелёный #4da843 на светлой подложке давал контраст 2.9. Цвет участника
   // (p.color) остаётся hex: STYLE-8d2 снял диск под глифом, цвет идёт в color.
   var sections = [
-    { type: "self",    label: "Я",          color: "var(--success-color)" },
-    { type: "ally",    label: "Союзники",   color: "var(--success-color)" },
+    { type: "self",    label: "Я",          color: "var(--success)" },
+    { type: "ally",    label: "Союзники",   color: "var(--success)" },
     { type: "npc",     label: "Персонажи",  color: "var(--slot-gold)" },
-    { type: "monster", label: "Враги",      color: "var(--danger-color)" }
+    { type: "monster", label: "Враги",      color: "var(--danger)" }
   ];
   var q = battleSearchQuery;
   container.innerHTML = sections.map(function(sec) {

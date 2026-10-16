@@ -3,27 +3,74 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v4.44.2**.
+Актуальная версия — **v4.44.3**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v4.44.3"></a>
+## v4.44.3 — 16 октября 2026
+
+🔧 DS-1: старые алиасы цветов заменены прямыми токенами; слои z-index сведены в шкалу --z-* (9 уровней), 206 длительностей переходов — в --t1/--t2/--t3 (140/240/420 мс); объявлены токены макета --action, --nav, --fs-24, --fs-32, --r-4, --r-8; подключён локальный шрифт EB Garamond 400/600/700 (латиница и кириллица), пока не применён; подписи в каталоге предметов и снаряжения, где размер шрифта был не задан, получили 12 px
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/4f302f02...main) · 25 файлов, +1185 −1065
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (1):**
+
+- [`39168354`](https://github.com/D1MANYCH/dnd-app/commit/39168354) chore(dev): бюджет verifier — maxTurns 45, не больше 6 пунктов проверки, итог на ~38-м ходе
+
+**Файлы (25):**
+
+- `style.css` +979 −979
+- `index.html` +63 −63
+- `vendor/fonts/OFL.txt` +93 −0
+- `app-party.js` +8 −8
+- `app-spells.js` +6 −6
+- `data.js` +10 −2
+- `.claude/agents/verifier.md` +8 −0
+- `sw.js` +7 −1
+- `CHANGELOG.md` +6 −1
+- `app-inventory.js` +2 −2
+- `app-combat.js` +1 −1
+- `app-core.js` +1 −1
+- `app-ui.js` +1 −1
+- `tests/shots/rost6/2014-damage-toast-dark-1024.jpg` +0 −0
+- `tests/shots/rost6/2014-hp-banner-dark-1024.jpg` +0 −0
+- `tests/shots/rost6/2014-wolf-card-dark-1024.jpg` +0 −0
+- `tests/shots/rost6/2024-card-light-375.jpg` +0 −0
+- `tests/shots/rost6/2024-picker-dark-1024.jpg` +0 −0
+- `tests/shots/rost6/2024-picker-dark-375.jpg` +0 −0
+- `vendor/fonts/eb-garamond-cyrillic-400-normal.woff2` +0 −0
+- `vendor/fonts/eb-garamond-cyrillic-600-normal.woff2` +0 −0
+- `vendor/fonts/eb-garamond-cyrillic-700-normal.woff2` +0 −0
+- `vendor/fonts/eb-garamond-latin-400-normal.woff2` +0 −0
+- `vendor/fonts/eb-garamond-latin-600-normal.woff2` +0 −0
+- `vendor/fonts/eb-garamond-latin-700-normal.woff2` +0 −0
+
+</details>
+
 <a id="v4.44.2"></a>
 ## v4.44.2 — 16 октября 2026
 
 🐛 PLAY-5: строка «Книги и дополнения» в настройках кликабельна целиком и показывает «N из M ›» с доступным именем, на экране книг подсвечен активный пресет, «Вкл/Выкл» не переносятся, экран в одну колонку; возврат на страницу сервиса восстанавливает прокрутку; Esc закрывает журнал сессии; Esc до появления тура отменяет его, тур не стартует поверх поля ввода; в боковом меню группа «Действия» с «Отдых» и «Повысить уровень»; подписи доступности у вкладок, гамбургера и закрытия меню
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/a4771c84...main) · 16 файлов, +135 −73
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/a4771c84...4f302f02) · 11 файлов, +312 −225
 
-<details><summary>Файлы</summary>
+<details><summary>Коммиты и файлы</summary>
 
-_Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
+**Коммиты (1):**
 
-**Файлы (16):**
+- [`4f302f02`](https://github.com/D1MANYCH/dnd-app/commit/4f302f02) v4.44.2: fix(лист): PLAY-5: строка «Книги и дополнения» в настройках кликабельна целиком и показывает «N из M ›», на экране книг подсвечен активный пресет, возврат на страницу сервиса восстанавливает прокрутку, Esc закрывает журнал сессии и отменяет тур, в боковом меню группа «Действия» с «Отдых» и «Повысить уровень», подписи доступности у вкладок, гамбургера и закрытия меню
 
+**Файлы (11):**
+
+- `docs/map.md` +143 −143
 - `index.html` +64 −61
+- `docs/RELEASES.md` +38 −9
 - `app-help.js` +19 −0
 - `data.js` +11 −3
 - `app-core.js` +8 −3
@@ -31,14 +78,7 @@ _Список собран при подготовке релиза, по раб
 - `app-log.js` +9 −0
 - `CHANGELOG.md` +6 −1
 - `style.css` +5 −1
-- `.claude/agents/verifier.md` +4 −0
 - `sw.js` +1 −1
-- `tests/shots/rost6/2014-damage-toast-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2014-hp-banner-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2014-wolf-card-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2024-card-light-375.jpg` +0 −0
-- `tests/shots/rost6/2024-picker-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2024-picker-dark-375.jpg` +0 −0
 
 </details>
 

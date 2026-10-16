@@ -141,7 +141,7 @@ function renderPouches() {
   html += '<div class="inv-pouches-hint">';
   if (availPouches > 0) {
     html += '' + dndIcoHtml("inventory", 13) + ' ' + availPouches + ' мешочк' + (availPouches===1?"а":availPouches<5?"а":"ов") + ' · до <strong>' + maxCoins + '</strong> монет';
-    if (totalCoins > maxCoins) html += ' · <span style="color:var(--danger-color)">' + dndIcoHtml("alert", 12) + ' не унести ' + (totalCoins - maxCoins) + ' монет</span>';
+    if (totalCoins > maxCoins) html += ' · <span style="color:var(--danger)">' + dndIcoHtml("alert", 12) + ' не унести ' + (totalCoins - maxCoins) + ' монет</span>';
   } else {
     html += '' + dndIcoHtml("alert", 13) + ' Нет мешочков — нужна СИЛ 8+';
   }
@@ -1261,7 +1261,7 @@ if (!char) return;
 const container = $("weapons-list");
 if (!container) return;
 if (!char.weapons || char.weapons.length === 0) {
-container.innerHTML = '<p style="color:var(--text-muted); text-align:center;">Нет оружия</p>';
+container.innerHTML = '<p style="color:var(--text-dim); text-align:center;">Нет оружия</p>';
 return;
 }
 container.innerHTML = "";

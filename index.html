@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
-<link rel="stylesheet" href="style.css?v=v510">
+<link rel="stylesheet" href="style.css?v=v511">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -612,7 +612,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button class="ptab-btn" onclick="switchProfilesTab('changelog',this)"><span data-ico="history" data-ico-size="16">📋</span> Изменения</button>
 </div>
 <div id="ptab-info" class="ptab-content active">
-<div style="padding:6px 0 4px;font-size:0.75em;color:var(--text-muted);">Данные сохраняются в браузере. Делайте резервные копии или включите синхронизацию на экране «Данные»!</div>
+<div style="padding:6px 0 4px;font-size:0.75em;color:var(--text-dim);">Данные сохраняются в браузере. Делайте резервные копии или включите синхронизацию на экране «Данные»!</div>
 <div class="app-info-grid">
 <div class="app-info-item"><span data-ico="dice" data-ico-size="16">🎲</span> D&amp;D 5e по Fantom Studio</div>
 <div class="app-info-item"><span data-ico="phone" data-ico-size="16">📱</span> PWA — работает офлайн</div>
@@ -1453,7 +1453,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <h3>Ячейки заклинаний</h3>
 <button class="ssl-restore-btn" onclick="restoreAllSlots()" title="Восстановить все ячейки"><span data-ico="bed" data-ico-size="16">🛏️</span> Длинный отдых</button>
 </div>
-<p style="font-size:0.72em; color:var(--text-muted); margin-bottom:8px;"><span data-ico="bulb" data-ico-size="14">💎</span> Клик по ячейке — потратить / вернуть · Золотые слева — свободные, счётчик: <span style="color:var(--success-color);font-weight:600;">свободные</span>/всего</p>
+<p style="font-size:0.72em; color:var(--text-dim); margin-bottom:8px;"><span data-ico="bulb" data-ico-size="14">💎</span> Клик по ячейке — потратить / вернуть · Золотые слева — свободные, счётчик: <span style="color:var(--success);font-weight:600;">свободные</span>/всего</p>
 <div class="spell-slots-visual" id="spell-slots-visual"></div>
 <button type="button" class="mob-row" id="ssl-all-mob" onclick="toggleEmptySlotLevels()">Уровни без ячеек ▾</button>
 </div>
@@ -3096,11 +3096,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <button class="item-qty-btn" onclick="setItemQty(20)">×20</button>
   </div>
 </div>
-<label>Вес за шт. (фнт) <span id="weight-hint" style="font-size:0.75em;color:var(--text-muted);font-weight:normal;"></span> <button type="button" class="field-help-btn" onclick="openItemRef('weight')">?</button></label>
+<label>Вес за шт. (фнт) <span id="weight-hint" style="font-size:0.75em;color:var(--text-dim);font-weight:normal;"></span> <button type="button" class="field-help-btn" onclick="openItemRef('weight')">?</button></label>
 <input type="number" id="new-item-weight" value="0" step="0.1" min="0">
-<label>Слотов за шт. <span style="font-size:0.75em;color:var(--text-muted);font-weight:normal;">необязательно</span> <button type="button" class="field-help-btn" onclick="openItemRef('slots')">?</button></label>
+<label>Слотов за шт. <span style="font-size:0.75em;color:var(--text-dim);font-weight:normal;">необязательно</span> <button type="button" class="field-help-btn" onclick="openItemRef('slots')">?</button></label>
 <input type="number" id="new-item-slots" placeholder="авто" step="0.5" min="0">
-<label>Где лежит <span style="font-size:0.75em;color:var(--text-muted);font-weight:normal;">влияет на «Снять рюкзак»</span></label>
+<label>Где лежит <span style="font-size:0.75em;color:var(--text-dim);font-weight:normal;">влияет на «Снять рюкзак»</span></label>
 <select id="new-item-location">
   <option value="">— не задано —</option>
   <option value="backpack">🎒 в рюкзаке</option>
@@ -3111,14 +3111,14 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <option value="stored">📦 в лагере</option>
 </select>
 <div id="item-armor-fields" style="display:none">
-<label>Доспех для КД <span style="font-size:0.75em;color:var(--text-muted);font-weight:normal;">основа и магический бонус — надетый меняет КД</span></label>
+<label>Доспех для КД <span style="font-size:0.75em;color:var(--text-dim);font-weight:normal;">основа и магический бонус — надетый меняет КД</span></label>
 <div class="item-charges-row">
   <select id="new-item-armorbase" title="Основа доспеха"></select>
   <input type="number" id="new-item-acbonus" placeholder="+0" min="0" max="3" title="Магический бонус к КД">
 </div>
 </div>
-<label class="item-attune-label"><input type="checkbox" id="new-item-attune"> <span data-ico="settings" data-ico-size="14">⚙</span> Требует настройки <span style="font-size:0.75em;color:var(--text-muted);font-weight:normal;">(магический предмет, лимит 3)</span></label>
-<label><span data-ico="zap" data-ico-size="16">⚡</span> Заряды <span style="font-size:0.75em;color:var(--text-muted);font-weight:normal;">палочка/посох/жезл — макс. 0, если зарядов нет</span></label>
+<label class="item-attune-label"><input type="checkbox" id="new-item-attune"> <span data-ico="settings" data-ico-size="14">⚙</span> Требует настройки <span style="font-size:0.75em;color:var(--text-dim);font-weight:normal;">(магический предмет, лимит 3)</span></label>
+<label><span data-ico="zap" data-ico-size="16">⚡</span> Заряды <span style="font-size:0.75em;color:var(--text-dim);font-weight:normal;">палочка/посох/жезл — макс. 0, если зарядов нет</span></label>
 <div class="item-charges-row">
   <input type="number" id="new-item-charges" placeholder="тек." min="0" title="Текущие заряды">
   <span class="item-charges-sep">/</span>
@@ -3245,7 +3245,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button type="button" class="modal-close" onclick="closeWeaponModal()" aria-label="Закрыть">✕</button>
 <h3 id="weapon-modal-title">Добавить оружие</h3>
 <div id="weapon-picker-section">
-<label style="margin-top:10px; color: var(--text-color);"><span data-ico="scroll" data-ico-size="16">📜</span> Выбрать из списка:</label>
+<label style="margin-top:10px; color: var(--text);"><span data-ico="scroll" data-ico-size="16">📜</span> Выбрать из списка:</label>
 <input type="text" id="weapon-search-inp" class="weapon-search-inp" placeholder="🔍 Поиск оружия..." oninput="filterWeaponPresets()">
 <div class="weapon-filter-chips" id="weapon-filter-chips">
 <button type="button" class="wf-chip" data-fgroup="cat" data-fval="simple" onclick="toggleWeaponFilter('cat','simple')">Простое</button>
@@ -3270,7 +3270,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 </details>
 </div>
-<label id="weapon-manual-label" style="margin-top:15px; color: var(--text-color);"><span data-ico="edit" data-ico-size="16">✏️</span> Или введите вручную:</label>
+<label id="weapon-manual-label" style="margin-top:15px; color: var(--text);"><span data-ico="edit" data-ico-size="16">✏️</span> Или введите вручную:</label>
 <div class="add-spell-form">
 <input type="hidden" id="weapon-edit-index" value="-1">
 <div class="row">
@@ -3383,7 +3383,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <option value="other">🐾 Прочее</option>
 </select>
 <div id="companion-familiar-row" style="display:none">
-<label>Форма фамильяра <em style="font-weight:400;color:var(--text-muted)">— автозаполнит статы</em></label>
+<label>Форма фамильяра <em style="font-weight:400;color:var(--text-dim)">— автозаполнит статы</em></label>
 <select id="companion-familiar-form-sel" onchange="applyFamiliarForm()"></select>
 </div>
 <label>Макс. ХП</label>
@@ -3569,44 +3569,44 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v510"></script>
+<script src="app-log.js?v=v511"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v510"></script>
-<script src="bg-space.js?v=v510"></script>
-<script src="dice-arena-bg.js?v=v510"></script>
-<script src="data.js?v=v510"></script>
+<script src="icons.js?v=v511"></script>
+<script src="bg-space.js?v=v511"></script>
+<script src="dice-arena-bg.js?v=v511"></script>
+<script src="data.js?v=v511"></script>
 <!-- PERF-2/PERF-4: build-notes-data.js (~530 КБ) и character-builds.js (~200 КБ) грузятся лениво — см. ensureBuildNotes/ensureBuilds ниже -->
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v510"></script>
-<script src="spells.js?v=v510"></script>
-<script src="spell-effects.js?v=v510"></script>
+<script src="glossary-data.js?v=v511"></script>
+<script src="spells.js?v=v511"></script>
+<script src="spell-effects.js?v=v511"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v510"></script>
-<script src="app-migrate.js?v=v510"></script>
-<script src="app-builds.js?v=v510"></script>
-<script src="app-core.js?v=v510"></script>
-<script src="app-io.js?v=v510"></script>
-<script src="app-backup.js?v=v510"></script>
-<script src="app-sync.js?v=v510"></script>
-<script src="app-combat.js?v=v510"></script>
-<script src="app-conditions.js?v=v510"></script>
-<script src="app-cast-effects.js?v=v510"></script>
-<script src="app-proficiencies.js?v=v510"></script>
-<script src="app-hp.js?v=v510"></script>
-<script src="app-spells.js?v=v510"></script>
-<script src="app-inventory.js?v=v510"></script>
-<script src="start-equip-2014.js?v=v510"></script>
+<script src="rules.js?v=v511"></script>
+<script src="app-migrate.js?v=v511"></script>
+<script src="app-builds.js?v=v511"></script>
+<script src="app-core.js?v=v511"></script>
+<script src="app-io.js?v=v511"></script>
+<script src="app-backup.js?v=v511"></script>
+<script src="app-sync.js?v=v511"></script>
+<script src="app-combat.js?v=v511"></script>
+<script src="app-conditions.js?v=v511"></script>
+<script src="app-cast-effects.js?v=v511"></script>
+<script src="app-proficiencies.js?v=v511"></script>
+<script src="app-hp.js?v=v511"></script>
+<script src="app-spells.js?v=v511"></script>
+<script src="app-inventory.js?v=v511"></script>
+<script src="start-equip-2014.js?v=v511"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v510"></script>
-<script src="app-wildshape.js?v=v510"></script>
-<script src="class-choices.js?v=v510"></script>
-<script src="subclass-choices-data.js?v=v510"></script>
+<script src="app-party.js?v=v511"></script>
+<script src="app-wildshape.js?v=v511"></script>
+<script src="class-choices.js?v=v511"></script>
+<script src="subclass-choices-data.js?v=v511"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js).
      PERF-5: модуль (~200 КБ) грузится лениво — window.ensureDiceBox() из app-dice.js
      при первом действии пользователя или открытии кубиков; пока не загружен — 2D-бросок. -->
@@ -3614,7 +3614,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   var diceBoxP = null;
   window.ensureDiceBox = function () {
     if (!diceBoxP) {
-      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v510").then(function (m) {
+      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v511").then(function (m) {
         window.DiceBox = m.default;
         window.dispatchEvent(new Event("dicebox:ready"));
         return m.default;
@@ -3623,17 +3623,17 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     return diceBoxP;
   };
 </script>
-<script src="app-dice.js?v=v510"></script>
-<script src="app-settings.js?v=v510"></script>
-<script src="app-ui.js?v=v510"></script>
-<script src="app-home.js?v=v510"></script>
-<script src="app-asi.js?v=v510"></script>
-<script src="app-progress.js?v=v510"></script>
-<script src="app-notes.js?v=v510"></script>
-<script src="app-desktop.js?v=v510"></script>
-<script src="history-stack.js?v=v510"></script>
-<script src="app-help.js?v=v510"></script>
-<script src="app-sheet2.js?v=v510"></script>
+<script src="app-dice.js?v=v511"></script>
+<script src="app-settings.js?v=v511"></script>
+<script src="app-ui.js?v=v511"></script>
+<script src="app-home.js?v=v511"></script>
+<script src="app-asi.js?v=v511"></script>
+<script src="app-progress.js?v=v511"></script>
+<script src="app-notes.js?v=v511"></script>
+<script src="app-desktop.js?v=v511"></script>
+<script src="history-stack.js?v=v511"></script>
+<script src="app-help.js?v=v511"></script>
+<script src="app-sheet2.js?v=v511"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3646,9 +3646,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v510",
-    "vendor/jspdf/roboto-base64.js?v=v510",
-    "app-pdf.js?v=v510"
+    "vendor/jspdf/jspdf.umd.min.js?v=v511",
+    "vendor/jspdf/roboto-base64.js?v=v511",
+    "app-pdf.js?v=v511"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3671,50 +3671,50 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // PERF-4: сами билды нужны пикеру, гайду, плану и подсказкам левел-апа — грузим по требованию.
   window.ensureBuilds = function () {
     if (window.CHARACTER_BUILDS) return Promise.resolve();
-    return loadScript("character-builds.js?v=v510");
+    return loadScript("character-builds.js?v=v511");
   };
   // PERF-2: заметки билдов нужны только applyBuild — грузим по требованию.
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v510").then(function () {
+    return loadScript("build-notes-data.js?v=v511").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
   // NGEN-2: пулы генератора «Записей» нужны только кнопке «Сгенерировать».
   window.ensureNotesGen = function () {
     if (window.NOTES_GEN) return Promise.resolve();
-    return loadScript("notes-gen-data.js?v=v510");
+    return loadScript("notes-gen-data.js?v=v511");
   };
   // PERF-3: бестиарий SRD нужен только пикерам вкладки отряда — грузим по требованию.
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v510"),
-      loadScript("npc-srd.js?v=v510")
+      loadScript("monsters-srd.js?v=v511"),
+      loadScript("npc-srd.js?v=v511")
     ]);
   };
   // РОСТ-5: звери для Дикого облика и «Превращения» — грузим по требованию.
   window.ensureBeastForms = function () {
     if (window.BEAST_FORMS) return Promise.resolve();
-    return loadScript("beast-forms.js?v=v510");
+    return loadScript("beast-forms.js?v=v511");
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v510");
+    return loadScript("magic-items.js?v=v511");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v510");
+    return loadScript("gear-catalog.js?v=v511");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v510").then(function () {
+    return loadScript("data-2024.js?v=v511").then(function () {
       window.__edition2024Loaded = true;
     });
   };

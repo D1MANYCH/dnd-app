@@ -3277,7 +3277,7 @@ function renderConditionsPopup() {
   }
   if (concName || ritOn) { /* есть что показать */ }
   else if (!baseConditions.length && !exhLevel && !buffs.length && !debuffs.length) {
-    list.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:12px;">Нет активных состояний</div>';
+    list.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:12px;">Нет активных состояний</div>';
     return;
   }
   // Группа: Состояния

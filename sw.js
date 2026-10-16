@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v510';
+const CACHE_NAME = 'dnd-sheet-v511';
 
 const FILES_TO_CACHE = [
   './',
@@ -108,6 +108,12 @@ const FILES_TO_CACHE = [
   './app-pdf.js',
   './vendor/jspdf/jspdf.umd.min.js',
   './vendor/jspdf/roboto-base64.js',
+  './vendor/fonts/eb-garamond-cyrillic-400-normal.woff2',
+  './vendor/fonts/eb-garamond-cyrillic-600-normal.woff2',
+  './vendor/fonts/eb-garamond-cyrillic-700-normal.woff2',
+  './vendor/fonts/eb-garamond-latin-400-normal.woff2',
+  './vendor/fonts/eb-garamond-latin-600-normal.woff2',
+  './vendor/fonts/eb-garamond-latin-700-normal.woff2',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

@@ -946,7 +946,7 @@ function renderCompanions() {
       var hpPct = c.hpMax > 0 ? Math.round((c.hpCurrent / c.hpMax) * 100) : 100;
       // STYLE-8e: цвета идут в свойство целиком — берутся токенами (в светлой
       // теме литералы давали контраст ниже 4.5 на белой подложке).
-      var hpColor = hpPct > 60 ? "var(--success-color)" : hpPct > 30 ? "var(--slot-gold)" : "var(--danger-color)";
+      var hpColor = hpPct > 60 ? "var(--success)" : hpPct > 30 ? "var(--slot-gold)" : "var(--danger)";
       return '<div class="pcard pcard-companion">' +
         '<div class="pcard-icon" style="color:var(--magic)">' + icon + '</div>' +
         '<div class="pcard-body">' +
