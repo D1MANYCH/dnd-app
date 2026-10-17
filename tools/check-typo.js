@@ -5,7 +5,7 @@
 // Видимые строки — сегменты с кириллицей:
 //   index.html — текст между тегами и атрибуты placeholder/title/aria-label/alt
 //                (<script>/<style> и on*-обработчики пропускаются);
-//   app-*.js   — строковые литералы вне комментариев, HTML-теги внутри вырезаются
+//   app-*.js, history-stack.js, start-equip-2014.js — строковые литералы вне комментариев, HTML-теги внутри вырезаются
 //                (атрибуты title/placeholder/aria-label из них берутся отдельно).
 //
 // Счётчики (FAIL только при РОСТЕ против tools/typo-baseline.json):
@@ -39,6 +39,10 @@ const CHECKS = {
   quote: /(?:^|[^=\w])"(?=[А-Яа-яЁё«])|[А-Яа-яЁё.!?»]"(?!>|\s*[\w-]+=)/g,
   nbsp: new RegExp('(?<=^|[\\s(«—])(?:' + SHORT + ') (?=\\S)|\\d (?:' + UNITS + ')(?![А-Яа-яЁё\\w])', 'gi'),
 };
+
+// Имена предметов в таблицах — идентификаторы (сверяются с каталогом и инвентарём),
+// неразрывные пробелы в них сломали бы поиск; интерфейсные строки файла правим вручную.
+const NBSP_SKIP = ['start-equip-2014.js'];
 
 // ---------- извлечение сегментов ----------
 
@@ -124,7 +128,7 @@ function htmlSegments(src) {
 // ---------- подсчёт ----------
 
 function collect() {
-  var files = fs.readdirSync(root).filter(function (f) { return /^app-.*\.js$/.test(f); }).sort();
+  var files = fs.readdirSync(root).filter(function (f) { return /^app-.*\.js$/.test(f); }).sort().concat(['history-stack.js', 'start-equip-2014.js']);
   files.unshift('index.html');
   var hits = { ellipsis: [], range: [], quote: [], nbsp: [] };
   files.forEach(function (f) {
@@ -132,6 +136,7 @@ function collect() {
     var segs = f === 'index.html' ? htmlSegments(src) : jsSegments(src);
     segs.forEach(function (s) {
       Object.keys(CHECKS).forEach(function (k) {
+        if (k === 'nbsp' && NBSP_SKIP.indexOf(f) >= 0) return;
         var re = CHECKS[k], m;
         re.lastIndex = 0;
         while ((m = re.exec(s.text))) {

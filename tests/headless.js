@@ -3786,6 +3786,15 @@
     });
   }
 
+  // ── fmtNum (app-core.js): разряды чисел, DS-4.5 ──
+  t("Разряды чисел: 9999 слитно, дробное без разрядов, 10 000 и 355 000 через U+202F", function() {
+    if (fmtNum(9999) !== "9999") return "fmtNum(9999) = " + fmtNum(9999);
+    if (fmtNum(10000) !== "10 000") return "fmtNum(10000) = " + fmtNum(10000);
+    if (fmtNum(355000) !== "355 000") return "fmtNum(355000) = " + fmtNum(355000);
+    if (fmtNum(10000.5) !== "10000.5") return "fmtNum(10000.5) = " + fmtNum(10000.5);
+    return true;
+  });
+
   // ────────── БЛОК 30 (FIN-12): непокрытые модули — AppLog / history-stack / notesV2 / backup / quickRoll-edge / party ──────────
   // Все под-блоки гардируются typeof — в минимальной среде (браузерный runner без app-log/
   // app-notes/history-stack/app-backup) молча пропускаются. Раннер синхронный (process.exit

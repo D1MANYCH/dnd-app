@@ -3,39 +3,68 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v4.44.16**.
+Актуальная версия — **v4.44.17**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v4.44.17"></a>
+## v4.44.17 — 17 октября 2026
+
+🐛 Правки по ревью PR #6: после ошибки в поле формулы кубиков нажатие «Бросить» или «Сохранить» в Safari и iOS больше не показывает ошибку из-за ухода из поля; при снятии ошибки с поля убирается aria-describedby; в «Стартовом снаряжении» неразрывные пробелы в подписях «на выбор», «А также:» и подсказке «Вместо снаряжения…»; fmtNum перенесён из rules.js в app-core.js; токен --hit вынесен в блок токенов :root; check-typo проверяет также history-stack.js и start-equip-2014.js (имена предметов в таблицах снаряжения на неразрывные пробелы не проверяются); tests/shots/ добавлена в .gitignore
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/7a9a1479...main) · 13 файлов, +102 −75
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (1):**
+
+- [`52146088`](https://github.com/D1MANYCH/dnd-app/commit/52146088) Merge pull request #6 from D1MANYCH/claude/design-system-extraction-ddcnef
+
+**Файлы (13):**
+
+- `index.html` +52 −52
+- `data.js` +10 −2
+- `tests/headless.js` +9 −0
+- `tools/check-typo.js` +7 −2
+- `CHANGELOG.md` +6 −1
+- `tests/rules-cases.js` +0 −7
+- `app-core.js` +6 −0
+- `start-equip-2014.js` +3 −3
+- `app-dice.js` +4 −1
+- `rules.js` +0 −5
+- `style.css` +2 −1
+- `.gitignore` +2 −0
+- `sw.js` +1 −1
+
+</details>
+
 <a id="v4.44.16"></a>
 ## v4.44.16 — 17 октября 2026
 
 🐛 «Вернуть» после замены секции вариантом больше не записывает текст в другого персонажа, если персонажа сменили, пока висит тост; сбой при импорте заметок из JSON теперь показывает тост с ошибкой вместо молчаливого отказа
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/5a9240e2...main) · 13 файлов, +118 −86
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/5a9240e2...7a9a1479) · 9 файлов, +157 −98
 
-<details><summary>Файлы</summary>
+<details><summary>Коммиты и файлы</summary>
 
-_Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
+**Коммиты (1):**
 
-**Файлы (13):**
+- [`7a9a1479`](https://github.com/D1MANYCH/dnd-app/commit/7a9a1479) v4.44.16: fix(заметки): «Вернуть» после замены секции вариантом больше не записывает текст в другого персонажа, если персонажа сменили, пока висит тост; сбой при импорте заметок из JSON теперь показывает тост с ошибкой вместо молчаливого отказа
+
+**Файлы (9):**
 
 - `index.html` +52 −52
 - `app-notes.js` +38 −30
+- `docs/RELEASES.md` +35 −8
 - `data.js` +10 −2
 - `.claude/commands/ship.md` +8 −0
+- `docs/map.md` +4 −4
 - `CHANGELOG.md` +6 −1
 - `.claude/agents/releaser.md` +3 −0
 - `sw.js` +1 −1
-- `tests/shots/rost6/2014-damage-toast-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2014-hp-banner-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2014-wolf-card-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2024-card-light-375.jpg` +0 −0
-- `tests/shots/rost6/2024-picker-dark-1024.jpg` +0 −0
-- `tests/shots/rost6/2024-picker-dark-375.jpg` +0 −0
 
 </details>
 

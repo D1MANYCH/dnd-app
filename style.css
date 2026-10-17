@@ -331,6 +331,8 @@
 --pact: #9b59b6; --ritual-timer: #d4a5ff;
 --twf: #8e44ad; --twf-fg: #bb86fc; --twf-bg: #2a1a3a;
 --print-paper: #fff; --print-ink: #000;
+/* DS-5в: минимальная область нажатия (на тач-экранах 48 px — media внизу) */
+--hit: 40px;
 }
 
 /* ========== UI-4. Плотность интерфейса (compact / standard / cozy) ==========
@@ -17805,7 +17807,6 @@ button.modal-close-bottom:hover,
 }
 /* DS-5в: область нажатия мелких кнопок — не меньше --hit (40 ПК / 48 тач), вид не меняется.
    :where() — нулевая специфичность: position у абсолютно позиционированных кнопок не перебивается. */
-:root { --hit: 40px; }
 @media (pointer: coarse) { :root { --hit: 48px; } }
 :where(.qrs-close, .aef-row-x, .tracker-roll-btn, .tracker-remove-btn, .tracker-hp-btn, .tracker-info-btn,
   .field-help-btn, .res-add-btn, .res-tag-x, .prof-chip-remove, .notes-tag-remove, .race-bonus-x,

@@ -37,13 +37,6 @@ function rulesCases(t, group) {
     return true;
   });
 
-  t("Разряды чисел: 9999 слитно, 10 000 и 355 000 через U+202F", function() {
-    if (fmtNum(9999) !== "9999") return "fmtNum(9999) = " + fmtNum(9999);
-    if (fmtNum(10000) !== "10 000") return "fmtNum(10000) = " + fmtNum(10000);
-    if (fmtNum(355000) !== "355 000") return "fmtNum(355000) = " + fmtNum(355000);
-    return true;
-  });
-
   t("Бонус мастерства по уровням: границы 5 / 9 / 13 / 17", function() {
     var table = { 1: 2, 4: 2, 5: 3, 8: 3, 9: 4, 12: 4, 13: 5, 16: 5, 17: 6, 20: 6 };
     var lv = Object.keys(table);

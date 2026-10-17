@@ -6,6 +6,11 @@
 // ── Хелперы ─────────────────────────────────────────────────
 /** Короткий алиас для document.getElementById */
 function $(id) { return document.getElementById(id); }
+// DS-4.5: числа от 5 цифр — разряды через полупробел U+202F (10 000), четырёхзначные слитно.
+function fmtNum(n) {
+  var s = String(n);
+  return /^-?\d{5,}$/.test(s) ? s.replace(/\B(?=(\d{3})+$)/g, " ") : s;
+}
 /** Текущий персонаж */
 function getCurrentChar() { return characters.find(function(c) { return c.id === currentId; }); }
 /** Открыть/закрыть простую модалку по id */
@@ -1585,6 +1590,7 @@ function clearFieldError(input) {
   if (!input || !input._fieldErrEl) return;
   input._fieldErrEl.textContent = "";
   input.removeAttribute("aria-invalid");
+  if (input.getAttribute("aria-describedby") === input._fieldErrEl.id) input.removeAttribute("aria-describedby");
 }
 
 // PLAY-1: необязательное действие тоста { label, onClick } — текстовая кнопка справа

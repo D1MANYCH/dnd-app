@@ -167,7 +167,7 @@ function _rerenderStartEquip(scope) {
 }
 
 function _startItemLabel(it) {
-  return typeof it === "string" ? it : (_START_PICK_LABELS[it.pick] || it.pick) + " на выбор";
+  return typeof it === "string" ? it : (_START_PICK_LABELS[it.pick] || it.pick) + " на\u00a0выбор";
 }
 
 function _startChoicesHtml(scope, choices) {
@@ -317,7 +317,7 @@ function renderClassEquip14(char) {
   html += _startChoicesHtml("class", cd.def.choices);
   var fixed = (cd.def.fixed || []).filter(function(it) { return typeof it === "string"; });
   var fixedPicks = (cd.def.fixed || []).filter(function(it) { return typeof it !== "string"; });
-  if (fixed.length) html += '<div class="race-extras-hint">А также: ' + escapeHtml(fixed.join(", ")) + '</div>';
+  if (fixed.length) html += '<div class="race-extras-hint">А\u00a0также: ' + escapeHtml(fixed.join(", ")) + '</div>';
   if (fixedPicks.length) {
     var st = _startState();
     html += '<div class="race-extras-row">';
@@ -334,7 +334,7 @@ function renderClassEquip14(char) {
   }
   var g = cd.def.gold;
   html += '<div class="race-extras-row"><button class="race-extras-btn" onclick="giveClassEquipment14()">Выдать снаряжение</button>';
-  if (!char.bgEquipGiven) html += '<button class="race-extras-btn" onclick="giveStartingGold14()" title="Вместо снаряжения класса и предыстории (PHB, стр. 143)">Вместо снаряжения — ' +
+  if (!char.bgEquipGiven) html += '<button class="race-extras-btn" onclick="giveStartingGold14()" title="Вместо снаряжения класса и\u00a0предыстории (PHB, стр.\u00a0143)">Вместо снаряжения — ' +
     g[0] + 'к' + g[1] + (g[2] > 1 ? ' × ' + g[2] : '') + ' зм</button>';
   return html + '</div>';
 }

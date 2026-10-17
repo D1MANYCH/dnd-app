@@ -1290,8 +1290,11 @@ function _rollFormulaFrom(inputId) {
 function _diceFieldErrOpts(input) {
   return input.id === "saved-roll-formula" ? { el: $("saved-roll-err"), noFocus: true } : { after: input.parentElement, noFocus: true };
 }
+// Safari / iOS не переводят фокус на кнопку при клике — relatedTarget пуст; берём цель pointerdown (≤500 мс назад).
+var _dicePtr = { el: null, t: 0 };
+document.addEventListener("pointerdown", function(e) { _dicePtr.el = e.target; _dicePtr.t = Date.now(); }, true);
 function diceFormulaBlur(input, ev) {
-  var to = ev && ev.relatedTarget;
+  var to = (ev && ev.relatedTarget) || (Date.now() - _dicePtr.t < 500 ? _dicePtr.el : null);
   if (to && to.closest && to.closest(".dice-formula-panel, .saved-roll-form")) return;
   var v = (input.value || "").trim();
   if (!v) return;
