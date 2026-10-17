@@ -2178,6 +2178,10 @@ select:where(:not(.bp-select):not(.flat-field):not(:is(.confirm-modal-box, .moda
 box-shadow: 0 0 0 3px var(--field-focus-ring);
 background-color: var(--field-focus-bg);
 }
+/* DS-5.6: поле с ошибкой и подпись под ним (showFieldError). */
+input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="true"] { border-color: var(--danger); }
+.field-err { margin-top: var(--sp-1); color: var(--danger); font-size: var(--fs-sm); }
+.field-err:empty { display: none; }
 /* UI-fix: оформление раскрытого списка <select> в тон теме (был системный серый фон + белый текст).
    Заголовки групп — акцентом, пункты — обычным текстом на тёмной подложке. */
 select { accent-color: var(--accent); }
@@ -11584,6 +11588,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   border-color: var(--accent) !important;
   background: var(--avatar-url-focus-bg) !important;
 }
+.avatar-url-input[aria-invalid="true"] { border-color: var(--danger) !important; }
 
 /* ══ МОДАЛКА АВАТАРА: новая структура секций ═══════════════════════ */
 .avatar-section {
@@ -17288,6 +17293,10 @@ button.conditions-popup-close:hover {
   background: none;
   border-bottom-color: var(--accent);
   box-shadow: none;
+}
+/* DS-5.6: ошибка сильнее фокуса — правило после :focus той же специфичности. */
+:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) :where(input, select, textarea)[aria-invalid="true"] {
+  border-bottom-color: var(--danger);
 }
 
 /* Подвал: «Закрыть» у форм .modal — текстом, как «Отмена» у подтверждений;

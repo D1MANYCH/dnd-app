@@ -1556,6 +1556,37 @@ function showToast(msg, type, action) {
   toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, life);
 }
 
+// DS-5.6: ошибка поля — подпись под полем вместо тоста, снимается при первом вводе.
+// opts.el — готовый блок ошибки; opts.after — после какого узла вставить новый (по умолчанию после поля).
+function showFieldError(input, msg, opts) {
+  if (typeof input === "string") input = document.getElementById(input);
+  if (!input) return;
+  opts = opts || {};
+  var el = opts.el || input._fieldErrEl;
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "field-err";
+    el.id = (input.id || "field") + "-err";
+    el.setAttribute("role", "alert");
+    (opts.after || input).insertAdjacentElement("afterend", el);
+  }
+  input._fieldErrEl = el;
+  el.textContent = msg;
+  input.setAttribute("aria-invalid", "true");
+  if (el.id) input.setAttribute("aria-describedby", el.id);
+  if (!input._fieldErrBound) {
+    input._fieldErrBound = true;
+    input.addEventListener("input", function() { clearFieldError(input); });
+  }
+  if (!opts.noFocus) { try { input.focus(); } catch (e) {} }
+}
+function clearFieldError(input) {
+  if (typeof input === "string") input = document.getElementById(input);
+  if (!input || !input._fieldErrEl) return;
+  input._fieldErrEl.textContent = "";
+  input.removeAttribute("aria-invalid");
+}
+
 // PLAY-1: необязательное действие тоста { label, onClick } — текстовая кнопка справа
 // (напр. «Отменить»). С действием тост живёт дольше. Возвращает время жизни, мс.
 function toastAddAction(toast, action, life) {

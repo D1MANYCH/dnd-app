@@ -221,8 +221,8 @@ document.addEventListener('click', function(ev) {
 function setDiceMode(btn, mode) {
   window.__diceSelectedMode = mode;
   var seg = btn && btn.parentElement;
-  if (seg) seg.querySelectorAll(".dice-mode-seg-btn").forEach(function(b){ b.classList.remove("active"); });
-  if (btn) btn.classList.add("active");
+  if (seg) seg.querySelectorAll(".dice-mode-seg-btn").forEach(function(b){ b.classList.remove("active"); b.setAttribute("aria-checked", "false"); });
+  if (btn) { btn.classList.add("active"); btn.setAttribute("aria-checked", "true"); }
   try { _paintDiceMode(); } catch (e) {}
 }
 function rollDiceWithSelectedMode(sides) {
@@ -1279,9 +1279,24 @@ function _rollFormulaFrom(inputId) {
   if (parsed && !parsed.ok) {
     var resultBig = $("dice-result-big");
     var resultInfo = $("dice-result-info");
-    if (resultInfo) resultInfo.textContent = parsed.error;
+    if (input.id === "dice-custom-input-main") { showFieldError(input, parsed.error, _diceFieldErrOpts(input)); if (resultInfo) resultInfo.textContent = ""; }
+    else if (resultInfo) resultInfo.textContent = parsed.error;
     if (resultBig) resultBig.textContent = '—';
   }
+}
+
+// DS-5.6: формулу проверяем при уходе из поля, пустую — только при броске.
+// Уход на чипы формулы и кнопки той же формы — не уход, ошибку не показываем.
+function _diceFieldErrOpts(input) {
+  return input.id === "saved-roll-formula" ? { el: $("saved-roll-err"), noFocus: true } : { after: input.parentElement, noFocus: true };
+}
+function diceFormulaBlur(input, ev) {
+  var to = ev && ev.relatedTarget;
+  if (to && to.closest && to.closest(".dice-formula-panel, .saved-roll-form")) return;
+  var v = (input.value || "").trim();
+  if (!v) return;
+  var p = parseDiceFormula(input.id === "saved-roll-formula" ? _savedRollFormula(v) : v);
+  if (!p.ok) showFieldError(input, p.error, _diceFieldErrOpts(input));
 }
 
 // UX-2: поповер-инпут «своя формула» — тот же общий обработчик.
@@ -1358,7 +1373,7 @@ function renderDiceFan() {
   for (var i = 0; i < DICE_FAN_ORDER.length; i++) {
     var s = DICE_FAN_ORDER[i];
     html += '<button type="button" class="dice-fan-item' + (s === _selectedDie ? ' is-sel' : '') + '"' +
-      ' role="tab" aria-selected="' + (s === _selectedDie) + '" data-sides="' + s + '"' +
+      ' role="radio" aria-checked="' + (s === _selectedDie) + '" data-sides="' + s + '"' +
       ' onclick="selectDie(' + s + ')" aria-label="Выбрать к' + s + '">' +
       '<span class="dice-fan-glyph">' + _diceShapeSvg(s, 28) + '</span>' +
       '<span class="dice-fan-label">к' + s + '</span>' +
@@ -1426,7 +1441,7 @@ function selectDie(sides) {
   for (var i = 0; i < items.length; i++) {
     var on = parseInt(items[i].getAttribute('data-sides'), 10) === sides;
     items[i].classList.toggle('is-sel', on);
-    items[i].setAttribute('aria-selected', on ? 'true' : 'false');
+    items[i].setAttribute('aria-checked', on ? 'true' : 'false');
     if (on && !prefersReducedMotion()) {
       items[i].classList.remove('is-pick');
       void items[i].offsetWidth;
@@ -1547,6 +1562,7 @@ function savedRollEdit(i) {
   n.value = r ? r.name : '';
   f.value = r ? r.formula : '';
   if (err) err.textContent = '';
+  f.removeAttribute("aria-invalid");
   form.hidden = false;
   try { n.focus(); } catch (e) {}
 }
@@ -1562,7 +1578,7 @@ function savedRollSubmit() {
   var formula = _savedRollFormula(f ? f.value : '');
   var p = parseDiceFormula(formula);
   var msg = !p.ok ? p.error : (formula.length > 60 ? 'Формула длиннее 60 знаков' : '');
-  if (msg) { if (err) err.textContent = msg; return; }
+  if (msg) { if (f) showFieldError(f, msg, { el: err }); else if (err) err.textContent = msg; return; }
   var name = (n ? n.value : '').trim().slice(0, 40) || _formulaCanon(p.groups, p.mod);
   if (!Array.isArray(char.savedRolls)) char.savedRolls = [];
   var r = _savedRollEditIdx >= 0 ? char.savedRolls[_savedRollEditIdx] : null;

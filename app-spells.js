@@ -209,6 +209,7 @@ document.querySelectorAll(".edition-btn").forEach(function(btn) { btn.classList.
 if(version === "all") $("btn-ver-all")?.classList.add("active");
 if(version === "PH14") $("btn-ver-ph14")?.classList.add("active");
 if(version === "PH24") $("btn-ver-ph24")?.classList.add("active");
+[["all", "btn-ver-all"], ["PH14", "btn-ver-ph14"], ["PH24", "btn-ver-ph24"]].forEach(function(p) { var b = $(p[1]); if (b) b.setAttribute("aria-pressed", version === p[0] ? "true" : "false"); });
 _syncSpellVersionLock();
 if (!skipRender) renderSpellSearch();
 }

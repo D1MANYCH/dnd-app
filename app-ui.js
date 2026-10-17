@@ -82,7 +82,7 @@ function openAvatarModal(event) {
     }
   }
   const urlInput = $("avatar-url-input");
-  if (urlInput) urlInput.value = "";
+  if (urlInput) { urlInput.value = ""; clearFieldError(urlInput); }
   openModal("avatar-modal");
 }
 
@@ -117,8 +117,8 @@ function handleAvatarFile(input) {
 /** Сохранить аватар по URL */
 function applyAvatarFromUrl() {
   const url = ($("avatar-url-input")?.value || "").trim();
-  if (!url) { showToast("Введите ссылку на\u00a0изображение", "warn"); return; }
-  if (!safeImageSrc(url)) { showToast("Нужна ссылка, начинающаяся с\u00a0https://", "warn"); return; }
+  if (!url) { showFieldError("avatar-url-input", "Вставьте ссылку на\u00a0изображение"); return; }
+  if (!safeImageSrc(url)) { showFieldError("avatar-url-input", "Нужна ссылка, начинающаяся с\u00a0https://"); return; }
   // Проверяем что ссылка похожа на картинку
   applyAvatar(url);
 }
@@ -841,8 +841,8 @@ function addJournalEntry(type, text, details) {
 var journalFilter = "all";
 function filterJournal(type, btn) {
   journalFilter = type;
-  document.querySelectorAll(".jfilter-btn").forEach(function(b) { b.classList.remove("active"); });
-  if (btn) btn.classList.add("active");
+  document.querySelectorAll(".jfilter-btn").forEach(function(b) { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
+  if (btn) { btn.classList.add("active"); btn.setAttribute("aria-pressed", "true"); }
   renderJournal();
 }
 
@@ -894,6 +894,7 @@ function deleteJournalEntry(id) {
 function openAddJournalEntry() {
   $("add-journal-modal")?.classList.add("active");
   $("journal-entry-text").value = "";
+  clearFieldError("journal-entry-text");
 }
 function closeAddJournalEntry() {
   $("add-journal-modal")?.classList.remove("active");
@@ -901,7 +902,7 @@ function closeAddJournalEntry() {
 function saveJournalEntry() {
   var type = $("journal-entry-type")?.value || "note";
   var text = $("journal-entry-text")?.value.trim() || "";
-  if (!text) { showToast("Введите описание события", "warn"); return; }
+  if (!text) { showFieldError("journal-entry-text", "Опишите событие"); return; }
   var typeNames = { note:"Заметка", combat:"Бой", story:"Сюжет", loot:"Добыча", death:"Смерть" };
   addJournalEntry(type, typeNames[type] + ": " + text);
   closeAddJournalEntry();
@@ -1018,6 +1019,7 @@ function openAddCompanionModal(presetType) {
   $("companion-modal-title").innerHTML = dndIcoHtml("wolf", 16) + " Добавить прихвостня";
   $("companion-edit-index").value = "-1";
   $("companion-name-inp").value = "";
+  clearFieldError("companion-name-inp");
   $("companion-type-sel").value = presetType || "familiar";
   $("companion-hp-inp").value = "10";
   $("companion-ac-inp").value = "10";
@@ -1060,6 +1062,7 @@ function openEditCompanionModal(i) {
   $("companion-modal-title").innerHTML = dndIcoHtml("edit", 16) + " Редактировать прихвостня";
   $("companion-edit-index").value = i;
   $("companion-name-inp").value = c.name || "";
+  clearFieldError("companion-name-inp");
   $("companion-type-sel").value = c.type || "other";
   $("companion-hp-inp").value = c.hpMax || 10;
   $("companion-ac-inp").value = c.ac || 10;
@@ -1077,7 +1080,7 @@ function saveCompanion() {
   var char = getCurrentChar();
   if (!char) return;
   var name = $("companion-name-inp")?.value.trim() || "";
-  if (!name) { showToast("Введите имя", "warn"); return; }
+  if (!name) { showFieldError("companion-name-inp", "Введите имя"); return; }
   var idx = parseInt($("companion-edit-index").value, 10);
   var companions = getCompanions(char);
   var hpMax = parseInt($("companion-hp-inp")?.value, 10) || 10;

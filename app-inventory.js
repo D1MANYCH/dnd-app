@@ -397,6 +397,7 @@ safeSet("new-item-category", category);
 syncItemArmorFields();
 const titleEl = $("item-modal-title");
 const nameEl = $("new-item-name");
+clearFieldError(nameEl);
 const qtyEl = $("new-item-qty");
 const weightEl = $("new-item-weight");
 const descEl = $("new-item-desc");
@@ -513,7 +514,7 @@ const category = $("new-item-category")?.value || document.getElementById("item-
 const origCategory = document.getElementById("item-category")?.value || category;
 const _slotRaw = $("item-slot-index")?.value; const slotIndex = (_slotRaw !== undefined && _slotRaw !== "" && _slotRaw !== null) ? parseInt(_slotRaw, 10) : -1;
 const name = $("new-item-name")?.value?.trim() || "";
-if (!name) { showToast("Введите название!", "warn"); return; }
+if (!name) { showFieldError("new-item-name", "Введите название предмета"); return; }
 const newItem = {
 name: name,
 qty: parseInt($("new-item-qty")?.value, 10) || 1,
@@ -1023,6 +1024,7 @@ safeSet("new-weapon-bonus", preset.magicBonus ? (preset.magicBonus > 0 ? "+" : "
 // возвращает заголовок и показывает пикер (правка его прячет). Зовётся из open/close.
 function _resetWeaponForm() {
 safeSet("new-weapon-name", "");
+clearFieldError("new-weapon-name");
 safeSet("new-weapon-bonus", "");
 safeSet("new-weapon-damage", "");
 safeSet("new-weapon-type", "");
@@ -1155,7 +1157,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 const name = $("new-weapon-name")?.value?.trim() || "";
-if (!name) { showToast("Введите название!", "warn"); return; }
+if (!name) { showFieldError("new-weapon-name", "Введите название оружия"); return; }
 const stat = $("new-weapon-stat")?.value || "str";
 const statName = stat === "str" ? "СИЛ" : "ЛОВ";
 const damage = ($("new-weapon-damage")?.value || "").trim();

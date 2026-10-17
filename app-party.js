@@ -205,6 +205,7 @@ function _pentOpen(type, i) {
   $(cfg.idx).value = isEdit ? i : "-1";
   var item = isEdit ? cfg.list()[i] : null;
   cfg.fields.forEach(function(f) { $(f.id).value = item ? (item[f.key] || "") : ""; });
+  clearFieldError(cfg.fields[0].id);
   if (type === "monster") _monFormFill(item);
   // STYLE-15: форма своего монстра — экран, а не модалка
   if (cfg.screen) { showScreen(cfg.screen); return; }
@@ -219,7 +220,7 @@ function _pentSave(type) {
   var cfg = _PENT[type];
   var nameField = cfg.fields[0];
   var name = $(nameField.id).value.trim();
-  if (!name) { showToast("Введите имя", "warn"); return; }
+  if (!name) { showFieldError(nameField.id, "Введите имя"); return; }
   var list = cfg.list();
   var idx = parseInt($(cfg.idx).value, 10);
   var existing = (idx >= 0 && idx < list.length) ? list[idx] : null;
