@@ -476,7 +476,11 @@ function _applyVariantToSection(secKey, pick, variants) {
   _setSectionText(secKey, pick);
   // DS-5б: текст правили вручную — заменяем без подтверждения, в тосте «Вернуть»
   if (current.trim() && variants.indexOf(current) === -1 && typeof showToast === 'function') {
-    showToast('Текст секции заменён вариантом', 'info', { label: 'Вернуть', onClick: function() { _setSectionText(secKey, current); } });
+    var undoChar = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+    showToast('Текст секции заменён вариантом', 'info', { label: 'Вернуть', onClick: function() {
+      if (typeof getCurrentChar === 'function' && getCurrentChar() !== undoChar) return;
+      _setSectionText(secKey, current);
+    } });
   }
 }
 function _setSectionText(secKey, text) {
@@ -1381,39 +1385,43 @@ function notesHandleImportJson(input) {
   input.value = '';
 }
 function _notesApplyImport(incoming, fileName) {
-      var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
-      if (!char) return;
-      char.notesV2 = char.notesV2 || { sections: {}, entries: [], prefs: {} };
-      // Секции: перезаписать если не пусты во входных данных
-      if (incoming.sections && typeof incoming.sections === 'object') {
-        char.notesV2.sections = char.notesV2.sections || {};
-        for (var k in incoming.sections) {
-          if (Object.prototype.hasOwnProperty.call(incoming.sections, k) && incoming.sections[k] && typeof incoming.sections[k] === 'string') {
-            char.notesV2.sections[k] = incoming.sections[k];
-          }
+  try {
+    var char = (typeof getCurrentChar === 'function') ? getCurrentChar() : null;
+    if (!char) return;
+    char.notesV2 = char.notesV2 || { sections: {}, entries: [], prefs: {} };
+    // Секции: перезаписать если не пусты во входных данных
+    if (incoming.sections && typeof incoming.sections === 'object') {
+      char.notesV2.sections = char.notesV2.sections || {};
+      for (var k in incoming.sections) {
+        if (Object.prototype.hasOwnProperty.call(incoming.sections, k) && incoming.sections[k] && typeof incoming.sections[k] === 'string') {
+          char.notesV2.sections[k] = incoming.sections[k];
         }
       }
-      // BUILD-NOTES-5: variants — перезаписываем целиком, если присутствуют (это снапшот билда).
-      if (incoming.variants && typeof incoming.variants === 'object' && !Array.isArray(incoming.variants)) {
-        char.notesV2.variants = incoming.variants;
-      }
-      // Entries: добавить новые (по id)
-      if (Array.isArray(incoming.entries)) {
-        char.notesV2.entries = char.notesV2.entries || [];
-        var existIds = {};
-        for (var i = 0; i < char.notesV2.entries.length; i++) existIds[char.notesV2.entries[i].id] = true;
-        for (var j = 0; j < incoming.entries.length; j++) {
-          var en = _notesSanitizeEntry(incoming.entries[j]);
-          if (en && !existIds[en.id]) {
-            char.notesV2.entries.push(en);
-            existIds[en.id] = true;
-          }
+    }
+    // BUILD-NOTES-5: variants — перезаписываем целиком, если присутствуют (это снапшот билда).
+    if (incoming.variants && typeof incoming.variants === 'object' && !Array.isArray(incoming.variants)) {
+      char.notesV2.variants = incoming.variants;
+    }
+    // Entries: добавить новые (по id)
+    if (Array.isArray(incoming.entries)) {
+      char.notesV2.entries = char.notesV2.entries || [];
+      var existIds = {};
+      for (var i = 0; i < char.notesV2.entries.length; i++) existIds[char.notesV2.entries[i].id] = true;
+      for (var j = 0; j < incoming.entries.length; j++) {
+        var en = _notesSanitizeEntry(incoming.entries[j]);
+        if (en && !existIds[en.id]) {
+          char.notesV2.entries.push(en);
+          existIds[en.id] = true;
         }
       }
-      if (window.AppLog) AppLog.action('notes', 'импорт JSON: ' + fileName);
-      if (typeof saveToLocalDebounced === 'function') saveToLocalDebounced();
-      _notesFlashSaved();
-      renderNotes();
+    }
+    if (window.AppLog) AppLog.action('notes', 'импорт JSON: ' + fileName);
+    if (typeof saveToLocalDebounced === 'function') saveToLocalDebounced();
+    _notesFlashSaved();
+    renderNotes();
+  } catch(e) {
+    showToast('Не удалось импортировать заметки: ' + e.message, 'error');
+  }
 }
 
 function notesHandleImportMd(input) {
