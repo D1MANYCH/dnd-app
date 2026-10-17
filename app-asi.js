@@ -40,7 +40,7 @@ function openASIModal() {
   asiFeatSelected = null;
   asiFeatStat = null;
   var modal = $("asi-modal");
-  if (!modal) { showToast("Ошибка: АСИ модалка не найдена", "error"); return; }
+  if (!modal) { showToast("Окно не\u00a0открылось — перезагрузите страницу", "error"); return; }
 
   // Reset radio to plus2
   var r = modal.querySelector('input[value="plus2"]');
@@ -153,7 +153,7 @@ function updateASIPreview() {
         preview.textContent = "✅ Черта: " + (feat ? feat.name : asiFeatSelected);
         preview.className = "asi-preview ready";
       } else {
-        preview.textContent = "Выберите черту из списка";
+        preview.textContent = "Выберите черту из\u00a0списка";
         preview.className = "asi-preview";
       }
     }
@@ -256,7 +256,7 @@ function buildFeatList() {
   // BUILD-LVL-3: id черты, рекомендованной билдом для текущего ASI-уровня.
   var recFeatId = (typeof getBuildRecFeat === "function" && char) ? getBuildRecFeat(char, asiCurrentLevel) : null;
 
-  el.innerHTML = '<div class="feat-search-wrap"><input type="text" class="feat-search-inp" placeholder="🔍 Поиск черты..." oninput="filterFeatList(this.value)"></div>' +
+  el.innerHTML = '<div class="feat-search-wrap"><input type="text" class="feat-search-inp" placeholder="🔍 Поиск черты…" oninput="filterFeatList(this.value)"></div>' +
     '<div class="feat-list" id="feat-list-items">' +
     featList.map(function(feat) {
       var taken = !feat.repeatable && takenFeats.some(function(f) { return f.id === feat.id; });
@@ -267,7 +267,7 @@ function buildFeatList() {
         '<div class="feat-item-header">' +
           '<span class="feat-item-name">' + escapeHtml(feat.name) + '</span>' +
           (isRec ? '<span class="rec-badge">' + dndIcoHtml("bulb", 12) + ' совет билда</span>' : '') +
-          (feat.prereq ? '<span class="feat-prereq">' + escapeHtml(feat.prereq) + (prereqMiss ? ' · не выполнено' : '') + '</span>' : '') +
+          (feat.prereq ? '<span class="feat-prereq">' + escapeHtml(feat.prereq) + (prereqMiss ? ' · не\u00a0выполнено' : '') + '</span>' : '') +
           (taken ? '<span class="feat-taken-badge">Уже взята</span>' : '') +
         '</div>' +
         '<div class="feat-item-desc">' + escapeHtml(feat.desc) + '</div>' +
@@ -290,11 +290,11 @@ function _asiFeatBlocked(char, feat) {
   if (!char || !feat) return null;
   if (!feat.repeatable && (char.feats || []).some(function(f) { return f.id === feat.id; })) return "Черта уже взята";
   var miss = rulesFeatPrereqMissing(char, feat);
-  if (miss) return "Требование не выполнено: " + miss;
+  if (miss) return "Требование не\u00a0выполнено: " + miss;
   var eff = rulesFeatStatChoice(feat);
   if (eff && !rulesFeatStatOptions(char, eff).length) {
-    return eff.type === "stat_choice_save" ? "Нет характеристики на выбор: у подходящих уже есть спасбросок или значение " + (eff.max || 20)
-      : "Нет характеристики на выбор: все подходящие уже " + (eff.max || 20);
+    return eff.type === "stat_choice_save" ? "Нет характеристики на\u00a0выбор: у\u00a0подходящих уже есть спасбросок или\u00a0значение " + (eff.max || 20)
+      : "Нет характеристики на\u00a0выбор: все подходящие уже " + (eff.max || 20);
   }
   return null;
 }
@@ -349,7 +349,7 @@ function _asiUnlockSheet(char) {
   var wasLocked = typeof isSheetLocked === "function" && isSheetLocked(char);
   char.sheetLocked = false;
   if (typeof applySheetLockUI === "function") applySheetLockUI();
-  if (wasLocked) showToast("🔓 Лист открыт — выберите новые заклинания и умения, затем нажмите «Персонаж готов»", "info");
+  if (wasLocked) showToast("🔓 Лист открыт — выберите новые заклинания и\u00a0умения, затем нажмите «Персонаж готов»", "info");
 }
 
 // Режимы «+2 к одной» / «+1 к двум» окна УХ: скрыты для расовой черты.
@@ -590,13 +590,13 @@ function removeFeat(i) {
   if (!char || !char.feats) return;
   var name = char.feats[i] ? char.feats[i].name : "черту";
   // E24-5: черта происхождения привязана к предыстории — снимается только сменой предыстории
-  if (char.feats[i] && char.feats[i].origin) { showToast("Черта происхождения идёт от предыстории — смените предысторию.", "warning"); return; }
+  if (char.feats[i] && char.feats[i].origin) { showToast("Черта происхождения идёт от\u00a0предыстории — смените предысторию.", "warning"); return; }
   // FSP-1: заклинания черты снимаются вместе с ней
   var _def = getFeatDef(char, char.feats[i].id);
   var _lbl = (_def && _def.spellPick) ? rulesFeatSpellLabel(_def, char.feats[i]) : null;
   var _hasSp = !!(_lbl && char.spells && (char.spells.mySpells || []).some(function(s) { return s && s.grantedBy === _lbl; }));
   showConfirmModal("Убрать черту?",
-    "«" + name + "» будет удалена из списка." + (_hasSp ? " Заклинания черты будут сняты." : "") + " Бонусы к характеристикам НЕ откатятся.",
+    "«" + name + "» будет удалена из\u00a0списка." + (_hasSp ? " Заклинания черты будут сняты." : "") + " Бонусы к\u00a0характеристикам НЕ\u00a0откатятся.",
     function() {
       if (_lbl && char.spells && Array.isArray(char.spells.mySpells)) {
         char.spells.mySpells = char.spells.mySpells.filter(function(s) { return !s || s.grantedBy !== _lbl; });
@@ -649,7 +649,7 @@ function _agReady() {
 function openAbilGen() {
   var char = getCurrentChar();
   if (!char) return;
-  if (char.basicLocked) { showToast("Способ генерации выбирается до фиксации основы", "warn"); return; }
+  if (char.basicLocked) { showToast("Способ генерации выбирается до\u00a0фиксации основы", "warn"); return; }
   var saved = char.abilGen || {};
   _ag = { mode: saved.mode || "pb", pb: {}, std: {}, rolls: (saved.rolls || []).slice(), pick: {} };
   var fresh = !saved.mode && AG_KEYS.every(function(k) { return (char.stats[k] || 10) - _agBonus(char, k) === 10; });
@@ -743,12 +743,12 @@ function _agRender() {
   }).join("") + "</div>";
 
   if (_ag.mode === "pb") {
-    html += '<p class="ag-lead">27 очков на шесть характеристик, каждая от 8 до 15. 8 — бесплатно, до 13 — по очку за единицу, 14 стоит 7 очков, 15 — 9.</p>' +
+    html += '<p class="ag-lead">27 очков на\u00a0шесть характеристик, каждая от\u00a08 до\u00a015. 8 — бесплатно, до\u00a013 — по\u00a0очку за\u00a0единицу, 14 стоит 7 очков, 15 — 9.</p>' +
       '<p class="ag-left">Осталось очков: ' + (AG_PB_POOL - _agPbSpent()) + " из " + AG_PB_POOL + "</p>";
   } else if (_ag.mode === "std") {
-    html += '<p class="ag-lead">Числа 15, 14, 13, 12, 10 и 8 — каждое ровно одной характеристике. Выбор занятого числа меняет характеристики местами.</p>';
+    html += '<p class="ag-lead">Числа 15, 14, 13, 12, 10 и\u00a08 — каждое ровно одной характеристике. Выбор занятого числа меняет характеристики местами.</p>';
   } else {
-    html += '<p class="ag-lead">Шесть раз бросьте 4к6 и отбросьте меньший кубик, затем распределите результаты по характеристикам.</p>' +
+    html += '<p class="ag-lead">Шесть раз бросьте 4к6 и\u00a0отбросьте меньший кубик, затем распределите результаты по\u00a0характеристикам.</p>' +
       '<div class="ag-foot"><button type="button" class="hp-act" onclick="agRoll()">' + (_ag.rolls.length ? "Перебросить 4к6 × 6" : "Бросить 4к6 × 6") + " →</button></div>";
     if (_ag.rolls.length) {
       html += '<div class="ag-rolls">' + _ag.rolls.map(function(r) {
@@ -771,8 +771,8 @@ function _agRender() {
       '<span class="ag-total">' + (total != null ? total + " (" + formatMod(getMod(total)).replace("-", "−") + ")" : "—") + "</span></div>";
   });
 
-  html += '<p class="ag-note">Бонусы расы' + (char.edition === "2024" ? " и предыстории" : "") + " прибавляются сверху, выбираются в «Основном».</p>";
-  if ((char.level || 1) > 1) html += '<p class="ag-note">Увеличения характеристик и черты, применённые в приложении, входят в «Бонус»; прибавки, поставленные вручную кнопками ±, — нет.</p>';
+  html += '<p class="ag-note">Бонусы расы' + (char.edition === "2024" ? " и\u00a0предыстории" : "") + " прибавляются сверху, выбираются в\u00a0«Основном».</p>";
+  if ((char.level || 1) > 1) html += '<p class="ag-note">Увеличения характеристик и\u00a0черты, применённые в\u00a0приложении, входят в\u00a0«Бонус»; прибавки, поставленные вручную кнопками ±, — нет.</p>';
 
   var why = "";
   if (!_agReady()) why = _ag.mode === "roll" && !_ag.rolls.length ? "Сначала бросьте кубики" : "Распределите все шесть значений";
@@ -784,7 +784,7 @@ function _agRender() {
 function agApply() {
   var char = getCurrentChar();
   if (!char || !_ag || !_agReady()) return;
-  if (char.basicLocked) { showToast("Способ генерации выбирается до фиксации основы", "warn"); return; }
+  if (char.basicLocked) { showToast("Способ генерации выбирается до\u00a0фиксации основы", "warn"); return; }
   var base = {};
   AG_KEYS.forEach(function(k) {
     base[k] = _agBase(k);

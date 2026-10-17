@@ -41,7 +41,7 @@ function rollHintText(hint) {
   var parts = [];
   if (hint.autoFail.length) parts.push("Автопровал: " + names(hint.autoFail));
   if (hint.dis.length) parts.push("Помеха: " + names(hint.dis));
-  if (hint.penalty) parts.push(hint.penalty + " к броску: истощение");
+  if (hint.penalty) parts.push(hint.penalty + " к\u00a0броску: истощение");
   return parts.join(" · ");
 }
 
@@ -77,8 +77,8 @@ function formatRollMode(d, bonus) {
 }
 
 function formatRollModeLabel(d) {
-  if (d.mode === 'adv') return ' с преимуществом';
-  if (d.mode === 'dis') return ' с помехой';
+  if (d.mode === 'adv') return ' с\u00a0преимуществом';
+  if (d.mode === 'dis') return ' с\u00a0помехой';
   return '';
 }
 
@@ -301,8 +301,8 @@ function abilityBreakdown(char, key) {
   var other = score - base - known;
   if (other) rows.push({ label: "Прочее", value: other });
   var how = { pb: "покупка очков", std: "стандартный набор", roll: "броски 4к6" }[hasBase && char.abilGen.mode];
-  var note = how ? "Основа — " + how + " до бонусов расы и предыстории."
-    : "Основа — значение без известных бонусов: характеристики вводились вручную, а не через «Характеристики: покупка очков · набор · 4к6».";
+  var note = how ? "Основа — " + how + " до\u00a0бонусов расы и\u00a0предыстории."
+    : "Основа — значение без\u00a0известных бонусов: характеристики вводились вручную, а\u00a0не через «Характеристики: покупка очков · набор · 4к6».";
   return { rows: rows, total: score, note: note };
 }
 
@@ -325,7 +325,7 @@ function openAbilityInfo(key) {
     html += '<p class="ai-mine">' + (char.name || "Персонаж") + " — " + score +
             " · модификатор " + (mod >= 0 ? "+" : "") + mod + "</p>";
     var bd = abilityBreakdown(char, key);
-    html += '<div class="ai-block ai-breakdown"><div class="ai-block-title">Из чего сложено</div>' +
+    html += '<div class="ai-block ai-breakdown"><div class="ai-block-title">Из\u00a0чего сложено</div>' +
       bd.rows.map(function(r, i) {
         var v = i === 0 ? String(r.value) : (r.value > 0 ? "+" : "−") + Math.abs(r.value);
         return '<div class="ai-bd-row"><span>' + r.label + '</span><span>' + v + "</span></div>";
@@ -334,11 +334,11 @@ function openAbilityInfo(key) {
       '<p class="ai-formula">' + bd.note + "</p></div>";
   }
   html += '<div class="ai-block"><div class="ai-block-title">Проверки</div><p>' + info.checks + "</p>" +
-          '<p class="ai-formula">Проверка — d20 + модификатор характеристики; при владении навыком прибавляется бонус мастерства, при компетентности — удвоенный.</p></div>';
+          '<p class="ai-formula">Проверка — d20 + модификатор характеристики; при\u00a0владении навыком прибавляется бонус мастерства, при\u00a0компетентности — удвоенный.</p></div>';
   html += '<div class="ai-block"><div class="ai-block-title">Навыки</div><p>' +
           (own.length ? own.join(" · ") : "Навыков нет — эта характеристика пассивна.") + "</p></div>";
   html += '<div class="ai-block"><div class="ai-block-title">Спасбросок</div><p>' + info.save + "</p></div>";
-  html += '<div class="ai-block"><div class="ai-block-title">За что ещё отвечает</div><p>' + info.uses + "</p></div>";
+  html += '<div class="ai-block"><div class="ai-block-title">За\u00a0что ещё отвечает</div><p>' + info.uses + "</p></div>";
   var body = $("ai-body");
   if (body) body.innerHTML = html;
   showScreen("abilityinfo");
@@ -563,7 +563,7 @@ function updateInspirationLabels(char) {
   var name = isE24 ? "Героическое вдохновение" : "Вдохновение";
   var tip = isE24
     ? "Героическое вдохновение — потратьте, чтобы перебросить любой кубик; берётся новый результат"
-    : "Вдохновение — потратьте, чтобы получить преимущество на один бросок к20";
+    : "Вдохновение — потратьте, чтобы получить преимущество на\u00a0один бросок к20";
   var chip = $("status-inspiration");
   if (chip) chip.title = tip;
   var card = $("insp-card-2024");
@@ -1188,7 +1188,7 @@ function onRaceChange() {
   }).join("");
   var speedBadge = data.speed !== 30
     ? '<span class="race-bonus-badge race-speed">' + data.speed + ' фт</span>'
-    : '<span class="race-bonus-badge race-speed">30 фт</span>';
+    : '<span class="race-bonus-badge race-speed">30\u00a0фт</span>';
   displayEl.innerHTML =
     '<span class="race-bonus-label">' + dndIcoHtml("zap", 12) + ' ' + escapeHtml(race) + ':</span>' + bonuses + speedBadge +
     '<span class="race-bonus-traits">' + escapeHtml(data.traits) + '</span>';
@@ -1557,19 +1557,19 @@ function renderRaceExtras() {
   if (!char.basicLocked) {
     var pending = [];
     if ((char.edition === "2024" ? RACE_BONUS_FEATS_2024 : RACE_BONUS_FEATS)[race]) pending.push("расовая черта");
-    if (RACE_STAT_PICKS[race] && char.edition !== "2024") pending.push("+1 к двум характеристикам");
-    if (RACE_FLEX_STATS[race] && char.edition !== "2024") pending.push("характеристики на выбор");
-    if (RACE_VARIABLE_TRAIT[race] && char.edition !== "2024") pending.push("тёмное зрение или навык");
-    if (RACE_SKILL_PICKS[race] && char.edition !== "2024") pending.push(RACE_SKILL_PICKS[race] > 1 ? "навыки на выбор" : "навык на выбор");
+    if (RACE_STAT_PICKS[race] && char.edition !== "2024") pending.push("+1 к\u00a0двум характеристикам");
+    if (RACE_FLEX_STATS[race] && char.edition !== "2024") pending.push("характеристики на\u00a0выбор");
+    if (RACE_VARIABLE_TRAIT[race] && char.edition !== "2024") pending.push("тёмное зрение или\u00a0навык");
+    if (RACE_SKILL_PICKS[race] && char.edition !== "2024") pending.push(RACE_SKILL_PICKS[race] > 1 ? "навыки на\u00a0выбор" : "навык на\u00a0выбор");
     var rl0 = (typeof edData === "function") && edData(char).RACE_LANGUAGES && edData(char).RACE_LANGUAGES[race];
-    if (rl0 && rl0.choice > 0) pending.push(rl0.choice > 1 ? rl0.choice + " языка на выбор" : "язык на выбор");
+    if (rl0 && rl0.choice > 0) pending.push(rl0.choice > 1 ? rl0.choice + " языка на\u00a0выбор" : "язык на\u00a0выбор");
     if (char.edition === "2024" && typeof edData === "function") {
       var sp0 = edData(char).RACE_DATA[race];
       if (sp0 && Array.isArray(sp0.choices)) sp0.choices.forEach(function(ch) { pending.push(ch.name.toLowerCase()); });
     }
     if (pending.length) {
       panel.innerHTML = '<div class="race-extras-hint">' + dndIcoHtml("lock", 13) + ' ' + escapeHtml(race) + ': ' +
-        escapeHtml(pending.join(", ")) + ' — выбор появится здесь после «Сохранить и зафиксировать основу».</div>';
+        escapeHtml(pending.join(", ")) + ' — выбор появится здесь после «Сохранить и\u00a0зафиксировать основу».</div>';
       panel.style.display = "flex";
     } else { panel.style.display = "none"; panel.innerHTML = ""; }
     return;
@@ -1592,7 +1592,7 @@ function renderRaceExtras() {
         ? '<button class="race-extras-btn" onclick="openRaceFeatModal()">+ Выбрать черту</button>'
         : '<span class="race-extras-btn done">' + dndIcoHtml("check", 13) + ' Черта получена</span>') +
       '</div>';
-    if (remaining > 0) html += '<div class="race-extras-warn">Расовая черта не выбрана — нажмите «+ Выбрать черту».</div>';
+    if (remaining > 0) html += '<div class="race-extras-warn">Расовая черта не\u00a0выбрана — нажмите «+ Выбрать черту».</div>';
   }
 
   // Полуэльф: +1 к двум характеристикам (кроме ХАР); Человек (вариант): +1 к двум любым
@@ -1600,7 +1600,7 @@ function renderRaceExtras() {
     if (!Array.isArray(char.raceStatChoice)) char.raceStatChoice = [];
     var statLabels = {str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"};
     var chosen = char.raceStatChoice;
-    html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' ' + escapeHtml(race) + ': +1 к двум характеристикам' + (race.indexOf("Полуэльф") === 0 ? ' (кроме ХАР)' : '') + '</div>';
+    html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' ' + escapeHtml(race) + ': +1 к\u00a0двум характеристикам' + (race.indexOf("Полуэльф") === 0 ? ' (кроме ХАР)' : '') + '</div>';
     html += '<div class="race-extras-row">';
     var stHide = _pickHide("racestat", chosen.length >= 2);
     RACE_STAT_PICKS[race].forEach(function(k) {
@@ -1624,7 +1624,7 @@ function renderRaceExtras() {
     var hasTwo = flexModes.some(function(p) { return p.indexOf("2") !== -1; });
     var fixedSt = (RACE_DATA[race] && RACE_DATA[race].stats) || {};
     html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' ' + escapeHtml(race) + ': ' +
-      (!hasTwo ? '+1 к одной другой характеристике' : hasOne ? '+2 к одной характеристике и +1 к другой или +1 к трём разным' : '+2 к одной характеристике') + '</div>';
+      (!hasTwo ? '+1 к\u00a0одной другой характеристике' : hasOne ? '+2 к\u00a0одной характеристике и\u00a0+1 к\u00a0другой или\u00a0+1 к\u00a0трём разным' : '+2 к\u00a0одной характеристике') + '</div>';
     [2, 1].forEach(function(v) {
       if (v === 1 && !hasOne) return;
       if (v === 2 && !hasTwo) return;
@@ -1636,16 +1636,16 @@ function renderRaceExtras() {
       });
       html += '</div>';
     });
-    if (!_raceFlexFits(flex, flexModes, true)) html += '<div class="race-extras-warn">Прибавки к характеристикам не выбраны полностью.</div>';
+    if (!_raceFlexFits(flex, flexModes, true)) html += '<div class="race-extras-warn">Прибавки к\u00a0характеристикам не\u00a0выбраны полностью.</div>';
   }
   if (RACE_VARIABLE_TRAIT[race] && char.edition !== "2024") {
     var vt = char.raceVariableTrait || "";
     html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' ' + escapeHtml(race) + ': выборочная особенность</div>';
     html += '<div class="race-extras-row">' +
-      '<button type="button" class="race-extras-stat-pick' + (vt === "darkvision" ? " selected" : "") + '" onclick="setRaceVariableTrait(\'darkvision\')">Тёмное зрение 60 фт</button>' +
+      '<button type="button" class="race-extras-stat-pick' + (vt === "darkvision" ? " selected" : "") + '" onclick="setRaceVariableTrait(\'darkvision\')">Тёмное зрение 60\u00a0фт</button>' +
       '<button type="button" class="race-extras-stat-pick' + (vt === "skill" ? " selected" : "") + '" onclick="setRaceVariableTrait(\'skill\')">Владение навыком</button>' +
       '</div>';
-    if (!vt) html += '<div class="race-extras-warn">Выборочная особенность не выбрана.</div>';
+    if (!vt) html += '<div class="race-extras-warn">Выборочная особенность не\u00a0выбрана.</div>';
   }
 
   // FB-3: Человек (вариант) — владение 1 навыком на выбор, Полуэльф — 2
@@ -1654,7 +1654,7 @@ function renderRaceExtras() {
     if (!Array.isArray(char.raceSkillChoice)) char.raceSkillChoice = [];
     var skChosen = char.raceSkillChoice;
     html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' ' + escapeHtml(race) + ': ' +
-      (skillAllowance > 1 ? 'владение ' + skillAllowance + ' навыками на выбор' : 'владение навыком на выбор') + '</div>';
+      (skillAllowance > 1 ? 'владение ' + skillAllowance + ' навыками на\u00a0выбор' : 'владение навыком на\u00a0выбор') + '</div>';
     html += '<div class="race-extras-row">';
     var skHide = _pickHide("race", skChosen.length >= skillAllowance);
     _skillsByName().forEach(function(s) {
@@ -1664,14 +1664,14 @@ function renderRaceExtras() {
       if (skHide && !sel) return;
       var busy = !sel && _skillTakenElsewhere(char, s.name, "race");
       html += '<button type="button" class="race-extras-stat-pick' + (sel ? " selected" : "") + '"' +
-        (busy ? ' disabled title="Уже есть от класса или предыстории"' : '') +
+        (busy ? ' disabled title="Уже есть от\u00a0класса или\u00a0предыстории"' : '') +
         ' onclick="toggleRaceSkill(' + si + ')">' + escapeHtml(s.name) + '</button>';
     });
     if (skHide) html += _pickExpandBtn("race");
     html += '<span style="margin-left:auto;color:var(--text-dim);font-size:var(--fs-14);">' +
       'Выбрано: ' + skChosen.length + '/' + skillAllowance + '</span>';
     html += '</div>';
-    if (skChosen.length < skillAllowance) html += '<div class="race-extras-warn">Расовый навык не выбран — отметьте его в списке выше.</div>';
+    if (skChosen.length < skillAllowance) html += '<div class="race-extras-warn">Расовый навык не\u00a0выбран — отметьте его в\u00a0списке выше.</div>';
   }
 
   // FB-4: язык расы на выбор — сам выбор в блоке «Языки»
@@ -1679,10 +1679,10 @@ function renderRaceExtras() {
   if (rl && rl.choice > 0) {
     var lnPicks = ((char.proficiencies && char.proficiencies.languageChoices && char.proficiencies.languageChoices.race) || []).slice(0, rl.choice);
     html += '<div class="race-extras-title">' + dndIcoHtml("scroll", 14) + ' ' + escapeHtml(race) + ': ' +
-      (rl.choice > 1 ? rl.choice + ' языка на выбор' : 'язык на выбор') + '</div>';
+      (rl.choice > 1 ? rl.choice + ' языка на\u00a0выбор' : 'язык на\u00a0выбор') + '</div>';
     html += '<div class="race-extras-row">' + lnPicks.map(function(n) { return '<span class="race-bonus-badge">' + escapeHtml(n) + '</span>'; }).join("") +
-      '<button class="race-extras-btn" onclick="raceLangGoto()">К языкам →</button></div>';
-    if (lnPicks.length < rl.choice) html += '<div class="race-extras-warn">Расовый язык не выбран — выберите его в блоке «Языки».</div>';
+      '<button class="race-extras-btn" onclick="raceLangGoto()">К\u00a0языкам →</button></div>';
+    if (lnPicks.length < rl.choice) html += '<div class="race-extras-warn">Расовый язык не\u00a0выбран — выберите его в\u00a0блоке «Языки».</div>';
   }
 
   // E24-4: видовые выборы 2024 (родословная, происхождение, характеристика заклинаний)
@@ -1757,7 +1757,7 @@ function toggleRaceFlexStat(key, val) {
     next[key] = val;
   }
   if (!_raceFlexFits(next, modes, false)) {
-    showToast(modes.length > 1 ? "Можно +2 к одной и +1 к другой или +1 к трём разным. Снимите лишнее." : "Только +2 к одной характеристике.", "warning");
+    showToast(modes.length > 1 ? "Можно +2 к\u00a0одной и\u00a0+1 к\u00a0другой или\u00a0+1 к\u00a0трём разным. Снимите лишнее." : "Только +2 к\u00a0одной характеристике.", "warning");
     return;
   }
   _raceFlexApply(char, next);
@@ -1938,8 +1938,8 @@ function renderClassSkills() {
   var html = "";
   if (!char.basicLocked) {
     html = '<div class="race-extras-hint">' + dndIcoHtml("lock", 13) + ' ' + list.map(function(e) {
-      return escapeHtml(e.cls) + ': ' + e.count + (e.count > 1 ? ' навыка' : ' навык') + ' класса на выбор';
-    }).join(", ") + ' — выбор появится здесь после «Сохранить и зафиксировать основу».</div>';
+      return escapeHtml(e.cls) + ': ' + e.count + (e.count > 1 ? ' навыка' : ' навык') + ' класса на\u00a0выбор';
+    }).join(", ") + ' — выбор появится здесь после «Сохранить и\u00a0зафиксировать основу».</div>';
     panel.innerHTML = html;
     panel.style.display = "flex";
     return;
@@ -1948,7 +1948,7 @@ function renderClassSkills() {
   list.forEach(function(e, ci) {
     var picks = char.classSkillChoice[e.cls] || [];
     html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' ' + escapeHtml(e.cls) +
-      (e.mc ? ' (второй класс)' : '') + ': ' + e.count + (e.count > 1 ? ' навыка' : ' навык') + ' класса на выбор</div>';
+      (e.mc ? ' (второй класс)' : '') + ': ' + e.count + (e.count > 1 ? ' навыка' : ' навык') + ' класса на\u00a0выбор</div>';
     html += '<div class="race-extras-row">';
     var hide = _pickHide("cls" + ci, picks.length >= e.count);
     _skillsByName().forEach(function(s) {
@@ -1958,13 +1958,13 @@ function renderClassSkills() {
       if (hide && !sel) return;
       var busy = !sel && (other.indexOf(s.name) !== -1 || _classSkillHeld(char.classSkillChoice, s.name, e.cls));
       html += '<button type="button" class="race-extras-stat-pick' + (sel ? " selected" : "") + '"' +
-        (busy ? ' disabled title="Уже есть от расы, предыстории или другого класса"' : '') +
+        (busy ? ' disabled title="Уже есть от\u00a0расы, предыстории или\u00a0другого класса"' : '') +
         ' onclick="toggleClassSkill(' + ci + ',' + si + ')">' + escapeHtml(s.name) + '</button>';
     });
     if (hide) html += _pickExpandBtn("cls" + ci);
     html += '<span style="margin-left:auto;color:var(--text-dim);font-size:var(--fs-14);">Выбрано: ' + picks.length + '/' + e.count + '</span>';
     html += '</div>';
-    if (picks.length < e.count) html += '<div class="race-extras-warn">Навыки класса выбраны не все — осталось ' + (e.count - picks.length) + '.</div>';
+    if (picks.length < e.count) html += '<div class="race-extras-warn">Навыки класса выбраны не\u00a0все — осталось ' + (e.count - picks.length) + '.</div>';
   });
   if (typeof renderClassEquip14 === "function") html += renderClassEquip14(char);
   _setExtrasHtml(panel, html);
@@ -2007,7 +2007,7 @@ function openRaceFeatModal() {
   asiFeatSelected = null;
   asiCurrentLevel = "race";
   var modal = $("asi-modal");
-  if (!modal) { showToast("Ошибка: модалка не найдена", "error"); return; }
+  if (!modal) { showToast("Окно не\u00a0открылось — перезагрузите страницу", "error"); return; }
   var featRadio = modal.querySelector('input[value="feat"]');
   if (featRadio) featRadio.checked = true;
   // Расовая черта — только черта: +1 к двум у Человека (вариант) выбирается в панели расы
@@ -2027,7 +2027,7 @@ function removeRaceFeat(i) {
   if (!rf) return;
   var name = rf.name;
   showConfirmModal("Убрать расовую черту?",
-    "«" + name + "» будет убрана. Бонусы к характеристикам НЕ откатятся.",
+    "«" + name + "» будет убрана. Бонусы к\u00a0характеристикам НЕ\u00a0откатятся.",
     function() {
       char.raceFeats.splice(i, 1);
       if (Array.isArray(char.feats)) {
@@ -2118,7 +2118,7 @@ function updateLockButtonState() {
   }
 
   btn.disabled = missing.length > 0;
-  if (msg) msg.textContent = missing.length > 0 ? "⚠ Не заполнено: " + missing.join(", ") : "";
+  if (msg) msg.textContent = missing.length > 0 ? "⚠ Не\u00a0заполнено: " + missing.join(", ") : "";
 }
 
 function lockBasicInfo() {
@@ -2147,7 +2147,7 @@ function unlockBasicInfo() {
   if (!char) return;
   showConfirmModal(
     "Разблокировать основу?",
-    "Имя, класс, подкласс, раса, предыстория и уровень снова станут редактируемыми. Делайте это только если действительно нужно изменить базовую информацию.",
+    "Имя, класс, подкласс, раса, предыстория и\u00a0уровень снова станут редактируемыми. Делайте это только если действительно нужно изменить базовую информацию.",
     function() {
       char.basicLocked = false;
       saveToLocal();
@@ -2219,8 +2219,8 @@ function _creationTodo(char) {
   var goRace = "creationTodoGo('race-extras-panel')", goBg = "creationTodoGo('bg-extras-panel')";
   if (((is24 ? RACE_BONUS_FEATS_2024 : RACE_BONUS_FEATS)[race] || 0) > (char.raceFeats || []).length) add("Расовая черта", race, goRace);
   if (!is24) {
-    if (RACE_STAT_PICKS[race] && (char.raceStatChoice || []).length < 2) add("+1 к двум характеристикам", race, goRace);
-    if (RACE_FLEX_STATS[race] && !_raceFlexFits(char.raceFlexStats || {}, RACE_FLEX_STATS[race], true)) add("Прибавки к характеристикам", race, goRace);
+    if (RACE_STAT_PICKS[race] && (char.raceStatChoice || []).length < 2) add("+1 к\u00a0двум характеристикам", race, goRace);
+    if (RACE_FLEX_STATS[race] && !_raceFlexFits(char.raceFlexStats || {}, RACE_FLEX_STATS[race], true)) add("Прибавки к\u00a0характеристикам", race, goRace);
     if (RACE_VARIABLE_TRAIT[race] && !char.raceVariableTrait) add("Выборочная особенность", race, goRace);
   }
   var rs = _raceSkillAllowance(char, race) - (char.raceSkillChoice || []).length;
@@ -2259,7 +2259,7 @@ function _creationTodo(char) {
         if ((c.skills || []).length < 2) add("Навыки своей предыстории", "", goBg);
       }
       if ((def.abilities || []).length === 3 && typeof validateBgStatChoice === "function" &&
-          !validateBgStatChoice(def, char.bgStatChoice).complete) add("Характеристики от предыстории", def.custom ? "" : bgName, goBg);
+          !validateBgStatChoice(def, char.bgStatChoice).complete) add("Характеристики от\u00a0предыстории", def.custom ? "" : bgName, goBg);
       if (!(char.feats || []).some(function(f) { return f.origin; })) add("Черта происхождения", def.custom ? "" : bgName, goBg);
     }
   }
@@ -2296,7 +2296,7 @@ function renderCreationTodo() {
   if (!rows.length && !(ready && mob)) { box.style.display = "none"; box.innerHTML = ""; return; }
   box.innerHTML = '<div class="pg-grp">' + (rows.length ? "Осталось выбрать" : "Всё выбрано") + '</div><div class="hp-rows">' +
     rows.map(function(r) { return _pgAttn(r[0], "Выбрать →", r[1]); }).join("") +
-    (ready ? _pgAttn(rows.length ? "Когда закончите" : "Можно закрыть лист до повышения уровня", "Персонаж готов →", "lockSheet()") : "") + '</div>';
+    (ready ? _pgAttn(rows.length ? "Когда закончите" : "Можно закрыть лист до\u00a0повышения уровня", "Персонаж готов →", "lockSheet()") : "") + '</div>';
   box.style.display = "";
   // СОЗД-6: на телефоне карточки с незаполненным выбором раскрываются сами (только раскрытие, без сворачивания)
   if (mob && rows.length) {
@@ -2424,12 +2424,12 @@ function lockSheet() {
     char.sheetLocked = true;
     saveToLocal();
     applySheetLockUI();
-    showToast("🔒 Лист зафиксирован. Характеристики, владения, заклинания и черты откроются при повышении уровня или по кнопке «Изменить».", "success");
+    showToast("🔒 Лист зафиксирован. Характеристики, владения, заклинания и\u00a0черты откроются при\u00a0повышении уровня или\u00a0по кнопке «Изменить».", "success");
   }
   // СОЗД-3: незаполненные выборы не блокируют, а предупреждают
   var todo = _creationTodo(char).map(function(r) { return r[2]; });
   if (!todo.length) { doLock(); return; }
-  showConfirmModal("Не всё выбрано", "Осталось выбрать: " + todo.join("; ") + ". Выбор можно сделать и позже — по кнопке «Изменить».",
+  showConfirmModal("Не\u00a0всё выбрано", "Осталось выбрать: " + todo.join("; ") + ". Выбор можно сделать и\u00a0позже — по\u00a0кнопке «Изменить».",
     doLock, "Всё равно зафиксировать", { danger: false, icon: "lock" });
 }
 
@@ -2438,13 +2438,13 @@ function unlockSheet() {
   var char = getCurrentChar();
   if (!char) return;
   showConfirmModal(
-    "Открыть лист для правок?",
-    "Характеристики, спасброски, навыки, владения, максимум хитов, скорость и размер, заклинательная характеристика, удаление заклинаний и черт, правка предметов снова станут доступны. Когда закончите — нажмите «Персонаж готов».",
+    "Открыть лист для\u00a0правок?",
+    "Характеристики, спасброски, навыки, владения, максимум хитов, скорость и\u00a0размер, заклинательная характеристика, удаление заклинаний и\u00a0черт, правка предметов снова станут доступны. Когда закончите — нажмите «Персонаж готов».",
     function() {
       char.sheetLocked = false;
       saveToLocal();
       applySheetLockUI();
-      showToast("🔓 Лист открыт для правок", "info");
+      showToast("🔓 Лист открыт для\u00a0правок", "info");
     },
     "Открыть",
     { danger: false, icon: "lock" }
@@ -2538,7 +2538,7 @@ function renderBackgroundFeature() {
   if (char && char.edition === "2024") {
     if (!data) { el.style.display = "none"; el.innerHTML = ""; return; }
     var parts = [];
-    if (data.custom) parts.push("своя: 3 характеристики, 2 навыка и черта происхождения на выбор");
+    if (data.custom) parts.push("своя: 3 характеристики, 2 навыка и\u00a0черта происхождения на\u00a0выбор");
     else {
       parts.push((data.abilities || []).map(_bgStatShort).join(" · "));
       var fdef = (typeof getFeatDef === "function") ? getFeatDef(char, data.featId) : null;
@@ -2554,7 +2554,7 @@ function renderBackgroundFeature() {
   var feat = data && data.feature;
   if (data && data.custom && !feat) {
     el.innerHTML = '<span class="bg-feature-label">' + dndIcoHtml("scroll", 13) + ' Своя предыстория</span>' +
-      '<span class="bg-feature-text">умение любой предыстории, 2 навыка, инструменты и языки — в сумме не больше двух</span>';
+      '<span class="bg-feature-text">умение любой предыстории, 2 навыка, инструменты и\u00a0языки — в\u00a0сумме не\u00a0больше двух</span>';
     el.style.display = "flex";
     return;
   }
@@ -2664,7 +2664,7 @@ function toggleBgStat(k) {
   } else {
     var has2 = Object.keys(alloc).some(function(x) { return alloc[x] === 2; });
     var has1 = Object.keys(alloc).some(function(x) { return alloc[x] === 1; });
-    if (has2 && has1) { showToast("Уже распределено +2 и +1. Снимите одно.", "warning"); return; }
+    if (has2 && has1) { showToast("Уже распределено +2 и\u00a0+1. Снимите одно.", "warning"); return; }
     _bgApplyStat(char, k, has2 ? 1 : 2);
   }
   _bgAfterStats(char);
@@ -2808,7 +2808,7 @@ function _toggleBgCustom14(char, field, value) {
     } else {
       langs = (langs === value) ? 0 : value;
     }
-    if (tools.length + langs > 2) { showToast("Инструменты и языки — в сумме не больше двух.", "warning"); return; }
+    if (tools.length + langs > 2) { showToast("Инструменты и\u00a0языки — в\u00a0сумме не\u00a0больше двух.", "warning"); return; }
     c.tools = tools;
     c.languages = langs;
     if (char.proficiencies && char.proficiencies.toolChoices) {
@@ -2879,7 +2879,7 @@ function _renderBgCustom14(char) {
       '" onclick="toggleBgCustom(\'skills\',\'' + escapeHtml(sk.name) + '\')">' + escapeHtml(sk.name) + '</button>';
   });
   html += '</div>';
-  html += '<div class="race-extras-title">' + dndIcoHtml("box", 14) + ' Инструменты и языки (' + (tools.length + langs) + '/2)</div><div class="race-extras-row">';
+  html += '<div class="race-extras-title">' + dndIcoHtml("box", 14) + ' Инструменты и\u00a0языки (' + (tools.length + langs) + '/2)</div><div class="race-extras-row">';
   toolOpts.forEach(function(t) {
     html += '<button type="button" class="race-extras-stat-pick' + (tools.indexOf(t) !== -1 ? " selected" : "") +
       '" onclick="toggleBgCustom(\'tools\',\'' + escapeHtml(t) + '\')">' + escapeHtml(t) + '</button>';
@@ -2950,18 +2950,18 @@ function renderBackgroundExtras() {
   if (d14 && d14.skillChoice) {
     var sp = Array.isArray(char.bgSkillPicks) ? char.bgSkillPicks : [];
     var cnt = d14.skillChoice.count || 1;
-    var h14 = '<div class="race-extras-title">' + dndIcoHtml("check", 14) + ' Навыки предыстории на выбор (' + cnt + ')</div><div class="race-extras-row">';
+    var h14 = '<div class="race-extras-title">' + dndIcoHtml("check", 14) + ' Навыки предыстории на\u00a0выбор (' + cnt + ')</div><div class="race-extras-row">';
     var bgHide = _pickHide("bg", sp.length >= cnt);
     d14.skillChoice.from.forEach(function(sn) {
       if (bgHide && sp.indexOf(sn) === -1) return;
       var bgBusy = sp.indexOf(sn) === -1 && _skillTakenElsewhere(char, sn, "bg");
       h14 += '<button type="button" class="race-extras-stat-pick' + (sp.indexOf(sn) !== -1 ? " selected" : "") + '"' +
-        (bgBusy ? ' disabled title="Уже есть от расы или класса"' : '') +
+        (bgBusy ? ' disabled title="Уже есть от\u00a0расы или\u00a0класса"' : '') +
         ' onclick="toggleBgSkillPick(\'' + escapeHtml(sn) + '\')">' + escapeHtml(sn) + '</button>';
     });
     if (bgHide) h14 += _pickExpandBtn("bg");
     h14 += '<span style="margin-left:auto;color:var(--text-dim);font-size:var(--fs-14);">Выбрано: ' + sp.length + '/' + cnt + '</span></div>';
-    if (sp.length < cnt) h14 += '<div class="race-extras-warn">Навыки предыстории выбраны не все — осталось ' + (cnt - sp.length) + '.</div>';
+    if (sp.length < cnt) h14 += '<div class="race-extras-warn">Навыки предыстории выбраны не\u00a0все — осталось ' + (cnt - sp.length) + '.</div>';
     if (typeof renderBgEquip14 === "function") h14 += renderBgEquip14(char);
     _setExtrasHtml(panel, h14);
     panel.style.display = "flex";
@@ -3004,7 +3004,7 @@ function renderBackgroundExtras() {
     var mode = char.bgStatChoice.mode;
     var alloc = char.bgStatChoice.alloc || {};
     var v = (typeof validateBgStatChoice === "function") ? validateBgStatChoice(def, char.bgStatChoice) : { complete: true };
-    html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' Характеристики от предыстории</div>';
+    html += '<div class="race-extras-title">' + dndIcoHtml("trend", 14) + ' Характеристики от\u00a0предыстории</div>';
     html += '<div class="race-extras-row">' +
       '<button type="button" class="race-extras-stat-pick' + (mode === "2+1" ? " selected" : "") + '" onclick="setBgStatMode(\'2+1\')">+2 / +1</button>' +
       '<button type="button" class="race-extras-stat-pick' + (mode === "1+1+1" ? " selected" : "") + '" onclick="setBgStatMode(\'1+1+1\')">+1 / +1 / +1</button>' +
@@ -3015,13 +3015,13 @@ function renderBackgroundExtras() {
         '" onclick="toggleBgStat(\'' + k + '\')">' + _bgStatShort(k) + (alloc[k] ? " +" + alloc[k] : "") + '</button>';
     });
     html += '<span style="margin-left:auto;color:var(--text-dim);font-size:var(--fs-14);">' +
-      (v.complete ? dndIcoHtml("check", 13) + " распределено" : "не распределено") + '</span></div>';
+      (v.complete ? dndIcoHtml("check", 13) + " распределено" : "не\u00a0распределено") + '</span></div>';
   }
 
   var of = (char.feats || []).find(function(f) { return f.origin; });
   html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' Черта происхождения</div><div class="race-extras-row">' +
     (of ? '<span class="race-extras-btn done">' + dndIcoHtml("check", 13) + ' ' + escapeHtml(of.name) + '</span>'
-        : '<span style="color:var(--text-dim);font-size:var(--fs-14);">не выбрана</span>') + '</div>';
+        : '<span style="color:var(--text-dim);font-size:var(--fs-14);">не\u00a0выбрана</span>') + '</div>';
 
   if (def.equipment && !def.custom) {
     var eq = def.equipment;
@@ -3076,7 +3076,7 @@ function renderArmorSelect(char) {
   }).filter(Boolean);
   if (opts.length) {
     var og = document.createElement("optgroup");
-    og.label = "Из инвентаря";
+    og.label = "Из\u00a0инвентаря";
     og.setAttribute("data-inv", "1");
     opts.forEach(function(o) {
       var op = document.createElement("option");
@@ -3139,15 +3139,15 @@ function onArmorChange() {
   if (preset && typeof armorPenalties === "function" && typeof showToast === "function") {
     var pen = armorPenalties(char, preset);
     var warns = [];
-    if (pen.slowed) warns.push("СИЛ < " + preset.strReq + " → скорость −10 фт");
-    if (pen.stealthDisadv) warns.push("помеха на Скрытность");
+    if (pen.slowed) warns.push("СИЛ < " + preset.strReq + " → скорость −10\u00a0фт");
+    if (pen.stealthDisadv) warns.push("помеха на\u00a0Скрытность");
     if (warns.length) showToast("⚠️ " + preset.name + ": " + warns.join(", "), "warn");
   }
   // AUD-8 (L34): щит занимает руку — двуручное оружие в руках с ним не держится (PHB стр.147)
   if (hasShield && typeof showToast === "function") {
     var inHand = ((char.inventory && char.inventory.weapon) || []).filter(function(it) { return it && it.location === "wielded"; }).map(function(it) { return it.name; });
     var twoH = (char.weapons || []).find(function(w) { return w && inHand.indexOf(w.name) !== -1 && String(w.notes || "").toLowerCase().indexOf("двуручн") !== -1; });
-    if (twoH) showToast("⚠️ Щит и двуручное оружие (" + twoH.name + ") вместе не держатся — уберите одно из рук", "warn");
+    if (twoH) showToast("⚠️ Щит и\u00a0двуручное оружие (" + twoH.name + ") вместе не\u00a0держатся — уберите одно из\u00a0рук", "warn");
   }
   saveToLocal();
   updateStatusBar();
@@ -3277,7 +3277,7 @@ function renderConditionsPopup() {
   }
   if (concName || ritOn) { /* есть что показать */ }
   else if (!baseConditions.length && !exhLevel && !buffs.length && !debuffs.length) {
-    list.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:12px;">Нет активных состояний</div>';
+    list.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:var(--sp-3);">Нет активных состояний</div>';
     return;
   }
   // Группа: Состояния

@@ -280,7 +280,13 @@ function giveStartingGold14() {
   if (!cd || char.classEquipGiven || char.bgEquipGiven) return;
   var g = cd.def.gold;
   var formula = g[0] + "к" + g[1] + (g[2] > 1 ? " × " + g[2] : "");
-  if (!confirm("Бросить " + formula + " зм вместо снаряжения класса и предыстории?")) return;
+  // DS-5б: шторка вместо confirm(), кнопка называет последствие
+  showConfirmModal("Золото вместо снаряжения",
+    "Снаряжение класса и\u00a0предыстории выдано не\u00a0будет, вместо него — " + formula + "\u00a0зм.",
+    function() { _rollStartingGold14(char, g, formula); }, "Бросить " + formula + "\u00a0зм", { danger: false, icon: "coins" });
+}
+function _rollStartingGold14(char, g, formula) {
+  if (getCurrentChar() !== char || char.classEquipGiven || char.bgEquipGiven) return;
   var rolls = [], sum = 0;
   for (var i = 0; i < g[0]; i++) { var r = 1 + Math.floor(Math.random() * g[1]); rolls.push(r); sum += r; }
   var gp = sum * g[2];

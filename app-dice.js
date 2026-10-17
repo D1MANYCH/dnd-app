@@ -144,11 +144,22 @@ function closeDicePopovers() {
   if (hBtn) hBtn.classList.remove('is-active');
 }
 function clearDiceHistory() {
-  if (typeof confirm === 'function' && !confirm('Очистить историю бросков?')) return;
+  // DS-5б: без подтверждения — очищаем сразу, в тосте «Вернуть»
+  var arr = null;
   try {
-    if (Array.isArray(window.diceHistory)) window.diceHistory.length = 0;
-    else if (typeof diceHistory !== 'undefined' && Array.isArray(diceHistory)) diceHistory.length = 0;
+    if (Array.isArray(window.diceHistory)) arr = window.diceHistory;
+    else if (typeof diceHistory !== 'undefined' && Array.isArray(diceHistory)) arr = diceHistory;
   } catch (e) {}
+  if (!arr || !arr.length) return;
+  var saved = arr.slice();
+  arr.length = 0;
+  _diceHistoryRefresh();
+  if (typeof showToast === 'function') showToast('История бросков очищена', 'info', { label: 'Вернуть', onClick: function() {
+    Array.prototype.push.apply(arr, saved);
+    _diceHistoryRefresh();
+  } });
+}
+function _diceHistoryRefresh() {
   try { if (typeof renderDiceHistory === 'function') renderDiceHistory(); } catch (e) {}
   try { _updateDiceHistoryBadge(); } catch (e) {}
 }
@@ -210,8 +221,8 @@ document.addEventListener('click', function(ev) {
 function setDiceMode(btn, mode) {
   window.__diceSelectedMode = mode;
   var seg = btn && btn.parentElement;
-  if (seg) seg.querySelectorAll(".dice-mode-seg-btn").forEach(function(b){ b.classList.remove("active"); });
-  if (btn) btn.classList.add("active");
+  if (seg) seg.querySelectorAll(".dice-mode-seg-btn").forEach(function(b){ b.classList.remove("active"); b.setAttribute("aria-checked", "false"); });
+  if (btn) { btn.classList.add("active"); btn.setAttribute("aria-checked", "true"); }
   try { _paintDiceMode(); } catch (e) {}
 }
 function rollDiceWithSelectedMode(sides) {
@@ -842,7 +853,7 @@ function animateDice3d(sides, result, callback, opts) {
     // для adv/dis пробрасываем undefined — rollDice() оставит свои r1/r2.
     // 3D-only (решение юзера — без 2D-фолбэка). Таймаут: отдаём результат в UI,
     // кость может ещё доехать сама; инстанс пересоздаётся выше при 3 таймаутах подряд.
-    console.warn('[DiceBox] roll timeout 10s (sides=' + sides + ') — результат без 3D-кости');
+    console.warn('[DiceBox] roll timeout 10s (sides=' + sides + ') — результат без\u00a03D-кости');
     _applyDiceCritGlow(sides, result);
     try { callback(); } catch (e) {}
   }, 10000);
@@ -1114,8 +1125,8 @@ function parseDiceFormula(raw) {
       var sides = dm[2] === '' ? 0 : parseInt(dm[2], 10);
       if (!sides || sides < 2) return { ok: false, error: 'Грань кубика ≥ 2 (пример: к6, к20)' };
       // AUD-8 (L27): вне границ — ошибка, а не молчаливая подмена («0к6» → 1к6)
-      if (count < 1 || count > 50) return { ok: false, error: 'Кубиков от 1 до 50' };
-      if (sides > 1000) return { ok: false, error: 'Грань кубика не больше 1000' };
+      if (count < 1 || count > 50) return { ok: false, error: 'Кубиков от\u00a01 до\u00a050' };
+      if (sides > 1000) return { ok: false, error: 'Грань кубика не\u00a0больше 1000' };
       groups.push({ count: count, sides: sides, sign: sign });
       hasDice = true;
     } else if (/^\d+$/.test(body)) {
@@ -1268,9 +1279,24 @@ function _rollFormulaFrom(inputId) {
   if (parsed && !parsed.ok) {
     var resultBig = $("dice-result-big");
     var resultInfo = $("dice-result-info");
-    if (resultInfo) resultInfo.textContent = parsed.error;
+    if (input.id === "dice-custom-input-main") { showFieldError(input, parsed.error, _diceFieldErrOpts(input)); if (resultInfo) resultInfo.textContent = ""; }
+    else if (resultInfo) resultInfo.textContent = parsed.error;
     if (resultBig) resultBig.textContent = '—';
   }
+}
+
+// DS-5.6: формулу проверяем при уходе из поля, пустую — только при броске.
+// Уход на чипы формулы и кнопки той же формы — не уход, ошибку не показываем.
+function _diceFieldErrOpts(input) {
+  return input.id === "saved-roll-formula" ? { el: $("saved-roll-err"), noFocus: true } : { after: input.parentElement, noFocus: true };
+}
+function diceFormulaBlur(input, ev) {
+  var to = ev && ev.relatedTarget;
+  if (to && to.closest && to.closest(".dice-formula-panel, .saved-roll-form")) return;
+  var v = (input.value || "").trim();
+  if (!v) return;
+  var p = parseDiceFormula(input.id === "saved-roll-formula" ? _savedRollFormula(v) : v);
+  if (!p.ok) showFieldError(input, p.error, _diceFieldErrOpts(input));
 }
 
 // UX-2: поповер-инпут «своя формула» — тот же общий обработчик.
@@ -1347,7 +1373,7 @@ function renderDiceFan() {
   for (var i = 0; i < DICE_FAN_ORDER.length; i++) {
     var s = DICE_FAN_ORDER[i];
     html += '<button type="button" class="dice-fan-item' + (s === _selectedDie ? ' is-sel' : '') + '"' +
-      ' role="tab" aria-selected="' + (s === _selectedDie) + '" data-sides="' + s + '"' +
+      ' role="radio" aria-checked="' + (s === _selectedDie) + '" data-sides="' + s + '"' +
       ' onclick="selectDie(' + s + ')" aria-label="Выбрать к' + s + '">' +
       '<span class="dice-fan-glyph">' + _diceShapeSvg(s, 28) + '</span>' +
       '<span class="dice-fan-label">к' + s + '</span>' +
@@ -1404,7 +1430,7 @@ function _paintDiceMode() {
   var hint = document.getElementById('dice-pick-hint');
   if (hint) hint.textContent = two
     ? (mode === 'adv' ? 'Два к20, берётся больший' : 'Два к20, берётся меньший')
-    : 'Нажмите на кость, чтобы бросить';
+    : 'Нажмите на\u00a0кость, чтобы бросить';
 }
 
 // Выбор кости в веере. Бросок не запускает — только меняет выбранную.
@@ -1415,7 +1441,7 @@ function selectDie(sides) {
   for (var i = 0; i < items.length; i++) {
     var on = parseInt(items[i].getAttribute('data-sides'), 10) === sides;
     items[i].classList.toggle('is-sel', on);
-    items[i].setAttribute('aria-selected', on ? 'true' : 'false');
+    items[i].setAttribute('aria-checked', on ? 'true' : 'false');
     if (on && !prefersReducedMotion()) {
       items[i].classList.remove('is-pick');
       void items[i].offsetWidth;
@@ -1529,13 +1555,14 @@ function savedRollEdit(i) {
   var list = Array.isArray(char.savedRolls) ? char.savedRolls : [];
   var r = i >= 0 ? list[i] : null;
   if (i >= 0 && !r) return;
-  if (!r && list.length >= SAVED_ROLLS_MAX) { showToast("Не больше " + SAVED_ROLLS_MAX + " бросков", "info"); return; }
+  if (!r && list.length >= SAVED_ROLLS_MAX) { showToast("Не\u00a0больше " + SAVED_ROLLS_MAX + " бросков", "info"); return; }
   _savedRollEditIdx = r ? i : -1;
   var form = $("saved-roll-form"), n = $("saved-roll-name"), f = $("saved-roll-formula"), err = $("saved-roll-err");
   if (!form || !n || !f) return;
   n.value = r ? r.name : '';
   f.value = r ? r.formula : '';
   if (err) err.textContent = '';
+  f.removeAttribute("aria-invalid");
   form.hidden = false;
   try { n.focus(); } catch (e) {}
 }
@@ -1551,13 +1578,13 @@ function savedRollSubmit() {
   var formula = _savedRollFormula(f ? f.value : '');
   var p = parseDiceFormula(formula);
   var msg = !p.ok ? p.error : (formula.length > 60 ? 'Формула длиннее 60 знаков' : '');
-  if (msg) { if (err) err.textContent = msg; return; }
+  if (msg) { if (f) showFieldError(f, msg, { el: err }); else if (err) err.textContent = msg; return; }
   var name = (n ? n.value : '').trim().slice(0, 40) || _formulaCanon(p.groups, p.mod);
   if (!Array.isArray(char.savedRolls)) char.savedRolls = [];
   var r = _savedRollEditIdx >= 0 ? char.savedRolls[_savedRollEditIdx] : null;
   if (r) { r.name = name; r.formula = formula; }
   else {
-    if (char.savedRolls.length >= SAVED_ROLLS_MAX) { if (err) err.textContent = 'Не больше ' + SAVED_ROLLS_MAX + ' бросков'; return; }
+    if (char.savedRolls.length >= SAVED_ROLLS_MAX) { if (err) err.textContent = 'Не\u00a0больше ' + SAVED_ROLLS_MAX + ' бросков'; return; }
     char.savedRolls.push({ id: _savedRollNewId(), name: name, formula: formula });
   }
   if (window.AppLog) AppLog.action('dice', (r ? 'мой бросок изменён: ' : 'мой бросок сохранён: ') + name + ' · ' + formula);
@@ -1570,7 +1597,7 @@ function savedRollDelete(i) {
   var r = char && Array.isArray(char.savedRolls) && char.savedRolls[i];
   if (!r) return;
   var id = r.id;
-  showConfirmModal("Удалить бросок?", "«" + r.name + "» исчезнет из ваших бросков.", function() {
+  showConfirmModal("Удалить бросок?", "«" + r.name + "» исчезнет из\u00a0ваших бросков.", function() {
     var c = getCurrentChar();
     if (!c || !Array.isArray(c.savedRolls)) return;
     var k = c.savedRolls.findIndex(function(x) { return x && x.id === id; });
@@ -1591,13 +1618,13 @@ function savedRollFromDice() {
   var p = parseDiceFormula(formula);
   if (!p.ok || formula.length > 60) { showToast(p.ok ? 'Формула длиннее 60 знаков' : p.error, "info"); return; }
   if (!Array.isArray(char.savedRolls)) char.savedRolls = [];
-  if (char.savedRolls.length >= SAVED_ROLLS_MAX) { showToast("Не больше " + SAVED_ROLLS_MAX + " бросков", "info"); return; }
+  if (char.savedRolls.length >= SAVED_ROLLS_MAX) { showToast("Не\u00a0больше " + SAVED_ROLLS_MAX + " бросков", "info"); return; }
   var name = _formulaCanon(p.groups, p.mod);
   char.savedRolls.push({ id: _savedRollNewId(), name: name, formula: formula });
-  if (window.AppLog) AppLog.action('dice', 'мой бросок сохранён из окна кубиков: ' + formula);
+  if (window.AppLog) AppLog.action('dice', 'мой бросок сохранён из\u00a0окна кубиков: ' + formula);
   saveToLocal();
   renderSavedRolls();
-  showToast("«" + name + "» — в «Моих бросках» на вкладке «Бой»", "success");
+  showToast("«" + name + "» — в\u00a0«Моих бросках» на\u00a0вкладке «Бой»", "success");
 }
 
 // DICE-2: горячие клавиши окна на ПК — Пробел/Enter бросают выбранную кость,

@@ -158,7 +158,7 @@ function renderHomeHero() {
     capEl.hidden = !many;
   }
 
-  if (nameEl) nameEl.textContent = char.name || "Без имени";
+  if (nameEl) nameEl.textContent = char.name || "Без\u00a0имени";
   if (subEl)  subEl.textContent  = _homeHeroSubtitle(char);
 
   if (chipEl) {
@@ -248,7 +248,7 @@ function homeExportPdf(ev) {
   var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
   if (!char) char = getLastCharacter();
   if (!char) {
-    if (typeof showToast === "function") showToast("Нет персонажа для печати", "error");
+    if (typeof showToast === "function") showToast("Нет персонажа для\u00a0печати", "error");
     return;
   }
   if (typeof window.exportCharacterPDF !== "function") {
@@ -282,6 +282,6 @@ function _homeSyncContinue(char) {
   btn.disabled = false;
   if (sub) {
     var when = (char.updatedAt && typeof formatTimeAgo === "function") ? formatTimeAgo(char.updatedAt) : "";
-    sub.textContent = "«" + (char.name || "Без имени") + "»" + (when ? " · " + when : "");
+    sub.textContent = "«" + (char.name || "Без\u00a0имени") + "»" + (when ? " · " + when : "");
   }
 }

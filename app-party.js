@@ -14,7 +14,7 @@ var CONDITION_STATUSES = [
   { value: "healthy", label: "💚 Здоров" },
   { value: "wounded", label: "💛 Ранен" },
   { value: "heavy",   label: "🟠 Тяжело ранен" },
-  { value: "dying",   label: "❤️ При смерти" },
+  { value: "dying",   label: "❤️ При\u00a0смерти" },
   { value: "dead",    label: "💀 Мёртв" }
 ];
 
@@ -99,7 +99,7 @@ function renderMyChar() {
   if (!container) return;
   var char = getCurrentChar();
   if (!char) {
-    container.innerHTML = "<div class='party-empty'>Откройте персонажа из списка профилей</div>";
+    container.innerHTML = "<div class='party-empty'>Откройте персонажа из\u00a0списка профилей</div>";
     return;
   }
   var icon  = getClassIcon(char.class);
@@ -133,7 +133,7 @@ function renderAllies() {
   var countEl = $("allies-count");
   if (!list) return;
   if (countEl) countEl.textContent = PARTY_DATA.allies.length > 0 ? PARTY_DATA.allies.length : "";
-  if (PARTY_DATA.allies.length === 0) { list.innerHTML = emptyStateHtml("users", "Нет соратников", "Спутники по отряду — их хиты и состояние.", "+ Добавить", "openAddAllyModal()", "party-empty"); return; }
+  if (PARTY_DATA.allies.length === 0) { list.innerHTML = emptyStateHtml("users", "Нет соратников", "Спутники по\u00a0отряду — их хиты и\u00a0состояние.", "+ Добавить", "openAddAllyModal()", "party-empty"); return; }
   list.innerHTML = PARTY_DATA.allies.map(function(a, i) {
     var icon  = getClassIcon(a.cls);
     var color = getClassColor(a.cls);
@@ -141,7 +141,7 @@ function renderAllies() {
       '<div class="pcard-icon" style="color:' + color + '">' + icon + '</div>' +
       '<div class="pcard-body">' +
         '<div class="pcard-name">' + escapeHtml(a.name) + '</div>' +
-        '<div class="pcard-sub">' + escapeHtml((a.cls || "Класс не указан") + (a.lvl ? " · " + a.lvl + " ур." : "")) + '</div>' +
+        '<div class="pcard-sub">' + escapeHtml((a.cls || "Класс не\u00a0указан") + (a.lvl ? " · " + a.lvl + " ур." : "")) + '</div>' +
         (a.desc ? '<div class="pcard-desc">' + escapeHtml(a.desc) + '</div>' : '') +
         '<div class="pcard-status-row"><select class="pcard-status-sel" onchange="setAllyStatus(' + i + ',this.value)" onclick="event.stopPropagation()">' +
         CONDITION_STATUSES.map(function(s) { return '<option value="' + s.value + '"' + (s.value === (a.status||"healthy") ? " selected" : "") + '>' + s.label + '</option>'; }).join("") +
@@ -205,6 +205,7 @@ function _pentOpen(type, i) {
   $(cfg.idx).value = isEdit ? i : "-1";
   var item = isEdit ? cfg.list()[i] : null;
   cfg.fields.forEach(function(f) { $(f.id).value = item ? (item[f.key] || "") : ""; });
+  clearFieldError(cfg.fields[0].id);
   if (type === "monster") _monFormFill(item);
   // STYLE-15: форма своего монстра — экран, а не модалка
   if (cfg.screen) { showScreen(cfg.screen); return; }
@@ -219,7 +220,7 @@ function _pentSave(type) {
   var cfg = _PENT[type];
   var nameField = cfg.fields[0];
   var name = $(nameField.id).value.trim();
-  if (!name) { showToast("Введите имя", "warn"); return; }
+  if (!name) { showFieldError(nameField.id, "Введите имя"); return; }
   var list = cfg.list();
   var idx = parseInt($(cfg.idx).value, 10);
   var existing = (idx >= 0 && idx < list.length) ? list[idx] : null;
@@ -307,11 +308,11 @@ function _pentImport(type, input) {
   reader.onload = function(e) {
     var d;
     try { d = JSON.parse(e.target.result); }
-    catch(err) { showToast("Файл повреждён или это не JSON", "error"); input.value = ""; return; }
+    catch(err) { showToast("Файл повреждён или\u00a0это не\u00a0JSON", "error"); input.value = ""; return; }
     if (!Array.isArray(d)) { showToast("Неверный формат: ожидался массив", "error"); input.value = ""; return; }
     var valid = d.filter(_isValidPentry);
     var skipped = d.length - valid.length;
-    if (valid.length === 0) { showToast("В файле нет валидных записей", "error"); input.value = ""; return; }
+    if (valid.length === 0) { showToast("В\u00a0файле нет валидных записей", "error"); input.value = ""; return; }
     var key = type === "ally" ? "allies" : type+"s";
     var cur = PARTY_DATA[key] || [];
     // AUD-2 (S8): не заменять список молча — спросить «добавить/заменить», перед заменой снимок
@@ -327,12 +328,12 @@ function _pentImport(type, input) {
       showToast("Загружено: " + valid.length + (skipped > 0 ? " (пропущено " + skipped + ")" : ""), "success");
     };
     if (!cur.length) { apply(false); return; }
-    showConfirmModal("Импорт: " + valid.length + " из файла",
-      "В списке уже " + cur.length + ". Добавить записи из файла к ним или заменить список целиком?",
+    showConfirmModal("Импорт: " + valid.length + " из\u00a0файла",
+      "В\u00a0списке уже " + cur.length + ". Добавить записи из\u00a0файла к\u00a0ним или\u00a0заменить список целиком?",
       function() { apply(false); }, "Добавить",
       { danger: false, icon: "import", altLabel: "Заменить", onAlt: function() { apply(true); } });
   };
-  reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
+  reader.onerror = function() { showToast("Файл не\u00a0прочитан — выберите его ещё раз", "error"); input.value = ""; };
   reader.readAsText(file); input.value = "";
 }
 // Обёртки — сохраняем старые имена чтобы не менять index.html
@@ -390,7 +391,7 @@ function monsterFormRefresh() {
   var cr = ($("monster-cr-inp").value || "").trim();
   var pb = rulesCrToProf(cr);
   var note = $("monster-cr-note");
-  if (note) note.textContent = cr ? (pb ? "Бонус мастерства +" + pb + " · " + rulesCrToXp(cr) + " XP" : "CR не из таблицы — опыт не посчитать") : "";
+  if (note) note.textContent = cr ? (pb ? "Бонус мастерства +" + pb + " · " + rulesCrToXp(cr) + " XP" : "CR не\u00a0из таблицы — опыт не\u00a0посчитать") : "";
   MON_ABILS.forEach(function(a) {
     var m = $("monster-st-" + a[0] + "-mod");
     if (m) m.textContent = _monSigned(getMod(_monFormStat(a[0]) || 10));
@@ -512,7 +513,7 @@ function deleteCatalogMonster(i, event) {
   if (event && event.stopPropagation) event.stopPropagation();
   var cat = _monCatalog(); if (!cat || !cat[i]) return;
   var name = cat[i].name;
-  showConfirmModal("Убрать из «Мои монстры»?", "«" + name + "» пропадёт из каталога. Монстры отряда и боя не изменятся.", function() {
+  showConfirmModal("Убрать из\u00a0«Мои монстры»?", "«" + name + "» пропадёт из\u00a0каталога. Монстры отряда и\u00a0боя не\u00a0изменятся.", function() {
     cat.splice(i, 1);
     if (window.AppLog) AppLog.action("party", "«Мои монстры»: удалён " + name);
     saveToLocal();
@@ -531,10 +532,10 @@ function addMonsterFromCatalog(i, event) {
   copy.status = "healthy";
   if (copy.hp && !copy.hpMax) copy.hpMax = copy.hp;
   PARTY_DATA.monsters.push(copy);
-  if (window.AppLog) AppLog.action("party", "из «Мои монстры» добавлен: " + copy.name);
+  if (window.AppLog) AppLog.action("party", "из\u00a0«Мои монстры» добавлен: " + copy.name);
   saveParty();
   renderMonsters();
-  showToast(copy.name + " добавлен(а) в монстров", "success");
+  showToast(copy.name + " добавлен(а) в\u00a0монстров", "success");
 }
 
 
@@ -592,7 +593,7 @@ function renderMonsters() {
   var countEl = $("monsters-count");
   if (!list) return;
   if (countEl) countEl.textContent = PARTY_DATA.monsters.length > 0 ? PARTY_DATA.monsters.length : "";
-  if (PARTY_DATA.monsters.length === 0) { list.innerHTML = emptyStateHtml("skull", "Нет монстров", "Свой противник или готовый из SRD.", "+ Добавить", "openAddMonsterModal()", "party-empty"); return; }
+  if (PARTY_DATA.monsters.length === 0) { list.innerHTML = emptyStateHtml("skull", "Нет монстров", "Свой противник или\u00a0готовый из\u00a0SRD.", "+ Добавить", "openAddMonsterModal()", "party-empty"); return; }
   list.innerHTML = PARTY_DATA.monsters.map(function(m, i) {
     var typeIcon = getMonsterTypeIcon(m.type);
     // FEAT-4: бэйджи SRD-карточки (CR / КД / ХП / редакция), показываем только заполненные
@@ -646,7 +647,7 @@ function _openSrdMonsterPickerLazy() {
   if (!window.MONSTERS_SRD && typeof window.ensureBestiary === "function") {
     return window.ensureBestiary().catch(function (e) {
       if (window.__catchLog) window.__catchLog("bestiary:lazy-load", e);
-      if (typeof showToast === "function") showToast("Бестиарий не загрузился — проверьте сеть", "warn");
+      if (typeof showToast === "function") showToast("Бестиарий не\u00a0загрузился — проверьте сеть", "warn");
     }).then(function () { return _openSrdMonsterPickerCore(); });
   }
   return _openSrdMonsterPickerCore();
@@ -661,7 +662,7 @@ function openSrdMonsterPickerForBattle() {
 }
 function _openSrdMonsterPickerCore() {
   if (!window.MONSTERS_SRD || !window.MONSTERS_SRD.length) {
-    showToast("SRD-бестиарий не загружен", "error");
+    showToast("SRD-бестиарий не\u00a0загружен", "error");
     return;
   }
   _srdPickerState.q = "";
@@ -735,13 +736,13 @@ function renderSrdMonsterPicker() {
         '</div>' +
       '</div>' +
       '<button class="srd-mon-add" onclick="addMonsterFromCatalog(' + x.ci + ', event)" title="Добавить">+ Добавить</button>' +
-      '<button class="srd-mon-del" onclick="deleteCatalogMonster(' + x.ci + ', event)" title="Убрать из «Мои монстры»" aria-label="Убрать из «Мои монстры»">' + dndIcoHtml("trash", 14) + '</button>' +
+      '<button class="srd-mon-del" onclick="deleteCatalogMonster(' + x.ci + ', event)" title="Убрать из\u00a0«Мои монстры»" aria-label="Убрать из\u00a0«Мои монстры»">' + dndIcoHtml("trash", 14) + '</button>' +
     '</div>';
   }).join("");
   if (ed === "mine") {
     var cEl = $("srd-monster-count");
     if (cEl) cEl.textContent = "Найдено: " + mine.length;
-    box.innerHTML = mine.length ? mineHtml : emptyStateHtml("skull", "«Мои монстры» пусто", "В форме своего монстра отметьте «Сохранить в «Мои монстры»».", null, null, "party-empty");
+    box.innerHTML = mine.length ? mineHtml : emptyStateHtml("skull", "«Мои монстры» пусто", "В\u00a0форме своего монстра отметьте «Сохранить в\u00a0«Мои монстры»».", null, null, "party-empty");
     return;
   }
   var list = window.MONSTERS_SRD.filter(function(m) {
@@ -760,8 +761,8 @@ function renderSrdMonsterPicker() {
   var countEl = $("srd-monster-count");
   if (countEl) countEl.textContent = "Найдено: " + (list.length + mine.length);
   if (list.length === 0 && !mine.length) {
-    if (ed === "PHB'24") box.innerHTML = emptyStateHtml("hourglass", "Раздел PHB'24 пока пуст", "Будет наполнен в следующем релизе.", null, null, "party-empty");
-    else box.innerHTML = '<div class="party-empty">Нет монстров под фильтр</div>';
+    if (ed === "PHB'24") box.innerHTML = emptyStateHtml("hourglass", "Раздел PHB'24 пока пуст", "Будет наполнен в\u00a0следующем релизе.", null, null, "party-empty");
+    else box.innerHTML = '<div class="party-empty">Нет монстров под\u00a0фильтр</div>';
     return;
   }
   box.innerHTML = mineHtml + list.map(function(m) {
@@ -787,11 +788,11 @@ function addMonsterFromSRD(slug, event) {
   // localStorage (dnd_party), а не в лист — такой монстр потом «прилипал» бы
   // к первому же открытому герою. Бестиарий с главной работает только на чтение.
   if (!currentId) {
-    if (typeof showToast === "function") showToast("Сначала откройте персонажа — отряд хранится в его листе", "warn");
+    if (typeof showToast === "function") showToast("Сначала откройте персонажа — отряд хранится в\u00a0его листе", "warn");
     return;
   }
   var m = window.srdMonsterBySlug(slug);
-  if (!m) { showToast("Монстр не найден", "error"); return; }
+  if (!m) { showToast("Монстр не\u00a0найден", "error"); return; }
   // UX-6: режим боя — добавляем монстра прямо в идущую стычку, модалка остаётся
   // открытой (можно добавить несколько подряд), в отряд не пишем.
   if (_srdPickerBattleMode && BATTLE_DATA.active) {
@@ -812,10 +813,10 @@ function addMonsterFromSRD(slug, event) {
     entry.id = Date.now() + Math.floor(Math.random() * 10000);
   }
   PARTY_DATA.monsters.push(entry);
-  if (window.AppLog) AppLog.action("party", "из SRD добавлен монстр: " + m.name, { slug: m.slug, cr: m.cr });
+  if (window.AppLog) AppLog.action("party", "из\u00a0SRD добавлен монстр: " + m.name, { slug: m.slug, cr: m.cr });
   saveParty();
   renderMonsters();
-  showToast(m.name + " добавлен(а) в монстров", "success");
+  showToast(m.name + " добавлен(а) в\u00a0монстров", "success");
 }
 
 // ─── FEAT-4: NPC ARCHETYPE PICKER ────────────────────────────
@@ -826,14 +827,14 @@ function openSrdNpcPicker() {
   if (!window.NPC_ARCHETYPES && typeof window.ensureBestiary === "function") {
     return window.ensureBestiary().catch(function (e) {
       if (window.__catchLog) window.__catchLog("bestiary:lazy-load", e);
-      if (typeof showToast === "function") showToast("Бестиарий не загрузился — проверьте сеть", "warn");
+      if (typeof showToast === "function") showToast("Бестиарий не\u00a0загрузился — проверьте сеть", "warn");
     }).then(function () { return _openSrdNpcPickerCore(); });
   }
   return _openSrdNpcPickerCore();
 }
 function _openSrdNpcPickerCore() {
   if (!window.NPC_ARCHETYPES || !window.NPC_ARCHETYPES.length) {
-    showToast("NPC-архетипы не загружены", "error");
+    showToast("NPC-архетипы не\u00a0загружены", "error");
     return;
   }
   _npcPickerState.q = "";
@@ -872,7 +873,7 @@ function renderSrdNpcPicker() {
   list.sort(function(a, b) { return a.name.localeCompare(b.name, "ru"); });
   var countEl = $("srd-npc-count");
   if (countEl) countEl.textContent = "Найдено: " + list.length;
-  if (list.length === 0) { box.innerHTML = '<div class="party-empty">Нет архетипов под фильтр</div>'; return; }
+  if (list.length === 0) { box.innerHTML = '<div class="party-empty">Нет архетипов под\u00a0фильтр</div>'; return; }
   box.innerHTML = list.map(function(a) {
     var attC = _npcAttColor(a.attitude || "");
     return '<div class="srd-mon-row" onclick="addNpcFromSRD(\'' + a.slug + '\', event)">' +
@@ -891,7 +892,7 @@ function renderSrdNpcPicker() {
 function addNpcFromSRD(slug, event) {
   if (event && event.stopPropagation) event.stopPropagation();
   var a = window.npcArchBySlug(slug);
-  if (!a) { showToast("Архетип не найден", "error"); return; }
+  if (!a) { showToast("Архетип не\u00a0найден", "error"); return; }
   if (!PARTY_DATA.npcs) PARTY_DATA.npcs = [];
   var entry = {
     id: Date.now() + Math.floor(Math.random() * 1000),
@@ -904,7 +905,7 @@ function addNpcFromSRD(slug, event) {
     entry.id = Date.now() + Math.floor(Math.random() * 10000);
   }
   PARTY_DATA.npcs.push(entry);
-  if (window.AppLog) AppLog.action("party", "из SRD добавлен NPC: " + a.name, { slug: a.slug });
+  if (window.AppLog) AppLog.action("party", "из\u00a0SRD добавлен NPC: " + a.name, { slug: a.slug });
   saveParty();
   renderNPCs();
   showToast(a.name + " добавлен", "success");
@@ -962,7 +963,7 @@ function renderBattleSetup() {
   if (!container) return;
   renderBattleDifficulty();
   if (battleSetupList.length === 0) {
-    container.innerHTML = "<div class='party-empty'>Добавьте участников во вкладке Отряд</div>";
+    container.innerHTML = "<div class='party-empty'>Добавьте участников во\u00a0вкладке Отряд</div>";
     return;
   }
   // STYLE-8d: цвет заголовка секции — токеном темы, а не литералом: старый
@@ -1031,8 +1032,8 @@ function renderBattleDifficulty() {
   var d = battleEncounterInput();
   if (!d.levels.length || !d.xps.length || d.noCr === d.xps.length) {
     el.innerHTML = '<div class="bd-sub">' + (d.noCr && d.levels.length
-      ? "У отмеченных врагов не указан CR — сложность не посчитать"
-      : "Отметьте героев и врагов — здесь появится сложность встречи") + '</div>';
+      ? "У\u00a0отмеченных врагов не\u00a0указан CR — сложность не\u00a0посчитать"
+      : "Отметьте героев и\u00a0врагов — здесь появится сложность встречи") + '</div>';
     return;
   }
   var r = rulesEncounterDifficulty(d.levels, d.xps);
@@ -1041,12 +1042,12 @@ function renderBattleDifficulty() {
     '<div class="bd-main" title="Скорректированный опыт врагов' + (r.next ? " / порог «" + r.next.label + "»" : "") + '">' +
       '<span class="bd-mark bd-' + r.level + '" aria-hidden="true"></span>' +
       '<span class="bd-label bd-' + r.level + '">' + r.label + '</span>' +
-      ' · ' + r.adjusted + (r.next ? " / " + r.next.xp : "") + ' XP' +
+      ' · ' + fmtNum(r.adjusted) + (r.next ? " / " + fmtNum(r.next.xp) : "") + ' XP' +
     '</div>' +
     '<div class="bd-sub">' +
-      'Врагов ' + d.xps.length + ': ' + r.base + ' XP × ' + String(r.mult).replace(".", ",") +
-      ' · пороги ' + t.easy + ' / ' + t.medium + ' / ' + t.hard + ' / ' + t.deadly +
-      (d.noCr ? ' · без CR: ' + d.noCr : '') +
+      'Врагов ' + d.xps.length + ': ' + fmtNum(r.base) + ' XP × ' + String(r.mult).replace(".", ",") +
+      ' · пороги ' + fmtNum(t.easy) + ' / ' + fmtNum(t.medium) + ' / ' + fmtNum(t.hard) + ' / ' + fmtNum(t.deadly) +
+      (d.noCr ? ' · без\u00a0CR: ' + d.noCr : '') +
     '</div>';
 }
 
@@ -1165,10 +1166,10 @@ function _addSrdMonsterToBattle(m) {
   BATTLE_DATA.participants.push(part);
   sortParticipantsByInitiative(BATTLE_DATA.participants);
   if (currentP) { var ci = BATTLE_DATA.participants.indexOf(currentP); if (ci >= 0) BATTLE_DATA.currentTurn = ci; }
-  if (window.AppLog) AppLog.action("battle", "в бой добавлен монстр: " + name + " (иниц. " + part.initiative + ")");
+  if (window.AppLog) AppLog.action("battle", "в\u00a0бой добавлен монстр: " + name + " (иниц. " + part.initiative + ")");
   saveBattle();
   renderBattleTracker();
-  showToast(name + " добавлен(а) в бой", "success");
+  showToast(name + " добавлен(а) в\u00a0бой", "success");
 }
 // DM-2: монстр из «Мои монстры» прямо в бой — стат-блок едет на участнике (p.sb).
 function _addCatalogMonsterToBattle(t) {
@@ -1189,10 +1190,10 @@ function _addCatalogMonsterToBattle(t) {
   BATTLE_DATA.participants.push(part);
   sortParticipantsByInitiative(BATTLE_DATA.participants);
   if (currentP) { var ci = BATTLE_DATA.participants.indexOf(currentP); if (ci >= 0) BATTLE_DATA.currentTurn = ci; }
-  if (window.AppLog) AppLog.action("battle", "в бой добавлен монстр: " + name + " (иниц. " + part.initiative + ")");
+  if (window.AppLog) AppLog.action("battle", "в\u00a0бой добавлен монстр: " + name + " (иниц. " + part.initiative + ")");
   saveBattle();
   renderBattleTracker();
-  showToast(name + " добавлен(а) в бой", "success");
+  showToast(name + " добавлен(а) в\u00a0бой", "success");
 }
 // Стат-блок участника: свой (p.sb) или из записи отряда.
 function _participantStatBlock(p) {
@@ -1361,7 +1362,7 @@ function renderBattleTracker() {
           '<button type="button" class="tracker-hp-btn tracker-hp-minus" onclick="adjustBattleHP(' + i + ',-1)" title="−1 ХП">−</button>' +
           '<input type="number" class="tracker-hp-cur flat-field" value="' + hp.hp + '" onchange="setBattleHP(' + i + ',this.value)" aria-label="Текущие ХП">' +
           '<span class="tracker-hp-sep">/</span>' +
-          '<input type="number" class="tracker-hp-max flat-field" value="' + hp.hpMax + '"' + (isSelf ? ' readonly title="Макс. ХП — на вкладке ХП"' : ' onchange="setBattleHPMax(' + i + ',this.value)" aria-label="Макс. ХП"') + '>' +
+          '<input type="number" class="tracker-hp-max flat-field" value="' + hp.hpMax + '"' + (isSelf ? ' readonly title="Макс. ХП — на\u00a0вкладке ХП"' : ' onchange="setBattleHPMax(' + i + ',this.value)" aria-label="Макс. ХП"') + '>' +
           '<button type="button" class="tracker-hp-btn tracker-hp-plus" onclick="adjustBattleHP(' + i + ',1)" title="+1 ХП">+</button>'
         : '') +
     '</div>';
@@ -1372,7 +1373,7 @@ function renderBattleTracker() {
       : '<span class="tracker-slot"></span>';
     var removeSlot = isSelf
       ? '<span class="tracker-slot"></span>'
-      : '<button type="button" class="tracker-remove-btn" onclick="removeBattleParticipant(' + i + ')" title="Убрать из боя" aria-label="Убрать из боя">' + dndIcoHtml("trash", 14) + '</button>';
+      : '<button type="button" class="tracker-remove-btn" onclick="removeBattleParticipant(' + i + ')" title="Убрать из\u00a0боя" aria-label="Убрать из\u00a0боя">' + dndIcoHtml("trash", 14) + '</button>';
     return '<div class="tracker-row' + (isCurrent ? " tracker-row-active" : "") + (isSelf ? " tracker-row-self" : "") + '">' +
       '<div class="tracker-main">' +
         '<div class="tracker-num" style="color:' + fcolor + '">' + (i + 1) + "</div>" +
@@ -1384,7 +1385,7 @@ function renderBattleTracker() {
         "</div>" +
         '<div class="tracker-actions">' +
           infoSlot +
-          '<button type="button" class="tracker-roll-btn" onclick="battleRollD20(' + i + ')" title="Бросить d20 (в общую историю)">' + dndIcoHtml("dice", 14) + '</button>' +
+          '<button type="button" class="tracker-roll-btn" onclick="battleRollD20(' + i + ')" title="Бросить d20 (в\u00a0общую историю)">' + dndIcoHtml("dice", 14) + '</button>' +
           removeSlot +
         '</div>' +
       '</div>' +
@@ -1446,7 +1447,7 @@ function renderBattleCastPanels() {
       var ci = insts.find(function(x) { return x.spellName === name && x.roundsLeft != null; });
       concEl.classList.remove("hidden");
       concEl.textContent = "🔮 " + name + (ci ? " · ⏳" + ci.roundsLeft + " рд" : "");
-      concEl.title = "Концентрация: " + name + (ci ? " — осталось " + ci.roundsLeft + " раундов" : "") + ". Нажмите для деталей";
+      concEl.title = "Концентрация: " + name + (ci ? " — осталось " + ci.roundsLeft + " раундов" : "") + ". Нажмите для\u00a0деталей";
     }
   }
 }
@@ -1518,8 +1519,8 @@ function _renderBattleCondPicker() {
   var list = _battleCondList(p);
   $("battle-cond-title").textContent = "Состояния: " + (p.name || "?");
   $("battle-cond-hint").textContent = p.type === "self"
-    ? "Меняются и на листе персонажа."
-    : "Отметка держится до конца боя.";
+    ? "Меняются и\u00a0на листе персонажа."
+    : "Отметка держится до\u00a0конца боя.";
   var rows = _battleCondSet().filter(function(c) { return String(c.id).indexOf("exhaustion") !== 0; }).map(function(c) {
     var on = list.indexOf(c.id) !== -1;
     var meta = _battleCondMeta(c.id);
@@ -1663,10 +1664,10 @@ function battleRollD20(i) {
 function removeBattleParticipant(i) {
   var p = BATTLE_DATA.participants[i];
   if (!p) return;
-  if (p.type === "self") { showToast("Себя нельзя убрать из боя", "warn"); return; }
+  if (p.type === "self") { showToast("Себя нельзя убрать из\u00a0боя", "warn"); return; }
   var currentP = BATTLE_DATA.participants[BATTLE_DATA.currentTurn];
   BATTLE_DATA.participants.splice(i, 1);
-  if (window.AppLog) AppLog.action("battle", "убран из боя: " + (p.name || "?"));
+  if (window.AppLog) AppLog.action("battle", "убран из\u00a0боя: " + (p.name || "?"));
   if (BATTLE_DATA.participants.length === 0) { endBattle(); return; }
   // Ход остаётся на текущем участнике (если это был он — на следующего по кругу).
   var ci = (currentP && currentP !== p) ? BATTLE_DATA.participants.indexOf(currentP) : -1;
@@ -1752,7 +1753,7 @@ function _renderCastDamageModal(targets) {
         '<div id="cast-damage-half-row" class="cast-damage-half-row"></div>' +
         '<div id="cast-damage-targets" class="cast-damage-targets"></div>' +
         '<div class="confirm-modal-btns">' +
-          '<button class="confirm-btn-cancel" onclick="closeCastDamageModal()">Не применять</button>' +
+          '<button class="confirm-btn-cancel" onclick="closeCastDamageModal()">Не\u00a0применять</button>' +
           '<button class="confirm-btn-ok" id="cast-damage-apply" onclick="applyCastDamageTargets()"></button>' +
         '</div>' +
       '</div>';
@@ -1769,7 +1770,7 @@ function _renderCastDamageModal(targets) {
     halfRow.innerHTML =
       '<button type="button" class="cast-damage-amt' + (!pend.useHalf ? " active" : "") + '" onclick="setCastDamageHalf(false)">Провал спас.: ' + fullN + '</button>' +
       '<button type="button" class="cast-damage-amt' + (pend.useHalf ? " active" : "") + '" onclick="setCastDamageHalf(true)">Успех (½): ' + halfN + '</button>';
-    halfRow.title = "Повторный клик по выбранной цели переключает её исход: провал ↔ успех";
+    halfRow.title = "Повторный клик по\u00a0выбранной цели переключает её исход: провал ↔ успех";
   } else {
     halfRow.style.display = "none";
     halfRow.innerHTML = "";
@@ -1888,7 +1889,7 @@ function _renderCastHealModal() {
         '<h4 id="cast-heal-title"></h4>' +
         '<div id="cast-heal-targets" class="cast-damage-targets"></div>' +
         '<div class="confirm-modal-btns">' +
-          '<button class="confirm-btn-cancel" onclick="closeCastHealModal()">Не применять</button>' +
+          '<button class="confirm-btn-cancel" onclick="closeCastHealModal()">Не\u00a0применять</button>' +
           '<button class="confirm-btn-ok confirm-btn-ok--safe" id="cast-heal-apply" onclick="applyCastHealTargets()"></button>' +
         '</div>' +
       '</div>';
@@ -2006,7 +2007,7 @@ function _renderCastDebuffModal(targets) {
         '<div id="cast-debuff-hint" class="cast-debuff-hint"></div>' +
         '<div id="cast-debuff-targets" class="cast-debuff-targets"></div>' +
         '<div class="confirm-modal-btns">' +
-          '<button class="confirm-btn-cancel" onclick="closeCastDebuffModal()">Не отмечать</button>' +
+          '<button class="confirm-btn-cancel" onclick="closeCastDebuffModal()">Не\u00a0отмечать</button>' +
           '<button class="confirm-btn-ok" id="cast-debuff-apply" onclick="applyCastDebuffTargets()"></button>' +
         '</div>' +
       '</div>';
@@ -2015,7 +2016,7 @@ function _renderCastDebuffModal(targets) {
   }
   var pend = _castDebuffPending;
   var single = pend.max === 1;
-  $("cast-debuff-title").textContent = "«" + pend.spellName + "»: на кого повесить?";
+  $("cast-debuff-title").textContent = "«" + pend.spellName + "»: на\u00a0кого повесить?";
   var hintEl = $("cast-debuff-hint");
   var saveNote = pend.dbf.save
     ? "Спасбросок " + (_SAVE_LABELS_BATTLE[pend.dbf.save] || String(pend.dbf.save).toUpperCase()) +
@@ -2054,7 +2055,7 @@ function toggleCastDebuffTarget(i) {
   var at = pend.chosen.indexOf(i);
   if (at !== -1) pend.chosen.splice(at, 1);
   else if (pend.chosen.length < pend.max) pend.chosen.push(i);
-  else { showToast("Целей уже " + pend.max + " — снимите отметку с другой", "warn"); return; }
+  else { showToast("Целей уже " + pend.max + " — снимите отметку с\u00a0другой", "warn"); return; }
   _renderCastDebuffModal(_castDebuffTargets());
 }
 
@@ -2262,18 +2263,18 @@ function endBattle() {
 // остальные тексты — DM_REF_TEXT['2014'], у '2024' переопределены только отличия.
 var DM_REF_TEXT = {
   '2014': {
-    exhaustNote: "Эффекты степеней складываются. Длинный отдых с едой и питьём снижает истощение на 1 степень.",
+    exhaustNote: "Эффекты степеней складываются. Длинный отдых с\u00a0едой и\u00a0питьём снижает истощение на\u00a01 степень.",
     cover: [
-      ["Половинное укрытие", "+2 к КД и спасброскам Ловкости. Препятствие закрывает не меньше половины тела."],
-      ["Укрытие на три четверти", "+5 к КД и спасброскам Ловкости. Препятствие закрывает около трёх четвертей тела."],
-      ["Полное укрытие", "Цель полностью закрыта: её нельзя напрямую сделать целью атаки или заклинания, но может задеть область."]
+      ["Половинное укрытие", "+2 к\u00a0КД и\u00a0спасброскам Ловкости. Препятствие закрывает не\u00a0меньше половины тела."],
+      ["Укрытие на три четверти", "+5 к\u00a0КД и\u00a0спасброскам Ловкости. Препятствие закрывает около трёх четвертей тела."],
+      ["Полное укрытие", "Цель полностью закрыта: её нельзя напрямую сделать целью атаки или\u00a0заклинания, но\u00a0может задеть область."]
     ],
     falling: [
-      ["Падение", "1к6 дробящего урона за каждые 3 м падения, максимум 20к6. Получивший урон приземляется сбитым с ног."]
+      ["Падение", "1к6 дробящего урона за\u00a0каждые 3\u00a0м падения, максимум 20к6. Получивший урон приземляется сбитым с\u00a0ног."]
     ],
     suffocation: [
       ["Задержка дыхания", "1 + модификатор Телосложения минут, минимум 30 секунд."],
-      ["Без воздуха", "Существо живёт число раундов, равное модификатору Телосложения (минимум 1). В начале следующего хода хиты падают до 0, существо при смерти и не может восстановить хиты или стабилизироваться, пока не задышит."]
+      ["Без воздуха", "Существо живёт число раундов, равное модификатору Телосложения (минимум 1). В\u00a0начале следующего хода хиты падают до\u00a00, существо при\u00a0смерти и\u00a0не может восстановить хиты или\u00a0стабилизироваться, пока не\u00a0задышит."]
     ],
     dc: [
       ["Очень лёгкая", "5"], ["Лёгкая", "10"], ["Средняя", "15"],
@@ -2281,41 +2282,41 @@ var DM_REF_TEXT = {
     ],
     light: [
       ["Яркий свет", "Обычное зрение."],
-      ["Тусклый свет", "Слабо заслонённая местность (как лёгкий туман, умеренная листва): помеха на проверки Мудрости (Внимательность), основанные на зрении."],
-      ["Тьма", "Сильно заслонённая местность (как густой туман, плотная листва): существо в ней фактически ослеплено."],
-      ["Тёмное зрение", "В пределах радиуса тусклый свет — как яркий, тьма — как тусклый свет. Цвета в темноте не различаются, только оттенки серого."],
-      ["Слепое зрение", "В пределах радиуса существо воспринимает окружение без помощи зрения."],
-      ["Истинное зрение", "В пределах радиуса видит в обычной и магической тьме, видит невидимых существ и предметы, распознаёт иллюзии и истинный облик, видит Эфирный план."]
+      ["Тусклый свет", "Слабо заслонённая местность (как лёгкий туман, умеренная листва): помеха на\u00a0проверки Мудрости (Внимательность), основанные на\u00a0зрении."],
+      ["Тьма", "Сильно заслонённая местность (как густой туман, плотная листва): существо в\u00a0ней фактически ослеплено."],
+      ["Тёмное зрение", "В\u00a0пределах радиуса тусклый свет — как яркий, тьма — как тусклый свет. Цвета в\u00a0темноте не\u00a0различаются, только оттенки серого."],
+      ["Слепое зрение", "В\u00a0пределах радиуса существо воспринимает окружение без\u00a0помощи зрения."],
+      ["Истинное зрение", "В\u00a0пределах радиуса видит в\u00a0обычной и\u00a0магической тьме, видит невидимых существ и\u00a0предметы, распознаёт иллюзии и\u00a0истинный облик, видит Эфирный план."]
     ],
     travel: [
-      ["Быстрый · 120 м/мин · 4 мили/ч · 30 миль/день", "−5 к пассивной Мудрости (Внимательность)."],
-      ["Нормальный · 90 м/мин · 3 мили/ч · 24 мили/день", "Без особенностей."],
+      ["Быстрый · 120 м/мин · 4 мили/ч · 30 миль/день", "−5 к\u00a0пассивной Мудрости (Внимательность)."],
+      ["Нормальный · 90 м/мин · 3 мили/ч · 24 мили/день", "Без\u00a0особенностей."],
       ["Медленный · 60 м/мин · 2 мили/ч · 18 миль/день", "Можно передвигаться скрытно."],
-      ["Форсированный марш", "После 8 часов пути в конце каждого часа — спасбросок Телосложения СЛ 10 + 1 за каждый час сверх 8; провал — 1 степень истощения."]
+      ["Форсированный марш", "После 8 часов пути в\u00a0конце каждого часа — спасбросок Телосложения СЛ 10 + 1 за\u00a0каждый час сверх 8; провал — 1 степень истощения."]
     ]
   },
   '2024': {
     light: [
       ["Яркий свет", "Обычное зрение."],
-      ["Тусклый свет", "Слабо заслонённая местность (как лёгкий туман, умеренная листва): помеха на проверки Мудрости (Внимательность), основанные на зрении."],
-      ["Тьма", "Сильно заслонённая местность (как густой туман, плотная листва): существо в ней фактически ослеплено."],
-      ["Тёмное зрение", "В пределах радиуса тусклый свет — как яркий, тьма — как тусклый свет. Цвета в темноте не различаются, только оттенки серого."],
-      ["Слепое зрение", "В пределах радиуса существо видит всё, что не за полным укрытием, даже ослеплённым или в тьме, в том числе невидимых существ."],
-      ["Истинное зрение", "В пределах радиуса видит в обычной и магической тьме, видит невидимых существ и предметы, распознаёт иллюзии и истинный облик, видит Эфирный план."]
+      ["Тусклый свет", "Слабо заслонённая местность (как лёгкий туман, умеренная листва): помеха на\u00a0проверки Мудрости (Внимательность), основанные на\u00a0зрении."],
+      ["Тьма", "Сильно заслонённая местность (как густой туман, плотная листва): существо в\u00a0ней фактически ослеплено."],
+      ["Тёмное зрение", "В\u00a0пределах радиуса тусклый свет — как яркий, тьма — как тусклый свет. Цвета в\u00a0темноте не\u00a0различаются, только оттенки серого."],
+      ["Слепое зрение", "В\u00a0пределах радиуса существо видит всё, что не\u00a0за полным укрытием, даже ослеплённым или\u00a0в тьме, в\u00a0том числе невидимых существ."],
+      ["Истинное зрение", "В\u00a0пределах радиуса видит в\u00a0обычной и\u00a0магической тьме, видит невидимых существ и\u00a0предметы, распознаёт иллюзии и\u00a0истинный облик, видит Эфирный план."]
     ],
-    exhaustNote: "Длинный отдых снимает 1 степень истощения. На 6-й степени существо умирает.",
+    exhaustNote: "Длинный отдых снимает 1 степень истощения. На\u00a06-й степени существо умирает.",
     falling: [
-      ["Падение", "1к6 дробящего урона за каждые 3 м падения, максимум 20к6. Получивший урон приземляется сбитым с ног."],
-      ["Падение в воду", "Реакцией — проверка Силы (Атлетика) или Ловкости (Акробатика) СЛ 15; при успехе урон от падения уменьшается вдвое."]
+      ["Падение", "1к6 дробящего урона за\u00a0каждые 3\u00a0м падения, максимум 20к6. Получивший урон приземляется сбитым с\u00a0ног."],
+      ["Падение в воду", "Реакцией — проверка Силы (Атлетика) или\u00a0Ловкости (Акробатика) СЛ 15; при\u00a0успехе урон от\u00a0падения уменьшается вдвое."]
     ],
     suffocation: [
       ["Задержка дыхания", "1 + модификатор Телосложения минут, минимум 30 секунд."],
-      ["Без воздуха", "В конце каждого своего хода существо получает 1 степень истощения. Когда снова может дышать — снимает все степени истощения, полученные от удушья."]
+      ["Без воздуха", "В\u00a0конце каждого своего хода существо получает 1 степень истощения. Когда снова может дышать — снимает все степени истощения, полученные от\u00a0удушья."]
     ],
     travel: [
-      ["Быстрый · 120 м/мин · 4 мили/ч · 30 миль/день", "Помеха на проверки Мудрости (Внимательность или Выживание) и Ловкости (Скрытность)."],
-      ["Нормальный · 90 м/мин · 3 мили/ч · 24 мили/день", "Помеха на проверки Ловкости (Скрытность)."],
-      ["Медленный · 60 м/мин · 2 мили/ч · 18 миль/день", "Преимущество на проверки Мудрости (Внимательность или Выживание)."]
+      ["Быстрый · 120 м/мин · 4 мили/ч · 30 миль/день", "Помеха на\u00a0проверки Мудрости (Внимательность или\u00a0Выживание) и\u00a0Ловкости (Скрытность)."],
+      ["Нормальный · 90 м/мин · 3 мили/ч · 24 мили/день", "Помеха на\u00a0проверки Ловкости (Скрытность)."],
+      ["Медленный · 60 м/мин · 2 мили/ч · 18 миль/день", "Преимущество на\u00a0проверки Мудрости (Внимательность или\u00a0Выживание)."]
     ]
   }
 };
@@ -2347,11 +2348,11 @@ function renderDmRef() {
     if (/^exhaustion_/.test(c.id)) exh.push(row); else conds.push(row);
   });
   var edEl = $("dm-ref-ed");
-  if (edEl) edEl.textContent = "Правила редакции " + ed + " — по персонажу";
+  if (edEl) edEl.textContent = "Правила редакции " + ed + " — по\u00a0персонажу";
   $("dm-ref-cond").innerHTML = _dmRefGroup("Состояния", conds) + _dmRefGroup("Истощение", exh, false, t("exhaustNote"));
   $("dm-ref-combat").innerHTML = _dmRefGroup("Укрытие", t("cover")) + _dmRefGroup("Падение", t("falling")) +
                                  _dmRefGroup("Удушье", t("suffocation"));
-  $("dm-ref-world").innerHTML = _dmRefGroup("Типовые СЛ", t("dc"), true) + _dmRefGroup("Освещение и зрение", t("light")) +
+  $("dm-ref-world").innerHTML = _dmRefGroup("Типовые СЛ", t("dc"), true) + _dmRefGroup("Освещение и\u00a0зрение", t("light")) +
                                 _dmRefGroup("Темп путешествия", t("travel"));
 }
 

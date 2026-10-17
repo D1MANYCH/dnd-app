@@ -82,7 +82,7 @@ function openAvatarModal(event) {
     }
   }
   const urlInput = $("avatar-url-input");
-  if (urlInput) urlInput.value = "";
+  if (urlInput) { urlInput.value = ""; clearFieldError(urlInput); }
   openModal("avatar-modal");
 }
 
@@ -117,8 +117,8 @@ function handleAvatarFile(input) {
 /** Сохранить аватар по URL */
 function applyAvatarFromUrl() {
   const url = ($("avatar-url-input")?.value || "").trim();
-  if (!url) { showToast("Введите ссылку на изображение", "warn"); return; }
-  if (!safeImageSrc(url)) { showToast("Нужна ссылка, начинающаяся с https://", "warn"); return; }
+  if (!url) { showFieldError("avatar-url-input", "Вставьте ссылку на\u00a0изображение"); return; }
+  if (!safeImageSrc(url)) { showFieldError("avatar-url-input", "Нужна ссылка, начинающаяся с\u00a0https://"); return; }
   // Проверяем что ссылка похожа на картинку
   applyAvatar(url);
 }
@@ -297,7 +297,7 @@ function swSupportBlock() {
   if (!url) return '';
   return '<a class="sw-update-tg sw-update-support" href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' +
       '<span class="home-bullet home-bullet--sm" aria-hidden="true"></span>' +
-      '<span class="sw-update-tg-text"><b>Поддержать на Boosty</b>' +
+      '<span class="sw-update-tg-text"><b>Поддержать на\u00a0Boosty</b>' +
         '<span class="sw-update-tg-sub">Добровольно — приложение остаётся бесплатным</span></span>' +
       '<span class="sw-update-tg-arrow" aria-hidden="true">→</span>' +
     '</a>';
@@ -316,14 +316,14 @@ function showUpdateModal(worker) {
         '<div class="sw-update-title">Доступно обновление</div>' +
         '<div class="sw-update-version">Текущая версия · v' + escapeHtml(ver) + '</div>' +
       '</div>' +
-      '<div class="sw-update-safe">Персонажи и данные сохранятся — обновление меняет только код приложения, данные хранятся отдельно в браузере.</div>' +
+      '<div class="sw-update-safe">Персонажи и\u00a0данные сохранятся — обновление меняет только код приложения, данные хранятся отдельно в\u00a0браузере.</div>' +
       swTelegramBlock() +
       '<div class="sw-update-btns"><button class="sw-act" id="sw-update-later">Позже</button><button class="sw-act sw-act--go" id="sw-update-now">Установить обновление</button></div>' +
     '</div>';
   document.body.appendChild(modal);
   requestAnimationFrame(function() { modal.classList.add('sw-update-visible'); });
   $('sw-update-now').addEventListener('click', function() {
-    $('sw-update-now').textContent = '⏳ Обновляем...';
+    $('sw-update-now').textContent = '⏳ Обновляем…';
     $('sw-update-now').disabled = true;
     $('sw-update-later').disabled = true;
     worker.postMessage({ type: 'SKIP_WAITING' });
@@ -355,7 +355,7 @@ function showWhatsNewModal(prevVer, newVer) {
   var typeVar = { feat:'var(--success)', fix:'var(--danger)', improve:'var(--info)', data:'var(--accent)', chore:'var(--text-mute)' };
   var changesList = latest ? latest.changes.map(function(c) {
     return '<div class="sw-change-item"><span class="home-bullet home-bullet--sm sw-change-dia" style="--home-accent:' + (typeVar[c.type] || 'var(--text-mute)') + '" aria-hidden="true"></span><span class="sw-change-text">' + escapeHtml(c.text) + '</span></div>';
-  }).join('') : '<div class="sw-change-item"><span class="sw-change-text">Улучшения и исправления</span></div>';
+  }).join('') : '<div class="sw-change-item"><span class="sw-change-text">Улучшения и\u00a0исправления</span></div>';
   var modal = document.createElement('div');
   modal.id = 'sw-update-modal';
   modal.innerHTML =
@@ -365,12 +365,12 @@ function showWhatsNewModal(prevVer, newVer) {
         '<div class="sw-update-version">v' + escapeHtml(prevVer) + ' → v' + escapeHtml(newVer) + (latest ? ' · ' + escapeHtml(latest.date) : '') + '</div>' +
       '</div>' +
       '<div class="sw-update-changes"><div class="sw-changes-title">Что нового<span class="sw-changes-count">' + (latest ? latest.changes.length : 0) + '</span></div>' + changesList +
-        (latest ? '<a class="sw-update-more" href="' + RELEASES_URL + '#v' + encodeURIComponent(latest.version) + '" target="_blank" rel="noopener">Что менялось в коде →</a>' : '') +
+        (latest ? '<a class="sw-update-more" href="' + RELEASES_URL + '#v' + encodeURIComponent(latest.version) + '" target="_blank" rel="noopener">Что менялось в\u00a0коде →</a>' : '') +
       '</div>' +
-      '<div class="sw-update-safe">Все данные сохранены — ваши персонажи и заклинания на месте.</div>' +
+      '<div class="sw-update-safe">Все данные сохранены — ваши персонажи и\u00a0заклинания на\u00a0месте.</div>' +
       swTelegramBlock() +
       swSupportBlock() +
-      '<div class="sw-update-btns"><button class="sw-act sw-act--go" id="sw-update-now">Отлично</button></div>' +
+      '<div class="sw-update-btns"><button class="sw-act sw-act--go" id="sw-update-now">Понятно</button></div>' +
     '</div>';
   document.body.appendChild(modal);
   requestAnimationFrame(function() { modal.classList.add('sw-update-visible'); });
@@ -491,7 +491,7 @@ function crRow(name, meta, body, opts) {
 function crRestoreLabel(res) {
   if (res.restoreOn === "short") return "короткий отдых";
   // E24-8: Ярость/Второе дыхание 2024 — все за долгий, одно за короткий отдых
-  if (res.restoreOn === "long" && res.restoreShortOne) return "долгий отдых · 1 за короткий";
+  if (res.restoreOn === "long" && res.restoreShortOne) return "долгий отдых · 1 за\u00a0короткий";
   if (res.restoreOn === "long" && res.shortFromLevel) return "долгий отдых · короткий с " + res.shortFromLevel + " ур.";
   if (res.restoreOn === "long" || res.restoreOn === "long_once") return "долгий отдых";
   if (res.restoreOn === "turn") return "каждый ход";
@@ -551,7 +551,7 @@ function crResourceRow(res, char) {
   var body = '<p class="hp-row-hint">' + escapeHtml(res.desc || "") + "</p>" +
     (src ? '<p class="hp-row-hint">' + src + "</p>" : "") +
     '<div class="hp-row-line">' + acts +
-      (used > 0 ? '<button type="button" class="hp-act" onclick="resetResource(\'' + id + '\')">Сброс</button>' : "") +
+      (used > 0 ? '<button type="button" class="hp-act" onclick="resetResource(\'' + id + '\')">Сбросить</button>' : "") +
     "</div>";
 
   var name = escapeHtml(res.name) + (dieSize ? ' <i class="cr-die">(' + escapeHtml(dieSize) + ")</i>" : "");
@@ -841,8 +841,8 @@ function addJournalEntry(type, text, details) {
 var journalFilter = "all";
 function filterJournal(type, btn) {
   journalFilter = type;
-  document.querySelectorAll(".jfilter-btn").forEach(function(b) { b.classList.remove("active"); });
-  if (btn) btn.classList.add("active");
+  document.querySelectorAll(".jfilter-btn").forEach(function(b) { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
+  if (btn) { btn.classList.add("active"); btn.setAttribute("aria-pressed", "true"); }
   renderJournal();
 }
 
@@ -857,8 +857,8 @@ function renderJournal() {
 
   if (filtered.length === 0) {
     list.innerHTML = journalFilter !== "all"
-      ? emptyStateHtml("inbox", "Нет записей в этой категории", "Смените фильтр выше или добавьте событие.", null, null, "journal-empty")
-      : emptyStateHtml("inbox", "Журнал пуст", "Повышения, отдых и бой попадают сюда сами.", "+ Событие", "openAddJournalEntry()", "journal-empty");
+      ? emptyStateHtml("inbox", "Нет записей в\u00a0этой категории", "Смените фильтр выше или\u00a0добавьте событие.", null, null, "journal-empty")
+      : emptyStateHtml("inbox", "Журнал пуст", "Повышения, отдых и\u00a0бой попадают сюда сами.", "+ Событие", "openAddJournalEntry()", "journal-empty");
     return;
   }
 
@@ -894,6 +894,7 @@ function deleteJournalEntry(id) {
 function openAddJournalEntry() {
   $("add-journal-modal")?.classList.add("active");
   $("journal-entry-text").value = "";
+  clearFieldError("journal-entry-text");
 }
 function closeAddJournalEntry() {
   $("add-journal-modal")?.classList.remove("active");
@@ -901,7 +902,7 @@ function closeAddJournalEntry() {
 function saveJournalEntry() {
   var type = $("journal-entry-type")?.value || "note";
   var text = $("journal-entry-text")?.value.trim() || "";
-  if (!text) { showToast("Введите описание события", "warn"); return; }
+  if (!text) { showFieldError("journal-entry-text", "Опишите событие"); return; }
   var typeNames = { note:"Заметка", combat:"Бой", story:"Сюжет", loot:"Добыча", death:"Смерть" };
   addJournalEntry(type, typeNames[type] + ": " + text);
   closeAddJournalEntry();
@@ -938,7 +939,7 @@ function renderCompanions() {
     var list = $(elId);
     if (!list) return;
     if (companions.length === 0) {
-      list.innerHTML = emptyStateHtml("wolf", "Нет прихвостней", "Фамильяр, скакун или призванное существо.", "+ Добавить", "openAddCompanionModal()", "party-empty");
+      list.innerHTML = emptyStateHtml("wolf", "Нет прихвостней", "Фамильяр, скакун или\u00a0призванное существо.", "+ Добавить", "openAddCompanionModal()", "party-empty");
       return;
     }
     list.innerHTML = companions.map(function(c, i) {
@@ -955,8 +956,8 @@ function renderCompanions() {
           (c.attack ? '<div class="pcard-desc">' + dndIcoHtml("sword", 12) + ' ' + escapeHtml(c.attack) + '</div>' : '') +
           '<div class="companion-hp-row">' +
             '<span style="color:' + hpColor + ';font-size:var(--fs-12);font-weight:700;">' + dndIcoHtml("heart", 12) + ' ' + (Number(c.hpCurrent) || 0) + '/' + (Number(c.hpMax) || 0) + '</span>' +
-            '<button class="res-btn" style="padding:2px 8px;font-size:var(--fs-12)" onclick="companionHP(' + i + ',-1)">-1</button>' +
-            '<button class="res-btn" style="padding:2px 8px;font-size:var(--fs-12)" onclick="companionHP(' + i + ',1)">+1</button>' +
+            '<button class="res-btn" style="padding:2px var(--sp-2);font-size:var(--fs-12)" onclick="companionHP(' + i + ',-1)">-1</button>' +
+            '<button class="res-btn" style="padding:2px var(--sp-2);font-size:var(--fs-12)" onclick="companionHP(' + i + ',1)">+1</button>' +
           '</div>' +
         '</div>' +
         '<div class="pcard-actions">' +
@@ -1018,6 +1019,7 @@ function openAddCompanionModal(presetType) {
   $("companion-modal-title").innerHTML = dndIcoHtml("wolf", 16) + " Добавить прихвостня";
   $("companion-edit-index").value = "-1";
   $("companion-name-inp").value = "";
+  clearFieldError("companion-name-inp");
   $("companion-type-sel").value = presetType || "familiar";
   $("companion-hp-inp").value = "10";
   $("companion-ac-inp").value = "10";
@@ -1060,6 +1062,7 @@ function openEditCompanionModal(i) {
   $("companion-modal-title").innerHTML = dndIcoHtml("edit", 16) + " Редактировать прихвостня";
   $("companion-edit-index").value = i;
   $("companion-name-inp").value = c.name || "";
+  clearFieldError("companion-name-inp");
   $("companion-type-sel").value = c.type || "other";
   $("companion-hp-inp").value = c.hpMax || 10;
   $("companion-ac-inp").value = c.ac || 10;
@@ -1077,7 +1080,7 @@ function saveCompanion() {
   var char = getCurrentChar();
   if (!char) return;
   var name = $("companion-name-inp")?.value.trim() || "";
-  if (!name) { showToast("Введите имя", "warn"); return; }
+  if (!name) { showFieldError("companion-name-inp", "Введите имя"); return; }
   var idx = parseInt($("companion-edit-index").value, 10);
   var companions = getCompanions(char);
   var hpMax = parseInt($("companion-hp-inp")?.value, 10) || 10;
@@ -1150,7 +1153,7 @@ function renderChangelog() {
   if (!list || typeof APP_CHANGELOG === "undefined") return;
 
   var typeIcon  = { feat:"✨", fix:"🐛", improve:"⚡", chore:"🔧" };
-  var typeLabel = { feat:"Новое", fix:"Исправлено", improve:"Улучшено", chore:"Под капотом" };
+  var typeLabel = { feat:"Новое", fix:"Исправлено", improve:"Улучшено", chore:"Под\u00a0капотом" };
   var typeColor = { feat:"#4da843", fix:"#e74c3c", improve:"#5b9bd5", chore:"#9a9ab0" };
   var badgeHtml = { new:'<span class="cl-badge cl-badge-new">НОВОЕ</span>' };
 
@@ -1172,7 +1175,7 @@ function renderChangelog() {
         '<span class="cl-version-num">v' + escapeHtml(ver.version) + '</span>' +
         (isLatest ? '<span class="cl-badge cl-badge-new">Текущая</span>' : '') +
         '<span class="cl-version-date">' + escapeHtml(ver.date) + '</span>' +
-        '<a class="cl-version-link" href="' + RELEASES_URL + '#v' + encodeURIComponent(ver.version) + '" target="_blank" rel="noopener" title="Что менялось в коде: коммиты, файлы, полный патч">подробно ↗</a>' +
+        '<a class="cl-version-link" href="' + RELEASES_URL + '#v' + encodeURIComponent(ver.version) + '" target="_blank" rel="noopener" title="Что менялось в\u00a0коде: коммиты, файлы, полный патч">подробно ↗</a>' +
       '</div>' +
       '<div class="cl-items">' + items + '</div>' +
     '</div>';

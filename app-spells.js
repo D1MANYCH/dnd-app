@@ -21,7 +21,7 @@ function toggleEmptySlotLevels() {
   var c = $("spell-slots-visual"), b = $("ssl-all-mob");
   if (!c) return;
   var on = c.classList.toggle("ssl-all");
-  if (b) b.textContent = on ? "Скрыть уровни без ячеек ▴" : "Уровни без ячеек ▾";
+  if (b) b.textContent = on ? "Скрыть уровни без\u00a0ячеек ▴" : "Уровни без\u00a0ячеек ▾";
 }
 
 function renderSpellSlots() {
@@ -34,8 +34,8 @@ container.innerHTML = "";
 var isSingleWarlock = char.class === "Колдун" && (!Array.isArray(char.classes) || char.classes.length <= 1);
 // MOB-6: на зафиксированном листе − / + тратят и возвращают ячейку, максимум — по уровню
 var sslLocked = typeof isSheetLocked === "function" && isSheetLocked(char);
-var sslTitleMinus = sslLocked ? "Потратить ячейку" : "Убрать ячейку из максимума";
-var sslTitlePlus = sslLocked ? "Вернуть ячейку" : "Добавить ячейку к максимуму";
+var sslTitleMinus = sslLocked ? "Потратить ячейку" : "Убрать ячейку из\u00a0максимума";
+var sslTitlePlus = sslLocked ? "Вернуть ячейку" : "Добавить ячейку к\u00a0максимуму";
 // У одноклассового Колдуна обычные ячейки 1..9 пустые — рендерить их бессмысленно
 if (!isSingleWarlock) {
   for(let i=1; i<=9; i++) {
@@ -209,6 +209,7 @@ document.querySelectorAll(".edition-btn").forEach(function(btn) { btn.classList.
 if(version === "all") $("btn-ver-all")?.classList.add("active");
 if(version === "PH14") $("btn-ver-ph14")?.classList.add("active");
 if(version === "PH24") $("btn-ver-ph24")?.classList.add("active");
+[["all", "btn-ver-all"], ["PH14", "btn-ver-ph14"], ["PH24", "btn-ver-ph24"]].forEach(function(p) { var b = $(p[1]); if (b) b.setAttribute("aria-pressed", version === p[0] ? "true" : "false"); });
 _syncSpellVersionLock();
 if (!skipRender) renderSpellSearch();
 }
@@ -298,7 +299,7 @@ function markCharOwnClassFilter() {
     legend.innerHTML = '<span class="cf-legend-own">🟢 Ваш класс: ' + escapeHtml(char.class) + '</span>'
                      + '<span class="cf-legend-foreign">🔴 Чужие классы — заклинания нельзя выучить</span>';
   } else {
-    legend.innerHTML = '<span class="cf-legend-hint">' + dndIcoHtml("bulb", 12) + ' Класс «' + escapeHtml(char.class) + '» не использует заклинания этих школ — фильтр для справки</span>';
+    legend.innerHTML = '<span class="cf-legend-hint">' + dndIcoHtml("bulb", 12) + ' Класс «' + escapeHtml(char.class) + '» не\u00a0использует заклинания этих школ — фильтр для\u00a0справки</span>';
   }
 }
 function closeSpellSearch() {
@@ -365,7 +366,7 @@ function openFeatSpellPicker(featIdx) {
     if (typeof renderTakenFeats === "function") renderTakenFeats();
   }
   // Только фиксированные (Телепат, Телекинетик) — выбирать нечего
-  if (!(fp.rule.slots || []).length) { showToast("Заклинания черты «" + fp.def.name + "» в гримуаре", "success"); return; }
+  if (!(fp.rule.slots || []).length) { showToast("Заклинания черты «" + fp.def.name + "» в\u00a0гримуаре", "success"); return; }
   openSpellSearch();
   _featPickIdx = featIdx;
   renderSpellSearch();
@@ -418,7 +419,7 @@ function _renderFeatPickList(fp, search, level, container) {
   var countEl = $("spell-search-count");
   if (fp.rule.pickClass && !fp.rec.spellClass) {
     if (countEl) countEl.textContent = "";
-    container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: 20px 0;">Выберите список класса выше</p>';
+    container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: var(--sp-5) 0;">Выберите список класса выше</p>';
     return;
   }
   var mine = fp.char.spells.mySpells || [];
@@ -427,13 +428,13 @@ function _renderFeatPickList(fp, search, level, container) {
     return s.name.toLowerCase().includes(search) && (level === "" || String(s.level) === level);
   });
   if (countEl) countEl.textContent = "Найдено: " + list.length;
-  if (!list.length) { container.innerHTML = '<p style="color:var(--text-dim); text-align:center;">Не найдено</p>'; return; }
+  if (!list.length) { container.innerHTML = '<p style="color:var(--text-dim); text-align:center;">Не\u00a0найдено</p>'; return; }
   list.forEach(function(spell) {
     var own = mine.find(function(s) { return s.id === spell.id; });
     var isFeat = !!(own && own.grantedBy === fp.label);
     var idArg = _spellIdArg(spell.id);
     var btn = isFeat ? '<button class="secondary" onclick="removeFeatSpell(' + idArg + ')">Выбрано</button>'
-      : own ? '<button class="secondary" disabled>Уже в гримуаре</button>'
+      : own ? '<button class="secondary" disabled>Уже в\u00a0гримуаре</button>'
       : !(fp.rule.slots || []).some(function(slot, i) { return _pr.slots[i].have < _pr.slots[i].need && rulesFeatSpellFits(spell, slot, fp.rec.spellClass, fp.rule, null); })
         ? '<button class="secondary" disabled>Лимит черты</button>'
       : '<button class="small" onclick="addFeatSpell(' + idArg + ')">+ Выбрать</button>';
@@ -455,7 +456,7 @@ function addFeatSpell(spellId) {
   var room = (fp.rule.slots || []).find(function(slot, i) {
     return pr.slots[i].have < pr.slots[i].need && rulesFeatSpellFits(spell, slot, fp.rec.spellClass, fp.rule, null);
   });
-  if (!room) { showToast("Черта больше не даёт заклинаний этого уровня", "warn"); return; }
+  if (!room) { showToast("Черта больше не\u00a0даёт заклинаний этого уровня", "warn"); return; }
   var copy = Object.assign({}, spell, { grantedBy: fp.label });
   if (room.free) copy.featFree = true; // FSP-2: раз за длинный отдых без ячейки
   fp.char.spells.mySpells.push(copy);
@@ -577,7 +578,7 @@ function _collectHbEffect() {
     // таблице. Проверяем ровно то, что получит каст, — формулу с одним шагом апкаста.
     var scaled = (typeof scaleFormula === "function") ? scaleFormula(formula, upcast, 1, 2) : formula;
     var uerr = _hbFormulaCheck(scaled, allowFlat);
-    if (uerr) return { ok: false, error: "«За уровень ячейки выше»: " + uerr };
+    if (uerr) return { ok: false, error: "«За\u00a0уровень ячейки выше»: " + uerr };
   }
   var body = { formula: formula };
   if (upcast) body.upcast = upcast;
@@ -735,7 +736,7 @@ function deleteCustomSpell(id) {
   if (!spell) return;
   showConfirmModal(
     "Удалить своё заклинание?",
-    "«" + spell.name + "» исчезнет из базы и из списков всех персонажей. Отменить нельзя.",
+    "«" + spell.name + "» исчезнет из\u00a0базы и\u00a0из списков всех персонажей. Отменить нельзя.",
     function() { _deleteCustomSpellConfirmed(spell.id); }
   );
 }
@@ -761,12 +762,12 @@ function submitNewSpell() {
 const name = $("new-spell-name")?.value?.trim() || "";
 const desc = $("new-spell-desc")?.value?.trim() || "";
 const higher = $("new-spell-higher")?.value?.trim() || "";
-if (!name || !desc) { showToast("Название и описание обязательны!", "warn"); return; }
+if (!name || !desc) { showToast("Название и\u00a0описание обязательны!", "warn"); return; }
 // HB-2: капы длины. maxlength на инпуте не спасает — в textarea его нет, а вставка
 // через DevTools/импорт вообще минует разметку.
 if (name.length > NEW_SPELL_NAME_MAX) { showToast("Название длиннее " + NEW_SPELL_NAME_MAX + " символов", "warn"); return; }
 if (desc.length > NEW_SPELL_DESC_MAX) { showToast("Описание длиннее " + NEW_SPELL_DESC_MAX + " символов", "warn"); return; }
-if (higher.length > NEW_SPELL_HIGHER_MAX) { showToast("«На больших уровнях» длиннее " + NEW_SPELL_HIGHER_MAX + " символов", "warn"); return; }
+if (higher.length > NEW_SPELL_HIGHER_MAX) { showToast("«На\u00a0больших уровнях» длиннее " + NEW_SPELL_HIGHER_MAX + " символов", "warn"); return; }
 // Ни один класс не отмечен → "both": заклинание видно под любым фильтром,
 // как книжные без привязки. Блокировать сохранение из-за этого не за что.
 var classes = _parseSpellClassList($("new-spell-classes")?.value);
@@ -826,7 +827,7 @@ if (editing) {
   if (window.AppLog) AppLog.action("spells", "своё заклинание изменено: " + editing.name, { id: editing.id, chars: touched });
   saveToLocal();
   closeAddSpellForm();
-  if (isDupName) showToast("Сохранено, но заклинание с таким именем уже есть", "warn");
+  if (isDupName) showToast("Сохранено, но\u00a0заклинание с\u00a0таким именем уже есть", "warn");
   else showToast("Заклинание обновлено!", "success");
   renderSpellSearch();
   renderMySpells();
@@ -842,8 +843,8 @@ SPELL_DATABASE.push(payload);
 if (window.AppLog) AppLog.action("spells", "своё заклинание создано: " + payload.name, { level: payload.level, school: payload.school, classes: classes.join(",") });
 saveToLocal();
 closeAddSpellForm();
-if (lostEdit) showToast("Исходное заклинание не найдено — сохранено как новое", "warn");
-else if (isDupName) showToast("Добавлено, но заклинание с таким именем уже есть", "warn");
+if (lostEdit) showToast("Исходное заклинание не\u00a0найдено — сохранено как новое", "warn");
+else if (isDupName) showToast("Добавлено, но\u00a0заклинание с\u00a0таким именем уже есть", "warn");
 else showToast("Заклинание добавлено!", "success");
 renderSpellSearch();
 }
@@ -872,7 +873,7 @@ return matchesSearch && matchesLevel && matchesVersion && matchesClass && matche
 });
 container.innerHTML = "";
 if (filtered.length === 0) {
-container.innerHTML = '<p style="color:var(--text-dim); text-align:center;">Не найдено</p>';
+container.innerHTML = '<p style="color:var(--text-dim); text-align:center;">Не\u00a0найдено</p>';
 return;
 }
 
@@ -880,7 +881,7 @@ var countEl = $("spell-search-count");
 if (countEl) countEl.textContent = "Найдено: " + filtered.length;
 
 if (!search.trim() && level === "" && (currentSpellVersion === "all" || currentSpellVersion === _defaultSpellVersion(char)) && currentSpellClass === "all") {
-container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: 20px 0;">' + dndIcoHtml("search", 20) + ' Введите название или выберите класс/уровень</p>';
+container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: var(--sp-5) 0;">' + dndIcoHtml("search", 20) + ' Введите название или\u00a0выберите класс/уровень</p>';
 return;
 }
 
@@ -902,7 +903,7 @@ const hbBadge = spell.homebrew ? " <span class=\"source-badge hb-badge\" title=\
 var idArg = _spellIdArg(spell.id);
 var hbActions = spell.homebrew
   ? "<button class=\"spell-edit-btn\" onclick=\"openAddSpellForm(" + idArg + ")\">" + dndIcoHtml("edit", 13) + " Изменить</button>" +
-    "<button class=\"spell-remove-btn\" title=\"Удалить своё заклинание — исчезнет у всех персонажей\" onclick=\"deleteCustomSpell(" + idArg + ")\">" + dndIcoHtml("trash", 13) + " Удалить</button>"
+    "<button class=\"spell-remove-btn\" title=\"Удалить своё заклинание — исчезнет у\u00a0всех персонажей\" onclick=\"deleteCustomSpell(" + idArg + ")\">" + dndIcoHtml("trash", 13) + " Удалить</button>"
   : "";
 var div = document.createElement("div");
 div.className = "spell-item" + (isAdded ? " spell-added" : "");
@@ -911,7 +912,7 @@ container.appendChild(div);
 });
 if (filtered.length > LIMIT) {
 var more = document.createElement("p");
-more.style.cssText = "text-align:center;color:var(--text-dim);padding:12px 0;";
+more.style.cssText = "text-align:center;color:var(--text-dim);padding:var(--sp-3) 0;";
 more.textContent = "Показано " + LIMIT + " из " + filtered.length + " — уточните поиск";
 container.appendChild(more);
 }
@@ -925,7 +926,7 @@ if (!char.spells.mySpells) char.spells.mySpells = [];
 if (!char.spells.mySpells.some(function(s) { return s.id === spellId; })) {
 char.spells.mySpells.push(spell);
 // E24-2: запись другой редакции — предупреждение, не блок (смешанные гримуары штатны).
-if (spell.source === "PH14" && char.edition === "2024") showToast("Это версия 2014 — у персонажа редакция 2024", "warn");
+if (spell.source === "PH14" && char.edition === "2024") showToast("Это версия 2014 — у\u00a0персонажа редакция 2024", "warn");
 if (window.AppLog) AppLog.action("spells", "заклинание добавлено: " + spell.name, { id: spell.id, level: spell.level });
 saveToLocal();
 renderSpellSearch();
@@ -938,8 +939,8 @@ const char = getCurrentChar();
 if (!char) return;
 if (!char.spells.mySpells) return;
 var _rm = char.spells.mySpells.find(function(s) { return s.id === spellId; });
-if (_rm && _rm.grantedBy && String(_rm.grantedBy).indexOf("Черта · ") === 0) { showToast("Заклинание даёт " + _rm.grantedBy + " — меняется в выборе заклинаний черты", "info"); return; }
-if (_rm && _rm.grantedBy) { showToast("Заклинание даёт " + _rm.grantedBy + " — снимается сменой вида или его выбора", "info"); return; }
+if (_rm && _rm.grantedBy && String(_rm.grantedBy).indexOf("Черта · ") === 0) { showToast("Заклинание даёт " + _rm.grantedBy + " — меняется в\u00a0выборе заклинаний черты", "info"); return; }
+if (_rm && _rm.grantedBy) { showToast("Заклинание даёт " + _rm.grantedBy + " — снимается сменой вида или\u00a0его выбора", "info"); return; }
 char.spells.mySpells = char.spells.mySpells.filter(function(s) { return s.id !== spellId; });
 if (window.AppLog) AppLog.action("spells", "заклинание удалено" + (_rm ? ": " + _rm.name : ""), { id: spellId });
 saveToLocal();
@@ -959,7 +960,7 @@ const container = $("my-spells-list");
 if (!container) return;
 renderPrepCounter();
 if (!char.spells.mySpells || char.spells.mySpells.length === 0) {
-container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: 24px 0;">' + dndIcoHtml("inbox", 22) + ' Нет заклинаний — нажмите «Найти заклинание»</p>';
+container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: var(--sp-5) 0;">' + dndIcoHtml("inbox", 22) + ' Нет заклинаний — нажмите «Найти заклинание»</p>';
 return;
 }
 // CAST-6: живые экземпляры каста по имени заклинания — бейдж «Активно · ⏳N рд»
@@ -1023,7 +1024,7 @@ if (spell.time) metaParts.push('<span>' + escapeHtml(spell.time) + '</span>');
 if (spell.range) metaParts.push('<span>' + escapeHtml(spell.range) + '</span>');
 if (spell.grantedBy) metaParts.push('<span>' + escapeHtml(spell.grantedBy) + '</span>'); // E24-4: источник — вид
 var _ffId = rulesFeatFreeResId(spell);
-if (_ffId && (spell.level || 0) > 0) metaParts.push('<span>' + ((char.resources && char.resources[_ffId]) ? '1/день без ячейки · потрачено' : '1/день без ячейки') + '</span>'); // FSP-2
+if (_ffId && (spell.level || 0) > 0) metaParts.push('<span>' + ((char.resources && char.resources[_ffId]) ? '1/день без\u00a0ячейки · потрачено' : '1/день без\u00a0ячейки') + '</span>'); // FSP-2
 var prepClass = isPrepClass(char);
 var prepared = isSpellPrepared(char, spell.id);
 var isCantrip = spell.level === 0;
@@ -1054,7 +1055,7 @@ card.innerHTML =
       (activeCast[spell.name] ? _spellActiveBadgeHtml(activeCast[spell.name]) : '') +
     '</div>' +
     '<div class="spell-card-badges">' +
-      '<span class="source-badge ' + sourceClass + (isForeignEd ? ' source-foreign" title="Другая редакция — у персонажа ' + (char.edition === "2024" ? "2024" : "2014") : '') + '">' + escapeHtml(srcRaw) + '</span>' +
+      '<span class="source-badge ' + sourceClass + (isForeignEd ? ' source-foreign" title="Другая редакция — у\u00a0персонажа ' + (char.edition === "2024" ? "2024" : "2014") : '') + '">' + escapeHtml(srcRaw) + '</span>' +
       (spell.homebrew ? '<span class="source-badge hb-badge" title="Ваше заклинание">' + dndIcoHtml("home", 12) + ' Своё</span>' : '') +
       (schoolName ? '<span class="school-badge school-' + getSchoolSlug(schoolName) + '">' + getSchoolIcon(schoolName) + '<span class="school-badge-text">' + escapeHtml(schoolName) + '</span></span>' : '') +
       '<span class="class-icons-row">' + classIcons + '</span>' +
@@ -1065,7 +1066,7 @@ card.innerHTML =
   '<div class="spell-card-body">' +
     taxonomyLine +
     (spell.desc ? '<div class="spell-full-desc">' + escapeHtml(spell.desc) + '</div>' : '') +
-    (spell.higherLevel ? '<div class="spell-higher">' + dndIcoHtml("trend", 13) + ' На больших уровнях: ' + escapeHtml(spell.higherLevel) + '</div>' : '') +
+    (spell.higherLevel ? '<div class="spell-higher">' + dndIcoHtml("trend", 13) + ' На\u00a0больших уровнях: ' + escapeHtml(spell.higherLevel) + '</div>' : '') +
     '<div class="spell-card-actions">' +
     // HB-3: id через _spellIdArg — у легаси-импорта он бывает строкой, и «голая»
     // подстановка давала битый идентификатор в onclick (кнопка роняла SyntaxError).
@@ -1080,7 +1081,7 @@ card.innerHTML =
     // намеренно — рядом уже стоит «🗑 Удалить», и две корзины с разным смыслом
     // на одной карточке читаются как одна. Удаление насовсем живёт в поиске.
     (spell.homebrew ? '<button class="spell-edit-btn" onclick="openAddSpellForm(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("edit", 13) + ' Изменить</button>' : '') +
-    '<button class="spell-remove-btn" title="Убрать из списка персонажа" onclick="removeSpell(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("trash", 13) + ' Удалить</button>' +
+    '<button class="spell-remove-btn" title="Убрать из\u00a0списка персонажа" onclick="removeSpell(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("trash", 13) + ' Удалить</button>' +
     '</div>' +
   '</div>';
 groupDiv.appendChild(card);
@@ -1265,7 +1266,7 @@ function _preparedCount(char) {
 function openSpellCardsMenu(fromHome) {
   var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
   if (!char && fromHome && typeof getLastCharacter === "function") char = getLastCharacter();
-  if (!char) { if (typeof showToast === "function") showToast("Нет персонажа для печати", "error"); return; }
+  if (!char) { if (typeof showToast === "function") showToast("Нет персонажа для\u00a0печати", "error"); return; }
   if (typeof window.exportSpellCardsPDF !== "function") { if (typeof showToast === "function") showToast("PDF-модуль недоступен", "error"); return; }
   var id = JSON.stringify(char.id).replace(/"/g, "&quot;");
   var ink = false;
@@ -1274,7 +1275,7 @@ function openSpellCardsMenu(fromHome) {
     ["Подготовленные и заговоры", "exportSpellCardsPDF('prepared'," + id + ")"],
     ["Все известные", "exportSpellCardsPDF('all'," + id + ")"]
   ]) + '<label class="mob-sheet-row mob-sheet-check"><input type="checkbox"' + (ink ? " checked" : "") +
-    ' onchange="try{localStorage.setItem(\'dnd_cards_ink\',this.checked?\'1\':\'0\')}catch(e){}"><span>Экономить чернила (без цветных шапок)</span></label>');
+    ' onchange="try{localStorage.setItem(\'dnd_cards_ink\',this.checked?\'1\':\'0\')}catch(e){}"><span>Экономить чернила (без\u00a0цветных шапок)</span></label>');
 }
 
 function isSpellPrepared(char, spellId) {
@@ -1398,12 +1399,12 @@ function castSpell(spellId) {
   // Заговоры кастуются без ячеек
   if ((spell.level || 0) === 0) { _finishCast(char, spell, null); return; }
   if (isPrepClass(char) && !isSpellPrepared(char, spell.id)) {
-    showToast("«" + spell.name + "» не подготовлено — сначала нажмите «Подготовить»", "warn");
+    showToast("«" + spell.name + "» не\u00a0подготовлено — сначала нажмите «Подготовить»", "warn");
     return;
   }
   var opts = _castableSlotOptions(char, spell);
   if (opts.length === 0) {
-    showToast("Нет свободных ячеек " + spell.level + " уровня и выше", "warn");
+    showToast("Нет свободных ячеек " + spell.level + " уровня и\u00a0выше", "warn");
     return;
   }
   // Единственный вариант — тратим сразу; несколько (апкаст/пакт) — выбор уровня
@@ -1419,14 +1420,14 @@ function _castSpellWithSlot(spellId, slotType, level) {
   if (slotType === "arcanum") {
     var arcId = _arcanumResId(char, spell);
     if (!arcId || (char.resources && char.resources[arcId])) {
-      showToast("Арканум " + level + " ур. уже использован до длинного отдыха", "warn"); return;
+      showToast("Арканум " + level + " ур. уже использован до\u00a0длинного отдыха", "warn"); return;
     }
     if (!char.resources) char.resources = {};
     char.resources[arcId] = 1;
   } else if (slotType === "featfree") {
     var ffId = rulesFeatFreeResId(spell);
     if (!ffId || (char.resources && char.resources[ffId])) {
-      showToast("«" + spell.name + "» без ячейки уже наложено до длинного отдыха", "warn"); return;
+      showToast("«" + spell.name + "» без\u00a0ячейки уже наложено до\u00a0длинного отдыха", "warn"); return;
     }
     if (!char.resources) char.resources = {};
     char.resources[ffId] = 1;
@@ -1454,16 +1455,16 @@ function _finishCast(char, spell, slot) {
   if (slot && slot.type === "arcanum") {
     note = " — таинственный арканум " + slot.level + " ур.";
   } else if (slot && slot.type === "featfree") {
-    note = " — без ячейки (черта, до длинного отдыха)";
+    note = " — без\u00a0ячейки (черта, до\u00a0длинного отдыха)";
   } else if (slot && slot.type === "ritual") {
-    note = " (ритуал, без ячейки)";
+    note = " (ритуал, без\u00a0ячейки)";
   } else if (slot) {
     var freeLeft = slot.type === "pact"
       ? (char.spells.pactSlots || 0) - (char.spells.pactUsed || 0)
       : (char.spells.slots[slot.level] || 0) - (char.spells.slotsUsed[slot.level] || 0);
     note = " — " + (slot.type === "pact" ? "пакт-ячейка" : "ячейка") + " " + slot.level + " ур. (осталось " + freeLeft + ")";
   } else {
-    note = " (заговор, без ячейки)";
+    note = " (заговор, без\u00a0ячейки)";
   }
   if (window.AppLog) AppLog.action("spells", "заклинание использовано: " + spell.name + note);
   showToast("✨ «" + spell.name + "»" + note, "success");
@@ -1512,7 +1513,7 @@ function applyCastEffects(char, spell, slot, variant) {
     });
     _replaceCastInstance(char, spell, d, slot, vExtra);
     var vNote = variant ? " · " + variant.name : "";
-    if (window.AppLog) AppLog.action("spells", "эффект от каста: " + spell.name + " → " + names.join(", ") + vNote);
+    if (window.AppLog) AppLog.action("spells", "эффект от\u00a0каста: " + spell.name + " → " + names.join(", ") + vNote);
     showToast("✨ Эффект: " + names.join(", ") + vNote, "info");
     if (typeof calculateAC === "function") calculateAC();
     if (typeof updateEffectsCount === "function") updateEffectsCount();
@@ -1560,7 +1561,7 @@ function openCastVariantChooser(spell, slot, d) {
         '<div id="cast-variant-hint" class="cast-variant-hint"></div>' +
         '<div id="cast-variant-options" class="cast-variant-options"></div>' +
         '<div class="confirm-modal-btns">' +
-          '<button class="confirm-btn-cancel" onclick="pickCastVariant(-1)">Без выбора</button>' +
+          '<button class="confirm-btn-cancel" onclick="pickCastVariant(-1)">Без\u00a0выбора</button>' +
         '</div>' +
       '</div>';
     document.body.appendChild(modal);
@@ -1621,7 +1622,7 @@ function _applyCastSummon(char, spell, d, slot) {
         typeof openPrefilledCompanionModal !== "function") return;
     var prefill = buildCompanionPrefill(d.summon, slot ? slot.level : (spell.level || 0));
     openPrefilledCompanionModal(prefill, "✨ Призыв: " + spell.name);
-    if (window.AppLog) AppLog.action("spells", "призыв от каста: " + spell.name +
+    if (window.AppLog) AppLog.action("spells", "призыв от\u00a0каста: " + spell.name +
       (prefill && prefill.name ? " → " + prefill.name : ""));
   };
   // PERF-3: SRD-бестиарий ленивый — гарантируем данные до построения префилла
@@ -1629,7 +1630,7 @@ function _applyCastSummon(char, spell, d, slot) {
   if (d.summon.srdSlug && !window.MONSTERS_SRD && typeof window.ensureBestiary === "function") {
     window.ensureBestiary().catch(function(e) {
       if (window.__catchLog) window.__catchLog("cast:summon-bestiary", e);
-      if (typeof showToast === "function") showToast("Бестиарий не загрузился — проверьте сеть", "warn");
+      if (typeof showToast === "function") showToast("Бестиарий не\u00a0загрузился — проверьте сеть", "warn");
     }).then(open);
     return;
   }
@@ -1728,7 +1729,7 @@ function _rollCastDamage(char, o) {
     var dc = char.spells && char.spells.dc;
     if (isMulticlass(char)) dc = 8 + castSpellAttackMod(char, o.spellName);
     var saveNote = "спасбросок " + saveName + (dc ? ", СЛ " + dc : "") +
-      (dmg.halfOnSave ? " — половина урона при успехе" : " — при успехе урона нет");
+      (dmg.halfOnSave ? " — половина урона при\u00a0успехе" : " — при\u00a0успехе урона нет");
     showToast("🎯 " + saveNote.charAt(0).toUpperCase() + saveNote.slice(1), "info");
     if (window.AppLog) AppLog.action("spells", "«" + o.spellName + "»: " + saveNote);
   }
@@ -1754,14 +1755,14 @@ function _rollCastDamage(char, o) {
     });
   };
   if (dmg.attack && typeof quickRoll === "function") {
-    if (dmg.volley) showToast("🏹 Мультилучевое: один бросок атаки на весь залп (упрощение)", "info");
+    if (dmg.volley) showToast("🏹 Мультилучевое: один бросок атаки на\u00a0весь залп (упрощение)", "info");
     quickRoll({
       label: "🎯 Атака: " + o.spellName,
       sides: 20,
       mod: castSpellAttackMod(char, o.spellName),
       onResult: function(comp) {
         if (comp.isFail) {
-          showToast("💨 Натуральная 1 — промах, урон не бросается", "warn");
+          showToast("💨 Натуральная 1 — промах, урон не\u00a0бросается", "warn");
           if (window.AppLog) AppLog.action("spells", "«" + o.spellName + "»: промах (натуральная 1)");
           return;
         }
@@ -1845,7 +1846,7 @@ function _applyCastDebuff(char, spell, d, slot, variant) {
       mod: castSpellAttackMod(char, spell),
       onResult: function(comp) {
         if (comp.isFail) {
-          showToast("💨 Натуральная 1 — промах, цель не помечена", "warn");
+          showToast("💨 Натуральная 1 — промах, цель не\u00a0помечена", "warn");
           if (window.AppLog) AppLog.action("spells", "«" + spell.name + "»: промах (натуральная 1)");
           return;
         }
@@ -1934,7 +1935,7 @@ function applyCastTempHp(char, spell, d, slot, rolled) {
   var cur = parseInt(char.combat.hpTemp, 10) || 0;
   char.combat.hpTemp = Math.max(cur, rolled);
   _replaceCastInstance(char, spell, d, slot, { tempHpApplied: rolled });
-  if (window.AppLog) AppLog.action("spells", "врем. ХП от «" + spell.name + "»: " + rolled + (cur > rolled ? " (оставлены прежние " + cur + ")" : ""));
+  if (window.AppLog) AppLog.action("spells", "врем. ХП от\u00a0«" + spell.name + "»: " + rolled + (cur > rolled ? " (оставлены прежние " + cur + ")" : ""));
   showToast(cur > rolled ? ("🛡 Прежние врем. ХП больше (" + cur + ") — оставлены") : ("🛡 Временные ХП: " + rolled), "info");
   if (typeof updateHPDisplay === "function") updateHPDisplay();
   saveToLocal();
@@ -1958,8 +1959,8 @@ function _applyCastHpMaxBonus(char, spell, d, slot) {
   char.combat.hpCurrent = before + bonus;
   _replaceCastInstance(char, spell, d, slot, { hpMaxBonus: bonus });
   if (typeof addHPHistory === "function") addHPHistory(before, char.combat.hpCurrent, bonus, spell.name);
-  if (window.AppLog) AppLog.action("spells", "«" + spell.name + "»: +" + bonus + " к hpMax и hpCurrent");
-  showToast("💪 +" + bonus + " к максимуму и текущим ХП («" + spell.name + "»)", "success");
+  if (window.AppLog) AppLog.action("spells", "«" + spell.name + "»: +" + bonus + " к\u00a0hpMax и\u00a0hpCurrent");
+  showToast("💪 +" + bonus + " к\u00a0максимуму и\u00a0текущим ХП («" + spell.name + "»)", "success");
   if (typeof updateHPDisplay === "function") updateHPDisplay();
   saveToLocal();
 }
@@ -1977,7 +1978,7 @@ function openCastChooser(spell, opts) {
   opts.forEach(function(o) {
     var b = document.createElement("button");
     b.className = "cast-slot-option";
-    b.innerHTML = '<span class="cso-lvl">' + o.level + ' ур.' + (o.type === "pact" ? ' · ПАКТ' : (o.type === "arcanum" ? ' · АРКАНУМ' : (o.type === "featfree" ? ' · БЕЗ ЯЧЕЙКИ' : ''))) + '</span>' +
+    b.innerHTML = '<span class="cso-lvl">' + o.level + ' ур.' + (o.type === "pact" ? ' · ПАКТ' : (o.type === "arcanum" ? ' · АРКАНУМ' : (o.type === "featfree" ? ' · БЕЗ\u00a0ЯЧЕЙКИ' : ''))) + '</span>' +
       '<span class="cso-free">свободно: ' + o.free + '</span>';
     b.onclick = function(){ _castSpellWithSlot(spell.id, o.type, o.level); };
     box.appendChild(b);

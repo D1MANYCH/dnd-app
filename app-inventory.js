@@ -16,12 +16,12 @@ var ITEM_SLOTS = { weapon:1, armor:3, potion:0.5, scroll:1, tool:1, material:1, 
 // BUILD-FIX-9 (rev3): местоположение предмета. Влияет на UX-тег и на расчёт слотов
 // при «снятом» рюкзаке (только location:"backpack" выпадают из подсчёта/доступа).
 var LOCATION_META = {
-  backpack: { icon:"🎒", label:"в рюкзаке" },
-  worn:     { icon:"🧥", label:"на теле" },
-  wielded:  { icon:"✋", label:"в руке" },
-  belt:     { icon:"🪪", label:"на поясе" },
+  backpack: { icon:"🎒", label:"в\u00a0рюкзаке" },
+  worn:     { icon:"🧥", label:"на\u00a0теле" },
+  wielded:  { icon:"✋", label:"в\u00a0руке" },
+  belt:     { icon:"🪪", label:"на\u00a0поясе" },
   outside:  { icon:"🪢", label:"снаружи рюкзака" },
-  stored:   { icon:"📦", label:"в лагере" }
+  stored:   { icon:"📦", label:"в\u00a0лагере" }
 };
 function _isBackpackOff(char) {
   return !!(char && char.equipState && char.equipState.backpackOff);
@@ -141,7 +141,7 @@ function renderPouches() {
   html += '<div class="inv-pouches-hint">';
   if (availPouches > 0) {
     html += '' + dndIcoHtml("inventory", 13) + ' ' + availPouches + ' мешочк' + (availPouches===1?"а":availPouches<5?"а":"ов") + ' · до <strong>' + maxCoins + '</strong> монет';
-    if (totalCoins > maxCoins) html += ' · <span style="color:var(--danger)">' + dndIcoHtml("alert", 12) + ' не унести ' + (totalCoins - maxCoins) + ' монет</span>';
+    if (totalCoins > maxCoins) html += ' · <span style="color:var(--danger)">' + dndIcoHtml("alert", 12) + ' не\u00a0унести ' + (totalCoins - maxCoins) + ' монет</span>';
   } else {
     html += '' + dndIcoHtml("alert", 13) + ' Нет мешочков — нужна СИЛ 8+';
   }
@@ -167,7 +167,7 @@ if (currentFilterCategory !== "all") {
 allItems = allItems.filter(function(i) { return i.category === currentFilterCategory; });
 }
 if (allItems.length === 0) {
-container.innerHTML = "<div class=\"inventory-empty\">" + dndIcoHtml("inbox", 22) + " Нет предметов" + (currentFilterCategory !== "all" ? " в этой категории" : "") + "</div>";
+container.innerHTML = "<div class=\"inventory-empty\">" + dndIcoHtml("inbox", 22) + " Нет предметов" + (currentFilterCategory !== "all" ? " в\u00a0этой категории" : "") + "</div>";
 updateInventoryWeight();
 updateSlotsDisplay();
 return;
@@ -187,7 +187,7 @@ var _locMeta = LOCATION_META[_locKey];
 var _locTagHtml = _locMeta ? '<span class="inv-meta-tag inv-loc-tag" title="' + _locMeta.label + '">' + _locMeta.label + '</span>' : '';
 // FIN-6: бейдж настройки для магпредметов (attunable) — «⚙ настроен» / «⚙ не настроен»
 var _attuneTagHtml = item.attunable
-  ? '<span class="inv-meta-tag inv-attune-tag' + (item.attuned ? ' on' : '') + '" title="Настройка магического предмета">' + (item.attuned ? 'настроен' : 'не настроен') + '</span>'
+  ? '<span class="inv-meta-tag inv-attune-tag' + (item.attuned ? ' on' : '') + '" title="Настройка магического предмета">' + (item.attuned ? 'настроен' : 'не\u00a0настроен') + '</span>'
   : '';
 var _attuneBtnHtml = item.attunable
   ? '<button class="inv-attune-btn' + (item.attuned ? ' attuned' : '') + '" onclick="event.stopPropagation(); toggleAttuned(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("settings", 13) + ' ' + (item.attuned ? 'Снять настройку' : 'Настроить') + '</button>'
@@ -196,7 +196,7 @@ var _attuneBtnHtml = item.attunable
 var _maxCh = parseInt(item.maxCharges, 10) || 0;
 var _curCh = _maxCh > 0 ? Math.max(0, Math.min(_maxCh, parseInt(item.charges, 10) || 0)) : 0;
 var _chargesTagHtml = _maxCh > 0
-  ? '<span class="inv-meta-tag inv-charges-tag' + (_curCh === 0 ? ' empty' : '') + '" title="Заряды' + (item.recharge === "none" ? " — не восстанавливаются" : " — восстанавливаются на длинном отдыхе") + '">заряды ' + _curCh + ' / ' + _maxCh + '</span>'
+  ? '<span class="inv-meta-tag inv-charges-tag' + (_curCh === 0 ? ' empty' : '') + '" title="Заряды' + (item.recharge === "none" ? " — не\u00a0восстанавливаются" : " — восстанавливаются на\u00a0длинном отдыхе") + '">заряды ' + _curCh + ' / ' + _maxCh + '</span>'
   : '';
 var _chargesCtrlHtml = _maxCh > 0
   ? '<span class="inv-charges-ctrl">' +
@@ -215,7 +215,7 @@ div.dataset.index = data.index;
 div.innerHTML =
   '<div class="inv-item-main" onclick="toggleInvItem(this)">' +
     '<div class="inv-item-info">' +
-      '<div class="inv-item-name">' + escapeHtml(item.name) + (_stowed ? ' <span style="color:var(--muted);font-size:var(--fs-12);">(в снятом рюкзаке)</span>' : '') + '</div>' +
+      '<div class="inv-item-name">' + escapeHtml(item.name) + (_stowed ? ' <span style="color:var(--muted);font-size:var(--fs-12);">(в\u00a0снятом рюкзаке)</span>' : '') + '</div>' +
       '<div class="inv-item-meta">' +
         '<span class="inv-meta-tag">' + totalWeight + ' фнт</span>' +
         '<span class="inv-meta-tag inv-cat-tag">' + catName + '</span>' +
@@ -275,7 +275,7 @@ const item = char.inventory[category] && char.inventory[category][index];
 const name = item ? item.name : "предмет";
 showConfirmModal(
   "Удалить предмет?",
-  "«" + name + "» будет удалён без возможности восстановления.",
+  "«" + name + "» будет удалён без\u00a0возможности восстановления.",
   function() {
     const c = characters.find(function(ch) { return ch.id === currentId; });
     if (!c) return;
@@ -346,7 +346,7 @@ function toggleAttuned(category, index) {
   var item = char.inventory[category] && char.inventory[category][index];
   if (!item || !item.attunable) return;
   if (!item.attuned) {
-    if (countAttuned(char) >= 3) { showToast("⚠ Уже настроено 3 предмета — сначала снимите настройку с одного", "error"); return; }
+    if (countAttuned(char) >= 3) { showToast("⚠ Уже настроено 3 предмета — сначала снимите настройку с\u00a0одного", "error"); return; }
     item.attuned = true;
     var n = countAttuned(char);
     showToast("⚙ Настроен: " + item.name + " (" + n + "/3)", "success");
@@ -397,6 +397,7 @@ safeSet("new-item-category", category);
 syncItemArmorFields();
 const titleEl = $("item-modal-title");
 const nameEl = $("new-item-name");
+clearFieldError(nameEl);
 const qtyEl = $("new-item-qty");
 const weightEl = $("new-item-weight");
 const descEl = $("new-item-desc");
@@ -467,7 +468,7 @@ if (modal) modal.classList.remove("active");
 function syncItemArmorFields() {
 var sel = $("new-item-armorbase");
 if (sel && sel.options && !sel.options.length && typeof ARMOR_PRESETS !== "undefined") {
-  sel.innerHTML = '<option value="">— не выбрано —</option>' + ARMOR_PRESETS.filter(function (p) { return p.id !== "none"; }).map(function (p) {
+  sel.innerHTML = '<option value="">— не\u00a0выбрано —</option>' + ARMOR_PRESETS.filter(function (p) { return p.id !== "none"; }).map(function (p) {
     return '<option value="' + p.id + '">' + escapeHtml(p.name) + ' (КД ' + p.baseAC + ')</option>';
   }).join("") + '<option value="shield">Щит (+2)</option>';
 }
@@ -513,7 +514,7 @@ const category = $("new-item-category")?.value || document.getElementById("item-
 const origCategory = document.getElementById("item-category")?.value || category;
 const _slotRaw = $("item-slot-index")?.value; const slotIndex = (_slotRaw !== undefined && _slotRaw !== "" && _slotRaw !== null) ? parseInt(_slotRaw, 10) : -1;
 const name = $("new-item-name")?.value?.trim() || "";
-if (!name) { showToast("Введите название!", "warn"); return; }
+if (!name) { showFieldError("new-item-name", "Введите название предмета"); return; }
 const newItem = {
 name: name,
 qty: parseInt($("new-item-qty")?.value, 10) || 1,
@@ -590,7 +591,7 @@ function openMagicCatalog() {
     if (s) s.focus();
   }).catch(function (e) {
     if (window.__catchLog) window.__catchLog("magic-catalog:load", e);
-    if (typeof showToast === "function") showToast("Не удалось загрузить каталог: " + (e && e.message ? e.message : e), "error");
+    if (typeof showToast === "function") showToast("Не\u00a0удалось загрузить каталог: " + (e && e.message ? e.message : e), "error");
   });
 }
 function closeMagicCatalog() {
@@ -619,7 +620,7 @@ function renderMagicCatalog() {
   if (countEl) countEl.textContent = "Найдено: " + filtered.length + " из " + items.length;
   var listEl = document.getElementById("magic-catalog-list");
   if (!listEl) return;
-  if (!filtered.length) { listEl.innerHTML = '<div class="magic-catalog-empty">Ничего не найдено</div>'; return; }
+  if (!filtered.length) { listEl.innerHTML = '<div class="magic-catalog-empty">Ничего не\u00a0найдено</div>'; return; }
   listEl.innerHTML = filtered.map(function (it) {
     var attune = it.attune ? ' · ' + dndIcoHtml("settings", 12) + ' настройка' : '';
     return '<button type="button" class="magic-catalog-item rarity-' + it.rarity + '" onclick="fillFromMagicItem(\'' + it.id + '\')">' +
@@ -662,7 +663,7 @@ function fillFromMagicItem(id) {
     dEl.value = (it.desc || "") + "\n(" + meta + ". " + (it.nameEn || "") + ")";
   }
   closeMagicCatalog();
-  if (typeof showToast === "function") showToast("Выбрано: " + it.name + " — проверьте и сохраните", "success");
+  if (typeof showToast === "function") showToast("Выбрано: " + it.name + " — проверьте и\u00a0сохраните", "success");
 }
 
 // FIN-5: пикер обычного снаряжения (gear-catalog.js, грузится лениво) + наборы PHB.
@@ -696,7 +697,7 @@ function openGearCatalog() {
     if (s) s.focus();
   }).catch(function (e) {
     if (window.__catchLog) window.__catchLog("gear-catalog:load", e);
-    if (typeof showToast === "function") showToast("Не удалось загрузить каталог: " + (e && e.message ? e.message : e), "error");
+    if (typeof showToast === "function") showToast("Не\u00a0удалось загрузить каталог: " + (e && e.message ? e.message : e), "error");
   });
 }
 function closeGearCatalog() {
@@ -728,7 +729,7 @@ function renderGearCatalog() {
   if (countEl) countEl.textContent = "Найдено: " + filtered.length + " из " + items.length;
   var listEl = document.getElementById("gear-catalog-list");
   if (!listEl) return;
-  if (!filtered.length) { listEl.innerHTML = '<div class="magic-catalog-empty">Ничего не найдено</div>'; return; }
+  if (!filtered.length) { listEl.innerHTML = '<div class="magic-catalog-empty">Ничего не\u00a0найдено</div>'; return; }
   listEl.innerHTML = filtered.map(function (it) {
     var icon = (typeof ITEM_ICONS !== "undefined" && ITEM_ICONS[it.cat]) ? ITEM_ICONS[it.cat]
              : (GEAR_EXTRA_ICONS[it.cat] || "🎒");
@@ -762,7 +763,7 @@ function fillFromGearItem(id) {
   if (locEl) locEl.value = it.location || "";
   if (dEl) dEl.value = (it.desc || "") + (it.cost ? "\n(Цена: " + it.cost + ")" : "");
   closeGearCatalog();
-  if (typeof showToast === "function") showToast("Выбрано: " + it.name + " — проверьте и сохраните", "success");
+  if (typeof showToast === "function") showToast("Выбрано: " + it.name + " — проверьте и\u00a0сохраните", "success");
 }
 // Развернуть набор GEAR_PACKS в char.inventory.other (6-элементная структура записи).
 function addPackToInventory(key) {
@@ -771,7 +772,7 @@ function addPackToInventory(key) {
   if (!char) return;
   var PACKS = window.GEAR_PACKS || {};
   var pack = PACKS[key];
-  if (!pack || !pack.length) { if (typeof showToast === "function") showToast("Набор не найден", "warn"); return; }
+  if (!pack || !pack.length) { if (typeof showToast === "function") showToast("Набор не\u00a0найден", "warn"); return; }
   if (!char.inventory.other) char.inventory.other = [];
   pack.forEach(function (p) {
     char.inventory.other.push({ name: p[0], qty: p[1], weight: p[2], slots: p[3], location: p[4], desc: p[5] });
@@ -788,7 +789,7 @@ function addPackToInventory(key) {
 // Кнопка «🎲 Безделушка (к100)» на карточке персонажа. TRINKETS_D100 лежит в
 // gear-catalog.js (ленивый) — грузим через ensureGearCatalog. 3D-куб не гоняем.
 function rollTrinket() {
-  if (!currentId) { if (typeof showToast === "function") showToast("Сначала создайте или выберите персонажа", "warn"); return; }
+  if (!currentId) { if (typeof showToast === "function") showToast("Сначала создайте или\u00a0выберите персонажа", "warn"); return; }
   var ensure = (typeof window.ensureGearCatalog === "function") ? window.ensureGearCatalog() : Promise.resolve();
   ensure.then(function () {
     var list = window.TRINKETS_D100 || [];
@@ -808,7 +809,7 @@ function rollTrinket() {
     if (typeof showToast === "function") showToast("🎲 Безделушка: " + text, "success");
   }).catch(function (e) {
     if (window.__catchLog) window.__catchLog("trinket:load", e);
-    if (typeof showToast === "function") showToast("Не удалось загрузить каталог: " + (e && e.message ? e.message : e), "error");
+    if (typeof showToast === "function") showToast("Не\u00a0удалось загрузить каталог: " + (e && e.message ? e.message : e), "error");
   });
 }
 
@@ -906,7 +907,7 @@ if (i !== -1) {
 } else {
   var limit = getWeaponMasteryLimit(char);
   if (!canMasterWeapon(char, w)) { showToast("Мастерство оружия: только рукопашное", "warn"); return; }
-  if (char.weaponMastery.length >= limit) { showToast("Мастерство оружия: не больше " + limit, "warn"); return; }
+  if (char.weaponMastery.length >= limit) { showToast("Мастерство оружия: не\u00a0больше " + limit, "warn"); return; }
   char.weaponMastery.push(w.name);
 }
 saveToLocal();
@@ -959,7 +960,7 @@ var profBadge = "";
 if (_pickChar) {
   profBadge = checkWeaponProficiency(_pickChar, preset.name)
     ? ' <span class="wp-prof yes">✓ владение</span>'
-    : ' <span class="wp-prof no">без владения</span>';
+    : ' <span class="wp-prof no">без\u00a0владения</span>';
 }
 var hbBadge = preset.homebrew ? ' <span class="wp-hb">' + dndIcoHtml("home", 12) + ' Своё</span>' : "";
 // HB-6: у своего оружия — 🗑 «убрать из каталога», прямо в карточке (нельзя вложить
@@ -990,7 +991,7 @@ btn.onclick = function(e) {
 container.appendChild(btn);
 shown++;
 });
-if (!shown) container.innerHTML = '<p class="weapon-presets-empty">Ничего не найдено</p>';
+if (!shown) container.innerHTML = '<p class="weapon-presets-empty">Ничего не\u00a0найдено</p>';
 }
 function filterWeaponPresets() {
 _weaponPickFilter.q = ($("weapon-search-inp")?.value || "").trim().toLowerCase();
@@ -1023,6 +1024,7 @@ safeSet("new-weapon-bonus", preset.magicBonus ? (preset.magicBonus > 0 ? "+" : "
 // возвращает заголовок и показывает пикер (правка его прячет). Зовётся из open/close.
 function _resetWeaponForm() {
 safeSet("new-weapon-name", "");
+clearFieldError("new-weapon-name");
 safeSet("new-weapon-bonus", "");
 safeSet("new-weapon-damage", "");
 safeSet("new-weapon-type", "");
@@ -1097,15 +1099,15 @@ if (!char || !Array.isArray(char.customWeapons)) return;
 var idx = char.customWeapons.findIndex(function(w) { return w && w.name === name; });
 if (idx < 0) return;
 showConfirmModal(
-  "Убрать из каталога?",
-  "«" + name + "» исчезнет из вашего каталога оружия. Уже добавленное в лист останется.",
+  "Убрать из\u00a0каталога?",
+  "«" + name + "» исчезнет из\u00a0вашего каталога оружия. Уже добавленное в\u00a0лист останется.",
   function() {
     const c = getCurrentChar();
     if (!c || !Array.isArray(c.customWeapons)) return;
     var i = c.customWeapons.findIndex(function(w) { return w && w.name === name; });
     if (i < 0) return;
     c.customWeapons.splice(i, 1);
-    if (window.AppLog) AppLog.action("inventory", "оружие убрано из каталога: " + name);
+    if (window.AppLog) AppLog.action("inventory", "оружие убрано из\u00a0каталога: " + name);
     saveToLocal();
     renderWeaponPresets();
   }
@@ -1155,7 +1157,7 @@ if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
 const name = $("new-weapon-name")?.value?.trim() || "";
-if (!name) { showToast("Введите название!", "warn"); return; }
+if (!name) { showFieldError("new-weapon-name", "Введите название оружия"); return; }
 const stat = $("new-weapon-stat")?.value || "str";
 const statName = stat === "str" ? "СИЛ" : "ЛОВ";
 const damage = ($("new-weapon-damage")?.value || "").trim();
@@ -1175,12 +1177,12 @@ if (damage && typeof parseDiceFormula === "function") {
 // AUD-8 (L10): магический бонус — целое от −3 до +3 либо пусто
 var magicRaw = ($("new-weapon-bonus")?.value || "").trim().replace("−", "-");
 if (magicRaw && !/^[+-]?[0-3]$/.test(magicRaw)) {
-  showToast("Магический бонус: целое от −3 до +3, напр. «+1»", "warn"); return;
+  showToast("Магический бонус: целое от\u00a0−3 до\u00a0+3, напр. «+1»", "warn"); return;
 }
 var magicBonus = parseInt(magicRaw, 10) || 0;
 // Цена — число + монета (мм/см/зм/эм/пм) либо пусто.
 if (cost && !/^\d+\s+(мм|см|зм|эм|пм)$/.test(cost)) {
-  showToast("Цена: число и монета, напр. «10 зм»", "warn"); return;
+  showToast("Цена: число и\u00a0монета, напр. «10\u00a0зм»", "warn"); return;
 }
 var weight = weightRaw ? (parseFloat(weightRaw.replace(",", ".")) || 0) : 0;
 if (weight < 0) weight = 0;
@@ -1234,8 +1236,8 @@ if (addInv && !isEdit) {
   }
   if (typeof renderInventory === "function") renderInventory();
 }
-if (window.AppLog) AppLog.action("inventory", (isEdit ? "оружие изменено: " : "оружие добавлено: ") + name + (proficient ? "" : " (без владения)") + (saveCat ? " (+каталог)" : "") + (addInv && !isEdit ? " (+инвентарь)" : ""));
-showToast("⚔️ " + escapeHtml(name) + (isEdit ? " — изменено" : " — добавлено") + (saveCat ? " (в каталог)" : "") + (addInv && !isEdit ? " (и в инвентарь)" : ""), "success");
+if (window.AppLog) AppLog.action("inventory", (isEdit ? "оружие изменено: " : "оружие добавлено: ") + name + (proficient ? "" : " (без\u00a0владения)") + (saveCat ? " (+каталог)" : "") + (addInv && !isEdit ? " (+инвентарь)" : ""));
+showToast("⚔️ " + escapeHtml(name) + (isEdit ? " — изменено" : " — добавлено") + (saveCat ? " (в\u00a0каталог)" : "") + (addInv && !isEdit ? " (и\u00a0в инвентарь)" : ""), "success");
 saveToLocal();
 closeWeaponModal();
 renderWeapons();
@@ -1274,7 +1276,7 @@ weapon.proficient = checkWeaponProficiency(char, weapon.name);
 var wmods = rulesWeaponMods(char, weapon, parseInt($("char-level")?.value, 10) || 1);
 var attackBonus = wmods.attack;
 var attackStr = (attackBonus >= 0 ? "+" : "") + attackBonus;
-var profTag = weapon.proficient ? '' : ' <span class="weapon-no-prof">без влад.</span>';
+var profTag = weapon.proficient ? '' : ' <span class="weapon-no-prof">без\u00a0влад.</span>';
 // E24-6: приём мастерства (только 2024) — термин глоссария; «◆» = оружие выбрано
 // для мастерства; текст-действие выбора появляется, когда класс даёт лимит и лист открыт.
 var masteryHtml = '';
@@ -1324,7 +1326,7 @@ if (lightWeapons.length >= 2) {
       '</label>' +
     '</div>' +
     '<div class="twf-info">Бонусное действие: атака вторым лёгким оружием' +
-      (char.twoWeaponFighting ? '' : ' (без мод. характеристики к урону)') +
+      (char.twoWeaponFighting ? '' : ' (без\u00a0мод. характеристики к\u00a0урону)') +
     '</div>' +
     '<div class="twf-buttons">' +
       '<button class="weapon-roll-btn weapon-roll-twf" onclick="rollTWFAttack(' + lightWeapons[1] + ')">' + dndIcoHtml("sword", 14) + ' Бонусная атака: ' + escapeHtml(char.weapons[lightWeapons[1]].name) + '</button>' +
@@ -1423,7 +1425,7 @@ function rollTWFDamage(index, isCrit) {
   var wm = rulesWeaponMods(char, weapon, char.level);
   var addMod = rulesOffhandDamageMod(wm.statMod, char.twoWeaponFighting) + wm.magic;
   var r = _weaponDamageRoll(weapon.damage, addMod, !!isCrit);
-  var styleNote = char.twoWeaponFighting ? "" : " (без мод.)";
+  var styleNote = char.twoWeaponFighting ? "" : " (без\u00a0мод.)";
   showToast("🗡️ " + escapeHtml(weapon.name) + " бонусный урон" + (isCrit ? " (крит)" : "") + styleNote + ": " + r.rollStr + " = " + r.total, "info");
 }
 
@@ -1526,7 +1528,7 @@ if (_w && _w.name && char.inventory && Array.isArray(char.inventory.weapon)) {
     var q = parseInt(item.qty, 10) || 1;
     if (q > 1) item.qty = q - 1;
     else char.inventory.weapon.splice(ii, 1);
-    invNote = " (и из инвентаря)";
+    invNote = " (и\u00a0из инвентаря)";
     if (typeof renderInventory === "function") renderInventory();
   }
 }

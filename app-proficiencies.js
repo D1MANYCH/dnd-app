@@ -130,7 +130,7 @@ function renderLanguages() {
   html += '<div class="prof-cat-group">';
   html += '<div class="prof-cat-title">' + dndIcoHtml("plus", 13) + ' Добавить язык</div>';
   html += '<div class="prof-add-row">';
-  html += '<select class="flat-field" id="lang-custom-pick"><option value="">— из каталога —</option>';
+  html += '<select class="flat-field" id="lang-custom-pick"><option value="">— из\u00a0каталога —</option>';
   ["standard","exotic","secret"].forEach(function(c) {
     html += '<optgroup label="' + LANG_CAT_TITLES[c] + '">';
     (LANGUAGE_CATALOG[c]||[]).forEach(function(l) {
@@ -361,7 +361,7 @@ function renderTools() {
   html += '<div class="prof-cat-group">';
   html += '<div class="prof-cat-title">' + dndIcoHtml("plus", 13) + ' Добавить инструмент</div>';
   html += '<div class="prof-add-row">';
-  html += '<select class="flat-field" id="tool-custom-pick"><option value="">— из каталога —</option>';
+  html += '<select class="flat-field" id="tool-custom-pick"><option value="">— из\u00a0каталога —</option>';
   ["artisan","gaming","musical","vehicles","other"].forEach(function(c) {
     html += '<optgroup label="' + TOOL_CAT_TITLES[c] + '">';
     (TOOL_CATALOG[c]||[]).forEach(function(t) {

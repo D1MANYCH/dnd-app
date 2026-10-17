@@ -265,7 +265,7 @@
     var rows = buffer.filter(matchFilter);
     if (rows.length > RENDER_MAX) rows = rows.slice(-RENDER_MAX);
     list.innerHTML = rows.map(rowHtml).join('') ||
-      '<div class="al-empty">Нет записей под фильтр</div>';
+      '<div class="al-empty">Нет записей под\u00a0фильтр</div>';
     list.scrollTop = list.scrollHeight;
     var cnt = document.getElementById('app-log-count');
     if (cnt) cnt.textContent = buffer.length + (activeFilter || activeLevel ? ' (показано ' + rows.length + ')' : '');
@@ -338,7 +338,7 @@
     var list = document.getElementById('app-log-list');
     if (!list) return;
     if (!prev || !prev.entries || !prev.entries.length) {
-      list.innerHTML = '<div class="al-empty">Прошлой сессии в localStorage нет</div>';
+      list.innerHTML = '<div class="al-empty">Прошлой сессии в\u00a0localStorage нет</div>';
       return;
     }
     var hdr = '<div class="al-row al-info"><span class="al-msg">↓ Прошлая сессия (' +

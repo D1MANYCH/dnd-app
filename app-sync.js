@@ -79,12 +79,12 @@ function syncSignOut() {
     fetch("https://oauth2.googleapis.com/revoke?token=" + encodeURIComponent(a.token), { method: "POST" }).catch(function() {});
   }
   renderSyncRow();
-  showToast("Вы вышли из Google", "info");
+  showToast("Вы вышли из\u00a0Google", "info");
 }
 
 function syncTurnOff() {
   showConfirmModal("Выключить синхронизацию?",
-    "Файл синхронизации будет удалён с Google Диска, вход на этом устройстве отменён. Персонажи на устройствах останутся. Если другое устройство ещё входит в Google, оно создаст файл заново — выключите синхронизацию и там.",
+    "Файл синхронизации будет удалён с\u00a0Google Диска, вход на\u00a0этом устройстве отменён. Персонажи на\u00a0устройствах останутся. Если другое устройство ещё входит в\u00a0Google, оно создаст файл заново — выключите синхронизацию и\u00a0там.",
     function() {
       _driveFind(SYNC_FILE).then(function(f) {
         return f ? _driveFetch("https://www.googleapis.com/drive/v3/files/" + f.id, { method: "DELETE" }) : null;
@@ -95,12 +95,12 @@ function syncTurnOff() {
         _syncCorrupt = false;
         _syncSaveState({ base: null, tombstones: _syncLoadState().tombstones, lastAt: 0 });
         syncSignOut();
-        showToast("Синхронизация выключена, файл на Диске удалён", "success");
+        showToast("Синхронизация выключена, файл на\u00a0Диске удалён", "success");
       }).catch(function(e) {
-        showToast(e && e.auth ? "Срок входа истёк — войдите снова и повторите" : "Не удалось удалить файл с Диска", "error");
+        showToast(e && e.auth ? "Срок входа истёк — войдите снова и\u00a0повторите" : "Не\u00a0удалось удалить файл с\u00a0Диска", "error");
         renderSyncRow();
       });
-    }, "Выключить и удалить");
+    }, "Выключить и\u00a0удалить");
 }
 
 function _syncConsumeHash() {
@@ -115,13 +115,13 @@ function _syncConsumeHash() {
   var expected = null;
   try { expected = localStorage.getItem(SYNC_STATE_KEY); localStorage.removeItem(SYNC_STATE_KEY); } catch (e) {}
   if (!expected || p.state !== expected) {
-    _syncLog("warn", "oauth: state не совпал");
-    _syncNotice = "Вход не завершён — попробуйте ещё раз";
+    _syncLog("warn", "oauth: state не\u00a0совпал");
+    _syncNotice = "Вход не\u00a0завершён — попробуйте ещё раз";
     return;
   }
   if (p.error) {
     _syncLog("warn", "oauth: " + p.error);
-    _syncNotice = p.error === "access_denied" ? "Доступ не разрешён" : "Ошибка входа: " + p.error;
+    _syncNotice = p.error === "access_denied" ? "Доступ не\u00a0разрешён" : "Ошибка входа: " + p.error;
     return;
   }
   var ttl = parseInt(p.expires_in, 10) || 3600;
@@ -221,7 +221,7 @@ function syncTombstone(id) {
 
 function _syncExpired() {
   _syncStatus = "Нужно войти снова";
-  if (!_syncExpiredToast) { _syncExpiredToast = true; showToast("Срок входа в Google истёк — войдите снова, чтобы продолжить синхронизацию", "warn"); }
+  if (!_syncExpiredToast) { _syncExpiredToast = true; showToast("Срок входа в\u00a0Google истёк — войдите снова, чтобы продолжить синхронизацию", "warn"); }
   renderSyncRow();
 }
 
@@ -277,8 +277,8 @@ function _syncNameDupes(localChars, remote) {
 function _syncAskDupes(dupes) {
   var names = dupes.map(function(c) { return "«" + c.name + "»"; }).join(", ");
   showConfirmModal("Одинаковые персонажи",
-    "На Диске и на этом устройстве есть персонажи с одинаковыми именами: " + names +
-    ". «Объединить» — оставить версии с Диска, местные уйдут в резервную копию. «Оставить оба» — будут дубли.",
+    "На\u00a0Диске и\u00a0на этом устройстве есть персонажи с\u00a0одинаковыми именами: " + names +
+    ". «Объединить» — оставить версии с\u00a0Диска, местные уйдут в\u00a0резервную копию. «Оставить оба» — будут дубли.",
     function() { _syncDupeChoice = true; _syncPaused = false; syncNow(false); }, "Объединить",
     { danger: false, icon: "copy", altLabel: "Оставить оба",
       onAlt: function() { _syncDupeChoice = false; _syncPaused = false; syncNow(false); } });
@@ -309,7 +309,7 @@ function _syncApply(res, before) {
     if (open && currentScreenName() === "character") {
       var now = characters.find(function(c) { return c.id === currentId; });
       if (!now) {
-        showToast("«" + (open.name || "Персонаж") + "» удалён на другом устройстве", "warn");
+        showToast("«" + (open.name || "Персонаж") + "» удалён на\u00a0другом устройстве", "warn");
         showScreen("characters");
       } else if (syncHashChar(now) !== openHash) {
         var tabEl = document.querySelector(".tab-content.active");
@@ -414,7 +414,7 @@ function syncNow(manual, overwrite) {
   if (_syncPaused || (typeof _saveBlocked !== "undefined" && _saveBlocked)) return;
   if (_syncBusy) { _syncAgain = true; return; }
   if (!_syncTokenValid(_syncGetAuth())) {
-    if (manual) { _syncStatus = "Нужно войти снова"; showToast("Срок входа истёк — войдите в Google снова", "warn"); renderSyncRow(); }
+    if (manual) { _syncStatus = "Нужно войти снова"; showToast("Срок входа истёк — войдите в\u00a0Google снова", "warn"); renderSyncRow(); }
     else _syncExpired();
     return;
   }
@@ -447,12 +447,12 @@ function syncNow(manual, overwrite) {
     _syncCorrupt = false;
     if (e && e.dupes) { _syncPaused = true; _syncStatus = "Ждёт решения"; _syncAskDupes(e.dupes); return; }
     if (e && e.auth) { if (!manual) { _syncExpired(); return; } _syncStatus = "Нужно войти снова"; }
-    else if (e && e.corrupt) { _syncCorrupt = true; _syncStatus = "Файл на Диске повреждён — синхронизация остановлена"; }
-    else if (e && e.newer) _syncStatus = "Файл на Диске записан более новой версией — обновите приложение";
-    else if (e && e.backup) _syncStatus = "Не удалось сделать резервную копию — синхронизация остановлена";
+    else if (e && e.corrupt) { _syncCorrupt = true; _syncStatus = "Файл на\u00a0Диске повреждён — синхронизация остановлена"; }
+    else if (e && e.newer) _syncStatus = "Файл на\u00a0Диске записан более новой версией — обновите приложение";
+    else if (e && e.backup) _syncStatus = "Не\u00a0удалось сделать резервную копию — синхронизация остановлена";
     else if (navigator.onLine === false) _syncStatus = "Нет сети";
-    else if (e && e.retry) _syncStatus = "Файл на Диске менялся одновременно — повторите";
-    else _syncStatus = "Не удалось связаться с Google Диском";
+    else if (e && e.retry) _syncStatus = "Файл на\u00a0Диске менялся одновременно — повторите";
+    else _syncStatus = "Не\u00a0удалось связаться с\u00a0Google Диском";
     _syncLog("error", "синхронизация: " + ((e && (e.status || e.message)) || _syncStatus));
     if (manual || (e && (e.corrupt || e.newer || e.backup) && _syncStatus !== prevStatus)) showToast(_syncStatus, e && e.auth ? "warn" : "error");
   }).then(function() {
@@ -463,8 +463,8 @@ function syncNow(manual, overwrite) {
 }
 
 function syncOverwrite() {
-  showConfirmModal("Перезаписать файл на Диске?",
-    "Файл синхронизации на Google Диске не читается. Он будет заменён персонажами и своими заклинаниями с этого устройства. Старый файл восстановить будет нельзя.",
+  showConfirmModal("Перезаписать файл на\u00a0Диске?",
+    "Файл синхронизации на\u00a0Google Диске не\u00a0читается. Он будет заменён персонажами и\u00a0своими заклинаниями с\u00a0этого устройства. Старый файл восстановить будет нельзя.",
     function() { syncNow(true, true); }, "Перезаписать", { icon: "upload" });
 }
 
@@ -566,7 +566,7 @@ function syncMerge(local, remote, base, tombstones, opts) {
       var copy = _syncClone(r);
       do { copy.id = newId(); } while (takenIds[copy.id]);
       takenIds[copy.id] = true;
-      copy.name = (r.name || "Без имени") + " (с " + rDevice + ")";
+      copy.name = (r.name || "Без\u00a0имени") + " (с " + rDevice + ")";
       out.push(l, copy);
       newBase[String(l.id)] = syncHashChar(l);
       newBase[String(copy.id)] = syncHashChar(copy);
@@ -596,7 +596,7 @@ function syncMerge(local, remote, base, tombstones, opts) {
       var copy = _syncClone(r);
       do { copy.id = newId(); } while (spellIds[copy.id]);
       spellIds[copy.id] = true;
-      copy.name = (r.name || "Без названия") + " (с " + rDevice + ")";
+      copy.name = (r.name || "Без\u00a0названия") + " (с " + rDevice + ")";
       out.push(l, copy);
       newBase["spell:" + l.id] = syncHashChar(l);
       newBase["spell:" + copy.id] = syncHashChar(copy);
@@ -661,9 +661,9 @@ function renderSyncRow() {
     var now = _syncBtn(_syncBusy ? "Синхронизация…" : "Синхронизировать сейчас", function() { syncNow(true); });
     now.disabled = _syncBusy;
     actions.appendChild(now);
-    if (_syncCorrupt && !_syncBusy) actions.appendChild(_syncBtn("Перезаписать файл на Диске", syncOverwrite));
+    if (_syncCorrupt && !_syncBusy) actions.appendChild(_syncBtn("Перезаписать файл на\u00a0Диске", syncOverwrite));
     actions.appendChild(_syncBtn("Выйти", syncSignOut));
-    actions.appendChild(_syncBtn("Выключить и удалить с Диска", syncTurnOff));
+    actions.appendChild(_syncBtn("Выключить и\u00a0удалить с\u00a0Диска", syncTurnOff));
   } else {
     status.textContent = "Синхронизация · " + (_syncNotice || (a ? "Нужно войти снова" : "Google Диск"));
     actions.appendChild(_syncBtn(a || _syncNotice ? "Войти снова" : "Войти через Google", syncSignIn));

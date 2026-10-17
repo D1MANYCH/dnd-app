@@ -30,3 +30,5 @@ jobs:
         run: node tools/check-invariant.js
       - name: Автопроверки тем (синхрон light/auto, паритет dark↔light, WCAG-контраст, ratchet хардкодов)
         run: node tools/check-theme.js
+      - name: Типографика видимых строк (… / тире в диапазонах / кавычки / неразрывные пробелы, ratchet)
+        run: node tools/check-typo.js

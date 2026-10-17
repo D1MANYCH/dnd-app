@@ -226,7 +226,7 @@ function _countUnresolvedSpells(chars) {
 }
 function _unresolvedNote(chars) {
   var n = _countUnresolvedSpells(chars);
-  return n ? " · заклинаний нет в этой версии: " + n + " (сохранены как есть, обновите приложение)" : "";
+  return n ? " · заклинаний нет в\u00a0этой версии: " + n + " (сохранены как есть, обновите приложение)" : "";
 }
 // АУД4-1 (I8): файл из более новой версии — её шаги миграции здесь не пройдут.
 function _importTooNew(parsed, list) {
@@ -235,7 +235,7 @@ function _importTooNew(parsed, list) {
       (Number(parsed.format) > CHAR_EXPORT_FORMAT || Number(parsed.schemaVersion) > sv)) return true;
   return (list || []).some(function(c) { return c && Number(c.schemaVersion) > sv; });
 }
-var IMPORT_TOO_NEW_MSG = "Файл из более новой версии приложения — обновите приложение и повторите импорт";
+var IMPORT_TOO_NEW_MSG = "Файл из\u00a0более новой версии приложения — обновите приложение и\u00a0повторите импорт";
 // Своё заклинание, неизвестный id или копия, которую ссылка не восстановит
 // байт в байт (нет ключа базы, другой порядок ключей), — едет полным объектом.
 function _packSpell(s) {
@@ -316,35 +316,35 @@ function shareOneCharacter(id, event) {
   navigator.share({ files: [file], title: char.name || "Персонаж" }).catch(function(err) {
     if (err && err.name === "AbortError") return;
     _downloadText(text, name);
-    showToast("Отправить не удалось — файл скачан", "info");
+    showToast("Отправить не\u00a0удалось — файл скачан", "info");
   });
 }
 function copyCharToClipboard() {
   var char = getCurrentChar() || (typeof getLastCharacter === "function" ? getLastCharacter() : null);
-  if (!char) { showToast("Нет персонажа для копирования", "error"); return; }
+  if (!char) { showToast("Нет персонажа для\u00a0копирования", "error"); return; }
   if (!navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
-    showToast("Браузер не даёт писать в буфер обмена — используйте экспорт", "error");
+    showToast("Браузер не\u00a0даёт писать в\u00a0буфер обмена — используйте экспорт", "error");
     return;
   }
   var text = _buildCharEnvelope(char);
   navigator.clipboard.writeText(text).then(function() {
-    showToast("«" + (char.name || "Без имени") + "» скопирован · " + Math.max(1, Math.round(text.length / 1024)) +
-              " КБ. На другом устройстве: «Данные» → «Вставить из буфера»", "success");
-  }, function() { showToast("Не удалось скопировать в буфер обмена", "error"); });
+    showToast("«" + (char.name || "Без\u00a0имени") + "» скопирован · " + Math.max(1, Math.round(text.length / 1024)) +
+              " КБ. На\u00a0другом устройстве: «Данные» → «Вставить из\u00a0буфера»", "success");
+  }, function() { showToast("Не\u00a0удалось скопировать в\u00a0буфер обмена", "error"); });
 }
 function pasteCharFromClipboard() {
   if (!navigator.clipboard || typeof navigator.clipboard.readText !== "function") {
-    showToast("Браузер не даёт читать буфер обмена — используйте «Импорт персонажа»", "error");
+    showToast("Браузер не\u00a0даёт читать буфер обмена — используйте «Импорт персонажа»", "error");
     return;
   }
   navigator.clipboard.readText().then(function(text) {
     if (!text || !text.trim()) { showToast("Буфер обмена пуст", "info"); return; }
     if (text.length > IMPORT_MAX_BYTES) {
-      showToast("В буфере слишком много данных (макс. " + Math.round(IMPORT_MAX_BYTES/1024/1024) + " МБ)", "error");
+      showToast("В\u00a0буфере слишком много данных (макс. " + Math.round(IMPORT_MAX_BYTES/1024/1024) + " МБ)", "error");
       return;
     }
     _importOneCharText(text);
-  }, function() { showToast("Нет доступа к буферу обмена", "error"); });
+  }, function() { showToast("Нет доступа к\u00a0буферу обмена", "error"); });
 }
 // FEAT-1: схема-толерантный разбор импорта. Принимает голый массив
 // [char,...] (полные бэкапы из exportData) либо обёртку
@@ -410,8 +410,8 @@ function _warnEditionMix(chars) {
   function run() {
     var bad = chars.filter(function(c) { return charEditionMismatch(c).length > 0; });
     if (!bad.length) return;
-    showToast("Подкласс не из редакции персонажа: " + bad.map(function(c) {
-      return "«" + (c.name || "без имени") + "» (" + charEditionMismatch(c).map(function(p) { return p.sub; }).join(", ") + ")";
+    showToast("Подкласс не\u00a0из редакции персонажа: " + bad.map(function(c) {
+      return "«" + (c.name || "без\u00a0имени") + "» (" + charEditionMismatch(c).map(function(p) { return p.sub; }).join(", ") + ")";
     }).join("; ") + " — проверьте лист", "warn");
   }
   var need24 = chars.some(function(c) { return c && c.edition === "2024"; });
@@ -436,13 +436,13 @@ let imported;
 try {
   imported = JSON.parse(e.target.result);
 } catch (err) {
-  showToast("Файл повреждён или это не JSON", "error");
+  showToast("Файл повреждён или\u00a0это не\u00a0JSON", "error");
   input.value = "";
   return;
 }
 var importedChars = _extractCharsFromImport(imported);
 if (!importedChars) {
-  showToast("Неверный формат: ожидался массив или { characters: [...] }", "error");
+  showToast("Неверный формат: ожидался массив или\u00a0{ characters: [...] }", "error");
   input.value = "";
   return;
 }
@@ -454,7 +454,7 @@ if (_importTooNew(imported, importedChars)) {
 var valid = importedChars.filter(_isValidImportedChar);
 var skipped = importedChars.length - valid.length;
 if (valid.length === 0) {
-  showToast("В файле нет валидных персонажей", "error");
+  showToast("В\u00a0файле нет валидных персонажей", "error");
   input.value = "";
   return;
 }
@@ -468,7 +468,7 @@ showConfirmModal("Импорт персонажей", msg, function() {
     catch(e) { window.__catchLog && window.__catchLog('core:pre-import-backup', e); }
   }
   var failed = _applyFullRestore(imported, valid);
-  if (failed === valid.length) { showToast("Ни один персонаж не прочитан — текущие данные не тронуты", "error"); return; }
+  if (failed === valid.length) { showToast("Ни\u00a0один персонаж не\u00a0прочитан — текущие данные не\u00a0тронуты", "error"); return; }
   skipped += failed;
   showToast("Загружено: " + characters.length + (skipped > 0 ? " (пропущено " + skipped + ")" : "") +
             _unresolvedNote(characters), "success");
@@ -476,7 +476,7 @@ showConfirmModal("Импорт персонажей", msg, function() {
 }, "Заменить всё", { icon: "import" });
 input.value = "";
 };
-reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
+reader.onerror = function() { showToast("Файл не\u00a0прочитан — выберите его ещё раз", "error"); input.value = ""; };
 reader.readAsText(file);
 }
 // FEAT-1: не разрушающий импорт персонажа(ей). Добавляет в текущий список,
@@ -494,7 +494,7 @@ reader.onload = function(e) {
 input.value = "";
 _importOneCharText(e.target.result);
 };
-reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
+reader.onerror = function() { showToast("Файл не\u00a0прочитан — выберите его ещё раз", "error"); input.value = ""; };
 reader.readAsText(file);
 }
 // SHARE-1: общий разбор для файла и буфера обмена.
@@ -503,24 +503,24 @@ let parsed;
 try {
   parsed = JSON.parse(text);
 } catch (err) {
-  showToast("Файл повреждён или это не JSON", "error");
+  showToast("Файл повреждён или\u00a0это не\u00a0JSON", "error");
   return;
 }
 var importedChars = _extractCharsFromImport(parsed);
 if (!importedChars) {
-  showToast("Неверный формат: ожидался массив или { characters: [...] }", "error");
+  showToast("Неверный формат: ожидался массив или\u00a0{ characters: [...] }", "error");
   return;
 }
 if (_importTooNew(parsed, importedChars)) { showToast(IMPORT_TOO_NEW_MSG, "error"); return; }
 var valid = importedChars.filter(_isValidImportedChar);
 var skipped = importedChars.length - valid.length;
 if (valid.length === 0) {
-  showToast("В файле нет валидных персонажей", "error");
+  showToast("В\u00a0файле нет валидных персонажей", "error");
   return;
 }
 var msg = valid.length === 1
-  ? "Добавить персонажа «" + (valid[0].name || "без имени") + "» в список? Текущие не будут затронуты."
-  : "Добавить " + valid.length + " персонаж(а/ей) в список? Текущие не будут затронуты.";
+  ? "Добавить персонажа «" + (valid[0].name || "без\u00a0имени") + "» в\u00a0список? Текущие не\u00a0будут затронуты."
+  : "Добавить " + valid.length + " персонаж(а/ей) в\u00a0список? Текущие не\u00a0будут затронуты.";
 if (skipped > 0) msg += " Пропущено повреждённых: " + skipped + ".";
 showConfirmModal("Импорт персонажа", msg, function() {
   var nextId = Date.now();
@@ -538,7 +538,7 @@ showConfirmModal("Импорт персонажа", msg, function() {
     characters.push(nc);
     addedChars.push(nc);
   });
-  if (!addedChars.length) { showToast("Персонаж не прочитан — файл повреждён", "error"); return; }
+  if (!addedChars.length) { showToast("Персонаж не\u00a0прочитан — файл повреждён", "error"); return; }
   skipped += failed;
   // FEAT-1 доработка: восстановить HP-историю импортированных персонажей,
   // перепривязав записи на новые id (защита от коллизий не ломает связь).
@@ -588,15 +588,15 @@ function _consumeLaunchFiles() {
     if (window.caches) {
       caches.open("dnd-share-inbox").then(function(cache) {
         return cache.match("./share-inbox").then(function(resp) {
-          if (!resp) { showToast("Файл не получен — попробуйте «Импорт персонажа»", "error"); return; }
+          if (!resp) { showToast("Файл не\u00a0получен — попробуйте «Импорт персонажа»", "error"); return; }
           return resp.text().then(function(text) {
             _importLaunchText(text);
             cache.delete("./share-inbox");
           });
         });
-      }).catch(function() { showToast("Файл не получен — попробуйте «Импорт персонажа»", "error"); });
+      }).catch(function() { showToast("Файл не\u00a0получен — попробуйте «Импорт персонажа»", "error"); });
     } else {
-      showToast("Файл не получен — попробуйте «Импорт персонажа»", "error");
+      showToast("Файл не\u00a0получен — попробуйте «Импорт персонажа»", "error");
     }
   }
   if (window.launchQueue && typeof window.launchQueue.setConsumer === "function") {
@@ -608,7 +608,7 @@ function _consumeLaunchFiles() {
           return;
         }
         return file.text().then(_importLaunchText);
-      }).catch(function() { showToast("Ошибка чтения файла", "error"); });
+      }).catch(function() { showToast("Файл не\u00a0прочитан — выберите его ещё раз", "error"); });
     });
   }
 }
@@ -642,7 +642,7 @@ let imported;
 try {
   imported = JSON.parse(e.target.result);
 } catch (err) {
-  showToast("Файл повреждён или это не JSON", "error");
+  showToast("Файл повреждён или\u00a0это не\u00a0JSON", "error");
   input.value = "";
   return;
 }
@@ -654,7 +654,7 @@ if (!Array.isArray(imported)) {
 var validSpells = imported.map(_normalizeImportedSpell).filter(Boolean);
 var skippedSpells = imported.length - validSpells.length;
 if (validSpells.length === 0) {
-  showToast("В файле нет валидных заклинаний", "error");
+  showToast("В\u00a0файле нет валидных заклинаний", "error");
   input.value = "";
   return;
 }
@@ -672,12 +672,12 @@ validSpells.forEach(function(s) {
   mergeable.push(s);
 });
 if (mergeable.length === 0) {
-  showToast("В файле только книжные заклинания — добавлять нечего" +
+  showToast("В\u00a0файле только книжные заклинания — добавлять нечего" +
             (skippedSpells > 0 ? " (пропущено " + skippedSpells + ")" : ""), "info");
   input.value = "";
   return;
 }
-var msgSp = "Добавить " + mergeable.length + " своих заклинаний к базе? Книжные не затрагиваются.";
+var msgSp = "Добавить " + mergeable.length + " своих заклинаний к\u00a0базе? Книжные не\u00a0затрагиваются.";
 if (skippedSpells > 0) msgSp += " Пропущено повреждённых: " + skippedSpells + ".";
 showConfirmModal("Импорт заклинаний", msgSp, function() {
   var base = (typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.slice() : [];
@@ -692,7 +692,7 @@ showConfirmModal("Импорт заклинаний", msgSp, function() {
 }, "Импортировать", { danger: false, icon: "import" });
 input.value = "";
 };
-reader.onerror = function() { showToast("Ошибка чтения файла", "error"); input.value = ""; };
+reader.onerror = function() { showToast("Файл не\u00a0прочитан — выберите его ещё раз", "error"); input.value = ""; };
 reader.readAsText(file);
 }
 

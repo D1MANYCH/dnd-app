@@ -39,8 +39,8 @@ function wsCrText(cr) {
 
 function wsLimitsText(lim, char) {
   var parts = ["ПО до " + (lim.maxCr === 0.25 ? "1/4" : lim.maxCr === 0.5 ? "1/2" : lim.maxCr)];
-  if (lim.noFly && lim.noSwim) parts.push("без полёта и плавания");
-  else if (lim.noFly) parts.push("без полёта");
+  if (lim.noFly && lim.noSwim) parts.push("без\u00a0полёта и\u00a0плавания");
+  else if (lim.noFly) parts.push("без\u00a0полёта");
   parts.push("до " + lim.durationH + " ч");
   parts.push(lim.action === "bonus" ? "бонусным действием" : "действием");
   parts.push("зарядов " + wsChargesLeft(char));
@@ -73,7 +73,7 @@ function wsEnsureBeasts() {
   if (window.BEAST_FORMS || _wsLoading || typeof window.ensureBeastForms !== "function") return;
   _wsLoading = true;
   window.ensureBeastForms().then(function() { _wsLoading = false; renderWildShape(); })
-    .catch(function() { _wsLoading = false; showToast("Список зверей не загрузился", "error"); });
+    .catch(function() { _wsLoading = false; showToast("Список зверей не\u00a0загрузился", "error"); });
 }
 
 // Строка облика: имя, хиты (2014), КД, скорости
@@ -112,10 +112,10 @@ function renderWildShape() {
     var sb = wildShapeStatBlock();
     h += '<div class="ws-banner">' + wsFormLine(char) + '</div>';
     h += '<p class="hp-row-hint">' + (f.durationH ? "До " + f.durationH + " ч · " : "") +
-      (poly ? (f.edition === "2024" ? "временные хиты = хиты зверя, при 0 облик спадает" : "урон снимает хиты облика, остаток переходит на персонажа") +
+      (poly ? (f.edition === "2024" ? "временные хиты = хиты зверя, при\u00a00 облик спадает" : "урон снимает хиты облика, остаток переходит на\u00a0персонажа") +
         " · все характеристики — зверя, концентрация</p>" :
-      (f.edition === "2024" ? "хиты свои, временные хиты при входе" : "урон снимает хиты облика, остаток переходит на персонажа") +
-      " · Инт, Мдр, Хар и владения — свои</p>");
+      (f.edition === "2024" ? "хиты свои, временные хиты при\u00a0входе" : "урон снимает хиты облика, остаток переходит на\u00a0персонажа") +
+      " · Инт, Мдр, Хар и\u00a0владения — свои</p>");
     if (rulesCombatWildShapeHeal(char)) h += wsSlotHealRow(char);
     if (sb) {
       h += '<div class="mon-sbv" id="ws-sb">' + monsterStatBlockHtml(sb) + '</div>';
@@ -124,7 +124,7 @@ function renderWildShape() {
         h += '<p class="hp-row-hint"><b>' + escapeHtml(t.name) + '.</b> ' + escapeHtml(t.desc) + '</p>';
       });
     }
-    h += '<div class="hp-row-line"><button type="button" class="hp-act" onclick="wildShapeExit()">Выйти из облика</button></div>';
+    h += '<div class="hp-row-line"><button type="button" class="hp-act" onclick="wildShapeExit()">Выйти из\u00a0облика</button></div>';
   }
   card.innerHTML = h;
   // Кнопки стат-блока читают _monSbCurrent — ставим облик до их onclick
@@ -185,11 +185,11 @@ function openWildShapePicker() {
 }
 function wsOpenPicker() {
   var t = $("ws-title");
-  if (t) t.textContent = _wsMode === "poly" ? "Превращение на себя" : "Дикий облик";
+  if (t) t.textContent = _wsMode === "poly" ? "Превращение на\u00a0себя" : "Дикий облик";
   var go = function() { _wsQuery = ""; var s = $("ws-search"); if (s) s.value = ""; renderWildShapePicker(); showScreen("wildshape"); };
   if (window.BEAST_FORMS) return go();
   if (typeof window.ensureBeastForms !== "function") return;
-  window.ensureBeastForms().then(go).catch(function() { showToast("Список зверей не загрузился", "error"); });
+  window.ensureBeastForms().then(go).catch(function() { showToast("Список зверей не\u00a0загрузился", "error"); });
 }
 function closeWildShapePicker() {
   if (currentScreenName() === "wildshape") screenBack();
@@ -212,7 +212,7 @@ function renderWildShapePicker() {
   var lim = wsLimits(char);
   if (!lim) { box.innerHTML = ""; return; }
   var poly = _wsMode === "poly";
-  if (limEl) limEl.textContent = poly ? "ПО до " + lim.maxCr + " · до 1 ч, концентрация · закройте экран, если цель — не вы" : wsLimitsText(lim, char);
+  if (limEl) limEl.textContent = poly ? "ПО до " + lim.maxCr + " · до\u00a01\u00a0ч, концентрация · закройте экран, если цель — не\u00a0вы" : wsLimitsText(lim, char);
   var q = _wsQuery;
   var match = function(b) { return !q || b.name.toLowerCase().indexOf(q) >= 0 || String(b.nameEn).toLowerCase().indexOf(q) >= 0; };
   var allowed = (window.BEAST_FORMS || []).filter(function(b) { return rulesBeastAllowed(b, lim); })
@@ -225,7 +225,7 @@ function renderWildShapePicker() {
     h += '<div class="mon-sbv-title">Известные облики · ' + known.length + ' из ' + lim.known + '</div>';
     h += known.length ? known.map(function(b) {
       return wsPickRow(b, wsBtn("Принять", "wildShapeAssume", b.slug) + wsBtn("Забыть", "wildShapeForget", b.slug));
-    }).join("") : '<p class="hp-row-hint">Выучите облики из списка ниже — сменить их можно после долгого отдыха.</p>';
+    }).join("") : '<p class="hp-row-hint">Выучите облики из\u00a0списка ниже — сменить их можно после долгого отдыха.</p>';
     var rest = allowed.filter(function(b) { return char.formsKnown.indexOf(b.slug) < 0 && match(b); });
     h += '<div class="mon-sbv-title">Можно выучить</div>' + rest.map(function(b) {
       return wsPickRow(b, wsBtn("Выучить", "wildShapeLearn", b.slug, full));
@@ -233,7 +233,7 @@ function renderWildShapePicker() {
   } else {
     var list = allowed.filter(match);
     h += list.map(function(b) { return wsPickRow(b, wsBtn("Принять", poly ? "polymorphAssume" : "wildShapeAssume", b.slug)); }).join("");
-    if (!list.length) h = '<p class="hp-row-hint">Ничего не найдено.</p>';
+    if (!list.length) h = '<p class="hp-row-hint">Ничего не\u00a0найдено.</p>';
   }
   box.innerHTML = h;
 }
@@ -301,15 +301,15 @@ function wildShapeExit() {
   var char = getCurrentChar();
   if (!char || !char.form) return;
   if (char.form.kind === "poly") {
-    if (window.AppLog) AppLog.action("combat", "Превращение: выход из «" + char.form.name + "»");
-    polymorphEnd(char, "выход из облика");
+    if (window.AppLog) AppLog.action("combat", "Превращение: выход из\u00a0«" + char.form.name + "»");
+    polymorphEnd(char, "выход из\u00a0облика");
     saveToLocal();
     updateHPDisplay();
     showToast("Облик снят — «Превращение» окончено", "info");
     if (typeof BATTLE_DATA !== "undefined" && BATTLE_DATA.active && typeof renderBattleTracker === "function") renderBattleTracker();
     return;
   }
-  if (window.AppLog) AppLog.action("combat", "Дикий облик: выход из «" + char.form.name + "»");
+  if (window.AppLog) AppLog.action("combat", "Дикий облик: выход из\u00a0«" + char.form.name + "»");
   char.form = null;
   saveToLocal();
   updateHPDisplay();

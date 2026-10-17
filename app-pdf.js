@@ -715,7 +715,7 @@ async function exportCharacterPDF(id, event) {
     if (typeof showToast === 'function') showToast('📄 PDF готов', 'success');
   } catch (e) {
     if (window.__catchLog) window.__catchLog('pdf:export', e);
-    if (typeof showToast === 'function') showToast('Ошибка PDF: ' + (e && e.message ? e.message : e), 'error');
+    if (typeof showToast === 'function') showToast('PDF не\u00a0собран: ' + (e && e.message ? e.message : e) + '. Попробуйте ещё раз', 'error');
     else if (typeof console !== 'undefined') console.error('[pdf]', e);
   }
 }
@@ -1028,7 +1028,7 @@ async function exportSpellCardsPDF(mode, id) {
     if (typeof showToast === 'function') showToast('📄 Карточки готовы: ' + faces.length, 'success');
   } catch (e) {
     if (window.__catchLog) window.__catchLog('pdf:cards', e);
-    if (typeof showToast === 'function') showToast('Ошибка PDF: ' + (e && e.message ? e.message : e), 'error');
+    if (typeof showToast === 'function') showToast('PDF не\u00a0собран: ' + (e && e.message ? e.message : e) + '. Попробуйте ещё раз', 'error');
     else if (typeof console !== 'undefined') console.error('[pdf]', e);
   }
 }
