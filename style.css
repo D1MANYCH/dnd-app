@@ -3095,6 +3095,8 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
   transform: translate(-50%, 0) scale(1);
   pointer-events: auto;
 }
+/* PLAY2-1: display:flex выше перебивал [hidden] — пустая карточка висела в DOM и читалась диктором */
+.quick-roll-strip[hidden] { display: none; }
 /* Шапка: иконка кубика + подпись «Последний бросок» + крестик справа */
 .qrs-head { display: flex; align-items: center; gap: var(--sp-2); }
 .qrs-icon { line-height: 1; flex: 0 0 auto; color: var(--accent); display: inline-flex; }
@@ -17811,11 +17813,11 @@ button.modal-close-bottom:hover,
 :where(.qrs-close, .aef-row-x, .tracker-roll-btn, .tracker-remove-btn, .tracker-hp-btn, .tracker-info-btn,
   .field-help-btn, .res-add-btn, .res-tag-x, .prof-chip-remove, .notes-tag-remove, .race-bonus-x,
   .exhaustion-btn, .ssl-btn, .party-io-btn, .pcard-edit-btn, .pcard-del-btn, .app-log-x, .stat-btn-sm,
-  .notes-md-btn) { position: relative; }
+  .notes-md-btn, .notes-modal-close, .notes-modal-tag-add-btn, .btn-primary, .btn-secondary) { position: relative; }
 :where(.qrs-close, .aef-row-x, .tracker-roll-btn, .tracker-remove-btn, .tracker-hp-btn, .tracker-info-btn,
   .field-help-btn, .res-add-btn, .res-tag-x, .prof-chip-remove, .notes-tag-remove, .race-bonus-x,
   .exhaustion-btn, .ssl-btn, .party-io-btn, .pcard-edit-btn, .pcard-del-btn, .app-log-x, .stat-btn-sm,
-  .notes-md-btn)::after {
+  .notes-md-btn, .notes-modal-close, .notes-modal-tag-add-btn, .btn-primary, .btn-secondary)::after {
   content: "";
   position: absolute;
   left: 50%; top: 50%;

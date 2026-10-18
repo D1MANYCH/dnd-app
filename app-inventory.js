@@ -1358,7 +1358,7 @@ function rollTWFAttack(index) {
   showRollModePopup(function(mode) {
     var attackBonus = rulesWeaponMods(char, weapon, parseInt($("char-level")?.value, 10) || 1).attack + hint.penalty;
     var d = rollD20WithMode(mode);
-    openDiceModal();
+    openDiceModalForRoll();
     var qty = (mode === 'adv' || mode === 'dis') ? 2 : 1;
     animateDice3d(20, d.roll, function(v1, v2) {
       if (typeof v1 === 'number' && !isNaN(v1)) {
@@ -1381,7 +1381,7 @@ function rollTWFAttack(index) {
       var resultInfo = $("dice-result-info");
       var resultBox = $("dice3d-result");
       if (resultBig) resultBig.textContent = total;
-      if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · бонусная атака" + modeLabel + " · " + formatDiceInfoStr(d);
+      if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · бонусная атака" + modeLabel + " · " + formatDiceInfoStr(d) + _attackBonusTail(attackBonus, total);
       if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
       showDualDice(d);
       if (d.isCrit) createParticles();
@@ -1440,7 +1440,9 @@ _attackDamageToken++;
 showRollModePopup(function(mode) {
   var attackBonus = rulesWeaponMods(char, weapon, parseInt($("char-level")?.value, 10) || 1).attack + hint.penalty;
   var d = rollD20WithMode(mode);
-  openDiceModal();
+  openDiceModalForRoll();
+  var _rb = $("dice-result-big"); if (_rb) _rb.textContent = "…";
+  var _ri = $("dice-result-info"); if (_ri) _ri.textContent = escapeHtml(weapon.name) + " · атака…";
   var qty = (mode === 'adv' || mode === 'dis') ? 2 : 1;
   animateDice3d(20, d.roll, function(v1, v2) {
     if (typeof v1 === 'number' && !isNaN(v1)) {
@@ -1460,19 +1462,22 @@ showRollModePopup(function(mode) {
     var msg = "⚔️ " + escapeHtml(weapon.name) + modeLabel + ": " + rollInfo + " + " + attackBonus + " = " + total;
     if (d.isCrit) msg = "🎉 КРИТИЧЕСКОЕ ПОПАДАНИЕ! " + escapeHtml(weapon.name) + ": " + d.roll + " + " + attackBonus + " = " + total;
     if (d.isFail) msg = "💀 ПРОМАХ! " + escapeHtml(weapon.name) + ": " + d.roll;
-    if (window.AppLog) AppLog.action("combat", "атака «" + weapon.name + "»: " + total + (d.isCrit ? " (крит)" : d.isFail ? " (промах)" : ""), { roll: d.roll, bonus: attackBonus, mode: d.mode });
+    if (window.AppLog) AppLog.action("combat", "атака «" + weapon.name + "»: " + formatDiceInfoStr(d) + _attackBonusTail(attackBonus, total) + (d.isCrit ? " (крит)" : d.isFail ? " (промах)" : ""), { roll: d.roll, bonus: attackBonus, mode: d.mode });
     showToast(msg, d.isCrit ? "success" : d.isFail ? "error" : "info");
     var resultBig = $("dice-result-big");
     var resultInfo = $("dice-result-info");
     var resultBox = $("dice3d-result");
     if (resultBig) resultBig.textContent = total;
-    if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · атака" + modeLabel + " · " + formatDiceInfoStr(d);
+    if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · атака" + modeLabel + " · " + formatDiceInfoStr(d) + _attackBonusTail(attackBonus, total);
     if (resultBox) resultBox.className = "dice3d-result" + (d.isCrit ? " crit-success" : d.isFail ? " crit-fail" : " normal");
     showDualDice(d);
     if (d.isCrit) createParticles();
-    diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, label: weapon.name + " атака", src: (typeof _rollSrc === "function" ? _rollSrc() : undefined) });
+    diceHistory.unshift({ sides:20, result:total, mode:d.mode, time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:d.r1, r2:d.r2, natural:d.roll, mod:attackBonus, label: weapon.name + " атака", src: (typeof _rollSrc === "function" ? _rollSrc() : undefined) });
     if (diceHistory.length > 10) diceHistory.pop();
     renderDiceHistory();
+    try { _setSettledDice(20, (d.mode === 'adv' || d.mode === 'dis') ? [d.r1, d.r2] : [d.roll]); } catch (e) {}
+    try { _emitDiceRolled({ sides: 20, result: total, natural: d.roll, mode: d.mode, label: weapon.name + " атака" }); } catch (e) {}
+    try { renderQuickRollStrip(); } catch (e) {}
     // PLAY-2: «Атака и урон одним нажатием» — урон следом, кроме естественной 1.
     // Пауза, чтобы итог атаки успели увидеть до того, как его сменит урон.
     if (_getAttackDamageOn() && !d.isFail) {
@@ -1483,6 +1488,10 @@ showRollModePopup(function(mode) {
 }, hint);
 }
 var _attackDamageToken = 0;
+// PLAY2-1: « + 5 = 17» — итог атаки к подписи броска
+function _attackBonusTail(bonus, total) {
+  return (bonus < 0 ? " − " + (-bonus) : " + " + bonus) + " = " + total;
+}
 
 function rollWeaponDamage(index) {
 _attackDamageToken++;
@@ -1499,7 +1508,7 @@ var r = _weaponDamageRoll(weapon.damage, wm.damageMod, isCrit);
 var total = r.total, rollStr = r.rollStr;
 if (window.AppLog) AppLog.action("combat", "урон «" + weapon.name + "»: " + total + (isCrit ? " (крит)" : ""), { formula: weapon.damage, detail: rollStr });
 showToast("🗡️ " + escapeHtml(weapon.name) + " урон" + (isCrit ? " (крит)" : "") + ": " + rollStr + " = " + total, "info");
-openDiceModal();
+openDiceModalForRoll();
 var resultBig = $("dice-result-big");
 var resultInfo = $("dice-result-info");
 var resultBox = $("dice3d-result");

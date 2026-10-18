@@ -68,7 +68,19 @@ function _prewarmDiceBox() {
 document.addEventListener('pointerdown', _prewarmDiceBox, { once: true, passive: true });
 document.addEventListener('keydown', _prewarmDiceBox, { once: true });
 
+// PLAY2-1: окно открыто броском с листа (атака, урон, проверка) — закрытие
+// оверлея результата закрывает его целиком, иначе панель кубиков оставалась
+// поверх вкладки и перехватывала следующий клик.
+var _diceOpenedByRoll = false;
+function openDiceModalForRoll() {
+  var was = _diceModalActive();
+  openDiceModal();
+  if (!was) _diceOpenedByRoll = true;
+}
+window.openDiceModalForRoll = openDiceModalForRoll;
+
 function closeDiceModal() {
+_diceOpenedByRoll = false;
 // v3.17: ставим RAF космо-арены на паузу — экономия CPU/батареи когда модалка закрыта
 try { if (window.DiceArenaBg) window.DiceArenaBg.stop(); } catch (e) {}
 // v3.18: закрываем поповеры если были открыты
@@ -104,6 +116,7 @@ function showDiceRollOverlay() {
   } catch (e) {}
 }
 function hideDiceRollOverlay() {
+  if (_diceOpenedByRoll && _diceModalActive()) { closeDiceModal(); return; }
   var m = document.getElementById('dice-modal');
   if (m) m.classList.remove('dice-rolling', 'dice-settled');
   try { if (window.DiceArenaBg) window.DiceArenaBg.stop(); } catch (e) {}
@@ -162,6 +175,7 @@ function clearDiceHistory() {
 function _diceHistoryRefresh() {
   try { if (typeof renderDiceHistory === 'function') renderDiceHistory(); } catch (e) {}
   try { _updateDiceHistoryBadge(); } catch (e) {}
+  try { updateQuickRollStripVisibility(); } catch (e) {}
 }
 // v3.19: сброс отображённого результата (кнопка «Сброс» в шапке)
 function resetDiceResult() {
@@ -431,7 +445,7 @@ function quickRoll(opts) {
   var mode = (opts.mode === 'adv' || opts.mode === 'dis') ? opts.mode : 'normal';
   var label = opts.label || ('d' + sides);
   var openArena = opts.openArena !== false;
-  if (openArena) { try { openDiceModal(); } catch (e) {} }
+  if (openArena) { try { openDiceModalForRoll(); } catch (e) {} }
   _qrsDismissed = false;
   var r1 = Math.floor(Math.random() * sides) + 1;
   var r2 = (mode === 'adv' || mode === 'dis') ? Math.floor(Math.random() * sides) + 1 : null;
@@ -753,6 +767,17 @@ function _initDiceBox() {
   return _diceBoxInitPromise;
 }
 
+// Значение кости от dice-box, если оно возможно для её граней (1…N; у d100 — 0…100),
+// иначе undefined.
+function _diceFaceValue(r, sides) {
+  var v = r && r.value;
+  var s = (r && typeof r.sides === 'number') ? r.sides : sides;
+  if (typeof v !== 'number' || v % 1 !== 0) return undefined;
+  if (s === 100) return (v >= 0 && v <= 100) ? v : undefined;
+  return (v >= 1 && (!(s > 0) || v <= s)) ? v : undefined;
+}
+window._diceFaceValue = _diceFaceValue;
+
 // DICE2-3: callback принимает (actualValue, actualValue2) — второе значение не-undefined
 // только при qty=2 (adv/dis). UI синхронизирует оба числа с физикой.
 // dice-box поддерживает d4/d6/d8/d10/d12/d20/d100. В notation указываем qty×sides.
@@ -907,15 +932,17 @@ function animateDice3d(sides, result, callback, opts) {
       _diceBoxConsecutiveTimeouts = 0;
       var v1, v2, vAll, byGroup;
       try {
-        v1 = rolls && rolls[0] ? rolls[0].value : undefined;
-        v2 = rolls && rolls[1] ? rolls[1].value : undefined;
+        // PLAY2-1: грань, которую физика не распознала, библиотека отдаёт как 0 —
+        // такое значение не берём, потребитель останется на precomputed.
+        v1 = rolls && rolls[0] ? _diceFaceValue(rolls[0], sides) : undefined;
+        v2 = rolls && rolls[1] ? _diceFaceValue(rolls[1], sides) : undefined;
         // DICE-UI: третьим аргументом отдаём ВСЕ значения физики. Сигнатура
         // callback(v1, v2) сохранена — на неё завязан app-inventory.js.
-        vAll = (rolls || []).map(function (r) { return r && r.value; });
+        vAll = (rolls || []).map(function (r) { return _diceFaceValue(r, sides); });
         // по группам броска: groupId после clear() в roll() идёт с нуля по порядку нотации
         if (opts && opts.groups) {
           byGroup = opts.groups.map(function () { return []; });
-          (rolls || []).forEach(function (r) { if (r && byGroup[r.groupId]) byGroup[r.groupId].push(r.value); });
+          (rolls || []).forEach(function (r) { if (r && byGroup[r.groupId]) byGroup[r.groupId].push(_diceFaceValue(r, sides)); });
         }
       } catch (e) { v1 = undefined; v2 = undefined; vAll = undefined; byGroup = undefined; }
       // 3D-only: поведение НЕ меняем (никакого 2D-фолбэка) — только диагностика.
@@ -1198,7 +1225,7 @@ function rollFormula(formula, opts) {
     return parsed;
   }
   var src = opts.src || _rollSrc();
-  if (opts.openArena) { try { openDiceModal(); } catch (e) {} }
+  if (opts.openArena) { try { openDiceModalForRoll(); } catch (e) {} }
   var label = opts.label || null;
   var groups = parsed.groups, mod = parsed.mod;
   var canon = _formulaCanon(groups, mod);
@@ -1661,6 +1688,22 @@ function _diceHotkeys(e) {
   }
 }
 document.addEventListener('keydown', _diceHotkeys);
+// PLAY2-1: Escape и клик по фону закрывают окно кубиков (оверлей броска — первым).
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape' || e.defaultPrevented || !_diceModalActive()) return;
+  var ov = document.querySelectorAll('.confirm-modal-overlay.active, .modal.active:not(#dice-modal)');
+  for (var i = 0; i < ov.length; i++) if (ov[i].getClientRects().length) return;
+  var ps = document.getElementById('dice-popover-settings');
+  var ph = document.getElementById('dice-popover-history');
+  if ((ps && !ps.hidden) || (ph && !ph.hidden)) { closeDicePopovers(); return; }
+  var m = document.getElementById('dice-modal');
+  if (m && m.classList.contains('dice-rolling')) hideDiceRollOverlay();
+  else closeDiceModal();
+});
+(function() {
+  var m = document.getElementById('dice-modal');
+  if (m) m.addEventListener('click', function(e) { if (e.target === m) closeDiceModal(); });
+})();
 
 window.renderDiceFan = renderDiceFan;
 window.selectDie = selectDie;

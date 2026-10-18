@@ -2638,6 +2638,16 @@
       return (rec.mode==='adv' && rec.r1===5 && rec.r2===19 && rec.natural===19 && rec.result===19) || JSON.stringify(rec);
     });
   }
+  if (typeof _diceFaceValue === "function") {
+    t("[PLAY2-1] к20=0 от dice-box отбрасывается, 1…20 принимается", function(){
+      var bad = [0, -1, 21, 7.5, undefined, "5"].map(function(v){ return _diceFaceValue({ value: v, sides: 20 }, 20); });
+      var ok = _diceFaceValue({ value: 1, sides: 20 }, 20) === 1 && _diceFaceValue({ value: 20 }, 20) === 20;
+      return (ok && bad.every(function(v){ return v === undefined; })) || JSON.stringify(bad);
+    });
+    t("[PLAY2-1] к100: 0…100 допустимо, граней берутся из самой кости", function(){
+      return (_diceFaceValue({ value: 0, sides: 100 }, 20) === 0 && _diceFaceValue({ value: 8, sides: 6 }, 20) === undefined && _diceFaceValue({ value: 6, sides: 6 }, 20) === 6) || "fail";
+    });
+  }
 
   // ────────── БЛОК 20 (FIN-1): черты — каталог 42, эффекты, инициатива ──────────
   if (typeof FEATS_DATA !== "undefined") {
