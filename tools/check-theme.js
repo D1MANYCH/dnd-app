@@ -40,14 +40,10 @@ const path = require('path');
 
 // Чек 2: light-токены без пары в dark :root.
 const PARITY_LIGHT_ONLY = {
-  '--tour-dim': 'тёмная тема использует fallback var(--overlay) в .tour-mask/.tour-corner (style.css, секция тура)',
 };
 
 // Чек 2: dark-токены с цветовым литералом, осознанно НЕ переопределённые в light.
 const PARITY_DARK_ONLY = {
-  '--rec': 'BUILD-LVL-3: фиксированный цвет рекомендаций билда, тема-независим (коммент в :root)',
-  '--rec-bg': 'BUILD-LVL-3: пара к --rec',
-  // THEME-5: --poison-color/--disease-color получили light+auto-пары (плашки состояний читаемы на кремовом).
 };
 
 // ---------- CSS-парсер ----------

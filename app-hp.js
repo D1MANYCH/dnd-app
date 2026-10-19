@@ -1052,7 +1052,7 @@ function luBuildChoicesScreen() {
         escapeHtml(s) + srcHtml + (isRec ? ' ' + recBadge('совет') : '') + '</button>';
     }).join("");
     blocks.push('<div class="lu-choice-block"><div class="lu-choice-title">' + dndIcoHtml("focus", 14) + ' Выбор подкласса</div>' +
-      (recSub ? '<div class="lu-choice-sub">Билд советует: <b style="color:var(--rec)">' + escapeHtml(recSub) + '</b></div>' : '') +
+      (recSub ? '<div class="lu-choice-sub">Билд советует: <b style="color:var(--magic)">' + escapeHtml(recSub) + '</b></div>' : '') +
       '<div class="lu-choice-opts">' + optsHtml + '</div></div>');
   } else if (char.subclass && subMinLevel === clvl) {
     blocks.push('<div class="lu-choice-block done"><div class="lu-choice-title">' + dndIcoHtml("focus", 14) + ' Подкласс: ' + escapeHtml(char.subclass) + ' ✓</div></div>');

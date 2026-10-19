@@ -26,7 +26,6 @@
 --bg-2: rgba(150, 180, 255, 0.06);
 --bg-3: rgba(150, 180, 255, 0.115);
 /* Дымка v5: модалки — фиксированная плотность (читаемость поверх космоса) */
---surface-modal: rgba(17, 26, 45, 0.84);
 /* UX-1: липкие поверхности (header/status-bar/нижняя навигация) — уровень
    «хром»: полупрозрачное стекло + усиленное размытие --sticky-blur
    (тема-независимо, наследуется light/auto от базового --glass-blur). */
@@ -62,8 +61,6 @@
 --nav-hover: var(--accent-hi);
 --nav-press: var(--accent-lo);
 /* BUILD-LVL-3: фиксированный цвет рекомендаций билда (не зависит от темы класса) */
---rec: #7b68ee;
---rec-bg: rgba(123, 104, 238, 0.14);
 --overlay: rgba(2, 4, 10, 0.55);
 --danger: #e0665a;
 --success: #4fae78;
@@ -79,20 +76,9 @@
    захардкожены правилами .school-<slug> ниже по файлу; светлого варианта у них не было,
    и в светлой теме подписи давали контраст 1.24–2.23. Тёмные значения — те же, что
    показывались всегда; светлые получены затемнением того же оттенка до WCAG 4.6. */
---school-abjur: #6cb6ff;
---school-conj: #ffb86c;
---school-divin: #b5bdc8;
---school-ench: #ff9ec7;
---school-evoc: #ff7a59;
---school-illus: #c39bff;
---school-necro: #8be39b;
---school-trans: #f7d56e;
 
 /* Дымка v5: золото ячеек заклинаний — НЕ зависит от акцента класса
    (свободная ячейка всегда золотая, потраченная — серая) */
---slot-gold: #d6b25e;
---slot-gold-hi: #e2c67e;
---slot-gold-glow: rgba(214, 178, 94, 0.4);
 
 /* Радиусы */
 /* DS-2: радиусы макета Figma: 4 — кнопки, поля, ячейки; 8 — поповеры, тосты, шторки; pill — переключатели */
@@ -125,7 +111,6 @@
 --sh-2: 0 10px 28px rgba(0,0,0,0.45), 0 32px 80px rgba(0,0,0,0.60);
 /* STYLE-5: тень карточки — заметно легче --sh-1. Карточка должна отделять
    группу данных, а не висеть над страницей. */
---sh-card: 0 1px 2px rgba(0,0,0,0.24), 0 3px 10px rgba(0,0,0,0.16);
 --sh-glow: 0 0 0 3px var(--accent-soft), 0 8px 24px var(--accent-glow-token);
 
 /* Дымка v5: система движения — микро 140 / компоненты 240 / крупное 420 */
@@ -180,56 +165,25 @@
 --fs-32: calc(32px * var(--fs-scale));
 
 /* ===== Алиасы старых переменных (совместимость) ===== */
---weapon-color: #d67f7f;
---armor-color: #7fa3d6;
---potion-color: #d67fa8;
---scroll-color: #a87fd6;
---tool-color: #d6b87f;
---material-color: #7fd69a;
---other-color: #9aa0a6;
---highlight-color: rgba(87, 179, 109, 0.4);
---condition-active: rgba(224, 108, 117, 0.3);
---poison-color: #9b59b6;
---disease-color: #27ae60;
---buff-color: rgba(87, 179, 109, 0.3);
---debuff-color: rgba(224, 108, 117, 0.3);
 --hp-bar-h: 10px;
 
 /* ===== THEME-4: компонентные токены базового хрома =====
    Пары значений живут в light-блоке и auto-блоке (паритет-чек следит).
    Позволяют базовым правилам работать в обеих темах без light-!important. */
 /* Нативный поп-ап <select> (ОС не композитит альфу — цвета сплошные) */
---opt-bg: #1e1e2a;
---opt-text: #ece6d6;
---optgroup-bg: #15141d;
 --optgroup-text: var(--accent);
 /* Пилюли/чипы фильтров; в светлой — пол непрозрачности (не зависит от слайдера) */
---chip-bg: var(--bg-2);
 /* Строки-списки / записи журнала-заметок; в светлой — почти непрозрачная белизна */
---list-solid: rgba(255,255,255,0.03);
---list-solid-hover: rgba(255,255,255,0.05);
 /* Заливка активных кнопок: тёмная — плоский акцент, светлая — мягкий градиент */
 --accent-fill: var(--accent);
 /* Сопротивление / иммунитет / уязвимость — текст + плашка + кромка */
---res-res: #6dc8c8; --res-res-bg: rgba(77,168,168,0.18); --res-res-bd: rgba(77,168,168,0.3);
---res-imm: #7db5e5; --res-imm-bg: rgba(91,155,213,0.18); --res-imm-bd: rgba(91,155,213,0.3);
---res-vul: #f0b860; --res-vul-bg: rgba(230,160,64,0.18); --res-vul-bd: rgba(230,160,64,0.3);
 
 /* ===== THEME-5: компонентные токены фичевых зон (партия B) =====
    Пары значений живут в light-блоке и auto-блоке (паритет/синхрон-чек следят). */
 /* Журнал/заметки: закреплённая запись (тёмная — тонкий золотой тинт) */
---pin-bg: rgba(255,210,77,0.06); --pin-edge: #ffd24d;
 /* Поиск заклинаний: поверхности кластера фильтра классов (тёмные «сливы») */
---cf-wrap: rgba(255,255,255,0.03);
---cf-group: rgba(0,0,0,0.18);
---cf-btn: rgba(0,0,0,0.35);
---cf-legend: rgba(0,0,0,0.25);
 /* Фильтр классов: свой класс (зелёный) / чужой (приглушённый красный) */
---cf-own-bd: rgba(139,227,155,0.55); --cf-own-bg: rgba(139,227,155,0.10); --cf-own-tx: #8be39b;
---cf-foreign-bd: rgba(229,99,99,0.30); --cf-foreign-bg: rgba(229,99,99,0.05); --cf-foreign-tx: #e56363;
 /* Гайды билдов / build-picker: плюсы/минусы + шкала сложности */
---pro-color: #7fc08a; --con-color: #d68a8a;
---diff-1: #27ae60; --diff-2: #f39c12; --diff-3: #e74c3c;
 
 /* ===== MENU-1: главный экран — плашка героя, меню приключения, слот под арт =====
    Цветовые токены здесь намеренно АЛИАСЫ уже парных (var(--accent) и т.п.):
@@ -255,7 +209,6 @@
 --home-art-opacity: 0;
 --home-art-z: -3;   /* -3 — под #bgCanvas, арт размывается #bgGlass вместе с космосом;
                        -1 — над стеклом, арт остаётся резким. Переключается числом. */
---home-art-veil: rgba(5, 10, 20, 0.58);
 
 /* DS-3б: парные токены вместо светлых перебивок [data-theme="light"] .x —
    компонент берёт значение из токена, светлая тема меняет только токен. */
@@ -266,71 +219,43 @@
 --status-bar-edge: 1px solid var(--border);
 --status-bar-blur: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
 --status-chip-bg: var(--bg-2); --status-chip-bw: 1px; --status-chip-hover-sh: none;
---st-ok-bg: rgba(87,179,109,0.14); --st-ok-edge: var(--success);
---st-low-fg: var(--accent); --st-low-bg: rgba(212,168,67,0.14); --st-low-edge: var(--accent);
---st-crit-bg: rgba(224,108,117,0.18); --st-crit-edge: var(--danger);
---st-ac-fg: var(--armor-color); --st-ac-bg: rgba(91,155,213,0.14); --st-ac-edge: var(--armor-color);
---st-level-edge: var(--accent);
---st-insp-fg: var(--text); --st-insp-bg: var(--bg-2); --st-insp-edge: var(--border);
---st-insp-hover-edge: rgba(255,215,0,0.4);
---st-insp-on-fg: gold; --st-insp-on-bg: rgba(255,215,0,0.15); --st-insp-on-edge: gold;
---st-cond-fg: var(--danger); --st-cond-bg: rgba(224,108,117,0.15); --st-cond-hover-bg: rgba(224,108,117,0.3); --st-cond-edge: var(--danger);
+--st-ac-fg: var(--info); 
+--st-insp-fg: var(--text); --st-insp-bg: var(--bg-2); 
+--st-insp-on-fg: gold; 
+--st-cond-fg: var(--danger); --st-cond-edge: var(--danger);
 --st-conc-fg: var(--magic); --st-conc-bg: color-mix(in srgb, var(--magic) 15%, transparent);
 --st-conc-edge: color-mix(in srgb, var(--magic) 50%, transparent); --st-conc-pulse-edge: var(--magic);
---st-rit-fg: #a88ec4; --st-rit-bg: rgba(142,107,191,0.15);
---st-rit-edge: rgba(142,107,191,0.5); --st-rit-pulse-edge: rgba(142,107,191,1);
---header-edge: rgba(255,255,255,0.08); --header-sh: none;
+ --header-sh: none;
 --header-title-fg: var(--accent); --header-title-fw: var(--fw-semibold);
 --hdr-btn-bg: none; --hdr-btn-edge: none;
---hdr-burger-hover-bg: rgba(255,255,255,0.1); --hdr-back-hover-bg: rgba(255,255,255,0.08);
---hdr-back-bg-d: rgba(255,255,255,0.07); --hdr-back-edge-d: 1px solid rgba(255,255,255,0.15);
---hdr-back-hover-bg-d: var(--accent-glow-token, rgba(212,168,75,0.18));
 --hdr-back-hover-edge-d: var(--accent); --hdr-back-hover-fg-d: var(--accent);
 --avatar-disc-bg: rgba(255,255,255,0.05); --avatar-disc-edge: 2px solid var(--accent); --avatar-img-filter: none;
 --avatar-icon-filter: brightness(1.7) saturate(1.3) contrast(1.15);
 --books-title-fw: var(--fw-semibold);
 --field-text-bg: var(--bg-2); --field-focus-bg: var(--bg-3); --field-focus-ring: var(--accent-glow-token);
---avatar-url-bg: rgba(255,255,255,0.10); --avatar-url-focus-bg: rgba(255,255,255,0.13);
---avatar-url-edge: rgba(255,255,255,0.25); --avatar-url-ph: var(--text-dim); --notes-search-ph: var(--text-dim);
+ --avatar-url-ph: var(--text-dim); --notes-search-ph: var(--text-dim);
 --rail-bg: var(--surface-sticky, rgba(20, 22, 30, 0.55));
---edit-btn-fg: var(--accent-hi); --pin-label-fg: var(--accent); --wf-chip-on-fg: #000;
---ver-btn-bg: rgba(255,255,255,0.04); --ver-btn-edge: rgba(255,255,255,0.10);
+--edit-btn-fg: var(--accent-hi); --pin-label-fg: var(--accent); 
 --class-disc-bg: none; --class-disc-edge: none;
 --dice-arena-bg: rgba(6, 8, 18, 0.82);
 --dice-stage-bg: radial-gradient(circle at 50% 50%, #0a1628 0%, #060e1f 55%, #030812 100%);
 --dice-stage-inset: inset 0 0 60px 10px rgba(0, 0, 0, 0.6);
 --dice-num-glow: 0 2px 18px rgba(0, 0, 0, 0.9), 0 0 32px rgba(0, 0, 0, 0.7);
---dice-label-fg: #e3dff0; --dice-label-glow: 0 1px 8px rgba(0, 0, 0, 0.95);
+ --dice-label-glow: 0 1px 8px rgba(0, 0, 0, 0.95);
 --dice-crit-ok-fg: var(--accent); --dice-crit-fail-fg: var(--danger);
---dice-close-hint: rgba(255, 255, 255, 0.5);
---cw-hint-fg: var(--home-sub); --cw-title-fg: var(--text); --cw-err-fg: #ff8a8a;
+--cw-hint-fg: var(--home-sub); --cw-title-fg: var(--text); 
 --locked-bar-bg: none; --locked-bar-edge: var(--home-rule); --locked-bar-fg: var(--home-sub);
 --hp-bar-fill: linear-gradient(90deg, color-mix(in oklab, var(--success) 88%, black), var(--success));
 --hp-bar-edge: none; --hp-bar-overflow: visible;
---tabnav-edge: rgba(255,255,255,0.08); --tabnav-sh: none;
 --tab-hover-bg: none; --tab-on-bg: var(--accent-glow-token);
 --cpop-bg: var(--surface-pop, var(--bg-1)); --cpop-edge: var(--border-soft);
---cpop-close-hover-bg: var(--bg-3); --popup-group-rule: rgba(255,255,255,0.18);
 --overlay-blur: none;
---drawer-bg: var(--surface-sticky, var(--bg-2)); --drawer-edge-r: none; --drawer-sh: -8px 0 24px rgba(0,0,0,0.34);
+--drawer-bg: var(--surface-sticky, var(--bg-2)); --drawer-edge-r: none; 
 
-/* DS-3в: бывшие литералы в правилах. Полупрозрачные оттенки — color-mix от
-   этих токенов; значения пока 1:1 со старыми, слияние палитры — DS-3г. */
---shadow-ink: #000; --sheen: rgba(255,255,255,0.42);
---on-danger: #fff; --on-success: #0a1f10; --on-color: #fff; --on-color-dark: #000;
---danger-hi: #d8493b; --danger-lo: #a02d22; --success-hi: #399c5e; --success-lo: #1f6a3e;
---warn: #f39c12; --exhaustion: #e67e22; --dice-warm: #ffc878;
---rarity-common: #9aa0a6; --rarity-uncommon: #4da843; --rarity-rare: #4a8bc9;
---rarity-very-rare: #9b59b6; --rarity-legendary: #e0972e; --rarity-artifact: #c0563a;
---src-ph14: #4779a6; --src-ph24: #b7585f;
---cls-sorcerer: #e74c3c; --cls-warlock: #6c3483; --cls-cleric: #f39c12;
---cls-bard: #8e44ad; --cls-paladin: #2980b9; --cls-ranger: #1e8449;
---prof-src-race: #6cb46c; --prof-src-class: #c46c6c; --prof-src-subclass: #b46cc4;
---prof-src-bg: #c4a06c; --prof-src-custom: #6c9cc4;
---log-time: #6fae8f; --log-cat: #c79ae0; --log-warn: #e5c07b; --log-action: #61afef;
---pact: #9b59b6; --ritual-timer: #d4a5ff;
---twf: #8e44ad; --twf-fg: #bb86fc; --twf-bg: #2a1a3a;
---print-paper: #fff; --print-ink: #000;
+/* DS-3в/DS-3г: служебные цвета. Оттенки — color-mix от базовых токенов;
+   --on-status — текст на цветной заливке (danger/success/magic/…), в тёмной тёмный. */
+--on-color: #fff; --on-color-dark: #000; --on-status: #0b0d12;
+--warn: #f39c12; 
 /* DS-5в: минимальная область нажатия (на тач-экранах 48 px — media внизу) */
 --hit: 40px;
 }
@@ -393,7 +318,6 @@ html.glass-adjusting *::after {
   --bg-1: rgba(255, 255, 255, var(--glass-alpha));
   --bg-2: rgba(255, 255, 255, 0.55);
   --bg-3: rgba(222, 227, 238, 0.88);
-  --surface-modal: rgba(253, 254, 255, 0.84);
   --surface-sticky: rgba(255, 255, 255, 0.58);
   --surface-pop: rgba(253, 254, 255, 0.84);
   --glass-hi: rgba(255, 255, 255, 0.65);
@@ -420,83 +344,42 @@ html.glass-adjusting *::after {
 
   /* Semantic */
   --overlay: rgba(24, 26, 34, 0.38);
-  --tour-dim: rgba(24, 26, 34, 0.5); /* THEME-1: 0.55→0.5 — швов больше нет, затемнение чуть мягче; ниже 0.45 нельзя (0.38 не читалось) */
   --danger: #b3352a;
   /* THEME-6: success #2e8a54→#2a7e4c до WCAG 4.5 на светлом стекле */
   --success: #277548; /* STYLE-11: 4.35 → 4.90 на --bg-0 */
-  --info: #2c6fbd;
+  --info: #2b6cb7;
 
   /* Школы/состояния — темнее для контраста на светлом (THEME-6: до 4.5) */
   --magic: #7456ca;
-  --necro: #607730;
-  --divin: #1c7b7b;
-  --charm: #b74778;
+  --necro: #5d732f;
+  --divin: #1b7777;
+  --charm: #b04473;
 
   /* Школы заклинаний: тот же оттенок, затемнённый до WCAG 4.6. Мерить надо не на фоне
      страницы, а на ПОДЛОЖКЕ бейджа — она сама сделана из этого же цвета (13% поверх
      страницы) и потому темнее фона: на странице выходит 5.45–5.53, на подложке 4.58–4.62. */
-  --school-abjur: #3b638a;
-  --school-conj: #7b5934;
-  --school-divin: #5c6066;
-  --school-ench: #835166;
-  --school-evoc: #974835;
-  --school-illus: #6c558d;
-  --school-necro: #406948;
-  --school-trans: #6e5f31;
 
   /* Золото ячеек заклинаний на светлом — приглушённое */
-  --slot-gold: #86672b; /* STYLE-11: текстом 3.08 → 4.57 на --bg-0 */
-  --slot-gold-hi: #c09a50;
-  --slot-gold-glow: rgba(168, 130, 58, 0.35);
 
   /* Shadows */
   --sh-1: 0 1px 3px rgba(22,26,38,0.05), 0 6px 22px rgba(22,26,38,0.06);
   --sh-2: 0 10px 28px rgba(22,26,38,0.12), 0 32px 80px rgba(22,26,38,0.20);
-  --sh-card: 0 1px 2px rgba(22,26,38,0.04), 0 3px 10px rgba(22,26,38,0.05);
   --sh-glow: 0 0 0 3px var(--accent-soft), 0 6px 16px var(--accent-glow-token);
 
   /* Easing — UI6-5: токены --ease/--ease-out наследуются из :root (единый источник) */
 
   /* Item categories */
-  --weapon-color:  #c2433a;
-  --armor-color:   #2f6dba;
-  --potion-color:  #b04580;
-  --scroll-color:  #7a4eb8;
-  --tool-color:    #a07820;
-  --material-color:#2f8a52;
-  --other-color:   #5b606b;
-  --highlight-color: rgba(44, 138, 82, 0.30);
-  --condition-active: rgba(199, 58, 44, 0.25);
-  --buff-color: rgba(44, 138, 82, 0.24);
-  --debuff-color: rgba(199, 58, 44, 0.24);
   /* THEME-5: яд/болезнь — тёмно-темовый пурпур/зелёный не читался на кремовом */
-  --poison-color: #8a3f9e;
-  --disease-color: #1f8a4c;
 
   /* THEME-4: компонентные токены базового хрома (пары к :root) */
-  --opt-bg: #ffffff; --opt-text: #1a1a1a; --optgroup-bg: #f2efe6; --optgroup-text: var(--accent-lo);
-  --chip-bg: rgba(255,255,255,0.95);
-  --list-solid: rgba(255,255,255,0.96); --list-solid-hover: rgba(255,255,255,1);
+     --optgroup-text: var(--accent-lo);
   --accent-fill: linear-gradient(180deg, var(--accent-hi), var(--accent));
-  --res-res: #18696b; --res-res-bg: rgba(31,122,122,0.14); --res-res-bd: rgba(31,122,122,0.45);
-  --res-imm: #235f9e; --res-imm-bg: rgba(44,111,189,0.14); --res-imm-bd: rgba(44,111,189,0.45);
-  --res-vul: #8a4f15; --res-vul-bg: rgba(176,90,20,0.14); --res-vul-bd: rgba(176,90,20,0.45);
 
   /* THEME-5: компонентные токены фичевых зон (пары к :root) */
-  --pin-bg: rgba(255,210,77,0.18); --pin-edge: var(--accent-lo);
-  --cf-wrap: rgba(255,255,255,0.93);
-  --cf-group: rgba(255,255,255,0.95);
-  --cf-btn: rgba(255,255,255,0.96);
-  --cf-legend: rgba(255,255,255,0.93);
   /* STYLE-8M-4: свой/чужой класс на экране поиска лежат на фоне страницы, а не
      на белой кнопке — --success (4.35) и --danger (4.5 впритык) → 5.26 / 5.09. */
-  --cf-own-bd: rgba(44,138,82,0.45); --cf-own-bg: rgba(44,138,82,0.12); --cf-own-tx: #25703f;
-  --cf-foreign-bd: rgba(199,58,44,0.35); --cf-foreign-bg: rgba(199,58,44,0.08); --cf-foreign-tx: #b8352a;
-  --pro-color: #1f7a3a; --con-color: #b23a2c;
-  --diff-1: #1f8a4c; --diff-2: #c47a12; --diff-3: #c0392b;
 
   /* MENU-1: вуаль под артом главной (тёмная убила бы кремовый фон светлой темы) */
-  --home-art-veil: rgba(236, 239, 245, 0.62);
 
   /* DS-3б: светлые значения парных токенов (бывшие перебивки) */
   --body-bg-image: none;
@@ -504,74 +387,48 @@ html.glass-adjusting *::after {
   --char-sort-label: var(--text-dim); --char-sort-label-fw: var(--fw-semibold);
   --status-bar-bg: none; --status-bar-edge: 0; --status-bar-blur: none;
   --status-chip-bg: var(--bg-1); --status-chip-bw: 1.5px; --status-chip-hover-sh: var(--sh-1);
-  --st-ok-bg: rgba(42,126,76,0.10); --st-ok-edge: rgba(42,126,76,0.34);
   /* low-янтарь #8a6510 = 5.07:1 на light bg-1 */
-  --st-low-fg: #8a6510; --st-low-bg: rgba(138,101,16,0.12); --st-low-edge: rgba(138,101,16,0.38);
-  --st-crit-bg: rgba(199,58,44,0.08); --st-crit-edge: rgba(199,58,44,0.32);
-  --st-ac-fg: var(--info); --st-ac-bg: rgba(44,111,189,0.08); --st-ac-edge: rgba(44,111,189,0.32);
-  --st-level-edge: rgba(184,132,31,0.40);
-  --st-insp-fg: var(--accent); --st-insp-bg: var(--accent-soft); --st-insp-edge: rgba(184,132,31,0.40);
-  --st-insp-hover-edge: rgba(184,132,31,0.40);
-  --st-insp-on-fg: var(--accent); --st-insp-on-bg: var(--accent-soft); --st-insp-on-edge: rgba(184,132,31,0.40);
+  --st-ac-fg: var(--info); 
+  --st-insp-fg: var(--accent); --st-insp-bg: var(--accent-soft); 
+  --st-insp-on-fg: var(--accent); 
   /* чипы состояний/концентрации/ритуала в светлой — нейтральные, как чип по умолчанию */
-  --st-cond-fg: var(--text); --st-cond-bg: var(--bg-1); --st-cond-hover-bg: var(--bg-1); --st-cond-edge: var(--border);
+  --st-cond-fg: var(--text); --st-cond-edge: var(--border);
   --st-conc-fg: var(--text); --st-conc-bg: var(--bg-1); --st-conc-edge: var(--border); --st-conc-pulse-edge: var(--border);
-  --st-rit-fg: var(--text); --st-rit-bg: var(--bg-1); --st-rit-edge: var(--border); --st-rit-pulse-edge: var(--border);
-  --header-edge: var(--border-soft); --header-sh: var(--sh-1);
+   --header-sh: var(--sh-1);
   --header-title-fg: var(--text); --header-title-fw: var(--fw-bold);
   /* кнопки шапки (гамбургер, «назад») в светлой — плашка с рамкой при любой ширине */
   --hdr-btn-bg: var(--bg-2); --hdr-btn-edge: 1px solid var(--border);
-  --hdr-burger-hover-bg: var(--bg-2); --hdr-back-hover-bg: var(--bg-2);
-  --hdr-back-bg-d: var(--bg-2); --hdr-back-edge-d: 1px solid var(--border);
-  --hdr-back-hover-bg-d: var(--bg-2); --hdr-back-hover-edge-d: var(--border); --hdr-back-hover-fg-d: var(--text);
+   --hdr-back-hover-edge-d: var(--border); --hdr-back-hover-fg-d: var(--text);
   /* тёмный диск под PNG-иконки классов: line-art рисован под тёмную тему */
   --avatar-disc-bg: radial-gradient(circle at 32% 30%, #34324a, #201f2e); --avatar-disc-edge: 1px solid var(--border);
   --avatar-img-filter: drop-shadow(0 1px 1px rgba(20,40,30,0.30));
   --avatar-icon-filter: drop-shadow(0 1px 1px rgba(20,40,30,0.30));
   --books-title-fw: var(--fw-bold);
   --field-text-bg: var(--bg-1); --field-focus-bg: var(--bg-1); --field-focus-ring: var(--accent-soft);
-  --avatar-url-bg: var(--bg-1); --avatar-url-focus-bg: var(--bg-1);
-  --avatar-url-edge: var(--border); --avatar-url-ph: var(--text-mute); --notes-search-ph: var(--text-mute);
+   --avatar-url-ph: var(--text-mute); --notes-search-ph: var(--text-mute);
   --rail-bg: var(--bg-1);
   /* --accent-hi на светлом ниже 4.5:1 — кнопки правки и метка берут --accent-lo */
-  --edit-btn-fg: var(--accent-lo); --pin-label-fg: var(--accent-lo); --wf-chip-on-fg: #fff;
-  --ver-btn-bg: rgba(0,0,0,0.04); --ver-btn-edge: rgba(0,0,0,0.14);
+  --edit-btn-fg: var(--accent-lo); --pin-label-fg: var(--accent-lo); 
   --class-disc-bg: radial-gradient(circle at 32% 30%, #34324a, #201f2e); --class-disc-edge: 1px solid var(--border);
   /* арена броска: светлая вуаль и светлый «космос» (палитры канваса — dice-arena-bg.js) */
   --dice-arena-bg: rgba(226, 233, 242, 0.62);
   --dice-stage-bg: radial-gradient(circle at 50% 50%, #dbe4f2 0%, #c8d4e8 55%, #b2c1da 100%);
   --dice-stage-inset: inset 0 0 60px 10px rgba(100, 120, 155, 0.28);
   --dice-num-glow: 0 2px 18px rgba(255, 255, 255, 0.9), 0 0 32px rgba(255, 255, 255, 0.7);
-  --dice-label-fg: var(--text-dim); --dice-label-glow: 0 1px 8px rgba(255, 255, 255, 0.95);
+   --dice-label-glow: 0 1px 8px rgba(255, 255, 255, 0.95);
   --dice-crit-ok-fg: var(--text-dim); --dice-crit-fail-fg: var(--text-dim);
-  --dice-close-hint: rgba(26, 32, 29, 0.55);
-  --cw-hint-fg: var(--text-dim); --cw-title-fg: var(--accent-lo); --cw-err-fg: var(--danger);
+  --cw-hint-fg: var(--text-dim); --cw-title-fg: var(--accent-lo); 
   --locked-bar-bg: rgba(44,138,82,0.10); --locked-bar-edge: rgba(44,138,82,0.40); --locked-bar-fg: var(--success);
   /* полоса HP в светлой — сплошная заливка и волосяная рамка */
   --hp-bar-fill: var(--success); --hp-bar-edge: 1px solid var(--border-soft); --hp-bar-overflow: hidden;
-  --tabnav-edge: var(--border-soft); --tabnav-sh: 0 -4px 16px rgba(20,40,30,0.06);
   --tab-hover-bg: var(--bg-2); --tab-on-bg: var(--accent-soft);
   --cpop-bg: var(--bg-1); --cpop-edge: var(--border);
-  --cpop-close-hover-bg: rgba(20,30,24,0.06); --popup-group-rule: rgba(20,30,24,0.12);
   --overlay-blur: blur(2px);
-  --drawer-bg: var(--bg-1); --drawer-edge-r: 1px solid var(--border); --drawer-sh: var(--sh-2);
+  --drawer-bg: var(--bg-1); --drawer-edge-r: 1px solid var(--border); 
 
-  /* DS-3в: пары бывших литералов — те же значения, кроме текста на успехе и предупреждения */
-  --shadow-ink: #000; --sheen: rgba(255,255,255,0.42);
-  --on-danger: #fff; --on-success: #fff; --on-color: #fff; --on-color-dark: #000;
-  --danger-hi: #d8493b; --danger-lo: #a02d22; --success-hi: #399c5e; --success-lo: #1f6a3e;
-  --warn: #c47a12; --exhaustion: #e67e22; --dice-warm: #ffc878;
-  --rarity-common: #9aa0a6; --rarity-uncommon: #4da843; --rarity-rare: #4a8bc9;
-  --rarity-very-rare: #9b59b6; --rarity-legendary: #e0972e; --rarity-artifact: #c0563a;
-  --src-ph14: #4779a6; --src-ph24: #b7585f;
-  --cls-sorcerer: #e74c3c; --cls-warlock: #6c3483; --cls-cleric: #f39c12;
-  --cls-bard: #8e44ad; --cls-paladin: #2980b9; --cls-ranger: #1e8449;
-  --prof-src-race: #6cb46c; --prof-src-class: #c46c6c; --prof-src-subclass: #b46cc4;
-  --prof-src-bg: #c4a06c; --prof-src-custom: #6c9cc4;
-  --log-time: #6fae8f; --log-cat: #c79ae0; --log-warn: #e5c07b; --log-action: #61afef;
-  --pact: #9b59b6; --ritual-timer: #d4a5ff;
-  --twf: #8e44ad; --twf-fg: #bb86fc; --twf-bg: #2a1a3a;
-  --print-paper: #fff; --print-ink: #000;
+  /* DS-3в/DS-3г: служебные цвета; светлые статусные затемнены до 4.5:1 на --bg-0 */
+  --on-color: #fff; --on-color-dark: #000; --on-status: #fff;
+  --warn: #975e0e;
 }
 
 /* ========== UI-2. Пресеты акцента (8 цветов) ==========
@@ -1107,7 +964,7 @@ html.glass-adjusting *::after {
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid var(--bg-1);
-  box-shadow: 0 1px 4px color-mix(in srgb, var(--shadow-ink) 40%, transparent);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--on-color-dark) 40%, transparent);
   cursor: pointer;
   transition: transform var(--t1) ease;
   margin-top: -6px; /* центрируем thumb на 6px треке */
@@ -1118,7 +975,7 @@ html.glass-adjusting *::after {
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid var(--bg-1);
-  box-shadow: 0 1px 4px color-mix(in srgb, var(--shadow-ink) 40%, transparent);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--on-color-dark) 40%, transparent);
   cursor: pointer;
 }
 .fs-scale-value {
@@ -1189,7 +1046,7 @@ html.glass-adjusting *::after {
   color: var(--on-accent);
   font-size: var(--fs-14);
   font-weight: var(--fw-bold);
-  text-shadow: 0 1px 2px color-mix(in srgb, var(--shadow-ink) 60%, transparent);
+  text-shadow: 0 1px 2px color-mix(in srgb, var(--on-color-dark) 60%, transparent);
 }
 /* UI-3: чипы в авто-режиме приглушены, тоггл рядом */
 .accent-chip.is-disabled {
@@ -1269,11 +1126,11 @@ html.glass-adjusting *::after {
 .btn-primary {
   background: linear-gradient(180deg, var(--accent-hi), var(--accent));
   border-color: transparent; color: var(--on-accent);
-  box-shadow: inset 0 1.5px 0 var(--sheen), 0 4px 14px var(--accent-glow-token);
+  box-shadow: inset 0 1.5px 0 color-mix(in srgb, var(--on-color) 42%, transparent), 0 4px 14px var(--accent-glow-token);
 }
 .btn-primary:hover {
   filter: brightness(1.07);
-  box-shadow: inset 0 1.5px 0 var(--sheen), 0 4px 14px var(--accent-glow-token);
+  box-shadow: inset 0 1.5px 0 color-mix(in srgb, var(--on-color) 42%, transparent), 0 4px 14px var(--accent-glow-token);
 }
 .btn-primary:active {
   transform: scale(0.965);
@@ -1299,22 +1156,22 @@ html.glass-adjusting *::after {
 
 .btn-danger {
   background: var(--danger);
-  border-color: var(--danger-lo); color: var(--on-danger);
+  border-color: var(--danger); color: var(--on-status);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--danger) 28%, transparent);
 }
 .btn-danger:hover {
-  background: var(--danger-hi); border-color: var(--danger-lo);
+  background: var(--danger); border-color: var(--danger);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--danger) 34%, transparent);
 }
 .btn-danger:active { transform: scale(0.98); }
 
 .btn-success {
   background: var(--success);
-  border-color: var(--success-lo); color: var(--on-success);
+  border-color: var(--success); color: var(--on-status);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--success) 28%, transparent);
 }
 .btn-success:hover {
-  background: var(--success-hi); border-color: var(--success-lo);
+  background: var(--success); border-color: var(--success);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--success) 34%, transparent);
 }
 
@@ -1818,7 +1675,7 @@ transition: opacity var(--t3) var(--ez-out);
 content: "";
 position: absolute;
 inset: 0;
-background: var(--home-art-veil);
+background: var(--overlay);
 }
 
 body {
@@ -1872,7 +1729,7 @@ user-select: none;
 .status-chip.hidden { display: none; }
 /* Кнопка-счётчик условий (унифицирована со .status-chip) */
 .status-conditions-btn {
-  background: var(--st-cond-bg);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
   border-color: var(--st-cond-edge);
   color: var(--st-cond-fg);
   cursor: pointer;
@@ -1880,7 +1737,7 @@ user-select: none;
   transition: background var(--t2);
   animation: condBtnPulse 2s ease-in-out infinite;
 }
-.status-conditions-btn:hover { background: var(--st-cond-hover-bg); }
+.status-conditions-btn:hover { background: color-mix(in srgb, var(--danger) 28%, transparent); }
 @keyframes condBtnPulse {
   0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 0%, transparent); }
   50% { box-shadow: 0 0 8px color-mix(in srgb, var(--danger) 40%, transparent); }
@@ -1933,7 +1790,7 @@ user-select: none;
   border-radius: var(--r-4);
   width: auto;
 }
-.conditions-popup button.conditions-popup-close:hover { background: var(--cpop-close-hover-bg); }
+.conditions-popup button.conditions-popup-close:hover { background: var(--bg-3); }
 .conditions-popup-list {
   padding: var(--sp-2) var(--sp-4) var(--sp-3);
   display: flex;
@@ -1949,7 +1806,7 @@ user-select: none;
   padding: var(--sp-3) 0 var(--sp-2);
 }
 .popup-group + .popup-group {
-  border-top: 1px solid var(--popup-group-rule);
+  border-top: 1px solid var(--border);
   margin-top: var(--sp-2);
   padding-top: var(--sp-3);
 }
@@ -1961,23 +1818,23 @@ user-select: none;
 }
 .status-level {
 background: var(--accent-soft);
-border-color: var(--st-level-edge);
+border-color: color-mix(in srgb, var(--accent) 40%, transparent);
 color: var(--accent);
 }
 .status-hp { transition: background var(--t3), color var(--t3), border-color var(--t3); }
 .status-hp.hp-ok {
-background: var(--st-ok-bg);
-border-color: var(--st-ok-edge);
+background: color-mix(in srgb, var(--success) 14%, transparent);
+border-color: color-mix(in srgb, var(--success) 35%, transparent);
 color: var(--success);
 }
 .status-hp.hp-low {
-background: var(--st-low-bg);
-border-color: var(--st-low-edge);
-color: var(--st-low-fg);
+background: color-mix(in srgb, var(--accent) 14%, transparent);
+border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+color: var(--accent-ink);
 }
 .status-hp.hp-critical {
-background: var(--st-crit-bg);
-border-color: var(--st-crit-edge);
+background: color-mix(in srgb, var(--danger) 14%, transparent);
+border-color: color-mix(in srgb, var(--danger) 35%, transparent);
 color: var(--danger);
 animation: hpCriticalPulse 1.5s ease-in-out infinite;
 }
@@ -1987,8 +1844,8 @@ animation: hpCriticalPulse 1.5s ease-in-out infinite;
 }
 .status-hp .hp-max { opacity: 0.7; font-weight: var(--fw-medium); }
 .status-ac {
-background: var(--st-ac-bg);
-border-color: var(--st-ac-edge);
+background: color-mix(in srgb, var(--info) 14%, transparent);
+border-color: color-mix(in srgb, var(--info) 35%, transparent);
 color: var(--st-ac-fg);
 }
 /* status-conditions теперь рендерится в попапе */
@@ -2006,7 +1863,7 @@ font-weight: var(--fw-semibold);
 white-space: nowrap;
 flex-shrink: 0;
 }
-.condition-badge.poison { color: var(--poison-color); }
+.condition-badge.poison { color: var(--magic); }
 .condition-badge.buff { color: var(--success); }
 .condition-badge.debuff { color: var(--danger); }
 
@@ -2017,7 +1874,7 @@ top: 0;
 z-index: calc(var(--z-nav) + 3);
 background: var(--surface-sticky, var(--bg-1));
 padding: var(--sp-2) var(--sp-3, var(--sp-3));
-border-bottom: 1px solid var(--header-edge);
+border-bottom: 1px solid var(--border-soft);
 box-shadow: var(--header-sh);
 backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
 -webkit-backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
@@ -2040,7 +1897,7 @@ line-height: 1;
 transition: background var(--t2);
 flex-shrink: 0;
 }
-.header-back:hover { background: var(--hdr-back-hover-bg); }
+.header-back:hover { background: var(--bg-2); }
 .header-back.hidden { display: none; }
 .header-avatar {
 width: 42px;
@@ -2227,8 +2084,8 @@ input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="
 select { accent-color: var(--accent); }
 /* Сплошные цвета (а не translucent --bg-*): нативный поп-ап списка ОС не композитит альфу как страница.
    THEME-4: значения вынесены в токены opt / optgroup (light-пары в теме) */
-select option { background-color: var(--opt-bg); color: var(--opt-text); font-weight: var(--fw-regular); }
-select optgroup { background-color: var(--optgroup-bg); color: var(--optgroup-text); font-weight: var(--fw-bold); font-style: normal; }
+select option { background-color: var(--bg-0); color: var(--text); font-weight: var(--fw-regular); }
+select optgroup { background-color: var(--bg-0); color: var(--optgroup-text); font-weight: var(--fw-bold); font-style: normal; }
 .row { display: flex; gap: var(--sp-3); margin-bottom: var(--sp-3); flex-wrap: wrap; }
 .col { flex: 1; min-width: 100px; }
 /* UI-fix: базовые поля персонажа (класс/подкласс/раса/предыстория) — один столбец на всех
@@ -2270,7 +2127,7 @@ border-top: 1px solid var(--home-rule);
 .ac-value {
 font-size: var(--fs-32);
 font-weight: var(--fw-bold);
-color: var(--armor-color);
+color: var(--info);
 }
 .ac-formula {
 font-size: var(--fs-12);
@@ -2294,11 +2151,11 @@ align-items: center;
 }
 .ac-modifier-item.active {
 border-color: var(--success);
-background: var(--buff-color);
+background: color-mix(in srgb, var(--success) 28%, transparent);
 }
 .ac-modifier-item.negative {
 border-color: var(--danger);
-background: var(--debuff-color);
+background: color-mix(in srgb, var(--danger) 28%, transparent);
 }
 /* FIN-3: бейдж-примечание (помеха брони) — не влияет на КД, предупреждает */
 .ac-modifier-item.note {
@@ -2341,7 +2198,7 @@ color: var(--danger);
   padding: var(--sp-2) var(--sp-3);
   border-radius: var(--r-8);
   border: 1px solid var(--border);
-  background: var(--chip-bg);
+  background: var(--bg-2);
   color: var(--text-dim);
   font-size: var(--fs-12);
   cursor: pointer;
@@ -2380,7 +2237,7 @@ color: var(--danger);
   width: 64px; height: 64px;
   margin: 2px var(--sp-3) 2px 0;
   border-radius: var(--r-8);
-  box-shadow: 0 2px 6px color-mix(in srgb, var(--shadow-ink) 35%, transparent);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--on-color-dark) 35%, transparent);
   object-fit: cover;
 }
 /* DISC-6: display:block !important и clearfix жили ради обтекания картинкой,
@@ -2487,7 +2344,7 @@ font-weight: var(--fw-semibold);
 color: var(--text);
 }
 .condition-item.active .condition-name { color: var(--danger); }
-.condition-item.active.poison .condition-name { color: var(--poison-color); }
+.condition-item.active.poison .condition-name { color: var(--magic); }
 .condition-desc {
 font-size: var(--fs-12);
 color: var(--text-dim);
@@ -2566,7 +2423,7 @@ font-variant-numeric: tabular-nums;
   text-align: center;
 }
 .exhaustion-level.active {
-  color: var(--exhaustion);
+  color: var(--warn);
 }
 .exhaustion-level.critical {
   color: var(--danger);
@@ -2585,7 +2442,7 @@ font-variant-numeric: tabular-nums;
   text-transform: uppercase;
   color: var(--text-mute);
   padding: 0 0 var(--sp-2);
-  border-bottom: 1px solid var(--popup-group-rule);
+  border-bottom: 1px solid var(--border);
   margin-bottom: var(--sp-2);
 }
 .popup-group-label.buff { color: var(--success); }
@@ -2593,7 +2450,7 @@ font-variant-numeric: tabular-nums;
 .condition-badge.exhaustion {
   background: none;
   border-color: transparent;
-  color: var(--exhaustion);
+  color: var(--warn);
 }
 .condition-badge.buff {
   background: none;
@@ -2698,7 +2555,7 @@ gap: var(--sp-2);
 .condition-apply:focus-visible,
 .effect-apply:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .condition-apply.on { color: var(--danger); }
-.condition-item.poison .condition-apply.on { color: var(--poison-color); }
+.condition-item.poison .condition-apply.on { color: var(--magic); }
 .effect-apply.on { color: var(--danger); }
 .condition-item .condition-desc {
   display: none;
@@ -2710,7 +2567,7 @@ gap: var(--sp-2);
 .condition-item.expanded .condition-desc { display: block; }
 .condition-badge { display: inline-flex; align-items: center; gap: 0; }
 .exhaustion-title { display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-18); }
-.exhaustion-title .condition-icon-svg { width: 56px; height: 56px; border-radius: var(--r-8); box-shadow: 0 2px 6px color-mix(in srgb, var(--shadow-ink) 35%, transparent); margin: 0; }
+.exhaustion-title .condition-icon-svg { width: 56px; height: 56px; border-radius: var(--r-8); box-shadow: 0 2px 6px color-mix(in srgb, var(--on-color-dark) 35%, transparent); margin: 0; }
 .exhaustion-block .exhaustion-header { align-items: center; }
 .save-name {
 font-weight: var(--fw-semibold);
@@ -2972,8 +2829,8 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
   align-items: flex-end;
   /* UI-6: safe-area-inset для нижней панели на устройствах с home-indicator (iOS) */
   padding: var(--sp-2) 0 calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid var(--tabnav-edge);
-  box-shadow: var(--tabnav-sh);
+  border-top: 1px solid var(--border-soft);
+  box-shadow: var(--sh-1);
   z-index: var(--z-nav);
   backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
   -webkit-backdrop-filter: blur(var(--sticky-blur, var(--glass-blur))) saturate(140%);
@@ -3062,7 +2919,7 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
   object-fit: contain;
   display: block;
   pointer-events: none;
-  filter: drop-shadow(0 4px 8px color-mix(in srgb, var(--shadow-ink) 55%, transparent));
+  filter: drop-shadow(0 4px 8px color-mix(in srgb, var(--on-color-dark) 55%, transparent));
 }
 
 /* ============================================
@@ -3254,7 +3111,7 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
 .aef-row {
   display: flex; align-items: center; gap: var(--sp-2);
   padding: var(--sp-2) var(--sp-3); border-radius: var(--r-8);
-  background: var(--list-solid);
+  background: var(--bg-2);
 }
 .aef-row-name {
   flex: 1 1 auto; min-width: 0; font-size: var(--fs-14); color: var(--text);
@@ -3270,7 +3127,7 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
   cursor: pointer; font-size: var(--fs-14); line-height: 1;
   transition: color var(--t1), border-color var(--t1), background var(--t1);
 }
-.aef-row-x:hover { color: var(--danger); border-color: var(--danger); background: var(--list-solid-hover); }
+.aef-row-x:hover { color: var(--danger); border-color: var(--danger); background: var(--bg-3); }
 .aef-turns {
   display: flex; gap: var(--sp-2); padding: var(--sp-3) var(--sp-3) var(--sp-3);
   border-top: 1px solid var(--border-soft);
@@ -3279,11 +3136,11 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
 .aef-turn-btn {
   flex: 1 1 0; padding: var(--sp-2) var(--sp-2); border-radius: var(--r-8);
   border: 1px solid var(--border-soft);
-  background: var(--list-solid);
+  background: var(--bg-2);
   color: var(--text); font-size: var(--fs-14); font-weight: var(--fw-semibold);
   cursor: pointer; transition: background var(--t1), border-color var(--t1), transform var(--t1);
 }
-.aef-turn-btn:hover { background: var(--list-solid-hover); border-color: var(--accent); }
+.aef-turn-btn:hover { background: var(--bg-3); border-color: var(--accent); }
 .aef-turn-btn:active { transform: scale(0.96); }
 /* ПК: чип в левый-нижний угол контентной зоны (прочь от right-rail/quick-roll). */
 @media (min-width: 1024px) {
@@ -3353,8 +3210,8 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
   background: var(--accent, var(--accent));
   color: var(--on-accent);
 }
-.dice-mode-seg-btn.active.dis { background: var(--danger); color: var(--on-danger); }
-.dice-mode-seg-btn.active.adv { background: var(--success); color: var(--on-success); }
+.dice-mode-seg-btn.active.dis { background: var(--danger); color: var(--on-status); }
+.dice-mode-seg-btn.active.adv { background: var(--success); color: var(--on-status); }
 
 /* =============================================
    HAMBURGER BUTTON
@@ -3374,7 +3231,7 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
   box-shadow: none !important;
   line-height: 1;
 }
-.nav-hamburger:hover { background: var(--hdr-burger-hover-bg) !important; transform: none !important; }
+.nav-hamburger:hover { background: var(--bg-2) !important; transform: none !important; }
 
 /* =============================================
    SIDE DRAWER
@@ -3410,7 +3267,7 @@ button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--f
   flex-direction: column;
   transform: translateX(100%);
   transition: transform var(--t2) cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--drawer-sh);
+  box-shadow: var(--sh-2);
   /* UI-5: при больших масштабах (zoom > 1) контент drawer выше вьюпорта —
      нужен скролл по вертикали и аккуратное поведение оверфлоу. */
   overflow-y: auto;
@@ -4306,8 +4163,8 @@ animation: rise var(--t3) var(--ez-out) both;
 }
 
 @keyframes pulse {
-0%, 100% { box-shadow: 0 4px 20px color-mix(in srgb, var(--shadow-ink) 50%, transparent); }
-50% { box-shadow: 0 4px 30px color-mix(in srgb, var(--shadow-ink) 80%, transparent); }
+0%, 100% { box-shadow: 0 4px 20px color-mix(in srgb, var(--on-color-dark) 50%, transparent); }
+50% { box-shadow: 0 4px 30px color-mix(in srgb, var(--on-color-dark) 80%, transparent); }
 }
 
 /* ========== INVENTORY ========== */
@@ -4338,7 +4195,7 @@ animation: rise var(--t3) var(--ez-out) both;
   border-radius: 0;
   transition: width var(--t3) ease, background var(--t2);
 }
-.inv-weight-fill.warning { background: var(--slot-gold); }
+.inv-weight-fill.warning { background: var(--accent-ink); }
 .inv-weight-fill.overweight { background: var(--danger); animation: overweightPulse 1s ease-in-out infinite; }
 @keyframes overweightPulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
 
@@ -4454,12 +4311,12 @@ animation: rise var(--t3) var(--ez-out) both;
   transition: transform var(--t2) var(--ez-out);
 }
 .inv-item.expanded::before { transform: rotate(135deg); }
-.inv-item[data-category="weapon"]   { --dz-c: var(--weapon-color); }
-.inv-item[data-category="armor"]    { --dz-c: var(--armor-color); }
-.inv-item[data-category="potion"]   { --dz-c: var(--potion-color); }
-.inv-item[data-category="scroll"]   { --dz-c: var(--scroll-color); }
-.inv-item[data-category="tool"]     { --dz-c: var(--tool-color); }
-.inv-item[data-category="material"] { --dz-c: var(--material-color); }
+.inv-item[data-category="weapon"]   { --dz-c: var(--danger); }
+.inv-item[data-category="armor"]    { --dz-c: var(--info); }
+.inv-item[data-category="potion"]   { --dz-c: var(--charm); }
+.inv-item[data-category="scroll"]   { --dz-c: var(--magic); }
+.inv-item[data-category="tool"]     { --dz-c: var(--warn); }
+.inv-item[data-category="material"] { --dz-c: var(--success); }
 .inv-item.expanded { background: color-mix(in srgb, var(--accent) 6%, transparent); }
 
 .inv-item-main {
@@ -4759,12 +4616,12 @@ animation: rise var(--t3) var(--ez-out) both;
 .mci-meta { font-size: var(--fs-sm); color: var(--accent-lo); margin-top: 2px; }
 .mci-desc { font-size: var(--fs-sm); color: var(--home-sub); margin-top: var(--sp-1); line-height: 1.4; }
 /* цвета редкости (D&D) — справочные, красят ромб и подпись через --home-accent */
-.rarity-common    { --home-accent: var(--rarity-common); }
-.rarity-uncommon  { --home-accent: var(--rarity-uncommon); }
-.rarity-rare      { --home-accent: var(--rarity-rare); }
-.rarity-very_rare { --home-accent: var(--rarity-very-rare); }
-.rarity-legendary { --home-accent: var(--rarity-legendary); }
-.rarity-artifact  { --home-accent: var(--rarity-artifact); }
+.rarity-common    { --home-accent: var(--text-mute); }
+.rarity-uncommon  { --home-accent: var(--success); }
+.rarity-rare      { --home-accent: var(--info); }
+.rarity-very_rare { --home-accent: var(--magic); }
+.rarity-legendary { --home-accent: var(--warn); }
+.rarity-artifact  { --home-accent: var(--danger); }
 /* FIN-5: готовые наборы снаряжения в пикере — слова-действия через «·» */
 .gear-packs-section { margin-bottom: var(--sp-4); padding-bottom: var(--sp-3); border-bottom: 1px solid var(--home-rule); }
 .gear-packs-label { margin-bottom: var(--sp-1); font-family: var(--font-display); font-size: var(--fs-12); letter-spacing: .08em; text-transform: uppercase; color: var(--home-sub); }
@@ -5018,7 +4875,7 @@ cursor: pointer;
 @keyframes dymka-sheet-out { to { transform: translateY(100%); opacity: 0.6; } }
 .modal-content {
 /* Дымка v5: уровень 3 стекла — поповер (surface-pop + pop-blur + блик) */
-background: var(--surface-pop, var(--surface-modal));
+background: var(--surface-pop, var(--surface-pop));
 backdrop-filter: blur(var(--pop-blur, 30px));
 -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
 border: 1px solid var(--border-soft);
@@ -5214,7 +5071,7 @@ top: calc(var(--sp-3) + 0.45em);
 width: var(--home-bullet);
 height: var(--home-bullet);
 transform: rotate(45deg);
-border: 1.5px solid var(--weapon-color);
+border: 1.5px solid var(--danger);
 transition: background var(--t1) var(--ez-out);
 }
 .weapon-preset-btn:hover {
@@ -5224,8 +5081,8 @@ box-shadow: none;
 transform: none;
 }
 .weapon-preset-btn:hover::before,
-.weapon-preset-btn.selected::before { background: var(--weapon-color); }
-.weapon-preset-btn b { color: var(--weapon-color); font-size: 1em; }
+.weapon-preset-btn.selected::before { background: var(--danger); }
+.weapon-preset-btn b { color: var(--danger); font-size: 1em; }
 /* FIN-2: пикер оружия — поиск, чипы категорий, метаданные позиции */
 .weapon-search-inp { width: 100%; margin: var(--sp-2) 0 var(--sp-2); }
 .weapon-filter-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-3); }
@@ -5241,11 +5098,11 @@ transform: none;
   margin: 0;
   transition: all var(--t1) ease;
 }
-.wf-chip:hover { border-color: var(--weapon-color); color: var(--text); }
+.wf-chip:hover { border-color: var(--danger); color: var(--text); }
 .wf-chip.active {
-  background: var(--weapon-color);
-  border-color: var(--weapon-color);
-  color: var(--wf-chip-on-fg);
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--on-accent);
   font-weight: var(--fw-bold);
 }
 .wf-sep { width: 1px; height: 18px; background: var(--border); margin: 0 2px; }
@@ -5655,7 +5512,7 @@ padding: var(--sp-4);
   background: var(--bg-1);
   border: 1px solid var(--border, var(--bg-3));
   border-radius: var(--r-8);
-  box-shadow: var(--sh-2), 0 0 0 1px color-mix(in srgb, var(--dice-warm) 6%, transparent);
+  box-shadow: var(--sh-2), 0 0 0 1px color-mix(in srgb, var(--warn) 6%, transparent);
   backdrop-filter: blur(var(--glass-blur, 12px));
   -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
   z-index: 30;
@@ -5837,7 +5694,7 @@ color: var(--accent);
 display: block;
 line-height: 1.1;
 margin-bottom: var(--sp-1);
-text-shadow: 0 2px 10px color-mix(in srgb, var(--shadow-ink) 50%, transparent);
+text-shadow: 0 2px 10px color-mix(in srgb, var(--on-color-dark) 50%, transparent);
 transition: all var(--t2) ease;
 }
 .dice-result-info { font-size: 1em; color: var(--text-dim); display: block; margin-top: var(--sp-3); }
@@ -5943,11 +5800,11 @@ border-top: 1px solid var(--home-rule);
   border: 1px solid var(--border);
   color: var(--text);
 }
-.prof-chip[data-source="race"]       { border-color: var(--prof-src-race); background: color-mix(in srgb, var(--prof-src-race) 12%, transparent); }
-.prof-chip[data-source="class"]      { border-color: var(--prof-src-class); background: color-mix(in srgb, var(--prof-src-class) 12%, transparent); }
-.prof-chip[data-source="subclass"]   { border-color: var(--prof-src-subclass); background: color-mix(in srgb, var(--prof-src-subclass) 12%, transparent); }
-.prof-chip[data-source="background"] { border-color: var(--prof-src-bg); background: color-mix(in srgb, var(--prof-src-bg) 12%, transparent); }
-.prof-chip[data-source="custom"]     { border-color: var(--prof-src-custom); background: color-mix(in srgb, var(--prof-src-custom) 12%, transparent); }
+.prof-chip[data-source="race"]       { border-color: var(--success); background: color-mix(in srgb, var(--success) 12%, transparent); }
+.prof-chip[data-source="class"]      { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
+.prof-chip[data-source="subclass"]   { border-color: var(--magic); background: color-mix(in srgb, var(--magic) 12%, transparent); }
+.prof-chip[data-source="background"] { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+.prof-chip[data-source="custom"]     { border-color: var(--info); background: color-mix(in srgb, var(--info) 12%, transparent); }
 .prof-chip-src {
   font-size: var(--fs-12);
   opacity: 0.8;
@@ -6007,7 +5864,7 @@ border-top: 1px solid var(--home-rule);
    как .battle-setup-row на 8d. Свойства сведены туда, здесь остался h4. */
 .weapon-row h4 {
 margin: 0 0 var(--sp-2) 0;
-color: var(--weapon-color);
+color: var(--danger);
 display: flex;
 justify-content: space-between;
 align-items: center;
@@ -6157,9 +6014,9 @@ font-size: var(--fs-14);
 .spell-diamond {
   width: 17px;
   height: 17px;
-  border: 1.5px solid var(--slot-gold);
-  background: linear-gradient(180deg, var(--slot-gold-hi), var(--slot-gold));
-  box-shadow: 0 0 8px var(--slot-gold-glow), inset 0 1px 0 var(--sheen);
+  border: 1.5px solid var(--accent-ink);
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent-ink));
+  box-shadow: 0 0 8px var(--accent-glow-token), inset 0 1px 0 color-mix(in srgb, var(--on-color) 42%, transparent);
   cursor: pointer;
   transition: background var(--t1, 140ms) var(--ez-out, ease), border-color var(--t1, 140ms) var(--ez-out, ease),
               box-shadow var(--t1, 140ms) var(--ez-out, ease), transform var(--t1, 140ms) var(--ez-spring, ease);
@@ -6296,8 +6153,8 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
 /* Заливки затемнены до WCAG 4.6 под белый текст: было #5b9bd5 → 2.96 и #e06c75 → 3.20
    (метка набрана 0.7em, это обычный текст, порог 4.5). Оттенок сохранён, тема на бейдж
    не влияет — заливка непрозрачная и одна на обе. */
-.source-ph14 { background: var(--src-ph14); color: white; }
-.source-ph24 { background: var(--src-ph24); color: white; }
+.source-ph14 { background: var(--info); color: white; }
+.source-ph24 { background: var(--danger); color: white; }
 /* HB-1: бейдж «своё» соседствует с бейджем редакции (source не заменяется —
    это разные оси: кто автор и под какую книгу написано). Только токены —
    ратчет хардкодов THEME-6 держит базу 1025. */
@@ -6310,14 +6167,14 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
 .spell-foreign-ed { font-size: var(--fs-12); color: var(--text-dim); margin-left: var(--sp-1); vertical-align: middle; white-space: nowrap; flex-shrink: 0; }
 .edition-btn[hidden], .bp-ed-group[hidden] { display: none; }
 .class-badge { display: inline-block; padding: 2px var(--sp-2); border-radius: var(--r-4); font-size: var(--fs-12); font-weight: var(--fw-semibold); margin-left: var(--sp-1); }
-.class-wizard   { background: var(--scroll-color);   color: white; }
-.class-druid    { background: var(--material-color); color: black; }
-.class-sorcerer { background: var(--cls-sorcerer);               color: white; }
-.class-warlock  { background: var(--cls-warlock);               color: white; }
-.class-cleric   { background: var(--cls-cleric);               color: black; }
-.class-bard     { background: var(--cls-bard);               color: white; }
-.class-paladin  { background: var(--cls-paladin);               color: white; }
-.class-ranger   { background: var(--cls-ranger);               color: white; }
+.class-wizard   { background: var(--magic);   color: white; }
+.class-druid    { background: var(--success); color: black; }
+.class-sorcerer { background: var(--danger);               color: white; }
+.class-warlock  { background: var(--magic);               color: white; }
+.class-cleric   { background: var(--warn);               color: black; }
+.class-bard     { background: var(--magic);               color: white; }
+.class-paladin  { background: var(--info);               color: white; }
+.class-ranger   { background: var(--success);               color: white; }
 .class-both     { background: var(--accent);   color: black; }
 .class-both { background: var(--accent); color: black; }
 /* ── Spell Level Groups ── */
@@ -6422,14 +6279,14 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
    но её перебивал лежавший ниже блок .school-<slug> с захардкоженной тёмной палитрой,
    так что на экране всегда были ЕГО оттенки, а в светлой теме — нечитаемые.
    Теперь обе системы сведены в одну: карта ведёт на токены школ, блока-перебивки нет. */
-.school-badge.school-abjuration    { --sc: var(--school-abjur); }
-.school-badge.school-conjuration   { --sc: var(--school-conj); }
-.school-badge.school-divination    { --sc: var(--school-divin); }
-.school-badge.school-enchantment   { --sc: var(--school-ench); }
-.school-badge.school-evocation     { --sc: var(--school-evoc); }
-.school-badge.school-illusion      { --sc: var(--school-illus); }
-.school-badge.school-necromancy    { --sc: var(--school-necro); }
-.school-badge.school-transmutation { --sc: var(--school-trans); }
+.school-badge.school-abjuration    { --sc: var(--info); }
+.school-badge.school-conjuration   { --sc: var(--warn); }
+.school-badge.school-divination    { --sc: var(--text-mute); }
+.school-badge.school-enchantment   { --sc: var(--charm); }
+.school-badge.school-evocation     { --sc: var(--danger); }
+.school-badge.school-illusion      { --sc: var(--magic); }
+.school-badge.school-necromancy    { --sc: var(--success); }
+.school-badge.school-transmutation { --sc: var(--accent-ink); }
 .school-icon-svg > svg { display: block; }
 .school-icon-svg {
   width: 24px;
@@ -6615,12 +6472,12 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
 .class-filter-btn.active::after { transform: scaleX(1); }
 /* Свой класс — зелёный, чужой — приглушённый красный (но кликабельный) */
 .class-filter-btn.cf-own .cf-name,
-.class-filter-btn.cf-own.active .cf-name { color: var(--cf-own-tx); }
-.class-filter-btn.cf-own.active::after { background: var(--cf-own-tx); }
+.class-filter-btn.cf-own.active .cf-name { color: var(--success); }
+.class-filter-btn.cf-own.active::after { background: var(--success); }
 .class-filter-btn.cf-foreign img { filter: saturate(0.55); }
 .class-filter-btn.cf-foreign .cf-name,
-.class-filter-btn.cf-foreign.active .cf-name { color: var(--cf-foreign-tx); }
-.class-filter-btn.cf-foreign.active::after { background: var(--cf-foreign-tx); }
+.class-filter-btn.cf-foreign.active .cf-name { color: var(--danger); }
+.class-filter-btn.cf-foreign.active::after { background: var(--danger); }
 .class-filter-legend {
   display: flex;
   flex-wrap: wrap;
@@ -6628,8 +6485,8 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
   font-size: var(--fs-12);
   color: var(--home-sub);
 }
-.cf-legend-own     { color: var(--cf-own-tx); }
-.cf-legend-foreign { color: var(--cf-foreign-tx); }
+.cf-legend-own     { color: var(--success); }
+.cf-legend-foreign { color: var(--danger); }
 .cf-legend-hint    { color: var(--home-sub); font-style: italic; }
 
 /* Meta row — always visible */
@@ -7032,7 +6889,7 @@ transition: width var(--t3, 420ms) var(--ez-spring, ease), background var(--t3);
   opacity: 1;
   transform: translateY(0);
   transition: opacity var(--t3) ease, transform var(--t3) ease;
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--shadow-ink) 34%, transparent);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--on-color-dark) 34%, transparent);
 }
 .hp-toast-heal {
   background: color-mix(in srgb, var(--success) 15%, var(--bg-0));
@@ -7117,7 +6974,7 @@ justify-content: center;
 }
 .confirm-modal-overlay.active { display: flex; }
 .confirm-modal-box {
-background: var(--surface-pop, var(--surface-modal));
+background: var(--surface-pop, var(--surface-pop));
 backdrop-filter: blur(var(--pop-blur, 30px));
 -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
 border: 1px solid var(--border-soft);
@@ -7154,7 +7011,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 }
 .confirm-btn-cancel:hover { background: none; box-shadow: none; filter: none; color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
 .confirm-btn-ok:hover:where(:not(:disabled)) { background: var(--accent-hi); box-shadow: none; filter: none; }
-.confirm-btn-ok--danger { background: var(--danger); color: var(--on-danger); }
+.confirm-btn-ok--danger { background: var(--danger); color: var(--on-status); }
 .confirm-btn-ok--danger:hover { background: var(--danger); filter: brightness(1.08); }
 
 /* ============================================================
@@ -7254,7 +7111,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   flex-shrink: 0;
 }
 /* STYLE-8e2: диска под глифом больше нет — цвет несёт сам глиф (как на 8d2). */
-.pcard-icon-npc     { color: var(--slot-gold); }
+.pcard-icon-npc     { color: var(--accent-ink); }
 .pcard-icon-monster { color: var(--danger); }
 
 /* Body */
@@ -7336,7 +7193,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   transition: border-color var(--t1);
 }
 .pcard-status-sel:focus { border-color: var(--accent); outline: none; }
-.pcard-status-sel option { background: var(--opt-bg); color: var(--opt-text); }
+.pcard-status-sel option { background: var(--bg-0); color: var(--text); }
 
 /* Actions column */
 .pcard-actions {
@@ -7398,7 +7255,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 .party-form input[type="checkbox"] { background: var(--bg-2); }
 .party-form textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
 .party-form input:focus, .party-form select:focus, .party-form textarea:focus { border-color: var(--accent); outline: none; }
-.party-form select option { background: var(--opt-bg); color: var(--opt-text); }
+.party-form select option { background: var(--bg-0); color: var(--text); }
 
 /* Battle setup */
 .battle-setup-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-3); flex-wrap: wrap; gap: var(--sp-2); }
@@ -7535,7 +7392,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   color: var(--text-dim);
   cursor: pointer;
 }
-.tracker-status option { background: var(--opt-bg); color: var(--opt-text); }
+.tracker-status option { background: var(--bg-0); color: var(--text); }
 /* Self status — plain text badge driven by HP, no select */
 .tracker-self-status {
   font-size: var(--fs-sm);
@@ -7714,7 +7571,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 .cw-lock-btn:not(:disabled):hover { opacity: 0.92; }
 .cw-validation {
   font-size: var(--fs-12);
-  color: var(--cw-err-fg);
+  color: var(--danger);
   min-height: 0;
 }
 .cw-validation:empty { display: none; }
@@ -7792,7 +7649,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 /* Заблокированный подкласс — серый со значком замка */
 #char-subclass.subclass-locked {
   color: var(--text-mute);
-  background: var(--list-solid);
+  background: var(--bg-2);
   border-color: var(--border-soft);
   cursor: not-allowed;
 }
@@ -8702,7 +8559,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   font-size: var(--fs-14);
   color: var(--text-mute);
   padding: var(--sp-2) var(--sp-3);
-  background: var(--list-solid);
+  background: var(--bg-2);
   border: 1px solid transparent;
   border-radius: var(--r-4);
   margin-bottom: var(--sp-4);
@@ -8754,7 +8611,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .app-version-update-btn {
   background: var(--success);
-  color: var(--on-success);
+  color: var(--on-status);
   border: none;
   padding: var(--sp-2) var(--sp-4);
   border-radius: var(--r-4);
@@ -9391,7 +9248,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .sw-update-box {
   /* Дымка v5: уровень 3 стекла (как модалки) — на светлой теме полупрозрачный
      --card-bg поверх тёмного бэкдропа серел, содержимое плохо читалось */
-  background: var(--surface-modal, var(--bg-1));
+  background: var(--surface-pop);
   backdrop-filter: blur(var(--pop-blur, 30px));
   -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
   border: 1px solid var(--home-rule);
@@ -9573,7 +9430,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .app-toast-mark { flex-shrink: 0; width: var(--home-bullet); height: var(--home-bullet); transform: rotate(45deg); background: var(--toast-c, var(--info)); }
 .app-toast-success { --toast-c: var(--success); }
 .app-toast-error   { --toast-c: var(--danger); }
-.app-toast-warn    { --toast-c: var(--slot-gold); }
+.app-toast-warn    { --toast-c: var(--accent-ink); }
 .app-toast-info    { --toast-c: var(--info); }
 /* PLAY-1: действие в тосте («Отменить») — текст на --accent-lo, контейнер кликов не ловит */
 .hp-toast.app-toast--act { display: flex; align-items: center; pointer-events: auto; }
@@ -10007,7 +9864,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   font-size: 3em;
   line-height: 1;
   margin: var(--sp-1) 0 var(--sp-3);
-  filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--shadow-ink) 35%, transparent));
+  filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--on-color-dark) 35%, transparent));
 }
 .welcome-title {
   margin: 0 0 var(--sp-3);
@@ -10282,7 +10139,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
    (0.38) слишком слабый — «дырка» подсветки почти не читается. */
 .tour-mask {
   position: fixed;
-  background: var(--tour-dim, var(--overlay));
+  background: var(--overlay);
   border: none;
   pointer-events: auto;
 }
@@ -10298,7 +10155,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   pointer-events: auto;
   background: radial-gradient(circle at var(--tc-at, 100% 100%),
       transparent calc(var(--tc-r, 14px) - 0.5px),
-      var(--tour-dim, var(--overlay)) var(--tc-r, 14px));
+      var(--overlay) var(--tc-r, 14px));
 }
 #tour-corner-tl { --tc-at: 100% 100%; }
 #tour-corner-tr { --tc-at: 0% 100%; }
@@ -10335,7 +10192,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   padding: var(--sp-4) var(--sp-4) var(--sp-4);
   /* Дымка v5: уровень 3 стекла — непрозрачная карта независимо от слайдера
      glass-alpha (v3.31.1: при низком alpha коуч «растворялся»). */
-  background: var(--surface-pop, var(--surface-modal));
+  background: var(--surface-pop, var(--surface-pop));
   backdrop-filter: blur(var(--pop-blur, 30px));
   -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
   border: 1px solid var(--border-soft);
@@ -10427,7 +10284,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   background: linear-gradient(180deg, var(--accent-hi), var(--accent));
   border-color: transparent;
   color: var(--on-accent);
-  box-shadow: inset 0 1.5px 0 var(--sheen), 0 4px 14px var(--accent-glow-token);
+  box-shadow: inset 0 1.5px 0 color-mix(in srgb, var(--on-color) 42%, transparent), 0 4px 14px var(--accent-glow-token);
 }
 .tour-next:hover:where(:not(:disabled)) { filter: brightness(1.07); background: linear-gradient(180deg, var(--accent-hi), var(--accent)); color: var(--on-accent); }
 
@@ -10448,7 +10305,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   position: relative;
   background: var(--dice-stage-bg);
   border-radius: var(--r-8);
-  box-shadow: inset 0 0 30px 4px color-mix(in srgb, var(--shadow-ink) 55%, transparent), 0 0 0 1px color-mix(in srgb, var(--dice-warm) 8%, transparent);
+  box-shadow: inset 0 0 30px 4px color-mix(in srgb, var(--on-color-dark) 55%, transparent), 0 0 0 1px color-mix(in srgb, var(--warn) 8%, transparent);
   overflow: hidden;
 }
 /* v3.17: фоновый canvas (звёзды + орбиты) — под всеми остальными слоями */
@@ -10474,7 +10331,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   width: 100%;
   height: 100%;
   display: block;
-  filter: drop-shadow(0 4px 12px color-mix(in srgb, var(--shadow-ink) 55%, transparent));
+  filter: drop-shadow(0 4px 12px color-mix(in srgb, var(--on-color-dark) 55%, transparent));
 }
 .dice2d-g {
   transform-origin: 0 0;
@@ -10512,7 +10369,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   backdrop-filter: blur(var(--sticky-blur, var(--glass-blur)));
   -webkit-backdrop-filter: blur(var(--sticky-blur, var(--glass-blur)));
   border-left: 1px solid var(--border);
-  box-shadow: -8px 0 24px color-mix(in srgb, var(--shadow-ink) 34%, transparent);
+  box-shadow: -8px 0 24px color-mix(in srgb, var(--on-color-dark) 34%, transparent);
   transform: translateX(100%); transition: transform var(--t2) ease;
   font-size: var(--fs-12);
 }
@@ -10562,16 +10419,16 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   white-space: pre-wrap; word-break: break-word;
 }
 .al-seq { color: var(--text-dim); margin-right: var(--sp-2); }
-.al-time { color: var(--log-time); margin-right: var(--sp-2); }
-.al-cat { color: var(--log-cat); margin-right: var(--sp-2); font-weight: var(--fw-semibold); }
+.al-time { color: var(--success); margin-right: var(--sp-2); }
+.al-cat { color: var(--magic); margin-right: var(--sp-2); font-weight: var(--fw-semibold); }
 .al-id { color: var(--accent); margin-right: var(--sp-2); }
 .al-msg { color: var(--text); }
 .al-data { color: var(--text-dim); }
-.al-row.al-warn { background: color-mix(in srgb, var(--log-warn) 7%, transparent); }
-.al-row.al-warn .al-msg { color: var(--log-warn); }
+.al-row.al-warn { background: color-mix(in srgb, var(--warn) 7%, transparent); }
+.al-row.al-warn .al-msg { color: var(--warn); }
 .al-row.al-error { background: color-mix(in srgb, var(--danger) 10%, transparent); }
 .al-row.al-error .al-msg { color: var(--danger); }
-.al-row.al-action .al-msg { color: var(--log-action); }
+.al-row.al-action .al-msg { color: var(--info); }
 .al-row.al-debug { opacity: 0.7; }
 .al-empty { padding: var(--sp-4); text-align: center; color: var(--text-dim); }
 @media (max-width: 640px) { .app-log-panel { width: 100vw; } } /* UI5-6: 640 (было 600) */
@@ -10804,7 +10661,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   text-shadow: var(--dice-num-glow);
 }
 .dice-arena-col .dice3d-label {
-  color: var(--dice-label-fg);
+  color: var(--text-dim);
   font-size: var(--fs-14);
   text-shadow: var(--dice-label-glow);
 }
@@ -10825,7 +10682,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   left: 0; right: 0;
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   text-align: center;
-  color: var(--dice-close-hint);
+  color: var(--text-mute);
   font-size: var(--fs-12);
   letter-spacing: 0.3px;
   pointer-events: none;
@@ -10930,7 +10787,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
     max-width: 320px;
     border-left: 1px solid var(--border);
     border-right: var(--drawer-edge-r);
-    box-shadow: var(--drawer-sh);
+    box-shadow: var(--sh-2);
   }
 
   .modal-content {
@@ -10967,14 +10824,14 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   opacity: 0.45;
   color: var(--st-insp-fg);
   background: var(--st-insp-bg);
-  border-color: var(--st-insp-edge);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
   transition: opacity var(--t2), background var(--t2), border-color var(--t2);
 }
-.status-inspiration:hover { opacity: 0.75; border-color: var(--st-insp-hover-edge); }
+.status-inspiration:hover { opacity: 0.75; border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
 .status-inspiration.active {
   opacity: 1;
-  border-color: var(--st-insp-on-edge);
-  background: var(--st-insp-on-bg);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: var(--accent-soft);
   color: var(--st-insp-on-fg);
   animation: inspiPulse 2s ease-in-out infinite;
 }
@@ -11350,7 +11207,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   display: block;
   font-size: var(--fs-12);
   font-weight: var(--fw-bold);
-  color: var(--pact);
+  color: var(--magic);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   line-height: 1;
@@ -11381,21 +11238,21 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 
 /* ── Status bar ritual indicator ── */
 .status-ritual {
-  border-color: var(--st-rit-edge);
-  background: var(--st-rit-bg);
-  color: var(--st-rit-fg);
+  border-color: color-mix(in srgb, var(--magic) 50%, transparent);
+  background: color-mix(in srgb, var(--magic) 14%, transparent);
+  color: var(--magic);
   cursor: pointer;
   animation: ritualStatusPulse 3s ease-in-out infinite;
   max-width: 200px;
 }
 @keyframes ritualStatusPulse {
-  0%,100% { border-color: var(--st-rit-edge); }
-  50%      { border-color: var(--st-rit-pulse-edge); box-shadow: 0 0 8px color-mix(in srgb, var(--st-rit-fg) 30%, transparent); }
+  0%,100% { border-color: color-mix(in srgb, var(--magic) 50%, transparent); }
+  50%      { border-color: var(--magic); box-shadow: 0 0 8px color-mix(in srgb, var(--magic) 30%, transparent); }
 }
 .ritual-status-name {
   font-size: var(--fs-12);
   font-weight: var(--fw-bold);
-  color: var(--st-rit-fg);
+  color: var(--magic);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -11403,7 +11260,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .ritual-status-timer {
   font-size: var(--fs-12);
   font-weight: var(--fw-bold);
-  color: var(--ritual-timer);
+  color: var(--magic);
   flex-shrink: 0;
   margin-left: 2px;
 }
@@ -11629,8 +11486,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   min-width: 0;
   padding: var(--sp-2) var(--sp-3);
   border-radius: var(--r-8);
-  border: 1px solid var(--avatar-url-edge) !important;
-  background: var(--avatar-url-bg) !important;
+  border: 1px solid var(--border) !important;
+  background: var(--bg-2) !important;
   color: var(--text) !important;
   font-size: var(--fs-14);
   outline: none;
@@ -11639,7 +11496,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .avatar-url-input::placeholder { color: var(--avatar-url-ph) !important; opacity: 1; }
 .avatar-url-input:focus {
   border-color: var(--accent) !important;
-  background: var(--avatar-url-focus-bg) !important;
+  background: var(--bg-3) !important;
 }
 .avatar-url-input[aria-invalid="true"] { border-color: var(--danger) !important; }
 
@@ -11728,9 +11585,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .roll-mode-normal { background: var(--bg-3); border-color: var(--border); color: var(--text); }
 .roll-mode-normal:hover { background: color-mix(in srgb, var(--text) 20%, transparent); color: var(--text); }
 .roll-mode-adv { background: color-mix(in srgb, var(--success) 15%, transparent); border-color: var(--success); color: var(--success); }
-.roll-mode-adv:hover { background: var(--success); color: var(--on-success); }
+.roll-mode-adv:hover { background: var(--success); color: var(--on-status); }
 .roll-mode-dis { background: color-mix(in srgb, var(--danger) 15%, transparent); border-color: var(--danger); color: var(--danger); }
-.roll-mode-dis:hover { background: var(--danger); color: var(--on-danger); }
+.roll-mode-dis:hover { background: var(--danger); color: var(--on-status); }
 /* AUD-6: подсказка режима по состояниям и истощению */
 .roll-mode-note { font-size: var(--fs-14); color: var(--text); opacity: 0.8; text-align: center; line-height: 1.35; }
 .roll-mode-btn.roll-mode-suggested { box-shadow: 0 0 0 2px currentColor; }
@@ -11829,9 +11686,9 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
 .res-row-mult {
   font-size: var(--fs-14); font-weight: var(--fw-bold); margin-left: 2px;
 }
-.res-row-res .res-row-mult { color: var(--res-res); }
-.res-row-imm .res-row-mult { color: var(--res-imm); }
-.res-row-vul .res-row-mult { color: var(--res-vul); }
+.res-row-res .res-row-mult { color: var(--divin); }
+.res-row-imm .res-row-mult { color: var(--info); }
+.res-row-vul .res-row-mult { color: var(--warn); }
 .res-row-content {
   display: flex; flex-wrap: wrap; gap: var(--sp-1); min-height: 20px;
 }
@@ -11844,9 +11701,9 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
   cursor: pointer; opacity: 0.4; font-size: var(--fs-12); margin-left: 1px;
 }
 .res-tag-x:hover { opacity: 1; }
-.res-tag-res { background: var(--res-res-bg); color: var(--res-res); border: 1px solid var(--res-res-bd); }
-.res-tag-imm { background: var(--res-imm-bg); color: var(--res-imm); border: 1px solid var(--res-imm-bd); }
-.res-tag-vul { background: var(--res-vul-bg); color: var(--res-vul); border: 1px solid var(--res-vul-bd); }
+.res-tag-res { background: color-mix(in srgb, var(--divin) 14%, transparent); color: var(--divin); border: 1px solid color-mix(in srgb, var(--divin) 35%, transparent); }
+.res-tag-imm { background: color-mix(in srgb, var(--info) 14%, transparent); color: var(--info); border: 1px solid color-mix(in srgb, var(--info) 35%, transparent); }
+.res-tag-vul { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent); }
 /* Строка добавления */
 .res-add {
   display: flex; align-items: center; gap: var(--sp-2);
@@ -11867,26 +11724,26 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
   transition: all var(--t1); padding: 0; text-align: center; line-height: 26px;
 }
 .res-add-btn:hover { transform: scale(1.12); }
-.res-add-btn-res { background: var(--res-res-bg); border-color: var(--res-res); color: var(--res-res); }
-.res-add-btn-res:hover { background: var(--res-res); color: var(--on-color-dark); }
-.res-add-btn-imm { background: var(--res-imm-bg); border-color: var(--res-imm); color: var(--res-imm); }
-.res-add-btn-imm:hover { background: var(--res-imm); color: var(--on-color-dark); }
-.res-add-btn-vul { background: var(--res-vul-bg); border-color: var(--res-vul); color: var(--res-vul); }
-.res-add-btn-vul:hover { background: var(--res-vul); color: var(--on-color-dark); }
+.res-add-btn-res { background: color-mix(in srgb, var(--divin) 14%, transparent); border-color: var(--divin); color: var(--divin); }
+.res-add-btn-res:hover { background: var(--divin); color: var(--on-status); }
+.res-add-btn-imm { background: color-mix(in srgb, var(--info) 14%, transparent); border-color: var(--info); color: var(--info); }
+.res-add-btn-imm:hover { background: var(--info); color: var(--on-status); }
+.res-add-btn-vul { background: color-mix(in srgb, var(--warn) 14%, transparent); border-color: var(--warn); color: var(--warn); }
+.res-add-btn-vul:hover { background: var(--warn); color: var(--on-status); }
 
 /* ============================================
    БОЙ ДВУМЯ ОРУЖИЯМИ (Two-Weapon Fighting)
    ============================================ */
 .twf-section {
   margin-top: var(--sp-3); padding: var(--sp-3) var(--sp-3);
-  background: var(--twf-bg);
-  border: 1px solid var(--twf); border-radius: var(--r-4);
+  background: color-mix(in srgb, var(--magic) 22%, var(--bg-0));
+  border: 1px solid var(--magic); border-radius: var(--r-4);
 }
 .twf-header {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: var(--sp-2);
 }
-.twf-title { font-weight: var(--fw-bold); font-size: var(--fs-14); color: var(--twf-fg); }
+.twf-title { font-weight: var(--fw-bold); font-size: var(--fs-14); color: var(--magic); }
 .twf-style-label {
   font-size: var(--fs-12); color: var(--text-dim); display: flex; align-items: center; gap: var(--sp-1);
   cursor: pointer;
@@ -11896,10 +11753,10 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
 .twf-buttons { display: flex; gap: var(--sp-2); }
 .weapon-roll-twf {
   flex: 1; padding: var(--sp-2) var(--sp-3); font-size: var(--fs-14); font-weight: var(--fw-bold);
-  background: var(--twf-bg); border: 2px solid var(--twf); color: var(--twf-fg);
+  background: color-mix(in srgb, var(--magic) 22%, var(--bg-0)); border: 2px solid var(--magic); color: var(--magic);
   border-radius: var(--r-8); cursor: pointer; transition: all var(--t1);
 }
-.weapon-roll-twf:hover { background: var(--twf); color: var(--on-color); }
+.weapon-roll-twf:hover { background: var(--magic); color: var(--on-status); }
 
 /* ============================================================
    КЛАССОВЫЕ ВЫБОРЫ — карточки в asi-container
@@ -11911,7 +11768,7 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
 .cc-group {
   border: 1px solid var(--border);
   border-radius: var(--r-4);
-  background: var(--list-solid);
+  background: var(--bg-2);
   overflow: hidden;
 }
 .cc-group[open] .cc-group-head { border-bottom: 1px solid var(--border); }
@@ -11951,7 +11808,7 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
   border: 1.5px solid var(--row-c, var(--accent));
 }
 .cc-card:hover { background: var(--accent-glow-token); box-shadow: none; transform: none; }
-.cc-card.cc-pending { --row-c: var(--slot-gold); }
+.cc-card.cc-pending { --row-c: var(--accent-ink); }
 .cc-card.cc-complete { --row-c: var(--success); }
 .cc-card.cc-complete::before { background: var(--row-c); }
 .cc-card-left { display: flex; flex-direction: column; gap: var(--sp-1); flex: 1; min-width: 0; }
@@ -11993,7 +11850,7 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
 }
 .cc-options-list { display: flex; flex-direction: column; gap: var(--sp-2); }
 .cc-opt {
-  background: var(--list-solid);
+  background: var(--bg-2);
   border: 1px solid var(--border);
   border-radius: var(--r-8);
   padding: var(--sp-3) var(--sp-3);
@@ -12144,7 +12001,7 @@ body {
   box-shadow: 0 0 0 2px var(--accent-glow-token);
 }
 .notes-pill {
-  background: var(--chip-bg);
+  background: var(--bg-2);
   border: 1px solid var(--border);
   color: var(--text-dim);
   padding: var(--sp-2) var(--sp-3);
@@ -12198,14 +12055,14 @@ body {
 
 .notes-entries-list { display: flex; flex-direction: column; gap: var(--sp-2); }
 .notes-entry-card {
-  background: var(--list-solid);
+  background: var(--bg-2);
   border: 1px solid var(--border-soft);
   border-left: 3px solid var(--accent);
   border-radius: var(--r-4);
   padding: var(--sp-2) var(--sp-3);
   position: relative;
 }
-.notes-entry-card.pinned { border-left-color: var(--pin-edge); background: var(--pin-bg); }
+.notes-entry-card.pinned { border-left-color: var(--accent-ink); background: color-mix(in srgb, var(--accent) 10%, transparent); }
 /* N6: drag-n-drop закреплённых */
 .notes-entry-card.pinned { cursor: grab; padding-left: var(--sp-5); }
 .notes-entry-card.pinned:active { cursor: grabbing; }
@@ -12219,7 +12076,7 @@ body {
   left: 7px;
   top: 50%;
   transform: translateY(-50%);
-  color: color-mix(in srgb, var(--slot-gold) 60%, transparent);
+  color: color-mix(in srgb, var(--accent-ink) 60%, transparent);
   font-size: var(--fs-12);
   letter-spacing: -1px;
   user-select: none;
@@ -12349,7 +12206,7 @@ body {
   transition: opacity var(--t1), visibility 0s;
 }
 .notes-modal {
-  background: var(--surface-pop, var(--surface-modal));
+  background: var(--surface-pop, var(--surface-pop));
   backdrop-filter: blur(var(--pop-blur, 30px));
   -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
   border: 1px solid var(--border-soft);
@@ -12401,7 +12258,7 @@ body {
 .notes-modal-input,
 .notes-modal-textarea,
 .notes-modal-tag-input {
-  background: var(--chip-bg);
+  background: var(--bg-2);
   border: 1px solid var(--border-soft);
   border-radius: var(--r-8);
   color: var(--text);
@@ -12455,7 +12312,7 @@ body {
 .notes-md-btn {
   flex: 0 0 auto;
   width: auto;
-  background: var(--chip-bg);
+  background: var(--bg-2);
   border: 1px solid var(--border-soft);
   color: var(--text);
   padding: var(--sp-1) var(--sp-2);
@@ -12465,7 +12322,7 @@ body {
   min-width: 28px;
   transition: background var(--t1), border-color var(--t1);
 }
-.notes-md-btn:hover { background: var(--chip-bg); border-color: var(--accent); }
+.notes-md-btn:hover { background: var(--bg-2); border-color: var(--accent); }
 .notes-md-btn.active {
   background: var(--accent);
   color: var(--on-accent);
@@ -12476,7 +12333,7 @@ body {
 .notes-md-variants-toggle + .notes-md-preview-toggle { margin-left: 0; }
 .notes-md-var-count {
   font-size: var(--fs-12);
-  background: var(--chip-bg);
+  background: var(--bg-2);
   padding: 0 var(--sp-1);
   border-radius: var(--r-8);
   min-width: 14px;
@@ -12507,7 +12364,7 @@ body {
   align-items: flex-start;
   gap: var(--sp-2);
   text-align: left;
-  background: var(--chip-bg);
+  background: var(--bg-2);
   border: 1px solid var(--border-soft);
   color: var(--text);
   padding: var(--sp-2) var(--sp-2);
@@ -12518,7 +12375,7 @@ body {
   transition: background var(--t1), border-color var(--t1);
 }
 .notes-variant-item:hover {
-  background: var(--chip-bg);
+  background: var(--bg-2);
   border-color: var(--accent);
 }
 .notes-variant-item.current {
@@ -12573,11 +12430,11 @@ body {
   margin: 0.4em 0;
   padding: var(--sp-1) var(--sp-3);
   border-left: 3px solid var(--accent);
-  background: var(--chip-bg);
+  background: var(--bg-2);
   color: var(--text-dim);
 }
 .notes-md-preview code {
-  background: var(--chip-bg);
+  background: var(--bg-2);
   padding: 1px var(--sp-1);
   border-radius: var(--r-4);
   font-family: var(--font-mono);
@@ -12622,7 +12479,7 @@ body {
     scrollbar-width: thin;
   }
   .notes-md-toolbar::-webkit-scrollbar { height: 3px; }
-  .notes-md-toolbar::-webkit-scrollbar-thumb { background: var(--chip-bg); border-radius: var(--r-4); }
+  .notes-md-toolbar::-webkit-scrollbar-thumb { background: var(--bg-2); border-radius: var(--r-4); }
   .notes-md-btn { flex-shrink: 0; }
   .notes-md-preview-toggle { position: sticky; right: 0; background: var(--bg-1); }
   /* Шапка: поиск занимает полную ширину, остальное ужимается */
@@ -12639,7 +12496,7 @@ body {
   z-index: 200;
   /* Поповер третьего уровня стекла: токена --bg-card в теме нет, из-за него
      меню было полностью прозрачным и налезало на под-табы. */
-  background: var(--surface-pop, var(--surface-modal));
+  background: var(--surface-pop, var(--surface-pop));
   backdrop-filter: blur(var(--pop-blur, 30px));
   -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
   border: 1px solid var(--border-soft);
@@ -12671,7 +12528,7 @@ body {
   width: 100%;
   transition: background var(--t1);
 }
-.notes-menu-item:hover { background: var(--chip-bg); }
+.notes-menu-item:hover { background: var(--bg-2); }
 .notes-menu-sep { border: none; border-top: 1px solid var(--border-soft); margin: var(--sp-1) 0; }
 
 /* ── N5: поиск — highlight ───────────────────────────────── */
@@ -12708,7 +12565,7 @@ mark.notes-hl {
    Решение: visibility-изоляция (не трогаем display предков — цепочка
    остаётся в потоке) + вынос #tab-notes в (0,0). */
 @media print {
-  html, body { background: var(--print-paper) !important; }
+  html, body { background: var(--on-color) !important; }
 
   /* Всё невидимо… */
   body * { visibility: hidden !important; }
@@ -12742,8 +12599,8 @@ mark.notes-hl {
 
   /* Светлый «чернильный» вид. */
   .notes-main, .notes-section-card, .notes-entry-card {
-    background: var(--print-paper) !important;
-    color: var(--print-ink) !important;
+    background: var(--on-color) !important;
+    color: var(--on-color-dark) !important;
     border: none !important;
     box-shadow: none !important;
     page-break-inside: avoid;
@@ -12756,11 +12613,11 @@ mark.notes-hl {
   }
   .notes-md-preview {
     display: block !important;
-    color: var(--print-ink) !important;
+    color: var(--on-color-dark) !important;
     white-space: normal !important;
   }
-  .notes-section-head { color: var(--print-ink) !important; font-weight: var(--fw-bold); }
-  .notes-entry-title { font-weight: var(--fw-bold); color: var(--print-ink) !important; }
+  .notes-section-head { color: var(--on-color-dark) !important; font-weight: var(--fw-bold); }
+  .notes-entry-title { font-weight: var(--fw-bold); color: var(--on-color-dark) !important; }
 }
 
 
@@ -12882,15 +12739,15 @@ select.bp-select { padding-right: var(--sp-4); }
 .bp-pitch { font-size: var(--fs-sm); line-height: 1.45; color: var(--text); margin-bottom: var(--sp-1); }
 .bp-bullets { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; }
 .bp-bullets li { font-size: var(--fs-12); line-height: 1.35; color: var(--home-sub); }
-.bp-bullets .bp-pro { color: var(--pro-color); }
-.bp-bullets .bp-con { color: var(--con-color); }
+.bp-bullets .bp-pro { color: var(--success); }
+.bp-bullets .bp-con { color: var(--danger); }
 /* Мета — текст через точку-разделитель, как чипы на «Мире». */
 .bp-card-meta { display:flex; flex-wrap:wrap; gap: 0 var(--sp-2); font-size: var(--fs-12); color: var(--home-sub); }
 .bp-card-meta > * + *::before { content: "·"; margin-right: var(--sp-2); color: var(--home-sub); }
 .bp-diff { letter-spacing:2px; }
-.bp-diff-1 { color:var(--diff-1); }
-.bp-diff-2 { color:var(--diff-2); }
-.bp-diff-3 { color:var(--diff-3); }
+.bp-diff-1 { color:var(--success); }
+.bp-diff-2 { color:var(--warn); }
+.bp-diff-3 { color:var(--danger); }
 
 /* STYLE-8M-2b: перебивки светлой темы для строк пикера сняты — коробок больше
    нет, а цвета строки взяты из палитры встречающего экрана (--home-sub,
@@ -12945,8 +12802,8 @@ select.bp-select { padding-right: var(--sp-4); }
 .bg-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:var(--sp-1); }
 .bg-list li { font-size: var(--fs-14); line-height:1.4; padding-left:var(--sp-1); }
 .bg-list .bg-mark { display:inline-block; min-width:14px; font-weight:var(--fw-bold); }
-.bg-list.bg-pros .bg-mark { color:var(--pro-color); }
-.bg-list.bg-cons .bg-mark { color:var(--con-color); }
+.bg-list.bg-pros .bg-mark { color:var(--success); }
+.bg-list.bg-cons .bg-mark { color:var(--danger); }
 .bg-list.bg-tips .bg-mark { color:var(--accent); }
 .bg-list.bg-levels li { margin-left: var(--sp-1); }
 .bg-list.bg-levels .bg-why { color:var(--text-dim); font-size:var(--fs-14); }
@@ -12955,9 +12812,9 @@ select.bp-select { padding-right: var(--sp-4); }
 .bg-diff-legend { font-size:var(--fs-14); color:var(--text-dim); margin:0 0 var(--sp-3); line-height:1.4; }
 .bg-diff-legend b { color:var(--text); }
 .bg-diff-dots { letter-spacing:1px; margin-right:2px; }
-.bg-diff-dots.bg-diff-1 { color:var(--pro-color); }
-.bg-diff-dots.bg-diff-2 { color:var(--diff-2); }
-.bg-diff-dots.bg-diff-3 { color:var(--con-color); }
+.bg-diff-dots.bg-diff-1 { color:var(--success); }
+.bg-diff-dots.bg-diff-2 { color:var(--warn); }
+.bg-diff-dots.bg-diff-3 { color:var(--danger); }
 .bg-legend { margin-top: var(--sp-1); }
 /* Подписи «хрупкий … живучий» должны стоять ровно под краями шкалы — общая
    ширина у обоих рядов, иначе правая подпись висит посреди строки. */
@@ -12988,7 +12845,7 @@ select.bp-select { padding-right: var(--sp-4); }
 .gloss-popover {
   position:fixed; z-index: var(--z-toast); max-width:280px;
   padding:var(--sp-3) var(--sp-3); border-radius:var(--r-8);
-  background:var(--surface-pop, var(--surface-modal)); color:var(--text);
+  background:var(--surface-pop, var(--surface-pop)); color:var(--text);
   border:1px solid var(--border-soft);
   box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
   backdrop-filter: blur(var(--pop-blur, 30px));
@@ -13058,14 +12915,14 @@ select.bp-select { padding-right: var(--sp-4); }
 .lu-build-hint-plan { display: inline-block; margin-top: var(--sp-2); font-size: var(--fs-12); font-weight: var(--fw-semibold); color: var(--accent); cursor: pointer; text-decoration: underline; background: none; border: none; padding: 0; }
 
 /* BUILD-LVL-3: единый язык «рекомендация билда» (фиолетовый --rec) — баннеры, бейджи, подсветка опций */
-.rec-banner { display: flex; align-items: baseline; gap: var(--sp-2); flex-wrap: wrap; margin: var(--sp-2) 0 var(--sp-3); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-8); background: var(--rec-bg); border: 1px solid var(--rec); font-size: var(--fs-14); line-height: 1.4; }
-.rec-banner .rec-text { font-weight: var(--fw-bold); color: var(--rec); }
+.rec-banner { display: flex; align-items: baseline; gap: var(--sp-2); flex-wrap: wrap; margin: var(--sp-2) 0 var(--sp-3); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-8); background: color-mix(in srgb, var(--magic) 14%, transparent); border: 1px solid var(--magic); font-size: var(--fs-14); line-height: 1.4; }
+.rec-banner .rec-text { font-weight: var(--fw-bold); color: var(--magic); }
 .rec-banner .rec-why { color: var(--text-dim); }
-.rec-badge { display: inline-flex; align-items: center; gap: var(--sp-1); font-size: var(--fs-12); font-weight: var(--fw-bold); text-transform: uppercase; letter-spacing: 0.03em; color: var(--on-color); background: var(--rec); border-radius: var(--r-pill); padding: 1px var(--sp-2); white-space: nowrap; }
-.is-rec { border-color: var(--rec) !important; box-shadow: 0 0 0 1.5px var(--rec); }
+.rec-badge { display: inline-flex; align-items: center; gap: var(--sp-1); font-size: var(--fs-12); font-weight: var(--fw-bold); text-transform: uppercase; letter-spacing: 0.03em; color: var(--on-status); background: var(--magic); border-radius: var(--r-pill); padding: 1px var(--sp-2); white-space: nowrap; }
+.is-rec { border-color: var(--magic) !important; box-shadow: 0 0 0 1.5px var(--magic); }
 /* BUILD-LVL-6: хинт рекомендованного подкласса у <select id=char-subclass> */
 .subclass-rec-hint { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin-top: var(--sp-1); font-size: var(--fs-14); line-height: 1.3; }
-.subclass-rec-hint .rec-text { font-weight: var(--fw-bold); color: var(--rec); }
+.subclass-rec-hint .rec-text { font-weight: var(--fw-bold); color: var(--magic); }
 .subclass-rec-hint .subclass-rec-ok { color: var(--success); font-weight: var(--fw-semibold); }
 
 /* BUILD-LVL-4: экран guided level-up (выборы сразу после повышения).
@@ -13088,17 +12945,17 @@ select.bp-select { padding-right: var(--sp-4); }
 .lu-choice-opts { display: flex; flex-wrap: wrap; gap: 0 var(--sp-3); }
 .lu-choice-opt { display: inline-flex; align-items: baseline; gap: var(--sp-1); width: auto; margin: 0; padding: var(--sp-1) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--accent-lo); cursor: pointer; }
 .lu-choice-opt:hover { background: none; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-.lu-choice-opt.is-rec { color: var(--rec); font-weight: var(--fw-bold); box-shadow: none; }
+.lu-choice-opt.is-rec { color: var(--magic); font-weight: var(--fw-bold); box-shadow: none; }
 /* SUB-0: метка источника подкласса (PHB/дополнение/авторский) на кнопке выбора */
 .lu-src-tag { font-size: var(--fs-12); font-weight: var(--fw-semibold); letter-spacing: 0.02em; color: var(--home-sub); white-space: nowrap; }
-.lu-choice-launch { width: auto; margin: 0; padding: var(--sp-2) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--rec); font-weight: var(--fw-bold); cursor: pointer; }
-.lu-choice-launch:hover { background: none; color: var(--rec); text-decoration: underline; text-underline-offset: 3px; }
+.lu-choice-launch { width: auto; margin: 0; padding: var(--sp-2) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--magic); font-weight: var(--fw-bold); cursor: pointer; }
+.lu-choice-launch:hover { background: none; color: var(--magic); text-decoration: underline; text-underline-offset: 3px; }
 /* BUILD-LVL: блок заклинаний на экране повышения — disabled-состояние «уже добавлены» + вторичная кнопка перехода на вкладку */
 .lu-choice-launch:disabled { opacity: var(--dis-op); cursor: default; }
-.lu-choice-launch:disabled:hover { background: none; color: var(--rec); text-decoration: none; }
+.lu-choice-launch:disabled:hover { background: none; color: var(--magic); text-decoration: none; }
 .lu-choice-alt { display: block; width: auto; margin: var(--sp-1) 0 0; padding: var(--sp-1) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--home-sub); text-align: left; cursor: pointer; }
 .lu-choice-alt:hover { background: none; color: var(--accent-lo); }
-.lu-apply-all-btn { width: auto; margin: 0 0 var(--sp-2); padding: var(--sp-2) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-md); font-weight: var(--fw-bold); color: var(--rec); cursor: pointer; }
+.lu-apply-all-btn { width: auto; margin: 0 0 var(--sp-2); padding: var(--sp-2) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-md); font-weight: var(--fw-bold); color: var(--magic); cursor: pointer; }
 .lu-apply-all-btn:hover { filter: none; background: none; text-decoration: underline; text-underline-offset: 3px; }
 /* Пикер класса запускается с экрана выборов повышения — держим выше модалок */
 #class-choice-modal.modal { z-index: calc(var(--z-modal) + 1); }
@@ -13121,8 +12978,8 @@ select.bp-select { padding-right: var(--sp-4); }
 /* (а) Кнопка настроек ⚙️ в строке версии на экране списка персонажей */
 .app-version-settings {
   margin-left: auto;
-  background: var(--ver-btn-bg);
-  border: 1px solid var(--ver-btn-edge);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
   color: var(--text);
   width: 32px;
   height: 32px;
@@ -13148,8 +13005,8 @@ select.bp-select { padding-right: var(--sp-4); }
         с текстом «К персонажам», вместо едва видимой стрелки. */
 @media (min-width: 1024px) {
   .header-back {
-    background: var(--hdr-back-bg-d);
-    border: var(--hdr-back-edge-d);
+    background: var(--bg-2);
+    border: 1px solid var(--border);
     padding: var(--sp-2) var(--sp-4) var(--sp-2) var(--sp-3);
     font-size: 1em;
     font-weight: var(--fw-semibold);
@@ -13166,7 +13023,7 @@ select.bp-select { padding-right: var(--sp-4); }
     letter-spacing: 0.01em;
   }
   .header-back:hover {
-    background: var(--hdr-back-hover-bg-d);
+    background: var(--accent-soft);
     border-color: var(--hdr-back-hover-edge-d);
     color: var(--hdr-back-hover-fg-d);
     transform: translateX(-2px);
@@ -13241,7 +13098,7 @@ mark.search-hl {
 .party-add-btn-srd {
   background: var(--magic);
   border-color: var(--magic);
-  color: var(--on-color);
+  color: var(--on-status);
 }
 .party-add-btn-srd:hover {
   background: color-mix(in srgb, var(--magic) 82%, white);
@@ -13428,8 +13285,8 @@ mark.search-hl {
   padding: 2px var(--sp-2);
   border-radius: var(--r-4);
   background: transparent;
-  border: 1px solid color-mix(in srgb, var(--slot-gold) 45%, transparent);
-  color: var(--slot-gold);
+  border: 1px solid color-mix(in srgb, var(--accent-ink) 45%, transparent);
+  color: var(--accent-ink);
   font-weight: var(--fw-semibold);
   white-space: nowrap;
 }
@@ -13635,8 +13492,8 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
 .bd-label { color: var(--bd-c); }
 .bd-none   { --bd-c: var(--text-mute); }
 .bd-easy   { --bd-c: var(--success); }
-.bd-medium { --bd-c: var(--slot-gold); }
-.bd-hard   { --bd-c: color-mix(in srgb, var(--danger) 55%, var(--slot-gold)); }
+.bd-medium { --bd-c: var(--accent-ink); }
+.bd-hard   { --bd-c: color-mix(in srgb, var(--danger) 55%, var(--accent-ink)); }
 .bd-deadly { --bd-c: var(--danger); }
 
 /* Иконки в нижнем таб-баре и drawer — по центру над подписью */
@@ -13668,7 +13525,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
      STYLE-8M-3: .lu-stat-card убрана — на экране повышения это плоская строка. */
   border-radius: var(--r-8);
   border: 1px solid var(--border-soft);
-  box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-card);
+  box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-1);
 }
 
 /* STYLE-7: у интерактивного заголовка-аккордеона ромб-маркер лишний —
@@ -13990,7 +13847,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   border: 1.5px solid var(--accent);
 }
 #tab-party .pcard-self::before      { border-color: var(--success); }
-#tab-party .pcard-npc::before       { border-color: var(--slot-gold); }
+#tab-party .pcard-npc::before       { border-color: var(--accent-ink); }
 #tab-party .pcard-monster::before   { border-color: var(--danger); }
 #tab-party .pcard-companion::before { border-color: var(--magic); }
 #tab-party .pcard-name {
@@ -14616,8 +14473,8 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
    и сдвига: закрепление кодирует ромб, поэтому строка встаёт в общий ряд. */
 #tab-notes .notes-entry-card.pinned { background: none; }
 #tab-notes .notes-entry-card.pinned::before {
-  border-color: var(--slot-gold);
-  background: var(--slot-gold);
+  border-color: var(--accent-ink);
+  background: var(--accent-ink);
 }
 /* Ручка «⋮⋮» была декоративной (pointer-events:none) и в плоской строке падала
    ровно на текст записи — тянется вся строка, подсказку несёт залитый ромб. */
@@ -15485,7 +15342,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 #tab-sheet .prof-chip[data-source="race"]       { color: var(--success); }
 #tab-sheet .prof-chip[data-source="class"]      { color: var(--danger); }
 #tab-sheet .prof-chip[data-source="subclass"]   { color: var(--magic); }
-#tab-sheet .prof-chip[data-source="background"] { color: var(--slot-gold); }
+#tab-sheet .prof-chip[data-source="background"] { color: var(--accent-ink); }
 #tab-sheet .prof-chip[data-source="custom"]     { color: var(--info); }
 #tab-sheet .prof-chip-src { background: none; padding: 0; }
 #tab-sheet .prof-chip-remove { color: var(--danger); opacity: 0.4; }
@@ -15717,7 +15574,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   font-variant-numeric: tabular-nums;
 }
 .hp-inp:focus { outline: none; border-bottom-color: var(--accent); }
-.hp-inp--ac { color: var(--armor-color); font-weight: var(--fw-bold); }
+.hp-inp--ac { color: var(--info); font-weight: var(--fw-bold); }
 .hp-inp--wide { width: 84px; }
 .hp-act {
   all: unset;
@@ -16144,14 +16001,14 @@ select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select):focus { ba
 #tab-spells .my-spell-item:hover { box-shadow: none; border-color: var(--home-rule); }
 #tab-spells .my-spell-item.expanded { background: color-mix(in srgb, var(--accent) 6%, transparent); }
 
-#tab-spells .my-spell-item[data-school="abjuration"]    { --dz-c: var(--school-abjur); }
-#tab-spells .my-spell-item[data-school="conjuration"]   { --dz-c: var(--school-conj); }
-#tab-spells .my-spell-item[data-school="divination"]    { --dz-c: var(--school-divin); }
-#tab-spells .my-spell-item[data-school="enchantment"]   { --dz-c: var(--school-ench); }
-#tab-spells .my-spell-item[data-school="evocation"]     { --dz-c: var(--school-evoc); }
-#tab-spells .my-spell-item[data-school="illusion"]      { --dz-c: var(--school-illus); }
-#tab-spells .my-spell-item[data-school="necromancy"]    { --dz-c: var(--school-necro); }
-#tab-spells .my-spell-item[data-school="transmutation"] { --dz-c: var(--school-trans); }
+#tab-spells .my-spell-item[data-school="abjuration"]    { --dz-c: var(--info); }
+#tab-spells .my-spell-item[data-school="conjuration"]   { --dz-c: var(--warn); }
+#tab-spells .my-spell-item[data-school="divination"]    { --dz-c: var(--text-mute); }
+#tab-spells .my-spell-item[data-school="enchantment"]   { --dz-c: var(--charm); }
+#tab-spells .my-spell-item[data-school="evocation"]     { --dz-c: var(--danger); }
+#tab-spells .my-spell-item[data-school="illusion"]      { --dz-c: var(--magic); }
+#tab-spells .my-spell-item[data-school="necromancy"]    { --dz-c: var(--success); }
+#tab-spells .my-spell-item[data-school="transmutation"] { --dz-c: var(--accent-ink); }
 #tab-spells .spell-card-arrow {
   --dz-size: 10px;
   border-color: var(--dz-c, var(--accent));
@@ -17243,7 +17100,7 @@ select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select):focus { ba
    трёх разделов, при равной специфичности выигрывает последнее. */
 .confirm-modal-box { position: relative; text-align: left; }
 .conc-details-box {
-  background: var(--surface-pop, var(--surface-modal));
+  background: var(--surface-pop, var(--surface-pop));
   backdrop-filter: blur(var(--pop-blur, 30px));
   -webkit-backdrop-filter: blur(var(--pop-blur, 30px));
   border: 1px solid var(--border-soft);

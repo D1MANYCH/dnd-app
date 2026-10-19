@@ -116,7 +116,7 @@
     "#sheet2 .s2-roll.fail b{color:var(--danger)}",
     "#sheet2 .s2-roll small{color:var(--text-mute)}",
     // всплывающий выбор режима броска рядом со строкой
-    "#s2-pop{position:fixed;z-index:1200;min-width:240px;max-width:400px;padding:var(--sp-3) var(--sp-4);border-radius:8px;background:var(--surface-modal,var(--bg-1));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);",
+    "#s2-pop{position:fixed;z-index:1200;min-width:240px;max-width:400px;padding:var(--sp-3) var(--sp-4);border-radius:8px;background:var(--surface-pop);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);",
     "border:1px solid var(--border);box-shadow:0 10px 28px rgba(0,0,0,.45);color:var(--text);font-size:var(--fs-14)}",
     "#s2-pop .t{display:flex;justify-content:space-between;gap:var(--sp-3);font:600 16px var(--font-display)}",
     "#s2-pop .b{color:var(--text-mute);font-size:var(--fs-14);margin:2px 0 var(--sp-3)}",

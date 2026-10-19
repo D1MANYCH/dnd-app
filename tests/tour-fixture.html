@@ -28,8 +28,8 @@
   try { localStorage.setItem('dnd_help_seen', '1'); } catch (e) {}
   var qs = new URLSearchParams(location.search);
   document.documentElement.setAttribute('data-theme', qs.get('theme') === 'light' ? 'light' : 'dark');
-  // ?dim=0.45 → подбор плотности затемнения (--tour-dim) без правки style.css
-  if (qs.get('dim')) document.documentElement.style.setProperty('--tour-dim', 'rgba(24, 26, 34, ' + qs.get('dim') + ')');
+  // ?dim=0.45 → подбор плотности затемнения (--overlay) без правки style.css
+  if (qs.get('dim')) document.documentElement.style.setProperty('--overlay', 'rgba(24, 26, 34, ' + qs.get('dim') + ')');
 </script>
 <script src="../app-help.js"></script>
 <script>

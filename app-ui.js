@@ -899,7 +899,7 @@ function renderJournal() {
   // конкатенации альфы, ломавшей var() на вкладке «Мир», здесь нет.
   var typeColors = { levelup:"var(--success)", rest:"var(--info)", stat:"var(--accent)",
     feat:"var(--magic)", note:"var(--home-sub)", combat:"var(--danger)",
-    story:"var(--slot-gold)", loot:"var(--slot-gold-hi)", death:"var(--text-dim)" };
+    story:"var(--accent-ink)", loot:"var(--accent-hi)", death:"var(--text-dim)" };
 
   list.innerHTML = filtered.map(function(entry) {
     var color = typeColors[entry.type] || "var(--home-sub)";
@@ -979,7 +979,7 @@ function renderCompanions() {
       var hpPct = c.hpMax > 0 ? Math.round((c.hpCurrent / c.hpMax) * 100) : 100;
       // STYLE-8e: цвета идут в свойство целиком — берутся токенами (в светлой
       // теме литералы давали контраст ниже 4.5 на белой подложке).
-      var hpColor = hpPct > 60 ? "var(--success)" : hpPct > 30 ? "var(--slot-gold)" : "var(--danger)";
+      var hpColor = hpPct > 60 ? "var(--success)" : hpPct > 30 ? "var(--accent-ink)" : "var(--danger)";
       return '<div class="pcard pcard-companion">' +
         '<div class="pcard-icon" style="color:var(--magic)">' + icon + '</div>' +
         '<div class="pcard-body">' +

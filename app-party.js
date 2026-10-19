@@ -71,7 +71,7 @@ function saveBattle() {
 function getMonsterIcon(type) { return getMonsterTypeIcon(type); }
 function getFactionColor(type) {
   if (type === "self" || type === "ally") return "var(--success)";
-  if (type === "npc")     return "var(--slot-gold)";
+  if (type === "npc")     return "var(--accent-ink)";
   return "var(--danger)";
 }
 function getFactionLabel(type) {
@@ -109,7 +109,7 @@ function renderMyChar() {
   var hpPct     = hpMax > 0 ? Math.min(100, Math.round(hpCurrent / hpMax * 100)) : 100;
   // STYLE-8e: цвет идёт в свойство целиком, поэтому берётся токеном — литерал
   // #4da843 на белой карточке светлой темы давал контраст 3.0.
-  var hpColor   = hpPct > 60 ? "var(--success)" : hpPct > 30 ? "var(--slot-gold)" : "var(--danger)";
+  var hpColor   = hpPct > 60 ? "var(--success)" : hpPct > 30 ? "var(--accent-ink)" : "var(--danger)";
   var conds     = (char.conditions && char.conditions.length) ? "" + dndIcoHtml("alert", 13) + " " + char.conditions.length + " статус" : "";
   container.innerHTML =
     '<div class="pcard pcard-self">' +
@@ -972,7 +972,7 @@ function renderBattleSetup() {
   var sections = [
     { type: "self",    label: "Я",          color: "var(--success)" },
     { type: "ally",    label: "Союзники",   color: "var(--success)" },
-    { type: "npc",     label: "Персонажи",  color: "var(--slot-gold)" },
+    { type: "npc",     label: "Персонажи",  color: "var(--accent-ink)" },
     { type: "monster", label: "Враги",      color: "var(--danger)" }
   ];
   var q = battleSearchQuery;
