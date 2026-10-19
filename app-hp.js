@@ -1002,7 +1002,7 @@ function _luSpellGainParts(char, cn, clvl) {
     var lOld = (clvl < 2 || (half14 && clvl - 1 < 2)) ? 0 : _prepLimit(char, { cls: cn, level: clvl - 1, prep: prep });
     if (lNew > lOld) parts.push("подготовка: до " + lNew + " " + pluralRu(lNew, "заклинания", "заклинаний", "заклинаний") + " (+" + (lNew - lOld) + ")");
   }
-  if (cn === "Волшебник" && clvl > 1) parts.push("+2 заклинания в книгу");
+  if (cn === "Волшебник" && clvl > 1) parts.push("+2 заклинания в книгу");
   return parts;
 }
 
