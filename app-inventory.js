@@ -1546,7 +1546,7 @@ function openDivineSmite(index) {
   var hint = $("cast-spell-hint");
   if (hint) hint.textContent = "Попадание: " + weapon.name + ". 2к8 излучением за ячейку 1-го уровня, +1к8 за каждый уровень выше" +
     (char.edition === "2024" ? "." : " (максимум 5к8).") + " Выберите ячейку.";
-  box.innerHTML = '<label class="smite-vs"><input type="checkbox" id="smite-vs-fiend"> Цель — нежить или исчадие (+1к8)</label>';
+  box.innerHTML = '<label class="smite-vs"><input type="checkbox" id="smite-vs-fiend"> Цель — нежить или исчадие (+1к8)</label>';
   opts.forEach(function(o) {
     var b = document.createElement("button");
     b.className = "cast-slot-option";
