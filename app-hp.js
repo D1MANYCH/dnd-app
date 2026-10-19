@@ -410,8 +410,16 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
   $("lu-hp-from").textContent = currentHP;
   $("lu-hp-to").textContent = newHP;
   $("lu-hp-gain").textContent = "+" + hpGain;
-  $("lu-hit-die").textContent = "1к" + hitDie;
-  $("lu-dice-count").textContent = newTotalLevel + " шт.";
+  // PLAY2-6 (PT-147/158): кости хитов по классам после повышения — «6к10 + 2к6»
+  var _hdPool = {};
+  var _hdOrder = [];
+  simAfter.classes.forEach(function(c) {
+    var d = c.hitDie || edData(char).CLASS_HIT_DICE[c.class] || 8;
+    if (!_hdPool[d]) { _hdPool[d] = 0; _hdOrder.push(d); }
+    _hdPool[d] += c.level || 0;
+  });
+  $("lu-hit-die").textContent = _hdOrder.map(function(d) { return _hdPool[d] + "к" + d; }).join(" + ");
+  $("lu-dice-count").textContent = "+1к" + hitDie;
   $("lu-prof-old").textContent = "+" + profOld;
   if (profNew !== profOld) {
     $("lu-prof-arrow").style.display = "inline";
@@ -969,6 +977,35 @@ function luApplyAllRecommendations() {
 }
 
 // BUILD-LVL-4: построить экран выборов нового уровня. Возвращает true, если есть что выбирать.
+// PLAY2-6 (PT-163/151/159/170): что даёт новый уровень класса по таблице — заговоры,
+// известные заклинания (2014), лимит подготовки, заклинания в книгу волшебника.
+function _luSpellGainParts(char, cn, clvl) {
+  var parts = [];
+  if (!char || !cn || !clvl) return parts;
+  var is24 = char.edition === "2024";
+  var prep = (edData(char).SPELL_PREP_CLASSES || {})[cn];
+  function pluralRu(n, one, few, many) {
+    var m10 = n % 10, m100 = n % 100;
+    return (m10 === 1 && m100 !== 11) ? one : (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) ? few : many;
+  }
+  function delta(arr) { return arr ? (arr[clvl - 1] || 0) - (clvl > 1 ? (arr[clvl - 2] || 0) : 0) : 0; }
+  var cTab = is24 ? (prep && prep.cantrips) : (typeof CANTRIPS_KNOWN_2014 !== "undefined" ? CANTRIPS_KNOWN_2014[cn] : null);
+  var dc = delta(cTab);
+  if (dc > 0) parts.push("+" + dc + " " + pluralRu(dc, "заговор", "заговора", "заговоров") + " (всего " + cTab[clvl - 1] + ")");
+  if (!is24 && typeof SPELLS_KNOWN_2014 !== "undefined" && SPELLS_KNOWN_2014[cn]) {
+    var dk = delta(SPELLS_KNOWN_2014[cn]);
+    if (dk > 0) parts.push("+" + dk + " " + pluralRu(dk, "известное заклинание", "известных заклинания", "известных заклинаний") + " (всего " + SPELLS_KNOWN_2014[cn][clvl - 1] + ")");
+  }
+  if (prep && typeof _prepLimit === "function") {
+    var half14 = !is24 && edData(char).CASTER_TYPE[cn] === "half";
+    var lNew = (half14 && clvl < 2) ? 0 : _prepLimit(char, { cls: cn, level: clvl, prep: prep });
+    var lOld = (clvl < 2 || (half14 && clvl - 1 < 2)) ? 0 : _prepLimit(char, { cls: cn, level: clvl - 1, prep: prep });
+    if (lNew > lOld) parts.push("подготовка: до " + lNew + " " + pluralRu(lNew, "заклинания", "заклинаний", "заклинаний") + " (+" + (lNew - lOld) + ")");
+  }
+  if (cn === "Волшебник" && clvl > 1) parts.push("+2 заклинания в книгу");
+  return parts;
+}
+
 function luBuildChoicesScreen() {
   var char = getCurrentChar();
   var ctx = _luChoicesCtx;
@@ -1055,15 +1092,18 @@ function luBuildChoicesScreen() {
     var recSpellObjs = (b && typeof getBuildRecSpellObjs === "function") ? getBuildRecSpellObjs(b, newLevel) : [];
     var mySp = (char.spells && Array.isArray(char.spells.mySpells)) ? char.spells.mySpells : [];
     var spParts = ['<div class="lu-choice-title">' + dndIcoHtml("spells", 14) + ' Заклинания</div>'];
+    var gain = _luSpellGainParts(char, cn, clvl);
+    spParts.push('<div class="lu-choice-sub">' + (gain.length ? escapeHtml(gain.join(" · ")) : "Новых заклинаний на этом уровне нет") + '</div>');
     if (recSpellObjs.length) {
       var allAdded = recSpellObjs.every(function(sp){ return mySp.some(function(x){ return x.id === sp.id || x.name === sp.name; }); });
       spParts.push('<div class="lu-choice-sub">' + recBadge('Советуют') + ' ' + escapeHtml(recSpellObjs.map(function(s){ return s.name; }).join(", ")) + '</div>');
       spParts.push('<button class="lu-choice-launch"' + (allAdded ? ' disabled' : '') + ' onclick="luAddRecommendedSpells()">' +
         (allAdded ? '✓ Рекомендованные добавлены' : '✨ Добавить рекомендованные') + '</button>');
-    } else {
-      spParts.push('<div class="lu-choice-sub">Билд не\u00a0указывает конкретные заклинания этого уровня.</div>');
+      spParts.push('<button class="lu-choice-alt" onclick="luGoToSpellsTab()">Добавить самому — вкладка «Заклинания» →</button>');
+    } else if (gain.length) {
+      spParts.push('<button class="lu-choice-launch" onclick="luGoToSpellsTab()">Выбрать — вкладка «Заклинания» →</button>');
     }
-    spParts.push('<button class="lu-choice-alt" onclick="luGoToSpellsTab()">Добавить самому — вкладка «Заклинания» →</button>');
+    if (!recSpellObjs.length && !gain.length) spParts.push('<button class="lu-choice-alt" onclick="luGoToSpellsTab()">Добавить самому — вкладка «Заклинания» →</button>');
     blocks.push('<div class="lu-choice-block">' + spParts.join("") + '</div>');
   }
 

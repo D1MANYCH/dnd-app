@@ -1327,7 +1327,15 @@ function renderPrepCounter() {
     hint = "(" + statName + " + " + (prep.formula === "mod+halfLevel" ? "½ ур." : "ур.") + cantripHint + ")";
   }
   el.style.display = "";
-  el.innerHTML = '<span class="prep-icon">' + dndIcoHtml("sheet", 13) + '</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span><span class="prep-hint">' + hint + '</span>';
+  // PLAY2-6 (PT-157): мультикласс с «знающим» классом (Паладин + Чародей) — ещё и счётчик известных;
+  // известными считаются неподготовленные заклинания 1+ круга (класс-источник не хранится)
+  var knownHtml = "";
+  var kMax2 = calcMaxKnownSpells(char);
+  if (kMax2) {
+    var kHave2 = Math.max(0, _knownSpellCount(char) - prepCount);
+    knownHtml = '<span class="prep-label">· Известно:</span><span class="prep-count' + (kHave2 >= kMax2 ? " prep-full" : "") + '">' + kHave2 + '</span><span class="prep-sep">/</span><span class="prep-max">' + kMax2 + '</span>';
+  }
+  el.innerHTML = '<span class="prep-icon">' + dndIcoHtml("sheet", 13) + '</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span>' + knownHtml + '<span class="prep-hint">' + hint + '</span>';
 }
 
 // ── Использование заклинания (трата ячейки из карточки) ─────
