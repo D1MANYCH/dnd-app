@@ -687,6 +687,10 @@ if (hamburger) hamburger.classList.remove("hidden");
 if (headerBack) headerBack.classList.remove("hidden");
 updateHeaderTitle();
 updateStatusBar();
+// PLAY2-7 (PT-124): возврат на лист со страницы сервиса — на прежнее место
+if (_fromName && (SCREEN_DEPTH[screenName] || 0) < (SCREEN_DEPTH[_fromName] || 0) && _screenScroll[screenName]) {
+  try { window.scrollTo({ top: _screenScroll[screenName], left: 0, behavior: "auto" }); } catch(e) { window.__catchLog && window.__catchLog('core:showScreen-scroll', e); }
+}
 }
 
 if (_leaving) {

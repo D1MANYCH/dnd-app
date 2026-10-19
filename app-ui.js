@@ -797,8 +797,10 @@ function resetResourcesByRest(restType) {
     if (typeof renderMySpells === "function") renderMySpells();
   }
   var data = getCharResourceDefs(char);
-  if (!data || !data.resources) { if (restType === "long") saveToLocal(); return; }
+  if (!data || !data.resources) { if (restType === "long") saveToLocal(); return []; }
+  var restored = []; // PLAY2-7: имена ресурсов, у которых были потраченные использования
   data.resources.forEach(function(res) {
+    var before = char.resources[res.id] || 0;
     if (restType === "long") {
       char.resources[res.id] = 0;
     } else if (restType === "short" && (res.restoreOn === "short" || (res.shortFromLevel && (res._clsLevel || char.level || 1) >= res.shortFromLevel))) {
@@ -807,9 +809,11 @@ function resetResourcesByRest(restType) {
       // E24-8: одно использование за короткий отдых (Ярость, Второе дыхание 2024)
       char.resources[res.id] = Math.max(0, (char.resources[res.id] || 0) - 1);
     }
+    if (before > (char.resources[res.id] || 0)) restored.push(res.name);
   });
   saveToLocal();
   renderClassResources();
+  return restored;
 }
 
 // showHPToast already supports customMsg (patched in place above)

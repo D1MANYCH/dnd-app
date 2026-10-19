@@ -63,7 +63,7 @@ if (title) title.innerHTML = dndIcoHtml("bed", 16) + " Долгий отдых (
 const char = getCurrentChar();
 const blockReason = char ? rulesLongRestBlockReason(char) : null;
 const blockNote = blockReason ? "<li style='color:var(--danger); font-weight:600;'>" + dndIcoHtml("alert", 13) + " " + escapeHtml(blockReason) + "</li>" : "";
-if (list) list.innerHTML = blockNote + "<li>Восстанавливаются ВСЕ ХП</li><li>Восстанавливаются ВСЕ ячейки заклинаний</li><li>Восстанавливаются кости хитов (" + (char && char.edition === "2024" ? "все" : "до\u00a0половины уровня") + ")</li><li>Сбрасываются потраченные кости хитов</li><li>Восстанавливаются все классовые умения</li><li>" + dndIcoHtml("check", 13) + " Снимаются большинство условий</li>";
+if (list) list.innerHTML = blockNote + "<li>Восстанавливаются ВСЕ ХП</li>" + (char && _restHasSlots(char) ? "<li>Восстанавливаются ВСЕ ячейки заклинаний</li>" : "") + "<li>Восстанавливаются потраченные кости хитов (" + (char && char.edition === "2024" ? "все" : "до\u00a0половины уровня") + ")</li><li>Восстанавливаются все классовые умения</li><li>" + dndIcoHtml("check", 13) + " Истощение снижается на\u00a01 уровень</li>";
 if (hitDiceSection) hitDiceSection.classList.add("hidden");
 // PHB стр.291: истощение снижает только тот отдых, в котором персонаж поел и попил.
 // Спрашиваем, только если истощение есть — иначе флажок в окне ни на что не влияет.
@@ -73,6 +73,13 @@ const hasExhaustion = !!(char && char.edition !== "2024" && char.conditions && c
 if (foodBox) foodBox.checked = true;
 if (foodSection) foodSection.classList.toggle("hidden", !hasExhaustion);
 if (confirmBtn) { confirmBtn.textContent = "Долгий отдых"; confirmBtn.disabled = !!blockReason; }
+}
+// PLAY2-7 (PT-087): строка про ячейки — только у заклинателя
+function _restHasSlots(char) {
+var sp = char.spells || {};
+if (sp.pactSlots) return true;
+for (var i = 1; i <= 9; i++) { if (sp.slots && sp.slots[i]) return true; }
+return false;
 }
 function showRestResult(title, details) {
 const main = $("rest-main-screen");
@@ -142,7 +149,8 @@ const healEl = $("hit-dice-heal");
 if (availableEl) availableEl.textContent = availableHitDice;
 // PLAY-1 (PT-039): среднее, не выше недостающих хитов
 var hdMissing = Math.max(0, rulesEffectiveHpMax(char) - (char.combat.hpCurrent || 0));
-if (healEl) healEl.textContent = "≈" + Math.min(totalHeal, hdMissing) + " ХП" + (totalHeal > hdMissing ? " (до\u00a0максимума, костей больше, чем нужно)" : "");
+// PLAY2-7 (PT-145): без выбранных костей «≈0 ХП» читалось как итог
+if (healEl) healEl.textContent = !_chosen.length ? (hdMissing ? "выберите кости" : "ХП уже полные") : "≈" + Math.min(totalHeal, hdMissing) + " ХП" + (totalHeal > hdMissing ? " (до\u00a0максимума, костей больше, чем нужно)" : "");
 }
 function confirmRest() {
 if (!currentId || !currentRestType) return;
@@ -163,7 +171,7 @@ if (hpHealed > 0) {
   addHPHistory(oldHp, char.combat.hpCurrent, hpHealed, "Короткий отдых");
   showHPToast(hpHealed);
 }
-resetResourcesByRest("short");
+var _resRestored = resetResourcesByRest("short") || [];
 // CAST-2: короткий отдых (1 час) — раундовые/минутные эффекты кастов истекают,
 // часовые и дольше переживают
 var _castExpired = (typeof expireCastEffectsByUnits === "function")
@@ -173,6 +181,8 @@ if (window.AppLog) AppLog.action("hp", "короткий отдых: косте�
 var rollStr = rollLog.length > 0 ? " (" + rollLog.join(", ") + ")" : "";
 var warlockStr = _isWarlock ? "<p>" + dndIcoHtml("focus", 13) + " Ячейки пакта восстановлены</p>" : "";
 var castExpiredStr = _castExpired.length ? "<p>⏳ Истекли эффекты: " + _castExpired.join(", ") + "</p>" : "";
+// PLAY2-7 (PT-185): какие ресурсы класса вернул отдых
+if (_resRestored.length) castExpiredStr = "<p>" + dndIcoHtml("zap", 12) + " Восстановлено: " + _resRestored.map(escapeHtml).join(", ") + "</p>" + castExpiredStr;
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>" + dndIcoHtml("dice", 12) + " Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>" + dndIcoHtml("heart", 12) + " Восстановлено ХП: " + hpHealed + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr + castExpiredStr;
 } else if (currentRestType === "long") {
 // PHB стр.186: страховка на случай, если кнопку не погасил showLongRestInfo —
@@ -218,10 +228,15 @@ renderJournal();
 var exhaustionNote = exhaustionReduced ? "<p>" + dndIcoHtml("dizzy", 13) + " Истощение снижено на\u00a01 уровень</p>"
   : (exhaustionHeld ? "<p>" + dndIcoHtml("food", 13) + " Истощение осталось прежним: персонаж не\u00a0ел и\u00a0не пил (PHB стр. 291)</p>" : "");
 var chargesNote = chargesRestored ? "<p>" + dndIcoHtml("zap", 13) + " Заряды предметов восстановлены: " + chargesRestored + "</p>" : "";
-resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div><p>" + dndIcoHtml("sparkle", 12) + " Ячейки заклинаний: восстановлены</p><p>" + dndIcoHtml("dice", 12) + " Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + exhaustionNote + chargesNote;
+resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div>" + (_restHasSlots(char) ? "<p>" + dndIcoHtml("sparkle", 12) + " Ячейки заклинаний: восстановлены</p>" : "") + "<p>" + dndIcoHtml("dice", 12) + " Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + exhaustionNote + chargesNote;
 }
 saveToLocal();
+// PLAY2-7 (PT-124): loadCharacter открывает «Лист» и скроллит наверх — возвращаем вкладку и место
+var _tabEl = document.querySelector(".tab-content.active");
+var _sheetY = window._screenScroll ? _screenScroll.character : 0;
 loadCharacter(currentId);
+if (_tabEl && _tabEl.id !== "tab-sheet") switchTab(_tabEl.id.replace("tab-", ""));
+if (window._screenScroll) _screenScroll.character = _sheetY;
 showRestResult(resultTitle, resultDetails);
 }
 // ── Мультикласс: переменная для выбранного класса при level-up ──
