@@ -406,11 +406,11 @@ function _renderFeatPickList(fp, search, level, container) {
     var own = mine.find(function(s) { return s.id === spell.id; });
     var isFeat = !!(own && own.grantedBy === fp.label);
     var idArg = _spellIdArg(spell.id);
-    var btn = isFeat ? '<button class="secondary" onclick="removeFeatSpell(' + idArg + ')">Выбрано</button>'
-      : own ? '<button class="secondary" disabled>Уже в\u00a0гримуаре</button>'
+    var btn = isFeat ? '<button class="btn btn-sm btn-secondary" onclick="removeFeatSpell(' + idArg + ')">Выбрано</button>'
+      : own ? '<button class="btn btn-sm btn-secondary" disabled>Уже в\u00a0гримуаре</button>'
       : !(fp.rule.slots || []).some(function(slot, i) { return _pr.slots[i].have < _pr.slots[i].need && rulesFeatSpellFits(spell, slot, fp.rec.spellClass, fp.rule, null); })
-        ? '<button class="secondary" disabled>Лимит черты</button>'
-      : '<button class="small" onclick="addFeatSpell(' + idArg + ')">+ Выбрать</button>';
+        ? '<button class="btn btn-sm btn-secondary" disabled>Лимит черты</button>'
+      : '<button class="btn btn-sm btn-text" onclick="addFeatSpell(' + idArg + ')">+ Выбрать</button>';
     var srcRaw = String(spell.source || "PH14");
     var div = document.createElement("div");
     div.className = "spell-item" + (isFeat ? " spell-added" : "");

@@ -1093,87 +1093,54 @@ html.glass-adjusting *::after {
 
 /* --- Кнопки v3: базовый класс + размеры через CSS-переменные --- */
 .btn {
-  --btn-h: var(--control-h, 44px); --btn-px: 18px; --btn-fs: var(--fs-14); --btn-radius: var(--r-4);
+  --btn-h: var(--control-h, 44px); --btn-px: var(--sp-5); --btn-fs: var(--fs-18); --btn-radius: var(--r-4);
   position: relative;
   display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
   height: var(--btn-h); padding: 0 var(--btn-px);
   border-radius: var(--btn-radius);
-  font-size: var(--btn-fs); font-weight: var(--fw-bold); letter-spacing: 0.1px;
+  font-size: var(--btn-fs); font-weight: var(--fw-semibold); line-height: 1;
+  margin: 0;
   cursor: pointer; user-select: none;
   border: 1px solid transparent;
   overflow: hidden;
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
   font-family: inherit;
-  transition:
-    transform var(--t1, 140ms) var(--ez-spring, cubic-bezier(0.34,1.3,0.56,1)),
-    box-shadow var(--t2, 240ms) var(--ez-out, cubic-bezier(0.22,1,0.36,1)),
-    background var(--t1, 140ms), border-color var(--t1, 140ms), color var(--t1, 140ms);
+  transition: background var(--t1), border-color var(--t1), color var(--t1);
 }
-.btn:active { transform: scale(0.965); }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.btn:disabled { opacity: var(--dis-op); cursor: not-allowed; transform: none !important; filter: grayscale(0.4); }
+.btn:disabled { opacity: var(--dis-op); cursor: not-allowed; }
 
 .btn-sm { --btn-h: 36px; --btn-px: 14px; --btn-fs: var(--fs-14); --btn-radius: var(--r-4); }
 
-/* Mobile-first: на телефоне primary растёт до lg (UI5-6: единый мобильный порог 640, было 767) */
+/* DS-6а: на телефоне кнопка 48 (решение DS-0), на ПК — --control-h */
 @media (max-width: 640px) {
-  .btn-primary:not(.btn-sm) { --btn-h: 52px; --btn-px: 22px; --btn-fs: var(--fs-14); }
+  .btn:not(.btn-sm) { --btn-h: 48px; }
 }
 
-/* Variants — все через переменные --accent/--bg-1/--border, работают в обеих темах */
-/* Дымка v5: primary — вертикальный градиент + внутренний блик + текст --on-accent */
-.btn-primary {
-  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
-  border-color: transparent; color: var(--on-accent);
-  box-shadow: inset 0 1.5px 0 color-mix(in srgb, var(--on-color) 42%, transparent), 0 4px 14px var(--accent-glow-token);
-}
-.btn-primary:hover {
-  filter: brightness(1.07);
-  box-shadow: inset 0 1.5px 0 color-mix(in srgb, var(--on-color) 42%, transparent), 0 4px 14px var(--accent-glow-token);
-}
-.btn-primary:active {
-  transform: scale(0.965);
-}
+/* DS-6а: варианты по Figma 94:555 — состояния только сменой цвета,
+   без градиента, теней, filter и scale. Заливка одна — .btn-primary. */
+.btn-primary { background: var(--action); border-color: transparent; color: var(--on-action); }
+.btn-primary:hover { background: var(--action-hover); }
+.btn-primary:active { background: var(--action-press); }
 
-.btn-secondary {
-  background: var(--bg-1);
-  border-color: var(--border);
-  color: var(--text);
-  box-shadow: var(--sh-1);
-}
-.btn-secondary:hover {
-  background: var(--bg-2); border-color: var(--accent);
-  color: var(--accent);
-  box-shadow: var(--sh-1);
-}
-.btn-secondary:active { transform: scale(0.98); }
+.btn-secondary { background: transparent; border-color: var(--border); color: var(--text); }
+.btn-secondary:hover { border-color: var(--action); }
+.btn-secondary:active { border-color: var(--action-press); }
 
-.btn-ghost {
-  background: transparent; border-color: transparent; color: var(--text-dim);
-}
-.btn-ghost:hover { background: var(--bg-2); color: var(--text); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--text-dim); }
+.btn-ghost:hover { color: var(--text); }
 
-.btn-danger {
-  background: var(--danger);
-  border-color: var(--danger); color: var(--on-status);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--danger) 28%, transparent);
-}
-.btn-danger:hover {
-  background: var(--danger); border-color: var(--danger);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--danger) 34%, transparent);
-}
-.btn-danger:active { transform: scale(0.98); }
+.btn-danger { background: transparent; border-color: color-mix(in srgb, var(--danger) 50%, transparent); color: var(--danger); }
+.btn-danger:hover { border-color: var(--danger); }
 
-.btn-success {
-  background: var(--success);
-  border-color: var(--success); color: var(--on-status);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--success) 28%, transparent);
-}
-.btn-success:hover {
-  background: var(--success); border-color: var(--success);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--success) 34%, transparent);
-}
+.btn-success { background: transparent; border-color: color-mix(in srgb, var(--success) 50%, transparent); color: var(--success); }
+.btn-success:hover { border-color: var(--success); }
+
+/* Текстовое действие: ни рамки, ни заливки, вес несёт цвет --accent-lo */
+.btn-text { --btn-px: var(--sp-2); background: transparent; border-color: transparent; color: var(--accent-lo); font-weight: var(--fw-medium); }
+.btn-text:hover { color: var(--accent-hover); }
+.btn-text:active { color: var(--action-press); }
 
 .btn-block { width: 100%; }
 .btn-pill  { border-radius: var(--r-pill); }
@@ -2783,21 +2750,23 @@ input[type="number"] { -moz-appearance: textfield; }
    в блоке STYLE-4b. Именно width:100% здесь заставлял держать список
    сбросов для иконочных кнопок (см. ниже). margin-bottom пока остаётся:
    его зависимость измеряется иначе (вертикальные отступы, не геометрия). */
+/* DS-6а: элементный селектор — только сброс. Вид даёт .btn-вариант или класс компонента;
+   свечение, filter и scale при наведении/нажатии сняты (DS-0: состояния — смена цвета). */
 button {
 border: none;
-padding: var(--sp-3) var(--sp-5);
+padding: 0;
+margin: 0;
 border-radius: var(--r-4);
 font-weight: var(--fw-semibold);
 cursor: pointer;
-margin-bottom: var(--sp-3);
-transition: transform var(--t1) var(--ease), box-shadow var(--t2), background var(--t2), color var(--t2), border-color var(--t2), filter var(--t1);
+transition: background var(--t2), color var(--t2), border-color var(--t2);
 font-size: var(--fs-14);
 }
-/* UI-fix: ховер осветляет ФАКТИЧЕСКИЙ фон кнопки (filter), а не красит его в accent-hi.
-   Иначе у прозрачных кнопок-чипов (.sort-btn/.home-edition-btn/фильтры) accent-фон затекал
-   под accent-текст → слова сливались. brightness на прозрачном фоне ничего не красит. */
-button:hover:where(:not(:disabled)) { filter: brightness(1.08); box-shadow: 0 2px 10px var(--accent-glow-token); }
-button:active:where(:not(:disabled)) { transform: scale(0.98); }
+/* DS-6а: отступы, которые эти кнопки брали у прежнего button{} (замер в живой странице);
+   разбираются вместе с классами в DS-6б/в */
+.accent-chip, .fs-scale-reset, .cw-lock-btn, .filter-chip, .mon-sb-add, .dice-custom-btn,
+.dice-popover-done, .dice-popover-clear, .aef-fab, .aef-turn-btn, .basic-locked-more, .mob-row { margin-bottom: var(--sp-3); }
+.basic-locked-more, .name-roll-btn, .mob-row { padding: var(--sp-3) var(--sp-5); }
 :where(button, select):disabled { opacity: var(--dis-op); filter: saturate(0.4); cursor: not-allowed; box-shadow: none; }
 /* DS-5а: отклик асимметричный — подсветка при наведении, фокусе и нажатии включается сразу,
    гаснет за время перехода самого элемента. Строки с onclick не входят: подложки окон тоже с onclick. */
@@ -2805,15 +2774,6 @@ button:active:where(:not(:disabled)) { transform: scale(0.98); }
   :where(button, a, summary, label, [role="button"], [role="tab"]):hover { transition-duration: 0s !important; }
 }
 :where(button, a, summary, label, [role="button"], [role="tab"]):is(:focus-visible, :active) { transition-duration: 0s !important; }
-button.secondary {
-background: var(--bg-2);
-color: var(--text);
-border: 1px solid var(--border);
-}
-button.danger { background: transparent; color: var(--danger); border: 1px solid color-mix(in srgb, var(--danger) 50%, transparent); }
-button.success { background: transparent; color: var(--success); border: 1px solid color-mix(in srgb, var(--success) 50%, transparent); }
-button.info { background: var(--info); color: white; }
-button.small { padding: var(--sp-2) var(--sp-4); width: auto; font-size: var(--fs-14); }
 
 /* =============================================
    TAB NAV — 5 tabs + centered FAB dice
@@ -12133,6 +12093,7 @@ body {
   transition: background var(--t1), color var(--t1);
 }
 .notes-entry-btn:hover { background: var(--bg-3); color: var(--text); }
+.notes-entry-btn.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
 .notes-entry-btn.danger:hover { background: color-mix(in srgb, var(--danger) 30%, transparent); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
 .notes-entry-tags { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-top: var(--sp-2); }
 
@@ -12883,8 +12844,8 @@ select.bp-select { padding-right: var(--sp-4); }
    ширину поровну, что и происходило раньше по факту.
 ============================================ */
 .dice-reset-btn { width: 100%; }
-.add-spell-form button.success,
-.item-form button.success { width: 100%; }
+.add-spell-form .btn-success,
+.item-form .btn-success { width: 100%; margin-bottom: var(--sp-3); }
 .avatar-modal-footer > .btn { flex: 1; }
 /* STYLE-8M-2b: план развития — плоские строки. Кружок уровня стал цифрой в
    жёлобе, текущий и следующий уровень кодируются рельсой слева и цветом, а не
@@ -13543,36 +13504,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
    «Перейти к бою», кнопка подтверждения в модалке). Блок в КОНЦЕ файла: при
    равной специфичности выигрывает последнее правило — точечные перебивки
    вариантов .btn-* не приходится трогать поштучно. */
-.btn-danger {
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--danger) 50%, transparent);
-  color: var(--danger);
-  box-shadow: none;
-}
-.btn-danger:hover {
-  background: color-mix(in srgb, var(--danger) 14%, transparent);
-  border-color: var(--danger);
-  color: var(--danger);
-  box-shadow: none;
-}
-.btn-success {
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--success) 50%, transparent);
-  color: var(--success);
-  box-shadow: none;
-}
-.btn-success:hover {
-  background: color-mix(in srgb, var(--success) 14%, transparent);
-  border-color: var(--success);
-  color: var(--success);
-  box-shadow: none;
-}
-/* главное действие — плоская заливка без градиента и свечения */
-.btn-primary {
-  background: var(--accent);
-  box-shadow: none;
-}
-.btn-primary:hover { background: var(--accent-hi); box-shadow: none; filter: none; }
+/* DS-6а: варианты .btn-danger/-success/-primary влиты в базовые правила секции UI-2. */
 /* STYLE-8e2: контурные варианты .party-add-btn / -srd удалены — с 8e обе
    кнопки «Мира» текстовые (правила #tab-party ниже), рамку отменять нечему. */
 .rr-slot-fill { background: color-mix(in srgb, var(--accent) 45%, transparent); }
@@ -17086,7 +17018,7 @@ select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select):focus { ba
 #screen-spellsearch .spell-item-actions button + button::before { content: "·"; margin-right: var(--sp-3); color: var(--home-sub); }
 #screen-spellsearch .spell-item-actions button:hover,
 #screen-spellsearch .spell-item-actions button:focus-visible { background: none; box-shadow: none; color: var(--accent); }
-#screen-spellsearch .spell-item-actions button.secondary { color: var(--home-sub); }
+#screen-spellsearch .spell-item-actions .btn-secondary { color: var(--home-sub); }
 #screen-spellsearch .spell-item-actions .spell-remove-btn { color: var(--danger); }
 #screen-spellsearch .spell-item-actions .spell-remove-btn:hover { color: var(--danger); text-decoration: underline; text-underline-offset: 3px; }
 

@@ -33,99 +33,99 @@
 | 520–731 | Override'ы для блоков с захардкоженным rgba(255,255,255,*) |
 | 732–1079 | STYLE-8M-2: СТРАНИЦА-ЭКРАН. |
 | 1080–1085 | R2. Базовые компоненты |
-| 1086–1244 | UI-2. Кнопки v3 + анимации (общая секция, обе темы) |
-| 1245–1500 | UI-3. Desktop/tablet layout (≥1024px) |
-| 1501–1611 | UI5-4: ПК — многоколоночная раскладка листа |
-| 1612–1694 | /R2 |
-| 1695–1869 | ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА (R5: компактная одна строка) |
-| 1870–2109 | HEADER (R5: back + name + hamburger) |
-| 2110–2175 | КД АВТО-РАСЧЁТ |
-| 2176–2245 | ФИЛЬТР-БАР (состояния и эффекты) |
-| 2246–2311 | ВРЕМЕННЫЕ ЭФФЕКТЫ |
-| 2312–2471 | УСЛОВИЯ |
-| 2472–2618 | СПАСБРОСКИ |
-| 2619–2770 | CLASS FEATURES |
-| 2771–2817 | УБИРАЕМ СТРЕЛКИ |
-| 2818–2924 | TAB NAV — 5 tabs + centered FAB dice |
-| 2925–3038 | UX-5: лента последних бросков вне модалки |
-| 3039–3215 | Плавающий чип активных эффектов заклинаний (char.activeSpellEffects). |
-| 3216–3235 | HAMBURGER BUTTON |
-| 3236–3278 | SIDE DRAWER |
-| 3279–3782 | STYLE-8L: сайдбар в языке встречающего экрана |
-| 3783–3830 | MENU-8/9: встречающий экран во всё окно. |
-| 3831–3923 | MENU-2: плашка последнего героя. |
-| 3924–4098 | MENU-3: меню приключения. |
-| 4099–4169 | MENU-11: адаптив встречающего экрана, доступность, спокойное движение. |
-| 4170–4170 | INVENTORY |
-| 4171–4201 | INVENTORY — WEIGHT BAR |
-| 4202–4238 | INVENTORY — BACKPACK HEADER |
-| 4239–4279 | INVENTORY — FILTERS |
-| 4280–4468 | INVENTORY — ITEM CARDS |
-| 4469–4834 | COINS — BIG NUMBER CARD GRID |
-| 4835–5138 | MODALS |
-| 5139–5173 | DICE |
-| 5174–5754 | v3.18: DICE MODAL — новый UX (header tools + 2-col body + popovers) |
-| 5755–6643 | OTHER STYLES |
-| 6644–6714 | HP DISPLAY BLOCK |
-| 6715–6740 | MOBILE OPTIMIZATION |
-| 6741–6869 | LEVEL UP (STYLE-8M-3: экран, а не модалка) |
-| 6870–6908 | HP TOAST (snackbar) |
-| 6909–6960 | HP HISTORY (STYLE-8M-4: экран, а не модалка) |
-| 6961–7016 | Confirm Modal |
-| 7017–7442 | ⚔️ ОТРЯД & БОЙ |
-| 7443–7722 | RACIAL BONUS BAR |
-| 7723–7865 | COMPACT STATS GRID |
-| 7866–8133 | UI6-4: ЛИСТ ХАРАКТЕРИСТИК — режимы «2024» / «Классический». |
-| 8134–8186 | Режим «Классический»: регион эмулирует сетку 6/3, карточки — |
-| 8187–8237 | UI-fix: телефон (≤767px) + вид 2024 — компактные карточки в 2 колонки. |
-| 8238–8340 | COMPACT SKILLS |
-| 8341–8383 | UI5-5: МОБИЛЬНЫЕ ТАЧ-ТАРГЕТЫ (≥44px) |
-| 8384–8455 | ACCORDION |
-| 8456–8479 | CLASS RESOURCES |
-| 8480–8580 | ASI MODAL |
-| 8581–8845 | APP VERSION |
-| 8846–8855 | COMPANIONS |
-| 8856–8901 | FEATS LIST IN ASI |
-| 8902–9148 | PROFILES TABS (Чейнджлог) |
-| 9149–9227 | TAKEN FEATS |
-| 9228–9424 | SW UPDATE MODAL |
-| 9425–9472 | УНИВЕРСАЛЬНЫЕ TOAST-УВЕДОМЛЕНИЯ |
-| 9473–9645 | INVENTORY SLOTS SYSTEM |
-| 9646–9845 | HELP / ONBOARDING (HELP-1) — табовый help-центр. |
-| 9846–10117 | HELP-3 — Приветствие первого запуска (#welcome-modal) |
-| 10118–10290 | HELP-4 — Движок интерактивного тура (подсветка). |
-| 10291–10360 | 3D DICE CUBE |
-| 10361–10735 | FEAT-LOG: панель журнала сессии (выезжает справа) |
-| 10736–10818 | DESKTOP LAYOUT — centered max-width |
-| 10819–10842 | INSPIRATION |
-| 10843–10882 | CONCENTRATION |
-| 10883–11559 | WEAPON CARDS WITH ROLL BUTTONS |
-| 11560–11670 | ПОПАП РЕЖИМА БРОСКА (Преимущество / Помеха) |
-| 11671–11733 | СОПРОТИВЛЕНИЯ / ИММУНИТЕТЫ / УЯЗВИМОСТИ |
-| 11734–11760 | БОЙ ДВУМЯ ОРУЖИЯМИ (Two-Weapon Fighting) |
-| 11761–11884 | КЛАССОВЫЕ ВЫБОРЫ — карточки в asi-container |
-| 11885–11913 | R6: Ассеты (декор) |
-| 11914–12877 | 📝 Вкладка «Записи по персонажу» — фаза N2 |
-| 12878–12965 | STYLE-4b: кнопки, которым ширину давал элементный button{width:100%}. |
-| 12966–12974 | BUGFIX-6: мобильная вёрстка (≤540px) |
-| 12975–13032 | UI-13: доступ к настройкам и усиление back-кнопки |
-| 13033–13364 | UI-10. Skeleton-лоадеры + подсветка совпадений поиска |
-| 13365–13391 | UI5-6: ПОЛИРОВКА — единый фокус клавиатуры + шевроны аккордеонов |
-| 13392–13418 | Светлая тема: цветные акценты, подобранные под тёмный фон и |
-| 13419–13501 | Дымка v5: чипы состояний, мини-индикаторы, SVG-иконки |
-| 13502–14602 | STYLE-5: одна поверхность для всех карточек-контейнеров. |
-| 14603–14658 | MOTION: переходы между экранами и под-меню встречающего экрана. |
-| 14659–14751 | STYLE-8a2 · «Лист»: блок характеристик — реестр |
-| 14752–15065 | DISC-1 · Ромб раскрытия |
-| 15066–15656 | STYLE-8a2 · остальной «Лист» в языке встречающего экрана |
-| 15657–15762 | LVL-2 · Экран «Развитие» (#screen-progress) |
-| 15763–15902 | LVL-3 · Раздел «Класс и развитие» на листе и дубль ресурсов в «Бою» |
-| 15903–16137 | STYLE-8b3: список «Мои заклинания» — рецепт «Сумки» + чип действия |
-| 16138–16147 | STYLE-8b3-fix: срезанный ромб |
-| 16148–16461 | STYLE-8b3b: два оставшихся блока «Магии» |
-| 16462–16980 | STYLE-8d2 · Вкладка «Бой» в языке встречающего экрана |
-| 16981–17015 | STYLE-8M-3: ОКНА-ЭКРАНЫ, ДОЗАХОД — «Повышение уровня», «Отдых», |
-| 17016–17697 | STYLE-8M-4: ОКНА-ЭКРАНЫ, ДОЗАХОД II — «История здоровья», |
+| 1086–1211 | UI-2. Кнопки v3 + анимации (общая секция, обе темы) |
+| 1212–1467 | UI-3. Desktop/tablet layout (≥1024px) |
+| 1468–1578 | UI5-4: ПК — многоколоночная раскладка листа |
+| 1579–1661 | /R2 |
+| 1662–1836 | ЗАКРЕПЛЁННАЯ ПАНЕЛЬ СТАТУСА (R5: компактная одна строка) |
+| 1837–2076 | HEADER (R5: back + name + hamburger) |
+| 2077–2142 | КД АВТО-РАСЧЁТ |
+| 2143–2212 | ФИЛЬТР-БАР (состояния и эффекты) |
+| 2213–2278 | ВРЕМЕННЫЕ ЭФФЕКТЫ |
+| 2279–2438 | УСЛОВИЯ |
+| 2439–2585 | СПАСБРОСКИ |
+| 2586–2737 | CLASS FEATURES |
+| 2738–2777 | УБИРАЕМ СТРЕЛКИ |
+| 2778–2884 | TAB NAV — 5 tabs + centered FAB dice |
+| 2885–2998 | UX-5: лента последних бросков вне модалки |
+| 2999–3175 | Плавающий чип активных эффектов заклинаний (char.activeSpellEffects). |
+| 3176–3195 | HAMBURGER BUTTON |
+| 3196–3238 | SIDE DRAWER |
+| 3239–3742 | STYLE-8L: сайдбар в языке встречающего экрана |
+| 3743–3790 | MENU-8/9: встречающий экран во всё окно. |
+| 3791–3883 | MENU-2: плашка последнего героя. |
+| 3884–4058 | MENU-3: меню приключения. |
+| 4059–4129 | MENU-11: адаптив встречающего экрана, доступность, спокойное движение. |
+| 4130–4130 | INVENTORY |
+| 4131–4161 | INVENTORY — WEIGHT BAR |
+| 4162–4198 | INVENTORY — BACKPACK HEADER |
+| 4199–4239 | INVENTORY — FILTERS |
+| 4240–4428 | INVENTORY — ITEM CARDS |
+| 4429–4794 | COINS — BIG NUMBER CARD GRID |
+| 4795–5098 | MODALS |
+| 5099–5133 | DICE |
+| 5134–5714 | v3.18: DICE MODAL — новый UX (header tools + 2-col body + popovers) |
+| 5715–6603 | OTHER STYLES |
+| 6604–6674 | HP DISPLAY BLOCK |
+| 6675–6700 | MOBILE OPTIMIZATION |
+| 6701–6829 | LEVEL UP (STYLE-8M-3: экран, а не модалка) |
+| 6830–6868 | HP TOAST (snackbar) |
+| 6869–6920 | HP HISTORY (STYLE-8M-4: экран, а не модалка) |
+| 6921–6976 | Confirm Modal |
+| 6977–7402 | ⚔️ ОТРЯД & БОЙ |
+| 7403–7682 | RACIAL BONUS BAR |
+| 7683–7825 | COMPACT STATS GRID |
+| 7826–8093 | UI6-4: ЛИСТ ХАРАКТЕРИСТИК — режимы «2024» / «Классический». |
+| 8094–8146 | Режим «Классический»: регион эмулирует сетку 6/3, карточки — |
+| 8147–8197 | UI-fix: телефон (≤767px) + вид 2024 — компактные карточки в 2 колонки. |
+| 8198–8300 | COMPACT SKILLS |
+| 8301–8343 | UI5-5: МОБИЛЬНЫЕ ТАЧ-ТАРГЕТЫ (≥44px) |
+| 8344–8415 | ACCORDION |
+| 8416–8439 | CLASS RESOURCES |
+| 8440–8540 | ASI MODAL |
+| 8541–8805 | APP VERSION |
+| 8806–8815 | COMPANIONS |
+| 8816–8861 | FEATS LIST IN ASI |
+| 8862–9108 | PROFILES TABS (Чейнджлог) |
+| 9109–9187 | TAKEN FEATS |
+| 9188–9384 | SW UPDATE MODAL |
+| 9385–9432 | УНИВЕРСАЛЬНЫЕ TOAST-УВЕДОМЛЕНИЯ |
+| 9433–9605 | INVENTORY SLOTS SYSTEM |
+| 9606–9805 | HELP / ONBOARDING (HELP-1) — табовый help-центр. |
+| 9806–10077 | HELP-3 — Приветствие первого запуска (#welcome-modal) |
+| 10078–10250 | HELP-4 — Движок интерактивного тура (подсветка). |
+| 10251–10320 | 3D DICE CUBE |
+| 10321–10695 | FEAT-LOG: панель журнала сессии (выезжает справа) |
+| 10696–10778 | DESKTOP LAYOUT — centered max-width |
+| 10779–10802 | INSPIRATION |
+| 10803–10842 | CONCENTRATION |
+| 10843–11519 | WEAPON CARDS WITH ROLL BUTTONS |
+| 11520–11630 | ПОПАП РЕЖИМА БРОСКА (Преимущество / Помеха) |
+| 11631–11693 | СОПРОТИВЛЕНИЯ / ИММУНИТЕТЫ / УЯЗВИМОСТИ |
+| 11694–11720 | БОЙ ДВУМЯ ОРУЖИЯМИ (Two-Weapon Fighting) |
+| 11721–11844 | КЛАССОВЫЕ ВЫБОРЫ — карточки в asi-container |
+| 11845–11873 | R6: Ассеты (декор) |
+| 11874–12838 | 📝 Вкладка «Записи по персонажу» — фаза N2 |
+| 12839–12926 | STYLE-4b: кнопки, которым ширину давал элементный button{width:100%}. |
+| 12927–12935 | BUGFIX-6: мобильная вёрстка (≤540px) |
+| 12936–12993 | UI-13: доступ к настройкам и усиление back-кнопки |
+| 12994–13325 | UI-10. Skeleton-лоадеры + подсветка совпадений поиска |
+| 13326–13352 | UI5-6: ПОЛИРОВКА — единый фокус клавиатуры + шевроны аккордеонов |
+| 13353–13379 | Светлая тема: цветные акценты, подобранные под тёмный фон и |
+| 13380–13462 | Дымка v5: чипы состояний, мини-индикаторы, SVG-иконки |
+| 13463–14534 | STYLE-5: одна поверхность для всех карточек-контейнеров. |
+| 14535–14590 | MOTION: переходы между экранами и под-меню встречающего экрана. |
+| 14591–14683 | STYLE-8a2 · «Лист»: блок характеристик — реестр |
+| 14684–14997 | DISC-1 · Ромб раскрытия |
+| 14998–15588 | STYLE-8a2 · остальной «Лист» в языке встречающего экрана |
+| 15589–15694 | LVL-2 · Экран «Развитие» (#screen-progress) |
+| 15695–15834 | LVL-3 · Раздел «Класс и развитие» на листе и дубль ресурсов в «Бою» |
+| 15835–16069 | STYLE-8b3: список «Мои заклинания» — рецепт «Сумки» + чип действия |
+| 16070–16079 | STYLE-8b3-fix: срезанный ромб |
+| 16080–16393 | STYLE-8b3b: два оставшихся блока «Магии» |
+| 16394–16912 | STYLE-8d2 · Вкладка «Бой» в языке встречающего экрана |
+| 16913–16947 | STYLE-8M-3: ОКНА-ЭКРАНЫ, ДОЗАХОД — «Повышение уровня», «Отдых», |
+| 16948–17629 | STYLE-8M-4: ОКНА-ЭКРАНЫ, ДОЗАХОД II — «История здоровья», |
 
 ## index.html — блоки верхнего уровня (`#id:строки`)
 
@@ -246,8 +246,8 @@ getLastCharacter:22 _homeCantripCount:34 _homeHeroChips:48 _homePlural:68 _homeH
 
 ## Данные — константы верхнего уровня (`имя:строка`)
 
-**data.js** (7841 строк)  
-_ASI:7 _FEAT:8 SCHEMA_VERSION:29 DAMAGE_TYPES:32 DEFAULT_CHARACTER:39 FAMILIAR_FORMS:127 SAVES_DATA:149 CONDITIONS:158 EFFECTS_DATA:181 CLASS_FEATURES:232 SPELL_PREP_CLASSES:482 CANTRIPS_KNOWN_2014:490 SPELLS_KNOWN_2014:498 SPELL_SLOTS_BY_LEVEL:505 CLASS_HIT_DICE:580 SUBCLASSES:586 SOURCE_LABELS:606 SUBCLASS_SOURCE:633 BOOK_CODES:702 _booksOffCache:705 SUBCLASS_LEVEL:746 SUBCLASS_FEATURES:762 WEAPON_PRESETS:1554 ITEM_ICONS:1598 CATEGORY_NAMES:1599 GEAR_PACKS:1608 RACE_DATA:1703 BACKGROUND_SKILLS:2320 BACKGROUND_ALIASES:2399 DEITY_ALIGN_LABELS:2412 DEITIES_DATA:2417 LANGUAGE_CATALOG:2485 RACE_LANGUAGES:2522 CLASS_LANGUAGES:2624 TOOL_CATALOG:2630 RACE_TOOLS:2685 CLASS_TOOLS:2697 SUBCLASS_LANGUAGES:2705 SUBCLASS_TOOLS:2728 RACE_ARMOR:2750 RACE_WEAPONS_SPECIFIC:2756 CLASS_WEAPONS_SPECIFIC:2772 RACE_NAME_POOLS:2785 RACE_NAME_GROUP:2827 SUBCLASS_ARMOR:2842 ARMOR_PRESETS:2873 skills:2890 ABILITY_INFO:2903 CLASS_SKILL_OPTIONS:2943 CLASS_SKILL_COUNT:2958 CLASS_SKILL_MC_COUNT:2959 CLASS_ARMOR_PROFS:2962 CLASS_RESOURCES:2982 ASI_LEVELS:3144 XP_THRESHOLDS:3152 APP_VERSION:3162 APP_VERSION_DATE:3163 APP_TELEGRAM_URL:3169 APP_BOOSTY_URL:3170 FEATS_DATA:3191 APP_CHANGELOG:3513 CASTER_TYPE:7669 THIRD_CASTER_SUBCLASSES:7678 THIRD_CASTER_SLOTS:7685 MULTICLASS_SPELL_SLOTS:7696 MULTICLASS_PREREQUISITES:7721 MULTICLASS_PROFICIENCIES:7739 EDITION_DATA:7768
+**data.js** (7849 строк)  
+_ASI:7 _FEAT:8 SCHEMA_VERSION:29 DAMAGE_TYPES:32 DEFAULT_CHARACTER:39 FAMILIAR_FORMS:127 SAVES_DATA:149 CONDITIONS:158 EFFECTS_DATA:181 CLASS_FEATURES:232 SPELL_PREP_CLASSES:482 CANTRIPS_KNOWN_2014:490 SPELLS_KNOWN_2014:498 SPELL_SLOTS_BY_LEVEL:505 CLASS_HIT_DICE:580 SUBCLASSES:586 SOURCE_LABELS:606 SUBCLASS_SOURCE:633 BOOK_CODES:702 _booksOffCache:705 SUBCLASS_LEVEL:746 SUBCLASS_FEATURES:762 WEAPON_PRESETS:1554 ITEM_ICONS:1598 CATEGORY_NAMES:1599 GEAR_PACKS:1608 RACE_DATA:1703 BACKGROUND_SKILLS:2320 BACKGROUND_ALIASES:2399 DEITY_ALIGN_LABELS:2412 DEITIES_DATA:2417 LANGUAGE_CATALOG:2485 RACE_LANGUAGES:2522 CLASS_LANGUAGES:2624 TOOL_CATALOG:2630 RACE_TOOLS:2685 CLASS_TOOLS:2697 SUBCLASS_LANGUAGES:2705 SUBCLASS_TOOLS:2728 RACE_ARMOR:2750 RACE_WEAPONS_SPECIFIC:2756 CLASS_WEAPONS_SPECIFIC:2772 RACE_NAME_POOLS:2785 RACE_NAME_GROUP:2827 SUBCLASS_ARMOR:2842 ARMOR_PRESETS:2873 skills:2890 ABILITY_INFO:2903 CLASS_SKILL_OPTIONS:2943 CLASS_SKILL_COUNT:2958 CLASS_SKILL_MC_COUNT:2959 CLASS_ARMOR_PROFS:2962 CLASS_RESOURCES:2982 ASI_LEVELS:3144 XP_THRESHOLDS:3152 APP_VERSION:3162 APP_VERSION_DATE:3163 APP_TELEGRAM_URL:3169 APP_BOOSTY_URL:3170 FEATS_DATA:3191 APP_CHANGELOG:3513 CASTER_TYPE:7677 THIRD_CASTER_SUBCLASSES:7686 THIRD_CASTER_SLOTS:7693 MULTICLASS_SPELL_SLOTS:7704 MULTICLASS_PREREQUISITES:7729 MULTICLASS_PROFICIENCIES:7747 EDITION_DATA:7776
 
 **spells.js** (13330 строк)  
 SPELLS_BASE:7

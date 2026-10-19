@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
-<link rel="stylesheet" href="style.css?v=v538">
+<link rel="stylesheet" href="style.css?v=v539">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -568,17 +568,17 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="page-head"><h2 class="page-title">Данные</h2><button type="button" class="page-back" onclick="screenBack()">← Назад</button></div>
 <div class="page-body">
 <div class="home-utils">
-<button class="secondary" onclick="exportData()"><span data-ico="download" data-ico-size="16">💾</span> <span class="home-utils-label">Скачать копию</span></button>
-<button class="secondary" onclick="document.getElementById('import-file').click()"><span data-ico="folder" data-ico-size="16">📂</span> <span class="home-utils-label">Загрузить копию</span></button>
-<button class="secondary" onclick="document.getElementById('import-char-file').click()"><span data-ico="import" data-ico-size="16">📥</span> <span class="home-utils-label">Загрузить персонажа</span></button>
-<button class="secondary" onclick="copyCharToClipboard()" title="Открытый герой, иначе последний правленый — вставить на&nbsp;другом устройстве"><span data-ico="copy" data-ico-size="16">⧉</span> <span class="home-utils-label">Скопировать персонажа</span></button>
-<button class="secondary" onclick="pasteCharFromClipboard()" title="Добавить персонажа, скопированного на&nbsp;другом устройстве"><span data-ico="import" data-ico-size="16">📋</span> <span class="home-utils-label">Вставить из&nbsp;буфера</span></button>
-<button class="secondary" onclick="document.getElementById('spells-import').click()"><span data-ico="import" data-ico-size="16">📥</span> <span class="home-utils-label">Загрузить заклинания</span></button>
-<button class="secondary" onclick="exportSpells()"><span data-ico="upload" data-ico-size="16">📤</span> <span class="home-utils-label">Выгрузить заклинания</span></button>
-<button class="secondary" onclick="homeExportPdf(event)" title="Лист персонажа в&nbsp;PDF — печатается открытый герой, иначе последний правленый"><span data-ico="printer" data-ico-size="16">🖨</span> <span class="home-utils-label">Сохранить в&nbsp;PDF</span></button>
-<button class="secondary" onclick="openSpellCardsMenu(true)" title="Карточки заклинаний 63×88&nbsp;мм, 9 на&nbsp;листе A4 — открытый герой, иначе последний правленый"><span data-ico="printer" data-ico-size="16">🖨</span> <span class="home-utils-label">Карточки заклинаний</span></button>
-<button class="secondary" id="backup-toggle-btn" aria-expanded="false" aria-controls="backup-panel" onclick="toggleBackupPanel()"><span data-ico="archive" data-ico-size="16">🗄</span> <span class="home-utils-label">Резервные копии</span></button>
-<button class="secondary" onclick="exportSessionLog()" title="Журнал действий этой сессии в&nbsp;.txt — приложить к&nbsp;баг-репорту"><span data-ico="scroll" data-ico-size="16">🪵</span> <span class="home-utils-label">Выгрузить логи сессии</span></button>
+<button onclick="exportData()"><span data-ico="download" data-ico-size="16">💾</span> <span class="home-utils-label">Скачать копию</span></button>
+<button onclick="document.getElementById('import-file').click()"><span data-ico="folder" data-ico-size="16">📂</span> <span class="home-utils-label">Загрузить копию</span></button>
+<button onclick="document.getElementById('import-char-file').click()"><span data-ico="import" data-ico-size="16">📥</span> <span class="home-utils-label">Загрузить персонажа</span></button>
+<button onclick="copyCharToClipboard()" title="Открытый герой, иначе последний правленый — вставить на&nbsp;другом устройстве"><span data-ico="copy" data-ico-size="16">⧉</span> <span class="home-utils-label">Скопировать персонажа</span></button>
+<button onclick="pasteCharFromClipboard()" title="Добавить персонажа, скопированного на&nbsp;другом устройстве"><span data-ico="import" data-ico-size="16">📋</span> <span class="home-utils-label">Вставить из&nbsp;буфера</span></button>
+<button onclick="document.getElementById('spells-import').click()"><span data-ico="import" data-ico-size="16">📥</span> <span class="home-utils-label">Загрузить заклинания</span></button>
+<button onclick="exportSpells()"><span data-ico="upload" data-ico-size="16">📤</span> <span class="home-utils-label">Выгрузить заклинания</span></button>
+<button onclick="homeExportPdf(event)" title="Лист персонажа в&nbsp;PDF — печатается открытый герой, иначе последний правленый"><span data-ico="printer" data-ico-size="16">🖨</span> <span class="home-utils-label">Сохранить в&nbsp;PDF</span></button>
+<button onclick="openSpellCardsMenu(true)" title="Карточки заклинаний 63×88&nbsp;мм, 9 на&nbsp;листе A4 — открытый герой, иначе последний правленый"><span data-ico="printer" data-ico-size="16">🖨</span> <span class="home-utils-label">Карточки заклинаний</span></button>
+<button id="backup-toggle-btn" aria-expanded="false" aria-controls="backup-panel" onclick="toggleBackupPanel()"><span data-ico="archive" data-ico-size="16">🗄</span> <span class="home-utils-label">Резервные копии</span></button>
+<button onclick="exportSessionLog()" title="Журнал действий этой сессии в&nbsp;.txt — приложить к&nbsp;баг-репорту"><span data-ico="scroll" data-ico-size="16">🪵</span> <span class="home-utils-label">Выгрузить логи сессии</span></button>
 </div>
 <div id="sync-row" class="backup-panel-head" style="display:none"><span id="sync-status" class="backup-panel-hint"></span><span id="sync-actions"></span></div>
 <div id="storage-status" class="backup-storage-status" hidden></div>
@@ -3067,8 +3067,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <p class="hb-form-hint" id="new-spell-mech-hint">Формула — как в&nbsp;бросалке: «6к8», «2к6+3». У&nbsp;урона нужен хотя бы один кубик; лечение и&nbsp;врем. ХП принимают и&nbsp;число без&nbsp;кубиков.</p>
 </div>
-<button class="success" onclick="submitNewSpell()">Сохранить</button>
-<button class="secondary modal-close-bottom" onclick="closeAddSpellForm()">Закрыть</button>
+<button class="btn btn-success" onclick="submitNewSpell()">Сохранить</button>
+<button class="modal-close-bottom" onclick="closeAddSpellForm()">Закрыть</button>
 </div>
 </div>
 </div>
@@ -3138,8 +3138,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <label>Описание</label>
 <textarea id="new-item-desc" placeholder="Свойства, бонусы, особенности…" style="min-height:80px;"></textarea>
-<button class="success" onclick="submitItem()"><span data-ico="save" data-ico-size="16">💾</span> Сохранить</button>
-<button class="secondary modal-close-bottom" onclick="closeItemModal()">Закрыть</button>
+<button class="btn btn-success" onclick="submitItem()"><span data-ico="save" data-ico-size="16">💾</span> Сохранить</button>
+<button class="modal-close-bottom" onclick="closeItemModal()">Закрыть</button>
 </div>
 </div>
 </div>
@@ -3184,8 +3184,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <label class="coin-exch-label">Количество</label>
     <input type="number" id="exch-amount" value="1" min="1" class="coin-exch-amount" oninput="previewExchange()">
     <div class="coin-exch-preview" id="exch-preview">Введите количество</div>
-    <button class="success coin-exch-confirm" onclick="confirmExchange()"><span data-ico="check" data-ico-size="16">✓</span> Обменять</button>
-    <button class="secondary" onclick="closeCoinExchange()">Отменить</button>
+    <button class="btn btn-success coin-exch-confirm" onclick="confirmExchange()"><span data-ico="check" data-ico-size="16">✓</span> Обменять</button>
+    <button class="btn btn-secondary" onclick="closeCoinExchange()">Отменить</button>
   </div>
 </div>
 </div>
@@ -3266,7 +3266,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button type="button" class="wf-chip hidden" id="weapon-filter-hb" data-fgroup="src" data-fval="hb" onclick="toggleWeaponFilter('src','hb')"><span data-ico="home" data-ico-size="16">🏠</span> Мои</button>
 </div>
 <div class="weapon-presets" id="weapon-presets-list"></div>
-<div class="weapon-pick-bar hidden" id="weapon-pick-bar"><span>Выбрано: <b id="weapon-pick-name"></b></span><button type="button" class="success" onclick="submitWeapon()">Добавить</button></div>
+<div class="weapon-pick-bar hidden" id="weapon-pick-bar"><span>Выбрано: <b id="weapon-pick-name"></b></span><button type="button" class="btn btn-success" onclick="submitWeapon()">Добавить</button></div>
 <details class="weapon-help">
 <summary><span data-ico="help" data-ico-size="16">❓</span> Как это работает</summary>
 <div class="weapon-help-body">
@@ -3324,8 +3324,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <label class="weapon-inv-sync"><input type="checkbox" id="new-weapon-add-inv" checked> <span data-ico="inventory" data-ico-size="16">🎒</span> Добавить и&nbsp;в&nbsp;инвентарь</label>
 <label class="weapon-inv-sync" id="weapon-save-catalog-row"><input type="checkbox" id="new-weapon-save-catalog"> <span data-ico="save" data-ico-size="16">💾</span> Сохранить в&nbsp;мой каталог</label>
-<button class="success" onclick="submitWeapon()">Сохранить</button>
-<button class="secondary modal-close-bottom" onclick="closeWeaponModal()">Закрыть</button>
+<button class="btn btn-success" onclick="submitWeapon()">Сохранить</button>
+<button class="modal-close-bottom" onclick="closeWeaponModal()">Закрыть</button>
 </div>
 </div>
 </div>
@@ -3458,8 +3458,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
 
     <div class="avatar-modal-footer">
-      <button class="btn secondary" onclick="removeAvatar(event)"><span data-ico="trash" data-ico-size="16">🗑️</span> Удалить</button>
-      <button class="btn secondary" onclick="closeAvatarModal()">Закрыть</button>
+      <button class="btn btn-secondary" onclick="removeAvatar(event)"><span data-ico="trash" data-ico-size="16">🗑️</span> Удалить</button>
+      <button class="btn btn-secondary" onclick="closeAvatarModal()">Закрыть</button>
     </div>
   </div>
 </div>
@@ -3577,44 +3577,44 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v538"></script>
+<script src="app-log.js?v=v539"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v538"></script>
-<script src="bg-space.js?v=v538"></script>
-<script src="dice-arena-bg.js?v=v538"></script>
-<script src="data.js?v=v538"></script>
+<script src="icons.js?v=v539"></script>
+<script src="bg-space.js?v=v539"></script>
+<script src="dice-arena-bg.js?v=v539"></script>
+<script src="data.js?v=v539"></script>
 <!-- PERF-2/PERF-4: build-notes-data.js (~530 КБ) и character-builds.js (~200 КБ) грузятся лениво — см. ensureBuildNotes/ensureBuilds ниже -->
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v538"></script>
-<script src="spells.js?v=v538"></script>
-<script src="spell-effects.js?v=v538"></script>
+<script src="glossary-data.js?v=v539"></script>
+<script src="spells.js?v=v539"></script>
+<script src="spell-effects.js?v=v539"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v538"></script>
-<script src="app-migrate.js?v=v538"></script>
-<script src="app-builds.js?v=v538"></script>
-<script src="app-core.js?v=v538"></script>
-<script src="app-io.js?v=v538"></script>
-<script src="app-backup.js?v=v538"></script>
-<script src="app-sync.js?v=v538"></script>
-<script src="app-combat.js?v=v538"></script>
-<script src="app-conditions.js?v=v538"></script>
-<script src="app-cast-effects.js?v=v538"></script>
-<script src="app-proficiencies.js?v=v538"></script>
-<script src="app-hp.js?v=v538"></script>
-<script src="app-spells.js?v=v538"></script>
-<script src="app-inventory.js?v=v538"></script>
-<script src="start-equip-2014.js?v=v538"></script>
+<script src="rules.js?v=v539"></script>
+<script src="app-migrate.js?v=v539"></script>
+<script src="app-builds.js?v=v539"></script>
+<script src="app-core.js?v=v539"></script>
+<script src="app-io.js?v=v539"></script>
+<script src="app-backup.js?v=v539"></script>
+<script src="app-sync.js?v=v539"></script>
+<script src="app-combat.js?v=v539"></script>
+<script src="app-conditions.js?v=v539"></script>
+<script src="app-cast-effects.js?v=v539"></script>
+<script src="app-proficiencies.js?v=v539"></script>
+<script src="app-hp.js?v=v539"></script>
+<script src="app-spells.js?v=v539"></script>
+<script src="app-inventory.js?v=v539"></script>
+<script src="start-equip-2014.js?v=v539"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v538"></script>
-<script src="app-wildshape.js?v=v538"></script>
-<script src="class-choices.js?v=v538"></script>
-<script src="subclass-choices-data.js?v=v538"></script>
+<script src="app-party.js?v=v539"></script>
+<script src="app-wildshape.js?v=v539"></script>
+<script src="class-choices.js?v=v539"></script>
+<script src="subclass-choices-data.js?v=v539"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js).
      PERF-5: модуль (~200 КБ) грузится лениво — window.ensureDiceBox() из app-dice.js
      при первом действии пользователя или открытии кубиков; пока не загружен — 2D-бросок. -->
@@ -3622,7 +3622,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   var diceBoxP = null;
   window.ensureDiceBox = function () {
     if (!diceBoxP) {
-      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v538").then(function (m) {
+      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v539").then(function (m) {
         window.DiceBox = m.default;
         window.dispatchEvent(new Event("dicebox:ready"));
         return m.default;
@@ -3631,17 +3631,17 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     return diceBoxP;
   };
 </script>
-<script src="app-dice.js?v=v538"></script>
-<script src="app-settings.js?v=v538"></script>
-<script src="app-ui.js?v=v538"></script>
-<script src="app-home.js?v=v538"></script>
-<script src="app-asi.js?v=v538"></script>
-<script src="app-progress.js?v=v538"></script>
-<script src="app-notes.js?v=v538"></script>
-<script src="app-desktop.js?v=v538"></script>
-<script src="history-stack.js?v=v538"></script>
-<script src="app-help.js?v=v538"></script>
-<script src="app-sheet2.js?v=v538"></script>
+<script src="app-dice.js?v=v539"></script>
+<script src="app-settings.js?v=v539"></script>
+<script src="app-ui.js?v=v539"></script>
+<script src="app-home.js?v=v539"></script>
+<script src="app-asi.js?v=v539"></script>
+<script src="app-progress.js?v=v539"></script>
+<script src="app-notes.js?v=v539"></script>
+<script src="app-desktop.js?v=v539"></script>
+<script src="history-stack.js?v=v539"></script>
+<script src="app-help.js?v=v539"></script>
+<script src="app-sheet2.js?v=v539"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3654,9 +3654,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v538",
-    "vendor/jspdf/roboto-base64.js?v=v538",
-    "app-pdf.js?v=v538"
+    "vendor/jspdf/jspdf.umd.min.js?v=v539",
+    "vendor/jspdf/roboto-base64.js?v=v539",
+    "app-pdf.js?v=v539"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3679,50 +3679,50 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // PERF-4: сами билды нужны пикеру, гайду, плану и подсказкам левел-апа — грузим по требованию.
   window.ensureBuilds = function () {
     if (window.CHARACTER_BUILDS) return Promise.resolve();
-    return loadScript("character-builds.js?v=v538");
+    return loadScript("character-builds.js?v=v539");
   };
   // PERF-2: заметки билдов нужны только applyBuild — грузим по требованию.
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v538").then(function () {
+    return loadScript("build-notes-data.js?v=v539").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
   // NGEN-2: пулы генератора «Записей» нужны только кнопке «Сгенерировать».
   window.ensureNotesGen = function () {
     if (window.NOTES_GEN) return Promise.resolve();
-    return loadScript("notes-gen-data.js?v=v538");
+    return loadScript("notes-gen-data.js?v=v539");
   };
   // PERF-3: бестиарий SRD нужен только пикерам вкладки отряда — грузим по требованию.
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v538"),
-      loadScript("npc-srd.js?v=v538")
+      loadScript("monsters-srd.js?v=v539"),
+      loadScript("npc-srd.js?v=v539")
     ]);
   };
   // РОСТ-5: звери для Дикого облика и «Превращения» — грузим по требованию.
   window.ensureBeastForms = function () {
     if (window.BEAST_FORMS) return Promise.resolve();
-    return loadScript("beast-forms.js?v=v538");
+    return loadScript("beast-forms.js?v=v539");
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v538");
+    return loadScript("magic-items.js?v=v539");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v538");
+    return loadScript("gear-catalog.js?v=v539");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v538").then(function () {
+    return loadScript("data-2024.js?v=v539").then(function () {
       window.__edition2024Loaded = true;
     });
   };
@@ -3797,7 +3797,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
     <div class="notes-modal-footer">
       <button type="button" class="btn-secondary" onclick="notesCloseEntryModal()">Отменить</button>
-      <button type="button" class="btn-primary" onclick="notesSaveEntryModal()">Сохранить</button>
+      <button type="button" class="btn btn-primary" onclick="notesSaveEntryModal()">Сохранить</button>
     </div>
   </div>
 </div>
