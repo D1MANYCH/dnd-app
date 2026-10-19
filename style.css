@@ -956,6 +956,9 @@ html.glass-adjusting *::after {
 /* Ромб строки красится цветом класса: --home-accent ставит renderCharacterList
    на саму строку, как renderHomeHero делает для плашки. */
 .char-menu-row .home-menu-item { cursor: pointer; }
+/* PLAY2-9 (PT-198): герой в плашке — рельса и залитый ромб, наведение — сдвиг и подчёркивание. */
+.char-menu-row .home-menu-item.is-plate { border-left-color: var(--home-accent); }
+.char-menu-row .home-menu-item.is-plate .home-bullet { background: var(--home-accent); }
 .char-ed-group {
   padding: var(--sp-3) var(--sp-3) var(--sp-1);
   font-size: var(--fs-sm);
@@ -3891,7 +3894,7 @@ transition: width var(--t2) var(--ez-out);
 .backup-info { flex: 1; min-width: 0; }
 .backup-when { font-family: var(--font-display); font-size: var(--fs-sm); color: var(--text); }
 .backup-meta { font-size: var(--fs-sm); color: var(--home-sub); }
-/* Действие строки проявляется на наведении и с клавиатуры — как ✎/🗑 в «Записях». */
+/* PLAY2-9 (PT-194): действие видно всегда — на тачскрине наведения нет. */
 .backup-restore-btn {
   flex: 0 0 auto;
   width: auto;
@@ -3904,13 +3907,13 @@ transition: width var(--t2) var(--ez-out);
   color: var(--accent-lo);
   font-family: var(--font-display);
   font-size: var(--fs-sm);
-  opacity: 0.4;
   cursor: pointer;
-  transition: opacity var(--t1) var(--ez-out), color var(--t1) var(--ez-out);
+  transition: color var(--t1) var(--ez-out);
 }
-.backup-item:hover .backup-restore-btn,
-.backup-item:focus-within .backup-restore-btn { opacity: 1; }
-.backup-restore-btn:hover { background: none; color: var(--accent); opacity: 1; }
+.backup-restore-btn:hover { background: none; color: var(--accent); }
+/* PLAY2-9 (PT-187): раскрытая панель отмечена на кнопке. */
+#backup-toggle-btn[aria-expanded="true"] { color: var(--accent); }
+#confirm-modal-text { white-space: pre-line; }
 
 /* STYLE-8M-2: правило заголовков #data-modal h4 / #about-modal h4 удалено —
    окна стали экранами, заголовок несёт .page-title. */
@@ -12872,11 +12875,6 @@ select.bp-select { padding-right: var(--sp-4); }
 .bp-card-title { font-family: var(--font-display); font-size: var(--fs-md); font-weight: var(--fw-bold); color: var(--text); }
 /* Роль — значение справа строки, без пилюли; цвет остаётся кодировкой. */
 .bp-role-badge { flex-shrink: 0; font-family: var(--font-display); font-size: var(--fs-12); color: var(--home-sub); }
-.bp-role-DPS { color: var(--danger); }
-.bp-role-Tank { color: var(--info); }
-.bp-role-Control { color: var(--magic); }
-.bp-role-Support { color: var(--success); }
-.bp-role-Utility { color: var(--slot-gold); }
 .bp-card-sub { font-size: var(--fs-sm); color: var(--accent-lo); margin-bottom: var(--sp-1); }
 .bp-card-summary { font-size: var(--fs-sm); color: var(--home-sub); margin-bottom: var(--sp-2); line-height:1.4; }
 /* BUILD-DESC-2: мини-гайд (pitch + плюсы/минусы) — тоже без коробки. */

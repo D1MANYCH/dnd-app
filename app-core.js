@@ -1205,6 +1205,7 @@ li.style.setProperty("--home-accent", getClassColor(char.class));
 var btn = document.createElement("button");
 btn.type = "button";
 btn.className = "home-menu-item";
+btn.setAttribute("data-char-id", char.id);
 btn.onclick = function() { loadCharacter(char.id); };
 // Плашка следует за курсором и фокусом — на клавиатуре список читается так же.
 btn.addEventListener("mouseenter", function() { renderCharPlate(char); });
@@ -1231,6 +1232,10 @@ var hero = $("char-hero");
 if (!hero) return;
 if (char && _charPlateId === char.id) return;
 _charPlateId = char ? char.id : null;
+var _rows = document.querySelectorAll("#character-list .home-menu-item[data-char-id]");
+for (var _ri = 0; _ri < _rows.length; _ri++) {
+  _rows[_ri].classList.toggle("is-plate", _rows[_ri].getAttribute("data-char-id") === String(_charPlateId));
+}
 var emblem = $("char-hero-emblem");
 var capEl = $("char-hero-cap");
 var nameEl = $("char-hero-name");

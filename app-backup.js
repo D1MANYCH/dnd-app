@@ -167,9 +167,13 @@ function _backupFmtDate(ts) {
 function toggleBackupPanel() {
   var panel = $("backup-panel");
   if (!panel) return;
-  if (!panel.hidden) { panel.hidden = true; return; }
-  panel.hidden = false;
+  var tbtn = $("backup-toggle-btn");
+  panel.hidden = !panel.hidden;
+  if (tbtn) tbtn.setAttribute("aria-expanded", panel.hidden ? "false" : "true");
+  if (panel.hidden) return;
   renderBackupList();
+  // PLAY2-9 (PT-187): панель под сеткой кнопок — подтягиваем её в вид.
+  if (panel.scrollIntoView) panel.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
 
 function renderBackupList() {

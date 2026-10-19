@@ -366,7 +366,7 @@ function showWhatsNewModal(prevVer, newVer) {
   // а не эмодзи с хардкод-цветом — иначе на светлой теме половина не читалась.
   var typeVar = { feat:'var(--success)', fix:'var(--danger)', improve:'var(--info)', data:'var(--accent)', chore:'var(--text-mute)' };
   var changesList = latest ? latest.changes.map(function(c) {
-    return '<div class="sw-change-item"><span class="home-bullet home-bullet--sm sw-change-dia" style="--home-accent:' + (typeVar[c.type] || 'var(--text-mute)') + '" aria-hidden="true"></span><span class="sw-change-text">' + escapeHtml(c.text) + '</span></div>';
+    return '<div class="sw-change-item"><span class="home-bullet home-bullet--sm sw-change-dia" style="--home-accent:' + (typeVar[c.type] || 'var(--text-mute)') + '" aria-hidden="true"></span><span class="sw-change-text">' + escapeHtml(clCleanText(c.text)) + '</span></div>';
   }).join('') : '<div class="sw-change-item"><span class="sw-change-text">Улучшения и\u00a0исправления</span></div>';
   var modal = document.createElement('div');
   modal.id = 'sw-update-modal';
@@ -1180,6 +1180,18 @@ function expandChangelogItem(btn) {
   wrap.textContent = btn.getAttribute("data-full") || wrap.textContent;
 }
 
+// PLAY2-9 (PT-197): внутренние коды фаз («PLAY-5», «РОСТ-17») и префиксы
+// коммитов «fix(бой):» в окнах истории и обновления не показываем.
+var _CL_CODE = "[A-ZА-ЯЁ]{2,}\\d?-\\d+[a-zа-яё0-9-]*(?:/[A-Za-zА-Яа-яЁё0-9-]+)*";
+var _CL_RE_PREFIX = /^(?:feat|fix|chore|improve)(?:\([^)]*\))?:\s*/;
+var _CL_RE_PAREN = new RegExp("\\s*\\(" + _CL_CODE + "[^()]*\\)", "g");
+var _CL_RE_CODE = new RegExp("(^|[^A-Za-zА-Яа-яЁё0-9])" + _CL_CODE + "(?:[,;]\\s*" + _CL_CODE + ")*\\s*(?:[:—–]\\s*)?", "g");
+function clCleanText(text) {
+  var t = String(text).replace(_CL_RE_PREFIX, "").replace(_CL_RE_PAREN, "").replace(_CL_RE_CODE, "$1");
+  t = t.replace(/\s{2,}/g, " ").replace(/\s+([,.;:)])/g, "$1").trim();
+  return t ? t.charAt(0).toUpperCase() + t.slice(1) : String(text);
+}
+
 function renderChangelog() {
   var list = $("changelog-list");
   if (!list || typeof APP_CHANGELOG === "undefined") return;
@@ -1193,7 +1205,7 @@ function renderChangelog() {
     var items = ver.changes.map(function(c) {
       var icon  = typeIcon[c.type]  || "•";
       var color = typeColor[c.type] || "#9a9ab0";
-      var text  = String(c.text);
+      var text  = clCleanText(c.text);
       var short = clipChangelogText(text);
       var body  = short
         ? escapeHtml(short) + ' <button type="button" class="cl-more" data-full="' + escapeHtml(text) + '" onclick="expandChangelogItem(this)">ещё</button>'

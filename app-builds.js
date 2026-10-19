@@ -48,6 +48,9 @@ function setBuildEdition(ed) {
 }
 
 var BP_DIFF_LABELS = { 1:"новичку", 2:"среднее", 3:"сложное" };
+// PLAY2-9 (PT-191/199): роль в данных — английский код, на экран — русская подпись.
+var BP_ROLE_LABELS = { DPS:"Урон", Tank:"Защитник", Support:"Поддержка", Control:"Контроль", Utility:"Универсал" };
+function bpRoleLabel(role) { return BP_ROLE_LABELS[role] || role || ""; }
 // UX-4: расшифровка точек сложности для легенды в гайде билда.
 var BP_DIFF_DESC = {
   1: "простое управление, почти нет ресурсов для\u00a0учёта",
@@ -114,10 +117,10 @@ function renderBuildPicker() {
     return (
       // STYLE-8M-2b: строка меню, а не карточка. Класс кодирует ромб — цвет
       // отдаём строке переменной, как renderCharacterList на экране выбора.
-      '<div class="bp-card" tabindex="0" role="button" style="--home-accent:' + clsColor + '" aria-label="' + escapeHtml(b.title) + '" onclick="applyBuild(\'' + b.id + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();applyBuild(\'' + b.id + '\')}">' +
+      '<div class="bp-card" tabindex="0" role="button" style="--home-accent:' + clsColor + '" aria-label="' + escapeHtml(b.title) + '" onclick="confirmApplyBuild(\'' + b.id + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();confirmApplyBuild(\'' + b.id + '\')}">' +
         '<div class="bp-card-head">' +
           '<span class="bp-card-title">' + highlightMatch(b.title, q) + '</span>' +
-          '<span class="bp-role-badge bp-role-' + escapeHtml(b.role || "") + '">' + escapeHtml(b.role || "") + '</span>' +
+          '<span class="bp-role-badge">' + escapeHtml(bpRoleLabel(b.role)) + '</span>' +
         '</div>' +
         '<div class="bp-card-sub">' + highlightMatch(b.className, q) + (b.subclass ? ' · ' + highlightMatch(b.subclass, q) : '') + '</div>' +
         '<div class="bp-card-summary">' + highlightMatch(b.summary || "", q) + '</div>' +
@@ -143,7 +146,7 @@ function renderBuildBadge() {
   if (!b) { wrap.style.display = "none"; return; }
   // BUILD-DESC-3: badge — кнопка, открывает гайд.
   badge.textContent = "Билд: " + b.title;
-  badge.title = (b.guide ? "Открыть гайд: " : "") + (b.summary || "") + (b.role ? "  [" + b.role + "]" : "");
+  badge.title = (b.guide ? "Открыть гайд: " : "") + (b.summary || "") + (b.role ? "  [" + bpRoleLabel(b.role) + "]" : "");
   wrap.style.display = "";
 }
 
@@ -377,6 +380,17 @@ function placeStartingItem(newChar, rawName) {
   // 6. Прочее — пачка (qty>1) → slots:0, в рюкзаке.
   var qty2 = _parseQty(name);
   newChar.inventory.other.push({ name: name.replace(/^\d+\s+/, "").replace(/\s*\(\d+\)/, ""), qty: qty2, weight: 0, slots: (qty2 > 1 ? 0 : undefined), location: "backpack", desc: "" });
+}
+
+// PLAY2-9 (PT-196): клик по карточке не создаёт персонажа сразу — сначала сводка и подтверждение.
+function confirmApplyBuild(buildId) {
+  var b = window.getBuildById && window.getBuildById(buildId);
+  if (!b || typeof showConfirmModal !== "function") return applyBuild(buildId);
+  var parts = [b.className + (b.subclass ? " · " + b.subclass : ""), b.race, b.background].filter(Boolean);
+  var text = parts.join(" · ") + (b.summary ? "\n" + b.summary : "") + "\nБудет создан новый персонаж.";
+  var opts = { danger: false, icon: "user" };
+  if (b.guide) { opts.altLabel = "Гайд"; opts.onAlt = function () { openBuildGuide(buildId); }; }
+  showConfirmModal("Создать персонажа по билду «" + b.title + "»?", text, function () { applyBuild(buildId); }, "Создать", opts);
 }
 
 function applyBuild(buildId) {
@@ -936,7 +950,7 @@ function _applyBuildCore(buildId) {
   if (!_NS.backstory)   _NS.backstory   = (_bn && _pick(_bn.backstories)) || "";
   // BUILD-FIX-4: описание билда и план первых уровней — запись журнала, а не предыстория.
   var _bsLines = [];
-  if (b.role || b.difficulty) _bsLines.push((b.role || "") + (b.difficulty ? (b.role ? " · " : "") + "сложность " + b.difficulty + "/3" : ""));
+  if (b.role || b.difficulty) _bsLines.push(bpRoleLabel(b.role) + (b.difficulty ? (b.role ? " · " : "") + "сложность " + b.difficulty + "/3" : ""));
   if (b.summary) _bsLines.push(b.summary);
   if (b.levelUp) {
     var _plan = [];
@@ -1169,7 +1183,7 @@ function openBuildGuide(buildId) {
   }
   var html = "";
   html += '<div class="bg-meta"><span class="bg-cls">' + escapeHtml(b.className || "") + (b.subclass ? ' · ' + escapeHtml(b.subclass) : '') + '</span>';
-  if (b.role) html += '<span class="bg-role">' + escapeHtml(b.role) + '</span>';
+  if (b.role) html += '<span class="bg-role">' + escapeHtml(bpRoleLabel(b.role)) + '</span>';
   html += '</div>';
   // UX-4: легенда сложности — расшифровка точек из карточки билда.
   var _diff = b.difficulty || 1;
@@ -1640,7 +1654,7 @@ function openBuildPlan(buildId) {
     bodyEl.innerHTML =
       '<div class="bp-plan-meta">' + escapeHtml(b.className || "") +
       (b.subclass ? ' · ' + escapeHtml(b.subclass) + (typeof subclassSourceShort === "function" && subclassSourceShort(b.subclass) ? ' (' + escapeHtml(subclassSourceShort(b.subclass)) + ')' : '') : '') +
-      (b.role ? ' · ' + escapeHtml(b.role) : '') +
+      (b.role ? ' · ' + escapeHtml(bpRoleLabel(b.role)) : '') +
       (curLevel ? ' · текущий уровень: ' + curLevel : '') + '</div>' +
       rows.join("");
   }
