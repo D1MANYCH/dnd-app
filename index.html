@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
-<link rel="stylesheet" href="style.css?v=v540">
+<link rel="stylesheet" href="style.css?v=v541">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -144,10 +144,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <h3 class="books-group-title settings-group-title">Вид</h3>
     <div class="theme-picker-row">
       <span class="theme-picker-label"><span data-ico="palette" data-ico-size="16">🎨</span> Тема</span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Тема оформления">
-        <button type="button" class="theme-picker-btn" data-theme-btn="dark" onclick="setTheme('dark')"><span data-ico="moon" data-ico-size="16">🌙</span> Тёмная</button>
-        <button type="button" class="theme-picker-btn" data-theme-btn="light" onclick="setTheme('light')"><span data-ico="sun" data-ico-size="16">☀️</span> Светлая</button>
-        <button type="button" class="theme-picker-btn" data-theme-btn="auto" onclick="setTheme('auto')"><span data-ico="monitor" data-ico-size="16">🖥️</span> Авто</button>
+      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Тема оформления">
+        <button type="button" class="theme-picker-btn seg" data-theme-btn="dark" onclick="setTheme('dark')"><span data-ico="moon" data-ico-size="16">🌙</span> Тёмная</button>
+        <button type="button" class="theme-picker-btn seg" data-theme-btn="light" onclick="setTheme('light')"><span data-ico="sun" data-ico-size="16">☀️</span> Светлая</button>
+        <button type="button" class="theme-picker-btn seg" data-theme-btn="auto" onclick="setTheme('auto')"><span data-ico="monitor" data-ico-size="16">🖥️</span> Авто</button>
       </div>
     </div>
     <div class="theme-picker-row">
@@ -169,24 +169,24 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
     <div class="theme-picker-row">
       <span class="theme-picker-label"><span data-ico="layers" data-ico-size="16">📐</span> Плотность</span>
-      <div class="theme-picker-btns density-picker-btns" role="radiogroup" aria-label="Плотность интерфейса">
-        <button type="button" class="theme-picker-btn" data-density-btn="compact"  onclick="setDensity('compact')"  title="Компактно — мельче отступы и&nbsp;шрифт">Компактно</button>
-        <button type="button" class="theme-picker-btn" data-density-btn="standard" onclick="setDensity('standard')" title="Стандартные размеры">Стандарт</button>
-        <button type="button" class="theme-picker-btn" data-density-btn="cozy"     onclick="setDensity('cozy')"     title="Просторно — крупнее отступы и&nbsp;шрифт">Просторно</button>
+      <div class="theme-picker-btns density-picker-btns seg-group" role="radiogroup" aria-label="Плотность интерфейса">
+        <button type="button" class="theme-picker-btn seg" data-density-btn="compact"  onclick="setDensity('compact')"  title="Компактно — мельче отступы и&nbsp;шрифт">Компактно</button>
+        <button type="button" class="theme-picker-btn seg" data-density-btn="standard" onclick="setDensity('standard')" title="Стандартные размеры">Стандарт</button>
+        <button type="button" class="theme-picker-btn seg" data-density-btn="cozy"     onclick="setDensity('cozy')"     title="Просторно — крупнее отступы и&nbsp;шрифт">Просторно</button>
       </div>
     </div>
     <div class="theme-picker-row">
       <span class="theme-picker-label"><span data-ico="sheet" data-ico-size="16">📋</span> Лист характеристик</span>
-      <div class="theme-picker-btns stats-layout-picker-btns" role="radiogroup" aria-label="Раскладка листа характеристик">
-        <button type="button" class="theme-picker-btn" data-stats-layout-btn="2024"    onclick="setStatsLayout('2024')"    title="Спасброски и&nbsp;навыки сгруппированы внутри карточек характеристик (вид листа 2024)">2024</button>
-        <button type="button" class="theme-picker-btn" data-stats-layout-btn="classic" onclick="setStatsLayout('classic')" title="Классический вид: характеристики, спасброски и&nbsp;навыки отдельными блоками">Классический</button>
+      <div class="theme-picker-btns stats-layout-picker-btns seg-group" role="radiogroup" aria-label="Раскладка листа характеристик">
+        <button type="button" class="theme-picker-btn seg" data-stats-layout-btn="2024"    onclick="setStatsLayout('2024')"    title="Спасброски и&nbsp;навыки сгруппированы внутри карточек характеристик (вид листа 2024)">2024</button>
+        <button type="button" class="theme-picker-btn seg" data-stats-layout-btn="classic" onclick="setStatsLayout('classic')" title="Классический вид: характеристики, спасброски и&nbsp;навыки отдельными блоками">Классический</button>
       </div>
     </div>
     <div class="theme-picker-row">
       <span class="theme-picker-label"><span data-ico="sheet" data-ico-size="16">📋</span> Новый лист (демо)<small class="sheet2-demo-note">В&nbsp;разработке — пользуйтесь на&nbsp;свой страх и&nbsp;риск. Страница перезагрузится.</small></span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Новый лист (демо)">
-        <button type="button" class="theme-picker-btn" data-sheet2-btn="1" onclick="setSheet2Demo(true)">Вкл</button>
-        <button type="button" class="theme-picker-btn" data-sheet2-btn="0" onclick="setSheet2Demo(false)">Выкл</button>
+      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Новый лист (демо)">
+        <button type="button" class="theme-picker-btn seg" data-sheet2-btn="1" onclick="setSheet2Demo(true)">Вкл</button>
+        <button type="button" class="theme-picker-btn seg" data-sheet2-btn="0" onclick="setSheet2Demo(false)">Выкл</button>
       </div>
     </div>
     <div class="theme-picker-row">
@@ -225,51 +225,51 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <!-- Дымка v5: режим космос-фона -->
     <div class="theme-picker-row">
       <span class="theme-picker-label"><span data-ico="atom" data-ico-size="16">🌌</span> Космос на&nbsp;фоне</span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Космический фон">
-        <button type="button" class="theme-picker-btn" data-space-btn="off"    onclick="setSpaceMode('off')"    title="Полностью убрать анимированный фон">Выкл</button>
-        <button type="button" class="theme-picker-btn" data-space-btn="calm"   onclick="setSpaceMode('calm')"   title="Меньше звёзд и&nbsp;орбит, без&nbsp;комет">Тихий</button>
-        <button type="button" class="theme-picker-btn" data-space-btn="lively" onclick="setSpaceMode('lively')" title="Полная сцена: планеты, кометы, падающие звёзды">Живой</button>
+      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Космический фон">
+        <button type="button" class="theme-picker-btn seg" data-space-btn="off"    onclick="setSpaceMode('off')"    title="Полностью убрать анимированный фон">Выкл</button>
+        <button type="button" class="theme-picker-btn seg" data-space-btn="calm"   onclick="setSpaceMode('calm')"   title="Меньше звёзд и&nbsp;орбит, без&nbsp;комет">Тихий</button>
+        <button type="button" class="theme-picker-btn seg" data-space-btn="lively" onclick="setSpaceMode('lively')" title="Полная сцена: планеты, кометы, падающие звёзды">Живой</button>
       </div>
     </div>
     <!-- MOB-1: шапка прячется при прокрутке вниз (только мобильная ширина; ключ dnd_header_autohide) -->
     <div class="theme-picker-row" id="header-autohide-row">
       <span class="theme-picker-label"><span data-ico="menu" data-ico-size="16">☰</span> Шапка уезжает при&nbsp;прокрутке</span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Шапка уезжает при&nbsp;прокрутке">
-        <button type="button" class="theme-picker-btn" data-header-autohide-btn="on"  onclick="setHeaderAutohide(true)"  title="При&nbsp;прокрутке вниз шапка уходит вверх, при&nbsp;прокрутке вверх возвращается">Вкл</button>
-        <button type="button" class="theme-picker-btn" data-header-autohide-btn="off" onclick="setHeaderAutohide(false)" title="Шапка всегда на&nbsp;месте">Выкл</button>
+      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Шапка уезжает при&nbsp;прокрутке">
+        <button type="button" class="theme-picker-btn seg" data-header-autohide-btn="on"  onclick="setHeaderAutohide(true)"  title="При&nbsp;прокрутке вниз шапка уходит вверх, при&nbsp;прокрутке вверх возвращается">Вкл</button>
+        <button type="button" class="theme-picker-btn seg" data-header-autohide-btn="off" onclick="setHeaderAutohide(false)" title="Шапка всегда на&nbsp;месте">Выкл</button>
       </div>
     </div>
     <h3 class="books-group-title settings-group-title">Игра</h3>
     <!-- ЗАМОК-1: замок листа после создания персонажа -->
     <div class="theme-picker-row">
       <span class="theme-picker-label"><span data-ico="lock" data-ico-size="16">🔒</span> Замок листа</span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Замок листа после создания персонажа">
-        <button type="button" class="theme-picker-btn" data-sheet-lock-btn="on"  onclick="setSheetLock(true)"  title="После «Персонаж готов» характеристики, владения, максимум хитов, заклинания, черты и&nbsp;параметры предметов закрыты до&nbsp;повышения уровня или&nbsp;кнопки «Изменить»">Вкл</button>
-        <button type="button" class="theme-picker-btn" data-sheet-lock-btn="off" onclick="setSheetLock(false)" title="Лист редактируется всегда, замок скрыт">Выкл</button>
+      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Замок листа после создания персонажа">
+        <button type="button" class="theme-picker-btn seg" data-sheet-lock-btn="on"  onclick="setSheetLock(true)"  title="После «Персонаж готов» характеристики, владения, максимум хитов, заклинания, черты и&nbsp;параметры предметов закрыты до&nbsp;повышения уровня или&nbsp;кнопки «Изменить»">Вкл</button>
+        <button type="button" class="theme-picker-btn seg" data-sheet-lock-btn="off" onclick="setSheetLock(false)" title="Лист редактируется всегда, замок скрыт">Выкл</button>
       </div>
     </div>
     <!-- PLAY-1: экран не гаснет за столом; строку скрывает _syncWakeLockButtons, если нет Wake Lock API -->
     <div class="theme-picker-row" id="wake-lock-row" hidden>
       <span class="theme-picker-label"><span data-ico="sun" data-ico-size="16">☀️</span> Не&nbsp;гасить экран</span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Не&nbsp;гасить экран, пока приложение открыто">
-        <button type="button" class="theme-picker-btn" data-wake-lock-btn="on"  onclick="setWakeLock(true)"  title="Экран не&nbsp;гаснет, пока приложение открыто">Вкл</button>
-        <button type="button" class="theme-picker-btn" data-wake-lock-btn="off" onclick="setWakeLock(false)" title="Экран гаснет по&nbsp;настройкам устройства">Выкл</button>
+      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Не&nbsp;гасить экран, пока приложение открыто">
+        <button type="button" class="theme-picker-btn seg" data-wake-lock-btn="on"  onclick="setWakeLock(true)"  title="Экран не&nbsp;гаснет, пока приложение открыто">Вкл</button>
+        <button type="button" class="theme-picker-btn seg" data-wake-lock-btn="off" onclick="setWakeLock(false)" title="Экран гаснет по&nbsp;настройкам устройства">Выкл</button>
       </div>
     </div>
     <!-- PLAY-2: после броска атаки оружием сразу бросается урон -->
     <div class="theme-picker-row">
       <span class="theme-picker-label"><span data-ico="combat" data-ico-size="16">⚔️</span> Атака и&nbsp;урон одним нажатием</span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Атака и&nbsp;урон одним нажатием">
-        <button type="button" class="theme-picker-btn" data-attack-damage-btn="on"  onclick="setAttackDamage(true)"  title="После броска атаки оружием сразу бросается урон; при&nbsp;естественной 1 урона нет, при&nbsp;естественной 20 кости урона удваиваются">Вкл</button>
-        <button type="button" class="theme-picker-btn" data-attack-damage-btn="off" onclick="setAttackDamage(false)" title="Урон бросается отдельной кнопкой">Выкл</button>
+      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Атака и&nbsp;урон одним нажатием">
+        <button type="button" class="theme-picker-btn seg" data-attack-damage-btn="on"  onclick="setAttackDamage(true)"  title="После броска атаки оружием сразу бросается урон; при&nbsp;естественной 1 урона нет, при&nbsp;естественной 20 кости урона удваиваются">Вкл</button>
+        <button type="button" class="theme-picker-btn seg" data-attack-damage-btn="off" onclick="setAttackDamage(false)" title="Урон бросается отдельной кнопкой">Выкл</button>
       </div>
     </div>
     <!-- MOB-5 Н4: игра по вехам — поле «Опыт» скрыто (ключ dnd_track_xp) -->
     <div class="theme-picker-row">
       <span class="theme-picker-label"><span data-ico="trend" data-ico-size="16">📈</span> Вести опыт</span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Вести опыт">
-        <button type="button" class="theme-picker-btn" data-track-xp-btn="on"  onclick="setTrackXp(true)"  title="Поле «Опыт» на&nbsp;листе и&nbsp;строка до&nbsp;следующего уровня в&nbsp;«Развитии»">Вкл</button>
-        <button type="button" class="theme-picker-btn" data-track-xp-btn="off" onclick="setTrackXp(false)" title="Уровни по&nbsp;вехам: поле «Опыт» скрыто">Выкл</button>
+      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Вести опыт">
+        <button type="button" class="theme-picker-btn seg" data-track-xp-btn="on"  onclick="setTrackXp(true)"  title="Поле «Опыт» на&nbsp;листе и&nbsp;строка до&nbsp;следующего уровня в&nbsp;«Развитии»">Вкл</button>
+        <button type="button" class="theme-picker-btn seg" data-track-xp-btn="off" onclick="setTrackXp(false)" title="Уровни по&nbsp;вехам: поле «Опыт» скрыто">Выкл</button>
       </div>
     </div>
     <!-- HELP-3: перезапуск онбординга -->
@@ -282,24 +282,24 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
          это настройка, ей место рядом с темой и плотностью. -->
     <div class="theme-picker-row" id="edition-row">
       <span class="theme-picker-label"><span data-ico="book" data-ico-size="16">📖</span> Редакция</span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Редакция правил">
-        <button type="button" id="edition-btn-2014" class="theme-picker-btn active" onclick="setEdition('2014')">2014</button>
-        <button type="button" id="edition-btn-2024" class="theme-picker-btn" onclick="setEdition('2024')">2024</button>
+      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Редакция правил">
+        <button type="button" id="edition-btn-2014" class="theme-picker-btn active seg" onclick="setEdition('2014')">2014</button>
+        <button type="button" id="edition-btn-2024" class="theme-picker-btn seg" onclick="setEdition('2024')">2024</button>
       </div>
     </div>
     <!-- ED-1: редакции не видят друг друга в гримуаре и пикере билдов -->
     <div class="theme-picker-row">
       <span class="theme-picker-label"><span data-ico="book" data-ico-size="16">📖</span> Разделять редакции</span>
-      <div class="theme-picker-btns" role="radiogroup" aria-label="Разделять редакции 2014 и&nbsp;2024">
-        <button type="button" class="theme-picker-btn" data-edition-split-btn="on"  onclick="setEditionSplit(true)"  title="В&nbsp;гримуаре — только заклинания редакции персонажа, в&nbsp;готовых билдах — только редакция по&nbsp;умолчанию">Вкл</button>
-        <button type="button" class="theme-picker-btn" data-edition-split-btn="off" onclick="setEditionSplit(false)" title="Заклинания и&nbsp;билды обеих редакций доступны через переключатели">Выкл</button>
+      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Разделять редакции 2014 и&nbsp;2024">
+        <button type="button" class="theme-picker-btn seg" data-edition-split-btn="on"  onclick="setEditionSplit(true)"  title="В&nbsp;гримуаре — только заклинания редакции персонажа, в&nbsp;готовых билдах — только редакция по&nbsp;умолчанию">Вкл</button>
+        <button type="button" class="theme-picker-btn seg" data-edition-split-btn="off" onclick="setEditionSplit(false)" title="Заклинания и&nbsp;билды обеих редакций доступны через переключатели">Выкл</button>
       </div>
     </div>
     <!-- DOP-3: книги и дополнения — глобально, пересекаются с «Дополнениями» персонажа -->
     <div class="theme-picker-row theme-picker-row--link" onclick="openBooksScreen()">
       <span class="theme-picker-label"><span data-ico="book" data-ico-size="16">📖</span> Книги и&nbsp;дополнения</span>
-      <div class="theme-picker-btns">
-        <button type="button" class="theme-picker-btn" id="books-summary-btn" onclick="event.stopPropagation();openBooksScreen()" title="Какие книги доступны при&nbsp;создании персонажей: расы, подклассы, предыстории">Выбрать</button>
+      <div class="theme-picker-btns seg-group">
+        <button type="button" class="theme-picker-btn seg" id="books-summary-btn" onclick="event.stopPropagation();openBooksScreen()" title="Какие книги доступны при&nbsp;создании персонажей: расы, подклассы, предыстории">Выбрать</button>
       </div>
     </div>
     <!-- INST-1: установка PWA; строку показывает _syncInstallUi (app-settings.js) -->
@@ -521,10 +521,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div class="char-sort-row">
 <span class="char-sort-label">Сортировка:</span>
-<button id="sort-btn-updated" class="sort-btn active" onclick="setCharSort('updated')">Изменён</button>
-<button id="sort-btn-name" class="sort-btn" onclick="setCharSort('name')">Имя</button>
-<button id="sort-btn-level" class="sort-btn" onclick="setCharSort('level')">Уровень</button>
-<button id="sort-btn-class" class="sort-btn" onclick="setCharSort('class')">Класс</button>
+<span class="seg-group"><button id="sort-btn-updated" class="sort-btn active seg" onclick="setCharSort('updated')">Изменён</button>
+<button id="sort-btn-name" class="sort-btn seg" onclick="setCharSort('name')">Имя</button>
+<button id="sort-btn-level" class="sort-btn seg" onclick="setCharSort('level')">Уровень</button>
+<button id="sort-btn-class" class="sort-btn seg" onclick="setCharSort('class')">Класс</button></span>
 </div>
 </div>
 <ul id="character-list" class="home-menu-list"></ul>
@@ -651,9 +651,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
   <div class="theme-picker-row cw-edition-row" id="cw-edition-row">
     <span class="theme-picker-label">Редакция правил</span>
-    <div class="theme-picker-btns" role="radiogroup" aria-label="Редакция правил персонажа">
-      <button type="button" id="cw-ed-2014" class="theme-picker-btn" role="radio" onclick="setDraftEdition('2014')">2014</button>
-      <button type="button" id="cw-ed-2024" class="theme-picker-btn" role="radio" onclick="setDraftEdition('2024')">2024</button>
+    <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Редакция правил персонажа">
+      <button type="button" id="cw-ed-2014" class="theme-picker-btn seg" role="radio" onclick="setDraftEdition('2014')">2014</button>
+      <button type="button" id="cw-ed-2024" class="theme-picker-btn seg" role="radio" onclick="setDraftEdition('2024')">2024</button>
     </div>
   </div>
   <button type="button" class="hp-act cw-abilgen-btn" onclick="openAbilGen()">Характеристики<span class="cw-long">: покупка очков · набор · 4к6</span> →</button>
@@ -1405,16 +1405,16 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <p class="spells-noncaster-note" id="spells-noncaster-note" hidden>У&nbsp;вашего класса нет заклинаний. Здесь появятся заклинания от&nbsp;расы, черт и&nbsp;магических предметов. <button type="button" class="hp-act" onclick="showSpellCasterCards()">Выбрать заклинательную характеристику</button></p>
 <div class="card" id="spell-stat-card">
 <h3>Заклинательная характеристика</h3>
-<div class="sc-stat-selector">
-  <button class="sc-stat-btn" id="sc-btn-int" onclick="setSpellStat('ИНТ')">
+<div class="sc-stat-selector seg-group">
+  <button class="sc-stat-btn seg" id="sc-btn-int" onclick="setSpellStat('ИНТ')">
     <span class="sc-stat-abbr">ИНТ</span>
     <span class="sc-stat-name">Интеллект</span>
   </button>
-  <button class="sc-stat-btn" id="sc-btn-wis" onclick="setSpellStat('МУД')">
+  <button class="sc-stat-btn seg" id="sc-btn-wis" onclick="setSpellStat('МУД')">
     <span class="sc-stat-abbr">МУД</span>
     <span class="sc-stat-name">Мудрость</span>
   </button>
-  <button class="sc-stat-btn" id="sc-btn-cha" onclick="setSpellStat('ХАР')">
+  <button class="sc-stat-btn seg" id="sc-btn-cha" onclick="setSpellStat('ХАР')">
     <span class="sc-stat-abbr">ХАР</span>
     <span class="sc-stat-name">Харизма</span>
   </button>
@@ -1806,12 +1806,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button class="btn btn-secondary btn-sm journal-add-btn" onclick="openAddJournalEntry()">＋ Событие</button>
 </div>
 <div class="journal-filter-row">
-<button class="jfilter-btn active" aria-pressed="true" onclick="filterJournal('all',this)">Все</button>
-<button class="jfilter-btn" aria-pressed="false" onclick="filterJournal('levelup',this)">Уровни</button>
-<button class="jfilter-btn" aria-pressed="false" onclick="filterJournal('rest',this)">Отдых</button>
-<button class="jfilter-btn" aria-pressed="false" onclick="filterJournal('stat',this)">Статы</button>
-<button class="jfilter-btn" aria-pressed="false" onclick="filterJournal('feat',this)">Черты</button>
-<button class="jfilter-btn" aria-pressed="false" onclick="filterJournal('note',this)">Заметки</button>
+<button class="jfilter-btn active chip" aria-pressed="true" onclick="filterJournal('all',this)">Все</button>
+<button class="jfilter-btn chip" aria-pressed="false" onclick="filterJournal('levelup',this)">Уровни</button>
+<button class="jfilter-btn chip" aria-pressed="false" onclick="filterJournal('rest',this)">Отдых</button>
+<button class="jfilter-btn chip" aria-pressed="false" onclick="filterJournal('stat',this)">Статы</button>
+<button class="jfilter-btn chip" aria-pressed="false" onclick="filterJournal('feat',this)">Черты</button>
+<button class="jfilter-btn chip" aria-pressed="false" onclick="filterJournal('note',this)">Заметки</button>
 </div>
 <div id="journal-list" class="journal-list"></div>
 </div>
@@ -2764,10 +2764,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <span class="dice-pick-label" id="dice-pick-label">к20</span>
     </button>
     <div class="dice-pick-hint" id="dice-pick-hint">Нажмите на&nbsp;кость, чтобы бросить</div>
-    <div class="dice-mode-segment" id="dice-mode-segment" role="radiogroup" aria-label="Режим броска к20">
-      <button type="button" class="dice-mode-seg-btn active" role="radio" aria-checked="true" data-mode="normal" onclick="setDiceMode(this,'normal')">Обычный</button><span class="dice-mode-dot" aria-hidden="true">·</span>
-      <button type="button" class="dice-mode-seg-btn adv" role="radio" aria-checked="false" data-mode="adv" onclick="setDiceMode(this,'adv')">Преимущество</button><span class="dice-mode-dot" aria-hidden="true">·</span>
-      <button type="button" class="dice-mode-seg-btn dis" role="radio" aria-checked="false" data-mode="dis" onclick="setDiceMode(this,'dis')">Помеха</button>
+    <div class="dice-mode-segment seg-group" id="dice-mode-segment" role="radiogroup" aria-label="Режим броска к20">
+      <button type="button" class="dice-mode-seg-btn active seg" role="radio" aria-checked="true" data-mode="normal" onclick="setDiceMode(this,'normal')">Обычный</button><span class="dice-mode-dot" aria-hidden="true">·</span>
+      <button type="button" class="dice-mode-seg-btn adv seg" role="radio" aria-checked="false" data-mode="adv" onclick="setDiceMode(this,'adv')">Преимущество</button><span class="dice-mode-dot" aria-hidden="true">·</span>
+      <button type="button" class="dice-mode-seg-btn dis seg" role="radio" aria-checked="false" data-mode="dis" onclick="setDiceMode(this,'dis')">Помеха</button>
     </div>
     <div class="dice-formula-panel" id="dice-formula-panel" hidden>
       <div class="dice-formula-row">
@@ -2807,19 +2807,19 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <div class="dice-theme-row">
       <div class="dice-theme-label">Стиль кубиков</div>
       <div class="dice-theme-options">
-        <button type="button" class="dice-theme-btn" data-dice-theme="steel" onclick="setDiceTheme('steel')">Сталь</button>
-        <button type="button" class="dice-theme-btn" data-dice-theme="rock" onclick="setDiceTheme('rock')">Камень</button>
-        <button type="button" class="dice-theme-btn" data-dice-theme="wooden" onclick="setDiceTheme('wooden')">Дерево</button>
-        <button type="button" class="dice-theme-btn" data-dice-theme="smooth" onclick="setDiceTheme('smooth')">Гладкие</button>
+        <button type="button" class="dice-theme-btn chip" data-dice-theme="steel" onclick="setDiceTheme('steel')">Сталь</button>
+        <button type="button" class="dice-theme-btn chip" data-dice-theme="rock" onclick="setDiceTheme('rock')">Камень</button>
+        <button type="button" class="dice-theme-btn chip" data-dice-theme="wooden" onclick="setDiceTheme('wooden')">Дерево</button>
+        <button type="button" class="dice-theme-btn chip" data-dice-theme="smooth" onclick="setDiceTheme('smooth')">Гладкие</button>
       </div>
     </div>
     <!-- UX-3: вариант фона арены -->
     <div class="dice-theme-row">
       <div class="dice-theme-label">Фон арены</div>
       <div class="dice-theme-options">
-        <button type="button" class="dice-bg-btn" data-dice-bg="cosmos" onclick="setDiceBg('cosmos')">Космос</button>
-        <button type="button" class="dice-bg-btn" data-dice-bg="aurora" onclick="setDiceBg('aurora')">Сияние</button>
-        <button type="button" class="dice-bg-btn" data-dice-bg="starfield" onclick="setDiceBg('starfield')">Звёзды</button>
+        <button type="button" class="dice-bg-btn chip" data-dice-bg="cosmos" onclick="setDiceBg('cosmos')">Космос</button>
+        <button type="button" class="dice-bg-btn chip" data-dice-bg="aurora" onclick="setDiceBg('aurora')">Сияние</button>
+        <button type="button" class="dice-bg-btn chip" data-dice-bg="starfield" onclick="setDiceBg('starfield')">Звёзды</button>
       </div>
     </div>
     <div class="dice-custom-label">Своя формула</div>
@@ -2886,9 +2886,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </select></div>
   <div class="cf-edition" id="spell-ver-filter">
     <span class="class-filter-label" title="Редакция Player's Handbook">Редакция</span>
-    <button class="edition-btn active" aria-pressed="true" onclick="setSpellVersion('all')"  id="btn-ver-all">Все</button>
-    <button class="edition-btn" aria-pressed="false" onclick="setSpellVersion('PH14')" id="btn-ver-ph14">PH'14</button>
-    <button class="edition-btn" aria-pressed="false" onclick="setSpellVersion('PH24')" id="btn-ver-ph24">PH'24</button>
+    <span class="seg-group"><button class="edition-btn active seg" aria-pressed="true" onclick="setSpellVersion('all')"  id="btn-ver-all">Все</button>
+    <button class="edition-btn seg" aria-pressed="false" onclick="setSpellVersion('PH14')" id="btn-ver-ph14">PH'14</button>
+    <button class="edition-btn seg" aria-pressed="false" onclick="setSpellVersion('PH24')" id="btn-ver-ph24">PH'24</button></span>
   </div>
 </div>
 <div class="spell-class-filter-grouped" id="spell-class-filter">
@@ -3483,8 +3483,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       </span>
       <span class="bp-filter-group bp-ed-group" id="bp-edition-group" role="group" aria-label="Фильтр по&nbsp;редакции">
         <span class="bp-filter-label">Редакция:</span>
-        <button type="button" class="bp-ed-btn" id="bp-ed-2014" aria-pressed="true" onclick="setBuildEdition('2014')">2014 · <span class="bp-ed-count"></span></button>
-        <button type="button" class="bp-ed-btn" id="bp-ed-2024" aria-pressed="false" onclick="setBuildEdition('2024')">2024 · <span class="bp-ed-count"></span></button>
+        <span class="seg-group"><button type="button" class="bp-ed-btn seg" id="bp-ed-2014" aria-pressed="true" onclick="setBuildEdition('2014')">2014 · <span class="bp-ed-count"></span></button>
+        <button type="button" class="bp-ed-btn seg" id="bp-ed-2024" aria-pressed="false" onclick="setBuildEdition('2024')">2024 · <span class="bp-ed-count"></span></button></span>
       </span>
     </div>
     <div id="bp-list" class="bp-list"></div>
@@ -3571,44 +3571,44 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v540"></script>
+<script src="app-log.js?v=v541"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v540"></script>
-<script src="bg-space.js?v=v540"></script>
-<script src="dice-arena-bg.js?v=v540"></script>
-<script src="data.js?v=v540"></script>
+<script src="icons.js?v=v541"></script>
+<script src="bg-space.js?v=v541"></script>
+<script src="dice-arena-bg.js?v=v541"></script>
+<script src="data.js?v=v541"></script>
 <!-- PERF-2/PERF-4: build-notes-data.js (~530 КБ) и character-builds.js (~200 КБ) грузятся лениво — см. ensureBuildNotes/ensureBuilds ниже -->
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v540"></script>
-<script src="spells.js?v=v540"></script>
-<script src="spell-effects.js?v=v540"></script>
+<script src="glossary-data.js?v=v541"></script>
+<script src="spells.js?v=v541"></script>
+<script src="spell-effects.js?v=v541"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v540"></script>
-<script src="app-migrate.js?v=v540"></script>
-<script src="app-builds.js?v=v540"></script>
-<script src="app-core.js?v=v540"></script>
-<script src="app-io.js?v=v540"></script>
-<script src="app-backup.js?v=v540"></script>
-<script src="app-sync.js?v=v540"></script>
-<script src="app-combat.js?v=v540"></script>
-<script src="app-conditions.js?v=v540"></script>
-<script src="app-cast-effects.js?v=v540"></script>
-<script src="app-proficiencies.js?v=v540"></script>
-<script src="app-hp.js?v=v540"></script>
-<script src="app-spells.js?v=v540"></script>
-<script src="app-inventory.js?v=v540"></script>
-<script src="start-equip-2014.js?v=v540"></script>
+<script src="rules.js?v=v541"></script>
+<script src="app-migrate.js?v=v541"></script>
+<script src="app-builds.js?v=v541"></script>
+<script src="app-core.js?v=v541"></script>
+<script src="app-io.js?v=v541"></script>
+<script src="app-backup.js?v=v541"></script>
+<script src="app-sync.js?v=v541"></script>
+<script src="app-combat.js?v=v541"></script>
+<script src="app-conditions.js?v=v541"></script>
+<script src="app-cast-effects.js?v=v541"></script>
+<script src="app-proficiencies.js?v=v541"></script>
+<script src="app-hp.js?v=v541"></script>
+<script src="app-spells.js?v=v541"></script>
+<script src="app-inventory.js?v=v541"></script>
+<script src="start-equip-2014.js?v=v541"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v540"></script>
-<script src="app-wildshape.js?v=v540"></script>
-<script src="class-choices.js?v=v540"></script>
-<script src="subclass-choices-data.js?v=v540"></script>
+<script src="app-party.js?v=v541"></script>
+<script src="app-wildshape.js?v=v541"></script>
+<script src="class-choices.js?v=v541"></script>
+<script src="subclass-choices-data.js?v=v541"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js).
      PERF-5: модуль (~200 КБ) грузится лениво — window.ensureDiceBox() из app-dice.js
      при первом действии пользователя или открытии кубиков; пока не загружен — 2D-бросок. -->
@@ -3616,7 +3616,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   var diceBoxP = null;
   window.ensureDiceBox = function () {
     if (!diceBoxP) {
-      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v540").then(function (m) {
+      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v541").then(function (m) {
         window.DiceBox = m.default;
         window.dispatchEvent(new Event("dicebox:ready"));
         return m.default;
@@ -3625,17 +3625,17 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     return diceBoxP;
   };
 </script>
-<script src="app-dice.js?v=v540"></script>
-<script src="app-settings.js?v=v540"></script>
-<script src="app-ui.js?v=v540"></script>
-<script src="app-home.js?v=v540"></script>
-<script src="app-asi.js?v=v540"></script>
-<script src="app-progress.js?v=v540"></script>
-<script src="app-notes.js?v=v540"></script>
-<script src="app-desktop.js?v=v540"></script>
-<script src="history-stack.js?v=v540"></script>
-<script src="app-help.js?v=v540"></script>
-<script src="app-sheet2.js?v=v540"></script>
+<script src="app-dice.js?v=v541"></script>
+<script src="app-settings.js?v=v541"></script>
+<script src="app-ui.js?v=v541"></script>
+<script src="app-home.js?v=v541"></script>
+<script src="app-asi.js?v=v541"></script>
+<script src="app-progress.js?v=v541"></script>
+<script src="app-notes.js?v=v541"></script>
+<script src="app-desktop.js?v=v541"></script>
+<script src="history-stack.js?v=v541"></script>
+<script src="app-help.js?v=v541"></script>
+<script src="app-sheet2.js?v=v541"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3648,9 +3648,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v540",
-    "vendor/jspdf/roboto-base64.js?v=v540",
-    "app-pdf.js?v=v540"
+    "vendor/jspdf/jspdf.umd.min.js?v=v541",
+    "vendor/jspdf/roboto-base64.js?v=v541",
+    "app-pdf.js?v=v541"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3673,50 +3673,50 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // PERF-4: сами билды нужны пикеру, гайду, плану и подсказкам левел-апа — грузим по требованию.
   window.ensureBuilds = function () {
     if (window.CHARACTER_BUILDS) return Promise.resolve();
-    return loadScript("character-builds.js?v=v540");
+    return loadScript("character-builds.js?v=v541");
   };
   // PERF-2: заметки билдов нужны только applyBuild — грузим по требованию.
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v540").then(function () {
+    return loadScript("build-notes-data.js?v=v541").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
   // NGEN-2: пулы генератора «Записей» нужны только кнопке «Сгенерировать».
   window.ensureNotesGen = function () {
     if (window.NOTES_GEN) return Promise.resolve();
-    return loadScript("notes-gen-data.js?v=v540");
+    return loadScript("notes-gen-data.js?v=v541");
   };
   // PERF-3: бестиарий SRD нужен только пикерам вкладки отряда — грузим по требованию.
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v540"),
-      loadScript("npc-srd.js?v=v540")
+      loadScript("monsters-srd.js?v=v541"),
+      loadScript("npc-srd.js?v=v541")
     ]);
   };
   // РОСТ-5: звери для Дикого облика и «Превращения» — грузим по требованию.
   window.ensureBeastForms = function () {
     if (window.BEAST_FORMS) return Promise.resolve();
-    return loadScript("beast-forms.js?v=v540");
+    return loadScript("beast-forms.js?v=v541");
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v540");
+    return loadScript("magic-items.js?v=v541");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v540");
+    return loadScript("gear-catalog.js?v=v541");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v540").then(function () {
+    return loadScript("data-2024.js?v=v541").then(function () {
       window.__edition2024Loaded = true;
     });
   };

@@ -18,9 +18,11 @@ function showRollModePopup(callback, hint) {
   popup.className = "roll-mode-popup";
   popup.innerHTML =
     '<div class="roll-mode-title">Режим броска</div>' +
-    '<button class="roll-mode-btn roll-mode-normal" data-mode="normal">' + dndIcoHtml("dice", 14) + ' Обычный</button>' +
-    '<button class="roll-mode-btn roll-mode-adv" data-mode="adv">' + dndIcoHtml("arrowUp", 14) + ' Преимущество</button>' +
-    '<button class="roll-mode-btn roll-mode-dis' + (hint && hint.dis.length ? ' roll-mode-suggested' : '') + '" data-mode="dis">' + dndIcoHtml("arrowDown", 14) + ' Помеха</button>';
+    '<span class="seg-group">' +
+    '<button class="roll-mode-btn roll-mode-normal seg" data-mode="normal">' + dndIcoHtml("dice", 14) + ' Обычный</button>' +
+    '<button class="roll-mode-btn roll-mode-adv seg" data-mode="adv">' + dndIcoHtml("arrowUp", 14) + ' Преимущество</button>' +
+    '<button class="roll-mode-btn roll-mode-dis seg' + (hint && hint.dis.length ? ' roll-mode-suggested' : '') + '" data-mode="dis">' + dndIcoHtml("arrowDown", 14) + ' Помеха</button>' +
+    '</span>';
   var note = rollHintText(hint);
   if (note) popup.insertAdjacentHTML("beforeend", '<div class="roll-mode-note">' + escapeHtml(note) + '</div>');
   popup.querySelectorAll(".roll-mode-btn").forEach(function(btn) {
@@ -1253,7 +1255,7 @@ function renderBooksRow() {
   var shown = locked ? codes.filter(function(c) { return charHasBook(char, c); }) : codes;
   box.innerHTML = shown.map(function(code) {
     var lbl = SOURCE_LABELS[code] || { short: code, full: code };
-    return '<button type="button" class="book-btn' + (charHasBook(char, code) ? ' active' : '') + '"' +
+    return '<button type="button" class="book-btn chip' + (charHasBook(char, code) ? ' active' : '') + '"' +
       (locked ? ' disabled' : '') + ' title="' + escapeHtml(lbl.full) + '" onclick="toggleCharBook(\'' + code + '\')">' +
       escapeHtml(lbl.short) + '</button>';
   }).join("");

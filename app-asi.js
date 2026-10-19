@@ -772,8 +772,8 @@ function _agRender() {
   var body = $("ag-body");
   if (!char || !_ag || !body) return;
   var modes = [["pb", "Покупка очков"], ["std", "Стандартный набор"], ["roll", "Бросок 4к6"]];
-  var html = '<div class="ag-modes">' + modes.map(function(m) {
-    return '<button type="button" class="edition-btn' + (_ag.mode === m[0] ? " active" : "") + '" onclick="agSetMode(\'' + m[0] + '\')">' + m[1] + "</button>";
+  var html = '<div class="ag-modes seg-group">' + modes.map(function(m) {
+    return '<button type="button" class="edition-btn seg' + (_ag.mode === m[0] ? " active" : "") + '" onclick="agSetMode(\'' + m[0] + '\')">' + m[1] + "</button>";
   }).join("") + "</div>";
 
   if (_ag.mode === "pb") {

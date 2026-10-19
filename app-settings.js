@@ -424,9 +424,9 @@ function _bookRowHtml(code, label) {
   var on = bookGloballyOn(code);
   return '<div class="theme-picker-row">' +
     '<span class="theme-picker-label">' + escapeHtml(label || lbl.full) + ' <span class="books-short">· ' + escapeHtml(lbl.short) + '</span></span>' +
-    '<div class="theme-picker-btns" role="radiogroup" aria-label="' + escapeHtml(lbl.full) + '">' +
-      '<button type="button" class="theme-picker-btn' + (on ? ' is-active' : '') + '" onclick="setBookOn(\'' + code + '\',true)">Вкл</button>' +
-      '<button type="button" class="theme-picker-btn' + (on ? '' : ' is-active') + '" onclick="setBookOn(\'' + code + '\',false)">Выкл</button>' +
+    '<div class="theme-picker-btns seg-group" role="radiogroup" aria-label="' + escapeHtml(lbl.full) + '">' +
+      '<button type="button" class="theme-picker-btn seg' + (on ? ' is-active' : '') + '" onclick="setBookOn(\'' + code + '\',true)">Вкл</button>' +
+      '<button type="button" class="theme-picker-btn seg' + (on ? '' : ' is-active') + '" onclick="setBookOn(\'' + code + '\',false)">Выкл</button>' +
     '</div></div>';
 }
 function _renderBooksScreen() {
@@ -438,9 +438,9 @@ function _renderBooksScreen() {
   var _isPhb = BOOK_CODES.filter(function (c) { return c !== 'HB'; }).every(function (c) { return _offNow.indexOf(c) !== -1; });
   var html = '<div class="theme-picker-row">' +
     '<span class="theme-picker-label">Быстрый выбор</span>' +
-    '<div class="theme-picker-btns">' +
-      '<button type="button" class="theme-picker-btn' + (_isPhb ? ' is-active' : '') + '" onclick="setBooksPreset(\'phb\')" title="Только Книга игрока: дополнения скрыты">Только PHB</button>' +
-      '<button type="button" class="theme-picker-btn' + (_isAll ? ' is-active' : '') + '" onclick="setBooksPreset(\'all\')" title="Все официальные книги; авторское не\u00a0меняется">Все официальные</button>' +
+    '<div class="theme-picker-btns seg-group">' +
+      '<button type="button" class="theme-picker-btn seg' + (_isPhb ? ' is-active' : '') + '" onclick="setBooksPreset(\'phb\')" title="Только Книга игрока: дополнения скрыты">Только PHB</button>' +
+      '<button type="button" class="theme-picker-btn seg' + (_isAll ? ' is-active' : '') + '" onclick="setBooksPreset(\'all\')" title="Все официальные книги; авторское не\u00a0меняется">Все официальные</button>' +
     '</div></div>';
   ['core', 'rules', 'setting', 'adventure'].forEach(function (kind) {
     var list = codes.filter(function (c) { return SOURCE_LABELS[c].kind === kind; });
