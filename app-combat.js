@@ -2087,7 +2087,35 @@ function applyBasicLockUI() {
   renderProfSummary();
 }
 
+// PLAY2-8 (PT-073/136): редакция выбирается в мастере создания, пока не выбраны класс, раса и предыстория
+function _cwEditionBusy(char) {
+  return !!(char.class || char.race || char.background || (char.classes && char.classes.length));
+}
+
+function syncCwEdition(char) {
+  var b14 = $("cw-ed-2014"), b24 = $("cw-ed-2024");
+  if (!b14 || !b24 || !char) return;
+  var is24 = char.edition === "2024";
+  var busy = _cwEditionBusy(char);
+  b14.classList.toggle("active", !is24); b14.setAttribute("aria-checked", is24 ? "false" : "true");
+  b24.classList.toggle("active", is24); b24.setAttribute("aria-checked", is24 ? "true" : "false");
+  b14.disabled = busy && is24; b24.disabled = busy && !is24;
+  var tip = busy ? "Редакцию можно сменить, пока не выбраны класс, раса и предыстория" : "";
+  b14.title = tip; b24.title = tip;
+}
+
+function setDraftEdition(ed) {
+  var char = getCurrentChar();
+  if (!char || char.basicLocked || _cwEditionBusy(char)) return;
+  ed = ed === "2024" ? "2024" : "2014";
+  if ((char.edition || "2014") === ed) return;
+  char.edition = ed;
+  saveToLocal();
+  loadCharacter(char.id);
+}
+
 function updateLockButtonState() {
+  syncCwEdition(getCurrentChar());
   var btn = $("cw-lock-btn");
   var msg = $("cw-validation");
   if (!btn) return;

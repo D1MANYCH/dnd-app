@@ -796,7 +796,7 @@ function _agRender() {
     }
   }
 
-  html += '<div class="ag-row ag-row--head"><span>Характеристика</span><span>Основа</span><span class="ag-bonus">Бонус</span><span class="ag-total">Итог</span></div>';
+  html += '<div class="ag-table"><div class="ag-row ag-row--head"><span>Характеристика</span><span>Основа</span><span class="ag-bonus">Бонус</span><span class="ag-total">Итог</span></div>';
   AG_KEYS.forEach(function(k) {
     var base = _agBase(k), b = _agBonus(char, k);
     var total = base != null ? base + b : null;
@@ -804,6 +804,7 @@ function _agRender() {
       '<span class="ag-bonus">' + (b ? (b > 0 ? "+" : "") + b : "") + "</span>" +
       '<span class="ag-total">' + (total != null ? total + " (" + formatMod(getMod(total)).replace("-", "−") + ")" : "—") + "</span></div>";
   });
+  html += "</div>";
 
   html += '<p class="ag-note">Бонусы расы' + (char.edition === "2024" ? " и\u00a0предыстории" : "") + " прибавляются сверху, выбираются в\u00a0«Основном».</p>";
   if ((char.level || 1) > 1) html += '<p class="ag-note">Увеличения характеристик и\u00a0черты, применённые в\u00a0приложении, входят в\u00a0«Бонус»; прибавки, поставленные вручную кнопками ±, — нет.</p>';

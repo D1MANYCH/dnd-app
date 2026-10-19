@@ -549,7 +549,7 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
   // PT-044: изученные ранее (сохранённые) опции помечены отдельно от новых
   var stored = ccGetStored(char, className, choice.id);
   var known = (choice.type === "multi" && Array.isArray(stored)) ? stored : [];
-  var bodyHtml = '<div class="cc-options-list">';
+  var bodyHtml = '<div class="cc-options-list" role="' + (choice.type === "single" ? "radiogroup" : "group") + '" aria-label="' + escapeHtml(choice.name) + '">';
   optionIds.forEach(function(id) {
     var opt;
     if (choice.pool === "skills") {
@@ -574,7 +574,7 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
       if (bits.length) reqText = '<span class="cc-opt-req">' + bits.join(" · ") + "</span>";
     }
     bodyHtml +=
-      '<div class="cc-opt' + (selected ? " selected" : "") + (isRec ? " is-rec" : "") + '" onclick="ccToggleOption(\'' + id.replace(/'/g,"\\'") + '\')">' +
+      '<div class="cc-opt' + (selected ? " selected" : "") + (isRec ? " is-rec" : "") + '" role="' + (choice.type === "single" ? "radio" : "checkbox") + '" aria-checked="' + selected + '" tabindex="0" data-opt="' + escapeHtml(id) + '" onkeydown="ccOptKey(event)" onclick="ccToggleOption(\'' + id.replace(/'/g,"\\'") + '\')">' +
         '<div class="cc-opt-head"><span class="cc-opt-name">' + escapeHtml(opt.name) + '</span>' + (isRec ? ' <span class="rec-badge">💡 совет</span>' : '') + (mark ? ' <span class="cc-opt-req">' + mark + '</span>' : '') + reqText + '</div>' +
         (opt.desc ? '<div class="cc-opt-desc">' + escapeHtml(opt.desc) + '</div>' : "") +
       '</div>';
@@ -621,6 +621,15 @@ function ccToggleOption(id) {
     ccModalState.selection = arr;
   }
   buildClassChoiceModal(char, choice, className, classLevel);
+  // PLAY2-8 (PT-094): после перерисовки фокус остаётся на том же варианте
+  var opts = document.querySelectorAll("#class-choice-modal .cc-opt[data-opt]");
+  for (var i = 0; i < opts.length; i++) if (opts[i].getAttribute("data-opt") === id) { opts[i].focus(); break; }
+}
+
+function ccOptKey(e) {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  e.preventDefault();
+  e.currentTarget.click();
 }
 
 function ccUpdateFreeform(index, value) {

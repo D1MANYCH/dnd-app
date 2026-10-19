@@ -306,6 +306,8 @@ function swSupportBlock() {
 // ── Окно "Установить обновление" (до установки — без changelog) ──
 function showUpdateModal(worker) {
   if ($('sw-update-modal')) return;
+  // PLAY2-8 (PT-095/179): «Позже» действует до конца сессии вкладки
+  try { if (sessionStorage.getItem('dnd_update_later') === '1') return; } catch(e) {}
   var ver = (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '?';
   try { localStorage.setItem('dnd_pre_update_version', ver); } catch(e) {}
   var modal = document.createElement('div');
@@ -328,10 +330,20 @@ function showUpdateModal(worker) {
     $('sw-update-later').disabled = true;
     worker.postMessage({ type: 'SKIP_WAITING' });
   });
-  $('sw-update-later').addEventListener('click', function() {
+  function later() {
+    try { sessionStorage.setItem('dnd_update_later', '1'); } catch(e) {}
+    document.removeEventListener('keydown', onKey, true);
+    modal.style.pointerEvents = 'none'; // клик во время затухания уходит в меню под окном
     modal.classList.remove('sw-update-visible');
     setTimeout(function() { if (modal.parentNode) modal.remove(); }, 300);
-  });
+  }
+  function onKey(e) {
+    if (e.key !== 'Escape' || $('sw-update-later').disabled) return;
+    e.stopPropagation();
+    later();
+  }
+  document.addEventListener('keydown', onKey, true);
+  $('sw-update-later').addEventListener('click', later);
 }
 
 // ── Проверка "Что нового" после перезагрузки ──

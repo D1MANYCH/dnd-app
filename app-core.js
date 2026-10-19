@@ -1674,7 +1674,7 @@ function updateVersionBlock(hasUpdate, worker) {
     row.classList.add('has-update');
     var latest = (typeof APP_CHANGELOG !== 'undefined' && APP_CHANGELOG.length > 0) ? APP_CHANGELOG[0] : null;
     var count = latest ? latest.changes.length : 0;
-    status.innerHTML = 'Доступно обновление' + (count ? ' (' + count + ' изменений)' : '') + ' <button class="app-version-update-btn" id="version-install-btn">Установить</button>';
+    status.innerHTML = 'Доступно обновление' + (count ? ' (' + count + ' ' + (count % 10 === 1 && count % 100 !== 11 ? 'изменение' : (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14)) ? 'изменения' : 'изменений') + ')' : '') + ' <button class="app-version-update-btn" id="version-install-btn">Установить</button>';
     var btn = $('version-install-btn');
     if (btn && worker) {
       btn.addEventListener('click', function() {
