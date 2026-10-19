@@ -200,7 +200,7 @@ function renderBackupList() {
       info.appendChild(line1);
       info.appendChild(line2);
       var btn = document.createElement("button");
-      btn.className = "backup-restore-btn";
+      btn.className = "btn btn-text btn-sm backup-restore-btn";
       btn.textContent = "Восстановить";
       btn.onclick = function() { restoreBackupSnapshot(row.id); };
       item.appendChild(info);

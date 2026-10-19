@@ -303,7 +303,7 @@ function _rollStartingGold14(char, g, formula) {
 }
 
 function _startDone(text) {
-  return '<div class="race-extras-row"><span class="race-extras-btn done">' + dndIcoHtml("check", 13) + ' ' + text + '</span></div>';
+  return '<div class="race-extras-row"><span class="btn btn-text btn-sm race-extras-btn done">' + dndIcoHtml("check", 13) + ' ' + text + '</span></div>';
 }
 
 // Блок в панели навыков класса (2014, после фиксации основы).
@@ -333,8 +333,8 @@ function renderClassEquip14(char) {
     html += '</div>';
   }
   var g = cd.def.gold;
-  html += '<div class="race-extras-row"><button class="race-extras-btn" onclick="giveClassEquipment14()">Выдать снаряжение</button>';
-  if (!char.bgEquipGiven) html += '<button class="race-extras-btn" onclick="giveStartingGold14()" title="Вместо снаряжения класса и\u00a0предыстории (PHB, стр.\u00a0143)">Вместо снаряжения — ' +
+  html += '<div class="race-extras-row"><button class="btn btn-text btn-sm race-extras-btn" onclick="giveClassEquipment14()">Выдать снаряжение</button>';
+  if (!char.bgEquipGiven) html += '<button class="btn btn-text btn-sm race-extras-btn" onclick="giveStartingGold14()" title="Вместо снаряжения класса и\u00a0предыстории (PHB, стр.\u00a0143)">Вместо снаряжения — ' +
     g[0] + 'к' + g[1] + (g[2] > 1 ? ' × ' + g[2] : '') + ' зм</button>';
   return html + '</div>';
 }
@@ -350,5 +350,5 @@ function renderBgEquip14(char) {
   html += _startChoicesHtml("bg", d.choices);
   var money = [d.gp ? d.gp + " зм" : "", d.sp ? d.sp + " см" : ""].filter(Boolean);
   html += '<div class="race-extras-hint">' + escapeHtml(d.items.concat(money).join(", ")) + '</div>';
-  return html + '<div class="race-extras-row"><button class="race-extras-btn" onclick="giveBackgroundEquipment14()">Выдать снаряжение</button></div>';
+  return html + '<div class="race-extras-row"><button class="btn btn-text btn-sm race-extras-btn" onclick="giveBackgroundEquipment14()">Выдать снаряжение</button></div>';
 }

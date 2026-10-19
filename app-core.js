@@ -1679,7 +1679,7 @@ function updateVersionBlock(hasUpdate, worker) {
     row.classList.add('has-update');
     var latest = (typeof APP_CHANGELOG !== 'undefined' && APP_CHANGELOG.length > 0) ? APP_CHANGELOG[0] : null;
     var count = latest ? latest.changes.length : 0;
-    status.innerHTML = 'Доступно обновление' + (count ? ' (' + count + ' ' + (count % 10 === 1 && count % 100 !== 11 ? 'изменение' : (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14)) ? 'изменения' : 'изменений') + ')' : '') + ' <button class="app-version-update-btn" id="version-install-btn">Установить</button>';
+    status.innerHTML = 'Доступно обновление' + (count ? ' (' + count + ' ' + (count % 10 === 1 && count % 100 !== 11 ? 'изменение' : (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14)) ? 'изменения' : 'изменений') + ')' : '') + ' <button class="btn btn-primary btn-sm app-version-update-btn" id="version-install-btn">Установить</button>';
     var btn = $('version-install-btn');
     if (btn && worker) {
       btn.addEventListener('click', function() {
@@ -1690,7 +1690,7 @@ function updateVersionBlock(hasUpdate, worker) {
     }
   } else {
     row.classList.remove('has-update');
-    status.innerHTML = '<span class="version-ok">Актуальная версия ✓</span> <button class="app-version-force-btn" id="version-force-btn" title="Если новая версия не приходит: сбросить кэш приложения и загрузить заново. Персонажи не удаляются">Обновить принудительно</button>';
+    status.innerHTML = '<span class="version-ok">Актуальная версия ✓</span> <button class="btn btn-text btn-sm app-version-force-btn" id="version-force-btn" title="Если новая версия не приходит: сбросить кэш приложения и загрузить заново. Персонажи не удаляются">Обновить принудительно</button>';
     var fbtn = $('version-force-btn');
     if (fbtn) fbtn.addEventListener('click', function() { forceAppUpdate(fbtn); });
   }

@@ -634,7 +634,7 @@ function syncMerge(local, remote, base, tombstones, opts) {
 function _syncBtn(label, fn) {
   var b = document.createElement("button");
   b.type = "button";
-  b.className = "backup-create-btn";
+  b.className = "btn btn-secondary btn-sm backup-create-btn";
   b.textContent = label;
   b.onclick = fn;
   return b;

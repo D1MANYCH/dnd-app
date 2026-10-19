@@ -247,8 +247,8 @@ function _ensureTourDom() {
       '<div class="tour-coach-foot">' +
         '<div class="tc-dots" id="tour-dots" aria-hidden="true"></div>' +
         '<div class="tour-nav">' +
-          '<button type="button" class="tour-btn tour-prev" id="tour-prev">Назад</button>' +
-          '<button type="button" class="tour-btn tour-next" id="tour-next">Далее</button>' +
+          '<button type="button" class="btn btn-secondary btn-sm tour-btn tour-prev" id="tour-prev">Назад</button>' +
+          '<button type="button" class="btn btn-primary btn-sm tour-btn tour-next" id="tour-next">Далее</button>' +
         '</div>' +
       '</div>' +
     '</div>';

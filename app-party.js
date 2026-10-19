@@ -1428,7 +1428,7 @@ function renderBattleCastPanels() {
       // CAST-11: «кары» и залповые бьют не повтором, а по попаданию — дескриптор
       // может переопределить иконку кнопки (repeat.icon), по умолчанию 🔁.
       var rIcon = (d && d.repeat && d.repeat.icon) || "🔁";
-      return '<button type="button" class="battle-repeat-btn" onclick="castRepeatDamage(' + i.id + ')"' +
+      return '<button type="button" class="btn btn-text btn-sm battle-repeat-btn" onclick="castRepeatDamage(' + i.id + ')"' +
         ' title="' + escapeHtml(i.spellName + " — " + hint) + '">' +
         escapeHtml(rIcon) + ' ' + escapeHtml(i.spellName) +
         (i.repeatFormula ? ' <span class="brb-formula">' + escapeHtml(i.repeatFormula) + '</span>' : '') +

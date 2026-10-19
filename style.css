@@ -1141,6 +1141,8 @@ html.glass-adjusting *::after {
 .btn-text { --btn-px: var(--sp-2); background: transparent; border-color: transparent; color: var(--accent-lo); font-weight: var(--fw-medium); }
 .btn-text:hover { color: var(--accent-hover); }
 .btn-text:active { color: var(--action-press); }
+.btn-text-danger { --btn-px: var(--sp-2); background: transparent; border-color: transparent; color: var(--danger); font-weight: var(--fw-medium); }
+.btn-text-danger:hover { color: color-mix(in srgb, var(--danger) 80%, var(--text)); }
 
 .btn-block { width: 100%; }
 .btn-pill  { border-radius: var(--r-pill); }
@@ -2669,24 +2671,7 @@ vertical-align: middle;
   color: var(--home-sub);
   font-size: var(--fs-sm);
 }
-.lu-mc-add-btn {
-  width: auto;
-  margin: 0;
-  padding: var(--sp-2) 0;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  color: var(--accent-lo);
-  font-family: var(--font-display);
-  font-size: var(--fs-md);
-  font-weight: var(--fw-bold);
-  text-align: left;
-  cursor: pointer;
-  transition: color var(--t1) var(--ez-out);
-}
-.lu-mc-add-btn:hover,
-.lu-mc-add-btn:focus-visible { background: none; box-shadow: none; color: var(--accent); }
+.lu-mc-add-btn { margin: 0; }
 .lu-mc-add-btn [data-ico] { display: none; }
 #lu-mc-new-class {
   margin-top: var(--sp-2);
@@ -2764,8 +2749,8 @@ font-size: var(--fs-14);
 }
 /* DS-6а: отступы, которые эти кнопки брали у прежнего button{} (замер в живой странице);
    разбираются вместе с классами в DS-6б/в */
-.accent-chip, .fs-scale-reset, .cw-lock-btn, .filter-chip, .mon-sb-add, .dice-custom-btn,
-.dice-popover-done, .dice-popover-clear, .aef-fab, .aef-turn-btn, .basic-locked-more, .mob-row { margin-bottom: var(--sp-3); }
+.accent-chip, .fs-scale-reset, .filter-chip, .mon-sb-add,
+.dice-popover-done, .dice-popover-clear, .aef-fab, .basic-locked-more, .mob-row { margin-bottom: var(--sp-3); }
 .basic-locked-more, .name-roll-btn, .mob-row { padding: var(--sp-3) var(--sp-5); }
 :where(button, select):disabled { opacity: var(--dis-op); filter: saturate(0.4); cursor: not-allowed; box-shadow: none; }
 /* DS-5а: отклик асимметричный — подсветка при наведении, фокусе и нажатии включается сразу,
@@ -3093,15 +3078,7 @@ font-size: var(--fs-14);
   border-top: 1px solid var(--border-soft);
   flex: 0 0 auto;
 }
-.aef-turn-btn {
-  flex: 1 1 0; padding: var(--sp-2) var(--sp-2); border-radius: var(--r-8);
-  border: 1px solid var(--border-soft);
-  background: var(--bg-2);
-  color: var(--text); font-size: var(--fs-14); font-weight: var(--fw-semibold);
-  cursor: pointer; transition: background var(--t1), border-color var(--t1), transform var(--t1);
-}
-.aef-turn-btn:hover { background: var(--bg-3); border-color: var(--accent); }
-.aef-turn-btn:active { transform: scale(0.96); }
+.aef-turn-btn { flex: 1 1 0; }
 /* ПК: чип в левый-нижний угол контентной зоны (прочь от right-rail/quick-roll). */
 @media (min-width: 1024px) {
   .aef-fab { left: 18px; bottom: 18px; }
@@ -3559,20 +3536,6 @@ transition: width var(--t2) var(--ez-out);
   border: 1px solid var(--border-soft);
 }
 .home-edition-label { font-size: var(--fs-12); color: var(--text-mute); flex-shrink: 0; }
-.home-edition-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-mute);
-  padding: var(--sp-1) var(--sp-3);
-  border-radius: var(--r-4);
-  font-size: var(--fs-12);
-  cursor: pointer;
-  transition: all var(--t1);
-  width: auto;
-  margin: 0;
-}
-.home-edition-btn:hover { border-color: var(--accent); color: var(--accent); }
-.home-edition-btn.active { background: var(--accent-fill); border-color: var(--accent-lo); color: var(--on-accent); font-weight: var(--fw-semibold); }
 
 /* STYLE-8M-2: сетка .home-actions-primary удалена — на экране выбора
    персонажа «Новый персонаж» и «По готовому билду» стали строками меню. */
@@ -3659,36 +3622,7 @@ transition: width var(--t2) var(--ez-out);
 #sync-actions { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--sp-4); }
 .sync-privacy { font-size: var(--fs-sm); color: var(--home-sub); text-decoration: none; }
 .sync-privacy:hover { color: var(--accent); text-decoration: underline; }
-.backup-create-btn {
-  position: relative;
-  flex: 0 0 auto;
-  width: auto;
-  margin: 0;
-  padding: var(--sp-2) 2px;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  color: var(--accent-lo);
-  font-family: var(--font-display);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  cursor: pointer;
-  transition: color var(--t1) var(--ez-out);
-}
-.backup-create-btn::after {
-  content: "";
-  position: absolute;
-  left: 2px;
-  bottom: 0;
-  width: 0;
-  height: 1.5px;
-  background: var(--accent);
-  transition: width var(--t2) var(--ez-out);
-}
-.backup-create-btn:hover { background: none; color: var(--accent); }
-.backup-create-btn:hover::after,
-.backup-create-btn:focus-visible::after { width: calc(100% - 4px); }
+.backup-create-btn { flex: 0 0 auto; margin: 0; }
 .backup-empty { padding: var(--sp-3) 0; font-size: var(--fs-sm); color: var(--home-sub); }
 .backup-item {
   position: relative;
@@ -3712,22 +3646,7 @@ transition: width var(--t2) var(--ez-out);
 .backup-when { font-family: var(--font-display); font-size: var(--fs-sm); color: var(--text); }
 .backup-meta { font-size: var(--fs-sm); color: var(--home-sub); }
 /* PLAY2-9 (PT-194): действие видно всегда — на тачскрине наведения нет. */
-.backup-restore-btn {
-  flex: 0 0 auto;
-  width: auto;
-  margin: 0;
-  padding: var(--sp-2) 2px;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  color: var(--accent-lo);
-  font-family: var(--font-display);
-  font-size: var(--fs-sm);
-  cursor: pointer;
-  transition: color var(--t1) var(--ez-out);
-}
-.backup-restore-btn:hover { background: none; color: var(--accent); }
+.backup-restore-btn { flex: 0 0 auto; margin: 0; }
 /* PLAY2-9 (PT-187): раскрытая панель отмечена на кнопке. */
 #backup-toggle-btn[aria-expanded="true"] { color: var(--accent); }
 #confirm-modal-text { white-space: pre-line; }
@@ -4176,21 +4095,7 @@ animation: rise var(--t3) var(--ez-out) both;
 .inv-backpack-header h4 { margin: 0; }
 /* Добавление и «снять рюкзак» — текстовые действия на --accent-lo: у кнопки не
    осталось ни рамки, ни заливки, весь вес несёт цвет (гоча 8e). */
-.inv-add-btn {
-  background: none !important;
-  color: var(--accent-lo) !important;
-  border: 0 !important;
-  border-radius: 0;
-  padding: 0 !important;
-  font-size: var(--fs-14) !important;
-  font-weight: var(--fw-medium);
-  cursor: pointer;
-  width: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  transition: color var(--t2);
-}
-.inv-add-btn:hover { background: none !important; color: var(--accent) !important; filter: none; transform: none !important; box-shadow: none !important; }
+.inv-add-btn { margin: 0 !important; }
 /* Снятый рюкзак — красный текст вместо красной заливки (JS вешает класс). */
 #inv-backpack-toggle { color: var(--text-dim) !important; }
 #inv-backpack-toggle:hover { color: var(--text) !important; }
@@ -4337,51 +4242,16 @@ animation: rise var(--t3) var(--ez-out) both;
    заливка сняты там же, где стояли: одно место вместо базового правила плюс
    перебивки. !important остались — их требует базовый button{} выше по файлу. */
 .inv-item-actions { display: flex; gap: var(--sp-5); flex-wrap: wrap; }
-.inv-edit-btn, .inv-del-btn {
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0;
-  font-size: var(--fs-14) !important;
-  font-weight: var(--fw-medium);
-  cursor: pointer;
-  width: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  transition: color var(--t1);
-}
-.inv-edit-btn {
-  background: none !important;
-  color: var(--accent-lo) !important;
-}
-.inv-edit-btn:hover { background: none !important; color: var(--accent) !important; transform: none !important; box-shadow: none !important; }
-.inv-del-btn {
-  background: none !important;
-  color: var(--text-dim) !important;
-}
-.inv-del-btn:hover { background: none !important; color: var(--danger) !important; transform: none !important; box-shadow: none !important; }
+.inv-edit-btn,
+.inv-del-btn { margin: 0 !important; }
 
 /* FIN-6: настройка магпредметов — бейдж, кнопка, счётчик N/3 */
 /* STYLE-8c2: «настроен» — цвет, а не залитая плашка (заливка --accent-lo под
    --on-accent была последней «таблеткой» в строке вещи). */
 .inv-attune-tag { color: var(--text-dim); border: 0; }
 .inv-attune-tag.on { color: var(--magic); background: none; border: 0; }
-.inv-attune-btn {
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0;
-  font-size: var(--fs-14) !important;
-  font-weight: var(--fw-medium);
-  cursor: pointer;
-  width: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  transition: color var(--t1);
-  background: none !important;
-  color: var(--accent-lo) !important;
-}
-.inv-attune-btn:hover { background: none !important; color: var(--accent) !important; transform: none !important; box-shadow: none !important; }
-.inv-attune-btn.attuned { background: none !important; color: var(--magic) !important; }
-.inv-attune-btn.attuned:hover { background: none !important; }
+.inv-attune-btn { margin: 0 !important; }
+.inv-attune-btn.attuned { color: var(--magic); }
 .inv-attune-count {
   font-size: var(--fs-sm);
   color: var(--accent-lo);
@@ -4518,19 +4388,7 @@ animation: rise var(--t3) var(--ez-out) both;
 }
 
 /* REQ-4b: пикер магических предметов */
-.magic-catalog-open-btn {
-  width: 100%;
-  margin-bottom: var(--sp-3);
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-4);
-  border: 1px dashed var(--accent);
-  background: var(--bg-2);
-  color: var(--accent);
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-  transition: background var(--t1), border-color var(--t1);
-}
-.magic-catalog-open-btn:hover { background: var(--bg-3, var(--bg-2)); border-color: var(--accent); }
+.magic-catalog-open-btn { width: 100%; margin-bottom: var(--sp-3); }
 /* STYLE-8M-3: каталоги стали экранами. Фильтры — плоские поля 8M-2b
    (.bp-filter-row / input.bp-search / select.bp-select), предмет — строка
    с ромбом цвета редкости (--home-accent ставит класс редкости на строке),
@@ -4587,41 +4445,13 @@ animation: rise var(--t3) var(--ez-out) both;
 .gear-packs-label { margin-bottom: var(--sp-1); font-family: var(--font-display); font-size: var(--fs-12); letter-spacing: .08em; text-transform: uppercase; color: var(--home-sub); }
 .gear-packs-list { display: flex; flex-wrap: wrap; gap: 0 var(--sp-2); }
 /* перебиваем глобальный button{width:100%} (ловушка FIN-2) */
-.gear-pack-btn {
-  width: auto; flex: 0 0 auto; margin: 0; padding: var(--sp-1) 0;
-  border: 0; border-radius: 0; background: none; box-shadow: none;
-  font-family: var(--font-display); font-size: var(--fs-sm); font-weight: var(--fw-semibold);
-  color: var(--accent-lo); cursor: pointer; transition: color var(--t1) var(--ez-out);
-}
+.gear-pack-btn { flex: 0 0 auto; margin: 0; }
 .gear-pack-btn [data-ico] { display: none; }
 .gear-pack-btn + .gear-pack-btn::before { content: "·"; margin-right: var(--sp-2); color: var(--home-sub); }
-.gear-pack-btn:hover,
-.gear-pack-btn:focus-visible { background: none; box-shadow: none; color: var(--accent); }
 .gci-cat { flex-shrink: 0; font-family: var(--font-display); font-size: var(--fs-12); font-weight: var(--fw-bold); text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; color: var(--home-sub); }
 .gci-cost { font-size: var(--fs-sm); color: var(--accent-lo); margin-top: 2px; }
 
-.inv-exch-open-btn {
-  background: none !important;
-  border: 0 !important;
-  color: var(--accent-lo) !important;
-  border-radius: 0;
-  padding: 0 !important;
-  font-size: var(--fs-14) !important;
-  cursor: pointer;
-  width: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  box-shadow: none !important;
-  transition: all var(--t2);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.inv-exch-open-btn:hover {
-  background: none !important;
-  color: var(--accent) !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
+.inv-exch-open-btn { margin: 0 !important; flex-shrink: 0; }
 
 /* Exchange modal */
 .coin-exch-rates {
@@ -5098,34 +4928,10 @@ transform: none;
 
 /* ========== DICE ========== */
 .dice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); }
-.dice-btn {
-background: var(--bg-2);
-border: 2px solid var(--border);
-color: var(--text);
-padding: var(--sp-4);
-font-size: var(--fs-18);
-font-weight: var(--fw-bold);
-border-radius: var(--r-4);
-cursor: pointer;
-transition: all var(--t2);
-}
-.dice-btn:hover { border-color: var(--accent); background: var(--accent-glow-token); color: var(--accent); }
-.dice-btn:active { transform: scale(0.98); }
-.dice-btn.d20 {
-background: var(--accent);
-color: var(--on-accent);
-border-color: var(--accent);
-grid-column: span 3;
-font-size: var(--fs-24);
-padding: var(--sp-4);
-}
-.dice-btn.d20:hover { background: var(--accent-hi); }
 .dice-custom-label { font-size: var(--fs-12); color: var(--text-dim); margin-bottom: var(--sp-1); margin-top: 2px; }
 .dice-custom-row { display: grid; grid-template-columns: 1fr auto; gap: var(--sp-2); margin-bottom: var(--sp-4); }
 .dice-custom-inp { width: 100%; background: var(--field-text-bg); border: 1px solid var(--border); color: var(--text); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-8); font-size: var(--fs-14); box-sizing: border-box; }
 .dice-custom-inp:focus { outline: none; border-color: var(--accent); }
-.dice-custom-btn { background: var(--accent); color: var(--on-accent); border: none; padding: var(--sp-2) var(--sp-4); border-radius: var(--r-8); font-weight: var(--fw-bold); cursor: pointer; font-size: var(--fs-14); white-space: nowrap; }
-.dice-custom-btn:hover { background: var(--accent-hi); }
 .dice-history { max-height: 120px; overflow-y: auto; border-top: 1px solid var(--border); padding-top: var(--sp-3); }
 .dice-history-item { display: flex; justify-content: space-between; padding: var(--sp-2) 0; font-size: var(--fs-14); color: var(--text-dim); border-bottom: 1px solid var(--border); }
 .dice-history-item:last-child { border-bottom: none; }
@@ -5210,26 +5016,6 @@ padding: var(--sp-4);
   justify-content: center;
   padding: var(--sp-2) var(--sp-3) var(--sp-4);
   border-top: 1px solid var(--border, var(--bg-3));
-}
-.dice-reset-btn {
-  background: transparent;
-  border: 1px solid var(--border, var(--bg-3));
-  color: var(--text-dim);
-  cursor: pointer;
-  padding: var(--sp-2) var(--sp-4);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
-  letter-spacing: 0.3px;
-  border-radius: var(--r-8);
-  transition: color var(--t1), border-color var(--t1), background var(--t1);
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-}
-.dice-reset-btn:hover {
-  color: var(--accent, var(--accent));
-  border-color: var(--accent, var(--accent));
-  background: var(--bg-2);
 }
 .dice-modal-header .modal-close {
   position: static !important;
@@ -5328,37 +5114,12 @@ padding: var(--sp-4);
   grid-template-columns: repeat(3, 1fr);
   gap: var(--sp-2);
 }
-.dice-controls-col .dice-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-2);
-  min-height: 72px;
-  background: var(--bg-2);
-  border: 1px solid var(--border, var(--bg-3));
-  color: var(--text);
-  font-size: 1em;
-  font-weight: var(--fw-bold);
-  border-radius: var(--r-4);
-  transition: all var(--t1);
-}
-.dice-controls-col .dice-btn:hover {
-  border-color: var(--accent, var(--accent));
-  background: var(--bg-3);
-  color: var(--accent, var(--accent));
-}
 .dice-btn-icon {
   width: 26px;
   height: 26px;
   color: var(--accent, var(--accent));
   opacity: 0.85;
   transition: opacity var(--t1), transform var(--t1);
-}
-.dice-controls-col .dice-btn:hover .dice-btn-icon {
-  opacity: 1;
-  transform: scale(1.08);
 }
 .dice-btn-label {
   font-size: var(--fs-14);
@@ -5385,24 +5146,7 @@ padding: var(--sp-4);
   margin: 0;
 }
 .dice-formula-inp:focus { outline: none; border-color: var(--accent, var(--accent)); }
-.dice-formula-btn {
-  background: var(--bg-2);
-  border: 1px solid var(--border, var(--bg-3));
-  color: var(--text);
-  padding: var(--sp-3) var(--sp-4);
-  border-radius: var(--r-4);
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-  font-size: var(--fs-14);
-  white-space: nowrap;
-  /* UI-fix: сброс глоб. button{margin-bottom} — иначе «Бросить» выше строки ввода формулы */
-  margin: 0;
-  align-self: stretch;
-}
-.dice-formula-btn:hover {
-  border-color: var(--accent, var(--accent));
-  color: var(--accent, var(--accent));
-}
+.dice-formula-btn { margin: 0; align-self: stretch; }
 
 /* UX-2: быстрые вставки токенов формулы (чипы) */
 .dice-chips {
@@ -5575,7 +5319,6 @@ padding: var(--sp-4);
 .dice-popover-body .dice-custom-label { font-size: var(--fs-14); color: var(--text-dim); margin: var(--sp-2) 0 var(--sp-2); }
 .dice-popover-body .dice-custom-row { margin: 0; gap: var(--sp-2); }
 .dice-popover-body .dice-custom-inp { padding: var(--sp-2) var(--sp-3); font-size: var(--fs-14); }
-.dice-popover-body .dice-custom-btn { padding: var(--sp-2) var(--sp-4); font-size: var(--fs-14); }
 
 /* История внутри поповера — компактнее */
 .dice-popover-body .dice-history {
@@ -5601,7 +5344,6 @@ padding: var(--sp-4);
 @media (min-width: 768px) {
   #dice-modal .dice-modal-content { max-width: 720px; }
   .dice-controls-col .dice-mode-segment .dice-mode-seg-btn { padding: var(--sp-2) var(--sp-3); font-size: var(--fs-14); }
-  .dice-controls-col .dice-btn { min-height: 80px; }
   .dice-btn-icon { width: 28px; height: 28px; }
 }
 
@@ -5625,8 +5367,7 @@ padding: var(--sp-4);
   .dice-tool-badge { min-width: 16px; height: 16px; font-size: var(--fs-12); line-height: 16px; }
   .dice-modal-header .modal-close { width: 32px; height: 32px; min-width: 32px; font-size: var(--fs-24) !important; }
   .dice-modal-footer { padding: var(--sp-2) var(--sp-3) var(--sp-3); }
-  .dice-reset-btn { padding: var(--sp-2) var(--sp-4); font-size: var(--fs-12); }
-  .dice-popover {
+    .dice-popover {
     top: 52px;
     left: 8px;
     right: 8px;
@@ -6050,28 +5791,7 @@ font-size: var(--fs-14);
   margin-bottom: var(--sp-2);
 }
 .spell-slots-header h3 { margin: 0; }
-.ssl-restore-btn {
-  background: transparent !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-dim) !important;
-  border-radius: var(--r-4);
-  padding: var(--sp-1) var(--sp-3);
-  font-size: var(--fs-12);
-  cursor: pointer;
-  transition: all var(--t2);
-  white-space: nowrap;
-  width: auto !important;
-  margin-bottom: 0 !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
-.ssl-restore-btn:hover {
-  border-color: var(--accent) !important;
-  color: var(--accent) !important;
-  background: var(--accent-glow-token) !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
+.ssl-restore-btn { margin-bottom: 0 !important; }
 input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent); }
 .add-spell-form textarea { min-height: 100px; font-size: var(--fs-14); }
 .add-spell-form .row { margin-bottom: var(--sp-4); }
@@ -6331,9 +6051,15 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
   padding-bottom: var(--sp-3);
   border-bottom: 1px solid var(--home-rule);
 }
-.cf-row { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); width: 100%; }
-.cf-row > .class-filter-group { flex: 1 1 0; min-width: 0; }
-.class-filter-group.cf-fullspan { flex: 1 1 100%; }
+.cf-classes { display: flex; flex-wrap: wrap; gap: var(--sp-3) var(--sp-5); }
+.cf-classes .class-filter-row { gap: 0 var(--sp-2); }
+/* Группа — цветом источника магии: подпись и линия под ней */
+.cf-classes .class-filter-label { padding-bottom: 3px; margin-bottom: var(--sp-1); border-bottom: 2px solid var(--cf-src); color: var(--cf-src); }
+.cf-classes [data-group="all"]    { --cf-src: var(--home-sub); }
+.cf-classes [data-group="arcane"] { --cf-src: var(--magic); }
+.cf-classes [data-group="divine"] { --cf-src: var(--divin); }
+.cf-classes [data-group="primal"] { --cf-src: var(--success); }
+.cf-edition { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--sp-3); flex: 0 0 auto; }
 .class-filter-group { display: flex; flex-direction: column; gap: var(--sp-1); }
 .class-filter-label {
   font-family: var(--font-display);
@@ -6346,8 +6072,7 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
 .class-filter-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--sp-3); }
 /* перебиваем глобальный button{width:100%} (ловушка FIN-2) */
 .edition-btn,
-.book-btn,
-.class-filter-all {
+.book-btn {
   width: auto;
   flex: 0 0 auto;
   margin: 0;
@@ -6368,12 +6093,9 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
 .edition-btn:hover,
 .edition-btn:focus-visible,
 .book-btn:hover:where(:not(:disabled)),
-.book-btn:focus-visible,
-.class-filter-all:hover,
-.class-filter-all:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
+.book-btn:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
 .edition-btn.active,
-.book-btn.active,
-.class-filter-all.active {
+.book-btn.active {
   color: var(--accent-lo);
   font-weight: var(--fw-bold);
   text-decoration: underline;
@@ -6386,7 +6108,8 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
 .book-btn::before { content: "+"; display: inline-block; width: 1em; color: var(--home-sub); }
 .book-btn.active { text-decoration: none; }
 .book-btn.active::before { content: "✓"; color: var(--accent-lo); }
-.class-filter-btn {
+.class-filter-btn,
+.class-filter-all {
   position: relative;
   width: auto;
   flex: 0 0 auto;
@@ -6406,6 +6129,7 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
   transition: opacity var(--t1) var(--ez-out);
 }
 .class-filter-btn img { width: 36px; height: 36px; object-fit: contain; }
+.cf-all-ico { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; font-size: var(--fs-24); color: var(--accent-lo); }
 .cf-name {
   font-family: var(--font-display);
   font-size: var(--fs-12);
@@ -6414,7 +6138,8 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
   color: var(--text-dim);
   transition: color var(--t1) var(--ez-out);
 }
-.class-filter-btn::after {
+.class-filter-btn::after,
+.class-filter-all::after {
   content: "";
   position: absolute;
   left: 0;
@@ -6426,18 +6151,29 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
   transition: transform var(--t2) var(--ez-out);
 }
 .class-filter-btn:hover,
-.class-filter-btn:focus-visible { opacity: 1; background: none; box-shadow: none; outline: none; }
-.class-filter-btn.active { opacity: 1; }
-.class-filter-btn.active .cf-name { color: var(--accent-lo); font-weight: var(--fw-bold); }
-.class-filter-btn.active::after { transform: scaleX(1); }
-/* Свой класс — зелёный, чужой — приглушённый красный (но кликабельный) */
-.class-filter-btn.cf-own .cf-name,
-.class-filter-btn.cf-own.active .cf-name { color: var(--success); }
-.class-filter-btn.cf-own.active::after { background: var(--success); }
+.class-filter-btn:focus-visible,
+.class-filter-all:hover,
+.class-filter-all:focus-visible { opacity: 1; background: none; box-shadow: none; outline: none; }
+.class-filter-btn.active,
+.class-filter-all.active { opacity: 1; }
+.class-filter-btn.active .cf-name,
+.class-filter-all.active .cf-name { color: var(--accent-lo); font-weight: var(--fw-bold); }
+.class-filter-btn.active::after,
+.class-filter-all.active::after { transform: scaleX(1); }
+/* Свой/чужой класс — точкой у иконки, как в легенде; выбор несут имя и подчёркивание */
+.class-filter-btn.cf-own::before,
+.class-filter-btn.cf-foreign::before {
+  content: "";
+  position: absolute;
+  top: var(--sp-1);
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.class-filter-btn.cf-own::before { background: var(--success); }
+.class-filter-btn.cf-foreign::before { background: var(--danger); }
 .class-filter-btn.cf-foreign img { filter: saturate(0.55); }
-.class-filter-btn.cf-foreign .cf-name,
-.class-filter-btn.cf-foreign.active .cf-name { color: var(--danger); }
-.class-filter-btn.cf-foreign.active::after { background: var(--danger); }
 .class-filter-legend {
   display: flex;
   flex-wrap: wrap;
@@ -6445,8 +6181,9 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
   font-size: var(--fs-12);
   color: var(--home-sub);
 }
-.cf-legend-own     { color: var(--success); }
-.cf-legend-foreign { color: var(--danger); }
+.cf-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: var(--sp-1); vertical-align: 1px; }
+.cf-dot-own     { background: var(--success); }
+.cf-dot-foreign { background: var(--danger); }
 .cf-legend-hint    { color: var(--home-sub); font-style: italic; }
 
 /* Meta row — always visible */
@@ -6491,39 +6228,12 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
   margin-bottom: var(--sp-3);
   line-height: 1.5;
 }
-.spell-remove-btn {
-  background: transparent;
-  border: 1px solid var(--danger);
-  color: var(--danger);
-  border-radius: var(--r-4);
-  padding: var(--sp-1) var(--sp-3);
-  font-size: var(--fs-12);
-  cursor: pointer;
-  transition: all var(--t2);
-  width: auto;
-  margin: 0;
-}
-.spell-remove-btn:hover {
-  background: var(--danger);
-  color: white;
-}
+.spell-remove-btn { margin: 0; }
 /* HB-3: ✏️ правка своего заклинания. Форма и метрика — как у .spell-remove-btn
    рядом (тот же ряд действий), цвет акцентный вместо опасного. Только токены и
    без !important: один класс уже перебивает базовый `button` по специфичности —
    ратчет THEME-6 (1025 хардкодов / 159 !important) остаётся на месте. */
-.spell-edit-btn {
-  background: transparent;
-  border: 1px solid var(--accent);
-  color: var(--edit-btn-fg);
-  border-radius: var(--r-4);
-  padding: var(--sp-1) var(--sp-3);
-  font-size: var(--fs-12);
-  cursor: pointer;
-  transition: all var(--t2);
-  width: auto;
-  margin: 0;
-}
-.spell-edit-btn:hover { background: var(--accent-soft); }
+.spell-edit-btn { margin: 0; }
 /* В светлой теме --accent-hi (#c09a50 у золота) на стекле карточки даёт 2.63:1 —
    ниже WCAG 4.5 для обычного текста. --accent-lo (#86672b) даёт 4.60:1 на самом
    тяжёлом фоне (--bg-0) и по определению самый тёмный из акцентной тройки.
@@ -6557,26 +6267,8 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
 }
 /* STYLE-8b3: действия шапки списка — текстом. Коробка снята здесь же, где
    объявлялась (приём 8c2): перебивок не прибавилось, а пять !important ушли. */
-.spell-find-btn, .spell-add-btn {
-  padding: 0 !important;
-  border-radius: 0;
-  border: none;
-  background: none !important;
-  box-shadow: none;
-  font-family: var(--font-display);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-  transition: color var(--t1) var(--ez-out);
-  white-space: nowrap;
-  width: auto !important;
-  margin-bottom: 0 !important;
-  transform: none !important;
-}
-.spell-find-btn { color: var(--accent-lo); }
-.spell-find-btn:hover { color: var(--accent); text-decoration: underline; filter: none; transform: none !important; box-shadow: none !important; }
-.spell-add-btn { color: var(--accent-lo); }
-.spell-add-btn:hover { color: var(--accent); text-decoration: underline; filter: none; transform: none !important; box-shadow: none !important; }
+.spell-find-btn,
+.spell-add-btn { margin-bottom: 0 !important; }
 
 /* UI-5/полировка: на узких экранах (iPhone XR ~414px и меньше) кнопки
    «Найти заклинание» / «Добавить своё» вылетают за правую границу из-за
@@ -6588,17 +6280,11 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
   }
   .spells-header-row h3 { margin-bottom: var(--sp-1); }
   .spell-action-btns {
-    width: 100%;
+    width: 100%; flex-wrap: wrap;
     gap: var(--sp-2);
   }
-  .spell-find-btn, .spell-add-btn {
-    flex: 1 1 0;
-    min-width: 0;
-    padding: var(--sp-2) var(--sp-2) !important;
-    font-size: var(--fs-12);
-    white-space: normal; /* разрешаем перенос «Найти заклинание» в 2 строки */
-    line-height: 1.15;
-  }
+  .spell-find-btn,
+.spell-add-btn { --btn-px: var(--sp-1); flex: 1 1 auto; white-space: normal; height: auto; min-height: var(--btn-h); padding-block: var(--sp-1); line-height: 1.2; }
 }
 
 /* ============================================================
@@ -6901,22 +6587,7 @@ transition: width var(--t3, 420ms) var(--ez-spring, ease), background var(--t3);
 .hph-heal { color: var(--success); }
 .hph-dmg  { color: var(--danger); }
 .hph-actions { margin-top: var(--sp-4); padding-top: var(--sp-3); border-top: 1px solid var(--home-rule); }
-.hph-clear-btn {
-  width: auto;
-  margin: 0;
-  padding: var(--sp-2) 2px;
-  background: none;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  color: var(--home-sub);
-  font-family: var(--font-display);
-  font-size: var(--fs-sm);
-  cursor: pointer;
-  transition: color var(--t1) var(--ez-out);
-}
-.hph-clear-btn:hover,
-.hph-clear-btn:focus-visible { background: none; box-shadow: none; color: var(--danger); }
+.hph-clear-btn { margin: 0; }
 
 /* ===== Confirm Modal ===== */
 .confirm-modal-overlay {
@@ -7019,34 +6690,9 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   border-radius: var(--r-4);
   border: 1px solid var(--border-soft);
 }
-.party-section-actions { display: flex; gap: var(--sp-1); flex-shrink: 0; align-items: center; }
-.party-add-btn {
-  padding: var(--sp-1) var(--sp-3);
-  border-radius: var(--r-4);
-  font-size: var(--fs-12);
-  cursor: pointer;
-  border: 1px solid var(--accent);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-weight: var(--fw-bold);
-  width: auto;
-  margin: 0;
-  transition: all var(--t1);
-}
-.party-add-btn:hover { background: var(--accent-hi); border-color: var(--accent-hi); }
-.party-io-btn {
-  width: 30px; height: 30px;
-  border-radius: var(--r-4);
-  font-size: var(--fs-14);
-  cursor: pointer;
-  border: 1px solid var(--border-soft);
-  background: transparent;
-  color: var(--text-dim);
-  display: flex; align-items: center; justify-content: center;
-  margin: 0;
-  transition: all var(--t1);
-}
-.party-io-btn:hover { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.party-section-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-1); min-width: 0; align-items: center; }
+.party-add-btn { margin: 0; }
+.party-io-btn { margin: 0; }
 
 /* Empty state */
 .party-empty { font-size: var(--fs-14); color: var(--text-mute); padding: var(--sp-4) 0; text-align: center; }
@@ -7194,8 +6840,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 /* STYLE-8d: единственное сплошное действие экрана сбора. В тёмной теме кнопка
    была красной (--danger), в светлой её перебивали на акцент — сведено к
    акценту в обеих темах, дубль в light-блоке снят. */
-.battle-start-btn { width: 100%; padding: var(--sp-4); background: var(--accent); border: none; border-radius: var(--r-4); color: var(--on-accent); font-size: 1em; font-weight: var(--fw-bold); cursor: pointer; letter-spacing: 0.03em; transition: opacity var(--t2); margin: 0; }
-.battle-start-btn:hover { opacity: 0.85; }
+.battle-start-btn { width: 100%; margin: 0; }
 
 /* Party modal */
 .party-modal-box { max-width: 400px !important; text-align: left !important; }
@@ -7241,18 +6886,11 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 .battle-conc-badge:hover { background: none; text-decoration: underline; }
 /* CAST-9a: полоса повторных тиков урона (заклинание бьёт каждый раунд) */
 .battle-repeat-strip { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-3); }
-.battle-repeat-btn { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: var(--sp-1); min-height: 32px; white-space: nowrap; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--accent-lo); }
-.battle-repeat-btn:hover { text-decoration: underline; }
-.battle-repeat-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .brb-formula { opacity: 0.75; font-weight: var(--fw-semibold); }
 .battle-turn-info { font-family: var(--font-display); font-size: var(--fs-md); font-weight: var(--fw-bold); color: var(--text); min-width: 0; max-width: 100%; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .battle-tracker-actions { display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; }
-.battle-add-mon-btn { all: unset; cursor: pointer; display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--accent-lo); }
-.battle-add-mon-btn:hover { text-decoration: underline; }
-.battle-add-mon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.battle-end-btn { all: unset; cursor: pointer; display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--danger); }
-.battle-end-btn:hover { text-decoration: underline; }
-.battle-end-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.battle-add-mon-btn { min-height: 44px; }
+.battle-end-btn { min-height: 44px; }
 /* UX-6: строка трекера — две линии (main: инициатива/имя/действия, sub: ХП/статус) */
 .tracker-row { display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-2); padding: var(--sp-3) 0; margin-bottom: 0; transition: background var(--t1) var(--ez-out); }
 .tracker-main { display: flex; align-items: center; gap: var(--sp-2); }
@@ -7302,9 +6940,8 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 @media (max-width: 500px) { .tracker-econ { padding-left: var(--sp-2); } }
 .tracker-icon { width: 22px; display: flex; align-items: center; justify-content: center; font-size: 1em; flex-shrink: 0; }
 .battle-nav { display: flex; gap: var(--sp-2); margin-top: var(--sp-4); }
-.battle-nav-btn { flex: 1; padding: var(--sp-3); border-radius: var(--r-4); background: none; border: 0; color: var(--accent-lo); font-family: var(--font-display); font-size: var(--fs-md); cursor: pointer; width: auto; margin: 0; transition: color var(--t1) var(--ez-out); }
+.battle-nav-btn { flex: 1; margin: 0; }
 .battle-nav-next { background: var(--nav-next-fill); border: 0; color: var(--on-accent); font-weight: var(--fw-bold); }
-.battle-nav-btn:hover:not(.battle-nav-next) { color: var(--accent); text-decoration: underline; }
 
 /* Fix white h3 in party sections */
 .card h3 { color: var(--text); }
@@ -7477,15 +7114,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   margin-bottom: var(--sp-3);
 }
 /* width:auto/flex — перебиваем глобальный button{width:100%} (ловушка FIN-2/FIN-5) */
-.trinket-roll-btn {
-  display: inline-flex; align-items: center; gap: var(--sp-1);
-  width: auto; flex: 0 0 auto; margin: 0; cursor: pointer;
-  min-height: 44px; padding: 0;
-  background: none; border: 0; border-radius: 0; box-shadow: none;
-  font-family: var(--font-display); font-size: var(--fs-sm); font-weight: var(--fw-semibold);
-  color: var(--accent-lo);
-}
-.trinket-roll-btn:hover { background: none; box-shadow: none; filter: none; text-decoration: underline; }
+.trinket-roll-btn { flex: 0 0 auto; margin: 0; min-height: 44px; }
 .trinket-roll-hint { font-size: var(--fs-12); color: var(--text-dim); }
 
 /* ── МАСТЕР СОЗДАНИЯ ПЕРСОНАЖА ────────────────────────────────── */
@@ -7512,23 +7141,6 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 }
 .cw-step-title { font-weight: var(--fw-bold); color: var(--accent); font-size: var(--fs-14); margin-bottom: 2px; }
 .cw-step-hint { font-size: var(--fs-12); color: var(--text-dim); line-height: 1.4; }
-.cw-lock-btn {
-  background: var(--accent);
-  color: var(--on-accent);
-  border: none;
-  padding: var(--sp-3) var(--sp-4);
-  border-radius: var(--r-8);
-  font-weight: var(--fw-bold);
-  font-size: var(--fs-14);
-  cursor: pointer;
-  transition: opacity var(--t1), transform var(--t1);
-}
-.cw-lock-btn:disabled {
-  background: var(--bg-2);
-  color: var(--text-mute);
-  cursor: not-allowed;
-}
-.cw-lock-btn:not(:disabled):hover { opacity: 0.92; }
 .cw-validation {
   font-size: var(--fs-12);
   color: var(--danger);
@@ -7559,18 +7171,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   flex-shrink: 0;
   max-width: 100%;
 }
-.basic-unlock-btn {
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  width: auto;               /* не растягивать на всю строку (перебить button{width:100%}) */
-  margin: 0;
-  padding: var(--sp-1) var(--sp-3);
-  border-radius: var(--r-4);
-  font-size: var(--fs-14);
-  cursor: pointer;
-}
-.basic-unlock-btn:hover { background: var(--bg-3); }
+.basic-unlock-btn { margin: 0; }
 
 /* Заблокированные основные поля */
 .basic-field-locked { pointer-events: none; }
@@ -7635,7 +7236,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   align-items: center;
   font-size: var(--fs-14);
 }
-.race-extras-btn,
+.race-extras-btn { flex: 0 0 auto; margin: 0; }
 .race-extras-stat-pick {
   width: auto;
   flex: 0 0 auto;
@@ -7651,9 +7252,6 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   letter-spacing: 0;
   cursor: pointer;
 }
-.race-extras-btn { color: var(--accent-lo); }
-.race-extras-btn:hover,
-.race-extras-btn:focus-visible { background: none; box-shadow: none; text-decoration: underline; }
 .race-extras-hint { font-size: var(--fs-14); color: var(--text-dim); }
 .race-extras-warn { font-size: var(--fs-14); font-weight: var(--fw-bold); color: var(--danger); }
 .race-extras-btn.done {
@@ -8418,24 +8016,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
    стал строкой раздела «Класс и развитие» (.hp-row* + .cr-* в конце файла),
    и та же разметка стоит на вкладке «Бой». Здесь остаётся только .res-btn:
    его использует блок прихвостней. */
-.res-btn {
-  padding: var(--sp-1) var(--sp-3);
-  border-radius: var(--r-4);
-  border: 1px solid var(--border);
-  background: var(--bg-2);
-  color: var(--text-dim);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-  width: auto;
-  margin: 0;
-  transition: all var(--t1);
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-.res-btn:hover:where(:not(:disabled)) { background: var(--bg-3); border-color: var(--border); }
-.res-btn:active { transform: scale(0.93); }
-.res-btn:disabled { opacity: var(--dis-op); cursor: not-allowed; }
+.res-btn { margin: 0; }
 
 /* ========== ASI MODAL ========== */
 .asi-modal-box {
@@ -8569,35 +8150,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   color: var(--success);
   font-weight: var(--fw-semibold);
 }
-.app-version-update-btn {
-  background: var(--success);
-  color: var(--on-status);
-  border: none;
-  padding: var(--sp-2) var(--sp-4);
-  border-radius: var(--r-4);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-  width: auto;
-  margin: 0;
-  transition: all var(--t2);
-}
-.app-version-update-btn:hover {
-  filter: brightness(1.06);
-  box-shadow: var(--sh-1);
-}
-.app-version-force-btn {
-  background: none;
-  color: var(--accent-lo);
-  border: none;
-  padding: var(--sp-2) var(--sp-1);
-  border-radius: var(--r-4);
-  font-size: var(--fs-12);
-  cursor: pointer;
-  width: auto;
-  margin: 0 0 0 var(--sp-2);
-  min-height: 44px;
-}
+.app-version-update-btn { margin: 0; }
+.app-version-force-btn { margin: 0 0 0 var(--sp-2); min-height: 44px; }
 
 /* ══ JOURNAL ═══════════════════════════════════════════════════════════════
    STYLE-8g: вкладка «Журнал» в языке встречающего экрана — ни одной коробки.
@@ -8627,35 +8181,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 /* Единственное действие шапки — текстовая подпись с растущим подчёркиванием.
    Цвет --accent-lo, а не --accent: у плоского текста весь вес несёт цвет, а
    --accent на белом даёт 3.55 (гоча 8e). */
-.journal-add-btn {
-  position: relative;
-  background: none;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  padding: var(--sp-2) 2px;
-  color: var(--accent-lo);
-  font-family: var(--font-display);
-  font-size: var(--fs-md);
-  font-weight: var(--fw-medium);
-  cursor: pointer;
-  width: auto;
-  margin: 0;
-  transition: color var(--t1) var(--ez-out);
-}
-.journal-add-btn::after {
-  content: "";
-  position: absolute;
-  left: 2px;
-  bottom: 0;
-  width: 0;
-  height: 1.5px;
-  background: var(--accent);
-  transition: width var(--t2) var(--ez-out);
-}
-.journal-add-btn:hover { background: none; box-shadow: none; color: var(--accent); }
-.journal-add-btn:hover::after,
-.journal-add-btn:focus-visible::after { width: calc(100% - 4px); }
+.journal-add-btn { margin: 0; }
 .journal-filter-row {
   display: flex;
   gap: 0 var(--sp-5);
@@ -9985,39 +9511,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 /* STYLE-8M: единственное действие среди строк-настроек — подпись с растущим
    подчёркиванием, как «＋ Событие» в «Журнале». */
 .onboarding-restart-btn,
-.install-btn {
-  position: relative;
-  width: auto;
-  margin: 0 0 0 auto;
-  padding: var(--sp-2) 2px;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  color: var(--accent-lo);
-  font-family: var(--font-display);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  cursor: pointer;
-  transition: color var(--t1) var(--ez-out);
-}
-.onboarding-restart-btn::after,
-.install-btn::after {
-  content: "";
-  position: absolute;
-  left: 2px;
-  bottom: 0;
-  width: 0;
-  height: 1.5px;
-  background: var(--accent);
-  transition: width var(--t2) var(--ez-out);
-}
-.onboarding-restart-btn:hover,
-.install-btn:hover { background: none; box-shadow: none; color: var(--accent); }
-.onboarding-restart-btn:hover::after,
-.onboarding-restart-btn:focus-visible::after,
-.install-btn:hover::after,
-.install-btn:focus-visible::after { width: calc(100% - 4px); }
+.install-btn { margin: 0 0 0 auto; }
 
 /* INST-1: установка PWA — строка в настройках и под меню домашнего экрана.
    Кнопка только там, где браузер прислал beforeinstallprompt; на iPhone — подсказка. */
@@ -10046,34 +9540,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 /* Кнопка «Пройти интерактивный тур» в help-центре (раздел «С чего начать»).
    STYLE-8M-2: сплошная заливка снята — это строка с рельсой слева, как
    «Продолжить» на встречающем экране. */
-.help-tour-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  width: 100%;
-  margin: 0 0 var(--sp-3);
-  padding: var(--sp-3) var(--sp-4);
-  border: 0;
-  border-left: var(--home-rail-w) solid var(--accent);
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  color: var(--accent-lo);
-  font-family: var(--font-display);
-  font-size: var(--fs-md);
-  font-weight: var(--fw-semibold);
-  text-align: left;
-  cursor: pointer;
-  transition: color var(--t1) var(--ez-out), padding-left var(--t2) var(--ez-out);
-}
-.help-tour-btn:hover,
-.help-tour-btn:focus-visible {
-  background: none;
-  box-shadow: none;
-  color: var(--accent);
-  padding-left: calc(var(--sp-4) + var(--sp-2));
-}
-.help-tour-btn:active { transform: none; }
+.help-tour-btn { width: 100%; margin: 0 0 var(--sp-3); }
 
 /* =============================================
    HELP-4 — Движок интерактивного тура (подсветка).
@@ -10225,28 +9692,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .tour-nav { display: flex; gap: var(--sp-2); }
 /* Дымка v5: «Назад» — ghost, «Далее/Готово» — primary градиентом (ниже .tour-next) */
-.tour-btn {
-  width: auto;
-  margin: 0;
-  padding: var(--sp-2) var(--sp-4);
-  border-radius: var(--r-4);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text-dim);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-  transition: border-color var(--t1), background var(--t1), opacity var(--t1);
-}
-.tour-btn:hover:not(:disabled) { background: var(--bg-2); color: var(--text); }
-.tour-btn:disabled { opacity: var(--dis-op); cursor: default; }
-.tour-next {
-  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
-  border-color: transparent;
-  color: var(--on-accent);
-  box-shadow: inset 0 1.5px 0 color-mix(in srgb, var(--on-color) 42%, transparent), 0 4px 14px var(--accent-glow-token);
-}
-.tour-next:hover:where(:not(:disabled)) { filter: brightness(1.07); background: linear-gradient(180deg, var(--accent-hi), var(--accent)); color: var(--on-accent); }
+.tour-btn { margin: 0; }
 
 /* =============================================
    3D DICE CUBE
@@ -10362,14 +9808,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   background: var(--field-text-bg); border: 1px solid var(--border);
   color: var(--text); font-size: var(--fs-12); flex: 0 0 auto;
 }
-.app-log-btn {
-  height: 30px; margin: 0; padding: var(--sp-1) var(--sp-3); width: auto; flex: 0 0 auto;
-  border-radius: var(--r-4); border: 1px solid var(--border);
-  background: var(--bg-3); color: var(--text);
-  font-size: var(--fs-12); font-weight: var(--fw-semibold); cursor: pointer; white-space: nowrap;
-}
-.app-log-btn:hover { border-color: var(--accent); color: var(--accent); }
-.app-log-btn-danger:hover { border-color: var(--danger); color: var(--danger); }
+.app-log-btn { margin: 0; flex: 0 0 auto; }
 .app-log-list {
   flex: 1 1 auto; overflow-y: auto; padding: var(--sp-1) 0;
   font-family: var(--font-mono); line-height: 1.45;
@@ -10495,8 +9934,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   #dice-modal .dice-modal-content { max-height: 92vh; }
   .dice-body { gap: var(--sp-2); padding: var(--sp-2); }
   .dice-controls-col .dice-grid { gap: var(--sp-2); }
-  .dice-controls-col .dice-btn { min-height: 50px; padding: var(--sp-2) var(--sp-2); gap: var(--sp-1); }
-  .dice-btn-icon { width: 22px; height: 22px; }
+    .dice-btn-icon { width: 22px; height: 22px; }
   .dice-modal-footer { padding: var(--sp-1) var(--sp-3) var(--sp-2); }
 }
 
@@ -10681,7 +10119,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
     padding: var(--sp-4);
   }
   .dice-controls-col { gap: var(--sp-3); }
-  .dice-controls-col .dice-btn { min-height: 56px; }
   .dice-modal-footer { flex: 0 0 auto; }
 }
 
@@ -10862,8 +10299,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 /* E24-6: приём мастерства оружия (2024) — выбранное оружие подсвечено акцентом,
    выбор — текст-действие на --accent-lo (без рамок, в духе STYLE) */
 .weapon-mastery.is-on { color: var(--accent); }
-.weapon-mastery-btn { background: none; border: 0; padding: 0 2px; font: inherit; color: var(--accent-lo); cursor: pointer; }
-.weapon-mastery-btn:hover, .weapon-mastery-btn:focus-visible { color: var(--accent); outline: none; }
 /* STYLE-8a2: правка и удаление — приглушённые глифы, проявляются на строке */
 .weapon-delete-btn {
   background: transparent !important;
@@ -10903,27 +10338,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .weapon-edit-btn:hover { color: var(--edit-btn-fg); }
 /* STYLE-8a2: «Атака» и «Урон» — текстовые действия вместо двух заливок */
 .weapon-roll-row { display: flex; gap: var(--sp-4); }
-.weapon-roll-btn {
-  flex: 0 0 auto;
-  background: none;
-  padding: var(--sp-1) 0 !important;
-  font-family: var(--font-display);
-  font-size: var(--fs-14) !important;
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-  width: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  border: none !important;
-  transition: color var(--t2) var(--ez-out);
-}
-.weapon-roll-btn:hover { filter: none; transform: none !important; box-shadow: none !important; }
-.weapon-roll-atk { color: var(--accent-lo); }
-.weapon-roll-atk:hover { color: var(--accent); }
+.weapon-roll-btn { flex: 0 0 auto; margin: 0 !important; }
 .weapon-roll-dmg { color: var(--danger); }
-.weapon-roll-dmg:hover { color: color-mix(in srgb, var(--danger) 80%, var(--text)); }
-.weapon-roll-smite { color: var(--accent-lo); }
-.weapon-roll-smite:hover { color: var(--accent); }
 .weapon-notes { font-size: var(--fs-12); color: var(--text-dim); margin-top: var(--sp-2); }
 
 /* Spell card actions row. flex-wrap обязателен: на телефоне 4-5 кнопок
@@ -10931,22 +10347,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
    без переноса хвост ряда обрезался краем карточки («пропала кнопка Подготовить»). */
 .spell-card-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
 /* Кнопка «Использовать» + чузер уровня ячейки (castSpell) */
-.spell-cast-btn {
-  background: var(--accent-soft) !important;
-  border: 1px solid var(--accent) !important;
-  color: var(--accent-hi) !important;
-  border-radius: var(--r-4);
-  padding: var(--sp-1) var(--sp-3) !important;
-  font-size: var(--fs-12) !important;
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-  width: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  box-shadow: none !important;
-  transition: all var(--t2);
-}
-.spell-cast-btn:hover { background: var(--accent-glow-token) !important; color: var(--text) !important; transform: none !important; }
 .cast-spell-content { max-width: 380px; }
 .cast-spell-hint { color: var(--text-mute); font-size: var(--fs-14); margin: var(--sp-1) 0 var(--sp-3); }
 .cast-slot-options { display: flex; flex-direction: column; gap: var(--sp-2); }
@@ -11038,22 +10438,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .cast-debuff-target .cdb-note { color: var(--text-mute); font-size: var(--fs-12); white-space: nowrap; }
 .cast-debuff-target .cdb-mark { width: 16px; text-align: center; color: var(--accent-hi); font-weight: var(--fw-bold); }
 
-.spell-conc-btn {
-  background: transparent !important;
-  border: 1px solid color-mix(in srgb, var(--magic) 50%, transparent) !important;
-  color: var(--magic) !important;
-  border-radius: var(--r-4);
-  padding: var(--sp-1) var(--sp-3) !important;
-  font-size: var(--fs-12) !important;
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-  width: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  box-shadow: none !important;
-  transition: all var(--t2);
-}
-.spell-conc-btn:hover { background: color-mix(in srgb, var(--magic) 16%, transparent) !important; transform: none !important; }
+.spell-conc-btn { color: var(--magic); margin: 0 !important; }
 
 /* ── Подготовка заклинаний ── */
 .prep-counter {
@@ -11079,24 +10464,11 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .prep-counter .prep-max { font-weight: var(--fw-semibold); }
 .prep-counter .prep-hint { color: var(--text-dim); font-size: var(--fs-14); }
 
-.spell-prep-btn {
-  background: transparent !important;
-  border: 1px solid var(--text-dim) !important;
-  color: var(--text-dim) !important;
-  font-size: var(--fs-12) !important;
-  padding: var(--sp-1) var(--sp-2) !important;
-  border-radius: var(--r-4) !important;
-  cursor: pointer;
-  width: auto; /* базовый button { width:100% } ломал перенос ряда действий */
-  margin: 0;
-  box-shadow: none !important;
-  transition: all var(--t2);
-}
-.spell-prep-btn:hover { border-color: var(--success) !important; color: var(--success) !important; }
+.spell-prep-btn { margin: 0; }
 .spell-prep-btn.spell-prep-active {
-  background: color-mix(in srgb, var(--success) 12%, transparent) !important;
-  border-color: var(--success) !important;
-  color: var(--success) !important;
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  border-color: var(--success);
+  color: var(--success);
 }
 
 /* Неподготовленное заклинание */
@@ -11134,33 +10506,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 
 /* ── Ritual cast button ── */
-.spell-ritual-btn {
-  background: transparent !important;
-  border: 1px solid color-mix(in srgb, var(--magic) 45%, transparent) !important;
-  color: var(--magic) !important;
-  font-size: var(--fs-12) !important;
-  padding: var(--sp-1) var(--sp-3) !important;
-  border-radius: var(--r-4) !important;
-  cursor: pointer;
-  width: auto;
-  margin: 0;
-  transition: all var(--t2);
-}
-.spell-ritual-btn:hover { background: color-mix(in srgb, var(--magic) 16%, transparent) !important; transform: none !important; }
+.spell-ritual-btn { color: var(--magic); margin: 0; }
 
-.spell-summon-btn {
-  background: transparent !important;
-  border: 1px solid color-mix(in srgb, var(--magic) 50%, transparent) !important;
-  color: var(--magic) !important;
-  font-size: var(--fs-12) !important;
-  padding: var(--sp-1) var(--sp-3) !important;
-  border-radius: var(--r-4) !important;
-  cursor: pointer;
-  width: auto;
-  margin: 0;
-  transition: all var(--t2);
-}
-.spell-summon-btn:hover { background: color-mix(in srgb, var(--magic) 16%, transparent) !important; transform: none !important; }
+.spell-summon-btn { color: var(--magic); margin: 0; }
 
 /* ── Pact magic label in spell slots ── */
 .ssl-pact {
@@ -11333,23 +10681,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   border-radius: 50%;
   display: block;
 }
-.avatar-upload-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-2);
-  cursor: pointer;
-  padding: var(--sp-2) var(--sp-4);
-  border-radius: var(--r-8);
-  font-size: var(--fs-14);
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  background: transparent;
-  transition: background var(--t1);
-  font-weight: var(--fw-semibold);
-}
-.avatar-upload-btn:hover {
-  background: color-mix(in srgb, var(--success) 12%, transparent);
-}
 .avatar-modal-footer {
   display: flex;
   gap: var(--sp-2);
@@ -11492,30 +10823,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .avatar-section-divider::before { left: 0; }
 .avatar-section-divider::after { right: 0; }
-.avatar-upload-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-2);
-  cursor: pointer;
-  padding: var(--sp-3) var(--sp-4);
-  border-radius: var(--r-8);
-  font-size: var(--fs-14);
-  border: 1px solid var(--border);
-  color: var(--text);
-  background: var(--bg-2);
-  transition: background var(--t1);
-  font-weight: var(--fw-medium);
-  width: 100%;
-  box-sizing: border-box;
-}
-.avatar-upload-btn:hover { background: var(--bg-3); }
-.avatar-url-apply-btn {
-  width: 100%;
-  padding: var(--sp-3);
-  font-size: var(--fs-14);
-  margin-top: 2px;
-}
+.avatar-upload-btn { width: 100%; }
+.avatar-url-apply-btn { width: 100%; margin-top: 2px; }
 
 /* ============================================
    ПОПАП РЕЖИМА БРОСКА (Преимущество / Помеха)
@@ -11711,12 +11020,7 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
 .twf-style-label input { cursor: pointer; }
 .twf-info { font-size: var(--fs-12); color: var(--text-mute); margin-bottom: var(--sp-2); }
 .twf-buttons { display: flex; gap: var(--sp-2); }
-.weapon-roll-twf {
-  flex: 1; padding: var(--sp-2) var(--sp-3); font-size: var(--fs-14); font-weight: var(--fw-bold);
-  background: color-mix(in srgb, var(--magic) 22%, var(--bg-0)); border: 2px solid var(--magic); color: var(--magic);
-  border-radius: var(--r-8); cursor: pointer; transition: all var(--t1);
-}
-.weapon-roll-twf:hover { background: var(--magic); color: var(--on-status); }
+.weapon-roll-twf { flex: 1; color: var(--magic); }
 
 /* ============================================================
    КЛАССОВЫЕ ВЫБОРЫ — карточки в asi-container
@@ -11899,7 +11203,9 @@ body {
 }
 .notes-search::placeholder { color: var(--notes-search-ph); }
 .notes-search:disabled { opacity: var(--dis-op); cursor: not-allowed; }
-.notes-new-btn, .notes-menu-btn, .notes-regen-btn {
+.notes-new-btn,
+.notes-regen-btn { margin: 0; }
+.notes-menu-btn {
   background: var(--bg-2);
   border: 1px solid var(--border-soft);
   color: var(--text);
@@ -11912,13 +11218,9 @@ body {
   margin: 0;
   transition: all var(--t1);
 }
-.notes-new-btn { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-.notes-new-btn:hover:not(:disabled) { filter: brightness(1.08); }
 .notes-menu-btn { padding: var(--sp-2) var(--sp-3); }
 .notes-menu-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-.notes-new-btn:disabled, .notes-menu-btn:disabled { opacity: var(--dis-op); cursor: not-allowed; }
-.notes-regen-btn { padding: var(--sp-2) var(--sp-3); }
-.notes-regen-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.notes-menu-btn:disabled { opacity: var(--dis-op); cursor: not-allowed; }
 .notes-save-ind {
   font-size: var(--fs-12);
   color: var(--text-dim);
@@ -12822,19 +12124,12 @@ select.bp-select { padding-right: var(--sp-4); }
 
 /* BUILD-LVL-2: кнопка «План» у бейджа билда + модалка плана развития 1–20 */
 /* FB-6: пилюля «📈 План» — комфортный тап-таргет и читаемость (была мелкой/тусклой) */
-.char-build-plan-btn {
-  font-size: var(--fs-14); padding: var(--sp-1) 2px; border-radius: 0; font-weight: var(--fw-semibold);
-  border: 0; background: none; color: var(--accent-lo);
-  cursor: pointer; white-space: nowrap; line-height: 1.4;
-  transition: color var(--t1);
-}
-.char-build-plan-btn:hover { background: none; color: var(--accent); }
 /* REQ-3: «План класса» рядом с подписью поля «Класс» */
 .label-action-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
 .label-action-row > label { margin: 0; }
 /* STYLE-3: ширину брала от button{width:100%} — фиксируем явно, чтобы кнопка
    пережила снятие вида с элементного селектора. */
-.class-plan-btn { padding: var(--sp-1) var(--sp-3); font-size: var(--fs-12); width: 100%; }
+.class-plan-btn { width: 100%; }
 
 /* ============================================
    STYLE-4b: кнопки, которым ширину давал элементный button{width:100%}.
@@ -12843,7 +12138,6 @@ select.bp-select { padding-right: var(--sp-4); }
    Во флекс-футерах ставим flex:1, а не width:100% — так кнопки делят
    ширину поровну, что и происходило раньше по факту.
 ============================================ */
-.dice-reset-btn { width: 100%; }
 .add-spell-form .btn-success,
 .item-form .btn-success { width: 100%; margin-bottom: var(--sp-3); }
 .avatar-modal-footer > .btn { flex: 1; }
@@ -12916,8 +12210,7 @@ select.bp-select { padding-right: var(--sp-4); }
 .lu-choice-launch:disabled:hover { background: none; color: var(--magic); text-decoration: none; }
 .lu-choice-alt { display: block; width: auto; margin: var(--sp-1) 0 0; padding: var(--sp-1) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--home-sub); text-align: left; cursor: pointer; }
 .lu-choice-alt:hover { background: none; color: var(--accent-lo); }
-.lu-apply-all-btn { width: auto; margin: 0 0 var(--sp-2); padding: var(--sp-2) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-md); font-weight: var(--fw-bold); color: var(--magic); cursor: pointer; }
-.lu-apply-all-btn:hover { filter: none; background: none; text-decoration: underline; text-underline-offset: 3px; }
+.lu-apply-all-btn { margin: 0 0 var(--sp-2); }
 /* Пикер класса запускается с экрана выборов повышения — держим выше модалок */
 #class-choice-modal.modal { z-index: calc(var(--z-modal) + 1); }
 .char-build-unlink { background:none; border:0; color:var(--text-dim); border-radius:0; padding:var(--sp-1) 2px; font-size:var(--fs-14); cursor:pointer; transition:color var(--t1); }
@@ -12930,7 +12223,7 @@ select.bp-select { padding-right: var(--sp-4); }
 @media (max-width: 540px) {
   /* (в) Фильтр классов на экране поиска: иконки чуть меньше, чтобы четыре
         класса тайной магии вставали в один ряд. */
-  .class-filter-btn img { width: 30px; height: 30px; }
+  .class-filter-btn img, .cf-all-ico { width: 30px; height: 30px; }
 }
 
 /* =============================================
@@ -13056,15 +12349,6 @@ mark.search-hl {
 
 /* ════ FEAT-4: SRD-бестиарий ════════════════════════════════ */
 /* Кнопка «📚 Из SRD» в секции монстров */
-.party-add-btn-srd {
-  background: var(--magic);
-  border-color: var(--magic);
-  color: var(--on-status);
-}
-.party-add-btn-srd:hover {
-  background: color-mix(in srgb, var(--magic) 82%, white);
-  border-color: color-mix(in srgb, var(--magic) 82%, white);
-}
 
 /* Бэйджи CR/КД/ХП на карточке монстра */
 .pcard-srd-badges {
@@ -13737,22 +13021,9 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   padding: 0 var(--sp-1);
 }
 /* Действия раздела — текстовые, как пункты меню; каталоги приглушены. */
-#tab-party .party-add-btn,
-#tab-party .party-add-btn-srd,
-#tab-party .party-io-btn {
-  background: none;
-  border: 0;
-  font-weight: var(--fw-medium);
-}
 /* --accent-lo, а не --accent: у кнопки не осталось ни рамки, ни заливки, весь
    вес несёт текст, а --accent на белом фоне светлой темы даёт 3.55 — ниже
    порога для мелкого текста. --accent-lo: 5.03 в светлой, 6.37 в тёмной. */
-#tab-party .party-add-btn { color: var(--accent-lo); }
-#tab-party .party-add-btn-srd,
-#tab-party .party-io-btn { color: var(--home-sub); width: auto; padding: 0 var(--sp-2); }
-#tab-party .party-add-btn:hover { background: none; color: var(--accent); }
-#tab-party .party-add-btn-srd:hover,
-#tab-party .party-io-btn:hover { background: none; color: var(--text); }
 
 /* Участник — плоская строка. Тип кодируется ромбом слева (цвет тот же, что
    был у полосы), поэтому цветная граница больше не нужна. */
@@ -13835,19 +13106,6 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
 }
 /* Переход к бою — последний пункт списка, а не залитая кнопка: на начальном
    экране главное действие тоже строка, отмеченная рельсой слева. */
-#tab-party .battle-start-btn {
-  background: none;
-  border: 0;
-  border-top: 1px solid var(--home-rule);
-  border-left: var(--home-rail-w) solid var(--accent);
-  border-radius: 0;
-  color: var(--accent-lo);
-  font-family: var(--font-display);
-  font-size: var(--fs-lg);
-  padding: var(--sp-4) var(--sp-3);
-  text-align: left;
-}
-#tab-party .battle-start-btn:hover { opacity: 1; background: color-mix(in srgb, var(--accent) 8%, transparent); }
 /* Шапка «Мой персонаж»: имя слева, хиты и КД — правым краем. Только там, где
    строка это вмещает; ниже 700px всё переносится, как раньше. */
 @media (min-width: 700px) {
@@ -14136,8 +13394,8 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
    акцент текстом (--accent-lo, а не --accent: 3.55 на белом — ниже порога),
    перегенерация и меню приглушены до --home-sub. */
 #tab-notes .notes-new-btn,
-#tab-notes .notes-menu-btn,
-#tab-notes .notes-regen-btn {
+#tab-notes .notes-regen-btn { align-self: stretch; }
+#tab-notes .notes-menu-btn {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -14152,28 +13410,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   font-weight: var(--fw-medium);
   transition: color var(--t1) var(--ez-out);
 }
-#tab-notes .notes-new-btn { color: var(--accent-lo); }
-#tab-notes .notes-regen-btn,
 #tab-notes .notes-menu-btn { color: var(--home-sub); }
-#tab-notes .notes-new-btn::after {
-  content: "";
-  position: absolute;
-  left: 2px;
-  right: auto;
-  bottom: 0;
-  width: 0;
-  height: 1.5px;
-  background: var(--accent);
-  transition: width var(--t2) var(--ez-out);
-}
-#tab-notes .notes-new-btn:hover:not(:disabled) {
-  filter: none;
-  background: none;
-  color: var(--accent);
-}
-#tab-notes .notes-new-btn:hover:not(:disabled)::after,
-#tab-notes .notes-new-btn:focus-visible::after { width: calc(100% - 4px); }
-#tab-notes .notes-regen-btn:hover:not(:disabled),
 #tab-notes .notes-menu-btn:hover:not(:disabled) {
   background: none;
   border-color: transparent;
@@ -15044,22 +14281,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   color: var(--cw-title-fg);
 }
 .cw-step-hint { color: var(--cw-hint-fg); }
-.cw-lock-btn {
-  background: none;
-  color: var(--accent-lo);
-  border-left: var(--home-rail-w) solid var(--accent);
-  border-radius: 0;
-  font-family: var(--font-display);
-  padding: var(--sp-2) 0 var(--sp-2) var(--sp-3);
-  text-align: left;
-  width: 100%;
-}
-.cw-lock-btn:disabled {
-  background: none;
-  border-left-color: var(--home-rule);
-  color: var(--home-sub);
-}
-.cw-lock-btn:not(:disabled):hover { opacity: 1; color: var(--accent); }
+.cw-lock-btn { width: 100%; white-space: normal; height: auto; min-height: var(--btn-h); padding-block: var(--sp-1); line-height: 1.2; }
 .basic-locked-bar {
   background: var(--locked-bar-bg);
   border: none;
@@ -15068,13 +14290,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   padding: 0 0 var(--sp-3);
   color: var(--locked-bar-fg);
 }
-.basic-unlock-btn {
-  background: none;
-  border: none;
-  color: var(--accent-lo);
-  opacity: 0.55;
-  transition: opacity var(--t2) var(--ez-out);
-}
+.basic-unlock-btn { opacity: 0.55; }
 .basic-locked-bar:hover .basic-unlock-btn,
 .basic-unlock-btn:focus-visible { opacity: 1; }
 
@@ -16008,33 +15224,7 @@ select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select):focus { ba
 
 /* UNI-5: действие строки — текстом (пересмотр 8b3): «Использовать» с подчёркиванием,
    «Подготовить» приглушённым. */
-#tab-spells .spell-lead-btn {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  width: auto;
-  margin: 0;
-  padding: 0 2px;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  color: var(--accent-lo);
-  font-family: var(--font-display);
-  font-weight: var(--fw-semibold);
-  font-size: var(--fs-14);
-  white-space: nowrap;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-}
-#tab-spells .spell-lead-btn:hover {
-  background: none;
-  color: var(--accent);
-  transform: none;
-  filter: none;
-}
+#tab-spells .spell-lead-btn { flex-shrink: 0; margin: 0; }
 #tab-spells .spell-lead-prep { color: var(--text-dim); font-weight: var(--fw-medium); text-decoration: none; }
 #tab-spells .spell-lead-prep:hover { color: var(--accent-lo); }
 
@@ -16061,10 +15251,7 @@ select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select):focus { ba
   transform: none;
   filter: none;
 }
-#tab-spells .spell-remove-btn { background: color-mix(in srgb, var(--danger) 18%, transparent); }
-#tab-spells .spell-remove-btn:hover { background: color-mix(in srgb, var(--danger) 28%, transparent); }
 #tab-spells .spell-remove-btn .dico { color: var(--danger); }
-#tab-spells .spell-prep-btn.spell-prep-active { background: color-mix(in srgb, var(--accent) 22%, transparent); }
 #tab-spells .spell-prep-btn.spell-prep-active .dico { color: var(--accent); }
 
 /* == STYLE-8b3-fix: срезанный ромб ==========================================
@@ -16131,25 +15318,7 @@ select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select):focus { ba
   border: 0;
   text-align: left;
 }
-#tab-spells .ssl-restore-btn {
-  margin-left: auto;
-  width: auto;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  font-family: var(--font-display);
-  font-size: var(--fs-14);
-  color: var(--accent-lo);
-}
-#tab-spells .ssl-restore-btn:hover {
-  background: none;
-  color: var(--accent);
-  transform: none;
-  text-decoration: underline;
-}
+#tab-spells .ssl-restore-btn { margin-left: auto; min-width: 0; }
 
 /* Заклинательная характеристика */
 #tab-spells .sc-stat-selector {
@@ -16849,17 +16018,6 @@ select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select):focus { ba
   color: var(--text);
 }
 #dice-modal .dice-formula-inp:focus { border-bottom-color: var(--accent); }
-#dice-modal .dice-formula-btn {
-  padding: var(--sp-3) 2px;
-  background: none;
-  border: 0;
-  border-radius: 0;
-  color: var(--accent-lo);
-  font-family: var(--font-display);
-  font-weight: var(--fw-medium);
-  transition: color var(--t1) var(--ez-out);
-}
-#dice-modal .dice-formula-btn:hover { background: none; border: 0; color: var(--accent-hover); }
 
 /* Чипы вставки — текстом, без коробочек */
 #dice-modal .dice-controls-col .dice-chips { gap: 0; margin-top: var(--sp-2); }
@@ -17282,20 +16440,11 @@ button.modal-close-bottom:hover,
     .sheet-avatar-hint, #sheet-unlock-btn, .ritual-badge-text, .race-bonus-badge, .bg-feature-text,
     .source-badge, .ssl-sep) { font-size: var(--fs-12); }
   /* Вторичный текст — 12 */
-  body:not(#_):not(#_) :is(.char-build-plan-btn, .pcard-sub, .pcard-desc, .prep-hint, .party-section-hint,
-    .abil-mini-label, .prof-empty, .race-bonus-label, .bg-feature-label, .party-add-btn,
-    .version-ok, .abil-passive, #passive-perception-2024, .sc-stat-label, .inv-coin-rate-ref,
-    .pcard-tactics, .bd-sub) { font-size: var(--fs-12); }
+  body:not(#_):not(#_) :is(.pcard-sub, .pcard-desc, .prep-hint, .party-section-hint, .abil-mini-label, .prof-empty, .race-bonus-label, .bg-feature-label, .version-ok, .abil-passive, #passive-perception-2024, .sc-stat-label, .inv-coin-rate-ref, .pcard-tactics, .bd-sub) { font-size: var(--fs-12); }
   /* Чипы и подписи — 13 */
-  body:not(#_):not(#_) :is(.prof-chip, .ssl-total, .cw-step-hint, #char-build-badge, .char-build-unlink,
-    .rec-text, .subclass-rec-ok, #basic-locked-text, .spell-add-btn, .spell-find-btn, .prep-label,
-    .prep-sep, .prep-max, .party-empty) { font-size: var(--fs-14); }
+  body:not(#_):not(#_) :is(.prof-chip, .ssl-total, .cw-step-hint, #char-build-badge, .char-build-unlink, .rec-text, .subclass-rec-ok, #basic-locked-text, .prep-label, .prep-sep, .prep-max, .party-empty) { font-size: var(--fs-14); }
   /* Основной текст — 14 */
-  body:not(#_):not(#_) :is(.party-io-btn, .race-extras-title, .race-extras-warn,
-    .battle-setup-name, .prep-count, .weapon-name,
-    #drawer-char-name, .fs-scale-reset, #cw-lock-btn, .inv-slots-sep,
-    .help-block p, .help-block li, .cl-item, .app-info-item, #inv-backpack-toggle,
-    .battle-start-btn) { font-size: var(--fs-14); }
+  body:not(#_):not(#_) :is(.race-extras-title, .race-extras-warn, .battle-setup-name, .prep-count, .weapon-name, #drawer-char-name, .fs-scale-reset, .inv-slots-sep, .help-block p, .help-block li, .cl-item, .app-info-item) { font-size: var(--fs-14); }
   /* Имена строк — 16 */
   body:not(#_):not(#_) :is(.abil-card-name, .party-section-label, .ssl-free, .stat-compact-val,
     .sc-stat-value, .spell-card-name, .ssl-lvl, .inv-item-name, .pcard-name) { font-size: var(--fs-18); }
@@ -17303,7 +16452,6 @@ button.modal-close-bottom:hover,
   body:not(#_):not(#_) :is(.inv-drag-handle, #hp-head-max, .hp-head-sep) { font-size: var(--fs-18); }
   /* у этих кнопок базовое правило с !important */
   .inv-coin-btn { font-size: var(--fs-18) !important; }
-  .inv-add-btn, .inv-exch-open-btn, .weapon-roll-btn { font-size: var(--fs-14) !important; }
   body:not(#_):not(#_) :is(.abil-card-mod, .pcard-icon, #inv-slots-used, #inv-slots-total) { font-size: var(--fs-24); }
   body:not(#_):not(#_) :is(.hp-big-num, #ac-total, #rr-hp-current) { font-size: var(--fs-32); }
 }
@@ -17312,8 +16460,7 @@ button.modal-close-bottom:hover,
    цели ≥ 28 px; без радиусов и коробок; свой чекбокс выбора участников. */
 @media (min-width: 1200px) {
   /* Текстовое действие: «+ Добавить…», «Найти», «Атака/Урон» */
-  body:not(#_):not(#_) :is(.spell-add-btn, .spell-find-btn, .inv-add-btn, .party-add-btn,
-    .party-add-btn-srd, #tab-battle .bt-act, .weapon-roll-btn) {
+  body:not(#_):not(#_) :is(#tab-battle .bt-act) {
     display: inline-flex;
     align-items: center;
     min-height: 28px;
@@ -17326,11 +16473,8 @@ button.modal-close-bottom:hover,
     font-size: var(--fs-14) !important;
     font-weight: var(--fw-semibold);
   }
-  body:not(#_):not(#_) :is(.spell-add-btn, .spell-find-btn, .inv-add-btn:not(#inv-backpack-toggle),
-    .party-add-btn, #tab-battle .bt-act) { color: var(--accent-lo) !important; }
-  body:not(#_):not(#_) .party-add-btn-srd { color: var(--text-dim); }
-  body:not(#_):not(#_) :is(.spell-add-btn, .spell-find-btn, .inv-add-btn, .party-add-btn,
-    .party-add-btn-srd, #tab-battle .bt-act, .weapon-roll-btn):hover {
+  body:not(#_):not(#_) :is(#tab-battle .bt-act) { color: var(--accent-lo) !important; }
+    body:not(#_):not(#_) :is(#tab-battle .bt-act):hover {
     color: var(--accent) !important;
     text-decoration: underline;
   }
@@ -17358,7 +16502,7 @@ button.modal-close-bottom:hover,
   body:not(#_):not(#_) .pcard-status-sel:hover,
   body:not(#_):not(#_) .pcard-status-sel:focus { border-bottom-color: var(--accent-lo); }
   /* Иконка: цель 28×28, без радиуса */
-  body:not(#_):not(#_) :is(#tab-spells .ssl-btn, .inv-coin-btn, .weapon-delete-btn, .party-io-btn) {
+  body:not(#_):not(#_) :is(#tab-spells .ssl-btn, .inv-coin-btn, .weapon-delete-btn) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -17600,7 +16744,8 @@ button.modal-close-bottom:hover,
   .page-back { min-height: 44px; min-width: 44px; padding: 0 var(--sp-3); display: inline-flex; align-items: center; font-size: var(--fs-md); }
   .fs-scale-slider { height: 32px; background: transparent; }
   #sync-status { flex: 1 1 100%; }
-  #sync-actions .backup-create-btn, .sync-privacy { min-height: 44px; display: inline-flex; align-items: center; font-size: var(--fs-md); }
+  #sync-actions .backup-create-btn { min-height: 44px; }
+.sync-privacy { min-height: 44px; display: inline-flex; align-items: center; font-size: var(--fs-md); }
 }
 
 /* DS-5в: на тач-экранах наведения нет — действия, приглушённые до наведения, видны сразу. */

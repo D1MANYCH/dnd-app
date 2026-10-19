@@ -198,7 +198,7 @@ var own = _defaultSpellVersion(char);
 }
 function setSpellClass(cls) {
 currentSpellClass = cls;
-document.querySelectorAll("#spell-search-modal .class-filter-btn, #spell-search-modal .class-filter-all").forEach(function(btn) { btn.classList.remove("active"); });
+document.querySelectorAll("#spell-class-filter .class-filter-btn, #spell-class-filter .class-filter-all").forEach(function(btn) { btn.classList.remove("active"); });
 var btnId = "btn-class-" + (cls === "all" ? "all" : cls);
 var btn = $(btnId);
 if (btn) btn.classList.add("active");
@@ -269,8 +269,7 @@ function markCharOwnClassFilter() {
     }
   });
   if (ownKey) {
-    legend.innerHTML = '<span class="cf-legend-own">🟢 Ваш класс: ' + escapeHtml(char.class) + '</span>'
-                     + '<span class="cf-legend-foreign">🔴 Чужие классы — заклинания нельзя выучить</span>';
+    legend.innerHTML = '<span><span class="cf-dot cf-dot-own"></span>ваш класс · <span class="cf-dot cf-dot-foreign"></span>чужие — выучить нельзя</span>';
   } else {
     legend.innerHTML = '<span class="cf-legend-hint">' + dndIcoHtml("bulb", 12) + ' Класс «' + escapeHtml(char.class) + '» не\u00a0использует заклинания этих школ — фильтр для\u00a0справки</span>';
   }
@@ -356,6 +355,8 @@ function _renderFeatPickBar(fp) {
   var legend = $("class-filter-legend");
   if (filters) filters.style.display = fp ? "none" : "";
   if (legend) legend.style.display = fp ? "none" : "";
+  var ver = $("spell-ver-filter");
+  if (ver) ver.style.display = fp ? "none" : "";
   if (!bar) return;
   bar.hidden = !fp;
   if (!fp) { bar.innerHTML = ""; return; }
@@ -875,8 +876,8 @@ const hbBadge = spell.homebrew ? " <span class=\"source-badge hb-badge\" title=\
 // SPELLS_BASE, и «удаление» выглядело бы как молча откатившееся действие.
 var idArg = _spellIdArg(spell.id);
 var hbActions = spell.homebrew
-  ? "<button class=\"spell-edit-btn\" onclick=\"openAddSpellForm(" + idArg + ")\">" + dndIcoHtml("edit", 13) + " Изменить</button>" +
-    "<button class=\"spell-remove-btn\" title=\"Удалить своё заклинание — исчезнет у\u00a0всех персонажей\" onclick=\"deleteCustomSpell(" + idArg + ")\">" + dndIcoHtml("trash", 13) + " Удалить</button>"
+  ? "<button class=\"btn btn-text btn-sm spell-edit-btn\" onclick=\"openAddSpellForm(" + idArg + ")\">" + dndIcoHtml("edit", 13) + " Изменить</button>" +
+    "<button class=\"btn btn-danger btn-sm spell-remove-btn\" title=\"Удалить своё заклинание — исчезнет у\u00a0всех персонажей\" onclick=\"deleteCustomSpell(" + idArg + ")\">" + dndIcoHtml("trash", 13) + " Удалить</button>"
   : "";
 var div = document.createElement("div");
 div.className = "spell-item" + (isAdded ? " spell-added" : "");
@@ -1016,8 +1017,8 @@ card.dataset.school = getSchoolSlug(schoolName) || '';
 // Главное действие видно в свёрнутой строке — иначе новый игрок его не найдёт.
 // У неподготовленного заклинания главное другое: сначала подготовить.
 var _leadHtml = (prepClass && !isCantrip && !prepared)
-  ? '<button class="spell-lead-btn spell-lead-prep" onclick="event.stopPropagation();toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">Подготовить</button>'
-  : '<button class="spell-lead-btn" onclick="event.stopPropagation();castSpell(' + _spellIdArg(spell.id) + ')">Использовать</button>';
+  ? '<button class="btn btn-secondary btn-sm spell-lead-btn spell-lead-prep" onclick="event.stopPropagation();toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">Подготовить</button>'
+  : '<button class="btn btn-secondary btn-sm spell-lead-btn" onclick="event.stopPropagation();castSpell(' + _spellIdArg(spell.id) + ')">Использовать</button>';
 card.innerHTML =
   '<div class="spell-card-header" onclick="toggleSpellCard(this)">' +
     '<div class="spell-card-title">' +
@@ -1046,15 +1047,15 @@ card.innerHTML =
     // «Использовать» переехало в саму строку (_leadHtml), здесь его больше нет —
     // две одинаковые кнопки на карточке читались бы как разные действия.
 
-    (spell.duration && spell.duration.toLowerCase().includes('концентрац') ? '<button class="spell-conc-btn" onclick="setConcentration(this.dataset.name)" data-name="' + escapeHtml(spell.name) + '">' + dndIcoHtml("focus", 13) + ' Концентрация</button>' : '') +
-    (canCastRitual ? '<button class="spell-ritual-btn" onclick="castRitual(\'' + escapeHtml(spell.name).replace(/'/g,"&#39;") + '\', ' + rulesRitualMinutes(spell.time) + ')">' + dndIcoHtml("history", 13) + ' Ритуал</button>' : '') +
-    (needsPrep ? '<button class="spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">' + (prepared ? '' + dndIcoHtml("check", 13) + ' Подготовлено' : '○ Подготовить') + '</button>' : '') +
-    (isFamiliarSpell ? '<button class="spell-summon-btn" onclick="summonFamiliar()">' + dndIcoHtml("wolf", 13) + ' Призвать фамильяра</button>' : '') +
+    (spell.duration && spell.duration.toLowerCase().includes('концентрац') ? '<button class="btn btn-secondary btn-sm spell-conc-btn" onclick="setConcentration(this.dataset.name)" data-name="' + escapeHtml(spell.name) + '">' + dndIcoHtml("focus", 13) + ' Концентрация</button>' : '') +
+    (canCastRitual ? '<button class="btn btn-secondary btn-sm spell-ritual-btn" onclick="castRitual(\'' + escapeHtml(spell.name).replace(/'/g,"&#39;") + '\', ' + rulesRitualMinutes(spell.time) + ')">' + dndIcoHtml("history", 13) + ' Ритуал</button>' : '') +
+    (needsPrep ? '<button class="btn btn-secondary btn-sm spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">' + (prepared ? '' + dndIcoHtml("check", 13) + ' Подготовлено' : '○ Подготовить') + '</button>' : '') +
+    (isFamiliarSpell ? '<button class="btn btn-secondary btn-sm spell-summon-btn" onclick="summonFamiliar()">' + dndIcoHtml("wolf", 13) + ' Призвать фамильяра</button>' : '') +
     // HB-3: правка своего заклинания прямо из списка. Удаления из базы здесь нет
     // намеренно — рядом уже стоит «🗑 Удалить», и две корзины с разным смыслом
     // на одной карточке читаются как одна. Удаление насовсем живёт в поиске.
-    (spell.homebrew ? '<button class="spell-edit-btn" onclick="openAddSpellForm(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("edit", 13) + ' Изменить</button>' : '') +
-    '<button class="spell-remove-btn" title="Убрать из\u00a0списка персонажа" onclick="removeSpell(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("trash", 13) + ' Удалить</button>' +
+    (spell.homebrew ? '<button class="btn btn-text btn-sm spell-edit-btn" onclick="openAddSpellForm(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("edit", 13) + ' Изменить</button>' : '') +
+    '<button class="btn btn-danger btn-sm spell-remove-btn" title="Убрать из\u00a0списка персонажа" onclick="removeSpell(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("trash", 13) + ' Удалить</button>' +
     '</div>' +
   '</div>';
 groupDiv.appendChild(card);

@@ -190,7 +190,7 @@ var _attuneTagHtml = item.attunable
   ? '<span class="inv-meta-tag inv-attune-tag' + (item.attuned ? ' on' : '') + '" title="Настройка магического предмета">' + (item.attuned ? 'настроен' : 'не\u00a0настроен') + '</span>'
   : '';
 var _attuneBtnHtml = item.attunable
-  ? '<button class="inv-attune-btn' + (item.attuned ? ' attuned' : '') + '" onclick="event.stopPropagation(); toggleAttuned(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("settings", 13) + ' ' + (item.attuned ? 'Снять настройку' : 'Настроить') + '</button>'
+  ? '<button class="btn btn-secondary btn-sm inv-attune-btn' + (item.attuned ? ' attuned' : '') + '" onclick="event.stopPropagation(); toggleAttuned(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("settings", 13) + ' ' + (item.attuned ? 'Снять настройку' : 'Настроить') + '</button>'
   : '';
 // FIN-8: заряды предмета — бейдж «⚡ N/M» в мете + счётчик с кнопками ± в actions
 var _maxCh = parseInt(item.maxCharges, 10) || 0;
@@ -233,8 +233,8 @@ div.innerHTML =
     '<div class="inv-item-actions">' +
       _chargesCtrlHtml +
       _attuneBtnHtml +
-      '<button class="inv-edit-btn" onclick="event.stopPropagation(); editItemDirect(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("edit", 14) + ' Изменить</button>' +
-      '<button class="inv-del-btn" onclick="event.stopPropagation(); deleteItemDirect(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("trash", 14) + ' Удалить</button>' +
+      '<button class="btn btn-secondary btn-sm inv-edit-btn" onclick="event.stopPropagation(); editItemDirect(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("edit", 14) + ' Изменить</button>' +
+      '<button class="btn btn-danger btn-sm inv-del-btn" onclick="event.stopPropagation(); deleteItemDirect(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("trash", 14) + ' Удалить</button>' +
     '</div>' +
   '</div>';
 div.setAttribute("draggable", "true");
@@ -711,7 +711,7 @@ function renderGearPacks() {
   var PACKS = window.GEAR_PACKS || {};
   el.innerHTML = GEAR_PACK_DISPLAY.filter(function (p) { return PACKS[p.key]; }).map(function (p) {
     var n = PACKS[p.key].length;
-    return '<button type="button" class="gear-pack-btn" onclick="addPackToInventory(\'' + p.key + '\')">' + dndIcoHtml("inventory", 14) + ' ' +
+    return '<button type="button" class="btn btn-secondary btn-sm gear-pack-btn" onclick="addPackToInventory(\'' + p.key + '\')">' + dndIcoHtml("inventory", 14) + ' ' +
       escapeHtml(p.name) + ' <span style="opacity:.6">(' + n + ')</span></button>';
   }).join("");
 }
@@ -1292,7 +1292,7 @@ if (mprop) {
   if (typeof _glossBindOnce === "function") _glossBindOnce();
   masteryHtml = ' · <span class="weapon-mastery' + (mOn ? ' is-on' : '') + '">' + (mOn ? '◆ ' : '') +
     glossarizeHtml(escapeHtml(mprop.name), null, "2024") + '</span>' +
-    (mPick ? ' <button type="button" class="weapon-mastery-btn" onclick="toggleWeaponMastery(' + index + ')">' + (mOn ? 'снять' : 'мастерство') + '</button>' : '');
+    (mPick ? ' <button type="button" class="btn btn-text btn-sm weapon-mastery-btn" onclick="toggleWeaponMastery(' + index + ')">' + (mOn ? 'снять' : 'мастерство') + '</button>' : '');
 }
 // PLAY2-3 (PT-141): количество — из Сумки («Метательное копьё ×5»)
 var invW = invWeapons.find(function(it) { return it && it.name === weapon.name; });
@@ -1309,9 +1309,9 @@ div.innerHTML =
     '</div>' +
   '</div>' +
   '<div class="weapon-roll-row">' +
-    '<button class="weapon-roll-btn weapon-roll-atk" onclick="rollWeaponAttack(' + index + ')">' + dndIcoHtml("dice", 14) + ' Атака</button>' +
-    '<button class="weapon-roll-btn weapon-roll-dmg" onclick="rollWeaponDamage(' + index + ')">' + dndIcoHtml("sword", 14) + ' Урон</button>' +
-    (_canDivineSmite(char, weapon) ? '<button class="weapon-roll-btn weapon-roll-smite" onclick="openDivineSmite(' + index + ')">' + dndIcoHtml("sun", 14) + ' Кара</button>' : '') +
+    '<button class="btn btn-secondary btn-sm weapon-roll-btn weapon-roll-atk" onclick="rollWeaponAttack(' + index + ')">' + dndIcoHtml("dice", 14) + ' Атака</button>' +
+    '<button class="btn btn-secondary btn-sm weapon-roll-btn weapon-roll-dmg" onclick="rollWeaponDamage(' + index + ')">' + dndIcoHtml("sword", 14) + ' Урон</button>' +
+    (_canDivineSmite(char, weapon) ? '<button class="btn btn-secondary btn-sm weapon-roll-btn weapon-roll-smite" onclick="openDivineSmite(' + index + ')">' + dndIcoHtml("sun", 14) + ' Кара</button>' : '') +
   '</div>' +
   (weapon.notes ? '<div class="weapon-notes">' + escapeHtml(weapon.notes) + '</div>' : '');
 container.appendChild(div);
@@ -1329,8 +1329,8 @@ uaDiv.innerHTML =
     '</div>' +
   '</div>' +
   '<div class="weapon-roll-row">' +
-    '<button class="weapon-roll-btn weapon-roll-atk" onclick="rollWeaponAttack(' + UNARMED_WEAPON_INDEX + ')">' + dndIcoHtml("dice", 14) + ' Атака</button>' +
-    '<button class="weapon-roll-btn weapon-roll-dmg" onclick="rollWeaponDamage(' + UNARMED_WEAPON_INDEX + ')">' + dndIcoHtml("sword", 14) + ' Урон</button>' +
+    '<button class="btn btn-secondary btn-sm weapon-roll-btn weapon-roll-atk" onclick="rollWeaponAttack(' + UNARMED_WEAPON_INDEX + ')">' + dndIcoHtml("dice", 14) + ' Атака</button>' +
+    '<button class="btn btn-secondary btn-sm weapon-roll-btn weapon-roll-dmg" onclick="rollWeaponDamage(' + UNARMED_WEAPON_INDEX + ')">' + dndIcoHtml("sword", 14) + ' Урон</button>' +
   '</div>';
 container.appendChild(uaDiv);
 // Two-Weapon Fighting: если 2+ лёгких оружия — показать бонусную атаку
@@ -1354,7 +1354,7 @@ if (lightWeapons.length >= 2) {
       (char.twoWeaponFighting ? '' : ' (без\u00a0мод. характеристики к\u00a0урону)') +
     '</div>' +
     '<div class="twf-buttons">' +
-      '<button class="weapon-roll-btn weapon-roll-twf" onclick="rollTWFAttack(' + lightWeapons[1] + ')">' + dndIcoHtml("sword", 14) + ' Бонусная атака: ' + escapeHtml(char.weapons[lightWeapons[1]].name) + '</button>' +
+      '<button class="btn btn-secondary btn-sm weapon-roll-btn weapon-roll-twf" onclick="rollTWFAttack(' + lightWeapons[1] + ')">' + dndIcoHtml("sword", 14) + ' Бонусная атака: ' + escapeHtml(char.weapons[lightWeapons[1]].name) + '</button>' +
     '</div>';
   container.appendChild(twfDiv);
 }

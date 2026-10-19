@@ -1592,8 +1592,8 @@ function renderRaceExtras() {
     }).join("");
     html += '<div class="race-extras-row">' + takenList +
       (remaining > 0
-        ? '<button class="race-extras-btn" onclick="openRaceFeatModal()">+ Выбрать черту</button>'
-        : '<span class="race-extras-btn done">' + dndIcoHtml("check", 13) + ' Черта получена</span>') +
+        ? '<button class="btn btn-text btn-sm race-extras-btn" onclick="openRaceFeatModal()">+ Выбрать черту</button>'
+        : '<span class="btn btn-text btn-sm race-extras-btn done">' + dndIcoHtml("check", 13) + ' Черта получена</span>') +
       '</div>';
     if (remaining > 0) html += '<div class="race-extras-warn">Расовая черта не\u00a0выбрана — нажмите «+ Выбрать черту».</div>';
   }
@@ -1684,7 +1684,7 @@ function renderRaceExtras() {
     html += '<div class="race-extras-title">' + dndIcoHtml("scroll", 14) + ' ' + escapeHtml(race) + ': ' +
       (rl.choice > 1 ? rl.choice + ' языка на\u00a0выбор' : 'язык на\u00a0выбор') + '</div>';
     html += '<div class="race-extras-row">' + lnPicks.map(function(n) { return '<span class="race-bonus-badge">' + escapeHtml(n) + '</span>'; }).join("") +
-      '<button class="race-extras-btn" onclick="raceLangGoto()">К\u00a0языкам →</button></div>';
+      '<button class="btn btn-text btn-sm race-extras-btn" onclick="raceLangGoto()">К\u00a0языкам →</button></div>';
     if (lnPicks.length < rl.choice) html += '<div class="race-extras-warn">Расовый язык не\u00a0выбран — выберите его в\u00a0блоке «Языки».</div>';
   }
 
@@ -1807,7 +1807,7 @@ function _pickHide(key, full) {
   return full && !_pickOpen[key];
 }
 function _pickExpandBtn(key) {
-  return '<button type="button" class="race-extras-btn" onclick="pickExpand(\'' + key + '\')">Изменить</button>';
+  return '<button type="button" class="btn btn-text btn-sm race-extras-btn" onclick="pickExpand(\'' + key + '\')">Изменить</button>';
 }
 function pickExpand(key) {
   _pickOpen[key] = true;
@@ -3058,18 +3058,18 @@ function renderBackgroundExtras() {
 
   var of = (char.feats || []).find(function(f) { return f.origin; });
   html += '<div class="race-extras-title">' + dndIcoHtml("target", 14) + ' Черта происхождения</div><div class="race-extras-row">' +
-    (of ? '<span class="race-extras-btn done">' + dndIcoHtml("check", 13) + ' ' + escapeHtml(of.name) + '</span>'
+    (of ? '<span class="btn btn-text btn-sm race-extras-btn done">' + dndIcoHtml("check", 13) + ' ' + escapeHtml(of.name) + '</span>'
         : '<span style="color:var(--text-dim);font-size:var(--fs-14);">не\u00a0выбрана</span>') + '</div>';
 
   if (def.equipment && !def.custom) {
     var eq = def.equipment;
     html += '<div class="race-extras-title">' + dndIcoHtml("box", 14) + ' Стартовое снаряжение</div><div class="race-extras-row">';
     if (char.bgEquipGiven) {
-      html += '<span class="race-extras-btn done">' + dndIcoHtml("check", 13) + ' Снаряжение выдано</span>';
+      html += '<span class="btn btn-text btn-sm race-extras-btn done">' + dndIcoHtml("check", 13) + ' Снаряжение выдано</span>';
     } else if (!locked) {
       var listA = (eq.a || []).map(function(it) { return it.name + ((it.qty || 1) > 1 ? " ×" + it.qty : ""); }).join(", ");
-      html += '<button class="race-extras-btn" onclick="giveBackgroundEquipment(\'a\')" title="' + escapeHtml(listA) + '">Вариант А: набор + ' + (eq.aGold || 0) + ' зм</button>' +
-        '<button class="race-extras-btn" onclick="giveBackgroundEquipment(\'b\')">Вариант Б: ' + (eq.bGold || 50) + ' зм</button>';
+      html += '<button class="btn btn-text btn-sm race-extras-btn" onclick="giveBackgroundEquipment(\'a\')" title="' + escapeHtml(listA) + '">Вариант А: набор + ' + (eq.aGold || 0) + ' зм</button>' +
+        '<button class="btn btn-text btn-sm race-extras-btn" onclick="giveBackgroundEquipment(\'b\')">Вариант Б: ' + (eq.bGold || 50) + ' зм</button>';
     }
     html += '</div>';
   }

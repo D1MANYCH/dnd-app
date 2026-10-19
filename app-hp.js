@@ -1156,7 +1156,7 @@ function luBuildChoicesScreen() {
     hasOpenRec = asiOpen || subOpen || ccOpen || spOpen;
   }
   var applyAllHtml = hasOpenRec
-    ? '<button class="lu-apply-all-btn" onclick="luApplyAllRecommendations()">' + dndIcoHtml("sparkle", 14) + ' Применить рекомендации билда разом</button>'
+    ? '<button class="btn btn-text lu-apply-all-btn" onclick="luApplyAllRecommendations()">' + dndIcoHtml("sparkle", 14) + ' Применить рекомендации билда разом</button>'
     : "";
 
   body.innerHTML = applyAllHtml + blocks.join("");

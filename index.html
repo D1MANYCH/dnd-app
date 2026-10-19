@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
-<link rel="stylesheet" href="style.css?v=v539">
+<link rel="stylesheet" href="style.css?v=v540">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -275,7 +275,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <!-- HELP-3: перезапуск онбординга -->
     <div class="theme-picker-row">
       <span class="theme-picker-label"><span data-ico="grad" data-ico-size="16">📖</span> Обучение</span>
-      <button type="button" class="onboarding-restart-btn" onclick="restartOnboarding()" title="Показать приветствие и&nbsp;тур заново">↻ Показать обучение заново</button>
+      <button type="button" class="btn btn-secondary onboarding-restart-btn" onclick="restartOnboarding()" title="Показать приветствие и&nbsp;тур заново">↻ Показать обучение заново</button>
     </div>
     <h3 class="books-group-title settings-group-title">Книги и&nbsp;данные</h3>
     <!-- MENU-10: редакция правил переехала сюда со встречающего экрана —
@@ -305,7 +305,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <!-- INST-1: установка PWA; строку показывает _syncInstallUi (app-settings.js) -->
     <div class="theme-picker-row" id="install-row" hidden>
       <span class="theme-picker-label"><span data-ico="download" data-ico-size="16">📲</span> Установка</span>
-      <button type="button" class="install-btn" data-install-btn onclick="installApp()">Установить приложение</button>
+      <button type="button" class="btn btn-primary install-btn" data-install-btn onclick="installApp()">Установить приложение</button>
       <span class="install-ios-hint" data-install-ios>Поделиться → На&nbsp;экран «Домой»</span>
     </div>
   </div>
@@ -483,7 +483,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </ul>
 <!-- INST-1: установка PWA; строку показывает _syncInstallUi (app-settings.js) -->
 <div class="home-install" id="home-install" hidden>
-<button type="button" class="install-btn" data-install-btn onclick="installApp()">Установить приложение</button>
+<button type="button" class="btn btn-primary install-btn" data-install-btn onclick="installApp()">Установить приложение</button>
 <span class="install-ios-hint" data-install-ios>Установить: Поделиться → На&nbsp;экран «Домой»</span>
 </div>
 </nav>
@@ -585,7 +585,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="backup-panel" hidden>
 <div class="backup-panel-head">
 <span class="backup-panel-hint">Авто-копии в&nbsp;браузере (IndexedDB), хранятся 7 последних</span>
-<button class="backup-create-btn" onclick="createBackupNow()">＋ Создать</button>
+<button class="btn btn-secondary btn-sm backup-create-btn" onclick="createBackupNow()">＋ Создать</button>
 </div>
 <div id="backup-list"></div>
 </div>
@@ -658,7 +658,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
   <button type="button" class="hp-act cw-abilgen-btn" onclick="openAbilGen()">Характеристики<span class="cw-long">: покупка очков · набор · 4к6</span> →</button>
   <button type="button" class="hp-act cw-abilgen-btn" onclick="openMcLayout()">Несколько классов<span class="cw-long"> — например, Воин&nbsp;3 / Плут&nbsp;2</span> →</button>
-  <button id="cw-lock-btn" class="cw-lock-btn" disabled onclick="lockBasicInfo()"><span data-ico="lock" data-ico-size="16">🔒</span> Сохранить и&nbsp;зафиксировать основу</button>
+  <button id="cw-lock-btn" class="btn btn-primary btn-block cw-lock-btn" disabled onclick="lockBasicInfo()"><span data-ico="lock" data-ico-size="16">🔒</span> Сохранить и&nbsp;зафиксировать основу</button>
   <div id="cw-validation" class="cw-validation"></div>
 </div>
 
@@ -666,9 +666,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <span><span data-ico="lock" data-ico-size="16">🔒</span> <span id="basic-locked-text">Основа персонажа зафиксирована</span></span>
   <div class="basic-locked-actions">
     <button type="button" class="tab-help-btn" onclick="openHelp('sheet')" title="Справка по&nbsp;этому разделу" aria-label="Справка по&nbsp;разделу «Лист»"><span class="tab-help-q" aria-hidden="true">?</span>Справка</button>
-    <button id="sheet-lock-btn" class="basic-unlock-btn sheet-lock-btn" onclick="lockSheet()" style="display:none;" title="Закрыть характеристики, владения, максимум хитов, заклинания, черты и&nbsp;параметры предметов до&nbsp;повышения уровня">Персонаж готов</button>
-    <button id="basic-unlock-btn" class="basic-unlock-btn" onclick="unlockBasicInfo()">Изменить основу</button>
-    <button id="sheet-unlock-btn" class="basic-unlock-btn" onclick="unlockSheet()" style="display:none;">Изменить</button>
+    <button id="sheet-lock-btn" class="btn btn-secondary btn-sm basic-unlock-btn sheet-lock-btn" onclick="lockSheet()" style="display:none;" title="Закрыть характеристики, владения, максимум хитов, заклинания, черты и&nbsp;параметры предметов до&nbsp;повышения уровня">Персонаж готов</button>
+    <button id="basic-unlock-btn" class="btn btn-secondary btn-sm basic-unlock-btn" onclick="unlockBasicInfo()">Изменить основу</button>
+    <button id="sheet-unlock-btn" class="btn btn-secondary btn-sm basic-unlock-btn" onclick="unlockSheet()" style="display:none;">Изменить</button>
   </div>
   <button type="button" class="basic-locked-more" aria-label="Действия с&nbsp;замком листа">▾</button>
 </div>
@@ -697,7 +697,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     </div>
     <div id="char-build-badge-wrap" class="char-build-badge-wrap" style="display:none">
       <button type="button" id="char-build-badge" class="char-build-badge" onclick="openBuildBadgeMenu()" title="Открыть гайд по&nbsp;билду" aria-label="Открыть гайд по&nbsp;билду"></button>
-      <button type="button" class="char-build-plan-btn" onclick="openBuildPlan()" title="План развития 1–20" aria-label="План развития 1–20">План</button>
+      <button type="button" class="btn btn-secondary btn-sm char-build-plan-btn" onclick="openBuildPlan()" title="План развития 1–20" aria-label="План развития 1–20">План</button>
       <button type="button" class="char-build-unlink" onclick="unlinkBuild()" title="Отвязать билд от&nbsp;персонажа" aria-label="Отвязать билд">Отвязать</button>
     </div>
   </div>
@@ -706,7 +706,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- Строки 2+: поля на полную ширину -->
 <div class="row basics-row">
 <div class="col">
-<div class="label-action-row"><label>Класс</label><button type="button" class="char-build-plan-btn class-plan-btn" onclick="openClassPlan()" title="Что даёт класс на&nbsp;каждом уровне (1–20)" aria-label="План класса 1–20"><span data-ico="trend" data-ico-size="16">📈</span> План класса</button></div>
+<div class="label-action-row"><label>Класс</label><button type="button" class="btn btn-secondary btn-sm btn-block char-build-plan-btn class-plan-btn" onclick="openClassPlan()" title="Что даёт класс на&nbsp;каждом уровне (1–20)" aria-label="План класса 1–20"><span data-ico="trend" data-ico-size="16">📈</span> План класса</button></div>
 <!-- LVL-3: у мультикласса <select> прячется (он умеет только первый класс) и
      на его месте встаёт строка со всеми классами и входом в «Развитие».
      Сам select остаётся в DOM — его читают updateChar/recalculateHP/владения. -->
@@ -996,11 +996,11 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- FIN-9: случайная безделушка из таблицы PHB (к100) → в инвентарь.
      Дымка v5: в правой ячейке рядом с «Размер/Скорость» — без пустой строки -->
 <div class="trinket-roll-row">
-<button type="button" class="trinket-roll-btn" onclick="rollTrinket()" title="Бросить к100 по&nbsp;таблице безделушек PHB — предмет попадёт в&nbsp;инвентарь (Прочее)"><span data-ico="dice" data-ico-size="16">🎲</span> Безделушка (к100)</button>
+<button type="button" class="btn btn-text btn-sm trinket-roll-btn" onclick="rollTrinket()" title="Бросить к100 по&nbsp;таблице безделушек PHB — предмет попадёт в&nbsp;инвентарь (Прочее)"><span data-ico="dice" data-ico-size="16">🎲</span> Безделушка (к100)</button>
 <span class="trinket-roll-hint">случайная мелочь для&nbsp;отыгрыша → в&nbsp;инвентарь</span>
 </div>
 <div class="trinket-roll-row" id="abilgen-row">
-<button type="button" class="trinket-roll-btn" onclick="openAbilGen()"><span data-ico="dice" data-ico-size="16">🎲</span> Характеристики</button>
+<button type="button" class="btn btn-text btn-sm trinket-roll-btn" onclick="openAbilGen()"><span data-ico="dice" data-ico-size="16">🎲</span> Характеристики</button>
 <span class="trinket-roll-hint">покупка очков · стандартный набор · 4к6 — до&nbsp;фиксации основы</span>
 </div>
 
@@ -1458,7 +1458,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="card" id="spell-slots-card">
 <div class="spell-slots-header">
 <h3>Ячейки заклинаний</h3>
-<button class="ssl-restore-btn" onclick="restoreAllSlots()" title="Восстановить все ячейки"><span data-ico="bed" data-ico-size="16">🛏️</span> Длинный отдых</button>
+<button class="btn btn-secondary btn-sm ssl-restore-btn" onclick="restoreAllSlots()" title="Восстановить все ячейки"><span data-ico="bed" data-ico-size="16">🛏️</span> Длинный отдых</button>
 </div>
 <p style="font-size:var(--fs-12); color:var(--text-dim); margin-bottom:var(--sp-2);"><span data-ico="bulb" data-ico-size="14">💎</span> Клик по&nbsp;ячейке — потратить / вернуть · Золотые слева — свободные, счётчик: <span style="color:var(--success);font-weight:600;">свободные</span>/всего</p>
 <div class="spell-slots-visual" id="spell-slots-visual"></div>
@@ -1481,9 +1481,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="spells-header-row">
 <h3>Мои заклинания</h3>
 <div class="spell-action-btns">
-<button class="spell-find-btn" onclick="openSpellSearch()"><span data-ico="search" data-ico-size="16">🔍</span> Найти заклинание</button>
-<button class="spell-add-btn" onclick="openAddSpellForm()"><span data-ico="edit" data-ico-size="16">✏️</span> Добавить своё</button>
-<button class="spell-add-btn" onclick="openSpellCardsMenu()" title="Карточки заклинаний 63×88&nbsp;мм для&nbsp;печати, 9 на&nbsp;листе A4"><span data-ico="printer" data-ico-size="16">🖨</span> Карточки</button>
+<button class="btn btn-text spell-find-btn" onclick="openSpellSearch()"><span data-ico="search" data-ico-size="16">🔍</span> Найти заклинание</button>
+<button class="btn btn-text spell-add-btn" onclick="openAddSpellForm()"><span data-ico="edit" data-ico-size="16">✏️</span> Добавить своё</button>
+<button class="btn btn-text spell-add-btn" onclick="openSpellCardsMenu()" title="Карточки заклинаний 63×88&nbsp;мм для&nbsp;печати, 9 на&nbsp;листе A4"><span data-ico="printer" data-ico-size="16">🖨</span> Карточки</button>
 </div>
 </div>
 <div id="prep-counter" class="prep-counter" style="display:none"></div>
@@ -1531,8 +1531,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div class="inv-backpack-header">
     <h4>Рюкзак</h4>
     <div style="display:flex;gap:var(--sp-2);align-items:center;">
-      <button id="inv-backpack-toggle" class="inv-add-btn" onclick="toggleBackpackOff()" title="Снять/надеть рюкзак: вещи внутри временно недоступны и&nbsp;не&nbsp;занимают слотов"><span data-ico="inventory" data-ico-size="16">🎒</span> Надет</button>
-      <button class="inv-add-btn" onclick="openItemModal(null, -1)">+ Добавить</button>
+      <button id="inv-backpack-toggle" class="btn btn-text btn-sm inv-add-btn" onclick="toggleBackpackOff()" title="Снять/надеть рюкзак: вещи внутри временно недоступны и&nbsp;не&nbsp;занимают слотов"><span data-ico="inventory" data-ico-size="16">🎒</span> Надет</button>
+      <button class="btn btn-text btn-sm inv-add-btn" onclick="openItemModal(null, -1)">+ Добавить</button>
     </div>
   </div>
   <div class="inventory-filters">
@@ -1606,7 +1606,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <!-- Exchange-rate reference (no auto-conversion of holdings) -->
   <div class="inv-coin-total">
     <span class="inv-coin-rate-ref">1&nbsp;ПМ = 10&nbsp;ЗМ · 1&nbsp;ЗМ = 10&nbsp;СМ = 100&nbsp;ММ · 1&nbsp;ЭМ = ½&nbsp;ЗМ</span>
-    <button class="inv-exch-open-btn" onclick="openCoinExchange()">⇄ Разменять</button>
+    <button class="btn btn-secondary btn-sm inv-exch-open-btn" onclick="openCoinExchange()">⇄ Разменять</button>
   </div>
 </div>
 
@@ -1617,9 +1617,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div class="notes-header">
     <input type="search" id="notes-search" class="notes-search" placeholder="🔍 Поиск…"
            oninput="notesSearchInput(this.value)" onkeydown="notesSearchKeydown(event)">
-    <button class="notes-new-btn" id="notes-new-btn" onclick="notesOpenEntryModal()" title="Новая запись">+ Запись</button>
-    <button class="notes-regen-btn" id="notes-gen-btn" onclick="notesGenerate()" title="Сгенерировать предысторию, внешность и&nbsp;характер по&nbsp;расе, классу и&nbsp;предыстории">Сгенерировать</button>
-    <button class="notes-regen-btn" id="notes-regen-btn" onclick="notesRegenerateAll()" title="Перегенерировать все секции из&nbsp;вариантов билда" aria-label="Перегенерировать все секции"><span data-ico="dice" data-ico-size="16">🎲</span> всё</button>
+    <button class="btn btn-primary btn-sm notes-new-btn" id="notes-new-btn" onclick="notesOpenEntryModal()" title="Новая запись">+ Запись</button>
+    <button class="btn btn-secondary btn-sm notes-regen-btn" id="notes-gen-btn" onclick="notesGenerate()" title="Сгенерировать предысторию, внешность и&nbsp;характер по&nbsp;расе, классу и&nbsp;предыстории">Сгенерировать</button>
+    <button class="btn btn-secondary btn-sm notes-regen-btn" id="notes-regen-btn" onclick="notesRegenerateAll()" title="Перегенерировать все секции из&nbsp;вариантов билда" aria-label="Перегенерировать все секции"><span data-ico="dice" data-ico-size="16">🎲</span> всё</button>
     <div class="notes-menu-wrap">
       <button class="notes-menu-btn" id="notes-menu-btn" onclick="notesToggleMenu(event)" title="Экспорт / Импорт / Печать">⋯</button>
       <div class="notes-menu-dropdown" id="notes-menu-dropdown" style="display:none">
@@ -1669,9 +1669,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="party-section-label">Соратники</span>
 <span class="party-section-count" id="allies-count"></span>
 <div class="party-section-actions">
-<button class="party-add-btn" onclick="openAddAllyModal()">＋ Добавить</button>
-<button class="party-io-btn" onclick="exportAllies()" title="Выгрузить в&nbsp;файл">Выгрузить</button>
-<button class="party-io-btn" onclick="document.getElementById('allies-import').click()" title="Загрузить из&nbsp;файла">Загрузить</button>
+<button class="btn btn-primary btn-sm party-add-btn" onclick="openAddAllyModal()">＋ Добавить</button>
+<button class="btn btn-secondary btn-sm party-io-btn" onclick="exportAllies()" title="Выгрузить в&nbsp;файл">Выгрузить</button>
+<button class="btn btn-secondary btn-sm party-io-btn" onclick="document.getElementById('allies-import').click()" title="Загрузить из&nbsp;файла">Загрузить</button>
 <input type="file" id="allies-import" style="display:none" onchange="importAllies(this)" accept=".json">
 </div>
 </div>
@@ -1684,10 +1684,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="party-section-label">Персонажи <em class="party-section-hint">NPC и&nbsp;квестовые герои</em></span>
 <span class="party-section-count" id="npcs-count"></span>
 <div class="party-section-actions">
-<button class="party-add-btn" onclick="openAddNPCModal()">＋ Добавить</button>
-<button class="party-add-btn party-add-btn-srd" onclick="openSrdNpcPicker()" title="Шаблон-архетип"><span data-ico="book" data-ico-size="16">📚</span> Архетипы</button>
-<button class="party-io-btn" onclick="exportNPCs()" title="Выгрузить в&nbsp;файл">Выгрузить</button>
-<button class="party-io-btn" onclick="document.getElementById('npcs-import').click()" title="Загрузить из&nbsp;файла">Загрузить</button>
+<button class="btn btn-primary btn-sm party-add-btn" onclick="openAddNPCModal()">＋ Добавить</button>
+<button class="btn btn-primary btn-sm party-add-btn party-add-btn-srd" onclick="openSrdNpcPicker()" title="Шаблон-архетип"><span data-ico="book" data-ico-size="16">📚</span> Архетипы</button>
+<button class="btn btn-secondary btn-sm party-io-btn" onclick="exportNPCs()" title="Выгрузить в&nbsp;файл">Выгрузить</button>
+<button class="btn btn-secondary btn-sm party-io-btn" onclick="document.getElementById('npcs-import').click()" title="Загрузить из&nbsp;файла">Загрузить</button>
 <input type="file" id="npcs-import" style="display:none" onchange="importNPCs(this)" accept=".json">
 </div>
 </div>
@@ -1701,10 +1701,10 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="party-section-count" id="monsters-count"></span>
 <div class="party-section-actions">
 <!-- PLAY2-8 (бывш. РОСТ-16): сначала поиск по бестиарию, своё существо — вторым действием -->
-<button class="party-add-btn" onclick="openSrdMonsterPicker()" title="Найти в&nbsp;бестиарии SRD"><span data-ico="book" data-ico-size="16">📚</span> Из&nbsp;бестиария</button>
-<button class="party-add-btn party-add-btn-srd" onclick="openAddMonsterModal()" title="Создать своего монстра">＋ Своего</button>
-<button class="party-io-btn" onclick="exportMonsters()" title="Выгрузить в&nbsp;файл">Выгрузить</button>
-<button class="party-io-btn" onclick="document.getElementById('monsters-import').click()" title="Загрузить из&nbsp;файла">Загрузить</button>
+<button class="btn btn-primary btn-sm party-add-btn" onclick="openSrdMonsterPicker()" title="Найти в&nbsp;бестиарии SRD"><span data-ico="book" data-ico-size="16">📚</span> Из&nbsp;бестиария</button>
+<button class="btn btn-primary btn-sm party-add-btn party-add-btn-srd" onclick="openAddMonsterModal()" title="Создать своего монстра">＋ Своего</button>
+<button class="btn btn-secondary btn-sm party-io-btn" onclick="exportMonsters()" title="Выгрузить в&nbsp;файл">Выгрузить</button>
+<button class="btn btn-secondary btn-sm party-io-btn" onclick="document.getElementById('monsters-import').click()" title="Загрузить из&nbsp;файла">Загрузить</button>
 <input type="file" id="monsters-import" style="display:none" onchange="importMonsters(this)" accept=".json">
 </div>
 </div>
@@ -1717,7 +1717,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="party-section-label">Прихвостни <em class="party-section-hint">фамильяры, скакуны, призванные</em></span>
 <span class="party-section-count" id="companions-count"></span>
 <div class="party-section-actions">
-<button class="party-add-btn" onclick="openAddCompanionModal()">＋ Добавить</button>
+<button class="btn btn-primary btn-sm party-add-btn" onclick="openAddCompanionModal()">＋ Добавить</button>
 </div>
 </div>
 <div id="companions-list-world"></div>
@@ -1726,7 +1726,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- companion modal moved to global modals -->
 
 <div class="party-section-card">
-<button class="battle-start-btn" onclick="switchTab('battle', document.querySelector('[onclick*=battle]'))"><span data-ico="combat" data-ico-size="16">⚔️</span> Перейти к&nbsp;бою</button>
+<button class="btn btn-primary btn-block battle-start-btn" onclick="switchTab('battle', document.querySelector('[onclick*=battle]'))"><span data-ico="combat" data-ico-size="16">⚔️</span> Перейти к&nbsp;бою</button>
 </div>
 
 </div>
@@ -1773,7 +1773,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 </div>
 <div id="battle-setup-list"></div>
 <div id="battle-difficulty" class="battle-difficulty" aria-live="polite"></div>
-<button class="battle-start-btn" style="margin-top:var(--sp-3)" onclick="startBattle()">▶ Начать бой</button>
+<button class="btn btn-primary btn-block battle-start-btn" style="margin-top:var(--sp-3)" onclick="startBattle()">▶ Начать бой</button>
 </div>
 </div>
 <div id="battle-tracker-screen" class="hidden">
@@ -1783,15 +1783,15 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span id="battle-conc-badge" class="battle-conc-badge hidden" onclick="openConcDetails()" title="Концентрация"></span>
 <div id="battle-turn-info" class="battle-turn-info">Ход: —</div>
 <div class="battle-tracker-actions">
-<button class="battle-add-mon-btn" onclick="openSrdMonsterPickerForBattle()" title="Добавить монстра из&nbsp;бестиария в&nbsp;бой">＋ Монстр</button>
-<button class="battle-end-btn" onclick="endBattle()">✕ Завершить</button>
+<button class="btn btn-text battle-add-mon-btn" onclick="openSrdMonsterPickerForBattle()" title="Добавить монстра из&nbsp;бестиария в&nbsp;бой">＋ Монстр</button>
+<button class="btn btn-text-danger battle-end-btn" onclick="endBattle()">✕ Завершить</button>
 </div>
 </div>
 <div id="battle-repeat-strip" class="battle-repeat-strip hidden"></div>
 <div id="battle-tracker-list"></div>
 <div class="battle-nav">
-<button class="battle-nav-btn" onclick="prevTurn()">◀ Назад</button>
-<button class="battle-nav-btn battle-nav-next" onclick="nextTurn()">Следующий ▶</button>
+<button class="btn btn-text battle-nav-btn" onclick="prevTurn()">◀ Назад</button>
+<button class="btn btn-text battle-nav-btn battle-nav-next" onclick="nextTurn()">Следующий ▶</button>
 </div>
 </div>
 </div>
@@ -1803,7 +1803,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="card">
 <div class="journal-header-row">
 <h3>Журнал персонажа</h3>
-<button class="journal-add-btn" onclick="openAddJournalEntry()">＋ Событие</button>
+<button class="btn btn-secondary btn-sm journal-add-btn" onclick="openAddJournalEntry()">＋ Событие</button>
 </div>
 <div class="journal-filter-row">
 <button class="jfilter-btn active" aria-pressed="true" onclick="filterJournal('all',this)">Все</button>
@@ -1964,7 +1964,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- 🚀 С чего начать -->
     <div id="help-start" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="restartTour()"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти интерактивный тур</button>
+      <button type="button" class="btn btn-secondary help-tour-btn" onclick="restartTour()"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти интерактивный тур</button>
       <div class="help-block">
         <div class="help-block-title">Что умеет приложение</div>
         <p>Цифровой лист персонажа D&amp;D 5e: характеристики, заклинания, инвентарь, бой, заметки и&nbsp;журнал. Данные хранятся локально в&nbsp;браузере и&nbsp;работают без&nbsp;интернета.</p>
@@ -2013,7 +2013,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- 📈 Развитие (LVL-4): уровни, классы и мультикласс по PHB 2014 -->
     <div id="help-progress" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="startTabTour('progress')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
+      <button type="button" class="btn btn-secondary help-tour-btn" onclick="startTabTour('progress')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
       <div class="help-block">
         <div class="help-block-title">Уровень персонажа и&nbsp;уровень класса</div>
         <p>Это два разных числа. <b>Уровень персонажа</b> — сумма уровней всех ваших классов: от&nbsp;него считаются бонус мастерства и&nbsp;порог опыта. <b>Уровень класса</b> — сколько уровней взято именно в&nbsp;этом классе: от&nbsp;него зависят умения, заряды способностей и&nbsp;уровень, на&nbsp;котором открывается подкласс.</p>
@@ -2059,7 +2059,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- ✨ Заклинания -->
     <div id="help-spells" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="startTabTour('spells')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
+      <button type="button" class="btn btn-secondary help-tour-btn" onclick="startTabTour('spells')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
       <div class="help-block">
         <div class="help-block-title">База заклинаний</div>
         <p>Поиск по&nbsp;встроенной базе с&nbsp;фильтрами по&nbsp;классу и&nbsp;уровню. Можно добавлять собственные заклинания.</p>
@@ -2076,7 +2076,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- 🎒 Инвентарь -->
     <div id="help-inventory" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="startTabTour('inventory')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
+      <button type="button" class="btn btn-secondary help-tour-btn" onclick="startTabTour('inventory')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
       <div class="help-block">
         <div class="help-block-title">Предметы и&nbsp;переноска</div>
         <p>Список предметов с&nbsp;учётом веса (грузоподъёмность = Сила × 15&nbsp;фнт) либо слотов — режим переключается. Кнопки «?» у&nbsp;полей веса и&nbsp;слотов открывают справочные таблицы.</p>
@@ -2089,7 +2089,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- ⚔️ Бой -->
     <div id="help-battle" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="startTabTour('battle')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
+      <button type="button" class="btn btn-secondary help-tour-btn" onclick="startTabTour('battle')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
       <div class="help-block">
         <div class="help-block-title">Хиты и&nbsp;урон</div>
         <p>Текущие, максимальные и&nbsp;временные хиты. Кнопки лечения и&nbsp;урона меняют HP; временные хиты тратятся первыми.</p>
@@ -2114,7 +2114,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- 🌍 Мир -->
     <div id="help-party" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="startTabTour('party')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
+      <button type="button" class="btn btn-secondary help-tour-btn" onclick="startTabTour('party')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
       <div class="help-block">
         <div class="help-block-title">Спутники и&nbsp;NPC</div>
         <p>Список спутников, питомцев и&nbsp;важных персонажей мира. Существ можно добавить из&nbsp;встроенного бестиария SRD.</p>
@@ -2131,7 +2131,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- 📝 Записи -->
     <div id="help-notes" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="startTabTour('notes')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
+      <button type="button" class="btn btn-secondary help-tour-btn" onclick="startTabTour('notes')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
       <div class="help-block">
         <div class="help-block-title">Свободные заметки</div>
         <p>Текстовые записи по&nbsp;ходу игры. Поддерживаются теги и&nbsp;ссылки между записями для&nbsp;быстрой навигации.</p>
@@ -2140,7 +2140,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
     <!-- 📖 Журнал -->
     <div id="help-journal" class="help-section hidden">
-      <button type="button" class="help-tour-btn" onclick="startTabTour('journal')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
+      <button type="button" class="btn btn-secondary help-tour-btn" onclick="startTabTour('journal')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
       <div class="help-block">
         <div class="help-block-title">Дневник приключения</div>
         <p>Хронология событий и&nbsp;сессий: что произошло, какие решения приняты, к&nbsp;чему вернуться позже.</p>
@@ -2552,7 +2552,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="lu-mc-title">Какой класс повысить?</div>
 <div id="lu-mc-current-classes"></div>
 <div class="lu-mc-divider">или</div>
-<button class="lu-mc-add-btn" onclick="openMulticlassNewClass()"><span data-ico="plus" data-ico-size="16">➕</span> Добавить новый класс (мультикласс)</button>
+<button class="btn btn-secondary btn-block lu-mc-add-btn" onclick="openMulticlassNewClass()"><span data-ico="plus" data-ico-size="16">➕</span> Добавить новый класс (мультикласс)</button>
 <div id="lu-mc-new-class" style="display:none">
 <div class="lu-mc-new-label">Выберите класс:</div>
 <select id="lu-mc-class-select" class="lu-mc-select">
@@ -2612,7 +2612,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 <div class="lu-footer">
 <button class="lu-btn-confirm" onclick="confirmLevelUp()">Повысить уровень</button>
-<button type="button" class="lu-mc-add-btn" id="lu-mc-switch" style="display:none" onclick="luPickAnotherClass()">Другой класс (мультикласс)</button>
+<button type="button" class="btn btn-secondary btn-block lu-mc-add-btn" id="lu-mc-switch" style="display:none" onclick="luPickAnotherClass()">Другой класс (мультикласс)</button>
 </div>
 </div>
 
@@ -2651,7 +2651,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="page-stage">
 <div class="page-head"><h2 class="page-title">История здоровья</h2><button type="button" class="page-back" onclick="closeHPHistory()">← Назад</button></div>
 <div id="hp-history-list" class="hph-list"></div>
-<div class="hph-actions"><button type="button" class="hph-clear-btn" onclick="hpHistory=[];openHPHistory()">Очистить историю</button></div>
+<div class="hph-actions"><button type="button" class="btn btn-secondary btn-sm hph-clear-btn" onclick="hpHistory=[];openHPHistory()">Очистить историю</button></div>
 </div>
 </div>
 
@@ -2772,7 +2772,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <div class="dice-formula-panel" id="dice-formula-panel" hidden>
       <div class="dice-formula-row">
         <input type="text" id="dice-custom-input-main" class="dice-formula-inp" placeholder="2к6+3" onblur="diceFormulaBlur(this,event)" onkeydown="if(event.key==='Enter')rollCustomFormulaFromMain()">
-        <button type="button" class="dice-formula-btn" onclick="rollCustomFormulaFromMain()">Бросить</button>
+        <button type="button" class="btn btn-primary btn-sm dice-formula-btn" onclick="rollCustomFormulaFromMain()">Бросить</button>
       </div>
       <button type="button" class="dice-save-roll" onclick="savedRollFromDice()">Сохранить в&nbsp;мои броски</button>
       <div class="dice-chips" role="group" aria-label="Быстрая вставка в&nbsp;формулу">
@@ -2825,7 +2825,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <div class="dice-custom-label">Своя формула</div>
     <div class="dice-custom-row">
       <input type="text" id="dice-custom-input" class="dice-custom-inp" placeholder="2к6+3, 4к4, 1к20-1…" onkeydown="if(event.key==='Enter')rollCustomFormula()">
-      <button class="dice-custom-btn" onclick="rollCustomFormula()">Бросить</button>
+      <button class="btn btn-primary btn-sm dice-custom-btn" onclick="rollCustomFormula()">Бросить</button>
     </div>
     <!-- UX-2: быстрые вставки токенов (целятся в поповер-инпут) -->
     <div class="dice-chips" role="group" aria-label="Быстрая вставка в&nbsp;формулу">
@@ -2884,26 +2884,22 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <option value="8">8</option>
 <option value="9">9</option>
 </select></div>
+  <div class="cf-edition" id="spell-ver-filter">
+    <span class="class-filter-label" title="Редакция Player's Handbook">Редакция</span>
+    <button class="edition-btn active" aria-pressed="true" onclick="setSpellVersion('all')"  id="btn-ver-all">Все</button>
+    <button class="edition-btn" aria-pressed="false" onclick="setSpellVersion('PH14')" id="btn-ver-ph14">PH'14</button>
+    <button class="edition-btn" aria-pressed="false" onclick="setSpellVersion('PH24')" id="btn-ver-ph24">PH'24</button>
+  </div>
 </div>
 <div class="spell-class-filter-grouped" id="spell-class-filter">
-  <div class="cf-row cf-row-top">
-    <div class="class-filter-group" data-group="edition">
-      <span class="class-filter-label" title="Редакция Player's Handbook"><span data-ico="book" data-ico-size="14">📖</span> Редакция</span>
-      <div class="class-filter-row cf-equal">
-        <button class="edition-btn active" aria-pressed="true" onclick="setSpellVersion('all')"  id="btn-ver-all">Все</button>
-        <button class="edition-btn" aria-pressed="false" onclick="setSpellVersion('PH14')" id="btn-ver-ph14">PH'14</button>
-        <button class="edition-btn" aria-pressed="false" onclick="setSpellVersion('PH24')" id="btn-ver-ph24">PH'24</button>
-      </div>
-    </div>
-    <div class="class-filter-group cf-allbox" data-group="all">
-      <span class="class-filter-label"><span data-ico="star" data-ico-size="14">✦</span> Любой класс</span>
+  <div class="cf-classes">
+    <div class="class-filter-group" data-group="all">
+      <span class="class-filter-label">Любой</span>
       <div class="class-filter-row">
-        <button class="class-filter-all active" onclick="setSpellClass('all')" id="btn-class-all">Все классы</button>
+        <button class="class-filter-all active" onclick="setSpellClass('all')" id="btn-class-all"><span class="cf-all-ico" aria-hidden="true">✦</span><span class="cf-name">Все</span></button>
       </div>
     </div>
-  </div>
-  <div class="cf-row">
-    <div class="class-filter-group cf-fullspan" data-group="arcane">
+    <div class="class-filter-group" data-group="arcane">
       <span class="class-filter-label" title="Заклинания, питаемые знанием и&nbsp;волей">Тайная магия</span>
       <div class="class-filter-row cf-equal">
         <button class="class-filter-btn" data-class="wizard"   onclick="setSpellClass('wizard')"   id="btn-class-wizard"><img src="assets/classes/wizard.webp?v=2"     alt=""><span class="cf-name">Волшебник</span></button>
@@ -2912,8 +2908,6 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
         <button class="class-filter-btn" data-class="bard"     onclick="setSpellClass('bard')"     id="btn-class-bard"><img src="assets/classes/bard.webp?v=2"         alt=""><span class="cf-name">Бард</span></button>
       </div>
     </div>
-  </div>
-  <div class="cf-row">
     <div class="class-filter-group" data-group="divine">
       <span class="class-filter-label" title="Заклинания, дарованные божеством или&nbsp;клятвой">Божественная</span>
       <div class="class-filter-row cf-equal">
@@ -3077,8 +3071,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="modal-content">
 <button type="button" class="modal-close" onclick="closeItemModal()" aria-label="Закрыть">✕</button>
 <h3 id="item-modal-title">Добавить предмет</h3>
-<button type="button" class="magic-catalog-open-btn" onclick="openGearCatalog()"><span data-ico="inventory" data-ico-size="16">🎒</span> Из&nbsp;каталога снаряжения</button>
-<button type="button" class="magic-catalog-open-btn" onclick="openMagicCatalog()"><span data-ico="book" data-ico-size="16">📖</span> Выбрать из&nbsp;каталога магических предметов</button>
+<button type="button" class="btn btn-secondary btn-block magic-catalog-open-btn" onclick="openGearCatalog()"><span data-ico="inventory" data-ico-size="16">🎒</span> Из&nbsp;каталога снаряжения</button>
+<button type="button" class="btn btn-secondary btn-block magic-catalog-open-btn" onclick="openMagicCatalog()"><span data-ico="book" data-ico-size="16">📖</span> Выбрать из&nbsp;каталога магических предметов</button>
 <div class="add-spell-form item-form">
 <input type="hidden" id="item-category">
 <input type="hidden" id="item-slot-index">
@@ -3365,8 +3359,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
   <div class="aef-list" id="aef-list"></div>
   <div class="aef-turns">
-    <button type="button" class="aef-turn-btn" onclick="advanceActiveEffects(1)" title="Прошёл 1 ход — 6 секунд">▶ Ход · 6с</button>
-    <button type="button" class="aef-turn-btn" onclick="advanceActiveEffects(10)" title="Прошла 1 минута — 10 ходов">▶ Минута</button>
+    <button type="button" class="btn btn-secondary btn-sm aef-turn-btn" onclick="advanceActiveEffects(1)" title="Прошёл 1 ход — 6 секунд">▶ Ход · 6с</button>
+    <button type="button" class="btn btn-secondary btn-sm aef-turn-btn" onclick="advanceActiveEffects(10)" title="Прошла 1 минута — 10 ходов">▶ Минута</button>
   </div>
 </div>
 
@@ -3442,7 +3436,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <!-- Секция 1: файл -->
     <div class="avatar-section">
       <div class="avatar-section-label">С&nbsp;устройства</div>
-      <label class="btn avatar-upload-btn">
+      <label class="btn btn-secondary avatar-upload-btn">
         <span data-ico="folder" data-ico-size="16">📁</span> Загрузить с&nbsp;устройства
         <input type="file" accept="image/*" style="display:none" onchange="handleAvatarFile(this)">
       </label>
@@ -3569,52 +3563,52 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <option value="error">error</option>
       <option value="debug">debug</option>
     </select>
-    <button id="app-log-copy" class="app-log-btn" type="button">Скопировать всё</button>
-    <button id="app-log-download" class="app-log-btn" type="button">Скачать</button>
-    <button id="app-log-prev" class="app-log-btn" type="button" title="Показать прошлую сессию из&nbsp;localStorage">Прошлая сессия</button>
-    <button id="app-log-clear" class="app-log-btn app-log-btn-danger" type="button">Очистить</button>
+    <button id="app-log-copy" class="btn btn-secondary btn-sm app-log-btn" type="button">Скопировать всё</button>
+    <button id="app-log-download" class="btn btn-secondary btn-sm app-log-btn" type="button">Скачать</button>
+    <button id="app-log-prev" class="btn btn-secondary btn-sm app-log-btn" type="button" title="Показать прошлую сессию из&nbsp;localStorage">Прошлая сессия</button>
+    <button id="app-log-clear" class="btn btn-secondary btn-sm app-log-btn app-log-btn-danger" type="button">Очистить</button>
   </div>
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v539"></script>
+<script src="app-log.js?v=v540"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v539"></script>
-<script src="bg-space.js?v=v539"></script>
-<script src="dice-arena-bg.js?v=v539"></script>
-<script src="data.js?v=v539"></script>
+<script src="icons.js?v=v540"></script>
+<script src="bg-space.js?v=v540"></script>
+<script src="dice-arena-bg.js?v=v540"></script>
+<script src="data.js?v=v540"></script>
 <!-- PERF-2/PERF-4: build-notes-data.js (~530 КБ) и character-builds.js (~200 КБ) грузятся лениво — см. ensureBuildNotes/ensureBuilds ниже -->
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v539"></script>
-<script src="spells.js?v=v539"></script>
-<script src="spell-effects.js?v=v539"></script>
+<script src="glossary-data.js?v=v540"></script>
+<script src="spells.js?v=v540"></script>
+<script src="spell-effects.js?v=v540"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v539"></script>
-<script src="app-migrate.js?v=v539"></script>
-<script src="app-builds.js?v=v539"></script>
-<script src="app-core.js?v=v539"></script>
-<script src="app-io.js?v=v539"></script>
-<script src="app-backup.js?v=v539"></script>
-<script src="app-sync.js?v=v539"></script>
-<script src="app-combat.js?v=v539"></script>
-<script src="app-conditions.js?v=v539"></script>
-<script src="app-cast-effects.js?v=v539"></script>
-<script src="app-proficiencies.js?v=v539"></script>
-<script src="app-hp.js?v=v539"></script>
-<script src="app-spells.js?v=v539"></script>
-<script src="app-inventory.js?v=v539"></script>
-<script src="start-equip-2014.js?v=v539"></script>
+<script src="rules.js?v=v540"></script>
+<script src="app-migrate.js?v=v540"></script>
+<script src="app-builds.js?v=v540"></script>
+<script src="app-core.js?v=v540"></script>
+<script src="app-io.js?v=v540"></script>
+<script src="app-backup.js?v=v540"></script>
+<script src="app-sync.js?v=v540"></script>
+<script src="app-combat.js?v=v540"></script>
+<script src="app-conditions.js?v=v540"></script>
+<script src="app-cast-effects.js?v=v540"></script>
+<script src="app-proficiencies.js?v=v540"></script>
+<script src="app-hp.js?v=v540"></script>
+<script src="app-spells.js?v=v540"></script>
+<script src="app-inventory.js?v=v540"></script>
+<script src="start-equip-2014.js?v=v540"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v539"></script>
-<script src="app-wildshape.js?v=v539"></script>
-<script src="class-choices.js?v=v539"></script>
-<script src="subclass-choices-data.js?v=v539"></script>
+<script src="app-party.js?v=v540"></script>
+<script src="app-wildshape.js?v=v540"></script>
+<script src="class-choices.js?v=v540"></script>
+<script src="subclass-choices-data.js?v=v540"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js).
      PERF-5: модуль (~200 КБ) грузится лениво — window.ensureDiceBox() из app-dice.js
      при первом действии пользователя или открытии кубиков; пока не загружен — 2D-бросок. -->
@@ -3622,7 +3616,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   var diceBoxP = null;
   window.ensureDiceBox = function () {
     if (!diceBoxP) {
-      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v539").then(function (m) {
+      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v540").then(function (m) {
         window.DiceBox = m.default;
         window.dispatchEvent(new Event("dicebox:ready"));
         return m.default;
@@ -3631,17 +3625,17 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     return diceBoxP;
   };
 </script>
-<script src="app-dice.js?v=v539"></script>
-<script src="app-settings.js?v=v539"></script>
-<script src="app-ui.js?v=v539"></script>
-<script src="app-home.js?v=v539"></script>
-<script src="app-asi.js?v=v539"></script>
-<script src="app-progress.js?v=v539"></script>
-<script src="app-notes.js?v=v539"></script>
-<script src="app-desktop.js?v=v539"></script>
-<script src="history-stack.js?v=v539"></script>
-<script src="app-help.js?v=v539"></script>
-<script src="app-sheet2.js?v=v539"></script>
+<script src="app-dice.js?v=v540"></script>
+<script src="app-settings.js?v=v540"></script>
+<script src="app-ui.js?v=v540"></script>
+<script src="app-home.js?v=v540"></script>
+<script src="app-asi.js?v=v540"></script>
+<script src="app-progress.js?v=v540"></script>
+<script src="app-notes.js?v=v540"></script>
+<script src="app-desktop.js?v=v540"></script>
+<script src="history-stack.js?v=v540"></script>
+<script src="app-help.js?v=v540"></script>
+<script src="app-sheet2.js?v=v540"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3654,9 +3648,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v539",
-    "vendor/jspdf/roboto-base64.js?v=v539",
-    "app-pdf.js?v=v539"
+    "vendor/jspdf/jspdf.umd.min.js?v=v540",
+    "vendor/jspdf/roboto-base64.js?v=v540",
+    "app-pdf.js?v=v540"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3679,50 +3673,50 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // PERF-4: сами билды нужны пикеру, гайду, плану и подсказкам левел-апа — грузим по требованию.
   window.ensureBuilds = function () {
     if (window.CHARACTER_BUILDS) return Promise.resolve();
-    return loadScript("character-builds.js?v=v539");
+    return loadScript("character-builds.js?v=v540");
   };
   // PERF-2: заметки билдов нужны только applyBuild — грузим по требованию.
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v539").then(function () {
+    return loadScript("build-notes-data.js?v=v540").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
   // NGEN-2: пулы генератора «Записей» нужны только кнопке «Сгенерировать».
   window.ensureNotesGen = function () {
     if (window.NOTES_GEN) return Promise.resolve();
-    return loadScript("notes-gen-data.js?v=v539");
+    return loadScript("notes-gen-data.js?v=v540");
   };
   // PERF-3: бестиарий SRD нужен только пикерам вкладки отряда — грузим по требованию.
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v539"),
-      loadScript("npc-srd.js?v=v539")
+      loadScript("monsters-srd.js?v=v540"),
+      loadScript("npc-srd.js?v=v540")
     ]);
   };
   // РОСТ-5: звери для Дикого облика и «Превращения» — грузим по требованию.
   window.ensureBeastForms = function () {
     if (window.BEAST_FORMS) return Promise.resolve();
-    return loadScript("beast-forms.js?v=v539");
+    return loadScript("beast-forms.js?v=v540");
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v539");
+    return loadScript("magic-items.js?v=v540");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v539");
+    return loadScript("gear-catalog.js?v=v540");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v539").then(function () {
+    return loadScript("data-2024.js?v=v540").then(function () {
       window.__edition2024Loaded = true;
     });
   };
