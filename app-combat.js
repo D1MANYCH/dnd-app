@@ -2905,8 +2905,9 @@ function giveBackgroundEquipment(variant) {
     (eq.a || []).forEach(function(it) {
       var w = (typeof WEAPON_PRESETS !== "undefined") && WEAPON_PRESETS.find(function(x) { return x.name === it.name; });
       if (w) {
-        char.inventory.weapon.push({ name: w.name, qty: it.qty || 1, weight: 0, location: "belt",
-          desc: (w.damage ? w.damage + " " + w.type + ". " : "") + (w.notes || "") });
+        // PLAY2-3 (PT-078): как в 2014 — и в Сумку, и в оружие на «Бою»
+        if (!Array.isArray(char.weapons)) char.weapons = [];
+        placeStartingItem(char, ((it.qty || 1) > 1 ? it.qty + " " : "") + w.name);
       } else {
         var g = (typeof window !== "undefined" && Array.isArray(window.GEAR_CATALOG))
           ? window.GEAR_CATALOG.find(function(x) { return x.name === it.name; }) : null;
@@ -2925,6 +2926,7 @@ function giveBackgroundEquipment(variant) {
   char.bgEquipGiven = true;
   saveToLocal();
   if (typeof renderInventory === "function") renderInventory();
+  if (typeof renderWeapons === "function") renderWeapons();
   if (typeof updateInventoryWeight === "function") updateInventoryWeight();
   safeSet("coin-gp", char.coins.gp);
   if (typeof calcCoinWeight === "function") calcCoinWeight();

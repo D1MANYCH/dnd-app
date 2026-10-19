@@ -761,12 +761,28 @@ function toggleResourcePip(id, pipIdx) {
   var used = char.resources[id] || 0;
   var remaining = max - used;
   // PT-038/065: заполненный ромб — потратить один заряд, пустой — вернуть один
+  var spent = pipIdx < remaining && used < max;
   if (pipIdx < remaining) used = Math.min(max, used + 1);
   else used = Math.max(0, used - 1);
   char.resources[id] = used;
   if (navigator.vibrate) navigator.vibrate(8);
   saveToLocal();
   renderClassResources();
+  if (spent) resourceRollOnSpend(res);
+}
+
+// PLAY2-3 (PT-081/120/134): трата заряда с костью — сразу бросок;
+// rollHeal (Второе дыхание) — 1кN + уровень класса, итог лечит персонажа.
+function resourceRollOnSpend(res) {
+  if (typeof quickRoll !== "function" || !res) return;
+  var lvl = res._clsLevel || 1;
+  if (res.rollHeal) {
+    quickRoll({ label: res.name, sides: res.rollHeal.sides, mod: res.rollHeal.addLevel ? lvl : 0,
+      onResult: function(comp) { if (typeof quickHP === "function") quickHP(comp.total, res.name); } });
+    return;
+  }
+  var sides = parseInt(String(currentDieSize(res, lvl)).replace(/\D/g, ""), 10);
+  if (sides) quickRoll({ label: res.name, sides: sides });
 }
 
 // Сбросить ресурсы по типу отдыха

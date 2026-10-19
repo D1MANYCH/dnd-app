@@ -1263,11 +1263,9 @@ const char = getCurrentChar();
 if (!char) return;
 const container = $("weapons-list");
 if (!container) return;
-if (!char.weapons || char.weapons.length === 0) {
-container.innerHTML = '<p style="color:var(--text-dim); text-align:center;">Нет оружия</p>';
-return;
-}
+if (!Array.isArray(char.weapons)) char.weapons = [];
 container.innerHTML = "";
+var invWeapons = (char.inventory && Array.isArray(char.inventory.weapon)) ? char.inventory.weapon : [];
 char.weapons.forEach(function(weapon, index) {
 const div = document.createElement("div");
 div.className = "weapon-row";
@@ -1291,10 +1289,13 @@ if (mprop) {
     glossarizeHtml(escapeHtml(mprop.name), null, "2024") + '</span>' +
     (mPick ? ' <button type="button" class="weapon-mastery-btn" onclick="toggleWeaponMastery(' + index + ')">' + (mOn ? 'снять' : 'мастерство') + '</button>' : '');
 }
+// PLAY2-3 (PT-141): количество — из Сумки («Метательное копьё ×5»)
+var invW = invWeapons.find(function(it) { return it && it.name === weapon.name; });
+var qtyTag = (invW && (parseInt(invW.qty, 10) || 1) > 1) ? " ×" + parseInt(invW.qty, 10) : "";
 div.innerHTML =
   '<div class="weapon-row-top">' +
     '<div class="weapon-info" onclick="weaponRowTap(event,' + index + ')">' +
-      '<span class="weapon-name">' + escapeHtml(weapon.name) + profTag + '</span>' +
+      '<span class="weapon-name">' + escapeHtml(weapon.name) + qtyTag + profTag + '</span>' +
       '<span class="weapon-meta">' + escapeHtml(weapon.damage || "—") + ' · ' + (wmods.statKey === "dex" ? "ЛОВ" : "СИЛ") + ' ' + attackStr + masteryHtml + '</span>' +
     '</div>' +
     '<div class="weapon-row-actions">' +
@@ -1310,6 +1311,23 @@ div.innerHTML =
   (weapon.notes ? '<div class="weapon-notes">' + escapeHtml(weapon.notes) + '</div>' : '');
 container.appendChild(div);
 });
+// PLAY2-3 (PT-079): безоружный удар — всегда последней строкой, без правки и удаления
+var ua = _unarmedStrike(char);
+var uaMods = rulesWeaponMods(char, ua, parseInt($("char-level")?.value, 10) || 1);
+var uaDiv = document.createElement("div");
+uaDiv.className = "weapon-row";
+uaDiv.innerHTML =
+  '<div class="weapon-row-top">' +
+    '<div class="weapon-info">' +
+      '<span class="weapon-name">' + ua.name + '</span>' +
+      '<span class="weapon-meta">' + ua.damage + ' ' + ua.type.toLowerCase() + ' · СИЛ ' + (uaMods.attack >= 0 ? "+" : "") + uaMods.attack + '</span>' +
+    '</div>' +
+  '</div>' +
+  '<div class="weapon-roll-row">' +
+    '<button class="weapon-roll-btn weapon-roll-atk" onclick="rollWeaponAttack(' + UNARMED_WEAPON_INDEX + ')">' + dndIcoHtml("dice", 14) + ' Атака</button>' +
+    '<button class="weapon-roll-btn weapon-roll-dmg" onclick="rollWeaponDamage(' + UNARMED_WEAPON_INDEX + ')">' + dndIcoHtml("sword", 14) + ' Урон</button>' +
+  '</div>';
+container.appendChild(uaDiv);
 // Two-Weapon Fighting: если 2+ лёгких оружия — показать бонусную атаку
 var lightWeapons = [];
 char.weapons.forEach(function(w, i) {
@@ -1431,11 +1449,22 @@ function rollTWFDamage(index, isCrit) {
   showToast("🗡️ " + escapeHtml(weapon.name) + " бонусный урон" + (isCrit ? " (крит)" : "") + styleNote + ": " + r.rollStr + " = " + r.total, "info");
 }
 
+// PLAY2-3 (PT-079): безоружный удар — 1 + СИЛ дробящий (PHB14 с. 195, PHB24 с. 377),
+// у Драчуна 1к4 + СИЛ; владеют все. Индекс −2: −1 занят «нет крита» у _weaponCritPending.
+var UNARMED_WEAPON_INDEX = -2;
+function _unarmedStrike(char) {
+  var brawler = rulesHasFeat(char, "tavern_brawler") || rulesHasFeat(char, "f24-tavern_brawler");
+  return { name: "Безоружный удар", stat: "str", damage: brawler ? "1к4" : "1", type: "Дробящий", kind: "melee", proficient: true };
+}
+function _weaponAt(char, index) {
+  return index === UNARMED_WEAPON_INDEX ? _unarmedStrike(char) : (char.weapons || [])[index];
+}
+
 function rollWeaponAttack(index) {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
-const weapon = char.weapons[index];
+const weapon = _weaponAt(char, index);
 if (!weapon) return;
 var hint = rulesConditionRollMods(char, "attack");
 _attackDamageToken++;
@@ -1501,7 +1530,7 @@ _attackDamageToken++;
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
-const weapon = char.weapons[index];
+const weapon = _weaponAt(char, index);
 if (!weapon || !weapon.damage) return;
 // AUD-8 (L12): крит последней атаки этим оружием удваивает кости урона
 var isCrit = _weaponCritPending === index;

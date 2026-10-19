@@ -337,7 +337,7 @@ function placeStartingItem(newChar, rawName) {
     });
     var _wLoc = (newChar.inventory.weapon.length === 0) ? "wielded" : "belt";
     newChar.inventory.weapon.push({
-      name: w.name, qty: _wq, weight: 0, location: _wLoc,
+      name: w.name, qty: _wq, weight: w.weight || 0, location: _wLoc,
       desc: (w.damage ? w.damage + " " + w.type + ". " : "") + (w.range ? "Дистанция: " + w.range + ". " : "") + (w.notes || "")
     });
     return;
