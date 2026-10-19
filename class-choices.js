@@ -498,7 +498,9 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
   // PT-006: выбор подкласса подписан подклассом («Приёмы · Боевой мастер»)
   var T = ccTables(char);
   var own = (T.CC[className] || []).indexOf(choice) !== -1;
-  if (titleEl) titleEl.textContent = choice.name + " · " + (own ? className : (ccGetSubclass(char, className) || className));
+  // PLAY2-5 (PT-083): подкласс — по таблице, где лежит выбор; в мастере повышения он ещё может быть не записан
+  var subOf = own ? "" : (Object.keys(T.SC || {}).filter(function(k) { return (T.SC[k] || []).indexOf(choice) !== -1; })[0] || ccGetSubclass(char, className));
+  if (titleEl) titleEl.textContent = choice.name + " · " + (subOf || className);
   if (descEl)  descEl.textContent  = choice.desc || "";
 
   // ── Тип: freeform ────────────────────────────────────────
@@ -665,6 +667,20 @@ function applyClassChoice() {
     value = (ccModalState.selection || []).filter(function(s) { return s && s.trim() !== ""; });
   }
 
+  // PLAY2-5 (PT-085): выбор-навык (Ученик войны 2024) ставит владение, прежний снимает
+  if (choice.skillGrant && typeof _raceSkillSet === "function") {
+    var prevSk = ccGetStored(char, className, choiceId);
+    if (value !== prevSk) {
+      var siNew = skills.findIndex(function(s) { return s.name === value; });
+      if (siNew !== -1 && char.skills && char.skills[siNew]) {
+        if (typeof showToast === "function") showToast("Этот навык уже есть — выберите другой.", "warning");
+        return;
+      }
+      if (prevSk) _raceSkillSet(char, prevSk, false);
+      _raceSkillSet(char, value, true);
+      if (typeof updateSkillProfCount === "function") updateSkillProfCount();
+    }
+  }
   ccSetStored(char, className, choiceId, value);
 
   if (typeof addJournalEntry === "function") {

@@ -8690,6 +8690,10 @@
       c14.raceVariableTrait = "skill";
       if (_raceSkillAllowance(c14, "Своё происхождение") !== 1) return "навык по особенности";
       if (_raceSkillAllowance({ edition:"2024", raceVariableTrait:"skill" }, "Своё происхождение") !== 0) return "2024 задет";
+      // PLAY2-5 (PT-072): человек 2024 — «Умелость», 1 навык
+      if (_raceSkillAllowance({ edition:"2024" }, "Человек") !== 1 || _raceSkillAllowance({ edition:"2024" }, "Эльф") !== 0) return "Умелость 2024";
+      var sw24 = edData({ edition:"2024" }).SUBCLASS_CHOICES["Боевой мастер"].filter(function(x) { return x.id === "student-of-war"; })[0];
+      if (!sw24 || !sw24.skillGrant || sw24.options.indexOf("Убеждение") === -1) return "Ученик войны 2024: навык";
       if (RACE_BONUS_FEATS["Своё происхождение"] !== 1) return "черта";
       for (var r in RACE_FLEX_STATS) if (!RACE_DATA[r] || !RACE_LANGUAGES[r]) return r + ": нет в RACE_DATA/RACE_LANGUAGES";
       if (RACE_DATA["Дампир"].speed !== 35) return "Дампир 35 фт";

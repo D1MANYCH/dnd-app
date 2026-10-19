@@ -148,9 +148,10 @@ function renderLanguages() {
 
 function addChoiceLanguage(key) {
   if (!currentId) return;
-  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
+  // PLAY2-5: незакрытый слот выбора доступен и под замком листа (правило ЗАМОК)
+  if (!getLanguageChoiceSlots(char).some(function(s) { return s.key === key; }) && sheetLockGuard()) return;
   var sel = $("lang-choice-" + key);
   if (!sel || !sel.value) return;
   ensureLanguagesArray(char);
@@ -379,9 +380,10 @@ function renderTools() {
 
 function addChoiceTool(slotKey) {
   if (!currentId) return;
-  if (sheetLockGuard()) return;
   var char = getCurrentChar();
   if (!char) return;
+  // PLAY2-5: незакрытый слот выбора доступен и под замком листа (правило ЗАМОК)
+  if (!getToolChoiceSlots(char).some(function(s) { return s.key === slotKey; }) && sheetLockGuard()) return;
   var sel = $("tool-choice-" + slotKey);
   if (!sel || !sel.value) return;
   ensureToolsArray(char);

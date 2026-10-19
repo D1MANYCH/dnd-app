@@ -230,10 +230,19 @@ function _pgAttention(char) {
     ccGetAllChoicesFor(char).forEach(function(it) {
       if (it.isComplete || !it.choice) return;
       rows.push(_pgAttn(escapeHtml(it.choice.name || it.choice.id) +
-        " <u>· " + escapeHtml(it.subclass || it.className) + " " + it.classLevel + " ур.</u>",
+        " <u>· " + escapeHtml(it.subclass || it.className) + " " + (it.choice.minLevel || it.classLevel) + " ур.</u>",
         "Выбрать →", "openClassChoiceModal('" + _pgArg(it.className) + "', '" + _pgArg(it.choice.id) + "')"));
     });
   }
+  // PLAY2-5: незакрытые инструменты и мастерство оружия — доступны и под замком листа
+  var pr = char.proficiencies;
+  if (pr && pr.toolChoices && typeof getToolChoiceSlots === "function") getToolChoiceSlots(char).forEach(function(s) {
+    rows.push(_pgAttn("Инструменты <u>· " + escapeHtml(String(s.label || "").replace(/<[^>]*>/g, "").trim()) + " · осталось " + s.remaining + "</u>",
+      "Выбрать →", "switchTab('sheet'); creationTodoGo('tools-container')"));
+  });
+  var wmN = (typeof weaponMasteryPending === "function") ? weaponMasteryPending(char) : 0;
+  if (wmN > 0) rows.push(_pgAttn("Мастерство оружия <u>· осталось " + wmN + "</u>",
+    "Выбрать →", "switchTab('battle'); creationTodoGo('weapons-list')"));
   if (!rows.length) return "";
   return '<div class="pg-grp" data-pg-grp="attn">Осталось выбрать</div><div class="hp-rows">' + rows.join("") + "</div>";
 }

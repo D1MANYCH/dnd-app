@@ -7761,7 +7761,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 
 /* ЗАМОК-1: лист зафиксирован — поля создания/апа закрыты до «Изменить» или повышения уровня */
 #tab-sheet.sheet-locked .stat-btn-sm { visibility: hidden; }
-#tab-sheet.sheet-locked .prof-add-row,
+#tab-sheet.sheet-locked :not(.prof-choice-pending) > .prof-add-row,
 #tab-sheet.sheet-locked .prof-chip-remove,
 #tab-sheet.sheet-locked .skill-expertise-btn:not(.active) { display: none; }
 #tab-sheet.sheet-locked .skill-expertise-btn.active { pointer-events: none; }

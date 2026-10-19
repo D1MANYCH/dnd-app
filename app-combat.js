@@ -1507,7 +1507,11 @@ var RACE_FLEX_STATS = {
 var RACE_VARIABLE_TRAIT = { "Своё происхождение": 1 };
 
 function _raceSkillAllowance(char, race) {
-  if (!char || char.edition === "2024") return 0;
+  if (!char) return 0;
+  if (char.edition === "2024") {
+    var sp24 = (typeof edData === "function") && edData(char).RACE_DATA && edData(char).RACE_DATA[race];
+    return (sp24 && sp24.skillPicks) || 0;
+  }
   if (RACE_VARIABLE_TRAIT[race]) return char.raceVariableTrait === "skill" ? 1 : 0;
   return RACE_SKILL_PICKS[race] || 0;
 }
@@ -2205,6 +2209,8 @@ function applySheetLockUI() {
   if (readyBtn) readyBtn.style.display = (enabled && char.basicLocked && !locked) ? "" : "none";
   if (editBtn) editBtn.style.display = locked ? "" : "none";
   if (basicBtn) basicBtn.style.display = locked ? "none" : "";
+  // PLAY2-5: кнопки мастерства у оружия зависят от замка
+  if (typeof renderWeapons === "function") renderWeapons();
   scheduleCreationTodo();
 }
 
@@ -2269,9 +2275,12 @@ function _creationTodo(char) {
   if (pr && pr.toolChoices && typeof getToolChoiceSlots === "function") getToolChoiceSlots(char).forEach(function(s) {
     add("Инструменты", src(s.label) + " · осталось " + s.remaining, "creationTodoGo('tools-container')");
   });
+  // PLAY2-5 (PT-071/091): мастерство оружия 2024 — 3/4/5/6 видов по уровню воина
+  var wmN = (typeof weaponMasteryPending === "function") ? weaponMasteryPending(char) : 0;
+  if (wmN > 0) add("Мастерство оружия", "осталось " + wmN, "switchTab('battle'); creationTodoGo('weapons-list')");
   if (typeof ccGetAllChoicesFor === "function") ccGetAllChoicesFor(char).forEach(function(it) {
     if (it.isComplete || !it.choice) return;
-    add(it.choice.name || it.choice.id, (it.subclass || it.className) + " " + it.classLevel + " ур.",
+    add(it.choice.name || it.choice.id, (it.subclass || it.className) + " " + (it.choice.minLevel || it.classLevel) + " ур.",
       "openClassChoiceModal('" + _pgArg(it.className) + "', '" + _pgArg(it.choice.id) + "')");
   });
   return out;

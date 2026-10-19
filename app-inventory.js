@@ -873,6 +873,10 @@ return best;
 function getWeaponMasteryLimit(char) {
 return _weaponMasteryGrant(char).limit;
 }
+// PLAY2-5: сколько видов оружия для мастерства ещё не выбрано
+function weaponMasteryPending(char) {
+return Math.max(0, getWeaponMasteryLimit(char) - ((char && char.weaponMastery) || []).length);
+}
 // E24-8: варвар выбирает приёмы только для рукопашного оружия (стр. 59) — у воина
 // ограничения нет. Оружие без пресета (своё) считается рукопашным, если не дальнобойное.
 function canMasterWeapon(char, weapon) {
@@ -899,9 +903,9 @@ var char = getCurrentChar();
 if (!char) return;
 var w = char.weapons && char.weapons[index];
 if (!w) return;
-if (typeof sheetLockGuard === "function" && sheetLockGuard()) return;
 if (!Array.isArray(char.weaponMastery)) char.weaponMastery = [];
 var i = char.weaponMastery.indexOf(w.name);
+if ((i !== -1 || !weaponMasteryPending(char)) && typeof sheetLockGuard === "function" && sheetLockGuard()) return;
 if (i !== -1) {
   char.weaponMastery.splice(i, 1);
 } else {
@@ -1282,8 +1286,9 @@ var masteryHtml = '';
 var mprop = getWeaponMasteryProp(char, weapon);
 if (mprop) {
   var mOn = isWeaponMastered(char, weapon);
-  var mPick = (isWeaponMastered(char, weapon) || canMasterWeapon(char, weapon)) &&
-    !(typeof isSheetLocked === "function" && isSheetLocked(char));
+  // PLAY2-5 (PT-071/091): под замком выбор открыт, пока не набран лимит (правило ЗАМОК)
+  var mPick = mOn ? !(typeof isSheetLocked === "function" && isSheetLocked(char))
+    : canMasterWeapon(char, weapon) && (weaponMasteryPending(char) > 0 || !(typeof isSheetLocked === "function" && isSheetLocked(char)));
   if (typeof _glossBindOnce === "function") _glossBindOnce();
   masteryHtml = ' · <span class="weapon-mastery' + (mOn ? ' is-on' : '') + '">' + (mOn ? '◆ ' : '') +
     glossarizeHtml(escapeHtml(mprop.name), null, "2024") + '</span>' +

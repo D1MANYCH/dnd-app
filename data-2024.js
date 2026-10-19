@@ -555,7 +555,9 @@
         { name: "Находчивость", desc: "Получаете героическое вдохновение после каждого продолжительного отдыха." },
         { name: "Умелость", desc: "Владение 1 навыком на выбор." },
         { name: "Разносторонность", desc: "Черта происхождения на выбор (выдаётся отдельным выбором черт; рекомендуется Одарённый)." }
-      ]
+      ],
+      // PLAY2-5 (PT-072): «Умелость» — навыков на выбор, читает _raceSkillAllowance
+      skillPicks: 1
     },
     "Эльф": {
       size: "Средний",
@@ -1839,7 +1841,12 @@
       { id:"maneuvers", name:"Манёвры", type:"multi", minLevel:3,
         getCount: function(lvl) { return lvl >= 15 ? 9 : lvl >= 10 ? 7 : lvl >= 7 ? 5 : 3; },
         options:Object.keys(BATTLE_MASTER_MANEUVERS_2024), optionsDict:BATTLE_MASTER_MANEUVERS_2024,
-        desc:"Выберите манёвры Боевого мастера." }
+        desc:"Выберите манёвры Боевого мастера." },
+      // PLAY2-5 (PT-085): «Ученик войны» (стр. 69) — навык из списка воина; инструмент — SUBCLASS_TOOLS
+      { id:"student-of-war", name:"Ученик войны: навык", type:"single", minLevel:3, skillGrant:true,
+        options:CLASS_SKILL_OPTIONS_2024["Воин"],
+        optionsDict:CLASS_SKILL_OPTIONS_2024["Воин"].reduce(function(d, n) { d[n] = { name:n, desc:"" }; return d; }, {}),
+        desc:"Владение одним навыком из списка воина." }
     ],
     "Чемпион": [
       { id:"additional-fighting-style", name:"Дополнительный боевой стиль", type:"single", minLevel:7,
