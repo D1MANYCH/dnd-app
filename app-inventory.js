@@ -1251,10 +1251,11 @@ function weaponRowTap(e, index) {
   if (!w || typeof openMobSheet !== "function") return;
   openMobSheet(w.name, mobSheetActs([
     ["Бросок атаки", "rollWeaponAttack(" + index + ")"],
-    ["Бросок урона", "rollWeaponDamage(" + index + ")"],
+    ["Бросок урона", "rollWeaponDamage(" + index + ")"]
+  ].concat(_canDivineSmite(char, w) ? [["Божественная кара", "openDivineSmite(" + index + ")"]] : []).concat([
     ["Изменить", "editWeapon(" + index + ")"],
     ["Удалить", "removeWeapon(" + index + ")"]
-  ]));
+  ])));
 }
 function renderWeapons() {
 if (!currentId) return;
@@ -1304,6 +1305,7 @@ div.innerHTML =
   '<div class="weapon-roll-row">' +
     '<button class="weapon-roll-btn weapon-roll-atk" onclick="rollWeaponAttack(' + index + ')">' + dndIcoHtml("dice", 14) + ' Атака</button>' +
     '<button class="weapon-roll-btn weapon-roll-dmg" onclick="rollWeaponDamage(' + index + ')">' + dndIcoHtml("sword", 14) + ' Урон</button>' +
+    (_canDivineSmite(char, weapon) ? '<button class="weapon-roll-btn weapon-roll-smite" onclick="openDivineSmite(' + index + ')">' + dndIcoHtml("sun", 14) + ' Кара</button>' : '') +
   '</div>' +
   (weapon.notes ? '<div class="weapon-notes">' + escapeHtml(weapon.notes) + '</div>' : '');
 container.appendChild(div);
@@ -1456,6 +1458,7 @@ showRollModePopup(function(mode) {
       d.isCrit = (d.roll === 20); d.isFail = (d.roll === 1);
     }
     _weaponCritPending = d.isCrit ? index : -1;
+    _smiteCritIndex = _weaponCritPending;
     var total = d.roll + attackBonus;
     var modeLabel = formatRollModeLabel(d);
     var rollInfo = formatRollMode(d, attackBonus);
@@ -1521,6 +1524,70 @@ animateDice3d(sides, total, function() {}, { qty: qty });
 diceHistory.unshift({ sides:sides, result:total, mode:"normal", time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:total, r2:null, label: weapon.name + " урон", src: (typeof _rollSrc === "function" ? _rollSrc() : undefined) });
 if (diceHistory.length > 10) diceHistory.pop();
 renderDiceHistory();
+}
+
+// PLAY2-2 (PT-153/167/178): Божественная кара у оружия ближнего боя Паладина 2+ ур.:
+// ячейка любого класса (и пакт) → бросок урона; крит последней атаки этим оружием удваивает кости.
+var _smiteCritIndex = -1;
+function _canDivineSmite(char, weapon) {
+  if (!char || !weapon || charClassLevel(char, "Паладин") < 2) return false;
+  return weapon.kind !== "ranged" && String(weapon.notes || "").toLowerCase().indexOf("боеприпас") === -1;
+}
+function openDivineSmite(index) {
+  var char = currentId ? getCurrentChar() : null;
+  var weapon = char && char.weapons && char.weapons[index];
+  if (!weapon) return;
+  var opts = _castableSlotOptions(char, { level: 1 }).filter(function(o) { return o.type === "slot" || o.type === "pact"; });
+  if (!opts.length) { showToast("Нет свободных ячеек для Божественной кары", "warn"); return; }
+  var modal = $("cast-spell-modal"), box = $("cast-spell-options");
+  if (!modal || !box) return;
+  var title = $("cast-spell-title");
+  if (title) title.textContent = "Божественная кара";
+  var hint = $("cast-spell-hint");
+  if (hint) hint.textContent = "Попадание: " + weapon.name + ". 2к8 излучением за ячейку 1-го уровня, +1к8 за каждый уровень выше" +
+    (char.edition === "2024" ? "." : " (максимум 5к8).") + " Выберите ячейку.";
+  box.innerHTML = '<label class="smite-vs"><input type="checkbox" id="smite-vs-fiend"> Цель — нежить или исчадие (+1к8)</label>';
+  opts.forEach(function(o) {
+    var b = document.createElement("button");
+    b.className = "cast-slot-option";
+    b.innerHTML = '<span class="cso-lvl">' + o.level + ' ур.' + (o.type === "pact" ? ' · ПАКТ' : '') + '</span>' +
+      '<span class="cso-free">' + rulesDivineSmiteFormula(char, o.level, false) + ' · свободно: ' + o.free + '</span>';
+    b.onclick = function() { _divineSmite(index, o.type, o.level); };
+    box.appendChild(b);
+  });
+  modal.classList.add("active");
+}
+function _divineSmite(index, slotType, level) {
+  var char = currentId ? getCurrentChar() : null;
+  var weapon = char && char.weapons && char.weapons[index];
+  if (!weapon) return;
+  var vsEl = $("smite-vs-fiend");
+  var vs = !!(vsEl && vsEl.checked);
+  var sp = char.spells;
+  if (slotType === "pact") {
+    if ((sp.pactSlots || 0) - (sp.pactUsed || 0) <= 0) { showToast("Нет свободных пакт-ячеек", "warn"); return; }
+    sp.pactUsed = (sp.pactUsed || 0) + 1;
+  } else {
+    if ((sp.slots[level] || 0) - (sp.slotsUsed[level] || 0) <= 0) { showToast("Нет свободных ячеек " + level + " уровня", "warn"); return; }
+    sp.slotsUsed[level] = (sp.slotsUsed[level] || 0) + 1;
+  }
+  closeCastChooser();
+  saveToLocal();
+  renderSpellSlots();
+  var crit = _smiteCritIndex === index;
+  _smiteCritIndex = -1;
+  var formula = rulesDivineSmiteFormula(char, level, vs);
+  if (crit) formula = critFormula(formula);
+  var left = slotType === "pact" ? (sp.pactSlots || 0) - (sp.pactUsed || 0) : (sp.slots[level] || 0) - (sp.slotsUsed[level] || 0);
+  if (window.AppLog) AppLog.action("combat", "Божественная кара «" + weapon.name + "»: " + (slotType === "pact" ? "пакт-ячейка " : "ячейка ") + level + " ур., " + formula + (vs ? " (нежить/исчадие)" : "") + (crit ? " (крит)" : ""));
+  showToast("✨ Божественная кара — " + (slotType === "pact" ? "пакт-ячейка " : "ячейка ") + level + " ур. (осталось " + left + ")", "info");
+  rollFormula(formula, {
+    label: "✨ Божественная кара · " + level + " ур." + (vs ? " · нежить/исчадие" : "") + (crit ? " · КРИТ ×2" : ""),
+    openArena: true,
+    onResult: function(res) {
+      if (typeof offerCastDamageToBattle === "function") offerCastDamageToBattle("Божественная кара", res.total, { half: false });
+    }
+  });
 }
 function removeWeapon(index) {
 if (!currentId) return;

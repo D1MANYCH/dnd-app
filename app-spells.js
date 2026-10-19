@@ -32,10 +32,9 @@ const container = $("spell-slots-visual");
 if (!container) return;
 container.innerHTML = "";
 var isSingleWarlock = char.class === "Колдун" && (!Array.isArray(char.classes) || char.classes.length <= 1);
-// MOB-6: на зафиксированном листе − / + тратят и возвращают ячейку, максимум — по уровню
-var sslLocked = typeof isSheetLocked === "function" && isSheetLocked(char);
-var sslTitleMinus = sslLocked ? "Потратить ячейку" : "Убрать ячейку из\u00a0максимума";
-var sslTitlePlus = sslLocked ? "Вернуть ячейку" : "Добавить ячейку к\u00a0максимуму";
+// PLAY2-2 (PT-154): − / + тратят и возвращают ячейку, максимум — по уровню
+var sslTitleMinus = "Потратить ячейку";
+var sslTitlePlus = "Вернуть ячейку";
 // У одноклассового Колдуна обычные ячейки 1..9 пустые — рендерить их бессмысленно
 if (!isSingleWarlock) {
   for(let i=1; i<=9; i++) {
@@ -63,7 +62,7 @@ if (!isSingleWarlock) {
       '<div class="ssl-label"><span class="ssl-lvl">' + i + '</span><span class="ssl-ur">ур.</span></div>' +
       diamHtml +
       '<div class="ssl-counter"><span class="ssl-free' + (free === 0 && total > 0 ? ' ssl-exhausted' : '') + '">' + free + '</span><span class="ssl-sep">/</span><span class="ssl-total">' + total + '</span></div>' +
-      '<div class="ssl-controls"><button class="ssl-btn" title="' + sslTitleMinus + '" onclick="adjustSpellSlots(' + i + ',-1)">−</button><button class="ssl-btn" title="' + sslTitlePlus + '" onclick="adjustSpellSlots(' + i + ',1)">+</button></div>';
+      (total === 0 ? '' : '<div class="ssl-controls"><button class="ssl-btn" title="' + sslTitleMinus + '" onclick="adjustSpellSlots(' + i + ',-1)">−</button><button class="ssl-btn" title="' + sslTitlePlus + '" onclick="adjustSpellSlots(' + i + ',1)">+</button></div>');
     container.appendChild(row);
   }
 }
@@ -116,21 +115,10 @@ function adjustPactSlots(delta) {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
-if (typeof isSheetLocked === "function" && isSheetLocked(char)) {
-  var pUsed = (char.spells.pactUsed || 0) - delta;
-  char.spells.pactUsed = Math.max(0, Math.min(char.spells.pactSlots || 0, pUsed));
-  if (window.AppLog) AppLog.action("spells", "ячейки пакта: использовано " + char.spells.pactUsed + "/" + (char.spells.pactSlots || 0));
-  saveToLocal();
-  renderSpellSlots();
-  return;
-}
-var current = char.spells.pactSlots || 0;
-var newValue = current + delta;
-if (newValue < 0) newValue = 0;
-if (newValue > 10) newValue = 10;
-char.spells.pactSlots = newValue;
-if ((char.spells.pactUsed || 0) > newValue) char.spells.pactUsed = newValue;
-if (window.AppLog) AppLog.action("spells", "пакт-слотов → " + newValue);
+// PLAY2-2 (PT-154): − / + тратят и возвращают ячейку; максимум — от уровня
+var pUsed = (char.spells.pactUsed || 0) - delta;
+char.spells.pactUsed = Math.max(0, Math.min(char.spells.pactSlots || 0, pUsed));
+if (window.AppLog) AppLog.action("spells", "ячейки пакта: использовано " + char.spells.pactUsed + "/" + (char.spells.pactSlots || 0));
 saveToLocal();
 renderSpellSlots();
 }
@@ -170,25 +158,10 @@ function adjustSpellSlots(level, delta) {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
-if (typeof isSheetLocked === "function" && isSheetLocked(char)) {
-  var used = (char.spells.slotsUsed[level] || 0) - delta;
-  char.spells.slotsUsed[level] = Math.max(0, Math.min(char.spells.slots[level] || 0, used));
-  if (window.AppLog) AppLog.action("spells", "ячейки " + level + " ур.: использовано " + char.spells.slotsUsed[level] + "/" + (char.spells.slots[level] || 0));
-  saveToLocal();
-  renderSpellSlots();
-  return;
-}
-const input = $('slots-' + level + '-total');
-let current = input ? parseInt(input.value, 10) : (char.spells.slots[level] || 0);
-if (isNaN(current)) current = char.spells.slots[level] || 0;
-let newValue = current + delta;
-if (newValue < 0) newValue = 0;
-if (newValue > 10) newValue = 10;
-char.spells.slots[level] = newValue;
-if (char.spells.slotsUsed[level] > newValue) {
-char.spells.slotsUsed[level] = newValue;
-}
-if (window.AppLog) AppLog.action("spells", "слотов " + level + " ур. → " + newValue);
+// PLAY2-2 (PT-154): − / + тратят и возвращают ячейку; максимум — от уровня
+var used = (char.spells.slotsUsed[level] || 0) - delta;
+char.spells.slotsUsed[level] = Math.max(0, Math.min(char.spells.slots[level] || 0, used));
+if (window.AppLog) AppLog.action("spells", "ячейки " + level + " ур.: использовано " + char.spells.slotsUsed[level] + "/" + (char.spells.slots[level] || 0));
 saveToLocal();
 renderSpellSlots();
 }
@@ -1704,10 +1677,21 @@ function _applyCastDamage(char, spell, d, slot, variant) {
   var castLevel = slot ? slot.level : null;
   var formula = (typeof damageFormulaFor === "function")
     ? damageFormulaFor(d.damage, spell.level || 0, castLevel, char.level || 1) : "";
-  _rollCastDamage(char, {
-    spellName: spell.name, dmg: d.damage, formula: formula, castLevel: castLevel,
-    variantName: variant ? variant.name : null
-  });
+  var go = function(extra) {
+    _rollCastDamage(char, {
+      spellName: spell.name, dmg: d.damage, formula: extra ? formula + "+" + extra.formula : formula, castLevel: castLevel,
+      variantName: extra ? extra.label : (variant ? variant.name : null)
+    });
+  };
+  // PLAY2-2: доп. урон по типу цели (Божественная кара 2024 — +1к8 исчадию/нежити)
+  var vx = d.damage && d.damage.vsExtra;
+  if (vx && formula && typeof showConfirmModal === "function") {
+    showConfirmModal(spell.name, "Цель — " + vx.label + "? Урон +" + vx.formula + ".",
+      function() { go(vx); }, "Да, +" + vx.formula,
+      { danger: false, icon: "sun", altLabel: "Нет", onAlt: function() { go(null); }, onCancel: function() { go(null); } });
+    return;
+  }
+  go(null);
 }
 
 // CAST-9a: общий путь броска урона — начальный тик (_applyCastDamage) и

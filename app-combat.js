@@ -121,10 +121,9 @@ function rollSavingThrow(saveKey) {
   if (!save) return;
   var hint = rulesConditionRollMods(char, "save", saveKey);
   showRollModePopup(function(mode) {
-    var statMod = getMod(char.stats[saveKey]);
-    var profBonus = getProficiencyBonus(parseInt($("char-level")?.value, 10) || 1);
     var checkbox = $("save-prof-" + saveKey);
-    var bonus = statMod + (checkbox && checkbox.checked ? profBonus : 0) + hint.penalty;
+    // PLAY2-2: тот же расчёт, что на листе (с Аурой защиты)
+    var bonus = rulesSaveBonus(char, saveKey, parseInt($("char-level")?.value, 10) || 1, !!(checkbox && checkbox.checked)) + hint.penalty;
     quickRoll({ label: "Спас. " + save.name, sides: 20, mod: bonus, mode: mode });
   }, hint);
 }
@@ -1054,8 +1053,8 @@ if (char.spells && _statMigrate[char.spells.stat]) {
 char.spells.stat = _statMigrate[char.spells.stat];
 const _sel = $("spell-stat"); if (_sel) _sel.value = char.spells.stat;
 }
-const stat = char.spells.stat || "";
 const spellStats = rulesSpellStats(char, level);
+const stat = char.spells.stat || spellStats.stat || "";
 const statMod = spellStats.mod;
 const dc = spellStats.dc;
 const attack = spellStats.attack;

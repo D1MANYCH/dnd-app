@@ -332,10 +332,26 @@ function getInitiativeMod(char, level) {
   return mod;
 }
 
+// PLAY2-2 (PT-175/177): Аура защиты — Паладин 6+ добавляет мод. ХАР (мин. +1)
+// ко всем своим спасброскам (PHB14 с.85, PHB24 — так же).
+function rulesAuraOfProtection(char) {
+  if (!char || !char.stats || charClassLevel(char, "Паладин") < 6) return 0;
+  return Math.max(1, getMod(char.stats.cha || 10));
+}
+
 function rulesSaveBonus(char, key, level, isProficient) {
   var bonus = getMod(char.stats[key]);
   if (isProficient) bonus += getProficiencyBonus(level);
-  return bonus;
+  return bonus + rulesAuraOfProtection(char);
+}
+
+// PLAY2-2 (PT-153/167): Божественная кара — 2к8 за ячейку 1 круга и +1к8 за каждый
+// круг выше; в 2014 максимум 5к8 (PHB14 с.85), в 2024 потолка нет; +1к8 по нежити/исчадию.
+function rulesDivineSmiteFormula(char, slotLevel, vsFiendOrUndead) {
+  var n = 1 + Math.max(1, slotLevel || 1);
+  if (!(char && char.edition === "2024")) n = Math.min(5, n);
+  if (vsFiendOrUndead) n += 1;
+  return n + "к8";
 }
 
 function rulesSkillBonus(char, skillIndex, level, isProficient) {
@@ -359,6 +375,11 @@ function rulesPassivePerception(char, level, isProficient) {
 
 function rulesSpellStats(char, level) {
   var stat = (char && char.spells && char.spells.stat) || "";
+  // PLAY2-2 (PT-156): у мультикласса без выбранной — общая, если у всех классов-заклинателей одна
+  if (!stat && char && Array.isArray(char.classes) && char.classes.length > 1) {
+    var rows = rulesSpellStatsByClass(char, level);
+    if (rows.length && rows.every(function(r) { return r.stat === rows[0].stat; })) stat = rows[0].stat;
+  }
   var statMod = 0;
   if (stat === "ИНТ") statMod = getMod(char.stats.int);
   else if (stat === "МУД") statMod = getMod(char.stats.wis);

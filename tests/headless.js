@@ -1686,23 +1686,19 @@
         toggleSpellSlot(3, 0); // клик по потраченному ромбу освобождает начиная с него
         if (sp.slotsUsed[3] !== 0) return "toggle(3,0) повторно: ожидал used 0, получено " + sp.slotsUsed[3];
         toggleSpellSlot(3, 2);
-        adjustSpellSlots(3, -1); // 4 → 3, used 3 не превышает — не трогаем
-        if (sp.slots[3] !== 3 || sp.slotsUsed[3] !== 3) return "−1: ожидал slots 3 / used 3, получено " + sp.slots[3] + "/" + sp.slotsUsed[3];
-        adjustSpellSlots(3, -1); // 3 → 2, used капится 3 → 2
-        if (sp.slots[3] !== 2 || sp.slotsUsed[3] !== 2) return "−1: ожидал slots 2 / used 2, получено " + sp.slots[3] + "/" + sp.slotsUsed[3];
-        for (var i = 0; i < 12; i++) adjustSpellSlots(3, 1);
-        if (sp.slots[3] !== 10) return "+1×12: ожидал кламп 10, получено " + sp.slots[3];
+        // PLAY2-2 (PT-154): и на открытом листе − / + тратят и возвращают, максимум не меняется
+        adjustSpellSlots(3, -1);
+        if (sp.slots[3] !== 4 || sp.slotsUsed[3] !== 4) return "−1: ожидал slots 4 / used 4, получено " + sp.slots[3] + "/" + sp.slotsUsed[3];
+        for (var i = 0; i < 6; i++) adjustSpellSlots(3, 1);
+        if (sp.slots[3] !== 4 || sp.slotsUsed[3] !== 0) return "+1×6: ожидал slots 4 / used 0, получено " + sp.slots[3] + "/" + sp.slotsUsed[3];
         // пакт-ячейки (BUGFIX-1)
         togglePactSlot(0);
         togglePactSlot(1);
         if (sp.pactUsed !== 2) return "пакт toggle(0,1): ожидал used 2, получено " + sp.pactUsed;
         togglePactSlot(0);
         if (sp.pactUsed !== 0) return "пакт toggle(0) повторно: ожидал 0, получено " + sp.pactUsed;
-        sp.pactUsed = 2;
-        adjustPactSlots(-1); // 2 → 1, used капится до 1
-        if (sp.pactSlots !== 1 || sp.pactUsed !== 1) return "пакт −1: ожидал slots 1 / used 1, получено " + sp.pactSlots + "/" + sp.pactUsed;
-        adjustPactSlots(-1); adjustPactSlots(-1);
-        if (sp.pactSlots !== 0) return "пакт не клампится в 0: " + sp.pactSlots;
+        adjustPactSlots(-1); adjustPactSlots(-1); adjustPactSlots(-1);
+        if (sp.pactSlots !== 2 || sp.pactUsed !== 2) return "пакт −1×3: ожидал slots 2 / used 2, получено " + sp.pactSlots + "/" + sp.pactUsed;
         // MOB-6: на зафиксированном листе − / + тратят и возвращают, максимум не меняется
         var ch = window.characters[0];
         ch.basicLocked = true; ch.sheetLocked = true;

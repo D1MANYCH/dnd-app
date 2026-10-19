@@ -1492,6 +1492,38 @@ function rulesCases(t, group) {
     var n = druid(2); rulesFormStart(n, wolf, rulesWildShapeLimits(n));
     return rulesCombatWildShapeHeal(n) ? "Круг земли" : true;
   });
+
+  group("PLAY2-2: Паладин — Аура защиты и Божественная кара");
+  t("[PLAY2-2] Аура защиты: Паладин 6+ — мод. ХАР (мин. +1) ко всем спасброскам", function() {
+    var p5 = fixture({ class: "Паладин", level: 5, stats: { str: 16, dex: 10, con: 14, int: 8, wis: 12, cha: 16 } });
+    if (rulesSaveBonus(p5, "dex", 5, false) !== 0) return "5 ур. без ауры: " + rulesSaveBonus(p5, "dex", 5, false);
+    var p6 = fixture({ class: "Паладин", level: 6, stats: { str: 16, dex: 10, con: 14, int: 8, wis: 12, cha: 16 } });
+    if (rulesSaveBonus(p6, "dex", 6, false) !== 3) return "6 ур. ЛОВ без владения: " + rulesSaveBonus(p6, "dex", 6, false) + ", ожидал +3";
+    if (rulesSaveBonus(p6, "wis", 6, true) !== 7) return "6 ур. МУД с владением: " + rulesSaveBonus(p6, "wis", 6, true) + ", ожидал 1+3+3";
+    p6.stats.cha = 8;
+    if (rulesAuraOfProtection(p6) !== 1) return "ХАР 8: аура " + rulesAuraOfProtection(p6) + ", ожидал минимум +1";
+    var mc = mcFixture([{class:"Чародей", level:4}, {class:"Паладин", level:6}], { stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 18 } });
+    if (rulesAuraOfProtection(mc) !== 4) return "мультикласс Паладин 6: " + rulesAuraOfProtection(mc);
+    var mc5 = mcFixture([{class:"Чародей", level:5}, {class:"Паладин", level:5}], { stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 18 } });
+    return rulesAuraOfProtection(mc5) === 0 || "Паладин 5 при суммарном 10: " + rulesAuraOfProtection(mc5);
+  });
+  t("[PLAY2-2] Божественная кара: 2к8 + 1к8 за уровень, 2014 — максимум 5к8, +1к8 нежити/исчадию", function() {
+    var c14 = fixture({ class: "Паладин", level: 17 }), c24 = fixture({ class: "Паладин", level: 17, edition: "2024" });
+    var cases = [[c14, 1, false, "2к8"], [c14, 3, false, "4к8"], [c14, 4, false, "5к8"], [c14, 5, false, "5к8"], [c14, 5, true, "6к8"],
+      [c24, 1, true, "3к8"], [c24, 5, false, "6к8"]];
+    for (var i = 0; i < cases.length; i++) {
+      var f = rulesDivineSmiteFormula(cases[i][0], cases[i][1], cases[i][2]);
+      if (f !== cases[i][3]) return (cases[i][0].edition || "2014") + " ячейка " + cases[i][1] + (cases[i][2] ? " нежить" : "") + ": " + f + ", ожидал " + cases[i][3];
+    }
+    return true;
+  });
+  t("[PLAY2-2] мультикласс без выбранной характеристики: общая ХАР Паладина и Чародея", function() {
+    var mc = mcFixture([{class:"Паладин", level:2}, {class:"Чародей", level:1}], { stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 16 } });
+    var s = rulesSpellStats(mc, 3);
+    if (s.stat !== "ХАР" || s.dc !== 13) return "Паладин/Чародей: " + s.stat + " СЛ " + s.dc;
+    var mx = mcFixture([{class:"Паладин", level:2}, {class:"Волшебник", level:1}], { stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 16 } });
+    return rulesSpellStats(mx, 3).stat === "" || "Паладин/Волшебник: разные характеристики, ожидал пусто";
+  });
 }
 
 if (typeof window !== "undefined") window.rulesCases = rulesCases;

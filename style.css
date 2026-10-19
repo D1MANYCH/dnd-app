@@ -11094,6 +11094,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .weapon-roll-atk:hover { color: var(--accent); }
 .weapon-roll-dmg { color: var(--danger); }
 .weapon-roll-dmg:hover { color: color-mix(in srgb, var(--danger) 80%, var(--text)); }
+.weapon-roll-smite { color: var(--accent-lo); }
+.weapon-roll-smite:hover { color: var(--accent); }
 .weapon-notes { font-size: var(--fs-12); color: var(--text-dim); margin-top: var(--sp-2); }
 
 /* Spell card actions row. flex-wrap обязателен: на телефоне 4-5 кнопок
@@ -11120,6 +11122,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .cast-spell-content { max-width: 380px; }
 .cast-spell-hint { color: var(--text-mute); font-size: var(--fs-14); margin: var(--sp-1) 0 var(--sp-3); }
 .cast-slot-options { display: flex; flex-direction: column; gap: var(--sp-2); }
+.smite-vs { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-14); color: var(--text); min-height: 44px; cursor: pointer; }
 .cast-slot-option {
   display: flex; justify-content: space-between; align-items: center;
   width: 100%;
