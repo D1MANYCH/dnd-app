@@ -39,6 +39,7 @@ function openASIModal() {
   asiSelectedStats = [];
   asiFeatSelected = null;
   asiFeatStat = null;
+  asiFeatQuery = "";
   var modal = $("asi-modal");
   if (!modal) { showToast("Окно не\u00a0открылось — перезагрузите страницу", "error"); return; }
 
@@ -122,6 +123,15 @@ function toggleASIStat(statKey) {
   // AUD-7 (L26): характеристику выше 20 не поднять (PHB стр. 15)
   var char = getCurrentChar();
   if (idx === -1 && char && (char.stats[statKey] || 10) + (mode === "plus2" ? 2 : 1) > 20) {
+    // PLAY2-4 (PT-166): у 19 вместо отказа — режим «+1 к двум» с этой характеристикой
+    if (mode === "plus2" && (char.stats[statKey] || 10) + 1 <= 20) {
+      var r1 = document.querySelector('input[name="asi-mode"][value="plus1each"]');
+      if (r1) r1.checked = true;
+      asiSelectedStats = [statKey];
+      updateASIPreview();
+      showToast("+2 подняло бы выше 20 — выбрано +1, добавьте вторую характеристику", "info");
+      return;
+    }
     showToast("Характеристику нельзя поднять выше 20", "warn");
     return;
   }
@@ -147,17 +157,7 @@ function updateASIPreview() {
   if (mode === "feat") {
     if (statGrid) statGrid.style.display = "none";
     if (featListEl) { featListEl.style.display = "block"; buildFeatList(); }
-    if (preview) {
-      if (asiFeatSelected) {
-        var feat = getFeatDef(getCurrentChar(), asiFeatSelected);
-        preview.textContent = "✅ Черта: " + (feat ? feat.name : asiFeatSelected);
-        preview.className = "asi-preview ready";
-      } else {
-        preview.textContent = "Выберите черту из\u00a0списка";
-        preview.className = "asi-preview";
-      }
-    }
-    if (applyBtn) applyBtn.disabled = !_asiFeatReady();
+    _asiFeatPreview();
     return;
   }
 
@@ -213,6 +213,7 @@ function updateASIPreview() {
 
 // asiFeatSelected и feat-режим обрабатываются в updateASIPreview ниже
 var asiFeatSelected = null;
+var asiFeatQuery = ""; // PLAY2-4: строка поиска черт переживает выбор
 
 // E24-3: справочник черт — по редакции персонажа (2024 → FEATS_2024), с фолбэком на
 // глобальный 2014-список (черта могла быть взята до появления 2024-набора).
@@ -256,14 +257,14 @@ function buildFeatList() {
   // BUILD-LVL-3: id черты, рекомендованной билдом для текущего ASI-уровня.
   var recFeatId = (typeof getBuildRecFeat === "function" && char) ? getBuildRecFeat(char, asiCurrentLevel) : null;
 
-  el.innerHTML = '<div class="feat-search-wrap"><input type="text" class="feat-search-inp" placeholder="🔍 Поиск черты…" oninput="filterFeatList(this.value)"></div>' +
+  el.innerHTML = '<div class="feat-search-wrap"><input type="text" class="feat-search-inp" placeholder="🔍 Поиск черты…" value="' + escapeHtml(asiFeatQuery) + '" oninput="filterFeatList(this.value)"></div>' +
     '<div class="feat-list" id="feat-list-items">' +
     featList.map(function(feat) {
       var taken = !feat.repeatable && takenFeats.some(function(f) { return f.id === feat.id; });
       var prereqMiss = !taken && char ? rulesFeatPrereqMissing(char, feat) : null;
       var selected = asiFeatSelected === feat.id;
       var isRec = recFeatId && feat.id === recFeatId;
-      return '<div class="feat-item' + (selected ? " selected" : "") + (taken || prereqMiss ? " taken" : "") + (isRec ? " is-rec" : "") + '" onclick="selectFeat(\'' + feat.id + '\')" data-name="' + escapeHtml(feat.name.toLowerCase()) + '">' +
+      return '<div class="feat-item' + (selected ? " selected" : "") + (taken || prereqMiss ? " taken" : "") + (isRec ? " is-rec" : "") + '" onclick="selectFeat(\'' + feat.id + '\')" data-id="' + feat.id + '" data-name="' + escapeHtml(feat.name.toLowerCase()) + '">' +
         '<div class="feat-item-header">' +
           '<span class="feat-item-name">' + escapeHtml(feat.name) + '</span>' +
           (isRec ? '<span class="rec-badge">' + dndIcoHtml("bulb", 12) + ' совет билда</span>' : '') +
@@ -271,18 +272,46 @@ function buildFeatList() {
           (taken ? '<span class="feat-taken-badge">Уже взята</span>' : '') +
         '</div>' +
         '<div class="feat-item-desc">' + escapeHtml(feat.desc) + '</div>' +
-        (selected ? _featStatPickHtml(char, feat) : '') +
       '</div>';
     }).join("") +
+    '<div class="feat-empty" id="feat-list-empty" style="display:none">Ничего не\u00a0найдено</div>' +
     '</div>';
+  if (asiFeatQuery) filterFeatList(asiFeatQuery);
 }
 
 function filterFeatList(query) {
-  var q = query.toLowerCase();
+  asiFeatQuery = query || "";
+  var q = asiFeatQuery.trim().toLowerCase();
+  var shown = 0;
   document.querySelectorAll("#feat-list-items .feat-item").forEach(function(el) {
     var name = el.dataset.name || "";
-    el.style.display = name.includes(q) ? "" : "none";
+    var on = name.includes(q);
+    el.style.display = on ? "" : "none";
+    if (on) shown++;
   });
+  var empty = $("feat-list-empty");
+  if (empty) empty.style.display = shown ? "none" : "";
+}
+
+// PLAY2-4 (PT-099/103/113/128): плашка «Черта: …» — с выбором характеристики и подписью,
+// чего не хватает; список при этом не перерисовывается (прокрутка и поиск на месте)
+function _asiFeatPreview() {
+  var preview = $("asi-preview");
+  var applyBtn = $("asi-apply-btn");
+  var ready = _asiFeatReady();
+  if (applyBtn) applyBtn.disabled = !ready;
+  if (!preview) return;
+  var char = getCurrentChar();
+  var feat = asiFeatSelected ? getFeatDef(char, asiFeatSelected) : null;
+  if (!feat) {
+    preview.textContent = "Выберите черту из\u00a0списка";
+    preview.className = "asi-preview";
+    return;
+  }
+  preview.innerHTML = '<span>' + (ready ? "✅ " : "") + 'Черта: ' + escapeHtml(feat.name) + '</span>' +
+    _featStatPickHtml(char, feat) +
+    (ready ? '' : '<span class="asi-preview-miss">Выберите характеристику, чтобы применить черту</span>');
+  preview.className = "asi-preview" + (ready ? " ready" : "");
 }
 
 // AUD-7 (L25): черту нельзя взять повторно (кроме повторяемых) и без выполненного требования
@@ -318,9 +347,7 @@ function _asiFeatReady() {
 }
 function selectFeatStat(k) {
   asiFeatStat = k;
-  buildFeatList();
-  var applyBtn = $("asi-apply-btn");
-  if (applyBtn) applyBtn.disabled = !_asiFeatReady();
+  _asiFeatPreview();
 }
 
 function selectFeat(id) {
@@ -330,18 +357,25 @@ function selectFeat(id) {
   }
   asiFeatSelected = asiFeatSelected === id ? null : id;
   asiFeatStat = null;
-  buildFeatList();
-  var preview = $("asi-preview");
-  var applyBtn = $("asi-apply-btn");
-  if (asiFeatSelected) {
-    var feat = getFeatDef(getCurrentChar(), asiFeatSelected);
-    if (!feat) return;
-    if (preview) { preview.textContent = "✅ Черта: " + feat.name; preview.className = "asi-preview ready"; }
-    if (applyBtn) applyBtn.disabled = !_asiFeatReady();
-  } else {
-    if (preview) { preview.textContent = "Выберите черту"; preview.className = "asi-preview"; }
-    if (applyBtn) applyBtn.disabled = true;
-  }
+  document.querySelectorAll("#feat-list-items .feat-item").forEach(function(el) {
+    el.classList.toggle("selected", el.dataset.id === asiFeatSelected);
+  });
+  _asiFeatPreview();
+}
+
+// PLAY2-4 (PT-125): уровень понижен полем на незафиксированном листе — отметки АСИ
+// выше нового уровня снимаются (как _mlPruneAsi у мультикласса)
+function asiPruneToLevel() {
+  var char = getCurrentChar();
+  if (!char || !char.class || (char.classes && char.classes.length > 1)) return;
+  var used = char.asiUsed && !Array.isArray(char.asiUsed) ? char.asiUsed[char.class] : null;
+  if (!Array.isArray(used)) return;
+  var lvl = char.level || 1;
+  var kept = used.filter(function(l) { return typeof l !== "number" || l <= lvl; });
+  if (kept.length === used.length) return;
+  char.asiUsed[char.class] = kept;
+  saveToLocal();
+  updateClassFeatures();
 }
 
 function _asiUnlockSheet(char) {
@@ -387,7 +421,7 @@ function applyASI() {
       safeSet("val-" + k, char.stats[k]);
       updateStatDisplay(k);
     });
-    var msg = "📈 АСИ (ур." + (asiCurrentLevel||"?") + "): " + asiSelectedStats.map(function(k) { return statNames2[k] + " +" + bonus; }).join(", ");
+    var msg = "📈 Увеличение характеристик" + (asiCurrentLevel ? " (" + asiCurrentLevel + " ур.)" : "") + ": " + asiSelectedStats.map(function(k) { return statNames2[k] + " +" + bonus; }).join(", ");
     // Mark ASI level as used
     asiMarkUsed(char, asiCurrentLevel);
     asiCurrentLevel = null;

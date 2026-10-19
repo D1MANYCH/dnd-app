@@ -8702,8 +8702,13 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   margin-bottom: var(--sp-4);
   min-height: 34px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  column-gap: var(--sp-3);
 }
+.asi-preview .feat-stat-pick { margin-top: 0; }
+.asi-preview-miss { flex-basis: 100%; font-size: var(--fs-12); color: var(--text-mute); }
+.feat-empty { padding: var(--sp-2) var(--sp-3); font-size: var(--fs-14); color: var(--text-mute); }
 .asi-preview.ready {
   color: var(--success);
   background: color-mix(in srgb, var(--success) 8%, transparent);
