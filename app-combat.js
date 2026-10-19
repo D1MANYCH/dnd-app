@@ -2100,7 +2100,7 @@ function syncCwEdition(char) {
   b14.classList.toggle("active", !is24); b14.setAttribute("aria-checked", is24 ? "false" : "true");
   b24.classList.toggle("active", is24); b24.setAttribute("aria-checked", is24 ? "true" : "false");
   b14.disabled = busy && is24; b24.disabled = busy && !is24;
-  var tip = busy ? "Редакцию можно сменить, пока не выбраны класс, раса и предыстория" : "";
+  var tip = busy ? "Редакцию можно сменить, пока не выбраны класс, раса и предыстория" : "";
   b14.title = tip; b24.title = tip;
 }
 
