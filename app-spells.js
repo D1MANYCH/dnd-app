@@ -227,8 +227,24 @@ function _charMaxCastableLevel(char) {
 function _defaultSpellVersion(char) {
   return !char ? "all" : (char.edition === "2024" ? "PH24" : "PH14");
 }
+// Фильтр «Только выбранные»: показывает заклинания из mySpells, в том числе
+// взятые при повышении уровня. Сбрасывается при каждом открытии поиска.
+var spellOnlyAdded = false;
+function toggleSpellOnlyAdded() {
+spellOnlyAdded = !spellOnlyAdded;
+renderSpellSearch();
+}
+function _renderSpellOnlyAdded(char, hide) {
+var btn = $("spell-only-added");
+if (!btn) return;
+var n = (char && char.spells && Array.isArray(char.spells.mySpells)) ? char.spells.mySpells.length : 0;
+btn.hidden = hide || n === 0;
+btn.setAttribute("aria-pressed", spellOnlyAdded ? "true" : "false");
+btn.textContent = "Только выбранные · " + n;
+}
 function openSpellSearch() {
 _featPickIdx = null;
+spellOnlyAdded = false;
 // STYLE-8M-4: поиск — экран. Открывается и с вкладки, и с экрана повышения
 // уровня (luGoToSpellsTab сначала уводит на лист), стек возврата это переживает.
 if (typeof showScreen === "function") showScreen("spellsearch");
@@ -831,10 +847,13 @@ if (firstLoadSkeleton("spell", "spell-search-results", 6, "list", renderSpellSea
 const char = getCurrentChar();
 var _fp = _featPickCtx();
 _renderFeatPickBar(_fp);
+_renderSpellOnlyAdded(char, !!_fp);
 if (_fp) { _renderFeatPickList(_fp, search, level, container); return; }
 // BUILD-LVL: по умолчанию (без явно выбранного уровня) прячем заклинания выше доступного персонажу уровня.
 const maxCastable = _charMaxCastableLevel(char);
 const splitVersion = (char && typeof isEditionSplit === "function" && isEditionSplit()) ? _defaultSpellVersion(char) : null;
+var addedIds = {};
+((char && char.spells && char.spells.mySpells) || []).forEach(function(s) { addedIds[s.id] = 1; });
 let filtered = SPELL_DATABASE.filter(function(spell) {
 const matchesSearch = spell.name.toLowerCase().includes(search);
 const matchesLevel = level === "" || spell.level.toString() === level;
@@ -843,7 +862,8 @@ const matchesVersion = splitVersion ? (spell.homebrew || String(spell.source || 
 const spellClasses = Array.isArray(spell.classes) ? spell.classes : [spell.class || "both"];
 const matchesClass = currentSpellClass === "all" || spellClasses.includes("both") || spellClasses.includes(currentSpellClass);
 const matchesCap = !(level === "" && maxCastable > 0 && spell.level > maxCastable);
-return matchesSearch && matchesLevel && matchesVersion && matchesClass && matchesCap;
+const matchesAdded = !spellOnlyAdded || !!addedIds[spell.id];
+return matchesSearch && matchesLevel && matchesVersion && matchesClass && matchesCap && matchesAdded;
 });
 container.innerHTML = "";
 if (filtered.length === 0) {
@@ -854,7 +874,7 @@ return;
 var countEl = $("spell-search-count");
 if (countEl) countEl.textContent = "Найдено: " + filtered.length;
 
-if (!search.trim() && level === "" && (currentSpellVersion === "all" || currentSpellVersion === _defaultSpellVersion(char)) && currentSpellClass === "all") {
+if (!spellOnlyAdded && !search.trim() && level === "" && (currentSpellVersion === "all" || currentSpellVersion === _defaultSpellVersion(char)) && currentSpellClass === "all") {
 container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: var(--sp-5) 0;">' + dndIcoHtml("search", 20) + ' Введите название или\u00a0выберите класс/уровень</p>';
 return;
 }
@@ -881,7 +901,7 @@ var hbActions = spell.homebrew
   : "";
 var div = document.createElement("div");
 div.className = "spell-item list-row" + (isAdded ? " spell-added" : "");
-div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase().replace(/[^\w-]/g, "") + "\">" + escapeHtml(srcRaw) + "</span>" + hbBadge + " <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<div class=\"spell-item-actions\"><button class=\"" + (isAdded ? "secondary" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + idArg + ")" : "addSpell(" + idArg + ")") + "\">" + (isAdded ? "Добавлено" : "+ Добавить") + "</button>" + hbActions + "</div>";
+div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase().replace(/[^\w-]/g, "") + "\">" + escapeHtml(srcRaw) + "</span>" + hbBadge + " <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<div class=\"spell-item-actions\"><button class=\"" + (isAdded ? "secondary spell-added-btn" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + idArg + ")" : "addSpell(" + idArg + ")") + "\">" + (isAdded ? "✓ Выбрано" : "+ Добавить") + "</button>" + hbActions + "</div>";
 container.appendChild(div);
 });
 if (filtered.length > LIMIT) {

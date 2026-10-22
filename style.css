@@ -5670,6 +5670,8 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
   transition: background var(--t1) var(--ez-out);
 }
 .spell-item.spell-added::before { border-color: var(--success); background: var(--success); }
+.spell-item.spell-added h4 { color: var(--success); }
+#spell-only-added { margin-bottom: var(--sp-3); }
 .spell-item h4 { margin: 0 0 var(--sp-1); font-family: var(--font-display); font-weight: var(--fw-bold); color: var(--text); }
 .spell-item p { margin: var(--sp-2) 0; font-size: var(--fs-sm); color: var(--home-sub); line-height: 1.5; }
 .spell-item .spell-meta { display: flex; flex-wrap: wrap; gap: 0 var(--sp-2); margin-bottom: var(--sp-1); font-size: var(--fs-sm); color: var(--accent-lo); }
@@ -5979,7 +5981,7 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
   height: 8px;
   border-radius: 50%;
 }
-.class-filter-btn.cf-own::before { background: var(--success); }
+.class-filter-btn.cf-own::before { box-sizing: border-box; border: 1.5px solid var(--text); }
 .class-filter-btn.cf-foreign::before { background: var(--danger); }
 .class-filter-btn.cf-foreign img { filter: saturate(0.55); }
 .class-filter-legend {
@@ -5990,7 +5992,8 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
   color: var(--home-sub);
 }
 .cf-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: var(--sp-1); vertical-align: 1px; }
-.cf-dot-own     { background: var(--success); }
+/* Свой класс — пустым кольцом: зелёная заливка занята отметкой «Выбрано» */
+.cf-dot-own     { box-sizing: border-box; border: 1.5px solid var(--text); }
 .cf-dot-foreign { background: var(--danger); }
 .cf-legend-hint    { color: var(--home-sub); font-style: italic; }
 
@@ -6430,7 +6433,9 @@ animation: dymka-modal-in var(--t3, 420ms) var(--ez-spring, ease-out);
 .confirm-modal-box p { font-size: var(--fs-14); color: var(--text-dim); margin: 0 0 var(--sp-5); line-height: 1.5; }
 /* UNI-3: подвал — «Отмена» текстом + одна заливка. Заливка по умолчанию —
    акцент: красной «Сохранить/Добавить» больше нет, красит только --danger. */
-.confirm-modal-btns { display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2); margin-top: var(--sp-4); }
+/* flex-wrap: длинная подпись («Всё равно зафиксировать») не помещалась в 320px
+   и выталкивала «Отменить» за левый край окна. */
+.confirm-modal-btns { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--sp-2); margin-top: var(--sp-4); }
 .confirm-btn-cancel {
 flex: 0 0 auto; min-height: 44px; padding: 0 var(--sp-3);
 background: none; border: none; border-radius: 0; box-shadow: none;
@@ -13436,6 +13441,7 @@ html[data-stats-layout="2024"] .abilities-region {
   flex-direction: column;
   align-items: stretch;   /* базовое align-items:start в колонке резало строки по контенту */
   gap: 0;
+  container-type: inline-size;
 }
 html[data-stats-layout="2024"] .abil-col { display: contents; }
 
@@ -13498,7 +13504,9 @@ html[data-stats-layout="2024"] .abil-card:hover { border-bottom-color: var(--hom
 
 html[data-stats-layout="2024"] .abil-card-head {
   order: 1;
-  flex: 1 1 auto;
+  /* Базис 0: при auto длинное имя («Телосложение») не сжималось, а
+     переносило колонку спасброска на вторую строку. */
+  flex: 1 1 0;
   min-width: 0;
   align-items: center;
   justify-content: flex-start;
@@ -13632,13 +13640,18 @@ html[data-stats-layout="2024"] .abil-card-name {
   font-family: var(--font-display);
   font-size: var(--fs-18);
   font-weight: var(--fw-bold);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-bottom: 2px;
 }
 html[data-stats-layout="2024"] .abil-card-name::after {
   content: "";
   position: absolute;
   left: 0;
   right: 100%;
-  bottom: -2px;
+  bottom: 0;
   height: 1px;
   background: var(--accent);
   transition: right var(--t2) var(--ez-out);
@@ -13786,6 +13799,22 @@ html[data-stats-layout="2024"] .abil-skills-slot .skill-expertise-btn:focus-visi
    поэтому мобильное правило, показывавшее legacy-аккордеоны, больше не нужно. */
 html[data-stats-layout="2024"] .legacy-saves-card,
 html[data-stats-layout="2024"] .legacy-skills-card { display: none; }
+
+/* Узкий реестр (боковая колонка листа на широком экране, ~390 px): при 18px
+   и прежних отступах «Телосложению» не хватало места даже с многоточием.
+   Телефон не трогаем — у него свои колонки ниже. Имя перебивает типографику
+   «Имена строк» (body:not(#_):not(#_), ≥1200px), отсюда длинный селектор. */
+@media (min-width: 641px) {
+  @container (max-width: 440px) {
+    html[data-stats-layout="2024"] .abil-card,
+    html[data-stats-layout="2024"] .abil-cols { gap: 0 var(--sp-2); }
+    html[data-stats-layout="2024"] body:not(#_):not(#_) .abil-card-name { font-size: var(--fs-14); }
+    html[data-stats-layout="2024"] .abil-card-mod,
+    .abil-cols .ac-md { flex-basis: 52px; }
+    html[data-stats-layout="2024"] .abil-save-slot .save-bonus,
+    .abil-cols .ac-sv { flex-basis: 64px; }
+  }
+}
 
 /* Телефон: подписи колонок убираются (места нет — на 375px они распирали
    строку на 20px), тап-таргеты ± держат высоту 44px при ширине 32. */
@@ -15643,6 +15672,8 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
 #screen-spellsearch .spell-item-actions button:hover,
 #screen-spellsearch .spell-item-actions button:focus-visible { background: none; box-shadow: none; color: var(--accent); }
 #screen-spellsearch .spell-item-actions .btn-secondary { color: var(--home-sub); }
+#screen-spellsearch .spell-item.spell-added .spell-item-actions { opacity: 1; }
+#screen-spellsearch .spell-item-actions .spell-added-btn { color: var(--success); font-weight: var(--fw-semibold); }
 #screen-spellsearch .spell-item-actions .spell-remove-btn { color: var(--danger); }
 #screen-spellsearch .spell-item-actions .spell-remove-btn:hover { color: var(--danger); text-decoration: underline; text-underline-offset: 3px; }
 

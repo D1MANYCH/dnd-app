@@ -246,7 +246,7 @@
     h.push("<div><b>Предыстория:</b> " + esc(c.background || "—") + "</div>");
     h.push("<div><b>Мировоззрение:</b> " + esc(c.alignment || "—") + "</div>");
     h.push("</div></div>");
-    h.push("<div class='s2-lvl'><div class='s2-big'><input class='s2-num' type='number' min='1' max='20' inputmode='numeric' value='" + lvl + "' onchange=\"sheet2Set('char-level',this.value)\" aria-label='Уровень'> уровень</div>");
+    h.push("<div class='s2-lvl'><div class='s2-big'>" + lvl + " уровень</div>");
     h.push("<div class='s2-kv'>Опыт <input class='s2-num w' type='number' min='0' inputmode='numeric' value='" + (xp.have || 0) + "' onchange=\"sheet2Set('char-exp',this.value)\" aria-label='Опыт'>" + (xp.need ? " / " + xp.need : "") + "</div>");
     h.push("<div class='s2-xp'><i style='width:" + xpPct + "%'></i></div>");
     h.push("<button type='button' class='s2-btn' onclick='openLevelUpModal()'>↑ Повысить</button></div>");
