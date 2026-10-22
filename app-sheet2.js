@@ -1,14 +1,8 @@
 // РОСТ-8 (демо): лист персонажа по макету дизайнера (Figma «Заполненный лист»).
-// Включается ?sheet2=1 (запоминается), выключается ?sheet2=0. Показывается только
+// РД-2: работает только в тестовом режиме редизайна (?rd=1), стили — в redesign.css. Показывается только
 // у зафиксированного листа; старый лист остаётся в DOM и считает всё как раньше.
 (function () {
-  var KEY = "dnd_sheet2";
-  try {
-    var q = new URLSearchParams(location.search).get("sheet2");
-    if (q === "1") localStorage.setItem(KEY, "1");
-    if (q === "0") localStorage.removeItem(KEY);
-    if (localStorage.getItem(KEY) !== "1") return;
-  } catch (e) { return; }
+  if (!isRedesign()) return;
 
   var showOld = false;
   var pool = {}; // кубы, набранные нажатиями: { грани: количество }
@@ -34,156 +28,10 @@
       .filter(Boolean).join(", ");
   }
 
-  var css = [
-    // цвета — наши: действие = заливка акцентом темы, переход/справка = акцент текстом с подчёркиванием
-    "#sheet2,#s2-pop{--s2-action:var(--accent);--s2-action-hi:var(--accent-hi);--s2-action-lo:var(--accent-lo);--s2-on-action:var(--on-accent);",
-    "--s2-line:var(--border-soft)}",
-    "#sheet2{color:var(--text);font-size:var(--fs-14);line-height:1.35;margin:0 0 var(--sp-5)}",
-    "body.sheet2-on #tab-sheet>:not(#sheet2):not(#sheet2-bar){display:none!important}",
-    // на ПК #tab-sheet — flex-ряд колонок: демо занимает всю ширину, а не узкую колонку
-    "#tab-sheet>#sheet2,#tab-sheet>#sheet2-bar{flex:0 0 100%;grid-column:1/-1;width:100%;min-width:0}",
-    // хиты/КД/ячейки уже есть в демо — правая панель на вкладке листа их дублирует
-    "body.sheet2-tab .app-right-rail{display:none!important}",
-    // ПК: правая колонка — настоящая боковая панель, как .app-right-rail (закреплена, своя граница и фон)
-    "@media (min-width:1024px){body.sheet2-tab{padding-right:296px!important}",
-    // анимация появления оставляет transform у предков — fixed-панель тогда привязывается к ним, а не к окну
-    "body.sheet2-tab #tab-sheet,body.sheet2-tab #sheet2,body.sheet2-tab #screen-character:not(.screen-ghost){animation:none!important;transform:none!important}",
-    // уходящий экран (призрак перехода) летит вместе с панелью — её fixed тут не нужен
-    ".screen-ghost #sheet2 aside{display:none!important}",
-    "#sheet2 .s2-body{grid-template-columns:minmax(0,1fr)!important}",
-    "#sheet2 aside{position:fixed;top:72px;right:0;bottom:0;width:296px;box-sizing:border-box;padding:var(--sp-4) var(--sp-5) var(--sp-6)!important;overflow-y:auto;overflow-x:hidden;z-index:40;",
-    "border-left:1px solid var(--border-soft);background:var(--rail-bg);backdrop-filter:blur(var(--sticky-blur,12px));-webkit-backdrop-filter:blur(var(--sticky-blur,12px))}",
-    "#sheet2 aside h3:first-of-type{margin-top:var(--sp-4)}}",
-    "#sheet2-bar{display:flex;gap:var(--sp-3);align-items:center;font-size:var(--fs-14);color:var(--text-mute);margin:var(--sp-1) 0 var(--sp-3)}",
-    "#sheet2-bar button{background:none;border:0;color:var(--accent-ink);cursor:pointer;font:inherit;padding:var(--sp-1) 0;text-decoration:underline}",
-    "#sheet2 h2,#sheet2 h3{font-family:var(--font-display);font-weight:600;margin:0;color:var(--text)}",
-    "#sheet2 h3{font-size:var(--fs-18);margin:var(--sp-5) 0 var(--sp-2)}",
-    "#sheet2 .s2-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:var(--sp-4) var(--sp-5);align-items:start;padding-bottom:var(--sp-4);border-bottom:1px solid var(--s2-line)}",
-    "#sheet2 .s2-ava{width:60px;height:60px;border-radius:50%;background:var(--bg-3) center/cover;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:var(--fs-24);color:var(--accent-ink);overflow:hidden}",
-    "#sheet2 .s2-ava img{width:100%;height:100%;object-fit:cover}",
-    "#sheet2 .s2-name{font-size:var(--fs-24);line-height:1.15;overflow-wrap:anywhere}",
-    "#sheet2 .s2-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px var(--sp-5);margin-top:var(--sp-2);font-size:var(--fs-14)}",
-    "#sheet2 .s2-facts b{font-weight:600;color:var(--text-dim)}",
-    "#sheet2 .s2-lvl{text-align:right;min-width:170px}",
-    "#sheet2 .s2-lvl .s2-big{font-family:var(--font-display);font-size:var(--fs-18)}",
-    "#sheet2 .s2-xp{height:3px;background:var(--bg-3);margin:var(--sp-2) 0 var(--sp-3);border-radius:2px;overflow:hidden}",
-    "#sheet2 .s2-xp i{display:block;height:100%;background:var(--text-dim)}",
-    "#sheet2 .s2-num{width:3.2em;background:none;border:0;border-bottom:1px dashed var(--s2-line);color:inherit;font:inherit;text-align:right;padding:0 2px}",
-    "#sheet2 .s2-num:focus{outline:none!important;box-shadow:none!important;background:none!important;border-color:transparent transparent var(--s2-action)!important}",
-    "#sheet2 .s2-lvl .s2-big .s2-num{width:1.6em;text-align:center}",
-    "#sheet2 .s2-num.w{width:5em}",
-    "#sheet2 .s2-btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-2);min-height:36px;padding:0 var(--sp-4);border:0;border-radius:6px;",
-    "background:var(--s2-action);color:var(--s2-on-action);font:600 15px var(--font-display);cursor:pointer;transition:background .12s,transform .06s}",
-    "#sheet2 .s2-btn:hover{background:var(--s2-action-hi)}",
-    "#sheet2 .s2-btn:active{background:var(--s2-action-lo);transform:translateY(1px) scale(.97)}",
-    "#sheet2 .s2-btn:focus-visible,#sheet2 .s2-link:focus-visible,#sheet2 .s2-row:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}",
-    "#sheet2 .s2-link{background:none;border:0;padding:2px 0;color:var(--accent-ink);font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}",
-    "#sheet2 .s2-link:hover{color:var(--accent-hover)}",
-    "#sheet2 .s2-link:active{color:var(--s2-action-lo)}",
-    "#sheet2 .s2-link:disabled{color:var(--text-mute);cursor:default;text-decoration:none}",
-    "#sheet2 .s2-body{display:grid;grid-template-columns:minmax(0,1fr) 264px;gap:0 var(--sp-6)}",
-    "#sheet2 .s2-head,#sheet2 .s2-main{grid-column:1}",
-    "#sheet2 .s2-line{display:flex;flex-wrap:wrap;gap:var(--sp-1) var(--sp-4);font-size:var(--fs-14);color:var(--text-dim);margin:var(--sp-4) 0 0}",
-    "#sheet2 .s2-line b{color:var(--text);font-weight:600}",
-    "#sheet2 .s2-line .s2-link{padding:0}",
-    "#sheet2 .s2-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr) minmax(0,1.3fr);gap:0 48px}",
-    "#sheet2 table{width:100%;border-collapse:collapse;font-size:var(--fs-14)}",
-    "#sheet2 th{font-weight:400;font-size:var(--fs-12);color:var(--text-mute);text-align:left;padding:var(--sp-1) var(--sp-2);border-bottom:1px solid var(--s2-line)}",
-    "#sheet2 td{padding:var(--sp-2) var(--sp-2)}",
-    "#sheet2 td.n{text-align:right;font-variant-numeric:tabular-nums}",
-    // главное число — модификатор, значение приглушено
-    "#sheet2 td.v{color:var(--text-mute)}",
-    "#sheet2 td.m{font-weight:700;font-size:var(--fs-18)}",
-    "#sheet2 .s2-row{cursor:pointer;transition:color .12s,background .12s;border-radius:4px}",
-    "#sheet2 .s2-row:hover,#sheet2 .s2-row.s2-anchor{background:var(--accent-soft);color:var(--accent-hover)}",
-    "#sheet2 .s2-row:active{background:var(--bg-3);color:var(--s2-action)}",
-    "#sheet2 .s2-feats{display:flex;flex-wrap:wrap;gap:var(--sp-1) var(--sp-4);font-size:var(--fs-14)}",
-    "#sheet2 .s2-res{display:flex;justify-content:space-between;align-items:center;gap:var(--sp-2);padding:var(--sp-1) 0;font-size:var(--fs-14)}",
-    "#sheet2 .s2-res>span:first-child{min-width:0;overflow-wrap:anywhere}",
-    "#sheet2 .s2-pips{display:flex;flex-wrap:wrap;gap:2px;flex-shrink:0}",
-    "#sheet2 .s2-cnt{display:flex;align-items:center;gap:var(--sp-2);flex-shrink:0;font-variant-numeric:tabular-nums}",
-    "#sheet2 .s2-atk{display:flex;justify-content:space-between;align-items:center;gap:var(--sp-2);padding:2px 0;border-bottom:1px solid var(--s2-line)}",
-    "#sheet2 .s2-atk button{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:var(--sp-1) var(--sp-1);border-radius:4px}",
-    "#sheet2 .s2-atk button:hover{background:var(--accent-soft);color:var(--accent-hover)}",
-    "#sheet2 .s2-atk .s2-atk-n{text-align:left;flex:1;min-width:0}",
-    "#sheet2 .s2-atk .s2-atk-d{color:var(--text-dim);font-variant-numeric:tabular-nums}",
-    "#sheet2 .s2-rolls{margin:var(--sp-2) 0 0;font-size:var(--fs-14)}",
-    "#sheet2 .s2-roll{display:flex;justify-content:space-between;gap:var(--sp-2);padding:var(--sp-1) 0;color:var(--text-dim)}",
-    "#sheet2 .s2-roll>span{min-width:0;overflow-wrap:anywhere}",
-    "#sheet2 .s2-roll b{flex:none;font-family:var(--font-display);font-size:var(--fs-18);color:var(--text);font-variant-numeric:tabular-nums}",
-    "#sheet2 .s2-roll:first-child b{font-size:var(--fs-24)}",
-    "#sheet2 .s2-roll.crit b{color:var(--success)}",
-    "#sheet2 .s2-roll.fail b{color:var(--danger)}",
-    "#sheet2 .s2-roll small{color:var(--text-mute)}",
-    // всплывающий выбор режима броска рядом со строкой
-    "#s2-pop{position:fixed;z-index:1200;min-width:240px;max-width:400px;padding:var(--sp-3) var(--sp-4);border-radius:8px;background:var(--surface-pop);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);",
-    "border:1px solid var(--border);box-shadow:0 10px 28px rgba(0,0,0,.45);color:var(--text);font-size:var(--fs-14)}",
-    "#s2-pop .t{display:flex;justify-content:space-between;gap:var(--sp-3);font:600 16px var(--font-display)}",
-    "#s2-pop .b{color:var(--text-mute);font-size:var(--fs-14);margin:2px 0 var(--sp-3)}",
-    "#s2-pop .r{display:flex;gap:var(--sp-2);align-items:center}",
-    "#s2-pop button{white-space:nowrap;font:600 14px var(--font-display);cursor:pointer;border-radius:6px;min-height:34px;padding:0 var(--sp-3)}",
-    "#s2-pop .go{background:var(--s2-action);color:var(--s2-on-action);border:0}",
-    "#s2-pop .go:hover{background:var(--s2-action-hi)}",
-    "#s2-pop .o{background:none;border:1px solid var(--border);color:var(--text-dim)}",
-    "#s2-pop .o:hover{border-color:var(--accent);color:var(--text)}",
-    "#s2-pop .o.adv{color:var(--success)}",
-    "#s2-pop .o.dis{color:var(--danger)}",
-    "#s2-pop .o.sug{border-color:var(--danger)}",
-    "#s2-pop .n{margin-top:var(--sp-2);font-size:var(--fs-12);color:var(--danger)}",
-    "#sheet2 .s2-prof{display:inline-block;width:17px;color:var(--text);font-size:var(--fs-12)}",
-    "#sheet2 .s2-noprof{display:inline-block;width:17px}",
-    "#sheet2 .s2-skills{columns:3;column-gap:var(--sp-6)}",
-    "#sheet2 .s2-sg{break-inside:avoid;margin-bottom:var(--sp-3)}",
-    "#sheet2 .s2-sg h4{font:600 12px var(--font-display);color:var(--text-mute);margin:0 0 2px;text-transform:uppercase;letter-spacing:.04em}",
-    "#sheet2 .s2-sk{display:flex;justify-content:space-between;padding:var(--sp-1) var(--sp-2);border-bottom:1px solid var(--s2-line);font-size:var(--fs-14)}",
-    "#sheet2 .s2-sk span:last-child{font-variant-numeric:tabular-nums}",
-    "#sheet2 .s2-kv{font-size:var(--fs-14);margin:var(--sp-1) 0;color:var(--text-dim)}",
-    "#sheet2 .s2-kv b{color:var(--text);font-weight:600}",
-    "#sheet2 aside{grid-column:2;grid-row:1/span 2;border-left:1px solid var(--s2-line);padding-left:var(--sp-5)}",
-    "#sheet2 .s2-hp{display:flex;align-items:baseline;justify-content:space-between;margin-top:var(--sp-4)}",
-    "#sheet2 .s2-hp .s2-big{font-family:var(--font-display);font-size:var(--fs-32);font-variant-numeric:tabular-nums}",
-    "#sheet2 .s2-hpbar{height:4px;background:var(--bg-3);border-radius:2px;overflow:hidden;margin:var(--sp-1) 0 var(--sp-3)}",
-    "#sheet2 .s2-hpbar i{display:block;height:100%;background:var(--success)}",
-    "#sheet2 .s2-hpctl{display:flex;gap:var(--sp-2)}",
-    "#sheet2 .s2-hpctl input{flex:1;min-width:0;height:36px;background:var(--bg-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font:inherit;padding:0 var(--sp-3)}",
-    "#sheet2 .s2-hpctl .s2-btn{min-width:44px;padding:0 var(--sp-3)}",
-    "#sheet2 .s2-trio{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;margin:var(--sp-4) 0 var(--sp-1);border-top:1px solid var(--s2-line);border-bottom:1px solid var(--s2-line)}",
-    "#sheet2 .s2-trio div{padding:var(--sp-2) 0}",
-    "#sheet2 .s2-trio small{display:block;font-size:var(--fs-12);color:var(--text-mute)}",
-    "#sheet2 .s2-trio b{font-family:var(--font-display);font-size:var(--fs-18)}",
-    "#sheet2 .s2-ds{display:flex;gap:var(--sp-4);font-size:var(--fs-14);color:var(--text-dim);margin:var(--sp-2) 0}",
-    "#sheet2 .s2-pip{background:none;border:0;padding:2px;cursor:pointer;color:var(--text-mute);font-size:var(--fs-14)}",
-    "#sheet2 .s2-pip.on{color:var(--s2-action)}",
-    "#sheet2 .s2-dice{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-2);margin:var(--sp-2) 0}",
-    "#sheet2 .s2-die{min-height:36px;border:1px solid var(--s2-action);border-radius:4px;background:none;color:var(--s2-action);font:600 15px var(--font-display);cursor:pointer;transition:background .12s,color .12s}",
-    "#sheet2 .s2-die:hover{border-color:var(--s2-action-hi);color:var(--s2-action-hi)}",
-    "#sheet2 .s2-die.on{background:var(--s2-action);color:var(--s2-on-action)}",
-    "#sheet2 .s2-die:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}",
-    "#sheet2 .s2-acts{display:flex;flex-wrap:wrap;gap:var(--sp-2) var(--sp-4);align-items:center;margin:var(--sp-2) 0}",
-    "#sheet2 .s2-acts .s2-kv{margin:0}",
-    "#sheet2 .s2-pool{margin:2px 0 0;overflow-wrap:anywhere}",
-    "@media (max-width:760px){",
-    "#sheet2 .s2-head{grid-template-columns:auto minmax(0,1fr)}",
-    "#sheet2 .s2-lvl{grid-column:1/-1;text-align:left;display:grid;grid-template-columns:1fr auto;gap:var(--sp-1) var(--sp-3);align-items:center}",
-    "#sheet2 .s2-lvl .s2-xp{grid-column:1/-1;margin:0}",
-    "#sheet2 .s2-facts{grid-template-columns:1fr}",
-    "#sheet2 .s2-body{grid-template-columns:1fr}",
-    "#sheet2 .s2-head{order:-2}",
-    "#sheet2 aside{order:-1;grid-column:1;grid-row:auto;border-left:0;padding-left:0;border-bottom:1px solid var(--s2-line);padding-bottom:var(--sp-3)}",
-    "#sheet2 .s2-two{grid-template-columns:1fr}",
-    "#sheet2 .s2-skills{columns:1}",
-    "}"
-  ].join("\n");
 
   function ensureNodes() {
     var tab = document.getElementById("tab-sheet");
     if (!tab) return null;
-    if (!document.getElementById("sheet2-style")) {
-      var st = document.createElement("style");
-      st.id = "sheet2-style";
-      st.textContent = css;
-      document.head.appendChild(st);
-    }
     var bar = document.getElementById("sheet2-bar");
     if (!bar) {
       bar = document.createElement("div");

@@ -52,13 +52,15 @@ function _syncThemeButtons() {
 document.addEventListener('DOMContentLoaded', _syncThemeButtons);
 
 // UI-2: акцент (8 пресетов)
-var ACCENTS = ['gold','emerald','ruby','amethyst','sapphire','copper','silver','graphite'];
+// РД-2: ember (#f38536) — только в режиме редизайна и там по умолчанию
+function _rdOn() { return typeof isRedesign === 'function' && isRedesign(); }
+var ACCENTS = ['gold','emerald','ruby','amethyst','sapphire','copper','silver','graphite','ember'];
 function _getAccent() {
   try {
     var a = localStorage.getItem('dnd_accent');
-    if (ACCENTS.indexOf(a) !== -1) return a;
+    if (ACCENTS.indexOf(a) !== -1 && (a !== 'ember' || _rdOn())) return a;
   } catch (e) {}
-  return 'gold';
+  return _rdOn() ? 'ember' : 'gold';
 }
 function _applyAccent(name) {
   if (name === 'gold') document.documentElement.removeAttribute('data-accent');
@@ -116,6 +118,8 @@ function _getAutoAccent() {
     var v = localStorage.getItem('dnd_auto_accent');
     if (v === '1') return true;
     if (v === '0') return false;
+    // РД-2 (П-2): в режиме редизайна без явного выбора авто-акцент выключен
+    if (_rdOn()) return false;
     return localStorage.getItem('dnd_accent') === null;
   } catch (e) { return false; }
 }
@@ -257,9 +261,10 @@ document.addEventListener('DOMContentLoaded', function() {
   _syncSheet2DemoButtons();
 });
 
-// РОСТ-8: демо нового листа (ключ dnd_sheet2 читает app-sheet2.js при загрузке — поэтому перезагрузка)
+// РОСТ-8: демо нового листа. РД-2: демо живёт в режиме редизайна — переключатель
+// включает сам режим (dnd_rd читает скрипт в <head> при загрузке — поэтому перезагрузка)
 function _getSheet2Demo() {
-  try { return localStorage.getItem('dnd_sheet2') === '1'; } catch (e) { return false; }
+  try { return localStorage.getItem('dnd_rd') === '1'; } catch (e) { return false; }
 }
 function _syncSheet2DemoButtons() {
   var on = _getSheet2Demo() ? '1' : '0';
@@ -269,10 +274,10 @@ function _syncSheet2DemoButtons() {
 }
 function setSheet2Demo(on) {
   if (on === _getSheet2Demo()) return;
-  try { if (on) localStorage.setItem('dnd_sheet2', '1'); else localStorage.removeItem('dnd_sheet2'); } catch (e) {}
+  try { localStorage.setItem('dnd_rd', on ? '1' : '0'); } catch (e) {}
   _syncSheet2DemoButtons();
   var u = new URL(location.href);
-  u.searchParams.delete('sheet2');
+  u.searchParams.delete('rd');
   location.replace(u.toString());
 }
 
