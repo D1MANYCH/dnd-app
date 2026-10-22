@@ -197,7 +197,7 @@ function closeWildShapePicker() {
 function wsSetSearch(v) { _wsQuery = String(v || "").toLowerCase().trim(); renderWildShapePicker(); }
 
 function wsPickRow(b, btns) {
-  return '<div class="ws-pick-row"><div class="ws-pick-main"><div>' + escapeHtml(b.name) + '</div>' +
+  return '<div class="ws-pick-row list-row"><div class="ws-pick-main"><div>' + escapeHtml(b.name) + '</div>' +
     '<div class="ws-pick-meta">' + wsCrText(b.cr) + ' · КД ' + b.ac + ' · хиты ' + b.hp + ' · ' + escapeHtml(wsSpeedText(b.speed)) + '</div></div>' +
     btns + '</div>';
 }

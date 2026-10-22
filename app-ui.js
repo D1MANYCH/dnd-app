@@ -366,8 +366,8 @@ function showWhatsNewModal(prevVer, newVer) {
   // а не эмодзи с хардкод-цветом — иначе на светлой теме половина не читалась.
   var typeVar = { feat:'var(--success)', fix:'var(--danger)', improve:'var(--info)', data:'var(--accent)', chore:'var(--text-mute)' };
   var changesList = latest ? latest.changes.map(function(c) {
-    return '<div class="sw-change-item"><span class="home-bullet home-bullet--sm sw-change-dia" style="--home-accent:' + (typeVar[c.type] || 'var(--text-mute)') + '" aria-hidden="true"></span><span class="sw-change-text">' + escapeHtml(clCleanText(c.text)) + '</span></div>';
-  }).join('') : '<div class="sw-change-item"><span class="sw-change-text">Улучшения и\u00a0исправления</span></div>';
+    return '<div class="sw-change-item list-row"><span class="home-bullet home-bullet--sm sw-change-dia" style="--home-accent:' + (typeVar[c.type] || 'var(--text-mute)') + '" aria-hidden="true"></span><span class="sw-change-text">' + escapeHtml(clCleanText(c.text)) + '</span></div>';
+  }).join('') : '<div class="sw-change-item list-row"><span class="sw-change-text">Улучшения и\u00a0исправления</span></div>';
   var modal = document.createElement('div');
   modal.id = 'sw-update-modal';
   modal.innerHTML =
@@ -491,7 +491,7 @@ function crRow(name, meta, body, opts) {
   opts = opts || {};
   // mute приглушает только ИМЯ: пустой ромб по легенде значит «продолжения
   // нет», а эта строка раскрывается (внутри заметки и описание ресурса).
-  return '<div class="hp-row" onclick="hpToggleRow(this)">' +
+  return '<div class="hp-row list-row" onclick="hpToggleRow(this)">' +
     '<span class="disc-diamond"></span>' +
     '<span class="hp-row-name' + (opts.mute ? " pg-name--mute" : "") + '">' + name + '</span>' +
     (meta || "") +

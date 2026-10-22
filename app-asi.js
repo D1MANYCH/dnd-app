@@ -796,11 +796,11 @@ function _agRender() {
     }
   }
 
-  html += '<div class="ag-table"><div class="ag-row ag-row--head"><span>Характеристика</span><span>Основа</span><span class="ag-bonus">Бонус</span><span class="ag-total">Итог</span></div>';
+  html += '<div class="ag-table"><div class="ag-row list-row ag-row--head"><span>Характеристика</span><span>Основа</span><span class="ag-bonus">Бонус</span><span class="ag-total">Итог</span></div>';
   AG_KEYS.forEach(function(k) {
     var base = _agBase(k), b = _agBonus(char, k);
     var total = base != null ? base + b : null;
-    html += '<div class="ag-row"><span class="ag-name">' + AG_NAMES[k] + '</span><span class="ag-ctl">' + _agCtl(k) + "</span>" +
+    html += '<div class="ag-row list-row"><span class="ag-name">' + AG_NAMES[k] + '</span><span class="ag-ctl">' + _agCtl(k) + "</span>" +
       '<span class="ag-bonus">' + (b ? (b > 0 ? "+" : "") + b : "") + "</span>" +
       '<span class="ag-total">' + (total != null ? total + " (" + formatMod(getMod(total)).replace("-", "−") + ")" : "—") + "</span></div>";
   });

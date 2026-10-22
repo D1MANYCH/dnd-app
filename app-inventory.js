@@ -207,7 +207,7 @@ var _chargesCtrlHtml = _maxCh > 0
   : '';
 var _stowed = (_isBackpackOff(char) && _locKey === "backpack");
 const div = document.createElement("div");
-div.className = "inv-item rise" + (_stowed ? " inv-item-stowed" : "");
+div.className = "inv-item list-row rise" + (_stowed ? " inv-item-stowed" : "");
 div.style.setProperty("--i", Math.min(_idx, 10)); // Дымка v5: stagger-появление
 if (_stowed) div.style.opacity = "0.45";
 div.dataset.category = data.category;
@@ -623,7 +623,7 @@ function renderMagicCatalog() {
   if (!filtered.length) { listEl.innerHTML = '<div class="magic-catalog-empty">Ничего не\u00a0найдено</div>'; return; }
   listEl.innerHTML = filtered.map(function (it) {
     var attune = it.attune ? ' · ' + dndIcoHtml("settings", 12) + ' настройка' : '';
-    return '<button type="button" class="magic-catalog-item rarity-' + it.rarity + '" onclick="fillFromMagicItem(\'' + it.id + '\')">' +
+    return '<button type="button" class="magic-catalog-item list-row rarity-' + it.rarity + '" onclick="fillFromMagicItem(\'' + it.id + '\')">' +
       '<div class="mci-top"><span class="mci-name">' + escapeHtml(it.name) + '</span>' +
       '<span class="mci-rarity">' + escapeHtml(R[it.rarity] || it.rarity) + '</span></div>' +
       '<div class="mci-meta">' + escapeHtml(T[it.type] || it.type) + attune + ' · ' + escapeHtml(it.nameEn || '') + '</div>' +
@@ -735,7 +735,7 @@ function renderGearCatalog() {
              : (GEAR_EXTRA_ICONS[it.cat] || "🎒");
     // FIN-9: вес показываем только если он есть (скакуны/транспорт — weight:0, вес/скорость в desc).
     var costLine = escapeHtml(it.cost || '') + (it.weight ? ' · ' + it.weight + ' фнт' : '');
-    return '<button type="button" class="magic-catalog-item" onclick="fillFromGearItem(\'' + it.id + '\')">' +
+    return '<button type="button" class="magic-catalog-item list-row" onclick="fillFromGearItem(\'' + it.id + '\')">' +
       '<div class="mci-top"><span class="mci-name">' + icon + ' ' + escapeHtml(it.name) + '</span>' +
       '<span class="gci-cat">' + escapeHtml(GEAR_CAT_LABELS[it.cat] || it.cat) + '</span></div>' +
       '<div class="gci-cost">' + costLine + '</div>' +
@@ -1272,7 +1272,7 @@ container.innerHTML = "";
 var invWeapons = (char.inventory && Array.isArray(char.inventory.weapon)) ? char.inventory.weapon : [];
 char.weapons.forEach(function(weapon, index) {
 const div = document.createElement("div");
-div.className = "weapon-row";
+div.className = "weapon-row list-row";
 // AUD-7 (L22): владение пересчитывается каждый раз — после новых владений (мультикласс, черта)
 weapon.proficient = checkWeaponProficiency(char, weapon.name);
 // Calculate attack bonus for display
@@ -1320,7 +1320,7 @@ container.appendChild(div);
 var ua = _unarmedStrike(char);
 var uaMods = rulesWeaponMods(char, ua, parseInt($("char-level")?.value, 10) || 1);
 var uaDiv = document.createElement("div");
-uaDiv.className = "weapon-row";
+uaDiv.className = "weapon-row list-row";
 uaDiv.innerHTML =
   '<div class="weapon-row-top">' +
     '<div class="weapon-info">' +

@@ -724,7 +724,7 @@ function renderSrdMonsterPicker() {
   });
   var mineHtml = mine.map(function(x) {
     var m = x.m;
-    return '<div class="srd-mon-row srd-mon-row-mine" onclick="addMonsterFromCatalog(' + x.ci + ', event)">' +
+    return '<div class="srd-mon-row list-row srd-mon-row-mine" onclick="addMonsterFromCatalog(' + x.ci + ', event)">' +
       '<div class="srd-mon-body">' +
         '<div class="srd-mon-name">' + escapeHtml(m.name) + ' <span class="srd-mon-en">моё</span></div>' +
         '<div class="srd-mon-meta">' +
@@ -766,7 +766,7 @@ function renderSrdMonsterPicker() {
     return;
   }
   box.innerHTML = mineHtml + list.map(function(m) {
-    return '<div class="srd-mon-row" onclick="addMonsterFromSRD(\'' + m.slug + '\', event)">' +
+    return '<div class="srd-mon-row list-row" onclick="addMonsterFromSRD(\'' + m.slug + '\', event)">' +
       '<div class="srd-mon-body">' +
         '<div class="srd-mon-name">' + escapeHtml(m.name) + ' <span class="srd-mon-en">' + escapeHtml(m.nameEn || "") + '</span></div>' +
         '<div class="srd-mon-meta">' +
@@ -876,7 +876,7 @@ function renderSrdNpcPicker() {
   if (list.length === 0) { box.innerHTML = '<div class="party-empty">Нет архетипов под\u00a0фильтр</div>'; return; }
   box.innerHTML = list.map(function(a) {
     var attC = _npcAttColor(a.attitude || "");
-    return '<div class="srd-mon-row" onclick="addNpcFromSRD(\'' + a.slug + '\', event)">' +
+    return '<div class="srd-mon-row list-row" onclick="addNpcFromSRD(\'' + a.slug + '\', event)">' +
       '<div class="srd-mon-body">' +
         '<div class="srd-mon-name">' + escapeHtml(a.name) + '</div>' +
         '<div class="srd-mon-meta">' +
@@ -985,7 +985,7 @@ function renderBattleSetup() {
     var checkedCount = items.filter(function(p) { return p.checked; }).length;
     var rows = open ? items.map(function(p) {
       var gi = battleSetupList.indexOf(p);
-      return '<div class="battle-setup-row' + (p.checked ? " battle-row-checked" : "") + '" id="brow_' + gi + '">' +
+      return '<div class="battle-setup-row list-row' + (p.checked ? " battle-row-checked" : "") + '" id="brow_' + gi + '">' +
         '<label class="battle-check-wrap" onclick="event.stopPropagation()">' +
           '<input type="checkbox" class="battle-checkbox"' + (p.checked ? " checked" : "") + ' onchange="toggleBattleCheck(' + gi + ',this.checked)">' +
         "</label>" +
@@ -1374,7 +1374,7 @@ function renderBattleTracker() {
     var removeSlot = isSelf
       ? '<span class="tracker-slot"></span>'
       : '<button type="button" class="tracker-remove-btn" onclick="removeBattleParticipant(' + i + ')" title="Убрать из\u00a0боя" aria-label="Убрать из\u00a0боя">' + dndIcoHtml("trash", 14) + '</button>';
-    return '<div class="tracker-row' + (isCurrent ? " tracker-row-active" : "") + (isSelf ? " tracker-row-self" : "") + '">' +
+    return '<div class="tracker-row list-row' + (isCurrent ? " tracker-row-active" : "") + (isSelf ? " tracker-row-self" : "") + '">' +
       '<div class="tracker-main">' +
         '<div class="tracker-num" style="color:' + fcolor + '">' + (i + 1) + "</div>" +
         initBlock +
@@ -2328,7 +2328,7 @@ function _dmRefEsc(s) {
 function _dmRefGroup(title, rows, pairs, note) {
   var h = '<div class="item-ref-group"><div class="item-ref-group-title">' + _dmRefEsc(title) + '</div>';
   rows.forEach(function(r) {
-    h += '<div class="item-ref-row' + (pairs ? '' : ' dm-ref-row') + '"><span>' + _dmRefEsc(r[0]) +
+    h += '<div class="item-ref-row list-row' + (pairs ? '' : ' dm-ref-row') + '"><span>' + _dmRefEsc(r[0]) +
          '</span><span>' + _dmRefEsc(r[1]) + '</span></div>';
   });
   h += '</div>';

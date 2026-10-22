@@ -178,7 +178,7 @@ const legacyGrid = $("saves-grid");
 if (legacyGrid) legacyGrid.innerHTML = "";
 SAVES_DATA.forEach(function(save, index) {
 const item = document.createElement("div");
-item.className = "save-item";
+item.className = "save-item list-row";
 item.id = "save-item-" + save.key;
 item.innerHTML = `
 <span class="save-label-2024">Спасбросок</span>
@@ -635,7 +635,7 @@ function renderCoinMob() {
 function openCoinSheet() {
   openMobSheet("Кошель", COIN_ORDER.map(function(c) {
     var v = parseInt(($("coin-" + c[0]) || {}).value, 10) || 0;
-    return '<div class="mob-sheet-row mob-coin-row"><span class="inv-coin-dot" style="background:' + c[2] + '"></span>' +
+    return '<div class="mob-sheet-row list-row mob-coin-row"><span class="inv-coin-dot" style="background:' + c[2] + '"></span>' +
       '<span class="mob-coin-lbl">' + c[1] + '</span>' +
       '<button type="button" class="mob-coin-btn" onclick="adjustCoin(\'' + c[0] + '\',-1)" aria-label="Минус">−</button>' +
       '<input type="number" inputmode="numeric" min="0" id="coin-mob-' + c[0] + '" class="mob-coin-inp" value="' + v + '" oninput="setCoinFromSheet(\'' + c[0] + '\', this.value)">' +
@@ -1282,7 +1282,7 @@ function closeMobSheet() { closeModal("mob-sheet"); }
 // items: [[подпись, вызов], ...] → строки-действия, шторка закрывается до вызова.
 function mobSheetActs(items) {
   return items.map(function(it) {
-    return '<button type="button" class="mob-sheet-row" onclick="closeMobSheet();' + it[1] + '">' + escapeHtml(it[0]) + '</button>';
+    return '<button type="button" class="mob-sheet-row list-row" onclick="closeMobSheet();' + it[1] + '">' + escapeHtml(it[0]) + '</button>';
   }).join("");
 }
 function openBooksSheet() {
@@ -1291,7 +1291,7 @@ function openBooksSheet() {
   var codes = booksWithContent().filter(bookGloballyOn).filter(function(c) { return c !== "PHB" && c !== "PH24"; });
   openMobSheet("Книги персонажа", codes.map(function(code) {
     var lbl = SOURCE_LABELS[code] || { short: code, full: code };
-    return '<label class="mob-sheet-row mob-sheet-check"><input type="checkbox"' + (charHasBook(char, code) ? ' checked' : '') +
+    return '<label class="mob-sheet-row list-row mob-sheet-check"><input type="checkbox"' + (charHasBook(char, code) ? ' checked' : '') +
       ' onchange="toggleCharBook(\'' + code + '\')"><span>' + escapeHtml(lbl.full) + '</span></label>';
   }).join(""));
 }

@@ -245,7 +245,7 @@
   function rowHtml(e) {
     var cls = LEVEL_CLASS[e.level] || 'al-info';
     var dataStr = (e.data !== undefined && e.data !== null) ? jsonShort(e.data) : '';
-    return '<div class="al-row ' + cls + '">' +
+    return '<div class="al-row list-row ' + cls + '">' +
       '<span class="al-seq">#' + e.seq + '</span>' +
       '<span class="al-time">' + fmtTime(e.t) + '</span>' +
       '<span class="al-cat">' + esc(e.cat) + '</span>' +
@@ -341,7 +341,7 @@
       list.innerHTML = '<div class="al-empty">Прошлой сессии в\u00a0localStorage нет</div>';
       return;
     }
-    var hdr = '<div class="al-row al-info"><span class="al-msg">↓ Прошлая сессия (' +
+    var hdr = '<div class="al-row list-row al-info"><span class="al-msg">↓ Прошлая сессия (' +
       new Date(prev.savedAt).toLocaleString() + ', v' + (prev.version || '?') + ', ' + prev.entries.length + ' записей)</span></div>';
     list.innerHTML = hdr + prev.entries.map(rowHtml).join('');
   }

@@ -31,7 +31,7 @@
            действия в раскрытии. Классы hp-step / hp-inp / hp-act общие с листом. -->
       <div class="rr-rows rr-rows-hp">
         <div class="rr-line">
-          <button type="button" class="rr-row" id="rr-hp-toggle" data-rr-toggle="rr-panel-hp" aria-controls="rr-panel-hp" aria-expanded="false">
+          <button type="button" class="rr-row list-row" id="rr-hp-toggle" data-rr-toggle="rr-panel-hp" aria-controls="rr-panel-hp" aria-expanded="false">
             <span class="home-bullet home-bullet--sm"></span>
             <span class="rr-row-label hp-row-name--dmg" id="rr-hp-row-name">Урон</span>
           </button>
@@ -56,7 +56,7 @@
            что у сводок ниже. Теперь у неё глиф d20 вместо ромба, глагол в лейбле
            и слот результата справа — тот же .rr-row-val, что у КД и уровня. -->
       <div class="rr-line rr-line-primary">
-        <button type="button" class="rr-row rr-row-roll" id="rr-btn-d20" aria-label="Бросить d20">
+        <button type="button" class="rr-row list-row rr-row-roll" id="rr-btn-d20" aria-label="Бросить d20">
           <span class="rr-die" data-ico="d20" data-ico-size="15">🎲</span>
           <span class="rr-row-label">Бросить d20</span>
           <span class="rr-row-val rr-roll-val" id="rr-d20-val" aria-live="polite"></span>
@@ -74,7 +74,7 @@
       </div>
 
       <div class="rr-line">
-        <div class="rr-row rr-row-static">
+        <div class="rr-row list-row rr-row-static">
           <span class="home-bullet home-bullet--sm"></span>
           <span class="rr-row-label">Класс доспеха</span>
           <span class="rr-row-val" id="rr-ac">10</span>
@@ -82,7 +82,7 @@
       </div>
 
       <div class="rr-line">
-        <div class="rr-row rr-row-static">
+        <div class="rr-row list-row rr-row-static">
           <span class="home-bullet home-bullet--sm"></span>
           <span class="rr-row-label">Уровень</span>
           <span class="rr-row-val" id="rr-level">1</span>
@@ -90,7 +90,7 @@
       </div>
 
       <div class="rr-line">
-        <button type="button" class="rr-row is-empty" id="rr-insp-mini" aria-pressed="false" title="Вдохновение (клик — переключить)">
+        <button type="button" class="rr-row list-row is-empty" id="rr-insp-mini" aria-pressed="false" title="Вдохновение (клик — переключить)">
           <span class="home-bullet home-bullet--sm"></span>
           <span class="rr-row-label">Вдохновение</span>
           <span class="rr-row-val" id="rr-insp-val">нет</span>
@@ -98,7 +98,7 @@
       </div>
 
       <div class="rr-line" id="rr-conc-line" style="display:none">
-        <button type="button" class="rr-row" id="rr-conc-btn" title="Концентрация — подробности">
+        <button type="button" class="rr-row list-row" id="rr-conc-btn" title="Концентрация — подробности">
           <span class="home-bullet home-bullet--sm"></span>
           <span class="rr-row-label">Концентрация</span>
           <span class="rr-row-val" id="rr-conc-name"></span>
@@ -106,7 +106,7 @@
       </div>
 
       <div class="rr-line" id="rr-slots-line" style="display:none">
-        <button type="button" class="rr-row" id="rr-slots-toggle" data-rr-toggle="rr-panel-slots" aria-controls="rr-panel-slots" aria-expanded="false">
+        <button type="button" class="rr-row list-row" id="rr-slots-toggle" data-rr-toggle="rr-panel-slots" aria-controls="rr-panel-slots" aria-expanded="false">
           <span class="home-bullet home-bullet--sm"></span>
           <span class="rr-row-label">Ячейки</span>
           <span class="rr-row-val" id="rr-slots-sum">0/0</span>
@@ -117,7 +117,7 @@
       </div>
 
       <div class="rr-line">
-        <button type="button" class="rr-row" id="rr-cond-toggle" data-rr-toggle="rr-panel-cond" aria-controls="rr-panel-cond" aria-expanded="false">
+        <button type="button" class="rr-row list-row" id="rr-cond-toggle" data-rr-toggle="rr-panel-cond" aria-controls="rr-panel-cond" aria-expanded="false">
           <span class="home-bullet home-bullet--sm"></span>
           <span class="rr-row-label">Состояния</span>
           <span class="rr-row-val" id="rr-cond-count">0</span>

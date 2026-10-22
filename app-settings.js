@@ -422,7 +422,7 @@ function openBooksScreen() {
 function _bookRowHtml(code, label) {
   var lbl = SOURCE_LABELS[code];
   var on = bookGloballyOn(code);
-  return '<div class="theme-picker-row">' +
+  return '<div class="theme-picker-row list-row">' +
     '<span class="theme-picker-label">' + escapeHtml(label || lbl.full) + ' <span class="books-short">· ' + escapeHtml(lbl.short) + '</span></span>' +
     '<div class="theme-picker-btns seg-group" role="radiogroup" aria-label="' + escapeHtml(lbl.full) + '">' +
       '<button type="button" class="theme-picker-btn seg' + (on ? ' is-active' : '') + '" onclick="setBookOn(\'' + code + '\',true)">Вкл</button>' +
@@ -436,7 +436,7 @@ function _renderBooksScreen() {
   var _offNow = booksOff().filter(function (c) { return c !== 'HB'; });
   var _isAll = _offNow.length === 0;
   var _isPhb = BOOK_CODES.filter(function (c) { return c !== 'HB'; }).every(function (c) { return _offNow.indexOf(c) !== -1; });
-  var html = '<div class="theme-picker-row">' +
+  var html = '<div class="theme-picker-row list-row">' +
     '<span class="theme-picker-label">Быстрый выбор</span>' +
     '<div class="theme-picker-btns seg-group">' +
       '<button type="button" class="theme-picker-btn seg' + (_isPhb ? ' is-active' : '') + '" onclick="setBooksPreset(\'phb\')" title="Только Книга игрока: дополнения скрыты">Только PHB</button>' +

@@ -44,7 +44,7 @@ function _pgDisc(name, meta, body, open, opts) {
   // mute приглушает только ИМЯ строки. Знак трогать нельзя: пустой ромб по
   // легенде (Справка → «Условные знаки») значит «продолжения нет», а строка
   // здесь как раз раскрывается.
-  return '<div class="hp-row' + (open ? " is-open" : "") + '"' + (opts.attr || "") + ' onclick="hpToggleRow(this)">' +
+  return '<div class="hp-row list-row' + (open ? " is-open" : "") + '"' + (opts.attr || "") + ' onclick="hpToggleRow(this)">' +
     '<span class="disc-diamond"></span>' +
     '<span class="hp-row-name' + (opts.mute ? " pg-name--mute" : "") + '">' + name + '</span>' +
     (meta ? '<span class="hp-row-meta' + (opts.warn ? " pg-meta--warn" : "") + '">' + meta + '</span>' : "") +
@@ -52,13 +52,13 @@ function _pgDisc(name, meta, body, open, opts) {
 }
 
 function _pgStatic(name, meta) {
-  return '<div class="hp-row hp-row--static"><span class="hp-row-name">' + name + '</span>' +
+  return '<div class="hp-row list-row hp-row--static"><span class="hp-row-name">' + name + '</span>' +
     (meta ? '<span class="hp-row-meta">' + meta + '</span>' : "") + '</div>';
 }
 
 /** Строка «что осталось сделать»: текст слева, текстовое действие справа */
 function _pgAttn(text, act, onclick) {
-  return '<div class="hp-row hp-row--static"><span class="pg-attn-n">' + text + '</span>' +
+  return '<div class="hp-row list-row hp-row--static"><span class="pg-attn-n">' + text + '</span>' +
     '<button type="button" class="hp-act pg-attn-act" onclick="' + onclick + '">' + act + '</button></div>';
 }
 
@@ -796,7 +796,7 @@ function _mlRender() {
       opts += '<option value="' + c + '"' + (r.cls === c ? " selected" : "") + ">" + c + "</option>";
     });
     var canUp = r.level < 20 && (!r.cls || total < 20);
-    html += '<div class="ml-row">' +
+    html += '<div class="ml-row list-row">' +
       '<select class="field ml-cls" onchange="mlSetClass(' + i + ',this.value)">' + opts + "</select>" +
       '<span class="ag-ctl">' +
         '<button type="button" class="stat-btn-sm" onclick="mlLevel(' + i + ',-1)"' + (r.level <= 1 ? " disabled" : "") + ' aria-label="Уменьшить уровень">−</button>' +

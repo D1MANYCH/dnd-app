@@ -1339,7 +1339,7 @@ if (!container) return;
 container.innerHTML = "";
 diceHistory.forEach(function(record) {
 const div = document.createElement("div");
-div.className = "dice-history-item";
+div.className = "dice-history-item list-row";
 if (record.sides === 20) {
 if (record.result === 20) div.classList.add("crit-success");
 else if (record.result === 1) div.classList.add("crit-fail");
@@ -1542,11 +1542,11 @@ function renderSavedRolls() {
   var char = currentId ? getCurrentChar() : null;
   var list = char && Array.isArray(char.savedRolls) ? char.savedRolls : [];
   if (!list.length) {
-    box.innerHTML = '<div class="hp-row hp-row--static saved-roll-empty">Сохраните формулу, которую бросаете часто, — например, «Скрытая атака · 3к6».</div>';
+    box.innerHTML = '<div class="hp-row list-row hp-row--static saved-roll-empty">Сохраните формулу, которую бросаете часто, — например, «Скрытая атака · 3к6».</div>';
     return;
   }
   box.innerHTML = list.map(function(r, i) {
-    return '<div class="hp-row saved-roll-row" onclick="savedRollTap(event,' + i + ')">' +
+    return '<div class="hp-row list-row saved-roll-row" onclick="savedRollTap(event,' + i + ')">' +
       '<span class="disc-diamond"></span>' +
       '<span class="hp-row-name">' + escapeHtml(r.name) + '</span>' +
       '<span class="hp-row-meta">' + escapeHtml(_savedRollLabel(r.formula)) + '</span>' +

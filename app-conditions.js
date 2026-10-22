@@ -26,7 +26,7 @@ function renderResistances() {
   // Три категории — бейджи + кнопки добавления для каждой
   categories.forEach(function(cat) {
     var items = char[cat.key] || [];
-    html += '<div class="res-row res-row-' + cat.cssClass + '">' +
+    html += '<div class="res-row list-row res-row-' + cat.cssClass + '">' +
       '<div class="res-row-label">' + cat.icon + ' ' + cat.title + ' <span class="res-row-mult">' + cat.sub + '</span></div>' +
       '<div class="res-row-content">';
     items.forEach(function(dtype, i) {
@@ -141,7 +141,7 @@ function renderConditionsGrid() {
     if (!_condMatches(condition, _condFilter.q)) return;
     any = true;
     const item = document.createElement("div");
-    item.className = "condition-item" + (condition.type ? " " + condition.type : "") + (isActive ? " active" : "");
+    item.className = "condition-item list-row" + (condition.type ? " " + condition.type : "") + (isActive ? " active" : "");
     item.id = "condition-" + condition.id;
     // DISC-6: раскрывает ВСЯ строка (в ромб на телефоне не попасть), а наложение
     // переехало на отдельное действие справа — два разных исхода не должны
@@ -392,7 +392,7 @@ function renderEffectsGrid() {
     list.forEach(function(effect) {
       var isActive = activeSet.indexOf(effect.id) !== -1;
       var item = document.createElement("div");
-      item.className = "effect-item" + (effect.type ? " " + effect.type : "") + (isActive ? " active" : "");
+      item.className = "effect-item list-row" + (effect.type ? " " + effect.type : "") + (isActive ? " active" : "");
       item.id = "effect-" + effect.id;
       // DISC-6: эффекты собраны так же, как состояния — строка раскрывает
       // описание, включение живёт отдельным действием справа.

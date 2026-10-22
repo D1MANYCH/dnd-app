@@ -414,7 +414,7 @@ function _renderFeatPickList(fp, search, level, container) {
       : '<button class="btn btn-sm btn-text" onclick="addFeatSpell(' + idArg + ')">+ Выбрать</button>';
     var srcRaw = String(spell.source || "PH14");
     var div = document.createElement("div");
-    div.className = "spell-item" + (isFeat ? " spell-added" : "");
+    div.className = "spell-item list-row" + (isFeat ? " spell-added" : "");
     div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase().replace(/[^\w-]/g, "") + "\">" + escapeHtml(srcRaw) + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p><div class=\"spell-item-actions\">" + btn + "</div>";
     container.appendChild(div);
   });
@@ -880,7 +880,7 @@ var hbActions = spell.homebrew
     "<button class=\"btn btn-danger btn-sm spell-remove-btn\" title=\"Удалить своё заклинание — исчезнет у\u00a0всех персонажей\" onclick=\"deleteCustomSpell(" + idArg + ")\">" + dndIcoHtml("trash", 13) + " Удалить</button>"
   : "";
 var div = document.createElement("div");
-div.className = "spell-item" + (isAdded ? " spell-added" : "");
+div.className = "spell-item list-row" + (isAdded ? " spell-added" : "");
 div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase().replace(/[^\w-]/g, "") + "\">" + escapeHtml(srcRaw) + "</span>" + hbBadge + " <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<div class=\"spell-item-actions\"><button class=\"" + (isAdded ? "secondary" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + idArg + ")" : "addSpell(" + idArg + ")") + "\">" + (isAdded ? "Добавлено" : "+ Добавить") + "</button>" + hbActions + "</div>";
 container.appendChild(div);
 });
@@ -1248,7 +1248,7 @@ function openSpellCardsMenu(fromHome) {
   openMobSheet("Карточки заклинаний · " + (char.name || "персонаж"), mobSheetActs([
     ["Подготовленные и заговоры", "exportSpellCardsPDF('prepared'," + id + ")"],
     ["Все известные", "exportSpellCardsPDF('all'," + id + ")"]
-  ]) + '<label class="mob-sheet-row mob-sheet-check"><input type="checkbox"' + (ink ? " checked" : "") +
+  ]) + '<label class="mob-sheet-row list-row mob-sheet-check"><input type="checkbox"' + (ink ? " checked" : "") +
     ' onchange="try{localStorage.setItem(\'dnd_cards_ink\',this.checked?\'1\':\'0\')}catch(e){}"><span>Экономить чернила (без\u00a0цветных шапок)</span></label>');
 }
 

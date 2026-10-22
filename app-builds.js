@@ -1638,7 +1638,7 @@ function openBuildPlan(buildId) {
   for (var lv = 1; lv <= 20; lv++) {
     var s = b.levelUp[lv];
     if (!s || !s.headline) continue;
-    var cls = "bp-plan-row", tag = "";
+    var cls = "bp-plan-row list-row", tag = "";
     if (curLevel) {
       if (lv === curLevel) { cls += " current"; tag = '<span class="bp-plan-tag">ты здесь</span>'; }
       else if (lv === curLevel + 1) { cls += " next"; tag = '<span class="bp-plan-tag next">дальше</span>'; }
@@ -1723,7 +1723,7 @@ function openClassPlan(className) {
     if (Array.isArray(cls[lv])) feats = feats.concat(cls[lv]);
     if (sub && Array.isArray(sub[lv])) feats = feats.concat(sub[lv]);
     if (!feats.length) continue;
-    var rowCls = "bp-plan-row", tag = "";
+    var rowCls = "bp-plan-row list-row", tag = "";
     if (lv === curLevel) { rowCls += " current"; tag = '<span class="bp-plan-tag">ты здесь</span>'; }
     else if (lv === curLevel + 1) { rowCls += " next"; tag = '<span class="bp-plan-tag next">дальше</span>'; }
     else if (lv < curLevel) { rowCls += " past"; }

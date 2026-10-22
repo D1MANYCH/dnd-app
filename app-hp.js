@@ -533,7 +533,7 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
   if (edData(char).CLASS_FEATURES[className] && edData(char).CLASS_FEATURES[className][classLevel]) {
     edData(char).CLASS_FEATURES[className][classLevel].forEach(function(f) {
       var div = document.createElement("div");
-      div.className = "lu-feature-item";
+      div.className = "lu-feature-item list-row";
       if (buildRec && buildRec.headline && buildRec.headline.toLowerCase().indexOf(f.name.toLowerCase()) !== -1) {
         div.className += " recommended";
       }
@@ -546,7 +546,7 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
   if (subName && edData(char).SUBCLASS_FEATURES[subName] && edData(char).SUBCLASS_FEATURES[subName][classLevel]) {
     edData(char).SUBCLASS_FEATURES[subName][classLevel].forEach(function(f) {
       var div = document.createElement("div");
-      div.className = "lu-feature-item lu-feature-subclass";
+      div.className = "lu-feature-item list-row lu-feature-subclass";
       div.innerHTML = "<span class='subclass-badge'>" + escapeHtml(subName) + "</span><div class=\"lu-feature-name\">" + escapeHtml(f.name) + "</div><div class=\"lu-feature-desc\">" + escapeHtml(f.desc) + "</div>";
       featuresContainer.appendChild(div);
     });
@@ -565,7 +565,7 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
     if (profs.skills) profParts.push("Навыки: " + profs.skills + " на\u00a0выбор");
     if (profParts.length > 0) {
       var profDiv = document.createElement("div");
-      profDiv.className = "lu-feature-item lu-feature-profs";
+      profDiv.className = "lu-feature-item list-row lu-feature-profs";
       profDiv.innerHTML = "<div class=\"lu-feature-name\">" + dndIcoHtml("shield", 14) + " Новые владения (мультикласс)</div><div class=\"lu-feature-desc\">" + escapeHtml(profParts.join(" · ")) + "</div>";
       featuresContainer.appendChild(profDiv);
     }

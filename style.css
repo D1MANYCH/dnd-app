@@ -616,18 +616,17 @@ html.glass-adjusting *::after {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--sp-2) var(--sp-4);
+  column-gap: var(--sp-4);
   /* Жёлоб под ромб считается от его размера: на узком экране шкала отступов
      сжимается и подпись прилипала бы к ромбу (гоча 8f). */
-  padding: var(--sp-3) var(--sp-4) var(--sp-3) calc(var(--sp-4) + var(--home-bullet) + var(--sp-3));
-  border-top: 1px solid var(--home-rule);
+  padding-right: var(--sp-4);
+  padding-left: calc(var(--sp-4) + var(--home-bullet) + var(--sp-3));
 }
 .theme-picker-label {
   position: relative;
   flex: 1 1 10ch; /* PT-022/030: подпись сжимается и переносится, а не выталкивает выбор на вторую строку */
   min-width: 10ch;
   font-family: var(--font-display);
-  font-size: var(--fs-md);
   font-weight: var(--fw-medium);
   color: var(--text);
 }
@@ -829,7 +828,6 @@ html.glass-adjusting *::after {
   padding-bottom: var(--sp-3);
 }
 /* У первой строки страницы верхняя граница лишняя — её роль играет .page-head */
-.settings-modal-body .theme-picker-row:first-child { border-top: none; }
 /* DOP-3: экран «Книги и дополнения» — заголовки групп и короткий код книги */
 .books-group-title {
   margin: var(--sp-4) 0 var(--sp-1);
@@ -840,7 +838,6 @@ html.glass-adjusting *::after {
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-.books-group-title + .theme-picker-row { border-top: none; }
 .books-short { color: var(--home-sub); font-size: var(--fs-sm); }
 .theme-picker-row--link { cursor: pointer; }
 /* PT-029: Вкл/Выкл не уходят на вторую строку, подпись сжимается; экран книг — одна колонка */
@@ -1588,6 +1585,17 @@ select.field { padding-right: var(--sp-5); }
 .field:focus { outline: none; border-bottom-color: var(--accent); }
 .field:disabled { opacity: var(--dis-op); cursor: not-allowed; }
 
+/* DS-6г2: строка списка — текст 18, высота от 56, шаг 8, без разделителей. */
+.list-row {
+  gap: var(--sp-2);
+  min-height: 56px;
+  padding-top: var(--sp-2);
+  padding-bottom: var(--sp-2);
+  border-top: 0;
+  border-bottom: 0;
+  font-size: var(--fs-18);
+}
+
 /* ========== /R2 ========== */
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -2215,15 +2223,13 @@ gap: 0;
 .effect-item {
 background: none;
 border: 0;
-border-top: 1px solid var(--home-rule);
 border-radius: 0;
-padding: 2px;
-min-height: 44px;
+padding-left: 2px;
+padding-right: 2px;
 cursor: pointer;
 display: flex;
 flex-wrap: wrap;
 align-items: center;
-gap: var(--sp-3);
 text-align: left;
 }
 .effect-item:hover { box-shadow: none; }
@@ -2231,7 +2237,6 @@ text-align: left;
 .effect-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .effect-name {
 font-family: var(--font-display);
-font-size: var(--fs-md);
 font-weight: var(--fw-medium);
 color: var(--text);
 }
@@ -2281,23 +2286,19 @@ gap: 0;
 .condition-item {
 background: none;
 border: 0;
-border-top: 1px solid var(--home-rule);
 border-radius: 0;
-padding: 2px;
-/* DISC-6: 44px — минимальная тач-цель; строка целиком раскрывает описание */
-min-height: 44px;
+padding-left: 2px;
+padding-right: 2px;
 cursor: pointer;
 display: flex;
 flex-wrap: wrap;
 align-items: center;
-gap: var(--sp-3);
 text-align: left;
 }
 .condition-item:hover { box-shadow: none; }
 .condition-item:hover .condition-name { color: var(--accent-lo); }
 .condition-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .condition-name {
-font-size: var(--fs-14);
 font-weight: var(--fw-semibold);
 color: var(--text);
 }
@@ -2450,11 +2451,8 @@ grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 gap: var(--sp-2);
 }
 .save-item {
-padding: var(--sp-2) 0;
-border-bottom: 1px solid var(--home-rule);
 display: flex;
 flex-direction: column;
-gap: var(--sp-1);
 }
 .save-header {
 display: flex;
@@ -2486,7 +2484,6 @@ gap: var(--sp-2);
 .condition-item > .condition-icon-svg { display: none; }
 .condition-item .condition-name {
   font-family: var(--font-display);
-  font-size: var(--fs-md);
   font-weight: var(--fw-medium);
 }
 /* DISC-6: наложение — отдельное действие с полноценной тач-целью (44px),
@@ -2530,7 +2527,6 @@ gap: var(--sp-2);
 .save-name {
 font-weight: var(--fw-semibold);
 color: var(--text);
-font-size: var(--fs-14);
 }
 .save-item.proficient .save-name { color: var(--accent-lo); } /* STYLE-8a3: акцент на --bg-0 в светлой давал 4.43 */
 .save-value {
@@ -2733,7 +2729,7 @@ font-size: var(--fs-14);
    разбираются вместе с классами в DS-6б/в */
 .accent-chip, .fs-scale-reset, .filter-chip, .mon-sb-add,
 .dice-popover-done, .dice-popover-clear, .aef-fab, .basic-locked-more, .mob-row { margin-bottom: var(--sp-3); }
-.basic-locked-more, .name-roll-btn, .mob-row { padding: var(--sp-3) var(--sp-5); }
+.basic-locked-more, .name-roll-btn { padding: var(--sp-3) var(--sp-5); }
 :where(button, select):disabled { opacity: var(--dis-op); filter: saturate(0.4); cursor: not-allowed; box-shadow: none; }
 /* DS-5а: отклик асимметричный — подсветка при наведении, фокусе и нажатии включается сразу,
    гаснет за время перехода самого элемента. Строки с onclick не входят: подложки окон тоже с onclick. */
@@ -3245,23 +3241,28 @@ font-size: var(--fs-14);
 .drawer-settings-btn {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
   width: 100%;
   margin: 0;
-  padding: var(--sp-3) var(--sp-4);
-  min-height: var(--control-h, 44px);   /* палец: строка 40px в mobile-drawer мала */
+  padding-left: var(--sp-4);
+  padding-right: var(--sp-4);
   background: transparent;
   border: 0;
   border-left: var(--home-rail-w) solid transparent;
   border-radius: 0;
   color: var(--text-dim);
   font-family: var(--font-display);
-  font-size: var(--fs-md);
   font-weight: var(--fw-medium);
   text-align: left;
   cursor: pointer;
   box-shadow: none;
   transition: transform var(--t2) var(--ez-out), color var(--t1) var(--ez-out), background var(--t1) var(--ez-out);
+}
+.drawer-settings-btn {
+  gap: var(--sp-3);
+  padding-top: var(--sp-3);
+  padding-bottom: var(--sp-3);
+  min-height: var(--control-h, 44px);
+  font-size: var(--fs-md);
 }
 /* Иконка в ровной колонке. Селектор по [data-ico], а НЕ по span: первым
    потомком теперь идёт ромб, а класс .dico вешает _applyDymkaIcons уже после
@@ -3540,10 +3541,9 @@ input::placeholder, textarea::placeholder { color: var(--text-mute); opacity: 1;
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
-  padding: var(--sp-3) 2px var(--sp-3) calc(var(--home-bullet) + var(--sp-3));
+  padding-right: 2px;
+  padding-left: calc(var(--home-bullet) + var(--sp-3));
 }
-.backup-item + .backup-item { border-top: 1px solid var(--home-rule); }
 .backup-item::before {
   content: "";
   position: absolute;
@@ -3555,7 +3555,7 @@ input::placeholder, textarea::placeholder { color: var(--text-mute); opacity: 1;
   border: 1.5px solid var(--home-accent);
 }
 .backup-info { flex: 1; min-width: 0; }
-.backup-when { font-family: var(--font-display); font-size: var(--fs-sm); color: var(--text); }
+.backup-when { font-family: var(--font-display); color: var(--text); }
 .backup-meta { font-size: var(--fs-sm); color: var(--home-sub); }
 /* PLAY2-9 (PT-194): действие видно всегда — на тачскрине наведения нет. */
 .backup-restore-btn { flex: 0 0 auto; margin: 0; }
@@ -3759,22 +3759,24 @@ margin-top: var(--sp-1);
 .home-menu-subitem {
 display: flex;
 align-items: center;
-gap: var(--sp-3);
 width: 100%;
 margin: 0;
-padding: var(--sp-3) var(--sp-3);
-min-height: var(--control-h, 44px);
+padding-left: var(--sp-3);
+padding-right: var(--sp-3);
 background: transparent;
 color: var(--text);
 border: 0;
 border-left: var(--home-rail-w) solid transparent;
 border-radius: 0;
 text-align: left;
-font-size: var(--fs-lg);
 font-weight: var(--fw-medium);
 cursor: pointer;
 box-shadow: none;
 transition: transform var(--t2) var(--ez-out), background var(--t1) var(--ez-out), color var(--t1) var(--ez-out);
+}
+.home-menu-subitem {
+gap: var(--sp-3);
+min-height: var(--control-h, 44px);
 }
 .home-menu-item:hover,
 .home-menu-subitem:hover { filter: none; box-shadow: none; }
@@ -3905,7 +3907,6 @@ animation: rise var(--t3) var(--ez-out) both;
 }
 @media (max-width: 640px) {
   #screen-home { --home-hero-size: 64px; }
-  .home-menu-item { padding: var(--sp-3) var(--sp-3); font-size: var(--fs-md); }
   .home-menu-subitem { padding: var(--sp-2) var(--sp-3); }
   .home-hero .home-hero-name { font-size: var(--fs-xl); }
   /* Подстрочник справа на узком экране сжимал бы название пункта до
@@ -3925,7 +3926,7 @@ animation: rise var(--t3) var(--ez-out) both;
    экран заставки, а не список ссылок. */
 @media (min-width: 900px) {
   #screen-home { --home-hero-size: 128px; --home-bullet: 11px; }
-  .home-menu-item { padding: var(--sp-4) var(--sp-4); font-size: var(--fs-18); }
+  .home-menu-item { padding-left: var(--sp-4); padding-right: var(--sp-4); }
   .home-hero .home-hero-name { font-size: var(--fs-24); white-space: normal; }
   .home-hero { padding-left: var(--sp-5); border-left: 1px solid var(--home-rule); }
 }
@@ -4069,7 +4070,6 @@ animation: rise var(--t3) var(--ez-out) both;
   position: relative;
   padding-left: calc(var(--home-bullet) + var(--sp-4));
 }
-.inv-item + .inv-item { border-top: 1px solid var(--home-rule); }
 /* DISC-4: ведущий ромб строки был маркером категории (цвет = категория), и
    рядом висел второй знак раскрытия справа — два ромба в одной строке с разным
    смыслом. Теперь знак один: тот же ромб, но полузакрашенный в цвет категории,
@@ -4078,7 +4078,7 @@ animation: rise var(--t3) var(--ez-out) both;
   content: "";
   position: absolute;
   left: var(--sp-2);
-  top: 21px;
+  top: 17px;
   width: var(--home-bullet);
   height: var(--home-bullet);
   box-sizing: border-box;
@@ -4311,9 +4311,9 @@ animation: rise var(--t3) var(--ez-out) both;
   position: relative;
   width: 100%;
   margin: 0;
-  padding: var(--sp-3) 0 var(--sp-3) calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
+  padding-right: 0;
+  padding-left: calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
   border: 0;
-  border-top: 1px solid var(--home-rule);
   border-radius: 0;
   background: none;
   box-shadow: none;
@@ -4322,12 +4322,11 @@ animation: rise var(--t3) var(--ez-out) both;
   cursor: pointer;
   transition: padding-left var(--t2) var(--ez-out);
 }
-.magic-catalog-list > .magic-catalog-item:first-child { border-top: 0; }
 .magic-catalog-item::before {
   content: "";
   position: absolute;
   left: var(--sp-2);
-  top: calc(var(--sp-3) + 0.4em);
+  top: calc(var(--sp-2) + 0.4em);
   width: var(--home-bullet);
   height: var(--home-bullet);
   transform: rotate(45deg);
@@ -4833,8 +4832,7 @@ transform: none;
 .dice-custom-row { display: grid; grid-template-columns: 1fr auto; gap: var(--sp-2); margin-bottom: var(--sp-4); }
 .dice-custom-inp { width: 100%; color: var(--text); font-size: var(--fs-14); box-sizing: border-box; }
 .dice-history { max-height: 120px; overflow-y: auto; border-top: 1px solid var(--border); padding-top: var(--sp-3); }
-.dice-history-item { display: flex; justify-content: space-between; padding: var(--sp-2) 0; font-size: var(--fs-14); color: var(--text-dim); border-bottom: 1px solid var(--border); }
-.dice-history-item:last-child { border-bottom: none; }
+.dice-history-item { display: flex; justify-content: space-between; color: var(--text-dim); }
 .dice-history-item span:last-child { color: var(--text); font-weight: var(--fw-bold); font-size: var(--fs-18); }
 
 /* =============================================
@@ -5216,8 +5214,8 @@ transform: none;
   padding-top: 0;
 }
 .dice-popover-body .dice-history-item {
-  padding: var(--sp-2) var(--sp-1);
-  font-size: var(--fs-14);
+  padding-left: var(--sp-1);
+  padding-right: var(--sp-1);
 }
 .dice-popover-body .dice-history:empty::after {
   content: 'Ещё нет бросков';
@@ -5657,15 +5655,14 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
 .spell-search-results { display: flex; flex-direction: column; }
 .spell-item {
   position: relative;
-  padding: var(--sp-3) 0 var(--sp-3) calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
-  border-top: 1px solid var(--home-rule);
+  padding-right: 0;
+  padding-left: calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
 }
-.spell-search-results > .spell-item:first-child { border-top: 0; }
 .spell-item::before {
   content: "";
   position: absolute;
   left: var(--sp-2);
-  top: calc(var(--sp-3) + 0.4em);
+  top: calc(var(--sp-2) + 0.4em);
   width: var(--home-bullet);
   height: var(--home-bullet);
   transform: rotate(45deg);
@@ -5673,7 +5670,7 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
   transition: background var(--t1) var(--ez-out);
 }
 .spell-item.spell-added::before { border-color: var(--success); background: var(--success); }
-.spell-item h4 { margin: 0 0 var(--sp-1); font-family: var(--font-display); font-size: var(--fs-md); font-weight: var(--fw-bold); color: var(--text); }
+.spell-item h4 { margin: 0 0 var(--sp-1); font-family: var(--font-display); font-weight: var(--fw-bold); color: var(--text); }
 .spell-item p { margin: var(--sp-2) 0; font-size: var(--fs-sm); color: var(--home-sub); line-height: 1.5; }
 .spell-item .spell-meta { display: flex; flex-wrap: wrap; gap: 0 var(--sp-2); margin-bottom: var(--sp-1); font-size: var(--fs-sm); color: var(--accent-lo); }
 .spell-item .spell-meta span + span::before { content: "·"; margin-right: var(--sp-2); color: var(--home-sub); }
@@ -6182,7 +6179,6 @@ transition: width var(--t3, 420ms) var(--ez-spring, ease), background var(--t3);
 .stat-compact-label { font-size: var(--fs-12) !important; letter-spacing: 0.5px !important; }
 /* Saves 2 col */
 .saves-grid { grid-template-columns: repeat(2, 1fr) !important; }
-.save-name { font-size: var(--fs-14) !important; }
 .save-icon { font-size: 1em !important; }
 /* Skills 1 col on very small */
 }
@@ -6262,14 +6258,14 @@ transition: width var(--t3, 420ms) var(--ez-spring, ease), background var(--t3);
 .lu-build-hint-why { font-size: var(--fs-sm); color: var(--home-sub); }
 .lu-feature-item {
   position: relative;
-  padding: var(--sp-3) 0 var(--sp-3) calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
-  border-top: 1px solid var(--home-rule);
+  padding-right: 0;
+  padding-left: calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
 }
 .lu-feature-item::before {
   content: "";
   position: absolute;
   left: var(--sp-2);
-  top: calc(var(--sp-3) + 0.4em);
+  top: calc(var(--sp-2) + 0.4em);
   width: var(--home-bullet);
   height: var(--home-bullet);
   transform: rotate(45deg);
@@ -6279,7 +6275,7 @@ transition: width var(--t3, 420ms) var(--ez-spring, ease), background var(--t3);
 .lu-feature-item.recommended::before { background: var(--accent-lo); }
 .lu-feature-subclass::before { border-color: var(--accent); }
 .lu-feature-profs::before { border-color: var(--success); }
-.lu-feature-name { font-family: var(--font-display); font-size: var(--fs-md); font-weight: var(--fw-bold); margin-bottom: 2px; }
+.lu-feature-name { font-family: var(--font-display); font-weight: var(--fw-bold); margin-bottom: 2px; }
 .lu-feature-desc { font-size: var(--fs-sm); color: var(--home-sub); line-height: 1.5; }
 
 .lu-footer {
@@ -6373,12 +6369,9 @@ transition: width var(--t3, 420ms) var(--ez-spring, ease), background var(--t3);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: baseline;
-  gap: var(--sp-3);
-  padding: var(--sp-2) 0 var(--sp-2) calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
-  border-top: 1px solid var(--home-rule);
-  font-size: var(--fs-sm);
+  padding-right: 0;
+  padding-left: calc(var(--sp-2) + var(--home-bullet) + var(--sp-3));
 }
-.hph-list > .hph-row:first-child { border-top: 0; }
 .hph-row::before {
   content: "";
   position: absolute;
@@ -6670,12 +6663,12 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 /* STYLE-8d: правило было объявлено дважды (второе — ниже, в блоке секций) и
    тихо перебивало это: снимало рамку, меняло радиус и отступ. Сведено сюда,
    фон/рамка/радиус — из группы вложенных подложек в конце файла. */
-.battle-setup-row { display: flex; align-items: center; gap: var(--sp-3); min-height: 44px; padding: var(--sp-1) 0; margin-bottom: 0; cursor: grab; transition: background var(--t1) var(--ez-out); user-select: none; }
+.battle-setup-row { display: flex; align-items: center; margin-bottom: 0; cursor: grab; transition: background var(--t1) var(--ez-out); user-select: none; }
 .battle-check-wrap { display: flex; align-items: center; flex-shrink: 0; cursor: pointer; }
 .battle-checkbox { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
 .battle-setup-icon { width: 22px; display: flex; align-items: center; justify-content: center; font-size: 1em; flex-shrink: 0; }
 .battle-setup-mark { width: 7px; height: 7px; transform: rotate(45deg); background: currentColor; }
-.battle-setup-name { flex: 1; font-size: var(--fs-14); color: var(--text); display: flex; flex-direction: column; }
+.battle-setup-name { flex: 1; color: var(--text); display: flex; flex-direction: column; }
 
 /* Battle tracker */
 /* CAST-9b: шапка переносится — чип концентрации рядом с «Раунд N» иначе
@@ -6694,7 +6687,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 .battle-add-mon-btn { min-height: 44px; }
 .battle-end-btn { min-height: 44px; }
 /* UX-6: строка трекера — две линии (main: инициатива/имя/действия, sub: ХП/статус) */
-.tracker-row { display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-2); padding: var(--sp-3) 0; margin-bottom: 0; transition: background var(--t1) var(--ez-out); }
+.tracker-row { display: flex; flex-direction: column; align-items: stretch; margin-bottom: 0; transition: background var(--t1) var(--ez-out); }
 .tracker-main { display: flex; align-items: center; gap: var(--sp-2); }
 /* sub-строка: HP-колонка фикс. ширины + статус — выровнено по всем строкам */
 .tracker-sub { display: flex; align-items: center; gap: var(--sp-3); padding-left: var(--sp-6); }
@@ -7413,8 +7406,6 @@ html[data-stats-layout="2024"] .abil-save-slot .save-item {
   background: transparent;
   border: none;
   border-radius: 0;
-  padding: 0;
-  gap: var(--sp-2);
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -8189,9 +8180,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  padding: 2px 0 2px calc(var(--sp-2) + var(--sp-3));
-  font-size: var(--fs-sm);
+  padding-right: 0;
+  padding-left: calc(var(--sp-2) + var(--sp-3));
   color: var(--home-sub);
   background: none;
   border: 0;
@@ -8547,13 +8537,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .sw-change-item {
   display: flex;
   align-items: flex-start;
-  gap: var(--sp-3);
-  padding: var(--sp-2, var(--sp-2)) 0;
-  font-size: var(--fs-sm);
   color: var(--text);
   line-height: 1.45;
 }
-.sw-change-item + .sw-change-item { border-top: 1px solid var(--home-rule); }
 /* Ромб типа записи — залитый, цвет приходит инлайном в --home-accent */
 .sw-change-dia {
   margin-top: var(--sp-2);
@@ -8855,12 +8841,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: var(--sp-3);
-  padding: var(--sp-2) 0;
-  border-top: 1px solid var(--home-rule);
-  font-size: var(--fs-sm);
 }
-.item-ref-group-title + .item-ref-row { border-top: 0; }
 .item-ref-row span:first-child { color: var(--text); }
 .item-ref-row span:last-child { color: var(--accent-lo); font-family: var(--font-display); font-weight: var(--fw-semibold); white-space: nowrap; }
 .item-ref-note {
@@ -9560,7 +9541,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   font-family: var(--font-mono); line-height: 1.45;
 }
 .al-row {
-  padding: 2px var(--sp-3); border-bottom: 1px solid var(--border-soft);
+  padding-left: var(--sp-3); padding-right: var(--sp-3);
   white-space: pre-wrap; word-break: break-word;
 }
 .al-seq { color: var(--text-dim); margin-right: var(--sp-2); }
@@ -10016,8 +9997,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 ============================================= */
 /* STYLE-8a2: строка атаки — плоская, с волосяным разделителем вместо коробки */
 .weapon-row {
-  border-bottom: 1px solid var(--home-rule);
-  padding: var(--sp-3) 0;
   margin-bottom: 0;
 }
 .weapon-row-top {
@@ -10027,7 +10006,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   margin-bottom: var(--sp-2);
 }
 .weapon-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-.weapon-name { font-weight: var(--fw-bold); font-size: var(--fs-14); color: var(--text); }
+.weapon-name { font-weight: var(--fw-bold); color: var(--text); }
 .weapon-no-prof { font-size: var(--fs-12); font-weight: var(--fw-regular); color: var(--danger); opacity: 0.8; margin-left: var(--sp-1); }
 .weapon-meta { font-size: var(--fs-12); color: var(--text-dim); }
 /* E24-6: приём мастерства оружия (2024) — выбранное оружие подсвечено акцентом,
@@ -10351,8 +10330,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .conc-detail-row {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
-  padding: var(--sp-2) var(--sp-3);
+  padding-left: var(--sp-3);
+  padding-right: var(--sp-3);
   background: var(--bg-2);
   border-radius: var(--r-8);
 }
@@ -10658,11 +10637,10 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
 }
 /* Категория — строка */
 .res-row {
-  padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-soft);
+  padding-left: var(--sp-3); padding-right: var(--sp-3);
 }
-.res-row:last-of-type { border-bottom: none; }
 .res-row-label {
-  font-size: var(--fs-14); font-weight: var(--fw-semibold); color: var(--text-dim);
+  font-weight: var(--fw-semibold); color: var(--text-dim);
   margin-bottom: var(--sp-1);
 }
 .res-row-mult {
@@ -11458,14 +11436,12 @@ body {
   border-radius: 0;
   color: var(--text);
   display: flex;
-  font-size: var(--fs-14);
-  gap: var(--sp-2);
   line-height: 1.2;
   /* глобальное правило button даёт margin-bottom: var(--sp-3) — оно и рвало список */
   margin: 0;
-  min-height: 40px;
   text-align: left;
-  padding: var(--sp-2) var(--sp-4);
+  padding-left: var(--sp-4);
+  padding-right: var(--sp-4);
   cursor: pointer;
   white-space: nowrap;
   width: 100%;
@@ -11794,18 +11770,16 @@ select.bp-select { padding-right: var(--sp-4); }
 .bp-plan-body { display: flex; flex-direction: column; }
 .bp-plan-meta { font-size: var(--fs-sm); color: var(--home-sub); margin-bottom: var(--sp-3); }
 .bp-plan-row {
-  display: flex; gap: var(--sp-3); align-items: baseline;
-  padding: var(--sp-3) 0 var(--sp-3) var(--sp-3);
-  border-top: 1px solid var(--home-rule);
+  display: flex; align-items: baseline;
+  padding-left: var(--sp-3);
   border-left: var(--home-rail-w) solid transparent;
 }
-.bp-plan-body > .bp-plan-row:first-of-type { border-top: 0; }
 .bp-plan-lv {
   flex: 0 0 auto; min-width: 26px; text-align: right;
   font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-sm);
   color: var(--home-sub);
 }
-.bp-plan-head { font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-sm); line-height: 1.35; color: var(--text); }
+.bp-plan-head { font-family: var(--font-display); font-weight: var(--fw-bold); line-height: 1.35; color: var(--text); }
 .bp-plan-why { color: var(--home-sub); font-size: var(--fs-sm); margin-top: 2px; line-height: 1.4; }
 .bp-plan-row.past { opacity: 0.5; }
 .bp-plan-row.current { border-left-color: var(--accent); }
@@ -12061,14 +12035,12 @@ mark.search-hl {
 .srd-mon-row {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
-  padding: var(--sp-3) var(--sp-2);
+  padding-left: var(--sp-2);
+  padding-right: var(--sp-2);
   background: none;
-  border-top: 1px solid var(--home-rule);
   cursor: pointer;
   transition: background var(--t1);
 }
-.srd-mon-row:first-child { border-top: 0; }
 .srd-mon-row::before {
   content: "";
   flex-shrink: 0;
@@ -12088,7 +12060,6 @@ mark.search-hl {
 }
 .srd-mon-name {
   font-weight: var(--fw-semibold);
-  font-size: var(--fs-14);
   color: var(--text);
   margin-bottom: var(--sp-1);
 }
@@ -12134,7 +12105,6 @@ mark.search-hl {
 @media (max-width: 540px) {
   .srd-monster-filters { flex-direction: column; gap: var(--sp-2); }
   .srd-monster-filters select { flex: 1 1 auto; }
-  .srd-mon-row { gap: var(--sp-2); }
 }
 
 /* FEAT-4 расширение: новые элементы форм/карточек */
@@ -12235,7 +12205,7 @@ mark.search-hl {
 /* РОСТ-6: Дикий облик — плашка облика и строки экрана выбора */
 .ws-banner { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--sp-2); margin: var(--sp-2) 0; font-size: var(--fs-14); color: var(--text); }
 .ws-banner .hp-act { margin-left: auto; }
-.ws-pick-row { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) 0; border-bottom: 1px solid var(--border-soft); }
+.ws-pick-row { display: flex; align-items: center; }
 .ws-pick-main { flex: 1; min-width: 0; }
 .ws-pick-meta { font-size: var(--fs-12); color: var(--text-dim); }
 .mon-sbv:empty { display: none; }
@@ -12504,7 +12474,6 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
 .tracker-row {
   background: none;
   border: 0;
-  border-top: 1px solid var(--home-rule);
   border-radius: 0;
   box-shadow: none;
 }
@@ -12817,20 +12786,18 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
 .rr-row {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
   flex: 1 1 auto;
   min-width: 0;
   width: auto;
   margin: 0;
-  padding: var(--sp-3) var(--sp-1);
-  min-height: var(--control-h, 44px);
+  padding-left: var(--sp-1);
+  padding-right: var(--sp-1);
   background: transparent;
   border: 0;
   border-left: var(--home-rail-w) solid transparent;
   border-radius: 0;
   color: var(--text-dim);
   font-family: var(--font-display);
-  font-size: var(--fs-md);
   font-weight: var(--fw-medium);
   text-align: left;
   cursor: pointer;
@@ -13610,9 +13577,6 @@ html[data-stats-layout="2024"] .abil-card.is-open .abil-about-slot {
 .marks-item {
   display: flex;
   align-items: flex-start;
-  gap: var(--sp-4);
-  padding: var(--sp-3) 0;
-  border-top: 1px solid var(--home-rule);
 }
 .marks-mark { flex: 0 0 22px; display: flex; justify-content: center; padding-top: var(--sp-1); }
 .marks-txt { line-height: 1.55; color: var(--home-sub); }
@@ -13921,19 +13885,18 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .mob-row, .basic-locked-more, .prof-card-sum { display: none; }
 .mob-sheet-list { display: flex; flex-direction: column; }
 .mob-sheet-row {
-  display: flex; align-items: center; gap: var(--sp-3);
-  width: 100%; min-height: 44px; margin: 0; padding: var(--sp-3) 0;
-  background: none; border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0; box-shadow: none;
-  color: var(--accent-lo); font-family: var(--font-display); font-size: var(--fs-14); text-align: left; cursor: pointer;
+  display: flex; align-items: center;
+  width: 100%; margin: 0; padding-left: 0; padding-right: 0;
+  background: none; border: 0; border-radius: 0; box-shadow: none;
+  color: var(--accent-lo); font-family: var(--font-display); text-align: left; cursor: pointer;
 }
-.mob-sheet-row:last-child { border-bottom: 0; }
 .mob-sheet-check { color: var(--text); font-family: inherit; }
 .mob-sheet-check input { width: 20px; height: 20px; margin: 0; flex-shrink: 0; accent-color: var(--accent); }
 @media (max-width: 1023px) {
   .mob-row {
-    display: flex; align-items: center; width: 100%; min-height: 44px; margin: 0; padding: var(--sp-2) 0;
+    display: flex; align-items: center; width: 100%; margin: 0; padding-left: 0; padding-right: 0;
     background: none; border: 0; border-radius: 0; box-shadow: none;
-    color: var(--accent-lo); font-family: var(--font-display); font-size: var(--fs-sm); text-align: left; cursor: pointer;
+    color: var(--accent-lo); font-family: var(--font-display); text-align: left; cursor: pointer;
   }
   .mob-row:disabled { color: var(--home-sub); cursor: default; opacity: 1; }
   /* О1: чипы книг → строка «Книги · PHB + N →» */
@@ -14192,8 +14155,6 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
     gap: 0 var(--sp-5);
     align-items: start;
   }
-  #tab-inventory .inv-item + .inv-item { border-top: 0; }
-  #tab-inventory .inv-item { padding-top: var(--sp-2); padding-bottom: var(--sp-2); }
 }
 
 
@@ -14258,14 +14219,11 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .hp-row {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  min-height: 44px;
-  border-top: 1px solid var(--home-rule);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 .hp-row--static { cursor: default; }
-.hp-row-name { font-family: var(--font-display); font-size: var(--fs-md); }
+.hp-row-name { font-family: var(--font-display); }
 .hp-row-name--dmg { color: var(--danger); }
 .hp-row-name--heal { color: var(--success); }
 .hp-row-meta {
@@ -14430,7 +14388,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 /* Мета здесь длиннее, чем в хитах («Монастырская традиция, Отражение снарядов»):
    строке разрешён перенос, мете — сжатие и выравнивание по правому краю, иначе
    на узком экране или крупном масштабе шрифта её нечем ужать. */
-.pg-body .hp-row { flex-wrap: wrap; padding: var(--sp-1) 0; }
+.pg-body .hp-row { flex-wrap: wrap; }
 .pg-body .hp-row-meta {
   flex: 1 1 auto;
   min-width: 0;
@@ -14583,10 +14541,8 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   display: grid;
   grid-column: 1 / -1;
   grid-template-columns: subgrid;
+  column-gap: var(--sp-3);
   align-items: center;
-  gap: var(--sp-3);
-  min-height: 44px;
-  border-bottom: 1px solid var(--home-rule);
 }
 .ag-row--head { min-height: 0; padding-bottom: var(--sp-1); font-size: var(--fs-sm); color: var(--home-sub); }
 .ag-name { font-family: var(--font-display); overflow: hidden; text-overflow: ellipsis; }
@@ -14608,10 +14564,8 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
 .ml-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
+  column-gap: var(--sp-3);
   align-items: center;
-  gap: var(--sp-2) var(--sp-3);
-  padding: var(--sp-2) 0;
-  border-bottom: 1px solid var(--home-rule);
 }
 .ml-cls { min-width: 0; }
 .ml-sub { grid-column: 1 / -1; margin: 0; }
@@ -15189,7 +15143,6 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
 }
 /* Первая строка списка без верхней линии: её роль играет линия шапки. */
 #tab-battle .battle-section:first-child .battle-section-title,
-#tab-battle #battle-tracker-list .tracker-row:first-child { border-top: 0; }
 #tab-battle .party-empty { text-align: left; padding: var(--sp-4) 0; }
 
 /* ══ STYLE-8DICE: модалка броска — строки вместо коробок ══════════════════
@@ -15747,7 +15700,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
 }
 .conc-details-icon { display: none; }
 .conc-details-label { color: var(--home-sub); }
-.conc-detail-row { background: none; border-radius: 0; padding: var(--sp-2) 0; border-bottom: 1px solid var(--home-rule); }
+.conc-detail-row { background: none; border-radius: 0; }
 
 /* Крестики: одна геометрия. .modal-close — в своём правиле (MODALS), тут
    остальные пять; в потоке строки поля тач-зоны уходят в отрицательный отступ,
@@ -15936,7 +15889,7 @@ button.modal-close-bottom:hover,
   /* Чипы и подписи — 13 */
   body:not(#_):not(#_) :is(.prof-chip, .ssl-total, .cw-step-hint, #char-build-badge, .char-build-unlink, .rec-text, .subclass-rec-ok, #basic-locked-text, .prep-label, .prep-sep, .prep-max, .party-empty) { font-size: var(--fs-14); }
   /* Основной текст — 14 */
-  body:not(#_):not(#_) :is(.race-extras-title, .race-extras-warn, .battle-setup-name, .prep-count, .weapon-name, #drawer-char-name, .fs-scale-reset, .inv-slots-sep, .help-block p, .help-block li, .cl-item, .app-info-item) { font-size: var(--fs-14); }
+  body:not(#_):not(#_) :is(.race-extras-title, .race-extras-warn, .prep-count, #drawer-char-name, .fs-scale-reset, .inv-slots-sep, .help-block p, .help-block li, .cl-item) { font-size: var(--fs-14); }
   /* Имена строк — 16 */
   body:not(#_):not(#_) :is(.abil-card-name, .party-section-label, .ssl-free, .stat-compact-val,
     .sc-stat-value, .spell-card-name, .ssl-lvl, .inv-item-name, .pcard-name) { font-size: var(--fs-18); }
@@ -16157,7 +16110,7 @@ button.modal-close-bottom:hover,
   #tab-inventory .inv-coins-row + .inv-coins-row .inv-coin-card:first-child { border-top: 0; }
   #tab-inventory .inv-coin-big-inp { width: 100%; flex: 0 0 auto; text-align: left; padding: 2px 0; }
 
-  #weapons-list .weapon-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-4); }
+  #weapons-list .weapon-row { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--sp-4); }
   #weapons-list .weapon-row-top { display: contents; }
   #weapons-list .weapon-info { order: 0; min-width: 0; }
   #weapons-list .weapon-roll-row { order: 1; }

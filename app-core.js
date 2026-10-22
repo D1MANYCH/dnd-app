@@ -1277,7 +1277,7 @@ li.addEventListener("drop", function(e) { onDrop(e, char.id); });
 li.style.setProperty("--home-accent", getClassColor(char.class));
 var btn = document.createElement("button");
 btn.type = "button";
-btn.className = "home-menu-item";
+btn.className = "home-menu-item list-row";
 btn.setAttribute("data-char-id", char.id);
 btn.onclick = function() { loadCharacter(char.id); };
 // Плашка следует за курсором и фокусом — на клавиатуре список читается так же.
@@ -1721,7 +1721,7 @@ list.innerHTML = "<div class=\"hph-empty\">История пуста</div>";
 list.innerHTML = rows.map(function(e) {
 const cls = e.delta > 0 ? "hph-heal" : "hph-dmg";
 const sign = e.delta > 0 ? "+" : "";
-return "<div class=\"hph-row " + (e.delta > 0 ? "hph-row--heal" : "hph-row--dmg") + "\">" +
+return "<div class=\"hph-row list-row " + (e.delta > 0 ? "hph-row--heal" : "hph-row--dmg") + "\">" +
 "<span class=\"hph-time\">" + escapeHtml(e.time) + "</span>" +
 "<span class=\"hph-source\">" + escapeHtml(e.source) + "</span>" +
 "<span class=\"hph-nums\">" + escapeHtml(e.from) + " → " + escapeHtml(e.to) + "</span>" +

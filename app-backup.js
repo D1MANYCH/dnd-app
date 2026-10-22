@@ -188,7 +188,7 @@ function renderBackupList() {
     }
     rows.forEach(function(row) {
       var item = document.createElement("div");
-      item.className = "backup-item";
+      item.className = "backup-item list-row";
       var info = document.createElement("div");
       info.className = "backup-info";
       var line1 = document.createElement("div");
