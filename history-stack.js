@@ -241,6 +241,19 @@
     ].forEach(function(p){
       if (wrapPair(p[0], p[1], p[2], p[3])) applied.push(p[1]);
     });
+    // РД-1: формы-экраны редизайна открываются мимо openModal — без слоя
+    // браузерный «Назад» уводил бы с полноэкранной формы прямо из приложения.
+    if (typeof isRedesign === "function" && isRedesign()) [
+      ["add-spell",  "openAddSpellForm",      "closeAddSpellForm",      "add-spell-modal"],
+      ["item",       "openItemModal",         "closeItemModal",         "item-modal"],
+      ["weapon",     "openWeaponModal",       "closeWeaponModal",       "weapon-modal"],
+      ["companion",  "openAddCompanionModal", "closeAddCompanionModal", "add-companion-modal"],
+      ["cc",         "openClassChoiceModal",  "closeClassChoiceModal",  "class-choice-modal"],
+      ["notes-entry","notesOpenEntryModal",   "notesCloseEntryModal",   "notes-entry-modal"],
+      ["asi",        "openASIModal",          "closeASIModal",          "asi-modal"]
+    ].forEach(function(p){
+      if (wrapPair(p[0], p[1], p[2], p[3])) applied.push(p[1]);
+    });
     window._historyStackApplied = applied;
   }
 

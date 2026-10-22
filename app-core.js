@@ -513,6 +513,50 @@ document.addEventListener("keydown", function (e) {
   if (_pb) _pb.click(); else screenBack();
 });
 
+// РД-1: в тестовом режиме редизайна десять форм открываются экраном-страницей.
+// Механика окна (классы, история, фокус, свайп) не меняется: в коробку
+// добавляется шапка .page-head, заголовок окна переезжает в неё, «← Назад»
+// жмёт крестик окна — тот уже зовёт нужную close-функцию.
+var RD_SCREEN_MODALS = ["add-spell-modal", "item-modal", "weapon-modal", "add-npc-modal",
+                        "add-ally-modal", "add-companion-modal", "srd-npc-modal",
+                        "class-choice-modal", "notes-entry-modal", "asi-modal"];
+function _rdScreenOpen(m) {
+  return m.classList.contains("active") || m.classList.contains("open");
+}
+function initRdScreens() {
+  if (typeof isRedesign !== "function" || !isRedesign()) return;
+  RD_SCREEN_MODALS.forEach(function (id) {
+    var m = $(id);
+    var box = m && m.firstElementChild;
+    if (!box || box.querySelector(".page-head")) return;
+    var close = box.querySelector(".modal-close, .notes-modal-close");
+    var title = box.querySelector("h3, h4");
+    var head = document.createElement("div");
+    head.className = "page-head";
+    if (title) { title.classList.add("page-title"); head.appendChild(title); }
+    var back = document.createElement("button");
+    back.type = "button";
+    back.className = "page-back";
+    back.textContent = "← Назад";
+    back.onclick = function () { if (close) close.click(); };
+    head.appendChild(back);
+    box.insertBefore(head, box.firstChild);
+    m.classList.add("rd-screen");
+  });
+}
+// Разметка форм стоит ниже скриптов (notes-entry-modal) — ждём весь DOM.
+document.addEventListener("DOMContentLoaded", initRdScreens);
+// Escape на экране-форме ≡ «← Назад»; окно подтверждения поверх закрывается первым.
+document.addEventListener("keydown", function (e) {
+  if (e.key !== "Escape" || e.defaultPrevented || !isRedesign()) return;
+  var over = document.querySelectorAll('.modal.active:not(.rd-screen), .confirm-modal-overlay.active:not(.rd-screen)');
+  for (var i = 0; i < over.length; i++) if (_modalVisible(over[i])) return;
+  var top = null;
+  RD_SCREEN_MODALS.forEach(function (id) { var m = $(id); if (m && _rdScreenOpen(m)) top = m; });
+  var back = top && top.querySelector(".page-back");
+  if (back) { e.preventDefault(); back.click(); }
+});
+
 // ── MOTION: переход между экранами ──────────────────────────────
 // Уходящий экран улетает в сторону, входящий приезжает навстречу: вперёд
 // (меню → лист) — влево/справа, назад — зеркально.

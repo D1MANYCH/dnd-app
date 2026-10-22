@@ -80,3 +80,39 @@ html.rd .confirm-modal-btns { margin-top: var(--sp-4); }
    ромб цвета типа, число крупно, подпись приглушённо. */
 html.rd .app-toast-num { font-size: var(--fs-18); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
 html.rd .app-toast-sub { color: var(--home-sub); font-weight: var(--fw-regular); }
+
+/* ══ РД-1: десять форм — экраном-страницей ════════════════════════════════
+   Оверлей .rd-screen (initRdScreens, app-core.js) становится страницей на
+   весь экран, коробка — колонкой как .page-stage, прокрутка внутри коробки
+   (свайп вниз срабатывает только от её начала). Шапка — .page-head
+   с «← Назад», крестик и ручка шторки скрыты. */
+html.rd .rd-screen {
+  padding: 0;
+  background: var(--bg-0);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  overflow: hidden;
+  cursor: auto;
+}
+html.rd :is(.confirm-modal-overlay.active, .notes-modal-overlay).rd-screen { align-items: stretch; justify-content: center; }
+html.rd .rd-screen > :is(.modal-content, .confirm-modal-box, .notes-modal) {
+  width: 100% !important;
+  max-width: 680px !important;
+  height: 100%;
+  max-height: none;
+  margin: 0 auto;
+  padding: clamp(var(--sp-5), 4vw, 56px) clamp(var(--sp-5), 4vw, 56px) calc(clamp(var(--sp-5), 4vw, 56px) + env(safe-area-inset-bottom, 0px)) !important;
+  overflow-y: auto;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  cursor: auto;
+  animation: none;
+}
+html.rd .rd-screen > :is(.modal-content, .confirm-modal-box, .notes-modal)::before { content: none; }
+html.rd .rd-screen :is(.modal-close, .notes-modal-close) { display: none; }
+html.rd .rd-screen .notes-modal-header { display: none; }
+html.rd .rd-screen .page-head > .page-title { margin: 0; text-align: left; }
