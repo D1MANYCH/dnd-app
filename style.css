@@ -3434,20 +3434,6 @@ input::placeholder, textarea::placeholder { color: var(--text-mute); opacity: 1;
 .char-search-inp::placeholder { color: var(--text-mute); }
 .char-sort-row { display: flex; align-items: center; gap: 0 var(--sp-4); flex-wrap: wrap; }
 .char-sort-label { font-size: var(--fs-12); color: var(--char-sort-label); font-weight: var(--char-sort-label-fw); flex-shrink: 0; }
-/* UI6-3: переключатель редакции на главной (по образцу .char-sort-row/.sort-btn).
-   Префикс home-edition-, чтобы не коллидить с .edition-btn фильтра заклинаний. */
-.home-edition-row {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  flex-wrap: wrap;
-  margin-top: var(--sp-2);
-  margin-bottom: var(--sp-4); /* Дымка v5: воздух между переключателем редакции и списком */
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-4);
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
-}
 .home-edition-label { font-size: var(--fs-12); color: var(--text-mute); flex-shrink: 0; }
 
 /* STYLE-8M-2: сетка .home-actions-primary удалена — на экране выбора
@@ -5196,7 +5182,7 @@ transform: none;
 .dice-popover-done:active { transform: scale(0.98); }
 
 /* Внутри поповера: компактный layout */
-.dice-popover-body .dice-theme-row { margin: 0 0 var(--sp-3); padding: 0; background: transparent; border: none; }
+.dice-popover-body .dice-theme-row { margin: 0 0 var(--sp-3); }
 .dice-popover-body .dice-theme-label { font-size: var(--fs-14); color: var(--text-dim); margin-bottom: var(--sp-2); }
 .dice-popover-body .dice-theme-options {
   display: grid;
@@ -5502,19 +5488,11 @@ font-size: var(--fs-14);
 }
 
 /* ── Spell Slot Row ── */
-/* Дымка v5: строка ячеек — стеклянная плашка с бликом */
 .spell-slot-row {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-4);
-  box-shadow: inset 0 1px 0 var(--glass-hi);
-  padding: var(--sp-2) var(--sp-3);
-  transition: border-color var(--t1, 140ms) var(--ez-out, ease), background var(--t1, 140ms) var(--ez-out, ease);
 }
-.spell-slot-row:hover { border-color: color-mix(in srgb, var(--accent) 32%, var(--border-soft)); background: var(--bg-3); }
 .spell-slot-empty {
   opacity: 0.45;
 }
@@ -5735,13 +5713,6 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
 }
 
 /* ── Spell Card (my spells) ── */
-.my-spell-item {
-  margin-bottom: var(--sp-2);
-  overflow: hidden;
-  transition: border-color var(--t2);
-}
-.my-spell-item:hover { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
-.my-spell-item.expanded { border-color: var(--accent); }
 
 .spell-card-header {
   display: flex;
@@ -9593,13 +9564,6 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   perspective-origin: 50% 40%;
 }
 /* Выбор темы кубиков */
-.dice-theme-row {
-  padding: var(--sp-3) var(--sp-3);
-  margin: var(--sp-3) 0;
-  background: var(--bg-2);
-  border: 1px solid var(--border, var(--bg-3));
-  border-radius: var(--r-4);
-}
 .dice-theme-label { font-size: var(--fs-14); color: var(--text); margin-bottom: var(--sp-2); }
 .dice-theme-options { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
 
@@ -11290,23 +11254,9 @@ body {
   align-items: flex-start;
   gap: var(--sp-2);
   text-align: left;
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
-  color: var(--text);
-  padding: var(--sp-2) var(--sp-2);
-  border-radius: var(--r-4);
   font-size: var(--fs-14);
   line-height: 1.35;
   cursor: pointer;
-  transition: background var(--t1), border-color var(--t1);
-}
-.notes-variant-item:hover {
-  background: var(--bg-2);
-  border-color: var(--accent);
-}
-.notes-variant-item.current {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 .notes-variant-num {
   flex: 0 0 auto;
