@@ -232,7 +232,6 @@
 --avatar-disc-bg: rgba(255,255,255,0.05); --avatar-disc-edge: 2px solid var(--accent); --avatar-img-filter: none;
 --avatar-icon-filter: brightness(1.7) saturate(1.3) contrast(1.15);
 --books-title-fw: var(--fw-semibold);
---field-text-bg: var(--bg-2); --field-focus-bg: var(--bg-3); --field-focus-ring: var(--accent-glow-token);
  --avatar-url-ph: var(--text-dim); --notes-search-ph: var(--text-dim);
 --rail-bg: var(--surface-sticky, rgba(20, 22, 30, 0.55));
 --edit-btn-fg: var(--accent-hi); --pin-label-fg: var(--accent); 
@@ -404,7 +403,6 @@ html.glass-adjusting *::after {
   --avatar-img-filter: drop-shadow(0 1px 1px rgba(20,40,30,0.30));
   --avatar-icon-filter: drop-shadow(0 1px 1px rgba(20,40,30,0.30));
   --books-title-fw: var(--fw-bold);
-  --field-text-bg: var(--bg-1); --field-focus-bg: var(--bg-1); --field-focus-ring: var(--accent-soft);
    --avatar-url-ph: var(--text-mute); --notes-search-ph: var(--text-mute);
   --rail-bg: var(--bg-1);
   /* --accent-hi на светлом ниже 4.5:1 — кнопки правки и метка берут --accent-lo */
@@ -563,16 +561,6 @@ html.glass-adjusting *::after {
 /* UI4-glass LT-2: .card убран из этого override — базовый .card (градиент
    --card-bg→--bg-3) теперь работает и в светлой как в тёмной. */
 
-/* ----- Notes / textarea — захардкожен rgba(0,0,0,0.25) ----- */
-/* STYLE-8f: .notes-section-input и .notes-search исключены — на «Записях» это
-   плоские поля (рамка --home-rule, без заливки), а блок ниже обрамлял бы их
-   коробкой через !important. Приём тот же, что у .inv-coin-big-inp (8c):
-   исключение в самом блоке дешевле перебивки. */
-/* STYLE-8a2: .flat-field — поля «Листа», ставшие плоскими строками (нижняя
-   линия вместо рамки). Исключение в самом блоке, а не перебивка: иначе на
-   каждое поле пришлось бы по !important и ратчет светлой темы вырос бы. */
-/* UNI-3: поля коротких форм — плоские в обеих темах (блок UNI-3 в конце
-   файла), исключены тем же приёмом: :not(окно формы *). */
 /* STYLE-8a2: баннер создания перешёл на плоский рецепт (без заливок, подписи на
    --accent-lo). Светлые перебивки коробочного вида сняты — они красили белым текст,
    под которым заливки уже нет, и он ложился прямо на --bg-0 #eceff5:
@@ -1587,15 +1575,17 @@ button.chip:disabled { cursor: default; }
 .field {
   width: 100%;
   min-height: var(--control-h);
-  padding: var(--sp-3) var(--sp-3);
-  background: var(--field-text-bg);
+  padding: var(--sp-2) 2px;
+  background: none;
   color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--r-4);
-  font: var(--fs-md)/1.3 var(--font);
-  transition: border-color var(--t1), box-shadow var(--t1), background var(--t1);
+  border: 0;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
+  font: var(--fs-18)/1.3 var(--font);
+  transition: border-color var(--t1) var(--ez-out);
 }
-.field:focus { outline: none; border-color: var(--accent); box-shadow: var(--sh-glow); background: var(--bg-3); }
+select.field { padding-right: var(--sp-5); }
+.field:focus { outline: none; border-bottom-color: var(--accent); }
 .field:disabled { opacity: var(--dis-op); cursor: not-allowed; }
 
 /* ========== /R2 ========== */
@@ -2030,39 +2020,24 @@ box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
 border-color: color-mix(in srgb, var(--accent) 32%, var(--border-soft));
 }
 label { display: block; margin-bottom: var(--sp-2); font-size: var(--fs-14); color: var(--text-dim); font-weight: var(--fw-medium); }
+/* DS-6г1: поле — плоская строка с нижней линией, без заливки и радиуса. */
 input, select, textarea {
 width: 100%;
-padding: var(--sp-3);
-background-color: var(--bg-2);
-border: 1px solid var(--border);
+padding: var(--sp-2) 2px;
+background: none;
+border: 0;
+border-bottom: 1px solid var(--home-rule);
 color: var(--text);
-border-radius: var(--r-4); /* Дымка v5: поля 14px */
+border-radius: 0;
 box-sizing: border-box;
-font-size: var(--fs-14);
-transition: all var(--t2);
+font-size: var(--fs-18);
+transition: border-color var(--t1) var(--ez-out);
 }
+input:where([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]) { border-bottom: 0; }
+select { padding-right: var(--sp-5); }
 input:focus, select:focus, textarea:focus {
 outline: none;
-border-color: var(--accent);
-box-shadow: 0 0 0 3px var(--accent-glow-token);
-background-color: var(--bg-3);
-}
-/* DS-3б: текстовые поля (кроме плоских .flat-field и полей форм-окон) —
-   фон и фокус на парных токенах. :where держит специфичность на уровне
-   базового input, поэтому классовые правила компонентов по-прежнему сильнее. */
-textarea:where(:not(.notes-section-input):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)),
-input:where([type="text"]:not(.bp-search):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)),
-input:where([type="number"]:not(.inv-coin-big-inp):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)),
-input:where([type="search"]:not(.notes-search):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)),
-input:where([type="url"], [type="email"]),
-select:where(:not(.bp-select):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)) {
-background-color: var(--field-text-bg);
-}
-textarea:where(:not(.notes-section-input):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)):focus,
-input:where(:not(.inv-coin-big-inp):not(.notes-search):not(.bp-search):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)):focus,
-select:where(:not(.bp-select):not(.flat-field):not(:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) *)):focus {
-box-shadow: 0 0 0 3px var(--field-focus-ring);
-background-color: var(--field-focus-bg);
+border-bottom-color: var(--accent);
 }
 /* DS-5.6: поле с ошибкой и подпись под ним (showFieldError). */
 input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="true"] { border-color: var(--danger); }
@@ -2173,15 +2148,9 @@ color: var(--danger);
 .filter-search {
   flex: 1 1 180px;
   min-width: 140px;
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-8);
-  border: 1px solid var(--border);
-  background: var(--field-text-bg);
   color: var(--text);
   font-size: var(--fs-14);
-  outline: none;
 }
-.filter-search:focus { border-color: var(--accent); }
 .filter-chip-group { display: inline-flex; gap: var(--sp-1); }
 .filter-chip {
   padding: var(--sp-2) var(--sp-3);
@@ -2710,17 +2679,10 @@ vertical-align: middle;
    нативный <select> сохраняет свой шеврон (ромба ему не даём). */
 .lu-mc-select {
   width: 100%;
-  padding: var(--sp-2) 2px;
-  background: none;
   color: var(--text);
-  border: 0;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
-  box-shadow: none;
   font-family: var(--font-display);
   font-size: var(--fs-sm);
 }
-.lu-mc-select:focus { outline: none; background: none; box-shadow: none; border-bottom-color: var(--accent); }
 .lu-mc-warn {
   margin-top: var(--sp-2);
   padding: var(--sp-1) 0 var(--sp-1) var(--sp-3);
@@ -3462,18 +3424,11 @@ filter: brightness(1.7) saturate(1.3) contrast(1.15);
 .char-search-icon { position: absolute; left: 0; top: 50%; transform: translateY(-50%); font-size: var(--fs-14); pointer-events: none; }
 .char-search-inp {
 width: 100%;
-background: none;
-border: 0;
-border-bottom: 1px solid var(--home-rule);
-border-radius: 0;
 padding: var(--sp-2) 0 var(--sp-2) var(--sp-5);
 color: var(--text);
 font-size: var(--fs-14);
 box-sizing: border-box;
-outline: none;
-transition: border-color var(--t2);
 }
-.char-search-inp:focus { border-bottom-color: var(--accent); }
 input::placeholder, textarea::placeholder { color: var(--text-mute); opacity: 1; }
 .char-search-inp::placeholder { color: var(--text-mute); }
 .char-sort-row { display: flex; align-items: center; gap: 0 var(--sp-4); flex-wrap: wrap; }
@@ -4320,8 +4275,6 @@ animation: rise var(--t3) var(--ez-out) both;
   font-family: var(--font-display);
   font-size: var(--fs-24);
   font-weight: var(--fw-bold);
-  border: none;
-  background: transparent;
   color: var(--text);
   line-height: 1.2;
 }
@@ -4458,10 +4411,6 @@ animation: rise var(--t3) var(--ez-out) both;
 }
 .coin-exch-select {
   width: 100%;
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-8);
-  border: 1px solid var(--border);
-  background: var(--bg-2);
   color: var(--text);
   font-size: var(--fs-14);
   font-family: inherit;
@@ -4480,9 +4429,6 @@ animation: rise var(--t3) var(--ez-out) both;
   padding: var(--sp-3);
   font-size: var(--fs-18);
   font-weight: var(--fw-bold);
-  border-radius: var(--r-8);
-  border: 1px solid var(--border);
-  background: var(--bg-2);
   color: var(--text);
   font-family: inherit;
   box-sizing: border-box;
@@ -4761,9 +4707,7 @@ font-size: 1em;
 .hit-dice-step:hover,
 .hit-dice-step:focus-visible { background: none; box-shadow: none; color: var(--accent); }
 .hit-dice-controls input[type="number"] {
-  width: 60px; margin: 0; padding: var(--sp-2) 2px;
-  border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0;
-  background: none; box-shadow: none;
+  width: 60px; margin: 0;
   font-family: var(--font-display); font-size: var(--fs-md); text-align: center; color: var(--text);
 }
 .hit-dice-info { font-size: var(--fs-sm); color: var(--home-sub); }
@@ -4887,8 +4831,7 @@ transform: none;
 .dice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); }
 .dice-custom-label { font-size: var(--fs-12); color: var(--text-dim); margin-bottom: var(--sp-1); margin-top: 2px; }
 .dice-custom-row { display: grid; grid-template-columns: 1fr auto; gap: var(--sp-2); margin-bottom: var(--sp-4); }
-.dice-custom-inp { width: 100%; background: var(--field-text-bg); border: 1px solid var(--border); color: var(--text); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-8); font-size: var(--fs-14); box-sizing: border-box; }
-.dice-custom-inp:focus { outline: none; border-color: var(--accent); }
+.dice-custom-inp { width: 100%; color: var(--text); font-size: var(--fs-14); box-sizing: border-box; }
 .dice-history { max-height: 120px; overflow-y: auto; border-top: 1px solid var(--border); padding-top: var(--sp-3); }
 .dice-history-item { display: flex; justify-content: space-between; padding: var(--sp-2) 0; font-size: var(--fs-14); color: var(--text-dim); border-bottom: 1px solid var(--border); }
 .dice-history-item:last-child { border-bottom: none; }
@@ -5092,17 +5035,12 @@ transform: none;
   margin-top: var(--sp-1);
 }
 .dice-formula-inp {
-  background: var(--bg-2);
-  border: 1px solid var(--border, var(--bg-3));
   color: var(--text);
-  padding: var(--sp-3) var(--sp-3);
-  border-radius: var(--r-4);
   font-size: var(--fs-14);
   box-sizing: border-box;
   width: 100%;
   margin: 0;
 }
-.dice-formula-inp:focus { outline: none; border-color: var(--accent, var(--accent)); }
 .dice-formula-btn { margin: 0; align-self: stretch; }
 
 /* UX-2: быстрые вставки токенов формулы (чипы) */
@@ -5484,10 +5422,6 @@ border-top: 1px solid var(--home-rule);
 .prof-add-row input[type="text"] {
   flex: 1;
   min-width: 110px;
-  padding: var(--sp-1) var(--sp-2);
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-4);
   color: var(--text);
   font-size: var(--fs-14);
 }
@@ -6664,10 +6598,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 }
 .pcard-status-row { margin-top: var(--sp-2); }
 .pcard-status-sel {
-  background: transparent;
-  border: 1px solid var(--border-soft);
   color: var(--text-dim);
-  border-radius: var(--r-4);
   padding: var(--sp-1) var(--sp-2);
   font-size: var(--fs-12);
   cursor: pointer;
@@ -6675,7 +6606,6 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   max-width: 100%;
   transition: border-color var(--t1);
 }
-.pcard-status-sel:focus { border-color: var(--accent); outline: none; }
 .pcard-status-sel option { background: var(--bg-0); color: var(--text); }
 
 /* Actions column */
@@ -6725,10 +6655,6 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 .party-form { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-5); }
 .party-form label { font-size: var(--fs-12); color: var(--text-dim); }
 .party-form input, .party-form select, .party-form textarea {
-  background: var(--field-text-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--r-4);
-  padding: var(--sp-2) var(--sp-3);
   color: var(--text);
   font-size: var(--fs-14);
   width: 100%;
@@ -6736,7 +6662,6 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 }
 .party-form input[type="checkbox"] { background: var(--bg-2); }
 .party-form textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
-.party-form input:focus, .party-form select:focus, .party-form textarea:focus { border-color: var(--accent); outline: none; }
 .party-form select option { background: var(--bg-0); color: var(--text); }
 
 /* Battle setup */
@@ -6775,8 +6700,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 .tracker-sub { display: flex; align-items: center; gap: var(--sp-3); padding-left: var(--sp-6); }
 /* Инициатива — фиксированная колонка (инпут+⟳) для ровного левого края имён */
 .tracker-init { display: flex; align-items: center; gap: 2px; flex-shrink: 0; width: 60px; }
-.tracker-init-inp { width: 34px; text-align: center; font-size: var(--fs-14); font-weight: var(--fw-bold); padding: var(--sp-1) 0; background: none; border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0; color: var(--accent-lo); -moz-appearance: textfield; margin: 0; font-variant-numeric: tabular-nums; }
-.tracker-init-inp:focus { outline: none; border-bottom-color: var(--accent); }
+.tracker-init-inp { width: 34px; text-align: center; font-size: var(--fs-14); font-weight: var(--fw-bold); padding: var(--sp-1) 0; color: var(--accent-lo); -moz-appearance: textfield; margin: 0; font-variant-numeric: tabular-nums; }
 .tracker-init-inp::-webkit-inner-spin-button, .tracker-init-inp::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .tracker-init-roll { width: 22px; min-width: 22px; height: 22px; padding: 0; margin: 0; border: none; background: transparent; color: var(--text-mute); font-size: var(--fs-14); cursor: pointer; border-radius: 50%; transition: color var(--t1), transform var(--t1); flex-shrink: 0; }
 .tracker-init-roll:hover { color: var(--accent); transform: rotate(90deg); }
@@ -6794,8 +6718,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 .tracker-hp-btn { width: 22px; min-width: 22px; height: 22px; padding: 0; margin: 0; border: 0; background: none; color: var(--accent-lo); font-size: 1em; font-weight: var(--fw-bold); cursor: pointer; border-radius: 0; flex-shrink: 0; line-height: 1; transition: color var(--t1) var(--ez-out); }
 .tracker-hp-minus:hover { background: none; color: var(--danger); }
 .tracker-hp-plus:hover { background: none; color: var(--success); }
-.tracker-hp-cur, .tracker-hp-max { width: 36px; text-align: center; font-size: var(--fs-14); padding: var(--sp-1) 0; background: none; border: 0; border-bottom: 1px solid var(--home-rule); border-radius: 0; color: var(--text); -moz-appearance: textfield; margin: 0; font-variant-numeric: tabular-nums; }
-.tracker-hp-cur:focus, .tracker-hp-max:focus { outline: none; border-bottom-color: var(--accent); }
+.tracker-hp-cur, .tracker-hp-max { width: 36px; text-align: center; font-size: var(--fs-14); padding: var(--sp-1) 0; color: var(--text); -moz-appearance: textfield; margin: 0; font-variant-numeric: tabular-nums; }
 .tracker-hp-cur::-webkit-inner-spin-button, .tracker-hp-cur::-webkit-outer-spin-button, .tracker-hp-max::-webkit-inner-spin-button, .tracker-hp-max::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .tracker-hp-max[readonly] { opacity: 0.65; cursor: default; }
 .tracker-hp-sep { color: var(--text-mute); font-size: var(--fs-12); }
@@ -6859,10 +6782,6 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   flex-shrink: 0;
   font-size: var(--fs-12);
   padding: var(--sp-1) 0;
-  background: none;
-  border: 0;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
   color: var(--text-dim);
   cursor: pointer;
 }
@@ -8178,16 +8097,10 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .feat-search-wrap { margin-bottom: var(--sp-2); }
 .feat-search-inp {
   width: 100%;
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-4);
-  padding: var(--sp-2) var(--sp-3);
   color: var(--text);
   font-size: var(--fs-14);
   box-sizing: border-box;
-  outline: none;
 }
-.feat-search-inp:focus { border-color: var(--accent); }
 .feat-list {
   max-height: 260px;
   overflow-y: auto;
@@ -9634,13 +9547,11 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 }
 .app-log-filter {
   flex: 1 1 140px; min-width: 110px; height: 30px; margin: 0; width: auto;
-  padding: var(--sp-1) var(--sp-2); border-radius: var(--r-4);
-  background: var(--field-text-bg); border: 1px solid var(--border);
+  padding: var(--sp-1) 2px;
   color: var(--text); font-size: var(--fs-12);
 }
 .app-log-level {
-  height: 30px; margin: 0; padding: 2px var(--sp-2); border-radius: var(--r-4); width: auto;
-  background: var(--field-text-bg); border: 1px solid var(--border);
+  height: 30px; margin: 0; padding: 2px var(--sp-5) 2px 2px; width: auto;
   color: var(--text); font-size: var(--fs-12); flex: 0 0 auto;
 }
 .app-log-btn { margin: 0; flex: 0 0 auto; }
@@ -10598,21 +10509,11 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .avatar-url-input {
   flex: 1;
   min-width: 0;
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-8);
-  border: 1px solid var(--border) !important;
-  background: var(--bg-2) !important;
   color: var(--text) !important;
   font-size: var(--fs-14);
-  outline: none;
   -webkit-text-fill-color: var(--text);
 }
 .avatar-url-input::placeholder { color: var(--avatar-url-ph) !important; opacity: 1; }
-.avatar-url-input:focus {
-  border-color: var(--accent) !important;
-  background: var(--bg-3) !important;
-}
-.avatar-url-input[aria-invalid="true"] { border-color: var(--danger) !important; }
 
 /* ══ МОДАЛКА АВАТАРА: новая структура секций ═══════════════════════ */
 .avatar-section {
@@ -10792,9 +10693,8 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
   border-top: 1px solid var(--border-soft);
 }
 .res-add-select {
-  flex: 1; padding: var(--sp-2) var(--sp-2);
-  background: var(--field-text-bg); border: 1px solid var(--border);
-  color: var(--text); border-radius: var(--r-4); font-size: var(--fs-14);
+  flex: 1;
+  color: var(--text); font-size: var(--fs-14);
 }
 .res-add-label {
   color: var(--text-dim); font-size: var(--fs-14);
@@ -11006,11 +10906,7 @@ body {
 .notes-search {
   flex: 1 1 180px;
   min-width: 0;
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
   color: var(--text);
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-4);
   font-size: var(--fs-14);
 }
 .notes-search::placeholder { color: var(--notes-search-ph); }
@@ -11061,18 +10957,9 @@ body {
 .notes-subtabs-select {
   display: none;
   width: 100%;
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
   color: var(--text);
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-4);
   font: inherit;
   font-size: var(--fs-14);
-}
-.notes-subtabs-select:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-glow-token);
 }
 .notes-pill {
   background: var(--bg-2);
@@ -11102,20 +10989,11 @@ body {
 .notes-section-input {
   width: 100%;
   box-sizing: border-box;
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
   color: var(--text);
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-4);
   font-family: inherit;
   font-size: var(--fs-14);
   line-height: 1.4;
   resize: vertical;
-}
-.notes-section-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-glow-token);
 }
 
 .notes-empty {
@@ -11333,20 +11211,10 @@ body {
 .notes-modal-input,
 .notes-modal-textarea,
 .notes-modal-tag-input {
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r-8);
   color: var(--text);
   font-size: var(--fs-14);
-  outline: none;
-  padding: var(--sp-2) var(--sp-3);
-  transition: border-color var(--t1);
   width: 100%;
 }
-.notes-modal-select:focus,
-.notes-modal-input:focus,
-.notes-modal-textarea:focus,
-.notes-modal-tag-input:focus { border-color: var(--accent); }
 .notes-modal-select { width: auto; flex: 1; }
 .notes-modal-textarea { resize: vertical; font-family: inherit; }
 .notes-modal-pin-label {
@@ -11715,32 +11583,17 @@ mark.notes-hl {
 }
 /* Поле остаётся полем (это ввод, а не действие) — но без заливки и радиуса:
    вес держит одна нижняя линия. */
-/* Тег в селекторе обязателен: базовое `input[type="text"]` (0,1,1) бьёт голый
-   класс (0,1,0) и возвращает полю рамку с заливкой. */
 select.bp-select,
 input.bp-search {
   flex: 1;
   min-width: 80px;
   -webkit-appearance: none;
   appearance: none;
-  padding: var(--sp-2) 2px;
-  background: none;
   color: var(--text);
-  border: 0;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
   font-family: var(--font-display);
   font-size: var(--fs-sm);
-  transition: border-color var(--t1) var(--ez-out);
 }
 input.bp-search { flex: 1 1 220px; min-width: 180px; }
-select.bp-select:focus,
-input.bp-search:focus {
-  outline: none;
-  background: none;
-  border-bottom-color: var(--accent);
-  box-shadow: none;
-}
 /* appearance:none снимает и нативный шеврон — возвращаем его подписью группы. */
 .bp-filter-group { position: relative; }
 .bp-filter-group::after {
@@ -13170,20 +13023,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
 
 /* ── Шапка: поиск-строка и текстовые действия ───────────────────────────── */
 #tab-notes .notes-header { gap: var(--sp-5); margin-bottom: var(--sp-4); }
-#tab-notes .notes-search {
-  background: none;
-  border: 0;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
-  padding: var(--sp-2) 2px;
-  font-size: var(--fs-md);
-  transition: border-color var(--t1) var(--ez-out);
-}
-#tab-notes .notes-search:focus {
-  outline: none;
-  border-bottom-color: var(--accent-lo);
-  box-shadow: none;
-}
+#tab-notes .notes-search { font-size: var(--fs-md); }
 /* Действий на экране три, залитых среди них не остаётся: «+ Запись» несёт
    акцент текстом (--accent-lo, а не --accent: 3.55 на белом — ниже порога),
    перегенерация и меню приглушены до --home-sub. */
@@ -13256,13 +13096,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   font-weight: var(--fw-bold);
 }
 #tab-notes .notes-pill.active::after { width: calc(100% - 4px); }
-#tab-notes .notes-subtabs-select {
-  background: none;
-  border: 0;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
-  padding: var(--sp-3) 2px;
-}
+#tab-notes .notes-subtabs-select { padding: var(--sp-3) var(--sp-5) var(--sp-3) 2px; }
 
 /* ── Секция предыстории: карточка → строка-сводка со значением справа ───── */
 #tab-notes .notes-section-card {
@@ -13390,16 +13224,11 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
 #tab-notes .notes-variant-random:hover { background: none; color: var(--accent); }
 
 /* ── Поля ввода: остаются полями, но без плотной коробки ────────────────── */
-#tab-notes .notes-section-input,
 #tab-notes .notes-md-preview {
   background: none;
-  border: 1px solid var(--home-rule);
-  border-radius: var(--r-4);
-}
-#tab-notes .notes-section-input:focus {
-  outline: none;
-  border-color: var(--accent-lo);
-  box-shadow: none;
+  border: 0;
+  border-bottom: 1px solid var(--home-rule);
+  border-radius: 0;
 }
 #tab-notes .notes-md-preview blockquote {
   background: none;
@@ -14188,18 +14017,8 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 #tab-sheet .identity-card input.field,
 #tab-sheet .identity-card select.field,
 #tab-sheet .identity-card textarea.field {
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
   padding-left: 0;
   padding-right: 0;
-}
-#tab-sheet .identity-card input.field:focus,
-#tab-sheet .identity-card select.field:focus,
-#tab-sheet .identity-card textarea.field:focus {
-  border-bottom-color: var(--accent);
-  box-shadow: none;
 }
 /* у select нижняя линия оставляет шеврон без места — возвращаем правый отступ */
 #tab-sheet .identity-card select.field { padding-right: var(--sp-5); }
@@ -14253,18 +14072,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 #tab-sheet > .sheet-col > .card select.field,
 #tab-sheet .prof-add-row select,
 #tab-sheet .prof-add-row input[type="text"] {
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
   padding-left: 0;
-}
-#tab-sheet > .sheet-col > .card input.field:focus,
-#tab-sheet > .sheet-col > .card select.field:focus,
-#tab-sheet .prof-add-row select:focus,
-#tab-sheet .prof-add-row input[type="text"]:focus {
-  border-bottom-color: var(--accent);
-  box-shadow: none;
 }
 
 /* ── A8: владения — чипы текстом через «·», цвет остаётся кодировкой источника ── */
@@ -14506,16 +14314,11 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 }
 .hp-inp {
   width: 64px;
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
   padding: var(--sp-1) 0;
   color: var(--text);
   font-size: var(--fs-md);
   font-variant-numeric: tabular-nums;
 }
-.hp-inp:focus { outline: none; border-bottom-color: var(--accent); }
 .hp-inp--ac { color: var(--info); font-weight: var(--fw-bold); }
 .hp-inp--wide { width: 84px; }
 .hp-act {
@@ -14793,17 +14596,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .ag-val { min-width: 2ch; text-align: center; font-weight: var(--fw-bold); }
 .ag-cost { min-width: 3.2em; font-size: var(--fs-sm); color: var(--home-sub); }
 .ag-sel { width: auto; min-width: 5em; }
-select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) {
-  background: none;
-  border: 0;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
-  box-shadow: none;
-  padding-left: 2px;
-  padding-right: var(--sp-5);
-  font-family: var(--font-display);
-}
-select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select):focus { background: none; box-shadow: none; border-bottom-color: var(--accent); }
+select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--font-display); }
 .ag-bonus { text-align: right; color: var(--home-sub); }
 .ag-total { text-align: right; font-weight: var(--fw-bold); white-space: nowrap; }
 .ag-rolls { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); margin: 0 0 var(--sp-3); font-size: var(--fs-sm); }
@@ -15385,13 +15178,6 @@ select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select):focus { ba
 
 /* Поиск по участникам — поле без коробки, как поля остальных вкладок. */
 #tab-battle .battle-search-wrap { margin: var(--sp-3) 0 0; }
-#tab-battle .char-search-inp {
-  border: 0;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
-  padding: var(--sp-2) 0 var(--sp-2) var(--sp-5);
-}
-#tab-battle .char-search-inp:focus { border-bottom-color: var(--accent); }
 #tab-battle .char-search-icon { left: 0; }
 
 /* Навигация по ходам — последняя строка трекера. Единственное сплошное
@@ -15744,15 +15530,7 @@ select.field.flat-field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select):focus { ba
 
 /* Формула — поле на нижней линии и текстовое действие */
 #dice-modal .dice-formula-row { margin-top: var(--sp-4); align-items: center; gap: var(--sp-3); }
-#dice-modal .dice-formula-inp {
-  padding: var(--sp-3) 2px;
-  background: none;
-  border: 0;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
-  color: var(--text);
-}
-#dice-modal .dice-formula-inp:focus { border-bottom-color: var(--accent); }
+#dice-modal .dice-formula-inp { padding: var(--sp-3) 2px; }
 
 /* Чипы вставки — текстом, без коробочек */
 #dice-modal .dice-controls-col .dice-chips { gap: 0; margin-top: var(--sp-2); }
@@ -16011,27 +15789,6 @@ button.conditions-popup-close:hover {
   transform: none;
 }
 
-/* Поля — плоские строки с нижней линией, как на «Листе». Светлая тема
-   исключает их из коробочного блока (см. «Notes / textarea»). */
-:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) :where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), select, textarea) {
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--home-rule);
-  border-radius: 0;
-  box-shadow: none;
-  padding-left: 0;
-  padding-right: 0;
-}
-:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) :where(select) { padding-right: var(--sp-5); }
-:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) :where(input, select, textarea):focus {
-  background: none;
-  border-bottom-color: var(--accent);
-  box-shadow: none;
-}
-/* DS-5.6: ошибка сильнее фокуса — правило после :focus той же специфичности. */
-:is(.confirm-modal-box, .modal-content:not(.dice-modal-content), .notes-modal) :where(input, select, textarea)[aria-invalid="true"] {
-  border-bottom-color: var(--danger);
-}
 
 /* Подвал: «Закрыть» у форм .modal — текстом, как «Отмена» у подтверждений;
    у записей — .btn-secondary текстом, заливка одна (.btn-primary). */

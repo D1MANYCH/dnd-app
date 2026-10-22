@@ -44,7 +44,7 @@
         </div>
         <div class="rr-panel" id="rr-panel-hp" hidden>
           <div class="hp-row-line">
-            <input type="number" id="rr-hp-input" class="hp-inp flat-field" placeholder="0" min="1" inputmode="numeric" autocomplete="off">
+            <input type="number" id="rr-hp-input" class="hp-inp" placeholder="0" min="1" inputmode="numeric" autocomplete="off">
             <button type="button" class="hp-act hp-act--dmg" id="rr-btn-dmg">Нанести</button>
             <button type="button" class="hp-act hp-act--heal" id="rr-btn-heal">Вылечить</button>
           </div>

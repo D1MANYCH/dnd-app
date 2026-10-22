@@ -112,7 +112,7 @@ function renderLanguages() {
     html += '<div class="prof-cat-group prof-choice-pending">';
     html += '<div class="prof-cat-title">' + slot.label + ': выбери язык <span class="prof-cat-hint">(' + slot.remaining + ' из ' + slot.total + ')</span></div>';
     html += '<div class="prof-add-row">';
-    html += '<select class="flat-field" id="lang-choice-' + slot.key + '"><option value="">— выбрать —</option>';
+    html += '<select id="lang-choice-' + slot.key + '"><option value="">— выбрать —</option>';
     ["standard","exotic"].forEach(function(c) {
       html += '<optgroup label="' + LANG_CAT_TITLES[c] + '">';
       (LANGUAGE_CATALOG[c]||[]).forEach(function(l) {
@@ -130,7 +130,7 @@ function renderLanguages() {
   html += '<div class="prof-cat-group">';
   html += '<div class="prof-cat-title">' + dndIcoHtml("plus", 13) + ' Добавить язык</div>';
   html += '<div class="prof-add-row">';
-  html += '<select class="flat-field" id="lang-custom-pick"><option value="">— из\u00a0каталога —</option>';
+  html += '<select id="lang-custom-pick"><option value="">— из\u00a0каталога —</option>';
   ["standard","exotic","secret"].forEach(function(c) {
     html += '<optgroup label="' + LANG_CAT_TITLES[c] + '">';
     (LANGUAGE_CATALOG[c]||[]).forEach(function(l) {
@@ -139,7 +139,7 @@ function renderLanguages() {
     html += '</optgroup>';
   });
   html += '</select>';
-  html += '<input type="text" class="flat-field" id="lang-custom-name" placeholder="или свой вариант…">';
+  html += '<input type="text" id="lang-custom-name" placeholder="или свой вариант…">';
   html += '<button onclick="addCustomLanguage()">' + dndIcoHtml("plus", 13) + ' Добавить</button>';
   html += '</div></div>';
 
@@ -351,7 +351,7 @@ function renderTools() {
     html += '<div class="prof-cat-group prof-choice-pending">';
     html += '<div class="prof-cat-title">' + slot.label + ' <span class="prof-cat-hint">(' + slot.remaining + ' из ' + slot.total + ')</span></div>';
     html += '<div class="prof-add-row">';
-    html += '<select class="flat-field" id="tool-choice-' + slot.key + '"><option value="">— выбрать —</option>';
+    html += '<select id="tool-choice-' + slot.key + '"><option value="">— выбрать —</option>';
     html += buildToolOptionsHtml(slot, alreadyKnown);
     html += '</select>';
     html += '<button onclick="addChoiceTool(\'' + slot.key + '\')">' + dndIcoHtml("plus", 13) + ' Добавить</button>';
@@ -362,7 +362,7 @@ function renderTools() {
   html += '<div class="prof-cat-group">';
   html += '<div class="prof-cat-title">' + dndIcoHtml("plus", 13) + ' Добавить инструмент</div>';
   html += '<div class="prof-add-row">';
-  html += '<select class="flat-field" id="tool-custom-pick"><option value="">— из\u00a0каталога —</option>';
+  html += '<select id="tool-custom-pick"><option value="">— из\u00a0каталога —</option>';
   ["artisan","gaming","musical","vehicles","other"].forEach(function(c) {
     html += '<optgroup label="' + TOOL_CAT_TITLES[c] + '">';
     (TOOL_CATALOG[c]||[]).forEach(function(t) {
@@ -371,7 +371,7 @@ function renderTools() {
     html += '</optgroup>';
   });
   html += '</select>';
-  html += '<input type="text" class="flat-field" id="tool-custom-name" placeholder="или свой вариант…">';
+  html += '<input type="text" id="tool-custom-name" placeholder="или свой вариант…">';
   html += '<button onclick="addCustomTool()">' + dndIcoHtml("plus", 13) + ' Добавить</button>';
   html += '</div></div>';
 
@@ -480,7 +480,7 @@ function renderArmorProf() {
   var available = allTypes.filter(function(t){ return (ar[t] || []).indexOf("custom") === -1; });
   if (available.length > 0) {
     html += '<div class="prof-cat-group"><div class="prof-cat-title">' + dndIcoHtml("plus", 13) + ' Добавить тип</div><div class="prof-add-row">';
-    html += '<select class="flat-field" id="armor-custom-pick"><option value="">— выбрать —</option>';
+    html += '<select id="armor-custom-pick"><option value="">— выбрать —</option>';
     available.forEach(function(t) {
       html += '<option value="' + t + '">' + ARMOR_TYPE_LABELS[t] + '</option>';
     });
@@ -541,14 +541,14 @@ function renderWeaponProf() {
   var available = allTypes.filter(function(t){ return (wp[t] || []).indexOf("custom") === -1; });
   html += '<div class="prof-cat-group"><div class="prof-cat-title">Добавить</div><div class="prof-add-row">';
   if (available.length > 0) {
-    html += '<select class="flat-field" id="weapon-custom-pick"><option value="">— тип —</option>';
+    html += '<select id="weapon-custom-pick"><option value="">— тип —</option>';
     available.forEach(function(t) {
       html += '<option value="' + t + '">' + WEAPON_TYPE_LABELS[t] + '</option>';
     });
     html += '</select>';
     html += '<button onclick="addCustomWeaponType()">+ Тип</button>';
   }
-  html += '<input type="text" class="flat-field" id="weapon-spec-name" placeholder="конкретное оружие…">';
+  html += '<input type="text" id="weapon-spec-name" placeholder="конкретное оружие…">';
   html += '<button onclick="addCustomSpecificWeapon()">+ Оружие</button>';
   html += '</div></div>';
 

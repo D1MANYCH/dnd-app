@@ -1349,7 +1349,7 @@ function renderBattleTracker() {
     // UX-6: строка инициативы (число редактируется, ⟳ — переброс d20+ЛОВ)
     var initVal = (p.initiative != null) ? p.initiative : 0;
     var initBlock = '<div class="tracker-init" title="Инициатива">' +
-      '<input type="number" class="tracker-init-inp flat-field" value="' + initVal + '" onchange="setBattleInitiative(' + i + ',this.value)" aria-label="Инициатива">' +
+      '<input type="number" class="tracker-init-inp" value="' + initVal + '" onchange="setBattleInitiative(' + i + ',this.value)" aria-label="Инициатива">' +
       '<button type="button" class="tracker-init-roll" onclick="rerollInitiative(' + i + ')" title="Перебросить инициативу (d20+ЛОВ)">⟳</button>' +
     '</div>';
     // UX-6: инлайн-ХП (−/+ и тек/макс). Контейнер рендерим всегда (пустым для
@@ -1360,9 +1360,9 @@ function renderBattleTracker() {
       (showHP
         ? '<span class="tracker-hp-heart">' + dndIcoHtml("heart", 13) + '</span>' +
           '<button type="button" class="tracker-hp-btn tracker-hp-minus" onclick="adjustBattleHP(' + i + ',-1)" title="−1 ХП">−</button>' +
-          '<input type="number" class="tracker-hp-cur flat-field" value="' + hp.hp + '" onchange="setBattleHP(' + i + ',this.value)" aria-label="Текущие ХП">' +
+          '<input type="number" class="tracker-hp-cur" value="' + hp.hp + '" onchange="setBattleHP(' + i + ',this.value)" aria-label="Текущие ХП">' +
           '<span class="tracker-hp-sep">/</span>' +
-          '<input type="number" class="tracker-hp-max flat-field" value="' + hp.hpMax + '"' + (isSelf ? ' readonly title="Макс. ХП — на\u00a0вкладке ХП"' : ' onchange="setBattleHPMax(' + i + ',this.value)" aria-label="Макс. ХП"') + '>' +
+          '<input type="number" class="tracker-hp-max" value="' + hp.hpMax + '"' + (isSelf ? ' readonly title="Макс. ХП — на\u00a0вкладке ХП"' : ' onchange="setBattleHPMax(' + i + ',this.value)" aria-label="Макс. ХП"') + '>' +
           '<button type="button" class="tracker-hp-btn tracker-hp-plus" onclick="adjustBattleHP(' + i + ',1)" title="+1 ХП">+</button>'
         : '') +
     '</div>';
@@ -1393,7 +1393,7 @@ function renderBattleTracker() {
         hpBlock +
         (isSelf
           ? '<span class="tracker-self-status">' + statusText + '</span>'
-          : '<select class="party-status-sel tracker-status flat-field" onchange="setBattleStatus(' + i + ',this.value)">' + opts + "</select>"
+          : '<select class="party-status-sel tracker-status" onchange="setBattleStatus(' + i + ',this.value)">' + opts + "</select>"
         ) +
       '</div>' +
       (isSelf ? _battleEconomyRow() : '') +

@@ -294,7 +294,7 @@ function _pgClassRow(char, e, open) {
         var src = (typeof subclassSourceShort === "function") ? subclassSourceShort(s, char) : "";
         opts += '<option value="' + escapeHtml(s) + '">' + escapeHtml(src ? s + " · " + src : s) + "</option>";
       });
-      body += '<select class="field flat-field pg-sub-select" onchange="pgSetSubclass(' + e.idx + ', this.value)">' +
+      body += '<select class="field pg-sub-select" onchange="pgSetSubclass(' + e.idx + ', this.value)">' +
         opts + "</select>";
     } else {
       body += '<p class="hp-row-hint">Подкласс выбирается на ' + at + " уровне класса — сейчас взято " + e.level +
@@ -797,7 +797,7 @@ function _mlRender() {
     });
     var canUp = r.level < 20 && (!r.cls || total < 20);
     html += '<div class="ml-row">' +
-      '<select class="field flat-field ml-cls" onchange="mlSetClass(' + i + ',this.value)">' + opts + "</select>" +
+      '<select class="field ml-cls" onchange="mlSetClass(' + i + ',this.value)">' + opts + "</select>" +
       '<span class="ag-ctl">' +
         '<button type="button" class="stat-btn-sm" onclick="mlLevel(' + i + ',-1)"' + (r.level <= 1 ? " disabled" : "") + ' aria-label="Уменьшить уровень">−</button>' +
         '<span class="ag-val">' + r.level + "</span>" +
@@ -815,7 +815,7 @@ function _mlRender() {
           var src = subclassSourceShort(s, char);
           so += '<option value="' + escapeHtml(s) + '"' + (r.sub === s ? " selected" : "") + ">" + escapeHtml(src ? s + " · " + src : s) + "</option>";
         });
-        html += '<select class="field flat-field ml-sub" onchange="mlSetSub(' + i + ',this.value)">' + so + "</select>";
+        html += '<select class="field ml-sub" onchange="mlSetSub(' + i + ',this.value)">' + so + "</select>";
       } else if (at) {
         html += '<span class="ag-note ml-sub">Подкласс — с ' + at + " уровня класса</span>";
       }

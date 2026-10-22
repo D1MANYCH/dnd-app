@@ -763,7 +763,7 @@ function _agCtl(k) {
     cur = _ag.pick[k]; fn = "agPick";
     _ag.rolls.forEach(function(r, i) { opts += '<option value="' + i + '"' + (cur === i ? " selected" : "") + ">" + r.total + "</option>"; });
   }
-  return '<select class="field flat-field ag-sel" onchange="' + fn + "('" + k + "',this.value)\"" +
+  return '<select class="field ag-sel" onchange="' + fn + "('" + k + "',this.value)\"" +
     (_ag.mode === "roll" && !_ag.rolls.length ? " disabled" : "") + ">" + opts + "</select>";
 }
 
