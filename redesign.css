@@ -125,16 +125,15 @@ html.rd body.sheet2-on #tab-sheet>:not(#sheet2):not(#sheet2-bar) { display:none!
 /* на ПК #tab-sheet — flex-ряд колонок: демо занимает всю ширину, а не узкую колонку */
 html.rd #tab-sheet>#sheet2, html.rd #tab-sheet>#sheet2-bar { flex:0 0 100%;grid-column:1/-1;width:100%;min-width:0 }
 /* хиты/КД/ячейки уже есть в демо — правая панель на вкладке листа их дублирует */
-html.rd body.sheet2-tab .app-right-rail { display:none!important }
+html.rd.rr-open body.sheet2-tab .app-right-rail { display:none }
 /* ПК: правая колонка — настоящая боковая панель, как .app-right-rail (закреплена, своя граница и фон) */
 @media (min-width:1024px) {
-  html.rd body.sheet2-tab { padding-right:296px!important }
   /* анимация появления оставляет transform у предков — fixed-панель тогда привязывается к ним, а не к окну */
   html.rd body.sheet2-tab #tab-sheet, html.rd body.sheet2-tab #sheet2, html.rd body.sheet2-tab #screen-character:not(.screen-ghost) { animation:none!important;transform:none!important }
   /* уходящий экран (призрак перехода) летит вместе с панелью — её fixed тут не нужен */
   html.rd .screen-ghost #sheet2 aside { display:none!important }
   html.rd #sheet2 .s2-body { grid-template-columns:minmax(0,1fr)!important }
-  html.rd #sheet2 aside { position:fixed;top:72px;right:0;bottom:0;width:296px;box-sizing:border-box;padding:var(--sp-4) var(--sp-5) var(--sp-6)!important;overflow-y:auto;overflow-x:hidden;z-index:40; border-left:1px solid var(--border-soft);background:var(--rail-bg);backdrop-filter:blur(var(--sticky-blur,12px));-webkit-backdrop-filter:blur(var(--sticky-blur,12px)) }
+  html.rd #sheet2 aside { position:fixed;top:var(--rd-head-h);right:0;bottom:0;width:var(--rr-w);box-sizing:border-box;padding:var(--sp-4) var(--sp-5) var(--sp-6)!important;overflow-y:auto;overflow-x:hidden;z-index:40; border-left:1px solid var(--border-soft);background:var(--rail-bg);backdrop-filter:blur(var(--sticky-blur,12px));-webkit-backdrop-filter:blur(var(--sticky-blur,12px)) }
   html.rd #sheet2 aside h3:first-of-type { margin-top:var(--sp-4) }
 }
 html.rd #sheet2-bar { display:flex;gap:var(--sp-3);align-items:center;font-size:var(--fs-14);color:var(--text-mute);margin:var(--sp-1) 0 var(--sp-3) }
@@ -314,4 +313,71 @@ html.rd #character-tabs > .tab-btn:not(.rd-tab) { display: none; }
   html.rd #tab-sheet[data-rd-view="main"] #sheet2 .s2-two,
   html.rd #tab-sheet[data-rd-view="main"] #sheet2 .s2-main > h3,
   html.rd #tab-sheet[data-rd-view="main"] #sheet2 .s2-skills { display: none; }
+}
+
+/* ══ РД-4: каркас ПК — меню 264, контент, правая панель 264 ═══════════════
+   Figma 3:3, 94:649/653: пункт меню — полоса 3, ромб, иконка 24, подпись 24;
+   ромб виден при наведении, нажатии и выборе; выбран — полоса и ромб акцентом.
+   Меню сворачивается в полосу иконок 64 (html.rd-nav-mini), правая панель — в
+   полосу 48 (html:not(.rr-open), механика ПК-4); без сохранённого выбора на
+   1024–1279 обе свёрнуты (app-desktop.js). Старые правила UI-3 / ПК-4 с
+   !important в режиме не действуют — они под :where(html:not(.rd)) в style.css. */
+html:not(.rd) .rd-label { display: none; }
+html.rd [data-drawer-tab="notes"] .drawer-item-label:not(.rd-label) { display: none; }
+html.rd .drawer-nav { display: flex; flex-direction: column; }
+html.rd .drawer-nav > * { order: 1; }
+html.rd .drawer-nav > :nth-child(-n+6), html.rd .drawer-nav > [data-drawer-tab="notes"] { order: 0; }
+.rd-nav-toggle, .rd-rail-toggle { display: none; }
+@media (min-width: 1024px) {
+  html.rd { --rd-nav-w: 264px; --rd-head-h: 56px; --pk-col: min(1400px, calc(100vw - var(--rd-nav-w) - var(--rr-w) - 48px)); }
+  html.rd.rd-nav-mini { --rd-nav-w: 64px; }
+  html.rd.rr-open { --rr-w: 264px; }
+  html.rd:not(.rr-open) { --rr-w: 48px; }
+  html.rd body { padding: var(--rd-head-h) var(--rr-w) 0 var(--rd-nav-w); max-width: none; overflow-x: hidden; }
+  html.rd body.no-character { padding-right: 0; }
+  html.rd body:not(.screen-home):not(.screen-page) .container { max-width: var(--pk-col); }
+
+  /* шапка — от меню до края окна, как на телефоне: 56, линия и тень (П-4) */
+  html.rd header { position: fixed; top: 0; left: var(--rd-nav-w); right: 0; width: auto; height: var(--rd-head-h); min-height: 0; margin: 0; padding: 0 var(--sp-6); gap: var(--sp-4); border-bottom: var(--rd-bar-line); box-shadow: var(--rd-bar-shadow); z-index: var(--z-header); }
+  html.rd .header-avatar, html.rd .header-subtitle, html.rd .nav-hamburger { display: none; }
+  html.rd .header-title { font-size: var(--fs-18); font-weight: var(--fw-bold); }
+  html.rd .rd-rail-toggle, html.rd .rd-nav-toggle { display: inline-flex; align-items: center; width: auto; min-height: 40px; margin: 0; padding: 0 var(--sp-2); background: none; border: 0; box-shadow: none; color: var(--accent-ink); font: inherit; font-size: var(--fs-16); cursor: pointer; }
+  html.rd .rd-rail-toggle { margin-left: auto; }
+  html.rd .rd-rail-toggle:hover, html.rd .rd-nav-toggle:hover { color: var(--accent-hi); background: none; }
+  html.rd body.no-character .rd-rail-toggle { display: none; }
+
+  /* меню — закреплено слева, во всю высоту */
+  html.rd .side-drawer { display: flex; flex-direction: column; visibility: visible; opacity: 1; position: fixed; top: 0; left: 0; right: auto; bottom: 0; width: var(--rd-nav-w); max-width: none; transform: none; transition: none; border-left: 0; border-right: 1px solid var(--border-soft); box-shadow: none; z-index: var(--z-nav); }
+  /* .hidden — утилита с !important, а меню на ПК не закрывается */
+  html.rd body:not(.screen-home):not(.screen-page) .side-drawer.hidden { display: flex !important; }
+  html.rd .drawer-overlay, html.rd .drawer-close { display: none; }
+  html.rd .drawer-header { box-sizing: border-box; min-height: var(--rd-head-h); padding: 0 var(--sp-2) 0 31px; border-bottom: var(--rd-bar-line); }
+  html.rd .drawer-nav { padding: var(--sp-2) 0; }
+  html.rd .drawer-group { padding: var(--sp-4) var(--sp-4) var(--sp-1) 31px; }
+  html.rd .drawer-item, html.rd .drawer-settings-btn { min-height: 40px; padding: 0 var(--sp-4) 0 28px; gap: var(--sp-2); border-left-width: 3px; color: var(--text); font-size: var(--fs-18); font-weight: var(--fw-regular); transform: none; box-shadow: none; }
+  html.rd .drawer-item[data-drawer-tab] { font-size: var(--fs-24); }
+  html.rd .drawer-item [data-ico], html.rd .drawer-settings-btn [data-ico] { width: 24px; font-size: var(--fs-24); color: inherit; }
+  html.rd .drawer-item .home-bullet, html.rd .drawer-settings-btn .home-bullet { opacity: 0; transition: opacity var(--t1) var(--ez-out); }
+  html.rd .drawer-item-label::after { display: none; }
+  html.rd .drawer-item:is(:hover, :focus-visible), html.rd .drawer-settings-btn:is(:hover, :focus-visible) { color: var(--accent-ink); background: none; transform: none; box-shadow: none; }
+  html.rd .drawer-item:is(:hover, :focus-visible) .home-bullet, html.rd .drawer-settings-btn:is(:hover, :focus-visible) .home-bullet { opacity: 1; background: var(--accent-ink); }
+  html.rd .drawer-item:active, html.rd .drawer-settings-btn:active { color: var(--accent-lo); }
+  html.rd .drawer-item:active .home-bullet, html.rd .drawer-settings-btn:active .home-bullet { opacity: 1; background: var(--accent-lo); }
+  html.rd .drawer-item-active { color: var(--accent-ink); border-left-color: var(--accent); }
+  html.rd .drawer-item-active .home-bullet { opacity: 1; background: var(--accent); }
+
+  /* меню свёрнуто — полоса иконок; подписи остаются для чтения с экрана */
+  html.rd.rd-nav-mini .drawer-brand-text, html.rd.rd-nav-mini .drawer-group, html.rd.rd-nav-mini .home-bullet { display: none; }
+  html.rd.rd-nav-mini .drawer-header { justify-content: center; padding: 0; }
+  html.rd.rd-nav-mini .drawer-item, html.rd.rd-nav-mini .drawer-settings-btn { justify-content: center; padding: 0; border-left-width: 3px; }
+  html.rd.rd-nav-mini .drawer-item-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* правая панель — закреплена справа под шапкой; свёрнута — полоса 48 */
+  html.rd .app-right-rail { top: var(--rd-head-h); width: var(--rr-w); box-sizing: border-box; }
+  html.rd:not(.rr-open) .app-right-rail { padding: var(--sp-3) 0; gap: 0; align-items: center; }
+  html.rd:not(.rr-open) .app-right-rail > :not(.rr-strip) { display: none; }
+  html.rd:not(.rr-open) .rr-strip { display: flex; flex-direction: column; align-items: center; gap: var(--sp-1); }
+  html.rd.rr-open .rr-strip { display: none; }
+  html.rd.rr-open .rr-collapse { display: block; }
+  html.rd:not(.rr-open) #sheet2 aside { display: none; }
 }

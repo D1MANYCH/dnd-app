@@ -1183,11 +1183,11 @@ body.no-character .drawer-nav { display: none; }
      и принудительно показываем sidebar статично — иначе на 1024-1199
      (tablet-режим, drawer-mode) пользователь не сможет добраться до
      переключателя темы (hamburger тоже скрыт на screen-characters). */
-  body.no-character {
+  :where(html:not(.rd)) body.no-character {
     padding-right: 0 !important;
     padding-left: 240px !important;
   }
-  body.no-character .side-drawer {
+  :where(html:not(.rd)) body.no-character .side-drawer {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -1205,9 +1205,9 @@ body.no-character .drawer-nav { display: none; }
     box-shadow: none !important;
     z-index: var(--z-nav);
   }
-  body.no-character header { left: 240px !important; }
-  body.no-character .drawer-overlay,
-  body.no-character .drawer-close { display: none !important; }
+  :where(html:not(.rd)) body.no-character header { left: 240px !important; }
+  :where(html:not(.rd)) body.no-character .drawer-overlay,
+  :where(html:not(.rd)) body.no-character .drawer-close { display: none !important; }
 }
 
 @media (min-width: 1024px) {
@@ -1216,7 +1216,7 @@ body.no-character .drawer-nav { display: none; }
      получается всего ~460px под контент (1024 − 240 sidebar − 320 rail). */
 
   /* Layout body: padding под right-rail 320 + header 72 сверху */
-  body {
+  :where(html:not(.rd)) body {
     padding-top: 72px !important;
     padding-right: 320px !important;
     padding-bottom: 0 !important;
@@ -1232,7 +1232,7 @@ body.no-character .drawer-nav { display: none; }
 
   /* Header — fixed во всю ширину поверх контента;
      на 1024-1199 идёт от края, на 1200+ переопределяется (left: 240) */
-  header {
+  :where(html:not(.rd)) header {
     position: fixed !important;
     top: 0;
     left: 0;
@@ -1248,7 +1248,7 @@ body.no-character .drawer-nav { display: none; }
 
 @media (min-width: 1200px) {
   /* Real desktop (≥1200): добавляем статический sidebar 240px слева. */
-  body {
+  :where(html:not(.rd)) body {
     padding-left: 240px !important;
   }
 
@@ -1257,7 +1257,7 @@ body.no-character .drawer-nav { display: none; }
      задаёт width:320px / max-width:320px / right:0 (drawer-overlay справа
      для tablet-режима) — без !important эти правила выигрывают каскад
      и сайдбар выезжает на 80px поверх контента. */
-  .side-drawer {
+  :where(html:not(.rd)) .side-drawer {
     display: flex !important;
     flex-direction: column;
     visibility: visible !important;
@@ -1276,22 +1276,22 @@ body.no-character .drawer-nav { display: none; }
     box-shadow: none !important;
     z-index: var(--z-nav);
   }
-  .side-drawer.hidden { display: flex !important; }
-  .drawer-overlay { display: none !important; }
-  .drawer-close { display: none !important; }
-  .nav-hamburger { display: none !important; }
+  :where(html:not(.rd)) .side-drawer.hidden { display: flex !important; }
+  :where(html:not(.rd)) .drawer-overlay { display: none !important; }
+  :where(html:not(.rd)) .drawer-close { display: none !important; }
+  :where(html:not(.rd)) .nav-hamburger { display: none !important; }
 
   /* Header сдвигается под sidebar */
-  header {
+  :where(html:not(.rd)) header {
     left: 240px !important;
   }
 }
 
 @media (min-width: 1024px) {
   /* Right-rail и его карточки — стили общие для tablet (1024+) и desktop (1200+) */
-  header .header-avatar { width: 56px !important; height: 56px !important; font-size: var(--fs-32) !important; }
-  header .header-title { font-size: var(--fs-24) !important; }
-  header .header-subtitle { font-size: var(--fs-14) !important; }
+  :where(html:not(.rd)) header .header-avatar { width: 56px !important; height: 56px !important; font-size: var(--fs-32) !important; }
+  :where(html:not(.rd)) header .header-title { font-size: var(--fs-24) !important; }
+  :where(html:not(.rd)) header .header-subtitle { font-size: var(--fs-14) !important; }
 
   /* STYLE-8R: мини-карточки AC/Level/Inspiration сняты — эти величины стали
      строками-сводками правого rail (блок STYLE-8R в конце файла). */
@@ -16023,7 +16023,7 @@ button.modal-close-bottom:hover,
 @media (min-width: 1200px) and (max-width: 1599px) {
   :root { --rr-w: 48px; }
   :root.rr-open { --rr-w: 320px; }
-  body { padding-right: var(--rr-w) !important; }
+  :where(html:not(.rd)) body { padding-right: var(--rr-w) !important; }
   :root:not(.rr-open) .app-right-rail {
     width: 48px;
     padding: var(--sp-3) 0;

@@ -10,6 +10,16 @@
   // состояние — в dnd_rr_open. Класс на <html>, чтобы --rr-w видели :root-переменные.
   const RR_OPEN_KEY = 'dnd_rr_open';
   try { if (localStorage.getItem(RR_OPEN_KEY) === '1') document.documentElement.classList.add('rr-open'); } catch (e) {}
+  // РД-4: в режиме редизайна без сохранённого выбора меню и панель раскрыты от 1280,
+  // уже — свёрнуты в полосы. Выбор меню — в dnd_rd_nav ('mini' / 'full').
+  const RD_NAV_KEY = 'dnd_rd_nav';
+  if (document.documentElement.classList.contains('rd')) {
+    let rrSaved = null, navSaved = null;
+    try { rrSaved = localStorage.getItem(RR_OPEN_KEY); navSaved = localStorage.getItem(RD_NAV_KEY); } catch (e) {}
+    const wide = window.innerWidth >= 1280;
+    if (rrSaved === null && wide) document.documentElement.classList.add('rr-open');
+    if (navSaved === 'mini' || (navSaved === null && !wide)) document.documentElement.classList.add('rd-nav-mini');
+  }
 
   const RAIL_HTML = `
     <div class="rr-strip">
@@ -204,6 +214,28 @@
   function setRailOpen(open) {
     document.documentElement.classList.toggle('rr-open', open);
     try { localStorage.setItem(RR_OPEN_KEY, open ? '1' : '0'); } catch (e) {}
+    syncRdToggles();
+  }
+
+  // РД-4: подписи кнопок сворачивания меню и панели — по текущему состоянию
+  function syncRdToggles() {
+    const root = document.documentElement;
+    const nav = document.getElementById('rd-nav-toggle');
+    if (nav) {
+      const mini = root.classList.contains('rd-nav-mini');
+      nav.textContent = mini ? '»' : '«';
+      nav.title = mini ? 'Развернуть меню' : 'Свернуть меню';
+      nav.setAttribute('aria-label', nav.title);
+      nav.setAttribute('aria-expanded', mini ? 'false' : 'true');
+    }
+    const rr = document.getElementById('rd-rail-toggle');
+    if (rr) {
+      const open = root.classList.contains('rr-open');
+      rr.textContent = open ? 'Панель »' : '« Панель';
+      rr.title = open ? 'Свернуть панель' : 'Развернуть панель';
+      rr.setAttribute('aria-label', rr.title);
+      rr.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
   }
 
   function _esc(s) {
@@ -410,6 +442,15 @@
     });
     const btnCollapse = document.getElementById('rr-collapse');
     if (btnCollapse) btnCollapse.addEventListener('click', () => setRailOpen(false));
+    const btnRdRail = document.getElementById('rd-rail-toggle');
+    if (btnRdRail) btnRdRail.addEventListener('click', () => setRailOpen(!document.documentElement.classList.contains('rr-open')));
+    const btnRdNav = document.getElementById('rd-nav-toggle');
+    if (btnRdNav) btnRdNav.addEventListener('click', () => {
+      const mini = document.documentElement.classList.toggle('rd-nav-mini');
+      try { localStorage.setItem(RD_NAV_KEY, mini ? 'mini' : 'full'); } catch (e) {}
+      syncRdToggles();
+    });
+    syncRdToggles();
     const btnConc = document.getElementById('rr-conc-btn');
     if (btnConc) btnConc.addEventListener('click', () => {
       if (typeof window.openConcDetails === 'function') window.openConcDetails();
