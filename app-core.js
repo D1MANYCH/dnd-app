@@ -927,6 +927,79 @@ function hideCharacterNav() {
   }, { passive: true });
 })();
 
+// Шторка (модалка на телефоне) закрывается свайпом вниз — если её содержимое
+// прокручено к началу. Закрываем тем же, что и крестик, иначе — closeModal.
+(function() {
+  var SHEET_SEL = ".modal.active .modal-content, .confirm-modal-box, .conc-details-box, .notes-modal";
+  var sheet = null, startX = 0, startY = 0, startTime = 0, dy = 0, engaged = false;
+
+  function scrolledDown(el) {
+    for (var n = el; n && n !== document.body; n = n.parentNode) {
+      if (n.scrollTop > 0) return true;
+      if (n === sheet) break;
+    }
+    return false;
+  }
+  function closeAction(s) {
+    var btn = s.querySelector('.modal-close, [aria-label="Закрыть"]');
+    if (btn) return function() { btn.click(); };
+    var ov = s.closest(".modal");
+    if (ov && ov.id) return function() { closeModal(ov.id); };
+    return null;
+  }
+  function reset(s) { s.style.transition = ""; s.style.transform = ""; }
+
+  document.addEventListener("touchstart", function(e) {
+    sheet = null;
+    if (!e.touches || e.touches.length !== 1) return;
+    if (!window.matchMedia || !matchMedia("(max-width: 767px)").matches) return;
+    var t = e.target;
+    if (!t.closest || t.closest("textarea, input[type=range]")) return;
+    var s = t.closest(SHEET_SEL);
+    if (!s || s.classList.contains("closing")) return;
+    sheet = s;
+    if (scrolledDown(t)) { sheet = null; return; }
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startTime = Date.now();
+    dy = 0; engaged = false;
+  }, { passive: true });
+
+  document.addEventListener("touchmove", function(e) {
+    if (!sheet) return;
+    var mx = e.touches[0].clientX - startX;
+    var my = e.touches[0].clientY - startY;
+    if (!engaged) {
+      if (Math.abs(mx) < 8 && Math.abs(my) < 8) return;
+      if (my <= 0 || Math.abs(mx) > my) { sheet = null; return; }
+      engaged = true;
+      sheet.style.transition = "none";
+    }
+    dy = Math.max(0, my);
+    sheet.style.transform = "translateY(" + dy + "px)";
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+
+  function end() {
+    var s = sheet;
+    sheet = null;
+    if (!s || !engaged) return;
+    var v = dy / Math.max(1, Date.now() - startTime);
+    var act = closeAction(s);
+    if (act && (dy > Math.min(120, s.offsetHeight * 0.25) || (v > 0.5 && dy > 40))) {
+      s.style.transition = "transform .2s ease-out";
+      s.style.transform = "translateY(100%)";
+      setTimeout(function() { act(); setTimeout(function() { reset(s); }, 300); }, 200);
+      return;
+    }
+    s.style.transition = "transform .2s ease-out";
+    s.style.transform = "";
+    setTimeout(function() { s.style.transition = ""; }, 220);
+  }
+  document.addEventListener("touchend", end, { passive: true });
+  document.addEventListener("touchcancel", end, { passive: true });
+})();
+
 function createNewCharacter() {
 // Глубокое копирование дефолтного шаблона — безопасно, без мутации оригинала
 const newChar = JSON.parse(JSON.stringify(DEFAULT_CHARACTER));
