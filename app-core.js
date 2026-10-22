@@ -811,12 +811,17 @@ function switchTab(tabName, btnEl) {
   if (window.AppLog) AppLog.action('nav', 'вкладка → ' + tabName);
   // UI-6: тактильная отдача при переключении вкладок
   try { if (navigator.vibrate) navigator.vibrate(10); } catch(e) { window.__catchLog && window.__catchLog('core:switchTab-vibrate', e); }
+  // РД-3: «Главная» и «Характ.» — две половины #tab-sheet, кнопки панели — .rd-tab
+  var _rd = typeof isRedesign === "function" && isRedesign();
+  var _btnTab = tabName;
+  if (tabName === "stats") tabName = "sheet";
+  if (_rd && tabName === "sheet") _rdSheetView(_btnTab === "stats" ? "stats" : "main");
   document.querySelectorAll(".tab-content").forEach(function(tab) { tab.classList.remove("active"); });
   document.querySelectorAll(".tab-btn").forEach(function(btn) { btn.classList.remove("active"); });
   var tabElement = $("tab-" + tabName);
   if (tabElement) tabElement.classList.add("active");
   // Highlight tab btn
-  var activeBtn = btnEl ? btnEl.closest(".tab-btn") : document.querySelector(".tab-btn[data-tab='" + tabName + "']");
+  var activeBtn = btnEl ? btnEl.closest(".tab-btn") : document.querySelector((_rd ? ".tab-btn.rd-tab" : ".tab-btn:not(.rd-tab)") + "[data-tab='" + _btnTab + "']");
   if (activeBtn) activeBtn.classList.add("active");
   // Highlight drawer item
   document.querySelectorAll(".drawer-item").forEach(function(el) { el.classList.remove("drawer-item-active"); });
@@ -835,6 +840,28 @@ function switchTab(tabName, btnEl) {
   if (tabName === "notes")   { if (typeof renderNotes === "function") renderNotes(); }
   // TOUR-1: авто-старт интерактивного тура при первом заходе на вкладку (sheet/прочее — no-op).
   if (typeof maybeStartTabTour === "function") maybeStartTabTour(tabName);
+}
+
+// РД-3: блоки старого листа, которые живут на «Характ.»; остальное — «Главная».
+// Демо-лист (#sheet2) делится CSS по data-rd-view. Деление действует только на телефоне (redesign.css).
+var RD_STATS_BLOCKS = "#stats-collapse-btn, #abilities-region, .legacy-saves-card, .legacy-skills-card, #prof-card";
+function _rdSheetView(view) {
+  var tab = $("tab-sheet");
+  if (!tab) return;
+  tab.setAttribute("data-rd-view", view);
+  tab.querySelectorAll(".rd-off").forEach(function(el) { el.classList.remove("rd-off"); });
+  if (view !== "stats") {
+    tab.querySelectorAll(RD_STATS_BLOCKS).forEach(function(el) { el.classList.add("rd-off"); });
+    return;
+  }
+  (function walk(node) {
+    for (var i = 0; i < node.children.length; i++) {
+      var el = node.children[i];
+      if (el.id === "sheet2" || el.id === "sheet2-bar" || el.matches(RD_STATS_BLOCKS)) continue;
+      if (el.querySelector(RD_STATS_BLOCKS)) walk(el);
+      else el.classList.add("rd-off");
+    }
+  })(tab);
 }
 
 function openDrawer() {
@@ -963,11 +990,12 @@ function hideCharacterNav() {
     if (Math.abs(dx) < TAB_THRESHOLD) return;
 
     var current = currentActiveTab();
-    var idx = SWIPE_TABS.indexOf(current);
+    var tabs = (typeof isRedesign === "function" && isRedesign()) ? ["sheet", "stats", "spells", "inventory", "battle", "notes"] : SWIPE_TABS;
+    var idx = tabs.indexOf(current);
     if (idx < 0) return;
     var nextIdx = dx < 0 ? idx + 1 : idx - 1;
-    if (nextIdx < 0 || nextIdx >= SWIPE_TABS.length) return;
-    switchTab(SWIPE_TABS[nextIdx], null);
+    if (nextIdx < 0 || nextIdx >= tabs.length) return;
+    switchTab(tabs[nextIdx], null);
   }, { passive: true });
 })();
 

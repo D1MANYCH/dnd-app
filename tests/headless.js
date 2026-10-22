@@ -7516,8 +7516,11 @@
         var html = window.__indexHtmlSource;
         var nav = html.slice(html.indexOf('id="character-tabs"'));
         nav = nav.slice(0, nav.indexOf("</div>"));
-        var n = (nav.match(/class="tab-btn/g) || []).length;
+        var n = (nav.match(/class="tab-btn(?! rd-tab)/g) || []).length;
         if (n !== 5) return "кнопок " + n;
+        // РД-3: панель тестового режима — 6 вкладок
+        var rd = (nav.match(/class="tab-btn rd-tab"/g) || []).length;
+        if (rd !== 6) return "кнопок режима " + rd;
         if (nav.indexOf("switchTab('progress'") === -1) return "нет кнопки «Развитие»";
         return true;
       });

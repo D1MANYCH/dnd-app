@@ -2350,6 +2350,8 @@ function renderCreationTodo() {
 function creationTodoGo(id) {
   var el = $(id);
   if (!el) return;
+  // РД-3: цель на другой половине листа — переключаем «Главная» ↔ «Характ.»
+  if (el.closest(".rd-off")) switchTab(el.closest(RD_STATS_BLOCKS) ? "stats" : "sheet");
   if (el.closest(".identity-card.id-compact")) { _idMoreOpen = true; renderIdentitySummary(); }
   var prof = el.closest("#prof-card");
   if (prof && _isMobSheet() && !prof.classList.contains("prof-open")) { _profOpen = true; renderProfSummary(); }

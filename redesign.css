@@ -283,3 +283,35 @@ html.rd {
 
 /* Пресет «Янтарь» (#f38536) — по умолчанию только в режиме; вне режима чипа нет. */
 html:not(.rd) .accent-chip[data-accent-btn="ember"] { display: none; }
+
+/* ══ РД-3: каркас телефона — шапка 56, панель 6 вкладок, место дока ═══════
+   Figma 94:653 / 184:246: панель 6 × 62.5 при 375, высота 72, иконка 24 +
+   подпись 12, активная — акцентом; у шапки и панели линия #f38536 и тень (П-4).
+   «Главная» и «Характ.» — половины #tab-sheet (data-rd-view, _rdSheetView).
+   --rd-dock-h — место дока быстрого доступа над панелью (заполнит РД-8). */
+html:not(.rd) #character-tabs > .rd-tab { display: none; }
+html.rd #character-tabs > .tab-btn:not(.rd-tab) { display: none; }
+@media (max-width: 1023px) {
+  html.rd { --rd-tabbar-h: 72px; --rd-dock-h: 0px; --rd-above-bar: calc(var(--rd-tabbar-h) + var(--rd-dock-h) + env(safe-area-inset-bottom, 0px)); }
+  html.rd body { padding-bottom: calc(var(--rd-above-bar) + var(--sp-4)); }
+  html.rd header { min-height: 56px; padding: 0 var(--sp-4); border-bottom: var(--rd-bar-line); box-shadow: var(--rd-bar-shadow); }
+  html.rd .header-avatar, html.rd .header-subtitle { display: none; }
+  html.rd .header-title { font-size: var(--fs-18); font-weight: var(--fw-bold); }
+  html.rd .nav-hamburger [data-ico] { font-size: var(--fs-24); }
+  html.rd .tab-nav { height: calc(var(--rd-tabbar-h) + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; padding: 0 0 env(safe-area-inset-bottom, 0px); align-items: stretch; justify-content: stretch; border-top: var(--rd-bar-line); box-shadow: var(--rd-bar-shadow-up); }
+  html.rd .tab-btn.rd-tab { flex: 1 1 0; min-width: 0; min-height: 0; padding: var(--sp-2) 0 !important; gap: var(--sp-1); font-size: var(--fs-12) !important; line-height: 1.2; white-space: nowrap; border-radius: 0; }
+  html.rd .tab-btn.rd-tab span { font-size: var(--fs-24); }
+  html.rd .tab-btn.rd-tab.active { color: var(--accent) !important; background: none !important; }
+  html.rd .tab-btn.rd-tab.active::before { display: none; }
+  /* кубы — плавающей кнопкой над доком до РД-13 (6 вкладок занимают всю ширину) */
+  html.rd .tab-dice-fab { position: fixed; top: auto; right: var(--sp-4); bottom: calc(var(--rd-above-bar) + var(--sp-3)); margin: 0; width: 48px; height: 48px; filter: var(--rd-glow-btn); }
+  html.rd .quick-roll-strip { bottom: calc(var(--rd-above-bar) + var(--sp-2)); }
+  html.rd .aef-fab { bottom: calc(var(--rd-above-bar) + var(--sp-3)); }
+  html.rd #tab-sheet .rd-off { display: none !important; }
+  html.rd #tab-sheet[data-rd-view="stats"] #sheet2 .s2-head,
+  html.rd #tab-sheet[data-rd-view="stats"] #sheet2 .s2-line,
+  html.rd #tab-sheet[data-rd-view="stats"] #sheet2 aside,
+  html.rd #tab-sheet[data-rd-view="main"] #sheet2 .s2-two,
+  html.rd #tab-sheet[data-rd-view="main"] #sheet2 .s2-main > h3,
+  html.rd #tab-sheet[data-rd-view="main"] #sheet2 .s2-skills { display: none; }
+}
