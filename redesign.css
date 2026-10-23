@@ -623,3 +623,26 @@ html.rd #rd-spell-head:empty { display:none }
 html.rd #rd-spell-head { margin:0 0 var(--sp-4) }
 html.rd body.sheet2-on #rd-spell-head:not(:empty) ~ #spell-stat-card { display:none !important }
 html:not(.rd) :is(#rd-persona, #rd-spell-head) { display:none }
+
+/* ══ РД-12: карточки выбора — «вариант 3» (П-8) ══
+   Кликабельная карточка — bg-2, рамка, r4; выбрана — полоса 3 px слева + ромб + акцент;
+   совет билда — рамка --magic; недоступно — пунктир и бледность. Заглушка загрузки
+   без рамки, чтобы не выглядеть кликабельной. */
+html.rd :is(.feat-item, .asi-stat-item) { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-4); box-shadow: none; transition: background var(--t1); }
+html.rd :is(.feat-item, .asi-stat-item):hover { border-color: var(--border); background: var(--bg-3); }
+html.rd :is(.feat-item, .asi-stat-item).is-rec { border-color: color-mix(in srgb, var(--magic) 70%, transparent) !important; box-shadow: none; }
+html.rd .asi-stat-rec { color: var(--magic); }
+html.rd :is(.feat-item, .asi-stat-item).selected { border-color: var(--accent) !important; background: var(--bg-2); box-shadow: inset 3px 0 0 var(--accent); }
+html.rd .feat-item.selected .feat-item-name { color: var(--accent); }
+html.rd .feat-item.selected .feat-item-name::before { content: "◆"; margin-right: var(--sp-1); font-size: var(--fs-12); }
+html.rd .asi-stat-item.selected .asi-stat-name { color: var(--accent); }
+html.rd .asi-stat-item.selected::before { content: "◆"; position: absolute; top: 2px; left: 6px; color: var(--accent); font-size: var(--fs-12); line-height: 1; }
+html.rd :is(.feat-item.taken, .asi-stat-item.is-capped) { opacity: .45; background: transparent; border-style: dashed; border-color: var(--border); }
+html.rd :is(.feat-item.taken, .asi-stat-item.is-capped):hover { background: transparent; }
+html.rd .ac-modifier-item { background: var(--bg-2); border: 1px solid var(--border-soft); border-radius: var(--r-4); }
+html.rd .ac-modifier-item:is(.active, .negative, .note) { border-color: var(--border-soft); background: var(--bg-2); }
+html.rd .ac-modifier-item.active { box-shadow: inset 3px 0 0 var(--success); }
+html.rd .ac-modifier-item.negative { box-shadow: inset 3px 0 0 var(--danger); }
+html.rd .ac-modifier-item.note { box-shadow: inset 3px 0 0 var(--accent-lo); }
+html.rd .aef-row { border-radius: var(--r-4); }
+html.rd .skel-row { background: var(--bg-2); border: none; }
