@@ -444,3 +444,49 @@ html.rd .qrs-icon, html.rd .qrs-title, html.rd .qrs-chip:not(:first-child) { dis
 html.rd .qrs-list { flex:1;min-width:200px }
 html.rd .qrs-chip:first-child { border:0;padding:0;align-items:center }
 html.rd .qrs-chip:first-child .qrs-chip-label::before { content:"◆";color:var(--accent);font-size:var(--fs-12);margin-right:var(--sp-2) }
+
+/* ══ РД-7: магия — список заклинаний и полоса ячеек ═══════════════════════
+   Figma 204:16 / 214:55: имя 24, подзаголовок — школа цветом · время · дистанция,
+   шеврон раскрытия справа. Ячейки — ромбы (П-6): ◆ золото — свободна, ◇ — потрачена
+   (Д-5 открыт, взято допущением). На телефоне — полоса в золотой рамке (П-4)
+   над панелью (#rd-slot-strip, renderRdSlotStrip), по умолчанию свёрнута; в потоке
+   в конце вкладки и прилипает снизу — список не перекрывает. На ПК — прежний блок
+   ячеек ромбами и правая панель (РД-6). */
+html:not(.rd) #rd-slot-strip { display: none; }
+html.rd #tab-spells .spell-card-arrow { display: none; }
+html.rd #tab-spells .my-spell-item { padding-left: 0; }
+html.rd #tab-spells .my-spell-item.expanded { background: none; }
+html.rd #tab-spells .spell-card-header { padding-top: var(--sp-3); }
+html.rd #tab-spells .spell-card-name { font-size: var(--fs-24); font-weight: 400; line-height: 1.2; white-space: normal; overflow-wrap: anywhere; }
+html.rd #tab-spells .spell-card-header::after { content: ""; flex: none; width: 9px; height: 9px; margin: 0 var(--sp-2) 4px; border-right: 1.5px solid var(--text-dim); border-bottom: 1.5px solid var(--text-dim); transform: rotate(45deg); transition: transform var(--t1, 140ms) var(--ez-out, ease); }
+html.rd #tab-spells .my-spell-item.expanded .spell-card-header::after { transform: rotate(225deg); margin-bottom: -4px; }
+html.rd #tab-spells :is(.spell-card-meta, .spell-card-body) { padding-left: 0; }
+/* прежний блок ячеек (ПК) и зеркало в панели — ромбы вместо бусин */
+html.rd .spell-diamond { width: 12px; height: 12px; border: 1.5px solid var(--rd-gold-lo); border-radius: 1px; background: var(--rd-gold); box-shadow: none; transform: rotate(45deg); }
+html.rd .spell-diamond.used { background: none; border-color: var(--text-mute); }
+html.rd .spell-diamond:hover { transform: rotate(45deg) scale(1.2); }
+html.rd .spell-diamond:active { transform: rotate(45deg) scale(.9); }
+/* полоса ячеек */
+html.rd .rd-ss-head { display: flex; align-items: center; gap: var(--sp-2); min-height: 32px; width: auto; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; color: var(--text-dim); font-family: var(--font); font-size: var(--fs-12); cursor: pointer; }
+html.rd .rd-ss-head small { font-size: inherit; color: var(--text-mute); font-variant-numeric: tabular-nums; }
+html.rd .rd-ss-chev { width: 7px; height: 7px; margin-bottom: 3px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
+html.rd .rd-ss.open .rd-ss-chev { transform: rotate(225deg); margin: 3px 0 0; }
+html.rd .rd-ss-body { display: flex; overflow-x: auto; scrollbar-width: thin; }
+html.rd .rd-ss-g { display: inline-flex; align-items: center; flex: none; padding: 0 var(--sp-3); border-left: 1px solid var(--border); white-space: nowrap; }
+html.rd .rd-ss-g:first-child { padding-left: 0; border-left: 0; }
+html.rd .rd-ss-l { margin-right: var(--sp-1); font-size: var(--fs-14); color: var(--text); }
+html.rd .rd-ss-d { position: relative; flex: none; width: 28px; height: 36px; min-height: 0; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; cursor: pointer; }
+html.rd .rd-ss-d::before { content: ""; position: absolute; inset: 0; width: 13px; height: 13px; margin: auto; border: 1.5px solid var(--text-mute); border-radius: 1px; transform: rotate(45deg); }
+html.rd .rd-ss-d.on::before { background: var(--rd-gold); border-color: var(--rd-gold-lo); }
+html.rd .rd-ss-d:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+html.rd .rd-ss-m { flex: none; min-width: 32px; min-height: 32px; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; color: var(--accent-ink); font-size: var(--fs-18); line-height: 1; cursor: pointer; }
+html.rd .rd-ss.open .rd-ss-body { flex-wrap: wrap; row-gap: var(--sp-1); max-height: 50vh; overflow: auto; }
+html.rd .rd-ss.open .rd-ss-g { flex: 1 1 50%; box-sizing: border-box; min-width: 0; flex-wrap: wrap; padding: 0; border-left: 0; }
+html.rd .rd-ss.open .rd-ss-g:nth-child(even) { padding-left: var(--sp-3); border-left: 1px solid var(--border); }
+@media (max-width: 1023px) {
+  html.rd #spell-slots-visual, html.rd #ssl-all-mob, html.rd #spell-slots-card > p { display: none !important; }
+  html.rd #rd-slot-strip:not([hidden]) { display: block; position: sticky; bottom: calc(var(--rd-above-bar) + var(--sp-2)); z-index: 5; margin: var(--sp-4) 0 0; padding: var(--sp-1) 64px var(--sp-2) var(--sp-3); border: 1px solid transparent; border-radius: var(--r-8); background: linear-gradient(var(--bg-0), var(--bg-0)) padding-box, var(--rd-frame-gold) border-box; box-shadow: var(--rd-glow-gold); }
+}
+@media (min-width: 1024px) {
+  html.rd #rd-slot-strip { display: none; }
+}

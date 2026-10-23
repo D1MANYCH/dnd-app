@@ -99,6 +99,56 @@ container.classList.toggle("ssl-has", sslHas);
 if (sslAll) sslAll.style.display = container.querySelector(".spell-slot-empty .ssl-controls") ? "" : "none";
 // Дымка v5: зеркало ячеек в правом rail на ПК
 try { if (typeof window.refreshRailSlots === 'function') window.refreshRailSlots(); } catch (e) {}
+if (typeof isRedesign === "function" && isRedesign()) renderRdSlotStrip(char, isSingleWarlock);
+}
+// РД-7: полоса ячеек над панелью (телефон). Свёрнута — уровни в одну строку с прокруткой,
+// развёрнута — по два уровня в строке; ◆ свободна (нажать — потратить), ◇ потрачена (вернуть).
+// «−/+» меняют максимум — только развёрнутой и при открытом листе (ЗАМОК).
+var _rdSlotStripOpen = false;
+function rdSlotStripToggle() {
+  _rdSlotStripOpen = !_rdSlotStripOpen;
+  renderSpellSlots();
+}
+function rdSlotMax(level, delta) {
+  var char = getCurrentChar();
+  if (!char || sheetLockGuard()) return;
+  if (level === "pact") {
+    char.spells.pactSlots = Math.max(0, Math.min(4, (char.spells.pactSlots || 0) + delta));
+    if ((char.spells.pactUsed || 0) > char.spells.pactSlots) char.spells.pactUsed = char.spells.pactSlots;
+    saveToLocal();
+    renderSpellSlots();
+    return;
+  }
+  updateSpellSlots(level, Math.max(0, Math.min(9, (char.spells.slots[level] || 0) + delta)));
+}
+function renderRdSlotStrip(char, isSingleWarlock) {
+  var box = $("rd-slot-strip");
+  if (!box) return;
+  var canEdit = _rdSlotStripOpen && !isSheetLocked(char);
+  var groups = [], all = 0, free = 0;
+  var group = function(label, total, used, clickFn, maxArg) {
+    var left = Math.max(0, total - used), d = "";
+    all += total; free += left;
+    for (var p = 0; p < total; p++) {
+      var on = p < left;
+      d += '<button type="button" class="rd-ss-d' + (on ? ' on' : '') + '" onclick="' + clickFn(on ? used : used - 1) + '" title="' + (on ? 'Потратить ячейку' : 'Вернуть ячейку') + '" aria-label="' + label + ': ' + (on ? 'свободна' : 'потрачена') + '"></button>';
+    }
+    groups.push('<span class="rd-ss-g"><span class="rd-ss-l">' + label + '</span>' + d +
+      (canEdit ? '<button type="button" class="rd-ss-m" onclick="rdSlotMax(' + maxArg + ',-1)" title="Меньше ячеек">−</button><button type="button" class="rd-ss-m" onclick="rdSlotMax(' + maxArg + ',1)" title="Больше ячеек">+</button>' : '') +
+      '</span>');
+  };
+  if (!isSingleWarlock) {
+    for (var i = 1; i <= 9; i++) {
+      var t = char.spells.slots[i] || 0;
+      if (!t) continue;
+      group(i + "ур.", t, char.spells.slotsUsed[i] || 0, (function(lv) { return function(idx) { return "toggleSpellSlot(" + lv + "," + idx + ")"; }; })(i), i);
+    }
+  }
+  var pt = char.spells.pactSlots || 0, pl = char.spells.pactLevel || 0;
+  if (pt > 0 && pl > 0) group("Пакт " + pl + "ур.", pt, char.spells.pactUsed || 0, function(idx) { return "togglePactSlot(" + idx + ")"; }, "'pact'");
+  box.hidden = !groups.length;
+  box.classList.toggle("open", _rdSlotStripOpen);
+  box.innerHTML = groups.length ? '<button type="button" class="rd-ss-head" onclick="rdSlotStripToggle()" aria-expanded="' + _rdSlotStripOpen + '">Ячейки <small>' + free + '/' + all + '</small><span class="rd-ss-chev" aria-hidden="true"></span></button><div class="rd-ss-body">' + groups.join("") + '</div>' : "";
 }
 function togglePactSlot(index) {
 if (!currentId) return;
@@ -969,7 +1019,7 @@ byLevel[lvl].push(spell);
 });
 container.innerHTML = "";
 Object.keys(byLevel).sort(function(a,b){return a-b;}).forEach(function(level) {
-const levelTitle = level == 0 ? "Заговоры" : level + " уровень";
+const levelTitle = level == 0 ? "Заговоры" : (typeof isRedesign === "function" && isRedesign() ? "Заклинания " + level + " ур." : level + " уровень");
 const count = byLevel[level].length;
 const groupDiv = document.createElement("div");
 groupDiv.className = "spell-level-group";
