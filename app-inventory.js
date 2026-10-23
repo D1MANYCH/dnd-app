@@ -1879,7 +1879,38 @@ function quickSlotsClean(list) {
     if (seen[k]) return false;
     seen[k] = true;
     return true;
-  }).map(function(s) { return { kind: s.kind, ref: String(s.ref) }; });
+  }).map(function(s) {
+    var o = { kind: s.kind, ref: String(s.ref) };
+    if (quickSlotIconValid(s.icon)) o.icon = s.icon;
+    return o;
+  });
+}
+// РД-9: icon — id пресета (icons.js) или своя картинка data:image/…;base64 до ~10 КБ
+var QS_ICON_MAX = 13700;
+function quickSlotIconValid(icon) {
+  if (typeof icon !== "string" || !icon) return false;
+  if (icon.indexOf("data:") === 0) return icon.length <= QS_ICON_MAX && /^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+\/]+=*$/.test(icon);
+  return typeof qsIconPreset === "function" ? !!qsIconPreset(icon) : /^[a-z-]{2,20}$/.test(icon);
+}
+// иконка по умолчанию — по названию, категории, школе
+function quickSlotAutoIcon(s, ent) {
+  if (!ent) return "fire";
+  if (s.kind === "item") {
+    var n = String(ent.item.name || "").toLowerCase();
+    if (n.indexOf("лечени") !== -1) return "potion-heal";
+    if (n.indexOf("яд") === 0 || n.indexOf(" яд") !== -1) return "poison";
+    if (n.indexOf("святая вода") !== -1) return "holy-water";
+    if (n.indexOf("алхимическ") !== -1) return "alch-fire";
+    if (n.indexOf("масл") !== -1) return "oil";
+    if (n.indexOf("факел") !== -1) return "torch";
+    if (n.indexOf("рацион") !== -1) return "ration";
+    return { potion: "potion-mana", scroll: "scroll", material: "herb" }[ent.category] || "gem";
+  }
+  var nm = String(ent.name || "").toLowerCase();
+  var byName = [[/лечени|исцелени|целительн/, "heal"], [/молни|гром/, "lightning"], [/огн|пламен|жар/, "fire"], [/холод|лёд|лед|мороз|ледян/, "frost"], [/щит|защит|оберег/, "shield"], [/стрел|снаряд/, "arrows"]];
+  for (var i = 0; i < byName.length; i++) if (byName[i][0].test(nm)) return byName[i][1];
+  var sch = String(ent.school || "").toLowerCase();
+  return { "воплощение": "fire", "эвокация": "fire", "ограждение": "shield", "некромантия": "dark", "вызов": "arrows", "иллюзия": "dark", "очарование": "heal", "преобразование": "nature", "прорицание": "lightning" }[sch] || "arrows";
 }
 function _qsList(char) {
   if (!Array.isArray(char.quickSlots)) char.quickSlots = [];
@@ -2014,12 +2045,112 @@ function quickSlotToggle(kind, a, b, btn) {
     showToast("Добавлено в быстрый доступ", "success");
   }
   saveToLocal();
-  if (btn) btn.textContent = on ? "Убрать из быстрого доступа" : "В быстрый доступ";
+  var icoBtn = btn && btn.nextElementSibling;
+  if (icoBtn && icoBtn.classList.contains("rd-qs-ico-btn")) icoBtn.hidden = !on;
+  if (btn) btn.textContent = on ?"Убрать из быстрого доступа" : "В быстрый доступ";
   renderQuickDock();
 }
 function _qsBtnHtml(char, kind, ref, args) {
   var on = ref != null && quickSlotIndex(char, kind, ref) !== -1;
-  return '<button class="btn btn-secondary btn-sm rd-qs-btn" onclick="event.stopPropagation(); quickSlotToggle(' + args + ', this)">' + (on ? "Убрать из быстрого доступа" : "В быстрый доступ") + '</button>';
+  return '<button class="btn btn-secondary btn-sm rd-qs-btn" onclick="event.stopPropagation(); quickSlotToggle(' + args + ', this)">' + (on ? "Убрать из быстрого доступа" : "В быстрый доступ") + '</button>' +
+    '<button class="btn btn-secondary btn-sm rd-qs-ico-btn"' + (on ? '' : ' hidden') + ' onclick="event.stopPropagation(); quickSlotIconPickFor(' + args + ')">Иконка слота</button>';
+}
+// РД-9: окно выбора иконки — пресеты и своя картинка
+var _qsPick = null;
+function quickSlotIconPickFor(kind, a, b) {
+  var char = getCurrentChar();
+  if (!char) return;
+  var ref = kind === "item" ? (char.inventory[a] && char.inventory[a][b] && char.inventory[a][b].qid) : String(a);
+  var idx = ref ? quickSlotIndex(char, kind, ref) : -1;
+  if (idx !== -1) quickSlotIconPick(idx);
+}
+function quickSlotIconPick(idx) {
+  var char = getCurrentChar();
+  var s = char && _qsList(char)[idx];
+  var ent = s && _qsResolve(char, s);
+  if (!ent) return;
+  _qsPick = { kind: s.kind, ref: s.ref };
+  var m = $("rd-qs-icon-modal");
+  if (!m) {
+    m = document.createElement("div");
+    m.id = "rd-qs-icon-modal";
+    m.className = "confirm-modal-overlay rd-qsi-modal";
+    m.onclick = function(e) { if (e.target === m) quickSlotIconClose(); };
+    document.body.appendChild(m);
+  }
+  var cur = s.icon || quickSlotAutoIcon(s, ent);
+  var name = s.kind === "item" ? ent.item.name : ent.name;
+  var grid = function(list) {
+    return '<div class="rd-qsi-grid">' + list.map(function(p) {
+      return '<button type="button" class="rd-qsi-cell' + (p.id === cur ? ' on' : '') + '" onclick="quickSlotIconSet(\'' + p.id + '\')" title="' + p.name + '" aria-label="' + p.name + '" aria-pressed="' + (p.id === cur) + '">' + qsIconHtml(p.id, 56) + '</button>';
+    }).join("") + '</div>';
+  };
+  var own = cur.indexOf("data:") === 0;
+  var first = s.kind === "spell" ? "spell" : "item", second = first === "spell" ? "item" : "spell";
+  var title = { spell: "Иконки заклинаний", item: "Иконки расходников" };
+  m.innerHTML = '<div class="confirm-modal-box rd-qsi-box" role="dialog" aria-modal="true" aria-labelledby="rd-qsi-title">' +
+    '<button type="button" class="modal-close" onclick="quickSlotIconClose()" aria-label="Закрыть">✕</button>' +
+    '<h4 id="rd-qsi-title">Иконка слота</h4><p class="rd-qsi-for">' + escapeHtml(name) + '</p>' +
+    '<h5>' + title[first] + '</h5>' + grid(QS_ICON_PRESETS[first]) +
+    '<h5>' + title[second] + '</h5>' + grid(QS_ICON_PRESETS[second]) +
+    '<h5>Загрузить свою</h5>' +
+    '<label class="rd-qsi-upload' + (own ? ' on' : '') + '">' + (own ? qsIconHtml(cur, 56) : dndIcoHtml("download", 28)) +
+    '<span>' + (own ? "Заменить картинку" : "Загрузить иконку") + '</span><input type="file" accept="image/*" onchange="quickSlotIconUpload(this)"></label>' +
+    '<p class="rd-qsi-hint">PNG, JPG или WebP — обрежется до квадрата 96×96 и сожмётся до 10&nbsp;КБ</p>' +
+    '<div class="confirm-modal-btns"><button type="button" class="confirm-btn-cancel" onclick="quickSlotIconSet(null)">По умолчанию</button>' +
+    '<button type="button" class="confirm-btn-ok" onclick="quickSlotIconClose()">Готово</button></div></div>';
+  m.classList.add("active");
+}
+function quickSlotIconClose() {
+  _qsPick = null;
+  var m = $("rd-qs-icon-modal");
+  if (m) m.classList.remove("active");
+}
+function quickSlotIconSet(icon) {
+  var char = getCurrentChar();
+  var p = _qsPick;
+  if (!char || !p) return;
+  var idx = quickSlotIndex(char, p.kind, p.ref);
+  if (idx === -1) { quickSlotIconClose(); return; }
+  if (icon && quickSlotIconValid(icon)) char.quickSlots[idx].icon = icon;
+  else delete char.quickSlots[idx].icon;
+  saveToLocal();
+  renderQuickDock();
+  quickSlotIconPick(idx);
+}
+// своя картинка: обрезка по центру в квадрат 96 px, WebP (или JPEG), качество снижается до ≤10 КБ
+function quickSlotIconUpload(input) {
+  var f = input.files && input.files[0];
+  input.value = "";
+  if (!f) return;
+  if (!/^image\//.test(f.type)) { showToast("Нужна картинка: PNG, JPG или WebP", "warn"); return; }
+  var url = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function() {
+    URL.revokeObjectURL(url);
+    var data = quickSlotIconEncode(img);
+    if (!data) { showToast("Не удалось сжать картинку до 10 КБ", "warn"); return; }
+    quickSlotIconSet(data);
+  };
+  img.onerror = function() { URL.revokeObjectURL(url); showToast("Не удалось открыть картинку", "warn"); };
+  img.src = url;
+}
+function quickSlotIconEncode(img) {
+  var side = Math.min(img.naturalWidth, img.naturalHeight);
+  if (!side) return null;
+  var c = document.createElement("canvas");
+  c.width = c.height = 96;
+  var g = c.getContext("2d");
+  g.fillStyle = "#0b1020";
+  g.fillRect(0, 0, 96, 96);
+  g.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, 96, 96);
+  var qs = [0.85, 0.7, 0.55, 0.4, 0.25];
+  for (var i = 0; i < qs.length; i++) {
+    var d = c.toDataURL("image/webp", qs[i]);
+    if (d.indexOf("data:image/webp") !== 0) d = c.toDataURL("image/jpeg", qs[i]);
+    if (quickSlotIconValid(d)) return d;
+  }
+  return null;
 }
 // Док: 4 ячейки над нижней панелью на всех вкладках (телефон), на ПК — внизу правой панели (Д-4 открыт).
 var _qsEdit = false, _qsReplace = null;
@@ -2076,16 +2207,17 @@ function renderQuickDock() {
       html += '<button type="button" class="rd-qd-slot rd-qd-empty" onclick="quickDockHint()" aria-label="Пустой слот"><span class="rd-qd-plus" aria-hidden="true">+</span></button>';
       continue;
     }
-    var ent = _qsResolve(char, s), name, ico, cnt = "", off = false;
+    var ent = _qsResolve(char, s), name, cnt = "", off = false;
+    var ico = s.icon || quickSlotAutoIcon(s, ent);
     if (s.kind === "item") {
       var q = _qsQty(ent.item);
-      name = ent.item.name; ico = ent.category === "scroll" ? "scroll" : "flask"; cnt = String(q); off = q <= 0;
+      name = ent.item.name; cnt = String(q); off = q <= 0;
     } else {
-      name = ent.name; ico = "spells"; cnt = (ent.level || 0) === 0 ? "" : ent.level + " ур.";
+      name = ent.name; cnt = (ent.level || 0) === 0 ? "" : ent.level + " ур.";
     }
     var act = _qsEdit ? "quickDockRemoveAt(" + i + ")" : "quickSlotUse(" + i + ")";
     html += '<button type="button" class="rd-qd-slot' + (off ? ' off' : '') + (_qsEdit ? ' edit' : '') + '" onclick="' + act + '" title="' + escapeHtml(name) + '" aria-label="' + escapeHtml((_qsEdit ? "Убрать: " : "") + name + (off ? " — закончилось" : "")) + '">' +
-      dndIcoHtml(ico, 20) + '<span class="rd-qd-name">' + escapeHtml(name) + '</span>' +
+      qsIconHtml(ico, 26) + '<span class="rd-qd-name">' + escapeHtml(name) + '</span>' +
       (cnt ? '<span class="rd-qd-cnt">' + cnt + '</span>' : '') +
       (_qsEdit ? '<span class="rd-qd-x" aria-hidden="true">✕</span>' : '') + '</button>';
   }

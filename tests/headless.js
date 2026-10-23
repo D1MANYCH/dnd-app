@@ -11091,6 +11091,32 @@
       var n = _qsHealFormula({ name: "Противоядие", desc: "Выпить: преимущество" });
       return a === "2к4+2" && b === "4к4+4" && n === null ? true : [a, b, n].join("|");
     });
+    t("[РД-9] иконка слота: пресет и своя картинка сохраняются, мусор отбрасывается", function(){
+      var img = "data:image/webp;base64," + new Array(200).join("QUJD");
+      var big = "data:image/webp;base64," + new Array(5000).join("QUJD");
+      var c = quickSlotsClean([{ kind: "item", ref: "a", icon: "potion-heal" }, { kind: "spell", ref: "b", icon: img },
+        { kind: "item", ref: "c", icon: "нет-такого" }, { kind: "item", ref: "d", icon: big }, { kind: "item", ref: "e", icon: "data:text/html;base64,PHNjcmlwdD4=" }]);
+      var ok = c[0].icon === "potion-heal" && c[1].icon === img && !("icon" in c[2]) && !("icon" in c[3]) && !("icon" in c[4]);
+      var back = JSON.parse(JSON.stringify(c));
+      return ok && back[1].icon === img ? true : JSON.stringify(c).slice(0, 300);
+    });
+    t("[РД-9] иконка по умолчанию: по названию, категории и школе; пресеты есть у всех", function(){
+      var r = [
+        quickSlotAutoIcon({ kind: "item" }, { category: "potion", item: { name: "Зелье лечения" } }),
+        quickSlotAutoIcon({ kind: "item" }, { category: "scroll", item: { name: "Свиток: Щит" } }),
+        quickSlotAutoIcon({ kind: "item" }, { category: "material", item: { name: "Порошок" } }),
+        quickSlotAutoIcon({ kind: "spell" }, { name: "Молния", school: "воплощение" }),
+        quickSlotAutoIcon({ kind: "spell" }, { name: "Дружба", school: "очарование" }),
+        quickSlotAutoIcon({ kind: "spell" }, { name: "Огненный снаряд", school: "воплощение" })
+      ];
+      var all = r.every(function(id) { return !!qsIconPreset(id); });
+      return all && r.join(",") === "potion-heal,scroll,herb,lightning,heal,fire" ? true : r.join(",");
+    });
+    t("[РД-9] пресетов: 8 заклинаний и 12 расходников, id уникальны", function(){
+      var ids = QS_ICON_PRESETS.spell.concat(QS_ICON_PRESETS.item).map(function(p) { return p.id; });
+      var uniq = ids.filter(function(id, i) { return ids.indexOf(id) === i; });
+      return QS_ICON_PRESETS.spell.length === 8 && QS_ICON_PRESETS.item.length === 12 && uniq.length === 20 ? true : ids.join(",");
+    });
   }
 
   // ────────── РЕЗУЛЬТАТЫ ──────────

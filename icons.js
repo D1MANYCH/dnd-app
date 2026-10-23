@@ -178,6 +178,53 @@
     'Прорицание':      { ico: 'eye',    color: 'var(--divin)' },
   };
 
+  // --- РД-9: пресеты иконок слотов быстрого доступа ---
+  // Двухтонные: class="f" — заливка цветом пресета (прозрачность в CSS), остальное — контур.
+  var QS_ICON_PRESETS = {
+    spell: [
+      { id: 'fire',      name: 'Огонь',    color: 'var(--danger)', d: '<path class="f" d="M12 2.5c1.2 3.2 5.5 5.6 5.5 10.5a5.5 5.5 0 0 1-11 0c0-2.3 1-3.9 2.3-5 0 1.7.8 2.8 2.1 3.3-.2-3.2.1-5.9 1.1-8.8z"/><path d="M12 21a2.4 2.4 0 0 1-2.4-2.4c0-1.6 1.4-2.6 2.4-4.1 1 1.5 2.4 2.5 2.4 4.1A2.4 2.4 0 0 1 12 21z"/>' },
+      { id: 'frost',     name: 'Лёд',      color: 'var(--info)',   d: '<path class="f" d="M12 2l4.5 7.5L12 22 7.5 9.5z"/><path d="M7.5 9.5h9M12 2v20"/><path d="M4 4.5l2 2M6 4.5l-2 2M18.5 16l2 2M20.5 16l-2 2"/>' },
+      { id: 'lightning', name: 'Молния',   color: 'var(--divin)',  d: '<path class="f" d="M13.5 2 4.5 13.5h6.5L9.5 22l10-12.5h-6.5z"/>' },
+      { id: 'heal',      name: 'Лечение',  color: 'var(--success)', d: '<path class="f" d="M12 20.5s-8-4.7-8-10.8a4.4 4.4 0 0 1 8-2.6 4.4 4.4 0 0 1 8 2.6c0 6.1-8 10.8-8 10.8z"/><path d="M12 9.5v5.5M9.25 12.25h5.5"/>' },
+      { id: 'shield',    name: 'Защита',   color: 'var(--accent-ink)', d: '<path class="f" d="M12 2.5 4.5 5.5v6c0 4.8 3.2 8.4 7.5 10 4.3-1.6 7.5-5.2 7.5-10v-6z"/><path d="M12 6.5v11M8 10.5l4-4 4 4"/>' },
+      { id: 'arrows',    name: 'Стрелы',   color: 'var(--magic)',  d: '<path class="f" d="M10 3.5h5.5V9zM13 7.5h5.5V13zM16 11.5h5.5V17z"/><path d="M3 14.5l11-11M6 18.5l11-11M9 22.5l11-11"/>' },
+      { id: 'dark',      name: 'Тьма',     color: 'var(--necro)',  d: '<path class="f" d="M19.5 15A8.5 8.5 0 1 1 9 3.5a7 7 0 0 0 10.5 11.5z"/><path d="M17 3.5v3M15.5 5h3M20.5 8.5v2M19.5 9.5h2"/>' },
+      { id: 'nature',    name: 'Природа',  color: 'var(--success)', d: '<path class="f" d="M5 20.5C5 11.5 10 5 20 4c-.8 10-7 15.6-15 16.5z"/><path d="M3.5 22 14 11.5M9 16.5h4.5M9 16.5V12"/>' }
+    ],
+    item: [
+      { id: 'potion-heal', name: 'Зелье лечения', color: 'var(--danger)', d: '<path class="f" d="M6.1 14a6 6 0 0 0 11.8 0z"/><path d="M10.5 3v4.6a6.5 6.5 0 1 0 3 0V3M9.5 3h5"/>' },
+      { id: 'potion-mana', name: 'Зелье',         color: 'var(--info)',   d: '<path class="f" d="M6.1 14a6 6 0 0 0 11.8 0z"/><path d="M10.5 3v4.6a6.5 6.5 0 1 0 3 0V3M9.5 3h5"/><path d="M15.5 11.5h.01"/>' },
+      { id: 'poison',      name: 'Яд',            color: 'var(--necro)',  d: '<path class="f" d="M7.5 14h9v6a1.5 1.5 0 0 1-1.5 1.5H9A1.5 1.5 0 0 1 7.5 20z"/><path d="M9 2.5h6M10 2.5v4.5l-2.5 3.5v9.5A1.5 1.5 0 0 0 9 21.5h6a1.5 1.5 0 0 0 1.5-1.5v-9.5L14 7V2.5"/><path d="M10.5 17.5h.01M13.5 17.5h.01"/>' },
+      { id: 'elixir',      name: 'Эликсир',       color: 'var(--magic)',  d: '<path class="f" d="M10 12h4v7a2 2 0 0 1-4 0z"/><path d="M9 2.5h6M10 2.5V19a2 2 0 0 0 4 0V2.5"/><path d="M17.5 6l1.5 1.5M19 6l-1.5 1.5M5 10l1.5 1.5M6.5 10 5 11.5"/>' },
+      { id: 'holy-water',  name: 'Святая вода',   color: 'var(--divin)',  d: '<path class="f" d="M12 3c3 4 6 7.2 6 11a6 6 0 0 1-12 0c0-3.8 3-7 6-11z"/><path d="M12 10.5v7M9.5 13h5"/>' },
+      { id: 'alch-fire',   name: 'Алхимический огонь', color: 'var(--accent)', d: '<path class="f" d="M6.1 15a6 6 0 0 0 11.8 0z"/><path d="M10.5 8v.6a6.5 6.5 0 1 0 3 0V8M9.5 8h5"/><path d="M12 6c-1.2-1.2-1-2.6 0-4 1 1.4 1.2 2.8 0 4z"/>' },
+      { id: 'oil',         name: 'Масло',         color: 'var(--divin)',  d: '<path class="f" d="M5.2 14a6.8 6.8 0 0 0 13.6 0z"/><path d="M9.5 3h5M10 3v3.2C7 7.3 5 9.8 5 13a7 7 0 0 0 14 0c0-3.2-2-5.7-5-6.8V3"/><path d="M19 10.5c1.5 0 2.5 1 2.5 2.5S20.5 15.5 19 15.5"/>' },
+      { id: 'scroll',      name: 'Свиток',        color: 'var(--accent-ink)', d: '<path class="f" d="M7 6.5h11v12a2 2 0 0 1-2 2H6"/><path d="M5.5 3.5H16a2 2 0 0 1 0 4H5.5a2 2 0 0 1 0-4zM6 20.5a2 2 0 0 1-2-2V5.5M10 11.5h5M10 14.5h5"/>' },
+      { id: 'herb',        name: 'Трава',         color: 'var(--success)', d: '<path class="f" d="M12 21c0-5 1.5-9 6.5-11-1 5-3 8.5-6.5 11zM12 15c-.5-4-2.5-6.5-6.5-7.5.5 4 2.5 6.5 6.5 7.5z"/><path d="M12 21.5V5M12 5c-1-1-1-2 0-3 1 1 1 2 0 3z"/>' },
+      { id: 'gem',         name: 'Самоцвет',      color: 'var(--magic)',  d: '<path class="f" d="M2.5 9.5 12 21l9.5-11.5z"/><path d="M6.5 3.5h11l4 6L12 21 2.5 9.5zM2.5 9.5h19M9.5 3.5 8 9.5 12 21l4-11.5-1.5-6"/>' },
+      { id: 'ration',      name: 'Рацион',        color: 'var(--accent)', d: '<path class="f" d="M4 12a8 5.5 0 0 1 16 0v6.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M8.5 8.5l1.5 3M12 7.5v3.5M15.5 8.5 14 11.5"/>' },
+      { id: 'torch',       name: 'Факел',         color: 'var(--accent)', d: '<path class="f" d="M12 2.5c2 2.5 3.5 4 3.5 6.2a3.5 3.5 0 0 1-7 0c0-1.3.8-2.3 1.6-3 .2 1 .7 1.6 1.4 2 0-2 0-3.5.5-5.2z"/><path d="M9.5 12.5h5l-1.5 9h-2z"/>' }
+    ]
+  };
+  var _qsIconIndex = {};
+  QS_ICON_PRESETS.spell.concat(QS_ICON_PRESETS.item).forEach(function (p) { _qsIconIndex[p.id] = p; });
+  function qsIconPreset(id) { return _qsIconIndex[id] || null; }
+  // плитка иконки слота: id пресета или data:-картинка (своя, ~96 px)
+  function qsIconHtml(icon, size) {
+    size = size || 24;
+    var box = 'width:' + size + 'px;height:' + size + 'px';
+    if (typeof icon === 'string' && icon.indexOf('data:image/') === 0) {
+      return '<span class="qsi qsi-img" style="' + box + '"><img src="' + icon + '" alt="" width="' + size + '" height="' + size + '"></span>';
+    }
+    var p = _qsIconIndex[icon] || _qsIconIndex.fire;
+    var s = Math.round(size * 0.72);
+    return '<span class="qsi" style="' + box + ';--qc:' + p.color + '" aria-hidden="true"><svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none"' +
+      ' stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">' + p.d + '</svg></span>';
+  }
+
+  window.QS_ICON_PRESETS = QS_ICON_PRESETS;
+  window.qsIconPreset = qsIconPreset;
+  window.qsIconHtml = qsIconHtml;
   window.DND_ICON_PATHS = DND_ICON_PATHS;
   window.dndIcon = dndIcon;
   window.dndIcoHtml = dndIcoHtml;
