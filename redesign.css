@@ -490,3 +490,34 @@ html.rd .rd-ss.open .rd-ss-g:nth-child(even) { padding-left: var(--sp-3); border
 @media (min-width: 1024px) {
   html.rd #rd-slot-strip { display: none; }
 }
+
+/* ══ РД-8: док быстрого доступа ═══════════════════════════════════════════
+   Figma 292:58 / 240:158: 4 общих слота (расходники, заклинания, заговоры) в золотой
+   рамке со свечением (П-4) над панелью на всех вкладках телефона; --rd-dock-h сдвигает
+   полосу ячеек, кубы и отступ страницы. Кончилось — слот гаснет со счётчиком 0.
+   ПК — внизу правой панели (Д-4 открыт, взято допущением). */
+html:not(.rd) #rd-quick-dock, #rd-quick-dock[hidden], html:not(.rd) .rd-qs-btn { display: none; }
+html.rd body:is(.no-character, .screen-home, .screen-page) #rd-quick-dock { display: none !important; }
+html.rd .rd-qd-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); min-height: 24px; color: var(--text-dim); font-size: var(--fs-12); }
+html.rd .rd-qd-link { width: auto; min-height: 24px; margin: 0; padding: 0 var(--sp-1); border: 0; background: none; box-shadow: none; color: var(--accent-ink); font: inherit; cursor: pointer; }
+html.rd .rd-qd-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-2); }
+html.rd .rd-qd-slot { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0; height: 48px; min-height: 0; margin: 0; padding: 2px var(--sp-1); border: 1px solid var(--rd-gold-lo); border-radius: var(--r-8); background: var(--bg-1); box-shadow: none; color: var(--text); font-family: var(--font); cursor: pointer; filter: var(--rd-glow-btn); }
+html.rd .rd-qd-slot [data-ico], html.rd .rd-qd-slot svg { color: var(--rd-gold); }
+html.rd .rd-qd-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-12); line-height: 1.1; }
+html.rd .rd-qd-cnt { position: absolute; top: 1px; right: 4px; color: var(--accent-ink); font-size: var(--fs-12); font-variant-numeric: tabular-nums; }
+html.rd .rd-qd-slot.off { opacity: .45; filter: none; }
+html.rd .rd-qd-slot.off .rd-qd-cnt { color: var(--text-mute); }
+html.rd .rd-qd-empty { border: 1px dashed var(--border); color: var(--text-mute); filter: none; }
+html.rd .rd-qd-plus { font-size: var(--fs-24); line-height: 1; }
+html.rd .rd-qd-x { position: absolute; top: 1px; left: 4px; color: var(--danger); font-size: var(--fs-12); }
+html.rd .rd-qd-row.replace .rd-qd-slot:not(.rd-qd-empty) { border-color: var(--accent); }
+html.rd .rd-qd-slot:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+@media (max-width: 1023px) {
+  html.rd.rd-dock-on { --rd-dock-h: 92px; }
+  html.rd #rd-quick-dock:not([hidden]) { display: block; position: fixed; left: var(--sp-2); right: var(--sp-2); bottom: calc(var(--rd-tabbar-h) + env(safe-area-inset-bottom, 0px) + var(--sp-1)); z-index: var(--z-nav); box-sizing: border-box; padding: var(--sp-1) var(--sp-3) var(--sp-2); border: 1px solid transparent; border-radius: var(--r-8); background: linear-gradient(var(--bg-0), var(--bg-0)) padding-box, var(--rd-frame-gold) border-box; box-shadow: var(--rd-glow-gold); }
+}
+@media (min-width: 1024px) {
+  html.rd:not(.rr-open) #rd-quick-dock { display: none; }
+  html.rd.rr-open #rd-quick-dock:not([hidden]) { display: block; position: fixed; right: 0; bottom: 0; width: var(--rr-w); z-index: var(--z-nav); box-sizing: border-box; padding: var(--sp-2) var(--sp-3) var(--sp-3); border-top: 1px solid var(--rd-gold-lo); background: var(--bg-0); box-shadow: var(--rd-glow-gold); }
+  html.rd.rr-open.rd-dock-on .app-right-rail { padding-bottom: 104px; }
+}

@@ -1003,6 +1003,7 @@ if (!char) return;
 const container = $("my-spells-list");
 if (!container) return;
 renderPrepCounter();
+if (typeof renderQuickDock === "function") renderQuickDock();
 if (!char.spells.mySpells || char.spells.mySpells.length === 0) {
 container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: var(--sp-5) 0;">' + dndIcoHtml("inbox", 22) + ' Нет заклинаний — нажмите «Найти заклинание»</p>';
 return;
@@ -1124,6 +1125,7 @@ card.innerHTML =
     // HB-3: правка своего заклинания прямо из списка. Удаления из базы здесь нет
     // намеренно — рядом уже стоит «🗑 Удалить», и две корзины с разным смыслом
     // на одной карточке читаются как одна. Удаление насовсем живёт в поиске.
+    (typeof isRedesign === "function" && isRedesign() && typeof _qsBtnHtml === "function" ? _qsBtnHtml(char, "spell", spell.id, '\'spell\',' + _spellIdArg(spell.id) + ',null') : '') +
     (spell.homebrew ? '<button class="btn btn-text btn-sm spell-edit-btn" onclick="openAddSpellForm(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("edit", 13) + ' Изменить</button>' : '') +
     '<button class="btn btn-danger btn-sm spell-remove-btn" title="Убрать из\u00a0списка персонажа" onclick="removeSpell(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("trash", 13) + ' Удалить</button>' +
     '</div>' +

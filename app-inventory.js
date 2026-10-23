@@ -225,7 +225,7 @@ div.innerHTML =
         _chargesTagHtml +
       '</div>' +
     '</div>' +
-    '<span class="inv-item-qty" title="Количество">×' + (Number(item.qty) || 1) + '</span>' +
+    '<span class="inv-item-qty" title="Количество">×' + (item.qty === 0 ? 0 : (Number(item.qty) || 1)) + '</span>' +
     '<span class="inv-drag-handle" title="Перетащите, чтобы переместить предмет">⠿</span>' +
   '</div>' +
   '<div class="inv-item-body">' +
@@ -233,6 +233,7 @@ div.innerHTML =
     '<div class="inv-item-actions">' +
       _chargesCtrlHtml +
       _attuneBtnHtml +
+      (typeof isRedesign === "function" && isRedesign() && QS_ITEM_CATS.indexOf(data.category) !== -1 ? _qsBtnHtml(char, "item", item.qid, '\'item\',\'' + data.category + '\',' + data.index) : '') +
       '<button class="btn btn-secondary btn-sm inv-edit-btn" onclick="event.stopPropagation(); editItemDirect(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("edit", 14) + ' Изменить</button>' +
       '<button class="btn btn-danger btn-sm inv-del-btn" onclick="event.stopPropagation(); deleteItemDirect(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("trash", 14) + ' Удалить</button>' +
     '</div>' +
@@ -252,6 +253,7 @@ container.appendChild(div);
 _invDndInit();
 updateInventoryWeight();
 updateSlotsDisplay();
+renderQuickDock();
 // BUILD-FIX-9 (rev3): синхронизируем кнопку «Снять/Надет рюкзак»
 var _btn = document.getElementById("inv-backpack-toggle");
 if (_btn) {
@@ -526,6 +528,7 @@ desc: $("new-item-desc")?.value || ""
 // FIN-6: настройка магпредмета. Чекбокс = attunable; состояние attuned сохраняем
 // из старой записи при редактировании (снятие attunable гасит и attuned).
 var _prevItem = (slotIndex >= 0 && char.inventory[origCategory]) ? char.inventory[origCategory][slotIndex] : null;
+if (_prevItem && _prevItem.qid) newItem.qid = _prevItem.qid; // РД-8: ссылка слота быстрого доступа
 if ($("new-item-attune")?.checked) {
 newItem.attunable = true;
 if (_prevItem && _prevItem.attuned) newItem.attuned = true;
@@ -1856,4 +1859,235 @@ function invTouchEnd() {
   el.removeEventListener("touchcancel", invTouchEnd);
   _invTouch = null;
   if (wasActive) _invCommitDrop(src);
+}
+
+// ══ РД-8: быстрый доступ ═══════════════════════════════════════════════════
+// char.quickSlots — до 4 закреплений на персонажа, общие для расходников, заклинаний
+// и заговоров: [{kind:"item"|"spell", ref}]. Слот — ссылка: у предмета постоянный
+// item.qid (ставится при закреплении), у заклинания — id из mySpells; количество не
+// копируется. Кончился предмет — слот гаснет со счётчиком 0. Данные — у всех,
+// интерфейс (док, кнопки в карточках) — только в режиме редизайна.
+var QS_MAX = 4;
+var QS_ITEM_CATS = ["potion", "scroll", "material", "other"];
+var QS_HEAL = { "зелье лечения": "2к4+2", "зелье большого лечения": "4к4+4", "зелье отличного лечения": "8к4+8", "зелье превосходного лечения": "10к4+20" };
+function quickSlotsClean(list) {
+  if (!Array.isArray(list)) return [];
+  var seen = {};
+  return list.filter(function(s) {
+    if (!s || typeof s !== "object" || (s.kind !== "item" && s.kind !== "spell") || s.ref == null || s.ref === "") return false;
+    var k = s.kind + ":" + String(s.ref);
+    if (seen[k]) return false;
+    seen[k] = true;
+    return true;
+  }).map(function(s) { return { kind: s.kind, ref: String(s.ref) }; });
+}
+function _qsList(char) {
+  if (!Array.isArray(char.quickSlots)) char.quickSlots = [];
+  return char.quickSlots;
+}
+function _qsFindItem(char, qid) {
+  var inv = char.inventory || {};
+  var cats = Object.keys(inv);
+  for (var i = 0; i < cats.length; i++) {
+    var arr = inv[cats[i]];
+    if (!Array.isArray(arr)) continue;
+    for (var j = 0; j < arr.length; j++) if (arr[j] && arr[j].qid === qid) return { category: cats[i], index: j, item: arr[j] };
+  }
+  return null;
+}
+function _qsFindSpell(char, ref) {
+  var list = (char.spells && char.spells.mySpells) || [];
+  for (var i = 0; i < list.length; i++) if (list[i] && String(list[i].id) === ref) return list[i];
+  return null;
+}
+function _qsResolve(char, s) {
+  return s.kind === "item" ? _qsFindItem(char, s.ref) : _qsFindSpell(char, s.ref);
+}
+function _qsItemQid(item) {
+  if (!item.qid) item.qid = "q" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  return item.qid;
+}
+function _qsQty(item) { return item.qty == null ? 1 : (Number(item.qty) || 0); }
+function quickSlotIndex(char, kind, ref) {
+  var list = _qsList(char);
+  for (var i = 0; i < list.length; i++) if (list[i].kind === kind && list[i].ref === String(ref)) return i;
+  return -1;
+}
+// "ok" | "dup" | "full" | "missing"; replaceIdx — явная замена, когда заполнено
+function quickSlotAdd(char, kind, ref, replaceIdx) {
+  ref = String(ref);
+  var list = _qsList(char);
+  if (!_qsResolve(char, { kind: kind, ref: ref })) return "missing";
+  if (quickSlotIndex(char, kind, ref) !== -1) return "dup";
+  if (replaceIdx != null && replaceIdx >= 0 && replaceIdx < list.length) { list[replaceIdx] = { kind: kind, ref: ref }; return "ok"; }
+  if (list.length >= QS_MAX) return "full";
+  list.push({ kind: kind, ref: ref });
+  return "ok";
+}
+function quickSlotRemove(char, kind, ref) {
+  var i = quickSlotIndex(char, kind, ref);
+  if (i === -1) return false;
+  _qsList(char).splice(i, 1);
+  return true;
+}
+// убирает ссылки на удалённые предметы и заклинания; возвращает, сколько убрано
+function quickSlotPrune(char) {
+  var list = _qsList(char), before = list.length;
+  char.quickSlots = list.filter(function(s) { return !!_qsResolve(char, s); });
+  return before - char.quickSlots.length;
+}
+// повтор по тому же слоту раньше 700 мс — "busy" (двойное нажатие не списывает дважды)
+var _qsLastUse = {};
+function _qsBusy(char, ref, now) {
+  var key = char.id + ":" + ref;
+  if (_qsLastUse[key] && now - _qsLastUse[key] < 700) return true;
+  _qsLastUse[key] = now;
+  return false;
+}
+function quickSlotConsume(char, idx, now) {
+  var s = _qsList(char)[idx];
+  var hit = s && s.kind === "item" ? _qsFindItem(char, s.ref) : null;
+  if (!hit) return { err: "missing" };
+  var qty = _qsQty(hit.item);
+  if (qty <= 0) return { err: "empty" };
+  if (_qsBusy(char, s.ref, now || Date.now())) return { err: "busy" };
+  hit.item.qty = qty - 1;
+  return { item: hit.item, left: hit.item.qty };
+}
+function _qsHealFormula(item) {
+  var name = String(item.name || "").toLowerCase().trim();
+  if (name.indexOf("лечени") === -1) return null;
+  var m = /(\d+\s*к\s*\d+(?:\s*\+\s*\d+)?)\s*хит/i.exec(item.desc || "");
+  return m ? m[1].replace(/\s+/g, "") : (QS_HEAL[name] || null);
+}
+function quickSlotUse(idx) {
+  var char = getCurrentChar();
+  if (!char) return;
+  if (_qsReplace) { quickDockReplaceAt(idx); return; }
+  var s = _qsList(char)[idx];
+  if (!s) return;
+  if (s.kind === "spell") {
+    var sp = _qsFindSpell(char, s.ref);
+    if (sp && !_qsBusy(char, s.ref, Date.now())) castSpell(sp.id);
+    return;
+  }
+  var r = quickSlotConsume(char, idx);
+  if (r.err === "empty") { showToast("Закончилось — пополните в Сумке", "warn"); return; }
+  if (r.err) return;
+  if (window.AppLog) AppLog.action("inventory", "быстрый доступ: " + r.item.name + ", осталось " + r.left);
+  saveToLocal();
+  renderInventory();
+  var f = _qsHealFormula(r.item);
+  if (f && typeof rollFormula === "function") {
+    rollFormula(f, { label: r.item.name, openArena: true, onResult: function(res) { if (res && res.total > 0) quickHP(res.total, r.item.name); } });
+  } else {
+    showToast("Использовано: " + r.item.name + " · осталось " + r.left, "info");
+  }
+}
+// кнопка в карточке: предмет (a — категория, b — индекс) или заклинание (a — id)
+function quickSlotToggle(kind, a, b, btn) {
+  var char = getCurrentChar();
+  if (!char) return;
+  var ref;
+  if (kind === "item") {
+    var it = char.inventory[a] && char.inventory[a][b];
+    if (!it) return;
+    ref = _qsItemQid(it);
+  } else ref = String(a);
+  var on;
+  if (quickSlotIndex(char, kind, ref) !== -1) {
+    quickSlotRemove(char, kind, ref);
+    on = false;
+    showToast("Убрано из быстрого доступа", "info");
+  } else {
+    var r = quickSlotAdd(char, kind, ref);
+    if (r === "full") {
+      _qsEdit = false;
+      _qsReplace = { kind: kind, ref: ref };
+      saveToLocal();
+      renderQuickDock();
+      showToast("Быстрый доступ заполнен: " + QS_MAX + " из " + QS_MAX + " — уберите слот или выберите, что заменить", "warn");
+      return;
+    }
+    if (r !== "ok") return;
+    on = true;
+    showToast("Добавлено в быстрый доступ", "success");
+  }
+  saveToLocal();
+  if (btn) btn.textContent = on ? "Убрать из быстрого доступа" : "В быстрый доступ";
+  renderQuickDock();
+}
+function _qsBtnHtml(char, kind, ref, args) {
+  var on = ref != null && quickSlotIndex(char, kind, ref) !== -1;
+  return '<button class="btn btn-secondary btn-sm rd-qs-btn" onclick="event.stopPropagation(); quickSlotToggle(' + args + ', this)">' + (on ? "Убрать из быстрого доступа" : "В быстрый доступ") + '</button>';
+}
+// Док: 4 ячейки над нижней панелью на всех вкладках (телефон), на ПК — внизу правой панели (Д-4 открыт).
+var _qsEdit = false, _qsReplace = null;
+function quickDockEdit() { _qsEdit = !_qsEdit; renderQuickDock(); }
+function quickDockCancel() { _qsReplace = null; renderQuickDock(); }
+function quickDockHint() {
+  if (_qsReplace) return;
+  showToast("Закрепите расходник в Сумке или заклинание в Магии — кнопка «В быстрый доступ» в карточке", "info");
+}
+function quickDockRemoveAt(idx) {
+  var char = getCurrentChar();
+  if (!char || !_qsList(char)[idx]) return;
+  char.quickSlots.splice(idx, 1);
+  saveToLocal();
+  renderQuickDock();
+  _qsRefreshCards();
+}
+function quickDockReplaceAt(idx) {
+  var char = getCurrentChar();
+  var r = _qsReplace;
+  _qsReplace = null;
+  if (char && r && quickSlotAdd(char, r.kind, r.ref, idx) === "ok") {
+    saveToLocal();
+    showToast("Слот заменён", "success");
+    _qsRefreshCards();
+  }
+  renderQuickDock();
+}
+function _qsRefreshCards() {
+  var inv = $("tab-inventory"), sp = $("tab-spells");
+  if (inv && inv.classList.contains("active")) renderInventory();
+  else if (sp && sp.classList.contains("active") && typeof renderMySpells === "function") renderMySpells();
+}
+function renderQuickDock() {
+  var box = $("rd-quick-dock");
+  if (!box) return;
+  var char = currentId ? getCurrentChar() : null;
+  var on = !!char && typeof isRedesign === "function" && isRedesign();
+  box.hidden = !on;
+  document.documentElement.classList.toggle("rd-dock-on", on);
+  if (!on) return;
+  if (quickSlotPrune(char)) saveToLocal();
+  var list = char.quickSlots;
+  if (!list.length) _qsEdit = false;
+  var html = '<div class="rd-qd-head"><span>' + (_qsReplace
+    ? "Заполнено " + list.length + " из " + QS_MAX + " — что заменить?"
+    : "Быстрый доступ · " + list.length + " из " + QS_MAX) + '</span>';
+  if (_qsReplace) html += '<button type="button" class="rd-qd-link" onclick="quickDockCancel()">Отмена</button>';
+  else if (list.length) html += '<button type="button" class="rd-qd-link" onclick="quickDockEdit()">' + (_qsEdit ? "Готово" : "Изменить") + '</button>';
+  html += '</div><div class="rd-qd-row' + (_qsReplace ? ' replace' : '') + '">';
+  for (var i = 0; i < QS_MAX; i++) {
+    var s = list[i];
+    if (!s) {
+      html += '<button type="button" class="rd-qd-slot rd-qd-empty" onclick="quickDockHint()" aria-label="Пустой слот"><span class="rd-qd-plus" aria-hidden="true">+</span></button>';
+      continue;
+    }
+    var ent = _qsResolve(char, s), name, ico, cnt = "", off = false;
+    if (s.kind === "item") {
+      var q = _qsQty(ent.item);
+      name = ent.item.name; ico = ent.category === "scroll" ? "scroll" : "flask"; cnt = String(q); off = q <= 0;
+    } else {
+      name = ent.name; ico = "spells"; cnt = (ent.level || 0) === 0 ? "" : ent.level + " ур.";
+    }
+    var act = _qsEdit ? "quickDockRemoveAt(" + i + ")" : "quickSlotUse(" + i + ")";
+    html += '<button type="button" class="rd-qd-slot' + (off ? ' off' : '') + (_qsEdit ? ' edit' : '') + '" onclick="' + act + '" title="' + escapeHtml(name) + '" aria-label="' + escapeHtml((_qsEdit ? "Убрать: " : "") + name + (off ? " — закончилось" : "")) + '">' +
+      dndIcoHtml(ico, 20) + '<span class="rd-qd-name">' + escapeHtml(name) + '</span>' +
+      (cnt ? '<span class="rd-qd-cnt">' + cnt + '</span>' : '') +
+      (_qsEdit ? '<span class="rd-qd-x" aria-hidden="true">✕</span>' : '') + '</button>';
+  }
+  box.innerHTML = html + '</div>';
 }

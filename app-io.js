@@ -93,6 +93,8 @@ function _sanitizeImportedChar(c) {
   });
   // РОСТ-3: «Мои броски» — строки, длины, валидная формула
   if (c.savedRolls != null && typeof _savedRollsClean === "function") c.savedRolls = _savedRollsClean(c.savedRolls);
+  // РД-8: быстрый доступ — только ссылки {kind, ref}, без дублей
+  if (c.quickSlots != null && typeof quickSlotsClean === "function") c.quickSlots = quickSlotsClean(c.quickSlots);
   if (c.notesV2 && Array.isArray(c.notesV2.entries) && typeof _notesSanitizeEntry === "function") {
     c.notesV2.entries = c.notesV2.entries.map(_notesSanitizeEntry).filter(Boolean);
   }

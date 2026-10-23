@@ -996,6 +996,11 @@ function migrateCharacter(char) {
     if (char.edition !== "2024" && _has49) char.bgEquipGiven = true;
     char.schemaVersion = 49;
   }
+  if (v < 50) {
+    // РД-8: быстрый доступ — новое поле; битые записи и дубли отбрасываем, сверх 4 не режем
+    char.quickSlots = (typeof quickSlotsClean === "function") ? quickSlotsClean(char.quickSlots) : (Array.isArray(char.quickSlots) ? char.quickSlots : []);
+    char.schemaVersion = 50;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

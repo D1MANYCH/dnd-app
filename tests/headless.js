@@ -11021,6 +11021,78 @@
     });
   }
 
+  // ────────── БЛОК 74 (РД-8): быстрый доступ — лимит 4, дубли, снятие, сохранение, изоляция, пропавшие, двойное списание ──────────
+  if (typeof quickSlotAdd === "function") {
+    var _qs74 = function(id){
+      return { id: id, inventory: { potion: [{ name: "Зелье лечения", qty: 2, qid: "qa" }, { name: "Противоядие", qty: 1, qid: "qb" }], scroll: [{ name: "Свиток", qty: 1, qid: "qc" }], other: [] },
+        spells: { mySpells: [{ id: 101, name: "Огненный снаряд", level: 0 }, { id: "magic-missile", name: "Волшебная стрела", level: 1 }] }, quickSlots: [] };
+    };
+    t("[РД-8] лимит 4 на расходники, заклинания и заговоры вместе; пятое — full без автозамены", function(){
+      var c = _qs74("qs1");
+      var r = [quickSlotAdd(c, "item", "qa"), quickSlotAdd(c, "item", "qb"), quickSlotAdd(c, "spell", 101), quickSlotAdd(c, "spell", "magic-missile")];
+      if (r.join() !== "ok,ok,ok,ok") return r.join();
+      if (quickSlotAdd(c, "item", "qc") !== "full") return "пятое не full";
+      return c.quickSlots.length === 4 && c.quickSlots[0].ref === "qa" ? true : JSON.stringify(c.quickSlots);
+    });
+    t("[РД-8] дубли не добавляются; замена — только явно выбранного слота", function(){
+      var c = _qs74("qs2");
+      quickSlotAdd(c, "item", "qa");
+      if (quickSlotAdd(c, "item", "qa") !== "dup" || c.quickSlots.length !== 1) return "дубль";
+      ["qb", "qc"].forEach(function(q){ quickSlotAdd(c, "item", q); }); quickSlotAdd(c, "spell", 101);
+      if (quickSlotAdd(c, "spell", "magic-missile", 1) !== "ok") return "замена";
+      if (quickSlotAdd(c, "item", "qa", 2) !== "dup") return "замена дублем";
+      return c.quickSlots[1].ref === "magic-missile" && c.quickSlots.length === 4 ? true : JSON.stringify(c.quickSlots);
+    });
+    t("[РД-8] снятие убирает только ссылку — предмет и заклинание остаются", function(){
+      var c = _qs74("qs3");
+      quickSlotAdd(c, "item", "qa"); quickSlotAdd(c, "spell", 101);
+      if (!quickSlotRemove(c, "item", "qa") || !quickSlotRemove(c, "spell", "101") || c.quickSlots.length) return "не снято";
+      return c.inventory.potion.length === 2 && c.spells.mySpells.length === 2 ? true : "потеря сущности";
+    });
+    t("[РД-8] сохранение: JSON + миграция 49 → 50; битое и дубли отброшены, сверх 4 не режется", function(){
+      var c = _qs74("qs4"); quickSlotAdd(c, "item", "qa"); quickSlotAdd(c, "spell", 101);
+      var back = migrateCharacter(JSON.parse(JSON.stringify(c)));
+      if (JSON.stringify(back.quickSlots) !== JSON.stringify(c.quickSlots)) return "после JSON: " + JSON.stringify(back.quickSlots);
+      var a = migrateCharacter({ id: "qs4a", class: "Воин", level: 1, schemaVersion: 49 });
+      if (a.schemaVersion !== 50 || !Array.isArray(a.quickSlots) || a.quickSlots.length) return "новое поле: " + JSON.stringify(a.quickSlots);
+      var many = [1, 2, 3, 4, 5].map(function(n){ return { kind: "spell", ref: n }; }).concat([{ kind: "spell", ref: 1 }, { kind: "x", ref: "y" }, "мусор", null]);
+      var b = migrateCharacter({ id: "qs4b", class: "Воин", level: 1, schemaVersion: 49, quickSlots: many });
+      return b.quickSlots.length === 5 && b.quickSlots[4].ref === "5" ? true : JSON.stringify(b.quickSlots);
+    });
+    t("[РД-8] импорт: _sanitizeImportedChar чистит quickSlots", function(){
+      var c = _sanitizeImportedChar({ id: "qs5", class: "Воин", level: 1, quickSlots: [{ kind: "item", ref: "qa" }, { kind: "item", ref: "qa" }, { kind: "spell" }, 7] });
+      return c.quickSlots.length === 1 && c.quickSlots[0].ref === "qa" ? true : JSON.stringify(c.quickSlots);
+    });
+    t("[РД-8] изоляция: слоты и расход одного персонажа не трогают другого", function(){
+      var a = _qs74("qs6a"), b = _qs74("qs6b");
+      quickSlotAdd(a, "item", "qa"); quickSlotAdd(b, "item", "qa");
+      quickSlotConsume(a, 0, 5000); quickSlotConsume(b, 0, 5000);
+      if (a.inventory.potion[0].qty !== 1 || b.inventory.potion[0].qty !== 1) return "двойной ключ блокировки: " + a.inventory.potion[0].qty + "/" + b.inventory.potion[0].qty;
+      quickSlotRemove(a, "item", "qa");
+      return a.quickSlots.length === 0 && b.quickSlots.length === 1 ? true : "смешались";
+    });
+    t("[РД-8] пропавшие сущности: удалённый предмет и заклинание выпадают из слотов", function(){
+      var c = _qs74("qs7");
+      quickSlotAdd(c, "item", "qa"); quickSlotAdd(c, "item", "qc"); quickSlotAdd(c, "spell", "magic-missile");
+      c.inventory.potion.splice(0, 1); c.spells.mySpells.splice(1, 1);
+      if (quickSlotAdd(c, "spell", "magic-missile") !== "missing") return "пропавшее добавилось";
+      var n = quickSlotPrune(c);
+      return n === 2 && c.quickSlots.length === 1 && c.quickSlots[0].ref === "qc" ? true : n + " " + JSON.stringify(c.quickSlots);
+    });
+    t("[РД-8] двойное списание: повтор за 700 мс игнорируется; 0 — слот гаснет, но остаётся", function(){
+      var c = _qs74("qs8"); quickSlotAdd(c, "item", "qa");
+      var r1 = quickSlotConsume(c, 0, 1000), r2 = quickSlotConsume(c, 0, 1300), r3 = quickSlotConsume(c, 0, 2000), r4 = quickSlotConsume(c, 0, 3000);
+      if (r1.left !== 1 || r2.err !== "busy" || r3.left !== 0 || r4.err !== "empty") return JSON.stringify([r1.left, r2.err, r3.left, r4.err]);
+      return c.inventory.potion[0].qty === 0 && c.quickSlots.length === 1 ? true : "слот пропал";
+    });
+    t("[РД-8] зелье лечения бросает формулу из описания, иначе — по названию; прочее — без броска", function(){
+      var a = _qsHealFormula({ name: "Зелье лечения", desc: "Восстанавливает 2к4+2 хитов при выпивании (действие)." });
+      var b = _qsHealFormula({ name: "Зелье большого лечения" });
+      var n = _qsHealFormula({ name: "Противоядие", desc: "Выпить: преимущество" });
+      return a === "2к4+2" && b === "4к4+4" && n === null ? true : [a, b, n].join("|");
+    });
+  }
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 
