@@ -2096,8 +2096,8 @@ function quickSlotIconPick(idx) {
     '<h5>Загрузить свою</h5>' +
     '<label class="rd-qsi-upload' + (own ? ' on' : '') + '">' + (own ? qsIconHtml(cur, 56) : dndIcoHtml("download", 28)) +
     '<span>' + (own ? "Заменить картинку" : "Загрузить иконку") + '</span><input type="file" accept="image/*" onchange="quickSlotIconUpload(this)"></label>' +
-    '<p class="rd-qsi-hint">PNG, JPG или WebP — обрежется до квадрата 96×96 и сожмётся до 10&nbsp;КБ</p>' +
-    '<div class="confirm-modal-btns"><button type="button" class="confirm-btn-cancel" onclick="quickSlotIconSet(null)">По умолчанию</button>' +
+    '<p class="rd-qsi-hint">PNG, JPG или WebP — обрежется до квадрата 96×96 и сожмётся до 10&nbsp;КБ</p>' +
+    '<div class="confirm-modal-btns"><button type="button" class="confirm-btn-cancel" onclick="quickSlotIconSet(null)">По умолчанию</button>' +
     '<button type="button" class="confirm-btn-ok" onclick="quickSlotIconClose()">Готово</button></div></div>';
   m.classList.add("active");
 }
@@ -2123,16 +2123,16 @@ function quickSlotIconUpload(input) {
   var f = input.files && input.files[0];
   input.value = "";
   if (!f) return;
-  if (!/^image\//.test(f.type)) { showToast("Нужна картинка: PNG, JPG или WebP", "warn"); return; }
+  if (!/^image\//.test(f.type)) { showToast("Нужна картинка: PNG, JPG или WebP", "warn"); return; }
   var url = URL.createObjectURL(f);
   var img = new Image();
   img.onload = function() {
     URL.revokeObjectURL(url);
     var data = quickSlotIconEncode(img);
-    if (!data) { showToast("Не удалось сжать картинку до 10 КБ", "warn"); return; }
+    if (!data) { showToast("Не удалось сжать картинку до 10 КБ", "warn"); return; }
     quickSlotIconSet(data);
   };
-  img.onerror = function() { URL.revokeObjectURL(url); showToast("Не удалось открыть картинку", "warn"); };
+  img.onerror = function() { URL.revokeObjectURL(url); showToast("Не удалось открыть картинку", "warn"); };
   img.src = url;
 }
 function quickSlotIconEncode(img) {
