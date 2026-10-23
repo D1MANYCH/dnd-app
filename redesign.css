@@ -166,7 +166,7 @@ html.rd :is(#sheet2, .s2-box) .s2-head, html.rd :is(#sheet2, .s2-box) .s2-main {
 html.rd :is(#sheet2, .s2-box) .s2-line { display:flex;flex-wrap:wrap;gap:var(--sp-1) var(--sp-4);font-size:var(--fs-14);color:var(--text-dim);margin:var(--sp-4) 0 0 }
 html.rd :is(#sheet2, .s2-box) .s2-line b { color:var(--text);font-weight:600 }
 html.rd :is(#sheet2, .s2-box) .s2-line .s2-link { padding:0 }
-html.rd :is(#sheet2, .s2-box) .s2-two { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr) minmax(0,1.3fr);gap:0 48px }
+html.rd :is(#sheet2, .s2-box) .s2-two { display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:var(--sp-4) 48px }
 html.rd :is(#sheet2, .s2-box) table { width:100%;border-collapse:collapse;font-size:var(--fs-14) }
 html.rd :is(#sheet2, .s2-box) th { font-weight:400;font-size:var(--fs-12);color:var(--text-mute);text-align:left;padding:var(--sp-1) var(--sp-2);border-bottom:1px solid var(--s2-line) }
 html.rd :is(#sheet2, .s2-box) td { padding:var(--sp-2) var(--sp-2) }
@@ -542,5 +542,10 @@ html.rd .rd-qs-ico-btn[hidden] { display: none !important; }
 @media (min-width: 1024px) {
   html.rd:not(.rr-open) #rd-quick-dock { display: none; }
   html.rd.rr-open #rd-quick-dock:not([hidden]) { display: block; position: fixed; right: 0; bottom: 0; width: var(--rr-w); z-index: var(--z-nav); box-sizing: border-box; padding: var(--sp-2) var(--sp-3) var(--sp-3); border-top: 1px solid var(--rd-gold-lo); background: var(--bg-0); box-shadow: var(--rd-glow-gold); }
-  html.rd.rr-open.rd-dock-on .app-right-rail { padding-bottom: 104px; }
+  html.rd.rr-open.rd-dock-on .app-right-rail { padding-bottom: 148px; }
+  html.rd.rr-open #rd-quick-dock .rd-qd-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html.rd.rr-open #rd-quick-dock .rd-qd-slot { flex-direction: row; justify-content: flex-start; gap: var(--sp-2); height: 44px; padding: 2px var(--sp-2) 2px 4px; text-align: left; }
+  html.rd.rr-open #rd-quick-dock .rd-qd-empty { justify-content: center; }
+  html.rd.rr-open #rd-quick-dock .rd-qd-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; overflow-wrap: anywhere; font-size: var(--fs-12); line-height: 1.15; }
+  html.rd.rr-open #rd-quick-dock .rd-qd-x { top: auto; bottom: 1px; }
 }
