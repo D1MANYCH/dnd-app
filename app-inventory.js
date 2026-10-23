@@ -2006,7 +2006,7 @@ function quickSlotToggle(kind, a, b, btn) {
       _qsReplace = { kind: kind, ref: ref };
       saveToLocal();
       renderQuickDock();
-      showToast("Быстрый доступ заполнен: " + QS_MAX + " из " + QS_MAX + " — уберите слот или выберите, что заменить", "warn");
+      showToast("Быстрый доступ заполнен: " + QS_MAX + " из " + QS_MAX + " — уберите слот или выберите, что заменить", "warn");
       return;
     }
     if (r !== "ok") return;
@@ -2027,7 +2027,7 @@ function quickDockEdit() { _qsEdit = !_qsEdit; renderQuickDock(); }
 function quickDockCancel() { _qsReplace = null; renderQuickDock(); }
 function quickDockHint() {
   if (_qsReplace) return;
-  showToast("Закрепите расходник в Сумке или заклинание в Магии — кнопка «В быстрый доступ» в карточке", "info");
+  showToast("Закрепите расходник в Сумке или заклинание в Магии — кнопка «В быстрый доступ» в карточке", "info");
 }
 function quickDockRemoveAt(idx) {
   var char = getCurrentChar();
