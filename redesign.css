@@ -260,12 +260,26 @@ html.rd :is(#sheet2, .s2-box) .s2-pool { margin:2px 0 0;overflow-wrap:anywhere }
    #f38536 и трёхслойная тень; док и полоса ячеек — золотая рамка со свечением;
    кнопки — пятислойное свечение в цвет акцента (синий #35A6F2 отклонён).
    Применение токенов — РД-3, РД-6, РД-7, РД-8. */
+/* Кегли (23.10.2026): у Гарамонда малый очко, 14–16 читаются мелко — шкала
+   сдвинута: текст 18, подписи 14, заголовки и числа пропорционально.
+   Имена токенов прежние, значения в режиме — новые; плотность не действует. */
+html.rd, html.rd[data-density] {
+  --fs-sm-base: 14px;
+  --fs-md-base: 18px;
+  --fs-lg-base: 20px;
+  --fs-xl-base: 20px;
+  --fs-12: calc(14px * var(--fs-scale));
+  --fs-14: calc(18px * var(--fs-scale));
+  --fs-16: calc(18px * var(--fs-scale));
+  --fs-18: calc(20px * var(--fs-scale));
+  --fs-24: calc(28px * var(--fs-scale));
+  --fs-32: calc(36px * var(--fs-scale));
+  --fs-40: calc(44px * var(--fs-scale));
+}
 html.rd {
   --font: var(--font-book);
   --font-display: var(--font-book);
   --font-mono: var(--font-book);
-  --fs-16: calc(16px * var(--fs-scale));
-  --fs-40: calc(40px * var(--fs-scale));
   --rd-gutter: 24px;
   --rd-col-gap: 16px;
   --rd-cols: 4;
@@ -295,6 +309,9 @@ html.rd #character-tabs > .tab-btn:not(.rd-tab) { display: none; }
   html.rd header { min-height: 56px; padding: 0 var(--sp-4); border-bottom: var(--rd-bar-line); box-shadow: var(--rd-bar-shadow); }
   html.rd .header-avatar, html.rd .header-subtitle { display: none; }
   html.rd .header-title { font-size: var(--fs-18); font-weight: var(--fw-bold); }
+  /* имя и статус в одну строку на 375 не влезают (имя сжималось до «Во…») — статус второй строкой */
+  html.rd header { flex-wrap: wrap; row-gap: 0; }
+  html.rd header .status-bar { order: 1; flex: 1 0 100%; justify-content: flex-start; padding-bottom: var(--sp-2); }
   html.rd .nav-hamburger [data-ico] { font-size: var(--fs-24); }
   html.rd .tab-nav { height: calc(var(--rd-tabbar-h) + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; padding: 0 0 env(safe-area-inset-bottom, 0px); align-items: stretch; justify-content: stretch; border-top: var(--rd-bar-line); box-shadow: var(--rd-bar-shadow-up); }
   html.rd .tab-btn.rd-tab { flex: 1 1 0; min-width: 0; min-height: 0; padding: var(--sp-2) 0 !important; gap: var(--sp-1); font-size: var(--fs-12) !important; line-height: 1.2; white-space: nowrap; border-radius: 0; }
