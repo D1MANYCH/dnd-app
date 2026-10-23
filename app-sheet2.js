@@ -63,7 +63,30 @@
       rail.className = "s2-box";
       railHost.appendChild(rail);
     }
-    return { bar: bar, root: root, battle: battle, rail: rail };
+    // РД-11: «Личность» — сведения о персонаже над записями; прихвостни — на «Бой»;
+    // заклинательная характеристика — строкой в шапке «Магии»
+    var nt = document.getElementById("tab-notes");
+    var persona = document.getElementById("rd-persona");
+    if (!persona && nt) {
+      persona = document.createElement("div");
+      persona.id = "rd-persona";
+      persona.className = "s2-box";
+      var nhelp = nt.querySelector(".tab-help-row");
+      nt.insertBefore(persona, nhelp ? nhelp.nextSibling : nt.firstChild);
+    }
+    var comp = document.getElementById("companions-list-sheet");
+    var compCard = comp && comp.closest(".card");
+    if (compCard && bt && compCard.parentNode !== bt) bt.insertBefore(compCard, battle ? battle.nextSibling : null);
+    var st = document.getElementById("tab-spells");
+    var spellHead = document.getElementById("rd-spell-head");
+    if (!spellHead && st) {
+      spellHead = document.createElement("div");
+      spellHead.id = "rd-spell-head";
+      spellHead.className = "s2-box";
+      var card = document.getElementById("spell-stat-card");
+      st.insertBefore(spellHead, card || st.firstChild);
+    }
+    return { bar: bar, root: root, battle: battle, rail: rail, persona: persona, spellHead: spellHead };
   }
 
   function render() {
@@ -72,6 +95,8 @@
     var char = (typeof currentId !== "undefined" && currentId) ? getCurrentChar() : null;
     var locked = !!(char && typeof isSheetLocked === "function" && isSheetLocked(char));
     var on = locked && !showOld;
+    if (nodes.persona) nodes.persona.innerHTML = char ? buildPersona(char) : "";
+    if (nodes.spellHead) nodes.spellHead.innerHTML = on ? buildSpellHead(char) : "";
     document.body.classList.toggle("sheet2-on", on);
     var tabEl = document.getElementById("tab-sheet");
     var scr = document.getElementById("screen-character");
@@ -103,18 +128,19 @@
     h.push("<div class='s2-body'><div class='s2-head'>");
     h.push("<div class='s2-ava'>" + avaHtml + "</div>");
     h.push("<div><h2 class='s2-name'>" + esc(c.name || "Без\u00a0имени") + "</h2><div class='s2-facts'>");
-    // РД-5: класс, мультикласс, билд; раса и предыстория — строкой (уйдут в «Личность», РД-11)
+    // РД-5: класс, мультикласс, билд; раса, предыстория и мировоззрение — на «Личности» (РД-11)
     var multi = isMulticlass(c);
     h.push("<div class='s2-cls'>" + (multi
       ? "<button type='button' class='s2-link' onclick='openProgress()' title='Классы и уровни'>" + esc(getClassLabel(c)) + "</button>"
       : esc(c.class || "—") + (c.subclass ? " · " + esc(c.subclass) : "")) +
       (c.edition === "2024" ? " <small class='s2-ed'>2024</small>" : "") + "</div>");
-    h.push("<div class='s2-sub'>" + esc([c.race, c.background, c.alignment].filter(Boolean).join(" · ") || "—") + "</div>");
     var spd = parseInt(cm.speed, 10) || 30;
     if (typeof rulesEffectiveSpeed === "function") spd = rulesEffectiveSpeed(c, spd).speed;
     var bld = c.buildId && window.getBuildById ? window.getBuildById(c.buildId) : null;
     var hacts = [];
     if (c.class && lvl < 20) hacts.push("<button type='button' class='s2-link' onclick='pgAddClass()'>" + (multi ? "+ Ещё класс" : "+ Второй класс") + "</button>");
+    // РД-11: блок «Класс и развитие» ушёл с листа — невыбранное ведёт в «Развитие»
+    if (typeof _pgAttention === "function" && _pgAttention(c)) hacts.push("<button type='button' class='s2-link' onclick='openProgress()'>Осталось выбрать →</button>");
     if (bld) hacts.push("<button type='button' class='s2-link' onclick='openBuildBadgeMenu()' title='Гайд по билду'>Билд: " + esc(bld.title) + "</button>");
     if (hacts.length) h.push("<div class='s2-hacts'>" + hacts.join("") + "</div>");
     h.push("</div></div>");
@@ -306,6 +332,36 @@
     return hpBlock(c) + restBlock(c) + diceBlock() + slotsBlock(c) + condBlock(c);
   }
 
+  // ── РД-11: «Личность» — раса, предыстория и её умение, мировоззрение, книги
+  function buildPersona(c) {
+    var h = ["<h3>Личность</h3>"];
+    h.push("<div class='s2-kv'><b>Раса:</b> " + esc(c.race || "—") + "</div>");
+    h.push("<div class='s2-kv'><b>Предыстория:</b> " + esc(c.background || "—") + "</div>");
+    var bf = document.getElementById("background-feature-display");
+    if (bf && bf.style.display !== "none" && bf.innerHTML) h.push("<div class='s2-bgf'>" + bf.innerHTML + "</div>");
+    h.push("<div class='s2-kv'><b>Мировоззрение:</b> " + esc(c.alignment || "—") + "</div>");
+    if (typeof booksWithContent === "function" && typeof charHasBook === "function") {
+      var books = booksWithContent().filter(function (b) { return (typeof bookGloballyOn !== "function" || bookGloballyOn(b)) && charHasBook(c, b); })
+        .map(function (b) { return (typeof SOURCE_LABELS !== "undefined" && SOURCE_LABELS[b] && SOURCE_LABELS[b].full) || b; });
+      if (books.length) h.push("<div class='s2-kv'><b>Книги:</b> " + esc(books.join(", ")) + "</div>");
+    }
+    return h.join("");
+  }
+
+  // ── РД-11: шапка «Магии» — характеристика, модификатор, СЛ и атака одной строкой
+  function buildSpellHead(c) {
+    var lvl = c.level || 1;
+    if (typeof rulesSpellStats !== "function") return "";
+    var ss = rulesSpellStats(c, lvl);
+    var stat = (c.spells && c.spells.stat) || ss.stat || "";
+    if (!stat) return "";
+    var names = { "ИНТ": "Интеллект", "МУД": "Мудрость", "ХАР": "Харизма" };
+    var h = ["<div class='s2-line'><span>Характеристика <b>" + esc(names[stat] || stat) + "</b></span><span>Мод. <b>" + fm(ss.mod) + "</b></span><span>СЛ <b>" + ss.dc + "</b></span><span>Атака <b>" + fm(ss.attack) + "</b></span></div>"];
+    var by = isMulticlass(c) && typeof rulesSpellStatsByClass === "function" ? rulesSpellStatsByClass(c, lvl) : [];
+    if (by.length > 1) h.push("<div class='s2-kv'>" + by.map(function (r) { return esc(r.cls) + " (" + esc(r.stat) + "): СЛ " + r.dc + " · атака " + fm(r.attack); }).join(" · ") + "</div>");
+    return h.join("");
+  }
+
   // Умения класса и подкласса до текущего уровня класса (мультикласс — по каждому)
   function classFeatures(c) {
     if (typeof edData !== "function") return [];
@@ -477,7 +533,7 @@
   }
   ["showScreen", "calcStats", "updateHPDisplay", "loadCharacter", "loadDeathSaves", "toggleInspiration",
    "applySheetLockUI", "switchTab", "recalculateHP", "calculateAC", "saveToLocal",
-   "renderClassResources", "renderDiceHistory", "renderWeapons", "renderQuickRollStrip", "setConcentration", "endConcentration"].forEach(function (name) {
+   "renderClassResources", "renderDiceHistory", "calcSpellStats", "renderBackgroundFeature", "renderBooksRow", "renderWeapons", "renderQuickRollStrip", "setConcentration", "endConcentration"].forEach(function (name) {
     var orig = window[name];
     if (typeof orig !== "function") return;
     window[name] = function () { var r = orig.apply(this, arguments); schedule(); return r; };

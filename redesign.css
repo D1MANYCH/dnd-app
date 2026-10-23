@@ -610,3 +610,16 @@ html.rd .rd-exch-btn { width: 100%; min-height: 44px; }
   html.rd #tab-inventory.active > * { grid-column: 1; }
   html.rd #tab-inventory.active > #inv-coins-card { grid-column: 2; grid-row: 1 / span 6; }
 }
+
+/* ══ РД-11: «Личность», шапка «Магии», прихвостни на «Бое» ══
+   #rd-persona — над записями «Личности»; #rd-spell-head — строка вместо карточки
+   «Заклинательная характеристика», пока виден новый лист (выбор характеристики —
+   в «Изменить»). Карточка прихвостней переносится из листа на «Бой» (app-sheet2.js). */
+html.rd #rd-persona { margin:0 0 var(--sp-5) }
+html.rd #rd-persona .s2-kv { margin:var(--sp-1) 0 }
+html.rd #rd-persona .s2-bgf { display:flex;flex-direction:column;gap:var(--sp-1);margin:0 0 var(--sp-2);color:var(--text-dim) }
+html.rd #rd-persona .s2-bgf .bg-feature-label { color:var(--text);font-weight:600 }
+html.rd #rd-spell-head:empty { display:none }
+html.rd #rd-spell-head { margin:0 0 var(--sp-4) }
+html.rd body.sheet2-on #rd-spell-head:not(:empty) ~ #spell-stat-card { display:none !important }
+html:not(.rd) :is(#rd-persona, #rd-spell-head) { display:none }
