@@ -13,7 +13,7 @@
     { k: "wis", n: "Мудрость", s: "Мдр" }, { k: "cha", n: "Харизма", s: "Хар" }
   ];
   var SKILL_GROUPS = ["str", "dex", "int", "wis", "cha"];
-  var DICE = [4, 6, 8, 10, 12, 20, 100];
+  var DICE = [2, 4, 6, 8, 10, 12, 20, 100];
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -45,7 +45,25 @@
       root.id = "sheet2";
       tab.insertBefore(root, bar.nextSibling);
     }
-    return { bar: bar, root: root };
+    // РД-6: блок боя наверху «Боя» и свой блок в правой панели ПК
+    var bt = document.getElementById("tab-battle");
+    var battle = document.getElementById("rd-battle");
+    if (!battle && bt) {
+      battle = document.createElement("div");
+      battle.id = "rd-battle";
+      battle.className = "s2-box";
+      var help = bt.querySelector(".tab-help-row");
+      bt.insertBefore(battle, help ? help.nextSibling : bt.firstChild);
+    }
+    var railHost = document.getElementById("app-right-rail");
+    var rail = document.getElementById("rd-rail");
+    if (!rail && railHost) {
+      rail = document.createElement("div");
+      rail.id = "rd-rail";
+      rail.className = "s2-box";
+      railHost.appendChild(rail);
+    }
+    return { bar: bar, root: root, battle: battle, rail: rail };
   }
 
   function render() {
@@ -63,12 +81,11 @@
     nodes.bar.innerHTML = !char ? "" : !locked
       ? "Демо нового листа: зафиксируйте лист, чтобы увидеть его"
       : "Демо нового листа · <button type='button' onclick='sheet2Toggle()'>" + (showOld ? "Показать новый" : "Показать старый") + "</button>";
+    [nodes.battle, nodes.rail].forEach(function (n) { if (n) { n.style.display = on ? "" : "none"; if (!on) n.innerHTML = ""; } });
     if (!on) return;
-    // правая панель прокручивается сама — перерисовка не должна сбрасывать её наверх
-    var side = nodes.root.querySelector("aside"), sideTop = side ? side.scrollTop : 0;
     nodes.root.innerHTML = build(char);
-    side = nodes.root.querySelector("aside");
-    if (side && sideTop) side.scrollTop = sideTop;
+    if (nodes.battle) nodes.battle.innerHTML = buildBattle(char);
+    if (nodes.rail) nodes.rail.innerHTML = buildRail(char);
   }
 
   function build(c) {
@@ -187,19 +204,26 @@
     h.splice(sideAt, 0, side.join(""));
     h.push("</div>");
 
-    // ── Правая колонка: бой
+    // ── Правая колонка: хиты и отдых (РД-6: остальное — на «Бое» и в правой панели ПК)
+    h.push("<aside>" + hpBlock(c) + restBlock(c) + "</aside></div>");
+    return h.join("");
+  }
+
+  // ── РД-6: блоки боя — общие для листа, вкладки «Бой» и правой панели ПК
+  function hpBlock(c) {
+    var lvl = c.level || 1, cm = c.combat || {}, h = [];
+    var spd = parseInt(cm.speed, 10) || 30;
+    if (typeof rulesEffectiveSpeed === "function") spd = rulesEffectiveSpeed(c, spd).speed;
     var hpMax = (typeof rulesEffectiveHpMax === "function" ? rulesEffectiveHpMax(c) : cm.hpMax) || cm.hpMax || 1;
     var hpCur = cm.hpCurrent || 0;
     var ac = rulesAC(c);
     var acVal = (cm.armorId === "custom" && cm.ac) ? cm.ac : (ac && ac.ac) || cm.ac || 10;
-    var hdLeft = Math.max(0, lvl - (cm.hpDiceSpent || 0));
-    h.push("<aside>");
     h.push("<div class='s2-trio'><div><small>КД</small><b>" + acVal + "</b></div><div><small>Инициатива</small><b>" + fm(getInitiativeMod(c, lvl)) + "</b></div><div><small>Скорость</small><b>" + spd + "</b></div></div>");
     if (c.concentration) h.push("<div class='s2-acts'><span class='s2-kv'>Концентрация: <b>" + esc(c.concentration) + "</b></span><button type='button' class='s2-link' onclick='endConcentration()'>Снять</button></div>");
-    h.push("<div class='s2-hp'><span>Хиты" + (cm.hpTemp ? " <small style='color:var(--info)'>+" + cm.hpTemp + " врем.</small>" : "") + "</span><span class='s2-big'>" + hpCur + " / " + hpMax + "</span></div>");
+    h.push("<div class='s2-hp'><span>Хиты" + (cm.hpTemp ? " <small style='color:var(--info)'>+" + cm.hpTemp + " врем.</small>" : "") + "</span><span class='s2-big'>" + hpCur + "<small> / " + hpMax + "</small></span></div>");
     h.push("<div class='s2-hpbar'><i style='width:" + Math.max(0, Math.min(100, Math.round(100 * hpCur / hpMax))) + "%'></i></div>");
-    h.push("<div class='s2-hpctl'><input id='s2-hp-n' type='number' min='0' inputmode='numeric' placeholder='урон / лечение' aria-label='Сколько хитов'>");
-    h.push("<button type='button' class='s2-btn' onclick='sheet2HP(-1)' title='Урон'>−</button><button type='button' class='s2-btn' onclick='sheet2HP(1)' title='Лечение'>+</button></div>");
+    h.push("<div class='s2-hpctl'><input type='number' min='0' inputmode='numeric' placeholder='урон / лечение' aria-label='Сколько хитов' onkeydown=\"if(event.key==='Enter')sheet2HP(this,-1)\">");
+    h.push("<button type='button' class='s2-btn s2-glow' onclick='sheet2HP(this,-1)' title='Урон' aria-label='Урон'>−</button><button type='button' class='s2-btn s2-glow' onclick='sheet2HP(this,1)' title='Лечение' aria-label='Лечение'>+</button></div>");
     h.push("<div class='s2-acts'><span class='s2-kv'>Временные хиты: <b>" + (cm.hpTemp || 0) + "</b></span></div>");
     if (hpCur <= 0) {
       var ds = c.deathSaves || { successes: [], failures: [] };
@@ -210,49 +234,76 @@
       };
       h.push("<div class='s2-ds'><span>Успехи " + pips(ds.successes || [], "success") + "</span><span>Провалы " + pips(ds.failures || [], "failure") + "</span></div>");
     }
+    return h.join("");
+  }
 
-    h.push("<h3>Отдых</h3><div class='s2-acts'><button type='button' class='s2-btn' onclick='openRestModal();showShortRestInfo()'>Короткий</button><button type='button' class='s2-btn' onclick='openRestModal();showLongRestInfo()'>Длинный</button></div>");
-    h.push("<div class='s2-acts'><button type='button' class='s2-btn' onclick='rollHitDieQuick()'" + (hdLeft ? "" : " disabled") + ">Кость хитов</button><span class='s2-kv'>осталось " + hdLeft + " из " + lvl + " (" + esc(rulesHitDiceLabel(c)) + ")</span></div>");
+  function restBlock(c) {
+    var lvl = c.level || 1;
+    var hdLeft = Math.max(0, lvl - ((c.combat && c.combat.hpDiceSpent) || 0));
+    return "<h3>Отдых</h3><div class='s2-acts'><button type='button' class='s2-btn' onclick='openRestModal();showShortRestInfo()'>Короткий</button><button type='button' class='s2-btn' onclick='openRestModal();showLongRestInfo()'>Длинный</button></div>" +
+      "<div class='s2-acts'><button type='button' class='s2-btn' onclick='rollHitDieQuick()'" + (hdLeft ? "" : " disabled") + ">Кость хитов</button><span class='s2-kv'>осталось " + hdLeft + " из " + lvl + " (" + esc(rulesHitDiceLabel(c)) + ")</span></div>";
+  }
 
-    // ── Ресурсы класса (ярость, наложение рук, божественный канал…)
+  // Атака строкой: название с бонусом — бросок атаки (режим — всплывашкой у строки), урон — бросок урона
+  function atkRow(c, w, wi, lvl) {
+    var m = rulesWeaponMods(c, w, lvl);
+    var dmg = esc(w.damage || "") + (m.damageMod ? fm(m.damageMod) : "");
+    var smite = wi >= 0 && typeof _canDivineSmite === "function" && _canDivineSmite(c, w)
+      ? "<button type='button' class='s2-link' onclick='openDivineSmite(" + wi + ")' title='Божественная кара'>Кара</button>" : "";
+    return "<div class='s2-atk'><button type='button' class='s2-atk-n' data-t='Атака: " + esc(w.name) + "' data-v='" + fm(m.attack) + "' data-b='урон " + dmg + "' onclick=\"sheet2Roll(this,'rollWeaponAttack'," + wi + ")\" title='Бросок атаки'>" + esc(w.name) + " <b>" + fm(m.attack) + "</b></button>" +
+      smite + "<button type='button' class='s2-atk-d' onclick='rollWeaponDamage(" + wi + ")' title='Бросок урона'>" + dmg + "</button></div>";
+  }
+
+  function weaponsBlock(c) {
+    var lvl = c.level || 1, h = [];
     var resRows = classResources(c);
-    if (resRows) h.push("<h3>Умения класса</h3>" + resRows);
+    if (resRows) h.push("<h3>Ресурсы класса</h3>" + resRows);
+    h.push("<h3>Оружие</h3>");
+    (c.weapons || []).forEach(function (w, wi) { if (w && w.name) h.push(atkRow(c, w, wi, lvl)); });
+    if (typeof _unarmedStrike === "function") h.push(atkRow(c, _unarmedStrike(c), UNARMED_WEAPON_INDEX, lvl));
+    h.push("<div class='s2-acts'><button type='button' class='s2-link' onclick='openWeaponModal()'>+ Добавить оружие</button>" +
+      ((c.weapons || []).length ? "<button type='button' class='s2-link' onclick='sheet2WeaponsEdit()'>" + (document.body.classList.contains("rd-wpn-edit") ? "Скрыть правку" : "Правка и мастерство") + "</button>" : "") + "</div>");
+    return h.join("");
+  }
 
-    // ── Атаки: название — бросок атаки, урон — бросок урона
-    var wsShown = 0;
-    (c.weapons || []).forEach(function (w, wi) {
-      if (!w || !w.name || wsShown >= 6) return;
-      if (!wsShown) h.push("<h3>Атаки</h3>");
-      wsShown++;
-      var m = rulesWeaponMods(c, w, lvl);
-      h.push("<div class='s2-atk'><button type='button' class='s2-atk-n' data-t='Атака: " + esc(w.name) + "' data-v='" + fm(m.attack) + "' data-b='урон " + esc(w.damage || "") + (m.damageMod ? fm(m.damageMod) : "") + "' onclick=\"sheet2Roll(this,'rollWeaponAttack'," + wi + ")\" title='Бросок атаки'>" + esc(w.name) + " <b>" + fm(m.attack) + "</b></button>" +
-        "<button type='button' class='s2-atk-d' onclick='rollWeaponDamage(" + wi + ")' title='Бросок урона'>" + esc(w.damage || "") + (m.damageMod ? fm(m.damageMod) : "") + "</button></div>");
-    });
-
-    // ── Кубы
-    h.push("<h3>Кубы</h3><div class='s2-dice'>");
-    DICE.forEach(function (d) { var n = pool[d] || 0; h.push("<button type='button' class='s2-die" + (n ? " on" : "") + "' onclick='sheet2Die(" + d + ")'>" + (n > 1 ? n : "") + "к" + d + "</button>"); });
+  function diceBlock() {
+    var h = ["<h3>Кубы</h3><div class='s2-dice'>"];
+    DICE.forEach(function (d) { var n = pool[d] || 0; h.push("<button type='button' class='s2-die" + (n ? " on" : "") + "' onclick='sheet2Die(" + d + ")' aria-pressed='" + (n ? "true" : "false") + "'>" + (n > 1 ? n : "") + "к" + d + "</button>"); });
     var poolF = poolFormula();
-    h.push("</div><div class='s2-kv s2-pool'>" + (poolF ? esc(poolF) : "Нажатия складываются в\u00a0один бросок") + "</div><div class='s2-acts'><button type='button' class='s2-btn' onclick='sheet2DiceRoll()'" + (poolF ? "" : " disabled") + ">Бросить</button>" + (poolF ? "<button type='button' class='s2-link' onclick='sheet2DiceClear()'>Сбросить</button>" : "") + "</div>");
+    h.push("</div><div class='s2-acts'><button type='button' class='s2-btn s2-glow' onclick='sheet2DiceRoll()'" + (poolF ? "" : " disabled") + ">Бросить" + (poolF ? " " + esc(poolF) : "") + "</button>" + (poolF ? "<button type='button' class='s2-link' onclick='sheet2DiceClear()'>Сбросить</button>" : "<span class='s2-kv'>нажатия складываются</span>") + "</div>");
     h.push(rollsHtml());
+    return h.join("");
+  }
 
-    // ── Ячейки: ромб ◆ — свободна (нажать — потратить), ◇ — потрачена (нажать — вернуть)
+  // Ячейки: ромб ◆ — свободна (нажать — потратить), ◇ — потрачена (нажать — вернуть); в заголовке — свободно из всех
+  function slotsBlock(c) {
     var sl = (c.spells && c.spells.slots) || {}, su = (c.spells && c.spells.slotsUsed) || {};
-    var slotParts = Object.keys(sl).filter(function (k) { return sl[k] > 0; }).map(function (k) {
+    var all = 0, free = 0;
+    var rows = Object.keys(sl).filter(function (k) { return sl[k] > 0; }).map(function (k) {
       var left = Math.max(0, sl[k] - (su[k] || 0));
+      all += sl[k]; free += left;
       var p = "";
       for (var i = 0; i < sl[k]; i++) {
-        var free = i < left;
-        p += "<button type='button' class='s2-pip" + (free ? " on" : "") + "' onclick='sheet2Slot(" + k + "," + (free ? 1 : -1) + ")' title='" + (free ? "Потратить" : "Вернуть") + "'>" + (free ? "◆" : "◇") + "</button>";
+        var on = i < left;
+        p += "<button type='button' class='s2-pip" + (on ? " on" : "") + "' onclick='sheet2Slot(" + k + "," + (on ? 1 : -1) + ")' title='" + (on ? "Потратить" : "Вернуть") + "'>" + (on ? "◆" : "◇") + "</button>";
       }
       return "<div class='s2-res'><span>" + k + " круг <small class='s2-kv'>" + left + "/" + sl[k] + "</small></span><span class='s2-pips'>" + p + "</span></div>";
     });
-    if (slotParts.length) h.push("<h3>Ячейки заклинаний</h3>" + slotParts.join(""));
+    return rows.length ? "<h3>Ячейки <small class='s2-kv'>" + free + "/" + all + "</small></h3>" + rows.join("") : "";
+  }
 
+  function condBlock(c) {
     var conds = (c.conditions || []).length;
-    h.push("<h3>Состояния</h3><div class='s2-acts'><span class='s2-kv'>" + (conds ? "активно: " + conds : "нет") + "</span><button type='button' class='s2-link' onclick='toggleConditionsPopup()'>Изменить</button></div>");
-    h.push("</aside></div>");
-    return h.join("");
+    return "<h3>Состояния</h3><div class='s2-acts'><span class='s2-kv'>" + (conds ? "активно: " + conds : "нет") + "</span><button type='button' class='s2-link' onclick='toggleConditionsPopup()'>Изменить</button></div>";
+  }
+
+  // «Бой»: на телефоне — всё; на ПК при открытой панели хиты, кубы, ячейки и состояния — в ней (.rd-b-rail)
+  function buildBattle(c) {
+    return "<div class='rd-b-rail'>" + hpBlock(c) + "</div>" + weaponsBlock(c) +
+      "<div class='rd-b-rail'>" + diceBlock() + slotsBlock(c) + condBlock(c) + "</div>";
+  }
+  function buildRail(c) {
+    return hpBlock(c) + restBlock(c) + diceBlock() + slotsBlock(c) + condBlock(c);
   }
 
   // Умения класса и подкласса до текущего уровня класса (мультикласс — по каждому)
@@ -330,7 +381,7 @@
   function closePop() {
     var p = document.getElementById("s2-pop");
     if (p) p.remove();
-    var a = document.querySelector("#sheet2 .s2-anchor");
+    var a = document.querySelector(".s2-anchor");
     if (a) a.classList.remove("s2-anchor");
     document.removeEventListener("mousedown", outside, true);
     document.removeEventListener("keydown", onKey, true);
@@ -377,7 +428,7 @@
   }
   // строки листа открываются и с клавиатуры
   document.addEventListener("keydown", function (e) {
-    if ((e.key === "Enter" || e.key === " ") && e.target && e.target.classList && e.target.classList.contains("s2-row") && e.target.closest("#sheet2")) {
+    if ((e.key === "Enter" || e.key === " ") && e.target && e.target.classList && e.target.classList.contains("s2-row") && e.target.closest("#sheet2, .s2-box")) {
       e.preventDefault();
       e.target.click();
     }
@@ -407,14 +458,16 @@
     render();
     rollFormula(f, { label: f, openArena: true, noMin: true });
   };
-  window.sheet2HP = function (sign) {
-    var el = document.getElementById("s2-hp-n");
+  window.sheet2HP = function (btn, sign) {
+    var el = btn.parentNode.querySelector("input");
     var n = parseInt(el && el.value, 10);
     if (!n || n < 0) return;
     quickHP(sign * n);
   };
   // sign 1 — потратить ячейку, -1 — вернуть (лист зафиксирован: adjustSpellSlots меняет slotsUsed)
   window.sheet2Slot = function (level, sign) { adjustSpellSlots(level, -sign); };
+  // старая карточка оружия (правка, удаление, мастерство, второе оружие) — по запросу
+  window.sheet2WeaponsEdit = function () { document.body.classList.toggle("rd-wpn-edit"); render(); };
 
   var pending = false;
   function schedule() {
@@ -424,7 +477,7 @@
   }
   ["showScreen", "calcStats", "updateHPDisplay", "loadCharacter", "loadDeathSaves", "toggleInspiration",
    "applySheetLockUI", "switchTab", "recalculateHP", "calculateAC", "saveToLocal",
-   "renderClassResources", "renderDiceHistory", "renderQuickRollStrip", "setConcentration", "endConcentration"].forEach(function (name) {
+   "renderClassResources", "renderDiceHistory", "renderWeapons", "renderQuickRollStrip", "setConcentration", "endConcentration"].forEach(function (name) {
     var orig = window[name];
     if (typeof orig !== "function") return;
     window[name] = function () { var r = orig.apply(this, arguments); schedule(); return r; };
