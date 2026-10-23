@@ -2067,12 +2067,15 @@ function applyBasicLockUI() {
   var lockedBar = $("basic-locked-bar");
   var locked = !!char.basicLocked;
 
+  // РД-5 (П-11): в режиме rd после первой фиксации уровень меняется только через «Повысить»
+  var lvlOnce = locked || (!!char.basicLockedOnce && typeof isRedesign === "function" && isRedesign());
   BASIC_FIELD_IDS.forEach(function(id) {
     var el = $(id);
     if (!el) return;
-    el.disabled = locked;
+    var off = id === "char-level" ? lvlOnce : locked;
+    el.disabled = off;
     var col = el.closest(".col") || el.closest(".sheet-small-field") || el.parentElement;
-    if (col) col.classList.toggle("basic-field-locked", locked);
+    if (col) col.classList.toggle("basic-field-locked", off);
   });
 
   if (banner) banner.style.display = locked ? "none" : "flex";
@@ -2162,6 +2165,7 @@ function lockBasicInfo() {
   var btn = $("cw-lock-btn");
   if (btn && btn.disabled) return;
   char.basicLocked = true;
+  char.basicLockedOnce = true;
   // PLAY-1 (PT-001): герой ещё не был в игре (нет записей ХП) — стартует с полными хитами
   var inPlay = typeof hpHistory !== "undefined" && hpHistory.some(function(e) { return e.charId === currentId; });
   if (!inPlay && char.combat && char.combat.hpMax > 0) char.combat.hpCurrent = char.combat.hpMax;
@@ -2178,11 +2182,13 @@ function unlockBasicInfo() {
   if (!currentId) return;
   var char = getCurrentChar();
   if (!char) return;
+  var rd = typeof isRedesign === "function" && isRedesign();
   showConfirmModal(
     "Разблокировать основу?",
-    "Имя, класс, подкласс, раса, предыстория и\u00a0уровень снова станут редактируемыми. Делайте это только если действительно нужно изменить базовую информацию.",
+    (rd ? "Имя, класс, подкласс, раса и предыстория снова станут редактируемыми; уровень меняется только через «Повысить»." : "Имя, класс, подкласс, раса, предыстория и уровень снова станут редактируемыми.") + " Делайте это только если действительно нужно изменить базовую информацию.",
     function() {
       char.basicLocked = false;
+      char.basicLockedOnce = true;
       saveToLocal();
       applyBasicLockUI();
       renderRaceExtras();

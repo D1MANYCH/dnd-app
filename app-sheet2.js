@@ -1,6 +1,7 @@
 // РОСТ-8 (демо): лист персонажа по макету дизайнера (Figma «Заполненный лист»).
 // РД-2: работает только в тестовом режиме редизайна (?rd=1), стили — в redesign.css. Показывается только
-// у зафиксированного листа; старый лист остаётся в DOM и считает всё как раньше.
+// у зафиксированного листа; старый лист остаётся в DOM скрытым и считает всё как раньше (РД-5: так и оставлен
+// до РД-Ф — его поля читают calcStats/updateChar, опыт пишется через sheet2Set).
 (function () {
   if (!isRedesign()) return;
 
@@ -85,15 +86,22 @@
     h.push("<div class='s2-body'><div class='s2-head'>");
     h.push("<div class='s2-ava'>" + avaHtml + "</div>");
     h.push("<div><h2 class='s2-name'>" + esc(c.name || "Без\u00a0имени") + "</h2><div class='s2-facts'>");
-    h.push("<div><b>Класс:</b> " + esc(isMulticlass(c) ? getClassLabel(c) : c.class) + "</div>");
-    h.push("<div><b>Подкласс:</b> " + esc(c.subclass || "нет") + "</div>");
-    h.push("<div><b>Раса:</b> " + esc(c.race || "—") + "</div>");
+    // РД-5: класс, мультикласс, билд; раса и предыстория — строкой (уйдут в «Личность», РД-11)
+    var multi = isMulticlass(c);
+    h.push("<div class='s2-cls'>" + (multi
+      ? "<button type='button' class='s2-link' onclick='openProgress()' title='Классы и уровни'>" + esc(getClassLabel(c)) + "</button>"
+      : esc(c.class || "—") + (c.subclass ? " · " + esc(c.subclass) : "")) +
+      (c.edition === "2024" ? " <small class='s2-ed'>2024</small>" : "") + "</div>");
+    h.push("<div class='s2-sub'>" + esc([c.race, c.background, c.alignment].filter(Boolean).join(" · ") || "—") + "</div>");
     var spd = parseInt(cm.speed, 10) || 30;
     if (typeof rulesEffectiveSpeed === "function") spd = rulesEffectiveSpeed(c, spd).speed;
-    h.push("<div><b>Скорость:</b> " + spd + " фт</div>");
-    h.push("<div><b>Предыстория:</b> " + esc(c.background || "—") + "</div>");
-    h.push("<div><b>Мировоззрение:</b> " + esc(c.alignment || "—") + "</div>");
+    var bld = c.buildId && window.getBuildById ? window.getBuildById(c.buildId) : null;
+    var hacts = [];
+    if (c.class && lvl < 20) hacts.push("<button type='button' class='s2-link' onclick='pgAddClass()'>" + (multi ? "+ Ещё класс" : "+ Второй класс") + "</button>");
+    if (bld) hacts.push("<button type='button' class='s2-link' onclick='openBuildBadgeMenu()' title='Гайд по билду'>Билд: " + esc(bld.title) + "</button>");
+    if (hacts.length) h.push("<div class='s2-hacts'>" + hacts.join("") + "</div>");
     h.push("</div></div>");
+    // уровень — только текстом, меняется через «Повысить» (П-11)
     h.push("<div class='s2-lvl'><div class='s2-big'>" + lvl + " уровень</div>");
     h.push("<div class='s2-kv'>Опыт <input class='s2-num w' type='number' min='0' inputmode='numeric' value='" + (xp.have || 0) + "' onchange=\"sheet2Set('char-exp',this.value)\" aria-label='Опыт'>" + (xp.need ? " / " + xp.need : "") + "</div>");
     h.push("<div class='s2-xp'><i style='width:" + xpPct + "%'></i></div>");
@@ -107,11 +115,6 @@
     h.push("<div class='s2-line'><span>Бонус мастерства <b>" + fm(pb) + "</b></span>");
     h.push("<span>Вдохновение: <button type='button' class='s2-link' onclick='toggleInspiration()'>" + (c.inspiration ? "есть" : "нет") + "</button></span>");
     h.push("<span>Пассивная Внимательность <b>" + pp + "</b></span>");
-    if (c.spells && c.spells.stat && typeof rulesSpellStats === "function") {
-      var sst = rulesSpellStats(c, lvl);
-      h.push("<span>Сл заклинаний <b>" + sst.dc + "</b> · атака <b>" + fm(sst.attack) + "</b></span>");
-    }
-    if (c.concentration) h.push("<span>Концентрация: <b>" + esc(c.concentration) + "</b> <button type='button' class='s2-link' onclick='endConcentration()'>Снять</button></span>");
     h.push("</div>");
 
     // ── Характеристики + спасброски
@@ -125,7 +128,7 @@
       var prof = !!(c.saves && c.saves[a.k]);
       var b = rulesSaveBonus(c, a.k, lvl, prof);
       var tip = fm(getMod((c.stats && c.stats[a.k]) || 10)) + " " + a.s + (prof ? " · " + fm(pb) + " мастерство" : "") + (rulesAuraOfProtection(c) ? " · " + fm(rulesAuraOfProtection(c)) + " аура защиты" : "");
-      h.push("<tr class='s2-row' tabindex='0' data-t='Спасбросок: " + a.n + "' data-v='" + fm(b) + "' data-b='" + esc(tip) + "' onclick=\"sheet2Roll(this,'rollSavingThrow','" + a.k + "')\"><td>" + (prof ? "<span class='s2-prof'>◆</span>" : "<span class='s2-noprof'></span>") + a.n + "</td><td class='n'>" + fm(b) + "</td></tr>");
+      h.push("<tr class='s2-row' tabindex='0' data-t='Спасбросок: " + a.n + "' data-v='" + fm(b) + "' data-b='" + esc(tip) + "' onclick=\"sheet2Roll(this,'rollSavingThrow','" + a.k + "')\"><td>" + (prof ? "<span class='s2-prof'>◆</span>" : "<span class='s2-noprof'>◇</span>") + a.n + "</td><td class='n'>" + fm(b) + "</td></tr>");
     });
     h.push("</table></div><div>");
     var sideAt = h.length;
@@ -142,7 +145,7 @@
         var b = rulesSkillBonus(c, i, lvl, prof);
         var mod = getMod((c.stats && c.stats[k]) || 10);
         var tip = fm(mod) + " " + abName(k).s + (prof ? " · " + fm(exp ? pb * 2 : pb) + (exp ? " компетентность" : " мастерство") : (b !== mod ? " · " + fm(b - mod) + " мастер на все руки" : ""));
-        rows.push("<div class='s2-sk s2-row' tabindex='0' data-t='" + esc(s.name) + "' data-v='" + fm(b) + "' data-b='" + esc(tip) + "' onclick=\"sheet2Roll(this,'rollSkillCheck'," + i + ")\"><span>" + (prof ? "<span class='s2-prof'>" + (exp ? "◆◆" : "◆") + "</span>" : "<span class='s2-noprof'></span>") + s.name + "</span><span>" + fm(b) + "</span></div>");
+        rows.push("<div class='s2-sk s2-row' tabindex='0' data-t='" + esc(s.name) + "' data-v='" + fm(b) + "' data-b='" + esc(tip) + "' onclick=\"sheet2Roll(this,'rollSkillCheck'," + i + ")\"><span>" + (prof ? "<span class='s2-prof'>" + (exp ? "◆◆" : "◆") + "</span>" : "<span class='s2-noprof'>◇</span>") + s.name + "</span><span>" + fm(b) + "</span></div>");
       });
       h.push("<div class='s2-sg'><h4>" + abName(k).n + "</h4>" + rows.join("") + "</div>");
     });
@@ -192,6 +195,7 @@
     var hdLeft = Math.max(0, lvl - (cm.hpDiceSpent || 0));
     h.push("<aside>");
     h.push("<div class='s2-trio'><div><small>КД</small><b>" + acVal + "</b></div><div><small>Инициатива</small><b>" + fm(getInitiativeMod(c, lvl)) + "</b></div><div><small>Скорость</small><b>" + spd + "</b></div></div>");
+    if (c.concentration) h.push("<div class='s2-acts'><span class='s2-kv'>Концентрация: <b>" + esc(c.concentration) + "</b></span><button type='button' class='s2-link' onclick='endConcentration()'>Снять</button></div>");
     h.push("<div class='s2-hp'><span>Хиты" + (cm.hpTemp ? " <small style='color:var(--info)'>+" + cm.hpTemp + " врем.</small>" : "") + "</span><span class='s2-big'>" + hpCur + " / " + hpMax + "</span></div>");
     h.push("<div class='s2-hpbar'><i style='width:" + Math.max(0, Math.min(100, Math.round(100 * hpCur / hpMax))) + "%'></i></div>");
     h.push("<div class='s2-hpctl'><input id='s2-hp-n' type='number' min='0' inputmode='numeric' placeholder='урон / лечение' aria-label='Сколько хитов'>");
