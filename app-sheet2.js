@@ -262,7 +262,7 @@
     (c.weapons || []).forEach(function (w, wi) { if (w && w.name) h.push(atkRow(c, w, wi, lvl)); });
     if (typeof _unarmedStrike === "function") h.push(atkRow(c, _unarmedStrike(c), UNARMED_WEAPON_INDEX, lvl));
     h.push("<div class='s2-acts'><button type='button' class='s2-link' onclick='openWeaponModal()'>+ Добавить оружие</button>" +
-      ((c.weapons || []).length ? "<button type='button' class='s2-link' onclick='sheet2WeaponsEdit()'>" + (document.body.classList.contains("rd-wpn-edit") ? "Скрыть правку" : "Правка и мастерство") + "</button>" : "") + "</div>");
+      ((c.weapons || []).length ? "<button type='button' class='s2-link' onclick='sheet2WeaponsEdit()'>" + (document.body.classList.contains("rd-wpn-edit") ? "Скрыть правку" : "Правка и мастерство") + "</button>" : "") + "</div>");
     return h.join("");
   }
 
