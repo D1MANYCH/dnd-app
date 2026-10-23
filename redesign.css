@@ -549,3 +549,64 @@ html.rd .rd-qs-ico-btn[hidden] { display: none !important; }
   html.rd.rr-open #rd-quick-dock .rd-qd-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; overflow-wrap: anywhere; font-size: var(--fs-12); line-height: 1.15; }
   html.rd.rr-open #rd-quick-dock .rd-qd-x { top: auto; bottom: 1px; }
 }
+
+/* ══ РД-10: Сумка и поиск ═══════════════════════════════════════════════
+   Figma 240:158 / 263:38 / 252:474 / 263:45: поиск «найти или создать» сверху, списки
+   «Экипировано / Рюкзак» (имя слева, статус справа, детали — по раскрытию), нагрузка
+   строкой, «Размен» формой, монеты столбцом, вес кошелька строкой. Поиск — и в «Магии».
+   ПК-фрейма Сумки нет — две колонки: вещи слева, Размен и Кошелёк справа. */
+html:not(.rd) :is(.rd-find, #rd-exch, #rd-inv-load) { display: none; }
+html.rd #tab-inventory :is(.inv-slots-card, .inventory-filters, .inv-backpack-header h4, .inv-coins-header, #coin-mob, .inv-exch-open-btn, .inv-drag-handle) { display: none !important; }
+html.rd #tab-inventory .inv-backpack-header { justify-content: flex-end; }
+html.rd .rd-find { position: relative; z-index: 40; margin: 0 0 var(--sp-5); }
+html.rd .rd-find-inp { display: block; width: 100%; box-sizing: border-box; min-height: 44px; margin: 0; padding: 0 40px 4px 0; border: 0; border-bottom: 1px solid var(--accent-ink); border-radius: 0; background: none; box-shadow: none; color: var(--accent-ink); font-family: var(--font); font-size: var(--fs-24); -webkit-appearance: none; appearance: none; }
+html.rd .rd-find-inp::placeholder { color: var(--accent-ink); opacity: .5; }
+html.rd .rd-find-inp::-webkit-search-cancel-button { display: none; }
+html.rd .rd-find-inp:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+html.rd .rd-find-ico { position: absolute; right: 0; top: 8px; color: var(--accent-ink); pointer-events: none; }
+html.rd .rd-find-list:not([hidden]) { position: absolute; left: 0; right: 0; top: 100%; z-index: 30; display: flex; flex-direction: column; max-height: 60vh; overflow: auto; padding: var(--sp-2) 0; border-bottom: 1px solid var(--border); background: var(--bg-0); box-shadow: 0 12px 24px rgba(0, 0, 0, .35); }
+html.rd .rd-find-row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); width: 100%; min-height: 44px; margin: 0; padding: var(--sp-1) 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--text); font-family: var(--font); font-size: var(--fs-18); text-align: left; cursor: pointer; }
+html.rd .rd-find-t { min-width: 0; overflow-wrap: anywhere; }
+html.rd .rd-find-s { flex: none; color: var(--text-mute); font-size: var(--fs-14); }
+html.rd .rd-find-row.create { color: var(--accent-ink); }
+html.rd .rd-find-row:is(:hover, :focus-visible) { background: var(--bg-2); outline: none; }
+/* списки */
+html.rd .rd-inv-h { margin: var(--sp-5) 0 var(--sp-3); font-size: var(--fs-24); font-weight: 700; line-height: 1; }
+html.rd #inventory-list .rd-inv-h:first-child { margin-top: var(--sp-2); }
+html.rd #inventory-list .inv-item-name { font-size: var(--fs-18); font-weight: 400; }
+html.rd #inventory-list .inv-item:not(.expanded) .inv-item-meta { display: none; }
+html.rd #inventory-list .rd-inv-st { color: var(--text); font-size: var(--fs-18); white-space: nowrap; }
+html.rd .rd-inv-load { margin: var(--sp-4) 0 0; color: var(--text-dim); font-size: var(--fs-18); }
+html.rd .rd-inv-load.over { color: var(--danger); }
+/* кошелёк: Размен → монеты → курс → вес. Монеты — строкой «название · − число +»:
+   столбец макета (число 40, кнопки во всю ширину) растягивал кошелёк до ~1300 px */
+html.rd #inv-coins-card { display: flex; flex-direction: column; gap: var(--sp-4); }
+html.rd #rd-exch { order: 1; }
+html.rd #tab-inventory .inv-coins-grid { order: 2; display: flex !important; flex-direction: column; gap: 0; }
+html.rd #tab-inventory .inv-coin-total { order: 3; display: block !important; color: var(--text-dim); font-size: var(--fs-14); }
+html.rd #inv-pouches { order: 4; margin: 0; }
+html.rd #tab-inventory .inv-coins-row { display: contents; }
+html.rd #tab-inventory #inv-coins-card .inv-coin-card { display: grid; grid-template-columns: minmax(0, 1fr) 44px minmax(56px, 96px) 44px; align-items: center; gap: 0 var(--sp-1); margin: 0; padding: var(--sp-1) 0; border: 0; border-bottom: 1px solid var(--border); background: none; box-shadow: none; }
+html.rd #tab-inventory .inv-coin-card-top { order: 0; }
+html.rd #tab-inventory .inv-coin-card-btns { display: contents; }
+html.rd #tab-inventory .inv-coin-dot { display: none; }
+html.rd #tab-inventory .inv-coin-lbl { color: var(--text); font-size: var(--fs-18); font-weight: 400; letter-spacing: 0; text-transform: none; }
+html.rd #tab-inventory #inv-coins-card .inv-coin-big-inp { order: 2; width: 100%; min-width: 0; height: 44px; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--text); font-family: var(--font); font-size: var(--fs-24); text-align: center; }
+html.rd body #tab-inventory #inv-coins-card .inv-coin-btn { order: 1; width: 44px; min-width: 44px !important; height: 44px; margin: 0; padding: 0 !important; border: 0; border-radius: var(--r-4); background: none; box-shadow: none; color: var(--accent-ink) !important; font-family: var(--font); font-size: var(--fs-24); font-weight: 700; }
+html.rd body #tab-inventory #inv-coins-card .inv-coin-btn-plus { order: 3; }
+html.rd body #tab-inventory #inv-coins-card .inv-coin-btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+html.rd .rd-inv-wt { margin: 0; color: var(--text-dim); font-size: var(--fs-14); }
+html.rd .rd-exch h4 { margin: 0 0 var(--sp-2); font-size: var(--fs-24); font-weight: 700; line-height: 1; }
+html.rd .rd-exch-nums { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
+html.rd .rd-exch-f { display: flex; flex-direction: column; gap: 0; margin: 0; color: var(--text-dim); font-size: var(--fs-14); }
+html.rd .rd-exch-f :is(input, output) { display: block; width: 100%; box-sizing: border-box; height: 44px; margin: 0; padding: 0; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: none; box-shadow: none; color: var(--text); font-family: var(--font); font-size: var(--fs-24); line-height: 44px; text-align: center; font-variant-numeric: tabular-nums; }
+html.rd .rd-exch-cur { display: flex; align-items: center; gap: var(--sp-2); margin: var(--sp-2) 0 0; color: var(--text); font-size: var(--fs-18); }
+html.rd .rd-exch-cur select { flex: 1 1 0; min-width: 0; min-height: 44px; font-size: var(--fs-18); }
+html.rd .rd-exch-note { min-height: 1.4em; margin: var(--sp-1) 0; color: var(--text-dim); font-size: var(--fs-14); }
+html.rd .rd-exch-btn { width: 100%; min-height: 44px; }
+/* две колонки — когда вещам остаётся ≥480 (на 1024–1279 колонка вещей сжималась до ~200) */
+@media (min-width: 1280px) {
+  html.rd #tab-inventory.active { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 360px); column-gap: 48px; align-items: start; }
+  html.rd #tab-inventory.active > * { grid-column: 1; }
+  html.rd #tab-inventory.active > #inv-coins-card { grid-column: 2; grid-row: 1 / span 6; }
+}

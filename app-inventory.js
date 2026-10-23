@@ -41,6 +41,17 @@ function toggleBackpackOff() {
   saveToLocal();
   renderInventory();
 }
+// РД-10: экипировано = на теле, в руке, на поясе; статус справа в строке
+var RD_EQUIP_LOC = { worn:1, wielded:1, belt:1 };
+function rdInvStatus(cat, item) {
+  var loc = item && item.location;
+  if (loc === "worn") return cat === "armor" ? "Надет" : "Надето";
+  if (loc === "wielded") return "В руках";
+  if (loc === "belt") return "На поясе";
+  if (loc === "outside") return "Снаружи";
+  if (loc === "stored") return "В лагере";
+  return "";
+}
 var BELT_LABELS = { weapon1:"Оружие 1", weapon2:"Оружие 2", rope:"Верёвка", shield:"Щит" };
 var POUCH_STR_REQ = [8, 12, 16, 18]; // СИЛ для каждого мешочка
 var POUCH_MAX = 500; // монет в мешочке
@@ -102,6 +113,12 @@ function updateSlotsDisplay() {
   }
   // update item slot tags
   if (usedEl) usedEl.className = "inv-slots-used" + (used > total ? " inv-slots-over" : "");
+  // РД-10: нагрузка строкой под списком (240:158), перегруз — ⚠ и цвет опасности
+  var loadEl = $("rd-inv-load");
+  if (loadEl) {
+    loadEl.textContent = (used > total ? "⚠ " : "") + "Нагрузка: " + (used % 1 === 0 ? used : used.toFixed(1)) + " / " + total + " слотов";
+    loadEl.classList.toggle("over", used > total);
+  }
   renderPouches();
   updateAttuneCount();
   }
@@ -122,6 +139,16 @@ function renderPouches() {
     (parseInt($("coin-ep")?.value, 10)||0) +
     (parseInt($("coin-gp")?.value, 10)||0) +
     (parseInt($("coin-pp")?.value, 10)||0);
+  if (typeof isRedesign === "function" && isRedesign()) {
+    // РД-10: одна строка под монетами — «Вес: 0.20 фнт · 1 мешочек · до 500 монет»
+    var _n = POUCH_STR_REQ.filter(function(r){ return str >= r; }).length;
+    var _line = "Вес: " + (totalCoins / 50).toFixed(2) + " фнт · ";
+    _line += _n ? _n + " " + (_n === 1 ? "мешочек" : "мешочка") + " · до " + (_n * POUCH_MAX) + " монет" : "нет мешочков — нужна СИЛ 8+";
+    if (totalCoins > _n * POUCH_MAX) _line += " · не унести " + (totalCoins - _n * POUCH_MAX);
+    container.innerHTML = '<p class="rd-inv-wt">' + escapeHtml(_line) + '</p>';
+    if (typeof rdExchPreview === "function") rdExchPreview();
+    return;
+  }
   var html = '<div class="inv-pouches-row">';
   POUCH_STR_REQ.forEach(function(req, i) {
     var unlocked = str >= req;
@@ -163,7 +190,15 @@ Object.keys(char.inventory).forEach(function(category) {
 allItems.push({ category: category, index: index, item: item });
 });
 });
-if (currentFilterCategory !== "all") {
+var _rd = typeof isRedesign === "function" && isRedesign();
+// РД-10: в режиме фильтров нет — списки «Экипировано / Рюкзак», экипированное первым
+if (_rd) {
+  var _eq = allItems.filter(function(d) { return RD_EQUIP_LOC[d.item.location]; });
+  var _bp = allItems.filter(function(d) { return !RD_EQUIP_LOC[d.item.location]; });
+  allItems = _eq.concat(_bp);
+  if (_eq.length) allItems[0].rdHead = "Экипировано";
+  if (_bp.length) _bp[0].rdHead = "Рюкзак";
+} else if (currentFilterCategory !== "all") {
 allItems = allItems.filter(function(i) { return i.category === currentFilterCategory; });
 }
 if (allItems.length === 0) {
@@ -225,7 +260,10 @@ div.innerHTML =
         _chargesTagHtml +
       '</div>' +
     '</div>' +
-    '<span class="inv-item-qty" title="Количество">×' + (item.qty === 0 ? 0 : (Number(item.qty) || 1)) + '</span>' +
+    (_rd && rdInvStatus(data.category, item)
+      ? '<span class="inv-item-qty rd-inv-st">' + rdInvStatus(data.category, item) + '</span>'
+      : (_rd && (Number(item.qty) || 1) === 1 && item.qty !== 0) ? ''
+      : '<span class="inv-item-qty" title="Количество">×' + (item.qty === 0 ? 0 : (Number(item.qty) || 1)) + '</span>') +
     '<span class="inv-drag-handle" title="Перетащите, чтобы переместить предмет">⠿</span>' +
   '</div>' +
   '<div class="inv-item-body">' +
@@ -248,6 +286,12 @@ div.classList.add("inv-draggable");
   el.addEventListener("dragend", function(ev) { invDragEnd(); });
   el.addEventListener("touchstart", function(ev) { invTouchStart(ev, cat, idx, el); }, { passive: true });
 })(data.category, data.index, div);
+if (data.rdHead) {
+  var _h = document.createElement("h4");
+  _h.className = "rd-inv-h";
+  _h.textContent = data.rdHead;
+  container.appendChild(_h);
+}
 container.appendChild(div);
 });
 _invDndInit();
@@ -2222,4 +2266,143 @@ function renderQuickDock() {
       (_qsEdit ? '<span class="rd-qd-x" aria-hidden="true">✕</span>' : '') + '</button>';
   }
   box.innerHTML = html + '</div>';
+}
+
+// ── РД-10: поиск «найти или создать» (Сумка и Магия) и размен строкой ──
+// Совпадение (Д-8 открыт, взято допущением): все слова запроса входят в название,
+// регистр и ё/е не различаются. Нет точного совпадения — первой строкой «Создать «X»».
+var RD_FIND = { inv: [], spl: [] };
+function _rdNorm(t) { return String(t || "").toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim(); }
+function _rdMatch(words, name, alt) {
+  var n = _rdNorm(name) + (alt ? " " + _rdNorm(alt) : "");
+  for (var i = 0; i < words.length; i++) if (n.indexOf(words[i]) === -1) return false;
+  return true;
+}
+function _rdFindRows(k, q) {
+  var char = getCurrentChar();
+  var nq = _rdNorm(q), words = nq.split(" ");
+  var own = [], cat = [], exact = false;
+  if (!char) return [];
+  function byPrefix(a, b) {
+    var pa = _rdNorm(a.t).indexOf(nq) === 0 ? 0 : 1, pb = _rdNorm(b.t).indexOf(nq) === 0 ? 0 : 1;
+    return pa - pb || a.t.localeCompare(b.t, "ru");
+  }
+  if (k === "inv") {
+    Object.keys(char.inventory || {}).forEach(function(c) {
+      if (!Array.isArray(char.inventory[c])) return;
+      char.inventory[c].forEach(function(it, i) {
+        if (!it || !_rdMatch(words, it.name)) return;
+        if (_rdNorm(it.name) === nq) exact = true;
+        own.push({ t: it.name, s: rdInvStatus(c, it) || "в\u00a0сумке", own: [c, i] });
+      });
+    });
+    (window.GEAR_CATALOG || []).forEach(function(it) {
+      if (!_rdMatch(words, it.name)) return;
+      if (_rdNorm(it.name) === nq) exact = true;
+      cat.push({ t: it.name, s: GEAR_CAT_LABELS[it.cat] || "снаряжение", gear: it.id });
+    });
+    var R = window.MAGIC_ITEM_RARITY || {};
+    (window.MAGIC_ITEMS || []).forEach(function(it) {
+      if (!_rdMatch(words, it.name, it.nameEn)) return;
+      if (_rdNorm(it.name) === nq) exact = true;
+      cat.push({ t: it.name, s: R[it.rarity] || "магический предмет", magic: it.id });
+    });
+  } else {
+    var added = {};
+    ((char.spells && char.spells.mySpells) || []).forEach(function(sp) {
+      added[sp.id] = 1;
+      if (!_rdMatch(words, sp.name)) return;
+      if (_rdNorm(sp.name) === nq) exact = true;
+      own.push({ t: sp.name, s: "в\u00a0списке", spellOwn: sp.id });
+    });
+    (typeof SPELL_DATABASE !== "undefined" ? SPELL_DATABASE : []).forEach(function(sp) {
+      if (added[sp.id] || !_rdMatch(words, sp.name)) return;
+      if (_rdNorm(sp.name) === nq) exact = true;
+      cat.push({ t: sp.name, s: (sp.level > 0 ? sp.level + "\u00a0ур." : "заговор") + " · " + (sp.homebrew ? "своё" : String(sp.source || "PH14")), spell: sp.id });
+    });
+  }
+  own.sort(byPrefix); cat.sort(byPrefix);
+  var rows = own.slice(0, 4);
+  rows = rows.concat(cat.slice(0, 8 - rows.length));
+  if (!exact) rows.unshift({ t: "Создать «" + q + "»", create: q });
+  return rows;
+}
+function rdFindRender(k) {
+  var inp = $("rd-find-" + k), list = $("rd-find-" + k + "-list");
+  if (!inp || !list) return;
+  var q = inp.value.replace(/\s+/g, " ").trim();
+  RD_FIND[k] = q ? _rdFindRows(k, q) : [];
+  if (!RD_FIND[k].length) { list.hidden = true; list.innerHTML = ""; return; }
+  list.innerHTML = RD_FIND[k].map(function(r, i) {
+    return '<button type="button" role="option" class="rd-find-row' + (r.create ? " create" : "") + '" onmousedown="event.preventDefault()" onclick="rdFindPick(\'' + k + '\',' + i + ')">' +
+      '<span class="rd-find-t">' + escapeHtml(r.t) + '</span>' + (r.s ? '<span class="rd-find-s">' + escapeHtml(r.s) + '</span>' : '') + '</button>';
+  }).join("");
+  list.hidden = false;
+}
+function rdFindFocus(k) {
+  // каталоги снаряжения и магпредметов ленивые — подгружаем при первом фокусе
+  if (k === "inv") {
+    var p = [];
+    if (!window.GEAR_CATALOG && typeof window.ensureGearCatalog === "function") p.push(window.ensureGearCatalog());
+    if (!window.MAGIC_ITEMS && typeof window.ensureMagicItems === "function") p.push(window.ensureMagicItems());
+    if (p.length) Promise.all(p).then(function() { rdFindRender(k); }).catch(function(e) { if (window.__catchLog) window.__catchLog("rd-find:load", e); });
+  }
+  rdFindRender(k);
+}
+function rdFindBlur(k) {
+  setTimeout(function() {
+    var list = $("rd-find-" + k + "-list");
+    if (list && !list.contains(document.activeElement)) list.hidden = true;
+  }, 150);
+}
+function rdFindKey(ev, k) {
+  if (ev.key === "Enter") { ev.preventDefault(); if (RD_FIND[k].length) rdFindPick(k, 0); }
+  else if (ev.key === "Escape") { ev.preventDefault(); ev.target.value = ""; rdFindRender(k); }
+  else if (ev.key === "ArrowDown") {
+    var b = document.querySelector("#rd-find-" + k + "-list .rd-find-row");
+    if (b) { ev.preventDefault(); b.focus(); }
+  }
+}
+function _rdReveal(el) {
+  if (!el) return;
+  el.classList.add("expanded");
+  el.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+function rdFindPick(k, i) {
+  var r = RD_FIND[k][i];
+  var inp = $("rd-find-" + k), list = $("rd-find-" + k + "-list");
+  if (!r) return;
+  if (inp) { inp.value = ""; inp.blur(); }
+  if (list) { list.hidden = true; list.innerHTML = ""; }
+  RD_FIND[k] = [];
+  if (r.own) _rdReveal(document.querySelector('#inventory-list .inv-item[data-category="' + r.own[0] + '"][data-index="' + r.own[1] + '"]'));
+  else if (r.spellOwn != null) _rdReveal(document.querySelector('#my-spells-list .my-spell-item[data-spell-id="' + String(r.spellOwn).replace(/"/g, '\\"') + '"]'));
+  else if (r.gear) { openItemModal(null, -1); fillFromGearItem(r.gear); }
+  else if (r.magic) { openItemModal(null, -1); fillFromMagicItem(r.magic); }
+  else if (r.spell != null) { addSpell(r.spell); if (typeof showToast === "function") showToast("Добавлено: " + r.t, "success"); }
+  else if (r.create && k === "inv") { openItemModal("other", -1); safeSet("new-item-name", r.create); }
+  else if (r.create) { openAddSpellForm(); safeSet("new-spell-name", r.create); }
+}
+// Размен строкой (263:45): считает coinExchangeCalc, проводит прежний confirmExchange
+function rdExchPreview() {
+  var get = $("rd-exch-get"), note = $("rd-exch-note");
+  if (!get || !note || typeof coinExchangeCalc !== "function") return;
+  var from = $("rd-exch-from").value, to = $("rd-exch-to").value;
+  var amt = parseInt($("rd-exch-amt").value, 10) || 0;
+  var avail = parseInt(($("coin-" + from) || {}).value, 10) || 0;
+  var ex = (from !== to && amt > 0) ? coinExchangeCalc(from, to, amt) : { result: 0, leftover: 0 };
+  get.textContent = ex.result;
+  var msg = "";
+  if (from === to) msg = "Выберите разные монеты";
+  else if (amt > avail) msg = "Недостаточно: есть " + avail + "\u00a0" + COIN_NAMES[from];
+  else if (amt > 0 && ex.result <= 0) msg = "Меньше одной " + COIN_NAMES[to];
+  else if (ex.leftover > 0) msg = "Сдача: " + ex.leftover + "\u00a0" + COIN_NAMES[from];
+  note.textContent = msg;
+}
+function rdExchange() {
+  safeSet("exch-from", $("rd-exch-from").value);
+  safeSet("exch-to", $("rd-exch-to").value);
+  safeSet("exch-amount", $("rd-exch-amt").value);
+  confirmExchange();
+  rdExchPreview();
 }
