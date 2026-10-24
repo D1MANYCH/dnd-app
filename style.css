@@ -519,9 +519,9 @@ html.glass-adjusting *::after {
   --accent-glow-token: rgba(243,133,54,0.30);
 }
 :root[data-theme="light"][data-accent="ember"] {
-  --accent: #c4561a; --accent-hi: #d96a2c; --accent-lo: #9c4210;
-  --accent-soft: rgba(196,86,26,0.13);
-  --accent-glow-token: rgba(196,86,26,0.30);
+  --accent: #c05418; --accent-hi: #d96a2c; --accent-lo: #9c4210;
+  --accent-soft: rgba(192,84,24,0.13);
+  --accent-glow-token: rgba(192,84,24,0.30);
 }
 
 /* prefers-reduced-motion расширен на все темы — см. UI-2 ниже */

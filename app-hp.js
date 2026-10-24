@@ -1814,7 +1814,7 @@ if (typeof isRedesign === "function" && isRedesign()) {
   toast.className = "hp-toast app-toast app-toast-" + (heal ? "success" : "error");
   toast.innerHTML = "<span class='app-toast-mark' aria-hidden='true'></span>" + (customMsg !== undefined
     ? "<span>" + escapeHtml(customMsg) + "</span>"
-    : "<span class='app-toast-num'>" + (delta > 0 ? "+" : "") + delta + " ХП</span><span class='app-toast-sub'>" + (delta > 0 ? "Восстановлено" : "Получено урона") + "</span>");
+    : "<span class='app-toast-num'>" + (delta > 0 ? "+" : "−") + Math.abs(delta) + " ХП</span><span class='app-toast-sub'>" + (delta > 0 ? "Восстановлено" : "Получено урона") + "</span>");
   var rdLife = customMsg !== undefined ? 3000 : toastAddAction(toast, action, 2300);
   container.appendChild(toast);
   toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, rdLife - 500);

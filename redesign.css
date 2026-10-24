@@ -659,6 +659,7 @@ html.rd .popup-group + .popup-group { border-top-color: var(--border-soft); }
 /* кубы, чип эффектов, лента бросков — без прыжков и масштаба */
 html.rd .tab-dice-fab:is(:hover, :active) { transform: none; background: transparent !important; }
 html.rd .tab-dice-fab-icon { filter: none; }
+html.rd .tab-dice-fab:hover .tab-dice-fab-icon { opacity: 0.8; }
 html.rd .aef-fab:is(:hover, :active) { transform: none; }
 html.rd .aef-fab:hover { color: var(--accent-ink); }
 html.rd .aef-row { background: none; border-bottom: 1px solid var(--border-soft); border-radius: 0; }
@@ -751,3 +752,15 @@ html.rd .save-bonus-clickable::after {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2.2 20.5 7v10L12 21.8 3.5 17V7z'/%3E%3Cpath d='M12 6.6 17.4 15.9H6.6z'/%3E%3Cpath d='M12 6.6 12 2.2M6.6 15.9 3.5 17M17.4 15.9 20.5 17'/%3E%3C/svg%3E") center / contain no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2.2 20.5 7v10L12 21.8 3.5 17V7z'/%3E%3Cpath d='M12 6.6 17.4 15.9H6.6z'/%3E%3Cpath d='M12 6.6 12 2.2M6.6 15.9 3.5 17M17.4 15.9 20.5 17'/%3E%3C/svg%3E") center / contain no-repeat;
 }
+
+/* ══ РД-15: хвосты DS ════════════════════════════════════════════════════
+   Светлая тема, пресет «Золото» (без data-accent): белый текст на --accent 3.55:1 →
+   заливка действия на --accent-lo (5.26:1). Разделители главной — 0.065 не видно → --border.
+   «Очистить» в журнале — красная, как .btn-danger. */
+html.rd[data-theme="light"]:not([data-accent]) {
+  --action: var(--accent-lo);
+  --action-hover: color-mix(in srgb, var(--accent-lo) 85%, var(--text));
+}
+html.rd[data-theme="light"] { --home-rule: var(--border); }
+html.rd .app-log-btn-danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
+html.rd .app-log-btn-danger:hover { border-color: var(--danger); }
