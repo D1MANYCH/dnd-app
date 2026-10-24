@@ -125,6 +125,28 @@
     hourglass: '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.17a2 2 0 0 0-.59-1.42L12 12l-4.41 4.41A2 2 0 0 0 7 17.83V22"/><path d="M7 2v4.17a2 2 0 0 0 .59 1.42L12 12l4.41-4.41A2 2 0 0 0 17 6.17V2"/>',
     ban: '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
     ruler: '<path d="M21.3 8.7 8.7 21.3a1 1 0 0 1-1.4 0l-4.6-4.6a1 1 0 0 1 0-1.4L15.3 2.7a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4"/><path d="m7.5 10.5 2 2"/><path d="m10.5 7.5 2 2"/><path d="m13.5 4.5 2 2"/><path d="m4.5 13.5 2 2"/>',
+    // РД-14: глифы для замены эмодзи
+    paw: '<circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/>',
+    crown: '<path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/>',
+    music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+    mask: '<path d="M18 11c-1.5 0-2.5.5-3 2"/><path d="M4 6a2 2 0 0 0-2 2v4a5 5 0 0 0 5 5 8 8 0 0 1 5 2 8 8 0 0 1 5-2 5 5 0 0 0 5-5V8a2 2 0 0 0-2-2h-3a8 8 0 0 0-5 2 8 8 0 0 0-5-2z"/><path d="M6 11c1.5 0 2.5.5 3 2"/>',
+    map: '<path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/>',
+    mountain: '<path d="m8 3 4 8 5-5 5 15H2L8 3z"/>',
+    tree: '<path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L12 3l4 4.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17Z"/><path d="M12 22v-3"/>',
+    wind: '<path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/>',
+    feather: '<path d="M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z"/><path d="M16 8 2 22"/><path d="M17.5 15H9"/>',
+    fish: '<path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z"/><path d="M18 12v.5"/><path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33"/>',
+    cloud: '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
+    hand: '<path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    unlock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+    rocket: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>',
+    smile: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>',
+    frown: '<circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>',
+    calendar: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+    gem: '<path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/>',
+    hammer: '<path d="m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9"/><path d="m18 15 4-4"/><path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5"/>',
+    snow: '<path d="m10 20-1.25-2.5L6 18"/><path d="M10 4 8.75 6.5 6 6"/><path d="m14 20 1.25-2.5L18 18"/><path d="m14 4 1.25 2.5L18 6"/><path d="m17 21-3-6h-4"/><path d="m17 3-3 6 1.5 3"/><path d="M2 12h6.5L10 9"/><path d="m20 10-1.5 2 1.5 2"/><path d="M22 12h-6.5L14 15"/><path d="m4 10 1.5 2L4 14"/><path d="m7 21 3-6-1.5-3"/><path d="m7 3 3 6h4"/>',
   };
 
   function dndIcon(name, size, cls) {
@@ -222,6 +244,143 @@
       ' stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">' + p.d + '</svg></span>';
   }
 
+  // --- РД-14: эмодзи → линейная иконка, одним проходом по DOM в режиме ?rd=1 ---
+  // Данные и разметку не трогаем: текстовый узел с эмодзи заменяется на иконку при показе.
+  // В <option>, подписях optgroup, placeholder/title/aria-label SVG не вставить — эмодзи убираются.
+  // Пользовательский ввод (input, textarea, contenteditable) не трогаем.
+  var EMOJI_ICON = {};
+  (function (groups) {
+    for (var ico in groups) {
+      var list = groups[ico].split(' ');
+      for (var i = 0; i < list.length; i++) EMOJI_ICON[list[i]] = ico;
+    }
+  })({
+    combat: '⚔ 🤜 👊 🥊 🥋', sword: '🗡 🪓 ⛏', shield: '🛡 🔰 🗿', sparkle: '✨ 🌟 💫 🎉 🎆 ✦ 🌈', dice: '🎲', zap: '⚡ 💥 💪 ⛈',
+    skull: '💀 ☠ ⚰ 🪦 😈 👿 👹', book: '📖 📕 📘 📚', hourglass: '⏳ ⌛', target: '🎯 ⭕', spells: '🔮', wand: '🪄',
+    inventory: '🎒 📦 👝', leaf: '🌿 🍀 🌱 🌾 🍄', search: '🔍 🕵', paw: '🐾 🐴 🐙 🐲 🐉 🦑 🕷 🐢 🦠 🐛 🐱 🦇 🐸 🦎 🐀 🦦 🐍 🦀 🦁 🦴 🕸 👾 🐻',
+    eye: '👁 🪞', sheet: '📋 🪪', mask: '🎭 🎩', notes: '📝 ✏', lock: '🔒 ⛓ 🗝', unlock: '🔓', scroll: '📜', moon: '🌑 🌙 🌕 💤 🛌 🌌',
+    alert: '⚠ ❗ ❕', bow: '🏹', frown: '😫 😡 😨 😵', compass: '🧭 🛞', settings: '⚙ 🔩', trend: '📈', grad: '🎓 🧙 🧝',
+    heart: '❤ 💚 💔 💕 💛 ♥ 🩸', wolf: '🐺', wrench: '🔧 ⚒ 🛠', cross: '✝ ⛪ 🙏', check: '✅ ☑ ✔', reset: '🔁 🔄 ➿',
+    sun: '☀ 🌅 🔆', map: '🗺 🌍', music: '🎵 🎶 🎤', feather: '🧚 🕊 🦅 🦉 🐦 🪽', flame: '🔥 🪔 🕯', drop: '💧 🧪 ⚗',
+    help: '❓ ❔', bed: '🛏', download: '📥', upload: '📤', save: '💾', user: '👤 🧑 🧘', users: '👥', inventory: '🧥 👟',
+    link: '🔗 🪢', file: '📄', home: '🏠 🏛 🏺 🌆', star: '★ ⭐', ghost: '👻 🫥', dashed: '🌀 🕳', menu: '☰', printer: '🖨',
+    trash: '🗑', bulb: '💡 🧠', wind: '💨 🌪 🌫', tree: '🌳 🌲 🪵', smile: '😇', clock: '🕐 ⏱ ⏰', calendar: '📅', fish: '🐟 🐠 🌊',
+    gem: '💎', crown: '👑 🏆', hand: '✋ 🖐', rocket: '🚀', hammer: '🔨', snow: '🧊 ❄', scale: '⚖', mountain: '🗻 ⛰', cloud: '☁',
+    eyeOff: '🙈', ban: '🚫', coffee: '☕ 🍺', food: '🍴', coins: '💰 🪙', folder: '📁 📂', archive: '🗄', pin: '📌 📍',
+    chat: '💬', palette: '🎨', monitor: '🖥 🪟 🤖', phone: '📱 📲', ruler: '📐 📏', type: '🔤', x: '✖ ❌ 🔇', plus: '➕', minus: '➖',
+    charm: '💖 💘', mapPin: '⚓', inbox: '🛒', atom: '🧲', arrowRight: '🏃', d20: '🟡 ⚪ 🟤 🔵 🟣 🟢 🔴 🟠 ⬛'
+  });
+
+  // Пиктограммы от U+2300: ниже — стрелки и геометрия (↔ ▶ ◆), это не эмодзи.
+  var EMOJI_RE = /(?:[⌀-⟿⤀-⯿〰〽㊗㊙]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|\uD83E[\uDC00-\uDFFF])[︎️]?(?:\uD83C[\uDFFB-\uDFFF])?(?:‍(?:[⌀-⟿]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|\uD83E[\uDC00-\uDFFF])[️]?)*/g;
+  // Эмодзи — всё вне BMP, всё с FE0F и знакомые по карте; прочие значки (✓ ✕ ◆ ⌫) остаются текстом.
+  var EMOJI_TEST = new RegExp(EMOJI_RE.source);
+
+  function _emoBase(m) { return m.replace(/[︎️]|\uD83C[\uDFFB-\uDFFF]/g, '').split('‍')[0]; }
+  function _isEmoji(m) { return m.length > 1 || m.charCodeAt(0) >= 0xD800 || !!EMOJI_ICON[m]; }
+  function stripEmoji(s) {
+    return s.replace(EMOJI_RE, function (m) { return _isEmoji(m) ? '' : m; }).replace(/\s{2,}/g, ' ').replace(/^\s+|\s+$/g, '');
+  }
+  function emojiIconSvg(m) {
+    var name = EMOJI_ICON[_emoBase(m)];
+    var d = name && DND_ICON_PATHS[name];
+    if (!d) return null;
+    return '<svg class="rd-emo" width="1.1em" height="1.1em" viewBox="0 0 24 24" fill="none" stroke="currentColor"' +
+      ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+  }
+
+  var _SKIP_TAGS = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, INPUT: 1, SVG: 1, svg: 1, CANVAS: 1, NOSCRIPT: 1, TITLE: 1 };
+  var _ATTRS = ['placeholder', 'title', 'aria-label', 'alt', 'label', 'data-tip', 'data-tooltip'];
+  var _tpl = null;
+
+  function _skipEl(el) {
+    for (; el && el.nodeType === 1; el = el.parentNode) {
+      if (_SKIP_TAGS[el.tagName] || el.isContentEditable || el.hasAttribute('data-keep-emoji')) return true;
+    }
+    return false;
+  }
+  function _fixText(node) {
+    var s = node.nodeValue;
+    if (!s || !EMOJI_TEST.test(s)) return;
+    var p = node.parentNode;
+    if (!p || _skipEl(p)) return;
+    // В option/optgroup SVG не отрисуется — только убрать
+    if (p.tagName === 'OPTION' || p.tagName === 'OPTGROUP') { node.nodeValue = stripEmoji(s); return; }
+    var html = '', plain = '', last = 0, hasSvg = false, changed = false, m;
+    EMOJI_RE.lastIndex = 0;
+    while ((m = EMOJI_RE.exec(s))) {
+      if (!_isEmoji(m[0])) continue;
+      var svg = emojiIconSvg(m[0]);
+      html += _esc(s.slice(last, m.index)) + (svg || '');
+      plain += s.slice(last, m.index);
+      if (svg) hasSvg = true;
+      last = m.index + m[0].length;
+      changed = true;
+    }
+    if (!changed) return;
+    html += _esc(s.slice(last));
+    plain += s.slice(last);
+    if (!hasSvg) {
+      // эмодзи без глифа убирается; если элемент остался бы пустым — общий значок
+      if (plain.trim() || p.textContent.trim() !== s.trim()) { node.nodeValue = plain.replace(/^\s+/, ''); return; }
+      html = emojiIconSvg('✨');
+    }
+    _tpl = _tpl || document.createElement('template');
+    _tpl.innerHTML = html;
+    p.replaceChild(_tpl.content, node);
+  }
+  function _esc(t) { return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function _fixAttrs(el) {
+    if (el.tagName === 'svg' || el.tagName === 'SVG') return;
+    for (var i = 0; i < _ATTRS.length; i++) {
+      var v = el.getAttribute(_ATTRS[i]);
+      if (v && EMOJI_TEST.test(v)) { var nv = stripEmoji(v); if (nv !== v) el.setAttribute(_ATTRS[i], nv); }
+    }
+    if (el.tagName === 'INPUT' && (el.type === 'button' || el.type === 'submit') && EMOJI_TEST.test(el.value)) el.value = stripEmoji(el.value);
+  }
+  function deEmojiTree(root) {
+    if (!root) return;
+    if (root.nodeType === 3) { _fixText(root); return; }
+    if (root.nodeType !== 1 && root.nodeType !== 11) return;
+    if (root.nodeType === 1) { if (_skipEl(root)) return; _fixAttrs(root); }
+    var w = document.createTreeWalker(root, 5 /* ELEMENT | TEXT */, null), n, texts = [];
+    while ((n = w.nextNode())) {
+      if (n.nodeType === 1) {
+        if (n.hasAttribute('placeholder') || n.hasAttribute('title') || n.hasAttribute('aria-label') || n.hasAttribute('label') || n.tagName === 'INPUT') _fixAttrs(n);
+      } else if (EMOJI_TEST.test(n.nodeValue)) texts.push(n);
+    }
+    for (var i = 0; i < texts.length; i++) _fixText(texts[i]);
+  }
+
+  var _queue = [], _scheduled = false;
+  function _flush() {
+    _scheduled = false;
+    var q = _queue; _queue = [];
+    for (var i = 0; i < q.length; i++) if (q[i].isConnected) deEmojiTree(q[i]);
+  }
+  function startEmojiIcons() {
+    if (!document.documentElement.classList.contains('rd') || startEmojiIcons._on) return;
+    startEmojiIcons._on = true;
+    deEmojiTree(document.body);
+    if (document.title && EMOJI_TEST.test(document.title)) document.title = stripEmoji(document.title);
+    if (typeof MutationObserver !== 'function') return;
+    new MutationObserver(function (muts) {
+      for (var i = 0; i < muts.length; i++) {
+        var mu = muts[i];
+        if (mu.type === 'childList') { for (var j = 0; j < mu.addedNodes.length; j++) _queue.push(mu.addedNodes[j]); }
+        else if (mu.type === 'characterData') _queue.push(mu.target);
+        else _queue.push(mu.target);
+      }
+      // синхронно до кадра: microtask, чтобы эмодзи не мигали
+      if (!_scheduled && _queue.length) { _scheduled = true; Promise.resolve().then(_flush); }
+    }).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: _ATTRS });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startEmojiIcons);
+  else startEmojiIcons();
+
+  window.stripEmoji = stripEmoji;
+  window.deEmojiTree = deEmojiTree;
+  window.startEmojiIcons = startEmojiIcons;
   window.QS_ICON_PRESETS = QS_ICON_PRESETS;
   window.qsIconPreset = qsIconPreset;
   window.qsIconHtml = qsIconHtml;

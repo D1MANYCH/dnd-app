@@ -729,3 +729,25 @@ html.rd .tour-ring { border-width: 1px; border-color: var(--accent); box-shadow:
 html.rd .tour-coach-step { text-transform: none; letter-spacing: 0; }
 html.rd .tour-coach-title { font-family: var(--font-display); }
 html.rd #tour-prev { background: none; border-color: transparent; color: var(--accent-ink); }
+
+/* ══ РД-14 / DS-10: иконки вместо эмодзи ══════════════════════════════════
+   Замена — в icons.js (startEmojiIcons): текстовый эмодзи → svg.rd-emo в строке.
+   Штрих 1.5 у всех линейных иконок dndIcon и у замен; пресеты слотов (1.75) не трогаем. */
+html.rd svg[stroke="currentColor"][stroke-width="2"] { stroke-width: 1.5; }
+html.rd svg.rd-emo {
+  display: inline-block;
+  vertical-align: -0.18em;
+  flex-shrink: 0;
+}
+/* 🎲 у кликабельных бонусов был в content — svg туда не вставить, рисуем маской */
+html.rd .skill-bonus-clickable::after,
+html.rd[data-stats-layout="2024"] .abil-card-mod::after,
+html.rd .save-bonus-clickable::after {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2.2 20.5 7v10L12 21.8 3.5 17V7z'/%3E%3Cpath d='M12 6.6 17.4 15.9H6.6z'/%3E%3Cpath d='M12 6.6 12 2.2M6.6 15.9 3.5 17M17.4 15.9 20.5 17'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2.2 20.5 7v10L12 21.8 3.5 17V7z'/%3E%3Cpath d='M12 6.6 17.4 15.9H6.6z'/%3E%3Cpath d='M12 6.6 12 2.2M6.6 15.9 3.5 17M17.4 15.9 20.5 17'/%3E%3C/svg%3E") center / contain no-repeat;
+}
