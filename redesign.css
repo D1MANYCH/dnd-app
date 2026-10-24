@@ -646,3 +646,86 @@ html.rd .ac-modifier-item.negative { box-shadow: inset 3px 0 0 var(--danger); }
 html.rd .ac-modifier-item.note { box-shadow: inset 3px 0 0 var(--accent-lo); }
 html.rd .aef-row { border-radius: var(--r-4); }
 html.rd .skel-row { background: var(--bg-2); border: none; }
+
+/* ══ РД-13: остальной хром и панели (DS-8) ══
+   Эталона нет (Д-10) — правила DS-0: без коробок, подложек, свечений и scale;
+   состояние — только цвет; действие — заливка акцентом, переход — --accent-ink текстом. */
+/* статус-бар: показатели текстом цвета состояния, без пилюль и пульса */
+html.rd .status-chip { background: none; border-color: transparent; border-radius: var(--r-4); box-shadow: none; animation: none; }
+html.rd .status-chip:hover { background: none; box-shadow: none; color: var(--accent-ink); }
+html.rd .conditions-popup-list .condition-badge { border-radius: var(--r-4); }
+html.rd .popup-group + .popup-group { border-top-color: var(--border-soft); }
+
+/* кубы, чип эффектов, лента бросков — без прыжков и масштаба */
+html.rd .tab-dice-fab:is(:hover, :active) { transform: none; background: transparent !important; }
+html.rd .tab-dice-fab-icon { filter: none; }
+html.rd .aef-fab:is(:hover, :active) { transform: none; }
+html.rd .aef-fab:hover { color: var(--accent-ink); }
+html.rd .aef-row { background: none; border-bottom: 1px solid var(--border-soft); border-radius: 0; }
+html.rd .aef-row-x { border-radius: var(--r-4); }
+html.rd .qrs-close { border-radius: var(--r-4); }
+
+/* меню ☰ на телефоне: строки без сдвига, подчёркивания и свечения, подписи групп без капса */
+@media (max-width: 1023px) {
+  html.rd :is(.drawer-group, .drawer-char-sub) { text-transform: none; letter-spacing: 0; }
+  html.rd :is(.drawer-item, .drawer-settings-btn):is(:hover, :focus-visible, :active) { transform: none; box-shadow: none; color: var(--accent-ink); }
+  html.rd :is(.drawer-item, .drawer-settings-btn) .home-bullet { transform: rotate(45deg); }
+  html.rd .drawer-item-label::after { display: none; }
+}
+
+/* журнал сессии: панель — линия, а не тяжёлая тень; строки без подложек */
+html.rd .app-log-panel { border-left-color: var(--border-soft); box-shadow: var(--sh-2); }
+html.rd :is(.app-log-header, .app-log-toolbar) { border-bottom-color: var(--border-soft); }
+html.rd .app-log-title { color: var(--text); font-family: var(--font-display); }
+html.rd .al-row:is(.al-warn, .al-error) { background: none; box-shadow: inset 3px 0 0 var(--warn); }
+html.rd .al-row.al-error { box-shadow: inset 3px 0 0 var(--danger); }
+
+/* попап преимущества: рамка тонкая, кости без свечения, бонусы без масштаба */
+html.rd .roll-mode-popup { border: 1px solid var(--border-soft); }
+html.rd .roll-mode-btn.roll-mode-suggested { box-shadow: inset 3px 0 0 currentColor; }
+html.rd .dice-dual-die { border-width: 1px; border-radius: var(--r-4); }
+html.rd .dice-dual-kept, html.rd .dice-dual-dis .dice-dual-kept { box-shadow: none; }
+html.rd :is(.save-bonus-clickable, .skill-bonus-clickable):hover { transform: none; background: none; color: var(--accent-ink); }
+
+/* расовые бонусы: линии мягкие, выбор — цветом без подчёркивания, замок — строкой */
+html.rd :is(.race-bonus-bar, .bg-feature-bar, .race-extras-panel) { border-top-color: var(--border-soft); }
+html.rd :is(.race-extras-stat-pick, .feat-stat-opt).selected { text-decoration: none; color: var(--accent); }
+html.rd .race-extras-btn { color: var(--accent-ink); background: none; }
+html.rd .basic-locked-bar { background: none; border: none; border-radius: 0; border-left: 3px solid var(--success); }
+
+/* классовые выборы: группы — строки с линией, варианты — «вариант 3» как у черт (РД-12) */
+html.rd .cc-group { background: none; border: none; border-radius: 0; border-top: 1px solid var(--border-soft); }
+html.rd .cc-group[open] .cc-group-head { border-bottom-color: var(--border-soft); }
+html.rd :is(.cc-class-tag, .cc-badge-todo, .cc-badge-done, .cc-opt-req) { background: none; padding-left: 0; padding-right: 0; }
+html.rd .cc-badge-todo, html.rd .cc-opt-req { color: var(--warn); }
+html.rd .cc-badge-done { color: var(--success); }
+html.rd .cc-opt { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-4); }
+html.rd .cc-opt:hover { border-color: var(--border); background: var(--bg-3); }
+html.rd .cc-opt.selected { border-color: var(--accent); background: var(--bg-2); box-shadow: inset 3px 0 0 var(--accent); }
+html.rd .cc-freeform-input { border-radius: var(--r-4); }
+
+/* ASI и взятые черты: чипы — текстом через цвет, карточка черты — строка с линией */
+html.rd .asi-preview { background: none; border: none; border-left: 3px solid var(--border-soft); border-radius: 0; }
+html.rd .asi-preview.ready { background: none; border-left-color: var(--success); }
+html.rd :is(.feat-prereq, .feat-taken-badge, .taken-feats-count, .feat-taken-lvl) { background: none; border: none; padding-left: 0; padding-right: 0; }
+html.rd .feat-prereq { color: var(--warn); }
+html.rd .feat-taken-badge { color: var(--success); }
+html.rd .feat-taken-card { background: none; border: none; border-bottom: 1px solid var(--border-soft); border-radius: 0; }
+
+/* приветствие: выборы — строки с линией, без свечений */
+html.rd :is(.welcome-hero, .welcome-brand-ico) { filter: none; }
+html.rd .welcome-title { font-family: var(--font-display); }
+html.rd .welcome-choice { background: none; border: none; border-bottom: 1px solid var(--border-soft); border-radius: 0; }
+html.rd .welcome-choice:is(:hover, :focus-visible) { background: none; border-color: var(--border-soft); color: var(--accent-ink); }
+html.rd :is(.welcome-choice, .welcome-cta):active { transform: none; }
+html.rd .welcome-choice-badge { background: none; padding: 0; color: var(--accent-ink); }
+html.rd .welcome-cta:not(.welcome-cta-primary):not(.welcome-cta-ghost) { background: none; border-color: var(--border); }
+html.rd .welcome-cta-primary:is(:hover, :focus-visible) { filter: none; background: var(--accent-hi); }
+html.rd :is(.welcome-cta-ghost, .welcome-back) { color: var(--accent-ink); }
+html.rd .welcome-cta-ghost:hover { background: none; color: var(--accent-hi); }
+
+/* тур: рамка подсветки без свечения, шаг без капса */
+html.rd .tour-ring { border-width: 1px; border-color: var(--accent); box-shadow: none; animation: none; }
+html.rd .tour-coach-step { text-transform: none; letter-spacing: 0; }
+html.rd .tour-coach-title { font-family: var(--font-display); }
+html.rd #tour-prev { background: none; border-color: transparent; color: var(--accent-ink); }
