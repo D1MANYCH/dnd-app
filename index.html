@@ -30,9 +30,7 @@
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
 <link rel="stylesheet" href="style.css?v=v567">
-<link rel="stylesheet" href="redesign.css?v=v567">
 <script>
-function isRedesign() { return document.documentElement.classList.contains('rd'); }
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
 (function(){
@@ -45,17 +43,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', isLight ? '#eceff5' : '#050a14');
-    // Тестовый режим редизайна: ?rd=1 включает и запоминает, ?rd=0 выключает.
-    var rd = /[?&]rd=([01])(&|$)/.exec(location.search);
-    if (rd) localStorage.setItem('dnd_rd', rd[1]);
-    if (localStorage.getItem('dnd_rd') === '1') document.documentElement.classList.add('rd');
-    // UI-2: применить акцент до отрисовки, чтобы не было вспышки золотого
-    // РД-2: в режиме по умолчанию «Янтарь» (ember), вне режима ember → gold
+    // РД-Ф: тестовый режим редизайна влит — его ключи больше не читаются
+    localStorage.removeItem('dnd_rd'); localStorage.removeItem('dnd_sheet2');
+    // UI-2: применить акцент до отрисовки, чтобы не было вспышки; по умолчанию «Янтарь» (ember)
     var a = localStorage.getItem('dnd_accent');
-    var isRd = document.documentElement.classList.contains('rd');
-    var allowed = ['gold','emerald','ruby','amethyst','sapphire','copper','silver','graphite'];
-    if (isRd) allowed.push('ember');
-    if (allowed.indexOf(a) === -1) a = isRd ? 'ember' : 'gold';
+    var allowed = ['gold','emerald','ruby','amethyst','sapphire','copper','silver','graphite','ember'];
+    if (allowed.indexOf(a) === -1) a = 'ember';
     if (a !== 'gold') document.documentElement.setAttribute('data-accent', a);
     // UI-4: применить плотность до отрисовки
     // UI5-5: без явного выбора пользователя — на телефоне (≤640px) дефолт compact (меньше скролла)
@@ -75,6 +68,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     // отложенный вызов через DOMContentLoaded.
     var fs = parseFloat(localStorage.getItem('dnd_fs_scale'));
     if (isFinite(fs) && fs >= 0.9 && fs <= 1.3 && fs !== 1) {
+      document.documentElement.style.setProperty('--fs-zoom', String(fs));
       document.addEventListener('DOMContentLoaded', function() {
         document.body.style.zoom = String(fs);
       });
@@ -173,10 +167,13 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
         <button type="button" class="accent-chip" data-accent-btn="graphite" title="Графит"   aria-label="Графит"   style="--chip-hi:#a0a3ac;--chip-lo:#6e7178;--chip-mid:#8a8d96" onclick="setAccent('graphite')"></button>
         <button type="button" class="accent-chip" data-accent-btn="ember"    title="Янтарь"   aria-label="Янтарь"   style="--chip-hi:#f69d5b;--chip-lo:#c4561a;--chip-mid:#f38536" onclick="setAccent('ember')"></button>
       </div>
-      <label class="auto-accent-row" for="auto-accent-toggle" title="Акцент автоматически подстраивается под&nbsp;класс активного персонажа">
-        <input type="checkbox" id="auto-accent-toggle" onchange="setAutoAccent(this.checked)">
-        <span><span data-ico="sparkle" data-ico-size="16">🎭</span> Авто-акцент по&nbsp;классу</span>
-      </label>
+    </div>
+    <div class="theme-picker-row list-row">
+      <span class="theme-picker-label"><span data-ico="sparkle" data-ico-size="16">🎭</span> Авто-акцент по&nbsp;классу</span>
+      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Авто-акцент по&nbsp;классу">
+        <button type="button" class="theme-picker-btn seg" data-auto-accent-btn="on"  onclick="setAutoAccent(true)"  title="Акцент автоматически подстраивается под&nbsp;класс активного персонажа">Вкл</button>
+        <button type="button" class="theme-picker-btn seg" data-auto-accent-btn="off" onclick="setAutoAccent(false)" title="Акцент — выбранный цвет">Выкл</button>
+      </div>
     </div>
     <div class="theme-picker-row list-row">
       <span class="theme-picker-label"><span data-ico="layers" data-ico-size="16">📐</span> Плотность</span>
@@ -191,13 +188,6 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="theme-picker-btns stats-layout-picker-btns seg-group" role="radiogroup" aria-label="Раскладка листа характеристик">
         <button type="button" class="theme-picker-btn seg" data-stats-layout-btn="2024"    onclick="setStatsLayout('2024')"    title="Спасброски и&nbsp;навыки сгруппированы внутри карточек характеристик (вид листа 2024)">2024</button>
         <button type="button" class="theme-picker-btn seg" data-stats-layout-btn="classic" onclick="setStatsLayout('classic')" title="Классический вид: характеристики, спасброски и&nbsp;навыки отдельными блоками">Классический</button>
-      </div>
-    </div>
-    <div class="theme-picker-row list-row">
-      <span class="theme-picker-label"><span data-ico="sheet" data-ico-size="16">📋</span> Новый лист (демо)<small class="sheet2-demo-note">В&nbsp;разработке — пользуйтесь на&nbsp;свой страх и&nbsp;риск. Страница перезагрузится.</small></span>
-      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Новый лист (демо)">
-        <button type="button" class="theme-picker-btn seg" data-sheet2-btn="1" onclick="setSheet2Demo(true)">Вкл</button>
-        <button type="button" class="theme-picker-btn seg" data-sheet2-btn="0" onclick="setSheet2Demo(false)">Выкл</button>
       </div>
     </div>
     <div class="theme-picker-row list-row">
@@ -3583,6 +3573,20 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
+<!-- МАСТ-1: мастер создания персонажа — шаги поверх листа (app-creator.js) -->
+<div id="screen-creator" class="page-screen hidden">
+  <div class="page-stage">
+    <div class="page-head"><h2 class="page-title">Новый персонаж</h2><button type="button" class="page-back" onclick="creatorExit()">← Выйти</button></div>
+    <div id="cr-progress" class="cr-progress"></div>
+    <div id="cr-body" class="cr-body"></div>
+    <div class="cr-nav">
+      <button type="button" id="cr-prev" class="hp-act" onclick="creatorPrev()">← Назад</button>
+      <button type="button" id="cr-next" class="btn btn-primary cr-next" onclick="creatorNext()">Далее</button>
+    </div>
+    <button type="button" class="hp-act cr-manual" onclick="creatorManual()">Заполнить вручную на&nbsp;листе →</button>
+  </div>
+</div>
+
 <!-- FEAT-LOG: панель журнала сессии (Ctrl+Shift+L / дровер → «Логи сессии») -->
 <div id="app-log-panel" class="app-log-panel" hidden>
   <div class="app-log-header">
@@ -3666,6 +3670,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script src="app-ui.js?v=v567"></script>
 <script src="app-home.js?v=v567"></script>
 <script src="app-asi.js?v=v567"></script>
+<script src="app-creator.js?v=v567"></script>
 <script src="app-progress.js?v=v567"></script>
 <script src="app-notes.js?v=v567"></script>
 <script src="app-desktop.js?v=v567"></script>

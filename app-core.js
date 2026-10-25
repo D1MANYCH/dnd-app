@@ -436,13 +436,13 @@ var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3,
                      help: 3, builds: 3, buildguide: 4, buildplan: 4, abilityinfo: 3,
                      featureinfo: 4, levelup: 3, rest: 3, magiccatalog: 3, gearcatalog: 3,
                      hphistory: 3, spellsearch: 3, itemref: 3, dmref: 3, abilgen: 3, mclayout: 3,
-                     monsters: 3, monsterform: 3, books: 4, wildshape: 3 };
+                     monsters: 3, monsterform: 3, books: 4, wildshape: 3, creator: 2 };
 // Экраны-страницы: у них нет своего персонажа, currentId не трогаем — иначе
 // «Настройки» с листа выбрасывали бы из персонажа.
 var PAGE_SCREENS = ["data", "settings", "about", "help", "builds", "buildguide", "buildplan", "abilityinfo",
                     "featureinfo", "levelup", "rest", "magiccatalog", "gearcatalog",
                     "hphistory", "spellsearch", "itemref", "dmref", "abilgen", "mclayout",
-                    "monsters", "monsterform", "books", "wildshape"];
+                    "monsters", "monsterform", "books", "wildshape", "creator"];
 var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О\u00a0версии",
                     help: "Справка", builds: "Готовые билды",
                     buildguide: "Гайд по\u00a0билду", buildplan: "План развития",
@@ -450,11 +450,12 @@ var PAGE_TITLES = { data: "Данные", settings: "Настройки", about:
                     magiccatalog: "Каталог магических предметов", gearcatalog: "Каталог снаряжения",
                     hphistory: "История здоровья", spellsearch: "Поиск заклинаний", itemref: "Справка по\u00a0предметам", dmref: "Шпаргалка мастера",
                     abilgen: "Характеристики", mclayout: "Классы и\u00a0уровни",
-                    monsters: "Бестиарий", monsterform: "Свой монстр", books: "Книги и\u00a0дополнения", wildshape: "Дикий облик" };
+                    monsters: "Бестиарий", monsterform: "Свой монстр", books: "Книги и\u00a0дополнения", wildshape: "Дикий облик",
+                    creator: "Новый персонаж" };
 // STYLE-8M-3: повышение уровня и отдых — экраны поверх листа: они зовут
 // loadCharacter посреди своего сценария, и лист перерисовывается под ними,
 // не переключая экран (иначе результат пропадал бы до кнопки «Готово»).
-var SHEET_FLOW_SCREENS = ["levelup", "rest"];
+var SHEET_FLOW_SCREENS = ["levelup", "rest", "creator"];
 // Стек экранов, из которых уходили вперёд. Не персистится — в рамках сессии.
 var _screenStack = [];
 
@@ -524,7 +525,6 @@ function _rdScreenOpen(m) {
   return m.classList.contains("active") || m.classList.contains("open");
 }
 function initRdScreens() {
-  if (typeof isRedesign !== "function" || !isRedesign()) return;
   RD_SCREEN_MODALS.forEach(function (id) {
     var m = $(id);
     var box = m && m.firstElementChild;
@@ -548,7 +548,7 @@ function initRdScreens() {
 document.addEventListener("DOMContentLoaded", initRdScreens);
 // Escape на экране-форме ≡ «← Назад»; окно подтверждения поверх закрывается первым.
 document.addEventListener("keydown", function (e) {
-  if (e.key !== "Escape" || e.defaultPrevented || !isRedesign()) return;
+  if (e.key !== "Escape" || e.defaultPrevented) return;
   var over = document.querySelectorAll('.modal.active:not(.rd-screen), .confirm-modal-overlay.active:not(.rd-screen)');
   for (var i = 0; i < over.length; i++) if (_modalVisible(over[i])) return;
   var top = null;
@@ -630,6 +630,7 @@ saveToLocal();
 }
 
 function showScreen(screenName) {
+if (screenName !== "creator" && typeof _crUnmountPanels === "function") _crUnmountPanels();
 if (screenName === "home" || screenName === "characters") _purgeDraftChars();
 const homeScreen = $("screen-home");
 const charactersScreen = $("screen-characters");
@@ -812,16 +813,15 @@ function switchTab(tabName, btnEl) {
   // UI-6: тактильная отдача при переключении вкладок
   try { if (navigator.vibrate) navigator.vibrate(10); } catch(e) { window.__catchLog && window.__catchLog('core:switchTab-vibrate', e); }
   // РД-3: «Главная» и «Характ.» — две половины #tab-sheet, кнопки панели — .rd-tab
-  var _rd = typeof isRedesign === "function" && isRedesign();
   var _btnTab = tabName;
   if (tabName === "stats") tabName = "sheet";
-  if (_rd && tabName === "sheet") _rdSheetView(_btnTab === "stats" ? "stats" : "main");
+  if (tabName === "sheet") _rdSheetView(_btnTab === "stats" ? "stats" : "main");
   document.querySelectorAll(".tab-content").forEach(function(tab) { tab.classList.remove("active"); });
   document.querySelectorAll(".tab-btn").forEach(function(btn) { btn.classList.remove("active"); });
   var tabElement = $("tab-" + tabName);
   if (tabElement) tabElement.classList.add("active");
   // Highlight tab btn
-  var activeBtn = btnEl ? btnEl.closest(".tab-btn") : document.querySelector((_rd ? ".tab-btn.rd-tab" : ".tab-btn:not(.rd-tab)") + "[data-tab='" + _btnTab + "']");
+  var activeBtn = btnEl ? btnEl.closest(".tab-btn") : document.querySelector(".tab-btn.rd-tab[data-tab='" + _btnTab + "']");
   if (activeBtn) activeBtn.classList.add("active");
   // Highlight drawer item
   document.querySelectorAll(".drawer-item").forEach(function(el) { el.classList.remove("drawer-item-active"); });
@@ -839,7 +839,7 @@ function switchTab(tabName, btnEl) {
   if (tabName === "journal") { renderJournal(); }
   if (tabName === "notes")   { if (typeof renderNotes === "function") renderNotes(); }
   // TOUR-1: авто-старт интерактивного тура при первом заходе на вкладку (sheet/прочее — no-op).
-  if (typeof maybeStartTabTour === "function") maybeStartTabTour(tabName);
+  if (typeof maybeStartTabTour === "function") maybeStartTabTour(_btnTab);
 }
 
 // РД-3: блоки старого листа, которые живут на «Характ.»; остальное — «Главная».
@@ -857,7 +857,7 @@ function _rdSheetView(view) {
   (function walk(node) {
     for (var i = 0; i < node.children.length; i++) {
       var el = node.children[i];
-      if (el.id === "sheet2" || el.id === "sheet2-bar" || el.matches(RD_STATS_BLOCKS)) continue;
+      if (el.id === "sheet2" || el.matches(RD_STATS_BLOCKS)) continue;
       if (el.querySelector(RD_STATS_BLOCKS)) walk(el);
       else el.classList.add("rd-off");
     }
@@ -909,7 +909,7 @@ function hideCharacterNav() {
 // UI-6: Свайпы — горизонтальные жесты между вкладками + edge-swipe для drawer.
 // Порядок вкладок в нижней панели: sheet → spells → inventory → battle.
 (function() {
-  var SWIPE_TABS = ["sheet", "progress", "spells", "inventory", "battle"];
+  var SWIPE_TABS = ["sheet", "stats", "spells", "inventory", "battle", "notes"];
   var TAB_THRESHOLD = 60;   // px по X для смены вкладки
   var Y_TOLERANCE   = 50;   // px по Y — иначе считаем вертикальным скроллом
   var EDGE_ZONE     = 24;   // px от правого края — зона активации drawer
@@ -990,7 +990,7 @@ function hideCharacterNav() {
     if (Math.abs(dx) < TAB_THRESHOLD) return;
 
     var current = currentActiveTab();
-    var tabs = (typeof isRedesign === "function" && isRedesign()) ? ["sheet", "stats", "spells", "inventory", "battle", "notes"] : SWIPE_TABS;
+    var tabs = SWIPE_TABS;
     var idx = tabs.indexOf(current);
     if (idx < 0) return;
     var nextIdx = dx < 0 ? idx + 1 : idx - 1;
@@ -1080,6 +1080,7 @@ newChar.schemaVersion = (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION
 // E24-0: новый персонаж наследует редакцию по умолчанию с тумблера главной.
 newChar.edition = (typeof getEdition === 'function') ? getEdition() : '2014';
 newChar._draft = true; // PLAY-3: пустой черновик, см. _purgeDraftChars
+newChar._wizStep = "base"; // МАСТ-1: новый персонаж открывается мастером
 // Инициализируем ячейки заклинаний
 for (let i = 1; i <= 9; i++) {
   newChar.spells.slots[i] = 0;
@@ -1089,10 +1090,10 @@ characters.push(newChar);
 saveToLocal();
 // СОЗД-5: данные 2024 подгружаются до открытия листа, иначе выбор расы падает
 if (newChar.edition === '2024' && typeof window.ensureEdition2024 === 'function' && !window.__edition2024Loaded) {
-  window.ensureEdition2024().then(function() { loadCharacter(newChar.id); }, function() { loadCharacter(newChar.id); });
+  window.ensureEdition2024().then(function() { openCreator(newChar.id); }, function() { openCreator(newChar.id); });
   return;
 }
-loadCharacter(newChar.id);
+openCreator(newChar.id);
 }
 function getClassColor(cls) {
 const colors = {
@@ -1351,7 +1352,7 @@ var btn = document.createElement("button");
 btn.type = "button";
 btn.className = "home-menu-item list-row";
 btn.setAttribute("data-char-id", char.id);
-btn.onclick = function() { loadCharacter(char.id); };
+btn.onclick = function() { openCharOrCreator(char.id); };
 // Плашка следует за курсором и фокусом — на клавиатуре список читается так же.
 btn.addEventListener("mouseenter", function() { renderCharPlate(char); });
 btn.addEventListener("focus", function() { renderCharPlate(char); });

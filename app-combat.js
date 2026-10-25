@@ -2067,8 +2067,8 @@ function applyBasicLockUI() {
   var lockedBar = $("basic-locked-bar");
   var locked = !!char.basicLocked;
 
-  // РД-5 (П-11): в режиме rd после первой фиксации уровень меняется только через «Повысить»
-  var lvlOnce = locked || (!!char.basicLockedOnce && typeof isRedesign === "function" && isRedesign());
+  // РД-5 (П-11): после первой фиксации уровень меняется только через «Повысить»
+  var lvlOnce = locked || !!char.basicLockedOnce;
   BASIC_FIELD_IDS.forEach(function(id) {
     var el = $(id);
     if (!el) return;
@@ -2094,7 +2094,8 @@ function applyBasicLockUI() {
 
 // PLAY2-8 (PT-073/136): редакция выбирается в мастере создания, пока не выбраны класс, раса и предыстория
 function _cwEditionBusy(char) {
-  return !!(char.class || char.race || char.background || (char.classes && char.classes.length));
+  return !!(char.class || char.race || char.background ||
+    (char.classes && char.classes.some(function(c) { return c && c.class; })));
 }
 
 function syncCwEdition(char) {
@@ -2182,10 +2183,9 @@ function unlockBasicInfo() {
   if (!currentId) return;
   var char = getCurrentChar();
   if (!char) return;
-  var rd = typeof isRedesign === "function" && isRedesign();
   showConfirmModal(
     "Разблокировать основу?",
-    (rd ? "Имя, класс, подкласс, раса и предыстория снова станут редактируемыми; уровень меняется только через «Повысить»." : "Имя, класс, подкласс, раса, предыстория и уровень снова станут редактируемыми.") + " Делайте это только если действительно нужно изменить базовую информацию.",
+    "Имя, класс, подкласс, раса и предыстория снова станут редактируемыми; уровень меняется только через «Повысить»." + " Делайте это только если действительно нужно изменить базовую информацию.",
     function() {
       char.basicLocked = false;
       char.basicLockedOnce = true;
@@ -2195,6 +2195,7 @@ function unlockBasicInfo() {
       renderBackgroundExtras();
       renderClassSkills();
       showToast("🔓 Основа разблокирована", "info");
+      if (typeof creatorRefresh === "function") creatorRefresh();
     },
     "Разблокировать",
     { danger: false, icon: "lock" }
@@ -2329,6 +2330,7 @@ function scheduleCreationTodo() {
 }
 
 function renderCreationTodo() {
+  if (typeof creatorChoicesSync === "function") creatorChoicesSync();
   var box = $("creation-todo");
   if (!box) return;
   var char = currentId ? getCurrentChar() : null;
@@ -2340,7 +2342,7 @@ function renderCreationTodo() {
   if (!rows.length && !(ready && mob)) { box.style.display = "none"; box.innerHTML = ""; return; }
   box.innerHTML = '<div class="pg-grp">' + (rows.length ? "Осталось выбрать" : "Всё выбрано") + '</div><div class="hp-rows">' +
     rows.map(function(r) { return _pgAttn(r[0], "Выбрать →", r[1]); }).join("") +
-    (ready ? _pgAttn(rows.length ? "Когда закончите" : "Можно закрыть лист до\u00a0повышения уровня", "Персонаж готов →", "lockSheet()") : "") + '</div>';
+    (ready && mob ? _pgAttn(rows.length ? "Когда закончите" : "Можно закрыть лист до\u00a0повышения уровня", "Персонаж готов →", "lockSheet()") : "") + '</div>';
   box.style.display = "";
   // СОЗД-6: на телефоне карточки с незаполненным выбором раскрываются сами (только раскрытие, без сворачивания)
   if (mob && rows.length) {

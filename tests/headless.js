@@ -1549,14 +1549,12 @@
         _ensureInput("coin-gp", "1200"); _ensureInput("coin-pp", "0");
         renderPouches();
         var html = String(box.innerHTML);
-        var open = (html.match(/👝/g) || []).length;
-        var locked = (html.match(/🔒/g) || []).length;
-        if (open !== 2 || locked !== 2) return "СИЛ 12: ожидал 2 открытых + 2 закрытых, получено " + open + " + " + locked;
+        if (!/2\s+мешочка/.test(html)) return "СИЛ 12: ожидал «2 мешочка», получено " + html;
         if (html.indexOf(String(POUCH_MAX * 2)) === -1) return "нет ёмкости " + (POUCH_MAX * 2) + " (2 × POUCH_MAX)";
-        if (html.indexOf("не\u00a0унести 200") === -1) return "нет «не унести 200» (1200 монет при ёмкости 1000)";
+        if (!/не\s+унести\s+200/.test(html)) return "нет «не унести 200» (1200 монет при ёмкости 1000)";
         window.characters[0].stats.str = 6;
         renderPouches();
-        if (String(box.innerHTML).indexOf("Нет мешочков") === -1) return "СИЛ 6: ожидал «Нет мешочков»";
+        if (!/нет\s+мешочков/.test(String(box.innerHTML))) return "СИЛ 6: ожидал «нет мешочков»";
         return true;
       } finally { window.characters = savedChars; window.currentId = savedId; }
     });
@@ -2237,10 +2235,10 @@
 
   // ────────── БЛОК 13 (UI6-1): авто-акцент по классу (app-ui.js) ──────────
   if (typeof _getAutoAccent === "function") {
-    t("[accent] дефолт: нет auto + нет accent → авто ВКЛ", function(){
+    t("[accent] дефолт: нет auto + нет accent → авто ВЫКЛ (П-2)", function(){
       localStorage.removeItem("dnd_auto_accent");
       localStorage.removeItem("dnd_accent");
-      return _getAutoAccent() === true || "ожидал true";
+      return _getAutoAccent() === false || "ожидал false";
     });
     t("[accent] дефолт: нет auto, accent выбран вручную → авто ВЫКЛ", function(){
       localStorage.removeItem("dnd_auto_accent");

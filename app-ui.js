@@ -173,6 +173,7 @@ function renderSheetAvatar() {
     el.innerHTML = "<button type=\"button\" class=\"avatar-icon-btn\" onclick=\"openAvatarModal(event)\" aria-label=\"Сменить аватар\">" + inner + "</button>";
     el.classList.remove("has-avatar");
   }
+  if (typeof creatorRefresh === "function") creatorRefresh();
 }
 
 

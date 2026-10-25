@@ -139,41 +139,13 @@ function renderPouches() {
     (parseInt($("coin-ep")?.value, 10)||0) +
     (parseInt($("coin-gp")?.value, 10)||0) +
     (parseInt($("coin-pp")?.value, 10)||0);
-  if (typeof isRedesign === "function" && isRedesign()) {
-    // РД-10: одна строка под монетами — «Вес: 0.20 фнт · 1 мешочек · до 500 монет»
-    var _n = POUCH_STR_REQ.filter(function(r){ return str >= r; }).length;
-    var _line = "Вес: " + (totalCoins / 50).toFixed(2) + " фнт · ";
-    _line += _n ? _n + " " + (_n === 1 ? "мешочек" : "мешочка") + " · до " + (_n * POUCH_MAX) + " монет" : "нет мешочков — нужна СИЛ 8+";
-    if (totalCoins > _n * POUCH_MAX) _line += " · не унести " + (totalCoins - _n * POUCH_MAX);
-    container.innerHTML = '<p class="rd-inv-wt">' + escapeHtml(_line) + '</p>';
-    if (typeof rdExchPreview === "function") rdExchPreview();
-    return;
-  }
-  var html = '<div class="inv-pouches-row">';
-  POUCH_STR_REQ.forEach(function(req, i) {
-    var unlocked = str >= req;
-    var pct = unlocked ? Math.min(100, (totalCoins / (POUCH_MAX * (i+1))) * 100) : 0;
-    html += '<div class="inv-pouch' + (unlocked ? "" : " inv-pouch-locked") + '">';
-    html += '<div class="inv-pouch-icon">' + (unlocked ? "👝" : "🔒") + '</div>';
-    html += '<div class="inv-pouch-req">СИЛ ' + req + '+</div>';
-    if (unlocked) {
-      html += '<div class="inv-pouch-cap">' + (POUCH_MAX * (i+1)) + ' мон.</div>';
-    }
-    html += '</div>';
-  });
-  html += '</div>';
-  // capacity hint
-  var availPouches = POUCH_STR_REQ.filter(function(r){ return str >= r; }).length;
-  var maxCoins = availPouches * POUCH_MAX;
-  html += '<div class="inv-pouches-hint">';
-  if (availPouches > 0) {
-    html += '' + dndIcoHtml("inventory", 13) + ' ' + availPouches + ' мешочк' + (availPouches===1?"а":availPouches<5?"а":"ов") + ' · до <strong>' + maxCoins + '</strong> монет';
-    if (totalCoins > maxCoins) html += ' · <span style="color:var(--danger)">' + dndIcoHtml("alert", 12) + ' не\u00a0унести ' + (totalCoins - maxCoins) + ' монет</span>';
-  } else {
-    html += '' + dndIcoHtml("alert", 13) + ' Нет мешочков — нужна СИЛ 8+';
-  }
-  html += '</div>';
-  container.innerHTML = html;
+  // РД-10: одна строка под монетами — «Вес: 0.20 фнт · 1 мешочек · до 500 монет»
+  var _n = POUCH_STR_REQ.filter(function(r){ return str >= r; }).length;
+  var _line = "Вес: " + (totalCoins / 50).toFixed(2) + " фнт · ";
+  _line += _n ? _n + " " + (_n === 1 ? "мешочек" : "мешочка") + " · до " + (_n * POUCH_MAX) + " монет" : "нет мешочков — нужна СИЛ 8+";
+  if (totalCoins > _n * POUCH_MAX) _line += " · не унести " + (totalCoins - _n * POUCH_MAX);
+  container.innerHTML = '<p class="rd-inv-wt">' + escapeHtml(_line) + '</p>';
+  if (typeof rdExchPreview === "function") rdExchPreview();
 }
 
 function renderInventory() {
@@ -190,16 +162,13 @@ Object.keys(char.inventory).forEach(function(category) {
 allItems.push({ category: category, index: index, item: item });
 });
 });
-var _rd = typeof isRedesign === "function" && isRedesign();
-// РД-10: в режиме фильтров нет — списки «Экипировано / Рюкзак», экипированное первым
-if (_rd) {
+// РД-10: фильтров нет — списки «Экипировано / Рюкзак», экипированное первым
+{
   var _eq = allItems.filter(function(d) { return RD_EQUIP_LOC[d.item.location]; });
   var _bp = allItems.filter(function(d) { return !RD_EQUIP_LOC[d.item.location]; });
   allItems = _eq.concat(_bp);
   if (_eq.length) allItems[0].rdHead = "Экипировано";
   if (_bp.length) _bp[0].rdHead = "Рюкзак";
-} else if (currentFilterCategory !== "all") {
-allItems = allItems.filter(function(i) { return i.category === currentFilterCategory; });
 }
 if (allItems.length === 0) {
 container.innerHTML = "<div class=\"inventory-empty\">" + dndIcoHtml("inbox", 22) + " Нет предметов" + (currentFilterCategory !== "all" ? " в\u00a0этой категории" : "") + "</div>";
@@ -260,9 +229,9 @@ div.innerHTML =
         _chargesTagHtml +
       '</div>' +
     '</div>' +
-    (_rd && rdInvStatus(data.category, item)
+    (rdInvStatus(data.category, item)
       ? '<span class="inv-item-qty rd-inv-st">' + rdInvStatus(data.category, item) + '</span>'
-      : (_rd && (Number(item.qty) || 1) === 1 && item.qty !== 0) ? ''
+      : ((Number(item.qty) || 1) === 1 && item.qty !== 0) ? ''
       : '<span class="inv-item-qty" title="Количество">×' + (item.qty === 0 ? 0 : (Number(item.qty) || 1)) + '</span>') +
     '<span class="inv-drag-handle" title="Перетащите, чтобы переместить предмет">⠿</span>' +
   '</div>' +
@@ -271,7 +240,7 @@ div.innerHTML =
     '<div class="inv-item-actions">' +
       _chargesCtrlHtml +
       _attuneBtnHtml +
-      (typeof isRedesign === "function" && isRedesign() && QS_ITEM_CATS.indexOf(data.category) !== -1 ? _qsBtnHtml(char, "item", item.qid, '\'item\',\'' + data.category + '\',' + data.index) : '') +
+      (QS_ITEM_CATS.indexOf(data.category) !== -1 ? _qsBtnHtml(char, "item", item.qid, '\'item\',\'' + data.category + '\',' + data.index) : '') +
       '<button class="btn btn-secondary btn-sm inv-edit-btn" onclick="event.stopPropagation(); editItemDirect(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("edit", 14) + ' Изменить</button>' +
       '<button class="btn btn-danger btn-sm inv-del-btn" onclick="event.stopPropagation(); deleteItemDirect(\'' + data.category + '\',' + data.index + ')">' + dndIcoHtml("trash", 14) + ' Удалить</button>' +
     '</div>' +
@@ -2232,7 +2201,7 @@ function renderQuickDock() {
   var box = $("rd-quick-dock");
   if (!box) return;
   var char = currentId ? getCurrentChar() : null;
-  var on = !!char && typeof isRedesign === "function" && isRedesign();
+  var on = !!char;
   box.hidden = !on;
   document.documentElement.classList.toggle("rd-dock-on", on);
   if (!on) return;

@@ -52,15 +52,14 @@ function _syncThemeButtons() {
 document.addEventListener('DOMContentLoaded', _syncThemeButtons);
 
 // UI-2: акцент (8 пресетов)
-// РД-2: ember (#f38536) — только в режиме редизайна и там по умолчанию
-function _rdOn() { return typeof isRedesign === 'function' && isRedesign(); }
+// РД-2: ember (#f38536) — по умолчанию
 var ACCENTS = ['gold','emerald','ruby','amethyst','sapphire','copper','silver','graphite','ember'];
 function _getAccent() {
   try {
     var a = localStorage.getItem('dnd_accent');
-    if (ACCENTS.indexOf(a) !== -1 && (a !== 'ember' || _rdOn())) return a;
+    if (ACCENTS.indexOf(a) !== -1) return a;
   } catch (e) {}
-  return _rdOn() ? 'ember' : 'gold';
+  return 'ember';
 }
 function _applyAccent(name) {
   if (name === 'gold') document.documentElement.removeAttribute('data-accent');
@@ -118,9 +117,8 @@ function _getAutoAccent() {
     var v = localStorage.getItem('dnd_auto_accent');
     if (v === '1') return true;
     if (v === '0') return false;
-    // РД-2 (П-2): в режиме редизайна без явного выбора авто-акцент выключен
-    if (_rdOn()) return false;
-    return localStorage.getItem('dnd_accent') === null;
+    // РД-2 (П-2): без явного выбора авто-акцент выключен
+    return false;
   } catch (e) { return false; }
 }
 function _accentForClass(cls) {
@@ -143,8 +141,10 @@ function setAutoAccent(on) {
   _refreshAccent();
 }
 function _syncAutoAccentToggle() {
-  var t = document.getElementById('auto-accent-toggle');
-  if (t) t.checked = _getAutoAccent();
+  var active = _getAutoAccent() ? 'on' : 'off';
+  document.querySelectorAll('[data-auto-accent-btn]').forEach(function (b) {
+    b.classList.toggle('is-active', b.getAttribute('data-auto-accent-btn') === active);
+  });
 }
 document.addEventListener('DOMContentLoaded', function() {
   _syncAutoAccentToggle();
@@ -258,28 +258,8 @@ function _syncStatsLayoutButtons() {
 document.addEventListener('DOMContentLoaded', function() {
   _applyStatsLayout(_getStatsLayout());
   _syncStatsLayoutButtons();
-  _syncSheet2DemoButtons();
 });
 
-// РОСТ-8: демо нового листа. РД-2: демо живёт в режиме редизайна — переключатель
-// включает сам режим (dnd_rd читает скрипт в <head> при загрузке — поэтому перезагрузка)
-function _getSheet2Demo() {
-  try { return localStorage.getItem('dnd_rd') === '1'; } catch (e) { return false; }
-}
-function _syncSheet2DemoButtons() {
-  var on = _getSheet2Demo() ? '1' : '0';
-  document.querySelectorAll('.theme-picker-btn[data-sheet2-btn]').forEach(function(b) {
-    b.classList.toggle('is-active', b.getAttribute('data-sheet2-btn') === on);
-  });
-}
-function setSheet2Demo(on) {
-  if (on === _getSheet2Demo()) return;
-  try { localStorage.setItem('dnd_rd', on ? '1' : '0'); } catch (e) {}
-  _syncSheet2DemoButtons();
-  var u = new URL(location.href);
-  u.searchParams.delete('rd');
-  location.replace(u.toString());
-}
 
 // ЗАМОК-1: замок листа после создания (ключ dnd_sheet_lock, по умолчанию вкл.).
 // Выкл. → isSheetLocked() всегда false, кнопки и плашка замка скрыты.
@@ -589,8 +569,8 @@ function _applyFontScale(v) {
   // считаться по реальной ширине окна → layout остаётся стабильным.
   var body = document.body;
   if (!body) return;
-  if (v === FS_SCALE_DEFAULT) body.style.removeProperty('zoom');
-  else body.style.zoom = String(v);
+  if (v === FS_SCALE_DEFAULT) { body.style.removeProperty('zoom'); document.documentElement.style.removeProperty('--fs-zoom'); }
+  else { body.style.zoom = String(v); document.documentElement.style.setProperty('--fs-zoom', String(v)); }
 }
 function setFontScale(v) {
   v = parseFloat(v);

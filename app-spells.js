@@ -99,7 +99,7 @@ container.classList.toggle("ssl-has", sslHas);
 if (sslAll) sslAll.style.display = container.querySelector(".spell-slot-empty .ssl-controls") ? "" : "none";
 // Дымка v5: зеркало ячеек в правом rail на ПК
 try { if (typeof window.refreshRailSlots === 'function') window.refreshRailSlots(); } catch (e) {}
-if (typeof isRedesign === "function" && isRedesign()) renderRdSlotStrip(char, isSingleWarlock);
+renderRdSlotStrip(char, isSingleWarlock);
 }
 // РД-7: полоса ячеек над панелью (телефон). Свёрнута — уровни в одну строку с прокруткой,
 // развёрнута — по два уровня в строке; ◆ свободна (нажать — потратить), ◇ потрачена (вернуть).
@@ -1020,7 +1020,7 @@ byLevel[lvl].push(spell);
 });
 container.innerHTML = "";
 Object.keys(byLevel).sort(function(a,b){return a-b;}).forEach(function(level) {
-const levelTitle = level == 0 ? "Заговоры" : (typeof isRedesign === "function" && isRedesign() ? "Заклинания " + level + " ур." : level + " уровень");
+const levelTitle = level == 0 ? "Заговоры" : "Заклинания " + level + " ур.";
 const count = byLevel[level].length;
 const groupDiv = document.createElement("div");
 groupDiv.className = "spell-level-group";
@@ -1125,7 +1125,7 @@ card.innerHTML =
     // HB-3: правка своего заклинания прямо из списка. Удаления из базы здесь нет
     // намеренно — рядом уже стоит «🗑 Удалить», и две корзины с разным смыслом
     // на одной карточке читаются как одна. Удаление насовсем живёт в поиске.
-    (typeof isRedesign === "function" && isRedesign() && typeof _qsBtnHtml === "function" ? _qsBtnHtml(char, "spell", spell.id, '\'spell\',' + _spellIdArg(spell.id) + ',null') : '') +
+    (typeof _qsBtnHtml === "function" ? _qsBtnHtml(char, "spell", spell.id, '\'spell\',' + _spellIdArg(spell.id) + ',null') : '') +
     (spell.homebrew ? '<button class="btn btn-text btn-sm spell-edit-btn" onclick="openAddSpellForm(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("edit", 13) + ' Изменить</button>' : '') +
     '<button class="btn btn-danger btn-sm spell-remove-btn" title="Убрать из\u00a0списка персонажа" onclick="removeSpell(' + _spellIdArg(spell.id) + ')">' + dndIcoHtml("trash", 13) + ' Удалить</button>' +
     '</div>' +

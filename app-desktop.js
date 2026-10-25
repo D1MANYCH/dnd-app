@@ -10,10 +10,10 @@
   // состояние — в dnd_rr_open. Класс на <html>, чтобы --rr-w видели :root-переменные.
   const RR_OPEN_KEY = 'dnd_rr_open';
   try { if (localStorage.getItem(RR_OPEN_KEY) === '1') document.documentElement.classList.add('rr-open'); } catch (e) {}
-  // РД-4: в режиме редизайна без сохранённого выбора меню и панель раскрыты от 1280,
+  // РД-4: без сохранённого выбора меню и панель раскрыты от 1280,
   // уже — свёрнуты в полосы. Выбор меню — в dnd_rd_nav ('mini' / 'full').
   const RD_NAV_KEY = 'dnd_rd_nav';
-  if (document.documentElement.classList.contains('rd')) {
+  {
     let rrSaved = null, navSaved = null;
     try { rrSaved = localStorage.getItem(RR_OPEN_KEY); navSaved = localStorage.getItem(RD_NAV_KEY); } catch (e) {}
     const wide = window.innerWidth >= 1280;

@@ -243,7 +243,7 @@
     });
     // РД-1: формы-экраны редизайна открываются мимо openModal — без слоя
     // браузерный «Назад» уводил бы с полноэкранной формы прямо из приложения.
-    if (typeof isRedesign === "function" && isRedesign()) [
+    [
       ["add-spell",  "openAddSpellForm",      "closeAddSpellForm",      "add-spell-modal"],
       ["item",       "openItemModal",         "closeItemModal",         "item-modal"],
       ["weapon",     "openWeaponModal",       "closeWeaponModal",       "weapon-modal"],
