@@ -12,12 +12,12 @@ var CREATOR_STEPS = [
   { id: "class",      title: "Класс",           render: _crRenderClass, valid: _crValidClass, why: function(c) { return c.class ? "выберите подкласс" : "выберите класс"; } },
   { id: "background", title: "Предыстория",     render: _crRenderBg, valid: _crValidBg, why: function(c) { return c.background ? "распределите бонусы предыстории" : "выберите предысторию"; } },
   { id: "abilities",  title: "Характеристики",  render: _crRenderAbil, after: _crAfterAbil, valid: _crValidAbil, leave: _crLeaveAbil, why: function() { return "задайте значение каждой из шести характеристик"; } },
-  { id: "choices",    title: "Выборы",          render: _crRenderChoices, after: _crAfterChoices, valid: _crValidChoices, why: function(c) { return _crTodo(c).map(function(r) { return r[0].replace(/<[^>]+>/g, ""); }).join("; "); } },
+  { id: "choices",    title: "Выборы",          render: _crRenderChoices, after: _crAfterChoices, valid: _crValidChoices, why: function(c) { return "осталось пунктов: " + _crTodo(c).length + " — список выше"; } },
   { id: "levels",     title: "Уровни",          render: _crRenderLevels, after: _crAfterLevels, valid: _crValidLevels, skip: function(c) { return _crTargetLevel(c) <= 1; },
     why: function(c) { return (c.level || 1) < _crTargetLevel(c) ? "повысьте уровень до " + _crTargetLevel(c) + "-го" : "сделайте выборы этого уровня"; } },
   { id: "spells",     title: "Заклинания",      render: _crRenderSpells, valid: _crValidSpells, skip: function(c) { return !_crSpellRows(c).length && !_charMaxCastableLevel(c); },
     why: function(c) { return _crSpellRows(c).filter(function(r) { return r.have !== r.need; }).map(function(r) { return r.label.toLowerCase() + " " + r.have + " из " + r.need; }).join("; "); } },
-  { id: "gear",       title: "Снаряжение",      render: _crRenderGear, after: creatorGearSync, valid: _crValidGear, why: function(c) { return "выдайте: " + _crGearTodo(c).map(function(r) { return r[0].toLowerCase(); }).join(", "); } },
+  { id: "gear",       title: "Снаряжение",      render: _crRenderGear, after: creatorGearSync, valid: _crValidGear, why: function(c) { return "выдайте: " + _crGearTodo(c).map(function(r) { return r[0].replace(/<[^>]+>/g, "").toLowerCase(); }).join(", "); } },
   { id: "persona",    title: "Личность",        render: _crRenderPersona },
   { id: "summary",    title: "Итог",            render: _crRenderSummary }
 ];

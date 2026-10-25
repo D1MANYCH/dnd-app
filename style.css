@@ -7876,7 +7876,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   box-sizing: border-box;
 }
 .feat-list {
-  max-height: 260px;
+  max-height: max(260px, 45vh);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -7903,9 +7903,10 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 /* AUD-7: выбор характеристики черты (stat_choice) — текстовые действия */
 .feat-stat-pick { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-3); margin-top: var(--sp-2); font-size: var(--fs-12); }
 .feat-stat-pick-lbl { color: var(--text-mute); }
-.feat-stat-opt { background: none; border: none; padding: 2px 0; color: var(--accent-lo); font: inherit; font-weight: var(--fw-semibold); cursor: pointer; }
-.feat-stat-opt.selected { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-.feat-stat-opt:disabled { color: var(--text-mute); opacity: var(--dis-op); cursor: default; }
+.feat-stat-opt { min-height: 36px; padding: var(--sp-1) var(--sp-3); border: 1px solid var(--accent); border-radius: var(--r-4); background: var(--accent-soft); color: var(--accent-ink); font: inherit; font-weight: var(--fw-semibold); cursor: pointer; }
+.feat-stat-opt.selected { color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.feat-stat-opt.selected::after { content: " ✓"; }
+.feat-stat-opt:disabled { border-color: var(--border); background: none; color: var(--text-mute); opacity: var(--dis-op); cursor: default; }
 
 /* ========== PROFILES TABS (Чейнджлог) ========== */
 .profiles-bottom-card { padding: var(--sp-4) var(--sp-4) var(--sp-4) !important; }
@@ -14249,7 +14250,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .ag-lead { margin: 0 0 var(--sp-3); line-height: 1.5; }
 .ag-left { margin: 0 0 var(--sp-3); font-family: var(--font-display); color: var(--accent-lo); }
 /* PLAY2-8 (PT-077): общая сетка — заголовки стоят над своими столбцами */
-.ag-table { display: grid; grid-template-columns: minmax(0, 1fr) auto 3em 4.5em; column-gap: var(--sp-3); }
+.ag-table { display: grid; grid-template-columns: minmax(6.5em, 1fr) auto 2.5em 4.5em; column-gap: var(--sp-3); }
 .ag-row {
   display: grid;
   grid-column: 1 / -1;
@@ -14264,7 +14265,15 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .ag-ctl .stat-btn-sm:not([disabled]) { color: var(--accent-ink); font-size: var(--fs-24); }
 .ag-val { min-width: 2ch; text-align: center; font-weight: var(--fw-bold); }
 .ag-cost { min-width: 3.2em; font-size: var(--fs-sm); color: var(--home-sub); }
-.ag-sel { width: auto; min-width: 5em; }
+/* ширина постоянная: подписи «— сейчас у: …» в списке не раздувают столбец и не съедают названия */
+.ag-sel { width: 6em; min-width: 0; }
+@media (max-width: 480px) {
+  .ag-table { grid-template-columns: minmax(0, 1fr) auto auto auto; font-size: .9em; }
+  .ag-table, .ag-row { column-gap: var(--sp-2); }
+  .ag-sel { width: 4.2em; }
+  .ag-ctl .stat-btn-sm { width: 32px; min-width: 32px; height: 32px; }
+  .ag-cost { display: none; }
+}
 select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--font-display); }
 .ag-bonus { text-align: right; color: var(--home-sub); }
 .ag-total { text-align: right; font-weight: var(--fw-bold); white-space: nowrap; }
@@ -16730,9 +16739,16 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
 .cr-nav { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); margin-top: var(--sp-5); padding: var(--sp-3) var(--sp-3) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px)); position: sticky; bottom: 0; z-index: 5; background: var(--bg-0); border-top: 1px solid var(--border); }
 .cr-why { flex: 1; min-width: 0; color: var(--warn); font-size: var(--fs-sm); text-align: right; }
 .cr-why:empty { visibility: hidden; }
+/* действия мастера — видимые кнопки, а не подчёркнутый текст */
+#screen-creator :is(.hp-act, .race-extras-btn:not(.done)) { box-sizing: border-box; min-height: 40px; padding: var(--sp-1) var(--sp-3); border: 1px solid var(--accent); border-radius: var(--r-4); background: var(--accent-soft); color: var(--accent-ink); text-decoration: none; text-align: left; }
+#screen-creator :is(.hp-act, .race-extras-btn:not(.done)):hover:not([disabled]) { background: color-mix(in srgb, var(--accent) 25%, transparent); text-decoration: none; }
+#screen-creator .hp-act[disabled] { border-color: var(--border); background: none; }
+#screen-creator :is(#cr-prev, .cr-manual) { border-color: var(--border); background: none; color: var(--text-dim); }
+#screen-creator .cr-manual { display: inline-flex; }
+#screen-creator .pg-attn-act { flex: none; white-space: nowrap; }
 /* выборы в мастере — явные кнопки, а не текст через точку */
 #screen-creator .race-extras-row { gap: var(--sp-2); }
-#screen-creator .race-extras-stat-pick { padding: var(--sp-1) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-4); color: var(--text); background: var(--bg-2); cursor: pointer; }
+#screen-creator .race-extras-stat-pick { max-width: 100%; white-space: normal; text-align: left; padding: var(--sp-1) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-4); color: var(--text); background: var(--bg-2); cursor: pointer; }
 #screen-creator .race-extras-stat-pick + .race-extras-stat-pick::before { content: none; }
 #screen-creator .race-extras-stat-pick:hover:where(:not(:disabled)) { border-color: var(--accent); color: var(--text); }
 #screen-creator .race-extras-stat-pick.selected { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
