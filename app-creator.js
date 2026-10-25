@@ -156,7 +156,7 @@ function _crSeg(label, items, cur, onclick, disabledFn) {
     var on = it[0] === cur;
     var dis = disabledFn && disabledFn(it[0]);
     html += '<button type="button" class="theme-picker-btn seg' + (on ? " active" : "") + '" role="radio" aria-checked="' + on + '"' +
-      (dis ? ' disabled title="Редакцию можно сменить, пока не выбраны класс, раса и предыстория"' : "") +
+      (dis ? ' disabled title="Редакцию можно сменить, пока не выбраны класс, раса и предыстория"' : "") +
       ' onclick="' + onclick + '(\'' + it[0] + '\')">' + it[1] + '</button>';
   });
   return html + '</div></div>';
@@ -329,7 +329,7 @@ function _crRenderRace(char) {
     if (rest.length) html += '<p class="cr-hint">Остальные выборы расы (' + rest.join(", ") + ') — на&nbsp;шаге «Выборы».</p>';
   }
   html += '<div class="cr-field"><label for="cr-race-q">Поиск</label>' +
-    '<input type="search" id="cr-race-q" class="field" placeholder="' + (is24 ? "Название вида" : "Название расы или книги") + '" value="' + escapeHtml(_crRaceQuery) + '" oninput="creatorRaceSearch(this.value)"></div>' +
+    '<input type="search" id="cr-race-q" class="field" placeholder="' + (is24 ? "Название вида" : "Название расы или книги") + '" value="' + escapeHtml(_crRaceQuery) + '" oninput="creatorRaceSearch(this.value)"></div>' +
     '<div id="cr-race-list">' + _crRenderRaceList(char) + '</div>';
   return html;
 }
@@ -357,18 +357,18 @@ function creatorPickSpeciesOpt(v) {
 // ── Шаг 3: класс ────────────────────────────────
 
 var _CR_CLASS_BLURB = {
-  "Варвар": "Свирепый воин: ярость даёт урон и стойкость.",
-  "Бард": "Маг-вдохновитель: поддержка союзников, навыки и заклинания.",
-  "Воин": "Мастер оружия и доспехов, больше всех атак.",
-  "Волшебник": "Учёный маг с самым широким выбором заклинаний.",
-  "Друид": "Хранитель природы: стихийная магия и дикий облик.",
-  "Жрец": "Проводник божества: лечение, защита и божественная магия.",
-  "Колдун": "Маг по договору с покровителем: мистический заряд и воззвания.",
-  "Монах": "Боец без доспехов: удары руками, ци и подвижность.",
-  "Паладин": "Святой воин в доспехах: божественная кара, лечение и ауры.",
-  "Плут": "Ловкач и мастер навыков: скрытая атака и хитрые действия.",
-  "Следопыт": "Охотник и разведчик: оружие, выживание и магия природы.",
-  "Чародей": "Маг с врождённой силой: меньше заклинаний, зато метамагия."
+  "Варвар": "Свирепый воин: ярость даёт урон и стойкость.",
+  "Бард": "Маг-вдохновитель: поддержка союзников, навыки и заклинания.",
+  "Воин": "Мастер оружия и доспехов, больше всех атак.",
+  "Волшебник": "Учёный маг с самым широким выбором заклинаний.",
+  "Друид": "Хранитель природы: стихийная магия и дикий облик.",
+  "Жрец": "Проводник божества: лечение, защита и божественная магия.",
+  "Колдун": "Маг по договору с покровителем: мистический заряд и воззвания.",
+  "Монах": "Боец без доспехов: удары руками, ци и подвижность.",
+  "Паладин": "Святой воин в доспехах: божественная кара, лечение и ауры.",
+  "Плут": "Ловкач и мастер навыков: скрытая атака и хитрые действия.",
+  "Следопыт": "Охотник и разведчик: оружие, выживание и магия природы.",
+  "Чародей": "Маг с врождённой силой: меньше заклинаний, зато метамагия."
 };
 
 function _crClassMeta(char, cls) {
@@ -433,7 +433,7 @@ function _crRenderClass(char) {
     return html + '<p class="cr-hint">Загружаю билды…</p>';
   }
   var builds = _crBuildsFor(char);
-  if (!builds.length) return html + '<p class="cr-hint">Для этого класса билдов пока нет.</p>';
+  if (!builds.length) return html + '<p class="cr-hint">Для этого класса билдов пока нет.</p>';
   html += '<p class="cr-hint">Билд необязателен: он подскажет подкласс, характеристики, черты и&nbsp;заклинания на&nbsp;следующих шагах.</p><div class="cr-cards">';
   builds.forEach(function(b) {
     var meta = [b.subclass, b.race, b.background].filter(Boolean).map(escapeHtml).join(" · ");
@@ -750,7 +750,7 @@ function _crValidLevels(char) {
 function _crRenderLevels(char) {
   if (_crTargetLevel(char) <= 1) return '<p class="cr-hint">Стартовый уровень — 1-й: повышений нет.</p>';
   return '<p class="cr-hint">Герой собран на&nbsp;1-м уровне. Дальше — повышения по&nbsp;одному, как кнопкой «Повысить» на&nbsp;листе, с&nbsp;выборами каждого уровня. Заклинания — на&nbsp;следующем шаге.</p>' +
-    _crSeg("Хиты за уровень", [["avg", "Среднее"], ["roll", "Бросок"]], _crHpMode, "creatorHpMode") +
+    _crSeg("Хиты за уровень", [["avg", "Среднее"], ["roll", "Бросок"]], _crHpMode, "creatorHpMode") +
     '<div class="cr-group-title" id="cr-lu-title"></div><div id="cr-lu-result"></div><div id="cr-lu"></div>' +
     '<div class="list-row cr-row"><button type="button" class="hp-act" id="cr-lu-up" onclick="creatorLevelUp()"></button></div>';
 }
