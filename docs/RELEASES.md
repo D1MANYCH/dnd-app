@@ -3,58 +3,84 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v5.0.0**.
+Актуальная версия — **v5.0.1**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v5.0.1"></a>
+## v5.0.1 — 25 октября 2026
+
+🐛 Кнопка «↑ Повысить» на телефоне — во всю ширину и выше; на листе новый блок «Черты»: полученные черты с описанием по нажатию
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/5bbe0717...main) · 6 файлов, +104 −57
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (1):**
+
+- [`f831a486`](https://github.com/D1MANYCH/dnd-app/commit/f831a486) Merge pull request #7 from D1MANYCH/rd-final
+
+**Файлы (6):**
+
+- `index.html` +53 −53
+- `app-sheet2.js` +33 −0
+- `data.js` +10 −2
+- `CHANGELOG.md` +6 −1
+- `sw.js` +1 −1
+- `style.css` +1 −0
+
+</details>
+
 <a id="v5.0.0"></a>
 ## v5.0.0 — 25 октября 2026
 
 ✨ Новый внешний вид для всех: оформление тестового режима редизайна (?rd=1) стало основным, параметр ?rd и старое оформление удалены, акцентный пресет по умолчанию — «Янтарь» (ember), авто-акцент по классу выключен. Создание персонажа — пошаговый мастер на весь экран: основа, раса, класс, предыстория, характеристики, выборы, уровни (стартовый уровень 1–20), снаряжение, заклинания, итог; панель «Далее» внизу пишет, чего не хватает; пустые шаги пропускаются; лимит заклинаний по классу на шаге заклинаний.
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/3022a599...main) · 28 файлов, +5124 −3026
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/3022a599...5bbe0717) · 29 файлов, +2981 −1641
 
 <details><summary>Коммиты и файлы</summary>
 
-**Коммиты (3):**
+**Коммиты (4):**
 
 - [`5338961f`](https://github.com/D1MANYCH/dnd-app/commit/5338961f) chore(редизайн): РД-Ф в работе и мастер создания МАСТ-1…5 — без выпуска версии
 - [`8cf579ee`](https://github.com/D1MANYCH/dnd-app/commit/8cf579ee) chore(инструменты): check-theme — токены --rd-* редизайна одинаковы в обеих темах, исключены из паритета dark↔light
 - [`b3a9323e`](https://github.com/D1MANYCH/dnd-app/commit/b3a9323e) chore(мастер): неразрывные пробелы после предлогов в текстах мастера создания (check-typo)
+- [`5bbe0717`](https://github.com/D1MANYCH/dnd-app/commit/5bbe0717) v5.0.0: feat(редизайн): новый внешний вид стал основным, пошаговый мастер создания персонажа
 
-**Файлы (28):**
+**Файлы (29):**
 
-- `style.css` +1758 −638
-- `app-creator.js` +1961 −16
-- `redesign.css` +0 −1532
-- `docs/map.md` +310 −310
-- `app-help.js` +360 −79
-- `tools/style-snap.js` +284 −0
-- `index.html` +109 −98
-- `app-inventory.js` +26 −88
-- `app-settings.js` +22 −62
-- `app-asi.js` +58 −22
-- `app-hp.js` +20 −56
-- `app-core.js` +37 −33
+- `style.css` +893 −321
+- `app-creator.js` +1164 −29
+- `redesign.css` +0 −766
+- `docs/map.md` +219 −219
+- `app-help.js` +197 −41
+- `index.html` +82 −76
+- `tools/style-snap.js` +142 −0
 - `start-equip-2014.js` +67 −2
-- `app-sheet2.js` +14 −38
-- `app-combat.js` +29 −16
-- `tests/headless.js` +10 −14
-- `tools/check-theme.js` +18 −0
-- `app-spells.js` +7 −6
+- `docs/RELEASES.md` +57 −5
+- `app-inventory.js` +13 −44
+- `app-asi.js` +34 −13
+- `app-settings.js` +11 −31
+- `app-hp.js` +10 −28
+- `app-core.js` +20 −17
+- `app-combat.js` +21 −10
+- `app-sheet2.js` +7 −19
 - `data.js` +10 −2
-- `app-desktop.js` +4 −4
+- `tests/headless.js` +5 −7
+- `tools/check-theme.js` +9 −0
+- `app-spells.js` +4 −3
 - `CHANGELOG.md` +6 −1
-- `sw.js` +3 −3
-- `app-home.js` +2 −2
-- `history-stack.js` +2 −2
-- `icons.js` +2 −2
-- `app-dice.js` +2 −0
-- `app-ui.js` +2 −0
+- `app-desktop.js` +2 −2
+- `sw.js` +2 −2
+- `app-home.js` +1 −1
+- `history-stack.js` +1 −1
+- `icons.js` +1 −1
+- `app-dice.js` +1 −0
 - `app-notes.js` +1 −0
+- `app-ui.js` +1 −0
 
 </details>
 

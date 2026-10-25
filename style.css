@@ -16158,6 +16158,7 @@ button.modal-close-bottom:hover,
   :root #sheet2 .s2-head { grid-template-columns:auto minmax(0,1fr) }
   :root #sheet2 .s2-lvl { grid-column:1/-1;text-align:left;display:grid;grid-template-columns:1fr auto;gap:var(--sp-1) var(--sp-3);align-items:center }
   :root #sheet2 .s2-lvl .s2-xp { grid-column:1/-1;margin:0 }
+  :root #sheet2 .s2-lvl .s2-btn { grid-column:1/-1;min-height:48px;margin-top:var(--sp-2);font-size:var(--fs-18) }
   :root #sheet2 .s2-facts { grid-template-columns:1fr }
   :root #sheet2 .s2-body { grid-template-columns:1fr }
   :root #sheet2 .s2-head { order:-2 }

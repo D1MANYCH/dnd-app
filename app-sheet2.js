@@ -213,6 +213,15 @@
       });
       h.push("</div>");
     }
+    // ── Полученные черты (char.feats): названия, описание — по нажатию
+    var tf = Array.isArray(c.feats) ? c.feats : [];
+    if (tf.length) {
+      h.push("<h3>Черты</h3><div class='s2-feats'>");
+      tf.forEach(function (f, i) {
+        h.push("<button type='button' class='s2-link' onclick='sheet2TakenFeat(" + i + ")'>" + esc(f.name || f.id) + "</button>");
+      });
+      h.push("</div>");
+    }
     // владения и умения — третья колонка рядом с характеристиками
     var side = h.splice(sideAt0);
     h.splice(sideAt, 0, side.join(""));
@@ -374,6 +383,30 @@
   }
   window.sheet2Feat = function (b) {
     openFeatureInfo(b.getAttribute("data-c"), b.getAttribute("data-s") || null, parseInt(b.getAttribute("data-l"), 10), b.getAttribute("data-n"));
+  };
+  // Описание полученной черты — в том же окне, что и умения класса
+  window.sheet2TakenFeat = function (i) {
+    var c = getCurrentChar();
+    var f = c && c.feats && c.feats[i];
+    if (!f) return;
+    var d = typeof getFeatDef === "function" ? getFeatDef(c, f.id) : null;
+    if (!d || !d.desc) { if (typeof showToast === "function") showToast("Нет описания этой черты", "warn"); return; }
+    var src = ["Черта"];
+    if (f.origin) src.push("предыстория");
+    else if (f.level) src.push(f.level + " ур.");
+    if (d.category && typeof FEAT_CATEGORY_LABELS !== "undefined" && FEAT_CATEGORY_LABELS[d.category]) src.push(FEAT_CATEGORY_LABELS[d.category]);
+    var title = document.getElementById("fi-title-h");
+    if (title) title.textContent = f.name || d.name;
+    var ed = c.edition === "2024" ? "2024" : "2014";
+    var descHtml = esc(d.desc);
+    if (typeof glossarizeHtml === "function") {
+      try { descHtml = glossarizeHtml(descHtml, {}, ed); } catch (e) { descHtml = esc(d.desc); }
+    }
+    var body = document.getElementById("fi-body");
+    if (body) body.innerHTML = "<p class='ai-mine'>" + src.map(esc).join(" <span class='hp-dot'>·</span> ") + "</p><p class='ai-lead'>" + descHtml + "</p>" +
+      (typeof _fiRuleNotes === "function" ? _fiRuleNotes(d.desc, ed) : "");
+    if (typeof _glossBindOnce === "function") _glossBindOnce();
+    showScreen("featureinfo");
   };
 
   // Заряды ресурсов класса: до 8 — ромбами, больше — счётчиком
