@@ -7,17 +7,19 @@
 // Стартовый уровень — char._wizLevel; повышения до него — шаг «Уровни».
 
 var CREATOR_STEPS = [
-  { id: "base",       title: "Основа",          render: _crRenderBase, valid: _crValidBase },
-  { id: "race",       title: "Раса",            render: _crRenderRace, valid: _crValidRace },
-  { id: "class",      title: "Класс",           render: _crRenderClass, valid: _crValidClass },
-  { id: "background", title: "Предыстория",     render: _crRenderBg, valid: _crValidBg },
-  { id: "abilities",  title: "Характеристики",  render: _crRenderAbil, after: _crAfterAbil, valid: _crValidAbil, leave: _crLeaveAbil },
-  { id: "choices",    title: "Выборы",          render: _crRenderChoices, after: _crAfterChoices, valid: _crValidChoices },
-  { id: "levels",     title: "Уровни",          render: _crRenderLevels, after: _crAfterLevels, valid: _crValidLevels },
-  { id: "spells",     title: "Заклинания" },
-  { id: "gear",       title: "Снаряжение" },
-  { id: "persona",    title: "Личность" },
-  { id: "summary",    title: "Итог" }
+  { id: "base",       title: "Основа",          render: _crRenderBase, valid: _crValidBase, why: function() { return "впишите имя персонажа"; } },
+  { id: "race",       title: "Раса",            render: _crRenderRace, valid: _crValidRace, why: function(c) { return c.race ? "выберите вариант расы" : "выберите расу"; } },
+  { id: "class",      title: "Класс",           render: _crRenderClass, valid: _crValidClass, why: function(c) { return c.class ? "выберите подкласс" : "выберите класс"; } },
+  { id: "background", title: "Предыстория",     render: _crRenderBg, valid: _crValidBg, why: function(c) { return c.background ? "распределите бонусы предыстории" : "выберите предысторию"; } },
+  { id: "abilities",  title: "Характеристики",  render: _crRenderAbil, after: _crAfterAbil, valid: _crValidAbil, leave: _crLeaveAbil, why: function() { return "задайте значение каждой из шести характеристик"; } },
+  { id: "choices",    title: "Выборы",          render: _crRenderChoices, after: _crAfterChoices, valid: _crValidChoices, why: function(c) { return _crTodo(c).map(function(r) { return r[0].replace(/<[^>]+>/g, ""); }).join("; "); } },
+  { id: "levels",     title: "Уровни",          render: _crRenderLevels, after: _crAfterLevels, valid: _crValidLevels, skip: function(c) { return _crTargetLevel(c) <= 1; },
+    why: function(c) { return (c.level || 1) < _crTargetLevel(c) ? "повысьте уровень до " + _crTargetLevel(c) + "-го" : "сделайте выборы этого уровня"; } },
+  { id: "spells",     title: "Заклинания",      render: _crRenderSpells, valid: _crValidSpells, skip: function(c) { return !_crSpellRows(c).length && !_charMaxCastableLevel(c); },
+    why: function(c) { return _crSpellRows(c).filter(function(r) { return r.have !== r.need; }).map(function(r) { return r.label.toLowerCase() + " " + r.have + " из " + r.need; }).join("; "); } },
+  { id: "gear",       title: "Снаряжение",      render: _crRenderGear, after: creatorGearSync, valid: _crValidGear, why: function(c) { return "выдайте: " + _crGearTodo(c).map(function(r) { return r[0].toLowerCase(); }).join(", "); } },
+  { id: "persona",    title: "Личность",        render: _crRenderPersona },
+  { id: "summary",    title: "Итог",            render: _crRenderSummary }
 ];
 
 var _crId = null;
@@ -44,6 +46,7 @@ function openCreator(id) {
   creatorRender();
   // Лист грузится под экраном: «creator» в SHEET_FLOW_SCREENS, экран не сменится
   loadCharacter(id);
+  if (typeof maybeStartCreatorTour === "function") maybeStartCreatorTour();
 }
 
 function creatorRender() {
@@ -65,7 +68,7 @@ function creatorRender() {
   _agHost = "ag-body";
   if (!frozen && step.after) step.after(char);
   $("cr-prev").style.visibility = idx > 0 ? "" : "hidden";
-  $("cr-next").textContent = idx === CREATOR_STEPS.length - 1 ? "Готово" : "Далее";
+  $("cr-next").textContent = idx === CREATOR_STEPS.length - 1 ? "Персонаж готов" : "Далее";
   _crSyncNext();
 }
 
@@ -81,6 +84,23 @@ function _crSyncNext() {
   var step = CREATOR_STEPS[_crStepIndex(char)];
   var frozen = char.basicLocked && _crStepIndex(char) <= _crLockIndex();
   btn.disabled = !frozen && !!(step.valid && !step.valid(char));
+  var why = $("cr-why"), text = btn.disabled && step.why ? step.why(char) : "";
+  if (why) why.textContent = text ? "Чтобы продолжить: " + text : "";
+}
+
+/** Мастер держит панели листа на шаге «Выборы» (снаряжение там не показываем). */
+function creatorHostsPanels() {
+  return typeof currentScreenName === "function" && currentScreenName() === "creator";
+}
+
+/** Есть ли место под заклинание по лимитам класса; иначе подсказка и отказ (addSpell в мастере). */
+function creatorSpellRoom(char, sp) {
+  var cap = _charMaxCastableLevel(char);
+  if (sp.level > 0 && cap && sp.level > cap) { showToast("Заклинания " + sp.level + "-го круга пока недоступны — до " + cap + "-го", "warn"); return false; }
+  var c = _crSpellRow(char, "cantrips");
+  var room = sp.level > 0 ? _crListRoom(char) : !!(c && c.have < c.need);
+  if (!room) showToast((sp.level > 0 ? "Заклинания" : "Заговоры") + " уже выбраны по лимиту класса — уберите одно, чтобы взять другое", "warn");
+  return room;
 }
 
 function _crLockIndex() {
@@ -97,8 +117,10 @@ function _crGo(delta) {
   var char = _crChar();
   if (!char) return;
   var idx = _crStepIndex(char) + delta;
+  // пустые шаги (уровни на 1-м, заклинания у незаклинателя) проходим насквозь
+  while (idx > 0 && idx < CREATOR_STEPS.length && CREATOR_STEPS[idx].skip && CREATOR_STEPS[idx].skip(char)) idx += delta;
   if (idx < 0) return;
-  if (idx >= CREATOR_STEPS.length) { _crLeaveToSheet(); return; }
+  if (idx >= CREATOR_STEPS.length) { _crLeaveToSheet(); lockSheet(); return; }
   char._wizStep = CREATOR_STEPS[idx].id;
   saveToLocal();
   creatorRender();
@@ -807,4 +829,307 @@ function _crRollLevelHp(char, hpFrom) {
   char.combat.hpMaxManual = (manual > 0 ? manual : rulesMaxHPBase(char, getMod(char.stats.con))) + roll - avg;
   recalculateHP();
   return dndIcoHtml("heart", 13) + " ХП: " + (hpFrom != null ? hpFrom + " → " : "") + char.combat.hpMax + " (бросок к" + die + ": " + roll + ", среднее было бы " + avg + ")";
+}
+
+// ── Шаг 8: заклинания ───────────────────────────
+// Лимиты — те же функции, что у счётчика вкладки «Заклинания», на уровне после шага «Уровни».
+// Добавление — экран поиска заклинаний (openSpellSearch), подготовка — toggleSpellPrepared.
+// Заклинания от вида, черт и подкласса (grantedBy, заклинания подкласса) в лимиты не входят.
+
+/** Строки лимитов: [{ id, label, have, need }]; пусто — классу на этом уровне выбирать нечего. */
+function _crSpellRows(char) {
+  var own = ((char.spells && char.spells.mySpells) || []).filter(function(s) { return s && !s.grantedBy; });
+  var rows = [];
+  var cMax = calcMaxCantrips(char);
+  if (cMax) rows.push({ id: "cantrips", label: "Заговоры", have: own.filter(function(s) { return !(s.level > 0); }).length, need: cMax });
+  var kMax = calcMaxKnownSpells(char);
+  if (kMax) rows.push({ id: "known", label: "Известные заклинания", have: _knownSpellCount(char), need: kMax });
+  if (char.class === "Волшебник") {
+    var sub = _subclassSpellNames(char);
+    rows.push({ id: "book", label: "Книга заклинаний", need: 6 + 2 * ((char.level || 1) - 1),
+      have: own.filter(function(s) { return s.level > 0 && !sub[s.name]; }).length });
+  }
+  var pMax = calcMaxPrepared(char);
+  if (pMax) rows.push({ id: "prepared", label: "Подготовленные", have: _preparedCount(char), need: pMax });
+  return rows;
+}
+
+function _crSpellRow(char, id) {
+  return _crSpellRows(char).filter(function(r) { return r.id === id; })[0] || null;
+}
+
+function _crValidSpells(char) {
+  return _crSpellRows(char).every(function(r) { return r.have === r.need; });
+}
+
+/** Есть ли место ещё для одного заклинания 1+ круга в списке (известные, книга или список подготовки). */
+function _crListRoom(char) {
+  var r = _crSpellRow(char, "known") || _crSpellRow(char, "book");
+  if (r) return r.have < r.need;
+  var p = _crSpellRow(char, "prepared");
+  if (!p) return true;
+  var n = (char.spells.mySpells || []).filter(function(s) { return spellNeedsPrep(char, s); }).length;
+  return n < p.need;
+}
+
+/** Заклинания билда до текущего уровня: стартовые + советы повышений 2…N. */
+function _crBuildSpells(char) {
+  var b = char.buildId && window.getBuildById ? window.getBuildById(char.buildId) : null;
+  if (!b) return [];
+  var out = [], seen = {};
+  function push(sp) { if (sp && sp.id != null && !seen[sp.id]) { seen[sp.id] = 1; out.push(sp); } }
+  var ss = b.startingSpells || {};
+  ["cantrips", "known", "prepared"].forEach(function(k) {
+    (ss[k] || []).forEach(function(n) { push(typeof n === "object" ? n : window.resolveSpellByName && window.resolveSpellByName(n, b.edition)); });
+  });
+  for (var lv = 2; lv <= (char.level || 1); lv++) getBuildRecSpellObjs(b, lv).forEach(push);
+  var cap = _charMaxCastableLevel(char);
+  return out.filter(function(sp) { return !(sp.level > cap); });
+}
+
+function _crHasSpell(char, sp) {
+  return (char.spells.mySpells || []).some(function(x) { return x.id === sp.id || x.name === sp.name; });
+}
+
+function _crRenderSpells(char) {
+  var rows = _crSpellRows(char), cap = _charMaxCastableLevel(char), lvl = char.level || 1;
+  if (!rows.length && !cap) {
+    return '<p class="cr-hint">На&nbsp;' + lvl + '-м уровне у&nbsp;класса «' + escapeHtml(char.class || "") + '» своих заклинаний нет — шаг можно пропустить. Заклинания от&nbsp;вида и&nbsp;черт уже на&nbsp;листе.</p>';
+  }
+  var html = '<p class="cr-hint">Заклинания по&nbsp;таблице класса на&nbsp;' + lvl + '-м уровне' + (cap ? ', доступны круги до&nbsp;' + cap + '-го' : '') +
+    '. Заклинания от&nbsp;вида, черт и&nbsp;подкласса в&nbsp;счёт не&nbsp;идут.</p>';
+  if (rows.length) {
+    html += '<div class="pg-grp">' + (_crValidSpells(char) ? "Всё выбрано" : "Осталось выбрать") + '</div><div class="hp-rows">' + rows.map(function(r) {
+      var full = r.have >= r.need, over = r.have > r.need;
+      var go = over || r.id === "prepared" ? "_crGoTo('cr-sp-list')" : "creatorOpenSpells()";
+      return _pgAttn(escapeHtml(r.label) + ' <u>· ' + r.have + '/' + r.need + (over ? " · лишних " + (r.have - r.need) : full ? " ✓" : "") + '</u>', over ? "Убрать ↓" : full ? "Изменить →" : r.id === "prepared" ? "Отметить ↓" : "Выбрать →", go);
+    }).join("") + '</div>';
+  }
+  var rec = _crBuildSpells(char), recLeft = rec.filter(function(sp) { return !_crHasSpell(char, sp); });
+  if (rec.length) {
+    html += '<div class="cr-group-title">Советы билда</div><p class="cr-hint">' + escapeHtml(rec.map(function(s) { return s.name; }).join(", ")) + '</p>' +
+      '<div class="list-row cr-row"><button type="button" class="btn btn-primary cr-rec-btn" onclick="creatorAddBuildSpells()"' + (recLeft.length ? "" : " disabled") + '>' +
+      (recLeft.length ? "Взять советы билда (" + recLeft.length + ")" : "Советы билда добавлены") + '</button></div>';
+  }
+  html += '<div class="list-row cr-row"><button type="button" class="btn btn-secondary cr-rec-btn" onclick="creatorOpenSpells()">Выбрать из&nbsp;списка класса →</button></div>';
+  return html + _crRenderMySpells(char);
+}
+
+/** Выбранные заклинания по кругам; у готовящих классов чип — переключатель подготовки. */
+function _crRenderMySpells(char) {
+  var my = (char.spells.mySpells || []).filter(function(s) { return s && !s.grantedBy; });
+  if (!my.length) return "";
+  var byLvl = {};
+  my.forEach(function(s) { var l = s.level || 0; (byLvl[l] = byLvl[l] || []).push(s); });
+  var html = '<div id="cr-sp-list"><div class="pg-grp">Вы выбрали</div>', over = _crSpellRows(char).some(function(r) { return r.have > r.need; });
+  if (over) html += '<p class="cr-hint">Выбрано больше, чем позволяет класс: уберите лишние.</p>';
+  Object.keys(byLvl).sort(function(a, b) { return a - b; }).forEach(function(l) {
+    html += '<div class="cr-group-title">' + (l === "0" ? "Заговоры" : l + "-й круг") + '</div><div class="hp-rows">';
+    byLvl[l].forEach(function(s) {
+      var id = escapeHtml(String(s.id)), prep = spellNeedsPrep(char, s), on = prep && isSpellPrepared(char, s.id);
+      var meta = [s.school, s.time, s.range].filter(Boolean).map(escapeHtml).join(" · ");
+      html += '<div class="list-row cr-sp-row"><div class="cr-sp-main"><span class="cr-sp-name">' + escapeHtml(s.name) + '</span>' +
+        (meta ? '<span class="cr-sp-meta">' + meta + '</span>' : "") + '</div>' +
+        (prep ? '<button type="button" class="hp-act' + (on ? " cr-sp-on" : "") + '" data-v="' + id + '" onclick="creatorToggleSpellPrep(this.dataset.v)">' + (on ? "◆ Подготовлено" : "◇ Подготовить") + '</button>' : "") +
+        '<button type="button" class="hp-act cr-sp-del" aria-label="Убрать ' + escapeHtml(s.name) + '" data-v="' + id + '" onclick="creatorRemoveSpell(this.dataset.v)">Убрать</button></div>';
+    });
+    html += '</div>';
+  });
+  return html + '</div>';
+}
+
+function creatorRemoveSpell(id) {
+  var char = _crChar();
+  if (!char || char.id !== currentId) return;
+  var sp = (char.spells.mySpells || []).filter(function(s) { return String(s.id) === id; })[0];
+  if (!sp) return;
+  removeSpell(sp.id);
+  creatorRender();
+}
+
+function creatorOpenSpells() {
+  if (typeof openSpellSearch === "function") openSpellSearch();
+}
+
+function creatorToggleSpellPrep(id) {
+  var char = _crChar();
+  if (!char || char.id !== currentId) return;
+  var sp = (char.spells.mySpells || []).filter(function(s) { return String(s.id) === id; })[0];
+  if (!sp) return;
+  toggleSpellPrepared(sp.id);
+  creatorRender();
+}
+
+/** Добавить советы билда в пределах лимитов; заклинания с подготовкой — сразу подготовленными, пока есть место. */
+function creatorAddBuildSpells() {
+  var char = _crChar();
+  if (!char || char.id !== currentId) return;
+  if (!Array.isArray(char.spells.mySpells)) char.spells.mySpells = [];
+  if (!Array.isArray(char.spells.prepared)) char.spells.prepared = [];
+  var added = [];
+  _crBuildSpells(char).forEach(function(sp) {
+    if (_crHasSpell(char, sp)) return;
+    var c = _crSpellRow(char, "cantrips");
+    if (sp.level > 0 ? !_crListRoom(char) : !c || c.have >= c.need) return;
+    char.spells.mySpells.push(sp);
+    added.push(sp.name);
+    var p = _crSpellRow(char, "prepared");
+    if (spellNeedsPrep(char, sp) && p && p.have < p.need && char.spells.prepared.indexOf(sp.id) === -1) char.spells.prepared.push(sp.id);
+  });
+  saveToLocal();
+  if (typeof renderMySpells === "function") renderMySpells();
+  if (typeof renderPrepCounter === "function") renderPrepCounter();
+  showToast(added.length ? "Добавлены заклинания: " + added.join(", ") : "Места под советы билда нет — лимиты заполнены", added.length ? "success" : "info");
+  creatorRender();
+}
+
+// ── Шаг 9: снаряжение ───────────────────────────
+// Блоки выдачи — те же, что на листе (start-equip-2014.js, предыстория 2024 — giveBackgroundEquipment);
+// после выдачи лист перерисовывает панели, а renderCreationTodo зовёт creatorGearSync.
+
+function _crGearTodo(char) {
+  return _creationTodo(char).filter(function(r) { return _CR_LATER.test(r[2]); });
+}
+
+function _crValidGear(char) { return !_crGearTodo(char).length; }
+
+function _crRenderGear() {
+  return '<p class="cr-hint">Набор класса и&nbsp;предыстории или&nbsp;золото вместо них. Выданное сразу попадает в&nbsp;«Сумку» и&nbsp;оружие на&nbsp;«Бою», доспех — в&nbsp;КД.</p>' +
+    '<div id="cr-gear-todo"></div><div id="cr-gear" class="race-extras-panel" style="display:flex"></div>';
+}
+
+/** Блоки выдачи и «Осталось выдать»; зовётся из renderCreationTodo после любой выдачи. */
+function creatorGearSync() {
+  var char = _crChar(), box = $("cr-gear");
+  if (!char || !box || char.id !== currentId) return;
+  var html = char.edition === "2024"
+    ? (typeof renderClassEquip24 === "function" ? renderClassEquip24(char) : "") + _crBgEquip24(char)
+    : (typeof renderClassEquip14 === "function" ? renderClassEquip14(char) : "") + (typeof renderBgEquip14 === "function" ? renderBgEquip14(char) : "");
+  box.innerHTML = html || '<span class="race-extras-hint">Стартового снаряжения для&nbsp;этого класса и&nbsp;предыстории нет — вещи добавляются в&nbsp;«Сумке».</span>';
+  var left = _crGearTodo(char);
+  $("cr-gear-todo").innerHTML = '<div class="pg-grp">' + (left.length ? "Осталось выдать" : "Всё выдано") + '</div>' +
+    (left.length ? '<div class="hp-rows">' + left.map(function(r) { return _pgAttn(r[0], "Ниже ↓", "_crGoTo('cr-gear')"); }).join("") + '</div>' : "");
+  _crSyncNext();
+}
+
+/** 2024: снаряжение предыстории — вариант А (набор + зм) или Б (только зм), как в панели предыстории. */
+function _crBgEquip24(char) {
+  var def = typeof getBackgroundDef === "function" ? getBackgroundDef(char) : null;
+  if (!def || !def.equipment || def.custom) return "";
+  var eq = def.equipment;
+  var html = '<div class="race-extras-title">' + dndIcoHtml("box", 14) + ' Снаряжение предыстории: ' + escapeHtml(char.background) + '</div><div class="race-extras-row">';
+  if (char.bgEquipGiven) return html + '<span class="btn btn-text btn-sm race-extras-btn done">' + dndIcoHtml("check", 13) + ' Снаряжение выдано</span></div>';
+  var listA = (eq.a || []).map(function(it) { return it.name + ((it.qty || 1) > 1 ? " ×" + it.qty : ""); }).concat(eq.aGold ? [eq.aGold + " зм"] : []).join(", ");
+  return html + '<button class="btn btn-text btn-sm race-extras-btn" onclick="giveBackgroundEquipment(\'a\')">Вариант А: ' + escapeHtml(listA) + '</button>' +
+    '<button class="btn btn-text btn-sm race-extras-btn" onclick="giveBackgroundEquipment(\'b\')">Вариант Б: ' + (eq.bGold || 50) + ' зм</button></div>';
+}
+
+// ── Шаг 10: личность ────────────────────────────
+// Мировоззрение и божество — поля листа; тексты — notesV2.sections, как во вкладке «Предыстория».
+// Генератор — notesGenerate (без билда) или варианты билда (notesRegenerateAll).
+
+var _CR_PERSONA = [
+  ["personality", "Черты характера", 3], ["ideals", "Идеалы", 2], ["bonds", "Привязанности", 2],
+  ["flaws", "Слабости", 2], ["appearance", "Внешность", 3], ["backstory", "Предыстория", 6]
+];
+
+function _crRenderPersona(char) {
+  var secs = (char.notesV2 && char.notesV2.sections) || {};
+  var html = '<p class="cr-hint">Шаг необязательный: всё правится позже на&nbsp;листе и&nbsp;во&nbsp;вкладке «Предыстория». Генератор подберёт тексты по&nbsp;расе, классу и&nbsp;предыстории.</p>' +
+    '<div class="cr-group-title">Мировоззрение</div><div class="race-extras-row cr-chips">' +
+    _crSelectOptions("char-alignment").map(function(o) { return _crChip(o.value, escapeHtml(o.text), char.alignment === o.value, "creatorSetAlign"); }).join("") + '</div>' +
+    '<div class="cr-field"><label for="cr-deity">Божество</label>' +
+      '<input type="text" id="cr-deity" class="field" list="deity-datalist" autocomplete="off" placeholder="Необязательно — например, Мистра" value="' + escapeHtml(char.deity || "") + '" oninput="creatorSetDeity(this.value)"></div>' +
+    '<div class="list-row cr-row"><button type="button" class="hp-act" onclick="creatorPersonaGen()">' + dndIcoHtml("dice", 14) + ' Сгенерировать тексты →</button></div>';
+  _CR_PERSONA.forEach(function(p) {
+    var more = _getSectionVariants(char, p[0]).length > 1;
+    html += '<div class="cr-field"><div class="cr-field-head"><label for="cr-ps-' + p[0] + '">' + p[1] + '</label>' +
+      (more ? '<button type="button" class="hp-act" onclick="creatorPersonaVariant(\'' + p[0] + '\')">Другой вариант</button>' : "") + '</div>' +
+      '<textarea id="cr-ps-' + p[0] + '" class="field" rows="' + p[2] + '" data-section="' + p[0] + '" oninput="notesUpdateSection(this)">' + escapeHtml(secs[p[0]] || "") + '</textarea></div>';
+  });
+  return html;
+}
+
+function creatorSetAlign(v) {
+  var char = _crChar();
+  if (!char) return;
+  _crSetField("char-alignment", char.alignment === v ? "" : v, true);
+  creatorRender();
+}
+
+function creatorSetDeity(v) { _crSetField("char-deity", v); }
+
+function creatorPersonaGen() {
+  var char = _crChar();
+  if (!char || char.id !== currentId) return;
+  // без билда генератор асинхронный — мастер перерисует хук creatorRefresh в notesGenerate
+  if (_notesHasBuildVariants(char)) { notesRegenerateAll(); creatorRender(); } else notesGenerate();
+}
+
+function creatorPersonaVariant(key) {
+  var char = _crChar();
+  if (!char || char.id !== currentId) return;
+  var arr = _getSectionVariants(char, key);
+  if (!arr.length) return;
+  var secs = char.notesV2.sections = char.notesV2.sections || {};
+  var cur = secs[key] || "";
+  var pool = arr.filter(function(v) { return v !== cur; });
+  if (!pool.length) pool = arr;
+  function put(text) {
+    secs[key] = text;
+    saveToLocal();
+    var ta = $("cr-ps-" + key);
+    if (ta) ta.value = text;
+  }
+  put(pool[Math.floor(Math.random() * pool.length)]);
+  if (cur.trim() && arr.indexOf(cur) === -1) showToast("Текст заменён вариантом", "info", { label: "Вернуть", onClick: function() { if (_crChar() === char) put(cur); } });
+}
+
+// ── Шаг 11: итог ────────────────────────────────
+// Сводка и что осталось; «Персонаж готов» — тот же lockSheet, что кнопка на листе.
+
+function _crRenderSummary(char) {
+  var row = function(k, v) { return '<div class="hp-row list-row hp-row--static cr-sum-row"><span class="cr-sum-k">' + k + '</span><span class="cr-sum-v">' + (v || "—") + '</span></div>'; };
+  var stats = ["str", "dex", "con", "int", "wis", "cha"].map(function(k) {
+    var v = char.stats[k], m = getMod(v);
+    return _CR_STAT_SHORT[k] + "&nbsp;" + v + "&nbsp;(" + (m >= 0 ? "+" : "−") + Math.abs(m) + ")";
+  }).join(" · ");
+  var spells = ((char.spells && char.spells.mySpells) || []).length;
+  var inv = char.inventory || {}, items = 0;
+  Object.keys(inv).forEach(function(k) { if (Array.isArray(inv[k])) items += inv[k].length; });
+  var html = '<div class="cr-picked"><div class="cr-picked-title">' + escapeHtml(char.name || "") + '</div>' +
+    '<p class="cr-picked-text">' + escapeHtml([char.race, char.class + (char.subclass ? " (" + char.subclass + ")" : ""), (char.level || 1) + "-й уровень"].filter(Boolean).join(" · ")) + '</p></div>' +
+    '<div class="hp-rows">' +
+      row("Редакция", char.edition === "2024" ? "2024" : "2014") +
+      row("Предыстория", escapeHtml(char.background || "")) +
+      row("Мировоззрение", escapeHtml(char.alignment || "")) +
+      row("Хиты · КД", (char.combat.hpMax || 0) + " · " + (char.combat.ac || 10)) +
+      row("Характеристики", stats) +
+      row("Заклинания · вещи", spells + " · " + items) +
+    '</div>';
+  var left = _crSummaryTodo(char);
+  html += '<div class="pg-grp">' + (left.length ? "Осталось" : "Всё заполнено") + '</div>';
+  if (left.length) html += '<div class="hp-rows">' + left.map(function(r) { return _pgAttn(escapeHtml(r[0]), "К&nbsp;шагу →", "_crGoStep('" + r[1] + "')"); }).join("") + '</div>';
+  return html + '<p class="cr-hint">«Персонаж готов» зафиксирует лист, как одноимённая кнопка на&nbsp;листе: характеристики, владения, заклинания и&nbsp;черты откроются при&nbsp;повышении уровня или&nbsp;по&nbsp;кнопке «Изменить».</p>';
+}
+
+/** Что не заполнено: [текст, id шага]. */
+function _crSummaryTodo(char) {
+  var out = _creationTodo(char).map(function(r) { return [r[2], _CR_LATER.test(r[2]) ? "gear" : "choices"]; });
+  if (!_crValidLevels(char)) out.push(["Повышения до " + _crTargetLevel(char) + "-го уровня", "levels"]);
+  if (!_crValidSpells(char)) out.push(["Заклинания по лимитам класса", "spells"]);
+  var secs = (char.notesV2 && char.notesV2.sections) || {};
+  var empty = _CR_PERSONA.filter(function(p) { return !(secs[p[0]] || "").trim(); }).map(function(p) { return p[1].toLowerCase(); });
+  if (!char.alignment) empty.unshift("мировоззрение");
+  if (empty.length) out.push(["Личность (необязательно): " + empty.join(", "), "persona"]);
+  return out;
+}
+
+function _crGoStep(id) {
+  var char = _crChar();
+  if (!char) return;
+  char._wizStep = id;
+  saveToLocal();
+  creatorRender();
+  try { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); } catch (e) {}
 }

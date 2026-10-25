@@ -762,12 +762,17 @@ function _agCtl(k) {
       '<span class="ag-cost">' + AG_PB_COST[v] + " оч.</span>";
   }
   var opts = '<option value="">—</option>', cur, fn;
+  // занятое другой характеристикой подписано её именем: выбор поменяет их местами
+  function owner(map, v) {
+    var o = AG_KEYS.filter(function(j) { return j !== k && map[j] === v; })[0];
+    return o ? " — сейчас у: " + AG_NAMES[o] : "";
+  }
   if (_ag.mode === "std") {
     cur = _ag.std[k]; fn = "agStd";
-    AG_STD.forEach(function(n) { opts += '<option value="' + n + '"' + (cur === n ? " selected" : "") + ">" + n + "</option>"; });
+    AG_STD.forEach(function(n) { opts += '<option value="' + n + '"' + (cur === n ? " selected" : "") + ">" + n + owner(_ag.std, n) + "</option>"; });
   } else {
     cur = _ag.pick[k]; fn = "agPick";
-    _ag.rolls.forEach(function(r, i) { opts += '<option value="' + i + '"' + (cur === i ? " selected" : "") + ">" + r.total + "</option>"; });
+    _ag.rolls.forEach(function(r, i) { opts += '<option value="' + i + '"' + (cur === i ? " selected" : "") + ">" + r.total + owner(_ag.pick, i) + "</option>"; });
   }
   return '<select class="field ag-sel" onchange="' + fn + "('" + k + "',this.value)\"" +
     (_ag.mode === "roll" && !_ag.rolls.length ? " disabled" : "") + ">" + opts + "</select>";
@@ -792,10 +797,11 @@ function _agRender() {
     html += '<p class="ag-lead">Шесть раз бросьте 4к6 и\u00a0отбросьте меньший кубик, затем распределите результаты по\u00a0характеристикам.</p>' +
       '<div class="ag-foot"><button type="button" class="hp-act" onclick="agRoll()">' + (_ag.rolls.length ? "Перебросить 4к6 × 6" : "Бросить 4к6 × 6") + " →</button></div>";
     if (_ag.rolls.length) {
-      html += '<div class="ag-rolls">' + _ag.rolls.map(function(r) {
+      html += '<div class="ag-rolls">' + _ag.rolls.map(function(r, i) {
         var dropped = false;
         var min = Math.min.apply(null, r.dice);
-        return "<span><b>" + r.total + "</b> (" + r.dice.map(function(d) {
+        var used = AG_KEYS.some(function(j) { return _ag.pick[j] === i; });
+        return '<span' + (used ? ' class="ag-roll-used" title="Уже распределено"' : "") + "><b>" + r.total + "</b> (" + r.dice.map(function(d) {
           if (!dropped && d === min) { dropped = true; return "<s>" + d + "</s>"; }
           return d;
         }).join(" · ") + ")</span>";

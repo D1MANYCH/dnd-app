@@ -79,13 +79,15 @@ var HELP_FLAG_JOURNAL_SEEN   = 'dnd_help_journal_seen';
 var HELP_FLAG_PROGRESS_SEEN  = 'dnd_help_progress_seen';
 // РД-Ф: «Характ.» — вторая половина #tab-sheet на телефоне, свой тур
 var HELP_FLAG_STATS_SEEN     = 'dnd_help_stats_seen';
+// МАСТ-7: тур по мастеру создания персонажа
+var HELP_FLAG_CREATOR_SEEN   = 'dnd_help_creator_seen';
 // Все флаги онбординга — «Показать обучение заново» чистит их разом, чтобы
 // весь онбординг повторился по мере захода на вкладки.
 var TOUR_ALL_FLAGS = [
   HELP_FLAG_SEEN, HELP_FLAG_SHEET_SEEN,
   HELP_FLAG_SPELLS_SEEN, HELP_FLAG_INVENTORY_SEEN, HELP_FLAG_BATTLE_SEEN,
   HELP_FLAG_NOTES_SEEN, HELP_FLAG_PARTY_SEEN, HELP_FLAG_JOURNAL_SEEN,
-  HELP_FLAG_PROGRESS_SEEN, HELP_FLAG_STATS_SEEN
+  HELP_FLAG_PROGRESS_SEEN, HELP_FLAG_STATS_SEEN, HELP_FLAG_CREATOR_SEEN
 ];
 
 /** Прочитать флаг онбординга (строка или null). */
@@ -383,13 +385,42 @@ function maybeStartSheetTour() {
   }, 450);
 }
 
+/** МАСТ-7: тур по мастеру создания — при первом открытии мастера и из «Справки». */
+function startCreatorTour() {
+  setHelpFlag(HELP_FLAG_CREATOR_SEEN, '1');
+  startTour(_buildCreatorSteps(), 'creator');
+}
+
+function maybeStartCreatorTour() {
+  if (getHelpFlag(HELP_FLAG_CREATOR_SEEN) || _tour) return;
+  var _gen = _tourEscGen, tries = 0;
+  // мастер сам экран-страница — _tourStartWhenClear ждал бы вечно; ждём только модалки поверх
+  (function poll() {
+    if (_tour || getHelpFlag(HELP_FLAG_CREATOR_SEEN) || currentScreenName() !== "creator") return;
+    if (_gen !== _tourEscGen) { setHelpFlag(HELP_FLAG_CREATOR_SEEN, '1'); return; }
+    if (_tourAnyModalVisible() || _tourTyping()) { if (++tries < 200) setTimeout(poll, 600); return; }
+    startCreatorTour();
+  })();
+}
+
+function _buildCreatorSteps() {
+  var q = function (sel) { return function () { return document.querySelector(sel); }; };
+  return [
+    { title: 'Мастер создания', text: 'Мастер проведёт по всем шагам: от имени и расы до заклинаний, снаряжения и характера. Закрыть тур — крестиком или Esc.' },
+    { requireTarget: true, target: q('#cr-progress'), title: 'Шаги', text: 'Ромбы — шаги мастера, закрашенные пройдены. Выйти можно в любой момент: мастер запомнит шаг и откроется на нём.' },
+    { requireTarget: true, target: q('#cr-next'), title: '«Далее»', text: 'Кнопка откроется, когда на шаге выбрано всё обязательное. После «Характеристик» основа фиксируется, на последнем шаге кнопка называется «Персонаж готов».' },
+    { requireTarget: true, target: q('.cr-manual'), title: 'Заполнить вручную', text: 'Уйти на обычный лист и заполнить всё самостоятельно — например, для мультикласса. Вернуться в мастер после этого нельзя.' }
+  ];
+}
+
 /** Перезапустить тур из help-центра по текущему экрану. */
 function restartTour() {
   closeHelp();
   // STYLE-8M-2b: уход со справки — переход между экранами (300 мс). Стартовать
   // тур сразу нельзя: прожектор целился бы в экран посреди полёта.
   setTimeout(function () {
-    if (window.currentId) startSheetTour();
+    if (currentScreenName() === "creator") startCreatorTour();
+    else if (window.currentId) startSheetTour();
     else startListTour();
   }, 320);
 }

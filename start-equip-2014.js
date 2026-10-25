@@ -115,10 +115,31 @@ var BG_START_EQUIP_2014 = {
   "Преследуемый": { items: ["Набор охотника на чудовищ", "Безделушка", "Обычная одежда"], sp: 1 }
 };
 
+// МАСТ-6: стартовое снаряжение класса 2024 (PHB 2024, «Основные черты» класса) — варианты А/Б(/В):
+// предметы + золото или только золото. Снаряжение предыстории 2024 — в BACKGROUNDS_2024.
+var CLASS_START_EQUIP_2024 = {
+  "Бард":      [{ items: ["Кожаный доспех", "2 Кинжал", {pick:"instrument"}, "Набор артиста"], gp: 19 }, { gp: 75 }],
+  "Варвар":    [{ items: ["Секира", "4 Ручной топор", "Набор путешественника"], gp: 15 }, { gp: 75 }],
+  "Воин":      [{ items: ["Кольчуга", "Двуручный меч", "Цеп", "8 Метательное копьё", "Набор исследователя подземелий"], gp: 4 },
+                { items: ["Клёпаный кожаный доспех", "Скимитар", "Короткий меч", "Длинный лук", "Стрелы (20)", "Колчан", "Набор исследователя подземелий"], gp: 11 },
+                { gp: 155 }],
+  "Волшебник": [{ items: ["2 Кинжал", "Боевой посох", "Роба", "Книга заклинаний", "Набор учёного"], gp: 5 }, { gp: 55 }],
+  "Друид":     [{ items: ["Кожаный доспех", "Щит", "Серп", "Боевой посох", "Набор путешественника", "Набор травника"], gp: 9 }, { gp: 50 }],
+  "Жрец":      [{ items: ["Кольчужная рубаха", "Щит", "Булава", "Священный символ", "Набор священника"], gp: 7 }, { gp: 110 }],
+  "Колдун":    [{ items: ["Кожаный доспех", "Серп", "2 Кинжал", "Магическая фокусировка", "Книга (оккультные знания)", "Набор учёного"], gp: 15 }, { gp: 100 }],
+  "Монах":     [{ items: ["Копьё", "5 Кинжал", {pick:"artisanOrInstrument"}, "Набор путешественника"], gp: 11 }, { gp: 50 }],
+  "Паладин":   [{ items: ["Кольчуга", "Щит", "Длинный меч", "6 Метательное копьё", "Священный символ", "Набор священника"], gp: 9 }, { gp: 150 }],
+  "Следопыт":  [{ items: ["Клёпаный кожаный доспех", "Скимитар", "Короткий меч", "Длинный лук", "Стрелы (20)", "Колчан", "Друидическая фокусировка", "Набор путешественника"], gp: 7 }, { gp: 150 }],
+  "Плут":      [{ items: ["Кожаный доспех", "2 Кинжал", "Короткий меч", "Короткий лук", "Стрелы (20)", "Колчан", "Воровские инструменты", "Набор взломщика"], gp: 8 }, { gp: 100 }],
+  "Чародей":   [{ items: ["Копьё", "2 Кинжал", "Магическая фокусировка", "Набор исследователя подземелий"], gp: 28 }, { gp: 50 }]
+};
+
 var _START_PICK_LABELS = { simple: "простое оружие", simpleMelee: "простое рукопашное оружие", martial: "воинское оружие",
-  martialMelee: "воинское рукопашное оружие", instrument: "музыкальный инструмент", artisan: "инструменты ремесленника", gaming: "игровой набор" };
+  martialMelee: "воинское рукопашное оружие", instrument: "музыкальный инструмент", artisan: "инструменты ремесленника", gaming: "игровой набор",
+  artisanOrInstrument: "инструменты ремесленника или музыкальный инструмент" };
 
 function _startPickOptions(kind) {
+  if (kind === "artisanOrInstrument") return _startPickOptions("artisan").concat(_startPickOptions("instrument"));
   if (kind === "instrument" || kind === "artisan" || kind === "gaming") {
     var key = kind === "instrument" ? "musical" : kind;
     return ((typeof TOOL_CATALOG !== "undefined" && TOOL_CATALOG[key]) || []).map(function(t) { return t.name; });
@@ -205,7 +226,7 @@ function _startResolve(scope, choices, fixed) {
     if (typeof it === "string") { out.push(it); return; }
     var v = st.picks[key] || _startPickOptions(it.pick)[0];
     if (!v) return;
-    out.push(/^(instrument|artisan|gaming)$/.test(it.pick) ? { tool: v } : v);
+    out.push(/^(instrument|artisan|gaming|artisanOrInstrument)$/.test(it.pick) ? { tool: v } : v);
   }
   (choices || []).forEach(function(opts, ci) {
     var sel = st[scope][ci] || 0;
@@ -351,4 +372,48 @@ function renderBgEquip14(char) {
   var money = [d.gp ? d.gp + " зм" : "", d.sp ? d.sp + " см" : ""].filter(Boolean);
   html += '<div class="race-extras-hint">' + escapeHtml(d.items.concat(money).join(", ")) + '</div>';
   return html + '<div class="race-extras-row"><button class="btn btn-text btn-sm race-extras-btn" onclick="giveBackgroundEquipment14()">Выдать снаряжение</button></div>';
+}
+
+// ── МАСТ-6: снаряжение класса 2024 ──────────────
+function _startClassDef24(char) {
+  var cls = (char.classes && char.classes[0] && char.classes[0].class) || char.class;
+  return cls && CLASS_START_EQUIP_2024[cls] ? { cls: cls, opts: CLASS_START_EQUIP_2024[cls] } : null;
+}
+
+function giveClassEquipment24(oi) {
+  if (!currentId || sheetLockGuard()) return;
+  var char = getCurrentChar(), cd = char && _startClassDef24(char), o = cd && cd.opts[oi];
+  if (!o || char.classEquipGiven) return;
+  var list = _startResolve("c24-" + oi, [], o.items);
+  _startPlace(char, list);
+  if (!char.coins) char.coins = { cp:0, sp:0, ep:0, gp:0, pp:0 };
+  char.coins.gp = (char.coins.gp || 0) + (o.gp || 0);
+  char.classEquipGiven = true;
+  _startAfterGive(char, "Снаряжение класса", list.concat(o.gp ? [o.gp + " зм"] : []));
+}
+
+// Блок в панели навыков класса (2024, после фиксации основы): кнопка на каждый вариант.
+function renderClassEquip24(char) {
+  if (!char || char.edition !== "2024" || !char.basicLocked) return "";
+  var cd = _startClassDef24(char);
+  if (!cd) return "";
+  var html = '<div class="race-extras-title">' + dndIcoHtml("box", 14) + ' Стартовое снаряжение: ' + escapeHtml(cd.cls) + '</div>';
+  if (char.classEquipGiven) return html + _startDone("Снаряжение класса выдано");
+  if (isSheetLocked(char)) return "";
+  var st = _startState();
+  cd.opts.forEach(function(o, oi) {
+    var items = o.items || [], sel = "";
+    items.forEach(function(it, ii) {
+      if (typeof it === "string") return;
+      var key = "c24-" + oi + ".f." + ii, list = _startPickOptions(it.pick);
+      if (!st.picks[key]) st.picks[key] = list[0] || "";
+      sel += '<select class="field flat-field" aria-label="' + escapeHtml(_START_PICK_LABELS[it.pick] || "") +
+        '" onchange="setStartEquipPick(\'' + key + '\', this.value)">' + list.map(function(n) {
+          return '<option' + (n === st.picks[key] ? " selected" : "") + '>' + escapeHtml(n) + '</option>';
+        }).join("") + '</select>';
+    });
+    html += '<div class="race-extras-row"><button class="btn btn-text btn-sm race-extras-btn" onclick="giveClassEquipment24(' + oi + ')">Вариант ' +
+      "АБВ".charAt(oi) + ': ' + escapeHtml(items.map(_startItemLabel).concat(o.gp ? [o.gp + " зм"] : []).join(", ")) + '</button>' + sel + '</div>';
+  });
+  return html;
 }

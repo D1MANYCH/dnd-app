@@ -501,7 +501,7 @@ function headerBack() {
 // модалки настроек. Модалки поверх страницы ловят Escape своими обработчиками
 // и до этого не доходит: у них он вызывается раньше и закрывает верхний слой.
 document.addEventListener("keydown", function (e) {
-  if (e.key !== "Escape") return;
+  if (e.key !== "Escape" || e.defaultPrevented) return; // Esc уже погасил тур
   // Проверяем именно ВИДИМУЮ модалку: класс .active может остаться на скрытом
   // элементе, и тогда Escape на странице переставал бы работать вовсе.
   var m = document.querySelectorAll('.modal.active, .confirm-modal-overlay.active');
@@ -631,6 +631,8 @@ saveToLocal();
 
 function showScreen(screenName) {
 if (screenName !== "creator" && typeof _crUnmountPanels === "function") _crUnmountPanels();
+// МАСТ-6: возврат в мастер (из поиска заклинаний и т.п.) — шаг перерисовывается по свежим данным
+if (screenName === "creator" && currentScreenName() !== "creator" && typeof creatorRender === "function") setTimeout(creatorRender, 0);
 if (screenName === "home" || screenName === "characters") _purgeDraftChars();
 const homeScreen = $("screen-home");
 const charactersScreen = $("screen-characters");

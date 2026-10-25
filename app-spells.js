@@ -968,6 +968,7 @@ const spell = SPELL_DATABASE.find(function(s) { return s.id === spellId; });
 if (!spell) return;
 if (!char.spells.mySpells) char.spells.mySpells = [];
 if (!char.spells.mySpells.some(function(s) { return s.id === spellId; })) {
+if (char._wizStep && typeof creatorSpellRoom === "function" && !creatorSpellRoom(char, spell)) return; // мастер: лимиты класса
 char.spells.mySpells.push(spell);
 // E24-2: запись другой редакции — предупреждение, не блок (смешанные гримуары штатны).
 if (spell.source === "PH14" && char.edition === "2024") showToast("Это версия 2014 — у\u00a0персонажа редакция 2024", "warn");

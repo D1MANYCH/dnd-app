@@ -6829,7 +6829,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   align-items: center;
   font-size: var(--fs-14);
 }
-.race-extras-btn { flex: 0 0 auto; margin: 0; }
+.race-extras-btn { flex: 0 1 auto; margin: 0; white-space: normal; text-align: left; }
 .race-extras-stat-pick {
   width: auto;
   flex: 0 0 auto;
@@ -14261,7 +14261,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 .ag-name { font-family: var(--font-display); overflow: hidden; text-overflow: ellipsis; }
 .ag-ctl { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .ag-ctl .stat-btn-sm { flex: 0 0 auto; width: 36px; min-width: 36px; height: 36px; }
-.ag-ctl .stat-btn-sm:not([disabled]) { color: var(--accent); font-size: var(--fs-24); }
+.ag-ctl .stat-btn-sm:not([disabled]) { color: var(--accent-ink); font-size: var(--fs-24); }
 .ag-val { min-width: 2ch; text-align: center; font-weight: var(--fw-bold); }
 .ag-cost { min-width: 3.2em; font-size: var(--fs-sm); color: var(--home-sub); }
 .ag-sel { width: auto; min-width: 5em; }
@@ -16726,7 +16726,25 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
 .cr-avatar-row { display: flex; align-items: center; gap: var(--sp-3); padding: 0 var(--sp-3); }
 .cr-avatar { width: 56px; height: 56px; flex: none; border-radius: 4px; overflow: hidden; }
 .cr-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.cr-nav { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); margin-top: var(--sp-5); padding: 0 var(--sp-3); }
+.cr-nav { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); margin-top: var(--sp-5); padding: var(--sp-3) var(--sp-3) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px)); position: sticky; bottom: 0; z-index: 5; background: var(--bg-0); border-top: 1px solid var(--border); }
+.cr-why { flex: 1; min-width: 0; color: var(--warn); font-size: var(--fs-sm); text-align: right; }
+.cr-why:empty { visibility: hidden; }
+/* выборы в мастере — явные кнопки, а не текст через точку */
+#screen-creator .race-extras-row { gap: var(--sp-2); }
+#screen-creator .race-extras-stat-pick { padding: var(--sp-1) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-4); color: var(--text); background: var(--bg-2); cursor: pointer; }
+#screen-creator .race-extras-stat-pick + .race-extras-stat-pick::before { content: none; }
+#screen-creator .race-extras-stat-pick:hover:where(:not(:disabled)) { border-color: var(--accent); color: var(--text); }
+#screen-creator .race-extras-stat-pick.selected { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
+#screen-creator .race-extras-stat-pick.selected::after { content: " ✓"; }
+#screen-creator .race-extras-stat-pick:disabled { background: none; cursor: not-allowed; }
+.ag-roll-used { opacity: .45; text-decoration: line-through; }
+.cr-rec-btn { width: auto; }
+.cr-sp-row { align-items: center; gap: var(--sp-3); }
+.cr-sp-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cr-sp-name { font-weight: 600; }
+.cr-sp-meta { color: var(--text-dim); font-size: var(--fs-sm); }
+.cr-sp-on { color: var(--accent-ink); }
+.cr-sp-del { color: var(--text-mute); }
 .cr-next { width: auto; min-width: 140px; }
 .cr-next:disabled { opacity: .45; cursor: not-allowed; }
 .cr-manual { display: block; margin: var(--sp-4) var(--sp-3) 0; }
@@ -16749,3 +16767,9 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
 .cr-picked-text { margin: 0; font-size: var(--fs-sm); color: var(--text-dim); }
 .cr-chips { padding: 0 var(--sp-3); }
 #cr-lu .lu-choice-spells { display: none; }
+/* МАСТ-7: личность и итог */
+.cr-field-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-2); }
+.cr-field textarea { resize: vertical; }
+.cr-sum-row { align-items: baseline; gap: var(--sp-3); }
+.cr-sum-k { flex: none; width: 9em; color: var(--text-mute); font-size: var(--fs-sm); }
+.cr-sum-v { flex: 1; min-width: 0; }

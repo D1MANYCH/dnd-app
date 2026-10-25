@@ -1971,7 +1971,10 @@ function renderClassSkills() {
     html += '</div>';
     if (picks.length < e.count) html += '<div class="race-extras-warn">Навыки класса выбраны не\u00a0все — осталось ' + (e.count - picks.length) + '.</div>';
   });
-  if (typeof renderClassEquip14 === "function") html += renderClassEquip14(char);
+  // в мастере снаряжение выдаёт свой шаг, в выборах его не дублируем
+  var _noEq = typeof creatorHostsPanels === "function" && creatorHostsPanels();
+  if (!_noEq && typeof renderClassEquip14 === "function") html += renderClassEquip14(char);
+  if (!_noEq && typeof renderClassEquip24 === "function") html += renderClassEquip24(char);
   _setExtrasHtml(panel, html);
   panel.style.display = "flex";
 }
@@ -2304,6 +2307,11 @@ function _creationTodo(char) {
           !validateBgStatChoice(def, char.bgStatChoice).complete) add("Характеристики от\u00a0предыстории", def.custom ? "" : bgName, goBg);
       if (!(char.feats || []).some(function(f) { return f.origin; })) add("Черта происхождения", def.custom ? "" : bgName, goBg);
     }
+    if (!isSheetLocked(char) && typeof _startClassDef24 === "function") { // МАСТ-6
+      var sc24 = _startClassDef24(char);
+      if (sc24 && !char.classEquipGiven) add("Стартовое снаряжение", sc24.cls, "creationTodoGo('class-skills-panel')");
+      if (def && def.equipment && !def.custom && !char.bgEquipGiven) add("Снаряжение предыстории", bgName, goBg);
+    }
   }
   var pr = char.proficiencies;
   if (pr && pr.languageChoices && typeof getLanguageChoiceSlots === "function") getLanguageChoiceSlots(char).forEach(function(s) {
@@ -2331,6 +2339,7 @@ function scheduleCreationTodo() {
 
 function renderCreationTodo() {
   if (typeof creatorChoicesSync === "function") creatorChoicesSync();
+  if (typeof creatorGearSync === "function") creatorGearSync();
   var box = $("creation-todo");
   if (!box) return;
   var char = currentId ? getCurrentChar() : null;
@@ -3012,12 +3021,12 @@ function renderBackgroundExtras() {
     if (bgHide) h14 += _pickExpandBtn("bg");
     h14 += '<span style="margin-left:auto;color:var(--text-dim);font-size:var(--fs-14);">Выбрано: ' + sp.length + '/' + cnt + '</span></div>';
     if (sp.length < cnt) h14 += '<div class="race-extras-warn">Навыки предыстории выбраны не\u00a0все — осталось ' + (cnt - sp.length) + '.</div>';
-    if (typeof renderBgEquip14 === "function") h14 += renderBgEquip14(char);
+    if (typeof renderBgEquip14 === "function" && !(typeof creatorHostsPanels === "function" && creatorHostsPanels())) h14 += renderBgEquip14(char);
     _setExtrasHtml(panel, h14);
     panel.style.display = "flex";
     return;
   }
-  var eq14 = (char && char.edition !== "2024" && typeof renderBgEquip14 === "function") ? renderBgEquip14(char) : "";
+  var eq14 = (char && char.edition !== "2024" && typeof renderBgEquip14 === "function" && !(typeof creatorHostsPanels === "function" && creatorHostsPanels())) ? renderBgEquip14(char) : "";
   if (eq14) { _setExtrasHtml(panel, eq14); panel.style.display = "flex"; return; }
   if (!char || char.edition !== "2024" || !char.basicLocked) { panel.style.display = "none"; panel.innerHTML = ""; return; }
   var def = getBackgroundDef(char);
@@ -3073,7 +3082,7 @@ function renderBackgroundExtras() {
     (of ? '<span class="btn btn-text btn-sm race-extras-btn done">' + dndIcoHtml("check", 13) + ' ' + escapeHtml(of.name) + '</span>'
         : '<span style="color:var(--text-dim);font-size:var(--fs-14);">не\u00a0выбрана</span>') + '</div>';
 
-  if (def.equipment && !def.custom) {
+  if (def.equipment && !def.custom && !(typeof creatorHostsPanels === "function" && creatorHostsPanels())) {
     var eq = def.equipment;
     html += '<div class="race-extras-title">' + dndIcoHtml("box", 14) + ' Стартовое снаряжение</div><div class="race-extras-row">';
     if (char.bgEquipGiven) {
