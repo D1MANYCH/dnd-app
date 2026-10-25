@@ -359,7 +359,7 @@
     for (var i = 0; i < q.length; i++) if (q[i].isConnected) deEmojiTree(q[i]);
   }
   function startEmojiIcons() {
-    if (!document.documentElement.classList.contains('rd') || startEmojiIcons._on) return;
+    if (startEmojiIcons._on) return;
     startEmojiIcons._on = true;
     deEmojiTree(document.body);
     if (document.title && EMOJI_TEST.test(document.title)) document.title = stripEmoji(document.title);

@@ -526,6 +526,7 @@ function updateQuickRollStripVisibility() {
   if (!strip) return;
   var hist = (Array.isArray(window.diceHistory) ? window.diceHistory : (typeof diceHistory !== 'undefined' ? diceHistory : []));
   var show = !_diceModalActive() && !_qrsDismissed && hist.length > 0;
+  document.body.classList.toggle('qrs-on', show);
   if (show) {
     renderQuickRollStrip();
     strip.hidden = false;

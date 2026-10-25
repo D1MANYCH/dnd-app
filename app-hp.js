@@ -1119,7 +1119,7 @@ function luBuildChoicesScreen() {
       spParts.push('<button class="lu-choice-launch" onclick="luGoToSpellsTab()">Выбрать — вкладка «Заклинания» →</button>');
     }
     if (!recSpellObjs.length && !gain.length) spParts.push('<button class="lu-choice-alt" onclick="luGoToSpellsTab()">Добавить самому — вкладка «Заклинания» →</button>');
-    blocks.push('<div class="lu-choice-block">' + spParts.join("") + '</div>');
+    blocks.push('<div class="lu-choice-block lu-choice-spells">' + spParts.join("") + '</div>');
   }
 
   // BUILD-LVL-4: кнопка «применить рекомендации билда разом» — если есть билд и незакрытые рек-выборы.
@@ -1160,6 +1160,7 @@ function luBuildChoicesScreen() {
     : "";
 
   body.innerHTML = applyAllHtml + blocks.join("");
+  if (typeof creatorLevelsSync === "function") creatorLevelsSync(); // МАСТ-5: шаг «Уровни» мастера
   return blocks.length > 0;
 }
 
@@ -1809,34 +1810,15 @@ if (!container) return;
 var existing = container.querySelector(".hp-toast");
 if (existing) { clearTimeout(existing._fadeTimer); clearTimeout(existing._removeTimer); existing.remove(); }
 var toast = document.createElement("div");
-if (typeof isRedesign === "function" && isRedesign()) {
-  var heal = customMsg !== undefined || delta > 0;
-  toast.className = "hp-toast app-toast app-toast-" + (heal ? "success" : "error");
-  toast.innerHTML = "<span class='app-toast-mark' aria-hidden='true'></span>" + (customMsg !== undefined
-    ? "<span>" + escapeHtml(customMsg) + "</span>"
-    : "<span class='app-toast-num'>" + (delta > 0 ? "+" : "−") + Math.abs(delta) + " ХП</span><span class='app-toast-sub'>" + (delta > 0 ? "Восстановлено" : "Получено урона") + "</span>");
-  var rdLife = customMsg !== undefined ? 3000 : toastAddAction(toast, action, 2300);
-  container.appendChild(toast);
-  toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, rdLife - 500);
-  toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, rdLife);
-  return;
-}
-if (customMsg !== undefined) {
-  toast.className = "hp-toast hp-toast-heal";
-  toast.innerHTML = "<span style='font-size:var(--fs-14);font-weight:700;'>" + escapeHtml(customMsg) + "</span>";
-  container.appendChild(toast);
-  toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, 2500);
-  toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, 3000);
-  return;
-}
-var sign = delta > 0 ? "+" : "";
-var label = delta > 0 ? "Восстановлено" : "Получено урона";
-toast.className = "hp-toast " + (delta > 0 ? "hp-toast-heal" : "hp-toast-dmg");
-toast.innerHTML = "<span style='font-size:var(--fs-18);font-weight:900;'>" + sign + delta + " ХП</span><span style='font-size:var(--fs-12);opacity:0.75;margin-left:var(--sp-2);'>" + label + "</span>";
-var life = typeof toastAddAction === "function" ? toastAddAction(toast, action, 2300) : 2300;
+var heal = customMsg !== undefined || delta > 0;
+toast.className = "hp-toast app-toast app-toast-" + (heal ? "success" : "error");
+toast.innerHTML = "<span class='app-toast-mark' aria-hidden='true'></span>" + (customMsg !== undefined
+  ? "<span>" + escapeHtml(customMsg) + "</span>"
+  : "<span class='app-toast-num'>" + (delta > 0 ? "+" : "−") + Math.abs(delta) + " ХП</span><span class='app-toast-sub'>" + (delta > 0 ? "Восстановлено" : "Получено урона") + "</span>");
+var rdLife = customMsg !== undefined ? 3000 : toastAddAction(toast, action, 2300);
 container.appendChild(toast);
-toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, life - 500);
-toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, life);
+toast._fadeTimer = setTimeout(function() { toast.classList.add("hp-toast-fade"); }, rdLife - 500);
+toast._removeTimer = setTimeout(function() { if (toast.parentNode) toast.remove(); }, rdLife);
 }
 
 

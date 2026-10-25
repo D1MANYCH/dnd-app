@@ -221,7 +221,7 @@ function homeContinue() {
   var c = getLastCharacter();
   if (!c) return;
   try { if (navigator.vibrate) navigator.vibrate(10); } catch (e) {}
-  if (typeof loadCharacter === "function") loadCharacter(c.id);
+  if (typeof openCharOrCreator === "function") openCharOrCreator(c.id);
 }
 
 // ─── Экраны меню ────────────────────────────────────────────────

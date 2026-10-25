@@ -77,13 +77,17 @@ var HELP_FLAG_JOURNAL_SEEN   = 'dnd_help_journal_seen';
 // LVL-6: «Развитие» стало вкладкой и вошло в TOUR_TABS. Имя флага прежнее —
 // у прошедших тур до переезда он уже проставлен, второй раз тур не пойдёт.
 var HELP_FLAG_PROGRESS_SEEN  = 'dnd_help_progress_seen';
+// РД-Ф: «Характ.» — вторая половина #tab-sheet на телефоне, свой тур
+var HELP_FLAG_STATS_SEEN     = 'dnd_help_stats_seen';
+// МАСТ-7: тур по мастеру создания персонажа
+var HELP_FLAG_CREATOR_SEEN   = 'dnd_help_creator_seen';
 // Все флаги онбординга — «Показать обучение заново» чистит их разом, чтобы
 // весь онбординг повторился по мере захода на вкладки.
 var TOUR_ALL_FLAGS = [
   HELP_FLAG_SEEN, HELP_FLAG_SHEET_SEEN,
   HELP_FLAG_SPELLS_SEEN, HELP_FLAG_INVENTORY_SEEN, HELP_FLAG_BATTLE_SEEN,
   HELP_FLAG_NOTES_SEEN, HELP_FLAG_PARTY_SEEN, HELP_FLAG_JOURNAL_SEEN,
-  HELP_FLAG_PROGRESS_SEEN
+  HELP_FLAG_PROGRESS_SEEN, HELP_FLAG_STATS_SEEN, HELP_FLAG_CREATOR_SEEN
 ];
 
 /** Прочитать флаг онбординга (строка или null). */
@@ -375,9 +379,38 @@ function maybeStartSheetTour() {
       if (_gen !== _tourEscGen) { setHelpFlag(HELP_FLAG_SHEET_SEEN, '1'); return; }
       if (_tourTyping()) return;
       if (!window.currentId) return; // пока ждали — вернулись к списку персонажей
+      if (currentScreenName() === "creator") return; // МАСТ: тур листа — после мастера
       startSheetTour();
     });
   }, 450);
+}
+
+/** МАСТ-7: тур по мастеру создания — при первом открытии мастера и из «Справки». */
+function startCreatorTour() {
+  setHelpFlag(HELP_FLAG_CREATOR_SEEN, '1');
+  startTour(_buildCreatorSteps(), 'creator');
+}
+
+function maybeStartCreatorTour() {
+  if (getHelpFlag(HELP_FLAG_CREATOR_SEEN) || _tour) return;
+  var _gen = _tourEscGen, tries = 0;
+  // мастер сам экран-страница — _tourStartWhenClear ждал бы вечно; ждём только модалки поверх
+  (function poll() {
+    if (_tour || getHelpFlag(HELP_FLAG_CREATOR_SEEN) || currentScreenName() !== "creator") return;
+    if (_gen !== _tourEscGen) { setHelpFlag(HELP_FLAG_CREATOR_SEEN, '1'); return; }
+    if (_tourAnyModalVisible() || _tourTyping()) { if (++tries < 200) setTimeout(poll, 600); return; }
+    startCreatorTour();
+  })();
+}
+
+function _buildCreatorSteps() {
+  var q = function (sel) { return function () { return document.querySelector(sel); }; };
+  return [
+    { title: 'Мастер создания', text: 'Мастер проведёт по всем шагам: от имени и расы до заклинаний, снаряжения и характера. Закрыть тур — крестиком или Esc.' },
+    { requireTarget: true, target: q('#cr-progress'), title: 'Шаги', text: 'Ромбы — шаги мастера, закрашенные пройдены. Выйти можно в любой момент: мастер запомнит шаг и откроется на нём.' },
+    { requireTarget: true, target: q('#cr-next'), title: '«Далее»', text: 'Кнопка откроется, когда на шаге выбрано всё обязательное. После «Характеристик» основа фиксируется, на последнем шаге кнопка называется «Персонаж готов».' },
+    { requireTarget: true, target: q('.cr-manual'), title: 'Заполнить вручную', text: 'Уйти на обычный лист и заполнить всё самостоятельно — например, для мультикласса. Вернуться в мастер после этого нельзя.' }
+  ];
 }
 
 /** Перезапустить тур из help-центра по текущему экрану. */
@@ -386,7 +419,8 @@ function restartTour() {
   // STYLE-8M-2b: уход со справки — переход между экранами (300 мс). Стартовать
   // тур сразу нельзя: прожектор целился бы в экран посреди полёта.
   setTimeout(function () {
-    if (window.currentId) startSheetTour();
+    if (currentScreenName() === "creator") startCreatorTour();
+    else if (window.currentId) startSheetTour();
     else startListTour();
   }, 320);
 }
@@ -396,6 +430,7 @@ function restartTour() {
 // (их туры — startSheetTour / startListTour). Наборы шагов добавляются
 // по фазам TOUR-2..6; движок (startTour/_layoutTour/…) уже готов из HELP-4.
 var TOUR_TABS = {
+  stats:     { flag: HELP_FLAG_STATS_SEEN,     build: _buildStatsSteps },
   progress:  { flag: HELP_FLAG_PROGRESS_SEEN,  build: _buildProgressSteps },
   spells:    { flag: HELP_FLAG_SPELLS_SEEN,    build: _buildSpellsSteps },
   inventory: { flag: HELP_FLAG_INVENTORY_SEEN, build: _buildInventorySteps },
@@ -442,8 +477,9 @@ function maybeStartTabTour(tab) {
       if (_tour || getHelpFlag(entry.flag)) return;
       if (_gen !== _tourEscGen) { setHelpFlag(entry.flag, '1'); return; }
       if (_tourTyping()) return;
-      var tabEl = document.getElementById('tab-' + tab);
+      var tabEl = document.getElementById('tab-' + (tab === 'stats' ? 'sheet' : tab));
       if (!tabEl || !tabEl.classList.contains('active')) return; // вкладку сменили, пока ждали
+      if (tab === 'stats' && tabEl.getAttribute('data-rd-view') !== 'stats') return;
       setHelpFlag(entry.flag, '1');
       startTour(entry.build(), tab);
     });
@@ -786,40 +822,58 @@ function _buildListSteps() {
 function _buildSheetSteps() {
   return [
     {
-      title: 'Лист персонажа',
-      text: 'Это лист открытого персонажа. Покажем основные элементы интерфейса. Кнопка «←» в\u00a0шапке вернёт к\u00a0списку персонажей.'
+      title: 'Главная',
+      text: 'Главная страница персонажа: кто он, уровень, хиты и\u00a0отдых. Покажем, что где. Кнопка «←» в\u00a0шапке вернёт к\u00a0списку персонажей.'
     },
     {
       requireTarget: true,
-      // ≥1200 — статичный сайдбар; <1024 — нижний tab-nav; 1024–1199 оба
-      // display:none (drawer закрыт) — подсвечиваем hamburger, который его открывает.
+      // ПК — меню слева; телефон — нижняя панель из шести вкладок
       target: function () {
-        return _tourFirstVisible(['.side-drawer .drawer-nav', '.tab-nav', '#nav-hamburger']);
+        return _tourFirstVisible(['.side-drawer .drawer-nav', '.tab-nav']);
       },
       title: 'Разделы персонажа',
-      text: 'Переключение разделов: Лист, Заклинания, Инвентарь, Бой, Записи, Мир, Журнал.'
+      text: 'Шесть разделов: Главная, Характеристики, Магия, Сумка, Бой и\u00a0Личность. На\u00a0телефоне между ними можно листать свайпом, на\u00a0ПК меню сворачивается в\u00a0полосу значков кнопкой «»».'
     },
     {
       requireTarget: true,
-      target: function () {
-        return _tourWide()
-          ? document.getElementById('rr-btn-d20')
-          : document.querySelector('.tab-dice-fab');
-      },
+      target: function () { return _tourFirstVisible(['#nav-hamburger']); },
+      title: 'Меню ☰',
+      text: 'Всё, что не\u00a0влезло в\u00a0панель: Мир, Журнал, Развитие, отдых, повышение уровня, справка и\u00a0настройки.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return _tourFirstVisible(['#sheet2 .s2-head']); },
+      title: 'Шапка персонажа',
+      text: 'Имя, класс и\u00a0подкласс. «Осталось выбрать →» ведёт к\u00a0несделанным выборам, «+ Второй класс» — к\u00a0мультиклассу. Справа уровень и\u00a0опыт: впишите набранный опыт, а\u00a0уровень поднимает «↑ Повысить».'
+    },
+    {
+      requireTarget: true,
+      target: function () { return _tourFirstVisible(['#sheet2 .s2-line']); },
+      title: 'Общие числа',
+      text: 'Бонус мастерства, вдохновение и\u00a0пассивная Внимательность. Вдохновение включается и\u00a0снимается нажатием на\u00a0«есть/нет».',
+      novice: 'Вдохновение даёт мастер за\u00a0хорошую игру: его тратят, чтобы бросить с\u00a0преимуществом.'
+    },
+    {
+      requireTarget: true,
+      // телефон — колонка листа; ПК — правая панель (раскрытая или полоса значков)
+      target: function () { return _tourFirstVisible(['#sheet2 aside', '#rd-rail', '#app-right-rail .rr-strip']); },
+      title: 'Хиты и\u00a0отдых',
+      text: 'КД, инициатива и\u00a0скорость; хиты — впишите число и\u00a0нажмите «−» для\u00a0урона или\u00a0«+» для\u00a0лечения. Ниже короткий и\u00a0длинный отдых и\u00a0кость хитов. На\u00a0ПК это правая панель: кнопка «Панель» в\u00a0шапке раскрывает и\u00a0сворачивает её.',
+      novice: 'Хиты (HP) — запас здоровья: на\u00a0нуле персонаж при\u00a0смерти. КД (AC) — класс доспеха: чем выше, тем труднее по\u00a0персонажу попасть.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return _tourFirstVisible(['.tab-dice-fab', '#rd-rail .s2-dice', '#rr-s-d20-btn']); },
       title: 'Броски кубиков',
-      text: 'Открывает окно бросков: d20, урон, проверки — с\u00a0преимуществом и\u00a0помехой.',
+      text: 'Кубы для\u00a0любых бросков: нажатия складываются в\u00a0формулу, «Бросить» катит всё разом. Проверки, спасброски, навыки и\u00a0атаки бросаются нажатием на\u00a0свою строку — бонус подставится сам.',
       novice: 'd20 — двадцатигранный кубик, основной в\u00a0D&D: бросок + модификатор сравнивают со\u00a0сложностью, которую назначает мастер.'
     },
     {
+      // ПК: «Главная» и «Характ.» на одном экране; на телефоне блок скрыт и шаг выпадает
       requireTarget: true,
-      target: function () {
-        return _tourWide()
-          ? document.querySelector('.rr-hp')
-          : document.querySelector('.status-bar');
-      },
-      title: 'Хиты и\u00a0защита',
-      text: 'Текущие хиты и\u00a0класс доспеха всегда на\u00a0виду; отсюда быстро применяется урон и\u00a0лечение.',
-      novice: 'Хиты (HP) — запас здоровья: на\u00a0нуле персонаж при\u00a0смерти. КД (AC) — класс доспеха: чем выше, тем труднее по\u00a0персонажу попасть.'
+      target: function () { return _tourFirstVisible(['#sheet2 .s2-two']); },
+      title: 'Характеристики и\u00a0спасброски',
+      text: 'Нажмите строку — бросок проверки или\u00a0спасброска с\u00a0нужным бонусом. ◆ — владение, ◇ — нет. Рядом владения: доспехи, оружие, инструменты и\u00a0языки; навыки ниже.'
     },
     {
       // DISC-3: знак раскрытия. Цель — первая строка характеристики; она есть
@@ -860,7 +914,7 @@ function _buildSheetSteps() {
       target: function () {
         return _tourFirstVisible([
           '#basic-locked-bar .tab-help-btn',
-          '.side-drawer .drawer-item[onclick*="openHelp"]'
+          '.side-drawer .drawer-item[onclick*="openTabHelp"]'
         ]);
       },
       title: 'Справка по\u00a0разделу',
@@ -869,6 +923,47 @@ function _buildSheetSteps() {
     {
       title: 'Готово',
       text: 'Это всё. Подробности — в\u00a0«Справке» (боковое меню и\u00a0каждый раздел), повторить обучение можно в\u00a0«Настройки → Показать обучение заново».'
+    }
+  ];
+}
+
+/** РД-Ф: тур по «Характ.» (телефон). Цели — новый лист, фолбэк — форма
+ *  незафиксированного листа; на ПК эти блоки показывает тур «Главной». */
+function _buildStatsSteps() {
+  return [
+    {
+      title: 'Характеристики',
+      text: 'Всё, что бросается от\u00a0характеристик: проверки, спасброски и\u00a0навыки. Листать — «Назад»/«Далее» или\u00a0стрелками ←/→, закрыть — крестиком или\u00a0Esc.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return _tourFirstVisible(['#sheet2 .s2-two > div:nth-child(1)', '#abilities-region']); },
+      title: 'Характеристики',
+      text: 'Значение и\u00a0модификатор каждой характеристики. Нажмите строку — бросок проверки, рядом всплывёт разбор бонуса.',
+      novice: 'Модификатор — то, что прибавляется к\u00a0броску d20: (значение − 10) ÷ 2 с\u00a0округлением вниз.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return _tourFirstVisible(['#sheet2 .s2-two > div:nth-child(2)', '.legacy-saves-card']); },
+      title: 'Спасброски',
+      text: '◆ — владение спасброском, к\u00a0нему прибавляется бонус мастерства; ◇ — нет. Нажатие на\u00a0строку бросает спасбросок.',
+      novice: 'Спасбросок — попытка избежать опасности: яда, заклинания, ловушки. Сложность называет мастер.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return _tourFirstVisible(['#sheet2 .s2-two > div:nth-child(3)', '#prof-card']); },
+      title: 'Владения',
+      text: 'Доспехи, оружие, инструменты и\u00a0языки, которыми владеет персонаж. Меняются при\u00a0создании и\u00a0повышении уровня.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return _tourFirstVisible(['#sheet2 .s2-skills', '.legacy-skills-card']); },
+      title: 'Навыки',
+      text: 'Навыки сгруппированы по\u00a0характеристикам. ◆ — владение, ◆◆ — компетентность (двойной бонус мастерства). Нажатие на\u00a0навык бросает проверку.'
+    },
+    {
+      title: 'Готово',
+      text: 'Это раздел «Характеристики». Повторить обучение — «Настройки → Показать обучение заново».'
     }
   ];
 }
@@ -936,12 +1031,12 @@ function _buildProgressSteps() {
 function _buildSpellsSteps() {
   return [
     {
-      title: 'Заклинания',
-      text: 'Раздел заклинаний: характеристика заклинателя, ячейки и\u00a0список ваших заклинаний. Листать — «Назад»/«Далее» или\u00a0стрелками ←/→, закрыть — крестиком или\u00a0Esc.'
+      title: 'Магия',
+      text: 'Раздел магии: заклинательная характеристика, ячейки и\u00a0список ваших заклинаний. Листать — «Назад»/«Далее» или\u00a0стрелками ←/→, закрыть — крестиком или\u00a0Esc.'
     },
     {
       requireTarget: true,
-      target: function () { return document.querySelector('#tab-spells .sc-stat-selector'); },
+      target: function () { return _tourFirstVisible(['#rd-spell-head', '#tab-spells .sc-stat-selector']); },
       title: 'Характеристика заклинателя',
       text: 'Выберите характеристику — Интеллект, Мудрость или\u00a0Харизму (зависит от\u00a0класса). От\u00a0неё считаются СЛ спасброска и\u00a0бонус атаки заклинаниями.',
       novice: 'СЛ спасброска — насколько трудно цели сопротивляться вашему заклинанию (чем выше, тем лучше). Бонус атаки прибавляется к\u00a0броску, когда заклинание бьёт прямой атакой.'
@@ -963,8 +1058,14 @@ function _buildSpellsSteps() {
       text: '«Найти заклинание» — добавить из\u00a0встроенной базы с\u00a0фильтрами по\u00a0классу и\u00a0уровню. «Добавить своё» — вписать собственное заклинание вручную.'
     },
     {
+      requireTarget: true,
+      target: function () { return _tourFirstVisible(['#rd-find-spl-wrap']); },
+      title: 'Поиск по\u00a0своим',
+      text: 'Строка поиска оставляет в\u00a0списке только заклинания с\u00a0нужным названием — удобно, когда их много.'
+    },
+    {
       title: 'Готово',
-      text: 'Это раздел заклинаний. Повторить тур — кнопкой «Пройти тур по\u00a0разделу» в\u00a0«Справке» этой вкладки.'
+      text: 'Это раздел «Магия». Повторить тур — кнопкой «Пройти тур по\u00a0разделу» в\u00a0«Справке» этой вкладки.'
     }
   ];
 }
@@ -973,15 +1074,14 @@ function _buildSpellsSteps() {
 function _buildInventorySteps() {
   return [
     {
-      title: 'Инвентарь',
-      text: 'Раздел инвентаря: переноска, рюкзак с\u00a0предметами и\u00a0кошель. Листать — «Назад»/«Далее» или\u00a0стрелками ←/→, закрыть — крестиком или\u00a0Esc.'
+      title: 'Сумка',
+      text: 'Раздел «Сумка»: предметы, нагрузка, кошель и\u00a0размен монет. Листать — «Назад»/«Далее» или\u00a0стрелками ←/→, закрыть — крестиком или\u00a0Esc.'
     },
     {
       requireTarget: true,
-      target: function () { return document.querySelector('#tab-inventory .inv-slots-card'); },
-      title: 'Слоты и\u00a0переноска',
-      text: 'Сколько вы несёте: «занято / всего» слотов и\u00a0полоса заполнения. При\u00a0превышении предела появляется «Перегруз».',
-      novice: 'Чтобы не\u00a0считать точный вес каждой вещи, приложение использует слоты: оружие — 1, броня — 3, зелье — ½ и\u00a0т.д. Всего слотов зависит от\u00a0Силы.'
+      target: function () { return _tourFirstVisible(['#rd-find-inv-wrap']); },
+      title: 'Поиск',
+      text: 'Оставляет в\u00a0списке только предметы с\u00a0нужным названием.'
     },
     {
       requireTarget: true,
@@ -994,17 +1094,24 @@ function _buildInventorySteps() {
     },
     {
       requireTarget: true,
+      target: function () { return _tourFirstVisible(['#rd-inv-load', '#tab-inventory .inv-slots-card']); },
+      title: 'Нагрузка',
+      text: 'Сколько слотов занято из\u00a0доступных. Строка под\u00a0списком предметов пересчитывается сама.',
+      novice: 'Чтобы не\u00a0считать точный вес каждой вещи, приложение использует слоты: оружие — 1, броня — 3, зелье — ½ и\u00a0т.д. Всего слотов зависит от\u00a0Силы.'
+    },
+    {
+      requireTarget: true,
       target: function () {
         var h = document.querySelector('#tab-inventory .inv-coins-header');
         return h ? h.closest('.card') : null;
       },
       title: 'Кошель',
-      text: 'Монеты по\u00a0достоинствам: медь, серебро, электрум, золото, платина. «Итого» сводит всё к\u00a0золоту, а\u00a0«⇄ Разменять» меняет монеты одного вида на\u00a0другой.',
+      text: 'Монеты по\u00a0достоинствам: медь, серебро, электрум, золото, платина. «Итого» сводит всё к\u00a0золоту, а\u00a0блок «Размен» меняет монеты одного вида на\u00a0другой: что отдаёте, что получаете и\u00a0сколько.',
       novice: 'Курс обмена: 10 медных = 1 серебряная, 10 серебряных = 1 золотая, 10 золотых = 1 платиновая (электрум — ½ золотого).'
     },
     {
       title: 'Готово',
-      text: 'Это раздел инвентаря. Повторить тур — кнопкой «Пройти тур по\u00a0разделу» в\u00a0«Справке» этой вкладки.'
+      text: 'Это раздел «Сумка». Повторить тур — кнопкой «Пройти тур по\u00a0разделу» в\u00a0«Справке» этой вкладки.'
     }
   ];
 }
@@ -1014,7 +1121,50 @@ function _buildBattleSteps() {
   return [
     {
       title: 'Бой',
-      text: 'Раздел боя: выбор участников, запуск боя и\u00a0трекер инициативы по\u00a0ходам. Листать — «Назад»/«Далее» или\u00a0стрелками ←/→, закрыть — крестиком или\u00a0Esc.'
+      text: 'Раздел боя: защита и\u00a0хиты, оружие, ресурсы класса, состояния и\u00a0трекер инициативы. Листать — «Назад»/«Далее» или\u00a0стрелками ←/→, закрыть — крестиком или\u00a0Esc.'
+    },
+    {
+      // на ПК с раскрытой правой панелью этот блок живёт в ней — шаг выпадает
+      requireTarget: true,
+      target: function () { return _tourFirstVisible(['#rd-battle .rd-b-rail']); },
+      title: 'Защита и\u00a0хиты',
+      text: 'КД, инициатива и\u00a0скорость; хиты с\u00a0кнопками «−» урон и\u00a0«+» лечение. При\u00a0нуле хитов здесь же появляются спасброски от\u00a0смерти.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return _tourFirstVisible(['#rd-battle .s2-res']); },
+      title: 'Ресурсы класса',
+      text: 'Заряды умений класса: нажатие на\u00a0ромб тратит или\u00a0возвращает заряд, отдых их восстанавливает.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return _tourFirstVisible(['#rd-battle .s2-atk']); },
+      title: 'Оружие и\u00a0атаки',
+      text: 'Нажмите название — бросок атаки с\u00a0бонусом, число справа — бросок урона. «+ Добавить оружие» — из\u00a0базы или\u00a0своё.'
+    },
+    {
+      requireTarget: true,
+      target: function () {
+        var hs = document.querySelectorAll('#rd-battle h3, #rd-rail h3');
+        for (var i = 0; i < hs.length; i++) {
+          if (hs[i].textContent.indexOf('Состояния') === 0 && hs[i].getBoundingClientRect().width > 0) return hs[i].nextElementSibling;
+        }
+        return null;
+      },
+      title: 'Состояния',
+      text: '«Изменить» открывает список состояний: отравлен, сбит с\u00a0ног, ослеплён и\u00a0другие. Здесь видно, сколько их активно.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return _tourFirstVisible(['#tab-battle .saved-rolls-card']); },
+      title: 'Мои броски',
+      text: 'Сохраните формулу, которую бросаете часто, — потом она бросается одним нажатием.'
+    },
+    {
+      requireTarget: true,
+      target: function () { var l = document.getElementById('companions-list-sheet'); return l && l.closest('.card'); },
+      title: 'Прихвостни',
+      text: 'Фамильяр, призванные существа и\u00a0другие подручные — со\u00a0своими хитами и\u00a0КД.'
     },
     {
       requireTarget: true,
@@ -1045,8 +1195,14 @@ function _buildBattleSteps() {
 function _buildNotesSteps() {
   return [
     {
-      title: 'Записи',
-      text: 'Раздел записей: всё о\u00a0персонаже и\u00a0мире в\u00a0одном месте — предыстория, NPC, квесты, локации, сессии и\u00a0свободные заметки. Листать — «Назад»/«Далее» или\u00a0стрелками ←/→, закрыть — крестиком или\u00a0Esc.'
+      title: 'Личность',
+      text: 'Раздел «Личность»: сведения о\u00a0персонаже и\u00a0записи — всё о\u00a0персонаже и\u00a0мире в\u00a0одном месте — предыстория, NPC, квесты, локации, сессии и\u00a0свободные заметки. Листать — «Назад»/«Далее» или\u00a0стрелками ←/→, закрыть — крестиком или\u00a0Esc.'
+    },
+    {
+      requireTarget: true,
+      target: function () { return _tourFirstVisible(['#rd-persona']); },
+      title: 'О\u00a0персонаже',
+      text: 'Раса, предыстория и\u00a0её умение, мировоззрение и\u00a0книги, по\u00a0которым собран персонаж.'
     },
     {
       requireTarget: true,
@@ -1071,7 +1227,7 @@ function _buildNotesSteps() {
     },
     {
       title: 'Готово',
-      text: 'Это раздел записей. Повторить тур — кнопкой «Пройти тур по\u00a0разделу» в\u00a0«Справке» этой вкладки.'
+      text: 'Это раздел «Личность». Повторить тур — кнопкой «Пройти тур по\u00a0разделу» в\u00a0«Справке» этой вкладки.'
     }
   ];
 }

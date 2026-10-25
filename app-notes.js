@@ -443,6 +443,7 @@ function notesGenerate() {
     _notesFlashSaved();
     if (_notesState.currentTab === 'backstory') _renderNotesMain();
     _notesSyncGenBtn(char);
+    if (typeof creatorRefresh === 'function') creatorRefresh();
     if (typeof showToast === 'function') {
       showToast(kept ? 'Сгенерировано. Свой текст в ' + kept + ' разд. не\u00a0тронут — варианты под\u00a0🎲' : 'Сгенерировано. Другие варианты — под\u00a0🎲 в\u00a0каждом разделе', 'success');
     }

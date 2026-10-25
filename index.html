@@ -29,10 +29,8 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
-<link rel="stylesheet" href="style.css?v=v567">
-<link rel="stylesheet" href="redesign.css?v=v567">
+<link rel="stylesheet" href="style.css?v=v568">
 <script>
-function isRedesign() { return document.documentElement.classList.contains('rd'); }
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
 (function(){
@@ -45,17 +43,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', isLight ? '#eceff5' : '#050a14');
-    // Тестовый режим редизайна: ?rd=1 включает и запоминает, ?rd=0 выключает.
-    var rd = /[?&]rd=([01])(&|$)/.exec(location.search);
-    if (rd) localStorage.setItem('dnd_rd', rd[1]);
-    if (localStorage.getItem('dnd_rd') === '1') document.documentElement.classList.add('rd');
-    // UI-2: применить акцент до отрисовки, чтобы не было вспышки золотого
-    // РД-2: в режиме по умолчанию «Янтарь» (ember), вне режима ember → gold
+    // РД-Ф: тестовый режим редизайна влит — его ключи больше не читаются
+    localStorage.removeItem('dnd_rd'); localStorage.removeItem('dnd_sheet2');
+    // UI-2: применить акцент до отрисовки, чтобы не было вспышки; по умолчанию «Янтарь» (ember)
     var a = localStorage.getItem('dnd_accent');
-    var isRd = document.documentElement.classList.contains('rd');
-    var allowed = ['gold','emerald','ruby','amethyst','sapphire','copper','silver','graphite'];
-    if (isRd) allowed.push('ember');
-    if (allowed.indexOf(a) === -1) a = isRd ? 'ember' : 'gold';
+    var allowed = ['gold','emerald','ruby','amethyst','sapphire','copper','silver','graphite','ember'];
+    if (allowed.indexOf(a) === -1) a = 'ember';
     if (a !== 'gold') document.documentElement.setAttribute('data-accent', a);
     // UI-4: применить плотность до отрисовки
     // UI5-5: без явного выбора пользователя — на телефоне (≤640px) дефолт compact (меньше скролла)
@@ -75,6 +68,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     // отложенный вызов через DOMContentLoaded.
     var fs = parseFloat(localStorage.getItem('dnd_fs_scale'));
     if (isFinite(fs) && fs >= 0.9 && fs <= 1.3 && fs !== 1) {
+      document.documentElement.style.setProperty('--fs-zoom', String(fs));
       document.addEventListener('DOMContentLoaded', function() {
         document.body.style.zoom = String(fs);
       });
@@ -173,10 +167,13 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
         <button type="button" class="accent-chip" data-accent-btn="graphite" title="Графит"   aria-label="Графит"   style="--chip-hi:#a0a3ac;--chip-lo:#6e7178;--chip-mid:#8a8d96" onclick="setAccent('graphite')"></button>
         <button type="button" class="accent-chip" data-accent-btn="ember"    title="Янтарь"   aria-label="Янтарь"   style="--chip-hi:#f69d5b;--chip-lo:#c4561a;--chip-mid:#f38536" onclick="setAccent('ember')"></button>
       </div>
-      <label class="auto-accent-row" for="auto-accent-toggle" title="Акцент автоматически подстраивается под&nbsp;класс активного персонажа">
-        <input type="checkbox" id="auto-accent-toggle" onchange="setAutoAccent(this.checked)">
-        <span><span data-ico="sparkle" data-ico-size="16">🎭</span> Авто-акцент по&nbsp;классу</span>
-      </label>
+    </div>
+    <div class="theme-picker-row list-row">
+      <span class="theme-picker-label"><span data-ico="sparkle" data-ico-size="16">🎭</span> Авто-акцент по&nbsp;классу</span>
+      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Авто-акцент по&nbsp;классу">
+        <button type="button" class="theme-picker-btn seg" data-auto-accent-btn="on"  onclick="setAutoAccent(true)"  title="Акцент автоматически подстраивается под&nbsp;класс активного персонажа">Вкл</button>
+        <button type="button" class="theme-picker-btn seg" data-auto-accent-btn="off" onclick="setAutoAccent(false)" title="Акцент — выбранный цвет">Выкл</button>
+      </div>
     </div>
     <div class="theme-picker-row list-row">
       <span class="theme-picker-label"><span data-ico="layers" data-ico-size="16">📐</span> Плотность</span>
@@ -191,13 +188,6 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="theme-picker-btns stats-layout-picker-btns seg-group" role="radiogroup" aria-label="Раскладка листа характеристик">
         <button type="button" class="theme-picker-btn seg" data-stats-layout-btn="2024"    onclick="setStatsLayout('2024')"    title="Спасброски и&nbsp;навыки сгруппированы внутри карточек характеристик (вид листа 2024)">2024</button>
         <button type="button" class="theme-picker-btn seg" data-stats-layout-btn="classic" onclick="setStatsLayout('classic')" title="Классический вид: характеристики, спасброски и&nbsp;навыки отдельными блоками">Классический</button>
-      </div>
-    </div>
-    <div class="theme-picker-row list-row">
-      <span class="theme-picker-label"><span data-ico="sheet" data-ico-size="16">📋</span> Новый лист (демо)<small class="sheet2-demo-note">В&nbsp;разработке — пользуйтесь на&nbsp;свой страх и&nbsp;риск. Страница перезагрузится.</small></span>
-      <div class="theme-picker-btns seg-group" role="radiogroup" aria-label="Новый лист (демо)">
-        <button type="button" class="theme-picker-btn seg" data-sheet2-btn="1" onclick="setSheet2Demo(true)">Вкл</button>
-        <button type="button" class="theme-picker-btn seg" data-sheet2-btn="0" onclick="setSheet2Demo(false)">Выкл</button>
       </div>
     </div>
     <div class="theme-picker-row list-row">
@@ -3583,6 +3573,21 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   </div>
 </div>
 
+<!-- МАСТ-1: мастер создания персонажа — шаги поверх листа (app-creator.js) -->
+<div id="screen-creator" class="page-screen hidden">
+  <div class="page-stage">
+    <div class="page-head"><h2 class="page-title">Новый персонаж</h2><button type="button" class="page-back" onclick="creatorExit()">← Выйти</button></div>
+    <div id="cr-progress" class="cr-progress"></div>
+    <div id="cr-body" class="cr-body"></div>
+    <div class="cr-nav">
+      <button type="button" id="cr-prev" class="hp-act" onclick="creatorPrev()">← Назад</button>
+      <span id="cr-why" class="cr-why" aria-live="polite"></span>
+      <button type="button" id="cr-next" class="btn btn-primary cr-next" onclick="creatorNext()">Далее</button>
+    </div>
+    <button type="button" class="hp-act cr-manual" onclick="creatorManual()">Заполнить вручную на&nbsp;листе →</button>
+  </div>
+</div>
+
 <!-- FEAT-LOG: панель журнала сессии (Ctrl+Shift+L / дровер → «Логи сессии») -->
 <div id="app-log-panel" class="app-log-panel" hidden>
   <div class="app-log-header">
@@ -3607,44 +3612,44 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v567"></script>
+<script src="app-log.js?v=v568"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v567"></script>
-<script src="bg-space.js?v=v567"></script>
-<script src="dice-arena-bg.js?v=v567"></script>
-<script src="data.js?v=v567"></script>
+<script src="icons.js?v=v568"></script>
+<script src="bg-space.js?v=v568"></script>
+<script src="dice-arena-bg.js?v=v568"></script>
+<script src="data.js?v=v568"></script>
 <!-- PERF-2/PERF-4: build-notes-data.js (~530 КБ) и character-builds.js (~200 КБ) грузятся лениво — см. ensureBuildNotes/ensureBuilds ниже -->
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v567"></script>
-<script src="spells.js?v=v567"></script>
-<script src="spell-effects.js?v=v567"></script>
+<script src="glossary-data.js?v=v568"></script>
+<script src="spells.js?v=v568"></script>
+<script src="spell-effects.js?v=v568"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v567"></script>
-<script src="app-migrate.js?v=v567"></script>
-<script src="app-builds.js?v=v567"></script>
-<script src="app-core.js?v=v567"></script>
-<script src="app-io.js?v=v567"></script>
-<script src="app-backup.js?v=v567"></script>
-<script src="app-sync.js?v=v567"></script>
-<script src="app-combat.js?v=v567"></script>
-<script src="app-conditions.js?v=v567"></script>
-<script src="app-cast-effects.js?v=v567"></script>
-<script src="app-proficiencies.js?v=v567"></script>
-<script src="app-hp.js?v=v567"></script>
-<script src="app-spells.js?v=v567"></script>
-<script src="app-inventory.js?v=v567"></script>
-<script src="start-equip-2014.js?v=v567"></script>
+<script src="rules.js?v=v568"></script>
+<script src="app-migrate.js?v=v568"></script>
+<script src="app-builds.js?v=v568"></script>
+<script src="app-core.js?v=v568"></script>
+<script src="app-io.js?v=v568"></script>
+<script src="app-backup.js?v=v568"></script>
+<script src="app-sync.js?v=v568"></script>
+<script src="app-combat.js?v=v568"></script>
+<script src="app-conditions.js?v=v568"></script>
+<script src="app-cast-effects.js?v=v568"></script>
+<script src="app-proficiencies.js?v=v568"></script>
+<script src="app-hp.js?v=v568"></script>
+<script src="app-spells.js?v=v568"></script>
+<script src="app-inventory.js?v=v568"></script>
+<script src="start-equip-2014.js?v=v568"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v567"></script>
-<script src="app-wildshape.js?v=v567"></script>
-<script src="class-choices.js?v=v567"></script>
-<script src="subclass-choices-data.js?v=v567"></script>
+<script src="app-party.js?v=v568"></script>
+<script src="app-wildshape.js?v=v568"></script>
+<script src="class-choices.js?v=v568"></script>
+<script src="subclass-choices-data.js?v=v568"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js).
      PERF-5: модуль (~200 КБ) грузится лениво — window.ensureDiceBox() из app-dice.js
      при первом действии пользователя или открытии кубиков; пока не загружен — 2D-бросок. -->
@@ -3652,7 +3657,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   var diceBoxP = null;
   window.ensureDiceBox = function () {
     if (!diceBoxP) {
-      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v567").then(function (m) {
+      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v568").then(function (m) {
         window.DiceBox = m.default;
         window.dispatchEvent(new Event("dicebox:ready"));
         return m.default;
@@ -3661,17 +3666,18 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     return diceBoxP;
   };
 </script>
-<script src="app-dice.js?v=v567"></script>
-<script src="app-settings.js?v=v567"></script>
-<script src="app-ui.js?v=v567"></script>
-<script src="app-home.js?v=v567"></script>
-<script src="app-asi.js?v=v567"></script>
-<script src="app-progress.js?v=v567"></script>
-<script src="app-notes.js?v=v567"></script>
-<script src="app-desktop.js?v=v567"></script>
-<script src="history-stack.js?v=v567"></script>
-<script src="app-help.js?v=v567"></script>
-<script src="app-sheet2.js?v=v567"></script>
+<script src="app-dice.js?v=v568"></script>
+<script src="app-settings.js?v=v568"></script>
+<script src="app-ui.js?v=v568"></script>
+<script src="app-home.js?v=v568"></script>
+<script src="app-asi.js?v=v568"></script>
+<script src="app-creator.js?v=v568"></script>
+<script src="app-progress.js?v=v568"></script>
+<script src="app-notes.js?v=v568"></script>
+<script src="app-desktop.js?v=v568"></script>
+<script src="history-stack.js?v=v568"></script>
+<script src="app-help.js?v=v568"></script>
+<script src="app-sheet2.js?v=v568"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3684,9 +3690,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v567",
-    "vendor/jspdf/roboto-base64.js?v=v567",
-    "app-pdf.js?v=v567"
+    "vendor/jspdf/jspdf.umd.min.js?v=v568",
+    "vendor/jspdf/roboto-base64.js?v=v568",
+    "app-pdf.js?v=v568"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3709,50 +3715,50 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // PERF-4: сами билды нужны пикеру, гайду, плану и подсказкам левел-апа — грузим по требованию.
   window.ensureBuilds = function () {
     if (window.CHARACTER_BUILDS) return Promise.resolve();
-    return loadScript("character-builds.js?v=v567");
+    return loadScript("character-builds.js?v=v568");
   };
   // PERF-2: заметки билдов нужны только applyBuild — грузим по требованию.
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v567").then(function () {
+    return loadScript("build-notes-data.js?v=v568").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
   // NGEN-2: пулы генератора «Записей» нужны только кнопке «Сгенерировать».
   window.ensureNotesGen = function () {
     if (window.NOTES_GEN) return Promise.resolve();
-    return loadScript("notes-gen-data.js?v=v567");
+    return loadScript("notes-gen-data.js?v=v568");
   };
   // PERF-3: бестиарий SRD нужен только пикерам вкладки отряда — грузим по требованию.
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v567"),
-      loadScript("npc-srd.js?v=v567")
+      loadScript("monsters-srd.js?v=v568"),
+      loadScript("npc-srd.js?v=v568")
     ]);
   };
   // РОСТ-5: звери для Дикого облика и «Превращения» — грузим по требованию.
   window.ensureBeastForms = function () {
     if (window.BEAST_FORMS) return Promise.resolve();
-    return loadScript("beast-forms.js?v=v567");
+    return loadScript("beast-forms.js?v=v568");
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v567");
+    return loadScript("magic-items.js?v=v568");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v567");
+    return loadScript("gear-catalog.js?v=v568");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v567").then(function () {
+    return loadScript("data-2024.js?v=v568").then(function () {
       window.__edition2024Loaded = true;
     });
   };

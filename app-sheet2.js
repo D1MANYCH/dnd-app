@@ -1,11 +1,8 @@
 // РОСТ-8 (демо): лист персонажа по макету дизайнера (Figma «Заполненный лист»).
-// РД-2: работает только в тестовом режиме редизайна (?rd=1), стили — в redesign.css. Показывается только
+// Показывается только
 // у зафиксированного листа; старый лист остаётся в DOM скрытым и считает всё как раньше (РД-5: так и оставлен
-// до РД-Ф — его поля читают calcStats/updateChar, опыт пишется через sheet2Set).
+// — его поля читают calcStats/updateChar, опыт пишется через sheet2Set).
 (function () {
-  if (!isRedesign()) return;
-
-  var showOld = false;
   var pool = {}; // кубы, набранные нажатиями: { грани: количество }
   var AB = [
     { k: "str", n: "Сила", s: "Сил" }, { k: "dex", n: "Ловкость", s: "Лов" },
@@ -33,17 +30,11 @@
   function ensureNodes() {
     var tab = document.getElementById("tab-sheet");
     if (!tab) return null;
-    var bar = document.getElementById("sheet2-bar");
-    if (!bar) {
-      bar = document.createElement("div");
-      bar.id = "sheet2-bar";
-      tab.insertBefore(bar, tab.firstChild);
-    }
     var root = document.getElementById("sheet2");
     if (!root) {
       root = document.createElement("div");
       root.id = "sheet2";
-      tab.insertBefore(root, bar.nextSibling);
+      tab.insertBefore(root, tab.firstChild);
     }
     // РД-6: блок боя наверху «Боя» и свой блок в правой панели ПК
     var bt = document.getElementById("tab-battle");
@@ -86,7 +77,7 @@
       var card = document.getElementById("spell-stat-card");
       st.insertBefore(spellHead, card || st.firstChild);
     }
-    return { bar: bar, root: root, battle: battle, rail: rail, persona: persona, spellHead: spellHead };
+    return { root: root, battle: battle, rail: rail, persona: persona, spellHead: spellHead };
   }
 
   function render() {
@@ -94,7 +85,7 @@
     if (!nodes) return;
     var char = (typeof currentId !== "undefined" && currentId) ? getCurrentChar() : null;
     var locked = !!(char && typeof isSheetLocked === "function" && isSheetLocked(char));
-    var on = locked && !showOld;
+    var on = locked;
     if (nodes.persona) nodes.persona.innerHTML = char ? buildPersona(char) : "";
     if (nodes.spellHead) nodes.spellHead.innerHTML = on ? buildSpellHead(char) : "";
     document.body.classList.toggle("sheet2-on", on);
@@ -103,9 +94,6 @@
     var scrOn = !scr || (!scr.classList.contains("hidden") && !scr.classList.contains("screen-ghost"));
     document.body.classList.toggle("sheet2-tab", on && scrOn && tabEl.classList.contains("active"));
     nodes.root.style.display = on ? "" : "none";
-    nodes.bar.innerHTML = !char ? "" : !locked
-      ? "Демо нового листа: зафиксируйте лист, чтобы увидеть его"
-      : "Демо нового листа · <button type='button' onclick='sheet2Toggle()'>" + (showOld ? "Показать новый" : "Показать старый") + "</button>";
     [nodes.battle, nodes.rail].forEach(function (n) { if (n) { n.style.display = on ? "" : "none"; if (!on) n.innerHTML = ""; } });
     if (!on) return;
     nodes.root.innerHTML = build(char);
@@ -343,7 +331,8 @@
     if (typeof booksWithContent === "function" && typeof charHasBook === "function") {
       var books = booksWithContent().filter(function (b) { return (typeof bookGloballyOn !== "function" || bookGloballyOn(b)) && charHasBook(c, b); })
         .map(function (b) { return (typeof SOURCE_LABELS !== "undefined" && SOURCE_LABELS[b] && SOURCE_LABELS[b].full) || b; });
-      if (books.length) h.push("<div class='s2-kv'><b>Книги:</b> " + esc(books.join(", ")) + "</div>");
+      if (books.length) h.push("<details class='s2-kv s2-books'><summary><b>Книги:</b> " + books.length +
+        "<span class='s2-books-more'>показать</span></summary>" + esc(books.join(", ")) + "</details>");
     }
     return h.join("");
   }
@@ -490,7 +479,6 @@
     }
   });
 
-  window.sheet2Toggle = function () { showOld = !showOld; render(); };
   // правка поля старого листа: его oninput пересчитывает и сохраняет
   window.sheet2Set = function (id, v) {
     var el = document.getElementById(id);

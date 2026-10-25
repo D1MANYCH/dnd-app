@@ -652,6 +652,7 @@ var AG_PB_COST = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 };
 var AG_PB_POOL = 27;
 var AG_STD = [15, 14, 13, 12, 10, 8];
 var _ag = null; // { mode: "pb"|"std"|"roll", pb: {}, std: {}, rolls: [{ total, dice }], pick: {} }
+var _agHost = "ag-body"; // МАСТ-3: мастер рисует генератор в свой контейнер, без кнопки «Применить»
 
 function _agBonus(char, k) {
   var b = (char.appliedRaceBonus && char.appliedRaceBonus[k]) || 0;
@@ -684,6 +685,13 @@ function openAbilGen() {
   var char = getCurrentChar();
   if (!char) return;
   if (char.basicLocked) { showToast("Способ генерации выбирается до\u00a0фиксации основы", "warn"); return; }
+  _agHost = "ag-body";
+  _agInit(char);
+  _agRender();
+  showScreen("abilgen");
+}
+
+function _agInit(char) {
   var saved = char.abilGen || {};
   _ag = { mode: saved.mode || "pb", pb: {}, std: {}, rolls: (saved.rolls || []).slice(), pick: {} };
   var fresh = !saved.mode && AG_KEYS.every(function(k) { return (char.stats[k] || 10) - _agBonus(char, k) === 10; });
@@ -694,8 +702,6 @@ function openAbilGen() {
     if (saved.mode === "roll" && saved.pick && saved.pick[k] != null) _ag.pick[k] = saved.pick[k];
   });
   if (_agPbSpent() > AG_PB_POOL) AG_KEYS.forEach(function(k) { _ag.pb[k] = 8; });
-  _agRender();
-  showScreen("abilgen");
 }
 
 function agSetMode(m) {
@@ -756,12 +762,17 @@ function _agCtl(k) {
       '<span class="ag-cost">' + AG_PB_COST[v] + " оч.</span>";
   }
   var opts = '<option value="">—</option>', cur, fn;
+  // занятое другой характеристикой подписано её именем: выбор поменяет их местами
+  function owner(map, v) {
+    var o = AG_KEYS.filter(function(j) { return j !== k && map[j] === v; })[0];
+    return o ? " — сейчас у: " + AG_NAMES[o] : "";
+  }
   if (_ag.mode === "std") {
     cur = _ag.std[k]; fn = "agStd";
-    AG_STD.forEach(function(n) { opts += '<option value="' + n + '"' + (cur === n ? " selected" : "") + ">" + n + "</option>"; });
+    AG_STD.forEach(function(n) { opts += '<option value="' + n + '"' + (cur === n ? " selected" : "") + ">" + n + owner(_ag.std, n) + "</option>"; });
   } else {
     cur = _ag.pick[k]; fn = "agPick";
-    _ag.rolls.forEach(function(r, i) { opts += '<option value="' + i + '"' + (cur === i ? " selected" : "") + ">" + r.total + "</option>"; });
+    _ag.rolls.forEach(function(r, i) { opts += '<option value="' + i + '"' + (cur === i ? " selected" : "") + ">" + r.total + owner(_ag.pick, i) + "</option>"; });
   }
   return '<select class="field ag-sel" onchange="' + fn + "('" + k + "',this.value)\"" +
     (_ag.mode === "roll" && !_ag.rolls.length ? " disabled" : "") + ">" + opts + "</select>";
@@ -769,8 +780,9 @@ function _agCtl(k) {
 
 function _agRender() {
   var char = getCurrentChar();
-  var body = $("ag-body");
+  var body = $(_agHost);
   if (!char || !_ag || !body) return;
+  var inWizard = _agHost !== "ag-body";
   var modes = [["pb", "Покупка очков"], ["std", "Стандартный набор"], ["roll", "Бросок 4к6"]];
   var html = '<div class="ag-modes seg-group">' + modes.map(function(m) {
     return '<button type="button" class="edition-btn seg' + (_ag.mode === m[0] ? " active" : "") + '" onclick="agSetMode(\'' + m[0] + '\')">' + m[1] + "</button>";
@@ -785,10 +797,11 @@ function _agRender() {
     html += '<p class="ag-lead">Шесть раз бросьте 4к6 и\u00a0отбросьте меньший кубик, затем распределите результаты по\u00a0характеристикам.</p>' +
       '<div class="ag-foot"><button type="button" class="hp-act" onclick="agRoll()">' + (_ag.rolls.length ? "Перебросить 4к6 × 6" : "Бросить 4к6 × 6") + " →</button></div>";
     if (_ag.rolls.length) {
-      html += '<div class="ag-rolls">' + _ag.rolls.map(function(r) {
+      html += '<div class="ag-rolls">' + _ag.rolls.map(function(r, i) {
         var dropped = false;
         var min = Math.min.apply(null, r.dice);
-        return "<span><b>" + r.total + "</b> (" + r.dice.map(function(d) {
+        var used = AG_KEYS.some(function(j) { return _ag.pick[j] === i; });
+        return '<span' + (used ? ' class="ag-roll-used" title="Уже распределено"' : "") + "><b>" + r.total + "</b> (" + r.dice.map(function(d) {
           if (!dropped && d === min) { dropped = true; return "<s>" + d + "</s>"; }
           return d;
         }).join(" · ") + ")</span>";
@@ -806,20 +819,29 @@ function _agRender() {
   });
   html += "</div>";
 
-  html += '<p class="ag-note">Бонусы расы' + (char.edition === "2024" ? " и\u00a0предыстории" : "") + " прибавляются сверху, выбираются в\u00a0«Основном».</p>";
+  html += '<p class="ag-note">Бонусы расы' + (char.edition === "2024" ? " и\u00a0предыстории" : "") + " прибавляются сверху, выбираются " + (inWizard ? "на\u00a0прошлых шагах" : "в\u00a0«Основном»") + ".</p>";
   if ((char.level || 1) > 1) html += '<p class="ag-note">Увеличения характеристик и\u00a0черты, применённые в\u00a0приложении, входят в\u00a0«Бонус»; прибавки, поставленные вручную кнопками ±, — нет.</p>';
 
   var why = "";
   if (!_agReady()) why = _ag.mode === "roll" && !_ag.rolls.length ? "Сначала бросьте кубики" : "Распределите все шесть значений";
-  html += '<div class="ag-foot"><button type="button" class="lu-btn-confirm" onclick="agApply()"' + (why ? " disabled" : "") + ">Применить</button>" +
+  if (inWizard) html += why ? '<p class="ag-note">' + why + "</p>" : "";
+  else html += '<div class="ag-foot"><button type="button" class="lu-btn-confirm" onclick="agApply()"' + (why ? " disabled" : "") + ">Применить</button>" +
     (why ? '<span class="ag-note">' + why + "</span>" : "") + "</div>";
   body.innerHTML = html;
+  if (inWizard && typeof _crSyncNext === "function") _crSyncNext();
 }
 
 function agApply() {
   var char = getCurrentChar();
-  if (!char || !_ag || !_agReady()) return;
-  if (char.basicLocked) { showToast("Способ генерации выбирается до\u00a0фиксации основы", "warn"); return; }
+  if (!_agCommit(char)) return;
+  showToast("Характеристики распределены", "success");
+  screenBack();
+}
+
+/** Записать сгенерированные характеристики в персонажа (окно генерации и мастер). */
+function _agCommit(char) {
+  if (!char || !_ag || !_agReady()) return false;
+  if (char.basicLocked) { showToast("Способ генерации выбирается до\u00a0фиксации основы", "warn"); return false; }
   var base = {};
   AG_KEYS.forEach(function(k) {
     base[k] = _agBase(k);
@@ -833,7 +855,6 @@ function agApply() {
   calculateAC();
   if (typeof updateSlotsDisplay === "function") updateSlotsDisplay();
   saveToLocal();
-  showToast("Характеристики распределены", "success");
-  screenBack();
+  return true;
 }
 
