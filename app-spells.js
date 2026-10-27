@@ -112,6 +112,12 @@ function rdSlotStripToggle() {
 function rdSlotMax(level, delta) {
   var char = getCurrentChar();
   if (!char || sheetLockGuard()) return;
+  // Потолок — таблица класса (тот же расчёт, что при смене уровня), считается на копии
+  var ref = Object.assign({}, char, { spells: {} });
+  rulesApplySpellSlots(ref);
+  var cap = level === "pact" ? (ref.spells.pactSlots || 0) : (ref.spells.slots[level] || 0);
+  var cur = level === "pact" ? (char.spells.pactSlots || 0) : (char.spells.slots[level] || 0);
+  if (delta > 0 && cur + delta > cap) { showToast("По таблице класса ячеек " + (level === "pact" ? "пакта" : level + " уровня") + " — " + cap, "warn"); return; }
   if (level === "pact") {
     char.spells.pactSlots = Math.max(0, Math.min(4, (char.spells.pactSlots || 0) + delta));
     if ((char.spells.pactUsed || 0) > char.spells.pactSlots) char.spells.pactUsed = char.spells.pactSlots;
@@ -969,6 +975,11 @@ if (!spell) return;
 if (!char.spells.mySpells) char.spells.mySpells = [];
 if (!char.spells.mySpells.some(function(s) { return s.id === spellId; })) {
 if (char._wizStep && typeof creatorSpellRoom === "function" && !creatorSpellRoom(char, spell)) return; // мастер: лимиты класса
+if (!char._wizStep && spell.level === 0) {
+  var _cMax = calcMaxCantrips(char);
+  var _cHave = char.spells.mySpells.filter(function(s) { return s && s.level === 0 && !s.grantedBy; }).length;
+  if (_cMax !== null && _cHave >= _cMax) { showToast("Достигнут лимит заговоров (" + _cMax + ")", "warn"); return; }
+}
 char.spells.mySpells.push(spell);
 // E24-2: запись другой редакции — предупреждение, не блок (смешанные гримуары штатны).
 if (spell.source === "PH14" && char.edition === "2024") showToast("Это версия 2014 — у\u00a0персонажа редакция 2024", "warn");
@@ -1121,7 +1132,7 @@ card.innerHTML =
 
     (spell.duration && spell.duration.toLowerCase().includes('концентрац') ? '<button class="btn btn-secondary btn-sm spell-conc-btn" onclick="setConcentration(this.dataset.name)" data-name="' + escapeHtml(spell.name) + '">' + dndIcoHtml("focus", 13) + ' Концентрация</button>' : '') +
     (canCastRitual ? '<button class="btn btn-secondary btn-sm spell-ritual-btn" onclick="castRitual(\'' + escapeHtml(spell.name).replace(/'/g,"&#39;") + '\', ' + rulesRitualMinutes(spell.time) + ')">' + dndIcoHtml("history", 13) + ' Ритуал</button>' : '') +
-    (needsPrep ? '<button class="btn btn-secondary btn-sm spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">' + (prepared ? '' + dndIcoHtml("check", 13) + ' Подготовлено' : '○ Подготовить') + '</button>' : '') +
+    (needsPrep ? '<button class="btn btn-secondary btn-sm spell-prep-btn' + (prepared ? ' spell-prep-active' : '') + '" onclick="toggleSpellPrepared(' + _spellIdArg(spell.id) + ')">' + (prepared ? 'Снять подготовку' : '○ Подготовить') + '</button>' : '') +
     (isFamiliarSpell ? '<button class="btn btn-secondary btn-sm spell-summon-btn" onclick="summonFamiliar()">' + dndIcoHtml("wolf", 13) + ' Призвать фамильяра</button>' : '') +
     // HB-3: правка своего заклинания прямо из списка. Удаления из базы здесь нет
     // намеренно — рядом уже стоит «🗑 Удалить», и две корзины с разным смыслом
