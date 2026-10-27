@@ -152,6 +152,28 @@ function rulesCases(t, group) {
     return true;
   });
 
+  t("Характеристика не выбрана: колдун 1 ур. с ХАР 17 → по классу ХАР, СЛ 13, атака +5", function() {
+    var c = fixture({ class: "Колдун", level: 1, stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 17 } });
+    c.classes = [];
+    c.spells.stat = "";
+    var s = rulesSpellStats(c, 1);
+    if (s.stat !== "ХАР") return "характеристика: «" + s.stat + "», ожидал ХАР";
+    if (s.dc !== 13 || s.attack !== 5) return "СЛ " + s.dc + " / атака " + s.attack + ", ожидал 13 / +5";
+    var f = fixture({ class: "Воин", level: 3, subclass: "", stats: { str: 10, dex: 10, con: 10, int: 16, wis: 10, cha: 10 } });
+    f.classes = []; f.spells.stat = "";
+    if (rulesSpellStats(f, 3).stat !== "") return "воин без мистического рыцаря получил характеристику";
+    f.subclass = "Мистический рыцарь";
+    if (rulesSpellStats(f, 3).stat !== "ИНТ") return "мистический рыцарь: ожидал ИНТ";
+    var p = fixture({ class: "Паладин", level: 1, stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 16 } });
+    p.classes = []; p.spells.stat = "";
+    if (rulesSpellStats(p, 1).stat !== "") return "паладин 1 ур. 2014 получил характеристику";
+    p.edition = "2024";
+    if (rulesSpellStats(p, 1).stat !== "ХАР") return "паладин 1 ур. 2024: ожидал ХАР";
+    c.spells.stat = "ИНТ";
+    if (rulesSpellStats(c, 1).stat !== "ИНТ") return "выбранная вручную характеристика перезаписана";
+    return true;
+  });
+
   group("Ячейки заклинаний и кости хитов");
 
   t("Пакт-ячейки Колдуна 5 ур. — 2 ячейки 3 круга", function() {

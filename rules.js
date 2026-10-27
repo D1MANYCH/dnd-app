@@ -375,8 +375,8 @@ function rulesPassivePerception(char, level, isProficient) {
 
 function rulesSpellStats(char, level) {
   var stat = (char && char.spells && char.spells.stat) || "";
-  // PLAY2-2 (PT-156): у мультикласса без выбранной — общая, если у всех классов-заклинателей одна
-  if (!stat && char && Array.isArray(char.classes) && char.classes.length > 1) {
+  // PLAY2-2 (PT-156): без выбранной — по классу; у мультикласса — общая, если у всех классов-заклинателей одна
+  if (!stat && char) {
     var rows = rulesSpellStatsByClass(char, level);
     if (rows.length && rows.every(function(r) { return r.stat === rows[0].stat; })) stat = rows[0].stat;
   }
