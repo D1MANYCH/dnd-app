@@ -16721,10 +16721,6 @@ button.modal-close-bottom,
 /* умение предыстории на «Личности»: подпись слева, текст размером строк */
 body:not(#_):not(#_) #rd-persona .s2-bgf :is(.bg-feature-label, .bg-feature-text) { align-self: flex-start; font-size: var(--fs-14); }
 /* книги свёрнуты в число, список — по «показать» */
-:root #rd-persona .s2-books > summary { list-style: none; cursor: pointer; }
-:root #rd-persona .s2-books > summary::-webkit-details-marker { display: none; }
-:root #rd-persona .s2-books-more { margin-left: var(--sp-2); color: var(--accent-ink); }
-:root #rd-persona .s2-books[open] .s2-books-more { display: none; }
 /* «всё» в заметках — текстовое действие без рамки */
 :root .notes-header .notes-regen-btn { background: none; border: 0; box-shadow: none; color: var(--accent-ink); }
 /* лента бросков не закрывает конец страницы */
@@ -16964,3 +16960,15 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
   :root #sheet2 .s2-feats { flex-direction: column; flex-wrap: nowrap; gap: 0; font-size: var(--fs-16); }
   :root #sheet2 .s2-feats .s2-link { display: flex; align-items: center; min-height: 44px; padding: var(--sp-1) 0; border-bottom: 1px solid var(--s2-line); color: var(--text); text-align: left; }
 }
+
+/* ══ МОБ3-5б: «Бой» и «Личность» ═════════════════════════════════════════════
+   Телефон: КД и хиты числом — в шапке, на «Бою» не повторяются (полоса и
+   урон/лечение остаются). Текст предыстории на «Личности» — целиком;
+   у свёрнутых записей — первая строка текста вместо счётчика символов. */
+@media (max-width: 1023px) {
+  :root #rd-battle .s2-trio { grid-template-columns: repeat(2, 1fr); }
+  :root #rd-battle .s2-trio > div:first-child,
+  :root #rd-battle .s2-hp { display: none; }
+}
+:root #rd-persona .s2-bgf .bg-feature-text { max-height: none; overflow: visible; }
+#tab-notes .notes-section-meta { min-width: 0; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

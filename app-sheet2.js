@@ -272,7 +272,9 @@
   // Атака строкой: название с бонусом — бросок атаки (режим — всплывашкой у строки), урон — бросок урона
   function atkRow(c, w, wi, lvl) {
     var m = rulesWeaponMods(c, w, lvl);
-    var dmg = esc(w.damage || "") + (m.damageMod ? fm(m.damageMod) : "");
+    var flat = /^\d+$/.test(String(w.damage || ""));
+    var dmg = flat ? String((parseInt(w.damage, 10) || 0) + (m.damageMod || 0)) : esc(w.damage || "") + (m.damageMod ? fm(m.damageMod) : "");
+    if (/^(дробящ|колющ|рубящ)ий$/i.test(w.type || "")) dmg += " " + w.type.toLowerCase().replace(/ий$/, "его");
     var smite = wi >= 0 && typeof _canDivineSmite === "function" && _canDivineSmite(c, w)
       ? "<button type='button' class='s2-link' onclick='openDivineSmite(" + wi + ")' title='Божественная кара'>Кара</button>" : "";
     return "<div class='s2-atk'><button type='button' class='s2-atk-n' data-t='Атака: " + esc(w.name) + "' data-v='" + fm(m.attack) + "' data-b='урон " + dmg + "' onclick=\"sheet2Roll(this,'rollWeaponAttack'," + wi + ")\" title='Бросок атаки'>" + esc(w.name) + " <b>" + fm(m.attack) + "</b></button>" +
@@ -295,7 +297,7 @@
     var h = ["<h3>Кубы</h3><div class='s2-dice'>"];
     DICE.forEach(function (d) { var n = pool[d] || 0; h.push("<button type='button' class='s2-die" + (n ? " on" : "") + "' onclick='sheet2Die(" + d + ")' aria-pressed='" + (n ? "true" : "false") + "'>" + (n > 1 ? n : "") + "к" + d + "</button>"); });
     var poolF = poolFormula();
-    h.push("</div><div class='s2-acts'><button type='button' class='s2-btn s2-glow' onclick='sheet2DiceRoll()'" + (poolF ? "" : " disabled") + ">Бросить" + (poolF ? " " + esc(poolF) : "") + "</button>" + (poolF ? "<button type='button' class='s2-link' onclick='sheet2DiceClear()'>Сбросить</button>" : "<span class='s2-kv'>нажатия складываются</span>") + "</div>");
+    h.push("</div><div class='s2-acts'><button type='button' class='s2-btn s2-glow' onclick='sheet2DiceRoll()'>Бросить " + esc(poolF || "к20") + "</button>" + (poolF ? "<button type='button' class='s2-link' onclick='sheet2DiceClear()'>Сбросить</button>" : "<span class='s2-kv'>нажатия складываются</span>") + "</div>");
     h.push(rollsHtml());
     return h.join("");
   }
@@ -339,12 +341,6 @@
     var bf = document.getElementById("background-feature-display");
     if (bf && bf.style.display !== "none" && bf.innerHTML) h.push("<div class='s2-bgf'>" + bf.innerHTML + "</div>");
     h.push("<div class='s2-kv'><b>Мировоззрение:</b> " + esc(c.alignment || "—") + "</div>");
-    if (typeof booksWithContent === "function" && typeof charHasBook === "function") {
-      var books = booksWithContent().filter(function (b) { return (typeof bookGloballyOn !== "function" || bookGloballyOn(b)) && charHasBook(c, b); })
-        .map(function (b) { return (typeof SOURCE_LABELS !== "undefined" && SOURCE_LABELS[b] && SOURCE_LABELS[b].full) || b; });
-      if (books.length) h.push("<details class='s2-kv s2-books'><summary><b>Книги:</b> " + books.length +
-        "<span class='s2-books-more'>показать</span></summary>" + esc(books.join(", ")) + "</details>");
-    }
     return h.join("");
   }
 
@@ -531,8 +527,7 @@
   window.sheet2Die = function (d) { pool[d] = Math.min(20, (pool[d] || 0) + 1); render(); };
   window.sheet2DiceClear = function () { pool = {}; render(); };
   window.sheet2DiceRoll = function () {
-    var f = poolFormula();
-    if (!f) return;
+    var f = poolFormula() || "1к20";
     pool = {};
     render();
     rollFormula(f, { label: f, openArena: true, noMin: true });

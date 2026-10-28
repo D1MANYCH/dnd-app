@@ -193,7 +193,7 @@ function _renderSectionsView() {
                 // кодируется поворотом и заливкой (CSS по aria-expanded).
                 '<span class="notes-section-toggle home-bullet" aria-hidden="true"></span> ' +
                 escapeHtml(s.label) +
-                '<span class="notes-section-meta">' + stats.chars + ' симв.</span>' +
+                '<span class="notes-section-meta">' + (val.trim() ? escapeHtml(val.trim().split('\n')[0].replace(/^[#>*\-\s]+/, '').slice(0, 60)) : 'пусто') + '</span>' +
               '</h3>' +
               '<div class="notes-section-body"' + (open ? '' : ' style="display:none;"') + '>';
     if (s.showTakenFeats) {
