@@ -2204,10 +2204,19 @@ function renderQuickDock() {
   var on = !!char;
   box.hidden = !on;
   document.documentElement.classList.toggle("rd-dock-on", on);
+  document.documentElement.classList.remove("rd-dock-mini");
+  box.classList.remove("rd-qd-mini");
   if (!on) return;
   if (quickSlotPrune(char)) saveToLocal();
   var list = char.quickSlots;
   if (!list.length) _qsEdit = false;
+  // МОБ3-1: пустой док — одна строка вместо четырёх пустых слотов
+  if (!list.length && !_qsReplace) {
+    document.documentElement.classList.add("rd-dock-mini");
+    box.classList.add("rd-qd-mini");
+    box.innerHTML = '<div class="rd-qd-head"><span>Быстрый доступ</span><button type="button" class="rd-qd-link" onclick="quickDockHint()">＋ Закрепить</button></div>';
+    return;
+  }
   var html = '<div class="rd-qd-head"><span>' + (_qsReplace
     ? "Заполнено " + list.length + " из " + QS_MAX + " — что заменить?"
     : "Быстрый доступ · " + list.length + " из " + QS_MAX) + '</span>';

@@ -709,8 +709,8 @@ html.glass-adjusting *::after {
   cursor: pointer;
   transition: color var(--t1) var(--ez-out);
 }
-.page-back:hover,
 .page-back:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
+@media (hover: hover) { .page-back:hover { background: none; box-shadow: none; color: var(--accent-lo); } }
 .page-title {
   position: relative;
   margin: 0;
@@ -783,10 +783,10 @@ html.glass-adjusting *::after {
   cursor: pointer;
   transition: color var(--t1) var(--ez-out);
 }
-.char-hero-act:hover,
 .char-hero-act:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
-.char-hero-act-del:hover,
+@media (hover: hover) { .char-hero-act:hover { background: none; box-shadow: none; color: var(--accent-lo); } }
 .char-hero-act-del:focus-visible { color: var(--danger); }
+@media (hover: hover) { .char-hero-act-del:hover { color: var(--danger); } }
 /* На планшете и телефоне плашка уходит под список */
 @media (max-width: 900px) {
   .page-stage--split { flex-direction: column; }
@@ -902,7 +902,7 @@ html.glass-adjusting *::after {
   transition: transform var(--t1) ease;
   margin-top: -6px; /* центрируем thumb на 6px треке */
 }
-.fs-scale-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+@media (hover: hover) { .fs-scale-slider::-webkit-slider-thumb:hover { transform: scale(1.15); } }
 .fs-scale-slider::-moz-range-thumb {
   width: 18px; height: 18px;
   border-radius: 50%;
@@ -940,8 +940,8 @@ html.glass-adjusting *::after {
   align-items: center;
   justify-content: center;
 }
-.fs-scale-reset:hover,
 .fs-scale-reset:focus-visible { background: none; color: var(--accent-lo); opacity: 1; }
+@media (hover: hover) { .fs-scale-reset:hover { background: none; color: var(--accent-lo); opacity: 1; } }
 
 /* UI-2: чипы выбора акцента — равномерная сетка 4×2 */
 .accent-picker-chips {
@@ -963,7 +963,7 @@ html.glass-adjusting *::after {
   position: relative;
   transition: transform var(--t1) ease, box-shadow var(--t1) ease, border-color var(--t1) ease;
 }
-.accent-chip:hover { transform: scale(1.08); border-color: var(--text-dim); }
+@media (hover: hover) { .accent-chip:hover { transform: scale(1.08); border-color: var(--text-dim); } }
 .accent-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .accent-chip.is-active {
   border-color: var(--text);
@@ -986,7 +986,7 @@ html.glass-adjusting *::after {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.accent-chip.is-disabled:hover { transform: none; border-color: var(--border); }
+@media (hover: hover) { .accent-chip.is-disabled:hover { transform: none; border-color: var(--border); } }
 .auto-accent-row {
   display: flex;
   align-items: center;
@@ -1003,7 +1003,7 @@ html.glass-adjusting *::after {
   user-select: none;
   transition: color var(--t1) var(--ez-out);
 }
-.auto-accent-row:hover { color: var(--text); }
+@media (hover: hover) { .auto-accent-row:hover { color: var(--text); } }
 .auto-accent-row input[type="checkbox"] {
   width: 16px; height: 16px;
   accent-color: var(--accent);
@@ -1054,28 +1054,28 @@ html.glass-adjusting *::after {
 /* DS-6а: варианты по Figma 94:555 — состояния только сменой цвета,
    без градиента, теней, filter и scale. Заливка одна — .btn-primary. */
 .btn-primary { background: var(--action); border-color: transparent; color: var(--on-action); }
-.btn-primary:hover { background: var(--action-hover); }
+@media (hover: hover) { .btn-primary:hover { background: var(--action-hover); } }
 .btn-primary:active { background: var(--action-press); }
 
 .btn-secondary { background: transparent; border-color: var(--border); color: var(--text); }
-.btn-secondary:hover { border-color: var(--action); }
+@media (hover: hover) { .btn-secondary:hover { border-color: var(--action); } }
 .btn-secondary:active { border-color: var(--action-press); }
 
 .btn-ghost { background: transparent; border-color: transparent; color: var(--text-dim); }
-.btn-ghost:hover { color: var(--text); }
+@media (hover: hover) { .btn-ghost:hover { color: var(--text); } }
 
 .btn-danger { background: transparent; border-color: color-mix(in srgb, var(--danger) 50%, transparent); color: var(--danger); }
-.btn-danger:hover { border-color: var(--danger); }
+@media (hover: hover) { .btn-danger:hover { border-color: var(--danger); } }
 
 .btn-success { background: transparent; border-color: color-mix(in srgb, var(--success) 50%, transparent); color: var(--success); }
-.btn-success:hover { border-color: var(--success); }
+@media (hover: hover) { .btn-success:hover { border-color: var(--success); } }
 
 /* Текстовое действие: ни рамки, ни заливки, вес несёт цвет --accent-lo */
 .btn-text { --btn-px: var(--sp-2); background: transparent; border-color: transparent; color: var(--accent-lo); font-weight: var(--fw-medium); }
-.btn-text:hover { color: var(--accent-hover); }
+@media (hover: hover) { .btn-text:hover { color: var(--accent-hover); } }
 .btn-text:active { color: var(--action-press); }
 .btn-text-danger { --btn-px: var(--sp-2); background: transparent; border-color: transparent; color: var(--danger); font-weight: var(--fw-medium); }
-.btn-text-danger:hover { color: color-mix(in srgb, var(--danger) 80%, var(--text)); }
+@media (hover: hover) { .btn-text-danger:hover { color: color-mix(in srgb, var(--danger) 80%, var(--text)); } }
 
 .btn-block { width: 100%; }
 .btn-pill  { border-radius: var(--r-pill); }
@@ -1109,10 +1109,10 @@ html.glass-adjusting *::after {
   display: inline-flex; align-items: center; justify-content: center;
   transition: transform var(--t1) var(--ease, cubic-bezier(0.34,1.3,0.64,1)), background var(--t1) var(--ease-out, cubic-bezier(0.22,1,0.36,1)), border-color var(--t1) var(--ease-out, cubic-bezier(0.22,1,0.36,1)), box-shadow var(--t1) var(--ease-out, cubic-bezier(0.22,1,0.36,1));
 }
-.icon-btn:hover {
+@media (hover: hover) { .icon-btn:hover {
   background: var(--bg-2); border-color: var(--accent);
   box-shadow: var(--sh-1);
-}
+} }
 .icon-btn:active { transform: scale(0.98); }
 
 /* --- FEAT-2: поле имени + кнопка-генератор --- */
@@ -1371,7 +1371,7 @@ button.chip {
   cursor: pointer;
   transition: color var(--t1) var(--ez-out), border-color var(--t1) var(--ez-out), background var(--t1) var(--ez-out);
 }
-button.chip:hover:where(:not(:disabled)) { color: var(--text); border-color: var(--accent); }
+@media (hover: hover) { button.chip:hover:where(:not(:disabled)) { color: var(--text); border-color: var(--accent); } }
 button.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 button.chip:disabled { cursor: default; }
 .chip:is(.active, .is-active, [aria-pressed="true"], [aria-checked="true"]) {
@@ -1416,7 +1416,7 @@ button.chip:disabled { cursor: default; }
   cursor: pointer;
   transition: background var(--t1) var(--ez-out), color var(--t1) var(--ez-out);
 }
-.seg:hover:where(:not(:disabled)) { color: var(--text); }
+@media (hover: hover) { .seg:hover:where(:not(:disabled)) { color: var(--text); } }
 .seg:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .seg:disabled { cursor: default; }
 .seg:is(.active, .is-active, [aria-pressed="true"], [aria-checked="true"]) {
@@ -1602,7 +1602,7 @@ user-select: none;
   transition: background var(--t2);
   animation: condBtnPulse 2s ease-in-out infinite;
 }
-.status-conditions-btn:hover { background: color-mix(in srgb, var(--danger) 28%, transparent); }
+@media (hover: hover) { .status-conditions-btn:hover { background: color-mix(in srgb, var(--danger) 28%, transparent); } }
 @keyframes condBtnPulse {
   0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 0%, transparent); }
   50% { box-shadow: 0 0 8px color-mix(in srgb, var(--danger) 40%, transparent); }
@@ -1655,7 +1655,7 @@ user-select: none;
   border-radius: var(--r-4);
   width: auto;
 }
-.conditions-popup button.conditions-popup-close:hover { background: var(--bg-3); }
+@media (hover: hover) { .conditions-popup button.conditions-popup-close:hover { background: var(--bg-3); } }
 .conditions-popup-list {
   padding: var(--sp-2) var(--sp-4) var(--sp-3);
   display: flex;
@@ -1758,7 +1758,7 @@ line-height: 1;
 transition: background var(--t2);
 flex-shrink: 0;
 }
-.header-back:hover { background: var(--bg-2); }
+@media (hover: hover) { .header-back:hover { background: var(--bg-2); } }
 .header-back.hidden { display: none; }
 .header-avatar {
 width: 42px;
@@ -1831,7 +1831,8 @@ header .status-conditions-btn { margin-left: 0; }
   background: none; box-shadow: none; border: 0; border-radius: 0;
   color: var(--accent-lo); font-size: var(--fs-14); font-weight: var(--fw-semibold); cursor: pointer;
 }
-.popup-row-act:hover, .popup-row-act:focus-visible { background: none; text-decoration: underline; }
+.popup-row-act:focus-visible { background: none; text-decoration: underline; }
+@media (hover: hover) { .popup-row-act:hover { background: none; text-decoration: underline; } }
 @media (max-width: 1023px) {
   header {   gap: var(--sp-2); transition: transform var(--t2) ease; }
   header .header-avatar,
@@ -1894,10 +1895,10 @@ transition: box-shadow var(--t2) var(--ez-out), border-color var(--t2) var(--ez-
 backdrop-filter: blur(var(--glass-blur));
 -webkit-backdrop-filter: blur(var(--glass-blur));
 }
-.card:hover {
+@media (hover: hover) { .card:hover {
 box-shadow: inset 0 1px 0 var(--glass-hi), var(--sh-2);
 border-color: color-mix(in srgb, var(--accent) 32%, var(--border-soft));
-}
+} }
 label { display: block; margin-bottom: var(--sp-2); font-size: var(--fs-14); color: var(--text-dim); font-weight: var(--fw-medium); }
 /* DS-6г1: поле — плоская строка с нижней линией, без заливки и радиуса. */
 input, select, textarea {
@@ -2038,7 +2039,7 @@ color: var(--danger);
   cursor: pointer;
   transition: all var(--t1);
 }
-.filter-chip:hover { border-color: var(--accent); color: var(--text); }
+@media (hover: hover) { .filter-chip:hover { border-color: var(--accent); color: var(--text); } }
 .filter-chip.active {
   background: var(--accent);
   color: var(--on-accent);
@@ -2100,8 +2101,8 @@ flex-wrap: wrap;
 align-items: center;
 text-align: left;
 }
-.effect-item:hover { box-shadow: none; }
-.effect-item:hover .effect-name { color: var(--accent-lo); }
+@media (hover: hover) { .effect-item:hover { box-shadow: none; } }
+@media (hover: hover) { .effect-item:hover .effect-name { color: var(--accent-lo); } }
 .effect-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .effect-name {
 font-family: var(--font-display);
@@ -2163,8 +2164,8 @@ flex-wrap: wrap;
 align-items: center;
 text-align: left;
 }
-.condition-item:hover { box-shadow: none; }
-.condition-item:hover .condition-name { color: var(--accent-lo); }
+@media (hover: hover) { .condition-item:hover { box-shadow: none; } }
+@media (hover: hover) { .condition-item:hover .condition-name { color: var(--accent-lo); } }
 .condition-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .condition-name {
 font-weight: var(--fw-semibold);
@@ -2232,10 +2233,10 @@ font-variant-numeric: tabular-nums;
   justify-content: center;
   transition: all var(--t2);
 }
-.exhaustion-btn:hover {
+@media (hover: hover) { .exhaustion-btn:hover {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 15%, transparent);
-}
+} }
 /* FB-4: «красная рамка» на «−» была артефактом :focus — гасим, оставляем только
    keyboard-focus; обе кнопки идентичны по боксу. */
 .exhaustion-btn:focus { outline: none; }
@@ -2372,8 +2373,8 @@ gap: var(--sp-2);
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
 }
-.condition-apply:hover,
-.effect-apply:hover { text-decoration: underline; }
+@media (hover: hover) { .condition-apply:hover,
+.effect-apply:hover { text-decoration: underline; } }
 .condition-apply:focus-visible,
 .effect-apply:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .condition-apply.on { color: var(--danger); }
@@ -2497,13 +2498,13 @@ vertical-align: middle;
   border: 1.5px solid var(--accent-lo);
   transition: background var(--t1) var(--ez-out);
 }
-.lu-mc-class-btn:hover:not(:disabled) {
+@media (hover: hover) { .lu-mc-class-btn:hover:not(:disabled) {
   padding-left: calc(var(--sp-2) + var(--home-bullet) + var(--sp-3) + var(--home-shift));
   background: none;
   box-shadow: none;
   color: var(--accent-lo);
-}
-.lu-mc-class-btn:hover:not(:disabled)::before { background: var(--accent-lo); }
+} }
+@media (hover: hover) { .lu-mc-class-btn:hover:not(:disabled)::before { background: var(--accent-lo); } }
 .lu-mc-class-btn:disabled {
   opacity: var(--dis-op);
   cursor: not-allowed;
@@ -2670,9 +2671,10 @@ font-size: var(--fs-14);
   from { width: 0; opacity: 0; }
   to   { width: 28px; opacity: 1; }
 }
-.tab-btn:hover, .tab-dice-fab:hover { background: var(--tab-hover-bg) !important; }
+@media (hover: hover) { .tab-btn:hover,
+.tab-dice-fab:hover { background: var(--tab-hover-bg) !important; } }
 .tab-btn:active { background: var(--accent-glow-token) !important; }
-.tab-btn:hover { color: var(--text) !important; transform: none !important; box-shadow: none !important; }
+@media (hover: hover) { .tab-btn:hover { color: var(--text) !important; transform: none !important; box-shadow: none !important; } }
 /* LVL-6: вкладок стало пять, на каждую приходится ~64px при 390px ширины.
    Ниже 370px самая длинная подпись («Развитие») перестаёт помещаться —
    отдаём ей шрифт и горизонтальные отступы, высота хитбокса не меняется. */
@@ -2700,7 +2702,7 @@ font-size: var(--fs-14);
   outline: none;
   border-radius: 50%;
 }
-.tab-dice-fab:hover { transform: scale(1.1) rotate(-8deg); }
+@media (hover: hover) { .tab-dice-fab:hover { transform: scale(1.1) rotate(-8deg); } }
 .tab-dice-fab:active { transform: scale(0.92); }
 /* Картинка d20 внутри FAB — золотой полиэдр с лёгкой тенью */
 .tab-dice-fab-icon {
@@ -2780,8 +2782,8 @@ font-size: var(--fs-14);
   cursor: pointer;
 }
 .qrs-chip:last-child { border-bottom: 0; }
-.qrs-chip:hover { background: none; color: var(--text); }
-.qrs-chip:hover .qrs-chip-label { color: var(--text); }
+@media (hover: hover) { .qrs-chip:hover { background: none; color: var(--text); } }
+@media (hover: hover) { .qrs-chip:hover .qrs-chip-label { color: var(--text); } }
 .qrs-chip-label { color: var(--text-dim); min-width: 0; overflow-wrap: anywhere; }
 .qrs-chip-src { display: block; font-size: var(--fs-14); color: var(--text-mute, var(--text-dim)); }
 .qrs-chip-val { flex: none; font-family: var(--font-display, inherit); font-weight: var(--fw-bold); color: var(--text); font-variant-numeric: tabular-nums; }
@@ -2807,7 +2809,7 @@ font-size: var(--fs-14);
   justify-content: center;
   transition: background var(--t1), color var(--t1);
 }
-.qrs-close:hover { background: var(--bg-2); color: var(--text); }
+@media (hover: hover) { .qrs-close:hover { background: var(--bg-2); color: var(--text); } }
 /* ПК (≥1024): нижней панели нет — карточка в правом-нижнем, не под right-rail (320px) */
 @media (min-width: 1024px) {
   .quick-roll-strip {
@@ -2850,7 +2852,7 @@ font-size: var(--fs-14);
   transition: transform var(--t1) var(--ez-out, ease), background var(--t1);
 }
 .aef-fab[hidden] { display: none; }
-.aef-fab:hover { transform: scale(1.05); }
+@media (hover: hover) { .aef-fab:hover { transform: scale(1.05); } }
 .aef-fab:active { transform: scale(0.94); }
 .aef-fab-icon { font-size: var(--fs-18); line-height: 1; }
 .aef-fab-count { color: var(--accent); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
@@ -2886,7 +2888,7 @@ font-size: var(--fs-14);
   font-size: var(--fs-18); line-height: 1; cursor: pointer; padding: 0 var(--sp-1);
   width: auto; flex: 0 0 auto;   /* сброс глоб. button{width:100%} */
 }
-.aef-close:hover { color: var(--text); }
+@media (hover: hover) { .aef-close:hover { color: var(--text); } }
 .aef-list {
   flex: 1 1 auto; min-height: 0; overflow-y: auto;
   padding: var(--sp-2) var(--sp-2); display: flex; flex-direction: column; gap: var(--sp-1);
@@ -2910,7 +2912,7 @@ font-size: var(--fs-14);
   cursor: pointer; font-size: var(--fs-14); line-height: 1;
   transition: color var(--t1), border-color var(--t1), background var(--t1);
 }
-.aef-row-x:hover { color: var(--danger); border-color: var(--danger); background: var(--bg-3); }
+@media (hover: hover) { .aef-row-x:hover { color: var(--danger); border-color: var(--danger); background: var(--bg-3); } }
 .aef-turns {
   display: flex; gap: var(--sp-2); padding: var(--sp-3) var(--sp-3) var(--sp-3);
   border-top: 1px solid var(--border-soft);
@@ -2975,7 +2977,7 @@ font-size: var(--fs-14);
   box-shadow: none !important;
   line-height: 1;
 }
-.nav-hamburger:hover { background: var(--bg-2) !important; transform: none !important; }
+@media (hover: hover) { .nav-hamburger:hover { background: var(--bg-2) !important; transform: none !important; } }
 
 /* =============================================
    SIDE DRAWER
@@ -3074,7 +3076,7 @@ font-size: var(--fs-14);
   box-shadow: none;
   transition: color var(--t1) var(--ez-out);
 }
-.drawer-close:hover { color: var(--accent-lo); background: none; }
+@media (hover: hover) { .drawer-close:hover { color: var(--accent-lo); background: none; } }
 
 .drawer-nav {
   flex: 1;
@@ -3191,9 +3193,9 @@ font-size: var(--fs-14);
 /* STYLE-8a2: отдых — текстовые действия (заливки и 6 !important сняты,
    сырые цвета сведены к --info / --success). */
 .hp-rest-short { color: var(--info); }
-.hp-rest-short:hover { color: var(--info); transform: none; }
+@media (hover: hover) { .hp-rest-short:hover { color: var(--info); transform: none; } }
 .hp-rest-long { color: var(--success); }
-.hp-rest-long:hover { color: var(--success); transform: none; }
+@media (hover: hover) { .hp-rest-long:hover { color: var(--success); transform: none; } }
 
 .tab-content { display: none; }
 /* Дымка v5: появление экрана — fade + translateY(7px), --t2 240ms */
@@ -3379,7 +3381,7 @@ input::placeholder, textarea::placeholder { color: var(--text-mute); opacity: 1;
 #sync-row { flex-wrap: wrap; row-gap: 0; }
 #sync-actions { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--sp-4); }
 .sync-privacy { font-size: var(--fs-sm); color: var(--home-sub); text-decoration: none; }
-.sync-privacy:hover { color: var(--accent); text-decoration: underline; }
+@media (hover: hover) { .sync-privacy:hover { color: var(--accent); text-decoration: underline; } }
 .backup-create-btn { flex: 0 0 auto; margin: 0; }
 .backup-empty { padding: var(--sp-3) 0; font-size: var(--fs-sm); color: var(--home-sub); }
 .backup-item {
@@ -3623,8 +3625,8 @@ transition: transform var(--t2) var(--ez-out), background var(--t1) var(--ez-out
 gap: var(--sp-3);
 min-height: var(--control-h, 44px);
 }
-.home-menu-item:hover,
-.home-menu-subitem:hover { filter: none; box-shadow: none; }
+@media (hover: hover) { .home-menu-item:hover,
+.home-menu-subitem:hover { filter: none; box-shadow: none; } }
 .home-menu-label { font-family: var(--font-display); }
 /* Подстрочник («Гробница Аннигиляции · 3 ч. назад») — прижат вправо, гасится
    при нехватке места, чтобы не ломать строку пункта. */
@@ -3669,11 +3671,11 @@ font-size: var(--fs-md);
 padding: var(--sp-3) var(--sp-3);
 color: var(--text-dim);
 }
-.home-menu-subitem:hover { color: var(--text); }
+@media (hover: hover) { .home-menu-subitem:hover { color: var(--text); } }
 
 /* Пункт без цели (нет героев) — гасим и убираем из tab-order атрибутом disabled */
 .home-menu-item:disabled { opacity: var(--dis-op); cursor: default; background: transparent; }
-.home-menu-item:disabled:hover { transform: none; }
+@media (hover: hover) { .home-menu-item:disabled:hover { transform: none; } }
 
 .home-menu-item:focus-visible,
 .home-menu-subitem:focus-visible { outline: none; box-shadow: var(--sh-glow); }
@@ -3781,14 +3783,14 @@ animation: rise var(--t3) var(--ez-out) both;
    которое эта настройка должна убирать. Гасим сам эффект, а не его скорость;
    подчёркивание остаётся немоторным индикатором наведения. */
 @media (prefers-reduced-motion: reduce) {
-  .home-menu-item:hover,
   .home-menu-item:focus-visible,
-  .home-menu-subitem:hover,
-  .home-menu-subitem:focus-visible { transform: none; }
-  .home-menu-item:hover .home-bullet,
+.home-menu-subitem:focus-visible { transform: none; }
+@media (hover: hover) { .home-menu-item:hover,
+.home-menu-subitem:hover { transform: none; } }
   .home-menu-item:focus-visible .home-bullet,
-  .home-menu-subitem:hover .home-bullet,
-  .home-menu-subitem:focus-visible .home-bullet { transform: rotate(45deg); }
+.home-menu-subitem:focus-visible .home-bullet { transform: rotate(45deg); }
+@media (hover: hover) { .home-menu-item:hover .home-bullet,
+.home-menu-subitem:hover .home-bullet { transform: rotate(45deg); } }
   .home-menu-item:active, .home-menu-subitem:active { transform: none; }
   .home-art { transition: none; }
   /* Глобальный reduce-блок обнуляет длительность, но НЕ задержку. У анимации
@@ -3856,7 +3858,7 @@ animation: rise var(--t3) var(--ez-out) both;
 .inv-add-btn { margin: 0 !important; }
 /* Снятый рюкзак — красный текст вместо красной заливки (JS вешает класс). */
 #inv-backpack-toggle { color: var(--text-dim) !important; }
-#inv-backpack-toggle:hover { color: var(--text) !important; }
+@media (hover: hover) { #inv-backpack-toggle:hover { color: var(--text) !important; } }
 #inv-backpack-toggle.inv-backpack-off { color: var(--danger) !important; }
 
 /* ========================================
@@ -3891,7 +3893,7 @@ animation: rise var(--t3) var(--ez-out) both;
   margin: 0 var(--sp-3);
   text-decoration: none;
 }
-.inventory-filters button:hover { color: var(--text) !important; transform: none !important; box-shadow: none !important; }
+@media (hover: hover) { .inventory-filters button:hover { color: var(--text) !important; transform: none !important; box-shadow: none !important; } }
 .inventory-filters button.active {
   background: none !important;
   color: var(--text) !important;
@@ -4049,9 +4051,9 @@ animation: rise var(--t3) var(--ez-out) both;
   border: 0 !important;
   color: var(--magic) !important;
 }
-.inv-charge-btn:hover { background: none !important; color: var(--accent) !important; transform: none !important; box-shadow: none !important; }
+@media (hover: hover) { .inv-charge-btn:hover { background: none !important; color: var(--accent) !important; transform: none !important; box-shadow: none !important; } }
 .inv-charge-btn:disabled { opacity: var(--dis-op); cursor: not-allowed; }
-.inv-charge-btn:disabled:hover { background: transparent !important; }
+@media (hover: hover) { .inv-charge-btn:disabled:hover { background: transparent !important; } }
 
 /* ========================================
    COINS — BIG NUMBER CARD GRID
@@ -4178,10 +4180,10 @@ animation: rise var(--t3) var(--ez-out) both;
   border: 1.5px solid var(--home-accent, var(--home-sub));
   transition: background var(--t1) var(--ez-out);
 }
-.magic-catalog-item:hover,
 .magic-catalog-item:focus-visible { padding-left: calc(var(--sp-2) + var(--home-bullet) + var(--sp-3) + var(--home-shift)); background: none; box-shadow: none; outline: none; }
-.magic-catalog-item:hover::before,
+@media (hover: hover) { .magic-catalog-item:hover { padding-left: calc(var(--sp-2) + var(--home-bullet) + var(--sp-3) + var(--home-shift)); background: none; box-shadow: none; outline: none; } }
 .magic-catalog-item:focus-visible::before { background: var(--home-accent, var(--home-sub)); }
+@media (hover: hover) { .magic-catalog-item:hover::before { background: var(--home-accent, var(--home-sub)); } }
 .mci-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); }
 .mci-name { font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-md); color: var(--text); }
 .mci-rarity { flex-shrink: 0; font-family: var(--font-display); font-size: var(--fs-12); font-weight: var(--fw-bold); text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; color: var(--home-accent, var(--home-sub)); }
@@ -4330,15 +4332,15 @@ animation: rise var(--t3) var(--ez-out) both;
   transform: none !important;
   box-shadow: none !important;
 }
-.inv-coin-btn:hover {
+@media (hover: hover) { .inv-coin-btn:hover {
   background: none !important;
   color: var(--accent) !important;
   transform: none !important;
   box-shadow: none !important;
-}
-.inv-coin-btn-plus:hover {
+} }
+@media (hover: hover) { .inv-coin-btn-plus:hover {
   color: var(--success) !important;
-}
+} }
 
 /* ── Item modal qty row ── */
 .item-qty-row {
@@ -4362,12 +4364,12 @@ animation: rise var(--t3) var(--ez-out) both;
   transition: all var(--t1);
   white-space: nowrap;
 }
-.item-qty-btn:hover {
+@media (hover: hover) { .item-qty-btn:hover {
   border-color: var(--accent) !important;
   color: var(--accent) !important;
   transform: none !important;
   box-shadow: none !important;
-}
+} }
 
 /* ========== MODALS ========== */
 .modal {
@@ -4477,10 +4479,10 @@ color: var(--text-dim);
 background: transparent;
 transition: color var(--t1), background var(--t1);
 }
-.modal-close:hover {
+@media (hover: hover) { .modal-close:hover {
 color: var(--text);
 background: var(--bg-3);
-}
+} }
 .modal-close-bottom {
 margin-top: var(--sp-5);
 width: 100%;
@@ -4528,10 +4530,10 @@ font-size: 1em;
 }
 .rest-option-btn.short-rest::before { border-color: var(--info); }
 .rest-option-btn.long-rest::before { border-color: var(--success); }
-.rest-option-btn:hover,
 .rest-option-btn:focus-visible { padding-left: calc(var(--sp-2) + var(--home-bullet) + var(--sp-3) + var(--home-shift)); background: none; box-shadow: none; color: var(--accent-lo); outline: none; }
-.rest-option-btn.short-rest:hover::before { background: var(--info); }
-.rest-option-btn.long-rest:hover::before { background: var(--success); }
+@media (hover: hover) { .rest-option-btn:hover { padding-left: calc(var(--sp-2) + var(--home-bullet) + var(--sp-3) + var(--home-shift)); background: none; box-shadow: none; color: var(--accent-lo); outline: none; } }
+@media (hover: hover) { .rest-option-btn.short-rest:hover::before { background: var(--info); } }
+@media (hover: hover) { .rest-option-btn.long-rest:hover::before { background: var(--success); } }
 .rest-option-btn .time { font-size: var(--fs-sm); font-weight: var(--fw-regular); color: var(--home-sub); white-space: nowrap; }
 .rest-hint { margin: var(--sp-2) 0 0; font-size: var(--fs-sm); color: var(--home-sub); }
 .rest-info { padding: var(--sp-3) 0; border-top: 1px solid var(--home-rule); }
@@ -4548,8 +4550,8 @@ font-size: 1em;
   color: var(--accent-lo); font-family: var(--font-display); font-size: var(--fs-lg); cursor: pointer;
   transition: color var(--t1) var(--ez-out);
 }
-.hit-dice-step:hover,
 .hit-dice-step:focus-visible { background: none; box-shadow: none; color: var(--accent); }
+@media (hover: hover) { .hit-dice-step:hover { background: none; box-shadow: none; color: var(--accent); } }
 .hit-dice-controls input[type="number"] {
   width: 60px; margin: 0;
   font-family: var(--font-display); font-size: var(--fs-md); text-align: center; color: var(--text);
@@ -4563,8 +4565,8 @@ font-size: 1em;
   transition: color var(--t1) var(--ez-out);
 }
 .rest-act--primary { color: var(--accent-lo); font-weight: var(--fw-bold); }
-.rest-act:hover,
 .rest-act:focus-visible { background: none; box-shadow: none; color: var(--accent); }
+@media (hover: hover) { .rest-act:hover { background: none; box-shadow: none; color: var(--accent); } }
 .rest-act:disabled { opacity: var(--dis-op); cursor: default; color: var(--accent-lo); }
 .rest-result { padding: var(--sp-3) 0 0; font-weight: var(--fw-regular); }
 .rest-result h3 { margin: 0 0 var(--sp-2); font-family: var(--font-display); font-size: var(--fs-lg); color: var(--success); }
@@ -4609,14 +4611,14 @@ transform: rotate(45deg);
 border: 1.5px solid var(--danger);
 transition: background var(--t1) var(--ez-out);
 }
-.weapon-preset-btn:hover {
+@media (hover: hover) { .weapon-preset-btn:hover {
 border-color: var(--home-rule);
 background: var(--accent-glow-token);
 box-shadow: none;
 transform: none;
-}
-.weapon-preset-btn:hover::before,
+} }
 .weapon-preset-btn.selected::before { background: var(--danger); }
+@media (hover: hover) { .weapon-preset-btn:hover::before { background: var(--danger); } }
 .weapon-preset-btn b { color: var(--danger); font-size: 1em; }
 /* FIN-2: пикер оружия — поиск, чипы категорий, метаданные позиции */
 .weapon-search-inp { width: 100%; margin: var(--sp-2) 0 var(--sp-2); }
@@ -4633,7 +4635,7 @@ transform: none;
   margin: 0;
   transition: all var(--t1) ease;
 }
-.wf-chip:hover { border-color: var(--danger); color: var(--text); }
+@media (hover: hover) { .wf-chip:hover { border-color: var(--danger); color: var(--text); } }
 .wf-chip.active {
   background: var(--danger);
   border-color: var(--danger);
@@ -4658,7 +4660,7 @@ transform: none;
    карточке (нельзя вложить <button> в <button>), уводим в правый край строки.
    Токены/без !important → ратчет хардкодов не растёт. */
 .wp-del { float: right; cursor: pointer; opacity: 0.6; padding: 0 2px; font-size: var(--fs-14); line-height: 1.2; }
-.wp-del:hover { opacity: 1; }
+@media (hover: hover) { .wp-del:hover { opacity: 1; } }
 /* FIN-2: блок «Как это работает» + чекбокс синхронизации с инвентарём */
 .weapon-help { margin: var(--sp-1) 0 var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-4); background: var(--bg-2); }
 .weapon-help summary { cursor: pointer; padding: var(--sp-2) var(--sp-3); font-size: var(--fs-14); color: var(--text-dim); user-select: none; list-style: none; }
@@ -4716,10 +4718,10 @@ transform: none;
   transition: border-color var(--t1), color var(--t1), background var(--t1), transform var(--t1);
   position: relative;
 }
-.dice-tool-btn:hover {
+@media (hover: hover) { .dice-tool-btn:hover {
   border-color: var(--accent, var(--accent));
   color: var(--accent, var(--accent));
-}
+} }
 .dice-tool-btn.is-active {
   background: var(--accent, var(--accent));
   color: var(--bg-1);
@@ -4780,11 +4782,11 @@ transform: none;
   cursor: pointer;
   transition: color var(--t1), border-color var(--t1), background var(--t1);
 }
-.dice-modal-header .modal-close:hover {
+@media (hover: hover) { .dice-modal-header .modal-close:hover {
   color: var(--danger);
   border-color: var(--danger);
   background: var(--bg-2);
-}
+} }
 
 /* Сбрасываем padding контейнера, шапка и body имеют свои внутренние отступы */
 #dice-modal .dice-modal-content {
@@ -4829,10 +4831,10 @@ transform: none;
   transition: transform var(--t1), box-shadow var(--t1), filter var(--t1);
   box-shadow: 0 4px 18px -4px var(--accent-glow-token);
 }
-.dice-btn-quick:hover {
+@media (hover: hover) { .dice-btn-quick:hover {
   filter: brightness(1.05);
   box-shadow: 0 6px 20px -6px var(--accent-glow-token);
-}
+} }
 .dice-btn-quick:active { transform: scale(0.98); }
 .dice-btn-superlabel {
   font-size: var(--fs-12);
@@ -4907,10 +4909,10 @@ transform: none;
   margin: 0;
   transition: border-color var(--t1), color var(--t1), background var(--t1), transform .05s;
 }
-.dice-chip:hover {
+@media (hover: hover) { .dice-chip:hover {
   border-color: var(--accent, var(--accent));
   color: var(--accent, var(--accent));
-}
+} }
 .dice-chip:active { transform: translateY(1px); }
 .dice-chip-op {
   color: var(--accent, var(--accent));
@@ -5012,10 +5014,10 @@ transform: none;
   display: inline-flex;
   align-items: center;
 }
-.dice-popover-clear:hover {
+@media (hover: hover) { .dice-popover-clear:hover {
   color: var(--danger);
   border-color: var(--danger);
-}
+} }
 .dice-popover-body {
   padding: var(--sp-3);
   overflow-y: auto;
@@ -5035,7 +5037,7 @@ transform: none;
   transition: filter var(--t1), transform var(--t1);
   flex: 0 0 auto;
 }
-.dice-popover-done:hover { filter: brightness(1.08); }
+@media (hover: hover) { .dice-popover-done:hover { filter: brightness(1.08); } }
 .dice-popover-done:active { transform: scale(0.98); }
 
 /* Внутри поповера: компактный layout */
@@ -5247,7 +5249,7 @@ border-top: 1px solid var(--home-rule);
   user-select: none;
   line-height: 1;
 }
-.prof-chip-remove:hover { color: var(--danger); }
+@media (hover: hover) { .prof-chip-remove:hover { color: var(--danger); } }
 .prof-empty { font-size: var(--fs-12); color: var(--text-dim); font-style: italic; }
 .prof-add-row {
   display: flex;
@@ -5272,7 +5274,7 @@ border-top: 1px solid var(--home-rule);
   color: var(--on-accent);
   cursor: pointer;
 }
-.prof-add-row button:hover { filter: brightness(1.15); }
+@media (hover: hover) { .prof-add-row button:hover { filter: brightness(1.15); } }
 /* Владения: кнопки не во всю ширину (глоб. button{width:100%}). ПК — инлайн по контенту; телефон — «Добавить» можно широкой. */
 .prof-add-row button, .prof-chip-remove { width: auto; margin: 0; }
 .prof-add-row button { flex: 0 0 auto; }
@@ -5350,7 +5352,7 @@ font-size: var(--fs-14);
 .spell-slot-empty {
   opacity: 0.45;
 }
-.spell-slot-empty:hover { opacity: 0.7; }
+@media (hover: hover) { .spell-slot-empty:hover { opacity: 0.7; } }
 
 /* Level label */
 .ssl-label {
@@ -5441,11 +5443,11 @@ font-size: var(--fs-14);
   transition: all var(--t1);
   flex-shrink: 0;
 }
-.ssl-btn:hover {
+@media (hover: hover) { .ssl-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-glow-token);
-}
+} }
 .ssl-btn:active { transform: scale(0.92); }
 
 /* ── Spell Slots Section Header ── */
@@ -5773,10 +5775,10 @@ input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--accent);
   transform: scaleX(0);
   transition: transform var(--t2) var(--ez-out);
 }
-.class-filter-btn:hover,
 .class-filter-btn:focus-visible,
-.class-filter-all:hover,
 .class-filter-all:focus-visible { opacity: 1; background: none; box-shadow: none; outline: none; }
+@media (hover: hover) { .class-filter-btn:hover,
+.class-filter-all:hover { opacity: 1; background: none; box-shadow: none; outline: none; } }
 .class-filter-btn.active,
 .class-filter-all.active { opacity: 1; }
 .class-filter-btn.active .cf-name,
@@ -6117,8 +6119,8 @@ transition: width var(--t3, 420ms) var(--ez-spring, ease), background var(--t3);
   cursor: pointer;
   transition: color var(--t1) var(--ez-out);
 }
-.lu-btn-confirm:hover,
 .lu-btn-confirm:focus-visible { background: none; box-shadow: none; color: var(--accent); }
+@media (hover: hover) { .lu-btn-confirm:hover { background: none; box-shadow: none; color: var(--accent); } }
 .lu-btn-confirm:disabled { opacity: var(--dis-op); cursor: default; color: var(--accent-lo); }
 
 .lu-result-icon { font-size: var(--fs-32); margin-bottom: var(--sp-2); }
@@ -6261,10 +6263,10 @@ border: none;
 color: var(--on-accent);
 font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: auto; margin: 0;
 }
-.confirm-btn-cancel:hover { background: none; box-shadow: none; filter: none; color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
-.confirm-btn-ok:hover:where(:not(:disabled)) { background: var(--accent-hi); box-shadow: none; filter: none; }
+@media (hover: hover) { .confirm-btn-cancel:hover { background: none; box-shadow: none; filter: none; color: var(--text); text-decoration: underline; text-underline-offset: 3px; } }
+@media (hover: hover) { .confirm-btn-ok:hover:where(:not(:disabled)) { background: var(--accent-hi); box-shadow: none; filter: none; } }
 .confirm-btn-ok--danger { background: var(--danger); color: var(--on-status); }
-.confirm-btn-ok--danger:hover { background: var(--danger); filter: brightness(1.08); }
+@media (hover: hover) { .confirm-btn-ok--danger:hover { background: var(--danger); filter: brightness(1.08); } }
 
 /* ============================================================
    ⚔️ ОТРЯД & БОЙ
@@ -6438,7 +6440,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   margin: 0;
   transition: all var(--t1);
 }
-.pcard-edit-btn:hover { background: color-mix(in srgb, var(--info) 14%, transparent); border-color: var(--info); color: var(--info); }
+@media (hover: hover) { .pcard-edit-btn:hover { background: color-mix(in srgb, var(--info) 14%, transparent); border-color: var(--info); color: var(--info); } }
 .pcard-del-btn {
   width: 30px; height: 30px;
   background: transparent;
@@ -6451,7 +6453,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   margin: 0;
   transition: all var(--t1);
 }
-.pcard-del-btn:hover { background: color-mix(in srgb, var(--danger) 14%, transparent); border-color: var(--danger); color: var(--danger); }
+@media (hover: hover) { .pcard-del-btn:hover { background: color-mix(in srgb, var(--danger) 14%, transparent); border-color: var(--danger); color: var(--danger); } }
 
 /* Battle start */
 /* STYLE-8d: единственное сплошное действие экрана сбора. В тёмной теме кнопка
@@ -6495,7 +6497,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 .battle-round-badge { background: none; border: 0; padding: 0; border-radius: 0; color: var(--accent-lo); font-family: var(--font-display); font-size: var(--fs-sm); font-weight: var(--fw-medium); white-space: nowrap; flex-shrink: 0; }
 /* CAST-9b: чип остатка концентрации рядом с номером раунда */
 .battle-conc-badge { background: none; border: 0; padding: 0; border-radius: 0; color: var(--accent-lo); font-family: var(--font-display); font-size: var(--fs-sm); font-weight: var(--fw-medium); white-space: nowrap; flex-shrink: 0; cursor: pointer; }
-.battle-conc-badge:hover { background: none; text-decoration: underline; }
+@media (hover: hover) { .battle-conc-badge:hover { background: none; text-decoration: underline; } }
 /* CAST-9a: полоса повторных тиков урона (заклинание бьёт каждый раунд) */
 .battle-repeat-strip { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-3); }
 .brb-formula { opacity: 0.75; font-weight: var(--fw-semibold); }
@@ -6513,21 +6515,21 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 .tracker-init-inp { width: 34px; text-align: center; font-size: var(--fs-14); font-weight: var(--fw-bold); padding: var(--sp-1) 0; color: var(--accent-lo); -moz-appearance: textfield; margin: 0; font-variant-numeric: tabular-nums; }
 .tracker-init-inp::-webkit-inner-spin-button, .tracker-init-inp::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .tracker-init-roll { width: 22px; min-width: 22px; height: 22px; padding: 0; margin: 0; border: none; background: transparent; color: var(--text-mute); font-size: var(--fs-14); cursor: pointer; border-radius: 50%; transition: color var(--t1), transform var(--t1); flex-shrink: 0; }
-.tracker-init-roll:hover { color: var(--accent); transform: rotate(90deg); }
+@media (hover: hover) { .tracker-init-roll:hover { color: var(--accent); transform: rotate(90deg); } }
 /* Группа действий — ровные колонки info / d20 / remove (пустые слоты держат сетку) */
 .tracker-actions { display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; margin-left: auto; }
 .tracker-slot { width: 22px; min-width: 22px; height: 22px; flex-shrink: 0; display: inline-block; }
 .tracker-roll-btn { width: 26px; min-width: 26px; height: 26px; padding: 0; margin: 0; border: 0; background: none; color: var(--accent-lo); font-size: var(--fs-14); cursor: pointer; border-radius: 0; flex-shrink: 0; line-height: 1; display: flex; align-items: center; justify-content: center; transition: color var(--t1) var(--ez-out); }
-.tracker-roll-btn:hover { background: none; color: var(--accent); transform: none; }
+@media (hover: hover) { .tracker-roll-btn:hover { background: none; color: var(--accent); transform: none; } }
 .tracker-remove-btn { width: 22px; min-width: 22px; height: 22px; padding: 0; margin: 0; border: 0; background: none; color: var(--home-sub); font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; border-radius: 0; flex-shrink: 0; line-height: 1; transition: color var(--t1) var(--ez-out); }
-.tracker-remove-btn:hover { background: none; color: var(--danger); }
+@media (hover: hover) { .tracker-remove-btn:hover { background: none; color: var(--danger); } }
 /* Инлайн-ХП — фикс. ширина (пустой контейнер у союзников/NPC держит выравнивание) */
 .tracker-hp { display: flex; align-items: center; gap: var(--sp-1); flex-shrink: 0; width: 158px; }
 .tracker-hp-empty { width: 158px; }
 .tracker-hp-heart { font-size: var(--fs-12); margin-right: 1px; }
 .tracker-hp-btn { width: 22px; min-width: 22px; height: 22px; padding: 0; margin: 0; border: 0; background: none; color: var(--accent-lo); font-size: 1em; font-weight: var(--fw-bold); cursor: pointer; border-radius: 0; flex-shrink: 0; line-height: 1; transition: color var(--t1) var(--ez-out); }
-.tracker-hp-minus:hover { background: none; color: var(--danger); }
-.tracker-hp-plus:hover { background: none; color: var(--success); }
+@media (hover: hover) { .tracker-hp-minus:hover { background: none; color: var(--danger); } }
+@media (hover: hover) { .tracker-hp-plus:hover { background: none; color: var(--success); } }
 .tracker-hp-cur, .tracker-hp-max { width: 36px; text-align: center; font-size: var(--fs-14); padding: var(--sp-1) 0; color: var(--text); -moz-appearance: textfield; margin: 0; font-variant-numeric: tabular-nums; }
 .tracker-hp-cur::-webkit-inner-spin-button, .tracker-hp-cur::-webkit-outer-spin-button, .tracker-hp-max::-webkit-inner-spin-button, .tracker-hp-max::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .tracker-hp-max[readonly] { opacity: 0.65; cursor: default; }
@@ -6544,7 +6546,8 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 .tracker-econ-mark, .tracker-econ-reset { all: unset; cursor: pointer; display: inline-flex; align-items: center; min-height: 32px; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--accent-lo); }
 .tracker-econ-mark.is-used { color: var(--text-mute); text-decoration: line-through; }
 .tracker-econ-reset { margin-left: auto; color: var(--home-sub); }
-.tracker-econ-mark:not(.is-used):hover, .tracker-econ-reset:hover { text-decoration: underline; }
+@media (hover: hover) { .tracker-econ-mark:not(.is-used):hover,
+.tracker-econ-reset:hover { text-decoration: underline; } }
 .tracker-econ-mark:focus-visible, .tracker-econ-reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .tracker-econ-sep { color: var(--text-mute); }
 @media (max-width: 500px) { .tracker-econ { padding-left: var(--sp-2); } }
@@ -6629,7 +6632,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   line-height: 1;
   transition: color var(--t1) var(--ez-out);
 }
-.tracker-info-btn:hover { background: none; color: var(--accent); transform: none; }
+@media (hover: hover) { .tracker-info-btn:hover { background: none; color: var(--accent); transform: none; } }
 /* Info modal */
 .tracker-info-box { max-width: 340px !important; text-align: center !important; }
 .tracker-info-icon { font-size: 2.5em; margin-bottom: var(--sp-2); }
@@ -6854,19 +6857,23 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
 }
 .race-extras-stat-pick { color: var(--text-dim); user-select: none; }
 .race-extras-stat-pick + .race-extras-stat-pick::before { content: "·"; margin-right: var(--sp-2); color: var(--home-sub); font-weight: var(--fw-regular); text-decoration: none; display: inline-block; }
-.race-extras-stat-pick:hover,
 .race-extras-stat-pick:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
+@media (hover: hover) { .race-extras-stat-pick:hover { background: none; box-shadow: none; color: var(--accent-lo); } }
 .race-extras-stat-pick.selected {
   color: var(--accent-lo);
   font-weight: var(--fw-bold);
   text-decoration: underline;
 }
-.race-extras-stat-pick:disabled,
-.race-extras-stat-pick:disabled:hover {
+.race-extras-stat-pick:disabled {
   color: var(--text-mute);
   text-decoration: line-through;
   cursor: default;
 }
+@media (hover: hover) { .race-extras-stat-pick:disabled:hover {
+  color: var(--text-mute);
+  text-decoration: line-through;
+  cursor: default;
+} }
 
 /* HP2: строка-селектор брони, поле максимума ХП в рамке и кнопка-пересчёт
    с эмодзи убраны — доспех и максимум живут в раскрытиях строк раздела. */
@@ -6916,7 +6923,7 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   min-width: 0;
   transition: border-color var(--t2);
 }
-.stat-compact:hover { border-color: var(--accent); }
+@media (hover: hover) { .stat-compact:hover { border-color: var(--accent); } }
 
 .stat-compact-label {
   font-size: var(--fs-12);
@@ -6986,8 +6993,6 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   touch-action: manipulation;
   user-select: none;
 }
-.stats-compact-grid button.stat-btn-sm:hover:where(:not(:disabled)),
-.stat-btn-sm:hover:where(:not(:disabled)),
 .stats-compact-grid button.stat-btn-sm:active:where(:not(:disabled)),
 .stat-btn-sm:active:where(:not(:disabled)) {
   color: var(--accent-lo);
@@ -6996,6 +7001,14 @@ font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; width: au
   box-shadow: none;
   filter: none;
 }
+@media (hover: hover) { .stats-compact-grid button.stat-btn-sm:hover:where(:not(:disabled)),
+.stat-btn-sm:hover:where(:not(:disabled)) {
+  color: var(--accent-lo);
+  background: none;
+  transform: none;
+  box-shadow: none;
+  filter: none;
+} }
 .stat-btn-sm[disabled] { color: var(--home-sub); opacity: var(--dis-op); cursor: not-allowed; }
 
 /* Mobile: taller buttons for comfortable tap */
@@ -7121,7 +7134,7 @@ html[data-stats-layout="2024"] .abil-passive { column-span: all; }
   touch-action: manipulation;
   transition: border-color var(--t1), background var(--t1), transform 0.08s;
 }
-.abil-card-mod:hover { border-color: var(--accent); }
+@media (hover: hover) { .abil-card-mod:hover { border-color: var(--accent); } }
 .abil-card-mod:active { transform: scale(0.98); }
 .abil-card-mod:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -7244,7 +7257,7 @@ html[data-stats-layout="2024"] .abil-skills-slot .skill-row-compact { border-bot
   touch-action: manipulation;
   transition: border-color var(--t1), background var(--t1);
 }
-.abil-mini-insp:hover { border-color: var(--accent); }
+@media (hover: hover) { .abil-mini-insp:hover { border-color: var(--accent); } }
 .abil-mini-insp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .abil-mini-insp .abil-mini-state::before { content: "нет"; font-size: var(--fs-14); color: var(--text-dim); }
 .abil-mini-insp.active { border-color: var(--accent); background: var(--accent-glow-token); }
@@ -7304,7 +7317,7 @@ html[data-stats-layout="classic"] .abil-card-mod {
   background: transparent;
   padding: 1px 0;
 }
-html[data-stats-layout="classic"] .abil-card-mod:hover { border-color: transparent; }
+@media (hover: hover) { html[data-stats-layout="classic"] .abil-card-mod:hover { border-color: transparent; } }
 html[data-stats-layout="classic"] .abil-card-score { gap: var(--sp-1); }
 html[data-stats-layout="classic"] .abil-card-score .stat-btn-sm {
   width: 30px !important;
@@ -7437,7 +7450,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   border-radius: var(--r-4);
   background: var(--bg-2);
 }
-.skill-row-compact .skill-bonus-compact:hover { border-color: var(--accent); }
+@media (hover: hover) { .skill-row-compact .skill-bonus-compact:hover { border-color: var(--accent); } }
 /* UI5-6: удалён мёртвый @media(max-width:600){.skill-bonus-compact 40/52} —
    полностью перекрывался UI5-5 блоком ≤640 (44/56, ниже по файлу, та же специфичность). */
 .skill-expertise-btn {
@@ -7459,10 +7472,10 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   margin: 0;
   transition: all var(--t2);
 }
-.skill-expertise-btn:hover {
+@media (hover: hover) { .skill-expertise-btn:hover {
   opacity: 0.8;
   border-color: var(--accent);
-}
+} }
 .skill-expertise-btn.active {
   opacity: 1;
   background: var(--accent);
@@ -7532,11 +7545,11 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   border-radius: 0;
   transition: background var(--t1);
 }
-.accordion-toggle:hover {
+@media (hover: hover) { .accordion-toggle:hover {
   background: var(--bg-2) !important;
   transform: none !important;
   box-shadow: none !important;
-}
+} }
 .accordion-toggle[aria-expanded="true"] {
   border-bottom: 1px solid var(--border);
 }
@@ -7574,12 +7587,12 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   border-radius: 0;
   transition: background var(--t1);
 }
-.accordion-toggle-sm:hover {
+@media (hover: hover) { .accordion-toggle-sm:hover {
   background: var(--bg-2) !important;
   transform: none !important;
   box-shadow: none !important;
   color: var(--text) !important;
-}
+} }
 .accordion-toggle-sm[aria-expanded="true"] {
   border-bottom: 1px solid var(--border);
   color: var(--text);
@@ -7648,10 +7661,10 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   line-height: 1;
   pointer-events: none;
 }
-.asi-stat-item:hover {
+@media (hover: hover) { .asi-stat-item:hover {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 8%, transparent);
-}
+} }
 .asi-stat-item.selected {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 15%, transparent);
@@ -7795,7 +7808,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   border: 1.5px solid var(--jrn-color, var(--accent));
   background: var(--jrn-color, transparent);
 }
-.journal-entry:hover { background: none; }
+@media (hover: hover) { .journal-entry:hover { background: none; } }
 .journal-entry-header {
   display: flex;
   align-items: baseline;
@@ -7832,9 +7845,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   opacity: 0.4;
   transition: color var(--t1) var(--ez-out), opacity var(--t1) var(--ez-out);
 }
-.journal-entry:hover .journal-del-btn,
 .journal-entry:focus-within .journal-del-btn { opacity: 1; }
-.journal-del-btn:hover { background: none; color: var(--danger); transform: none; box-shadow: none; }
+@media (hover: hover) { .journal-entry:hover .journal-del-btn { opacity: 1; } }
+@media (hover: hover) { .journal-del-btn:hover { background: none; color: var(--danger); transform: none; box-shadow: none; } }
 .journal-details {
   margin: var(--sp-1) 0 0;
   color: var(--home-sub);
@@ -7892,7 +7905,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   transition: all var(--t1);
   user-select: none;
 }
-.feat-item:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
+@media (hover: hover) { .feat-item:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); } }
 .feat-item.selected { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
 .feat-item.taken { opacity: 0.45; cursor: default; }
 .feat-item-header { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-1); flex-wrap: wrap; }
@@ -7945,9 +7958,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   background: var(--accent);
   transition: width var(--t2) var(--ez-out);
 }
-.ptab-btn:hover { color: var(--accent-lo); background: none; transform: none; box-shadow: none; }
-.ptab-btn:hover::after,
+@media (hover: hover) { .ptab-btn:hover { color: var(--accent-lo); background: none; transform: none; box-shadow: none; } }
 .ptab-btn:focus-visible::after { width: calc(100% - 4px); }
+@media (hover: hover) { .ptab-btn:hover::after { width: calc(100% - 4px); } }
 .ptab-btn.active { background: none; border: 0; color: var(--accent-lo); font-weight: var(--fw-bold); }
 .ptab-btn.active::after { width: calc(100% - 4px); }
 .ptab-btn [data-ico] { opacity: 0.75; }
@@ -8021,9 +8034,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   background: var(--accent);
   transition: width var(--t2) var(--ez-out);
 }
-.app-link-btn:hover { filter: none; color: var(--accent); }
-.app-link-btn:hover::after,
+@media (hover: hover) { .app-link-btn:hover { filter: none; color: var(--accent); } }
 .app-link-btn:focus-visible::after { width: calc(100% - 4px); }
+@media (hover: hover) { .app-link-btn:hover::after { width: calc(100% - 4px); } }
 .app-link-btn [data-ico] { opacity: 0.75; }
 
 /* ── Changelog entries ── */
@@ -8102,7 +8115,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
      залипает при смене темы на лету (соседние span/a обновляются, кнопка — нет). */
   transition: none;
 }
-.cl-more:hover { color: var(--accent-hi); box-shadow: none; filter: none; }
+@media (hover: hover) { .cl-more:hover { color: var(--accent-hi); box-shadow: none; filter: none; } }
 .cl-more:active { transform: none; }
 /* Ссылка на запись версии в подробном логе релизов */
 .cl-version-link {
@@ -8112,7 +8125,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   border-bottom: 1px dashed var(--border);
   white-space: nowrap;
 }
-.cl-version-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
+@media (hover: hover) { .cl-version-link:hover { color: var(--accent); border-bottom-color: var(--accent); } }
 /* Шапка вкладки «Изменения»: подпись + переход в полный лог */
 .cl-toolbar {
   display: flex;
@@ -8150,9 +8163,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   background: var(--accent);
   transition: width var(--t2) var(--ez-out);
 }
-.cl-full-log:hover { background: none; color: var(--accent); }
-.cl-full-log:hover::after,
+@media (hover: hover) { .cl-full-log:hover { background: none; color: var(--accent); } }
 .cl-full-log:focus-visible::after { width: calc(100% - 4px); }
+@media (hover: hover) { .cl-full-log:hover::after { width: calc(100% - 4px); } }
 
 /* ========== TAKEN FEATS ========== */
 .taken-feats-header {
@@ -8214,7 +8227,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   flex-shrink: 0;
   transition: color var(--t1);
 }
-.feat-taken-del:hover { color: var(--danger); transform: none; box-shadow: none; }
+@media (hover: hover) { .feat-taken-del:hover { color: var(--danger); transform: none; box-shadow: none; } }
 .feat-taken-desc {
   font-size: var(--fs-12);
   color: var(--text-mute);
@@ -8369,8 +8382,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   color: var(--accent-lo);
   transition: transform var(--t1, 140ms) var(--ez-out);
 }
-.sw-update-tg:hover .sw-update-tg-text b { color: var(--accent-lo); }
-.sw-update-tg:hover .sw-update-tg-arrow { transform: translateX(4px); }
+@media (hover: hover) { .sw-update-tg:hover .sw-update-tg-text b { color: var(--accent-lo); } }
+@media (hover: hover) { .sw-update-tg:hover .sw-update-tg-arrow { transform: translateX(4px); } }
 /* Ссылка «Что менялось в коде» — текстовое действие, не коробка */
 .sw-update-more {
   display: inline-block;
@@ -8379,7 +8392,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   font-size: var(--fs-sm);
   text-decoration: none;
 }
-.sw-update-more:hover { text-decoration: underline; }
+@media (hover: hover) { .sw-update-more:hover { text-decoration: underline; } }
 .sw-update-btns {
   display: flex;
   justify-content: flex-end;
@@ -8416,10 +8429,10 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   transform-origin: left;
   transition: transform var(--t1, 140ms) var(--ez-out);
 }
-.sw-act:hover:where(:not(:disabled)),
 .sw-act:focus-visible { background: none; box-shadow: none; color: var(--accent-lo); }
-.sw-act:hover:where(:not(:disabled))::after,
+@media (hover: hover) { .sw-act:hover:where(:not(:disabled)) { background: none; box-shadow: none; color: var(--accent-lo); } }
 .sw-act:focus-visible::after { transform: scaleX(1); }
+@media (hover: hover) { .sw-act:hover:where(:not(:disabled))::after { transform: scaleX(1); } }
 .sw-act:disabled { opacity: var(--dis-op); cursor: default; }
 .sw-act:disabled::after { transform: scaleX(0); }
 
@@ -8436,11 +8449,15 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 /* PLAY-1: действие в тосте («Отменить») — текст на --accent-lo, контейнер кликов не ловит */
 .hp-toast.app-toast--act { display: flex; align-items: center; pointer-events: auto; }
 .app-toast-act { width: auto; margin: 0 0 0 var(--sp-3); padding: var(--sp-2) 2px; min-height: 32px; background: none; box-shadow: none; color: var(--accent-lo); border: 0; border-radius: 0; font: inherit; font-size: var(--fs-14); font-weight: var(--fw-bold); cursor: pointer; white-space: nowrap; }
-.app-toast-act:hover, .app-toast-act:focus-visible { background: none; box-shadow: none; color: var(--accent); text-decoration: underline; transform: none; }
+.app-toast-act:focus-visible { background: none; box-shadow: none; color: var(--accent); text-decoration: underline; transform: none; }
+@media (hover: hover) { .app-toast-act:hover { background: none; box-shadow: none; color: var(--accent); text-decoration: underline; transform: none; } }
 /* тосты урона/лечения тёмные в обеих темах — действие цвета их текста */
-.hp-toast-dmg .app-toast-act, .hp-toast-heal .app-toast-act,
-.hp-toast-dmg .app-toast-act:hover, .hp-toast-heal .app-toast-act:hover,
-.hp-toast-dmg .app-toast-act:focus-visible, .hp-toast-heal .app-toast-act:focus-visible { color: inherit; text-decoration: underline; }
+.hp-toast-dmg .app-toast-act,
+.hp-toast-heal .app-toast-act,
+.hp-toast-dmg .app-toast-act:focus-visible,
+.hp-toast-heal .app-toast-act:focus-visible { color: inherit; text-decoration: underline; }
+@media (hover: hover) { .hp-toast-dmg .app-toast-act:hover,
+.hp-toast-heal .app-toast-act:hover { color: inherit; text-decoration: underline; } }
 
 /* UNI-4: единое пустое состояние (emptyStateHtml в app-core.js). */
 .empty-state {
@@ -8463,7 +8480,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   color: var(--accent-lo); font-size: var(--fs-sm); font-weight: var(--fw-bold); cursor: pointer;
   min-height: 32px;
 }
-.empty-state-act:hover { background: none; color: var(--accent); text-decoration: underline; transform: none; box-shadow: none; }
+@media (hover: hover) { .empty-state-act:hover { background: none; color: var(--accent); text-decoration: underline; transform: none; box-shadow: none; } }
 /* UNI-4: SVG-глифы действий строки; закреплённая запись — залитая звезда. */
 .notes-entry-btn .dico, .pcard-del-btn .dico, .journal-del-btn .dico,
 .tracker-remove-btn .dico, .feat-taken-del .dico, .weapon-delete-btn .dico { display: inline-flex; vertical-align: middle; }
@@ -8597,12 +8614,12 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   transition: all var(--t1);
   line-height: 1;
 }
-.field-help-btn:hover {
+@media (hover: hover) { .field-help-btn:hover {
   border-color: var(--accent) !important;
   color: var(--accent) !important;
   transform: none !important;
   box-shadow: none !important;
-}
+} }
 
 /* STYLE-8M-4: справка по весу и слотам — экран. Вкладки — .help-tabs справки,
    группа = подпись капителью и строки «название · значение» на волосяной линии
@@ -8687,14 +8704,14 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
    цвет и подчёркивание. */
 .help-tab.active { background: none; color: var(--accent-lo); font-weight: var(--fw-bold); }
 .help-tab.active::after { width: calc(100% - 4px); }
-.help-tab:hover:not(.active) {
+@media (hover: hover) { .help-tab:hover:not(.active) {
   background: none;
   color: var(--accent-lo);
   transform: none;
   box-shadow: none;
-}
-.help-tab:hover::after,
+} }
 .help-tab:focus-visible::after { width: calc(100% - 4px); }
+@media (hover: hover) { .help-tab:hover::after { width: calc(100% - 4px); } }
 .help-tab [data-ico] { opacity: 0.75; }
 .help-body { min-width: 0; }
 .help-section { display: flex; flex-direction: column; gap: 0; }
@@ -8773,9 +8790,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   background: var(--accent);
   transition: width var(--t2) var(--ez-out);
 }
-.help-link:hover { color: var(--accent); }
-.help-link:hover::after,
+@media (hover: hover) { .help-link:hover { color: var(--accent); } }
 .help-link:focus-visible::after { width: 100%; }
+@media (hover: hover) { .help-link:hover::after { width: 100%; } }
 
 /* Каскад появления раздела: секции переключаются классом .hidden, display:none
    не крутит анимаций — вход перезапускается сам, JS не нужен. */
@@ -8819,13 +8836,18 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   cursor: pointer;
   line-height: 1;
 }
-.tab-help-btn:hover,
 .tab-help-btn:focus-visible {
   background: none;
   box-shadow: none;
   filter: none;
   text-decoration: underline;
 }
+@media (hover: hover) { .tab-help-btn:hover {
+  background: none;
+  box-shadow: none;
+  filter: none;
+  text-decoration: underline;
+} }
 .tab-help-q {
   display: inline-flex;
   align-items: center;
@@ -8896,11 +8918,14 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   cursor: pointer;
   transition: border-color var(--t1), background var(--t1), transform var(--t1);
 }
-.welcome-choice:hover,
 .welcome-choice:focus-visible {
   border-color: var(--accent);
   background: var(--bg-3);
 }
+@media (hover: hover) { .welcome-choice:hover {
+  border-color: var(--accent);
+  background: var(--bg-3);
+} }
 .welcome-choice:active { transform: translateY(1px); }
 .welcome-choice-ico { font-size: var(--fs-24); line-height: 1; flex-shrink: 0; }
 .welcome-choice-ico.dico { color: var(--accent); }
@@ -8975,28 +9000,32 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   cursor: pointer;
   transition: border-color var(--t1), background var(--t1), transform var(--t1);
 }
-.welcome-cta:hover,
 .welcome-cta:focus-visible { border-color: var(--accent); background: var(--bg-3); }
+@media (hover: hover) { .welcome-cta:hover { border-color: var(--accent); background: var(--bg-3); } }
 .welcome-cta:active { transform: translateY(1px); }
 .welcome-cta-primary {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--on-accent);
 }
-.welcome-cta-primary:hover,
 .welcome-cta-primary:focus-visible {
   background: var(--accent);
   border-color: var(--accent);
   filter: brightness(1.08);
 }
+@media (hover: hover) { .welcome-cta-primary:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  filter: brightness(1.08);
+} }
 .welcome-cta-ghost {
   background: transparent;
   border-color: transparent;
   color: var(--text-dim);
   font-weight: var(--fw-medium);
 }
-.welcome-cta-ghost:hover,
 .welcome-cta-ghost:focus-visible { background: var(--bg-3); border-color: transparent; color: var(--text); }
+@media (hover: hover) { .welcome-cta-ghost:hover { background: var(--bg-3); border-color: transparent; color: var(--text); } }
 .welcome-back {
   width: auto;
   margin: var(--sp-4) 0 0;
@@ -9008,7 +9037,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   cursor: pointer;
   transition: color var(--t1);
 }
-.welcome-back:hover { color: var(--text); }
+@media (hover: hover) { .welcome-back:hover { color: var(--text); } }
 
 /* Строка «Показать обучение заново» в настройках */
 /* STYLE-8M: единственное действие среди строк-настроек — подпись с растущим
@@ -9162,7 +9191,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   cursor: pointer;
   transition: color var(--t1);
 }
-.tour-x:hover { color: var(--text); }
+@media (hover: hover) { .tour-x:hover { color: var(--text); } }
 .tour-coach-title {
   font-size: var(--fs-18);
   font-weight: var(--fw-bold);
@@ -9291,7 +9320,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   background: transparent; border: 1px solid var(--border);
   color: var(--text); cursor: pointer; font-size: var(--fs-14); flex: 0 0 auto;
 }
-.app-log-x:hover { border-color: var(--accent); }
+@media (hover: hover) { .app-log-x:hover { border-color: var(--accent); } }
 .app-log-toolbar {
   display: flex; flex-wrap: wrap; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3);
   border-bottom: 1px solid var(--border);
@@ -9692,7 +9721,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   border-color: color-mix(in srgb, var(--accent) 40%, transparent);
   transition: opacity var(--t2), background var(--t2), border-color var(--t2);
 }
-.status-inspiration:hover { opacity: 0.75; border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+@media (hover: hover) { .status-inspiration:hover { opacity: 0.75; border-color: color-mix(in srgb, var(--accent) 40%, transparent); } }
 .status-inspiration.active {
   opacity: 1;
   border-color: color-mix(in srgb, var(--accent) 40%, transparent);
@@ -9743,7 +9772,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   box-shadow: none;
   transition: all var(--t1);
 }
-.conc-end-btn:hover { background: color-mix(in srgb, var(--magic) 20%, transparent); color: var(--magic); transform: none; }
+@media (hover: hover) { .conc-end-btn:hover { background: color-mix(in srgb, var(--magic) 20%, transparent); color: var(--magic); transform: none; } }
 
 /* =============================================
    WEAPON CARDS WITH ROLL BUTTONS
@@ -9780,9 +9809,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   opacity: 0.4;
   transition: opacity var(--t2) var(--ez-out), color var(--t2) var(--ez-out);
 }
-.weapon-row:hover .weapon-delete-btn,
 .weapon-delete-btn:focus-visible { opacity: 1; }
-.weapon-delete-btn:hover { color: var(--danger) !important; transform: none !important; }
+@media (hover: hover) { .weapon-row:hover .weapon-delete-btn { opacity: 1; } }
+@media (hover: hover) { .weapon-delete-btn:hover { color: var(--danger) !important; transform: none !important; } }
 /* HB-6: ✏️ правка строки атаки рядом с ✕. Плоская специфичность класса (0,1,0)
    перебивает глобальный button{width:100%} без !important — как .spell-edit-btn
    (HB-3); ратчет хардкодов/!important не растёт. */
@@ -9799,9 +9828,9 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   opacity: 0.4;
   transition: opacity var(--t2) var(--ez-out), color var(--t2) var(--ez-out);
 }
-.weapon-row:hover .weapon-edit-btn,
 .weapon-edit-btn:focus-visible { opacity: 1; }
-.weapon-edit-btn:hover { color: var(--edit-btn-fg); }
+@media (hover: hover) { .weapon-row:hover .weapon-edit-btn { opacity: 1; } }
+@media (hover: hover) { .weapon-edit-btn:hover { color: var(--edit-btn-fg); } }
 /* STYLE-8a2: «Атака» и «Урон» — текстовые действия вместо двух заливок */
 .weapon-roll-row { display: flex; gap: var(--sp-4); }
 .weapon-roll-btn { flex: 0 0 auto; margin: 0 !important; }
@@ -9831,7 +9860,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   box-shadow: none !important;
   transition: background var(--t2);
 }
-.cast-slot-option:hover { background: var(--accent-glow-token) !important; transform: none !important; }
+@media (hover: hover) { .cast-slot-option:hover { background: var(--accent-glow-token) !important; transform: none !important; } }
 .cast-slot-option .cso-lvl { font-weight: var(--fw-bold); color: var(--accent-hi); }
 .cast-slot-option .cso-free { color: var(--text-mute); font-size: var(--fs-14); }
 
@@ -9873,7 +9902,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   background: var(--accent-soft); border: 1px solid var(--accent);
   color: var(--text); cursor: pointer; transition: background var(--t1);
 }
-.cast-variant-option:hover { background: var(--accent-glow-token); }
+@media (hover: hover) { .cast-variant-option:hover { background: var(--accent-glow-token); } }
 .cast-variant-option .cvo-name { font-weight: var(--fw-bold); font-size: var(--fs-14); }
 .cast-variant-option .cvo-hint { color: var(--text-mute); font-size: var(--fs-12); font-weight: var(--fw-regular); line-height: 1.35; }
 
@@ -9889,14 +9918,14 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   color: var(--text); cursor: pointer; transition: background var(--t1);
 }
 .cast-debuff-target:first-child { border-top: 0; }
-.cast-debuff-target:hover { background: var(--accent-glow-token); transform: none; box-shadow: none; }
+@media (hover: hover) { .cast-debuff-target:hover { background: var(--accent-glow-token); transform: none; box-shadow: none; } }
 .cast-debuff-target.chosen { background: none; }
 .cast-debuff-target .cdb-icon {
   width: var(--home-bullet); height: var(--home-bullet); flex: none; transform: rotate(45deg);
   border: 1.5px solid var(--row-c, var(--accent)); transition: background var(--t1) var(--ez-out);
 }
-.cast-debuff-target:hover .cdb-icon,
 .cast-debuff-target.chosen .cdb-icon { background: var(--row-c, var(--accent)); }
+@media (hover: hover) { .cast-debuff-target:hover .cdb-icon { background: var(--row-c, var(--accent)); } }
 .cast-debuff-target .cdb-name { flex: 1; font-weight: var(--fw-semibold); font-size: var(--fs-14); }
 .cast-debuff-target .cdb-note { color: var(--text-mute); font-size: var(--fs-12); white-space: nowrap; }
 .cast-debuff-target .cdb-mark { width: 16px; text-align: center; color: var(--accent-hi); font-weight: var(--fw-bold); }
@@ -10097,7 +10126,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   transform: none !important;
   box-shadow: none !important;
 }
-.conc-details-end:hover { background: color-mix(in srgb, var(--magic) 30%, transparent) !important; transform: none !important; }
+@media (hover: hover) { .conc-details-end:hover { background: color-mix(in srgb, var(--magic) 30%, transparent) !important; transform: none !important; } }
 
 
 /* Модалка аватара */
@@ -10167,7 +10196,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   overflow: hidden;
   transition: border-color var(--t2), box-shadow var(--t2);
 }
-.sheet-avatar:hover { border-color: var(--accent-hi); box-shadow: 0 0 14px var(--accent-glow-token); }
+@media (hover: hover) { .sheet-avatar:hover { border-color: var(--accent-hi); box-shadow: 0 0 14px var(--accent-glow-token); } }
 /* Внутренняя кнопка/картинка должна полностью заполнять круг —
    иначе виден зазор/квадрат внутри круглой рамки («не сходится»). */
 .sheet-avatar .avatar-icon-btn {
@@ -10316,14 +10345,14 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   cursor: pointer; transition: all var(--t1);
   border-radius: var(--r-4);
 }
-.save-bonus-clickable:hover {
+@media (hover: hover) { .save-bonus-clickable:hover {
   background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent-hi);
   transform: scale(1.15);
-}
-.skill-bonus-clickable:hover {
+} }
+@media (hover: hover) { .skill-bonus-clickable:hover {
   background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent-hi);
   transform: scale(1.15);
-}
+} }
 .skill-bonus-clickable { padding: 2px var(--sp-2); }
 
 /* Значок быстрого броска (🎲) на числовых кнопках, по которым кидается кубик.
@@ -10345,8 +10374,8 @@ html[data-stats-layout="2024"] .abil-card-mod::after {
   opacity: 0.65;
   pointer-events: none;
 }
-.skill-bonus-clickable:hover::after,
-html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
+@media (hover: hover) { .skill-bonus-clickable:hover::after,
+html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; } }
 /* — Спасбросок — голое число без рамки: бейдж в углу «висит» некрасиво, поэтому 🎲
      ставим РЯДОМ с числом (инлайн). */
 .save-bonus-clickable::after {
@@ -10356,7 +10385,7 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
   vertical-align: 0.12em;
   pointer-events: none;
 }
-.save-bonus-clickable:hover::after { opacity: 1; }
+@media (hover: hover) { .save-bonus-clickable:hover::after { opacity: 1; } }
 
 /* ============================================
    СОПРОТИВЛЕНИЯ / ИММУНИТЕТЫ / УЯЗВИМОСТИ
@@ -10389,7 +10418,7 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
 .res-tag-x {
   cursor: pointer; opacity: 0.4; font-size: var(--fs-12); margin-left: 1px;
 }
-.res-tag-x:hover { opacity: 1; }
+@media (hover: hover) { .res-tag-x:hover { opacity: 1; } }
 .res-tag-res { background: color-mix(in srgb, var(--divin) 14%, transparent); color: var(--divin); border: 1px solid color-mix(in srgb, var(--divin) 35%, transparent); }
 .res-tag-imm { background: color-mix(in srgb, var(--info) 14%, transparent); color: var(--info); border: 1px solid color-mix(in srgb, var(--info) 35%, transparent); }
 .res-tag-vul { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent); }
@@ -10411,13 +10440,13 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
   border-radius: var(--r-4); cursor: pointer; border: 1.5px solid;
   transition: all var(--t1); padding: 0; text-align: center; line-height: 26px;
 }
-.res-add-btn:hover { transform: scale(1.12); }
+@media (hover: hover) { .res-add-btn:hover { transform: scale(1.12); } }
 .res-add-btn-res { background: color-mix(in srgb, var(--divin) 14%, transparent); border-color: var(--divin); color: var(--divin); }
-.res-add-btn-res:hover { background: var(--divin); color: var(--on-status); }
+@media (hover: hover) { .res-add-btn-res:hover { background: var(--divin); color: var(--on-status); } }
 .res-add-btn-imm { background: color-mix(in srgb, var(--info) 14%, transparent); border-color: var(--info); color: var(--info); }
-.res-add-btn-imm:hover { background: var(--info); color: var(--on-status); }
+@media (hover: hover) { .res-add-btn-imm:hover { background: var(--info); color: var(--on-status); } }
 .res-add-btn-vul { background: color-mix(in srgb, var(--warn) 14%, transparent); border-color: var(--warn); color: var(--warn); }
-.res-add-btn-vul:hover { background: var(--warn); color: var(--on-status); }
+@media (hover: hover) { .res-add-btn-vul:hover { background: var(--warn); color: var(--on-status); } }
 
 /* ============================================
    БОЙ ДВУМЯ ОРУЖИЯМИ (Two-Weapon Fighting)
@@ -10487,7 +10516,7 @@ html[data-stats-layout="2024"] .abil-card-mod:hover::after { opacity: 1; }
   width: var(--home-bullet); height: var(--home-bullet); transform: rotate(45deg);
   border: 1.5px solid var(--row-c, var(--accent));
 }
-.cc-card:hover { background: var(--accent-glow-token); box-shadow: none; transform: none; }
+@media (hover: hover) { .cc-card:hover { background: var(--accent-glow-token); box-shadow: none; transform: none; } }
 .cc-card.cc-pending { --row-c: var(--accent-ink); }
 .cc-card.cc-complete { --row-c: var(--success); }
 .cc-card.cc-complete::before { background: var(--row-c); }
@@ -10621,7 +10650,7 @@ body {
   transition: all var(--t1);
 }
 .notes-menu-btn { padding: var(--sp-2) var(--sp-3); }
-.notes-menu-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+@media (hover: hover) { .notes-menu-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); } }
 .notes-menu-btn:disabled { opacity: var(--dis-op); cursor: not-allowed; }
 .notes-save-ind {
   font-size: var(--fs-12);
@@ -10669,7 +10698,7 @@ body {
   transition: all var(--t1);
   white-space: nowrap;
 }
-.notes-pill:hover { border-color: var(--accent); color: var(--accent); }
+@media (hover: hover) { .notes-pill:hover { border-color: var(--accent); color: var(--accent); } }
 .notes-pill.active {
   background: var(--accent-fill);
   border-color: var(--accent-lo);
@@ -10777,9 +10806,9 @@ body {
   padding: 2px var(--sp-2);
   transition: background var(--t1), color var(--t1);
 }
-.notes-entry-btn:hover { background: var(--bg-3); color: var(--text); }
+@media (hover: hover) { .notes-entry-btn:hover { background: var(--bg-3); color: var(--text); } }
 .notes-entry-btn.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
-.notes-entry-btn.danger:hover { background: color-mix(in srgb, var(--danger) 30%, transparent); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
+@media (hover: hover) { .notes-entry-btn.danger:hover { background: color-mix(in srgb, var(--danger) 30%, transparent); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); } }
 .notes-entry-tags { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-top: var(--sp-2); }
 
 /* Теги-чипы (общий стиль, используется и в фильтре, и в карточках) */
@@ -10797,15 +10826,15 @@ body {
   transition: background var(--t1), border-color var(--t1);
   white-space: nowrap;
 }
-.notes-tag-chip:hover,
 .notes-tag-chip.active { background: color-mix(in srgb, var(--accent) 28%, transparent); border-color: var(--accent); }
+@media (hover: hover) { .notes-tag-chip:hover { background: color-mix(in srgb, var(--accent) 28%, transparent); border-color: var(--accent); } }
 .notes-tag-chip.small { font-size: var(--fs-12); padding: 1px var(--sp-2); }
 .notes-tag-chip.removable { padding-right: var(--sp-1); }
 .notes-tag-remove {
   background: none; border: none; color: inherit; cursor: pointer;
   font-size: 1em; line-height: 1; opacity: 0.7; padding: 0 2px;
 }
-.notes-tag-remove:hover { opacity: 1; }
+@media (hover: hover) { .notes-tag-remove:hover { opacity: 1; } }
 
 /* Фильтр-бар по тегам */
 .notes-tag-filter-bar {
@@ -10822,7 +10851,7 @@ body {
   text-decoration: underline;
   text-decoration-style: dotted;
 }
-.notes-at-ref:hover { color: var(--info); }
+@media (hover: hover) { .notes-at-ref:hover { color: var(--info); } }
 
 /* Подсветка при прыжке к NPC */
 @keyframes notesHighlight {
@@ -10875,8 +10904,8 @@ body {
   border-radius: var(--r-4); transition: background var(--t1);
   width: auto; margin: 0; font-weight: var(--fw-regular); box-shadow: none;
 }
-.notes-modal-close:hover { transform: none; box-shadow: none; }
-.notes-modal-close:hover { background: var(--bg-3); color: var(--text); }
+@media (hover: hover) { .notes-modal-close:hover { transform: none; box-shadow: none; } }
+@media (hover: hover) { .notes-modal-close:hover { background: var(--bg-3); color: var(--text); } }
 .notes-modal-body {
   display: flex;
   flex-direction: column;
@@ -10921,7 +10950,7 @@ body {
   padding: var(--sp-1) var(--sp-3); transition: background var(--t1);
   width: auto; margin: 0; flex: 0 0 auto; font-weight: var(--fw-regular); box-shadow: none;
 }
-.notes-modal-tag-add-btn:hover { background: color-mix(in srgb, var(--accent) 30%, transparent); transform: none; box-shadow: none; }
+@media (hover: hover) { .notes-modal-tag-add-btn:hover { background: color-mix(in srgb, var(--accent) 30%, transparent); transform: none; box-shadow: none; } }
 .notes-modal-footer {
   display: flex;
   gap: var(--sp-2);
@@ -10953,7 +10982,7 @@ body {
   min-width: 28px;
   transition: background var(--t1), border-color var(--t1);
 }
-.notes-md-btn:hover { background: var(--bg-2); border-color: var(--accent); }
+@media (hover: hover) { .notes-md-btn:hover { background: var(--bg-2); border-color: var(--accent); } }
 .notes-md-btn.active {
   background: var(--accent);
   color: var(--on-accent);
@@ -11008,7 +11037,7 @@ body {
 .notes-variant-item { align-items: flex-start; }
 /* BUILD-NOTES-6.6: сворачиваемая шапка секции */
 .notes-section-head { cursor: pointer; user-select: none; display: flex; align-items: center; gap: var(--sp-2); }
-.notes-section-head:hover { color: var(--accent); }
+@media (hover: hover) { .notes-section-head:hover { color: var(--accent); } }
 .notes-section-toggle { display: inline-block; width: 1em; opacity: 0.75; }
 .notes-section-meta { margin-left: auto; font-size: var(--fs-12); opacity: 0.55; font-weight: var(--fw-regular); }
 .notes-section-card.collapsed .notes-section-head { margin-bottom: 0; }
@@ -11025,7 +11054,7 @@ body {
   cursor: pointer;
   transition: background var(--t1);
 }
-.notes-variant-random:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+@media (hover: hover) { .notes-variant-random:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); } }
 
 .notes-md-preview {
   background: var(--bg-2);
@@ -11142,7 +11171,7 @@ body {
   width: 100%;
   transition: background var(--t1);
 }
-.notes-menu-item:hover { background: var(--bg-2); }
+@media (hover: hover) { .notes-menu-item:hover { background: var(--bg-2); } }
 .notes-menu-sep { border: none; border-top: 1px solid var(--border-soft); margin: var(--sp-1) 0; }
 
 /* ── N5: поиск — highlight ───────────────────────────────── */
@@ -11169,7 +11198,7 @@ mark.notes-hl {
   padding: 0;
   opacity: 0.85;
 }
-.notes-search-clear:hover { opacity: 1; text-decoration: underline; }
+@media (hover: hover) { .notes-search-clear:hover { opacity: 1; text-decoration: underline; } }
 
 /* ── N5: @media print ────────────────────────────────────── */
 /* Печать только вкладки «Записи». Прежняя версия завязывалась на
@@ -11302,11 +11331,11 @@ select.bp-select { padding-right: var(--sp-4); }
   border: 1.5px solid var(--home-accent, var(--accent));
   transition: background var(--t1) var(--ez-out);
 }
-.bp-card:hover::before,
 .bp-card:focus::before,
 .bp-card:focus-visible::before { background: var(--home-accent, var(--accent)); }
-.bp-card:hover,
+@media (hover: hover) { .bp-card:hover::before { background: var(--home-accent, var(--accent)); } }
 .bp-card:focus-visible { padding-left: calc(var(--sp-2) + var(--home-bullet) + var(--sp-3) + var(--home-shift)); }
+@media (hover: hover) { .bp-card:hover { padding-left: calc(var(--sp-2) + var(--home-bullet) + var(--sp-3) + var(--home-shift)); } }
 .bp-card:focus { outline: none; }
 .bp-card:focus-visible { outline: none; }
 .bp-card-head { display:flex; justify-content:space-between; align-items:baseline; gap: var(--sp-3); margin-bottom: 2px; }
@@ -11344,7 +11373,7 @@ select.bp-select { padding-right: var(--sp-4); }
 /* FB-6: бейдж/«План»/«Отвязать» — инлайн-пилюли (глоб. button{width:100%} ломал ряд в стопку) */
 .char-build-badge-wrap button { width: auto; margin: 0; }
 .char-build-badge { display:inline-block; padding:var(--sp-1) var(--sp-3); background:var(--bg-3); border:1px solid var(--accent); color:var(--accent); border-radius:var(--r-pill); font-size:var(--fs-14); font-weight:var(--fw-semibold); cursor:pointer; transition: background var(--t1), transform var(--t1); font-family:inherit; }
-.char-build-badge:hover { background:var(--accent); color:var(--bg-1); }
+@media (hover: hover) { .char-build-badge:hover { background:var(--accent); color:var(--bg-1); } }
 .char-build-badge:active { transform: scale(0.97); }
 /* BUILD-DESC-3: модалка гайда по билду */
 /* STYLE-8M-2b: гайд и план развития — экраны-страницы. Оболочка модалки
@@ -11422,7 +11451,9 @@ select.bp-select { padding-right: var(--sp-4); }
   border-bottom:1px dashed var(--accent);
   cursor:help; color:inherit;
 }
-.gloss:hover, .gloss:focus, .gloss.is-active { color:var(--accent); outline:none; }
+.gloss:focus,
+.gloss.is-active { color:var(--accent); outline:none; }
+@media (hover: hover) { .gloss:hover { color:var(--accent); outline:none; } }
 .gloss-popover {
   position:fixed; z-index: var(--z-toast); max-width:280px;
   padding:var(--sp-3) var(--sp-3); border-radius:var(--r-8);
@@ -11515,23 +11546,23 @@ select.bp-select { padding-right: var(--sp-4); }
 .lu-choice-sub { font-size: var(--fs-sm); color: var(--home-sub); margin-bottom: var(--sp-2); }
 .lu-choice-opts { display: flex; flex-wrap: wrap; gap: 0 var(--sp-3); }
 .lu-choice-opt { display: inline-flex; align-items: baseline; gap: var(--sp-1); width: auto; margin: 0; padding: var(--sp-1) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--accent-lo); cursor: pointer; }
-.lu-choice-opt:hover { background: none; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+@media (hover: hover) { .lu-choice-opt:hover { background: none; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; } }
 .lu-choice-opt.is-rec { color: var(--magic); font-weight: var(--fw-bold); box-shadow: none; }
 /* SUB-0: метка источника подкласса (PHB/дополнение/авторский) на кнопке выбора */
 .lu-src-tag { font-size: var(--fs-12); font-weight: var(--fw-semibold); letter-spacing: 0.02em; color: var(--home-sub); white-space: nowrap; }
 .lu-choice-launch { width: auto; margin: 0; padding: var(--sp-2) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--magic); font-weight: var(--fw-bold); cursor: pointer; }
-.lu-choice-launch:hover { background: none; color: var(--magic); text-decoration: underline; text-underline-offset: 3px; }
+@media (hover: hover) { .lu-choice-launch:hover { background: none; color: var(--magic); text-decoration: underline; text-underline-offset: 3px; } }
 /* BUILD-LVL: блок заклинаний на экране повышения — disabled-состояние «уже добавлены» + вторичная кнопка перехода на вкладку */
 .lu-choice-launch:disabled { opacity: var(--dis-op); cursor: default; }
-.lu-choice-launch:disabled:hover { background: none; color: var(--magic); text-decoration: none; }
+@media (hover: hover) { .lu-choice-launch:disabled:hover { background: none; color: var(--magic); text-decoration: none; } }
 .lu-choice-alt { display: block; width: auto; margin: var(--sp-1) 0 0; padding: var(--sp-1) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--home-sub); text-align: left; cursor: pointer; }
-.lu-choice-alt:hover { background: none; color: var(--accent-lo); }
+@media (hover: hover) { .lu-choice-alt:hover { background: none; color: var(--accent-lo); } }
 .lu-apply-all-btn { margin: 0 0 var(--sp-2); }
 /* Пикер класса запускается с экрана выборов повышения — держим выше модалок */
 #class-choice-modal.modal { z-index: calc(var(--z-modal) + 1); }
 .char-build-unlink { background:none; border:0; color:var(--text-dim); border-radius:0; padding:var(--sp-1) 2px; font-size:var(--fs-14); cursor:pointer; transition:color var(--t1); }
 .char-build-unlink::before { content:"·"; margin-right:var(--sp-2); color:var(--text-mute); }
-.char-build-unlink:hover { background:none; color:var(--danger); }
+@media (hover: hover) { .char-build-unlink:hover { background:none; color:var(--danger); } }
 
 /* =============================================
    BUGFIX-6: мобильная вёрстка (≤540px)
@@ -11564,11 +11595,11 @@ select.bp-select { padding-right: var(--sp-4); }
   flex-shrink: 0;
   transition: background var(--t1), border-color var(--t1), transform var(--t1);
 }
-.app-version-settings:hover {
+@media (hover: hover) { .app-version-settings:hover {
   background: color-mix(in srgb, var(--accent) 18%, transparent);
   border-color: var(--accent);
   transform: rotate(20deg);
-}
+} }
 .app-version-settings:active { transform: rotate(20deg) scale(0.94); }
 
 /* (б) Header-back на desktop/tablet (≥1024px) — заметная контрастная кнопка
@@ -11592,12 +11623,12 @@ select.bp-select { padding-right: var(--sp-4); }
     font-size: var(--fs-14);
     letter-spacing: 0.01em;
   }
-  .header-back:hover {
+  @media (hover: hover) { .header-back:hover {
     background: var(--accent-soft);
     border-color: var(--hdr-back-hover-edge-d);
     color: var(--hdr-back-hover-fg-d);
     transform: translateX(-2px);
-  }
+  } }
 }
 
 /* ============================================================
@@ -11745,8 +11776,8 @@ mark.search-hl {
   border: 1.5px solid var(--accent);
   transition: background var(--t1) var(--ez-out);
 }
-.srd-mon-row:hover { background: var(--accent-glow-token); }
-.srd-mon-row:hover::before { background: var(--accent); }
+@media (hover: hover) { .srd-mon-row:hover { background: var(--accent-glow-token); } }
+@media (hover: hover) { .srd-mon-row:hover::before { background: var(--accent); } }
 .srd-mon-body {
   flex: 1;
   min-width: 0;
@@ -11793,7 +11824,7 @@ mark.search-hl {
   cursor: pointer;
   flex-shrink: 0;
 }
-.srd-mon-add:hover { background: none; color: var(--accent); text-decoration: underline; transform: none; box-shadow: none; }
+@media (hover: hover) { .srd-mon-add:hover { background: none; color: var(--accent); text-decoration: underline; transform: none; box-shadow: none; } }
 
 @media (max-width: 540px) {
   .srd-monster-filters { flex-direction: column; gap: var(--sp-2); }
@@ -12010,7 +12041,7 @@ textarea:focus-visible {
   border: 1px solid color-mix(in srgb, var(--dbc, var(--accent)) 48%, transparent);
   transition: background var(--t1);
 }
-.debuff-chip:hover { background: color-mix(in srgb, var(--dbc, var(--accent)) 30%, var(--bg-2)); }
+@media (hover: hover) { .debuff-chip:hover { background: color-mix(in srgb, var(--dbc, var(--accent)) 30%, var(--bg-2)); } }
 
 /* Мини-индикатор состояния (в трекере боя, рядом с именем) */
 .tracker-cond-dots { display: inline-flex; gap: var(--sp-1); margin-left: var(--sp-2); vertical-align: middle; }
@@ -12025,13 +12056,13 @@ button.tracker-cond-dots {
   width: auto; min-width: 0; height: auto; flex: none; padding: var(--sp-1) 0; margin: 0 0 0 var(--sp-2);
   background: none; border: 0; border-radius: 0; box-shadow: none; cursor: pointer;
 }
-button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: none; }
+@media (hover: hover) { button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: none; } }
 .cond-dot-add {
   background: none;
   color: var(--accent-lo); font-weight: var(--fw-bold); font-size: var(--fs-14); line-height: 1;
 }
 .battle-cond-exh { cursor: default; }
-.battle-cond-exh:hover { background: none; }
+@media (hover: hover) { .battle-cond-exh:hover { background: none; } }
 .battle-cond-exh .cdb-icon:not([data-on]) { background: none; }
 .battle-cond-exh .cdb-icon[data-on] { background: var(--row-c); }
 .battle-cond-exh .tracker-hp-btn { flex: none; }
@@ -12177,8 +12208,8 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   border-color: currentColor;
   background: linear-gradient(45deg, transparent 50%, currentColor 50%);
 }
-.battle-setup-row:hover,
-.battle-section-title:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+@media (hover: hover) { .battle-setup-row:hover,
+.battle-section-title:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); } }
 /* Отмеченный участник — лёгкая заливка строки, как раскрытая вещь в «Сумке» */
 .battle-row-checked { background: color-mix(in srgb, var(--accent) 7%, transparent); }
 /* Чей ход — заливка плюс акцентная отбивка слева: в длинном списке одной
@@ -12401,11 +12432,11 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   margin-right: var(--sp-3);
 }
 #tab-party .pcard-status-sel { border-color: transparent; padding-left: 0; }
-#tab-party .pcard-status-sel:hover { border-color: var(--border-soft); }
+@media (hover: hover) { #tab-party .pcard-status-sel:hover { border-color: var(--border-soft); } }
 /* Правка и удаление приглушены и проявляются на строке — как на начальном экране. */
 #tab-party .pcard-actions { opacity: 0.4; transition: opacity var(--t1) var(--ez-out); }
-#tab-party .pcard:hover .pcard-actions,
 #tab-party .pcard:focus-within .pcard-actions { opacity: 1; }
+@media (hover: hover) { #tab-party .pcard:hover .pcard-actions { opacity: 1; } }
 #tab-party .pcard-edit-btn,
 #tab-party .pcard-del-btn { border: 0; background: none; }
 #tab-party .party-empty {
@@ -12573,10 +12604,10 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
 }
 .rr-row-roll .rr-row-label { color: var(--accent-lo); }
 .rr-line-primary .rr-row.rr-row-roll { color: var(--accent-lo); }
-.rr-row-roll:hover .rr-die,
 .rr-row-roll:focus-visible .rr-die { transform: rotate(72deg); color: var(--accent-hi); }
-.rr-row-roll:hover .rr-row-label,
+@media (hover: hover) { .rr-row-roll:hover .rr-die { transform: rotate(72deg); color: var(--accent-hi); } }
 .rr-row-roll:focus-visible .rr-row-label { color: var(--accent-hi); }
+@media (hover: hover) { .rr-row-roll:hover .rr-row-label { color: var(--accent-hi); } }
 /* Число последнего броска — тот же слот, что у КД и уровня */
 .rr-roll-val { color: var(--text); font-weight: var(--fw-bold); font-size: var(--fs-md); }
 .rr-roll-val:empty { display: none; }
@@ -12603,7 +12634,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   cursor: pointer;
   transition: color var(--t1) var(--ez-out);
 }
-.rr-die-btn:hover { background: transparent; color: var(--accent-hi); }
+@media (hover: hover) { .rr-die-btn:hover { background: transparent; color: var(--accent-hi); } }
 .rr-die-btn:focus-visible { outline: none; color: var(--accent-hi); box-shadow: var(--sh-glow); }
 
 /* Кнопка раскрытия остальных кубиков — приглушённый подстрочник строки d20 */
@@ -12624,7 +12655,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
 }
 .rr-more::after { content: " ▾"; }
 .rr-more[aria-expanded="true"]::after { content: " ▴"; }
-.rr-more:hover { color: var(--accent-lo); background: transparent; }
+@media (hover: hover) { .rr-more:hover { color: var(--accent-lo); background: transparent; } }
 .rr-more:focus-visible { outline: none; color: var(--accent-lo); box-shadow: var(--sh-glow); }
 
 /* Раскрытая панель — с отступом под ромбом строки, без подложки */
@@ -12646,7 +12677,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   cursor: pointer;
   transition: color var(--t1) var(--ez-out);
 }
-.rr-panel-action:hover { color: var(--accent-lo); background: transparent; }
+@media (hover: hover) { .rr-panel-action:hover { color: var(--accent-lo); background: transparent; } }
 .rr-cond-empty {
   text-align: left;
   padding: 2px 0 0;
@@ -12705,11 +12736,11 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   transition: color var(--t1) var(--ez-out);
 }
 #tab-notes .notes-menu-btn { color: var(--home-sub); }
-#tab-notes .notes-menu-btn:hover:not(:disabled) {
+@media (hover: hover) { #tab-notes .notes-menu-btn:hover:not(:disabled) {
   background: none;
   border-color: transparent;
   color: var(--text);
-}
+} }
 #tab-notes .notes-save-ind { color: var(--home-sub); }
 
 /* ── Под-табы: пилюли → подписи с растущим подчёркиванием ───────────────── */
@@ -12745,9 +12776,9 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   background: var(--accent);
   transition: width var(--t2) var(--ez-out);
 }
-#tab-notes .notes-pill:hover { background: none; border-color: transparent; color: var(--accent-lo); }
-#tab-notes .notes-pill:hover::after,
+@media (hover: hover) { #tab-notes .notes-pill:hover { background: none; border-color: transparent; color: var(--accent-lo); } }
 #tab-notes .notes-pill:focus-visible::after { width: calc(100% - 4px); }
+@media (hover: hover) { #tab-notes .notes-pill:hover::after { width: calc(100% - 4px); } }
 /* Активный раздел — та же подсветка без подложки, что у пункта сайдбара:
    заливка роняла контраст (гоча 8L), вес несут цвет и подчёркивание. */
 #tab-notes .notes-pill.active {
@@ -12780,7 +12811,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   font-weight: var(--fw-bold);
   transition: transform var(--t2) var(--ez-out), color var(--t1) var(--ez-out);
 }
-#tab-notes .notes-section-head:hover { color: var(--accent-lo); transform: translateX(var(--home-shift)); }
+@media (hover: hover) { #tab-notes .notes-section-head:hover { color: var(--accent-lo); transform: translateX(var(--home-shift)); } }
 #tab-notes .notes-section-head:focus-visible {
   outline: none;
   box-shadow: var(--sh-glow);
@@ -12823,7 +12854,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   font-size: var(--fs-md);
   transition: color var(--t1) var(--ez-out);
 }
-#tab-notes .notes-md-btn:hover { background: none; border-color: transparent; color: var(--accent-lo); }
+@media (hover: hover) { #tab-notes .notes-md-btn:hover { background: none; border-color: transparent; color: var(--accent-lo); } }
 #tab-notes .notes-md-btn.active {
   background: none;
   border-color: transparent;
@@ -12864,8 +12895,8 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   transition: color var(--t1) var(--ez-out);
 }
 #tab-notes .notes-variant-item + .notes-variant-item { border-top: 1px solid var(--home-rule); }
-#tab-notes .notes-variant-item:hover { background: none; border-color: transparent; color: var(--text); }
-#tab-notes .notes-variant-item + .notes-variant-item:hover { border-top-color: var(--home-rule); }
+@media (hover: hover) { #tab-notes .notes-variant-item:hover { background: none; border-color: transparent; color: var(--text); } }
+@media (hover: hover) { #tab-notes .notes-variant-item + .notes-variant-item:hover { border-top-color: var(--home-rule); } }
 #tab-notes .notes-variant-num { color: var(--home-sub); font-weight: var(--fw-semibold); opacity: 1; }
 /* Выбранный вариант — ромб, а не рамка с заливкой. */
 #tab-notes .notes-variant-item.current { background: none; color: var(--text); }
@@ -12881,7 +12912,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   text-align: left;
   transition: color var(--t1) var(--ez-out);
 }
-#tab-notes .notes-variant-random:hover { background: none; color: var(--accent); }
+@media (hover: hover) { #tab-notes .notes-variant-random:hover { background: none; color: var(--accent); } }
 
 /* ── Поля ввода: остаются полями, но без плотной коробки ────────────────── */
 #tab-notes .notes-md-preview {
@@ -12939,8 +12970,8 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
 #tab-notes .notes-entry-body { font-size: var(--fs-sm); color: var(--home-sub); }
 /* Действия строки приглушены и проявляются на наведении — рецепт 8e. */
 #tab-notes .notes-entry-actions { opacity: 0.4; transition: opacity var(--t1) var(--ez-out); }
-#tab-notes .notes-entry-card:hover .notes-entry-actions,
 #tab-notes .notes-entry-card:focus-within .notes-entry-actions { opacity: 1; }
+@media (hover: hover) { #tab-notes .notes-entry-card:hover .notes-entry-actions { opacity: 1; } }
 #tab-notes .notes-entry-btn {
   background: none;
   border: 0;
@@ -12948,14 +12979,14 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   padding: 2px var(--sp-2);
   color: var(--home-sub);
 }
-#tab-notes .notes-entry-btn:hover { background: none; color: var(--text); }
-#tab-notes .notes-entry-btn.danger:hover {
+@media (hover: hover) { #tab-notes .notes-entry-btn:hover { background: none; color: var(--text); } }
+@media (hover: hover) { #tab-notes .notes-entry-btn.danger:hover {
   background: none;
   border-color: transparent;
   color: var(--danger);
-}
+} }
 #tab-notes .notes-at-ref { color: var(--info); }
-#tab-notes .notes-at-ref:hover { color: var(--info); text-decoration-style: solid; }
+@media (hover: hover) { #tab-notes .notes-at-ref:hover { color: var(--info); text-decoration-style: solid; } }
 
 /* ── Теги: чипы → текст через точку-разделитель (рецепт 8e) ─────────────── */
 #tab-notes .notes-tag-chip {
@@ -12967,7 +12998,7 @@ button.tracker-cond-dots:hover { background: none; transform: none; box-shadow: 
   font-size: var(--fs-sm);
   transition: color var(--t1) var(--ez-out);
 }
-#tab-notes .notes-tag-chip:hover { background: none; border-color: transparent; color: var(--accent-lo); }
+@media (hover: hover) { #tab-notes .notes-tag-chip:hover { background: none; border-color: transparent; color: var(--accent-lo); } }
 #tab-notes .notes-tag-chip.active {
   background: none;
   border-color: transparent;
@@ -13188,7 +13219,7 @@ html[data-stats-layout="2024"] .abil-card {
   min-height: 44px;
   text-align: left;
 }
-html[data-stats-layout="2024"] .abil-card:hover { border-bottom-color: var(--home-rule); }
+@media (hover: hover) { html[data-stats-layout="2024"] .abil-card:hover { border-bottom-color: var(--home-rule); } }
 
 html[data-stats-layout="2024"] .abil-card-head {
   order: 1;
@@ -13265,7 +13296,7 @@ html[data-stats-layout="2024"] .abil-card.is-open .abil-about-slot {
   font-size: var(--fs-sm);
   color: var(--accent-lo);
 }
-.abil-about:hover { text-decoration: underline; }
+@media (hover: hover) { .abil-about:hover { text-decoration: underline; } }
 .abil-about:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 /* ── DISC-3 · Легенда знаков в справке ── */
@@ -13344,8 +13375,8 @@ html[data-stats-layout="2024"] .abil-card-name::after {
   background: var(--accent);
   transition: right var(--t2) var(--ez-out);
 }
-html[data-stats-layout="2024"] .abil-card-head:hover .abil-card-name::after,
 html[data-stats-layout="2024"] .abil-card-head:focus-visible .abil-card-name::after { right: 0; }
+@media (hover: hover) { html[data-stats-layout="2024"] .abil-card-head:hover .abil-card-name::after { right: 0; } }
 html[data-stats-layout="2024"] .abil-card-head:focus-visible { outline: none; }
 
 html[data-stats-layout="2024"] .abil-card-score {
@@ -13372,7 +13403,7 @@ html[data-stats-layout="2024"] .abil-card-score .stat-btn-sm {
   background: none;
   color: var(--home-sub);
 }
-html[data-stats-layout="2024"] .abil-card-score .stat-btn-sm:hover { color: var(--accent-lo); background: none; }
+@media (hover: hover) { html[data-stats-layout="2024"] .abil-card-score .stat-btn-sm:hover { color: var(--accent-lo); background: none; } }
 
 html[data-stats-layout="2024"] .abil-card-mod {
   order: 3;
@@ -13391,7 +13422,7 @@ html[data-stats-layout="2024"] .abil-card-mod {
   justify-content: flex-end;
   gap: var(--sp-1);
 }
-html[data-stats-layout="2024"] .abil-card-mod:hover { color: var(--accent); }
+@media (hover: hover) { html[data-stats-layout="2024"] .abil-card-mod:hover { color: var(--accent); } }
 /* Значок броска: у голого числа абсолютный бейдж повис бы в пустоте — ставим инлайн */
 html[data-stats-layout="2024"] .abil-card-mod::after {
   position: static;
@@ -13425,11 +13456,11 @@ html[data-stats-layout="2024"] .abil-save-slot .save-item.proficient .save-bonus
   color: var(--accent-lo);
   font-weight: var(--fw-bold);
 }
-html[data-stats-layout="2024"] .abil-save-slot .save-bonus-clickable:hover {
+@media (hover: hover) { html[data-stats-layout="2024"] .abil-save-slot .save-bonus-clickable:hover {
   background: none;
   color: var(--accent);
   transform: none;
-}
+} }
 html[data-stats-layout="2024"] .abil-save-slot .save-proficiency {
   order: 5;
   flex: 1 0 100%;
@@ -13469,19 +13500,19 @@ html[data-stats-layout="2024"] .abil-skills-slot .skill-bonus-compact::after {
   font-size: var(--fs-12);
   opacity: 0.45;
 }
-html[data-stats-layout="2024"] .abil-skills-slot .skill-bonus-compact:hover {
+@media (hover: hover) { html[data-stats-layout="2024"] .abil-skills-slot .skill-bonus-compact:hover {
   border-color: transparent;
   background: none;
   color: var(--accent);
   transform: none;
-}
+} }
 html[data-stats-layout="2024"] .abil-skills-slot .skill-expertise-btn {
   border: none;
   opacity: 0.4;
   transition: opacity var(--t2) var(--ez-out), color var(--t2) var(--ez-out);
 }
-html[data-stats-layout="2024"] .abil-skills-slot .skill-row-compact:hover .skill-expertise-btn,
 html[data-stats-layout="2024"] .abil-skills-slot .skill-expertise-btn:focus-visible { opacity: 1; }
+@media (hover: hover) { html[data-stats-layout="2024"] .abil-skills-slot .skill-row-compact:hover .skill-expertise-btn { opacity: 1; } }
 
 /* Реестр держит спасброски и навыки внутри строк на любой ширине (см. _statsInCards),
    поэтому мобильное правило, показывавшее legacy-аккордеоны, больше не нужно. */
@@ -13592,8 +13623,8 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   color: var(--locked-bar-fg);
 }
 .basic-unlock-btn { opacity: 0.55; }
-.basic-locked-bar:hover .basic-unlock-btn,
 .basic-unlock-btn:focus-visible { opacity: 1; }
+@media (hover: hover) { .basic-locked-bar:hover .basic-unlock-btn { opacity: 1; } }
 
 /* MOB-2: основа листа на телефоне — строки вместо кнопок + общая шторка #mob-sheet */
 .mob-row, .basic-locked-more, .prof-card-sum { display: none; }
@@ -13773,7 +13804,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 #tab-sheet .prof-chip[data-source="custom"]     { color: var(--info); }
 #tab-sheet .prof-chip-src { background: none; padding: 0; }
 #tab-sheet .prof-chip-remove { color: var(--danger); opacity: 0.4; }
-#tab-sheet .prof-chip:hover .prof-chip-remove { opacity: 1; }
+@media (hover: hover) { #tab-sheet .prof-chip:hover .prof-chip-remove { opacity: 1; } }
 #tab-sheet .prof-empty-hint {
   background: none;
   border-radius: 0;
@@ -13785,7 +13816,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   font-family: var(--font-display);
   padding: var(--sp-1) 0;
 }
-#tab-sheet .prof-add-row button:hover { filter: none; color: var(--accent); }
+@media (hover: hover) { #tab-sheet .prof-add-row button:hover { filter: none; color: var(--accent); } }
 
 /* ── A9: прихвостни на листе — строки с волосяной линией, как на «Мире» после 8e ── */
 #tab-sheet .pcard {
@@ -13821,7 +13852,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-#tab-inventory > .card:hover { box-shadow: none; border-color: transparent; }
+@media (hover: hover) { #tab-inventory > .card:hover { box-shadow: none; border-color: transparent; } }
 #tab-inventory .card h4 {
   font-family: var(--font-display);
   font-size: var(--fs-18);
@@ -13964,7 +13995,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   font-variant-numeric: tabular-nums;
   transition: color var(--t2) var(--ez-out);
 }
-.hp-step:hover { color: var(--danger); }
+@media (hover: hover) { .hp-step:hover { color: var(--danger); } }
 .hp-step:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ── Раскрытие строки ── */
@@ -14004,7 +14035,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   font-size: var(--fs-sm);
   color: var(--accent-lo);
 }
-.hp-act:hover { text-decoration: underline; }
+@media (hover: hover) { .hp-act:hover { text-decoration: underline; } }
 .hp-act:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .hp-act--dmg { color: var(--danger); }
 .hp-act--heal { color: var(--success); }
@@ -14131,7 +14162,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
 }
 .pg-feat-n { font-size: var(--fs-md); color: var(--text); line-height: 1.4; }
 .pg-feat-n u { text-decoration: none; color: var(--home-sub); }
-.pg-feat:hover .pg-feat-n { color: var(--accent-lo); }
+@media (hover: hover) { .pg-feat:hover .pg-feat-n { color: var(--accent-lo); } }
 .pg-feat--new .pg-feat-n { color: var(--accent-lo); }
 
 /* «Осталось выбрать»: текст слева, текстовое действие справа, тач-цель 44px */
@@ -14173,7 +14204,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   color: var(--accent-lo);
   font-variant-numeric: tabular-nums;
 }
-.bp-plan-cls:hover { text-decoration: underline; }
+@media (hover: hover) { .bp-plan-cls:hover { text-decoration: underline; } }
 .bp-plan-cls.is-cur { color: var(--text); cursor: default; }
 .bp-plan-cls-sep { color: var(--home-sub); }
 
@@ -14242,7 +14273,7 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   cursor: pointer;
 }
 .cd-class-mc-act { margin-left: auto; font-size: var(--fs-sm); color: var(--accent-lo); }
-.cd-class-mc:hover .cd-class-mc-act { text-decoration: underline; }
+@media (hover: hover) { .cd-class-mc:hover .cd-class-mc-act { text-decoration: underline; } }
 .cd-add-class { margin: calc(-1 * var(--sp-3)) 0 var(--sp-3); }
 
 /* Генерация характеристик: покупка очков, стандартный набор, 4к6 */
@@ -14339,7 +14370,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-#tab-spells > .spells-list-card:hover { box-shadow: none; border-color: transparent; }
+@media (hover: hover) { #tab-spells > .spells-list-card:hover { box-shadow: none; border-color: transparent; } }
 
 #tab-spells .spells-header-row {
   display: flex;
@@ -14409,7 +14440,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   -webkit-backdrop-filter: none;
 }
 #tab-spells .spell-level-group .my-spell-item:first-of-type { border-top: 0; }
-#tab-spells .my-spell-item:hover { box-shadow: none; border-color: var(--home-rule); }
+@media (hover: hover) { #tab-spells .my-spell-item:hover { box-shadow: none; border-color: var(--home-rule); } }
 #tab-spells .my-spell-item[data-school="abjuration"]    { --dz-c: var(--info); }
 #tab-spells .my-spell-item[data-school="conjuration"]   { --dz-c: var(--warn); }
 #tab-spells .my-spell-item[data-school="divination"]    { --dz-c: var(--text-mute); }
@@ -14484,7 +14515,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
    «Подготовить» приглушённым. */
 #tab-spells .spell-lead-btn { flex-shrink: 0; margin: 0; }
 #tab-spells .spell-lead-prep { color: var(--text-dim); font-weight: var(--fw-medium); text-decoration: none; }
-#tab-spells .spell-lead-prep:hover { color: var(--accent-lo); }
+@media (hover: hover) { #tab-spells .spell-lead-prep:hover { color: var(--accent-lo); } }
 
 #tab-spells .spell-card-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 #tab-spells .spell-card-actions button {
@@ -14504,11 +14535,11 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   font-weight: var(--fw-semibold);
   font-size: var(--fs-14);
 }
-#tab-spells .spell-card-actions button:hover {
+@media (hover: hover) { #tab-spells .spell-card-actions button:hover {
   background: color-mix(in srgb, var(--text-dim) 26%, transparent);
   transform: none;
   filter: none;
-}
+} }
 #tab-spells .spell-remove-btn .dico { color: var(--danger); }
 #tab-spells .spell-prep-btn.spell-prep-active .dico { color: var(--accent); }
 
@@ -14543,7 +14574,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-#tab-spells > .card:not(.spells-list-card):hover { box-shadow: none; border-color: transparent; }
+@media (hover: hover) { #tab-spells > .card:not(.spells-list-card):hover { box-shadow: none; border-color: transparent; } }
 
 /* Заголовки этих карточек — такие же полосы, как у списка. Одиночный h3
    гридом делать нельзя: у него есть ромб ::before, он забрал бы долю 1fr и
@@ -14622,7 +14653,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   transition: transform var(--t2) var(--ez-out);
 }
 #tab-spells .sc-stat-block.expanded::before { transform: rotate(135deg); }
-#tab-spells .sc-stat-block:hover .sc-stat-label { color: var(--accent-lo); }
+@media (hover: hover) { #tab-spells .sc-stat-block:hover .sc-stat-label { color: var(--accent-lo); } }
 #tab-spells .sc-stat-label {
   grid-column: 2;
   grid-row: 1;
@@ -14679,8 +14710,8 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   box-shadow: none;
 }
 #tab-spells .spell-slots-visual > .spell-slot-row:first-child { border-top: 0; }
-#tab-spells .spell-slot-row:hover,
-#tab-spells .spell-slot-empty:hover { background: none; border-color: var(--home-rule); opacity: 1; }
+@media (hover: hover) { #tab-spells .spell-slot-row:hover,
+#tab-spells .spell-slot-empty:hover { background: none; border-color: var(--home-rule); opacity: 1; } }
 #tab-spells .ssl-label {
   grid-column: 2;
   grid-row: 1;
@@ -14736,7 +14767,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   font-size: var(--fs-14);
   color: var(--accent-lo);
 }
-#tab-spells .ssl-btn:hover { background: none; color: var(--accent); transform: none; text-decoration: underline; }
+@media (hover: hover) { #tab-spells .ssl-btn:hover { background: none; color: var(--accent); transform: none; text-decoration: underline; } }
 #tab-spells .ssl-btn:active { transform: none; }
 /* Уровень без ячеек — одна строка: счётчик 0/0 говорит то же, что подпись. */
 #tab-spells .spell-slot-empty .ssl-diamonds { display: none; }
@@ -14814,7 +14845,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-#tab-battle .card:hover { box-shadow: none; border-color: transparent; }
+@media (hover: hover) { #tab-battle .card:hover { box-shadow: none; border-color: transparent; } }
 
 /* Шапка раздела — заголовок на волосяной линии, действие текстом справа. */
 #tab-battle .bt-head {
@@ -14843,7 +14874,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   font-size: var(--fs-sm);
   color: var(--accent-lo);
 }
-#tab-battle .bt-act:hover { text-decoration: underline; }
+@media (hover: hover) { #tab-battle .bt-act:hover { text-decoration: underline; } }
 #tab-battle .bt-act:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 /* Поиск по участникам — поле без коробки, как поля остальных вкладок. */
@@ -14922,7 +14953,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   color: var(--home-sub);
   transition: color var(--t1) var(--ez-out);
 }
-#dice-modal .dice-tool-btn:hover { background: none; border: 0; color: var(--accent-hi); }
+@media (hover: hover) { #dice-modal .dice-tool-btn:hover { background: none; border: 0; color: var(--accent-hi); } }
 #dice-modal .dice-tool-btn.is-active { background: none; border: 0; color: var(--accent); }
 #dice-modal .dice-tool-badge {
   top: 5px;
@@ -14945,7 +14976,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   color: var(--home-sub);
   transition: color var(--t1) var(--ez-out);
 }
-#dice-modal .dice-modal-header .modal-close:hover { background: none; border: 0; color: var(--danger); }
+@media (hover: hover) { #dice-modal .dice-modal-header .modal-close:hover { background: none; border: 0; color: var(--danger); } }
 
 /* Режим к20 — строка текста «Обычный · Преимущество · Помеха», выбранный
    подчёркнут акцентом. У остальных костей строка прячется через visibility:
@@ -15066,7 +15097,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   cursor: pointer;
   transition: transform var(--t1) var(--ez-out);
 }
-#dice-modal .dice-pick:hover { background: none; }
+@media (hover: hover) { #dice-modal .dice-pick:hover { background: none; } }
 #dice-modal .dice-pick:active { transform: scale(0.95); }
 #dice-modal .dice-pick:focus-visible { outline: none; box-shadow: var(--sh-glow); }
 #dice-modal .dice-pick-stack { position: relative; display: block; width: 112px; height: 112px; }
@@ -15135,7 +15166,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
 }
 #dice-modal .dice-fan-glyph { line-height: 0; }
 #dice-modal .dice-fan-glyph svg { width: 24px; height: 24px; }
-#dice-modal .dice-fan-item:hover { background: none; color: var(--text); }
+@media (hover: hover) { #dice-modal .dice-fan-item:hover { background: none; color: var(--text); } }
 #dice-modal .dice-fan-item:active { transform: scale(0.95); }
 #dice-modal .dice-fan-item:focus-visible { outline: none; color: var(--accent-hover); box-shadow: var(--sh-glow); }
 #dice-modal .dice-fan-item.is-sel { color: var(--text); }
@@ -15173,7 +15204,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   cursor: pointer;
   transition: color var(--t1) var(--ez-out);
 }
-#dice-modal .dice-formula-toggle:hover { background: none; color: var(--accent-hover); }
+@media (hover: hover) { #dice-modal .dice-formula-toggle:hover { background: none; color: var(--accent-hover); } }
 /* DICE-2: подсказка горячих клавиш — только на ПК */
 #dice-modal .dice-keys-hint { display: none; }
 @media (min-width: 1024px) {
@@ -15213,7 +15244,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   font-weight: var(--fw-semibold);
   transition: color var(--t1) var(--ez-out);
 }
-#dice-modal .dice-controls-col .dice-chip:hover { background: none; border: 0; color: var(--accent-hover); }
+@media (hover: hover) { #dice-modal .dice-controls-col .dice-chip:hover { background: none; border: 0; color: var(--accent-hover); } }
 #dice-modal .dice-controls-col .dice-chip:active { transform: none; }
 #dice-modal .dice-controls-col .dice-chip-op { color: var(--accent-lo); }
 
@@ -15232,7 +15263,7 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   text-align: left;
   cursor: pointer;
 }
-#dice-modal .dice-popover-help:hover { background: none; color: var(--accent-hover); }
+@media (hover: hover) { #dice-modal .dice-popover-help:hover { background: none; color: var(--accent-hover); } }
 
 @media (max-width: 640px) {
   #dice-modal .dice-body { padding: var(--sp-3) var(--sp-2) var(--sp-2); }
@@ -15338,8 +15369,8 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
 }
 /* Действия строки — слова через «·», проявляются на hover строки */
 #screen-spellsearch .spell-item-actions { gap: 0 var(--sp-3); margin-top: var(--sp-1); opacity: 0.55; transition: opacity var(--t1) var(--ez-out); }
-#screen-spellsearch .spell-item:hover .spell-item-actions,
 #screen-spellsearch .spell-item:focus-within .spell-item-actions { opacity: 1; }
+@media (hover: hover) { #screen-spellsearch .spell-item:hover .spell-item-actions { opacity: 1; } }
 #screen-spellsearch .spell-item-actions button {
   width: auto;
   margin: 0;
@@ -15356,13 +15387,13 @@ select.field:is(.ag-sel, .ml-cls, .ml-sub, .pg-sub-select) { font-family: var(--
   transition: color var(--t1) var(--ez-out);
 }
 #screen-spellsearch .spell-item-actions button + button::before { content: "·"; margin-right: var(--sp-3); color: var(--home-sub); }
-#screen-spellsearch .spell-item-actions button:hover,
 #screen-spellsearch .spell-item-actions button:focus-visible { background: none; box-shadow: none; color: var(--accent); }
+@media (hover: hover) { #screen-spellsearch .spell-item-actions button:hover { background: none; box-shadow: none; color: var(--accent); } }
 #screen-spellsearch .spell-item-actions .btn-secondary { color: var(--home-sub); }
 #screen-spellsearch .spell-item.spell-added .spell-item-actions { opacity: 1; }
 #screen-spellsearch .spell-item-actions .spell-added-btn { color: var(--success); font-weight: var(--fw-semibold); }
 #screen-spellsearch .spell-item-actions .spell-remove-btn { color: var(--danger); }
-#screen-spellsearch .spell-item-actions .spell-remove-btn:hover { color: var(--danger); text-decoration: underline; text-underline-offset: 3px; }
+@media (hover: hover) { #screen-spellsearch .spell-item-actions .spell-remove-btn:hover { color: var(--danger); text-decoration: underline; text-underline-offset: 3px; } }
 
 /* ══ UNI-3: единая короткая форма ═════════════════════════════════════════
    Три шаблона окон — .modal-content (8), .confirm-modal-box (11 + собранные
@@ -15447,7 +15478,7 @@ button.conditions-popup-close {
   cursor: pointer;
   transition: color var(--t1, 140ms), background var(--t1, 140ms);
 }
-button.notes-modal-close:hover,
+@media (hover: hover) { button.notes-modal-close:hover,
 button.conc-details-close:hover,
 button.qrs-close:hover,
 button.aef-close:hover,
@@ -15457,7 +15488,7 @@ button.conditions-popup-close:hover {
   box-shadow: none;
   filter: none;
   transform: none;
-}
+} }
 
 
 /* Подвал: «Закрыть» у форм .modal — текстом, как «Отмена» у подтверждений;
@@ -15477,7 +15508,7 @@ button.modal-close-bottom,
   font-weight: var(--fw-semibold);
 }
 .notes-modal-footer .btn-secondary { margin: 0; }
-button.modal-close-bottom:hover,
+@media (hover: hover) { button.modal-close-bottom:hover,
 .notes-modal-footer .btn-secondary:hover {
   background: none;
   box-shadow: none;
@@ -15485,7 +15516,7 @@ button.modal-close-bottom:hover,
   color: var(--text);
   text-decoration: underline;
   text-underline-offset: 3px;
-}
+} }
 .notes-modal-footer { border-top-color: var(--home-rule); align-items: center; }
 
 /* Цель урона/лечения на «Бое» — плоская строка с ромбом вместо коробки;
@@ -15501,8 +15532,8 @@ button.modal-close-bottom:hover,
   border-radius: 0;
   box-shadow: none;
 }
-.cast-damage-target:hover { background: none; filter: none; box-shadow: none; }
-.cast-damage-target:hover .cdt-name { color: var(--accent-lo); }
+@media (hover: hover) { .cast-damage-target:hover { background: none; filter: none; box-shadow: none; } }
+@media (hover: hover) { .cast-damage-target:hover .cdt-name { color: var(--accent-lo); } }
 .cast-damage-target::before {
   content: "";
   flex: 0 0 auto;
@@ -15636,10 +15667,10 @@ button.modal-close-bottom:hover,
     font-weight: var(--fw-semibold);
   }
   body:not(#_):not(#_) :is(#tab-battle .bt-act) { color: var(--accent-lo) !important; }
-    body:not(#_):not(#_) :is(#tab-battle .bt-act):hover {
+    @media (hover: hover) { body:not(#_):not(#_) :is(#tab-battle .bt-act):hover {
     color: var(--accent) !important;
     text-decoration: underline;
-  }
+  } }
   /* Чип: текст без рамки и подложки */
   body:not(#_):not(#_) .char-build-badge {
     display: inline-flex;
@@ -15653,7 +15684,7 @@ button.modal-close-bottom:hover,
     font-family: var(--font-display);
     font-size: var(--fs-14);
   }
-  body:not(#_):not(#_) .char-build-badge:hover { background: none; color: var(--accent); text-decoration: underline; }
+  @media (hover: hover) { body:not(#_):not(#_) .char-build-badge:hover { background: none; color: var(--accent); text-decoration: underline; } }
   body:not(#_):not(#_) .pcard-status-sel {
     min-height: 28px;
     border: 0;
@@ -15661,8 +15692,8 @@ button.modal-close-bottom:hover,
     border-radius: 0;
     font-size: var(--fs-14);
   }
-  body:not(#_):not(#_) .pcard-status-sel:hover,
   body:not(#_):not(#_) .pcard-status-sel:focus { border-bottom-color: var(--accent-lo); }
+@media (hover: hover) { body:not(#_):not(#_) .pcard-status-sel:hover { border-bottom-color: var(--accent-lo); } }
   /* Иконка: цель 28×28, без радиуса */
   body:not(#_):not(#_) :is(#tab-spells .ssl-btn, .inv-coin-btn, .weapon-delete-btn) {
     display: inline-flex;
@@ -15775,8 +15806,8 @@ button.modal-close-bottom:hover,
   cursor: pointer;
   transition: color var(--t1) var(--ez-out);
 }
-.rr-strip-btn:hover,
 .rr-strip-btn:focus-visible { background: none; color: var(--accent-lo); }
+@media (hover: hover) { .rr-strip-btn:hover { background: none; color: var(--accent-lo); } }
 .rr-strip-btn:focus-visible { outline: none; box-shadow: var(--sh-glow); }
 .rr-strip-toggle { font-size: var(--fs-18); line-height: 1; border-bottom: 1px solid var(--home-rule); }
 .rr-strip-val { font-family: var(--font-display); font-size: var(--fs-12); font-weight: var(--fw-semibold); color: var(--text); line-height: 1.1; }
@@ -15795,8 +15826,8 @@ button.modal-close-bottom:hover,
   font-size: var(--fs-12);
   cursor: pointer;
 }
-.rr-collapse:hover,
 .rr-collapse:focus-visible { background: none; color: var(--accent-lo); }
+@media (hover: hover) { .rr-collapse:hover { background: none; color: var(--accent-lo); } }
 
 /* ПК-5: плотность десктопа. Сводка личности после фиксации (MOB-3) — но аватар,
    имя, уровень и опыт остаются; уровни без ячеек — строкой #ssl-all-mob (MOB-4);
@@ -15881,7 +15912,7 @@ button.modal-close-bottom:hover,
   font-size: var(--fs-sm);
   color: var(--accent);
 }
-.dice-save-roll:hover { text-decoration: underline; }
+@media (hover: hover) { .dice-save-roll:hover { text-decoration: underline; } }
 .dice-save-roll:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (max-width: 1023px) {
   .saved-roll-acts { display: none; }
@@ -16077,11 +16108,11 @@ button.modal-close-bottom:hover,
 :root :is(#sheet2, .s2-box) .s2-lvl .s2-big .s2-num { width:1.6em;text-align:center }
 :root :is(#sheet2, .s2-box) .s2-num.w { width:5em }
 :root :is(#sheet2, .s2-box) .s2-btn { display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-2);min-height:36px;padding:0 var(--sp-4);border:0;border-radius:6px; background:var(--s2-action);color:var(--s2-on-action);font:600 15px var(--font-display);cursor:pointer;transition:background .12s,transform .06s }
-:root :is(#sheet2, .s2-box) .s2-btn:hover { background:var(--s2-action-hi) }
+@media (hover: hover) { :root :is(#sheet2, .s2-box) .s2-btn:hover { background:var(--s2-action-hi) } }
 :root :is(#sheet2, .s2-box) .s2-btn:active { background:var(--s2-action-lo);transform:translateY(1px) scale(.97) }
 :root :is(#sheet2, .s2-box) .s2-btn:focus-visible, :root :is(#sheet2, .s2-box) .s2-link:focus-visible, :root :is(#sheet2, .s2-box) .s2-row:focus-visible { outline:2px solid var(--focus-ring);outline-offset:2px }
 :root :is(#sheet2, .s2-box) .s2-link { background:none;border:0;padding:2px 0;color:var(--accent-ink);font:inherit;cursor:pointer }
-:root :is(#sheet2, .s2-box) .s2-link:hover { color:var(--accent-hover) }
+@media (hover: hover) { :root :is(#sheet2, .s2-box) .s2-link:hover { color:var(--accent-hover) } }
 :root :is(#sheet2, .s2-box) .s2-link:active { color:var(--s2-action-lo) }
 :root :is(#sheet2, .s2-box) .s2-link:disabled { color:var(--text-mute);cursor:default;text-decoration:none }
 :root :is(#sheet2, .s2-box) .s2-body { display:grid;grid-template-columns:minmax(0,1fr) 264px;gap:0 var(--sp-6) }
@@ -16098,7 +16129,8 @@ button.modal-close-bottom:hover,
 :root :is(#sheet2, .s2-box) td.v { color:var(--text-mute) }
 :root :is(#sheet2, .s2-box) td.m { font-weight:700;font-size:var(--fs-18) }
 :root :is(#sheet2, .s2-box) .s2-row { cursor:pointer;transition:color .12s,background .12s;border-radius:4px }
-:root :is(#sheet2, .s2-box) .s2-row:hover, :root :is(#sheet2, .s2-box) .s2-row.s2-anchor { background:var(--accent-soft);color:var(--accent-hover) }
+:root :is(#sheet2, .s2-box) .s2-row.s2-anchor { background:var(--accent-soft);color:var(--accent-hover) }
+@media (hover: hover) { :root :is(#sheet2, .s2-box) .s2-row:hover { background:var(--accent-soft);color:var(--accent-hover) } }
 :root :is(#sheet2, .s2-box) .s2-row:active { background:var(--bg-3);color:var(--s2-action) }
 :root :is(#sheet2, .s2-box) .s2-feats { display:flex;flex-wrap:wrap;gap:var(--sp-1) var(--sp-4);font-size:var(--fs-14) }
 :root :is(#sheet2, .s2-box) .s2-res { display:flex;justify-content:space-between;align-items:center;gap:var(--sp-2);padding:var(--sp-1) 0;font-size:var(--fs-14) }
@@ -16107,7 +16139,7 @@ button.modal-close-bottom:hover,
 :root :is(#sheet2, .s2-box) .s2-cnt { display:flex;align-items:center;gap:var(--sp-2);flex-shrink:0;font-variant-numeric:tabular-nums }
 :root :is(#sheet2, .s2-box) .s2-atk { display:flex;justify-content:space-between;align-items:center;gap:var(--sp-2);padding:2px 0;border-bottom:1px solid var(--s2-line) }
 :root :is(#sheet2, .s2-box) .s2-atk button { background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:var(--sp-1) var(--sp-1);border-radius:4px }
-:root :is(#sheet2, .s2-box) .s2-atk button:hover { background:var(--accent-soft);color:var(--accent-hover) }
+@media (hover: hover) { :root :is(#sheet2, .s2-box) .s2-atk button:hover { background:var(--accent-soft);color:var(--accent-hover) } }
 :root :is(#sheet2, .s2-box) .s2-atk .s2-atk-n { text-align:left;flex:1;min-width:0 }
 :root :is(#sheet2, .s2-box) .s2-atk .s2-atk-d { color:var(--text-dim);font-variant-numeric:tabular-nums }
 :root :is(#sheet2, .s2-box) .s2-rolls { margin:var(--sp-2) 0 0;font-size:var(--fs-14) }
@@ -16125,9 +16157,9 @@ button.modal-close-bottom:hover,
 :root #s2-pop .r { display:flex;gap:var(--sp-2);align-items:center }
 :root #s2-pop button { white-space:nowrap;font:600 14px var(--font-display);cursor:pointer;border-radius:6px;min-height:34px;padding:0 var(--sp-3) }
 :root #s2-pop .go { background:var(--s2-action);color:var(--s2-on-action);border:0 }
-:root #s2-pop .go:hover { background:var(--s2-action-hi) }
+@media (hover: hover) { :root #s2-pop .go:hover { background:var(--s2-action-hi) } }
 :root #s2-pop .o { background:none;border:1px solid var(--border);color:var(--text-dim) }
-:root #s2-pop .o:hover { border-color:var(--accent);color:var(--text) }
+@media (hover: hover) { :root #s2-pop .o:hover { border-color:var(--accent);color:var(--text) } }
 :root #s2-pop .o.adv { color:var(--success) }
 :root #s2-pop .o.dis { color:var(--danger) }
 :root #s2-pop .o.sug { border-color:var(--danger) }
@@ -16158,7 +16190,7 @@ button.modal-close-bottom:hover,
 :root :is(#sheet2, .s2-box) .s2-pip.on { color:var(--s2-action) }
 :root :is(#sheet2, .s2-box) .s2-dice { grid-template-columns:repeat(3,1fr);margin:var(--sp-2) 0 }
 :root :is(#sheet2, .s2-box) .s2-die { font:600 15px var(--font-display);cursor:pointer;transition:background .12s,color .12s }
-:root :is(#sheet2, .s2-box) .s2-die:hover { border-color:var(--s2-action-hi);}
+@media (hover: hover) { :root :is(#sheet2, .s2-box) .s2-die:hover { border-color:var(--s2-action-hi);} }
 :root :is(#sheet2, .s2-box) .s2-die:focus-visible { outline:2px solid var(--focus-ring);outline-offset:2px }
 :root :is(#sheet2, .s2-box) .s2-acts { display:flex;flex-wrap:wrap;gap:var(--sp-2) var(--sp-4);align-items:center;margin:var(--sp-2) 0 }
 :root :is(#sheet2, .s2-box) .s2-acts .s2-kv { margin:0 }
@@ -16282,7 +16314,8 @@ button.modal-close-bottom:hover,
   :root .header-title { font-size: var(--fs-18); font-weight: var(--fw-bold); }
   :root .rd-rail-toggle, :root .rd-nav-toggle { display: inline-flex; align-items: center; width: auto; min-height: 40px; margin: 0; padding: 0 var(--sp-2); background: none; border: 0; box-shadow: none; color: var(--accent-ink); font: inherit; font-size: var(--fs-16); cursor: pointer; }
   :root .rd-rail-toggle { margin-left: auto; }
-  :root .rd-rail-toggle:hover, :root .rd-nav-toggle:hover { color: var(--accent-hi); background: none; }
+  @media (hover: hover) { :root .rd-rail-toggle:hover,
+:root .rd-nav-toggle:hover { color: var(--accent-hi); background: none; } }
   :root body.no-character .rd-rail-toggle { display: none; }
 
   /* меню — закреплено слева, во всю высоту */
@@ -16298,8 +16331,10 @@ button.modal-close-bottom:hover,
   :root .drawer-item [data-ico], :root .drawer-settings-btn [data-ico] { width: 24px; font-size: var(--fs-24); color: inherit; }
   :root .drawer-item .home-bullet, :root .drawer-settings-btn .home-bullet { opacity: 0; transition: opacity var(--t1) var(--ez-out); }
   :root .drawer-item-label::after { display: none; }
-  :root .drawer-item:is(:hover, :focus-visible), :root .drawer-settings-btn:is(:hover, :focus-visible) { color: var(--accent-ink); background: none; transform: none; box-shadow: none; }
-  :root .drawer-item:is(:hover, :focus-visible) .home-bullet, :root .drawer-settings-btn:is(:hover, :focus-visible) .home-bullet { opacity: 1; background: var(--accent-ink); }
+  @media (hover: hover) { :root .drawer-item:is(:hover, :focus-visible),
+:root .drawer-settings-btn:is(:hover, :focus-visible) { color: var(--accent-ink); background: none; transform: none; box-shadow: none; } }
+  @media (hover: hover) { :root .drawer-item:is(:hover, :focus-visible) .home-bullet,
+:root .drawer-settings-btn:is(:hover, :focus-visible) .home-bullet { opacity: 1; background: var(--accent-ink); } }
   :root .drawer-item:active, :root .drawer-settings-btn:active { color: var(--accent-lo); }
   :root .drawer-item:active .home-bullet, :root .drawer-settings-btn:active .home-bullet { opacity: 1; background: var(--accent-lo); }
   :root .drawer-item-active { color: var(--accent-ink); border-left-color: var(--accent); }
@@ -16349,7 +16384,7 @@ button.modal-close-bottom:hover,
 /* кубы — чипы текстом, выбранный — линия снизу (3:3) */
 :root :is(#sheet2, .s2-box) .s2-dice { display:flex;flex-wrap:wrap;gap:0 var(--sp-1) }
 :root :is(#sheet2, .s2-box) .s2-die { min-width:40px;min-height:40px;padding:0 var(--sp-2);border:0;border-bottom:2px solid transparent;border-radius:0;background:none;color:var(--text-dim);font-variant-numeric:tabular-nums }
-:root :is(#sheet2, .s2-box) .s2-die:hover { color:var(--text);border-bottom-color:var(--border) }
+@media (hover: hover) { :root :is(#sheet2, .s2-box) .s2-die:hover { color:var(--text);border-bottom-color:var(--border) } }
 :root :is(#sheet2, .s2-box) .s2-die.on { background:none;color:var(--accent-ink);border-bottom-color:var(--accent) }
 :root :is(#sheet2, .s2-box) h3 .s2-kv { font-family:var(--font);font-weight:400;margin-left:var(--sp-2) }
 :root #rd-battle { margin:0 0 var(--sp-5) }
@@ -16384,7 +16419,7 @@ button.modal-close-bottom:hover,
 /* прежний блок ячеек (ПК) и зеркало в панели — ромбы вместо бусин */
 :root .spell-diamond { width: 12px; height: 12px; border: 1.5px solid var(--rd-gold-lo); border-radius: 1px; background: var(--rd-gold); box-shadow: none; transform: rotate(45deg); }
 :root .spell-diamond.used { background: none; border-color: var(--text-mute); }
-:root .spell-diamond:hover { transform: rotate(45deg) scale(1.2); }
+@media (hover: hover) { :root .spell-diamond:hover { transform: rotate(45deg) scale(1.2); } }
 :root .spell-diamond:active { transform: rotate(45deg) scale(.9); }
 /* полоса ячеек */
 :root .rd-ss-head { display: flex; align-items: center; gap: var(--sp-2); min-height: 32px; width: auto; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; color: var(--text-dim); font-family: var(--font); font-size: var(--fs-12); cursor: pointer; }
@@ -16488,7 +16523,7 @@ button.modal-close-bottom:hover,
 :root .rd-find-t { min-width: 0; overflow-wrap: anywhere; }
 :root .rd-find-s { flex: none; color: var(--text-mute); font-size: var(--fs-14); }
 :root .rd-find-row.create { color: var(--accent-ink); }
-:root .rd-find-row:is(:hover, :focus-visible) { background: var(--bg-2); outline: none; }
+@media (hover: hover) { :root .rd-find-row:is(:hover, :focus-visible) { background: var(--bg-2); outline: none; } }
 /* списки */
 :root .rd-inv-h { margin: var(--sp-5) 0 var(--sp-3); font-size: var(--fs-24); font-weight: 700; line-height: 1; }
 :root #inventory-list .rd-inv-h:first-child { margin-top: var(--sp-2); }
@@ -16547,7 +16582,7 @@ button.modal-close-bottom:hover,
    совет билда — рамка --magic; недоступно — пунктир и бледность. Заглушка загрузки
    без рамки, чтобы не выглядеть кликабельной. */
 :root :is(.feat-item, .asi-stat-item) { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-4); box-shadow: none; transition: background var(--t1); }
-:root :is(.feat-item, .asi-stat-item):hover { border-color: var(--border); background: var(--bg-3); }
+@media (hover: hover) { :root :is(.feat-item, .asi-stat-item):hover { border-color: var(--border); background: var(--bg-3); } }
 :root :is(.feat-item, .asi-stat-item).is-rec { border-color: color-mix(in srgb, var(--magic) 70%, transparent) !important; box-shadow: none; }
 :root .asi-stat-rec { color: var(--magic); }
 :root :is(.feat-item, .asi-stat-item).selected { border-color: var(--accent) !important; background: var(--bg-2); box-shadow: inset 3px 0 0 var(--accent); }
@@ -16556,7 +16591,7 @@ button.modal-close-bottom:hover,
 :root .asi-stat-item.selected .asi-stat-name { color: var(--accent); }
 :root .asi-stat-item.selected::before { content: "◆"; position: absolute; top: 2px; left: 6px; color: var(--accent); font-size: var(--fs-12); line-height: 1; }
 :root :is(.feat-item.taken, .asi-stat-item.is-capped) { opacity: .45; background: transparent; border-style: dashed; border-color: var(--border); }
-:root :is(.feat-item.taken, .asi-stat-item.is-capped):hover { background: transparent; }
+@media (hover: hover) { :root :is(.feat-item.taken, .asi-stat-item.is-capped):hover { background: transparent; } }
 :root .ac-modifier-item { background: var(--bg-2); border: 1px solid var(--border-soft); border-radius: var(--r-4); }
 :root .ac-modifier-item:is(.active, .negative, .note) { border-color: var(--border-soft); background: var(--bg-2); }
 :root .ac-modifier-item.active { box-shadow: inset 3px 0 0 var(--success); }
@@ -16569,16 +16604,16 @@ button.modal-close-bottom:hover,
    состояние — только цвет; действие — заливка акцентом, переход — --accent-ink текстом. */
 /* статус-бар: показатели текстом цвета состояния, без пилюль и пульса */
 :root .status-chip { background: none; border-color: transparent; border-radius: var(--r-4); box-shadow: none; animation: none; }
-:root .status-chip:hover { background: none; box-shadow: none; color: var(--accent-ink); }
+@media (hover: hover) { :root .status-chip:hover { background: none; box-shadow: none; color: var(--accent-ink); } }
 :root .conditions-popup-list .condition-badge { border-radius: var(--r-4); }
 :root .popup-group + .popup-group { border-top-color: var(--border-soft); }
 
 /* кубы, чип эффектов, лента бросков — без прыжков и масштаба */
-:root .tab-dice-fab:is(:hover, :active) { transform: none; background: transparent !important; }
+@media (hover: hover) { :root .tab-dice-fab:is(:hover, :active) { transform: none; background: transparent !important; } }
 :root .tab-dice-fab-icon { filter: none; }
-:root .tab-dice-fab:hover .tab-dice-fab-icon { opacity: 0.8; }
-:root .aef-fab:is(:hover, :active) { transform: none; }
-:root .aef-fab:hover { color: var(--accent-ink); }
+@media (hover: hover) { :root .tab-dice-fab:hover .tab-dice-fab-icon { opacity: 0.8; } }
+@media (hover: hover) { :root .aef-fab:is(:hover, :active) { transform: none; } }
+@media (hover: hover) { :root .aef-fab:hover { color: var(--accent-ink); } }
 :root .aef-row { background: none; border-bottom: 1px solid var(--border-soft); border-radius: 0; }
 :root .aef-row-x { border-radius: var(--r-4); }
 :root .qrs-close { border-radius: var(--r-4); }
@@ -16586,7 +16621,7 @@ button.modal-close-bottom:hover,
 /* меню ☰ на телефоне: строки без сдвига, подчёркивания и свечения, подписи групп без капса */
 @media (max-width: 1023px) {
   :root :is(.drawer-group, .drawer-char-sub) { text-transform: none; letter-spacing: 0; }
-  :root :is(.drawer-item, .drawer-settings-btn):is(:hover, :focus-visible, :active) { transform: none; box-shadow: none; color: var(--accent-ink); }
+  @media (hover: hover) { :root :is(.drawer-item, .drawer-settings-btn):is(:hover, :focus-visible, :active) { transform: none; box-shadow: none; color: var(--accent-ink); } }
   :root :is(.drawer-item, .drawer-settings-btn) .home-bullet { transform: rotate(45deg); }
   :root .drawer-item-label::after { display: none; }
 }
@@ -16603,7 +16638,7 @@ button.modal-close-bottom:hover,
 :root .roll-mode-btn.roll-mode-suggested { box-shadow: inset 3px 0 0 currentColor; }
 :root .dice-dual-die { border-width: 1px; border-radius: var(--r-4); }
 :root .dice-dual-kept, :root .dice-dual-dis .dice-dual-kept { box-shadow: none; }
-:root :is(.save-bonus-clickable, .skill-bonus-clickable):hover { transform: none; background: none; color: var(--accent-ink); }
+@media (hover: hover) { :root :is(.save-bonus-clickable, .skill-bonus-clickable):hover { transform: none; background: none; color: var(--accent-ink); } }
 
 /* расовые бонусы: линии мягкие, выбор — цветом без подчёркивания, замок — строкой */
 :root :is(.race-bonus-bar, .bg-feature-bar, .race-extras-panel) { border-top-color: var(--border-soft); }
@@ -16618,7 +16653,7 @@ button.modal-close-bottom:hover,
 :root .cc-badge-todo, :root .cc-opt-req { color: var(--warn); }
 :root .cc-badge-done { color: var(--success); }
 :root .cc-opt { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-4); }
-:root .cc-opt:hover { border-color: var(--border); background: var(--bg-3); }
+@media (hover: hover) { :root .cc-opt:hover { border-color: var(--border); background: var(--bg-3); } }
 :root .cc-opt.selected { border-color: var(--accent); background: var(--bg-2); box-shadow: inset 3px 0 0 var(--accent); }
 :root .cc-freeform-input { border-radius: var(--r-4); }
 
@@ -16634,13 +16669,13 @@ button.modal-close-bottom:hover,
 :root :is(.welcome-hero, .welcome-brand-ico) { filter: none; }
 :root .welcome-title { font-family: var(--font-display); }
 :root .welcome-choice { background: none; border: none; border-bottom: 1px solid var(--border-soft); border-radius: 0; }
-:root .welcome-choice:is(:hover, :focus-visible) { background: none; border-color: var(--border-soft); color: var(--accent-ink); }
+@media (hover: hover) { :root .welcome-choice:is(:hover, :focus-visible) { background: none; border-color: var(--border-soft); color: var(--accent-ink); } }
 :root :is(.welcome-choice, .welcome-cta):active { transform: none; }
 :root .welcome-choice-badge { background: none; padding: 0; color: var(--accent-ink); }
 :root .welcome-cta:not(.welcome-cta-primary):not(.welcome-cta-ghost) { background: none; border-color: var(--border); }
-:root .welcome-cta-primary:is(:hover, :focus-visible) { filter: none; background: var(--accent-hi); }
+@media (hover: hover) { :root .welcome-cta-primary:is(:hover, :focus-visible) { filter: none; background: var(--accent-hi); } }
 :root :is(.welcome-cta-ghost, .welcome-back) { color: var(--accent-ink); }
-:root .welcome-cta-ghost:hover { background: none; color: var(--accent-hi); }
+@media (hover: hover) { :root .welcome-cta-ghost:hover { background: none; color: var(--accent-hi); } }
 
 /* тур: рамка подсветки без свечения, шаг без капса */
 :root .tour-ring { border-width: 1px; border-color: var(--accent); box-shadow: none; animation: none; }
@@ -16680,7 +16715,7 @@ button.modal-close-bottom:hover,
 }
 :root[data-theme="light"] { --home-rule: var(--border); }
 :root .app-log-btn-danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
-:root .app-log-btn-danger:hover { border-color: var(--danger); }
+@media (hover: hover) { :root .app-log-btn-danger:hover { border-color: var(--danger); } }
 
 /* РД-Ф: приёмка по скриншотам */
 /* умение предыстории на «Личности»: подпись слева, текст размером строк */
@@ -16741,7 +16776,7 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
 .cr-why:empty { visibility: hidden; }
 /* действия мастера — видимые кнопки, а не подчёркнутый текст */
 #screen-creator :is(.hp-act, .race-extras-btn:not(.done)) { box-sizing: border-box; min-height: 40px; padding: var(--sp-1) var(--sp-3); border: 1px solid var(--accent); border-radius: var(--r-4); background: var(--accent-soft); color: var(--accent-ink); text-decoration: none; text-align: left; }
-#screen-creator :is(.hp-act, .race-extras-btn:not(.done)):hover:not([disabled]) { background: color-mix(in srgb, var(--accent) 25%, transparent); text-decoration: none; }
+@media (hover: hover) { #screen-creator :is(.hp-act, .race-extras-btn:not(.done)):hover:not([disabled]) { background: color-mix(in srgb, var(--accent) 25%, transparent); text-decoration: none; } }
 #screen-creator .hp-act[disabled] { border-color: var(--border); background: none; }
 #screen-creator :is(#cr-prev, .cr-manual) { border-color: var(--border); background: none; color: var(--text-dim); }
 #screen-creator .cr-manual { display: inline-flex; }
@@ -16750,7 +16785,7 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
 #screen-creator .race-extras-row { gap: var(--sp-2); }
 #screen-creator .race-extras-stat-pick { max-width: 100%; white-space: normal; text-align: left; padding: var(--sp-1) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-4); color: var(--text); background: var(--bg-2); cursor: pointer; }
 #screen-creator .race-extras-stat-pick + .race-extras-stat-pick::before { content: none; }
-#screen-creator .race-extras-stat-pick:hover:where(:not(:disabled)) { border-color: var(--accent); color: var(--text); }
+@media (hover: hover) { #screen-creator .race-extras-stat-pick:hover:where(:not(:disabled)) { border-color: var(--accent); color: var(--text); } }
 #screen-creator .race-extras-stat-pick.selected { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
 #screen-creator .race-extras-stat-pick.selected::after { content: " ✓"; }
 #screen-creator .race-extras-stat-pick:disabled { background: none; cursor: not-allowed; }
@@ -16769,7 +16804,7 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
 .cr-cards { display: grid; grid-template-columns: 1fr; gap: var(--sp-2); padding: 0 var(--sp-3); }
 @media (min-width: 1024px) { .cr-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .cr-card { display: flex; flex-direction: column; gap: 2px; width: 100%; padding: var(--sp-2) var(--sp-3); text-align: left; font: inherit; color: var(--text); background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-4); cursor: pointer; transition: background var(--t1); }
-.cr-card:hover { background: var(--bg-3); }
+@media (hover: hover) { .cr-card:hover { background: var(--bg-3); } }
 .cr-card.is-rec { border-color: color-mix(in srgb, var(--magic) 70%, transparent); }
 .cr-card.selected { border-color: var(--accent); background: var(--bg-2); box-shadow: inset 3px 0 0 var(--accent); }
 .cr-card-name { font-weight: 600; }
@@ -16790,3 +16825,52 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
 .cr-sum-row { align-items: baseline; gap: var(--sp-3); }
 .cr-sum-k { flex: none; width: 9em; color: var(--text-mute); font-size: var(--fs-sm); }
 .cr-sum-v { flex: 1; min-width: 0; }
+
+/* ══ МОБ3-1: система кнопок — три уровня ═══════════════════════════════════
+   Главная — заливка, 48; второстепенная — рамка, 44; ссылка — текст с зоной
+   нажатия 44 (::after, высоту строки не меняет). :hover — только (hover: hover). */
+.btn { height: auto; min-height: var(--btn-h); }
+:root :is(#sheet2, .s2-box) .s2-btn { min-height: 44px; border-radius: var(--r-4); font-size: var(--fs-16); }
+:root :is(#sheet2, .s2-box) .s2-acts .s2-btn.s2-glow { min-height: 48px; font-size: var(--fs-18); }
+:root :is(#sheet2, .s2-box) .s2-acts .s2-btn:not(.s2-glow) { border: 1px solid var(--border); background: transparent; color: var(--text); }
+@media (hover: hover) { :root :is(#sheet2, .s2-box) .s2-acts .s2-btn:not(.s2-glow):hover { border-color: var(--action); background: transparent; } }
+:root :is(#sheet2, .s2-box) .s2-acts .s2-btn:not(.s2-glow):active { border-color: var(--action-press); background: transparent; }
+.status-lbl { color: var(--text-mute); font-weight: var(--fw-medium, 500); }
+.tour-x { top: 0; right: 0; display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+@media (max-width: 640px) {
+  .btn-sm { --btn-h: 44px; --btn-fs: var(--fs-16); }
+  :root :is(#sheet2, .s2-box) .s2-link,
+  #tab-battle .bt-act,
+  :root #rd-quick-dock .rd-qd-link,
+  header .status-bar .status-chip[onclick] { position: relative; }
+  :root :is(#sheet2, .s2-box) .s2-link::after,
+  #tab-battle .bt-act::after,
+  :root #rd-quick-dock .rd-qd-link::after,
+  header .status-bar .status-chip[onclick]::after { content: ""; position: absolute; left: 50%; top: 50%; width: max(100% + 12px, 44px); height: 44px; transform: translate(-50%, -50%); }
+  :root :is(#sheet2, .s2-box) tr.s2-row { height: 44px; }
+  :root :is(#sheet2, .s2-box) .s2-sk { min-height: 44px; align-items: center; }
+  :root :is(#sheet2, .s2-box) .s2-atk .s2-atk-n,
+  :root :is(#sheet2, .s2-box) .s2-atk .s2-atk-d { min-height: 44px; }
+  :root :is(#sheet2, .s2-box) .s2-die { min-width: 44px; min-height: 44px; }
+  .accordion-toggle { min-height: 44px; }
+  #tab-notes .notes-menu-btn { min-width: 44px; min-height: 44px; }
+  .section-header-row.stats-collapse-header,
+  .abil-mini-insp,
+  .prof-add-row :is(button, select, input) { min-height: 44px; }
+  /* зона нажатия растёт отступом, раскладку держит отрицательный margin */
+  html[data-stats-layout] .abil-card-mod { padding-block: 12px; margin-block: -12px; }
+  :root .rd-ss-d { height: 44px; margin-block: -4px; }
+  :root .rd-ss-head { min-height: 44px; margin-block: -6px; }
+  .cr-pip::after { inset: -17px; }
+}
+/* МОБ3-1: пустой док — одна строка «＋ Закрепить»; кубы встают в правый край дока
+   и больше не перекрывают числа справа в контенте */
+@media (max-width: 1023px) {
+  :root.rd-dock-on.rd-dock-mini { --rd-dock-h: 54px; }
+  :root #rd-quick-dock.rd-qd-mini:not([hidden]) { padding-top: 0; padding-bottom: 0; }
+  :root #rd-quick-dock.rd-qd-mini .rd-qd-head { min-height: 48px; font-size: var(--fs-14); }
+  :root #rd-quick-dock.rd-qd-mini .rd-qd-link { min-height: 44px; }
+  :root.rd-dock-on #rd-quick-dock:not([hidden]) { padding-right: 64px; }
+  :root.rd-dock-on #rd-slot-strip:not([hidden]) { padding-right: var(--sp-3); }
+  :root.rd-dock-on body:not(.no-character, .screen-home, .screen-page) .tab-dice-fab { bottom: calc(var(--rd-tabbar-h) + env(safe-area-inset-bottom, 0px) + var(--sp-1) + (var(--rd-dock-h) - var(--sp-1) - 48px) / 2); }
+}

@@ -566,7 +566,7 @@ function updateInspirationLabels(char) {
     ? "Героическое вдохновение — потратьте, чтобы перебросить любой кубик; берётся новый результат"
     : "Вдохновение — потратьте, чтобы получить преимущество на\u00a0один бросок к20";
   var chip = $("status-inspiration");
-  if (chip) chip.title = tip;
+  if (chip) { chip.title = tip; chip.setAttribute("aria-label", name); }
   var card = $("insp-card-2024");
   if (card) {
     card.title = tip + " — нажмите, чтобы переключить";
