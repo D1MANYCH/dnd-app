@@ -829,6 +829,8 @@ function switchTab(tabName, btnEl) {
   document.querySelectorAll(".drawer-item").forEach(function(el) { el.classList.remove("drawer-item-active"); });
   var drawerItem = document.querySelector(".drawer-item[data-drawer-tab='" + tabName + "']");
   if (drawerItem) drawerItem.classList.add("drawer-item-active");
+  var _hb = $("nav-hamburger");
+  if (_hb) _hb.classList.toggle("is-on", !activeBtn && !!drawerItem);
   try {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     if (tabElement) tabElement.scrollTop = 0;

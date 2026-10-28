@@ -133,7 +133,7 @@ function renderAllies() {
   var countEl = $("allies-count");
   if (!list) return;
   if (countEl) countEl.textContent = PARTY_DATA.allies.length > 0 ? PARTY_DATA.allies.length : "";
-  if (PARTY_DATA.allies.length === 0) { list.innerHTML = emptyStateHtml("users", "Нет соратников", "Спутники по\u00a0отряду — их хиты и\u00a0состояние.", "+ Добавить", "openAddAllyModal()", "party-empty"); return; }
+  if (PARTY_DATA.allies.length === 0) { list.innerHTML = emptyStateHtml("users", "Нет соратников", "Спутники по\u00a0отряду — их хиты и\u00a0состояние.", null, null, "party-empty"); return; }
   list.innerHTML = PARTY_DATA.allies.map(function(a, i) {
     var icon  = getClassIcon(a.cls);
     var color = getClassColor(a.cls);
@@ -552,7 +552,7 @@ function renderNPCs() {
   var countEl = $("npcs-count");
   if (!list) return;
   if (countEl) countEl.textContent = (PARTY_DATA.npcs && PARTY_DATA.npcs.length > 0) ? PARTY_DATA.npcs.length : "";
-  if (!PARTY_DATA.npcs || PARTY_DATA.npcs.length === 0) { list.innerHTML = emptyStateHtml("chat", "Нет персонажей", "Встреченные НПС — имя, роль, отношение.", "+ Добавить", "openAddNPCModal()", "party-empty"); return; }
+  if (!PARTY_DATA.npcs || PARTY_DATA.npcs.length === 0) { list.innerHTML = emptyStateHtml("chat", "Нет персонажей", "Встреченные НПС — имя, роль, отношение.", null, null, "party-empty"); return; }
   list.innerHTML = PARTY_DATA.npcs.map(function(n, i) {
     // FEAT-4: бэйджи локации и отношения
     var subBadges = "";
@@ -593,7 +593,7 @@ function renderMonsters() {
   var countEl = $("monsters-count");
   if (!list) return;
   if (countEl) countEl.textContent = PARTY_DATA.monsters.length > 0 ? PARTY_DATA.monsters.length : "";
-  if (PARTY_DATA.monsters.length === 0) { list.innerHTML = emptyStateHtml("skull", "Нет монстров", "Свой противник или\u00a0готовый из\u00a0SRD.", "+ Добавить", "openAddMonsterModal()", "party-empty"); return; }
+  if (PARTY_DATA.monsters.length === 0) { list.innerHTML = emptyStateHtml("skull", "Нет монстров", "Свой противник или\u00a0готовый из\u00a0бестиария.", null, null, "party-empty"); return; }
   list.innerHTML = PARTY_DATA.monsters.map(function(m, i) {
     var typeIcon = getMonsterTypeIcon(m.type);
     // FEAT-4: бэйджи SRD-карточки (CR / КД / ХП / редакция), показываем только заполненные
@@ -662,7 +662,7 @@ function openSrdMonsterPickerForBattle() {
 }
 function _openSrdMonsterPickerCore() {
   if (!window.MONSTERS_SRD || !window.MONSTERS_SRD.length) {
-    showToast("SRD-бестиарий не\u00a0загружен", "error");
+    showToast("Бестиарий не\u00a0загружен", "error");
     return;
   }
   _srdPickerState.q = "";
@@ -834,7 +834,7 @@ function openSrdNpcPicker() {
 }
 function _openSrdNpcPickerCore() {
   if (!window.NPC_ARCHETYPES || !window.NPC_ARCHETYPES.length) {
-    showToast("NPC-архетипы не\u00a0загружены", "error");
+    showToast("Архетипы НПС не\u00a0загружены", "error");
     return;
   }
   _npcPickerState.q = "";

@@ -271,7 +271,7 @@ renderQuickDock();
 var _btn = document.getElementById("inv-backpack-toggle");
 if (_btn) {
   var _off = _isBackpackOff(char);
-  _btn.innerHTML = (typeof dndIcon === "function" ? '<span class="dico">' + dndIcon("inventory", 16) + "</span> " : "🎒 ") + (_off ? "Снят" : "Надет");
+  _btn.innerHTML = (typeof dndIcon === "function" ? '<span class="dico">' + dndIcon("inventory", 16) + "</span> " : "🎒 ") + (_off ? "Рюкзак снят" : "Рюкзак надет");
   // STYLE-8c2: состояние кодирует класс (цвет текста), а не инлайновая заливка
   _btn.classList.toggle("inv-backpack-off", _off);
 }

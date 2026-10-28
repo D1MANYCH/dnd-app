@@ -16919,3 +16919,28 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
 #screen-spellsearch .spell-item-actions button { min-height: 44px; padding: 0 var(--sp-2) 0 0; font-size: var(--fs-md); }
 #screen-spellsearch .spell-item .spell-meta span + span::before { content: none; }
 #screen-spellsearch .spell-item .spell-meta span:not(:last-child)::after { content: "·"; margin-left: var(--sp-2); color: var(--home-sub); }
+
+/* ══ МОБ3-4: «Мир» и «Сумка» ═════════════════════════════════════════════════
+   Мир: заголовок экрана, ☰ подсвечен, пока открыт раздел из меню; Выгрузить/Загрузить —
+   в «···». Сумка: поле поиска 18, монеты ПМ→ММ, размен под монетами. Форма предмета:
+   ×N и «?» — цели 44, флажок в цвет темы. */
+:root .party-page-head { margin: 0 0 var(--sp-2); }
+:root .nav-hamburger.is-on { color: var(--accent) !important; }
+:root .party-io-menu { position: relative; }
+:root .party-io-menu > summary { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; color: var(--accent-ink); font-size: var(--fs-18); font-weight: 700; letter-spacing: 1px; cursor: pointer; list-style: none; }
+:root .party-io-menu > summary::-webkit-details-marker { display: none; }
+:root .party-io-menu > summary:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+:root .party-io-list { position: absolute; right: 0; top: 100%; z-index: 30; display: flex; flex-direction: column; min-width: 200px; padding: var(--sp-1) 0; border: 1px solid var(--border); border-radius: var(--r-4); background: var(--bg-0); box-shadow: var(--rd-list-shadow); }
+:root .party-io-list button { width: 100%; min-height: 44px; margin: 0; padding: 0 var(--sp-3); border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--text); font-family: var(--font); font-size: var(--fs-16); text-align: left; white-space: nowrap; cursor: pointer; }
+@media (hover: hover) { :root .party-io-list button:hover { background: var(--bg-2); } }
+:root #rd-find-inv { font-size: var(--fs-18); }
+:root #rd-find-inv-wrap .rd-find-ico { top: 10px; }
+:root #tab-inventory .inv-coins-grid { order: 1; }
+:root #tab-inventory .inv-coin-total { order: 2; }
+:root #rd-exch { order: 3; }
+.magic-catalog-open-btn { white-space: normal; }
+.item-attune-label input[type="checkbox"] { flex-shrink: 0; width: 20px; height: 20px; accent-color: var(--accent); }
+@media (max-width: 640px) {
+  .item-qty-btn { min-width: 44px; min-height: 44px; }
+  .field-help-btn { width: 24px !important; height: 24px !important; font-size: var(--fs-14) !important; }
+}

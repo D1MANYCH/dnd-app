@@ -972,7 +972,7 @@ function renderCompanions() {
     var list = $(elId);
     if (!list) return;
     if (companions.length === 0) {
-      list.innerHTML = emptyStateHtml("wolf", "Нет прихвостней", "Фамильяр, скакун или\u00a0призванное существо.", "+ Добавить", "openAddCompanionModal()", "party-empty");
+      list.innerHTML = emptyStateHtml("wolf", "Нет прихвостней", "Фамильяр, скакун или\u00a0призванное существо.", elId === "companions-list-world" ? null : "+ Добавить", "openAddCompanionModal()", "party-empty");
       return;
     }
     list.innerHTML = companions.map(function(c, i) {

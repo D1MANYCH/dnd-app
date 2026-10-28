@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
-<link rel="stylesheet" href="style.css?v=v575">
+<link rel="stylesheet" href="style.css?v=v576">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -330,7 +330,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
         <div class="welcome-feat"><span class="welcome-feat-ico" data-ico="sheet">📋</span><span>Лист персонажа с&nbsp;автоподсчётом модификаторов и&nbsp;48 готовыми билдами</span></div>
         <div class="welcome-feat"><span class="welcome-feat-ico" data-ico="spells">✨</span><span>760 заклинаний с&nbsp;фильтрами, ячейками и&nbsp;подготовкой</span></div>
         <div class="welcome-feat"><span class="welcome-feat-ico" data-ico="dice">🎲</span><span>3D-кубики: быстрые броски с&nbsp;листа с&nbsp;историей</span></div>
-        <div class="welcome-feat"><span class="welcome-feat-ico" data-ico="combat">⚔️</span><span>Боевой трекер: инициатива, ХП и&nbsp;монстры из&nbsp;SRD</span></div>
+        <div class="welcome-feat"><span class="welcome-feat-ico" data-ico="combat">⚔️</span><span>Боевой трекер: инициатива, ХП и&nbsp;монстры из&nbsp;бестиария</span></div>
       </div>
       <div class="welcome-actions">
         <button type="button" class="welcome-cta welcome-cta-primary" onclick="welcomeContinue()">Продолжить</button>
@@ -1535,7 +1535,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div class="inv-backpack-header">
     <h4>Рюкзак</h4>
     <div style="display:flex;gap:var(--sp-2);align-items:center;">
-      <button id="inv-backpack-toggle" class="btn btn-text btn-sm inv-add-btn" onclick="toggleBackpackOff()" title="Снять/надеть рюкзак: вещи внутри временно недоступны и&nbsp;не&nbsp;занимают слотов"><span data-ico="inventory" data-ico-size="16">🎒</span> Надет</button>
+      <button id="inv-backpack-toggle" class="btn btn-text btn-sm inv-add-btn" onclick="toggleBackpackOff()" title="Снять/надеть рюкзак: вещи внутри временно недоступны и&nbsp;не&nbsp;занимают слотов"><span data-ico="inventory" data-ico-size="16">🎒</span> Рюкзак надет</button>
       <button class="btn btn-text btn-sm inv-add-btn" onclick="openItemModal(null, -1)">+ Добавить</button>
     </div>
   </div>
@@ -1565,7 +1565,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <label class="rd-exch-f"><span>Отдаю</span><input type="number" id="rd-exch-amt" value="1" min="1" inputmode="numeric" oninput="rdExchPreview()"></label>
       <div class="rd-exch-f"><span>Получаю</span><output id="rd-exch-get" for="rd-exch-amt rd-exch-from rd-exch-to">0</output></div>
     </div>
-    <div class="rd-exch-cur"><select id="rd-exch-from" aria-label="Отдаю монеты" onchange="rdExchPreview()"><option value="gp">Золото</option><option value="pp">Платина</option><option value="sp">Серебро</option><option value="ep">Электрум</option><option value="cp">Медь</option></select><span>на</span><select id="rd-exch-to" aria-label="Получаю монеты" onchange="rdExchPreview()"><option value="gp">Золото</option><option value="pp">Платина</option><option value="sp" selected>Серебро</option><option value="ep">Электрум</option><option value="cp">Медь</option></select></div>
+    <div class="rd-exch-cur"><select id="rd-exch-from" aria-label="Отдаю монеты" onchange="rdExchPreview()"><option value="pp">Платина</option><option value="gp" selected>Золото</option><option value="ep">Электрум</option><option value="sp">Серебро</option><option value="cp">Медь</option></select><span>на</span><select id="rd-exch-to" aria-label="Получаю монеты" onchange="rdExchPreview()"><option value="pp">Платина</option><option value="gp">Золото</option><option value="ep">Электрум</option><option value="sp" selected>Серебро</option><option value="cp">Медь</option></select></div>
     <p class="rd-exch-note" id="rd-exch-note"></p>
     <button type="button" class="btn btn-primary rd-exch-btn" onclick="rdExchange()">Разменять</button>
   </div>
@@ -1574,6 +1574,14 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <button type="button" class="mob-row list-row" id="coin-mob" onclick="openCoinSheet()"></button>
   <div class="inv-coins-grid">
     <div class="inv-coins-row inv-coins-row-3">
+      <div class="inv-coin-card">
+        <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#9b59b6"></span><span class="inv-coin-lbl">Платина</span></div>
+        <input type="number" id="coin-pp" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
+        <div class="inv-coin-card-btns">
+          <button class="inv-coin-btn" onclick="adjustCoin('pp',-1)">−</button>
+          <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('pp',1)">+</button>
+        </div>
+      </div>
       <div class="inv-coin-card inv-coin-card-gold">
         <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#c9a040"></span><span class="inv-coin-lbl">Золото</span></div>
         <input type="number" id="coin-gp" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
@@ -1583,29 +1591,21 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
         </div>
       </div>
       <div class="inv-coin-card">
-        <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#9b59b6"></span><span class="inv-coin-lbl">Платина</span></div>
-        <input type="number" id="coin-pp" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
+        <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#4a8bc9"></span><span class="inv-coin-lbl">Электрум</span></div>
+        <input type="number" id="coin-ep" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
         <div class="inv-coin-card-btns">
-          <button class="inv-coin-btn" onclick="adjustCoin('pp',-1)">−</button>
-          <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('pp',1)">+</button>
+          <button class="inv-coin-btn" onclick="adjustCoin('ep',-1)">−</button>
+          <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('ep',1)">+</button>
         </div>
       </div>
+    </div>
+    <div class="inv-coins-row inv-coins-row-2">
       <div class="inv-coin-card">
         <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#aaa"></span><span class="inv-coin-lbl">Серебро</span></div>
         <input type="number" id="coin-sp" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
         <div class="inv-coin-card-btns">
           <button class="inv-coin-btn" onclick="adjustCoin('sp',-1)">−</button>
           <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('sp',1)">+</button>
-        </div>
-      </div>
-    </div>
-    <div class="inv-coins-row inv-coins-row-2">
-      <div class="inv-coin-card">
-        <div class="inv-coin-card-top"><span class="inv-coin-dot" style="background:#4a8bc9"></span><span class="inv-coin-lbl">Электрум</span></div>
-        <input type="number" id="coin-ep" value="0" class="inv-coin-big-inp" oninput="updateChar(); updateCoinTotal()">
-        <div class="inv-coin-card-btns">
-          <button class="inv-coin-btn" onclick="adjustCoin('ep',-1)">−</button>
-          <button class="inv-coin-btn inv-coin-btn-plus" onclick="adjustCoin('ep',1)">+</button>
         </div>
       </div>
       <div class="inv-coin-card">
@@ -1668,6 +1668,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 
 <div id="tab-party" class="tab-content">
 
+<div class="page-head party-page-head"><h2 class="page-title">Мир</h2></div>
 <div class="tab-help-row"><button type="button" class="tab-help-btn tab-help-btn--text" onclick="openDmRef()">Шпаргалка мастера</button><button type="button" class="tab-help-btn" onclick="openHelp('party')" title="Справка по&nbsp;этому разделу" aria-label="Справка по&nbsp;разделу «Мир»"><span class="tab-help-q" aria-hidden="true">?</span>Справка</button></div>
 
 <!-- Мой персонаж -->
@@ -1685,8 +1686,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="party-section-count" id="allies-count"></span>
 <div class="party-section-actions">
 <button class="btn btn-primary btn-sm party-add-btn" onclick="openAddAllyModal()">＋ Добавить</button>
-<button class="btn btn-secondary btn-sm party-io-btn" onclick="exportAllies()" title="Выгрузить в&nbsp;файл">Выгрузить</button>
-<button class="btn btn-secondary btn-sm party-io-btn" onclick="document.getElementById('allies-import').click()" title="Загрузить из&nbsp;файла">Загрузить</button>
+<details class="party-io-menu"><summary class="party-io-btn" title="Файл" aria-label="Выгрузить или&nbsp;загрузить">···</summary><div class="party-io-list"><button type="button" class="list-row" onclick="this.closest('details').open=false;exportAllies()">Выгрузить в&nbsp;файл</button><button type="button" class="list-row" onclick="this.closest('details').open=false;document.getElementById('allies-import').click()">Загрузить из&nbsp;файла</button></div></details>
 <input type="file" id="allies-import" style="display:none" onchange="importAllies(this)" accept=".json">
 </div>
 </div>
@@ -1696,13 +1696,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- NPC -->
 <div class="party-section-card">
 <div class="party-section-title-row">
-<span class="party-section-label">Персонажи <em class="party-section-hint">NPC и&nbsp;квестовые герои</em></span>
+<span class="party-section-label">Персонажи <em class="party-section-hint">НПС и&nbsp;квестовые герои</em></span>
 <span class="party-section-count" id="npcs-count"></span>
 <div class="party-section-actions">
 <button class="btn btn-primary btn-sm party-add-btn" onclick="openAddNPCModal()">＋ Добавить</button>
-<button class="btn btn-primary btn-sm party-add-btn party-add-btn-srd" onclick="openSrdNpcPicker()" title="Шаблон-архетип"><span data-ico="book" data-ico-size="16">📚</span> Архетипы</button>
-<button class="btn btn-secondary btn-sm party-io-btn" onclick="exportNPCs()" title="Выгрузить в&nbsp;файл">Выгрузить</button>
-<button class="btn btn-secondary btn-sm party-io-btn" onclick="document.getElementById('npcs-import').click()" title="Загрузить из&nbsp;файла">Загрузить</button>
+<button class="btn btn-secondary btn-sm party-add-btn party-add-btn-srd" onclick="openSrdNpcPicker()" title="Шаблон-архетип"><span data-ico="book" data-ico-size="16">📚</span> Архетипы</button>
+<details class="party-io-menu"><summary class="party-io-btn" title="Файл" aria-label="Выгрузить или&nbsp;загрузить">···</summary><div class="party-io-list"><button type="button" class="list-row" onclick="this.closest('details').open=false;exportNPCs()">Выгрузить в&nbsp;файл</button><button type="button" class="list-row" onclick="this.closest('details').open=false;document.getElementById('npcs-import').click()">Загрузить из&nbsp;файла</button></div></details>
 <input type="file" id="npcs-import" style="display:none" onchange="importNPCs(this)" accept=".json">
 </div>
 </div>
@@ -1716,10 +1715,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <span class="party-section-count" id="monsters-count"></span>
 <div class="party-section-actions">
 <!-- PLAY2-8 (бывш. РОСТ-16): сначала поиск по бестиарию, своё существо — вторым действием -->
-<button class="btn btn-primary btn-sm party-add-btn" onclick="openSrdMonsterPicker()" title="Найти в&nbsp;бестиарии SRD"><span data-ico="book" data-ico-size="16">📚</span> Из&nbsp;бестиария</button>
-<button class="btn btn-primary btn-sm party-add-btn party-add-btn-srd" onclick="openAddMonsterModal()" title="Создать своего монстра">＋ Своего</button>
-<button class="btn btn-secondary btn-sm party-io-btn" onclick="exportMonsters()" title="Выгрузить в&nbsp;файл">Выгрузить</button>
-<button class="btn btn-secondary btn-sm party-io-btn" onclick="document.getElementById('monsters-import').click()" title="Загрузить из&nbsp;файла">Загрузить</button>
+<button class="btn btn-primary btn-sm party-add-btn" onclick="openSrdMonsterPicker()" title="Найти в&nbsp;бестиарии"><span data-ico="book" data-ico-size="16">📚</span> Из&nbsp;бестиария</button>
+<button class="btn btn-secondary btn-sm party-add-btn party-add-btn-srd" onclick="openAddMonsterModal()" title="Создать своего монстра">＋ Своего</button>
+<details class="party-io-menu"><summary class="party-io-btn" title="Файл" aria-label="Выгрузить или&nbsp;загрузить">···</summary><div class="party-io-list"><button type="button" class="list-row" onclick="this.closest('details').open=false;exportMonsters()">Выгрузить в&nbsp;файл</button><button type="button" class="list-row" onclick="this.closest('details').open=false;document.getElementById('monsters-import').click()">Загрузить из&nbsp;файла</button></div></details>
 <input type="file" id="monsters-import" style="display:none" onchange="importMonsters(this)" accept=".json">
 </div>
 </div>
@@ -2046,7 +2044,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="help-block">
         <div class="help-block-title">Как взять второй класс</div>
         <p>Второй класс берётся вместо очередного уровня в&nbsp;текущем. Три пути ведут в&nbsp;одно окно: на&nbsp;листе в&nbsp;«Основном» под&nbsp;полем «Класс» — «+ Второй класс (мультикласс) →»; во&nbsp;вкладке «Развитие» — «Добавить класс (мультикласс) →»; или&nbsp;«Повысить уровень» → «Добавить новый класс (мультикласс)».</p>
-        <p>Пока основа не&nbsp;зафиксирована, те же кнопки открывают окно «Классы и&nbsp;уровни»: раскладка вроде «Воин 3 / Плут 2» задаётся сразу, без&nbsp;пошагового повышения. Первый класс в&nbsp;списке — начальный. Требование 13 там только подсказка — для&nbsp;NPC и&nbsp;домашних правил.</p>
+        <p>Пока основа не&nbsp;зафиксирована, те же кнопки открывают окно «Классы и&nbsp;уровни»: раскладка вроде «Воин 3 / Плут 2» задаётся сразу, без&nbsp;пошагового повышения. Первый класс в&nbsp;списке — начальный. Требование 13 там только подсказка — для&nbsp;НПС и&nbsp;домашних правил.</p>
         <p>В&nbsp;окне выберите класс из&nbsp;списка. Если требования не&nbsp;выполнены, под&nbsp;списком видно, какой характеристики не&nbsp;хватает, и&nbsp;кнопка «Выбрать» неактивна. После выбора уровень персонажа вырастет на&nbsp;1, а&nbsp;новый класс получит 1 уровень.</p>
       </div>
       <div class="help-block">
@@ -2131,8 +2129,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     <div id="help-party" class="help-section hidden">
       <button type="button" class="btn btn-secondary help-tour-btn" onclick="startTabTour('party')"><span data-ico="compass" data-ico-size="16">🧭</span> Пройти тур по&nbsp;разделу</button>
       <div class="help-block">
-        <div class="help-block-title">Спутники и&nbsp;NPC</div>
-        <p>Список спутников, питомцев и&nbsp;важных персонажей мира. Существ можно добавить из&nbsp;встроенного бестиария SRD.</p>
+        <div class="help-block-title">Спутники и&nbsp;НПС</div>
+        <p>Список спутников, питомцев и&nbsp;важных персонажей мира. Существ можно добавить из&nbsp;встроенного бестиария.</p>
       </div>
       <div class="help-block">
         <div class="help-block-title">Заметки о&nbsp;мире</div>
@@ -2343,7 +2341,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <input type="hidden" id="npc-edit-index" value="-1">
 <div class="party-form">
 <label>Имя</label>
-<input type="text" id="npc-name-inp" placeholder="Имя NPC">
+<input type="text" id="npc-name-inp" placeholder="Имя НПС">
 <label>Роль / профессия</label>
 <input type="text" id="npc-role-inp" placeholder="Торговец, барон, союзник…">
 <label>Локация / где встретить</label>
@@ -2405,7 +2403,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <!-- FEAT-4: SRD Monster Picker (STYLE-15: экран, а не модалка) -->
 <div id="screen-monsters" class="page-screen hidden">
 <div class="page-stage">
-<div class="page-head"><h2 class="page-title">Бестиарий SRD 5e</h2><button type="button" class="page-back" onclick="closeSrdMonsterPicker()">← Назад</button></div>
+<div class="page-head"><h2 class="page-title">Бестиарий</h2><button type="button" class="page-back" onclick="closeSrdMonsterPicker()">← Назад</button></div>
 <div class="srd-monster-filters">
 <input type="text" id="srd-monster-search" placeholder="Поиск: гоблин, wolf, нежить…" oninput="setSrdMonsterSearch(this.value)">
 <select id="srd-monster-cr" onchange="setSrdMonsterCr(this.value)">
@@ -2425,7 +2423,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div id="srd-npc-modal" class="confirm-modal-overlay">
 <div class="confirm-modal-box party-modal-box srd-monster-box">
 <button type="button" class="modal-close" onclick="closeSrdNpcPicker()" aria-label="Закрыть">✕</button>
-<h4>Архетипы NPC</h4>
+<h4>Архетипы НПС</h4>
 <div class="srd-monster-filters">
 <input type="text" id="srd-npc-search" placeholder="Поиск: торговец, страж, lord…" oninput="setSrdNpcSearch(this.value)">
 <select id="srd-npc-att" onchange="setSrdNpcAtt(this.value)">
@@ -3086,8 +3084,8 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="modal-content">
 <button type="button" class="modal-close" onclick="closeItemModal()" aria-label="Закрыть">✕</button>
 <h3 id="item-modal-title">Добавить предмет</h3>
-<button type="button" class="btn btn-secondary btn-block magic-catalog-open-btn" onclick="openGearCatalog()"><span data-ico="inventory" data-ico-size="16">🎒</span> Из&nbsp;каталога снаряжения</button>
-<button type="button" class="btn btn-secondary btn-block magic-catalog-open-btn" onclick="openMagicCatalog()"><span data-ico="book" data-ico-size="16">📖</span> Выбрать из&nbsp;каталога магических предметов</button>
+<button type="button" class="btn btn-secondary btn-block magic-catalog-open-btn" onclick="openGearCatalog()"><span data-ico="inventory" data-ico-size="16">🎒</span> Каталог снаряжения</button>
+<button type="button" class="btn btn-secondary btn-block magic-catalog-open-btn" onclick="openMagicCatalog()"><span data-ico="book" data-ico-size="16">📖</span> Каталог магических предметов</button>
 <div class="add-spell-form item-form">
 <input type="hidden" id="item-category">
 <input type="hidden" id="item-slot-index">
@@ -3610,44 +3608,44 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v575"></script>
+<script src="app-log.js?v=v576"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v575"></script>
-<script src="bg-space.js?v=v575"></script>
-<script src="dice-arena-bg.js?v=v575"></script>
-<script src="data.js?v=v575"></script>
+<script src="icons.js?v=v576"></script>
+<script src="bg-space.js?v=v576"></script>
+<script src="dice-arena-bg.js?v=v576"></script>
+<script src="data.js?v=v576"></script>
 <!-- PERF-2/PERF-4: build-notes-data.js (~530 КБ) и character-builds.js (~200 КБ) грузятся лениво — см. ensureBuildNotes/ensureBuilds ниже -->
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v575"></script>
-<script src="spells.js?v=v575"></script>
-<script src="spell-effects.js?v=v575"></script>
+<script src="glossary-data.js?v=v576"></script>
+<script src="spells.js?v=v576"></script>
+<script src="spell-effects.js?v=v576"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v575"></script>
-<script src="app-migrate.js?v=v575"></script>
-<script src="app-builds.js?v=v575"></script>
-<script src="app-core.js?v=v575"></script>
-<script src="app-io.js?v=v575"></script>
-<script src="app-backup.js?v=v575"></script>
-<script src="app-sync.js?v=v575"></script>
-<script src="app-combat.js?v=v575"></script>
-<script src="app-conditions.js?v=v575"></script>
-<script src="app-cast-effects.js?v=v575"></script>
-<script src="app-proficiencies.js?v=v575"></script>
-<script src="app-hp.js?v=v575"></script>
-<script src="app-spells.js?v=v575"></script>
-<script src="app-inventory.js?v=v575"></script>
-<script src="start-equip-2014.js?v=v575"></script>
+<script src="rules.js?v=v576"></script>
+<script src="app-migrate.js?v=v576"></script>
+<script src="app-builds.js?v=v576"></script>
+<script src="app-core.js?v=v576"></script>
+<script src="app-io.js?v=v576"></script>
+<script src="app-backup.js?v=v576"></script>
+<script src="app-sync.js?v=v576"></script>
+<script src="app-combat.js?v=v576"></script>
+<script src="app-conditions.js?v=v576"></script>
+<script src="app-cast-effects.js?v=v576"></script>
+<script src="app-proficiencies.js?v=v576"></script>
+<script src="app-hp.js?v=v576"></script>
+<script src="app-spells.js?v=v576"></script>
+<script src="app-inventory.js?v=v576"></script>
+<script src="start-equip-2014.js?v=v576"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v575"></script>
-<script src="app-wildshape.js?v=v575"></script>
-<script src="class-choices.js?v=v575"></script>
-<script src="subclass-choices-data.js?v=v575"></script>
+<script src="app-party.js?v=v576"></script>
+<script src="app-wildshape.js?v=v576"></script>
+<script src="class-choices.js?v=v576"></script>
+<script src="subclass-choices-data.js?v=v576"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js).
      PERF-5: модуль (~200 КБ) грузится лениво — window.ensureDiceBox() из app-dice.js
      при первом действии пользователя или открытии кубиков; пока не загружен — 2D-бросок. -->
@@ -3655,7 +3653,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   var diceBoxP = null;
   window.ensureDiceBox = function () {
     if (!diceBoxP) {
-      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v575").then(function (m) {
+      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v576").then(function (m) {
         window.DiceBox = m.default;
         window.dispatchEvent(new Event("dicebox:ready"));
         return m.default;
@@ -3664,18 +3662,18 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     return diceBoxP;
   };
 </script>
-<script src="app-dice.js?v=v575"></script>
-<script src="app-settings.js?v=v575"></script>
-<script src="app-ui.js?v=v575"></script>
-<script src="app-home.js?v=v575"></script>
-<script src="app-asi.js?v=v575"></script>
-<script src="app-creator.js?v=v575"></script>
-<script src="app-progress.js?v=v575"></script>
-<script src="app-notes.js?v=v575"></script>
-<script src="app-desktop.js?v=v575"></script>
-<script src="history-stack.js?v=v575"></script>
-<script src="app-help.js?v=v575"></script>
-<script src="app-sheet2.js?v=v575"></script>
+<script src="app-dice.js?v=v576"></script>
+<script src="app-settings.js?v=v576"></script>
+<script src="app-ui.js?v=v576"></script>
+<script src="app-home.js?v=v576"></script>
+<script src="app-asi.js?v=v576"></script>
+<script src="app-creator.js?v=v576"></script>
+<script src="app-progress.js?v=v576"></script>
+<script src="app-notes.js?v=v576"></script>
+<script src="app-desktop.js?v=v576"></script>
+<script src="history-stack.js?v=v576"></script>
+<script src="app-help.js?v=v576"></script>
+<script src="app-sheet2.js?v=v576"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3688,9 +3686,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v575",
-    "vendor/jspdf/roboto-base64.js?v=v575",
-    "app-pdf.js?v=v575"
+    "vendor/jspdf/jspdf.umd.min.js?v=v576",
+    "vendor/jspdf/roboto-base64.js?v=v576",
+    "app-pdf.js?v=v576"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3713,50 +3711,50 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // PERF-4: сами билды нужны пикеру, гайду, плану и подсказкам левел-апа — грузим по требованию.
   window.ensureBuilds = function () {
     if (window.CHARACTER_BUILDS) return Promise.resolve();
-    return loadScript("character-builds.js?v=v575");
+    return loadScript("character-builds.js?v=v576");
   };
   // PERF-2: заметки билдов нужны только applyBuild — грузим по требованию.
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v575").then(function () {
+    return loadScript("build-notes-data.js?v=v576").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
   // NGEN-2: пулы генератора «Записей» нужны только кнопке «Сгенерировать».
   window.ensureNotesGen = function () {
     if (window.NOTES_GEN) return Promise.resolve();
-    return loadScript("notes-gen-data.js?v=v575");
+    return loadScript("notes-gen-data.js?v=v576");
   };
   // PERF-3: бестиарий SRD нужен только пикерам вкладки отряда — грузим по требованию.
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v575"),
-      loadScript("npc-srd.js?v=v575")
+      loadScript("monsters-srd.js?v=v576"),
+      loadScript("npc-srd.js?v=v576")
     ]);
   };
   // РОСТ-5: звери для Дикого облика и «Превращения» — грузим по требованию.
   window.ensureBeastForms = function () {
     if (window.BEAST_FORMS) return Promise.resolve();
-    return loadScript("beast-forms.js?v=v575");
+    return loadScript("beast-forms.js?v=v576");
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v575");
+    return loadScript("magic-items.js?v=v576");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v575");
+    return loadScript("gear-catalog.js?v=v576");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v575").then(function () {
+    return loadScript("data-2024.js?v=v576").then(function () {
       window.__edition2024Loaded = true;
     });
   };
@@ -3799,7 +3797,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="notes-modal-row">
         <label class="notes-modal-label" for="nem-type">Тип</label>
         <select id="nem-type" class="notes-modal-select">
-          <option value="npc">🧝 NPC</option>
+          <option value="npc">🧝 НПС</option>
           <option value="quest">🎯 Квест</option>
           <option value="location">🗺️ Локация</option>
           <option value="session">📅 Сессия</option>
@@ -3816,7 +3814,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       </div>
       <div class="notes-modal-row col">
         <label class="notes-modal-label" for="nem-body">Текст (Markdown)</label>
-        <textarea id="nem-body" class="notes-modal-textarea" rows="8" placeholder="Описание, заметки… Поддерживается Markdown. @ИмяNPC — кликабельная ссылка."></textarea>
+        <textarea id="nem-body" class="notes-modal-textarea" rows="8" placeholder="Описание, заметки… Поддерживается Markdown. @ИмяНПС — кликабельная ссылка."></textarea>
       </div>
       <div class="notes-modal-row col">
         <label class="notes-modal-label">Теги</label>
