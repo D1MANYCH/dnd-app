@@ -487,7 +487,7 @@ function _renderFeatPickList(fp, search, level, container) {
     var srcRaw = String(spell.source || "PH14");
     var div = document.createElement("div");
     div.className = "spell-item list-row" + (isFeat ? " spell-added" : "");
-    div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase().replace(/[^\w-]/g, "") + "\">" + escapeHtml(srcRaw) + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p><div class=\"spell-item-actions\">" + btn + "</div>";
+    div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase().replace(/[^\w-]/g, "") + "\">" + escapeHtml(srcRaw) + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spellCompRu(spell.components)) + "</span></div><p>" + escapeHtml(spell.desc) + "</p><div class=\"spell-item-actions\">" + btn + "</div>";
     container.appendChild(div);
   });
 }
@@ -957,7 +957,7 @@ var hbActions = spell.homebrew
   : "";
 var div = document.createElement("div");
 div.className = "spell-item list-row" + (isAdded ? " spell-added" : "");
-div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase().replace(/[^\w-]/g, "") + "\">" + escapeHtml(srcRaw) + "</span>" + hbBadge + " <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spell.components) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<div class=\"spell-item-actions\"><button class=\"" + (isAdded ? "secondary spell-added-btn" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + idArg + ")" : "addSpell(" + idArg + ")") + "\">" + (isAdded ? "✓ Выбрано" : "+ Добавить") + "</button>" + hbActions + "</div>";
+div.innerHTML = "<h4>" + highlightMatch(spell.name, search) + " <span class=\"source-badge source-" + srcRaw.toLowerCase().replace(/[^\w-]/g, "") + "\">" + escapeHtml(srcRaw) + "</span>" + hbBadge + " <span class=\"class-badge " + classBadge + "\">" + classText + "</span></h4><div class=\"spell-meta\"><span>" + (spell.level > 0 ? spell.level + " ур." : "Заговор") + "</span><span>" + escapeHtml(spell.time) + "</span><span>" + escapeHtml(spell.range) + "</span><span>" + escapeHtml(spellCompRu(spell.components)) + "</span></div><p>" + escapeHtml(spell.desc) + "</p>" + (spell.higherLevel ? "<p class=\"spell-higher\">" + escapeHtml(spell.higherLevel) + "</p>" : "") + "<div class=\"spell-item-actions\"><button class=\"" + (isAdded ? "secondary spell-added-btn" : "small") + "\" onclick=\"" + (isAdded ? "removeSpell(" + idArg + ")" : "addSpell(" + idArg + ")") + "\">" + (isAdded ? "✓ Выбрано" : "+ Добавить") + "</button>" + hbActions + "</div>";
 container.appendChild(div);
 });
 if (filtered.length > LIMIT) {
@@ -966,6 +966,12 @@ more.style.cssText = "text-align:center;color:var(--text-dim);padding:var(--sp-3
 more.textContent = "Показано " + LIMIT + " из " + filtered.length + " — уточните поиск";
 container.appendChild(more);
 }
+}
+// МОБ3-3: в данных компоненты латиницей «V,S,M(…)» — на экран «В, С, М (…)»
+function spellCompRu(c) {
+  c = String(c || "");
+  var i = c.indexOf("("), head = i < 0 ? c : c.slice(0, i), tail = i < 0 ? "" : " " + c.slice(i);
+  return head.split(",").map(function(t) { t = t.trim(); return { V: "В", S: "С", M: "М" }[t] || t; }).filter(Boolean).join(", ") + tail;
 }
 function addSpell(spellId) {
 const char = getCurrentChar();
@@ -1017,7 +1023,7 @@ if (!container) return;
 renderPrepCounter();
 if (typeof renderQuickDock === "function") renderQuickDock();
 if (!char.spells.mySpells || char.spells.mySpells.length === 0) {
-container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: var(--sp-5) 0;">' + dndIcoHtml("inbox", 22) + ' Нет заклинаний — нажмите «Найти заклинание»</p>';
+container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: var(--sp-5) 0;">' + dndIcoHtml("inbox", 22) + ' Нет заклинаний — найдите в поле выше или откройте «Каталог»</p>';
 return;
 }
 // CAST-6: живые экземпляры каста по имени заклинания — бейдж «Активно · ⏳N рд»
@@ -1064,7 +1070,7 @@ var sourceRu = srcRaw === "PH14" ? "Книга игрока 2014" : (srcRaw === 
 // действие «Использовать». Ничего не потеряно: раскрытие показывает всё.
 var taxonomyLine = '<div class="spell-card-taxonomy">' +
   (schoolRu ? '<span>' + dndIcoHtml("grad", 12) + ' Школа: <b>' + escapeHtml(schoolRu) + '</b></span>' : '') +
-  (spell.components ? '<span>' + dndIcoHtml("flask", 12) + ' Компоненты: <b>' + escapeHtml(spell.components) + '</b></span>' : '') +
+  (spell.components ? '<span>' + dndIcoHtml("flask", 12) + ' Компоненты: <b>' + escapeHtml(spellCompRu(spell.components)) + '</b></span>' : '') +
   (spell.duration ? '<span>⏱ Длительность: <b>' + escapeHtml(spell.duration) + '</b></span>' : '') +
   '<span>' + dndIcoHtml("user", 12) + ' Классы: <b>' + escapeHtml(classNamesRu) + '</b></span>' +
   (sourceRu ? '<span>' + dndIcoHtml("book", 12) + ' <b>' + escapeHtml(sourceRu) + '</b></span>' : '') +
@@ -1377,10 +1383,11 @@ function renderPrepCounter() {
   const el = $("prep-counter");
   if (!el) return;
   var cantripMax = char ? calcMaxCantrips(char) : null;
-  var cantripHint = "";
+  // МОБ3-3: заговоры — равноправный счётчик, а не приписка в скобках
+  var cantripHtml = "";
   if (cantripMax !== null) {
     var cantripHave = (char.spells.mySpells || []).filter(function(s) { return s && s.level === 0 && !s.grantedBy; }).length;
-    cantripHint = " · заговоров " + cantripHave + "/" + cantripMax;
+    cantripHtml = '<span class="prep-label">· Заговоры:</span><span class="prep-count' + (cantripHave >= cantripMax ? " prep-full" : "") + '">' + cantripHave + '</span><span class="prep-sep">/</span><span class="prep-max">' + cantripMax + '</span>';
   }
   if (!char || !isPrepClass(char)) {
     // AUD-9 (C38): «знающие» классы 2014 — счётчик известных заклинаний по таблице класса
@@ -1391,7 +1398,7 @@ function renderPrepCounter() {
       return;
     }
     el.style.display = "";
-    el.innerHTML = '<span class="prep-icon">' + dndIcoHtml("sheet", 13) + '</span><span class="prep-label">Известно:</span><span class="prep-count' + (kHave >= kMax ? " prep-full" : "") + '">' + kHave + '</span><span class="prep-sep">/</span><span class="prep-max">' + kMax + '</span><span class="prep-hint">(таблица класса' + cantripHint + ')</span>';
+    el.innerHTML = '<span class="prep-icon">' + dndIcoHtml("sheet", 13) + '</span><span class="prep-label">Известно:</span><span class="prep-count' + (kHave >= kMax ? " prep-full" : "") + '">' + kHave + '</span><span class="prep-sep">/</span><span class="prep-max">' + kMax + '</span>' + cantripHtml;
     return;
   }
   if (!char.spells.prepared) char.spells.prepared = [];
@@ -1403,13 +1410,11 @@ function renderPrepCounter() {
   var statName = { wis: "МУД", cha: "ХАР", int: "ИНТ" }[prep.stat] || "";
   // PHB 2014: жрец/друид/волшебник готовят «мод + уровень», паладин — «мод + ½ уровня».
   // PHB 2024: число из таблицы класса; рядом — лимит заговоров, если он есть у класса.
-  var hint;
+  var hint = "";
   if (_pe.length > 1) {
     hint = "(" + _pe.map(function(x) { return x.cls + " " + _prepLimit(char, x); }).join(" + ") + ")";
-  } else if (prep.prepared) {
-    hint = "(таблица класса" + cantripHint + ")";
-  } else {
-    hint = "(" + statName + " + " + (prep.formula === "mod+halfLevel" ? "½ ур." : "ур.") + cantripHint + ")";
+  } else if (!prep.prepared) {
+    hint = "(" + statName + " + " + (prep.formula === "mod+halfLevel" ? "½ ур." : "ур.") + ")";
   }
   el.style.display = "";
   // PLAY2-6 (PT-157): мультикласс с «знающим» классом (Паладин + Чародей) — ещё и счётчик известных;
@@ -1420,7 +1425,7 @@ function renderPrepCounter() {
     var kHave2 = Math.max(0, _knownSpellCount(char) - prepCount);
     knownHtml = '<span class="prep-label">· Известно:</span><span class="prep-count' + (kHave2 >= kMax2 ? " prep-full" : "") + '">' + kHave2 + '</span><span class="prep-sep">/</span><span class="prep-max">' + kMax2 + '</span>';
   }
-  el.innerHTML = '<span class="prep-icon">' + dndIcoHtml("sheet", 13) + '</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span>' + knownHtml + '<span class="prep-hint">' + hint + '</span>';
+  el.innerHTML = '<span class="prep-icon">' + dndIcoHtml("sheet", 13) + '</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span>' + knownHtml + cantripHtml + (hint ? '<span class="prep-hint">' + hint + '</span>' : '');
 }
 
 // ── Использование заклинания (трата ячейки из карточки) ─────

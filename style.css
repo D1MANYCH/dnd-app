@@ -16900,3 +16900,22 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
   .rest-cols > .rest-card { border-top: 0; }
   .rest-actions--go .rest-go { flex: 0 0 auto; min-width: 240px; }
 }
+
+/* ══ МОБ3-3: «Магия» и поиск заклинаний ═══════════════════════════════════
+   Имена и поле поиска — 18 (заголовки 20/14), Мод/СЛ/Атака без коробок, на телефоне
+   пустой блок «Ячейки» скрыт (ячейки — в полосе #rd-slot-strip). Поиск: поле 44/16 на всю
+   ширину, «+ Добавить» — цель 44 px, «·» между свойствами — в конце строки, не в начале. */
+:root #tab-spells .spell-card-name { font-size: var(--fs-18); }
+:root #rd-find-spl { font-size: var(--fs-18); }
+:root #rd-find-spl-wrap .rd-find-ico { top: 10px; }
+:root #tab-spells .sc-stat-block,
+:root #tab-spells .sc-stat-block--main { background: none; border-radius: 0; box-shadow: none; border-color: var(--home-rule); }
+@media (max-width: 1023px) {
+  :root #spell-slots-card { display: none !important; }
+  :root #tab-spells .sc-stat-block { border-top: 0; border-right: 0; border-bottom: 0; }
+  :root #tab-spells .sc-stats-row > .sc-stat-block:first-child { border-left: 0; }
+}
+#screen-spellsearch input.bp-search { flex: 1 1 100%; min-height: 44px; font-size: var(--fs-16); }
+#screen-spellsearch .spell-item-actions button { min-height: 44px; padding: 0 var(--sp-2) 0 0; font-size: var(--fs-md); }
+#screen-spellsearch .spell-item .spell-meta span + span::before { content: none; }
+#screen-spellsearch .spell-item .spell-meta span:not(:last-child)::after { content: "·"; margin-left: var(--sp-2); color: var(--home-sub); }
