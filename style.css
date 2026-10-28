@@ -16944,3 +16944,23 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
   .item-qty-btn { min-width: 44px; min-height: 44px; }
   .field-help-btn { width: 24px !important; height: 24px !important; font-size: var(--fs-14) !important; }
 }
+
+/* ══ МОБ3-5а: «Главная» и «Характ.» ═════════════════════════════════════════
+   «Повысить» — главная кнопка, только когда опыта хватает; кнопки отдыха одной
+   ширины; «нет» у вдохновения — текстом, не акцентом; заголовки чисел над числами.
+   Телефон: строка БМ/вдохновение — только на «Характ.» (вдохновение — в шапке),
+   умения и черты — строками списка. */
+:root :is(#sheet2, .s2-box) th.n { text-align: right; }
+:root :is(#sheet2, .s2-box) .s2-insp .s2-link { color: var(--text); font-weight: 600; text-decoration: underline dotted; text-underline-offset: 3px; }
+:root :is(#sheet2, .s2-box) .s2-lvl .s2-btn.s2-lu-wait { min-height: 44px; border: 1px solid var(--border); background: transparent; color: var(--text); font-size: var(--fs-16); }
+@media (hover: hover) { :root :is(#sheet2, .s2-box) .s2-lvl .s2-btn.s2-lu-wait:hover { border-color: var(--action); background: transparent; } }
+:root :is(#sheet2, .s2-box) .s2-lvl .s2-btn.s2-glow { min-height: 48px; font-size: var(--fs-18); }
+@media (max-width: 1023px) {
+  :root #sheet2 .s2-rest { flex-wrap: nowrap; }
+  :root #sheet2 .s2-rest .s2-btn { flex: 0 0 calc((100% - var(--sp-4)) / 2); min-width: 0; padding: 0 var(--sp-2); }
+  :root #sheet2 .s2-rest .s2-kv { flex: 1 1 0; min-width: 0; }
+  :root #tab-sheet[data-rd-view="main"] #sheet2 .s2-line,
+  :root #tab-sheet[data-rd-view="stats"] #sheet2 .s2-insp { display: none; }
+  :root #sheet2 .s2-feats { flex-direction: column; flex-wrap: nowrap; gap: 0; font-size: var(--fs-16); }
+  :root #sheet2 .s2-feats .s2-link { display: flex; align-items: center; min-height: 44px; padding: var(--sp-1) 0; border-bottom: 1px solid var(--s2-line); color: var(--text); text-align: left; }
+}

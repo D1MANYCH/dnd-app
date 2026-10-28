@@ -136,7 +136,9 @@
     h.push("<div class='s2-lvl'><div class='s2-big'>" + lvl + " уровень</div>");
     h.push("<div class='s2-kv'>Опыт <input class='s2-num w' type='number' min='0' inputmode='numeric' value='" + (xp.have || 0) + "' onchange=\"sheet2Set('char-exp',this.value)\" aria-label='Опыт'>" + (xp.need ? " / " + xp.need : "") + "</div>");
     h.push("<div class='s2-xp'><i style='width:" + xpPct + "%'></i></div>");
-    h.push("<button type='button' class='s2-btn' onclick='openLevelUpModal()'>↑ Повысить</button></div>");
+    // МОБ3-5: главной кнопка становится, только когда опыта хватает
+    var luReady = !xp.need || (xp.have || 0) >= xp.need;
+    h.push("<button type='button' class='s2-btn" + (luReady ? " s2-glow" : " s2-lu-wait") + "' onclick='openLevelUpModal()'>↑ Повысить</button></div>");
     h.push("</div>");
 
     h.push("<div class='s2-main'>");
@@ -144,7 +146,7 @@
     // ── Строка общих чисел
     var pp = rulesPassivePerception(c, lvl, !!(c.skills && c.skills[3]));
     h.push("<div class='s2-line'><span>Бонус мастерства <b>" + fm(pb) + "</b></span>");
-    h.push("<span>Вдохновение: <button type='button' class='s2-link' onclick='toggleInspiration()'>" + (c.inspiration ? "есть" : "нет") + "</button></span>");
+    h.push("<span class='s2-insp'>Вдохновение: <button type='button' class='s2-link' onclick='toggleInspiration()'>" + (c.inspiration ? "есть" : "нет") + "</button></span>");
     h.push("<span>Пассивная Внимательность <b>" + pp + "</b></span>");
     h.push("</div>");
 
@@ -241,7 +243,7 @@
     var hpCur = cm.hpCurrent || 0;
     var ac = rulesAC(c);
     var acVal = (cm.armorId === "custom" && cm.ac) ? cm.ac : (ac && ac.ac) || cm.ac || 10;
-    h.push("<div class='s2-trio'><div><small>КД</small><b>" + acVal + "</b></div><div><small>Инициатива</small><b>" + fm(getInitiativeMod(c, lvl)) + "</b></div><div><small>Скорость</small><b>" + spd + "</b></div></div>");
+    h.push("<div class='s2-trio'><div><small>КД</small><b>" + acVal + "</b></div><div><small>Инициатива</small><b>" + fm(getInitiativeMod(c, lvl)) + "</b></div><div><small>Скорость</small><b>" + spd + "<small> фт.</small></b></div></div>");
     if (c.concentration) h.push("<div class='s2-acts'><span class='s2-kv'>Концентрация: <b>" + esc(c.concentration) + "</b></span><button type='button' class='s2-link' onclick='endConcentration()'>Снять</button></div>");
     h.push("<div class='s2-hp'><span>Хиты" + (cm.hpTemp ? " <small style='color:var(--info)'>+" + cm.hpTemp + " врем.</small>" : "") + "</span><span class='s2-big'>" + hpCur + "<small> / " + hpMax + "</small></span></div>");
     h.push("<div class='s2-hpbar'><i style='width:" + Math.max(0, Math.min(100, Math.round(100 * hpCur / hpMax))) + "%'></i></div>");
@@ -263,8 +265,8 @@
   function restBlock(c) {
     var lvl = c.level || 1;
     var hdLeft = Math.max(0, lvl - ((c.combat && c.combat.hpDiceSpent) || 0));
-    return "<h3>Отдых</h3><div class='s2-acts'><button type='button' class='s2-btn' onclick='openRestModal();showShortRestInfo()'>Короткий</button><button type='button' class='s2-btn' onclick='openRestModal();showLongRestInfo()'>Продолжительный</button></div>" +
-      "<div class='s2-acts'><button type='button' class='s2-btn' onclick='rollHitDieQuick()'" + (hdLeft ? "" : " disabled") + ">Кость хитов</button><span class='s2-kv'>осталось " + hdLeft + " из " + lvl + " (" + esc(rulesHitDiceLabel(c)) + ")</span></div>";
+    return "<h3>Отдых</h3><div class='s2-acts s2-rest'><button type='button' class='s2-btn' onclick='openRestModal();showShortRestInfo()'>Короткий</button><button type='button' class='s2-btn' onclick='openRestModal();showLongRestInfo()'>Продолжительный</button></div>" +
+      "<div class='s2-acts s2-rest'><button type='button' class='s2-btn' onclick='rollHitDieQuick()'" + (hdLeft ? "" : " disabled") + ">Кость хитов</button><span class='s2-kv'>осталось " + hdLeft + " из " + lvl + " (" + esc(rulesHitDiceLabel(c)) + ")</span></div>";
   }
 
   // Атака строкой: название с бонусом — бросок атаки (режим — всплывашкой у строки), урон — бросок урона
