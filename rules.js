@@ -869,7 +869,7 @@ function rulesShortRest(char, opts) {
 // Возвращает причину отказа строкой либо null, если отдых допустим.
 function rulesLongRestBlockReason(char) {
   var hp = parseInt(char && char.combat ? char.combat.hpCurrent : 0, 10) || 0;
-  if (hp < 1) return "На 0 хитов длинный отдых не даёт преимуществ: нужен хотя бы 1 хит в начале отдыха (PHB стр. 186)";
+  if (hp < 1) return "На 0 хитов продолжительный отдых не даёт преимуществ: нужен хотя бы 1 хит в начале отдыха (PHB стр. 186)";
   return null;
 }
 

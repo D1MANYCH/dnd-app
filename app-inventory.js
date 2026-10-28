@@ -200,7 +200,7 @@ var _attuneBtnHtml = item.attunable
 var _maxCh = parseInt(item.maxCharges, 10) || 0;
 var _curCh = _maxCh > 0 ? Math.max(0, Math.min(_maxCh, parseInt(item.charges, 10) || 0)) : 0;
 var _chargesTagHtml = _maxCh > 0
-  ? '<span class="inv-meta-tag inv-charges-tag' + (_curCh === 0 ? ' empty' : '') + '" title="Заряды' + (item.recharge === "none" ? " — не\u00a0восстанавливаются" : " — восстанавливаются на\u00a0длинном отдыхе") + '">заряды ' + _curCh + ' / ' + _maxCh + '</span>'
+  ? '<span class="inv-meta-tag inv-charges-tag' + (_curCh === 0 ? ' empty' : '') + '" title="Заряды' + (item.recharge === "none" ? " — не\u00a0восстанавливаются" : " — восстанавливаются на\u00a0продолжительном отдыхе") + '">заряды ' + _curCh + ' / ' + _maxCh + '</span>'
   : '';
 var _chargesCtrlHtml = _maxCh > 0
   ? '<span class="inv-charges-ctrl">' +

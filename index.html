@@ -29,7 +29,7 @@
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="icons/icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
-<link rel="stylesheet" href="style.css?v=v573">
+<link rel="stylesheet" href="style.css?v=v574">
 <script>
 if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="manifest";l.href="manifest.json";document.head.appendChild(l);}
 // UI-1: применить тему до отрисовки, чтобы не было вспышки тёмного на светлой теме
@@ -1273,7 +1273,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <button type="button" class="hp-act" id="roll-hd-btn" onclick="rollHitDieQuick()">Бросить кость хитов</button>
 <span class="hd-result" id="hd-result"></span>
 </div>
-<p class="hp-row-hint">Тратятся на&nbsp;коротком отдыхе, лечат на&nbsp;бросок + модификатор ТЕЛ. Половина восстанавливается на&nbsp;долгом отдыхе.</p>
+<p class="hp-row-hint">Тратятся на&nbsp;коротком отдыхе, лечат на&nbsp;бросок + модификатор ТЕЛ. Половина восстанавливается на&nbsp;продолжительном отдыхе.</p>
 </div>
 
 <!-- Отдых -->
@@ -1285,7 +1285,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="hp-row-body" id="hp-rest-body">
 <div class="hp-row-line">
 <button type="button" class="hp-act" onclick="openRestModal(); showShortRestInfo()"><span data-ico="coffee" data-ico-size="16">☕</span> Короткий отдых</button>
-<button type="button" class="hp-act" onclick="openRestModal(); showLongRestInfo()"><span data-ico="bed" data-ico-size="16">🛏️</span> Долгий отдых</button>
+<button type="button" class="hp-act" onclick="openRestModal(); showLongRestInfo()"><span data-ico="bed" data-ico-size="16">🛏️</span> Продолжительный отдых</button>
 <button type="button" class="hp-act" onclick="openHPHistory()"><span data-ico="history" data-ico-size="16">📋</span> История ХП</button>
 </div>
 </div>
@@ -1460,7 +1460,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="card" id="spell-slots-card">
 <div class="spell-slots-header">
 <h3>Ячейки заклинаний</h3>
-<button class="btn btn-secondary btn-sm ssl-restore-btn" onclick="restoreAllSlots()" title="Восстановить все ячейки"><span data-ico="bed" data-ico-size="16">🛏️</span> Длинный отдых</button>
+<button class="btn btn-secondary btn-sm ssl-restore-btn" onclick="restoreAllSlots()" title="Восстановить все ячейки"><span data-ico="bed" data-ico-size="16">🛏️</span> Продолжительный отдых</button>
 </div>
 <p style="font-size:var(--fs-12); color:var(--text-dim); margin-bottom:var(--sp-2);"><span data-ico="bulb" data-ico-size="14">💎</span> Клик по&nbsp;ячейке — потратить / вернуть · Золотые слева — свободные, счётчик: <span style="color:var(--success);font-weight:600;">свободные</span>/всего</p>
 <div class="spell-slots-visual" id="spell-slots-visual"></div>
@@ -2069,7 +2069,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
       <div class="help-block">
         <div class="help-block-title">Хиты и&nbsp;кость хитов</div>
         <p>Кость хитов у&nbsp;каждого класса своя (к6 у&nbsp;волшебника и&nbsp;чародея, к12 у&nbsp;варвара), и&nbsp;хиты растут костью того класса, чей уровень вы повышаете. Прибавка — бросок кости либо фиксированное среднее (для&nbsp;к10 это 6), плюс модификатор Телосложения; приложение прибавляет среднее — по&nbsp;книге это законный вариант.</p>
-        <p>Кости хитов тратятся на&nbsp;коротком отдыхе для&nbsp;лечения; на&nbsp;долгом отдыхе восстанавливается половина от&nbsp;их общего числа.</p>
+        <p>Кости хитов тратятся на&nbsp;коротком отдыхе для&nbsp;лечения; на&nbsp;продолжительном отдыхе восстанавливается половина от&nbsp;их общего числа.</p>
       </div>
     </div>
 
@@ -2231,7 +2231,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
         <div class="help-block-title">Бой и&nbsp;приключения</div>
         <p>• <b>Мастерство оружия</b>: у&nbsp;оружия появился приём (Прорубание, Задевание, Выпад, Толкание и&nbsp;др.), доступный по&nbsp;классовой способности.<br>
         • <b>Героическое вдохновение</b>: можно потратить, чтобы перебросить любой кубик; берётся новый результат.<br>
-        • <b>Истощение</b> — единый счётчик: −2 к&nbsp;каждому броску к20 и&nbsp;−5 футов скорости за&nbsp;степень; смерть на&nbsp;6-й. Долгий отдых снимает одну степень.<br>
+        • <b>Истощение</b> — единый счётчик: −2 к&nbsp;каждому броску к20 и&nbsp;−5 футов скорости за&nbsp;степень; смерть на&nbsp;6-й. Продолжительный отдых снимает одну степень.<br>
         • <b>Состояния переписаны</b>: уточнены эффекты Схваченного (его можно тащить за&nbsp;собой), Невидимого и&nbsp;Недееспособного (влияют на&nbsp;инициативу) и&nbsp;других.<br>
         • <b>Внезапность</b> больше не&nbsp;пропускает ход — застигнутый врасплох получает помеху на&nbsp;инициативу.<br>
         • <b>Действия структурированы</b>: Влияние, Изучение, Поиск, Использование, Магия и&nbsp;др.</p>
@@ -2515,19 +2515,12 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <div class="page-stage">
 <div class="page-head"><h2 class="page-title">Отдых</h2><button type="button" class="page-back" onclick="closeRestModal()">← Назад</button></div>
 <div id="rest-main-screen">
-<div class="rest-options">
-<button class="rest-option-btn short-rest" onclick="showShortRestInfo()">Короткий отдых<span class="time">1 час</span></button>
-<button class="rest-option-btn long-rest" onclick="showLongRestInfo()">Долгий отдых<span class="time">8 часов</span></button>
-</div>
-<p class="rest-hint">Выберите тип отдыха — ниже будет видно, что восстановится</p>
-</div>
-<div id="rest-info-screen" class="hidden">
-<div class="rest-info">
-<h4 id="rest-info-title">Короткий отдых</h4>
-<ul id="rest-info-list"></ul>
-</div>
-<div id="hit-dice-section" class="hit-dice-section hidden">
-<h4>Потратить кости хитов</h4>
+<div class="rest-cols" role="radiogroup" aria-label="Тип отдыха">
+<section class="rest-card" id="rest-card-short" onclick="selectRestType('short')">
+<button type="button" class="rest-option-btn short-rest" id="rest-pick-short" role="radio" aria-checked="false">Короткий отдых<span class="time">1 час</span></button>
+<ul class="rest-gain" id="rest-gain-short"></ul>
+<div id="hit-dice-section" class="hit-dice-section">
+<h4 id="hit-dice-label">Кости хитов</h4>
 <div class="hit-dice-controls" id="hit-dice-controls-total">
 <button type="button" class="hit-dice-step" onclick="adjustHitDice(-1)" aria-label="Меньше">−</button>
 <input type="number" id="hit-dice-to-spend" value="0" min="0" readonly>
@@ -2538,13 +2531,19 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 Доступно костей: <span id="hit-dice-available-rest">0</span> · восстановит <span id="hit-dice-heal">0 ХП</span>
 </div>
 </div>
+</section>
+<section class="rest-card" id="rest-card-long" onclick="selectRestType('long')">
+<button type="button" class="rest-option-btn long-rest" id="rest-pick-long" role="radio" aria-checked="false">Продолжительный отдых<span class="time">8 часов</span></button>
+<ul class="rest-gain" id="rest-gain-long"></ul>
 <div id="rest-food-section" class="rest-info hidden">
 <label class="item-attune-label"><input type="checkbox" id="rest-food-drink" checked> Персонаж поел и&nbsp;попил</label>
 <p class="rest-hint">Без&nbsp;еды и&nbsp;питья продолжительный отдых не&nbsp;снижает истощение (PHB стр. 291)</p>
 </div>
-<div class="rest-actions">
-<button type="button" class="rest-act" onclick="showRestMain()">Другой отдых</button>
-<button type="button" class="rest-act rest-act--primary" id="confirm-rest-btn" onclick="confirmRest()">Подтвердить</button>
+</section>
+</div>
+<p class="rest-hint rest-rules">Продолжительный отдых — не&nbsp;чаще раза в&nbsp;24&nbsp;часа, нужен хотя&nbsp;бы 1&nbsp;хит в&nbsp;начале (PHB стр. 186). Короткий — без&nbsp;ограничений.</p>
+<div class="rest-actions rest-actions--go">
+<button type="button" class="btn btn-primary rest-go" id="confirm-rest-btn" onclick="confirmRest()">Отдохнуть</button>
 </div>
 </div>
 <div id="rest-result-screen" class="hidden">
@@ -3612,44 +3611,44 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   <div id="app-log-list" class="app-log-list" role="log" aria-live="polite"></div>
 </div>
 
-<script src="app-log.js?v=v573"></script>
+<script src="app-log.js?v=v574"></script>
 <!-- Дымка v5: SVG-иконки (dndIcon, CONDITION_META/SCHOOL_META) — ДО остальных скриптов -->
 <!-- STYLE-7c: разметка вкладок зовёт dndIcon/dndIcoHtml напрямую. Если icons.js
      не доехал (сеть, битый кеш), без заглушек рендер падал бы с ReferenceError и
      вкладки оставались пустыми; так теряются только иконки. icons.js ниже
      перезаписывает обе функции своими. -->
 <script>window.dndIcon=function(){return '';};window.dndIcoHtml=function(){return '';};</script>
-<script src="icons.js?v=v573"></script>
-<script src="bg-space.js?v=v573"></script>
-<script src="dice-arena-bg.js?v=v573"></script>
-<script src="data.js?v=v573"></script>
+<script src="icons.js?v=v574"></script>
+<script src="bg-space.js?v=v574"></script>
+<script src="dice-arena-bg.js?v=v574"></script>
+<script src="data.js?v=v574"></script>
 <!-- PERF-2/PERF-4: build-notes-data.js (~530 КБ) и character-builds.js (~200 КБ) грузятся лениво — см. ensureBuildNotes/ensureBuilds ниже -->
 <!-- UX-4: глоссарий игровых терминов для тултипов в гайдах билдов -->
-<script src="glossary-data.js?v=v573"></script>
-<script src="spells.js?v=v573"></script>
-<script src="spell-effects.js?v=v573"></script>
+<script src="glossary-data.js?v=v574"></script>
+<script src="spells.js?v=v574"></script>
+<script src="spell-effects.js?v=v574"></script>
 <!-- SETUP-5: чистые расчёты правил (без DOM) — ДО app-core и вкладок -->
-<script src="rules.js?v=v573"></script>
-<script src="app-migrate.js?v=v573"></script>
-<script src="app-builds.js?v=v573"></script>
-<script src="app-core.js?v=v573"></script>
-<script src="app-io.js?v=v573"></script>
-<script src="app-backup.js?v=v573"></script>
-<script src="app-sync.js?v=v573"></script>
-<script src="app-combat.js?v=v573"></script>
-<script src="app-conditions.js?v=v573"></script>
-<script src="app-cast-effects.js?v=v573"></script>
-<script src="app-proficiencies.js?v=v573"></script>
-<script src="app-hp.js?v=v573"></script>
-<script src="app-spells.js?v=v573"></script>
-<script src="app-inventory.js?v=v573"></script>
-<script src="start-equip-2014.js?v=v573"></script>
+<script src="rules.js?v=v574"></script>
+<script src="app-migrate.js?v=v574"></script>
+<script src="app-builds.js?v=v574"></script>
+<script src="app-core.js?v=v574"></script>
+<script src="app-io.js?v=v574"></script>
+<script src="app-backup.js?v=v574"></script>
+<script src="app-sync.js?v=v574"></script>
+<script src="app-combat.js?v=v574"></script>
+<script src="app-conditions.js?v=v574"></script>
+<script src="app-cast-effects.js?v=v574"></script>
+<script src="app-proficiencies.js?v=v574"></script>
+<script src="app-hp.js?v=v574"></script>
+<script src="app-spells.js?v=v574"></script>
+<script src="app-inventory.js?v=v574"></script>
+<script src="start-equip-2014.js?v=v574"></script>
 <!-- FEAT-4: бестиарий SRD 5e + архетипы NPC.
      PERF-3: грузятся лениво — см. ensureBestiary ниже -->
-<script src="app-party.js?v=v573"></script>
-<script src="app-wildshape.js?v=v573"></script>
-<script src="class-choices.js?v=v573"></script>
-<script src="subclass-choices-data.js?v=v573"></script>
+<script src="app-party.js?v=v574"></script>
+<script src="app-wildshape.js?v=v574"></script>
+<script src="class-choices.js?v=v574"></script>
+<script src="subclass-choices-data.js?v=v574"></script>
 <!-- DICE2-1: @3d-dice/dice-box (ES-модуль, экспонируем в window для не-module app-ui.js).
      PERF-5: модуль (~200 КБ) грузится лениво — window.ensureDiceBox() из app-dice.js
      при первом действии пользователя или открытии кубиков; пока не загружен — 2D-бросок. -->
@@ -3657,7 +3656,7 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   var diceBoxP = null;
   window.ensureDiceBox = function () {
     if (!diceBoxP) {
-      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v573").then(function (m) {
+      diceBoxP = import("./vendor/dice-box/dice-box.es.js?v=v574").then(function (m) {
         window.DiceBox = m.default;
         window.dispatchEvent(new Event("dicebox:ready"));
         return m.default;
@@ -3666,18 +3665,18 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
     return diceBoxP;
   };
 </script>
-<script src="app-dice.js?v=v573"></script>
-<script src="app-settings.js?v=v573"></script>
-<script src="app-ui.js?v=v573"></script>
-<script src="app-home.js?v=v573"></script>
-<script src="app-asi.js?v=v573"></script>
-<script src="app-creator.js?v=v573"></script>
-<script src="app-progress.js?v=v573"></script>
-<script src="app-notes.js?v=v573"></script>
-<script src="app-desktop.js?v=v573"></script>
-<script src="history-stack.js?v=v573"></script>
-<script src="app-help.js?v=v573"></script>
-<script src="app-sheet2.js?v=v573"></script>
+<script src="app-dice.js?v=v574"></script>
+<script src="app-settings.js?v=v574"></script>
+<script src="app-ui.js?v=v574"></script>
+<script src="app-home.js?v=v574"></script>
+<script src="app-asi.js?v=v574"></script>
+<script src="app-creator.js?v=v574"></script>
+<script src="app-progress.js?v=v574"></script>
+<script src="app-notes.js?v=v574"></script>
+<script src="app-desktop.js?v=v574"></script>
+<script src="history-stack.js?v=v574"></script>
+<script src="app-help.js?v=v574"></script>
+<script src="app-sheet2.js?v=v574"></script>
 <!-- FEAT-3: PDF-экспорт (jsPDF + Roboto Regular для кириллицы).
      PERF-1: стек (~600 КБ) грузится лениво по первому клику 📄 — заглушка
      window.exportCharacterPDF инжектит 3 скрипта последовательно, app-pdf.js
@@ -3690,9 +3689,9 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
 <script>
 (function () {
   var PDF_STACK = [
-    "vendor/jspdf/jspdf.umd.min.js?v=v573",
-    "vendor/jspdf/roboto-base64.js?v=v573",
-    "app-pdf.js?v=v573"
+    "vendor/jspdf/jspdf.umd.min.js?v=v574",
+    "vendor/jspdf/roboto-base64.js?v=v574",
+    "app-pdf.js?v=v574"
   ];
   var loaded = {}; // src → Promise; успешные не перезагружаются при ретрае
   function loadScript(src) {
@@ -3715,50 +3714,50 @@ if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="mani
   // PERF-4: сами билды нужны пикеру, гайду, плану и подсказкам левел-апа — грузим по требованию.
   window.ensureBuilds = function () {
     if (window.CHARACTER_BUILDS) return Promise.resolve();
-    return loadScript("character-builds.js?v=v573");
+    return loadScript("character-builds.js?v=v574");
   };
   // PERF-2: заметки билдов нужны только applyBuild — грузим по требованию.
   // loadScript мемоизирует успех и сбрасывает упавший src → ретрай при след. вызове.
   window.ensureBuildNotes = function () {
     if (window.BUILD_NOTES) return Promise.resolve();
-    return loadScript("build-notes-data.js?v=v573").then(function () {
+    return loadScript("build-notes-data.js?v=v574").then(function () {
       if (window.attachBuildNotes) window.attachBuildNotes();
     });
   };
   // NGEN-2: пулы генератора «Записей» нужны только кнопке «Сгенерировать».
   window.ensureNotesGen = function () {
     if (window.NOTES_GEN) return Promise.resolve();
-    return loadScript("notes-gen-data.js?v=v573");
+    return loadScript("notes-gen-data.js?v=v574");
   };
   // PERF-3: бестиарий SRD нужен только пикерам вкладки отряда — грузим по требованию.
   window.ensureBestiary = function () {
     if (window.MONSTERS_SRD && window.NPC_ARCHETYPES) return Promise.resolve();
     return Promise.all([
-      loadScript("monsters-srd.js?v=v573"),
-      loadScript("npc-srd.js?v=v573")
+      loadScript("monsters-srd.js?v=v574"),
+      loadScript("npc-srd.js?v=v574")
     ]);
   };
   // РОСТ-5: звери для Дикого облика и «Превращения» — грузим по требованию.
   window.ensureBeastForms = function () {
     if (window.BEAST_FORMS) return Promise.resolve();
-    return loadScript("beast-forms.js?v=v573");
+    return loadScript("beast-forms.js?v=v574");
   };
   // REQ-4: каталог магических предметов нужен только пикеру инвентаря — грузим по требованию.
   window.ensureMagicItems = function () {
     if (window.MAGIC_ITEMS) return Promise.resolve();
-    return loadScript("magic-items.js?v=v573");
+    return loadScript("magic-items.js?v=v574");
   };
   // FIN-5: каталог обычного снаряжения нужен только пикеру инвентаря — грузим по требованию.
   window.ensureGearCatalog = function () {
     if (window.GEAR_CATALOG) return Promise.resolve();
-    return loadScript("gear-catalog.js?v=v573");
+    return loadScript("gear-catalog.js?v=v574");
   };
   // E24-0: данные редакции 2024 (species/предыстории/черты/состояния/классы) — новый
   // lazy-файл. Грузим при работе с 2024-персонажем или при бете. После загрузки
   // data-2024.js сам зовёт registerEdition2024() → EDITION_DATA['2024'] заполнен.
   window.ensureEdition2024 = function () {
     if (window.__edition2024Loaded) return Promise.resolve();
-    return loadScript("data-2024.js?v=v573").then(function () {
+    return loadScript("data-2024.js?v=v574").then(function () {
       window.__edition2024Loaded = true;
     });
   };

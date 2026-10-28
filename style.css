@@ -16874,3 +16874,29 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
   :root.rd-dock-on #rd-slot-strip:not([hidden]) { padding-right: var(--sp-3); }
   :root.rd-dock-on body:not(.no-character, .screen-home, .screen-page) .tab-dice-fab { bottom: calc(var(--rd-tabbar-h) + env(safe-area-inset-bottom, 0px) + var(--sp-1) + (var(--rd-dock-h) - var(--sp-1) - 48px) / 2); }
 }
+/* ══ МОБ3-2: отдых одним экраном — оба варианта с превью, одна кнопка ═════ */
+.rest-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 var(--sp-6); }
+.rest-card { padding-bottom: var(--sp-3); border-top: 1px solid var(--home-rule); cursor: pointer; }
+.rest-cols > .rest-card:first-child { border-top: 0; }
+.rest-card .rest-option-btn { border-top: 0; }
+.rest-card.is-on .rest-option-btn { color: var(--accent-lo); }
+.rest-card.is-on .rest-option-btn.short-rest::before { background: var(--info); }
+.rest-card.is-on .rest-option-btn.long-rest::before { background: var(--success); }
+.rest-gain { margin: 0; padding: 0 0 0 calc(var(--sp-2) + var(--home-bullet) + var(--sp-3)); list-style: none; font-size: var(--fs-sm); color: var(--text); }
+.rest-gain:empty { display: none; }
+.rest-gain li { margin-bottom: var(--sp-1); }
+.rest-gain .rest-gain-mute { color: var(--home-sub); }
+.rest-gain .rest-gain-warn { color: var(--danger); font-weight: var(--fw-semibold); }
+.rest-card:not(.is-on) .rest-gain,
+.rest-card:not(.is-on) .hit-dice-section { opacity: .6; }
+.rest-card .hit-dice-section,
+.rest-card .rest-info { margin-left: calc(var(--sp-2) + var(--home-bullet) + var(--sp-3)); padding-bottom: 0; border-top: 0; }
+.rest-card .hit-dice-section h4 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--home-sub); }
+.rest-rules { margin-top: 0; }
+.rest-actions--go { border-top: 0; }
+.rest-actions--go .rest-go { flex: 1 1 auto; }
+@media (min-width: 1024px) {
+  .rest-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rest-cols > .rest-card { border-top: 0; }
+  .rest-actions--go .rest-go { flex: 0 0 auto; min-width: 240px; }
+}

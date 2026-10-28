@@ -8895,7 +8895,7 @@
       var bd = getCharResourceDefs(mk("2024", "Варвар", 12));
       if (getResourceMax(bd.resources[0], mk("2024", "Варвар", 12)) !== 5) return "getResourceMax Варвар 12";
       if (getResourceMax(getCharResourceDefs(mk("2014", "Варвар", 20)).resources[0], mk("2014", "Варвар", 20)) !== 99) return "2014 Ярость 20 не безлимит";
-      if (crRestoreLabel(rage).indexOf("короткий") === -1 || crRestoreLabel({ restoreOn: "long" }) !== "долгий отдых") return "crRestoreLabel: " + crRestoreLabel(rage);
+      if (crRestoreLabel(rage).indexOf("короткий") === -1 || crRestoreLabel({ restoreOn: "long" }) !== "продолжительный отдых") return "crRestoreLabel: " + crRestoreLabel(rage);
       return true;
     });
 

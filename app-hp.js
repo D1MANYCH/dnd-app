@@ -17,62 +17,83 @@ hitDiceBySize = {};
 }
 function showRestMain() {
 const main = $("rest-main-screen");
-const info = $("rest-info-screen");
 const result = $("rest-result-screen");
 if (main) main.classList.remove("hidden");
-if (info) info.classList.add("hidden");
 if (result) result.classList.add("hidden");
-}
-function showShortRestInfo() {
-currentRestType = "short";
-const main = $("rest-main-screen");
-const info = $("rest-info-screen");
-const result = $("rest-result-screen");
-const title = $("rest-info-title");
-const list = $("rest-info-list");
-const hitDiceSection = $("hit-dice-section");
-const confirmBtn = $("confirm-rest-btn");
-if (main) main.classList.add("hidden");
-if (info) info.classList.remove("hidden");
-if (result) result.classList.add("hidden");
-if (title) title.innerHTML = dndIcoHtml("coffee", 16) + " Короткий отдых (1 час)";
-if (list) list.innerHTML = "<li>Потратьте кости хитов для\u00a0восстановления ХП</li><li>Восстанавливаются некоторые классовые умения</li><li>Заклинания НЕ\u00a0восстанавливаются (кроме Колдуна)</li>";
-if (hitDiceSection) hitDiceSection.classList.remove("hidden");
-const foodSection = $("rest-food-section");
-if (foodSection) foodSection.classList.add("hidden");
-// Короткий отдых доступен всегда: требования «хотя бы 1 хит» книга предъявляет
-// только к продолжительному (PHB стр.186). Кнопку могла погасить ветка длинного.
-if (confirmBtn) { confirmBtn.textContent = "Короткий отдых"; confirmBtn.disabled = false; }
-updateHitDiceInfo();
-}
-function showLongRestInfo() {
-currentRestType = "long";
-const main = $("rest-main-screen");
-const info = $("rest-info-screen");
-const result = $("rest-result-screen");
-const title = $("rest-info-title");
-const list = $("rest-info-list");
-const hitDiceSection = $("hit-dice-section");
-const confirmBtn = $("confirm-rest-btn");
-if (main) main.classList.add("hidden");
-if (info) info.classList.remove("hidden");
-if (result) result.classList.add("hidden");
-if (title) title.innerHTML = dndIcoHtml("bed", 16) + " Долгий отдых (8 часов)";
-// PHB стр.186: на 0 хитов отдых не даёт преимуществ — решение принимает rules.js,
-// здесь только показываем причину и не даём подтвердить.
 const char = getCurrentChar();
-const blockReason = char ? rulesLongRestBlockReason(char) : null;
-const blockNote = blockReason ? "<li style='color:var(--danger); font-weight:600;'>" + dndIcoHtml("alert", 13) + " " + escapeHtml(blockReason) + "</li>" : "";
-if (list) list.innerHTML = blockNote + "<li>Восстанавливаются ВСЕ ХП</li>" + (char && _restHasSlots(char) ? "<li>Восстанавливаются ВСЕ ячейки заклинаний</li>" : "") + "<li>Восстанавливаются потраченные кости хитов (" + (char && char.edition === "2024" ? "все" : "до\u00a0половины уровня") + ")</li><li>Восстанавливаются все классовые умения</li><li>" + dndIcoHtml("check", 13) + " Истощение снижается на\u00a01 уровень</li>";
-if (hitDiceSection) hitDiceSection.classList.add("hidden");
 // PHB стр.291: истощение снижает только тот отдых, в котором персонаж поел и попил.
 // Спрашиваем, только если истощение есть — иначе флажок в окне ни на что не влияет.
 const foodSection = $("rest-food-section");
 const foodBox = $("rest-food-drink");
-const hasExhaustion = !!(char && char.edition !== "2024" && char.conditions && char.conditions.some(function(c) { return String(c).indexOf("exhaustion_") === 0; }));
+const hasExhaustion = !!(char && char.edition !== "2024" && rulesExhaustionLevel(char) > 0);
 if (foodBox) foodBox.checked = true;
 if (foodSection) foodSection.classList.toggle("hidden", !hasExhaustion);
-if (confirmBtn) { confirmBtn.textContent = "Долгий отдых"; confirmBtn.disabled = !!blockReason; }
+selectRestType(currentRestType || "short");
+}
+function showShortRestInfo() { selectRestType("short"); }
+function showLongRestInfo() { selectRestType("long"); }
+// МОБ3-2: оба отдыха на одном экране — выбор подсвечивает вариант, кнопка одна
+function selectRestType(type) {
+currentRestType = type;
+const char = getCurrentChar();
+// PHB стр.186: на 0 хитов продолжительный отдых не даёт преимуществ — решение принимает
+// rules.js; короткий доступен всегда.
+const blockReason = char ? rulesLongRestBlockReason(char) : null;
+["short", "long"].forEach(function(t) {
+  var card = $("rest-card-" + t), pick = $("rest-pick-" + t);
+  if (card) card.classList.toggle("is-on", t === type);
+  if (pick) pick.setAttribute("aria-checked", t === type ? "true" : "false");
+});
+const confirmBtn = $("confirm-rest-btn");
+if (confirmBtn) confirmBtn.disabled = type === "long" && !!blockReason;
+if (char) _renderRestPreview(char, blockReason);
+updateHitDiceInfo();
+}
+// Ресурсы класса, которые вернёт отдых (та же логика, что в resetResourcesByRest)
+function _restResNames(char, type) {
+var data = typeof getCharResourceDefs === "function" ? getCharResourceDefs(char) : null;
+if (!data || !data.resources) return [];
+var out = [];
+data.resources.forEach(function(res) {
+  if (type === "long" || res.restoreOn === "short" || (res.shortFromLevel && (res._clsLevel || char.level || 1) >= res.shortFromLevel)) out.push(res.name);
+  else if (res.restoreShortOne) out.push(res.name + " (1 исп.)");
+});
+return out;
+}
+function _renderRestPreview(char, blockReason) {
+var li = function(ico, text, cls) { return "<li" + (cls ? " class='" + cls + "'" : "") + ">" + dndIcoHtml(ico, 13) + " " + text + "</li>"; };
+var sp = char.spells || {};
+var hasSlots = false;
+for (var i = 1; i <= 9; i++) { if (sp.slots && sp.slots[i]) hasSlots = true; }
+var isWarlock = (char.class === "Колдун") || !!(char.classes && char.classes.some(function(c) { return c.class === "Колдун"; }));
+var isMulti = !!(char.classes && char.classes.length > 1);
+var lvl = char.level || 1;
+var spent = char.combat.hpDiceSpent || 0;
+var sizes = Object.keys(rulesHitDicePool(char)).map(Number).sort(function(a, b) { return b - a; });
+var label = $("hit-dice-label");
+if (label) label.textContent = "Кости хитов · к" + sizes.join("/к") + " + ТЕЛ за кость";
+// Короткий: ячейки пакта (у колдуна без мультикласса — и обычные), умения на короткий
+var s = "";
+if (isWarlock && sp.pactSlots) s += li("focus", "Ячейки пакта: " + Math.max(0, sp.pactSlots - (sp.pactUsed || 0)) + " → " + sp.pactSlots);
+if (hasSlots) s += (isWarlock && !isMulti) ? li("sparkle", "Ячейки заклинаний: все") : li("sparkle", "Ячейки заклинаний не восстанавливаются", "rest-gain-mute");
+var shortRes = _restResNames(char, "short");
+if (shortRes.length) s += li("zap", "Умения: " + shortRes.map(escapeHtml).join(", "));
+var shortEl = $("rest-gain-short");
+if (shortEl) shortEl.innerHTML = s;
+// Продолжительный: хиты, кости, ячейки, умения, истощение, временные хиты
+var hp = parseInt(char.combat.hpCurrent, 10) || 0, hpMax = parseInt(char.combat.hpMax, 10) || 0;
+var hdBack = char.edition === "2024" ? spent : Math.min(spent, Math.max(1, Math.floor(lvl / 2)));
+var exh = rulesExhaustionLevel(char);
+var l = blockReason ? li("alert", escapeHtml(blockReason), "rest-gain-warn") : "";
+l += li("heart", hp >= hpMax ? "Хиты уже полные" : "Хиты: " + hp + " → " + hpMax);
+if (char.combat.hpTemp > 0) l += li("shield", "Временные хиты сгорают: " + char.combat.hpTemp);
+l += li("dice", hdBack ? "Кости хитов: +" + hdBack + " (" + (lvl - spent) + " → " + (lvl - spent + hdBack) + " из " + lvl + ")" : "Кости хитов: все на месте");
+if (hasSlots || sp.pactSlots) l += li("sparkle", "Ячейки заклинаний: все");
+var longRes = _restResNames(char, "long");
+if (longRes.length) l += li("zap", "Умения: все — " + longRes.map(escapeHtml).join(", "));
+if (exh > 0) l += li("dizzy", "Истощение: " + exh + " → " + (exh - 1));
+var longEl = $("rest-gain-long");
+if (longEl) longEl.innerHTML = l;
 }
 // PLAY2-7 (PT-087): строка про ячейки — только у заклинателя
 function _restHasSlots(char) {
@@ -83,12 +104,10 @@ return false;
 }
 function showRestResult(title, details) {
 const main = $("rest-main-screen");
-const info = $("rest-info-screen");
 const result = $("rest-result-screen");
 const resultTitle = $("rest-result-title");
 const resultDetails = $("rest-result-details");
 if (main) main.classList.add("hidden");
-if (info) info.classList.add("hidden");
 if (result) result.classList.remove("hidden");
 if (resultTitle) resultTitle.innerHTML = title;
 if (resultDetails) resultDetails.innerHTML = details;
@@ -219,11 +238,11 @@ var chargesRestored = _long.chargesRestored;
 resetResourcesByRest("long");
 loadConditions();
 loadEffects();
-addHPHistory(oldHp, maxHp, maxHp - oldHp, "Долгий отдых");
+addHPHistory(oldHp, maxHp, maxHp - oldHp, "Продолжительный отдых");
 if (maxHp - oldHp > 0) showHPToast(maxHp - oldHp);
-resultTitle = dndIcoHtml("check", 16) + " Долгий отдых завершён!";
+resultTitle = dndIcoHtml("check", 16) + " Продолжительный отдых завершён!";
 if (window.AppLog) AppLog.action("hp", "длинный отдых: ХП " + oldHp + " → " + maxHp + (exhaustionReduced ? ", истощение −1" : "") + (exhaustionHeld ? ", истощение осталось (без\u00a0еды и\u00a0питья)" : "") + (chargesRestored ? ", заряды: " + chargesRestored : ""));
-addJournalEntry("rest", "Долгий отдых — новая сессия", "Уровень " + (char.level||1) + " · ХП: " + oldHp + " → " + maxHp + " · Ячейки и ресурсы восстановлены");
+addJournalEntry("rest", "Продолжительный отдых — новая сессия", "Уровень " + (char.level||1) + " · ХП: " + oldHp + " → " + maxHp + " · Ячейки и ресурсы восстановлены");
 renderJournal();
 var exhaustionNote = exhaustionReduced ? "<p>" + dndIcoHtml("dizzy", 13) + " Истощение снижено на\u00a01 уровень</p>"
   : (exhaustionHeld ? "<p>" + dndIcoHtml("food", 13) + " Истощение осталось прежним: персонаж не\u00a0ел и\u00a0не пил (PHB стр. 291)</p>" : "");

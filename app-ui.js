@@ -504,9 +504,9 @@ function crRow(name, meta, body, opts) {
 function crRestoreLabel(res) {
   if (res.restoreOn === "short") return "короткий отдых";
   // E24-8: Ярость/Второе дыхание 2024 — все за долгий, одно за короткий отдых
-  if (res.restoreOn === "long" && res.restoreShortOne) return "долгий отдых · 1 за\u00a0короткий";
-  if (res.restoreOn === "long" && res.shortFromLevel) return "долгий отдых · короткий с " + res.shortFromLevel + " ур.";
-  if (res.restoreOn === "long" || res.restoreOn === "long_once") return "долгий отдых";
+  if (res.restoreOn === "long" && res.restoreShortOne) return "продолжительный отдых · 1 за\u00a0короткий";
+  if (res.restoreOn === "long" && res.shortFromLevel) return "продолжительный отдых · короткий с " + res.shortFromLevel + " ур.";
+  if (res.restoreOn === "long" || res.restoreOn === "long_once") return "продолжительный отдых";
   if (res.restoreOn === "turn") return "каждый ход";
   return "";
 }

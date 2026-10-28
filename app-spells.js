@@ -1486,14 +1486,14 @@ function _castSpellWithSlot(spellId, slotType, level) {
   if (slotType === "arcanum") {
     var arcId = _arcanumResId(char, spell);
     if (!arcId || (char.resources && char.resources[arcId])) {
-      showToast("Арканум " + level + " ур. уже использован до\u00a0длинного отдыха", "warn"); return;
+      showToast("Арканум " + level + " ур. уже использован до\u00a0продолжительного отдыха", "warn"); return;
     }
     if (!char.resources) char.resources = {};
     char.resources[arcId] = 1;
   } else if (slotType === "featfree") {
     var ffId = rulesFeatFreeResId(spell);
     if (!ffId || (char.resources && char.resources[ffId])) {
-      showToast("«" + spell.name + "» без\u00a0ячейки уже наложено до\u00a0длинного отдыха", "warn"); return;
+      showToast("«" + spell.name + "» без\u00a0ячейки уже наложено до\u00a0продолжительного отдыха", "warn"); return;
     }
     if (!char.resources) char.resources = {};
     char.resources[ffId] = 1;
@@ -1521,7 +1521,7 @@ function _finishCast(char, spell, slot) {
   if (slot && slot.type === "arcanum") {
     note = " — таинственный арканум " + slot.level + " ур.";
   } else if (slot && slot.type === "featfree") {
-    note = " — без\u00a0ячейки (черта, до\u00a0длинного отдыха)";
+    note = " — без\u00a0ячейки (черта, до\u00a0продолжительного отдыха)";
   } else if (slot && slot.type === "ritual") {
     note = " (ритуал, без\u00a0ячейки)";
   } else if (slot) {

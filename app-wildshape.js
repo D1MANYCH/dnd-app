@@ -225,7 +225,7 @@ function renderWildShapePicker() {
     h += '<div class="mon-sbv-title">Известные облики · ' + known.length + ' из ' + lim.known + '</div>';
     h += known.length ? known.map(function(b) {
       return wsPickRow(b, wsBtn("Принять", "wildShapeAssume", b.slug) + wsBtn("Забыть", "wildShapeForget", b.slug));
-    }).join("") : '<p class="hp-row-hint">Выучите облики из\u00a0списка ниже — сменить их можно после долгого отдыха.</p>';
+    }).join("") : '<p class="hp-row-hint">Выучите облики из\u00a0списка ниже — сменить их можно после продолжительного отдыха.</p>';
     var rest = allowed.filter(function(b) { return char.formsKnown.indexOf(b.slug) < 0 && match(b); });
     h += '<div class="mon-sbv-title">Можно выучить</div>' + rest.map(function(b) {
       return wsPickRow(b, wsBtn("Выучить", "wildShapeLearn", b.slug, full));
