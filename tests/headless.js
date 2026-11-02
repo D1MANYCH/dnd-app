@@ -3371,6 +3371,29 @@
       if (!rukzak || rukzak.location !== "worn") return "Рюкзак развёрнут без location:worn";
       return true;
     });
+    t("[Х-5] персонаж из билда создаётся с зафиксированной основой", function(){
+      var ch = null;
+      for (var i = characters.length - 1; i >= 0; i--) { if (characters[i].buildId === "fighter-champion-gwm") { ch = characters[i]; break; } }
+      if (!ch) return "персонаж не создан applyBuild";
+      if (ch.basicLocked !== true) return "basicLocked: ожидал true, получено " + ch.basicLocked;
+      if (ch.basicLockedOnce !== true) return "basicLockedOnce: ожидал true, получено " + ch.basicLockedOnce;
+      return true;
+    });
+    t("[Х-5] билды 2014: навыки класса — нужное число, из списка класса, не из предыстории", function(){
+      var bad = [];
+      (window.CHARACTER_BUILDS || []).forEach(function(b){
+        if (b.edition === "2024") return;
+        var need = CLASS_SKILL_COUNT[b.className] || 2, from = CLASS_SKILL_OPTIONS[b.className] || [];
+        var bg = (BACKGROUND_SKILLS[BACKGROUND_ALIASES[b.background] || b.background] || {}).skills || [];
+        var sk = b.skills || [];
+        if (sk.length !== need) bad.push(b.id + ": " + sk.length + "≠" + need);
+        sk.forEach(function(n){
+          if (from.indexOf(n) === -1) bad.push(b.id + ": «" + n + "» не навык класса");
+          if (bg.indexOf(n) !== -1) bad.push(b.id + ": «" + n + "» уже из предыстории");
+        });
+      });
+      return bad.length ? bad.join("; ") : true;
+    });
   }
 
   // ────────── БЛОК 25 (FIN-6): настройка магпредметов — countAttuned, лимит 3 ──────────

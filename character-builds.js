@@ -36,6 +36,7 @@ window.CHARACTER_BUILDS = [
     summary: "Простой и надёжный урон двуручным оружием с растущим шансом крита.",
     race: "Полуорк",
     background: "Солдат",
+    skills: ["Внимательность", "Выживание"],
     stats: { str: 15, dex: 13, con: 14, int: 8, wis: 12, cha: 10 },
     startingEquipment: ["Двуручный меч", "Тяжёлый арбалет", "Болты (20)", "Кольчуга", "Набор путешественника"],
     startingSpells: { cantrips: [], known: [], prepared: [] },
@@ -74,6 +75,7 @@ window.CHARACTER_BUILDS = [
     summary: "Ярость + двуручное оружие. Максимум урона в ближнем бою, простая механика.",
     race: "Полуорк",
     background: "Солдат",
+    skills: ["Внимательность", "Выживание"],
     stats: { str: 15, dex: 13, con: 14, int: 8, wis: 12, cha: 10 },
     startingEquipment: ["Двуручный топор", "4 метательных топора", "Набор путешественника"],
     startingSpells: { cantrips: [], known: [], prepared: [] },
@@ -113,6 +115,7 @@ window.CHARACTER_BUILDS = [
     summary: "Универсал: баффы, дебаффы, контроль и скиллы. Коллегия знаний — максимум экспертизы.",
     race: "Полуэльф",
     background: "Артист",
+    skills: ["Убеждение", "Проницательность", "Внимательность"],
     stats: { str: 8, dex: 14, con: 13, int: 10, wis: 12, cha: 15 },
     startingEquipment: ["Рапира", "Кожаный доспех", "Кинжал", "Лютня", "Набор артиста"],
     startingSpells: {
@@ -155,6 +158,7 @@ window.CHARACTER_BUILDS = [
     summary: "Классический лекарь в тяжёлой броне. Лечит лучше всех и крепко стоит.",
     race: "Холмовой дварф",
     background: "Прислужник",
+    skills: ["Медицина", "Убеждение"],
     stats: { str: 13, dex: 10, con: 14, int: 8, wis: 15, cha: 12 },
     startingEquipment: ["Булава", "Кольчуга", "Щит", "Символ веры", "Набор священника"],
     startingSpells: {
@@ -197,6 +201,7 @@ window.CHARACTER_BUILDS = [
     summary: "Превращается в боевых зверей — танк и DPS в дикой форме, кастер вне боя.",
     race: "Лесной эльф",
     background: "Отшельник",
+    skills: ["Природа", "Выживание"],
     stats: { str: 10, dex: 14, con: 14, int: 10, wis: 15, cha: 8 },
     startingEquipment: ["Скимитар", "Деревянный щит", "Кожаный доспех", "Тотем друида", "Набор исследователя"],
     startingSpells: {
@@ -239,6 +244,7 @@ window.CHARACTER_BUILDS = [
     summary: "Быстрый безоружный боец с контролем. Простейший монашеский подкласс.",
     race: "Лесной эльф",
     background: "Послушник",
+    skills: ["Акробатика", "Скрытность"],
     stats: { str: 10, dex: 15, con: 14, int: 10, wis: 14, cha: 8 },
     startingEquipment: ["Короткий меч", "10 дротиков", "Набор исследователя"],
     startingSpells: { cantrips: [], known: [], prepared: [] },
@@ -278,6 +284,7 @@ window.CHARACTER_BUILDS = [
     summary: "Классический рыцарь: бьёт божественной карой, лечит и защищает союзников.",
     race: "Человек",
     background: "Дворянин",
+    skills: ["Атлетика", "Проницательность"],
     stats: { str: 15, dex: 10, con: 14, int: 8, wis: 10, cha: 14 },
     startingEquipment: ["Длинный меч", "Щит", "Кольчуга", "5 дротиков", "Символ веры"],
     startingSpells: { cantrips: [], known: [], prepared: [] },
@@ -317,6 +324,7 @@ window.CHARACTER_BUILDS = [
     summary: "Дальнобойный стрелок со стилем Стрельба. Простой и стабильный урон с 30 фут+.",
     race: "Лесной эльф",
     background: "Бродяга",
+    skills: ["Скрытность", "Природа", "Анализ"],
     stats: { str: 10, dex: 15, con: 14, int: 8, wis: 14, cha: 10 },
     startingEquipment: ["Длинный лук", "20 стрел", "Кожаный доспех", "2 коротких меча", "Набор исследователя"],
     startingSpells: {
@@ -360,6 +368,7 @@ window.CHARACTER_BUILDS = [
     summary: "Скрытая атака издалека коротким луком или в упор кинжалом. Мобильный разведчик.",
     race: "Полурослик",
     background: "Преступник",
+    skills: ["Акробатика", "Ловкость рук", "Внимательность", "Анализ"],
     stats: { str: 8, dex: 15, con: 13, int: 12, wis: 14, cha: 10 },
     startingEquipment: ["Короткий лук", "20 стрел", "2 кинжала", "Кожаный доспех", "Воровские инструменты"],
     startingSpells: { cantrips: [], known: [], prepared: [] },
@@ -399,6 +408,7 @@ window.CHARACTER_BUILDS = [
     summary: "Огненный бластер с прочной шкурой. Метамагия для близнецовых и ускоренных заклинаний.",
     race: "Тифлинг",
     background: "Прислужник",
+    skills: ["Магия", "Убеждение"],
     stats: { str: 8, dex: 14, con: 14, int: 10, wis: 10, cha: 15 },
     startingEquipment: ["Лёгкий арбалет", "Кинжалы ×2", "Компонентный мешочек", "Набор прислужника"],
     startingSpells: {
@@ -442,6 +452,7 @@ window.CHARACTER_BUILDS = [
     summary: "Мучительный взрыв + Заклятый клинок = стабильный дамаг на расстоянии. Короткий отдых восстанавливает ячейки.",
     race: "Тифлинг",
     background: "Преступник",
+    skills: ["Магия", "Запугивание"],
     stats: { str: 8, dex: 14, con: 14, int: 10, wis: 10, cha: 15 },
     startingEquipment: ["Лёгкий арбалет", "Кинжалы ×2", "Компонентный мешочек", "Набор учёного"],
     startingSpells: {
@@ -484,6 +495,7 @@ window.CHARACTER_BUILDS = [
     summary: "Огненный шар без сопартийного дружественного огня. Простой и ясный кастер-бластер.",
     race: "Высший эльф",
     background: "Мудрец",
+    skills: ["Анализ", "Проницательность"],
     stats: { str: 8, dex: 14, con: 14, int: 15, wis: 12, cha: 8 },
     startingEquipment: ["Кинжал", "Компонентный мешочек", "Книга заклинаний", "Набор учёного"],
     startingSpells: {
@@ -532,6 +544,7 @@ window.CHARACTER_BUILDS = [
     summary: "Лучник с боевыми манёврами: точные выстрелы, контроль поля, стабильный урон.",
     race: "Лесной эльф",
     background: "Бродяга",
+    skills: ["Акробатика", "Проницательность"],
     stats: { str: 8, dex: 15, con: 14, int: 10, wis: 13, cha: 10 },
     startingEquipment: ["Длинный лук", "20 стрел", "Кольчужная рубаха", "Короткий меч", "Набор путешественника"],
     startingSpells: { cantrips: [], known: [], prepared: [] },
@@ -570,6 +583,7 @@ window.CHARACTER_BUILDS = [
     summary: "Воин с заклинаниями школы воплощения и ограждения. Щит, Туманный шаг, контроль.",
     race: "Человек",
     background: "Мудрец",
+    skills: ["Атлетика", "Внимательность"],
     stats: { str: 15, dex: 10, con: 14, int: 13, wis: 10, cha: 8 },
     startingEquipment: ["Длинный меч", "Щит", "Кольчуга", "Лёгкий арбалет", "Книга"],
     startingSpells: {
@@ -612,6 +626,7 @@ window.CHARACTER_BUILDS = [
     summary: "Непотопляемый танк: сопротивление ко всему (кроме психического) во время ярости.",
     race: "Полуорк",
     background: "Дикарь",
+    skills: ["Внимательность", "Уход за животными"],
     stats: { str: 15, dex: 13, con: 14, int: 8, wis: 12, cha: 10 },
     startingEquipment: ["Двуручный топор", "4 метательных копья", "Набор путешественника"],
     startingSpells: { cantrips: [], known: [], prepared: [] },
@@ -649,6 +664,7 @@ window.CHARACTER_BUILDS = [
     summary: "Метает копья в ярости. Гибридный боец ближ/дал. Черта Meteen mighty.",
     race: "Голиаф",
     background: "Дикарь",
+    skills: ["Внимательность", "Запугивание"],
     stats: { str: 15, dex: 13, con: 14, int: 8, wis: 12, cha: 10 },
     startingEquipment: ["4 метательных копья", "Ручной топор", "Двуручный топор", "Набор путешественника"],
     startingSpells: { cantrips: [], known: [], prepared: [] },
@@ -688,6 +704,7 @@ window.CHARACTER_BUILDS = [
     summary: "Воинственный бард: заклинания + рапира, баффы и средняя броня со щитом.",
     race: "Полуэльф",
     background: "Артист",
+    skills: ["Атлетика", "Убеждение", "Внимательность"],
     stats: { str: 10, dex: 15, con: 13, int: 8, wis: 10, cha: 15 },
     startingEquipment: ["Рапира", "Кольчужная рубаха", "Щит", "Лютня", "Набор артиста"],
     startingSpells: {
@@ -730,6 +747,7 @@ window.CHARACTER_BUILDS = [
     summary: "Сфокусирован на заклинаниях контроля и воровстве из других классов.",
     race: "Полурослик",
     background: "Гильд-артист",
+    skills: ["Магия", "Обман", "Внимательность"],
     stats: { str: 8, dex: 14, con: 13, int: 12, wis: 10, cha: 15 },
     startingEquipment: ["Рапира", "Кожаный доспех", "Лютня", "Набор артиста"],
     startingSpells: {
@@ -772,6 +790,7 @@ window.CHARACTER_BUILDS = [
     summary: "Тяжёлая броня, магическое оружие, бонусные атаки каналом — гибрид воина и кастера.",
     race: "Горный дварф",
     background: "Солдат",
+    skills: ["Религия", "Проницательность"],
     stats: { str: 15, dex: 10, con: 14, int: 8, wis: 14, cha: 10 },
     startingEquipment: ["Боевой молот", "Латный доспех", "Щит", "Символ веры", "Набор священника"],
     startingSpells: {
@@ -813,6 +832,7 @@ window.CHARACTER_BUILDS = [
     summary: "Громовые и молниевые заклинания, реакция-молния, металлическая броня и молот.",
     race: "Горный дварф",
     background: "Моряк",
+    skills: ["Религия", "Проницательность"],
     stats: { str: 15, dex: 10, con: 14, int: 8, wis: 14, cha: 10 },
     startingEquipment: ["Боевой молот", "Чешуйчатый доспех", "Щит", "Символ веры", "Набор путешественника"],
     startingSpells: {
@@ -855,6 +875,7 @@ window.CHARACTER_BUILDS = [
     summary: "Классический кастер-друид с бонусными заклинаниями и восстановлением ячеек.",
     race: "Лесной эльф",
     background: "Отшельник",
+    skills: ["Природа", "Магия"],
     stats: { str: 8, dex: 14, con: 14, int: 10, wis: 15, cha: 10 },
     startingEquipment: ["Скимитар", "Деревянный щит", "Кожаный доспех", "Тотем друида", "Набор исследователя"],
     startingSpells: {
@@ -896,6 +917,7 @@ window.CHARACTER_BUILDS = [
     summary: "Гибрид: вне боя — бьёт по Шиллеле, в бою — превращается в медведя/тигра.",
     race: "Холмовой дварф",
     background: "Отшельник",
+    skills: ["Внимательность", "Природа"],
     stats: { str: 8, dex: 12, con: 14, int: 10, wis: 15, cha: 10 },
     startingEquipment: ["Дубина", "Деревянный щит", "Кожаный доспех", "Тотем друида", "Набор исследователя"],
     startingSpells: {
@@ -938,6 +960,7 @@ window.CHARACTER_BUILDS = [
     summary: "Ниндзя: невидимость, телепорты между тенями, скрытные атаки.",
     race: "Лесной эльф",
     background: "Преступник",
+    skills: ["Акробатика", "Проницательность"],
     stats: { str: 10, dex: 15, con: 14, int: 8, wis: 14, cha: 10 },
     startingEquipment: ["Короткий меч", "10 дротиков", "Воровские инструменты", "Набор путешественника"],
     startingSpells: { cantrips: [], known: [], prepared: [] },
@@ -975,6 +998,7 @@ window.CHARACTER_BUILDS = [
     summary: "Боевой кастер: тратит ци на стихийные атаки — огненные/ледяные/ветряные удары.",
     race: "Эльф",
     background: "Послушник",
+    skills: ["Акробатика", "Атлетика"],
     stats: { str: 10, dex: 15, con: 14, int: 8, wis: 14, cha: 10 },
     startingEquipment: ["Посох", "10 дротиков", "Набор исследователя"],
     startingSpells: { cantrips: [], known: [], prepared: [] },
@@ -1014,6 +1038,7 @@ window.CHARACTER_BUILDS = [
     summary: "Охотник на врагов: метка мести + Охотничья метка + божественные кары.",
     race: "Человек",
     background: "Бродяга",
+    skills: ["Запугивание", "Проницательность"],
     stats: { str: 15, dex: 10, con: 14, int: 8, wis: 10, cha: 14 },
     startingEquipment: ["Двуручный меч", "Кольчуга", "5 дротиков", "Символ веры", "Набор путешественника"],
     startingSpells: { cantrips: [], known: [], prepared: [] },
@@ -1052,6 +1077,7 @@ window.CHARACTER_BUILDS = [
     summary: "Аура сопротивления магии — сияющая скала. Защитник партии, магические поражения вдвое слабее.",
     race: "Высший эльф",
     background: "Дворянин",
+    skills: ["Атлетика", "Проницательность"],
     stats: { str: 15, dex: 10, con: 14, int: 8, wis: 10, cha: 14 },
     startingEquipment: ["Длинный меч", "Щит", "Кольчуга", "5 дротиков", "Символ веры"],
     startingSpells: { cantrips: [], known: [], prepared: [] },
@@ -1091,6 +1117,7 @@ window.CHARACTER_BUILDS = [
     summary: "Боевой спутник-зверь + стрельба. Лучше заходит в партию с танком.",
     race: "Лесной эльф",
     background: "Отшельник",
+    skills: ["Уход за животными", "Выживание", "Скрытность"],
     stats: { str: 10, dex: 15, con: 14, int: 8, wis: 14, cha: 10 },
     startingEquipment: ["Длинный лук", "20 стрел", "Кожаный доспех", "2 коротких меча", "Набор исследователя"],
     startingSpells: {
@@ -1133,6 +1160,7 @@ window.CHARACTER_BUILDS = [
     summary: "Ближний бой со стилем Дуэлянт и рапирой. Гибрид ближ./дал.",
     race: "Человек",
     background: "Бродяга",
+    skills: ["Внимательность", "Скрытность", "Природа"],
     stats: { str: 10, dex: 15, con: 14, int: 8, wis: 14, cha: 10 },
     startingEquipment: ["Рапира", "Кольчужная рубаха", "Короткий лук", "20 стрел", "Набор исследователя"],
     startingSpells: {
@@ -1176,6 +1204,7 @@ window.CHARACTER_BUILDS = [
     summary: "Стелс + первый удар = автокрит. Взрывной урон на старте боя.",
     race: "Полуэльф",
     background: "Преступник",
+    skills: ["Акробатика", "Внимательность", "Анализ", "Проницательность"],
     stats: { str: 8, dex: 15, con: 14, int: 12, wis: 10, cha: 12 },
     startingEquipment: ["Короткий лук", "20 стрел", "2 кинжала", "Кожаный доспех", "Воровские инструменты", "Набор яда"],
     startingSpells: { cantrips: [], known: [], prepared: [] },
@@ -1214,6 +1243,7 @@ window.CHARACTER_BUILDS = [
     summary: "Плут + волшебник. Невидимая рука крадёт, магия и скрытные атаки.",
     race: "Лесной гном",
     background: "Преступник",
+    skills: ["Ловкость рук", "Анализ", "Акробатика", "Внимательность"],
     stats: { str: 8, dex: 15, con: 12, int: 14, wis: 10, cha: 12 },
     startingEquipment: ["Рапира", "2 кинжала", "Кожаный доспех", "Воровские инструменты", "Компонентный мешочек"],
     startingSpells: {
@@ -1257,6 +1287,7 @@ window.CHARACTER_BUILDS = [
     summary: "Хаотичный бластер: Tides of Chaos, непредсказуемые эффекты, мощные броски.",
     race: "Тифлинг",
     background: "Артист",
+    skills: ["Магия", "Убеждение"],
     stats: { str: 8, dex: 14, con: 14, int: 10, wis: 10, cha: 15 },
     startingEquipment: ["Лёгкий арбалет", "2 кинжала", "Компонентный мешочек", "Набор артиста"],
     startingSpells: {
@@ -1299,6 +1330,7 @@ window.CHARACTER_BUILDS = [
     summary: "Близкий бой с посохом/рапирой + заговоры; в PHB берём Огненный снаряд и касты-баффы. Поздний полёт.",
     race: "Драконорождённый",
     background: "Дворянин",
+    skills: ["Магия", "Запугивание"],
     stats: { str: 8, dex: 14, con: 14, int: 10, wis: 10, cha: 15 },
     startingEquipment: ["Рапира", "Кинжалы ×2", "Компонентный мешочек", "Набор прислужника"],
     startingSpells: {
@@ -1342,6 +1374,7 @@ window.CHARACTER_BUILDS = [
     summary: "Заклятый клинок + заклятие Hex + Книга ритуалов. Договор клинка для ближнего боя.",
     race: "Тифлинг",
     background: "Солдат",
+    skills: ["Магия", "Обман"],
     stats: { str: 8, dex: 14, con: 14, int: 10, wis: 10, cha: 15 },
     startingEquipment: ["Лёгкий арбалет", "Боевое оружие (даёт Договор клинка)", "Кожаный доспех", "Компонентный мешочек"],
     startingSpells: {
@@ -1384,6 +1417,7 @@ window.CHARACTER_BUILDS = [
     summary: "Заклинания очарования и страха, телепорт + чудесный побег фей. Контроль-колдун.",
     race: "Полуэльф",
     background: "Шарлатан",
+    skills: ["Магия", "Природа"],
     stats: { str: 8, dex: 14, con: 14, int: 10, wis: 10, cha: 15 },
     startingEquipment: ["Лёгкий арбалет", "Кинжалы ×2", "Компонентный мешочек", "Набор фокусника"],
     startingSpells: {
@@ -1426,6 +1460,7 @@ window.CHARACTER_BUILDS = [
     summary: "Арканический щит — регенерирующий барьер ХП. Защитный кастер с Контрзаклинанием.",
     race: "Высший эльф",
     background: "Мудрец",
+    skills: ["Анализ", "Медицина"],
     stats: { str: 8, dex: 14, con: 14, int: 15, wis: 12, cha: 8 },
     startingEquipment: ["Кинжал", "Компонентный мешочек", "Книга заклинаний", "Набор учёного"],
     startingSpells: {
@@ -1467,6 +1502,7 @@ window.CHARACTER_BUILDS = [
     summary: "Портал-видение: заранее бросает 2 кубика, применяет их к броскам союзников или врагов.",
     race: "Высший эльф",
     background: "Мудрец",
+    skills: ["Анализ", "Проницательность"],
     stats: { str: 8, dex: 14, con: 14, int: 15, wis: 12, cha: 8 },
     startingEquipment: ["Кинжал", "Компонентный мешочек", "Книга заклинаний", "Набор учёного"],
     startingSpells: {

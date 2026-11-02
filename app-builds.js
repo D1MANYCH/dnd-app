@@ -1004,6 +1004,9 @@ function _applyBuildCore(buildId) {
       }
     });
   }
+  // Х-5: основа билда уже собрана — фиксируем сразу, как lockBasicInfo
+  newChar.basicLocked = true;
+  newChar.basicLockedOnce = true;
   newChar.updatedAt = Date.now();
   characters.push(newChar);
   saveToLocal();
