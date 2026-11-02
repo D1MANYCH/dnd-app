@@ -1862,7 +1862,7 @@ header .status-conditions-btn { margin-left: 0; }
    подменяется синтетическим полужирным и выглядит грязно. */
 h1, h2, h3, h4 {
 margin: 0 0 var(--sp-3) 0;
-color: var(--accent);
+color: var(--accent-ink);
 font-family: var(--font-display);
 font-weight: var(--fw-bold);
 letter-spacing: 0.01em;
