@@ -500,7 +500,7 @@ html.glass-adjusting *::after {
   --accent-soft: rgba(74,77,84,0.13);
   --accent-glow-token: rgba(74,77,84,0.30);
 }
-/* РД-2: «Янтарь» — акцент макета #f38536, по умолчанию в режиме редизайна (?rd=1) */
+/* РД-2: «Янтарь» — акцент макета #f38536, по умолчанию */
 :root[data-accent="ember"] {
   --accent: #f38536; --accent-hi: #f69d5b; --accent-lo: #e0773a;
   --accent-soft: rgba(243,133,54,0.13);
@@ -16032,7 +16032,7 @@ button.modal-close-bottom,
 }
 
 /* ══ DS-7а: один тост ═════════════════════════════════════════════════════
-   Тост ХП собирается как .app-toast (showHPToast, ветка isRedesign):
+   Тост ХП собирается как .app-toast (showHPToast):
    ромб цвета типа, число крупно, подпись приглушённо. */
 :root .app-toast-num { font-size: var(--fs-18); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
 :root .app-toast-sub { color: var(--home-sub); font-weight: var(--fw-regular); }

@@ -244,7 +244,7 @@
       ' stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">' + p.d + '</svg></span>';
   }
 
-  // --- РД-14: эмодзи → линейная иконка, одним проходом по DOM в режиме ?rd=1 ---
+  // --- РД-14: эмодзи → линейная иконка, одним проходом по DOM ---
   // Данные и разметку не трогаем: текстовый узел с эмодзи заменяется на иконку при показе.
   // В <option>, подписях optgroup, placeholder/title/aria-label SVG не вставить — эмодзи убираются.
   // Пользовательский ввод (input, textarea, contenteditable) не трогаем.

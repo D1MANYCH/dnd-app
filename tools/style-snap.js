@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Снимок вычисленных стилей по вкладкам × ширинам × темам (эталон для РД-Ф).
-//   node tools/style-snap.js snap <out.json> [--query "rd=1"]
+//   node tools/style-snap.js snap <out.json> [--query "tab=magic"]
 //   node tools/style-snap.js diff <a.json> <b.json> [--limit 40]
 // Поднимает свой статический сервер и headless Chrome; Chrome убивается по PID.
 'use strict';
@@ -139,4 +139,4 @@ function diff(a, b, limit) {
 var cmd = process.argv[2];
 if (cmd === 'snap') snap(process.argv[3], arg('--query', '')).catch(function (e) { console.error(e); process.exit(1); });
 else if (cmd === 'diff') diff(process.argv[3], process.argv[4], +arg('--limit', 40));
-else console.log('usage: snap <out> [--query rd=1] | diff <a> <b> [--limit N]');
+else console.log('usage: snap <out> [--query tab=magic] | diff <a> <b> [--limit N]');

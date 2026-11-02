@@ -847,7 +847,7 @@ function switchTab(tabName, btnEl) {
 }
 
 // РД-3: блоки старого листа, которые живут на «Характ.»; остальное — «Главная».
-// Демо-лист (#sheet2) делится CSS по data-rd-view. Деление действует только на телефоне (redesign.css).
+// Демо-лист (#sheet2) делится CSS по data-rd-view. Деление действует только на телефоне (style.css).
 var RD_STATS_BLOCKS = "#stats-collapse-btn, #abilities-region, .legacy-saves-card, .legacy-skills-card, #prof-card";
 function _rdSheetView(view) {
   var tab = $("tab-sheet");
