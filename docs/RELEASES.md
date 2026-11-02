@@ -3,29 +3,60 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v5.0.12**.
+Актуальная версия — **v5.0.13**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v5.0.13"></a>
+## v5.0.13 — 2 ноября 2026
+
+🐛 на ширине 641–1023 px кубы и кнопки атаки и урона на «Бою» — не меньше 44 px, как на телефоне (было 40×40 и высота 30); на ПК шире 1023 px размеры прежние
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/799a68a8...main) · 8 файлов, +99 −61
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (2):**
+
+- [`482d1886`](https://github.com/D1MANYCH/dnd-app/commit/482d1886) chore(ci): Dependabot раз в месяц предлагает одним PR обновления действий GitHub Actions
+- [`1f4036e0`](https://github.com/D1MANYCH/dnd-app/commit/1f4036e0) chore(ci): Bump the actions group with 2 updates (#8)
+
+**Файлы (8):**
+
+- `index.html` +53 −53
+- `.github/dependabot.yml` +22 −0
+- `data.js` +10 −2
+- `CHANGELOG.md` +6 −1
+- `.github/workflows/claude-code-review.yml` +2 −2
+- `.github/workflows/tests.yml` +2 −2
+- `style.css` +3 −0
+- `sw.js` +1 −1
+
+</details>
+
 <a id="v5.0.12"></a>
 ## v5.0.12 — 2 ноября 2026
 
 🔧 чистка: комментарии о снятом тестовом режиме ?rd=1 (redesign.css, isRedesign) приведены к текущему коду; поведение не меняется
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/41631027...main) · 8 файлов, +76 −63
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/41631027...799a68a8) · 10 файлов, +111 −70
 
-<details><summary>Файлы</summary>
+<details><summary>Коммиты и файлы</summary>
 
-_Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
+**Коммиты (1):**
 
-**Файлы (8):**
+- [`799a68a8`](https://github.com/D1MANYCH/dnd-app/commit/799a68a8) v5.0.12: chore(чистка): комментарии о снятом тестовом режиме ?rd=1 (redesign.css, isRedesign) приведены к текущему коду; поведение не меняется
+
+**Файлы (10):**
 
 - `index.html` +53 −53
+- `docs/RELEASES.md` +33 −5
 - `data.js` +10 −2
 - `CHANGELOG.md` +6 −1
+- `docs/map.md` +2 −2
 - `style.css` +2 −2
 - `tools/style-snap.js` +2 −2
 - `app-core.js` +1 −1
