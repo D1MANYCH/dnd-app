@@ -3,36 +3,60 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v5.0.13**.
+Актуальная версия — **v5.0.14**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v5.0.14"></a>
+## v5.0.14 — 2 ноября 2026
+
+🐛 линии под шапкой и над панелью вкладок — в цвет выбранного акцента (было всегда янтарное #f38536); «← Назад» на служебных экранах (Настройки, Отдых, Данные, О версии, справочники) и «← Выйти» в мастере создания — слева от заголовка; на телефоне до 640 px 9 чипов акцента в «Настройках» — сеткой 3×3 по 44 px (было 5 + 4)
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/7d948441...main) · 5 файлов, +80 −58
+
+<details><summary>Файлы</summary>
+
+_Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
+
+**Файлы (5):**
+
+- `index.html` +53 −53
+- `data.js` +10 −2
+- `style.css` +10 −1
+- `CHANGELOG.md` +6 −1
+- `sw.js` +1 −1
+
+</details>
+
 <a id="v5.0.13"></a>
 ## v5.0.13 — 2 ноября 2026
 
 🐛 на ширине 641–1023 px кубы и кнопки атаки и урона на «Бою» — не меньше 44 px, как на телефоне (было 40×40 и высота 30); на ПК шире 1023 px размеры прежние
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/799a68a8...main) · 8 файлов, +99 −61
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/799a68a8...7d948441) · 10 файлов, +125 −67
 
 <details><summary>Коммиты и файлы</summary>
 
-**Коммиты (2):**
+**Коммиты (3):**
 
 - [`482d1886`](https://github.com/D1MANYCH/dnd-app/commit/482d1886) chore(ci): Dependabot раз в месяц предлагает одним PR обновления действий GitHub Actions
 - [`1f4036e0`](https://github.com/D1MANYCH/dnd-app/commit/1f4036e0) chore(ci): Bump the actions group with 2 updates (#8)
+- [`7d948441`](https://github.com/D1MANYCH/dnd-app/commit/7d948441) v5.0.13: fix(бой): на ширине 641–1023 px кубы и кнопки атаки и урона на «Бою» — не меньше 44 px, как на телефоне (было 40×40 и высота 30); на ПК шире 1023 px размеры прежние
 
-**Файлы (8):**
+**Файлы (10):**
 
 - `index.html` +53 −53
-- `.github/dependabot.yml` +22 −0
+- `docs/RELEASES.md` +36 −5
 - `data.js` +10 −2
+- `.github/dependabot.yml` +11 −0
 - `CHANGELOG.md` +6 −1
-- `.github/workflows/claude-code-review.yml` +2 −2
-- `.github/workflows/tests.yml` +2 −2
+- `docs/map.md` +3 −3
 - `style.css` +3 −0
+- `.github/workflows/claude-code-review.yml` +1 −1
+- `.github/workflows/tests.yml` +1 −1
 - `sw.js` +1 −1
 
 </details>
