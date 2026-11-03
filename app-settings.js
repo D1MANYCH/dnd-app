@@ -31,7 +31,7 @@ function _applyTheme(t) {
   // В localStorage (через setTheme) сохраняется исходный выбор пользователя.
   document.documentElement.setAttribute('data-theme', _resolveTheme(t));
   var meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', _isEffectiveLight(t) ? '#eceff5' : '#050a14');
+  if (meta) meta.setAttribute('content', _isEffectiveLight(t) ? '#e1e4eb' : '#050a14');
   // Обновить тему кубиков (цвет акцента)
   if (typeof _diceBoxInstance !== 'undefined' && _diceBoxInstance) {
     try { _diceBoxInstance.updateConfig({ themeColor: _getDiceThemeColor() }); } catch(e) {}

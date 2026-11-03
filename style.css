@@ -11,6 +11,7 @@
 @font-face { font-family: 'EB Garamond'; font-style: normal; font-weight: 700; font-display: swap; src: url('vendor/fonts/eb-garamond-latin-700-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 
 :root {
+  color-scheme: dark;
 /* ===== Design tokens (R1) ===== */
 /* Палитра */
 /* UI4-glass: --glass-alpha/--glass-blur управляются слайдерами в Настройках
@@ -298,12 +299,13 @@ html.glass-adjusting *::after {
    Кнопки и анимации — в общей секции UI-2 ниже (применяются к обеим темам).
 */
 :root[data-theme="light"] {
+  color-scheme: light;
   /* Дымка v5: нейтрально-голубоватый воздух, молочное стекло.
      --bg-0 непрозрачный (анти-флеш), --bg-1 полупрозрачная
      (UI4-glass, общий --glass-alpha из :root / inline-стиля на html). */
-  --bg-0: #eceff5;
-  --bg-1: rgba(255, 255, 255, var(--glass-alpha));
-  --bg-2: rgba(255, 255, 255, 0.55);
+  --bg-0: #e1e4eb;
+  --bg-1: rgba(246, 247, 250, var(--glass-alpha));
+  --bg-2: rgba(246, 247, 250, 0.55);
   --bg-3: rgba(222, 227, 238, 0.88);
   --surface-sticky: rgba(255, 255, 255, 0.58);
   --surface-pop: rgba(253, 254, 255, 0.84);
@@ -315,14 +317,14 @@ html.glass-adjusting *::after {
 
   /* Text */
   --text: #1b1c20;
-  --text-dim: #55575f;
+  --text-dim: #45474e;
   /* THEME-6: mute был #898b94 (2.95:1 на cream) → #67686f (≈4.8:1) — порог WCAG 4.5 */
-  --text-mute: #5e5f66; /* STYLE-11: на подсветке хода трекера 4.3 → 5.0 */
+  --text-mute: #4d4e55; /* STYLE-11: на подсветке хода трекера 4.3 → 5.0 */
 
   /* Accent — приглушённое золото на голубоватом воздухе */
   --accent: #a8823a;
   --accent-hi: #c09a50;
-  --accent-lo: #86672b; /* STYLE-9: 4.36 → 4.60 на --bg-0 (плоский текст) */
+  --accent-lo: #745823; /* STYLE-9: 4.36 → 4.60 на --bg-0 (плоский текст) */
   --focus-ring: var(--accent-lo);
   --accent-ink: var(--accent-lo); --accent-hover: var(--text); --nav-next-fill: var(--accent-lo); /* STYLE-11 */
   --accent-soft: rgba(168, 130, 58, 0.12);
@@ -333,11 +335,11 @@ html.glass-adjusting *::after {
   --overlay: rgba(24, 26, 34, 0.38);
   --danger: #b3352a;
   /* THEME-6: success #2e8a54→#2a7e4c до WCAG 4.5 на светлом стекле */
-  --success: #277548; /* STYLE-11: 4.35 → 4.90 на --bg-0 */
-  --info: #2b6cb7;
+  --success: #22683f; /* STYLE-11: 4.35 → 4.90 на --bg-0 */
+  --info: #245ea3;
 
   /* Школы/состояния — темнее для контраста на светлом (THEME-6: до 4.5) */
-  --magic: #7456ca;
+  --magic: #6447b8;
   --necro: #5d732f;
   --divin: #1b7777;
   --charm: #b04473;
@@ -414,7 +416,7 @@ html.glass-adjusting *::after {
 
   /* DS-3в/DS-3г: служебные цвета; светлые статусные затемнены до 4.5:1 на --bg-0 */
   --on-color: #fff; --on-color-dark: #000; --on-status: #fff;
-  --warn: #975e0e;
+  --warn: #84520c;
 }
 
 /* ========== UI-2. Пресеты акцента (8 цветов) ==========
@@ -692,7 +694,15 @@ html.glass-adjusting *::after {
   gap: var(--sp-4);
   margin-bottom: var(--sp-4);
   padding-left: var(--sp-3);
+  /* PT-286: «← Назад» всегда на месте, сколько ни прокручено */
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: var(--bg-0);
 }
+/* PT-295: раскрытые «Резервные копии» — как строка под курсором */
+.home-utils > button[aria-expanded="true"] { color: var(--accent-lo); }
+.home-utils > button[aria-expanded="true"]::before { transform: rotate(135deg); background: var(--home-accent); }
 /* Возврат — текстовое действие в самой странице: шапка приложения здесь
    скрыта, как на встречающем экране. */
 .page-back {
@@ -12845,6 +12855,10 @@ button.tracker-cond-dots {
   gap: var(--sp-4);
   margin: var(--sp-2) 0 var(--sp-3);
 }
+/* Шапка редактора на телефоне не листается вбок: кнопки помещаются в ряд */
+@media (max-width: 560px) {
+  #tab-notes .notes-md-toolbar { gap: var(--sp-2); flex-wrap: wrap; overflow-x: visible; }
+}
 #tab-notes .notes-md-btn {
   background: none;
   border: 0;
@@ -15772,6 +15786,8 @@ button.modal-close-bottom,
   #tab-progress .pg-body { max-width: none; }
   .page-stage,
   .page-stage--wide { max-width: var(--pk-col); }
+  /* PT-293: страницы сервиса — колонка не шире 1040, подпись рядом с действием */
+  .page-stage:not(.page-stage--wide) { max-width: min(var(--pk-col), 1040px); }
   /* Настройки — группы в две колонки: «Вид» слева, «Игра» и «Книги» справа */
   .settings-modal-body:not(#books-body) { column-count: 2; column-gap: 56px; }
   .settings-modal-body > .theme-picker-row { break-inside: avoid; }
@@ -16718,6 +16734,8 @@ button.modal-close-bottom,
   --action-hover: color-mix(in srgb, var(--accent-lo) 85%, var(--text));
 }
 :root[data-theme="light"] { --home-rule: var(--border); }
+/* Подписи меню и героя на светлом фоне — на 1 px крупнее, тонкий шрифт читается хуже */
+:root[data-theme="light"] :is(.home-menu-hint, .home-hero-sub) { font-size: calc(var(--fs-sm) + 1px); }
 :root .app-log-btn-danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
 @media (hover: hover) { :root .app-log-btn-danger:hover { border-color: var(--danger); } }
 

@@ -2016,7 +2016,7 @@ function quickSlotUse(idx) {
     return;
   }
   var r = quickSlotConsume(char, idx);
-  if (r.err === "empty") { showToast("Закончилось — пополните в Сумке", "warn"); return; }
+  if (r.err === "empty") { var _e = _qsFindItem(char, s.ref); showToast("«" + (_e && _e.item.name || "Предмет") + "»: осталось 0 — укажите количество в Сумке", "warn"); return; }
   if (r.err) return;
   if (window.AppLog) AppLog.action("inventory", "быстрый доступ: " + r.item.name + ", осталось " + r.left);
   saveToLocal();

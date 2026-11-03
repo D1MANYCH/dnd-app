@@ -467,6 +467,11 @@ function currentScreenName() {
 
 /** Возврат на экран, из которого пришли; из корня — во встречающее меню. */
 function screenBack() {
+  // PT-285: в стеке мог остаться сам текущий экран или равный по глубине —
+  // такой «возврат» никуда не вёл; срезаем их.
+  var _cur = document.querySelector('div[id^="screen-"]:not(.hidden):not(.screen-ghost)');
+  var _cn = _cur ? _cur.id.replace("screen-", "") : null;
+  while (_cn && _screenStack.length && (SCREEN_DEPTH[_screenStack[_screenStack.length - 1]] || 0) >= (SCREEN_DEPTH[_cn] || 0)) _screenStack.pop();
   showScreen(_screenStack.length ? _screenStack[_screenStack.length - 1] : "home");
 }
 
