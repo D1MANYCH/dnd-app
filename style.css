@@ -16994,3 +16994,13 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
 @media (max-width: 640px) {
   .settings-modal-body .accent-picker-chips { display: grid; grid-template-columns: repeat(3, 44px); gap: var(--sp-3) var(--sp-4); }
 }
+
+/* PLAY3-9б: телефон в ландшафте — низкая высота, панель и док не съедают экран */
+@media (max-width: 1023px) and (max-height: 500px) {
+  :root { --rd-tabbar-h: 44px; }
+  :root.rd-dock-on { --rd-dock-h: 0px; }
+  :root .tab-btn.rd-tab { flex-direction: row; justify-content: center; gap: var(--sp-2); padding: 0 !important; }
+  :root .tab-btn.rd-tab span { font-size: var(--fs-18); }
+  :root #rd-quick-dock:not([hidden]) { position: static; margin: var(--sp-3) var(--sp-2); }
+  .cr-nav { position: static; }
+}

@@ -1663,6 +1663,7 @@ setTimeout(function() {
 // Обновить состояние селектора подкласса (с учётом текущего уровня)
 setTimeout(updateSubclassOptions, 0);
 // Применить блокировку основной информации (мастер создания)
+if (typeof applyBasicLockUI === "function") applyBasicLockUI();
 setTimeout(function() { if (typeof applyBasicLockUI === "function") applyBasicLockUI(); }, 0);
 renderWeapons();
 if (typeof renderSavedRolls === "function") renderSavedRolls();
