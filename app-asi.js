@@ -609,7 +609,7 @@ function renderTakenFeats() {
       var _sp = f.skillPicks || [];
       for (var k = 0; k < data.skillPick; k++) {
         spBtn += '<select class="feat-skill-pick" aria-label="Навык черты ' + (k + 1) + '" onchange="featSkillPick(' + i + ',' + k + ',this.value)">' +
-          '<option value="">— навык (или инструмент во владениях) —</option>' +
+          '<option value="">— навык (или инструмент во владениях) —</option>' +
           skills.map(function(s) { return '<option' + (_sp[k] === s.name ? ' selected' : '') + '>' + escapeHtml(s.name) + '</option>'; }).join("") +
         '</select>';
       }
