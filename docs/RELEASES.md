@@ -3,19 +3,59 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v5.1.0**.
+Актуальная версия — **v5.1.1**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
-<a id="unreleased"></a>
-## Не выпущено
+<a id="v5.1.1"></a>
+## v5.1.1 — 4 ноября 2026
 
-Коммиты после последнего релиза ([дифф](https://github.com/D1MANYCH/dnd-app/compare/9f3c8408...main)):
+🐛 сокращены описания умений «Пути живого оружия»
 
-- [`97896542`](https://github.com/D1MANYCH/dnd-app/commit/97896542) fix(классы): неразрывные пробелы в описании Изобретателя в мастере
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/1901679c...main) · 28 файлов, +1301 −265
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (2):**
+
+- [`c96acb40`](https://github.com/D1MANYCH/dnd-app/commit/c96acb40) Merge remote-tracking branch 'origin/main' into claude/quizzical-dirac-caff26
+- [`0d08add6`](https://github.com/D1MANYCH/dnd-app/commit/0d08add6) Merge pull request #9 from D1MANYCH/claude/quizzical-dirac-caff26
+
+**Файлы (28):**
+
+- `spells.js` +562 −73
+- `data.js` +133 −16
+- `subclass-choices-data.js` +113 −8
+- `index.html` +61 −57
+- `docs/map.md` +58 −58
+- `tests/headless.js` +85 −8
+- `class-choices.js` +63 −0
+- `docs/RELEASES.md` +50 −13
+- `tests/rules-cases.js` +63 −0
+- `rules.js` +23 −4
+- `notes-gen-data.js` +24 −0
+- `CHANGELOG.md` +11 −1
+- `app-inventory.js` +6 −4
+- `app-spells.js` +6 −4
+- `spell-effects.js` +9 −0
+- `app-progress.js` +4 −4
+- `app-combat.js` +7 −0
+- `app-core.js` +4 −3
+- `app-hp.js` +3 −3
+- `manifest.json` +3 −3
+- `app-settings.js` +2 −1
+- `app-ui.js` +2 −1
+- `start-equip-2014.js` +3 −0
+- `app-creator.js` +2 −0
+- `app-pdf.js` +1 −1
+- `docs/ARCHITECTURE.md` +1 −1
+- `README.md` +1 −1
+- `sw.js` +1 −1
+
+</details>
 
 <a id="v5.1.0"></a>
 ## v5.1.0 — 4 ноября 2026
@@ -68,7 +108,29 @@
 
 ✨ Монах: подкласс «Путь живого оружия» из Exploring Eberron Кита Бейкера с меткой «авторский» — умения на 3, 6, 11 и 17 уровнях, выбор боевой дисциплины и совершенной формы; во вкладке «О приложении» — пометка о неофициальном статусе и атрибуция SRD 5.1
 
-_Релизного коммита нет в истории репозитория — патч недоступен._
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/9f3c8408...1901679c) · 10 файлов, +203 −108
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (2):**
+
+- [`97896542`](https://github.com/D1MANYCH/dnd-app/commit/97896542) fix(классы): неразрывные пробелы в описании Изобретателя в мастере
+- [`1901679c`](https://github.com/D1MANYCH/dnd-app/commit/1901679c) v5.0.35: feat(монах): подкласс «Путь живого оружия» из Exploring Eberron Кита Бейкера с меткой «авторский» — умения на 3, 6, 11 и 17 уровнях, выбор боевой дисциплины и совершенной формы; во вкладке «О приложении» — пометка о неофициальном статусе и атрибуция SRD 5.1
+
+**Файлы (10):**
+
+- `index.html` +58 −53
+- `docs/map.md` +44 −43
+- `docs/RELEASES.md` +32 −5
+- `subclass-choices-data.js` +36 −0
+- `data.js` +21 −4
+- `CHANGELOG.md` +6 −1
+- `app-creator.js` +1 −1
+- `README.en.md` +2 −0
+- `README.md` +2 −0
+- `sw.js` +1 −1
+
+</details>
 
 <a id="v5.0.34"></a>
 ## v5.0.34 — 4 ноября 2026
