@@ -309,7 +309,7 @@ if (!btn) return;
 var n = (char && char.spells && Array.isArray(char.spells.mySpells)) ? char.spells.mySpells.length : 0;
 btn.hidden = hide || n === 0;
 btn.setAttribute("aria-pressed", spellOnlyAdded ? "true" : "false");
-btn.textContent = "Только из «Мои заклинания» · " + n;
+btn.textContent = "Только из «Мои заклинания» · " + n;
 }
 function openSpellSearch() {
 _featPickIdx = null;
