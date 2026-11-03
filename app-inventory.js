@@ -2027,7 +2027,7 @@ function quickSlotUse(idx) {
   }
   var r = quickSlotConsume(char, idx);
   if (r.err === "empty") { var _e = _qsFindItem(char, s.ref); showToast("«" + (_e && _e.item.name || "Предмет") + "»: осталось 0 — укажите количество в Сумке", "warn"); return; }
-  if (r.err === "reusable") { var _d = String(r.item.desc || "").trim(); showToast(r.item.name + (_d ? " — " + (_d.length > 120 ? _d.slice(0, 117) + "…" : _d) : " — не расходуется"), "info"); return; }
+  if (r.err === "reusable") { var _d = String(r.item.desc || "").trim(); showToast(r.item.name + (_d ? " — " + (_d.length > 120 ? _d.slice(0, 117) + "…" : _d) : " — не расходуется"), "info"); return; }
   if (r.err) return;
   if (window.AppLog) AppLog.action("inventory", "быстрый доступ: " + r.item.name + ", осталось " + r.left);
   saveToLocal();
