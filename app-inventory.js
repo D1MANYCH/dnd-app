@@ -1341,7 +1341,7 @@ uaDiv.innerHTML =
   '<div class="weapon-row-top">' +
     '<div class="weapon-info">' +
       '<span class="weapon-name">' + ua.name + '</span>' +
-      '<span class="weapon-meta">' + ua.damage + ' ' + ua.type.toLowerCase() + ' · СИЛ ' + (uaMods.attack >= 0 ? "+" : "") + uaMods.attack + '</span>' +
+      '<span class="weapon-meta">' + ua.damage + ' ' + ua.type.toLowerCase() + ' · атака: мод. СИЛ ' + (uaMods.attack >= 0 ? "+" : "") + uaMods.attack + '</span>' +
     '</div>' +
   '</div>' +
   '<div class="weapon-roll-row">' +

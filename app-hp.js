@@ -753,7 +753,7 @@ function _luShowResult() {
   if (char && ctx.hpFrom != null && lines.length && hpNow !== ctx.hpFrom + ctx.hpGain) {
     var hpExtra = hpNow - ctx.hpFrom - ctx.hpGain;
     lines[0] = "" + dndIcoHtml("heart", 13) + " ХП: " + ctx.hpFrom + " → " + hpNow + " (+" + ctx.hpGain + " за\u00a0уровень, " +
-      (hpExtra > 0 ? "+" : "") + hpExtra + " черта и\u00a0характеристики)";
+      (hpExtra > 0 ? "+" : "") + hpExtra + " от\u00a0черты и\u00a0характеристик)";
   }
   $("lu-screen-choices").style.display = "none";
   $("lu-screen-multiclass").style.display = "none";
