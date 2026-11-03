@@ -353,11 +353,23 @@ function rulesClassSaveProf(char, key) {
   return key === "wis" || (key === "cha" && char.edition === "2024");
 }
 
+// Изобретатель (TCoE стр. 14): настройка на 4/5/6 предметов с 10/14/18 уровня.
+function rulesAttuneLimit(char) {
+  var lv = (char && typeof charClassLevel === "function") ? charClassLevel(char, "Изобретатель") : 0;
+  return lv >= 18 ? 6 : (lv >= 14 ? 5 : (lv >= 10 ? 4 : 3));
+}
+
+// Душа изобретения 20 ур.: +1 ко всем спасброскам за настроенный предмет (TCoE стр. 14).
+function rulesSoulOfArtifice(char) {
+  if (!char || typeof charClassLevel !== "function" || charClassLevel(char, "Изобретатель") < 20) return 0;
+  return (typeof countAttuned === "function") ? countAttuned(char) : 0;
+}
+
 function rulesSaveBonus(char, key, level, isProficient) {
   if (!isProficient && rulesClassSaveProf(char, key)) isProficient = true;
   var bonus = getMod(char.stats[key]);
   if (isProficient) bonus += getProficiencyBonus(level);
-  return bonus + rulesAuraOfProtection(char);
+  return bonus + rulesAuraOfProtection(char) + rulesSoulOfArtifice(char);
 }
 
 // PLAY2-2 (PT-153/167): Божественная кара — 2к8 за ячейку 1 круга и +1к8 за каждый
@@ -407,11 +419,13 @@ function rulesSpellStats(char, level) {
 // (PHB стр. 164). Мистики (воин/плут) берут список и ИНТ волшебника.
 var CLASS_SPELL_STAT = {
   "Волшебник": "ИНТ", "Жрец": "МУД", "Друид": "МУД", "Бард": "ХАР", "Паладин": "ХАР",
-  "Следопыт": "МУД", "Чародей": "ХАР", "Колдун": "ХАР", "Воин": "ИНТ", "Плут": "ИНТ"
+  "Следопыт": "МУД", "Чародей": "ХАР", "Колдун": "ХАР", "Воин": "ИНТ", "Плут": "ИНТ",
+  "Изобретатель": "ИНТ"
 };
 var CLASS_SPELL_LIST_KEY = {
   "Волшебник": "wizard", "Жрец": "cleric", "Друид": "druid", "Бард": "bard", "Паладин": "paladin",
-  "Следопыт": "ranger", "Чародей": "sorcerer", "Колдун": "warlock", "Воин": "wizard", "Плут": "wizard"
+  "Следопыт": "ranger", "Чародей": "sorcerer", "Колдун": "warlock", "Воин": "wizard", "Плут": "wizard",
+  "Изобретатель": "artificer"
 };
 function _spellStatMod(char, stat) {
   if (stat === "ИНТ") return getMod(char.stats.int);
@@ -472,6 +486,8 @@ function armorPenalties(char, preset) {
   var slowed = !!(preset.strReq && strScore < preset.strReq);
   // AUD-8: дварфа тяжёлый доспех не замедляет (PHB 2014 стр.20)
   if (slowed && char && char.edition !== "2024" && String(char.race || "").toLowerCase().indexOf("дварф") !== -1) slowed = false;
+  // Бронник: у мистического доспеха нет требования к Силе (TCoE стр. 19)
+  if (slowed && char && charClassLevel(char, "Изобретатель") >= 3 && charClassSubclass(char, "Изобретатель") === "Бронник") slowed = false;
   return { slowed: slowed, stealthDisadv: !!preset.stealthDisadv };
 }
 
@@ -708,6 +724,9 @@ function charCasterLevel(char) {
         if (lv < 2) return;
         out.level += Math.floor(lv / 2);
       }
+    } else if (ct === "half-up") {
+      // Изобретатель (TCoE стр. 10): заклинания с 1 уровня, половина вверх.
+      out.level += Math.ceil(lv / 2);
     } else if (ct === "pact") {
       out.pact = { cls: entry.class, level: lv };
       out.casters.push({ cls: entry.class, level: lv, sub: entry.subclass || "", type: ct });
@@ -1071,7 +1090,7 @@ function rulesDeathSave(char, roll) {
     rulesRegainFromZero(char);
     outcome = "revive";
   } else if (roll === 1) { _dsFill(ds.failures, 2); outcome = "fail2"; }
-  else if (roll >= 10) { _dsFill(ds.successes, 1); outcome = "success"; }
+  else if ((roll + rulesSoulOfArtifice(char)) >= 10) { _dsFill(ds.successes, 1); outcome = "success"; }
   else { _dsFill(ds.failures, 1); outcome = "fail"; }
   return { blocked: null, outcome: outcome, stable: rulesIsStable(char), dead: rulesIsDead(char) };
 }

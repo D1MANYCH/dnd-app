@@ -328,10 +328,10 @@ function _showMulticlassScreen(char) {
   $("lu-mc-new-class").style.display = "none";
   var sel = $("lu-mc-class-select");
   sel.innerHTML = '<option value="">—</option>';
-  var allClasses = ["Варвар","Бард","Воин","Волшебник","Друид","Жрец","Колдун","Монах","Паладин","Плут","Следопыт","Чародей"];
+  var allClasses = ["Варвар","Бард","Воин","Волшебник","Друид","Жрец","Изобретатель","Колдун","Монах","Паладин","Плут","Следопыт","Чародей"];
   var existingClasses = char.classes.map(function(c) { return c.class; });
   allClasses.forEach(function(cls) {
-    if (existingClasses.indexOf(cls) === -1) {
+    if (existingClasses.indexOf(cls) === -1 && classInBooks(cls, char)) {
       var opt = document.createElement("option");
       opt.value = cls;
       var chk = (typeof checkMulticlassPrereqs === "function") ? checkMulticlassPrereqs(char, cls) : { ok: true };
@@ -1134,7 +1134,7 @@ function luBuildChoicesScreen() {
 
   // 4) ЗАКЛИНАНИЯ — если класс-заклинатель. Два пути:
   //    (1) рекомендации билда + кнопка их добавить; (2) добавить самому → вкладка «Заклинания».
-  var SPELL_CASTERS = ["Волшебник","Жрец","Друид","Бард","Паладин","Следопыт","Чародей","Колдун"];
+  var SPELL_CASTERS = ["Волшебник","Жрец","Друид","Бард","Паладин","Следопыт","Чародей","Колдун","Изобретатель"];
   var luSub = (typeof charClassSubclass === "function") ? charClassSubclass(char, cn) : char.subclass;
   var luThird = (typeof THIRD_CASTER_SUBCLASSES !== "undefined" && THIRD_CASTER_SUBCLASSES.indexOf(luSub) !== -1) ? luSub : null;
   if (SPELL_CASTERS.indexOf(cn) >= 0 || (luThird && clvl >= 3)) {

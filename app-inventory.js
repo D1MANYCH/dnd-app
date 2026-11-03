@@ -361,10 +361,11 @@ function toggleAttuned(category, index) {
   var item = char.inventory[category] && char.inventory[category][index];
   if (!item || !item.attunable) return;
   if (!item.attuned) {
-    if (countAttuned(char) >= 3) { showToast("⚠ Уже настроено 3 предмета — сначала снимите настройку с\u00a0одного", "error"); return; }
+    var _attLimit = rulesAttuneLimit(char);
+    if (countAttuned(char) >= _attLimit) { showToast("⚠ Уже настроено " + _attLimit + " " + (_attLimit > 4 ? "предметов" : "предмета") + " — сначала снимите настройку с\u00a0одного", "error"); return; }
     item.attuned = true;
     var n = countAttuned(char);
-    showToast("⚙ Настроен: " + item.name + " (" + n + "/3)", "success");
+    showToast("⚙ Настроен: " + item.name + " (" + n + "/" + _attLimit + ")", "success");
   } else {
     item.attuned = false;
     showToast("⚙ Настройка снята: " + item.name, "info");
@@ -372,6 +373,7 @@ function toggleAttuned(category, index) {
   if (window.AppLog) AppLog.action("inventory", (item.attuned ? "настроен: " : "снята настройка: ") + item.name);
   saveToLocal();
   renderInventory();
+  if (rulesSoulOfArtifice(char) || charClassLevel(char, "Изобретатель") >= 20) calcStats();
 }
 // Обновить счётчик «⚙ N/3» в шапке вкладки (скрыт, если нет attunable-предметов и настроек).
 function updateAttuneCount() {
@@ -381,8 +383,8 @@ function updateAttuneCount() {
   var n = char ? countAttuned(char) : 0;
   if (!char || (n === 0 && !_hasAttunable(char))) { el.style.display = "none"; return; }
   el.style.display = "";
-  el.innerHTML = (typeof dndIcon === "function" ? '<span class="dico">' + dndIcon("settings", 14) + "</span> " : "⚙ ") + n + "/3";
-  el.classList.toggle("over", n > 3);
+  el.innerHTML = (typeof dndIcon === "function" ? '<span class="dico">' + dndIcon("settings", 14) + "</span> " : "⚙ ") + n + "/" + rulesAttuneLimit(char);
+  el.classList.toggle("over", n > rulesAttuneLimit(char));
 }
 // FIN-8: изменить заряды предмета на delta (кламп 0..maxCharges). Не трогает qty.
 function adjustItemCharges(category, index, delta) {

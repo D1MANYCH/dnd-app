@@ -436,6 +436,7 @@ function getResourceMax(res, char) {
   if (raw === "wis")         return Math.max(1, getMod(char.stats.wis));
   if (raw === "con")         return Math.max(1, getMod(char.stats.con));  // DOP-4: Рыцарь Эха
   if (raw === "int")         return Math.max(1, getMod(char.stats.int));  // DOP-4: хронургия/гравитургия
+  if (raw === "pb")          return getProficiencyBonus(char.level || level);  // Бронник: бонус мастерства
   if (raw === "level5")      return level * 5;  // Наложение рук — пул ХП
   if (raw === 99)            return 99; // Безлимит (Ярость 20 ур.)
   return parseInt(raw, 10) || 0;
@@ -841,7 +842,7 @@ function resetResourcesByRest(restType) {
   data.resources.forEach(function(res) {
     var before = char.resources[res.id] || 0;
     if (restType === "long") {
-      char.resources[res.id] = 0;
+      if (res.restoreOn !== "none") char.resources[res.id] = 0;
     } else if (restType === "short" && (res.restoreOn === "short" || (res.shortFromLevel && (res._clsLevel || char.level || 1) >= res.shortFromLevel))) {
       char.resources[res.id] = 0;
     } else if (restType === "short" && res.restoreShortOne) {

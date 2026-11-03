@@ -89,6 +89,80 @@
     });
   }
 
+  // ────────── БЛОК 4а: Изобретатель (TCoE) ──────────
+  (function(){
+    var Y = "Изобретатель";
+    if (typeof CLASS_CHOICES === "undefined" || !CLASS_CHOICES[Y]) return;
+    function ch(level, sub, stats) { return { class: Y, level: level, subclass: sub || "", classes: [{ class: Y, level: level, subclass: sub || "" }], stats: stats || { int: 16 }, classChoices: {} }; }
+    function inf(level) { return ccGetAllChoicesFor(ch(level)).filter(function(c){ return c.choice.id === "infusions"; })[0]; }
+
+    t("[artificer] инфузий известно 4/6/8/10/12 на 2/6/10/14/18 ур., на 1 ур. выбора нет", function(){
+      if (inf(1)) return "выбор уже на 1 ур.";
+      var want = { 2:4, 5:4, 6:6, 10:8, 14:10, 18:12, 20:12 };
+      for (var l in want) { var c = inf(Number(l)); if (!c || c.count !== want[l]) return "ур." + l + ": " + (c && c.count); }
+      return true;
+    });
+    t("[artificer] инфузии и копии предметов открываются по уровню", function(){
+      var d = inf(2), low = ccAvailableOptions(d.choice, ch(2), Y), high = ccAvailableOptions(d.choice, ch(14), Y);
+      if (low.indexOf("enhanced-defense") === -1 || low.indexOf("replicate-bag-of-holding") === -1) return "базовых нет на 2 ур.";
+      if (low.indexOf("resistant-armor") !== -1 || low.indexOf("replicate-boots-of-speed") !== -1) return "высокие видны на 2 ур.";
+      if (high.indexOf("arcane-propulsion-armor") === -1 || high.indexOf("replicate-boots-of-speed") === -1) return "нет на 14 ур.";
+      return Object.keys(ARTIFICER_INFUSIONS).length === 67 ? true : "опций: " + Object.keys(ARTIFICER_INFUSIONS).length;
+    });
+    t("[artificer] предметы с инфузиями 2/3/4/5/6, 0 на 1 ур.", function(){
+      var res = CLASS_RESOURCES[Y].resources.filter(function(r){ return r.id === "infused_items"; })[0];
+      var want = { 1:0, 2:2, 6:3, 10:4, 14:5, 18:6 };
+      for (var l in want) { var got = getResourceMax(res, { level: Number(l), stats: { int: 16 } }); if (got !== want[l]) return "ур." + l + ": " + got; }
+      return true;
+    });
+    t("[artificer] ресурс с токеном pb равен бонусу мастерства персонажа", function(){
+      var res = SUBCLASS_RESOURCES["Бронник"].resources.filter(function(r){ return r.id === "defensive_field"; })[0];
+      var c = { level: 9, stats: { int: 16 } }, got = getResourceMax(res, c);
+      return got === 4 ? true : "ур.9: " + got;
+    });
+    t("[artificer] подготовка: мод.ИНТ + ½ уровня вниз, минимум 1", function(){
+      if (calcMaxPrepared(ch(5, "", { int: 14 })) !== 4) return "пример книги: " + calcMaxPrepared(ch(5, "", { int: 14 }));
+      return calcMaxPrepared(ch(1, "", { int: 8 })) === 1 ? true : "минимум: " + calcMaxPrepared(ch(1, "", { int: 8 }));
+    });
+    t("[artificer] список 95 заклинаний: 23/18/21/15/11/7, все записи PH14", function(){
+      var list = SPELLS_BASE.filter(function(s){ return (s.classes || []).indexOf("artificer") !== -1; });
+      var want = [23, 18, 21, 15, 11, 7];
+      for (var i = 0; i < want.length; i++) {
+        var n = list.filter(function(s){ return s.level === i; }).length;
+        if (n !== want[i]) return "круг " + i + ": " + n;
+      }
+      var bad = list.filter(function(s){ return s.source !== "PH14"; });
+      return list.length === 95 && !bad.length ? true : "всего " + list.length + ", чужих " + bad.length;
+    });
+    t("[artificer] заклинания специальностей есть в базе 2014", function(){
+      var miss = [];
+      SUBCLASSES[Y].forEach(function(sub){
+        var by = SUBCLASS_RESOURCES[sub].passive.subclassSpells.byLevel;
+        Object.keys(by).forEach(function(k){ by[k].forEach(function(n){
+          var name = n.replace(/\s*\([^)]*\)\s*$/, "");
+          if (!SPELLS_BASE.some(function(s){ return s.source === "PH14" && s.name === name; })) miss.push(sub + ": " + name);
+        }); });
+      });
+      return miss.length ? miss.join(", ") : true;
+    });
+    t("[artificer] подкласс на 3 уровне, источник TCoE, инструменты из каталога", function(){
+      if (SUBCLASS_LEVEL[Y] !== 3 || SUBCLASSES[Y].length !== 4) return "уровень или число подклассов";
+      if (SUBCLASSES[Y].some(function(s){ return SUBCLASS_SOURCE[s] !== "TCoE"; })) return "источник";
+      var names = TOOL_CATALOG.artisan.map(function(x){ return x.name; });
+      var fixed = CLASS_TOOLS[Y].fixed.filter(function(n){ return n !== "Воровские инструменты"; });
+      SUBCLASSES[Y].forEach(function(s){ fixed = fixed.concat(SUBCLASS_TOOLS[Y][s].fixed); });
+      var miss = fixed.filter(function(n){ return names.indexOf(n) === -1; });
+      return miss.length ? "нет в каталоге: " + miss.join(", ") : true;
+    });
+    t("[artificer] класс только в 2014 и только при включённой TCoE", function(){
+      if (classInBooks(Y, { edition: "2024" })) return "виден в 2024";
+      if (!classInBooks(Y, { edition: "2014" })) return "скрыт в 2014";
+      if (classInBooks(Y, { edition: "2014", books: [] })) return "виден без TCoE";
+      if (!classInBooks(Y, { edition: "2014", books: ["TCoE"] })) return "скрыт с TCoE";
+      return classInBooks("Воин", { edition: "2024" }) ? true : "обычный класс скрыт";
+    });
+  })();
+
   // ────────── БЛОК 5: ccAvailableOptions — фильтр по req.level ──────────
   t("[filter] Монах L3 видит только базовые дисциплины (без level-gate)", function(){
     var char = {class:"Монах", level:3, subclass:"Путь четырёх стихий"};
@@ -5854,7 +5928,7 @@
       // Ратчет покрытия: тот же скан, которым отбиралась фаза («в desc или
       // higherLevel есть кубы, ключа в таблице нет»). Растёт таблица — падает
       // остаток; тест ловит откат покрытия и тихое выпадение ключей.
-      t("[cast-11] покрытие: ≥160 ключей в таблице, ≤23 заклинания с кубами без дескриптора", function(){
+      t("[cast-11] покрытие: ≥160 ключей в таблице, ≤30 заклинаний с кубами без дескриптора", function(){
         var keys = Object.keys(SPELL_EFFECTS);
         if (keys.length < 160) return "ключей в таблице: " + keys.length;
         var DICE = /\d*[кk]\d+/i, seen = {}, uncovered = [];
@@ -5862,7 +5936,7 @@
           if (seen[s.name] || SPELL_EFFECTS[s.name]) { seen[s.name] = true; return; }
           if (DICE.test(s.desc || "") || DICE.test(s.higherLevel || "")) { seen[s.name] = true; uncovered.push(s.name); }
         });
-        return uncovered.length <= 23 ? true : "без дескриптора: " + uncovered.length + " — " + uncovered.join(", ");
+        return uncovered.length <= 30 ? true : "без дескриптора: " + uncovered.length + " — " + uncovered.join(", ");
       });
     }
 
@@ -7586,16 +7660,18 @@
   (function(){
     if (typeof SPELLS_BASE === "undefined" || typeof edData !== "function") return;
     var PH24_EXTRA_IDS = [131, 158, 173, 237, 277, 283, 539, 628];
+    // Изобретатель: 22 заклинания XGtE/TCoE/SCAG из его списка лежат под PH14 — как extra у PH24
+    var PH14_EXTRA_COUNT = 22;
     var ph24 = SPELLS_BASE.filter(function(s){ return s.source === "PH24"; });
     var ph14 = SPELLS_BASE.filter(function(s){ return s.source === "PH14"; });
     function norm(n){ return String(n || "").toLowerCase().replace(/ё/g, "е").trim(); }
 
-    t("[e24-2] PH24 = 391 (книга) + 8 записей других книг; PH14 = 361", function(){
+    t("[e24-2] PH24 = 391 (книга) + 8 записей других книг; PH14 = 361 + 22 записи других книг", function(){
       var book = ph24.filter(function(s){ return PH24_EXTRA_IDS.indexOf(s.id) === -1; });
       if (book.length !== 391) return "PH24 без extra: " + book.length;
       var extra = ph24.length - book.length;
       if (extra !== PH24_EXTRA_IDS.length) return "extra найдено " + extra;
-      if (ph14.length !== 361) return "PH14: " + ph14.length;
+      if (ph14.length !== 361 + PH14_EXTRA_COUNT) return "PH14: " + ph14.length;
       return true;
     });
 
@@ -7634,10 +7710,10 @@
       return true;
     });
 
-    t("[e24-2] edData('2014').SPELL_PREP_CLASSES === SPELL_PREP_CLASSES (4 класса, формула)", function(){
+    t("[e24-2] edData('2014').SPELL_PREP_CLASSES === SPELL_PREP_CLASSES (5 классов, формула)", function(){
       var d = edData({ edition: "2014" });
       if (d.SPELL_PREP_CLASSES !== SPELL_PREP_CLASSES) return "не та же ссылка";
-      if (Object.keys(d.SPELL_PREP_CLASSES).length !== 4) return "классов: " + Object.keys(d.SPELL_PREP_CLASSES).length;
+      if (Object.keys(d.SPELL_PREP_CLASSES).length !== 5) return "классов: " + Object.keys(d.SPELL_PREP_CLASSES).length;
       return true;
     });
 
@@ -8670,7 +8746,7 @@
       return true;
     });
 
-    t("[ed-3] метки книг 2014: source у рас — код из SOURCE_LABELS, без поля — PHB; заклинания PH14 только из PHB", function(){
+    t("[ed-3] метки книг 2014: source у рас — код из SOURCE_LABELS, без поля — PHB; заклинания PH14 — PHB и список Изобретателя", function(){
       var want = { "Голиаф":"VGtM", "Аасимар":"VGtM", "Тифлинг (Кровь Дьявола)":"SCAG",
         "Своё происхождение":"TCoE", "Дампир":"VRGR", "Ведьмовская кровь":"VRGR", "Возрождённый":"VRGR" };
       ["Фирболг","Кенку","Людоящер","Табакси","Тритон","Багбир","Гоблин","Хобгоблин","Кобольд","Орк","Юань-ти чистокровный"].forEach(function(n){ want[n] = "VGtM"; });
@@ -8692,7 +8768,8 @@
         if (src !== (want[r] || "PHB")) return r + ": " + src;
       }
       var n14 = SPELLS_BASE.filter(function(s){ return s.source === "PH14"; }).length;
-      if (n14 !== 361) return "PH14 заклинаний " + n14;
+      // 361 из PHB + 22 из списка Изобретателя (XGtE/TCoE/SCAG)
+      if (n14 !== 383) return "PH14 заклинаний " + n14;
       return true;
     });
 

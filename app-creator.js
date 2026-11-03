@@ -391,6 +391,7 @@ var _CR_CLASS_BLURB = {
   "Волшебник": "Учёный маг с самым широким выбором заклинаний.",
   "Друид": "Хранитель природы: стихийная магия и дикий облик.",
   "Жрец": "Проводник божества: лечение, защита и божественная магия.",
+  "Изобретатель": "Мастер магических предметов: инфузии, инструменты и заклинания на Интеллекте.",
   "Колдун": "Маг по договору с покровителем: мистический заряд и воззвания.",
   "Монах": "Боец без доспехов: удары руками, ци и подвижность.",
   "Паладин": "Святой воин в доспехах: божественная кара, лечение и ауры.",
@@ -430,6 +431,7 @@ function _crBuildsFor(char) {
 function _crRenderClass(char) {
   var html = '<p class="cr-hint">Класс задаёт хиты, владения, спасброски и&nbsp;то, чем герой занят в&nbsp;бою.</p><div class="cr-cards">';
   _crSelectOptions("char-class").forEach(function(o) {
+    if (!classInBooks(o.value, char) && o.value !== char.class) return;
     html += _crCard(o.value, o.value, _crClassMeta(char, o.value), _CR_CLASS_BLURB[o.value] || "", "creatorPickClass",
       o.value === char.class ? "selected" : "");
   });

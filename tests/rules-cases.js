@@ -899,6 +899,69 @@ function rulesCases(t, group) {
     return true;
   });
 
+  t("Изобретатель: таблица ячеек с 1 уровня, 5 круг с 17-го (TCoE стр. 10)", function() {
+    var T = SPELL_SLOTS_BY_LEVEL["Изобретатель"];
+    if (!T) return "нет таблицы";
+    var want = { 1:[2,0], 2:[2,0], 3:[3,0], 5:[4,2], 9:[4,3,2], 13:[4,3,3,1], 17:[4,3,3,3,1], 19:[4,3,3,3,2], 20:[4,3,3,3,2] };
+    for (var l in want) for (var i = 0; i < want[l].length; i++) {
+      if ((T[l][i + 1] || 0) !== want[l][i]) return "уровень " + l + ": " + JSON.stringify(T[l]);
+    }
+    return true;
+  });
+
+  t("Изобретатель 1 ур.: ячейки есть, в отличие от паладина", function() {
+    var c = fixture({ class: "Изобретатель", level: 1, subclass: "" });
+    var row = getMulticlassSpellSlots(c);
+    if (row[1] !== 2) return "ячеек 1 круга: " + row[1];
+    return charCasterLevel(c).casters.length === 1 ? true : "не заклинатель на 1 ур.";
+  });
+
+  t("Изобретатель в мультиклассе: половина уровня вверх (TCoE стр. 10)", function() {
+    var a = charCasterLevel(mcFixture([{class:"Изобретатель", level:3}, {class:"Волшебник", level:2}]));
+    if (a.level !== 4) return "Изобретатель 3 / Волшебник 2: " + a.level + ", ожидал 4";
+    var b = charCasterLevel(mcFixture([{class:"Изобретатель", level:1}, {class:"Жрец", level:1}]));
+    if (b.level !== 2) return "Изобретатель 1 / Жрец 1: " + b.level + ", ожидал 2";
+    var c = charCasterLevel(mcFixture([{class:"Изобретатель", level:5}, {class:"Паладин", level:5}]));
+    if (c.level !== 5) return "Изобретатель 5 / Паладин 5: " + c.level + ", ожидал 3 + 2 = 5";
+    var row = getMulticlassSpellSlots(mcFixture([{class:"Изобретатель", level:5}, {class:"Воин", level:3}]));
+    if (row[1] !== 4 || row[2] !== 2) return "один заклинатель — своя таблица: " + JSON.stringify(row);
+    return true;
+  });
+
+  t("Изобретатель: заклинательная характеристика ИНТ, свой список", function() {
+    if (CLASS_SPELL_STAT["Изобретатель"] !== "ИНТ") return "характеристика";
+    return CLASS_SPELL_LIST_KEY["Изобретатель"] === "artificer" ? true : "ключ списка";
+  });
+
+  t("Изобретатель: лимит настройки 3/4/5/6 на 9/10/14/18 ур. (TCoE стр. 14)", function() {
+    var want = { 9:3, 10:4, 13:4, 14:5, 17:5, 18:6, 20:6 };
+    for (var l in want) {
+      var got = rulesAttuneLimit(fixture({ class: "Изобретатель", level: Number(l) }));
+      if (got !== want[l]) return "уровень " + l + ": " + got;
+    }
+    return rulesAttuneLimit(fixture({ class: "Воин", level: 20 })) === 3 ? true : "воин не 3";
+  });
+
+  t("Душа изобретения: +1 ко всем спасброскам за настроенный предмет, в том числе от смерти", function() {
+    var inv = { weapon: [{ name: "А", attuned: true }], armor: [{ name: "Б", attuned: true }] };
+    var c = fixture({ class: "Изобретатель", level: 20, inventory: inv });
+    if (rulesSoulOfArtifice(c) !== 2) return "бонус: " + rulesSoulOfArtifice(c);
+    var base = getMod(c.stats.wis);
+    if (rulesSaveBonus(c, "wis", 20, false) !== base + 2) return "спасбросок: " + rulesSaveBonus(c, "wis", 20, false);
+    if (rulesSoulOfArtifice(fixture({ class: "Изобретатель", level: 19, inventory: inv })) !== 0) return "сработало на 19 ур.";
+    c.combat.hpCurrent = 0;
+    return rulesDeathSave(c, 8).outcome === "success" ? true : "к20 = 8 + 2 не прошёл спасбросок от смерти";
+  });
+
+  t("Бронник: тяжёлый доспех без штрафа скорости при низкой СИЛ (TCoE стр. 19)", function() {
+    var plate = { id: "plate", strReq: 15 };
+    var st = { str: 8, dex: 10, con: 10, int: 16, wis: 10, cha: 10 };
+    var a = fixture({ class: "Изобретатель", level: 3, subclass: "Бронник", stats: st });
+    if (armorPenalties(a, plate).slowed) return "бронник замедлен";
+    var b = fixture({ class: "Изобретатель", level: 3, subclass: "Алхимик", stats: st });
+    return armorPenalties(b, plate).slowed ? true : "алхимик без штрафа";
+  });
+
   t("Таблица THIRD_CASTER_SLOTS: 18 строк 3–20, максимум 4 круга с 19 ур.", function() {
     if (typeof THIRD_CASTER_SLOTS === "undefined") return "нет таблицы THIRD_CASTER_SLOTS";
     var keys = Object.keys(THIRD_CASTER_SLOTS).map(Number).sort(function(a,b){ return a - b; });

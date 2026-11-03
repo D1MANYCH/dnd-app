@@ -2,7 +2,7 @@
   "id": "/dnd-app/index.html",
   "name": "D&D 5e — Лист Персонажа",
   "short_name": "D&D Sheet",
-  "description": "Бесплатный лист персонажа D&D 5e на русском: 48 готовых билдов, 760 заклинаний, 3D-кубики, боевой трекер. Офлайн, без регистрации.",
+  "description": "Бесплатный лист персонажа D&D 5e на русском: 48 готовых билдов, 782 заклинания, 3D-кубики, боевой трекер. Офлайн, без регистрации.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#050a14",
@@ -55,7 +55,7 @@
       "sizes": "1884x911",
       "type": "image/webp",
       "form_factor": "wide",
-      "label": "760 заклинаний"
+      "label": "782 заклинания"
     },
     {
       "src": "docs/screenshots/m01-character-sheet.webp",
@@ -76,7 +76,7 @@
       "sizes": "1170x2532",
       "type": "image/webp",
       "form_factor": "narrow",
-      "label": "760 заклинаний"
+      "label": "782 заклинания"
     }
   ],
   "shortcuts": [
