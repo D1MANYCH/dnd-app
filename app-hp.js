@@ -1123,11 +1123,13 @@ function luBuildChoicesScreen() {
   // 4) ЗАКЛИНАНИЯ — если класс-заклинатель. Два пути:
   //    (1) рекомендации билда + кнопка их добавить; (2) добавить самому → вкладка «Заклинания».
   var SPELL_CASTERS = ["Волшебник","Жрец","Друид","Бард","Паладин","Следопыт","Чародей","Колдун"];
-  if (SPELL_CASTERS.indexOf(cn) >= 0) {
+  var luSub = (typeof charClassSubclass === "function") ? charClassSubclass(char, cn) : char.subclass;
+  var luThird = (typeof THIRD_CASTER_SUBCLASSES !== "undefined" && THIRD_CASTER_SUBCLASSES.indexOf(luSub) !== -1) ? luSub : null;
+  if (SPELL_CASTERS.indexOf(cn) >= 0 || (luThird && clvl >= 3)) {
     var recSpellObjs = (b && typeof getBuildRecSpellObjs === "function") ? getBuildRecSpellObjs(b, newLevel) : [];
     var mySp = (char.spells && Array.isArray(char.spells.mySpells)) ? char.spells.mySpells : [];
     var spParts = ['<div class="lu-choice-title">' + dndIcoHtml("spells", 14) + ' Заклинания</div>'];
-    var gain = _luSpellGainParts(char, cn, clvl);
+    var gain = _luSpellGainParts(char, luThird || cn, clvl);
     spParts.push('<div class="lu-choice-sub">' + (gain.length ? escapeHtml(gain.join(" · ")) : "Новых заклинаний на этом уровне нет") + '</div>');
     if (recSpellObjs.length) {
       var allAdded = recSpellObjs.every(function(sp){ return mySp.some(function(x){ return x.id === sp.id || x.name === sp.name; }); });
