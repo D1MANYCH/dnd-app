@@ -946,12 +946,13 @@ function notesOpenEntryModal(id) {
   _notesRenderModalTags();
 
   modal.classList.add('open');
+  modal.removeAttribute('aria-hidden');
   document.getElementById('nem-title').focus();
 }
 
 function notesCloseEntryModal() {
   var modal = document.getElementById('notes-entry-modal');
-  if (modal) modal.classList.remove('open');
+  if (modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
 }
 
 function _notesRenderModalTags() {
