@@ -12,9 +12,9 @@
 | Раздел | Строки в map.md |
 |---|---|
 | style.css — секции | 20–129 |
-| index.html — блоки верхнего уровня (`#id:строки`) | 130–173 |
-| Функции по файлам (`имя:строка`) | 174–247 |
-| Данные — константы верхнего уровня (`имя:строка`) | 248–264 |
+| index.html — блоки верхнего уровня (`#id:строки`) | 130–174 |
+| Функции по файлам (`имя:строка`) | 175–248 |
+| Данные — константы верхнего уровня (`имя:строка`) | 249–265 |
 
 
 ## style.css — секции
@@ -134,42 +134,43 @@
 #status-inspiration:388-388 #status-concentration:389-391 #status-ritual:392-394 #status-conditions-btn:395-408 #screen-home:409-411 #home-art:412-439 #home-sub-new:440-487 #home-install:488-495  
 #home-hero:496-496 #home-hero-emblem:497-500 #home-hero-sub:501-501 #home-hero-chips:502-512 #screen-characters:513-552 #char-hero:553-553 #char-hero-emblem:554-557 #char-hero-sub:558-558  
 #char-hero-chips:559-559 #char-hero-actions:560-568 #screen-data:569-585 #backup-panel:586-590 #backup-list:591-592 #sync-row:593-593 #storage-status:594-605 #screen-about:606-609  
-#app-version-row:610-617 #ptab-info:618-625 #app-links-row:626-630 #ptab-changelog:631-636 #changelog-list:637-643 #screen-character:644-644 #tab-sheet:645-647 #creation-wizard-banner:648-655  
-#cw-edition-row:656-665 #cw-validation:666-668 #basic-locked-bar:669-678 #creation-todo:679-688 #sheet-avatar:689-701 #char-build-badge-wrap:702-716 #char-class-mc:717-741 #char-subclass-rec:742-742  
-#char-subclass-mc:743-951 #char-books:952-956 #race-bonus-display:957-957 #race-extras-panel:958-958 #class-skills-panel:959-960 #background-feature-display:961-962 #bg-extras-panel:963-1006 #abilgen-row:1007-1013  
-#stats-collapse-btn:1014-1021 #abilities-region:1022-1025 #proficiency-bonus-2024:1026-1027 #insp-card-2024:1028-1037 #abil-col-1:1038-1038 #stat-block-str:1039-1040 #mod-str:1041-1047 #abil-save-slot-str:1048-1048  
-#abil-skills-slot-str:1049-1051 #stat-block-dex:1052-1053 #mod-dex:1054-1060 #abil-save-slot-dex:1061-1061 #abil-skills-slot-dex:1062-1064 #stat-block-int:1065-1066 #mod-int:1067-1073 #abil-save-slot-int:1074-1074  
-#abil-skills-slot-int:1075-1078 #abil-col-2:1079-1079 #stat-block-con:1080-1081 #mod-con:1082-1088 #abil-save-slot-con:1089-1089 #abil-skills-slot-con:1090-1092 #stat-block-wis:1093-1094 #mod-wis:1095-1101  
-#abil-save-slot-wis:1102-1102 #abil-skills-slot-wis:1103-1105 #stat-block-cha:1106-1107 #mod-cha:1108-1114 #abil-save-slot-cha:1115-1115 #abil-skills-slot-cha:1116-1129 #saves-grid:1130-1139 #skills-container:1140-1142  
-#passive-perception:1143-1162 #ws-hp-banner:1163-1168 #hp-dmg-row:1169-1178 #hp-dmg-body:1179-1199 #death-saves-section:1200-1231 #hp-armor-body:1232-1273 #hp-hd-body:1274-1287 #hp-rest-body:1288-1315  
-#class-dev-section:1316-1318 #cd-head:1319-1319 #cd-res:1320-1320 #cd-attn:1321-1322 #cd-about:1323-1331 #ac-formula:1332-1333 #ac-modifiers:1334-1341 #conditions-grid:1342-1349  
-#effects-grid:1350-1357 #resistances-container:1358-1366 #prof-card:1367-1370 #armor-prof-container:1371-1374 #weapon-prof-container:1375-1378 #tools-container:1379-1382 #languages-container:1383-1390 #companions-list-sheet:1391-1403  
-#tab-progress:1404-1405 #pg-body:1406-1407 #tab-spells:1408-1410 #spell-stat-card:1411-1432 #spell-mod-display:1433-1438 #spell-dc-display:1439-1444 #spell-attack-display:1445-1450 #spell-stats-by-class:1451-1462  
-#spell-slots-card:1463-1467 #spell-slots-visual:1468-1474 #concentration-block:1475-1492 #rd-find-spl-wrap:1493-1493 #prep-counter:1494-1494 #my-spells-list:1495-1496 #rd-slot-strip:1497-1498 #tab-inventory:1499-1502  
-#rd-find-inv-wrap:1503-1519 #weight-fill:1520-1554 #inventory-list:1555-1559 #inv-coins-card:1560-1564 #rd-exch:1565-1575 #inv-pouches:1576-1631 #tab-notes:1632-1658 #notes-subtabs:1659-1660  
-#notes-main:1661-1662 #taken-feats-section:1663-1667 #taken-feats-list:1668-1671 #tab-party:1672-1681 #my-char-card:1682-1695 #allies-list:1696-1710 #npcs-list:1711-1726 #monsters-list:1727-1738  
-#companions-list-world:1739-1749 #tab-battle:1750-1755 #weapons-list:1756-1758 #ws-card:1759-1761 #saved-roll-form:1762-1768 #saved-roll-err:1769-1770 #saved-rolls-list:1771-1774 #battle-res-card:1775-1776  
-#battle-res-rows:1777-1778 #battle-setup-screen:1779-1789 #battle-setup-list:1790-1790 #battle-difficulty:1791-1794 #battle-tracker-screen:1795-1799 #battle-turn-info:1800-1805 #battle-repeat-strip:1806-1806 #battle-tracker-list:1807-1816  
-#tab-journal:1817-1831 #journal-list:1832-1838 #screen-itemref:1839-1841 #item-ref-tabs:1842-1847 #item-ref-weight:1848-1886 #item-ref-slots:1887-1918 #screen-dmref:1919-1921 #dm-ref-tabs:1922-1926  
-#dm-ref-ed:1927-1927 #dm-ref-cond:1928-1928 #dm-ref-combat:1929-1929 #dm-ref-world:1930-1934 #screen-help:1935-1957 #help-about:1958-1981 #help-start:1982-2006 #help-sheet:2007-2030  
-#help-progress:2031-2076 #help-spells:2077-2093 #help-inventory:2094-2106 #help-battle:2107-2131 #help-party:2132-2148 #help-notes:2149-2157 #help-journal:2158-2166 #help-planes:2167-2194  
-#help-dice:2195-2206 #help-edition2024:2207-2246 #help-data:2247-2263 #help-marks:2264-2286 #conc-details-modal:2287-2297 #conc-detail-duration-row:2298-2305 #conc-detail-desc-row:2306-2315 #add-journal-modal:2316-2339  
-#add-npc-modal:2340-2369 #add-ally-modal:2370-2407 #screen-monsters:2408-2420 #srd-monster-count:2421-2421 #srd-monster-results:2422-2426 #srd-npc-modal:2427-2436 #srd-npc-count:2437-2437 #srd-npc-results:2438-2445  
-#screen-monsterform:2446-2483 #monster-cr-note:2484-2486 #monster-stats:2487-2488 #monster-saves:2489-2490 #monster-attacks:2491-2514 #screen-rest:2515-2517 #rest-main-screen:2518-2519 #rest-card-short:2520-2522  
-#hit-dice-section:2523-2524 #hit-dice-controls-total:2525-2529 #hit-dice-by-size:2530-2535 #rest-card-long:2536-2538 #rest-food-section:2539-2549 #rest-result-screen:2550-2552 #rest-result-details:2553-2561 #screen-levelup:2562-2566  
-#lu-screen-multiclass:2567-2568 #lu-mc-current-classes:2569-2571 #lu-mc-new-class:2572-2576 #lu-mc-prereq-warn:2577-2577 #lu-mc-subclass-row:2578-2586 #lu-screen-preview:2587-2619 #lu-slots-card:2620-2621 #lu-slots-info:2622-2625  
-#lu-build-hint:2626-2626 #lu-features-container:2627-2635 #lu-screen-choices:2636-2637 #lu-choices-body:2638-2644 #lu-screen-result:2645-2646 #lu-result-title:2647-2647 #lu-result-body:2648-2654 #screen-wildshape:2655-2660  
-#ws-limits:2661-2661 #ws-results:2662-2665 #screen-hphistory:2666-2668 #hp-history-list:2669-2674 #asi-modal:2675-2679 #asi-build-hint:2680-2694 #asi-feat-list:2695-2695 #asi-stat-grid:2696-2696  
-#asi-preview:2697-2705 #class-choice-modal:2706-2721 #dice-modal:2722-2754 #dice-file-hint:2755-2755 #dice3d-result:2756-2767 #dice-result-display:2768-2781 #dice-pick-hint:2782-2782 #dice-mode-segment:2783-2787  
-#dice-formula-panel:2788-2805 #dice-fan:2806-2814 #dice-popover-settings:2815-2862 #dice-popover-history:2863-2874 #dice-history:2875-2883 #screen-spellsearch:2884-2886 #spell-feat-bar:2887-2902 #spell-ver-filter:2903-2909  
-#spell-class-filter:2910-2942 #class-filter-legend:2943-2944 #spell-search-count:2945-2946 #spell-search-results:2947-2950 #cast-spell-modal:2951-2955 #cast-spell-options:2956-2958 #add-spell-modal:2959-3002 #new-spell-class-chips:3003-3049  
-#new-spell-mech-fields:3050-3054 #new-spell-mech-dmg-row:3055-3074 #new-spell-mech-half-row:3075-3077 #new-spell-mech-mod-row:3078-3088 #item-modal:3089-3133 #item-armor-fields:3134-3159 #coin-exchange-modal:3160-3198 #exch-preview:3199-3205  
-#screen-magiccatalog:3206-3233 #magic-catalog-count:3234-3234 #magic-catalog-list:3235-3238 #screen-gearcatalog:3239-3243 #gear-packs-list:3244-3257 #gear-catalog-count:3258-3258 #gear-catalog-list:3259-3263 #weapon-modal:3264-3267  
-#weapon-picker-section:3268-3270 #weapon-filter-chips:3271-3280 #weapon-presets-list:3281-3281 #weapon-pick-bar:3282-3345 #rd-quick-dock:3346-3346 #character-tabs:3347-3365 #quick-roll-strip:3366-3371 #qrs-list:3372-3382  
-#active-effects-panel:3383-3387 #aef-list:3388-3394 #hp-toast-container:3395-3397 #add-companion-modal:3398-3414 #companion-familiar-row:3415-3435 #mob-sheet:3436-3439 #mob-sheet-list:3440-3443 #confirm-modal:3444-3457  
-#avatar-modal:3458-3461 #avatar-modal-preview:3462-3489 #screen-builds:3490-3517 #bp-list:3518-3522 #screen-buildguide:3523-3525 #bg-body:3526-3530 #screen-buildplan:3531-3533 #bp-plan-body:3534-3538  
-#screen-abilityinfo:3539-3541 #ai-body:3542-3546 #screen-abilgen:3547-3549 #ag-body:3550-3554 #screen-books:3555-3557 #books-body:3558-3562 #screen-mclayout:3563-3565 #ml-body:3566-3570  
-#screen-featureinfo:3571-3573 #fi-body:3574-3578 #screen-creator:3579-3581 #cr-progress:3582-3582 #cr-body:3583-3593 #app-log-panel:3594-3613 #app-log-list:3614-3795 #notes-entry-modal:3796-3844  
+#app-version-row:610-617 #ptab-info:618-625 #app-links-row:626-629 #app-legal-note:630-635 #ptab-changelog:636-641 #changelog-list:642-648 #screen-character:649-649 #tab-sheet:650-652  
+#creation-wizard-banner:653-660 #cw-edition-row:661-670 #cw-validation:671-673 #basic-locked-bar:674-683 #creation-todo:684-693 #sheet-avatar:694-706 #char-build-badge-wrap:707-721 #char-class-mc:722-746  
+#char-subclass-rec:747-747 #char-subclass-mc:748-956 #char-books:957-961 #race-bonus-display:962-962 #race-extras-panel:963-963 #class-skills-panel:964-965 #background-feature-display:966-967 #bg-extras-panel:968-1011  
+#abilgen-row:1012-1018 #stats-collapse-btn:1019-1026 #abilities-region:1027-1030 #proficiency-bonus-2024:1031-1032 #insp-card-2024:1033-1042 #abil-col-1:1043-1043 #stat-block-str:1044-1045 #mod-str:1046-1052  
+#abil-save-slot-str:1053-1053 #abil-skills-slot-str:1054-1056 #stat-block-dex:1057-1058 #mod-dex:1059-1065 #abil-save-slot-dex:1066-1066 #abil-skills-slot-dex:1067-1069 #stat-block-int:1070-1071 #mod-int:1072-1078  
+#abil-save-slot-int:1079-1079 #abil-skills-slot-int:1080-1083 #abil-col-2:1084-1084 #stat-block-con:1085-1086 #mod-con:1087-1093 #abil-save-slot-con:1094-1094 #abil-skills-slot-con:1095-1097 #stat-block-wis:1098-1099  
+#mod-wis:1100-1106 #abil-save-slot-wis:1107-1107 #abil-skills-slot-wis:1108-1110 #stat-block-cha:1111-1112 #mod-cha:1113-1119 #abil-save-slot-cha:1120-1120 #abil-skills-slot-cha:1121-1134 #saves-grid:1135-1144  
+#skills-container:1145-1147 #passive-perception:1148-1167 #ws-hp-banner:1168-1173 #hp-dmg-row:1174-1183 #hp-dmg-body:1184-1204 #death-saves-section:1205-1236 #hp-armor-body:1237-1278 #hp-hd-body:1279-1292  
+#hp-rest-body:1293-1320 #class-dev-section:1321-1323 #cd-head:1324-1324 #cd-res:1325-1325 #cd-attn:1326-1327 #cd-about:1328-1336 #ac-formula:1337-1338 #ac-modifiers:1339-1346  
+#conditions-grid:1347-1354 #effects-grid:1355-1362 #resistances-container:1363-1371 #prof-card:1372-1375 #armor-prof-container:1376-1379 #weapon-prof-container:1380-1383 #tools-container:1384-1387 #languages-container:1388-1395  
+#companions-list-sheet:1396-1408 #tab-progress:1409-1410 #pg-body:1411-1412 #tab-spells:1413-1415 #spell-stat-card:1416-1437 #spell-mod-display:1438-1443 #spell-dc-display:1444-1449 #spell-attack-display:1450-1455  
+#spell-stats-by-class:1456-1467 #spell-slots-card:1468-1472 #spell-slots-visual:1473-1479 #concentration-block:1480-1497 #rd-find-spl-wrap:1498-1498 #prep-counter:1499-1499 #my-spells-list:1500-1501 #rd-slot-strip:1502-1503  
+#tab-inventory:1504-1507 #rd-find-inv-wrap:1508-1524 #weight-fill:1525-1559 #inventory-list:1560-1564 #inv-coins-card:1565-1569 #rd-exch:1570-1580 #inv-pouches:1581-1636 #tab-notes:1637-1663  
+#notes-subtabs:1664-1665 #notes-main:1666-1667 #taken-feats-section:1668-1672 #taken-feats-list:1673-1676 #tab-party:1677-1686 #my-char-card:1687-1700 #allies-list:1701-1715 #npcs-list:1716-1731  
+#monsters-list:1732-1743 #companions-list-world:1744-1754 #tab-battle:1755-1760 #weapons-list:1761-1763 #ws-card:1764-1766 #saved-roll-form:1767-1773 #saved-roll-err:1774-1775 #saved-rolls-list:1776-1779  
+#battle-res-card:1780-1781 #battle-res-rows:1782-1783 #battle-setup-screen:1784-1794 #battle-setup-list:1795-1795 #battle-difficulty:1796-1799 #battle-tracker-screen:1800-1804 #battle-turn-info:1805-1810 #battle-repeat-strip:1811-1811  
+#battle-tracker-list:1812-1821 #tab-journal:1822-1836 #journal-list:1837-1843 #screen-itemref:1844-1846 #item-ref-tabs:1847-1852 #item-ref-weight:1853-1891 #item-ref-slots:1892-1923 #screen-dmref:1924-1926  
+#dm-ref-tabs:1927-1931 #dm-ref-ed:1932-1932 #dm-ref-cond:1933-1933 #dm-ref-combat:1934-1934 #dm-ref-world:1935-1939 #screen-help:1940-1962 #help-about:1963-1986 #help-start:1987-2011  
+#help-sheet:2012-2035 #help-progress:2036-2081 #help-spells:2082-2098 #help-inventory:2099-2111 #help-battle:2112-2136 #help-party:2137-2153 #help-notes:2154-2162 #help-journal:2163-2171  
+#help-planes:2172-2199 #help-dice:2200-2211 #help-edition2024:2212-2251 #help-data:2252-2268 #help-marks:2269-2291 #conc-details-modal:2292-2302 #conc-detail-duration-row:2303-2310 #conc-detail-desc-row:2311-2320  
+#add-journal-modal:2321-2344 #add-npc-modal:2345-2374 #add-ally-modal:2375-2412 #screen-monsters:2413-2425 #srd-monster-count:2426-2426 #srd-monster-results:2427-2431 #srd-npc-modal:2432-2441 #srd-npc-count:2442-2442  
+#srd-npc-results:2443-2450 #screen-monsterform:2451-2488 #monster-cr-note:2489-2491 #monster-stats:2492-2493 #monster-saves:2494-2495 #monster-attacks:2496-2519 #screen-rest:2520-2522 #rest-main-screen:2523-2524  
+#rest-card-short:2525-2527 #hit-dice-section:2528-2529 #hit-dice-controls-total:2530-2534 #hit-dice-by-size:2535-2540 #rest-card-long:2541-2543 #rest-food-section:2544-2554 #rest-result-screen:2555-2557 #rest-result-details:2558-2566  
+#screen-levelup:2567-2571 #lu-screen-multiclass:2572-2573 #lu-mc-current-classes:2574-2576 #lu-mc-new-class:2577-2581 #lu-mc-prereq-warn:2582-2582 #lu-mc-subclass-row:2583-2591 #lu-screen-preview:2592-2624 #lu-slots-card:2625-2626  
+#lu-slots-info:2627-2630 #lu-build-hint:2631-2631 #lu-features-container:2632-2640 #lu-screen-choices:2641-2642 #lu-choices-body:2643-2649 #lu-screen-result:2650-2651 #lu-result-title:2652-2652 #lu-result-body:2653-2659  
+#screen-wildshape:2660-2665 #ws-limits:2666-2666 #ws-results:2667-2670 #screen-hphistory:2671-2673 #hp-history-list:2674-2679 #asi-modal:2680-2684 #asi-build-hint:2685-2699 #asi-feat-list:2700-2700  
+#asi-stat-grid:2701-2701 #asi-preview:2702-2710 #class-choice-modal:2711-2726 #dice-modal:2727-2759 #dice-file-hint:2760-2760 #dice3d-result:2761-2772 #dice-result-display:2773-2786 #dice-pick-hint:2787-2787  
+#dice-mode-segment:2788-2792 #dice-formula-panel:2793-2810 #dice-fan:2811-2819 #dice-popover-settings:2820-2867 #dice-popover-history:2868-2879 #dice-history:2880-2888 #screen-spellsearch:2889-2891 #spell-feat-bar:2892-2907  
+#spell-ver-filter:2908-2914 #spell-class-filter:2915-2947 #class-filter-legend:2948-2949 #spell-search-count:2950-2951 #spell-search-results:2952-2955 #cast-spell-modal:2956-2960 #cast-spell-options:2961-2963 #add-spell-modal:2964-3007  
+#new-spell-class-chips:3008-3054 #new-spell-mech-fields:3055-3059 #new-spell-mech-dmg-row:3060-3079 #new-spell-mech-half-row:3080-3082 #new-spell-mech-mod-row:3083-3093 #item-modal:3094-3138 #item-armor-fields:3139-3164 #coin-exchange-modal:3165-3203  
+#exch-preview:3204-3210 #screen-magiccatalog:3211-3238 #magic-catalog-count:3239-3239 #magic-catalog-list:3240-3243 #screen-gearcatalog:3244-3248 #gear-packs-list:3249-3262 #gear-catalog-count:3263-3263 #gear-catalog-list:3264-3268  
+#weapon-modal:3269-3272 #weapon-picker-section:3273-3275 #weapon-filter-chips:3276-3285 #weapon-presets-list:3286-3286 #weapon-pick-bar:3287-3350 #rd-quick-dock:3351-3351 #character-tabs:3352-3370 #quick-roll-strip:3371-3376  
+#qrs-list:3377-3387 #active-effects-panel:3388-3392 #aef-list:3393-3399 #hp-toast-container:3400-3402 #add-companion-modal:3403-3419 #companion-familiar-row:3420-3440 #mob-sheet:3441-3444 #mob-sheet-list:3445-3448  
+#confirm-modal:3449-3462 #avatar-modal:3463-3466 #avatar-modal-preview:3467-3494 #screen-builds:3495-3522 #bp-list:3523-3527 #screen-buildguide:3528-3530 #bg-body:3531-3535 #screen-buildplan:3536-3538  
+#bp-plan-body:3539-3543 #screen-abilityinfo:3544-3546 #ai-body:3547-3551 #screen-abilgen:3552-3554 #ag-body:3555-3559 #screen-books:3560-3562 #books-body:3563-3567 #screen-mclayout:3568-3570  
+#ml-body:3571-3575 #screen-featureinfo:3576-3578 #fi-body:3579-3583 #screen-creator:3584-3586 #cr-progress:3587-3587 #cr-body:3588-3598 #app-log-panel:3599-3618 #app-log-list:3619-3800  
+#notes-entry-modal:3801-3849  
 
 ## Функции по файлам (`имя:строка`)
 
@@ -247,8 +248,8 @@ getLastCharacter:22 _homeCantripCount:34 _homeHeroChips:48 _homePlural:68 _homeH
 
 ## Данные — константы верхнего уровня (`имя:строка`)
 
-**data.js** (8476 строк)  
-_ASI:7 _FEAT:8 SCHEMA_VERSION:29 DAMAGE_TYPES:32 DEFAULT_CHARACTER:39 FAMILIAR_FORMS:128 SAVES_DATA:150 CONDITIONS:159 EFFECTS_DATA:182 CLASS_FEATURES:233 SPELL_PREP_CLASSES:504 CANTRIPS_KNOWN_2014:513 SPELLS_KNOWN_2014:524 SPELL_SLOTS_BY_LEVEL:533 CLASS_HIT_DICE:617 SUBCLASSES:624 SOURCE_LABELS:645 SUBCLASS_SOURCE:672 BOOK_CODES:743 _booksOffCache:746 CLASS_SOURCE:779 SUBCLASS_LEVEL:795 SUBCLASS_FEATURES:812 WEAPON_PRESETS:1629 ITEM_ICONS:1673 CATEGORY_NAMES:1674 GEAR_PACKS:1683 RACE_DATA:1778 BACKGROUND_SKILLS:2395 BACKGROUND_ALIASES:2474 DEITY_ALIGN_LABELS:2487 DEITIES_DATA:2492 LANGUAGE_CATALOG:2560 RACE_LANGUAGES:2597 CLASS_LANGUAGES:2699 TOOL_CATALOG:2705 RACE_TOOLS:2761 CLASS_TOOLS:2773 SUBCLASS_LANGUAGES:2782 SUBCLASS_TOOLS:2805 RACE_ARMOR:2833 RACE_WEAPONS_SPECIFIC:2839 CLASS_WEAPONS_SPECIFIC:2855 RACE_NAME_POOLS:2868 RACE_NAME_GROUP:2910 SUBCLASS_ARMOR:2925 ARMOR_PRESETS:2960 skills:2977 ABILITY_INFO:2990 CLASS_SKILL_OPTIONS:3030 CLASS_SKILL_COUNT:3046 CLASS_SKILL_MC_COUNT:3047 CLASS_ARMOR_PROFS:3050 CLASS_RESOURCES:3071 ASI_LEVELS:3255 XP_THRESHOLDS:3263 APP_VERSION:3273 APP_VERSION_DATE:3274 APP_TELEGRAM_URL:3280 APP_BOOSTY_URL:3281 FEATS_DATA:3302 APP_CHANGELOG:3625 CASTER_TYPE:8301 THIRD_CASTER_SUBCLASSES:8311 THIRD_CASTER_SLOTS:8318 MULTICLASS_SPELL_SLOTS:8329 MULTICLASS_PREREQUISITES:8354 MULTICLASS_PROFICIENCIES:8373 EDITION_DATA:8403
+**data.js** (8493 строк)  
+_ASI:7 _FEAT:8 SCHEMA_VERSION:29 DAMAGE_TYPES:32 DEFAULT_CHARACTER:39 FAMILIAR_FORMS:128 SAVES_DATA:150 CONDITIONS:159 EFFECTS_DATA:182 CLASS_FEATURES:233 SPELL_PREP_CLASSES:504 CANTRIPS_KNOWN_2014:513 SPELLS_KNOWN_2014:524 SPELL_SLOTS_BY_LEVEL:533 CLASS_HIT_DICE:617 SUBCLASSES:624 SOURCE_LABELS:645 SUBCLASS_SOURCE:672 BOOK_CODES:745 _booksOffCache:748 CLASS_SOURCE:781 SUBCLASS_LEVEL:797 SUBCLASS_FEATURES:814 WEAPON_PRESETS:1638 ITEM_ICONS:1682 CATEGORY_NAMES:1683 GEAR_PACKS:1692 RACE_DATA:1787 BACKGROUND_SKILLS:2404 BACKGROUND_ALIASES:2483 DEITY_ALIGN_LABELS:2496 DEITIES_DATA:2501 LANGUAGE_CATALOG:2569 RACE_LANGUAGES:2606 CLASS_LANGUAGES:2708 TOOL_CATALOG:2714 RACE_TOOLS:2770 CLASS_TOOLS:2782 SUBCLASS_LANGUAGES:2791 SUBCLASS_TOOLS:2814 RACE_ARMOR:2842 RACE_WEAPONS_SPECIFIC:2848 CLASS_WEAPONS_SPECIFIC:2864 RACE_NAME_POOLS:2877 RACE_NAME_GROUP:2919 SUBCLASS_ARMOR:2934 ARMOR_PRESETS:2969 skills:2986 ABILITY_INFO:2999 CLASS_SKILL_OPTIONS:3039 CLASS_SKILL_COUNT:3055 CLASS_SKILL_MC_COUNT:3056 CLASS_ARMOR_PROFS:3059 CLASS_RESOURCES:3080 ASI_LEVELS:3264 XP_THRESHOLDS:3272 APP_VERSION:3282 APP_VERSION_DATE:3283 APP_TELEGRAM_URL:3289 APP_BOOSTY_URL:3290 FEATS_DATA:3311 APP_CHANGELOG:3634 CASTER_TYPE:8318 THIRD_CASTER_SUBCLASSES:8328 THIRD_CASTER_SLOTS:8335 MULTICLASS_SPELL_SLOTS:8346 MULTICLASS_PREREQUISITES:8371 MULTICLASS_PROFICIENCIES:8390 EDITION_DATA:8420
 
 **spells.js** (13819 строк)  
 SPELLS_BASE:7
@@ -259,6 +260,6 @@ SPELL_EFFECTS:71
 **class-choices.js** (815 строк)  
 FIGHTING_STYLES:10 SORCERER_METAMAGIC:20 WARLOCK_PACT_BOONS:32 WARLOCK_INVOCATIONS:40 FAVORED_ENEMIES:76 FAVORED_TERRAINS:94 ARTIFICER_INFUSIONS:106 ARTIFICER_REPLICA_ITEMS:125 CLASS_CHOICES:170 ccModalState:513
 
-**subclass-choices-data.js** (1136 строк)  
-BATTLE_MASTER_MANEUVERS:6 HUNTER_PREY:26 HUNTER_DEFENSIVE:32 HUNTER_MULTIATTACK:38 HUNTER_SUPERIOR:43 TOTEM_SPIRIT:50 TOTEM_ASPECT:56 TOTEM_ATTUNEMENT:62 DRACONIC_ANCESTRY:69 ELEMENTAL_DISCIPLINES:83 STORM_HERALD_AURA:103 ARCANE_SHOTS:110 KENSEI_WEAPONS:122 RUNE_KNIGHT_RUNES:134 ARCANA_CANTRIPS:152 ARCANA_MASTERY:153 GIANT_CANTRIPS:164 ARMORER_MODELS:168 SUBCLASS_CHOICES:173 SUBCLASS_RESOURCES:438
+**subclass-choices-data.js** (1172 строк)  
+BATTLE_MASTER_MANEUVERS:6 HUNTER_PREY:26 HUNTER_DEFENSIVE:32 HUNTER_MULTIATTACK:38 HUNTER_SUPERIOR:43 TOTEM_SPIRIT:50 TOTEM_ASPECT:56 TOTEM_ATTUNEMENT:62 DRACONIC_ANCESTRY:69 ELEMENTAL_DISCIPLINES:83 STORM_HERALD_AURA:103 ARCANE_SHOTS:110 KENSEI_WEAPONS:122 LIVING_WEAPON_DISCIPLINES:134 LIVING_WEAPON_PERFECT_FORM:140 RUNE_KNIGHT_RUNES:148 ARCANA_CANTRIPS:166 ARCANA_MASTERY:167 GIANT_CANTRIPS:178 ARMORER_MODELS:182 SUBCLASS_CHOICES:187 SUBCLASS_RESOURCES:474
 
