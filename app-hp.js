@@ -483,11 +483,12 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
         ? classSpellSlotRow(className, _luSub, totalLevel, char)
         : (edData(char).SPELL_SLOTS_BY_LEVEL[className] && edData(char).SPELL_SLOTS_BY_LEVEL[className][totalLevel])) || [];
       var slotParts = [];
-      for (var i = 1; i <= 9; i++) {
+      for (var i = 1; className !== "Колдун" && i <= 9; i++) {
         var n = newSlots[i] || 0;
         var o = oldSlots[i] || 0;
-        if (n > 0) slotParts.push((n > o ? "<b>+" + (n-o) + "</b> " : "") + i + "ур.: " + n);
+        if (n > 0) slotParts.push(_luSlotPart(i + "ур.", n, o));
       }
+      if (className === "Колдун") slotParts = slotParts.concat(_luPactPart(char, totalLevel, newTotalLevel));
       if (slotParts.length > 0) {
         slotsCard.style.display = "";
         slotsInfo.innerHTML = slotParts.join("  •  ");
@@ -511,8 +512,10 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
     for (var j = 1; j <= 9; j++) {
       var nv = newSlotsMC[j] || 0;
       var ov = oldSlotsMC[j] || 0;
-      if (nv > 0) slotPartsMC.push((nv > ov ? "<b>+" + (nv-ov) + "</b> " : "") + j + "ур.: " + nv);
+      if (nv > 0) slotPartsMC.push(_luSlotPart(j + "ур.", nv, ov));
     }
+    var _wl = function(list) { var w = 0; list.forEach(function(c) { if (c.class === "Колдун") w = c.level; }); return w; };
+    slotPartsMC = slotPartsMC.concat(_luPactPart(char, _wl(char.classes || []), _wl(tempClasses)));
     if (slotPartsMC.length > 0) {
       slotsCard.style.display = "";
       slotsInfo.innerHTML = slotPartsMC.join("  •  ");
@@ -1961,3 +1964,15 @@ saveToLocal();
 loadDeathSaves();
 }
 
+
+// PLAY3-6б: «1ур.: 4 (+1)» — прирост после числа; пакт колдуна отдельной строкой
+function _luSlotPart(label, n, o) {
+  return label + ": " + n + (n > o ? " <b>(+" + (n - o) + ")</b>" : "");
+}
+function _luPactPart(char, oldWl, newWl) {
+  var table = edData(char).SPELL_SLOTS_BY_LEVEL["Колдун"];
+  if (!table || !newWl || !table[newWl]) return [];
+  var np = resolvePactSlots(table[newWl]), op = resolvePactSlots(oldWl ? table[oldWl] : null);
+  if (!np.cnt) return [];
+  return [_luSlotPart("Пакт " + np.lvl + "ур.", np.cnt, np.lvl === op.lvl ? op.cnt : 0) + (np.lvl > op.lvl && op.lvl ? " <b>(круг ↑)</b>" : "")];
+}

@@ -131,7 +131,7 @@ function renderRdSlotStrip(char, isSingleWarlock) {
   var box = $("rd-slot-strip");
   if (!box) return;
   var canEdit = _rdSlotStripOpen && !isSheetLocked(char);
-  var groups = [], all = 0, free = 0;
+  var groups = [], all = 0, free = 0, pactHead = "";
   var group = function(label, total, used, clickFn, maxArg) {
     var left = Math.max(0, total - used), d = "";
     all += total; free += left;
@@ -151,10 +151,16 @@ function renderRdSlotStrip(char, isSingleWarlock) {
     }
   }
   var pt = char.spells.pactSlots || 0, pl = char.spells.pactLevel || 0;
-  if (pt > 0 && pl > 0) group("Пакт " + pl + "ур.", pt, char.spells.pactUsed || 0, function(idx) { return "togglePactSlot(" + idx + ")"; }, "'pact'");
+  if (pt > 0 && pl > 0) {
+    // PLAY3-6б: пакт не суммируется с обычными ячейками — у него свой счётчик
+    var a0 = all, f0 = free;
+    group("Пакт " + pl + "ур.", pt, char.spells.pactUsed || 0, function(idx) { return "togglePactSlot(" + idx + ")"; }, "'pact'");
+    pactHead = (a0 ? " · " : "") + "пакт " + (free - f0) + "/" + (all - a0);
+    all = a0; free = f0;
+  }
   box.hidden = !groups.length;
   box.classList.toggle("open", _rdSlotStripOpen);
-  box.innerHTML = groups.length ? '<button type="button" class="rd-ss-head" onclick="rdSlotStripToggle()" aria-expanded="' + _rdSlotStripOpen + '">Ячейки <small>' + free + '/' + all + '</small><span class="rd-ss-chev" aria-hidden="true"></span></button><div class="rd-ss-body">' + groups.join("") + '</div>' : "";
+  box.innerHTML = groups.length ? '<button type="button" class="rd-ss-head" onclick="rdSlotStripToggle()" aria-expanded="' + _rdSlotStripOpen + '">Ячейки <small>' + (all ? free + '/' + all : '') + pactHead + '</small><span class="rd-ss-chev" aria-hidden="true"></span></button><div class="rd-ss-body">' + groups.join("") + '</div>' : "";
 }
 function togglePactSlot(index) {
 if (!currentId) return;
@@ -1466,7 +1472,7 @@ function renderPrepCounter() {
     var kHave2 = Math.max(0, _knownSpellCount(char) - prepCount);
     knownHtml = '<span class="prep-label">· Известно:</span><span class="prep-count' + (kHave2 >= kMax2 ? " prep-full" : "") + '">' + kHave2 + '</span><span class="prep-sep">/</span><span class="prep-max">' + kMax2 + '</span>';
   }
-  el.innerHTML = '<span class="prep-icon">' + dndIcoHtml("sheet", 13) + '</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span>' + knownHtml + cantripHtml + (hint ? '<span class="prep-hint">' + hint + '</span>' : '');
+  el.innerHTML = '<span class="prep-icon">' + dndIcoHtml("sheet", 13) + '</span><span class="prep-label">Подготовлено:</span><span class="prep-count' + (prepCount >= max ? " prep-full" : "") + '">' + prepCount + '</span><span class="prep-sep">/</span><span class="prep-max">' + max + '</span>' + (hint ? '<span class="prep-hint">' + hint + '</span>' : '') + knownHtml + cantripHtml;
 }
 
 // ── Использование заклинания (трата ячейки из карточки) ─────
