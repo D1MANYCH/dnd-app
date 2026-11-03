@@ -786,6 +786,7 @@ function luSetSubclass(name) {
   } else {
     char.subclass = name;
   }
+  rulesApplySpellSlots(char);
   saveToLocal();
   loadCharacter(currentId);
   if (typeof updateClassFeatures === "function") updateClassFeatures();

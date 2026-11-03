@@ -260,6 +260,12 @@ var btn = $(btnId);
 if (btn) btn.classList.add("active");
 renderSpellSearch();
 }
+// PLAY3-1а: мистический ловкач / рыцарь берут заклинания из списка волшебника.
+function _charIsThirdCaster(char) {
+  if (typeof THIRD_CASTER_SUBCLASSES === "undefined" || !char) return false;
+  if (char.subclass && THIRD_CASTER_SUBCLASSES.indexOf(char.subclass) !== -1) return true;
+  return Array.isArray(char.classes) && char.classes.some(function(c) { return c && THIRD_CASTER_SUBCLASSES.indexOf(c.subclass) !== -1; });
+}
 // BUILD-LVL: ключ класса заклинаний персонажа (ru→en). Для мультикласса — первый класс-заклинатель.
 function _charSpellClassKey(char) {
   var ruToKey = { "Волшебник":"wizard", "Чародей":"sorcerer", "Колдун":"warlock", "Бард":"bard",
@@ -269,6 +275,7 @@ function _charSpellClassKey(char) {
   if (Array.isArray(char.classes)) {
     for (var i = 0; i < char.classes.length; i++) { if (ruToKey[char.classes[i].class]) return ruToKey[char.classes[i].class]; }
   }
+  if (_charIsThirdCaster(char)) return "wizard";
   return null;
 }
 // BUILD-LVL: высший доступный уровень заклинаний персонажа (по ячейкам/пакту). 0 = некастер/нет ячеек.
@@ -329,7 +336,7 @@ function markCharOwnClassFilter() {
   }
   var ruToKey = { "Волшебник":"wizard", "Чародей":"sorcerer", "Колдун":"warlock", "Бард":"bard",
                   "Жрец":"cleric", "Паладин":"paladin", "Друид":"druid", "Следопыт":"ranger" };
-  var ownKey = ruToKey[char.class] || null;
+  var ownKey = ruToKey[char.class] || (_charIsThirdCaster(char) ? "wizard" : null);
   btns.forEach(function(b){
     var k = b.getAttribute('data-class');
     if (ownKey && k === ownKey) {
@@ -1193,12 +1200,15 @@ function _prepEntries(char) {
   if (!char) return out;
   var table = (typeof edData === "function") ? edData(char).SPELL_PREP_CLASSES : SPELL_PREP_CLASSES;
   var list = (Array.isArray(char.classes) && char.classes.length) ? char.classes
-    : (char.class ? [{ class: char.class, level: char.level }] : []);
+    : (char.class ? [{ class: char.class, level: char.level, subclass: char.subclass }] : []);
   list.forEach(function(c) {
-    if (!c || !c.class || !table || !table[c.class]) return;
+    if (!c || !c.class || !table) return;
+    var key = table[c.class] ? c.class : (c.subclass && table[c.subclass] ? c.subclass : null);
+    if (!key) return;
     var lv = Math.max(1, Math.min(20, c.level || char.level || 1));
     if (char.edition !== "2024" && edData(char).CASTER_TYPE[c.class] === "half" && lv < 2) return;
-    out.push({ cls: c.class, level: lv, prep: table[c.class] });
+    if (key !== c.class && lv < 3) return;
+    out.push({ cls: key, level: lv, prep: table[key] });
   });
   return out;
 }
@@ -1234,12 +1244,13 @@ function calcMaxPrepared(char) {
 function _known2014(char, table) {
   if (!char || char.edition === "2024" || !table) return null;
   var list = (Array.isArray(char.classes) && char.classes.length) ? char.classes
-    : (char.class ? [{ class: char.class, level: char.level }] : []);
+    : (char.class ? [{ class: char.class, level: char.level, subclass: char.subclass }] : []);
   var sum = null;
   list.forEach(function(c) {
-    if (!c || !table[c.class]) return;
+    var row = c ? (table[c.class] || (c.subclass ? table[c.subclass] : null)) : null;
+    if (!row) return;
     var lv = Math.max(1, Math.min(20, c.level || char.level || 1));
-    sum = (sum || 0) + table[c.class][lv - 1];
+    sum = (sum || 0) + row[lv - 1];
   });
   return sum;
 }

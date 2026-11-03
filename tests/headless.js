@@ -7645,7 +7645,9 @@
       var T = d.SPELL_PREP_CLASSES;
       if (!T || T === SPELL_PREP_CLASSES) return "2024 не переопределил SPELL_PREP_CLASSES";
       var casters = ["Бард","Волшебник","Друид","Жрец","Колдун","Паладин","Следопыт","Чародей"];
-      if (Object.keys(T).length !== 8) return "классов: " + Object.keys(T).length;
+      // PLAY3-1а: + мистический ловкач и рыцарь (ключ — подкласс)
+      if (Object.keys(T).length !== 10) return "классов: " + Object.keys(T).length;
+      if (!T["Мистический ловкач"] || !T["Мистический рыцарь"]) return "нет третьих заклинателей";
       for (var i = 0; i < casters.length; i++) {
         var e = T[casters[i]];
         if (!e) return "нет " + casters[i];

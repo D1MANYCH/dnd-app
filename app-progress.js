@@ -470,6 +470,7 @@ function pgSetSubclass(idx, name) {
   if (!char || !name || !char.classes || !char.classes[idx]) return;
   char.classes[idx].subclass = name;
   if (typeof syncClassFields === "function") syncClassFields(char);
+  if (typeof rulesApplySpellSlots === "function") rulesApplySpellSlots(char);
   if (typeof saveToLocal === "function") saveToLocal();
   if (typeof loadCharacter === "function" && currentId) loadCharacter(currentId);
   if (typeof updateClassFeatures === "function") updateClassFeatures();
