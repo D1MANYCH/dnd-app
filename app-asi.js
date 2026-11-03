@@ -604,6 +604,16 @@ function renderTakenFeats() {
       var _pr = rulesFeatSpellProgress(char, f, data);
       spBtn = '<button type="button" class="rest-act rest-act--primary" onclick="openFeatSpellPicker(' + i + ')">Заклинания ' + _pr.have + '/' + _pr.need + '</button>';
     }
+    // PLAY3-3: «Одарённый» — навыки на выбор; инструменты вписываются во владения вручную
+    if (data && data.skillPick) {
+      var _sp = f.skillPicks || [];
+      for (var k = 0; k < data.skillPick; k++) {
+        spBtn += '<select class="feat-skill-pick" aria-label="Навык черты ' + (k + 1) + '" onchange="featSkillPick(' + i + ',' + k + ',this.value)">' +
+          '<option value="">— навык (или инструмент во владениях) —</option>' +
+          skills.map(function(s) { return '<option' + (_sp[k] === s.name ? ' selected' : '') + '>' + escapeHtml(s.name) + '</option>'; }).join("") +
+        '</select>';
+      }
+    }
     var delBtn = f.origin ? '' : '<button class="feat-taken-del" onclick="removeFeat(' + i + ')" title="Убрать черту" aria-label="Убрать черту">' + dndIcoHtml("trash", 14) + '</button>';
     return '<div class="feat-taken-card">' +
       '<div class="feat-taken-row">' +
@@ -636,11 +646,38 @@ function removeFeat(i) {
         char.spells.mySpells = char.spells.mySpells.filter(function(s) { return !s || s.grantedBy !== _lbl; });
         if (typeof renderMySpells === "function") renderMySpells();
       }
+      var _fsp = char.feats[i].skillPicks || [];
       char.feats.splice(i, 1);
+      _fsp.forEach(function(n) { if (n && !_skillTakenElsewhere(char, n)) _raceSkillSet(char, n, false); });
       saveToLocal();
       renderTakenFeats();
+      if (_fsp.length) { calcStats(); if (typeof updateSkillProfCount === "function") updateSkillProfCount(); }
     }
   );
+}
+
+function featSkillPick(i, k, name) {
+  if (!currentId || sheetLockGuard()) { renderTakenFeats(); return; }
+  var char = getCurrentChar();
+  var f = char && char.feats && char.feats[i];
+  if (!f) return;
+  if (!Array.isArray(f.skillPicks)) f.skillPicks = [];
+  var prev = f.skillPicks[k] || "";
+  if (name && name !== prev) {
+    var si = skills.findIndex(function(s) { return s.name === name; });
+    if (f.skillPicks.indexOf(name) !== -1 || (si !== -1 && char.skills && char.skills[si])) {
+      showToast("Этот навык уже есть — выберите другой.", "warning");
+      renderTakenFeats();
+      return;
+    }
+  }
+  f.skillPicks[k] = name;
+  if (prev && !_skillTakenElsewhere(char, prev)) _raceSkillSet(char, prev, false);
+  if (name) _raceSkillSet(char, name, true);
+  saveToLocal();
+  calcStats();
+  if (typeof updateSkillProfCount === "function") updateSkillProfCount();
+  renderTakenFeats();
 }
 
 // ── Генерация характеристик: покупка очков, стандартный набор, 4к6 (PHB 2014, стр. 13) ──

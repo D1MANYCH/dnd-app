@@ -311,7 +311,15 @@ function rulesUntrainedCheckBonus(char, level, stat) {
 }
 
 function rulesHasExpertise(char, skillIndex) {
-  return !!(char && Array.isArray(char.expertiseSkills) && char.expertiseSkills.indexOf(skillIndex) !== -1);
+  if (!char) return false;
+  if (Array.isArray(char.expertiseSkills) && char.expertiseSkills.indexOf(skillIndex) !== -1) return true;
+  // PLAY3-3: компетентность, выбранная в «Выборах класса», лежит в classChoices[класс].expertise (имена навыков)
+  var sk = (typeof skills !== "undefined") && skills[skillIndex];
+  if (!sk || !char.classChoices) return false;
+  return Object.keys(char.classChoices).some(function(c) {
+    var ex = char.classChoices[c] && char.classChoices[c].expertise;
+    return Array.isArray(ex) && ex.indexOf(sk.name) !== -1;
+  });
 }
 
 // Единый расчёт инициативы для листа и трекера боя: ЛОВ + пол-БМ Барда с 2 ур.

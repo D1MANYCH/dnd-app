@@ -1153,6 +1153,11 @@ function onRaceChange() {
           charApply.raceSkillChoice.forEach(function(n) { _raceSkillSet(charApply, n, false); });
           charApply.raceSkillChoice = [];
         }
+        if (charApply.edition !== "2024") {
+          var oldFx = RACE_FIXED_SKILLS[appliedRace], newFx = RACE_FIXED_SKILLS[race];
+          if (oldFx && oldFx !== newFx && !_skillTakenElsewhere(charApply, oldFx, "race")) _raceSkillSet(charApply, oldFx, false);
+          if (newFx) _raceSkillSet(charApply, newFx, true);
+        }
         // 3) Применяем бонусы новой расы
         var applied = {};
         if (data && data.stats) {
@@ -1507,6 +1512,14 @@ var RACE_FLEX_STATS = {
 };
 // Своё происхождение: выборочная особенность — тёмное зрение 60 фт или навык
 var RACE_VARIABLE_TRAIT = { "Своё происхождение": 1 };
+// PLAY3-3: навык, который раса 2014 даёт без выбора («Обострённые чувства» эльфа и т.п.)
+var RACE_FIXED_SKILLS = {
+  "Эльф": "Внимательность", "Высший эльф": "Внимательность", "Лесной эльф": "Внимательность", "Дроу": "Внимательность",
+  "Эладрин": "Внимательность", "Морской эльф": "Внимательность", "Шадар-кай": "Внимательность", "Бледный эльф": "Внимательность",
+  "Полуорк": "Запугивание", "Орк": "Запугивание", "Голиаф": "Атлетика", "Багбир": "Скрытность",
+  "Шифтер (зверошкур)": "Атлетика", "Шифтер (длиннозуб)": "Запугивание", "Шифтер (быстроног)": "Акробатика", "Шифтер (дикий охотник)": "Выживание",
+  "Харенгон": "Внимательность", "Совлин": "Скрытность", "Тортл": "Выживание", "Грунг": "Внимательность", "Вердан": "Убеждение"
+};
 
 function _raceSkillAllowance(char, race) {
   if (!char) return 0;
@@ -1885,6 +1898,8 @@ function _skillsByName() {
 // СОЗД-5: навык уже дан другим источником (except — "race" | "bg"): второй раз его не выбрать
 function _skillTakenElsewhere(char, name, except) {
   if (except !== "race" && (char.raceSkillChoice || []).indexOf(name) !== -1) return true;
+  if (except !== "race" && char.edition !== "2024" && RACE_FIXED_SKILLS[char.race] === name) return true;
+  if (except !== "feat" && (char.feats || []).some(function(f) { return (f.skillPicks || []).indexOf(name) !== -1; })) return true;
   if (except !== "bg") {
     var bg = [].concat(char.bgSkillPicks || [], (char.bgCustom && char.bgCustom.skills) || []);
     var bd = (typeof getBackgroundDef === "function") ? getBackgroundDef(char, char.background)

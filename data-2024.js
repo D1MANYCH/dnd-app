@@ -151,7 +151,7 @@
     { id: 'f24-musician', name: 'Музыкант', source: 'PHB24', category: 'origin',
       desc: 'Даёт владение 3 музыкальными инструментами на выбор. После короткого или продолжительного отдыха можно сыграть на одном из них и дать героическое вдохновение числу союзников, услышавших песню, равному вашему бонусу мастерства.',
       effects: [{ type: 'passive' }] },
-    { id: 'f24-skilled', name: 'Одарённый', source: 'PHB24', category: 'origin', repeatable: true,
+    { id: 'f24-skilled', name: 'Одарённый', source: 'PHB24', category: 'origin', repeatable: true, skillPick: 3,
       desc: 'Даёт владение 3 любыми навыками или инструментами на выбор. Черту можно брать больше 1 раза, каждый раз выбирая новый набор навыков или инструментов.',
       effects: [{ type: 'passive' }] },
     { id: 'f24-magic_initiate', name: 'Посвящённый в магию', source: 'PHB24', category: 'origin', repeatable: true,

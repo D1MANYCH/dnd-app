@@ -530,6 +530,8 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
     optionIds = (typeof skills !== "undefined" ? skills.filter(function(s, si) {
       return (char.skills && char.skills[si]) || ccSel.indexOf(s.name) !== -1;
     }).map(function(s) { return s.name; }) : []);
+    // PLAY3-3: плут может взять компетентность в воровских инструментах (PHB 2014/2024)
+    if (className === "Плут") optionIds.push("Воровские инструменты");
   }
 
   // BUILD-LVL-3/5: рекомендация билда — баннер сверху + подсветка опции(й). single + multi.
@@ -588,7 +590,10 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
       counterEl.textContent = "Выберите 1 вариант";
     } else {
       var have = (ccModalState.selection || []).length;
-      counterEl.textContent = "Выбрано " + have + " из " + count;
+      // PLAY3-3: изученное на прошлых уровнях не считается новым выбором
+      var prevSel = ccGetStored(char, className, choice.id);
+      var prevN = Array.isArray(prevSel) ? prevSel.filter(function(x) { return (ccModalState.selection || []).indexOf(x) !== -1; }).length : 0;
+      counterEl.textContent = prevN ? ("Новых " + (have - prevN) + " из " + (count - prevN) + " · изучено ранее: " + prevN) : ("Выбрано " + have + " из " + count);
     }
   }
   ccUpdateModalApplyBtn();
