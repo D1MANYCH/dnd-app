@@ -682,7 +682,22 @@ function applyClassChoice() {
   }
 
   // PLAY2-5 (PT-085): выбор-навык (Ученик войны 2024) ставит владение, прежний снимает
-  if (choice.skillGrant && typeof _raceSkillSet === "function") {
+  // PLAY3-6а: выбор нескольких навыков (Доп. владение Коллегии знаний 2024)
+  if (choice.skillGrant && choice.type === "multi" && typeof _raceSkillSet === "function") {
+    var prevArr = ccGetStored(char, className, choiceId) || [];
+    var clash = value.filter(function(n) {
+      if (prevArr.indexOf(n) >= 0) return false;
+      var si = skills.findIndex(function(s) { return s.name === n; });
+      return si !== -1 && char.skills && char.skills[si];
+    });
+    if (clash.length) {
+      if (typeof showToast === "function") showToast("Навык уже есть: " + clash.join(", ") + " — выберите другой.", "warning");
+      return;
+    }
+    prevArr.forEach(function(n) { if (value.indexOf(n) < 0) _raceSkillSet(char, n, false); });
+    value.forEach(function(n) { if (prevArr.indexOf(n) < 0) _raceSkillSet(char, n, true); });
+    if (typeof updateSkillProfCount === "function") updateSkillProfCount();
+  } else if (choice.skillGrant && typeof _raceSkillSet === "function") {
     var prevSk = ccGetStored(char, className, choiceId);
     if (value !== prevSk) {
       var siNew = skills.findIndex(function(s) { return s.name === value; });

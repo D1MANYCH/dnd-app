@@ -738,11 +738,12 @@ function _luShowResult() {
   var lines = (ctx.resultLines || []).slice();
   // BUILD-LVL-4: подкласс мог быть выбран во время guided-шага → добавить его фичи в итог.
   var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
-  if (char && char.subclass && !ctx.subclassName && ctx.classLevel &&
-      edData(char).SUBCLASS_FEATURES[char.subclass] &&
-      edData(char).SUBCLASS_FEATURES[char.subclass][ctx.classLevel]) {
-    var sn = edData(char).SUBCLASS_FEATURES[char.subclass][ctx.classLevel].map(function(f){ return f.name; });
-    lines.push("" + dndIcoHtml("focus", 13) + " " + char.subclass + ": " + sn.join(", "));
+  var ctxSub = char ? _luSub(char, ctx.className) : "";
+  if (char && ctxSub && !ctx.subclassName && ctx.classLevel &&
+      edData(char).SUBCLASS_FEATURES[ctxSub] &&
+      edData(char).SUBCLASS_FEATURES[ctxSub][ctx.classLevel]) {
+    var sn = edData(char).SUBCLASS_FEATURES[ctxSub][ctx.classLevel].map(function(f){ return f.name; });
+    lines.push("" + dndIcoHtml("focus", 13) + " " + ctxSub + ": " + sn.join(", "));
   }
   // PLAY-1 (PT-043/052): черта или ТЕЛ из выборов уровня меняют максимум — итог по факту
   var hpNow = char ? parseInt(char.combat.hpMax, 10) || 0 : 0;
@@ -879,11 +880,16 @@ function _luChoiceOpensAt(cc, clvl) {
   return cc.type === "multi" && cc.minLevel < clvl && typeof ccCount === "function" && ccCount(cc, clvl) > ccCount(cc, clvl - 1);
 }
 
+// PLAY3-6а: подкласс того класса, который повышается (мультикласс), а не первого.
+function _luSub(char, cn) {
+  return (typeof charClassSubclass === "function" && cn && char && Array.isArray(char.classes) && char.classes.length > 1) ? charClassSubclass(char, cn) : ((char && char.subclass) || "");
+}
+
 function _ccDefsFor(cn, char) {
   var defs = [];
   if (edData(char).CLASS_CHOICES[cn]) defs = defs.concat(edData(char).CLASS_CHOICES[cn]);
-  if (char && char.subclass && edData(char).SUBCLASS_CHOICES[char.subclass]) {
-    defs = defs.concat(edData(char).SUBCLASS_CHOICES[char.subclass]);
+  if (char && _luSub(char, cn) && edData(char).SUBCLASS_CHOICES[_luSub(char, cn)]) {
+    defs = defs.concat(edData(char).SUBCLASS_CHOICES[_luSub(char, cn)]);
   }
   return defs;
 }
@@ -915,8 +921,8 @@ function luApplyAllRecommendations() {
       }
     });
   }
-  if (subMinLevel === clvl && !char.subclass && b.subclass) {
-    char.subclass = b.subclass;
+  if (subMinLevel === clvl && !_luSub(char, cn) && b.subclass) {
+    if (!(Array.isArray(char.classes) && char.classes.length > 1)) char.subclass = b.subclass;
     if (Array.isArray(char.classes) && char.classes.length) {
       var idx = 0;
       for (var i = 0; i < char.classes.length; i++) { if (char.classes[i].class === cn) { idx = i; break; } }
@@ -1064,7 +1070,7 @@ function luBuildChoicesScreen() {
       }
     });
   }
-  if (subMinLevel === clvl && !char.subclass) {
+  if (subMinLevel === clvl && !_luSub(char, cn)) {
     var recSub = b ? b.subclass : null;
     var optsHtml = edData(char).SUBCLASSES[cn].filter(function(s){ return subclassInBooks(s, char); }).map(function(s){
       var isRec = (s === recSub);
@@ -1077,8 +1083,8 @@ function luBuildChoicesScreen() {
     blocks.push('<div class="lu-choice-block"><div class="lu-choice-title">' + dndIcoHtml("focus", 14) + ' Выбор подкласса</div>' +
       (recSub ? '<div class="lu-choice-sub">Билд советует: <b style="color:var(--magic)">' + escapeHtml(recSub) + '</b></div>' : '') +
       '<div class="lu-choice-opts">' + optsHtml + '</div></div>');
-  } else if (char.subclass && subMinLevel === clvl) {
-    blocks.push('<div class="lu-choice-block done"><div class="lu-choice-title">' + dndIcoHtml("focus", 14) + ' Подкласс: ' + escapeHtml(char.subclass) + ' ✓</div></div>');
+  } else if (_luSub(char, cn) && subMinLevel === clvl) {
+    blocks.push('<div class="lu-choice-block done"><div class="lu-choice-title">' + dndIcoHtml("focus", 14) + ' Подкласс: ' + escapeHtml(_luSub(char, cn)) + ' ✓</div></div>');
   }
 
   // 2) ASI / ЧЕРТА — «Увеличение характеристик», в 2024 на 19 ур. «Эпический дар».
@@ -1155,7 +1161,7 @@ function luBuildChoicesScreen() {
       !!(b.levelUp && b.levelUp[newLevel] && (b.levelUp[newLevel].feat || b.levelUp[newLevel].asi ||
          (typeof parseAsiFromHeadline === "function" && parseAsiFromHeadline(b.levelUp[newLevel].headline)) ||
          (typeof parseFeatFromHeadline === "function" && parseFeatFromHeadline(b.levelUp[newLevel].headline))));
-    var subOpen = (subMinLevel === clvl && !char.subclass && !!b.subclass);
+    var subOpen = (subMinLevel === clvl && !_luSub(char, cn) && !!b.subclass);
     var ccOpen = false;
     if (b.recommendedChoices) {                            // SDR-2: + SUBCLASS_CHOICES[char.subclass]
       ccOpen = _ccDefsFor(cn, char).some(function(cc){
