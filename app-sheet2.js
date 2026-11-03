@@ -146,7 +146,7 @@
     // ── Строка общих чисел
     var pp = rulesPassivePerception(c, lvl, !!(c.skills && c.skills[3]));
     h.push("<div class='s2-line'><span>Бонус мастерства <b>" + fm(pb) + "</b></span>");
-    h.push("<span class='s2-insp'>Вдохновение: <button type='button' class='s2-link' onclick='toggleInspiration()'>" + (c.inspiration ? "есть" : "нет") + "</button></span>");
+    h.push("<span class='s2-insp'>" + (c.edition === "2024" ? "Героическое вдохновение" : "Вдохновение") + ": <button type='button' class='s2-link' onclick='toggleInspiration()'>" + (c.inspiration ? "есть" : "нет") + "</button></span>");
     h.push("<span>Пассивная Внимательность <b>" + pp + "</b></span>");
     h.push("</div>");
 

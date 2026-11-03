@@ -45,7 +45,7 @@ const blockReason = char ? rulesLongRestBlockReason(char) : null;
   if (pick) pick.setAttribute("aria-checked", t === type ? "true" : "false");
 });
 const confirmBtn = $("confirm-rest-btn");
-if (confirmBtn) confirmBtn.disabled = type === "long" && !!blockReason;
+if (confirmBtn) { confirmBtn.disabled = type === "long" && !!blockReason; confirmBtn.textContent = type === "long" ? "Отдохнуть 8 часов" : "Отдохнуть 1 час"; }
 if (char) _renderRestPreview(char, blockReason);
 updateHitDiceInfo();
 }
@@ -55,6 +55,7 @@ var data = typeof getCharResourceDefs === "function" ? getCharResourceDefs(char)
 if (!data || !data.resources) return [];
 var out = [];
 data.resources.forEach(function(res) {
+  if (res.restoreOn === "turn" || res.restoreOn === "none" || getResourceMax(res, char) === 0) return;
   if (type === "long" || res.restoreOn === "short" || (res.shortFromLevel && (res._clsLevel || char.level || 1) >= res.shortFromLevel)) out.push(res.name);
   else if (res.restoreShortOne) out.push(res.name + " (1 исп.)");
 });
@@ -90,7 +91,7 @@ if (char.combat.hpTemp > 0) l += li("shield", "Временные хиты сг�
 l += li("dice", hdBack ? "Кости хитов: +" + hdBack + " (" + (lvl - spent) + " → " + (lvl - spent + hdBack) + " из " + lvl + ")" : "Кости хитов: все на месте");
 if (hasSlots || sp.pactSlots) l += li("sparkle", "Ячейки заклинаний: все");
 var longRes = _restResNames(char, "long");
-if (longRes.length) l += li("zap", "Умения: все — " + longRes.map(escapeHtml).join(", "));
+if (longRes.length) l += li("zap", "Умения: " + longRes.map(escapeHtml).join(", "));
 if (exh > 0) l += li("dizzy", "Истощение: " + exh + " → " + (exh - 1));
 var longEl = $("rest-gain-long");
 if (longEl) longEl.innerHTML = l;
@@ -178,6 +179,8 @@ if (!char) return;
 let resultTitle = "";
 let resultDetails = "";
 const oldHp = parseInt(char.combat.hpCurrent, 10);
+var _resNames = _restResNames(char, currentRestType);
+var _pactBefore = char.spells && char.spells.pactSlots ? Math.max(0, char.spells.pactSlots - (char.spells.pactUsed || 0)) : 0;
 if (currentRestType === "short") {
 // AUD-4 (R12): каждая кость бросается своим размером
 var _dice = _restHitDiceChosen(char);
@@ -190,7 +193,7 @@ if (hpHealed > 0) {
   addHPHistory(oldHp, char.combat.hpCurrent, hpHealed, "Короткий отдых");
   showHPToast(hpHealed);
 }
-var _resRestored = resetResourcesByRest("short") || [];
+resetResourcesByRest("short");
 // CAST-2: короткий отдых (1 час) — раундовые/минутные эффекты кастов истекают,
 // часовые и дольше переживают
 var _castExpired = (typeof expireCastEffectsByUnits === "function")
@@ -198,10 +201,10 @@ var _castExpired = (typeof expireCastEffectsByUnits === "function")
 resultTitle = dndIcoHtml("check", 16) + " Короткий отдых завершён!";
 if (window.AppLog) AppLog.action("hp", "короткий отдых: костей " + hitDiceToSpend + ", +" + hpHealed + " ХП" + (_isWarlock ? ", пакт восстановлен" : "") + (_castExpired.length ? ", истекло эффектов: " + _castExpired.length : ""));
 var rollStr = rollLog.length > 0 ? " (" + rollLog.join(", ") + ")" : "";
-var warlockStr = _isWarlock ? "<p>" + dndIcoHtml("focus", 13) + " Ячейки пакта восстановлены</p>" : "";
+var warlockStr = _isWarlock && char.spells.pactSlots ? "<p>" + dndIcoHtml("focus", 13) + " Ячейки пакта: " + _pactBefore + " → " + char.spells.pactSlots + "</p>" : "";
 var castExpiredStr = _castExpired.length ? "<p>⏳ Истекли эффекты: " + _castExpired.join(", ") + "</p>" : "";
 // PLAY2-7 (PT-185): какие ресурсы класса вернул отдых
-if (_resRestored.length) castExpiredStr = "<p>" + dndIcoHtml("zap", 12) + " Восстановлено: " + _resRestored.map(escapeHtml).join(", ") + "</p>" + castExpiredStr;
+if (_resNames.length) castExpiredStr = "<p>" + dndIcoHtml("zap", 12) + " Умения: " + _resNames.map(escapeHtml).join(", ") + "</p>" + castExpiredStr;
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>" + dndIcoHtml("dice", 12) + " Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>" + dndIcoHtml("heart", 12) + " Восстановлено ХП: " + hpHealed + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr + castExpiredStr;
 } else if (currentRestType === "long") {
 // PHB стр.186: страховка на случай, если кнопку не погасил showLongRestInfo —
@@ -247,7 +250,7 @@ renderJournal();
 var exhaustionNote = exhaustionReduced ? "<p>" + dndIcoHtml("dizzy", 13) + " Истощение снижено на\u00a01 уровень</p>"
   : (exhaustionHeld ? "<p>" + dndIcoHtml("food", 13) + " Истощение осталось прежним: персонаж не\u00a0ел и\u00a0не пил (PHB стр. 291)</p>" : "");
 var chargesNote = chargesRestored ? "<p>" + dndIcoHtml("zap", 13) + " Заряды предметов восстановлены: " + chargesRestored + "</p>" : "";
-resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div>" + (_restHasSlots(char) ? "<p>" + dndIcoHtml("sparkle", 12) + " Ячейки заклинаний: восстановлены</p>" : "") + "<p>" + dndIcoHtml("dice", 12) + " Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + exhaustionNote + chargesNote;
+resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div>" + (_restHasSlots(char) ? "<p>" + dndIcoHtml("sparkle", 12) + " Ячейки заклинаний: восстановлены</p>" : "") + "<p>" + dndIcoHtml("dice", 12) + " Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + (_resNames.length ? "<p>" + dndIcoHtml("zap", 12) + " Умения: " + _resNames.map(escapeHtml).join(", ") + "</p>" : "") + exhaustionNote + chargesNote;
 }
 saveToLocal();
 // PLAY2-7 (PT-124): loadCharacter открывает «Лист» и скроллит наверх — возвращаем вкладку и место
@@ -1431,6 +1434,8 @@ if (hpGhost) hpGhost.style.width = pct + "%";
 const hdTypeDisplay = $("hd-type-display");
 const hdAvailDisplay = $("hd-avail-display");
 if (hdTypeDisplay) hdTypeDisplay.textContent = char.combat.hpDice || "—";
+var _hdHint = $("hd-rest-hint");
+if (_hdHint) _hdHint.textContent = (char.edition === "2024" ? "Все восстанавливаются на продолжительном отдыхе." : "Половина восстанавливается на продолжительном отдыхе.");
 const spent = char.combat.hpDiceSpent || 0;
 const total = char.level || 1;
 const avail = total - spent;
