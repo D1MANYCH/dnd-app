@@ -347,7 +347,14 @@ function rulesAuraOfProtection(char) {
   return Math.max(1, getMod(char.stats.cha || 10));
 }
 
+// PLAY3-4: Скользкий ум плута 15 ур. — владение спасброском МУД (2024 — ещё ХАР)
+function rulesClassSaveProf(char, key) {
+  if (!char || typeof charClassLevel !== "function" || charClassLevel(char, "Плут") < 15) return false;
+  return key === "wis" || (key === "cha" && char.edition === "2024");
+}
+
 function rulesSaveBonus(char, key, level, isProficient) {
+  if (!isProficient && rulesClassSaveProf(char, key)) isProficient = true;
   var bonus = getMod(char.stats[key]);
   if (isProficient) bonus += getProficiencyBonus(level);
   return bonus + rulesAuraOfProtection(char);

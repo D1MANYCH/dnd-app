@@ -554,6 +554,8 @@ function crResourceRow(res, char) {
   if (res.slotRecovery) acts = crSlotRecoveryActs(res, char);
   // PT-065/049: кость ресурса (превосходства и т.п.) — потратить и бросить
   if (dieSize && remaining > 0 && !res.isPool) acts += '<button type="button" class="hp-act" onclick="event.stopPropagation();rollResourceDie(\'' + id + '\')">Бросить ' + escapeHtml(dieSize) + '</button>';
+  // PLAY3-4: Скрытая атака — потратить ход и бросить Nк6
+  if (res.sneakAttack && remaining > 0) acts += '<button type="button" class="hp-act" onclick="event.stopPropagation();rollSneakAttack(\'' + id + '\')">Бросить ' + Math.ceil((res._clsLevel || char.level || 1) / 2) + 'к6</button>';
   // РОСТ-6: вход в облик — с экрана выбора зверя
   if (res.id === "wild_shape" && remaining > 0 && typeof openWildShapePicker === "function") acts += '<button type="button" class="hp-act" onclick="event.stopPropagation();openWildShapePicker()">Принять облик</button>';
 
@@ -624,6 +626,30 @@ function crPassiveNotes(char, cls, notes) {
   if (!ch) return notes;
   var name = (ch.optionsDict && ch.optionsDict[val]) ? ch.optionsDict[val].name : val;
   return notes.replace(/Боевой стиль: [^\n]*/, "Боевой стиль: " + name);
+}
+
+// PLAY3-4: Скрытая атака плута — Nк6, N = половина уровня плута вверх
+function rollSneakAttack(id) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  initCharResources(char);
+  var data = getCharResourceDefs(char);
+  var res = data ? data.resources.find(function(r) { return r.id === id; }) : null;
+  if (!res) return;
+  var used = char.resources[id] || 0;
+  if (used >= getResourceMax(res, char)) return;
+  char.resources[id] = used + 1;
+  saveToLocal();
+  renderClassResources();
+  var f = Math.ceil((res._clsLevel || char.level || 1) / 2) + "к6";
+  var r = _weaponDamageRoll(f, 0, false);
+  showToast("🎯 Скрытая атака: " + r.rollStr + " = " + r.total, "info");
+  openDiceModalForRoll();
+  var resultBig = $("dice-result-big"), resultInfo = $("dice-result-info");
+  if (resultBig) resultBig.textContent = r.total;
+  if (resultInfo) resultInfo.textContent = "Скрытая атака · " + f + " · " + r.rollStr + " = " + r.total;
+  animateDice3d(r.sides, r.total, function() {}, { qty: r.qty });
 }
 
 // PT-065: трата одной кости ресурса с броском её размера

@@ -429,6 +429,7 @@ function applyASI() {
     addJournalEntry("stat", msg);
     _asiUnlockSheet(char);
     saveToLocal(); calcStats(); recalculateHP(); calculateAC();
+    if (typeof renderWeapons === "function") renderWeapons();
     closeASIModal();
     updateClassFeatures();
     showHPToast(0, msg);

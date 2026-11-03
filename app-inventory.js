@@ -1566,7 +1566,7 @@ var resultBig = $("dice-result-big");
 var resultInfo = $("dice-result-info");
 var resultBox = $("dice3d-result");
 if (resultBig) resultBig.textContent = total;
-if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · урон" + (isCrit ? " (крит)" : "") + " · " + r.label;
+if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · урон" + (isCrit ? " (крит)" : "") + " · " + r.label + " · " + r.rollStr + " = " + total;
 if (resultBox) resultBox.className = "dice3d-result normal";
 var sides = r.sides;
 var qty = r.qty;
