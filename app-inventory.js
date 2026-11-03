@@ -1952,6 +1952,15 @@ function _qsItemQid(item) {
   return item.qid;
 }
 function _qsQty(item) { return item.qty == null ? 1 : (Number(item.qty) || 0); }
+// Тратится ли предмет из слота: зелья и свитки — всегда; материалы и прочее —
+// стопка (×2 и больше) или расходник по названию. Книга, инструмент, фокус — нет.
+var QS_CONSUMABLE_RE = /зель|эликсир|свит|масл|кислот|алхимич|святая вода|яд|рацион|па[её]к|еда|факел|свеч|стрел|болт|снаряд|пул[ия]|игл|дротик|мешоч|пергамент|бумаг|чернил|мел|порош|трав|бинт|набор целителя|противояд/i;
+function _qsConsumable(category, item) {
+  if (!item) return false;
+  if (category === "potion" || category === "scroll") return true;
+  if (item.qty != null && Number(item.qty) > 1) return true;
+  return QS_CONSUMABLE_RE.test(String(item.name || ""));
+}
 function quickSlotIndex(char, kind, ref) {
   var list = _qsList(char);
   for (var i = 0; i < list.length; i++) if (list[i].kind === kind && list[i].ref === String(ref)) return i;
@@ -1992,6 +2001,7 @@ function quickSlotConsume(char, idx, now) {
   var s = _qsList(char)[idx];
   var hit = s && s.kind === "item" ? _qsFindItem(char, s.ref) : null;
   if (!hit) return { err: "missing" };
+  if (!_qsConsumable(hit.category, hit.item)) return { err: "reusable", item: hit.item };
   var qty = _qsQty(hit.item);
   if (qty <= 0) return { err: "empty" };
   if (_qsBusy(char, s.ref, now || Date.now())) return { err: "busy" };
@@ -2017,6 +2027,7 @@ function quickSlotUse(idx) {
   }
   var r = quickSlotConsume(char, idx);
   if (r.err === "empty") { var _e = _qsFindItem(char, s.ref); showToast("«" + (_e && _e.item.name || "Предмет") + "»: осталось 0 — укажите количество в Сумке", "warn"); return; }
+  if (r.err === "reusable") { var _d = String(r.item.desc || "").trim(); showToast(r.item.name + (_d ? " — " + (_d.length > 120 ? _d.slice(0, 117) + "…" : _d) : " — не расходуется"), "info"); return; }
   if (r.err) return;
   if (window.AppLog) AppLog.action("inventory", "быстрый доступ: " + r.item.name + ", осталось " + r.left);
   saveToLocal();
@@ -2232,8 +2243,8 @@ function renderQuickDock() {
     var ent = _qsResolve(char, s), name, cnt = "", off = false;
     var ico = s.icon || quickSlotAutoIcon(s, ent);
     if (s.kind === "item") {
-      var q = _qsQty(ent.item);
-      name = ent.item.name; cnt = String(q); off = q <= 0;
+      name = ent.item.name;
+      if (_qsConsumable(ent.category, ent.item)) { var q = _qsQty(ent.item); cnt = String(q); off = q <= 0; }
     } else {
       name = ent.name; cnt = (ent.level || 0) === 0 ? "" : ent.level + " ур.";
     }

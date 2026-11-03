@@ -11109,6 +11109,14 @@
       if (r1.left !== 1 || r2.err !== "busy" || r3.left !== 0 || r4.err !== "empty") return JSON.stringify([r1.left, r2.err, r3.left, r4.err]);
       return c.inventory.potion[0].qty === 0 && c.quickSlots.length === 1 ? true : "слот пропал";
     });
+    t("[РД-8] книга заклинаний и инструмент из слота не списываются, стопка и расходник — да", function(){
+      var bk = { name: "Книга заклинаний" }, tl = { name: "Воровские инструменты", qty: 1 };
+      var ok = !_qsConsumable("other", bk) && !_qsConsumable("other", tl) &&
+        _qsConsumable("other", { name: "Факел", qty: 1 }) && _qsConsumable("material", { name: "Камень", qty: 5 }) && _qsConsumable("potion", { name: "Что-то" });
+      var c = _qs74("qs9"); c.inventory.other = [{ name: "Книга заклинаний", qid: "qbook" }]; quickSlotAdd(c, "item", "qbook");
+      var r = quickSlotConsume(c, 0, 1000);
+      return ok && r.err === "reusable" && c.inventory.other[0].qty == null ? true : JSON.stringify(r);
+    });
     t("[РД-8] зелье лечения бросает формулу из описания, иначе — по названию; прочее — без броска", function(){
       var a = _qsHealFormula({ name: "Зелье лечения", desc: "Восстанавливает 2к4+2 хитов при выпивании (действие)." });
       var b = _qsHealFormula({ name: "Зелье большого лечения" });
