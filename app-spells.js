@@ -275,7 +275,7 @@ function _charIsThirdCaster(char) {
 // BUILD-LVL: ключ класса заклинаний персонажа (ru→en). Для мультикласса — первый класс-заклинатель.
 function _charSpellClassKey(char) {
   var ruToKey = { "Волшебник":"wizard", "Чародей":"sorcerer", "Колдун":"warlock", "Бард":"bard",
-                  "Жрец":"cleric", "Паладин":"paladin", "Друид":"druid", "Следопыт":"ranger" };
+                  "Жрец":"cleric", "Паладин":"paladin", "Друид":"druid", "Следопыт":"ranger", "Изобретатель":"artificer" };
   if (!char) return null;
   if (ruToKey[char.class]) return ruToKey[char.class];
   if (Array.isArray(char.classes)) {
@@ -323,6 +323,8 @@ safeSet("spell-search-level", "");
 var _char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
 // E24-2: фильтр редакции по умолчанию = редакция персонажа; переключить можно всегда.
 setSpellVersion(_defaultSpellVersion(_char), true);
+var _afBtn = document.getElementById("btn-class-artificer");
+if (_afBtn) _afBtn.style.display = classInBooks("Изобретатель", _char) ? "" : "none";
 var _ownKey = _charSpellClassKey(_char);
 if (_ownKey) { setSpellClass(_ownKey); }            // setSpellClass уже вызывает renderSpellSearch
 else { currentSpellClass = "all"; renderSpellSearch(); }
@@ -341,7 +343,7 @@ function markCharOwnClassFilter() {
     return;
   }
   var ruToKey = { "Волшебник":"wizard", "Чародей":"sorcerer", "Колдун":"warlock", "Бард":"bard",
-                  "Жрец":"cleric", "Паладин":"paladin", "Друид":"druid", "Следопыт":"ranger" };
+                  "Жрец":"cleric", "Паладин":"paladin", "Друид":"druid", "Следопыт":"ranger", "Изобретатель":"artificer" };
   var ownKey = ruToKey[char.class] || (_charIsThirdCaster(char) ? "wizard" : null);
   btns.forEach(function(b){
     var k = b.getAttribute('data-class');
@@ -535,7 +537,7 @@ function removeFeatSpell(spellId) {
 // HB-2: справочники и лимиты формы «Добавить своё».
 // Ключи классов — те же, что в SPELL_CLASS_RU (без "both": он не выбирается вручную,
 // а проставляется автоматически, когда не отмечен ни один класс).
-const NEW_SPELL_CLASS_KEYS = ["wizard", "sorcerer", "warlock", "cleric", "druid", "bard", "paladin", "ranger"];
+const NEW_SPELL_CLASS_KEYS = ["wizard", "sorcerer", "warlock", "cleric", "druid", "bard", "paladin", "ranger", "artificer"];
 // Порядок и написание — как в SCHOOL_ICON_SLUGS (app-core.js): по этим строкам
 // резолвится иконка школы, любое расхождение молча даёт карточку без иконки.
 const NEW_SPELL_SCHOOLS = ["ограждение", "воплощение", "вызов", "прорицание", "очарование", "иллюзия", "некромантия", "преобразование"];
@@ -2168,7 +2170,7 @@ function canCastAsRitual(char, spell) {
   for (var i = 0; i < list.length; i++) {
     var cls = list[i];
     if (!cls) continue;
-    if (!is2024 && ["Волшебник", "Жрец", "Друид", "Бард"].indexOf(cls) === -1) continue;
+    if (!is2024 && ["Волшебник", "Жрец", "Друид", "Бард", "Изобретатель"].indexOf(cls) === -1) continue;
     if (is2024 && casters.indexOf(cls) === -1) continue;
     if (spellCls && spellCls.indexOf(CLASS_SPELL_LIST_KEY[cls]) === -1 && spellCls.indexOf("both") === -1) continue;
     if (cls === "Волшебник") return true;

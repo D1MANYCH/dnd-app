@@ -73,7 +73,7 @@ function localDateStamp(d) {
 // SPELL_DATABASE — объединение встроенной базы (spells.js) и пользовательских добавлений из localStorage
 // SPELLS_BASE определён в spells.js и загружается до app-core.js
 var SPELL_DATABASE = (typeof SPELLS_BASE !== 'undefined') ? SPELLS_BASE.slice() : [];
-var CLASS_ICONS_MAP = { wizard:"🧙", druid:"🌿", bard:"🎵", cleric:"✝️", paladin:"🛡️", ranger:"🏹", sorcerer:"🔥", warlock:"👁️", both:"✨" };
+var CLASS_ICONS_MAP = { wizard:"🧙", druid:"🌿", bard:"🎵", cleric:"✝️", paladin:"🛡️", ranger:"🏹", sorcerer:"🔥", warlock:"👁️", artificer:"🔧", both:"✨" };
 
 // ── Мультикласс: миграция и синхронизация ──────────────────────
 /** Мигрировать старый формат (char.class/level) → char.classes[] */
@@ -1109,7 +1109,8 @@ const colors = {
   "Варвар": "#c0392b", "Бард": "#8e44ad", "Жрец": "#f39c12",
   "Друид": "#27ae60", "Воин": "#2980b9", "Монах": "#16a085",
   "Паладин": "#d4ac0d", "Следопыт": "#1e8449", "Плут": "#6c3483",
-  "Чародей": "#e74c3c", "Колдун": "#4a235a", "Волшебник": "#1a5276"
+  "Чародей": "#e74c3c", "Колдун": "#4a235a", "Волшебник": "#1a5276",
+  "Изобретатель": "#b9770e"
 };
 return colors[cls] || "#c9a227";
 }
@@ -1181,7 +1182,7 @@ const SPELL_CLASS_ICON_SLUGS = {
 const SPELL_CLASS_RU = {
   wizard: 'Волшебник', druid: 'Друид', bard: 'Бард', cleric: 'Жрец',
   paladin: 'Паладин', ranger: 'Следопыт', sorcerer: 'Чародей', warlock: 'Колдун',
-  both: 'Все классы'
+  artificer: 'Изобретатель', both: 'Все классы'
 };
 function getSpellClassIcon(key) {
   var ru = SPELL_CLASS_RU[key] || '';

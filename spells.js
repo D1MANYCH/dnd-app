@@ -21,7 +21,8 @@ const SPELLS_BASE = [
       "bard",
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -125,7 +126,8 @@ const SPELLS_BASE = [
     "classes": [
       "bard",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -161,7 +163,8 @@ const SPELLS_BASE = [
     "id": 9,
     "classes": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -178,7 +181,8 @@ const SPELLS_BASE = [
     "id": 10,
     "classes": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -248,7 +252,8 @@ const SPELLS_BASE = [
     "id": 14,
     "classes": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -282,7 +287,8 @@ const SPELLS_BASE = [
     "classes": [
       "bard",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -298,7 +304,8 @@ const SPELLS_BASE = [
     "higherLevel": "",
     "id": 17,
     "classes": [
-      "cleric"
+      "cleric",
+      "artificer"
     ]
   },
   {
@@ -315,7 +322,8 @@ const SPELLS_BASE = [
     "id": 18,
     "classes": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -335,7 +343,8 @@ const SPELLS_BASE = [
       "cleric",
       "druid",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -354,7 +363,8 @@ const SPELLS_BASE = [
       "bard",
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -371,7 +381,8 @@ const SPELLS_BASE = [
     "id": 21,
     "classes": [
       "cleric",
-      "druid"
+      "druid",
+      "artificer"
     ]
   },
   {
@@ -390,7 +401,8 @@ const SPELLS_BASE = [
       "bard",
       "cleric",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -423,7 +435,8 @@ const SPELLS_BASE = [
     "id": 24,
     "classes": [
       "cleric",
-      "druid"
+      "druid",
+      "artificer"
     ]
   },
   {
@@ -439,7 +452,8 @@ const SPELLS_BASE = [
     "higherLevel": "Урон увеличивается на 1 кость на 5, 11, 17 уровнях персонажа.",
     "id": 25,
     "classes": [
-      "druid"
+      "druid",
+      "artificer"
     ]
   },
   {
@@ -474,7 +488,8 @@ const SPELLS_BASE = [
       "druid",
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1204,7 +1219,8 @@ const SPELLS_BASE = [
       "bard",
       "druid",
       "ranger",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1366,7 +1382,8 @@ const SPELLS_BASE = [
       "cleric",
       "druid",
       "paladin",
-      "ranger"
+      "ranger",
+      "artificer"
     ]
   },
   {
@@ -1401,7 +1418,8 @@ const SPELLS_BASE = [
     "classes": [
       "bard",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1434,7 +1452,8 @@ const SPELLS_BASE = [
     "id": 82,
     "classes": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1452,7 +1471,8 @@ const SPELLS_BASE = [
     "classes": [
       "bard",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1541,7 +1561,8 @@ const SPELLS_BASE = [
       "paladin",
       "ranger",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1594,7 +1615,8 @@ const SPELLS_BASE = [
     "id": 91,
     "classes": [
       "bard",
-      "druid"
+      "druid",
+      "artificer"
     ]
   },
   {
@@ -1611,7 +1633,8 @@ const SPELLS_BASE = [
     "id": 92,
     "classes": [
       "bard",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1666,7 +1689,8 @@ const SPELLS_BASE = [
     "classes": [
       "cleric",
       "druid",
-      "paladin"
+      "paladin",
+      "artificer"
     ]
   },
   {
@@ -1753,7 +1777,8 @@ const SPELLS_BASE = [
       "druid",
       "ranger",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1804,7 +1829,8 @@ const SPELLS_BASE = [
     "id": 103,
     "classes": [
       "ranger",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1839,7 +1865,8 @@ const SPELLS_BASE = [
     "id": 105,
     "classes": [
       "wizard",
-      "sorcerer"
+      "sorcerer",
+      "artificer"
     ]
   },
   {
@@ -1909,7 +1936,8 @@ const SPELLS_BASE = [
     "higherLevel": "",
     "id": 109,
     "classes": [
-      "cleric"
+      "cleric",
+      "artificer"
     ]
   },
   {
@@ -1927,7 +1955,8 @@ const SPELLS_BASE = [
     "classes": [
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3133,7 +3162,8 @@ const SPELLS_BASE = [
     "classes": [
       "cleric",
       "wizard",
-      "druid"
+      "druid",
+      "artificer"
     ]
   },
   {
@@ -3171,7 +3201,8 @@ const SPELLS_BASE = [
       "paladin",
       "wizard",
       "ranger",
-      "sorcerer"
+      "sorcerer",
+      "artificer"
     ]
   },
   {
@@ -3188,7 +3219,8 @@ const SPELLS_BASE = [
     "id": 183,
     "classes": [
       "bard",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3294,7 +3326,8 @@ const SPELLS_BASE = [
       "cleric",
       "druid",
       "paladin",
-      "ranger"
+      "ranger",
+      "artificer"
     ]
   },
   {
@@ -3365,7 +3398,8 @@ const SPELLS_BASE = [
     "id": 193,
     "classes": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3431,7 +3465,8 @@ const SPELLS_BASE = [
     "id": 197,
     "classes": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3496,7 +3531,8 @@ const SPELLS_BASE = [
     "higherLevel": "",
     "id": 201,
     "classes": [
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3516,7 +3552,8 @@ const SPELLS_BASE = [
       "cleric",
       "druid",
       "paladin",
-      "ranger"
+      "ranger",
+      "artificer"
     ]
   },
   {
@@ -3552,7 +3589,8 @@ const SPELLS_BASE = [
       "bard",
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3588,7 +3626,8 @@ const SPELLS_BASE = [
     "classes": [
       "bard",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3697,7 +3736,8 @@ const SPELLS_BASE = [
     "id": 212,
     "classes": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3715,7 +3755,8 @@ const SPELLS_BASE = [
     "classes": [
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3785,7 +3826,8 @@ const SPELLS_BASE = [
       "cleric",
       "paladin",
       "bard",
-      "ranger"
+      "ranger",
+      "artificer"
     ]
   },
   {
@@ -3857,7 +3899,8 @@ const SPELLS_BASE = [
     "id": 221,
     "classes": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3874,7 +3917,8 @@ const SPELLS_BASE = [
     "id": 222,
     "classes": [
       "bard",
-      "druid"
+      "druid",
+      "artificer"
     ]
   },
   {
@@ -3962,7 +4006,8 @@ const SPELLS_BASE = [
     "higherLevel": "",
     "id": 227,
     "classes": [
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -4018,7 +4063,8 @@ const SPELLS_BASE = [
       "druid",
       "ranger",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -4037,7 +4083,8 @@ const SPELLS_BASE = [
       "sorcerer",
       "wizard",
       "bard",
-      "druid"
+      "druid",
+      "artificer"
     ]
   },
   {
@@ -4079,7 +4126,8 @@ const SPELLS_BASE = [
       "druid",
       "sorcerer",
       "ranger",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -5331,7 +5379,8 @@ const SPELLS_BASE = [
       "druid",
       "ranger",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -5385,7 +5434,8 @@ const SPELLS_BASE = [
       "druid",
       "ranger",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -5506,7 +5556,8 @@ const SPELLS_BASE = [
     "id": 314,
     "classes": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -5595,7 +5646,8 @@ const SPELLS_BASE = [
       "cleric",
       "paladin",
       "ranger",
-      "druid"
+      "druid",
+      "artificer"
     ]
   },
   {
@@ -5646,7 +5698,8 @@ const SPELLS_BASE = [
     "classes": [
       "bard",
       "cleric",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -5664,7 +5717,8 @@ const SPELLS_BASE = [
     "classes": [
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -5808,7 +5862,8 @@ const SPELLS_BASE = [
       "paladin",
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -5880,7 +5935,8 @@ const SPELLS_BASE = [
     "id": 335,
     "classes": [
       "cleric",
-      "paladin"
+      "paladin",
+      "artificer"
     ]
   },
   {
@@ -5933,7 +5989,8 @@ const SPELLS_BASE = [
     "id": 338,
     "classes": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -5952,7 +6009,8 @@ const SPELLS_BASE = [
       "cleric",
       "druid",
       "ranger",
-      "sorcerer"
+      "sorcerer",
+      "artificer"
     ]
   },
   {
@@ -5970,7 +6028,8 @@ const SPELLS_BASE = [
     "classes": [
       "paladin",
       "ranger",
-      "druid"
+      "druid",
+      "artificer"
     ]
   },
   {
@@ -6936,7 +6995,8 @@ const SPELLS_BASE = [
     "higherLevel": "",
     "id": 395,
     "classes": [
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -7026,7 +7086,8 @@ const SPELLS_BASE = [
     "higherLevel": "",
     "id": 400,
     "classes": [
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -7079,7 +7140,8 @@ const SPELLS_BASE = [
     "higherLevel": "За каждый уровень ячейки выше 4-го: +100 фут куб площади.",
     "id": 403,
     "classes": [
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -7095,7 +7157,8 @@ const SPELLS_BASE = [
     "higherLevel": "",
     "id": 404,
     "classes": [
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -7291,7 +7354,8 @@ const SPELLS_BASE = [
       "bard",
       "cleric",
       "druid",
-      "ranger"
+      "ranger",
+      "artificer"
     ]
   },
   {
@@ -7359,7 +7423,8 @@ const SPELLS_BASE = [
     "higherLevel": "",
     "id": 419,
     "classes": [
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -7411,7 +7476,8 @@ const SPELLS_BASE = [
     "higherLevel": "",
     "id": 422,
     "classes": [
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -7429,7 +7495,8 @@ const SPELLS_BASE = [
     "classes": [
       "cleric",
       "druid",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -8148,7 +8215,8 @@ const SPELLS_BASE = [
       "bard",
       "cleric",
       "druid",
-      "ranger"
+      "ranger",
+      "artificer"
     ]
   },
   {
@@ -8198,7 +8266,8 @@ const SPELLS_BASE = [
     "id": 468,
     "classes": [
       "wizard",
-      "sorcerer"
+      "sorcerer",
+      "artificer"
     ]
   },
   {
@@ -8518,7 +8587,8 @@ const SPELLS_BASE = [
     "classes": [
       "bard",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -8687,7 +8757,8 @@ const SPELLS_BASE = [
     "id": 496,
     "classes": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -8705,7 +8776,8 @@ const SPELLS_BASE = [
     "classes": [
       "druid",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -12571,7 +12643,8 @@ const SPELLS_BASE = [
       "druid",
       "ranger",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -13325,6 +13398,422 @@ const SPELLS_BASE = [
     "classes": [
       "warlock",
       "wizard"
+    ]
+  },
+  {
+    "name": "Волшебный камень",
+    "level": 0,
+    "school": "преобразование",
+    "source": "PH14",
+    "time": "1 бонусное действие",
+    "range": "Касание",
+    "components": "V,S",
+    "duration": "1 минута",
+    "desc": "Заряжаете магией до 3 камешков. Вы или другое существо бросаете камень или стреляете им из пращи: дальняя атака заклинанием на 60 фт с вашей заклинательной характеристикой, при попадании 1к6 + мод. дробящего. Новое сотворение гасит прежние камни.",
+    "higherLevel": "",
+    "id": 767,
+    "classes": [
+      "druid",
+      "warlock",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Вспышка мечей",
+    "level": 0,
+    "school": "вызов",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "На себя (5 фт)",
+    "components": "V",
+    "duration": "Мгновенно",
+    "desc": "Вокруг вас вспыхивают призрачные клинки. Все остальные существа в 5 фт проходят спасбросок Ловкости или получают 1к6 урона силовым полем.",
+    "higherLevel": "Урон растёт на 5, 11 и 17 уровне персонажа: 2к6, 3к6, 4к6.",
+    "id": 768,
+    "classes": [
+      "sorcerer",
+      "warlock",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Громовой клинок",
+    "level": 0,
+    "school": "воплощение",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "На себя (5 фт)",
+    "components": "S,M(оружие ближнего боя стоимостью от 1 см)",
+    "duration": "1 раунд",
+    "desc": "Совершаете рукопашную атаку оружием по существу в пределах досягаемости. При попадании действуют обычные эффекты атаки, а цель окутывает гром до начала вашего следующего хода: если она добровольно переместится на 5 фт и больше, получит 1к8 урона звуком сразу после перемещения.",
+    "higherLevel": "На 5, 11 и 17 уровне персонажа атака наносит ещё 1к8, 2к8 и 3к8 звуком при попадании, а урон за перемещение становится 2к8, 3к8 и 4к8.",
+    "id": 769,
+    "classes": [
+      "sorcerer",
+      "warlock",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Клинок зелёного пламени",
+    "level": 0,
+    "school": "воплощение",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "На себя (5 фт)",
+    "components": "S,M(оружие ближнего боя стоимостью от 1 см)",
+    "duration": "Мгновенно",
+    "desc": "Совершаете рукопашную атаку оружием по существу в пределах досягаемости. При попадании действуют обычные эффекты атаки, а зелёное пламя перескакивает на другое видимое существо в 5 фт от цели: оно получает урон огнём, равный модификатору вашей заклинательной характеристики.",
+    "higherLevel": "На 5, 11 и 17 уровне персонажа цель атаки получает ещё 1к8, 2к8 и 3к8 огнём, а второе существо — столько же плюс модификатор.",
+    "id": 770,
+    "classes": [
+      "sorcerer",
+      "warlock",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Лассо молнии",
+    "level": 0,
+    "school": "воплощение",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "На себя (15 фт)",
+    "components": "V",
+    "duration": "Мгновенно",
+    "desc": "Плеть молнии бьёт в видимое существо в 15 фт. Оно проходит спасбросок Силы: при провале притягивается к вам на 10 фт и, оказавшись в 5 фт от вас, получает 1к8 урона электричеством.",
+    "higherLevel": "Урон растёт на 5, 11 и 17 уровне персонажа: 2к8, 3к8, 4к8.",
+    "id": 771,
+    "classes": [
+      "sorcerer",
+      "warlock",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Обморожение",
+    "level": 0,
+    "school": "воплощение",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "60 фт",
+    "components": "V,S",
+    "duration": "Мгновенно",
+    "desc": "Видимое существо проходит спасбросок Телосложения. При провале получает 1к6 урона холодом и совершает следующую атаку оружием до конца своего следующего хода с помехой.",
+    "higherLevel": "Урон растёт на 5, 11 и 17 уровне персонажа: 2к6, 3к6, 4к6.",
+    "id": 772,
+    "classes": [
+      "druid",
+      "sorcerer",
+      "warlock",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Раскат грома",
+    "level": 0,
+    "school": "воплощение",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "На себя (5 фт)",
+    "components": "S",
+    "duration": "Мгновенно",
+    "desc": "Вы создаёте грохот, слышимый на 100 фт. Все остальные существа в 5 фт проходят спасбросок Телосложения или получают 1к6 урона звуком.",
+    "higherLevel": "Урон растёт на 5, 11 и 17 уровне персонажа: 2к6, 3к6, 4к6.",
+    "id": 773,
+    "classes": [
+      "bard",
+      "druid",
+      "sorcerer",
+      "warlock",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Сотворение костра",
+    "level": 0,
+    "school": "вызов",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "60 фт",
+    "components": "V,S",
+    "duration": "Концентрация, до 1 минуты",
+    "desc": "Костёр занимает куб со стороной 5 фт на земле. Существо в этом месте при сотворении, а также зашедшее туда в свой ход или закончившее там ход, проходит спасбросок Ловкости или получает 1к8 урона огнём. Костёр поджигает горючие предметы, которые никто не несёт.",
+    "higherLevel": "Урон растёт на 5, 11 и 17 уровне персонажа: 2к8, 3к8, 4к8.",
+    "id": 774,
+    "classes": [
+      "druid",
+      "sorcerer",
+      "warlock",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Едкое варево Таши",
+    "level": 1,
+    "school": "воплощение",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "На себя (30-фт линия)",
+    "components": "V,S,M(кусочек гнилой пищи)",
+    "duration": "Концентрация, до 1 минуты",
+    "desc": "Линия едкой кислоты длиной 30 фт и шириной 5 фт. Существа в ней проходят спасбросок Ловкости: при провале покрываются кислотой на время действия заклинания и получают 2к4 урона кислотой в начале каждого своего хода. Покрытое существо или соседнее может действием соскрести кислоту.",
+    "higherLevel": "За каждый уровень ячейки выше 1-го урон увеличивается на 2к4.",
+    "id": 775,
+    "classes": [
+      "sorcerer",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Катапульта",
+    "level": 1,
+    "school": "преобразование",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "60 фт",
+    "components": "S",
+    "duration": "Мгновенно",
+    "desc": "Предмет весом 1–5 фунтов, который никто не несёт, летит по прямой до 90 фт. Если на пути есть существо, оно проходит спасбросок Ловкости: при провале получает 3к8 дробящего, предмет останавливается. При успехе предмет летит дальше.",
+    "higherLevel": "За каждый уровень ячейки выше 1-го максимальный вес растёт на 5 фунтов, урон — на 1к8.",
+    "id": 776,
+    "classes": [
+      "sorcerer",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Поглощение стихий",
+    "level": 1,
+    "school": "ограждение",
+    "source": "PH14",
+    "time": "1 реакция, получив урон кислотой, холодом, огнём, электричеством или звуком",
+    "range": "На себя",
+    "components": "S",
+    "duration": "1 раунд",
+    "desc": "Вы получаете сопротивление к вызвавшему реакцию типу урона до начала следующего хода, в том числе к этому удару. В свой следующий ход при первом попадании рукопашной атакой цель получает дополнительно 1к6 урона этого типа.",
+    "higherLevel": "За каждый уровень ячейки выше 1-го дополнительный урон увеличивается на 1к6.",
+    "id": 777,
+    "classes": [
+      "druid",
+      "ranger",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Силок",
+    "level": 1,
+    "school": "ограждение",
+    "source": "PH14",
+    "time": "1 минута",
+    "range": "Касание",
+    "components": "S,M(верёвка 25 фт, расходуется)",
+    "duration": "8 часов",
+    "desc": "Верёвка образует на земле круг радиусом 5 фт и исчезает; круг становится магической ловушкой, заметить её можно проверкой Интеллекта (Анализ) против Сл ваших заклинаний. Маленькое, Среднее или Большое существо, вошедшее в круг, проходит спасбросок Ловкости: при провале подвешено вниз головой на высоте 3 фт и опутано. Оно повторяет спасбросок в конце каждого хода; также оно или соседнее существо может действием совершить проверку Интеллекта (Магия) против Сл заклинаний, чтобы освободить цель.",
+    "higherLevel": "",
+    "id": 778,
+    "classes": [
+      "druid",
+      "ranger",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Небесные письмена",
+    "level": 2,
+    "school": "преобразование",
+    "source": "PH14",
+    "time": "1 действие (ритуал)",
+    "range": "Видимость",
+    "components": "V,S",
+    "duration": "Концентрация, до 1 часа",
+    "desc": "До десяти слов появляются в небе в видимой вами части неба на облаках. Их видно издалека, сильный ветер рассеивает надпись раньше срока.",
+    "higherLevel": "",
+    "id": 779,
+    "classes": [
+      "bard",
+      "druid",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Пиротехника",
+    "level": 2,
+    "school": "преобразование",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "60 фт",
+    "components": "V,S",
+    "duration": "Мгновенно",
+    "desc": "Выберите видимое немагическое пламя размером до куба 5 фт и погасите его. Фейерверк: существа в 10 фт от источника проходят спасбросок Телосложения или ослеплены до конца вашего следующего хода. Дым: облако радиусом 20 фт на 1 минуту создаёт сильную заслонённость, рассеивается сильным ветром.",
+    "higherLevel": "",
+    "id": 780,
+    "classes": [
+      "bard",
+      "sorcerer",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Дрёма",
+    "level": 3,
+    "school": "очарование",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "30 фт",
+    "components": "S,M(щепотка песка)",
+    "duration": "10 минут",
+    "desc": "До трёх согласных существ теряют сознание на время заклинания. Цель просыпается от урона или если её потрясти действием. Проспавшая 10 минут получает преимущества короткого отдыха. Снова попасть под это заклинание существо может только после длинного отдыха.",
+    "higherLevel": "За каждый уровень ячейки выше 3-го +1 цель.",
+    "id": 781,
+    "classes": [
+      "bard",
+      "sorcerer",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Крепость интеллекта",
+    "level": 3,
+    "school": "ограждение",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "30 фт",
+    "components": "V",
+    "duration": "Концентрация, до 1 часа",
+    "desc": "Вы или согласное существо в пределах дальности получаете сопротивление урону психической энергией и преимущество на спасброски Интеллекта, Мудрости и Харизмы.",
+    "higherLevel": "За каждый уровень ячейки выше 3-го +1 цель; цели должны быть в 30 фт друг от друга.",
+    "id": 782,
+    "classes": [
+      "bard",
+      "sorcerer",
+      "warlock",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Крошечный слуга",
+    "level": 3,
+    "school": "преобразование",
+    "source": "PH14",
+    "time": "1 минута",
+    "range": "Касание",
+    "components": "V,S",
+    "duration": "8 часов",
+    "desc": "Крошечный немагический предмет оживает и подчиняется вам: КД 15, 10 хитов, СИЛ 4, ЛОВ 16, скорость 30 фт, лазание 30 фт. Бонусным действием приказываете всем слугам в 120 фт. Удар: атака +3, 1к4 + 1 дробящего. На 0 хитах слуга снова становится предметом.",
+    "higherLevel": "За каждый уровень ячейки выше 3-го +2 предмета.",
+    "id": 783,
+    "classes": [
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Пылающие стрелы",
+    "level": 3,
+    "school": "преобразование",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "Касание",
+    "components": "V,S",
+    "duration": "Концентрация, до 1 часа",
+    "desc": "Колчан с боеприпасами: первые 12 стрел или болтов, вынутых из него, загораются и при попадании наносят дополнительно 1к6 огнём. Огонь гаснет после попадания или промаха.",
+    "higherLevel": "За каждый уровень ячейки выше 3-го +2 боеприпаса.",
+    "id": 784,
+    "classes": [
+      "druid",
+      "ranger",
+      "sorcerer",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Призыв духа конструкта",
+    "level": 4,
+    "school": "вызов",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "90 фт",
+    "components": "V,S,M(затейливая шкатулка с замком из камня и металла стоимостью 400 зм)",
+    "duration": "Концентрация, до 1 часа",
+    "desc": "Вызываете дух конструкта из глины, металла или камня. Он дружелюбен, ходит после вас и подчиняется вашим словесным командам; без команды уклоняется. Хиты 40 + 15 за круг выше 4-го, КД 13 + уровень заклинания. Удары на множественной атаке: половина уровня заклинания вниз, 1к8 + 4 + уровень заклинания дробящего.",
+    "higherLevel": "Параметры растут с уровнем ячейки.",
+    "id": 785,
+    "classes": [
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Проклятье стихий",
+    "level": 4,
+    "school": "преобразование",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "90 фт",
+    "components": "V,S",
+    "duration": "Концентрация, до 1 минуты",
+    "desc": "Существо проходит спасбросок Телосложения. При провале выберите кислоту, холод, огонь, электричество или звук: цель теряет сопротивление этому типу, а в первый раз за ход, когда получает такой урон, получает ещё 2к6 этого типа.",
+    "higherLevel": "За каждый уровень ячейки выше 4-го +1 цель; цели должны быть в 30 фт друг от друга.",
+    "id": 786,
+    "classes": [
+      "druid",
+      "warlock",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Преобразование камня",
+    "level": 5,
+    "school": "преобразование",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "120 фт",
+    "components": "V,S,M(глина и вода)",
+    "duration": "Мгновенно",
+    "desc": "Камень в кубе до 40 фт становится грязью или грязь — камнем. Камень в грязь: каждый фут перемещения стоит 4 фута, существа на поверхности проходят спасбросок Силы или опутаны. Обвал потолка: спасбросок Ловкости, 4к8 дробящего при провале и половина при успехе. Грязь в камень: кто в ней застрял, проходит спасбросок Ловкости или опутан.",
+    "higherLevel": "",
+    "id": 787,
+    "classes": [
+      "druid",
+      "wizard",
+      "artificer"
+    ]
+  },
+  {
+    "name": "Усиление навыка",
+    "level": 5,
+    "school": "преобразование",
+    "source": "PH14",
+    "time": "1 действие",
+    "range": "Касание",
+    "components": "V,S",
+    "duration": "Концентрация, до 1 часа",
+    "desc": "Вы выбираете навык, которым согласное существо владеет и на который ещё не действует удвоение бонуса мастерства. До конца заклинания бонус мастерства удваивается при проверках этого навыка.",
+    "higherLevel": "",
+    "id": 788,
+    "classes": [
+      "bard",
+      "sorcerer",
+      "wizard",
+      "artificer"
     ]
   }
 ];

@@ -735,6 +735,13 @@ function updateSubclassOptions() {
   const level = Math.max(1, parseInt(levelEl && levelEl.value, 10) || 1);
   var _uch = currentId ? getCurrentChar() : null;
   var _ed = edData(_uch);  // E24-7: классовые таблицы по редакции персонажа
+  // Классы дополнений: в списке только доступные редакции и книгам персонажа
+  Array.prototype.forEach.call(classSelect.options || [], function(o) {
+    if (!CLASS_SOURCE[o.value]) return;
+    var off = o.value !== selectedClass && !classInBooks(o.value, _uch);
+    o.hidden = off;
+    o.disabled = off;
+  });
   const unlockLevel = _ed.SUBCLASS_LEVEL[selectedClass] || 3;
 
   subclassSelect.innerHTML = "";

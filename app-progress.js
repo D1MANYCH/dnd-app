@@ -389,9 +389,9 @@ function _pgAvailableClasses(char, list) {
   var out = [];
   if (typeof checkMulticlassPrereqs !== "function") return out;
   var have = (list || []).map(function(e) { return e.cls; });
-  ["Варвар", "Бард", "Воин", "Волшебник", "Друид", "Жрец", "Колдун", "Монах", "Паладин", "Плут", "Следопыт", "Чародей"]
+  ["Варвар", "Бард", "Воин", "Волшебник", "Друид", "Жрец", "Изобретатель", "Колдун", "Монах", "Паладин", "Плут", "Следопыт", "Чародей"]
     .forEach(function(c) {
-      if (have.indexOf(c) !== -1) return;
+      if (have.indexOf(c) !== -1 || !classInBooks(c, char)) return;
       var chk = checkMulticlassPrereqs(char, c);
       if (chk && chk.ok) out.push(c);
     });
@@ -718,7 +718,7 @@ function _fiRuleNotes(desc, ed) {
 // выводятся из char.classes, поэтому экран пишет раскладку и зовёт те же
 // пересчёты, что и лист. Требование 13 — предупреждение, не запрет (NPC,
 // домашние правила); после фиксации основы остаётся обычное повышение.
-var ML_CLASSES = ["Варвар", "Бард", "Воин", "Волшебник", "Друид", "Жрец", "Колдун", "Монах", "Паладин", "Плут", "Следопыт", "Чародей"];
+var ML_CLASSES = ["Варвар", "Бард", "Воин", "Волшебник", "Друид", "Жрец", "Изобретатель", "Колдун", "Монах", "Паладин", "Плут", "Следопыт", "Чародей"];
 var _ml = null; // [{ cls, level, sub }]
 
 function _mlTotal(rows) {
@@ -793,7 +793,7 @@ function _mlRender() {
     var taken = _ml.map(function(x, j) { return j === i ? "" : x.cls; });
     var opts = '<option value="">Выберите класс</option>';
     ML_CLASSES.forEach(function(c) {
-      if (taken.indexOf(c) !== -1) return;
+      if (taken.indexOf(c) !== -1 || (c !== r.cls && !classInBooks(c, getCurrentChar()))) return;
       opts += '<option value="' + c + '"' + (r.cls === c ? " selected" : "") + ">" + c + "</option>";
     });
     var canUp = r.level < 20 && (!r.cls || total < 20);

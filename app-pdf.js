@@ -377,7 +377,7 @@ function _pdfSaves(doc, y, char) {
     var k = rows[i][1];
     var prof = !!saves[k];
     var mod = Math.floor(((stats[k] || 10) - 10) / 2) + (prof ? profBonus : 0) +
-      (typeof rulesAuraOfProtection === 'function' ? rulesAuraOfProtection(char) : 0);
+      (typeof rulesAuraOfProtection === 'function' ? rulesAuraOfProtection(char) : 0) + (typeof rulesSoulOfArtifice === 'function' ? rulesSoulOfArtifice(char) : 0);
     doc.text((prof ? '☑' : '☐') + ' ' + rows[i][0] + '  ' + _pdfFormatMod(mod), bx, by);
   }
   return y + 5.2 * 3 + 2;

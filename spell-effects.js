@@ -235,6 +235,15 @@ const SPELL_EFFECTS = {
   "Леденящее прикосновение": { damage: { formula: "1к8", cantripTiers: { 5: "2к8", 11: "3к8", 17: "4к8" }, attack: true },
                          bySource: { PH24: { damage: { formula: "1к10", cantripTiers: { 5: "2к10", 11: "3к10", 17: "4к10" }, attack: true } } } },
   // Добивка CAST-8b
+  // Изобретатель: заклинания XGtE/TCoE/SCAG из его списка
+  "Волшебный камень":  { damage: { formula: "1к6", attack: true, addSpellMod: true } },
+  "Вспышка мечей":     { damage: { formula: "1к6",  cantripTiers: { 5: "2к6",  11: "3к6",  17: "4к6" }, save: "dex" } },
+  "Лассо молнии":      { damage: { formula: "1к8",  cantripTiers: { 5: "2к8",  11: "3к8",  17: "4к8" }, save: "str" } },
+  "Обморожение":       { damage: { formula: "1к6",  cantripTiers: { 5: "2к6",  11: "3к6",  17: "4к6" }, save: "con" } },
+  "Раскат грома":      { damage: { formula: "1к6",  cantripTiers: { 5: "2к6",  11: "3к6",  17: "4к6" }, save: "con" } },
+  "Сотворение костра": { damage: { formula: "1к8",  cantripTiers: { 5: "2к8",  11: "3к8",  17: "4к8" }, save: "dex" } },
+  "Едкое варево Таши": { damage: { formula: "2к4",  upcast: "2к4", save: "dex" } },
+  "Катапульта":        { damage: { formula: "3к8",  upcast: "1к8", save: "dex" } },
   "Брызги кислоты":    { damage: { formula: "1к6",  cantripTiers: { 5: "2к6",  11: "3к6",  17: "4к6" }, save: "dex" } },
   "Терновый кнут":     { damage: { formula: "1к6",  cantripTiers: { 5: "2к6",  11: "3к6",  17: "4к6" }, attack: true } },
   "Сотворение пламени": { damage: { formula: "1к8", cantripTiers: { 5: "2к8",  11: "3к8",  17: "4к8" }, attack: true } },
