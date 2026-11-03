@@ -997,6 +997,8 @@ char.spells.mySpells.push(spell);
 // E24-2: запись другой редакции — предупреждение, не блок (смешанные гримуары штатны).
 if (spell.source === "PH14" && char.edition === "2024") showToast("Это версия 2014 — у\u00a0персонажа редакция 2024", "warn");
 if (window.AppLog) AppLog.action("spells", "заклинание добавлено: " + spell.name, { id: spell.id, level: spell.level });
+// PLAY3-5 (PT-350, 321): добавление ≠ подготовка
+if (!char._wizStep && spellNeedsPrep(char, spell)) showToast("«" + spell.name + "» добавлено. Чтобы накладывать — нажмите «Подготовить»", "info");
 saveToLocal();
 renderSpellSearch();
 renderMySpells();
@@ -1025,6 +1027,7 @@ function renderMySpells() {
 if (!currentId) return;
 const char = getCurrentChar();
 if (!char) return;
+syncSubclassSpells(char);
 const container = $("my-spells-list");
 if (!container) return;
 renderPrepCounter();
@@ -1310,6 +1313,33 @@ function _subclassSpellNames(char) {
     }
   });
   return out;
+}
+
+// PLAY3-5 (PT-312): открытые заклинания подкласса — в «Мои заклинания» копией с меткой
+// grantedBy «Подкласс · …» (вне лимитов), снимаются при смене подкласса/уровня.
+function syncSubclassSpells(char) {
+  if (!char || !char.spells || typeof SPELL_DATABASE === "undefined") return false;
+  if (!Array.isArray(char.spells.mySpells)) char.spells.mySpells = [];
+  var want = Object.keys(_subclassSpellNames(char));
+  var subs = ((Array.isArray(char.classes) && char.classes.length) ? char.classes : [{ subclass: char.subclass }])
+    .map(function(c) { return c && c.subclass; }).filter(Boolean).join(", ");
+  var label = "Подкласс · " + subs;
+  var before = char.spells.mySpells.length;
+  char.spells.mySpells = char.spells.mySpells.filter(function(s) {
+    return !s.grantedBy || String(s.grantedBy).indexOf("Подкласс · ") !== 0 || (s.grantedBy === label && want.indexOf(s.name) !== -1);
+  });
+  var changed = char.spells.mySpells.length !== before;
+  var src = char.edition === "2024" ? "PH24" : "PH14";
+  want.forEach(function(name) {
+    if (char.spells.mySpells.some(function(s) { return s.name === name; })) return;
+    var db = SPELL_DATABASE.find(function(s) { return s.name === name && s.source === src; }) ||
+             SPELL_DATABASE.find(function(s) { return s.name === name; });
+    if (!db) return;
+    char.spells.mySpells.push(Object.assign({}, db, { grantedBy: label }));
+    changed = true;
+  });
+  if (changed) saveToLocal();
+  return changed;
 }
 
 // Нужна ли заклинанию подготовка. У мультикласса со «знающим» классом (бард, чародей,
@@ -1835,10 +1865,15 @@ function _rollCastDamage(char, o) {
   // выбран вариант каста, он тип уже называет — второй раз не дублируем.
   var typeNote = (!o.variantName && dmg.dmgType) ? " · " + dmg.dmgType : "";
   var rollDamage = function(crit) {
+    if (o.isRepeat) return rollDamageAg(crit, 0);
+    _agonizingBonus(char, o.spellName, formula, function(ab) { rollDamageAg(crit, ab); });
+  };
+  var rollDamageAg = function(crit, ab) {
     var f = (crit && typeof critFormula === "function") ? critFormula(formula) : formula;
+    if (ab) f += (ab > 0 ? "+" + ab : String(ab));
     rollFormula(f, {
       label: icon + " " + o.spellName + (o.castLevel ? " · " + o.castLevel + " ур." : "") +
-        (o.variantName ? " · " + o.variantName : "") + typeNote +
+        (o.variantName ? " · " + o.variantName : "") + typeNote + (ab ? " · Мучительный взрыв" : "") +
         (o.isRepeat ? " · " + (dmg.label || "повтор") : "") + (crit ? " · КРИТ ×2" : ""),
       openArena: true,
       onResult: function(res) {
@@ -1973,7 +2008,30 @@ function castStatMod(char, spell) {
   if (stat === "ИНТ") return getMod(char.stats.int);
   if (stat === "МУД") return getMod(char.stats.wis);
   if (stat === "ХАР") return getMod(char.stats.cha);
+  // PLAY3-5 (PT-308, 346): характеристика не выбрана — лучшая из классов-заклинателей
+  if (typeof rulesSpellStatsByClass === "function") {
+    var all = rulesSpellStatsByClass(char, char.level);
+    if (all.length) return Math.max.apply(null, all.map(function(r) { return r.mod; }));
+  }
   return 0;
+}
+
+// PLAY3-5 (PT-309, 306): «Мучительный взрыв» — +мод. ХАР к урону каждого луча.
+// 2014 — только «Мистический заряд»; 2024 — выбранный заговор с уроном (спрашиваем
+// при первом броске урона, ответ — classChoices.Колдун["agonizing-cantrip"]).
+function _agonizingBonus(char, spellName, formula, cb) {
+  var inv = (typeof ccGetStored === "function") ? ccGetStored(char, "Колдун", "invocations") : null;
+  if (!Array.isArray(inv) || inv.indexOf("agonizing-blast") === -1) return cb(0);
+  var sp = (char.spells.mySpells || []).find(function(s) { return s && s.name === spellName; });
+  if (!sp || sp.level !== 0) return cb(0);
+  var beams = spellName === "Мистический заряд" ? (parseInt(formula, 10) || 1) : 1;
+  var bonus = getMod(char.stats.cha) * beams;
+  if (char.edition !== "2024") return cb(spellName === "Мистический заряд" ? bonus : 0);
+  var target = ccGetStored(char, "Колдун", "agonizing-cantrip");
+  if (target) return cb(target === spellName ? bonus : 0);
+  showConfirmModal("Мучительный взрыв", "Применять «Мучительный взрыв» (+мод. Харизмы к урону) к заговору «" + spellName + "»? Выбор сохранится.",
+    function() { ccSetStored(char, "Колдун", "agonizing-cantrip", spellName); saveToLocal(); cb(bonus); },
+    "Да", { danger: false, altLabel: "Нет", onAlt: function() { cb(0); }, onCancel: function() { cb(0); } });
 }
 
 // CAST-3: лечение — формула с апкастом (+ мод заклинательной характеристики),

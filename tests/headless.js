@@ -4754,11 +4754,12 @@
       return true;
     });
 
-    t("[cast-3] castStatMod: МУД 16 → +3, без spells.stat → 0", function(){
+    t("[cast-3] castStatMod: МУД 16 → +3, без spells.stat → по классу (PLAY3-5)", function(){
       var c = _cast3Fixture();
       if (castStatMod(c) !== 3) return "МУД 16: " + castStatMod(c);
       c.spells.stat = "";
-      if (castStatMod(c) !== 0) return "пустой stat: " + castStatMod(c);
+      var exp = rulesSpellStatsByClass(c, c.level).length ? Math.max.apply(null, rulesSpellStatsByClass(c, c.level).map(function(r) { return r.mod; })) : 0;
+      if (castStatMod(c) !== exp) return "пустой stat: " + castStatMod(c) + " ≠ " + exp;
       return true;
     });
 
