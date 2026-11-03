@@ -28,6 +28,12 @@ function _crChar() {
   return _crId == null ? null : characters.find(function(c) { return c.id === _crId; }) || null;
 }
 
+function _crVisible(char) {
+  var r = [];
+  for (var i = 0; i < CREATOR_STEPS.length; i++) if (!(CREATOR_STEPS[i].skip && CREATOR_STEPS[i].skip(char))) r.push(i);
+  return r;
+}
+
 function _crStepIndex(char) {
   for (var i = 0; i < CREATOR_STEPS.length; i++) if (CREATOR_STEPS[i].id === char._wizStep) return i;
   return 0;
@@ -60,7 +66,7 @@ function creatorRender() {
     dots += '<span class="cr-dot' + (i < idx ? " done" : i === idx ? " current" : "") + '" title="' + escapeHtml(CREATOR_STEPS[i].title) + '"></span>';
   }
   $("cr-progress").innerHTML = '<div class="cr-dots" aria-hidden="true">' + dots + '</div>' +
-    '<div class="cr-step-label">Шаг ' + (idx + 1) + ' из ' + CREATOR_STEPS.length + ' · <b>' + escapeHtml(step.title) + '</b></div>';
+    '<div class="cr-step-label">Шаг ' + (_crVisible(char).indexOf(idx) + 1) + ' из ' + _crVisible(char).length + ' · <b>' + escapeHtml(step.title) + '</b></div>';
   var frozen = char.basicLocked && idx <= _crLockIndex();
   _crUnmountPanels();
   body.innerHTML = frozen ? _crRenderFrozen() : step.render ? step.render(char) :

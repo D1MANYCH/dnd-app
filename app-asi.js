@@ -716,6 +716,7 @@ function _agBase(k) {
 }
 
 function _agReady() {
+  if (_ag.mode === "pb" && _agPbSpent() < AG_PB_POOL) return false;
   return AG_KEYS.every(function(k) { return _agBase(k) != null; });
 }
 
@@ -861,7 +862,7 @@ function _agRender() {
   if ((char.level || 1) > 1) html += '<p class="ag-note">Увеличения характеристик и\u00a0черты, применённые в\u00a0приложении, входят в\u00a0«Бонус»; прибавки, поставленные вручную кнопками ±, — нет.</p>';
 
   var why = "";
-  if (!_agReady()) why = _ag.mode === "roll" && !_ag.rolls.length ? "Сначала бросьте кубики" : "Распределите все шесть значений";
+  if (!_agReady()) why = _ag.mode === "roll" && !_ag.rolls.length ? "Сначала бросьте кубики" : _ag.mode === "pb" ? "Потратьте все очки — осталось " + (AG_PB_POOL - _agPbSpent()) : "Распределите все шесть значений";
   if (inWizard) html += why ? '<p class="ag-note">' + why + "</p>" : "";
   else html += '<div class="ag-foot"><button type="button" class="lu-btn-confirm" onclick="agApply()"' + (why ? " disabled" : "") + ">Применить</button>" +
     (why ? '<span class="ag-note">' + why + "</span>" : "") + "</div>";

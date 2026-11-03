@@ -1580,7 +1580,7 @@ function renderRaceExtras() {
     if (RACE_VARIABLE_TRAIT[race] && char.edition !== "2024") pending.push("тёмное зрение или\u00a0навык");
     if (RACE_SKILL_PICKS[race] && char.edition !== "2024") pending.push(RACE_SKILL_PICKS[race] > 1 ? "навыки на\u00a0выбор" : "навык на\u00a0выбор");
     var rl0 = (typeof edData === "function") && edData(char).RACE_LANGUAGES && edData(char).RACE_LANGUAGES[race];
-    if (rl0 && rl0.choice > 0) pending.push(rl0.choice > 1 ? rl0.choice + " языка на\u00a0выбор" : "язык на\u00a0выбор");
+    if (rl0 && rl0.choice > 0) pending.push(char.edition === "2024" ? "языки персонажа (" + rl0.choice + " на выбор, не от вида)" : rl0.choice > 1 ? rl0.choice + " языка на\u00a0выбор" : "язык на\u00a0выбор");
     if (char.edition === "2024" && typeof edData === "function") {
       var sp0 = edData(char).RACE_DATA[race];
       if (sp0 && Array.isArray(sp0.choices)) sp0.choices.forEach(function(ch) { pending.push(ch.name.toLowerCase()); });
@@ -1696,11 +1696,11 @@ function renderRaceExtras() {
   var rl = (typeof edData === "function") && edData(char).RACE_LANGUAGES && edData(char).RACE_LANGUAGES[race];
   if (rl && rl.choice > 0) {
     var lnPicks = ((char.proficiencies && char.proficiencies.languageChoices && char.proficiencies.languageChoices.race) || []).slice(0, rl.choice);
-    html += '<div class="race-extras-title">' + dndIcoHtml("scroll", 14) + ' ' + escapeHtml(race) + ': ' +
+    html += '<div class="race-extras-title">' + dndIcoHtml("scroll", 14) + ' ' + (char.edition === "2024" ? 'Языки персонажа: ' : escapeHtml(race) + ': ') +
       (rl.choice > 1 ? rl.choice + ' языка на\u00a0выбор' : 'язык на\u00a0выбор') + '</div>';
     html += '<div class="race-extras-row">' + lnPicks.map(function(n) { return '<span class="race-bonus-badge">' + escapeHtml(n) + '</span>'; }).join("") +
       '<button class="btn btn-text btn-sm race-extras-btn" onclick="raceLangGoto()">К\u00a0языкам →</button></div>';
-    if (lnPicks.length < rl.choice) html += '<div class="race-extras-warn">Расовый язык не\u00a0выбран — выберите его в\u00a0блоке «Языки».</div>';
+    if (lnPicks.length < rl.choice) html += '<div class="race-extras-warn">' + (char.edition === "2024" ? "Язык" : "Расовый язык") + ' не\u00a0выбран — выберите его в\u00a0блоке «Языки».</div>';
   }
 
   // E24-4: видовые выборы 2024 (родословная, происхождение, характеристика заклинаний)
