@@ -525,7 +525,7 @@ document.addEventListener("keydown", function (e) {
 // жмёт крестик окна — тот уже зовёт нужную close-функцию.
 var RD_SCREEN_MODALS = ["add-spell-modal", "item-modal", "weapon-modal", "add-npc-modal",
                         "add-ally-modal", "add-companion-modal", "srd-npc-modal",
-                        "class-choice-modal", "notes-entry-modal", "asi-modal"];
+                        "class-choice-modal", "notes-entry-modal", "asi-modal", "subclass-modal"];
 function _rdScreenOpen(m) {
   return m.classList.contains("active") || m.classList.contains("open");
 }

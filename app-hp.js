@@ -710,7 +710,7 @@ if (edData(char).CLASS_FEATURES[className] && edData(char).CLASS_FEATURES[classN
 }
 if (subclassName && edData(char).SUBCLASS_FEATURES[subclassName] && edData(char).SUBCLASS_FEATURES[subclassName][classLevel]) {
   var subNames = edData(char).SUBCLASS_FEATURES[subclassName][classLevel].map(function(f) { return f.name; });
-  resultLines.push("" + dndIcoHtml("focus", 13) + " " + subclassName + ": " + subNames.join(", "));
+  resultLines.push("" + dndIcoHtml("focus", 13) + " " + escapeHtml(subclassName) + ": " + escapeHtml(subNames.join(", ")));
 }
 if (isNewClass) resultLines.push("" + dndIcoHtml("plus", 13) + " Новый класс: " + className);
 if (luWasLocked) resultLines.push("" + dndIcoHtml("lock", 13) + " Лист открыт — выберите новые заклинания и\u00a0умения, затем нажмите «Персонаж готов»");
@@ -746,7 +746,7 @@ function _luShowResult() {
       edData(char).SUBCLASS_FEATURES[ctxSub] &&
       edData(char).SUBCLASS_FEATURES[ctxSub][ctx.classLevel]) {
     var sn = edData(char).SUBCLASS_FEATURES[ctxSub][ctx.classLevel].map(function(f){ return f.name; });
-    lines.push("" + dndIcoHtml("focus", 13) + " " + ctxSub + ": " + sn.join(", "));
+    lines.push("" + dndIcoHtml("focus", 13) + " " + escapeHtml(ctxSub) + ": " + escapeHtml(sn.join(", ")));
   }
   // PLAY-1 (PT-043/052): черта или ТЕЛ из выборов уровня меняют максимум — итог по факту
   var hpNow = char ? parseInt(char.combat.hpMax, 10) || 0 : 0;
@@ -1080,7 +1080,7 @@ function luBuildChoicesScreen() {
       // SUB-0: приписка источника подкласса на кнопке выбора level-up.
       var src = (typeof subclassSourceShort === "function") ? subclassSourceShort(s, char) : "";
       var srcHtml = src ? ' <span class="lu-src-tag">' + escapeHtml(src) + '</span>' : '';
-      return '<button class="lu-choice-opt' + (isRec ? ' is-rec' : '') + '" onclick="luSetSubclass(\'' + s.replace(/'/g,"\\'") + '\')">' +
+      return '<button class="lu-choice-opt' + (isRec ? ' is-rec' : '') + '" onclick="luSetSubclass(\'' + _pgArg(s) + '\')">' +
         escapeHtml(s) + srcHtml + (isRec ? ' ' + recBadge('совет') : '') + '</button>';
     }).join("");
     blocks.push('<div class="lu-choice-block"><div class="lu-choice-title">' + dndIcoHtml("focus", 14) + ' Выбор подкласса</div>' +

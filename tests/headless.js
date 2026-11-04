@@ -6878,6 +6878,141 @@
     }
   }
 
+  // ────────── HB-8: свои подклассы — схема 51, подмешивание в edData ──────────
+  if (typeof migrateCharacter === "function" && typeof edData === "function") {
+    var _hbSub = function(extra) {
+      var c = { id: 95101, class: "Воин", level: 3, schemaVersion: 50, customSubclasses: [
+        { name: "Клинок тумана", cls: "Воин", homebrew: true, features: [
+          { level: 3, name: "Шаг в туман", desc: "Текст игрока" }, { level: 7, name: "Завеса", desc: "" }, { level: 7, name: "Дымка", desc: "" }] }] };
+      Object.keys(extra || {}).forEach(function(k) { c[k] = extra[k]; });
+      return migrateCharacter(c);
+    };
+    t("[hb-8] customSubclasses — пустой массив в шаблоне, схема 51", function(){
+      if (!Array.isArray(DEFAULT_CHARACTER.customSubclasses) || DEFAULT_CHARACTER.customSubclasses.length) return "шаблон";
+      if (SCHEMA_VERSION < 51) return "SCHEMA_VERSION " + SCHEMA_VERSION;
+      return true;
+    });
+    t("[hb-8] миграция v<51: старый сейв получает массив, схема → текущая", function(){
+      var c = migrateCharacter({ id: 95102, class: "Воин", level: 4, schemaVersion: 50 });
+      if (!Array.isArray(c.customSubclasses) || c.customSubclasses.length) return "поле: " + JSON.stringify(c.customSubclasses);
+      if (c.schemaVersion !== SCHEMA_VERSION) return "schemaVersion = " + c.schemaVersion;
+      return true;
+    });
+    t("[hb-8] миграция идемпотентна и выбрасывает битое", function(){
+      var c = migrateCharacter({ id: 95103, class: "Воин", level: 4, schemaVersion: 50,
+        customSubclasses: [null, { cls: "Воин" }, { name: "Без класса" }, { name: " Живой ", cls: "Воин", features: [null, { level: "3", name: "У" }, { desc: "нет имени" }, { level: "x", name: "Нет уровня" }, { level: 21, name: "Выше 20" }] }] });
+      if (c.customSubclasses.length !== 1 || c.customSubclasses[0].name !== "Живой") return JSON.stringify(c.customSubclasses);
+      if (c.customSubclasses[0].features.length !== 1 || c.customSubclasses[0].features[0].level !== 3) return "умения";
+      var again = migrateCharacter(JSON.parse(JSON.stringify(c)));
+      return again.customSubclasses.length === 1 || "повторный прогон";
+    });
+    t("[hb-8] edData: подкласс в выборе класса, умения по уровням, метка «авторский»", function(){
+      var c = _hbSub(), ed = edData(c);
+      if (ed.SUBCLASSES["Воин"].indexOf("Клинок тумана") === -1) return "нет в SUBCLASSES";
+      if (ed.SUBCLASSES["Воин"].indexOf("Чемпион") === -1) return "потеряны книжные";
+      if (ed.SUBCLASSES["Плут"] !== SUBCLASSES["Плут"]) return "чужой класс задет";
+      var sf = ed.SUBCLASS_FEATURES["Клинок тумана"];
+      if (!sf || sf[3].length !== 1 || sf[7].length !== 2) return "умения: " + JSON.stringify(sf);
+      if (ed.SUBCLASS_FEATURES["Чемпион"] !== SUBCLASS_FEATURES["Чемпион"]) return "книжные не наследуются";
+      if (subclassSourceShort("Клинок тумана", c) !== "авторский") return "метка: " + subclassSourceShort("Клинок тумана", c);
+      if (ed.CLASS_FEATURES !== CLASS_FEATURES) return "остальные таблицы подменены";
+      if (charEditionMismatch(Object.assign({}, c, { subclass: "Клинок тумана", classes: [{ class: "Воин", level: 3, subclass: "Клинок тумана" }] })).length) return "ложное смешение редакций";
+      return true;
+    });
+    t("[hb-8] общие таблицы и другие персонажи не задеты", function(){
+      edData(_hbSub());
+      if (SUBCLASSES["Воин"].indexOf("Клинок тумана") !== -1) return "протекло в SUBCLASSES";
+      if (SUBCLASS_FEATURES["Клинок тумана"] || SUBCLASS_SOURCE["Клинок тумана"]) return "протекло в таблицы";
+      if (edData({ customSubclasses: [] }) !== edData(null)) return "пустой список дал новый вид";
+      return true;
+    });
+    t("[hb-8] выключенное авторское не прячет свой подкласс", function(){
+      var c = _hbSub({ books: [] });
+      if (!subclassInBooks("Клинок тумана", c)) return "скрыт";
+      if (subclassInBooks("Потусторонний рыцарь", c)) return "книжный HB не скрыт";
+      return true;
+    });
+    t("[hb-8] совпадения, чужой класс, служебные имена и низкий уровень не ломают таблицы", function(){
+      var c = _hbSub({ customSubclasses: [
+        { name: "Чемпион", cls: "Воин", features: [{ level: 3, name: "Подмена", desc: "" }] },
+        { name: "__proto__", cls: "Воин", features: [{ level: 3, name: "П", desc: "" }] },
+        { name: "Без класса", cls: "__proto__", features: [{ level: 3, name: "К", desc: "" }] },
+        { name: "Ранний", cls: "Воин", features: [{ level: 1, name: "Рано", desc: "" }, { level: 21, name: "Поздно", desc: "" }, { level: 3, name: "Вовремя", desc: "" }] }] });
+      var ed = edData(c);
+      if (ed.SUBCLASS_FEATURES["Чемпион"] !== SUBCLASS_FEATURES["Чемпион"]) return "книжный подменён";
+      if (ed.SUBCLASSES["Воин"].filter(function(s) { return s === "Чемпион"; }).length !== 1) return "дубль в выборе";
+      if (ed.SUBCLASSES["Воин"].indexOf("__proto__") !== -1) return "__proto__ в выборе";
+      if (Object.keys(ed.SUBCLASS_FEATURES["Ранний"]).join() !== "3") return "уровни: " + Object.keys(ed.SUBCLASS_FEATURES["Ранний"]);
+      return true;
+    });
+    t("[hb-8] редакция 2024 не видит подклассы 2014", function(){
+      var c = _hbSub({ edition: "2024" });
+      return (edData(c).SUBCLASSES["Воин"] || []).indexOf("Клинок тумана") === -1 || "подмешан в 2024";
+    });
+    t("[hb-8] экспорт → импорт: подкласс и выбор на месте, чужой файл почищен", function(){
+      var c = _hbSub({ subclass: "Клинок тумана", classes: [{ class: "Воин", level: 3, subclass: "Клинок тумана" }] });
+      var saved = window.characters;
+      try {
+        window.characters = [c];
+        var raw = JSON.parse(JSON.stringify(_buildExportPayload()));
+        var back = _extractCharsFromImport(raw)[0];
+        back.customSubclasses.push(null);
+        _sanitizeImportedChar(back);
+        back = migrateCharacter(back);
+        if (back.customSubclasses.length !== 1 || back.customSubclasses[0].features.length !== 3) return JSON.stringify(back.customSubclasses);
+        if (back.subclass !== "Клинок тумана") return "выбор потерян";
+        return edData(back).SUBCLASS_FEATURES["Клинок тумана"][3][0].desc === "Текст игрока" || "текст умения";
+      } finally { window.characters = saved; }
+    });
+  }
+
+  if (typeof _pgClassRow === "function" && typeof _subclassRepick === "function") {
+    var _hbRow = function(extra, level) {
+      var c = _hbSub(extra);
+      return _pgClassRow(c, { cls: "Воин", level: level, sub: c.subclass || "", idx: 0 }, true);
+    };
+    t("[hb-9] «Развитие»: свой подкласс в выборе с меткой, умения только до уровня класса", function(){
+      var pick = _hbRow({ classes: [{ class: "Воин", level: 3, subclass: "" }] }, 3);
+      if (pick.indexOf("Клинок тумана · авторский") === -1) return "нет в выборе/списке";
+      var row = _hbRow({ subclass: "Клинок тумана", classes: [{ class: "Воин", level: 3, subclass: "Клинок тумана" }] }, 3);
+      if (row.indexOf("Шаг в туман") === -1) return "нет умения 3 ур.";
+      if (row.indexOf("Завеса") !== -1) return "умение 7 ур. на 3 уровне";
+      var high = _hbRow({ subclass: "Клинок тумана", classes: [{ class: "Воин", level: 7, subclass: "Клинок тумана" }] }, 7);
+      return high.indexOf("Завеса") !== -1 || "нет умения 7 ур.";
+    });
+    t("[hb-9] вход в конструктор: класс, правка своего, нет в 2024", function(){
+      var c = _hbSub();
+      var html = _pgOwnSubclasses(c, "Воин");
+      if (html.indexOf("+ Свой подкласс") === -1 || html.indexOf("Клинок тумана") === -1) return html;
+      if (_pgOwnSubclasses(c, "Плут").indexOf("Клинок тумана") !== -1) return "чужой класс";
+      return _pgOwnSubclasses(_hbSub({ edition: "2024" }), "Воин") === "" || "кнопка в 2024";
+    });
+    t("[hb-9] разметка: имя с кавычками и тегом экранировано", function(){
+      var bad = '<img src=x onerror=1>"\'';
+      var html = _pgOwnSubclasses(_hbSub({ customSubclasses: [{ name: bad, cls: "Воин", features: [{ level: 3, name: "У", desc: "" }] }] }), "Воин");
+      return html.indexOf("<img") === -1 || "тег прошёл: " + html;
+    });
+    t("[hb-10] переименование и удаление переносят выбор", function(){
+      var c = _hbSub({ subclass: "Клинок тумана", classes: [{ class: "Воин", level: 5, subclass: "Клинок тумана" }, { class: "Плут", level: 3, subclass: "Вор" }] });
+      if (!_subclassPicked(c, "Клинок тумана")) return "выбор не виден";
+      _subclassRepick(c, "Клинок тумана", "Новое имя");
+      if (c.classes[0].subclass !== "Новое имя" || c.subclass !== "Новое имя") return "rename: " + JSON.stringify(c.classes);
+      if (c.classes[1].subclass !== "Вор") return "задет второй класс";
+      _subclassRepick(c, "Новое имя", "");
+      if (c.classes[0].subclass !== "" || c.subclass !== "") return "удаление: " + JSON.stringify(c.classes);
+      var solo = { subclass: "А", classes: [] };
+      _subclassRepick(solo, "А", "Б");
+      return solo.subclass === "Б" || "без classes";
+    });
+    t("[hb-10] уровень выбора подкласса считается и с учётом своих умений", function(){
+      var c = _hbSub({ customSubclasses: [{ name: "Поздний", cls: "Воин", features: [{ level: 7, name: "У", desc: "" }] }] });
+      var mins = edData(c).SUBCLASSES["Воин"].map(function(s) {
+        return Math.min.apply(null, Object.keys(edData(c).SUBCLASS_FEATURES[s]).map(Number));
+      });
+      return Math.min.apply(null, mins) === 3 || "минимум " + Math.min.apply(null, mins);
+    });
+  }
+
   // ────────── БЛОК 47 (HB-5): хранилище своего оружия — схема 33, каталог на чтении ──────────
   // Своё оружие живёт В ПЕРСОНАЖЕ (char.customWeapons): экспорт, импорт, снапшоты и
   // дубликат получают его даром — characters сериализуется целиком. Книжный каталог
@@ -11155,7 +11290,7 @@
       var back = migrateCharacter(JSON.parse(JSON.stringify(c)));
       if (JSON.stringify(back.quickSlots) !== JSON.stringify(c.quickSlots)) return "после JSON: " + JSON.stringify(back.quickSlots);
       var a = migrateCharacter({ id: "qs4a", class: "Воин", level: 1, schemaVersion: 49 });
-      if (a.schemaVersion !== 50 || !Array.isArray(a.quickSlots) || a.quickSlots.length) return "новое поле: " + JSON.stringify(a.quickSlots);
+      if (a.schemaVersion !== SCHEMA_VERSION || !Array.isArray(a.quickSlots) || a.quickSlots.length) return "новое поле: " + JSON.stringify(a.quickSlots);
       var many = [1, 2, 3, 4, 5].map(function(n){ return { kind: "spell", ref: n }; }).concat([{ kind: "spell", ref: 1 }, { kind: "x", ref: "y" }, "мусор", null]);
       var b = migrateCharacter({ id: "qs4b", class: "Воин", level: 1, schemaVersion: 49, quickSlots: many });
       return b.quickSlots.length === 5 && b.quickSlots[4].ref === "5" ? true : JSON.stringify(b.quickSlots);

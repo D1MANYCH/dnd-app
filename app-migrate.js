@@ -1001,6 +1001,11 @@ function migrateCharacter(char) {
     char.quickSlots = (typeof quickSlotsClean === "function") ? quickSlotsClean(char.quickSlots) : (Array.isArray(char.quickSlots) ? char.quickSlots : []);
     char.schemaVersion = 50;
   }
+  if (v < 51) {
+    // HB-8: свои подклассы — новое поле; битые записи отбрасываем
+    char.customSubclasses = (typeof customSubclassesClean === "function") ? customSubclassesClean(char.customSubclasses) : (Array.isArray(char.customSubclasses) ? char.customSubclasses : []);
+    char.schemaVersion = 51;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

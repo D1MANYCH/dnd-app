@@ -250,7 +250,8 @@
       ["companion",  "openAddCompanionModal", "closeAddCompanionModal", "add-companion-modal"],
       ["cc",         "openClassChoiceModal",  "closeClassChoiceModal",  "class-choice-modal"],
       ["notes-entry","notesOpenEntryModal",   "notesCloseEntryModal",   "notes-entry-modal"],
-      ["asi",        "openASIModal",          "closeASIModal",          "asi-modal"]
+      ["asi",        "openASIModal",          "closeASIModal",          "asi-modal"],
+      ["subclass",   "openSubclassForm",      "closeSubclassForm",      "subclass-modal"]
     ].forEach(function(p){
       if (wrapPair(p[0], p[1], p[2], p[3])) applied.push(p[1]);
     });

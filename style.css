@@ -14209,6 +14209,12 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   border-top: 1px solid var(--home-rule);
 }
 .pg-sub-select { margin: var(--sp-2) 0; max-width: 320px; }
+/* HB-9: форма своего подкласса */
+.sub-form-feat { margin-top: var(--sp-4); padding-top: var(--sp-3); border-top: 1px solid var(--home-rule); }
+.sub-form-lv { flex: 0 0 96px; min-width: 0; }
+.sub-form-add { margin: var(--sp-3) 0 var(--sp-4); }
+.add-spell-form .btn-danger { width: 100%; margin-bottom: var(--sp-3); }
+.ai-lead--pre { white-space: pre-line; }
 /* LVL-6: вкладка вместо экрана — обёртки .page-stage с её 680px больше нет,
    а на ПК .container тянется до 1100px и строки расползаются. */
 #tab-progress .pg-body { max-width: 680px; }

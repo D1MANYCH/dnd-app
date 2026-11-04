@@ -26,7 +26,7 @@ function safeImageSrc(src) {
 }
 
 // ── Версия схемы персонажа — увеличивать при изменении структуры ──────────────
-const SCHEMA_VERSION = 50;
+const SCHEMA_VERSION = 51;
 
 // ── Типы урона PHB 5e ──────────────────────────────────────────────────────────
 const DAMAGE_TYPES = [
@@ -68,6 +68,7 @@ const DEFAULT_CHARACTER = {
   formsKnown: [], // РОСТ-6: известные облики (2024) — slug зверей
   quickSlots: [], // РД-8: быстрый доступ — [{kind:"item"|"spell", ref}], до 4 (item.qid / id заклинания)
   customWeapons: [], // HB-5: своё (хомбрю) оружие персонажа; сливается с WEAPON_PRESETS на чтении (_weaponCatalog)
+  customSubclasses: [], // HB-8: свои подклассы персонажа (2014) — [{name, cls, features:[{level,name,desc}], homebrew}]; подмешиваются в edData
   inventory:  { weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[], other:[] },
   equipState: { backpackOff: false },
   coins:      { cp:0, sp:0, ep:0, gp:0, pp:0 },
@@ -780,7 +781,27 @@ function charHasBook(char, code) {
   if (!char || !Array.isArray(char.books)) return true;
   return char.books.indexOf(code) !== -1;
 }
+// HB-8: запись своего подкласса; битое отбрасываем, лишние поля не тащим.
+function customSubclassesClean(list) {
+  if (!Array.isArray(list)) return [];
+  return list.filter(function(s) {
+    return s && typeof s.name === "string" && s.name.trim() && typeof s.cls === "string" && s.cls;
+  }).map(function(s) {
+    var feats = Array.isArray(s.features) ? s.features : [];
+    return { name: s.name.trim(), cls: s.cls, homebrew: true,
+      features: feats.filter(function(f) {
+        var lv = f ? parseInt(f.level, 10) : 0;
+        return f && typeof f.name === "string" && f.name.trim() && lv >= 1 && lv <= 20;
+      }).map(function(f) {
+        return { level: parseInt(f.level, 10) || 0, name: f.name.trim(), desc: String(f.desc || "") };
+      }) };
+  });
+}
+function isCustomSubclass(name, char) {
+  return !!char && Array.isArray(char.customSubclasses) && char.customSubclasses.some(function(s) { return s && s.name === name; });
+}
 function subclassInBooks(name, char) {
+  if (isCustomSubclass(name, char)) return true;  // HB-8: метка HB, но выключатель книг к нему не относится
   return charHasBook(char, (char ? edData(char).SUBCLASS_SOURCE : SUBCLASS_SOURCE)[name]);
 }
 // Классы из дополнений: у них есть книга-источник, и они только в редакции 2014.
@@ -3285,7 +3306,7 @@ const XP_THRESHOLDS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "5.1.3";
+const APP_VERSION = "5.2.0";
 const APP_VERSION_DATE = "2026-11-04";
 
 // ============================================================
@@ -3639,9 +3660,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "5.1.3",
+    version: "5.2.0",
     date: "4 ноября 2026",
     badge: "new",
+    changes: [
+      { type: "feat", text: "свой подкласс в редакции 2014: название, класс, умения по уровням, метка «авторский» в выборе подкласса и на «Развитии», экспорт и импорт; схема 51" }
+    ]
+  },
+  {
+    version: "5.1.3",
+    date: "4 ноября 2026",
+    badge: "old",
     changes: [
       { type: "fix", text: "fix(паладин): Аура защиты не действует без сознания, в редакции 2024 — при любой недееспособности; подписи спасбросков обновляются сразу при смене состояния, падении до 0 ХП, лечении и отмене изменения ХП; на служебных экранах при открытии больше нет горизонтального сдвига страницы" }
     ]
@@ -8497,7 +8526,33 @@ function _ensureEdition2014() {
 function edData(char) {
   var base = _ensureEdition2014();
   var ed = (char && char.edition) || '2014';
+  if (ed === '2014' && char && Array.isArray(char.customSubclasses) && char.customSubclasses.length) {
+    return _edWithCustomSubclasses(base, char.customSubclasses);
+  }
   return EDITION_DATA[ed] || base;
+}
+
+// HB-8: свои подклассы персонажа поверх таблиц редакции. Вид строится на чтении и
+// наследует таблицы через прототип: общие константы и другие персонажи его не видят.
+// Совпадение с книжным именем пропускается (in ловит и __proto__ из чужого файла),
+// умения ниже уровня открытия тоже — по ним level-up считает момент выбора подкласса.
+function _edWithCustomSubclasses(base, list) {
+  var view = Object.create(base);
+  view.SUBCLASSES = Object.create(base.SUBCLASSES);
+  view.SUBCLASS_FEATURES = Object.create(base.SUBCLASS_FEATURES);
+  view.SUBCLASS_SOURCE = Object.create(base.SUBCLASS_SOURCE);
+  customSubclassesClean(list).forEach(function(s) {
+    if (!Array.isArray(base.SUBCLASSES[s.cls]) || s.name in view.SUBCLASS_FEATURES) return;
+    var at = base.SUBCLASS_LEVEL[s.cls] || 1, byLevel = {};
+    s.features.forEach(function(f) {
+      if (f.level < at || f.level > 20) return;
+      (byLevel[f.level] = byLevel[f.level] || []).push({ name: f.name, desc: f.desc });
+    });
+    view.SUBCLASSES[s.cls] = view.SUBCLASSES[s.cls].concat(s.name);
+    view.SUBCLASS_FEATURES[s.name] = byLevel;
+    view.SUBCLASS_SOURCE[s.name] = "HB";
+  });
+  return view;
 }
 
 // Вызывается из data-2024.js: overrides — частичный набор 2024-таблиц; недостающие

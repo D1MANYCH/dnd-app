@@ -51,6 +51,7 @@ function _sanitizeImportedChar(c) {
     if (typeof c[k] === "string" && c[k].length > 200) c[k] = c[k].slice(0, 200);
   });
   c.avatar = safeImageSrc(c.avatar) || null;
+  if (c.customSubclasses !== undefined) c.customSubclasses = customSubclassesClean(c.customSubclasses);  // HB-8
   var obj = function(x) { return x && typeof x === "object"; };
   // АУД4-1 (I4): числа листа, редакция из списка
   var clamp = function(v, def, lo, hi) { v = _importNum(v, def); return Math.max(lo, Math.min(hi, v)); };

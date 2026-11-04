@@ -302,6 +302,7 @@ function _pgClassRow(char, e, open) {
     }
   }
   body += _pgActRow('<button type="button" class="hp-act" onclick="openClassPlan(\'' + _pgArg(e.cls) + '\')">План класса 1–20 →</button>');
+  body += _pgOwnSubclasses(char, e.cls);
 
   return _pgDisc(escapeHtml(e.cls), meta, body, open, { warn: warn, attr: ' data-pg-cls="' + escapeHtml(e.cls) + '"' });
 }
@@ -638,6 +639,172 @@ function syncClassFieldUI(char) {
   }
 }
 
+// ── HB-9: свой подкласс (только 2014) ───────────────────────
+// Форма-экран по образцу своего оружия. Запись живёт в char.customSubclasses, а в
+// выборы подкласса и списки умений попадает через edData (data.js). Замок проверяем
+// до открытия: обёртка history-stack кладёт слой истории на любой вызов open.
+function _pgOwnSubclasses(char, cls) {
+  if (char.edition === "2024") return "";
+  var html = "";
+  customSubclassesClean(char.customSubclasses).forEach(function(s) {
+    if (s.cls !== cls) return;
+    html += _pgActRow('<button type="button" class="hp-act" aria-label="Править подкласс ' + escapeHtml(s.name) + '" onclick="pgEditSubclass(\'' +
+      _pgArg(cls) + '\', \'' + _pgArg(s.name) + '\')">' + escapeHtml(s.name) + " · авторский →</button>");
+  });
+  return html + _pgActRow('<button type="button" class="hp-act" onclick="pgEditSubclass(\'' + _pgArg(cls) + '\')">+ Свой подкласс →</button>');
+}
+
+function pgEditSubclass(cls, name) {
+  if (sheetLockGuard()) return;
+  openSubclassForm(cls, name);
+}
+
+function _subclassRecord(char, name) {
+  var list = Array.isArray(char.customSubclasses) ? char.customSubclasses : [];
+  return list.filter(function(s) { return s && s.name === name; })[0] || null;
+}
+
+function _subclassUnlock(cls) {
+  return edData(null).SUBCLASS_LEVEL[cls] || 1;
+}
+
+function _subclassPicked(char, name) {
+  return char.subclass === name || (Array.isArray(char.classes) && char.classes.some(function(c) { return c && c.subclass === name; }));
+}
+
+// Подкласс связан с классом по имени: rename и удаление переносят выбор сами.
+function _subclassRepick(char, from, to) {
+  if (Array.isArray(char.classes) && char.classes.length) {
+    char.classes.forEach(function(c) { if (c && c.subclass === from) c.subclass = to; });
+    if (typeof syncClassFields === "function") syncClassFields(char);
+  } else if (char.subclass === from) {
+    char.subclass = to;
+  }
+}
+
+function subclassFormClassChanged() {
+  var cls = $("subclass-class") ? $("subclass-class").value : "";
+  var hint = $("subclass-level-hint");
+  if (hint) hint.textContent = "Уровень — это уровень класса: от\u00a0" + _subclassUnlock(cls) + " до\u00a020.";
+}
+
+function subclassAddFeature(f) {
+  var box = $("subclass-features");
+  if (!box) return;
+  var levels = box.querySelectorAll(".sub-f-level");
+  var last = levels.length ? parseInt(levels[levels.length - 1].value, 10) : 0;
+  var cls = $("subclass-class") ? $("subclass-class").value : "";
+  var row = document.createElement("div");
+  row.className = "sub-form-feat";
+  row.innerHTML = '<div class="row"><div class="col sub-form-lv"><label>Уровень</label>' +
+    '<input type="number" class="sub-f-level" min="1" max="20" inputmode="numeric" aria-label="Уровень умения"></div>' +
+    '<div class="col"><label>Умение</label><input type="text" class="sub-f-name" maxlength="80" aria-label="Название умения"></div></div>' +
+    '<label>Описание</label><textarea class="sub-f-desc" rows="4" maxlength="8000" aria-label="Описание умения"></textarea>' +
+    '<button type="button" class="hp-act" onclick="subclassRemoveFeature(this)">Убрать умение</button>';
+  row.querySelector(".sub-f-level").value = (f && f.level) || last || _subclassUnlock(cls);
+  row.querySelector(".sub-f-name").value = (f && f.name) || "";
+  row.querySelector(".sub-f-desc").value = (f && f.desc) || "";
+  box.appendChild(row);
+}
+
+function subclassRemoveFeature(btn) {
+  var row = btn && btn.closest(".sub-form-feat");
+  if (row) row.remove();
+}
+
+function openSubclassForm(cls, name) {
+  var char = getCurrentChar();
+  if (!char || char.edition === "2024") return;
+  var rec = name ? _subclassRecord(char, name) : null;
+  safeSet("subclass-edit-name", rec ? rec.name : "");
+  safeSet("subclass-name", rec ? rec.name : "");
+  var sel = $("subclass-class");
+  if (sel) {
+    sel.innerHTML = "";
+    Object.keys(edData(null).SUBCLASSES).forEach(function(c) { sel.appendChild(new Option(c, c)); });
+    sel.value = rec ? rec.cls : cls;
+    // Выбранный подкласс привязан к классу персонажа — сначала надо снять выбор.
+    sel.disabled = !!rec && _subclassPicked(char, rec.name);
+  }
+  subclassFormClassChanged();
+  var box = $("subclass-features");
+  if (box) box.innerHTML = "";
+  ((rec && rec.features.length) ? rec.features : [null]).forEach(subclassAddFeature);
+  var title = $("subclass-modal-title");
+  if (title) title.textContent = rec ? "Править подкласс" : "Свой подкласс";
+  var del = $("subclass-delete");
+  if (del) del.classList.toggle("hidden", !rec);
+  var modal = $("subclass-modal");
+  if (modal) modal.classList.add("active");
+}
+
+function closeSubclassForm() {
+  var modal = $("subclass-modal");
+  if (modal) modal.classList.remove("active");
+}
+
+function _subclassFormDone(char) {
+  closeSubclassForm();
+  saveToLocal();
+  if (typeof loadCharacter === "function" && currentId) loadCharacter(currentId);
+  if (typeof updateClassFeatures === "function") updateClassFeatures();
+  openProgress();
+}
+
+function submitSubclassForm() {
+  var char = getCurrentChar();
+  if (!char || sheetLockGuard()) return;
+  var oldName = $("subclass-edit-name").value;
+  var name = $("subclass-name").value.trim();
+  var cls = $("subclass-class").value;
+  if (!name) { showFieldError("subclass-name", "Введите название подкласса"); return; }
+  if (name !== oldName && name in edData(char).SUBCLASS_FEATURES) {
+    showFieldError("subclass-name", "Подкласс с\u00a0таким названием уже есть");
+    return;
+  }
+  var at = _subclassUnlock(cls), feats = [], bad = "";
+  Array.prototype.forEach.call($("subclass-features").querySelectorAll(".sub-form-feat"), function(row) {
+    var level = parseInt(row.querySelector(".sub-f-level").value, 10);
+    var fname = row.querySelector(".sub-f-name").value.trim();
+    var desc = row.querySelector(".sub-f-desc").value.trim();
+    if (!fname && !desc) return;
+    if (!fname) bad = bad || "Назовите умение: описание без\u00a0названия не\u00a0сохранится";
+    else if (!(level >= at && level <= 20)) bad = bad || "Уровень умения «" + fname + "»: от\u00a0" + at + " до\u00a020";
+    feats.push({ level: level, name: fname, desc: desc });
+  });
+  if (bad) { showToast(bad, "warn"); return; }
+  if (!feats.length) { showToast("Добавьте хотя бы одно умение", "warn"); return; }
+  feats.sort(function(a, b) { return a.level - b.level; });
+  var entry = { name: name, cls: cls, features: feats, homebrew: true };
+  if (!Array.isArray(char.customSubclasses)) char.customSubclasses = [];
+  var i = char.customSubclasses.indexOf(_subclassRecord(char, oldName));
+  if (i >= 0) char.customSubclasses[i] = entry; else char.customSubclasses.push(entry);
+  if (oldName && oldName !== name) _subclassRepick(char, oldName, name);
+  if (window.AppLog) AppLog.action("progress", "свой подкласс сохранён: " + name);
+  _subclassFormDone(char);
+  showToast("Подкласс сохранён: " + name, "success");
+}
+
+function deleteSubclassForm() {
+  var char = getCurrentChar();
+  if (!char || sheetLockGuard()) return;
+  var name = $("subclass-edit-name").value;
+  var picked = _subclassPicked(char, name);
+  showConfirmModal(
+    "Удалить подкласс?",
+    "«" + name + "» исчезнет у\u00a0этого персонажа." + (picked ? " Выбор подкласса снимется." : ""),
+    function() {
+      var c = getCurrentChar();
+      var i = (c && Array.isArray(c.customSubclasses)) ? c.customSubclasses.indexOf(_subclassRecord(c, name)) : -1;
+      if (i < 0) return;
+      c.customSubclasses.splice(i, 1);
+      _subclassRepick(c, name, "");
+      if (window.AppLog) AppLog.action("progress", "свой подкласс удалён: " + name);
+      _subclassFormDone(c);
+    }
+  );
+}
+
 // ── Экран «Об умении» ───────────────────────────────────────
 function openFeatureInfo(cls, sub, level, name) {
   var found = null, src = "";
@@ -672,7 +839,7 @@ function openFeatureInfo(cls, sub, level, name) {
     try { descHtml = glossarizeHtml(descEsc, {}, ed); } catch (e) { descHtml = descEsc; }
   }
   var html = '<p class="ai-mine">' + srcLabel + "</p>" +
-    '<p class="ai-lead">' + descHtml + "</p>" + _fiRuleNotes(found.desc || "", ed);
+    '<p class="ai-lead' + (sub && isCustomSubclass(sub, char) ? " ai-lead--pre" : "") + '">' + descHtml + "</p>" + _fiRuleNotes(found.desc || "", ed);
   var body = $("fi-body");
   if (body) body.innerHTML = html;
   if (typeof _glossBindOnce === "function") _glossBindOnce();
