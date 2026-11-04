@@ -639,12 +639,11 @@ function syncClassFieldUI(char) {
   }
 }
 
-// ── HB-9: свой подкласс (только 2014) ───────────────────────
+// ── HB-9: свой подкласс ───────────────────────
 // Форма-экран по образцу своего оружия. Запись живёт в char.customSubclasses, а в
 // выборы подкласса и списки умений попадает через edData (data.js). Замок проверяем
 // до открытия: обёртка history-stack кладёт слой истории на любой вызов open.
 function _pgOwnSubclasses(char, cls) {
-  if (char.edition === "2024") return "";
   var html = "";
   customSubclassesClean(char.customSubclasses).forEach(function(s) {
     if (s.cls !== cls) return;
@@ -665,7 +664,14 @@ function _subclassRecord(char, name) {
 }
 
 function _subclassUnlock(cls) {
-  return edData(null).SUBCLASS_LEVEL[cls] || 1;
+  return edData(getCurrentChar()).SUBCLASS_LEVEL[cls] || 1;
+}
+
+// Классы формы: edData без своих подклассов — у вида ключи SUBCLASSES в прототипе.
+function _subclassClasses(char) {
+  return Object.keys(edData({ edition: char.edition }).SUBCLASSES).filter(function(c) {
+    return char.edition !== "2024" || classInBooks(c, char);
+  });
 }
 
 function _subclassPicked(char, name) {
@@ -714,14 +720,14 @@ function subclassRemoveFeature(btn) {
 
 function openSubclassForm(cls, name) {
   var char = getCurrentChar();
-  if (!char || char.edition === "2024") return;
+  if (!char) return;
   var rec = name ? _subclassRecord(char, name) : null;
   safeSet("subclass-edit-name", rec ? rec.name : "");
   safeSet("subclass-name", rec ? rec.name : "");
   var sel = $("subclass-class");
   if (sel) {
     sel.innerHTML = "";
-    Object.keys(edData(null).SUBCLASSES).forEach(function(c) { sel.appendChild(new Option(c, c)); });
+    _subclassClasses(char).forEach(function(c) { sel.appendChild(new Option(c, c)); });
     sel.value = rec ? rec.cls : cls;
     // Выбранный подкласс привязан к классу персонажа — сначала надо снять выбор.
     sel.disabled = !!rec && _subclassPicked(char, rec.name);
@@ -759,7 +765,7 @@ function submitSubclassForm() {
   var cls = $("subclass-class").value;
   if (!name) { showFieldError("subclass-name", "Введите название подкласса"); return; }
   if (name !== oldName && name in edData(char).SUBCLASS_FEATURES) {
-    showFieldError("subclass-name", "Подкласс с\u00a0таким названием уже есть");
+    showFieldError("subclass-name", "Такое название уже занято другим подклассом, добавьте уточнение");
     return;
   }
   var at = _subclassUnlock(cls), feats = [], bad = "";

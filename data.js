@@ -68,7 +68,7 @@ const DEFAULT_CHARACTER = {
   formsKnown: [], // РОСТ-6: известные облики (2024) — slug зверей
   quickSlots: [], // РД-8: быстрый доступ — [{kind:"item"|"spell", ref}], до 4 (item.qid / id заклинания)
   customWeapons: [], // HB-5: своё (хомбрю) оружие персонажа; сливается с WEAPON_PRESETS на чтении (_weaponCatalog)
-  customSubclasses: [], // HB-8: свои подклассы персонажа (2014) — [{name, cls, features:[{level,name,desc}], homebrew}]; подмешиваются в edData
+  customSubclasses: [], // HB-8: свои подклассы персонажа — [{name, cls, features:[{level,name,desc}], homebrew}]; подмешиваются в edData
   inventory:  { weapon:[], armor:[], potion:[], scroll:[], tool:[], material:[], other:[] },
   equipState: { backpackOff: false },
   coins:      { cp:0, sp:0, ep:0, gp:0, pp:0 },
@@ -3306,7 +3306,7 @@ const XP_THRESHOLDS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "5.2.1";
+const APP_VERSION = "5.3.0";
 const APP_VERSION_DATE = "2026-11-04";
 
 // ============================================================
@@ -3660,9 +3660,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "5.2.1",
+    version: "5.3.0",
     date: "4 ноября 2026",
     badge: "new",
+    changes: [
+      { type: "feat", text: "свой подкласс в редакции 2024: название, класс, умения по уровням, метка «авторский» в выборе подкласса и на «Развитии», экспорт и импорт; уровень умений от 3, Изобретателя в списке классов нет; название, занятое книжным подклассом, в том числе из 2014, не принимается" }
+    ]
+  },
+  {
+    version: "5.2.1",
+    date: "4 ноября 2026",
+    badge: "old",
     changes: [
       { type: "fix", text: "неразрывный пробел в подсказке формы своего подкласса; релиз 5.2.0 выходит на сайт вместе с этой версией" }
     ]
@@ -8534,10 +8542,11 @@ function _ensureEdition2014() {
 function edData(char) {
   var base = _ensureEdition2014();
   var ed = (char && char.edition) || '2014';
-  if (ed === '2014' && char && Array.isArray(char.customSubclasses) && char.customSubclasses.length) {
-    return _edWithCustomSubclasses(base, char.customSubclasses);
+  var set = EDITION_DATA[ed] || base;
+  if (char && Array.isArray(char.customSubclasses) && char.customSubclasses.length) {
+    return _edWithCustomSubclasses(set, char.customSubclasses);
   }
-  return EDITION_DATA[ed] || base;
+  return set;
 }
 
 // HB-8: свои подклассы персонажа поверх таблиц редакции. Вид строится на чтении и

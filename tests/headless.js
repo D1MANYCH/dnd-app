@@ -6945,9 +6945,26 @@
       if (Object.keys(ed.SUBCLASS_FEATURES["Ранний"]).join() !== "3") return "уровни: " + Object.keys(ed.SUBCLASS_FEATURES["Ранний"]);
       return true;
     });
-    t("[hb-8] редакция 2024 не видит подклассы 2014", function(){
-      var c = _hbSub({ edition: "2024" });
-      return (edData(c).SUBCLASSES["Воин"] || []).indexOf("Клинок тумана") === -1 || "подмешан в 2024";
+    t("[hb-11] 2024: подкласс в выборе класса поверх таблиц редакции", function(){
+      var c = _hbSub({ edition: "2024", subclass: "Клинок тумана", classes: [{ class: "Воин", level: 3, subclass: "Клинок тумана" }] });
+      var ed = edData(c), base = edData({ edition: "2024" });
+      if (base.SUBCLASS_LEVEL["Жрец"] !== 3) return "не таблицы 2024";
+      if (ed.SUBCLASSES["Воин"].join() !== base.SUBCLASSES["Воин"].concat("Клинок тумана").join()) return "список: " + ed.SUBCLASSES["Воин"];
+      if (ed.SUBCLASS_FEATURES["Клинок тумана"][7].length !== 2) return "умения";
+      if (ed.CLASS_FEATURES !== base.CLASS_FEATURES || ed.SUBCLASS_FEATURES["Чемпион"] !== base.SUBCLASS_FEATURES["Чемпион"]) return "таблицы редакции подменены";
+      if (base.SUBCLASSES["Воин"].indexOf("Клинок тумана") !== -1 || base.SUBCLASS_FEATURES["Клинок тумана"]) return "протекло в таблицы 2024";
+      if (subclassSourceShort("Клинок тумана", c) !== "авторский") return "метка";
+      return charEditionMismatch(c).length === 0 || "свой подкласс принят за чужую редакцию";
+    });
+    t("[hb-11] 2024: умения раньше 3 уровня класса отброшены, в 2014 у Жреца остаются", function(){
+      var list = [{ name: "Свой домен", cls: "Жрец", features: [{ level: 1, name: "Рано", desc: "" }, { level: 3, name: "Вовремя", desc: "" }] }];
+      var keys = function(ed) { return Object.keys(edData({ edition: ed, customSubclasses: list }).SUBCLASS_FEATURES["Свой домен"]).join(); };
+      return (keys("2024") === "3" && keys("2014") === "1,3") || keys("2024") + " / " + keys("2014");
+    });
+    t("[hb-11] 2024: имя подкласса 2014 не подменяет его записи", function(){
+      var old = SUBCLASSES["Воин"].filter(function(s) { return edData({ edition: "2024" }).SUBCLASSES["Воин"].indexOf(s) === -1; })[0];
+      var ed = edData({ edition: "2024", customSubclasses: [{ name: old, cls: "Воин", features: [{ level: 3, name: "П", desc: "" }] }] });
+      return ed.SUBCLASSES["Воин"].indexOf(old) === -1 || "попал в выбор: " + old;
     });
     t("[hb-8] экспорт → импорт: подкласс и выбор на месте, чужой файл почищен", function(){
       var c = _hbSub({ subclass: "Клинок тумана", classes: [{ class: "Воин", level: 3, subclass: "Клинок тумана" }] });
@@ -6980,12 +6997,17 @@
       var high = _hbRow({ subclass: "Клинок тумана", classes: [{ class: "Воин", level: 7, subclass: "Клинок тумана" }] }, 7);
       return high.indexOf("Завеса") !== -1 || "нет умения 7 ур.";
     });
-    t("[hb-9] вход в конструктор: класс, правка своего, нет в 2024", function(){
+    t("[hb-9] вход в конструктор: класс, правка своего, 2024", function(){
       var c = _hbSub();
       var html = _pgOwnSubclasses(c, "Воин");
       if (html.indexOf("+ Свой подкласс") === -1 || html.indexOf("Клинок тумана") === -1) return html;
       if (_pgOwnSubclasses(c, "Плут").indexOf("Клинок тумана") !== -1) return "чужой класс";
-      return _pgOwnSubclasses(_hbSub({ edition: "2024" }), "Воин") === "" || "кнопка в 2024";
+      return _pgOwnSubclasses(_hbSub({ edition: "2024" }), "Воин").indexOf("Клинок тумана") !== -1 || "нет в 2024";
+    });
+    t("[hb-11] классы формы: в 2024 нет Изобретателя, в 2014 есть", function(){
+      var c24 = _subclassClasses({ edition: "2024" }), c14 = _subclassClasses({ edition: "2014" });
+      if (c24.indexOf("Изобретатель") !== -1 || c24.indexOf("Воин") === -1) return c24.join();
+      return c14.indexOf("Изобретатель") !== -1 || c14.join();
     });
     t("[hb-9] разметка: имя с кавычками и тегом экранировано", function(){
       var bad = '<img src=x onerror=1>"\'';
