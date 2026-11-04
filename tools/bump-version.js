@@ -166,8 +166,8 @@ function checkRemote() {
   let remoteData, remoteSw;
   try {
     execFileSync('git', ['fetch', 'origin', 'main', '--quiet'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'pipe'] });
-    remoteData = execFileSync('git', ['show', 'origin/main:data.js'], { cwd: ROOT }).toString('utf8');
-    remoteSw   = execFileSync('git', ['show', 'origin/main:sw.js'],   { cwd: ROOT }).toString('utf8');
+    remoteData = execFileSync('git', ['show', 'origin/main:data.js'], { cwd: ROOT, maxBuffer: 32 * 1024 * 1024 }).toString('utf8');
+    remoteSw   = execFileSync('git', ['show', 'origin/main:sw.js'],   { cwd: ROOT, maxBuffer: 32 * 1024 * 1024 }).toString('utf8');
   } catch (e) {
     console.warn('WARN: пропуск remote-check (' + String(e.message || e).split('\n')[0] + ')');
     return;

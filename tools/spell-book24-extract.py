@@ -7,7 +7,7 @@
 # Дальше: node tools/spell-book24-diff.js
 import sys, os, re, json
 
-BOOK = r"C:\Users\Kargi\Downloads\ДНД\files\DND rules\Книга Игрока 2024 v2.5 (3).pdf"
+BOOK = r"D:/Games/DND/files/DND rules/Книга Игрока 2024 v2.5 (3).pdf"
 PAGES = (225, 329)  # PDF-страницы гл.7 (списки классов гл.3 не нужны — классы указаны под каждым заклинанием)
 
 SCHOOLS = {

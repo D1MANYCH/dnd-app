@@ -3451,7 +3451,7 @@ body.screen-page #character-tabs { display: none !important; }
 /* Контейнер на этом экране не ограничивает ширину и не даёт своих полей —
    раскладку целиком держит .home-stage. */
 body.screen-home .container { max-width: none; margin: 0; padding: 0; }
-body.screen-page .container { max-width: none; margin: 0; padding: 0; }
+body.screen-page .container { max-width: none; margin: 0; padding: 0; overflow-x: clip; }
 body.screen-page { padding: 0 !important; overflow-x: hidden; }
 /* Поля body зарезервированы под шапку (72px сверху), сайдбар (240px слева) и
    right-rail (320px справа) — на этом экране все три скрыты, а поля остались бы

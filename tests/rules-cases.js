@@ -1592,6 +1592,18 @@ function rulesCases(t, group) {
     var mc5 = mcFixture([{class:"Чародей", level:5}, {class:"Паладин", level:5}], { stats: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 18 } });
     return rulesAuraOfProtection(mc5) === 0 || "Паладин 5 при суммарном 10: " + rulesAuraOfProtection(mc5);
   });
+  t("Аура защиты: 2014 гаснет без сознания, 2024 — при недееспособности", function() {
+    var st = { str: 16, dex: 10, con: 14, int: 8, wis: 12, cha: 16 };
+    var a14 = function(conds) { return rulesAuraOfProtection(fixture({ class: "Паладин", level: 6, stats: st, conditions: conds })); };
+    var a24 = function(conds) { return rulesAuraOfProtection(fixture({ class: "Паладин", level: 6, stats: st, edition: "2024", conditions: conds })); };
+    if (a14([]) !== 3 || a24([]) !== 3) return "без состояний: " + a14([]) + "/" + a24([]);
+    if (a14(["unconscious"]) !== 0) return "2014, без сознания: " + a14(["unconscious"]);
+    if (a14(["stunned"]) !== 3) return "2014, ошеломлён в сознании: " + a14(["stunned"]);
+    if (a14(["paralyzed"]) !== 3) return "2014, парализован в сознании: " + a14(["paralyzed"]);
+    var off24 = ["incapacitated", "paralyzed", "petrified", "stunned", "unconscious"];
+    for (var i = 0; i < off24.length; i++) if (a24([off24[i]]) !== 0) return "2024, " + off24[i] + ": " + a24([off24[i]]);
+    return a24(["poisoned"]) === 3 || "2024, отравлен: " + a24(["poisoned"]);
+  });
   t("[PLAY2-2] Божественная кара: 2к8 + 1к8 за уровень, 2014 — максимум 5к8, +1к8 нежити/исчадию", function() {
     var c14 = fixture({ class: "Паладин", level: 17 }), c24 = fixture({ class: "Паладин", level: 17, edition: "2024" });
     var cases = [[c14, 1, false, "2к8"], [c14, 3, false, "4к8"], [c14, 4, false, "5к8"], [c14, 5, false, "5к8"], [c14, 5, true, "6к8"],

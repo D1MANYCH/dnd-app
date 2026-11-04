@@ -341,9 +341,13 @@ function getInitiativeMod(char, level) {
 }
 
 // PLAY2-2 (PT-175/177): Аура защиты — Паладин 6+ добавляет мод. ХАР (мин. +1)
-// ко всем своим спасброскам (PHB14 с.85, PHB24 — так же).
+// ко всем своим спасброскам. Не действует без сознания (PHB14 с.85),
+// в 2024 — при любой недееспособности (PHB24 с.131).
 function rulesAuraOfProtection(char) {
   if (!char || !char.stats || charClassLevel(char, "Паладин") < 6) return 0;
+  var off = char.edition === "2024" ? CONC_BREAK_CONDITIONS : ["unconscious"];
+  var c = char.conditions || [];
+  for (var i = 0; i < off.length; i++) if (c.indexOf(off[i]) !== -1) return 0;
   return Math.max(1, getMod(char.stats.cha || 10));
 }
 

@@ -8,8 +8,8 @@
 import sys, os, re
 
 BOOKS = {
-    "2014": r"C:\Users\Kargi\Downloads\ДНД\files\DND rules\DnD5e Книга Игрока.pdf",
-    "2024": r"C:\Users\Kargi\Downloads\ДНД\files\DND rules\Книга Игрока 2024 v2.5 (3).pdf",
+    "2014": r"D:/Games/DND/files/DND rules/DnD5e Книга Игрока.pdf",
+    "2024": r"D:/Games/DND/files/DND rules/Книга Игрока 2024 v2.5 (3).pdf",
 }
 
 

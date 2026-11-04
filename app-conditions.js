@@ -296,6 +296,7 @@ if (window.AppLog) AppLog.action("combat", "состояние " + conditionId +
 updateConditionsCount();
 updateStatusBar();
 calculateAC();
+refreshSaveBonuses();
 saveToLocal();
 if (typeof renderConditionsGrid === "function") renderConditionsGrid();
 }
@@ -314,6 +315,18 @@ if (typeof renderConditionsGrid === "function") renderConditionsGrid();
 updateExhaustionDisplay();
 updateConditionsCount();
 updateStatusBar();
+refreshSaveBonuses();
+}
+// Аура защиты зависит от состояний: подписи спасбросков обновляются без calcStats
+function refreshSaveBonuses() {
+const char = getCurrentChar();
+if (!char || !char.stats) return;
+const level = parseInt($("char-level")?.value, 10) || 1;
+SAVES_DATA.forEach(function(save) {
+const checkbox = $("save-prof-" + save.key);
+const bonusEl = $("save-bonus-" + save.key);
+if (checkbox && bonusEl) bonusEl.innerText = formatMod(rulesSaveBonus(char, save.key, level, checkbox.checked));
+});
 }
 var _fxFilter = { q: "", type: "all", activeOnly: false };
 var EFFECT_CATEGORY_LABELS = {
