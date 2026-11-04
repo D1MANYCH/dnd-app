@@ -728,14 +728,20 @@ const SUBCLASS_SOURCE = {
   // Exploring Eberron (Кит Бейкер, DMs Guild) — стороннее, книги в BOOK_CODES нет
   "Путь живого оружия":"HB"
 };
+// Авторство стороннего подкласса: подпись в UI вместо общей метки источника.
+const SUBCLASS_CREDIT = {
+  "Путь живого оружия": { short: "авторский · Exploring Eberron, Кит Бейкер", full: "Exploring Eberron, Кит Бейкер (DMs Guild) — неофициальный материал" }
+};
 // Короткая метка источника для UI («PHB» / «XGtE» / «авторский»…). "" если неизвестен.
 // E24-7: char необязателен — с ним источник берётся из таблицы редакции персонажа.
 function subclassSourceShort(name, char) {
+  if (SUBCLASS_CREDIT[name]) return SUBCLASS_CREDIT[name].short;
   var code = (char ? edData(char).SUBCLASS_SOURCE : SUBCLASS_SOURCE)[name];
   return (code && SOURCE_LABELS[code]) ? SOURCE_LABELS[code].short : "";
 }
 // Полное имя книги-источника (для title/тултипа).
 function subclassSourceFull(name, char) {
+  if (SUBCLASS_CREDIT[name]) return SUBCLASS_CREDIT[name].full;
   var code = (char ? edData(char).SUBCLASS_SOURCE : SUBCLASS_SOURCE)[name];
   return (code && SOURCE_LABELS[code]) ? SOURCE_LABELS[code].full : "";
 }
@@ -3279,7 +3285,7 @@ const XP_THRESHOLDS = {
 // ============================================================
 // ВЕРСИЯ ПРИЛОЖЕНИЯ
 // ============================================================
-const APP_VERSION = "5.1.1";
+const APP_VERSION = "5.1.2";
 const APP_VERSION_DATE = "2026-11-04";
 
 // ============================================================
@@ -3633,9 +3639,17 @@ const FEATS_DATA = [
 // ============================================================
 const APP_CHANGELOG = [
   {
-    version: "5.1.1",
+    version: "5.1.2",
     date: "4 ноября 2026",
     badge: "new",
+    changes: [
+      { type: "fix", text: "у подкласса «Путь живого оружия» подписаны автор и книга (Exploring Eberron, Кит Бейкер); длинная подпись источника на кнопке выбора подкласса переносится под название" }
+    ]
+  },
+  {
+    version: "5.1.1",
+    date: "4 ноября 2026",
+    badge: "old",
     changes: [
       { type: "fix", text: "сокращены описания умений «Пути живого оружия»" }
     ]

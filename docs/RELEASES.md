@@ -3,56 +3,57 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v5.1.1**.
+Актуальная версия — **v5.1.2**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v5.1.2"></a>
+## v5.1.2 — 4 ноября 2026
+
+🐛 у подкласса «Путь живого оружия» подписаны автор и книга (Exploring Eberron, Кит Бейкер); длинная подпись источника на кнопке выбора подкласса переносится под название
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/cf2c4bb4...main) · 5 файлов, +77 −58
+
+<details><summary>Файлы</summary>
+
+_Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
+
+**Файлы (5):**
+
+- `index.html` +53 −53
+- `data.js` +16 −2
+- `CHANGELOG.md` +6 −1
+- `style.css` +1 −1
+- `sw.js` +1 −1
+
+</details>
+
 <a id="v5.1.1"></a>
 ## v5.1.1 — 4 ноября 2026
 
 🐛 сокращены описания умений «Пути живого оружия»
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/1901679c...main) · 28 файлов, +1301 −265
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/1901679c...cf2c4bb4) · 7 файлов, +152 −77
 
 <details><summary>Коммиты и файлы</summary>
 
-**Коммиты (2):**
+**Коммиты (3):**
 
 - [`c96acb40`](https://github.com/D1MANYCH/dnd-app/commit/c96acb40) Merge remote-tracking branch 'origin/main' into claude/quizzical-dirac-caff26
 - [`0d08add6`](https://github.com/D1MANYCH/dnd-app/commit/0d08add6) Merge pull request #9 from D1MANYCH/claude/quizzical-dirac-caff26
+- [`cf2c4bb4`](https://github.com/D1MANYCH/dnd-app/commit/cf2c4bb4) v5.1.1: fix(монах): сокращены описания умений «Пути живого оружия»
 
-**Файлы (28):**
+**Файлы (7):**
 
-- `spells.js` +562 −73
-- `data.js` +133 −16
-- `subclass-choices-data.js` +113 −8
-- `index.html` +61 −57
-- `docs/map.md` +58 −58
-- `tests/headless.js` +85 −8
-- `class-choices.js` +63 −0
-- `docs/RELEASES.md` +50 −13
-- `tests/rules-cases.js` +63 −0
-- `rules.js` +23 −4
-- `notes-gen-data.js` +24 −0
-- `CHANGELOG.md` +11 −1
-- `app-inventory.js` +6 −4
-- `app-spells.js` +6 −4
-- `spell-effects.js` +9 −0
-- `app-progress.js` +4 −4
-- `app-combat.js` +7 −0
-- `app-core.js` +4 −3
-- `app-hp.js` +3 −3
-- `manifest.json` +3 −3
-- `app-settings.js` +2 −1
-- `app-ui.js` +2 −1
-- `start-equip-2014.js` +3 −0
-- `app-creator.js` +2 −0
-- `app-pdf.js` +1 −1
-- `docs/ARCHITECTURE.md` +1 −1
-- `README.md` +1 −1
+- `index.html` +53 −53
+- `docs/RELEASES.md` +68 −6
+- `data.js` +14 −6
+- `subclass-choices-data.js` +8 −8
+- `CHANGELOG.md` +6 −1
+- `docs/map.md` +2 −2
 - `sw.js` +1 −1
 
 </details>

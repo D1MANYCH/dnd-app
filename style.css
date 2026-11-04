@@ -11560,7 +11560,7 @@ select.bp-select { padding-right: var(--sp-4); }
 .lu-choice-block.done .lu-choice-title::before { background: var(--accent); }
 .lu-choice-sub { font-size: var(--fs-sm); color: var(--home-sub); margin-bottom: var(--sp-2); }
 .lu-choice-opts { display: flex; flex-wrap: wrap; gap: 0 var(--sp-3); }
-.lu-choice-opt { display: inline-flex; align-items: baseline; gap: var(--sp-1); width: auto; margin: 0; padding: var(--sp-1) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--accent-lo); cursor: pointer; }
+.lu-choice-opt { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1); width: auto; margin: 0; padding: var(--sp-1) 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-family: var(--font-display); font-size: var(--fs-sm); color: var(--accent-lo); cursor: pointer; }
 @media (hover: hover) { .lu-choice-opt:hover { background: none; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; } }
 .lu-choice-opt.is-rec { color: var(--magic); font-weight: var(--fw-bold); box-shadow: none; }
 /* SUB-0: метка источника подкласса (PHB/дополнение/авторский) на кнопке выбора */
