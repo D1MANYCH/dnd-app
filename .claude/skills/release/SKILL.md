@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: release
 description: Full dnd-app release cycle from a finished code edit to push. Триггеры: «релиз», «выпусти версию», «bump», «закоммить и запушь», and before any commit that touches js or css.
 ---

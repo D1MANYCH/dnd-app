@@ -14,7 +14,7 @@ You verify changes in the running app and report a verdict. You never edit sourc
 Read `.claude/skills/verify-ui/SKILL.md` before touching the browser. It lists the traps that make naive checks return false results — SW cache, HTTP cache over it, WebGL screenshot hangs, cumulative network log, live `setTheme()` lying in computed styles. Skipping it produces confident wrong verdicts.
 
 ## Procedure
-1. `preview_start` with `{name: "dnd-app"}` (port 3017, config in `.claude/launch.json`). Reuse a running server.
+1. `preview_start` with `{name: "dnd-app"}` (port 3017, config in `.claude/launch.json`). Reuse a running server. Port taken by another chat → `preview_start` the next free config, `dnd-app-alt` … `dnd-app-alt6` (ports 3018–3023).
 2. Clear the Service Worker and caches, then reload (recipe in §1 of the skill). If the caller named specific files, refetch their exact `?v=` URLs with `fetch(url,{cache:'reload'})` and confirm the new code is actually live — e.g. `typeof someNewFunction`.
 3. Check what the caller asked about, cheapest tool first:
    - `read_console_messages` (errors only when you can) and `preview_logs` for failures;

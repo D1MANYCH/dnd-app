@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: Handoff summary before /clear — what is done, file state, next step; optionally saved to the plan file
 argument-hint: [X-N]  (пусто — текущая работа)
 ---

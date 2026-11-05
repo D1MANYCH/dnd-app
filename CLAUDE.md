@@ -41,6 +41,7 @@ Line-level map for ranged reads (CSS sections, markup blocks, function and data-
 - UI and terminology are Russian, canon is the 5e 2014 books; the 2024 edition lives behind `char.edition` (`EDITION_DATA`/`edData`).
 
 ## Run and test
+- «Какие фазы остались?» — открытые планы перечислены в `MEMORY.md`; читать только их, закрытые лежат в `archive_completed.md`.
 - Preview — the `dnd-app` config in `.claude/launch.json` (`preview_start`, port 3017), or any static server from the repo root; the PWA needs `https` or `localhost`. Browser verification goes through the `verifier` subagent (skill `verify-ui`).
 - `/test` (= `node tests/headless-node.js`) — logic; `tests/runner.html` — same in a browser; `tests.html` in the root — `rules.js` cases only; `verifyAllBuilds()` in the DevTools console — builds; since AUD-3 it also checks point buy / race / class spell lists: 19/36 fullPass until AUD-12 fixes P23–P26.
 

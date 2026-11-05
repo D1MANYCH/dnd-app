@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: verify-ui
 description: Verifying dnd-app edits in the browser preview — Service Worker cache traps, screenshots hanging on WebGL, cumulative network log, theme checks. Use before any UI/CSS/JS verification in preview, and whenever «правка не видна» or «скриншот виснет».
 ---

@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: Bump APP_VERSION + APP_CHANGELOG + CACHE_NAME via tools/bump-version.js
 argument-hint: <patch|minor|major> "<строка changelog>" [--type chore|feat|fix]
 ---

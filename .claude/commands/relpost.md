@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: Build the short release announcement (links to changelog, detailed log, patch)
 argument-hint: [версия] [--out <slug>]
 ---

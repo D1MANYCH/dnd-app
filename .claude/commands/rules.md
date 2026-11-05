@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: Check changed math against the rulebook (dnd-rules judge subagent)
 argument-hint: [функция|файл]  (пусто — весь diff ветки)
 ---

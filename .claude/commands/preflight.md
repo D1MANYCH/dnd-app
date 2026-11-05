@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 description: Check release readiness — tests, versions, CACHE_NAME
 ---
 Запусти параллельно:

@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: faza
 description: Phase workflow for a dnd-app plan — branch, plan, work item by item, preview, tests, commit, close. Триггеры: «фаза», «начать фазу X-N», «закрыть фазу», and whenever it is unclear what to do after /phase.
 ---
@@ -52,12 +53,12 @@ exit 2 = правка отклонена, файл не изменён: чини
 
 ## 5. Проверка перед сдачей
 
-- `/test` — node-тесты, должны быть зелёные (базлайн не ронять).
+- `node tests/headless-node.js` — node-тесты, должны быть зелёные (базлайн не ронять).
 - Превью: `preview_start {name:"dnd-app"}` (порт 3017), консоль через
   `read_console_messages`. Ловушки — SW отдаёт старый код, скриншот виснет
   на WebGL — скилл **`verify-ui`**, читать ДО проверки.
 - Трогали классы/подклассы/билды — `verifyAllBuilds()` в консоли DevTools.
-- Менялась математика правил — сабагент `dnd-rules` (`/rules`): вердикт по книге,
+- Менялась математика правил — сабагент `dnd-rules`: вердикт по книге,
   файлы не правит. `❌` в вердикте чинить до сдачи, `⚠️` — решает пользователь.
 - Verify-критерий фазы берётся из её блока в плане, цифры (тесты, строки, ссылки)
   фиксируются в отчёте.
