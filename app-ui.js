@@ -256,7 +256,7 @@ function swProgressToast(percent) {
     toast.innerHTML = "<span class='app-toast-mark' aria-hidden='true'></span><span id='sw-offline-toast-text'></span>";
     container.appendChild(toast);
   }
-  $("sw-offline-toast-text").textContent = "Сохраняем для работы без интернета: " + percent + "%. Не закрывайте страницу";
+  $("sw-offline-toast-text").textContent = "Сохраняем для работы без интернета: " + percent + "%. Не закрывайте страницу";
 }
 function swProgressToastRemove() {
   var toast = $("sw-offline-toast");
@@ -269,7 +269,7 @@ function swInstallFailed(retry) {
     return;
   }
   swProgressToastRemove();
-  showToast("Не удалось сохранить для работы без интернета. Докачаем, когда появится сеть", "warn");
+  showToast("Не удалось сохранить для работы без интернета. Докачаем, когда появится сеть", "warn");
   window.addEventListener('online', function() {
     _swRetryLeft = SW_INSTALL_RETRIES;
     retry();
@@ -281,7 +281,7 @@ function swWatchFirstInstall(worker, retry) {
   worker.addEventListener('statechange', function() {
     if (worker.state === 'activated') {
       swProgressToastRemove();
-      showToast("Сохранено: приложение работает без интернета", "success");
+      showToast("Сохранено: приложение работает без интернета", "success");
     } else if (worker.state === 'redundant') {
       swInstallFailed(retry);
     }
