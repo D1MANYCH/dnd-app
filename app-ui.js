@@ -240,9 +240,72 @@ window.animateCountUp = animateCountUp;
 // ============================================================
 // Регистрация Service Worker + автообнаружение обновлений
 // ============================================================
+// Первая установка: прогресс, сообщение о готовности и повтор после сбоя.
+// Обновления сюда не попадают — у них есть контроллер и своё окно.
+var SW_INSTALL_RETRIES = 3;
+var _swRetryLeft = SW_INSTALL_RETRIES;
+var _swWatched = null;
+function swProgressToast(percent) {
+  var container = $("hp-toast-container");
+  if (!container) return;
+  var toast = $("sw-offline-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "sw-offline-toast";
+    toast.className = "hp-toast app-toast app-toast-info";
+    toast.innerHTML = "<span class='app-toast-mark' aria-hidden='true'></span><span id='sw-offline-toast-text'></span>";
+    container.appendChild(toast);
+  }
+  $("sw-offline-toast-text").textContent = "Сохраняем для работы без интернета: " + percent + "%. Не закрывайте страницу";
+}
+function swProgressToastRemove() {
+  var toast = $("sw-offline-toast");
+  if (toast) toast.remove();
+}
+function swInstallFailed(retry) {
+  if (navigator.onLine !== false && _swRetryLeft > 0) {
+    _swRetryLeft--;
+    setTimeout(retry, 15000);
+    return;
+  }
+  swProgressToastRemove();
+  showToast("Не удалось сохранить для работы без интернета. Докачаем, когда появится сеть", "warn");
+  window.addEventListener('online', function() {
+    _swRetryLeft = SW_INSTALL_RETRIES;
+    retry();
+  }, { once: true });
+}
+function swWatchFirstInstall(worker, retry) {
+  if (navigator.serviceWorker.controller || worker === _swWatched) return;
+  _swWatched = worker;
+  worker.addEventListener('statechange', function() {
+    if (worker.state === 'activated') {
+      swProgressToastRemove();
+      showToast("Сохранено: приложение работает без интернета", "success");
+    } else if (worker.state === 'redundant') {
+      swInstallFailed(retry);
+    }
+  });
+}
+
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.addEventListener('message', function(e) {
+    if (!e.data || e.data.type !== 'PRECACHE_PROGRESS' || navigator.serviceWorker.controller) return;
+    if (e.data.percent < 100) swProgressToast(e.data.percent);
+  });
   window.addEventListener('load', function() {
     checkWhatsNew();
+    swRegister();
+    var refreshing = false;
+    // AUD-2 (W1): первый визит — clients.claim() даёт controllerchange без смены
+    // версии; перезагружаем только при замене уже работавшего контроллера.
+    var hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      if (!hadController) { hadController = true; return; }
+      if (!refreshing) { refreshing = true; window.location.reload(); }
+    });
+  });
+  function swRegister() {
     navigator.serviceWorker.register('./sw.js')
       .then(function(reg) {
         if (reg.waiting) {
@@ -251,9 +314,11 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
         } else {
           updateVersionBlock(false);
         }
+        if (reg.installing) swWatchFirstInstall(reg.installing, swRegister);
         reg.addEventListener('updatefound', function() {
           var newWorker = reg.installing;
           if (!newWorker) return;
+          swWatchFirstInstall(newWorker, swRegister);
           newWorker.addEventListener('statechange', function() {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               showUpdateModal(newWorker);
@@ -265,16 +330,9 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       .catch(function(err) {
         console.error('[PWA] SW ошибка:', err);
         updateVersionBlock(false);
+        if (!navigator.serviceWorker.controller) swInstallFailed(swRegister);
       });
-    var refreshing = false;
-    // AUD-2 (W1): первый визит — clients.claim() даёт controllerchange без смены
-    // версии; перезагружаем только при замене уже работавшего контроллера.
-    var hadController = !!navigator.serviceWorker.controller;
-    navigator.serviceWorker.addEventListener('controllerchange', function() {
-      if (!hadController) { hadController = true; return; }
-      if (!refreshing) { refreshing = true; window.location.reload(); }
-    });
-  });
+  }
 } else {
   window.addEventListener('load', function() { updateVersionBlock(false); });
 }

@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v610';
+const CACHE_NAME = 'dnd-sheet-v611';
 
 const FILES_TO_CACHE = [
   './',
@@ -161,6 +161,54 @@ const FILES_TO_CACHE = [
 ];
 
 const OPTIONAL_RE = /^\.\/(assets|icons|vendor\/dice-box\/assets\/themes)\//;
+const PRECACHE_PARALLEL = 6;
+const PRECACHE_RETRY_MS = [1000, 3000];
+
+function fetchWithRetry(u, attempt) {
+  return fetch(new Request(u, { cache: 'reload' }))
+    .then((resp) => {
+      if (!resp || !resp.ok) throw new Error('[SW] не скачан ' + u);
+      return resp;
+    })
+    .catch((err) => {
+      if (attempt >= PRECACHE_RETRY_MS.length) throw err;
+      return new Promise((resolve) => setTimeout(resolve, PRECACHE_RETRY_MS[attempt]))
+        .then(() => fetchWithRetry(u, attempt + 1));
+    });
+}
+
+// Докачка: имя кеша меняется с каждой версией, поэтому файл из прерванной
+// установки той же версии брать можно. Сбой обязательного файла останавливает
+// очередь, уже скачанное остаётся до следующей попытки.
+function precacheAll(cache) {
+  const total = FILES_TO_CACHE.length;
+  const skipped = [];
+  let next = 0, done = 0, percent = -1, failed = null;
+  function report() {
+    const p = Math.floor(done * 100 / total);
+    if (p === percent) return;
+    percent = p;
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      list.forEach((client) => client.postMessage({ type: 'PRECACHE_PROGRESS', percent: p }));
+    });
+  }
+  function worker() {
+    if (failed || next >= total) return Promise.resolve();
+    const u = FILES_TO_CACHE[next++];
+    return cache.match(u)
+      .then((hit) => hit || fetchWithRetry(u, 0).then((resp) => cache.put(u, resp)))
+      .catch((err) => { if (OPTIONAL_RE.test(u)) skipped.push(u); else failed = err; })
+      .then(() => { done++; report(); return worker(); });
+  }
+  const workers = [];
+  for (let i = 0; i < PRECACHE_PARALLEL; i++) workers.push(worker());
+  return Promise.all(workers).then(() => {
+    if (failed) throw failed;
+    // Необязательные файлы из обрыва связи — ещё одна попытка, когда очередь прошла
+    return Promise.all(skipped.map((u) =>
+      fetchWithRetry(u, PRECACHE_RETRY_MS.length).then((resp) => cache.put(u, resp)).catch(() => null)));
+  });
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -172,14 +220,7 @@ self.addEventListener('install', (event) => {
       // после релиза. AUD-2 (W4): код обязателен — недокачанный файл срывает
       // установку, прежний SW и его полный кеш остаются. Картинки и темы
       // костей необязательны — их сбой установку не срывает.
-      return Promise.all(FILES_TO_CACHE.map((u) =>
-        fetch(new Request(u, { cache: 'reload' }))
-          .then((resp) => {
-            if (!resp || !resp.ok) throw new Error('[SW] не скачан ' + u);
-            return cache.put(u, resp);
-          })
-          .catch((err) => { if (OPTIONAL_RE.test(u)) return null; throw err; })
-      ));
+      return precacheAll(cache);
     })
   );
   // НЕ вызываем skipWaiting() — ждём команды от пользователя через модалку
