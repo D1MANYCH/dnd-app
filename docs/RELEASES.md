@@ -3,45 +3,71 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v5.3.1**.
+Актуальная версия — **v5.3.2**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
-<a id="v5.3.1"></a>
-## v5.3.1 — 7 ноября 2026
+<a id="v5.3.2"></a>
+## v5.3.2 — 7 ноября 2026
 
-🐛 офлайн: установка для работы без интернета повторяет сбойные файлы, докачивает прерванную загрузку и пробует снова при появлении сети; при первом входе показаны прогресс и сообщение о готовности
+🐛 установка для работы без интернета не зависает на замершем соединении: файл, по которому 20 секунд не приходят данные, скачивается заново, медленная сеть обрывом не считается
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/30fd9299...main) · 17 файлов, +215 −83
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/fba229a4...main) · 5 файлов, +102 −69
 
 <details><summary>Коммиты и файлы</summary>
 
 **Коммиты (1):**
 
-- [`25b07105`](https://github.com/D1MANYCH/dnd-app/commit/25b07105) chore(claude): отключён автовызов редких команд и скиллов
+- [`21121eb1`](https://github.com/D1MANYCH/dnd-app/commit/21121eb1) fix(офлайн): неразрывные пробелы в сообщениях о сохранении для работы без интернета
 
-**Файлы (17):**
+**Файлы (5):**
+
+- `index.html` +53 −53
+- `sw.js` +27 −7
+- `app-ui.js` +6 −6
+- `data.js` +10 −2
+- `CHANGELOG.md` +6 −1
+
+</details>
+
+<a id="v5.3.1"></a>
+## v5.3.1 — 7 ноября 2026
+
+🐛 офлайн: установка для работы без интернета повторяет сбойные файлы, докачивает прерванную загрузку и пробует снова при появлении сети; при первом входе показаны прогресс и сообщение о готовности
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/30fd9299...fba229a4) · 19 файлов, +249 −88
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (2):**
+
+- [`25b07105`](https://github.com/D1MANYCH/dnd-app/commit/25b07105) chore(claude): отключён автовызов редких команд и скиллов
+- [`fba229a4`](https://github.com/D1MANYCH/dnd-app/commit/fba229a4) v5.3.1: fix(офлайн): установка для работы без интернета повторяет сбойные файлы, докачивает прерванную загрузку и пробует снова при появлении сети; при первом входе показаны прогресс и сообщение о готовности
+
+**Файлы (19):**
 
 - `index.html` +53 −53
 - `app-ui.js` +67 −9
 - `sw.js` +50 −9
+- `docs/RELEASES.md` +44 −5
 - `data.js` +11 −3
-- `.claude/skills/faza/SKILL.md` +6 −4
+- `docs/map.md` +4 −4
 - `CHANGELOG.md` +6 −1
-- `.claude/agents/verifier.md` +2 −2
-- `.claude/commands/phase.md` +2 −2
-- `.claude/commands/bump.md` +2 −0
-- `.claude/commands/carry.md` +2 −0
-- `.claude/commands/preflight.md` +2 −0
-- `.claude/commands/relpost.md` +2 −0
-- `.claude/commands/rules.md` +2 −0
-- `.claude/commands/test.md` +2 −0
-- `.claude/skills/release/SKILL.md` +2 −0
-- `.claude/skills/verify-ui/SKILL.md` +2 −0
-- `CLAUDE.md` +2 −0
+- `.claude/skills/faza/SKILL.md` +3 −2
+- `.claude/agents/verifier.md` +1 −1
+- `.claude/commands/phase.md` +1 −1
+- `.claude/commands/bump.md` +1 −0
+- `.claude/commands/carry.md` +1 −0
+- `.claude/commands/preflight.md` +1 −0
+- `.claude/commands/relpost.md` +1 −0
+- `.claude/commands/rules.md` +1 −0
+- `.claude/commands/test.md` +1 −0
+- `.claude/skills/release/SKILL.md` +1 −0
+- `.claude/skills/verify-ui/SKILL.md` +1 −0
+- `CLAUDE.md` +1 −0
 
 </details>
 

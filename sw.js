@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v611';
+const CACHE_NAME = 'dnd-sheet-v612';
 
 const FILES_TO_CACHE = [
   './',
@@ -163,17 +163,37 @@ const FILES_TO_CACHE = [
 const OPTIONAL_RE = /^\.\/(assets|icons|vendor\/dice-box\/assets\/themes)\//;
 const PRECACHE_PARALLEL = 6;
 const PRECACHE_RETRY_MS = [1000, 3000];
+const PRECACHE_IDLE_MS = 20000;
 
-function fetchWithRetry(u, attempt) {
-  return fetch(new Request(u, { cache: 'reload' }))
+// Зависшее соединение не падает само: без таймаута установка стояла бы минутами.
+// Счётчик простоя сбрасывается на каждом куске данных, поэтому медленная сеть
+// не считается обрывом.
+function storeWithRetry(cache, u, attempt) {
+  const ctrl = new AbortController();
+  let timer;
+  function touch() {
+    clearTimeout(timer);
+    timer = setTimeout(() => ctrl.abort(), PRECACHE_IDLE_MS);
+  }
+  touch();
+  return fetch(new Request(u, { cache: 'reload', signal: ctrl.signal }))
     .then((resp) => {
       if (!resp || !resp.ok) throw new Error('[SW] не скачан ' + u);
-      return resp;
+      touch();
+      const reader = resp.clone().body.getReader();
+      const watch = () => reader.read().then((part) => {
+        if (part.done) return;
+        touch();
+        return watch();
+      });
+      return watch().then(() => cache.put(u, resp));
     })
+    .then(() => clearTimeout(timer))
     .catch((err) => {
+      clearTimeout(timer);
       if (attempt >= PRECACHE_RETRY_MS.length) throw err;
       return new Promise((resolve) => setTimeout(resolve, PRECACHE_RETRY_MS[attempt]))
-        .then(() => fetchWithRetry(u, attempt + 1));
+        .then(() => storeWithRetry(cache, u, attempt + 1));
     });
 }
 
@@ -196,7 +216,7 @@ function precacheAll(cache) {
     if (failed || next >= total) return Promise.resolve();
     const u = FILES_TO_CACHE[next++];
     return cache.match(u)
-      .then((hit) => hit || fetchWithRetry(u, 0).then((resp) => cache.put(u, resp)))
+      .then((hit) => hit || storeWithRetry(cache, u, 0))
       .catch((err) => { if (OPTIONAL_RE.test(u)) skipped.push(u); else failed = err; })
       .then(() => { done++; report(); return worker(); });
   }
@@ -206,7 +226,7 @@ function precacheAll(cache) {
     if (failed) throw failed;
     // Необязательные файлы из обрыва связи — ещё одна попытка, когда очередь прошла
     return Promise.all(skipped.map((u) =>
-      fetchWithRetry(u, PRECACHE_RETRY_MS.length).then((resp) => cache.put(u, resp)).catch(() => null)));
+      storeWithRetry(cache, u, PRECACHE_RETRY_MS.length).catch(() => null)));
   });
 }
 
