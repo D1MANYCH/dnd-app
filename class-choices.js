@@ -167,6 +167,20 @@ ARTIFICER_REPLICA_ITEMS.forEach(function(r) {
 // optionsKey — ссылка на словарь опций
 // pool: "skills" — особый пул (навыки) для экспертизы
 // ============================================================
+// PLAY5-3 (PT-504): заклинания волшебника из книги персонажа — опции Мастерства
+// заклинателя и Фирменных заклинаний. excludeChoice — занятое соседним выбором.
+function ccWizardBookSpells(char, lvl, actionOnly, excludeChoice) {
+  var stored = excludeChoice ? ccGetStored(char, "Волшебник", excludeChoice) : null;
+  var seen = {};
+  return ((char.spells && char.spells.mySpells) || []).filter(function(s) {
+    if (!s || s.grantedBy || s.level !== lvl || s.name === stored || seen[s.name]) return false;
+    if (Array.isArray(s.classes) && s.classes.indexOf("wizard") === -1 && s.classes.indexOf("both") === -1) return false;
+    if (actionOnly && !/^\s*(1\s+)?действи/i.test(s.time || "")) return false;
+    seen[s.name] = true;
+    return true;
+  }).map(function(s) { return s.name; });
+}
+
 var CLASS_CHOICES = {
   "Воин": [
     {id:"fighting-style", name:"Боевой стиль", icon:"⚔️", minLevel:1, type:"single",
@@ -193,6 +207,20 @@ var CLASS_CHOICES = {
      options:Object.keys(FAVORED_TERRAINS), optionsDict:FAVORED_TERRAINS,
      getCount:function(lvl){ return lvl>=10 ? 3 : (lvl>=6 ? 2 : 1); },
      desc:"Выберите известную местность. Расширяется на 6 и 10 уровнях."}
+  ],
+  "Волшебник": [
+    {id:"spell-mastery-1", name:"Мастерство заклинателя: 1 уровень", icon:"📖", minLevel:18, type:"single", options:[], optionsDict:{},
+     optionsFn:function(char){ return ccWizardBookSpells(char, 1); },
+     desc:"Заклинание 1 уровня из книги: пока подготовлено, на своём уровне без ячейки. Замена — 8 часов изучения."},
+    {id:"spell-mastery-2", name:"Мастерство заклинателя: 2 уровень", icon:"📖", minLevel:18, type:"single", options:[], optionsDict:{},
+     optionsFn:function(char){ return ccWizardBookSpells(char, 2); },
+     desc:"Заклинание 2 уровня из книги: пока подготовлено, на своём уровне без ячейки. Замена — 8 часов изучения."},
+    {id:"signature-1", name:"Фирменное заклинание 1", icon:"📖", minLevel:20, type:"single", options:[], optionsDict:{},
+     optionsFn:function(char){ return ccWizardBookSpells(char, 3, false, "signature-2"); },
+     desc:"Заклинание 3 уровня из книги. Всегда подготовлено, раз до короткого или длинного отдыха 3 уровнем без ячейки."},
+    {id:"signature-2", name:"Фирменное заклинание 2", icon:"📖", minLevel:20, type:"single", options:[], optionsDict:{},
+     optionsFn:function(char){ return ccWizardBookSpells(char, 3, false, "signature-1"); },
+     desc:"Заклинание 3 уровня из книги. Всегда подготовлено, раз до короткого или длинного отдыха 3 уровнем без ячейки."}
   ],
   "Чародей": [
     {id:"metamagic", name:"Метамагия", icon:"✨", minLevel:3, type:"multi",
@@ -332,6 +360,7 @@ function ccCount(choice, classLevel) {
 
 // Возвращает массив доступных опций (с фильтром по уровню/пакту/заклинаниям)
 function ccAvailableOptions(choice, char, className) {
+  if (choice.optionsFn) return choice.optionsFn(char);
   var ids = choice.options ? choice.options.slice() : [];
   if (!choice.filterByReq) return ids;
   var classLevel = ccGetClassLevel(char, className);

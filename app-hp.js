@@ -57,9 +57,34 @@ var out = [];
 data.resources.forEach(function(res) {
   if (res.restoreOn === "turn" || res.restoreOn === "none" || getResourceMax(res, char) === 0) return;
   if (type === "long" || res.restoreOn === "short" || (res.shortFromLevel && (res._clsLevel || char.level || 1) >= res.shortFromLevel)) out.push(res.name);
+  else if (res.shortRegain && (res._clsLevel || char.level || 1) >= res.shortRegain.from) out.push(res.name + " (+" + res.shortRegain.amount + ")");
   else if (res.restoreShortOne) out.push(res.name + " (1 исп.)");
 });
 return out;
+}
+// PLAY5-3 (PT-453/485/779): умения «по окончании короткого отдыха, по выбору игрока» —
+// только те, что сейчас могут что-то вернуть
+function _restRecoveries(char) {
+  var data = typeof getCharResourceDefs === "function" ? getCharResourceDefs(char) : null;
+  var out = [];
+  ((data && data.resources) || []).forEach(function(res) {
+    if ((!res.slotRecovery && !res.pointRecovery) || getResourceMax(res, char) === 0) return;
+    var acts = res.slotRecovery ? crSlotRecoveryActs(res, char) : crPointRecoveryActs(res, char);
+    if (acts.indexOf("<button") === -1) return;
+    var what = res.pointRecovery ? "очки, до\u00a0" + crPointRecoveryAmount(res, char)
+      : "ячейки, всего до\u00a0" + (crSlotRecoveryBudget(res) - ((char.resources[res.id] && char.resources[res.id + "_lv"]) || 0)) + " ур.";
+    out.push({ res: res, acts: acts, what: what });
+  });
+  return out;
+}
+function _restRecoveryHtml(char) {
+  return _restRecoveries(char).map(function(r) {
+    return "<p>" + dndIcoHtml("sparkle", 12) + " " + escapeHtml(r.res.name) + "</p><div class='hp-row-line'>" + r.acts + "</div>";
+  }).join("");
+}
+function _restRefreshRecovery() {
+  var el = $("rest-result-recovery"), char = getCurrentChar();
+  if (el && char) el.innerHTML = _restRecoveryHtml(char);
 }
 function _renderRestPreview(char, blockReason) {
 var li = function(ico, text, cls) { return "<li" + (cls ? " class='" + cls + "'" : "") + ">" + dndIcoHtml(ico, 13) + " " + text + "</li>"; };
@@ -76,7 +101,9 @@ if (label) label.textContent = "Кости хитов · к" + sizes.join("/к")
 // Короткий: ячейки пакта (у колдуна без мультикласса — и обычные), умения на короткий
 var s = "";
 if (isWarlock && sp.pactSlots) s += li("focus", "Ячейки пакта: " + Math.max(0, sp.pactSlots - (sp.pactUsed || 0)) + " → " + sp.pactSlots);
-if (hasSlots) s += (isWarlock && !isMulti) ? li("sparkle", "Ячейки заклинаний: все") : li("sparkle", "Ячейки заклинаний не восстанавливаются", "rest-gain-mute");
+var recs = _restRecoveries(char);
+if (hasSlots) s += (isWarlock && !isMulti) ? li("sparkle", "Ячейки заклинаний: все") : (recs.some(function(r) { return r.res.slotRecovery; }) ? "" : li("sparkle", "Ячейки заклинаний не восстанавливаются", "rest-gain-mute"));
+recs.forEach(function(r) { s += li("sparkle", escapeHtml(r.res.name) + ": после отдыха можно вернуть " + r.what); });
 var shortRes = _restResNames(char, "short");
 if (shortRes.length) s += li("zap", "Умения: " + shortRes.map(escapeHtml).join(", "));
 var shortEl = $("rest-gain-short");
@@ -205,7 +232,7 @@ var warlockStr = _isWarlock && char.spells.pactSlots ? "<p>" + dndIcoHtml("focus
 var castExpiredStr = _castExpired.length ? "<p>⏳ Истекли эффекты: " + _castExpired.join(", ") + "</p>" : "";
 // PLAY2-7 (PT-185): какие ресурсы класса вернул отдых
 if (_resNames.length) castExpiredStr = "<p>" + dndIcoHtml("zap", 12) + " Умения: " + _resNames.map(escapeHtml).join(", ") + "</p>" + castExpiredStr;
-resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>" + dndIcoHtml("dice", 12) + " Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>" + dndIcoHtml("heart", 12) + " Восстановлено ХП: " + hpHealed + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr + castExpiredStr;
+resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>" + dndIcoHtml("dice", 12) + " Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>" + dndIcoHtml("heart", 12) + " Восстановлено ХП: " + hpHealed + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr + castExpiredStr + "<div id='rest-result-recovery'>" + _restRecoveryHtml(char) + "</div>";
 } else if (currentRestType === "long") {
 // PHB стр.186: страховка на случай, если кнопку не погасил showLongRestInfo —
 // проверка СТРОГО до clearAllCastEffects, иначе заблокированный отдых уже снял бы эффекты.
@@ -250,6 +277,8 @@ renderJournal();
 var exhaustionNote = exhaustionReduced ? "<p>" + dndIcoHtml("dizzy", 13) + " Истощение снижено на\u00a01 уровень</p>"
   : (exhaustionHeld ? "<p>" + dndIcoHtml("food", 13) + " Истощение осталось прежним: персонаж не\u00a0ел и\u00a0не пил (PHB стр. 291)</p>" : "");
 var chargesNote = chargesRestored ? "<p>" + dndIcoHtml("zap", 13) + " Заряды предметов восстановлены: " + chargesRestored + "</p>" : "";
+var _portent = crPortentRolls(char);
+if (_portent.length) chargesNote += "<p>" + dndIcoHtml("sparkle", 12) + " Знамение: " + _portent.join(", ") + "</p>";
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div>" + (_restHasSlots(char) ? "<p>" + dndIcoHtml("sparkle", 12) + " Ячейки заклинаний: восстановлены</p>" : "") + "<p>" + dndIcoHtml("dice", 12) + " Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + (_resNames.length ? "<p>" + dndIcoHtml("zap", 12) + " Умения: " + _resNames.map(escapeHtml).join(", ") + "</p>" : "") + exhaustionNote + chargesNote;
 }
 saveToLocal();

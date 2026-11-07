@@ -418,8 +418,18 @@
       var max = getResourceMax(r, c);
       if (!max) return;
       var left = Math.max(0, max - ((c.resources && c.resources[r.id]) || 0));
-      var id = esc(r.id), ctl = "";
-      if (max <= 8) {
+      var id = esc(r.id), ctl = "", acts = "";
+      // PLAY5-3: те же действия, что в строке ресурса на незаблокированном листе
+      if (r.slotRecovery || r.pointRecovery) acts = crRecoveryHint();
+      if (r.flexibleCasting) acts = crFlexActs(r, c, max - left, left);
+      if (r.shortRegain) acts += "<span class='hp-row-hint'>" + esc(crRestoreLabel(r)) + "</span>";
+      if (r.id === "wild_shape" && left > 0 && typeof openWildShapePicker === "function") acts += "<button type='button' class='hp-act' onclick='openWildShapePicker()'>Принять облик</button>";
+      if (r.portent) {
+        ctl = crPortentMeta(c, max - left, max);
+        acts = crPortentActs(c);
+      } else if (max === 99) {
+        ctl = "<span class='s2-cnt'>∞</span>";
+      } else if (max <= 8) {
         ctl = "<span class='s2-pips'>";
         for (var i = 0; i < max; i++) ctl += "<button type='button' class='s2-pip" + (i < left ? " on" : "") + "' onclick=\"toggleResourcePip('" + id + "'," + i + ")\">" + (i < left ? "◆" : "◇") + "</button>";
         ctl += "</span>";
@@ -427,7 +437,7 @@
         ctl = "<span class='s2-cnt'><button type='button' class='s2-link' onclick=\"spendResource('" + id + "',1)\"" + (left ? "" : " disabled") + ">−</button>" + left + " / " + max +
           "<button type='button' class='s2-link' onclick=\"spendResource('" + id + "',-1)\"" + (left < max ? "" : " disabled") + ">+</button></span>";
       }
-      o += "<div class='s2-res'><span>" + esc(r.name) + "</span>" + ctl + "</div>";
+      o += "<div class='s2-res'><span>" + esc(crResName(r, c)) + "</span>" + ctl + "</div>" + (acts ? "<div class='hp-row-line'>" + acts + "</div>" : "");
     });
     return o;
   }

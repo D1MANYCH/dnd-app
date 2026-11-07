@@ -1104,6 +1104,9 @@ if (schoolRu) metaParts.push('<span class="spell-meta-school">' + escapeHtml(sch
 if (spell.time) metaParts.push('<span>' + escapeHtml(spell.time) + '</span>');
 if (spell.range) metaParts.push('<span>' + escapeHtml(spell.range) + '</span>');
 if (spell.grantedBy) metaParts.push('<span>' + escapeHtml(spell.grantedBy) + '</span>'); // E24-4: источник — вид
+if (_spellMasteryFree(char, spell)) metaParts.push('<span>без\u00a0ячейки</span>'); // PLAY5-3
+var _sigId = _signatureResId(char, spell);
+if (_sigId) metaParts.push('<span>' + ((char.resources && char.resources[_sigId]) ? 'раз за\u00a0отдых · потрачено' : 'раз за\u00a0отдых без\u00a0ячейки') + '</span>');
 var _ffId = rulesFeatFreeResId(spell);
 if (_ffId && (spell.level || 0) > 0) metaParts.push('<span>' + ((char.resources && char.resources[_ffId]) ? '1/день без\u00a0ячейки · потрачено' : '1/день без\u00a0ячейки') + '</span>'); // FSP-2
 var prepClass = isPrepClass(char);
@@ -1307,6 +1310,12 @@ function _subclassSpellNames(char) {
   list.forEach(function(c) {
     // Покровитель колдуна 2014 лишь расширяет список (PHB стр. 109) — не «подготовлено»
     if (!c || !c.subclass || !prepTable[c.class]) return;
+    // PLAY5-3 (PT-504): Фирменные заклинания, в 2024 и Мастерство заклинателя
+    if (c.class === "Волшебник" && (c.level || 1) >= 18) {
+      var wp = (char.classChoices && char.classChoices[c.class]) || {};
+      if (char.edition === "2024") [wp["spell-mastery-1"], wp["spell-mastery-2"]].forEach(function(n) { if (n) out[n] = true; });
+      if ((c.level || 1) >= 20) [wp["signature-1"], wp["signature-2"]].forEach(function(n) { if (n) out[n] = true; });
+    }
     var def = edData(char).SUBCLASS_RESOURCES[c.subclass];
     var ss = def && def.passive && def.passive.subclassSpells;
     if (!ss || !ss.byLevel) return;
@@ -1497,10 +1506,29 @@ function _castableSlotOptions(char, spell) {
   // FSP-2: заклинание черты — раз за длинный отдых без ячейки
   var ffId = rulesFeatFreeResId(spell);
   if (ffId && !((char.resources && char.resources[ffId]) || 0)) opts.push({ type: "featfree", level: spell.level, free: 1 });
+  // PLAY5-3 (PT-504): Мастерство заклинателя и Фирменные заклинания
+  if (_spellMasteryFree(char, spell)) opts.unshift({ type: "mastery", level: spell.level, free: "∞" });
+  var sigId = _signatureResId(char, spell);
+  if (sigId && !((char.resources && char.resources[sigId]) || 0)) opts.unshift({ type: "signature", level: spell.level, free: 1 });
   return opts;
 }
 
 // Порог уровня колдуна для арканума круга N (PHB стр. 108): 6 → 11, 7 → 13, 8 → 15, 9 → 17.
+function _wizardPick(char, choiceId) {
+  return (char && char.classChoices && char.classChoices["Волшебник"] && char.classChoices["Волшебник"][choiceId]) || null;
+}
+function _spellMasteryFree(char, spell) {
+  var lv = spell ? (spell.level || 0) : 0;
+  if ((lv !== 1 && lv !== 2) || !_wizardPick(char, "spell-mastery-" + lv)) return false;
+  return charClassLevel(char, "Волшебник") >= 18 && _wizardPick(char, "spell-mastery-" + lv) === spell.name;
+}
+function _signatureResId(char, spell) {
+  if (!spell || spell.level !== 3 || charClassLevel(char, "Волшебник") < 20) return null;
+  if (_wizardPick(char, "signature-1") === spell.name) return "signature_1";
+  if (_wizardPick(char, "signature-2") === spell.name) return "signature_2";
+  return null;
+}
+
 function _arcanumResId(char, spell) {
   var lv = spell ? (spell.level || 0) : 0;
   if (lv < 6 || lv > 9) return null;
@@ -1551,6 +1579,15 @@ function _castSpellWithSlot(spellId, slotType, level) {
     }
     if (!char.resources) char.resources = {};
     char.resources[ffId] = 1;
+  } else if (slotType === "mastery") {
+    if (!_spellMasteryFree(char, spell)) return;
+  } else if (slotType === "signature") {
+    var sigId = _signatureResId(char, spell);
+    if (!sigId || (char.resources && char.resources[sigId])) {
+      showToast("«" + spell.name + "» без\u00a0ячейки уже наложено до\u00a0отдыха", "warn"); return;
+    }
+    if (!char.resources) char.resources = {};
+    char.resources[sigId] = 1;
   } else if (slotType === "pact") {
     if ((char.spells.pactSlots || 0) - (char.spells.pactUsed || 0) <= 0) {
       showToast("Нет свободных пакт-ячеек", "warn"); return;
@@ -1565,7 +1602,8 @@ function _castSpellWithSlot(spellId, slotType, level) {
   closeCastChooser();
   saveToLocal();
   renderSpellSlots();
-  if (slotType === "arcanum" && typeof renderClassResources === "function") renderClassResources();
+  if ((slotType === "arcanum" || slotType === "signature") && typeof renderClassResources === "function") renderClassResources();
+  if (slotType === "signature") renderMySpells();
   if (slotType === "featfree") renderMySpells(); // FSP-2: мета «потрачено»
   _finishCast(char, spell, { type: slotType, level: level });
 }
@@ -1576,6 +1614,10 @@ function _finishCast(char, spell, slot) {
     note = " — таинственный арканум " + slot.level + " ур.";
   } else if (slot && slot.type === "featfree") {
     note = " — без\u00a0ячейки (черта, до\u00a0продолжительного отдыха)";
+  } else if (slot && slot.type === "mastery") {
+    note = " — без\u00a0ячейки (Мастерство заклинателя)";
+  } else if (slot && slot.type === "signature") {
+    note = " — без\u00a0ячейки (Фирменное заклинание)";
   } else if (slot && slot.type === "ritual") {
     note = " (ритуал, без\u00a0ячейки)";
   } else if (slot) {
@@ -2137,7 +2179,7 @@ function openCastChooser(spell, opts) {
   opts.forEach(function(o) {
     var b = document.createElement("button");
     b.className = "cast-slot-option";
-    b.innerHTML = '<span class="cso-lvl">' + o.level + ' ур.' + (o.type === "pact" ? ' · ПАКТ' : (o.type === "arcanum" ? ' · АРКАНУМ' : (o.type === "featfree" ? ' · БЕЗ\u00a0ЯЧЕЙКИ' : ''))) + '</span>' +
+    b.innerHTML = '<span class="cso-lvl">' + o.level + ' ур.' + (o.type === "pact" ? ' · ПАКТ' : (o.type === "arcanum" ? ' · АРКАНУМ' : (o.type === "featfree" || o.type === "mastery" || o.type === "signature" ? ' · БЕЗ\u00a0ЯЧЕЙКИ' : ''))) + '</span>' +
       '<span class="cso-free">свободно: ' + o.free + '</span>';
     b.onclick = function(){ _castSpellWithSlot(spell.id, o.type, o.level); };
     box.appendChild(b);

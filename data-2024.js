@@ -1167,7 +1167,11 @@
         { id:"arcane_recovery", name:"Магическое восстановление", icon:"✨", color:"#1a5276",
           maxByLevel:{1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,10:1,11:1,12:1,13:1,14:1,15:1,16:1,17:1,18:1,19:1,20:1},
           restoreOn:"long_once", slotRecovery:true,
-          desc:"Раз до долгого отдыха на коротком отдыхе восстановить ячейки суммой ≤ половины уровня (вверх), не выше 5-го." }
+          desc:"Раз до долгого отдыха на коротком отдыхе восстановить ячейки суммой ≤ половины уровня (вверх), не выше 5-го." },
+        { id:"signature_1", name:"Фирменное заклинание", icon:"📖", color:"#1a5276", maxByLevel:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:0,16:0,17:0,18:0,19:0,20:1}, restoreOn:"short", signatureChoice:"signature-1",
+          desc:"Заклинание 3 круга: раз до короткого или долгого отдыха 3 кругом без ячейки." },
+        { id:"signature_2", name:"Фирменное заклинание", icon:"📖", color:"#1a5276", maxByLevel:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:0,16:0,17:0,18:0,19:0,20:1}, restoreOn:"short", signatureChoice:"signature-2",
+          desc:"Заклинание 3 круга: раз до короткого или долгого отдыха 3 кругом без ячейки." }
       ],
       passive: { notes:"📖 Ритуальный адепт: ритуалы из книги заклинаний без подготовки\n🎓 Учёный: компетентность в навыке (2 ур.)" }
     },
@@ -1175,7 +1179,7 @@
       resources: [
         { id:"sorcery_points", name:"Очки чародейства", icon:"🔮", color:"#e74c3c",
           maxByLevel:{1:0,2:"level",3:"level",4:"level",5:"level",6:"level",7:"level",8:"level",9:"level",10:"level",11:"level",12:"level",13:"level",14:"level",15:"level",16:"level",17:"level",18:"level",19:"level",20:"level"},
-          restoreOn:"long",
+          restoreOn:"long", flexibleCasting:true, flexMinLevel:{1:2,2:3,3:5,4:7,5:9},
           desc:"Метамагия, преобразование ячеек. Макс = уровень чародея (с 2 ур.)." },
         { id:"innate_sorcery", name:"Врождённое чародейство", icon:"⚡", color:"#f1c40f",
           maxByLevel:{1:2,2:2,3:2,4:2,5:2,6:2,7:2,8:2,9:2,10:2,11:2,12:2,13:2,14:2,15:2,16:2,17:2,18:2,19:2,20:2},
@@ -1183,7 +1187,7 @@
           desc:"Бонусное действие на 1 минуту: +1 к Сл. спасброска и преимущество на броски атаки заклинаний чародея (1 ур.)." },
         { id:"font_of_magic", name:"Восстановление магии", icon:"🔄", color:"#16a085",
           maxByLevel:{1:0,2:0,3:0,4:0,5:1,6:1,7:1,8:1,9:1,10:1,11:1,12:1,13:1,14:1,15:1,16:1,17:1,18:1,19:1,20:1},
-          restoreOn:"long",
+          restoreOn:"long", pointRecovery:"sorcery_points",
           desc:"Раз до долгого отдыха на коротком отдыхе восстановить очки чародейства числом ≤ половины уровня (вниз) (5 ур.)." }
       ],
       passive: { notes:"✨ Метамагия: 2 варианта (2 ур.) → 4 (10 ур.) → 6 (17 ур.)\n⚡ Воплощённая магия: активировать Врождённое чародейство за 2 очка (7 ур.)" }
@@ -1412,7 +1416,19 @@
     "Волшебник": [
       {id:"scholar", name:"Учёный", icon:"🎓", minLevel:2, type:"single",
        options:Object.keys(WIZARD_SCHOLAR_2024), optionsDict:WIZARD_SCHOLAR_2024,
-       desc:"Выберите навык, которым владеете, — получаете для него компетентность."}
+       desc:"Выберите навык, которым владеете, — получаете для него компетентность."},
+      {id:"spell-mastery-1", name:"Мастерство заклинателя: 1 круг", icon:"📖", minLevel:18, type:"single", options:[], optionsDict:{},
+       optionsFn:function(char){ return ccWizardBookSpells(char, 1, true); },
+       desc:"Заклинание 1 круга из книги, время накладывания — действие. Всегда подготовлено, на своём круге без ячейки."},
+      {id:"spell-mastery-2", name:"Мастерство заклинателя: 2 круг", icon:"📖", minLevel:18, type:"single", options:[], optionsDict:{},
+       optionsFn:function(char){ return ccWizardBookSpells(char, 2, true); },
+       desc:"Заклинание 2 круга из книги, время накладывания — действие. Всегда подготовлено, на своём круге без ячейки."},
+      {id:"signature-1", name:"Фирменное заклинание 1", icon:"📖", minLevel:20, type:"single", options:[], optionsDict:{},
+       optionsFn:function(char){ return ccWizardBookSpells(char, 3, false, "signature-2"); },
+       desc:"Заклинание 3 круга из книги. Всегда подготовлено, раз до короткого или долгого отдыха 3 кругом без ячейки."},
+      {id:"signature-2", name:"Фирменное заклинание 2", icon:"📖", minLevel:20, type:"single", options:[], optionsDict:{},
+       optionsFn:function(char){ return ccWizardBookSpells(char, 3, false, "signature-1"); },
+       desc:"Заклинание 3 круга из книги. Всегда подготовлено, раз до короткого или долгого отдыха 3 кругом без ячейки."}
     ],
     "Чародей": [
       {id:"metamagic", name:"Метамагия", icon:"✨", minLevel:2, type:"multi",
@@ -1908,6 +1924,14 @@
   };
 
   var SUBCLASS_RESOURCES_2024 = {
+    "Прорицатель": {
+      resources: [
+        { id:"portent", name:"Знамение", icon:"🔮", color:"#8e44ad",
+          maxByLevel:{1:0,2:0,3:2,4:2,5:2,6:2,7:2,8:2,9:2,10:2,11:2,12:2,13:2,14:3,15:3,16:3,17:3,18:3,19:3,20:3},
+          restoreOn:"long", portent:true,
+          desc:"После долгого отдыха бросаете к20 и записываете числа. Заменяете ими к20 в тесте — своём или видимого существа, раз за ход." }
+      ]
+    },
     "Боевой мастер": {
       resources: [
         { id:"superiority_dice", name:"Кости превосходства", icon:"🎲", color:"#e67e22",

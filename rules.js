@@ -824,7 +824,7 @@ function rulesApplySpellSlots(char) {
   var hasCasting = cl.casters.some(function(c) { return c.type !== "pact"; });
   var row = hasCasting ? getMulticlassSpellSlots(char) : [];
   for (var i = 1; i <= 9; i++) {
-    sp.slots[i] = row[i] || 0;
+    sp.slots[i] = (row[i] || 0) + ((sp.slotsExtra && sp.slotsExtra[i]) || 0);
     sp.slotsUsed[i] = Math.min(sp.slotsUsed[i] || 0, sp.slots[i]);
   }
   var pact = { cnt: 0, lvl: 0 };
@@ -935,6 +935,12 @@ function rulesLongRest(char, opts) {
   var maxHp = parseInt(char.combat.hpMax, 10) || 0;
   char.combat.hpCurrent = maxHp;
   char.combat.hpTemp = 0;
+  // PLAY5-3: ячейки Гибкого колдовства исчезают на продолжительном отдыхе
+  var extra = char.spells.slotsExtra;
+  if (extra) {
+    Object.keys(extra).forEach(function(l) { char.spells.slots[l] = Math.max(0, (char.spells.slots[l] || 0) - extra[l]); char.spells.slotsUsed[l] = 0; });
+    delete char.spells.slotsExtra;
+  }
   for (var i = 1; i <= 9; i++) { if (char.spells.slots[i]) char.spells.slotsUsed[i] = 0; }
   if (char.spells.pactSlots) char.spells.pactUsed = 0;
   // PHB стр.186: восстанавливается половина костей, но не меньше одной и не больше потраченных

@@ -11279,6 +11279,146 @@
     });
   }
 
+  // ────────── БЛОК 75 (PLAY5-3): ресурсы и отдых ──────────
+  (function(){
+    var _mk75 = function(cls, sub, lvl, ed) {
+      return { id: "p53", name: "T", class: cls, subclass: sub, level: lvl, edition: ed || "2014", classes: [{ class: cls, level: lvl, subclass: sub }],
+        stats: { str:10, dex:10, con:10, int:16, wis:10, cha:16 }, resources: {}, classChoices: {},
+        combat: { hpCurrent: 10, hpMax: 10, hpTemp: 0, hpDiceSpent: 0 }, saves: {}, skills: [], conditions: [], effects: [],
+        spells: { stat: "", slots: {1:4,2:3,3:3,4:3,5:3}, slotsUsed: {}, mySpells: [] }, deathSaves: { successes:[false,false,false], failures:[false,false,false] } };
+    };
+    var _run75 = function(c, fn) {
+      var sc = window.characters, si = window.currentId;
+      try { window.characters = [c]; window.currentId = c.id; return fn(); } finally { window.characters = sc; window.currentId = si; }
+    };
+    t("[PLAY5-3] Бард 2014: Вдохновение возвращается на коротком отдыхе с 5 ур., на 4 ур. нет", function(){
+      var a = _mk75("Бард", "", 5), b = _mk75("Бард", "", 4);
+      a.resources.bardic_inspiration = 2; b.resources.bardic_inspiration = 2;
+      _run75(a, function(){ resetResourcesByRest("short"); });
+      _run75(b, function(){ resetResourcesByRest("short"); });
+      return a.resources.bardic_inspiration === 0 && b.resources.bardic_inspiration === 2 ? true : JSON.stringify([a.resources, b.resources]);
+    });
+    t("[PLAY5-3] Дикий облик 2014 на 20 ур. без лимита, трата не копится; 2024 — 4", function(){
+      var c = _mk75("Друид", "", 20), n = _mk75("Друид", "", 20, "2024");
+      var rc = getCharResourceDefs(c).resources.filter(function(r){ return r.id === "wild_shape"; })[0];
+      var rn = getCharResourceDefs(n).resources.filter(function(r){ return r.id === "wild_shape"; })[0];
+      _run75(c, function(){ spendResource("wild_shape", 1); });
+      return getResourceMax(rc, c) === 99 && getResourceMax(rn, n) === 4 && !c.resources.wild_shape ? true : "max " + getResourceMax(rc, c);
+    });
+    t("[PLAY5-3] Чародейское восстановление: +4 на 20 ур. 2014, на 19 и в 2024 нет", function(){
+      var a = _mk75("Чародей", "", 20), b = _mk75("Чародей", "", 19), n = _mk75("Чародей", "", 20, "2024");
+      [a, b, n].forEach(function(c){ c.resources.sorcery_points = 6; _run75(c, function(){ resetResourcesByRest("short"); }); });
+      return a.resources.sorcery_points === 2 && b.resources.sorcery_points === 6 && n.resources.sorcery_points === 6 ? true : "итог " + a.resources.sorcery_points;
+    });
+    t("[PLAY5-3] Гибкое колдовство: цена, потолок единиц, ячейка сверх максимума исчезает на долгом отдыхе", function(){
+      var c = _mk75("Чародей", "", 20);
+      return _run75(c, function(){
+        flexPointsToSlot("sorcery_points", 5);
+        if (c.resources.sorcery_points !== 7 || c.spells.slots[5] !== 4 || c.spells.slotsExtra[5] !== 1) return "сверх максимума";
+        c.spells.slotsUsed[1] = 1;
+        flexPointsToSlot("sorcery_points", 1);
+        if (c.resources.sorcery_points !== 9 || c.spells.slotsUsed[1] !== 0 || c.spells.slots[1] !== 4) return "на место потраченной";
+        flexSlotToPoints("sorcery_points", 3);
+        if (c.resources.sorcery_points !== 6 || c.spells.slotsUsed[3] !== 1) return "ячейка в единицы";
+        c.resources.sorcery_points = 1;
+        flexSlotToPoints("sorcery_points", 2);
+        if (c.resources.sorcery_points !== 0 || c.spells.slotsUsed[2] !== 1) return "сверх максимума единицы теряются";
+        flexSlotToPoints("sorcery_points", 1);
+        if (c.spells.slotsUsed[1] !== 0) return "полный запас: ячейка потрачена впустую";
+        rulesLongRest(c, { foodAndDrink: true });
+        return c.spells.slots[5] === 3 && !c.spells.slotsExtra ? true : "долгий отдых " + c.spells.slots[5];
+      });
+    });
+    t("[PLAY5-3] созданная ячейка уровня вне таблицы: потрачена, долгий отдых, новая создаётся заново", function(){
+      var c = _mk75("Чародей", "", 7);
+      c.spells.slots = { 1:4, 2:3, 3:3, 4:1 };
+      return _run75(c, function(){
+        flexPointsToSlot("sorcery_points", 5);
+        if (c.spells.slots[5] !== 1) return "не создана";
+        c.spells.slotsUsed[5] = 1;
+        rulesLongRest(c, { foodAndDrink: true });
+        if (c.spells.slots[5] !== 0 || c.spells.slotsUsed[5] !== 0) return "застрял slotsUsed " + c.spells.slotsUsed[5];
+        c.resources.sorcery_points = 0;
+        flexPointsToSlot("sorcery_points", 5);
+        return c.spells.slots[5] === 1 && c.spells.slotsUsed[5] === 0 ? true : "повторно не создана";
+      });
+    });
+    t("[PLAY5-3] Гибкое колдовство 2024: минимальный уровень чародея", function(){
+      var c = _mk75("Чародей", "", 6, "2024");
+      return _run75(c, function(){
+        flexPointsToSlot("sorcery_points", 4);
+        if (c.resources.sorcery_points) return "4 круг на 6 ур.";
+        flexPointsToSlot("sorcery_points", 3);
+        return c.resources.sorcery_points === 5 ? true : "3 круг на 6 ур.";
+      });
+    });
+    t("[PLAY5-3] Восстановление магии 2024: не больше ½ уровня, раз до долгого отдыха", function(){
+      var c = _mk75("Чародей", "", 11, "2024");
+      c.resources.sorcery_points = 9;
+      return _run75(c, function(){
+        recoverPointsByResource("font_of_magic");
+        if (c.resources.sorcery_points !== 4 || c.resources.font_of_magic !== 1) return "первый " + c.resources.sorcery_points;
+        recoverPointsByResource("font_of_magic");
+        return c.resources.sorcery_points === 4 ? true : "второй раз сработало";
+      });
+    });
+    t("[PLAY5-3] Магическое восстановление видно на коротком отдыхе, только если есть что вернуть", function(){
+      var c = _mk75("Волшебник", "Школа воплощения", 6);
+      if (_restRecoveries(c).length) return "без потраченных ячеек";
+      c.spells.slotsUsed[2] = 1;
+      var r = _restRecoveries(c);
+      return r.length === 1 && r[0].res.id === "arcane_recovery" ? true : JSON.stringify(r);
+    });
+    t("[PLAY5-3] Знамение: 2 к20, 3 с 14 ур., трата по числу, долгий отдых сбрасывает", function(){
+      var c = _mk75("Волшебник", "Школа прорицания", 14), n = _mk75("Волшебник", "Прорицатель", 2, "2024");
+      var rn = getCharResourceDefs(n).resources.filter(function(r){ return r.portent; });
+      if (rn.length !== 1 || getResourceMax(rn[0], n) !== 0) return "2024 с 3 ур.";
+      return _run75(c, function(){
+        if (typeof rollPortent !== "undefined") return "ручной бросок остался";
+        resetResourcesByRest("short");
+        if (c.resources.portent_rolls) return "короткий отдых";
+        resetResourcesByRest("long");
+        var first = c.resources.portent_rolls.slice();
+        if (first.length !== 3) return "бросков " + first.length;
+        usePortent(1);
+        if (c.resources.portent_rolls.length !== 2 || c.resources.portent !== 1 || c.resources.portent_rolls[1] !== first[2]) return "трата";
+        resetResourcesByRest("long");
+        return !c.resources.portent && c.resources.portent_rolls.length === 3 ? true : "отдых";
+      });
+    });
+    t("[PLAY5-3] Кнопки восстановления — только на итоге отдыха, не в строке ресурса", function(){
+      var c = _mk75("Волшебник", "", 6);
+      c.spells.slots = { 1: 4 }; c.spells.slotsUsed = { 1: 2 };
+      return _run75(c, function(){
+        var res = getCharResourceDefs(c).resources.filter(function(r){ return r.id === "arcane_recovery"; })[0];
+        if (crResourceRow(res, c).indexOf("recoverSlot") !== -1) return "кнопка в строке";
+        return _restRecoveries(c).length === 1 ? true : "нет на экране отдыха";
+      });
+    });
+    t("[PLAY5-3] Мастерство заклинателя: опции из книги, 2024 — только действие; наложение без ячейки", function(){
+      var c = _mk75("Волшебник", "Школа воплощения", 18, "2024");
+      c.spells.mySpells = [{ id: 1, name: "А", level: 1, time: "1 действие", classes: ["wizard"] }, { id: 2, name: "Б", level: 1, time: "1 бонусное действие", classes: ["wizard"] },
+        { id: 3, name: "В", level: 1, time: "1 действие", classes: ["wizard"], grantedBy: "Вид" }, { id: 4, name: "Г", level: 1, time: "1 действие", classes: ["cleric"] }];
+      var ch = ccFindChoice(c, "Волшебник", "spell-mastery-1");
+      if (!ch || ccAvailableOptions(ch, c, "Волшебник").join() !== "А") return "опции " + (ch ? ccAvailableOptions(ch, c, "Волшебник").join() : "нет выбора");
+      c.classChoices["Волшебник"] = { "spell-mastery-1": "А" };
+      var o = _castableSlotOptions(c, c.spells.mySpells[0]);
+      if (o[0].type !== "mastery" || o[0].level !== 1) return JSON.stringify(o);
+      return _subclassSpellNames(c)["А"] === true ? true : "не подготовлено";
+    });
+    t("[PLAY5-3] Фирменные заклинания: раз до отдыха, короткий отдых возвращает, имена не повторяются", function(){
+      var c = _mk75("Волшебник", "Школа воплощения", 20);
+      c.spells.mySpells = [{ id: 1, name: "А", level: 3, time: "1 действие", classes: ["wizard"] }, { id: 2, name: "Б", level: 3, time: "1 минута", classes: ["wizard"] }];
+      c.classChoices["Волшебник"] = { "signature-1": "А" };
+      if (ccAvailableOptions(ccFindChoice(c, "Волшебник", "signature-2"), c, "Волшебник").join() !== "Б") return "занятое имя";
+      var sp = c.spells.mySpells[0];
+      if (_castableSlotOptions(c, sp)[0].type !== "signature") return "нет варианта";
+      c.resources.signature_1 = 1;
+      if (_castableSlotOptions(c, sp).some(function(o){ return o.type === "signature"; })) return "потрачено";
+      _run75(c, function(){ resetResourcesByRest("short"); });
+      return !c.resources.signature_1 ? true : "короткий отдых";
+    });
+  })();
   // ────────── БЛОК 74 (РД-8): быстрый доступ — лимит 4, дубли, снятие, сохранение, изоляция, пропавшие, двойное списание ──────────
   if (typeof quickSlotAdd === "function") {
     var _qs74 = function(id){

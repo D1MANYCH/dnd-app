@@ -564,6 +564,7 @@ function crRestoreLabel(res) {
   if (res.restoreOn === "short") return "короткий отдых";
   // E24-8: Ярость/Второе дыхание 2024 — все за долгий, одно за короткий отдых
   if (res.restoreOn === "long" && res.restoreShortOne) return "продолжительный отдых · 1 за\u00a0короткий";
+  if (res.shortRegain) return "продолжительный отдых · +" + res.shortRegain.amount + " за\u00a0короткий с " + res.shortRegain.from + " ур.";
   if (res.restoreOn === "long" && res.shortFromLevel) return "продолжительный отдых · короткий с " + res.shortFromLevel + " ур.";
   if (res.restoreOn === "long" || res.restoreOn === "long_once") return "продолжительный отдых";
   if (res.restoreOn === "turn") return "каждый ход";
@@ -597,7 +598,7 @@ function crResourceRow(res, char) {
   } else if (max === 99) {
     meta = '<span class="hp-row-meta">∞</span>';
     acts = "";
-  } else if (max <= CR_PIP_LIMIT) {
+  } else if (max <= CR_PIP_LIMIT && !res.flexibleCasting) {
     var pips = "";
     for (var p = 0; p < max; p++) {
       pips += '<span class="cr-pip' + (p < remaining ? " cr-pip--full" : "") +
@@ -610,7 +611,12 @@ function crResourceRow(res, char) {
     acts = spend("− 1", 1) + spend("+ 1", -1);
   }
 
-  if (res.slotRecovery) acts = crSlotRecoveryActs(res, char);
+  if (res.slotRecovery || res.pointRecovery) acts = crRecoveryHint();
+  if (res.flexibleCasting) acts += crFlexActs(res, char, used, remaining);
+  if (res.portent) {
+    meta = crPortentMeta(char, used, max);
+    acts = crPortentActs(char);
+  }
   // PT-065/049: кость ресурса (превосходства и т.п.) — потратить и бросить
   if (dieSize && remaining > 0 && !res.isPool) acts += '<button type="button" class="hp-act" onclick="event.stopPropagation();rollResourceDie(\'' + id + '\')">Бросить ' + escapeHtml(dieSize) + '</button>';
   // PLAY3-4: Скрытая атака — потратить ход и бросить Nк6
@@ -625,11 +631,171 @@ function crResourceRow(res, char) {
   var body = '<p class="hp-row-hint">' + escapeHtml(res.desc || "") + "</p>" +
     (src ? '<p class="hp-row-hint">' + src + "</p>" : "") +
     '<div class="hp-row-line">' + acts +
-      (used > 0 ? '<button type="button" class="hp-act" onclick="resetResource(\'' + id + '\')">Сбросить</button>' : "") +
+      (used > 0 && !res.portent ? '<button type="button" class="hp-act" onclick="resetResource(\'' + id + '\')">Сбросить</button>' : "") +
     "</div>";
 
-  var name = escapeHtml(res.name) + (dieSize ? ' <i class="cr-die">(' + escapeHtml(dieSize) + ")</i>" : "");
+  var name = escapeHtml(crResName(res, char)) + (dieSize ? ' <i class="cr-die">(' + escapeHtml(dieSize) + ")</i>" : "");
   return crRow(name, meta, body);
+}
+
+// PLAY5-3: кнопки восстановления — только на экране итога короткого отдыха (_restRecoveryHtml)
+function crRecoveryHint() {
+  return '<span class="hp-row-hint">Возвращается на экране итога короткого отдыха.</span>';
+}
+
+// PT-504: фирменное заклинание — по выбранному имени
+function crResName(res, char) {
+  var pick = res.signatureChoice && typeof ccGetStored === "function" ? ccGetStored(char, "Волшебник", res.signatureChoice) : null;
+  return pick ? "Фирменное: " + pick : res.name;
+}
+
+// PLAY5-3 (PT-754): Гибкое колдовство — цена ячейки 1–5 уровня (PHB14 с.102, PHB24).
+// Минимальный уровень чародея — только в 2024 (res.flexMinLevel).
+var CR_FLEX_COST = { 1: 2, 2: 3, 3: 5, 4: 6, 5: 7 };
+
+function crFlexActs(res, char, used, remaining) {
+  var sp = char.spells || {}, sl = sp.slots || {}, su = sp.slotsUsed || {};
+  var lvl = res._clsLevel || char.level || 1, id = escapeHtml(res.id), toPts = "", toSlot = "", l;
+  for (l = 1; l <= 9; l++) {
+    // Сверх максимума единицы теряются; при полном запасе обмен ничего не даёт
+    if ((sl[l] || 0) - (su[l] || 0) > 0 && used > 0) {
+      var gain = Math.min(l, used);
+      toPts += '<button type="button" class="hp-act" onclick="flexSlotToPoints(\'' + id + '\',' + l + ')">ячейка ' + l + ' ур. → +' + gain + (gain < l ? " (потеря " + (l - gain) + ")" : "") + '</button>';
+    }
+  }
+  for (l = 1; l <= 5; l++) {
+    if (remaining >= CR_FLEX_COST[l] && !(res.flexMinLevel && lvl < res.flexMinLevel[l])) {
+      toSlot += '<button type="button" class="hp-act" onclick="flexPointsToSlot(\'' + id + '\',' + l + ')">' + CR_FLEX_COST[l] + ' → ячейка ' + l + ' ур.</button>';
+    }
+  }
+  return (toSlot ? '<span class="hp-row-hint">Создать ячейку:</span>' + toSlot : "") +
+    (toPts ? '<span class="hp-row-hint">Обменять ячейку:</span>' + toPts : "");
+}
+
+function _crFlexContext(id) {
+  if (!currentId) return null;
+  var char = getCurrentChar();
+  if (!char || !char.spells) return null;
+  initCharResources(char);
+  var data = getCharResourceDefs(char);
+  var res = data ? data.resources.find(function(r) { return r.id === id && r.flexibleCasting; }) : null;
+  return res ? { char: char, res: res, max: getResourceMax(res, char), used: char.resources[id] || 0 } : null;
+}
+
+function _crFlexDone(ctx, msg) {
+  if (window.AppLog) AppLog.action("spells", ctx.res.name + ": " + msg);
+  saveToLocal();
+  renderClassResources();
+  if (typeof renderSpellSlots === "function") renderSpellSlots();
+}
+
+function flexSlotToPoints(id, lvl) {
+  var c = _crFlexContext(id);
+  if (!c || lvl < 1 || lvl > 9 || c.used <= 0) return;
+  var sp = c.char.spells;
+  if (!sp.slotsUsed) sp.slotsUsed = {};
+  if ((sp.slots[lvl] || 0) - (sp.slotsUsed[lvl] || 0) <= 0) return;
+  var gain = Math.min(lvl, c.used);
+  sp.slotsUsed[lvl] = (sp.slotsUsed[lvl] || 0) + 1;
+  c.char.resources[id] = c.used - gain;
+  _crFlexDone(c, "ячейка " + lvl + " ур. обменяна на " + gain);
+}
+
+// Сначала занимает место потраченной ячейки; сверх максимума — slotsExtra,
+// такие ячейки исчезают на долгом отдыхе (rulesLongRest).
+function flexPointsToSlot(id, lvl) {
+  var c = _crFlexContext(id);
+  var cost = CR_FLEX_COST[lvl];
+  if (!c || !cost || c.max - c.used < cost) return;
+  if (c.res.flexMinLevel && (c.res._clsLevel || c.char.level || 1) < c.res.flexMinLevel[lvl]) return;
+  var sp = c.char.spells;
+  if (!sp.slotsUsed) sp.slotsUsed = {};
+  if ((sp.slotsUsed[lvl] || 0) > 0) {
+    sp.slotsUsed[lvl]--;
+  } else {
+    if (!sp.slotsExtra) sp.slotsExtra = {};
+    sp.slotsExtra[lvl] = (sp.slotsExtra[lvl] || 0) + 1;
+    sp.slots[lvl] = (sp.slots[lvl] || 0) + 1;
+  }
+  c.char.resources[id] = c.used + cost;
+  _crFlexDone(c, "создана ячейка " + lvl + " ур. за " + cost);
+}
+
+// PLAY5-3 (PT-779): Восстановление магии 2024 — очки, не больше ½ уровня чародея (вниз)
+function crPointRecoveryAmount(res, char) {
+  if (char.resources[res.id]) return 0;
+  return Math.min(char.resources[res.pointRecovery] || 0, Math.floor((res._clsLevel || 1) / 2));
+}
+
+function crPointRecoveryActs(res, char) {
+  var n = crPointRecoveryAmount(res, char);
+  if (!n) return "";
+  return '<button type="button" class="hp-act" onclick="recoverPointsByResource(\'' + escapeHtml(res.id) + '\')">Вернуть ' + n + ' очк.</button>';
+}
+
+function recoverPointsByResource(id) {
+  if (!currentId) return;
+  var char = getCurrentChar();
+  if (!char) return;
+  initCharResources(char);
+  var data = getCharResourceDefs(char);
+  var res = data ? data.resources.find(function(r) { return r.id === id && r.pointRecovery; }) : null;
+  if (!res || getResourceMax(res, char) === 0) return;
+  var n = crPointRecoveryAmount(res, char);
+  if (!n) return;
+  char.resources[res.pointRecovery] -= n;
+  char.resources[id] = 1;
+  if (window.AppLog) AppLog.action("spells", res.name + ": возвращено очков " + n);
+  saveToLocal();
+  renderClassResources();
+  if (typeof _restRefreshRecovery === "function") _restRefreshRecovery();
+}
+
+// PLAY5-3 (PT-451): Знамение — числа к20 в char.resources.portent_rolls, счётчик
+// потраченных в char.resources.portent; долгий отдых сбрасывает счётчик и бросает заново.
+function crPortentRolls(char) {
+  return Array.isArray(char.resources.portent_rolls) ? char.resources.portent_rolls : [];
+}
+
+function crPortentMeta(char, used, max) {
+  var rolls = crPortentRolls(char);
+  if (rolls.length) return '<span class="hp-row-meta">' + rolls.map(function(n) { return "<b>" + n + "</b>"; }).join(" · ") + "</span>";
+  return '<span class="hp-row-meta">' + (used >= max ? "потрачены" : "после долгого отдыха") + "</span>";
+}
+
+function crPortentActs(char) {
+  return crPortentRolls(char).map(function(n, i) {
+    return '<button type="button" class="hp-act" onclick="usePortent(' + i + ')">Использовать ' + n + "</button>";
+  }).join("");
+}
+
+function _crPortentContext() {
+  if (!currentId) return null;
+  var char = getCurrentChar();
+  if (!char) return null;
+  initCharResources(char);
+  var data = getCharResourceDefs(char);
+  var res = data ? data.resources.find(function(r) { return r.portent; }) : null;
+  return res ? { char: char, res: res, max: getResourceMax(res, char) } : null;
+}
+
+function crRollPortent(res, char) {
+  var max = getResourceMax(res, char), rolls = [];
+  for (var i = 0; i < max; i++) rolls.push(Math.floor(Math.random() * 20) + 1);
+  char.resources.portent_rolls = rolls;
+  if (rolls.length && window.AppLog) AppLog.action("dice", "Знамение: " + rolls.join(", "));
+}
+
+function usePortent(idx) {
+  var c = _crPortentContext();
+  if (!c) return;
+  var rolls = crPortentRolls(c.char);
+  if (idx < 0 || idx >= rolls.length) return;
+  var n = rolls.splice(idx, 1)[0];
+  c.char.resources.portent = (c.char.resources.portent || 0) + 1;
+  if (window.AppLog) AppLog.action("dice", "Знамение использовано: " + n);
+  saveToLocal();
+  renderClassResources();
 }
 
 // AUD-9 (L35): «Магическое» и «Естественное восстановление» — ячейки суммарным
@@ -676,6 +842,7 @@ function recoverSlotByResource(id, lvl) {
   saveToLocal();
   renderClassResources();
   if (typeof renderSpellSlots === "function") renderSpellSlots();
+  if (typeof _restRefreshRecovery === "function") _restRefreshRecovery();
 }
 
 // PT-033: строка «Боевой стиль: выбрать…» в пассивках — выбранным стилем
@@ -829,7 +996,7 @@ function spendResource(id, delta) {
   if (!res) return;
   var max = getResourceMax(res, char);
   var used = char.resources[id] || 0;
-  used = Math.min(max, Math.max(0, used + delta));
+  used = max === 99 ? 0 : Math.min(max, Math.max(0, used + delta));
   char.resources[id] = used;
   if (navigator.vibrate) navigator.vibrate(8);
   saveToLocal();
@@ -901,8 +1068,12 @@ function resetResourcesByRest(restType) {
     var before = char.resources[res.id] || 0;
     if (restType === "long") {
       if (res.restoreOn !== "none") char.resources[res.id] = 0;
+      if (res.portent) crRollPortent(res, char);
     } else if (restType === "short" && (res.restoreOn === "short" || (res.shortFromLevel && (res._clsLevel || char.level || 1) >= res.shortFromLevel))) {
       char.resources[res.id] = 0;
+    } else if (restType === "short" && res.shortRegain && (res._clsLevel || char.level || 1) >= res.shortRegain.from) {
+      // PT-765: Чародейское восстановление 2014 — 4 единицы на 20 ур.
+      char.resources[res.id] = Math.max(0, (char.resources[res.id] || 0) - res.shortRegain.amount);
     } else if (restType === "short" && res.restoreShortOne) {
       // E24-8: одно использование за короткий отдых (Ярость, Второе дыхание 2024)
       char.resources[res.id] = Math.max(0, (char.resources[res.id] || 0) - 1);

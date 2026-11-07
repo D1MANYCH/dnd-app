@@ -43,7 +43,7 @@ function wsLimitsText(lim, char) {
   else if (lim.noFly) parts.push("без\u00a0полёта");
   parts.push("до " + lim.durationH + " ч");
   parts.push(lim.action === "bonus" ? "бонусным действием" : "действием");
-  parts.push("зарядов " + wsChargesLeft(char));
+  parts.push(wsChargesLeft(char) === 99 ? "без\u00a0лимита" : "зарядов " + wsChargesLeft(char));
   return parts.join(" · ");
 }
 
