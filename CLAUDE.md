@@ -3,21 +3,19 @@
 Project context. Read first in every new chat. Written in English to save context; **all chat prose, UI text, commits, changelog and PR reviews stay Russian**.
 
 ## Session protocol (token economy)
-- Cost scales with **turns**, not words: batch independent reads/searches/edits into one message; run long commands in the background instead of polling.
-- Show diffs or changed fragments, never reprint a file. Don't re-read what is already in context. Don't re-run a check that passed until code changed.
+- Don't re-run a check that passed until code changed.
 - Unknown path → `Grep`, not a question. Ask only when the answer changes the whole approach.
 - Big files (`spells.js`, `data.js`, `character-builds.js`, `build-notes-data.js`, `index.html`) — `Grep` plus `Read` with `offset`/`limit`, never whole. One full read of those stays in context for the rest of the session and is billed on every later request.
-- **Session cap: 150 model requests or 200k context.** At the cap — `/carry`, then `/clear`, even mid-task. Measured on this repo: sessions over 300 requests burned 72% of all tokens ever spent; context grows ~0.7k per request, so one 600-request session costs four 150-request ones. The global `Stop` hook (`~/.claude/hooks/session-handoff.js`) warns at 120 requests / 150k with the API-rate cost, and at 150 / 200k makes the model append a handoff + a paste-ready message for a new chat.
+- **Session cap** (numbers in the global CLAUDE.md): at the cap — `/carry`, then `/clear`, even mid-task. Measured on this repo: sessions over 300 requests burned 72% of all tokens ever spent; context grows ~0.7k per request. The global `Stop` hook (`~/.claude/hooks/session-handoff.js`) warns before the cap and at it makes the model append a handoff + a paste-ready message.
 - **Never park a big session on a pause.** The prompt cache TTL is 1h; coming back after it rewrites the whole prefix at write rates — measured here, 114k written per request after a >60min gap vs 5k working straight through, 86% of the context. Before a break: `/carry` → `/clear`. Cache writes are 37% of the bill (`node tools/cache-write-report.js`), and 75% of them are the ~5k every single step writes — one more reason to batch tool calls.
-- **Never read the same file twice in one session** — measured 32% of all read volume was re-reads (`style.css` alone: 266). What was read is still in context; scroll back instead. If a file changed since, read only the changed range.
-- Before touching `style.css`, `index.html` or a big JS module: `Read docs/map.md` **limit 20** (its TOC), then a ranged read of the section you need, then the ranged read of the file itself. Regenerate with `node tools/gen-map.js` after large structural edits.
+- Measured here: 32% of all read volume was re-reads (`style.css` alone: 266). If a file changed since, read only the changed range.
+- Before touching `style.css`, `index.html` or a big JS module: `Read docs/map.md` **limit 52** (its per-file TOC), then a ranged read of the section you need, then the ranged read of the file itself. Regenerate with `node tools/gen-map.js` after large structural edits.
 - Any UI/CSS/preview check goes to the `verifier` subagent — screenshots and browser dumps must never land in the main context (measured 459 images and ~130M carried tokens). One `verifier` call per phase, after all edits, with a short checklist; none when nothing visible changed (`/test` covers logic).
 - Subagents only for wide repo search, browser verification (`verifier`) or mechanical routine on a cheap model. Never spawn one for a single command — it starts cold and re-reads everything.
 - Routine (boilerplate, renames, small fixes) — no extended reasoning.
-- Report: what changed / what to check. No task restatement, no unrequested docs or refactors. Task closed → 2-line handoff summary, then suggest `/clear`.
 
 ## Stack
-- Vanilla JS + HTML + CSS, **no bundler**, no npm runtime deps (npm is for tools only).
+- Vanilla JS + HTML + CSS, **no bundler**, no npm runtime deps (no `package.json`).
 - PWA: `sw.js` (`CACHE_NAME` shaped `dnd-sheet-vN` + `FILES_TO_CACHE`) + `manifest.json`.
 - Vendored: `vendor/dice-box/` (3D dice, WebGL), `vendor/jspdf/` (PDF).
 
@@ -34,9 +32,9 @@ Line-level map for ranged reads (CSS sections, markup blocks, function and data-
 
 ## Code conventions
 - Modules are plain `<script src>` at the bottom of `index.html` in a **hard order**: `app-log` → `icons` → backgrounds → data → `app-core` → tabs → `app-ui`/`app-notes`/`app-desktop`/`app-help`. The only `type="module"` is the dice-box wrapper.
-- Everything is exchanged through globals: top-level `function f()`, no exports. `index.html` holds ~460 inline handlers (`onclick=`, `oninput=`) calling them by name — wrapping such a file in an IIFE breaks the tab. IIFE only in the self-contained `app-log.js` / `icons.js` / `history-stack.js` / `bg-space.js` / `dice-arena-bg.js`, which publish via `window.X`.
+- Everything is exchanged through globals: top-level `function f()`, no exports. `index.html` holds hundreds of inline handlers (`onclick=`, `oninput=`) calling them by name — wrapping such a file in an IIFE breaks the tab. IIFE only in the self-contained `app-log.js` / `icons.js` / `history-stack.js` / `bg-space.js` / `dice-arena-bg.js`, which publish via `window.X`.
 - ES5 style: `var`, almost no arrows or template strings. Match the surrounding code.
-- Heavy files load lazily via `loadScript()` at the bottom of `index.html`: `app-pdf` + `vendor/jspdf`, `build-notes-data`, `monsters-srd` + `npc-srd`, `magic-items`, `gear-catalog`, `data-2024`. Their `?v=` tokens live there too.
+- Heavy files load lazily via `loadScript()` at the bottom of `index.html`: `app-pdf` + `vendor/jspdf`, `character-builds`, `build-notes-data`, `notes-gen-data`, `beast-forms`, `monsters-srd` + `npc-srd`, `magic-items`, `gear-catalog`, `data-2024`. Their `?v=` tokens live there too.
 - New js/css file → wire it in `index.html` (`<script src>` or `loadScript`) + `?v=` token + a line in `FILES_TO_CACHE` (`sw.js`). All three are enforced by `tools/check-invariant.js` in CI; missing any one turns the `tests` job red.
 - UI and terminology are Russian, canon is the 5e 2014 books; the 2024 edition lives behind `char.edition` (`EDITION_DATA`/`edData`).
 
@@ -55,6 +53,8 @@ APP_VERSION ↔ APP_CHANGELOG[0].version ↔ CACHE_NAME (dnd-sheet-vN) ↔ every
 `/bump <patch|minor|major> "<changelog>" [--type chore|feat|fix]` edits them, then `/preflight`. Mechanics and failure modes — skill `release`.
 
 **`/ship`** runs the whole cycle: it reads the diff, decides whether a bump is needed (changes only under `.claude/`, `tools/`, `docs/` go as a plain commit without a version), writes the level and changelog text, then the `releaser` subagent does tests → bump → invariant → commit → push → CI wait, and `relpost` returns the announcement. Commit and push happen **only** on this command.
+
+Phases are worked directly on `main`, no per-phase branches. At most **one release per day** except critical fixes: phases of the same day pile up on `main` without push and go out in a single `/ship`.
 
 Releases are described on three levels, all generated from `APP_CHANGELOG` + git: short — `CHANGELOG.md` and the in-app history window; detailed — `docs/RELEASES.md`; full patch — the GitHub `compare/` link. Both generators run from `/bump`; `/relpost` builds the announcement.
 

@@ -3,11 +3,7 @@ disable-model-invocation: true
 description: Check release readiness — tests, versions, CACHE_NAME
 ---
 Запусти параллельно:
-1. `node tests/headless-node.js` — показать итог одной строкой.
-2. Прочитай `data.js` и найди `APP_VERSION` и первый элемент `APP_CHANGELOG` (его `version`).
-3. Прочитай `sw.js` и найди `CACHE_NAME`.
-
-Сверь: `APP_VERSION` === `APP_CHANGELOG[0].version`. Если рассинхрон — выведи список расхождений.
-Также проверь через `git log -1 --format=%s sw.js`: если последний коммит, менявший `sw.js`, не содержит upgrade `CACHE_NAME` (значение совпадает с предыдущим релизом) — предупреди о возможном забытом bump.
+1. `node tests/headless-node.js` — итог одной строкой.
+2. `node tools/check-invariant.js` — сверка `APP_VERSION` ↔ `APP_CHANGELOG[0].version` ↔ `CACHE_NAME` ↔ `?v=` ↔ `CHANGELOG.md`; расхождения — списком.
 
 Итог: `[preflight] OK` или нумерованный список проблем.

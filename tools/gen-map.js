@@ -11,13 +11,9 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(ROOT, 'docs', 'map.md');
 
-const JS_FILES = [
-  'rules.js', 'app-core.js', 'app-migrate.js', 'app-builds.js', 'app-io.js',
-  'app-combat.js', 'app-conditions.js', 'app-cast-effects.js', 'app-proficiencies.js',
-  'app-hp.js', 'app-inventory.js', 'app-spells.js', 'app-party.js', 'app-notes.js',
-  'app-ui.js', 'app-dice.js', 'app-settings.js', 'app-asi.js', 'app-progress.js',
-  'app-desktop.js', 'app-help.js', 'app-backup.js', 'app-pdf.js', 'app-home.js',
-];
+const JS_FILES = ['rules.js'].concat(fs.readdirSync(ROOT).filter(function (f) {
+  return f.startsWith('app-') && f.endsWith('.js');
+}).sort());
 const DATA_FILES = [
   'data.js', 'data-2024.js', 'spells.js', 'spell-effects.js', 'character-builds.js',
   'build-notes-data.js', 'class-choices.js', 'subclass-choices-data.js',
@@ -139,15 +135,20 @@ function build() {
     '',
     '## Оглавление',
     '',
-    '| Раздел | Строки в map.md |',
+    '| Раздел / файл | Строки в map.md |',
     '|---|---|',
   ];
   const marker = [];
-  body.forEach(function (l, i) { if (/^## /.test(l)) marker.push({ t: l.slice(3), i }); });
+  body.forEach(function (l, i) {
+    if (/^## /.test(l)) marker.push({ t: l.slice(3), i, sec: true });
+    else if (l.startsWith('**')) marker.push({ t: '  ' + l.slice(2, l.indexOf('**', 2)), i });
+  });
   const tocLen = head.length + marker.length + 2;
   const toc = marker.map(function (m, k) {
     const start = tocLen + m.i + 1;
-    const end = k + 1 < marker.length ? tocLen + marker[k + 1].i : tocLen + body.length;
+    let n = k + 1;
+    while (m.sec && n < marker.length && !marker[n].sec) n++;
+    const end = n < marker.length ? tocLen + marker[n].i : tocLen + body.length;
     return '| ' + m.t + ' | ' + start + '–' + end + ' |';
   });
   return head.concat(toc, ['', ''], body).join('\n') + '\n';

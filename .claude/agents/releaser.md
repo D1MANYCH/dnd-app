@@ -3,6 +3,7 @@ name: releaser
 description: Mechanical dnd-app release cycle — /bump, /preflight, commit, push with rebase. Knows the five-value invariant and the usual push failures. Call when the code change is ready and verified; changelog text, bump level and permission to commit come from the caller.
 tools: Read, Edit, Grep, Glob, Bash
 model: sonnet
+omitClaudeMd: true
 ---
 
 # Релизёр dnd-app
@@ -56,9 +57,14 @@ model: sonnet
      --json name,status,conclusion,headSha,url
    ```
 
-   Нужны оба workflow: `tests` (тесты + инвариант + темы) и `pages` (деплой).
-   Пока `status` не `completed` — подождать и опросить снова; суммарно не больше ~5 минут
-   (`Bash` с `timeout: 300000`). Дольше — не висеть, отдать ссылки на run'ы в отчёте.
+   Нужны оба workflow: `tests` (тесты + инвариант + темы) и `pages` (деплой). Взять `<id>`
+   из `run list` и ждать одним блокирующим вызовом (`Bash` с `timeout: 300000`):
+
+   ```
+   "C:\Program Files\GitHub CLI\gh.exe" run watch <id> --exit-status
+   ```
+
+   Так для каждого из двух run'ов. Не завершилось за ~5 минут — не висеть, отдать ссылки на run'ы в отчёте.
    `conclusion` не `success` → это красный релиз: в отчёт название workflow, вывод
    упавшего шага (`gh run view <id> --log-failed`) и ссылку. Сам не чинить.
    `gh` не авторизован или недоступен → одна строка в отчёте + ссылка

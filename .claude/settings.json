@@ -15,7 +15,9 @@
       "mcp__Claude_Browser__find",
       "mcp__Claude_Browser__form_input",
       "mcp__Claude_Browser__resize_window",
-      "mcp__Claude_Browser__tabs_context"
+      "mcp__Claude_Browser__tabs_context",
+      "mcp__Claude_Browser__browser_batch",
+      "Bash(\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" run watch:*)"
     ]
   },
   "hooks": {

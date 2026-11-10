@@ -14,6 +14,8 @@ Preview checks are the dirtiest source of main-context growth: a screenshot cost
 
 Default: hand the whole check to `verifier` (task = what changed, what to look at, what counts as a pass) and take back only its verdict. Anything it read dies with it.
 
+One `verifier` run per phase: after ALL edits, with the full checklist (≤ 6 items) — never one per edit (measured 10.11: 22 of 77 sessions launched it 2–7 times, a third of all runs). Rerun only after a code change that fixes a FAIL, and pass only the failed items.
+
 Inline in the main chat only when: the check is a single `javascript_tool` call whose answer is one line, or the page already holds mid-flow state that a fresh agent cannot reproduce. Screenshots are never inline — always through `verifier`.
 
 ## 1. The SW serves stale code ("my edit is invisible")
