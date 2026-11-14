@@ -1266,6 +1266,92 @@ if (!char) return;
 // SHARE-1: конверт (история ХП, свои заклинания, ссылки на книжные) — app-io.js.
 _downloadText(_buildCharEnvelope(char), _charExportFileName(char));
 }
+// Режим выделения на экране «Ваши персонажи»: клик по строке отмечает героя,
+// панель над списком работает с отмеченными (выгрузить, дублировать, удалить).
+var charSelectMode = false;
+var charSelected = {};
+var _charVisibleIds = [];
+function toggleCharSelectMode(on) {
+charSelectMode = (typeof on === "boolean") ? on : !charSelectMode;
+charSelected = {};
+var t = $("char-select-toggle");
+if (t) { t.textContent = charSelectMode ? "Готово" : "Выбрать"; t.setAttribute("aria-pressed", charSelectMode ? "true" : "false"); }
+var bar = $("char-select-bar");
+if (bar) bar.hidden = !charSelectMode;
+renderCharacterList();
+}
+function _charSelectedList() {
+return characters.filter(function(c) { return charSelected[c.id]; });
+}
+function _updateCharSelectBar() {
+var n = _charSelectedList().length;
+var cnt = $("char-select-count");
+if (cnt) cnt.textContent = "Выбрано: " + n;
+var all = $("char-select-all");
+if (all) {
+  var allOn = _charVisibleIds.length > 0 && _charVisibleIds.every(function(id) { return charSelected[id]; });
+  all.textContent = allOn ? "Снять все" : "Все";
+}
+var rows = document.querySelectorAll("#character-list .home-menu-item[data-char-id]");
+for (var i = 0; i < rows.length; i++) {
+  var on = !!charSelected[rows[i].getAttribute("data-char-id")];
+  rows[i].classList.toggle("is-selected", on);
+  if (charSelectMode) rows[i].setAttribute("aria-pressed", on ? "true" : "false");
+  else rows[i].removeAttribute("aria-pressed");
+}
+}
+function toggleCharSelected(id) {
+if (charSelected[id]) delete charSelected[id]; else charSelected[id] = true;
+_updateCharSelectBar();
+}
+function charSelectAll() {
+var allOn = _charVisibleIds.length > 0 && _charVisibleIds.every(function(id) { return charSelected[id]; });
+_charVisibleIds.forEach(function(id) { if (allOn) delete charSelected[id]; else charSelected[id] = true; });
+_updateCharSelectBar();
+}
+function _charSelectEmptyToast() {
+if (typeof showToast === "function") showToast("Сначала отметьте персонажей в списке", "warn");
+}
+function exportSelectedCharacters() {
+var list = _charSelectedList();
+if (!list.length) return _charSelectEmptyToast();
+if (list.length === 1) return _downloadText(_buildCharEnvelope(list[0]), _charExportFileName(list[0]));
+var d = new Date();
+_downloadText(_buildCharsEnvelope(list), "персонажи_" + list.length + "_" + d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0") + ".json");
+}
+function duplicateSelectedCharacters() {
+var list = _charSelectedList();
+if (!list.length) return _charSelectEmptyToast();
+var base = Date.now();
+list.forEach(function(orig, i) {
+  var copy = JSON.parse(JSON.stringify(orig));
+  copy.id = base + i;
+  copy.name = (orig.name || "Без имени") + " (копия)";
+  copy.updatedAt = base + i;
+  characters.push(copy);
+});
+charSelected = {};
+saveToLocal();
+renderCharacterList();
+}
+function deleteSelectedCharacters() {
+var list = _charSelectedList();
+if (!list.length) return _charSelectEmptyToast();
+var names = list.slice(0, 3).map(function(c) { return "«" + (c.name || "Без имени") + "»"; }).join(", ") +
+  (list.length > 3 ? " и ещё " + (list.length - 3) : "");
+showConfirmModal(
+  list.length === 1 ? "Удалить персонажа?" : "Удалить персонажей: " + list.length + "?",
+  names + " — удаление без возможности восстановления. Сохранить копию можно кнопкой «Выгрузить».",
+  function() {
+    characters = characters.filter(function(c) { return !charSelected[c.id]; });
+    list.forEach(function(c) { if (typeof syncTombstone === "function") syncTombstone(c.id); });
+    charSelected = {};
+    saveToLocal();
+    if (!characters.length) toggleCharSelectMode(false); else renderCharacterList();
+  },
+  list.length === 1 ? "Удалить" : "Удалить " + list.length
+);
+}
 function updateCharCounter() {
 var el = $("char-count");
 if (!el) return;
@@ -1324,6 +1410,8 @@ if (filtered.length === 0) {
   list.innerHTML = characters.length === 0
     ? "<li class=\"empty-list\">" + dndIcoHtml("inbox", 22) + " Список пуст. Создайте персонажа!</li>"
     : "<li class=\"empty-list\">" + dndIcoHtml("search", 22) + " Ничего не\u00a0найдено</li>";
+  _charVisibleIds = [];
+  _updateCharSelectBar();
   renderCharPlate(null);
   return;
 }
@@ -1340,6 +1428,7 @@ if (edSplit) {
   filtered = ed14.concat(ed24);
 }
 var _lastEd = null;
+_charVisibleIds = filtered.map(function(c) { return String(c.id); });
 filtered.forEach(function(char, _idx) {
 var charEd = char.edition === "2024" ? "2024" : "2014";
 if (edGroups && charEd !== _lastEd) {
@@ -1352,7 +1441,7 @@ _lastEd = charEd;
 const li = document.createElement("li");
 li.className = "home-menu-row char-menu-row rise";
 li.style.setProperty("--i", Math.min(_idx, 10)); // Дымка v5: stagger-появление (кап 10)
-li.draggable = true;
+li.draggable = !charSelectMode;
 li.addEventListener("dragstart", function(e) { onDragStart(e, char.id); li.style.opacity = "0.5"; });
 li.addEventListener("dragend", function() { li.style.opacity = "1"; });
 li.addEventListener("dragover", onDragOver);
@@ -1362,7 +1451,10 @@ var btn = document.createElement("button");
 btn.type = "button";
 btn.className = "home-menu-item list-row";
 btn.setAttribute("data-char-id", char.id);
-btn.onclick = function() { openCharOrCreator(char.id); };
+btn.onclick = function() {
+  if (charSelectMode) { toggleCharSelected(String(char.id)); renderCharPlate(char); return; }
+  openCharOrCreator(char.id);
+};
 // Плашка следует за курсором и фокусом — на клавиатуре список читается так же.
 btn.addEventListener("mouseenter", function() { renderCharPlate(char); });
 btn.addEventListener("focus", function() { renderCharPlate(char); });
@@ -1379,6 +1471,7 @@ list.appendChild(li);
 // По умолчанию в плашке — первый в текущей сортировке (при «Изменён» это
 // последний изменённый герой, как «Последний герой» на встречающем экране).
 renderCharPlate(filtered[0]);
+_updateCharSelectBar();
 }
 
 /** Плашка героя на экране выбора: эмблема, имя, сводка, чипы и действия. */

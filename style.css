@@ -799,6 +799,16 @@ html.glass-adjusting *::after {
 @media (hover: hover) { .char-hero-act:hover { background: none; box-shadow: none; color: var(--accent-lo); } }
 .char-hero-act-del:focus-visible { color: var(--danger); }
 @media (hover: hover) { .char-hero-act-del:hover { color: var(--danger); } }
+/* Режим выделения в списке персонажей: панель действий + отмеченные строки */
+.char-select-toggle { margin-left: auto; }
+.char-select-toggle[aria-pressed="true"] { color: var(--accent-lo); }
+.char-select-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 0 var(--sp-4); }
+.char-select-bar[hidden] { display: none; }
+.char-select-count { font-size: var(--fs-12); color: var(--text-mute); margin-right: auto; }
+#character-list .home-menu-item[aria-pressed] .home-bullet { background: none; }
+#character-list .home-menu-item.is-selected { border-left-color: var(--home-accent); }
+#character-list .home-menu-item.is-selected .home-bullet { background: var(--home-accent); transform: rotate(135deg); }
+#character-list .home-menu-item.is-selected .home-menu-label { color: var(--accent-lo); }
 /* На планшете и телефоне плашка уходит под список */
 @media (max-width: 900px) {
   .page-stage--split { flex-direction: column; }

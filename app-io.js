@@ -280,6 +280,32 @@ function _buildCharEnvelope(char) {
     userSpells: _collectCharUserSpells(char)
   });
 }
+// Конверт нескольких персонажей (выгрузка выбранных) — тот же формат, что у одного.
+function _buildCharsEnvelope(list) {
+  var ids = {}, spells = [], seen = {};
+  list.forEach(function(c) {
+    ids[c.id] = true;
+    _collectCharUserSpells(c).forEach(function(s) {
+      var key = String(s.id);
+      if (seen[key]) return;
+      seen[key] = true;
+      spells.push(s);
+    });
+  });
+  var hp = (typeof hpHistory !== 'undefined' && Array.isArray(hpHistory))
+    ? hpHistory.filter(function(h) { return h && ids[h.charId]; })
+    : [];
+  return JSON.stringify({
+    app: "dnd-sheet",
+    format: CHAR_EXPORT_FORMAT,
+    appVersion: (typeof APP_VERSION !== 'undefined') ? APP_VERSION : "",
+    schemaVersion: (typeof SCHEMA_VERSION !== 'undefined') ? SCHEMA_VERSION : 0,
+    exportedAt: new Date().toISOString(),
+    characters: list.map(_packCharForExport),
+    hpHistory: hp,
+    userSpells: spells
+  }, null, 2);
+}
 function _charExportFileName(char) {
   return (char.name || "персонаж").replace(/[^a-zA-Zа-яА-Я0-9]/g, "_") + ".json";
 }
