@@ -3,48 +3,71 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v5.5.0**.
+Актуальная версия — **v5.5.1**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v5.5.1"></a>
+## v5.5.1 — 15 ноября 2026
+
+🐛 шапка реестра характеристик выровнена по колонкам — «Значение», «Мод» и «Спасбросок» стоят ровно над числами; колонка спасброска 110 px, числа и подписи по центру, значок кубика не сдвигает число
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/9225e745...main) · 5 файлов, +77 −64
+
+<details><summary>Файлы</summary>
+
+_Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
+
+**Файлы (5):**
+
+- `index.html` +53 −53
+- `style.css` +7 −7
+- `data.js` +10 −2
+- `CHANGELOG.md` +6 −1
+- `sw.js` +1 −1
+
+</details>
+
 <a id="v5.5.0"></a>
 ## v5.5.0 — 15 ноября 2026
 
 ✨ список персонажей: режим выделения — кнопка «Выбрать» над списком, отметка строк кликом, «Все»/«Снять все»; для отмеченных: выгрузка одним файлом (с историей ХП и своими заклинаниями), дублирование, удаление с подтверждением
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/afe33ac4...main) · 20 файлов, +530 −248
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/afe33ac4...9225e745) · 21 файлов, +557 −299
 
 <details><summary>Коммиты и файлы</summary>
 
-**Коммиты (1):**
+**Коммиты (2):**
 
 - [`61a8c178`](https://github.com/D1MANYCH/dnd-app/commit/61a8c178) chore(claude): аудит настроек — бюджет verifier, модель чата по фазам, работа в main, один релиз в день
+- [`9225e745`](https://github.com/D1MANYCH/dnd-app/commit/9225e745) v5.5.0: feat(персонажи): режим выделения в списке — выгрузка, дублирование и удаление нескольких персонажей
 
-**Файлы (20):**
+**Файлы (21):**
 
-- `docs/map.md` +174 −76
+- `docs/map.md` +227 −178
 - `index.html` +61 −53
 - `app-core.js` +95 −2
-- `.claude/skills/faza/SKILL.md` +44 −16
-- `tools/gen-map.js` +22 −20
-- `CLAUDE.md` +18 −18
-- `.claude/agents/verifier.md` +18 −10
+- `docs/RELEASES.md` +47 −5
+- `.claude/skills/faza/SKILL.md` +22 −8
 - `app-io.js` +26 −0
-- `.claude/agents/releaser.md` +18 −6
-- `.claude/skills/release/SKILL.md` +6 −14
-- `.claude/commands/preflight.md` +4 −12
-- `.claude/commands/relpost.md` +2 −12
+- `tools/gen-map.js` +11 −10
+- `CLAUDE.md` +9 −9
+- `.claude/agents/verifier.md` +9 −5
 - `data.js` +11 −3
+- `.claude/agents/releaser.md` +9 −3
+- `.claude/skills/release/SKILL.md` +3 −7
 - `style.css` +10 −0
-- `.claude/settings.json` +6 −2
+- `.claude/commands/preflight.md` +2 −6
+- `.claude/commands/relpost.md` +1 −6
 - `CHANGELOG.md` +6 −1
-- `.claude/commands/phase.md` +2 −2
-- `.claude/skills/verify-ui/SKILL.md` +4 −0
-- `.claude/agents/relpost.md` +2 −0
+- `.claude/settings.json` +3 −1
+- `.claude/commands/phase.md` +1 −1
+- `.claude/skills/verify-ui/SKILL.md` +2 −0
 - `sw.js` +1 −1
+- `.claude/agents/relpost.md` +1 −0
 
 </details>
 

@@ -13230,8 +13230,8 @@ html[data-stats-layout="2024"] .abil-cols {
 }
 .abil-cols .ac-nm { flex: 1 1 auto; min-width: 0; }
 .abil-cols .ac-sc { flex: 0 0 96px; text-align: center; }
-.abil-cols .ac-md { flex: 0 0 62px; text-align: right; }
-.abil-cols .ac-sv { flex: 0 0 78px; text-align: right; }
+.abil-cols .ac-md { flex: 0 0 62px; text-align: center; }
+.abil-cols .ac-sv { flex: 0 0 110px; text-align: center; }
 
 /* ── Строка характеристики ── */
 html[data-stats-layout="2024"] .abil-card {
@@ -13448,7 +13448,7 @@ html[data-stats-layout="2024"] .abil-card-mod {
   font-size: var(--fs-18);
   font-weight: var(--fw-bold);
   color: var(--accent-lo);
-  justify-content: flex-end;
+  justify-content: center;
   gap: var(--sp-1);
 }
 @media (hover: hover) { html[data-stats-layout="2024"] .abil-card-mod:hover { color: var(--accent); } }
@@ -13459,6 +13459,7 @@ html[data-stats-layout="2024"] .abil-card-mod::after {
   opacity: 0.45;
   align-self: flex-start;
   margin-top: 2px;
+  margin-right: calc(-12px - var(--sp-1));
 }
 
 /* ── Спасбросок: число в строке, «Владение» — в раскрытии ──
@@ -13474,13 +13475,14 @@ html[data-stats-layout="2024"] .abil-save-slot .save-value { display: contents; 
 html[data-stats-layout="2024"] .abil-save-slot .save-label-2024 { display: none; }
 html[data-stats-layout="2024"] .abil-save-slot .save-bonus {
   order: 4;
-  flex: 0 0 78px;
-  text-align: right;
+  flex: 0 0 110px;
+  text-align: center;
   font-size: 1em;
   font-weight: var(--fw-semibold);
   color: var(--home-sub);
   padding: var(--sp-1) 0;
 }
+html[data-stats-layout="2024"] .abil-save-slot .save-bonus-clickable::after { margin-right: calc(-12px - var(--sp-2)); }
 html[data-stats-layout="2024"] .abil-save-slot .save-item.proficient .save-bonus {
   color: var(--accent-lo);
   font-weight: var(--fw-bold);
@@ -13559,8 +13561,6 @@ html[data-stats-layout="2024"] .legacy-skills-card { display: none; }
     html[data-stats-layout="2024"] body:not(#_):not(#_) .abil-card-name { font-size: var(--fs-14); }
     html[data-stats-layout="2024"] .abil-card-mod,
     .abil-cols .ac-md { flex-basis: 52px; }
-    html[data-stats-layout="2024"] .abil-save-slot .save-bonus,
-    .abil-cols .ac-sv { flex-basis: 64px; }
   }
 }
 
