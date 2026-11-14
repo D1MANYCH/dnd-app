@@ -16205,6 +16205,7 @@ button.modal-close-bottom,
 :root #s2-pop .n { margin-top:var(--sp-2);font-size:var(--fs-12);color:var(--danger) }
 :root :is(#sheet2, .s2-box) .s2-prof { display:inline-block;width:17px;color:var(--text);font-size:var(--fs-12) }
 :root :is(#sheet2, .s2-box) .s2-noprof { display:inline-block;width:17px;color:var(--text-mute);font-size:var(--fs-12) }
+:root :is(#sheet2, .s2-box) .s2-sk :is(.s2-prof, .s2-noprof) { width:auto;min-width:2.4em;white-space:nowrap }
 :root :is(#sheet2, .s2-box) .s2-skills { columns:3;column-gap:var(--sp-6) }
 :root :is(#sheet2, .s2-box) .s2-sg { break-inside:avoid;margin-bottom:var(--sp-3) }
 :root :is(#sheet2, .s2-box) .s2-sg h4 { font:600 12px var(--font-display);color:var(--text-mute);margin:0 0 2px;text-transform:uppercase;letter-spacing:.04em }
