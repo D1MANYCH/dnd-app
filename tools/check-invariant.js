@@ -154,6 +154,16 @@ function checkInvariant(root) {
     }
   }
 
+  // 8. sw.js: FILE_HASHES совпадает с файлами прекеша (ОБН-1). Устаревший хэш
+  //    безопасен для клиента (файл уйдёт в сеть), но отключает дельта-обновление.
+  try {
+    require('./file-hashes.js').diffHashes(root, swSrc).forEach(function (p) {
+      problems.push(p + ' — обновить: node tools/file-hashes.js --write');
+    });
+  } catch (e) {
+    problems.push('sw.js: хэши прекеша не сверены: ' + e.message);
+  }
+
   // 7. CHANGELOG.md: первый заголовок ## vX.Y.Z === APP_VERSION
   const mdVer = (mdSrc.match(/^## v(\d+\.\d+\.\d+)/m) || [])[1];
   if (!mdVer) {

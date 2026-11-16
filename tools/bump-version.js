@@ -224,6 +224,15 @@ function main() {
   console.log(`index.html: ${indexRes.count} ?v= токенов → v${swRes.newN}`);
   console.log(`changelog: [${type}] ${text}`);
 
+  // ОБН-1: хэши файлов прекеша — после записи data.js и index.html, они в списке.
+  try {
+    const hr = require('./file-hashes.js').writeHashes(ROOT);
+    console.log(`sw.js:      FILE_HASHES — ${hr.count} файлов`);
+  } catch (e) {
+    console.error('ERROR: хэши прекеша не записаны (' + String(e.message || e).split('\n')[0] + '). Прогоните: node tools/file-hashes.js --write');
+    process.exitCode = 1;
+  }
+
   // CHANGELOG.md — производный артефакт из APP_CHANGELOG. Перегенерируем,
   // чтобы релиз был полным. Soft-fail: не падаем, чтобы не оставить bump
   // в полу-записанном состоянии (data/sw/index уже на диске).
