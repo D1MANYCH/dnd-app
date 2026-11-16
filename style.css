@@ -6127,6 +6127,10 @@ transition: width var(--t3, 420ms) var(--ez-spring, ease), background var(--t3);
   padding-top: var(--sp-3);
   border-top: 1px solid var(--home-rule);
 }
+#screen-levelup .page-stage { display: flex; flex-direction: column; padding-bottom: 0; min-height: calc(100vh / var(--fs-zoom, 1)); min-height: calc(100dvh / var(--fs-zoom, 1)); }
+#lu-screen-multiclass { padding-bottom: var(--sp-5); }
+#screen-levelup .page-stage > [id^="lu-screen-"] { flex: 1 0 auto; display: flex; flex-direction: column; }
+#screen-levelup .lu-footer { margin-top: auto; position: sticky; bottom: 0; z-index: 5; padding-bottom: calc(var(--sp-3) + env(safe-area-inset-bottom, 0px)); background: var(--bg-0); }
 .lu-btn-confirm {
   flex: 0 0 auto;
   min-height: 44px;

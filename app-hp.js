@@ -305,6 +305,7 @@ if (totalLevel >= 20) { showToast("Максимальный уровень до�
 
 _luMulticlassChoice = null;
 $("lu-screen-result").style.display = "none";
+$("lu-screen-choices").style.display = "none";
 if ($("lu-mc-switch")) $("lu-mc-switch").style.display = "none";
 
 // PLAY-1 (PT-046): один класс — сразу к предпросмотру, мультикласс по ссылке под кнопкой
@@ -656,6 +657,8 @@ const oldMaxHP = parseInt(char.combat.hpMax, 10) || 0;
 const oldProf = getProficiencyBonus(oldLevel);
 const conMod = getMod(char.stats.con);
 var oldHpBase = rulesMaxHPBase(char, conMod);
+var oldSlots = Object.assign({}, (char.spells && char.spells.slots) || {});
+var oldRes = _luResMap(char);
 
 // Определяем какой класс повышаем
 var choice = _luMulticlassChoice;
@@ -742,13 +745,13 @@ if (subclassName && edData(char).SUBCLASS_FEATURES[subclassName] && edData(char)
   resultLines.push("" + dndIcoHtml("focus", 13) + " " + escapeHtml(subclassName) + ": " + escapeHtml(subNames.join(", ")));
 }
 if (isNewClass) resultLines.push("" + dndIcoHtml("plus", 13) + " Новый класс: " + className);
-if (luWasLocked) resultLines.push("" + dndIcoHtml("lock", 13) + " Лист открыт — выберите новые заклинания и\u00a0умения, затем нажмите «Персонаж готов»");
 
 // BUILD-LVL-4: сохраняем контекст и решаем — показать экран выборов или сразу результат.
 _luChoicesCtx = {
   newTotalLevel: newTotalLevel, className: className, classLevel: classLevel,
   subclassName: subclassName, isNewClass: isNewClass, resultLines: resultLines,
   hpFrom: oldMaxHP, hpGain: hpGain,
+  oldSlots: oldSlots, oldRes: oldRes, luWasLocked: luWasLocked,
   resultTitle: classLabel + " · Уровень " + newTotalLevel + "!"
 };
 _luMulticlassChoice = null;
@@ -784,6 +787,40 @@ function _luShowResult() {
     lines[0] = "" + dndIcoHtml("heart", 13) + " ХП: " + ctx.hpFrom + " → " + hpNow + " (+" + ctx.hpGain + " за\u00a0уровень, " +
       (hpExtra > 0 ? "+" : "") + hpExtra + " от\u00a0черты и\u00a0характеристик)";
   }
+  if (char && ctx.hpFrom != null && hpNow !== ctx.hpFrom + ctx.hpGain) {
+    var jr = (typeof getJournal === "function") ? getJournal(char) : [];
+    for (var ji = 0; ji < jr.length && ji < 5; ji++) {
+      if (jr[ji].type === "levelup" && jr[ji].level === ctx.newTotalLevel && /^Достигнут /.test(jr[ji].text)) {
+        jr[ji].details = String(jr[ji].details || "").replace(/ХП: \d+ → \d+/, "ХП: " + ctx.hpFrom + " → " + hpNow);
+        saveToLocal();
+        if (typeof renderJournal === "function") renderJournal();
+        break;
+      }
+    }
+    if (window.AppLog) AppLog.action("character", "уровень → " + ctx.newTotalLevel + ": максимум ХП после выборов", { hp: ctx.hpFrom + "→" + hpNow });
+  }
+  if (char && ctx.className) {
+    var sl = (char.spells && char.spells.slots) || {}, slParts = [];
+    for (var si = 1; ctx.oldSlots && si <= 9; si++) {
+      var slNew = parseInt(sl[si], 10) || 0, slOld = parseInt(ctx.oldSlots[si], 10) || 0;
+      if (slNew > slOld) slParts.push(si + " ур.: " + slOld + " → " + slNew);
+    }
+    if (slParts.length) lines.push("" + dndIcoHtml("spells", 13) + " Ячейки заклинаний: " + slParts.join(" · "));
+    var rsThird = (ctxSub && ctx.classLevel >= 3 && typeof THIRD_CASTER_SUBCLASSES !== "undefined" && THIRD_CASTER_SUBCLASSES.indexOf(ctxSub) !== -1) ? ctxSub : null;
+    var rsGain = _luSpellGainParts(char, rsThird || ctx.className, ctx.classLevel);
+    if (rsGain.length) lines.push("" + dndIcoHtml("spells", 13) + " Заклинания: " + escapeHtml(rsGain.join(" · ")));
+    var nowRes = _luResMap(char);
+    Object.keys(nowRes).forEach(function(k) {
+      var o = ctx.oldRes && ctx.oldRes[k], n = nowRes[k], p = [];
+      if (!o || !o.max) return;
+      if (n.max > o.max) p.push(o.max + " → " + (n.max === 99 ? "без ограничений" : n.max));
+      if (n.die && o.die && n.die !== o.die) p.push("кость " + o.die + " → " + n.die);
+      if (p.length) lines.push("" + dndIcoHtml("zap", 13) + " " + escapeHtml(n.name) + ": " + escapeHtml(p.join(", ")));
+    });
+    var wmLeft = (typeof weaponMasteryPending === "function") ? weaponMasteryPending(char) : 0;
+    if (wmLeft > 0) lines.push("" + dndIcoHtml("target", 13) + " Мастерство оружия: осталось выбрать " + wmLeft + " — вкладка «Бой»");
+  }
+  if (ctx.luWasLocked) lines.push("" + dndIcoHtml("lock", 13) + " Лист открыт — выберите новые заклинания и умения, затем нажмите «Персонаж готов»");
   $("lu-screen-choices").style.display = "none";
   $("lu-screen-multiclass").style.display = "none";
   $("lu-screen-preview").style.display = "none";
@@ -797,7 +834,12 @@ function _luShowResult() {
 }
 
 // BUILD-LVL-4: завершить экран выборов → показать результат.
-function luFinishChoices() {
+function luFinishChoices(force) {
+  if (force !== true && _luChoicesOpen.length) {
+    showConfirmModal("Не всё выбрано", "Осталось выбрать: " + _luChoicesOpen.join("; ") + ". Выбор можно сделать и позже — он останется в списке «Осталось выбрать» на листе.",
+      function() { luFinishChoices(true); }, "Всё равно продолжить", { danger: false });
+    return;
+  }
   var char = getCurrentChar();
   if (char) { saveToLocal(); loadCharacter(currentId); if (typeof updateClassFeatures === "function") updateClassFeatures(); }
   _luShowResult();
@@ -1082,11 +1124,23 @@ function _luSpellGainParts(char, cn, clvl) {
   return parts;
 }
 
+var _luChoicesOpen = [];
+function _luResMap(char) {
+  var out = {};
+  var defs = (typeof getCharResourceDefs === "function") ? getCharResourceDefs(char) : null;
+  ((defs && defs.resources) || []).forEach(function(r) {
+    out[(r._cls || "") + "|" + (r.id || r.name)] = { name: r.name, max: getResourceMax(r, char), die: (typeof currentDieSize === "function") ? currentDieSize(r, r._clsLevel) : "" };
+  });
+  return out;
+}
+
 function luBuildChoicesScreen() {
   var char = getCurrentChar();
   var ctx = _luChoicesCtx;
   var body = $("lu-choices-body");
+  _luChoicesOpen = [];
   if (!char || !ctx || !body) return false;
+  var open = _luChoicesOpen;
   var b = (char.buildId && window.getBuildById) ? window.getBuildById(char.buildId) : null;
   var cn = ctx.className, clvl = ctx.classLevel, newLevel = ctx.newTotalLevel;
   var blocks = [];
@@ -1104,6 +1158,7 @@ function luBuildChoicesScreen() {
   }
   if (subMinLevel === clvl && !_luSub(char, cn)) {
     var recSub = b ? b.subclass : null;
+    open.push("Подкласс");
     var optsHtml = edData(char).SUBCLASSES[cn].filter(function(s){ return subclassInBooks(s, char); }).map(function(s){
       var isRec = (s === recSub);
       // SUB-0: приписка источника подкласса на кнопке выбора level-up.
@@ -1124,6 +1179,7 @@ function luBuildChoicesScreen() {
   if (featKind) {
     var asiDone = _luAsiDone(char, cn, clvl);
     var recAsi = (b && b.levelUp && b.levelUp[newLevel]) ? b.levelUp[newLevel] : null;
+    if (!asiDone) open.push(featKind === "epic" ? "Эпический дар" : "Увеличение характеристик или черта");
     blocks.push('<div class="lu-choice-block' + (asiDone ? ' done' : '') + '">' +
       '<div class="lu-choice-title">' + dndIcoHtml("trend", 14) + (featKind === "epic" ? ' Эпический дар' : ' Увеличение характеристик или\u00a0черта') + (asiDone ? ' ✓' : '') + '</div>' +
       (recAsi && recAsi.headline ? '<div class="lu-choice-sub">' + recBadge('Совет') + ' ' + escapeHtml(recAsi.headline) + '</div>' : '') +
@@ -1140,8 +1196,10 @@ function luBuildChoicesScreen() {
       var has = cc.type === "single" ? !!stored : (Array.isArray(stored) && stored.length >= ccN);
       var recIds = (b && typeof getBuildRecChoiceIds === "function") ? getBuildRecChoiceIds(char, cc.id) : [];
       var recNm = recIds.length ? recIds.map(function(rid){ return (cc.optionsDict && cc.optionsDict[rid]) ? cc.optionsDict[rid].name : rid; }).join(", ") : null;
+      if (!has) open.push(cc.name);
+      var ccCnt = cc.type === "multi" ? ' ' + (Array.isArray(stored) ? stored.length : 0) + '/' + ccN : '';
       blocks.push('<div class="lu-choice-block' + (has ? ' done' : '') + '">' +
-        '<div class="lu-choice-title">' + escapeHtml(cc.name) + (has ? ' ✓' : '') + '</div>' +
+        '<div class="lu-choice-title">' + escapeHtml(cc.name) + ccCnt + (has ? ' ✓' : '') + '</div>' +
         (recNm ? '<div class="lu-choice-sub">' + recBadge(recNm) + '</div>' : '') +
         (has ? '' : '<button class="lu-choice-launch" onclick="openClassChoiceModal(\'' + cn.replace(/'/g,"\\'") + '\',\'' + cc.id + '\')">Выбрать →</button>') +
         '</div>');
@@ -1155,6 +1213,7 @@ function luBuildChoicesScreen() {
     if (!fd || !fd.spellPick) return;
     var fpr = rulesFeatSpellProgress(char, fr, fd);
     var fdone = fpr.need > 0 && fpr.have >= fpr.need;
+    if (!fdone) open.push("Заклинания черты «" + fd.name + "»");
     blocks.push('<div class="lu-choice-block' + (fdone ? ' done' : '') + '">' +
       '<div class="lu-choice-title">Заклинания черты «' + escapeHtml(fd.name) + '» ' + fpr.have + '/' + fpr.need + (fdone ? ' ✓' : '') + '</div>' +
       '<button class="lu-choice-launch" onclick="openFeatSpellPicker(' + fi + ')">Выбрать →</button>' +
@@ -1172,6 +1231,21 @@ function luBuildChoicesScreen() {
     var spParts = ['<div class="lu-choice-title">' + dndIcoHtml("spells", 14) + ' Заклинания</div>'];
     var gain = _luSpellGainParts(char, luThird || cn, clvl);
     spParts.push('<div class="lu-choice-sub">' + (gain.length ? escapeHtml(gain.join(" · ")) : "Новых заклинаний на этом уровне нет") + '</div>');
+    var kMax = (typeof calcMaxKnownSpells === "function") ? calcMaxKnownSpells(char) : null;
+    var cMax = (typeof calcMaxCantrips === "function") ? calcMaxCantrips(char) : null;
+    var spCnt = [], spNeed = false;
+    if (kMax) {
+      var kHave = _knownSpellCount(char);
+      spCnt.push("Известно " + kHave + "/" + kMax);
+      if (kHave < kMax) spNeed = true;
+    }
+    if (cMax) {
+      var cHave = mySp.filter(function(s) { return s && s.level === 0 && !s.grantedBy; }).length;
+      spCnt.push("Заговоры " + cHave + "/" + cMax);
+      if (cHave < cMax) spNeed = true;
+    }
+    if (spCnt.length) spParts.push('<div class="lu-choice-sub">' + spCnt.join(" · ") + '</div>');
+    if (spNeed) open.push("Заклинания");
     if (recSpellObjs.length) {
       var allAdded = recSpellObjs.every(function(sp){ return mySp.some(function(x){ return x.id === sp.id || x.name === sp.name; }); });
       spParts.push('<div class="lu-choice-sub">' + recBadge('Советуют') + ' ' + escapeHtml(recSpellObjs.map(function(s){ return s.name; }).join(", ")) + '</div>');

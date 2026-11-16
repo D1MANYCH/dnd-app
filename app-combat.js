@@ -2347,7 +2347,13 @@ function _creationTodo(char) {
   if (wmN > 0) add("Мастерство оружия", "осталось " + wmN, "switchTab('battle'); creationTodoGo('weapons-list')");
   if (typeof ccGetAllChoicesFor === "function") ccGetAllChoicesFor(char).forEach(function(it) {
     if (it.isComplete || !it.choice) return;
-    add(it.choice.name || it.choice.id, (it.subclass || it.className) + " " + (it.choice.minLevel || it.classLevel) + " ур.",
+    var ccLv = it.choice.minLevel || it.classLevel;
+    if (it.choice.type === "multi" && typeof ccCount === "function") {
+      for (var cl = it.classLevel; cl > ccLv; cl--) {
+        if (ccCount(it.choice, cl) > ccCount(it.choice, cl - 1)) { ccLv = cl; break; }
+      }
+    }
+    add(it.choice.name || it.choice.id, (it.subclass || it.className) + " " + ccLv + " ур.",
       "openClassChoiceModal('" + _pgArg(it.className) + "', '" + _pgArg(it.choice.id) + "')");
   });
   return out;

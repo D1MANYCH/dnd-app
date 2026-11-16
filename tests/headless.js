@@ -903,8 +903,7 @@
         if (env.char.level !== 4) return "уровень: ожидал 4, получено " + env.char.level;
         if (env.char.sheetLocked !== false) return "confirmLevelUp не снял замок";
         if (!_luSheetUnlocked) return "флаг подсказки не выставлен";
-        var lines = (_luChoicesCtx && _luChoicesCtx.resultLines || []).join("\n");
-        if (lines.indexOf("Лист открыт") === -1) return "в итоге апа нет строки «Лист открыт»";
+        if (!(_luChoicesCtx && _luChoicesCtx.luWasLocked)) return "в итоге апа нет строки «Лист открыт»";
         env.toasts.length = 0;
         closeLevelUpModal();
         if (_luSheetUnlocked) return "флаг подсказки не сброшен";
