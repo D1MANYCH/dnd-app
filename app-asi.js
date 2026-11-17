@@ -61,7 +61,7 @@ function openASIModal() {
     var desc = modal.querySelector(".asi-desc");
     if (desc) {
       if (desc.dataset.orig == null) desc.dataset.orig = desc.innerHTML;
-      desc.innerHTML = isEpic ? "Выберите <strong>эпический дар</strong> (в начале списка) или другую черту; можно и увеличить характеристики" : desc.dataset.orig;
+      desc.innerHTML = isEpic ? "Выберите <strong>эпический дар</strong> (в начале списка) или&nbsp;другую черту; можно и увеличить характеристики" : desc.dataset.orig;
     }
     if (isEpic) { var fr = modal.querySelector('input[value="feat"]'); if (fr) fr.checked = true; }
   }
@@ -485,7 +485,7 @@ function applyASI() {
       safeSet("val-" + eff.key, char.stats[eff.key]);
       updateStatDisplay(eff.key);
       appliedDesc.push(char.stats[eff.key] > before ? "+" + (char.stats[eff.key] - before) + " " + statNames[eff.key]
-        : statNames[eff.key] + " уже " + before + " — без прибавки");
+        : statNames[eff.key] + " уже " + before + " — без прибавки");
     }
     else if (eff.type === "stat_choice" || eff.type === "stat_choice_save") {
       // AUD-7 (L8): характеристика из выбора в окне черты
