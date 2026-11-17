@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v620';
+const CACHE_NAME = 'dnd-sheet-v621';
 
 const FILES_TO_CACHE = [
   './',
@@ -163,14 +163,14 @@ const FILES_TO_CACHE = [
 
 // Хэши файлов прекеша — пишет tools/file-hashes.js (через /bump), руками не править.
 const FILE_HASHES = {
-  './': '52ffcb2b2422d950038f',
-  './index.html': '52ffcb2b2422d950038f',
+  './': '0d6fdcc448d119aa5231',
+  './index.html': '0d6fdcc448d119aa5231',
   './style.css': '755d4ca4bf56d9d7dd84',
   './app-log.js': '54f5eed79eb54ac7de54',
   './icons.js': '28370adcc628dbc457a0',
   './bg-space.js': '8f5ddcbae1e763435ff8',
   './dice-arena-bg.js': '8c311fce0b0af8d5ef13',
-  './data.js': '0fef722975a1af642129',
+  './data.js': '5e1629e55fea3cb76b64',
   './data-2024.js': '437a6d12f1c87e414d5a',
   './build-notes-data.js': '707838037f539baa77ed',
   './character-builds.js': '77b42fd37a288578a7d2',
@@ -263,7 +263,7 @@ const FILE_HASHES = {
   './app-desktop.js': '3e4f78e611e4179f9382',
   './history-stack.js': '4f49b495185044eec959',
   './app-help.js': 'b419ce997af5f18c3701',
-  './app-wiki.js': '649f55c261c2dd0dfba2',
+  './app-wiki.js': '864102ed8393fc5b75cf',
   './app-sheet2.js': '1fce7a82bb335f0c2db5',
   './app-pdf.js': 'fe93586152b8088dbfab',
   './vendor/jspdf/jspdf.umd.min.js': '85ba2cc3ff858a20fa49',

@@ -26,7 +26,7 @@ var WIKI_BUILTIN = [
 // НАВ-4: подгруппы «Правил D&D» (порядок строк — как в items).
 var WIKI_SUBS = [
   { title: "Создание персонажа", items: ["Расы", "Классы", "Предыстории", "Характеристики", "Черты", "Классовые опции"] },
-  { title: "В игре", items: ["Состояния", "Глоссарий"] },
+  { title: "В игре", items: ["Состояния", "Глоссарий"] },
   { title: "Мир", items: ["Что такое D&D", "Планы бытия", "Редакция 2024"] }
 ];
 
@@ -88,7 +88,7 @@ function wikiCrumbs(screen, trail, extra) {
   var hasChar = typeof currentId !== "undefined" && currentId;
   // НАВ-4: одно звено дублирует заголовок — не показываем.
   bar.innerHTML = (trail.length > 1 ? '<div class="wiki-crumb-trail">' + html + '</div>' : "") + (extra || "") +
-    (hasChar ? '<button type="button" class="wiki-crumb-exit" onclick="wikiExit()">✕ К персонажу</button>' : "");
+    (hasChar ? '<button type="button" class="wiki-crumb-exit" onclick="wikiExit()">✕ К персонажу</button>' : "");
   bar.hidden = !bar.innerHTML;
 }
 function _wikiCrumbGo(i) { var f = _wikiCrumbActs[i]; if (f) f(); }
