@@ -11498,6 +11498,7 @@ select.bp-select { padding-right: var(--sp-4); }
 .gloss-popover[hidden] { display:none; }
 .gloss-popover .gloss-term { font-weight:var(--fw-bold); color:var(--accent); }
 .gloss-popover .gloss-def { color:var(--text); }
+.gloss-popover .gloss-more { display:block; margin-top:6px; padding:0; background:none; border:0; color:var(--accent); font:inherit; cursor:pointer; text-align:left; }
 @keyframes glossPop { from { opacity:0; transform:translateY(-3px); } to { opacity:1; transform:none; } }
 
 /* BUILD-LVL-2: кнопка «План» у бейджа билда + модалка плана развития 1–20 */

@@ -1111,7 +1111,10 @@ function showGlossPopover(span) {
   if (!entry) return;
   var pop = _glossPopoverEl();
   pop.innerHTML = '<span class="gloss-term">' + escapeHtml(entry.term || "") +
-    '</span><span class="gloss-def">' + escapeHtml(entry.def || "") + '</span>';
+    '</span><span class="gloss-def">' + escapeHtml(entry.def || "") + '</span>' +
+    (typeof wikiOpenGloss === "function"
+      ? '<button type="button" class="gloss-more" onclick="wikiOpenGloss(' + escapeHtml(JSON.stringify(entry.term || "")) + ',' + escapeHtml(JSON.stringify(_glossEd(span.getAttribute("data-gloss-ed")))) + ')">В справочнике →</button>'
+      : '');
   pop.hidden = false;
   var r = span.getBoundingClientRect();
   var pw = pop.offsetWidth, ph = pop.offsetHeight;
