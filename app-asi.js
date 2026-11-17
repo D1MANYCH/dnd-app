@@ -56,6 +56,14 @@ function openASIModal() {
     title.textContent = asiCurrentLevel
       ? (isEpic ? "Эпический дар · " : "Увеличение характеристик · ") + asiCurrentLevel + " ур."
       : "Увеличение характеристик";
+    // PLAY5-6б (PT-506): Эпический дар — это черта; окно сразу в режиме черты,
+    // дары первой группой; +2/+1 остаются как черта «Увеличение характеристик»
+    var desc = modal.querySelector(".asi-desc");
+    if (desc) {
+      if (desc.dataset.orig == null) desc.dataset.orig = desc.innerHTML;
+      desc.innerHTML = isEpic ? "Выберите <strong>эпический дар</strong> (в начале списка) или другую черту; можно и увеличить характеристики" : desc.dataset.orig;
+    }
+    if (isEpic) { var fr = modal.querySelector('input[value="feat"]'); if (fr) fr.checked = true; }
   }
 
   // BUILD-LVL-3: подсказка билда для этого ASI-уровня (использует levelUp[level] — без новых данных).
@@ -63,8 +71,12 @@ function openASIModal() {
   if (asiHint) {
     var rec = (typeof getBuildLevelRec === "function") ? getBuildLevelRec(char, asiCurrentLevel) : null;
     if (rec && rec.headline) {
+      // PLAY5-6б (PT-381): совет «+2 ТЕЛ», а ТЕЛ уже 20 — подписать, что совет устарел
+      var recA = (typeof getBuildRecAsi === "function") ? getBuildRecAsi(char, asiCurrentLevel) : null;
+      var recCapped = recA ? Object.keys(recA).filter(function(k) { return (char.stats[k] || 10) >= 20; }) : [];
       asiHint.innerHTML = '<span class="rec-badge">' + dndIcoHtml("bulb", 12) + ' Совет билда</span> <span class="rec-text">' + escapeHtml(rec.headline) + '</span>' +
-        (rec.why ? ' <span class="rec-why">— ' + escapeHtml(rec.why) + '</span>' : '');
+        (recCapped.length ? ' <span class="rec-why">— ' + escapeHtml(recCapped.map(function(k) { return ({str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"})[k]; }).join(", ")) + ' уже 20, выберите другое</span>'
+          : (rec.why ? ' <span class="rec-why">— ' + escapeHtml(rec.why) + '</span>' : ''));
       asiHint.style.display = "";
     } else {
       asiHint.style.display = "none";
@@ -239,12 +251,14 @@ function _featPickerList(char) {
   var list = (typeof edData === "function") ? edData(char).FEATS_DATA : FEATS_DATA;
   if (!char || char.edition !== "2024") return list;
   var lvl = asiCurrentLevel;
-  return list.filter(function(f) {
+  var out = list.filter(function(f) {
     if (f.asi) return false;
     if (lvl === "race") return f.category === "origin";
     if (f.category === "general") return true;
     return f.category === "epic" && typeof lvl === "number" && lvl >= 19;
   });
+  // PLAY5-6б (PT-506): эпические дары — первой группой
+  return out.filter(function(f) { return f.category === "epic"; }).concat(out.filter(function(f) { return f.category !== "epic"; }));
 }
 
 function buildFeatList() {
@@ -259,12 +273,15 @@ function buildFeatList() {
 
   el.innerHTML = '<div class="feat-search-wrap"><input type="text" class="feat-search-inp" placeholder="🔍 Поиск черты…" value="' + escapeHtml(asiFeatQuery) + '" oninput="filterFeatList(this.value)"></div>' +
     '<div class="feat-list" id="feat-list-items">' +
-    featList.map(function(feat) {
+    featList.map(function(feat, i) {
+      var grpH = '';
+      if (feat.category === "epic" && i === 0) grpH = '<div class="feat-group-h">Эпические дары</div>';
+      else if (feat.category !== "epic" && i > 0 && featList[i - 1].category === "epic") grpH = '<div class="feat-group-h">Другие черты</div>';
       var taken = !feat.repeatable && takenFeats.some(function(f) { return f.id === feat.id; });
       var prereqMiss = !taken && char ? rulesFeatPrereqMissing(char, feat) : null;
       var selected = asiFeatSelected === feat.id;
       var isRec = recFeatId && feat.id === recFeatId;
-      return '<div class="feat-item' + (selected ? " selected" : "") + (taken || prereqMiss ? " taken" : "") + (isRec ? " is-rec" : "") + '" onclick="selectFeat(\'' + feat.id + '\')" data-id="' + feat.id + '" data-name="' + escapeHtml(feat.name.toLowerCase()) + '">' +
+      return grpH + '<div class="feat-item' + (selected ? " selected" : "") + (taken || prereqMiss ? " taken" : "") + (isRec ? " is-rec" : "") + '" onclick="selectFeat(\'' + feat.id + '\')" data-id="' + feat.id + '" data-name="' + escapeHtml(feat.name.toLowerCase()) + '">' +
         '<div class="feat-item-header">' +
           '<span class="feat-item-name">' + escapeHtml(feat.name) + '</span>' +
           (isRec ? '<span class="rec-badge">' + dndIcoHtml("bulb", 12) + ' совет билда</span>' : '') +
@@ -289,6 +306,7 @@ function filterFeatList(query) {
     el.style.display = on ? "" : "none";
     if (on) shown++;
   });
+  document.querySelectorAll("#feat-list-items .feat-group-h").forEach(function(el) { el.style.display = q ? "none" : ""; });
   var empty = $("feat-list-empty");
   if (empty) empty.style.display = shown ? "none" : "";
 }
@@ -308,7 +326,11 @@ function _asiFeatPreview() {
     preview.className = "asi-preview";
     return;
   }
+  // PLAY5-6б (PT-381): фиксированная прибавка упрётся в потолок — сказать до применения
+  var capped = (feat.effects || []).filter(function(e) { return e.type === "stat" && (char.stats[e.key] || 10) >= (e.max || 20); })
+    .map(function(e) { return ({str:"СИЛ",dex:"ЛОВ",con:"ТЕЛ",int:"ИНТ",wis:"МУД",cha:"ХАР"})[e.key] + " уже " + (char.stats[e.key] || 10) + " — прибавка не сработает"; });
   preview.innerHTML = '<span>' + (ready ? "✅ " : "") + 'Черта: ' + escapeHtml(feat.name) + '</span>' +
+    (capped.length ? '<span class="asi-preview-miss">' + escapeHtml(capped.join("; ")) + '</span>' : '') +
     _featStatPickHtml(char, feat) +
     (ready ? '' : '<span class="asi-preview-miss">Выберите характеристику, чтобы применить черту</span>');
   preview.className = "asi-preview" + (ready ? " ready" : "");
@@ -462,7 +484,8 @@ function applyASI() {
       _statGain(char, "featStats", eff.key, char.stats[eff.key] - before);
       safeSet("val-" + eff.key, char.stats[eff.key]);
       updateStatDisplay(eff.key);
-      appliedDesc.push("+" + eff.value + " " + statNames[eff.key]);
+      appliedDesc.push(char.stats[eff.key] > before ? "+" + (char.stats[eff.key] - before) + " " + statNames[eff.key]
+        : statNames[eff.key] + " уже " + before + " — без прибавки");
     }
     else if (eff.type === "stat_choice" || eff.type === "stat_choice_save") {
       // AUD-7 (L8): характеристика из выбора в окне черты

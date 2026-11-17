@@ -634,6 +634,10 @@ function crResourceRow(res, char) {
   if (res.sneakAttack && remaining > 0) acts += '<button type="button" class="hp-act" onclick="event.stopPropagation();rollSneakAttack(\'' + id + '\')">Бросить ' + Math.ceil((res._clsLevel || char.level || 1) / 2) + 'к6</button>';
   // РОСТ-6: вход в облик — с экрана выбора зверя
   if (res.id === "wild_shape" && remaining > 0 && typeof openWildShapePicker === "function") acts += '<button type="button" class="hp-act" onclick="event.stopPropagation();openWildShapePicker()">Принять облик</button>';
+  // PLAY5-2а: ресурс с эффектом (Ярость) — вход тратит заряд и включает эффект, выход снимает его
+  var fxOn = !!res.effect && (char.effects || []).indexOf(res.effect) !== -1;
+  if (fxOn) acts += '<button type="button" class="hp-act" onclick="event.stopPropagation();resourceEffectOff(\'' + id + '\')">' + escapeHtml(res.effectOff || "Выключить") + '</button>';
+  else if (res.effect && (remaining > 0 || max === 99)) acts += '<button type="button" class="hp-act" onclick="event.stopPropagation();spendResource(\'' + id + '\',1)">' + escapeHtml(res.effectOn || "Включить") + '</button>';
 
   var src = escapeHtml(res._cls || "");
   var rest = crRestoreLabel(res);
@@ -645,7 +649,7 @@ function crResourceRow(res, char) {
       (used > 0 && !res.portent ? '<button type="button" class="hp-act" onclick="resetResource(\'' + id + '\')">Сбросить</button>' : "") +
     "</div>";
 
-  var name = escapeHtml(crResName(res, char)) + (dieSize ? ' <i class="cr-die">(' + escapeHtml(dieSize) + ")</i>" : "");
+  var name = escapeHtml(crResName(res, char)) + (dieSize ? ' <i class="cr-die">(' + escapeHtml(dieSize) + ")</i>" : "") + (fxOn ? ' <span class="hp-dot">·</span> активна' : "");
   return crRow(name, meta, body);
 }
 
@@ -1007,11 +1011,29 @@ function spendResource(id, delta) {
   if (!res) return;
   var max = getResourceMax(res, char);
   var used = char.resources[id] || 0;
+  var spent = delta > 0 && (max === 99 || used < max);
   used = max === 99 ? 0 : Math.min(max, Math.max(0, used + delta));
   char.resources[id] = used;
   if (navigator.vibrate) navigator.vibrate(8);
   saveToLocal();
   renderClassResources();
+  if (spent) resourceEffectOn(res);
+}
+
+// PLAY5-2а: трата заряда включает эффект ресурса (Ярость: урон, сопротивления, преимущество — rules.js)
+function resourceEffectOn(res) {
+  var char = getCurrentChar();
+  if (!char || !res || !res.effect || typeof toggleEffect !== "function") return;
+  if ((char.effects || []).indexOf(res.effect) !== -1) return;
+  toggleEffect(res.effect);
+  var fx = (typeof EFFECTS_DATA !== "undefined") ? EFFECTS_DATA.find(function(e) { return e.id === res.effect; }) : null;
+  showToast((fx ? fx.name : res.name) + ": включено", "success");
+}
+function resourceEffectOff(id) {
+  var char = getCurrentChar();
+  var data = char ? getCharResourceDefs(char) : null;
+  var res = data ? data.resources.find(function(r) { return r.id === id; }) : null;
+  if (res && res.effect && (char.effects || []).indexOf(res.effect) !== -1) toggleEffect(res.effect);
 }
 
 function resetResource(id) {
@@ -1044,7 +1066,7 @@ function toggleResourcePip(id, pipIdx) {
   if (navigator.vibrate) navigator.vibrate(8);
   saveToLocal();
   renderClassResources();
-  if (spent) resourceRollOnSpend(res);
+  if (spent) { resourceRollOnSpend(res); resourceEffectOn(res); }
 }
 
 // PLAY2-3 (PT-081/120/134): трата заряда с костью — сразу бросок;

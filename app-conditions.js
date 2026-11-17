@@ -102,6 +102,8 @@ function conditionShortName(char, id) {
   if (id === "armor_stealth") return "доспех";
   var set = (typeof edData === "function") ? edData(char).CONDITIONS : CONDITIONS;
   var c = set.find(function(x) { return x.id === id; });
+  // PLAY5-2а: причина может быть эффектом (Ярость — преимущество на проверки СИЛ)
+  if (!c && typeof EFFECTS_DATA !== "undefined") c = EFFECTS_DATA.find(function(x) { return x.id === id; });
   return c ? stripLeadingEmoji(c.name).toLowerCase() : id;
 }
 
@@ -416,7 +418,7 @@ function renderEffectsGrid() {
       item.onkeydown = function(e) {
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleEffectDesc(e, item); }
       };
-      var durText = effect.duration;
+      var durText = (char && char.edition === "2024" && effect.duration2024) || effect.duration;
       if (isActive && _castVar[effect.id]) durText += " · " + dndIcoHtml("sparkle", 12) + " " + _castVar[effect.id];
       if (isActive && _castLeft[effect.id] != null) durText += " · ⏳ осталось " + _castLeft[effect.id] + " рд";
       item.innerHTML =
@@ -486,6 +488,9 @@ calculateAC();
 saveToLocal();
 if (typeof renderEffectsGrid === "function") renderEffectsGrid();
 if (typeof updateSpellActiveBadges === "function") updateSpellActiveBadges(); // CAST-6: ручное снятие убрало экземпляры
+// PLAY5-2а: бонус урона эффекта — в строках оружия, «активна» — в ресурсах класса
+if (typeof renderWeapons === "function") renderWeapons();
+if (typeof renderClassResources === "function") renderClassResources();
 }
 function updateEffectsCount() {
 if (!currentId) return;

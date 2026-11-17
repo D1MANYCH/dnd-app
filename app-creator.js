@@ -313,18 +313,22 @@ function _crRaceDesc(data) {
 function _crRenderRaceList(char) {
   var q = _crRaceQuery.trim().toLowerCase();
   var html = "", group = null;
-  _crSelectOptions("char-race").forEach(function(o) {
+  // PLAY5-6б (PT-600): группы сворачиваются; без поиска открыта только группа выбранной расы
+  var close = function() { return group ? '</div></details>' : '</div>'; };
+  var opts = _crSelectOptions("char-race");
+  opts.forEach(function(o) {
     var data = _crRaceData(char, o.value);
     if (q && (o.value + " " + o.group + " " + _crRaceDesc(data)).toLowerCase().indexOf(q) === -1) return;
     if (o.group !== group) {
-      if (group !== null) html += '</div>';
+      if (group !== null) html += close();
       group = o.group;
-      html += (group ? '<div class="cr-group-title">' + escapeHtml(group) + '</div>' : "") + '<div class="cr-cards">';
+      var isOpen = !!q || opts.some(function(x) { return x.group === group && x.value === char.race; });
+      html += (group ? '<details class="cr-race-grp"' + (isOpen ? " open" : "") + '><summary class="cr-group-title">' + escapeHtml(group) + '</summary>' : "") + '<div class="cr-cards">';
     }
     html += _crCard(o.value, o.value, _crRaceMeta(char, data), _crRaceDesc(data), "creatorPickRace",
       o.value === char.race ? "selected" : "");
   });
-  if (group !== null) html += '</div>';
+  if (group !== null) html += close();
   return html || '<p class="cr-hint">Ничего не&nbsp;найдено.</p>';
 }
 

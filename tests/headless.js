@@ -8235,6 +8235,100 @@
       return true;
     });
 
+    t("[PLAY5-6б] пикер 19 ур. 2024: эпические дары первой группой", function(){
+      var saved = asiCurrentLevel;
+      try {
+        asiCurrentLevel = 19;
+        var l = _featPickerList({ edition: "2024" });
+        var firstGen = -1, lastEpic = -1;
+        l.forEach(function(f, i){ if (f.category === "epic") lastEpic = i; else if (firstGen < 0) firstGen = i; });
+        if (lastEpic < 0 || firstGen < lastEpic) return "дары не первые: lastEpic=" + lastEpic + " firstGen=" + firstGen;
+      } finally { asiCurrentLevel = saved; }
+      return true;
+    });
+
+    t("[PLAY5-6б] совет билда — по уровню класса билда, у другого класса мультикласса — нет", function(){
+      var origGet = window.getBuildById, savedCls = asiCurrentClass;
+      try {
+        var fake = { id: "t-fighter", className: "Воин", levelUp: { 4: { headline: "+2 СИЛ" }, 6: { headline: "+2 ТЕЛ" } } };
+        window.getBuildById = function(id){ return id === "t-fighter" ? fake : null; };
+        asiCurrentClass = null;
+        var single = { buildId: "t-fighter", class: "Воин", classes: [{ class: "Воин", level: 4 }] };
+        if (!getBuildLevelRec(single, 4)) return "одноклассовый: нет совета";
+        var mc = { buildId: "t-fighter", class: "Воин", classes: [{ class: "Воин", level: 5 }, { class: "Плут", level: 3 }] };
+        if (getBuildLevelRec(mc, 4, "Плут")) return "Плут 4 получил совет Воина";
+        if (!getBuildLevelRec(mc, 6, "Воин") || getBuildLevelRec(mc, 6, "Воин").headline !== "+2 ТЕЛ") return "Воин 6: не тот совет";
+        if (getBuildLevelRec(mc, 4)) return "мультикласс без класса — совет угадан";
+        asiCurrentClass = "Плут";
+        if (getBuildRecAsi(mc, 4)) return "ASI Плута: совет Воина";
+        if (typeof _luBuildFor === "function" && (_luBuildFor(mc, "Плут") || !_luBuildFor(mc, "Воин"))) return "_luBuildFor";
+      } finally { window.getBuildById = origGet; asiCurrentClass = savedCls; }
+      return true;
+    });
+
+    t("[PLAY5-2а] Ярость: +2/+3/+4 к урону Силой по уровню варвара, лук и ЛОВ — без бонуса", function(){
+      var mk = function(lvl, ed){ return { edition: ed || "2014", level: lvl, class: "Варвар", classes: [{ class: "Варвар", level: lvl }], stats: { str: 16, dex: 14, con: 10, int: 10, wis: 10, cha: 10 }, effects: ["barbarian_rage"] }; };
+      var axe = { name: "Секира", stat: "str", damage: "1к12", range: "Ближний", proficient: true };
+      var bow = { name: "Длинный лук", stat: "dex", damage: "1к8", range: "150/600 фт", notes: "Боеприпас", proficient: true };
+      var thrownStr = { name: "Метательный", stat: "str", damage: "1к6", range: "20/60 фт", proficient: true };
+      var want = { 1: 2, 8: 2, 9: 3, 15: 3, 16: 4, 20: 4 };
+      for (var l in want) { var m = rulesWeaponMods(mk(+l), axe, +l); if (m.damageMod !== 3 + want[l] || m.attack !== 3 + getProficiencyBonus(+l)) return "ур." + l + ": урон " + m.damageMod + ", атака " + m.attack; }
+      if (rulesWeaponMods(mk(5), bow, 5).damageMod !== 2) return "лук получил бонус";
+      if (rulesWeaponMods(mk(5), thrownStr, 5).damageMod !== 3) return "2014: дальняя атака Силой получила бонус";
+      if (rulesWeaponMods(mk(5, "2024"), thrownStr, 5).damageMod !== 5) return "2024: атака Силой без бонуса";
+      var off = mk(5); off.effects = [];
+      if (rulesWeaponMods(off, axe, 5).damageMod !== 3) return "без ярости есть бонус";
+      var mc = mk(10); mc.classes = [{ class: "Варвар", level: 3 }, { class: "Воин", level: 7 }];
+      if (rulesWeaponMods(mc, axe, 10).damageMod !== 5) return "мультикласс: бонус не по уровню варвара";
+      return true;
+    });
+
+    t("[PLAY5-2а] Ярость: сопротивление дроб./кол./руб., преимущество на проверки и спасброски СИЛ", function(){
+      var c = { edition: "2014", level: 3, classes: [{ class: "Варвар", level: 3 }], stats: { str: 16 }, conditions: [], resistances: [], effects: ["barbarian_rage"] };
+      if (rulesDamageAfterDefenses(c, 9, "Рубящий") !== 4) return "рубящий не уполовинен";
+      if (rulesDamageAfterDefenses(c, 9, "Огненный") !== 9) return "огонь уполовинен";
+      if (rulesDamageAfterDefenses(c, 9, "") !== 9) return "без типа уполовинен";
+      if (rulesConditionRollMods(c, "save", "str").adv[0] !== "barbarian_rage") return "спасбросок СИЛ без преимущества";
+      if (rulesConditionRollMods(c, "check", "str").adv.length !== 1) return "проверка СИЛ без преимущества";
+      if (rulesConditionRollMods(c, "save", "dex").adv.length || rulesConditionRollMods(c, "attack").adv.length) return "лишнее преимущество";
+      c.effects = [];
+      if (rulesDamageAfterDefenses(c, 9, "Рубящий") !== 9 || rulesConditionRollMods(c, "save", "str").adv.length) return "эффект снят, механика осталась";
+      return true;
+    });
+
+    t("[PLAY5-2а] Ярость: безоружный удар, kind из каталога, дистанция «Ближний/20/60»", function(){
+      var c = { edition: "2014", level: 5, classes: [{ class: "Варвар", level: 5 }], stats: { str: 16, dex: 14 }, effects: ["barbarian_rage"] };
+      var unarmed = { name: "Безоружный удар", stat: "str", damage: "1", type: "Дробящий", kind: "melee", proficient: true };
+      if (rulesWeaponMods(c, unarmed, 5).damageMod !== 5) return "безоружный удар без бонуса";
+      var handaxe = { name: "Ручной топор", stat: "str", damage: "1к6", range: "Ближний/20/60", proficient: true };
+      if (rulesWeaponMods(c, handaxe, 5).damageMod !== 5) return "«Ближний/20/60» сочтено дальнобойным";
+      var catRanged = { name: "Праща", stat: "str", damage: "1к4", kind: "ranged", proficient: true };
+      if (rulesWeaponMods(c, catRanged, 5).damageMod !== 3) return "2014: kind ranged получил бонус";
+      var catMelee = { name: "Копьё", stat: "str", damage: "1к6", kind: "melee", range: "20/60 фт", proficient: true };
+      if (rulesWeaponMods(c, catMelee, 5).damageMod !== 5) return "kind melee перебит дистанцией";
+      c.edition = "2024";
+      if (rulesWeaponMods(c, catRanged, 5).damageMod !== 5) return "2024: дальняя атака Силой без бонуса";
+      c.edition = "2014";
+      var spear = { name: "Копьё", stat: "str", damage: "1к6", kind: "melee", range: "Ближний/20/60 фт", notes: "Метательное, универсальное (1к8)", proficient: true };
+      if (!rulesWeaponIsThrowable(spear) || rulesWeaponIsThrowable(catRanged) || rulesWeaponIsThrowable(unarmed)) return "rulesWeaponIsThrowable";
+      if (rulesWeaponMods(c, spear, 5).damageMod !== 5) return "копьё вблизи без бонуса";
+      spear.thrownMode = true;
+      if (rulesWeaponMods(c, spear, 5).damageMod !== 3) return "2014: брошенное копьё получило бонус";
+      c.edition = "2024";
+      if (rulesWeaponMods(c, spear, 5).damageMod !== 5) return "2024: брошенное копьё без бонуса";
+      unarmed.thrownMode = true;
+      if (rulesWeaponIsRanged(unarmed)) return "thrownMode у неметательного";
+      return true;
+    });
+
+    t("[PLAY5-2а] ресурс Ярости обеих редакций включает эффект barbarian_rage", function(){
+      var r14 = CLASS_RESOURCES["Варвар"].resources.find(function(r){ return r.id === "rage"; });
+      var r24 = typeof EDITION_DATA !== "undefined" && EDITION_DATA["2024"] && EDITION_DATA["2024"].CLASS_RESOURCES ? EDITION_DATA["2024"].CLASS_RESOURCES["Варвар"].resources.find(function(r){ return r.id === "rage"; }) : null;
+      if (!r14 || r14.effect !== "barbarian_rage") return "2014";
+      if (r24 && r24.effect !== "barbarian_rage") return "2024";
+      return true;
+    });
+
     t("[e24-3] applyASI/luApplyFeatById: у 2014-«Бдительного» по-прежнему +5, потолок 20 без max", function(){
       var c = { edition:"2014", stats:{str:19,dex:10,con:10,int:10,wis:10,cha:10}, level:4, combat:{hpMax:20,hpCurrent:20}, proficiencies:{armor:["heavy"]}, feats:[] };
       luApplyFeatById(c, "heavy_armor_master", 4);

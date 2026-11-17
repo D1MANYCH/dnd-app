@@ -1244,10 +1244,16 @@ function openBuildGuide(buildId) {
 // BUILD-LVL-3: рекомендации билда в точках выбора (для баннеров/подсветки).
 // getBuildLevelRec — шаг плана на уровне; getBuildRecChoiceOption — рекоменд. опция классового выбора;
 // getBuildRecFeat — id рекомендованной черты на ASI-уровне.
-function getBuildLevelRec(char, level) {
+// PLAY5-6б (PT-376, 365): план билда расписан по уровню его класса — у мультикласса
+// совет даётся только для класса билда; className — класс, чей уровень передан.
+function getBuildLevelRec(char, level, className) {
   if (!char || !char.buildId || !level) return null;
   var b = window.getBuildById && window.getBuildById(char.buildId);
-  return (b && b.levelUp && b.levelUp[level]) ? b.levelUp[level] : null;
+  if (!b || !b.levelUp) return null;
+  var cls = className || (typeof asiCurrentClass !== "undefined" && asiCurrentClass) ||
+    ((Array.isArray(char.classes) && char.classes.length > 1) ? null : char.class);
+  if (b.className && cls !== b.className) return null;
+  return b.levelUp[level] || null;
 }
 function getBuildRecChoiceOption(char, choiceId) {
   if (!char || !char.buildId || !choiceId) return null;

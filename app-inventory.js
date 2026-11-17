@@ -935,6 +935,14 @@ if (i !== -1) {
 saveToLocal();
 renderWeapons();
 }
+function toggleWeaponThrown(index) {
+var char = getCurrentChar();
+var w = char && char.weapons && char.weapons[index];
+if (!w) return;
+w.thrownMode = !w.thrownMode;
+saveToLocal();
+renderWeapons();
+}
 function _weaponCatalog(char) {
 var base = (typeof WEAPON_PRESETS !== "undefined") ? WEAPON_PRESETS : [];
 if (char && char.edition === "2024") base = _weaponPresets2024(base);
@@ -1315,11 +1323,15 @@ if (mprop) {
 // PLAY2-3 (PT-141): количество — из Сумки («Метательное копьё ×5»)
 var invW = invWeapons.find(function(it) { return it && it.name === weapon.name; });
 var qtyTag = (invW && (parseInt(invW.qty, 10) || 1) > 1) ? " ×" + parseInt(invW.qty, 10) : "";
+// PLAY5-2а: метательное рукопашное — режим «бросок» (дальнобойная атака, без бонуса Ярости 2014)
+if (typeof rulesWeaponIsThrowable === "function" && rulesWeaponIsThrowable(weapon)) {
+  masteryHtml += ' · <button type="button" class="btn btn-text btn-sm weapon-mastery-btn" aria-pressed="' + (weapon.thrownMode ? 'true' : 'false') + '" onclick="toggleWeaponThrown(' + index + ')">' + (weapon.thrownMode ? '◆ бросок' : 'бросить') + '</button>';
+}
 div.innerHTML =
   '<div class="weapon-row-top">' +
     '<div class="weapon-info" onclick="weaponRowTap(event,' + index + ')">' +
       '<span class="weapon-name">' + escapeHtml(weapon.name) + qtyTag + profTag + '</span>' +
-      '<span class="weapon-meta">' + escapeHtml(weapon.damage || "—") + ' · ' + (wmods.statKey === "dex" ? "ЛОВ" : "СИЛ") + ' ' + attackStr + masteryHtml + '</span>' +
+      '<span class="weapon-meta">' + escapeHtml(weapon.damage || "—") + ' · ' + (wmods.statKey === "dex" ? "ЛОВ" : "СИЛ") + ' ' + attackStr + _weaponFxTag(wmods) + masteryHtml + '</span>' +
     '</div>' +
     '<div class="weapon-row-actions">' +
       '<button class="weapon-edit-btn" onclick="editWeapon(' + index + ')" title="Редактировать оружие" aria-label="Редактировать оружие">' + dndIcoHtml("edit", 14) + '</button>' +
@@ -1343,7 +1355,7 @@ uaDiv.innerHTML =
   '<div class="weapon-row-top">' +
     '<div class="weapon-info">' +
       '<span class="weapon-name">' + ua.name + '</span>' +
-      '<span class="weapon-meta">' + ua.damage + ' ' + ua.type.toLowerCase() + ' · атака: мод. СИЛ ' + (uaMods.attack >= 0 ? "+" : "") + uaMods.attack + '</span>' +
+      '<span class="weapon-meta">' + ua.damage + ' ' + ua.type.toLowerCase() + ' · атака: мод. СИЛ ' + (uaMods.attack >= 0 ? "+" : "") + uaMods.attack + _weaponFxTag(uaMods) + '</span>' +
     '</div>' +
   '</div>' +
   '<div class="weapon-roll-row">' +
@@ -1460,13 +1472,19 @@ function _weaponDamageRoll(formula, extraMod, crit) {
   return { total: Math.max(0, total), rollStr: parts.join("") + sgn(p.mod + extraMod), sides: sides, qty: Math.max(1, Math.min(qty, 8)), label: f };
 }
 
+// PLAY5-2а: подпись бонуса урона от эффектов — « · урон +2 ярость варвара»
+function _weaponFxTag(wm) {
+  if (!wm || !wm.effectParts || !wm.effectParts.length) return "";
+  return " · урон " + wm.effectParts.map(function(p) { return "+" + p.value + "\u00a0" + stripLeadingEmoji(p.name).toLowerCase(); }).join(", ");
+}
+
 function rollTWFDamage(index, isCrit) {
   var char = getCurrentChar();
   if (!char) return;
   var weapon = char.weapons[index];
   if (!weapon || !weapon.damage) return;
   var wm = rulesWeaponMods(char, weapon, char.level);
-  var addMod = rulesOffhandDamageMod(wm.statMod, char.twoWeaponFighting) + wm.magic;
+  var addMod = rulesOffhandDamageMod(wm.statMod, char.twoWeaponFighting) + wm.magic + wm.effectDamage;
   var r = _weaponDamageRoll(weapon.damage, addMod, !!isCrit);
   var styleNote = char.twoWeaponFighting ? "" : " (без\u00a0мод.)";
   showToast("🗡️ " + escapeHtml(weapon.name) + " бонусный урон" + (isCrit ? " (крит)" : "") + styleNote + ": " + r.rollStr + " = " + r.total, "info");
@@ -1568,7 +1586,7 @@ var resultBig = $("dice-result-big");
 var resultInfo = $("dice-result-info");
 var resultBox = $("dice3d-result");
 if (resultBig) resultBig.textContent = total;
-if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · урон" + (isCrit ? " (крит)" : "") + " · " + r.label + " · " + r.rollStr + " = " + total;
+if (resultInfo) resultInfo.textContent = escapeHtml(weapon.name) + " · урон" + (isCrit ? " (крит)" : "") + " · " + r.label + " · " + r.rollStr + " = " + total + _weaponFxTag(wm);
 if (resultBox) resultBox.className = "dice3d-result normal";
 var sides = r.sides;
 var qty = r.qty;

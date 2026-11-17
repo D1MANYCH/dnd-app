@@ -556,15 +556,16 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
   var hintEl = $("lu-build-hint");
   var buildRec = null;
   if (hintEl) {
-    if (char.buildId && typeof window.getBuildRecommendationForLevel === "function") {
-      buildRec = window.getBuildRecommendationForLevel(char.buildId, newTotalLevel);
-      var build = window.getBuildById ? window.getBuildById(char.buildId) : null;
+    // PLAY5-6б (PT-376, 365, 370, 380, 382): план билда — по уровню класса билда, другой класс — без совета
+    var build = _luBuildFor(char, className);
+    if (build && typeof window.getBuildRecommendationForLevel === "function") {
+      buildRec = window.getBuildRecommendationForLevel(char.buildId, classLevel);
       if (buildRec) {
         var buildTitle = build ? build.title : "";
         // BUILD-LVL-2: следующий шаг (newTotalLevel+1) + ссылка на полный план 1–20.
-        var nextRec = window.getBuildRecommendationForLevel(char.buildId, newTotalLevel + 1);
+        var nextRec = window.getBuildRecommendationForLevel(char.buildId, classLevel + 1);
         var nextHtml = (nextRec && nextRec.headline)
-          ? "<div class='lu-build-hint-next'>↪ Дальше (" + (newTotalLevel + 1) + " ур.): " + escapeHtml(nextRec.headline) + "</div>"
+          ? "<div class='lu-build-hint-next'>↪ Дальше (" + (isMulticlass(char) ? className + " " : "") + (classLevel + 1) + " ур.): " + escapeHtml(nextRec.headline) + "</div>"
           : "";
         hintEl.innerHTML = "<div class='lu-build-hint-label'>" + dndIcoHtml("bulb", 13) + " Рекомендация билда" + (buildTitle ? " «" + escapeHtml(buildTitle) + "»" : "") + "</div>" +
           "<div class='lu-build-hint-headline'>" + escapeHtml(buildRec.headline) + "</div>" +
@@ -592,7 +593,9 @@ function _showLevelUpPreview(char, className, hitDie, isNewClass, classEntry) {
       if (buildRec && buildRec.headline && buildRec.headline.toLowerCase().indexOf(f.name.toLowerCase()) !== -1) {
         div.className += " recommended";
       }
-      div.innerHTML = "<div class=\"lu-feature-name\">" + escapeHtml(f.name) + "</div><div class=\"lu-feature-desc\">" + escapeHtml(f.desc) + "</div>";
+      // PLAY5-6б (PT-536): подкласс здесь только описан — сказать, где выбор
+      var subPick = /^Выберите подкласс/i.test(f.desc || "") ? "<div class=\"lu-feature-desc\">Выбор — кнопками на следующем шаге, после «Повысить уровень».</div>" : "";
+      div.innerHTML = "<div class=\"lu-feature-name\">" + escapeHtml(f.name) + "</div><div class=\"lu-feature-desc\">" + escapeHtml(f.desc) + "</div>" + subPick;
       featuresContainer.appendChild(div);
     });
   }
@@ -974,15 +977,22 @@ function _luAsiDone(char, cn, clvl) {
   return !!(char && char.asiUsed && Array.isArray(char.asiUsed[cn]) && char.asiUsed[cn].indexOf(clvl) >= 0);
 }
 
+// PLAY5-6б (PT-365, 376): план билда расписан по уровню своего класса — при повышении
+// другого класса мультикласса советы билда не показываются.
+function _luBuildFor(char, cn) {
+  var b = (char && char.buildId && window.getBuildById) ? window.getBuildById(char.buildId) : null;
+  return (b && (!b.className || b.className === cn)) ? b : null;
+}
+
 // BUILD-LVL-4: применить ВСЕ рекомендации билда для текущего уровня разом.
 function luApplyAllRecommendations() {
   var char = getCurrentChar();
   var ctx = _luChoicesCtx;
   if (!char || !ctx) return;
-  var b = (char.buildId && window.getBuildById) ? window.getBuildById(char.buildId) : null;
+  var b = _luBuildFor(char, ctx.className);
   if (!b) { if (typeof showToast === "function") showToast("Нет билда — нечего применять", "warn"); return; }
   var cn = ctx.className, clvl = ctx.classLevel, newLevel = ctx.newTotalLevel;
-  var rec = (b.levelUp && b.levelUp[newLevel]) ? b.levelUp[newLevel] : null;
+  var rec = (b.levelUp && b.levelUp[clvl]) ? b.levelUp[clvl] : null;
   var applied = [];
 
   // 1) Подкласс
@@ -1062,7 +1072,7 @@ function luApplyAllRecommendations() {
 
   // 4) Заклинания из плана (явный spellsAdd или парсинг headline — через getBuildRecSpellObjs)
   if (typeof getBuildRecSpellObjs === "function") {
-    var recSpellObjs = getBuildRecSpellObjs(b, newLevel);
+    var recSpellObjs = getBuildRecSpellObjs(b, clvl);
     if (recSpellObjs.length) {
       if (!char.spells) char.spells = {};
       if (!Array.isArray(char.spells.mySpells)) char.spells.mySpells = [];
@@ -1141,7 +1151,7 @@ function luBuildChoicesScreen() {
   _luChoicesOpen = [];
   if (!char || !ctx || !body) return false;
   var open = _luChoicesOpen;
-  var b = (char.buildId && window.getBuildById) ? window.getBuildById(char.buildId) : null;
+  var b = _luBuildFor(char, ctx.className);
   var cn = ctx.className, clvl = ctx.classLevel, newLevel = ctx.newTotalLevel;
   var blocks = [];
   function recBadge(text) { return '<span class="rec-badge">' + dndIcoHtml("bulb", 12) + ' ' + escapeHtml(text) + '</span>'; }
@@ -1178,7 +1188,7 @@ function luBuildChoicesScreen() {
   var featKind = _luFeatChoiceAt(char, cn, clvl);
   if (featKind) {
     var asiDone = _luAsiDone(char, cn, clvl);
-    var recAsi = (b && b.levelUp && b.levelUp[newLevel]) ? b.levelUp[newLevel] : null;
+    var recAsi = (b && b.levelUp && b.levelUp[clvl]) ? b.levelUp[clvl] : null;
     if (!asiDone) open.push(featKind === "epic" ? "Эпический дар" : "Увеличение характеристик или черта");
     blocks.push('<div class="lu-choice-block' + (asiDone ? ' done' : '') + '">' +
       '<div class="lu-choice-title">' + dndIcoHtml("trend", 14) + (featKind === "epic" ? ' Эпический дар' : ' Увеличение характеристик или\u00a0черта') + (asiDone ? ' ✓' : '') + '</div>' +
@@ -1226,7 +1236,7 @@ function luBuildChoicesScreen() {
   var luSub = (typeof charClassSubclass === "function") ? charClassSubclass(char, cn) : char.subclass;
   var luThird = (typeof THIRD_CASTER_SUBCLASSES !== "undefined" && THIRD_CASTER_SUBCLASSES.indexOf(luSub) !== -1) ? luSub : null;
   if (SPELL_CASTERS.indexOf(cn) >= 0 || (luThird && clvl >= 3)) {
-    var recSpellObjs = (b && typeof getBuildRecSpellObjs === "function") ? getBuildRecSpellObjs(b, newLevel) : [];
+    var recSpellObjs = (b && typeof getBuildRecSpellObjs === "function") ? getBuildRecSpellObjs(b, clvl) : [];
     var mySp = (char.spells && Array.isArray(char.spells.mySpells)) ? char.spells.mySpells : [];
     var spParts = ['<div class="lu-choice-title">' + dndIcoHtml("spells", 14) + ' Заклинания</div>'];
     var gain = _luSpellGainParts(char, luThird || cn, clvl);
@@ -1244,6 +1254,9 @@ function luBuildChoicesScreen() {
       spCnt.push("Заговоры " + cHave + "/" + cMax);
       if (cHave < cMax) spNeed = true;
     }
+    // PLAY5-6б (PT-586): подготовка не обязательна (меняется после долгого отдыха), но счётчик напоминает
+    var pMax = (typeof calcMaxPrepared === "function") ? calcMaxPrepared(char) : null;
+    if (pMax && char.spells && typeof _preparedCount === "function") spCnt.push("Подготовлено " + _preparedCount(char) + "/" + pMax);
     if (spCnt.length) spParts.push('<div class="lu-choice-sub">' + spCnt.join(" · ") + '</div>');
     if (spNeed) open.push("Заклинания");
     if (recSpellObjs.length) {
@@ -1264,9 +1277,9 @@ function luBuildChoicesScreen() {
   if (b) {
     var asiOpen = !!_luFeatChoiceAt(char, cn, clvl) &&
       !_luAsiDone(char, cn, clvl) &&
-      !!(b.levelUp && b.levelUp[newLevel] && (b.levelUp[newLevel].feat || b.levelUp[newLevel].asi ||
-         (typeof parseAsiFromHeadline === "function" && parseAsiFromHeadline(b.levelUp[newLevel].headline)) ||
-         (typeof parseFeatFromHeadline === "function" && parseFeatFromHeadline(b.levelUp[newLevel].headline))));
+      !!(b.levelUp && b.levelUp[clvl] && (b.levelUp[clvl].feat || b.levelUp[clvl].asi ||
+         (typeof parseAsiFromHeadline === "function" && parseAsiFromHeadline(b.levelUp[clvl].headline)) ||
+         (typeof parseFeatFromHeadline === "function" && parseFeatFromHeadline(b.levelUp[clvl].headline))));
     var subOpen = (subMinLevel === clvl && !_luSub(char, cn) && !!b.subclass);
     var ccOpen = false;
     if (b.recommendedChoices) {                            // SDR-2: + SUBCLASS_CHOICES[char.subclass]
@@ -1286,7 +1299,7 @@ function luBuildChoicesScreen() {
     }
     var spOpen = false;
     if (typeof getBuildRecSpellObjs === "function") {
-      var _recSp = getBuildRecSpellObjs(b, newLevel);
+      var _recSp = getBuildRecSpellObjs(b, clvl);
       var _mine = (char.spells && Array.isArray(char.spells.mySpells)) ? char.spells.mySpells : [];
       spOpen = _recSp.some(function(sp){ return !_mine.some(function(x){ return x.id === sp.id || x.name === sp.name; }); });
     }
@@ -1306,8 +1319,8 @@ function luAddRecommendedSpells() {
   var char = getCurrentChar();
   var ctx = _luChoicesCtx;
   if (!char || !ctx) return;
-  var b = (char.buildId && window.getBuildById) ? window.getBuildById(char.buildId) : null;
-  var objs = (b && typeof getBuildRecSpellObjs === "function") ? getBuildRecSpellObjs(b, ctx.newTotalLevel) : [];
+  var b = _luBuildFor(char, ctx.className);
+  var objs = (b && typeof getBuildRecSpellObjs === "function") ? getBuildRecSpellObjs(b, ctx.classLevel) : [];
   if (!objs.length) return;
   if (!char.spells) char.spells = {};
   if (!Array.isArray(char.spells.mySpells)) char.spells.mySpells = [];

@@ -762,8 +762,9 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
   ccModalState.avail = optionIds.filter(function(id) { return !locks[id]; }).length;
 
   // BUILD-LVL-3/5: рекомендация билда — баннер сверху + подсветка опции(й). single + multi.
-  var recOptIds = (typeof getBuildRecChoiceIds === "function") ? getBuildRecChoiceIds(char, choice.id) : [];
-  var levelRec = (typeof getBuildLevelRec === "function") ? getBuildLevelRec(char, choice.minLevel) : null;
+  var _recBuild = char.buildId && window.getBuildById ? window.getBuildById(char.buildId) : null;
+  var recOptIds = (typeof getBuildRecChoiceIds === "function" && !(_recBuild && _recBuild.className && _recBuild.className !== className)) ? getBuildRecChoiceIds(char, choice.id) : [];
+  var levelRec = (typeof getBuildLevelRec === "function") ? getBuildLevelRec(char, choice.minLevel, className) : null;
   var recBannerHtml = "";
   if (recOptIds.length || (levelRec && levelRec.headline)) {
     var recNames = recOptIds.map(function(rid){
@@ -965,7 +966,11 @@ function applyClassChoice() {
   }
 
   if (typeof saveToLocal === "function") saveToLocal();
-  if (typeof showToast === "function") showToast("Выбор сохранён: " + choice.name, "success");
+  // PLAY5-6б (PT-586): в тосте — что именно выбрано
+  var _picked = (Array.isArray(value) ? value : [value]).map(function(id) {
+    return (choice.optionsDict && choice.optionsDict[id]) ? choice.optionsDict[id].name : id;
+  }).filter(Boolean).join(", ");
+  if (typeof showToast === "function") showToast(choice.name + ": " + (_picked || "выбор сохранён"), "success");
   closeClassChoiceModal();
   if (typeof updateClassFeatures === "function") updateClassFeatures();
   if (typeof calcStats === "function") calcStats();

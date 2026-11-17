@@ -466,9 +466,53 @@ function rulesWeaponMods(char, weapon, level) {
   var statMod = getMod(stats[statKey] || 10);
   var magic = parseInt(weapon && weapon.magicBonus, 10) || 0;
   var pb = getProficiencyBonus(level || (char && char.level) || 1);
+  var fx = rulesEffectDamageBonus(char, weapon, statKey);
   return { statKey: statKey, statMod: statMod, magic: magic,
     attack: statMod + (weapon && weapon.proficient ? pb : 0) + magic,
-    damageMod: statMod + magic };
+    damageMod: statMod + magic + fx.total, effectDamage: fx.total, effectParts: fx.parts };
+}
+
+// PLAY5-2а: включённые эффекты char.effects — записи EFFECTS_DATA
+function rulesActiveEffects(char) {
+  if (!char || !Array.isArray(char.effects) || typeof EFFECTS_DATA === "undefined") return [];
+  return char.effects.map(function(id) {
+    return EFFECTS_DATA.find(function(e) { return e.id === id; });
+  }).filter(Boolean);
+}
+// Оружие дальнего боя: kind из каталога, иначе боеприпас или дистанция без «Ближний»
+// Рукопашное оружие со свойством «метательное» — можно бросить (режим weapon.thrownMode)
+function rulesWeaponIsThrowable(weapon) {
+  if (!weapon || weapon.kind === "ranged") return false;
+  var n = String(weapon.notes || "").toLowerCase();
+  return n.indexOf("метательн") !== -1 && n.indexOf("боеприпас") === -1;
+}
+function rulesWeaponIsRanged(weapon) {
+  if (!weapon) return false;
+  if (weapon.thrownMode && rulesWeaponIsThrowable(weapon)) return true;
+  if (weapon.kind) return weapon.kind === "ranged";
+  if (String(weapon.notes || "").toLowerCase().indexOf("боеприпас") !== -1) return true;
+  var r = String(weapon.range || "");
+  return /[0-9]/.test(r) && r.toLowerCase().indexOf("ближн") === -1;
+}
+// Бонус урона от эффектов (поле damageBonus). Ярость: +2/+3/+4 по уровню варвара к атаке
+// Силой — рукопашной в PHB 2014 стр.48, любой оружием или безоружным в PHB 2024 стр.51.
+function rulesEffectDamageBonus(char, weapon, statKey) {
+  var out = { total: 0, parts: [] };
+  rulesActiveEffects(char).forEach(function(e) {
+    var d = e.damageBonus;
+    if (!d) return;
+    if (d.stat && d.stat !== statKey) return;
+    if (d.melee && (d.melee === true || d.melee === (char.edition === "2024" ? "2024" : "2014")) && rulesWeaponIsRanged(weapon)) return;
+    var lvl = d.cls ? charClassLevel(char, d.cls) : (char.level || 1);
+    var v = 0;
+    Object.keys(d.byLevel || {}).forEach(function(k) { if (lvl >= parseInt(k, 10)) v = d.byLevel[k]; });
+    if (v) { out.total += v; out.parts.push({ id: e.id, name: e.name, value: v }); }
+  });
+  return out;
+}
+// Сопротивление урону от эффектов (поле resist — типы из DAMAGE_TYPES)
+function rulesEffectResists(char, type) {
+  return !!type && rulesActiveEffects(char).some(function(e) { return Array.isArray(e.resist) && e.resist.indexOf(type) !== -1; });
 }
 
 // AUD-8 (L20): модификатор урона атаки второй рукой — без стиля «Бой двумя оружиями»
@@ -1038,7 +1082,7 @@ function rulesDamageAfterDefenses(char, dmg, type) {
   dmg = Math.max(0, dmg || 0);
   if (type && char.immunities && char.immunities.indexOf(type) !== -1) return 0;
   var resist = !!(type && char.resistances && char.resistances.indexOf(type) !== -1) ||
-    !!(char.conditions && char.conditions.indexOf("petrified") !== -1);
+    !!(char.conditions && char.conditions.indexOf("petrified") !== -1) || rulesEffectResists(char, type);
   if (resist) dmg = Math.floor(dmg / 2);
   if (type && char.vulnerabilities && char.vulnerabilities.indexOf(type) !== -1) dmg *= 2;
   return dmg;
@@ -1112,7 +1156,12 @@ var CONC_BREAK_CONDITIONS = ["incapacitated", "paralyzed", "petrified", "stunned
 function rulesConditionRollMods(char, kind, ability) {
   var c = (char && char.conditions) || [];
   var has = function(id) { return c.indexOf(id) !== -1; };
-  var out = { dis: [], autoFail: [], penalty: 0 };
+  var out = { adv: [], dis: [], autoFail: [], penalty: 0 };
+  // PLAY5-2а: преимущество от эффектов (поле advantage: {check: [стат], save: [стат]})
+  if (ability && (kind === "check" || kind === "save")) rulesActiveEffects(char).forEach(function(e) {
+    var a = e.advantage && e.advantage[kind];
+    if (Array.isArray(a) && a.indexOf(ability) !== -1) out.adv.push(e.id);
+  });
   var addIf = function(list, ids) { ids.forEach(function(id) { if (has(id)) list.push(id); }); };
   if (kind === "attack") addIf(out.dis, ["blinded", "frightened", "poisoned", "prone", "restrained"]);
   if (kind === "check") addIf(out.dis, ["frightened", "poisoned"]);

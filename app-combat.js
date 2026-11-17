@@ -20,8 +20,8 @@ function showRollModePopup(callback, hint) {
     '<div class="roll-mode-title">Режим броска</div>' +
     '<span class="seg-group">' +
     '<button class="roll-mode-btn roll-mode-normal seg" data-mode="normal">' + dndIcoHtml("dice", 14) + ' Обычный</button>' +
-    '<button class="roll-mode-btn roll-mode-adv seg" data-mode="adv">' + dndIcoHtml("arrowUp", 14) + ' Преимущество</button>' +
-    '<button class="roll-mode-btn roll-mode-dis seg' + (hint && hint.dis.length ? ' roll-mode-suggested' : '') + '" data-mode="dis">' + dndIcoHtml("arrowDown", 14) + ' Помеха</button>' +
+    '<button class="roll-mode-btn roll-mode-adv seg' + (hint && hint.adv && hint.adv.length && !hint.dis.length ? ' roll-mode-suggested' : '') + '" data-mode="adv">' + dndIcoHtml("arrowUp", 14) + ' Преимущество</button>' +
+    '<button class="roll-mode-btn roll-mode-dis seg' + (hint && hint.dis.length && !(hint.adv && hint.adv.length) ? ' roll-mode-suggested' : '') + '" data-mode="dis">' + dndIcoHtml("arrowDown", 14) + ' Помеха</button>' +
     '</span>';
   var note = rollHintText(hint);
   if (note) popup.insertAdjacentHTML("beforeend", '<div class="roll-mode-note">' + escapeHtml(note) + '</div>');
@@ -42,6 +42,7 @@ function rollHintText(hint) {
   var names = function(ids) { return ids.map(function(id) { return conditionShortName(char, id); }).join(", "); };
   var parts = [];
   if (hint.autoFail.length) parts.push("Автопровал: " + names(hint.autoFail));
+  if (hint.adv && hint.adv.length) parts.push("Преимущество: " + names(hint.adv));
   if (hint.dis.length) parts.push("Помеха: " + names(hint.dis));
   if (hint.penalty) parts.push(hint.penalty + " к\u00a0броску: истощение");
   return parts.join(" · ");
@@ -136,7 +137,7 @@ function rollAbilityCheck(abilKey) {
   if (!char) return;
   var abil = abilities.find(function(a) { return a.key === abilKey; });
   if (!abil) return;
-  var hint = rulesConditionRollMods(char, "check");
+  var hint = rulesConditionRollMods(char, "check", abilKey);
   showRollModePopup(function(mode) {
     // AUD-8 (L33): «Мастер на все руки» / «Выдающийся атлет» — к проверкам без владения
     var bonus = getMod(char.stats[abilKey]) + rulesUntrainedCheckBonus(char, char.level || 1, abilKey) + hint.penalty;
@@ -161,7 +162,7 @@ function rollSkillCheck(skillIndex) {
   if (!char) return;
   var skill = skills[skillIndex];
   if (!skill) return;
-  var hint = rulesConditionRollMods(char, "check");
+  var hint = rulesConditionRollMods(char, "check", skill.stat);
   // AUD-8 (L34): доспех с помехой Скрытности — подсказка в окне режима броска
   if (skill && skill.name === "Скрытность" && rulesArmorStealthDisadv(char)) hint.dis.push("armor_stealth");
   showRollModePopup(function(mode) {
