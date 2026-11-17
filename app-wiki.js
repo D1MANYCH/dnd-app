@@ -103,11 +103,11 @@ function wikiUpdateHelpLink(section) {
     var pairs = c && typeof getCharClassPairs === "function" ? getCharClassPairs(c) : [];
     var cls = pairs.length ? pairs[0].cls : "";
     if (cls && _wikiClassNames().indexOf(cls) >= 0) {
-      label = "Класс «" + cls + "» в справочнике";
+      label = "Класс «" + cls + "» в00a0справочнике";
       act = "openWikiClass(" + JSON.stringify(cls).replace(/"/g, "&quot;") + ")";
-    } else { label = "Классы в справочнике"; act = "openWikiClasses()"; }
+    } else { label = "Классы в00a0справочнике"; act = "openWikiClasses()"; }
   } else if (section === "battle") {
-    label = "Состояния в справочнике"; act = "openWikiLore('cond')";
+    label = "Состояния в00a0справочнике"; act = "openWikiLore('cond')";
   } else if (!{ about: 1, start: 1, sheet: 1, spells: 1, inventory: 1, notes: 1, party: 1, journal: 1 }[section]) {
     row.innerHTML = ""; return;
   }
@@ -292,7 +292,7 @@ function renderWikiClass() {
   var skText = skills.length ? ("выберите " + nSk + ": " + skills.join(", ")) : "";
   var pre = d.MULTICLASS_PREREQUISITES[cls] || {};
   var preText = Object.keys(pre).map(function (k) { return WIKI_STAT_RU[k] + " " + pre[k]; }).join(", ");
-  if (cls === "Воин") preText += " или ЛОВ 13";
+  if (cls === "Воин") preText += " или00a0ЛОВ 13";
   var mc = d.MULTICLASS_PROFICIENCIES[cls];
   var mcText = mc ? _wikiProfList(mc) : "";
   if (mc && mc.skills) mcText += (mcText ? ", " : "") + "навыков: " + mc.skills;
@@ -311,7 +311,7 @@ function renderWikiClass() {
     _wikiFact("Мультикласс: требования", preText) +
     _wikiFact("Мультикласс: владения", mcText || "нет") +
     '</ul>';
-  html += '<h3 class="books-group-title">Умения по уровням</h3><ul class="home-menu-list">' +
+  html += '<h3 class="books-group-title">Умения по00a0уровням</h3><ul class="home-menu-list">' +
     _wikiFeatureRows(d.CLASS_FEATURES[cls], cls, "", ed) + '</ul>';
   var subs = d.SUBCLASSES[cls] || [];
   if (subs.length) {
@@ -322,7 +322,7 @@ function renderWikiClass() {
       html += '<details class="wiki-sub"><summary class="home-menu-item list-row"><span class="home-bullet" aria-hidden="true"></span>' +
         '<span class="home-menu-label">' + escapeHtml(s) + '</span>' +
         (src ? '<span class="home-menu-hint">' + escapeHtml(src) + '</span>' : '') + '</summary>' +
-        '<ul class="home-menu-list">' + (tbl ? _wikiFeatureRows(tbl, cls, s, ed) : '<li class="home-menu-hint">Умения не внесены.</li>') + '</ul></details>';
+        '<ul class="home-menu-list">' + (tbl ? _wikiFeatureRows(tbl, cls, s, ed) : '<li class="home-menu-hint">Умения не00a0внесены.</li>') + '</ul></details>';
     });
   }
   body.innerHTML = html;
@@ -484,13 +484,13 @@ function _wikiBgPage(d, key) {
     _wikiFact("Навыки", (b.skills || []).join(", ")) +
     _wikiFact("Инструменты", (b.tools || []).join(", ") || "нет");
   if (is24) {
-    html += _wikiFact("Характеристики", (b.abilities || []).map(function (k) { return WIKI_STAT_RU[k]; }).join(", ") + " (+2/+1 или +1/+1/+1)");
+    html += _wikiFact("Характеристики", (b.abilities || []).map(function (k) { return WIKI_STAT_RU[k]; }).join(", ") + " (+2/+1 или00a0+1/+1/+1)");
     var ft = null;
     (d.FEATS_DATA || []).forEach(function (f) { if (f.id === b.featId) ft = f; });
     if (ft) html += _wikiLRow(ft.name + (b.featOpt ? " (" + b.featOpt + ")" : ""), "черта", function () { _wikiLoreOpen("feat", ft.name); });
     html += _wikiPara("Описание", b.desc);
   } else {
-    html += _wikiFact("Языки", b.languages ? "на выбор: " + b.languages : "нет");
+    html += _wikiFact("Языки", b.languages ? "на00a0выбор: " + b.languages : "нет");
     if (b.feature) html += _wikiPara(b.feature.name, b.feature.desc);
   }
   return html + '</ul>';
@@ -652,7 +652,7 @@ wikiRegister({ group: "dnd", title: "Состояния", hint: "ослеплё�
   open: function () { _wikiLoreOpen("cond"); }, search: _wikiLoreSearch("cond", "Состояния") });
 wikiRegister({ group: "dnd", title: "Глоссарий", hint: "игровые термины", edition: true,
   open: function () { _wikiLoreOpen("gloss"); }, search: _wikiLoreSearch("gloss", "Глоссарий") });
-wikiRegister({ group: "dnd", title: "Характеристики", hint: "шесть характеристик и их применение", edition: true,
+wikiRegister({ group: "dnd", title: "Характеристики", hint: "шесть характеристик и00a0их применение", edition: true,
   open: function () { _wikiLoreOpen("abil"); }, search: _wikiLoreSearch("abil", "Характеристики") });
 wikiRegister({ group: "dnd", title: "Классовые опции", hint: "стили боя, воззвания, метамагия, манёвры", edition: true,
   open: function () { _wikiLoreOpen("opt"); },
@@ -672,5 +672,5 @@ wikiRegister({ group: "dnd", title: "Расы", hint: "особенности, �
   open: openWikiRaces, search: _wikiLoreSearch("race", "Расы") });
 wikiRegister({ group: "dnd", title: "Предыстории", hint: "навыки, умение, снаряжение", edition: true,
   open: openWikiBackgrounds, search: _wikiLoreSearch("bg", "Предыстории") });
-wikiRegister({ group: "dnd", title: "Черты", hint: "требования и эффекты", edition: true,
+wikiRegister({ group: "dnd", title: "Черты", hint: "требования и00a0эффекты", edition: true,
   open: openWikiFeats, search: _wikiLoreSearch("feat", "Черты") });

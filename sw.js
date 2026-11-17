@@ -263,7 +263,7 @@ const FILE_HASHES = {
   './app-desktop.js': '3e4f78e611e4179f9382',
   './history-stack.js': '4f49b495185044eec959',
   './app-help.js': '3499ac9a7cfc5e6fe080',
-  './app-wiki.js': '72cf8a2f9957e3846fe9',
+  './app-wiki.js': '806b0396d23b74d1629d',
   './app-sheet2.js': '1fce7a82bb335f0c2db5',
   './app-pdf.js': 'fe93586152b8088dbfab',
   './vendor/jspdf/jspdf.umd.min.js': '85ba2cc3ff858a20fa49',
