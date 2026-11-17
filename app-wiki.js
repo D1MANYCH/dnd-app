@@ -9,7 +9,7 @@
 var WIKI_GROUPS = [
   { id: "dnd", title: "Правила D&D" },
   { id: "cat", title: "Каталоги" },
-  { id: "app", title: "Приложение" }
+  { id: "app", title: "Как пользоваться приложением" }
 ];
 
 // Встроенные строки хаба. open — вызов существующего экрана.
@@ -23,6 +23,35 @@ var WIKI_BUILTIN = [
   { group: "cat", title: "Шпаргалка мастера", hint: "состояния · бой · мир", open: function () { openDmRef(); } }
 ];
 
+// НАВ-4: подгруппы «Правил D&D» (порядок строк — как в items).
+var WIKI_SUBS = [
+  { title: "Создание персонажа", items: ["Расы", "Классы", "Предыстории", "Характеристики", "Черты", "Классовые опции"] },
+  { title: "В игре", items: ["Состояния", "Глоссарий"] },
+  { title: "Мир", items: ["Что такое D&D", "Планы бытия", "Редакция 2024"] }
+];
+
+function _wikiPlural(n, f) {
+  var a = n % 100, b = n % 10;
+  return n + " " + (a > 10 && a < 15 ? f[2] : b === 1 ? f[0] : b > 1 && b < 5 ? f[1] : f[2]);
+}
+function _wikiLoreCount(kind) {
+  var k = _wikiLoreKind;
+  _wikiLoreKind = kind;
+  var n = _wikiLoreList().length;
+  _wikiLoreKind = k;
+  return n;
+}
+// НАВ-4: счётчики в подписях строк хаба, считаются из данных выбранной редакции.
+var WIKI_COUNTS = {
+  "Классы": function () { return _wikiPlural(_wikiClassNames().length, ["класс", "класса", "классов"]); },
+  "Расы": function () { return _wikiPlural(_wikiLoreCount("race"), ["раса", "расы", "рас"]); },
+  "Предыстории": function () { return _wikiPlural(_wikiLoreCount("bg"), ["предыстория", "предыстории", "предысторий"]); },
+  "Черты": function () { return _wikiPlural(_wikiLoreCount("feat"), ["черта", "черты", "черт"]); },
+  "Состояния": function () { return _wikiPlural(_wikiLoreCount("cond"), ["состояние", "состояния", "состояний"]); },
+  "Глоссарий": function () { return _wikiPlural(_wikiLoreCount("gloss"), ["термин", "термина", "терминов"]); },
+  "Классовые опции": function () { return _wikiPlural(WIKI_OPT_GROUPS.length, ["группа", "группы", "групп"]); }
+};
+
 // Разделы справки приложения, которые уже стоят в группе «Правила D&D».
 var WIKI_HELP_SKIP = { about: 1, planes: 1, edition2024: 1 };
 
@@ -30,8 +59,60 @@ var WIKI_HELP_SKIP = { about: 1, planes: 1, edition2024: 1 };
 var WIKI_SECTIONS = [];
 var _wikiEdition = null;   // выбранная на экране редакция; null — как у персонажа
 var _wikiActs = [];        // действия строк текущей отрисовки
+var _wikiFromTab = "";     // НАВ-1: вкладка листа, с которой открыт справочник
 
 function wikiRegister(sec) { WIKI_SECTIONS.push(sec); }
+
+// НАВ-3: хлебные крошки, «✕ К персонажу», недавно открытые.
+var _wikiCrumbActs = [];
+var WIKI_RECENT_KEY = "dnd_wiki_recent";
+
+/** Строка крошек под шапкой экрана. trail: [{t, f}], у последнего звена f нет. */
+function wikiCrumbs(screen, trail, extra) {
+  var scr = document.getElementById("screen-" + screen);
+  var head = scr && scr.querySelector(".page-head");
+  if (!head) return;
+  var bar = scr.querySelector(".wiki-crumbs");
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.className = "wiki-crumbs";
+    head.parentNode.insertBefore(bar, head.nextSibling);
+  }
+  var html = trail.map(function (z, i) {
+    var last = i === trail.length - 1;
+    if (last || !z.f) return '<span class="wiki-crumb wiki-crumb--cur">' + escapeHtml(z.t) + '</span>';
+    var n = _wikiCrumbActs.push(z.f) - 1;
+    return '<button type="button" class="wiki-crumb" onclick="_wikiCrumbGo(' + n + ')">' + escapeHtml(z.t) + '</button><span class="wiki-crumb-sep" aria-hidden="true">›</span>';
+  }).join("");
+  if (_wikiCrumbActs.length > 200) _wikiCrumbActs = [];
+  var hasChar = typeof currentId !== "undefined" && currentId;
+  // НАВ-4: одно звено дублирует заголовок — не показываем.
+  bar.innerHTML = (trail.length > 1 ? '<div class="wiki-crumb-trail">' + html + '</div>' : "") + (extra || "") +
+    (hasChar ? '<button type="button" class="wiki-crumb-exit" onclick="wikiExit()">✕ К персонажу</button>' : "");
+  bar.hidden = !bar.innerHTML;
+}
+function _wikiCrumbGo(i) { var f = _wikiCrumbActs[i]; if (f) f(); }
+
+/** Выход из справочника одним нажатием: на лист персонажа, без него — в меню. */
+function wikiExit() {
+  showScreen(typeof currentId !== "undefined" && currentId ? "character" : "home");
+}
+
+function _wikiRecentGet() {
+  try { var a = JSON.parse(localStorage.getItem(WIKI_RECENT_KEY) || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+}
+/** Запомнить открытую страницу: id вида help:ключ / class:имя / lore:вид:ключ. */
+function wikiRecentPush(id, title) {
+  var a = _wikiRecentGet().filter(function (x) { return x.id !== id; });
+  a.unshift({ id: id, t: title });
+  try { localStorage.setItem(WIKI_RECENT_KEY, JSON.stringify(a.slice(0, 3))); } catch (e) {}
+}
+function _wikiRecentOpen(id) {
+  var p = id.split(":");
+  if (p[0] === "help") openHelp(p[1]);
+  else if (p[0] === "class") openWikiClass(p.slice(1).join(":"));
+  else if (p[0] === "lore") _wikiLoreOpen(p[1], p.slice(2).join(":"));
+}
 
 /** Редакция справочника: выбранная на экране, иначе персонажа, иначе 2014. */
 function wikiEdition() {
@@ -50,6 +131,8 @@ function setWikiEdition(ed) {
 
 function openWiki() {
   if (typeof _closeOpenModals === "function") _closeOpenModals();
+  var tabEl = document.querySelector("#screen-character:not(.hidden) .tab-content.active");
+  _wikiFromTab = tabEl ? tabEl.id.replace(/^tab-/, "") : "";
   showScreen("wiki");
   var inp = document.getElementById("wiki-search");
   if (inp) inp.value = "";
@@ -108,7 +191,8 @@ function wikiUpdateHelpLink(section) {
     } else { label = "Классы в справочнике"; act = "openWikiClasses()"; }
   } else if (section === "battle") {
     label = "Состояния в справочнике"; act = "openWikiLore('cond')";
-  } else if (!{ about: 1, start: 1, sheet: 1, spells: 1, inventory: 1, notes: 1, party: 1, journal: 1 }[section]) {
+  } else {
+    // НАВ-2: общая ссылка «Справочник» дублировала «←», убрана.
     row.innerHTML = ""; return;
   }
   row.innerHTML = '<button type="button" class="tab-help-btn tab-help-btn--text" onclick="' + act + '">' + escapeHtml(label) + '</button>';
@@ -120,11 +204,15 @@ function _wikiRow(item) {
   return '<li class="home-menu-row"><button type="button" class="home-menu-item list-row" onclick="_wikiGo(' + i + ')">' +
     '<span class="home-bullet" aria-hidden="true"></span>' +
     '<span class="home-menu-label">' + escapeHtml(item.title) + '</span>' +
-    (item.hint ? '<span class="home-menu-hint">' + escapeHtml(item.hint) + '</span>' : '') +
+    (item.count || item.hint ? '<span class="home-menu-hint">' + escapeHtml((item.count ? item.count + (item.hint ? " · " : "") : "") + (item.hint || "")) + '</span>' : '') +
     '</button></li>';
 }
 
 function _wikiGo(i) { var f = _wikiActs[i]; if (f) f(); }
+function wikiJump(g) {
+  var el = document.getElementById("wiki-grp-" + g);
+  if (el && el.scrollIntoView) el.scrollIntoView({ block: "start", behavior: "smooth" });
+}
 
 function _wikiHubItems() {
   var items = WIKI_SECTIONS.concat(WIKI_BUILTIN);
@@ -139,22 +227,54 @@ function renderWiki() {
   var body = document.getElementById("wiki-body");
   if (!body) return;
   _wikiActs = [];
-  var edRow = document.getElementById("wiki-edition-row");
-  if (edRow) {
-    edRow.hidden = !WIKI_SECTIONS.some(function (s) { return s.edition; });
+  // НАВ-4: переключатель редакции — в строке крошек.
+  var edHtml = "";
+  if (WIKI_SECTIONS.some(function (s) { return s.edition; })) {
     var ed = wikiEdition();
-    edRow.querySelectorAll("[data-ed]").forEach(function (b) { b.classList.toggle("active", b.getAttribute("data-ed") === ed); });
+    edHtml = '<span class="wiki-ed"><span class="char-sort-label">Редакция:</span><span class="seg-group">' +
+      ["2014", "2024"].map(function (v) {
+        return '<button type="button" class="sort-btn seg' + (v === ed ? " active" : "") + '" data-ed="' + v + '" onclick="setWikiEdition(\'' + v + '\')">' + v + '</button>';
+      }).join("") + '</span></span>';
   }
   var inp = document.getElementById("wiki-search");
   var q = _wikiNorm(inp ? inp.value : "").trim();
   var items = _wikiHubItems();
   var html = "";
+  wikiCrumbs("wiki", [{ t: "Справочник" }], edHtml);
+  var jumpEl = document.getElementById("wiki-jumps");
+  if (jumpEl) {
+    jumpEl.innerHTML = q ? "" : '<div class="wiki-jumps">' + WIKI_GROUPS.map(function (g) {
+      return '<button type="button" class="wiki-jump" onclick="wikiJump(\'' + g.id + '\')">' + escapeHtml(g.id === "app" ? "Приложение" : g.id === "dnd" ? "Правила" : g.title) + '</button>';
+    }).join('<span class="wiki-crumb-sep" aria-hidden="true">·</span>') + '</div>';
+  }
   if (!q) {
+    items.forEach(function (it) { var f = WIKI_COUNTS[it.title]; it.count = it.group === "dnd" && f ? f() : ""; });
+    var rec = _wikiRecentGet();
+    if (rec.length) {
+      html += '<h3 class="books-group-title">Недавно открытые</h3><ul class="home-menu-list">' + rec.map(function (r) {
+        return _wikiRow({ title: r.t, open: function () { _wikiRecentOpen(r.id); } });
+      }).join("") + '</ul>';
+    }
+    var here = _wikiFromTab && _wikiHelpTabs().filter(function (t) { return t.key === _wikiFromTab; })[0];
+    if (here) html += '<h3 class="books-group-title">Этот раздел</h3><ul class="home-menu-list">' + _wikiRow({ title: here.title, hint: "как пользоваться", open: function () { openHelp(here.key); } }) + '</ul>';
+    html += '<div class="wiki-cols">';
     WIKI_GROUPS.forEach(function (g) {
       var rows = items.filter(function (it) { return it.group === g.id; });
       if (!rows.length) return;
-      html += '<h3 class="books-group-title">' + escapeHtml(g.title) + '</h3><ul class="home-menu-list">' + rows.map(_wikiRow).join("") + '</ul>';
+      html += '<section class="wiki-col-grp"><h3 class="books-group-title" id="wiki-grp-' + g.id + '">' + escapeHtml(g.title) + '</h3>';
+      if (g.id === "dnd") {
+        var used = {};
+        WIKI_SUBS.forEach(function (s) {
+          var sr = s.items.map(function (t) { return rows.filter(function (it) { return it.title === t; })[0]; }).filter(Boolean);
+          sr.forEach(function (it) { used[it.title] = 1; });
+          if (sr.length) html += '<h4 class="wiki-subtitle">' + escapeHtml(s.title) + '</h4><ul class="home-menu-list">' + sr.map(_wikiRow).join("") + '</ul>';
+        });
+        var rest = rows.filter(function (it) { return !used[it.title]; });
+        if (rest.length) html += '<ul class="home-menu-list">' + rest.map(_wikiRow).join("") + '</ul>';
+      } else html += '<ul class="home-menu-list">' + rows.map(_wikiRow).join("") + '</ul>';
+      html += '</section>';
     });
+    html += '</div>';
   } else {
     var hits = items.filter(function (it) { return _wikiNorm(it.title + " " + (it.hint || "")).indexOf(q) >= 0; });
     WIKI_SECTIONS.forEach(function (s) { if (typeof s.search === "function") hits = hits.concat(s.search(q) || []); });
@@ -165,6 +285,30 @@ function renderWiki() {
   }
   body.innerHTML = html;
 }
+
+// НАВ-4: клавиатура на хабе — «/» в поиск, ↑↓ по строкам, Esc очищает поиск.
+document.addEventListener("keydown", function (e) {
+  var scr = document.getElementById("screen-wiki");
+  if (!scr || scr.classList.contains("hidden") || e.ctrlKey || e.metaKey || e.altKey) return;
+  var inp = document.getElementById("wiki-search");
+  var inInp = document.activeElement === inp;
+  var tag = document.activeElement && document.activeElement.tagName;
+  if (e.key === "/" && !inInp && tag !== "INPUT" && tag !== "TEXTAREA") {
+    e.preventDefault(); if (inp) inp.focus(); return;
+  }
+  if (e.key === "Escape" && inp && inp.value) {
+    e.preventDefault(); inp.value = ""; renderWiki(); inp.focus(); return;
+  }
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    var rows = Array.prototype.slice.call(scr.querySelectorAll("#wiki-body .home-menu-item"));
+    if (!rows.length) return;
+    var i = rows.indexOf(document.activeElement);
+    e.preventDefault();
+    if (e.key === "ArrowDown") rows[i < 0 ? 0 : Math.min(i + 1, rows.length - 1)].focus();
+    else if (i <= 0) { if (inp) inp.focus(); }
+    else rows[i - 1].focus();
+  }
+}, true);
 
 // ============================================================
 // ВИКИ-2 — классы: список и страница класса (экран #screen-wikiclass).
@@ -274,6 +418,7 @@ function renderWikiClass() {
   if (row) row.querySelectorAll("[data-ed]").forEach(function (b) { b.classList.toggle("active", b.getAttribute("data-ed") === ed); });
   var html = "";
   if (!_wikiClass) {
+    wikiCrumbs("wikiclass", [{ t: "Справочник", f: openWiki }, { t: "Классы" }]);
     if (h) h.textContent = "Классы";
     html = '<ul class="home-menu-list">' + _wikiClassNames().map(function (c) {
       var subs = (d.SUBCLASSES[c] || []).length;
@@ -283,6 +428,8 @@ function renderWikiClass() {
     return;
   }
   var cls = _wikiClass;
+  wikiCrumbs("wikiclass", [{ t: "Справочник", f: openWiki }, { t: "Классы", f: openWikiClasses }, { t: cls }]);
+  wikiRecentPush("class:" + cls, "Класс · " + cls);
   if (h) h.textContent = cls;
   var saves = (CLASS_SAVE_PROFICIENCIES[cls] || []).map(function (s) { return WIKI_STAT_RU[s]; }).join(", ");
   var armor = d.CLASS_ARMOR_PROFS[cls] || {};
@@ -515,7 +662,10 @@ function renderWikiLore() {
   var h = document.getElementById("wikilore-title");
   var row = document.getElementById("wikilore-edition-row");
   if (row) row.querySelectorAll("[data-ed]").forEach(function (b) { b.classList.toggle("active", b.getAttribute("data-ed") === ed); });
+  var _lk = kind, _lt = WIKI_LORE_TITLES[kind] || "Справочник";
   if (_wikiLoreKey) {
+    wikiCrumbs("wikilore", [{ t: "Справочник", f: openWiki }, { t: _lt, f: function () { _wikiLoreOpen(_lk); } }, { t: _wikiLoreKey }]);
+    wikiRecentPush("lore:" + kind + ":" + _wikiLoreKey, _lt + " · " + _wikiLoreKey);
     if (h) h.textContent = _wikiLoreKey;
     body.innerHTML = kind === "race" ? _wikiRacePage(d, _wikiLoreKey)
       : kind === "bg" ? _wikiBgPage(d, _wikiLoreKey)
@@ -525,6 +675,7 @@ function renderWikiLore() {
       : kind === "opt" ? _wikiOptPage(_wikiLoreKey) : _wikiFeatPage(d, _wikiLoreKey);
     return;
   }
+  wikiCrumbs("wikilore", [{ t: "Справочник", f: openWiki }, { t: _lt }]);
   if (h) h.textContent = WIKI_LORE_TITLES[kind] || "Справочник";
   var names = _wikiLoreList();
   if (kind === "feat") names = names.slice().sort(function (a, b) { return a.localeCompare(b, "ru"); });

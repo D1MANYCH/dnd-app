@@ -317,6 +317,7 @@ spellOnlyAdded = false;
 // STYLE-8M-4: поиск — экран. Открывается и с вкладки, и с экрана повышения
 // уровня (luGoToSpellsTab сначала уводит на лист), стек возврата это переживает.
 if (typeof showScreen === "function") showScreen("spellsearch");
+if (typeof wikiCrumbs === "function") wikiCrumbs("spellsearch", [{ t: "Справочник", f: openWiki }, { t: "Заклинания" }]);
 safeSet("spell-search-input", "");
 safeSet("spell-search-level", "");
 // BUILD-LVL: по умолчанию сужаем поиск до класса персонажа (чужие классы скрыты до явного выбора).

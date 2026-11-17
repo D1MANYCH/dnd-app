@@ -2358,6 +2358,7 @@ function renderDmRef() {
 
 function openDmRef() {
   if (typeof showScreen === "function") showScreen("dmref");
+  if (typeof wikiCrumbs === "function") wikiCrumbs("dmref", [{ t: "Справочник", f: openWiki }, { t: "Шпаргалка мастера" }]);
   renderDmRef();
   switchDmRef("cond", null);
 }

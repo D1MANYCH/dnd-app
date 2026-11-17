@@ -102,7 +102,7 @@ function _pgAboutRow() {
     "<p>Кость хитов у\u00a0каждого класса своя, поэтому хиты растут той костью, чей класс вы повышаете. " +
     "Прибавка — среднее по\u00a0кости (у\u00a0к10 это 6) плюс модификатор Телосложения; кидать кубик " +
     "не\u00a0обязательно, среднее по\u00a0книге законно.</p>" +
-    _pgActRow('<button type="button" class="hp-act" onclick="openHelp(\'progress\')">Подробно в\u00a0справке →</button>');
+    _pgActRow('<button type="button" class="hp-act" onclick="openHelp(\'progress\')">Подробно в\u00a0справочнике →</button>');
   return _pgDisc("Что это значит", "", body, false, { mute: true });
 }
 
@@ -565,7 +565,7 @@ function _pgSheetAboutRow(char, list) {
     (multi ? ": " + list.map(function(e) { return escapeHtml(e.cls) + " " + e.level; }).join(", ") : "") + ".</p>" +
     "<p>Кость хитов у\u00a0каждого класса своя, поэтому хиты растут костью того класса, чей уровень вы повышаете.</p>" +
     _pgActRow('<button type="button" class="hp-act" onclick="openProgress()">Развитие →</button>' +
-      '<button type="button" class="hp-act" onclick="openHelp(\'progress\')">Подробно в\u00a0справке →</button>');
+      '<button type="button" class="hp-act" onclick="openHelp(\'progress\')">Подробно в\u00a0справочнике →</button>');
   return _pgDisc("Что это значит", "", body, false, { mute: true });
 }
 

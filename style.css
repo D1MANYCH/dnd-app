@@ -17047,3 +17047,28 @@ html[style*="--fs-zoom"] :is(#bgGlass, .home-art, .drawer-overlay, .confirm-moda
   :root #rd-quick-dock:not([hidden]) { position: static; margin: var(--sp-3) var(--sp-2); }
   .cr-nav { position: static; }
 }
+
+/* НАВ-3: хлебные крошки справочника, быстрые переходы */
+.wiki-crumbs { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); padding-left: var(--sp-3); margin-bottom: var(--sp-3); font-size: 0.9em; }
+.wiki-crumb-trail { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1); min-width: 0; }
+.wiki-crumb { background: none; border: 0; padding: 2px 0; color: var(--accent, inherit); cursor: pointer; font: inherit; }
+.wiki-crumb:hover { text-decoration: underline; }
+.wiki-crumb--cur { color: var(--text-dim, inherit); cursor: default; }
+.wiki-crumb--cur:hover { text-decoration: none; }
+.wiki-crumb-sep { opacity: .5; padding: 0 2px; }
+.wiki-crumb-exit { background: none; border: 0; padding: 2px 0; color: var(--text-dim, inherit); cursor: pointer; font: inherit; }
+.wiki-crumb-exit:hover { color: var(--accent, inherit); }
+.wiki-jumps { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2); padding-left: var(--sp-3); margin: var(--sp-3) 0; }
+.wiki-jump { background: none; border: 0; padding: 2px 0; color: var(--accent, inherit); cursor: pointer; font: inherit; }
+.wiki-jump:hover { text-decoration: underline; }
+
+/* НАВ-4: оглавление справочника — sticky-шапка, подгруппы, две колонки на ПК */
+.wiki-crumbs[hidden] { display: none; }
+.wiki-ed { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.wiki-sticky { position: sticky; top: 0; z-index: 5; background: var(--bg-0); padding-bottom: var(--sp-1); }
+.wiki-subtitle { margin: var(--sp-3) 0 var(--sp-1); padding-left: var(--sp-3); font-size: 0.85em; font-weight: 600; color: var(--text-dim, inherit); }
+.wiki-col-grp { break-inside: avoid; }
+@media (min-width: 1100px) {
+  #screen-wiki .page-stage { max-width: 1040px; }
+  .wiki-cols { column-count: 2; column-gap: var(--sp-6, 48px); }
+}

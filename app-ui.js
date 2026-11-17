@@ -1497,6 +1497,7 @@ function renderChangelog() {
 function openItemRef(tab) {
   if (typeof _closeOpenModals === "function") _closeOpenModals();
   if (typeof showScreen === "function") showScreen("itemref");
+  if (typeof wikiCrumbs === "function") wikiCrumbs("itemref", [{ t: "Справочник", f: openWiki }, { t: "Вес и слоты" }]);
   switchItemRef(tab || 'weight', null);
 }
 function closeItemRef() {

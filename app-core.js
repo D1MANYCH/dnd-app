@@ -444,7 +444,7 @@ var PAGE_SCREENS = ["data", "settings", "about", "help", "wiki", "wikiclass", "w
                     "hphistory", "spellsearch", "itemref", "dmref", "abilgen", "mclayout",
                     "monsters", "monsterform", "books", "wildshape", "creator"];
 var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О\u00a0версии",
-                    help: "Справка", wiki: "Справочник", wikiclass: "Классы", wikilore: "Справочник", builds: "Готовые билды",
+                    help: "Справочник", wiki: "Справочник", wikiclass: "Классы", wikilore: "Справочник", builds: "Готовые билды",
                     buildguide: "Гайд по\u00a0билду", buildplan: "План развития",
                     featureinfo: "Умение", levelup: "Повышение уровня", rest: "Отдых",
                     magiccatalog: "Каталог магических предметов", gearcatalog: "Каталог снаряжения",

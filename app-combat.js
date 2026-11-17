@@ -1096,13 +1096,13 @@ if (byClsEl) {
   byClsEl.textContent = byCls.length > 1 ? byCls.map(function(r) { return r.cls + " (" + r.stat + "): СЛ " + r.dc + " · атака " + formatMod(r.attack); }).join("  ·  ") : "";
 }
 // Highlight active stat button
+var _scMap = { int: "ИНТ", wis: "МУД", cha: "ХАР" };
 ["int","wis","cha"].forEach(function(s) {
   var btn = $("sc-btn-" + s);
-  if (btn) btn.classList.remove("active");
+  if (!btn) return;
+  btn.classList.toggle("active", stat === _scMap[s]);
+  btn.setAttribute("aria-pressed", stat === _scMap[s] ? "true" : "false");
 });
-if (stat === "ИНТ" && $("sc-btn-int")) $("sc-btn-int").classList.add("active");
-if (stat === "МУД" && $("sc-btn-wis")) $("sc-btn-wis").classList.add("active");
-if (stat === "ХАР" && $("sc-btn-cha")) $("sc-btn-cha").classList.add("active");
 char.spells.dc = dc;
 char.spells.attack = attack;
 char.spells.mod = statMod;
