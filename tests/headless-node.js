@@ -64,6 +64,7 @@ const files = [
   'app-sync.js',             // SYNC-2: syncMerge/syncHashChar — движок слияния (БЛОК 67)
   'tests/fixtures.js',
   'tests/rules-cases.js',    // SETUP-5.3: кейсы rules.js со страницы tests.html — гоняет БЛОК 50 в headless.js
+  'tests/property-cases.js', // ПРОП-1: property-тесты — генератор персонажей и инварианты (БЛОК ПРОП-1)
   'tests/headless.js',
 ];
 

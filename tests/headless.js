@@ -11524,6 +11524,9 @@
     });
   }
 
+  // ────────── БЛОК ПРОП-1: property-тесты (tests/property-cases.js) ──────────
+  if (window.PROP_CASES) window.PROP_CASES.forEach(function(pc) { t("[prop] " + pc.desc, pc.fn); });
+
   // ────────── РЕЗУЛЬТАТЫ ──────────
   window.__testResults = {pass, fail, total: pass+fail, results};
 

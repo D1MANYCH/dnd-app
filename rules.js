@@ -158,7 +158,7 @@ function rulesSpendHitDice(char, dice, rolls) {
   });
   char.combat.hpDiceSpentBy = by;
   char.combat.hpDiceSpent = (char.combat.hpDiceSpent || 0) + dice.length;
-  char.combat.hpCurrent = Math.min(hpBefore + hpHealed, parseInt(char.combat.hpMax, 10) || 0);
+  char.combat.hpCurrent = Math.min(hpBefore + hpHealed, rulesEffectiveHpMax(char));
   // АУД4-4 (H1): выход из 0 ХП — как при лечении (сброс отметок, снятие «без сознания»)
   if (hpBefore <= 0 && char.combat.hpCurrent > 0) rulesRegainFromZero(char);
   return { hpBefore: hpBefore, hpAfter: char.combat.hpCurrent, hpHealed: char.combat.hpCurrent - hpBefore, rollLog: rollLog, conMod: conMod };
