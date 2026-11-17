@@ -112,8 +112,9 @@ function renderLanguages() {
     html += '<div class="prof-cat-group prof-choice-pending">';
     html += '<div class="prof-cat-title">' + slot.label + ': выбери язык <span class="prof-cat-hint">(' + slot.remaining + ' из ' + slot.total + ')</span></div>';
     html += '<div class="prof-add-row">';
-    html += '<select id="lang-choice-' + slot.key + '"><option value="">— выбрать —</option>';
-    ["standard","exotic"].forEach(function(c) {
+    html += '<select id="lang-choice-' + slot.key + '" onchange="addChoiceLanguage(\'' + slot.key + '\')"><option value="">— выбрать —</option>';
+    // PLAY5-6а (PT-551): 2024 — при создании только стандартные языки (PHB24)
+    (char.edition === "2024" ? ["standard"] : ["standard","exotic"]).forEach(function(c) {
       html += '<optgroup label="' + LANG_CAT_TITLES[c] + '">';
       (LANGUAGE_CATALOG[c]||[]).forEach(function(l) {
         if (alreadyKnown[l.name]) return;
@@ -122,7 +123,6 @@ function renderLanguages() {
       html += '</optgroup>';
     });
     html += '</select>';
-    html += '<button onclick="addChoiceLanguage(\'' + slot.key + '\')">' + dndIcoHtml("plus", 13) + ' Добавить</button>';
     html += '</div></div>';
   });
 
@@ -351,10 +351,9 @@ function renderTools() {
     html += '<div class="prof-cat-group prof-choice-pending">';
     html += '<div class="prof-cat-title">' + slot.label + ' <span class="prof-cat-hint">(' + slot.remaining + ' из ' + slot.total + ')</span></div>';
     html += '<div class="prof-add-row">';
-    html += '<select id="tool-choice-' + slot.key + '"><option value="">— выбрать —</option>';
+    html += '<select id="tool-choice-' + slot.key + '" onchange="addChoiceTool(\'' + slot.key + '\')"><option value="">— выбрать —</option>';
     html += buildToolOptionsHtml(slot, alreadyKnown);
     html += '</select>';
-    html += '<button onclick="addChoiceTool(\'' + slot.key + '\')">' + dndIcoHtml("plus", 13) + ' Добавить</button>';
     html += '</div></div>';
   });
 

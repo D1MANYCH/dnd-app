@@ -812,9 +812,10 @@ function deleteSubclassForm() {
 }
 
 // ── Экран «Об умении» ───────────────────────────────────────
-function openFeatureInfo(cls, sub, level, name) {
+function openFeatureInfo(cls, sub, level, name, edOverride) {
   var found = null, src = "";
-  var _ed = edData((typeof getCurrentChar === "function") ? getCurrentChar() : null);  // E24-7
+  // ВИКИ-2: справочник может показывать редакцию, отличную от редакции персонажа
+  var _ed = edData(edOverride ? { edition: edOverride } : ((typeof getCurrentChar === "function") ? getCurrentChar() : null));  // E24-7
   var pick = function(table, label) {
     if (found || !table || !table[level]) return;
     table[level].forEach(function(f) {
@@ -838,7 +839,7 @@ function openFeatureInfo(cls, sub, level, name) {
   // с поповером, а найденные в тексте объясняются ещё и блоком ниже, чтобы
   // новичку не нужно было догадываться, что слово можно нажать.
   var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
-  var ed = (char && char.edition === "2024") ? "2024" : "2014";
+  var ed = edOverride || ((char && char.edition === "2024") ? "2024" : "2014");
   var descEsc = escapeHtml(found.desc || "");
   var descHtml = descEsc;
   if (typeof glossarizeHtml === "function") {

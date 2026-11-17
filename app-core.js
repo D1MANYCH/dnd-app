@@ -433,18 +433,18 @@ if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.e
 // и «План класса» открываются уже из него и остаются экранами глубины 4, чтобы
 // «←» возвращал на вкладку «Развитие» (лист — глубина 2, стек это переживает).
 var SCREEN_DEPTH = { home: 0, characters: 1, character: 2, data: 3, settings: 3, about: 3,
-                     help: 3, builds: 3, buildguide: 4, buildplan: 4, abilityinfo: 3,
+                     help: 3, wiki: 2.5, wikiclass: 3, wikilore: 3, builds: 3, buildguide: 4, buildplan: 4, abilityinfo: 3,
                      featureinfo: 4, levelup: 3, rest: 3, magiccatalog: 3, gearcatalog: 3,
                      hphistory: 3, spellsearch: 3, itemref: 3, dmref: 3, abilgen: 3, mclayout: 3,
                      monsters: 3, monsterform: 3, books: 4, wildshape: 3, creator: 2 };
 // Экраны-страницы: у них нет своего персонажа, currentId не трогаем — иначе
 // «Настройки» с листа выбрасывали бы из персонажа.
-var PAGE_SCREENS = ["data", "settings", "about", "help", "builds", "buildguide", "buildplan", "abilityinfo",
+var PAGE_SCREENS = ["data", "settings", "about", "help", "wiki", "wikiclass", "wikilore", "builds", "buildguide", "buildplan", "abilityinfo",
                     "featureinfo", "levelup", "rest", "magiccatalog", "gearcatalog",
                     "hphistory", "spellsearch", "itemref", "dmref", "abilgen", "mclayout",
                     "monsters", "monsterform", "books", "wildshape", "creator"];
 var PAGE_TITLES = { data: "Данные", settings: "Настройки", about: "О\u00a0версии",
-                    help: "Справка", builds: "Готовые билды",
+                    help: "Справка", wiki: "Справочник", wikiclass: "Классы", wikilore: "Справочник", builds: "Готовые билды",
                     buildguide: "Гайд по\u00a0билду", buildplan: "План развития",
                     featureinfo: "Умение", levelup: "Повышение уровня", rest: "Отдых",
                     magiccatalog: "Каталог магических предметов", gearcatalog: "Каталог снаряжения",
@@ -1708,7 +1708,7 @@ safeSet("coin-gp", char.coins.gp);
 safeSet("coin-pp", char.coins.pp);
 safeSet("spell-stat", char.spells.stat || "");
 // Sync spell stat button highlight
-const _statVal = char.spells.stat || "";
+const _statVal = char.spells.stat || (typeof rulesSpellStats === "function" ? rulesSpellStats(char, char.level || 1).stat : "") || "";
 ["int","wis","cha"].forEach(function(s){ var b=$("sc-btn-"+s); if(b) b.classList.remove("active"); });
 if(_statVal==="ИНТ" && $("sc-btn-int")) $("sc-btn-int").classList.add("active");
 if(_statVal==="МУД" && $("sc-btn-wis")) $("sc-btn-wis").classList.add("active");

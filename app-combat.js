@@ -144,6 +144,17 @@ function rollAbilityCheck(abilKey) {
   }, hint);
 }
 
+// ── Бросок инициативы с листа: к20 + getInitiativeMod (ЛОВ + черты) ──
+function rollInitiative() {
+  var char = getCurrentChar();
+  if (!char) return;
+  var hint = rulesConditionRollMods(char, "check", "dex");
+  showRollModePopup(function(mode) {
+    var bonus = getInitiativeMod(char, parseInt($("char-level")?.value, 10) || char.level || 1) + hint.penalty;
+    quickRoll({ label: "Инициатива", sides: 20, mod: bonus, mode: mode });
+  }, hint);
+}
+
 // ── Бросок проверки навыка ──
 function rollSkillCheck(skillIndex) {
   var char = getCurrentChar();
@@ -2335,6 +2346,19 @@ function _creationTodo(char) {
       if (def && def.equipment && !def.custom && !char.bgEquipGiven) add("Снаряжение предыстории", bgName, goBg);
     }
   }
+  // PLAY5-6а (PT-725, PT-424): заклинания и навыки черт — в списке выборов
+  if (typeof getFeatDef === "function") (char.feats || []).forEach(function(f) {
+    var fd = getFeatDef(char, f.id);
+    if (!fd) return;
+    if (fd.spellPick) {
+      var fp = rulesFeatSpellProgress(char, f, fd);
+      if (fp.have < fp.need) add("Заклинания черты", (f.name || fd.name) + " · " + fp.have + " из " + fp.need, "creationTodoGo('taken-feats-section')");
+    }
+    if (fd.skillPick) {
+      var fn = fd.skillPick - (f.skillPicks || []).filter(function(n) { return !!n; }).length;
+      if (fn > 0) add("Навыки черты", (f.name || fd.name) + " · осталось " + fn, "creationTodoGo('taken-feats-section')");
+    }
+  });
   var pr = char.proficiencies;
   if (pr && pr.languageChoices && typeof getLanguageChoiceSlots === "function") getLanguageChoiceSlots(char).forEach(function(s) {
     add("Языки", src(s.label) + " · осталось " + s.remaining, "creationTodoGo('languages-container')");

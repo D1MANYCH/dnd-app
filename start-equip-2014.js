@@ -153,6 +153,16 @@ function _startPickOptions(kind) {
   }).map(function(w) { return w.name; });
 }
 
+// PLAY5-6а (PT-719): инструмент по умолчанию — тот, которым персонаж уже владеет
+function _startPickDefault(kind, list) {
+  var char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
+  var tools = (char && char.proficiencies && char.proficiencies.tools) || [];
+  if (/^(instrument|artisan|gaming|artisanOrInstrument)$/.test(kind)) {
+    for (var i = 0; i < tools.length; i++) if (tools[i] && list.indexOf(tools[i].name) !== -1) return tools[i].name;
+  }
+  return list[0] || "";
+}
+
 function _startOpt(o) { return Array.isArray(o) ? { items: o } : o; }
 
 function _startClassDef(char) {
@@ -191,7 +201,7 @@ function _rerenderStartEquip(scope) {
 }
 
 function _startItemLabel(it) {
-  return typeof it === "string" ? it : (_START_PICK_LABELS[it.pick] || it.pick) + " на\u00a0выбор";
+  return typeof it === "string" ? it.replace(/^(\d+) ([А-ЯЁ].*)$/, "$2 ×$1") : (_START_PICK_LABELS[it.pick] || it.pick) + " на\u00a0выбор";
 }
 
 function _startChoicesHtml(scope, choices) {
@@ -211,10 +221,10 @@ function _startChoicesHtml(scope, choices) {
       if (typeof it === "string") { if (opts.length === 1) html += '<span class="race-extras-hint">' + escapeHtml(it) + '</span>'; return; }
       var key = scope + "." + ci + "." + sel + "." + ii;
       var list = _startPickOptions(it.pick);
-      if (!st.picks[key]) st.picks[key] = list[0] || "";
+      var cur = st.picks[key] || _startPickDefault(it.pick, list);
       html += '<select class="field flat-field" aria-label="' + escapeHtml(_START_PICK_LABELS[it.pick] || "") +
         '" onchange="setStartEquipPick(\'' + key + '\', this.value)">' + list.map(function(n) {
-          return '<option' + (n === st.picks[key] ? " selected" : "") + '>' + escapeHtml(n) + '</option>';
+          return '<option' + (n === cur ? " selected" : "") + '>' + escapeHtml(n) + '</option>';
         }).join("") + '</select>';
     });
     html += '</div>';
@@ -227,7 +237,7 @@ function _startResolve(scope, choices, fixed) {
   var st = _startState(), out = [];
   function push(it, key) {
     if (typeof it === "string") { out.push(it); return; }
-    var v = st.picks[key] || _startPickOptions(it.pick)[0];
+    var v = st.picks[key] || _startPickDefault(it.pick, _startPickOptions(it.pick));
     if (!v) return;
     out.push(/^(instrument|artisan|gaming|artisanOrInstrument)$/.test(it.pick) ? { tool: v } : v);
   }
@@ -348,10 +358,10 @@ function renderClassEquip14(char) {
     cd.def.fixed.forEach(function(it, fi) {
       if (typeof it === "string") return;
       var key = "class.f." + fi, list = _startPickOptions(it.pick);
-      if (!st.picks[key]) st.picks[key] = list[0] || "";
+      var cur = st.picks[key] || _startPickDefault(it.pick, list);
       html += '<select class="field flat-field" aria-label="' + escapeHtml(_START_PICK_LABELS[it.pick] || "") +
         '" onchange="setStartEquipPick(\'' + key + '\', this.value)">' + list.map(function(n) {
-          return '<option' + (n === st.picks[key] ? " selected" : "") + '>' + escapeHtml(n) + '</option>';
+          return '<option' + (n === cur ? " selected" : "") + '>' + escapeHtml(n) + '</option>';
         }).join("") + '</select>';
     });
     html += '</div>';
@@ -409,10 +419,10 @@ function renderClassEquip24(char) {
     items.forEach(function(it, ii) {
       if (typeof it === "string") return;
       var key = "c24-" + oi + ".f." + ii, list = _startPickOptions(it.pick);
-      if (!st.picks[key]) st.picks[key] = list[0] || "";
+      var cur = st.picks[key] || _startPickDefault(it.pick, list);
       sel += '<select class="field flat-field" aria-label="' + escapeHtml(_START_PICK_LABELS[it.pick] || "") +
         '" onchange="setStartEquipPick(\'' + key + '\', this.value)">' + list.map(function(n) {
-          return '<option' + (n === st.picks[key] ? " selected" : "") + '>' + escapeHtml(n) + '</option>';
+          return '<option' + (n === cur ? " selected" : "") + '>' + escapeHtml(n) + '</option>';
         }).join("") + '</select>';
     });
     html += '<div class="race-extras-row"><button class="btn btn-text btn-sm race-extras-btn" onclick="giveClassEquipment24(' + oi + ')">Вариант ' +

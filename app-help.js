@@ -50,6 +50,7 @@ function switchHelpSection(section, btnEl) {
     var btn = document.querySelector("#screen-help .help-tab[onclick*=\"'" + section + "'\"]");
     if (btn) btn.classList.add("active");
   }
+  if (typeof wikiUpdateHelpLink === "function") wikiUpdateHelpLink(section);
   // Прокрутка тела к началу при смене раздела
   var body = document.querySelector("#screen-help .help-body");
   if (body) body.scrollTop = 0;

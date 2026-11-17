@@ -66,7 +66,7 @@ function creatorRender() {
     dots += '<span class="cr-dot' + (i < idx ? " done" : i === idx ? " current" : "") + '" title="' + escapeHtml(CREATOR_STEPS[i].title) + '"></span>';
   }
   $("cr-progress").innerHTML = '<div class="cr-dots" aria-hidden="true">' + dots + '</div>' +
-    '<div class="cr-step-label">Шаг ' + (_crVisible(char).indexOf(idx) + 1) + ' из ' + _crVisible(char).length + ' · <b>' + escapeHtml(step.title) + '</b></div>';
+    '<div class="cr-step-label">Шаг ' + (_crVisible(char).indexOf(idx) + 1) + ' · <b>' + escapeHtml(step.title) + '</b></div>';
   var frozen = char.basicLocked && idx <= _crLockIndex();
   _crUnmountPanels();
   body.innerHTML = frozen ? _crRenderFrozen() : step.render ? step.render(char) :
@@ -646,7 +646,8 @@ var _CR_HOSTED = [
   ["class-skills-panel", "Класс", "renderClassSkills"],
   ["bg-extras-panel", "Предыстория", "renderBackgroundExtras"],
   ["tools-container", "Инструменты", "renderTools"],
-  ["languages-container", "Языки", "renderLanguages"]
+  ["languages-container", "Языки", "renderLanguages"],
+  ["taken-feats-section", "Черты", "renderTakenFeats"]
 ];
 var _CR_LATER = /^(Стартовое снаряжение|Снаряжение предыстории)/;
 

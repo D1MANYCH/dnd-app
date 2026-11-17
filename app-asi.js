@@ -576,6 +576,7 @@ function renderTakenFeats() {
   var char = getCurrentChar();
   if (!char) return;
 
+  if (typeof scheduleCreationTodo === "function") scheduleCreationTodo();
   var section = $("taken-feats-section");
   var list    = $("taken-feats-list");
   var count   = $("taken-feats-count");
@@ -610,7 +611,8 @@ function renderTakenFeats() {
       var _sp = f.skillPicks || [];
       for (var k = 0; k < data.skillPick; k++) {
         spBtn += '<select class="feat-skill-pick" aria-label="Навык черты ' + (k + 1) + '" onchange="featSkillPick(' + i + ',' + k + ',this.value)">' +
-          '<option value="">— навык (или инструмент во владениях) —</option>' +
+          '<option value="">— навык или инструмент —</option>' +
+          '<option value="@tool"' + (_sp[k] === "@tool" ? ' selected' : '') + '>Инструмент — впишите во владениях</option>' +
           skills.map(function(s) { return '<option' + (_sp[k] === s.name ? ' selected' : '') + '>' + escapeHtml(s.name) + '</option>'; }).join("") +
         '</select>';
       }
@@ -664,8 +666,8 @@ function featSkillPick(i, k, name) {
   if (!f) return;
   if (!Array.isArray(f.skillPicks)) f.skillPicks = [];
   var prev = f.skillPicks[k] || "";
-  if (name && name !== prev) {
-    var si = skills.findIndex(function(s) { return s.name === name; });
+  if (name && name !== prev && name !== "@tool") {
+    var si =skills.findIndex(function(s) { return s.name === name; });
     if (f.skillPicks.indexOf(name) !== -1 || (si !== -1 && char.skills && char.skills[si])) {
       showToast("Этот навык уже есть — выберите другой.", "warning");
       renderTakenFeats();
@@ -795,9 +797,9 @@ function _agCtl(k) {
   if (_ag.mode === "pb") {
     var v = _ag.pb[k], left = AG_PB_POOL - _agPbSpent();
     var canUp = v < 15 && (AG_PB_COST[v + 1] - AG_PB_COST[v]) <= left;
-    return '<button type="button" class="stat-btn-sm" onclick="agPb(\'' + k + '\',-1)"' + (v <= 8 ? " disabled" : "") + ' aria-label="Уменьшить">−</button>' +
+    return '<button type="button" class="stat-btn-sm" data-ag="' + k + '-" onclick="agPb(\'' + k + '\',-1)"' + (v <= 8 ? " disabled" : "") + ' aria-label="Уменьшить">−</button>' +
       '<span class="ag-val">' + v + "</span>" +
-      '<button type="button" class="stat-btn-sm" onclick="agPb(\'' + k + '\',1)"' + (canUp ? "" : " disabled") + ' aria-label="Увеличить">+</button>' +
+      '<button type="button" class="stat-btn-sm" data-ag="' + k + '+" onclick="agPb(\'' + k + '\',1)"' + (canUp ? "" : " disabled") + ' aria-label="Увеличить">+</button>' +
       '<span class="ag-cost">' + AG_PB_COST[v] + " оч.</span>";
   }
   var opts = '<option value="">—</option>', cur, fn;
@@ -813,7 +815,7 @@ function _agCtl(k) {
     cur = _ag.pick[k]; fn = "agPick";
     _ag.rolls.forEach(function(r, i) { opts += '<option value="' + i + '"' + (cur === i ? " selected" : "") + ">" + r.total + owner(_ag.pick, i) + "</option>"; });
   }
-  return '<select class="field ag-sel" onchange="' + fn + "('" + k + "',this.value)\"" +
+  return '<select class="field ag-sel" data-ag="' + k + '" onchange="' + fn + "('" + k + "',this.value)\"" +
     (_ag.mode === "roll" && !_ag.rolls.length ? " disabled" : "") + ">" + opts + "</select>";
 }
 
@@ -866,7 +868,11 @@ function _agRender() {
   if (inWizard) html += why ? '<p class="ag-note">' + why + "</p>" : "";
   else html += '<div class="ag-foot"><button type="button" class="lu-btn-confirm" onclick="agApply()"' + (why ? " disabled" : "") + ">Применить</button>" +
     (why ? '<span class="ag-note">' + why + "</span>" : "") + "</div>";
+  // PLAY5-6а (PT-478): перерисовка не сбрасывает фокус — набор заполняется с клавиатуры
+  var act = document.activeElement;
+  var fk = act && body.contains(act) && act.getAttribute("data-ag");
   body.innerHTML = html;
+  if (fk) { var fel = body.querySelector('[data-ag="' + fk + '"]'); if (fel) fel.focus(); }
   if (inWizard && typeof _crSyncNext === "function") _crSyncNext();
 }
 
