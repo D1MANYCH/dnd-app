@@ -159,7 +159,7 @@
     var conMod = Math.floor(((ch.stats.con||10)-10)/2);
     // AUD-4: +1 холмовому дварфу (PHB 20) и «Драконьей устойчивости» (PHB 102).
     // E24-15: у 2024 бонусы вида/подкласса к ХП приходят после фиксации основы и с 3 ур.
-    var hpExp = hd + conMod + (is24 ? 0 : (b.race === "Холмовой дварф" ? 1 : 0) + (b.subclass === "Драконья кровь" ? 1 : 0));
+    var hpExp = hd + conMod + (is24 ? (b.race === "Дварф" ? 1 : 0) : (b.race === "Холмовой дварф" ? 1 : 0) + (b.subclass === "Драконья кровь" ? 1 : 0));
     checks.push(_check("hpMax == hd + conMod", ch.combat.hpMax === hpExp, ch.combat.hpMax, hpExp));
     checks.push(_check("hpCurrent == hpMax", ch.combat.hpCurrent === ch.combat.hpMax, ch.combat.hpCurrent, ch.combat.hpMax));
     checks.push(_check("ac >= 10", ch.combat.ac >= 10, ch.combat.ac, ">=10"));
@@ -184,7 +184,8 @@
       if (b.startingSpells) {
         var expectedSpells = (b.startingSpells.cantrips||[]).length + (b.startingSpells.known||[]).length;
         var totalSpells = (ch.spells.mySpells||[]).length;
-        checks.push(_check("mySpells count", totalSpells === expectedSpells, totalSpells, expectedSpells));
+        // Заклинания домена/клятвы добавляются сверх startingSpells — допускаем больше.
+        checks.push(_check("mySpells count", totalSpells >= expectedSpells, totalSpells, ">=" + expectedSpells));
       }
     }
 

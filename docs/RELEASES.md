@@ -3,31 +3,93 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v5.7.1**.
+Актуальная версия — **v5.7.2**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
-<a id="v5.7.1"></a>
-## v5.7.1 — 17 ноября 2026
+<a id="v5.7.2"></a>
+## v5.7.2 — 17 ноября 2026
 
-🐛 Справочник: неразрывные пробелы в подписях «В игре» и «✕ К персонажу» (проверка типографики в CI)
+🐛 Легче загрузка и офлайн-кэш: иконки классов 128 px, без неиспользуемых файлов костей; исправлены разбор битой ссылки входа и закрытие окна подтверждения
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/dd6400df...main) · 5 файлов, +77 −64
+🐛 Поиск: подсветка совпадений не ломает символы &, < и кавычки; Esc закрывает окно подтверждения и карточку предмета, фокус переходит в окно
+
+🔧 История версий грузится отдельным файлом при открытии окна (data.js меньше на 487 КБ); на сайт публикуются только файлы приложения
+
+🔧 Политика безопасности контента (CSP), случайный state входа в Google через crypto.getRandomValues, лимит 10 МБ на файл из «Поделиться»; в политике конфиденциальности описана одновременная запись с двух устройств
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/4776188f...main) · 36 файлов, +5111 −4993
 
 <details><summary>Файлы</summary>
 
 _Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
 
-**Файлы (5):**
+**Файлы (36):**
+
+- `changelog-data.js` +4829 −0
+- `data.js` +1 −4818
+- `index.html` +61 −55
+- `sw.js` +27 −60
+- `docs/RELEASES.md` +45 −5
+- `app-core.js` +27 −7
+- `app-ui.js` +21 −7
+- `tools/bump-version.js` +13 −10
+- `tests/headless.js` +19 −0
+- `app-notes.js` +13 −5
+- `.github/workflows/pages.yml` +13 −2
+- `app-sync.js` +9 −4
+- `docs/map.md` +6 −6
+- `CHANGELOG.md` +9 −1
+- `tools/check-invariant.js` +5 −4
+- `dev-verify-builds.js` +3 −2
+- `.claude/skills/release/SKILL.md` +2 −2
+- `CLAUDE.md` +2 −2
+- `tools/gen-changelog.js` +2 −1
+- `.claude/settings.json` +1 −1
+- `.claude/skills/faza/SKILL.md` +1 −1
+- `history-stack.js` +1 −0
+- `privacy.html` +1 −0
+- `assets/classes/barbarian.webp` +0 −0
+- `assets/classes/bard.webp` +0 −0
+- `assets/classes/cleric.webp` +0 −0
+- `assets/classes/druid.webp` +0 −0
+- `assets/classes/fighter.webp` +0 −0
+- `assets/classes/monk.webp` +0 −0
+- `assets/classes/paladin.webp` +0 −0
+- `assets/classes/ranger.webp` +0 −0
+- `assets/classes/rogue.webp` +0 −0
+- `assets/classes/sorcerer.webp` +0 −0
+- `assets/classes/warlock.webp` +0 −0
+- `assets/classes/wizard.webp` +0 −0
+- `vendor/dice-box/assets/themes/steel/diffuse-dark.jpg` +0 −0
+
+</details>
+
+<a id="v5.7.1"></a>
+## v5.7.1 — 17 ноября 2026
+
+🐛 Справочник: неразрывные пробелы в подписях «В игре» и «✕ К персонажу» (проверка типографики в CI)
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/dd6400df...4776188f) · 7 файлов, +109 −71
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (1):**
+
+- [`4776188f`](https://github.com/D1MANYCH/dnd-app/commit/4776188f) v5.7.1: fix(справочник): неразрывные пробелы в подписях «В игре» и «✕ К персонажу» (проверка типографики в CI)
+
+**Файлы (7):**
 
 - `index.html` +54 −54
+- `docs/RELEASES.md` +30 −5
 - `data.js` +10 −2
 - `sw.js` +5 −5
 - `CHANGELOG.md` +6 −1
 - `app-wiki.js` +2 −2
+- `docs/map.md` +2 −2
 
 </details>
 

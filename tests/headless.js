@@ -10603,6 +10603,17 @@
       return true;
     });
 
+    t("[рев-1] битый #access_token=%E0%A4 не бросает URIError", function(){
+      if (typeof _syncConsumeHash !== "function") return true;
+      var old = location.hash;
+      try {
+        location.hash = "#access_token=%E0%A4&state=x";
+        _syncConsumeHash();
+      } catch (e) { return "бросило " + e.name; }
+      finally { try { location.hash = old; } catch (e2) {} }
+      return true;
+    });
+
     t("[sync-2] без изменений — ничего не применяем и не пишем", function(){
       var a = C(1,"А"), r = M([a], [a], baseOf([a]));
       if (r.changed || r.toUpload || r.conflicts.length) return JSON.stringify({ch:r.changed, up:!!r.toUpload, cf:r.conflicts.length});
@@ -11523,6 +11534,14 @@
       return QS_ICON_PRESETS.spell.length === 8 && QS_ICON_PRESETS.item.length === 12 && uniq.length === 20 ? true : ids.join(",");
     });
   }
+
+  // ────────── БЛОК РЕВ-4: highlightMatch — запрос не попадает внутрь сущностей ──────────
+  t("РЕВ-4: highlightMatch('a & b','amp') не ломает &amp;", function(){ return highlightMatch("a & b","amp") === "a &amp; b"; });
+  t("РЕВ-4: highlightMatch(\"it's\",'039') не ломает &#039;", function(){ return highlightMatch("it's","039") === "it&#039;s"; });
+  t("РЕВ-4: highlightMatch('a<b','lt') не ломает &lt;", function(){ return highlightMatch("a<b","lt") === "a&lt;b"; });
+  t("РЕВ-4: highlightMatch подсвечивает и экранирует совпадение", function(){ return highlightMatch("Fire & Ice","&") === 'Fire <mark class="search-hl">&amp;</mark> Ice'; });
+  t("РЕВ-4: _hlText с пустым запросом экранирует текст", function(){ return _hlText("<b>","") === "&lt;b&gt;"; });
+  t("РЕВ-4: _hlText('a & b','amp') не ломает &amp;", function(){ return _hlText("a & b","amp") === "a &amp; b"; });
 
   // ────────── БЛОК ПРОП-1: property-тесты (tests/property-cases.js) ──────────
   if (window.PROP_CASES) window.PROP_CASES.forEach(function(pc) { t("[prop] " + pc.desc, pc.fn); });

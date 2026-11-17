@@ -9,7 +9,7 @@ description: Full dnd-app release cycle from a finished code edit to push. Тр�
 ## Инвариант (пять величин меняются синхронно, вручную не править!)
 
 ```
-APP_VERSION (data.js) ↔ APP_CHANGELOG[0].version (data.js) ↔ CACHE_NAME dnd-sheet-vN (sw.js)
+APP_VERSION (data.js) ↔ APP_CHANGELOG[0].version (changelog-data.js) ↔ CACHE_NAME dnd-sheet-vN (sw.js)
   ↔ все ?v=vN токены js/css в index.html ↔ CHANGELOG.md
 ```
 
@@ -48,7 +48,7 @@ APP_VERSION (data.js) ↔ APP_CHANGELOG[0].version (data.js) ↔ CACHE_NAME dnd-
 
 | Уровень | Где | Чем наполняется |
 |---|---|---|
-| Короткий | `CHANGELOG.md`, окно «История версий» | `APP_CHANGELOG` (data.js) → `tools/gen-changelog.js` |
+| Короткий | `CHANGELOG.md`, окно «История версий» | `APP_CHANGELOG` (changelog-data.js) → `tools/gen-changelog.js` |
 | Подробный | `docs/RELEASES.md` | `tools/gen-release-log.js`: APP_CHANGELOG + git (коммиты, файлы, +/− строк) |
 | Полный патч | ссылка `compare/<пред. релиз>...<этот>` внутри подробного лога | git |
 

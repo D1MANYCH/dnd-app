@@ -15,7 +15,8 @@ const OUT = path.join(ROOT, 'CHANGELOG.md');
 // Снимаем APP_CHANGELOG / APP_VERSION из data.js через vm с лёгким DOM/браузер-шимом.
 // data.js — не модуль (top-level const), поэтому дописываем хвост-захват в тот же scope.
 function loadChangelog() {
-  const src = fs.readFileSync(DATA, 'utf8');
+  // РЕВ-5: APP_CHANGELOG вынесен в changelog-data.js — исполняем оба файла в одном scope.
+  const src = fs.readFileSync(DATA, 'utf8') + '\n;' + fs.readFileSync(path.join(ROOT, 'changelog-data.js'), 'utf8');
   const capture = '\n;globalThis.__CL = (typeof APP_CHANGELOG!=="undefined")?APP_CHANGELOG:null;'
                 + 'globalThis.__V = (typeof APP_VERSION!=="undefined")?APP_VERSION:null;';
   const winStub = new Proxy({}, { get: () => undefined, set: () => true });

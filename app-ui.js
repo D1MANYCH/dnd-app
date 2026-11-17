@@ -37,12 +37,18 @@ function firstLoadSkeleton(key, containerId, count, variant, renderFn, delay) {
 /** Экранирует text и оборачивает вхождения query в <mark class="search-hl">.
  *  Регистронезависимо. Возвращает безопасный HTML. */
 function highlightMatch(text, query) {
-  var safe = escapeHtml(text == null ? "" : String(text));
+  var raw = text == null ? "" : String(text);
   var q = (query == null ? "" : String(query)).trim();
-  if (!q) return safe;
-  var safeQ = escapeHtml(q).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  var rx = new RegExp("(" + safeQ + ")", "ig");
-  return safe.replace(rx, '<mark class="search-hl">$1</mark>');
+  if (!q) return escapeHtml(raw);
+  // РЕВ-4: ищем в сырой строке, экранируем куски — иначе «amp»/«39»/«lt» попадали внутрь сущностей
+  var rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "ig");
+  var out = "", last = 0, m;
+  while ((m = rx.exec(raw)) !== null) {
+    if (!m[0]) { rx.lastIndex++; continue; }
+    out += escapeHtml(raw.slice(last, m.index)) + '<mark class="search-hl">' + escapeHtml(m[0]) + '</mark>';
+    last = m.index + m[0].length;
+  }
+  return out + escapeHtml(raw.slice(last));
 }
 
 /** FIN-10: заполняет datalist подсказок божеств из DEITIES_DATA.
@@ -420,6 +426,11 @@ function checkWhatsNew() {
 // ── Окно "Что нового" (после установки — с changelog) ──
 function showWhatsNewModal(prevVer, newVer) {
   if ($('sw-update-modal')) return;
+  if (typeof APP_CHANGELOG === 'undefined' && window.ensureChangelog && !arguments[2]) {
+    var again = function() { showWhatsNewModal(prevVer, newVer, true); };
+    window.ensureChangelog().then(again, again);
+    return;
+  }
   var latest = (typeof APP_CHANGELOG !== 'undefined' && APP_CHANGELOG.length > 0) ? APP_CHANGELOG[0] : null;
   // STYLE: тип записи кодирует залитый ромб цветом токена (как в «Журнале»),
   // а не эмодзи с хардкод-цветом — иначе на светлой теме половина не читалась.
@@ -1451,7 +1462,11 @@ function clCleanText(text) {
 
 function renderChangelog() {
   var list = $("changelog-list");
-  if (!list || typeof APP_CHANGELOG === "undefined") return;
+  if (!list) return;
+  if (typeof APP_CHANGELOG === "undefined") {
+    if (window.ensureChangelog) window.ensureChangelog().then(renderChangelog, function() {});
+    return;
+  }
 
   var typeIcon  = { feat:"✨", fix:"🐛", improve:"⚡", chore:"🔧" };
   var typeLabel = { feat:"Новое", fix:"Исправлено", improve:"Улучшено", chore:"Под\u00a0капотом" };
@@ -1489,7 +1504,6 @@ function renderChangelog() {
   if (versionBadge && typeof APP_VERSION !== "undefined") {
     versionBadge.textContent = "v" + APP_VERSION;
   }
-  renderChangelog();
 })();
 
 // ── Item Reference (STYLE-8M-4: экран по рецепту каталогов) ──

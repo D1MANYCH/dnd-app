@@ -1,6 +1,6 @@
 # Деплой на GitHub Pages через Actions (замена легаси-пайплайна «Deploy from a branch»).
 # ТРЕБУЕТ: Settings → Pages → Build and deployment → Source = «GitHub Actions».
-# Сайт статический (vanilla, без сборки) — артефакт = корень репозитория как есть, без Jekyll.
+# Сайт статический (vanilla, без сборки) — артефакт = явный список файлов сайта (шаг «Сборка _site»), без Jekyll.
 name: pages
 
 # AUD-3 (W2): деплой только после зелёного tests на main (push или ручной запуск tests),
@@ -40,12 +40,23 @@ jobs:
           # Деплоим ровно тот коммит, который прошёл tests.
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      # РЕВ-5: в артефакт — только то, что нужно сайту (явный список), без tests/, docs/,
+      # tools/, .claude/, *.md. История версий открывается на GitHub, не с Pages.
+      - name: Сборка _site из явного списка
+        run: |
+          mkdir _site
+          cp index.html privacy.html manifest.json style.css LICENSE *.js _site/
+          cp -r assets icons vendor _site/
+          rm -f _site/dev-verify-builds.js
+          touch _site/.nojekyll
+          # Каждый файл из FILES_TO_CACHE в sw.js обязан попасть в артефакт.
+          node -e 'const fs=require("fs");const s=fs.readFileSync("sw.js","utf8");const m=s.match(/FILES_TO_CACHE\s*=\s*\[([\s\S]*?)\]/)[1].match(/["'"'"']\.\/[^"'"'"']*["'"'"']/g).map(x=>x.slice(3,-1)).filter(Boolean);const miss=m.filter(f=>!fs.existsSync("_site/"+f));if(miss.length){console.error("Нет в _site:",miss.join(", "));process.exit(1)}console.log("_site: все "+m.length+" файлов прекеша на месте")'
       # Имя артефакта уникально по попытке запуска: deploy-pages ищет артефакты по всему
       # прогону, включая прошлые попытки, и на «Re-run jobs» с общим именем падает
       # с «Multiple artifacts named "github-pages" … count is 2».
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: .
+          path: _site
           name: github-pages-${{ github.run_attempt }}
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

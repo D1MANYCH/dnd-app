@@ -27,6 +27,7 @@ function checkInvariant(root) {
   }
 
   const dataSrc = read('data.js');
+  const clogSrc = read('changelog-data.js'); // РЕВ-5
   const swSrc = read('sw.js');
   const indexSrc = read('index.html');
   const mdSrc = read('CHANGELOG.md');
@@ -42,15 +43,15 @@ function checkInvariant(root) {
 
   // 2. data.js: APP_CHANGELOG[0].version — первый блок до "}," (как в bump-version.js)
   let clogVersion = null;
-  const cm = dataSrc.match(/const\s+APP_CHANGELOG\s*=\s*\[/);
+  const cm = clogSrc.match(/const\s+APP_CHANGELOG\s*=\s*\[/);
   if (!cm) {
-    problems.push('data.js: не найден APP_CHANGELOG');
+    problems.push('changelog-data.js: не найден APP_CHANGELOG');
   } else {
-    const after = dataSrc.slice(cm.index + cm[0].length);
+    const after = clogSrc.slice(cm.index + cm[0].length);
     const firstObjEnd = after.indexOf('},');
     const firstBlock = firstObjEnd === -1 ? '' : after.slice(0, firstObjEnd + 2);
     clogVersion = (firstBlock.match(/version\s*:\s*"([^"]+)"/) || [])[1];
-    if (!clogVersion) problems.push('data.js: не найден version в первом блоке APP_CHANGELOG');
+    if (!clogVersion) problems.push('changelog-data.js: не найден version в первом блоке APP_CHANGELOG');
   }
   if (appVersion && clogVersion && appVersion !== clogVersion) {
     problems.push('APP_VERSION (' + appVersion + ') != APP_CHANGELOG[0].version (' + clogVersion + ')');

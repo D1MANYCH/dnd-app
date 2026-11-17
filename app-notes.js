@@ -1143,12 +1143,20 @@ var _notesSearchIdx = 0;
 
 /** Подсветить совпадения query в тексте (безопасный escapeHtml уже применён к text). */
 function _hlText(text, query) {
-  if (!query || !text) return text;
-  var escaped = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (!text) return text;
+  if (!query) return escapeHtml(text);
+  // РЕВ-4: поиск в сырой строке, экранирование кусков
+  var raw = String(text);
   try {
-    var re = new RegExp('(' + escaped + ')', 'gi');
-    return escapeHtml(text).replace(re, '<mark class="notes-hl">$1</mark>');
-  } catch(e) { return escapeHtml(text); }
+    var re = new RegExp(String(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    var out = '', last = 0, m;
+    while ((m = re.exec(raw)) !== null) {
+      if (!m[0]) { re.lastIndex++; continue; }
+      out += escapeHtml(raw.slice(last, m.index)) + '<mark class="notes-hl">' + escapeHtml(m[0]) + '</mark>';
+      last = m.index + m[0].length;
+    }
+    return out + escapeHtml(raw.slice(last));
+  } catch(e) { return escapeHtml(raw); }
 }
 
 /** Рендер результатов поиска по всему notesV2. */

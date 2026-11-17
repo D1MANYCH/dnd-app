@@ -265,6 +265,7 @@
   }
 
   // Экспорт публичного API
+  window.topLayer = topLayer;
   window.pushHistoryLayer = pushLayer;
   window.syncCloseLayer = syncCloseLayer;
   window.getHistoryLayers = function(){ return layers.slice(); };

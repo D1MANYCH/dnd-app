@@ -52,7 +52,7 @@ description: Phase workflow for a dnd-app plan — model check, plan, work item 
 | Хук | Поведение |
 |---|---|
 | `tools/check-sw-hook.js` | `sw.js` без бампа `CACHE_NAME` (сверка с HEAD) — **exit 2** |
-| version-sync (инлайн) | `APP_VERSION` ≠ `APP_CHANGELOG[0].version` в `data.js` — **exit 2** |
+| version-sync (инлайн) | `APP_VERSION` ≠ `APP_CHANGELOG[0].version` (`changelog-data.js`) — **exit 2** |
 | `tools/run-tests-hook.js` | тесты на правку `*.js` — warn |
 | `tools/check-theme.js --hook` | `style.css` — warn |
 | `tools/check-syntax-hook.js` | `node --check` на `*.js` — **exit 2** |

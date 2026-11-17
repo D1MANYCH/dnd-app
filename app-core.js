@@ -562,6 +562,16 @@ document.addEventListener("keydown", function (e) {
   if (back) { e.preventDefault(); back.click(); }
 });
 
+// РЕВ-4: Esc закрывает верхнюю модалку — окно подтверждения и «Добавить предмет»
+document.addEventListener("keydown", function (e) {
+  if (e.key !== "Escape" || e.defaultPrevented || typeof topLayer !== "function") return;
+  var t = topLayer();
+  if (!t) return;
+  var btn = t.id === "confirm-modal" ? $("confirm-modal-cancel")
+          : t.id === "item-modal" ? t.querySelector(".modal-close") : null;
+  if (btn) { e.preventDefault(); btn.click(); }
+});
+
 // ── MOTION: переход между экранами ──────────────────────────────
 // Уходящий экран улетает в сторону, входящий приезжает навстречу: вперёд
 // (меню → лист) — влево/справа, назад — зеркально.
@@ -1123,7 +1133,7 @@ const CLASS_ICON_SLUGS = {
 function getClassIcon(cls) {
   const slug = CLASS_ICON_SLUGS[cls];
   if (!slug) return '<img class="class-icon-fallback-img" src="assets/avatar-fallback.webp" alt="" aria-hidden="true">';
-  return '<img class="class-icon-svg" src="assets/classes/' + slug + '.webp" alt="" aria-hidden="true">';
+  return '<img class="class-icon-svg" src="assets/classes/' + slug + '.webp" loading="lazy" alt="" aria-hidden="true">';
 }
 // 'con' переименован в 'constitution.png' — Windows резервирует CON как имя DOS-устройства.
 const ABILITY_ICON_FILES = {str:'str', dex:'dex', con:'constitution', int:'int', wis:'wis', cha:'cha'};
@@ -1188,7 +1198,7 @@ function getSpellClassIcon(key) {
   var ru = SPELL_CLASS_RU[key] || '';
   var slug = SPELL_CLASS_ICON_SLUGS[key];
   if (!slug) return '<span class="spell-class-emoji"' + (ru ? ' title="' + ru + '"' : '') + ' aria-hidden="true">' + (CLASS_ICONS_MAP[key] || '✨') + '</span>';
-  return '<img class="spell-class-icon" src="assets/classes/' + slug + '.webp?v=2" title="' + ru + '" alt="' + ru + '">';
+  return '<img class="spell-class-icon" src="assets/classes/' + slug + '.webp" loading="lazy" title="' + ru + '" alt="' + ru + '">';
 }
 // Школы магии: RU → slug файла в assets/schools/*.webp
 const SCHOOL_ICON_SLUGS = {
@@ -1593,13 +1603,20 @@ $("confirm-modal-cancel").addEventListener("click", function() {
   modal.classList.remove("active");
   if (opts && typeof opts.onCancel === "function") opts.onCancel();
 });
-modal.addEventListener("click", function(e) {
-  if (e.target === modal) {
+// РЕВ-2: один постоянный обработчик фона, читающий opts текущего окна
+_confirmModalOpts = opts;
+if (!modal._bgBound) {
+  modal._bgBound = true;
+  modal.addEventListener("click", function(e) {
+    if (e.target !== modal || !modal.classList.contains("active")) return;
+    var o = _confirmModalOpts;
+    _confirmModalOpts = null;
     modal.classList.remove("active");
-    if (opts && typeof opts.onCancel === "function") opts.onCancel();
-  }
-}, { once: true });
+    if (o && typeof o.onCancel === "function") o.onCancel();
+  });
 }
+}
+var _confirmModalOpts = null;
 function safeSet(id, value) {
 const el = $(id);
 if (el) el.value = value;
@@ -1928,6 +1945,9 @@ function updateVersionBlock(hasUpdate, worker) {
   badge.textContent = 'v' + ver;
   if (hasUpdate) {
     row.classList.add('has-update');
+    if (typeof APP_CHANGELOG === 'undefined' && window.ensureChangelog) {
+      window.ensureChangelog().then(function() { updateVersionBlock(true, worker); }, function() {});
+    }
     var latest = (typeof APP_CHANGELOG !== 'undefined' && APP_CHANGELOG.length > 0) ? APP_CHANGELOG[0] : null;
     var count = latest ? latest.changes.length : 0;
     status.innerHTML = 'Доступно обновление' + (count ? ' (' + count + ' ' + (count % 10 === 1 && count % 100 !== 11 ? 'изменение' : (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14)) ? 'изменения' : 'изменений') + ')' : '') + ' <button class="btn btn-primary btn-sm app-version-update-btn" id="version-install-btn">Установить</button>';

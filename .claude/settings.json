@@ -33,7 +33,7 @@
           {
             "type": "command",
             "shell": "bash",
-            "command": "node -e 'let i=\"\";process.stdin.on(\"data\",d=>i+=d).on(\"end\",()=>{const j=JSON.parse(i);const p=(j.tool_input&&j.tool_input.file_path)||\"\";if(/data\\.js$/i.test(p)){const s=require(\"fs\").readFileSync(p,\"utf8\");const v=(s.match(/APP_VERSION\\s*=\\s*[\\x22]([^\\x22]+)[\\x22]/)||[])[1];const c=(s.match(/APP_CHANGELOG\\s*=\\s*\\[\\s*\\{[^}]*?version\\s*:\\s*[\\x22]([^\\x22]+)[\\x22]/)||[])[1];if(v&&c&&v!==c){console.error(\"data.js: APP_VERSION=\"+v+\" != APP_CHANGELOG[0]=\"+c);process.exit(2)}}})'"
+            "command": "node -e 'let i=\"\";process.stdin.on(\"data\",d=>i+=d).on(\"end\",()=>{const j=JSON.parse(i);const p=(j.tool_input&&j.tool_input.file_path)||\"\";if(/(^|[\\\\/])(changelog-)?data\\.js$/i.test(p)){const fs=require(\"fs\"),d=require(\"path\").dirname(p),s=fs.readFileSync(d+\"/data.js\",\"utf8\"),cs=fs.readFileSync(d+\"/changelog-data.js\",\"utf8\");const v=(s.match(/APP_VERSION\\s*=\\s*[\\x22]([^\\x22]+)[\\x22]/)||[])[1];const c=(cs.match(/APP_CHANGELOG\\s*=\\s*\\[\\s*\\{[^}]*?version\\s*:\\s*[\\x22]([^\\x22]+)[\\x22]/)||[])[1];if(v&&c&&v!==c){console.error(\"data.js: APP_VERSION=\"+v+\" != APP_CHANGELOG[0]=\"+c);process.exit(2)}}})'"
           },
           {
             "type": "command",

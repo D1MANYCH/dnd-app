@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v621';
+const CACHE_NAME = 'dnd-sheet-v622';
 
 const FILES_TO_CACHE = [
   './',
@@ -38,6 +38,7 @@ const FILES_TO_CACHE = [
   './subclass-choices-data.js',
   './app-notes.js',
   './notes-gen-data.js',
+  './changelog-data.js',
   './assets/schools/abjuration.webp',
   './assets/schools/conjuration.webp',
   './assets/schools/divination.webp',
@@ -125,7 +126,6 @@ const FILES_TO_CACHE = [
   './icons/icon-96.png',
   // DICE2-1: @3d-dice/dice-box vendor (ES-модуль + воркеры + ассеты)
   './vendor/dice-box/dice-box.es.js',
-  './vendor/dice-box/world.offscreen.js',
   './vendor/dice-box/world.onscreen.js',
   './vendor/dice-box/world.none.js',
   './vendor/dice-box/Dice.js',
@@ -142,35 +142,19 @@ const FILES_TO_CACHE = [
   './vendor/dice-box/assets/themes/steel/diffuse-light.png',
   './vendor/dice-box/assets/themes/steel/normal.png',
   './vendor/dice-box/assets/themes/steel/specular.jpg',
-  './vendor/dice-box/assets/themes/steel/theme.config.json',
-  './vendor/dice-box/assets/themes/rock/diffuse-dark.png',
-  './vendor/dice-box/assets/themes/rock/diffuse-light.png',
-  './vendor/dice-box/assets/themes/rock/normal.png',
-  './vendor/dice-box/assets/themes/rock/smoothDice.json',
-  './vendor/dice-box/assets/themes/rock/specularity.jpg',
-  './vendor/dice-box/assets/themes/rock/theme.config.json',
-  './vendor/dice-box/assets/themes/wooden/diffuse.jpg',
-  './vendor/dice-box/assets/themes/wooden/normal.png',
-  './vendor/dice-box/assets/themes/wooden/smoothDice.json',
-  './vendor/dice-box/assets/themes/wooden/specularity.jpg',
-  './vendor/dice-box/assets/themes/wooden/theme.config.json',
-  './vendor/dice-box/assets/themes/smooth/diffuse-dark.png',
-  './vendor/dice-box/assets/themes/smooth/diffuse-light.png',
-  './vendor/dice-box/assets/themes/smooth/normal.png',
-  './vendor/dice-box/assets/themes/smooth/smoothDice.json',
-  './vendor/dice-box/assets/themes/smooth/theme.config.json'
+  './vendor/dice-box/assets/themes/steel/theme.config.json'
 ];
 
 // Хэши файлов прекеша — пишет tools/file-hashes.js (через /bump), руками не править.
 const FILE_HASHES = {
-  './': '0d6fdcc448d119aa5231',
-  './index.html': '0d6fdcc448d119aa5231',
+  './': 'f6bced7ac5b51060418f',
+  './index.html': 'f6bced7ac5b51060418f',
   './style.css': '755d4ca4bf56d9d7dd84',
   './app-log.js': '54f5eed79eb54ac7de54',
   './icons.js': '28370adcc628dbc457a0',
   './bg-space.js': '8f5ddcbae1e763435ff8',
   './dice-arena-bg.js': '8c311fce0b0af8d5ef13',
-  './data.js': '5e1629e55fea3cb76b64',
+  './data.js': '4314598ec8352baa7b10',
   './data-2024.js': '437a6d12f1c87e414d5a',
   './build-notes-data.js': '707838037f539baa77ed',
   './character-builds.js': '77b42fd37a288578a7d2',
@@ -180,10 +164,10 @@ const FILE_HASHES = {
   './rules.js': 'c1edf21aa5c2a445f6a4',
   './app-migrate.js': '94a9bf363387c9c40c4f',
   './app-builds.js': 'f782f41240b09b62aa78',
-  './app-core.js': '3b1181c76fcf8206a235',
+  './app-core.js': '40549705c811a1f0d662',
   './app-io.js': '9e3bd77057751774d538',
   './app-backup.js': '92999f765d89fbd6a031',
-  './app-sync.js': 'a147ab8b27f2084ba22a',
+  './app-sync.js': '5c8518768394eb3cd963',
   './app-combat.js': 'dc225d21f1b75797f4b3',
   './app-conditions.js': 'a50363d1bbeee4b92144',
   './app-cast-effects.js': '1431df4b5df9a39f9f04',
@@ -194,8 +178,9 @@ const FILE_HASHES = {
   './start-equip-2014.js': 'db43ddf7f29bad11cd8c',
   './class-choices.js': 'fd71dff5fa313dbb98b4',
   './subclass-choices-data.js': '9828e4be608849230bc0',
-  './app-notes.js': '8058789d83ffd54560ac',
+  './app-notes.js': '4ad8f3f6188090bdd775',
   './notes-gen-data.js': '4e79af340e55516dd838',
+  './changelog-data.js': '74c6c48c4ddea690b76c',
   './assets/schools/abjuration.webp': '16484747b2a6b35a3a0b',
   './assets/schools/conjuration.webp': 'c980b50f10d846373a66',
   './assets/schools/divination.webp': '94b447a9d11f779e2e62',
@@ -212,18 +197,18 @@ const FILE_HASHES = {
   './assets/abilities/wis.webp': '68656cad395c01ddb735',
   './assets/avatar-fallback.webp': 'a37827e78c5141e03938',
   './assets/bg-body.webp': '08c13dd0db7ab1de0ab1',
-  './assets/classes/barbarian.webp': '419ceb5d5fd2f1467fea',
-  './assets/classes/bard.webp': 'b966e591729c6c5187a3',
-  './assets/classes/cleric.webp': '573726d7d52c1da5b735',
-  './assets/classes/druid.webp': '39754eefe0fae5c6e284',
-  './assets/classes/fighter.webp': 'ac882ef33feeb1c83207',
-  './assets/classes/monk.webp': '27c15f16a891d32fcd5e',
-  './assets/classes/paladin.webp': 'fca3381c66f37f54d3c6',
-  './assets/classes/ranger.webp': 'de2468db65972b478e9c',
-  './assets/classes/rogue.webp': '150f99ba37364d4e8e17',
-  './assets/classes/sorcerer.webp': 'bf3106ad8cf875c52704',
-  './assets/classes/warlock.webp': '8edad154f589448627f9',
-  './assets/classes/wizard.webp': '38796ad0fee1bf166d03',
+  './assets/classes/barbarian.webp': '0588ce15ee39ef854734',
+  './assets/classes/bard.webp': '175cae4169a86ca9406f',
+  './assets/classes/cleric.webp': 'ed210cb3c4ae3a05693d',
+  './assets/classes/druid.webp': 'd0dfe5c217f7d1090cb1',
+  './assets/classes/fighter.webp': '4fae66b480bb76152683',
+  './assets/classes/monk.webp': 'edd8b4121ab9077b9b57',
+  './assets/classes/paladin.webp': '321d284f3d28a0b5e081',
+  './assets/classes/ranger.webp': 'dd13b0d97daadc98f619',
+  './assets/classes/rogue.webp': '57806f4590be3bb90854',
+  './assets/classes/sorcerer.webp': '4853d6bb508062658c0e',
+  './assets/classes/warlock.webp': '51b7a22b7e4faeb36bd5',
+  './assets/classes/wizard.webp': 'c1e0fd767426950f58cf',
   './assets/conditions/blinded.webp': 'b743fa604fcf9ab04afd',
   './assets/conditions/charmed.webp': '8d51af07a8e573c50dd2',
   './assets/conditions/deafened.webp': 'd33f7c3e318573503b80',
@@ -255,13 +240,13 @@ const FILE_HASHES = {
   './beast-forms.js': '5faf66aae2eb4581a3f8',
   './app-dice.js': '79730e57a78b7ca01d60',
   './app-settings.js': '16732d53358f047422ad',
-  './app-ui.js': '3e505ff07341ae0c9277',
+  './app-ui.js': 'f35e92f3335b9a952a5a',
   './app-home.js': 'e32f75f66e05b1b12741',
   './app-asi.js': 'e0bf292e1c3e20dd5ad7',
   './app-creator.js': '68c9f70811c5e4f2add1',
   './app-progress.js': 'c1eca9c1fc97aaaa2d86',
   './app-desktop.js': '3e4f78e611e4179f9382',
-  './history-stack.js': '4f49b495185044eec959',
+  './history-stack.js': '8b4b8b208c65ccd9a571',
   './app-help.js': 'b419ce997af5f18c3701',
   './app-wiki.js': '864102ed8393fc5b75cf',
   './app-sheet2.js': '1fce7a82bb335f0c2db5',
@@ -282,7 +267,6 @@ const FILE_HASHES = {
   './icons/apple-touch-icon.png': 'a558e261920170f10b9a',
   './icons/icon-96.png': '9c877334a8129b12becf',
   './vendor/dice-box/dice-box.es.js': 'd1caccae54bd074c84ee',
-  './vendor/dice-box/world.offscreen.js': '0abc59c784c8c4f92de3',
   './vendor/dice-box/world.onscreen.js': '5ee5637cd51e63f29226',
   './vendor/dice-box/world.none.js': 'b5c079e5f7d11c41a3c9',
   './vendor/dice-box/Dice.js': '252b30b2f7f405f1b05e',
@@ -298,23 +282,7 @@ const FILE_HASHES = {
   './vendor/dice-box/assets/themes/steel/diffuse-light.png': 'de15a8eed40be8123d30',
   './vendor/dice-box/assets/themes/steel/normal.png': '8537c1015de5cc33d202',
   './vendor/dice-box/assets/themes/steel/specular.jpg': '55d3eee2b69008ad3701',
-  './vendor/dice-box/assets/themes/steel/theme.config.json': '6b3ca85984f8dc9c3eb9',
-  './vendor/dice-box/assets/themes/rock/diffuse-dark.png': 'f861e7f261b02d42188f',
-  './vendor/dice-box/assets/themes/rock/diffuse-light.png': '991a1f69dda17587d686',
-  './vendor/dice-box/assets/themes/rock/normal.png': 'eb092f16304b7b2a04c2',
-  './vendor/dice-box/assets/themes/rock/smoothDice.json': '09137cad0f4fc2a6e4ce',
-  './vendor/dice-box/assets/themes/rock/specularity.jpg': 'd53268766990e5727866',
-  './vendor/dice-box/assets/themes/rock/theme.config.json': '414acdca17311dec916e',
-  './vendor/dice-box/assets/themes/wooden/diffuse.jpg': '2571669dce5516d9dbf9',
-  './vendor/dice-box/assets/themes/wooden/normal.png': 'c98a9d87669c9dd82a6d',
-  './vendor/dice-box/assets/themes/wooden/smoothDice.json': '09137cad0f4fc2a6e4ce',
-  './vendor/dice-box/assets/themes/wooden/specularity.jpg': '15a9e6f4973f506c43dc',
-  './vendor/dice-box/assets/themes/wooden/theme.config.json': 'd460120a2d32ec178043',
-  './vendor/dice-box/assets/themes/smooth/diffuse-dark.png': 'c99c0b07f56e6ce5faa9',
-  './vendor/dice-box/assets/themes/smooth/diffuse-light.png': '5ae9e8609a04c54e2c6a',
-  './vendor/dice-box/assets/themes/smooth/normal.png': '5caee4a33272b3cf519b',
-  './vendor/dice-box/assets/themes/smooth/smoothDice.json': '09137cad0f4fc2a6e4ce',
-  './vendor/dice-box/assets/themes/smooth/theme.config.json': '54af6c296035df11d30e'
+  './vendor/dice-box/assets/themes/steel/theme.config.json': '6b3ca85984f8dc9c3eb9'
 };
 
 const OPTIONAL_RE = /^\.\/(assets|icons|vendor\/dice-box\/assets\/themes)\//;
@@ -486,6 +454,7 @@ function receiveSharedFile(request) {
   return request.formData().then((form) => {
     const file = form.get('file');
     if (!file || typeof file.text !== 'function') return null;
+    if (file.size > 10 * 1024 * 1024) return null; // как IMPORT_MAX_BYTES в app-io.js
     return file.text().then((text) => caches.open(SHARE_CACHE).then((cache) =>
       cache.put('./share-inbox', new Response(text, { headers: { 'Content-Type': 'application/json' } }))));
   }).catch(() => null).then(() => Response.redirect('./index.html?share=1', 303));
@@ -510,9 +479,7 @@ self.addEventListener('fetch', (event) => {
       return fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
+          event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone)).catch(() => {}));
         }
         return networkResponse;
       }).catch(() => {

@@ -57,7 +57,9 @@ function _syncTokenValid(a) {
 }
 
 function syncSignIn() {
-  var state = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  var rnd = new Uint8Array(16);
+  crypto.getRandomValues(rnd);
+  var state = Array.prototype.map.call(rnd, function(b) { return ("0" + b.toString(16)).slice(-2); }).join("");
   try { localStorage.setItem(SYNC_STATE_KEY, state); } catch (e) {}
   var params = {
     client_id: SYNC_CLIENT_ID,
@@ -86,8 +88,10 @@ function syncTurnOff() {
   showConfirmModal("Выключить синхронизацию?",
     "Файл синхронизации будет удалён с\u00a0Google Диска, вход на\u00a0этом устройстве отменён. Персонажи на\u00a0устройствах останутся. Если другое устройство ещё входит в\u00a0Google, оно создаст файл заново — выключите синхронизацию и\u00a0там.",
     function() {
-      _driveFind(SYNC_FILE).then(function(f) {
-        return f ? _driveFetch("https://www.googleapis.com/drive/v3/files/" + f.id, { method: "DELETE" }) : null;
+      _driveList(SYNC_FILE).then(function(files) {
+        return Promise.all((files || []).map(function(f) {
+          return _driveFetch("https://www.googleapis.com/drive/v3/files/" + f.id, { method: "DELETE" });
+        }));
       }).then(function() {
         clearTimeout(_syncTimer);
         _syncTimer = null;
@@ -109,7 +113,8 @@ function _syncConsumeHash() {
   var p = {};
   h.slice(1).split("&").forEach(function(kv) {
     var i = kv.indexOf("=");
-    if (i > 0) p[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, " "));
+    if (i <= 0) return;
+    try { p[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, " ")); } catch (e) {}
   });
   try { history.replaceState(history.state, "", location.pathname + location.search); } catch (e) {}
   var expected = null;

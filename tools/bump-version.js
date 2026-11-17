@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // CLI: node tools/bump-version.js <patch|minor|major> "<changelog text>" [--type chore|feat|fix]
-// Синхронно бампает APP_VERSION + APP_VERSION_DATE + APP_CHANGELOG[0] в data.js
+// Синхронно бампает APP_VERSION + APP_VERSION_DATE + APP_CHANGELOG[0] в data.js + changelog-data.js
 // и CACHE_NAME в sw.js. Без частичной записи: если что-то не парсится — exit 1.
 'use strict';
 
@@ -10,6 +10,7 @@ const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const DATA = path.join(ROOT, 'data.js');
+const CLOG = path.join(ROOT, 'changelog-data.js'); // РЕВ-5: APP_CHANGELOG живёт здесь
 const SW = path.join(ROOT, 'sw.js');
 const INDEX = path.join(ROOT, 'index.html');
 
@@ -93,7 +94,7 @@ function escapeRegex(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function bumpData(src, level, text, type) {
+function bumpData(src, clogSrc, level, text, type) {
   const verRe = /(const\s+APP_VERSION\s*=\s*")([^"]+)(";)/;
   const vm = src.match(verRe);
   if (!vm) throw new Error('не найден APP_VERSION в data.js');
@@ -104,13 +105,13 @@ function bumpData(src, level, text, type) {
   if (!dateRe.test(src)) throw new Error('не найден APP_VERSION_DATE в data.js');
 
   const changelogRe = /const\s+APP_CHANGELOG\s*=\s*\[/;
-  const cm = src.match(changelogRe);
-  if (!cm) throw new Error('не найден APP_CHANGELOG в data.js');
+  const cm = clogSrc.match(changelogRe);
+  if (!cm) throw new Error('не найден APP_CHANGELOG в changelog-data.js');
   const insertAt = cm.index + cm[0].length;
 
   // Найти первый объект и демотнуть badge: "new" -> "old"
   // Искать только в первом блоке (от insertAt до закрытия первого объекта)
-  const after = src.slice(insertAt);
+  const after = clogSrc.slice(insertAt);
   const firstObjEnd = after.indexOf('},');
   if (firstObjEnd === -1) throw new Error('не найден первый блок APP_CHANGELOG');
   const firstBlock = after.slice(0, firstObjEnd + 2);
@@ -126,11 +127,11 @@ function bumpData(src, level, text, type) {
     '    ]\n' +
     '  },';
 
-  let out = src.slice(0, insertAt) + newEntry + demoted + after.slice(firstObjEnd + 2);
-  out = out.replace(verRe, `$1${newVer}$3`);
+  const clogOut = clogSrc.slice(0, insertAt) + newEntry + demoted + after.slice(firstObjEnd + 2);
+  let out = src.replace(verRe, `$1${newVer}$3`);
   out = out.replace(dateRe, `$1${todayIso()}$3`);
 
-  return { src: out, oldVer, newVer };
+  return { src: out, clogSrc: clogOut, oldVer, newVer };
 }
 
 function bumpSw(src) {
@@ -195,9 +196,10 @@ function main() {
   const { level, text, type } = parseArgs(process.argv);
   checkRemote();
 
-  let dataSrc, swSrc, indexSrc;
+  let dataSrc, clogSrc, swSrc, indexSrc;
   try {
     dataSrc = fs.readFileSync(DATA, 'utf8');
+    clogSrc = fs.readFileSync(CLOG, 'utf8');
     swSrc = fs.readFileSync(SW, 'utf8');
     indexSrc = fs.readFileSync(INDEX, 'utf8');
   } catch (e) {
@@ -207,7 +209,7 @@ function main() {
 
   let dataRes, swRes, indexRes;
   try {
-    dataRes = bumpData(dataSrc, level, text, type);
+    dataRes = bumpData(dataSrc, clogSrc, level, text, type);
     swRes = bumpSw(swSrc);
     indexRes = bumpHtmlTokens(indexSrc, swRes.newN);
   } catch (e) {
@@ -216,6 +218,7 @@ function main() {
   }
 
   fs.writeFileSync(DATA, dataRes.src);
+  fs.writeFileSync(CLOG, dataRes.clogSrc);
   fs.writeFileSync(SW, swRes.src);
   fs.writeFileSync(INDEX, indexRes.src);
 
