@@ -1904,6 +1904,7 @@ function _skillsFromOtherSources(char) {
   var bd = (typeof getBackgroundDef === "function") ? getBackgroundDef(char, char.background)
     : ((typeof BACKGROUND_SKILLS !== "undefined") && BACKGROUND_SKILLS[char.background]);
   if (bd) out = out.concat(Array.isArray(bd) ? bd : (bd.skills || []));
+  if (typeof ccGrantedSkills === "function") out = out.concat(ccGrantedSkills(char));
   return out;
 }
 
@@ -1925,6 +1926,7 @@ function _skillTakenElsewhere(char, name, except) {
     if (bd) bg = bg.concat(Array.isArray(bd) ? bd : (bd.skills || []));
     if (bg.indexOf(name) !== -1) return true;
   }
+  if (except !== "cc" && typeof ccGrantedSkills === "function" && ccGrantedSkills(char).indexOf(name) !== -1) return true;
   return _classSkillHeld(char.classSkillChoice, name);
 }
 

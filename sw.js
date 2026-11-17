@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v622';
+const CACHE_NAME = 'dnd-sheet-v623';
 
 const FILES_TO_CACHE = [
   './',
@@ -147,40 +147,40 @@ const FILES_TO_CACHE = [
 
 // Хэши файлов прекеша — пишет tools/file-hashes.js (через /bump), руками не править.
 const FILE_HASHES = {
-  './': 'f6bced7ac5b51060418f',
-  './index.html': 'f6bced7ac5b51060418f',
-  './style.css': '755d4ca4bf56d9d7dd84',
+  './': 'ea8c9cdd8af9c26d4ab2',
+  './index.html': 'ea8c9cdd8af9c26d4ab2',
+  './style.css': '3bedc8a39c4e3bf13e8f',
   './app-log.js': '54f5eed79eb54ac7de54',
   './icons.js': '28370adcc628dbc457a0',
   './bg-space.js': '8f5ddcbae1e763435ff8',
   './dice-arena-bg.js': '8c311fce0b0af8d5ef13',
-  './data.js': '4314598ec8352baa7b10',
-  './data-2024.js': '437a6d12f1c87e414d5a',
+  './data.js': 'abdd9c8ea54dd4873bb9',
+  './data-2024.js': '1d036fcf7c867c76f5a9',
   './build-notes-data.js': '707838037f539baa77ed',
   './character-builds.js': '77b42fd37a288578a7d2',
   './glossary-data.js': '9527a894523806e106db',
   './spells.js': 'f44fcfe7081c578aac02',
   './spell-effects.js': '066847944196c692fd2e',
-  './rules.js': 'c1edf21aa5c2a445f6a4',
+  './rules.js': '799c77e5983ceed89721',
   './app-migrate.js': '94a9bf363387c9c40c4f',
   './app-builds.js': 'f782f41240b09b62aa78',
   './app-core.js': '40549705c811a1f0d662',
   './app-io.js': '9e3bd77057751774d538',
   './app-backup.js': '92999f765d89fbd6a031',
   './app-sync.js': '5c8518768394eb3cd963',
-  './app-combat.js': 'dc225d21f1b75797f4b3',
+  './app-combat.js': '511f0eb3a0e0606aa6b3',
   './app-conditions.js': 'a50363d1bbeee4b92144',
   './app-cast-effects.js': '1431df4b5df9a39f9f04',
-  './app-proficiencies.js': '0efc3e243910a2132656',
-  './app-hp.js': 'cfeb68e3ccc368e4abf1',
+  './app-proficiencies.js': '8cfe09c90265fd929e6f',
+  './app-hp.js': '7faac1358d383141a716',
   './app-wildshape.js': '356c3cbc0f470d2a0335',
   './app-spells.js': '1994f5a4c809346271e4',
   './start-equip-2014.js': 'db43ddf7f29bad11cd8c',
-  './class-choices.js': 'fd71dff5fa313dbb98b4',
-  './subclass-choices-data.js': '9828e4be608849230bc0',
+  './class-choices.js': '74a61f1b7c4c10a2bdaa',
+  './subclass-choices-data.js': '5783ff313b070e6c8799',
   './app-notes.js': '4ad8f3f6188090bdd775',
   './notes-gen-data.js': '4e79af340e55516dd838',
-  './changelog-data.js': '74c6c48c4ddea690b76c',
+  './changelog-data.js': '7d38d9efb590a40f1afd',
   './assets/schools/abjuration.webp': '16484747b2a6b35a3a0b',
   './assets/schools/conjuration.webp': 'c980b50f10d846373a66',
   './assets/schools/divination.webp': '94b447a9d11f779e2e62',

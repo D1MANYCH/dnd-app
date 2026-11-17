@@ -1414,7 +1414,7 @@
     ],
     // E24-12
     "Волшебник": [
-      {id:"scholar", name:"Учёный", icon:"🎓", minLevel:2, type:"single",
+      {id:"scholar", name:"Учёный", icon:"🎓", minLevel:2, type:"single", needsSkillProf:true,
        options:Object.keys(WIZARD_SCHOLAR_2024), optionsDict:WIZARD_SCHOLAR_2024,
        desc:"Выберите навык, которым владеете, — получаете для него компетентность."},
       {id:"spell-mastery-1", name:"Мастерство заклинателя: 1 круг", icon:"📖", minLevel:18, type:"single", options:[], optionsDict:{},
@@ -1871,9 +1871,9 @@
         getCount: function() { return 3; },
         options:SKILLS_LIST_2024_LORE(), optionsDict:SKILLS_LIST_2024_LORE().reduce(function(d, n) { d[n] = { name:n, desc:"" }; return d; }, {}),
         desc:"Владение тремя навыками по выбору." },
-      { id:"magical-discoveries", name:"Магические открытия", type:"freeform", minLevel:6,
+      { id:"magical-discoveries", name:"Магические открытия", type:"spells", minLevel:6, spellClasses:["cleric","druid","wizard"],
         getCount: function() { return 2; },
-        desc:"Запишите 2 заклинания (заговоры или заклинания доступного круга) из списков жреца, друида или волшебника — они всегда подготовлены." }
+        desc:"2 заклинания (заговоры или доступного круга) из списков жреца, друида или волшебника — они всегда подготовлены." }
     ],
     "Боевой мастер": [
       { id:"maneuvers", name:"Манёвры", type:"multi", minLevel:3,

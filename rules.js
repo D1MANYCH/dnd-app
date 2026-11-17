@@ -1462,6 +1462,13 @@ function rulesEncounterDifficulty(levels, monsterXps) {
 
 // ── Владения из источников (раса / класс / подкласс / предыстория / черты) ──
 // Возвращает массив [{cls, sub}] для всех классов персонажа (с учётом мультикласса)
+// PLAY5-4 (PT-582): языки на выбор от умения класса — «Искусный исследователь» следопыта 2024 (2 ур., 2 языка)
+var CLASS_LANG_CHOICES_2024 = { "Следопыт": { minLevel: 2, choice: 2, label: "Искусный исследователь" } };
+function rulesClassLangChoice(char, cls) {
+  var d = char && char.edition === "2024" && CLASS_LANG_CHOICES_2024[cls];
+  if (!d) return null;
+  return charClassLevel(char, cls) >= d.minLevel ? d : null;
+}
 function getCharClassPairs(char) {
   var out = [];
   if (char.classes && char.classes.length) {
@@ -1537,6 +1544,8 @@ function recalcLanguagesFromSources(char) {
     if (typeof CLASS_LANGUAGES !== "undefined" && CLASS_LANGUAGES[p.cls]) {
       (CLASS_LANGUAGES[p.cls].fixed || []).forEach(function(n){ add(n, "class"); });
     }
+    var cl = rulesClassLangChoice(char, p.cls);
+    if (cl) ((char.proficiencies.languageChoices["class_" + p.cls]) || []).slice(0, cl.choice).forEach(function(n){ add(n, "class"); });
     // Подкласс
     if (p.sub && edData(char).SUBCLASS_LANGUAGES[p.cls] && edData(char).SUBCLASS_LANGUAGES[p.cls][p.sub]) {
       var sd = edData(char).SUBCLASS_LANGUAGES[p.cls][p.sub];

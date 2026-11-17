@@ -79,6 +79,7 @@
     Object.keys(SUBCLASS_CHOICES).forEach(function(sub){
       SUBCLASS_CHOICES[sub].forEach(function(ch){
         t("[subchoice] "+sub+"."+ch.id, function(){
+          if (ch.type === "spells") return true;
           if (!ch.options || !ch.options.length) return "options пустой";
           if (!ch.optionsDict) return "нет optionsDict";
           var missingDict = ch.options.filter(function(id){ return !ch.optionsDict[id]; });
@@ -11427,6 +11428,54 @@
       if (_castableSlotOptions(c, sp).some(function(o){ return o.type === "signature"; })) return "потрачено";
       _run75(c, function(){ resetResourcesByRest("short"); });
       return !c.resources.signature_1 ? true : "короткий отдых";
+    });
+    t("[PLAY5-4] Языки Следопыта 2024: 2 со 2 ур., на 1 ур. и в 2014 — нет", function(){
+      var a = rulesClassLangChoice(_mk75("Следопыт", "", 2, "2024"), "Следопыт");
+      if (!a || a.choice !== 2) return "2 ур. 2024: " + JSON.stringify(a);
+      if (rulesClassLangChoice(_mk75("Следопыт", "", 1, "2024"), "Следопыт")) return "1 ур.";
+      return rulesClassLangChoice(_mk75("Следопыт", "", 5), "Следопыт") === null ? true : "2014";
+    });
+    t("[PLAY5-4] Тайны магии: предел круга по уровню барда, не по ячейкам мультикласса; фильтр spellClasses", function(){
+      var c = _mk75("Бард", "", 10);
+      c.classes.push({ class: "Волшебник", level: 10, subclass: "" }); c.level = 20;
+      c.spells.slots = {1:4,2:3,3:3,4:3,5:3,6:2,7:2,8:1,9:1};
+      var all = ccSpellCandidates(c, { id: "x" }, "Бард");
+      if (!all.length) return "пусто";
+      var top = Math.max.apply(null, all.map(function(s){ return s.level || 0; }));
+      if (top !== 5) return "высший круг " + top;
+      var b3 = ccSpellCandidates(_mk75("Бард", "", 3), { id: "x" }, "Бард");
+      if (b3.some(function(s){ return (s.level || 0) > 2; })) return "бард 3 ур. видит 3 круг";
+      var b24 = ccSpellCandidates(_mk75("Бард", "Коллегия знаний", 6, "2024"), { id: "x", spellClasses: ["cleric","druid","wizard"] }, "Бард");
+      var t24 = b24.length ? Math.max.apply(null, b24.map(function(s){ return s.level || 0; })) : -1;
+      if (t24 !== 3) return "2024 бард 6 ур.: высший круг " + t24;
+      var cl = ccSpellCandidates(c, { id: "x", spellClasses: ["cleric"] }, "Бард");
+      return cl.length && cl.every(function(s){ return (s.classes || []).indexOf("cleric") !== -1; }) ? true : "spellClasses";
+    });
+    t("[PLAY5-4] ccHasReqSpell и причины блокировки ccOptionLock", function(){
+      var c = _mk75("Колдун", "", 3);
+      var inv = { id: "inv", filterByReq: true };
+      if (ccHasReqSpell(c, "eldritch-blast")) return "заряда нет";
+      if (ccOptionLock(inv, c, "Колдун", "agonizing-blast", { req: { spell: "eldritch-blast" } }).indexOf("Мистический заряд") === -1) return "нет причины req.spell";
+      c.spells.mySpells.push({ name: "Мистический заряд", level: 0 });
+      if (!ccHasReqSpell(c, "eldritch-blast")) return "заряд есть";
+      if (ccOptionLock(inv, c, "Колдун", "agonizing-blast", { req: { spell: "eldritch-blast" } }) !== "") return "заряд есть, но блок";
+      if (ccOptionLock(inv, c, "Колдун", "sculptor", { req: { level: 7 } }).replace(/\s/g, " ") !== "с 7 ур. класса") return "req.level";
+      var sk = skills[0].name; c.skills = []; c.skills[0] = true;
+      if (ccOptionLock({ id: "g", skillGrant: true }, c, "Колдун", sk, null) !== "уже есть") return "skillGrant";
+      c.skills[0] = false;
+      if (ccOptionLock({ id: "e", needsSkillProf: true }, c, "Колдун", sk, null) !== "нет владения") return "needsSkillProf";
+      var f = _mk75("Воин", "Чемпион", 10); f.classChoices["Воин"] = { "fighting-style": "defense" };
+      if (ccOptionLock({ id: "additional-fighting-style" }, f, "Воин", "defense", null) !== "уже взят") return "второй стиль";
+      return ccOptionLock({ id: "additional-fighting-style" }, f, "Воин", "archery", null) === "" ? true : "другой стиль заблокирован";
+    });
+    t("[PLAY5-4] Навыки от выбора подкласса (skillGrant) считаются занятым источником и не снимаются другими", function(){
+      var c = _mk75("Бард", "Коллегия знаний", 3);
+      c.classChoices["Бард"] = { "bonus-proficiencies": ["Атлетика", "Анализ", "Медицина"] };
+      var g = ccGrantedSkills(c);
+      if (g.indexOf("Атлетика") === -1) return "нет в ccGrantedSkills: " + JSON.stringify(g);
+      if (_skillsFromOtherSources(c).indexOf("Атлетика") === -1) return "нет в _skillsFromOtherSources";
+      if (!_skillTakenElsewhere(c, "Атлетика")) return "не занят";
+      return _skillTakenElsewhere(c, "Атлетика", "cc") ? "except cc не исключает" : true;
     });
   })();
   // ────────── БЛОК 74 (РД-8): быстрый доступ — лимит 4, дубли, снятие, сохранение, изоляция, пропавшие, двойное списание ──────────

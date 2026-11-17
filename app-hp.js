@@ -951,7 +951,7 @@ function _luFeatChoiceAt(char, cn, clvl) {
 // PLAY-1 (PT-054): выбор появляется на уровне открытия и там, где растёт число опций (манёвры 7/10/15)
 function _luChoiceOpensAt(cc, clvl) {
   if (cc.minLevel === clvl) return true;
-  return cc.type === "multi" && cc.minLevel < clvl && typeof ccCount === "function" && ccCount(cc, clvl) > ccCount(cc, clvl - 1);
+  return (cc.type === "multi" || cc.type === "spells") && cc.minLevel < clvl && typeof ccCount === "function" && ccCount(cc, clvl) > ccCount(cc, clvl - 1);
 }
 
 // PLAY3-6а: подкласс того класса, который повышается (мультикласс), а не первого.
@@ -1197,7 +1197,7 @@ function luBuildChoicesScreen() {
       var recIds = (b && typeof getBuildRecChoiceIds === "function") ? getBuildRecChoiceIds(char, cc.id) : [];
       var recNm = recIds.length ? recIds.map(function(rid){ return (cc.optionsDict && cc.optionsDict[rid]) ? cc.optionsDict[rid].name : rid; }).join(", ") : null;
       if (!has) open.push(cc.name);
-      var ccCnt = cc.type === "multi" ? ' ' + (Array.isArray(stored) ? stored.length : 0) + '/' + ccN : '';
+      var ccCnt = (cc.type === "multi" || cc.type === "spells") ? ' ' + (Array.isArray(stored) ? stored.length : 0) + '/' + ccN : '';
       blocks.push('<div class="lu-choice-block' + (has ? ' done' : '') + '">' +
         '<div class="lu-choice-title">' + escapeHtml(cc.name) + ccCnt + (has ? ' ✓' : '') + '</div>' +
         (recNm ? '<div class="lu-choice-sub">' + recBadge(recNm) + '</div>' : '') +

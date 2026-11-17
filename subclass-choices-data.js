@@ -186,6 +186,22 @@ var ARMORER_MODELS = {
 
 var SUBCLASS_CHOICES = {
 
+  // ═══ БАРД: Коллегия знаний (PHB 2014, с.54) — PLAY5-4 (PT-652, 656) ═══
+  "Коллегия знаний": [
+    {
+      id: "bonus-proficiencies", name: "Дополнительные навыки", type: "multi", minLevel: 3, skillGrant: true,
+      getCount: function() { return 3; },
+      options: skills.map(function(s) { return s.name; }),
+      optionsDict: skills.reduce(function(d, s) { d[s.name] = { name: s.name, desc: "" }; return d; }, {}),
+      desc: "Владение тремя навыками по выбору."
+    },
+    {
+      id: "additional-magical-secrets", name: "Дополнительные тайны магии", type: "spells", minLevel: 6,
+      getCount: function() { return 2; },
+      desc: "Два заклинания любого класса — заговоры или доступного вам круга. Считаются заклинаниями барда и не входят в число известных."
+    }
+  ],
+
   // ═══ ИЗОБРЕТАТЕЛЬ: Бронник ═══
   "Бронник": [
     {

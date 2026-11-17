@@ -16700,6 +16700,8 @@ button.modal-close-bottom,
 :root .cc-opt { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-4); }
 @media (hover: hover) { :root .cc-opt:hover { border-color: var(--border); background: var(--bg-3); } }
 :root .cc-opt.selected { border-color: var(--accent); background: var(--bg-2); box-shadow: inset 3px 0 0 var(--accent); }
+:root .cc-opt.cc-opt-off { opacity: .55; cursor: default; background: none; }
+.cc-spell-search { margin-bottom: var(--sp-2); }
 :root .cc-freeform-input { border-radius: var(--r-4); }
 
 /* ASI и взятые черты: чипы — текстом через цвет, карточка черты — строка с линией */

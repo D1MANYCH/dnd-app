@@ -38,6 +38,13 @@ function getLanguageChoiceSlots(char) {
       if (rem > 0) out.push({ key:"race", label:"" + dndIcoHtml("user", 12) + " Раса", remaining:rem, total:r.choice });
     }
   }
+  // PLAY5-4 (PT-582): языки от умения класса
+  getCharClassPairs(char).forEach(function(p) {
+    var cl = (typeof rulesClassLangChoice === "function") ? rulesClassLangChoice(char, p.cls) : null;
+    if (!cl) return;
+    var key = "class_" + p.cls, rem = cl.choice - ((char.proficiencies.languageChoices[key]) || []).length;
+    if (rem > 0) out.push({ key:key, label:"" + dndIcoHtml("grad", 12) + " " + cl.label, remaining:rem, total:cl.choice });
+  });
   // Подклассы
   getCharClassPairs(char).forEach(function(p) {
     if (p.sub && edData(char).SUBCLASS_LANGUAGES[p.cls] && edData(char).SUBCLASS_LANGUAGES[p.cls][p.sub]) {

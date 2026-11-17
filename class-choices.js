@@ -252,9 +252,9 @@ var CLASS_CHOICES = {
     {id:"expertise", name:"Компетентность", icon:"🎓", minLevel:3, type:"multi", pool:"skills",
      getCount:function(lvl){ return lvl>=10 ? 4 : 2; },
      desc:"Удвойте бонус мастерства для выбранных навыков (уровни 3 и 10, по 2 навыка)."},
-    {id:"magical-secrets", name:"Тайны магии", icon:"📜", minLevel:10, type:"freeform",
+    {id:"magical-secrets", name:"Тайны магии", icon:"📜", minLevel:10, type:"spells", countsKnown:true,
      getCount:function(lvl){ return lvl>=18 ? 6 : (lvl>=14 ? 4 : 2); },
-     desc:"Запишите выбранные заклинания любого класса (уровни 10/14/18, по 2 заклинания)."}
+     desc:"Заклинания любого класса — заговоры или доступного вам круга (уровни 10/14/18, по 2). Входят в число известных."}
   ],
   "Изобретатель": [
     {id:"infusions", name:"Известные инфузии", icon:"🔧", minLevel:2, type:"multi",
@@ -358,6 +358,76 @@ function ccCount(choice, classLevel) {
   return 1;
 }
 
+// PLAY5-4 (PT-656, 659): выбор заклинаний (Тайны магии, Магические открытия) — метка и кандидаты
+function ccSpellLabel(choice, className) {
+  return choice.name + " · " + className;
+}
+function ccSpellCandidates(char, choice, className) {
+  if (typeof SPELL_DATABASE === "undefined") return [];
+  var src = (typeof _defaultSpellVersion === "function") ? _defaultSpellVersion(char) : "all";
+  // круг — по ячейкам самого класса на его уровне, без мультикласса и пакта (PHB14 с.164, PHB24 с.56)
+  var cls = className || ccModalState.className || "Бард";
+  var row = (typeof classSpellSlotRow === "function") ? classSpellSlotRow(cls, null, charClassLevel(char, cls), char) : null;
+  var maxLvl = 0;
+  if (row) for (var i = 1; i < row.length; i++) { if ((row[i] || 0) > 0) maxLvl = i; }
+  var seen = {};
+  return SPELL_DATABASE.filter(function(sp) {
+    if (!sp || sp.homebrew || (sp.level || 0) > maxLvl || seen[sp.name]) return false;
+    if (src !== "all" && String(sp.source || "PH14") !== src) return false;
+    if (choice.spellClasses && !(sp.classes || []).some(function(c) { return choice.spellClasses.indexOf(c) !== -1; })) return false;
+    seen[sp.name] = true;
+    return true;
+  }).sort(function(a, b) { return (a.level || 0) - (b.level || 0) || a.name.localeCompare(b.name, "ru"); });
+}
+function ccRenderSpellList() {
+  var box = document.getElementById("cc-spell-list");
+  var char = ccGetChar();
+  if (!box || !char) return;
+  var choice = ccFindChoice(char, ccModalState.className, ccModalState.choiceId);
+  if (!choice) return;
+  var label = ccSpellLabel(choice, ccModalState.className);
+  var sel = ccModalState.selection || [];
+  var q = (ccModalState.spellQuery || "").toLowerCase().trim();
+  var mine = (char.spells && char.spells.mySpells) || [];
+  var html = "";
+  ccSpellCandidates(char, choice, ccModalState.className).forEach(function(sp) {
+    var on = sel.indexOf(sp.name) !== -1;
+    if (q && !on && sp.name.toLowerCase().indexOf(q) === -1) return;
+    var own = !on && mine.some(function(m) { return m && m.name === sp.name && m.grantedBy !== label && m.ccChoice !== label; });
+    var cls = (sp.classes || []).map(function(c) { return (typeof FEAT_SPELL_CLASS_RU !== "undefined" && FEAT_SPELL_CLASS_RU[c]) || c; }).join(", ");
+    html += '<div class="cc-opt' + (on ? " selected" : "") + (own ? " cc-opt-off" : "") + '" role="checkbox" aria-checked="' + on + '"' +
+      (own ? ' aria-disabled="true"' : ' tabindex="0" onkeydown="ccOptKey(event)" onclick="ccToggleOption(this.getAttribute(&quot;data-opt&quot;))"') +
+      ' data-opt="' + escapeHtml(sp.name) + '">' +
+      '<div class="cc-opt-head"><span class="cc-opt-name">' + escapeHtml(sp.name) + '</span><span class="cc-opt-req">' + ((sp.level || 0) ? sp.level + " круг" : "заговор") + (own ? " · уже в гримуаре" : "") + '</span></div>' +
+      (cls ? '<div class="cc-opt-desc">' + escapeHtml(cls) + '</div>' : "") +
+    '</div>';
+  });
+  box.innerHTML = html || '<div class="cc-opt-desc">Не найдено</div>';
+}
+function ccSpellSearch(v) {
+  ccModalState.spellQuery = v;
+  ccRenderSpellList();
+}
+// PLAY5-4: выбранные заклинания — в «Мои заклинания»; снятые — убираются. countsKnown — в лимит известных (без grantedBy).
+function ccSyncChoiceSpells(char, choice, className, names) {
+  if (!char.spells) return;
+  if (!Array.isArray(char.spells.mySpells)) char.spells.mySpells = [];
+  var label = ccSpellLabel(choice, className);
+  var src = (typeof _defaultSpellVersion === "function") ? _defaultSpellVersion(char) : "all";
+  char.spells.mySpells = char.spells.mySpells.filter(function(m) {
+    return !m || (m.grantedBy !== label && m.ccChoice !== label) || names.indexOf(m.name) !== -1;
+  });
+  names.forEach(function(n) {
+    if (char.spells.mySpells.some(function(m) { return m && m.name === n; })) return;
+    var db = SPELL_DATABASE.find(function(sp) { return sp.name === n && (src === "all" || String(sp.source || "PH14") === src); })
+      || SPELL_DATABASE.find(function(sp) { return sp.name === n; });
+    if (!db) return;
+    var copy = Object.assign({}, db);
+    if (choice.countsKnown) copy.ccChoice = label; else copy.grantedBy = label;
+    char.spells.mySpells.push(copy);
+  });
+}
+
 // Возвращает массив доступных опций (с фильтром по уровню/пакту/заклинаниям)
 function ccAvailableOptions(choice, char, className) {
   if (choice.optionsFn) return choice.optionsFn(char);
@@ -378,12 +448,49 @@ function ccAvailableOptions(choice, char, className) {
       if (Array.isArray(reqSub)) { if (reqSub.indexOf(sub) === -1) return false; }
       else if (sub !== reqSub) return false;
     }
-    if (opt.req.spell) {
-      // Проверка простая — наличие заклинания в mySpells по id (не строго)
-      // Если нет данных — пропускаем
-    }
+    if (opt.req.spell && !ccHasReqSpell(char, opt.req.spell)) return false;
     return true;
   });
+}
+
+// PLAY5-4 (PT-405): требование «знать заклинание» (воззвания с Мистическим зарядом, PHB14 с.111)
+var CC_REQ_SPELL_NAMES = { "eldritch-blast": "Мистический заряд" };
+function ccHasReqSpell(char, reqSpell) {
+  var nm = CC_REQ_SPELL_NAMES[reqSpell] || reqSpell;
+  return ((char.spells && char.spells.mySpells) || []).some(function(s) { return s && s.name === nm; });
+}
+// PLAY5-4: навыки, выданные выборами класса/подкласса (skillGrant) — чтобы другие источники их не снимали
+function ccGrantedSkills(char) {
+  var out = [];
+  if (!char || !char.classChoices) return out;
+  ccGetAllChoicesFor(char).forEach(function(it) {
+    if (it.choice.skillGrant && it.current) out = out.concat(it.current);
+  });
+  return out;
+}
+// PLAY5-4: причина, по которой вариант сейчас нельзя выбрать ("" — можно)
+function ccOptionLock(choice, char, className, id, opt) {
+  var stored = ccGetStored(char, className, choice.id);
+  var mine = Array.isArray(stored) ? stored.indexOf(id) !== -1 : stored === id;
+  if (opt && opt.req && choice.filterByReq) {
+    var classLevel = ccGetClassLevel(char, className);
+    if (opt.req.level && classLevel < opt.req.level) return "с " + opt.req.level + " ур. класса";
+    if (opt.req.pact && ccGetStored(char, className, "pact-boon") !== opt.req.pact) return "нужен " + (WARLOCK_PACT_BOONS[opt.req.pact] ? WARLOCK_PACT_BOONS[opt.req.pact].name : opt.req.pact);
+    if (opt.req.subclass) {
+      var sub = ccGetSubclass(char, className), rs = opt.req.subclass;
+      if (Array.isArray(rs) ? rs.indexOf(sub) === -1 : sub !== rs) return "только " + (Array.isArray(rs) ? rs.join(", ") : rs);
+    }
+    if (opt.req.spell && !ccHasReqSpell(char, opt.req.spell)) return "нужен заговор «" + (CC_REQ_SPELL_NAMES[opt.req.spell] || opt.req.spell) + "»";
+  }
+  if (mine) return "";
+  var si = (typeof skills !== "undefined") ? skills.findIndex(function(s) { return s.name === ((opt && opt.name) || id); }) : -1;
+  // PT-671: навык, который уже есть, второй раз не взять
+  if (choice.skillGrant && si !== -1 && char.skills && char.skills[si]) return "уже есть";
+  // PT-481: компетентность Учёного — только во владеемом навыке (PHB24 с.78)
+  if (choice.needsSkillProf && si !== -1 && !(char.skills && char.skills[si])) return "нет владения";
+  // PT-379: второй боевой стиль не повторяет первый
+  if (choice.id === "additional-fighting-style" && ccGetStored(char, className, "fighting-style") === id) return "уже взят";
+  return "";
 }
 
 // Возвращает массив всех выборов для активных классов персонажа
@@ -403,7 +510,7 @@ function ccGetAllChoicesFor(char) {
       var isComplete = false;
       if (choice.type === "single") {
         isComplete = !!current;
-      } else if (choice.type === "multi") {
+      } else if (choice.type === "multi" || choice.type === "spells") {
         var arr = Array.isArray(current) ? current : [];
         isComplete = arr.length >= count;
       } else if (choice.type === "freeform") {
@@ -436,7 +543,7 @@ function ccGetAllChoicesFor(char) {
         var isComplete = false;
         if (choice.type === "single") {
           isComplete = !!current;
-        } else if (choice.type === "multi") {
+        } else if (choice.type === "multi" || choice.type === "spells") {
           var arr = Array.isArray(current) ? current : [];
           isComplete = arr.length >= count;
         } else if (choice.type === "freeform") {
@@ -557,6 +664,12 @@ function openClassChoiceModal(className, choiceId) {
     ccModalState.selection = current || null;
   } else if (choice.type === "multi") {
     ccModalState.selection = Array.isArray(current) ? current.slice() : [];
+  } else if (choice.type === "spells") {
+    var _cand = ccSpellCandidates(char, choice, ccModalState.className).map(function(sp) { return sp.name; });
+    ccModalState.selection = (Array.isArray(current) ? current : []).filter(function(n) { return _cand.indexOf(n) !== -1; });
+    ccModalState.spellQuery = "";
+    var _bodyEl = document.querySelector("#class-choice-modal .cc-modal-body");
+    if (_bodyEl) _bodyEl.innerHTML = "";
   } else if (choice.type === "freeform") {
     ccModalState.selection = Array.isArray(current) ? current.slice() : (current ? [current] : []);
   }
@@ -613,8 +726,22 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
     return;
   }
 
+  // ── Тип: spells (PLAY5-4) ────────────────────────────────
+  if (choice.type === "spells") {
+    if (!document.getElementById("cc-spell-list")) {
+      bodyEl.innerHTML = '<input class="cc-freeform-input cc-spell-search" type="search" placeholder="Поиск заклинания" aria-label="Поиск заклинания" value="' + escapeHtml(ccModalState.spellQuery || "") + '" oninput="ccSpellSearch(this.value)">' +
+        '<div class="cc-options-list" id="cc-spell-list" role="group" aria-label="' + escapeHtml(choice.name) + '"></div>';
+    }
+    ccRenderSpellList();
+    ccModalState.avail = ccSpellCandidates(char, choice, ccModalState.className).length;
+    if (counterEl) counterEl.textContent = "Выбрано " + (ccModalState.selection || []).length + " из " + count;
+    ccUpdateModalApplyBtn();
+    return;
+  }
+
   // ── Опции (single / multi) ───────────────────────────────
-  var optionIds = ccAvailableOptions(choice, char, className);
+  // PLAY5-4 (PT-405): недоступные по требованию варианты видны с причиной
+  var optionIds = (choice.filterByReq && !choice.optionsFn && choice.options) ? choice.options.slice() : ccAvailableOptions(choice, char, className);
   // Для скилл-пула (экспертиза)
   if (choice.pool === "skills") {
     // СОЗД-5: компетентность — только из навыков, которыми персонаж владеет (PHB 2014)
@@ -625,6 +752,14 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
     // PLAY3-3: плут может взять компетентность в воровских инструментах (PHB 2014/2024)
     if (className === "Плут") optionIds.push("Воровские инструменты");
   }
+  // PT-674: навыки — по алфавиту; недоступные варианты — в конце списка
+  var _optName = function(id) { return (choice.pool !== "skills" && choice.optionsDict && choice.optionsDict[id]) ? choice.optionsDict[id].name : id; };
+  if (choice.pool === "skills" || choice.skillGrant || choice.needsSkillProf) optionIds.sort(function(a, b) { return _optName(a).localeCompare(_optName(b), "ru"); });
+  var locks = {};
+  var _curSel = ccModalState.selection;
+  optionIds.forEach(function(id) { locks[id] = (Array.isArray(_curSel) ? _curSel.indexOf(id) !== -1 : _curSel === id) ? "" : ccOptionLock(choice, char, className, id, choice.pool === "skills" ? null : (choice.optionsDict && choice.optionsDict[id])); });
+  optionIds = optionIds.filter(function(id) { return !locks[id]; }).concat(optionIds.filter(function(id) { return locks[id]; }));
+  ccModalState.avail = optionIds.filter(function(id) { return !locks[id]; }).length;
 
   // BUILD-LVL-3/5: рекомендация билда — баннер сверху + подсветка опции(й). single + multi.
   var recOptIds = (typeof getBuildRecChoiceIds === "function") ? getBuildRecChoiceIds(char, choice.id) : [];
@@ -667,8 +802,11 @@ function buildClassChoiceModal(char, choice, className, classLevel) {
       if (opt.req.text)  bits.push(opt.req.text);
       if (bits.length) reqText = '<span class="cc-opt-req">' + bits.join(" · ") + "</span>";
     }
+    var lock = locks[id];
+    if (lock) reqText = '<span class="cc-opt-req">' + escapeHtml(lock) + "</span>";
     bodyHtml +=
-      '<div class="cc-opt' + (selected ? " selected" : "") + (isRec ? " is-rec" : "") + '" role="' + (choice.type === "single" ? "radio" : "checkbox") + '" aria-checked="' + selected + '" tabindex="0" data-opt="' + escapeHtml(id) + '" onkeydown="ccOptKey(event)" onclick="ccToggleOption(\'' + id.replace(/'/g,"\\'") + '\')">' +
+      '<div class="cc-opt' + (selected ? " selected" : "") + (isRec ? " is-rec" : "") + (lock ? " cc-opt-off" : "") + '" role="' + (choice.type === "single" ? "radio" : "checkbox") + '" aria-checked="' + selected + '"' +
+      (lock ? ' aria-disabled="true"' : ' tabindex="0" onkeydown="ccOptKey(event)" onclick="ccToggleOption(\'' + id.replace(/'/g,"\\'") + '\')"') + ' data-opt="' + escapeHtml(id) + '">' +
         '<div class="cc-opt-head"><span class="cc-opt-name">' + escapeHtml(opt.name) + '</span>' + (isRec ? ' <span class="rec-badge">💡 совет</span>' : '') + (mark ? ' <span class="cc-opt-req">' + mark + '</span>' : '') + reqText + '</div>' +
         (opt.desc ? '<div class="cc-opt-desc">' + escapeHtml(opt.desc) + '</div>' : "") +
       '</div>';
@@ -745,14 +883,20 @@ function ccUpdateModalApplyBtn() {
   var classLevel = ccGetClassLevel(char, ccModalState.className);
   var count = ccCount(choice, classLevel);
 
+  var left = 0;
   if (choice.type === "single") {
-    btn.disabled = !ccModalState.selection;
-  } else if (choice.type === "multi") {
-    btn.disabled = !ccModalState.selection || ccModalState.selection.length === 0;
+    left = ccModalState.selection ? 0 : 1;
+  } else if (choice.type === "multi" || choice.type === "spells") {
+    // PLAY5-4 (PT-430): «Применить» — только когда выбрано нужное число (или все доступные варианты)
+    var need = Math.min(count, typeof ccModalState.avail === "number" ? ccModalState.avail : count);
+    left = Math.max(0, need - (ccModalState.selection || []).length);
+    if (!need) left = 1;
   } else if (choice.type === "freeform") {
     var nonEmpty = (ccModalState.selection || []).filter(function(s) { return s && s.trim() !== ""; });
-    btn.disabled = nonEmpty.length === 0;
+    left = nonEmpty.length === 0 ? 1 : 0;
   }
+  btn.disabled = left > 0;
+  btn.title = left > 0 ? "Выберите ещё " + left : "";
 }
 
 function applyClassChoice() {
@@ -767,7 +911,7 @@ function applyClassChoice() {
   var value;
   if (choice.type === "single") {
     value = ccModalState.selection;
-  } else if (choice.type === "multi") {
+  } else if (choice.type === "multi" || choice.type === "spells") {
     value = (ccModalState.selection || []).slice();
   } else if (choice.type === "freeform") {
     value = (ccModalState.selection || []).filter(function(s) { return s && s.trim() !== ""; });
@@ -786,7 +930,7 @@ function applyClassChoice() {
       if (typeof showToast === "function") showToast("Навык уже есть: " + clash.join(", ") + " — выберите другой.", "warning");
       return;
     }
-    prevArr.forEach(function(n) { if (value.indexOf(n) < 0) _raceSkillSet(char, n, false); });
+    prevArr.forEach(function(n) { if (value.indexOf(n) < 0 && !_skillTakenElsewhere(char, n, "cc")) _raceSkillSet(char, n, false); });
     value.forEach(function(n) { if (prevArr.indexOf(n) < 0) _raceSkillSet(char, n, true); });
     if (typeof updateSkillProfCount === "function") updateSkillProfCount();
   } else if (choice.skillGrant && typeof _raceSkillSet === "function") {
@@ -797,11 +941,12 @@ function applyClassChoice() {
         if (typeof showToast === "function") showToast("Этот навык уже есть — выберите другой.", "warning");
         return;
       }
-      if (prevSk) _raceSkillSet(char, prevSk, false);
+      if (prevSk && !_skillTakenElsewhere(char, prevSk, "cc")) _raceSkillSet(char, prevSk, false);
       _raceSkillSet(char, value, true);
       if (typeof updateSkillProfCount === "function") updateSkillProfCount();
     }
   }
+  if (choice.type === "spells") ccSyncChoiceSpells(char, choice, className, value);
   ccSetStored(char, className, choiceId, value);
 
   if (typeof addJournalEntry === "function") {
@@ -824,6 +969,7 @@ function applyClassChoice() {
   closeClassChoiceModal();
   if (typeof updateClassFeatures === "function") updateClassFeatures();
   if (typeof calcStats === "function") calcStats();
+  if (choice.type === "spells" && typeof renderMySpells === "function") renderMySpells();
   if (typeof scheduleCreationTodo === "function") scheduleCreationTodo();
 }
 
