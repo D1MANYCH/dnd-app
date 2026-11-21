@@ -11330,7 +11330,7 @@ input.bp-search {
   appearance: none;
   color: var(--text);
   font-family: var(--font-display);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-14); /* PT-372: как .char-search-inp */
 }
 input.bp-search { flex: 1 1 220px; min-width: 180px; }
 /* appearance:none снимает и нативный шеврон — возвращаем его подписью группы. */

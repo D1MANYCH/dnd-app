@@ -314,6 +314,43 @@ var _my = (char && char.spells && char.spells.mySpells) || [];
 var _cn = _my.filter(function(x) { return x && x.level === 0; }).length;
 btn.textContent = "Только из «Мои заклинания» · " + n + (_cn > 0 && _cn < n ? " (заговоров " + _cn + ")" : "");
 }
+// PLAY5-7 (PT-466, 471, 681, 480, 435, 752): подготовить разом все выбранные, пока есть место
+function _spellPrepRoom(char) {
+  var r = (char._wizStep && typeof _crSpellRow === "function") ? _crSpellRow(char, "prepared") : null;
+  if (r) return Math.max(0, r.need - r.have);
+  var max = calcMaxPrepared(char);
+  return max === null ? 999 : Math.max(0, max - _preparedCount(char));
+}
+function _spellPrepPending(char) {
+  if (!char || !char.spells || !isPrepClass(char)) return [];
+  return (char.spells.mySpells || []).filter(function(s) {
+    return s && spellNeedsPrep(char, s) && !(char.spells.prepared || []).includes(s.id);
+  });
+}
+function _renderSpellPrepAll(char, hide) {
+  var btn = $("spell-prep-all");
+  if (!btn) return;
+  var left = hide ? [] : _spellPrepPending(char);
+  btn.hidden = left.length === 0;
+  if (left.length) btn.textContent = "Подготовить все выбранные (" + Math.min(left.length, _spellPrepRoom(char)) + " из " + left.length + ")";
+}
+function prepareAllSpells() {
+  var char = getCurrentChar();
+  if (!char) return;
+  if (!Array.isArray(char.spells.prepared)) char.spells.prepared = [];
+  var room = _spellPrepRoom(char), n = 0;
+  _spellPrepPending(char).forEach(function(s) {
+    if (n >= room) return;
+    char.spells.prepared.push(s.id); n++;
+  });
+  if (!n) { showToast("Нет места для подготовки — лимит достигнут", "warn"); return; }
+  if (window.AppLog) AppLog.action("spells", "подготовлено разом: " + n);
+  showToast("Подготовлено: " + n, "info");
+  saveToLocal();
+  renderSpellSearch();
+  renderMySpells();
+  if (typeof renderPrepCounter === "function") renderPrepCounter();
+}
 function openSpellSearch() {
 _featPickIdx = null;
 spellOnlyAdded = false;
@@ -329,6 +366,11 @@ var _char = (typeof getCurrentChar === "function") ? getCurrentChar() : null;
 setSpellVersion(_defaultSpellVersion(_char), true);
 var _afBtn = document.getElementById("btn-class-artificer");
 if (_afBtn) _afBtn.style.display = classInBooks("Изобретатель", _char) ? "" : "none";
+// PLAY5-7 (PT-653): в мастере — сразу заговоры, а когда они набраны, 1-й круг
+if (_char && _char._wizStep && typeof _crSpellRow === "function" && _charMaxCastableLevel(_char) >= 1) {
+  var _cr = _crSpellRow(_char, "cantrips");
+  safeSet("spell-search-level", _cr && _cr.have < _cr.need ? "0" : "1");
+}
 var _ownKey = _charSpellClassKey(_char);
 if (_ownKey) { setSpellClass(_ownKey); }            // setSpellClass уже вызывает renderSpellSearch
 else { currentSpellClass = "all"; renderSpellSearch(); }
@@ -923,6 +965,7 @@ const char = getCurrentChar();
 var _fp = _featPickCtx();
 _renderFeatPickBar(_fp);
 _renderSpellOnlyAdded(char, !!_fp);
+_renderSpellPrepAll(char, !!_fp);
 if (_fp) { _renderFeatPickList(_fp, search, level, container); return; }
 // BUILD-LVL: по умолчанию (без явно выбранного уровня) прячем заклинания выше доступного персонажу уровня.
 const maxCastable = _charMaxCastableLevel(char);
