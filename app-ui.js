@@ -610,10 +610,13 @@ function crResourceRow(res, char) {
     meta = '<span class="hp-row-meta">∞</span>';
     acts = "";
   } else if (max <= CR_PIP_LIMIT && !res.flexibleCasting) {
-    var pips = "";
+    // PLAY5-8 (PT-626/640/658): ромбы — кнопки с именем для экранного диктора и счётчик «осталось / всего»
+    var pips = '<span class="cr-pip-count" aria-hidden="true">' + remaining + "/" + max + "</span>";
+    var rn = escapeHtml(crResName(res, char));
     for (var p = 0; p < max; p++) {
-      pips += '<span class="cr-pip' + (p < remaining ? " cr-pip--full" : "") +
-        '" title="' + (p < remaining ? "Потратить один" : "Вернуть один") + '" onclick="event.stopPropagation(); toggleResourcePip(\'' + id + '\',' + p + ')"></span>';
+      var act = p < remaining ? "Потратить один" : "Вернуть один";
+      pips += '<button type="button" class="cr-pip' + (p < remaining ? " cr-pip--full" : "") +
+        '" title="' + act + '" aria-label="' + rn + ": осталось " + remaining + " из " + max + ". " + act + '" onclick="event.stopPropagation(); toggleResourcePip(\'' + id + '\',' + p + ')"></button>';
     }
     meta = '<span class="cr-pips">' + pips + '</span>';
     acts = '<span class="hp-row-hint">Заполненный ромб — потратить один, пустой — вернуть.</span>';
@@ -649,7 +652,7 @@ function crResourceRow(res, char) {
       (used > 0 && !res.portent ? '<button type="button" class="hp-act" onclick="resetResource(\'' + id + '\')">Сбросить</button>' : "") +
     "</div>";
 
-  var name = escapeHtml(crResName(res, char)) + (dieSize ? ' <i class="cr-die">(' + escapeHtml(dieSize) + ")</i>" : "") + (fxOn ? ' <span class="hp-dot">·</span> активна' : "");
+  var name = escapeHtml(crResName(res, char)) + (dieSize ? ' <i class="cr-die">(' + escapeHtml(dieSize) + ")</i>" : "") + (res.sneakAttack ? ' <i class="cr-die">(' + Math.ceil((res._clsLevel || char.level || 1) / 2) + "к6)</i>" : "") + (fxOn ? ' <span class="hp-dot">·</span> активна' : "");
   return crRow(name, meta, body);
 }
 

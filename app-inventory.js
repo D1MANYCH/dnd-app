@@ -1303,6 +1303,7 @@ div.className = "weapon-row list-row";
 weapon.proficient = checkWeaponProficiency(char, weapon.name);
 // Calculate attack bonus for display
 var wmods = rulesWeaponMods(char, weapon, parseInt($("char-level")?.value, 10) || 1);
+var _strikeDice = rulesDivineStrikeDice(char);
 var attackBonus = wmods.attack;
 var attackStr = (attackBonus >= 0 ? "+" : "") + attackBonus;
 var profTag = weapon.proficient ? '' : ' <span class="weapon-no-prof">без\u00a0влад.</span>';
@@ -1331,7 +1332,7 @@ div.innerHTML =
   '<div class="weapon-row-top">' +
     '<div class="weapon-info" onclick="weaponRowTap(event,' + index + ')">' +
       '<span class="weapon-name">' + escapeHtml(weapon.name) + qtyTag + profTag + '</span>' +
-      '<span class="weapon-meta">' + escapeHtml(weapon.damage || "—") + ' · ' + (wmods.statKey === "dex" ? "ЛОВ" : "СИЛ") + ' ' + attackStr + _weaponFxTag(wmods) + masteryHtml + '</span>' +
+      '<span class="weapon-meta">' + _weaponDmgCaption(weapon.damage, wmods) + ' · атака ' + attackStr + _weaponFxTag(wmods) + masteryHtml + '</span>' +
     '</div>' +
     '<div class="weapon-row-actions">' +
       '<button class="weapon-edit-btn" onclick="editWeapon(' + index + ')" title="Редактировать оружие" aria-label="Редактировать оружие">' + dndIcoHtml("edit", 14) + '</button>' +
@@ -1342,6 +1343,7 @@ div.innerHTML =
     '<button class="btn btn-secondary btn-sm weapon-roll-btn weapon-roll-atk" onclick="rollWeaponAttack(' + index + ')">' + dndIcoHtml("dice", 14) + ' Атака</button>' +
     '<button class="btn btn-secondary btn-sm weapon-roll-btn weapon-roll-dmg" onclick="rollWeaponDamage(' + index + ')">' + dndIcoHtml("sword", 14) + ' Урон</button>' +
     (_canDivineSmite(char, weapon) ? '<button class="btn btn-secondary btn-sm weapon-roll-btn weapon-roll-smite" onclick="openDivineSmite(' + index + ')">' + dndIcoHtml("sun", 14) + ' Кара</button>' : '') +
+    (_strikeDice ? '<button class="btn btn-secondary btn-sm weapon-roll-btn weapon-roll-smite" onclick="rollDivineStrike(' + index + ')" title="Божественный удар: +' + _strikeDice + ' раз в ход">' + dndIcoHtml("sun", 14) + ' Удар ' + _strikeDice + '</button>' : '') +
   '</div>' +
   (weapon.notes ? '<div class="weapon-notes">' + escapeHtml(weapon.notes) + '</div>' : '');
 container.appendChild(div);
@@ -1355,13 +1357,14 @@ uaDiv.innerHTML =
   '<div class="weapon-row-top">' +
     '<div class="weapon-info">' +
       '<span class="weapon-name">' + ua.name + '</span>' +
-      '<span class="weapon-meta">' + ua.damage + ' ' + ua.type.toLowerCase() + ' · атака: мод. СИЛ ' + (uaMods.attack >= 0 ? "+" : "") + uaMods.attack + _weaponFxTag(uaMods) + '</span>' +
+      '<span class="weapon-meta">' + _weaponDmgCaption(ua.damage, uaMods) + ' ' + ua.type.toLowerCase() + ' · атака ' + (uaMods.attack >= 0 ? "+" : "") + uaMods.attack + _weaponFxTag(uaMods) + '</span>' +
     '</div>' +
   '</div>' +
   '<div class="weapon-roll-row">' +
     '<button class="btn btn-secondary btn-sm weapon-roll-btn weapon-roll-atk" onclick="rollWeaponAttack(' + UNARMED_WEAPON_INDEX + ')">' + dndIcoHtml("dice", 14) + ' Атака</button>' +
     '<button class="btn btn-secondary btn-sm weapon-roll-btn weapon-roll-dmg" onclick="rollWeaponDamage(' + UNARMED_WEAPON_INDEX + ')">' + dndIcoHtml("sword", 14) + ' Урон</button>' +
-  '</div>';
+  '</div>' +
+  (ua.martialArts ? '<div class="weapon-notes">Боевые искусства: ' + (char.edition === "2024" ? 'безоружный удар бонусным действием' : 'после атаки безоружным ударом или монашеским оружием — ещё один безоружный удар бонусным действием') + '</div>' : '');
 container.appendChild(uaDiv);
 // Two-Weapon Fighting: если 2+ лёгких оружия — показать бонусную атаку
 var lightWeapons = [];
@@ -1472,6 +1475,15 @@ function _weaponDamageRoll(formula, extraMod, crit) {
   return { total: Math.max(0, total), rollStr: parts.join("") + sgn(p.mod + extraMod), sides: sides, qty: Math.max(1, Math.min(qty, 8)), label: f };
 }
 
+// PLAY5-8 (PT-520/617): урон в подписи — кость и модификатор без эффектов («1к12 + 5», безоружный «4»)
+function _weaponDmgCaption(damage, wm) {
+  var f = String(damage || "").trim();
+  if (!f) return "—";
+  var fx = (wm && wm.effectParts || []).reduce(function(a, p) { return a + (p.value || 0); }, 0);
+  var m = (wm ? wm.damageMod || 0 : 0) - fx;
+  if (/^\d+$/.test(f)) return String(Math.max(0, parseInt(f, 10) + m));
+  return escapeHtml(f) + (m ? (m > 0 ? " + " : " − ") + Math.abs(m) : "");
+}
 // PLAY5-2а: подпись бонуса урона от эффектов — « · урон +2 ярость варвара»
 function _weaponFxTag(wm) {
   if (!wm || !wm.effectParts || !wm.effectParts.length) return "";
@@ -1495,7 +1507,8 @@ function rollTWFDamage(index, isCrit) {
 var UNARMED_WEAPON_INDEX = -2;
 function _unarmedStrike(char) {
   var brawler = rulesHasFeat(char, "tavern_brawler") || rulesHasFeat(char, "f24-tavern_brawler");
-  return { name: "Безоружный удар", stat: "str", damage: brawler ? "1к4" : "1", type: "Дробящий", kind: "melee", proficient: true };
+  var ma = rulesMartialArtsDie(char);
+  return { name: "Безоружный удар", stat: "str", damage: ma || (brawler ? "1к4" : "1"), type: "Дробящий", kind: "melee", proficient: true, martialArts: !!ma };
 }
 function _weaponAt(char, index) {
   return index === UNARMED_WEAPON_INDEX ? _unarmedStrike(char) : (char.weapons || [])[index];
@@ -1529,6 +1542,7 @@ showRollModePopup(function(mode) {
     }
     _weaponCritPending = d.isCrit ? index : -1;
     _smiteCritIndex = _weaponCritPending;
+    _strikeCritIndex = _weaponCritPending;
     var total = d.roll + attackBonus;
     var modeLabel = formatRollModeLabel(d);
     var rollInfo = formatRollMode(d, attackBonus);
@@ -1591,7 +1605,7 @@ if (resultBox) resultBox.className = "dice3d-result normal";
 var sides = r.sides;
 var qty = r.qty;
 animateDice3d(sides, total, function() {}, { qty: qty });
-diceHistory.unshift({ sides:sides, result:total, mode:"normal", time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:total, r2:null, label: weapon.name + " урон", src: (typeof _rollSrc === "function" ? _rollSrc() : undefined) });
+diceHistory.unshift({ sides:sides, result:total, mode:"normal", time: new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), r1:total, r2:null, label: weapon.name + " урон", detail: r.rollStr, src: (typeof _rollSrc === "function" ? _rollSrc() : undefined) });
 if (diceHistory.length > 10) diceHistory.pop();
 renderDiceHistory();
 }
@@ -1656,6 +1670,26 @@ function _divineSmite(index, slotType, level) {
     openArena: true,
     onResult: function(res) {
       if (typeof offerCastDamageToBattle === "function") offerCastDamageToBattle("Божественная кара", res.total, { half: false });
+    }
+  });
+}
+// PLAY5-8 (PT-538): Божественный удар жреца — доп. кости к попаданию оружием, крит последней атаки удваивает
+var _strikeCritIndex = -1;
+function rollDivineStrike(index) {
+  var char = currentId ? getCurrentChar() : null;
+  var weapon = char && _weaponAt(char, index);
+  var dice = char && rulesDivineStrikeDice(char);
+  if (!weapon || !dice) return;
+  var crit = _strikeCritIndex === index;
+  _strikeCritIndex = -1;
+  var formula = crit ? critFormula(dice) : dice;
+  var kind = char.edition === "2024" ? "некротическая энергия или излучение" : "вид урона — по домену";
+  if (window.AppLog) AppLog.action("combat", "Божественный удар «" + weapon.name + "»: " + formula + (crit ? " (крит)" : ""));
+  rollFormula(formula, {
+    label: "☀️ Божественный удар · " + weapon.name + " · " + kind + (crit ? " · КРИТ ×2" : ""),
+    openArena: true,
+    onResult: function(res) {
+      if (typeof offerCastDamageToBattle === "function") offerCastDamageToBattle("Божественный удар", res.total, { half: false });
     }
   });
 }

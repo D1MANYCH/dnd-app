@@ -302,7 +302,8 @@ function abilityBreakdown(char, key) {
   var bg = (char.bgStatChoice && char.bgStatChoice.alloc) ? _bgAppliedStat(char, key) : 0;
   var asi = (char.asiStats && char.asiStats[key]) || 0;
   var feat = (char.featStats && char.featStats[key]) || 0;
-  var known = race + bg + asi + feat;
+  var cls = (char.featureStats && char.featureStats[key]) || 0;
+  var known = race + bg + asi + feat + cls;
   var gen = char.abilGen && char.abilGen.base;
   var hasBase = !!(gen && typeof gen[key] === "number");
   var base = hasBase ? gen[key] : score - known;
@@ -311,6 +312,7 @@ function abilityBreakdown(char, key) {
   if (bg) rows.push({ label: "Предыстория", value: bg });
   if (asi) rows.push({ label: "Увеличение характеристик", value: asi });
   if (feat) rows.push({ label: "Черты", value: feat });
+  if (cls) rows.push({ label: "Умения класса", value: cls });
   var other = score - base - known;
   if (other) rows.push({ label: "Прочее", value: other });
   var how = { pb: "покупка очков", std: "стандартный набор", roll: "броски 4к6" }[hasBase && char.abilGen.mode];
@@ -1006,10 +1008,13 @@ SAVES_DATA.forEach(function(save) {
 const checkbox = $("save-prof-" + save.key);
 const item = $("save-item-" + save.key);
 if(checkbox) {
+// PLAY5-1б: владение от умения класса (Алмазная душа, Скользкий ум) — отмечено, в char.saves не пишется
+const classProf = rulesClassSaveProf(char, save.key);
+if (classProf) checkbox.checked = true;
 let bonus = rulesSaveBonus(char, save.key, level, checkbox.checked);
 const bonusEl = $("save-bonus-" + save.key);
 if (bonusEl) bonusEl.innerText = formatMod(bonus);
-char.saves[save.key] = checkbox.checked;
+if (!classProf) char.saves[save.key] = checkbox.checked;
 }
 if (item) {
 if (checkbox && checkbox.checked) {

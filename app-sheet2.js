@@ -158,7 +158,7 @@
     });
     h.push("</table></div><div><h3>Спасброски</h3><table><tr><th>Хар.</th><th class='n'>Бонус</th></tr>");
     AB.forEach(function (a) {
-      var prof = !!(c.saves && c.saves[a.k]);
+      var prof = !!(c.saves && c.saves[a.k]) || rulesClassSaveProf(c, a.k);
       var b = rulesSaveBonus(c, a.k, lvl, prof);
       var tip = fm(getMod((c.stats && c.stats[a.k]) || 10)) + " " + a.s + (prof ? " · " + fm(pb) + " мастерство" : "") + (rulesAuraOfProtection(c) ? " · " + fm(rulesAuraOfProtection(c)) + " аура защиты" : "");
       h.push("<tr class='s2-row' tabindex='0' data-t='Спасбросок: " + a.n + "' data-v='" + fm(b) + "' data-b='" + esc(tip) + "' onclick=\"sheet2Roll(this,'rollSavingThrow','" + a.k + "')\"><td>" + (prof ? "<span class='s2-prof'>◆</span>" : "<span class='s2-noprof'>◇</span>") + a.n + "</td><td class='n'>" + fm(b) + "</td></tr>");

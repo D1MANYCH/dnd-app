@@ -309,7 +309,10 @@ if (!btn) return;
 var n = (char && char.spells && Array.isArray(char.spells.mySpells)) ? char.spells.mySpells.length : 0;
 btn.hidden = hide || n === 0;
 btn.setAttribute("aria-pressed", spellOnlyAdded ? "true" : "false");
-btn.textContent = "Только из «Мои заклинания» · " + n;
+// PLAY5-7 (PT-556, 669): заговоры и заклинания считаются раздельно
+var _my = (char && char.spells && char.spells.mySpells) || [];
+var _cn = _my.filter(function(x) { return x && x.level === 0; }).length;
+btn.textContent = "Только из «Мои заклинания» · " + n + (_cn > 0 && _cn < n ? " (заговоров " + _cn + ")" : "");
 }
 function openSpellSearch() {
 _featPickIdx = null;
@@ -938,13 +941,20 @@ const matchesAdded = !spellOnlyAdded || !!addedIds[spell.id];
 return matchesSearch && matchesLevel && matchesVersion && matchesClass && matchesCap && matchesAdded;
 });
 container.innerHTML = "";
-if (filtered.length === 0) {
-container.innerHTML = '<p style="color:var(--text-dim); text-align:center;">Не\u00a0найдено</p>';
-return;
-}
-
 var countEl = $("spell-search-count");
 if (countEl) countEl.textContent = "Найдено: " + filtered.length;
+// PLAY5-7 (PT-571): в списке кругов — только доступные персонажу
+var _lvlSel = $("spell-search-level");
+if (_lvlSel && _lvlSel.options) Array.prototype.forEach.call(_lvlSel.options, function(o) {
+  var v = o.value === "" ? -1 : +o.value;
+  o.hidden = maxCastable > 0 && v > maxCastable && o.value !== level;
+});
+if (filtered.length === 0) {
+// PLAY5-7 (PT-684): при пустой выдаче подсказать про фильтр класса
+var _hintCls = currentSpellClass !== "all" ? " Включён фильтр класса — выберите «Все» или\u00a0другой класс." : "";
+container.innerHTML = '<p style="color:var(--text-dim); text-align:center;">Не\u00a0найдено.' + _hintCls + '</p>';
+return;
+}
 
 if (!spellOnlyAdded && !search.trim() && level === "" && (currentSpellVersion === "all" || currentSpellVersion === _defaultSpellVersion(char)) && currentSpellClass === "all") {
 container.innerHTML = '<p style="color:var(--text-dim); text-align:center; padding: var(--sp-5) 0;">' + dndIcoHtml("search", 20) + ' Введите название или\u00a0выберите класс/уровень</p>';
@@ -1003,6 +1013,16 @@ if (!char._wizStep && spell.level === 0) {
   if (_cMax !== null && _cHave >= _cMax) { showToast("Достигнут лимит заговоров (" + _cMax + ")", "warn"); return; }
 }
 char.spells.mySpells.push(spell);
+// PLAY5-7 (PT-473): чужой список — предупреждение (Тайны магии и т. п. разрешают), не блок
+var _ownCls = (typeof _charSpellClassKey === "function") ? _charSpellClassKey(char) : null;
+var _spCls = Array.isArray(spell.classes) ? spell.classes : [spell.class || "both"];
+if (_ownCls && !spell.homebrew && _spCls.indexOf("both") === -1 && _spCls.indexOf(_ownCls) === -1 && !char._wizStep) showToast("«" + spell.name + "» не из списка вашего класса — берите, только если умение это позволяет", "warn");
+// PLAY5-7 (PT-546, 516, 531, 558, 667): в мастере выбранное сразу подготавливается, пока есть место
+if (char._wizStep && spellNeedsPrep(char, spell) && typeof _crSpellRow === "function") {
+  var _pr = _crSpellRow(char, "prepared");
+  if (!Array.isArray(char.spells.prepared)) char.spells.prepared = [];
+  if (_pr && _pr.have < _pr.need && char.spells.prepared.indexOf(spell.id) === -1) char.spells.prepared.push(spell.id);
+}
 // E24-2: запись другой редакции — предупреждение, не блок (смешанные гримуары штатны).
 if (spell.source === "PH14" && char.edition === "2024") showToast("Это версия 2014 — у\u00a0персонажа редакция 2024", "warn");
 if (window.AppLog) AppLog.action("spells", "заклинание добавлено: " + spell.name, { id: spell.id, level: spell.level });
@@ -2093,6 +2113,9 @@ function _applyCastHeal(char, spell, d, slot) {
   var castLevel = slot ? slot.level : (spell.level || 0);
   var formula = scaleFormula(d.heal.formula, d.heal.upcast, spell.level || 0, castLevel);
   var mod = d.heal.addSpellMod ? castStatMod(char, spell) : 0;
+  var fromSlot = !!(slot && (slot.type === "slot" || slot.type === "pact"));
+  var lifeBonus = (typeof rulesHealBonus === "function") ? rulesHealBonus(char, castLevel, fromSlot) : 0;
+  mod += lifeBonus;
   var flat = (typeof flatFormulaTotal === "function") ? flatFormulaTotal(formula) : null;
   if (flat != null) {
     _castHealApply(Math.max(0, flat + mod), spell.name);
@@ -2101,7 +2124,7 @@ function _applyCastHeal(char, spell, d, slot) {
   if (typeof rollFormula !== "function") return;
   if (mod) formula += (mod > 0 ? "+" + mod : String(mod));
   rollFormula(formula, {
-    label: "💚 " + spell.name,
+    label: "💚 " + spell.name + (lifeBonus ? " · Домен жизни +" + lifeBonus : ""),
     openArena: true,
     onResult: function(res) {
       _castHealApply(res.total, spell.name);

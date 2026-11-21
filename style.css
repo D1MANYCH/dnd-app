@@ -14278,8 +14278,17 @@ html[data-stats-layout="2024"] .abil-passive strong { color: var(--accent-lo); }
   overflow-x: clip;
   padding-inline: var(--sp-1);
 }
+.cr-pip-count {
+  align-self: center;
+  color: var(--home-sub);
+  font-variant-numeric: tabular-nums;
+}
 .cr-pip {
   position: relative;
+  padding: 0;
+  background: none;
+  -webkit-appearance: none;
+  appearance: none;
   width: 11px;
   height: 11px;
   box-sizing: border-box;

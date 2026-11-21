@@ -100,6 +100,11 @@ function conditionShortName(char, id) {
   if (m) return "истощение " + m[1];
   if (id === "armor_heavy") return "тяжёлый доспех";
   if (id === "armor_stealth") return "доспех";
+  if (id === "unarmored_movement") return "движение без доспехов";
+  if (id.indexOf("feat:") === 0) {
+    var fid = id.slice(5), ft = (typeof getFeatDef === "function") ? getFeatDef(char, fid) : null;
+    return ft ? "черта «" + ft.name + "»" : fid;
+  }
   var set = (typeof edData === "function") ? edData(char).CONDITIONS : CONDITIONS;
   var c = set.find(function(x) { return x.id === id; });
   // PLAY5-2а: причина может быть эффектом (Ярость — преимущество на проверки СИЛ)

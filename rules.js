@@ -352,8 +352,11 @@ function rulesAuraOfProtection(char) {
 }
 
 // PLAY3-4: Скользкий ум плута 15 ур. — владение спасброском МУД (2024 — ещё ХАР)
+// PLAY5-1б (PT-710, 740): Алмазная душа / Дисциплина выживания монаха 14 ур. — все спасброски (PHB14 с.79, PHB24 с.123)
 function rulesClassSaveProf(char, key) {
-  if (!char || typeof charClassLevel !== "function" || charClassLevel(char, "Плут") < 15) return false;
+  if (!char || typeof charClassLevel !== "function") return false;
+  if (charClassLevel(char, "Монах") >= 14) return true;
+  if (charClassLevel(char, "Плут") < 15) return false;
   return key === "wis" || (key === "cha" && char.edition === "2024");
 }
 
@@ -383,6 +386,29 @@ function rulesDivineSmiteFormula(char, slotLevel, vsFiendOrUndead) {
   if (!(char && char.edition === "2024")) n = Math.min(5, n);
   if (vsFiendOrUndead) n += 1;
   return n + "к8";
+}
+
+// PLAY5-8 (PT-538): Божественный удар жреца — 2014 умение домена 8 ур.,
+// 2024 вариант «Благословенных ударов» 7 ур.; 2к8 с 14 ур.
+function rulesDivineStrikeDice(char) {
+  var lvl = charClassLevel(char, "Жрец");
+  if (!lvl) return "";
+  var has = false;
+  if (char.edition === "2024") {
+    has = lvl >= 7 && !!(char.classChoices && char.classChoices["Жрец"] && char.classChoices["Жрец"]["blessed-strikes"] === "divine_strike");
+  } else if (lvl >= 8) {
+    var sf = (typeof edData === "function") ? (edData(char).SUBCLASS_FEATURES || {})[charClassSubclass(char, "Жрец")] : null;
+    has = !!(sf && (sf[8] || []).some(function(f) { return f && f.name === "Божественный удар"; }));
+  }
+  return has ? (lvl >= 14 ? "2к8" : "1к8") : "";
+}
+
+// PLAY5-8 (PT-537): Домен жизни — лечащее заклинание даёт ещё 2 + круг
+// (2014 «Поборник жизни» с 1 ур., любой каст 1+ круга; 2024 «Апостол жизни» с 3 ур., только из ячейки)
+function rulesHealBonus(char, slotLevel, fromSlot) {
+  if (!char || !(slotLevel >= 1) || charClassSubclass(char, "Жрец") !== "Домен жизни") return 0;
+  if (char.edition === "2024" && !fromSlot) return 0;
+  return charClassLevel(char, "Жрец") >= (char.edition === "2024" ? 3 : 1) ? 2 + slotLevel : 0;
 }
 
 function rulesSkillBonus(char, skillIndex, level, isProficient) {
@@ -460,7 +486,7 @@ function rulesSpellStatsByClass(char, level, spell) {
 function rulesWeaponMods(char, weapon, level) {
   var stats = (char && char.stats) || {};
   var statKey = (weapon && weapon.stat) || "str";
-  if (weapon && String(weapon.notes || "").toLowerCase().indexOf("фехтовальн") !== -1) {
+  if (weapon && (weapon.martialArts || String(weapon.notes || "").toLowerCase().indexOf("фехтовальн") !== -1)) {
     statKey = getMod(stats.dex || 10) > getMod(stats.str || 10) ? "dex" : "str";
   }
   var statMod = getMod(stats[statKey] || 10);
@@ -470,6 +496,19 @@ function rulesWeaponMods(char, weapon, level) {
   return { statKey: statKey, statMod: statMod, magic: magic,
     attack: statMod + (weapon && weapon.proficient ? pb : 0) + magic,
     damageMod: statMod + magic + fx.total, effectDamage: fx.total, effectParts: fx.parts };
+}
+
+// PLAY5-1а (PT-711, 696): Боевые искусства монаха — кость безоружного удара по уровню
+// монаха (2014: к4/к6/к8/к10, 2024: к6/к8/к10/к12 с 1/5/11/17 ур.) и лучшая из СИЛ/ЛОВ.
+// Только без доспеха и щита; anyGear — без этой проверки (итог повышения уровня).
+// "" — умения нет или оно не действует.
+function rulesMartialArtsDie(char, anyGear) {
+  var lvl = charClassLevel(char, "Монах");
+  if (lvl < 1) return "";
+  var c = (char && char.combat) || {};
+  if (!anyGear && (c.hasShield || (c.armorId && c.armorId !== "none" && c.armorId !== "custom"))) return "";
+  var dice = char.edition === "2024" ? ["к6", "к8", "к10", "к12"] : ["к4", "к6", "к8", "к10"];
+  return "1" + dice[lvl >= 17 ? 3 : lvl >= 11 ? 2 : lvl >= 5 ? 1 : 0];
 }
 
 // PLAY5-2а: включённые эффекты char.effects — записи EFFECTS_DATA
@@ -838,7 +877,29 @@ function getMulticlassSpellSlots(char) {
 // AUD-14 (L7): откат повышения — из снимка берутся только поля, которые меняет
 // повышение уровня; игровое состояние (ХП, инвентарь, заметки…) остаётся текущим.
 var RULES_LEVEL_FIELDS = ["level", "class", "subclass", "classes", "stats", "saves", "skills",
-  "feats", "raceFeats", "asiUsed", "classChoices", "bonuses", "proficiencies", "sheetLocked"];
+  "feats", "raceFeats", "asiUsed", "classChoices", "bonuses", "proficiencies", "sheetLocked", "featureStats"];
+
+// PLAY5-2б (PT-613, 729): прибавки характеристик от умений класса — поле stats у умения
+// уровня classLevel, потолок statMax. «Дикий чемпион» 2014 (PHB с.49, макс. 24),
+// «Первобытный чемпион» и «Тело и разум» 2024 (PHB24 с.61, 123, макс. 25).
+// Учёт фактического прироста — char.featureStats (для разбивки характеристики).
+function rulesApplyFeatureStats(char, className, classLevel) {
+  var out = [];
+  var cf = edData(char).CLASS_FEATURES[className];
+  var feats = (cf && cf[classLevel]) || [];
+  feats.forEach(function(f) {
+    if (!f.stats) return;
+    Object.keys(f.stats).forEach(function(k) {
+      var before = char.stats[k] || 10;
+      var after = Math.max(before, Math.min(f.statMax || 20, before + f.stats[k]));
+      char.stats[k] = after;
+      if (!char.featureStats) char.featureStats = {};
+      char.featureStats[k] = (char.featureStats[k] || 0) + after - before;
+      out.push({ feature: f.name, key: k, before: before, after: after });
+    });
+  });
+  return out;
+}
 function rulesRestoreLevelFields(char, snap) {
   if (!char || !snap) return char;
   var copy = JSON.parse(JSON.stringify(snap));
@@ -1174,8 +1235,25 @@ function rulesConditionRollMods(char, kind, ability) {
   }
   return out;
 }
+// PLAY5-1б (PT-700, 712, 730): прибавки к скорости — Движение без доспехов монаха
+// (+10/15/20/25/30 с 2/6/10/14/18 ур., без доспеха и щита; PHB14 с.77–78, PHB24 с.122),
+// черты «Подвижный», «Быстрый» (+10) и «Дар скорости» (+30). parts — [{id, value}]
+var RULES_SPEED_FEATS = [["mobile", 10], ["f24-speedy", 10], ["f24-boon_speed", 30]];
+function rulesSpeedBonus(char) {
+  var out = { total: 0, parts: [] };
+  if (!char) return out;
+  var cm = char.combat || {};
+  var mk = (typeof charClassLevel === "function") ? charClassLevel(char, "Монах") : 0;
+  if (mk >= 2 && !cm.hasShield && !(cm.armorId && cm.armorId !== "none" && cm.armorId !== "custom"))
+    out.parts.push({ id: "unarmored_movement", value: mk >= 18 ? 30 : mk >= 14 ? 25 : mk >= 10 ? 20 : mk >= 6 ? 15 : 10 });
+  RULES_SPEED_FEATS.forEach(function(f) { if (rulesHasFeat(char, f[0])) out.parts.push({ id: "feat:" + f[0], value: f[1] }); });
+  out.parts.forEach(function(p) { out.total += p.value; });
+  return out;
+}
 // Скорость с учётом состояний и истощения: base — число футов; reasons — id причин
 function rulesEffectiveSpeed(char, base) {
+  var bonus = rulesSpeedBonus(char);
+  base += bonus.total;
   var c = (char && char.conditions) || [];
   var reasons = [];
   // ошеломлённый 2024 двигаться может (PHB 2024 стр.356)
@@ -1185,7 +1263,7 @@ function rulesEffectiveSpeed(char, base) {
   var exh = rulesExhaustionLevel(char);
   if (reasons.length) return { speed: 0, reasons: reasons };
   // AUD-8 (L34): тяжёлый доспех при СИЛ ниже требования — скорость −10 фт (PHB стр.144)
-  var pre = [];
+  var pre = bonus.parts.map(function(p) { return p.id; });
   var armorId = char && char.combat && char.combat.armorId;
   var preset = (armorId && typeof ARMOR_PRESETS !== "undefined") ? ARMOR_PRESETS.find(function(a) { return a.id === armorId; }) : null;
   if (preset && armorPenalties(char, preset).slowed) { base = Math.max(0, base - 10); pre.push("armor_heavy"); }
@@ -1340,7 +1418,7 @@ function concSaveParams(char, dmg) {
   // Круг луны 2024, 6 ур. (PHB24 стр.96): в облике +МДР к спасброскам ТЕЛ
   if (char.form && !poly && char.edition === "2024" && typeof charClassLevel === "function" &&
       charClassLevel(char, "Друид") >= 6 && charClassSubclass(char, "Друид") === "Круг луны") mod += getMod(stats.wis);
-  if (!poly && char.saves && char.saves.con && typeof getProficiencyBonus === "function") {
+  if (!poly && ((char.saves && char.saves.con) || rulesClassSaveProf(char, "con")) && typeof getProficiencyBonus === "function") {
     mod += getProficiencyBonus(char.level || 1);
   }
   var mode = "normal";

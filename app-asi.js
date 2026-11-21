@@ -724,6 +724,7 @@ function _agBonus(char, k) {
   if (char.bgStatChoice && char.bgStatChoice.alloc && typeof _bgAppliedStat === "function") b += _bgAppliedStat(char, k);
   // АУД4-3 (C1): прибавки от АСИ и черт, применённых в приложении, не стираются генерацией
   b += ((char.asiStats && char.asiStats[k]) || 0) + ((char.featStats && char.featStats[k]) || 0);
+  b += (char.featureStats && char.featureStats[k]) || 0;
   return b;
 }
 

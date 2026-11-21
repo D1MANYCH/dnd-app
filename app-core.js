@@ -1738,7 +1738,7 @@ Object.keys(char.saves).forEach(function(key) {
 safeSetChecked("save-prof-" + key, char.saves[key]);
 });
 }
-["wis", "cha"].forEach(function(key) { if (rulesClassSaveProf(char, key)) safeSetChecked("save-prof-" + key, true); });
+["str", "dex", "con", "int", "wis", "cha"].forEach(function(key) { if (rulesClassSaveProf(char, key)) safeSetChecked("save-prof-" + key, true); });
 if(char.skills) {
 Object.keys(char.skills).forEach(function(key) {
 safeSetChecked("skill-prof-" + key, char.skills[key]);

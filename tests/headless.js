@@ -8266,6 +8266,35 @@
       return true;
     });
 
+    t("[PLAY5-2б] +4 умения 20 ур.: Дикий чемпион 2014 (макс. 24), Первобытный чемпион и Тело и разум 2024 (макс. 25)", function(){
+      var b14 = { stats: { str: 22, con: 20, dex: 14 } };
+      var g = rulesApplyFeatureStats(b14, "Варвар", 20);
+      if (b14.stats.str !== 24 || b14.stats.con !== 24 || b14.stats.dex !== 14) return "2014: " + JSON.stringify(b14.stats);
+      if (b14.featureStats.str !== 2 || b14.featureStats.con !== 4) return "учёт 2014: " + JSON.stringify(b14.featureStats);
+      if (g.length !== 2 || g[0].feature !== "Дикий чемпион" || g[0].before !== 22 || g[0].after !== 24) return "строки: " + JSON.stringify(g);
+      var b24 = { edition: "2024", stats: { str: 21, con: 20 } };
+      rulesApplyFeatureStats(b24, "Варвар", 20);
+      if (b24.stats.str !== 25 || b24.stats.con !== 24) return "2024 варвар: " + JSON.stringify(b24.stats);
+      var m24 = { edition: "2024", stats: { dex: 21, wis: 20 } };
+      rulesApplyFeatureStats(m24, "Монах", 20);
+      if (m24.stats.dex !== 25 || m24.stats.wis !== 24) return "2024 монах: " + JSON.stringify(m24.stats);
+      if (rulesApplyFeatureStats({ stats: { str: 20 } }, "Варвар", 19).length) return "19 ур. дал прибавку";
+      if (rulesApplyFeatureStats({ stats: { dex: 20 } }, "Монах", 20).length) return "монах 2014 дал прибавку";
+      if (RULES_LEVEL_FIELDS.indexOf("featureStats") === -1) return "featureStats не откатывается";
+      return true;
+    });
+
+    t("[PLAY5-2б] выборы 2024: Первобытное знание, Ярость диких земель, Сила дикой природы", function(){
+      var ed = edData({ edition: "2024" });
+      var pk = (ed.CLASS_CHOICES["Варвар"] || []).filter(function(c){ return c.id === "primal-knowledge"; })[0];
+      if (!pk || pk.minLevel !== 3 || !pk.skillGrant || pk.options.length !== 6) return "Первобытное знание: " + JSON.stringify(pk && pk.options);
+      if (pk.options.some(function(o){ return !pk.optionsDict[o]; })) return "Первобытное знание: нет optionsDict";
+      var wh = (ed.SUBCLASS_CHOICES["Путь дикого сердца"] || []).map(function(c){ return c.id + ":" + c.minLevel + ":" + c.options.length; }).join(",");
+      if (wh !== "rage-of-the-wilds:3:3,aspect-of-the-wilds:6:3,power-of-the-wilds:14:3") return wh;
+      if ((CLASS_CHOICES["Варвар"] || []).length) return "2014 варвар получил выбор";
+      return true;
+    });
+
     t("[PLAY5-2а] Ярость: +2/+3/+4 к урону Силой по уровню варвара, лук и ЛОВ — без бонуса", function(){
       var mk = function(lvl, ed){ return { edition: ed || "2014", level: lvl, class: "Варвар", classes: [{ class: "Варвар", level: lvl }], stats: { str: 16, dex: 14, con: 10, int: 10, wis: 10, cha: 10 }, effects: ["barbarian_rage"] }; };
       var axe = { name: "Секира", stat: "str", damage: "1к12", range: "Ближний", proficient: true };
@@ -8280,6 +8309,71 @@
       if (rulesWeaponMods(off, axe, 5).damageMod !== 3) return "без ярости есть бонус";
       var mc = mk(10); mc.classes = [{ class: "Варвар", level: 3 }, { class: "Воин", level: 7 }];
       if (rulesWeaponMods(mc, axe, 10).damageMod !== 5) return "мультикласс: бонус не по уровню варвара";
+      return true;
+    });
+
+    t("[PLAY5-8] Божественный удар жреца и прибавка Домена жизни к лечению", function(){
+      var mk = function(lvl, sub, ed){ return { edition: ed || "2014", level: lvl, class: "Жрец", subclass: sub, classes: [{ class: "Жрец", level: lvl, subclass: sub }], classChoices: {}, stats: {} }; };
+      if (rulesDivineStrikeDice(mk(7, "Домен жизни")) !== "") return "2014: удар до 8 ур.";
+      if (rulesDivineStrikeDice(mk(8, "Домен жизни")) !== "1к8") return "2014 8 ур.: " + rulesDivineStrikeDice(mk(8, "Домен жизни"));
+      if (rulesDivineStrikeDice(mk(14, "Домен жизни")) !== "2к8") return "2014 14 ур.";
+      if (rulesDivineStrikeDice(mk(8, "Домен знаний")) !== "") return "2014: удар у Домена знаний";
+      var c24 = mk(7, "Домен жизни", "2024");
+      if (rulesDivineStrikeDice(c24) !== "") return "2024: удар без выбора";
+      c24.classChoices = { "Жрец": { "blessed-strikes": "divine_strike" } };
+      if (rulesDivineStrikeDice(c24) !== "1к8") return "2024 7 ур.: " + rulesDivineStrikeDice(c24);
+      c24.classChoices["Жрец"]["blessed-strikes"] = "potent_spellcasting";
+      if (rulesDivineStrikeDice(c24) !== "") return "2024: удар при Мощном заговоре";
+      if (rulesDivineStrikeDice({ class: "Воин", level: 10, stats: {} }) !== "") return "удар у не-жреца";
+      if (rulesHealBonus(mk(1, "Домен жизни"), 1) !== 3 || rulesHealBonus(mk(5, "Домен жизни"), 3) !== 5) return "2014: 2 + круг ячейки";
+      if (rulesHealBonus(mk(5, "Домен жизни"), 0) !== 0) return "бонус к заговору";
+      if (rulesHealBonus(mk(5, "Домен света"), 2) !== 0) return "бонус у Домена света";
+      if (rulesHealBonus(mk(2, "Домен жизни", "2024"), 1, true) !== 0 || rulesHealBonus(mk(3, "Домен жизни", "2024"), 2, true) !== 4) return "2024: с 3 ур.";
+      if (rulesHealBonus(mk(5, "Домен жизни"), 1, false) !== 3) return "2014: нет бонуса без ячейки";
+      if (rulesHealBonus(mk(5, "Домен жизни", "2024"), 1, false) !== 0) return "2024: бонус без ячейки";
+      return true;
+    });
+
+    t("[PLAY5-1а] Боевые искусства: кость по уровню монаха, ЛОВ для безоружного удара, без доспеха и щита", function(){
+      var mk = function(lvl, ed){ return { edition: ed || "2014", level: lvl, class: "Монах", classes: [{ class: "Монах", level: lvl }], stats: { str: 10, dex: 17, con: 10, int: 10, wis: 10, cha: 10 }, combat: {} }; };
+      var w14 = { 1: "1к4", 4: "1к4", 5: "1к6", 11: "1к8", 17: "1к10", 20: "1к10" }, w24 = { 1: "1к6", 5: "1к8", 11: "1к10", 17: "1к12" };
+      for (var a in w14) if (rulesMartialArtsDie(mk(+a)) !== w14[a]) return "2014 ур." + a + ": " + rulesMartialArtsDie(mk(+a));
+      for (var b in w24) if (rulesMartialArtsDie(mk(+b, "2024")) !== w24[b]) return "2024 ур." + b + ": " + rulesMartialArtsDie(mk(+b, "2024"));
+      var armored = mk(5); armored.combat = { armorId: "leather" };
+      if (rulesMartialArtsDie(armored) !== "" || rulesMartialArtsDie(armored, true) !== "1к6") return "доспех не отключил умение";
+      var shield = mk(5); shield.combat = { hasShield: true };
+      if (rulesMartialArtsDie(shield) !== "") return "щит не отключил умение";
+      if (rulesMartialArtsDie({ class: "Воин", level: 5, stats: {} }) !== "") return "кость у не-монаха";
+      var mc = mk(12); mc.classes = [{ class: "Монах", level: 4 }, { class: "Воин", level: 8 }];
+      if (rulesMartialArtsDie(mc) !== "1к4") return "мультикласс: кость не по уровню монаха";
+      var ua = { stat: "str", damage: "1к4", proficient: true, martialArts: true };
+      var m = rulesWeaponMods(mk(1), ua, 1);
+      if (m.statKey !== "dex" || m.attack !== 5 || m.damageMod !== 3) return "1 ур.: " + m.statKey + " атака " + m.attack + " урон " + m.damageMod;
+      return true;
+    });
+
+    t("[PLAY5-1б] Движение без доспехов, черты скорости, все спасброски монаха с 14 ур.", function(){
+      var mk = function(lvl, ed){ return { edition: ed || "2014", level: lvl, class: "Монах", classes: [{ class: "Монах", level: lvl }], stats: { str: 10, dex: 16, con: 10, int: 10, wis: 10, cha: 10 }, saves: { str: true, dex: true }, combat: {}, conditions: [], feats: [] }; };
+      var w = { 1: 35, 2: 45, 6: 50, 10: 55, 14: 60, 18: 65 };
+      for (var l in w) if (rulesEffectiveSpeed(mk(+l), 35).speed !== w[l]) return "ур." + l + ": " + rulesEffectiveSpeed(mk(+l), 35).speed;
+      var m19 = mk(19); m19.feats = [{ id: "mobile" }];
+      if (rulesEffectiveSpeed(m19, 35).speed !== 75) return "Подвижный: " + rulesEffectiveSpeed(m19, 35).speed;
+      var m24 = mk(20, "2024"); m24.feats = [{ id: "f24-boon_speed" }];
+      var s24 = rulesEffectiveSpeed(m24, 30);
+      if (s24.speed !== 90 || s24.reasons.indexOf("unarmored_movement") === -1) return "2024 Дар скорости: " + s24.speed;
+      var arm = mk(10); arm.combat = { armorId: "leather" };
+      if (rulesEffectiveSpeed(arm, 30).speed !== 30) return "в доспехе: " + rulesEffectiveSpeed(arm, 30).speed;
+      var sh = mk(10); sh.combat = { hasShield: true };
+      if (rulesEffectiveSpeed(sh, 30).speed !== 30) return "со щитом";
+      var ex = mk(10); ex.conditions = ["exhaustion_2"];
+      if (rulesEffectiveSpeed(ex, 30).speed !== 25) return "истощение 2 после бонуса: " + rulesEffectiveSpeed(ex, 30).speed;
+      if (rulesClassSaveProf(mk(13), "int")) return "13 ур.: ИНТ";
+      var keys = ["str", "dex", "con", "int", "wis", "cha"];
+      for (var i = 0; i < keys.length; i++) {
+        if (!rulesClassSaveProf(mk(14), keys[i]) || !rulesClassSaveProf(mk(14, "2024"), keys[i])) return "14 ур.: " + keys[i];
+      }
+      if (rulesSaveBonus(mk(20), "int", 20, false) !== 6) return "ИНТ на 20: " + rulesSaveBonus(mk(20), "int", 20, false);
+      if (rulesClassSaveProf({ edition: "2014", level: 14, classes: [{ class: "Воин", level: 14 }] }, "int")) return "воин 14";
       return true;
     });
 
@@ -9283,7 +9377,8 @@
       var styleFeats = FEATS_2024.filter(function(f){ return f.category === "style"; });
       if (!FS || Object.keys(FS).length !== styleFeats.length || styleFeats.length < 8) return "FIGHTING_STYLES_2024: " + (FS && Object.keys(FS).length);
       var CC24 = window.CLASS_CHOICES_2024, SC24 = window.SUBCLASS_CHOICES_2024;
-      if (!Array.isArray(CC24["Варвар"]) || CC24["Варвар"].length !== 0) return "у Варвара 2024 есть выборы";
+      // PLAY5-2б: у Варвара 2024 — только «Первобытное знание»
+      if (!Array.isArray(CC24["Варвар"]) || CC24["Варвар"].map(function(c){ return c.id; }).join() !== "primal-knowledge") return "выборы Варвара 2024: " + JSON.stringify(CC24["Варвар"]);
       // все options всех выборов 2024 резолвятся в optionsDict
       var all = [];
       Object.keys(CC24).forEach(function(k){ all = all.concat(CC24[k]); });
@@ -9311,7 +9406,8 @@
       if (!ch7 || ch6) return "второй стиль Чемпиона: на 7 " + !!ch7 + ", на 6 " + !!ch6;
       var wh = ccGetAllChoicesFor(mk("2024", "Варвар", 6, "Путь дикого сердца")).filter(function(x){ return x.choice.id === "aspect-of-the-wilds"; })[0];
       if (!wh || wh.choice.options.length !== 3) return "аспект диких земель";
-      if (ccGetAllChoicesFor(mk("2024", "Варвар", 5, "Путь дикого сердца")).length !== 0) return "у Варвара 5 (дикое сердце) есть выборы";
+      var wh5 = ccGetAllChoicesFor(mk("2024", "Варвар", 5, "Путь дикого сердца")).map(function(x){ return x.choice.id; }).sort().join();
+      if (wh5 !== "primal-knowledge,rage-of-the-wilds") return "выборы Варвара 5 (дикое сердце): " + wh5;
       var f = ccFindChoice(mk("2024", "Воин", 3, "Боевой мастер"), "Воин", "maneuvers");
       if (!f || f !== bm(3).choice) return "ccFindChoice не читает 2024";
       if (ccFindChoice(mk("2014", "Воин", 3, "Боевой мастер"), "Воин", "maneuvers") !== bm14.choice) return "ccFindChoice 2014 задет";

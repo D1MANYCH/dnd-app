@@ -55,12 +55,30 @@ var data = typeof getCharResourceDefs === "function" ? getCharResourceDefs(char)
 if (!data || !data.resources) return [];
 var out = [];
 data.resources.forEach(function(res) {
-  if (res.restoreOn === "turn" || res.restoreOn === "none" || getResourceMax(res, char) === 0) return;
-  if (type === "long" || res.restoreOn === "short" || (res.shortFromLevel && (res._clsLevel || char.level || 1) >= res.shortFromLevel)) out.push(res.name);
-  else if (res.shortRegain && (res._clsLevel || char.level || 1) >= res.shortRegain.from) out.push(res.name + " (+" + res.shortRegain.amount + ")");
-  else if (res.restoreShortOne) out.push(res.name + " (1 исп.)");
+  var max = getResourceMax(res, char);
+  if (res.restoreOn === "turn" || res.restoreOn === "none" || max === 0) return;
+  // PLAY5-8 (PT-743/780): «было → станет» по остатку до отдыха
+  var used = Math.min(max, (char.resources && char.resources[res.id]) || 0), left = max - used;
+  var item = function(gain, tail) {
+    if (max === 99 || !used) return { text: res.name + (tail || ""), full: true };
+    return { text: res.name + " " + left + " → " + Math.min(max, left + gain) + (tail || ""), full: false };
+  };
+  if (type === "long" || res.restoreOn === "short" || (res.shortFromLevel && (res._clsLevel || char.level || 1) >= res.shortFromLevel)) out.push(item(used));
+  else if (res.shortRegain && (res._clsLevel || char.level || 1) >= res.shortRegain.from) out.push(item(res.shortRegain.amount, " (+" + res.shortRegain.amount + ")"));
+  else if (res.restoreShortOne) out.push(item(1, " (1 исп.)"));
 });
 return out;
+}
+function _restResLine(list) {
+var spent = list.filter(function(r) { return !r.full; }).map(function(r) { return escapeHtml(r.text); });
+var full = list.filter(function(r) { return r.full; }).map(function(r) { return escapeHtml(r.text); });
+return spent.join(", ") + (full.length ? (spent.length ? "; уже полные: " : "уже полные: ") + full.join(", ") : "");
+}
+// PLAY5-8 (PT-463): сколько ячеек (с пактом) потрачено до отдыха
+function _restSlotsSpent(char) {
+var sp = char.spells || {}, n = 0;
+for (var i = 1; i <= 9; i++) { if (sp.slots && sp.slots[i]) n += Math.min(sp.slots[i], (sp.slotsUsed && sp.slotsUsed[i]) || 0); }
+return n + (sp.pactSlots ? Math.min(sp.pactSlots, sp.pactUsed || 0) : 0);
 }
 // PLAY5-3 (PT-453/485/779): умения «по окончании короткого отдыха, по выбору игрока» —
 // только те, что сейчас могут что-то вернуть
@@ -102,10 +120,10 @@ if (label) label.textContent = "Кости хитов · к" + sizes.join("/к")
 var s = "";
 if (isWarlock && sp.pactSlots) s += li("focus", "Ячейки пакта: " + Math.max(0, sp.pactSlots - (sp.pactUsed || 0)) + " → " + sp.pactSlots);
 var recs = _restRecoveries(char);
-if (hasSlots) s += (isWarlock && !isMulti) ? li("sparkle", "Ячейки заклинаний: все") : (recs.some(function(r) { return r.res.slotRecovery; }) ? "" : li("sparkle", "Ячейки заклинаний не восстанавливаются", "rest-gain-mute"));
+if (hasSlots) s += (isWarlock && !isMulti) ? li("sparkle", _restSlotsSpent(char) ? "Ячейки заклинаний: все" : "Ячейки заклинаний: уже полные") : (recs.some(function(r) { return r.res.slotRecovery; }) ? "" : li("sparkle", "Ячейки заклинаний не восстанавливаются", "rest-gain-mute"));
 recs.forEach(function(r) { s += li("sparkle", escapeHtml(r.res.name) + ": после отдыха можно вернуть " + r.what); });
 var shortRes = _restResNames(char, "short");
-if (shortRes.length) s += li("zap", "Умения: " + shortRes.map(escapeHtml).join(", "));
+if (shortRes.length) s += li("zap", "Умения: " + _restResLine(shortRes));
 var shortEl = $("rest-gain-short");
 if (shortEl) shortEl.innerHTML = s;
 // Продолжительный: хиты, кости, ячейки, умения, истощение, временные хиты
@@ -116,9 +134,9 @@ var l = blockReason ? li("alert", escapeHtml(blockReason), "rest-gain-warn") : "
 l += li("heart", hp >= hpMax ? "Хиты уже полные" : "Хиты: " + hp + " → " + hpMax);
 if (char.combat.hpTemp > 0) l += li("shield", "Временные хиты сгорают: " + char.combat.hpTemp);
 l += li("dice", hdBack ? "Кости хитов: +" + hdBack + " (" + (lvl - spent) + " → " + (lvl - spent + hdBack) + " из " + lvl + ")" : "Кости хитов: все на месте");
-if (hasSlots || sp.pactSlots) l += li("sparkle", "Ячейки заклинаний: все");
+if (hasSlots || sp.pactSlots) { var _spent = _restSlotsSpent(char); l += li("sparkle", _spent ? "Ячейки заклинаний: потрачено " + _spent + " → все" : "Ячейки заклинаний: уже полные"); }
 var longRes = _restResNames(char, "long");
-if (longRes.length) l += li("zap", "Умения: " + longRes.map(escapeHtml).join(", "));
+if (longRes.length) l += li("zap", "Умения: " + _restResLine(longRes));
 if (exh > 0) l += li("dizzy", "Истощение: " + exh + " → " + (exh - 1));
 var longEl = $("rest-gain-long");
 if (longEl) longEl.innerHTML = l;
@@ -207,6 +225,7 @@ let resultTitle = "";
 let resultDetails = "";
 const oldHp = parseInt(char.combat.hpCurrent, 10);
 var _resNames = _restResNames(char, currentRestType);
+var _slotsSpent = _restSlotsSpent(char);
 var _pactBefore = char.spells && char.spells.pactSlots ? Math.max(0, char.spells.pactSlots - (char.spells.pactUsed || 0)) : 0;
 if (currentRestType === "short") {
 // AUD-4 (R12): каждая кость бросается своим размером
@@ -231,7 +250,7 @@ var rollStr = rollLog.length > 0 ? " (" + rollLog.join(", ") + ")" : "";
 var warlockStr = _isWarlock && char.spells.pactSlots ? "<p>" + dndIcoHtml("focus", 13) + " Ячейки пакта: " + _pactBefore + " → " + char.spells.pactSlots + "</p>" : "";
 var castExpiredStr = _castExpired.length ? "<p>⏳ Истекли эффекты: " + _castExpired.join(", ") + "</p>" : "";
 // PLAY2-7 (PT-185): какие ресурсы класса вернул отдых
-if (_resNames.length) castExpiredStr = "<p>" + dndIcoHtml("zap", 12) + " Умения: " + _resNames.map(escapeHtml).join(", ") + "</p>" + castExpiredStr;
+if (_resNames.length) castExpiredStr = "<p>" + dndIcoHtml("zap", 12) + " Умения: " + _restResLine(_resNames) + "</p>" + castExpiredStr;
 resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + char.combat.hpCurrent + "</div></div><p>" + dndIcoHtml("dice", 12) + " Потрачено костей: " + hitDiceToSpend + rollStr + "</p><p>" + dndIcoHtml("heart", 12) + " Восстановлено ХП: " + hpHealed + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + warlockStr + castExpiredStr + "<div id='rest-result-recovery'>" + _restRecoveryHtml(char) + "</div>";
 } else if (currentRestType === "long") {
 // PHB стр.186: страховка на случай, если кнопку не погасил showLongRestInfo —
@@ -279,7 +298,7 @@ var exhaustionNote = exhaustionReduced ? "<p>" + dndIcoHtml("dizzy", 13) + " И�
 var chargesNote = chargesRestored ? "<p>" + dndIcoHtml("zap", 13) + " Заряды предметов восстановлены: " + chargesRestored + "</p>" : "";
 var _portent = crPortentRolls(char);
 if (_portent.length) chargesNote += "<p>" + dndIcoHtml("sparkle", 12) + " Знамение: " + _portent.join(", ") + "</p>";
-resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div>" + (_restHasSlots(char) ? "<p>" + dndIcoHtml("sparkle", 12) + " Ячейки заклинаний: восстановлены</p>" : "") + "<p>" + dndIcoHtml("dice", 12) + " Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + (_resNames.length ? "<p>" + dndIcoHtml("zap", 12) + " Умения: " + _resNames.map(escapeHtml).join(", ") + "</p>" : "") + exhaustionNote + chargesNote;
+resultDetails = "<div class='rest-comparison'><div class='before'>ХП: " + oldHp + "</div><div class='arrow'>→</div><div class='after'>ХП: " + maxHp + "</div></div>" + (_restHasSlots(char) ? "<p>" + dndIcoHtml("sparkle", 12) + " Ячейки заклинаний: " + (_slotsSpent ? "восстановлено " + _slotsSpent : "были полные") + "</p>" : "") + "<p>" + dndIcoHtml("dice", 12) + " Кости хитов: восстановлено " + hitDiceToRestore + "</p><p>" + dndIcoHtml("trend", 12) + " Доступно костей: " + (char.level - char.combat.hpDiceSpent) + "/" + char.level + "</p>" + (_resNames.length ? "<p>" + dndIcoHtml("zap", 12) + " Умения: " + _restResLine(_resNames) + "</p>" : "") + exhaustionNote + chargesNote;
 }
 saveToLocal();
 // PLAY2-7 (PT-124): loadCharacter открывает «Лист» и скроллит наверх — возвращаем вкладку и место
@@ -705,10 +724,12 @@ if (choice && choice.isNew) {
 // Синхронизируем поля
 syncClassFields(char);
 var newTotalLevel = char.level;
+// PLAY5-2б: +4 к характеристикам умения 20 ур. — до ХП, рост ТЕЛ даёт прибавку за все уровни
+var featStatGains = rulesApplyFeatureStats(char, className, classLevel);
 
 // HP gain
 // AUD-4 (L1): прибавка = разница авто-базы (кость, дварф, драконья устойчивость) + черты за уровень
-var baseGain = rulesMaxHPBase(char, conMod) - oldHpBase;
+var baseGain = rulesMaxHPBase(char, getMod(char.stats.con)) - oldHpBase;
 if (parseInt(char.combat.hpMaxManual, 10) > 0) char.combat.hpMaxManual = parseInt(char.combat.hpMaxManual, 10) + baseGain;
 var hpGain = baseGain + (typeof featHpPerLevel === "function" ? featHpPerLevel(char) : 0);
 var newMaxHP = oldMaxHP + hpGain;
@@ -734,6 +755,9 @@ renderSpellSlots();
 var classLabel = isMulticlass(char) ? getClassLabel(char) : className;
 if (window.AppLog) AppLog.action("character", "уровень → " + newTotalLevel + " (" + classLabel + ")", { hp: oldMaxHP + "→" + newMaxHP, prof: newProf });
 addJournalEntry("levelup", "Достигнут " + newTotalLevel + " уровень! (" + classLabel + ")", "ХП: " + oldMaxHP + " → " + newMaxHP + " · Бонус мастерства: +" + newProf);
+var _fsNames = {str:"Сила",dex:"Ловкость",con:"Телосложение",int:"Интеллект",wis:"Мудрость",cha:"Харизма"};
+var _fsText = featStatGains.map(function(g) { return _fsNames[g.key] + " " + g.before + " → " + g.after; }).join(" · ");
+if (_fsText) addJournalEntry("stat", "📈 " + featStatGains[0].feature + ": " + _fsText);
 renderJournal();
 
 var resultLines = ["" + dndIcoHtml("heart", 13) + " ХП: " + oldMaxHP + " → " + newMaxHP + " (+" + hpGain + ")", "" + dndIcoHtml("dice", 13) + " Костей хитов: " + newTotalLevel];
@@ -743,6 +767,7 @@ if (edData(char).CLASS_FEATURES[className] && edData(char).CLASS_FEATURES[classN
   var names = edData(char).CLASS_FEATURES[className][classLevel].map(function(f) { return f.name; });
   resultLines.push("" + dndIcoHtml("sparkle", 13) + " Новые умения: " + names.join(", "));
 }
+if (_fsText) resultLines.push("" + dndIcoHtml("zap", 13) + " " + escapeHtml(featStatGains[0].feature + ": " + _fsText));
 if (subclassName && edData(char).SUBCLASS_FEATURES[subclassName] && edData(char).SUBCLASS_FEATURES[subclassName][classLevel]) {
   var subNames = edData(char).SUBCLASS_FEATURES[subclassName][classLevel].map(function(f) { return f.name; });
   resultLines.push("" + dndIcoHtml("focus", 13) + " " + escapeHtml(subclassName) + ": " + escapeHtml(subNames.join(", ")));
@@ -1141,6 +1166,8 @@ function _luResMap(char) {
   ((defs && defs.resources) || []).forEach(function(r) {
     out[(r._cls || "") + "|" + (r.id || r.name)] = { name: r.name, max: getResourceMax(r, char), die: (typeof currentDieSize === "function") ? currentDieSize(r, r._clsLevel) : "" };
   });
+  var maDie = rulesMartialArtsDie(char, true);
+  if (maDie) out["Монах|martial_arts"] = { name: "Боевые искусства", max: 1, die: maDie.replace(/^1/, "") };
   return out;
 }
 

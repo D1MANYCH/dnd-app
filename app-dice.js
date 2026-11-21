@@ -1207,7 +1207,7 @@ function _renderFormulaResult(groups, rollsByGroup, mod, noMin) {
     resultBox.classList.add('normal', 'pop');
     setTimeout(function(){ if (resultBox) resultBox.classList.remove('pop'); }, 400);
   }
-  return { total: total };
+  return { total: total, detail: multi ? parts.join('') : '' };
 }
 
 // CAST-3: универсальный бросок формулы «2к6+3» — ядро, извлечённое из
@@ -1287,7 +1287,7 @@ function rollFormula(formula, opts) {
       var ri = $("dice-result-info");
       if (ri) ri.textContent = label + ' · ' + ri.textContent;
     }
-    diceHistory.unshift({ sides: primary.sides, result: res.total, mode: 'custom', formula: canon, label: label || undefined, time: timestamp, src: src || undefined });
+    diceHistory.unshift({ sides: primary.sides, result: res.total, mode: 'custom', formula: canon, label: label || undefined, detail: res.detail || undefined, time: timestamp, src: src || undefined });
     if (diceHistory.length > 10) diceHistory.pop();
     renderDiceHistory();
     try { _updateDiceHistoryBadge(); } catch (e) {}
@@ -1342,8 +1342,9 @@ diceHistory.forEach(function(record) {
 const div = document.createElement("div");
 div.className = "dice-history-item list-row";
 if (record.sides === 20) {
-if (record.result === 20) div.classList.add("crit-success");
-else if (record.result === 1) div.classList.add("crit-fail");
+var nat = record.natural != null ? record.natural : record.result;
+if (nat === 20) div.classList.add("crit-success");
+else if (nat === 1) div.classList.add("crit-fail");
 }
 const modeTag = record.mode === 'adv' ? ' ▲' : record.mode === 'dis' ? ' ▼' : '';
 // UX-5: для бросков с листа (quickRoll) показываем подпись («Спас. Ловкость»),
@@ -1352,6 +1353,9 @@ var label;
 if (record.label) label = escapeHtml(record.label) + modeTag;
 else if (record.mode === 'custom') label = record.formula || "custom";
 else label = "к" + record.sides + modeTag;
+// PLAY5-8 (PT-384/605): разбивка «8 + 5» у бросков с модификатором и формула урона
+var parts = record.detail ? escapeHtml(record.detail) : (record.natural != null && record.mod ? record.natural + (record.mod < 0 ? " − " + (-record.mod) : " + " + record.mod) : "");
+if (parts) label += " · " + parts;
 div.innerHTML = "<span>" + label + " (" + record.time + (record.src ? " · " + escapeHtml(record.src) : "") + ")</span><span>" + record.result + "</span>";
 container.appendChild(div);
 });
