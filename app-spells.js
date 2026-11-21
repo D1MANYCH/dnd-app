@@ -343,7 +343,7 @@ function prepareAllSpells() {
     if (n >= room) return;
     char.spells.prepared.push(s.id); n++;
   });
-  if (!n) { showToast("Нет места для подготовки — лимит достигнут", "warn"); return; }
+  if (!n) { showToast("Нет места для подготовки — лимит достигнут", "warn"); return; }
   if (window.AppLog) AppLog.action("spells", "подготовлено разом: " + n);
   showToast("Подготовлено: " + n, "info");
   saveToLocal();

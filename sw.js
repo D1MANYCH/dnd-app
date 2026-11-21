@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v628';
+const CACHE_NAME = 'dnd-sheet-v629';
 
 const FILES_TO_CACHE = [
   './',
@@ -147,14 +147,14 @@ const FILES_TO_CACHE = [
 
 // Хэши файлов прекеша — пишет tools/file-hashes.js (через /bump), руками не править.
 const FILE_HASHES = {
-  './': '488a93cd0453e987a136',
-  './index.html': '488a93cd0453e987a136',
+  './': '8172a8d94ac71ad30ec9',
+  './index.html': '8172a8d94ac71ad30ec9',
   './style.css': '100bc884c6f8cc4fef63',
   './app-log.js': '54f5eed79eb54ac7de54',
   './icons.js': '28370adcc628dbc457a0',
   './bg-space.js': '8f5ddcbae1e763435ff8',
   './dice-arena-bg.js': '8c311fce0b0af8d5ef13',
-  './data.js': '05ca3ba44a56e7215e6b',
+  './data.js': 'a5a5c00eedf56f6ce797',
   './data-2024.js': '4b4dc967e58901c6a6bb',
   './build-notes-data.js': '707838037f539baa77ed',
   './character-builds.js': '255588c95e66189a95fe',
@@ -174,13 +174,13 @@ const FILE_HASHES = {
   './app-proficiencies.js': '8cfe09c90265fd929e6f',
   './app-hp.js': '81171608512ace8d0a03',
   './app-wildshape.js': '356c3cbc0f470d2a0335',
-  './app-spells.js': 'd6afde6541bb7aa4dc27',
+  './app-spells.js': '9250e4a7444f9f5b1fc4',
   './start-equip-2014.js': 'db43ddf7f29bad11cd8c',
   './class-choices.js': '48f2ef6eb6fd53633aa5',
   './subclass-choices-data.js': '5783ff313b070e6c8799',
   './app-notes.js': '4ad8f3f6188090bdd775',
   './notes-gen-data.js': '4e79af340e55516dd838',
-  './changelog-data.js': '973cef012cf15c6a0775',
+  './changelog-data.js': '97cf6d58b2be098db6f7',
   './assets/schools/abjuration.webp': '16484747b2a6b35a3a0b',
   './assets/schools/conjuration.webp': 'c980b50f10d846373a66',
   './assets/schools/divination.webp': '94b447a9d11f779e2e62',
