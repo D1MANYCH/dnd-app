@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v629';
+const CACHE_NAME = 'dnd-sheet-v630';
 
 const FILES_TO_CACHE = [
   './',
@@ -147,19 +147,19 @@ const FILES_TO_CACHE = [
 
 // Хэши файлов прекеша — пишет tools/file-hashes.js (через /bump), руками не править.
 const FILE_HASHES = {
-  './': '8172a8d94ac71ad30ec9',
-  './index.html': '8172a8d94ac71ad30ec9',
+  './': 'fdcbd753d0ed555c3d2a',
+  './index.html': 'fdcbd753d0ed555c3d2a',
   './style.css': '100bc884c6f8cc4fef63',
   './app-log.js': '54f5eed79eb54ac7de54',
   './icons.js': '28370adcc628dbc457a0',
   './bg-space.js': '8f5ddcbae1e763435ff8',
   './dice-arena-bg.js': '8c311fce0b0af8d5ef13',
-  './data.js': 'a5a5c00eedf56f6ce797',
-  './data-2024.js': '4b4dc967e58901c6a6bb',
+  './data.js': 'daf06f43305137e2c1fc',
+  './data-2024.js': '3f14a8e5fc03110e7e03',
   './build-notes-data.js': '707838037f539baa77ed',
-  './character-builds.js': '255588c95e66189a95fe',
+  './character-builds.js': '06b001c3a1a02aa144e2',
   './glossary-data.js': '9527a894523806e106db',
-  './spells.js': 'f44fcfe7081c578aac02',
+  './spells.js': 'e66fdd26c840781212a3',
   './spell-effects.js': '066847944196c692fd2e',
   './rules.js': '71312ef93e9d048fed5e',
   './app-migrate.js': '94a9bf363387c9c40c4f',
@@ -176,11 +176,11 @@ const FILE_HASHES = {
   './app-wildshape.js': '356c3cbc0f470d2a0335',
   './app-spells.js': '9250e4a7444f9f5b1fc4',
   './start-equip-2014.js': 'db43ddf7f29bad11cd8c',
-  './class-choices.js': '48f2ef6eb6fd53633aa5',
+  './class-choices.js': 'b67b1ab971bb0070a2d4',
   './subclass-choices-data.js': '5783ff313b070e6c8799',
   './app-notes.js': '4ad8f3f6188090bdd775',
   './notes-gen-data.js': '4e79af340e55516dd838',
-  './changelog-data.js': '97cf6d58b2be098db6f7',
+  './changelog-data.js': '995ee4cf3dd3034e51e8',
   './assets/schools/abjuration.webp': '16484747b2a6b35a3a0b',
   './assets/schools/conjuration.webp': 'c980b50f10d846373a66',
   './assets/schools/divination.webp': '94b447a9d11f779e2e62',
@@ -243,7 +243,7 @@ const FILE_HASHES = {
   './app-ui.js': '4edbf2e3fc2e984a66c1',
   './app-home.js': 'e32f75f66e05b1b12741',
   './app-asi.js': '898257cfe1c12c28b6cc',
-  './app-creator.js': '645b5d45bafa67998ccd',
+  './app-creator.js': 'f3eba4762936f05c0590',
   './app-progress.js': 'c1eca9c1fc97aaaa2d86',
   './app-desktop.js': '2159269b4b9e082de690',
   './history-stack.js': '8b4b8b208c65ccd9a571',
