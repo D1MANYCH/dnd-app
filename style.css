@@ -695,7 +695,7 @@ html.glass-adjusting *::after {
   align-items: baseline;
   gap: var(--sp-4);
   margin-bottom: var(--sp-4);
-  padding-left: var(--sp-3);
+  padding-left: 0;
   /* PT-286: «← Назад» всегда на месте, сколько ни прокручено */
   position: sticky;
   top: 0;
@@ -8078,7 +8078,8 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
 .app-link-btn [data-ico] { opacity: 0.75; }
 
 /* ── Changelog entries ── */
-#changelog-list { display: flex; flex-direction: column; gap: var(--sp-3); max-height: 420px; overflow-y: auto; }
+#changelog-list { display: flex; flex-direction: column; gap: var(--sp-3); }
+#app-legal-note a { color: var(--accent-lo); }
 /* STYLE-8M: запись версии была коробкой; стала плоской записью — номер serif,
    дата значением справа, между версиями волосяной разделитель. Свежесть
    кодирует цвет номера (.cl-version-latest ниже), а не подложка. */
@@ -13242,7 +13243,7 @@ html[data-stats-layout="2024"] .abil-cols {
   text-transform: uppercase;
   color: var(--home-sub);
 }
-.abil-cols .ac-nm { flex: 1 1 auto; min-width: 0; }
+.abil-cols .ac-nm { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .abil-cols .ac-sc { flex: 0 0 96px; text-align: center; }
 .abil-cols .ac-md { flex: 0 0 62px; text-align: center; }
 .abil-cols .ac-sv { flex: 0 0 110px; text-align: center; }

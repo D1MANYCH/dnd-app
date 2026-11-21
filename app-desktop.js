@@ -321,7 +321,7 @@
         if (!total) continue;
         var free = total - (used[i] || 0);
         sumFree += free; sumTotal += total;
-        rows += '<div class="rr-slot-row" title="' + i + ' круг: свободно ' + free + ' из ' + total + '">' +
+        rows += '<div class="rr-slot-row" title="' + i + ' ур.: свободно ' + free + ' из ' + total + '">' +
           '<span class="rr-slot-lvl">' + i + '</span>' +
           '<span class="rr-slot-bar"><span class="rr-slot-fill' + (free === 0 ? ' empty' : '') + '" style="width:' + Math.round((free / total) * 100) + '%"></span></span>' +
           '<span class="rr-slot-num">' + free + '/' + total + '</span>' +
