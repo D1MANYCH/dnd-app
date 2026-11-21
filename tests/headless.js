@@ -8289,7 +8289,7 @@
       var pk = (ed.CLASS_CHOICES["Варвар"] || []).filter(function(c){ return c.id === "primal-knowledge"; })[0];
       if (!pk || pk.minLevel !== 3 || !pk.skillGrant || pk.options.length !== 6) return "Первобытное знание: " + JSON.stringify(pk && pk.options);
       if (pk.options.some(function(o){ return !pk.optionsDict[o]; })) return "Первобытное знание: нет optionsDict";
-      var wh = (ed.SUBCLASS_CHOICES["Путь дикого сердца"] || []).map(function(c){ return c.id + ":" + c.minLevel + ":" + c.options.length; }).join(",");
+      var wh = (ed.SUBCLASS_CHOICES["Путь Дикого сердца"] || []).map(function(c){ return c.id + ":" + c.minLevel + ":" + c.options.length; }).join(",");
       if (wh !== "rage-of-the-wilds:3:3,aspect-of-the-wilds:6:3,power-of-the-wilds:14:3") return wh;
       if ((CLASS_CHOICES["Варвар"] || []).length) return "2014 варвар получил выбор";
       return true;
@@ -9141,7 +9141,7 @@
       if (_raceSkillAllowance({ edition:"2024", raceVariableTrait:"skill" }, "Своё происхождение") !== 0) return "2024 задет";
       // PLAY2-5 (PT-072): человек 2024 — «Умелость», 1 навык
       if (_raceSkillAllowance({ edition:"2024" }, "Человек") !== 1 || _raceSkillAllowance({ edition:"2024" }, "Эльф") !== 0) return "Умелость 2024";
-      var sw24 = edData({ edition:"2024" }).SUBCLASS_CHOICES["Боевой мастер"].filter(function(x) { return x.id === "student-of-war"; })[0];
+      var sw24 = edData({ edition:"2024" }).SUBCLASS_CHOICES["Мастер боевых искусств"].filter(function(x) { return x.id === "student-of-war"; })[0];
       if (!sw24 || !sw24.skillGrant || sw24.options.indexOf("Убеждение") === -1) return "Ученик войны 2024: навык";
       if (RACE_BONUS_FEATS["Своё происхождение"] !== 1) return "черта";
       for (var r in RACE_FLEX_STATS) if (!RACE_DATA[r] || !RACE_LANGUAGES[r]) return r + ": нет в RACE_DATA/RACE_LANGUAGES";
@@ -9332,12 +9332,12 @@
       if (as.maxByLevel[1] !== 0 || as.maxByLevel[2] !== 1 || as.maxByLevel[16] !== 1 || as.maxByLevel[17] !== 2 || as.restoreOn !== "short") return "Всплеск действий по уровням";
       if (ind.maxByLevel[8] !== 0 || ind.maxByLevel[9] !== 1 || ind.maxByLevel[13] !== 2 || ind.maxByLevel[17] !== 3 || ind.restoreOn !== "long") return "Упорный по уровням";
       var SR = window.SUBCLASS_RESOURCES_2024;
-      var sd = SR["Боевой мастер"] && SR["Боевой мастер"].resources[0];
+      var sd = SR["Мастер боевых искусств"] && SR["Мастер боевых искусств"].resources[0];
       if (!sd || sd.maxByLevel[3] !== 4 || sd.maxByLevel[7] !== 5 || sd.maxByLevel[15] !== 6 || !sd.dieSizeByLevel || sd.dieSizeByLevel[18] !== "к12") return "кости превосходства";
-      var pd = SR["Псионический воин"] && SR["Псионический воин"].resources[0];
+      var pd = SR["Пси-воин"] && SR["Пси-воин"].resources[0];
       if (!pd || pd.maxByLevel[3] !== 4 || pd.maxByLevel[5] !== 6 || pd.maxByLevel[9] !== 8 || pd.maxByLevel[13] !== 10 || pd.maxByLevel[17] !== 12 || !pd.restoreShortOne) return "кости психической энергии";
       // через getCharResourceDefs/getResourceMax: Воин 10 → второе дыхание 4, всплеск 1; Варвар 12 → 5 ярости
-      var defs = getCharResourceDefs(mk("2024", "Воин", 10, "Боевой мастер"));
+      var defs = getCharResourceDefs(mk("2024", "Воин", 10, "Мастер боевых искусств"));
       var m = {}; defs.resources.forEach(function(r){ m[r.id] = getResourceMax(r, mk("2024", "Воин", 10)); });
       if (m.second_wind !== 4 || m.action_surge !== 1 || m.indomitable !== 1 || m.superiority_dice !== 5) return "getResourceMax Воин 10: " + JSON.stringify(m);
       var bd = getCharResourceDefs(mk("2024", "Варвар", 12));
@@ -9396,7 +9396,7 @@
       if (w1[0].choice.options.length !== styleFeats.length) return "стилей у Воина 2024: " + w1[0].choice.options.length;
       var w14 = ccGetAllChoicesFor(mk("2014", "Воин", 1));
       if (w14.length !== 1 || w14[0].choice.options.length !== 6) return "Воин 1 (2014) задет: " + JSON.stringify(w14.map(function(x){ return x.choice.options.length; }));
-      var bm = function(lvl){ return ccGetAllChoicesFor(mk("2024", "Воин", lvl, "Боевой мастер")).filter(function(x){ return x.choice.id === "maneuvers"; })[0]; };
+      var bm = function(lvl){ return ccGetAllChoicesFor(mk("2024", "Воин", lvl, "Мастер боевых искусств")).filter(function(x){ return x.choice.id === "maneuvers"; })[0]; };
       if (!bm(3) || bm(3).count !== 3 || bm(7).count !== 5 || bm(10).count !== 7 || bm(15).count !== 9) return "манёвры 2024: " + [bm(3) && bm(3).count, bm(7) && bm(7).count, bm(10) && bm(10).count, bm(15) && bm(15).count].join("/");
       if (bm(3).choice.options.length < 16) return "манёвров 2024 мало: " + bm(3).choice.options.length;
       var bm14 = ccGetAllChoicesFor(mk("2014", "Воин", 3, "Боевой мастер")).filter(function(x){ return x.choice.id === "maneuvers"; })[0];
@@ -9404,11 +9404,11 @@
       var ch7 = ccGetAllChoicesFor(mk("2024", "Воин", 7, "Чемпион")).filter(function(x){ return x.choice.id === "additional-fighting-style"; })[0];
       var ch6 = ccGetAllChoicesFor(mk("2024", "Воин", 6, "Чемпион")).filter(function(x){ return x.choice.id === "additional-fighting-style"; })[0];
       if (!ch7 || ch6) return "второй стиль Чемпиона: на 7 " + !!ch7 + ", на 6 " + !!ch6;
-      var wh = ccGetAllChoicesFor(mk("2024", "Варвар", 6, "Путь дикого сердца")).filter(function(x){ return x.choice.id === "aspect-of-the-wilds"; })[0];
+      var wh = ccGetAllChoicesFor(mk("2024", "Варвар", 6, "Путь Дикого сердца")).filter(function(x){ return x.choice.id === "aspect-of-the-wilds"; })[0];
       if (!wh || wh.choice.options.length !== 3) return "аспект диких земель";
-      var wh5 = ccGetAllChoicesFor(mk("2024", "Варвар", 5, "Путь дикого сердца")).map(function(x){ return x.choice.id; }).sort().join();
+      var wh5 = ccGetAllChoicesFor(mk("2024", "Варвар", 5, "Путь Дикого сердца")).map(function(x){ return x.choice.id; }).sort().join();
       if (wh5 !== "primal-knowledge,rage-of-the-wilds") return "выборы Варвара 5 (дикое сердце): " + wh5;
-      var f = ccFindChoice(mk("2024", "Воин", 3, "Боевой мастер"), "Воин", "maneuvers");
+      var f = ccFindChoice(mk("2024", "Воин", 3, "Мастер боевых искусств"), "Воин", "maneuvers");
       if (!f || f !== bm(3).choice) return "ccFindChoice не читает 2024";
       if (ccFindChoice(mk("2014", "Воин", 3, "Боевой мастер"), "Воин", "maneuvers") !== bm14.choice) return "ccFindChoice 2014 задет";
       return true;
@@ -9545,7 +9545,7 @@
       return true;
     });
 
-    t("[e24-9] ресурсы 2024: очки монаха = уровень с 2, короткий отдых; метаболизм 1 с 2 ур.; Удача плута на 20; кости Душеклинка; защита без доспехов монаха", function(){
+    t("[e24-9] ресурсы 2024: очки монаха = уровень с 2, короткий отдых; метаболизм 1 с 2 ур.; Удача плута на 20; кости Клинка души; защита без доспехов монаха", function(){
       var mon = {}; CR24["Монах"].resources.forEach(function(r){ mon[r.id] = r; });
       if (!mon.focus || mon.focus.maxByLevel[1] !== 0 || mon.focus.restoreOn !== "short") return "очки монаха";
       if (getResourceMax(mon.focus, mk("2024", "Монах", 7)) !== 7) return "очки монаха 7 ур.: " + getResourceMax(mon.focus, mk("2024", "Монах", 7));
@@ -9554,9 +9554,9 @@
       var rog = {}; CR24["Плут"].resources.forEach(function(r){ rog[r.id] = r; });
       if (!rog.cunning_action || !rog.uncanny_dodge || !rog.stroke_of_luck) return "ресурсы плута: " + Object.keys(rog).join();
       if (rog.stroke_of_luck.maxByLevel[19] !== 0 || rog.stroke_of_luck.maxByLevel[20] !== 1) return "Удача по уровням";
-      var sk = window.SUBCLASS_RESOURCES_2024["Душеклинок"];
+      var sk = window.SUBCLASS_RESOURCES_2024["Клинок души"];
       var pd = sk && sk.resources[0];
-      if (!pd || pd.maxByLevel[3] !== 4 || pd.maxByLevel[5] !== 6 || pd.maxByLevel[17] !== 12 || !pd.restoreShortOne) return "кости Душеклинка";
+      if (!pd || pd.maxByLevel[3] !== 4 || pd.maxByLevel[5] !== 6 || pd.maxByLevel[17] !== 12 || !pd.restoreShortOne) return "кости Клинка души";
       var d24 = edData({ edition: "2024" });
       if (d24.CLASS_RESOURCES["Монах"] !== CR24["Монах"] || CLASS_RESOURCES["Монах"].resources[0].id !== "ki") return "слияние ресурсов монаха / 2014 задет";
       return true;
@@ -9669,7 +9669,7 @@
       var wp = sr("Домен войны", "war_priest"), wf = sr("Домен света", "warding_flare");
       if (!wp || wp.maxByLevel[3] !== "wis" || wp.restoreOn !== "short") return "Боевой священник";
       if (!wf || wf.shortFromLevel !== 6 || !sr("Домен света", "corona_of_light")) return "Домен света: вспышка/корона";
-      var caps = { "Клятва преданности": "holy_nimbus", "Клятва славы": "living_legend", "Клятва древних": "elder_champion", "Клятва возмездия": "avenging_angel" };
+      var caps = { "Клятва Преданности": "holy_nimbus", "Клятва Славы": "living_legend", "Клятва Древних": "elder_champion", "Клятва Мести": "avenging_angel" };
       for (var k in caps) { var c = sr(k, caps[k]); if (!c || c.maxByLevel[19] !== 0 || c.maxByLevel[20] !== 1) return k + ": счётчик 20 ур."; }
       var d24 = edData({ edition: "2024" });
       if (d24.CLASS_RESOURCES["Жрец"] !== CR24["Жрец"] || CLASS_RESOURCES["Жрец"].resources[0].maxByLevel[2] !== 1) return "слияние ресурсов жреца / 2014 задет";
@@ -9753,7 +9753,7 @@
     t("[e24-11] заклинания подкласса 2024: кругов луны/моря 3/5/7/9, фейского странника и сумрачного охотника 3/5/9/13/17, имена есть в spells.js; круг земли — выбор типа земли", function(){
       var names = {};
       (typeof SPELLS_BASE !== "undefined" ? SPELLS_BASE : []).forEach(function(s){ names[s.name] = true; });
-      var LV = { "Круг луны": "3,5,7,9", "Круг моря": "3,5,7,9", "Фейский странник": "3,5,9,13,17", "Сумрачный охотник": "3,5,9,13,17" };
+      var LV = { "Круг луны": "3,5,7,9", "Круг Моря": "3,5,7,9", "Фейский странник": "3,5,9,13,17", "Сумрачный охотник": "3,5,9,13,17" };
       var d24 = edData({ edition: "2024" });
       for (var sub in LV) {
         var def = d24.SUBCLASS_RESOURCES[sub], ss = def && def.passive && def.passive.subclassSpells;
@@ -9765,8 +9765,8 @@
           if (Object.keys(names).length && !names[n]) return sub + ": нет в spells.js «" + n + "»";
         }
       }
-      var land = (window.SUBCLASS_CHOICES_2024["Круг земли"] || []).filter(function(c){ return c.id === "land-type"; })[0];
-      if (!land || land.minLevel !== 3 || land.options.length !== 4) return "Круг земли: выбор типа земли";
+      var land = (window.SUBCLASS_CHOICES_2024["Круг Земли"] || []).filter(function(c){ return c.id === "land-type"; })[0];
+      if (!land || land.minLevel !== 3 || land.options.length !== 4) return "Круг Земли: выбор типа земли";
       for (var i = 0; i < land.options.length; i++) { var o = land.optionsDict[land.options[i]]; if (!o || !o.name || !o.desc) return "тип земли " + land.options[i]; }
       if (!SUBCLASS_RESOURCES["Круг земли"] || !SUBCLASS_RESOURCES["Круг земли"].resources) return "2014 Круг земли задет";
       return true;
@@ -9785,7 +9785,7 @@
       function sr(sub, id) { return ((SR[sub] && SR[sub].resources) || []).filter(function(x){ return x.id === id; })[0]; }
       var WIS = { "Круг звёзд": ["star_map", 3], "Сумрачный охотник": ["dread_ambusher", 3], "Круг луны": ["moon_step", 10], "Фейский странник": ["misty_wanderer", 15] };
       for (var s in WIS) { var c = sr(s, WIS[s][0]); if (!c || c.maxByLevel[WIS[s][1] - 1] !== 0 || c.maxByLevel[WIS[s][1]] !== "wis" || c.restoreOn !== "long") return s + ": " + WIS[s][0]; }
-      var om = sr("Круг звёзд", "cosmic_omen"), nr = sr("Круг земли", "natural_recovery"), nc = sr("Круг земли", "natural_recovery_cast"), fr = sr("Фейский странник", "fey_reinforcements");
+      var om = sr("Круг звёзд", "cosmic_omen"), nr = sr("Круг Земли", "natural_recovery"), nc = sr("Круг Земли", "natural_recovery_cast"), fr = sr("Фейский странник", "fey_reinforcements");
       if (!om || om.maxByLevel[5] !== 0 || om.maxByLevel[6] !== "wis") return "Космическое знамение";
       if (!nr || !nr.slotRecovery || nr.maxByLevel[5] !== 0 || nr.maxByLevel[6] !== 1 || !nc || nc.maxByLevel[6] !== 1) return "Естественное восстановление: два счётчика";
       if (!fr || fr.maxByLevel[10] !== 0 || fr.maxByLevel[11] !== 1) return "Подкрепление фей";
@@ -9988,11 +9988,11 @@
           if (SRC24[list[i]] !== "PH24") return list[i] + ": источник " + SRC24[list[i]];
         }
       }
-      var names14 = ["Коллегия знаний", "Коллегия доблести", "Коллегия гламура"];
+      var names14 = ["Коллегия Знания", "Коллегия Доблести", "Коллегия Очарования"];
       for (var n = 0; n < names14.length; n++) if (SUB24["Бард"].indexOf(names14[n]) === -1) return "нет " + names14[n];
       if (SUBCLASS_LEVEL["Колдун"] !== 1 || SUBCLASS_LEVEL["Бард"] !== 3) return "SUBCLASS_LEVEL 2014 задет";
       var d24 = edData({ edition: "2024" });
-      if (d24.SUBCLASS_FEATURES["Коллегия знаний"] === SUBCLASS_FEATURES["Коллегия знаний"]) return "Коллегия знаний у 2024 — 2014-запись";
+      if (!d24.SUBCLASS_FEATURES["Коллегия Знания"] || d24.SUBCLASS_FEATURES["Коллегия Знания"] === SUBCLASS_FEATURES["Коллегия знаний"]) return "Коллегия Знания у 2024 — 2014-запись";
       if (!d24.CLASS_CHOICES["Колдун"].every(function(c){ return c.id !== "pact-boon"; })) return "у 2024 колдуна остался выбор предмета договора 2014";
       if (charSubclassPending(mk("2024", "Колдун", 2)).length !== 0 || charSubclassPending(mk("2024", "Колдун", 3)).length !== 1) return "charSubclassPending колдун";
       return true;
@@ -10056,13 +10056,13 @@
       return true;
     });
 
-    t("[e24-13] Коллегия танца: КД без доспехов 10 + ЛОВ + ХАР, со щитом — нет; у 2014 и другой коллегии — нет", function(){
+    t("[e24-13] Коллегия Танца: КД без доспехов 10 + ЛОВ + ХАР, со щитом — нет; у 2014 и другой коллегии — нет", function(){
       function bd(ed, sub, shield) { return { edition: ed, class: "Бард", level: 3, subclass: sub, classes: [{ class: "Бард", level: 3, subclass: sub }], stats: { str: 8, dex: 16, con: 12, int: 10, wis: 10, cha: 16 }, combat: { armorId: "none", hasShield: !!shield }, resources: {} }; }
       function ac(c) { var a = rulesAC(c); return (a && typeof a === "object") ? a.ac : a; }
-      if (ac(bd("2024", "Коллегия танца")) !== 16) return "КД танца: " + ac(bd("2024", "Коллегия танца"));
-      if (ac(bd("2024", "Коллегия знаний")) !== 13) return "КД знаний: " + ac(bd("2024", "Коллегия знаний"));
-      if (ac(bd("2014", "Коллегия танца")) !== 13) return "КД 2014: " + ac(bd("2014", "Коллегия танца"));
-      if (ac(bd("2024", "Коллегия танца", true)) !== 15) return "КД танца со щитом: " + ac(bd("2024", "Коллегия танца", true));
+      if (ac(bd("2024", "Коллегия Танца")) !== 16) return "КД танца: " + ac(bd("2024", "Коллегия Танца"));
+      if (ac(bd("2024", "Коллегия Знания")) !== 13) return "КД знаний: " + ac(bd("2024", "Коллегия Знания"));
+      if (ac(bd("2014", "Коллегия Танца")) !== 13) return "КД 2014: " + ac(bd("2014", "Коллегия Танца"));
+      if (ac(bd("2024", "Коллегия Танца", true)) !== 15) return "КД танца со щитом: " + ac(bd("2024", "Коллегия Танца", true));
       return true;
     });
   })();
@@ -11635,7 +11635,7 @@
       if (top !== 5) return "высший круг " + top;
       var b3 = ccSpellCandidates(_mk75("Бард", "", 3), { id: "x" }, "Бард");
       if (b3.some(function(s){ return (s.level || 0) > 2; })) return "бард 3 ур. видит 3 круг";
-      var b24 = ccSpellCandidates(_mk75("Бард", "Коллегия знаний", 6, "2024"), { id: "x", spellClasses: ["cleric","druid","wizard"] }, "Бард");
+      var b24 = ccSpellCandidates(_mk75("Бард", "Коллегия Знания", 6, "2024"), { id: "x", spellClasses: ["cleric","druid","wizard"] }, "Бард");
       var t24 = b24.length ? Math.max.apply(null, b24.map(function(s){ return s.level || 0; })) : -1;
       if (t24 !== 3) return "2024 бард 6 ур.: высший круг " + t24;
       var cl = ccSpellCandidates(c, { id: "x", spellClasses: ["cleric"] }, "Бард");
@@ -11705,6 +11705,36 @@
       var many = [1, 2, 3, 4, 5].map(function(n){ return { kind: "spell", ref: n }; }).concat([{ kind: "spell", ref: 1 }, { kind: "x", ref: "y" }, "мусор", null]);
       var b = migrateCharacter({ id: "qs4b", class: "Воин", level: 1, schemaVersion: 49, quickSlots: many });
       return b.quickSlots.length === 5 && b.quickSlots[4].ref === "5" ? true : JSON.stringify(b.quickSlots);
+    });
+    t("[PLAY5-9] миграция 51 → 52: «Путь воина-тотема» → «Путь тотемного воина» (и в мультиклассе)", function(){
+      var a = migrateCharacter({ id: "tw52", class: "Варвар", level: 3, schemaVersion: 51, subclass: "Путь воина-тотема", classes: [{ class: "Варвар", level: 3, subclass: "Путь воина-тотема" }] });
+      if (a.schemaVersion !== SCHEMA_VERSION) return "версия " + a.schemaVersion;
+      if (!SUBCLASS_FEATURES["Путь тотемного воина"]) return "нет данных подкласса";
+      return a.subclass === "Путь тотемного воина" && a.classes[0].subclass === "Путь тотемного воина" ? true : a.subclass + " / " + a.classes[0].subclass;
+    });
+    t("[PLAY5-9] миграция 52 → 53: подклассы 2024 по PHB 2024 (и в мультиклассе), 2014 не задет", function(){
+      var a = migrateCharacter({ id: "sb53", class: "Воин", level: 5, edition: "2024", schemaVersion: 52, subclass: "Боевой мастер", classes: [{ class: "Воин", level: 3, subclass: "Боевой мастер" }, { class: "Бард", level: 3, subclass: "Коллегия гламура" }] });
+      if (a.schemaVersion !== SCHEMA_VERSION) return "версия " + a.schemaVersion;
+      if (a.subclass !== "Мастер боевых искусств" || a.classes[0].subclass !== "Мастер боевых искусств" || a.classes[1].subclass !== "Коллегия Очарования") return a.subclass + " / " + a.classes[1].subclass;
+      var b = migrateCharacter({ id: "sb53b", class: "Воин", level: 3, schemaVersion: 52, subclass: "Боевой мастер", classes: [{ class: "Воин", level: 3, subclass: "Боевой мастер" }] });
+      if (b.subclass !== "Боевой мастер" || b.classes[0].subclass !== "Боевой мастер") return "2014 задет: " + b.subclass;
+      var S = window.SUBCLASSES_2024, F = edData({ edition: "2024" }).SUBCLASS_FEATURES, SRC = window.SUBCLASS_SOURCE_2024;
+      for (var c in S) for (var i = 0; i < S[c].length; i++) { if (!F[S[c][i]]) return "нет фич: " + S[c][i]; if (SRC[S[c][i]] !== "PH24") return "нет источника: " + S[c][i]; }
+      return true;
+    });
+    t("[PLAY5-9] PT-685: заклинание «Тайн магии» у барда 2024 добавляется подготовленным, у барда 2014 — без списка подготовки", function(){
+      var sp = SPELL_DATABASE.filter(function(x){ return x.name === "Огненный шар"; })[0];
+      if (!sp) return "нет заклинания";
+      var c24 = migrateCharacter({ id: "ms24", class: "Бард", level: 10, edition: "2024", stats: { cha: 18 } });
+      c24.spells.mySpells = []; c24.spells.prepared = [];
+      ccSyncChoiceSpells(c24, { id: "magical-secrets", name: "Тайны магии", countsKnown: true }, "Бард", [sp.name]);
+      var m = c24.spells.mySpells.filter(function(x){ return x.name === sp.name; })[0];
+      if (!m) return "2024: не добавлено";
+      if (c24.spells.prepared.indexOf(m.id) === -1) return "2024: не подготовлено";
+      var c14 = migrateCharacter({ id: "ms14", class: "Бард", level: 10, stats: { cha: 18 } });
+      c14.spells.mySpells = []; c14.spells.prepared = [];
+      ccSyncChoiceSpells(c14, { id: "magical-secrets", name: "Тайны магии", countsKnown: true }, "Бард", [sp.name]);
+      return c14.spells.mySpells.length === 1 && c14.spells.prepared.length === 0 ? true : "2014: " + JSON.stringify(c14.spells.prepared);
     });
     t("[РД-8] импорт: _sanitizeImportedChar чистит quickSlots", function(){
       var c = _sanitizeImportedChar({ id: "qs5", class: "Воин", level: 1, quickSlots: [{ kind: "item", ref: "qa" }, { kind: "item", ref: "qa" }, { kind: "spell" }, 7] });

@@ -425,6 +425,11 @@ function ccSyncChoiceSpells(char, choice, className, names) {
     var copy = Object.assign({}, db);
     if (choice.countsKnown) copy.ccChoice = label; else copy.grantedBy = label;
     char.spells.mySpells.push(copy);
+    if (choice.countsKnown && (copy.level || 0) > 0 && typeof isPrepClass === "function" && isPrepClass(char)) {
+      if (!Array.isArray(char.spells.prepared)) char.spells.prepared = [];
+      var _max = calcMaxPrepared(char);
+      if (char.spells.prepared.indexOf(copy.id) === -1 && (_max === null || _preparedCount(char) < _max)) char.spells.prepared.push(copy.id);
+    }
   });
 }
 

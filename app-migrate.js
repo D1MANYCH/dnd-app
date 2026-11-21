@@ -1006,6 +1006,39 @@ function migrateCharacter(char) {
     char.customSubclasses = (typeof customSubclassesClean === "function") ? customSubclassesClean(char.customSubclasses) : (Array.isArray(char.customSubclasses) ? char.customSubclasses : []);
     char.schemaVersion = 51;
   }
+  if (v < 52) {
+    // PLAY5-9: подкласс варвара 2014 назван по PHB (стр. 49): «Путь воина-тотема» → «Путь тотемного воина».
+    var _sub52 = { "Путь воина-тотема": "Путь тотемного воина" };
+    if (typeof char.subclass === "string" && _sub52[char.subclass]) char.subclass = _sub52[char.subclass];
+    if (Array.isArray(char.classes)) {
+      char.classes.forEach(function(cl){
+        if (cl && typeof cl.subclass === "string" && _sub52[cl.subclass]) cl.subclass = _sub52[cl.subclass];
+      });
+    }
+    char.schemaVersion = 52;
+  }
+  if (v < 53) {
+    // Подклассы 2024 названы по заголовкам PHB 2024 (стр. 54–144); у 2014 те же строки — подклассы 2014, их не трогаем.
+    var _sub53 = {
+      "Боевой мастер": "Мастер боевых искусств", "Псионический воин": "Пси-воин", "Путь зилота": "Путь Фанатика",
+      "Душеклинок": "Клинок души", "Клятва возмездия": "Клятва Мести",
+      "Путь берсерка": "Путь Берсерка", "Путь дикого сердца": "Путь Дикого сердца", "Путь мирового древа": "Путь Мирового древа",
+      "Мастер милосердия": "Мастер Милосердия", "Мастер тени": "Мастер Тени", "Мастер стихий": "Мастер Стихий", "Мастер открытой ладони": "Мастер Открытой ладони",
+      "Клятва преданности": "Клятва Преданности", "Клятва славы": "Клятва Славы", "Клятва древних": "Клятва Древних",
+      "Круг земли": "Круг Земли", "Круг моря": "Круг Моря",
+      "Коллегия танца": "Коллегия Танца", "Коллегия гламура": "Коллегия Очарования", "Коллегия знаний": "Коллегия Знания", "Коллегия доблести": "Коллегия Доблести",
+      "Покровитель Великий Древний": "Покровитель Великий древний"
+    };
+    if (char.edition === "2024") {
+      if (typeof char.subclass === "string" && _sub53[char.subclass]) char.subclass = _sub53[char.subclass];
+      if (Array.isArray(char.classes)) {
+        char.classes.forEach(function(cl){
+          if (cl && typeof cl.subclass === "string" && _sub53[cl.subclass]) cl.subclass = _sub53[cl.subclass];
+        });
+      }
+    }
+    char.schemaVersion = 53;
+  }
   // Импорт-устойчивость: _isValidImportedChar проверяет только class+level,
   // поэтому валидный для импорта JSON может не содержать обязательных объектов
   // (combat, stats, …) — рендер падал на char.combat.hpCurrent. Достраиваем

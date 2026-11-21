@@ -291,9 +291,9 @@ function rulesHasDraconicResilience(char) {
   return !!char && charClassLevel(char, "Чародей") >= (char.edition === "2024" ? 3 : 1) && charClassSubclass(char, "Чародей") === "Драконья кровь";
 }
 
-/** E24-13: «Блистательная подтанцовка» барда «Коллегия танца» (PHB 2024 стр.54) — без доспехов и щита */
+/** E24-13: «Блистательная подтанцовка» барда «Коллегия Танца» (PHB 2024 стр.54) — без доспехов и щита */
 function rulesHasDazzlingFootwork(char) {
-  return !!char && char.edition === "2024" && charClassLevel(char, "Бард") >= 3 && charClassSubclass(char, "Бард") === "Коллегия танца";
+  return !!char && char.edition === "2024" && charClassLevel(char, "Бард") >= 3 && charClassSubclass(char, "Бард") === "Коллегия Танца";
 }
 
 /** AUD-8 (R15): «Выдающийся атлет» Чемпиона 7 ур. (PHB 2014 стр.73) */
