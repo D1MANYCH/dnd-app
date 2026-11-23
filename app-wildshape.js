@@ -290,11 +290,14 @@ function polymorphAssume(slug) {
 // РОСТ-7: облик «Превращения» спал или снят — заклинание кончается вместе с концентрацией
 function polymorphEnd(char, reason) {
   if (char.form && char.form.kind === "poly") char.form = null;
-  if (char.concentration === "Превращение") {
+  if (char.concentration === "Превращение" || char.concentration === "Полиморф") {
     char.concentration = null;
     if (typeof updateConcentrationDisplay === "function") updateConcentrationDisplay();
   }
-  if (typeof removeCastEffectsForSpell === "function") removeCastEffectsForSpell(char, "Превращение", reason);
+  if (typeof removeCastEffectsForSpell === "function") {
+    removeCastEffectsForSpell(char, "Превращение", reason);
+    removeCastEffectsForSpell(char, "Полиморф", reason);
+  }
 }
 
 function wildShapeExit() {

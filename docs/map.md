@@ -261,8 +261,8 @@ _buildExportPayload:9 exportData:24 _isValidImportedChar:37 _importNum:47 _sanit
 **app-log.js** (398 строк, 23 функций)  
 now:32 fmtTime:34 safeData:45 push:66 schedulePersist:88 loadPrevious:104 newId:111 lineToText:117 jsonShort:122 appVersion:128 exportText:134 matchFilter:236 rowHtml:245 esc:257 renderAll:262 onNewEntry:274 openPanel:289 closePanel:298 copyAll:304 fallbackCopy:314 downloadAll:324 showPrevious:336 wirePanelButtons:350
 
-**app-migrate.js** (1085 строк, 2 функций)  
-migrateCharacter:6 _backfillHomebrewFlag:1077
+**app-migrate.js** (1124 строк, 2 функций)  
+migrateCharacter:6 _backfillHomebrewFlag:1116
 
 **app-notes.js** (1538 строк, 77 функций)  
 renderNotes:43 _renderNotesSubtabs:62 notesSwitchTab:84 _renderNotesMain:96 _findTab:114 _getSectionVariants:133 onGenderChange:144 _renderSectionsView:174 _renderVariantsPanel:229 _renderMdToolbar:254 notesToggleSection:286 notesToggleVariants:302 notesPickVariant:314 notesRegenerateAll:325 _notesHasBuildVariants:363 _ngRaceKey:372 _notesGenVariants:382 pick:389 join:390 many:391 list:399 notesGenerate:420 _notesSyncGenBtn:455 notesPickRandomVariant:460 _applyVariantToSection:473 _setSectionText:487 _mdToHtml:502 closeLists:514 _countStats:554 _bindSectionInputs:561 _updateStats:574 _notesHotkeys:583 notesMdInsert:598 wrap:607 linePrefix:614 notesTogglePreview:664 notesUpdateSection:683 _syncTakenFeatsLocation:698 _renderEntriesView:711 _renderEntryCard:766 notesPinDragStart:813 notesPinDragOver:823 notesPinDragLeave:832 notesPinDrop:837 notesPinDragEnd:847 _notesReorderPinned:856 notesSetTagFilter:884 notesJumpToNpc:890 notesOpenEntryModal:918 notesCloseEntryModal:953 _notesRenderModalTags:958 notesAddModalTag:970 notesModalTagKeydown:980 notesRemoveModalTag:984 notesSaveEntryModal:990 notesDeleteEntry:1038 notesTogglePin:1059 _notesLogJournal:1094 notesSearchInput:1120 notesSearchKeydown:1127 _hlText:1145 _renderSearchResults:1163 notesClearSearch:1242 notesToggleMenu:1253 _notesMenuClose:1266 notesMenuAction:1272 _notesCharName:1287 _notesTriggerDownload:1292 notesExportMd:1300 notesExportJson:1345 _notesSanitizeEntry:1357 _notesFileTooBig:1368 notesHandleImportJson:1376 _notesApplyImport:1397 notesHandleImportMd:1437 notesPrint:1473 _notesFlashSaved:1504
@@ -297,8 +297,8 @@ injectSkeletons:12 firstLoadSkeleton:28 highlightMatch:39 renderDeityDatalist:58
 **app-wiki.js** (856 строк, 71 функций)  
 _wikiPlural:33 _wikiLoreCount:37 wikiRegister:64 wikiCrumbs:71 _wikiCrumbGo:94 wikiExit:97 _wikiRecentGet:101 wikiRecentPush:105 _wikiRecentOpen:110 wikiEdition:118 wikiEdData:125 setWikiEdition:127 openWiki:132 _wikiNorm:142 _wikiHelpTabs:145 _wikiHelpHits:159 wikiUpdateHelpLink:180 openWikiLore:200 _wikiRow:202 _wikiGo:211 wikiJump:212 _wikiHubItems:217 renderWiki:226 _wikiClassNames:325 _wikiClassSource:333 _wikiProfList:339 _wikiToolsText:348 openWikiClasses:355 openWikiClass:361 wikiClassBack:371 setWikiClassEdition:375 _wikiCRow:383 _wikiCGo:391 _wikiFact:393 _wikiFeatureRows:400 renderWikiClass:411 _wikiSrcLabel:514 _wikiLoreList:519 _wikiFeatByName:530 _wikiLoreEnsure:537 _wikiLoreOpen:543 openWikiRaces:554 openWikiBackgrounds:555 openWikiFeats:556 wikiLoreBack:558 setWikiLoreEdition:562 _wikiLRow:570 _wikiLGo:578 _wikiStatsText:580 _wikiPara:585 _wikiRaceSource:594 _wikiMeters:598 _wikiRacePage:603 _wikiBgPage:626 _wikiFeatPage:646 renderWikiLore:657 _wikiLoreSearch:697 _wikiCondName:715 _wikiParaBr:718 _wikiCondPage:728 _wikiGlossMap:735 add:737 _wikiGlossPage:750 _wikiAbilPage:756 _wikiOptDict:765 _wikiOptGroup:778 _wikiOptReq:783 _wikiOptPage:793 wikiOpenGloss:805 wikiOpenMyClass:813 _wikiGlossSearch:821
 
-**app-wildshape.js** (319 строк, 27 функций)  
-wsBeast:12 wsChargesLeft:18 wsSpeedText:27 wsCrText:36 wsLimitsText:40 wildShapeStatBlock:53 wsEnsureBeasts:72 wsFormLine:80 renderWildShape:89 wsSlotHeal:139 wsSlotHealRow:147 wildShapeSlotHeal:154 wsLimits:171 openPolymorphPicker:174 openWildShapePicker:180 wsOpenPicker:186 closeWildShapePicker:194 wsSetSearch:197 wsPickRow:199 wsBtn:204 renderWildShapePicker:208 wildShapeLearn:241 wildShapeForget:249 wildShapeAssume:257 polymorphAssume:275 polymorphEnd:291 wildShapeExit:300
+**app-wildshape.js** (322 строк, 27 функций)  
+wsBeast:12 wsChargesLeft:18 wsSpeedText:27 wsCrText:36 wsLimitsText:40 wildShapeStatBlock:53 wsEnsureBeasts:72 wsFormLine:80 renderWildShape:89 wsSlotHeal:139 wsSlotHealRow:147 wildShapeSlotHeal:154 wsLimits:171 openPolymorphPicker:174 openWildShapePicker:180 wsOpenPicker:186 closeWildShapePicker:194 wsSetSearch:197 wsPickRow:199 wsBtn:204 renderWildShapePicker:208 wildShapeLearn:241 wildShapeForget:249 wildShapeAssume:257 polymorphAssume:275 polymorphEnd:291 wildShapeExit:303
 
 ## Данные — константы верхнего уровня (`имя:строка`)
 
@@ -308,8 +308,8 @@ _ASI:7 _FEAT:8 SCHEMA_VERSION:29 DAMAGE_TYPES:32 DEFAULT_CHARACTER:39 FAMILIAR_F
 **spells.js** (13819 строк)  
 SPELLS_BASE:7
 
-**spell-effects.js** (881 строк)  
-SPELL_EFFECTS:71
+**spell-effects.js** (933 строк)  
+SPELL_EFFECTS:71 SPELL_EFFECT_NAMES_PH24:723
 
 **class-choices.js** (1000 строк)  
 FIGHTING_STYLES:10 SORCERER_METAMAGIC:20 WARLOCK_PACT_BOONS:32 WARLOCK_INVOCATIONS:40 FAVORED_ENEMIES:76 FAVORED_TERRAINS:94 ARTIFICER_INFUSIONS:106 ARTIFICER_REPLICA_ITEMS:125 CLASS_CHOICES:184 CC_REQ_SPELL_NAMES:462 ccModalState:654

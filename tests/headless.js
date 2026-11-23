@@ -5933,8 +5933,9 @@
         if (keys.length < 160) return "ключей в таблице: " + keys.length;
         var DICE = /\d*[кk]\d+/i, seen = {}, uncovered = [];
         SPELLS_BASE.forEach(function(s){
-          if (seen[s.name] || SPELL_EFFECTS[s.name]) { seen[s.name] = true; return; }
-          if (DICE.test(s.desc || "") || DICE.test(s.higherLevel || "")) { seen[s.name] = true; uncovered.push(s.name); }
+          var k = (s.source === "PH24" && SPELL_EFFECT_NAMES_PH24[s.name]) || s.name;
+          if (seen[k] || getSpellEffect(s.name, s.source)) { seen[k] = true; return; }
+          if (DICE.test(s.desc || "") || DICE.test(s.higherLevel || "")) { seen[k] = true; uncovered.push(s.name); }
         });
         return uncovered.length <= 30 ? true : "без дескриптора: " + uncovered.length + " — " + uncovered.join(", ");
       });
@@ -5976,8 +5977,8 @@
         if (damageFormulaFor(ew, 3, 4, 9) !== "1к4") return "СтО ячейка 4: " + damageFormulaFor(ew, 3, 4, 9);
         if (damageFormulaFor(ew, 3, 6, 9) !== "1к4+1к4") return "СтО ячейка 6: " + damageFormulaFor(ew, 3, 6, 9);
         if (damageFormulaFor(ew, 3, 7, 9) !== "1к4+1к4+1к4") return "СтО ячейка 7: " + damageFormulaFor(ew, 3, 7, 9);
-        // «Кислотная сфера»: начальный +2к4 за уровень, второй тик 5к4 без апкаста
-        var ao = getSpellEffect("Кислотная сфера");
+        // «Едкий шар» (PH24): начальный +2к4 за уровень, второй тик 5к4 без апкаста
+        var ao = getSpellEffect("Едкий шар");
         if (damageFormulaFor(ao.damage, 4, 6, 9) !== "10к4+2к4+2к4") return "КС апкаст: " + damageFormulaFor(ao.damage, 4, 6, 9);
         if (damageFormulaFor(ao.repeat, 4, 6, 9) !== "5к4") return "КС второй тик вырос: " + damageFormulaFor(ao.repeat, 4, 6, 9);
         return true;
@@ -10611,13 +10612,13 @@
     for (var i = 0; i < 2; i++) {
       var s = both[i];
       if (aud11sp("Демиплан", s).components !== "S" || /Концентрация/.test(aud11sp("Демиплан", s).duration)) return "P4/P5 демиплан " + s;
-      if (aud11sp("Воспламеняющая туча", s).duration !== "Концентрация, до 1 минуты") return "P6 " + s;
+      if (aud11sp(s === "PH14" ? "Воспламеняющая туча" : "Воспламеняющаяся туча", s).duration !== "Концентрация, до 1 минуты") return "P6 " + s;
       if (/\+10/.test(aud11sp("Распад", s).higherLevel)) return "P7 " + s;
       if (aud11sp("Находчивость", s).school !== (s === "PH14" ? "преобразование" : "очарование")) return "P8 " + s;
       if (aud11sp("Неудержимая пляска Отто", s).classes.indexOf("sorcerer") !== -1) return "P9 " + s;
       if (/схвачен/.test(aud11sp("Паутина", s).desc)) return "P11 паутина " + s;
       if (aud11sp("Предвидение", s).components !== "V,S,M(перо колибри)") return "P12 " + s;
-      if (aud11sp("Открывание", s).components !== "V" || aud11sp("Слово Силы: исцеление", s).components !== (s === "PH14" ? "V,S" : "V")) return "P13 " + s;
+      if (aud11sp(s === "PH14" ? "Открывание" : "Стук", s).components !== "V" || aud11sp(s === "PH14" ? "Слово Силы: исцеление" : "Слово силы: исцеление", s).components !== (s === "PH14" ? "V,S" : "V")) return "P13 " + s;
       if (aud11sp("Падение пёрышком", s).higherLevel || !/1к8/.test(aud11sp("Охранные руны", s).higherLevel) ||
           !/9-го/.test(aud11sp("Подчинение чудовища", s).higherLevel) || /испытание Харизмы/.test(aud11sp("Врата", s).desc)) return "P15 " + s;
       if (aud11sp("Цунами", s).range !== (s === "PH14" ? "В пределах видимости" : "1 миля") || !/линия/.test(aud11sp("Порыв ветра", s).range)) return "P16 " + s;

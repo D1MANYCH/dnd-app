@@ -1993,7 +1993,7 @@
           icon: "✨",
           byLevel: {
             3: ["Подмога (Aid)", "Благословение (Bless)", "Лечение ран (Cure Wounds)", "Малое восстановление (Lesser Restoration)"],
-            5: ["Множественное лечащее слово (Mass Healing Word)", "Возрождение (Revivify)"],
+            5: ["Множественное лечащее слово (Mass Healing Word)", "Низшее воскрешение (Revivify)"],
             7: ["Аура жизни (Aura of Life)", "Защита от смерти (Death Ward)"],
             9: ["Высшее восстановление (Greater Restoration)", "Множественное лечение ран (Mass Cure Wounds)"]
           }
@@ -2019,7 +2019,7 @@
           byLevel: {
             3: ["Огненные ладони (Burning Hands)", "Огонь фей (Faerie Fire)", "Палящий луч (Scorching Ray)", "Видение невидимого (See Invisibility)"],
             5: ["Дневной свет (Daylight)", "Огненный шар (Fireball)"],
-            7: ["Магический глаз (Arcane Eye)", "Огненная стена (Wall of Fire)"],
+            7: ["Магический глаз (Arcane Eye)", "Стена огня (Wall of Fire)"],
             9: ["Небесный огонь (Sunbeam)", "Наблюдение (Scrying)"]
           }
         }
@@ -2051,7 +2051,7 @@
           label: "Заклинания Домена войны",
           icon: "⚔️",
           byLevel: {
-            3: ["Направленный снаряд (Guiding Bolt)", "Магическое оружие (Magic Weapon)", "Щит веры (Shield of Faith)", "Божественное оружие (Spiritual Weapon)"],
+            3: ["Направляющий снаряд (Guiding Bolt)", "Магическое оружие (Magic Weapon)", "Щит веры (Shield of Faith)", "Божественное оружие (Spiritual Weapon)"],
             5: ["Мантия крестоносца (Crusader's Mantle)", "Духовные стражи (Spirit Guardians)"],
             7: ["Огненный щит (Fire Shield)", "Свобода перемещения (Freedom of Movement)"],
             9: ["Удержание чудовища (Hold Monster)", "Удар стального ветра (Steel Wind Strike)"]
@@ -2071,7 +2071,7 @@
           label: "Заклинания Клятвы преданности",
           icon: "🛡️",
           byLevel: {
-            3: ["Защита от добра и зла (Protection from Evil and Good)", "Щит веры (Shield of Faith)"],
+            3: ["Защита от зла и добра (Protection from Evil and Good)", "Щит веры (Shield of Faith)"],
             5: ["Подмога (Aid)", "Область истины (Zone of Truth)"],
             9: ["Маяк надежды (Beacon of Hope)", "Рассеивание магии (Dispel Magic)"],
             13: ["Свобода перемещения (Freedom of Movement)", "Страж веры (Guardian of Faith)"],
@@ -2097,7 +2097,7 @@
           label: "Заклинания Клятвы славы",
           icon: "🏆",
           byLevel: {
-            3: ["Направленный снаряд (Guiding Bolt)", "Героизм (Heroism)"],
+            3: ["Направляющий снаряд (Guiding Bolt)", "Героизм (Heroism)"],
             5: ["Улучшение характеристики (Enhance Ability)", "Магическое оружие (Magic Weapon)"],
             9: ["Ускорение (Haste)", "Защита от энергии (Protection from Energy)"],
             13: ["Принуждение (Compulsion)", "Свобода перемещения (Freedom of Movement)"],
@@ -2193,8 +2193,8 @@
           label: "Заклинания Круга луны",
           icon: "🌕",
           byLevel: {
-            3: ["Лечение ран (Cure Wounds)", "Лунный луч (Moonbeam)", "Звёздная искра (Starry Wisp)"],
-            5: ["Призыв животных (Conjure Animals)"],
+            3: ["Лечение ран (Cure Wounds)", "Лунный луч (Moonbeam)", "Звёздный огонёк (Starry Wisp)"],
+            5: ["Вызов животных (Conjure Animals)"],
             7: ["Источник лунного света (Wellspring of Moonlight)"],
             9: ["Множественное лечение ран (Mass Cure Wounds)"]
           }
@@ -2210,7 +2210,7 @@
             3: ["Туманное облако (Fog Cloud)", "Порыв ветра (Gust of Wind)", "Луч холода (Ray of Frost)", "Дребезги (Shatter)", "Волна грома (Thunderwave)"],
             5: ["Молния (Lightning Bolt)", "Подводное дыхание (Water Breathing)"],
             7: ["Власть над водами (Control Water)", "Град (Ice Storm)"],
-            9: ["Призыв элементаля (Conjure Elemental)", "Удержание чудовища (Hold Monster)"]
+            9: ["Вызов элементаля (Conjure Elemental)", "Удержание чудовища (Hold Monster)"]
           }
         }
       }
@@ -2304,10 +2304,10 @@
           label: "Заводная магия",
           icon: "⚙️",
           byLevel: {
-            3: ["Сигнал тревоги (Alarm)", "Защита от добра и зла (Protection from Evil and Good)", "Подмога (Aid)", "Малое восстановление (Lesser Restoration)"],
+            3: ["Сигнал тревоги (Alarm)", "Защита от зла и добра (Protection from Evil and Good)", "Подмога (Aid)", "Малое восстановление (Lesser Restoration)"],
             5: ["Рассеивание магии (Dispel Magic)", "Защита от энергии (Protection from Energy)"],
             7: ["Свобода перемещения (Freedom of Movement)", "Призыв духа конструкта (Summon Construct)"],
-            9: ["Высшее восстановление (Greater Restoration)", "Силовая стена (Wall of Force)"]
+            9: ["Высшее восстановление (Greater Restoration)", "Стена силы (Wall of Force)"]
           }
         }
       }
@@ -2330,7 +2330,7 @@
           byLevel: {
             3: ["Приказ (Command)", "Цветной шарик (Chromatic Orb)", "Смена обличья (Alter Self)", "Дыхание дракона (Dragon's Breath)"],
             5: ["Ужас (Fear)", "Полёт (Fly)"],
-            7: ["Магический глаз (Arcane Eye)", "Очарование чудовища (Charm Monster)"],
+            7: ["Магический глаз (Arcane Eye)", "Очарование монстра (Charm Monster)"],
             9: ["Знание легенд (Legend Lore)", "Призыв духа дракона (Summon Dragon)"]
           }
         }
@@ -2376,9 +2376,9 @@
           label: "Заклинания небожителей",
           icon: "😇",
           byLevel: {
-            3: ["Подмога (Aid)", "Лечение ран (Cure Wounds)", "Направленный снаряд (Guiding Bolt)", "Малое восстановление (Lesser Restoration)", "Свет (Light)", "Священное пламя (Sacred Flame)"],
-            5: ["Дневной свет (Daylight)", "Возрождение (Revivify)"],
-            7: ["Страж веры (Guardian of Faith)", "Огненная стена (Wall of Fire)"],
+            3: ["Подмога (Aid)", "Лечение ран (Cure Wounds)", "Направляющий снаряд (Guiding Bolt)", "Малое восстановление (Lesser Restoration)", "Свет (Light)", "Священное пламя (Sacred Flame)"],
+            5: ["Дневной свет (Daylight)", "Низшее воскрешение (Revivify)"],
+            7: ["Страж веры (Guardian of Faith)", "Стена огня (Wall of Fire)"],
             9: ["Высшее восстановление (Greater Restoration)", "Призыв духа небожителя (Summon Celestial)"]
           }
         }
@@ -2402,7 +2402,7 @@
           byLevel: {
             3: ["Огненные ладони (Burning Hands)", "Приказ (Command)", "Палящий луч (Scorching Ray)", "Внушение (Suggestion)"],
             5: ["Огненный шар (Fireball)", "Зловонное облако (Stinking Cloud)"],
-            7: ["Огненный щит (Fire Shield)", "Огненная стена (Wall of Fire)"],
+            7: ["Огненный щит (Fire Shield)", "Стена огня (Wall of Fire)"],
             9: ["Обет (Geas)", "Нашествие насекомых (Insect Plague)"]
           }
         }
@@ -2498,6 +2498,13 @@
       "Друид":     {armor:["light","shield"], weapon:["simple"]},
       "Чародей":   {armor:[], weapon:["simple"]},
       "Волшебник": {armor:[], weapon:["simple"]}
+    }),
+    // Домены жизни и войны 2024 доспехов и оружия не дают — только «Защитник» (PH24 стр. 102, 105, 108)
+    SUBCLASS_ARMOR: _mergeByClass((typeof SUBCLASS_ARMOR !== 'undefined') ? SUBCLASS_ARMOR : {}, {
+      "Жрец": _mergeByClass((typeof SUBCLASS_ARMOR !== 'undefined' && SUBCLASS_ARMOR["Жрец"]) || {}, {
+        "Домен жизни": {armor:[], weapon:[]},
+        "Домен войны": {armor:[], weapon:[]}
+      })
     }),
     CLASS_WEAPONS_SPECIFIC: _mergeByClass((typeof CLASS_WEAPONS_SPECIFIC !== 'undefined') ? CLASS_WEAPONS_SPECIFIC : {}, {
       "Друид": [], "Чародей": [], "Волшебник": [],

@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v631';
+const CACHE_NAME = 'dnd-sheet-v632';
 
 const FILES_TO_CACHE = [
   './',
@@ -147,22 +147,22 @@ const FILES_TO_CACHE = [
 
 // Хэши файлов прекеша — пишет tools/file-hashes.js (через /bump), руками не править.
 const FILE_HASHES = {
-  './': '1733da91dfa6e45100ef',
-  './index.html': '1733da91dfa6e45100ef',
+  './': '9578d64f9ef0da526b86',
+  './index.html': '9578d64f9ef0da526b86',
   './style.css': '100bc884c6f8cc4fef63',
   './app-log.js': '54f5eed79eb54ac7de54',
   './icons.js': '28370adcc628dbc457a0',
   './bg-space.js': '8f5ddcbae1e763435ff8',
   './dice-arena-bg.js': '8c311fce0b0af8d5ef13',
-  './data.js': '28f8489172fe0f8d2949',
-  './data-2024.js': 'f79b26d987a025fc0dcb',
+  './data.js': '533049d9ab2c825d69f2',
+  './data-2024.js': 'f11a7a9a05946c57b6d4',
   './build-notes-data.js': '524f84e9a42ceec92646',
-  './character-builds.js': '74b4a6f4b0a6eccd6eb4',
+  './character-builds.js': 'd4379a2c90968a7ae1d3',
   './glossary-data.js': '9527a894523806e106db',
-  './spells.js': 'a609fe438bad69525aea',
-  './spell-effects.js': '066847944196c692fd2e',
+  './spells.js': 'f70109447863fd16c82b',
+  './spell-effects.js': '0edfb261b98ad2e0556d',
   './rules.js': '977ca12a1ba55a50bdaa',
-  './app-migrate.js': '4ef9112087ff8ec7cee7',
+  './app-migrate.js': 'd5cf5a74617fa4661072',
   './app-builds.js': 'cb9968a55ce4c5a225b8',
   './app-core.js': 'dd6f66540a7fb7122d3b',
   './app-io.js': '9e3bd77057751774d538',
@@ -173,14 +173,14 @@ const FILE_HASHES = {
   './app-cast-effects.js': '1431df4b5df9a39f9f04',
   './app-proficiencies.js': '8cfe09c90265fd929e6f',
   './app-hp.js': '81171608512ace8d0a03',
-  './app-wildshape.js': '356c3cbc0f470d2a0335',
+  './app-wildshape.js': '80f74459f81c39336089',
   './app-spells.js': '9250e4a7444f9f5b1fc4',
   './start-equip-2014.js': 'db43ddf7f29bad11cd8c',
   './class-choices.js': 'fcf9e6e83e1fe45a1e52',
   './subclass-choices-data.js': 'fd4c89d3780eb157ca4a',
   './app-notes.js': '4ad8f3f6188090bdd775',
   './notes-gen-data.js': '4e79af340e55516dd838',
-  './changelog-data.js': '2197fbbfc62f5b67dd58',
+  './changelog-data.js': 'bf3ddcef515e8441e1e1',
   './assets/schools/abjuration.webp': '16484747b2a6b35a3a0b',
   './assets/schools/conjuration.webp': 'c980b50f10d846373a66',
   './assets/schools/divination.webp': '94b447a9d11f779e2e62',
