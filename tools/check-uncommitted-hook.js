@@ -57,7 +57,7 @@ function branch() {
   const msg =
     '⚠ Незакоммичено: ' + files.length + ' — ' + shown + tail +
     (br ? ' (ветка ' + br + ')' : '') +
-    '. Выпустить: /ship "<changelog>"';
+    '. Выпустить: /vypusk "<changelog>"';
 
   process.stdout.write(JSON.stringify({ systemMessage: msg }) + '\n');
   console.error(msg);

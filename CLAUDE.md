@@ -52,9 +52,9 @@ APP_VERSION ↔ APP_CHANGELOG[0].version ↔ CACHE_NAME (dnd-sheet-vN) ↔ every
 
 `/bump <patch|minor|major> "<changelog>" [--type chore|feat|fix]` edits them, then `/preflight`. Mechanics and failure modes — skill `release`.
 
-**`/ship`** runs the whole cycle: it reads the diff, decides whether a bump is needed (changes only under `.claude/`, `tools/`, `docs/` go as a plain commit without a version), writes the level and changelog text, then the `releaser` subagent does tests → bump → invariant → commit → push → CI wait, and `relpost` returns the announcement. Commit and push happen **only** on this command.
+**`/vypusk`** (formerly `/ship` — the name is now taken by the bundled command; read `/ship` in older plans and memory as `/vypusk`) runs the whole cycle: it reads the diff, decides whether a bump is needed (changes only under `.claude/`, `tools/`, `docs/` go as a plain commit without a version), writes the level and changelog text, then the `releaser` subagent does tests → bump → invariant → commit → push → CI wait, and `relpost` returns the announcement. Commit and push happen **only** on this command.
 
-Phases are worked directly on `main`, no per-phase branches. At most **one release per day** except critical fixes: phases of the same day pile up on `main` without push and go out in a single `/ship`.
+Phases are worked directly on `main`, no per-phase branches. At most **one release per day** except critical fixes: phases of the same day pile up on `main` without push and go out in a single `/vypusk`.
 
 Releases are described on three levels, all generated from `APP_CHANGELOG` + git: short — `CHANGELOG.md` and the in-app history window; detailed — `docs/RELEASES.md`; full patch — the GitHub `compare/` link. Both generators run from `/bump`; `/relpost` builds the announcement.
 
