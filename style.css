@@ -8912,7 +8912,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   max-width: 460px;
 }
 @media (min-width: 768px) {
-  #welcome-modal .welcome-content { max-width: 460px; }
+  #welcome-modal .welcome-content { max-width: 460px; max-height: calc(100dvh / var(--fs-zoom, 1) - 4 * var(--sp-5)); }
 }
 .welcome-step { display: flex; flex-direction: column; align-items: center; }
 .welcome-step.hidden { display: none; }
@@ -9183,8 +9183,11 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   position: fixed;
   z-index: calc(var(--z-modal) + 1);
   display: none;
-  width: calc(100vw - 24px);
+  width: calc(100vw / var(--fs-zoom, 1) - 24px);
   max-width: 340px;
+  max-height: calc(100vh / var(--fs-zoom, 1) - 24px);
+  max-height: calc(100dvh / var(--fs-zoom, 1) - 24px);
+  flex-direction: column;
   box-sizing: border-box;
   padding: var(--sp-4) var(--sp-4) var(--sp-4);
   /* Дымка v5: уровень 3 стекла — непрозрачная карта независимо от слайдера
@@ -9244,10 +9247,14 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   color: var(--text);
   transition: opacity var(--t1) var(--ez-out, ease);
   white-space: pre-line;   /* поддержка переноса строк в novice-пояснениях */
+  min-height: 0;
+  overflow-y: auto;        /* длинный текст листается, кнопки остаются на виду */
   margin-bottom: var(--sp-4);
 }
 .tour-coach-foot {
   display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-3);
@@ -9258,7 +9265,7 @@ html[data-stats-collapsed="1"] #abilities-region { display: none; }
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
-.tour-nav { display: flex; gap: var(--sp-2); }
+.tour-nav { display: flex; gap: var(--sp-2); margin-left: auto; }
 /* Дымка v5: «Назад» — ghost, «Далее/Готово» — primary градиентом (ниже .tour-next) */
 .tour-btn { margin: 0; }
 

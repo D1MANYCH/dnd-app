@@ -128,39 +128,39 @@
 | 8530–8697 | INVENTORY SLOTS SYSTEM |
 | 8698–8902 | HELP / ONBOARDING (HELP-1) — табовый help-центр. |
 | 8903–9115 | HELP-3 — Приветствие первого запуска (#welcome-modal) |
-| 9116–9264 | HELP-4 — Движок интерактивного тура (подсветка). |
-| 9265–9334 | 3D DICE CUBE |
-| 9335–9677 | FEAT-LOG: панель журнала сессии (выезжает справа) |
-| 9678–9751 | DESKTOP LAYOUT — centered max-width |
-| 9752–9775 | INSPIRATION |
-| 9776–9815 | CONCENTRATION |
-| 9816–10333 | WEAPON CARDS WITH ROLL BUTTONS |
-| 10334–10428 | ПОПАП РЕЖИМА БРОСКА (Преимущество / Помеха) |
-| 10429–10489 | СОПРОТИВЛЕНИЯ / ИММУНИТЕТЫ / УЯЗВИМОСТИ |
-| 10490–10511 | БОЙ ДВУМЯ ОРУЖИЯМИ (Two-Weapon Fighting) |
-| 10512–10624 | КЛАССОВЫЕ ВЫБОРЫ — карточки в asi-container |
-| 10625–10652 | R6: Ассеты (декор) |
-| 10653–11522 | 📝 Вкладка «Записи по персонажу» — фаза N2 |
-| 11523–11606 | STYLE-4b: кнопки, которым ширину давал элементный button{width:100%}. |
-| 11607–11615 | BUGFIX-6: мобильная вёрстка (≤540px) |
-| 11616–11673 | UI-13: доступ к настройкам и усиление back-кнопки |
-| 11674–11990 | UI-10. Skeleton-лоадеры + подсветка совпадений поиска |
-| 11991–12017 | UI5-6: ПОЛИРОВКА — единый фокус клавиатуры + шевроны аккордеонов |
-| 12018–12044 | Светлая тема: цветные акценты, подобранные под тёмный фон и |
-| 12045–12127 | Дымка v5: чипы состояний, мини-индикаторы, SVG-иконки |
-| 12128–13129 | STYLE-5: одна поверхность для всех карточек-контейнеров. |
-| 13130–13185 | MOTION: переходы между экранами и под-меню встречающего экрана. |
-| 13186–13281 | STYLE-8a2 · «Лист»: блок характеристик — реестр |
-| 13282–13613 | DISC-1 · Ромб раскрытия |
-| 13614–14148 | STYLE-8a2 · остальной «Лист» в языке встречающего экрана |
-| 14149–14260 | LVL-2 · Экран «Развитие» (#screen-progress) |
-| 14261–14405 | LVL-3 · Раздел «Класс и развитие» на листе и дубль ресурсов в «Бою» |
-| 14406–14606 | STYLE-8b3: список «Мои заклинания» — рецепт «Сумки» + чип действия |
-| 14607–14615 | STYLE-8b3-fix: срезанный ромб |
-| 14616–14883 | STYLE-8b3b: два оставшихся блока «Магии» |
-| 14884–15344 | STYLE-8d2 · Вкладка «Бой» в языке встречающего экрана |
-| 15345–15379 | STYLE-8M-3: ОКНА-ЭКРАНЫ, ДОЗАХОД — «Повышение уровня», «Отдых», |
-| 15380–17098 | STYLE-8M-4: ОКНА-ЭКРАНЫ, ДОЗАХОД II — «История здоровья», |
+| 9116–9271 | HELP-4 — Движок интерактивного тура (подсветка). |
+| 9272–9341 | 3D DICE CUBE |
+| 9342–9684 | FEAT-LOG: панель журнала сессии (выезжает справа) |
+| 9685–9758 | DESKTOP LAYOUT — centered max-width |
+| 9759–9782 | INSPIRATION |
+| 9783–9822 | CONCENTRATION |
+| 9823–10340 | WEAPON CARDS WITH ROLL BUTTONS |
+| 10341–10435 | ПОПАП РЕЖИМА БРОСКА (Преимущество / Помеха) |
+| 10436–10496 | СОПРОТИВЛЕНИЯ / ИММУНИТЕТЫ / УЯЗВИМОСТИ |
+| 10497–10518 | БОЙ ДВУМЯ ОРУЖИЯМИ (Two-Weapon Fighting) |
+| 10519–10631 | КЛАССОВЫЕ ВЫБОРЫ — карточки в asi-container |
+| 10632–10659 | R6: Ассеты (декор) |
+| 10660–11529 | 📝 Вкладка «Записи по персонажу» — фаза N2 |
+| 11530–11613 | STYLE-4b: кнопки, которым ширину давал элементный button{width:100%}. |
+| 11614–11622 | BUGFIX-6: мобильная вёрстка (≤540px) |
+| 11623–11680 | UI-13: доступ к настройкам и усиление back-кнопки |
+| 11681–11997 | UI-10. Skeleton-лоадеры + подсветка совпадений поиска |
+| 11998–12024 | UI5-6: ПОЛИРОВКА — единый фокус клавиатуры + шевроны аккордеонов |
+| 12025–12051 | Светлая тема: цветные акценты, подобранные под тёмный фон и |
+| 12052–12134 | Дымка v5: чипы состояний, мини-индикаторы, SVG-иконки |
+| 12135–13136 | STYLE-5: одна поверхность для всех карточек-контейнеров. |
+| 13137–13192 | MOTION: переходы между экранами и под-меню встречающего экрана. |
+| 13193–13288 | STYLE-8a2 · «Лист»: блок характеристик — реестр |
+| 13289–13620 | DISC-1 · Ромб раскрытия |
+| 13621–14155 | STYLE-8a2 · остальной «Лист» в языке встречающего экрана |
+| 14156–14267 | LVL-2 · Экран «Развитие» (#screen-progress) |
+| 14268–14412 | LVL-3 · Раздел «Класс и развитие» на листе и дубль ресурсов в «Бою» |
+| 14413–14613 | STYLE-8b3: список «Мои заклинания» — рецепт «Сумки» + чип действия |
+| 14614–14622 | STYLE-8b3-fix: срезанный ромб |
+| 14623–14890 | STYLE-8b3b: два оставшихся блока «Магии» |
+| 14891–15351 | STYLE-8d2 · Вкладка «Бой» в языке встречающего экрана |
+| 15352–15386 | STYLE-8M-3: ОКНА-ЭКРАНЫ, ДОЗАХОД — «Повышение уровня», «Отдых», |
+| 15387–17105 | STYLE-8M-4: ОКНА-ЭКРАНЫ, ДОЗАХОД II — «История здоровья», |
 
 ## index.html — блоки верхнего уровня (`#id:строки`)
 
@@ -243,8 +243,8 @@ syncFromStatusBar:144 syncStrip:203 setRailOpen:214 syncRdToggles:221 _esc:241 _
 **app-dice.js** (1717 строк, 83 функций)  
 openDiceModal:6 _prewarmDiceBox:60 openDiceModalForRoll:75 closeDiceModal:82 _diceModalActive:98 showDiceRollOverlay:104 hideDiceRollOverlay:118 toggleDicePopover:126 closeDicePopovers:149 clearDiceHistory:159 _diceHistoryRefresh:175 resetDiceResult:181 _updateDiceHistoryBadge:193 rollCustomFormulaFromMain:206 diceInsertToken:210 diceFormulaBackspace:216 setDiceMode:235 rollDiceWithSelectedMode:242 rollDice:246 _quickRollCompute:341 _quickRollModStr:360 _emitDiceRolled:366 _setDiceSettled:374 _setSettledDice:384 _quickRollRecord:401 _quickRollInfoText:408 _quickRollToastText:415 _rollSrc:433 quickRoll:440 renderQuickRollStrip:501 updateQuickRollStripVisibility:524 dismissQuickRollStrip:540 openDiceRollHistory:545 drawDiceSVG:558 _waitDiceBoxModule:577 _diceLsGet:597 _getAccentColor:605 _getDiceTheme:624 _getDiceThemeColor:631 setDiceTheme:634 _syncDiceThemeButtons:640 _getDiceBg:650 setDiceBg:657 _syncDiceBgButtons:663 _diceDbg:673 _initDiceBox:678 _diceFaceValue:773 animateDice3d:795 animateDice2d:999 buildDie:1025 tick:1093 _applyDiceCritGlow:1116 parseDiceFormula:1137 _formulaCanon:1173 _renderFormulaResult:1185 rollFormula:1221 _rollFormulaFrom:1303 _diceFieldErrOpts:1318 diceFormulaBlur:1324 rollCustomFormula:1334 renderDiceHistory:1337 createParticles:1363 _diceShapeSvg:1397 renderDiceFan:1404 _paintSelectedDie:1423 _diceHeroSvg:1447 _paintDiceMode:1457 selectDie:1472 rollSelectedDie:1491 toggleDiceFormulaPanel:1500 _savedRollFormula:1519 _savedRollsClean:1522 _savedRollNewId:1537 _savedRollLabel:1540 renderSavedRolls:1544 savedRollRoll:1564 savedRollTap:1571 savedRollEdit:1587 savedRollCancel:1604 savedRollSubmit:1609 savedRollDelete:1630 savedRollFromDice:1648 _diceHotkeys:1669
 
-**app-help.js** (1342 строк, 58 функций)  
-openHelp:12 openTabHelp:19 closeHelp:27 switchHelpSection:46 getHelpFlag:111 setHelpFlag:115 welcomeGoStep:121 showWelcome:131 closeWelcome:138 welcomeContinue:144 welcomeSkipExperienced:150 welcomeBack:156 welcomeFinish:163 dismissWelcome:196 maybeShowWelcome:199 restartOnboarding:204 _tourWide:240 _ensureTourDom:243 _resolveTarget:284 _tourFirstVisible:299 _tourAnyModalVisible:319 _tourModalOpen:325 _tourStartWhenClear:337 startTour:349 startListTour:362 startSheetTour:366 _tourTyping:378 maybeStartSheetTour:383 startCreatorTour:406 maybeStartCreatorTour:411 _buildCreatorSteps:423 restartTour:434 startTabTour:461 maybeStartTabTour:479 tourNext:506 tourPrev:511 endTour:517 _showTourStep:527 _setBox:590 _computeTourBoxes:606 snap:608 corner:621 _layoutTourCorners:643 _layoutTour:660 _onTourKey:763 _onTourReflow:769 _bindTourGlobal:773 _unbindTourGlobal:778 _buildListSteps:789 _buildSheetSteps:839 _buildStatsSteps:949 _buildProgressSteps:990 _buildSpellsSteps:1048 _buildInventorySteps:1091 _buildBattleSteps:1137 _buildNotesSteps:1212 _buildPartySteps:1253 _buildJournalSteps:1311
+**app-help.js** (1396 строк, 60 функций)  
+openHelp:12 openTabHelp:19 closeHelp:27 switchHelpSection:46 getHelpFlag:111 setHelpFlag:115 welcomeGoStep:121 showWelcome:131 closeWelcome:138 welcomeContinue:144 welcomeSkipExperienced:150 welcomeBack:156 welcomeFinish:163 dismissWelcome:196 maybeShowWelcome:199 restartOnboarding:204 _tourWide:241 _ensureTourDom:244 _resolveTarget:285 _tourFirstVisible:300 _tourAnyModalVisible:320 _tourModalOpen:326 _tourStartWhenClear:338 startTour:350 startListTour:363 startSheetTour:367 _tourTyping:379 maybeStartSheetTour:384 startCreatorTour:407 maybeStartCreatorTour:412 _buildCreatorSteps:424 _leaveHelpForTour:435 restartTour:442 startTabTour:471 maybeStartTabTour:490 tourNext:517 tourPrev:522 endTour:528 _showTourStep:538 _setBox:602 _computeTourBoxes:618 snap:620 corner:633 _layoutTourCorners:655 _layoutTour:672 rectOf:689 _onTourKey:815 _onTourReflow:821 _bindTourGlobal:827 _unbindTourGlobal:832 _buildListSteps:843 _buildSheetSteps:893 _buildStatsSteps:1003 _buildProgressSteps:1044 _buildSpellsSteps:1102 _buildInventorySteps:1145 _buildBattleSteps:1191 _buildNotesSteps:1266 _buildPartySteps:1307 _buildJournalSteps:1365
 
 **app-home.js** (288 строк, 16 функций)  
 getLastCharacter:22 _homeCantripCount:34 _homeHeroChips:48 _homePlural:68 _homeHeroSig:80 _homeHeroSubtitle:92 renderHomeHero:108 _homeSyncMenu:177 toggleHomeSection:203 homeContinue:220 openDataModal:232 closeDataModal:237 homeExportPdf:247 openAboutModal:261 closeAboutModal:268 _homeSyncContinue:273

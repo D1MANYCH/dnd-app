@@ -3,46 +3,72 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v5.10.5**.
+Актуальная версия — **v5.10.6**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v5.10.6"></a>
+## v5.10.6 — 24 ноября 2026
+
+🐛 обучение: карточка не съезжает за экран при масштабе шрифта, длинный текст листается внутри карточки; туры из «Справки» запускаются полностью; окно приветствия ограничено по высоте экрана
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/441d9ddc...main) · 7 файлов, +159 −85
+
+<details><summary>Файлы</summary>
+
+_Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
+
+**Файлы (7):**
+
+- `index.html` +55 −55
+- `app-help.js` +71 −17
+- `sw.js` +7 −7
+- `style.css` +10 −3
+- `changelog-data.js` +9 −1
+- `CHANGELOG.md` +6 −1
+- `data.js` +1 −1
+
+</details>
+
 <a id="v5.10.5"></a>
 ## v5.10.5 — 24 ноября 2026
 
 🐛 у зафиксированного персонажа на «Главной» снова есть кнопка «Изменить» — новый лист скрывал её вместе с плашкой замка; подсказка «Лист зафиксирован» и справка указывают, где она находится
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/93f752a0...main) · 18 файлов, +346 −231
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/93f752a0...441d9ddc) · 20 файлов, +298 −159
 
 <details><summary>Коммиты и файлы</summary>
 
-**Коммиты (2):**
+**Коммиты (3):**
 
 - [`00b4de38`](https://github.com/D1MANYCH/dnd-app/commit/00b4de38) chore(tools): база typo nbsp 308 → 316 — ключи таблицы переименований миграции 54 совпадают с именами spells.js и не видны в интерфейсе
 - [`17391904`](https://github.com/D1MANYCH/dnd-app/commit/17391904) chore(dev): /ship переименован в /vypusk, добавлено ревью диффа перед bump
+- [`441d9ddc`](https://github.com/D1MANYCH/dnd-app/commit/441d9ddc) v5.10.5: fix(лист): у зафиксированного персонажа на «Главной» снова есть кнопка «Изменить» — новый лист скрывал её вместе с плашкой замка; подсказка «Лист зафиксирован» и справка указывают, где она находится
 
-**Файлы (18):**
+**Файлы (20):**
 
-- `.claude/commands/vypusk.md` +178 −0
-- `.claude/commands/ship.md` +0 −144
 - `index.html` +56 −56
+- `.claude/commands/vypusk.md` +89 −0
+- `.claude/commands/ship.md` +0 −72
 - `tools/verify-builds-ci.js` +64 −0
+- `docs/RELEASES.md` +46 −5
 - `sw.js` +7 −7
 - `changelog-data.js` +9 −1
-- `CLAUDE.md` +5 −5
-- `.claude/skills/faza/SKILL.md` +4 −4
 - `CHANGELOG.md` +6 −1
+- `CLAUDE.md` +3 −3
 - `dev-verify-builds.js` +3 −3
-- `.claude/skills/release/SKILL.md` +2 −2
+- `.claude/skills/faza/SKILL.md` +2 −2
 - `data.js` +2 −2
-- `tools/check-uncommitted-hook.js` +2 −2
-- `tools/typo-baseline.json` +2 −2
+- `docs/map.md` +2 −2
 - `.github/workflows/tests.yml` +3 −0
+- `.claude/skills/release/SKILL.md` +1 −1
 - `app-combat.js` +1 −1
 - `docs/ARCHITECTURE.md` +1 −1
+- `tools/check-uncommitted-hook.js` +1 −1
+- `tools/typo-baseline.json` +1 −1
 - `app-sheet2.js` +1 −0
 
 </details>

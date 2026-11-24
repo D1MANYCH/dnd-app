@@ -232,6 +232,7 @@ window.addEventListener('load', maybeShowWelcome);
 // ============================================================
 var _tour = null;       // активный тур: { steps:[], i:Number, name:String }
 var _tourPad = 6;       // отступ подсветки вокруг цели, px
+var _tourMinCoach = 170; // ниже этой высоты карточку не ужимаем, px
 var _tourRafId = 0;     // throttle репозиции на resize/scroll
 var _tourFontsHooked = false; // один раз навешиваем re-layout на document.fonts.ready
 
@@ -430,15 +431,24 @@ function _buildCreatorSteps() {
   ];
 }
 
+/** Уйти со справки мимо оглавления справочника — на экран, чей тур запускаем. */
+function _leaveHelpForTour() {
+  if (window.currentId && _screenStack.indexOf("character") >= 0) { showScreen("character"); return; }
+  while (_screenStack.length && /^(wiki|help)$/.test(_screenStack[_screenStack.length - 1])) _screenStack.pop();
+  screenBack();
+}
+
 /** Перезапустить тур из help-центра по текущему экрану. */
 function restartTour() {
-  closeHelp();
+  var fromCreator = _screenStack.indexOf("creator") >= 0;
+  if (fromCreator) showScreen("creator"); else _leaveHelpForTour();
   // STYLE-8M-2b: уход со справки — переход между экранами (300 мс). Стартовать
   // тур сразу нельзя: прожектор целился бы в экран посреди полёта.
   setTimeout(function () {
     if (currentScreenName() === "creator") startCreatorTour();
-    else if (window.currentId) startSheetTour();
-    else startListTour();
+    else if (window.currentId && currentScreenName() === "character") startSheetTour();
+    else if (currentScreenName() === "home") startListTour();
+    else { showScreen("home"); setTimeout(startListTour, 320); }
   }, 320);
 }
 
@@ -460,8 +470,9 @@ var TOUR_TABS = {
 /** Ручной запуск тура вкладки из help-центра: открыть вкладку → флаг → старт. */
 function startTabTour(tab) {
   var entry = TOUR_TABS[tab];
-  if (!entry) return;
-  closeHelp();
+  if (!entry || !window.currentId) return;
+  _leaveHelpForTour();
+  if (currentScreenName() !== "character") showScreen("character");
   setTimeout(function () {
     // Без открытого персонажа вкладка пуста: все шаги с целями отсеются, и от
     // тура останется пара карточек ни о чём (LVL-4, было в startProgressTour).
@@ -544,6 +555,7 @@ function _showTourStep() {
       body += (body ? '\n\n' : '') + step.novice;
     }
     textEl.textContent = body;
+    textEl.scrollTop = 0;
   }
   requestAnimationFrame(function () {
     if (titleEl) titleEl.style.opacity = '1';
@@ -667,36 +679,75 @@ function _layoutTour() {
   var mLeft = document.getElementById('tour-mask-left');
   if (!coach || !ring || !mTop || !mRight || !mBottom || !mLeft) return;
   var el = _resolveTarget(_tour.steps[_tour.i]);
-  var vw = window.innerWidth, vh = window.innerHeight, margin = 12;
+  // Масштаб шрифта — zoom на body: координаты карточки и масок живут в его
+  // пикселях, окно — в экранных. Считаем всё в пикселях body. Старые движки
+  // отдают rect уже без zoom, поэтому множитель rect измеряем, а не берём z.
+  var z = parseFloat(document.body.style.zoom) || 1;
+  var ov = document.getElementById('tour-overlay');
+  var k = (z !== 1 && ov.offsetWidth) ? ov.getBoundingClientRect().width / ov.offsetWidth : 1;
+  var vw = window.innerWidth / z, vh = window.innerHeight / z, margin = 12;
+  function rectOf(node) {
+    var b = node.getBoundingClientRect();
+    return { left: b.left / k, top: b.top / k, right: b.right / k, bottom: b.bottom / k, width: b.width / k, height: b.height / k };
+  }
   if (el) {
     // Размер коуча нужен до прокрутки → показываем карточку заранее
     // (при display:none offsetWidth/Height нулевые).
     coach.classList.remove('tour-coach-centered');
-    coach.style.display = 'block';
+    coach.style.display = 'flex';
+    coach.style.maxHeight = '';
     var cw = coach.offsetWidth, ch = coach.offsetHeight;
     el.scrollIntoView({ block: 'center', inline: 'nearest' });
-    var r = el.getBoundingClientRect();
+    var r = rectOf(el);
     // block:'center' центрует одну цель; если цель+коуч влезают в экран вместе,
     // но под отцентрованной целью коучу не хватает места (высокая карточка,
     // напр. «Кошель» на телефоне) — докручиваем окно, освобождая место снизу.
     // Идемпотентно: конечная позиция скролла одна и та же при повторном layout.
+    // Длинная карточка ужимается (текст листается внутри), чтобы не закрыть цель.
+    var sideFits = r.right + 2 * margin + cw <= vw || r.left - 2 * margin - cw >= 0;
+    // Липкая шапка закрывает верх окна — цель под неё не подводим.
+    var top0 = 0;
+    ['header', '#status-bar'].forEach(function (sel) {
+      var h = document.querySelector(sel);
+      if (!h || h.contains(el) || !/sticky|fixed/.test(getComputedStyle(h).position)) return;
+      var hr = rectOf(h);
+      if (hr.height > 0 && hr.top < vh / 3) top0 = Math.max(top0, hr.bottom);
+    });
+    var room = Math.floor(vh - top0 - 3 * margin - r.height);
+    if (!sideFits && ch > room && room >= _tourMinCoach) {
+      coach.style.maxHeight = room + 'px';
+      ch = coach.offsetHeight;
+    }
     var need = r.height + margin + ch;
-    if (need <= vh - 2 * margin) {
+    if (need <= vh - top0 - 2 * margin) {
       if (r.bottom + margin + ch > vh - margin) {
-        window.scrollBy(0, r.top - (vh - need) / 2);
-        r = el.getBoundingClientRect();
+        window.scrollBy(0, (r.top - (top0 + vh - need) / 2) * z);
+        r = rectOf(el);
       }
       if (r.bottom + margin + ch > vh - margin && r.top - margin - ch < margin) {
         // Снизу упёрлись в конец документа (цель — последняя карточка вкладки):
         // освобождаем место над целью, коуч встанет сверху.
-        window.scrollBy(0, r.top - ((vh - need) / 2 + ch + margin));
-        r = el.getBoundingClientRect();
+        window.scrollBy(0, (r.top - ((top0 + vh - need) / 2 + ch + margin)) * z);
+        r = rectOf(el);
+      }
+    }
+    if (!sideFits && r.bottom + margin + ch > vh - margin && r.top - margin - ch < margin) {
+      // Цель выше экрана: её начало — к верху окна, карточка ляжет на нижнюю часть.
+      if (need > vh - top0 - 2 * margin) {
+        window.scrollBy(0, (r.top - top0 - margin) * z);
+        r = rectOf(el);
+      }
+      room = Math.floor(Math.max(vh - r.bottom, r.top) - 2 * margin);
+      if (room < _tourMinCoach) room = Math.floor(Math.max(_tourMinCoach, vh * 0.55));
+      if (ch > room) {
+        coach.style.maxHeight = room + 'px';
+        ch = coach.offsetHeight;
       }
     }
     // 4 панели образуют рамку, оставляя целевой rect незакрытым (подсвеченным).
     // THEME-1: панели стыкуются впритык по общим снап-краям (см. _computeTourBoxes),
     // скругление выреза дают 4 угловые заплатки .tour-corner.
-    var boxes = _computeTourBoxes(vw, vh, r, _tourPad, window.devicePixelRatio || 1);
+    var boxes = _computeTourBoxes(vw, vh, r, _tourPad, (window.devicePixelRatio || 1) * z);
     var hT = boxes.hole.top, hL = boxes.hole.left, hR = boxes.hole.right, hB = boxes.hole.bottom;
     _setBox(mTop, boxes.masks.top.left, boxes.masks.top.top, boxes.masks.top.width, boxes.masks.top.height);
     _setBox(mBottom, boxes.masks.bottom.left, boxes.masks.bottom.top, boxes.masks.bottom.width, boxes.masks.bottom.height);
@@ -738,7 +789,7 @@ function _layoutTour() {
     // разойтись с рендером — поздний шрифт, транзишен, нулевой offsetWidth в
     // момент показа), докручиваем координаты по реальным размерам. В обычном
     // состоянии условие ложно (кламп выше уже удержал карточку в экране).
-    var cr = coach.getBoundingClientRect();
+    var cr = rectOf(coach);
     if (left + cr.width > vw - margin) {
       coach.style.left = Math.max(margin, vw - cr.width - margin) + 'px';
     }
@@ -754,7 +805,8 @@ function _layoutTour() {
     _layoutTourCorners(null);
     ring.style.display = 'none';
     coach.classList.add('tour-coach-centered');
-    coach.style.display = 'block';
+    coach.style.display = 'flex';
+    coach.style.maxHeight = '';
     coach.style.top = '';
     coach.style.left = '';
   }
@@ -766,8 +818,10 @@ function _onTourKey(ev) {
   else if (ev.key === 'ArrowRight') { ev.preventDefault(); tourNext(); }
   else if (ev.key === 'ArrowLeft') { ev.preventDefault(); tourPrev(); }
 }
-function _onTourReflow() {
+function _onTourReflow(ev) {
   if (!_tour || _tourRafId) return;
+  // Пролистывание текста внутри карточки — не повод пересчитывать раскладку.
+  if (ev && ev.target && ev.target.id === 'tour-coach-text') return;
   _tourRafId = requestAnimationFrame(function () { _tourRafId = 0; _layoutTour(); });
 }
 function _bindTourGlobal() {
