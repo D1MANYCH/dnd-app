@@ -2,7 +2,7 @@
 // sw.js — Service Worker для офлайн-работы D&D Sheet
 // ============================================================
 
-const CACHE_NAME = 'dnd-sheet-v632';
+const CACHE_NAME = 'dnd-sheet-v633';
 
 const FILES_TO_CACHE = [
   './',
@@ -147,14 +147,14 @@ const FILES_TO_CACHE = [
 
 // Хэши файлов прекеша — пишет tools/file-hashes.js (через /bump), руками не править.
 const FILE_HASHES = {
-  './': '9578d64f9ef0da526b86',
-  './index.html': '9578d64f9ef0da526b86',
+  './': '4ba76dfd16c357a783a3',
+  './index.html': '4ba76dfd16c357a783a3',
   './style.css': '100bc884c6f8cc4fef63',
   './app-log.js': '54f5eed79eb54ac7de54',
   './icons.js': '28370adcc628dbc457a0',
   './bg-space.js': '8f5ddcbae1e763435ff8',
   './dice-arena-bg.js': '8c311fce0b0af8d5ef13',
-  './data.js': '533049d9ab2c825d69f2',
+  './data.js': '4e5c39d02a01503384b7',
   './data-2024.js': 'f11a7a9a05946c57b6d4',
   './build-notes-data.js': '524f84e9a42ceec92646',
   './character-builds.js': 'd4379a2c90968a7ae1d3',
@@ -168,7 +168,7 @@ const FILE_HASHES = {
   './app-io.js': '9e3bd77057751774d538',
   './app-backup.js': '92999f765d89fbd6a031',
   './app-sync.js': '5c8518768394eb3cd963',
-  './app-combat.js': '459a1e6fd9a9ea8d6196',
+  './app-combat.js': '21b8a7d7cc4df8e0b57e',
   './app-conditions.js': '087d7bd445ed0721d124',
   './app-cast-effects.js': '1431df4b5df9a39f9f04',
   './app-proficiencies.js': '8cfe09c90265fd929e6f',
@@ -180,7 +180,7 @@ const FILE_HASHES = {
   './subclass-choices-data.js': 'fd4c89d3780eb157ca4a',
   './app-notes.js': '4ad8f3f6188090bdd775',
   './notes-gen-data.js': '4e79af340e55516dd838',
-  './changelog-data.js': 'bf3ddcef515e8441e1e1',
+  './changelog-data.js': '1d49e861eeb83964a4ad',
   './assets/schools/abjuration.webp': '16484747b2a6b35a3a0b',
   './assets/schools/conjuration.webp': 'c980b50f10d846373a66',
   './assets/schools/divination.webp': '94b447a9d11f779e2e62',
@@ -249,7 +249,7 @@ const FILE_HASHES = {
   './history-stack.js': '8b4b8b208c65ccd9a571',
   './app-help.js': 'b419ce997af5f18c3701',
   './app-wiki.js': '864102ed8393fc5b75cf',
-  './app-sheet2.js': '16079eac75ee5a7e7c69',
+  './app-sheet2.js': '1c69d8ec4c33e85136b3',
   './app-pdf.js': 'c09bd86f448b0c85850a',
   './vendor/jspdf/jspdf.umd.min.js': '85ba2cc3ff858a20fa49',
   './vendor/jspdf/roboto-base64.js': '39d97e962c5848003719',

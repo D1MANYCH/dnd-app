@@ -246,5 +246,5 @@ const DEFAULT_CHARACTER = {
 - `node tests/headless-node.js` — headless-тесты логики (слоты, выборы классов, фичи подклассов, билды, импорт/экспорт, инвентарь, правила); сейчас **655/655**.
 - `tests/runner.html` — те же тесты в браузере (`tests/headless.js`), фикстуры — `tests/fixtures.js`.
 - `tests.html` в корне — только кейсы правил (`tests/rules-cases.js`, файл общий с node-раннером: БЛОК 50 в `headless.js` гоняет их тем же движком). Тёмная тема, фильтр «только упавшие», кнопка сброса Service Worker.
-- `verifyAllBuilds()` в DevTools-консоли — verifier 36 билдов (`dev-verify-builds.js`), текущий результат 36/36 fullPass.
+- `verifyAllBuilds()` в DevTools-консоли — verifier билдов (`dev-verify-builds.js`); в CI — `node tools/verify-builds-ci.js` (headless Chrome), текущий результат 48/48 fullPass.
 - CI: `.github/workflows/tests.yml` — тесты + `check-invariant.js` на каждый push/PR.

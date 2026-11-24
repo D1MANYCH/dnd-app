@@ -32,3 +32,6 @@ jobs:
         run: node tools/check-theme.js
       - name: Типографика видимых строк (… / тире в диапазонах / кавычки / неразрывные пробелы, ratchet)
         run: node tools/check-typo.js
+      # ТЕХ-1: verifyAllBuilds() в headless Chrome (предустановлен на ubuntu-latest); любой билд с падением роняет job.
+      - name: Билды (verifyAllBuilds в headless Chrome)
+        run: node tools/verify-builds-ci.js

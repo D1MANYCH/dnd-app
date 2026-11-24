@@ -2261,7 +2261,7 @@ function isSheetLocked(char) {
 
 function sheetLockGuard() {
   if (!isSheetLocked()) return false;
-  showToast("🔒 Лист зафиксирован — нажмите «Изменить», чтобы редактировать", "info");
+  showToast("🔒 Лист зафиксирован — чтобы редактировать, нажмите «Изменить» на\u00a0«Главной»", "info");
   return true;
 }
 

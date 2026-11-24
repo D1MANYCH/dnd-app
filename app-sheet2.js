@@ -130,6 +130,7 @@
     // РД-11: блок «Класс и развитие» ушёл с листа — невыбранное ведёт в «Развитие»
     if (typeof _pgAttention === "function" && _pgAttention(c)) hacts.push("<button type='button' class='s2-link' onclick='openProgress()'>Осталось выбрать →</button>");
     if (bld) hacts.push("<button type='button' class='s2-link' onclick='openBuildBadgeMenu()' title='Гайд по билду'>Билд: " + esc(bld.title) + "</button>");
+    hacts.push("<button type='button' class='s2-link' onclick='unlockSheet()' title='Открыть лист для правок'>Изменить</button>");
     if (hacts.length) h.push("<div class='s2-hacts'>" + hacts.join("") + "</div>");
     h.push("</div></div>");
     // уровень — только текстом, меняется через «Повысить» (П-11)

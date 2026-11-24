@@ -3,33 +3,74 @@
 Что именно вошло в каждую версию: коммиты, изменённые файлы со счётчиком строк и ссылка на полный дифф на GitHub.
 Сгенерировано автоматически из `data.js` + git-истории (`node tools/gen-release-log.js`) — не редактировать вручную.
 
-Актуальная версия — **v5.10.4**.
+Актуальная версия — **v5.10.5**.
 
 📋 [Короткий changelog](../CHANGELOG.md) — то же самое человеческим языком, без технических подробностей.
 🎲 [Открыть приложение](https://d1manych.github.io/dnd-app/)
 
 ---
 
+<a id="v5.10.5"></a>
+## v5.10.5 — 24 ноября 2026
+
+🐛 у зафиксированного персонажа на «Главной» снова есть кнопка «Изменить» — новый лист скрывал её вместе с плашкой замка; подсказка «Лист зафиксирован» и справка указывают, где она находится
+
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/93f752a0...main) · 18 файлов, +346 −231
+
+<details><summary>Коммиты и файлы</summary>
+
+**Коммиты (2):**
+
+- [`00b4de38`](https://github.com/D1MANYCH/dnd-app/commit/00b4de38) chore(tools): база typo nbsp 308 → 316 — ключи таблицы переименований миграции 54 совпадают с именами spells.js и не видны в интерфейсе
+- [`17391904`](https://github.com/D1MANYCH/dnd-app/commit/17391904) chore(dev): /ship переименован в /vypusk, добавлено ревью диффа перед bump
+
+**Файлы (18):**
+
+- `.claude/commands/vypusk.md` +178 −0
+- `.claude/commands/ship.md` +0 −144
+- `index.html` +56 −56
+- `tools/verify-builds-ci.js` +64 −0
+- `sw.js` +7 −7
+- `changelog-data.js` +9 −1
+- `CLAUDE.md` +5 −5
+- `.claude/skills/faza/SKILL.md` +4 −4
+- `CHANGELOG.md` +6 −1
+- `dev-verify-builds.js` +3 −3
+- `.claude/skills/release/SKILL.md` +2 −2
+- `data.js` +2 −2
+- `tools/check-uncommitted-hook.js` +2 −2
+- `tools/typo-baseline.json` +2 −2
+- `.github/workflows/tests.yml` +3 −0
+- `app-combat.js` +1 −1
+- `docs/ARCHITECTURE.md` +1 −1
+- `app-sheet2.js` +1 −0
+
+</details>
+
 <a id="v5.10.4"></a>
 ## v5.10.4 — 23 ноября 2026
 
 🐛 у жреца 2024 «Домен жизни» и «Домен войны» больше не дают владение доспехами и оружием; 53 заклинания PH24 названы по PHB 2024 («Желание», «Полиморф», «Наставление», «Воскрешение», «Высшее воскрешение», «Меч Морденкайнена»), миграция персонажей (схема 54) переименовывает изученные, подготовленные заклинания и концентрацию
 
-🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/d5587ff7...main) · 12 файлов, +278 −163
+🔍 [Полный патч](https://github.com/D1MANYCH/dnd-app/compare/d5587ff7...93f752a0) · 14 файлов, +321 −174
 
-<details><summary>Файлы</summary>
+<details><summary>Коммиты и файлы</summary>
 
-_Список собран при подготовке релиза, по рабочему дереву. Уточняется при следующей генерации._
+**Коммиты (1):**
 
-**Файлы (12):**
+- [`93f752a0`](https://github.com/D1MANYCH/dnd-app/commit/93f752a0) v5.10.4: fix(классы, заклинания): у жреца 2024 «Домен жизни» и «Домен войны» больше не дают владение доспехами и оружием; 53 заклинания PH24 названы по PHB 2024, миграция персонажей (схема 54) переименовывает изученные, подготовленные заклинания и концентрацию
+
+**Файлы (14):**
 
 - `spells.js` +56 −56
 - `index.html` +55 −55
 - `spell-effects.js` +60 −8
+- `docs/RELEASES.md` +37 −5
 - `app-migrate.js` +39 −0
 - `data-2024.js` +22 −15
 - `sw.js` +11 −11
 - `tests/headless.js` +7 −6
+- `docs/map.md` +6 −6
 - `changelog-data.js` +9 −1
 - `character-builds.js` +5 −5
 - `app-wildshape.js` +5 −2

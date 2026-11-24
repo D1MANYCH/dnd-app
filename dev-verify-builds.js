@@ -2,7 +2,7 @@
 // НЕ подключать в index.html (это диагностика). Использовать так:
 //   В консоли (или через preview_eval):
 //     await fetch("dev-verify-builds.js").then(r=>r.text()).then(eval);
-//     verifyAllBuilds();           // таблица всех 36 билдов
+//     verifyAllBuilds();           // таблица всех билдов (в CI: node tools/verify-builds-ci.js)
 //     verifyBuild("wizard-evoker"); // одиночный билд с разбором падений
 //
 // Карта проверок отражает что ДОЛЖЕН делать applyBuild() для любого билда:
@@ -346,7 +346,7 @@
   // BUILD-LVL-1: верификатор данных levelUp (план развития 1–20).
   // Проверяет, что b.levelUp согласован с PHB-механикой и данными CLASS_FEATURES.
   //   verifyLevelUpData("fighter-champion-gwm") — одиночный билд
-  //   verifyAllLevelUpData()                    — таблица всех 36
+  //   verifyAllLevelUpData()                    — таблица всех билдов
   // ════════════════════════════════════════════════════════════════════════
 
   // PHB-2014 уровни ASI/черт (fallback, если CLASS_FEATURES недоступен).
@@ -498,7 +498,7 @@
   // ════════════════════════════════════════════════════════════════════════
   // BUILD-LVL-7: симуляция авто-левелинга 1→20 + инварианты прогрессии.
   //   simulateBuildLevelUp("fighter-champion-gwm") — один билд
-  //   simulateAllBuilds()                          — таблица всех 36
+  //   simulateAllBuilds()                          — таблица всех билдов
   // Симуляция ДАННЫХ (не мутирует персонажа/DOM): идём по плану билда 1→20,
   // накапливая ASI (cap 20), черты и заклинания через те же хелперы, что и guided
   // level-up (getBuildRecAsi/getBuildRecFeat/getBuildRecSpellObjs). Инварианты:
